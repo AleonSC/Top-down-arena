@@ -45,7 +45,6 @@ static partial class Program
         Check(taken > 0f && Math.Abs(taken - t.Total) <= t.Total * 0.1f, "the dummy's damage taken matches the meter");
         Check(dummy.Hp >= dummy.MaxHp * 0.99f && g.Enemies.ContainsKey(dummy.Id), "a dummy never dies");
         Check(t.Average > Defs.WeaponDps(me.Weapon.Id) * 0.3f, "the meter reads in the same range as the sim's weapon DPS");
-        float peakBefore = t.Peak;
 
         // Idle: the combat clock stops, so the average doesn't sink while you stand about.
         float avgBefore = t.Average, combat = t.CombatTime;

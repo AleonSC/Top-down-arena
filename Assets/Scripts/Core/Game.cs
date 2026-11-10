@@ -1181,7 +1181,7 @@ namespace Arena
             KeepOutOfDomes();  // Fortress's dome (Dome.cs)
             KeepOutOfAegis(dt);  // Aeroaegis's vortex (Aegis.cs)
             KeepOutOfShell(dt);  // Blood Shell (BloodShell.cs)
-            KeepOffBridges();    // the Drawbridge (Drawbridge.cs)
+            KeepOffBridges(dt);    // the Drawbridge (Drawbridge.cs)
             KeepOffBloodWalls(dt);  // Blood Wall (BloodWall.cs): pushes enemies back, bleeds those against it
             KeepOffPhalanx();    // the Bone Phalanx's shields (BonePhalanx.cs)
             TickMinions(dt);
@@ -1269,19 +1269,8 @@ namespace Arena
                 if (p.EnergyOn && p.ShieldHp <= 0f)
                     EnergyPayback(p);  // the Energy Ward ran out: what it soaked comes back as healing (Minions.cs)
                 p.LifestealPool = Math.Min(10f, p.LifestealPool + 10f * dt);
-                p.LinkT = Math.Max(0f, p.LinkT - dt);
                 if (p.Downed)
-                    p.TauntT = p.LinkT = 0f;
-                if (p.LinkT > 0f)
-                {
-                    Player q;
-                    float heal = LinkHeal * p.Stats.LinkHealMult * dt;
-                    Heal(p, heal, p);
-                    if (Players.TryGetValue(p.LinkTo, out q) && q != p)
-                        Heal(q, heal, p);
-                    else
-                        HealSoulGhost(p, heal);  // alone: the link heals your ghost (SoulGhost.cs)
-                }
+                    p.TauntT = 0f;
                 p.FireCd -= dt;
                 TickSpinUp(p, dt);  // the Burst SMG (Weapons.cs)
                 TickRapier(p, dt);  // the Rapier's Tempo and Flourish (Rapier.cs)
@@ -1352,7 +1341,7 @@ namespace Arena
                 }
                 else if (p.ReviveBy == 0)
                     p.Revive = Math.Max(0f, p.Revive - dt * 0.25f);
-                // A Haven or other zone can finish the revive on its own (it sets ReviveBy to its owner).
+                // A zone with a revive boost (ExtraRevive: the Censer's cloud, a ward) can finish the revive on its own (it sets ReviveBy to its owner).
                 if (p.Revive >= 1f)
                     RevivePlayer(p, 0.35f, PlayerOrNull(p.ReviveBy));
                 p.ReviveBy = 0;

@@ -23,7 +23,7 @@ namespace Arena
             bool any = false;
             foreach (var e in new System.Collections.Generic.List<Enemy>(Enemies.Values))
             {
-                if (e.SpawnT > 0f || e.Hp <= 0f)
+                if (!Targetable(e))
                     continue;
                 V2 rel = e.Pos - origin;
                 float d = rel.Length;

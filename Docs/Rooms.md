@@ -1,6 +1,6 @@
 # Rooms: a hub with side rooms on every regular wave
 
-**Status: phases 0-3 built (protocol 234): the Arena setting, the Wings world and its camera, nests, spills, locked
+**Status: phases 0-3 built (protocol 234; 236 once merged into main, Nov 10): the Arena setting, the Wings world and its camera, nests, spills, locked
 doors, room rewards, the minimap, the vault with the Gatekeeper, and a first tuning pass (Rooms-only 1.3x enemy damage).
 Next: play it in Unity and adjust; then phase 4 (the power-stacking nerf pass).**
 Mockup: [`Mockups/rooms.html`](Mockups/rooms.html) (https://claude.ai/artifact/4GPVBfq2ytFkB3oKkbSevj): three maps (Wings,

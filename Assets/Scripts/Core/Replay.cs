@@ -30,7 +30,7 @@ namespace Arena
     public class ReplayFile
     {
         public const string Ext = ".replay";
-        public const int FormatVersion = 3;  // 2: the match-start message carries each player's perks and snapshots carry Riot Gear's timer; 3: snapshots carry a Bone Phalanx's walk and skeletons (old replays no longer read)
+        public const int FormatVersion = 6;  // 2: the match-start message carries each player's perks and snapshots carry Riot Gear's timer; 3: snapshots carry a Bone Phalanx's walk and skeletons; 4: Soul Link's player fields and the Soul Ghost minion kind are gone; 5: ZoneKind.Lantern is gone, so later zone kinds renumbered; 6: ZoneKind.Haven too (old replays no longer read)
         static readonly byte[] Magic = { (byte)'A', (byte)'R', (byte)'N', (byte)'R' };
 
         // Header (what the list shows).
@@ -403,7 +403,6 @@ namespace Arena
         public int Frames => File.Frames;
         public float Time => File.TimeAt(Frame);
         public float Length => File.Seconds;
-        public bool AtEnd => Frame >= Frames;
 
         public void Load(ReplayFile f)
         {

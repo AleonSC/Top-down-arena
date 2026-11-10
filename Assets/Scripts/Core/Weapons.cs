@@ -54,7 +54,6 @@ namespace Arena
         /// spread: each shot lands somewhere within this many radians of your aim (fanning the hammer).
         void FirePlayer(Player p, float spread = 0f)
         {
-            float dmg = p.Stats.DmgMult;
             // Each extra projectile (Multishot, Artillery Assault) upgrades the weapon in its own way.
             int extra = ExtraShots(p);
             FireFanned(p, p.Aim + (spread > 0f ? Rand(-spread, spread) : 0f), extra);
@@ -129,7 +128,7 @@ namespace Arena
         void FlakAirburst(Bullet b)
         {
             foreach (var e in Enemies.Values)
-                if (e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(b.Pos) < b.Splash + e.Radius && !BlocksShot(e, b.Pos))
+                if (Targetable(e) && e.Pos.DistanceTo(b.Pos) < b.Splash + e.Radius && !BlocksShot(e, b.Pos))
                 {
                     HurtEnemy(e, b.Dmg, b.Owner);
                     OnBulletHit(b, e);

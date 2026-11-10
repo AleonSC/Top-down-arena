@@ -65,8 +65,6 @@ namespace Arena
         Enemy actingEnemy;   // host: the enemy whose turn it is in TickEnemies (SpawnBullet stamps its shots with it)
         float lastTaken;     // host: what the last Damage call took off its player (0 when nothing got through)
 
-        static bool IsLightningRod(Player p) => p.Slots[Upgrades.UltSlot].Id == AbilityId.LightningRod;
-
         void CastLightningRod(Player p, bool mastered)
         {
             float time = mastered ? RodTimeMastered : RodTime;
@@ -171,11 +169,11 @@ namespace Arena
         {
             float mult = p.Stats.DmgMult;
             float bolt = RodBoltDamage * mult, arc = RodArcDamage * mult;
-            bool alive = struck != null && struck.Hp > 0f && struck.SpawnT <= 0f;
+            bool alive = struck != null && Targetable(struck);
             BroadcastFx(FxKind.RodBolt, at, new V2(p.Id, bolt), RodBlue, alive ? struck.Radius : 0f, RodBoltFx, Sfx.SpellZap);
             var near = new List<Enemy>();
             foreach (var e in Enemies.Values)
-                if (e != struck && e.SpawnT <= 0f && e.Hp > 0f && !DevourUnder(e) && e.Pos.DistanceTo(at) < RodArcReach + e.Radius)
+                if (e != struck && Targetable(e) && !DevourUnder(e) && e.Pos.DistanceTo(at) < RodArcReach + e.Radius)
                     near.Add(e);
             near.Sort((a, b) => a.Pos.DistanceSq(at).CompareTo(b.Pos.DistanceSq(at)));
             if (alive)

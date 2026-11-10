@@ -23,8 +23,7 @@ namespace Arena
         public float LockX;                                   // replicated: the gold lock in its middle stretch...
         public int LockHp;                                    // ...the hits it has left...
         public bool LockOpen;                                 // ...and, shot out, a third door where it was
-        public readonly HashSet<int> Hit = new HashSet<int>();     // host: players it has hurt (once each)...
-        public readonly HashSet<int> Rolled = new HashSet<int>();  // ...and rolled over against the edge (once more)
+        public readonly HashSet<int> Hit = new HashSet<int>();  // host: players it has hurt (once each)
     }
 
     /// Everything about the Warden's fight that its body doesn't already carry. The host runs it; clients get it
@@ -1066,7 +1065,7 @@ namespace Arena
                     continue;
                 Enemy hit = null;
                 foreach (var r in Enemies.Values)
-                    if (r.Type == EnemyType.Rioter && r.SpawnT <= 0f && r.Hp > 0f && r.Pos.DistanceTo(g.Pos) < g.Radius + r.Radius + GuardReach)
+                    if (r.Type == EnemyType.Rioter && Targetable(r) && r.Pos.DistanceTo(g.Pos) < g.Radius + r.Radius + GuardReach)
                     {
                         hit = r;
                         break;

@@ -102,7 +102,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 234;  // 234: the Rooms arena's nests, spills and vault in the snapshot (SyncRooms); 233: the Rooms arena
+        public const int ProtocolVersion = 236;  // 236: main (235) merged with the Rooms arena (233-234: DiffKnob.ArenaRooms, the layout byte's top bit, SyncRooms)
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello

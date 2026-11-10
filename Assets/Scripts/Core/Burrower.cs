@@ -69,7 +69,7 @@ namespace Arena
             float best = BurrowerSeek;
             foreach (var e in Enemies.Values)
             {
-                if (e.SpawnT > 0f || e.Hp <= 0f || m.Burrowed.Contains(e.Id))
+                if (!Targetable(e) || m.Burrowed.Contains(e.Id))
                     continue;
                 float dist = e.Pos.DistanceTo(m.Pos);
                 if (dist < best)
@@ -88,7 +88,7 @@ namespace Arena
             m.Pos = ClampToArena(m.Pos + V2.FromAngle(m.Aim) * d.Speed * dt, 30f);
             foreach (var e in Enemies.Values)
             {
-                if (e.SpawnT > 0f || e.Hp <= 0f || m.Burrowed.Contains(e.Id) || e.Pos.DistanceTo(m.Pos) >= d.Range + e.Radius)
+                if (!Targetable(e) || m.Burrowed.Contains(e.Id) || e.Pos.DistanceTo(m.Pos) >= d.Range + e.Radius)
                     continue;
                 m.Burrowed.Add(e.Id);
                 HurtEnemy(e, dmg, owner.Id);

@@ -2,7 +2,7 @@
 
 Quick index of the source. Paths are under `Assets/Scripts/` (`Core/` = plain C# logic, namespace `Arena`, no Unity;
 `Game/` = Unity front end). `Game` (Core) is one big `partial class` split by feature; `ArenaApp` (Game/) is the
-front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-facing reference: `README.md`.
+front-end `partial class`. Older, more detailed per-file notes (not maintained): `Docs/CodeNotes.md`. Player-facing reference: `README.md`.
 
 ## Engine and match flow (Core)
 - `Game.cs`: match state, lifecycle, frame loop (`FixedStep`, `HostTick`), picks, local movement/dash
@@ -92,7 +92,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `BonePhalanx.cs`, `Game/BonePhalanxLook.cs`: the Tank Summoner's second ultimate, Bone Phalanx (key 1 of the lobby's Ultimate row: `UltKey = 1`): a `ZoneKind.Phalanx` line of 8 shield skeletons (Pos = shield face, Aim = heading, replicated `Zone.Marched` and one health byte per skeleton in `Zone.Bones`) that steps out of a bone gate and marches 260 px; `PhalanxStops` (enemy-bullet loop in `Combat.cs`), `ShovePhalanx`/`KeepOffPhalanx` (shove, Heavy pace, boss/wall stop), spears, `CrumblePhalanx`; `FxKind.PhalanxJab`/`PhalanxSpark`/`PhalanxBreak`; mockup `Docs/Mockups/bone-phalanx.html`; preview `PHALANX=<s>` (`Tools/Preview/ShotPhalanx.cs`); test suite `phalanx`
 - `Burrower.cs`, `Game/BurrowerLook.cs`: the Tank Summoner's Earthquake (a 25-damage slam round you, then a `MinionKind.Burrower` that breaks out at the cursor and tunnels 3 s, biting each enemy it passes under once for 30; `FxKind.BurrowSnap` for the head popping up under a bite) and its drawing (mound, scar, dust, rock)
 - `Hydra.cs`, `Game/HydraLook.cs`: the Summoner DPS's Hydra ability (a stationary minion whose heads each spit at a different enemy) and its drawing
-- `SoulLantern.cs`, `Medkit.cs`: Healer Summoner's Soul Lantern (linked lantern minion), Healer Soldier's Deployable Medkit (thrown case, healing orbs); `SoulGhost.cs` is the retired Soul Link ghost, no longer cast
+- `SoulLantern.cs`, `Medkit.cs`: Healer Summoner's Soul Lantern (linked lantern minion), Healer Soldier's Deployable Medkit (thrown case, healing orbs)
 
 ## Enemies and bosses (Core)
 - `EnemyAI.cs`: enemy roster per wave, movement, firing, contact damage, bullet budget
@@ -110,6 +110,8 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - Bosses by wave: `Warden.cs` (5), `Queen.cs` (10), `Reapers.cs` (15), `Singularity.cs` (20), `Colossus.cs` (25),
   `Duelist.cs` (30), `Lich.cs` (35), `Herald.cs` (40), `Devourer.cs` (45), `Eclipse.cs` (50); `LateGame.cs` is the shared
   late-boss logic
+- `Targets.cs`: shared targeting helpers: `FirstAlive`, `AlivePlayersList`, `NearestPlayer`, `RandomLivingPlayer`,
+  `BossTarget(e)` (its target while up, else the first player up) and `Targetable(e)` (host: spawned in and alive)
 - `BossLab.cs`, `BotBrain.cs`: Boss Lab sessions, the "smart" bot
 - `PartyBots.cs`: bots that fill the lobby's open slots (extra sessions joined over localhost; stepped by `ArenaApp`; buttons in `LobbyUi.cs`)
 - Boss loot: `QueenLoot.cs`, `ReaperLoot.cs` (legendary weapons/abilities)
@@ -203,6 +205,9 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
   `DuelistLook.cs`, `LichLook.cs`, `HeraldLook.cs`, `DevourerLook.cs`, `EclipseLook.cs`, `StageShiftLook.cs`,
   `QueenLootLook.cs`, `ReaperLootLook.cs`
 - `PixelArt.cs`, `ModIcons.cs`: pixel icons as text grids (`ModIcons.cs`: the Modifiers tab's)
+- `Game/BatLook.cs`: a Bat Swarm bat, look B (Belfry burst) of `Docs/Mockups/bat-swarm-rework.html`: flapping wings, a dive streak, feathers as it fades
+- `Game/HealerKitLooks.cs`: the Healer's Soul Lantern (iron cage, teal flame, ribbon to its linked player) and Deployable Medkit (case, healing orbs) looks
+- `Game/PingLooks.cs`: pings on screen and their input (tap or hold-wheel on the Ping key, `TickPing`, `DrawMatchPings`); the logic is `Core/Pings.cs`
 
 ## HUD and in-run UI (Game)
 - `RoundWindows.cs`: the between-round windows' shared frame: the dark layer over the arena (`RoundBackdrop`, each window's strength), a part fading and sliding in (`RoundPart`, fades `Ui.Alpha` too), the CRT tube a window sits in (`RoundTube`); used by the results, picker, shop, path choice and Wave cleared box
@@ -218,6 +223,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `PickIntro.cs`, `PickOutro.cs`, `RunEnding.cs`, `Recall.cs`, `LaunchIntro.cs`: picker open/close, run end, beam-out, run launch
 - `PathsUi.cs`, `ShopUi.cs`, `RunStatsUi.cs`, `HuntUi.cs`: path cards, shop screen, run stats screen (the Tab screen, as hologram panels), hunt tab
 - `TabHolo.cs`: the Tab screen's hologram panels (glass, scanlines, band, fringe, flicker, switch-on), the projector beam, and its layout and text helpers
+- `Game/HudModes.cs`: the HUD modes on H (full, corner text, on the player, hidden); the two partial modes in the CRT look of `Docs/Mockups/crt-hud-modes.html`
 
 ## Menus and lobby (Game)
 - `ArenaApp.cs`: boot, input, frame loop, layout/scaling, `OnGUI` dispatch
@@ -227,7 +233,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `MenuServo.cs`: the Play move (bay doors, Servo): split-flap header, split Play key, floor drop-outs, runs screen opening, shared Quit/Back key, `Sfx.Bay*` cues
 - `MenuVhs.cs`: the main menu buttons' VHS hover (with the `Sfx.MenuHover` tape-head tick on enter, via `MenuVhs.OnHover`; `Ui.SilentHover` mutes the generic hover tick for these buttons) and snap-to-focus click (`MenuVhs.Draw` wraps a button's draw call in `Menus.cs` and `SavesUi.cs`)
 - `CrtStyle.cs`: **the CRT look's settings**: the palette (Ink, Dim, Bg, Danger, Body, Desc, Head, Gold, the box/corner/glass colours) and how every CRT key is drawn (fill and outline strengths, widths, text mix, locked/waiting/static keys, the HUD console's keys, the inverse-video keys); change a value to restyle every CRT screen
-- `CrtUi.cs`: the blue-phosphor CRT look of the latest-run card, the older-runs page and the tip box (`Begin`, glowing `Text`, inverse-video `Button`/`Small`/`Tile`, `End` for scanlines and glass); Reduced effects drops glow, roll bar and flicker
+- `CrtUi.cs`: the blue-phosphor CRT look of the Play picker and the path choice (`Begin`, glowing `Text`, `SoftKey` (lit, danger, quiet) for every key on these screens, `End` for scanlines and glass); Reduced effects drops glow, roll bar and flicker
 - `KeyUi.cs`: the menu's mechanical keycap buttons (`KeyUi.Key`: a keycap in a dark well with a corner lamp and a few pixels of travel; `KeyUi.Well` for rings). Used by the main menu's Play / Join game / Records / Settings (`Menus.cs`) and the Play screen's New run and Back (`SavesUi.cs`)
 - `StormHammer.cs`, `Game/StormHammerLook.cs`: the Elementalist Tank's Storm Hammer: the throw is queued by `FireVolley` (`QueueHammerThrow`) and leaves the hand `HammerThrowRelease` later (`TickHammerThrows`); the Alt slam (`DashHammerSlam` over `Msg.WeaponDash`, `HostHammerSlam`, `TickHammerSlams`: wind-up, then a shockwave that hurts, shoves and electrifies each enemy once); `FxKind.HammerThrow` is the held hammer's pose clock (Pos2.X 0 throw, 1 slam), `FxKind.HammerSlam` the wave. Looks: held pose (`DrawStormHammerHeld`), Thunderhead projectile (`DrawStormHammerThunder`), Pulse wave (`DrawHammerSlamFx`, `DrawHammerGlow`); mockups `Docs/Mockups/storm-hammer-throw.html`, `storm-hammer-slam.html`; preview `HAMMERFX=throw:0.1|slam:0.45|wave:0.25`; tests `run.sh 1 30 storm` and `stormslam`
 - `Keybinds.cs`, `KeybindsUi.cs`: every rebindable key (`KeyAction`, defaults, saved in PlayerPrefs, rebind capture) and Settings → Keybinds. Weapon secondaries read `PlayerInput.WeaponAction` (Left Alt) in `Core/Ninja.cs` `LocalWeaponDash`
@@ -245,12 +251,16 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `RunGraphs.cs`: Records > Recent runs (`DrawRecentRuns`: run strip, stat tiles, Overview and Trends tabs; GL line/area charts with hover readouts)
 - `SavesUi.cs`: the Play picker in the main menu box (one scrolling CRT list of every save, newest first, with Continue and DEL on each row; New run under it), Records, unlock toasts. The box sweeps between the menu buttons and this picker with a scan line (`menuPlayK`, `Menus.cs`)
 - `FieldGuide.cs`, `ReferencePages.cs`: in-game Bestiary/Armory, links to the web pages
+- `Game/CrtKit.cs`: shared CRT cabinet pieces (retyping text, power-on, boot-log line, scan bar, soft digital key, the floating chassis and soft edges)
+- `Game/DifficultyUi.cs`: the lobby's Difficulty tab (five cards, then every number as a slider with a text box; host edits, others read)
+- `Game/ModifiersUi.cs`: the lobby's Modifiers tab (tiles in two columns under foldable tier headings, `DrawModTile`)
 
 ## Dev tools and editors (Game)
 - `DpsMeterUi.cs`: F2 DPS meter overlay and the F1 DPS tab
 - `ReplayUi.cs`: F1 Replays tab (record, folder, list, rename, delete) and the replay timeline bar; `Core/Replay.cs` is the file, recorder and player
 - `DevMenu.cs`, `DevTextEdit.cs`, `BossLabUi.cs`, `PracticeUi.cs`, `WaveEditorUi.cs`: F1 tools, F4 text edit, Boss Lab, Practice Range, F1 wave editor
 - `../Editor/ArenaEditor.cs`: scene setup and Windows build menu item
+- `Game/ClickLog.cs`: a temporary lost-click debugging aid: F9 shows the last mouse presses and releases and logs them
 
 ## Audio (Game)
 - `SoundBank.cs`: every synthesised sound effect
@@ -260,7 +270,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 
 ## Tools and docs (repo root)
 - `Tools/CompileCheck`, `Tools/SimTest` (tests in `Tools/SimTest/Tests`), `Tools/RenderCheck`, `Tools/Preview`, `Tools/SoundCheck`, `Tools/SessionReport`, `Tools/TextEdits`, `Tools/WaveGen` (builds `Data/Waves` into code): see `HANDOFF.md` §3
-- `Docs/AfterReset.md` (owner to-do), `Docs/History.md` (changelog), `Docs/Bestiary/` and `Docs/Armory/` (reference pages), `Docs/Mockups/`
+- `Docs/AfterReset.md` (owner to-do), `Docs/History.md` (finished to-do entries, audit notes, changelog), `Docs/CodeNotes.md` (older detailed per-file notes, not maintained), `Docs/Bestiary/` and `Docs/Armory/` (reference pages), `Docs/Mockups/`
 
 ## Where to look for...
 | Task | Files |
@@ -293,4 +303,4 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 | Bots, Boss Lab, lobby bots | `BotBrain.cs`, `BossLab.cs`, `BossLabUi.cs`, `PartyBots.cs` |
 | Practice Range, wave editor | `Practice.cs`, `PracticeUi.cs`, `WaveDesign.cs`, `WaveEditorUi.cs`; built-in designs: `Data/Waves`, `Tools/WaveGen/build.sh`, `DesignedWaves.cs` |
 | See every UI screen, or what a UI change changed | `Tools/Preview/uishots.sh [-r git-ref]` (list in `Tools/Preview/ui-screens.txt`; `HANDOFF.md` §3) |
-| A change doesn't compile or a test fails | `Tools/CompileCheck/check.sh`, `Tools/SimTest/run.sh`; Unity stubs in `Tools/CompileCheck/UnityStubs.cs` and `Tools/Preview/Stubs.cs` |
+| A change doesn't compile or a test fails | `Tools/CompileCheck/check.sh`, `Tools/SimTest/run.sh`; Unity stubs in `Tools/Preview/Stubs.cs` (one copy for every tool) |

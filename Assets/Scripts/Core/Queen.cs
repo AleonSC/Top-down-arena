@@ -714,10 +714,7 @@ namespace Arena
             V2 goal = e.Pos;
             if (!q.CloudHome)
             {
-                Player nearest = null;
-                foreach (var p in Players.Values)
-                    if (!p.Downed && (nearest == null || p.Pos.DistanceSq(q.Cloud) < nearest.Pos.DistanceSq(q.Cloud)))
-                        nearest = p;
+                Player nearest = NearestPlayer(q.Cloud);
                 if (nearest == null)
                     q.CloudHome = true;
                 else

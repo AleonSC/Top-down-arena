@@ -344,7 +344,6 @@ static partial class Program
         float windDir = h.Herald.Wind;
         for (int f = 0; f < 30; f++) { safe(); g.Players[1].Pos = c.Players[1].Pos = new V2(700f, 600f); Step(s[0], dt); Step(s[1], dt); Thread.Sleep(1); }
         float pushed = (c.Players[2].Pos.X - before.X) * windDir;
-        var bl = g.Bullets.Values.FirstOrDefault(b => b.Source == EnemyType.StormHerald);
         Console.WriteLine("  wind: the client's player drifted {0:0} px downwind in 0.5 s", pushed);
         Check(pushed > 20f && pushed < 50f, "the wind pushes players about 70 px/s");
 

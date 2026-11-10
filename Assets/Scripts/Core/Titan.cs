@@ -43,7 +43,7 @@ namespace Arena
         {
             foreach (var e in Enemies.Values)
             {
-                if (e.SpawnT > 0f || e.Hp <= 0f || e.Pos.DistanceTo(at) >= reach + e.Radius)
+                if (!Targetable(e) || e.Pos.DistanceTo(at) >= reach + e.Radius)
                     continue;
                 V2 away = e.Pos - at;
                 if (!Heavy(e))

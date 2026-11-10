@@ -46,7 +46,7 @@ static partial class Program
 
         // Scattergun.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Scattergun);
-        var sg = place(new[] { from + new V2(80f, 0f) });
+        place(new[] { from + new V2(80f, 0f) });
         volley.Invoke(g, new object[] { me, 0f, 0 });
         bool flagged = g.Bullets.Values.Where(b => b.Owner == 1).All(b => b.PointBlank);
         Func<V2, float[]> Pellet = at =>
@@ -1016,7 +1016,7 @@ static partial class Program
         // Rapier (Rapier.cs): a thrust skewers enemy bullets along its line (3 at most); they add no Tempo, the enemy hit adds one.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Rapier);
         me.RapierTempoF = 0f; me.RapierTempo = 0; me.FireCd = 0f;
-        var mark = dummy(from + new V2(120f, 0f), 1e5f);
+        dummy(from + new V2(120f, 0f), 1e5f);
         volley.Invoke(g, new object[] { me, 0f, 0 });
         play(0.1f, new PlayerInput());
         int s0 = me.RapierTempo;

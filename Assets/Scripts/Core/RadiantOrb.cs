@@ -46,7 +46,7 @@ namespace Arena
             bool hit = false, touched = false;
             foreach (var e in Enemies.Values)
             {
-                if (e.SpawnT > 0f || e.Hp <= 0f || e.Pos.DistanceTo(p.RadiantPos) > r + e.Radius)
+                if (!Targetable(e) || e.Pos.DistanceTo(p.RadiantPos) > r + e.Radius)
                     continue;
                 hit = touched = true;
                 HurtEnemy(e, dmg, p.Id);

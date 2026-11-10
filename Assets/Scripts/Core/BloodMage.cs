@@ -169,7 +169,7 @@ namespace Arena
             beamOrder.Clear();
             foreach (var e in Enemies.Values)
             {
-                if (e.SpawnT > 0f || e.Hp <= 0f)
+                if (!Targetable(e))
                     continue;
                 V2 rel = (drawn ? e.Disp : e.Pos) - from;
                 float along = rel.X * dir.X + rel.Y * dir.Y, across = Math.Abs(rel.X * side.X + rel.Y * side.Y), reach = e.Radius + halfWidth;
@@ -538,7 +538,7 @@ namespace Arena
             e.Hemorrhage = 0;
             float dmg = boltDmg * HemorrhageMult, r = HemorrhageRadius * AreaMult(p);
             foreach (var o in Enemies.Values)
-                if (o.SpawnT <= 0f && o.Hp > 0f && o.Pos.DistanceTo(e.Pos) < r + o.Radius)
+                if (Targetable(o) && o.Pos.DistanceTo(e.Pos) < r + o.Radius)
                     HurtEnemy(o, dmg, p.Id);
             BroadcastFx(FxKind.Implode, e.Pos, new Rgba(0.85f, 0.1f, 0.18f), r, 0.35f, Sfx.Explode);
         }
@@ -584,7 +584,7 @@ namespace Arena
         void LandClot(Bullet b)
         {
             foreach (var e in Enemies.Values)
-                if (e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(b.Pos) < b.Splash + e.Radius && !BlocksShot(e, b.Pos))
+                if (Targetable(e) && e.Pos.DistanceTo(b.Pos) < b.Splash + e.Radius && !BlocksShot(e, b.Pos))
                 {
                     HurtEnemy(e, b.Dmg, b.Owner);
                     OnBulletHit(b, e);
@@ -601,7 +601,7 @@ namespace Arena
         {
             z.Congealed = true;
             foreach (var e in Enemies.Values)
-                if (e.SpawnT <= 0f && e.Hp > 0f && !e.Def.IsBoss && e.Pos.DistanceTo(z.Pos) <= z.Radius + e.Radius)
+                if (Targetable(e) && !e.Def.IsBoss && e.Pos.DistanceTo(z.Pos) <= z.Radius + e.Radius)
                 {
                     e.FrozenT = Math.Max(e.FrozenT, PoolStuck);
                     e.SlowT = Math.Max(e.SlowT, PoolStuck);

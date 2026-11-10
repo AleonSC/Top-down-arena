@@ -66,7 +66,7 @@ namespace Arena
             harvestTargets.RemoveAll(t => t.Owner == p.Id);
             V2 ball = p.Pos + new V2(0f, -HarvestLift);  // (the arena's y runs down)
             foreach (var e in Enemies.Values)
-                if (e.SpawnT <= 0f && e.Hp > 0f)
+                if (Targetable(e))
                     harvestTargets.Add(new HarvestTarget { Owner = p.Id, Enemy = e.Id, Start = HarvestStart(e.Pos.DistanceTo(ball), e.Id), Weight = HarvestWeight(e) });
             BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.85f, 0.12f, 0.2f), 120f, 0.5f, Sfx.Roar);
         }
@@ -138,7 +138,7 @@ namespace Arena
             float R = HarvestRadius(h.Blood), D = HarvestDamage(h.Blood) * h.Mult;
             foreach (var e in Enemies.Values)
             {
-                if (e.SpawnT > 0f || e.Hp <= 0f)
+                if (!Targetable(e))
                     continue;
                 float d = e.Pos.DistanceTo(h.To);
                 if (d > R + e.Radius)

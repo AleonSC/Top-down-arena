@@ -205,7 +205,7 @@ namespace Arena
         /// The standing skeleton nearest enemy e whose shield it is pressed against (at the face, from either side), or -1.
         int PhalanxContact(Zone z, Enemy e, V2 local)
         {
-            if (e.SpawnT > 0f || e.Hp <= 0f || local.X >= PhalanxFace + e.Radius + PhalanxSlack || local.X <= -PhalanxBack - e.Radius - PhalanxSlack)
+            if (!Targetable(e) || local.X >= PhalanxFace + e.Radius + PhalanxSlack || local.X <= -PhalanxBack - e.Radius - PhalanxSlack)
                 return -1;  // (the slack: one held exactly at the shield still counts as pressed against it)
             int n = PhalanxSkeletons(z), best = -1;
             for (int i = 0; i < n; i++)
@@ -349,7 +349,7 @@ namespace Arena
                 float a = me.Aim + k * (MathX.Pi / 16f), score = 0f;
                 foreach (var e in Enemies.Values)
                 {
-                    if (e.SpawnT > 0f || e.Hp <= 0f)
+                    if (!Targetable(e))
                         continue;
                     V2 off = e.Pos - me.Pos;
                     float d = off.Length;

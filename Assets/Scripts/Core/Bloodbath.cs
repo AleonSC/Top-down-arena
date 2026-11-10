@@ -29,7 +29,6 @@ namespace Arena
         public const float BathStart = 0.12f;  // the pool's size the moment it's cast, as a share of its full size
         public const float BathDry = 1.2f;     // how long an ended pool takes to dry up on screen (it does nothing meanwhile)
         public const float BathHealFxTime = 0.9f;
-        public static readonly Rgba BathRed = new Rgba(0.55f, 0.03f, 0.08f);
 
         bool bathTick;  // a Bloodbath tick is dealing its damage: BloodLifesteal gives no 3% on it
         readonly System.Collections.Generic.List<Enemy> bathScratch = new System.Collections.Generic.List<Enemy>();
@@ -68,7 +67,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var e in Enemies.Values)
-                if (e.SpawnT <= 0f && e.Hp > 0f && InBath(z, e.Pos, e.Radius))
+                if (Targetable(e) && InBath(z, e.Pos, e.Radius))
                     n++;
             return n;
         }
@@ -89,15 +88,6 @@ namespace Arena
 
         /// How much an enemy in the pool is slowed: bosses least, Heavy enemies less than the rest.
         public static float BathSlowFor(Enemy e) => e.Def.IsBoss ? BathSlowBoss : e.Def.Heavy ? BathSlowHeavy : BathSlow;
-
-        /// Damage cut for a player standing in any Bloodbath (Damage).
-        float BathCut(Player p)
-        {
-            foreach (var z in Zones.Values)
-                if (InBath(z, p.Pos, 0f))
-                    return BathGuard;
-            return 0f;
-        }
 
         void CastBloodbath(Player p, bool cap)
         {
@@ -131,7 +121,7 @@ namespace Arena
             }
             foreach (var e in Enemies.Values)
             {
-                if (e.SpawnT > 0f || e.Hp <= 0f || !InBath(z, e.Pos, e.Radius))
+                if (!Targetable(e) || !InBath(z, e.Pos, e.Radius))
                     continue;
                 if (Heavy(e))  // (LateGame.cs: Heavy enemies and bosses) the usual slow skips them, so they wade instead
                 {
@@ -157,7 +147,7 @@ namespace Arena
             float heal = 0f, dmg = BathBleed * BathTick * z.DmgMult;
             bathScratch.Clear();
             foreach (var e in Enemies.Values)
-                if (e.SpawnT <= 0f && e.Hp > 0f && InBath(z, e.Pos, e.Radius))
+                if (Targetable(e) && InBath(z, e.Pos, e.Radius))
                     bathScratch.Add(e);
             foreach (var e in bathScratch)
             {

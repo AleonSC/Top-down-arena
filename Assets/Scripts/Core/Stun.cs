@@ -110,7 +110,7 @@ namespace Arena
         {
             Enemy target = null;
             foreach (var e in Enemies.Values)
-                if (e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(owner.Pos) < GuardLeash + e.Radius
+                if (Targetable(e) && e.Pos.DistanceTo(owner.Pos) < GuardLeash + e.Radius
                     && (target == null || e.Pos.DistanceSq(m.Pos) < target.Pos.DistanceSq(m.Pos)))
                     target = e;
             V2 goal = target != null ? target.Pos : owner.Pos + V2.FromAngle(owner.Aim + MathX.Pi * 0.75f + m.Ang) * 45f;
@@ -123,16 +123,14 @@ namespace Arena
             return target;
         }
 
-        /// Minions with health that enemies can hurt: Warden's Guards, Soul Ghosts (SoulGhost.cs) and Force Pact thralls (ForcePact.cs).
-        static bool HasHealth(Minion m) => m.Kind == MinionKind.WardenGuard || m.Kind == MinionKind.SoulGhost || m.Kind == MinionKind.Thrall;
+        /// Minions with health that enemies can hurt: Warden's Guards and Force Pact thralls (ForcePact.cs).
+        static bool HasHealth(Minion m) => m.Kind == MinionKind.WardenGuard || m.Kind == MinionKind.Thrall;
 
-        /// Damage to a guard (or a Soul Ghost); at zero it falls, and a guard's owner has the next one on the way.
+        /// Damage to a guard (or a thrall); at zero it falls, and a guard's owner has the next one on the way.
         void HurtGuard(Minion m, float dmg)
         {
             if (m.Hp <= 0f || !Minions.ContainsKey(m.Id))
                 return;
-            if (m.Kind == MinionKind.SoulGhost)
-                dmg = GhostDamage(m, dmg);  // its Soul Link halves it (SoulGhost.cs)
             m.Hp -= dmg;
             if (m.Hp > 0f)
                 return;
@@ -216,7 +214,7 @@ namespace Arena
                 return;
             foreach (var e in Enemies.Values)
             {
-                if (e.SpawnT > 0f || e.Hp <= 0f)
+                if (!Targetable(e))
                     continue;
                 if (e.LitT < 0f)
                 {

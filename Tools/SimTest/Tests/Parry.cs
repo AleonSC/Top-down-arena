@@ -14,7 +14,6 @@ static partial class Program
     {
         var s = StartBuffed(dt, 5, 0);
         Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Boss); return b != null && b.SpawnT <= 0f; });
-        var w = Find(s[0], EnemyType.Boss);
         var me = s[0].Game.Players[1];
         s[1].Game.Bot = false;
         s[0].Game.Bot = true;  // aims at the Warden and holds the trigger

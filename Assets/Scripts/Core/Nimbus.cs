@@ -38,7 +38,7 @@ namespace Arena
                 BroadcastFx(FxKind.Strike, at, at, new Rgba(0.78f, 0.86f, 1f), radius, StrikeFxTime, Sfx.SpellZap);
                 foreach (var e in Enemies.Values)
                 {
-                    if (e.SpawnT > 0f || e.Hp <= 0f || e.Pos.DistanceTo(at) > radius + e.Radius)
+                    if (!Targetable(e) || e.Pos.DistanceTo(at) > radius + e.Radius)
                         continue;
                     anyHit = true;
                     HurtEnemy(e, dmg, p.Id);

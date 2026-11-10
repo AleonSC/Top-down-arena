@@ -91,7 +91,7 @@ static partial class Program
         foreach (var e in g.Enemies.Values) if (e.Type == EnemyType.ReaperPillar) e.Hp = 0f;
         Run(s, dt, 3f, () => g.Reapers.Turn == ReaperTurn.Chase, Park);
         Check(g.Reapers.Holes.Count == 4 && g.Reapers.Turn == ReaperTurn.Chase && cg.Reapers.Holes.Count == 4, "every pillar killed leaves a hole; then it chases you");
-        V2 dp = d.Pos; tf = friend.Run.DamageTaken;
+        tf = friend.Run.DamageTaken;
         Run(s, dt, 1.5f, null, () => { Park(); PutFriend(d.Pos + new V2(0f, 100f)); friend.Hp = friend.MaxHp; });
         Check(friend.Run.DamageTaken - tf >= 26f, "its scythes hit on both sides as it chases");
 
@@ -330,12 +330,8 @@ static partial class Program
         // The searchlight: a stun shot stops you, the light catches you, a shackle ring drops round you.
         while (w.Warden.Turn == WardenTurn.Light) { Clear(); Step(s[0], dt); Step(s[1], dt); }  // (the first light turn may already be under way)
         while (w.Warden.Turn != WardenTurn.Light) { Clear(); me.Pos = new V2(60f, 60f); Step(s[0], dt); Step(s[1], dt); }
-        float hp0 = w.Hp;
-        int shackleBefore = g.Bullets.Values.Count(b => b.Kind == Defs.BigShot);
         friend.Pos = new V2(1400f, 800f);
         bool stunned = false, clientStunned = false, caught = false;
-        V2 clientAt = V2.Zero;
-        int ringOrbs = 0;
         Run(s, dt, 8f, () => caught && w.Warden.LightMode == WardenLight.Ring, () =>
         {
             Clear();
@@ -344,7 +340,7 @@ static partial class Program
             var t = g.Players[w.TargetId];
             foreach (var b in g.Bullets.Values) if (b.Kind == Defs.StunShot) { b.Pos = t.Pos; break; }  // make the next stun shot land
             stunned |= t.StunT > 0f;
-            if (cg.Players[t.Id].StunT > 0f && t.Id == 2) { if (!clientStunned) clientAt = cg.Players[2].Pos; clientStunned = true; }
+            if (cg.Players[t.Id].StunT > 0f && t.Id == 2) { clientStunned = true; }
             caught |= w.Warden.LightMode == WardenLight.Lock;
         });
         int ring = w.Warden.Shackle.Count;
@@ -443,7 +439,7 @@ static partial class Program
         Check(w.Warden.Stage == WardenStage.Lockdown && w.Warden.Turn == WardenTurn.Cross && cg.Enemies[w.Id].Warden.Stage == WardenStage.Lockdown, "then Lockdown: the cross (everyone sees it)");
 
         // The gates: everyone sees them; one shoves the friend (on the friend's own game) and hurts once, or twice when it rolls over them.
-        int gates = 0, gas = 0; float taken0 = friend.Run.DamageTaken; bool clientGate = false;
+        int gates = 0; float taken0 = friend.Run.DamageTaken; bool clientGate = false;
         var seenGas = new HashSet<int>();
         float friendStart = 0f; bool startSet = false, pushed = false;
         float heldHost = 0f; int holdFrames = 0; bool heldClient = false;

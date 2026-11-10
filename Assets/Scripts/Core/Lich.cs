@@ -522,24 +522,6 @@ namespace Arena
             return pos.DistanceTo(a + ab * u) < reach;
         }
 
-        Player NearestPlayer(V2 from)
-        {
-            Player best = null;
-            foreach (var p in Players.Values)
-                if (!p.Downed && (best == null || p.Pos.DistanceSq(from) < best.Pos.DistanceSq(from)))
-                    best = p;
-            return best;
-        }
-
-        Player RandomLivingPlayer()
-        {
-            var alive = new List<Player>();
-            foreach (var p in Players.Values)
-                if (!p.Downed)
-                    alive.Add(p);
-            return alive.Count == 0 ? null : alive[(int)Rand(0f, alive.Count - 0.001f)];
-        }
-
         /// A dead hand bursts up: it hurts players on it and throws 8 small shots.
         void HandBursts(Hazard h)
         {

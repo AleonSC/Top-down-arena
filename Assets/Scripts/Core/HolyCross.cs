@@ -89,7 +89,7 @@ namespace Arena
                 }
                 foreach (var e in Enemies.Values)
                 {
-                    if (e.SpawnT > 0f || e.Hp <= 0f || c.HitEnemies.Contains(e.Id) || !InHolyCross(e.Pos, e.Radius, centre, c.Dir, arm, half))
+                    if (!Targetable(e) || c.HitEnemies.Contains(e.Id) || !InHolyCross(e.Pos, e.Radius, centre, c.Dir, arm, half))
                         continue;
                     c.HitEnemies.Add(e.Id);
                     bool heavy = Heavy(e);

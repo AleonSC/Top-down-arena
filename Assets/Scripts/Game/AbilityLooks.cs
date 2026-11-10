@@ -61,7 +61,6 @@ namespace Arena
             Buff(p => p.TauntT, new Rgba(1f, 0.45f, 0.3f)),        // Roar
             Buff(p => p.OverdriveT, new Rgba(1f, 0.4f, 0.3f)),     // Overdrive
             Buff(p => p.AdrenalineT, new Rgba(1f, 0.31f, 0.35f)),  // Adrenaline Shot
-            Buff(p => p.LinkT, new Rgba(0.6f, 1f, 0.9f)),          // Soul Link
             Buff(p => p.AegisT, new Rgba(0.8f, 0.5f, 1f)),         // Aeroaegis
             Buff(p => p.FrenzyT, new Rgba(1f, 0.5f, 0.3f)),        // Alpha Call
             Buff(p => p.UnbreakT, new Rgba(1f, 0.85f, 0.5f)),      // Cavalry Call: the guard

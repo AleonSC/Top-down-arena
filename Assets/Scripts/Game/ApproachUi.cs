@@ -6,8 +6,6 @@ namespace Arena
     /// line in the between-waves banner as you set off and when the boss is near.
     public partial class ArenaApp
     {
-        static readonly Color ApproachColor = new Color(1f, 0.72f, 0.4f);
-
         /// The objective as one quiet CRT line at the top centre: "THE WARDEN'S OWN  1/9  ·  [FUNNELS]" (a hunt), or
         /// "APPROACH  ·  THE WARDEN  3/4" on the road to a boss, with the arena layout's name as a small tag after it.
         /// Replaces the chips that used to stack above the wave panel (Docs/Mockups/crt-hud-a-variants.html, A1).

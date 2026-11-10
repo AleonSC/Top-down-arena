@@ -6,7 +6,7 @@ namespace Arena
     /// The HUD modes on H: 0 full (Hud.cs), 1 corner text, 2 on the player, 3 hidden. The two partial modes keep only
     /// what you act on mid-fight: health, ability cooldowns and enemies left (a boss's slim bar stays, as when hidden), in the
     /// CRT console's look: Docs/Mockups/crt-hud-modes.html, A (Phosphor Corners) and E (Callout Tag). Every number sits by its
-    /// key, and the ult shows its charge % as on the full HUD. Local to each player: no protocol change.
+    /// key with the ability's name, and the ult shows its charge % as on the full HUD. Local to each player: no protocol change.
     public partial class ArenaApp
     {
         public const int HudModeCount = 4;
@@ -125,6 +125,9 @@ namespace Arena
             return true;
         }
 
+        /// Slot i's ability name, upper case as the CRT text is.
+        string MiniName(Player me, int i) => Upgrades.Ability(me.Slots[i].Id).Name.ToUpperInvariant();
+
         static string MiniSecs(float t) => t.ToString(t < 10f ? "0.0" : "0");
 
         /// The wave as "WAVE 06 / 50" (or the hunt's or practice's own count).
@@ -166,19 +169,28 @@ namespace Arena
             }
             MiniScan(new Rect(hr.x - 4f, hr.y - 4f, hr.width + 8f, hr.height + 8f), a);
 
-            // The keys: each keycap over its seconds left (RDY when ready) and a six-cell recharge bar; the ult in gold with its charge.
+            // The keys: each keycap over its seconds left (RDY when ready), a six-cell recharge bar and the ability's name; the ult in
+            // gold with its charge. A column is as wide as its name.
             if (!me.Downed)
             {
+                const float minW = 62f, gap = 16f;
+                const int nameSize = 14;
+                float total = 0f;
                 int shown = 0;
                 for (int i = 0; i < Upgrades.SlotCount; i++)
                     if (me.Slots[i].Id != AbilityId.None)
+                    {
+                        total += Mathf.Max(minW, CrtUi.TitleWidth(MiniName(me, i), nameSize));
                         shown++;
-                const float colW = 62f, gap = 16f;
-                float x = W / 2f - (shown * colW + (shown - 1) * gap) / 2f, y = H - 92f;
+                    }
+                total += Mathf.Max(0, shown - 1) * gap;
+                float x = W / 2f - total / 2f, y = H - 98f;
                 for (int i = 0; i < Upgrades.SlotCount; i++)
                 {
                     if (!MiniSlot(me, i, out bool ready, out float f))
                         continue;
+                    string name = MiniName(me, i);
+                    float nw = CrtUi.TitleWidth(name, nameSize), colW = Mathf.Max(minW, nw), barX = x + (colW - minW) / 2f;
                     bool ult = i == Upgrades.UltSlot;
                     bool full = ult ? me.Slots[i].Charges > 0 : ready;
                     Color c = ult ? Ui.Gold : ready ? KeyGreen : dim;
@@ -186,10 +198,11 @@ namespace Arena
                     MiniCap(cx, y, 20f, ult ? "ULT·" + SlotKeys[i] : SlotKeys[i], 18, c, full, ult && full ? 0.7f * a + 0.3f * a * Mathf.Sin(Time.unscaledTime * 4f) : a, true);
                     string val = ult ? (full ? "READY" : Mathf.FloorToInt(f * 100f) + "%") : ready ? "RDY" : MiniSecs(me.Slots[i].Timer);
                     MiniText(new Rect(x - 10f, y + 24f, colW + 20f, 24f), val, 24, ult ? Ui.Gold : ready ? KeyGreen : new Color(0.91f, 0.94f, 1f), a, TextAnchor.MiddleCenter);
-                    MiniCells(new Rect(x, y + 52f, colW, 4f), f, 6, ult ? Ui.Gold : ready ? KeyGreen : ink, a);
+                    MiniCells(new Rect(barX, y + 52f, minW, 4f), f, 6, ult ? Ui.Gold : ready ? KeyGreen : ink, a);
+                    MiniText(new Rect(x - 10f, y + 58f, colW + 20f, 16f), name, nameSize, ult ? Ui.Gold : ready ? ink : dim, a, TextAnchor.MiddleCenter);
                     x += colW + gap;
                 }
-                MiniScan(new Rect(W / 2f - 260f, y - 2f, 520f, 62f), a);
+                MiniScan(new Rect(W / 2f - total / 2f - 12f, y - 2f, total + 24f, 78f), a);
             }
 
             // The wave and the enemies left
@@ -222,11 +235,21 @@ namespace Arena
             bool low = frac < MiniLow;
             Color tone = low ? red : ink;
 
-            // Where the tag goes
-            const float tw = 176f, th = 62f, off = 52f;
+            // Where the tag goes: one row per ability under the health, wide enough for the longest name.
+            const float off = 52f, rowH = 18f, nameSize = 14;
+            int rows = 0;
+            float nameW = 0f;
+            for (int i = 0; i < Upgrades.SlotCount; i++)
+                if (me.Slots[i].Id != AbilityId.None)
+                {
+                    rows++;
+                    nameW = Mathf.Max(nameW, CrtUi.TitleWidth(MiniName(me, i), (int)nameSize));
+                }
+            const float capW = 44f, valW = 40f;
+            float tw = Mathf.Max(176f, 16f + capW + 6f + nameW + 6f + valW), th = 38f + rows * rowH + 2f;
             float r = me.Def.BodyR * UiWorldScale;
-            bool right = at.X - off - tw < 30f, below = at.Y - 92f < 70f;
-            float tx = right ? at.X + off : at.X - off - tw, ty = below ? at.Y + 30f : at.Y - 92f;
+            bool right = at.X - off - tw < 30f, below = at.Y - th - 30f < 70f;
+            float tx = right ? at.X + off : at.X - off - tw, ty = below ? at.Y + 30f : at.Y - th - 30f;
 
             // The leader: a dot on your edge, a diagonal out to the tag's level, then a short run into its side.
             float sx = right ? 1f : -1f, sy = below ? 1f : -1f;
@@ -255,23 +278,22 @@ namespace Arena
             MiniText(new Rect(cx + cw - mw, ty + 9f, mw, 16f), max, 15, low ? red : dim, a);
             MiniCells(new Rect(cx, ty + 26f, cw, 5f), frac, 12, tone, low ? MiniBlink(a) : a);
 
-            // The chips: the key, then its seconds left; lit green when ready; the ult in gold with its charge.
-            float x = cx, y = ty + 38f;
+            // The rows: the key (lit green when ready), the ability's name, then its seconds left (RDY when ready); the ult in gold
+            // with its charge.
+            float y = ty + 36f;
             for (int i = 0; i < Upgrades.SlotCount; i++)
             {
                 if (!MiniSlot(me, i, out bool ready, out float f))
                     continue;
                 bool ult = i == Upgrades.UltSlot;
-                if (ult)
-                {
-                    bool full = me.Slots[i].Charges > 0;
-                    float ua = full && !CabCalm ? a * (0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 4f)) : a;
-                    x += MiniCap(x, y, 16f, SlotKeys[i] + (full ? " ULT" : " " + Mathf.FloorToInt(f * 100f) + "%"), 15, Ui.Gold, full, ua) + 4f;
-                }
-                else if (ready)
-                    x += MiniCap(x, y, 16f, MiniShortKey(SlotKeys[i]), 15, KeyGreen, true, a) + 4f;
-                else
-                    x += MiniCap(x, y, 16f, MiniShortKey(SlotKeys[i]) + " " + Mathf.CeilToInt(me.Slots[i].Timer), 15, dim, false, a) + 4f;
+                bool full = ult ? me.Slots[i].Charges > 0 : ready;
+                Color c = ult ? Ui.Gold : ready ? KeyGreen : dim;
+                float ca = ult && full && !CabCalm ? a * (0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 4f)) : a;
+                MiniCap(cx + capW / 2f, y, 16f, MiniShortKey(SlotKeys[i]), 15, c, full, ca, true);
+                MiniText(new Rect(cx + capW + 6f, y, cw - capW - valW - 12f, 17f), MiniName(me, i), (int)nameSize, ult ? Ui.Gold : ready ? ink : dim, a);
+                string val = ult ? (full ? "ULT" : Mathf.FloorToInt(f * 100f) + "%") : ready ? "RDY" : Mathf.CeilToInt(me.Slots[i].Timer).ToString();
+                MiniText(new Rect(cx + cw - valW, y, valW, 17f), val, 15, ult ? Ui.Gold : ready ? KeyGreen : new Color(0.91f, 0.94f, 1f), a, TextAnchor.MiddleRight);
+                y += rowH;
             }
             MiniScan(tr, a);
         }

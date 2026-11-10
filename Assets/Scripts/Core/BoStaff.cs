@@ -57,7 +57,7 @@ namespace Arena
                 bool any = false;
                 foreach (var e in new List<Enemy>(Enemies.Values))
                 {
-                    if (e.SpawnT > 0f || e.Hp <= 0f)
+                    if (!Targetable(e))
                         continue;
                     V2 rel = e.Pos - origin;
                     float along = Dot(rel, dir), across = Math.Abs(Dot(rel, side));

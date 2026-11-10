@@ -255,7 +255,7 @@ static partial class Program
         WaitForGame(host, c, dt);
         var g = host.Game;
         var last = RoomPhase.None;
-        float enteredAt = 0f, clock = 0f, crystal = 0f;
+        float clock = 0f, crystal = 0f;
         int kills = 0, zone = 0;
         ChallengeKind kind = ChallengeKind.None;
         float bossStart = -1f, bossHp = 0f, roomHp = 0f;
@@ -276,7 +276,7 @@ static partial class Program
                 if (g.RoomActive) { clock = g.RoomClock; crystal = g.CrystalHp / Math.Max(1f, g.CrystalMax); kills = g.RoomKills; zone = g.ZoneIndex; }
                 continue;
             }
-            if (g.Room == RoomPhase.Intro) { enteredAt = g.RunTime; kind = g.RoomKind; }
+            if (g.Room == RoomPhase.Intro) { kind = g.RoomKind; }
             if (last == RoomPhase.Portal && g.Room == RoomPhase.None)
                 Console.WriteLine("  wave {0,2}: the portal closed unused", g.Wave);
             if (g.Room == RoomPhase.Won || g.Room == RoomPhase.Lost)

@@ -51,13 +51,6 @@ namespace Arena
             return w;
         }
 
-        /// An outlined, faintly lit square for a picture to sit in.
-        public static void Tile(Rect r)
-        {
-            Ui.Fill(r, new Color(Ink.r, Ink.g, Ink.b, 0.07f));
-            CrtKit.Frame(r, 2f, Ink);
-        }
-
         /// A label that glows: four faint copies a pixel around it, then the text.
         public static void Text(Rect r, string s, int size, Color c, TextAnchor align, bool bold, bool calm, bool wrap = false)
         {
@@ -72,46 +65,36 @@ namespace Arena
             Ui.Label(r, s, size, c, align, bold, wrap);
         }
 
-        /// An outlined button that flips to inverse video (blue block, dark text) under the mouse. True when clicked.
-        public static bool Button(Rect r, string text, Texture2D icon, int size, bool calm)
+        /// A soft key with an optional icon: the Play picker's Continue and DEL (look B of Docs/Mockups/crt-play-picker-keys.html).
+        /// Drawn like the lobby's keys (CrtKit.SoftBox / SoftText), never a solid block. lit: always shown selected (the latest
+        /// run's Continue, a delete waiting for its second click). danger: red. quiet: dashed and dim until the mouse is on it
+        /// (unless lit). True when pressed.
+        public static bool SoftKey(Rect r, string text, Texture2D icon, int size, bool calm, bool lit = false, bool danger = false, bool quiet = false)
         {
             bool hover = GUI.enabled && r.Contains(Event.current.mousePosition);
             Ui.NoteHover(r);
-            Ui.Fill(r, hover ? new Color(Ink.r, Ink.g, Ink.b, CrtStyle.InvLit) : new Color(Ink.r, Ink.g, Ink.b, CrtStyle.InvTint));
-            CrtKit.Frame(r, CrtStyle.InvRimW, Ink);
-            Color tc = hover ? Bg : Ink;
-            float isz = Mathf.Min(size * 1.0f, r.height * 0.45f);
-            float tw = Ui.TextWidth(text, size, true) - 6f, gap = icon != null ? 10f : 0f, ic = icon != null ? isz : 0f;
-            float x = r.center.x - (ic + gap + tw) / 2f;
-            if (icon != null)
-                Ui.Icon(new Rect(x, r.center.y - isz / 2f, isz, isz), icon, tc);
-            var tr = new Rect(x + ic + gap, r.y, tw + 12f, r.height);
-            if (hover)
-                Ui.Label(tr, text, size, tc, TextAnchor.MiddleLeft, true);
+            Color c = CrtStyle.KeyColor(null, danger), tc;
+            bool hushed = quiet && !hover && !lit;
+            if (hushed)
+            {
+                Ui.Fill(r, new Color(c.r, c.g, c.b, CrtStyle.KeyQuietTint));
+                CrtKit.Dashed(r, CrtStyle.KeyQuietDashW, new Color(c.r, c.g, c.b, CrtStyle.KeyQuietDash));
+                tc = new Color(c.r, c.g, c.b, CrtStyle.KeyQuietText);
+            }
             else
-                Text(tr, text, size, tc, TextAnchor.MiddleLeft, true, calm);
-            return Ui.HitArea(r);
-        }
-
-        /// A small outlined button (pager arrows, Back, row buttons). danger: red, for delete; lit: already filled (a delete waiting for its second click).
-        public static bool Small(Rect r, string text, Texture2D icon, int size, bool calm, bool danger = false, bool lit = false)
-        {
-            bool hover = GUI.enabled && r.Contains(Event.current.mousePosition);
-            Ui.NoteHover(r);
-            Color col = CrtStyle.KeyColor(null, danger), dark = danger ? CrtStyle.DangerDark : Bg;
-            bool fill = hover || lit;
-            Ui.Fill(r, fill ? new Color(col.r, col.g, col.b, CrtStyle.InvLit) : new Color(col.r, col.g, col.b, CrtStyle.InvTint));
-            CrtKit.Frame(r, CrtStyle.InvRimW, col);
-            Color tc = fill ? dark : col;
+            {
+                CrtKit.SoftBox(r, c, lit, hover, false);
+                tc = CrtKit.SoftText(c, lit || hover);
+            }
             float isz = Mathf.Min(size * 1.0f, r.height * 0.5f);
-            float tw = text.Length == 0 ? 0f : Ui.TextWidth(text, size, true) - 6f, gap = icon != null && text.Length > 0 ? 6f : 0f, ic = icon != null ? isz : 0f;
+            float tw = text.Length == 0 ? 0f : Ui.TextWidth(text, size, true) - 6f, gap = icon != null && text.Length > 0 ? (size >= 18 ? 10f : 6f) : 0f, ic = icon != null ? isz : 0f;
             float x = r.center.x - (ic + gap + tw) / 2f;
             if (icon != null)
                 Ui.Icon(new Rect(x, r.center.y - isz / 2f, isz, isz), icon, tc);
             if (text.Length > 0)
             {
                 var tr = new Rect(x + ic + gap, r.y, tw + 12f, r.height);
-                if (fill)
+                if (hover || lit)
                     Ui.Label(tr, text, size, tc, TextAnchor.MiddleLeft, true);
                 else
                     Text(tr, text, size, tc, TextAnchor.MiddleLeft, true, calm);

@@ -13,9 +13,6 @@ namespace Arena
 
         float dodgeCd;
 
-        /// 0..1 of the cooldown still to wait (for the HUD).
-        public float DodgeCooling => Math.Max(0f, Math.Min(1f, dodgeCd / DodgeCd));
-
         /// Your own game, every tick. `pressed` is a fresh Dodge press this tick.
         void LocalDodge(Player me, V2 move, bool pressed, float dt)
         {

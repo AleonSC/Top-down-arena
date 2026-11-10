@@ -57,7 +57,7 @@ namespace Arena
                     }
                 }
                 e.ShootRest -= dt;
-                if (TakesTurns(e) && e.SpawnT <= 0f && e.Hp > 0f)
+                if (TakesTurns(e) && Targetable(e))
                 {
                     e.ShootWait += dt;
                     if (e.ShootRest <= 0f)

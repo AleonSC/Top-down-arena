@@ -95,13 +95,17 @@ namespace Arena
             for (int i = 0; i < dry.Length; i++)
                 dry[i] += verb[i] * 0.5f + wet[i] * 0.35f;
 
-            // Fold the tail back onto the start so the loop has no seam.
+            return LoopAndNormalize(dry, n, tail, 1f);
+        }
+
+        /// The last step of a music render (this and GameMusic): the first `n` samples of `dry` with the `tail`
+        /// after them folded back onto the start so the loop has no seam, soft-clipped and normalized to 0.8 x `gain`.
+        internal static float[] LoopAndNormalize(float[] dry, int n, int tail, float gain)
+        {
             var outp = new float[n];
             Array.Copy(dry, outp, n);
             for (int i = 0; i < tail; i++)
                 outp[i] += dry[n + i];
-
-            // Soft-clip and normalize.
             float peak = 0f;
             for (int i = 0; i < n; i++)
             {
@@ -110,7 +114,7 @@ namespace Arena
             }
             if (peak > 0f)
                 for (int i = 0; i < n; i++)
-                    outp[i] *= 0.8f / peak;
+                    outp[i] *= 0.8f * gain / peak;
             return outp;
         }
 

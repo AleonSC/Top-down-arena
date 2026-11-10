@@ -44,7 +44,7 @@ namespace Arena
                 Sound = Sfx.SpellZap, AreaDesc = "the strike and the rain are 25% wider",
                 Companion = MinionKind.Nimbus, CompanionCount = 1 },
             // DPS
-            new WeaponDef { Id = WeaponId.Fireball, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 0, Speed = 430f, Life = 1.4f, Damage = 22f, BotRange = 390f, ExtraDesc = "+1 fireball, fanned out", Name = "Fireball", FireInterval = 0.5f,
+            new WeaponDef { Id = WeaponId.Fireball, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 0, Speed = 430f, Life = 1.4f, Damage = 32f, BotRange = 390f, ExtraDesc = "+1 fireball, fanned out", Name = "Fireball", FireInterval = 0.5f,
                 Desc = "A big, slow fireball that rolls on through every enemy in its path, hurting each and setting it burning.",
                 Sound = Sfx.SpellFire },
             new WeaponDef { Id = WeaponId.ArcLightning, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 1, Damage = 40f, BotRange = 320f, ExtraDesc = "+25% damage", Name = "Arc Lightning", FireInterval = 0.25f,
@@ -505,7 +505,6 @@ namespace Arena
                 }
                 var d = m.Def;
                 m.HurtT -= dt;
-                m.InvulnT -= dt;
                 if (m.StaggerT > 0f)
                 {
                     m.StaggerT -= dt;
@@ -653,7 +652,6 @@ namespace Arena
                         // The treant stands in front of you; the guardian spirit hovers on you.
                         V2 goal = m.Kind == MinionKind.Treant ? TreantGoal(m, owner)
                             : m.Kind == MinionKind.Nimbus ? NimbusGoal(owner)  // the cloud drifts after your cursor (Nimbus.cs)
-                            : m.Kind == MinionKind.SoulGhost ? owner.Pos + V2.FromAngle(owner.Aim + 2f) * 60f  // a Soul Ghost keeps beside you, a little back
                             : owner.Pos;
                         m.Pos += (goal - m.Pos).LimitLength(speed * dt);
                         break;
@@ -674,8 +672,7 @@ namespace Arena
                         {
                             m.Cd = d.Interval;
                             V2 dir = V2.FromAngle(m.Aim);
-                            byte kind = m.Kind == MinionKind.Turret ? Defs.TurretShot : m.Kind == MinionKind.Phoenix ? Defs.FireShot
-                                : m.Kind == MinionKind.SoulGhost ? Defs.HealerShot : Defs.MinionShot;  // the ghost fires its healer's light bolts
+                            byte kind = m.Kind == MinionKind.Turret ? Defs.TurretShot : m.Kind == MinionKind.Phoenix ? Defs.FireShot : Defs.MinionShot;
                             SpawnBullet(kind, m.Pos + dir * d.Radius, dir * 650f, 0f, d.Range / 650f, dmg, m.Owner);
                         }
                         break;
@@ -879,13 +876,13 @@ namespace Arena
                 {
                     if (q.Pos.DistanceTo(z.Pos) > z.Radius)
                         continue;
-                    if (q.Downed && d.ReviveBoost + z.ExtraRevive > 0f)
+                    if (q.Downed && z.ExtraRevive > 0f)
                     {
-                        q.Revive += dt / D(DiffKnob.ReviveTime) * (d.ReviveBoost + z.ExtraRevive);  // on top of the normal revive
+                        q.Revive += dt / D(DiffKnob.ReviveTime) * z.ExtraRevive;  // on top of the normal revive
                         q.ReviveBy = z.Owner;
                     }
                     else if (d.HealRate > 0f && !HallowedSpent(z))
-                        Heal(q, d.HealRate * z.HealMult * (d.ReviveBoost > 0f && Players.Count == 1 ? SoloZoneHeal : 1f) * dt, PlayerOrNull(z.Owner));  // alone, nobody to revive: heals faster
+                        Heal(q, d.HealRate * z.HealMult * dt, PlayerOrNull(z.Owner));
                 }
                 if (z.Kind == ZoneKind.Sanctum)
                     SanctumPulse(z, dt);  // Sanctum.cs

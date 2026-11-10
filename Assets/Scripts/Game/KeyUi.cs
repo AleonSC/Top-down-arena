@@ -8,9 +8,6 @@ namespace Arena
     public static class KeyUi
     {
         static readonly Color WellCol = new Color(0.03f, 0.04f, 0.09f);
-        static readonly Color BaseCol = new Color(0.08f, 0.11f, 0.24f);
-        static readonly Color CapCol = new Color(0.34f, 0.44f, 0.72f);
-        static readonly Color DishCol = new Color(0.17f, 0.23f, 0.44f);
         static readonly Color LampOff = new Color(0.07f, 0.1f, 0.25f);
         static readonly Color LampOn = new Color(0.42f, 1f, 0.6f);
         static int pressedKey;  // the key the mouse went down on (until it comes up)

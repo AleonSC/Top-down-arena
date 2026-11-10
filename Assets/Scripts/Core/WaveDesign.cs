@@ -413,7 +413,7 @@ namespace Arena
             if (designQueue.Count == 0)
                 return;
             designClock += dt;
-            var ringTarget = AlivePlayersList().FirstOrDefault();
+            var ringTarget = FirstAlive();
             int ringI = 0;
             while (designQueue.Count > 0 && designQueue[0].T <= designClock)
             {

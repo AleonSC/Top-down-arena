@@ -135,7 +135,7 @@ static partial class Program
         // The leech: 25% of the damage heals you, slowly.
         g.DevSetGod(1, false);
         me.Hp = me.MaxHp * 0.5f;
-        float before = me.Hp, aHp = a.Hp;
+        float before = me.Hp;
         Hold(true, 1f);
         float healed = me.Hp - before;
         Console.WriteLine("  leech tendrils: healed {0:0.0} HP in 1 s holding three", healed);

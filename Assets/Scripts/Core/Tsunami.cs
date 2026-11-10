@@ -50,7 +50,7 @@ namespace Arena
                 V2 side = w.Dir.Orthogonal();
                 foreach (var e in Enemies.Values)
                 {
-                    if (e.SpawnT > 0f || e.Hp <= 0f || w.Hit.Contains(e.Id))
+                    if (!Targetable(e) || w.Hit.Contains(e.Id))
                         continue;
                     V2 rel = e.Pos - w.Origin;
                     float along = Dot(rel, w.Dir), across = Dot(rel, side);
@@ -88,7 +88,7 @@ namespace Arena
                 return;
             List<Enemy> targets = null;
             foreach (var e in Enemies.Values)
-                if (e != struck && e.WetT > 0f && e.WetArcCd <= 0f && e.Hp > 0f && e.SpawnT <= 0f)
+                if (e != struck && e.WetT > 0f && e.WetArcCd <= 0f && Targetable(e))
                     (targets ?? (targets = new List<Enemy>())).Add(e);
             if (targets == null)
                 return;

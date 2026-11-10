@@ -514,8 +514,7 @@ namespace Arena
                 GUI.EndGroup();
             }
             DrawCrtCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), ultimate ? "ULT · " + SlotKeys[4] : SlotKeys[i], keyCol);
-            // Name: bright with a sheen when ready, dimmer while recharging.
-            Color nameBottom = ready ? Color.Lerp(accent, Color.white, 0.25f) : new Color(0.62f, 0.66f, 0.78f, 0.9f);
+            // Name: bright when ready, dimmer while recharging.
             Ui.Label(new Rect(r.x + 8f, r.y + 22f, r.width - 16f, 22f), Upgrades.Ability(slot.Id).Name, Upgrades.Ability(slot.Id).Name.Length > 12 ? 18 : 22, ready ? keyCol : new Color(0.62f, 0.7f, 0.9f), TextAnchor.MiddleLeft, false);
             if (ready)
             {

@@ -35,7 +35,7 @@ namespace Arena
             }
             // Or neither: the plain arena for this stretch, with no bonus and no prize.
             float by = y + ch + 12f;
-            if (session.IsHost && CrtUi.Small(new Rect(W / 2f - 250f, by, 500f, 34f), "NO PATH  ·  STAY ON THE PLAIN ARENA", null, 22, calm))
+            if (session.IsHost && CrtUi.SoftKey(new Rect(W / 2f - 250f, by, 500f, 34f), "NO PATH  ·  STAY ON THE PLAIN ARENA", null, 22, calm))
                 game.ChoosePath(2);
             string waitText = session.IsHost ? "You're the host: pick the path for everyone" : "Waiting for " + HostName() + " to pick the path (or no path)";
             Ui.Label(new Rect(0, by + 40f, W, 22f), waitText, 14, session.IsHost ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
@@ -99,7 +99,7 @@ namespace Arena
             Ui.Label(new Rect(x, y, 130f, 24f), "PRIZE", 10, dim, TextAnchor.MiddleLeft, true);
             HudCrt(new Rect(x + 140f, y, w - 140f, 24f), Paths.PrizeText(d) + " before the boss", 22, CrtStyle.Gold);
             if (session.IsHost)
-                taken = CrtUi.Button(new Rect(x, r.yMax - 18f - 46f, w, 46f), "TAKE THIS PATH", PixelArt.Get("ui_play"), 26, calm);
+                taken = CrtUi.SoftKey(new Rect(x, r.yMax - 18f - 46f, w, 46f), "TAKE THIS PATH", PixelArt.Get("ui_play"), 26, calm);
             CrtUi.End(r, Time.unscaledTime, fxReduced);
             return taken;
         }

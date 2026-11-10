@@ -26,7 +26,7 @@ namespace Arena
         {
             Enemy best = null;
             foreach (var e in Enemies.Values)
-                if (e.SpawnT <= 0f && e.Hp > 0f && (best == null || e.Pos.DistanceSq(target) < best.Pos.DistanceSq(target)))
+                if (Targetable(e) && (best == null || e.Pos.DistanceSq(target) < best.Pos.DistanceSq(target)))
                     best = e;
             if (best == null)
                 return;
@@ -70,7 +70,7 @@ namespace Arena
             venomNear.Clear();
             float reach = dead.VenomReach;
             foreach (var e in Enemies.Values)
-                if (e != dead && e.SpawnT <= 0f && e.Hp > 0f && e.VenomT <= 0f && e.Pos.DistanceTo(dead.Pos) <= reach + e.Radius)
+                if (e != dead && Targetable(e) && e.VenomT <= 0f && e.Pos.DistanceTo(dead.Pos) <= reach + e.Radius)
                     venomNear.Add(e);
             venomNear.Sort((a, b) => a.Pos.DistanceSq(dead.Pos).CompareTo(b.Pos.DistanceSq(dead.Pos)));
             int n = Math.Min(dead.VenomJumps, venomNear.Count);

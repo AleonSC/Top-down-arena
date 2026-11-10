@@ -12,8 +12,6 @@ namespace Arena
         const int PerkTab = 5;
         const int PerkSlots = 3;  // the most a player can unlock
 
-        static readonly Color PerkSteel = new Color(0.56f, 0.71f, 0.85f);
-
         /// Bosses whose perks come later (Docs/BossHuntsAndPerks.md), shown as locked cards.
         static readonly string[] PerkBossesToCome = { "Hive Queen", "Twin Reapers", "Singularity", "Colossus", "Duelist", "Lich", "Storm Herald", "Devourer", "Eclipse" };
 

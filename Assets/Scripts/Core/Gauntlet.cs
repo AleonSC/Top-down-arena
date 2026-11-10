@@ -55,7 +55,7 @@ namespace Arena
             float best = float.MaxValue;
             foreach (var e in Enemies.Values)
             {
-                if (e.SpawnT > 0f || e.Hp <= 0f)
+                if (!Targetable(e))
                     continue;
                 V2 off = e.Pos - p.Pos;
                 float along = off.Dot(dir), side = Math.Abs(off.X * dir.Y - off.Y * dir.X);
@@ -144,7 +144,7 @@ namespace Arena
                     float len = path.Length;
                     foreach (var o in Enemies.Values)
                     {
-                        if (o.Id == g.Target || o.SpawnT > 0f || o.Hp <= 0f || g.Bowled.Contains(o.Id))
+                        if (o.Id == g.Target || !Targetable(o) || g.Bowled.Contains(o.Id))
                             continue;
                         V2 off = o.Pos - g.From;
                         float along = Math.Max(0f, Math.Min(len, off.Dot(g.Dir)));

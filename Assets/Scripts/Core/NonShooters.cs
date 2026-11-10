@@ -118,7 +118,7 @@ namespace Arena
             }
             float scaled = enemyDamage * (1f + 0.15f * (Math.Max(1, Wave) - 1));  // keeps up with enemy health (SpawnHp)
             foreach (var o in Enemies.Values)
-                if (o != e && o.Hp > 0f && o.SpawnT <= 0f && o.Pos.DistanceTo(e.Pos) < radius + o.Radius)
+                if (o != e && Targetable(o) && o.Pos.DistanceTo(e.Pos) < radius + o.Radius)
                     HurtEnemy(o, o.Def.IsBoss ? scaled * 0.25f : scaled, credit);
             BroadcastFx(FxKind.Boom, e.Pos, e.Def.Color, radius, 0.35f, Sfx.Explode);
             PropBlast(e.Pos, radius, credit);
@@ -278,23 +278,6 @@ namespace Arena
         }
 
         static bool PodArmed(Enemy o) => o.Type == EnemyType.SapperMine && o.Phase == 1 && o.Hp > 0f;
-
-        /// The lasers between armed pods (both peers draw them from this; pairs counted once, the lower id first).
-        public void PodWires(List<Enemy> armed, List<(Enemy a, Enemy b)> wires)
-        {
-            armed.Clear();
-            wires.Clear();
-            foreach (var o in Enemies.Values)
-                if (o.Type == EnemyType.SapperMine && o.Phase == 1)
-                    armed.Add(o);
-            for (int i = 0; i < armed.Count; i++)
-                for (int j = i + 1; j < armed.Count; j++)
-                    if (armed[i].Pos.DistanceTo(armed[j].Pos) < PodWire)
-                        wires.Add(armed[i].Id < armed[j].Id ? (armed[i], armed[j]) : (armed[j], armed[i]));
-        }
-
-        readonly List<Enemy> wireArmed = new List<Enemy>();
-        readonly List<(Enemy a, Enemy b)> wireScratch = new List<(Enemy a, Enemy b)>();
 
         void PodSpecial(Enemy e, float dt)
         {

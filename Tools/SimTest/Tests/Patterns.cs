@@ -110,9 +110,9 @@ static partial class Program
 
         // The Stitcher: orbs tied by threads that hurt; too far apart, no thread.
         Place(new V2(800f, 450f), new V2(100f, 800f));
-        var o1 = (Bullet)shoot.Invoke(g, new object[] { Defs.StitchShot, new V2(700f, 300f), V2.Zero, 0f, 3f, 12f, 0, false, 0f });
-        var o2 = (Bullet)shoot.Invoke(g, new object[] { Defs.StitchShot, new V2(900f, 300f), V2.Zero, 0f, 3f, 12f, 0, false, 0f });
-        var o3 = (Bullet)shoot.Invoke(g, new object[] { Defs.StitchShot, new V2(1500f, 300f), V2.Zero, 0f, 3f, 12f, 0, false, 0f });
+        shoot.Invoke(g, new object[] { Defs.StitchShot, new V2(700f, 300f), V2.Zero, 0f, 3f, 12f, 0, false, 0f });
+        shoot.Invoke(g, new object[] { Defs.StitchShot, new V2(900f, 300f), V2.Zero, 0f, 3f, 12f, 0, false, 0f });
+        shoot.Invoke(g, new object[] { Defs.StitchShot, new V2(1500f, 300f), V2.Zero, 0f, 3f, 12f, 0, false, 0f });
         Run(s, dt, 0.2f, null, () => { hold(); me.InvulnT = 1f; });
         var links = new List<Game.StitchThread>(); var clientLinks = new List<Game.StitchThread>();
         Game.StitchLinks(g.Bullets.Values, links);

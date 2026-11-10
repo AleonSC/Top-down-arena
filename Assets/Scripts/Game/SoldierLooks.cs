@@ -148,19 +148,6 @@ namespace Arena
             DrawRocketNade(b, t);  // Rocket assist: nose first, with its flame (TwinNadeLook.cs)
         }
 
-        /// The old tumbling grenade (unused since Rocket assist; kept for a look that wants it).
-        void DrawTumblingNade(Bullet b, float t)
-        {
-            float rot = t * 9f;
-            Circle(b.Pos, b.Radius * 0.9f, NadeOlive, 12);
-            V2 band = V2.FromAngle(rot) * b.Radius * 0.9f;
-            Line(b.Pos - band, b.Pos + band, 2f, new Rgba(0.17f, 0.2f, 0.12f));
-            V2 pin = b.Pos + V2.FromAngle(rot - MathX.Pi / 2f) * (b.Radius + 1.5f);
-            Circle(pin, 1.6f, new Rgba(0.72f, 0.75f, 0.63f), 6);
-            if (MathX.Fmod(t, 0.15f) < 0.075f)
-                Circle(b.Pos, 2.5f, new Rgba(1f, 0.3f, 0.2f), 8);
-        }
-
         // --- Mark for Death: Reticle Lock, with the skull ---------------------------------------------------------------
 
         /// A marked enemy's reticle and skull (DrawEnemyStatus). Only a "marked" flag reaches clients, so each draws its own

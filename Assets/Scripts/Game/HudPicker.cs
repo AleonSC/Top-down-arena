@@ -384,15 +384,6 @@ namespace Arena
             CrtEdge(r, 2f, new Color(c.r, c.g, c.b, selected ? 1f : 0.6f));
         }
 
-        /// A soft glow round a card in its rarity colour (about twice as strong on the picked one).
-        void DrawCardGlow(Rect r, Color rc, bool selected, bool hover, bool behind, float now)
-        {
-            float a = selected ? 0.95f + 0.05f * Mathf.Sin(now * 4f) : behind ? 0.16f : hover ? 0.6f : 0.42f;
-            Ui.Glow(r, rc, a);
-            if (selected)
-                Ui.Glow(r, rc, 0.55f + 0.15f * Mathf.Sin(now * 4f));  // twice, for a hotter core
-        }
-
         /// Gold corner brackets round a card (the picked milestone).
         static void DrawBrackets(Rect r, Color c)
         {

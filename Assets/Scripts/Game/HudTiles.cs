@@ -136,63 +136,6 @@ namespace Arena
             return l;
         }
 
-        /// The rim runner (DrawAbilityTile): `fill` 0..1 is the recharge, `useAge` and `i` seed the snuff burst.
-        static void DrawTileRim(Rect r, int i, Color accent, bool ready, float fill, float useAge, bool reduced)
-        {
-            const float R = 9f, inset = 1.5f;
-            var q = new Rect(r.x + inset, r.y + inset, r.width - 2f * inset, r.height - 2f * inset);
-            float sw = q.width - 2f * R, sh = q.height - 2f * R, arc = Mathf.PI * R * 0.5f, L = 2f * (sw + sh) + 4f * arc;
-            if (!ready)
-            {
-                float len = L * Mathf.Clamp01(fill);
-                for (float d = 0f; d <= len; d += 2.2f)
-                    TileDot(RimPoint(q, R, d, sw, sh, arc), 3.2f, new Color(accent.r, accent.g, accent.b, 0.6f + 0.4f * d / Mathf.Max(1f, len)));
-                if (len > 2f)
-                    TileDot(RimPoint(q, R, len, sw, sh, arc), 4.5f, Color.Lerp(accent, Color.white, 0.6f));
-            }
-            else if (!reduced)
-            {
-                float head = (Time.unscaledTime * 0.3f + i * 0.17f) % 1f * L;
-                for (int t = 0; t < 9; t++)
-                {
-                    float d = head - t * 4.5f;
-                    if (d < 0f) d += L;
-                    TileDot(RimPoint(q, R, d, sw, sh, arc), 4.2f - t * 0.3f, Fade(Color.Lerp(Color.white, accent, t / 8f), 1f - t / 9f));
-                }
-            }
-            if (!reduced && useAge < 0.5f)
-            {
-                float k = useAge / 0.5f;
-                for (int n = 0; n < 10; n++)
-                {
-                    float ang = (n * 137.5f + i * 40f) * Mathf.Deg2Rad, sp = 24f + 10f * (n % 3);
-                    TileDot(new Vector2(r.x + 20f + Mathf.Cos(ang) * sp * k, r.y + 15f + Mathf.Sin(ang) * sp * k), 3f * (1f - 0.5f * k), new Color(accent.r, accent.g, accent.b, 1f - k));
-                }
-            }
-        }
-
-        static void TileDot(Vector2 p, float size, Color c) => Ui.Dot(new Rect(p.x - size * 0.5f, p.y - size * 0.5f, size, size), c);
-
-        /// A point d px along the rim, clockwise from the top edge's left end, round the corner arcs of radius R.
-        static Vector2 RimPoint(Rect q, float R, float d, float sw, float sh, float arc)
-        {
-            if (d < sw) return new Vector2(q.x + R + d, q.y);
-            d -= sw;
-            if (d < arc) { float a = d / R; return new Vector2(q.xMax - R + Mathf.Sin(a) * R, q.y + R - Mathf.Cos(a) * R); }
-            d -= arc;
-            if (d < sh) return new Vector2(q.xMax, q.y + R + d);
-            d -= sh;
-            if (d < arc) { float a = d / R; return new Vector2(q.xMax - R + Mathf.Cos(a) * R, q.yMax - R + Mathf.Sin(a) * R); }
-            d -= arc;
-            if (d < sw) return new Vector2(q.xMax - R - d, q.yMax);
-            d -= sw;
-            if (d < arc) { float a = d / R; return new Vector2(q.x + R - Mathf.Sin(a) * R, q.yMax - R + Mathf.Cos(a) * R); }
-            d -= arc;
-            if (d < sh) return new Vector2(q.x, q.yMax - R - d);
-            d -= sh;
-            { float a = Mathf.Min(d, arc) / R; return new Vector2(q.x + R - Mathf.Cos(a) * R, q.y + R - Mathf.Sin(a) * R); }
-        }
-
         static float EaseOut3(float k) => 1f - (1f - k) * (1f - k) * (1f - k);
 
         static float EaseOutBack(float k)

@@ -69,7 +69,7 @@ namespace Arena
             float firstAlong = float.MaxValue;
             foreach (var e in Enemies.Values)
             {
-                if (e.SpawnT > 0f || e.Hp <= 0f)
+                if (!Targetable(e))
                     continue;
                 V2 rel = e.Pos - p.Pos;
                 float along = Dot(rel, dir), across = Math.Abs(Dot(rel, side));
@@ -241,7 +241,7 @@ namespace Arena
             bool hitAny = false;
             foreach (var e in Enemies.Values)
             {
-                if (e.SpawnT > 0f || e.Hp <= 0f)
+                if (!Targetable(e))
                     continue;
                 e.KusariCd -= dt;
                 V2 rel = e.Pos - p.Pos;

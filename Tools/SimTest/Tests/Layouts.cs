@@ -151,7 +151,7 @@ static partial class Program
         float deepest = 0f;
         Run(s, dt, 0.8f, null, () => { foreach (var b in new[] { foe, mine }) if (g.Bullets.ContainsKey(b.Id)) deepest = Math.Max(deepest, b.Pos.Y); });
         Check(!g.Bullets.ContainsKey(foe.Id) && !g.Bullets.ContainsKey(mine.Id) && deepest < 330f, "a wall stops enemy shots and yours (deepest " + deepest + ")");
-        var crate = g.AddProp(PropKind.Crate, new V2(800f, 560f));
+        g.AddProp(PropKind.Crate, new V2(800f, 560f));
         var over = (Bullet)spawnBullet.Invoke(g, new object[] { Defs.DpsShot, new V2(800f, 500f), new V2(0f, 400f), 0f, 1f, 10f, 1, false, 0f });
         bool crossed = false;
         Run(s, dt, 0.5f, null, () => { if (g.Bullets.ContainsKey(over.Id) && over.Pos.Y > 600f) crossed = true; });

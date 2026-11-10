@@ -231,9 +231,6 @@ namespace Arena
         static float washAt = -10f;
         static int washFrame = -1;
 
-        /// The role colour the boxes are washed with right now (it eases to a new role's colour).
-        public static Color WashColor => washCol;
-
         /// Once a frame (the lobby draws several times a frame while it slides): ease the wash colour to the shown role's colour over
         /// about 0.7 s. `snap` (Reduced effects) and a lobby that was away for a moment jump straight to it.
         public static void WashTo(Color target, bool snap)

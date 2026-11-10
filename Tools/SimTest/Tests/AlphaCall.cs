@@ -46,7 +46,7 @@ static partial class Program
         // Blood Scent.
         me.FrenzyT = me.ScentT = 6f;
         int peak = 0, drops = 0, prev = 0, clientSaw = 0;
-        float hpBefore = foe.Hp, lungeHit = 0f;
+        float lungeHit = 0f;
         for (int f = 0; f < 4f / dt; f++)
         {
             float before = foe.Hp;

@@ -175,7 +175,7 @@ static partial class Program
         // Hasted and Commander: faster fire.
         var traitMult = typeof(Game).GetMethod("TraitFireMult", flags);
         var hasted = Elite(EliteTrait.Hasted, new V2(400f, 200f));
-        var cmd = Elite(EliteTrait.Commander, new V2(1200f, 200f));
+        Elite(EliteTrait.Commander, new V2(1200f, 200f));
         var follower = Spawn(EnemyType.Grunt, new V2(1300f, 200f), false);
         typeof(Game).GetMethod("PrepareVariety", flags).Invoke(g, null);
         float hm = (float)traitMult.Invoke(g, new object[] { hasted }), fm = (float)traitMult.Invoke(g, new object[] { follower }), am = (float)traitMult.Invoke(g, new object[] { anchor });

@@ -193,20 +193,5 @@ namespace Arena
             Arc(at, r + 10f + 4f * s3, 2f, Ink.WithAlpha((0.5f + 0.3f * s3) * a), 40);
         }
 
-        /// Under the path chip: the floor plan's name.
-        float DrawLayoutChip(float x, float y)
-        {
-            var d = game.ActiveLayout;
-            if (d == null)
-                return 0f;
-            string text = d.Name.ToUpperInvariant();
-            float w = 30f + text.Length * 6.4f;
-            var chip = new Rect(x, y, w, 20f);
-            var accent = ToColor(GateTeal);
-            Ui.Pill(chip, new Color(0f, 0f, 0f, 0.55f));
-            Ui.Fill(new Rect(chip.x + 3f, chip.y + 4f, 3f, chip.height - 8f), accent);
-            Ui.Label(new Rect(chip.x + 12f, chip.y, w, chip.height), text, 10, accent, TextAnchor.MiddleLeft, true);
-            return 24f;
-        }
     }
 }

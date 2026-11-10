@@ -133,10 +133,6 @@ namespace Arena
                     }
                     break;
                 }
-                case ZoneKind.Lantern:
-                    Circle(z.Pos, z.Radius, c.WithAlpha(0.1f + 0.05f * Mathf.Sin(t * 5f)), 40);
-                    Polygon(z.Pos, 9f, 4, MathX.Pi / 4f, c);
-                    break;
                 case ZoneKind.Incense:  // the Censer's incense: soft puffs of smoke drifting up and thinning
                 {
                     for (int k = 0; k < 3; k++)
@@ -266,7 +262,7 @@ namespace Arena
                 case ZoneKind.HoneyPool:
                     DrawHoneyPool(z, c, t);  // QueenLootLook.cs
                     break;
-                default:  // Haven
+                default:  // a zone with no look of its own: a softly pulsing circle
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.1f + 0.04f * Mathf.Sin(t * 4f)), 48);
                     break;
             }
@@ -348,11 +344,6 @@ namespace Arena
                 DrawSoulLantern(m, t);  // HealerKitLooks.cs
                 return;
             }
-            if (m.Kind == MinionKind.SoulGhost)
-            {
-                DrawSoulGhost(m, t);
-                return;
-            }
             if (m.Kind == MinionKind.HiveDrone)
             {
                 DrawHiveDrone(m, t);  // QueenLootLook.cs
@@ -403,32 +394,6 @@ namespace Arena
                 Line(m.Disp - new V2(3, 0), m.Disp + new V2(3, 0), 1.5f, Rgba.White);
             if (m.T >= 0f && m.Duration > 0f)
                 Arc(m.Disp, rad + 5f, 2f, c.WithAlpha(0.5f), 24, -MathX.Pi / 2f, MathX.Tau * MathX.Clamp01(m.T / m.Duration));
-        }
-
-        /// A Soul Ghost: a pale, see-through copy of its healer with a gun toward what it's shooting, wisps trailing
-        /// off it, its time running out around it, and a health bar once it's hurt.
-        void DrawSoulGhost(Minion m, float t)
-        {
-            Player owner;
-            Rgba col = game.Players.TryGetValue(m.Owner, out owner) ? owner.Def.Color.Mix(m.Def.Color, 0.5f) : m.Def.Color;
-            float r = owner != null ? owner.Def.BodyR : m.Def.Radius;
-            float a = 0.4f + 0.12f * Mathf.Sin(t * 7f + m.Id);
-            if (m.T >= 0f && m.T < 1f)
-                a *= m.T;  // fading out as the link ends
-            Circle(m.Disp, r + 9f, m.Def.Color.WithAlpha(0.12f * a / 0.4f), 20);
-            for (int k = 0; k < 3; k++)  // wisps drifting off behind it
-            {
-                V2 w = m.Disp - V2.FromAngle(m.Aim + 0.5f * (k - 1)) * (r + 6f + 4f * Mathf.Sin(t * 5f + k));
-                Circle(w, 3f - k * 0.5f, m.Def.Color.WithAlpha(a * 0.8f), 8);
-            }
-            Circle(m.Disp, r, col.WithAlpha(a), 24);
-            Arc(m.Disp, r, 2f, m.Def.Color.WithAlpha(a + 0.3f), 24);
-            V2 dir = V2.FromAngle(m.Aim);
-            Line(m.Disp + dir * (r * 0.5f), m.Disp + dir * (r + 8f), 4f, col.WithAlpha(a + 0.2f));
-            if (m.T >= 0f && m.Duration > 0f)
-                Arc(m.Disp, r + 5f, 2f, m.Def.Color.WithAlpha(0.5f), 24, -MathX.Pi / 2f, MathX.Tau * MathX.Clamp01(m.T / m.Duration));
-            if (m.GuardFrac < 0.999f)
-                Bar(m.Disp + new V2(-15f, -r - 12f), 30f, 3.5f, Mathf.Clamp01(m.GuardFrac), new Rgba(0.4f, 1f, 0.55f));
         }
 
         /// A Shadow Clone: a dark copy of its ninja, flickering, with its time running out around it.
