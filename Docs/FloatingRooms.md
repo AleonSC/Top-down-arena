@@ -1,6 +1,6 @@
 # Floating rooms and themed rooms: paths, shops, vendors and the Gatekeeper in the Expanding arena
 
-Status: **steps 1-2 built** (floating rooms exist, are sealed, connect and show; shop and vendor rooms work; the Gatekeeper does nothing yet); steps 3-5 not started. Decided with the owner on Nov 10, 2026 (one idea from a friend: shops and vendors in "floating rooms"
+Status: **steps 1-3 built** (floating rooms exist, are sealed, connect and show; shop, vendor and Gatekeeper rooms work); steps 4-5 not started. Decided with the owner on Nov 10, 2026 (one idea from a friend: shops and vendors in "floating rooms"
 you have to build to). It builds on [`ExpandingArena.md`](ExpandingArena.md) and [`VectorBuilding.md`](VectorBuilding.md) (all built).
 
 ## Decisions (owner)
@@ -65,6 +65,15 @@ you have to build to). It builds on [`ExpandingArena.md`](ExpandingArena.md) and
 - Upgrades and restocks are bought only in the **shop room**; heals, revives and removals only at the **vendor** (checked on the host,
   greyed out on the client). Done, Give and Close work anywhere. Bots don't walk to them (they mark Done).
 - HUD chip "SHOP OPEN · walk into the room"; the shop screen opens when you stand in either room.
+
+## Step 3 (built, no protocol change)
+
+- `GatekeeperRoom.cs`. During a regular wave the first player to walk into an open Gatekeeper room wakes The Gatekeeper (the Wings vault's mini-boss,
+  full health for the wave) in the middle; the room locks behind whoever is inside (`AreaLocked`/`RoomsHold`, now read from the current world, so they work in
+  both arenas). The lock is read from the Gatekeeper enemy itself, so nothing new is synced.
+- Beating it gives everyone the vault's prize pick (`GrantVaultPrize`) and turns the room into an ordinary Combat room (the room list is re-broadcast).
+- The duel is optional: the wave ends without it (`FoesOutsideVault`); an unbeaten Gatekeeper goes when the wave clears and anyone inside is put out the door,
+  and walking in on a later wave wakes a fresh one. Bots don't walk in on purpose.
 
 ## Open questions (defaults in bold)
 
