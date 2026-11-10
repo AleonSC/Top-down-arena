@@ -1110,6 +1110,42 @@ static partial class Program
         Check(smallFl > 0f && left == 0, "a Flourish throws waves and spends the Tempo");
         Check(Math.Abs(fullFl / smallFl - Game.RapierFlourishSwings(Game.RapierTempoMax) / (float)Game.RapierFlourishSwings(4)) < 0.6f, "a full-Tempo Flourish throws a wave per two stacks, each piercing both enemies in line");
 
+        // Riposte: press the key to stand guard (slow, bullets sent back, charge builds), press again to lunge as far as the charge allows.
+        var stance = typeof(Game).GetMethod("HostRapierStance", flags);
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Rapier);
+        me.Aim = 0f;
+        Func<float, Tuple<float, int, bool>> lungeAt = charge =>
+        {
+            var near = dummy(from + new V2(150f, 0f), 1e6f);
+            var far = dummy(from + new V2(500f, 0f), 1e6f);
+            me.RapierTempoF = 0f; me.RapierTempo = 0; me.FireCd = 0f;
+            stance.Invoke(g, new object[] { me, true, from + new V2(600f, 0f) });
+            bool up = me.RapierGuard;
+            me.RapierChargeF = charge;
+            stance.Invoke(g, new object[] { me, false, from + new V2(600f, 0f) });
+            play(1.0f, new PlayerInput());
+            var r = Tuple.Create((far.MaxHp - far.Hp) + (near.MaxHp - near.Hp), me.RapierTempo, up);
+            reset();
+            return r;
+        };
+        var low = lungeAt(0.2f);
+        var full = lungeAt(1f);
+        var none = lungeAt(0.01f);
+        Console.WriteLine("  rapier riposte: lunge at 0.2 charge hit {0:0}, at full {1:0} (Tempo {2}); a stance with no charge hit {3:0}", low.Item1, full.Item1, full.Item2, none.Item1);
+        Check(low.Item3 && full.Item3, "pressing the key raises the stance");
+        Check(none.Item1 == 0f, "letting go with almost no charge does not lunge");
+        Check(low.Item1 > 0f && full.Item1 > low.Item1 * 1.5f, "a full charge lunges farther (reaching the far enemy) and hits harder");
+        Check(full.Item2 >= 2, "every enemy the lunge cuts adds a stack of Tempo");
+        reset();
+        {
+            stance.Invoke(g, new object[] { me, true, from + new V2(600f, 0f) });
+            typeof(Game).GetMethod("SpawnBullet", flags).Invoke(g, new object[] { Defs.BigShot, from + new V2(Game.RapierStanceRadius + 10f, 0f), new V2(-200f, 0f), 0f, 3f, 5f, 0, false, 0f });
+            play(0.2f, new PlayerInput { AimAt = from + new V2(600f, 0f) });
+            Check(me.RapierChargeF > Game.RapierChargePerBullet * 0.9f, "a bullet reflected by the stance fills the charge");
+            stance.Invoke(g, new object[] { me, false, from });
+            reset();
+        }
+
         // Katana (Katana.cs; Docs/KatanaCombo.md): two stance combos. The weapon-action key switches stance at once and the stance
         // you leave keeps its place. Hayate: Kiri, Kaeshi, Tsumuji, Momentum Burst. Senbon: Agari, Kaeshi, Engetsu, Senbon, Caltrops.
         // The Burst flings lying caltrops at the nearest enemies; caltrops thrown after a Burst seek what it marked.

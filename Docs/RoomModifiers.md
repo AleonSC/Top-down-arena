@@ -1,6 +1,6 @@
 # Room modifiers (room kits)
 
-Status: **built** (protocol 253). Owner's idea: change an existing room into a path floor or a shop.
+Status: **built** (protocol 254). Owner's idea: change an existing room into a path floor or a shop.
 
 - A **room kit** (`RoomToken`: Shop, or Floor + a path) is a team-held one-use token (max 6, `Expansion.MaxTokens`), synced in `Msg.ExpandState`.
 - **Sources** (decided): a cleared boss wave gives a Floor kit (`Expansion.FloorToken`, seeded, prefers floors not on the map), a won challenge

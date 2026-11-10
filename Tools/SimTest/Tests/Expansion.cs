@@ -564,6 +564,70 @@ static partial class Program
 
 static partial class Program
 {
+    // The Gatekeeper room (GatekeeperRoom.cs, Docs/FloatingRooms.md step 3): walking in wakes the Gatekeeper and locks the room, the wave ends without
+    // an unbeaten duel (it goes, you're let out), beating it gives the prize pick and the room becomes an ordinary one.
+    static void ExpandingGatekeeperTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var pickRooms = typeof(Game).GetMethod("PickRooms", flags);
+        var endDuels = typeof(Game).GetMethod("EndDuels", flags);
+        var roomsHold = typeof(Game).GetMethod("RoomsHold", flags);
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, NoPicks);
+        string why;
+        var list = new List<ExpansionRoom>();
+        var hall = Expansion.Custom(list, 1600, 100, 800, 600, out why);
+        Check(hall.HasValue, "the connecting room fits: " + why);
+        list.Add(hall.Value);
+        var r = Expansion.Custom(list, 2400, 100, 600, 600, out why);
+        Check(r.HasValue, "the test room fits: " + why);
+        var room = r.Value; room.Kind = RoomKind.Gatekeeper; room.Floating = true;
+        foreach (var gg in new[] { g, cg })
+        {
+            gg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+            gg.Expanded.Add(hall.Value);
+            gg.Expanded.Add(room);
+        }
+        pickRooms.Invoke(g, null);
+        Run(s, dt, 0.3f, null, NoPicks);
+        Check(g.RoomsOn && g.CurrentWorld.Areas.Length == 3 && g.CurrentWorld.Areas[2].Kind == RoomKind.Gatekeeper && !g.CurrentWorld.Areas[2].Sealed, "a Gatekeeper room touching the hub is open (rooms " + g.RoomsOn + ", areas " + g.CurrentWorld.Areas.Length + ", kind " + g.CurrentWorld.Areas[g.CurrentWorld.Areas.Length - 1].Kind + ")");
+        Func<Game, int> keepers = gm => gm.Enemies.Values.Count(e => e.Type == EnemyType.Gatekeeper && e.Hp > 0f);
+        Func<Game, int> area1 = gm => gm.CurrentWorld.AreaAt(gm.Players[1].Pos);
+        var me = g.Players[1];
+        me.Pos = me.Disp = new V2(800f, 450f);
+        Run(s, dt, 0.5f, null, NoPicks);
+        Check(keepers(g) == 0 && !g.AreaLocked(2), "nobody inside: the Gatekeeper sleeps and the room is open");
+        me.Pos = me.Disp = g.CurrentWorld.Areas[2].Mid + new V2(0f, 100f);
+        Run(s, dt, 0.8f, null, NoPicks);
+        Check(keepers(g) == 1 && keepers(cg) == 1, "walking in wakes the Gatekeeper, for both screens");
+        Check(g.AreaLocked(2) && cg.AreaLocked(2), "the room locks while the duel is on, for both screens");
+        var inside = g.CurrentWorld.Areas[2].Mid;
+        V2 held = (V2)roomsHold.Invoke(g, new object[] { inside, new V2(1800f, 450f), 20f });
+        Check(g.CurrentWorld.Areas[2].Contains(held), "a locked room holds you in (a step out of it is clamped)");
+
+        // An unbeaten duel ends with the wave: the Gatekeeper goes and you are let out.
+        endDuels.Invoke(g, null);
+        Run(s, dt, 0.4f, null, NoPicks);
+        Check(keepers(g) == 0 && !g.CurrentWorld.Areas[2].Contains(me.Pos) && !g.AreaLocked(2), "the wave ending takes an unbeaten Gatekeeper away and lets you out");
+
+        // Beating it: prize pick, ordinary room.
+        me.Pos = me.Disp = g.CurrentWorld.Areas[2].Mid + new V2(0f, 100f);
+        Run(s, dt, 0.8f, null, NoPicks);
+        Check(keepers(g) == 1, "walking in again wakes it again");
+        int picks0 = g.Players.Values.Sum(p => p.PrizePicks);
+        foreach (var e in g.Enemies.Values.Where(e => e.Type == EnemyType.Gatekeeper)) e.Hp = 0f;
+        Run(s, dt, 0.8f, null, NoPicks);
+        Check(g.Players.Values.Sum(p => p.PrizePicks) == picks0 + g.Players.Count, "beating it gives everyone a prize pick");
+        Check(g.CurrentWorld.Areas[2].Kind == RoomKind.Combat && cg.CurrentWorld.Areas[2].Kind == RoomKind.Combat && !g.AreaLocked(2), "the room is an ordinary combat room now, on both screens");
+    }
+
     // Vectors (ExpansionGame.cs, Docs/VectorBuilding.md step 1): the start, the cap, a cleared wave, every 25 kills, a boss refill, synced.
     static void ExpandingVectorsTest(float dt)
     {

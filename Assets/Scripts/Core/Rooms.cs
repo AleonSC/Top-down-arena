@@ -336,6 +336,7 @@ namespace Arena
         {
             if (!RoomsOn || State != MatchState.Fighting)
                 return;
+            TickDuelRooms();  // the Expanding arena's Gatekeeper rooms (GatekeeperRoom.cs)
             int players = Players.Count;
             foreach (var rs in RoomStates)
             {
@@ -410,6 +411,13 @@ namespace Arena
         void WinVault()
         {
             VaultCleared = true;
+            GrantVaultPrize(Rooms.Areas[Rooms.Vault].Mid);
+            DoLog("vault cleared");
+        }
+
+        /// A mini-boss duel is won (the Wings vault or an Expanding Gatekeeper room): a prize pick for everyone, sometimes a legendary.
+        void GrantVaultPrize(V2 at)
+        {
             int next = (Wave + 4) / 5 * 5;  // the boss this cycle leads up to
             var bossType = BossForWave(Math.Min(MaxWave, Math.Max(5, next)));
             var key = IsReaper(bossType) ? EnemyType.TwinA : bossType;
@@ -419,8 +427,7 @@ namespace Arena
                 if (rng.NextDouble() < Challenges.PrizeLegendaryChance)
                     p.LegendaryQueue.Add(key);
             }
-            BroadcastFx(FxKind.Ring, Rooms.Areas[Rooms.Vault].Mid, new Rgba(1f, 0.85f, 0.4f), 400f, 0.8f, Sfx.WaveClear);
-            DoLog("vault cleared");
+            BroadcastFx(FxKind.Ring, at, new Rgba(1f, 0.85f, 0.4f), 400f, 0.8f, Sfx.WaveClear);
         }
 
         /// The wave's queue can spawn now: a room with a living nest has room for more. With every nest down the rest
@@ -523,11 +530,11 @@ namespace Arena
                 }
                 return false;
             }
-            bool vault = e.Home == Rooms.Vault;
+            bool vault = e.Home == Rooms.Vault || ExpandingOn && e.Type == EnemyType.Gatekeeper;
             var rs = vault ? null : StateOf(e.Home);
             if (!vault && (rs == null || !rs.NestAlive))
                 return false;  // the nest is down: what's left comes for you
-            var area = Rooms.Areas[e.Home];
+            var area = CurrentWorld.Areas[e.Home];
             Player near = null;
             foreach (var p in Players.Values)
                 if (!p.Downed && area.Contains(p.Pos) && (near == null || p.Pos.DistanceSq(e.Pos) < near.Pos.DistanceSq(e.Pos)))
@@ -561,6 +568,8 @@ namespace Arena
         {
             if (!RoomsOn)
                 return false;
+            if (ExpandingOn)
+                return DuelBoss(area) != null;  // (a Gatekeeper room locks while its duel is on)
             if (area == Rooms.Vault)
                 return VaultUp && !VaultCleared;
             var rs = StateOf(area);
@@ -572,16 +581,17 @@ namespace Arena
         {
             if (!RoomsOn)
                 return now;
-            int a = Rooms.AreaAt(before);
-            if (!AreaLocked(a) || !Rooms.Areas[a].Contains(before) || Rooms.AreaAt(now) == a)
+            int a = CurrentWorld.AreaAt(before);
+            if (!AreaLocked(a) || !CurrentWorld.Areas[a].Contains(before) || CurrentWorld.AreaAt(now) == a)
                 return now;
-            var area = Rooms.Areas[a];
+            var area = CurrentWorld.Areas[a];
             return now.Clamp(area.Min + new V2(r, r), area.Max - new V2(r, r));
         }
 
         /// Host, when a wave is cleared: the vault closes with it (an unbeaten mini-boss goes, anyone inside is let out).
         void EndRoomsWave()
         {
+            EndDuels();
             if (!VaultUp)
                 return;
             Enemy boss;
@@ -598,6 +608,10 @@ namespace Arena
         int FoesOutsideVault()
         {
             int n = Foes();
+            if (ExpandingOn)
+                foreach (var e in Enemies.Values)
+                    if (IsDuelFoe(e))
+                        n--;
             if (VaultOn)
                 foreach (var e in Enemies.Values)
                     if (e.Home == Rooms.Vault)

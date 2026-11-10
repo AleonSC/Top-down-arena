@@ -99,7 +99,10 @@ namespace Arena
                 DrawCylinder(game.Me, t);
             foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.Rapier)
+                {
                     DrawRapierPips(p);  // MeleeLooks.cs
+                    DrawRapierStance(p);
+                }
             foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.HolyMace)
                     DrawStaffPips(p);  // QuarterstaffLook.cs

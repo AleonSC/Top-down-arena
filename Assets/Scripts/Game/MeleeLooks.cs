@@ -548,6 +548,19 @@ namespace Arena
                 Arc(p.Disp, 26f, 3f, NeedleGold.WithAlpha(0.25f + 0.1f * Mathf.Sin(Time.unscaledTime * 9f)), 32);
         }
 
+        /// The Riposte stance: a violet arc in front of you where bullets are sent back, and a second arc inside it that grows
+        /// with the charge (the lunge's reach), turning gold when it is full.
+        void DrawRapierStance(Player p)
+        {
+            if (!fxOn || p.Downed || !p.RapierGuard)
+                return;
+            float c = p.RapierCharge / 255f, half = Game.RapierStanceHalfArc, pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 10f);
+            Rgba col = c >= 0.98f ? NeedleGold : MeleeColor(WeaponId.Rapier, Rgba.White);
+            Arc(p.Disp, Game.RapierStanceRadius, 3f, col.WithAlpha(0.55f + 0.2f * pulse), 28, p.Aim - half, 2f * half);
+            if (c > 0.01f)
+                Arc(p.Disp, Game.RapierStanceRadius - 9f, 2f, col.WithAlpha(0.9f), 28, p.Aim - half * c, 2f * half * c);
+        }
+
         static readonly Rgba RapierDrainCol = new Rgba(1f, 0.59f, 0.39f);
 
         /// A bright cut across each enemy the swing or lunge passes through, timed to the blade reaching it. Worked out from
