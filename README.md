@@ -830,8 +830,10 @@ been) or **Rooms arena**. The Rooms arena is new and still being tuned (design: 
   side (900 x 900), and a **hallway** (260 px wide) runs above and below the hub, joining the two rooms into a loop
   round it. **Doors** (160 px gaps with cyan brackets) join them: one from the hub into each room, and one from each
   room into each hallway. The hub's top and bottom walls have no door.
-- **Boss waves** are the hub alone (bosses are built for it). When a boss wave starts, anyone out in a room or
-  hallway is brought into the hub, and the props out there are cleared away.
+- **Boss waves** are the hub alone (bosses are built for it). Before a boss wave, anyone out in a room or
+  hallway is **beamed into the hub**: a pillar of light in their colour takes them up where they stand, a second one
+  sets them down on a ring that shows in the hub from the start (about 2 s; they can't move or shoot meanwhile, and the
+  boss wave waits for them). The props out there are cleared away when it starts.
 - **No wrapping**: the world has walls all round. The hub keeps the boss cycle's arena layout (walls, pillars and
   crates; its edge gates make way for the doors), and the rooms and hallways have a few pillars and short walls of
   their own. Walls stop walking and every shot, as in the layouts.

@@ -376,6 +376,30 @@ static partial class Program
             Quiet();
         }
 
+        // Before a boss wave, anyone out in the rooms is beamed into the hub first (BossBeam.cs): the wave waits for them.
+        {
+            Quiet();
+            g.Enemies.Clear();
+            g.Wave = 5; g.BossSlot = false;
+            pickRooms.Invoke(g, null);
+            Check(g.RoomsUp && g.BossNext, "the rooms are up with the boss next");
+            me.Pos = me.Disp = new V2(-450f, 450f);
+            g.State = MatchState.Intermission; g.StateTimer = 0f;
+            V2 stood = me.Pos;
+            Run(s, dt, 0.5f);
+            Check(g.State == MatchState.Intermission && me.WarpT > 0f && cg.Players[1].WarpT > 0f, "the boss wave waits and the player is locked while the beam takes them (on both screens)");
+            Check(g.Effects.Any(e => e.Kind == FxKind.BossBeam && e.Pos.DistanceTo(stood) < 8f && hub.Contains(e.Pos2, -50f)) && cg.Effects.Any(e => e.Kind == FxKind.BossBeam), "one beam look from where they stood to a spot in the hub, on both screens");
+            Check(me.Pos.DistanceTo(stood) < 8f, "they are still where they stood during the charge (" + me.Pos.X + "," + me.Pos.Y + " from " + stood.X + "," + stood.Y + "; fx " + string.Join(";", g.Effects.Where(e => e.Kind == FxKind.BossBeam).Select(e => e.Pos.X + "," + e.Pos.Y + ">" + e.Pos2.X + "," + e.Pos2.Y)) + "; hub " + hub.Min.X + "," + hub.Min.Y + "-" + hub.Max.X + "," + hub.Max.Y + ")");
+            Run(s, dt, 0.7f);
+            Check(hub.Contains(me.Pos, -50f) && hub.Contains(cg.Players[1].Pos, -50f) && g.State == MatchState.Intermission, "they are in the hub after 1 s, the wave still waiting");
+            Run(s, dt, 1.2f);
+            Check(g.State == MatchState.Fighting && g.BossNow && !g.RoomsUp && me.WarpT <= 0f && cg.Players[1].WarpT <= 0f, "the boss wave starts once they have landed, and they are free");
+            g.Enemies.Clear();
+            Quiet();
+        }
+        g.Wave = 4; g.BossSlot = false;
+        pickRooms.Invoke(g, null);
+
         // A boss wave: the rooms go, and anyone out in them is brought into the hub.
         me.Pos = me.Disp = new V2(-450f, 450f);
         g.Props.Clear();

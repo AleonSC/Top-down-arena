@@ -246,6 +246,21 @@ static partial class Shot {
       me.Pos = me.Disp = land; me.Aim = 0f; me.AimAt = foe;
       gm.Effects.Add(new Effect { Kind = FxKind.ShadowStep, Pos = from, Pos2 = land, Color = new Rgba(0.72f, 0.58f, 1f), Radius = me.Id * 1000f + er, Dur = Game.ShadowStepFxTime, T = float.Parse(Environment.GetEnvironmentVariable("SHADOWSTEP")) });
     }
+    if (Environment.GetEnvironmentVariable("BEAMIN") != null) {
+      // The boss wave beam-in (BossBeamLook.cs): BEAMIN=<seconds since it began, 0 to 1.9>. Two players; use with mode hud, 2 players. The beam is from the left to the middle of the arena.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear();
+      float bt = float.Parse(Environment.GetEnvironmentVariable("BEAMIN"));
+      int bi = 0;
+      foreach (var q in gm.Players.Values) {
+        V2 from = new V2(380f, 330f + bi * 230f), to = new V2(820f, 300f + bi * 260f);
+        float lag = bi * 0.18f;
+        q.Pos = q.Disp = bt - lag >= Game.BeamMoveAt ? to : from;
+        gm.Effects.Add(new Effect { Kind = FxKind.BossBeam, Pos = from, Pos2 = to, Color = q.Def.Color, Radius = q.Id, Dur = Game.BeamTotal, T = System.Math.Max(0f, bt - lag) });
+        bi++;
+      }
+    }
     if (Environment.GetEnvironmentVariable("LEAPSLAM") != null) {
       // A Tank Knight's Leap Slam look (LeapSlamLook.cs): LEAPSLAM=<seconds after the press> (the leap is 0.45 s, the stun 1 s after it), LEAPMASTERED=1 for the capstone ring. Use with mode hud.
       var gm = host.Game; gm.Bot = false;
