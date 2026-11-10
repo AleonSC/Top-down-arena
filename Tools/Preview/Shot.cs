@@ -360,7 +360,7 @@ static partial class Shot {
       typeof(ArenaApp).GetField("camZoom", f2).SetValue(app, z);
       typeof(ArenaApp).GetField("camFocus", f2).SetValue(app, new V2(Math.Max(hx, Math.Min(Game.Width - hx, me.Disp.X)), Math.Max(hy, Math.Min(Game.Height - hy, me.Disp.Y))));
     }
-    if (Environment.GetEnvironmentVariable("ROOMS") != null) {  // the rooms' following camera (CameraZoom.cs), at the ZOOM if any
+    if (Environment.GetEnvironmentVariable("ROOMS") != null || Environment.GetEnvironmentVariable("EXPANDMAP") != null) {  // the rooms' following camera (CameraZoom.cs), at the ZOOM if any
       float z = (float)typeof(ArenaApp).GetField("camZoom", f2).GetValue(app);
       typeof(ArenaApp).GetField("camFollow", f2).SetValue(app, true);
       if (Environment.GetEnvironmentVariable("ZOOMHINT") != null) typeof(ArenaApp).GetField("zoomHintT", f2).SetValue(app, 6f);  // ZOOMHINT=1: the open Rooms map's "scroll to zoom out" prompt
@@ -401,7 +401,14 @@ static partial class Shot {
       set("wcBorn", Time.unscaledTime - wct); set("wcWave", wg.Wave);
     }
     if (Environment.GetEnvironmentVariable("PATHOFFER") != null) { host.Game.PathOffer = Environment.GetEnvironmentVariable("PATHOFFER") == "bazaar" ? new[] { PathId.Bazaar, PathId.EliteGauntlet } : Environment.GetEnvironmentVariable("PATHOFFER") == "4" ? new[] { PathId.Fogbound, PathId.NarrowPass } : Environment.GetEnvironmentVariable("PATHOFFER") == "3" ? new[] { PathId.FrozenLake, PathId.BloodMoon } : Environment.GetEnvironmentVariable("PATHOFFER") == "2" ? new[] { PathId.BurningGrounds, PathId.Sanctuary } : new[] { PathId.SwarmFields, PathId.EliteGauntlet }; host.Game.State = MatchState.Intermission; host.Game.Route.Add(PathId.SniperRidge); }
-    if (Environment.GetEnvironmentVariable("PATHOFFER") != null || Environment.GetEnvironmentVariable("PATHON") != null) { Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true; }
+    if (Environment.GetEnvironmentVariable("EXPANDVOTE") != null) {  // EXPANDVOTE=<rooms already bought>: the Expanding arena's vote after a boss (ExpansionUi.cs)
+      var eg = host.Game; eg.Diff.Set(DiffKnob.ArenaExpanding, 1f); eg.State = MatchState.Intermission;
+      int bought = int.Parse(Environment.GetEnvironmentVariable("EXPANDVOTE"));
+      for (int k = 0; k < bought; k++) eg.Expanded.Add(Expansion.Offers(5, 5 + 5 * k, eg.Expanded)[0]);
+      eg.Purse = 260 + 40 * bought; eg.ExpandOffer = Expansion.Offers(5, 5 + 5 * bought, eg.Expanded);
+      eg.ExpandVotes[eg.MyId] = 1;
+    }
+    if (Environment.GetEnvironmentVariable("PATHOFFER") != null || Environment.GetEnvironmentVariable("PATHON") != null || Environment.GetEnvironmentVariable("EXPANDVOTE") != null) { Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true; }
     if (Environment.GetEnvironmentVariable("HUDT") != null) { float ht = float.Parse(Environment.GetEnvironmentVariable("HUDT")); set("hudT", ht); set("hudShown", ht > 0.5f); }
     if (Environment.GetEnvironmentVariable("HUDMODE") != null) { int hm = int.Parse(Environment.GetEnvironmentVariable("HUDMODE")); set("hudMode", hm); set("hudShown", hm == 0); set("hudT", hm == 0 ? 1f : 0f); set("miniT", hm == 1 || hm == 2 ? 1f : 0f); }
     DrawMode();

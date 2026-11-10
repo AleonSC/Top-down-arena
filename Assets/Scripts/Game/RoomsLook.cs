@@ -16,38 +16,54 @@ namespace Arena
     {
         static readonly Rgba OpenRoomTint = new Rgba(0.45f, 0.6f, 1f, 0.03f);
         static readonly Rgba RoomTint = new Rgba(1f, 0.3f, 0.35f, 0.03f), ClearTint = new Rgba(0.25f, 0.9f, 0.7f, 0.035f), HallTint = new Rgba(0.2f, 0.3f, 0.6f, 0.05f),
-            VaultTint = new Rgba(1f, 0.62f, 0.3f, 0.06f), DoorInk = new Rgba(0.373f, 0.941f, 1f), DoorRed = new Rgba(1f, 0.3f, 0.36f),
+            VaultTint = new Rgba(1f, 0.62f, 0.3f, 0.06f), ShopTint = new Rgba(1f, 0.82f, 0.3f, 0.07f), DoorInk = new Rgba(0.373f, 0.941f, 1f), DoorRed = new Rgba(1f, 0.3f, 0.36f),
             DoorAmber = new Rgba(1f, 0.7f, 0.28f), DoorTeal = new Rgba(0.25f, 0.9f, 0.7f), DoorGold = new Rgba(1f, 0.82f, 0.4f);
 
         void DrawRoomsFloor(Rgba grid)
         {
             bool vault = game.VaultOn;
-            V2 lo = Rooms.MinFor(vault), hi = Rooms.WorldMax;
-            for (int i = 0; i < Rooms.Areas.Length; i++)
+            var wd = game.CurrentWorld;
+            V2 lo = wd.MinFor(vault), hi = wd.Max;
+            for (int i = 0; i < wd.Areas.Length; i++)
             {
-                var a = Rooms.Areas[i];
+                var a = wd.Areas[i];
                 if (a.Hub || a.Vault && !vault)
                     continue;
                 var rs = RoomStateOf(i);
-                var tint = a.Vault ? VaultTint : a.Hall ? HallTint : !Rooms.RoomByRoom ? OpenRoomTint : rs != null && rs.Cleared ? ClearTint : RoomTint;
+                var tint = a.Vault ? VaultTint : a.Kind == RoomKind.Shop ? ShopTint : a.Kind == RoomKind.Floor ? Paths.Get(a.Floor).Accent.WithAlpha(0.07f)
+                    : a.Hall ? HallTint : !Rooms.RoomByRoom ? OpenRoomTint : rs != null && rs.Cleared ? ClearTint : RoomTint;
                 FillRect(a.Min.X, a.Min.Y, a.Size.X, a.Size.Y, tint);
             }
-            for (float x = lo.X; x <= hi.X + 0.5f; x += 64f)
-                Line(new V2(x, lo.Y), new V2(x, hi.Y), 1f, grid);
-            for (float y = Mathf.Ceil(lo.Y / 64f) * 64f; y <= hi.Y + 0.5f; y += 64f)
-                Line(new V2(lo.X, y), new V2(hi.X, y), 1f, grid);
-            float a2 = Mathf.Clamp01(game.LayoutAge / 0.35f);
-            for (int i = 0; i < Rooms.Portals.Length; i++)  // the wraparound portals, each pair in its own colour
+            if (game.ArenaKind == ArenaLayout.Expanding)
             {
-                var pt = Rooms.Portals[i];
+                // The Expanding map isn't a full box: the grid runs inside each room only.
+                foreach (var a in wd.Areas)
+                {
+                    for (float x = Mathf.Ceil(a.Min.X / 64f) * 64f; x <= a.Max.X + 0.5f; x += 64f)
+                        Line(new V2(x, a.Min.Y), new V2(x, a.Max.Y), 1f, grid);
+                    for (float y = Mathf.Ceil(a.Min.Y / 64f) * 64f; y <= a.Max.Y + 0.5f; y += 64f)
+                        Line(new V2(a.Min.X, y), new V2(a.Max.X, y), 1f, grid);
+                }
+            }
+            else
+            {
+                for (float x = lo.X; x <= hi.X + 0.5f; x += 64f)
+                    Line(new V2(x, lo.Y), new V2(x, hi.Y), 1f, grid);
+                for (float y = Mathf.Ceil(lo.Y / 64f) * 64f; y <= hi.Y + 0.5f; y += 64f)
+                    Line(new V2(lo.X, y), new V2(hi.X, y), 1f, grid);
+            }
+            float a2 = Mathf.Clamp01(game.LayoutAge / 0.35f);
+            for (int i = 0; i < wd.Portals.Length; i++)  // the wraparound portals, each pair in its own colour
+            {
+                var pt = wd.Portals[i];
                 DrawPortal(pt.A, pt.InA, PortalColours[i % PortalColours.Length], a2, i);
                 DrawPortal(pt.B, pt.InB, PortalColours[i % PortalColours.Length], a2, i + 0.5f);
             }
-            for (int i = 0; i < Rooms.Doors.Length; i++)
+            for (int i = 0; i < wd.Doors.Length; i++)
             {
-                if (!Rooms.DoorUp(i, vault))
+                if (!wd.DoorUp(i, vault))
                     continue;
-                var d = Rooms.Doors[i];
+                var d = wd.Doors[i];
                 bool locked;
                 var col = DoorColour(i, out locked);
                 V2 j0 = d.Pos - d.Along * (Rooms.DoorW / 2f), j1 = d.Pos + d.Along * (Rooms.DoorW / 2f), t = d.Across * (Rooms.WallT * 0.9f);
@@ -105,11 +121,11 @@ namespace Arena
         /// A door's colour, and whether it's locked (someone is shut in behind it).
         Rgba DoorColour(int i, out bool locked)
         {
-            var d = Rooms.Doors[i];
+            var d = game.CurrentWorld.Doors[i];
             locked = false;
             foreach (int area in new[] { d.A, d.B })
             {
-                var a = Rooms.Areas[area];
+                var a = game.CurrentWorld.Areas[area];
                 if (a.Vault)
                 {
                     locked = game.AreaLocked(area) && SomeoneIn(a);
@@ -138,7 +154,7 @@ namespace Arena
 
         // --- The minimap -------------------------------------------------------------------------------------------
 
-        const float RoomMapW = 230f, RoomMapTop = 40f, RoomMapRight = 16f;
+        const float RoomMapW = 230f, RoomMapMaxH = 300f, RoomMapTop = 40f, RoomMapRight = 16f;
 
         /// DrawHud: the Rooms arena's minimap (top right).
         void DrawRoomsMinimap()
@@ -146,21 +162,24 @@ namespace Arena
             if (!game.RoomsOn || !game.Running)
                 return;
             bool vault = game.VaultOn;
-            V2 lo = Rooms.MinFor(vault), hi = Rooms.WorldMax;
-            float k = RoomMapW / (hi.X - lo.X), mh = (hi.Y - lo.Y) * k;
-            float ox = W - RoomMapRight - RoomMapW, oy = RoomMapTop;
+            var wd = game.CurrentWorld;
+            V2 lo = wd.MinFor(vault), hi = wd.Max;
+            float k = Mathf.Min(RoomMapW / (hi.X - lo.X), RoomMapMaxH / (hi.Y - lo.Y)), mh = (hi.Y - lo.Y) * k, mw = (hi.X - lo.X) * k;
+            float ox = W - RoomMapRight - mw, oy = RoomMapTop;
             System.Func<V2, V2> M = p => new V2(ox + (p.X - lo.X) * k, oy + (p.Y - lo.Y) * k);
             if (!BeginUiGl())
                 return;
-            RoomMapRect(ox - 6f, oy - 6f, RoomMapW + 12f, mh + 12f, new Rgba(0.01f, 0.03f, 0.08f, 0.82f));
-            for (int i = 0; i < Rooms.Areas.Length; i++)
+            RoomMapRect(ox - 6f, oy - 6f, mw + 12f, mh + 12f, new Rgba(0.01f, 0.03f, 0.08f, 0.82f));
+            for (int i = 0; i < wd.Areas.Length; i++)
             {
-                var a = Rooms.Areas[i];
+                var a = wd.Areas[i];
                 if (a.Vault && !vault)
                     continue;
                 var rs = RoomStateOf(i);
                 Rgba fill, line;
-                if (a.Hub) { fill = new Rgba(0.4f, 0.64f, 1f, 0.14f); line = new Rgba(0.4f, 0.64f, 1f, 0.75f); }
+                if (a.Kind == RoomKind.Shop) { fill = ShopTint.WithAlpha(0.22f); line = DoorGold; }
+                else if (a.Kind == RoomKind.Floor) { fill = Paths.Get(a.Floor).Accent.WithAlpha(0.2f); line = Paths.Get(a.Floor).Accent; }
+                else if (a.Hub) { fill = new Rgba(0.4f, 0.64f, 1f, 0.14f); line = new Rgba(0.4f, 0.64f, 1f, 0.75f); }
                 else if (a.Hall) { fill = new Rgba(0.4f, 0.64f, 1f, 0.06f); line = new Rgba(0.4f, 0.64f, 1f, 0.35f); }
                 else if (a.Vault) { fill = game.VaultCleared ? DoorTeal.WithAlpha(0.3f) : DoorGold.WithAlpha(0.22f); line = game.VaultCleared ? DoorTeal : DoorGold; }
                 else if (!Rooms.RoomByRoom) { fill = new Rgba(0.4f, 0.64f, 1f, 0.09f); line = new Rgba(0.4f, 0.64f, 1f, 0.5f); }
@@ -171,24 +190,24 @@ namespace Arena
                 RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, fill);
                 RoomMapFrame(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, 1f, line);
             }
-            for (int i = 0; i < Rooms.Doors.Length; i++)
+            for (int i = 0; i < wd.Doors.Length; i++)
             {
-                if (!Rooms.DoorUp(i, vault))
+                if (!wd.DoorUp(i, vault))
                     continue;
                 bool locked;
                 var col = DoorColour(i, out locked);
-                V2 c = M(Rooms.Doors[i].Pos);
+                V2 c = M(wd.Doors[i].Pos);
                 RoomMapRect(c.X - 2.5f, c.Y - 2.5f, 5f, 5f, col);
             }
             foreach (var rs in game.RoomStates)  // the next spill: a ring filling up round its door
                 if (rs.NestAlive && !rs.Cleared && rs.NextDoor >= 0)
                 {
                     float f = Mathf.Clamp01(1f - rs.SpillT / Rooms.SpillTime(game.Wave));
-                    V2 c = M(Rooms.Doors[rs.NextDoor].Pos);
+                    V2 c = M(wd.Doors[rs.NextDoor].Pos);
                     Arc(c, 7f, 1.5f, (rs.SpillT < Rooms.SpillWarn ? DoorAmber : DoorRed).WithAlpha(0.9f), 16, -Mathf.PI / 2f, MathX.Tau * f);
                 }
-            for (int i = 0; i < Rooms.Portals.Length; i++)  // the portals, in their pair's colour
-                foreach (var pp in new[] { Rooms.Portals[i].A, Rooms.Portals[i].B })
+            for (int i = 0; i < wd.Portals.Length; i++)  // the portals, in their pair's colour
+                foreach (var pp in new[] { wd.Portals[i].A, wd.Portals[i].B })
                 {
                     V2 c = M(pp);
                     Arc(c, 4f, 2f, PortalColours[i % PortalColours.Length], 12);

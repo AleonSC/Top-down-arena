@@ -184,6 +184,7 @@ namespace Arena
             Stop();
             PracticeIndex = -1;
             ResetPaths();
+            ResetExpansion();  // ExpansionGame.cs
             ResetRoom();  // Challenges.cs
             int startWave = r.ReadInt32();
             int n = r.ReadByte();
@@ -766,6 +767,7 @@ namespace Arena
                 return;
             AnimT += dt;
             TickShopNotices(dt);
+            TickExpansion(dt);     // a bot player's vote (ExpansionGame.cs)
             UpdatePropView(dt);    // crates, barrels, chests and their items (Props.cs)
             UpdateInkView(dt);     // Chalk.cs: the chalk's tip easing, a client's ink ageing
             UpdateWardenView(dt);  // Warden.cs

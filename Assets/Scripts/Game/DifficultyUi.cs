@@ -110,14 +110,31 @@ namespace Arena
             // The Arena (Rooms.cs, Docs/Rooms.md): Classic (today's arena, the default) or Rooms, on a row of its own.
             {
                 var slot = new Rect(x, y + rows * rowH + 34f, colW, 24f);
-                bool rooms = diff[DiffKnob.ArenaRooms] >= 0.5f;
-                float bw = (colW - 8f) / 2f;
+                bool expanding = diff[DiffKnob.ArenaExpanding] >= 0.5f;
+                bool rooms = !expanding && diff[DiffKnob.ArenaRooms] >= 0.5f;
+                float bw = (colW - 16f) / 3f;
                 if (slot.Contains(Event.current.mousePosition))
-                    hoverDesc = "Arena: Classic is the one-screen arena. Rooms: " + Difficulty.Knobs[(int)DiffKnob.ArenaRooms].Desc.Replace("On: ", "").Replace(" Off: the Classic arena.", "");
-                if (LobbyKit.Key(new Rect(slot.x, slot.y, bw, slot.height), "Classic arena", !rooms, fxReduced, size: 14, minSize: 11, enabled: canEdit) && canEdit && rooms)
+                {
+                    int hover = (int)((Event.current.mousePosition.x - slot.x) / (bw + 8f));
+                    hoverDesc = hover <= 0 ? "Arena: Classic is the one-screen arena."
+                        : hover == 1 ? "Rooms: " + Difficulty.Knobs[(int)DiffKnob.ArenaRooms].Desc.Replace("On: ", "").Replace(" Off: the Classic arena.", "")
+                        : "Expanding: " + Difficulty.Knobs[(int)DiffKnob.ArenaExpanding].Desc.Replace("On: ", "").Replace(" Off: the other arenas.", "");
+                }
+                if (LobbyKit.Key(new Rect(slot.x, slot.y, bw, slot.height), "Classic arena", !rooms && !expanding, fxReduced, size: 14, minSize: 11, enabled: canEdit) && canEdit && (rooms || expanding))
+                {
                     session.SetDifficultyKnob(DiffKnob.ArenaRooms, 0f);
+                    session.SetDifficultyKnob(DiffKnob.ArenaExpanding, 0f);
+                }
                 if (LobbyKit.Key(new Rect(slot.x + bw + 8f, slot.y, bw, slot.height), "Rooms arena", rooms, fxReduced, size: 14, minSize: 11, enabled: canEdit) && canEdit && !rooms)
+                {
                     session.SetDifficultyKnob(DiffKnob.ArenaRooms, 1f);
+                    session.SetDifficultyKnob(DiffKnob.ArenaExpanding, 0f);
+                }
+                if (LobbyKit.Key(new Rect(slot.x + 2f * (bw + 8f), slot.y, bw, slot.height), "Expanding arena", expanding, fxReduced, size: 14, minSize: 11, enabled: canEdit) && canEdit && !expanding)
+                {
+                    session.SetDifficultyKnob(DiffKnob.ArenaRooms, 0f);
+                    session.SetDifficultyKnob(DiffKnob.ArenaExpanding, 1f);
+                }
             }
             Ui.Label(lineRect, hoverDesc ?? line, 12, hoverDesc != null ? LobbyKit.Soft : CrtUi.Dim);
         }

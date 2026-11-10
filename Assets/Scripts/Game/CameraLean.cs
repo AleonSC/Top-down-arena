@@ -91,7 +91,7 @@ namespace Arena
         {
             if (game.RoomsOn)  // the Rooms world: behind all of it (Rooms.cs), plus a lean's worth round it
             {
-                V2 lo = Rooms.WorldMin, hi = Rooms.WorldMax;
+                V2 lo = game.CurrentWorld.Min, hi = game.CurrentWorld.Max;
                 FillRect(lo.X - LeanMaxX - 2f, lo.Y - LeanMaxY - 2f, hi.X - lo.X + 2f * LeanMaxX + 4f, hi.Y - lo.Y + 2f * LeanMaxY + 4f, c);
                 return;
             }

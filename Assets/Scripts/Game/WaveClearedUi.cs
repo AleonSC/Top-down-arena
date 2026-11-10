@@ -49,7 +49,7 @@ namespace Arena
         /// The box shows between waves once this wave's numbers have arrived and nothing else (a path, the shop, a portal, your own picks) has the screen.
         bool WaveBoxUp(Player me) =>
             me != null && game.State == MatchState.Intermission && game.Wave > 0 && game.WaveReport != null && game.WaveReport.Wave == game.Wave
-            && me.Offer == null && game.PathOffer == null && !game.ShopOpen && game.Room != RoomPhase.Portal && game.Practice == null;  // (the Practice Range has no ready-up)
+            && me.Offer == null && game.PathOffer == null && game.ExpandOffer == null && !game.ShopOpen && game.Room != RoomPhase.Portal && game.Practice == null;  // (the Practice Range has no ready-up)
 
         /// Draws the box; false when it isn't up (the plain banner is drawn instead).
         bool DrawWaveCleared(Player me, string waiting)

@@ -68,7 +68,7 @@ namespace Arena
                     if (PathOffer != null && Bot)
                         ChoosePath(rng.Next(2));  // a bot host picks for itself
                     TickShop(dt);  // the Bazaar's shop closes when everyone is done (Shop.cs)
-                    if (!AnyonePicking() && PathOffer == null && !ShopOpen && Room == RoomPhase.None)  // (and while a portal is open)
+                    if (!AnyonePicking() && PathOffer == null && ExpandOffer == null && !ShopOpen && Room == RoomPhase.None)  // (and while a portal is open)
                         TickReadyTimer(ref StateTimer, dt);  // ...and until everyone is ready (WaveReady.cs)
                     if (StateTimer <= 0f)
                     {
@@ -189,7 +189,10 @@ namespace Arena
                     NextOffer(p);
             }
             if (IsBossWave(Wave) && Hunt == null)
-                OfferPaths();  // after a boss: two paths for the next stretch
+                if (ExpandingOn)
+                    OfferExpansion();  // the Expanding arena: rooms to vote on instead of paths (ExpansionGame.cs)
+                else
+                    OfferPaths();  // after a boss: two paths for the next stretch
             RemoveTemporaryMinions();
             MaybeOpenPortal();  // once every five waves: a challenge room (Challenges.cs)
             ClearEnemyBullets();

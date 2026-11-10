@@ -535,6 +535,8 @@ namespace Arena
             for (int tries = 0; spots.Count < n && tries < 4000; tries++)
             {
                 var c = PushOutOfSolids(new V2(Rand(ArenaMin.X + CloneEdge, ArenaMax.X - CloneEdge), Rand(ArenaMin.Y + CloneEdge, ArenaMax.Y - CloneEdge)), 20f);
+                if (RoomsOn && !CurrentWorld.Areas[CurrentWorld.AreaAt(c)].Contains(c))
+                    continue;  // (the Expanding map has gaps between its rooms)
                 float gap = CloneSpacing - Math.Min(60f, tries / 60f);
                 if (c.DistanceTo(p.Pos) < CloneNinjaGap)
                     continue;

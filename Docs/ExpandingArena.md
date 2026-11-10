@@ -1,6 +1,6 @@
 # Expanding arena: design plan
 
-Status: **steps 1-2 built** (the `World` refactor; room types, offers and the map builder, not in the game yet); steps 3-5 not started. Written Nov 2026 from the owner's idea and a read of `Rooms.cs`, `Paths.cs`
+Status: **steps 1-3 built** (the `World` refactor; rooms, offers and the map builder; the Expanding layout in the game: setting, team vote, purse, sync, camera, minimap, enemy scaling); room features (step 4) and polish/balance (step 5) not started. Written Nov 2026 from the owner's idea and a read of `Rooms.cs`, `Paths.cs`
 and `Shop.cs`. Numbers are first guesses.
 
 ## The idea
@@ -108,6 +108,27 @@ in that layout with a switch; don't delete code.
 - **For step 3**: the world's bounding box has void in it, so random spawns, props and the minimap must go by area
   (`AreaAt`), not by the box.
 - Test suite `expand`: determinism, no overlaps, connected, open doors with steering spots, the cap, variety.
+
+## Step 3 (built, protocol 244)
+
+- **Setting**: `DiffKnob.ArenaExpanding` (on wins over Rooms); the lobby's Arena row has a third key. `Game.ArenaKind`
+  = Expanding / Wings / Single; `Game.CurrentWorld` is the geometry in play (Single until the first room is bought,
+  and on boss waves, which stay in the hub alone).
+- **Purse**: every kill adds its gold (`GoldPerXp` x `PurseRate` 1.0) to `Game.Purse`, synced in the snapshot.
+  Measured with two bots: about 280 at the first boss.
+- **Vote** (`ExpansionGame.cs`): after each boss the host makes `Expansion.Offers` (seeded) and sends them in
+  `Msg.ExpandState` (rooms bought, offer, votes); players send `Msg.ExpandVote`. All players voting resolves it: most
+  votes wins, a tie goes to the room, "buy nothing" keeps the purse. No vote is held if nothing is affordable. Bots
+  vote on their own. Intermission waits for the vote like it does for paths. Paths are off in this arena.
+- **Prices** (first guesses): 120 + area/4000, x1.3 shop, x1.15 floor, +20% per room bought (Closet ~180, Room ~240,
+  Plaza ~320 at the start).
+- **Enemy scale**: `1 + 0.35 x (floor area / hub area - 1)`, up to 2x (`ExpansionScale`).
+- **Look**: room floors tinted by kind (shop gold, floor = its path's colour), the grid inside rooms only, the minimap
+  scales to the map, doors as in Wings. Preview: `EXPANDVOTE=<rooms bought>` (mode hud) and `EXPANDMAP=<rooms>`
+  with `ZOOM=0.5`.
+- **Not done**: kinds are labels only (step 4); saved runs don't hold the rooms, so Expanding runs can't be saved;
+  steering around the gaps between rooms is untested with real enemies beyond the sim suite.
+- Tests: suite `expand` (`ExpansionTest`, `ExpandingGameTest` with a host and a client, `ExpandingEconomyTest` with bots).
 
 ## Open questions (defaults in bold)
 

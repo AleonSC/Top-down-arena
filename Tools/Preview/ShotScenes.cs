@@ -1141,6 +1141,20 @@ static partial class Shot {
         en.Pos = en.Disp = rg.PushOutOfProps(new V2(ar.Min.X + 60f + (float)rrng.NextDouble() * (ar.Size.X - 120f), ar.Min.Y + 50f + (float)rrng.NextDouble() * (ar.Size.Y - 100f)), en.Radius);
       }
     }
+    if (Environment.GetEnvironmentVariable("EXPANDMAP") != null) {  // EXPANDMAP=<rooms bought>: the Expanding arena with that many rooms up, you in the hub, enemies spread over the rooms
+      var xg = host.Game; xg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+      int nb = int.Parse(Environment.GetEnvironmentVariable("EXPANDMAP"));
+      for (int k = 0; k < nb; k++) xg.Expanded.Add(Expansion.Offers(5, 5 + 5 * k, xg.Expanded)[0]);
+      xg.Purse = 340; xg.RoomsUp = true; xg.LayoutAge = 5f;
+      var xrng = new System.Random(7); int xi = 0;
+      foreach (var en in xg.Enemies.Values) {
+        if (en.Def.IsBoss) continue;
+        var ar = xg.CurrentWorld.Areas[xi++ % xg.CurrentWorld.Areas.Length];
+        en.Pos = en.Disp = xg.PushOutOfProps(new V2(ar.Min.X + 60f + (float)xrng.NextDouble() * Math.Max(1f, ar.Size.X - 120f), ar.Min.Y + 50f + (float)xrng.NextDouble() * Math.Max(1f, ar.Size.Y - 100f)), en.Radius);
+      }
+      string fp = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: where you stand (default the hub)
+      if (fp != null) { var q = fp.Split(','); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(float.Parse(q[0], System.Globalization.CultureInfo.InvariantCulture), float.Parse(q[1], System.Globalization.CultureInfo.InvariantCulture)); }
+    }
     if (Environment.GetEnvironmentVariable("LAYOUT") != null) {  // LAYOUT=<LayoutId number, 1-6>: that floor plan with its cover, everyone out of its walls
       var lg = host.Game; lg.PropsOn = true; lg.DevSetLayout((LayoutId)int.Parse(Environment.GetEnvironmentVariable("LAYOUT"))); lg.LayoutAge = 5f;
       typeof(Game).GetMethod("WaveProps", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(lg, null);

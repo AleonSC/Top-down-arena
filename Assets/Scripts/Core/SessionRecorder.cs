@@ -141,7 +141,7 @@ namespace Arena
             if (g.Bot)
                 Dev(g, "bot plays for the host: on");
             modifiers = string.Join(", ", Modifiers.Names(g.Mods).ToArray());
-            arena = g.RoomsArena ? "Rooms" : "Classic";  // the Arena setting (Rooms.cs)
+            arena = g.ArenaKind == ArenaLayout.Expanding ? "Expanding" : g.RoomsArena ? "Rooms" : "Classic";  // the Arena setting (Rooms.cs)
             difficulty = g.Diff.Level == DifficultyLevel.Custom ? "Custom (" + string.Join(", ", g.Diff.Changes().ToArray()) + ")" : g.Diff.Name;
             playerCount = g.Players.Count;
             foreach (var p in g.Players.Values)
@@ -203,7 +203,7 @@ namespace Arena
             float cy = Math.Max(View2xHalfH, Math.Min(Game.Height - View2xHalfH, pos.Y));
             if (g.RoomsOn)  // the Rooms arena's camera frames the room or hallway you're in (Rooms.cs)
             {
-                V2 c = Rooms.ViewCentre(pos, View2xHalfW, View2xHalfH, g.VaultOn);
+                V2 c = g.CurrentWorld.ViewCentre(pos, View2xHalfW, View2xHalfH, g.VaultOn);
                 cx = c.X;
                 cy = c.Y;
             }

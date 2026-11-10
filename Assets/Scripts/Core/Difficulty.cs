@@ -33,6 +33,7 @@ namespace Arena
         ApproachRamp,   // on/off: the four approach waves rise to that share (on) or all use it (off)
         ArenaLayouts,   // on/off: each boss cycle gets a fixed floor plan (Layouts.cs); off = always the open arena
         ArenaRooms,     // on/off: the Arena setting, Rooms (on: side rooms and hallways on regular waves, Rooms.cs) or Classic (off)
+        ArenaExpanding, // on/off: the Arena setting, Expanding (on: starts as the Classic box and grows by rooms the team buys, ExpansionGame.cs); wins over Rooms
     }
 
     public enum KnobUnit { Times, Percent, PercentPerWave, Seconds, HpPerSecond, OnOff }
@@ -286,6 +287,10 @@ namespace Arena
             // The Arena (Rooms.cs, Docs/Rooms.md): flavour. Off is Classic, today's arena, the default until Rooms is tuned.
             new KnobDef { Knob = DiffKnob.ArenaRooms, Name = "Rooms arena", Flavour = true,
                 Desc = "On: regular waves spread into side rooms and hallways round the arena, joined by doors (boss waves stay in the middle). Off: the Classic arena.",
+                Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 0f, 0f, 0f, 0f } },
+            // The Expanding arena (ExpansionGame.cs, Docs/ExpandingArena.md): flavour. Starts as the Classic box; after each boss the team votes on rooms to buy.
+            new KnobDef { Knob = DiffKnob.ArenaExpanding, Name = "Expanding arena", Flavour = true,
+                Desc = "On: the arena starts as the Classic box and grows: after each boss the team votes on a new room to buy with a shared purse (paths are off). Off: the other arenas.",
                 Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 0f, 0f, 0f, 0f } },
         };
     }

@@ -24,7 +24,7 @@ namespace Arena
             get
             {
                 if (RoomsOn)
-                    return Rooms.With(Layout, VaultUp);  // the floor plan in the hub, the rooms' walls round it (Rooms.cs)
+                    return CurrentWorld.With(Layout, VaultUp);  // the floor plan in the hub, the rooms' walls round it (Rooms.cs)
                 if (Layout == LayoutId.Open || InRoom || Practice != null || ShowcaseMode)
                     return null;
                 return Layouts.Get(Layout);
@@ -116,6 +116,7 @@ namespace Arena
                 RoomsUp = rooms;
             }
             SyncRooms(s);  // the nests, spills and the vault (Rooms.cs)
+            SyncExpansion(s);  // the team purse (ExpansionGame.cs)
         }
 
         void TickLayout(float dt)
