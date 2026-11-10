@@ -799,6 +799,8 @@ namespace Arena
             StepRadiantDisplay(dt);    // Radiant Orbs (RadiantOrb.cs)
             foreach (var p in Players.Values)
                 p.StunT = Math.Max(0f, p.StunT - dt);
+            foreach (var p in Players.Values)
+                p.WarpT = Math.Max(0f, p.WarpT - dt);  // (BossBeam.cs)
             float k = 1f - (float)Math.Exp(-18.0 * dt);
             foreach (var p in Players.Values)
                 // Snap instead of sliding across the screen when the player wraps around an edge.
@@ -975,7 +977,7 @@ namespace Arena
                 me.Pos += HeraldWind(WindPush) * dt;  // the Storm Herald's Gale (Herald.cs)
             if (!me.Downed && DashT <= 0f)
                 me.Pos += DevourPull(me.Pos) * dt;  // the Devourer breathing in (Devourer.cs)
-            if ((me.StunT > 0f || me.StandOn) && !me.Downed)
+            if ((me.StunT > 0f || me.StandOn || me.WarpT > 0f) && !me.Downed)
             {
                 me.Pos = before;  // stunned by the Warden, or planted behind Last Stand: stuck where you are
                 DashT = 0f;
@@ -1300,8 +1302,8 @@ namespace Arena
                 TickRapier(p, dt);  // the Rapier's Tempo and Flourish (Rapier.cs)
                 if (p.Weapon.Id == WeaponId.RadiantOrb)
                     TickRadiantOrb(p, dt);  // held, not fired (RadiantOrb.cs); it lets go when you're down
-                if (p.Downed || p.SwallowT > 0f)
-                    continue;  // (nothing to shoot from inside the Devourer)
+                if (p.Downed || p.SwallowT > 0f || p.WarpT > 0f)
+                    continue;  // (nothing to shoot from inside the Devourer, or mid beam-in)
                 if (p.StunShots > 0)
                     TickStunGun(p);  // the Stun Gun is out instead of your weapon (Stun.cs)
                 else if (p.Weapon.Id == WeaponId.Pistol)

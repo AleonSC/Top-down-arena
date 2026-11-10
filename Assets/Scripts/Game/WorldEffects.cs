@@ -141,6 +141,9 @@ namespace Arena
                 case FxKind.JuggShard:
                     DrawJuggShardFx(fx);  // JuggernautLook.cs
                     break;
+                case FxKind.BossBeam:
+                    DrawBossBeamFx(fx);  // BossBeamLook.cs
+                    break;
                 case FxKind.TaserHit:
                     DrawTaserHitFx(fx);  // TaserLook.cs
                     break;
