@@ -240,6 +240,7 @@ namespace Arena
             }
             Keybinds.Tick();  // Settings → Keybinds waiting for a key (Keybinds.cs)
             session.Poll();
+            PacmanUpdate();  // the Pac-Man game, when a Pac profile's Play opened it (PacmanUi.cs)
             game.Update(devFrozen ? 0f : Time.deltaTime * EndSpeed);  // slowed as a run ends (RunEnding.cs); nothing ages while P has frozen it
             LabUpdate(Time.deltaTime);  // Boss Lab bots (BossLabUi.cs)
             partyBots.Update(Time.deltaTime);  // bots in the lobby's open slots (PartyBots.cs)
@@ -468,7 +469,7 @@ namespace Arena
                      && Keybinds.Down(KeyAction.DiscardItem))
                 game.DevKillAll(game.MyId);
 
-            bool escTaken = EscPressed && HandleScreenEsc();  // the top tool screen (F1 menu, wave editor, Boss Lab setup) takes Esc first (UiScreens.cs)
+            bool escTaken = EscPressed && (pacEscFrame == Time.frameCount || HandleScreenEsc());  // the top tool screen (F1 menu, wave editor, Boss Lab setup) takes Esc first (UiScreens.cs)
             if (session.Screen != AppScreen.Game && EscPressed && !escTaken)
             {
                 if (inspectId >= 0)
@@ -713,7 +714,9 @@ namespace Arena
             switch (session.Screen)
             {
                 case AppScreen.Menu:
-                    if (profTr)
+                    if (pacOpen)
+                        DrawPacman();  // PacmanUi.cs
+                    else if (profTr)
                         DrawProfTr();  // the picker and the menu trading places (ProfileTransition.cs)
                     else if (whoOpen)
                         DrawWho();  // ProfilesUi.cs

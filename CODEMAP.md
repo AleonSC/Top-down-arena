@@ -142,6 +142,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 ## Saving, stats and text data (Core)
 - `SaveData.cs`, `RunSaves.cs`, `Profile.cs`: saved runs, profile, records, unlocks
 - `Core/Pacman.cs`: the Pac-Man maze game's simulation (maze, chompers, role ghosts, waves, lives, levels; no Unity; test suite `pacman`; `Docs/Pacman.md`)
+- `PacmanUi.cs`: the Pac-Man game screen for a Pac profile (Play opens it): maze, dots, chomper, role ghosts, HUD, keys (`Docs/Pacman.md`)
 - `PacmanLook.cs`: the Pac-Man skin for Pac profiles (chomper, role ghosts, dots) and the Pac-Man disk (`Docs/Pacman.md`)
 - `ProfileStore.cs`, `ProfilesUi.cs`: up to 3 profiles (a folder each under `profiles/`), the "Who's playing?" screen before the menu: profiles as floppy disks (names in Permanent Marker, `Ui.HandFont`) standing in clamp cradles on a wall shelf, always four boxes (`Docs/Profiles.md`); `IsSanAndreasName` swaps in the blue San Andreas disk and `IsDoomName` the Doom install disk and `IsMissionImpossibleName` the Mission: Impossible disk and the Windows 95 disk and the hologram disk (easter eggs)
 - `ProfileStore.cs`, `ProfilesUi.cs`: up to 3 profiles (a folder each under `profiles/`), the "Who's playing?" screen before the menu: profiles as floppy disks (names in Permanent Marker, `Ui.HandFont`) standing in clamp cradles on a wall shelf, always four boxes (`Docs/Profiles.md`); `IsSanAndreasName` swaps in the blue San Andreas disk and `IsDoomName` the Doom install disk (easter eggs)

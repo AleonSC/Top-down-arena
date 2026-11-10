@@ -296,7 +296,7 @@ static partial class Shot {
       if (te != null) endTe.Invoke(app, null);
       GL.ToUi = false;
     }
-    else if (mode == "menu" || mode == "records" || mode == "cosmetics" || mode == "profile" || mode == "settings" || mode == "who" || mode == "whotr")
+    else if (mode == "menu" || mode == "records" || mode == "cosmetics" || mode == "profile" || mode == "settings" || mode == "who" || mode == "whotr" || mode == "pacman")
     {
       // who: the "Who's playing?" screen with made-up profiles (TWO=1: two of them, so one slot says Empty; MANAGE=1: Rename and Delete showing; EMPTY=1: none yet).
       // whotr: the move between the picker and the menu (ProfileTransition.cs), PROFTR=<clock 0..5.4>,<slot 0..2>[,back].
@@ -309,6 +309,23 @@ static partial class Shot {
         // PROFEJ=<0..2.9>,<slot>: the eject key's move instead (DiskEject.cs); the menu stays fully drawn.
         if (Environment.GetEnvironmentVariable("PROFEJ") != null) { var pe = Environment.GetEnvironmentVariable("PROFEJ").Split(','); set("profEj", true); set("profEjT", float.Parse(pe[0], System.Globalization.CultureInfo.InvariantCulture)); set("profTrSlot", pe.Length > 1 ? int.Parse(pe[1]) : 0); set("profTrFwd", false); set("menuIntroT", 2.749f); }
         typeof(ArenaApp).GetMethod("WhoRefresh", f2).Invoke(app, null);
+      }
+      // pacman: the Pac-Man game's screen (PacmanUi.cs). PACKEYS=l1.7,u0.6: steer left for 1.7 s, then up for 0.6 s (letters l r u d), after READY; PACPAUSE=1: the pause screen.
+      if (mode == "pacman") {
+        typeof(ArenaApp).GetMethod("OpenPacman", f2).Invoke(app, null);
+        var pg = (PacmanGame)typeof(ArenaApp).GetField("pac", f2).GetValue(app);
+        pg.Step(PacmanGame.ReadyTime + 0.05f);
+        foreach (var tok in (Environment.GetEnvironmentVariable("PACKEYS") ?? "l0.8").Split(',')) {
+          if (tok.Length < 2) continue;
+          char dch = tok[0]; float secs = float.Parse(tok.Substring(1), System.Globalization.CultureInfo.InvariantCulture);
+          pg.SetInput(0, dch == 'l' ? -1 : dch == 'r' ? 1 : 0, dch == 'u' ? -1 : dch == 'd' ? 1 : 0);
+          pg.Step(secs);
+        }
+        // PACFRIGHT=<s left>: the ghosts blue; PACDIE=<s left>: the chomper dying; PACOVER=1: game over.
+        if (Environment.GetEnvironmentVariable("PACFRIGHT") != null) { pg.FrightT = float.Parse(Environment.GetEnvironmentVariable("PACFRIGHT"), System.Globalization.CultureInfo.InvariantCulture); foreach (var gh in pg.Ghosts) gh.Mode = GhostMode.Frightened; pg.Ghosts[1].Mode = GhostMode.Eaten; }
+        if (Environment.GetEnvironmentVariable("PACDIE") != null) pg.Chompers[0].DeadT = float.Parse(Environment.GetEnvironmentVariable("PACDIE"), System.Globalization.CultureInfo.InvariantCulture);
+        if (Environment.GetEnvironmentVariable("PACOVER") != null) pg.State = PacState.Over;
+        if (Environment.GetEnvironmentVariable("PACPAUSE") != null) set("pacPaused", true);
       }
       if (mode == "who") { PreviewWho(); set("whoOpen", true); if (Environment.GetEnvironmentVariable("MANAGE") != null) set("whoManage", true); typeof(ArenaApp).GetMethod("WhoRefresh", f2).Invoke(app, null); }
       // records: the Records page, with made-up saves and a profile (SavesUi.cs).
@@ -354,7 +371,7 @@ static partial class Shot {
       // MENUINTRO=<seconds>: the main menu that far into its intro (MenuIntro.cs); JOINOPEN=1: Join's address row open.
       if (Environment.GetEnvironmentVariable("MENUINTRO") != null) { set("menuIntroDone", true); set("menuIntroT", float.Parse(Environment.GetEnvironmentVariable("MENUINTRO"), System.Globalization.CultureInfo.InvariantCulture)); }
       if (Environment.GetEnvironmentVariable("JOINOPEN") != null) { set("menuJoinOpen", true); set("menuBottomHide", 1f); }
-      typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "records" || mode == "cosmetics" || mode == "profile" ? "DrawProfile" : mode == "settings" ? "DrawSettings" : mode == "who" ? "DrawWho" : "DrawProfTr", f2).Invoke(app, null);
+      typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "records" || mode == "cosmetics" || mode == "profile" ? "DrawProfile" : mode == "settings" ? "DrawSettings" : mode == "who" ? "DrawWho" : mode == "pacman" ? "DrawPacman" : "DrawProfTr", f2).Invoke(app, null);
       GL.ToUi = false;
     }
     else if (mode == "kitgrid")
