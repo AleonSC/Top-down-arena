@@ -1,6 +1,6 @@
 # Expanding arena: design plan
 
-Status: **plan only, nothing built.** Written Nov 2026 from the owner's idea and a read of `Rooms.cs`, `Paths.cs`
+Status: **step 1 built** (the `World` refactor, no behavior change); steps 2-5 not started. Written Nov 2026 from the owner's idea and a read of `Rooms.cs`, `Paths.cs`
 and `Shop.cs`. Numbers are first guesses.
 
 ## The idea
@@ -74,10 +74,23 @@ in that layout with a switch; don't delete code.
 4. **Room features.** Shop room, floor-modifier rooms, then whatever else you want.
 5. **Polish and balance.** Previews, bot balance run, README section.
 
+## Decisions (owner, Nov 10)
+
+- Who buys: **a team vote** (not the host alone).
+- Currency: **a shared team purse for rooms**; personal gold stays for the shop.
+- "Wings" is the Rooms arena as it is today.
+
+## Step 1 (built)
+
+- `World.cs`: `World` holds an arena's areas, doors, portals, wall spans and cover, and builds the walls and the
+  steering floor plan (`With`). `World.Single` is the plain box; `Rooms.Wings` is today's Rooms map, built as data.
+- `Rooms.Areas/Doors/Portals/Cover/WallsFor/With/AreaAt/ViewCentre/...` now forward to `Rooms.Wings`, so callers and
+  tests didn't change. `Game.CurrentWorld` is the world in play; `ArenaMin/ArenaMax` read it.
+- `Game.ArenaKind` (`ArenaLayout`: Single, Wings, Expanding) comes from the existing on/off Arena setting. The
+  three-way setting and the protocol bump are left for step 3 (nothing is synced differently yet, so protocol stays 243).
+- Checked: core + features suites, `wings` suite (new World checks), RenderCheck identical.
+
 ## Open questions (defaults in bold)
 
-- Who buys: **host decides** (like paths), or a team vote?
-- Currency: **a shared team purse for rooms, personal gold for the shop**, or one pool for everything?
-- Is "Wings" the Rooms arena as it is today? **Yes.**
 - Do expansions ever shrink or close (a destroyed room)? **No.**
 - Do bosses appear in the grown map? **No: fixed boss arena.**

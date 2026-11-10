@@ -26,6 +26,14 @@ static partial class Program
         var keepIn = typeof(Game).GetMethod("KeepInArena", flags);
         var roomsPortal = typeof(Game).GetMethod("RoomsPortal", flags);
 
+        // The World data (World.cs): Wings is one World, Single a plain box; the Rooms members are Wings' own.
+        var wings = Rooms.Wings;
+        Check(wings.Areas == Rooms.Areas && wings.Doors == Rooms.Doors && wings.WallsFor(true) == Rooms.WallsFor(true) && wings.VaultDoor == Rooms.VaultDoor && wings.Doors[wings.VaultDoor].Joins(wings.Vault),
+            "the Wings world holds the rooms, doors and walls (Rooms.* reads it)");
+        Check(World.Single.Areas.Length == 1 && World.Single.Doors.Length == 0 && World.Single.WallsFor(true).Length == 0 && World.Single.AreaAt(new V2(5000f, -3f)) == 0
+            && World.Single.Max.X == Game.Width && World.Single.Max.Y == Game.Height && World.Single.VaultDoor == -1 && World.Single.PortalExitFor(new V2(100f, 100f)) == null,
+            "the Single world is one plain box: no doors, walls or portals");
+
         // The world: one box round the hub, the same margin on each side; doors in the walls; nothing inside a wall.
         V2 lo = Rooms.WorldMin, hi = Rooms.WorldMax;
         Check(Math.Abs(lo.X + (hi.X - Game.Width)) < 0.01f && Math.Abs(lo.Y + (hi.Y - Game.Height)) < 0.01f, "the Rooms world reaches as far past the hub on each side (ArenaMin/ArenaMax stay symmetric)");
@@ -92,6 +100,11 @@ static partial class Program
         // Rooms: the world comes up on a regular wave, and the client gets it too.
         g.Diff.Set(DiffKnob.ArenaRooms, 1f);
         cg.Diff.Set(DiffKnob.ArenaRooms, 1f);
+        bool wingsKind = g.ArenaKind == ArenaLayout.Wings;
+        g.Diff.Set(DiffKnob.ArenaRooms, 0f);
+        bool singleKind = g.ArenaKind == ArenaLayout.Single && g.CurrentWorld == World.Single;
+        g.Diff.Set(DiffKnob.ArenaRooms, 1f);
+        Check(wingsKind && singleKind, "the Arena setting picks the layout: Classic is Single, Rooms is Wings");
         pickRooms.Invoke(g, null);
         Run(s, dt, 0.4f);
         Check(g.RoomsOn && cg.RoomsOn && g.Walled && cg.ArenaMin.DistanceTo(Rooms.WorldMin) < 0.01f && g.ArenaMax.DistanceTo(Rooms.WorldMax) < 0.01f,

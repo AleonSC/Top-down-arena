@@ -42,255 +42,102 @@ namespace Arena
         public const float VaultW = 500f, VaultH = 400f;
         const float W = Game.Width, H = Game.Height;
 
-        public static V2 WorldMin => new V2(-RoomW, -HallH);
-        public static V2 VaultWorldMin => new V2(-RoomW, -HallH - VaultH);
-        public static V2 WorldMax => new V2(W + RoomW, H + HallH);
-        public static V2 MinFor(bool vault) => vault ? VaultWorldMin : WorldMin;
-
         public const int Hub = 0, West = 1, East = 2, TopHall = 3, BottomHall = 4, Vault = 5;
 
         /// The rooms with a nest in them (Docs/Rooms.md: each room's nest keeps it stocked and spills into the hub).
         public static readonly int[] NestRooms = { West, East };
 
-        public static readonly RoomArea[] Areas =
-        {
-            new RoomArea { Name = "Hub", Min = new V2(0f, 0f), Max = new V2(W, H), Hub = true },
-            new RoomArea { Name = "West room", Min = new V2(-RoomW, 0f), Max = new V2(0f, H) },
-            new RoomArea { Name = "East room", Min = new V2(W, 0f), Max = new V2(W + RoomW, H) },
-            new RoomArea { Name = "Top hall", Min = new V2(-RoomW, -HallH), Max = new V2(W + RoomW, 0f), Hall = true },
-            new RoomArea { Name = "Bottom hall", Min = new V2(-RoomW, H), Max = new V2(W + RoomW, H + HallH), Hall = true },
-            new RoomArea { Name = "Vault", Min = new V2(W / 2f - VaultW / 2f, -HallH - VaultH), Max = new V2(W / 2f + VaultW / 2f, -HallH), Vault = true },
-        };
-
-        public static readonly RoomDoor[] Doors =
-        {
-            new RoomDoor { Pos = new V2(0f, H / 2f), Vertical = true, A = Hub, B = West },
-            new RoomDoor { Pos = new V2(W, H / 2f), Vertical = true, A = Hub, B = East },
-            new RoomDoor { Pos = new V2(-RoomW / 2f, 0f), A = West, B = TopHall },
-            new RoomDoor { Pos = new V2(W + RoomW / 2f, 0f), A = East, B = TopHall },
-            new RoomDoor { Pos = new V2(-RoomW / 2f, H), A = West, B = BottomHall },
-            new RoomDoor { Pos = new V2(W + RoomW / 2f, H), A = East, B = BottomHall },
-            new RoomDoor { Pos = new V2(W / 2f, 0f), A = Hub, B = TopHall },     // the hub's top and bottom doors (owner, Nov 10: less linear)
-            new RoomDoor { Pos = new V2(W / 2f, H), A = Hub, B = BottomHall },
-            new RoomDoor { Pos = new V2(W / 2f, -HallH), A = TopHall, B = Vault },  // the vault's: only on a vault wave (keep it last: VaultDoor)
-        };
-
-        /// The vault's door (the last one).
-        public static int VaultDoor => Doors.Length - 1;
-
-        /// Wraparound portals (owner, Nov 10): step into one and you come out of its partner on the far side of the map,
-        /// which makes the map a ring. Players and enemies both use them (enemies steer through them when it's shorter).
-        /// Pairs: the West room's far wall with the East room's, and each hallway's two ends.
-        public struct Portal { public V2 A, B; public V2 InA, InB; }  // centres, and the way into the map from each
         public const float PortalR = 42f, PortalExit = 70f, PortalCooldown = 1.2f, PortalInset = 40f;
-        public static readonly Portal[] Portals =
-        {
-            new Portal { A = new V2(-RoomW + PortalInset, H / 2f), B = new V2(W + RoomW - PortalInset, H / 2f), InA = new V2(1f, 0f), InB = new V2(-1f, 0f) },
-            new Portal { A = new V2(-RoomW + PortalInset, -HallH / 2f), B = new V2(W + RoomW - PortalInset, -HallH / 2f), InA = new V2(1f, 0f), InB = new V2(-1f, 0f) },
-            new Portal { A = new V2(-RoomW + PortalInset, H + HallH / 2f), B = new V2(W + RoomW - PortalInset, H + HallH / 2f), InA = new V2(1f, 0f), InB = new V2(-1f, 0f) },
-        };
 
-        /// Where something stepping into a portal at `at` comes out (null: not in a portal). Keeps its offset along the wall.
-        public static V2? PortalExitFor(V2 at)
+        /// The Wings map as a World (geometry as data, World.cs). The members below (Areas, Doors, WallsFor, ...) are the
+        /// Wings world's, kept so the Rooms code and its tests read the same as before.
+        public static readonly World Wings = BuildWings();
+
+        static World BuildWings()
         {
-            foreach (var p in Portals)
+            V2 lo = new V2(-RoomW, -HallH), hi = new V2(W + RoomW, H + HallH);
+            var areas = new[]
             {
-                if (at.DistanceTo(p.A) < PortalR)
-                    return p.B + p.InB * PortalExit + new V2(0f, at.Y - p.A.Y);
-                if (at.DistanceTo(p.B) < PortalR)
-                    return p.A + p.InA * PortalExit + new V2(0f, at.Y - p.B.Y);
-            }
-            return null;
+                new RoomArea { Name = "Hub", Min = new V2(0f, 0f), Max = new V2(W, H), Hub = true },
+                new RoomArea { Name = "West room", Min = new V2(-RoomW, 0f), Max = new V2(0f, H) },
+                new RoomArea { Name = "East room", Min = new V2(W, 0f), Max = new V2(W + RoomW, H) },
+                new RoomArea { Name = "Top hall", Min = new V2(-RoomW, -HallH), Max = new V2(W + RoomW, 0f), Hall = true },
+                new RoomArea { Name = "Bottom hall", Min = new V2(-RoomW, H), Max = new V2(W + RoomW, H + HallH), Hall = true },
+                new RoomArea { Name = "Vault", Min = new V2(W / 2f - VaultW / 2f, -HallH - VaultH), Max = new V2(W / 2f + VaultW / 2f, -HallH), Vault = true },
+            };
+            var doors = new[]
+            {
+                new RoomDoor { Pos = new V2(0f, H / 2f), Vertical = true, A = Hub, B = West },
+                new RoomDoor { Pos = new V2(W, H / 2f), Vertical = true, A = Hub, B = East },
+                new RoomDoor { Pos = new V2(-RoomW / 2f, 0f), A = West, B = TopHall },
+                new RoomDoor { Pos = new V2(W + RoomW / 2f, 0f), A = East, B = TopHall },
+                new RoomDoor { Pos = new V2(-RoomW / 2f, H), A = West, B = BottomHall },
+                new RoomDoor { Pos = new V2(W + RoomW / 2f, H), A = East, B = BottomHall },
+                new RoomDoor { Pos = new V2(W / 2f, 0f), A = Hub, B = TopHall },     // the hub's top and bottom doors (owner, Nov 10: less linear)
+                new RoomDoor { Pos = new V2(W / 2f, H), A = Hub, B = BottomHall },
+                new RoomDoor { Pos = new V2(W / 2f, -HallH), A = TopHall, B = Vault },  // the vault's: only on a vault wave (keep it last: VaultDoor)
+            };
+            // Wraparound portals (owner, Nov 10): step into one and you come out of its partner on the far side of the map,
+            // which makes the map a ring. Players and enemies both use them (enemies steer through them when it's shorter).
+            // Pairs: the West room's far wall with the East room's, and each hallway's two ends.
+            var portals = new[]
+            {
+                new WorldPortal { A = new V2(-RoomW + PortalInset, H / 2f), B = new V2(W + RoomW - PortalInset, H / 2f), InA = new V2(1f, 0f), InB = new V2(-1f, 0f) },
+                new WorldPortal { A = new V2(-RoomW + PortalInset, -HallH / 2f), B = new V2(W + RoomW - PortalInset, -HallH / 2f), InA = new V2(1f, 0f), InB = new V2(-1f, 0f) },
+                new WorldPortal { A = new V2(-RoomW + PortalInset, H + HallH / 2f), B = new V2(W + RoomW - PortalInset, H + HallH / 2f), InA = new V2(1f, 0f), InB = new V2(-1f, 0f) },
+            };
+            var v = areas[Vault];
+            var spans = new[]
+            {
+                new WallSpan(true, 0f, 0f, H),                    // hub | west room
+                new WallSpan(true, W, 0f, H),                     // hub | east room
+                new WallSpan(false, 0f, lo.X, hi.X),              // top hall | west room, hub, east room
+                new WallSpan(false, H, lo.X, hi.X),               // bottom hall | west room, hub, east room
+                new WallSpan(true, lo.X, lo.Y, hi.Y),             // the world's own edges (the top one has the vault's door)
+                new WallSpan(true, hi.X, lo.Y, hi.Y),
+                new WallSpan(false, lo.Y, lo.X, hi.X),
+                new WallSpan(false, hi.Y, lo.X, hi.X),
+                new WallSpan(true, v.Min.X, v.Min.Y, v.Max.Y, true),                              // the vault's walls
+                new WallSpan(true, v.Max.X, v.Min.Y, v.Max.Y, true),
+                new WallSpan(false, v.Min.Y, v.Min.X - WallT / 2f, v.Max.X + WallT / 2f, true),
+            };
+            // The small obstacles in the rooms and hallways (Docs/Rooms.md decision 11).
+            float wx = -RoomW / 2f, ex = W + RoomW / 2f;
+            var cover = new[]
+            {
+                World.Pillar(wx, 250f, 40f), World.Pillar(wx, H - 250f, 40f), World.Box(-RoomW + 165f, H / 2f - 120f, -RoomW + 195f, H / 2f + 120f),  // west room
+                World.Pillar(ex, 250f, 40f), World.Pillar(ex, H - 250f, 40f), World.Box(W + RoomW - 195f, H / 2f - 120f, W + RoomW - 165f, H / 2f + 120f),  // east room
+                World.Box(170f, -HallH / 2f - 30f, 230f, -HallH / 2f + 30f), World.Box(W - 230f, -HallH / 2f - 30f, W - 170f, -HallH / 2f + 30f),  // top hall
+                World.Pillar(200f, H + HallH / 2f, 26f), World.Pillar(W - 200f, H + HallH / 2f, 26f),  // bottom hall
+            };
+            return new World
+            {
+                Name = "Wings",
+                Areas = areas, Doors = doors, Portals = portals, Spans = spans, Cover = cover,
+                Min = lo, VaultMin = new V2(-RoomW, -HallH - VaultH), Max = hi,
+                Hub = Hub, Vault = Vault, PortalR = PortalR, PortalExit = PortalExit,
+            };
         }
 
-        /// Is this door there (the vault's only with the vault up)?
-        public static bool DoorUp(int i, bool vault) => vault || !Doors[i].Joins(Vault);
-
-        /// The area a point is in (the nearest one for a point in a wall or just outside the world).
-        public static int AreaAt(V2 p)
-        {
-            for (int i = 0; i < Areas.Length; i++)
-                if (Areas[i].Contains(p))
-                    return i;
-            int best = Hub;
-            float bestD = float.MaxValue;
-            for (int i = 0; i < Areas.Length; i++)
-            {
-                var a = Areas[i];
-                V2 c = p.Clamp(a.Min, a.Max);
-                float d = c.DistanceTo(p);
-                if (d < bestD) { bestD = d; best = i; }
-            }
-            return best;
-        }
+        public static V2 WorldMin => Wings.Min;
+        public static V2 VaultWorldMin => Wings.VaultMin;
+        public static V2 WorldMax => Wings.Max;
+        public static V2 MinFor(bool vault) => Wings.MinFor(vault);
+        public static RoomArea[] Areas => Wings.Areas;
+        public static RoomDoor[] Doors => Wings.Doors;
+        public static WorldPortal[] Portals => Wings.Portals;
+        public static Solid[] Cover => Wings.Cover;
+        public static Solid[] Walls => Wings.WallsFor(false);
+        public static int VaultDoor => Wings.VaultDoor;
+        public static V2? PortalExitFor(V2 at) => Wings.PortalExitFor(at);
+        public static bool DoorUp(int i, bool vault) => Wings.DoorUp(i, vault);
+        public static int AreaAt(V2 p) => Wings.AreaAt(p);
+        public static Solid[] WallsFor(bool vault) => Wings.WallsFor(vault);
+        public static V2 ViewCentre(V2 at, float hx, float hy, bool vault) => Wings.ViewCentre(at, hx, hy, vault);
+        public static LayoutDef With(LayoutId hub, bool vault = false) => Wings.With(hub, vault);
 
         /// Where a room's nest stands: in the far half of the room from the hub, clear of its cover.
         public static V2 NestSpot(int room) => room == West ? new V2(-RoomW / 2f - 110f, H / 2f) : new V2(W + RoomW / 2f + 110f, H / 2f);
-
-        /// Where the rooms' camera centres a view hx by hy half-size on someone at `at`: held inside the area they're in
-        /// (centred on it when it's smaller than the view), then inside the world (CameraZoom.cs; the run log's samples).
-        public static V2 ViewCentre(V2 at, float hx, float hy, bool vault)
-        {
-            if (!RoomByRoom)  // the open map: on you, held inside the world
-            {
-                V2 wlo = MinFor(vault), whi = WorldMax;
-                return new V2(Math.Max(wlo.X + hx, Math.Min(whi.X - hx, at.X)), Math.Max(wlo.Y + hy, Math.Min(whi.Y - hy, at.Y)));
-            }
-            var a = Areas[AreaAt(at)];
-            float x = a.Size.X >= 2f * hx ? Math.Max(a.Min.X + hx, Math.Min(a.Max.X - hx, at.X)) : a.Mid.X;
-            float y = a.Size.Y >= 2f * hy ? Math.Max(a.Min.Y + hy, Math.Min(a.Max.Y - hy, at.Y)) : a.Mid.Y;
-            V2 lo = MinFor(vault), hi = WorldMax;
-            return new V2(Math.Max(lo.X + hx, Math.Min(hi.X - hx, x)), Math.Max(lo.Y + hy, Math.Min(hi.Y - hy, y)));
-        }
-
-        // --- The walls ---------------------------------------------------------------------------------------------
-
-        static Solid Box(float x0, float y0, float x1, float y1) => new Solid { Pos = new V2((x0 + x1) / 2f, (y0 + y1) / 2f), HW = (x1 - x0) / 2f, HH = (y1 - y0) / 2f };
-        static Solid Pillar(float x, float y, float r) => new Solid { Round = true, Pos = new V2(x, y), R = r };
-
-        /// A wall along a line (horizontal at y from x0 to x1, or vertical at x from y0 to y1), cut at its doors.
-        static void WallLine(List<Solid> to, bool vault, bool vertical, float at, float from, float till)
-        {
-            var gaps = new List<float>();
-            for (int i = 0; i < Doors.Length; i++)
-            {
-                var d = Doors[i];
-                if (DoorUp(i, vault) && d.Vertical == vertical && Math.Abs((vertical ? d.Pos.X : d.Pos.Y) - at) < 0.5f)
-                {
-                    float u = vertical ? d.Pos.Y : d.Pos.X;
-                    if (u > from && u < till)
-                        gaps.Add(u);
-                }
-            }
-            gaps.Sort();
-            float a = from, t = WallT / 2f;
-            gaps.Add(float.NaN);
-            foreach (var g in gaps)
-            {
-                float b = float.IsNaN(g) ? till : g - DoorW / 2f;
-                if (b - a > 1f)
-                    to.Add(vertical ? Box(at - t, a, at + t, b) : Box(a, at - t, b, at + t));
-                if (!float.IsNaN(g))
-                    a = g + DoorW / 2f;
-            }
-        }
-
-        static readonly Solid[][] walls = new Solid[2][];
-        static Solid[] cover;
-
-        /// The walls between the areas and round the world (cut at the doors), with or without the vault.
-        public static Solid[] WallsFor(bool vault)
-        {
-            int k = vault ? 1 : 0;
-            if (walls[k] != null)
-                return walls[k];
-            var l = new List<Solid>();
-            V2 lo = WorldMin, hi = WorldMax;
-            WallLine(l, vault, true, 0f, 0f, H);                 // hub | west room
-            WallLine(l, vault, true, W, 0f, H);                  // hub | east room
-            WallLine(l, vault, false, 0f, lo.X, hi.X);           // top hall | west room, hub, east room
-            WallLine(l, vault, false, H, lo.X, hi.X);            // bottom hall | west room, hub, east room
-            WallLine(l, vault, true, lo.X, lo.Y, hi.Y);          // the world's own edges (the top one has the vault's door)
-            WallLine(l, vault, true, hi.X, lo.Y, hi.Y);
-            WallLine(l, vault, false, lo.Y, lo.X, hi.X);
-            WallLine(l, vault, false, hi.Y, lo.X, hi.X);
-            if (vault)
-            {
-                var v = Areas[Vault];
-                WallLine(l, true, true, v.Min.X, v.Min.Y, v.Max.Y);
-                WallLine(l, true, true, v.Max.X, v.Min.Y, v.Max.Y);
-                WallLine(l, true, false, v.Min.Y, v.Min.X - WallT / 2f, v.Max.X + WallT / 2f);
-            }
-            return walls[k] = l.ToArray();
-        }
-
-        public static Solid[] Walls => WallsFor(false);
-
-        /// The small obstacles in the rooms and hallways (Docs/Rooms.md decision 11).
-        public static Solid[] Cover
-        {
-            get
-            {
-                if (cover != null)
-                    return cover;
-                float wx = -RoomW / 2f, ex = W + RoomW / 2f;
-                return cover = new[]
-                {
-                    Pillar(wx, 250f, 40f), Pillar(wx, H - 250f, 40f), Box(-RoomW + 165f, H / 2f - 120f, -RoomW + 195f, H / 2f + 120f),  // west room
-                    Pillar(ex, 250f, 40f), Pillar(ex, H - 250f, 40f), Box(W + RoomW - 195f, H / 2f - 120f, W + RoomW - 165f, H / 2f + 120f),  // east room
-                    Box(170f, -HallH / 2f - 30f, 230f, -HallH / 2f + 30f), Box(W - 230f, -HallH / 2f - 30f, W - 170f, -HallH / 2f + 30f),  // top hall
-                    Pillar(200f, H + HallH / 2f, 26f), Pillar(W - 200f, H + HallH / 2f, 26f),  // bottom hall
-                };
-            }
-        }
-
-        /// Either side of each door, for the steering graph: routes from room to room go through these.
-        static IEnumerable<V2> DoorSpots(bool vault)
-        {
-            for (int i = 0; i < Doors.Length; i++)
-                if (DoorUp(i, vault))
-                {
-                    var d = Doors[i];
-                    yield return d.Pos + d.Across * DoorPad;
-                    yield return d.Pos - d.Across * DoorPad;
-                }
-        }
-
-        static readonly Dictionary<int, LayoutDef> withRooms = new Dictionary<int, LayoutDef>();
-
-        /// The boss cycle's floor plan with the rooms round it: the plan's own walls, pillars and crates stay in the hub
-        /// (decision 11), its edge wall and gates go (the rooms' walls and doors take their place).
-        public static LayoutDef With(LayoutId hub, bool vault = false)
-        {
-            int key = (int)hub * 2 + (vault ? 1 : 0);
-            LayoutDef d;
-            if (withRooms.TryGetValue(key, out d))
-                return d;
-            var plan = Layouts.Get(hub);
-            var solids = new List<Solid>();
-            foreach (var s in plan.Solids)
-                if (!s.Edge)
-                    solids.Add(s);
-            solids.AddRange(WallsFor(vault));
-            solids.AddRange(Cover);
-            d = new LayoutDef
-            {
-                Id = hub,
-                Name = hub == LayoutId.Open ? "Wings" : plan.Name + " · Wings",
-                Blurb = plan.Blurb,
-                Edge = EdgeGates.Open,
-                Solids = solids.ToArray(),
-                Crates = plan.Crates,
-                PlayerGates = new EdgeSpan[0],
-                EnemyGates = new EdgeSpan[0],
-                HasHold = plan.HasHold,
-                HoldPos = plan.HoldPos,
-                HoldR = plan.HoldR,
-            };
-            // Steering spots: the usual ones (18 px clear of every wall), minus any within 24 px of the rooms' own walls (the
-            // stubs where two room walls meet leave corners the steering graph's body can't get away from); the hub's floor
-            // plan keeps its own, so its narrow doors still have corners to route through.
-            var wps = new List<V2>();
-            foreach (var p in Layouts.MakeWaypoints(d, MinFor(vault), WorldMax, DoorSpots(vault)))
-            {
-                bool tight = false;
-                foreach (var w in WallsFor(vault))
-                    tight |= Layouts.Inside(w, p, 24f);
-                if (!tight)
-                    wps.Add(p);
-            }
-            // The portals: a steering spot in each, linked to its partner (LayoutRules.cs GraphFor), so enemies route through them.
-            var links = new List<int>();
-            foreach (var pt in Portals)
-            {
-                links.Add(wps.Count); wps.Add(pt.A);
-                links.Add(wps.Count); wps.Add(pt.B);
-            }
-            d.Links = links.ToArray();
-            d.Waypoints = wps.ToArray();
-            withRooms[key] = d;
-            return d;
-        }
 
         // --- Pacing (Docs/Rooms.md, "How a wave plays") ----------------------------------------------------------------
 
@@ -367,6 +214,12 @@ namespace Arena
 
         /// The run's Arena setting is Rooms (the lobby's Difficulty tab; Classic, today's arena, by default).
         public bool RoomsArena => D(DiffKnob.ArenaRooms) >= 0.5f;
+
+        /// The run's arena layout (Docs/ExpandingArena.md): Wings with the Rooms setting on, else Single. Expanding comes later.
+        public ArenaLayout ArenaKind => RoomsArena ? ArenaLayout.Wings : ArenaLayout.Single;
+
+        /// The geometry being played on right now: the Wings world while the rooms are up, else the plain arena box.
+        public World CurrentWorld => RoomsOn ? Rooms.Wings : World.Single;
 
         /// Host, at the start of each wave (with PickLayout): regular waves get the rooms, boss waves the hub alone
         /// (bosses are tuned for 1600x900). Not with Tiny Arena or on Narrow Pass, which wall the hub in themselves,
