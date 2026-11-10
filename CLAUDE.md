@@ -20,12 +20,15 @@ no Unity in the cloud container: check changes with the tools below.
 
 ## Rules
 
-- Work and push on the session's branch, then **merge it into `main` as the last step** (merge `main` in first if
-  it moved, and rerun the checks). Commit messages end with the session's attribution lines; no model ids in commits.
-- Do the whole job: code, tests, README, a `CODEMAP.md` line for new files, then commit, push and merge. End with a
+- Work and push on the session's branch, then **open a PR to `main` and enable auto-merge** as the last step
+  (`enable_pr_auto_merge`); the GitHub merge queue runs `.github/workflows/checks.yml` and merges one PR at a time,
+  so never push to `main` directly. Before opening it, `git fetch origin main && git merge origin/main`; rerun
+  `Tools/CompileCheck/check.sh` only (CI runs the suites), plus the suites if the merge touched `Core/` files you
+  changed. Commit messages end with the session's attribution lines; no model ids in commits.
+- Do the whole job: code, tests, README, a `CODEMAP.md` line for new files, then commit, push and open the auto-merge PR. End with a
   short report that names the protocol version and what's next.
-- The **very last line** of every session's final message is `Branch used: <branch>`, e.g. `Branch used: main` or
-  `Branch used: claude/xyz (not merged to main)`, so the owner knows whether to ask for a merge.
+- The **very last line** of every session's final message is `Branch used: <branch>`, e.g. `Branch used: claude/xyz (PR #n, auto-merge on)` or
+  `Branch used: claude/xyz (not merged to main)`, so the owner knows whether it's queued.
 - **Bump `Session.ProtocolVersion`** (`Core/Session.cs`) whenever a network message or snapshot format changes. New
   enum values (`Msg`, `Kit`, `WeaponId`, `AbilityId`, `EnemyType`, ...) go at the **end**, before `None`.
 - Ask every question to the owner through the in-chat question box (`AskUserQuestion`), never as plain text or an artifact form. Batch related questions into one box. Ask before deleting code.
