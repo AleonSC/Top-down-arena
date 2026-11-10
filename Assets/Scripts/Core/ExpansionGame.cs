@@ -58,7 +58,7 @@ namespace Arena
             ExpandVotes.Clear();
             expWorld = null;
             botVoteT = 0f;
-            expandSeed = rng.Next(1, 1 << 30);
+            expandSeed = new Random().Next(1, 1 << 30);  // (not the game's rng: asking it would shift every other random choice of the run)
         }
 
         /// Host, on a kill: the team purse gets the kill's gold.
