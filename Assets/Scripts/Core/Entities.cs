@@ -380,6 +380,12 @@ namespace Arena
         public int SquadId, SquadSlot;  // host: the squad it arrived with, and its place in it (Variety.cs)
         public float BubbleHp, BubbleMax, BubbleT;  // a bubble that soaks damage first: Shielded, or a Warder's (host; drawn from BubbleFrac)
         public float BubbleFrac;      // replicated
+        public float[] CellHp;        // host: a bubble's twelve cells, each holding a twelfth of its health; a hit wears down the cells on the side it came from (Variety.cs)
+        public int Cells;             // replicated: bits 0-11 are the cells still up, bits 12-23 the ones worn down (drawn from Variety's look)
+        public int CellsSeen;         // drawing only: the Cells this peer last saw, to flash the cells that changed
+        public float[] CellHitT;      // drawing only: when each cell last took a hit
+        public float[] CellDieT;      // drawing only: when each cell last broke
+        public float BubbleBornT = -99f;  // drawing only: when this peer first saw the bubble go up (-98: seen without one, so the next bubble is new; -99: never seen without, so no growing in)
         public int WardId;            // the Warder holding up its bubble (replicated, for the tether)
         public int MirrorCount;       // host: player shots that have hit it (Mirrored bounces every fourth)
         public float WardT;           // host: a Warder's time until it wards again

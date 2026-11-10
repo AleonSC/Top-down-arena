@@ -52,6 +52,8 @@ namespace Arena
                         Line(pos, tip, Game.SentryBeamWidth * 0.6f, new Rgba(0.87f, 0.97f, 1f));
                     }
                 }
+                if (e.Type == EnemyType.Warder)
+                    DrawWarderCharge(e, pos);  // WarderLook.cs
                 DrawShooterAim(e, pos, t);  // a regular shooter's aim line while it winds up (ShooterAimLook.cs)
                 if (e.Type == EnemyType.Leader && e.Phase == 1)  // its aim line, pointing where it thinks you'll be
                 {
@@ -71,7 +73,7 @@ namespace Arena
                 {
                     Enemy w;
                     if (game.Enemies.TryGetValue(e.WardId, out w))
-                        DashedLine(w.Disp, pos, 2f, WardViolet.WithAlpha(0.55f));
+                        DrawWardTether(w.Disp, pos, t);  // WarderLook.cs
                 }
                 if (Game.HasTrait(e, EliteTrait.Commander))  // its reach, faint
                     Arc(pos, Game.CommandRange, 1.5f, new Rgba(1f, 0.42f, 0.6f, 0.18f), 48);
@@ -88,11 +90,9 @@ namespace Arena
                 Arc(pos, r + 5f + 5f * (1f - k), 2.5f, e.Def.Color.Mix(Rgba.White, 0.6f).WithAlpha(0.9f), 22);
             }
             if (e.BubbleFrac > 0f)
-            {
-                var c = e.WardId != 0 ? WardViolet : BubbleBlue;
-                Circle(pos, r + 11f, c.WithAlpha(0.07f + 0.1f * e.BubbleFrac), 28);
-                Arc(pos, r + 11f, 2f, c.WithAlpha(0.35f + 0.5f * e.BubbleFrac), 28);
-            }
+                DrawBubble(e, pos, r, t);  // twelve cells (WarderLook.cs)
+            else if (e.CellsSeen != 0 || e.BubbleBornT != -98f)
+                NoBubble(e);
             if (Game.ReaverIsOpen(e))
                 Arc(pos, r + 8f, 3f, BubbleBlue.WithAlpha(0.6f + 0.4f * Mathf.Sin(t * 20f)), 24);
             if (e.Type == EnemyType.Pauser)  // an hourglass
