@@ -1,5 +1,7 @@
 # Expanding arena: design plan
 
+**Next after that: breaches, buyable portals and room fittings: see [`RoomBuilding2.md`](RoomBuilding2.md).**
+
 **Next (Nov 10): paths as themed rooms, and floating shop, vendor and Gatekeeper rooms: see [`FloatingRooms.md`](FloatingRooms.md).**
 
 **Update (Nov 10): the purse, the room vote and the optional offers are to be replaced by per-player vectors: see [`VectorBuilding.md`](VectorBuilding.md).**
