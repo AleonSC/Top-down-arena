@@ -269,3 +269,7 @@ The October 2026 audit and its work plan are done; the full notes (and the Novem
   damage); planned but not built: a route strip in the Tab menu, the route in the run summary, `Tools/SessionReport`
   grouping by path. Open: should waves 1-4 get a path choice? See [`Docs/Paths.md`](Docs/Paths.md).
 - **Boss approaches:** see the status line of [`Docs/Approaches.md`](Docs/Approaches.md) for which factions are built.
+- **Campaign as a themed-enemy buildup (idea, not designed):** the campaign accumulates each boss's themed enemies;
+  after a boss falls they phase out slowly while the next boss's faction phases in, and some squads or enemies can
+  return later on. The **Boss Hunt** should then be an enhanced version of those themed mobs (more types, more of
+  them, tougher squads). See [`Docs/BossHuntsAndPerks.md`](Docs/BossHuntsAndPerks.md) for the current hunt.

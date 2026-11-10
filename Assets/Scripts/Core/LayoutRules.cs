@@ -116,7 +116,6 @@ namespace Arena
                 RoomsUp = rooms;
             }
             SyncRooms(s);  // the nests, spills and the vault (Rooms.cs)
-            SyncExpansion(s);  // the team purse (ExpansionGame.cs)
         }
 
         void TickLayout(float dt)

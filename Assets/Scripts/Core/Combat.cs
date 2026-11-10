@@ -811,7 +811,7 @@ namespace Arena
                 MaybeRise(e, killer);  // Zombies.cs
                 if (OnPathOf(PathId.Bazaar) || Has(RunMod.GoldRush) || ExpandingOn && HasShopRoom)  // (a shop room in the Expanding map: gold for its shop)
                     GrantGold(e);  // Shop.cs
-                AddPurse(e);  // the Expanding arena's team purse (ExpansionGame.cs)
+                GrantVectorKill(killer);  // and a vector every 25 kills
                 DropOrbs(e, bossReward);
                 DeathFx(e, e.Pos);
                 Enemies.Remove(e.Id);

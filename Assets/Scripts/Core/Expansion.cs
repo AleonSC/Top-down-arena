@@ -14,7 +14,8 @@ namespace Arena
         public int X, Y, W, H;
         public RoomKind Kind;
         public PathId Floor;
-        public int Price;       // what the team paid (or, in an offer, what it costs)
+        public int Price;       // what it costs in vectors (Expansion.Cost; the drawer pays if it wins the vote)
+        public int Owner;       // the player who drew it (0: none)
         public int X1 => X + W;
         public int Y1 => Y + H;
         public string Shape => Expansion.ShapeName(W, H);
@@ -42,7 +43,6 @@ namespace Arena
         public const int Milestone = 5;          // an offer every this many waves
         public const int MinSide = 300;          // a drawn room's shortest side (a hallway is this wide)
         public const int MaxSide = 1200, MaxArea = 960000;  // and its limits
-        public const float CustomPremium = 1.25f;  // a drawn room costs this much more than its area says
 
         public static readonly int[][] Shapes =
         {
@@ -70,7 +70,7 @@ namespace Arena
             return -1;
         }
 
-        /// A room's price: bigger costs more, a shop and a floor cost a little extra, and each room already bought makes the next dearer.
+        /// (Dormant since the vector economy: a gold price from the purse days. Rooms now cost Cost vectors.) A room's price: bigger costs more, a shop and a floor cost a little extra, and each room already bought makes the next dearer.
         public static int PriceFor(RoomKind kind, int w, int h, int built)
         {
             float p = 120f + w * h / 4000f;
@@ -136,6 +136,22 @@ namespace Arena
             return true;
         }
 
+        /// What a room costs in vectors (Docs/VectorBuilding.md): its new wall length in tiles, the perimeter minus every wall it
+        /// shares with a room already there, so sharing walls is cheaper and a loop pays.
+        public static int Cost(IList<ExpansionRoom> built, int x, int y, int w, int h)
+        {
+            int shared = 0;
+            for (int a = 0; a <= built.Count; a++)
+            {
+                int bx0, by0, bx1, by1;
+                BoxOf(built, a, out bx0, out by0, out bx1, out by1);
+                shared += SharedRun(x, y, x + w, y + h, bx0, by0, bx1, by1);
+            }
+            return Math.Max(1, (2 * (w + h) - shared) / Step);
+        }
+
+        public static int Cost(IList<ExpansionRoom> built, ExpansionRoom r) => Cost(built, r.X, r.Y, r.W, r.H);
+
         /// How many loops a room would close (other rooms it gets a door to besides its parent).
         public static int LoopsOf(IList<ExpansionRoom> built, ExpansionRoom r)
         {
@@ -153,7 +169,7 @@ namespace Arena
             int parent, loops;
             if (!Placement(built, x, y, w, h, out parent, out loops, out why))
                 return null;
-            return new ExpansionRoom { Parent = parent, X = x, Y = y, W = w, H = h, Kind = RoomKind.Combat, Floor = PathId.None, Price = (int)Math.Round(PriceFor(RoomKind.Combat, w, h, built.Count) * CustomPremium / 5f) * 5 };
+            return new ExpansionRoom { Parent = parent, X = x, Y = y, W = w, H = h, Kind = RoomKind.Combat, Floor = PathId.None, Price = Cost(built, x, y, w, h) };
         }
 
         /// Doors an area has (to its parent, children and loops).
@@ -249,7 +265,7 @@ namespace Arena
                     foreach (var f in Floors) if (!usedFloor.Contains(f)) fresh.Add(f);
                     floor = fresh.Count > 0 ? fresh[rng.Int(fresh.Count)] : Floors[rng.Int(Floors.Length)];
                 }
-                var offer = new ExpansionRoom { Parent = parent, X = x, Y = y, W = w, H = h, Kind = kind, Floor = floor, Price = PriceFor(kind, w, h, built.Count) };
+                var offer = new ExpansionRoom { Parent = parent, X = x, Y = y, W = w, H = h, Kind = kind, Floor = floor, Price = Cost(built, x, y, w, h) };
                 bool dup = false;
                 foreach (var o in offers)
                     dup |= (o.W == w && o.H == h && o.Kind == kind) || (o.Parent == parent && Math.Abs(o.X - x) + Math.Abs(o.Y - y) < 400);

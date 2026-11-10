@@ -33,24 +33,22 @@ namespace Arena
             return rule + (pct > 0 ? " Kills here give +" + pct + "% XP and score." : "");
         }
 
-        // --- The optional offer's chip -------------------------------------------------------------------------
+        // --- The building round's chip ------------------------------------------------------------------------
 
-        bool ExpandChipUp => game.ExpandOffer != null && game.ExpandOptional && !expOpen;
+        bool ExpandChipUp => game.ExpandOpen && !expOpen && game.Me != null;
 
-        /// After a regular wave with the purse for a room: a chip (the wave doesn't wait for it) with a way to open the offer.
+        /// Between waves: a chip (the wave doesn't wait for it) with a way to open the round: draw a room, look at the proposals, vote.
         void DrawExpandChip(Player me)
         {
             Ui.Alpha = 1f;
             bool calm = CabCalm;
-            int cheapest = int.MaxValue, voted = game.ExpandVotes.Count;
-            foreach (var o in game.ExpandOffer)
-                cheapest = Mathf.Min(cheapest, o.Price);
+            int n = game.ExpandProposals.Count;
             var chip = new Rect(W / 2f - 300f, 92f, 600f, 46f);
             Ui.Pill(chip, new Color(0f, 0f, 0f, 0.6f));
-            Ui.Fill(new Rect(chip.x + 4f, chip.y + 7f, 3f, chip.height - 14f), new Color(1f, 0.82f, 0.4f));
-            Ui.Label(new Rect(chip.x + 16f, chip.y + 3f, 400f, 22f), "ROOMS AVAILABLE  ·  " + game.ExpandOffer.Count + " OFFERS FROM " + cheapest + " GOLD", 13, new Color(1f, 0.82f, 0.4f), TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(chip.x + 16f, chip.y + 23f, 400f, 18f), "Purse " + game.Purse + "  ·  " + voted + " of " + game.Players.Count + " voted  ·  the wave starts in " + Mathf.CeilToInt(game.StateTimer) + " s", 11, Ui.Muted, TextAnchor.MiddleLeft);
-            if (CrtUi.SoftKey(new Rect(chip.xMax - 170f, chip.y + 7f, 156f, 32f), "SEE THE ROOMS", null, 15, calm))
+            Ui.Fill(new Rect(chip.x + 4f, chip.y + 7f, 3f, chip.height - 14f), new Color(0.37f, 0.94f, 1f));
+            Ui.Label(new Rect(chip.x + 16f, chip.y + 3f, 400f, 22f), "BUILD ROOMS  ·  " + (n == 0 ? "NO PROPOSALS YET" : n + " PROPOSAL" + (n == 1 ? "" : "S")) + "  ·  YOUR VECTORS " + me.Vectors + " / " + me.VectorCap, 13, new Color(0.37f, 0.94f, 1f), TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(chip.x + 16f, chip.y + 23f, 400f, 18f), game.ExpandVotes.Count + " of " + game.Players.Count + " voted  ·  the wave starts in " + Mathf.CeilToInt(game.StateTimer) + " s", 11, Ui.Muted, TextAnchor.MiddleLeft);
+            if (CrtUi.SoftKey(new Rect(chip.xMax - 170f, chip.y + 7f, 156f, 32f), "BUILD / VOTE", null, 15, calm))
                 expOpen = true;
         }
 
@@ -78,16 +76,16 @@ namespace Arena
 
         // --- The vote ----------------------------------------------------------------------------------------
 
-        bool expDrawing, expDragging, expOpen;  // expOpen: an optional offer's window is open (otherwise just its chip shows)
+        bool expDrawing, expDragging, expOpen;  // expOpen: the round's window is open (otherwise just its chip shows)
 
-        /// The room window covers the screen: a vote the wave waits for, or an optional offer you opened.
-        bool ExpandWindowUp => game.ExpandOffer != null && (!game.ExpandOptional || expOpen);
+        /// The room window covers the screen (you opened it from the chip).
+        bool ExpandWindowUp => game.ExpandOpen && expOpen;
         V2 expA, expB;  // the drawing's two corners, world px (snapped to the 100 px grid when read)
 
         void DrawExpansionChoice(float t)
         {
-            var offers = game.ExpandOffer;
-            if (offers == null)
+            var me = game.Me;
+            if (!game.ExpandOpen || me == null)
             {
                 expDrawing = expDragging = expOpen = false;
                 return;
@@ -100,39 +98,39 @@ namespace Arena
                 return;
             }
             RoundBackdrop(PathDim);  // (RoundWindows.cs)
-            CrtUi.Title(new Rect(0, 22f, W, 56f), "EXPAND THE ARENA", 52, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
+            CrtUi.Title(new Rect(0, 22f, W, 56f), "BUILD THE ARENA", 52, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
             int mine;
             bool voted = game.ExpandVotes.TryGetValue(game.MyId, out mine);
-            Ui.Label(new Rect(0, 80f, W, 20f), "Team purse " + game.Purse + " gold  ·  " + game.Expanded.Count + " room" + (game.Expanded.Count == 1 ? "" : "s") + " so far  ·  the boss fights stay in the middle", 13, Ui.Muted, TextAnchor.MiddleCenter);
-            float gap = offers.Count > 3 ? 20f : 30f, cw = Mathf.Min(370f, (W - 80f - (offers.Count - 1) * gap) / offers.Count), ch = 452f, y = 118f;
-            float x0 = W / 2f - (offers.Count * cw + (offers.Count - 1) * gap) / 2f;
-            for (int i = 0; i < offers.Count; i++)
+            var props = game.ExpandProposals;
+            Ui.Label(new Rect(0, 80f, W, 20f), "Your vectors " + me.Vectors + " / " + me.VectorCap + "  ·  " + game.Expanded.Count + " room" + (game.Expanded.Count == 1 ? "" : "s") + " so far  ·  most votes wins, a tie is a coin flip  ·  the wave starts in " + Mathf.CeilToInt(game.StateTimer) + " s", 13, Ui.Muted, TextAnchor.MiddleCenter);
+            float gap = 30f, cw = Mathf.Min(370f, (W - 80f - (props.Count - 1) * gap) / Mathf.Max(1, props.Count)), ch = 452f, y = 118f;
+            float x0 = W / 2f - (props.Count * cw + (props.Count - 1) * gap) / 2f;
+            if (props.Count == 0)
+                Ui.Label(new Rect(0, y + 180f, W, 40f), "No proposals yet. Draw a room or hallway and put it to the team.", 20, Ui.Muted, TextAnchor.MiddleCenter);
+            for (int i = 0; i < props.Count; i++)
             {
                 var r = new Rect(x0 + i * (cw + gap), y, cw, ch);
-                if (DrawExpansionCard(r, offers[i], i, voted && mine == i, game.Purse, t, calm, i == game.ExpandCustom))
-                    game.CastExpandVote(i);
+                if (DrawProposalCard(r, props[i], voted && mine == props[i].Owner, t, calm))
+                    game.CastExpandVote(props[i].Owner);
             }
             float by = y + ch + 12f;
-            bool skip = voted && mine == offers.Count;
-            if (CrtUi.SoftKey(new Rect(W / 2f - 450f, by, 440f, 34f), "DRAW YOUR OWN", null, 22, calm))
+            bool mineDrawn = game.ProposalOf(game.MyId).HasValue;
+            if (CrtUi.SoftKey(new Rect(W / 2f - 450f, by, 440f, 34f), mineDrawn ? "REDRAW YOUR ROOM" : "DRAW A ROOM", null, 22, calm))
             {
                 expDrawing = true; expDragging = false;
                 expA = expB = V2.Zero;
             }
-            if (CrtUi.SoftKey(new Rect(W / 2f + 10f, by, 440f, 34f), "BUY NOTHING  ·  KEEP THE PURSE" + (skip ? "  ✓" : ""), null, 22, calm, lit: skip))
-                game.CastExpandVote(offers.Count);
+            bool skip = voted && mine == 0;
+            if (CrtUi.SoftKey(new Rect(W / 2f + 10f, by, 440f, 34f), "NO ROOM" + (skip ? "  ✓" : ""), null, 22, calm, lit: skip))
+                game.CastExpandVote(0);
+            if (CrtUi.SoftKey(new Rect(W - 270f, 28f, 220f, 32f), "DECIDE LATER", null, 18, calm))
+                expOpen = false;
             int waiting = 0;
             foreach (int id in game.Players.Keys)
                 if (!game.ExpandVotes.ContainsKey(id))
                     waiting++;
-            if (game.ExpandOptional)
-            {
-                if (CrtUi.SoftKey(new Rect(W - 270f, 28f, 220f, 32f), "DECIDE LATER", null, 18, calm))
-                    expOpen = false;
-                Ui.Label(new Rect(0, 100f, W, 20f), "Optional: the wave starts in " + Mathf.CeilToInt(game.StateTimer) + " s. A room is bought only if more than half the team votes for it by then.", 12, Ui.Muted, TextAnchor.MiddleCenter);
-            }
-            string msg = !voted ? "Vote for a room: most votes wins" : waiting > 0 ? "Voted. Waiting for " + waiting + " more player" + (waiting == 1 ? "" : "s") : "Counting the votes";
-            Ui.Label(new Rect(0, by + 40f, W, 22f), msg, 14, !voted ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
+            string msg = !voted ? (props.Count > 0 ? "Vote for a room, or draw your own" : "Nothing to vote on yet") : waiting > 0 ? "Voted. Waiting for " + waiting + " more player" + (waiting == 1 ? "" : "s") : "Counting the votes";
+            Ui.Label(new Rect(0, by + 40f, W, 22f), msg, 14, !voted && props.Count > 0 ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
         }
 
         /// The drawing screen: the whole map, zoomed out; drag a box on the 100 px grid. It's checked live (Expansion.Custom) and goes to the vote on release.
@@ -169,7 +167,8 @@ namespace Arena
             if (hasBox)
             {
                 box = Expansion.Custom(game.Expanded, rx, ry, rw, rh, out why);
-                if (box.HasValue && box.Value.Price > game.Purse) { why = "Can't afford it: " + box.Value.Price + " gold, " + (box.Value.Price - game.Purse) + " more needed"; box = null; }
+                int have = game.Me != null ? game.Me.Vectors : 0;
+                if (box.HasValue && box.Value.Price > have) { why = "Can't afford it: " + box.Value.Price + " vectors, you have " + have; box = null; }
             }
             if (ev.type == EventType.MouseUp && ev.button == 0 && expDragging)
             {
@@ -214,7 +213,7 @@ namespace Arena
             if (hasBox && box.HasValue)
             {
                 int loops = Expansion.LoopsOf(game.Expanded, box.Value);
-                line = (box.Value.Shape == "Hallway" ? "HALLWAY" : "ROOM") + " " + rw / 100 + " x " + rh / 100 + " tiles  ·  " + box.Value.Price + " GOLD" + (loops > 0 ? "  ·  CLOSES " + (loops == 1 ? "A LOOP" : loops + " LOOPS") : "") + "  ·  let go to put it to the vote";
+                line = (box.Value.Shape == "Hallway" ? "HALLWAY" : "ROOM") + " " + rw / 100 + " x " + rh / 100 + " tiles  ·  " + box.Value.Price + " VECTORS (of " + (game.Me != null ? game.Me.Vectors : 0) + ")" + (loops > 0 ? "  ·  CLOSES " + (loops == 1 ? "A LOOP" : loops + " LOOPS") : "") + "  ·  let go to propose it";
                 lineInk = Ui.Gold;
             }
             else if (hasBox)
@@ -224,18 +223,20 @@ namespace Arena
             }
             else
             {
-                line = "Purse " + game.Purse + " gold  ·  a drawn room costs " + (int)((Expansion.CustomPremium - 1f) * 100f) + "% more than a random one of the same size";
+                line = "Your vectors " + (game.Me != null ? game.Me.Vectors : 0) + "  ·  a room costs its new wall: shared walls are free, so touching rooms is cheaper";
                 lineInk = Ui.Muted;
             }
             Ui.Label(new Rect(0, map.yMax + 10f, W, 22f), line, 15, lineInk, TextAnchor.MiddleCenter, true);
-            if (CrtUi.SoftKey(new Rect(W / 2f - 120f, map.yMax + 44f, 240f, 34f), "BACK TO THE VOTE", null, 20, calm))
+            if (CrtUi.SoftKey(new Rect(W / 2f - 120f, map.yMax + 44f, 240f, 34f), "BACK", null, 20, calm))
                 expDrawing = expDragging = false;
         }
 
-        /// One room on offer as a CRT tube: a little map with the room lit up where it would go, what it is and what it costs.
-        bool DrawExpansionCard(Rect r, ExpansionRoom o, int index, bool picked, int purse, float t, bool calm, bool custom)
+        /// One proposal as a CRT tube: a little map with the room lit where it would go, who drew it, what it costs and how it's voted.
+        bool DrawProposalCard(Rect r, ExpansionRoom o, bool picked, float t, bool calm)
         {
-            bool afford = o.Price <= purse;
+            Player owner;
+            game.Players.TryGetValue(o.Owner, out owner);
+            bool afford = owner != null && o.Price <= owner.Vectors;
             bool hover = afford && r.Contains(Event.current.mousePosition);
             Color ink = afford ? CrtUi.Ink : CrtUi.Dim, dim = CrtUi.Dim;
             bool taken = false;
@@ -248,22 +249,17 @@ namespace Arena
                 DrawExpansionMini(stage, o, afford, t);
                 EndUiGl();
             }
-            var accent = ToColor(KindInk(o.Kind, o.Floor));
             float ty = stage.yMax + 14f;
             int loops = Expansion.LoopsOf(game.Expanded, o);
-            string title = custom ? "YOUR " + o.Shape.ToUpperInvariant() : o.Shape == "Room" ? "ROOM" : o.Shape.ToUpperInvariant() + " ROOM";
-            CrtUi.Text(new Rect(r.x + 22f, ty, r.width - 44f, 34f), title, r.width < 330f ? 22 : 28, ink, TextAnchor.MiddleLeft, true, calm);
-            CrtUi.Text(new Rect(r.x + 22f, ty + 34f, r.width - 44f, 22f), (custom ? "DRAWN  ·  " : KindName(o).ToUpperInvariant() + "  ·  ") + o.W / 100 + " x " + o.H / 100 + " tiles" + (loops > 0 ? "  ·  LOOP" : ""), 15, afford ? accent : dim, TextAnchor.MiddleLeft, false, calm);
-            string blurb = custom ? "Drawn by your team." + (loops > 0 ? " It joins " + (loops + 1) + " rooms, so the map loops round." : "")
-                : o.Kind == RoomKind.Shop ? "A safe room: no enemies come in. Kills drop gold, and the shop opens after the first wave following each boss: walk in to shop."
-                : o.Kind == RoomKind.Floor ? FloorBlurb(o.Floor)
-                : "More floor to fight on: and more enemies come with it.";
+            bool mineCard = o.Owner == game.MyId;
+            CrtUi.Text(new Rect(r.x + 22f, ty, r.width - 44f, 34f), (mineCard ? "YOUR " : "") + o.Shape.ToUpperInvariant(), r.width < 330f ? 22 : 28, ink, TextAnchor.MiddleLeft, true, calm);
+            CrtUi.Text(new Rect(r.x + 22f, ty + 34f, r.width - 44f, 22f), (owner != null ? "DRAWN BY " + owner.Name.ToUpperInvariant() : "DRAWN") + "  ·  " + o.W / 100 + " x " + o.H / 100 + " tiles" + (loops > 0 ? "  ·  LOOP" : ""), 15, afford ? CrtUi.Ink : dim, TextAnchor.MiddleLeft, false, calm);
+            string blurb = loops > 0 ? "It joins " + (loops + 1) + " rooms, so the map loops round." : "More floor to fight on, and more enemies come with it.";
             CrtUi.Text(new Rect(r.x + 22f, ty + 62f, r.width - 44f, 70f), blurb, 14, dim, TextAnchor.UpperLeft, false, calm, true);
             int votes = 0;
             foreach (var v in game.ExpandVotes.Values)
-                votes += v == index ? 1 : 0;
-            string price = o.Price + " GOLD" + (afford ? "" : (r.width < 330f ? "  ·  NEED " : "  ·  NEED ") + (o.Price - purse) + (r.width < 330f ? "" : " MORE"));
-            CrtUi.Text(new Rect(r.x + 22f, r.yMax - 82f, r.width - 44f, 30f), price, r.width < 330f ? 19 : 22, afford ? Ui.Gold : dim, TextAnchor.MiddleLeft, true, calm);
+                votes += v == o.Owner ? 1 : 0;
+            CrtUi.Text(new Rect(r.x + 22f, r.yMax - 82f, r.width - 44f, 30f), o.Price + " VECTORS" + (owner != null ? "  ·  " + owner.Name.ToUpperInvariant() + " HAS " + owner.Vectors : ""), r.width < 330f ? 17 : 20, afford ? new Color(0.37f, 0.94f, 1f) : dim, TextAnchor.MiddleLeft, true, calm);
             CrtUi.Text(new Rect(r.x + 22f, r.yMax - 50f, r.width - 44f, 24f), votes == 0 ? "NO VOTES" : votes + " VOTE" + (votes == 1 ? "" : "S") + (picked ? "  ·  YOURS" : ""), 15, votes > 0 ? CrtUi.Ink : dim, TextAnchor.MiddleLeft, false, calm);
             CrtUi.End(r, t, calm);
             taken = hover && Event.current.type == EventType.MouseDown && Event.current.button == 0;
@@ -303,21 +299,23 @@ namespace Arena
             }
         }
 
-        // --- HUD chip ----------------------------------------------------------------------------------------
+        // --- Vector chip --------------------------------------------------------------------------------------
 
-        /// Under the wave plate: the team purse. Returns true if it drew (the next chip goes a line up).
-        bool DrawPurseChip(float x, float y)
+        /// Under the wave plate: your vectors and the most you can hold. True if it drew (the next chip goes a line up).
+        bool DrawVectorChip(float x, float y)
         {
-            if (!game.ExpandingOn)
+            var me = game.Me;
+            if (!game.ExpandingOn || me == null)
                 return false;
-            string text = "PURSE  " + game.Purse + " GOLD  ·  " + game.Expanded.Count + "/" + Expansion.MaxRooms + " ROOMS";
+            string text = "VECTORS  " + me.Vectors + " / " + me.VectorCap;
             float w = 30f + text.Length * 6.4f;
             var chip = new Rect(x, y, w, 20f);
-            var gold = new Color(1f, 0.82f, 0.4f);
+            var ink = new Color(0.37f, 0.94f, 1f);
             Ui.Pill(chip, new Color(0f, 0f, 0f, 0.55f));
-            Ui.Fill(new Rect(chip.x + 3f, chip.y + 4f, 3f, chip.height - 8f), gold);
-            Ui.Label(new Rect(chip.x + 12f, chip.y, w, chip.height), text, 10, gold, TextAnchor.MiddleLeft, true);
+            Ui.Fill(new Rect(chip.x + 3f, chip.y + 4f, 3f, chip.height - 8f), ink);
+            Ui.Label(new Rect(chip.x + 12f, chip.y, w, chip.height), text, 10, ink, TextAnchor.MiddleLeft, true);
             return true;
         }
+
     }
 }

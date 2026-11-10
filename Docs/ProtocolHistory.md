@@ -3,7 +3,9 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 
-- 248: Game.BossSlot in the snapshot (the boss between waves, Hunts.cs); Msg.Start's start wave may be negative (the boss after that wave)
+- 250: Game.BossSlot in the snapshot (the boss between waves, Hunts.cs); Msg.Start's start wave may be negative (the boss after that wave)
+- 249: the Expanding arena's building rounds: Msg.ExpandState (rooms with owners, open flag, proposals, votes), Msg.ExpandVote carries a proposer id, the purse is gone from the snapshot (ExpansionGame.cs)
+- 248: Player.Vectors and VectorCap in the player snapshot (the Expanding arena's drawing budget, ExpansionGame.cs)
 - 247: Msg.ExpandState carries whether the offer is optional (ExpansionGame.cs)
 - 246: a Wildcard's LobbyEntry.Ult / Msg.Start ult byte is now class * 4 + key (any class's DPS ultimate), no longer always 0
 - 245: the Expanding arena's drawn rooms (Msg.ExpandDraw, a custom card in Msg.ExpandState; ExpansionGame.cs)

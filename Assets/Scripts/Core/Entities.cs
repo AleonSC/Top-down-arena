@@ -303,6 +303,7 @@ namespace Arena
 
         public int Level = 1, PendingPicks, Rerolls = Game.StartingRerolls;
         public int Gold;                       // the Bazaar's gold (Shop.cs, replicated)
+        public int Vectors = Game.VectorStart, VectorCap = Game.VectorCapBase;  // the Expanding arena's drawing budget and the most you hold (ExpansionGame.cs, replicated)
         public readonly int[] Shelf = { -1, -1, -1, -1, -1, -1 };  // this player's shop: upgrade ids (Game.ShelfSize, replicated)
         public byte ShelfSold;                 // bit per shelf slot: bought (replicated)
         public int Restocks;                   // shelf restocks this visit (replicated; each costs more)
