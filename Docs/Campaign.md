@@ -1,6 +1,6 @@
 # Campaign: themed enemies that build up and fade (design)
 
-Status: **idea, not built.** Nothing below is decided except what the owner said (marked *owner*). Numbers are first
+Status: **step 1 built** (Nov 2026: `Approaches.Campaign`, the *Campaign buildup* switch in the Difficulty tab, default on, `campaign` test suite); the comeback squads (step 2), the hunt upgrade (3) and the HUD chip (5) are not. Numbers are first
 guesses. It builds on [`Approaches.md`](Approaches.md) (boss factions, `Core/Approaches.cs`) and the Boss Hunt
 ([`BossHuntsAndPerks.md`](BossHuntsAndPerks.md), `Core/Hunts.cs`).
 
@@ -67,8 +67,8 @@ Because the hunt reads the same `FactionDef`, adding a member to a faction impro
    shape, determinism.
 2. **Comebacks**: seeded comeback picker, with the limits above. Test: same seed gives the same comeback waves.
 3. **Hunt upgrade**: hunt pool/count/squad rules from the table. Update the `hunts` suite.
-4. **Setting**: keep the Difficulty tab's *Boss approach* row; add a *Campaign buildup* switch (off = today's
-   approach-only waves) so the old feel stays available.
+4. **Setting** (built with step 1): the Difficulty tab's *Campaign buildup* switch (off = the *Boss approach* row's
+   approach-only waves).
 5. README, `CODEMAP.md`, preview screenshot of the wave panel chip showing two factions ("Fading · Warden / Approach
    · Hive Queen").
 

@@ -32,6 +32,7 @@ static partial class Program
     {
         // --- The share, wave by wave --------------------------------------------------------------------------------
         var g0 = new Session().Game;
+        g0.Diff.Set(DiffKnob.Campaign, 0f);  // (these checks are the Boss approach setting; the campaign buildup has its own test below)
         Func<int, float> share = w => g0.ApproachShare(w);
         bool normal = Math.Abs(share(1) - 0.34f) < 1e-4f && Math.Abs(share(2) - 0.51f) < 1e-4f && Math.Abs(share(3) - 0.68f) < 1e-4f && Math.Abs(share(4) - 0.85f) < 1e-4f && Math.Abs(share(5) - 0.85f) < 1e-4f;
         g0.Wave = 5; g0.BossSlot = true;  // the boss after wave 5 has no approach
@@ -74,6 +75,7 @@ static partial class Program
             return all;
         };
         var gb = new Session().Game;
+        gb.Diff.Set(DiffKnob.Campaign, 0f);
         gb.Diff.Set(DiffKnob.ApproachShare, 0f);
         var off6 = wave(gb, 6);
         var off2 = wave(gb, 2);

@@ -553,6 +553,15 @@ squad as often as a melee enemy used to come). Paths with their own mix keep it.
 
 | 12+ | **Elites** | Any enemy can spawn with a gold ring: 2.5x health, bigger, worth 3x XP, always drops an orb, and a **trait** shown as a marker over it (two traits from wave 35): **Hasted** (40% faster moving and firing), **Shielded** (a bubble worth 40% of its health that grows back 4 s after it was last hit), **Volatile** (bursts into a ring of 16 shots 0.6 s after it dies), **Splitting** (dies into two Shards, four from a Juggernaut, Nest or Brute), **Mirrored** (one in four of your shots that hit it bounce back at you), **Commander** (allies within 220 px fire 30% faster). More common each wave |
 
+### Campaign buildup
+
+Every regular wave is made of boss-themed enemies (design: [`Docs/Campaign.md`](Docs/Campaign.md)). The last boss's
+faction **fades out** over the next five waves (35%, 25%, 15%, 5%, 0%), bosses from two fights back stay on as an
+**older pool** (10% from wave 11), and the next boss's faction takes the rest, building up as before (65% to 100%;
+55% to 90% once the pool exists). Only built factions count (the Warden's and the Lich's zombies); a slice for a boss
+with no faction yet is the usual random mix. Turn it off with **Campaign buildup** in the Difficulty tab to get the
+Boss approach below. Boss Hunts are unchanged.
+
 ### Boss approaches
 
 The four waves before each boss are its **approach**: part of each wave is the boss's own kind of enemy, so you meet
