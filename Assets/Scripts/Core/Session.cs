@@ -47,6 +47,7 @@ namespace Arena
         ExpandState,  // host -> all: the Expanding arena's rooms bought, the offer on the table and the votes so far (ExpansionGame.cs)
         ExpandVote,   // client -> host: this player's vote on the offer (an offer's index, or the last = buy nothing)
         ExpandDraw,   // client -> host: a room this player drew (x, y, width, height) to put to the vote (ExpansionGame.cs)
+        ExpandApply,  // client -> host: spend this room kit (index) on this bought room (index) (Docs/RoomModifiers.md, ExpansionGame.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -109,7 +110,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 252;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 253;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -581,6 +582,9 @@ namespace Arena
                     break;
                 case Msg.ExpandDraw:
                     Game.OnExpandDraw(peer, r);
+                    break;
+                case Msg.ExpandApply:
+                    Game.OnExpandApply(peer, r);
                     break;
                 case Msg.WeaponDash:
                     Game.OnWeaponDash(peer, r);

@@ -26,6 +26,10 @@ namespace Arena
         public readonly List<ExpansionRoom> ExpandProposals = new List<ExpansionRoom>();
         public readonly Dictionary<int, int> ExpandVotes = new Dictionary<int, int>();
 
+        /// The room kits the team holds (spent with ApplyRoomToken; synced in Msg.ExpandState). Bosses give a Floor kit, a won challenge room a
+        /// Shop kit, the vendor sells a Floor kit.
+        public readonly List<RoomToken> RoomTokens = new List<RoomToken>();
+
         int expandSeed;
         float botVoteT;
         bool botProposed;
@@ -72,6 +76,8 @@ namespace Arena
             if (!ExpandingOn)
                 return;
             bool boss = BossNow;
+            if (boss && IsHost && Practice == null && Hunt == null)
+                GrantRoomToken(Expansion.FloorToken(expandSeed, Wave, Expanded, RoomTokens));
             foreach (var p in Players.Values)
             {
                 p.VectorCap = VectorCapBase + p.Stats.VectorCap;
@@ -149,6 +155,7 @@ namespace Arena
                 case ShopAction.Heal:
                 case ShopAction.Revive:
                 case ShopAction.Remove:
+                case ShopAction.RoomKit:
                     return InVendorRoom(p);
                 default:
                     return true;
@@ -246,8 +253,50 @@ namespace Arena
             }
         }
 
+        /// Host: the team gains a room kit (at most Expansion.MaxTokens held).
+        void GrantRoomToken(RoomToken t)
+        {
+            if (!IsHost || !ExpandingOn || RoomTokens.Count >= Expansion.MaxTokens)
+                return;
+            RoomTokens.Add(t);
+            DoLog("room kit gained: " + t.Name);
+            BroadcastExpansion();
+        }
+
+        /// This game's player spends a kit on a bought room (index into Expanded). Only while a building round is open.
+        public void ApplyRoomToken(int token, int room)
+        {
+            if (!ExpandOpen || Me == null)
+                return;
+            if (IsHost)
+            {
+                HostApplyToken(token, room);
+                return;
+            }
+            var w = Proto.Begin(Msg.ExpandApply);
+            w.Write((byte)token); w.Write((byte)room);
+            session.SendToHost(Proto.End(w));
+        }
+
+        public void OnExpandApply(int peer, BinaryReader r) => HostApplyToken(r.ReadByte(), r.ReadByte());
+
+        void HostApplyToken(int token, int room)
+        {
+            string why;
+            if (!IsHost || !ExpandOpen || token < 0 || token >= RoomTokens.Count || !Expansion.CanRetype(Expanded, room, RoomTokens[token], out why))
+                return;
+            var t = RoomTokens[token];
+            Expanded[room] = Expansion.Retype(Expanded[room], t);
+            RoomTokens.RemoveAt(token);
+            expWorld = null;
+            Sounds.Add(Sfx.Pick);
+            DoLog("room " + (room + 1) + " became " + t.Name);
+            BroadcastExpansion();
+        }
+
         void ResetExpansion()
         {
+            RoomTokens.Clear();
             floatCycle = -1;
             Expanded.Clear();
             ExpandOpen = false;
@@ -455,6 +504,16 @@ namespace Arena
             if (!Bot || Me == null)
                 return;
             botVoteT += dt;
+            if (RoomTokens.Count > 0 && botVoteT >= 0.8f)  // a bot spends its team's kit on a random plain room
+            {
+                var plain = new List<int>();
+                string why;
+                for (int i = 0; i < Expanded.Count; i++)
+                    if (Expansion.CanRetype(Expanded, i, RoomTokens[0], out why))
+                        plain.Add(i);
+                if (plain.Count > 0)
+                    ApplyRoomToken(0, plain[rng.Next(plain.Count)]);
+            }
             if (!botProposed && botVoteT >= 1.2f)
             {
                 botProposed = true;
@@ -507,6 +566,11 @@ namespace Arena
         {
             var w = Proto.Begin(Msg.ExpandState);
             WriteRooms(w, Expanded);
+            w.Write((byte)RoomTokens.Count);
+            foreach (var t in RoomTokens)
+            {
+                w.Write((byte)t.Kind); w.Write((byte)t.Floor);
+            }
             w.Write(ExpandOpen);
             if (ExpandOpen)
             {
@@ -534,6 +598,10 @@ namespace Arena
                 expWorld = null;
                 LayoutAge = 0f;
             }
+            RoomTokens.Clear();
+            int nt = r.ReadByte();
+            for (int i = 0; i < nt; i++)
+                RoomTokens.Add(new RoomToken { Kind = (RoomKind)r.ReadByte(), Floor = (PathId)r.ReadByte() });
             ExpandProposals.Clear();
             ExpandVotes.Clear();
             ExpandOpen = r.ReadBoolean();

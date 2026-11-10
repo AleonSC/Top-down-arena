@@ -781,6 +781,11 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   drawing replaces it. You can only propose what you can afford. A proposal costs its **new wall length**: the perimeter
   minus every wall it shares with existing rooms, so touching rooms is cheaper and a box that touches two rooms (a loop)
   cheaper again.
+- **Room kits**: a one-use modifier the team holds (up to 6; the build chip counts them). Spend one in a building round
+  (**Room kits** button on the build window): pick a kit, click a plain Combat room, and it becomes a **Shop** room or a **Floor**
+  room (a path's ground and rules inside that room only, and its XP bonus). One change per room, permanent; floating rooms keep their job.
+  A cleared **boss** wave gives a Floor kit (a floor not on the map yet when one is left), a won **challenge room** gives a Shop kit,
+  and the **vendor** sells a Floor kit for 200 gold.
 - **Minimap**: top right, a fixed-size window that follows you (centred on you, held inside the map; the whole map when it fits).
   Anything beyond its edge is clipped, and teammates off the window show as dots on its edge.
 - **Who drew what**: every built room has a thin line of its drawer's colour just inside its walls, and the minimap fills it in their

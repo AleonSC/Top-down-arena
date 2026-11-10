@@ -550,6 +550,7 @@ namespace Arena
             Room = RoomPhase.Won;
             RoomT = Challenges.AltarWait;
             RoomsWon++;
+            GrantRoomToken(new RoomToken { Kind = Arena.RoomKind.Shop });  // a won challenge room gives a Shop kit in the Expanding arena (ExpansionGame.cs)
             RoomRecord(RoomKind, true);  // everyone's Records (RunSaves.cs)
             ClearRoomEnemies();
             BroadcastFx(FxKind.Ring, AltarPos, new Rgba(1f, 0.85f, 0.4f), 500f, 0.8f, Sfx.WaveClear);

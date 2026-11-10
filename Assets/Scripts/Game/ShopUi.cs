@@ -11,7 +11,7 @@ namespace Arena
         int shopGiveTo;            // teammate whose Give popup is open (0 = none)
         bool shopRemoveOpen;       // choosing an upgrade to remove
 
-        static readonly string[] ServiceIcons = { "ricochet", "axe", "regen2", "halo" };
+        static readonly string[] ServiceIcons = { "ricochet", "axe", "regen2", "halo", "ricochet" };
 
         void DrawShop(Player me, float t)
         {
@@ -77,8 +77,9 @@ namespace Arena
             // Services.
             float sy = top + ch + 18f;
             Ui.Label(new Rect(x0 + 5f, sy, 200f, 16f), "SERVICES", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
-            float sw = (areaW - 10f - 3 * 12f) / 4f;
-            for (int k = 0; k < 4; k++)
+            int nSvc = game.ExpandingOn ? 5 : 4;  // (the room kit is sold in the Expanding arena)
+            float sw = (areaW - 10f - (nSvc - 1) * 12f) / nSvc;
+            for (int k = 0; k < nSvc; k++)
             {
                 var r = new Rect(x0 + 5f + k * (sw + 12f), sy + 20f, sw, 66f);
                 string name, desc;
@@ -89,6 +90,7 @@ namespace Arena
                     case 0: name = "Restock"; desc = "Six new items"; price = Game.RestockPrice(me); break;
                     case 1: name = "Remove upgrade"; desc = "Drop one you regret"; price = Game.RemovePrice; used = me.Taken.Count == 0; break;
                     case 2: name = "Full heal"; desc = me.Hp >= me.MaxHp ? "You're at full health" : "Back to full HP"; price = Game.HealPrice; used = me.Hp >= me.MaxHp || me.Downed; break;
+                    case 4: name = "Floor kit"; desc = game.RoomTokens.Count >= Expansion.MaxTokens ? "Kit slots are full" : "Turn a room into a hazard floor"; price = Game.RoomKitPrice; used = game.RoomTokens.Count >= Expansion.MaxTokens; break;
                     default: name = "Revive token"; desc = me.ReviveToken ? "You have one" : "Revive yourself once"; price = Game.RevivePrice; used = me.ReviveToken; break;
                 }
                 bool afford = me.Gold >= price && shopping && !used && (k == 0 ? atShop : atVendor);
@@ -107,7 +109,7 @@ namespace Arena
                     if (k == 1)
                         shopRemoveOpen = true;
                     else
-                        game.Shop(k == 0 ? ShopAction.Restock : k == 2 ? ShopAction.Heal : ShopAction.Revive);
+                        game.Shop(k == 0 ? ShopAction.Restock : k == 2 ? ShopAction.Heal : k == 4 ? ShopAction.RoomKit : ShopAction.Revive);
                     if (k == 0)
                         shopSel = -1;
                 }

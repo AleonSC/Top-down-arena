@@ -632,4 +632,54 @@ static partial class Program
         grantWave.Invoke(g, null);
         Check(p1.Vectors == 5, "outside the Expanding arena vectors don't change");
     }
+
+    static void ExpandingKitsTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var grantWave = typeof(Game).GetMethod("GrantVectorsForWave", flags);
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        g.Diff.Set(DiffKnob.ArenaExpanding, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+        g.Expanded.Add(new ExpansionRoom { Parent = 0, X = 1600, Y = 100, W = 800, H = 600, Kind = RoomKind.Combat });
+        g.Expanded.Add(new ExpansionRoom { Parent = 0, X = -800, Y = 100, W = 800, H = 600, Kind = RoomKind.Combat });
+        string why;
+        var shop = new RoomToken { Kind = RoomKind.Shop };
+        var fl = Expansion.FloorToken(5, 10, g.Expanded, g.RoomTokens);
+        Check(fl.Kind == RoomKind.Floor && Array.IndexOf(Expansion.Floors, fl.Floor) >= 0, "a Floor kit names a floor a room can carry");
+        Check(Expansion.FloorToken(5, 10, g.Expanded, g.RoomTokens).Floor == fl.Floor, "and the same seed and wave give the same floor");
+        Check(Expansion.CanRetype(g.Expanded, 0, shop, out why) && !Expansion.CanRetype(g.Expanded, 5, shop, out why), "only a bought room can take a kit");
+        var done = Expansion.Retype(g.Expanded[0], fl);
+        g.Expanded[0] = done;
+        Check(!Expansion.CanRetype(g.Expanded, 0, shop, out why), "one modifier per room: a changed room refuses another kit");
+        g.Expanded[0] = new ExpansionRoom { Parent = 0, X = 1600, Y = 100, W = 800, H = 600, Kind = RoomKind.Combat };
+        // A boss clear gives a Floor kit; ordinary clears give none.
+        g.Wave = 6; g.BossSlot = false;
+        grantWave.Invoke(g, null);
+        Check(g.RoomTokens.Count == 0, "an ordinary cleared wave gives no kit");
+        g.Wave = 10; g.BossSlot = true;
+        grantWave.Invoke(g, null);
+        Check(g.RoomTokens.Count == 1 && g.RoomTokens[0].Kind == RoomKind.Floor, "a cleared boss wave gives a Floor kit");
+        Run(s, dt, 0.5f);
+        Check(cg.RoomTokens.Count == 1 && cg.RoomTokens[0].Floor == g.RoomTokens[0].Floor, "the client sees the kit");
+        // Spending: only in a building round, host and client alike.
+        g.ApplyRoomToken(0, 0);
+        Check(g.Expanded[0].Kind == RoomKind.Combat && g.RoomTokens.Count == 1, "a kit can't be spent outside a building round");
+        g.ExpandOpen = true; cg.ExpandOpen = true;
+        var floor = g.RoomTokens[0].Floor;
+        cg.ApplyRoomToken(0, 1);
+        Run(s, dt, 0.6f);
+        Check(g.Expanded[1].Kind == RoomKind.Floor && g.Expanded[1].Floor == floor && g.RoomTokens.Count == 0, "a client spends a kit on room 2: it becomes that floor and the kit is gone");
+        Check(cg.Expanded[1].Kind == RoomKind.Floor && cg.Expanded[1].Floor == floor && cg.RoomTokens.Count == 0, "the client's map matches");
+        Check(g.ExpansionWorld.Areas[1].Kind == RoomKind.Combat && g.ExpansionWorld.Areas[2].Kind == RoomKind.Floor && g.ExpansionWorld.Areas[2].Floor == floor, "the built map reads the new kind (Floor rules then hold in that room, FloorAt)");
+        g.RoomTokens.Add(shop);
+        g.ApplyRoomToken(0, 1);
+        Check(g.Expanded[1].Kind == RoomKind.Floor && g.RoomTokens.Count == 1, "a changed room refuses a second kit");
+        g.ApplyRoomToken(0, 0);
+        Check(g.Expanded[0].Kind == RoomKind.Shop && g.RoomTokens.Count == 0, "a Shop kit makes a shop room");
+        g.ExpandOpen = false; cg.ExpandOpen = false;
+    }
 }
