@@ -128,7 +128,7 @@ namespace Arena
             // --- Target: the boss (or the Reaper that can be hurt), unless something small is right on top of us.
             Enemy target = null, close = null;
             float bestScore = float.MaxValue, closeD = 170f;
-            bool inVault = VaultOn && Rooms.AreaAt(me.Pos) == Rooms.Vault;
+            bool inVault = VaultOn && CurrentWorld.AreaAt(me.Pos) == Rooms.Vault;
             foreach (var e in Enemies.Values)
             {
                 if (IsSpawning(e) || SoulBound(e) || e.Hp <= 0f)
@@ -197,8 +197,8 @@ namespace Arena
                 pref = MeleeReach(me, MeleeRange(me.Weapon.Id)) * 0.7f + (target != null ? target.Radius : 0f);
             if (downed != null && RoomsOn)
             {
-                int mine = Rooms.AreaAt(me.Pos);
-                if (AreaLocked(mine) && Rooms.AreaAt(downed.Pos) != mine)
+                int mine = CurrentWorld.AreaAt(me.Pos);
+                if (AreaLocked(mine) && CurrentWorld.AreaAt(downed.Pos) != mine)
                     downed = null;  // locked in a room (Rooms.cs): clear it first, the door won't let you out to them
             }
             V2 anchor = target != null ? target.Pos : new V2(Width / 2f, Height / 2f);
@@ -630,7 +630,7 @@ namespace Arena
 
             V2 best = V2.Zero;
             float bestCost = float.MaxValue, bestDanger = 0f;
-            int lockedArea = RoomsOn && AreaLocked(Rooms.AreaAt(me.Pos)) ? Rooms.AreaAt(me.Pos) : -1;
+            int lockedArea = RoomsOn && AreaLocked(CurrentWorld.AreaAt(me.Pos)) ? CurrentWorld.AreaAt(me.Pos) : -1;
             for (int c = 0; c < 9; c++)
             {
                 V2 dir = c == 8 ? V2.Zero : V2.FromAngle(MathX.Tau * c / 8f);  // WASD: 8 directions or standing still
@@ -863,11 +863,11 @@ namespace Arena
                 {
                     // The Rooms arena (Rooms.cs): a step into a wall goes nowhere, a locked door holds you in, and a corner of
                     // a room is a bad place to be caught (a person kites round the room instead).
-                    if (lockedArea >= 0 && Rooms.AreaAt(p) != lockedArea)
+                    if (lockedArea >= 0 && CurrentWorld.AreaAt(p) != lockedArea)
                         d += 2f;
                     if (NearSolid(p, hitR + 6f))
                         d += 1f;
-                    var ar = Rooms.Areas[Rooms.AreaAt(p)];
+                    var ar = CurrentWorld.Areas[CurrentWorld.AreaAt(p)];
                     float edge = Math.Min(Math.Min(p.X - ar.Min.X, ar.Max.X - p.X), Math.Min(p.Y - ar.Min.Y, ar.Max.Y - p.Y));
                     if (edge < 50f && !ar.Hall)
                         d += 0.3f * (50f - edge) / 50f;

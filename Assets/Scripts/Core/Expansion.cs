@@ -70,7 +70,7 @@ namespace Arena
         /// A room's price: bigger costs more, a shop and a floor cost a little extra, and each room already bought makes the next dearer.
         public static int PriceFor(RoomKind kind, int w, int h, int built)
         {
-            float p = 40f + w * h / 12000f;
+            float p = 120f + w * h / 4000f;
             p *= kind == RoomKind.Shop ? 1.3f : kind == RoomKind.Floor ? 1.15f : 1f;
             p *= 1f + 0.2f * built;
             return (int)Math.Round(p / 5f) * 5;

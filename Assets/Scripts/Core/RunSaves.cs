@@ -32,7 +32,7 @@ namespace Arena
 
         enum RecordKind : byte { Boss, End, Resume, Room }
 
-        bool Saveable => IsHost && Practice == null && Hunt == null && !ShowcaseMode && !Unrecorded && RunId != null;
+        bool Saveable => IsHost && !ExpandingOn && Practice == null && Hunt == null && !ShowcaseMode && !Unrecorded && RunId != null;
 
         /// Counts towards records at all (a real run, not practice, the lobby preview or the Boss Lab).
         bool RecordsRuns => Practice == null && !ShowcaseMode && !Unrecorded;
@@ -47,7 +47,7 @@ namespace Arena
         /// Host: write the run to its slot, if it's between waves with nothing left to choose.
         public bool SaveRun()
         {
-            if (!Saveable || State != MatchState.Intermission || AnyonePicking() || PathOffer != null || ShopOpen || Players.Count == 0)
+            if (!Saveable || State != MatchState.Intermission || AnyonePicking() || PathOffer != null || ExpandOffer != null || ShopOpen || Players.Count == 0)
                 return false;
             var save = new RunSave
             {

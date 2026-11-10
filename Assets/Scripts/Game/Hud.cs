@@ -119,6 +119,12 @@ namespace Arena
                             DrawPathChoice(Time.unscaledTime);  // PathsUi.cs
                         break;
                     }
+                    if (game.ExpandOffer != null && !tabHeld)
+                    {
+                        if (!pauseUp)
+                            DrawExpansionChoice(Time.unscaledTime);  // ExpansionUi.cs
+                        break;
+                    }
                     if (game.ShopOpen && me != null)
                     {
                         if (!tabHeld && !pauseUp)
@@ -230,6 +236,8 @@ namespace Arena
                 DrawPathChip(SideL, y);  // PathsUi.cs
                 y -= HudChipLine;
             }
+            if (DrawPurseChip(SideL, y))  // ExpansionUi.cs
+                y -= HudChipLine;
             if (DrawGoldChip(SideL, y))  // ShopUi.cs
                 y -= HudChipLine;
             DrawActiveModifiers(DrawActiveDifficulty(SideL, y + 2f), y + 2f);  // DifficultyUi.cs, ModifiersUi.cs

@@ -138,6 +138,9 @@ namespace Arena
                 case Msg.PathChosen:
                     ReadPathChosen(r);
                     break;
+                case Msg.ExpandState:
+                    ReadExpandState(r);
+                    break;
                 case Msg.Record:
                     ReadRecord(r);  // RunSaves.cs
                     break;

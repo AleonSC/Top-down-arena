@@ -763,6 +763,23 @@ wave, everyone gets a shop before the boss:
   last player is done). After a minute the host can close it for everyone. When it closes, each player's leftover
   gold becomes their own XP (1 gold = 1 XP).
 
+## Expanding arena
+
+The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expanding**). Design:
+[`Docs/ExpandingArena.md`](Docs/ExpandingArena.md). It starts as the plain Classic box and grows as you play:
+
+- **Team purse**: every kill adds its gold to one shared purse (the chip under the wave plate shows it and the room count).
+  Personal gold from the shop is separate.
+- **Expand the arena**: after each boss (every 5 waves) the team sees up to three random rooms and **votes**: click a room to
+  vote, or "Buy nothing" to keep the purse. The most votes wins (a tie goes to the room). A room you can't afford is
+  greyed out; if none is affordable there is no vote. Paths are off in this arena.
+- **Rooms**: six shapes (Closet, Room, Chamber, Plaza, Hall, Corridor) in three kinds: **Combat**, **Shop** and **Floor** (a
+  path's ground). A new room attaches to a wall of an existing one with a door. Prices go up with each room bought; the map
+  stops at 12 rooms. For now the kinds only change the colour and name: shop stock and floor hazards come later.
+- **How it plays**: regular waves use the whole map (walled, no wrapping, a minimap top right) and bring more enemies the
+  bigger it is (up to double). Boss waves are fought in the hub alone, as always.
+- Runs in this arena can't be saved and continued yet.
+
 ## Rooms arena
 
 **The Arena** setting on the lobby's **Difficulty** tab: **Classic arena** (the default, everything above as it has always
@@ -906,7 +923,7 @@ both at once (60% with the ramp; 100% without).
 The **Arena layouts** setting is flavour too: **Layouts on / Layouts off** buttons beside them. Off keeps the open arena all run
 (and the usual enemy count); see Arena layouts above.
 The **Arena** (Classic or Rooms) is flavour as well: **Classic arena / Rooms arena** buttons on the row below. See Rooms
-arena above.
+arena above. A third key, **Expanding arena**, picks the Expanding arena (see above).
 
 Easy is close to how the game played before difficulties (without the per-wave damage growth). Damage growth
 multiplies with Enemy damage: Nightmare at wave 11 hits 1.5 × 1.5 = 2.25x as hard as a listed shot. Modifiers stack

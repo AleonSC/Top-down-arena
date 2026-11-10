@@ -218,10 +218,10 @@ namespace Arena
         public bool RoomsArena => D(DiffKnob.ArenaRooms) >= 0.5f;
 
         /// The run's arena layout (Docs/ExpandingArena.md): Wings with the Rooms setting on, else Single. Expanding comes later.
-        public ArenaLayout ArenaKind => RoomsArena ? ArenaLayout.Wings : ArenaLayout.Single;
+        public ArenaLayout ArenaKind => D(DiffKnob.ArenaExpanding) >= 0.5f ? ArenaLayout.Expanding : RoomsArena ? ArenaLayout.Wings : ArenaLayout.Single;
 
         /// The geometry being played on right now: the Wings world while the rooms are up, else the plain arena box.
-        public World CurrentWorld => RoomsOn ? Rooms.Wings : World.Single;
+        public World CurrentWorld => RoomsOn ? (ArenaKind == ArenaLayout.Expanding ? ExpansionWorld : Rooms.Wings) : World.Single;
 
         /// Host, at the start of each wave (with PickLayout): regular waves get the rooms, boss waves the hub alone
         /// (bosses are tuned for 1600x900). Not with Tiny Arena or on Narrow Pass, which wall the hub in themselves,
@@ -229,14 +229,15 @@ namespace Arena
         void PickRooms()
         {
             bool was = RoomsUp, vaultWas = VaultUp;
-            RoomsUp = RoomsArena && Practice == null && !ShowcaseMode && Hunt == null && !IsBossWave(Wave)
+            bool wings = ArenaKind == ArenaLayout.Wings, grown = ArenaKind == ArenaLayout.Expanding && Expanded.Count > 0;  // (the Expanding arena is the plain box until the first room is bought)
+            RoomsUp = (wings || grown) && Practice == null && !ShowcaseMode && Hunt == null && !IsBossWave(Wave)
                 && !Has(RunMod.TinyArena) && !OnPathOf(PathId.NarrowPass);
-            VaultUp = RoomsUp && Wave == VaultWaveFor(Wave);
+            VaultUp = RoomsUp && wings && Wave == VaultWaveFor(Wave);
             VaultCleared = false;
             if (RoomsUp != was || VaultUp != vaultWas)
             {
                 LayoutAge = 0f;  // the walls rise (or the old ones go) with the change
-                DoLog(RoomsUp ? "rooms: up (Wings" + (VaultUp ? ", the vault" : "") + ")" : "rooms: down (the hub alone)");
+                DoLog(RoomsUp ? "rooms: up (" + (wings ? "Wings" : "Expanding, " + Expanded.Count + " rooms") + (VaultUp ? ", the vault" : "") + ")" : "rooms: down (the hub alone)");
             }
             if (was && !RoomsUp)
                 PullIntoHub();
@@ -661,7 +662,7 @@ namespace Arena
             cooldown = Math.Max(0f, cooldown - dt);
             if (!RoomsOn || cooldown > 0f)
                 return pos;
-            var exit = Rooms.PortalExitFor(pos);
+            var exit = CurrentWorld.PortalExitFor(pos);
             if (!exit.HasValue)
                 return pos;
             cooldown = Rooms.PortalCooldown;
@@ -680,17 +681,17 @@ namespace Arena
         public bool AtVault(Player p) => VaultOn && p != null && (Rooms.Areas[Rooms.Vault].Contains(p.Disp) || p.Disp.DistanceTo(Rooms.Doors[Rooms.VaultDoor].Pos) < 260f);
 
         /// Which part of the Rooms world a point is in (the hub when the rooms aren't up).
-        public int AreaAt(V2 p) => RoomsOn ? Rooms.AreaAt(p) : Rooms.Hub;
+        public int AreaAt(V2 p) => CurrentWorld.AreaAt(p);
 
         /// A random spot in the Rooms world (m from an area's edges): in one of its areas, chosen by size (never the vault).
         V2 RandomInRooms(float mx, float my)
         {
             float total = 0f;
-            foreach (var a in Rooms.Areas)
+            foreach (var a in CurrentWorld.Areas)
                 if (!a.Vault)
                     total += a.Size.X * a.Size.Y;
             float pick = Rand(0f, total);
-            foreach (var a in Rooms.Areas)
+            foreach (var a in CurrentWorld.Areas)
             {
                 if (a.Vault)
                     continue;

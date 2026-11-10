@@ -113,7 +113,7 @@ namespace Arena
 
         /// Where the rooms' camera looks: at you, held inside the area you're in (centred on it when it's smaller than
         /// the view), then inside the world.
-        V2 RoomsFocus(V2 at, float zoom) => Rooms.ViewCentre(at, AW / (2f * zoom), AH / (2f * zoom), game.VaultOn);
+        V2 RoomsFocus(V2 at, float zoom) => game.CurrentWorld.ViewCentre(at, AW / (2f * zoom), AH / (2f * zoom), game.VaultOn);
 
         /// DrawHud: the open Rooms map starts zoomed in; this asks you to zoom out, low in the middle, until you do (or a while).
         void DrawZoomHint()

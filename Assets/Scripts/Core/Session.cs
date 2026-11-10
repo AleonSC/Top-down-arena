@@ -44,6 +44,8 @@ namespace Arena
         UltRequest,   // client -> host: the key picked on the lobby's Ultimate row (Session.SetUlt; LobbyEntry.Ult)
         NetPings,     // host -> all: every player's round trip to the host, once a second, for the lag chart (LagNet.cs, Game/LagChartUi.cs)
         Respawn,      // client -> host: Practice Range only: kind 0 = get back up where you fell, 1 = restart the wave (the host's own only) (PracticeRespawn.cs)
+        ExpandState,  // host -> all: the Expanding arena's rooms bought, the offer on the table and the votes so far (ExpansionGame.cs)
+        ExpandVote,   // client -> host: this player's vote on the offer (an offer's index, or the last = buy nothing)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -106,7 +108,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 243;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 244;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -572,6 +574,9 @@ namespace Arena
                     break;
                 case Msg.Dodge:
                     Game.OnDodge(peer, r);
+                    break;
+                case Msg.ExpandVote:
+                    Game.OnExpandVote(peer, r);
                     break;
                 case Msg.WeaponDash:
                     Game.OnWeaponDash(peer, r);
