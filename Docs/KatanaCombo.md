@@ -13,7 +13,7 @@ a dash and swipes with meters spent by holding fire, the Kage Chain and Zanshin;
 - The weapon-action key (Left Alt), 0.3 s cooldown. It stops the step you're in (what hasn't landed of it never does). No
   bonus, no penalty.
 - The stance you leave keeps its place forever. The stance you're in starts over after 1.5 s without a step.
-- Raising the parry clears the wait for the next step and keeps both combos' places.
+- Raising the parry clears the wait for the next step and resets both combos to step 1.
 
 ## Hayate (stance 0): the dash combo. Damage is x the weapon's 20.
 | Step | What | Damage | Next step after |
