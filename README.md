@@ -771,9 +771,9 @@ wave, everyone gets a shop before the boss:
 The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expanding**). Design:
 [`Docs/ExpandingArena.md`](Docs/ExpandingArena.md). It starts as the plain Classic box and grows as you play:
 
-- **Vectors**: every player holds a drawing budget (chip under the wave plate, "Vectors 25 / 40"): 1 vector = 1 tile of wall.
-  You start with 25 and can hold 40; each cleared wave gives 6, every 25 kills gives 1, and a cleared boss wave refills
-  everyone to the cap and adds 10 on top. Two cards raise the cap, in the Expanding arena only: **Deep Inkwell** (uncommon, +10,
+- **Vectors**: every player holds a drawing budget (chip under the wave plate, "Vectors 15 / 25"): 1 vector = 1 tile of wall.
+  You start with 15 and can hold 25; each cleared wave gives 2, every 25 kills gives 1, and a cleared boss wave refills
+  everyone to the cap and adds 5 on top. Two cards raise the cap, in the Expanding arena only: **Deep Inkwell** (uncommon, +10,
   stacks to 4) and the milestone card **Architect** (+20 and 10 vectors now, stacks to 3).
 - **Building rounds**: every cleared wave opens a round (a chip "Build rooms" under the wave plate; the countdown never waits
   for it). Open it, **draw a room or hallway** (drag a box on the grid on the zoomed-out map, 3 to 12 tiles a side, at most 96
@@ -788,7 +788,7 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   tied options), and the winning drawer pays; nobody else does. One room is built a round, with a door to every room it
   shares a door's width of wall with (loops). Paths are off in this arena.
 - **How it plays**: regular waves use the whole map (walled, no wrapping, a minimap top right) and bring more enemies the
-  bigger it is (up to double). Boss waves are fought in the hub alone, as always.
+  bigger it is (up to 1.4 times); the map stops at 16 rooms. Boss waves are fought in the hub alone, as always.
 - Runs in this arena can't be saved and continued yet.
 
 ## Rooms arena

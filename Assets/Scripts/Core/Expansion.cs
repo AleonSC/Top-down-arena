@@ -36,7 +36,7 @@ namespace Arena
     /// parent), rooms never overlap or touch except through their own door, and it stops growing at a size cap.
     public static class Expansion
     {
-        public const int MaxRooms = 12;          // bought rooms (the hub is extra)
+        public const int MaxRooms = 16;          // bought rooms (the hub is extra)
         public const int MaxWidth = 6400, MaxHeight = 4000;  // the whole map's bounding box
         public const int Step = 100;             // rooms slide along a wall in steps of this
         public const int MinDoorRun = 300;       // a room must share at least this much wall with its parent (a door, plus a margin)
