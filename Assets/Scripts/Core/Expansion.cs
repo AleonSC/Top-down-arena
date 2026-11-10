@@ -712,7 +712,11 @@ namespace Arena
         /// machine builds the same ones, and a saved map needs nothing more). They keep CoverWall px off the room's walls, CoverDoor off
         /// every door, CoverMid off the middle and CoverGap off each other, so every door and every wall can still be walked along;
         /// a hallway (a side of MinSide or less) stays clear, and a bigger room gets more (one per ~220000 px2, up to 4).
+        /// A room too small or too doored for that (a 400-800 px room with doors at both ends had no legal spot) gets fallback
+        /// passes: first the middle kept clear by only CoverMidTight, then a lone pillar or block CoverTight off the walls, doors
+        /// (plus CoverDoorTight) and the middle point.
         public const int CoverWall = 130, CoverDoor = 230, CoverMid = 130, CoverGap = 70;
+        public const int CoverMidTight = 60, CoverTight = 100, CoverDoorTight = 180;
 
         static void AddCover(List<Solid> to, ExpansionRoom r, List<V2> doors)
         {
@@ -722,9 +726,12 @@ namespace Arena
             int want = Math.Max(1, Math.Min(4, r.W * r.H / 220000));
             var placed = new List<int[]>();  // each obstacle's bounding box: x0, y0, x1, y1
             V2 mid = new V2(r.X + r.W / 2f, r.Y + r.H / 2f);
-            for (int n = 0, tries = 0; n < want && tries < 60; tries++)
+            for (int n = 0, tries = 0; n < want && tries < 200; tries++)
             {
+                int stage = tries < 60 ? 0 : tries < 120 ? 1 : 2;  // 0 the full rules, 1 a smaller clear middle, 2 closer to doors too
                 int kind = rng.Int(4);  // 0 pillar, 1 bar, 2 an L, 3 block
+                if (stage == 2)
+                    kind = kind < 2 ? 0 : 3;  // (only a pillar or block that tight)
                 bool horizontal = rng.Int(2) == 0;
                 int hw, hh;
                 switch (kind)
@@ -734,14 +741,16 @@ namespace Arena
                     case 2: hw = hh = 90; break;
                     default: hw = hh = 45; break;
                 }
-                int ix0 = r.X + CoverWall + hw, ix1 = r.X + r.W - CoverWall - hw, iy0 = r.Y + CoverWall + hh, iy1 = r.Y + r.H - CoverWall - hh;
+                int wall = stage == 2 ? CoverTight : CoverWall;
+                int ix0 = r.X + wall + hw, ix1 = r.X + r.W - wall - hw, iy0 = r.Y + wall + hh, iy1 = r.Y + r.H - wall - hh;
                 if (ix1 <= ix0 || iy1 <= iy0)
                     continue;
                 int cx = ix0 + rng.Int((ix1 - ix0) / 10 + 1) * 10, cy = iy0 + rng.Int((iy1 - iy0) / 10 + 1) * 10;
                 int bx0 = cx - hw, by0 = cy - hh, bx1 = cx + hw, by1 = cy + hh;
-                bool ok = Math.Abs(cx - mid.X) > hw + CoverMid || Math.Abs(cy - mid.Y) > hh + CoverMid;
+                int keepMid = stage == 0 ? CoverMid : stage == 1 ? CoverMidTight : CoverTight / 3, keepDoor = stage == 2 ? CoverDoorTight : CoverDoor;
+                bool ok = Math.Abs(cx - mid.X) > hw + keepMid || Math.Abs(cy - mid.Y) > hh + keepMid;
                 foreach (var d in doors)
-                    ok &= Math.Abs(cx - d.X) > hw + CoverDoor || Math.Abs(cy - d.Y) > hh + CoverDoor;
+                    ok &= Math.Abs(cx - d.X) > hw + keepDoor || Math.Abs(cy - d.Y) > hh + keepDoor;
                 foreach (var o in placed)
                     ok &= bx0 > o[2] + CoverGap || bx1 < o[0] - CoverGap || by0 > o[3] + CoverGap || by1 < o[1] - CoverGap;
                 if (!ok)
