@@ -8,9 +8,7 @@ to work is in `CLAUDE.md`; the per-file map is `CODEMAP.md`.
 and tool is described there). This document is the developer-facing overview. `CLAUDE.md` is the short
 version that loads on its own; read the sections here (and of README) that your task needs, not the whole file.
 
-**The owner's to-do list is [`Docs/AfterReset.md`](Docs/AfterReset.md)**: bugs, polish, plans and feature ideas
-they've asked to have done next, with the design docs they link to. Check it at the start of a session; once the
-owner has checked an entry in Unity, move it to the top of `Docs/History.md`.
+There is no to-do file; the owner sends requests per session. Design docs in `Docs/` start with their status.
 
 ---
 
@@ -41,8 +39,7 @@ owner has checked an entry in Unity, move it to the top of `Docs/History.md`.
 - **Dev tools (F1):** a tabbed menu (Match / Players / Tools / DPS): stat editor, god mode, wave skip, session
   recording toggle, **DPS meter (F2) and target dummies**, **Boss Lab** (bots that play like people fight any boss; live stats; also a CLI batch mode).
 - **Field guide (a button in the pause menu and in Settings):** in-game **Bestiary** and **Armory** databases
-  (`FieldGuide.cs`): searchable lists, live models, stats, links between entries, and a link to the published web
-  page.
+  (`FieldGuide.cs`): searchable lists, live models, stats, links between entries.
 - **Session recording:** the host's matches are saved as JSON (per-wave damage by source, picks, downs,
   samples). The owner uploads these into sessions for balance analysis; `Tools/SessionReport/report.py`
   summarises them.
@@ -59,7 +56,7 @@ Tools/Preview/         renders screens to PNG without Unity (stubs + Pillow)    
 Tools/CompileCheck/    fast compile check with Unity stubs                           [added in the audit]
 Tools/RenderCheck/     proves a refactor left the arena's drawing byte-identical      [added Oct 2026]
 Tools/SoundCheck/      renders the synthesized sounds to WAV to listen without Unity  [added Nov 2026]
-Docs/                  sources of the Armory and Bestiary reference pages            [added in the audit]
+Docs/                  design docs, mockups, history
 ```
 
 Per-file map: **`CODEMAP.md`** (one line per source file; add new files there). The older, more detailed per-file
@@ -129,7 +126,7 @@ A class is mostly two new files plus a line in each registry. Templates: `Docs/C
 6. **Check:** `Tools/SimTest/run.sh 1 1 classes` lists every missing piece (weapon cases, ability casts, icons, blurb,
    look). Then a sim test file for the class (`Tests/<Class>.cs`, see `Tests/Ninja.cs`), `run.sh 1 1 extra` and `aim`
    (every weapon's extra projectiles and range), a Boss Lab run (`run.sh 1 1 lab 5 2 3 D/<Name>/0`), previews
-   (`KIT=<n> Tools/Preview/shot.sh <name> kitgrid`, `LOADOUT=...` in `lobby`), README, Armory (`Docs/Armory`).
+   (`KIT=<n> Tools/Preview/shot.sh <name> kitgrid`, `LOADOUT=...` in `lobby`), README.
 
 Things that already work for any class without edits: the lobby's class cards (they size themselves to
 `Defs.KitCount`), the Boss Lab's class picker, the Field guide, saves and records (by name), the session recorder.
@@ -222,13 +219,6 @@ The lobby fits about 8 class cards in a row before they get too small.
   circles, thin translucent lines look a few times brighter than in Unity; translucent UI and rimmed cards were fixed
   to match Unity in Oct 2026, so older preview PNGs look fainter); use it to check layout, then ask the owner to look
   in Unity.
-- **Reference pages:** `Docs/` holds the Bestiary and Armory sources. After editing a Bestiary entry run `node
-  Docs/Bestiary/build_data.js` so the in-game Field guide says the same. `Docs/Armory/build.sh` rebuilds the Armory
-  (its icons come straight from `PixelArt.cs`) and `Docs/checks/*.js` are Playwright scripts that screenshot the pages
-  and report page errors. See `Docs/README.md` for where they're published and how to update them; their numbers and
-  descriptions are hand-copied from the code, so they go stale with balance changes. **Don't update them (or the
-  Bestiary/Armory data and published pages) unless the owner asks for it** (see `CLAUDE.md`).
-
 ## 4. How the owner works
 
 Moved to `CLAUDE.md` ("How the owner works"), which every session reads.

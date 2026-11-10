@@ -18,7 +18,7 @@ static partial class Program
             if (t == EnemyType.Buzzsaw || t == EnemyType.SpikeBlock || t == EnemyType.Spiker
                 || t == EnemyType.FuseRunner || t == EnemyType.Hookman || t == EnemyType.Sapper || t == EnemyType.SapperMine
                 || t == EnemyType.Swordsman || t == EnemyType.ShieldSwordsman)
-                continue;  // TODO: no Bestiary entry yet; the old Swarmer entry is still filed under the new Swarmer (Bestiary pages only change when the owner asks; remove this then; Docs/AfterReset.md)
+                continue;  // TODO: no Bestiary entry yet; the old Swarmer entry is still filed under the new Swarmer (remove this once it has one)
             int n = all.Count(e => e.Type == t);
             if (n == 0) missing.Add(t.ToString());
             if (n > 1) doubled.Add(t.ToString());

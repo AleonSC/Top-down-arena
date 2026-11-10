@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The Field guide's in-game databases, opened from the pause menu (ReferencePages.cs): the Bestiary (every enemy and
+    /// The Field guide's in-game databases, opened from the pause menu: the Bestiary (every enemy and
     /// boss: live model, stats from Defs, health at your wave, attacks and tips from BestiaryData) and the Armory
     /// (classes, weapons, abilities and upgrade cards, read straight from the game's definitions). A searchable list on
     /// the left, the selected entry on the right; names in an entry link to their own entries.
@@ -344,9 +344,6 @@ namespace Arena
                 y += 36f;
             }
             Ui.Label(new Rect(panel.xMax - 560f, y - 36f, 420f, 28f), "↑ ↓ to browse · click a name in an entry to open it · Esc to go back", 11, Ui.Muted, TextAnchor.MiddleRight);
-            // The published page of this book (the Armory's has live weapon demos); ReferencePages.cs.
-            if (Ui.SmallButton(new Rect(panel.xMax - 132f, y - 34f, 110f, 26f), "Web page", 11))
-                OpenReferencePage(armory);
 
             var list = new Rect(panel.x + 16f, y, 330f, panel.yMax - 16f - y);
             var detail = new Rect(list.xMax + 14f, y, panel.xMax - 16f - list.xMax - 14f, list.height);

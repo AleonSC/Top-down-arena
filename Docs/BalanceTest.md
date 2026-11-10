@@ -1,6 +1,6 @@
 # Balance test (F1 > Balance)
 
-Status: built, Nov 2026, no protocol change (host only). Check in Unity (see `AfterReset.md`).
+Status: built, Nov 2026, no protocol change (host only). Check in Unity.
 Mockup: [`Mockups/balance-test-run.html`](Mockups/balance-test-run.html).
 
 ## What it does

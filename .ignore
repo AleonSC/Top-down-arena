@@ -1,7 +1,5 @@
 # Skipped by ripgrep-based search (Claude Code's Grep/Glob, rg) so repo-wide searches stay small.
 # Still tracked by git; search them by passing the path explicitly.
 Docs/Mockups/
-Docs/Armory/*.html
-Docs/Bestiary/*.html
 Docs/History.md
 *.Generated.cs

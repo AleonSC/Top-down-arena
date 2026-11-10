@@ -84,11 +84,6 @@ Nothing here is removed until you say so:
 Removing `FxKind.Rewind` would shift later `FxKind` values, so it should be kept as a placeholder or removed in the
 same protocol bump. That's a decision for when we delete.
 
-## Reference pages
-
-The Armory (`Docs/Armory/`, including `icons.json`) lists Time Rewind and will be out of date after this. Per the
-project rules I won't touch it unless you ask. The Bestiary is unaffected.
-
 ## Open decisions
 
 1. **Capstone.** Recommended: 10 s and faster revives. Alternatives: 10 s only; heal rate +50%; allies inside also
