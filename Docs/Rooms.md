@@ -275,6 +275,14 @@ Each client already draws its own screen, so every player's camera follows thems
      move scoring knows walls, locked doors and room corners (and no longer treats the rooms as "off the edge"); they
      turn past crates, barrels and chests (both arenas); locked in a room they clear it before going to revive; they
      leave the optional vault alone; the treasure bot routes through doors.
+   - **Overflow** (owner, Nov 10: "I was expecting them to come through all the doors and spill out into the entire
+     arena if you're not fast enough"). Guarding no longer lasts for ever: each room enemy guards for `GuardTime`
+     (10 s, down 0.15 s a wave to 5 s), then `RoomsLeash` marks it `Spilled` with a random `ExitDoor` (hub or
+     hallway), walks it out through that door (aimed 500 px past it, not firing on the way), and lets it hunt. The cap
+     counts only unspilled guards, so the nest refills the room from the wave's queue and the rooms keep pouring out
+     until the nests die (the queue is still finite, and still called off when both nests are down). Bots, 6 seeds,
+     medians, Rooms vs Classic: threats in view 4.9 vs 10 (worst moment per wave: median 13, 90th percentile 24, up
+     from 16), shots in view 13 vs 25, waves 45 s vs 34, damage 31% vs 21% a wave, no lost runs.
    - The bots still lose a run now and then on Rooms (locked in with a melee rush, a person would kite) and can
      stall (a slow wave in a few hundred); the report shows these.
 4. **The power-stacking nerf pass** (its own doc): kill speed vs enemy health past wave 20, full-heal sustain, parry.

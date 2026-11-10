@@ -357,7 +357,9 @@ namespace Arena
         public EnemyDef Def;
         public V2 Pos, Disp, Waypoint;
         public int Home = -1;   // host only: the Rooms arena's area it belongs to (Rooms.cs): a room it guards, or the vault
-        public bool Spilled;    // host only: sent out of its room in a spill (it hunts instead of guarding)
+        public bool Spilled;    // host only: sent out of its room in a spill, or overflowed out of it (it hunts instead of guarding)
+        public float HomeT;     // host only: how long it has guarded its room (Rooms.GuardTime, then it overflows)
+        public int ExitDoor = -1;  // host only: the door an overflowing enemy is leaving its room by (Rooms.Doors index)
         public float Hp, MaxHp, Radius, Speed;
         public int Score;
         public float T, SpawnT, FireT, Ang, Strafe = 1f, RetargetT, Flash, T2;

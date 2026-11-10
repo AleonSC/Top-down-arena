@@ -156,6 +156,29 @@ static partial class Program
         Check(roomFoes.All(e => !g.Enemies.ContainsKey(e.Id) || Rooms.AreaAt(e.Pos) == e.Home), "with nobody in a room its enemies stay in it, round the nest");
         Check(g.Bullets.Values.Count(b => Defs.IsEnemyShot(b.Kind)) <= shotsBefore + 2, "...and don't shoot at nothing");
 
+        // Overflow: after guarding for GuardTime they leave the room through its doors (any of them) and come for you,
+        // and the nest fills the room up again behind them.
+        foreach (var e in roomFoes) if (g.Enemies.ContainsKey(e.Id)) e.HomeT = Rooms.GuardTime(g.Wave);
+        var exits = new HashSet<int>();
+        var cameOut = new HashSet<int>();
+        Run(s, dt, 12f, null, () =>
+        {
+            foreach (var r in g.RoomStates) r.SpillT = 999f;
+            foreach (var e in roomFoes)
+            {
+                if (!g.Enemies.ContainsKey(e.Id)) continue;
+                if (e.ExitDoor >= 0) exits.Add(e.ExitDoor);
+                if (Rooms.AreaAt(e.Pos) != e.Home) cameOut.Add(e.Id);
+            }
+        });
+        Check(roomFoes.All(e => !g.Enemies.ContainsKey(e.Id) || e.Spilled) && exits.Count >= 3 && cameOut.Count >= roomFoes.Count / 2,
+            "after guarding " + Rooms.GuardTime(g.Wave).ToString("0.#") + " s the room's enemies pour out through its doors (" + exits.Count + " doors used, " + cameOut.Count + " of " + roomFoes.Count + " out)");
+        Check(roomFoes.Any(e => g.Enemies.ContainsKey(e.Id) && (hub.Contains(e.Pos) || Rooms.Areas[Rooms.AreaAt(e.Pos)].Hall)), "...into the hub and the hallways");
+        int fresh = g.Enemies.Values.Count(e => e.Home >= 0 && !e.Spilled && e.Type != EnemyType.Nest && !roomFoes.Contains(e));
+        Check(fresh >= cap, "the nests fill their rooms again behind them, from the wave (" + fresh + " new guards)");
+        foreach (var e in g.Enemies.Values) if (e.Type != EnemyType.Nest) e.Hp = 0f;
+        Run(s, dt, 0.3f);
+
         // A spill: fast runners out through the chosen door, hunting.
         west().NextDoor = 0;  // the hub door (Rooms.Doors[0]: hub | West)
         int spillDoor = west().NextDoor;

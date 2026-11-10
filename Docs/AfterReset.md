@@ -101,7 +101,8 @@ So friends can play without Tailscale or port forwarding.
       by default). Rooms: on regular waves the Wings map (two side rooms and two hallways round the hub, doors, walls,
       cover; boss waves in the hub), the following camera, nests that keep their rooms stocked (both down = the rest of
       the wave called off), Runner spills through a random door (amber warning), doors that lock behind you while a nest
-      lives, cleared rooms (orbs + XP), the minimap, the vault one wave in ten from wave 6 with the Gatekeeper (his Data
+      lives, room enemies that guard 10 s (down to 5) then
+      overflow out of any door to hunt you while the nest refills the room, cleared rooms (orbs + XP), the minimap, the vault one wave in ten from wave 6 with the Gatekeeper (his Data
       Gate gone in the Rooms arena), and 1.3x enemy damage on rooms waves. Measured with `run.sh 1 1 arenabal`.
       **Play it and say**: is 1.3x right (`Rooms.EnemyDamageMult`), do waves drag, is the lock fair, the camera slide,
       the minimap's size and spot. Push the `classic-arena` tag from your machine

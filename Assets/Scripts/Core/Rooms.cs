@@ -270,6 +270,9 @@ namespace Arena
         /// Seconds between a room's spills: shorter later in the run.
         public static float SpillTime(int wave) => Math.Max(11f, 22f - wave * 0.25f);
 
+        /// How long a room's enemy guards its nest before it overflows out of the room to hunt you: shorter later in the run.
+        public static float GuardTime(int wave) => Math.Max(5f, 10f - wave * 0.15f);
+
         /// Runners in each spill.
         public static int SpillSize(int wave, int players) => 3 + wave / 15 + Math.Max(0, players - 1);
 
@@ -571,8 +574,23 @@ namespace Arena
         /// mini-boss never leaves the vault. Returns true while holding (no shooting at nothing).
         bool RoomsLeash(Enemy e, ref V2 tpos)
         {
-            if (!RoomsOn || e.Home < 0 || e.Spilled)
+            if (!RoomsOn || e.Home < 0)
                 return false;
+            if (e.Spilled)
+            {
+                if (e.ExitDoor >= 0)
+                {
+                    var door = Rooms.Doors[e.ExitDoor];
+                    if (Rooms.AreaAt(e.Pos) == e.Home)
+                    {
+                        V2 outward = (door.Side(door.Other(e.Home)) - door.Pos).Normalized();
+                        tpos = door.Pos + outward * 500f + door.Along * (((e.Id % 5) - 2) * 18f);  // on its way out through its door (aimed well past it: shooters stop short of what they head for)
+                        return true;
+                    }
+                    e.ExitDoor = -1;  // out: now it hunts
+                }
+                return false;
+            }
             bool vault = e.Home == Rooms.Vault;
             var rs = vault ? null : StateOf(e.Home);
             if (!vault && (rs == null || !rs.NestAlive))
@@ -586,6 +604,18 @@ namespace Arena
             {
                 tpos = near.Pos;
                 return false;
+            }
+            if (!vault && e.Type != EnemyType.Nest)
+            {
+                // Overflow (owner, Nov 2026): it guards only so long, then leaves through one of the room's doors, picked at
+                // random, and hunts. The nest refills the room behind it, so while a nest lives the rooms keep pouring out.
+                e.HomeT += tickDt;
+                if (e.HomeT >= Rooms.GuardTime(Wave))
+                {
+                    e.Spilled = true;
+                    e.ExitDoor = PickSpillDoor(e.Home);
+                    return RoomsLeash(e, ref tpos);
+                }
             }
             V2 home = vault ? area.Mid : Rooms.NestSpot(e.Home);
             float rx = Math.Min(150f, area.Size.X / 3f), ry = Math.Min(130f, area.Size.Y / 3f);

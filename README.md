@@ -768,8 +768,11 @@ been) or **Rooms arena**. The Rooms arena is new and still being tuned (design: 
   point at enemies and teammates you can't see (at any zoom). The scroll-wheel zoom works as usual.
 - **Nests.** Each side room has a **nest** (a Nest with three times the health). The wave's enemies come in by the
   nests, a few at a time (4 to a room early on, one more every 7 waves and per extra player, at most 10), and **guard their room**: they
-  stay round the nest, without shooting, until someone comes in. Kill a nest and its room stops filling up; once both
-  nests are down **the rest of the wave is called off**, so killing them fast means fewer enemies.
+  stay round the nest, without shooting, until someone comes in, but only for so long. After **10 s** (down to 5 s
+  late in the run) each one **overflows**: it leaves the room through one of its doors (any of them, picked at random:
+  into the hub or a hallway) and hunts you, and the nest fills the room up again behind it. So while a nest lives the
+  rooms keep pouring out, and a slow party gets the whole arena full. Kill a nest and its room stops filling up; once
+  both nests are down **the rest of the wave is called off**, so killing them fast means fewer enemies.
 - **Spills.** While its nest lives, a room sends out a squad of fast **Runners** (3 or more) every 22 s (down to 11 s
   late in the run), out through one of its doors: into the hub or a hallway, picked at random each time (and never
   right on top of you: if someone stands where it would come out, it picks another door before its warning). That
