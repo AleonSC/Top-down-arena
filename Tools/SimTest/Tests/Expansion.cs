@@ -389,6 +389,7 @@ static partial class Program
 
         // Gold and the shop: kills drop gold with a shop room; the wave after a boss ends with the shop open; walking in and shopping closes it.
         foreach (var p in g.Players.Values) p.Gold = 0;
+        g.Purse = 3000;  // (this wave's clear, a moment on, finds the purse for a room)
         for (int i = 0; i < 4; i++) spawnEnemyAt.Invoke(g, new object[] { EnemyType.Grunt, hubAt + new V2(30f * i, 0f), 0f, 0, false });
         Quiet();
         Run(s, dt, 0.5f);
@@ -401,5 +402,25 @@ static partial class Program
         client.Game.Shop(ShopAction.Done, 1);
         Run(s, dt, 0.5f);
         Check(!g.ShopOpen && !cg.ShopOpen, "everyone clicking Done closes the shop");
+
+        // The optional offer (a chip): a regular wave cleared with the purse for a room offers one that doesn't hold the countdown.
+        var offerOptional = typeof(Game).GetMethod("OfferOptionalExpansion", flags);
+        Check(g.ExpandOffer != null && g.ExpandOptional && cg.ExpandOffer != null && cg.ExpandOptional && !g.ExpandBlocksWave && cg.ExpandOffer.Count == g.ExpandOffer.Count,
+            "a regular wave cleared with the purse for a room offers an optional one, on both screens, and the wave doesn't wait for it");
+        int rooms0 = g.Expanded.Count;
+        g.CastExpandVote(0);
+        Run(s, dt, 0.3f);
+        Check(g.ExpandOffer != null && g.Expanded.Count == rooms0, "one vote of two doesn't buy it by itself");
+        typeof(Game).GetField("StateTimer", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance).SetValue(g, 0.05f);
+        Run(s, dt, 30f, () => g.State == MatchState.Fighting, NoPicks);
+        Run(s, dt, 0.4f);
+        Check(g.ExpandOffer == null && cg.ExpandOffer == null && !cg.ExpandOptional && g.Expanded.Count == rooms0 && g.Purse >= 3000, "the offer closes as the wave starts: one vote of two isn't a majority, so nothing is bought and the purse is kept");
+        Quiet();
+        offerOptional.Invoke(g, null);
+        Run(s, dt, 0.3f);
+        Check(g.ExpandOffer != null && g.ExpandOptional, "another optional offer");
+        g.CastExpandVote(0); cg.CastExpandVote(0);
+        Run(s, dt, 0.4f);
+        Check(g.Expanded.Count == rooms0 + 1 && g.ExpandOffer == null && cg.Expanded.Count == g.Expanded.Count, "both vote for a room: it is bought at once, countdown or not");
     }
 }

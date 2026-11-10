@@ -776,6 +776,10 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
 - **Expand the arena**: after each boss (every 5 waves) the team sees up to three random rooms and **votes**: click a room to
   vote, or "Buy nothing" to keep the purse. The most votes wins (a tie goes to the room). A room you can't afford is
   greyed out; if none is affordable there is no vote. Paths are off in this arena.
+- **Optional offers**: after any regular wave, if the purse covers a room, a chip "Rooms available" shows under the wave plate
+  (the countdown doesn't wait for it). "See the rooms" opens the same cards and draw tool ("Decide later" closes it). When the
+  next wave starts the offer closes: a room is bought only if more than half the team voted for it by then (everyone voting
+  settles it at once). Otherwise the purse keeps its gold.
 - **Loops**: a new room that shares a door's width of wall (3 tiles) with more than one room gets a door to each, so the map
   loops round instead of branching into dead ends; random offers that close a loop are likelier, and the card says LOOP.
 - **Draw your own**: the "Draw your own" key opens the zoomed-out map: drag a box on the grid (at least 3 tiles a side, at most

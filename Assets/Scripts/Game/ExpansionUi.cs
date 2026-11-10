@@ -33,6 +33,27 @@ namespace Arena
             return rule + (pct > 0 ? " Kills here give +" + pct + "% XP and score." : "");
         }
 
+        // --- The optional offer's chip -------------------------------------------------------------------------
+
+        bool ExpandChipUp => game.ExpandOffer != null && game.ExpandOptional && !expOpen;
+
+        /// After a regular wave with the purse for a room: a chip (the wave doesn't wait for it) with a way to open the offer.
+        void DrawExpandChip(Player me)
+        {
+            Ui.Alpha = 1f;
+            bool calm = CabCalm;
+            int cheapest = int.MaxValue, voted = game.ExpandVotes.Count;
+            foreach (var o in game.ExpandOffer)
+                cheapest = Mathf.Min(cheapest, o.Price);
+            var chip = new Rect(W / 2f - 300f, 92f, 600f, 46f);
+            Ui.Pill(chip, new Color(0f, 0f, 0f, 0.6f));
+            Ui.Fill(new Rect(chip.x + 4f, chip.y + 7f, 3f, chip.height - 14f), new Color(1f, 0.82f, 0.4f));
+            Ui.Label(new Rect(chip.x + 16f, chip.y + 3f, 400f, 22f), "ROOMS AVAILABLE  ·  " + game.ExpandOffer.Count + " OFFERS FROM " + cheapest + " GOLD", 13, new Color(1f, 0.82f, 0.4f), TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(chip.x + 16f, chip.y + 23f, 400f, 18f), "Purse " + game.Purse + "  ·  " + voted + " of " + game.Players.Count + " voted  ·  the wave starts in " + Mathf.CeilToInt(game.StateTimer) + " s", 11, Ui.Muted, TextAnchor.MiddleLeft);
+            if (CrtUi.SoftKey(new Rect(chip.xMax - 170f, chip.y + 7f, 156f, 32f), "SEE THE ROOMS", null, 15, calm))
+                expOpen = true;
+        }
+
         // --- The shop room ------------------------------------------------------------------------------------
 
         /// The shop covers your screen: in the Expanding arena, only while you stand in a shop room (and haven't clicked Done).
@@ -43,20 +64,24 @@ namespace Arena
         {
             Ui.Alpha = 1f;
             bool calm = CabCalm;
+            float dy = ExpandChipUp ? 56f : 0f;  // (below the room chip if it's up)
             if (me.ShopDone)
             {
-                Ui.Label(new Rect(0, 150f, W, 22f), "Done shopping  ·  waiting for the others", 14, Ui.Muted, TextAnchor.MiddleCenter, true);
+                Ui.Label(new Rect(0, 150f + dy, W, 22f), "Done shopping  ·  waiting for the others", 14, Ui.Muted, TextAnchor.MiddleCenter, true);
                 return;
             }
-            Ui.Label(new Rect(0, 130f, W, 26f), "THE SHOP IS OPEN  ·  walk into the gold room on the minimap", 18, Ui.Gold, TextAnchor.MiddleCenter, true);
-            Ui.Label(new Rect(0, 156f, W, 20f), "You have " + me.Gold + " gold. Leftover gold becomes XP when the shop closes.", 13, Ui.Muted, TextAnchor.MiddleCenter);
-            if (CrtUi.SoftKey(new Rect(W / 2f - 120f, 180f, 240f, 32f), "SKIP THE SHOP", null, 18, calm))
+            Ui.Label(new Rect(0, 130f + dy, W, 26f), "THE SHOP IS OPEN  ·  walk into the gold room on the minimap", 18, Ui.Gold, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(0, 156f + dy, W, 20f), "You have " + me.Gold + " gold. Leftover gold becomes XP when the shop closes.", 13, Ui.Muted, TextAnchor.MiddleCenter);
+            if (CrtUi.SoftKey(new Rect(W / 2f - 120f, 180f + dy, 240f, 32f), "SKIP THE SHOP", null, 18, calm))
                 game.Shop(ShopAction.Done, 1);
         }
 
         // --- The vote ----------------------------------------------------------------------------------------
 
-        bool expDrawing, expDragging;
+        bool expDrawing, expDragging, expOpen;  // expOpen: an optional offer's window is open (otherwise just its chip shows)
+
+        /// The room window covers the screen: a vote the wave waits for, or an optional offer you opened.
+        bool ExpandWindowUp => game.ExpandOffer != null && (!game.ExpandOptional || expOpen);
         V2 expA, expB;  // the drawing's two corners, world px (snapped to the 100 px grid when read)
 
         void DrawExpansionChoice(float t)
@@ -64,7 +89,7 @@ namespace Arena
             var offers = game.ExpandOffer;
             if (offers == null)
             {
-                expDrawing = expDragging = false;
+                expDrawing = expDragging = expOpen = false;
                 return;
             }
             Ui.Alpha = 1f;
@@ -100,6 +125,12 @@ namespace Arena
             foreach (int id in game.Players.Keys)
                 if (!game.ExpandVotes.ContainsKey(id))
                     waiting++;
+            if (game.ExpandOptional)
+            {
+                if (CrtUi.SoftKey(new Rect(W - 270f, 28f, 220f, 32f), "DECIDE LATER", null, 18, calm))
+                    expOpen = false;
+                Ui.Label(new Rect(0, 100f, W, 20f), "Optional: the wave starts in " + Mathf.CeilToInt(game.StateTimer) + " s. A room is bought only if more than half the team votes for it by then.", 12, Ui.Muted, TextAnchor.MiddleCenter);
+            }
             string msg = !voted ? "Vote for a room: most votes wins" : waiting > 0 ? "Voted. Waiting for " + waiting + " more player" + (waiting == 1 ? "" : "s") : "Counting the votes";
             Ui.Label(new Rect(0, by + 40f, W, 22f), msg, 14, !voted ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
         }

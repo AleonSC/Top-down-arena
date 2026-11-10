@@ -417,6 +417,10 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("EXPANDCUSTOM") != null) {  // EXPANDCUSTOM=1: a drawn hallway as the last card
         for (int tx = -300; tx <= 1600; tx += 100) { string cw; var cr = Expansion.Custom(eg.Expanded, tx, -600, 300, 600, out cw); if (cr.HasValue) { eg.ExpandOffer.Add(cr.Value); eg.ExpandCustom = eg.ExpandOffer.Count - 1; break; } }
       }
+      if (Environment.GetEnvironmentVariable("EXPANDCHIP") != null) {  // EXPANDCHIP=1: the offer is an optional one, just its chip; =2: the window opened from it
+        eg.ExpandOptional = true; eg.StateTimer = 8f; eg.ExpandVotes.Clear(); eg.ExpandVotes[eg.MyId + 100] = 0;
+        if (Environment.GetEnvironmentVariable("EXPANDCHIP") == "2") typeof(ArenaApp).GetField("expOpen", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, true);
+      }
       string drawAt = Environment.GetEnvironmentVariable("EXPANDDRAW");  // EXPANDDRAW=x,y,w,h: the drawing screen with that box dragged out
       if (drawAt != null) {
         var dq = drawAt.Split(','); var ci = System.Globalization.CultureInfo.InvariantCulture;

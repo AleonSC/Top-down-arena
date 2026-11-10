@@ -247,7 +247,7 @@ namespace Arena
                 EnterRoom();
                 return;
             }
-            if (!AnyonePicking() && PathOffer == null && ExpandOffer == null && !ShopOpen)
+            if (!AnyonePicking() && PathOffer == null && !ExpandBlocksWave && !ShopOpen)
                 RoomT -= dt;
             if (RoomT <= 0f)
             {
