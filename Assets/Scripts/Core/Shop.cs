@@ -10,7 +10,7 @@ namespace Arena
     /// gold to teammates. There's no timer: the shop closes when everyone has clicked Done (the host can close it
     /// after a minute), and each player's leftover gold becomes their XP. Host-authoritative: clients send
     /// Msg.Shop requests and see the result in the snapshot.
-    public enum ShopAction : byte { Buy, Restock, Remove, Heal, Revive, Done, Give, Close, RoomKit }
+    public enum ShopAction : byte { Buy, Restock, Remove, Heal, Revive, Done, Give, Close, RoomKit, Vectors }
 
     public class ShopNotice
     {
@@ -27,6 +27,7 @@ namespace Arena
         public const float GoldToXp = 1f;               // XP per leftover gold when the shop closes
         public const float ShopHostCloseAfter = 60f;    // the host can close the shop for everyone after this long
         public const int RemovePrice = 75, HealPrice = 40, RevivePrice = 120, RoomKitPrice = 200;
+        public const int VectorPackPrice = 50, VectorPack = 10;  // the vendor's vector pack (Expanding arena; may go past the cap)
         const float TokenReviveTime = 2f;               // a revive token gets you up this long after you go down
 
         public bool ShopOpen;      // the Bazaar's shop is open (replicated)
@@ -210,6 +211,13 @@ namespace Arena
                         return;
                     p.Gold -= RoomKitPrice;
                     GrantRoomToken(Expansion.FloorToken(expandSeed, Wave * 7 + id, Expanded, RoomTokens));
+                    break;
+                case ShopAction.Vectors:  // the vendor sells vectors (Expanding arena); a bought pack may go past the cap
+                    if (!shopping || p.Gold < VectorPackPrice || !ExpandingOn)
+                        return;
+                    p.Gold -= VectorPackPrice;
+                    p.Vectors += VectorPack;
+                    DoLog(p.Role + " bought " + VectorPack + " vectors");
                     break;
                 case ShopAction.Done:
                     p.ShopDone = arg != 0;

@@ -15,8 +15,8 @@ namespace Arena
         int shopGiveTo;            // teammate whose Give popup is open (0 = none)
         bool shopRemoveOpen;       // choosing an upgrade to remove
 
-        static readonly string[] ServiceIcons = { "ricochet", "axe", "regen2", "halo", "ricochet" };
-        static readonly string[] ServiceNames = { "Add stock", "Remove upgrade", "Full heal", "Revive token", "Floor kit" };
+        static readonly string[] ServiceIcons = { "ricochet", "axe", "regen2", "halo", "ricochet", "compass" };
+        static readonly string[] ServiceNames = { "Add stock", "Remove upgrade", "Full heal", "Revive token", "Floor kit", "Vector pack" };
 
         void DrawShop(Player me, float t)
         {
@@ -50,7 +50,7 @@ namespace Arena
             Ui.Label(new Rect(wallet.x + 112f, wallet.y + 7f, 74f, 40f), "your gold\nleftover → XP", 10, new Color(1f, 0.85f, 0.6f, 0.75f), TextAnchor.MiddleLeft);
 
             // The list: the shelf's cards, then the services.
-            int count = Game.ShelfCount(me), nSvc = game.ExpandingOn ? 5 : 4, n = count + nSvc;  // (the room kit is sold in the Expanding arena)
+            int count = Game.ShelfCount(me), nSvc = game.ExpandingOn ? 6 : 4, n = count + nSvc;  // (the room kit and vector pack are sold in the Expanding arena)
             if (shopSel < 0)
             {
                 shopSel = 0;
@@ -223,7 +223,7 @@ namespace Arena
             if (k == 1)
                 shopRemoveOpen = true;
             else
-                game.Shop(k == 0 ? ShopAction.Restock : k == 2 ? ShopAction.Heal : k == 4 ? ShopAction.RoomKit : ShopAction.Revive);
+                game.Shop(k == 0 ? ShopAction.Restock : k == 2 ? ShopAction.Heal : k == 4 ? ShopAction.RoomKit : k == 5 ? ShopAction.Vectors : ShopAction.Revive);
         }
 
         /// A service's price, and whether it can't be used right now.
@@ -235,6 +235,7 @@ namespace Arena
                 case 1: used = me.Taken.Count == 0; return Game.RemovePrice;
                 case 2: used = me.Hp >= me.MaxHp || me.Downed; return Game.HealPrice;
                 case 4: used = game.RoomTokens.Count >= Expansion.MaxTokens; return Game.RoomKitPrice;
+                case 5: used = false; return Game.VectorPackPrice;
                 default: used = me.ReviveToken; return Game.RevivePrice;
             }
         }
@@ -287,7 +288,7 @@ namespace Arena
                 DrawPriceTag(new Rect(r.center.x - 34f, r.yMax - 38f, 68f, 26f), price, afford);
         }
 
-        /// One service in the same frame as the cards, in gold: Add stock, Remove upgrade, Full heal, Revive token, Floor kit.
+        /// One service in the same frame as the cards, in gold: Add stock, Remove upgrade, Full heal, Revive token, Floor kit, Vector pack.
         void DrawShopService(Player me, int k, Rect r, bool selected, float t, bool shopping, bool allowed)
         {
             int price = ServicePrice(me, k, out bool used);
@@ -313,6 +314,10 @@ namespace Arena
                 case 4:
                     desc = used ? "Kit slots are full" : "Turn a room into a hazard floor.";
                     parts = used ? null : new List<string> { "Kit slots  " + game.RoomTokens.Count + "/" + Expansion.MaxTokens + " → " + (game.RoomTokens.Count + 1) + "/" + Expansion.MaxTokens };
+                    break;
+                case 5:
+                    desc = Game.VectorPack + " more vectors to build with. Can go past your cap.";
+                    parts = new List<string> { "Vectors  " + me.Vectors + " → " + (me.Vectors + Game.VectorPack) };
                     break;
                 default:
                     desc = me.ReviveToken ? "You have one" : "Get back up once if you go down.";
