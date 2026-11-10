@@ -207,7 +207,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `JuggernautLook.cs`: the Juggernaut Suit: six plates bolting on with sparks, the 1.3x body (`JuggSwell`, in `DrawPlayer`), plates coming off a sixth of the armour at a time, the segmented armour bar over the health bar (`DrawJuggBar`), the flak tracers (`DrawJuggShardFx`); a plain ring with Visual effects off
 - `DomeLook.cs`: the Fortress dome, a ring of gold plates that flash as enemy shots reach it (look B of `Docs/Mockups/fortress-dome.html`)
 - `LegionLook.cs`: Legion (Summoner DPS ultimate): the blood moon and red tint, drawn from `Player.LegionT`
-- `BulletRainLook.cs`: Bullet Rain (Elementalist DPS ultimate, `ZoneKind.BulletRain`): arena-wide rain, needles hardening in the zone
+- `BulletRainLook.cs`: Bullet Rain (Elementalist DPS ultimate, `ZoneKind.BulletRain`): Rain Barrage, look B of `Docs/Mockups/bullet-rain.html` in rain blues: the locked-on zone and tether (`DrawBulletRain`), rounds falling and landing over the enemies (`DrawBulletRainAir`)
 - `NinjaLooks.cs`: Ninja DPS looks: Vanish's smoke (puffs, wisps, bank and ring on the vanish spot) and Blade Fan's circling kunai
 - `ArtilleryLook.cs`: Artillery Assault (DPS Soldier ultimate, once Bullet Storm): heat aura and ring, speed streaks, muzzle flash
 - `BarrierLook.cs`: the Tank Soldier's Barrier with Visual effects on: eight armour plates that slam down, recoil on blocks and are knocked off as it soaks (style C, Bulwark Plates)
