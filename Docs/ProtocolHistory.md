@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 
+- 246: a Wildcard's LobbyEntry.Ult / Msg.Start ult byte is now class * 4 + key (any class's DPS ultimate), no longer always 0
 - 245: the Expanding arena's drawn rooms (Msg.ExpandDraw, a custom card in Msg.ExpandState; ExpansionGame.cs)
 - 244: the Expanding arena (DiffKnob.ArenaExpanding, Msg.ExpandState/ExpandVote, the team purse in the snapshot; ExpansionGame.cs)
 - 243: EnemyType.SecurityGuard and bullet kind TracerRound (SecurityGuard.cs, Game/SecurityLook.cs)

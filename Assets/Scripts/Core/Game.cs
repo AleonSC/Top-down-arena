@@ -210,7 +210,7 @@ namespace Arena
                 p.UltPick = (byte)Upgrades.ClampUlt(role, kit, ult);
                 if (role == Role.Wildcard)
                 {
-                    p.WildKit = (Kit)(Math.Min(ability, Defs.WildcardChoices - 1) / Defs.WeaponsPerRole);
+                    p.WildKit = Upgrades.UltKitOf(role, kit, p.UltPick);  // the class its Ultimate pick is from
                     p.StartBonus = Upgrades.RoleAbility(role, kit, Defs.WildSecond(wild));
                     p.BonusKeys[Defs.WildKey(wild) - 1] = p.StartBonus;
                 }

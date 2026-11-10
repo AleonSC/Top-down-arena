@@ -146,6 +146,7 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("TANKGUN") != null) { host.Lobby[1].Role = Role.Tank; host.Lobby[1].Kit = Kit.Soldier; host.Lobby[1].Weapon = byte.Parse(Environment.GetEnvironmentVariable("TANKGUN")); host.Lobby[1].Ability = 0; }
       // LOBBYULT=0|1: your card is an Elementalist Tank with that ultimate picked (1 Lightning Rod), its detail box open (DETAIL=2 is implied).
       if (Environment.GetEnvironmentVariable("LOBBYULT") != null) { host.Lobby[1].Role = Role.Tank; host.Lobby[1].Kit = Kit.Elementalist; host.Lobby[1].Weapon = 0; host.Lobby[1].Ability = 0; host.Lobby[1].Ult = byte.Parse(Environment.GetEnvironmentVariable("LOBBYULT")); set("detailSel", 2); }
+      if (Environment.GetEnvironmentVariable("WILDCARD") != null) { host.Lobby[1].Role = Role.Wildcard; host.Lobby[1].Kit = Kit.Soldier; host.Lobby[1].Weapon = 9; host.Lobby[1].Ability = 12; host.Lobby[1].Wild = Defs.MakeWild(14, 1); host.Lobby[1].Ult = (byte)Upgrades.WildUlt(Kit.Ninja, 0); }  // WILDCARD=1: Twin Blades, Shadow Step, Blade Fan on Q, Death Lotus
       if (Environment.GetEnvironmentVariable("SOLO") != null) host.Lobby.Remove(2);
       // BOTS=1: Aleon's seat is a bot (the host's skill, MIX and remove keys on its card); BOTS=edit: the host is also choosing that bot's loadout (its name box over the preview).
       if (Environment.GetEnvironmentVariable("BOTS") != null) {

@@ -33,8 +33,8 @@ Ninja, Hemomancer), then one of that combination's three weapons and three Space
 unique to their role and class. The **Ultimate** row under them shows the combination's ultimates: key 0 is its default
 ultimate and key 1 its second where it has one (so far the Tank Soldier: Juggernaut Suit, and the Tank Hemomancer: **Bloodbath**); the
 other keys are locked. Click a key to pick it (inverse video, like the weapon and ability keys): the detail box and the
-preview show it. The pick goes back to the default when you change role or class; bots use the default, a Wildcard
-ignores it, and a saved run's seats keep theirs.
+preview show it. The pick goes back to the default when you change role or class; bots use the default, a Wildcard's
+row lists its class wheel's class, and a saved run's seats keep theirs.
 
 - **Soldier**: guns and gear, full health.
 - **Elementalist**: spells (fire, frost, lightning, arcane), 85% health.
@@ -52,9 +52,12 @@ ignores it, and a saved run's seats keep theirs.
 | **DPS** (95 HP) | Weapons: Twin Rifle (streams cross at your cursor for 1.5×; hits load two grenades that Alt fires, left then right), Railgun (leaves its path charged for a second), Burst SMG (spins up: tighter and harder the longer you fire)<br>Abilities: **Poison Dart** (8 s: a dart at the enemy nearest your cursor hits for 20 and poisons it for 18 a second over 5 s; if it dies while still poisoned, the poison jumps to the 3 nearest unpoisoned enemies within 180 px, 80% as strong and for the full 5 s again, and on from them when they die), **Airstrike** (16 s: throw a flare at your cursor, anywhere in the arena; a red lane lights up through it across your aim, wall to wall, and 1.2 s after the cast a jet carpets it: 55 a bomb, one every 140 px, each in 85 px; then the lane burns for 3 s at 15 a second. Allies are safe), Mark for Death | Weapons: Fireball (big, rolls through enemies, burning them), Arc Lightning (hold to charge a strip of lightning), Ice Shards (bank in orbit, launching at enemies that come near)<br>Abilities: **Meteor** (a fireball streaks in over the warning circle, then 150 damage), **Blizzard** (slowing storm), **Tsunami** (a wave that soaks enemies: slowed, and lightning arcs to every wet one) | Weapons: Wolf Whistle (darts mark the prey the 2 wolves hunt; every wolf biting at once is a takedown), Wisp Lantern (3 orbiting wisps you send out as your shots), Imp Caller (imps wait by you; tap to send them, hold to merge them into one big blast)<br>Abilities: **Bat Swarm** (8 bats circle you for a moment, then peel off and dive at enemies), **Hydra** (a three-headed hydra rises at your cursor for 8 s, each head spitting venom at a different enemy), **Alpha Call** (Blood Scent: your minions frenzy, building a stack with each bite, and lunge at 5) |
 
 **Wildcard** (a fourth role, locked until you have won a run as a Tank, a Healer and a DPS; a co-op win counts): it
-has no class. You pick any class's DPS weapon, any DPS Space ability for the usual Space key, and a second DPS ability
-that sits on Q, E or Shift (your choice, changeable in the Tab menu like any bonus ability). Your ultimate is the DPS
-ultimate of the first ability's class. 130 health, no role passive (no taunt, no aura). The price: 10% less damage
+has no class. You pick any class's DPS weapon, any DPS Space ability for the usual Space key, a second DPS ability
+that sits on Q, E or Shift (your choice, changeable in the Tab menu like any bonus ability), and any class's DPS ultimate.
+The lobby's Gear box has a class wheel (arrows, the mouse wheel or the dots turn it) with that class's three weapons and
+three abilities beside it, and the Ultimate row lists its ultimates. Under the wheel, the loadout shows each pick with its
+class's icon (click one to turn the wheel to it); the 1st and 2nd chips choose which slot an ability click fills (the
+other slot's ability swaps over), and the preview casts whichever you clicked last. 130 health, no role passive (no taunt, no aura). The price: 10% less damage
 and 25% slower ability cooldowns (ultimate included). Class passives don't come with borrowed gear (a Hemomancer ability
 costs its health but there is no Blood Price bonus); a weapon's own cards still appear, and borrowed abilities earn
 mastery as usual. It can't be picked in the lobby or the Practice Range while locked. Bots keep their normal roles
@@ -242,7 +245,7 @@ Parry upgrades show up like any other card:
 **F** fires your **ultimate**. Each role and class combination has its own default one, and some have others to
 pick instead on the lobby's **Ultimate** row (so far the Tank Soldier: **Juggernaut Suit** and the Tank Elementalist: **Lightning Rod**, below the table; and the
 Tank Hemomancer: **Bloodbath**, in the Hemomancer table; and the Tank Summoner: **Bone Phalanx**, below the table; a
-Wildcard always gets the DPS ultimate of its first ability's class). Ultimates have long cooldowns
+Wildcard picks any class's DPS ultimate). Ultimates have long cooldowns
 that upgrades don't shorten, and start each match half charged. The HUD shows the charge in the gold slot.
 
 **Juggernaut Suit** (Tank Soldier, picked instead of Fortress, 75 s): six steel plates clamp onto you over 0.6 s and

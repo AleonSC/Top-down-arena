@@ -485,6 +485,9 @@ namespace Arena
         int ascOpen = -1;   // the weapon slot whose ascension window is open (-1 = closed; any click closes it)
         int detailSel;      // what the detail box shows: 0 = weapon, 1 = ability, 2 = ultimate (whichever was clicked last)
 
+        /// The ability the detail box and the preview show: a Wildcard's second when that was clicked last, else the first.
+        int ShownAbility(LobbyEntry me) => me.Role == Role.Wildcard && detailSecond ? Defs.WildSecond(me.Wild) : me.Ability;
+
         /// The big loadout screen (Docs/Mockups/lobby-declutter.html). Left: the live preview filling the column, the role / class
         /// title and the glowing stat bars. Right: Role, Class, Weapon (each with its ascension button), Ability and Ultimate keys,
         /// then one detail box for whichever weapon, ability or ultimate was clicked last.
@@ -576,6 +579,8 @@ namespace Arena
                         wildSecond = 1;
                         wildKey = 1;
                         wildTab = 0;
+                        wildBrowseFor = -1;
+                        detailSecond = false;
                     }
                 }
             }
@@ -658,6 +663,7 @@ namespace Arena
                         if (self)
                             abilityChoice = i;
                         detailSel = 1;
+                        detailSecond = false;
                     }
                 }
                 y += 32f + ((Mathf.Max(weaponSlots, abilitySlots) + 1) / 2) * 40f - 6f + 10f;
@@ -667,28 +673,31 @@ namespace Arena
             ultY = Mathf.Max(ultY, view.yMax - 72f);  // the Ultimate keys end on the line the preview ends on
             // The ultimate: key 0 is the role and class's default one, keys 1-3 the others it has (the Tank Soldier's Juggernaut Suit on
             // key 1), locked while empty. Click one to pick it (inverse video, like the weapon and ability keys) and watch it in the preview.
-            LobbyKit.Heading(x, ultY, w, "Ultimate", null, calm, 15);
+            LobbyKit.Heading(x, ultY, w, "Ultimate", me.Role == Role.Wildcard ? Defs.KitName((Kit)WildBrowseKit) + "'s ultimates" : null, calm, 15);
+            bool wildRow = me.Role == Role.Wildcard;  // a Wildcard: the class wheel's class's DPS ultimates (pick = class * UltKeys + key)
+            var rowKit = wildRow ? (Kit)WildBrowseKit : me.Kit;
             for (int i = 0; i < Upgrades.UltKeys; i++)
             {
                 var b = new Rect(x + i * (quarter + gap), ultY + 32f, quarter, 40f);
-                var id = i == 0 ? Upgrades.Ultimate(me.Role, me.UltKit) : Upgrades.AltUltimate(me.Role, me.Kit, i);
+                var id = i == 0 ? Upgrades.Ultimate(me.Role, wildRow ? rowKit : me.UltKit) : Upgrades.AltUltimate(me.Role, rowKit, i);
                 if (id == AbilityId.None)
                 {
                     LockedSlot(b);
                     continue;
                 }
-                if (LobbyKit.Key(b, Upgrades.Ability(id).Name.ToUpperInvariant(), me.Ult == i, calm, size: 15, minSize: 9))
+                int pick = wildRow ? Upgrades.WildUlt(rowKit, i) : i;
+                if (LobbyKit.Key(b, Upgrades.Ability(id).Name.ToUpperInvariant(), me.Ult == pick, calm, size: 15, minSize: 9))
                 {
-                    if (me.Ult != i)
-                        tgt.RequestUlt(i);
+                    if (me.Ult != pick)
+                        tgt.RequestUlt(pick);
                     if (self)
-                        ultChoice = i;
+                        ultChoice = pick;
                     detailSel = 2;  // (the preview then casts it until you click something else)
                 }
             }
 
             float dy = ultY + 82f;
-            var ability = Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, me.Ability));
+            var ability = Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, ShownAbility(me)));
             DrawDetailBox(new Rect(x, dy, w, r.yMax - 12f - dy), wdef, ability, ult);
 
             if (ascOpen >= 0)
@@ -841,69 +850,246 @@ namespace Arena
             }
         }
 
-        /// A Wildcard's picks (Docs/Wildcard.md): every class's three DPS weapons on the left and three DPS abilities on the right,
-        /// one row a class (its icon at the start). The tabs choose whether a click sets the first ability or the second; the second sits on the key chosen below it.
-        /// Fills y to yEnd.
+        // The Wildcard's class wheel (Docs/Mockups/wildcard-gear-carousel.html): wildBrowse counts classes without end (its class is
+        // wildBrowse mod KitCount), wildBrowsePos eases toward it. wildBrowseFor: whose loadout it was set up for (-1: set it up again).
+        int wildBrowse, wildBrowseFor = -1;
+        float wildBrowsePos;
+        bool detailSecond;  // the detail box and the preview show the Wildcard's second ability (the last ability clicked was the 2nd)
+        static int KitMod(int a) => ((a % Defs.KitCount) + Defs.KitCount) % Defs.KitCount;
+        int WildBrowseKit => KitMod(wildBrowse);
+
+        /// A Wildcard's picks (Docs/Wildcard.md, look: Docs/Mockups/wildcard-gear-carousel.html): a wheel of the six classes on the
+        /// left (arrows, the mouse wheel or the dots turn it), and the class on top's three DPS weapons and three DPS abilities as keys
+        /// beside it, with the second ability's key under them. Under those, the loadout: weapon, 1st, 2nd and ultimate, each with
+        /// its class's icon; a click turns the wheel to that class (the 1st and 2nd choose which ability an ability key fills).
+        /// Fills y to yEnd; the Ultimate row under it lists the wheel's class's ultimates.
         void DrawWildcardPicks(LobbyEntry me, Session tgt, bool self, float x, float y, float w, float yEnd)
         {
             bool calm = fxReduced;
-            float col = (w - 16f) / 2f, ax = x + col + 16f;
+            var ev = Event.current;
             int second = Defs.WildSecond(me.Wild), key = Defs.WildKey(me.Wild);
+            const int per = 3;  // weapons and abilities a class (Defs.WeaponsPerRole, Upgrades.RoleAbilityChoices)
+            if (wildBrowseFor != me.Id)
+            {
+                wildBrowseFor = me.Id;
+                wildBrowse = me.Weapon / per;
+                wildBrowsePos = wildBrowse;
+                wildTab = 0;
+            }
             LobbyKit.Heading(x, y, w, "Gear", "Any class's DPS weapon and two abilities", calm);
-            y += 34f;
-            // Left: which key the second ability sits on. Right: which ability a click sets.
-            Ui.Label(new Rect(x, y, 96f, 24f), "2ND ABILITY KEY", 11, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+            y += 36f;
+
+            // The wheel.
+            const float wheelW = 150f;
+            float wheelH = Mathf.Max(120f, yEnd - y - 52f);
+            var wr = new Rect(x, y, wheelW, wheelH);
+            if (ev.type == EventType.ScrollWheel && GUI.enabled && wr.Contains(ev.mousePosition))
+            {
+                wildBrowse += ev.delta.y > 0f ? 1 : -1;
+                ev.Use();
+            }
+            if (ev.type == EventType.Repaint)
+            {
+                wildBrowsePos += (wildBrowse - wildBrowsePos) * (calm ? 1f : 1f - Mathf.Exp(-Time.unscaledDeltaTime * 12f));
+                if (Mathf.Abs(wildBrowse - wildBrowsePos) < 0.004f)
+                    wildBrowsePos = wildBrowse;
+                if (Mathf.Abs(wildBrowse) > 600)  // keep the numbers small
+                {
+                    int sub = wildBrowse / Defs.KitCount * Defs.KitCount;
+                    wildBrowse -= sub;
+                    wildBrowsePos -= sub;
+                }
+            }
+            int bk = WildBrowseKit;
+            var wild = ToColor(Defs.Get(Role.Wildcard).Color);
+            CrtKit.SoftBox(wr, CrtUi.Ink, false, false, false);
+            float iconY = wr.y + 14f, big = Mathf.Min(64f, wheelH - 70f);
+            float oldAlpha = Ui.Alpha;
+            for (int k = 0; k < Defs.KitCount; k++)
+            {
+                float d = ((k - wildBrowsePos) % Defs.KitCount + Defs.KitCount) % Defs.KitCount;
+                if (d > Defs.KitCount / 2f)
+                    d -= Defs.KitCount;  // -3 .. 3, the class on top at 0
+                float ad = Mathf.Abs(d), a = Mathf.Clamp01(1.4f - ad * 0.9f);
+                if (a <= 0.01f)
+                    continue;
+                float sz = Mathf.Lerp(big, big * 0.45f, Mathf.Clamp01(ad));
+                var ir = new Rect(wr.center.x + d * 46f - sz / 2f, iconY + (big - sz) / 2f, sz, sz);
+                Ui.Alpha = oldAlpha * a;
+                if (ad < 0.5f)
+                    Ui.Glow(ir, CrtUi.Ink, 0.5f * (1f - ad * 2f));
+                Ui.Icon(ir, PixelArt.Get(Classes.Get((Kit)k).Icon), ad < 0.5f ? Color.white : new Color(0.7f, 0.75f, 0.85f, 1f));
+            }
+            Ui.Alpha = oldAlpha;
+            // The class's name between the two arrows.
+            const float arrowW = 24f;
+            float ny = iconY + big + 6f;
+            LobbyKit.Fit(new Rect(wr.x + arrowW + 8f, ny, wr.width - 2f * arrowW - 16f, 24f), Defs.KitName((Kit)bk).ToUpperInvariant(), 15, 9, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
+            for (int side = -1; side <= 1; side += 2)
+            {
+                var ab = new Rect(side < 0 ? wr.x + 5f : wr.xMax - 5f - arrowW, ny, arrowW, 24f);
+                bool click = LobbyKit.Key(ab, "", false, calm);
+                Chevron(ab.center, side, CrtKit.SoftText(CrtUi.Ink, GUI.enabled && ab.Contains(ev.mousePosition)));
+                if (click)
+                    wildBrowse += side;
+            }
+            // The dots: one a class, lit on the class on top, purple where some of your gear comes from. Click one to turn to it.
+            const float dot = 7f, dotGap = 9f;
+            float dx0 = wr.center.x - (Defs.KitCount * dot + (Defs.KitCount - 1) * dotGap) / 2f, dyy = wr.yMax - 16f;
+            int ultKit = (int)me.UltKit;
+            for (int k = 0; k < Defs.KitCount; k++)
+            {
+                var dr = new Rect(dx0 + k * (dot + dotGap), dyy, dot, dot);
+                bool used = me.Weapon / per == k || me.Ability / per == k || second / per == k || ultKit == k;
+                bool on = k == bk;
+                Color dc = on ? CrtUi.Ink : used ? wild : CrtUi.Dim;
+                Ui.Fill(dr, new Color(dc.r, dc.g, dc.b, on ? 1f : used ? 0.55f : 0.12f));
+                CrtKit.Frame(dr, 1f, new Color(dc.r, dc.g, dc.b, on ? 1f : 0.8f));
+                if (on)
+                    Ui.Glow(dr, dc, 0.6f);
+                var hit = new Rect(dr.x - 4f, dr.y - 5f, dr.width + 8f, dr.height + 10f);
+                if (hit.Contains(ev.mousePosition))
+                {
+                    TipStart(hit, Defs.KitName((Kit)k), Ui.Text);
+                    if (Ui.HitArea(hit))
+                        TurnWheelTo(k);
+                }
+            }
+
+            // Beside the wheel: the class's weapons, abilities, then the second ability's key.
+            float px = wr.xMax + 12f, pw = x + w - px;
+            float cw = (pw - 8f) / 3f;
+            LobbyKit.Lab(new Rect(px, y - 2f, pw, 16f), "Weapon", 11, calm);
+            for (int c = 0; c < per; c++)
+            {
+                int idx = bk * per + c;
+                var b = new Rect(px + c * (cw + 4f), y + 15f, cw, 32f);
+                if (LobbyKit.Key(b, Defs.Weapon(Role.Wildcard, Kit.Soldier, idx).Name.ToUpperInvariant(), me.Weapon == idx, calm, size: 13, minSize: 8))
+                {
+                    if (me.Weapon != idx)
+                        tgt.RequestWildcard(idx, me.Ability, second, key);
+                    if (self)
+                        weaponChoice = idx;
+                    detailSel = 0;
+                }
+            }
+            float ay = y + 55f;
+            LobbyKit.Lab(new Rect(px, ay - 2f, 80f, 16f), "Ability", 11, calm);
+            string fills = wildTab == 0 ? "CLICK FILLS 1ST" : "CLICK FILLS 2ND";
+            Ui.Label(new Rect(px + 80f, ay - 2f, pw - 80f, 16f), fills, 10, wild, TextAnchor.MiddleRight, true);
+            for (int c = 0; c < per; c++)
+            {
+                int idx = bk * per + c;
+                var b = new Rect(px + c * (cw + 4f), ay + 15f, cw, 32f);
+                int inSlot = me.Ability == idx ? 1 : second == idx ? 2 : 0;
+                bool on = inSlot == wildTab + 1;
+                if (LobbyKit.Key(b, Upgrades.Ability(Upgrades.RoleAbility(Role.Wildcard, Kit.Soldier, idx)).Name.ToUpperInvariant(), on, calm, size: 13, minSize: 8))
+                {
+                    // Fill the slot being edited; the other slot's ability swaps over (the two must differ).
+                    int a1 = me.Ability, a2 = second;
+                    if (wildTab == 0)
+                    {
+                        if (a2 == idx)
+                            a2 = a1;
+                        a1 = idx;
+                    }
+                    else
+                    {
+                        if (a1 == idx)
+                            a1 = a2;
+                        a2 = idx;
+                    }
+                    if (a1 != me.Ability || a2 != second)
+                        tgt.RequestWildcard(me.Weapon, a1, a2, key);
+                    if (self)
+                    {
+                        abilityChoice = a1;
+                        wildSecond = a2;
+                    }
+                    detailSel = 1;
+                    detailSecond = wildTab == 1;
+                }
+                if (inSlot > 0)
+                    SlotBadge(new Rect(b.xMax - 13f, b.y + 2f, 11f, 11f), inSlot, wild);
+            }
+            float ky = ay + 55f;
+            LobbyKit.Lab(new Rect(px, ky, 110f, 24f), "2nd ability key", 11, calm);
             string[] keyNames = { "Q", "E", "SHIFT" };
-            float kw = (col - 100f - 8f) / 3f;
+            float kw = Mathf.Min(60f, (pw - 114f - 8f) / 3f);
             for (int k = 1; k <= 3; k++)
-                if (LobbyKit.Key(new Rect(x + 100f + (k - 1) * (kw + 4f), y, kw, 24f), keyNames[k - 1], key == k, calm, size: 14, minSize: 10) && key != k)
+                if (LobbyKit.Key(new Rect(x + w - 3f * kw - 8f + (k - 1) * (kw + 4f), ky, kw, 24f), keyNames[k - 1], key == k, calm, size: 13, minSize: 9) && key != k)
                 {
                     tgt.RequestWildcard(me.Weapon, me.Ability, second, k);
                     if (self)
                         wildKey = k;
                 }
-            float tw = (col - 4f) / 2f;
-            if (LobbyKit.Key(new Rect(ax, y, tw, 24f), "1ST ABILITY", wildTab == 0, calm, size: 14, minSize: 9))
-                wildTab = 0;
-            if (LobbyKit.Key(new Rect(ax + tw + 4f, y, tw, 24f), "2ND ABILITY", wildTab == 1, calm, size: 14, minSize: 9))
-                wildTab = 1;
-            y += 30f;
 
-            const float gutter = 26f;  // each row starts with its class's icon
-            float rowH = Mathf.Min(27f, (yEnd - y) / Defs.KitCount);
-            float cellW = (col - gutter) / 3f;
-            for (int kit = 0; kit < Defs.KitCount; kit++)
+            // The loadout: what you have from every class. The 1st and 2nd keys choose which slot an ability click fills.
+            float ly = wr.yMax + 8f, lh = Mathf.Max(34f, yEnd - ly);
+            float chipW = (w - 3f * 6f) / 4f;
+            float isz = Mathf.Min(16f, lh - 12f), tw = chipW - 5f - isz - 5f - 5f;
+            int ns = 12;  // one size for all four names
+            for (int i = 0; i < 4; i++)
+                ns = Mathf.Min(ns, LobbyKit.FitSize(ChipName(me, i, second).ToUpperInvariant(), 12, 8, tw));
+            for (int i = 0; i < 4; i++)
             {
-                float ry = y + kit * rowH;
-                Ui.Icon(new Rect(x + 2f, ry + (rowH - 3f - 18f) / 2f, 18f, 18f), PixelArt.Get(Classes.Get((Kit)kit).Icon), Color.white);
-                for (int c = 0; c < Defs.WeaponsPerRole; c++)
+                var b = new Rect(x + i * (chipW + 6f), ly, chipW, lh);
+                int from = i == 0 ? me.Weapon / per : i == 1 ? me.Ability / per : i == 2 ? second / per : ultKit;
+                string name = ChipName(me, i, second);
+                string sub = i == 0 ? "WEAPON" : i == 1 ? "1ST · SPACE" : i == 2 ? "2ND · " + keyNames[key - 1] : "ULTIMATE · F";
+                bool editing = (i == 1 && wildTab == 0) || (i == 2 && wildTab == 1);
+                bool hover = GUI.enabled && b.Contains(ev.mousePosition);
+                // The box from a bare key; the class icon on the left, the name over what it is.
+                bool click = LobbyKit.Key(b, "", editing, calm, accent: editing ? wild : (Color?)null);
+                Color tc = CrtKit.SoftText(editing ? wild : CrtStyle.KeyColor(null, false), editing || hover);
+                Ui.Icon(new Rect(b.x + 5f, b.center.y - isz / 2f, isz, isz), PixelArt.Get(Classes.Get((Kit)from).Icon), Color.white);
+                float tx = b.x + 5f + isz + 5f;
+                string up = name.ToUpperInvariant();
+                int ss = LobbyKit.FitSize(sub, 10, 8, tw, false);
+                CrtUi.Text(new Rect(tx, b.center.y - 16f, tw, 18f), LobbyKit.Truncate(up, ns, tw), ns, tc, TextAnchor.MiddleLeft, true, calm);
+                Ui.Label(new Rect(tx, b.center.y + 1f, tw, 15f), LobbyKit.Truncate(sub, ss, tw, false), ss, new Color(tc.r, tc.g, tc.b, 0.75f), TextAnchor.MiddleLeft, false);
+                if (click)
                 {
-                    int idx = kit * Defs.WeaponsPerRole + c;
-                    var wb = new Rect(x + gutter + c * cellW, ry, cellW - 3f, rowH - 3f);
-                    if (LobbyKit.Key(wb, Defs.Weapon(Role.Wildcard, Kit.Soldier, idx).Name, me.Weapon == idx, calm, size: 12, minSize: 8) && me.Weapon != idx)
+                    TurnWheelTo(from);
+                    if (i == 1 || i == 2)
                     {
-                        tgt.RequestWildcard(idx, me.Ability, second, key);
-                        if (self)
-                            weaponChoice = idx;
-                        detailSel = 0;
-                    }
-                    var ab = new Rect(ax + c * (col / 3f), ry, col / 3f - 3f, rowH - 3f);
-                    bool shownAsPicked = wildTab == 0 ? me.Ability == idx : second == idx;
-                    bool takenByOther = wildTab == 0 ? second == idx : me.Ability == idx;
-                    if (LobbyKit.Key(ab, Upgrades.Ability(Upgrades.RoleAbility(Role.Wildcard, Kit.Soldier, idx)).Name, shownAsPicked, calm, size: 12, minSize: 8, accent: takenByOther ? CrtUi.Dim : (Color?)null)
-                        && !takenByOther && !shownAsPicked)
-                    {
-                        int a1 = wildTab == 0 ? idx : me.Ability, a2 = wildTab == 0 ? second : idx;
-                        tgt.RequestWildcard(me.Weapon, a1, a2, key);
-                        if (self)
-                        {
-                            abilityChoice = a1;
-                            wildSecond = a2;
-                        }
+                        wildTab = i - 1;
                         detailSel = 1;
+                        detailSecond = i == 2;
                     }
+                    else
+                        detailSel = i == 0 ? 0 : 2;
                 }
             }
+        }
+
+        /// A Wildcard loadout chip's name: 0 the weapon, 1 the first ability, 2 the second, 3 the ultimate.
+        static string ChipName(LobbyEntry me, int i, int second) =>
+            i == 0 ? Defs.Weapon(Role.Wildcard, Kit.Soldier, me.Weapon).Name
+            : i == 3 ? Upgrades.Ability(me.UltId).Name : Upgrades.Ability(Upgrades.RoleAbility(Role.Wildcard, Kit.Soldier, i == 1 ? me.Ability : second)).Name;
+
+        /// A small pixel chevron pointing left (dir -1) or right (1), centred on c.
+        static void Chevron(Vector2 c, int dir, Color col)
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                float off = (2 - Mathf.Abs(i - 2)) * 2f * dir;
+                Ui.Fill(new Rect(Mathf.Round(c.x + off - 1f), Mathf.Round(c.y - 5f + i * 2f), 2f, 2f), col);
+            }
+        }
+
+        /// Turn the Wildcard's class wheel to class k the short way round.
+        void TurnWheelTo(int k)
+        {
+            int d = KitMod(k - wildBrowse);
+            wildBrowse += d > Defs.KitCount / 2 ? d - Defs.KitCount : d;
+        }
+
+        /// The small "1" / "2" tag on a Wildcard ability key: which ability slot it's in.
+        static void SlotBadge(Rect r, int slot, Color c)
+        {
+            Ui.Fill(r, c);
+            Ui.Label(r, slot.ToString(), 9, new Color(0.05f, 0.02f, 0.1f), TextAnchor.MiddleCenter, true);
         }
 
         /// A dark card with a dashed rim: the look of everything locked (the Perks tab's empty slots).
@@ -1118,7 +1304,7 @@ namespace Arena
             if ((uiGlBlocked && !pieceGlOn) || hangoutAnim > 0f)
                 return;  // (hangoutAnim: the window is turning into the Hangout, which draws its own floor and ship; pieceGlOn: the lobby's entrance fades the preview in with the loadout)
             // the lobby sliding away as a run launches: no live preview (it would start up again) (LaunchIntro.cs)
-            int shown = me.Ability;
+            int shown = ShownAbility(me);
             bool ult = detailSel == 2;  // what you last clicked (a weapon, an ability or the ultimate) is what it shows
             bool demo = detailSel != 0;
             if (showcase == null)

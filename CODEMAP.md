@@ -127,7 +127,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Pings.cs`: pings (`PingKind`, `Session.SendPing`, host pause and cap, Focus snapping to an enemy; `Msg.PingMark`); a partial of `Session`
 - `LobbyAvatars.cs`: the Hangout room's characters, their positions and `Msg.LobbyMove`/`LobbyPos`; a partial of `Session`
 - `LobbyCombat.cs`: Hangout PvP: shots, health, knock-out, respawn, the Dash/Barrier/Burst heal abilities (`Msg.LobbyFire`/`LobbyShot`/`LobbyAbility`); a partial of `Session`
-- `Defs.cs` (Role.Wildcard, `Defs.Weapon`/`Upgrades.RoleAbility` map a Wildcard's kit*3+choice picks to DPS gear, `MakeWild`/`WildSecond`/`WildKey`), `Profile.WildcardUnlocked`, `LobbyUi.DrawWildcardPicks`: the Wildcard role (`Docs/Wildcard.md`; test: `run.sh 1 20 wildcard`)
+- `Defs.cs` (Role.Wildcard, `Defs.Weapon`/`Upgrades.RoleAbility` map a Wildcard's kit*3+choice picks to DPS gear, `MakeWild`/`WildSecond`/`WildKey`), `Profile.WildcardUnlocked`, `LobbyUi.DrawWildcardPicks` (the class wheel, the class's keys and the loadout chips; `Docs/Mockups/wildcard-gear-carousel.html`), `Upgrades.WildUlt`/`UltKitOf` (a Wildcard's Ult pick is class * 4 + key: any class's DPS ultimate): the Wildcard role (`Docs/Wildcard.md`; test: `run.sh 1 20 wildcard`)
 - `Dodge.cs`: the Dodge, everyone's tiny dash with invulnerability (Ctrl or a double tap of a movement key; `LocalDodge`, `Msg.Dodge`; key tracking in `Game/ArenaApp.cs`)
 - `Session.cs`: host/join, lobby, **`Msg` enum**, **`ProtocolVersion`** (bump when a message or snapshot changes; history in `Docs/ProtocolHistory.md`)
 - `Net.cs`: `NetPeer`, length-prefixed TCP (`BytesIn`/`BytesOut` for the lag chart)

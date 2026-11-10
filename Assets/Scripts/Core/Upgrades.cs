@@ -154,21 +154,32 @@ namespace Arena
         /// The keys on the lobby's Ultimate row; key 0 is the default ultimate.
         public const int UltKeys = 4;
 
-        /// A Wildcard's ultimate is the DPS one of the class its first ability comes from (pass that class as kit).
+        /// A role and class's default ultimate. A Wildcard gets the DPS ones (pass the class it picked its ultimate from, UltKitOf).
         public static AbilityId Ultimate(Role r, Kit kit) => Ultimates[(int)(r == Role.Wildcard ? Role.Dps : r) * Defs.KitCount + (int)kit];
 
-        /// The ultimate on key `choice` of the Ultimate row (LobbyEntry.Ult): the default one for 0, a Wildcard, or a key with
-        /// nothing on it yet.
+        /// The ultimate on key `choice` of the Ultimate row (LobbyEntry.Ult): the default one for 0 or a key with nothing on it yet.
+        /// A Wildcard's choice is kit * UltKeys + key (any class's DPS ultimates; WildUlt), so only its key part is used here.
         public static AbilityId Ultimate(Role r, Kit kit, int choice)
         {
-            var alt = choice > 0 && r != Role.Wildcard ? AltUltimate(r, kit, choice) : AbilityId.None;
+            if (r == Role.Wildcard)
+                choice %= UltKeys;
+            var alt = choice > 0 ? AltUltimate(r, kit, choice) : AbilityId.None;
             return alt != AbilityId.None ? alt : Ultimate(r, kit);
         }
 
-        /// The ultimate on key 1-3 of this role and class's Ultimate row, or None while that key is locked.
+        /// A Wildcard's Ultimate pick: the class it comes from times UltKeys, plus the key on that class's DPS Ultimate row.
+        public static int WildUlt(Kit kit, int key) => (int)kit * UltKeys + key;
+
+        /// Whose ultimates an Ultimate pick is from: a Wildcard's class is in the pick (WildUlt), anyone else's is their own.
+        public static Kit UltKitOf(Role r, Kit kit, int choice) =>
+            r == Role.Wildcard ? (Kit)Math.Max(0, Math.Min(Defs.KitCount - 1, choice / UltKeys)) : kit;
+
+        /// The ultimate on key 1-3 of this role and class's Ultimate row, or None while that key is locked (a Wildcard: the DPS row).
         public static AbilityId AltUltimate(Role r, Kit kit, int key)
         {
-            if (key <= 0 || key >= UltKeys || r == Role.Wildcard)
+            if (r == Role.Wildcard)
+                r = Role.Dps;
+            if (key <= 0 || key >= UltKeys)
                 return AbilityId.None;
             foreach (var a in Abilities)
                 if (a.Choice == AbilityDef.Ult && a.UltKey == key && a.Role == r && a.Kit == kit)
@@ -176,9 +187,19 @@ namespace Arena
             return AbilityId.None;
         }
 
-        /// Keeps an Ultimate row pick to a key that has an ultimate for this role and class (else 0; a Wildcard always 0).
-        public static int ClampUlt(Role r, Kit kit, int choice) =>
-            choice > 0 && choice < UltKeys && AltUltimate(r, kit, choice) != AbilityId.None ? choice : 0;
+        /// Keeps an Ultimate row pick to a key that has an ultimate for this role and class (else 0). A Wildcard's pick keeps
+        /// its class (0-5) and a key that class's DPS row has (WildUlt).
+        public static int ClampUlt(Role r, Kit kit, int choice)
+        {
+            if (r == Role.Wildcard)
+            {
+                if (choice < 0 || choice >= Defs.KitCount * UltKeys)
+                    return 0;
+                var wk = (Kit)(choice / UltKeys);
+                return WildUlt(wk, ClampUlt(Role.Dps, wk, choice % UltKeys));
+            }
+            return choice > 0 && choice < UltKeys && AltUltimate(r, kit, choice) != AbilityId.None ? choice : 0;
+        }
 
         /// The three Space abilities for each role and kit, picked in the lobby.
         static readonly AbilityId[] RoleAbilities = LobbyTable(false);
