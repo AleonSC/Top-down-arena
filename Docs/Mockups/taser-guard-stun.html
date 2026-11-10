@@ -80,7 +80,7 @@ td:first-child{font:700 18px/1.1 var(--display);text-transform:uppercase;letter-
   </div>
   <div class="stage"><canvas id="main" role="img" aria-label="Animated arena: a Taser Guard in the top left fires a stun shot at a player while the Warden fills the screen with bullets"></canvas></div>
   <p class="note" id="optNote"></p>
-  <p class="note">The guard leads its target and charges for 0.7 s first: a dashed aim line and arcing prongs, as other aimed shooters already do. Bullets pass through you here, and a stunned player freezes for 1.4 s.</p>
+  <p class="note">The guard leads its target and charges for 0.7 s first: a dashed aim line and arcing prongs, as other aimed shooters already do. Bullets pass through you here, and a stunned player freezes for 1 s.</p>
 </section>
 
 <section>
@@ -122,7 +122,7 @@ const TAU=Math.PI*2, lerp=(a,b,k)=>a+(b-a)*k;
 const rnd=n=>{const x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x)};
 const CLUT=['#ff5a4a','#ff9a3c','#ff5fa8','#5ad0ff','#b07cff'];
 const DENS=[0,.5,1.2,2];
-const STUN=1.4, CHARGE=.7;
+const STUN=1, CHARGE=.7;
 
 const sprites={};
 function sprite(col){

@@ -882,6 +882,30 @@ static partial class Shot {
       for (int k = 0; k < 4; k++) put(EnemyType.Rioter, new V2(260f + k * 34f, 160f + (k % 2) * 30f));
       put(EnemyType.Guard, new V2(220f, 230f));
     }
+    if (Environment.GetEnvironmentVariable("TASER") != null) {
+      // The Taser Guard (TASER=<s since a Fork Bolt hit you>): one charging at you (visor, taser, crackling prongs, aim line), another's
+      // Fork Bolt flying in across a field of bullets, and the hit on you. Set beside Docs/Mockups/taser-guard-stun.html, option B. Mode hud.
+      var sbt = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      var set = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); host.Game.Bot = false;
+      me.Pos = me.Disp = new V2(1000f, 470f);
+      Func<V2, float, Enemy> tg = (at, ang) => { var en = (Enemy)set.Invoke(host.Game, new object[] { EnemyType.TaserGuard, at, 0f, 0, false }); en.SpawnT = 0f; en.Disp = en.Pos; en.Facing = ang; return en; };
+      var g1 = tg(new V2(560f, 470f), (me.Pos - new V2(560f, 470f)).Angle); g1.Winding = true;
+      var g2 = tg(new V2(640f, 200f), (me.Pos - new V2(640f, 200f)).Angle);
+      V2 bd = (me.Pos - new V2(760f, 300f)).Normalized();
+      sbt.Invoke(host.Game, new object[] { Defs.TaserBolt, new V2(760f, 300f), bd * Game.TaserBoltSpeed, 0f, 8f, 12f, 0, false, 0f });
+      var rng = new System.Random(7);
+      for (int k = 0; k < 90; k++) {
+        float a = (float)(rng.NextDouble() * Math.PI * 2), d = 60f + (float)rng.NextDouble() * 420f;
+        V2 at = new V2(800f, 440f) + V2.FromAngle(a) * d;
+        sbt.Invoke(host.Game, new object[] { Defs.SmallShot, at, V2.FromAngle(a) * 60f, 0f, 8f, 12f, 0, false, 0f });
+      }
+      float since = float.Parse(Environment.GetEnvironmentVariable("TASER"));
+      if (since >= 0f) {
+        host.Game.Effects.Add(new Effect { Kind = FxKind.TaserHit, Pos = me.Pos, Pos2 = me.Pos + new V2(1f, 0f), Color = Defs.BulletColor(Defs.TaserBolt), Radius = 1f, Dur = 0.7f, T = since });
+        me.StunT = Math.Max(0.1f, Game.StunTime - since);
+      }
+    }
     if (Environment.GetEnvironmentVariable("FLANKERS") != null) {
       // The Hive Queen's Swarm bombers: two swooping out to your sides (gold) and two diving in (red-hot).
       var sef = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);

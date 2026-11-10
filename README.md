@@ -467,7 +467,7 @@ A Phantom shows a ring where it is about to blink (half a second before it does,
 
 A Charger shows a ring where its dash will end, which is also where its ring of shots will burst.
 
-Shooters that fire straight at you (Sniper, Shard, Medic, Splitter, Phantom, Grunt) draw a thin dashed line along the shot for the instant before they fire; the Grunt shows all three of its shots.
+Shooters that fire straight at you (Sniper, Shard, Medic, Splitter, Phantom, Grunt, Taser Guard) draw a thin dashed line along the shot for the instant before they fire; the Grunt shows all three of its shots.
 
 From wave 13, a regular wave shows at most 6 different enemy types (8 from wave 25), so each kind is easier to learn. Boss waves, paths with their own mix and Zombie Infection hordes are unchanged.
 
@@ -566,7 +566,7 @@ Runners (in packs of three) and Spitters from wave 32, Crawlers from 33 and Mend
 shift, Grave rush) and a last-wave **Dead march** (six Shamblers, two Menders, three Runners). They don't get back up
 outside the modifier. His fight itself is unchanged. The other bosses' factions come next.
 
-The Warden's faction pays XP like regular enemies of their health (Rioter 7, Guard 15, Riot Shield 10, Gas Grenadier 9),
+The Warden's faction pays XP like regular enemies of their health (Rioter 7, Guard 15, Riot Shield 10, Gas Grenadier 9, Taser Guard 11),
 so its tougher approach waves don't leave you levels behind at his wave (about level 4 at Blend). The Rioters and Guards of
 his own riot, on the boss wave, still give 2 and 4.
 
@@ -576,6 +576,7 @@ his own riot, on the boss wave, still give 2 and 4.
 | 1 | **Guard** | A riot guard with a baton, straight at you (contact 14) |
 | 2 | **Riot Shield** | A guard behind a tall shield that stops shots and swings from the front. Up close the shield flashes (0.4 s), then it lunges and **bashes** you: 10 damage and knocked **160 px** back (you can't be bashed again for 0.8 s). It holds the shield low for a second after, when front hits land. The shield holds 4x its health and cracks as it wears; broken, the guard staggers for a second, then flails and takes 50% more damage. Go round it or break it. Squad (wave 3): Cell block (two Riot Shields with Rioters pouring past) |
 | 2 | **Gas Grenadier** | Keeps its distance and lobs a tear-gas canister near you every 3.6 s: a 70 px cloud that settles after 1 s and hurts (8 a second) for 4 s |
+| 3 | **Taser Guard** | A guard with a taser that keeps its distance (320 px), plants its feet and **charges for 0.7 s**: a dashed aim line and the prongs crackling, brighter as it nears the shot. Then it fires one **Fork Bolt** straight at you (260 px/s, 8 damage; it doesn't lead you, so strafe across the line): a white lightning glyph that flickers its zigzag 16 times a second, with a fork, among rounder bullets. A hit **stuns you for 1 s** (a flash and six bolts web out from you); a perfect parry sends it back like any shot. One bolt every 3.2 s |
 
 ## Bosses
 
@@ -907,7 +908,7 @@ on top (Tough Crowd, Frenzy, Swift Foes, Glass Cannon...).
 
 In the lobby the host picks **Run**, **Boss Hunt** or **Practice** at the top. A Boss Hunt is a short run that ends
 with one boss: **ten waves**. Waves 1-9 bring only the boss's own enemies (its faction: for the Warden, Rioters and
-Guards, then Riot Shields and Gas Grenadiers, its Breakout and Cell block squads, and its Riot line on waves 5 and
+Guards, then Riot Shields, Gas Grenadiers and Taser Guards, its Breakout and Cell block squads, and its Riot line on waves 5 and
 9); wave 10 is the boss, at wave-10 strength. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no
 path offer, no Data Gate, and a hunt isn't saved to continue. Modifiers and the difficulty apply as in a run,
 and so does the boss's health boost for strong builds. The HUD and the Tab screen count the hunt's waves (n / 10).

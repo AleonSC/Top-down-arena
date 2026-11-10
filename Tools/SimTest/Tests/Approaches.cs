@@ -215,6 +215,33 @@ static partial class Program
         Check(gas == 1 && hostMe.Hp < hpg && c2.Patches.Values.Any(pt => pt.Kind == PatchKind.Gas), "a Gas Grenadier lobs tear gas near you, and it hurts with no Warden about (the friend sees it too)");
         gren.Hp = 0f;
 
+        // --- The Taser Guard: it charges (Winding), then a Fork Bolt that stuns you; the friend's game sees the bolt -------
+        foreach (var e in g2.Enemies.Values) e.Hp = 0f;
+        Run(s2, dt, 0.3f, null, () => { hold(); g2.Me.Pos = spot; });
+        var taser = (Enemy)spawn.Invoke(g2, new object[] { EnemyType.TaserGuard, new V2(900f, 300f), 0f, -7, false });
+        taser.FireT = 1.2f;
+        taser.TargetId = 1;
+        taser.RetargetT = 99f;
+        float hpT = hostMe.Hp, stunMax = 0f;
+        bool tWound = false, seenBolt = false, clientBolt = false;
+        float firstWind = -1f, boltAt = -1f, t0 = 0f;
+        Run(s2, dt, 9f, null, () =>
+        {
+            hold(); g2.Me.Pos = spot; taser.TargetId = 1; taser.RetargetT = 99f;
+            t0 += dt;
+            if (taser.Winding && !tWound) { tWound = true; firstWind = t0; }
+            if (!seenBolt && g2.Bullets.Values.Any(b => b.Kind == Defs.TaserBolt)) { seenBolt = true; boltAt = t0; }
+            clientBolt |= c2.Bullets.Values.Any(b => b.Kind == Defs.TaserBolt);
+            stunMax = Math.Max(stunMax, hostMe.StunT);
+            if (stunMax > 0f) taser.FireT = 99f;  // one bolt is enough
+        });
+        Console.WriteLine("  taser guard: charged {0:0.00} s before the bolt, bolt seen {1} (friend {2}), stun {3:0.0} s, health {4:0.#} -> {5:0.#}", boltAt - firstWind, seenBolt, clientBolt, stunMax, hpT, hostMe.Hp);
+        Check(tWound && boltAt - firstWind > 0.5f && boltAt - firstWind < 0.9f, "a Taser Guard glows for its 0.7 s charge before it fires");
+        Check(seenBolt && clientBolt, "a Taser Guard fires a Fork Bolt, and the friend's game sees it");
+        Check(stunMax > 0.9f && hostMe.Hp < hpT, "a Fork Bolt that lands stuns you for a second and hurts a little");
+        Check(Approaches.For(EnemyType.Boss).Members.Any(m => m.Type == EnemyType.TaserGuard && m.From >= 2), "the Warden's faction includes the Taser Guard, from its third wave");
+        taser.Hp = 0f;
+
         // --- The Riot Line (the last wave before the Warden): shields march in a wall, guards behind, then charge --------
         var finale = Approaches.For(EnemyType.Boss).Finale;
         Check(finale != null && w4.Count(t => t == EnemyType.RiotShield) >= 4 && w4.Count(t => t == EnemyType.Guard) >= 5,

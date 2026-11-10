@@ -465,7 +465,7 @@ namespace Arena
                     e.FireT -= dt * mult * (1f - e.Suppress);  // the Riot Repeater's suppression (Weapons.cs)
                     // A regular shooter glows just before it fires (Readability.cs).
                     float rateNow = mult * (1f - e.Suppress);
-                    e.Winding = TakesTurns(e) && HasTurn(e) && rateNow > 0f && e.FireT / rateNow <= WindUp && e.FireT > -0.5f;
+                    e.Winding = TakesTurns(e) && HasTurn(e) && rateNow > 0f && e.FireT / rateNow <= WindUpOf(e.Type) && e.FireT > -0.5f;
                     if (held && e.FireT <= 0f)
                         e.FireT = Rand(0.2f, 0.4f);  // nobody in its room: nothing to shoot at
                     if (e.FireT <= 0f)
@@ -828,7 +828,7 @@ namespace Arena
                 v = VarietyMove(e, tpos, dir, dist, ref speed);  // Variety.cs
             if (Challenges.Own(e.Type))
                 v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
-            if (e.Type == EnemyType.RiotShield || e.Type == EnemyType.GasGrenadier)
+            if (e.Type == EnemyType.RiotShield || e.Type == EnemyType.GasGrenadier || e.Type == EnemyType.TaserGuard)
                 v = WardenFactionMove(e, tpos, dir, dist, ref speed);  // WardenFaction.cs
             if (Zombies.Is(e.Type))
                 v = ZombieMove(e, tpos, dir, dist, ref speed);  // Zombies.cs
@@ -1018,6 +1018,11 @@ namespace Arena
             if (e.Type == EnemyType.GasGrenadier)
             {
                 GrenadierFire(e, tpos);  // WardenFaction.cs
+                return;
+            }
+            if (e.Type == EnemyType.TaserGuard)
+            {
+                TaserFire(e, aim);  // WardenFaction.cs
                 return;
             }
             switch (e.Type)

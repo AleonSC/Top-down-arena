@@ -44,6 +44,8 @@ namespace Arena
         FuseRunner, Hookman, Sapper, SapperMine,
         // melee swordsmen (Swordsman.cs): a long blade that cuts a cone, and one with a shield up in front
         Swordsman, ShieldSwordsman,
+        // the Warden's faction: a ranged guard whose Fork Bolt stuns you (WardenFaction.cs, Game/TaserLook.cs)
+        TaserGuard,
     }
 
     public class RoleDef
@@ -284,6 +286,8 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "Walks up, raises a long sword and cuts the cone drawn on the floor in front of it. Step out of the cone, then hit it while it recovers." },
             new EnemyDef { Name = "Shield Swordsman", Hp = 85f, Radius = 15f, Speed = 75f, Score = 28, Xp = 16, Sides = 24, Color = new Rgba(0.86f, 0.3f, 0.25f), Melee = true, Contact = 8f,
                 Picker = PickerGroup.Melee, Blurb = "A Swordsman behind a shield that stops every shot from the front. The shield drops when it cuts and stays down while it recovers: shoot it then, or from the side." },
+            new EnemyDef { Name = "Taser Guard", Hp = 70f, Radius = 13f, Speed = 80f, Score = 9, Xp = 11, Sides = 8, Color = new Rgba(0.4f, 0.6f, 1f),
+                Picker = PickerGroup.Ranged, Blurb = "Keeps its distance, charges its taser and fires a white Fork Bolt that stuns you. Dodge the bolt, or parry it." },
         };
 
         public const int WeaponsPerRole = 3;
@@ -397,9 +401,10 @@ namespace Arena
             MedkitShot = 56,   // the Deployable Medkit, lobbed: it flies over everything and bursts into healing orbs where it lands (Medkit.cs)
             TreantSeed = 57,   // a tiny seed the Treant Rod's Treant flicks at enemies, drawn as a thorn dart (KitWeapons.cs, Game/SeedLook.cs)
             SteelShard = 58,   // a bullet Caught Steel caught, hurled back as a sliver of steel (CaughtSteel.cs, Game/CaughtSteelLook.cs)
-            ParryNeedle = 59;  // a perfectly parried shot, sent straight back as a fast white needle (Parry.cs, Game/ParryLook.cs)
+            ParryNeedle = 59,  // a perfectly parried shot, sent straight back as a fast white needle (Parry.cs, Game/ParryLook.cs)
+            TaserBolt = 60;    // the Taser Guard's Fork Bolt: a white lightning glyph that stuns you for a second (WardenFaction.cs, Game/TaserLook.cs)
 
-        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot;
+        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot || kind == TaserBolt;
 
         /// Bosses' aimed attacks: barriers, walls and other blockers can't stop these.
         public static bool Unblockable(byte kind) => kind == PierceShot;
@@ -463,6 +468,7 @@ namespace Arena
                 case CrescentShot: return 14f;
                 case PauseShot: return 6.5f;
                 case StitchShot: return 8f;
+                case TaserBolt: return 7f;
                 case BileShot: return 6f;
                 case ToothShot: return 10f;
                 default: return 6f;
@@ -483,6 +489,7 @@ namespace Arena
                 case PierceShot: return 16f;
                 case FastShot: return 15f;
                 case StunShot: return 8f;  // the Warden's searchlight turn: it stuns you for 1 s
+                case TaserBolt: return 8f;  // a Taser Guard's Fork Bolt: the same stun
                 case HoneyShot: return 14f;  // the Hive Queen's nectar spray
                 case ToothShot: return 20f;  // the Devourer's Jaws
                 case HollowShot: return 0f;  // the Duelist's decoys fire these: they pass through you
@@ -552,6 +559,7 @@ namespace Arena
                 case CrescentShot: return new Rgba(0.89f, 0.83f, 1f);  // the Eclipse's crescent blade
                 case PauseShot: return new Rgba(0.45f, 0.95f, 0.85f);  // the Pauser's teal
                 case StitchShot: return new Rgba(1f, 0.82f, 0.45f);    // the Stitcher's gold
+                case TaserBolt: return new Rgba(0.75f, 0.91f, 1f);     // the Fork Bolt's ice white
                 case BileShot: return new Rgba(0.75f, 0.9f, 0.31f);  // the Devourer's vomit
                 case ToothShot: return new Rgba(0.96f, 0.9f, 0.82f);  // the Devourer's Jaws
                 default: return new Rgba(1f, 0.3f, 0.45f);

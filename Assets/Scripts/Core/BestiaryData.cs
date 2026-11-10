@@ -68,6 +68,13 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.TaserGuard, Name = "Taser Guard", Group = "Shooters", Wave = 3,
+                Appears = "The Warden's approach (waves 3-4)",
+                Lead = "Keeps its distance, plants its feet and charges its taser for 0.7 s (a dashed aim line, the prongs crackling), then fires a white Fork Bolt that stuns you for 1 s. It doesn't lead you: strafe across the line, or parry the bolt.",
+                Attacks = new[] { new BestiaryAttack { Name = "Fork Bolt", Pattern = "One aimed bolt after a 0.7 s charge", Shot = "Fork Bolt", ShotColor = new Rgba(0.75f, 0.91f, 1f), Speed = "260", Damage = "8, and stuns for 1 s", Every = 3.2f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.HiveEgg, Name = "Hive Egg", Group = "Summons", Wave = 10,
                 Appears = "Laid by the Hive Queen in her Honeycomb stage",
                 Lead = "Doesn't move or attack. Break it before it hatches into drones.",
