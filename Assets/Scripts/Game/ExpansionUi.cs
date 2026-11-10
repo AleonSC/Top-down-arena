@@ -239,7 +239,7 @@ namespace Arena
             if (CrtUi.SoftKey(new Rect(20f, 26f, 110f, 30f), "ROOM", null, 17, calm, lit: !expCutMode)) { expCutMode = false; expDragging = false; expA = expB = V2.Zero; }
             if (CrtUi.SoftKey(new Rect(138f, 26f, 150f, 30f), "OPEN WALL", null, 17, calm, lit: expCutMode)) { expCutMode = true; expDragging = false; expA = expB = V2.Zero; }
             Ui.Label(new Rect(0, 80f, W, 20f), expCutMode ? "Left click one end of a wall stretch, then the other (the cyan stretches)  ·  right click cancels  ·  at least " + Expansion.MinCut / 100 + " tiles  ·  you get 1 vector back for every tile that was wall  ·  a door is just a short opening" : "Left click a corner, move, left click to place it  ·  right click cancels  ·  share at least " + Expansion.MinDoorRun / 100 + " tiles of wall with a room  ·  " + Expansion.MinSide / 100 + " tiles wide is a hallway  ·  touching two rooms makes a loop", 13, Ui.Muted, TextAnchor.MiddleCenter);
-            var map = new Rect(70f, 116f, W - 140f, 400f);
+            var map = new Rect(70f, 112f, W - 140f, 370f);
             var wd = game.ExpansionWorld;
             float pad = 1300f;
             V2 lo = wd.Min - new V2(pad, pad), hi = wd.Max + new V2(pad, pad);
@@ -436,9 +436,9 @@ namespace Arena
                 lineInk = Ui.Muted;
             }
             if (!expCutMode)
-                DrawThemeRow(new Rect(map.x, map.yMax + 6f, map.width, 32f), calm);
-            Ui.Label(new Rect(0, map.yMax + 46f, W, 22f), line, 15, lineInk, TextAnchor.MiddleCenter, true);
-            if (CrtUi.SoftKey(new Rect(W / 2f - 120f, map.yMax + 80f, 240f, 34f), "BACK", null, 20, calm))
+                DrawThemeRow(new Rect(map.x, map.yMax + 4f, map.width, 32f), calm);
+            Ui.Label(new Rect(0, map.yMax + 44f, W, 22f), line, 15, lineInk, TextAnchor.MiddleCenter, true);
+            if (CrtUi.SoftKey(new Rect(W / 2f - 120f, map.yMax + 72f, 240f, 34f), "BACK", null, 20, calm))
                 expDrawing = expDragging = false;
         }
 

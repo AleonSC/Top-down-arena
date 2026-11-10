@@ -557,6 +557,31 @@ namespace Arena
             BroadcastExpansion();
         }
 
+        /// A bot draws the cheapest box that opens a floating shop or vendor (else the Gatekeeper) if it can afford it. True if it proposed one.
+        bool BotBuildsToFloater()
+        {
+            int best = -1, bestRank = 99;
+            for (int i = 0; i < Expanded.Count; i++)
+            {
+                if (!Expanded[i].Floating)
+                    continue;
+                int rank = Expanded[i].Kind == Arena.RoomKind.Shop ? 0 : Expanded[i].Kind == Arena.RoomKind.Vendor ? 1 : 2;
+                var a = ExpansionWorld.Areas[i + 1];
+                if (a.Sealed && rank < bestRank)
+                {
+                    best = i;
+                    bestRank = rank;
+                }
+            }
+            if (best < 0)
+                return false;
+            var c = Expansion.ConnectorFor(Expanded, best);
+            if (!c.HasValue || c.Value.Price > Me.Vectors)
+                return false;
+            ProposeExpandRoom(c.Value.X, c.Value.Y, c.Value.W, c.Value.H);
+            return true;
+        }
+
         /// Every frame, every game: a bot player draws a room it can afford a moment after the round opens, then votes.
         void TickExpansion(float dt)
         {
@@ -582,6 +607,8 @@ namespace Arena
             if (!botProposed && botVoteT >= 1.2f)
             {
                 botProposed = true;
+                if (rng.Next(10) < 6 && BotBuildsToFloater())
+                    return;
                 foreach (var o in Expansion.Offers(expandSeed + MyId * 31, Wave, Expanded))
                 {
                     var theme = o.Kind == Arena.RoomKind.Floor && Expansion.ThemeUnlocked(o.Floor, Wave) ? o.Floor : PathId.None;
