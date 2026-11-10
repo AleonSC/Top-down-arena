@@ -110,6 +110,12 @@ namespace Arena
                 if (p.Weapon.Id == WeaponId.TwinRifle)
                     DrawTwinNadePips(p);  // DpsGunLooks.cs
             foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.LightBolt)
+                {
+                    DrawRepelPull(p);  // RepulseLook.cs: the Undertow's current and meter
+                    DrawRepelMeter(p);
+                }
+            foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.Greatsword)
                 {
                     DrawGreatGuard(p);  // GreatswordLook.cs

@@ -653,7 +653,7 @@ namespace Arena
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18;
+        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20;
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -919,6 +919,20 @@ namespace Arena
                 }
                 return;
             }
+            if (me.Weapon.Id == WeaponId.LightBolt && (pressed || released))  // the Repulsion Cannon's Undertow: held, so both edges go to the host (Repulsion.cs)
+            {
+                byte pullKind = pressed ? DashPullOn : DashPullOff;
+                if (IsHost)
+                    HostWeaponDash(MyId, pullKind, aimAt);
+                else
+                {
+                    var pw = Proto.Begin(Msg.WeaponDash);
+                    pw.Write(pullKind);
+                    pw.Write(aimAt);
+                    session.SendToHost(Proto.End(pw));
+                }
+                return;
+            }
             if (me.Weapon.Id == WeaponId.TwinBlades && pressed && fangLocalCd <= 0f && !me.Downed && me.StunT <= 0f)
             {
                 fangLocalCd = FangCooldown;  // Twin Fang (TwinBlades.cs): no move, the host throws both sabres at the cursor
@@ -1066,6 +1080,11 @@ namespace Arena
             if (kind == DashGuardOn || kind == DashGuardOff)
             {
                 HostGreatGuard(p, kind == DashGuardOn, target);  // (target: where they were aiming)
+                return;
+            }
+            if (kind == DashPullOn || kind == DashPullOff)
+            {
+                HostRepelPull(p, kind == DashPullOn);  // (Repulsion.cs)
                 return;
             }
             if (kind == DashKatanaStance)

@@ -2,6 +2,8 @@
 
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
+- 259: the Repulsion Cannon's Undertow: `Player.RepelMeter` (byte) and `Player.RepelPull` (bool) after `TwinCharge` in each player's snapshot; `Msg.WeaponDash` kinds 19/20 (pull on/off)
+- 257: snapshots carry the gold coins on the ground (`Game.Coins`: count, then id, value, position each)
 
 - 258: shop shelf grows with Add stock: `Player.ShelfSold` is an Int (was a Byte) and only `Game.ShelfCount` shelf slots are sent (6 per stock, up to 4 stocks)
 - 257: snapshots carry the gold coins on the ground (`Game.Coins`: count, then id, value, position each)
