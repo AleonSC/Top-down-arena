@@ -104,18 +104,10 @@ namespace Arena
 
         // --- The lobby's menu (Esc) --------------------------------------------------------------------------------------
 
-        static readonly string[] LobbyChoices = { "LOBBY", "SETTINGS", "FIELD GUIDE", "PROFILE", "HOW TO PLAY", "MAIN MENU", "QUIT GAME" };
+        // (No Profile row: it opens from the main menu or your lobby card. No Main menu row: the lobby's red back arrow leaves.)
+        static readonly string[] LobbyChoices = { "LOBBY", "SETTINGS", "HOW TO PLAY", "QUIT GAME" };
         bool lobbyMenuOpen;
         int lobbySel;
-
-        static List<int> LobbyRows()
-        {
-            var rows = new List<int>();
-            for (int i = 0; i < LobbyChoices.Length; i++)
-                if (i != 2 && i != 3 && i != 5)  // no Field guide (gone), no Profile (main menu or your lobby card) and no Main menu (the lobby's back arrow does that)
-                    rows.Add(i);
-            return rows;
-        }
 
         /// Esc in the lobby: the menu slides in (its own clock starts here).
         void OpenLobbyMenu()
@@ -160,15 +152,13 @@ namespace Arena
             LobbyMenuKeys();
             cabBootLog = "> LINK OK   > SAVE OK   > LOBBY";
             BeginDrawer("MENU", Ui.Accent, 1f, "Esc closes this menu");
-            string[] lines = { "Close this menu", "Audio, visual effects, aim line", "Every enemy, weapon and upgrade", "Your rank, records and unlocks", "Controls and tips",
-                session.IsHost ? "Close the lobby, back to the title screen" : "Leave the lobby, back to the title screen", "Close the game" };
-            Color[] lcols = { Ui.Primary, new Color(0.6f, 0.66f, 0.82f), Ui.Primary, Ui.Gold, HowToColor, new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
-            string[] licons = { "ui_play", "ui_gear", "ui_book", "ui_trophy", "ui_help", "ui_back", "ui_power" };
+            string[] lines = { "Close this menu", "Audio, visual effects, aim line", "Controls and tips", "Close the game" };
+            Color[] lcols = { Ui.Primary, new Color(0.6f, 0.66f, 0.82f), HowToColor, new Color(1f, 0.45f, 0.5f) };
+            string[] licons = { "ui_play", "ui_gear", "ui_help", "ui_power" };
             float y = cabScreen.y + 10f;
-            var lrows = LobbyRows();
-            for (int k = 0; k < lrows.Count; k++)
+            for (int i = 0; i < LobbyChoices.Length; i++)
             {
-                int i = lrows[k];
+                int k = i;
                 var r = new Rect(34f, y, CabRowW, 58f);
                 if (cabScreenOn && r.Contains(Event.current.mousePosition) && Event.current.type == EventType.Repaint && Event.current.mousePosition != pauseMouse)
                     lobbySel = k;
@@ -188,13 +178,13 @@ namespace Arena
             var e = Event.current;
             if (e.type != EventType.KeyDown || GUIUtility.keyboardControl != 0)
                 return;
-            var rows = LobbyRows();
+            int n = LobbyChoices.Length;
             if (e.keyCode == KeyCode.UpArrow || e.keyCode == KeyCode.W)
-                lobbySel = (lobbySel + rows.Count - 1) % rows.Count;
+                lobbySel = (lobbySel + n - 1) % n;
             else if (e.keyCode == KeyCode.DownArrow || e.keyCode == KeyCode.S)
-                lobbySel = (lobbySel + 1) % rows.Count;
+                lobbySel = (lobbySel + 1) % n;
             else if (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter)
-                LobbyChoose(rows[Mathf.Clamp(lobbySel, 0, rows.Count - 1)]);
+                LobbyChoose(Mathf.Clamp(lobbySel, 0, n - 1));
             else
                 return;
             e.Use();
@@ -206,29 +196,16 @@ namespace Arena
             {
                 case 0: CloseLobbyMenu(); break;
                 case 1: pauseSettings = true; CloseCabWindow(); break;
-                case 3: pauseRecords = true; break;
-                case 4: pauseHowTo = true; OpenCabWindow(2); break;  // a window beside the list
-                case 5:
-                    lobbyMenuOpen = false;
-                    pauseSettings = pauseHowTo = false;
-                    StartLobbyLeave();  // the way in from the menu, backwards (LobbyEnter.cs)
-                    break;
+                case 2: pauseHowTo = true; OpenCabWindow(2); break;  // a window beside the list
                 default: Application.Quit(); break;
             }
         }
 
         // --- The pause menu -------------------------------------------------------------------------------------------
 
-        static readonly string[] PauseChoices = { "RESUME", "RUN STATS", "FIELD GUIDE", "PROFILE", "HOW TO PLAY", "SETTINGS", "QUIT" };
-        const int PauseQuit = 6;  // asks "to lobby or desktop?" (DrawLobbyConfirm); the lobby is the host's: it takes everyone back
-
-        /// The pause menu's choices for this player.
-        List<int> PauseRows()
-        {
-            // Resume, Settings, How to play, Quit. Run stats is the small key beside the cabinet (DrawRunStatsKey); the Field guide is
-            // gone; the profile opens from the main menu or your lobby card only.
-            return new List<int> { 0, 5, 4, PauseQuit };
-        }
+        // (Run stats is the small key beside the cabinet, DrawRunStatsKey; no Profile row, it opens from the main menu or your lobby card.)
+        static readonly string[] PauseChoices = { "RESUME", "SETTINGS", "HOW TO PLAY", "QUIT" };
+        const int PauseQuit = 3;  // asks "to lobby or desktop?" (DrawLobbyConfirm); the lobby is the host's: it takes everyone back
 
         bool CanQuitToLobby => session.IsHost && !LabRunning;
 
@@ -273,16 +250,15 @@ namespace Arena
                 sub = "The arena is waiting";
             cabBootLog = "> LINK OK   > SAVE OK   > WAVE " + Mathf.Max(1, game.Wave);
             BeginDrawer("PAUSED", Ui.Accent, 1f, sub);
-            string[] lines = { "Back into wave " + Mathf.Max(1, game.Wave), "Your build, damage and kills so far", "Every enemy, weapon and upgrade", "Your rank, records and unlocks", "Controls and tips",
-                "Audio, visual effects, aim line", CanQuitToLobby ? "Back to the lobby, or out to the desktop" : "Out to the desktop" };
-            Color[] pcols = { Ui.Primary, Ui.Gold, Ui.Primary, Ui.Gold, HowToColor, new Color(0.6f, 0.66f, 0.82f), new Color(1f, 0.6f, 0.45f) };
-            string[] picons = { "ui_play", "ui_trophy", "ui_book", "ui_star", "ui_help", "ui_gear", "ui_power" };
-            var rows = PauseRows();
-            pauseSel = Mathf.Clamp(pauseSel, 0, rows.Count - 1);
+            string[] lines = { "Back into wave " + Mathf.Max(1, game.Wave), "Audio, visual effects, aim line", "Controls and tips",
+                CanQuitToLobby ? "Back to the lobby, or out to the desktop" : "Out to the desktop" };
+            Color[] pcols = { Ui.Primary, new Color(0.6f, 0.66f, 0.82f), HowToColor, new Color(1f, 0.6f, 0.45f) };
+            string[] picons = { "ui_play", "ui_gear", "ui_help", "ui_power" };
+            pauseSel = Mathf.Clamp(pauseSel, 0, PauseChoices.Length - 1);
             float y = cabScreen.y + 10f;
-            for (int k = 0; k < rows.Count; k++)
+            for (int i = 0; i < PauseChoices.Length; i++)
             {
-                int i = rows[k];
+                int k = i;
                 var r = new Rect(34f, y, CabRowW, 58f);
                 if (cabScreenOn && r.Contains(Event.current.mousePosition) && Event.current.type == EventType.Repaint && Event.current.mousePosition != pauseMouse)
                     pauseSel = k;  // the mouse moved onto it (the keys move it otherwise)
@@ -424,13 +400,13 @@ namespace Arena
             var e = Event.current;
             if (e.type != EventType.KeyDown || GUIUtility.keyboardControl != 0)
                 return;
-            int n = PauseRows().Count;
+            int n = PauseChoices.Length;
             if (e.keyCode == KeyCode.UpArrow || e.keyCode == KeyCode.W)
                 pauseSel = (pauseSel + n - 1) % n;
             else if (e.keyCode == KeyCode.DownArrow || e.keyCode == KeyCode.S)
                 pauseSel = (pauseSel + 1) % n;
             else if (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter)
-                PauseChoose(PauseRows()[Mathf.Clamp(pauseSel, 0, n - 1)]);
+                PauseChoose(Mathf.Clamp(pauseSel, 0, n - 1));
             else
                 return;
             e.Use();
@@ -466,10 +442,8 @@ namespace Arena
             switch (i)
             {
                 case 0: ResumeGame(); break;
-                case 1: runStatsOpen = true; break;
-                case 3: pauseRecords = true; break;
-                case 4: pauseHowTo = true; OpenCabWindow(2); break;  // a window beside the list
-                case 5: pauseSettings = true; CloseCabWindow(); break;  // the list switches to the sections
+                case 1: pauseSettings = true; CloseCabWindow(); break;  // the list switches to the sections
+                case 2: pauseHowTo = true; OpenCabWindow(2); break;  // a window beside the list
                 default:  // PauseQuit
                     pauseConfirmLobby = true;  // asks first (DrawLobbyConfirm)
                     confirmSel = 0;            // "keep playing" is first, so a stray Enter doesn't end the run
