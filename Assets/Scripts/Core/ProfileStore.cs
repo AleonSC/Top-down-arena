@@ -183,7 +183,7 @@ namespace Arena
         }
 
         /// Easter egg: the disk look a name earns, "" for none. "sa": San Andreas, SanAndreas, GTA:SA, GTASA or SA; "doom": any name with
-        /// Doom in it; "mi": Mission Impossible, MI, MI1, MI2, Ethan Hunt, NOC list (case, spaces and punctuation ignored).
+        /// Doom in it; "mi": "win95": Windows 95, Win95; "mi": Mission Impossible, MI, MI1, MI2, Ethan Hunt, NOC list (case, spaces and punctuation ignored).
         public static string DiskLookFor(string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -195,6 +195,8 @@ namespace Arena
             string n = sb.ToString();
             if (n == "mi" || n == "mi1" || n == "mi2" || n.Contains("missionimpossible") || n.Contains("ethanhunt") || n.Contains("noclist"))
                 return "mi";
+            if (n.Contains("windows95") || n.Contains("win95") || n == "w95")
+                return "win95";
             if (n.Contains("doom"))
                 return "doom";
             if (n == "sa" || n == "gtasa" || n.Contains("sanandreas"))
