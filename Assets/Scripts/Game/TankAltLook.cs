@@ -31,18 +31,37 @@ namespace Arena
                 return;
             float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 6f);
             V2 back = V2.FromAngle(p.Aim + MathX.Pi), side = back.Orthogonal();
+            float popAge = fxOn ? ShellLoadAge(p) : 99f;
             for (int i = 0; i < Game.ScatShellMax; i++)
             {
-                V2 c = p.Disp + back * 30f + side * (i == 0 ? -8f : 8f);
+                V2 c = ShellPipAt(p, i);
                 bool on = i < p.ScatShells;
+                // The shell that just loaded drops in from above and bounces (a squash, then an overshoot).
+                float sc = 1f, drop = 0f;
+                if (on && i == p.ScatShells - 1 && popAge < ShellPop)
+                {
+                    float k = popAge / ShellPop;
+                    drop = k < 0.35f ? -14f * Sq(1f - k / 0.35f) : 0f;
+                    sc = k < 0.35f ? 1f : 1f + 0.35f * Mathf.Sin((k - 0.35f) / 0.65f * MathX.Pi) * (1f - k);
+                }
+                c += new V2(0f, drop);
                 if (on && fxOn)
-                    Circle(c, 10f, DbShellRed.WithAlpha(0.14f + 0.1f * pulse), 12);
+                    Circle(c, 10f * sc, DbShellRed.WithAlpha(0.14f + 0.1f * pulse), 12);
                 Rgba body = on ? DbShellRed : new Rgba(1f, 1f, 1f, 0.14f), cap = on ? ShellBrass : new Rgba(1f, 1f, 1f, 0.2f);
-                Line(c + new V2(0f, -7f), c + new V2(0f, 4f), 6.5f, body);       // the hull, standing upright
-                Line(c + new V2(0f, 4f), c + new V2(0f, 8f), 7.4f, cap);        // the brass head
+                Line(c + new V2(0f, -7f * sc), c + new V2(0f, 4f * sc), 6.5f * sc, body);       // the hull, standing upright
+                Line(c + new V2(0f, 4f * sc), c + new V2(0f, 8f * sc), 7.4f * sc, cap);        // the brass head
+                if (on && fxOn)
+                    Line(c + new V2(-1.6f * sc, -5f * sc), c + new V2(-1.6f * sc, 2f * sc), 1.4f, new Rgba(1f, 1f, 1f, 0.35f));  // a highlight down the hull
                 if (i == p.ScatShells && p.ScatCharge > 0)  // a ring closing round the next one as your point-blank hits load it
                     Arc(c, 11f, 1.8f, ShellBrass.WithAlpha(0.75f), 16, -MathX.Pi / 2f, MathX.Tau * Mathf.Clamp01(p.ScatCharge / (float)Game.ScatShellHits));
             }
+        }
+
+        /// Where shell pip `i` sits: behind you, side by side.
+        V2 ShellPipAt(Player p, int i)
+        {
+            V2 back = V2.FromAngle(p.Aim + MathX.Pi), side = back.Orthogonal();
+            return p.Disp + back * 30f + side * (i == 0 ? -8f : 8f);
         }
 
         /// Double Barrel going off: a fat cone of flame along the aim, both barrels' smoke rolling back, a shell or two kicked out.
@@ -98,11 +117,15 @@ namespace Arena
                 V2 at = LobbedAt(z, k, out lift);
                 Arc(z.Pos, Game.MineTrigger * (1.6f - 0.6f * k), 2f, MineAmber.WithAlpha(0.5f), 24);
                 Circle(at, 5f * (1f - 0.4f * k), new Rgba(0f, 0f, 0f, 0.25f), 10);
-                Circle(at + new V2(0f, -lift), 8f, MineSteel, 10);
-                Circle(at + new V2(0f, -lift), 3.5f, MineAmber, 8);
+                V2 up = at + new V2(0f, -lift), nose = V2.FromAngle(z.Aim + t * 0f) * 7f;
+                Line(up - nose, up + nose, 8f, MineSteel);  // the shell, nose first, fins folded
+                Circle(up + nose, 4f, MineSteel.Mix(Rgba.White, 0.2f), 8);
+                Circle(up, 2.5f, MineAmber, 8);
                 return;
             }
-            float settle = Mathf.Clamp01((age - Game.MineArm) / 0.2f);
+            float since = age - Game.MineArm, settle = Mathf.Clamp01(since / 0.2f);
+            float unfold = fxOn ? Mathf.Clamp01((since - 0.05f) / 0.25f) : 1f;               // the fins spring out after the thump
+            float squash = fxOn && since < 0.25f ? 0.3f * Mathf.Sin(since / 0.25f * MathX.Pi) * (1f - since / 0.25f) : 0f;
             float left = z.T / Mathf.Max(0.01f, z.Duration);
             float rate = left < 0.2f ? 10f : 3.5f;
             bool blink = Mathf.Sin(t * rate * MathX.Tau + z.Id) > 0.3f;
@@ -111,12 +134,19 @@ namespace Arena
             if (fxOn && blink)
                 Circle(z.Pos, 20f, MineAmber.WithAlpha(0.18f), 14);
             Circle(z.Pos + new V2(2f, 3f), 12f, new Rgba(0f, 0f, 0f, 0.3f), 12);  // shadow
-            for (int i = 0; i < 3; i++)  // fins splayed out from the shell's tail
+            if (fxOn && settle >= 1f)  // the proximity sensor sweeping round, a wedge of amber light
             {
-                V2 u = V2.FromAngle(z.Aim + MathX.Pi + (i - 1) * 0.7f);
-                Line(z.Pos + u * 6f, z.Pos + u * 16f, 3.5f, MineSteel.Mix(Rgba.White, 0.25f));
+                float sw = t * 3.2f + z.Id;
+                for (int k = 0; k < 4; k++)
+                    Arc(z.Pos, Game.MineTrigger * (0.45f + 0.18f * k), Game.MineTrigger * 0.18f, MineAmber.WithAlpha(0.1f), 10, sw - 0.6f, 0.6f);
+                Line(z.Pos, z.Pos + V2.FromAngle(sw) * Game.MineTrigger, 1.5f, MineAmber.WithAlpha(0.45f));
             }
-            Circle(z.Pos, 10f, MineSteel, 14);
+            for (int i = 0; i < 3; i++)  // fins splayed out from the shell's tail, opening after it lands
+            {
+                V2 u = V2.FromAngle(z.Aim + MathX.Pi + (i - 1) * 0.7f * unfold);
+                Line(z.Pos + u * 6f, z.Pos + u * (8f + 8f * unfold), 3.5f, MineSteel.Mix(Rgba.White, 0.25f));
+            }
+            Circle(z.Pos, 10f * (1f + squash), MineSteel, 14);
             Arc(z.Pos, 10f, 1.5f, MineAmber.WithAlpha(0.5f), 14);
             Circle(z.Pos, 4f, blink ? MineAmber : MineAmber.Mix(MineSteel, 0.6f), 8);
         }
@@ -147,13 +177,21 @@ namespace Arena
                 Circle(at, r * (0.32f + 0.05f * Mathf.Sin(t * 2f + k)), GasPale.WithAlpha(0.11f * fade), 18);
             }
             Arc(z.Pos, r, 1.5f, GasPale.WithAlpha(0.3f * fade), 40);
-            Line(z.Pos - new V2(5f, 0f), z.Pos + new V2(5f, 0f), 4.5f, CanisterGrey.WithAlpha(fade));  // the canister, hissing
+            // The canister: a small bounce as it lands, then spinning slowly on the ground as it vents from both ends.
+            float since = age - Game.TearGasFlight, hop = fxOn && since < 0.35f ? 10f * Mathf.Sin(since / 0.35f * MathX.Pi) : 0f;
+            float spin = fxOn ? z.Aim + since * 2.2f / (1f + since * 0.4f) : 0f;
+            V2 cn = z.Pos + new V2(0f, -hop), ax = V2.FromAngle(spin) * 6f;
+            Circle(z.Pos + new V2(1f, 2f), 5f, new Rgba(0f, 0f, 0f, 0.25f * fade), 8);
+            Line(cn - ax, cn + ax, 5f, CanisterGrey.WithAlpha(fade));
+            Line(cn + ax * 0.6f, cn + ax, 5.4f, new Rgba(0.85f, 0.75f, 0.3f, fade));  // the yellow band
             if (fxOn)
-                for (int k = 0; k < 3; k++)
-                {
-                    float f = Mathf.Repeat(t * 1.6f + k / 3f, 1f);
-                    Circle(z.Pos + new V2(6f + 10f * f, -8f * f), 2f + 5f * f, Rgba.White.WithAlpha(0.35f * (1f - f) * fade), 8);
-                }
+                for (int end = -1; end <= 1; end += 2)  // a jet of gas out of each end
+                    for (int k = 0; k < 4; k++)
+                    {
+                        float f = Mathf.Repeat(t * 2.2f + k / 4f + (end > 0 ? 0.125f : 0f), 1f);
+                        V2 jet = cn + ax * end * (1f + 3.5f * f) + ax.Orthogonal() * (0.6f * f * Mathf.Sin(t * 9f + k));
+                        Circle(jet, 2f + 6f * f, Rgba.White.WithAlpha(0.4f * (1f - f) * fade), 8);
+                    }
         }
     }
 }
