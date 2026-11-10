@@ -440,10 +440,15 @@ namespace Arena
             w.FanWarn = 0f;
             fanPending = false;
             e.FireT = 0.3f;
+            ClearTaserGuards(e);  // last turn's guards go; this turn's come in below (WardenFaction.cs)
             switch (w.Turn)
             {
+                case WardenTurn.LastStand:
+                    SendTaserGuards(e, WardenTaserStand);  // the stun rounds come from a guard in the dark
+                    break;
                 case WardenTurn.Light:
                     SendRiotShields(e);  // two Riot Shields to herd you into the light (WardenFaction.cs)
+                    SendTaserGuards(e, WardenTaserLight);  // and two Taser Guards: the stun shots that get you caught
                     w.LightMode = WardenLight.Follow;
                     w.LightT = 0f;
                     w.Caught = 0f;
@@ -512,10 +517,8 @@ namespace Arena
                     for (int i = 0; i < 9; i++)
                         EnemyShot(e, w.FanAim + (i - 4) * 0.12f, 210f, Defs.PierceShot);
                     break;
-                case WardenTurn.Light:  // stun shots, one at a time, while the light is still hunting
+                case WardenTurn.Light:  // no guns of its own: the Taser Guards it sends do the stunning (WardenFaction.cs)
                     e.FireT = StunEvery;
-                    if (w.LightMode == WardenLight.Follow && w.TurnT > 0.6f)
-                        EnemyShot(e, aim, StunShotSpeed, Defs.StunShot);
                     break;
                 case WardenTurn.Gas:  // slow aimed bursts through the gas
                     e.FireT = GasBurstEvery;
@@ -559,11 +562,6 @@ namespace Arena
                     if (into >= LastStandGap)  // the burst: straight streams along its four faces
                         for (int k = 0; k < 4; k++)
                             EnemyShot(e, facing + MathX.Pi / 2f * k, 240f, Defs.SmallShot);
-                    if (w.TurnT >= w.StunShotAt)  // a stun round at you (parry it perfectly to stun it back)
-                    {
-                        w.StunShotAt = w.TurnT + LastStandStunEvery;
-                        EnemyShot(e, aim, StunShotSpeed, Defs.StunShot);
-                    }
                     break;
                 }
                 default:  // a breather

@@ -109,7 +109,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Core/BruteEnrage.cs`: Brute enrage (`BruteRage`/`BruteSpeedMult`/`BruteDamageMult`, from health lost; used in `MoveEnemy` and the contact damage in `EnemyAI.cs`; redder in `Game/WorldEnemies.cs`)
 - `Core/NewEnemies.cs`, `Game/NewEnemyChips.cs`: the new-enemy chips under the between-waves box (`Game.NewTypesAt`, `Game.EnemyNote`; unmet types only, via `Profile.TagSeen`)
 - `Zombies.cs`: Zombie Infection modifier (seven zombie kinds)
-- `Approaches.cs`, `WardenFaction.cs`: boss factions/approach mixes, Warden's faction enemies (Riot Shield, Gas Grenadier, Taser Guard: it charges `TaserWindUp` 0.7 s, then one Fork Bolt, `Defs.TaserBolt`, that stuns for `StunTime`)
+- `Approaches.cs`, `WardenFaction.cs`: boss factions/approach mixes, Warden's faction enemies (Riot Shield, Gas Grenadier, Taser Guard: it charges `TaserWindUp` 0.7 s, then one Fork Bolt, `Defs.TaserBolt`, that stuns for `StunTime`; the Warden's searchlight turn and last stand send them, `SendTaserGuards`, instead of firing stun shots himself)
 - Bosses by wave: `Warden.cs` (5), `Queen.cs` (10), `Reapers.cs` (15), `Singularity.cs` (20), `Colossus.cs` (25),
   `Duelist.cs` (30), `Lich.cs` (35), `Herald.cs` (40), `Devourer.cs` (45), `Eclipse.cs` (50); `LateGame.cs` is the shared
   late-boss logic

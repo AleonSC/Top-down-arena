@@ -571,7 +571,7 @@ namespace Arena
                             scratchIds.Add(b.Id);
                             bool perfect = PerfectNow(p);
                             if (ParryHit(p, b.Dmg, b.Pos))  // perfect parry (a needle) or Mirror Guard (an arcane bolt): sent back
-                                reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.Stats.ReflectMult, StunBack = b.Kind == Defs.StunShot, Kind = perfect ? Defs.ParryNeedle : Defs.ArcaneShot });
+                                reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.Stats.ReflectMult, StunBack = b.Kind == Defs.StunShot || b.Kind == Defs.TaserBolt, Kind = perfect ? Defs.ParryNeedle : Defs.ArcaneShot });
                             break;
                         }
                         if (p.WallUp && WallCovers(p, b.Pos, b.Radius, out int plate))

@@ -559,6 +559,9 @@ namespace Arena
                     float dark = Smooth((p.DistanceTo(e.Disp) - e.Radius - 40f) / AlarmEdge);
                     foreach (var pl in game.Players.Values)
                         dark = Mathf.Min(dark, Smooth((p.DistanceTo(pl.Disp) - AlarmSight) / AlarmEdge));
+                    foreach (var g in game.Enemies.Values)  // the Warden's Taser Guards stay lit, so you can see who's charging
+                        if (g.Type == EnemyType.TaserGuard && g.ParentId == e.Id)
+                            dark = Mathf.Min(dark, Smooth((p.DistanceTo(g.Disp) - g.Radius - 50f) / AlarmEdge));
                     if (light)
                         dark = Mathf.Min(dark, Smooth((p.DistanceTo(w.LightDisp) - Game.LightRadius) / 40f));
                     alarmAlpha[j * (nx + 1) + i] = 0.82f * dark;

@@ -327,25 +327,28 @@ static partial class Program
         Check(!spiralMoved, "the Warden holds still while it spirals");
         Check(cg.Enemies.ContainsKey(w.Id) && cg.Enemies[w.Id].Warden != null && cg.Enemies[w.Id].Warden.Stage == WardenStage.Count, "clients see the Warden's stage");
 
-        // The searchlight: a stun shot stops you, the light catches you, a shackle ring drops round you.
+        // The searchlight: a Taser Guard's Fork Bolt stops you, the light catches you, a shackle ring drops round you.
         while (w.Warden.Turn == WardenTurn.Light) { Clear(); Step(s[0], dt); Step(s[1], dt); }  // (the first light turn may already be under way)
         while (w.Warden.Turn != WardenTurn.Light) { Clear(); me.Pos = new V2(60f, 60f); Step(s[0], dt); Step(s[1], dt); }
         friend.Pos = new V2(1400f, 800f);
         bool stunned = false, clientStunned = false, caught = false;
+        int guardsUp = 0;
         Run(s, dt, 8f, () => caught && w.Warden.LightMode == WardenLight.Ring, () =>
         {
             Clear();
             w.TargetId = 2; w.RetargetT = 99f;  // the light hunts the friend (the host is in god mode)
             me.Pos = new V2(60f, 60f);
             var t = g.Players[w.TargetId];
-            foreach (var b in g.Bullets.Values) if (b.Kind == Defs.StunShot) { b.Pos = t.Pos; break; }  // make the next stun shot land
+            foreach (var b in g.Bullets.Values) if (b.Kind == Defs.TaserBolt) { b.Pos = t.Pos; break; }  // make the next Fork Bolt land
             stunned |= t.StunT > 0f;
+            guardsUp = Math.Max(guardsUp, g.Enemies.Values.Count(o => o.Type == EnemyType.TaserGuard && o.ParentId == w.Id));
             if (cg.Players[t.Id].StunT > 0f && t.Id == 2) { clientStunned = true; }
             caught |= w.Warden.LightMode == WardenLight.Lock;
         });
         int ring = w.Warden.Shackle.Count;
         Console.WriteLine("  warden searchlight: stunned {0}, caught {1}, ring orbs {2}, target {3}", stunned, caught, ring, w.TargetId);
-        Check(stunned && caught && ring >= 20, "a stun shot stops you, the searchlight catches you, and a shackle ring closes in");
+        Check(guardsUp == Game.WardenTaserLight, "the searchlight turn sends two Taser Guards (the Warden fires no stun shots himself)");
+        Check(stunned && caught && ring >= 20, "a Taser Guard's Fork Bolt stops you, the searchlight catches you, and a shackle ring closes in");
         Check(clientStunned, "the stun reaches the stunned player's own game");
         Run(s, dt, 20f, () => w.Warden.Turn != WardenTurn.Light, Clear);
         Check(w.Warden.Turn != WardenTurn.Light, "the searchlight turn ends once the ring has closed");

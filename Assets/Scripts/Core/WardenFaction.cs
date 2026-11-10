@@ -324,9 +324,38 @@ namespace Arena
             }
         }
 
+        // The Warden fires no stun shots himself: Taser Guards do. WardenTaserLight come through the side doors for the
+        // searchlight turn, WardenTaserStand for the last stand (lit up in the dark); they're cleared when the turn changes.
+        public const int WardenTaserLight = 2, WardenTaserStand = 1;
+
+        void SendTaserGuards(Enemy warden, int count)
+        {
+            int[] doors = count > 1 ? new[] { 1, 2 } : new[] { 4 };  // left lower and right upper (the shields use the other two); bottom left
+            for (int i = 0; i < count; i++)
+            {
+                V2 door = RiotDoors[doors[i % doors.Length]];
+                V2 inward = door.Y >= Height - 1f ? new V2(0f, -1f) : door.X < Width / 2f ? new V2(1f, 0f) : new V2(-1f, 0f);
+                var g = SpawnEnemyAt(EnemyType.TaserGuard, door + inward * 50f, 0.6f, warden.Id);
+                g.Facing = inward.Angle;
+                g.FireT = 1f + 0.9f * i;  // staggered, so the bolts don't come together
+                BroadcastFx(FxKind.Boom, door, new Rgba(0.75f, 0.91f, 1f), 70f, 0.4f, Sfx.None);
+            }
+        }
+
+        void ClearTaserGuards(Enemy warden)
+        {
+            foreach (var o in Enemies.Values)
+                if (o.Type == EnemyType.TaserGuard && o.ParentId == warden.Id)
+                {
+                    o.LastHitBy = 0;  // no kill credit
+                    o.Hp = 0f;
+                }
+        }
+
         /// Gone with the Warden, or when he changes stage.
         void ClearWardenShields(Enemy warden)
         {
+            ClearTaserGuards(warden);
             foreach (var o in Enemies.Values)
                 if (o.Type == EnemyType.RiotShield && o.ParentId == warden.Id)
                 {
