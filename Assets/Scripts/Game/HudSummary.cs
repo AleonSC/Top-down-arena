@@ -53,7 +53,7 @@ namespace Arena
             string sub = game.Practice != null ? (won ? "YOU CLEARED ALL " + game.Practice.Waves.Count + " PRACTICE WAVES" : "YOU MADE IT TO PRACTICE WAVE " + Math.Max(1, game.PracticeIndex + 1) + " OF " + game.Practice.Waves.Count)
                 : game.Hunt != null ? (won ? "YOU HUNTED DOWN " + BossName(game.Hunt.Boss).ToUpperInvariant() : "YOU MADE IT TO HUNT WAVE " + Math.Max(1, game.HuntWave) + " OF " + Hunts.Length)
                 : won ? "YOU BEAT ALL " + Game.MaxWave + " WAVES AND THE ECLIPSE" : "YOU MADE IT TO WAVE " + game.Wave;
-            if (!won && game.Practice == null && game.IsBossWave(game.Wave))
+            if (!won && game.Practice == null && game.BossNow)
                 sub += "  ·  " + Defs.Get(game.BossAt(game.Wave)).Name.ToUpperInvariant();
 
             // The title tube. Before the title has glided up it is just the stamp in the middle of the screen.

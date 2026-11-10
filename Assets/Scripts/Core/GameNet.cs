@@ -311,6 +311,7 @@ namespace Arena
             s.Byte(ref state);
             State = (MatchState)state;
             s.Int(ref Wave);
+            s.Bool(ref BossSlot);  // the boss after wave Wave (Hunts.cs)
             s.Float(ref StateTimer);
             s.Int(ref Remaining);
             s.Int(ref Score);

@@ -16,7 +16,7 @@ There is no to-do file; the owner sends requests per session. Design docs in `Do
 
 - **What:** a 1-3 player **co-op top-down bullet hell** made in **Unity 6** (`6000.6.7f1`, Unity 6.6; built-in render
   pipeline). The owner plays it with a friend over **Tailscale** (one hosts, the other joins by IP).
-- **A run:** 50 waves, a boss every 5 (Warden, Hive Queen, Twin Reapers, Singularity, Colossus, Duelist,
+- **A run:** 50 regular waves, a boss fight after every 5th (Warden, Hive Queen, Twin Reapers, Singularity, Colossus, Duelist,
   Lich, Storm Herald, Devourer, Eclipse), then optional endless mode. Level-ups give a pick of 3 upgrade
   cards (rerolls available); each boss gives a legendary upgrade and a weapon mod.
 - **Players** pick a **role** (Tank, Healer, DPS) × **class/kit** (Soldier, Elementalist, Summoner, Knight, Ninja,
@@ -33,7 +33,7 @@ There is no to-do file; the owner sends requests per session. Design docs in `Do
 - **Modes in the lobby:** **Run** or **Practice Range** (hand-built waves of any enemies/bosses at any level,
   shared live with the lobby, savable as text files). The host picks the mode, and the run's **modifiers**
   (Modifiers tab: Glass Cannon, Tough Crowd, Frenzy, Swift Foes, Famine, Lucky).
-- **Divergent paths:** after each boss the host picks one of two **paths** (or no path) for the four regular
+- **Divergent paths:** after each boss the host picks one of two **paths** (or no path) for the five regular
   waves before the next boss: enemy mixes, hazard floors, twists and arena rules (9 paths, danger 1-3 with a
   bonus and a prize). Bosses are always standard. See `Docs/Paths.md`.
 - **Dev tools (F1):** a dock over the live game (`DevDock.cs`: pinned God / Full heal / Skip wave / Kill all, WAVE / PARTY / VIEW / LABS drawers, a stat-editor side drawer, sheets for DPS, Replays and Balance): stat editor, god mode, wave skip, session
@@ -87,7 +87,8 @@ notes (function names, message flow) are in `Docs/CodeNotes.md`, kept as a refer
 - **Arena bounds:** players wrap round the edges (`WrapArena`) except while Narrow Pass's walls are up. Use
   `ClampToArena` / `KeepInArena` / `RandomInArena` / `ArenaMin`-`ArenaMax` (instance members, in `Paths.cs`
   and `Game.cs`) rather than `0..Width`, so new code respects the walls. Boss-only code still uses the full
-  arena (paths never apply to boss waves).
+  arena (paths never apply to boss fights).
+- **The boss between waves:** `Game.BossSlot` (`Hunts.cs`) is true while the boss after regular wave `Wave` is fought (and in the box after it); `Wave` itself doesn't move for it. Ask `BossNow` ("a boss fight, or just beaten") and `BossNext` ("the boss starts next") instead of `Wave % 5`; `IsBossWave(n)` only says "a boss follows wave n" (and, in a hunt, "n is the last wave"). `Waves.cs` starts it (`BossStartsNext`), the snapshot and saves carry it (a save from before it counts a multiple of 5 as beaten), and a negative `Session.StartWave` (-10) starts at the boss after that wave (Boss Lab, tests; `DevJumpToWave(n, true)` in the dev dock).
 - **Path state is derived, not sent:** each game eases `NarrowF` / `FogF` from `CurrentPath` + wave, and ages
   patches itself; only the offer, the choice and each patch's spawn go over the network.
 - **Classes** are registries, like abilities: each class keeps its `KitDef` (name, blurb, icon, health and speed

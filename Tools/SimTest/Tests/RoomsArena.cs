@@ -380,14 +380,14 @@ static partial class Program
         me.Pos = me.Disp = new V2(-450f, 450f);
         g.Props.Clear();
         var outCrate = g.AddProp(PropKind.Crate, new V2(-450f, 700f));
-        g.Wave = 10;
+        g.Wave = 10; g.BossSlot = true;
         pickRooms.Invoke(g, null);
         pickLayout.Invoke(g, null);
         Run(s, dt, 0.4f);
         var cme = cg.Players[1];
         Check(!g.RoomsUp && !cg.RoomsOn && g.ArenaMin.X == 0f && cg.ArenaMin.X == 0f, "a boss wave is the hub alone (on both screens)");
         Check(hub.Contains(me.Pos, -60f) && hub.Contains(cme.Pos, -60f) && !g.Props.ContainsKey(outCrate.Id), "anyone out in the rooms is brought into the hub, and the rooms' props go (" + me.Pos + ")");
-        g.Wave = 11;
+        g.Wave = 11; g.BossSlot = false;
         pickRooms.Invoke(g, null);
         Check(g.RoomsUp, "the next cycle's first wave has the rooms again");
 
@@ -407,7 +407,7 @@ static partial class Program
             var vaultWaves = new List<int>();
             for (int w = 1; w <= 50; w++)
             {
-                g.Wave = w;
+                g.Wave = w; g.BossSlot = (w) % 5 == 0 && (w) > 0;
                 pickRooms.Invoke(g, null);
                 if (g.VaultUp) vaultWaves.Add(w);
             }
@@ -417,7 +417,7 @@ static partial class Program
             // A vault wave: the world reaches up to it, its mini-boss is the Gatekeeper, and he stays in it.
             Quiet();
             foreach (var p in g.Players.Values) movePlayer.Invoke(g, new object[] { p, new V2(Game.Width / 2f, Game.Height / 2f) });
-            g.Wave = 7; fStretch.SetValue(g, 0); fWave.SetValue(g, 7);
+            g.Wave = 7; g.BossSlot = false; fStretch.SetValue(g, 0); fWave.SetValue(g, 7);
             pickRooms.Invoke(g, null);
             startRooms.Invoke(g, null);
             Run(s, dt, 0.4f);
@@ -440,7 +440,7 @@ static partial class Program
 
             // Beat him: everyone gets a prize pick (rare or better), as from his old Data Gate.
             g.State = MatchState.Fighting;
-            g.Wave = 8; fStretch.SetValue(g, 0); fWave.SetValue(g, 8);
+            g.Wave = 8; g.BossSlot = false; fStretch.SetValue(g, 0); fWave.SetValue(g, 8);
             pickRooms.Invoke(g, null);
             startRooms.Invoke(g, null);
             var keepWave = (Enemy)spawnEnemyAt.Invoke(g, new object[] { EnemyType.Grunt, new V2(-450f, 800f), 0f, 0, false });  // (keeps the wave going: the vault is optional)
@@ -470,7 +470,7 @@ static partial class Program
                 {
                     g.Room = RoomPhase.None;
                     fBlock.SetValue(g, -1);
-                    g.Wave = 3;
+                    g.Wave = 3; g.BossSlot = false;
                     maybe.Invoke(g, null);
                     if (g.Room == RoomPhase.Portal) kinds[roomsArena].Add(g.RoomKind);
                 }
@@ -483,7 +483,7 @@ static partial class Program
 
         // A whole regular wave with the rooms up: the enemies come for you through the doors and the wave ends.
         {
-            g.Wave = 6;
+            g.Wave = 6; g.BossSlot = false;
             Quiet();
             Run(s, dt, 1f);
             g.Bot = cg.Bot = true;  // both players: the smart bot

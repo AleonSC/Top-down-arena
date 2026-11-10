@@ -94,7 +94,7 @@ static partial class Program
     // then check everyone got the bonus rerolls.
     static void BossRerollScenario(float dt)
     {
-        var host = new Session { AutoStart = 2, StartWave = 5 };
+        var host = new Session { AutoStart = 2, StartWave = -5 };
         host.Game.Bot = true;
         host.Game.BotRerolls = false;
         Check(host.Host(7791, "Host", Role.Dps, 1), "boss scenario: host listens");

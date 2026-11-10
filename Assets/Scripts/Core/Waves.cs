@@ -92,17 +92,24 @@ namespace Arena
                             session.Broadcast(Proto.End(pm));
                             var boss = Array.Find(PracticePlan.Choices, t => Defs.Get(t).IsBoss && pw.Counts.ContainsKey(t) && pw.Counts[t] > 0);
                             bossName = Defs.Get(boss).IsBoss ? PracticePlan.NameOf(boss) : null;
+                            BossSlot = bossName != null;
                         }
                         else
                         {
-                            Wave++;
+                            if (BossStartsNext)
+                                BossSlot = true;  // the boss after every fifth regular wave: the wave number stays (Hunts.cs)
+                            else
+                            {
+                                BossSlot = false;
+                                Wave++;
+                            }
                             PickRooms();   // the side rooms and hallways, on a regular wave with the Rooms arena (Rooms.cs)
                             PickLayout();  // this cycle's floor plan, or the open arena for a boss (LayoutRules.cs)
                             BuildWave(Wave);
                             StartRoomsWave();  // the rooms' nests and the vault's mini-boss (Rooms.cs)
                             CapSentries();  // at most 3 Beam Sentries (Variety.cs)
                             WaveProps();  // crates, pots, barrels and now and then a chest (Props.cs)
-                            bossName = IsBossWave(Wave) ? Defs.Get(BossAt(Wave)).Name : null;
+                            bossName = BossNow ? Defs.Get(BossAt(Wave)).Name : null;
                         }
                         ModsWaveStart();  // Hunted's quarry, Second Wind back each boss cycle (Modifiers.cs)
                         MarkWaveStart();  // the wave's numbers start from here (WaveReady.cs)
@@ -148,8 +155,8 @@ namespace Arena
                         }
                         else if (Hunt != null && Wave >= Hunts.Length)
                             Win();  // a Boss Hunt ends with its boss (Hunts.cs)
-                        else if (Wave >= MaxWave && !Endless)
-                            Win();
+                        else if (Wave >= MaxWave && BossSlot && !Endless)
+                            Win();  // the last boss is beaten (the last regular wave only leads up to it)
                         else
                             WaveCleared();
                     }
@@ -177,7 +184,7 @@ namespace Arena
             StateTimer = IntermissionTime;
             if (CurrentPath != PathId.None && Wave >= PathTo)
                 FinishPath();  // its prize, then the plain arena for the boss (Paths.cs)
-            if (Has(RunMod.GoldRush) && IsBossWave(Wave + 1) && !ShopOpen && Practice == null && (Wave < MaxWave || Endless))
+            if (Has(RunMod.GoldRush) && BossNext && !ShopOpen && Practice == null)
                 OpenShop();  // Gold Rush: a shop before every boss
             foreach (var p in Players.Values)
             {
@@ -189,7 +196,7 @@ namespace Arena
                 if (p.Offer == null)
                     NextOffer(p);
             }
-            if (IsBossWave(Wave) && Hunt == null)
+            if (BossSlot && Hunt == null)
             {
                 if (ExpandingOn)
                     OfferExpansion();  // the Expanding arena: rooms to vote on instead of paths (ExpansionGame.cs)

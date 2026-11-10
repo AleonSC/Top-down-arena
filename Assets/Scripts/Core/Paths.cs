@@ -112,7 +112,7 @@ namespace Arena
         public static float FirePlayerDps(int wave) => 10f;  // the difficulty's per-wave damage growth scales it (Difficulty.cs)
         public static float FireEnemyDps(int wave) => 20f + 1.5f * wave;
 
-        public const int Length = 4;  // regular waves per path (the ones before the next boss)
+        public const int Length = 5;  // regular waves per path (the ones before the next boss)
 
         public static PathDef Get(PathId id)
         {
@@ -157,7 +157,7 @@ namespace Arena
 
         float PathBonus => OnPath ? Paths.Bonus(Paths.Get(CurrentPath).Danger) : 1f;
 
-        bool OnPathOf(PathId id) => OnPath && CurrentPath == id && Wave % 5 != 0;
+        bool OnPathOf(PathId id) => OnPath && CurrentPath == id && !BossNow;
 
         void ResetPaths()
         {
@@ -273,7 +273,7 @@ namespace Arena
         /// A path's enemy mix replaces a regular wave's (BuildWave).
         bool BuildPathWave(int n, ref int count, List<EnemyType> pool, List<EnemyType> melee)
         {
-            if (!OnPath || n % 5 == 0)
+            if (!OnPath || BossNow)
                 return false;
             switch (CurrentPath)
             {
@@ -328,7 +328,7 @@ namespace Arena
             if (e.Def.IsBoss)
                 return;
             // A path's rules, or (the Expanding arena) the ground of the Floor room it comes in on.
-            PathId f = OnPath && Wave % 5 != 0 ? CurrentPath : FloorAt(pos);
+            PathId f = OnPath && !BossNow ? CurrentPath : FloorAt(pos);
             if (f == PathId.None)
                 return;
             if (f == PathId.SwarmFields && e.Def.Melee)
@@ -374,8 +374,8 @@ namespace Arena
         {
             if (!Has(RunMod.TinyArena) || Practice != null || State == MatchState.Idle)
                 return V2.Zero;
-            int upcoming = State == MatchState.Intermission ? Wave + 1 : Wave;
-            if (upcoming % 5 == 0)
+            int upcoming = State == MatchState.Intermission ? Wave + 1 : Wave;  // (the regular wave; the boss between waves keeps the number)
+            if (State == MatchState.Intermission ? BossNext : BossNow)
                 return V2.Zero;
             int bosses = (upcoming - 1) / 5;
             float s = (float)Math.Sqrt(Math.Max(TinyMinArea, Math.Pow(TinyShrink, bosses)));

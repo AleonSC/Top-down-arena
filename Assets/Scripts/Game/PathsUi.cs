@@ -17,8 +17,8 @@ namespace Arena
             bool calm = CabCalm;
             RoundBackdrop(PathDim);  // (RoundWindows.cs)
             CrtUi.Title(new Rect(0, 22f, W, 56f), "CHOOSE YOUR PATH", 52, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
-            int from = game.Wave + 1, to = game.Wave + Paths.Length, boss = to + 1;
-            Ui.Label(new Rect(0, 80f, W, 20f), "Waves " + from + "-" + to + "  ·  the boss at wave " + boss + " is the same either way", 13, Ui.Muted, TextAnchor.MiddleCenter);
+            int from = game.Wave + 1, to = game.Wave + Paths.Length, boss = to;
+            Ui.Label(new Rect(0, 80f, W, 20f), "Waves " + from + "-" + to + "  ·  the boss after wave " + boss + " is the same either way", 13, Ui.Muted, TextAnchor.MiddleCenter);
             if (game.Route.Count > 0)
             {
                 string route = "Route so far:  ";
@@ -387,7 +387,7 @@ namespace Arena
         /// In the arena while a path is being played: its floor, faint so the fight stays readable.
         void DrawPathArena(float t)
         {
-            if (!game.OnPath || game.Wave % 5 == 0)
+            if (!game.OnPath || game.BossNow)
                 return;
             DrawPathFloor(Paths.Get(game.CurrentPath), 0f, 0f, AW, AH, t, 0.45f);
         }

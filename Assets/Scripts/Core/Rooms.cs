@@ -230,7 +230,7 @@ namespace Arena
         {
             bool was = RoomsUp, vaultWas = VaultUp;
             bool wings = ArenaKind == ArenaLayout.Wings, grown = ArenaKind == ArenaLayout.Expanding && Expanded.Count > 0;  // (the Expanding arena is the plain box until the first room is bought)
-            RoomsUp = (wings || grown) && Practice == null && !ShowcaseMode && Hunt == null && !IsBossWave(Wave)
+            RoomsUp = (wings || grown) && Practice == null && !ShowcaseMode && Hunt == null && !BossNow
                 && !Has(RunMod.TinyArena) && !OnPathOf(PathId.NarrowPass);
             VaultUp = RoomsUp && wings && Wave == VaultWaveFor(Wave);
             VaultCleared = false;
@@ -260,8 +260,7 @@ namespace Arena
                 var pool = new List<int>();
                 int from = stretch == 0 ? Rooms.FirstVault : stretch * Rooms.VaultEvery + 2;  // (not before the first boss)
                 for (int w = Math.Max(wave, from); w <= (stretch + 1) * Rooms.VaultEvery; w++)
-                    if (!IsBossWave(w))
-                        pool.Add(w);
+                    pool.Add(w);  // (the boss after wave 5, 10... isn't a wave number any more)
                 vaultWave = pool.Count > 0 ? pool[rng.Next(pool.Count)] : -1;
             }
             return vaultWave;
@@ -409,7 +408,7 @@ namespace Arena
         void WinVault()
         {
             VaultCleared = true;
-            int next = (Wave / 5 + 1) * 5;
+            int next = (Wave + 4) / 5 * 5;  // the boss this cycle leads up to
             var bossType = BossForWave(Math.Min(MaxWave, Math.Max(5, next)));
             var key = IsReaper(bossType) ? EnemyType.TwinA : bossType;
             foreach (var p in Players.Values)

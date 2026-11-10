@@ -22,13 +22,13 @@ look, so the run feels like travelling somewhere.
 
 ## Flow
 
-1. Waves 1-4 are the plain arena (no path yet).
+1. Waves 1-5 and the first boss are the plain arena (no path yet).
 2. After a boss dies and its legendary / weapon-mod picks are done, the intermission shows **Choose your path**:
    two cards side by side. The host clicks one; the others see the cards and "Waiting for <host>". The next
    wave doesn't start until the host has picked.
-3. The chosen path runs the next four waves (e.g. after wave 5: waves 6-9). Its floor tint and rules are on;
+3. The chosen path runs the next five waves (e.g. after the wave-5 boss: waves 6-10). Its floor tint and rules are on;
    a chip by the wave panel shows its name and waves left.
-4. The wave before the boss ends the path: its **prize** is given (before the boss), the arena returns to
+4. The last regular wave before the boss (wave 10) ends the path: its **prize** is given (before the boss), the arena returns to
    normal, and the boss wave plays as usual.
 5. Repeats after every boss (9 path choices in a 50-wave run). In endless mode it keeps going.
 

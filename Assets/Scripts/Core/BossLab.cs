@@ -73,7 +73,7 @@ namespace Arena
             prepared = bossSeen = false;
             Stats.Clear();
             host.AutoStart = PlayerCount;
-            host.StartWave = Wave;
+            host.StartWave = -Wave;  // (negative: the boss after that wave, Game.ReadStart)
             var s0 = Seats[0];
             if (!host.Host(port, s0.Human ? "You" : "Bot 1", s0.Role, s0.Weapon, s0.Ability, s0.Kit))
                 return false;

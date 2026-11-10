@@ -160,7 +160,7 @@ namespace Arena
         /// vote while the countdown runs, and a room is bought only if most of the team voted for it before the wave starts).
         void OfferOptionalExpansion()
         {
-            if (!IsBossWave(Wave) && ExpandOffer == null)
+            if (!BossNow && ExpandOffer == null)
                 MakeExpansionOffer(true);
         }
 

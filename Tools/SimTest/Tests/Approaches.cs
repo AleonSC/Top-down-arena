@@ -15,7 +15,7 @@ static partial class Program
     static Session[] StartPlain(float dt, int wave, Action<Session> setup = null)
     {
         int port = nextPort++;
-        var host = HostAs(new Session { StartWave = wave }, port, false, "Host", Role.Tank);
+        var host = HostAs(new Session { StartWave = wave % 5 == 0 ? -wave : wave }, port, false, "Host", Role.Tank);  // (a multiple of 5 starts at its boss)
         var client = JoinAs(port, false, "Friend", Role.Dps);
         Action Sync = () => PollBoth(host, client);
         WaitForLobby(host, client);
@@ -33,14 +33,17 @@ static partial class Program
         // --- The share, wave by wave --------------------------------------------------------------------------------
         var g0 = new Session().Game;
         Func<int, float> share = w => g0.ApproachShare(w);
-        bool normal = Math.Abs(share(1) - 0.34f) < 1e-4f && Math.Abs(share(2) - 0.51f) < 1e-4f && Math.Abs(share(3) - 0.68f) < 1e-4f && Math.Abs(share(4) - 0.85f) < 1e-4f && share(5) == 0f;
+        bool normal = Math.Abs(share(1) - 0.34f) < 1e-4f && Math.Abs(share(2) - 0.51f) < 1e-4f && Math.Abs(share(3) - 0.68f) < 1e-4f && Math.Abs(share(4) - 0.85f) < 1e-4f && Math.Abs(share(5) - 0.85f) < 1e-4f;
+        g0.Wave = 5; g0.BossSlot = true;  // the boss after wave 5 has no approach
+        normal &= share(5) == 0f;
+        g0.Wave = 0; g0.BossSlot = false;
         Console.WriteLine("  Blend (Normal): waves 1-5 = {0}", string.Join(", ", Enumerable.Range(1, 5).Select(w => share(w).ToString("0.00"))));
-        Check(normal, "Blend (the default): the Warden's approach builds up 34%, 51%, 68%, 85%; nothing on his wave");
+        Check(normal, "Blend (the default): the Warden's approach builds up 34%, 51%, 68%, 85%, 85%; nothing on his boss");
         Check(share(6) == 0f && share(9) == 0f && Game.ApproachBoss(9) == EnemyType.HiveQueen && Game.ApproachBoss(51) == EnemyType.Boss,
             "a boss with no faction yet has no approach; the waves after 50 lead to the bosses again");
         g0.Diff.Set(DiffKnob.ApproachShare, 1f);
         g0.Diff.Set(DiffKnob.ApproachRamp, 0f);
-        Check(Enumerable.Range(1, 4).All(w => share(w) == 1f) && share(56) == 0f && share(51) == 1f, "Fully themed (100%, no ramp): every approach wave is all faction");
+        Check(Enumerable.Range(1, 5).All(w => share(w) == 1f) && share(56) == 0f && share(51) == 1f, "Fully themed (100%, no ramp): every approach wave is all faction");
         g0.Diff.Set(DiffKnob.ApproachShare, 0f);
         Check(Enumerable.Range(1, 60).All(w => share(w) == 0f), "0%: no approach at all");
         var hard = Difficulty.Of(DifficultyLevel.Hard);
@@ -78,6 +81,7 @@ static partial class Program
         gb.Diff.Set(DiffKnob.ApproachRamp, 1f);
         var on6 = wave(gb, 6);
         var w4 = wave(gb, 4);
+        var w5 = wave(gb, 5);  // the last wave before the Warden
         int themed4 = w4.Count(t => faction.Contains(t) && t != EnemyType.Rioter) + w4.Count(t => t == EnemyType.Rioter);
         Console.WriteLine("  wave 4 at Blend: {0} enemies, {1} of the Warden's ({2})", w4.Count, themed4,
             string.Join(" ", w4.Where(faction.Contains).GroupBy(t => t).Select(gr => gr.Key + "x" + gr.Count())));
@@ -101,9 +105,9 @@ static partial class Program
         var killXp = typeof(Game).GetMethod("KillXp", NP);
         var gx = new Session().Game;
         var rioter = new Enemy { Type = EnemyType.Rioter, Def = Defs.Enemies[(int)EnemyType.Rioter] };
-        gx.Wave = 3;
+        gx.Wave = 3; gx.BossSlot = false;
         float approachXp = (float)killXp.Invoke(gx, new object[] { rioter });
-        gx.Wave = 5;
+        gx.Wave = 5; gx.BossSlot = true;
         float riotXp = (float)killXp.Invoke(gx, new object[] { rioter });
         Check(approachXp == Defs.Enemies[(int)EnemyType.Rioter].Xp && riotXp == Game.RioterFodderXp && riotXp < approachXp,
             "a Rioter pays full XP in the approach, but the Warden's own riot keeps its fodder XP");
@@ -113,12 +117,12 @@ static partial class Program
         gb.Diff.Set(DiffKnob.ApproachShare, 0.85f);
         gb.Diff.Set(DiffKnob.ApproachRamp, 1f);
         Func<int, int> zombies = n => wave(gb, n).Count(Zombies.Is);
-        int z31 = zombies(31), z34 = zombies(34);
-        Console.WriteLine("  Lich approach at Blend: zombies in waves 30-35 = {0}", string.Join(", ", Enumerable.Range(30, 6).Select(zombies)));
-        Check(Game.ApproachBoss(32) == EnemyType.Lich && zombies(30) == 0 && zombies(35) == 0 && z31 > 0 && z34 > z31,
-            "the Lich's approach (waves 31-34) brings zombies, more each wave; none before it or on his wave");
-        var w34 = wave(gb, 34);
-        Check(w34.Count(t => t == EnemyType.Mender) >= 2 && w34.Any(t => !Zombies.Is(t)), "wave 34 has the Dead march and still has the usual mix");
+        int z31 = zombies(31), z35 = zombies(35);
+        Console.WriteLine("  Lich approach at Blend: zombies in waves 30-36 = {0}", string.Join(", ", Enumerable.Range(30, 7).Select(zombies)));
+        Check(Game.ApproachBoss(32) == EnemyType.Lich && zombies(30) == 0 && zombies(36) == 0 && z31 > 0 && z35 > z31,
+            "the Lich's approach (waves 31-35) brings zombies, more each wave; none before it or after his boss");
+        var w35 = wave(gb, 35);
+        Check(w35.Count(t => t == EnemyType.Mender) >= 2 && w35.Any(t => !Zombies.Is(t)), "wave 35 has the Dead march and still has the usual mix");
         gb.Diff.Set(DiffKnob.ApproachShare, 1f);
         gb.Diff.Set(DiffKnob.ApproachRamp, 0f);
         var full31 = wave(gb, 31);
@@ -313,7 +317,7 @@ static partial class Program
 
         // --- The Riot Line (the last wave before the Warden): shields march in a wall, guards behind, then charge --------
         var finale = Approaches.For(EnemyType.Boss).Finale;
-        Check(finale != null && w4.Count(t => t == EnemyType.RiotShield) >= 4 && w4.Count(t => t == EnemyType.Guard) >= 5,
+        Check(finale != null && w5.Count(t => t == EnemyType.RiotShield) >= 4 && w5.Count(t => t == EnemyType.Guard) >= 5,
             "the last wave before the Warden always brings the Riot Line (four Riot Shields, five Guards)");
         foreach (var e in g2.Enemies.Values) e.Hp = 0f;
         Run(s2, dt, 0.3f, null, () => { hold(); g2.Me.Pos = spot; });

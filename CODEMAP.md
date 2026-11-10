@@ -14,7 +14,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Practice.cs`: Practice Range plan and picker list
 - `PracticeRespawn.cs`: the Practice Range's Respawn and Restart wave (`Msg.Respawn`, `RequestRespawn`, `HostRespawn`, `RestartPracticeWave`); a Practice run never ends in a wipe (`CheckGameOver`)
 - `Training.cs`: the Training section's drills: `TrainingDrill` (name, group, goal, steps, a `PracticePlan`; the `.training` text format), `TrainingLibrary` (groups, built-in drills); `Docs/Training.md`
-- `Hunts.cs`: Boss Hunt mode (ten waves ending in a boss)
+- `Hunts.cs`: Boss Hunt mode (ten waves ending in a boss); the boss between waves of a run (`BossSlot`, `BossNow`, `BossNext`, `IsBossWave`: the boss follows every fifth regular wave and keeps its number; HANDOFF §2)
 - `Contraband.cs`: Contraband (the cycle chest on waves 6, 11, 16... when anyone has it; its holder's chest items are rare or better, in `Props.cs`)
 - `RiotGearLook.cs` (Game): Riot Gear's Plate look: the plate that swings toward incoming shots, the recharge ghost, the block effect (`FxKind.RiotBlock`) and the HUD chip above the XP strip
 - `RiotGear.cs`: Riot Gear's shield (`RiotBlocks`, called first in `Damage`; `TickRiot`; `PerksFor` picks who brings what at match start, `GivePerks` applies it on every screen); burns, gas, acid and lava ticks pass `overTime` and go through
@@ -320,6 +320,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 | Account rank, XP, cosmetics | `Rank.cs`, `Profile.cs`, `RankLook.cs`, `RankUi.cs`, `RankTrails.cs` (`Docs/Rank.md`) |
 | Shop and gold | `Shop.cs`, `ShopUi.cs` |
 | Power stacking (diminishing returns, wounds) | `Upgrades.cs` (`Compute`, `CopyStrength`), `Combat.cs` (`Player.Wound` in `Damage`, `HealCap` in every heal), `RunStats.cs` (`Heal`), `HealthBars.cs` (`DrawWound`), `HudPicker.cs` (`UpgradeNote`), `Tools/SimTest/Tests/Stacking.cs` (suite `stacking`); Docs/PowerStacking.md |
+| The boss between waves (BossSlot, BossNow/BossNext, negative start wave) | `Hunts.cs`, `Waves.cs` (`BossStartsNext`), `GameNet.cs` (snapshot), `SaveData.cs`/`RunSaves.cs` (`slot`), `DevTools.cs` (`DevJumpToWave(n, true)`), `Tools/SimTest/Tests/BossSlot.cs` (suite `bossslot`) |
 | Rooms vs Classic balance (bots) | `Tools/SimTest/Tests/ArenaBalance.cs` (report `arenabal`) |
 | Rooms arena (side rooms, hallways, doors) | `Rooms.cs` (`RoomsOn`, `ArenaMin` in `Paths.cs` grows to the world, `Walled`), `LayoutRules.cs` (`SteerDir`), `CameraZoom.cs` (`RoomsFocus`), `RoomsLook.cs`, `Tools/SimTest/Tests/RoomsArena.cs` (suite `wings`) |
 | Arena layouts (walls, edge gates) | `Layouts.cs` (floor plans), `LayoutRules.cs` (pick per cycle, `PushOutOfSolids`, `SolidStops`, spawn through gates, `LayoutDir` steering), `LayoutLook.cs`, `Tools/SimTest/Tests/Layouts.cs` |

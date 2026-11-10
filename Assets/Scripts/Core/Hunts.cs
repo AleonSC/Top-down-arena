@@ -50,15 +50,30 @@ namespace Arena
         /// The run's last wave: 50 (before endless), or a hunt's tenth.
         public int LastWave => Hunt != null ? Hunts.Length : MaxWave;
 
-        /// Does this wave bring a boss? Every fifth in a run; only the last in a hunt.
+        /// Does a boss belong to this wave? In a run the boss comes after every fifth regular wave, as its own fight that
+        /// doesn't use up a wave number (BossSlot); only the last wave of a hunt is a boss. For "is the boss being fought
+        /// (or just beaten)" ask BossNow, for "is the boss next" BossNext.
         public bool IsBossWave(int wave) => Hunt != null ? wave >= Hunts.Length : wave > 0 && wave % 5 == 0;
+
+        /// Run: the boss after regular wave `Wave` is being fought, or was beaten and the wave box is up. The wave counter
+        /// doesn't move for it (the next regular wave is Wave + 1). Replicated; saved (RunSaves.cs).
+        public bool BossSlot;
+
+        /// The wave being fought now (or just cleared) is a boss fight.
+        public bool BossNow => Hunt != null ? IsBossWave(Wave) : BossSlot;
+
+        /// The next fight to start is a boss (the wave box between waves shows it).
+        public bool BossNext => Hunt != null ? IsBossWave(Wave + 1) : !BossSlot && IsBossWave(Wave);
+
+        /// Host: the fight that starts next is the boss after wave `Wave` (and not wave `Wave + 1`).
+        bool BossStartsNext => Hunt == null && Practice == null && !BossSlot && IsBossWave(Wave);
 
         /// The boss of this wave, or of the next boss wave after it.
         public EnemyType BossAt(int wave) => Hunt != null ? Hunt.Boss : BossForWave(wave);
 
         /// The boss wave being fought now (fighting on a boss wave) or coming next.
         public int NextBossWave(int wave, bool fighting) =>
-            Hunt != null ? Hunts.Length : IsBossWave(wave) && fighting ? wave : (wave / 5 + 1) * 5;
+            Hunt != null ? Hunts.Length : BossSlot ? (fighting ? wave : (wave / 5 + 1) * 5) : Math.Max(5, (wave + 4) / 5 * 5);
 
         /// The approach's boss and its step (1-4; 0 on a boss wave), for a run or a hunt (Approaches.cs, ApproachUi.cs).
         public EnemyType ApproachBossAt(int wave) => Hunt != null ? Hunt.Boss : ApproachBoss(wave);

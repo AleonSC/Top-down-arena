@@ -5,7 +5,7 @@ guesses to tune in play-testing and the Boss Lab.
 
 ## The idea
 
-The bosses always come in the same order (Warden at 5, Hive Queen at 10, ... Eclipse at 50). The four regular waves
+The bosses always come in the same order (Warden after wave 5, Hive Queen after 10, ... Eclipse after 50, each its own fight between waves). The five regular waves
 before each boss become its **approach**: part of each wave is the boss's own kind of enemy (prisoners and guards
 before the Warden, bees before the Hive Queen...). You meet the boss's world, and learn its enemies, on the way to
 it. The rest of each wave stays the usual random mix, so runs keep their variety.
@@ -31,7 +31,7 @@ waves in play and keep whichever feels better (or leave it to each lobby).
    unlocked pool).
 3. The wave before the boss shows a small banner as it starts: "The Warden is near" (the boss's name), and the wave
    panel's chip says "Approach · The Warden".
-4. The boss wave itself is unchanged.
+4. The boss fight itself is unchanged. (Steps 1-4 are waves 1-4 of a cycle; wave 5 is step 4 again and brings the set piece.)
 
 ## The setting: Boss approach
 

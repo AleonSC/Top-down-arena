@@ -175,7 +175,7 @@ namespace Arena
         PathId weatherPath = PathId.None;
         float weatherFade;  // 0 to 1: weather fades in as a path starts, and out as it ends
 
-        PathId WeatherPath() => game.OnPath && game.Wave % 5 != 0 && game.State != MatchState.GameOver ? game.CurrentPath : PathId.None;
+        PathId WeatherPath() => game.OnPath && !game.BossNow && game.State != MatchState.GameOver ? game.CurrentPath : PathId.None;
 
         void UpdateWeather(float dt)
         {

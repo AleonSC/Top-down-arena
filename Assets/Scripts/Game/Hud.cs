@@ -157,7 +157,7 @@ namespace Arena
                     if (pr != null)
                         DrawBanner(game.PracticeIndex < 0 ? "PRACTICE RANGE" : "PRACTICE WAVE " + (game.PracticeIndex + 1) + " CLEARED", sub, Ui.Accent);
                     else
-                        DrawBanner(game.Wave == 0 ? "GET READY" : "WAVE " + game.Wave + " CLEARED", sub, game.IsBossWave(game.Wave) ? Ui.Gold : Ui.Accent);
+                        DrawBanner(game.Wave == 0 ? "GET READY" : game.BossNow ? "BOSS CLEARED" : "WAVE " + game.Wave + " CLEARED", sub, game.BossNow ? Ui.Gold : Ui.Accent);
                     if (pr == null)
                         DrawNewEnemyChips(BandRect.yMax + 14f, Mathf.Clamp01((Time.unscaledTime - bandShownAt) / 0.4f));
                     break;
@@ -350,9 +350,9 @@ namespace Arena
             }
             plateMax = Math.Max(plateMax, game.Remaining);
             var practice = game.Practice;
-            bool bossWave = practice != null ? BossUp() : game.IsBossWave(game.Wave);
+            bool bossWave = practice != null ? BossUp() : game.BossNow;
             Color ink = bossWave ? Ui.Gold : CrtUi.Ink, dim = bossWave ? new Color(Ui.Gold.r * 0.7f, Ui.Gold.g * 0.7f, Ui.Gold.b * 0.5f) : CrtUi.Dim;
-            string head = practice != null ? "PRACTICE  ·  LV " + game.Wave : game.Hunt != null ? (bossWave ? "HUNT  ·  BOSS" : "HUNT  ·  WAVE") : bossWave ? "BOSS WAVE" : "WAVE";
+            string head = practice != null ? "PRACTICE  ·  LV " + game.Wave : game.Hunt != null ? (bossWave ? "HUNT  ·  BOSS" : "HUNT  ·  WAVE") : bossWave ? "BOSS FIGHT" : "WAVE";
             HudCrt(new Rect(r.x + 14f, r.y + 5f, 150f, 16f), head, 17, dim);
             string num = practice != null ? Math.Max(1, game.PracticeIndex + 1).ToString() : game.Hunt != null ? game.HuntWave.ToString() : game.Wave.ToString();
             HudCrt(new Rect(r.x + 12f, r.y + 14f, 120f, 46f), num, 54, ink);

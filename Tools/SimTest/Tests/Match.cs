@@ -532,10 +532,11 @@ static partial class Program
         Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
         foreach (int id in new[] { 1, 2 })
         {
-            for (int k = 0; k < 20; k++) host.Game.GrantUpgrade(id, U("Fortitude"));
-            for (int k = 0; k < 15; k++) host.Game.GrantUpgrade(id, U("Hollow Points"));
+            for (int k = 0; k < 40; k++) host.Game.GrantUpgrade(id, U("Fortitude"));
+            for (int k = 0; k < 25; k++) host.Game.GrantUpgrade(id, U("Hollow Points"));
         }
-        Run(s, dt, 120, () => host.Game.Wave >= 6 && host.Game.State == MatchState.Fighting || host.Game.State == MatchState.GameOver);
+        Run(s, dt, 600, () => host.Game.Wave >= 6 && host.Game.State == MatchState.Fighting || host.Game.State == MatchState.GameOver);  // (wave 5, then its boss)
+        Console.WriteLine("  session test reached wave {0}, boss slot {1}, state {2}, run time {3:0}", host.Game.Wave, host.Game.BossSlot, host.Game.State, host.Game.RunTime);
         // Make sure someone has been hurt and regenerates, however cleanly the bots played (healing by source is checked below).
         typeof(Game).GetMethod("Damage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
             .Invoke(host.Game, new object[] { host.Game.Players[1], 20f, "test" });
@@ -625,7 +626,7 @@ static partial class Program
         Check(me.Run.DamageTaken == taken && !me.Downed && s[1].Game.Players[1].DevGod, "god mode takes no damage (and the other player sees it)");
         host.DevSetGod(1, false);
 
-        host.DevJumpToWave(10);
+        host.DevJumpToWave(10, true);
         Run(s, dt, 6, () => Find(s[1], EnemyType.HiveQueen) != null);
         Console.WriteLine("  dev jump: client on wave {0}, queen there {1}", s[1].Game.Wave, Find(s[1], EnemyType.HiveQueen) != null);
         Check(s[1].Game.Wave == 10 && Find(s[1], EnemyType.HiveQueen) != null, "jumping to wave 10 starts it (with its boss) for everyone");

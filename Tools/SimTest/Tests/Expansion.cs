@@ -201,10 +201,10 @@ static partial class Program
         }
         Check(inRooms && inNew, "enemies come in inside a room, never in the gaps between them, and the new room gets some");
         int w0 = g.Wave;
-        g.Wave = 10;
+        g.Wave = 10; g.BossSlot = true;
         pickRooms.Invoke(g, null);
         Check(g.IsBossWave(g.Wave) && !g.RoomsUp, "a boss wave is fought in the hub alone");
-        g.Wave = w0;
+        g.Wave = w0; g.BossSlot = (w0) % 5 == 0 && (w0) > 0;
         pickRooms.Invoke(g, null);
 
         // A tie goes to the room, not to buying nothing; buying nothing keeps the purse.

@@ -31,7 +31,7 @@ static partial class Program
         Func<int, int> chests = wave =>
         {
             int n = 0, oldWave = g.Wave;
-            g.Wave = wave;
+            g.Wave = wave; g.BossSlot = (wave) % 5 == 0 && (wave) > 0;
             for (int i = 0; i < 30; i++)
             {
                 foreach (var key in g.Props.Keys.ToList()) g.Props.Remove(key);
@@ -39,7 +39,7 @@ static partial class Program
                 if (g.Props.Values.Any(p => p.Kind == PropKind.Chest)) n++;
             }
             foreach (var key in g.Props.Keys.ToList()) g.Props.Remove(key);
-            g.Wave = oldWave;
+            g.Wave = oldWave; g.BossSlot = (oldWave) % 5 == 0 && (oldWave) > 0;
             return n;
         };
 

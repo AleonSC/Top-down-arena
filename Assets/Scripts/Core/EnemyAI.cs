@@ -113,7 +113,7 @@ namespace Arena
             spawnQueue.Clear();
             squadQueue.Clear();
             bossRewarded = false;
-            if (IsBossWave(n))
+            if (Hunt != null ? IsBossWave(n) : BossSlot)
             {
                 switch (BossAt(n))  // (a hunt's boss on its last wave; Hunts.cs)
                 {
