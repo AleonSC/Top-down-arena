@@ -84,7 +84,7 @@ namespace Arena
         {
             var panel = DevPanel;
             Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.55f));
-            Ui.Panel(panel, true);
+            DkPanel(panel);
             Ui.Title(new Rect(panel.x, panel.y + 14f, panel.width, 36f), "BOSS LAB", 28, Color.white);
             Ui.Label(new Rect(panel.x, panel.y + 48f, panel.width, 18f), "Bots fight a boss on the real game so you can watch it play out. Esc to close.", 12, Ui.Muted, TextAnchor.MiddleCenter);
 
@@ -95,7 +95,7 @@ namespace Arena
             {
                 int wave = BossLab.BossWaves[i];
                 var r = new Rect(x + (i % 2) * (w / 2f + 2f), y + (i / 2) * 34f, w / 2f - 2f, 30f);
-                if (Ui.Choice(r, wave + "  " + LabBossName(wave), lab.Wave == wave, Ui.Gold))
+                if (DkChoice(r, wave + "  " + LabBossName(wave), lab.Wave == wave, Ui.Gold))
                     lab.Wave = wave;
             }
             y += 5 * 34f + 12f;
@@ -104,7 +104,7 @@ namespace Arena
             y += 28f;
             var skills = new[] { BotSkill.Casual, BotSkill.Good, BotSkill.Expert };
             for (int i = 0; i < 3; i++)
-                if (Ui.Choice(new Rect(x + i * (w / 3f + 1f), y, w / 3f - 2f, 30f), skills[i].ToString(), lab.Skill == skills[i], Ui.Primary))
+                if (DkChoice(new Rect(x + i * (w / 3f + 1f), y, w / 3f - 2f, 30f), skills[i].ToString(), lab.Skill == skills[i], Ui.Primary))
                     lab.Skill = skills[i];
             y += 34f;
             Ui.Label(new Rect(x, y, w, 30f), lab.Skill == BotSkill.Casual ? "Reacts late, loses track of bullets in a crowd." :
@@ -114,15 +114,15 @@ namespace Arena
             Ui.Heading(x, y, w, "Upgrades");
             y += 28f;
             int picks = lab.PicksFor;
-            if (Ui.Button(new Rect(x, y, 34f, 30f), "-"))
+            if (DkKey(new Rect(x, y, 34f, 30f), "-", Ui.Neutral))
                 lab.Picks = Math.Max(0, picks - 1);
             Ui.Label(new Rect(x + 38f, y, 150f, 30f), picks + " picks" + (lab.Picks < 0 ? " (typical)" : ""), 14, Ui.Text, TextAnchor.MiddleCenter, true);
-            if (Ui.Button(new Rect(x + 192f, y, 34f, 30f), "+"))
+            if (DkKey(new Rect(x + 192f, y, 34f, 30f), "+", Ui.Neutral))
                 lab.Picks = picks + 1;
-            if (lab.Picks >= 0 && Ui.Button(new Rect(x + 232f, y, 68f, 30f), "Typical"))
+            if (lab.Picks >= 0 && DkKey(new Rect(x + 232f, y, 68f, 30f), "Typical", Ui.Neutral))
                 lab.Picks = -1;
             y += 36f;
-            lab.Legendaries = Ui.Toggle(new Rect(x, y, w, 26f), lab.Legendaries, "Legendary + mod from earlier bosses");
+            lab.Legendaries = DkSwitch(new Rect(x, y, w, 26f), lab.Legendaries, "Legendary + mod from earlier bosses");
             y += 28f;
             Ui.Label(new Rect(x, y, w, 30f), "Random picks, like a level-up each. Ability mastery is set for the wave too.", 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
 
@@ -131,16 +131,16 @@ namespace Arena
             float ry = panel.y + 82f;
             Ui.Heading(rx, ry, rw, "Party");
             for (int n = 1; n <= 3; n++)
-                if (Ui.Choice(new Rect(rx + rw - (4 - n) * 92f, ry - 4f, 88f, 26f), n + (n == 1 ? " player" : " players"), lab.PlayerCount == n, Ui.Primary))
+                if (DkChoice(new Rect(rx + rw - (4 - n) * 92f, ry - 4f, 88f, 26f), n + (n == 1 ? " player" : " players"), lab.PlayerCount == n, Ui.Primary))
                     lab.PlayerCount = n;
             ry += 30f;
             for (int i = 0; i < lab.PlayerCount; i++)
                 ry = DrawLabSeat(i, rx, ry, rw) + 8f;
 
             var start = new Rect(panel.xMax - 28f - 220f, panel.yMax - 58f, 220f, 40f);
-            if (Ui.Button(start, "Start fight", Ui.Primary))
+            if (DkKey(start, "Start fight", Ui.Primary))
                 StartLab();
-            if (Ui.Button(new Rect(start.x - 130f, start.y, 120f, 40f), "Close"))
+            if (DkKey(new Rect(start.x - 130f, start.y, 120f, 40f), "Close", Ui.Neutral))
                 labSetupOpen = false;
             if (session.Status.Length > 0 && session.Screen == AppScreen.Menu)
                 Ui.Label(new Rect(x, start.y, start.x - 150f - x, 40f), session.Status, 12, Ui.Warn, TextAnchor.MiddleLeft, false, true);
@@ -155,7 +155,7 @@ namespace Arena
             float ix = x + 12f, iw = w - 24f, iy = y + 8f;
             Ui.Label(new Rect(ix, iy, 200f, 20f), "Player " + (i + 1), 14, Color.white, TextAnchor.MiddleLeft, true);
             if (i == 0)
-                s.Human = Ui.Toggle(new Rect(ix + iw - 170f, iy - 2f, 170f, 24f), s.Human, "I'll play this one");
+                s.Human = DkSwitch(new Rect(ix + iw - 170f, iy - 2f, 170f, 24f), s.Human, "I'll play this one");
             else
                 Ui.Label(new Rect(ix + iw - 170f, iy, 170f, 20f), "Bot", 12, Ui.Muted, TextAnchor.MiddleRight);
             iy += 26f;
@@ -165,7 +165,7 @@ namespace Arena
                 float cw = (iw - lw) / names.Length;
                 Ui.Label(new Rect(ix, iy, lw, 26f), label, 11, Ui.Muted, TextAnchor.MiddleLeft, true);
                 for (int k = 0; k < names.Length; k++)
-                    if (Ui.Choice(new Rect(ix + lw + k * cw, iy, cw - 3f, 26f), names[k], sel == k, ToColor(Defs.Get(s.Role).Color)))
+                    if (DkChoice(new Rect(ix + lw + k * cw, iy, cw - 3f, 26f), names[k], sel == k, ToColor(Defs.Get(s.Role).Color)))
                         set(k);
                 iy += 28f;
             };
@@ -195,10 +195,10 @@ namespace Arena
 
             // Speed
             float bw = (w - 4f * 3f) / 5f;
-            if (Ui.Choice(new Rect(x, y, bw, 24f), labPaused ? "Play" : "Pause", labPaused, Ui.Gold))
+            if (DkChoice(new Rect(x, y, bw, 24f), labPaused ? "Play" : "Pause", labPaused, Ui.Gold))
                 labPaused = !labPaused;
             for (int i = 0; i < LabSpeeds.Length; i++)
-                if (Ui.Choice(new Rect(x + (i + 1) * (bw + 3f), y, bw, 24f), LabSpeeds[i] + "x", !labPaused && labSpeed == LabSpeeds[i], Ui.Primary))
+                if (DkChoice(new Rect(x + (i + 1) * (bw + 3f), y, bw, 24f), LabSpeeds[i] + "x", !labPaused && labSpeed == LabSpeeds[i], Ui.Primary))
                 {
                     labSpeed = LabSpeeds[i];
                     labPaused = false;
@@ -235,14 +235,14 @@ namespace Arena
             }
 
             float by = r.yMax - 32f, third = (w - 6f) / 3f;
-            if (Ui.Button(new Rect(x, by, third, 26f), "Restart"))
+            if (DkKey(new Rect(x, by, third, 26f), "Restart", Ui.Neutral))
                 StartLab();
-            if (Ui.Button(new Rect(x + third + 3f, by, third, 26f), "Setup"))
+            if (DkKey(new Rect(x + third + 3f, by, third, 26f), "Setup", Ui.Neutral))
             {
                 StopLab();
                 labSetupOpen = true;
             }
-            if (Ui.Button(new Rect(x + 2f * (third + 3f), by, third, 26f), "Exit", Ui.Danger))
+            if (DkKey(new Rect(x + 2f * (third + 3f), by, third, 26f), "Exit", Ui.Danger))
                 StopLab();
 
             if (lab.Outcome != LabOutcome.Running)
@@ -273,7 +273,7 @@ namespace Arena
         {
             var r = new Rect(W / 2f - 230f, H / 2f - 110f, 460f, 200f);
             Color accent = lab.Outcome == LabOutcome.Won ? Ui.Good : lab.Outcome == LabOutcome.Lost ? Ui.Danger : Ui.Warn;
-            Ui.Card(r, accent, 0.85f);
+            DkBox(r, accent, 0.85f);
             string title = lab.Outcome == LabOutcome.Won ? "BOSS DOWN" : lab.Outcome == LabOutcome.Lost ? "PARTY WIPED" : "TIME'S UP";
             Ui.Title(new Rect(r.x, r.y + 16f, r.width, 36f), title, 28, Color.white);
             int downs = lab.Stats.Values.Sum(s => s.Downs);
@@ -281,14 +281,14 @@ namespace Arena
             Ui.Label(new Rect(r.x, r.y + 60f, r.width, 20f), string.Format("{0} in {1:0} s  ·  boss health left {2}%", lab.BossName, lab.FightTime, Mathf.RoundToInt(lab.BossHpFrac * 100f)), 14, Ui.Text, TextAnchor.MiddleCenter, true);
             Ui.Label(new Rect(r.x, r.y + 84f, r.width, 20f), string.Format("team damage taken {0:0}  ·  downs {1}  ·  boss DPS {2:0}", taken, downs, lab.TeamBossDps), 13, Ui.Muted, TextAnchor.MiddleCenter);
             float bw = 130f, bx = r.x + (r.width - 3f * bw - 16f) / 2f, by = r.yMax - 56f;
-            if (Ui.Button(new Rect(bx, by, bw, 36f), "Run again", Ui.Primary))
+            if (DkKey(new Rect(bx, by, bw, 36f), "Run again", Ui.Primary))
                 StartLab();
-            if (Ui.Button(new Rect(bx + bw + 8f, by, bw, 36f), "Change setup"))
+            if (DkKey(new Rect(bx + bw + 8f, by, bw, 36f), "Change setup", Ui.Neutral))
             {
                 StopLab();
                 labSetupOpen = true;
             }
-            if (Ui.Button(new Rect(bx + 2f * (bw + 8f), by, bw, 36f), "Exit lab"))
+            if (DkKey(new Rect(bx + 2f * (bw + 8f), by, bw, 36f), "Exit lab", Ui.Neutral))
                 StopLab();
         }
     }

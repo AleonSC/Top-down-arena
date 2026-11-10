@@ -295,22 +295,22 @@ namespace Arena
             int n = 0;
             if (s.CurrentPath != PathId.None && s.PathTo > s.Wave && n < max)
             {
-                Ui.Badge(new Rect(x + n * (w + gap), y, w, 20f), Game.PathName(s.CurrentPath).ToUpperInvariant(), new Color(0.55f, 0.4f, 0.85f));
+                DkTag(new Rect(x + n * (w + gap), y, w, 20f), Game.PathName(s.CurrentPath).ToUpperInvariant(), new Color(0.55f, 0.4f, 0.85f));
                 n++;
             }
             if (s.Diff.Level != DifficultyLevel.Normal && n < max)
             {
-                Ui.Badge(new Rect(x + n * (w + gap), y, w, 20f), s.Diff.Name.ToUpperInvariant(), DiffBadgeColor(s.Diff.Level));
+                DkTag(new Rect(x + n * (w + gap), y, w, 20f), s.Diff.Name.ToUpperInvariant(), DiffBadgeColor(s.Diff.Level));
                 n++;
             }
             int mods = Modifiers.Count(s.Mods);
             if (mods > 0 && n < max)
             {
-                Ui.Badge(new Rect(x + n * (w + gap), y, w, 20f), mods + (mods == 1 ? " MODIFIER" : " MODIFIERS"), ModColor);
+                DkTag(new Rect(x + n * (w + gap), y, w, 20f), mods + (mods == 1 ? " MODIFIER" : " MODIFIERS"), ModColor);
                 n++;
             }
             if (s.DevUsed && n < max)
-                Ui.Badge(new Rect(x + n * (w + gap), y, w, 20f), "DEV TOOLS USED", Ui.Neutral);
+                DkTag(new Rect(x + n * (w + gap), y, w, 20f), "DEV TOOLS USED", Ui.Neutral);
         }
 
         // --- What the profile's Records tab reads (ProfileUi.cs) ----------------------------------------
@@ -355,7 +355,7 @@ namespace Arena
                         sitter = e;
                 bool mine = sitter != null && sitter.Id == session.MyId;
                 var r = new Rect(body.x, y, body.width, 104f);
-                Ui.Card(r, color, mine ? 0.85f : 0.3f);
+                DkBox(r, color, mine ? 0.85f : 0.3f);
                 var face = new Rect(r.x + 12f, r.y + 12f, 80f, 80f);
                 Ui.Pill(face, new Color(color.r * 0.25f, color.g * 0.25f, color.b * 0.25f, 0.9f));
                 if (BeginUiGl())
@@ -370,10 +370,10 @@ namespace Arena
                 Ui.Label(new Rect(tx, r.y + 62f, 460f, 20f), Defs.Weapon(seat.Role, seat.Kit, seat.Weapon).Name + "  ·  " + Upgrades.Ability(Upgrades.RoleAbility(seat.Role, seat.Kit, seat.Ability)).Name, 12, Ui.Muted);
                 var who = new Rect(r.xMax - 210f, r.y + 16f, 196f, 24f);
                 if (sitter != null)
-                    Ui.Badge(who, mine ? "YOU" : sitter.Name.ToUpperInvariant(), mine ? Ui.Accent : Ui.Neutral);
+                    DkTag(who, mine ? "YOU" : sitter.Name.ToUpperInvariant(), mine ? Ui.Accent : Ui.Neutral);
                 else
                 {
-                    Ui.Badge(who, "FREE SEAT", new Color(0.3f, 0.34f, 0.42f));
+                    DkTag(who, "FREE SEAT", new Color(0.3f, 0.34f, 0.42f));
                     if (LobbyKit.Key(new Rect(r.xMax - 210f, r.y + 54f, 196f, 36f), "TAKE THIS SEAT", false, fxReduced, size: 18, minSize: 12))
                         session.RequestSeat(i);
                 }

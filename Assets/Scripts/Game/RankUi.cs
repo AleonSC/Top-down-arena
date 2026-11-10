@@ -154,20 +154,20 @@ namespace Arena
 
             // Left: you.
             var left = new Rect(r.x, r.y, 700f, r.height);
-            Ui.Card(left, up ? Ui.Gold : col, up ? 0.9f : 0.6f);
+            DkBox(left, up ? Ui.Gold : col, up ? 0.9f : 0.6f);
             Ui.Label(new Rect(left.x + 26f, left.y + 16f, 300f, 16f), "YOUR RANK", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
             float crossAt = barAt + 1.7f * 0.5f, since = rt - crossAt;
             float pop = up ? 1f + 0.22f * Mathf.Max(0f, Mathf.Sin(Mathf.Clamp(since * 4f, 0f, Mathf.PI))) : 1f;
             float bs = 112f * pop;
             RankLook.Draw(new Rect(left.x + 26f + (112f - bs) / 2f, left.y + 40f + (112f - bs) / 2f, bs, bs), info.Rank);
-            Ui.Fancy(new Rect(left.x + 156f, left.y + 40f, 380f, 36f), nameText, 28, Color.white, Color.Lerp(col, Color.white, 0.4f), TextAnchor.MiddleLeft, new Color(col.r, col.g, col.b, 0.4f));
+            DkTitle(new Rect(left.x + 156f, left.y + 40f, 380f, 36f), nameText, 28, Color.Lerp(col, Color.white, 0.4f), TextAnchor.MiddleLeft);
             Ui.Label(new Rect(left.x + 156f, left.y + 78f, 320f, 22f), Rank.Title(info.Rank) + "  ·  Rank " + info.Rank, 16, col, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(left.xMax - 226f, left.y + 78f, 200f, 22f), info.Into.ToString("N0") + " / " + info.Need.ToString("N0") + " XP", 14, Ui.Text, TextAnchor.MiddleRight, true);
             Ui.Bar(new Rect(left.x + 156f, left.y + 112f, left.width - 182f, 20f), info.Fraction, col);
             if (up && since > 0f && since < 0.5f)  // a flash across the bar as the rank turns over
                 Ui.Fill(new Rect(left.x + 156f, left.y + 112f, left.width - 182f, 20f), new Color(1f, 1f, 1f, 0.5f * (1f - since / 0.5f)));
             if (up && since > 0f)
-                Ui.Fancy(new Rect(left.x + 330f, left.y + 36f, 340f, 40f), "RANK UP!", 30, Color.white, Ui.Gold, TextAnchor.MiddleRight, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.6f * Mathf.Clamp01(since * 3f)));
+                DkTitle(new Rect(left.x + 330f, left.y + 36f, 340f, 40f), "RANK UP!", 30, Ui.Gold, TextAnchor.MiddleRight);
 
             // The breakdown ticking in.
             float y = left.y + 158f;
@@ -194,7 +194,7 @@ namespace Arena
 
             // Right, top: the party's ranks.
             var party = new Rect(r.x + 720f, r.y, r.width - 720f, 196f);
-            Ui.Card(party, Ui.Accent, 0.5f);
+            DkBox(party, Ui.Accent, 0.5f);
             Ui.Label(new Rect(party.x + 22f, party.y + 14f, 200f, 16f), "PARTY", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
             float py = party.y + 38f;
             foreach (var pl in game.Players.Values)
@@ -211,7 +211,7 @@ namespace Arena
 
             // Right, bottom: the reward you earned, or the next one.
             var rw = new Rect(party.x, party.yMax + 16f, party.width, r.yMax - party.yMax - 16f);
-            Ui.Card(rw, Ui.Gold, 0.4f);
+            DkBox(rw, Ui.Gold, 0.4f);
             LadderRow shown = null;
             bool earned = false;
             if (g.Unlocked.Count > 0)
@@ -234,7 +234,7 @@ namespace Arena
             else
             {
                 DrawRewardPreview(new Rect(rw.x + 22f, rw.y + 38f, rw.width - 44f, 110f), shown, now, !(earned && got));
-                Ui.Fancy(new Rect(rw.x + 22f, rw.y + 154f, rw.width - 44f, 32f), shown.Name, 22, Color.white, earned && got ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter);
+                DkTitle(new Rect(rw.x + 22f, rw.y + 154f, rw.width - 44f, 32f), shown.Name, 22, earned && got ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter);
                 string line = earned && got ? shown.Kind + ". Equip it from your name chip on the main menu."
                     : shown.Kind + "  ·  rank " + shown.Rank + "  ·  " + Mathf.Max(0L, Rank.XpAt(shown.Rank) - (g.Before + (long)(g.Award.Total * Ease(k)))).ToString("N0") + " XP to go";
                 Ui.Label(new Rect(rw.x + 22f, rw.y + 188f, rw.width - 44f, 36f), line, 12, Ui.Muted, TextAnchor.UpperCenter, false, true);
@@ -248,7 +248,7 @@ namespace Arena
             if (row.Cosmetic == null)
             {
                 int rk = row.Rank;
-                Ui.Fancy(b, row.Name, 34, Color.white, RankLook.TierColor(rk), TextAnchor.MiddleCenter, new Color(0.4f, 0.5f, 0.8f, 0.3f));
+                DkTitle(b, row.Name, 34, RankLook.TierColor(rk), TextAnchor.MiddleCenter);
             }
             else if (row.Cosmetic.Kind == CosmeticKind.NameEffect)
                 DrawName(b, nameText, 26, Rank.NameFxIndex(row.Cosmetic.Id), t, Color.white, TextAnchor.MiddleCenter);
@@ -260,7 +260,7 @@ namespace Arena
             else if (row.Cosmetic.Kind == CosmeticKind.CardBackground)
             {
                 var card = new Rect(b.x + 10f, b.y + b.height / 2f - 30f, b.width - 20f, 60f);
-                Ui.Card(card, Ui.Accent, 0.6f);
+                DkBox(card, Ui.Accent, 0.6f);
                 DrawCardBackground(card, Rank.CardBgIndex(row.Cosmetic.Id), t);
                 Ui.Label(new Rect(card.x + 12f, card.y, card.width - 24f, card.height), nameText, 18, Color.white, TextAnchor.MiddleLeft, true);
             }

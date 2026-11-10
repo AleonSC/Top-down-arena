@@ -262,7 +262,7 @@ namespace Arena
                 DrawFrameCard(r, frame, t, true, bg);  // FrameLooks.cs
             else
             {
-                Ui.Card(r, Ui.Accent, 0.85f);
+                DkBox(r, Ui.Accent, 0.85f);
                 DrawCardBackground(r, bg, t);  // CardBackgrounds.cs
             }
             var face = new Rect(r.x + 8f, r.y + 8f, 72f, 72f);
@@ -423,7 +423,7 @@ namespace Arena
                 var kc = LadderKindColor(next.Kind);
                 Ui.Label(new Rect(box.x + 16f, box.y + 14f, box.width - 32f, 18f), "NEXT REWARD  ·  RANK " + next.Rank, 11, Ui.Gold, TextAnchor.MiddleCenter, true);
                 DrawRewardPreview(new Rect(box.x + 16f, box.y + 40f, box.width - 32f, 120f), next, t, false);
-                Ui.Fancy(new Rect(box.x + 12f, box.y + 170f, box.width - 24f, 34f), next.Name, 22, Color.white, Ui.Gold, TextAnchor.MiddleCenter);
+                DkTitle(new Rect(box.x + 12f, box.y + 170f, box.width - 24f, 34f), next.Name, 22, Ui.Gold, TextAnchor.MiddleCenter);
                 Ui.Icon(new Rect(box.center.x - Ui.TextWidth(next.Kind.ToUpper(), 11, true) / 2f - 20f, box.y + 210f, 14f, 14f), PixelArt.Get(LadderKindIcon(next.Kind)), kc);
                 Ui.Label(new Rect(box.x + 12f, box.y + 208f, box.width - 24f, 18f), next.Kind.ToUpper(), 11, kc, TextAnchor.MiddleCenter, true);
                 long have = p.Xp, from = Rank.XpAt(rank), to = Rank.XpAt(next.Rank);

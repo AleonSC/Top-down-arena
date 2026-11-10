@@ -89,7 +89,7 @@ namespace Arena
             Ui.Pill(r, new Color(0.35f, 0.25f, 0.05f, 0.92f));
             Ui.Label(new Rect(r.x + 14f, r.y, r.width - 110f, r.height), "TEXT EDIT  ·  click any text to change it  ·  F4 or Esc to stop"
                 + (TextOverrides.Count > 0 ? "  ·  " + TextOverrides.Count + " edited" : ""), 11, Ui.Gold, TextAnchor.MiddleLeft, true);
-            if (Ui.SmallButton(new Rect(r.xMax - 78f, r.y + 4f, 70f, r.height - 8f), "Done", Ui.GoldButton, 11))
+            if (DkKey(new Rect(r.xMax - 78f, r.y + 4f, 70f, r.height - 8f), "Done", Ui.GoldButton, false, 11))
                 SetTextEditMode(false);
         }
 
@@ -97,9 +97,9 @@ namespace Arena
         {
             var p = new Rect(W / 2f - 330f, H / 2f - 190f, 660f, 380f);
             Ui.Fill(new Rect(0, 0, W, H), new Color(0f, 0f, 0f, 0.45f));
-            Ui.Panel(p, true);
+            DkPanel(p);
             float x = p.x + 24f, w = p.width - 48f, y = p.y + 16f;
-            Ui.Fancy(new Rect(x, y, w, 30f), "EDIT TEXT", 22, Color.white, new Color(1f, 0.85f, 0.5f), TextAnchor.MiddleLeft, Ui.Gold);
+            DkTitle(new Rect(x, y, w, 30f), "EDIT TEXT", 22, new Color(1f, 0.85f, 0.5f), TextAnchor.MiddleLeft);
             y += 38f;
             Ui.Label(new Rect(x, y, w, 16f), "ORIGINAL (IN THE CODE)", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
             y += 18f;
@@ -122,7 +122,7 @@ namespace Arena
                 : "The same text anywhere else in the game changes too.");
             Ui.Label(new Rect(x, y, w, 32f), note, 11, problem != null ? Ui.Warn : Ui.Muted, TextAnchor.UpperLeft, false, true);
             y += 36f;
-            if (Ui.Button(new Rect(x, y, 140f, 36f), "Save", problem == null ? Ui.Primary : Ui.Neutral) && problem == null)
+            if (DkKey(new Rect(x, y, 140f, 36f), "Save", problem == null ? Ui.Primary : Ui.Neutral) && problem == null)
             {
                 TextOverrides.Set(textEditOriginal, textEditBuffer);
                 try
@@ -135,13 +135,13 @@ namespace Arena
                     textEditNote = "Couldn't save: " + e.Message;
                 }
             }
-            if (TextOverrides.Has(textEditOriginal) && Ui.Button(new Rect(x + 150f, y, 170f, 36f), "Back to original", Ui.Danger))
+            if (TextOverrides.Has(textEditOriginal) && DkKey(new Rect(x + 150f, y, 170f, 36f), "Back to original", Ui.Danger))
             {
                 TextOverrides.Remove(textEditOriginal);
                 try { TextOverrides.Save(TextOverridePath); } catch (Exception) { }
                 textEditOpen = false;
             }
-            if (Ui.Button(new Rect(p.xMax - 24f - 120f, y, 120f, 36f), "Cancel"))
+            if (DkKey(new Rect(p.xMax - 24f - 120f, y, 120f, 36f), "Cancel", Ui.Neutral))
                 textEditOpen = false;
             Ui.Label(new Rect(x, p.yMax - 30f, w, 18f), "Saved to " + TextOverridePath + "  ·  into the code: python3 Tools/TextEdits/fold.py", 10, Ui.Muted);
         }

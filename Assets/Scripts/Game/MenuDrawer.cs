@@ -68,7 +68,7 @@ namespace Arena
         void PartyCompact(Rect r, Player p)
         {
             var col = ToColor(p.Def.Color);
-            Ui.Card(r, col, p.Id == game.MyId ? 0.4f : 0.15f);
+            DkBox(r, col, p.Id == game.MyId ? 0.4f : 0.15f);
             var art = new Rect(r.x + 2f, r.y + 2f, r.height - 4f, r.height - 4f);
             Ui.Pill(art, new Color(col.r * 0.15f, col.g * 0.15f, col.b * 0.15f, 0.95f));
             Ui.Icon(new Rect(art.center.x - 15f, art.center.y - 15f, 30f, 30f), PixelArt.Get("class_" + Defs.KitName(p.Kit).ToLowerInvariant()));
@@ -506,7 +506,7 @@ namespace Arena
             Ui.Label(new Rect(x, y, 200f, 14f), game.Practice != null ? "PRACTICE RANGE" : "THIS RUN", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
             y += 18f;
             string wave = game.Practice != null ? "WAVE " + Mathf.Max(1, game.PracticeIndex + 1) : "WAVE " + Mathf.Max(1, game.Wave);
-            Ui.Fancy(new Rect(x, y, 260f, 48f), wave, 38, Color.white, Ui.Gold, TextAnchor.MiddleLeft, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.5f));
+            DkTitle(new Rect(x, y, 260f, 48f), wave, 38, Ui.Gold, TextAnchor.MiddleLeft);
             float ww = Ui.TextWidth(wave, 38, true) + 16f;
             int secs = Mathf.RoundToInt(game.RunTime);
             Ui.Label(new Rect(x + ww, y + 6f, 140f, 18f), secs / 60 + ":" + (secs % 60).ToString("00"), 13, Ui.Text);
@@ -534,7 +534,7 @@ namespace Arena
             IconTile(tile, null, Ui.Gold, 0f);
             bool fighting = game.IsBossWave(game.Wave) && game.State == MatchState.Fighting;
             Ui.Label(new Rect(x + 78f, y + 4f, 300f, 14f), (fighting ? "BOSS · NOW" : "NEXT BOSS · WAVE " + next), 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            Ui.Fancy(new Rect(x + 78f, y + 18f, 300f, 28f), PracticePlan.NameOf(boss == EnemyType.TwinB ? EnemyType.TwinA : boss), 20, Color.white, new Color(1f, 0.85f, 0.55f), TextAnchor.MiddleLeft);
+            DkTitle(new Rect(x + 78f, y + 18f, 300f, 28f), PracticePlan.NameOf(boss == EnemyType.TwinB ? EnemyType.TwinA : boss), 20, new Color(1f, 0.85f, 0.55f), TextAnchor.MiddleLeft);
             if (!fighting && game.Practice == null)
             {
                 int to = next - game.Wave - 1;
@@ -551,18 +551,18 @@ namespace Arena
             string nextPortal = "Next Data Gate after wave " + (block * 5 + 6) + ", " + (block * 5 + 7) + " or " + (block * 5 + 8);
             if (rc != ChallengeKind.None)
             {
-                Ui.Fancy(new Rect(x + 78f, y + 18f, 320f, 28f), Challenges.Name(rc) + (lastRoomWon ? "  ✓" : "  ✗"), 19, Color.white, lastRoomWon ? ToColor(Challenges.Accent(rc)) : new Color(1f, 0.5f, 0.5f), TextAnchor.MiddleLeft);
+                DkTitle(new Rect(x + 78f, y + 18f, 320f, 28f), Challenges.Name(rc) + (lastRoomWon ? "  ✓" : "  ✗"), 19, lastRoomWon ? ToColor(Challenges.Accent(rc)) : new Color(1f, 0.5f, 0.5f), TextAnchor.MiddleLeft);
                 Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), (lastRoomWon ? "Won" : "Lost") + "  ·  " + nextPortal, 12, Ui.Muted);
             }
             else if (game.Room == RoomPhase.Portal || game.InRoom)
             {
-                Ui.Fancy(new Rect(x + 78f, y + 18f, 320f, 28f), Challenges.Name(game.RoomKind), 19, Color.white, ToColor(Challenges.Accent(game.RoomKind)), TextAnchor.MiddleLeft);
+                DkTitle(new Rect(x + 78f, y + 18f, 320f, 28f), Challenges.Name(game.RoomKind), 19, ToColor(Challenges.Accent(game.RoomKind)), TextAnchor.MiddleLeft);
                 Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), game.InRoom ? "You're in it now" : "Its Data Gate is open", 12, Ui.Muted);
             }
             else
             {
                 int k = game.Hunt != null ? 0 : Mathf.Max(1, game.Wave) % 5;  // (no Data Gates in a Boss Hunt)
-                Ui.Fancy(new Rect(x + 78f, y + 18f, 320f, 28f), "Not yet", 19, Color.white, new Color(0.75f, 0.68f, 1f), TextAnchor.MiddleLeft);
+                DkTitle(new Rect(x + 78f, y + 18f, 320f, 28f), "Not yet", 19, new Color(0.75f, 0.68f, 1f), TextAnchor.MiddleLeft);
                 Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), game.Hunt != null ? "No Data Gates on a Boss Hunt" : k >= 1 && k <= 3 && game.Practice == null ? "A Data Gate opens after one of the next few waves" : nextPortal, 12, Ui.Muted);
             }
             if (gl && BeginUiGl())
@@ -854,7 +854,7 @@ namespace Arena
                     {
                         var tr = new Rect(x + (i % 4) * (tw + 10f), DrawerPanel.y + 104f + (i / 4) * (th + 12f), tw, th);
                         CabCard(tr, 0.035f);
-                        Ui.Fancy(new Rect(tr.x + 14f, tr.y + 10f, tr.width - 20f, 34f), tiles[i, 1], 24, Color.white, new Color(1f, 0.85f, 0.55f), TextAnchor.MiddleLeft);
+                        DkTitle(new Rect(tr.x + 14f, tr.y + 10f, tr.width - 20f, 34f), tiles[i, 1], 24, new Color(1f, 0.85f, 0.55f), TextAnchor.MiddleLeft);
                         Ui.Label(new Rect(tr.x + 14f, tr.y + 48f, tr.width - 20f, 16f), tiles[i, 0].ToUpperInvariant(), 10, Ui.Muted, TextAnchor.MiddleLeft, true);
                     }
                     Ui.Label(new Rect(x, DrawerPanel.y + 104f + 3 * (th + 12f) + 8f, w, 18f), "Times downed: " + p.Downs + "  ·  boss kills: " + p.BossKills, 12, Ui.Muted);
@@ -918,7 +918,7 @@ namespace Arena
                         var rr = new Rect(x, DrawerPanel.y + 104f + i * 86f, w, 76f);
                         CabCard(rr, 0.035f);
                         IconTile(new Rect(rr.x + 12f, rr.y + 12f, 52f, 52f), PixelArt.Get(RoomIcon(c)), cc, 34f);
-                        Ui.Fancy(new Rect(rr.x + 80f, rr.y + 8f, 340f, 30f), Challenges.Name(c), 20, Color.white, cc, TextAnchor.MiddleLeft);
+                        DkTitle(new Rect(rr.x + 80f, rr.y + 8f, 340f, 30f), Challenges.Name(c), 20, cc, TextAnchor.MiddleLeft);
                         Ui.Label(new Rect(rr.xMax - 140f, rr.y + 8f, 126f, 30f), pl > 0 ? won + " of " + pl : "not yet", 17, pl > 0 ? Ui.Text : Ui.Muted, TextAnchor.MiddleRight, true);
                         Ui.Bar(new Rect(rr.x + 80f, rr.y + 48f, rr.width - 96f, 8f), pl > 0 ? (float)won / pl : 0f, cc, new Color(0f, 0f, 0f, 0.5f));
                     }

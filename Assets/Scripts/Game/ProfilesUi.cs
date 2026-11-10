@@ -353,7 +353,7 @@ namespace Arena
             if (whoManage && live)
             {
                 float by = WhoShelfTop + 54f + 22f, bx = r.center.x - 78f;
-                if (Ui.SmallButton(new Rect(bx, by, 74f, 26f), "Rename", Ui.Neutral, 13))
+                if (DkKey(new Rect(bx, by, 74f, 26f), "Rename", Ui.Neutral, false, 13))
                 {
                     whoEdit = p.Id;
                     whoName = p.Name;
@@ -362,7 +362,7 @@ namespace Arena
                 }
                 bool armed = whoArmed == p.Id;
                 GUI.enabled = whoList.Count > 1;
-                if (Ui.SmallButton(new Rect(bx + 82f, by, 74f, 26f), armed ? "Sure?" : "Delete", armed ? Ui.Danger : Ui.Neutral, 13))
+                if (DkKey(new Rect(bx + 82f, by, 74f, 26f), armed ? "Sure?" : "Delete", armed ? Ui.Danger : Ui.Neutral, false, 13))
                 {
                     if (!armed)
                         whoArmed = p.Id;
@@ -411,11 +411,11 @@ namespace Arena
 
         void DrawWhoEditor(Rect r)
         {
-            Ui.Panel(r, true);
+            DkPanel(r);
             Ui.Label(new Rect(r.x + 16f, r.y + 8f, r.width - 32f, 24f), whoEdit == "new" ? "New profile name" : "New name", 14, Ui.Muted, TextAnchor.MiddleLeft, true);
             var field = new Rect(r.x + 16f, r.y + 34f, r.width - 32f, 36f);
             GUI.SetNextControlName("who_name");
-            whoName = Ui.Field(field, whoName, ProfileStore.MaxNameLength);
+            whoName = DkField(field, whoName, ProfileStore.MaxNameLength);
             if (whoFocus && Event.current.type == EventType.Repaint)
             {
                 GUI.FocusControl("who_name");

@@ -74,7 +74,7 @@ namespace Arena
                 DrawFrameCard(card, e.Frame, t, true, e.CardBg);
             else
             {
-                Ui.Card(card, roleCol, 0.7f);
+                DkBox(card, roleCol, 0.7f);
                 DrawCardBackground(card, e.CardBg, t);
             }
             var tint = new Rect(card.x + 5f, card.y + 5f, card.width - 10f, card.height - 10f);
