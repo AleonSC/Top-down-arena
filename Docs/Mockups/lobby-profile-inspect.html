@@ -1,0 +1,219 @@
+<title>Lobby Profile Inspect</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap">
+<style>
+/* Layout: one 1280x720 lobby stage scaled to fit. Click your party card = your profile; click a teammate = a large inspect card. Two looks for the inspect view. */
+:root {
+  --bg: #080b14; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --accent: #5b8cff;
+  --ink: #4dff9a; --dim: #2fa66a; --sbg: #03110a; --glow: rgba(60,255,150,.55); --gold: #f2c14e;
+  --t0: #8a94b0; --t1: #5a96ff; --t2: #4fd1b5; --t3: #b573ff; --t4: #ffcc59;
+  --f-crt: "VT323", "Courier New", monospace; --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); padding-block: 32px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+h1 { font-size: 28px; margin: 0 0 6px; text-wrap: balance; }
+p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 70ch; }
+.ctl { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--accent); color: #05102c; border-color: var(--accent); }
+button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.view { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0b0e1c; }
+.stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden;
+  background: radial-gradient(60% 70% at 25% 25%, #161d3d, transparent), radial-gradient(60% 70% at 80% 85%, #2a1226, transparent), #0b0e1c; }
+
+/* lobby chrome (simplified) */
+.scr { position: absolute; background: var(--sbg); color: var(--ink); font-family: var(--f-crt); text-shadow: 0 0 6px var(--glow), 0 0 14px var(--glow); overflow: hidden; isolation: isolate;
+  box-shadow: inset 0 0 36px rgba(0,0,0,.85), 0 0 0 3px #0d1a14, 0 0 0 4px #1c3a2a; border-radius: 4px; }
+.scr::before { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.26) 0 1px, transparent 1px 3px); }
+.scr::after { content: ""; position: absolute; inset: 0; z-index: 7; pointer-events: none; background: radial-gradient(120% 140% at 50% 45%, transparent 60%, rgba(0,0,0,.5) 100%); }
+.scr > * { position: relative; z-index: 1; }
+.scr .t { font-size: 34px; letter-spacing: .08em; padding: 16px 22px 0; } .scr .s { font-size: 22px; color: var(--dim); padding: 4px 22px; text-shadow: none; }
+.scr .opt { margin: 14px 22px 0; padding: 10px 14px; border: 1px solid #1c5a3c; font-size: 24px; display: flex; justify-content: space-between; }
+.tac { position: absolute; display: block; font: 700 18px var(--f-ui); color: #e9efff; text-align: center; border-radius: 10px; padding-top: 10px;
+  background: linear-gradient(#41528a, #263158); border: 1px solid #6279bd; box-shadow: 0 4px 0 #0b0f22, 0 7px 12px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.28); }
+.tabs { position: absolute; display: flex; gap: 10px; }
+.tabs .tac { position: static; flex: 1; height: 42px; font-size: 16px; padding-top: 11px; }
+.hdr { position: absolute; left: 24px; top: 20px; font-size: 38px; letter-spacing: .12em; font-family: var(--f-crt); color: var(--ink); text-shadow: 0 0 10px var(--glow); }
+.party { position: absolute; left: 24px; top: 84px; width: 348px; display: flex; flex-direction: column; gap: 10px; }
+.partyh { font: 500 12px var(--f-mono); letter-spacing: .1em; color: var(--muted); }
+
+/* party card */
+.pcard { position: relative; height: 84px; border-radius: 12px; border: 1px solid #3a4c8a; background: linear-gradient(#222c52, #141a35); padding: 8px; display: flex; gap: 12px; align-items: center; cursor: pointer; text-align: left; color: #fff; font-family: var(--f-ui); width: 100%; transition: transform .12s, border-color .12s, box-shadow .12s; }
+.pcard:hover, .pcard:focus-visible { transform: translateX(4px); border-color: var(--rc); box-shadow: 0 0 18px -2px var(--rc); }
+.pcard.me { border-color: #5b8cff; }
+.face { position: relative; width: 64px; height: 64px; border-radius: 14px; background: color-mix(in srgb, var(--rc) 25%, #0a0e20); display: grid; place-items: center; flex: none; }
+.pcard .bd { position: absolute; right: -6px; bottom: -6px; }
+.pcard .nm { font-weight: 700; font-size: 20px; line-height: 1.1; } .pcard .kit { font-weight: 600; font-size: 14px; color: var(--rc); } .pcard .wp { font-size: 12px; color: #c7d1ee; }
+.pcard .tag { position: absolute; top: 9px; right: 10px; font: 700 10px var(--f-ui); letter-spacing: .08em; padding: 2px 6px; border-radius: 3px; background: #2f4aa6; color: #cfe0ff; }
+.pcard .hint { position: absolute; right: 10px; bottom: 8px; font: 600 11px var(--f-ui); letter-spacing: .05em; color: #9fb4ff; opacity: 0; transition: opacity .15s; }
+.pcard:hover .hint, .pcard:focus-visible .hint { opacity: 1; }
+
+/* shield rank badge: tier colour, chevrons */
+.shield { width: 26px; height: 30px; display: grid; place-items: center; background: var(--tc); clip-path: polygon(0 0,100% 0,100% 62%,50% 100%,0 62%); color: #0a0e20; font: 700 12px var(--f-ui); padding-bottom: 4px; box-shadow: inset 0 0 0 2px rgba(0,0,0,.25); filter: drop-shadow(0 0 4px var(--tc)); }
+.shield.lg { width: 120px; height: 140px; font-size: 52px; padding-bottom: 20px; filter: drop-shadow(0 0 22px var(--tc)); }
+.shield.lg::after { content: ""; position: absolute; }
+.chev { display: flex; gap: 4px; justify-content: center; } .chev i { width: 18px; height: 10px; background: var(--tc); clip-path: polygon(0 0,50% 60%,100% 0,100% 40%,50% 100%,0 40%); }
+.chev.dim i:nth-child(n+4) { opacity: .2; }
+
+/* overlays */
+.veil { position: absolute; inset: 0; background: rgba(4,7,16,.74); backdrop-filter: blur(3px); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 20; }
+.veil.on { opacity: 1; pointer-events: auto; }
+.pop { position: absolute; z-index: 21; opacity: 0; pointer-events: none; transition: opacity .22s, transform .28s cubic-bezier(.2,.9,.3,1.1); }
+.pop.on { opacity: 1; pointer-events: auto; transform: none !important; }
+.x { position: absolute; top: 12px; right: 14px; font: 700 14px var(--f-ui); color: #e9efff; background: #1d2650; border: 1px solid #4a5da6; border-radius: 8px; padding: 6px 12px 5px; cursor: pointer; letter-spacing: .06em; z-index: 5; }
+
+/* profile cabinet (yours) */
+#prof { left: 300px; top: 70px; width: 680px; height: 580px; transform: scale(.94); border-radius: 18px; border: 1px solid #4a68b8; background: linear-gradient(#323f6c, #12162c 92%); box-shadow: 0 0 60px rgba(80,120,255,.25), inset 0 1px 0 rgba(255,255,255,.12); padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+#prof .scr { position: relative; flex: 1; padding: 20px 26px; display: flex; gap: 26px; }
+#prof .big { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 170px; flex: none; }
+#prof .nmv { font-size: 46px; line-height: 1; letter-spacing: .04em; } #prof .rt { font-size: 26px; color: var(--tcol); text-shadow: 0 0 8px var(--tcol); }
+.bar { height: 14px; border: 1px solid #1c5a3c; background: #020a06; width: 100%; } .bar i { display: block; height: 100%; width: 62%; background: linear-gradient(90deg, #d8a73a, #ffe08f); box-shadow: 0 0 10px #d8a73a; }
+.kv { font-size: 24px; display: grid; grid-template-columns: 1fr auto; gap: 4px 20px; margin-top: 8px; } .kv b { font-weight: 400; color: #b7ffd8; }
+.kv span { color: var(--dim); text-shadow: none; }
+.ptabs { display: flex; gap: 8px; } .ptabs .tac { position: static; flex: 1; height: 38px; padding-top: 9px; font-size: 15px; }
+.ptabs .tac.on { background: linear-gradient(#5a76d6, #34469a); }
+
+/* inspect: look A, holographic trading card */
+#insA { left: 410px; top: 40px; width: 460px; height: 640px; transform: translateY(24px) scale(.92) rotateX(8deg); perspective: 900px; }
+.holo { position: absolute; inset: 0; border-radius: 22px; padding: 22px 26px; display: flex; flex-direction: column; align-items: center; gap: 10px; overflow: hidden;
+  background: linear-gradient(160deg, #1b2556 0%, #0f1330 55%, #1d1030 100%); border: 2px solid var(--tc); box-shadow: 0 0 0 5px #0b0e20, 0 0 0 7px color-mix(in srgb, var(--tc) 60%, transparent), 0 30px 80px rgba(0,0,0,.7), 0 0 60px -6px var(--tc); }
+.holo::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, rgba(255,255,255,.035) 0 1px, transparent 1px 4px); pointer-events: none; }
+.holo::after { content: ""; position: absolute; left: -30%; right: -30%; height: 90px; top: -90px; background: linear-gradient(transparent, color-mix(in srgb, var(--tc) 28%, transparent), transparent); animation: sweep 5s linear infinite; pointer-events: none; }
+@keyframes sweep { to { transform: translateY(760px); } }
+@media (prefers-reduced-motion: reduce) { .holo::after { animation: none; } }
+.holo .tier { font: 500 12px var(--f-mono); letter-spacing: .3em; color: var(--tc); }
+.holo .nm { font-weight: 700; font-size: 36px; line-height: 1; letter-spacing: .03em; }
+.holo .art { width: 230px; height: 180px; border-radius: 16px; background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--rc) 45%, #0a0e20), #0a0e20 72%); display: grid; place-items: center; border: 1px solid color-mix(in srgb, var(--rc) 55%, transparent); }
+.holo .role { font-weight: 600; font-size: 20px; color: var(--rc); }
+.holo .xp { width: 100%; height: 8px; border-radius: 4px; background: #0a0e20; overflow: hidden; } .holo .xp i { display: block; height: 100%; background: linear-gradient(90deg, var(--tc), #fff); }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; margin-top: 4px; }
+.stat { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 10px; padding: 8px 6px; text-align: center; }
+.stat b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; } .stat span { font: 500 10px var(--f-mono); letter-spacing: .08em; color: var(--muted); }
+.cos { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; } .cos em { font: 500 11px var(--f-mono); font-style: normal; padding: 4px 8px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--tc) 60%, transparent); color: #dbe5ff; }
+
+/* inspect: look B, side drawer with badge + equipped cosmetics */
+#insB { left: 700px; top: 0; width: 580px; height: 720px; transform: translateX(60px); border-left: 1px solid #4a68b8; background: linear-gradient(#232d58, #0e1230); box-shadow: -30px 0 60px rgba(0,0,0,.6); padding: 28px 30px; display: flex; flex-direction: column; gap: 14px; }
+#insB .top { display: flex; gap: 22px; align-items: center; }
+#insB .nm { font-weight: 700; font-size: 38px; line-height: 1; } #insB .rk { font: 700 22px var(--f-ui); color: var(--tc); letter-spacing: .06em; margin-top: 4px; }
+.ladder { display: flex; gap: 6px; } .ladder i { flex: 1; height: 6px; border-radius: 3px; background: #1a2242; } .ladder i.on { background: var(--c); box-shadow: 0 0 8px var(--c); } .ladder i.cur { background: #fff; }
+.lab { font: 500 11px var(--f-mono); letter-spacing: .12em; color: var(--muted); margin-top: 6px; }
+.rows { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.row { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09); border-radius: 10px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: baseline; font-size: 15px; }
+.row span { color: var(--muted); font: 500 11px var(--f-mono); letter-spacing: .06em; } .row b { font-weight: 600; }
+.sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.cap { font: 500 12px var(--f-mono); color: var(--muted); max-width: 70ch; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Lobby: profile and inspect</h1>
+    <p>Click your own party card to open your profile. Click a teammate's card to inspect their card and rank up close. Two looks for the inspect view; pick one.</p>
+  </header>
+  <div class="ctl">
+    <div class="grp"><span>Inspect look</span>
+      <button class="seg" id="lkA" aria-pressed="true">A · Holo card</button>
+      <button class="seg" id="lkB" aria-pressed="false">B · Side panel</button></div>
+    <div class="cap" id="cap">Click a card in the party column. Esc or the close key goes back.</div>
+  </div>
+
+  <div class="view" id="view"><div class="stage" id="stage">
+    <div class="hdr">LOBBY</div>
+    <div class="scr" style="left:400px;top:84px;width:560px;height:430px"><div class="t">NEW RUN</div><div class="s">Hangout · Loadout · Perks</div>
+      <div class="opt"><span>MODE</span><span>CO-OP WAVES</span></div><div class="opt"><span>ARENA</span><span>THE PIT</span></div><div class="opt"><span>DIFFICULTY</span><span>NORMAL</span></div></div>
+    <div class="tabs" style="left:400px;top:540px;width:560px"><span class="tac">Loadout</span><span class="tac">Perks</span><span class="tac">Hangout</span><span class="tac">Modes</span></div>
+    <div class="tac" style="left:1000px;top:580px;width:240px;height:60px;font-size:28px;padding-top:12px;letter-spacing:.08em">READY</div>
+
+    <div class="party">
+      <div class="partyh">PARTY · 3 / 3  (click a card)</div>
+      <button class="pcard me" id="c0" style="--rc:#ff7a59;--tc:var(--t3)"><div class="face"><svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="13" fill="#ff7a59"/><rect x="22" y="19" width="20" height="6" rx="2" fill="#ffd2c6"/></svg><div class="bd"><div class="shield" style="--tc:var(--t3)">34</div></div></div>
+        <div><div class="nm">Anthony</div><div class="kit">Tank Soldier</div><div class="wp">Riot Shield · Dash</div></div><span class="tag">YOU</span><span class="hint">VIEW PROFILE ▸</span></button>
+      <button class="pcard" id="c1" style="--rc:#4fd1b5;--tc:var(--t4)"><div class="face"><svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="13" fill="#4fd1b5"/><rect x="22" y="19" width="20" height="6" rx="2" fill="#d4fff5"/></svg><div class="bd"><div class="shield" style="--tc:var(--t4)">47</div></div></div>
+        <div><div class="nm">Mira</div><div class="kit">Support Medic</div><div class="wp">Mender Gun · Field Hospital</div></div><span class="hint">INSPECT ▸</span></button>
+      <button class="pcard" id="c2" style="--rc:#5a96ff;--tc:var(--t1)"><div class="face"><svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="13" fill="#5a96ff"/><rect x="22" y="19" width="20" height="6" rx="2" fill="#d6e4ff"/></svg><div class="bd"><div class="shield" style="--tc:var(--t1)">12</div></div></div>
+        <div><div class="nm">Bot Rex</div><div class="kit">DPS Gunner</div><div class="wp">Rail Rifle · Overdrive</div></div><span class="hint">INSPECT ▸</span></button>
+    </div>
+
+    <div class="veil" id="veil"></div>
+
+    <!-- your profile -->
+    <section class="pop" id="prof" style="--tc:var(--t3);--tcol:var(--t3)" aria-label="Your profile">
+      <button class="x" data-close>BACK · ESC</button>
+      <div class="ptabs"><span class="tac on">Rank</span><span class="tac">Records</span><span class="tac">Unlocks</span><span class="tac">Look</span></div>
+      <div class="scr">
+        <div class="big"><div class="shield lg" style="--tc:var(--t3)">34</div><div class="chev" style="--tc:var(--t3)"><i></i><i></i><i></i></div><div class="rt">CHAMPION</div></div>
+        <div style="flex:1;min-width:0"><div class="nmv">ANTHONY</div>
+          <div style="font-size:22px;margin:8px 0 6px;color:var(--dim);text-shadow:none">RANK 34 · 6,420 / 10,350 XP</div><div class="bar"><i></i></div>
+          <div class="kv"><span>RUNS</span><b>182</b><span>BEST WAVE</span><b>31</b><span>BOSSES DOWN</span><b>94</b><span>PLAYED</span><b>61 h</b><span>NEXT REWARD</span><b>Rank 36 · Frame</b></div></div>
+      </div>
+    </section>
+
+    <!-- inspect, look A -->
+    <section class="pop" id="insA" aria-label="Player card">
+      <div class="holo" id="holoA"></div>
+      <button class="x" data-close>CLOSE · ESC</button>
+    </section>
+
+    <!-- inspect, look B -->
+    <section class="pop" id="insB" aria-label="Player rank" style="--tc:var(--t4)">
+      <button class="x" data-close>CLOSE · ESC</button>
+      <div id="bodyB"></div>
+    </section>
+  </div></div>
+  <p class="cap">Read-only for teammates: no editing, no kicking. A teammate's view shows only what the lobby already shares (rank, frame, trail, card background, name effect, loadout, perks) plus public records.</p>
+</div>
+
+<script>
+const P = {
+  c1: { name:'Mira', rank:47, tier:'LEGEND', tc:'var(--t4)', ti:4, role:'Support Medic', rc:'#4fd1b5', weapon:'Mender Gun', ability:'Field Hospital', xp:78, nxt:'Rank 48 · Name effect',
+        stats:[['RUNS','311'],['BEST WAVE','38'],['BOSSES','207']], cos:['Frame: Aurora','Trail: Light cycle','Card: Nebula','Name: Prism'], perks:'Riot Gear · Contraband', tiers:4 },
+  c2: { name:'Bot Rex', rank:12, tier:'CHALLENGER', tc:'var(--t1)', ti:1, role:'DPS Gunner', rc:'#5a96ff', weapon:'Rail Rifle', ability:'Overdrive', xp:30, nxt:'Rank 13 · Trail',
+        stats:[['RUNS','—'],['BEST WAVE','—'],['BOSSES','—']], cos:['Frame: Steel','Trail: Sparks'], perks:'None', tiers:1 }
+};
+const TC = ['#8a94b0','#5a96ff','#4fd1b5','#b573ff','#ffcc59'];
+const $ = id => document.getElementById(id);
+let look = 'A', open = null;
+
+function holo(p) {
+  return `<div class="tier">${p.tier} · RANK ${p.rank}</div>
+  <div class="shield lg" style="--tc:${p.tc}">${p.rank}</div>
+  <div class="chev" style="--tc:${p.tc}">${'<i></i>'.repeat(p.ti + 1)}</div>
+  <div class="nm">${p.name}</div><div class="role" style="--rc:${p.rc}">${p.role}</div>
+  <div class="xp"><i style="width:${p.xp}%"></i></div>
+  <div class="stats">${p.stats.map(s => `<div class="stat"><b>${s[1]}</b><span>${s[0]}</span></div>`).join('')}</div>
+  <div class="cos">${p.cos.map(c => `<em>${c}</em>`).join('')}</div>`;
+}
+function side(p) {
+  const lad = TC.map((c, i) => `<i class="${i < p.ti ? 'on' : i === p.ti ? 'on cur' : ''}" style="--c:${c}"></i>`).join('');
+  return `<div class="top"><div class="shield lg" style="--tc:${p.tc};width:96px;height:112px;font-size:42px;padding-bottom:16px">${p.rank}</div>
+    <div><div class="nm">${p.name}</div><div class="rk">${p.tier} · RANK ${p.rank}</div><div class="chev" style="--tc:${p.tc};justify-content:flex-start;margin-top:8px">${'<i></i>'.repeat(p.ti + 1)}</div></div></div>
+  <div class="lab">TIER LADDER</div><div class="ladder">${lad}</div>
+  <div class="lab">XP TO NEXT: ${p.nxt.toUpperCase()}</div><div class="xp" style="height:8px;border-radius:4px;background:#0a0e20;overflow:hidden"><i style="display:block;height:100%;width:${p.xp}%;background:linear-gradient(90deg,${p.tc},#fff)"></i></div>
+  <div class="lab">LOADOUT</div><div class="rows"><div class="row"><span>CLASS</span><b>${p.role}</b></div><div class="row"><span>WEAPON</span><b>${p.weapon}</b></div><div class="row"><span>ABILITY</span><b>${p.ability}</b></div><div class="row"><span>PERKS</span><b>${p.perks}</b></div></div>
+  <div class="lab">EQUIPPED LOOK</div><div class="rows">${p.cos.map(c => { const [k, v] = c.split(': '); return `<div class="row"><span>${k.toUpperCase()}</span><b><i class="sw" style="background:${p.tc}"></i>${v}</b></div>`; }).join('')}</div>
+  <div class="lab">RECORDS</div><div class="rows">${p.stats.map(s => `<div class="row"><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>`;
+}
+function show(id) {
+  close(true); open = id;
+  $('veil').classList.add('on');
+  if (id === 'c0') { $('prof').classList.add('on'); $('cap').textContent = 'Your profile: the same cabinet as the main menu card (Rank, Records, Unlocks, Look).'; return; }
+  const p = P[id];
+  if (look === 'A') { $('holoA').style.setProperty('--tc', p.tc); $('holoA').style.setProperty('--rc', p.rc); $('holoA').innerHTML = holo(p); $('insA').style.setProperty('--tc', p.tc); $('insA').classList.add('on'); $('cap').textContent = 'Look A: a big holographic trading card. Rank badge, tier chevrons, class, key records, cosmetics.'; }
+  else { $('bodyB').innerHTML = side(p); $('insB').style.setProperty('--tc', p.tc); $('insB').classList.add('on'); $('cap').textContent = 'Look B: a side panel that keeps the lobby visible. Adds the tier ladder, full loadout and each equipped look.'; }
+}
+function close(quiet) { ['prof', 'insA', 'insB'].forEach(i => $(i).classList.remove('on')); $('veil').classList.remove('on'); open = null; if (!quiet) $('cap').textContent = 'Click a card in the party column. Esc or the close key goes back.'; }
+['c0', 'c1', 'c2'].forEach(id => $(id).addEventListener('click', () => show(id)));
+document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => close()));
+$('veil').addEventListener('click', () => close());
+addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+function setLook(l) { look = l; $('lkA').setAttribute('aria-pressed', l === 'A'); $('lkB').setAttribute('aria-pressed', l === 'B'); if (open && open !== 'c0') show(open); }
+$('lkA').onclick = () => setLook('A'); $('lkB').onclick = () => setLook('B');
+function fit() { const v = $('view'), s = v.clientWidth / 1280; $('stage').style.transform = 'scale(' + s + ')'; }
+addEventListener('resize', fit); fit();
+// resting state: open a teammate so the first frame shows the feature
+show('c1');
+</script>
