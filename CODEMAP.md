@@ -127,7 +127,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `LobbyCombat.cs`: Hangout PvP: shots, health, knock-out, respawn, the Dash/Barrier/Burst heal abilities (`Msg.LobbyFire`/`LobbyShot`/`LobbyAbility`); a partial of `Session`
 - `Defs.cs` (Role.Wildcard, `Defs.Weapon`/`Upgrades.RoleAbility` map a Wildcard's kit*3+choice picks to DPS gear, `MakeWild`/`WildSecond`/`WildKey`), `Profile.WildcardUnlocked`, `LobbyUi.DrawWildcardPicks`: the Wildcard role (`Docs/Wildcard.md`; test: `run.sh 1 20 wildcard`)
 - `Dodge.cs`: the Dodge, everyone's tiny dash with invulnerability (Ctrl or a double tap of a movement key; `LocalDodge`, `Msg.Dodge`; key tracking in `Game/ArenaApp.cs`)
-- `Session.cs`: host/join, lobby, **`Msg` enum**, **`ProtocolVersion`** (bump when a message or snapshot changes)
+- `Session.cs`: host/join, lobby, **`Msg` enum**, **`ProtocolVersion`** (bump when a message or snapshot changes; history in `Docs/ProtocolHistory.md`)
 - `Net.cs`: `NetPeer`, length-prefixed TCP (`BytesIn`/`BytesOut` for the lag chart)
 - `LagStats.cs`, `LagNet.cs`, `Game/LagChartUi.cs`: the lag chart (F5): `LagStats` (30 s strip of quarter-second columns: ping, snapshot gap, frame time, fps, KB/s; stalls, p95, 1% low, quality, marks, the copied summary, the CSV log), `Game.TickLag` (pings 4/s, `Msg.NetPings` with every player's ping, wave/boss/storm marks), the overlay and its Settings row; `Docs/LagChart.md`; test `run.sh 1 1 lag`; preview `LAG=pill|chart|guest Tools/Preview/shot.sh x hud 6 12.2 3`
 - `GameNet.cs`, `NetSync.cs`: all snapshot and input serialisation (one ref pass for read and write)
