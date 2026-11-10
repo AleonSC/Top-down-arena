@@ -84,7 +84,7 @@ namespace Arena
         public byte Ability;  // index into Upgrades.RoleAbility(Role, Kit, i)
         public byte Wild;     // Wildcard only: its second ability and the key it sits on (Defs.MakeWild)
         public byte Ult;      // the key picked on the Ultimate row: 0 the role and class's default ultimate, 1-3 another (Upgrades.Ultimate(role, kit, Ult)); a Wildcard's is always 0
-        public Kit UltKit => Role == Role.Wildcard ? (Kit)(Math.Min((int)Ability, Defs.WildcardChoices - 1) / Defs.WeaponsPerRole) : Kit;  // whose ultimate you get (a Wildcard: its first ability's class)
+        public Kit UltKit => Upgrades.UltKitOf(Role, Kit, Ult);  // whose ultimate you get (a Wildcard: the class in its Ult pick)
         public AbilityId UltId => Upgrades.Ultimate(Role, UltKit, Ult);  // the ultimate they will have on F
         public bool Ready;    // clicked Ready in the lobby; the match only starts once everyone has
         public int Seat = -1; // continuing a saved run: which of its seats this player takes (Session.Resume)
@@ -109,7 +109,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 245;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 246;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -823,7 +823,7 @@ namespace Arena
         // (A Wildcard's weapon and ability picks run 0-17: its kit * 3 + choice. Those are checked against the role, ClampLoadout.)
         static int ClampWeapon(int weapon) => weapon >= 0 && weapon < Defs.WildcardChoices ? weapon : 0;
         static int ClampAbility(int ability) => ability >= 0 && ability < Defs.WildcardChoices ? ability : 0;
-        static int ClampUltByte(int ult) => ult >= 0 && ult < Upgrades.UltKeys ? ult : 0;  // (checked against the role and class by ClampLoadout)
+        static int ClampUltByte(int ult) => ult >= 0 && ult < Defs.KitCount * Upgrades.UltKeys ? ult : 0;  // (a Wildcard's runs to 23; checked against the role and class by ClampLoadout)
 
         /// Puts an entry's picks in range for its role: three weapons and abilities for a normal role, eighteen for a Wildcard
         /// (plus a second ability that differs from the first, on a key from 1 to 3).
@@ -836,7 +836,7 @@ namespace Arena
                 if (second == first)
                     second = (second + 1) % Defs.WildcardChoices;
                 e.Wild = Defs.MakeWild(second, Defs.WildKey(e.Wild));
-                e.Ult = 0;  // a Wildcard's ultimate comes from its first ability's class
+                e.Ult = (byte)Upgrades.ClampUlt(Role.Wildcard, e.Kit, e.Ult);  // any class's DPS ultimate: class * UltKeys + key (Upgrades.WildUlt)
             }
             else
             {
