@@ -590,6 +590,7 @@ namespace Arena
             }
             SyncMastery(s, p, known);  // Mastery.cs (it may Recalc, which touches health and slots: those come after)
             SyncShop(s, p);            // Shop.cs
+            SyncVectors(s, p);         // ExpansionGame.cs
             if (!s.Reading || !known)
                 return;
 

@@ -1145,7 +1145,7 @@ static partial class Shot {
       var xg = host.Game; xg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
       int nb = int.Parse(Environment.GetEnvironmentVariable("EXPANDMAP"));
       for (int k = 0; k < nb; k++) xg.Expanded.Add(Expansion.Offers(5, 5 + 5 * k, xg.Expanded)[0]);
-      xg.Purse = 340; xg.RoomsUp = true; xg.LayoutAge = 5f;
+      xg.RoomsUp = true; xg.LayoutAge = 5f;
       var xrng = new System.Random(7); int xi = 0;
       foreach (var en in xg.Enemies.Values) {
         if (en.Def.IsBoss) continue;

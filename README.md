@@ -771,31 +771,19 @@ wave, everyone gets a shop before the boss:
 The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expanding**). Design:
 [`Docs/ExpandingArena.md`](Docs/ExpandingArena.md). It starts as the plain Classic box and grows as you play:
 
-- **Team purse**: every kill adds its gold to one shared purse (the chip under the wave plate shows it and the room count).
-  Personal gold from the shop is separate.
-- **Expand the arena**: after each boss (every 5 waves) the team sees up to three random rooms and **votes**: click a room to
-  vote, or "Buy nothing" to keep the purse. The most votes wins (a tie goes to the room). A room you can't afford is
-  greyed out; if none is affordable there is no vote. Paths are off in this arena.
-- **Optional offers**: after any regular wave, if the purse covers a room, a chip "Rooms available" shows under the wave plate
-  (the countdown doesn't wait for it). "See the rooms" opens the same cards and draw tool ("Decide later" closes it). When the
-  next wave starts the offer closes: a room is bought only if more than half the team voted for it by then (everyone voting
-  settles it at once). Otherwise the purse keeps its gold.
-- **Loops**: a new room that shares a door's width of wall (3 tiles) with more than one room gets a door to each, so the map
-  loops round instead of branching into dead ends; random offers that close a loop are likelier, and the card says LOOP.
-- **Draw your own**: the "Draw your own" key opens the zoomed-out map: drag a box on the grid (at least 3 tiles a side, at most
-  12 x 12 and 96 tiles). 3 tiles wide is a hallway. It must share 3 tiles of wall with a room and not overlap anything; it is
-  checked live (green = fine) and goes to the vote as one extra card on release. It costs 25% more than a random room of the
-  same size, and a newer drawing replaces the last one (and its votes).
-- **Rooms**: six shapes (Closet, Room, Chamber, Plaza, Hall, Corridor) in three kinds: **Combat**, **Shop** and **Floor** (a
-  path's ground). A new room attaches to a wall of an existing one with a door. Prices go up with each room bought; the map
-  stops at 12 rooms.
-- **Shop room**: a safe room (no enemy comes in). Once the map has one, every kill drops gold for everyone and the first wave
-  after each boss ends with the shop open: walk into the shop room to shop (the screen opens while you stand in it; Done lets you
-  leave; "Skip the shop" anywhere). Leftover gold becomes XP when it closes, as in the Bazaar.
-- **Floor rooms**: a path's ground inside that room only, with that path's bonus for kills there (+25% XP and score at danger 2,
-  +50% at 3): Burning Grounds (fire patches), Sanctuary (healing pools), Frozen Lake (you slide, foes are chilled), Blood Moon
-  (no regeneration or orbs, kills heal you), Swarm Fields / Sniper Ridge / Elite Gauntlet (twice the crowd comes in there; melee
-  at 60% health, or every foe elite).
+- **Vectors**: every player holds a drawing budget (chip under the wave plate, "Vectors 25 / 40"): 1 vector = 1 tile of wall.
+  You start with 25 and can hold 40; each cleared wave gives 6, every 25 kills gives 1, and a cleared boss wave refills
+  everyone to the cap and adds 10 on top.
+- **Building rounds**: every cleared wave opens a round (a chip "Build rooms" under the wave plate; the countdown never waits
+  for it). Open it, **draw a room or hallway** (drag a box on the grid on the zoomed-out map, 3 to 12 tiles a side, at most 96
+  tiles; it must share 3 tiles of wall with a room and not overlap anything) and it becomes **your proposal**; a newer
+  drawing replaces it. You can only propose what you can afford. A proposal costs its **new wall length**: the perimeter
+  minus every wall it shares with existing rooms, so touching rooms is cheaper and a box that touches two rooms (a loop)
+  cheaper again.
+- **The vote**: each player backs one proposal (your own counts for you when you draw it) or "No room". When everyone has
+  voted, or the next wave starts, **the most votes wins, a tie (a 50/50) is a random pick** (with "No room" as one of the
+  tied options), and the winning drawer pays; nobody else does. One room is built a round, with a door to every room it
+  shares a door's width of wall with (loops). Paths are off in this arena.
 - **How it plays**: regular waves use the whole map (walled, no wrapping, a minimap top right) and bring more enemies the
   bigger it is (up to double). Boss waves are fought in the hub alone, as always.
 - Runs in this arena can't be saved and continued yet.

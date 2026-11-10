@@ -412,15 +412,12 @@ static partial class Shot {
       var eg = host.Game; eg.Diff.Set(DiffKnob.ArenaExpanding, 1f); eg.State = MatchState.Intermission;
       int bought = int.Parse(Environment.GetEnvironmentVariable("EXPANDVOTE"));
       for (int k = 0; k < bought; k++) eg.Expanded.Add(Expansion.Offers(5, 5 + 5 * k, eg.Expanded)[0]);
-      eg.Purse = 260 + 40 * bought; eg.ExpandOffer = Expansion.Offers(5, 5 + 5 * bought, eg.Expanded);
-      eg.ExpandVotes[eg.MyId] = 1;
-      if (Environment.GetEnvironmentVariable("EXPANDCUSTOM") != null) {  // EXPANDCUSTOM=1: a drawn hallway as the last card
-        for (int tx = -300; tx <= 1600; tx += 100) { string cw; var cr = Expansion.Custom(eg.Expanded, tx, -600, 300, 600, out cw); if (cr.HasValue) { eg.ExpandOffer.Add(cr.Value); eg.ExpandCustom = eg.ExpandOffer.Count - 1; break; } }
-      }
-      if (Environment.GetEnvironmentVariable("EXPANDCHIP") != null) {  // EXPANDCHIP=1: the offer is an optional one, just its chip; =2: the window opened from it
-        eg.ExpandOptional = true; eg.StateTimer = 8f; eg.ExpandVotes.Clear(); eg.ExpandVotes[eg.MyId + 100] = 0;
-        if (Environment.GetEnvironmentVariable("EXPANDCHIP") == "2") typeof(ArenaApp).GetField("expOpen", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, true);
-      }
+      eg.StateTimer = 8f; eg.ExpandOpen = true;  // the round is open: each player's proposal, the first one backed
+      var propPool = Expansion.Offers(5, 5 + 5 * bought, eg.Expanded); int pk = 0;
+      foreach (var pl in eg.Players.Values) { pl.Vectors = 30 + 8 * pk; if (pk < propPool.Count) { var pr = propPool[pk]; pr.Owner = pl.Id; eg.ExpandProposals.Add(pr); } pk++; }
+      if (eg.ExpandProposals.Count > 0) eg.ExpandVotes[eg.MyId] = eg.ExpandProposals[0].Owner;
+      // EXPANDCHIP=1: just the chip; otherwise the window is open (=2 too)
+      if (Environment.GetEnvironmentVariable("EXPANDCHIP") != "1") typeof(ArenaApp).GetField("expOpen", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, true);
       string drawAt = Environment.GetEnvironmentVariable("EXPANDDRAW");  // EXPANDDRAW=x,y,w,h: the drawing screen with that box dragged out
       if (drawAt != null) {
         var dq = drawAt.Split(','); var ci = System.Globalization.CultureInfo.InvariantCulture;
