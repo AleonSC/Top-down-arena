@@ -88,6 +88,7 @@ namespace Arena
             public FactionDef Faction;
             public float Share;
             public bool Current;  // the faction of the boss this wave leads to
+            public float Pool;    // the part of Share that is the older pool (a comeback squad takes it over, Comeback)
         }
 
         /// The campaign's split of regular wave `n` between factions (Docs/Campaign.md): the last boss's faction fading
@@ -101,27 +102,45 @@ namespace Arena
             int cycle = (n - 1) / 5, p = (n - 1) % 5;
             float fade = cycle >= 1 ? FadeShare[p] : 0f;
             float pool = cycle >= 2 ? PoolShare : 0f;
-            Action<EnemyType, float, bool> add = (boss, share, cur) =>
+            Action<EnemyType, float, bool, float> add = (boss, share, cur, poolPart) =>
             {
                 var f = For(boss);
                 if (f == null || share <= 0f)
                     return;
                 int i = list.FindIndex(x => x.Faction == f);
                 if (i >= 0)
-                    list[i] = new Slice { Faction = f, Share = list[i].Share + share, Current = list[i].Current || cur };
+                    list[i] = new Slice { Faction = f, Share = list[i].Share + share, Current = list[i].Current || cur, Pool = list[i].Pool + poolPart };
                 else
-                    list.Add(new Slice { Faction = f, Share = share, Current = cur });
+                    list.Add(new Slice { Faction = f, Share = share, Current = cur, Pool = poolPart });
             };
-            add(Game.BossForWave(5 * (cycle + 1)), 1f - fade - pool, true);
+            add(Game.BossForWave(5 * (cycle + 1)), 1f - fade - pool, true, 0f);
             if (cycle >= 1)
-                add(Game.BossForWave(5 * cycle), fade, false);
+                add(Game.BossForWave(5 * cycle), fade, false, 0f);
             var older = new List<EnemyType>();
             for (int j = 1; j < cycle; j++)
                 if (For(Game.BossForWave(5 * j)) != null)
                     older.Add(Game.BossForWave(5 * j));
             foreach (var b in older)
-                add(b, pool / older.Count, false);
+                add(b, pool / older.Count, false, pool / older.Count);
             return list;
+        }
+
+        /// The comeback squad of wave `n` (Docs/Campaign.md), or null: one wave in every five from wave 11 (where the older
+        /// pool starts), never the last wave of a cycle (the approach stays clean). One squad from an earlier built
+        /// faction, picked from the wave number alone so every game agrees. It takes over the wave's older-pool slice.
+        public static SquadDef Comeback(int n, out FactionDef from)
+        {
+            from = null;
+            int cycle = (n - 1) / 5, p = (n - 1) % 5;
+            if (n < 11 || p != (cycle * 3 + 1) % 4)  // one wave in every five, never the last of the cycle, its step moving about
+                return null;
+            uint h = (uint)n * 2654435761u;
+            var pool = Campaign(n).FindAll(x => x.Pool > 0f);
+            pool.RemoveAll(x => x.Faction.Squads.Length == 0);
+            if (pool.Count == 0)
+                return null;
+            from = pool[(int)((h >> 12) % (uint)pool.Count)].Faction;
+            return from.Squads[(int)((h >> 16) % (uint)from.Squads.Length)];
         }
 
         /// Is this type one of a faction's (for the Bestiary and the Practice Range)?
@@ -193,11 +212,18 @@ namespace Arena
                 if (ApproachStepAt(n) == 0)
                     return;
                 int step = ApproachStep(n);
+                FactionDef cbFrom;
+                var cb = Approaches.Comeback(n, out cbFrom);  // (a comeback squad takes the older pool's slice this wave)
                 foreach (var sl in Approaches.Campaign(n))  // (every faction's enemies, each by its slice; the rest stays the usual mix)
                 {
-                    int themed = Math.Min(count, (int)Math.Round(of * sl.Share));
+                    int themed = Math.Min(count, (int)Math.Round(of * (cb != null ? sl.Share - sl.Pool : sl.Share)));
                     if (themed > 0)
                         PickFaction(sl.Faction, sl.Current ? step : 99, sl.Current && (n - 1) % 5 == 4, ref count, themed);  // (older factions are in full; only the next boss's builds up)
+                }
+                if (cb != null)
+                {
+                    approachSquads.Add(cb);
+                    count -= Math.Min(count, cb.Members.Length);
                 }
                 return;
             }

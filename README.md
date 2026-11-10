@@ -559,7 +559,7 @@ Every regular wave is made of boss-themed enemies (design: [`Docs/Campaign.md`](
 faction **fades out** over the next five waves (35%, 25%, 15%, 5%, 0%), bosses from two fights back stay on as an
 **older pool** (10% from wave 11), and the next boss's faction takes the rest, building up as before (65% to 100%;
 55% to 90% once the pool exists). Only built factions count (the Warden's and the Lich's zombies); a slice for a boss
-with no faction yet is the usual random mix. Turn it off with **Campaign buildup** in the Difficulty tab to get the
+with no faction yet is the usual random mix. From wave 11, one wave in every five brings a **comeback squad**: a squad from an earlier boss's faction (the Warden's or the Lich's) arriving in place of that wave's older-pool singles. Turn it off with **Campaign buildup** in the Difficulty tab to get the
 Boss approach below. Boss Hunts are unchanged.
 
 ### Boss approaches

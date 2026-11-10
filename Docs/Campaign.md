@@ -1,6 +1,6 @@
 # Campaign: themed enemies that build up and fade (design)
 
-Status: **step 1 built** (Nov 2026: `Approaches.Campaign`, the *Campaign buildup* switch in the Difficulty tab, default on, `campaign` test suite); the comeback squads (step 2), the hunt upgrade (3) and the HUD chip (5) are not. Numbers are first
+Status: **step 1 built** (Nov 2026: `Approaches.Campaign`, the *Campaign buildup* switch in the Difficulty tab, default on, `campaign` test suite); **step 2 built** (`Approaches.Comeback`); the hunt upgrade (3) and the HUD chip (5) are not. Numbers are first
 guesses. It builds on [`Approaches.md`](Approaches.md) (boss factions, `Core/Approaches.cs`) and the Boss Hunt
 ([`BossHuntsAndPerks.md`](BossHuntsAndPerks.md), `Core/Hunts.cs`).
 
@@ -42,8 +42,9 @@ The boss wave itself is unchanged. Bosses with no faction yet keep today's rando
 ### 2. Comebacks
 
 - **Pool:** the 10% older slice picks single members of earlier factions (weights as in their `FactionDef`).
-- **Comeback squad:** every few waves (seeded, so all players agree) one *earlier* faction's squad takes part of
-  the pool slice. Squads are the faction's existing set pieces (e.g. the Warden's wall of Riot Shields).
+- **Comeback squad (built):** one wave in every five from wave 11 (a different step each cycle, never step 5) has one
+  squad from an *earlier* faction. It is picked from the wave number, so every game agrees, and **takes over that
+  wave's older-pool slice** (the squad is bigger than the slice, so the extra comes off the unthemed mix). Squads are the faction's existing set pieces (e.g. the Warden's wall of Riot Shields).
 - Limits: at most one comeback squad per wave, never on step 5 of a cycle (keep the approach clean), members still
   respect their `From` wave and the bullet budget.
 

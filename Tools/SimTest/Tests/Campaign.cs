@@ -62,6 +62,21 @@ static partial class Program
         Check(z33 >= a33.Count * 0.55f && p33 > 0 && p33 <= a33.Count * 0.25f, "wave 33: mostly the Lich's zombies, with a few of the Warden's from the older pool");
         var a41 = wave(41, true);
         Check(a41.Count(zombie.Contains) > 0 && a41.Count(zombie.Contains) <= a41.Count * 0.2f && a41.Count(warden.Contains) <= a41.Count * 0.25f, "wave 41: the Lich's has faded to the pool");
+        // --- Comeback squads (step 2) -------------------------------------------------------------------------------------
+        FactionDef cf;
+        var cbWaves = Enumerable.Range(1, 120).Where(n => Approaches.Comeback(n, out cf) != null).ToList();
+        Console.WriteLine("  comeback waves 1-60: " + string.Join(" ", cbWaves.Where(n => n <= 60)));
+        int inRun = cbWaves.Count(n => n >= 11 && n <= 50);
+        Check(cbWaves.All(n => n >= 11 && (n - 1) % 5 != 4), "comeback squads never come before wave 11 or on the last wave of a cycle");
+        Check(inRun == 8 && Enumerable.Range(2, 8).All(c => cbWaves.Count(n => (n - 1) / 5 == c) == 1), "one wave in every five from wave 11 has a comeback squad (" + inRun + " in waves 11-50)");
+        Check(cbWaves.All(n => { FactionDef f; var sq = Approaches.Comeback(n, out f); return f != null && Array.IndexOf(f.Squads, sq) >= 0 && Approaches.Campaign(n).Any(x => x.Faction == f && x.Pool > 0f); }),
+            "every comeback squad is one of an older faction's own squads");
+        Check(cbWaves.All(n => { FactionDef a, b; return Approaches.Comeback(n, out a) == Approaches.Comeback(n, out b) && a == b; }), "the comeback depends on the wave alone");
+        int cw = cbWaves.First(n => n >= 31);
+        FactionDef cfrom;
+        var csq = Approaches.Comeback(cw, out cfrom);
+        var cwave = wave(cw, true);
+        Check(csq.Members.GroupBy(t => t).All(gr => cwave.Count(t => t == gr.Key) >= gr.Count()), "wave " + cw + " has the " + csq.Name + " squad's members");
         var g0 = new Session().Game;
         g0.Diff.Set(DiffKnob.Campaign, 0f);
         Check(g0.ApproachShare(6) == 0f && g0.ApproachShare(1) > 0f, "off: the old approach share applies (none before the Hive Queen's)");
