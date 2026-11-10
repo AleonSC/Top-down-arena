@@ -653,7 +653,7 @@ namespace Arena
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16;
+        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18;
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -933,15 +933,16 @@ namespace Arena
                 }
                 return;
             }
-            if (me.Weapon.Id == WeaponId.Rapier && pressed && me.RapierTempo >= RapierFlourishMin && !me.Downed && me.StunT <= 0f)
+            if (me.Weapon.Id == WeaponId.Rapier && (pressed || released))
             {
-                // Flourish (Rapier.cs): no move, the host spends the Tempo on swings and waves down your aim
+                // Riposte (Rapier.cs): held, so both edges go to the host (the Flourish is still there: DashFlourish)
+                byte rapierKind = pressed ? DashRapierOn : DashRapierOff;
                 if (IsHost)
-                    HostWeaponDash(MyId, DashFlourish, aimAt);
+                    HostWeaponDash(MyId, rapierKind, aimAt);
                 else
                 {
                     var rw = Proto.Begin(Msg.WeaponDash);
-                    rw.Write(DashFlourish);
+                    rw.Write(rapierKind);
                     rw.Write(aimAt);
                     session.SendToHost(Proto.End(rw));
                 }
@@ -1080,6 +1081,11 @@ namespace Arena
             if (kind == DashHook)
             {
                 HostLanceHook(p, target);  // (target: where they were aiming; Lance.cs)
+                return;
+            }
+            if (kind == DashRapierOn || kind == DashRapierOff)
+            {
+                HostRapierStance(p, kind == DashRapierOn, target);  // (Rapier.cs)
                 return;
             }
             if (kind == DashFlourish)

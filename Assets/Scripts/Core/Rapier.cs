@@ -16,6 +16,10 @@ namespace Arena
         public const float RapierSlow = 0.48f, RapierFast = 0.16f, RapierMinInterval = 0.08f;
         public const float RapierGrace = 1.2f, RapierDrain = 2f;
         public const float RapierFlourishSwing = 0.1f, RapierWaveDmg = 22f, RapierWaveSpeed = 560f, RapierWaveRange = 380f;
+        // Riposte: hold the weapon-action key to stand guard, let go to lunge. Reflected bullets fill the charge; it also creeps up on its own.
+        public const float RapierStanceSlow = 0.4f, RapierStanceRadius = 62f, RapierStanceHalfArc = 70f * MathX.Pi / 180f, RapierStanceBand = 14f;
+        public const float RapierChargePassive = 0.04f, RapierChargePerBullet = 0.1f, RapierLungeMinCharge = 0.06f;  // charge is 0 to 1: per second held; per bullet reflected
+        public const float RapierLungeMin = 130f, RapierLungeMax = 720f, RapierLungeSpeed = 1500f, RapierLungeBase = 20f, RapierLungeBonus = 50f, RapierLungeWidth = 18f;
         const float RapierWaveSkew = 0.09f, RapierFlourishArc = 1.9f;  // radians: each wave's lean off the aim; each swing's arc
 
         /// Seconds between thrusts at this much Tempo, before fire-rate upgrades.
@@ -36,6 +40,98 @@ namespace Arena
             p.RapierGraceLeft = 255;
         }
 
+        /// How far a lunge with this much charge (0 to 1) goes, and what it deals each enemy before damage upgrades.
+        public static float RapierLungeLength(float charge) => RapierLungeMin + (RapierLungeMax - RapierLungeMin) * Math.Min(1f, Math.Max(0f, charge));
+        public static float RapierLungeDamage(float charge) => RapierLungeBase + RapierLungeBonus * Math.Min(1f, Math.Max(0f, charge));
+
+        /// Host: the weapon-action key went down (on) or up with the Rapier, aiming at `aimAt`.
+        void HostRapierStance(Player p, bool on, V2 aimAt)
+        {
+            if (p.Weapon.Id != WeaponId.Rapier || State == MatchState.GameOver)
+                return;
+            if (on)
+            {
+                if (p.RapierGuard || p.Downed || p.StunT > 0f || p.SwallowT > 0f || p.ParryActive || p.RapierLungeDur > 0f || p.RapierFlourishLeft > 0)
+                    return;
+                p.RapierGuard = true;
+                p.RapierChargeF = 0f;
+                p.RapierCharge = 0;
+                BroadcastSound(Sfx.GreatRaise);
+                return;
+            }
+            if (!p.RapierGuard)
+                return;
+            float charge = p.RapierChargeF;
+            p.RapierGuard = false;
+            p.RapierChargeF = 0f;
+            p.RapierCharge = 0;
+            if (p.Downed || p.StunT > 0f || p.SwallowT > 0f || charge < RapierLungeMinCharge)
+                return;  // (dropped by a stun or let go too soon: no lunge)
+            V2 toward = aimAt - p.Pos;
+            V2 dir = toward.Length > 1f ? toward.Normalized() : V2.FromAngle(p.Aim);
+            V2 to = ClampToArena(p.Pos + dir * RapierLungeLength(charge), p.Def.BodyR);
+            p.RapierLungeFrom = p.Pos;
+            p.RapierLungeDir = dir;
+            p.RapierLungeLen = p.Pos.DistanceTo(to);
+            p.RapierLungeDur = Math.Max(0.05f, p.RapierLungeLen / RapierLungeSpeed);
+            p.RapierLungeEl = 0f;
+            p.RapierLungeDmg = RapierLungeDamage(charge) * p.Stats.DmgMult;
+            p.RapierLungeHit.Clear();
+            p.InvulnT = Math.Max(p.InvulnT, p.RapierLungeDur + 0.12f);
+            p.FireCd = Math.Max(p.FireCd, p.RapierLungeDur + 0.1f);
+            CarryPlayer(p, to, p.RapierLungeDur);
+            BroadcastFx(FxKind.GauntletCharge, p.Pos, to, new Rgba(0.8f, 0.72f, 1f), p.Id, p.RapierLungeDur + 0.8f, Sfx.Blink);
+        }
+
+        /// Host: the stance stops bullets in front of you and sends them back as your own; each adds charge.
+        void RapierStanceReflect(Player p)
+        {
+            guardStopped.Clear();
+            foreach (var b in Bullets.Values)
+            {
+                if (!Defs.IsEnemyShot(b.Kind) || Defs.Unblockable(b.Kind))
+                    continue;
+                if (Math.Abs(b.Pos.DistanceTo(p.Pos) - RapierStanceRadius) > RapierStanceBand + b.Radius || AngleTo(p.Pos, b.Pos, p.Aim) > RapierStanceHalfArc)
+                    continue;
+                guardStopped.Add(b.Id);
+            }
+            foreach (int id in guardStopped)
+            {
+                Bullet b;
+                if (!Bullets.TryGetValue(id, out b))
+                    continue;
+                AddFx(FxKind.Spark, b.Pos, new Rgba(0.8f, 0.72f, 1f), 8f, 0.2f);
+                V2 back = b.Vel.IsZero ? V2.FromAngle(p.Aim) : -b.Vel.Normalized();
+                Bullets.Remove(id);
+                pendingRemoved.Add(id);
+                SpawnBullet(Defs.ArcaneShot, b.Pos, back * 520f, 0f, 1f, 12f * p.Stats.DmgMult, p.Id);
+                p.RapierChargeF = Math.Min(1f, p.RapierChargeF + RapierChargePerBullet);
+            }
+            if (guardStopped.Count > 0)
+                BroadcastSound(Sfx.GreatBlock);
+        }
+
+        /// Host: the lunge in flight cuts every enemy along its path once, each adding a stack of Tempo.
+        void TickRapierLunge(Player p, float dt)
+        {
+            p.RapierLungeEl += dt;
+            float u = Math.Min(1f, p.RapierLungeEl / p.RapierLungeDur), len = p.RapierLungeLen * u;
+            foreach (var e in Enemies.Values)
+            {
+                if (!Targetable(e) || p.RapierLungeHit.Contains(e.Id))
+                    continue;
+                float along = Math.Max(0f, Math.Min(len, (e.Pos - p.RapierLungeFrom).Dot(p.RapierLungeDir)));
+                if (e.Pos.DistanceTo(p.RapierLungeFrom + p.RapierLungeDir * along) > e.Radius + RapierLungeWidth)
+                    continue;
+                p.RapierLungeHit.Add(e.Id);
+                HurtEnemy(e, p.RapierLungeDmg, p.Id);
+                RapierGainTempo(p, 1);
+                BroadcastFx(FxKind.GauntletBowl, e.Pos, new V2(-p.RapierLungeDir.Y, p.RapierLungeDir.X), new Rgba(0.8f, 0.72f, 1f), e.Radius, 0.5f, Sfx.Hit);
+            }
+            if (u >= 1f)
+                p.RapierLungeDur = 0f;
+        }
+
         /// Host, every tick for every player: the grace period, the drain, and the Flourish's swings.
         void TickRapier(Player p, float dt)
         {
@@ -45,8 +141,25 @@ namespace Arena
                 p.RapierTempoF = 0f;
                 p.RapierGraceLeft = 0;
                 p.RapierFlourishLeft = 0;
+                p.RapierGuard = false;
+                p.RapierCharge = 0;
+                p.RapierLungeDur = 0f;
                 return;
             }
+            if (p.RapierLungeDur > 0f)
+                TickRapierLunge(p, dt);
+            if (p.RapierGuard)
+            {
+                if (p.Downed || p.StunT > 0f || p.SwallowT > 0f || p.ParryActive || State == MatchState.GameOver)
+                    p.RapierGuard = false;  // (the stance drops with what held it)
+                else
+                {
+                    p.RapierChargeF = Math.Min(1f, p.RapierChargeF + RapierChargePassive * dt);
+                    RapierStanceReflect(p);
+                    p.RapierHitAgo = Math.Min(p.RapierHitAgo, 0.01f);  // Tempo holds while you stand guard
+                }
+            }
+            p.RapierCharge = (byte)(p.RapierGuard ? Math.Min(255f, p.RapierChargeF * 255f) : 0f);
             p.RapierHitAgo += dt;
             if (p.RapierTempoF > 0f && p.RapierHitAgo > RapierGrace)
                 p.RapierTempoF = Math.Max(0f, p.RapierTempoF - RapierDrain * dt);
