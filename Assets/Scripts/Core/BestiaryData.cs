@@ -26,8 +26,7 @@ namespace Arena
         public string[] Notes = new string[0];
     }
 
-    /// The in-game Bestiary. Most entries are generated from the published Bestiary page
-    /// (BestiaryData.Generated.cs, by Docs/Bestiary/build_data.js); the boss adds the page doesn't list are below.
+    /// The in-game Bestiary. Most entries are in BestiaryData.Entries.cs (hand-edited); the boss adds it doesn't list are below.
     public static partial class BestiaryData
     {
         public static readonly string[] Groups = { "Melee", "Shooters", "Late game", "Bosses", "Summons", "Challenge rooms", "Zombies" };
