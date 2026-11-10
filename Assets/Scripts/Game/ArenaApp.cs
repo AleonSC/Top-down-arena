@@ -265,8 +265,6 @@ namespace Arena
             // match, or from Settings.
             if (session.Screen == AppScreen.Game)
                 settingsOpen = false;
-            if (session.Screen == AppScreen.Game ? !pauseMenuOpen && !game.Paused : session.Screen == AppScreen.Lobby && !lobbyMenuOpen)
-                fieldGuideOpen = false;  // (the Field guide opens from the pause menu, the lobby's menu, or the main menu)
             if (session.Screen != AppScreen.Lobby)
             {
                 lobbyMenuOpen = false;
@@ -274,8 +272,6 @@ namespace Arena
             }
             if (session.Screen != AppScreen.Game || !pauseMenuOpen && !game.Paused)
                 runStatsOpen = false;  // the pause menu's Run stats closes with it (RunStatsUi.cs)
-            else if (fieldGuideOpen && !devMenuOpen && !labSetupOpen)
-                FieldGuideKeys();
             if (Input.GetKeyDown(KeyCode.F1))
             {
                 devMenuOpen = !devMenuOpen;
@@ -473,9 +469,7 @@ namespace Arena
                 waveEdOpen = false;
             if (session.Screen != AppScreen.Game && EscPressed && !devMenuOpen && !edWasOpen)
             {
-                if (fieldGuideOpen)
-                    CloseFieldGuide();  // back to the lobby's menu
-                else if (inspectId >= 0)
+                if (inspectId >= 0)
                     CloseInspect();
                 else if (lobbyMenuOpen && (pauseSettings || pauseHowTo || pauseRecords))
                     MenuBack();  // a window closes first; then the lobby menu's Settings: back to its list
@@ -512,8 +506,6 @@ namespace Arena
                     labSetupOpen = false;
                 else if (EscPressed && runStatsOpen && !devMenuOpen)
                     runStatsOpen = false;  // back to the pause menu (RunStatsUi.cs)
-                else if (EscPressed && fieldGuideOpen && !devMenuOpen)
-                    CloseFieldGuide();  // back to the pause menu (FieldGuide.cs)
                 else if (EscPressed && devMenuOpen)
                     devMenuOpen = false;
                 else if (EscPressed && pauseConfirmLobby && menuUp)
@@ -727,8 +719,6 @@ namespace Arena
                         DrawProfTr();  // the picker and the menu trading places (ProfileTransition.cs)
                     else if (whoOpen)
                         DrawWho();  // ProfilesUi.cs
-                    else if (fieldGuideOpen)
-                        DrawFieldGuideScreen();  // FieldGuide.cs (the main menu's button)
                     else if (settingsOpen)
                     {
                         DrawMenuUnderDrawer(bgBig);
@@ -763,18 +753,12 @@ namespace Arena
                         DrawInspect();  // a teammate's holo card (PlayerInspect.cs)
                     if (lobbyMenuOpen)
                     {
-                        if (fieldGuideOpen)
-                            DrawFieldGuideScreen();  // FieldGuide.cs
-                        else
-                            DrawLobbyMenu();  // Esc: back, Settings, Field guide, leave, quit (MenuDrawer.cs)
+                        DrawLobbyMenu();  // Esc: back, Settings, How to play, quit (MenuDrawer.cs)
                     }
                     else if (settingsOpen)
                     {
-                        Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.75f * (fieldGuideOpen ? 1f : WindowVis)));  // (fading with the drawer, WindowAnim.cs)
-                        if (fieldGuideOpen)
-                            DrawFieldGuideScreen();  // FieldGuide.cs
-                        else
-                            DrawSettings();
+                        Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.75f * WindowVis));  // (fading with the drawer, WindowAnim.cs)
+                        DrawSettings();
                     }
                     break;
                 case AppScreen.Game:
@@ -788,9 +772,7 @@ namespace Arena
                     if ((PauseMenuWanted || pauseAnim > 0f) && !devMenuOpen && !labSetupOpen && !waveEdOpen)
                     {
                         Ui.MenuFont = true;
-                        if (fieldGuideOpen && PauseMenuWanted)
-                            DrawFieldGuideScreen();  // FieldGuide.cs
-                        else if (runStatsOpen && PauseMenuWanted)
+                        if (runStatsOpen && PauseMenuWanted)
                             DrawRunStatsScreen(game.Me, true);  // RunStatsUi.cs
                         else
                             DrawPauseMenu();  // with its opening and closing (WindowAnim.cs)

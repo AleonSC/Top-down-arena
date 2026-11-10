@@ -394,7 +394,7 @@ namespace Arena
                 float armorH = armored ? 9f : 0f;
                 float h = (note != null ? 62f : 46f) + armorH;
                 var panel = new Rect(x0, y, panelW, h);
-                Ui.HudPanel(panel, col);
+                DkHud(panel, col);
                 float frac = Mathf.Clamp01(e.Hp / e.MaxHp);
                 // Name with small diamonds either side, and the health percentage.
                 Ui.Pill(new Rect(panel.x + 14f, panel.y + 12f, 6f, 6f), col);

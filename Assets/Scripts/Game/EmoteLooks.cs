@@ -93,7 +93,7 @@ namespace Arena
         {
             float pop = Mathf.Max(0.01f, EmotePop(t)), ww = w * s * pop, hh = h * s * pop;
             var r = new Rect(head.x - ww / 2f, head.y - 8f * s * pop - hh, ww, hh);
-            Ui.Card(r, tint, 0.95f);
+            DkBox(r, tint, 0.95f);
             for (int i = 0; i < 4; i++)
                 Ui.Fill(new Rect(head.x - (5f - 1.3f * i) * s * pop, r.yMax - 1f + i * 2f * s * pop, (10f - 2.6f * i) * s * pop, 2f * s * pop), new Color(0.04f, 0.055f, 0.095f, 0.94f));
             return r.center;

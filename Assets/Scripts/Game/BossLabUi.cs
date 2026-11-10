@@ -151,7 +151,7 @@ namespace Arena
         {
             var s = lab.Seats[i];
             var box = new Rect(x, y, w, 150f);
-            Ui.HudPanel(box, ToColor(Defs.Get(s.Role).Color));
+            DkHud(box, ToColor(Defs.Get(s.Role).Color));
             float ix = x + 12f, iw = w - 24f, iy = y + 8f;
             Ui.Label(new Rect(ix, iy, 200f, 20f), "Player " + (i + 1), 14, Color.white, TextAnchor.MiddleLeft, true);
             if (i == 0)
@@ -187,7 +187,7 @@ namespace Arena
         void DrawLabPanel()
         {
             var r = LabPanel;
-            Ui.HudPanel(r, Ui.Gold);
+            DkHud(r, Ui.Gold);
             float x = r.x + 10f, w = r.width - 20f, y = r.y + 8f;
             Ui.Label(new Rect(x, y, w, 18f), "BOSS LAB", 11, Ui.Gold, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(x, y, w, 18f), lab.BossName.Length > 0 ? lab.BossName : LabBossName(lab.Wave), 12, Color.white, TextAnchor.MiddleRight, true);

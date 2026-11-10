@@ -119,7 +119,7 @@ namespace Arena
             bool ready = me.RiotT <= 0f;
             float fill = ready ? 1f : 1f - me.RiotT / Perks.RiotRecharge;
             var steel = new Color(PlateSteel.R, PlateSteel.G, PlateSteel.B);
-            Ui.HudPanel(r, ready ? steel : (Color?)null);
+            DkHud(r, ready ? steel : (Color?)null);
             var tile = new Rect(r.x + 6f, r.y + 6f, 26f, 26f);
             Ui.Fill(tile, new Color(0.04f, 0.05f, 0.1f, 0.9f));
             Ui.Fill(new Rect(tile.x, tile.y + tile.height * (1f - fill), tile.width, tile.height * fill), new Color(steel.r, steel.g, steel.b, 0.35f));

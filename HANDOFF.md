@@ -38,8 +38,6 @@ There is no to-do file; the owner sends requests per session. Design docs in `Do
   bonus and a prize). Bosses are always standard. See `Docs/Paths.md`.
 - **Dev tools (F1):** a tabbed menu (Match / Players / Tools / DPS): stat editor, god mode, wave skip, session
   recording toggle, **DPS meter (F2) and target dummies**, **Boss Lab** (bots that play like people fight any boss; live stats; also a CLI batch mode).
-- **Field guide (a button in the pause menu and in Settings):** in-game **Bestiary** and **Armory** databases
-  (`FieldGuide.cs`): searchable lists, live models, stats, links between entries.
 - **Session recording:** the host's matches are saved as JSON (per-wave damage by source, picks, downs,
   samples). The owner uploads these into sessions for balance analysis; `Tools/SessionReport/report.py`
   summarises them.

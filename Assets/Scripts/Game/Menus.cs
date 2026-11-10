@@ -42,7 +42,7 @@ namespace Arena
             DrawDriveSlot(EaseOut(MenuAxisK), DriveForMenu());  // the disk drive under the title (DriveSlot.cs)
             DrawDriveEject(EaseOut(MenuAxisK), !MenuIntroPlaying);  // its eject key, right of it (DiskEject.cs)
             if (box > 0f)
-                TileTransformed(MenuCard.center, Mathf.Lerp(0.3f, 1f, EaseBack(box)), 0f, () => WithAlpha(Mathf.Clamp01(box * 2.5f), () => Ui.BodyBox(MenuCard)));
+                TileTransformed(MenuCard.center, Mathf.Lerp(0.3f, 1f, EaseBack(box)), 0f, () => WithAlpha(Mathf.Clamp01(box * 2.5f), () => DkPanel(MenuCard)));
             if (BeginUiGl())
             {
                 DrawMenuArc(t, 1f);

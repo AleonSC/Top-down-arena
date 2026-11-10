@@ -39,7 +39,7 @@ namespace Arena
             if (glow)
                 for (int k = 3; k >= 1; k--)
                     Ui.Pill(new Rect(r.x - 3f * k, r.y - 3f * k, r.width + 6f * k, r.height + 6f * k), new Color(fc.r, fc.g, fc.b, 0.05f * (4 - k) / 3f * pulse));
-            Ui.Card(r, fc, 1f);
+            DkBox(r, fc, 1f);
             DrawCardBackground(r, cardBg, t);  // CardBackgrounds.cs: under the frame's own effect
             DrawFrameFx(r, index, t);
         }

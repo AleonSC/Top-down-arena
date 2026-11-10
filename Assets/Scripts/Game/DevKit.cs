@@ -112,6 +112,15 @@ namespace Arena
             CrtKit.Frame(r, strength > 0.6f ? 2f : 1f, new Color(accent.r, accent.g, accent.b, 0.3f + 0.6f * strength));
         }
 
+        /// A translucent in-run panel (player tiles, boss bars, banners): the screen colour at ~88%, a thin rim in the accent (or the phosphor).
+        static void DkHud(Rect r, Color? accent = null)
+        {
+            var ink = CrtUi.Ink;
+            Ui.Fill(r, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.88f));
+            Color c = accent ?? ink;
+            CrtKit.Frame(r, 1f, new Color(c.r, c.g, c.b, accent.HasValue ? 0.7f : 0.28f));
+        }
+
         /// A thin CRT meter: a faint track and a lit fill (a progress or health bar).
         static void DkBar(Rect r, float frac, Color fill, Color? track = null)
         {

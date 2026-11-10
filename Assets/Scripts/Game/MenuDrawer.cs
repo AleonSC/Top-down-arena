@@ -105,7 +105,6 @@ namespace Arena
         // --- The lobby's menu (Esc) --------------------------------------------------------------------------------------
 
         static readonly string[] LobbyChoices = { "LOBBY", "SETTINGS", "FIELD GUIDE", "PROFILE", "HOW TO PLAY", "MAIN MENU", "QUIT GAME" };
-        const int FieldGuideRow = 2;  // hidden from both menus for now (the code in FieldGuide.cs stays)
         bool lobbyMenuOpen;
         int lobbySel;
 
@@ -113,7 +112,7 @@ namespace Arena
         {
             var rows = new List<int>();
             for (int i = 0; i < LobbyChoices.Length; i++)
-                if (i != FieldGuideRow && i != 3 && i != 5)  // no Profile (main menu or your lobby card) and no Main menu (the lobby's back arrow does that)
+                if (i != 2 && i != 3 && i != 5)  // no Field guide (gone), no Profile (main menu or your lobby card) and no Main menu (the lobby's back arrow does that)
                     rows.Add(i);
             return rows;
         }
@@ -163,7 +162,7 @@ namespace Arena
             BeginDrawer("MENU", Ui.Accent, 1f, "Esc closes this menu");
             string[] lines = { "Close this menu", "Audio, visual effects, aim line", "Every enemy, weapon and upgrade", "Your rank, records and unlocks", "Controls and tips",
                 session.IsHost ? "Close the lobby, back to the title screen" : "Leave the lobby, back to the title screen", "Close the game" };
-            Color[] lcols = { Ui.Primary, new Color(0.6f, 0.66f, 0.82f), FieldGuideColor, Ui.Gold, HowToColor, new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
+            Color[] lcols = { Ui.Primary, new Color(0.6f, 0.66f, 0.82f), Ui.Primary, Ui.Gold, HowToColor, new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
             string[] licons = { "ui_play", "ui_gear", "ui_book", "ui_trophy", "ui_help", "ui_back", "ui_power" };
             float y = cabScreen.y + 10f;
             var lrows = LobbyRows();
@@ -207,7 +206,6 @@ namespace Arena
             {
                 case 0: CloseLobbyMenu(); break;
                 case 1: pauseSettings = true; CloseCabWindow(); break;
-                case 2: OpenFieldGuide(); break;
                 case 3: pauseRecords = true; break;
                 case 4: pauseHowTo = true; OpenCabWindow(2); break;  // a window beside the list
                 case 5:
@@ -228,7 +226,7 @@ namespace Arena
         List<int> PauseRows()
         {
             // Resume, Settings, How to play, Quit. Run stats is the small key beside the cabinet (DrawRunStatsKey); the Field guide is
-            // hidden for now; the profile opens from the main menu or your lobby card only.
+            // gone; the profile opens from the main menu or your lobby card only.
             return new List<int> { 0, 5, 4, PauseQuit };
         }
 
@@ -277,7 +275,7 @@ namespace Arena
             BeginDrawer("PAUSED", Ui.Accent, 1f, sub);
             string[] lines = { "Back into wave " + Mathf.Max(1, game.Wave), "Your build, damage and kills so far", "Every enemy, weapon and upgrade", "Your rank, records and unlocks", "Controls and tips",
                 "Audio, visual effects, aim line", CanQuitToLobby ? "Back to the lobby, or out to the desktop" : "Out to the desktop" };
-            Color[] pcols = { Ui.Primary, Ui.Gold, FieldGuideColor, Ui.Gold, HowToColor, new Color(0.6f, 0.66f, 0.82f), new Color(1f, 0.6f, 0.45f) };
+            Color[] pcols = { Ui.Primary, Ui.Gold, Ui.Primary, Ui.Gold, HowToColor, new Color(0.6f, 0.66f, 0.82f), new Color(1f, 0.6f, 0.45f) };
             string[] picons = { "ui_play", "ui_trophy", "ui_book", "ui_star", "ui_help", "ui_gear", "ui_power" };
             var rows = PauseRows();
             pauseSel = Mathf.Clamp(pauseSel, 0, rows.Count - 1);
@@ -469,7 +467,6 @@ namespace Arena
             {
                 case 0: ResumeGame(); break;
                 case 1: runStatsOpen = true; break;
-                case 2: OpenFieldGuide(); break;
                 case 3: pauseRecords = true; break;
                 case 4: pauseHowTo = true; OpenCabWindow(2); break;  // a window beside the list
                 case 5: pauseSettings = true; CloseCabWindow(); break;  // the list switches to the sections
