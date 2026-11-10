@@ -331,7 +331,7 @@ namespace Arena
             tabHeld = tabKey && !menuUp;
             Keybinds.SetPickerNumbers(choosing && !tabHeld ? Mathf.Min(me.Offer.Length, CardKeys.Length) : 0);  // its card keys win over a bound number key
             bool watching = LabRunning && !lab.Seats[0].Human;  // Boss Lab with only bots: the mouse is just for the panel
-            bool pathChoice = session.Screen == AppScreen.Game && (game.PathOffer != null || game.ExpandOffer != null);
+            bool pathChoice = session.Screen == AppScreen.Game && (game.PathOffer != null || ExpandWindowUp);
             bool shopping = session.Screen == AppScreen.Game && ShopScreenUp(me);  // the Bazaar's shop covers the arena (ShopUi.cs)
             bool overlay = menuUp || choosing || tabHeld || pathChoice || shopping || game.State == MatchState.GameOver || game.State == MatchState.Victory || watching || MouseOnLab() || MouseOnDock() || WaveBoxUp(me) || PracticeDownedUp(me);  // (the Wave cleared box has buttons: a click on Ready must not fire, ping or emote)
             if (!(session.Screen == AppScreen.Lobby && lobbyTab == HangoutTab))  // (the Hangout ticks its own, in OnGUI)
@@ -790,6 +790,7 @@ namespace Arena
             }
             TextEditEndGui();
             DrawCabEdges();  // the cabinet menus' soft edges, over them (CrtWindows.cs)
+            DrawSkipStatic();  // an intro just skipped: the channel flip over everything (SkipStatic.cs)
             DrawMenuCursor();  // the equipped crosshair over the menus (CursorLooks.cs)
             bool clicked = Ui.TakeClick();
             ClickLogEnd(clicked);

@@ -119,7 +119,9 @@ namespace Arena
                             DrawPathChoice(Time.unscaledTime);  // PathsUi.cs
                         break;
                     }
-                    if (game.ExpandOffer != null && !tabHeld)
+                    if (ExpandChipUp && !pauseUp)
+                        DrawExpandChip(me);  // an optional room offer: a chip, the wave doesn't wait (ExpansionUi.cs)
+                    if (ExpandWindowUp && !tabHeld)
                     {
                         if (!pauseUp)
                             DrawExpansionChoice(Time.unscaledTime);  // ExpansionUi.cs
