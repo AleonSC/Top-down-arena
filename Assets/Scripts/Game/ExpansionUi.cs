@@ -236,9 +236,9 @@ namespace Arena
         {
             RoundBackdrop(PathDim);
             CrtUi.Title(new Rect(0, 22f, W, 56f), expCutMode ? "OPEN A WALL" : "DRAW A ROOM OR HALLWAY", 46, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
-            if (CrtUi.SoftKey(new Rect(70f, 26f, 150f, 30f), "ROOM", null, 17, calm, lit: !expCutMode)) { expCutMode = false; expDragging = false; expA = expB = V2.Zero; }
-            if (CrtUi.SoftKey(new Rect(228f, 26f, 190f, 30f), "OPEN WALL", null, 17, calm, lit: expCutMode)) { expCutMode = true; expDragging = false; expA = expB = V2.Zero; }
-            Ui.Label(new Rect(0, 80f, W, 20f), expCutMode ? "Drag along a wall between two rooms (the cyan stretches)  ·  at least " + Expansion.MinCut / 100 + " tiles  ·  you get 1 vector back for every tile that was wall  ·  a door is just a short opening" : "Drag on the map  ·  share at least " + Expansion.MinDoorRun / 100 + " tiles of wall with a room  ·  " + Expansion.MinSide / 100 + " tiles wide is a hallway  ·  touching two rooms makes a loop", 13, Ui.Muted, TextAnchor.MiddleCenter);
+            if (CrtUi.SoftKey(new Rect(20f, 26f, 110f, 30f), "ROOM", null, 17, calm, lit: !expCutMode)) { expCutMode = false; expDragging = false; expA = expB = V2.Zero; }
+            if (CrtUi.SoftKey(new Rect(138f, 26f, 150f, 30f), "OPEN WALL", null, 17, calm, lit: expCutMode)) { expCutMode = true; expDragging = false; expA = expB = V2.Zero; }
+            Ui.Label(new Rect(0, 80f, W, 20f), expCutMode ? "Left click one end of a wall stretch, then the other (the cyan stretches)  ·  right click cancels  ·  at least " + Expansion.MinCut / 100 + " tiles  ·  you get 1 vector back for every tile that was wall  ·  a door is just a short opening" : "Left click a corner, move, left click to place it  ·  right click cancels  ·  share at least " + Expansion.MinDoorRun / 100 + " tiles of wall with a room  ·  " + Expansion.MinSide / 100 + " tiles wide is a hallway  ·  touching two rooms makes a loop", 13, Ui.Muted, TextAnchor.MiddleCenter);
             var map = new Rect(70f, 116f, W - 140f, 400f);
             var wd = game.ExpansionWorld;
             float pad = 1300f;
@@ -249,15 +249,39 @@ namespace Arena
             System.Func<Vector2, V2> Snap = m => new V2(Mathf.Round(((m.x - ox) / k + lo.X) / Expansion.Step) * Expansion.Step, Mathf.Round(((m.y - oy) / k + lo.Y) / Expansion.Step) * Expansion.Step);
             var ev = Event.current;
             bool over = map.Contains(ev.mousePosition);
-            if (ev.type == EventType.MouseDown && ev.button == 0 && over)
+            // Controls: left click sets the first corner, the box follows the mouse, a second left click places it (or press, drag and let go);
+            // right click or Escape cancels the box (and, with none started, goes back).
+            bool confirm = false, dragRelease = false;
+            if (expDragging && ev.type != EventType.Layout && ev.type != EventType.Used)
+                expB = Snap(ev.mousePosition);
+            if ((ev.type == EventType.MouseDown && ev.button == 1) || (ev.type == EventType.KeyDown && ev.keyCode == KeyCode.Escape))
             {
-                expDragging = true;
-                expA = expB = Snap(ev.mousePosition);
+                if (expDragging)
+                {
+                    expDragging = expHeld = false;
+                    expA = expB = V2.Zero;
+                }
+                else
+                    expDrawing = false;
                 ev.Use();
             }
-            else if (ev.type == EventType.MouseDrag && expDragging)
+            else if (ev.type == EventType.MouseDown && ev.button == 0 && over)
             {
-                expB = Snap(ev.mousePosition);
+                if (!expDragging)
+                {
+                    expDragging = expHeld = true;
+                    expA = expB = Snap(ev.mousePosition);
+                    expPressAt = ev.mousePosition;
+                }
+                else
+                    confirm = true;
+                ev.Use();
+            }
+            else if (ev.type == EventType.MouseUp && ev.button == 0 && expHeld)
+            {
+                expHeld = false;
+                if (expDragging && (ev.mousePosition - expPressAt).magnitude > 12f)
+                    confirm = dragRelease = true;  // press, drag, let go
                 ev.Use();
             }
             int rx = (int)Mathf.Min(expA.X, expB.X), ry = (int)Mathf.Min(expA.Y, expB.Y), rw = (int)Mathf.Abs(expA.X - expB.X), rh = (int)Mathf.Abs(expA.Y - expB.Y);
@@ -281,20 +305,23 @@ namespace Arena
                 int have = game.Me != null ? game.Me.Vectors : 0;
                 if (box.HasValue && box.Value.Price > have) { why = "Can't afford it: " + box.Value.Price + " vectors, you have " + have; box = null; }
             }
-            if (ev.type == EventType.MouseUp && ev.button == 0 && expDragging)
+            if (confirm)
             {
-                expDragging = false;
                 if (box.HasValue)
                 {
                     game.ProposeExpandRoom(rx, ry, rw, rh, expTheme);
-                    expDrawing = false;
+                    expDrawing = expDragging = false;
                 }
                 else if (cutRefund > 0)
                 {
                     game.ProposeExpandCut(cut);
-                    expDrawing = false;
+                    expDrawing = expDragging = false;
                 }
-                ev.Use();
+                else if (dragRelease)  // a dragged box that doesn't fit is dropped; a clicked one stays so you can move the corner
+                {
+                    expDragging = false;
+                    expA = expB = V2.Zero;
+                }
             }
             if (BeginUiGl())
             {
@@ -340,6 +367,17 @@ namespace Arena
                     RoomMapRect(q0.X, q0.Y, q1.X - q0.X, q1.Y - q0.Y, qi.WithAlpha(0.14f));
                     RoomMapFrame(q0.X, q0.Y, q1.X - q0.X, q1.Y - q0.Y, 1.5f, qi.WithAlpha(0.85f));
                 }
+                if (over || expDragging)  // the snapped cursor (a cross) and the corner already placed (a square)
+                {
+                    V2 cur = M(Snap(ev.mousePosition));
+                    RoomMapRect(cur.X - 7f, cur.Y - 0.5f, 14f, 1f, Rgba.White.WithAlpha(0.8f));
+                    RoomMapRect(cur.X - 0.5f, cur.Y - 7f, 1f, 14f, Rgba.White.WithAlpha(0.8f));
+                }
+                if (expDragging)
+                {
+                    V2 anchor = M(expA);
+                    RoomMapRect(anchor.X - 4f, anchor.Y - 4f, 8f, 8f, new Rgba(1f, 0.85f, 0.4f, 0.95f));
+                }
                 if (hasCut)
                 {
                     V2 p0 = M(new V2(cut.Vertical ? cut.At : cut.From, cut.Vertical ? cut.From : cut.At)), p1 = M(new V2(cut.Vertical ? cut.At : cut.Till, cut.Vertical ? cut.Till : cut.At));
@@ -373,7 +411,7 @@ namespace Arena
             Color lineInk;
             if (hasCut && cutRefund > 0)
             {
-                line = "OPEN " + cut.Length / Expansion.Step + " TILES OF WALL  ·  +" + cutRefund + " VECTORS (you have " + (game.Me != null ? game.Me.Vectors : 0) + " of " + (game.Me != null ? game.Me.VectorCap : 0) + ")  ·  let go to propose it";
+                line = "OPEN " + cut.Length / Expansion.Step + " TILES OF WALL  ·  +" + cutRefund + " VECTORS (you have " + (game.Me != null ? game.Me.Vectors : 0) + " of " + (game.Me != null ? game.Me.VectorCap : 0) + ")  ·  click to propose it";
                 lineInk = Ui.Gold;
             }
             else if (hasCut)
@@ -384,7 +422,7 @@ namespace Arena
             else if (hasBox && box.HasValue)
             {
                 int loops = Expansion.LoopsOf(game.Expanded, box.Value);
-                line = (box.Value.Shape == "Hallway" ? "HALLWAY" : "ROOM") + " " + rw / 100 + " x " + rh / 100 + " tiles  ·  " + box.Value.Price + " VECTORS (of " + (game.Me != null ? game.Me.Vectors : 0) + ")" + (loops > 0 ? "  ·  CLOSES " + (loops == 1 ? "A LOOP" : loops + " LOOPS") : "") + "  ·  let go to propose it";
+                line = (box.Value.Shape == "Hallway" ? "HALLWAY" : "ROOM") + " " + rw / 100 + " x " + rh / 100 + " tiles  ·  " + box.Value.Price + " VECTORS (of " + (game.Me != null ? game.Me.Vectors : 0) + ")" + (loops > 0 ? "  ·  CLOSES " + (loops == 1 ? "A LOOP" : loops + " LOOPS") : "") + "  ·  click to propose it";
                 lineInk = Ui.Gold;
             }
             else if (hasBox)
@@ -404,6 +442,8 @@ namespace Arena
                 expDrawing = expDragging = false;
         }
 
+        bool expHeld;  // the mouse button of the box being drawn is still down
+        Vector2 expPressAt;
         bool expCutMode;  // the draw screen opens a wall instead of drawing a room
         PathId expTheme = PathId.None;  // the theme the next drawn room carries
 

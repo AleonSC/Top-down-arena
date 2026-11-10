@@ -776,7 +776,7 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   everyone to the cap and adds 10 on top. Two cards raise the cap, in the Expanding arena only: **Deep Inkwell** (uncommon, +10,
   stacks to 4) and the milestone card **Architect** (+20 and 10 vectors now, stacks to 3).
 - **Building rounds**: every cleared wave opens a round (a chip "Build rooms" under the wave plate; the countdown never waits
-  for it). Open it, **draw a room or hallway** (drag a box on the grid on the zoomed-out map, 3 to 12 tiles a side, at most 96
+  for it). Open it, **draw a room or hallway** (**left click** a corner on the zoomed-out map, move, **left click** again to place the box on the grid, or press, drag and let go; **right click** or Esc cancels it, and a right click with no box goes back; 3 to 12 tiles a side, at most 96
   tiles; it must share 3 tiles of wall with a room and not overlap anything) and it becomes **your proposal**; a newer
   drawing replaces it. You can only propose what you can afford. A proposal costs its **new wall length**: the perimeter
   minus every wall it shares with existing rooms, so touching rooms is cheaper and a box that touches two rooms (a loop)
@@ -800,7 +800,7 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   tiles of wall with one and its door opens (a box touching only a floating room is refused: it must also touch the connected map). At most 6
   wait at once, they don't count towards the 24-room cap, add no enemies and no spawns, and a floating shop counts as a shop once it's opened.
   (The Gatekeeper has its own room, below.)
-- **Open a wall**: on the draw screen, switch to **Open wall** and drag along a wall two rooms share (the cyan stretches; the outer wall can't be
+- **Open a wall**: on the draw screen, switch to **Open wall** and click both ends of a stretch of a wall two rooms share (the cyan stretches; the outer wall can't be
   opened, nor a sealed floating room's). It goes to the vote like a room. If it wins, that stretch of wall comes down (a short stretch is a door, a long
   one joins the rooms) and its proposer gets **1 vector back for every tile that was wall** (up to their cap). At least 2 tiles, up to 40 openings.
 - **Themed rooms**: pick a theme under the map when you draw a room: a path's ground and rules (Swarm Fields, Sniper Ridge, Elite Gauntlet, Burning
