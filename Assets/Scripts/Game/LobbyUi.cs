@@ -303,28 +303,81 @@ namespace Arena
             string[] names = { session.Resume != null ? "Seats" : "Loadout", practice ? "Practice  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers",
                 "Difficulty", hunt ? "Boss hunt" : null, practice ? null : "Perks", null, practice ? "Training" : null };  // Hangout has its own key on the Party line
             int[] order = { 0, PerkTab, 3, 2, 1, TrainingTab, 4 };
-            // Quiet tabs (the mockup's): about 135 px each (wider for a long name), the row centred in r (over the loadout box); too many squeeze together.
-            var ws = new float[order.Length];
-            float total = -6f;
-            for (int k = 0; k < order.Length; k++)
+            // A carousel (like the mode carousel above the party): the open tab in the middle, the others in order either side,
+            // smaller and fading toward the ends; the arrows, the mouse wheel or a click on a tab slide it.
+            var shown = new System.Collections.Generic.List<int>();
+            foreach (int i in order)
+                if (names[i] != null)
+                    shown.Add(i);
+            int n = shown.Count, cur = Mathf.Max(0, shown.IndexOf(lobbyTab));
+            var ev = Event.current;
+            // tabTurnPos is unwrapped (cur = pos mod n): turn the short way round to the open tab.
+            float diff = ((cur - tabTurnPos) % n + n) % n;
+            if (diff > n / 2f)
+                diff -= n;
+            if (!tabTurnSet || n != tabTurnCount)
             {
-                if (names[order[k]] == null)
-                    continue;
-                ws[k] = Mathf.Max(135.5f, LobbyKit.SpacedWidth(names[order[k]].ToUpperInvariant(), 12, 1.44f) + 32f);
-                total += ws[k] + 6f;
+                tabTurnPos = cur;
+                diff = 0f;
+                tabTurnSet = true;
+                tabTurnCount = n;
             }
-            float shrink = Mathf.Min(1f, r.width / total), x = r.center.x - total * shrink / 2f;
-            for (int k = 0; k < order.Length; k++)
+            if (ev.type == EventType.Repaint)
             {
-                int i = order[k];
-                if (names[i] == null)
+                tabTurnPos += diff * (fxReduced ? 1f : 1f - Mathf.Exp(-Time.unscaledDeltaTime * 12f));
+                if (Mathf.Abs(diff) < 0.004f)
+                    tabTurnPos = Mathf.Round(tabTurnPos);
+            }
+            int want = cur;
+            if (ev.type == EventType.ScrollWheel && GUI.enabled && r.Contains(ev.mousePosition))
+            {
+                want = cur + (ev.delta.y > 0f ? 1 : -1);
+                ev.Use();
+            }
+            const float arrowW = 22f, gap = 6f, bigW = 168f, smallW = 128f, step = 152f;
+            float cx = r.center.x, half = r.width / 2f - arrowW - gap;
+            float oldAlpha = Ui.Alpha;
+            for (int k = 0; k < n; k++)
+            {
+                int i = shown[k];
+                float d = ((k - tabTurnPos) % n + n) % n;
+                if (d > n / 2f)
+                    d -= n;  // the open tab at 0, the rest either side
+                float ad = Mathf.Abs(d);
+                float w = Mathf.Lerp(bigW, smallW, Mathf.Clamp01(ad));
+                float x = cx + Mathf.Sign(d) * (step * Mathf.Min(ad, 1f) + 124f * Mathf.Max(0f, ad - 1f));  // the far ones closer in
+                float edge = Mathf.Clamp01((half - (Mathf.Abs(x - cx) + w / 2f)) / 50f + 1f);  // fades out at the arrows
+                float a = (1f - 0.25f * Mathf.Clamp01(ad)) * Mathf.Clamp01((2.4f - ad) / 0.9f) * edge;
+                if (a <= 0.02f)
                     continue;
                 bool on = lobbyTab == i;
-                if (LobbyKit.QuietTab(new Rect(x, r.y, ws[k] * shrink, r.height), names[i].ToUpperInvariant(), on) && !on)
-                    lobbyTab = i;
-                x += (ws[k] + 6f) * shrink;
+                float inset = Mathf.Clamp01(ad) * 3f;
+                var tr = new Rect(Mathf.Round(x - w / 2f), r.y + inset, Mathf.Round(w), r.height - 2f * inset);
+                Ui.Alpha = oldAlpha * a;
+                if (on && !fxReduced)
+                    Ui.Glow(tr, CrtUi.Ink, 0.3f * Mathf.Clamp01(1f - ad * 2f));
+                bool click = LobbyKit.QuietTab(tr, names[i].ToUpperInvariant(), on, a > 0.4f);
+                Ui.Alpha = oldAlpha;
+                if (click && !on)
+                    want = k;
             }
+            for (int side = -1; side <= 1; side += 2)
+            {
+                var ab = new Rect(side < 0 ? r.x : r.xMax - arrowW, r.y, arrowW, r.height);
+                bool click = LobbyKit.Key(ab, "", false, fxReduced);
+                Chevron(ab.center, side, CrtKit.SoftText(CrtUi.Ink, GUI.enabled && ab.Contains(ev.mousePosition)));
+                if (click)
+                    want = cur + side;
+            }
+            want = ((want % n) + n) % n;
+            if (want != cur)
+                lobbyTab = shown[want];
         }
+
+        // The tab carousel's turn (unwrapped: the open tab is tabTurnPos mod the tab count), easing toward the open tab.
+        float tabTurnPos;
+        bool tabTurnSet;
+        int tabTurnCount;
 
         string PracticeSummary()
         {
