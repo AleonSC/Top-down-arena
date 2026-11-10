@@ -193,26 +193,104 @@ namespace Arena
             return session.Lobby.TryGetValue(1, out host) ? host.Name : "the host";
         }
 
-        /// Three keys: a normal run, a Boss Hunt, or the Practice Range, each with its description as a hover tip. Only the host can switch.
+        // The mode carousel's turn: modeTurn is the mode on top (unwrapped, mode = modeTurn mod 3), modeTurnPos eases toward it.
+        int modeTurn;
+        float modeTurnPos;
+        bool modeTurnSet;
+
+        static string ModeTitle(int i) => i == 0 ? "GAUNTLET" : i == 1 ? "BOSS HUNT" : "PRACTICE";
+        static string ModeSub(int i) => i == 0 ? "50 waves, a boss every 5" : i == 1 ? "10 waves to one boss" : "Build your own waves, or train a mechanic";
+        static Color? ModeAccent(int i) => i == 1 ? new Color(1f, 0.62f, 0.58f) : i == 2 ? new Color(0.37f, 0.94f, 1f) : (Color?)null;
+
+        /// The mode carousel (like the Wildcard's class wheel): the mode in play big in the middle with its line under it, the other
+        /// two smaller and faded either side, and arrows at the ends. Arrows, the mouse wheel or a click on a side mode turn it;
+        /// only the host can.
         void DrawModeSwitch(Rect r, float t)
         {
-            bool practice = session.PracticeMode;
-            int mode = practice ? 2 : session.HuntMode ? 1 : 0;
-            float kw = (r.width - 12f) / 3f;
-            for (int i = 0; i < 3; i++)
+            const int n = 3;
+            bool calm = fxReduced, host = session.IsHost;
+            var ev = Event.current;
+            int mode = session.PracticeMode ? 2 : session.HuntMode ? 1 : 0;
+            int d0 = ((mode - modeTurn) % n + n) % n;  // follow the session the short way round (the host's turn, or someone else's)
+            if (!modeTurnSet)
             {
-                var k = new Rect(r.x + i * (kw + 6f), r.y, kw, r.height);
-                string title = i == 0 ? "GAUNTLET" : i == 1 ? "BOSS HUNT" : "PRACTICE";
-                string sub = i == 0 ? "50 waves, a boss every 5" : i == 1 ? "10 waves to one boss" : "Build your own waves, or train a mechanic";
-                if (LobbyKit.Key(k, title, i == mode, fxReduced, size: 15, minSize: 11, enabled: session.IsHost, accent: i == 1 ? new Color(1f, 0.62f, 0.58f) : i == 2 ? new Color(0.37f, 0.94f, 1f) : (Color?)null) && session.IsHost && i != mode)
-                    session.SetMode(i == 2, i == 1);
-                if (k.Contains(Event.current.mousePosition))  // the description is a hover tip
+                modeTurn = mode;
+                modeTurnPos = mode;
+                modeTurnSet = true;
+            }
+            else if (d0 != 0)
+                modeTurn += d0 > n / 2 ? d0 - n : d0;
+            if (ev.type == EventType.Repaint)
+            {
+                modeTurnPos += (modeTurn - modeTurnPos) * (calm ? 1f : 1f - Mathf.Exp(-Time.unscaledDeltaTime * 12f));
+                if (Mathf.Abs(modeTurn - modeTurnPos) < 0.004f)
+                    modeTurnPos = modeTurn;
+            }
+            int turnTo = int.MinValue;  // a turn asked for this frame (unwrapped)
+            if (host && ev.type == EventType.ScrollWheel && GUI.enabled && r.Contains(ev.mousePosition))
+            {
+                turnTo = modeTurn + (ev.delta.y > 0f ? 1 : -1);
+                ev.Use();
+            }
+
+            const float arrowW = 22f, gap = 6f;
+            float ix = r.x + arrowW + gap, iw = r.width - 2f * (arrowW + gap);
+            float bigW = Mathf.Round(iw * 0.44f), smallW = Mathf.Floor((iw - bigW - 2f * gap) / 2f);
+            float step = (bigW + smallW) / 2f + gap, cx = ix + iw / 2f;
+            float oldAlpha = Ui.Alpha;
+            // Draw the far ones first so the middle one is on top while they slide.
+            var order = new int[n];
+            var dist = new float[n];
+            for (int i = 0; i < n; i++)
+            {
+                float d = ((i - modeTurnPos) % n + n) % n;
+                if (d > n / 2f)
+                    d -= n;  // -1.5 .. 1.5, the mode on top at 0
+                dist[i] = d;
+                order[i] = i;
+            }
+            System.Array.Sort(order, (a, b) => Mathf.Abs(dist[b]).CompareTo(Mathf.Abs(dist[a])));
+            foreach (int i in order)
+            {
+                float d = dist[i], ad = Mathf.Abs(d);
+                float a = ad <= 1f ? 1f - 0.45f * ad : 0.55f * Mathf.Clamp01((1.5f - ad) / 0.5f);  // fades out round the back
+                if (a <= 0.01f)
+                    continue;
+                float k = Mathf.Clamp01(ad);
+                float w = Mathf.Lerp(bigW, smallW, k), h = Mathf.Lerp(r.height, r.height - 16f, k);
+                var kr = new Rect(Mathf.Round(cx + d * step - w / 2f), Mathf.Round(r.center.y - h / 2f), Mathf.Round(w), Mathf.Round(h));
+                bool top = i == mode && ad < 0.5f;
+                Ui.Alpha = oldAlpha * a;
+                if (top && !calm)
+                    Ui.Glow(kr, ModeAccent(i) ?? CrtUi.Ink, 0.35f * (1f - ad * 2f));
+                bool click = LobbyKit.Key(kr, ModeTitle(i), top, calm, size: ad < 0.5f ? 15 : 12, minSize: 9, enabled: host && ad < 1.2f,
+                    accent: ModeAccent(i), sub: ad < 0.35f ? ModeSub(i) : null);
+                Ui.Alpha = oldAlpha;
+                if (click && i != mode)
+                    turnTo = modeTurn + (d > 0f ? 1 : -1);
+                if (ad < 1.2f && kr.Contains(ev.mousePosition))  // the description is a hover tip
                 {
-                    TipStart(k, title, CrtUi.Ink);
-                    TipAdd(sub, 13, Ui.Text);
-                    if (!session.IsHost)
+                    TipStart(kr, ModeTitle(i), CrtUi.Ink);
+                    TipAdd(ModeSub(i), 13, Ui.Text);
+                    if (!host)
                         TipAdd("Only the host can switch the mode.", 11, Ui.Muted);
                 }
+            }
+            // The arrows at the ends.
+            for (int side = -1; side <= 1; side += 2)
+            {
+                var ab = new Rect(side < 0 ? r.x : r.xMax - arrowW, r.center.y - 14f, arrowW, 28f);
+                bool click = LobbyKit.Key(ab, "", false, calm, enabled: host);
+                Chevron(ab.center, side, host ? CrtKit.SoftText(CrtUi.Ink, GUI.enabled && ab.Contains(ev.mousePosition)) : new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.5f));
+                if (click)
+                    turnTo = modeTurn + side;
+            }
+            if (turnTo != int.MinValue && host)
+            {
+                int m = ((turnTo % n) + n) % n;
+                modeTurn = turnTo;
+                if (m != mode)
+                    session.SetMode(m == 2, m == 1);
             }
         }
 
@@ -225,28 +303,81 @@ namespace Arena
             string[] names = { session.Resume != null ? "Seats" : "Loadout", practice ? "Practice  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers",
                 "Difficulty", hunt ? "Boss hunt" : null, practice ? null : "Perks", null, practice ? "Training" : null };  // Hangout has its own key on the Party line
             int[] order = { 0, PerkTab, 3, 2, 1, TrainingTab, 4 };
-            // Quiet tabs (the mockup's): about 135 px each (wider for a long name), the row centred in r (over the loadout box); too many squeeze together.
-            var ws = new float[order.Length];
-            float total = -6f;
-            for (int k = 0; k < order.Length; k++)
+            // A carousel (like the mode carousel above the party): the open tab in the middle, the others in order either side,
+            // smaller and fading toward the ends; the arrows, the mouse wheel or a click on a tab slide it.
+            var shown = new System.Collections.Generic.List<int>();
+            foreach (int i in order)
+                if (names[i] != null)
+                    shown.Add(i);
+            int n = shown.Count, cur = Mathf.Max(0, shown.IndexOf(lobbyTab));
+            var ev = Event.current;
+            // tabTurnPos is unwrapped (cur = pos mod n): turn the short way round to the open tab.
+            float diff = ((cur - tabTurnPos) % n + n) % n;
+            if (diff > n / 2f)
+                diff -= n;
+            if (!tabTurnSet || n != tabTurnCount)
             {
-                if (names[order[k]] == null)
-                    continue;
-                ws[k] = Mathf.Max(135.5f, LobbyKit.SpacedWidth(names[order[k]].ToUpperInvariant(), 12, 1.44f) + 32f);
-                total += ws[k] + 6f;
+                tabTurnPos = cur;
+                diff = 0f;
+                tabTurnSet = true;
+                tabTurnCount = n;
             }
-            float shrink = Mathf.Min(1f, r.width / total), x = r.center.x - total * shrink / 2f;
-            for (int k = 0; k < order.Length; k++)
+            if (ev.type == EventType.Repaint)
             {
-                int i = order[k];
-                if (names[i] == null)
+                tabTurnPos += diff * (fxReduced ? 1f : 1f - Mathf.Exp(-Time.unscaledDeltaTime * 12f));
+                if (Mathf.Abs(diff) < 0.004f)
+                    tabTurnPos = Mathf.Round(tabTurnPos);
+            }
+            int want = cur;
+            if (ev.type == EventType.ScrollWheel && GUI.enabled && r.Contains(ev.mousePosition))
+            {
+                want = cur + (ev.delta.y > 0f ? 1 : -1);
+                ev.Use();
+            }
+            const float arrowW = 22f, gap = 6f, bigW = 168f, smallW = 128f, step = 152f;
+            float cx = r.center.x, half = r.width / 2f - arrowW - gap;
+            float oldAlpha = Ui.Alpha;
+            for (int k = 0; k < n; k++)
+            {
+                int i = shown[k];
+                float d = ((k - tabTurnPos) % n + n) % n;
+                if (d > n / 2f)
+                    d -= n;  // the open tab at 0, the rest either side
+                float ad = Mathf.Abs(d);
+                float w = Mathf.Lerp(bigW, smallW, Mathf.Clamp01(ad));
+                float x = cx + Mathf.Sign(d) * (step * Mathf.Min(ad, 1f) + 124f * Mathf.Max(0f, ad - 1f));  // the far ones closer in
+                float edge = Mathf.Clamp01((half - (Mathf.Abs(x - cx) + w / 2f)) / 50f + 1f);  // fades out at the arrows
+                float a = (1f - 0.25f * Mathf.Clamp01(ad)) * Mathf.Clamp01((2.4f - ad) / 0.9f) * edge;
+                if (a <= 0.02f)
                     continue;
                 bool on = lobbyTab == i;
-                if (LobbyKit.QuietTab(new Rect(x, r.y, ws[k] * shrink, r.height), names[i].ToUpperInvariant(), on) && !on)
-                    lobbyTab = i;
-                x += (ws[k] + 6f) * shrink;
+                float inset = Mathf.Clamp01(ad) * 3f;
+                var tr = new Rect(Mathf.Round(x - w / 2f), r.y + inset, Mathf.Round(w), r.height - 2f * inset);
+                Ui.Alpha = oldAlpha * a;
+                if (on && !fxReduced)
+                    Ui.Glow(tr, CrtUi.Ink, 0.3f * Mathf.Clamp01(1f - ad * 2f));
+                bool click = LobbyKit.QuietTab(tr, names[i].ToUpperInvariant(), on, a > 0.4f);
+                Ui.Alpha = oldAlpha;
+                if (click && !on)
+                    want = k;
             }
+            for (int side = -1; side <= 1; side += 2)
+            {
+                var ab = new Rect(side < 0 ? r.x : r.xMax - arrowW, r.y, arrowW, r.height);
+                bool click = LobbyKit.Key(ab, "", false, fxReduced);
+                Chevron(ab.center, side, CrtKit.SoftText(CrtUi.Ink, GUI.enabled && ab.Contains(ev.mousePosition)));
+                if (click)
+                    want = cur + side;
+            }
+            want = ((want % n) + n) % n;
+            if (want != cur)
+                lobbyTab = shown[want];
         }
+
+        // The tab carousel's turn (unwrapped: the open tab is tabTurnPos mod the tab count), easing toward the open tab.
+        float tabTurnPos;
+        bool tabTurnSet;
+        int tabTurnCount;
 
         string PracticeSummary()
         {
