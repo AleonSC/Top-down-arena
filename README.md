@@ -794,7 +794,10 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   off the map, each a sealed box with no door, marked on the arena floor, the minimap and the draw screen. Draw a room or hallway that shares 3
   tiles of wall with one and its door opens (a box touching only a floating room is refused: it must also touch the connected map). At most 4
   wait at once, they don't count towards the 24-room cap, add no enemies and no spawns, and a floating shop counts as a shop once it's opened.
-  (The Gatekeeper does nothing yet.)
+  (The Gatekeeper has its own room, below.)
+- **Gatekeeper room**: once a built room opens it, walking in during a wave wakes **The Gatekeeper** and the room locks behind you until it falls.
+  Beating it gives everyone a prize pick (sometimes a legendary) and the room becomes an ordinary one. It's optional: if the wave ends first, the
+  Gatekeeper goes, you're let out, and walking in later starts a fresh duel.
 - **Shop and vendor rooms**: with one connected, kills drop gold and the shop opens every intermission without holding the countdown. Buy
   upgrades and restock in the **shop room**; heal, revive and remove upgrades at the **vendor**. Gold and your shelf carry over between waves
   (the shelf is new each boss cycle).

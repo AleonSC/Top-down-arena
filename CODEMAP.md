@@ -19,6 +19,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `RiotGearLook.cs` (Game): Riot Gear's Plate look: the plate that swings toward incoming shots, the recharge ghost, the block effect (`FxKind.RiotBlock`) and the HUD chip above the XP strip
 - `RiotGear.cs`: Riot Gear's shield (`RiotBlocks`, called first in `Damage`; `TickRiot`; `PerksFor` picks who brings what at match start, `GivePerks` applies it on every screen); burns, gas, acid and lava ticks pass `overTime` and go through
 - `Perks.cs`: perks (`PerkId`, `Perks.All`): unlock rules, slots, equip/unequip (one per boss), cleaning the profile's `perks` line; the effects come next (`Docs/RiotGear.md`)
+- `GatekeeperRoom.cs`: the Expanding arena's Gatekeeper room (walk in to wake it, the room locks, prize pick, becomes a combat room; an unbeaten duel ends with the wave)
 - `Challenges.cs`: challenge rooms (portal, crystal, gatekeeper, kill rush, altar)
 - `Paths.cs`: choose-your-path offers, path enemy mixes, hazards, arena rules
 - `Props.cs`: crates, pots, barrels, treasure chests; pushing crates and barrels (`ShoveProps`: Tank 70, Dps 50, Healer 34, enemy 3 px/s; `PropDir`: enemies path round them first)
