@@ -412,6 +412,8 @@ static partial class Shot {
       var eg = host.Game; eg.Diff.Set(DiffKnob.ArenaExpanding, 1f); eg.State = MatchState.Intermission;
       int bought = int.Parse(Environment.GetEnvironmentVariable("EXPANDVOTE"));
       for (int k = 0; k < bought; k++) eg.Expanded.Add(Expansion.Offers(5, 5 + 5 * k, eg.Expanded)[0]);
+
+      if (Environment.GetEnvironmentVariable("EXPANDFLOAT") != null) { var fk = new[] { RoomKind.Shop, RoomKind.Vendor, RoomKind.Gatekeeper }; for (int fi = 0; fi < fk.Length; fi++) { var ff = Expansion.FloatingFor(3, fi, eg.Expanded, fk[fi]); if (ff.HasValue) eg.Expanded.Add(ff.Value); } }  // EXPANDFLOAT=1: a floating shop, vendor and Gatekeeper room off the map
       eg.StateTimer = 8f; eg.ExpandOpen = true;  // the round is open: each player's proposal, the first one backed
       var propPool = Expansion.Offers(5, 5 + 5 * bought, eg.Expanded); int pk = 0;
       foreach (var pl in eg.Players.Values) { pl.Vectors = 30 + 8 * pk; if (pk < propPool.Count) { var pr = propPool[pk]; pr.Owner = pl.Id; eg.ExpandProposals.Add(pr); } pk++; }

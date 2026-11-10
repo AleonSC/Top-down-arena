@@ -19,6 +19,30 @@ namespace Arena
             VaultTint = new Rgba(1f, 0.62f, 0.3f, 0.06f), ShopTint = new Rgba(1f, 0.82f, 0.3f, 0.07f), DoorInk = new Rgba(0.373f, 0.941f, 1f), DoorRed = new Rgba(1f, 0.3f, 0.36f),
             DoorAmber = new Rgba(1f, 0.7f, 0.28f), DoorTeal = new Rgba(0.25f, 0.9f, 0.7f), DoorGold = new Rgba(1f, 0.82f, 0.4f);
 
+        /// The mark in the middle of a floating room: a ring, and a coin ring (shop), a plus (vendor) or a diamond (Gatekeeper).
+        void DrawFloatingMark(RoomArea a)
+        {
+            var ink = KindInk(a.Kind, a.Floor);
+            float breathe = a.Sealed ? 0.5f + 0.25f * Mathf.Sin(game.AnimT * 2.5f) : 0.85f;
+            var col = ink.WithAlpha(breathe);
+            V2 c = a.Mid;
+            Arc(c, 56f, 3f, col, 32);
+            switch (a.Kind)
+            {
+                case RoomKind.Shop: Arc(c, 22f, 4f, col, 20); break;
+                case RoomKind.Vendor:
+                    Line(c - new V2(24f, 0f), c + new V2(24f, 0f), 5f, col);
+                    Line(c - new V2(0f, 24f), c + new V2(0f, 24f), 5f, col);
+                    break;
+                default:  // the Gatekeeper: a diamond
+                    Line(c + new V2(0f, -30f), c + new V2(30f, 0f), 4f, col);
+                    Line(c + new V2(30f, 0f), c + new V2(0f, 30f), 4f, col);
+                    Line(c + new V2(0f, 30f), c + new V2(-30f, 0f), 4f, col);
+                    Line(c + new V2(-30f, 0f), c + new V2(0f, -30f), 4f, col);
+                    break;
+            }
+        }
+
         void DrawRoomsFloor(Rgba grid)
         {
             bool vault = game.VaultOn;
@@ -30,9 +54,11 @@ namespace Arena
                 if (a.Hub || a.Vault && !vault)
                     continue;
                 var rs = RoomStateOf(i);
-                var tint = a.Owner != 0 && a.Kind == RoomKind.Combat ? OwnerInk(a.Owner).WithAlpha(0.06f) : a.Vault ? VaultTint : a.Kind == RoomKind.Shop ? ShopTint : a.Kind == RoomKind.Floor ? Paths.Get(a.Floor).Accent.WithAlpha(0.07f)
+                var tint = a.Floating ? KindInk(a.Kind, a.Floor).WithAlpha(a.Sealed ? 0.05f : 0.08f) : a.Owner != 0 && a.Kind == RoomKind.Combat ? OwnerInk(a.Owner).WithAlpha(0.06f) : a.Vault ? VaultTint : a.Kind == RoomKind.Shop ? ShopTint : a.Kind == RoomKind.Floor ? Paths.Get(a.Floor).Accent.WithAlpha(0.07f)
                     : a.Hall ? HallTint : !Rooms.RoomByRoom ? OpenRoomTint : rs != null && rs.Cleared ? ClearTint : RoomTint;
                 FillRect(a.Min.X, a.Min.Y, a.Size.X, a.Size.Y, tint);
+                if (a.Floating)  // a floating room: a ring and a mark of what it is, breathing while it is sealed
+                    DrawFloatingMark(a);
                 if (a.Owner != 0)  // a room somebody drew: a thin line of their colour just inside its walls
                 {
                     var oi = OwnerInk(a.Owner).WithAlpha(0.35f);
@@ -220,7 +246,8 @@ namespace Arena
                     continue;
                 var rs = RoomStateOf(i);
                 Rgba fill, line;
-                if (a.Owner != 0 && a.Kind == RoomKind.Combat) { fill = OwnerInk(a.Owner).WithAlpha(0.18f); line = OwnerInk(a.Owner).WithAlpha(0.85f); }
+                if (a.Floating) { var fi = KindInk(a.Kind, a.Floor); float fb = a.Sealed ? 0.5f + 0.25f * Mathf.Sin(Time.unscaledTime * 2.5f) : 1f; fill = fi.WithAlpha(0.2f * fb); line = fi.WithAlpha(0.9f * fb); }
+                else if (a.Owner != 0 && a.Kind == RoomKind.Combat) { fill = OwnerInk(a.Owner).WithAlpha(0.18f); line = OwnerInk(a.Owner).WithAlpha(0.85f); }
                 else if (a.Kind == RoomKind.Shop) { fill = ShopTint.WithAlpha(0.22f); line = DoorGold; }
                 else if (a.Kind == RoomKind.Floor) { fill = Paths.Get(a.Floor).Accent.WithAlpha(0.2f); line = Paths.Get(a.Floor).Accent; }
                 else if (a.Hub) { fill = new Rgba(0.4f, 0.64f, 1f, 0.14f); line = new Rgba(0.4f, 0.64f, 1f, 0.75f); }

@@ -1150,6 +1150,8 @@ static partial class Shot {
         foreach (var pl in xg.Players.Values) { var pr = Expansion.Offers(9, 20 + pi, xg.Expanded); if (pr.Count > pi) { var q = pr[pi]; q.Owner = pl.Id; xg.ExpandProposals.Add(q); } pi++; }
       }
       xg.RoomsUp = true; xg.LayoutAge = 5f;
+      if (Environment.GetEnvironmentVariable("EXPANDFLOAT") != null) { var fk = new[] { RoomKind.Shop, RoomKind.Vendor, RoomKind.Gatekeeper }; for (int fi = 0; fi < fk.Length; fi++) { var ff = Expansion.FloatingFor(3, fi, xg.Expanded, fk[fi]); if (ff.HasValue) xg.Expanded.Add(ff.Value); } }  // EXPANDFLOAT=1: a floating shop, vendor and Gatekeeper room off the map
+
       var xrng = new System.Random(7); int xi = 0;
       foreach (var en in xg.Enemies.Values) {
         if (en.Def.IsBoss) continue;

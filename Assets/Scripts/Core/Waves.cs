@@ -103,6 +103,7 @@ namespace Arena
                                 BossSlot = false;
                                 Wave++;
                             }
+                            PlaceFloatingRooms();  // a new boss cycle: its floating shop, vendor and Gatekeeper rooms (ExpansionGame.cs)
                             PickRooms();   // the side rooms and hallways, on a regular wave with the Rooms arena (Rooms.cs)
                             PickLayout();  // this cycle's floor plan, or the open arena for a boss (LayoutRules.cs)
                             BuildWave(Wave);

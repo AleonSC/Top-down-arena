@@ -1,6 +1,6 @@
 # Floating rooms and themed rooms: paths, shops, vendors and the Gatekeeper in the Expanding arena
 
-Status: **plan only, nothing built.** Decided with the owner on Nov 10, 2026 (one idea from a friend: shops and vendors in "floating rooms"
+Status: **step 1 built** (floating rooms exist, are sealed, connect and show; the vendor and the Gatekeeper do nothing yet); steps 2-5 not started. Decided with the owner on Nov 10, 2026 (one idea from a friend: shops and vendors in "floating rooms"
 you have to build to). It builds on [`ExpandingArena.md`](ExpandingArena.md) and [`VectorBuilding.md`](VectorBuilding.md) (all built).
 
 ## Decisions (owner)
@@ -42,6 +42,21 @@ you have to build to). It builds on [`ExpandingArena.md`](ExpandingArena.md) and
 4. **Themed rooms**: the theme row in the draw screen, costs, unlocks by boss, per-room Fogbound.
 5. **Balance and polish**: how far off the map they float against vector income (the hallway to reach one should cost about a room's worth), bot
    behaviour (bots build to shops when they have gold), README and previews.
+
+## Step 1 (built, protocol 252)
+
+- `ExpansionRoom.Floating` (in `Msg.ExpandState`'s room list); `RoomKind.Vendor` and `Gatekeeper` at the end of the enum; `RoomArea.Floating` / `Sealed`
+  (sealed = floating with no door). `Expansion.FloatingFor(seed, cycle, built, kind)` places one 3-6 tiles off a connected room, 2 tiles clear
+  of everything and inside the size cap (shop/vendor 6 x 4 tiles, Gatekeeper 8 x 6); `PlaceFloatingRooms` runs as a regular wave starts, once per
+  boss cycle (`(Wave - 1) / 5`): a shop on even cycles or a vendor on odd ones, and the Gatekeeper, at most `MaxSealed` 4 waiting.
+- `Expansion.ConnectedAreas` / `SealedCount` / `BoughtCount`: `Placement` only takes a connected room as the parent (a box touching only a floating room is
+  refused: "Must share at least 3 tiles of wall with the connected map"); touching a floating room as well gives it a door (the loop rule). The room cap
+  counts bought rooms only.
+- Sealed rooms add no crowd (`ExpansionScale`), no spawns (`SpawnWeight` 0, also for shop, vendor and Gatekeeper rooms), no cover; a floating shop is a shop room
+  (`HasShopRoom`) once opened. The arena floor draws a ring and a mark (coin, plus, diamond) that breathes while sealed; the minimap and the draw
+  screen show them as ghosts with their names. Previews: `EXPANDFLOAT=1` with `EXPANDMAP` or `EXPANDVOTE`.
+- Tests (suite `expand`): determinism, clearance and caps over 80 seeds, sealed rooms have no doors, a lone touch is refused, a connecting hallway opens a room,
+  a boss cycle places a shop and the Gatekeeper on both screens with no crowd and no spawns.
 
 ## Open questions (defaults in bold)
 

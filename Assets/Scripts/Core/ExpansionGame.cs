@@ -46,7 +46,8 @@ namespace Arena
                     return 1f;
                 float area = 0f;
                 foreach (var a in ExpansionWorld.Areas)
-                    area += a.Size.X * a.Size.Y;
+                    if (!a.Sealed)
+                        area += a.Size.X * a.Size.Y;  // (a sealed floating room adds no crowd)
                 return Math.Min(MaxExpandScale, 1f + ExpandScaleRate * (area / (Width * Height) - 1f));
             }
         }
@@ -101,8 +102,8 @@ namespace Arena
         {
             get
             {
-                foreach (var r in Expanded)
-                    if (r.Kind == Arena.RoomKind.Shop)
+                foreach (var a in ExpansionWorld.Areas)
+                    if (a.Kind == Arena.RoomKind.Shop && !a.Sealed)  // (a floating shop counts once a built room opens it)
                         return true;
                 return false;
             }
@@ -165,8 +166,43 @@ namespace Arena
             return new V2(Rand(r.Min.X + mx, r.Max.X - mx), Rand(r.Min.Y + my, r.Max.Y - my));
         }
 
+        int floatCycle = -1;
+
+        /// Host, as a regular wave starts: a new boss cycle gets its floating rooms (Docs/FloatingRooms.md): a shop on even cycles or a vendor
+        /// on odd ones, and the Gatekeeper, each placed off the connected map and sealed until a built room touches it (at most MaxSealed
+        /// waiting at once).
+        void PlaceFloatingRooms()
+        {
+            if (!IsHost || !ExpandingOn || Practice != null || Hunt != null)
+                return;
+            int cycle = (Wave - 1) / Expansion.Milestone;
+            if (cycle <= floatCycle)
+                return;
+            floatCycle = cycle;
+            int waiting = Expansion.SealedCount(Expanded);
+            bool added = false;
+            foreach (var kind in new[] { cycle % 2 == 0 ? Arena.RoomKind.Shop : Arena.RoomKind.Vendor, Arena.RoomKind.Gatekeeper })
+            {
+                if (waiting >= Expansion.MaxSealed)
+                    break;
+                var f = Expansion.FloatingFor(expandSeed, cycle, Expanded, kind);
+                if (!f.HasValue)
+                    continue;
+                Expanded.Add(f.Value);
+                waiting++;
+                added = true;
+                DoLog("a floating " + kind + " room appears at " + f.Value.X + "," + f.Value.Y);
+            }
+            if (added)
+            {
+                expWorld = null;
+                BroadcastExpansion();
+            }
+        }
+
         void ResetExpansion()
         {
+            floatCycle = -1;
             Expanded.Clear();
             ExpandOpen = false;
             ExpandProposals.Clear();
@@ -191,7 +227,7 @@ namespace Arena
         /// Host, when a wave is cleared: a building round opens (not in the Practice Range, a Boss Hunt, after the last wave or on a full map).
         void OpenBuildRound()
         {
-            if (!IsHost || !ExpandingOn || Practice != null || Hunt != null || (Wave >= MaxWave && !Endless) || Expanded.Count >= Expansion.MaxRooms)
+            if (!IsHost || !ExpandingOn || Practice != null || Hunt != null || (Wave >= MaxWave && !Endless) || Expansion.BoughtCount(Expanded) >= Expansion.MaxRooms)
                 return;
             ExpandOpen = true;
             ExpandProposals.Clear();
@@ -399,6 +435,7 @@ namespace Arena
                 w.Write((byte)r.Kind); w.Write((byte)r.Floor);
                 w.Write((short)r.Price);
                 w.Write((short)r.Owner);
+                w.Write(r.Floating);
             }
         }
 
@@ -413,6 +450,7 @@ namespace Arena
                 room.Floor = (PathId)r.ReadByte();
                 room.Price = r.ReadInt16();
                 room.Owner = r.ReadInt16();
+                room.Floating = r.ReadBoolean();
                 list.Add(room);
             }
             return list;

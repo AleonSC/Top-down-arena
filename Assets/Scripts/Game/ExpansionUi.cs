@@ -9,7 +9,9 @@ namespace Arena
     {
         static readonly Rgba CombatInk = new Rgba(1f, 0.3f, 0.36f), ShopInk = new Rgba(1f, 0.82f, 0.4f);
 
-        static Rgba KindInk(RoomKind k, PathId floor) => k == RoomKind.Shop ? ShopInk : k == RoomKind.Floor ? Paths.Get(floor).Accent : CombatInk;
+        static readonly Rgba VendorInk = new Rgba(0.3f, 0.9f, 0.8f), GateInk = new Rgba(1f, 0.5f, 0.2f);
+
+        static Rgba KindInk(RoomKind k, PathId floor) => k == RoomKind.Shop ? ShopInk : k == RoomKind.Vendor ? VendorInk : k == RoomKind.Gatekeeper ? GateInk : k == RoomKind.Floor ? Paths.Get(floor).Accent : CombatInk;
 
         /// A room's drawer's colour (their class colour), or a neutral blue when they've gone or it was nobody's.
         Rgba OwnerInk(int owner)
@@ -18,7 +20,7 @@ namespace Arena
             return owner != 0 && game.Players.TryGetValue(owner, out p) ? p.Def.Color : new Rgba(0.4f, 0.64f, 1f);
         }
 
-        static string KindName(ExpansionRoom r) => r.Kind == RoomKind.Shop ? "Shop" : r.Kind == RoomKind.Floor ? Paths.Get(r.Floor).Name : "Combat";
+        static string KindName(ExpansionRoom r) => r.Kind == RoomKind.Shop ? "Shop" : r.Kind == RoomKind.Vendor ? "Vendor" : r.Kind == RoomKind.Gatekeeper ? "Gatekeeper" : r.Kind == RoomKind.Floor ? Paths.Get(r.Floor).Name : "Combat";
 
         /// What a Floor room does: that path's rule inside the room only, and its bonus for kills there.
         static string FloorBlurb(PathId f)
@@ -206,8 +208,9 @@ namespace Arena
                 {
                     V2 p0 = M(a.Min), p1 = M(a.Max);
                     var ink = a.Hub ? new Rgba(0.4f, 0.64f, 1f) : KindInk(a.Kind, a.Floor);
-                    RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, ink.WithAlpha(a.Hub ? 0.16f : 0.1f));
-                    RoomMapFrame(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, 1f, ink.WithAlpha(0.8f));
+                    float ghost = a.Sealed ? 0.55f + 0.25f * Mathf.Sin(Time.unscaledTime * 2.5f) : 1f;  // a sealed floating room breathes
+                    RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, ink.WithAlpha((a.Hub ? 0.16f : 0.1f) * ghost));
+                    RoomMapFrame(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, a.Floating ? 1.5f : 1f, ink.WithAlpha(0.8f * ghost));
                 }
                 foreach (var d in wd.Doors)
                 {
@@ -230,6 +233,12 @@ namespace Arena
                 }
                 EndUiGl();
             }
+            foreach (var fa in wd.Areas)  // the floating rooms, named
+                if (fa.Floating)
+                {
+                    V2 f0 = M(fa.Min);
+                    Ui.Label(new Rect(f0.X + 3f, f0.Y + 2f, 200f, 14f), fa.Name.ToUpperInvariant() + (fa.Sealed ? "  ·  SEALED: BUILD TO IT" : ""), 10, ToColor(KindInk(fa.Kind, fa.Floor)), TextAnchor.UpperLeft, true);
+                }
             foreach (var q in game.ExpandProposals)
             {
                 Player qo;
