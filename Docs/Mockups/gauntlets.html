@@ -78,13 +78,16 @@ td.n{font:500 13px var(--mono);font-variant-numeric:tabular-nums;white-space:now
 <main>
 <header>
   <h1>Gauntlets</h1>
-  <p>A brawler's melee weapon. Fire throws a five-hit combo that ends in a ground slam. Parry cancels any punch's windup or recovery without losing your place in the combo, and a perfect parry jumps straight to a stronger finisher. Alt has three moves: a rocket dash, a charged ground pound, and a grab-and-throw.</p>
+  <p>A brawler's melee weapon. Fire throws a five-hit combo that ends in a ground slam. Parry cancels any punch's windup or recovery without losing your place in the combo, and a perfect parry jumps straight to a stronger finisher. Alt fire has eight options to choose from. Pick the ones that should go in.</p>
 </header>
 
 <section>
   <h2>In the arena</h2>
   <div class="bar">
-    <div class="group" id="g-scn"><span>Move</span></div>
+    <div class="group" id="g-scn"><span>Combo</span></div>
+  </div>
+  <div class="bar">
+    <div class="group" id="g-alt"><span>Alt fire</span></div>
   </div>
   <div class="bar">
     <div class="group" id="g-look"><span>Look</span></div>
@@ -131,6 +134,11 @@ td.n{font:500 13px var(--mono);font-variant-numeric:tabular-nums;white-space:now
       <tr><td>Rocket Dash</td><td>Alt tap</td><td class="n">24</td><td>130 px lunge, big knockback · 3 s</td></tr>
       <tr><td>Ground Pound</td><td>Alt hold 0.5 s</td><td class="n">40</td><td>140 px, clears small bullets, 0.9 s stun · 6 s</td></tr>
       <tr><td>Grab &amp; Throw</td><td>Alt beside an enemy</td><td class="n">20 + 26</td><td>The thrown enemy hits whoever it lands on · 5 s, not bosses</td></tr>
+      <tr><td>Rocket Fist</td><td>Alt tap</td><td class="n">22</td><td>Chained fist pierces a 200 px line, then reels back · 4 s</td></tr>
+      <tr><td>Shockwave Clap</td><td>Alt tap</td><td class="n">10</td><td>64° × 170 px cone, deletes small bullets, big shove · 5 s</td></tr>
+      <tr><td>Seismic Line</td><td>Alt tap</td><td class="n">14</td><td>7 rock spikes out to 230 px, each enemy popped up once · 4 s</td></tr>
+      <tr><td>Magnet Yank</td><td>Alt tap</td><td class="n">18</td><td>Pulls one enemy up to 220 px into a free cross, not bosses · 5 s</td></tr>
+      <tr><td>Flurry</td><td>Alt hold</td><td class="n">8×6 + 20</td><td>0.7 s of jabs, then a knockback straight; you can't move · 5 s</td></tr>
     </table>
   </div>
   <div class="card">
@@ -197,6 +205,34 @@ const MOVES={
     const d=seg.d, G={L:[24,-8,0],R:[24,8,0],dx:0,tw:0,g:0};
     const k=u<.05?E.out(u/.05):u>d-.1?1-E.io((u-(d-.1))/.1):1; return blend(REST,G,k);}},
 };
+const SEIS=[0,1,2,3,4,5,6].map(i=>({t:.22+i*.045,sh:{type:'ring',c:[50+i*30,4],r:20},dmg:14,kn:[3,0],lift:.45,fx:'spike',once:true}));
+Object.assign(MOVES,{
+  rfist:{name:'Rocket Fist',input:'Alt · tap',alt:true,dur:.9,hits:[
+      {t:.17,sh:{type:'cap',a:[70,3],b:[112,2],r:16},dmg:22,kn:[12,0],fx:'big'},
+      {t:.25,sh:{type:'cap',a:[150,2],b:[204,2],r:16},dmg:22,kn:[16,0],fx:'big'}],
+    custom(u){const p=cp(REST);
+      if(u<.12){const k=E.io(u/.12);p.R=[lerp(17,6,k),lerp(13,16,k),0];p.tw=-.25*k;p.g=.7*k;}
+      else if(u<.40){const k=E.out((u-.12)/.28);p.R=[lerp(6,210,k),lerp(16,2,k),0];p.Rdet=1;p.Rdir=1;p.tw=lerp(-.25,.25,E.out(clamp((u-.12)/.06)));p.g=.7;}
+      else if(u<.48){p.R=[210,2,0];p.Rdet=1;p.Rdir=0;p.tw=.25;p.g=.5;}
+      else if(u<.74){const k=E.in((u-.48)/.26);p.R=[lerp(210,24,k),lerp(2,12,k),0];p.Rdet=1;p.Rdir=-1;p.tw=.25;p.g=.5;}
+      else{const k=E.io((u-.74)/.16);p.R=[lerp(24,17,k),lerp(12,13,k),0];p.tw=lerp(.25,0,k);p.g=lerp(.5,0,k);}
+      return p;}},
+  clap:{name:'Shockwave Clap',input:'Alt · tap',alt:true,dur:.6,keys:fill([{t:0},{t:.09,L:[8,-30,0],R:[8,30,0],dx:-3},{t:.15,L:[36,-4,0],R:[36,4,0],dx:6,g:1,e:'in'},{t:.30,L:[34,-5,0],R:[34,5,0],g:.2},{t:.6,L:REST.L,R:REST.R,dx:0,g:0}]),
+    hits:[{t:.15,sh:{type:'sec',c:[36,0],r:170,a0:-32,a1:32},dmg:10,kn:'radial',knr:60,fx:'cone'}]},
+  seismic:{name:'Seismic Line',input:'Alt · tap',alt:true,dur:.8,keys:fill([{t:0},{t:.12,R:[14,12,1.1],L:[18,-12,0],tw:-.15,dx:-2,g:.5},{t:.20,R:[30,6,0],tw:.25,dx:6,g:1,e:'in'},{t:.40,R:[29,6,0],g:.3},{t:.8,R:REST.R,dx:0,tw:0,g:0}]),hits:SEIS},
+  yank:{name:'Magnet Yank',input:'Alt · tap',alt:true,yank:true,dur:.85,keys:fill([{t:0},{t:.08,L:[40,-3,0],tw:-.2,g:.8,e:'out'},{t:.40,L:[28,-6,0],g:.8},{t:.44,L:[18,-12,0],R:[9,15,0],tw:-.25,g:0},{t:.50,R:[72,3,0],tw:.35,dx:8,e:'out'},{t:.56,R:[68,3,0]},{t:.85,R:REST.R,L:REST.L,tw:0,dx:0}]),
+    hits:[{t:.49,sh:{type:'cap',a:[20,6],b:[76,3],r:15},dmg:18,kn:[34,0],fx:'big'}]},
+  flurry:{name:'Flurry',input:'Alt · hold',alt:true,dur:1.05,
+    hits:[...[0,1,2,3,4,5,6,7].map(i=>({t:.09+i*.085,sh:{type:'cap',a:[20,0],b:[66,0],r:20},dmg:6,kn:[1.5,0]})),{t:.79,sh:{type:'cap',a:[20,4],b:[78,2],r:16},dmg:20,kn:[40,0],fx:'big'}],
+    custom(u){const p=cp(REST);p.dx=3;
+      if(u<.05){const k=E.io(u/.05);p.dx=3*k;p.L=[17,lerp(-13,-9,k),0];p.R=[17,lerp(13,9,k),0];}
+      else if(u<.73){const q=Math.min(7,Math.floor((u-.05)/.085)),ph=clamp((u-.05-q*.085)/.085),ext=Math.sin(Math.PI*ph),side=q%2?'R':'L',sg=q%2?1:-1;
+        p.L=[17,-9,0];p.R=[17,9,0];p[side]=[17+50*ext,sg*9*(1-ext*.8)+(hash(q)-.5)*16*ext,0];p.tw=sg*.22*ext;p.g=.4;}
+      else if(u<.80){const k=E.out((u-.73)/.07);p.L=[17,-11,0];p.R=[lerp(10,76,k),lerp(15,2,k),0];p.tw=lerp(-.25,.35,k);p.dx=lerp(3,9,k);p.g=1;}
+      else if(u<.86){p.L=[15,-14,0];p.R=[72,2,0];p.tw=.35;p.dx=9;p.g=.6;}
+      else{const k=E.io((u-.86)/.19);p.R=[lerp(72,17,k),lerp(2,13,k),0];p.L=[lerp(15,17,k),lerp(-14,-13,k),0];p.tw=lerp(.35,0,k);p.dx=lerp(9,0,k);p.g=lerp(.6,0,k);}
+      return p;}},
+});
 MOVES.counter={...MOVES.hammer,name:'Counter Hammer',input:'Fire after a perfect parry',gold:true,
   hits:[{t:.26,sh:{type:'ring',c:[44,0],r:135},dmg:38,kn:'radial',knr:48,stun:.8,fx:'quake'}]};
 
@@ -230,15 +266,26 @@ const SCN={
     segs:[{m:'jab',s:0},{m:'cross',s:.24},{m:'hook',s:.52},{m:'parry',s:.60,d:.26},{m:'counter',s:.86}],
     enemies:()=>[...GRUNTS(),{...SHOOTER}],bullets:[{from:3,th:.68,out:'perfect'}],slow:.68,len:1.9,
     caps:[{t0:.60,t1:.68,txt:'PARRY CANCELS THE HOOK'},{t0:.68,t1:1.4,txt:'PERFECT → COUNTER HAMMER',gold:true}]},
-  dash:{label:'Rocket Dash',blurb:'Alt tap. The rear gauntlet fires a thruster and throws you 130 px forward, fist first. The first enemy in the way takes 24 damage and gets launched back.',
+  dash:{alt:true,label:'Rocket Dash',blurb:'Alt tap. The rear gauntlet fires a thruster and throws you 130 px forward, fist first. The first enemy in the way takes 24 damage and gets launched back.',
     segs:[{m:'dash',s:0}],enemies:()=>[{x:172,y:2,r:13,k:'grunt'},{x:110,y:-62,r:11,k:'grunt'}],len:1.1},
-  pound:{label:'Ground Pound',blurb:'Hold Alt. Both fists rise and charge for half a second, then slam down. The 140 px shockwave pops every small bullet inside it, knocks enemies back and stuns them for 0.9 s.',
+  pound:{alt:true,label:'Ground Pound',blurb:'Hold Alt. Both fists rise and charge for half a second, then slam down. The 140 px shockwave pops every small bullet inside it, knocks enemies back and stuns them for 0.9 s.',
     segs:[{m:'pound',s:0}],
     enemies:()=>[{x:100,y:-50,r:12,k:'grunt'},{x:-40,y:72,r:11,k:'grunt'},{x:62,y:88,r:11,k:'grunt'},{x:128,y:30,r:12,k:'grunt'},{x:-60,y:-62,r:11,k:'grunt'}],
     bullets:[[-20,-100],[110,-90],[140,58],[-92,18],[36,118],[96,6]].map(a=>({at:a,th:.66,out:'pop'})),len:1.5,
     caps:[{t0:.1,t1:.6,txt:'CHARGING'}]},
-  grab:{label:'Grab & Throw',blurb:'Alt next to an enemy. Grab it, swing it all the way round, and throw it where you aim. It takes 20 damage, and whatever it hits takes 26 and gets knocked back. Bosses can\'t be grabbed.',
+  grab:{alt:true,label:'Grab & Throw',blurb:'Alt next to an enemy. Grab it, swing it all the way round, and throw it where you aim. It takes 20 damage, and whatever it hits takes 26 and gets knocked back. Bosses can\'t be grabbed.',
     segs:[{m:'grab',s:0,target:0,into:1}],enemies:()=>[{x:54,y:0,r:12,k:'grunt'},{x:232,y:6,r:13,k:'grunt'}],len:1.6},
+  rfist:{alt:true,label:'Rocket Fist',blurb:'Alt tap. The gauntlet fires off the wrist on a chain, punches through everything in a 200 px line (22 damage each), hangs for a beat, then reels back in on reverse thrusters.',
+    segs:[{m:'rfist',s:0}],enemies:()=>[{x:100,y:0,r:13,k:'grunt'},{x:180,y:-6,r:12,k:'grunt'},{x:60,y:-60,r:11,k:'grunt'}],len:1.2},
+  clap:{alt:true,label:'Shockwave Clap',blurb:'Alt tap. Both fists slam together and send a 64° pressure wave 170 px forward. It deletes every small bullet it passes and shoves enemies back hard. Only 10 damage: it buys space.',
+    segs:[{m:'clap',s:0}],enemies:()=>[{x:110,y:-22,r:12,k:'grunt'},{x:142,y:30,r:12,k:'grunt'},{x:88,y:8,r:11,k:'grunt'}],
+    bullets:[[95,-48],[130,-10],[160,40],[118,62],[175,-70],[70,20]].map(a=>({at:a,out:'pop',cone:true})),len:1.1},
+  seismic:{alt:true,label:'Seismic Line',blurb:'Alt tap. Punch the floor and a line of rock spikes erupts forward, one every 30 px out to 230 px. Each enemy on the line takes 14 and gets popped into the air.',
+    segs:[{m:'seismic',s:0}],enemies:()=>[{x:110,y:0,r:12,k:'grunt'},{x:172,y:12,r:12,k:'grunt'},{x:228,y:-6,r:12,k:'grunt'},{x:140,y:-58,r:11,k:'grunt'}],len:1.3},
+  yank:{alt:true,label:'Magnet Yank',blurb:'Alt tap. The off-hand gauntlet locks a magnet onto the enemy at your cursor and drags it into reach, straight into a free cross (18 damage). Good for picking shooters out of the back line.',
+    segs:[{m:'yank',s:0,target:0}],enemies:()=>[{x:210,y:0,r:13,k:'shooter'},{x:150,y:-56,r:11,k:'grunt'},{x:160,y:60,r:11,k:'grunt'}],len:1.3},
+  flurry:{alt:true,label:'Flurry',blurb:'Hold Alt. Eight quick alternating jabs in under 0.7 s (6 each), then a heavy straight that knocks back (20). You stand your ground while it runs.',
+    segs:[{m:'flurry',s:0}],enemies:()=>[{x:82,y:4,r:13,k:'grunt'},{x:76,y:-28,r:11,k:'grunt'}],len:1.5},
 };
 
 function inShape(sh,p,er){
@@ -248,18 +295,19 @@ function inShape(sh,p,er){
 }
 function shift(sh,dx){const s=JSON.parse(JSON.stringify(sh));if(s.a){s.a[0]+=dx;s.b[0]+=dx;}if(s.c)s.c[0]+=dx;return s;}
 function enemyPos(e,t){
-  if(e.path&&t>=e.path.t0) return e.path.f(t);
-  let x=e.x,y=e.y,z=0;
+  let x=e.x,y=e.y,z=0,base=null;
+  if(e.path&&t>=e.path.t0){base=e.path.f(t);if(e.path.tEnd===undefined)return base;x=base.x;y=base.y;}
   for(const h of e.hits){if(h.T>t)continue;const k=E.out(clamp((t-h.T)/.18));x+=h.kn[0]*k;y+=h.kn[1]*k;if(h.lift){const v=(t-h.T)/h.lift;if(v<1)z+=26*Math.sin(Math.PI*v);}}
-  return {x,y,z,spin:null};
+  return base?{...base,x,y,z:z+(base.z||0)}:{x,y,z,spin:null};
 }
 function compile(def){
-  const sc={...def,segs:def.segs.map(s=>({...s,m:MOVES[s.m]})),enemies:def.enemies().map(e=>({...e,hits:[]})),fx:[],quakes:[],bul:[]};
+  const sc={...def,segs:def.segs.map(s=>({...s,m:MOVES[s.m],once:new Set()})),enemies:def.enemies().map(e=>({...e,hits:[]})),fx:[],quakes:[],bul:[],cones:[],spikes:[],yanks:[]};
   sc.segs.forEach((s,i)=>{s.cut=i+1<sc.segs.length?sc.segs[i+1].s:1e9;s.end=Math.min(s.s+durOf(s),s.cut);});
   const ev=[];
   for(const s of sc.segs) for(const h of s.m.hits){const T=s.s+h.t;if(T<s.cut)ev.push({T,h,seg:s});}
   for(const b of def.bullets||[]){
     const B={...b}; if(b.from!==undefined){const e=sc.enemies[b.from];B.p0=[e.x,e.y];B.at=shieldPt(e);}else{const d=len(b.at[0],b.at[1]);B.p0=[b.at[0]+b.at[0]/d*340,b.at[1]+b.at[1]/d*340];}
+    if(B.cone){const r=len(B.at[0]-42,B.at[1])/170;B.th=.15+.3*(1-Math.cbrt(1-clamp(r,0,.999)));}
     const dx=B.at[0]-B.p0[0],dy=B.at[1]-B.p0[1],d=len(dx,dy);B.dir=[dx/d,dy/d];B.t0=B.th-d/260;B.d=d;
     if(B.out==='perfect'){B.tn=B.th+(d-sc.enemies[b.from].r)/900;ev.push({T:B.tn,direct:sc.enemies[b.from],dmg:16,kn:[B.dir[0]*-10,B.dir[1]*-10],fx:'needle'});}
     sc.bul.push(B);
@@ -279,17 +327,25 @@ function compile(def){
     ev.push({T:tImp,direct:Bt,dmg:26,kn:[42,4],stun:.5,fx:'big'});
     sc.fx.push({T:t0,kind:'grab',pt:[A.x-6,A.y]});
   }
+  for(const s of sc.segs) if(s.m.yank){
+    const A=sc.enemies[s.target],t0=s.s+.10,t1=s.s+.40;
+    A.path={t0,tEnd:t1,f(t){const k=E.in(clamp((t-t0)/(t1-t0)));return{x:lerp(A.x,70,k),y:lerp(A.y,2,k),z:0,spin:null,pulled:t<t1};}};
+    sc.yanks.push({s:s.s,A});
+  }
   ev.sort((a,b)=>a.T-b.T);
   for(const v of ev){
     if(v.direct){const p=enemyPos(v.direct,v.T);v.direct.hits.push({T:v.T,kn:v.kn,dmg:v.dmg,stun:v.stun,fx:v.fx,pt:[p.x,p.y]});continue;}
     const h=v.h,dx=poseAt(sc,v.T).dx,sh=shift(h.sh,dx);
     for(const e of sc.enemies){
-      if(e.path&&v.T>=e.path.t0) continue;
+      if(e.path&&v.T>=e.path.t0&&v.T<(e.path.tEnd??1e9)) continue;
+      if(h.once&&v.seg.once.has(e)) continue;
       const p=enemyPos(e,v.T); if(!inShape(sh,[p.x,p.y],e.r)) continue;
       let kn=h.kn; if(kn==='radial'){const ddx=p.x-sh.c[0],ddy=p.y-sh.c[1],d=len(ddx,ddy)||1;kn=[ddx/d*h.knr,ddy/d*h.knr];}
-      e.hits.push({T:v.T,kn,dmg:h.dmg,lift:h.lift,stun:h.stun,fx:h.fx,pt:[p.x,p.y]});
+      e.hits.push({T:v.T,kn,dmg:h.dmg,lift:h.lift,stun:h.stun,fx:h.fx,pt:[p.x,p.y]});if(h.once)v.seg.once.add(e);
     }
     if(h.fx==='quake') sc.quakes.push({T:v.T,c:sh.c,r:sh.r,gold:!!v.seg.m.gold});
+    if(h.fx==='cone') sc.cones.push({T:v.T,c:sh.c,r:sh.r,a0:sh.a0,a1:sh.a1});
+    if(h.fx==='spike') sc.spikes.push({T:v.T,c:sh.c,i:sc.spikes.length,from:[poseAt(sc,v.T).dx+30,6]});
     sc.fx.push({T:v.T,kind:'swing',sh,seg:v.seg});
   }
   return sc;
@@ -331,13 +387,14 @@ function drawPlayer(c,p,t){
   c.beginPath();c.arc(bx,by,13,p.tw-1.9,p.tw+1.9);c.lineWidth=1.5;c.strokeStyle=rgba(L.fx,.35);c.stroke();
   const sh=[rot([1,-12],p.tw),rot([1,12],p.tw)].map(q=>[bx+q[0],by+q[1]]);
   const fist=f=>[bx-p.dx+p.dx+f[0],by+f[1]-f[2]*12];
-  const FL=fist(p.L),FR=fist(p.R);
+  const FL=fist(p.L),FR0=fist(p.R),FR=p.Rdet?[sh[1][0]+11,sh[1][1]+1]:FR0;
   for(const [a,b] of [[sh[0],FL],[sh[1],FR]]){line(c,a,b,7.5,'#0b0d11');line(c,a,b,5,'#4a5262');}
+  if(p.Rdet){drawCable(c,FR,[bx+p.R[0]-12,by+p.R[1]],t);circle(c,FR[0],FR[1],3.5,'#191d25','#06080b',1);}
   for(const s of sh) circle(c,s[0],s[1],6,'#3c4452','#0b0d11',1.2);
   circle(c,bx,by,9.5,'#191d25','#06080b',1.2);
   c.beginPath();c.arc(bx,by,9.5,p.tw*.6-.7,p.tw*.6+.7);c.lineWidth=2.6;c.strokeStyle=rgba(L.fx2,.9);c.lineCap='round';c.stroke();
   const order=[[p.L,sh[0],-1],[p.R,sh[1],1]].sort((a,b)=>a[0][2]-b[0][2]);
-  for(const [f,s,side] of order){const fx=bx+f[0],fy=by+f[1];const ang=Math.atan2(fy-s[1],fx-s[0]);drawFist(c,fx,fy,f[2],ang,p.g,t,side);}
+  for(const [f,s,side] of order){const fx=bx+f[0],fy=by+f[1];const ang=(side>0&&p.Rdet)?0:Math.atan2(fy-s[1],fx-s[0]);if(side>0&&p.Rdet)drawThruster(c,fx,fy,p.Rdir,t);drawFist(c,fx,fy,f[2],ang,p.g,t,side);}
 }
 function drawTrails(c,sc,t){
   const L=LOOKS[LOOK];
@@ -386,6 +443,49 @@ function drawQuake(c,q,t){
   const v2=clamp((u-.08)/.4);if(v2>0&&v2<1){c.beginPath();c.arc(q.c[0],q.c[1],q.r*.75*E.out(v2),0,TAU);c.lineWidth=1.5;c.strokeStyle=rgba(col,(1-v2)*.5);c.stroke();}
   for(let i=0;i<14;i++){const a=i/14*TAU,d=q.r*(.75+.3*E.out(clamp(u/.6)));if(u<.6)circle(c,q.c[0]+Math.cos(a)*d,q.c[1]+Math.sin(a)*d,(4+6*u)*(1-u/.6),'rgba(150,140,130,'+.18*(1-u/.6)+')');}
   if(u<.1){circle(c,q.c[0],q.c[1],26*(1-u/.1),rgba(col2,.9*(1-u/.1)));}
+}
+function drawCable(c,a,b,t){
+  const n=Math.max(2,Math.floor(len(b[0]-a[0],b[1]-a[1])/7)),sag=Math.min(6,len(b[0]-a[0],b[1]-a[1])*.03);
+  for(let i=0;i<=n;i++){const k=i/n,x=lerp(a[0],b[0],k),y=lerp(a[1],b[1],k)+Math.sin(Math.PI*k)*sag;c.save();c.translate(x,y);c.rotate(i%2?0:Math.PI/2);rr(c,-2.6,-1.6,5.2,3.2,1.5);c.lineWidth=1.1;c.strokeStyle=i%2?'#7c8594':'#5a6270';c.stroke();c.restore();}
+}
+function drawThruster(c,x,y,dir,t){
+  if(!dir)return;const L=LOOKS[LOOK],fl=16+7*Math.sin(t*95),bx=dir>0?x-13:x+9,sg=dir>0?-1:1;
+  c.beginPath();c.moveTo(bx,y-5);c.lineTo(bx+sg*fl,y);c.lineTo(bx,y+5);c.closePath();c.fillStyle=rgba(L.fx,.85);c.fill();
+  c.beginPath();c.moveTo(bx,y-2.5);c.lineTo(bx+sg*fl*.55,y);c.lineTo(bx,y+2.5);c.closePath();c.fillStyle=L.fx2;c.fill();
+}
+function drawCone(c,q,t){
+  const u=t-q.T;if(u<0||u>.6)return;const L=LOOKS[LOOK],a0=q.a0*Math.PI/180,a1=q.a1*Math.PI/180;
+  for(let j=0;j<3;j++){const v=clamp((u-j*.05)/.3);if(v<=0||v>=1)continue;const r=q.r*(1-Math.pow(1-v,3));
+    c.beginPath();c.arc(q.c[0],q.c[1],r,a0,a1);c.lineWidth=(j?2:8)*(1-v)+1;c.strokeStyle=rgba(j?L.fx2:L.fx,(1-v)*(j?.5:.85));c.lineCap='round';c.stroke();}
+  const v=clamp(u/.3);if(v<1){c.beginPath();c.moveTo(q.c[0],q.c[1]);c.arc(q.c[0],q.c[1],q.r*(1-Math.pow(1-v,3)),a0,a1);c.closePath();c.fillStyle=rgba(L.fx,.08*(1-v));c.fill();
+    for(let i=0;i<9;i++){const a=lerp(a0,a1,hash(i+2)),r=q.r*(1-Math.pow(1-v,3))*(.5+.5*hash(i+7));line(c,[q.c[0]+Math.cos(a)*r,q.c[1]+Math.sin(a)*r],[q.c[0]+Math.cos(a)*(r-14),q.c[1]+Math.sin(a)*(r-14)],1.2,'rgba(235,235,235,'+.35*(1-v)+')');}}
+  if(u<.08)circle(c,q.c[0],q.c[1],18*(1-u/.08),rgba(L.fx2,.9*(1-u/.08)));
+}
+function drawSpike(c,q,t,first){
+  const u=t-q.T,L=LOOKS[LOOK];
+  if(first){const last=q.last;const k=clamp((t-q.T)/(last.T-q.T+.0001));if(t>=q.T-.03&&t<last.T+.9){const f=clamp(1-(t-last.T-.4)/.5);
+    c.beginPath();c.moveTo(q.from[0],q.from[1]);const ex=lerp(q.from[0],last.c[0],k);for(let x=q.from[0];x<=ex;x+=8)c.lineTo(x,q.from[1]+(hash(x)-.5)*5);c.lineWidth=2;c.strokeStyle='rgba(6,7,9,'+.9*f+')';c.stroke();
+    if(LOOK!=='iron'){c.lineWidth=.9;c.strokeStyle=rgba(L.fx,.7*f);c.stroke();}}}
+  if(u<0||u>.75)return;
+  const up=E.out(clamp(u/.08)),down=clamp((u-.4)/.35),h=up*(1-down);
+  c.save();c.translate(q.c[0],q.c[1]);c.scale(1,.55);circle(c,0,0,20*(.6+.4*up),'rgba(0,0,0,'+.35*(1-down)+')');c.restore();
+  for(let i=0;i<4;i++){const ox=(hash(q.i*7+i)-.5)*22,oy=(hash(q.i*5+i)-.5)*14,w=5+4*hash(q.i+i*3),ht=(14+12*hash(q.i*3+i))*h;
+    c.beginPath();c.moveTo(q.c[0]+ox-w,q.c[1]+oy);c.lineTo(q.c[0]+ox+1,q.c[1]+oy-ht);c.lineTo(q.c[0]+ox+w,q.c[1]+oy);c.closePath();
+    c.fillStyle=i%2?'#6f6152':'#857462';c.fill();c.lineWidth=1;c.strokeStyle='#211b16';c.stroke();
+    c.beginPath();c.moveTo(q.c[0]+ox+1,q.c[1]+oy-ht);c.lineTo(q.c[0]+ox+w,q.c[1]+oy);c.lineWidth=1.2;c.strokeStyle=LOOK==='iron'?'rgba(230,215,195,.5)':rgba(L.fx,.75);c.stroke();}
+  if(u<.3){const v=u/.3;for(let i=0;i<7;i++){const a=hash(q.i*11+i)*TAU,d=6+22*E.out(v);circle(c,q.c[0]+Math.cos(a)*d,q.c[1]+Math.sin(a)*d*.6-10*v,2.2*(1-v)+.4,'rgba(170,155,135,'+.6*(1-v)+')');}}
+}
+function drawYank(c,sc,t){
+  const L=LOOKS[LOOK];
+  for(const y of sc.yanks){const u=t-y.s;if(u<.06||u>.44)continue;const p=poseAt(sc,t),f=[p.dx+p.L[0]+8,p.L[1]],e=enemyPos(y.A,t);
+    const dx=e.x-f[0],dy=e.y-f[1],d=len(dx,dy),n=[dx/d,dy/d],pp=[-n[1],n[0]];const fade=u>.38?(.44-u)/.06:1;
+    c.setLineDash([3,5]);line(c,f,[e.x,e.y],1.2,rgba(L.fx2,.6*fade));c.setLineDash([]);
+    for(let i=0;i<4;i++){const ph=1-((u*3+i/4)%1),q=[f[0]+dx*ph,f[1]+dy*ph],w=7+5*ph;
+      c.beginPath();c.moveTo(q[0]+pp[0]*w-n[0]*4,q[1]+pp[1]*w-n[1]*4);c.quadraticCurveTo(q[0]+n[0]*3,q[1]+n[1]*3,q[0]-pp[0]*w-n[0]*4,q[1]-pp[1]*w-n[1]*4);
+      c.lineWidth=2;c.strokeStyle=rgba(L.fx,(.25+.6*(1-ph))*fade);c.stroke();}
+    c.beginPath();c.arc(e.x,e.y,y.A.r+5+2*Math.sin(t*40),0,TAU);c.lineWidth=1.6;c.strokeStyle=rgba(L.fx,.8*fade);c.stroke();
+    if(u>.10){for(let j=1;j<4;j++){const tt=t-j*.025;if(tt<y.s+.10)break;const q=enemyPos(y.A,tt);circle(c,q.x,q.y,y.A.r*(1-j*.2),rgba(L.fx,.12));}}
+  }
 }
 function drawArea(c,sh){
   c.setLineDash([5,4]);c.lineWidth=1.1;c.strokeStyle='rgba(230,220,205,.5)';c.fillStyle='rgba(230,220,205,.06)';c.beginPath();
@@ -452,6 +552,9 @@ function drawScene(cv,sc,t,view,opts){
   c.setTransform(S,0,0,S,-view.x0*S,-view.y0*S);
   drawFloor(c,view);
   for(const q of sc.quakes) drawQuake(c,q,t);
+  if(sc.spikes.length){sc.spikes[0].last=sc.spikes[sc.spikes.length-1];sc.spikes.forEach((q,i)=>drawSpike(c,q,t,i===0));}
+  for(const q of sc.cones) drawCone(c,q,t);
+  drawYank(c,sc,t);
   if(opts.area) for(const f of sc.fx) if(f.kind==='swing'&&Math.abs(t-f.T)<.14) drawArea(c,f.sh);
   const p=poseAt(sc,t);
   drawPoundFx(c,sc,t,p);
@@ -462,7 +565,7 @@ function drawScene(cv,sc,t,view,opts){
   for(const e of sc.enemies) if(e.path&&t>=e.path.t0&&enemyPos(e,t).held) drawEnemy(c,e,t,sc);
   drawShield(c,sc,t,p);
   for(const b of sc.bul) drawBullet(c,b,t,sc);
-  for(const e of sc.enemies) for(const h of e.hits){const u=t-h.T;if(u>=0&&u<.25)burst(c,h.pt,u,h.fx==='big'?1.5:h.fx==='quake'?.8:1,h.T*100+e.x,false);}
+  for(const e of sc.enemies) for(const h of e.hits){const u=t-h.T;if(u>=0&&u<.25)burst(c,h.pt,u,h.fx==='big'?1.5:(h.fx==='quake'||h.fx==='spike')?.8:1,h.T*100+e.x,false);}
   drawPips(c,sc,t,p);
   if(sc.slow!==undefined){const u=t-sc.slow;if(u>=0&&u<.35){c.fillStyle='rgba(200,225,255,'+.10*(1-u/.35)+')';c.fillRect(view.x0,view.y0,view.w,view.h);}}
   if(opts.hud){
@@ -492,10 +595,12 @@ function tick(now){
 scrub.addEventListener('input',()=>{T=scrub.value/1000*total();playing=false;playBtn.textContent='Play';playBtn.setAttribute('aria-label','Play');renderStage();});
 playBtn.addEventListener('click',()=>{playing=!playing;playBtn.textContent=playing?'Pause':'Play';playBtn.setAttribute('aria-label',playBtn.textContent);if(playing&&T>=SC.len)T=0;});
 tArea.addEventListener('change',()=>{renderStage();renderSheet();});
-function chips(id,items,cur,on){const g=document.getElementById(id);for(const [k,l] of items){const b=document.createElement('button');b.className='chip';b.textContent=l;b.setAttribute('aria-pressed',k===cur);b.addEventListener('click',()=>{g.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',x===b));on(k);});g.appendChild(b);}}
+function chips(id,items,cur,on){const g=document.getElementById(id);for(const [k,l] of items){const b=document.createElement('button');b.className='chip';b.textContent=l;b.setAttribute('aria-pressed',k===cur);b.addEventListener('click',()=>{(id==='g-look'?g:document.querySelector('#g-scn').parentElement.parentElement).querySelectorAll(id==='g-look'?'.chip':'#g-scn .chip,#g-alt .chip').forEach(x=>x.setAttribute('aria-pressed',x===b));on(k);});g.appendChild(b);}}
 const blurb=document.getElementById('blurb');
 function setBlurb(){blurb.textContent=SCN[SCN_KEY].blurb+' '+LOOKS[LOOK].blurb;}
-chips('g-scn',Object.entries(SCN).map(([k,v])=>[k,v.label]),SCN_KEY,k=>{SCN_KEY=k;SC=compile(SCN[k]);T=0;playing=true;playBtn.textContent='Pause';setBlurb();renderStage();});
+const pickScn=k=>{SCN_KEY=k;SC=compile(SCN[k]);T=0;playing=true;playBtn.textContent='Pause';setBlurb();renderStage();};
+chips('g-scn',Object.entries(SCN).filter(([k,v])=>!v.alt).map(([k,v])=>[k,v.label]),SCN_KEY,pickScn);
+chips('g-alt',Object.entries(SCN).filter(([k,v])=>v.alt).map(([k,v])=>[k,v.label]),SCN_KEY,pickScn);
 chips('g-look',Object.entries(LOOKS).map(([k,v])=>[k,v.name]),LOOK,k=>{LOOK=k;setBlurb();renderStage();renderSheet();});
 setBlurb();
 
@@ -526,6 +631,11 @@ const ROWS=[
   {t:'Rocket Dash',s:'Alt tap · 24 dmg · 130 px',sc:SCN.dash,ts:[.06,.12,.20,.28,.32,.48],v:[100,0,300]},
   {t:'Ground Pound',s:'Alt hold · 40 dmg · clears bullets',sc:SCN.pound,ts:[.06,.30,.58,.67,.74,.95],v:[20,0,330]},
   {t:'Grab & Throw',s:'Alt beside an enemy · 20 + 26 dmg',sc:SCN.grab,ts:[.08,.18,.40,.62,.82,1.0],v:[110,0,330]},
+  {t:'Rocket Fist',s:'Alt tap · 22 dmg per enemy in a 200 px line',sc:SCN.rfist,ts:[.08,.17,.25,.44,.62,.80],v:[110,0,300]},
+  {t:'Shockwave Clap',s:'Alt tap · 10 dmg · deletes bullets in a 170 px cone',sc:SCN.clap,ts:[.06,.12,.17,.24,.32,.48],v:[90,0,280]},
+  {t:'Seismic Line',s:'Alt tap · 14 dmg per spike · 230 px',sc:SCN.seismic,ts:[.10,.20,.28,.36,.46,.70],v:[125,0,300]},
+  {t:'Magnet Yank',s:'Alt tap · pull + 18 dmg cross',sc:SCN.yank,ts:[.06,.16,.28,.38,.49,.62],v:[105,0,290]},
+  {t:'Flurry',s:'Alt hold · 8 × 6 + 20 dmg',sc:SCN.flurry,ts:[.10,.18,.30,.52,.78,.84],v:[48,0,200]},
 ];
 const sheet=document.getElementById('sheet');const thumbs=[];
 for(const r of ROWS){
