@@ -208,6 +208,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `ArcLightningLooks.cs`: Arc Lightning with Visual effects on: violet halo, sparks, dashed cone with tendrils, and the whipping fractal tree (style F, Lichtenberg)
 - `PropsLook.cs`, `ZombieLook.cs`, `VarietyLook.cs`, `ChallengeLook.cs`: props, zombies, wave 15+ enemies, challenge rooms
 - `TaserLook.cs` (Game): the Taser Guard's Fork Bolt (white zigzag glyph, 16 Hz flicker, fork, halo), its hit (`FxKind.TaserHit`) and the guard's taser and charge; numbers match `Docs/Mockups/taser-guard-stun.html` option B; preview `TASER=0.3 Tools/Preview/shot.sh taser hud 3`
+- `WarderLook.cs`: the Warder's body (Censer Priest: diamond, orbiting sigils, chevron), its charge ring and bead tethers, and the twelve-cell bubble (`DrawBubble`, cells flash and break from the `Enemy.Cells` mask) and shield bar; mockups `Docs/Mockups/warder-rework.html`, `shield-tells.html`
 - Boss visuals: `WardenLook.cs`, `QueenLook.cs`, `ReaperLook.cs`, `SingularityLook.cs`, `ColossusLook.cs`,
   `DuelistLook.cs`, `LichLook.cs`, `HeraldLook.cs`, `DevourerLook.cs`, `EclipseLook.cs`, `StageShiftLook.cs`,
   `QueenLootLook.cs`, `ReaperLootLook.cs`

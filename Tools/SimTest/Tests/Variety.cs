@@ -172,6 +172,24 @@ static partial class Program
         bool through = shd.Hp < hp && shd.BubbleHp <= 0f;
         Run(s, dt, Game.BubbleRegrow + 0.5f, null, () => { hold(); shd.FrozenT = 1f; foreach (var p in g.Players.Values) p.InvulnT = 1f; });
         Check(soak && through && shd.BubbleHp > 0f, "Shielded: a bubble soaks hits first, then grows back 4 s later");
+        // Cells: the bubble is twelve cells, and a hit wears down the one facing the shooter (and spills to its neighbours).
+        var cell = Elite(EliteTrait.Shielded, new V2(1200f, 400f));
+        var shooter = g.Players.Values.First();
+        shooter.Pos = cell.Pos + new V2(200f, 0f);  // due east: cell 3 (cell 0 is straight up, one every 30 degrees)
+        float one = cell.BubbleMax / Game.BubbleCells;
+        hurt.Invoke(g, new object[] { cell, one * 0.5f, shooter.Id });
+        int mid = Game.CellMask(cell);
+        hurt.Invoke(g, new object[] { cell, one, shooter.Id });
+        int after = Game.CellMask(cell);
+        Run(s, dt, 0.3f, null, () => { hold(); cell.FrozenT = 1f; foreach (var p in g.Players.Values) p.InvulnT = 1f; });
+        var cc = c.Enemies.Values.FirstOrDefault(e => e.Id == cell.Id);
+        Console.WriteLine("  cells: after half a cell {0:X}, after one and a half {1:X}, client {2:X}, bubble {3:0.0} of {4:0.0}", mid, after, cc?.Cells ?? -1, cell.BubbleHp, cell.BubbleMax);
+        Check(mid == (0xFFF | 1 << (3 + 12)), "a hit from the east wears only cell 3 (the others stay full)");
+        Check((after & 1 << 3) == 0 && (after & 1 << 4) != 0 && (after & 1 << 16) != 0 && (after & 1 << 2) != 0 && (after & 1 << 14) == 0, "it breaks, the spill wears its neighbour, the far side is untouched");
+        Check(cc != null && cc.Cells == after && Math.Abs(cell.BubbleHp - (cell.BubbleMax - one * 1.5f)) < 0.01f, "the client sees the same cells, and the bubble's total is the sum of them");
+        shooter.Pos = cell.Pos + new V2(-200f, 0f);
+        hurt.Invoke(g, new object[] { cell, one, shooter.Id });
+        Check((Game.CellMask(cell) & 1 << 9) == 0 && (Game.CellMask(cell) & 1 << 3) == 0, "a hit from the west breaks cell 9, so cells go by where they are hit");
         // Hasted and Commander: faster fire.
         var traitMult = typeof(Game).GetMethod("TraitFireMult", flags);
         var hasted = Elite(EliteTrait.Hasted, new V2(400f, 200f));

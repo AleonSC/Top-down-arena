@@ -885,7 +885,7 @@ namespace Arena
             }
             if (!DevourHit(e, ref dmg, attacker))
                 return;  // into the Devourer's Maw: it fed on that (Devourer.cs)
-            dmg = SoakBubble(e, dmg);  // a Shielded elite's or a Warder's bubble takes it first (Variety.cs)
+            dmg = SoakBubble(e, dmg, attacker);  // a Shielded elite's or a Warder's bubble takes it first (Variety.cs)
             if (dmg <= 0f)
             {
                 e.Flash = 0.06f;
@@ -1124,7 +1124,7 @@ namespace Arena
             // The same immunities as a hit: a boss changing stage or guarded takes none, and bubbles soak it first.
             if (SoulBound(e) || Hungry(e) || BossImmune(e) || SingImmune(e))
                 return;
-            dmg = SoakBubble(e, dmg);
+            dmg = SoakBubble(e, dmg, -1);
             if (dmg <= 0f)
                 return;
             Player p;

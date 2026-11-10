@@ -540,7 +540,7 @@ squad as often as a melee enemy used to come). Paths with their own mix keep it.
 | 26 | **Juggernaut** | Armored and slow; can't be slowed or knocked back; fires rotating stars of big orbs |
 | 28 | **Reaver** | Armoured melee (can't be slowed or knocked back): in reach it shows a red 120° cone for 0.4 s, then rakes it (26; a perfect parry blocks it). For 0.7 s after a swipe it's **open**: +50% damage |
 | 31 | **Nest** | Stationary spawner that keeps hatching Shards until destroyed |
-| 36 | **Warder** | Hangs back behind its allies; every 6 s up to three allies within 320 px get a bubble worth half their health, tethered to it. Kill it and every bubble pops |
+| 36 | **Warder** | Hangs back behind its allies; every 6 s up to three allies within 320 px get a bubble worth half their health, tethered to it by a line of flowing beads. Kill it and every bubble pops. A pointed violet diamond that turns to face you, with three hex sigils orbiting it: they spin faster and its reach fills up for its last 1.4 s before a ward, and one sigil leaves for each ally it wards. A chevron bobs over it while any ward is up: shoot it first |
 
 | Wave | Doesn't shoot | What it does |
 |---|---|---|
@@ -577,6 +577,8 @@ his own riot, on the boss wave, still give 2 and 4.
 | 2 | **Riot Shield** | A guard behind a tall shield that stops shots and swings from the front. Up close the shield flashes (0.4 s), then it lunges and **bashes** you: 10 damage and knocked **160 px** back (you can't be bashed again for 0.8 s). It holds the shield low for a second after, when front hits land. The shield holds 4x its health and cracks as it wears; broken, the guard staggers for a second, then flails and takes 50% more damage. Go round it or break it. Squad (wave 3): Cell block (two Riot Shields with Rioters pouring past) |
 | 2 | **Gas Grenadier** | Keeps its distance and lobs a tear-gas canister near you every 3.6 s: a 70 px cloud that settles after 1 s and hurts (8 a second) for 4 s |
 | 3 | **Taser Guard** | A guard with a taser that keeps its distance (320 px), plants its feet and **charges for 0.7 s**: a dashed aim line and the prongs crackling, brighter as it nears the shot. Then it fires one **Fork Bolt** straight at you (260 px/s, 8 damage; it doesn't lead you, so strafe across the line): a white lightning glyph that flickers its zigzag 16 times a second, with a fork, among rounder bullets. A hit **stuns you for 1 s** (a flash and six bolts web out from you); a perfect parry sends it back like any shot. One bolt every 3.2 s |
+
+**Bubbles (Shielded elites and the Warder's wards):** a bubble is twelve cells round the rim, each holding a twelfth of the shield. A hit wears down the cell facing whoever shot it (flashing, then breaking into shards) and spills over to its neighbours once that cell is gone, so the side you shoot from is the side that opens. Burning and bleeding keep chewing the weakest cell. A honeycomb inside only shows where its cell is still up, and a thin shield bar sits above the health bar. Blue is a Shielded elite, violet is the Warder's.
 
 ## Bosses
 

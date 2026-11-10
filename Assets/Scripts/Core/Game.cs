@@ -792,7 +792,7 @@ namespace Arena
             foreach (var e in Enemies.Values)
             {
                 e.Disp = V2.Lerp(e.Disp, e.Pos, k);
-                if (IsSwordsman(e.Type))
+                if (IsSwordsman(e.Type) || e.Type == EnemyType.Warder)  // (the Warder's charge look is timed the same way)
                 {
                     if (e.Phase != e.SeenPhase)
                     {
