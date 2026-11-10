@@ -1,4 +1,4 @@
-<title>Gauntlets</title>
+<title>Arc Knuckles</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -77,8 +77,8 @@ td.n{font:500 13px var(--mono);font-variant-numeric:tabular-nums;white-space:now
 
 <main>
 <header>
-  <h1>Gauntlets</h1>
-  <p>A brawler's melee weapon. Fire throws a five-hit combo that ends in a ground slam. Parry cancels any punch's windup or recovery without losing your place in the combo, and a perfect parry jumps straight to a stronger finisher. Alt fire has eight options to choose from. Pick the ones that should go in.</p>
+  <h1>Arc Knuckles</h1>
+  <p>The Knight DPS's fourth weapon. Fire throws a five-hit combo that ends in a ground slam. Parry cancels any punch and resets the combo to the jab, but a perfect parry makes the next Fire a stronger finisher. Alt is the Rocket Dash: press Fire as each move lands to chain Flurry, Grab &amp; Throw and Rocket Punch. The other Alt fires on this page are ideas that weren't picked.</p>
 </header>
 
 <section>
@@ -148,7 +148,7 @@ td.n{font:500 13px var(--mono);font-variant-numeric:tabular-nums;white-space:now
     <ul>
       <li>Hold or tap Fire: each punch can start during the last one's recovery. The full chain takes about 1.8 s, roughly 60 damage per second.</li>
       <li>1.2 s without a punch resets the combo to the jab.</li>
-      <li>Raising parry during a windup or recovery cancels that punch. The combo stays where it was, unlike the Katana, which goes back to its first step.</li>
+      <li>Raising parry during a windup or recovery cancels that punch and resets the combo to the jab, the same as the Katana and the other Knight chains.</li>
       <li>A perfect parry fires the Counter Hammer on the next Fire press, from any step.</li>
       <li>The five pips under the player show the combo step. They turn gold when the counter is ready.</li>
     </ul>
@@ -172,7 +172,7 @@ const LOOKS={
   arc:{name:'Arc Coil',plate:'#34445c',plateD:'#212b3a',cuff:'#1c2432',knuckle:'#a2e4ff',stud:'#eefaff',fx:'#7ad4ff',fx2:'#eefbff',
         blurb:'Coiled blue alloy. The coils charge as you punch, and each hit cracks with small arcs of lightning.'},
 };
-let LOOK='ember';
+let LOOK='arc';
 
 // ---------- poses: fists are [x,y,z] relative to the body; the player faces +x ----------
 const REST={L:[17,-13,0],R:[17,13,0],dx:0,tw:0,g:0};
@@ -266,10 +266,10 @@ function shieldPt(e){const d=len(e.x,e.y);return[e.x/d*30,e.y/d*30];}
 const SCN={
   combo:{label:'Full combo',blurb:'Jab, cross, hook, uppercut, Twin Hammer. Each punch starts during the last one\'s recovery, so the chain flows without gaps. The hook catches the crowd, the uppercut launches the main target, and the hammer\'s shockwave knocks everyone back and stuns.',
     segs:[{m:'jab',s:0},{m:'cross',s:.24},{m:'hook',s:.52},{m:'upper',s:.84},{m:'hammer',s:1.22}],enemies:GRUNTS,len:2.2},
-  parry:{label:'Parry cancel',blurb:'A shot comes in during the cross\'s recovery. Parry cancels the recovery and blocks the shot (not perfect, so the shield wears a little). The combo stays at step 2, so the next Fire press throws the hook.',
-    segs:[{m:'jab',s:0},{m:'cross',s:.24},{m:'parry',s:.42,d:.5},{m:'hook',s:.92},{m:'upper',s:1.24},{m:'hammer',s:1.62}],
+  parry:{label:'Parry cancel',blurb:'A shot comes in during the cross\'s recovery. Parry cancels the recovery and blocks the shot (not perfect, so the shield wears a little). The combo resets, so the next Fire press starts again from the jab.',
+    segs:[{m:'jab',s:0},{m:'cross',s:.24},{m:'parry',s:.42,d:.5},{m:'jab',s:.92},{m:'cross',s:1.16},{m:'hook',s:1.44}],
     enemies:()=>[...GRUNTS(),{...SHOOTER}],bullets:[{from:3,th:.80,out:'block'}],len:2.6,
-    caps:[{t0:.42,t1:.95,txt:'PARRY CANCEL · COMBO HELD AT 2'}]},
+    caps:[{t0:.42,t1:.95,txt:'PARRY CANCEL · COMBO RESETS TO THE JAB'}]},
   perfect:{label:'Perfect parry',blurb:'The parry goes up during the hook\'s windup, so the hook never lands. The shot arrives within 0.3 s: a perfect parry. It flies back as a white needle and the world slows. The next Fire press skips steps 3 and 4 and fires the gold Counter Hammer.',
     segs:[{m:'jab',s:0},{m:'cross',s:.24},{m:'hook',s:.52},{m:'parry',s:.60,d:.26},{m:'counter',s:.86}],
     enemies:()=>[...GRUNTS(),{...SHOOTER}],bullets:[{from:3,th:.68,out:'perfect'}],slow:.68,len:1.9,
@@ -555,14 +555,14 @@ function drawGrabFx(c,sc,t,p){
 }
 function drawPips(c,sc,t,p){
   let step=0,gold=false,held=false,lastEnd=-9,parried=false;
-  for(const s of sc.segs){if(s.s>t)break;if(s.m.step){step=s.m.step;gold=!!s.m.gold;lastEnd=s.end;held=false;}else if(s.m.parry){held=true;lastEnd=s.end;const b=(sc.bul||[]).find(b=>b.th>=s.s&&b.th<=s.end&&b.out==='perfect');if(b&&t>=b.th){gold=true;parried=true;}}}
-  if(!step&&!parried)return;const fade=clamp(1-(t-lastEnd-.4)/.3);if(fade<=0)return;
+  for(const s of sc.segs){if(s.s>t)break;if(s.m.step){step=s.m.step;gold=!!s.m.gold;lastEnd=s.end;held=false;}else if(s.m.parry){held=true;step=0;lastEnd=s.end;const b=(sc.bul||[]).find(b=>b.th>=s.s&&b.th<=s.end&&b.out==='perfect');if(b&&t>=b.th){gold=true;parried=true;}}}
+  if(!step&&!parried&&!held)return;const fade=clamp(1-(t-lastEnd-.4)/.3);if(fade<=0)return;
   const L=LOOKS[LOOK];
   for(let i=0;i<5;i++){const x=p.dx-20+i*10,y=34,on=i<step||(parried&&!sc.segs.find(s=>s.m.gold&&s.s<=t)?false:false);
     const lit=i<step,col=gold?'#ffd24a':L.fx;
     c.save();c.translate(x,y);c.rotate(Math.PI/4);c.fillStyle=lit?rgba(col,fade):'rgba(255,255,255,'+.12*fade+')';c.fillRect(-3,-3,6,6);
     if(parried&&!lit){c.strokeStyle=rgba('#ffd24a',fade*(.5+.5*Math.sin(t*30)));c.lineWidth=1;c.strokeRect(-3,-3,6,6);}c.restore();void on;}
-  if(held&&p.seg&&p.seg.m.parry){c.font='600 8px "IBM Plex Mono",monospace';c.textAlign='center';c.fillStyle=gold?'#ffd24a':'rgba(160,210,255,.9)';c.fillText(gold?'COUNTER READY':'HELD',p.dx,48);}
+  if(held&&p.seg&&p.seg.m.parry){c.font='600 8px "IBM Plex Mono",monospace';c.textAlign='center';c.fillStyle=gold?'#ffd24a':'rgba(160,210,255,.9)';c.fillText(gold?'COUNTER READY':'RESET',p.dx,48);}
 }
 
 function drawScene(cv,sc,t,view,opts){
