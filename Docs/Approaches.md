@@ -145,7 +145,7 @@ Paths and approaches both live in the four waves before a boss, and they stack:
 5. **Twin Reapers, Colossus, Devourer:** their new enemies (all new, so the most work).
 6. **Eclipse:** Echoes from the finished factions.
 
-Each step: Bestiary entries (`node Docs/Bestiary/build_data.js`), the Practice Range picker, previews, README,
+Each step: Bestiary entries (`BestiaryData.Entries.cs`), the Practice Range picker, previews, README,
 protocol bump when enemies are added.
 
 ## Later: Chapters mode

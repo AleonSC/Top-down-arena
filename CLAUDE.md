@@ -12,13 +12,10 @@ no Unity in the cloud container: check changes with the tools below.
   §3 every test and preview tool · §6 open ideas from the code audits.
 - `README.md`: player-facing reference for every weapon, ability, enemy, boss, mode and control. Use `grep -n '^## '
   README.md` to jump to a section.
-- `Docs/AfterReset.md`: **the owner's to-do list** (open items, ideas left for later, unstarted plans). Check it at
-  the start of a session.
 - `Docs/History.md`: background only (finished to-do entries, the audit notes, the old changelog); `git log` usually
   does. `Docs/CodeNotes.md`: older, detailed per-file notes, no longer maintained.
 - `Docs/*.md`: design docs (Paths, Approaches, BossHuntsAndPerks, ZombieInfection, ...); each starts with its status.
-  `Docs/README.md` covers the Bestiary and Armory pages.
-- Big generated or reference files are in `.ignore` (mockups, Armory/Bestiary HTML, History, `*.Generated.cs`), so a
+- Big generated or reference files are in `.ignore` (mockups, History, `*.Generated.cs`), so a
   repo-wide search skips them. Search them by naming the path.
 
 ## Rules
@@ -32,12 +29,9 @@ no Unity in the cloud container: check changes with the tools below.
 - **Bump `Session.ProtocolVersion`** (`Core/Session.cs`) whenever a network message or snapshot format changes. New
   enum values (`Msg`, `Kit`, `WeaponId`, `AbilityId`, `EnemyType`, ...) go at the **end**, before `None`.
 - Ask every question to the owner through the in-chat question box (`AskUserQuestion`), never as plain text or an artifact form. Batch related questions into one box. Ask before deleting code.
-- **Never update the reference pages unless the owner asks in that prompt**: the Bestiary (`Docs/Bestiary/`), the Armory
-  (`Docs/Armory/`, its icons and `build.sh`), `BestiaryData.Generated.cs`, and the published artifacts. Code changes
-  don't carry them along; at most, say in the report that they are now out of date. When asked to edit a Bestiary
-  entry, run `node Docs/Bestiary/build_data.js` after; never edit `*.Generated.cs` by hand.
-- To-do list: add an entry for anything built that needs a try in Unity ("check in Unity"). Once the owner has
-  checked it, move the entry to the top of `Docs/History.md` rather than leaving it ticked.
+- The Bestiary and Armory web pages are gone. The in-game Field guide (`FieldGuide.cs`) replaces them: the Armory
+  reads the game's definitions, the Bestiary text is hand-edited in `BestiaryData.Entries.cs` / `BestiaryData.cs`.
+- There is no to-do file. Say in the final report what needs a try in Unity ("check in Unity").
 
 ## How the owner works
 

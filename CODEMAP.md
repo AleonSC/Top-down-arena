@@ -142,7 +142,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `DiskEject.cs`: the eject key right of the menu's disk drive (`DrawDriveEject`) and its 2.9 s spring-pop move back to the picker (`StartProfEject`, `TickProfEj`, `DrawProfEj`, `DriveEjectAt`); rides on `profTr` with `profEj`; replaced the "Switch profile" tab (`Docs/Mockups/disk-eject.html`)
 - `Rank.cs`: the cosmetic account rank: XP curve, tiers, XP for a run (`Rank.Award`), the cosmetics table (frames, trails, a background); XP, equipped cosmetics and recent runs live on `Profile`, the lobby carries each player's `Rank`/`Frame`/`Trail` (`Msg.Cosmetics`, `Session.ShareCosmetics`)
 - `RunStats.cs`: per-player run stats for the end screen
-- `BestiaryData.cs`: Bestiary entry types (`BestiaryData.Generated.cs` is generated, don't edit)
+- `BestiaryData.cs`: Bestiary entry types; `BestiaryData.Entries.cs`: the entries themselves (hand-edited)
 - `TextOverrides.cs`: dev text-editor edits
 - `WeaponDps.Generated.cs`: generated weapon DPS table, don't edit
 - `Game/DodgeSoundBank.cs`: the Dodge's Cloth Swish (`Sfx.DodgeSwish`, raised in `Dodge.cs`, own screen only; `Docs/Mockups/dodge-sounds.html`)
@@ -258,7 +258,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `LobbyCrt.cs`: the lobby's blue CRT screen and glass (every lobby draw), and New run's CRT boot into the lobby (`StartNewRunCrt`, `DrawLobbyEnteringCrt`, its sounds `PlayCrtEntryCues` with the `Sfx.Crt*` cues: power-on thump, typing keys, line beeps, scan sweep, ready chime; `LobbyEnter.cs` has the other entrances)
 - `RunGraphs.cs`: Records > Recent runs (`DrawRecentRuns`: run strip, stat tiles, Overview and Trends tabs; GL line/area charts with hover readouts)
 - `SavesUi.cs`: the Play picker in the main menu box (one scrolling CRT list of every save, newest first, with Continue and DEL on each row; New run under it), Records, unlock toasts. The box sweeps between the menu buttons and this picker with a scan line (`menuPlayK`, `Menus.cs`)
-- `FieldGuide.cs`, `ReferencePages.cs`: in-game Bestiary/Armory, links to the web pages
+- `FieldGuide.cs`, `ReferencePages.cs`: the Field guide button colour
 - `Game/CrtKit.cs`: shared CRT cabinet pieces (retyping text, power-on, boot-log line, scan bar, soft digital key, the floating chassis and soft edges)
 - `Game/DifficultyUi.cs`: the lobby's Difficulty tab (five cards, then every number as a slider with a text box; host edits, others read)
 - `Game/ModifiersUi.cs`: the lobby's Modifiers tab (tiles in two columns under foldable tier headings, `DrawModTile`)
@@ -281,7 +281,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 
 ## Tools and docs (repo root)
 - `Tools/CompileCheck`, `Tools/SimTest` (tests in `Tools/SimTest/Tests`), `Tools/RenderCheck`, `Tools/Preview`, `Tools/SoundCheck`, `Tools/SessionReport`, `Tools/TextEdits`, `Tools/WaveGen` (builds `Data/Waves` into code): see `HANDOFF.md` §3
-- `Docs/AfterReset.md` (owner to-do), `Docs/History.md` (finished to-do entries, audit notes, changelog), `Docs/CodeNotes.md` (older detailed per-file notes, not maintained), `Docs/Bestiary/` and `Docs/Armory/` (reference pages), `Docs/Mockups/`
+- `Docs/History.md` (finished to-do entries, audit notes, changelog), `Docs/CodeNotes.md` (older detailed per-file notes, not maintained), `Docs/Mockups/`
 
 ## Where to look for...
 | Task | Files |
@@ -290,7 +290,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 | Add or change an ability | the class's file; registry in `Upgrades.cs` (`AbilityDef`); `Abilities.cs` for Soldier; feedback in `AbilityLooks.cs` |
 | Add a new class | `HANDOFF.md` "Adding a class", `Defs.cs` (`Kit` enum, at the end), `Classes.cs`, `ClassLooks.cs`, `Docs/ClassTemplate` |
 | Tune damage, health, wave numbers | `Balance.cs` (index of where every system's numbers live), `Difficulty.cs`, `Docs/UpgradeBalance.md` |
-| Add or change an enemy | `Defs.cs` (`EnemyType`, def), `EnemyAI.cs` or `Variety.cs`, look in `WorldEnemies.cs`/`VarietyLook.cs`, Bestiary entry then `node Docs/Bestiary/build_data.js` |
+| Add or change an enemy | `Defs.cs` (`EnemyType`, def), `EnemyAI.cs` or `Variety.cs`, look in `WorldEnemies.cs`/`VarietyLook.cs`, Bestiary entry in `BestiaryData.Entries.cs` |
 | Edit a boss fight | the boss's Core file plus its `*Look.cs`; bars in `HudBossBars.cs`; snapshot sync in the boss file |
 | Upgrade cards and picker | `Upgrades.cs` (cards), `Game.cs` (`HostPick`, `NextOffer`), `HudPicker.cs`, `CardArt.cs`, `PickIntro.cs` |
 | Milestone upgrades (every 10 levels, the Milestone Compass) | `Upgrades.cs` (`WithMilestones`, `MilestoneOffer`), `Game.cs` (`GrantXpTo`, `NextOffer`, `HostPick`), `Tools/SimTest/Tests/Milestones.cs` |
