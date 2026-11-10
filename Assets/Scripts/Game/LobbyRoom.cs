@@ -20,7 +20,7 @@ namespace Arena
 
         /// Whether the keyboard is ours: no text box, window or menu is taking it.
         bool hangoutCastLatch;  // an ability press seen in Update (ArenaApp), waiting for the Hangout's next draw
-        bool HangoutKeysFree => GUIUtility.keyboardControl == 0 && !settingsOpen && !lobbyMenuOpen && !connInfoOpen && !LobbyEntering && !LobbyLeaving && !LobbyReturning;
+        bool HangoutKeysFree => GUIUtility.keyboardControl == 0 && !settingsOpen && !lobbyMenuOpen && inspectId < 0 && !connInfoOpen && !LobbyEntering && !LobbyLeaving && !LobbyReturning;
 
         // --- The window: the Hangout's view of the big room, which scrolls with you and stops at the room's border.
         const float MiniW = 150f, MiniH = 100f;       // the minimap, top left of the window (the room is 2400 x 1600: 1/16 scale)

@@ -1122,6 +1122,8 @@ plays a 0.85 s grow: the loadout's preview window stretches into the room (it ju
 
 ## Rank
 
+**Lobby profiles:** click your party card's portrait (or the card, if you are not the host) to open your profile; click a teammate's card to see their holo card, large: their frame, card background, name effect and trail, rank badge, XP, kills, best wave, bosses and what they have equipped. Esc, the close key or a click outside closes it.
+
 A **cosmetic account rank**. Every finished run (and Boss Hunt) earns XP; XP raises your **Rank**; ranks unlock
 cosmetics only, never power. It is separate from the **Level** on the results cards, which is the in-run level.
 Design: [`Docs/Rank.md`](Docs/Rank.md); mockups: `Docs/Mockups/rank-screens.html`.

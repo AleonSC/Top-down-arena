@@ -301,6 +301,14 @@ static partial class Shot {
       else if (lobbyIn != null) { set("enterT", float.Parse(lobbyIn, System.Globalization.CultureInfo.InvariantCulture)); Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyEntering", f2, null, Type.EmptyTypes, null).Invoke(app, null); }
       else typeof(ArenaApp).GetMethod("DrawLobby", f2).Invoke(app, null);
       crtDraw("DrawLobbyCrtGlass");
+      // INSPECT=2: the holo card of lobby player 2 (PlayerInspect.cs), wearing FRAME / CARD / NAMEFX / TRAIL (ids, as above) with made-up records.
+      if (Environment.GetEnvironmentVariable("INSPECT") != null) {
+        int iid = int.Parse(Environment.GetEnvironmentVariable("INSPECT")); var ie = host.Lobby[iid];
+        ie.Rank = 34; ie.XpPct = 62; ie.Kills = 18420; ie.BestWave = 31; ie.BossKills = 94;
+        if (Environment.GetEnvironmentVariable("TRAIL") != null) ie.Trail = Rank.TrailIndex(Environment.GetEnvironmentVariable("TRAIL"));
+        set("inspectId", iid); set("inspectAt", Time.unscaledTime - 5f);
+        typeof(ArenaApp).GetMethod("DrawInspect", f2).Invoke(app, null);
+      }
       if (Environment.GetEnvironmentVariable("LOBBYMENU") != null) { set("lobbyMenuOpen", true); set("cabInstant", true); set("drawerKey", "pause"); set("winOpenAt", Time.unscaledTime - (Environment.GetEnvironmentVariable("PAUSEAGE") != null ? float.Parse(Environment.GetEnvironmentVariable("PAUSEAGE"), System.Globalization.CultureInfo.InvariantCulture) : 10f)); set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank))); if (Environment.GetEnvironmentVariable("LOBBYMENU") == "settings") set("pauseSettings", true); if (Environment.GetEnvironmentVariable("LOBBYMENU") == "howto") { set("pauseHowTo", true); typeof(ArenaApp).GetMethod("OpenCabWindow", f2).Invoke(app, new object[] { 2 }); set("cabWinInAt", Time.unscaledTime - 10f); } Event.current.type = EventType.Repaint; typeof(ArenaApp).GetMethod("DrawLobbyMenu", f2).Invoke(app, null); }  // Esc's menu (MenuDrawer.cs)
       if (Environment.GetEnvironmentVariable("LOBBYSETTINGS") != null) { Ui.Fill(new Rect(0, 0, 1280, 720), new Color(0.01f, 0.01f, 0.03f, 0.75f)); typeof(ArenaApp).GetMethod("DrawSettings", f2).Invoke(app, null); }
       if (te != null) endTe.Invoke(app, null);
