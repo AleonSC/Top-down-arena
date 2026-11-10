@@ -9,7 +9,6 @@ namespace Arena
     /// wave, and editing each player's stats by hand. Changes to the match are host only.
     public partial class ArenaApp
     {
-        int devTab = -1;          // 0 Match, 1 Players, 2 Tools, 3 DPS, 4 Replays (-1: pick one when the menu opens)
         int devWave = 1;          // the wave the "Go" button jumps to
         int devPlayer;            // whose stats are shown (player id; 0 = you)
         float devScroll;          // stat list scroll offset
@@ -19,64 +18,6 @@ namespace Arena
 
         static readonly Rect DevPanel = new Rect(W / 2f - 470f, 40f, 940f, 640f);
 
-        static readonly string[] DevTabNames = { "Match", "Players", "Tools", "DPS", "Replays", "Balance" };
-        static readonly string[] DevTabBlurbs = { "Waves and bosses", "Stats, god mode, levels", "Recording, Boss Lab, waves", "Meter and target dummy", "Record, scrub, rewind runs", "Five-wave test with logs" };
-        static readonly Color[] DevTabColors = { new Color(1f, 0.55f, 0.4f), new Color(0.45f, 0.75f, 1f), new Color(1f, 0.8f, 0.35f), new Color(1f, 0.62f, 0.3f), new Color(1f, 0.45f, 0.5f), new Color(0.44f, 0.89f, 0.77f) };
-
-        void DrawDevMenu()
-        {
-            float t = Time.unscaledTime;
-            bool inMatch = session.Screen == AppScreen.Game;
-            if (devTab < 0)
-                devTab = inMatch ? 0 : 2;
-            var panel = DevPanel;
-            var inner = DkWindow(panel, "DEVELOPER TOOLS", (inMatch ? "In a match" : "Not in a match") + (session.IsHost ? "" : "  ·  only the host can change the match") + "  ·  F1 or Esc to close",
-                () => devMenuOpen = false);
-
-            // Sidebar.
-            float sx = inner.x, sw = 196f, sy = inner.y;
-            for (int i = 0; i < DevTabNames.Length; i++)
-            {
-                var r = new Rect(sx, sy + i * 62f, sw, 55f);
-                bool on = devTab == i, hover = r.Contains(Event.current.mousePosition);
-                var c = DevTabColors[i];
-                CrtKit.SoftBox(r, c, on, hover, false);
-                Ui.NoteHover(r);
-                DkTitle(new Rect(r.x + 16f, r.y + 6f, r.width - 20f, 26f), DevTabNames[i].ToUpperInvariant(), 16, CrtKit.SoftText(c, on || hover));
-                Ui.Label(new Rect(r.x + 16f, r.y + 31f, r.width - 20f, 18f), DevTabBlurbs[i], 11, on ? Color.white : CrtStyle.Desc);
-                if (!on && Ui.HitArea(r))
-                {
-                    devTab = i;
-                    devFocus = "";
-                }
-            }
-            DrawDevStatusCard(new Rect(sx, inner.yMax - 136f, sw, 136f), inMatch);
-
-            // Content.
-            var body = new Rect(sx + sw + 20f, inner.y, inner.xMax - (sx + sw + 20f), inner.height);
-            switch (devTab)
-            {
-                case 0:
-                    if (inMatch) DrawDevMatch(body, t); else DevNotInMatch(body, "change the wave");
-                    break;
-                case 1:
-                    if (inMatch) DrawDevPlayers(body.x, body.y, body.width, body.yMax); else DevNotInMatch(body, "edit players' stats");
-                    break;
-                case 3:
-                    if (inMatch) DrawDevDps(body); else DevNotInMatch(body, "use the DPS meter and dummies");
-                    break;
-                case 4:
-                    DrawDevReplays(body);  // ReplayUi.cs
-                    break;
-                case 5:
-                    if (inMatch) DrawDevBalance(body); else DevNotInMatch(body, "run a balance test");  // BalanceTestUi.cs
-                    break;
-                default:
-                    DrawDevTools(body);
-                    break;
-            }
-        }
-
         void DevNotInMatch(Rect body, string what)
         {
             DkSub(new Rect(body.x, body.y, body.width, 90f));
@@ -84,198 +25,10 @@ namespace Arena
             Ui.Label(new Rect(body.x, body.y + 46f, body.width, 20f), "Start or join a match to " + what + ".", 13, CrtStyle.Desc, TextAnchor.MiddleCenter);
         }
 
-        /// Bottom of the sidebar: what's on right now.
-        void DrawDevStatusCard(Rect r, bool inMatch)
-        {
-            DkSub(r);
-            float y = r.y + 10f;
-            Action<string, string, Color> line = (k, v, c) =>
-            {
-                Ui.Label(new Rect(r.x + 12f, y, 90f, 18f), k, 10, CrtStyle.Desc, TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(r.x + 12f, y, r.width - 24f, 18f), v, 11, c, TextAnchor.MiddleRight, true);
-                y += 20f;
-            };
-            line("WAVE", inMatch ? Mathf.Max(1, game.Wave) + (game.Endless ? " (endless)" : " / " + Game.MaxWave) : "-", Color.white);
-            line("RECORDING", recordSessions ? (game.Recorder != null ? "on, recording" : "on") : "off", recordSessions ? new Color(1f, 0.5f, 0.5f) : CrtStyle.Desc);
-            line("REPLAYS", replay != null ? "watching" : recordReplays ? (game.Replay != null ? "on, recording" : "on") : "off", replay != null ? Ui.Accent : recordReplays ? new Color(1f, 0.5f, 0.5f) : CrtStyle.Desc);
-            line("BOT", game.Bot ? "playing for you" : "off", game.Bot ? Ui.Good : CrtStyle.Desc);
-            line("AIM DEBUG", aimDebug ? "on" : "off", aimDebug ? Ui.Accent : CrtStyle.Desc);
-            line("PLAYERS", session.Lobby.Count.ToString(), Color.white);
-        }
-
         /// A titled card for the content area; returns the y to draw its contents at.
         float DevCard(Rect r, string title, string blurb, Color accent)
         {
             return DkCard(r, title, blurb, accent);
-        }
-
-        // --- Match ------------------------------------------------------------------------
-
-        void DrawDevMatch(Rect body, float t)
-        {
-            var col = DkStack.Column(body, 14f);
-            var card = col.Next(280f);
-            float y = DevCard(card, "Jump to a wave", "Clears the arena and starts that wave in 2 s. Downed players get back up.", DevTabColors[0]);
-            float x = card.x + 16f;
-            Ui.Label(new Rect(x, y, 300f, 20f), "Now on wave " + Mathf.Max(1, game.Wave) + (game.Endless ? " (endless)" : " of " + Game.MaxWave), 13, CrtStyle.Body);
-            y += 30f;
-            int max = game.Endless ? 999 : Game.MaxWave;
-            bool host = session.IsHost;
-            bool wasEnabled = GUI.enabled;
-            GUI.enabled = host;
-            float bx = x;
-            foreach (int step in new[] { -10, -5, -1, 0, 1, 5, 10 })
-            {
-                if (step == 0)
-                {
-                    DkTitle(new Rect(bx, y, 70f, 40f), devWave.ToString(), 28, CrtStyle.Gold, TextAnchor.MiddleCenter);
-                    bx += 74f;
-                    continue;
-                }
-                if (DkKey(new Rect(bx, y + 4f, 42f, 32f), step > 0 ? "+" + step : step.ToString()))
-                    devWave = Mathf.Clamp(devWave + step, 1, max);
-                bx += 46f;
-            }
-            y += 54f;
-            if (DkKey(new Rect(x, y, 300f, 40f), "Go to wave " + devWave, Ui.Primary))
-                game.DevJumpToWave(devWave);
-            // The kill-all key: X kills every enemy on the field as if you had (XP, score, drops, kill credit).
-            bool killAll = DkSwitch(new Rect(x, y + 48f, 520f, 26f), devKillAllKey, "Kill-all key  (X): kill every enemy on screen, as your kills");
-            if (killAll != devKillAllKey)
-            {
-                devKillAllKey = killAll;
-                PlayerPrefs.SetInt("dev_killall", killAll ? 1 : 0);
-            }
-            bool freeze = DkSwitch(new Rect(x, y + 76f, 520f, 26f), game.DevFreeze, "Freeze enemies: they stop moving, shooting and spawning (still killable)");
-            if (freeze != game.DevFreeze)
-                game.DevSetFreeze(freeze);
-            GUI.enabled = wasEnabled;
-            if (!host)
-                Ui.Label(new Rect(x, y + 104f, 400f, 18f), "Only the host can change the wave or kill everything.", 11, CrtStyle.Desc);
-
-            // What's waiting on that wave: the boss, drawn live, or the next one.
-            var show = new Rect(card.xMax - 230f, card.y + 52f, 210f, 184f);
-            DkSub(show);
-            int bossWave = devWave % 5 == 0 ? devWave : (devWave / 5 + 1) * 5;
-            var boss = Game.BossForWave(bossWave);
-            if (BeginUiGl())
-            {
-                DrawEnemyPreview(boss == EnemyType.TwinB ? EnemyType.TwinA : boss, new V2(show.center.x, show.y + 78f), 120f, t, true);
-                EndUiGl();
-            }
-            Ui.Label(new Rect(show.x, show.yMax - 50f, show.width, 18f), devWave % 5 == 0 ? "BOSS ON THIS WAVE" : "NEXT BOSS  ·  WAVE " + bossWave, 10, CrtStyle.Desc, TextAnchor.MiddleCenter, true);
-            DkTitle(new Rect(show.x, show.yMax - 32f, show.width, 24f), PracticePlan.NameOf(boss == EnemyType.TwinB ? EnemyType.TwinA : boss), 16, CrtStyle.Gold, TextAnchor.MiddleCenter);
-
-            // Quick actions for everyone.
-            var quick = col.Next(120f);
-            y = DevCard(quick, "Everyone", "Applies to every player in the match.", DevTabColors[0]);
-            GUI.enabled = host;
-            float qw = (quick.width - 32f - 24f) / 4f;
-            string[] names = { "Full heal", "Level up", "Max mastery", "God mode on/off" };
-            for (int i = 0; i < names.Length; i++)
-                if (DkKey(new Rect(quick.x + 16f + i * (qw + 8f), y, qw, 34f), names[i], i == 3 ? Ui.GoldButton : Ui.Neutral))
-                    foreach (var p in game.Players.Values)
-                    {
-                        if (i == 0) game.DevHeal(p.Id);
-                        else if (i == 1) game.DevLevelUp(p.Id);
-                        else if (i == 2) game.DevMasterAll(p.Id);
-                        else game.DevSetGod(p.Id, !p.DevGod);
-                    }
-            // Challenge rooms: straight into one (Challenges.cs).
-            var rooms = col.Next(110f);
-            y = DevCard(rooms, "Data Gates", "Between waves: takes everyone straight through that gate.", DevTabColors[0]);
-            bool canRoom = host && game.State == MatchState.Intermission && game.Room == RoomPhase.None;
-            GUI.enabled = canRoom;
-            float rw = (rooms.width - 32f - 32f) / 5f;
-            for (int i = 0; i < Challenges.All.Length; i++)
-                if (DkKey(new Rect(rooms.x + 16f + i * (rw + 8f), y, rw, 34f), new[] { "Crystal", "Gatekeeper", "Kill Rush", "Zones", "Mirror" }[i], Color.Lerp(ToColor(Challenges.Accent(Challenges.All[i])), new Color(0f, 0f, 0f, 1f), 0.3f)))
-                    game.DevOpenPortal(Challenges.All[i], true);
-            GUI.enabled = wasEnabled;
-        }
-
-        // --- Tools ------------------------------------------------------------------------
-
-        void DrawDevTools(Rect body)
-        {
-            float half = (body.width - 14f) / 2f;
-            // Recording.
-            var rec = new Rect(body.x, body.y, half, 150f);
-            float y = DevCard(rec, "Session recording", "Saves each match you host as JSON for balancing.", new Color(1f, 0.45f, 0.45f));
-            bool on = DkSwitch(new Rect(rec.x + 16f, y, rec.width - 32f, 26f), recordSessions, "Record sessions (when hosting)");
-            if (on != recordSessions)
-            {
-                recordSessions = on;
-                PlayerPrefs.SetInt("record_sessions", on ? 1 : 0);
-                PlayerPrefs.Save();
-                ApplyRecording();
-            }
-            y += 34f;
-            if (DkKey(new Rect(rec.x + 16f, y, 190f, 30f), "Open sessions folder"))
-                OpenFolder(SessionsFolder);
-            Ui.Label(new Rect(rec.x + 16f, y + 36f, rec.width - 32f, 18f), "Summarise them with Tools/SessionReport", 11, CrtStyle.Desc);
-
-            // Account rank (RankUi.cs): set this computer's rank without playing for it.
-            var rk = new Rect(body.x, body.y + 164f, half, 120f);
-            var prof = Profile.Current;
-            y = DevCard(rk, "Account rank", "Rank " + prof.RankNow + "  ·  " + prof.Xp.ToString("N0") + " XP  ·  this computer's profile", Ui.Gold);
-            float rbw = (rk.width - 32f - 16f) / 3f;
-            string[] rankNames = { "+1 rank", "+10 ranks", "Rank 30" };
-            for (int i = 0; i < 3; i++)
-                if (DkKey(new Rect(rk.x + 16f + i * (rbw + 8f), y, rbw, 26f), rankNames[i], Ui.Neutral))
-                    DevSetRank(i == 0 ? prof.RankNow + 1 : i == 1 ? prof.RankNow + 10 : 30);
-            y += 32f;
-            if (DkKey(new Rect(rk.x + 16f, y, rbw, 26f), "Max rank", Ui.GoldButton))
-                DevSetRank(Rank.MaxRank);
-            if (DkKey(new Rect(rk.x + 16f + (rbw + 8f), y, rbw, 26f), "Reset", Ui.Danger))
-                DevSetRank(1);
-            Ui.Label(new Rect(rk.x + 16f + 2f * (rbw + 8f) - 8f, y, rbw + 8f, 26f), "Rank 30: every reward", 10, CrtStyle.Desc, TextAnchor.MiddleLeft);
-
-            // Overlays and the bot.
-            var ov = new Rect(body.x + half + 14f, body.y, half, 212f);
-            y = DevCard(ov, "Overlays and helpers", "Just for you, on this computer.", Ui.Accent);
-            aimDebug = DkSwitch(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), aimDebug, "Aim debug overlay  (F3)");
-            y += 30f;
-            // P freezes the match with no menu on screen, for screenshots (ArenaApp.cs). Pausing is shared: it stops everyone.
-            bool pauseKey = DkSwitch(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), devPauseKey, "Freeze-time key  (P): hold everything, no menu");
-            if (pauseKey != devPauseKey)
-            {
-                devPauseKey = pauseKey;
-                PlayerPrefs.SetInt("dev_pausekey", pauseKey ? 1 : 0);
-            }
-            y += 30f;
-            bool bot = DkSwitch(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), game.Bot, "Bot plays for you");
-            if (bot != game.Bot)
-            {
-                game.Bot = bot;
-                game.BotLevel = bot ? BotSkill.Good : BotSkill.Off;  // the Boss Lab's smart bot; the sim tests keep the simple one
-            }
-            y += 30f;
-            bool editText = DkSwitch(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), textEditMode, "Edit any text on screen  (F4)");
-            if (editText != textEditMode)
-            {
-                SetTextEditMode(editText);
-                devMenuOpen = !editText;  // out of the way, so you can click the text you want
-            }
-            y += 30f;
-            if (DkKey(new Rect(ov.x + 16f, y, 190f, 30f), "Open practice folder"))
-                OpenFolder(PracticeFolder);
-
-            // Boss Lab.
-            var lab = new Rect(body.x, body.y + 296f, body.width, 112f);
-            y = DevCard(lab, "Boss Lab", "Watch bots that play like people fight any boss, with any party, at up to 8x speed, and see what hurts them.", Ui.Gold);
-            if (DkKey(new Rect(lab.x + 16f, y + 6f, 260f, 44f), "Open Boss Lab", Ui.GoldButton))
-            {
-                devMenuOpen = false;
-                labSetupOpen = true;
-            }
-            Ui.Label(new Rect(lab.x + 292f, y + 6f, lab.width - 308f, 44f), "Starting the lab leaves any match you're in.", 11, CrtStyle.Desc, TextAnchor.MiddleLeft, false, true);
-
-            // The wave editor (WaveEditorUi.cs).
-            var wed = new Rect(body.x, body.y + 420f, body.width, 110f);
-            y = DevCard(wed, "Wave editor", "Design waves on a timeline: enemies, squads, spawn points, timing and props. Test them in the Practice Range.", EdColor);
-            if (DkKey(new Rect(wed.x + 16f, y + 6f, 260f, 44f), "Open wave editor", EdDark(EdColor, 0.75f)))
-                OpenWaveEditor();
-            Ui.Label(new Rect(wed.x + 292f, y + 6f, wed.width - 308f, 44f), "Saves .waves files to the waves folder. Test hosts a Practice Range match (it replaces any match you host).", 11, CrtStyle.Desc, TextAnchor.MiddleLeft, false, true);
         }
 
         static void OpenFolder(string path)
@@ -313,16 +66,16 @@ namespace Arena
             y += 26f;
             if (host)
             {
-                bool god = DkSwitch(new Rect(x, y, 140f, 28f), p.DevGod, "God mode");
-                if (god != p.DevGod)
-                    game.DevSetGod(p.Id, god);
-                if (DkKey(new Rect(x + 150f, y, 100f, 28f), "Full heal"))
+                var c = DkStack.Cells(new Rect(x, y, w, 28f), 5, 4f);
+                if (DkKey(c[0], "GOD", CrtStyle.Gold, p.DevGod, 12))
+                    game.DevSetGod(p.Id, !p.DevGod);
+                if (DkKey(c[1], "HEAL", Ui.Neutral, false, 12))
                     game.DevHeal(p.Id);
-                if (DkKey(new Rect(x + 256f, y, 100f, 28f), "Level up"))
+                if (DkKey(c[2], "LEVEL UP", Ui.Neutral, false, 12))
                     game.DevLevelUp(p.Id);
-                if (DkKey(new Rect(x + 362f, y, 120f, 28f), "Max mastery"))
+                if (DkKey(c[3], "MASTERY", Ui.Neutral, false, 12))
                     game.DevMasterAll(p.Id);
-                if (DkKey(new Rect(x + w - 130f, y, 130f, 28f), "Reset stats", Ui.Danger))
+                if (DkKey(c[4], "RESET", Ui.Danger, false, 12))
                 {
                     game.DevResetStats(p.Id);
                     devFocus = "";
@@ -343,7 +96,7 @@ namespace Arena
             for (int i = 0; i < Game.StatFields.Length; i++)
                 if (devFilter.Trim().Length == 0 || Spaced(Game.StatFields[i].Name).IndexOf(devFilter.Trim(), StringComparison.OrdinalIgnoreCase) >= 0)
                     shownStats.Add(i);
-            Ui.Label(new Rect(x + 280f, y, w - 280f, 28f), shownStats.Count + " of " + Game.StatFields.Length + " stats" + (devFilter.Length > 0 ? "" : "  ·  type to narrow down"), 11, CrtStyle.Desc);
+            Ui.Label(new Rect(x + 280f, y, w - 280f, 28f), shownStats.Count + " of " + Game.StatFields.Length, 11, CrtStyle.Desc);
             y += 36f;
             var list = new Rect(x, y, w, bottom - y);
             DkSub(list);
