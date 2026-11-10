@@ -85,7 +85,7 @@ namespace Arena
                 case 0:
                 case 1:  // Kiri, Kaeshi: a dash-cut along the line
                 {
-                    p.InvulnT = Math.Max(p.InvulnT, KatanaDashTime + 0.06f);
+                    p.InvulnT = Math.Max(p.InvulnT, KatanaDashTime + KatanaDashGrace);
                     KatanaDashFx(p, from, to, col);
                     for (int k = 0; k <= extra; k++)
                         KatanaLine(p, from, to, k == 0 ? w * KatanaDashMult : w * KatanaDashMult * KatanaExtraMult, KatanaDashTime * 0.5f + 0.05f * k, 1, k > 0, Sfx.KatanaLunge);
@@ -93,7 +93,7 @@ namespace Arena
                 }
                 case 2:  // Tsumuji: a short dash, then a spin where it ends
                 {
-                    p.InvulnT = Math.Max(p.InvulnT, KatanaSpinDashTime + 0.06f);
+                    p.InvulnT = Math.Max(p.InvulnT, KatanaSpinDashTime + KatanaDashGrace);
                     KatanaDashFx(p, from, to, col);
                     float reach = MeleeReach(p, KatanaSpinReach);
                     Later(p, KatanaSpinDashTime + 0.04f, () => KatanaSweepFx(p, to, ang, MathX.Tau, reach, 0.14f, col));
@@ -114,6 +114,7 @@ namespace Arena
                 case 10:  // Engetsu: a step into a full-moon spin
                 {
                     float reach = MeleeReach(p, KatanaMoonReach);
+                    p.InvulnT = Math.Max(p.InvulnT, KatanaMoonStepTime + KatanaDashGrace);
                     Later(p, 0.04f, () => KatanaSweepFx(p, to, ang, MathX.Tau, reach, KatanaMoonTime, col));
                     KatanaArc(p, to, ang, 360f, reach, w * KatanaMoonMult, 0.04f + KatanaMoonTime * 0.6f, Sfx.KatanaSwipe1);
                     break;
