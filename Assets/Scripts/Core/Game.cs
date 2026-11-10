@@ -303,6 +303,7 @@ namespace Arena
             Bullets.Clear();
             Minions.Clear();
             Orbs.Clear();
+            Coins.Clear();
             Zones.Clear();
             Effects.Clear();
             Sounds.Clear();
@@ -320,6 +321,7 @@ namespace Arena
             nextEnemyId = 1;
             nextMinionId = 1;
             nextOrbId = 1;
+            nextCoinId = 1;
             nextZoneId = 1;
             ResetBossState();
             ResetVariety(true);
@@ -821,6 +823,8 @@ namespace Arena
             UpdateMeleeSounds(dt);  // the melee rushers' cues, quieter with distance (MeleeSounds.cs)
             foreach (var o in Orbs.Values)
                 o.Disp = IsHost ? o.Pos : V2.Lerp(o.Disp, o.Pos, k);
+            foreach (var c in Coins.Values)
+                c.Disp = IsHost ? c.Pos : V2.Lerp(c.Disp, c.Pos, k);
             foreach (var m in Minions.Values)
                 m.Disp = IsHost ? m.Pos : V2.Lerp(m.Disp, m.Pos, k);
             for (int i = Effects.Count - 1; i >= 0; i--)
@@ -1211,6 +1215,7 @@ namespace Arena
             TickMinions(dt);
             TickSearchlights(dt);  // Stun.cs
             TickOrbs(dt);
+            TickCoins(dt);  // Coins.cs
             TickBossBarrels(dt);  // Props.cs: health barrels dropping into boss fights
             TickProps(dt);    // Props.cs: fuses, smashed pots, opened chests, breaks
             MoveBullets(dt * WorldRate);
