@@ -163,9 +163,32 @@ namespace Arena
 
         // --- The minimap -------------------------------------------------------------------------------------------
 
-        const float RoomMapW = 230f, RoomMapMaxH = 300f, RoomMapTop = 40f, RoomMapRight = 16f;
+        // A fixed-size window that follows you: RoomMapW x RoomMapH px showing RoomMapScale px of minimap per world px, centred on your
+        // player (held inside the map's bounds, or centred on the map when it is smaller than the window). What lies beyond the window is
+        // clipped; teammates beyond it show as dots on its edge.
+        const float RoomMapW = 230f, RoomMapH = 170f, RoomMapScale = 0.07f, RoomMapTop = 40f, RoomMapRight = 16f;
 
-        /// DrawHud: the Rooms arena's minimap (top right).
+        float mapOx, mapOy;
+
+        /// A rectangle inside the minimap window, clipped to it.
+        void MapRect(float x, float y, float w, float h, Rgba c)
+        {
+            float x0 = Mathf.Max(x, mapOx), y0 = Mathf.Max(y, mapOy), x1 = Mathf.Min(x + w, mapOx + RoomMapW), y1 = Mathf.Min(y + h, mapOy + RoomMapH);
+            if (x1 > x0 && y1 > y0)
+                RoomMapRect(x0, y0, x1 - x0, y1 - y0, c);
+        }
+
+        void MapFrame(float x, float y, float w, float h, float t, Rgba c)
+        {
+            MapRect(x, y, w, t, c);
+            MapRect(x, y + h - t, w, t, c);
+            MapRect(x, y, t, h, c);
+            MapRect(x + w - t, y, t, h, c);
+        }
+
+        bool InMap(V2 c) => c.X >= mapOx && c.X <= mapOx + RoomMapW && c.Y >= mapOy && c.Y <= mapOy + RoomMapH;
+
+        /// DrawHud: the Rooms and Expanding arenas' minimap (top right).
         void DrawRoomsMinimap()
         {
             if (!game.RoomsOn || !game.Running)
@@ -179,12 +202,17 @@ namespace Arena
                     lo = new V2(Mathf.Min(lo.X, q.X), Mathf.Min(lo.Y, q.Y));
                     hi = new V2(Mathf.Max(hi.X, q.X + q.W), Mathf.Max(hi.Y, q.Y + q.H));
                 }
-            float k = Mathf.Min(RoomMapW / (hi.X - lo.X), RoomMapMaxH / (hi.Y - lo.Y)), mh = (hi.Y - lo.Y) * k, mw = (hi.X - lo.X) * k;
-            float ox = W - RoomMapRight - mw, oy = RoomMapTop;
-            System.Func<V2, V2> M = p => new V2(ox + (p.X - lo.X) * k, oy + (p.Y - lo.Y) * k);
+            float k = RoomMapScale, hwx = RoomMapW / k / 2f, hwy = RoomMapH / k / 2f;
+            V2 at = game.Me != null ? game.Me.Disp : camFocus;
+            V2 centre = new V2(hi.X - lo.X <= 2f * hwx ? (lo.X + hi.X) / 2f : Mathf.Clamp(at.X, lo.X + hwx, hi.X - hwx),
+                               hi.Y - lo.Y <= 2f * hwy ? (lo.Y + hi.Y) / 2f : Mathf.Clamp(at.Y, lo.Y + hwy, hi.Y - hwy));
+            float ox = W - RoomMapRight - RoomMapW, oy = RoomMapTop;
+            mapOx = ox; mapOy = oy;
+            System.Func<V2, V2> M = p => new V2(ox + RoomMapW / 2f + (p.X - centre.X) * k, oy + RoomMapH / 2f + (p.Y - centre.Y) * k);
             if (!BeginUiGl())
                 return;
-            RoomMapRect(ox - 6f, oy - 6f, mw + 12f, mh + 12f, new Rgba(0.01f, 0.03f, 0.08f, 0.82f));
+            RoomMapRect(ox - 6f, oy - 6f, RoomMapW + 12f, RoomMapH + 12f, new Rgba(0.01f, 0.03f, 0.08f, 0.82f));
+            RoomMapFrame(ox - 1f, oy - 1f, RoomMapW + 2f, RoomMapH + 2f, 1f, new Rgba(0.4f, 0.64f, 1f, 0.35f));
             for (int i = 0; i < wd.Areas.Length; i++)
             {
                 var a = wd.Areas[i];
@@ -203,8 +231,8 @@ namespace Arena
                 else if (rs != null && rs.Seen) { fill = DoorRed.WithAlpha(0.2f); line = DoorRed; }
                 else { fill = new Rgba(0.4f, 0.64f, 1f, 0.04f); line = new Rgba(0.4f, 0.64f, 1f, 0.3f); }
                 V2 p0 = M(a.Min), p1 = M(a.Max);
-                RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, fill);
-                RoomMapFrame(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, 1f, line);
+                MapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, fill);
+                MapFrame(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, 1f, line);
             }
             if (game.ExpandOpen)  // proposals as ghosts in their drawer's colour, pulsing
                 foreach (var q in game.ExpandProposals)
@@ -212,8 +240,8 @@ namespace Arena
                     V2 q0 = M(new V2(q.X, q.Y)), q1 = M(new V2(q.X + q.W, q.Y + q.H));
                     var qi = OwnerInk(q.Owner);
                     float pulse = 0.55f + 0.45f * Mathf.Sin(Time.unscaledTime * 3f);
-                    RoomMapRect(q0.X, q0.Y, q1.X - q0.X, q1.Y - q0.Y, qi.WithAlpha(0.16f * pulse));
-                    RoomMapFrame(q0.X, q0.Y, q1.X - q0.X, q1.Y - q0.Y, 1.5f, qi.WithAlpha(0.95f));
+                    MapRect(q0.X, q0.Y, q1.X - q0.X, q1.Y - q0.Y, qi.WithAlpha(0.16f * pulse));
+                    MapFrame(q0.X, q0.Y, q1.X - q0.X, q1.Y - q0.Y, 1.5f, qi.WithAlpha(0.95f));
                 }
             for (int i = 0; i < wd.Doors.Length; i++)
             {
@@ -222,50 +250,56 @@ namespace Arena
                 bool locked;
                 var col = DoorColour(i, out locked);
                 V2 c = M(wd.Doors[i].Pos);
-                RoomMapRect(c.X - 2.5f, c.Y - 2.5f, 5f, 5f, col);
+                MapRect(c.X - 2.5f, c.Y - 2.5f, 5f, 5f, col);
             }
             foreach (var rs in game.RoomStates)  // the next spill: a ring filling up round its door
                 if (rs.NestAlive && !rs.Cleared && rs.NextDoor >= 0)
                 {
                     float f = Mathf.Clamp01(1f - rs.SpillT / Rooms.SpillTime(game.Wave));
                     V2 c = M(wd.Doors[rs.NextDoor].Pos);
-                    Arc(c, 7f, 1.5f, (rs.SpillT < Rooms.SpillWarn ? DoorAmber : DoorRed).WithAlpha(0.9f), 16, -Mathf.PI / 2f, MathX.Tau * f);
+                    if (InMap(c)) Arc(c, 7f, 1.5f, (rs.SpillT < Rooms.SpillWarn ? DoorAmber : DoorRed).WithAlpha(0.9f), 16, -Mathf.PI / 2f, MathX.Tau * f);
                 }
             for (int i = 0; i < wd.Portals.Length; i++)  // the portals, in their pair's colour
                 foreach (var pp in new[] { wd.Portals[i].A, wd.Portals[i].B })
                 {
                     V2 c = M(pp);
-                    Arc(c, 4f, 2f, PortalColours[i % PortalColours.Length], 12);
+                    if (InMap(c)) Arc(c, 4f, 2f, PortalColours[i % PortalColours.Length], 12);
                 }
             foreach (var e in game.Enemies.Values)
             {
                 if (e.Hp <= 0f)
                     continue;
                 V2 c = M(e.Disp);
-                if (e.Type == EnemyType.Nest) { RoomMapRect(c.X - 2.5f, c.Y - 2.5f, 5f, 5f, new Rgba(0.72f, 0.9f, 0.36f)); continue; }
-                if (e.Def.Mini || e.Def.IsBoss) { RoomMapRect(c.X - 3f, c.Y - 3f, 6f, 6f, new Rgba(1f, 0.62f, 0.3f)); continue; }
-                RoomMapRect(c.X - 1f, c.Y - 1f, 2f, 2f, e.Type == EnemyType.Runner ? new Rgba(1f, 0.55f, 0.24f) : new Rgba(1f, 0.32f, 0.36f, 0.85f));
+                if (e.Type == EnemyType.Nest) { MapRect(c.X - 2.5f, c.Y - 2.5f, 5f, 5f, new Rgba(0.72f, 0.9f, 0.36f)); continue; }
+                if (e.Def.Mini || e.Def.IsBoss) { MapRect(c.X - 3f, c.Y - 3f, 6f, 6f, new Rgba(1f, 0.62f, 0.3f)); continue; }
+                MapRect(c.X - 1f, c.Y - 1f, 2f, 2f, e.Type == EnemyType.Runner ? new Rgba(1f, 0.55f, 0.24f) : new Rgba(1f, 0.32f, 0.36f, 0.85f));
             }
             foreach (var ch in game.Props.Values)  // unopened treasure chests: a gold diamond-ish square
             {
                 if (ch.Kind != PropKind.Chest || ch.Open || ch.Hp <= 0f)
                     continue;
                 V2 c = M(ch.Pos);
-                RoomMapRect(c.X - 4f, c.Y - 4f, 8f, 8f, new Rgba(0.02f, 0.03f, 0.06f, 0.9f));
-                RoomMapRect(c.X - 3f, c.Y - 3f, 6f, 6f, new Rgba(1f, 0.82f, 0.3f));
+                MapRect(c.X - 4f, c.Y - 4f, 8f, 8f, new Rgba(0.02f, 0.03f, 0.06f, 0.9f));
+                MapRect(c.X - 3f, c.Y - 3f, 6f, 6f, new Rgba(1f, 0.82f, 0.3f));
             }
             foreach (var p in game.Players.Values)
             {
                 V2 c = M(p.Disp);
                 bool mine = p.Id == game.MyId;
+                if (!InMap(c))  // beyond the window: a dot on its edge
+                {
+                    c = new V2(Mathf.Clamp(c.X, ox + 3f, ox + RoomMapW - 3f), Mathf.Clamp(c.Y, oy + 3f, oy + RoomMapH - 3f));
+                    RoomMapRect(c.X - 2.5f, c.Y - 2.5f, 5f, 5f, (p.Downed ? new Rgba(1f, 0.3f, 0.3f) : p.Def.Color).WithAlpha(0.75f));
+                    continue;
+                }
                 if (mine)
-                    RoomMapRect(c.X - 3.5f, c.Y - 3.5f, 7f, 7f, new Rgba(1f, 1f, 1f, 0.9f));
-                RoomMapRect(c.X - 2.5f, c.Y - 2.5f, 5f, 5f, p.Downed ? new Rgba(1f, 0.3f, 0.3f) : p.Def.Color);
+                    MapRect(c.X - 3.5f, c.Y - 3.5f, 7f, 7f, new Rgba(1f, 1f, 1f, 0.9f));
+                MapRect(c.X - 2.5f, c.Y - 2.5f, 5f, 5f, p.Downed ? new Rgba(1f, 0.3f, 0.3f) : p.Def.Color);
             }
             // The box your screen shows.
             float hx = AW / (2f * camZoom), hy = AH / (2f * camZoom);
             V2 v0 = M(camFocus - new V2(hx, hy)), v1 = M(camFocus + new V2(hx, hy));
-            RoomMapFrame(v0.X, v0.Y, v1.X - v0.X, v1.Y - v0.Y, 1f, new Rgba(1f, 1f, 1f, 0.5f));
+            MapFrame(v0.X, v0.Y, v1.X - v0.X, v1.Y - v0.Y, 1f, new Rgba(1f, 1f, 1f, 0.5f));
             EndUiGl();
         }
 
