@@ -1,6 +1,6 @@
 # Arc Knuckles: the Knight DPS's fourth weapon (design)
 
-Status: **step 1 built** (Nov 2026, protocol 264): the slot, the combo, the parry reset and Counter Hammer, the Arc Coil look. Steps 2-4 to come. Mockup: [`Docs/Mockups/gauntlets.html`](Mockups/gauntlets.html)
+Status: **step 1 built** (Nov 2026, protocol 265): the slot, the combo, the parry reset and Counter Hammer, the Arc Coil look. Steps 2-4 to come. Mockup: [`Docs/Mockups/gauntlets.html`](Mockups/gauntlets.html)
 (https://claude.ai/artifact/Rqn2WEDWUQL1RTJaxvPf8Y), version 5. The **Arc Coil** look, the **Full combo**, **Parry cancel**
 and **Perfect parry** scenarios, and the **Rocket Dash**, **Dash → Flurry** and **Full dash chain** Alt scenarios are the
 design; the page's other Alt fires (Ground Pound, Grab & Throw on its own, Rocket Fist, Shockwave Clap, Seismic Line,
