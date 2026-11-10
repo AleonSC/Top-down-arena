@@ -226,6 +226,7 @@ namespace Arena
             DrawKnightDpsOver(t);  // the Drawbridge falling, the Gauntlet's crests, Misericorde's daggers (KnightDpsLook.cs)
             DrawColossusAir(t);  // what the Colossus threw, in flight (ColossusLook.cs)
             DrawClotAir(t);      // the Clot Cannon's drops falling (ClotCannonLook.cs)
+            DrawBulletRainAir(t);  // Bullet Rain's rounds falling, landing rings and sparks (BulletRainLook.cs)
             DrawLoot(t);  // your chest item, spinning in its beam (PropsLook.cs)
             foreach (var p in game.Players.Values)
             {
