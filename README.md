@@ -1513,31 +1513,35 @@ they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds] [suite]`, needs 
 (`SEED=random` for fresh rolls).
 ### Developer tools (F1)
 
-Press **F1** anywhere for the developer menu (Esc, F1 or its X closes it). Tabs down the left, and a card at
-the bottom of them shows what's on (wave, recording, bot, aim debug, players):
+Press **F1** anywhere for the developer **dock** (Esc, F1 or its X closes it). It's a slim bar across the top of the screen. In a
+match the game keeps running behind it (the mouse only stops shooting while it's over the dock); in the lobby and menus it covers the
+screen. On the bar: the wave, **GOD** (everyone), **FULL HEAL**, **SKIP WAVE** and **KILL ALL** pinned for one click, four keys that
+open a small drawer under them (**WAVE**, **PARTY**, **VIEW**, **LABS**), and **BOT** and **REC** lamps you can click. The stat editor opens
+as a drawer on the right, and the bigger tools (DPS meter and dummies, Replays, Balance test) open as one sheet. While you type in one of
+its fields the game's keys are off. Outside a match only VIEW and LABS show.
 
-- **Match (host):** pick a wave with -10 / -5 / -1 / +1 / +5 / +10 and **Go to wave N**. It clears the arena, gets
+- **WAVE drawer (host):** pick a wave with -10 / -5 / -1 / +1 / +5 / +10 and **Go to wave N**. It clears the arena, gets
   downed players back up and starts that wave after 2 s. The boss on that wave (or the next boss) is shown moving
   beside it. **Kill-all key (X)**: a switch (saved between sessions) that makes **X** kill every enemy on the field,
   bosses included, as your kills: XP, score, drops, gold and kill credit as usual, through shields and immunity. It
   doesn't end the wave: enemies still to come keep coming. X still throws away a chest item while you're standing on
   one. **Freeze enemies**: a switch under it that stops every enemy moving and shooting and stops new ones spawning
-  (you can still kill the frozen ones; the wave won't clear while it's on; it resets when a match starts). **Everyone** buttons: full heal, level up, max mastery and god mode for every player at once. **Challenge
+  (you can still kill the frozen ones; the wave won't clear while it's on; it resets when a match starts). The **PARTY drawer** has **Everyone** buttons: level up, max mastery, full heal and reset stats for every player at once (god mode and full heal are also pinned on the bar). **Challenge
   rooms** buttons (between waves): straight into Crystal, Gatekeeper, Kill Rush, Zones or Mirror.
-- **Players (host):** choose a player, then edit any of their stats by hand: type a number or use - / +.
+- **PARTY > EDIT STATS… (host):** choose a player, then edit any of their stats by hand: type a number or use - / +.
   Type in **Filter** to narrow the list (e.g. "barrier"). Edited stats show in gold, are sent to every player's
   game, and stay on top of upgrades they pick later; **Reset stats** goes back to what their upgrades give.
   Also **God mode** (takes no damage), **Full heal**, **Level up** (an extra upgrade pick) and **Max mastery**
   (every ability they have to level 5). Joining players can see everyone's stats but not change them.
-- **Tools:** record sessions (below) and open the sessions folder, the aim debug overlay (also F3), the **freeze-time key (P)**
+- **VIEW and LABS drawers:** record sessions (below) and open the sessions folder, the aim debug overlay (also F3), the **freeze-time key (P)**
   (a saved switch: P freezes the whole picture, effects and animations included, without opening the pause menu; press it again to resume;
   hide the HUD with H), a bot that plays for you, **text editing** (also F4, below), open the practice folder, and the **Boss Lab**.
-  **Account rank** sets this computer's rank without playing for it (works on the main menu too): **+1 rank**, **+10 ranks**,
-  **Rank 30** (every reward), **Max rank** (999) and **Reset** (rank 1). Cosmetics the new rank hasn't reached come off.
-- **DPS (host, in a match):** the DPS meter and target dummies, below.
-- **Replays:** record the runs you host and watch them back, below.
+  **Account rank** (PARTY drawer) sets this computer's rank without playing for it (works on the main menu too): **+1**, **+10**,
+  **30** (every reward), **MAX** (999) and **RESET** (rank 1). Cosmetics the new rank hasn't reached come off.
+- **VIEW > DPS DETAILS AND TARGET DUMMIES… (host, in a match):** the DPS meter and target dummies, below.
+- **LABS > REPLAYS…:** record the runs you host and watch them back, below.
 - **Balance (host, in a normal run):** a five-wave test with your own build. Pick your loadout as usual, start a run, press
-  F1 > Balance, choose the **start wave** (1, 6, 11 ... 26), **who plays** (you, or the bot with your build for repeatable
+  F1 > LABS > Balance test…, choose the **start wave** (1, 6, 11 ... 26), **who plays** (you, or the bot with your build for repeatable
   runs), whether health refills between waves and whether to sample every second, then **Launch test**. It jumps to
   that wave and starts a fresh recording; a small TEST strip with the wave pips shows at the top while it runs. When the fifth
   wave clears (or you press **End test now**, or everyone goes down) a report opens: six tiles (result, time, damage dealt,
@@ -1551,7 +1555,7 @@ the bottom of them shows what's on (wave, recording, bot, aim debug, players):
 
 ### Replays (F1)
 
-**F1 → Replays** records every run you host (switch **Record replays of runs I host** on first; it's saved between sessions, off by
+**F1 → LABS → Replays…** records every run you host (switch **Record replays of runs I host** on first; it's saved between sessions, off by
 default) and saves it as a `.replay` file in the `replays` folder when the run ends (or press **Stop and save**). The tab has
 **Open folder**, **Refresh** and a list of your replays, newest first: name, date, mode, wave reached, length, size and who played. Each has **Open**,
 **Rename** (type, then Enter or Save) and **Delete** (asks "Delete for good?" first). Runs under a second, the Practice Range's lobby preview and

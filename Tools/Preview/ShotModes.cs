@@ -74,7 +74,8 @@ static partial class Shot {
       host.Game.DevSetStat(1, Array.FindIndex(Game.StatFields, x => x.Name == "DmgMult"), 2.5f);
       host.Game.DevSetGod(1, true);
       set("devWave", 10);
-      if (Environment.GetEnvironmentVariable("DEVTAB") == "4")
+      // DEVDRAWER=1..4 (wave, party, view, labs), DEVSIDE=1 (stat editor), DEVSHEET=1..3 (DPS, replays, balance)
+      if (Environment.GetEnvironmentVariable("DEVSHEET") == "2")
       {
         // Sample replays in the replays folder (the stub's persistent data path is /tmp).
         if (Directory.Exists("/tmp/replays")) Directory.Delete("/tmp/replays", true);
@@ -84,7 +85,9 @@ static partial class Shot {
         if (Environment.GetEnvironmentVariable("RENAME") != null) { set("replayRenamePath", "/tmp/replays/Co-op test, 3 players.replay"); set("replayRenameText", "Co-op test, 3 players"); }
         if (Environment.GetEnvironmentVariable("DELETE") != null) set("replayDeletePath", "/tmp/replays/Boss practice, Warden.replay");
       }
-      if (Environment.GetEnvironmentVariable("DEVTAB") != null) set("devTab", int.Parse(Environment.GetEnvironmentVariable("DEVTAB")));
+      if (Environment.GetEnvironmentVariable("DEVDRAWER") != null) set("devDrawer", int.Parse(Environment.GetEnvironmentVariable("DEVDRAWER")));
+      if (Environment.GetEnvironmentVariable("DEVSIDE") != null) set("devSide", true);
+      if (Environment.GetEnvironmentVariable("DEVSHEET") != null) set("devSheet", int.Parse(Environment.GetEnvironmentVariable("DEVSHEET")));
       if (Environment.GetEnvironmentVariable("FILTER") != null) set("devFilter", Environment.GetEnvironmentVariable("FILTER"));
       Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true;
       typeof(ArenaApp).GetMethod("DrawDevMenu", f2).Invoke(app, null);

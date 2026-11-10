@@ -36,7 +36,7 @@ There is no to-do file; the owner sends requests per session. Design docs in `Do
 - **Divergent paths:** after each boss the host picks one of two **paths** (or no path) for the four regular
   waves before the next boss: enemy mixes, hazard floors, twists and arena rules (9 paths, danger 1-3 with a
   bonus and a prize). Bosses are always standard. See `Docs/Paths.md`.
-- **Dev tools (F1):** a tabbed menu (Match / Players / Tools / DPS): stat editor, god mode, wave skip, session
+- **Dev tools (F1):** a dock over the live game (`DevDock.cs`: pinned God / Full heal / Skip wave / Kill all, WAVE / PARTY / VIEW / LABS drawers, a stat-editor side drawer, sheets for DPS, Replays and Balance): stat editor, god mode, wave skip, session
   recording toggle, **DPS meter (F2) and target dummies**, **Boss Lab** (bots that play like people fight any boss; live stats; also a CLI batch mode).
 - **Session recording:** the host's matches are saved as JSON (per-wave damage by source, picks, downs,
   samples). The owner uploads these into sessions for balance analysis; `Tools/SessionReport/report.py`
@@ -225,7 +225,7 @@ The lobby fits about 8 class cards in a row before they get too small.
   of paths), `PATHON=<PathId number>` (in-arena look of that path; 8 = Fogbound, 9 = Narrow Pass), `PATCHES=1` (sample
   fire/pools). Others: `TEXTEDIT=1` (lobby in text-edit mode, outline under `MOUSE`) or `TEXTEDIT=<text>` (its edit
   box; `TEXTBUF` = typed), `LOBBYTAB=n` (lobby tab, e.g. Modifiers), `BOTS=1|edit` (a bot in Aleon's seat; `edit` also opens its loadout), 
-  `DEVTAB=n` (F1 tab), `FROST=<0..1>` (a Frost Lance icicle that far through, with its splinters), `HAMMER=1` (Storm
+  `DEVDRAWER=1..4` / `DEVSIDE=1` / `DEVSHEET=1..3` (F1 dock: drawer, stat editor, sheet), `FROST=<0..1>` (a Frost Lance icicle that far through, with its splinters), `HAMMER=1` (Storm
   Hammers in flight and an electrified enemy arcing), `BOULDER=<draw secs>` (the Golem Staff charging, with its
   landing marker, and boulders in flight), `CAGE=1` (a Bone Guard cage, with guard shots), `WEAPONS5=1` (Fuma
   Shuriken, Chain Light, Sanguine Orb coating, Fireballs and Arc Lightning in one scene), `HEMO=1` (enemies with 1-4

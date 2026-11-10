@@ -15,6 +15,8 @@ namespace Arena
         public readonly Action Draw;
         /// Blocks the game's input and the screens under it (true for every tool window).
         public bool Modal = true;
+        /// Also modal when this says so (the dock is modal outside a match, where the screen under it has buttons).
+        public Func<bool> ModalFn;
         /// Esc is ignored while a text field has focus (it just lets go of the field) instead of closing the screen.
         public bool EscNeedsFreeFocus;
         /// Called instead of closing on Esc; return true to say Esc was used (the screen stays open), false to let it close.
@@ -41,7 +43,7 @@ namespace Arena
         {
             if (screenDev != null)
                 return;
-            screenDev = new UiScreen("dev", DrawDevMenu);
+            screenDev = new UiScreen("dev", DrawDevMenu) { Modal = false, ModalFn = () => session.Screen != AppScreen.Game, EscNeedsFreeFocus = true };
             screenLab = new UiScreen("lab", DrawLabSetup);
             screenWaveEd = new UiScreen("waveeditor", DrawWaveEditor) { EscNeedsFreeFocus = true };
         }
@@ -86,7 +88,7 @@ namespace Arena
             {
                 InitScreens();
                 foreach (var s in screenStack)
-                    if (s.Modal)
+                    if (s.Modal || (s.ModalFn != null && s.ModalFn()))
                         return true;
                 return false;
             }
