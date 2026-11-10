@@ -50,9 +50,14 @@ namespace Arena
             Ui.Alpha = 1f;
             bool calm = CabCalm;
             int n = game.ExpandProposals.Count;
-            var chip = new Rect(W / 2f - 300f, 92f, 600f, 46f);
-            Ui.Pill(chip, new Color(0f, 0f, 0f, 0.6f));
-            Ui.Fill(new Rect(chip.x + 4f, chip.y + 7f, 3f, chip.height - 14f), new Color(0.37f, 0.94f, 1f));
+            // Above the Wave cleared box (it starts at y 84 and covers everything below), pulsing until you've voted or drawn.
+            var chip = new Rect(W / 2f - 300f, 34f, 600f, 46f);
+            bool mine = game.ExpandVotes.ContainsKey(game.MyId);
+            float pulse = mine ? 0f : 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 4f);
+            Ui.Pill(chip, new Color(0f, 0.08f * pulse, 0.12f * pulse, 0.75f));
+            Ui.Fill(new Rect(chip.x + 4f, chip.y + 7f, 3f, chip.height - 14f), new Color(0.37f, 0.94f, 1f, 0.6f + 0.4f * pulse));
+            if (!mine)
+                CrtKit.Frame(chip, 1.5f, new Color(0.37f, 0.94f, 1f, 0.35f + 0.5f * pulse));
             Ui.Label(new Rect(chip.x + 16f, chip.y + 3f, 400f, 22f), "BUILD ROOMS  ·  " + (n == 0 ? "NO PROPOSALS YET" : n + " PROPOSAL" + (n == 1 ? "" : "S")) + "  ·  YOUR VECTORS " + me.Vectors + " / " + me.VectorCap, 13, new Color(0.37f, 0.94f, 1f), TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(chip.x + 16f, chip.y + 23f, 400f, 18f), game.ExpandVotes.Count + " of " + game.Players.Count + " voted  ·  the wave starts in " + Mathf.CeilToInt(game.StateTimer) + " s", 11, Ui.Muted, TextAnchor.MiddleLeft);
             if (CrtUi.SoftKey(new Rect(chip.xMax - 170f, chip.y + 7f, 156f, 32f), "BUILD / VOTE", null, 15, calm))
@@ -69,7 +74,7 @@ namespace Arena
         {
             Ui.Alpha = 1f;
             bool calm = CabCalm;
-            float dy = ExpandChipUp ? 56f : 0f;  // (below the room chip if it's up)
+            float dy = 0f;
             if (me.ShopDone)
             {
                 Ui.Label(new Rect(0, 150f + dy, W, 22f), "Done shopping  ·  waiting for the others", 14, Ui.Muted, TextAnchor.MiddleCenter, true);
