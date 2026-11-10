@@ -161,6 +161,7 @@ namespace Arena
                 case ShopAction.Revive:
                 case ShopAction.Remove:
                 case ShopAction.RoomKit:
+                case ShopAction.Vectors:
                     return InVendorRoom(p);
                 default:
                     return true;
