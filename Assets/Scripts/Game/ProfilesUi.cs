@@ -326,12 +326,30 @@ namespace Arena
             Ui.Fill(new Rect(d.x + 44f * k, d.y, 104f * k, 44f * k), new Color(0.74f, 0.75f, 0.78f));      // the shutter
             Ui.Fill(new Rect(d.x + 110f * k, d.y, 38f * k, 44f * k), new Color(0.84f, 0.85f, 0.88f));
             Ui.Fill(new Rect(d.x + 56f * k, d.y + 8f * k, 24f * k, 30f * k), new Color(0.2f, 0.2f, 0.22f));
-            // the spatter: fixed blotches, bigger at the corners
-            float[] bx = { 0.12f, 0.2f, 0.78f, 0.86f, 0.62f, 0.9f, 0.1f, 0.5f, 0.35f, 0.72f, 0.28f, 0.92f };
-            float[] by = { 0.2f, 0.62f, 0.35f, 0.7f, 0.8f, 0.12f, 0.88f, 0.5f, 0.92f, 0.55f, 0.4f, 0.45f };
-            float[] bs = { 22f, 16f, 20f, 26f, 14f, 12f, 18f, 10f, 12f, 9f, 8f, 7f };
+            // the spatter: a few big pools, each throwing a spray of droplets (smaller the further they fly), plus drips running down
+            float[] bx = { 0.16f, 0.82f, 0.7f, 0.3f, 0.52f, 0.9f };
+            float[] by = { 0.24f, 0.3f, 0.78f, 0.74f, 0.5f, 0.9f };
+            float[] bs = { 30f, 26f, 32f, 20f, 16f, 18f };
+            Color deep = new Color(0.4f, 0.05f, 0.06f, 0.85f);
+            uint seed = 7u;
             for (int i = 0; i < bx.Length; i++)
-                Ui.Dot(new Rect(d.x + bx[i] * d.width - bs[i] * k / 2f, d.y + by[i] * d.height - bs[i] * k / 2f, bs[i] * k, bs[i] * k), blood);
+            {
+                float cx = d.x + bx[i] * d.width, cy = d.y + by[i] * d.height;
+                Ui.Dot(new Rect(cx - bs[i] * k * 0.5f, cy - bs[i] * k * 0.5f, bs[i] * k, bs[i] * k), blood);
+                Ui.Dot(new Rect(cx - bs[i] * k * 0.3f, cy - bs[i] * k * 0.3f, bs[i] * k * 0.55f, bs[i] * k * 0.55f), deep);
+                for (int j = 0; j < 9; j++)   // the spray
+                {
+                    seed = seed * 1664525u + 1013904223u; float ang = (seed >> 8 & 0xFFFF) / 65536f * 6.2832f;
+                    seed = seed * 1664525u + 1013904223u; float dist = (0.55f + (seed >> 8 & 0xFFFF) / 65536f * 1.6f) * bs[i] * k;
+                    float ds = Mathf.Max(2f, bs[i] * 0.34f * (1.9f - dist / (bs[i] * k)) * k * 0.6f);
+                    Ui.Dot(new Rect(cx + Mathf.Cos(ang) * dist - ds / 2f, cy + Mathf.Sin(ang) * dist - ds / 2f, ds, ds), blood);
+                    if (j % 3 == 0)   // a short streak behind the bigger droplets, pointing back at the pool
+                        Ui.Fill(new Rect(cx + Mathf.Cos(ang) * dist * 0.7f - 1f, cy + Mathf.Sin(ang) * dist * 0.7f - 1f, 2f, 2f), blood);
+                }
+                float dl = (10f + (i * 7 % 5) * 5f) * k;   // a drip running down from the pool
+                Ui.Fill(new Rect(cx - 2f * k, cy, 4f * k, dl), blood);
+                Ui.Dot(new Rect(cx - 3f * k, cy + dl - 2f * k, 6f * k, 6f * k), deep);
+            }
             var lb = new Rect(d.x + 24f * k, d.y + 66f * k, 76f * k, 60f * k);                                 // the Verbatim label
             Ui.Fill(lb, new Color(0.97f, 0.96f, 0.94f));
             Ui.Fill(new Rect(lb.x, lb.yMax - 1f, lb.width, 1f), new Color(0f, 0f, 0f, 0.2f));
