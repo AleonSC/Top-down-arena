@@ -140,7 +140,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 
 ## Saving, stats and text data (Core)
 - `SaveData.cs`, `RunSaves.cs`, `Profile.cs`: saved runs, profile, records, unlocks
-- `ProfileStore.cs`, `ProfilesUi.cs`: up to 3 profiles (a folder each under `profiles/`), the "Who's playing?" screen before the menu: profiles as floppy disks (names in Permanent Marker, `Ui.HandFont`) standing in clamp cradles on a wall shelf, always four boxes (`Docs/Profiles.md`)
+- `ProfileStore.cs`, `ProfilesUi.cs`: up to 3 profiles (a folder each under `profiles/`), the "Who's playing?" screen before the menu: profiles as floppy disks (names in Permanent Marker, `Ui.HandFont`) standing in clamp cradles on a wall shelf, always four boxes (`Docs/Profiles.md`); `IsSanAndreasName` swaps in the blue San Andreas disk (easter egg)
 - `ProfileTransition.cs`, `DriveSlot.cs`: the move between that screen and the main menu (your disk flies up and slides into the disk drive under the title, which reads it, then the menu draws in), with its sounds; `DriveSlot.cs` is the drive itself (replaces the x-axis on the picker and menu)
 - `DiskEject.cs`: the eject key right of the menu's disk drive (`DrawDriveEject`) and its 2.9 s spring-pop move back to the picker (`StartProfEject`, `TickProfEj`, `DrawProfEj`, `DriveEjectAt`); rides on `profTr` with `profEj`; replaced the "Switch profile" tab (`Docs/Mockups/disk-eject.html`)
 - `Rank.cs`: the cosmetic account rank: XP curve, tiers, XP for a run (`Rank.Award`), the cosmetics table (frames, trails, a background); XP, equipped cosmetics and recent runs live on `Profile`, the lobby carries each player's `Rank`/`Frame`/`Trail` (`Msg.Cosmetics`, `Session.ShareCosmetics`)

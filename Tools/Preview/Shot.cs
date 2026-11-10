@@ -67,6 +67,7 @@ static partial class Shot {
     ProfileStore.Init(dir, "");
     if (Environment.GetEnvironmentVariable("EMPTY") != null) return;
     var names = Environment.GetEnvironmentVariable("TWO") != null ? new[] { "Anthony", "Sam" } : new[] { "Anthony", "Sam", "Little Bee" };
+    if (Environment.GetEnvironmentVariable("SANDREAS") != null) names[names.Length - 1] = "GTA:SA";  // the San Andreas disk easter egg
     int[] ranks = { 14, 6, 3 };
     for (int i = 0; i < names.Length; i++) {
       string id = ProfileStore.Create(names[i]);
