@@ -1145,7 +1145,12 @@ namespace Arena
             }
             float ky = ay + 55f;
             LobbyKit.Lab(new Rect(px, ky, 110f, 24f), "2nd ability key", 11, calm);
-            string[] keyNames = { "Q", "E", "SHIFT" };
+            string[] keyNames =
+            {
+                Keybinds.KeyName(Keybinds.Get(KeyAction.AbilityQ)).ToUpperInvariant(),
+                Keybinds.KeyName(Keybinds.Get(KeyAction.AbilityE)).ToUpperInvariant(),
+                Keybinds.KeyName(Keybinds.Get(KeyAction.AbilityShift)).ToUpperInvariant(),
+            };
             float kw = Mathf.Min(60f, (pw - 114f - 8f) / 3f);
             for (int k = 1; k <= 3; k++)
                 if (LobbyKit.Key(new Rect(x + w - 3f * kw - 8f + (k - 1) * (kw + 4f), ky, kw, 24f), keyNames[k - 1], key == k, calm, size: 13, minSize: 9) && key != k)
@@ -1167,7 +1172,7 @@ namespace Arena
                 var b = new Rect(x + i * (chipW + 6f), ly, chipW, lh);
                 int from = i == 0 ? me.Weapon / per : i == 1 ? me.Ability / per : i == 2 ? second / per : ultKit;
                 string name = ChipName(me, i, second);
-                string sub = i == 0 ? "WEAPON" : i == 1 ? "1ST · SPACE" : i == 2 ? "2ND · " + keyNames[key - 1] : "ULTIMATE · F";
+                string sub = i == 0 ? "WEAPON" : i == 1 ? "1ST · " + Keybinds.KeyName(Keybinds.Get(KeyAction.Ability)).ToUpperInvariant() : i == 2 ? "2ND · " + keyNames[key - 1] : "ULTIMATE · " + Keybinds.KeyName(Keybinds.Get(KeyAction.Ultimate)).ToUpperInvariant();
                 bool editing = (i == 1 && wildTab == 0) || (i == 2 && wildTab == 1);
                 bool hover = GUI.enabled && b.Contains(ev.mousePosition);
                 // The box from a bare key; the class icon on the left, the name over what it is.
