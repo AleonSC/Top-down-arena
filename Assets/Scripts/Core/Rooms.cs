@@ -9,6 +9,7 @@ namespace Arena
         public string Name;
         public V2 Min, Max;
         public bool Hub, Hall, Vault;
+        public bool Floating, Sealed;  // a floating room off the map, and one nobody has connected yet (Expansion.cs)
         public int Owner;       // the player who drew it (the Expanding arena; 0: none)
         public RoomKind Kind;   // what the room does (Expansion.cs; the Wings rooms are all Combat)
         public PathId Floor;    // a Floor room's path (its ground and hazards); None otherwise
@@ -230,7 +231,7 @@ namespace Arena
         void PickRooms()
         {
             bool was = RoomsUp, vaultWas = VaultUp;
-            bool wings = ArenaKind == ArenaLayout.Wings, grown = ArenaKind == ArenaLayout.Expanding && Expanded.Count > 0;  // (the Expanding arena is the plain box until the first room is bought)
+            bool wings = ArenaKind == ArenaLayout.Wings, grown = ArenaKind == ArenaLayout.Expanding && Expansion.BoughtCount(Expanded) > 0;  // (the Expanding arena is the plain box until the first room is bought)
             RoomsUp = (wings || grown) && Practice == null && !ShowcaseMode && Hunt == null && !BossNow
                 && !Has(RunMod.TinyArena) && !OnPathOf(PathId.NarrowPass);
             VaultUp = RoomsUp && wings && Wave == VaultWaveFor(Wave);
@@ -691,8 +692,8 @@ namespace Arena
             float w = a.Size.X * a.Size.Y;
             if (!ExpandingOn)
                 return w;
-            if (a.Kind == Arena.RoomKind.Shop)
-                return 0f;
+            if (a.Sealed || a.Kind == Arena.RoomKind.Shop || a.Kind == Arena.RoomKind.Vendor || a.Kind == Arena.RoomKind.Gatekeeper)
+                return 0f;  // (the shop and vendor are safe rooms, the Gatekeeper has its own fight, and a sealed room can't be reached)
             if (a.Kind == Arena.RoomKind.Floor && (a.Floor == PathId.SwarmFields || a.Floor == PathId.SniperRidge || a.Floor == PathId.EliteGauntlet))
                 return w * 2f;
             return w;

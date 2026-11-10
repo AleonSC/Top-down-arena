@@ -129,6 +129,42 @@ static partial class Program
         Check(loopWorld.Doors.Length == 3 && loopWorld.Doors.Count(d => d.Joins(0)) == 2, "and gets a door to each (" + loopWorld.Doors.Length + " doors)");
         Check(Expansion.Custom(Enumerable.Range(0, Expansion.MaxRooms).Select(i => east).ToList(), 500, -600, 300, 600, out why) == null, "a full map takes no more");
 
+        // Floating rooms (Docs/FloatingRooms.md): placed off the map, deterministic, clear of everything, sealed until a built room touches them.
+        var shopF = Expansion.FloatingFor(7, 0, none, RoomKind.Shop);
+        Check(shopF.HasValue && shopF.Value.Floating && shopF.Value.Kind == RoomKind.Shop && Expansion.FloatingFor(7, 0, none, RoomKind.Shop).Value.Equals(shopF.Value)
+            && !Expansion.FloatingFor(7, 1, none, RoomKind.Shop).Value.Equals(shopF.Value), "a floating room is the same for the same seed and cycle, and another one for the next cycle");
+        int badFloat = 0, floatsMade = 0;
+        for (int seed = 1; seed <= 80; seed++)
+        {
+            var map = new List<ExpansionRoom>();
+            for (int k = 0; k < 4; k++)
+            {
+                var fk = Expansion.FloatingFor(seed, k, map, k % 2 == 0 ? RoomKind.Shop : RoomKind.Gatekeeper);
+                if (!fk.HasValue) { badFloat++; continue; }
+                var f = fk.Value; floatsMade++;
+                foreach (var o in map.Concat(new[] { new ExpansionRoom { X = 0, Y = 0, W = (int)Game.Width, H = (int)Game.Height } }))
+                {
+                    bool clear = f.X - 200 >= o.X1 || f.X1 + 200 <= o.X || f.Y - 200 >= o.Y1 || f.Y1 + 200 <= o.Y;
+                    if (!clear) badFloat++;
+                }
+                map.Add(f);
+                var all = Expansion.Build(map);
+                if (all.Max.X - all.Min.X > Expansion.MaxWidth || all.Max.Y - all.Min.Y > Expansion.MaxHeight) badFloat++;
+            }
+            if (Expansion.SealedCount(map) != map.Count) badFloat++;
+            if (Expansion.Build(map).Doors.Length != 0 || Expansion.BoughtCount(map) != 0) badFloat++;
+        }
+        Check(badFloat == 0 && floatsMade > 250, "floating rooms are 2 tiles clear of every room, inside the size cap, and sealed: no doors, none counted as bought (" + floatsMade + " made, " + badFloat + " bad)");
+        var floater = new ExpansionRoom { X = 500, Y = -1200, W = 600, H = 400, Kind = RoomKind.Shop, Floating = true };
+        var withFloater = new List<ExpansionRoom> { floater };
+        int fp, fl2; string fwhy;
+        Check(!Expansion.Placement(withFloater, 500, -1600, 600, 400, out fp, out fl2, out fwhy) && fwhy.Contains("connected"), "a box touching only a floating room is refused: " + fwhy);
+        var link = Expansion.Custom(withFloater, 700, -800, 300, 800, out why);
+        Check(link.HasValue && link.Value.Parent == 0 && Expansion.LoopsOf(withFloater, link.Value) == 1, "a hallway from the hub to the floating room is accepted and opens it (" + (link.HasValue ? "ok" : why) + ")");
+        var opened = new List<ExpansionRoom> { floater, link.Value };
+        var openedWorld = Expansion.Build(opened);
+        Check(Expansion.SealedCount(withFloater) == 1 && Expansion.SealedCount(opened) == 0 && openedWorld.Areas[1].Floating && !openedWorld.Areas[1].Sealed && openedWorld.Doors.Any(d => d.Joins(1)) && Expansion.BoughtCount(opened) == 1,
+            "built rooms that touch it give it a door: it is no longer sealed, and only the hallway counts as bought");
         // Vector cost (Docs/VectorBuilding.md): the new wall length, so a shared wall is free and a loop is cheap.
         Check(Expansion.Cost(none, 500, -400, 600, 400) == 14, "a 6 x 4 closet along the hub's wall costs its perimeter 20 less the 6 it shares: 14 (" + Expansion.Cost(none, 500, -400, 600, 400) + ")");
         Check(Expansion.Cost(none, 500, -1200, 300, 1200) == 27, "a 3 x 12 hallway standing off the hub costs 30 less the 3 it shares: 27 (" + Expansion.Cost(none, 500, -1200, 300, 1200) + ")");
@@ -331,6 +367,32 @@ static partial class Program
         Run(s, dt, 3f, () => !g.ExpandOpen && !cg.ExpandOpen && cg.Expanded.Count == g.Expanded.Count);
         Check(g.Expanded.Count == builtNow + 1 && g.Expanded[g.Expanded.Count - 1].Owner == 1 && cg.Expanded.Count == g.Expanded.Count, "when the wave starts the votes cast count: the only vote builds that room");
 
+        // Floating rooms: a new boss cycle places its shop or vendor and its Gatekeeper, sealed, the same on the client, adding no crowd and no spawns.
+        var placeFloating = typeof(Game).GetMethod("PlaceFloatingRooms", flags);
+        int boughtNow = Expansion.BoughtCount(g.Expanded), allNow = g.Expanded.Count;
+        float scale0 = g.ExpansionScale;
+        int waveHere = g.Wave;
+        g.Wave = 11;
+        placeFloating.Invoke(g, null);
+        Run(s, dt, 3f, () => cg.Expanded.Count == g.Expanded.Count);
+        var added = g.Expanded.Skip(allNow).ToList();
+        Check(added.Count == 2 && added.All(r => r.Floating) && added.Any(r => r.Kind == RoomKind.Shop) && added.Any(r => r.Kind == RoomKind.Gatekeeper) && cg.Expanded.Skip(allNow).All(r => r.Floating) && Expansion.BoughtCount(g.Expanded) == boughtNow,
+            "a new boss cycle places a floating shop and Gatekeeper, the same on the client, and they aren't counted as bought");
+        placeFloating.Invoke(g, null);
+        Check(g.Expanded.Count == allNow + 2, "the same cycle places them only once");
+        pickRooms.Invoke(g, null);
+        var floatWorld = g.ExpansionWorld;
+        Check(floatWorld.Areas.Skip(allNow + 1).All(a => a.Floating && a.Sealed) && Math.Abs(g.ExpansionScale - scale0) < 0.001f && !g.HasShopRoom, "they stay sealed, add no crowd and a sealed shop isn't a shop room yet");
+        int inSealed = 0;
+        for (int i = 0; i < 400; i++)
+        {
+            V2 at = (V2)randomSpot.Invoke(g, new object[] { 20f });
+            if (floatWorld.Areas[floatWorld.AreaAt(at)].Floating)
+                inSealed++;
+        }
+        Check(inSealed == 0, "no enemy comes in to a floating room");
+        g.Wave = waveHere;
+
         // The map stops growing at the cap.
         var full = new List<ExpansionRoom>();
         for (int i = 0; i < Expansion.MaxRooms; i++) full.Add(Expansion.Offers(3, 5 + 5 * i, full)[0]);
@@ -405,6 +467,7 @@ static partial class Program
         add(500, 900, 600, 600, RoomKind.Floor, PathId.FrozenLake);          // 3: south
         add(-600, 300, 600, 300, RoomKind.Floor, PathId.BloodMoon);          // 4: west
         add(1600, 600, 600, 300, RoomKind.Floor, PathId.EliteGauntlet);      // 5: south-east (touches the shop and the hub: a loop)
+        add(500, -1200, 600, 600, RoomKind.Vendor, PathId.None);             // 6: north of the north room
         foreach (var gg in new[] { g, cg })
         {
             gg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
@@ -412,7 +475,7 @@ static partial class Program
         }
         pickRooms.Invoke(g, null);
         Run(s, dt, 0.3f);
-        Check(g.RoomsOn && g.CurrentWorld.Areas.Length == 6 && g.HasShopRoom, "the map with a shop room and four floors is up");
+        Check(g.RoomsOn && g.CurrentWorld.Areas.Length == 7 && g.HasShopRoom && g.HasVendorRoom, "the map with a shop room and four floors is up");
         V2 shopAt = g.CurrentWorld.Areas[1].Mid, fireAt = g.CurrentWorld.Areas[2].Mid, iceAt = g.CurrentWorld.Areas[3].Mid, bloodAt = g.CurrentWorld.Areas[4].Mid, eliteAt = g.CurrentWorld.Areas[5].Mid, hubAt = new V2(800f, 450f);
         Check(g.FloorAt(fireAt) == PathId.BurningGrounds && g.FloorAt(iceAt) == PathId.FrozenLake && g.FloorAt(bloodAt) == PathId.BloodMoon && g.FloorAt(eliteAt) == PathId.EliteGauntlet && g.FloorAt(hubAt) == PathId.None && g.FloorAt(shopAt) == PathId.None,
             "each Floor room knows its path's ground; the hub and the shop room have none");
@@ -461,22 +524,41 @@ static partial class Program
         Check(g.State == MatchState.Intermission && g.ShopOpen && cg.ShopOpen, "the wave after a boss ends with the shop open, on both screens");
         Check(g.Players.Values.All(p => p.Shelf.Any(u => u >= 0)), "everyone has a shelf");
         Check(g.Players.Values.All(p => p.Vectors >= Game.VectorStart + Game.VectorWaveGain) && cg.Players[1].Vectors == g.Players[1].Vectors, "a cleared wave gives everyone " + Game.VectorWaveGain + " vectors, and the client sees them (" + g.Players[1].Vectors + ")");
-        host.Game.Shop(ShopAction.Done, 1);
+        // The room shops: upgrades and restocks only in the shop room, heals, revives and removals only at the vendor.
+        Check(g.ServiceRooms && !g.ShopBlocksWave, "with a shop and a vendor room the shop never holds the countdown");
+        V2 vendorAt = g.CurrentWorld.Areas[6].Mid;
+        var pm = g.Players[1];
+        pm.Gold = 1000; pm.Hp = pm.MaxHp * 0.5f; pm.Pos = pm.Disp = hubAt;
+        int slot = Enumerable.Range(0, Game.ShelfSize).First(i => pm.Shelf[i] >= 0);
+        g.Shop(ShopAction.Buy, slot);
+        g.Shop(ShopAction.Heal);
+        Check(pm.Gold == 1000 && pm.Hp < pm.MaxHp * 0.6f, "in the hub you can neither buy nor heal");
+        pm.Pos = pm.Disp = vendorAt;
+        g.Shop(ShopAction.Buy, slot);
+        Check(pm.Gold == 1000, "the vendor sells no upgrades");
+        g.Shop(ShopAction.Heal);
+        Check(pm.Gold == 1000 - Game.HealPrice && pm.Hp >= pm.MaxHp, "the vendor heals");
+        pm.Pos = pm.Disp = shopAt;
+        int gold1 = pm.Gold;
+        g.Shop(ShopAction.Buy, slot);
+        Check(pm.Gold < gold1, "the shop room sells upgrades");
+        g.Shop(ShopAction.Done, 1);
         client.Game.Shop(ShopAction.Done, 1);
         Run(s, dt, 0.5f);
         Check(!g.ShopOpen && !cg.ShopOpen, "everyone clicking Done closes the shop");
+        Check(pm.Gold == gold1 - (gold1 - pm.Gold) && pm.Gold > 0, "closing the shop keeps your gold (" + pm.Gold + ")");
 
         // The cleared wave opened a building round; a lone proposal is built as the next wave starts (the votes cast count).
         Check(g.ExpandOpen && cg.ExpandOpen && g.ExpandProposals.Count == 0 && !g.ShopOpen, "the cleared wave opened a building round, on both screens");
-        int rooms0 = g.Expanded.Count;
+        int rooms0 = Expansion.BoughtCount(g.Expanded);
         var fb = FindBoxes(g.Expanded, 8).First(bx => Expansion.Cost(g.Expanded, bx[0], bx[1], bx[2], bx[3]) <= g.Players[1].Vectors);
         g.ProposeExpandRoom(fb[0], fb[1], fb[2], fb[3]);
         Run(s, dt, 0.4f);
-        Check(g.ExpandOpen && g.Expanded.Count == rooms0, "the round doesn't wait for the wave to start: the countdown ticks on");
+        Check(g.ExpandOpen && Expansion.BoughtCount(g.Expanded) == rooms0, "the round doesn't wait for the wave to start: the countdown ticks on");
         typeof(Game).GetField("StateTimer", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance).SetValue(g, 0.05f);
         Run(s, dt, 30f, () => g.State == MatchState.Fighting, NoPicks);
         Run(s, dt, 0.6f);
-        Check(!g.ExpandOpen && !cg.ExpandOpen && g.Expanded.Count == rooms0 + 1 && cg.Expanded.Count == g.Expanded.Count, "the round closes as the wave starts: the proposal's room is built, on both screens");
+        Check(!g.ExpandOpen && !cg.ExpandOpen && Expansion.BoughtCount(g.Expanded) == rooms0 + 1 && cg.Expanded.Count == g.Expanded.Count, "the round closes as the wave starts: the proposal's room is built, on both screens");
     }
 }
 

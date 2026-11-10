@@ -36,14 +36,17 @@ namespace Arena
             int preview = popup ? -1 : hover >= 0 ? hover : shopSel;
             DrawStatPanel(me, StatsSidebar(me), preview >= 0 && me.Shelf[preview] >= 0 && !Game.Sold(me, preview) ? me.Shelf[preview] : -1);
 
+            // The room shops: upgrades are bought in the shop room, heals, revives and removals at the vendor.
+            bool atShop = !game.ServiceRooms || game.InShopRoom(me), atVendor = !game.ServiceRooms || game.InVendorRoom(me);
+
             // Heading and wallet.
-            string tag = "BAZAAR  ·  BEFORE THE WAVE " + (game.Wave + 1) + " BOSS";
+            string tag = game.ServiceRooms ? (atShop ? "SHOP ROOM  ·  UPGRADES AND RESTOCKS" : "VENDOR ROOM  ·  HEALS, REVIVES, REMOVALS") : "BAZAAR  ·  BEFORE THE WAVE " + (game.Wave + 1) + " BOSS";
             float tagW = 30f + tag.Length * 7.5f;
             var tagRect = new Rect(x0 + areaW / 2f - tagW / 2f, 28f, tagW, 22f);
             Ui.Pill(tagRect, new Color(1f, 0.8f, 0.35f, 0.22f));
             Ui.Label(tagRect, tag, 11, Ui.Gold, TextAnchor.MiddleCenter, true);
-            DkTitle(new Rect(x0, 52f, areaW, 44f), "THE BAZAAR", 34, Ui.Gold, TextAnchor.MiddleCenter);
-            Ui.Label(new Rect(x0, 98f, areaW, 18f), "Spend your gold before the boss. Whatever's left becomes XP.", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
+            DkTitle(new Rect(x0, 52f, areaW, 44f), game.ServiceRooms ? (atShop && atVendor ? "THE SHOP" : atShop ? "THE SHOP" : "THE VENDOR") : "THE BAZAAR", 34, Ui.Gold, TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(x0, 98f, areaW, 18f), game.ServiceRooms ? "Your gold and shelf stay with you between waves." : "Spend your gold before the boss. Whatever's left becomes XP.", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
             var wallet = new Rect(W - 210f, 24f, 190f, 56f);
             Ui.Pill(wallet, new Color(0.16f, 0.12f, 0.03f, 0.92f));
             Ui.Icon(new Rect(wallet.x + 12f, wallet.y + 14f, 28f, 28f), PixelArt.Get("ui_coin"));
@@ -62,7 +65,7 @@ namespace Arena
                     continue;
                 }
                 bool sold = Game.Sold(me, i);
-                if (DrawShopCard(me, i, Upgrades.All[u], r, sold, shopping && shopSel == i && !sold, hover == i, t) && !popup && shopping && !sold)
+                if (DrawShopCard(me, i, Upgrades.All[u], r, sold, shopping && shopSel == i && !sold, hover == i, t) && !popup && shopping && !sold && atShop)
                 {
                     if (shopSel == i)
                         game.Shop(ShopAction.Buy, i);
@@ -88,7 +91,7 @@ namespace Arena
                     case 2: name = "Full heal"; desc = me.Hp >= me.MaxHp ? "You're at full health" : "Back to full HP"; price = Game.HealPrice; used = me.Hp >= me.MaxHp || me.Downed; break;
                     default: name = "Revive token"; desc = me.ReviveToken ? "You have one" : "Revive yourself once"; price = Game.RevivePrice; used = me.ReviveToken; break;
                 }
-                bool afford = me.Gold >= price && shopping && !used;
+                bool afford = me.Gold >= price && shopping && !used && (k == 0 ? atShop : atVendor);
                 bool over = !popup && afford && r.Contains(Event.current.mousePosition);
                 DkHud(r, over ? Ui.Gold : (Color?)null);
                 float a = afford || used ? 1f : 0.5f;

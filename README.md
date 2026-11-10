@@ -781,6 +781,8 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   drawing replaces it. You can only propose what you can afford. A proposal costs its **new wall length**: the perimeter
   minus every wall it shares with existing rooms, so touching rooms is cheaper and a box that touches two rooms (a loop)
   cheaper again.
+- **Minimap**: top right, a fixed-size window that follows you (centred on you, held inside the map; the whole map when it fits).
+  Anything beyond its edge is clipped, and teammates off the window show as dots on its edge.
 - **Who drew what**: every built room has a thin line of its drawer's colour just inside its walls, and the minimap fills it in their
   colour. While a round is open the minimap and the draw screen show everyone's proposals as pulsing ghosts in their colours.
 - **The vote**: each player backs one proposal or "No room". Drawing a room doesn't cast your vote: until you click a card your
@@ -788,6 +790,14 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   next wave starts, **the most votes wins, a tie (a 50/50) is a random pick** (with "No room" as one of the
   tied options), and the winning drawer pays; nobody else does. One room is built a round, with a door to every room it
   shares a door's width of wall with (loops). Paths are off in this arena.
+- **Floating rooms**: every boss cycle the game places a **shop** (even cycles) or a **vendor** (odd ones) and the **Gatekeeper** room 3 to 6 tiles
+  off the map, each a sealed box with no door, marked on the arena floor, the minimap and the draw screen. Draw a room or hallway that shares 3
+  tiles of wall with one and its door opens (a box touching only a floating room is refused: it must also touch the connected map). At most 4
+  wait at once, they don't count towards the 24-room cap, add no enemies and no spawns, and a floating shop counts as a shop once it's opened.
+  (The Gatekeeper does nothing yet.)
+- **Shop and vendor rooms**: with one connected, kills drop gold and the shop opens every intermission without holding the countdown. Buy
+  upgrades and restock in the **shop room**; heal, revive and remove upgrades at the **vendor**. Gold and your shelf carry over between waves
+  (the shelf is new each boss cycle).
 - **Obstacles**: a built room comes with obstacles and bars of wall (pillars, bars, an L, blocks: one per ~220,000 px2, up to 4),
   laid out from the room's own box so every machine builds the same ones. They keep off the room's walls, its doors and its middle,
   so you can always walk round them; hallways stay clear.

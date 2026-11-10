@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// What a room of the Expanding arena does (Docs/ExpandingArena.md). Floor rooms carry a path's ground and hazards.
-    public enum RoomKind : byte { Combat, Shop, Floor }
+    public enum RoomKind : byte { Combat, Shop, Floor, Vendor, Gatekeeper }  // (Vendor and Gatekeeper: the floating rooms, Docs/FloatingRooms.md)
 
     /// One bought room: a box attached to its parent room (area index; 0 is the hub) with a door on their shared wall.
     /// Stored as the resolved box, so rebuilding the map needs no random numbers: the map is the hub plus this list.
@@ -16,6 +16,7 @@ namespace Arena
         public PathId Floor;
         public int Price;       // what it costs in vectors (Expansion.Cost; the drawer pays if it wins the vote)
         public int Owner;       // the player who drew it (0: none)
+        public bool Floating;   // placed by the game off the map (a shop, vendor or Gatekeeper), not drawn: sealed until a built room touches it
         public int X1 => X + W;
         public int Y1 => Y + H;
         public string Shape => Expansion.ShapeName(W, H);
@@ -109,7 +110,8 @@ namespace Arena
         {
             parent = -1; loops = 0; why = null;
             int x1 = x0 + w, y1 = y0 + h;
-            if (rooms.Count >= MaxRooms) { why = "The map is full"; return false; }
+            if (BoughtCount(rooms) >= MaxRooms) { why = "The map is full"; return false; }
+            var linked = ConnectedAreas(rooms);
             int minX = Math.Min(0, x0), minY = Math.Min(0, y0), maxX = Math.Max((int)Game.Width, x1), maxY = Math.Max((int)Game.Height, y1);
             for (int i = 0; i < rooms.Count; i++)
             {
@@ -128,10 +130,10 @@ namespace Arena
                 if (run >= MinDoorRun)
                 {
                     loops++;
-                    if (run > best) { best = run; parent = a; }
+                    if (linked[a] && run > best) { best = run; parent = a; }  // (a floating room nobody has connected can't be the parent)
                 }
             }
-            if (parent < 0) { why = "Must share at least " + MinDoorRun + " px of wall with a room"; return false; }
+            if (parent < 0) { why = "Must share at least " + MinDoorRun + " px of wall with the connected map"; return false; }
             loops--;  // (the parent's door isn't a loop)
             return true;
         }
@@ -151,6 +153,106 @@ namespace Arena
         }
 
         public static int Cost(IList<ExpansionRoom> built, ExpansionRoom r) => Cost(built, r.X, r.Y, r.W, r.H);
+
+        /// Rooms the team has drawn (floating rooms, placed by the game, don't count towards the cap).
+        public static int BoughtCount(IList<ExpansionRoom> rooms)
+        {
+            int n = 0;
+            foreach (var r in rooms)
+                if (!r.Floating)
+                    n++;
+            return n;
+        }
+
+        /// Which areas (0 = the hub) are on the connected map: reachable from the hub through walls shared for a door's width. A floating
+        /// room joins it once a built room touches it.
+        public static bool[] ConnectedAreas(IList<ExpansionRoom> rooms)
+        {
+            int n = rooms.Count + 1;
+            var seen = new bool[n];
+            var queue = new Queue<int>();
+            seen[0] = true;
+            queue.Enqueue(0);
+            while (queue.Count > 0)
+            {
+                int a = queue.Dequeue();
+                int ax0, ay0, ax1, ay1;
+                BoxOf(rooms, a, out ax0, out ay0, out ax1, out ay1);
+                for (int b = 0; b < n; b++)
+                {
+                    if (seen[b])
+                        continue;
+                    int bx0, by0, bx1, by1;
+                    BoxOf(rooms, b, out bx0, out by0, out bx1, out by1);
+                    if (SharedRun(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1) >= MinDoorRun)
+                    {
+                        seen[b] = true;
+                        queue.Enqueue(b);
+                    }
+                }
+            }
+            return seen;
+        }
+
+        /// How many floating rooms nobody has connected yet.
+        public static int SealedCount(IList<ExpansionRoom> rooms)
+        {
+            var linked = ConnectedAreas(rooms);
+            int n = 0;
+            for (int i = 0; i < rooms.Count; i++)
+                if (rooms[i].Floating && !linked[i + 1])
+                    n++;
+            return n;
+        }
+
+        public const int MaxSealed = 4;  // floating rooms waiting to be connected at once
+
+        /// A floating room for this boss cycle (Docs/FloatingRooms.md): a shop, vendor or Gatekeeper room placed 3 to 6 tiles off a room on the
+        /// connected map, touching nothing and at least 2 tiles from every room, inside the size cap. The same on every machine for the same
+        /// seed, cycle and map. Null if nothing fits.
+        public static ExpansionRoom? FloatingFor(int seed, int cycle, IList<ExpansionRoom> built, RoomKind kind)
+        {
+            int w = kind == RoomKind.Gatekeeper ? 800 : 600, h = kind == RoomKind.Gatekeeper ? 600 : 400;
+            var rng = new DetRandom(seed * 40503 + cycle * 9176 + (int)kind * 131);
+            var linked = ConnectedAreas(built);
+            for (int attempt = 0; attempt < 120; attempt++)
+            {
+                int a = rng.Int(built.Count + 1);
+                if (!linked[a])
+                    continue;
+                int bx0, by0, bx1, by1;
+                BoxOf(built, a, out bx0, out by0, out bx1, out by1);
+                int side = rng.Int(4), gap = 300 + rng.Int(4) * 100, x, y;
+                if (side == 0 || side == 2)
+                {
+                    int lo = bx0 - w / 2, hi = bx1 - w / 2;
+                    x = lo + rng.Int((hi - lo) / Step + 1) * Step;
+                    y = side == 0 ? by0 - gap - h : by1 + gap;
+                }
+                else
+                {
+                    int lo = by0 - h / 2, hi = by1 - h / 2;
+                    y = lo + rng.Int((hi - lo) / Step + 1) * Step;
+                    x = side == 1 ? bx1 + gap : bx0 - gap - w;
+                }
+                if (x % Step != 0 || y % Step != 0)
+                    continue;
+                int x1 = x + w, y1 = y + h;
+                bool ok = true;
+                int minX = Math.Min(0, x), minY = Math.Min(0, y), maxX = Math.Max((int)Game.Width, x1), maxY = Math.Max((int)Game.Height, y1);
+                for (int i = 0; i <= built.Count && ok; i++)
+                {
+                    int cx0, cy0, cx1, cy1;
+                    BoxOf(built, i, out cx0, out cy0, out cx1, out cy1);
+                    ok = !Overlaps(x - 200, y - 200, x1 + 200, y1 + 200, cx0, cy0, cx1, cy1);  // (two tiles clear of everything)
+                    minX = Math.Min(minX, cx0); minY = Math.Min(minY, cy0); maxX = Math.Max(maxX, cx1); maxY = Math.Max(maxY, cy1);
+                }
+                if (!ok || maxX - minX > MaxWidth || maxY - minY > MaxHeight)
+                    continue;
+                return new ExpansionRoom { Parent = 0, X = x, Y = y, W = w, H = h, Kind = kind, Floating = true };
+            }
+            return null;
+        }
 
         /// How many loops a room would close (other rooms it gets a door to besides its parent).
         public static int LoopsOf(IList<ExpansionRoom> built, ExpansionRoom r)
@@ -285,8 +387,8 @@ namespace Arena
 
         static void AddCover(List<Solid> to, ExpansionRoom r, List<V2> doors)
         {
-            if (Math.Min(r.W, r.H) <= MinSide)
-                return;
+            if (Math.Min(r.W, r.H) <= MinSide || r.Floating)
+                return;  // (hallways and the floating rooms stay clear)
             var rng = new DetRandom(r.X * 73856093 ^ r.Y * 19349663 ^ r.W * 83492791 ^ r.H * 2654435);
             int want = Math.Max(1, Math.Min(4, r.W * r.H / 220000));
             var placed = new List<int[]>();  // each obstacle's bounding box: x0, y0, x1, y1
@@ -346,9 +448,9 @@ namespace Arena
                 var kind = a == 0 ? RoomKind.Combat : rooms[a - 1].Kind;
                 areas[a] = new RoomArea
                 {
-                    Name = a == 0 ? "Hub" : rooms[a - 1].Shape + (kind == RoomKind.Shop ? " (shop)" : kind == RoomKind.Floor ? " (" + rooms[a - 1].Floor + ")" : ""),
+                    Name = a == 0 ? "Hub" : rooms[a - 1].Floating ? (kind == RoomKind.Shop ? "Shop" : kind == RoomKind.Vendor ? "Vendor" : "Gatekeeper") : rooms[a - 1].Shape + (kind == RoomKind.Shop ? " (shop)" : kind == RoomKind.Floor ? " (" + rooms[a - 1].Floor + ")" : ""),
                     Min = new V2(x0, y0), Max = new V2(x1, y1), Hub = a == 0, Hall = a > 0 && Math.Min(x1 - x0, y1 - y0) <= 300,
-                    Kind = kind, Floor = a == 0 ? PathId.None : rooms[a - 1].Floor, Owner = a == 0 ? 0 : rooms[a - 1].Owner,
+                    Kind = kind, Floor = a == 0 ? PathId.None : rooms[a - 1].Floor, Owner = a == 0 ? 0 : rooms[a - 1].Owner, Floating = a > 0 && rooms[a - 1].Floating,
                 };
                 // Doors to every earlier room it shares enough wall with (its parent is always one of them).
                 for (int b = 0; b < a; b++)
@@ -391,6 +493,14 @@ namespace Arena
                     if (till > pos) spans.Add(new WallSpan(vertical, at, pos, till));
                 }
             }
+            for (int a = 1; a < n; a++)  // a floating room with no door is sealed
+                if (areas[a].Floating)
+                {
+                    bool open = false;
+                    foreach (var d in doors)
+                        open |= d.Joins(a);
+                    areas[a].Sealed = !open;
+                }
             var cover = new List<Solid>();
             for (int a = 1; a < n; a++)
             {
