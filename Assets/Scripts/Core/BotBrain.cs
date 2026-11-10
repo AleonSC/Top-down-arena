@@ -38,7 +38,7 @@ namespace Arena
         /// few bullets, changes direction a few times a second, and moves in 8 directions (WASD).
         struct SkillParams
         {
-            public float Reaction, Lookahead, Margin, AimJitter, Think, Noise;
+            public float Reaction, Lookahead, Margin, AimJitter, Think, Noise, Turn;  // Turn: how fast the aim swings, radians a second
             public int Steps, Attention;
         }
 
@@ -46,9 +46,9 @@ namespace Arena
         {
             switch (s)
             {
-                case BotSkill.Casual: return new SkillParams { Reaction = 0.35f, Lookahead = 0.3f, Steps = 6, Margin = 2f, AimJitter = 0.12f, Think = 0.22f, Noise = 14f, Attention = 6 };
-                case BotSkill.Expert: return new SkillParams { Reaction = 0.15f, Lookahead = 0.5f, Steps = 10, Margin = 6f, AimJitter = 0.03f, Think = 0.08f, Noise = 4f, Attention = 25 };
-                default: return new SkillParams { Reaction = 0.24f, Lookahead = 0.4f, Steps = 8, Margin = 4f, AimJitter = 0.07f, Think = 0.14f, Noise = 8f, Attention = 12 };
+                case BotSkill.Casual: return new SkillParams { Reaction = 0.35f, Lookahead = 0.3f, Steps = 6, Margin = 2f, AimJitter = 0.12f, Think = 0.22f, Noise = 14f, Turn = 4f, Attention = 6 };
+                case BotSkill.Expert: return new SkillParams { Reaction = 0.15f, Lookahead = 0.5f, Steps = 10, Margin = 6f, AimJitter = 0.03f, Think = 0.08f, Noise = 4f, Turn = 10f, Attention = 25 };
+                default: return new SkillParams { Reaction = 0.24f, Lookahead = 0.4f, Steps = 8, Margin = 4f, AimJitter = 0.07f, Think = 0.14f, Noise = 8f, Turn = 6.5f, Attention = 12 };
             }
         }
 
@@ -58,7 +58,8 @@ namespace Arena
         readonly Dictionary<int, V2> botEnemyVel = new Dictionary<int, V2>();
         readonly bool[] botHeldLast = new bool[Upgrades.SlotCount];
         V2 botMove;
-        float botThinkT, botClock;
+        float botThinkT, botClock, botAim;
+        bool botAimSet;  // botAim: where the bot's aim really points (Game.cs resets Aim from the input each tick)
         public float BotDanger;  // how dangerous the bot's best option looked (for the lab's readout)
 
         /// Roughly how fast this weapon's shots fly (for leading). Where it wants to be fought from is
@@ -85,10 +86,35 @@ namespace Arena
 
         const float MarkFocus = 220f;  // how much a marked enemy is preferred as the target (a boss scores 0 to 300)
 
+        /// Swings me.Aim toward `want` by at most `maxStep` radians; true once it's within ~0.25 rad (close enough to fire).
+        bool TurnAim(Player me, float want, float maxStep)
+        {
+            float diff = MathX.Fmod(want - me.Aim + MathX.Pi, MathX.Tau) - MathX.Pi;
+            me.Aim += Math.Max(-maxStep, Math.Min(maxStep, diff));
+            botAim = me.Aim;
+            return Math.Abs(diff) - maxStep < 0.25f;
+        }
+
+        /// Is there a clear line between two points, no wall or pillar in the way? (Enemies don't block it.)
+        bool BotSees(V2 a, V2 b)
+        {
+            float d = a.DistanceTo(b);
+            for (float t = 20f; t < d; t += 20f)
+                if (NearSolid(a + (b - a) * (t / d), 3f))
+                    return false;
+            return true;
+        }
+
         void SmartBot(Player me, float dt, ref V2 move, ref V2 aimAt, ref bool firing, bool[] held)
         {
             var sk = Skill(BotLevel);
             botClock += dt;
+            if (!botAimSet)
+            {
+                botAim = me.Aim;
+                botAimSet = true;
+            }
+            me.Aim = botAim;
             TrackEnemies(dt);
             if (me.Downed)
             {
@@ -144,6 +170,16 @@ namespace Arena
             if (key != null)
                 target = key;
             Enemy shootAt = close ?? target;
+            // No shooting through walls: with a wall in the way, take the nearest enemy it can actually see (or none).
+            if (shootAt != null && !BotSees(me.Pos, shootAt.Pos))
+            {
+                Enemy seen = null;
+                foreach (var e in Enemies.Values)
+                    if (!IsSpawning(e) && !SoulBound(e) && e.Hp > 0f && (seen == null || e.Pos.DistanceSq(me.Pos) < seen.Pos.DistanceSq(me.Pos)) && BotSees(me.Pos, e.Pos))
+                        seen = e;
+                shootAt = seen;
+            }
+            bool aimSettled = true;  // false while the aim is still swinging round: hold fire until it's on
 
             // --- Where we'd like to be.
             Player downed = null, lowest = null;
@@ -219,8 +255,9 @@ namespace Arena
                 float flight = shootAt.Pos.DistanceTo(me.Pos) / ShotSpeedFor(me.Weapon.Id);
                 V2 lead = shootAt.Pos + vel * Math.Min(0.8f, flight);
                 float wobble = (float)Math.Sin(botClock * 2.3f + me.Id) * sk.AimJitter;
-                aimAt = me.Pos + V2.FromAngle((lead - me.Pos).Angle + wobble) * Math.Max(40f, lead.DistanceTo(me.Pos));
-                me.Aim = (aimAt - me.Pos).Angle;
+                float dist = Math.Max(40f, lead.DistanceTo(me.Pos));
+                aimSettled = TurnAim(me, (lead - me.Pos).Angle + wobble, sk.Turn * dt);
+                aimAt = me.Pos + V2.FromAngle(me.Aim) * dist;
             }
 
             // --- Reach: don't shoot from across the arena. Only fire once the target is within the weapon's reach
@@ -238,8 +275,8 @@ namespace Arena
                     V2 vel;
                     botEnemyVel.TryGetValue(shootAt.Id, out vel);
                     V2 lead = shootAt.Pos + vel * Math.Min(0.8f, shootAt.Pos.DistanceTo(me.Pos) / ShotSpeedFor(me.Weapon.Id));
-                    aimAt = lead;
-                    me.Aim = (aimAt - me.Pos).Angle;
+                    aimSettled = TurnAim(me, (lead - me.Pos).Angle, sk.Turn * dt);
+                    aimAt = me.Pos + V2.FromAngle(me.Aim) * Math.Max(40f, lead.DistanceTo(me.Pos));
                 }
             }
 
@@ -258,11 +295,14 @@ namespace Arena
                         healTo = q;
                 if (healTo != null)
                 {
-                    aimAt = healTo.Pos;
-                    me.Aim = (aimAt - me.Pos).Angle;
-                    firing = true;
+                    bool on = BotSees(me.Pos, healTo.Pos) && TurnAim(me, (healTo.Pos - me.Pos).Angle, sk.Turn * dt);
+                    aimAt = me.Pos + V2.FromAngle(me.Aim) * Math.Max(40f, healTo.Pos.DistanceTo(me.Pos));
+                    firing = on;
+                    aimSettled = true;
                 }
             }
+            if (!aimSettled)
+                firing = false;
             if (ChargeWeapon(me.Weapon.Id) && bowDraw >= BowFull(me))
                 firing = false;
             else if (me.Weapon.Id == WeaponId.ClotBolt && bowDraw >= BowMinDraw

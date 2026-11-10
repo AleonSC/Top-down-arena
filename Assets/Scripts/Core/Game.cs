@@ -298,6 +298,7 @@ namespace Arena
             ResetMeleeSounds();  // MeleeSounds.cs
             spawnQueue.Clear();
             squadQueue.Clear();
+            DevFreeze = false;  // (DevTools.cs)
             ClearRisers();
             designQueue.Clear();
             pendingSpawns.Clear();

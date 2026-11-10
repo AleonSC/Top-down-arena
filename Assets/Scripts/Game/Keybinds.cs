@@ -44,12 +44,16 @@ namespace Arena
         public static readonly KeyAction[] GroupStart = { KeyAction.MoveUp, KeyAction.Ability, KeyAction.Fire, KeyAction.TakeItem, KeyAction.AimLine };
 
         static readonly KeyCode[] keys = (KeyCode[])Defaults.Clone();
+        /// The optional second key of each action (KeyCode.None = unset); either key triggers the action.
+        static readonly KeyCode[] keys2 = new KeyCode[Defaults.Length];
 
         /// Bumped whenever a key changes (the HUD's labels are rebuilt then).
         public static int Version { get; private set; }
 
         /// The action being rebound (the next key you press goes to it), or -1.
         public static int Listening = -1;
+        /// Which key of the action is being rebound: 0 = main, 1 = secondary.
+        public static int ListeningSlot;
         static int swallowFrame = -1;
 
         /// Rebinding is going on (or just ended this frame): the game ignores keys, Esc included.
@@ -61,7 +65,10 @@ namespace Arena
         public static string Title(KeyAction a) => Titles[(int)a];
         public static string Line(KeyAction a) => Lines[(int)a];
         public static KeyCode Get(KeyAction a) => keys[(int)a];
-        public static bool IsDefault(KeyAction a) => keys[(int)a] == Defaults[(int)a];
+        public static KeyCode DefaultKey(KeyAction a) => Defaults[(int)a];
+        public static KeyCode Get2(KeyAction a) => keys2[(int)a];
+        public static KeyCode Get(KeyAction a, int slot) => slot == 0 ? keys[(int)a] : keys2[(int)a];
+        public static bool IsDefault(KeyAction a) => keys[(int)a] == Defaults[(int)a] && keys2[(int)a] == KeyCode.None;
 
         static bool Either(KeyCode k, Func<KeyCode, bool> test)
         {
@@ -81,9 +88,8 @@ namespace Arena
         public static void SetPickerNumbers(int n) { pickerNumbers = n; pickerFrame = Time.frameCount; }
         public static void SetEmoteNumbers(int n) { emoteNumbers = n; emoteFrame = Time.frameCount; }
 
-        static bool NumberTaken(KeyAction a)
+        static bool NumberTaken(KeyAction a, KeyCode k)
         {
-            KeyCode k = keys[(int)a];
             if (k < KeyCode.Alpha1 || k > KeyCode.Alpha9)
                 return false;
             int n = k - KeyCode.Alpha0;
@@ -93,15 +99,17 @@ namespace Arena
         }
 
         /// Pressed this frame (never while rebinding).
-        public static bool Down(KeyAction a) => !Busy && !NumberTaken(a) && Either(keys[(int)a], Input.GetKeyDown);
+        public static bool Down(KeyAction a) => !Busy && (Slot(a, keys[(int)a], Input.GetKeyDown) || Slot(a, keys2[(int)a], Input.GetKeyDown));
         /// Held now (never while rebinding).
-        public static bool Held(KeyAction a) => !Busy && !NumberTaken(a) && Either(keys[(int)a], Input.GetKey);
+        public static bool Held(KeyAction a) => !Busy && (Slot(a, keys[(int)a], Input.GetKey) || Slot(a, keys2[(int)a], Input.GetKey));
+
+        static bool Slot(KeyAction a, KeyCode k, Func<KeyCode, bool> test) => k != KeyCode.None && !NumberTaken(a, k) && Either(k, test);
 
         /// Movement: the bound key or its arrow.
         public static bool MoveHeld(KeyAction a)
         {
             KeyCode arrow = a == KeyAction.MoveUp ? KeyCode.UpArrow : a == KeyAction.MoveDown ? KeyCode.DownArrow : a == KeyAction.MoveLeft ? KeyCode.LeftArrow : KeyCode.RightArrow;
-            return !Busy && ((!NumberTaken(a) && Either(keys[(int)a], Input.GetKey)) || Input.GetKey(arrow));
+            return !Busy && (Slot(a, keys[(int)a], Input.GetKey) || Slot(a, keys2[(int)a], Input.GetKey) || Input.GetKey(arrow));
         }
 
         static bool Mouse01(KeyCode k) => k == KeyCode.Mouse0 || k == KeyCode.Mouse1;
@@ -120,39 +128,59 @@ namespace Arena
             return true;
         }
 
-        /// Give `a` the key `k`. A key another action already has swaps over to this one's old key, so none is ever doubled.
-        /// Returns the action that was swapped, or -1.
-        public static int Set(KeyAction a, KeyCode k)
+        /// Give `a` the key `k` in `slot` (0 = main, 1 = secondary). A key another action (or the other slot) already has swaps
+        /// over to this slot's old key, so none is ever doubled. Returns the action that was swapped, or -1.
+        public static int Set(KeyAction a, KeyCode k, int slot = 0)
         {
             if (!Allowed(k, a))
                 return -1;
-            int swapped = -1;
-            for (int i = 0; i < keys.Length; i++)
-                if (i != (int)a && keys[i] == k)
+            var mine = slot == 0 ? keys : keys2;
+            KeyCode old = mine[(int)a];
+            if (old == k)
+                return -1;
+            for (int s = 0; s < 2; s++)
+            {
+                var arr = s == 0 ? keys : keys2;
+                for (int i = 0; i < arr.Length; i++)
                 {
-                    if (!Allowed(keys[(int)a], (KeyAction)i))  // it would be left holding a mouse button it can't use
+                    if (arr[i] != k || (i == (int)a && s == slot))
+                        continue;
+                    if (old == KeyCode.None ? s == 0 : !Allowed(old, (KeyAction)i))  // it would be left with no main key, or a mouse button it can't use
                     {
-                        Notice = KeyName(k) + " is " + Titles[i] + "'s, which can't use " + KeyName(keys[(int)a]) + ": give it another key first";
+                        Notice = KeyName(k) + " is " + Titles[i] + "'s main key: give that another key first";
                         NoticeAt = Time.unscaledTime;
                         return -1;
                     }
-                    keys[i] = keys[(int)a];
-                    swapped = i;
+                    arr[i] = old;
+                    mine[(int)a] = k;
+                    Changed();
+                    return i == (int)a ? -1 : i;
                 }
-            keys[(int)a] = k;
+            }
+            mine[(int)a] = k;
             Changed();
-            return swapped;
+            return -1;
+        }
+
+        /// Clear the secondary key.
+        public static void Clear2(KeyAction a)
+        {
+            keys2[(int)a] = KeyCode.None;
+            Changed();
         }
 
         public static void Reset(KeyAction a)
         {
-            // Back to its own default, unless another action sits on it now: that one takes this action's key.
+            // Back to its own default and no second key, unless another action sits on it now: that one takes this action's key.
+            keys2[(int)a] = KeyCode.None;
             Set(a, Defaults[(int)a]);
+            Changed();
         }
 
         public static void ResetAll()
         {
             Array.Copy(Defaults, keys, keys.Length);
+            Array.Clear(keys2, 0, keys2.Length);
             Changed();
         }
 
@@ -168,18 +196,28 @@ namespace Arena
             {
                 int v = PlayerPrefs.GetInt("key_" + (KeyAction)i, (int)Defaults[i]);
                 keys[i] = Allowed((KeyCode)v, (KeyAction)i) ? (KeyCode)v : Defaults[i];
+                int v2 = PlayerPrefs.GetInt("key2_" + (KeyAction)i, 0);
+                keys2[i] = Allowed((KeyCode)v2, (KeyAction)i) ? (KeyCode)v2 : KeyCode.None;
             }
             for (int i = 0; i < keys.Length; i++)  // a hand-edited save with a key on two actions: the later one goes back
+            {
                 for (int j = 0; j < i; j++)
                     if (keys[i] == keys[j])
                         keys[i] = Defaults[i];
+                for (int j = 0; j < keys.Length; j++)
+                    if (keys2[i] != KeyCode.None && (keys2[i] == keys[j] || (j < i && keys2[i] == keys2[j])))
+                        keys2[i] = KeyCode.None;
+            }
             Version++;
         }
 
         static void Save()
         {
             for (int i = 0; i < keys.Length; i++)
+            {
                 PlayerPrefs.SetInt("key_" + (KeyAction)i, (int)keys[i]);
+                PlayerPrefs.SetInt("key2_" + (KeyAction)i, (int)keys2[i]);
+            }
             PlayerPrefs.Save();
         }
 
@@ -219,17 +257,17 @@ namespace Arena
             Listening = -1;
             swallowFrame = Time.frameCount;
             if (set)
-                Assign(a, k);
+                Assign(a, k, ListeningSlot);
             return true;
         }
 
         /// Set a key and say what swapped (the page's mouse-button choices use this too).
-        public static void Assign(KeyAction a, KeyCode k)
+        public static void Assign(KeyAction a, KeyCode k, int slot = 0)
         {
             Notice = null;
-            int other = Set(a, k);  // (a refused swap leaves its own message)
+            int other = Set(a, k, slot);  // (a refused swap leaves its own message)
             if (other >= 0)
-                Notice = Titles[other] + " now uses " + KeyName(keys[other]);
+                Notice = Titles[other] + " now uses " + KeyName(keys[other]) + (keys2[other] != KeyCode.None ? " / " + KeyName(keys2[other]) : "");
             NoticeAt = Time.unscaledTime;
         }
 

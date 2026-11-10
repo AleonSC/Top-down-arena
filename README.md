@@ -512,7 +512,7 @@ squad as often as a melee enemy used to come). Paths with their own mix keep it.
 |---|---|---|
 | 1 | **Swarmer** | The simplest enemy: a small white chomper with a wedge for a mouth and no eyes. Walks straight at you (115), 14 health, 6 per bite. Comes in packs of four, so cut them down together |
 | 2 | **Spiker** | Small and fast, with a long thin spike on each face. Zig-zags toward you (swinging 40 to 65 degrees off line, flipping side every 0.2 to 0.45 s, straightening as it gets close), comes in pairs. (Called the Swarmer before the plain white one arrived) |
-| 3 | **Brute** | Slow and tough; hits hard (24) when it reaches you |
+| 3 | **Brute** | Slow and tough; hits hard (24) when it reaches you. **Enrages as it is shot**: the more health it has lost, the faster it walks (up to +80%) and the harder it hits (up to +60%), and it turns redder. Healing calms it down. Burst it down or back off |
 | 5 | **Lunger** | Circles in close, flashes a pink line, then leaps along it. Step aside |
 | 5 | **Buzzsaw** | A ring of spinning spikes. Fast (170) and it steers with momentum, so it swoops and overshoots. Each touch is only 4, but they land about eight times a second |
 | 5 | **Spike Block** | A square with a big spike on each face. Rocks from side to side as it closes in; within about 140 px it stops, shakes and shows a red line (0.55 s, the line is locked), then lunges along it for 35. It rests 0.8 s afterward: shoot it then |
@@ -1037,7 +1037,8 @@ be any key or mouse button), the weapon secondary (Left Alt), take and discard a
 HUD and mute toggles. For Fire and Parry, a "Left click / Right click" pair of buttons appears while you're picking
 (the page can't take a click as a key press, since the click is how you chose the row). Left and right click can't go on
 any other action, since they click everything else. Click a key, press the new one (a middle or side mouse button works too), and it
-changes at once; **Esc** cancels. A key already used by another action swaps with it, so nothing ends up on two. The
+changes at once; **Esc** cancels. A key already used by another action swaps with it, so nothing ends up on two. Every action also has a **second key**
+(the "+ ADD" slot beside it): either key does the action; right click a second key to clear it. The
 arrow keys always move too. The ↺ beside a changed key puts it back; **Reset all** puts every key back. Saved on this computer. The menu keys
 (Esc, Tab, Enter, F1-F5) can't be changed, and menus are always clicked with the mouse. The number keys can be bound:
 while the upgrade picker is open, the numbers of its cards pick a card instead, and while the emote bar is open, the
@@ -1261,7 +1262,7 @@ everyone's upgrades, ability keys, levels, XP, rerolls, mastery, gold, revive to
 and the run's score, time, path and route. Saves are plain text in the game's data folder (`saves/*.run`),
 with upgrades and abilities by name, so they keep working as the game changes.
 
-**Profile** (the old Records and Your look pages, merged; opened by clicking your player card on the main menu, or from the pause and lobby menus' **Profile** row, which leaves out the Look tab): the same loadout box as the pause menu's (same opening, windows and Back key): a title, a profile card (your rank badge, name with a pencil key, title and rank, XP bar), four quiet tab keys (small faded letters, the open one a small lit pill) and the open tab's options as keys; each option opens in a CRT window to the right that slides out the first time and only retypes after that (its X key, Back and Esc close it first, then the profile). **Look** is the cosmetics above. **Rank** is Progress (rank, title, XP, the next unlocks), the Reward ladder, Tiers (the five titles with their rank ranges) and XP sources. **Records** is Overview, Bosses, Classes, Challenge rooms and **Recent runs** (below). **Unlocks** has a window per kind (Frame, Trail, Background, Card background, Name effect, Aim line, Cursor, Emotes) with a check or a padlock on each cosmetic, and the run-feat unlocks. The Records tab keeps this computer's player's runs started, won and lost, best wave, best endless wave,
+**Profile** (the old Records and Your look pages, merged; opened by clicking your player card on the main menu, or from the lobby menu's **Profile** row, which leaves out the Look tab; the pause menu has no Profile row): the same loadout box as the pause menu's (same opening, windows and Back key): a title, a profile card (your rank badge, name with a pencil key, title and rank, XP bar), four quiet tab keys (small faded letters, the open one a small lit pill) and the open tab's options as keys; each option opens in a CRT window to the right that slides out the first time and only retypes after that (its X key, Back and Esc close it first, then the profile). **Look** is the cosmetics above. **Rank** is Progress (rank, title, XP, the next unlocks), the Reward ladder, Tiers (the five titles with their rank ranges) and XP sources. **Records** is Overview, Bosses, Classes, Challenge rooms and **Recent runs** (below). **Unlocks** has a window per kind (Frame, Trail, Background, Card background, Name effect, Aim line, Cursor, Emotes) with a check or a padlock on each cosmetic, and the run-feat unlocks. The Records tab keeps this computer's player's runs started, won and lost, best wave, best endless wave,
 
 **Records > Recent runs** (Docs/RecentRuns.md): a strip of your last 20 runs (newest first, four at a time with arrows; each card says the mode, class, wave and won, died or quit; a run you leave before it ends counts too, with no XP), six tiles for the open run (result, time, wave, damage, damage taken, XP) and two tabs. **Overview** has three graphs: **damage per second** over the run (your line in gold with a blue team line when you played in a party, alternating bands for the waves, a red tint on boss waves, a red dot where you went down), **health** over time for everyone in the party, and **accuracy per wave**. Hover a time graph for a readout of that moment. **Trends** shows the wave reached and the damage dealt run by run (green won, red died); click a run on it to open it. Each finished run keeps a sample of everyone's totals and health every 10 seconds, in a small file in your profile's `runs` folder (the newest 20 are kept); runs from before this, Boss Hunts, Challenge rooms and Practice have no graphs (Boss Hunts and rooms keep their own records). Co-op: every player's profile keeps its own copy with the whole party's lines. Runs with dev tools or the bot are not kept, like the rest of Records.
 best score, time played, totals (kills, damage, healing, downs, revives), each boss beaten, and runs and wins per
@@ -1294,7 +1295,7 @@ second; teammates' live models appear once it settles). With **Reduced effects**
 simply there, without the drifting band and flicker.
 
 **Solo, holding Tab pauses the match** (letting go resumes it). **With friends it doesn't pause** (you can still move
-and shoot while it's up); to look together, pause (**Esc**) and press **Run stats** in the pause menu. The host sends
+and shoot while it's up); to look together, pause (**Esc**) and press the small bar-chart key beside the pause menu (hover: "Current run stats"). The host sends
 everyone the run's numbers about once a second, and again the moment the game pauses.
 
 ## Pause menu and settings
@@ -1523,7 +1524,8 @@ the bottom of them shows what's on (wave, recording, bot, aim debug, players):
   beside it. **Kill-all key (X)**: a switch (saved between sessions) that makes **X** kill every enemy on the field,
   bosses included, as your kills: XP, score, drops, gold and kill credit as usual, through shields and immunity. It
   doesn't end the wave: enemies still to come keep coming. X still throws away a chest item while you're standing on
-  one. **Everyone** buttons: full heal, level up, max mastery and god mode for every player at once. **Challenge
+  one. **Freeze enemies**: a switch under it that stops every enemy moving and shooting and stops new ones spawning
+  (you can still kill the frozen ones; the wave won't clear while it's on; it resets when a match starts). **Everyone** buttons: full heal, level up, max mastery and god mode for every player at once. **Challenge
   rooms** buttons (between waves): straight into Crystal, Gatekeeper, Kill Rush, Zones or Mirror.
 - **Players (host):** choose a player, then edit any of their stats by hand: type a number or use - / +.
   Type in **Filter** to narrow the list (e.g. "barrier"). Edited stats show in gold, are sent to every player's
