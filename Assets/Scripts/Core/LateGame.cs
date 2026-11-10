@@ -40,6 +40,8 @@ namespace Arena
             session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
             BroadcastRunStats();
             RunOver(true);  // RunSaves.cs
+            if (TestRunning)
+                FinishTest(Wave >= Test.LastWave, "won the run");  // BalanceTest.cs
             Recorder?.End(this, "victory");
             DoLog("victory at wave " + Wave + ", score " + Score);
         }

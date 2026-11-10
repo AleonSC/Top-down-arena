@@ -1549,6 +1549,18 @@ the bottom of them shows what's on (wave, recording, bot, aim debug, players):
   **Rank 30** (every reward), **Max rank** (999) and **Reset** (rank 1). Cosmetics the new rank hasn't reached come off.
 - **DPS (host, in a match):** the DPS meter and target dummies, below.
 - **Replays:** record the runs you host and watch them back, below.
+- **Balance (host, in a normal run):** a five-wave test with your own build. Pick your loadout as usual, start a run, press
+  F1 > Balance, choose the **start wave** (1, 6, 11 ... 26), **who plays** (you, or the bot with your build for repeatable
+  runs), whether health refills between waves and whether to sample every second, then **Launch test**. It jumps to
+  that wave and starts a fresh recording; a small TEST strip with the wave pips shows at the top while it runs. When the fifth
+  wave clears (or you press **End test now**, or everyone goes down) a report opens: six tiles (result, time, damage dealt,
+  damage taken, downs, accuracy), tabs for **Waves**, **Weapons and abilities** (damage by source: your weapon, each ability's
+  own hit, burn/bleed/poison, ability and summon shots, and the rest), **Ability use**, **Enemies** (health, time alive, damage
+  to you), **Damage taken** and **Picks**, and a list of automatic **findings** (a source with most of the damage, an enemy
+  that hurts far more than it appears, a long-lived enemy, low accuracy). **Copy summary** puts it on the clipboard and
+  **Open logs folder** opens the `balance` folder, which holds one JSON file per test (session format 4, summarised by
+  `Tools/SessionReport`). Tests never count in Records, XP or ranks. Damage from zones, minions and other lasting effects
+  can't be traced to the cast that made it and shows as "Other". Design and fields: `Docs/BalanceTest.md`.
 
 ### Replays (F1)
 

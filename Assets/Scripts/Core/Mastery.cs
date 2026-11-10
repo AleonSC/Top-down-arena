@@ -51,10 +51,13 @@ namespace Arena
         bool casting, castMastered;
         float castPower = 1f;
         int castHits;
+        AbilityId castId;      // the ability being cast right now (the balance test log credits its hits to it)
+        string dmgSrc;         // set around a bullet's hit: "weapon" or "shot" (null: not known; Combat.cs)
 
         void BeginCast(Player p, AbilityId id)
         {
             casting = true;
+            castId = id;
             castPower = MasteryPower(p, id);
             castMastered = Mastered(p, id);
             castHits = 0;
