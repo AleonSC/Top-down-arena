@@ -138,6 +138,8 @@ td.n{font:500 13px var(--mono);font-variant-numeric:tabular-nums;white-space:now
       <tr><td>Shockwave Clap</td><td>Alt tap</td><td class="n">10</td><td>64° × 170 px cone, deletes small bullets, big shove · 5 s</td></tr>
       <tr><td>Seismic Line</td><td>Alt tap</td><td class="n">14</td><td>7 rock spikes out to 230 px, each enemy popped up once · 4 s</td></tr>
       <tr><td>Magnet Yank</td><td>Alt tap</td><td class="n">18</td><td>Pulls one enemy up to 220 px into a free cross, not bosses · 5 s</td></tr>
+      <tr><td>Grab &amp; Throw (chain)</td><td>Fire after the Flurry</td><td class="n">20 + 26</td><td>Chain step 3: grab the Flurry target and throw it into the next enemy</td></tr>
+      <tr><td>Rocket Punch (chain)</td><td>Fire after the throw</td><td class="n">28</td><td>Chain step 4: chained fist down a 210 px line, hits the whole pile</td></tr>
       <tr><td>Flurry</td><td>Fire within 0.35 s of a dash hit</td><td class="n">8×6 + 20</td><td>Rocket Dash follow-up: 0.7 s of jabs, then a knockback straight</td></tr>
     </table>
   </div>
@@ -234,6 +236,9 @@ Object.assign(MOVES,{
       return p;}},
 });
 MOVES.chase={...MOVES.flurry,name:'Flurry',input:'Fire within 0.35 s of a dash hit'};
+MOVES.chaseC={...MOVES.flurry,name:'Flurry',input:'Fire on the dash hit',hits:MOVES.flurry.hits.map((h,i)=>i===8?{...h,kn:[12,0]}:h)};
+MOVES.grabC={...MOVES.grab,name:'Grab & Throw',input:'Fire after the Flurry'};
+MOVES.rpunch={...MOVES.rfist,name:'Rocket Punch',input:'Fire after the throw',hits:[{t:.26,sh:{type:'cap',a:[40,2],b:[210,2],r:18},dmg:28,kn:[18,0],fx:'big'}]};
 MOVES.counter={...MOVES.hammer,name:'Counter Hammer',input:'Fire after a perfect parry',gold:true,
   hits:[{t:.26,sh:{type:'ring',c:[44,0],r:135},dmg:38,kn:'radial',knr:48,stun:.8,fx:'quake'}]};
 
@@ -250,7 +255,7 @@ function poseAt(sc,t){
   let i=-1; for(let k=0;k<sc.segs.length;k++) if(sc.segs[k].s<=t) i=k;
   if(i<0) return {...cp(REST),seg:null,u:0};
   const seg=sc.segs[i],u=t-seg.s; let p=movePose(seg,u);
-  if(i>0&&u<.06){const pr=sc.segs[i-1];p=blend(movePose(pr,t-pr.s),p,E.io(u/.06));}
+  const bl=seg.bl||.06;if(i>0&&u<bl){const pr=sc.segs[i-1];p=blend(movePose(pr,t-pr.s),p,E.io(u/bl));}
   p.seg=seg;p.u=u;return p;
 }
 
@@ -281,6 +286,10 @@ const SCN={
   dashflurry:{alt:true,label:'Dash → Flurry',blurb:'Rocket Dash, then press Fire within 0.35 s of the hit: you go straight into the Flurry where you landed. Eight jabs (6 each) and a finishing straight (20) that sends the enemy flying. A dash that misses gives no follow-up.',
     segs:[{m:'dash',s:0},{m:'chase',s:.42,ox:128}],enemies:()=>[{x:172,y:2,r:13,k:'grunt'},{x:110,y:-62,r:11,k:'grunt'},{x:200,y:-26,r:11,k:'grunt'}],len:1.75,
     caps:[{t0:.31,t1:.42,txt:'FIRE → FLURRY'},{t0:.42,t1:1.5,txt:'DASH FOLLOW-UP',gold:true}]},
+  chain:{alt:true,label:'Full dash chain',blurb:'Rocket Dash, then one Fire press as each move lands: Flurry where you landed, then Grab & Throw into the next enemy, then a Rocket Punch down the line that hits both. Miss a step or wait too long (0.35 s) and the chain ends.',
+    segs:[{m:'dash',s:0},{m:'chaseC',s:.42,ox:128},{m:'grabC',s:1.30,ox:156,bl:.12,target:0,into:1},{m:'rpunch',s:2.30,ox:156}],
+    enemies:()=>[{x:172,y:2,r:13,k:'grunt'},{x:336,y:4,r:13,k:'grunt'},{x:110,y:-62,r:11,k:'grunt'}],len:3.3,
+    caps:[{t0:.31,t1:.42,txt:'FIRE → FLURRY'},{t0:1.21,t1:1.30,txt:'FIRE → GRAB & THROW'},{t0:2.22,t1:2.30,txt:'FIRE → ROCKET PUNCH'},{t0:2.30,t1:3.1,txt:'CHAIN COMPLETE · 24 + 68 + 46 + 56',gold:true}]},
   rfist:{alt:true,label:'Rocket Fist',blurb:'Alt tap. The gauntlet fires off the wrist on a chain, punches through everything in a 200 px line (22 damage each), hangs for a beat, then reels back in on reverse thrusters.',
     segs:[{m:'rfist',s:0}],enemies:()=>[{x:100,y:0,r:13,k:'grunt'},{x:180,y:-6,r:12,k:'grunt'},{x:60,y:-60,r:11,k:'grunt'}],len:1.2},
   clap:{alt:true,label:'Shockwave Clap',blurb:'Alt tap. Both fists slam together and send a 64° pressure wave 170 px forward. It deletes every small bullet it passes and shoves enemies back hard. Only 10 damage: it buys space.',
@@ -302,8 +311,8 @@ function inShape(sh,p,er){
 function shift(sh,dx){const s=JSON.parse(JSON.stringify(sh));if(s.a){s.a[0]+=dx;s.b[0]+=dx;}if(s.c)s.c[0]+=dx;return s;}
 function enemyPos(e,t){
   let x=e.x,y=e.y,z=0,base=null;
-  if(e.path&&t>=e.path.t0){base=e.path.f(t);if(e.path.tEnd===undefined)return base;x=base.x;y=base.y;}
-  for(const h of e.hits){if(h.T>t)continue;const k=E.out(clamp((t-h.T)/.18));x+=h.kn[0]*k;y+=h.kn[1]*k;if(h.lift){const v=(t-h.T)/h.lift;if(v<1)z+=26*Math.sin(Math.PI*v);}}
+  if(e.path&&t>=e.path.t0){base=e.path.f(t);x=base.x;y=base.y;}
+  for(const h of e.hits){if(h.T>t||(base&&h.T<e.path.t0))continue;const k=E.out(clamp((t-h.T)/.18));x+=h.kn[0]*k;y+=h.kn[1]*k;if(h.lift){const v=(t-h.T)/h.lift;if(v<1)z+=26*Math.sin(Math.PI*v);}}
   return base?{...base,x,y,z:z+(base.z||0)}:{x,y,z,spin:null};
 }
 function compile(def){
@@ -318,28 +327,31 @@ function compile(def){
     if(B.out==='perfect'){B.tn=B.th+(d-sc.enemies[b.from].r)/900;ev.push({T:B.tn,direct:sc.enemies[b.from],dmg:16,kn:[B.dir[0]*-10,B.dir[1]*-10],fx:'needle'});}
     sc.bul.push(B);
   }
-  for(const s of sc.segs) if(s.m.grab){
-    const A=sc.enemies[s.target],Bt=sc.enemies[s.into],t0=s.s+.10;
+  const grabSetup=s=>{
+    const A=sc.enemies[s.target],Bt=sc.enemies[s.into],t0=s.s+.10,st=enemyPos(A,t0),bp=enemyPos(Bt,s.s+.74);
     const fistW=t=>{const p=poseAt(sc,t);return[p.dx+p.R[0],p.R[1]];};
-    const hold=t=>{const f=fistW(t),d=len(f[0],f[1])||1;return[f[0]+f[0]/d*14,f[1]+f[1]/d*14];};
-    const rel=s.s+.74,p0=hold(rel),tx=Bt.x-p0[0],ty=Bt.y-p0[1],td=len(tx,ty),dir=[tx/td,ty/td],tImp=rel+(td-A.r-Bt.r)/520;
+    const hold=t=>{const f=fistW(t),o=[f[0]-poseAt(sc,t).dx,f[1]],d=len(o[0],o[1])||1;return[f[0]+o[0]/d*14,f[1]+o[1]/d*14];};
+    const rel=s.s+.74,p0=hold(rel),tx=bp.x-p0[0],ty=bp.y-p0[1],td=len(tx,ty),dir=[tx/td,ty/td],tImp=rel+(td-A.r-Bt.r)/520;
     const pImp=[p0[0]+dir[0]*(td-A.r-Bt.r),p0[1]+dir[1]*(td-A.r-Bt.r)];
-    A.path={t0,tImp,f(t){
-      if(t<t0+.12){const k=E.io((t-t0)/.12),h=hold(t);return{x:lerp(A.x,h[0],k),y:lerp(A.y,h[1],k),z:0,spin:Math.atan2(-h[1],-h[0])};}
-      if(t<rel){const h=hold(t);return{x:h[0],y:h[1],z:4,spin:Math.atan2(-h[1],-h[0]),held:true};}
+    const bx=t=>poseAt(sc,t).dx;
+    A.path={t0,tImp,tEnd:tImp+.3,f(t){
+      if(t<t0+.12){const k=E.io((t-t0)/.12),h=hold(t);return{x:lerp(st.x,h[0],k),y:lerp(st.y,h[1],k),z:0,spin:Math.atan2(-h[1],bx(t)-h[0])};}
+      if(t<rel){const h=hold(t);return{x:h[0],y:h[1],z:4,spin:Math.atan2(-h[1],bx(t)-h[0]),held:true};}
       if(t<tImp){const v=(t-rel)*520;return{x:p0[0]+dir[0]*v,y:p0[1]+dir[1]*v,z:6,spin:(t-rel)*28,fly:true};}
       const k=E.out(clamp((t-tImp)/.3));return{x:pImp[0]-10*k,y:pImp[1]+18*k,z:10*Math.sin(Math.PI*clamp((t-tImp)/.3)),spin:(tImp-rel)*28+k*3};}};
-    A.hits.push({T:s.s+tImp-s.s,kn:[0,0],dmg:20,fx:'big',pt:pImp});
+    A.hits.push({T:tImp,kn:[0,0],dmg:20,fx:'big',pt:pImp});
     ev.push({T:tImp,direct:Bt,dmg:26,kn:[42,4],stun:.5,fx:'big'});
-    sc.fx.push({T:t0,kind:'grab',pt:[A.x-6,A.y]});
-  }
+    sc.fx.push({T:t0,kind:'grab',pt:[st.x-6,st.y]});
+  };
+  for(const s of sc.segs) if(s.m.grab) ev.push({T:s.s+.10,setup:s});
   for(const s of sc.segs) if(s.m.yank){
     const A=sc.enemies[s.target],t0=s.s+.10,t1=s.s+.40;
     A.path={t0,tEnd:t1,f(t){const k=E.in(clamp((t-t0)/(t1-t0)));return{x:lerp(A.x,70,k),y:lerp(A.y,2,k),z:0,spin:null,pulled:t<t1};}};
     sc.yanks.push({s:s.s,A});
   }
-  ev.sort((a,b)=>a.T-b.T);
-  for(const v of ev){
+  while(ev.length){
+    ev.sort((a,b)=>a.T-b.T);const v=ev.shift();
+    if(v.setup){grabSetup(v.setup);continue;}
     if(v.direct){const p=enemyPos(v.direct,v.T);v.direct.hits.push({T:v.T,kn:v.kn,dmg:v.dmg,stun:v.stun,fx:v.fx,pt:[p.x,p.y]});continue;}
     const h=v.h,dx=poseAt(sc,v.T).dx,sh=shift(h.sh,dx);
     for(const e of sc.enemies){
@@ -638,6 +650,7 @@ const ROWS=[
   {t:'Ground Pound',s:'Alt hold · 40 dmg · clears bullets',sc:SCN.pound,ts:[.06,.30,.58,.67,.74,.95],v:[20,0,330]},
   {t:'Grab & Throw',s:'Alt beside an enemy · 20 + 26 dmg',sc:SCN.grab,ts:[.08,.18,.40,.62,.82,1.0],v:[110,0,330]},
   {t:'Dash → Flurry',s:'Alt tap, then Fire on hit · 24 + 8 × 6 + 20 dmg',sc:SCN.dashflurry,ts:[.20,.31,.40,.62,.86,1.24],v:[130,0,300]},
+  {t:'Full dash chain',s:'Alt, Fire, Fire, Fire · dash → flurry → grab & throw → rocket punch',sc:SCN.chain,ts:[.31,.90,1.50,1.95,2.22,2.56],v:[230,0,330]},
   {t:'Rocket Fist',s:'Alt tap · 22 dmg per enemy in a 200 px line',sc:SCN.rfist,ts:[.08,.17,.25,.44,.62,.80],v:[110,0,300]},
   {t:'Shockwave Clap',s:'Alt tap · 10 dmg · deletes bullets in a 170 px cone',sc:SCN.clap,ts:[.06,.12,.17,.24,.32,.48],v:[90,0,280]},
   {t:'Seismic Line',s:'Alt tap · 14 dmg per spike · 230 px',sc:SCN.seismic,ts:[.10,.20,.28,.36,.46,.70],v:[125,0,300]},
