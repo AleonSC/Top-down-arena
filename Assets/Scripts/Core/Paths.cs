@@ -323,15 +323,19 @@ namespace Arena
         }
 
         /// Path changes to a freshly spawned regular enemy (SpawnEnemyAt).
-        void ApplyPathToEnemy(Enemy e, ref bool elite)
+        void ApplyPathToEnemy(Enemy e, V2 pos, ref bool elite)
         {
-            if (e.Def.IsBoss || !OnPath || Wave % 5 == 0)
+            if (e.Def.IsBoss)
                 return;
-            if (CurrentPath == PathId.SwarmFields && e.Def.Melee)
+            // A path's rules, or (the Expanding arena) the ground of the Floor room it comes in on.
+            PathId f = OnPath && Wave % 5 != 0 ? CurrentPath : FloorAt(pos);
+            if (f == PathId.None)
+                return;
+            if (f == PathId.SwarmFields && e.Def.Melee)
                 e.MaxHp *= 0.6f;
-            if (CurrentPath == PathId.FrozenLake)
+            if (f == PathId.FrozenLake)
                 e.Speed *= Paths.IceEnemySpeed;  // chilled by the ice
-            if (CurrentPath == PathId.EliteGauntlet && e.ParentId == 0)
+            if (f == PathId.EliteGauntlet && e.ParentId == 0)
                 elite = true;
         }
 
@@ -434,9 +438,12 @@ namespace Arena
         /// Host: spawn the path's patches during a wave, and apply their burns and heals.
         void TickPaths(float dt)
         {
-            bool fire = OnPathOf(PathId.BurningGrounds), heal = OnPathOf(PathId.Sanctuary);
+            float fireRoom = FloorShare(PathId.BurningGrounds), healRoom = FloorShare(PathId.Sanctuary);  // (Expanding: rooms with that floor)
+            bool fire = OnPathOf(PathId.BurningGrounds) || fireRoom > 0f, heal = OnPathOf(PathId.Sanctuary) || healRoom > 0f;
             if (State != MatchState.Fighting || (!fire && !heal))
                 return;
+            if (fire && heal && OnPath)
+                heal = false;  // (never both on a real path)
             patchSpawnT -= dt;
             if (patchSpawnT <= 0f)
             {
@@ -444,7 +451,10 @@ namespace Arena
                 int count = 0;
                 foreach (var pt in Patches.Values)
                     count++;
-                if (count < (fire ? Paths.FireMax : Paths.PoolMax))
+                // In a Floor room the cap shrinks with the room (a room a third of the hub's size gets a third of the patches).
+                float share = OnPath ? 1f : Math.Min(1f, fire ? fireRoom : healRoom);
+                int cap = Math.Max(1, (int)Math.Ceiling((fire ? Paths.FireMax : Paths.PoolMax) * share));
+                if (count < cap)
                     SpawnPatch(fire ? PatchKind.Fire : PatchKind.Heal);
             }
             patchTickT -= dt;
@@ -482,11 +492,28 @@ namespace Arena
         {
             // Fire often starts near someone, so it keeps you moving; pools appear anywhere open.
             V2 pos = RandomInArena(90f);
+            PathId floor = kind == PatchKind.Fire ? PathId.BurningGrounds : PathId.Sanctuary;
+            bool inRoom = !OnPath && ExpandingOn;  // (the Expanding arena: only inside rooms with that floor)
+            if (inRoom)
+            {
+                var spot = RandomInFloorRoom(floor, 90f);
+                if (!spot.HasValue)
+                    return;
+                pos = spot.Value;
+            }
             if (kind == PatchKind.Fire && rng.NextDouble() < 0.5 && Players.Count > 0)
             {
-                var list = new List<Player>(Players.Values);
-                var p = list[rng.Next(list.Count)];
-                pos = ClampToArena(p.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(60f, 240f), 60f);
+                var list = new List<Player>();
+                foreach (var pl in Players.Values)
+                    if (!inRoom || FloorAt(pl.Pos) == floor)
+                        list.Add(pl);
+                if (list.Count > 0)
+                {
+                    var p = list[rng.Next(list.Count)];
+                    var near = ClampToArena(p.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(60f, 240f), 60f);
+                    if (!inRoom || FloorAt(near) == floor)
+                        pos = near;
+                }
             }
             if (kind == PatchKind.Fire)
                 SpawnPatchAt(kind, pos, Paths.FireWarn, Paths.FireLife, Paths.FireR0, Paths.FireR1);

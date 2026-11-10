@@ -277,7 +277,7 @@ namespace Arena
             if (Has(RunMod.SwiftFoes))
                 e.Speed *= Modifiers.SwiftFoesSpeed;
             e.Speed *= D(DiffKnob.EnemySpeed);
-            ApplyPathToEnemy(e, ref elite);  // Paths.cs
+            ApplyPathToEnemy(e, pos, ref elite);  // Paths.cs
             e.Elite = elite;
             if (elite)
             {

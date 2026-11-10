@@ -83,7 +83,7 @@ namespace Arena
                         shelf.Add(u);
             while (shelf.Count < 4)
                 shelf.Add(-1);
-            var boss = BossForWave(Math.Max(5, PathFrom - 1));
+            var boss = BossForWave(ExpandingOn ? Math.Max(5, Wave - Wave % 5) : Math.Max(5, PathFrom - 1));  // (the Expanding arena: the last boss beaten)
             var legendaries = Upgrades.LegendaryOffer(rng, IsReaper(boss) ? EnemyType.TwinA : boss, p.Role, p.RoleAbility, p.Taken);
             shelf.Add(legendaries != null && legendaries.Length > 0 ? legendaries[rng.Next(legendaries.Length)] : -1);
             var mods = Upgrades.ModOffer(p.Role, p.RoleAbility, p.Taken);

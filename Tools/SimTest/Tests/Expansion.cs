@@ -294,3 +294,112 @@ static partial class Program
         Console.WriteLine("  rooms bought: " + g.Expanded.Count + ", purse " + g.Purse);
     }
 }
+
+static partial class Program
+{
+    // Room features (ExpansionGame.cs, Paths.cs, Shop.cs): Floor rooms run a path's rule inside the room only, pay its bonus,
+    // shop rooms are safe, drop gold and open the shop after the wave that follows a boss.
+    static void ExpandingFeaturesTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var pickRooms = typeof(Game).GetMethod("PickRooms", flags);
+        var spawnEnemyAt = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var randomSpot = typeof(Game).GetMethod("RoomsRandomSpot", flags);
+        var tickPaths = typeof(Game).GetMethod("TickPaths", flags);
+        var floorBonus = typeof(Game).GetMethod("FloorBonusAt", flags);
+
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+        Action Quiet = () =>
+        {
+            ((IList)typeof(Game).GetField("spawnQueue", flags).GetValue(g)).Clear();
+            ((IList)typeof(Game).GetField("squadQueue", flags).GetValue(g)).Clear();
+            foreach (var e in g.Enemies.Values) e.Hp = 0f;
+            foreach (var b in g.Bullets.Values.Where(b => Defs.IsEnemyShot(b.Kind)).ToList()) g.Bullets.Remove(b.Id);
+        };
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, NoPicks);
+        Quiet();
+
+        // A map with a shop room and one room of each floor we test, around the hub.
+        var built = new List<ExpansionRoom>();
+        Func<int, int, int, int, RoomKind, PathId, ExpansionRoom> add = (x, y, w, h, kind, floor) =>
+        {
+            string why;
+            var r = Expansion.Custom(built, x, y, w, h, out why);
+            if (!r.HasValue) throw new Exception("test map: " + why);
+            var room = r.Value; room.Kind = kind; room.Floor = floor;
+            built.Add(room);
+            return room;
+        };
+        add(1600, 300, 600, 300, RoomKind.Shop, PathId.None);                // 1: east of the hub
+        add(500, -600, 600, 600, RoomKind.Floor, PathId.BurningGrounds);     // 2: north
+        add(500, 900, 600, 600, RoomKind.Floor, PathId.FrozenLake);          // 3: south
+        add(-600, 300, 600, 300, RoomKind.Floor, PathId.BloodMoon);          // 4: west
+        add(1600, 600, 600, 300, RoomKind.Floor, PathId.EliteGauntlet);      // 5: south-east (touches the shop and the hub: a loop)
+        foreach (var gg in new[] { g, cg })
+        {
+            gg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+            gg.Expanded.AddRange(built);
+        }
+        pickRooms.Invoke(g, null);
+        Run(s, dt, 0.3f);
+        Check(g.RoomsOn && g.CurrentWorld.Areas.Length == 6 && g.HasShopRoom, "the map with a shop room and four floors is up");
+        V2 shopAt = g.CurrentWorld.Areas[1].Mid, fireAt = g.CurrentWorld.Areas[2].Mid, iceAt = g.CurrentWorld.Areas[3].Mid, bloodAt = g.CurrentWorld.Areas[4].Mid, eliteAt = g.CurrentWorld.Areas[5].Mid, hubAt = new V2(800f, 450f);
+        Check(g.FloorAt(fireAt) == PathId.BurningGrounds && g.FloorAt(iceAt) == PathId.FrozenLake && g.FloorAt(bloodAt) == PathId.BloodMoon && g.FloorAt(eliteAt) == PathId.EliteGauntlet && g.FloorAt(hubAt) == PathId.None && g.FloorAt(shopAt) == PathId.None,
+            "each Floor room knows its path's ground; the hub and the shop room have none");
+        Check((float)floorBonus.Invoke(g, new object[] { fireAt }) == Paths.Bonus(Paths.Get(PathId.BurningGrounds).Danger) && (float)floorBonus.Invoke(g, new object[] { hubAt }) == 1f && Paths.Bonus(Paths.Get(PathId.BurningGrounds).Danger) > 1f,
+            "kills in a Floor room pay its path's bonus, kills in the hub don't");
+        var me = g.Players[1];
+        me.Pos = me.Disp = shopAt;
+        Check(g.InShopRoom(me), "standing in the shop room counts as being in it");
+        me.Pos = me.Disp = hubAt;
+        Check(!g.InShopRoom(me), "...and the hub doesn't");
+
+        // Spawns: none in the shop room, more in the mix floors, always inside a room.
+        int inShop = 0, inElite = 0, inFloors = 0, total = 600;
+        for (int i = 0; i < total; i++)
+        {
+            V2 at = (V2)randomSpot.Invoke(g, new object[] { 20f });
+            var a = g.CurrentWorld.Areas[g.CurrentWorld.AreaAt(at)];
+            if (a.Kind == RoomKind.Shop) inShop++;
+            if (a.Kind == RoomKind.Floor && a.Floor == PathId.EliteGauntlet) inElite++;
+            if (a.Kind == RoomKind.Floor) inFloors++;
+        }
+        Check(inShop == 0 && inElite > 0 && inFloors > 0, "no enemy comes in to the shop room, and the Floor rooms get their share (" + inFloors + "/" + total + ")");
+
+        // Floor rules run in their room only: ice chills enemies there, the Elite floor makes them elite, the hub does neither.
+        var inIce = (Enemy)spawnEnemyAt.Invoke(g, new object[] { EnemyType.Grunt, iceAt, 0f, 0, false });
+        var inHub = (Enemy)spawnEnemyAt.Invoke(g, new object[] { EnemyType.Grunt, hubAt, 0f, 0, false });
+        var inElite2 = (Enemy)spawnEnemyAt.Invoke(g, new object[] { EnemyType.Grunt, eliteAt, 0f, 0, false });
+        Check(Math.Abs(inIce.Speed - inHub.Speed * Paths.IceEnemySpeed) < 0.01f && !inHub.Elite && inElite2.Elite, "a foe in the ice room is chilled, one in the Elite room is elite, one in the hub is neither");
+        Quiet();
+
+        // Patches: the Burning room burns (inside it only), and no other room does.
+        g.State = MatchState.Fighting;
+        for (int i = 0; i < 60; i++) tickPaths.Invoke(g, new object[] { 1f });
+        var fires = g.Patches.Values.Where(pt => pt.Kind == PatchKind.Fire).ToList();
+        Check(fires.Count > 0 && fires.All(pt => g.FloorAt(pt.Pos) == PathId.BurningGrounds) && fires.Count <= (int)Math.Ceiling(Paths.FireMax * 0.25f), "fire patches burn inside the Burning room only (" + fires.Count + ")");
+        Check(g.Patches.Values.All(pt => pt.Kind == PatchKind.Fire), "no healing pools without a Sanctuary room");
+
+        // Gold and the shop: kills drop gold with a shop room; the wave after a boss ends with the shop open; walking in and shopping closes it.
+        foreach (var p in g.Players.Values) p.Gold = 0;
+        for (int i = 0; i < 4; i++) spawnEnemyAt.Invoke(g, new object[] { EnemyType.Grunt, hubAt + new V2(30f * i, 0f), 0f, 0, false });
+        Quiet();
+        Run(s, dt, 0.5f);
+        Check(g.Players.Values.All(p => p.Gold > 0), "kills drop gold for everyone while the map has a shop room (" + g.Players[1].Gold + ")");
+        Quiet();
+        Run(s, dt, 30f, () => g.State == MatchState.Intermission, NoPicks);
+        Check(g.State == MatchState.Intermission && g.ShopOpen && cg.ShopOpen, "the wave after a boss ends with the shop open, on both screens");
+        Check(g.Players.Values.All(p => p.Shelf.Any(u => u >= 0)), "everyone has a shelf");
+        host.Game.Shop(ShopAction.Done, 1);
+        client.Game.Shop(ShopAction.Done, 1);
+        Run(s, dt, 0.5f);
+        Check(!g.ShopOpen && !cg.ShopOpen, "everyone clicking Done closes the shop");
+    }
+}
