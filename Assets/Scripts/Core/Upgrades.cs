@@ -61,6 +61,7 @@ namespace Arena
         public float DmgMult = 1f, FireRateMult = 1f, SpeedMult = 1f, CdMult = 1f, DamageTaken = 1f;
         public float BonusHp, Regen;
         public int ExtraShots, Pierce;
+        public int VectorCap;  // the Expanding arena: vectors you can hold beyond the base (Docs/VectorBuilding.md)
         public int Fan;  // Barrage: extra copies of every shot, fanned out to the sides
         public int RoleCharges, ExtraCharges;
         public float BarrierRadiusMult = 1f, BarrierBonusTime, BarrierCapacityMult = 1f;
@@ -122,6 +123,8 @@ namespace Arena
     {
         public string Name, Desc;
         public int RerollsNow;  // picking it also gives this many rerolls on the spot (Reroll Cache)
+        public int VectorsNow;  // ...and this many vectors (Architect; the Expanding arena)
+        public bool NeedsExpanding;  // only offered in the Expanding arena (the vector cards)
         public Rarity Rarity;
         public int MaxStacks = 99;
         public Role? Role;                          // only offered to this role
@@ -259,7 +262,7 @@ namespace Arena
         }
 
 
-        public static readonly UpgradeDef[] All = WithMilestones(WithClassAbilities(new[]
+        public static readonly UpgradeDef[] All = WithBuilders(WithMilestones(WithClassAbilities(new[]
         {
             // Common: small stat boosts
             new UpgradeDef { Rarity = Rarity.Common, Name = "Sharpened Rounds", Desc = "+10% damage", Apply = s => s.DmgMult += 0.1f },
@@ -435,7 +438,7 @@ namespace Arena
                 Apply = s => s.MirrorChance = Math.Min(0.75f, s.MirrorChance + 0.25f) },
             new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Velocity Rounds", Desc = "Shots fly 30% faster and farther and deal 25% more damage",
                 Apply = s => { s.ShotSpeedMult += 0.3f; s.DmgMult += 0.25f; } },
-        }));
+        })));
 
         /// After a boss: every weapon mod you can still take, to choose from.
         public static int[] ModOffer(Role role, AbilityId roleAbility, List<int> taken)
@@ -543,6 +546,18 @@ namespace Arena
             return all.ToArray();
         }
 
+        /// The Expanding arena's vector cards (Docs/VectorBuilding.md), added after the milestones so every older upgrade keeps its number.
+        static UpgradeDef[] WithBuilders(UpgradeDef[] before)
+        {
+            var all = new List<UpgradeDef>(before);
+            all.AddRange(new[]
+            {
+                new UpgradeDef { Rarity = Rarity.Uncommon, MaxStacks = 4, NeedsExpanding = true, Name = "Deep Inkwell", Desc = "Hold 10 more vectors (the Expanding arena)", Apply = s => s.VectorCap += 10 },
+                new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 3, NeedsExpanding = true, Name = "Architect", Desc = "Hold 20 more vectors, and gain 10 now (the Expanding arena)", VectorsNow = 10, Apply = s => s.VectorCap += 20 },
+            });
+            return all.ToArray();
+        }
+
         /// The milestone pool and the Milestone Compass, added last so every older upgrade keeps its number.
         static UpgradeDef[] WithMilestones(UpgradeDef[] before)
         {
@@ -563,11 +578,11 @@ namespace Arena
         }
 
         /// A milestone pick: up to three cards from the milestone pool (not the ones you've maxed out), or null if none are left.
-        public static int[] MilestoneOffer(Random rng, Role role, AbilityId roleAbility, List<int> taken)
+        public static int[] MilestoneOffer(Random rng, Role role, AbilityId roleAbility, List<int> taken, bool expanding = false)
         {
             var ids = new List<int>();
             for (int id = 0; id < All.Length; id++)
-                if (All[id].Rarity == Rarity.Milestone && Available(id, role, roleAbility, taken))
+                if (All[id].Rarity == Rarity.Milestone && Available(id, role, roleAbility, taken, null, expanding))
                     ids.Add(id);
             if (ids.Count == 0)
                 return null;
@@ -600,11 +615,13 @@ namespace Arena
         }
 
         /// Can this upgrade be offered to a player with these picks and role?
-        public static bool Available(int id, Role role, AbilityId roleAbility, List<int> taken, WeaponId? weapon = null)
+        public static bool Available(int id, Role role, AbilityId roleAbility, List<int> taken, WeaponId? weapon = null, bool expanding = false)
         {
             var u = All[id];
             if (u.Unoffered)
                 return false;
+            if (u.NeedsExpanding && !expanding)
+                return false;  // the vector cards are for the Expanding arena
             if (u.RequiresWeapon.HasValue && u.RequiresWeapon.Value != weapon)
                 return false;
             if (u.Role.HasValue && u.Role.Value != role)
@@ -628,14 +645,14 @@ namespace Arena
         }
 
         /// One upgrade of this rarity this player could take (falling back to lower rarities), or -1. (Chests, Props.cs.)
-        public static int RandomOfRarity(Random rng, Rarity want, Role role, AbilityId roleAbility, List<int> taken, WeaponId? weapon = null)
+        public static int RandomOfRarity(Random rng, Rarity want, Role role, AbilityId roleAbility, List<int> taken, WeaponId? weapon = null, bool expanding = false)
         {
             var candidates = new List<int>();
             for (int r = (int)want; r >= 0; r--)
             {
                 candidates.Clear();
                 for (int id = 0; id < All.Length; id++)
-                    if ((int)All[id].Rarity == r && Available(id, role, roleAbility, taken, weapon))
+                    if ((int)All[id].Rarity == r && Available(id, role, roleAbility, taken, weapon, expanding))
                         for (int k = 0; k < All[id].Weight; k++)
                             candidates.Add(id);
                 if (candidates.Count > 0)
@@ -646,18 +663,18 @@ namespace Arena
 
         /// Roll three different upgrades. Higher levels make rare cards a bit likelier.
         /// A challenge room's prize: three cards, each rare or very rare (Challenges.cs).
-        public static int[] PrizeOffer(Random rng, Role role, AbilityId roleAbility, List<int> taken, WeaponId? weapon = null) =>
-            RollWeighted(rng, role, roleAbility, taken, new[] { 0f, 0f, 55f, 45f }, 3, weapon);
+        public static int[] PrizeOffer(Random rng, Role role, AbilityId roleAbility, List<int> taken, WeaponId? weapon = null, bool expanding = false) =>
+            RollWeighted(rng, role, roleAbility, taken, new[] { 0f, 0f, 55f, 45f }, 3, weapon, expanding);
 
-        public static int[] RollOffer(Random rng, Role role, AbilityId roleAbility, List<int> taken, int level, WeaponId? weapon = null)
+        public static int[] RollOffer(Random rng, Role role, AbilityId roleAbility, List<int> taken, int level, WeaponId? weapon = null, bool expanding = false)
         {
             var st = Compute(taken);  // Fortune (rarer cards) and Wide Choice (more cards) are milestone upgrades
             float veryRare = Math.Min(10f, 3f + level * 0.5f) * (1f + st.RarityLuck);
             float rare = Math.Min(22f, 11f + level * 0.8f) * (1f + st.RarityLuck);
-            return RollWeighted(rng, role, roleAbility, taken, new[] { 55f, 28f * (1f + st.RarityLuck), rare, veryRare }, 3 + Math.Min(2, st.OfferExtra), weapon);
+            return RollWeighted(rng, role, roleAbility, taken, new[] { 55f, 28f * (1f + st.RarityLuck), rare, veryRare }, 3 + Math.Min(2, st.OfferExtra), weapon, expanding);
         }
 
-        static int[] RollWeighted(Random rng, Role role, AbilityId roleAbility, List<int> taken, float[] weights, int count = 3, WeaponId? weapon = null)
+        static int[] RollWeighted(Random rng, Role role, AbilityId roleAbility, List<int> taken, float[] weights, int count = 3, WeaponId? weapon = null, bool expanding = false)
         {
             var offer = new int[count];
             var used = new List<int>();
@@ -677,7 +694,7 @@ namespace Arena
                     int want = r >= 0 ? r : -r;
                     var candidates = new List<int>();
                     for (int id = 0; id < All.Length; id++)
-                        if ((int)All[id].Rarity == want && !used.Contains(id) && Available(id, role, roleAbility, taken, weapon))
+                        if ((int)All[id].Rarity == want && !used.Contains(id) && Available(id, role, roleAbility, taken, weapon, expanding))
                             for (int k = 0; k < All[id].Weight; k++)  // class ability cards count triple
                                 candidates.Add(id);
                     if (candidates.Count > 0)

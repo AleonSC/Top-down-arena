@@ -36,7 +36,7 @@ namespace Arena
     /// parent), rooms never overlap or touch except through their own door, and it stops growing at a size cap.
     public static class Expansion
     {
-        public const int MaxRooms = 12;          // bought rooms (the hub is extra)
+        public const int MaxRooms = 16;          // bought rooms (the hub is extra)
         public const int MaxWidth = 6400, MaxHeight = 4000;  // the whole map's bounding box
         public const int Step = 100;             // rooms slide along a wall in steps of this
         public const int MinDoorRun = 300;       // a room must share at least this much wall with its parent (a door, plus a margin)
@@ -296,7 +296,7 @@ namespace Arena
                 {
                     Name = a == 0 ? "Hub" : rooms[a - 1].Shape + (kind == RoomKind.Shop ? " (shop)" : kind == RoomKind.Floor ? " (" + rooms[a - 1].Floor + ")" : ""),
                     Min = new V2(x0, y0), Max = new V2(x1, y1), Hub = a == 0, Hall = a > 0 && Math.Min(x1 - x0, y1 - y0) <= 300,
-                    Kind = kind, Floor = a == 0 ? PathId.None : rooms[a - 1].Floor,
+                    Kind = kind, Floor = a == 0 ? PathId.None : rooms[a - 1].Floor, Owner = a == 0 ? 0 : rooms[a - 1].Owner,
                 };
                 // Doors to every earlier room it shares enough wall with (its parent is always one of them).
                 for (int b = 0; b < a; b++)

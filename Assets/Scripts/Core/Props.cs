@@ -623,7 +623,7 @@ namespace Arena
             var want = roll < 0.2 ? Rarity.Uncommon : roll < 0.65 ? Rarity.Rare : Rarity.VeryRare;
             if (want == Rarity.Uncommon && HasPerk(p, PerkId.Contraband))
                 want = Rarity.Rare;  // Contraband: rare or better
-            return Upgrades.RandomOfRarity(rng, want, p.Role, p.RoleAbility, p.Taken, p.Weapon.Id);
+            return Upgrades.RandomOfRarity(rng, want, p.Role, p.RoleAbility, p.Taken, p.Weapon.Id, ExpandingOn);
         }
 
         /// Host: does the wave have to wait (an unopened chest, or an item nobody has dealt with)?
@@ -711,7 +711,7 @@ namespace Arena
                 return;  // (a little slack for the client's position arriving late)
             Loots.Remove(lootId);
             var u = Upgrades.All[l.Upgrade];
-            if (take && Upgrades.Available(l.Upgrade, p.Role, p.RoleAbility, p.Taken, p.Weapon.Id))
+            if (take && Upgrades.Available(l.Upgrade, p.Role, p.RoleAbility, p.Taken, p.Weapon.Id, ExpandingOn))
             {
                 Recorder?.Picked(this, p, new[] { l.Upgrade }, l.Upgrade, "chest");
                 GrantUpgrade(playerId, l.Upgrade);

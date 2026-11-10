@@ -1,6 +1,6 @@
 # Vector building: the Expanding arena without a purse
 
-Status: **steps 1-2 built** (the vector economy; proposals, the vote with random ties, the purse and offers gone); steps 3-5 not started. Decided with the owner on Nov 10, 2026. It replaces the
+Status: **all five steps built** (vectors, proposals and the vote, drawer colours, cap cards, a balance pass). Decided with the owner on Nov 10, 2026. It replaces the
 purse and the random room offers of [`ExpandingArena.md`](ExpandingArena.md) (steps 1-5, all built and merged) with per-player
 vectors; **the team still votes on rooms**. The map builder, the draw tool, loops, walls, sync of the room list and the
 camera/minimap/spawn work all stay.
@@ -28,9 +28,9 @@ random offers. Boss kills refill the stock, upgrades raise how much you can hold
   closet along the hub's top wall: 20 - 6 = **14**; a 3 x 12 hallway standing off it: 30 - 3 = **27**; a box that touches two
   rooms is cheaper by the second shared wall (loops pay).
 - **Placement**: the existing `Expansion.Custom` rules (100 px grid, sides 300-1200, at most 96 tiles, shares at least 300 px of
-  wall with a room, no overlap, 12 rooms, the size cap). Rooms sharing a door's width of wall get a door.
-- **Stock**: start 25, cap 40 (each cap upgrade +15). A cleared boss wave refills everyone to the cap and adds 10 on top (kept
-  until spent; ordinary gains never push you over the cap). Each other cleared wave +6; every 25 kills +1. Numbers come from
+  wall with a room, no overlap, 16 rooms, the size cap). Rooms sharing a door's width of wall get a door.
+- **Stock** (tuned in step 5): start 15, cap 25. A cleared boss wave refills everyone to the cap and adds 5 on top (kept
+  until spent; ordinary gains never push you over the cap). Each other cleared wave +2; every 25 kills +1. Numbers come from
   play-testing: a player should be able to afford about one decent room a round.
 - **Proposing**: in the intermission each player has a chip "Draw rooms" and the draw screen (as today) with a vector meter and the
   live cost. A drawing becomes your proposal (one per player; a newer one replaces it). It is checked when you draw it and again
@@ -72,6 +72,41 @@ random offers. Boss kills refill the stock, upgrades raise how much you can hold
 - **UI**: chip "Build rooms" (`ExpandChipUp`), the window with proposal cards (who drew it, cost, votes), "Draw a room / Redraw
   your room", "No room", "Decide later"; the draw screen shows the live vector cost. Previews: `EXPANDVOTE=<rooms>` (window),
   `EXPANDVOTE=<rooms> EXPANDCHIP=1` (chip), `EXPANDDRAW=x,y,w,h`.
+
+## Step 3 (built, no protocol change)
+
+- `RoomArea.Owner` (from `ExpansionRoom.Owner`, which already rides in `Msg.ExpandState`): built rooms show their drawer's class colour
+  as a thin inset line and tint in the arena (`DrawRoomsFloor`), and as the fill and frame on the minimap.
+- While a round is open the minimap grows to include the proposals and draws them as pulsing ghosts in their drawers' colours; the
+  draw screen shows everyone's proposals the same way, with the drawer's name and cost.
+- Proposal cards already showed who drew them, the cost and "<name> has N" (step 2). Previews: `EXPANDMAP=<rooms> EXPANDPROP=1
+  ZOOM=0.5` (5th arg 2 players), `EXPANDDRAW`.
+
+## Step 4 (built, protocol 250)
+
+- Two cards at the end of `Upgrades.All` (`WithBuilders`, so every older upgrade keeps its number): **Deep Inkwell** (uncommon, +10 cap, 4
+  stacks) and **Architect** (milestone, +20 cap and `VectorsNow` 10, 3 stacks). `Stats.VectorCap` carries the bonus; `Recalc` sets
+  `Player.VectorCap = VectorCapBase + Stats.VectorCap`; `GrantUpgrade` gives `VectorsNow` (up to the new cap) in the Expanding arena.
+- `UpgradeDef.NeedsExpanding`: `Available`, `RollOffer`, `PrizeOffer`, `MilestoneOffer`, `RandomOfRarity` take an `expanding` flag
+  (the host passes `ExpandingOn` for level-up offers, challenge prizes, milestone picks, chests and the shop), so the cards never turn
+  up in the other arenas.
+- The boss refill (step 1) already fills the raised cap. Tests: `ExpandingVectorsTest`.
+
+## Step 5 (built, no protocol change): balance
+
+Report: `run.sh 1 1 vecbal [last wave] [seed] [1 = skip the Classic run]` (a duo of Good bots; `VECSCALE=<rate>` tries another crowd rate).
+First numbers (start 25, cap 40, +6 a wave, boss +10, 12 rooms, crowd up to 2x): the duo built **11 rooms in 12 rounds** (the map
+was full by wave 14 of 50), 10 of 24 player-rounds opened at the cap (a lot of income wasted), the crowd reached 2.0x, and the
+bots died at **wave 13** (Classic: wave 26+).
+
+Changes: start **15**, cap **25**, wave gain **2**, boss bonus **5**, kills +1 per 25 (as before), `MaxRooms` **16**, crowd
+`1 + 0.15 x (floor area / hub area - 1)` up to **1.4x** (was 0.35 and 2.0). Result (seeds 1 and 2): about **one room every two
+rounds** (11 built by wave 19; 7 by wave 13), 15 of 40 and 7 of 26 player-rounds at the cap, the crowd 1.4x at most, the bots
+reaching wave **21** (seed 1) and dying at wave **14** (seed 2). Even with no crowd scaling at all the bots died at waves 15-16, so most of
+the extra danger is the map's shape (long hallways, dead-end rooms, enemies spread out), not the head count.
+
+Not done: Expanding is still harder for bots than Classic (they die around wave 14-21 against Classic's 26+); the owner's play-tests
+should say if people feel it too. Shop and Floor rooms stay dormant until the owner decides about bringing kinds back.
 
 ## Steps
 

@@ -30,9 +30,18 @@ namespace Arena
                 if (a.Hub || a.Vault && !vault)
                     continue;
                 var rs = RoomStateOf(i);
-                var tint = a.Vault ? VaultTint : a.Kind == RoomKind.Shop ? ShopTint : a.Kind == RoomKind.Floor ? Paths.Get(a.Floor).Accent.WithAlpha(0.07f)
+                var tint = a.Owner != 0 && a.Kind == RoomKind.Combat ? OwnerInk(a.Owner).WithAlpha(0.06f) : a.Vault ? VaultTint : a.Kind == RoomKind.Shop ? ShopTint : a.Kind == RoomKind.Floor ? Paths.Get(a.Floor).Accent.WithAlpha(0.07f)
                     : a.Hall ? HallTint : !Rooms.RoomByRoom ? OpenRoomTint : rs != null && rs.Cleared ? ClearTint : RoomTint;
                 FillRect(a.Min.X, a.Min.Y, a.Size.X, a.Size.Y, tint);
+                if (a.Owner != 0)  // a room somebody drew: a thin line of their colour just inside its walls
+                {
+                    var oi = OwnerInk(a.Owner).WithAlpha(0.35f);
+                    float ins = 18f;
+                    Line(new V2(a.Min.X + ins, a.Min.Y + ins), new V2(a.Max.X - ins, a.Min.Y + ins), 2f, oi);
+                    Line(new V2(a.Min.X + ins, a.Max.Y - ins), new V2(a.Max.X - ins, a.Max.Y - ins), 2f, oi);
+                    Line(new V2(a.Min.X + ins, a.Min.Y + ins), new V2(a.Min.X + ins, a.Max.Y - ins), 2f, oi);
+                    Line(new V2(a.Max.X - ins, a.Min.Y + ins), new V2(a.Max.X - ins, a.Max.Y - ins), 2f, oi);
+                }
             }
             if (game.ArenaKind == ArenaLayout.Expanding)
             {
@@ -164,6 +173,12 @@ namespace Arena
             bool vault = game.VaultOn;
             var wd = game.CurrentWorld;
             V2 lo = wd.MinFor(vault), hi = wd.Max;
+            if (game.ExpandOpen)  // the open round's proposals count too
+                foreach (var q in game.ExpandProposals)
+                {
+                    lo = new V2(Mathf.Min(lo.X, q.X), Mathf.Min(lo.Y, q.Y));
+                    hi = new V2(Mathf.Max(hi.X, q.X + q.W), Mathf.Max(hi.Y, q.Y + q.H));
+                }
             float k = Mathf.Min(RoomMapW / (hi.X - lo.X), RoomMapMaxH / (hi.Y - lo.Y)), mh = (hi.Y - lo.Y) * k, mw = (hi.X - lo.X) * k;
             float ox = W - RoomMapRight - mw, oy = RoomMapTop;
             System.Func<V2, V2> M = p => new V2(ox + (p.X - lo.X) * k, oy + (p.Y - lo.Y) * k);
@@ -177,7 +192,8 @@ namespace Arena
                     continue;
                 var rs = RoomStateOf(i);
                 Rgba fill, line;
-                if (a.Kind == RoomKind.Shop) { fill = ShopTint.WithAlpha(0.22f); line = DoorGold; }
+                if (a.Owner != 0 && a.Kind == RoomKind.Combat) { fill = OwnerInk(a.Owner).WithAlpha(0.18f); line = OwnerInk(a.Owner).WithAlpha(0.85f); }
+                else if (a.Kind == RoomKind.Shop) { fill = ShopTint.WithAlpha(0.22f); line = DoorGold; }
                 else if (a.Kind == RoomKind.Floor) { fill = Paths.Get(a.Floor).Accent.WithAlpha(0.2f); line = Paths.Get(a.Floor).Accent; }
                 else if (a.Hub) { fill = new Rgba(0.4f, 0.64f, 1f, 0.14f); line = new Rgba(0.4f, 0.64f, 1f, 0.75f); }
                 else if (a.Hall) { fill = new Rgba(0.4f, 0.64f, 1f, 0.06f); line = new Rgba(0.4f, 0.64f, 1f, 0.35f); }
@@ -190,6 +206,15 @@ namespace Arena
                 RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, fill);
                 RoomMapFrame(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, 1f, line);
             }
+            if (game.ExpandOpen)  // proposals as ghosts in their drawer's colour, pulsing
+                foreach (var q in game.ExpandProposals)
+                {
+                    V2 q0 = M(new V2(q.X, q.Y)), q1 = M(new V2(q.X + q.W, q.Y + q.H));
+                    var qi = OwnerInk(q.Owner);
+                    float pulse = 0.55f + 0.45f * Mathf.Sin(Time.unscaledTime * 3f);
+                    RoomMapRect(q0.X, q0.Y, q1.X - q0.X, q1.Y - q0.Y, qi.WithAlpha(0.16f * pulse));
+                    RoomMapFrame(q0.X, q0.Y, q1.X - q0.X, q1.Y - q0.Y, 1.5f, qi.WithAlpha(0.95f));
+                }
             for (int i = 0; i < wd.Doors.Length; i++)
             {
                 if (!wd.DoorUp(i, vault))

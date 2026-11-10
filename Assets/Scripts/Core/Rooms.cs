@@ -9,6 +9,7 @@ namespace Arena
         public string Name;
         public V2 Min, Max;
         public bool Hub, Hall, Vault;
+        public int Owner;       // the player who drew it (the Expanding arena; 0: none)
         public RoomKind Kind;   // what the room does (Expansion.cs; the Wings rooms are all Combat)
         public PathId Floor;    // a Floor room's path (its ground and hazards); None otherwise
         public V2 Mid => (Min + Max) * 0.5f;

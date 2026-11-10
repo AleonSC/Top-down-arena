@@ -11,7 +11,7 @@ namespace Arena
     public partial class Game
     {
         /// How much more a bigger map adds to a wave's enemies: 1 + this x (floor area / hub area - 1), up to MaxExpandScale.
-        public const float ExpandScaleRate = 0.35f, MaxExpandScale = 2f;
+        public static float ExpandScaleRate = 0.15f, MaxExpandScale = 1.4f;  // (static, not const: the balance report tries others)
 
         /// The rooms built so far, in order (area 1, 2, ...).
         public readonly List<ExpansionRoom> Expanded = new List<ExpansionRoom>();
@@ -55,7 +55,7 @@ namespace Arena
         /// Each player's drawing budget: 1 vector = 1 tile of new wall (Expansion.Cost). Start with VectorStart, hold up to VectorCap
         /// (VectorCapBase for now), +VectorWaveGain for each cleared wave, +1 every VectorKillEvery kills, and a cleared boss wave
         /// refills everyone to the cap and VectorBossBonus on top.
-        public const int VectorStart = 25, VectorCapBase = 40, VectorWaveGain = 6, VectorBossBonus = 10, VectorKillEvery = 25;
+        public const int VectorStart = 15, VectorCapBase = 25, VectorWaveGain = 2, VectorBossBonus = 5, VectorKillEvery = 25;
 
         /// Host: gains stop at the cap (a stock already above it, from a boss, is left alone).
         void AddVectors(Player p, int n)
@@ -72,7 +72,7 @@ namespace Arena
             bool boss = BossNow;
             foreach (var p in Players.Values)
             {
-                p.VectorCap = VectorCapBase;
+                p.VectorCap = VectorCapBase + p.Stats.VectorCap;
                 if (boss)
                     p.Vectors = Math.Max(p.Vectors, p.VectorCap + VectorBossBonus);
                 else

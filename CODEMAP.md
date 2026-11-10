@@ -322,6 +322,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 | Power stacking (diminishing returns, wounds) | `Upgrades.cs` (`Compute`, `CopyStrength`), `Combat.cs` (`Player.Wound` in `Damage`, `HealCap` in every heal), `RunStats.cs` (`Heal`), `HealthBars.cs` (`DrawWound`), `HudPicker.cs` (`UpgradeNote`), `Tools/SimTest/Tests/Stacking.cs` (suite `stacking`); Docs/PowerStacking.md |
 | The boss between waves (BossSlot, BossNow/BossNext, negative start wave) | `Hunts.cs`, `Waves.cs` (`BossStartsNext`), `GameNet.cs` (snapshot), `SaveData.cs`/`RunSaves.cs` (`slot`), `DevTools.cs` (`DevJumpToWave(n, true)`), `Tools/SimTest/Tests/BossSlot.cs` (suite `bossslot`) |
 | Rooms vs Classic balance (bots) | `Tools/SimTest/Tests/ArenaBalance.cs` (report `arenabal`) |
+| Expanding arena economy (bots) | `Tools/SimTest/Tests/VectorBalance.cs` (report `vecbal`: vectors, proposals, rooms built per round) |
 | Rooms arena (side rooms, hallways, doors) | `Rooms.cs` (`RoomsOn`, `ArenaMin` in `Paths.cs` grows to the world, `Walled`), `LayoutRules.cs` (`SteerDir`), `CameraZoom.cs` (`RoomsFocus`), `RoomsLook.cs`, `Tools/SimTest/Tests/RoomsArena.cs` (suite `wings`) |
 | Arena layouts (walls, edge gates) | `Layouts.cs` (floor plans), `LayoutRules.cs` (pick per cycle, `PushOutOfSolids`, `SolidStops`, spawn through gates, `LayoutDir` steering), `LayoutLook.cs`, `Tools/SimTest/Tests/Layouts.cs` |
 | Paths, challenge rooms, props | `Paths.cs`/`PathsUi.cs`, `Challenges.cs`/`ChallengeLook.cs`, `Props.cs`/`PropsLook.cs` |

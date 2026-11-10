@@ -123,6 +123,9 @@ static partial class Program
         Check(Expansion.Cost(none, 500, -1200, 300, 1200) == 27, "a 3 x 12 hallway standing off the hub costs 30 less the 3 it shares: 27 (" + Expansion.Cost(none, 500, -1200, 300, 1200) + ")");
         Check(Expansion.Cost(withEast, under.Value) == 9, "a box that touches two rooms costs less again: 18 less 3 and 6 = 9 (" + Expansion.Cost(withEast, under.Value) + ")");
         Check(Expansion.Cost(none, 500, -400, 600, 400) < Expansion.Cost(none, 500, -400, 1200, 400), "a bigger room costs more");
+        var owned = east; owned.Owner = 2;
+        var ownedWorld = Expansion.Build(new List<ExpansionRoom> { owned });
+        Check(ownedWorld.Areas[1].Owner == 2 && ownedWorld.Areas[0].Owner == 0, "a built room remembers who drew it (the hub nobody)");
     }
 
     // The Expanding arena in a run (ExpansionGame.cs): the Arena setting, the purse, the vote on the offer, the bought
@@ -486,6 +489,31 @@ static partial class Program
         Check(p1.Vectors == p1.VectorCap + Game.VectorBossBonus, "ordinary gains leave a stock above the cap alone");
         Run(s, dt, 0.5f);
         Check(cg.Players[1].Vectors == p1.Vectors && cg.Players[2].Vectors == g.Players[2].Vectors && cg.Players[1].VectorCap == p1.VectorCap, "the client sees everyone's vectors");
+        // The cap cards (Core/Upgrades.cs): offered only in the Expanding arena, they raise the cap; Architect also gives vectors now.
+        int inkwell = Array.FindIndex(Upgrades.All, u => u.Name == "Deep Inkwell"), architect = Array.FindIndex(Upgrades.All, u => u.Name == "Architect");
+        Check(inkwell >= 0 && architect > inkwell && architect == Upgrades.All.Length - 1 && Upgrades.All[inkwell].NeedsExpanding && Upgrades.All[architect].NeedsExpanding, "the two vector cards are the last upgrades, so every older one keeps its number");
+        Check(!Upgrades.Available(inkwell, g.Players[1].Role, g.Players[1].RoleAbility, new List<int>()) && Upgrades.Available(inkwell, g.Players[1].Role, g.Players[1].RoleAbility, new List<int>(), null, true), "a vector card is only available in the Expanding arena");
+        var rolls = new Random(5);
+        int offeredPlain = 0, offeredExpanding = 0;
+        for (int i = 0; i < 400; i++)
+        {
+            foreach (int u in Upgrades.RollOffer(rolls, g.Players[1].Role, g.Players[1].RoleAbility, new List<int>(), 1 + i % 20))
+                offeredPlain += Upgrades.All[u].NeedsExpanding ? 1 : 0;
+            foreach (int u in Upgrades.RollOffer(rolls, g.Players[1].Role, g.Players[1].RoleAbility, new List<int>(), 1 + i % 20, null, true))
+                offeredExpanding += Upgrades.All[u].NeedsExpanding ? 1 : 0;
+        }
+        Check(offeredPlain == 0 && offeredExpanding > 0, "level-up offers hold a vector card only in the Expanding arena (" + offeredExpanding + " of 1200 cards)");
+        p1.Vectors = 5;
+        g.GrantUpgrade(1, inkwell);
+        Check(p1.VectorCap == Game.VectorCapBase + 10 && p1.Vectors == 5, "Deep Inkwell raises the cap by 10 and gives nothing now");
+        g.GrantUpgrade(1, architect);
+        Check(p1.VectorCap == Game.VectorCapBase + 30 && p1.Vectors == 15, "Architect raises it by 20 more and gives 10 vectors now (" + p1.VectorCap + ", " + p1.Vectors + ")");
+        Run(s, dt, 0.6f);
+        Check(cg.Players[1].VectorCap == p1.VectorCap && cg.Players[1].Vectors == p1.Vectors, "the client sees the new cap");
+        g.Wave = 10;
+        grantWave.Invoke(g, null);
+        Check(p1.Vectors == p1.VectorCap + Game.VectorBossBonus, "a boss refill fills the raised cap");
+        g.Wave = 6;
         g.Diff.Set(DiffKnob.ArenaExpanding, 0f);
         p1.Vectors = 5;
         grantWave.Invoke(g, null);

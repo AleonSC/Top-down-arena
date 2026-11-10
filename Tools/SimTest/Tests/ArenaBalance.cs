@@ -15,14 +15,25 @@ static partial class Program
         public int Downs, Samples;
     }
 
-    static Dictionary<int, ArenaWave> PlayArena(float dt, bool rooms, int lastWave, int seed, out string ending)
+    sealed class ArenaRound
     {
+        public int Wave, Rooms, Proposals, BuiltCost, BuiltOwner;
+        public int[] Vectors, Caps;
+        public float Scale;
+    }
+
+    static List<ArenaRound> arenaRounds = new List<ArenaRound>();  // the Expanding arena's building rounds, filled by PlayArena(expanding: true)
+
+    static Dictionary<int, ArenaWave> PlayArena(float dt, bool rooms, int lastWave, int seed, out string ending, bool expanding = false)
+    {
+        arenaRounds = new List<ArenaRound>();
         Game.SeedForTests(seed);
         var host = new Session { AutoStart = 2, StartWave = 1 };
         host.Game.Bot = true; host.Game.BotLevel = BotSkill.Good; host.Game.BotRerolls = false;
         int port = nextPort++;
         host.Host(port, "A", Role.Tank, 0);
-        host.Diff.Set(DiffKnob.ArenaRooms, rooms ? 1f : 0f);  // (after Host: hosting starts from the saved lobby)
+        host.Diff.Set(DiffKnob.ArenaRooms, rooms && !expanding ? 1f : 0f);  // (after Host: hosting starts from the saved lobby)
+        host.Diff.Set(DiffKnob.ArenaExpanding, expanding ? 1f : 0f);
         var c = new Session(); c.Game.Bot = true; c.Game.BotLevel = BotSkill.Good; c.Game.BotRerolls = false;
         c.Join("127.0.0.1", port, "B", Role.Dps, 0);
         WaitForGame(host, c, dt);
@@ -35,10 +46,31 @@ static partial class Program
         var downSeen = new Dictionary<int, bool>();
         var taken0 = new Dictionary<int, float>();
         var downs0 = new Dictionary<int, int>();
+        ArenaRound openRound = null;
+        int roomsBefore = 0, peakProps = 0;
         for (int f = 0; f < 60 * 60 * 90 && g.State != MatchState.GameOver && g.State != MatchState.Victory && g.Wave <= lastWave; f++)
         {
             Step(host, dt); Step(c, dt);
             foreach (var p in g.Players.Values) { p.PendingMods = 0; }
+            if (expanding)  // the building rounds: what the players could afford, what was proposed, what was built
+            {
+                if (g.ExpandOpen && openRound == null)
+                {
+                    openRound = new ArenaRound { Wave = g.Wave, Rooms = g.Expanded.Count, Vectors = g.Players.Values.Select(p => p.Vectors).ToArray(), Caps = g.Players.Values.Select(p => p.VectorCap).ToArray(), Scale = g.ExpansionScale };
+                    roomsBefore = g.Expanded.Count; peakProps = 0;
+                }
+                if (openRound != null)
+                {
+                    peakProps = Math.Max(peakProps, g.ExpandProposals.Count);
+                    if (!g.ExpandOpen)
+                    {
+                        openRound.Proposals = peakProps;
+                        if (g.Expanded.Count > roomsBefore) { var r = g.Expanded[g.Expanded.Count - 1]; openRound.BuiltCost = r.Price; openRound.BuiltOwner = r.Owner; }
+                        arenaRounds.Add(openRound);
+                        openRound = null;
+                    }
+                }
+            }
             // The bots can get stuck on crates going for a chest or an item (they don't steer round props, in either arena):
             // after 20 s with nothing left to fight, take the treasure for them, as a person would.
             idle = g.State == MatchState.Fighting && g.Foes() - g.Enemies.Values.Count(e => g.InVault(e)) == 0 ? idle + dt : 0f;  // (the vault's mini-boss is optional)
@@ -97,7 +129,7 @@ static partial class Program
                             V2 lo, hi;
                             if (g.RoomsOn)
                             {
-                                V2 mid = Rooms.ViewCentre(p.Pos, Game.Width / 2f, Game.Height / 2f, g.VaultOn);
+                                V2 mid = g.CurrentWorld.ViewCentre(p.Pos, Game.Width / 2f, Game.Height / 2f, g.VaultOn);
                                 lo = mid - new V2(Game.Width / 2f, Game.Height / 2f); hi = mid + new V2(Game.Width / 2f, Game.Height / 2f);
                             }
                             else { lo = V2.Zero; hi = new V2(Game.Width, Game.Height); }
