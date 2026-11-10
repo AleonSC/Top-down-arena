@@ -243,6 +243,10 @@ namespace Arena
         public byte ScatShells;      // Scattergun: Double Barrel shells loaded, 0 to 2 (replicated; TankAlts.cs)
         public byte ScatCharge;      // Scattergun: point-blank hits toward the next shell (replicated)
         public float ScatCd, MineCd, GasCd;  // host: the Tank Soldier's Alt fires cool down (TankAlts.cs)
+                public byte RepelMeter;      // Repulsion Cannon: the Undertow meter, 0 to 100, filled by blasts that hit (replicated; Repulsion.cs)
+        public float RepelMeterF;    // host: the exact meter
+        public bool RepelPull;       // Repulsion Cannon: the weapon-action key is held and the Undertow is pulling (replicated; you move at 75% and can't fire)
+        public float RepelTickT;     // host: till the pull's next sting
         public byte GreatStep;       // Greatsword: which cut of the chain landed last, 0 to 3 (replicated, drawn as pips behind you)
         public byte GreatTemper;     // Greatsword: Temper stored while guarding, 0 to 6 (replicated, drawn as pips and on the blade)
         public bool GreatGuard;      // Greatsword: the weapon-action key is held, the guard arc is up (replicated; you move at half speed and can't swing)
@@ -360,7 +364,7 @@ namespace Arena
         public float RiotT;  // Riot Gear: seconds until the shield is back, 0 = ready (RiotGear.cs)
         public readonly AbilitySlot[] Slots = { new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot() };  // Upgrades.SlotCount
 
-        public float Speed => Def.Speed * Stats.SpeedMult * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f) * (DashT > 0f ? Game.HealDashSpeed : 1f) * (SwiftT > 0f ? Game.HolySwiftMult : 1f) * (HarvestHold > 0f ? Game.HarvestSlow : 1f) * (GreatGuard ? Game.GreatGuardSlow : 1f) * (RapierGuard ? Game.RapierStanceSlow : 1f) * (KusariWhirl ? Game.KusariWhirlSlow : 1f) * (JuggT > 0f ? Game.JuggSlow : 1f);
+        public float Speed => Def.Speed * Stats.SpeedMult * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f) * (DashT > 0f ? Game.HealDashSpeed : 1f) * (SwiftT > 0f ? Game.HolySwiftMult : 1f) * (HarvestHold > 0f ? Game.HarvestSlow : 1f) * (GreatGuard ? Game.GreatGuardSlow : 1f) * (RepelPull ? Game.RepelPullSelfSlow : 1f) * (RapierGuard ? Game.RapierStanceSlow : 1f) * (KusariWhirl ? Game.KusariWhirlSlow : 1f) * (JuggT > 0f ? Game.JuggSlow : 1f);
         public float BarrierRadius => Game.BarrierRadius * Stats.BarrierRadiusMult;
         public float AuraRange => Game.AuraRange * Stats.AuraRangeMult;
     }

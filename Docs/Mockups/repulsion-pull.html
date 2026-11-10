@@ -1,0 +1,345 @@
+<title>Repulsion Cannon Pull</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same field-manual look as repulsion-cannon.html. A patch of arena at game scale (1 canvas px = 1 arena px): a Healer,
+   six dummies, the cannon looping Alt (pull) then Fire (blast). Picker for three pull options, a still-frame strip,
+   one card per option, numbers table. Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --ice: #7fe8ff; --pull: #c49bff; --amber: #ffb547;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--pull); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.lead b { color: var(--fg); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+#arena { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 380; background: #070910; }
+.bar { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--pull); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #211a2e; border-color: var(--pull); color: var(--fg); }
+button .k { font: 700 12px var(--font-display); color: var(--pull); margin-right: 6px; }
+.now { font: 500 12px var(--font-data); color: var(--muted); margin-left: auto; }
+.strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; padding: 0 16px 16px; }
+.frame { display: grid; gap: 4px; min-width: 0; }
+.frame canvas { width: 100%; max-width: 100%; height: auto; aspect-ratio: 16 / 10; background: #070910; border: 1px solid var(--line); border-radius: 6px; display: block; }
+.frame span { font: 500 11px var(--font-data); color: var(--muted); text-align: center; }
+.styles { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; cursor: pointer; }
+.card:hover { border-color: var(--edge); }
+.card[aria-current="true"] { border-color: var(--pull); }
+.card .tag { font: 700 12px var(--font-display); letter-spacing: 0.12em; color: var(--pull); }
+.card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 14px; }
+.card dt { font: 600 11px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+.card dd { margin: 0; color: var(--soft); min-width: 0; }
+.tbl { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 11px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+td.n { font: 500 13px var(--font-data); font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--soft); }
+td.same { color: var(--muted); }
+td.new { color: var(--pull); }
+@media (max-width: 700px) { .strip { grid-template-columns: repeat(3, minmax(0, 1fr)); } .now { margin-left: 0; width: 100%; } }
+@media (prefers-reduced-motion: reduce) { #arena { animation: none; } }
+</style>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Healer · Soldier · weapon rework mockup</div>
+    <h1>Repulsion Cannon <span>+ pull</span></h1>
+    <p class="lead">Fire stays exactly as it is: a 70° cone, 240 px, 6 damage, 90 px shove, health orbs. <b>Alt</b> becomes a pull: the same cone sucks enemies <b>toward you</b>. The loop shows Alt, then Fire, so you see the pull-then-blast rhythm. Pick an option below.</p>
+  </header>
+
+  <section class="stage" aria-label="Live preview">
+    <canvas id="arena" width="960" height="380" aria-label="Repulsion Cannon pull preview"></canvas>
+    <div class="bar">
+      <div class="group" role="group" aria-label="Pull option">
+        <span class="label">Pull</span>
+        <button type="button" data-k="A" aria-pressed="true"><span class="k">A</span>Vacuum</button>
+        <button type="button" data-k="B" aria-pressed="false"><span class="k">B</span>Undertow (hold)</button>
+        <button type="button" data-k="C" aria-pressed="false"><span class="k">C</span>Riptide (combo)</button>
+      </div>
+      <div class="group">
+        <button type="button" id="pause">Pause</button>
+        <button type="button" id="slow" aria-pressed="false">Slow-mo 0.25×</button>
+      </div>
+      <span class="now" id="now"></span>
+    </div>
+    <div class="strip" id="strip"></div>
+  </section>
+
+  <section style="display:grid;gap:12px">
+    <h2>The options</h2>
+    <div class="styles" id="cards">
+      <article class="card" data-k="A" aria-current="true">
+        <div class="tag">A · VACUUM</div>
+        <h3>One sharp yank</h3>
+        <p>Alt fires the cone in reverse. Smoke and the shock ring rush <i>into</i> the muzzle, and every enemy in it slides 110 px toward you, stopping 60 px in front.</p>
+        <dl><dt>Feel</dt><dd>Mirror of the blast. Simple, readable.</dd><dt>Use</dt><dd>Drag strays into your team's fire, pull a runner off a downed ally.</dd></dl>
+      </article>
+      <article class="card" data-k="B">
+        <div class="tag">B · UNDERTOW</div>
+        <h3>Hold to reel in</h3>
+        <p>Hold Alt for up to 1.2 s: a swirling current fills the cone and drags enemies in at 140 px/s, slowed 40% while caught. Let go to stop.</p>
+        <dl><dt>Feel</dt><dd>Channelled, a tractor beam.</dd><dt>Use</dt><dd>Hold a crowd in place for teammates; you can't fire while holding.</dd></dl>
+      </article>
+      <article class="card" data-k="C">
+        <div class="tag">C · RIPTIDE</div>
+        <h3>Pull, then punch</h3>
+        <p>Same yank as A, and it gathers enemies on a glowing knot. A Fire within 1.2 s is <b>overcharged</b>: +50% push, +4 damage, amber ring, and wall slams get likely.</p>
+        <dl><dt>Feel</dt><dd>A two-button combo with a payoff.</dd><dt>Use</dt><dd>Gather a pack, then blast it into a wall.</dd></dl>
+      </article>
+    </div>
+  </section>
+
+  <section style="display:grid;gap:12px">
+    <h2>Numbers</h2>
+    <div class="tbl"><table>
+      <thead><tr><th></th><th>Fire (unchanged)</th><th>A · Vacuum</th><th>B · Undertow</th><th>C · Riptide</th></tr></thead>
+      <tbody>
+        <tr><td>Cone</td><td class="n same">70°, 240 px</td><td class="n">70°, 300 px</td><td class="n">60°, 300 px</td><td class="n">70°, 300 px</td></tr>
+        <tr><td>Move</td><td class="n same">90 px away</td><td class="n">110 px toward you</td><td class="n">140 px/s toward you</td><td class="n">110 px toward you</td></tr>
+        <tr><td>Damage</td><td class="n same">6</td><td class="n">3</td><td class="n">4 a second</td><td class="n">3</td></tr>
+        <tr><td>Cooldown</td><td class="n same">0.7 s</td><td class="n">5 s</td><td class="n">6 s (from release)</td><td class="n">5 s</td></tr>
+        <tr><td>Extra</td><td class="same">orbs, mods ride it</td><td>stops 60 px in front</td><td>40% slow while caught</td><td class="new">next Fire within 1.2 s: +50% push, +4 dmg</td></tr>
+        <tr><td>Bosses / heavies</td><td class="same">don't budge</td><td colspan="3">don't budge (still take the damage)</td></tr>
+        <tr><td>Extra card</td><td class="same">+20° wider, +2 dmg, +30 px push</td><td colspan="3">also +20° wider and +30 px of pull</td></tr>
+      </tbody>
+    </table></div>
+    <p class="lead" style="color:var(--muted)">Alt is free on this weapon today, so no other control moves. The pull draws in violet so it never reads as the ice-blue blast.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  const cv = document.getElementById('arena'), cx = cv.getContext('2d');
+  const W = 960, H = 380, P = { x: 170, y: 190 }, AIM = 0, HALF = 0.61, REACH_BLAST = 240, REACH_PULL = 300, BODY = 16;
+  const CYCLE = 4.4, T_PULL = 0.5, T_BLAST = 2.0;
+  const ICE = [127, 232, 255], PULL = [196, 155, 255], AMBER = [255, 181, 71];
+  const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${Math.max(0, Math.min(1, a))})`;
+  let look = 'A', paused = false, slow = false, clock = 0, last = performance.now();
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Six dummies: their resting spots far out in the cone.
+  const homes = [[-0.42, 330], [-0.18, 290], [0.05, 345], [0.25, 300], [0.45, 335], [0.0, 250]].map(([a, d]) => ({ a, d }));
+  const ease = u => 1 - Math.pow(1 - Math.max(0, Math.min(1, u)), 3);
+  const lerp = (a, b, u) => a + (b - a) * u;
+
+  // Distance from the player of a dummy through one cycle (angle stays fixed: the cone is radial).
+  function dist(h, t, k) {
+    const pullIn = Math.max(60 + BODY, h.d - 110);              // A and C stop it 60 px in front
+    let d = h.d;
+    if (k === 'B') {                                              // held: steady drag for 1.2 s
+      const u = Math.max(0, Math.min(1.2, t - T_PULL));
+      d = Math.max(60 + BODY, h.d - 140 * u);
+    } else d = lerp(h.d, pullIn, ease((t - T_PULL) / 0.22));
+    if (t >= T_BLAST) {
+      const push = k === 'C' ? 135 : 90;
+      const blasted = d + push;
+      const back = ease((t - T_BLAST - 0.6) / (CYCLE - T_BLAST - 0.7));
+      d = lerp(lerp(d, blasted, ease((t - T_BLAST) / 0.18)), h.d, back);
+    }
+    return d;
+  }
+  const at = (a, d) => ({ x: P.x + Math.cos(AIM + a) * d, y: P.y + Math.sin(AIM + a) * d });
+
+  function rnd(seed) { let s = seed | 1; return () => { s ^= s << 13; s ^= s >>> 17; s ^= s << 5; return ((s >>> 0) & 0xffffff) / 16777216; }; }
+
+  function floor(c, w, h) {
+    c.fillStyle = '#070910'; c.fillRect(0, 0, w, h);
+    c.strokeStyle = 'rgba(120,150,170,0.06)'; c.lineWidth = 1;
+    for (let x = 0; x < w; x += 40) { c.beginPath(); c.moveTo(x + .5, 0); c.lineTo(x + .5, h); c.stroke(); }
+    for (let y = 0; y < h; y += 40) { c.beginPath(); c.moveTo(0, y + .5); c.lineTo(w, y + .5); c.stroke(); }
+  }
+  function cone(c, reach, col, a) {
+    c.fillStyle = rgba(col, a); c.beginPath(); c.moveTo(P.x, P.y); c.arc(P.x, P.y, reach, AIM - HALF, AIM + HALF); c.closePath(); c.fill();
+  }
+  function player(c) {
+    c.fillStyle = '#5ee0a0'; c.beginPath(); c.arc(P.x, P.y, BODY, 0, 7); c.fill();
+    c.strokeStyle = '#0b2a1c'; c.lineWidth = 3; c.stroke();
+    c.fillStyle = '#cfdae2'; c.fillRect(P.x + 8, P.y - 6, 22, 12);   // the cannon
+    c.fillStyle = '#7fe8ff'; c.fillRect(P.x + 28, P.y - 7, 4, 14);
+  }
+  function dummy(c, p, hitT, col) {
+    c.fillStyle = '#c74b4b'; c.beginPath(); c.arc(p.x, p.y, 13, 0, 7); c.fill();
+    c.strokeStyle = '#3a1010'; c.lineWidth = 2; c.stroke();
+    if (hitT >= 0 && hitT < 0.15) { c.fillStyle = `rgba(255,255,255,${0.7 * (1 - hitT / 0.15)})`; c.beginPath(); c.arc(p.x, p.y, 13, 0, 7); c.fill(); }
+  }
+
+  // Fire, look D of the existing cannon: muzzle star, smoke out, crisp ring, sparks.
+  function blast(c, t, col, push) {
+    const r = rnd(9001), reach = REACH_BLAST + BODY;
+    for (let i = 0; i < 26; i++) {
+      const a = AIM + (r() * 2 - 1) * HALF * .92, sp = .6 + r() * .55, born = r() * .06, life = .4 + r() * .2, size = r();
+      const u = (t - born) / life; if (u <= 0 || u >= 1) continue;
+      const d = 14 + (reach - 40) * (1 - Math.pow(1 - u, 3)) * sp, rad = 12 + 22 * u + 8 * size, al = .3 * (1 - u);
+      c.fillStyle = `rgba(204,235,250,${al * .45})`; c.beginPath(); c.arc(P.x + Math.cos(a) * d, P.y + Math.sin(a) * d, rad, 0, 7); c.fill();
+    }
+    const g = ease(t / .16), fade = 1 - Math.max(0, Math.min(1, (t - .1) / .2));
+    if (fade > 0) {
+      const rr = 24 + (reach - 24) * g;
+      c.lineWidth = 9; c.strokeStyle = rgba(col, .22 * fade); c.beginPath(); c.arc(P.x, P.y, rr, AIM - HALF, AIM + HALF); c.stroke();
+      c.lineWidth = push ? 4 : 3; c.strokeStyle = push ? rgba(AMBER, fade) : `rgba(235,252,255,${.9 * fade})`; c.beginPath(); c.arc(P.x, P.y, rr, AIM - HALF, AIM + HALF); c.stroke();
+    }
+    if (t < .11) {
+      const k = 1 - t / .11;
+      c.fillStyle = rgba(col, .25 * k); c.beginPath(); c.arc(P.x + 30, P.y, 38, 0, 7); c.fill();
+      c.fillStyle = `rgba(255,255,255,${.75 * k})`; c.beginPath(); c.arc(P.x + 30, P.y, 18, 0, 7); c.fill();
+    }
+    for (let i = 0; i < 20; i++) {
+      const a = AIM + (r() * 2 - 1) * HALF, sp = .5 + r() * .5, u = t / (.2 + r() * .15), tail = 16 + 16 * r();
+      if (u >= 1) continue;
+      const d = 20 + (reach + 10) * (1 - Math.pow(1 - u, 3)) * sp;
+      c.strokeStyle = `rgba(255,255,255,${1 - u})`; c.lineWidth = 1.6; c.beginPath();
+      c.moveTo(P.x + Math.cos(a) * Math.max(0, d - tail), P.y + Math.sin(a) * Math.max(0, d - tail)); c.lineTo(P.x + Math.cos(a) * d, P.y + Math.sin(a) * d); c.stroke();
+    }
+  }
+
+  // Alt, A and C: the blast run backwards in violet. Ring collapses inward, smoke and streaks rush to the muzzle.
+  function vacuum(c, t, k, positions) {
+    const reach = REACH_PULL + BODY, r = rnd(4242);
+    if (t < .32) cone(c, reach, PULL, .07 * (1 - t / .32));
+    for (let i = 0; i < 26; i++) {
+      const a = AIM + (r() * 2 - 1) * HALF * .92, born = r() * .08, life = .3 + r() * .15, size = r();
+      const u = (t - born) / life; if (u <= 0 || u >= 1) continue;
+      const d = 30 + (reach - 30) * (1 - ease(u)) * (.75 + .25 * size), rad = 20 - 12 * u + 6 * size;
+      c.fillStyle = rgba(PULL, .22 * Math.sin(Math.PI * u)); c.beginPath(); c.arc(P.x + Math.cos(a) * d, P.y + Math.sin(a) * d, rad, 0, 7); c.fill();
+    }
+    const g = ease(t / .22), fade = 1 - Math.max(0, Math.min(1, (t - .16) / .14));
+    if (fade > 0) {
+      const rr = reach - (reach - 34) * g;
+      c.lineWidth = 9; c.strokeStyle = rgba(PULL, .25 * fade); c.beginPath(); c.arc(P.x, P.y, rr, AIM - HALF, AIM + HALF); c.stroke();
+      c.lineWidth = 3; c.strokeStyle = `rgba(240,228,255,${.95 * fade})`; c.beginPath(); c.arc(P.x, P.y, rr, AIM - HALF, AIM + HALF); c.stroke();
+    }
+    for (let i = 0; i < 22; i++) {
+      const a = AIM + (r() * 2 - 1) * HALF, u = t / (.18 + r() * .14), tail = 22 + 20 * r();
+      if (u >= 1) continue;
+      const d = (reach + 10) * (1 - ease(u)) + 26;
+      c.strokeStyle = rgba(PULL, .9 * (1 - u)); c.lineWidth = 1.6; c.beginPath();
+      c.moveTo(P.x + Math.cos(a) * (d + tail), P.y + Math.sin(a) * (d + tail)); c.lineTo(P.x + Math.cos(a) * d, P.y + Math.sin(a) * d); c.stroke();
+    }
+    // Tethers from each dummy back to the muzzle while it's being yanked.
+    if (t < .3) for (const p of positions) {
+      c.strokeStyle = rgba(PULL, .55 * (1 - t / .3)); c.lineWidth = 2; c.setLineDash([6, 6]); c.lineDashOffset = t * 120;
+      c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(P.x + 30, P.y); c.stroke(); c.setLineDash([]);
+    }
+    // Implosion at the muzzle.
+    if (t > .15 && t < .4) {
+      const u = (t - .15) / .25;
+      c.fillStyle = rgba(PULL, .35 * (1 - u)); c.beginPath(); c.arc(P.x + 30, P.y, 26 * (1 - u) + 6, 0, 7); c.fill();
+    }
+    // C: the knot that marks the overcharge window.
+    if (k === 'C' && t > .2 && t < (T_BLAST - T_PULL)) {
+      const knot = { x: P.x + 105, y: P.y }, life = (t - .2) / (T_BLAST - T_PULL - .2), pulse = .6 + .4 * Math.sin(t * 14);
+      c.strokeStyle = rgba(AMBER, .8 * pulse); c.lineWidth = 2; c.beginPath(); c.arc(knot.x, knot.y, 52, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - life)); c.stroke();
+      c.fillStyle = rgba(AMBER, .1 * pulse); c.beginPath(); c.arc(knot.x, knot.y, 52, 0, 7); c.fill();
+    }
+  }
+
+  // Alt, B: a held swirling current. Curved flow lines crawl inward; caught dummies get a violet rim.
+  function undertow(c, t) {
+    const held = Math.max(0, Math.min(1.2, t)), reach = REACH_PULL + BODY;
+    const on = t < 1.2 ? Math.min(1, t / .12) : Math.max(0, 1 - (t - 1.2) / .2);
+    if (on <= 0) return;
+    cone(c, reach, PULL, .09 * on);
+    c.strokeStyle = rgba(PULL, .35 * on); c.lineWidth = 1.5; c.beginPath(); c.arc(P.x, P.y, reach, AIM - HALF, AIM + HALF); c.stroke();
+    for (let i = 0; i < 14; i++) {
+      const lane = (i / 13 - .5) * 2 * HALF * .9;
+      for (let j = 0; j < 3; j++) {
+        const u = ((t * 1.4 + j / 3 + i * .13) % 1), d = reach * (1 - u) + 28, sw = Math.sin(u * 6 + i) * .08;
+        const a = AIM + lane + sw, a2 = AIM + lane + Math.sin((u + .06) * 6 + i) * .08, d2 = d - 26;
+        c.strokeStyle = rgba(PULL, .7 * on * Math.sin(Math.PI * u)); c.lineWidth = 2; c.beginPath();
+        c.moveTo(P.x + Math.cos(a) * d, P.y + Math.sin(a) * d); c.lineTo(P.x + Math.cos(a2) * Math.max(24, d2), P.y + Math.sin(a2) * Math.max(24, d2)); c.stroke();
+      }
+    }
+    c.fillStyle = rgba(PULL, .3 * on * (.7 + .3 * Math.sin(t * 20))); c.beginPath(); c.arc(P.x + 30, P.y, 14, 0, 7); c.fill();
+    if (held >= 1.2 && t < 1.4) { /* release puff */ c.strokeStyle = rgba(PULL, 1 - (t - 1.2) / .2); c.lineWidth = 2; c.beginPath(); c.arc(P.x + 30, P.y, 20 + 30 * (t - 1.2) / .2, 0, 7); c.stroke(); }
+  }
+
+  function scene(c, t, k, label) {
+    floor(c, W, H);
+    // Dashed outline of each cone at rest, so the reach difference reads.
+    c.setLineDash([4, 6]); c.lineWidth = 1;
+    c.strokeStyle = 'rgba(127,232,255,0.18)'; c.beginPath(); c.moveTo(P.x, P.y); c.arc(P.x, P.y, REACH_BLAST + BODY, AIM - HALF, AIM + HALF); c.closePath(); c.stroke();
+    c.strokeStyle = 'rgba(196,155,255,0.18)'; c.beginPath(); c.arc(P.x, P.y, REACH_PULL + BODY, AIM - HALF, AIM + HALF); c.stroke();
+    c.setLineDash([]);
+    const pos = homes.map(h => at(h.a, dist(h, t, k)));
+    if (t >= T_PULL) { if (k === 'B') undertow(c, t - T_PULL); else vacuum(c, t - T_PULL, k, pos); }
+    for (let i = 0; i < pos.length; i++) {
+      // streak while sliding
+      const p0 = at(homes[i].a, dist(homes[i], Math.max(0, t - .06), k)), p = pos[i];
+      const sp = Math.hypot(p.x - p0.x, p.y - p0.y);
+      if (sp > 2) { c.strokeStyle = t < T_BLAST ? rgba(PULL, .5) : rgba(ICE, .5); c.lineWidth = 8; c.lineCap = 'round'; c.beginPath(); c.moveTo(p0.x, p0.y); c.lineTo(p.x, p.y); c.stroke(); c.lineCap = 'butt'; }
+      const hitT = t >= T_BLAST ? t - T_BLAST : t >= T_PULL && k !== 'B' ? t - T_PULL : -1;
+      dummy(c, p, hitT);
+      if (k === 'B' && t > T_PULL && t < T_PULL + 1.25) { c.strokeStyle = rgba(PULL, .8); c.lineWidth = 2; c.beginPath(); c.arc(p.x, p.y, 17, 0, 7); c.stroke(); }
+    }
+    player(c);
+    if (t >= T_BLAST) blast(c, t - T_BLAST, k === 'C' ? AMBER : ICE, k === 'C');
+    // Key prompt
+    const alt = t >= T_PULL && t < T_PULL + (k === 'B' ? 1.2 : .35), fire = t >= T_BLAST && t < T_BLAST + .3;
+    key(c, 24, H - 54, 'ALT', alt, PULL);
+    key(c, 96, H - 54, 'FIRE', fire, ICE);
+    if (label) { c.font = '600 22px "IBM Plex Mono", monospace'; c.fillStyle = 'rgba(207,218,226,.8)'; c.fillText(label, 24, 40); }
+    if (k === 'C' && t >= T_BLAST && t < T_BLAST + .5) { c.font = '700 20px Oxanium, sans-serif'; c.fillStyle = rgba(AMBER, 1 - (t - T_BLAST) / .5); c.fillText('OVERCHARGED', P.x + 200, P.y - 120); }
+  }
+  function key(c, x, y, txt, on, col) {
+    const w = txt.length * 13 + 22;
+    c.fillStyle = on ? rgba(col, .25) : 'rgba(22,28,34,.9)'; c.strokeStyle = on ? rgba(col, 1) : 'rgba(54,66,78,1)'; c.lineWidth = 2;
+    c.beginPath(); c.roundRect(x, y, w, 30, 6); c.fill(); c.stroke();
+    c.font = '700 14px Oxanium, sans-serif'; c.fillStyle = on ? '#fff' : '#92a1ad'; c.fillText(txt, x + 11, y + 20);
+  }
+
+  // Strip of still frames.
+  const STILLS = [[.45, 'before'], [.58, 'Alt 0.08 s'], [.75, 'Alt 0.25 s'], [1.9, 'gathered'], [2.06, 'Fire 0.06 s'], [2.3, 'Fire 0.3 s']];
+  const strip = document.getElementById('strip');
+  const frames = STILLS.map(([t, l]) => {
+    const f = document.createElement('div'); f.className = 'frame';
+    const cc = document.createElement('canvas'); cc.width = 480; cc.height = 300; cc.setAttribute('aria-label', l);
+    const s = document.createElement('span'); s.textContent = l;
+    f.append(cc, s); strip.append(f); return { cc, t, s };
+  });
+  function drawStrip() {
+    for (const f of frames) {
+      const t = look === 'B' && f.t > .5 && f.t < 1.9 ? f.t + .3 : f.t;
+      const c = f.cc.getContext('2d'); c.save(); c.scale(480 / 560, 300 / 350); c.translate(-90, -15);
+      scene(c, t, look); c.restore();
+    }
+    frames[1].s.textContent = look === 'B' ? 'hold 0.4 s' : 'Alt 0.08 s';
+    frames[2].s.textContent = look === 'B' ? 'hold 0.55 s' : 'Alt 0.25 s';
+  }
+
+  function pick(k) {
+    look = k;
+    document.querySelectorAll('[data-k]').forEach(el => el.tagName === 'BUTTON' ? el.setAttribute('aria-pressed', el.dataset.k === k) : el.setAttribute('aria-current', el.dataset.k === k));
+    clock = 0; drawStrip();
+  }
+  document.querySelectorAll('[data-k]').forEach(el => el.addEventListener('click', () => pick(el.dataset.k)));
+  document.getElementById('pause').onclick = e => { paused = !paused; e.target.textContent = paused ? 'Play' : 'Pause'; };
+  document.getElementById('slow').onclick = e => { slow = !slow; e.target.setAttribute('aria-pressed', slow); };
+  const now = document.getElementById('now');
+  function tick(ts) {
+    const dt = Math.min(.05, (ts - last) / 1000); last = ts;
+    if (!paused) clock = (clock + dt * (slow ? .25 : 1)) % CYCLE;
+    scene(cx, reduce && !paused ? 1.9 : clock, look);
+    now.textContent = `t = ${clock.toFixed(2)} s · loop ${CYCLE} s`;
+    requestAnimationFrame(tick);
+  }
+  drawStrip(); requestAnimationFrame(tick);
+})();
+</script>

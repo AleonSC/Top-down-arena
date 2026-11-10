@@ -29,7 +29,7 @@ namespace Arena
                 Sound = Sfx.ShotRifle },
             // Healer
             new WeaponDef { Id = WeaponId.LightBolt, Kit = Kit.Soldier, Role = Role.Healer, Choice = 0, Damage = 6f, Reach = 240f, ExtraDesc = "+20° wider blast, +2 damage and a harder push", Name = "Repulsion Cannon", FireInterval = 0.7f,
-                Desc = "Blasts enemies away in a cone for light damage. Enemies it hits shed tiny health orbs.",
+                Desc = "Blasts enemies away in a cone for light damage. Enemies it hits shed tiny health orbs. Hits fill the Undertow: hold Alt to pull enemies in.",
                 HomingDesc = "the blast 15% narrower, and 10% stronger (damage and push) per stack, instead of bending shots", Sound = Sfx.ShotRepulse },
             new WeaponDef { Id = WeaponId.Pistol, Kit = Kit.Soldier, Role = Role.Healer, Choice = 1, Speed = 700f, Life = 1.1f, Damage = 24f, ExtraDesc = "+2 rounds in the cylinder, loaded as heavy rounds (double damage)", Name = "Revolver", FireInterval = 0.45f, Desc = "Tap for aimed shots, or hold to fan the hammer and empty the cylinder in a quick spray. The last round in the cylinder is heavy.",
                 Sound = Sfx.ShotPistol },
