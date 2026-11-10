@@ -9,7 +9,7 @@ namespace Arena
     ///   1.4 s   the pen traces the shot's arc over the title; at 1.9 s the shot sets off along it
     ///   1.65 s  the box opens out of its middle and its plot corners snap on
     ///   1.75 s  your name card, then PLAY rise into it, then Join game and Settings; Quit slides up; the line under the title types out
-    /// Any key or click skips to the end. Nothing in the menu takes a click until it's over (MenuIntroPlaying). Coming back
+    /// Any key or click skips to the end, under a quick channel flip (SkipStatic.cs). Nothing in the menu takes a click until it's over (MenuIntroPlaying). Coming back
     /// from the lobby or a run doesn't play it again. Reduced effects or Visual effects off: a 0.45 s fade instead.
     /// Each piece of the menu asks MenuIntroK(a, b) how far in it is (1 when no intro is playing).
     public partial class ArenaApp
@@ -52,7 +52,11 @@ namespace Arena
             if (!MenuIntroPlaying)
                 return;
             if (!onMenu || Input.anyKeyDown)
+            {
+                if (onMenu && MenuIntroFull)
+                    StartSkipStatic();  // the channel flip (SkipStatic.cs)
                 menuIntroT = MenuIntroLen;  // skipped (or the menu went away)
+            }
             else
             {
                 menuIntroT += dt;

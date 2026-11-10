@@ -11,7 +11,7 @@ namespace Arena
     ///   3.0 s   the menu's CRT screen drops in and the title types onto it (the menu's own intro, MenuIntro.cs, run from a remapped clock: ProfTrToIntro)
     ///   4.05 s  the pen draws the arc over the title; 4.25 s the box opens; the buttons drop in; the bar slides up
     /// There are always four boxes (three slots and New profile, ProfilesUi.cs), so every move is the same. Nothing can be
-    /// clicked meanwhile (the menu counts as still in its intro), and any key skips to the end. Reduced effects or Visual
+    /// clicked meanwhile (the menu counts as still in its intro), and any key skips to the end (with the channel flip, SkipStatic.cs). Reduced effects or Visual
     /// effects off: no move, the screens just change (and the menu's short fade plays).
     public partial class ArenaApp
     {
@@ -59,7 +59,10 @@ namespace Arena
             }
             profTrAge += dt;
             if (Input.anyKeyDown && profTrAge > 0.25f)
+            {
                 profTrT = profTrFwd ? ProfTrLen : 0f;  // skipped: straight to the end, silently
+                StartSkipStatic();  // under the channel flip (SkipStatic.cs)
+            }
             else
             {
                 profTrT = Mathf.Clamp(profTrT + (profTrFwd ? 1f : -1f) * dt * ProfTrSpeed, 0f, ProfTrLen);

@@ -237,6 +237,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `HealthBars.cs`, `Tooltips.cs`, `ApproachUi.cs`: damage-ghost bars and the wound's dark end (`DrawWound`), hover tooltips, approach chip
 - `DownedLooks.cs`: going down and getting back up (mockup `Docs/Mockups/crt-downed-revived.html`, B, D, E, F): the tracker (`UpdateDownedLooks`: who went down or stood up, who is reviving), the glitching shed and the dim red husk (`DrawDownedBody`), the rebuild (`DrawRebuild`), the 36-segment revive ring and link (`DrawReviveRing`) and the DOWNED / REVIVED scan band (`DrawDownedBand`, in `Hud.cs`); the model tint is `mTintA` in `CharacterModels.cs`; client-side only, no protocol change
 - `WaveBand.cs`: the CRT scan band for GET READY / WAVE N CLEARED (`Hud.DrawBanner`) and WAVE N STARTED (`LaunchIntro.DrawLaunchWave`); mockup `Docs/Mockups/crt-wave-banners.html` option B
+- `SkipStatic.cs`: skipping an intro (main menu, New run boot, profile disk in/out) plays a 0.22 s static channel flip over a grab of the finished screen (`Docs/Mockups/intro-skip-static.html`, B)
 - `PickIntro.cs`, `PickOutro.cs`, `RunEnding.cs`, `Recall.cs`, `LaunchIntro.cs`: picker open/close, run end, beam-out, run launch
 - `PathsUi.cs`, `ShopUi.cs`, `RunStatsUi.cs`, `HuntUi.cs`: path cards, shop screen, run stats screen (the Tab screen, as hologram panels), hunt tab
 - `TabHolo.cs`: the Tab screen's hologram panels (glass, scanlines, band, fringe, flicker, switch-on), the projector beam, and its layout and text helpers
