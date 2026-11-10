@@ -68,10 +68,12 @@ namespace Arena
                     if (PathOffer != null && Bot)
                         ChoosePath(rng.Next(2));  // a bot host picks for itself
                     TickShop(dt);  // the Bazaar's shop closes when everyone is done (Shop.cs)
-                    if (!AnyonePicking() && PathOffer == null && !ShopOpen && Room == RoomPhase.None)  // (and while a portal is open)
+                    if (!AnyonePicking() && PathOffer == null && !ShopBlocksWave && Room == RoomPhase.None)  // (and while a portal is open)
                         TickReadyTimer(ref StateTimer, dt);  // ...and until everyone is ready (WaveReady.cs)
                     if (StateTimer <= 0f)
                     {
+                        if (ShopOpen && ServiceRooms)
+                            CloseShop();  // the room shops close as the wave starts (gold and shelf are kept)
                         ResolveBuildRound();  // the building round closes as the wave starts: the winning room is built (ExpansionGame.cs)
                         SaveRun();  // everyone has picked: the save slot holds the run from here (RunSaves.cs)
                         State = MatchState.Fighting;
@@ -103,6 +105,7 @@ namespace Arena
                                 BossSlot = false;
                                 Wave++;
                             }
+                            PlaceFloatingRooms();  // a new boss cycle: its floating shop, vendor and Gatekeeper rooms (ExpansionGame.cs)
                             PickRooms();   // the side rooms and hallways, on a regular wave with the Rooms arena (Rooms.cs)
                             PickLayout();  // this cycle's floor plan, or the open arena for a boss (LayoutRules.cs)
                             BuildWave(Wave);
@@ -201,8 +204,8 @@ namespace Arena
                 if (!ExpandingOn)
                     OfferPaths();  // after a boss: two paths for the next stretch (the Expanding arena has no paths)
             }
-            else if (ExpandingOn && RoomsOn && HasShopRoom && Wave % Expansion.Milestone == 1 && !ShopOpen && Practice == null && Hunt == null)
-                OpenShop();  // the Expanding arena's shop room: the first wave after each boss ends with the shop open (walk into the room)
+            else if (ServiceRooms && RoomsOn && !ShopOpen && Practice == null && Hunt == null)
+                OpenShopRoom(Wave % Expansion.Milestone == 1);  // a connected shop or vendor room: open each intermission (walk in); the shelf is new once a boss cycle
             GrantVectorsForWave();  // vectors for everyone (ExpansionGame.cs)
             OpenBuildRound();  // a cleared wave opens a round of room proposals and a vote (ExpansionGame.cs)
             RemoveTemporaryMinions();

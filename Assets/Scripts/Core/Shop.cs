@@ -61,15 +61,23 @@ namespace Arena
         }
 
         /// Host, when the Bazaar's last wave is cleared: everyone gets a shelf and the shop opens.
-        void OpenShop()
+        void OpenShop() => OpenShopRoom(true);
+
+        void OpenShopRoom(bool reroll)
         {
             ShopOpen = true;
             ShopT = 0f;
             foreach (var p in Players.Values)
             {
                 p.ShopDone = false;
-                p.Restocks = 0;
-                RollShelf(p);
+                bool empty = true;
+                for (int i = 0; i < ShelfSize; i++)
+                    empty &= p.Shelf[i] < 0;
+                if (reroll || empty)  // (the room shop keeps a player's shelf until the next boss cycle)
+                {
+                    p.Restocks = 0;
+                    RollShelf(p);
+                }
             }
             DoLog(CurrentPath == PathId.Bazaar ? "the Bazaar opens" : "the shop opens");
         }
@@ -125,6 +133,8 @@ namespace Arena
             Player p;
             if (!IsHost || !ShopOpen || !Players.TryGetValue(id, out p))
                 return;
+            if (!ServiceAllowed(p, action))
+                return;  // (the room shops: upgrades at the shop, heals and revives at the vendor)
             bool shopping = !p.ShopDone;
             switch (action)
             {
@@ -212,23 +222,27 @@ namespace Arena
             CloseShop();
         }
 
-        /// Everyone's leftover gold becomes their own XP.
+        /// Everyone's leftover gold becomes their own XP (Gold Rush and the room shops keep it for the next shop).
         void CloseShop()
         {
             ShopOpen = false;
+            bool keep = Has(RunMod.GoldRush) || ServiceRooms;
             foreach (var p in Players.Values)
             {
-                if (p.Gold > 0 && !Has(RunMod.GoldRush))  // Gold Rush keeps it for the next shop
+                if (p.Gold > 0 && !keep)
                 {
                     GrantXpTo(p, p.Gold * GoldToXp);
                     DoLog(p.Role + ": " + p.Gold + " leftover gold -> XP");
                 }
-                if (!Has(RunMod.GoldRush))
+                if (!keep)
                     p.Gold = 0;
                 p.ShopDone = false;
-                for (int i = 0; i < ShelfSize; i++)
-                    p.Shelf[i] = -1;
-                p.ShelfSold = 0;
+                if (!ServiceRooms)  // (the room shops keep a shelf until the next boss cycle)
+                {
+                    for (int i = 0; i < ShelfSize; i++)
+                        p.Shelf[i] = -1;
+                    p.ShelfSold = 0;
+                }
                 if (p.Offer == null)
                     NextOffer(p);  // a level-up from the XP
             }
@@ -290,6 +304,11 @@ namespace Arena
         /// A bot shops: the cheapest thing it can afford, then a heal if it needs one, then done.
         void BotShop(Player me)
         {
+            if (ServiceRooms && !InServiceRoom(me))
+            {
+                Shop(ShopAction.Done, 1);  // (the room shops: a bot doesn't walk to them)
+                return;
+            }
             int best = -1;
             for (int i = 0; i < ShelfSize; i++)
                 if (me.Shelf[i] >= 0 && !Sold(me, i) && Price(me.Shelf[i]) <= me.Gold && Upgrades.Available(me.Shelf[i], me.Role, me.RoleAbility, me.Taken, me.Weapon.Id, ExpandingOn)
