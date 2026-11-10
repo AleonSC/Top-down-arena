@@ -160,6 +160,8 @@ namespace Arena
             if (Players.Count >= 3)
                 count = (int)(count * 1.25f);  // a third player: a quarter more enemies
             count = Math.Max(1, (int)Math.Round(count * D(DiffKnob.EnemyCount)));  // the difficulty's enemy count
+            if (Hunt != null && !IsBossWave(n))
+                count = (int)Math.Round(count * Hunts.CountFactor(n));  // a hunt's waves are bigger (Hunts.cs)
             if (BuildZombieWave(n, count))
                 return;  // Zombie Infection: a horde instead (Zombies.cs)
             // The first waves are melee rushers; shooters take over a little more each wave until

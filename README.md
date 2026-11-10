@@ -998,9 +998,8 @@ on top (Tough Crowd, Frenzy, Swift Foes, Glass Cannon...).
 ## Boss Hunt
 
 In the lobby the host picks **Gauntlet**, **Boss Hunt** or **Practice** on the mode carousel at the top (arrows, the mouse wheel or a click on a side mode turn it). The tabs over the big screen (Loadout, Perks, Difficulty, ...) are a carousel too: the open tab in the middle, the rest wrapping round either side. A Boss Hunt is a short run that ends
-with one boss: **ten waves**. Waves 1-9 bring only the boss's own enemies (its faction: for the Warden, Rioters and
-Guards, then Riot Shields, Gas Grenadiers, Security Guards and Taser Guards, its Breakout, Patrol and Cell block squads, and its Riot line on waves 5 and
-9); wave 10 is the boss, at wave-10 strength. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no
+with one boss: **ten waves**. Waves 1-9 bring only the boss's own enemies, the whole faction from wave 1 (for the Warden: Rioters, Guards, Riot Shields, Gas Grenadiers, Security Guards and Taser Guards, its Breakout, Patrol and Cell block squads, and its Riot line on waves 5 and
+9). They are bigger than a run's waves (1.2x on wave 1 rising to 1.8x on wave 9) and every wave brings a faction squad, two from wave 6; wave 10 is the boss, at wave-10 strength. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no
 path offer, no Data Gate, and a hunt isn't saved to continue. Modifiers and the difficulty apply as in a run,
 and so does the boss's health boost for strong builds. The HUD and the Tab screen count the hunt's waves (n / 10).
 

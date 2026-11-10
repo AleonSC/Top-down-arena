@@ -30,6 +30,12 @@ namespace Arena
         /// squads marked From 2, 3, 4 join as the hunt goes on.
         public static int Step(int wave) => Math.Max(1, Math.Min(4, (wave + 1) / 2));
 
+        /// A hunt is the boss's faction turned up (Docs/Campaign.md): every member and squad from the first wave, more
+        /// enemies than a run's wave (1.2x on wave 1 up to 1.8x on wave 9), and a faction squad in every wave, two from wave 6.
+        public static float CountFactor(int wave) => 1.2f + 0.075f * (Math.Max(1, Math.Min(9, wave)) - 1);
+        public static int SquadsPerWave(int wave) => wave >= 6 ? 2 : 1;
+        public const int Reach = 99;
+
         /// The waves that bring the faction's set piece (the Warden's riot line).
         public static bool FinaleWave(int wave) => wave == 5 || wave == Length - 1;
 

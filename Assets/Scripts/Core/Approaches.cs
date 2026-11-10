@@ -234,14 +234,16 @@ namespace Arena
             int themed1 = Math.Min(count, (int)Math.Round(of * share));
             if (themed1 <= 0)
                 return;
-            int reach = Hunt != null ? Hunts.Step(n) : ApproachStep(n);  // (a hunt's nine waves reach through the faction as a run's four do)
-            PickFaction(f, reach, Hunt != null ? Hunts.FinaleWave(n) : (n - 1) % 5 == 4, ref count, themed1);
+            bool hunt = Hunt != null;  // (a hunt has the whole faction from wave 1 and a squad or two in every wave, Hunts.cs)
+            int reach = hunt ? Hunts.Reach : ApproachStep(n);
+            bool finale = hunt ? Hunts.FinaleWave(n) : (n - 1) % 5 == 4;
+            PickFaction(f, reach, finale, ref count, themed1, hunt && !finale ? Hunts.SquadsPerWave(n) : 0);
         }
 
         /// Takes `themed` enemies off `count` and picks them from a faction: squads where they fit, singles for the rest.
         /// `reach` is how far into the faction's members and squads the wave goes (their From); the finale comes in when
         /// asked for, whatever the share.
-        void PickFaction(FactionDef f, int reach, bool withFinale, ref int count, int themed)
+        void PickFaction(FactionDef f, int reach, bool withFinale, ref int count, int themed, int forcedSquads = 0)
         {
             var members = Array.FindAll(f.Members, m => m.From <= reach);
             var squads = Array.FindAll(f.Squads, s => s.From <= reach);
@@ -252,6 +254,14 @@ namespace Arena
                 approachSquads.Add(f.Finale);
                 spent = f.Finale.Members.Length;
             }
+            for (int k = 0; k < forcedSquads && squads.Length > 0; k++)  // a hunt: squads whatever the share
+            {
+                var fs = squads[rng.Next(squads.Length)];
+                approachSquads.Add(fs);
+                spent += fs.Members.Length;
+            }
+            if (forcedSquads > 0)
+                themed = Math.Max(themed, Math.Min(count, spent));
             count -= themed;
             float total = 0f;
             foreach (var m in members)

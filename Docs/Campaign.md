@@ -1,6 +1,6 @@
 # Campaign: themed enemies that build up and fade (design)
 
-Status: **step 1 built** (Nov 2026: `Approaches.Campaign`, the *Campaign buildup* switch in the Difficulty tab, default on, `campaign` test suite); **step 2 built** (`Approaches.Comeback`); the hunt upgrade (3) and the HUD chip (5) are not. Numbers are first
+Status: **step 1 built** (Nov 2026: `Approaches.Campaign`, the *Campaign buildup* switch in the Difficulty tab, default on, `campaign` test suite); **step 2 built** (`Approaches.Comeback`); **step 3 built** (the hunt: whole faction from wave 1, 1.2x to 1.8x enemies, a squad per wave, two from wave 6; elites still open); the HUD chip (5) is not. Numbers are first
 guesses. It builds on [`Approaches.md`](Approaches.md) (boss factions, `Core/Approaches.cs`) and the Boss Hunt
 ([`BossHuntsAndPerks.md`](BossHuntsAndPerks.md), `Core/Hunts.cs`).
 
@@ -55,7 +55,7 @@ The hunt uses the same faction data, turned up:
 | Knob | Campaign | Hunt |
 |---|---|---|
 | Types in the pool | those allowed by the `From` wave | **all** members from the first wave |
-| Count | normal wave count | ~1.5x, rising toward the boss |
+| Count | normal wave count | 1.2x rising to 1.8x |
 | Squads | occasional | every wave has one; tougher variants (more members, elites) |
 | Share | 100% (current faction 55-100%, rest fading/older) | 100% of the boss's own faction only |
 

@@ -77,6 +77,41 @@ static partial class Program
         var csq = Approaches.Comeback(cw, out cfrom);
         var cwave = wave(cw, true);
         Check(csq.Members.GroupBy(t => t).All(gr => cwave.Count(t => t == gr.Key) >= gr.Count()), "wave " + cw + " has the " + csq.Name + " squad's members");
+        // --- The Boss Hunt as the enhanced faction (step 3) --------------------------------------------------------------
+        Func<int, int, Game> huntGame = (n, seed) =>
+        {
+            Game.SeedForTests(seed);
+            var g = new Session().Game;
+            g.Hunt = Hunts.All[0];
+            g.Wave = n;
+            build.Invoke(g, new object[] { n });
+            return g;
+        };
+        Func<Game, List<SquadDef>> sqOf = g => (List<SquadDef>)squadsF.GetValue(g);
+        Func<Game, List<EnemyType>> allOf = g =>
+        {
+            var l = new List<EnemyType>((List<EnemyType>)queueF.GetValue(g));
+            foreach (var q in sqOf(g)) l.AddRange(q.Members);
+            return l;
+        };
+        bool allWarden = true, squadsEvery = true, twoLate = true;
+        var seen1 = new HashSet<EnemyType>();
+        foreach (int hw in new[] { 1, 2, 3, 4, 6, 7, 8 })  // (5 and 9 bring the set piece)
+            for (int seed = 0; seed < 6; seed++)
+            {
+                var hg = huntGame(hw, 900 + seed);
+                var hl = allOf(hg);
+                allWarden &= hl.All(warden.Contains);
+                squadsEvery &= sqOf(hg).Count >= Hunts.SquadsPerWave(hw);
+                if (hw >= 6) twoLate &= sqOf(hg).Count >= 2;
+                if (hw == 1) foreach (var t in hl) seen1.Add(t);
+            }
+        Check(allWarden, "hunt waves are only the Warden's faction");
+        Check(squadsEvery && twoLate, "every hunt wave has a faction squad, two from wave 6");
+        Check(seen1.Contains(EnemyType.TaserGuard) || seen1.Contains(EnemyType.GasGrenadier) || seen1.Contains(EnemyType.SecurityGuard), "the whole faction is there from wave 1 (" + string.Join(" ", seen1) + ")");
+        float n1 = Enumerable.Range(0, 6).Average(sd => (float)allOf(huntGame(1, 500 + sd)).Count), n8 = Enumerable.Range(0, 6).Average(sd => (float)allOf(huntGame(8, 500 + sd)).Count);
+        Console.WriteLine("  hunt wave sizes: wave 1 about {0:0}, wave 8 about {1:0}", n1, n8);
+        Check(Math.Abs(Hunts.CountFactor(1) - 1.2f) < 1e-4f && Math.Abs(Hunts.CountFactor(9) - 1.8f) < 1e-4f && n8 > n1, "hunt waves are bigger than a run's (1.2x rising to 1.8x) and grow toward the boss");
         var g0 = new Session().Game;
         g0.Diff.Set(DiffKnob.Campaign, 0f);
         Check(g0.ApproachShare(6) == 0f && g0.ApproachShare(1) > 0f, "off: the old approach share applies (none before the Hive Queen's)");
