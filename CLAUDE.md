@@ -36,6 +36,14 @@ no Unity in the cloud container: check changes with the tools below.
   "(testing)" → "(merging)" → "(done)".
 - There is no to-do file. The owner tries every change in Unity and reports bugs as they find them: never ask or
   remind them to check or test anything in Unity, and leave "check in Unity" lines out of reports.
+- **Screenshot first** for visual changes: send the before/after PNG from `Tools/Preview` (`SendUserFile`) instead
+  of describing the look in words.
+- **Final report format**: bullets only, no prose, each a one-line description: **Changed** (what, per system),
+  **Protocol** (version), **Next** (what's left or proposed). Last line is `Branch used: ...`.
+- **Tidy sessions**: tag sessions by system (weapons, bosses, UI, ...) with `set_session_tags`. Before archiving one
+  (`archive_session`), always ask the owner through `AskUserQuestion`; never archive on your own.
+- **Cheaper replies**: keep long tool output out of the chat. Report test and build results as one pass/fail line
+  (plus the failing lines if any), and read only the file ranges the task needs.
 
 ## How the owner works
 
