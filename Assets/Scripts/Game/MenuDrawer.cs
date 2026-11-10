@@ -113,7 +113,7 @@ namespace Arena
         {
             var rows = new List<int>();
             for (int i = 0; i < LobbyChoices.Length; i++)
-                if (i != FieldGuideRow)
+                if (i != FieldGuideRow && i != 3 && i != 5)  // no Profile (main menu or your lobby card) and no Main menu (the lobby's back arrow does that)
                     rows.Add(i);
             return rows;
         }
@@ -160,7 +160,7 @@ namespace Arena
             }
             LobbyMenuKeys();
             cabBootLog = "> LINK OK   > SAVE OK   > LOBBY";
-            BeginDrawer("MENU", Ui.Accent, 1f, session.IsHost && session.Lobby.Count > 1 ? "Leaving closes the lobby for everyone" : "Esc closes this menu");
+            BeginDrawer("MENU", Ui.Accent, 1f, "Esc closes this menu");
             string[] lines = { "Close this menu", "Audio, visual effects, aim line", "Every enemy, weapon and upgrade", "Your rank, records and unlocks", "Controls and tips",
                 session.IsHost ? "Close the lobby, back to the title screen" : "Leave the lobby, back to the title screen", "Close the game" };
             Color[] lcols = { Ui.Primary, new Color(0.6f, 0.66f, 0.82f), FieldGuideColor, Ui.Gold, HowToColor, new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
@@ -295,35 +295,34 @@ namespace Arena
             if (Event.current.type == EventType.Repaint)
                 pauseMouse = Event.current.mousePosition;
             EndDrawerScreen();
+            DrawRunStatsKey();
             CabFoot("ESC RESUME / ARROWS SELECT / ENTER CHOOSE", "HOLD TAB RUN STATS & BUILD   H HIDE HUD");
             EndDrawer();
-            DrawRunStatsKey();
+            DrawTip(true);
             DrawRunScreen(t);
         }
 
-        /// The small square key right of the pause cabinet: three statistic bars, "Current run stats" on hover. Opens the Run stats screen.
+        /// The small square key in the pause box's header, lined up with the right edge of the rows: three statistic bars, "Current run
+        /// stats" on hover. Opens the Run stats screen. Call inside the drawer (cabinet coordinates).
         void DrawRunStatsKey()
         {
-            if (!cabScreenOn || cabWin)
+            TipClear();
+            if (!cabScreenOn)
                 return;
-            var r = new Rect(CabX + CabW + 6f, CabY + 26f, 32f, 32f);
+            var r = new Rect(34f + CabRowW - 36f, 52f, 36f, 36f);
             bool hover = r.Contains(Event.current.mousePosition);
             Ui.NoteHover(r);
-            Color c = CrtStyle.KeyColor(Ui.Gold);
+            Color c = CrtStyle.KeyColor(CrtStyle.Gold);
             CrtKit.SoftBox(r, c, false, hover, false);
             Color tc = CrtKit.SoftText(c, hover);
             float[] hs = { 0.45f, 0.8f, 0.6f };
             for (int i = 0; i < 3; i++)
             {
-                float bh = 18f * hs[i];
-                Ui.Fill(new Rect(r.x + 7f + i * 7f, r.yMax - 7f - bh, 5f, bh), tc);
+                float bh = 20f * hs[i];
+                Ui.Fill(new Rect(r.x + 8f + i * 8f, r.yMax - 8f - bh, 6f, bh), tc);
             }
-            TipClear();
             if (hover)
-            {
-                TipStart(r, "Current run stats", Ui.Gold);
-                DrawTip(true);
-            }
+                TipStart(new Rect(CabX + 1f + DrawerSlide + r.x, CabY + 1f + r.y, r.width, r.height), "Current run stats", Ui.Gold);
             if (Ui.HitArea(r))
                 runStatsOpen = true;
         }
