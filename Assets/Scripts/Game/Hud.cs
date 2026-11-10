@@ -82,6 +82,7 @@ namespace Arena
 
             DrawOffscreenMarkers();  // zoomed in: arrows to the enemies and teammates off the edge (OffscreenMarkers.cs)
             DrawRoomsMinimap();  // the Rooms arena's minimap, top right (RoomsLook.cs)
+            DrawZoomHint();      // the open Rooms map: "scroll to zoom out" (CameraZoom.cs)
             DrawEnemyTags();  // an enemy type's name and job for its first few sightings (EnemyTagLook.cs)
             DrawHoverName();  // the name of the enemy under the cursor, if Settings has it on (EnemyTagLook.cs)
 

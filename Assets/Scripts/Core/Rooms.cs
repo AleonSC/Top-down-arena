@@ -101,6 +101,11 @@ namespace Arena
         /// (centred on it when it's smaller than the view), then inside the world (CameraZoom.cs; the run log's samples).
         public static V2 ViewCentre(V2 at, float hx, float hy, bool vault)
         {
+            if (!RoomByRoom)  // the open map: on you, held inside the world
+            {
+                V2 wlo = MinFor(vault), whi = WorldMax;
+                return new V2(Math.Max(wlo.X + hx, Math.Min(whi.X - hx, at.X)), Math.Max(wlo.Y + hy, Math.Min(whi.Y - hy, at.Y)));
+            }
             var a = Areas[AreaAt(at)];
             float x = a.Size.X >= 2f * hx ? Math.Max(a.Min.X + hx, Math.Min(a.Max.X - hx, at.X)) : a.Mid.X;
             float y = a.Size.Y >= 2f * hy ? Math.Max(a.Min.Y + hy, Math.Min(a.Max.Y - hy, at.Y)) : a.Mid.Y;
@@ -251,6 +256,17 @@ namespace Arena
 
         // --- Pacing (Docs/Rooms.md, "How a wave plays") ----------------------------------------------------------------
 
+        /// The room-by-room version (phases 2-3: nests, spills, room locks, overflow, a camera held to the room you're in).
+        /// Off since Nov 10 (owner: "too cookie cutter"): the map is one open space, enemies come in at random spots and
+        /// the camera follows you anywhere. Parked, not deleted: the code below still works with this on (the tests do).
+        public static bool RoomByRoom = false;
+
+        /// Open map: no enemy comes in closer than this to a player.
+        public const float SpawnClear = 350f;
+
+        /// Open map: room rounds start at this zoom, with a prompt to zoom out (CameraZoom.cs).
+        public const float StartZoom = 1.5f;
+
         public const float NestHpMult = 3f;      // a room's nest: this many times a Nest's health at the wave
         public const float SpillWarn = 2f;       // the door flashes this long before a spill
         public const float SpillClear = 180f;    // a spill picks another door if someone stands this close to where it would come out
@@ -365,6 +381,8 @@ namespace Arena
             int i = 0;
             foreach (var rs in RoomStates)
             {
+                if (!Rooms.RoomByRoom)
+                    break;  // (the open map: no nests)
                 var nest = SpawnEnemyAt(EnemyType.Nest, Rooms.NestSpot(rs.Area), 0.9f, 0);
                 nest.Home = rs.Area;
                 nest.MaxHp *= Rooms.NestHpMult;
@@ -537,6 +555,25 @@ namespace Arena
                 if (e.Home == area && !e.Spilled && e.Type != EnemyType.Nest && e.Hp > 0f)
                     n++;
             return n;
+        }
+
+        /// The open map: where an enemy (or a squad) comes in: a random spot anywhere on the map (an area picked by its
+        /// size, never the vault), clear of walls and at least SpawnClear from every player.
+        V2 RoomsRandomSpot(float radius)
+        {
+            V2 at = new V2(Width / 2f, Height / 2f);
+            for (int tries = 0; tries < 60; tries++)
+            {
+                at = RandomInRooms(radius + 30f, radius + 30f);
+                if (NearSolid(at, radius + 8f))
+                    continue;
+                bool near = false;
+                foreach (var p in Players.Values)
+                    near |= !p.Downed && p.Pos.DistanceTo(at) < Rooms.SpawnClear;
+                if (!near)
+                    return at;
+            }
+            return at;
         }
 
         /// Where the next of the wave's enemies comes in: by the nest of the room with the most room to spare.

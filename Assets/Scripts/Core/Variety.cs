@@ -209,7 +209,12 @@ namespace Arena
                 : side == 0 ? new V2(Rand(lo.X + 150f, hi.X - 150f), lo.Y) : side == 1 ? new V2(Rand(lo.X + 150f, hi.X - 150f), hi.Y)
                 : side == 2 ? new V2(lo.X, Rand(lo.Y + 120f, hi.Y - 120f)) : new V2(hi.X, Rand(lo.Y + 120f, hi.Y - 120f));
             if (RoomsOn && !at.HasValue)
-                basePos = RoomSpawnSpot(60f, out spawnHome);  // by a room's nest (Rooms.cs); its members guard that room
+            {
+                if (Rooms.RoomByRoom)
+                    basePos = RoomSpawnSpot(60f, out spawnHome);  // by a room's nest (Rooms.cs); its members guard that room
+                else
+                    basePos = RoomsRandomSpot(80f);  // anywhere on the map, away from you (Rooms.cs)
+            }
             else if (LayoutOn && !at.HasValue)
                 basePos = LayoutSquadBase();  // in front of an enemy gate (LayoutRules.cs)
             V2 fwd = (new V2(Width / 2f, Height / 2f) - basePos).Normalized(), across = fwd.Orthogonal();

@@ -28,6 +28,8 @@ namespace Arena
         V2 camFocus = new V2(AW / 2f, AH / 2f);  // the arena point at the centre of the screen
         bool camZoomOn;          // while the world is drawn and zoomed (set in BeginLeanFrame, cleared in EndLeanFrame)
         bool camFollow;          // the Rooms world is up: the camera follows you at any zoom (Rooms.cs)
+        float zoomHintT;         // the "scroll to zoom out" prompt, while it shows (the open Rooms map; gone once you zoom out)
+        const float ZoomHintTime = 14f;
 
         /// Any zoom at all this frame, or the rooms' following camera (false keeps every transform exactly as before).
         bool CamZoomed => camZoom > 1.0001f || camFollow;
@@ -81,6 +83,13 @@ namespace Arena
             {
                 bool fresh = !camFollow;
                 camFollow = true;
+                if (fresh && !Rooms.RoomByRoom && scrollZoom)
+                {
+                    zoomWant = camZoom = Rooms.StartZoom;  // room rounds start zoomed in, with a prompt to zoom out (DrawZoomHint)
+                    zoomHintT = ZoomHintTime;
+                }
+                if (zoomHintT > 0f)
+                    zoomHintT = zoomWant <= 1.02f ? 0f : zoomHintT - dt;
                 V2 want2 = RoomsFocus(me.Disp, camZoom);
                 if (fresh || (want2 - camFocus).Length > 1600f)
                     camFocus = want2;  // (the rooms just came up, or a teleport: a cut)
@@ -105,6 +114,21 @@ namespace Arena
         /// Where the rooms' camera looks: at you, held inside the area you're in (centred on it when it's smaller than
         /// the view), then inside the world.
         V2 RoomsFocus(V2 at, float zoom) => Rooms.ViewCentre(at, AW / (2f * zoom), AH / (2f * zoom), game.VaultOn);
+
+        /// DrawHud: the open Rooms map starts zoomed in; this asks you to zoom out, low in the middle, until you do (or a while).
+        void DrawZoomHint()
+        {
+            if (zoomHintT <= 0f || !game.RoomsOn || !game.Running)
+                return;
+            float a = Mathf.Clamp01(zoomHintT / 1.5f) * Mathf.Clamp01((ZoomHintTime - zoomHintT) / 0.6f);
+            float pulse = 0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 4f);
+            var r = new Rect(W / 2f - 150f, H - 200f, 300f, 34f);
+            var old = GUI.color;
+            GUI.color = new Color(old.r, old.g, old.b, old.a * a);
+            Ui.Pill(r, new Color(0f, 0f, 0f, 0.6f));
+            Ui.Label(r, "SCROLL ▼  TO ZOOM OUT", 15, new Color(0.55f, 0.94f, 1f, pulse), TextAnchor.MiddleCenter, true);
+            GUI.color = old;
+        }
 
         /// An arena point through the zoom (arena units on the unzoomed screen). Only while CamZoomed.
         V2 ZoomPoint(V2 p) => (p - camFocus) * camZoom + new V2(AW / 2f, AH / 2f);

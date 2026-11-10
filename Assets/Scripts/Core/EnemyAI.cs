@@ -215,7 +215,7 @@ namespace Arena
             V2 pos;
             int home = -1;
             if (RoomsOn && !d.IsBoss)
-                pos = RoomSpawnSpot(d.Radius, out home);  // by a room's nest (Rooms.cs)
+                pos = Rooms.RoomByRoom ? RoomSpawnSpot(d.Radius, out home) : RoomsRandomSpot(d.Radius);  // anywhere on the map, away from you (or by a room's nest: Rooms.cs)
             else if (LayoutOn && !d.IsBoss)
                 pos = LayoutSpawn(m);  // through an enemy gate, or an edge the layout allows (LayoutRules.cs)
             else
@@ -832,6 +832,8 @@ namespace Arena
                 v = ZombieMove(e, tpos, dir, dist, ref speed);  // Zombies.cs
             if (IsNonShooter(e.Type))
                 v = NonShooterMove(e, tpos, dir, dist, ref speed);  // NonShooters.cs
+            if (RoomsOn && !e.Def.IsBoss && !e.Def.Melee && e.Home < 0 && dist > 0.01f && SegBlocked(ActiveLayout, e.Pos, tpos, 4f))
+                v = dir;  // the Rooms map: a shooter with a wall between it and you comes round (steered) instead of holding its distance behind the wall
             v = SquadMove(e, tpos, dir, v);  // squads keep together (Variety.cs)
             if (HasTrait(e, EliteTrait.Hasted))
                 speed *= HasteMult;

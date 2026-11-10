@@ -107,6 +107,11 @@ So friends can play without Tailscale or port forwarding.
 
 ## Rooms arena (built, Nov 2026; check in Unity)
 
+- [ ] **Open map (Nov 10, check in Unity)**: the nests, spills and room locks are parked; enemies come in at random
+      spots anywhere on the map (never within 350 px of you), the camera follows you freely, room rounds start at 1.5x
+      zoom with a "scroll to zoom out" prompt, the vault keeps its lock. Check: does the open map feel right, is 350 px
+      enough warning, is the prompt clear? Say if the parked room-by-room code should be deleted.
+
 - [ ] **Rooms arena, phases 0-3** ([`Rooms.md`](Rooms.md); mockup [`Mockups/rooms.html`](Mockups/rooms.html),
       https://claude.ai/artifact/4GPVBfq2ytFkB3oKkbSevj). Lobby → Difficulty → **Classic arena / Rooms arena** (Classic
       by default). Rooms: on regular waves the Wings map (two side rooms and two hallways round the hub, doors, walls,

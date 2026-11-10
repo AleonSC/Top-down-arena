@@ -363,6 +363,7 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("ROOMS") != null) {  // the rooms' following camera (CameraZoom.cs), at the ZOOM if any
       float z = (float)typeof(ArenaApp).GetField("camZoom", f2).GetValue(app);
       typeof(ArenaApp).GetField("camFollow", f2).SetValue(app, true);
+      if (Environment.GetEnvironmentVariable("ZOOMHINT") != null) typeof(ArenaApp).GetField("zoomHintT", f2).SetValue(app, 6f);  // ZOOMHINT=1: the open Rooms map's "scroll to zoom out" prompt
       typeof(ArenaApp).GetField("camFocus", f2).SetValue(app, typeof(ArenaApp).GetMethod("RoomsFocus", f2).Invoke(app, new object[] { me.Disp, z }));
     }
     if (Environment.GetEnvironmentVariable("SWING") != null)  // draw the swings once first (then throw that away), so each is already seen (its owner known) as after its first frame in the game
