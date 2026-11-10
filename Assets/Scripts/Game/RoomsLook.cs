@@ -101,7 +101,7 @@ namespace Arena
                 var d = wd.Doors[i];
                 bool locked;
                 var col = DoorColour(i, out locked);
-                V2 j0 = d.Pos - d.Along * (Rooms.DoorW / 2f), j1 = d.Pos + d.Along * (Rooms.DoorW / 2f), t = d.Across * (Rooms.WallT * 0.9f);
+                V2 j0 = d.Pos - d.Along * (d.W / 2f), j1 = d.Pos + d.Along * (d.W / 2f), t = d.Across * (Rooms.WallT * 0.9f);
                 if (locked)  // a solid bar across: you can come in, not go out
                 {
                     Line(j0, j1, 10f, col.WithAlpha(0.25f * a2));

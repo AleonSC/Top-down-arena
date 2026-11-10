@@ -130,3 +130,12 @@ should say if people feel it too. Shop and Floor rooms stay dormant until the ow
 - Can a player build with 0 vectors left (free hallway)? **No.**
 - Do boss waves give vectors to downed players too? **Yes, everyone.**
 - Can a player see others' vector stocks? **Yes, a small number on each card.**
+
+## Opened walls (built Nov 10, protocol 256)
+
+Owner: "add doors to walls for vectors" and "delete walls to add vectors": the same tool. On the draw screen, **Open wall** mode: drag along any wall two
+rooms share (`Expansion.SharedWalls`; never the outer wall, never a sealed floating room's). It is a proposal like a room (`RoomKind.Opening` in the
+round's proposals; `Msg.ExpandCut`), voted the same way. The winner is added to `Game.Openings` (a `WallCut` list, synced after the rooms in `Msg.ExpandState`)
+and its proposer gets 1 vector per tile that was still wall (`Expansion.CutRefund`, capped at their vector cap). `Expansion.Build(rooms, cuts)` turns a cut
+into a wide `RoomDoor` (`Width`) that replaces any door it covers; `World.WallLine` cuts the wall by each door's width. Rooms built then opened can be
+farmed for vectors only as far as there is wall: each tile pays once.

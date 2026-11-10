@@ -4,7 +4,16 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// What a room of the Expanding arena does (Docs/ExpandingArena.md). Floor rooms carry a path's ground and hazards.
-    public enum RoomKind : byte { Combat, Shop, Floor, Vendor, Gatekeeper }  // (Vendor and Gatekeeper: the floating rooms, Docs/FloatingRooms.md)
+    public enum RoomKind : byte { Combat, Shop, Floor, Vendor, Gatekeeper, Opening }  // (Vendor and Gatekeeper: the floating rooms, Docs/FloatingRooms.md; Opening: only in a round's proposals, a stretch of wall to open)
+
+    /// A stretch of interior wall the team opened (the Expanding arena): a vertical wall at x = At from y = From to Till, or a horizontal one at y = At.
+    public struct WallCut : IEquatable<WallCut>
+    {
+        public bool Vertical;
+        public short At, From, Till;
+        public bool Equals(WallCut o) => Vertical == o.Vertical && At == o.At && From == o.From && Till == o.Till;
+        public int Length => Till - From;
+    }
 
     /// One bought room: a box attached to its parent room (area index; 0 is the hub) with a door on their shared wall.
     /// Stored as the resolved box, so rebuilding the map needs no random numbers: the map is the hub plus this list.
@@ -309,6 +318,75 @@ namespace Arena
             return Placement(built, r.X, r.Y, r.W, r.H, out p, out loops, out why) ? loops : 0;
         }
 
+        // --- Opened walls: a stretch of wall between two rooms the team opens for vectors (1 per tile) ---
+
+        public const int MinCut = 200, MaxCuts = 40;  // the shortest opening (2 tiles), and how many a map can hold
+
+        /// A proposal's ExpansionRoom for a wall opening: the stretch as a thin box (width or height 0), priced at minus the refund.
+        public static ExpansionRoom CutProposal(WallCut c, int refund) => new ExpansionRoom
+        {
+            Kind = RoomKind.Opening,
+            X = c.Vertical ? c.At : c.From, Y = c.Vertical ? c.From : c.At,
+            W = c.Vertical ? 0 : c.Till - c.From, H = c.Vertical ? c.Till - c.From : 0,
+            Price = -refund,
+        };
+
+        public static WallCut CutOf(ExpansionRoom r) => r.W == 0
+            ? new WallCut { Vertical = true, At = (short)r.X, From = (short)r.Y, Till = (short)(r.Y + r.H) }
+            : new WallCut { Vertical = false, At = (short)r.Y, From = (short)r.X, Till = (short)(r.X + r.W) };
+
+        /// Every stretch of wall two rooms share on this map (vertical?, its line, from, till): where an opening can go.
+        public static List<int[]> SharedWalls(World w)
+        {
+            var list = new List<int[]>();
+            for (int a = 0; a < w.Areas.Length; a++)
+                for (int b = a + 1; b < w.Areas.Length; b++)
+                {
+                    var p = w.Areas[a]; var q = w.Areas[b];
+                    int px0 = (int)p.Min.X, py0 = (int)p.Min.Y, px1 = (int)p.Max.X, py1 = (int)p.Max.Y, qx0 = (int)q.Min.X, qy0 = (int)q.Min.Y, qx1 = (int)q.Max.X, qy1 = (int)q.Max.Y;
+                    int lo = Math.Max(py0, qy0), hi = Math.Min(py1, qy1);
+                    if (hi > lo && (px1 == qx0 || qx1 == px0))
+                        list.Add(new[] { 1, px1 == qx0 ? px1 : px0, lo, hi, a, b });
+                    lo = Math.Max(px0, qx0); hi = Math.Min(px1, qx1);
+                    if (hi > lo && (py1 == qy0 || qy1 == py0))
+                        list.Add(new[] { 0, py1 == qy0 ? py1 : py0, lo, hi, a, b });
+                }
+            return list;
+        }
+
+        /// What opening this stretch gives back: 1 vector per tile of it that is still wall. 0 with `why` set if it can't be opened
+        /// (not on the grid, too short, not a wall two rooms share, a sealed room behind it, or already open).
+        public static int CutRefund(IList<ExpansionRoom> rooms, IList<WallCut> cuts, WallCut c, out string why)
+        {
+            why = null;
+            if (c.At % Step != 0 || c.From % Step != 0 || c.Till % Step != 0) { why = "Not on the grid"; return 0; }
+            if (c.Length < MinCut) { why = "Too short (at least " + MinCut / Step + " tiles)"; return 0; }
+            if (cuts != null && cuts.Count >= MaxCuts) { why = "Too many openings"; return 0; }
+            var w = Build(rooms, cuts);
+            foreach (var s in SharedWalls(w))
+            {
+                if ((s[0] == 1) != c.Vertical || s[1] != c.At || c.From < s[2] || c.Till > s[3])
+                    continue;
+                if (w.Areas[s[4]].Sealed || w.Areas[s[5]].Sealed) { why = "A sealed room: build to it first"; return 0; }
+                int open = 0;
+                for (int u = c.From; u < c.Till; u += Step)
+                {
+                    float mid = u + Step / 2f;
+                    foreach (var d in w.Doors)
+                        if (d.Vertical == c.Vertical && Math.Abs((c.Vertical ? d.Pos.X : d.Pos.Y) - c.At) < 0.5f && Math.Abs((c.Vertical ? d.Pos.Y : d.Pos.X) - mid) < d.W / 2f)
+                        {
+                            open++;
+                            break;
+                        }
+                }
+                int refund = c.Length / Step - open;
+                if (refund <= 0) { why = "Already open"; return 0; }
+                return refund;
+            }
+            why = "Not a wall between two rooms";
+            return 0;
+        }
+
         // --- Themed rooms (Docs/FloatingRooms.md step 4): a path as a room's theme, drawn for extra vectors, unlocked by bosses ---
 
         /// Extra vectors a theme costs on top of the room's walls: its path's danger (1: 3, 2: 6, 3: 10).
@@ -511,7 +589,7 @@ namespace Arena
 
         /// The World for the hub plus these rooms. With no rooms it is the hub alone, walled in (the Single world has no walls).
         /// Rooms sharing a stretch of wall of at least MinDoorRun have a door there (the parent's, and loops).
-        public static World Build(IList<ExpansionRoom> rooms)
+        public static World Build(IList<ExpansionRoom> rooms, IList<WallCut> cuts = null)
         {
             int n = rooms.Count + 1;
             var areas = new RoomArea[n];
@@ -571,6 +649,21 @@ namespace Arena
                     if (till > pos) spans.Add(new WallSpan(vertical, at, pos, till));
                 }
             }
+            if (cuts != null)  // opened walls: a wide gap between the two rooms, replacing any door it covers
+                foreach (var c in cuts)
+                    for (int a = 0; a < n; a++)
+                        for (int b = a + 1; b < n; b++)
+                        {
+                            BoxOf(rooms, a, out int ax0, out int ay0, out int ax1, out int ay1);
+                            BoxOf(rooms, b, out int bx0, out int by0, out int bx1, out int by1);
+                            bool match = c.Vertical
+                                ? (ax1 == c.At && bx0 == c.At || bx1 == c.At && ax0 == c.At) && c.From >= Math.Max(ay0, by0) && c.Till <= Math.Min(ay1, by1)
+                                : (ay1 == c.At && by0 == c.At || by1 == c.At && ay0 == c.At) && c.From >= Math.Max(ax0, bx0) && c.Till <= Math.Min(ax1, bx1);
+                            if (!match)
+                                continue;
+                            doors.RemoveAll(d => d.A == a && d.B == b && d.Vertical == c.Vertical && (c.Vertical ? d.Pos.Y : d.Pos.X) > c.From && (c.Vertical ? d.Pos.Y : d.Pos.X) < c.Till);
+                            doors.Add(new RoomDoor { Pos = c.Vertical ? new V2(c.At, (c.From + c.Till) / 2f) : new V2((c.From + c.Till) / 2f, c.At), Vertical = c.Vertical, Width = c.Till - c.From, A = a, B = b });
+                        }
             for (int a = 1; a < n; a++)  // a floating room with no door is sealed
                 if (areas[a].Floating)
                 {

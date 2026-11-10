@@ -39,7 +39,10 @@ namespace Arena
         public bool ExpandingOn => ArenaKind == ArenaLayout.Expanding;
 
         /// The world of the hub plus the rooms bought (built once per change).
-        public World ExpansionWorld => expWorld ?? (expWorld = Expansion.Build(Expanded));
+        /// The stretches of interior wall the team has opened.
+        public readonly List<WallCut> Openings = new List<WallCut>();
+
+        public World ExpansionWorld => expWorld ?? (expWorld = Expansion.Build(Expanded, Openings));
 
         /// More floor means more enemies (the Rooms arena makes up for its size with damage instead, Rooms.EnemyDamageMult).
         public float ExpansionScale
@@ -299,6 +302,7 @@ namespace Arena
             RoomTokens.Clear();
             floatCycle = -1;
             Expanded.Clear();
+            Openings.Clear();
             ExpandOpen = false;
             ExpandProposals.Clear();
             ExpandVotes.Clear();
@@ -431,6 +435,53 @@ namespace Arena
             FinishOrBroadcast();
         }
 
+        /// This game's player proposes opening a stretch of interior wall (it pays vectors back, 1 per tile still wall).
+        public void ProposeExpandCut(WallCut c)
+        {
+            if (!ExpandOpen || Me == null)
+                return;
+            if (IsHost)
+            {
+                HostExpandCut(MyId, c);
+                return;
+            }
+            var pw = Proto.Begin(Msg.ExpandCut);
+            pw.Write(c.Vertical); pw.Write(c.At); pw.Write(c.From); pw.Write(c.Till);
+            session.SendToHost(Proto.End(pw));
+        }
+
+        public void OnExpandCut(int peer, BinaryReader r) => HostExpandCut(peer, new WallCut { Vertical = r.ReadBoolean(), At = r.ReadInt16(), From = r.ReadInt16(), Till = r.ReadInt16() });
+
+        /// Host: a wall opening becomes its proposer's proposal (it replaces their room proposal, if any, and the votes it had).
+        void HostExpandCut(int id, WallCut c)
+        {
+            Player p;
+            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
+                return;
+            string why;
+            int refund = Expansion.CutRefund(Expanded, Openings, c, out why);
+            if (refund <= 0)
+            {
+                DoLog("opening refused (" + why + ")");
+                return;
+            }
+            var prop = Expansion.CutProposal(c, refund);
+            prop.Owner = id;
+            int old = ExpandProposals.FindIndex(q => q.Owner == id);
+            if (old >= 0)
+            {
+                ExpandProposals[old] = prop;
+                foreach (int voter in new List<int>(ExpandVotes.Keys))
+                    if (ExpandVotes[voter] == id)
+                        ExpandVotes.Remove(voter);
+            }
+            else
+                ExpandProposals.Add(prop);
+            ExpandVotes.Remove(id);
+            DoLog(p.Name + " proposes opening " + c.Length / Expansion.Step + " tiles of wall for " + refund + " vectors");
+            FinishOrBroadcast();
+        }
+
         /// Host: once everyone has cast a vote the round is settled; until then everyone is told how it stands.
         void FinishOrBroadcast()
         {
@@ -479,12 +530,21 @@ namespace Arena
                 if (pick != 0)
                 {
                     var room = standing.Find(q => q.Owner == pick);
-                    Players[pick].Vectors -= room.Price;
-                    Expanded.Add(room);
+                    if (room.Kind == Arena.RoomKind.Opening)
+                    {
+                        Openings.Add(Expansion.CutOf(room));
+                        AddVectors(Players[pick], -room.Price);
+                        DoLog("wall opened: " + (room.W + room.H) / Expansion.Step + " tiles by " + Players[pick].Name + " for +" + -room.Price + " vectors");
+                    }
+                    else
+                    {
+                        Players[pick].Vectors -= room.Price;
+                        Expanded.Add(room);
+                        DoLog("room built: " + room.W + " x " + room.H + " by " + Players[pick].Name + " for " + room.Price + " vectors");
+                    }
                     expWorld = null;
                     LayoutAge = 0f;  // the new walls rise
                     Sounds.Add(Sfx.Pick);
-                    DoLog("room built: " + room.W + " x " + room.H + " by " + Players[pick].Name + " for " + room.Price + " vectors");
                 }
                 else
                     DoLog("the team voted for no room");
@@ -574,6 +634,11 @@ namespace Arena
         {
             var w = Proto.Begin(Msg.ExpandState);
             WriteRooms(w, Expanded);
+            w.Write((byte)Openings.Count);
+            foreach (var c in Openings)
+            {
+                w.Write(c.Vertical); w.Write(c.At); w.Write(c.From); w.Write(c.Till);
+            }
             w.Write((byte)RoomTokens.Count);
             foreach (var t in RoomTokens)
             {
@@ -603,6 +668,20 @@ namespace Arena
             {
                 Expanded.Clear();
                 Expanded.AddRange(rooms);
+                expWorld = null;
+                LayoutAge = 0f;
+            }
+            int nc = r.ReadByte();
+            var cuts = new List<WallCut>(nc);
+            for (int i = 0; i < nc; i++)
+                cuts.Add(new WallCut { Vertical = r.ReadBoolean(), At = r.ReadInt16(), From = r.ReadInt16(), Till = r.ReadInt16() });
+            bool cutsChanged = cuts.Count != Openings.Count;
+            for (int i = 0; !cutsChanged && i < cuts.Count; i++)
+                cutsChanged |= !cuts[i].Equals(Openings[i]);
+            if (cutsChanged)
+            {
+                Openings.Clear();
+                Openings.AddRange(cuts);
                 expWorld = null;
                 LayoutAge = 0f;
             }

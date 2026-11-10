@@ -102,7 +102,9 @@ namespace Arena
                 foreach (var d in CurrentWorld.Doors)
                     if (d.Joins(area))
                     {
-                        outside = d.Side(d.Other(area)) + (d.Side(d.Other(area)) - d.Pos).Normalized() * 40f;
+                        var other = areas[d.Other(area)];
+                        V2 toward = other.Contains(d.Pos + d.Across * Rooms.DoorPad) ? d.Across : new V2(-d.Across.X, -d.Across.Y);
+                        outside = d.Pos + toward * (Rooms.DoorPad + 40f);  // (just past the door, in the room beyond)
                         break;
                     }
                 foreach (var p in Players.Values)

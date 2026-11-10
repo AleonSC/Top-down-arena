@@ -269,9 +269,37 @@ namespace Arena
         /// How much faster enemies fire on a wave: 5% a wave, up to twice as fast (wave 21 on).
         public static float WaveFireRate(int wave) => Math.Min(2f, 1f + 0.05f * (wave - 1));
 
+        /// A spawn point that falls outside every room of the map (a squad's line or pincer laid out along the world's box, which has holes
+        /// in it when the map isn't a rectangle) moves to the nearest room, inside its walls.
+        V2 SnapIntoRooms(V2 pos, float r)
+        {
+            if (!RoomsOn)
+                return pos;
+            var areas = CurrentWorld.Areas;
+            foreach (var a in areas)
+                if (!a.Sealed && a.Contains(pos, -r))
+                    return pos;
+            int best = -1;
+            float bestD = float.MaxValue;
+            for (int i = 0; i < areas.Length; i++)
+            {
+                if (areas[i].Sealed)
+                    continue;
+                float m = r + 20f;
+                V2 c = pos.Clamp(areas[i].Min + new V2(m, m), areas[i].Max - new V2(m, m));
+                float dd = c.DistanceTo(pos);
+                if (dd < bestD) { bestD = dd; best = i; }
+            }
+            if (best < 0)
+                return pos;
+            float mm = r + 20f;
+            return PushOutOfSolids(pos.Clamp(areas[best].Min + new V2(mm, mm), areas[best].Max - new V2(mm, mm)), r);
+        }
+
         Enemy SpawnEnemyAt(EnemyType type, V2 pos, float spawnT, int parent, bool elite = false)
         {
             var d = Defs.Get(type);
+            pos = SnapIntoRooms(pos, d.Radius);
             var e = new Enemy { Id = nextEnemyId++, Type = type, Def = d, Radius = d.Radius, Speed = d.Speed, Score = d.Score, ParentId = parent, Elite = elite };
             e.MaxHp = SpawnHp(type, Wave);
             if (Has(RunMod.SwiftFoes))
