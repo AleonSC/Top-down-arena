@@ -221,8 +221,8 @@ namespace Arena
 
         int floatCycle = -1;
 
-        /// Host, as a regular wave starts: a new boss cycle gets its floating rooms (Docs/FloatingRooms.md): a shop on even cycles or a vendor
-        /// on odd ones, and the Gatekeeper, each placed off the connected map and sealed until a built room touches it (at most MaxSealed
+        /// Host, as a regular wave starts: a new boss cycle gets its floating rooms (Docs/FloatingRooms.md): a shop, a vendor
+        /// and the Gatekeeper, each placed off the connected map and sealed until a built room touches it (at most MaxSealed
         /// waiting at once).
         void PlaceFloatingRooms()
         {
@@ -234,7 +234,7 @@ namespace Arena
             floatCycle = cycle;
             int waiting = Expansion.SealedCount(Expanded);
             bool added = false;
-            foreach (var kind in new[] { cycle % 2 == 0 ? Arena.RoomKind.Shop : Arena.RoomKind.Vendor, Arena.RoomKind.Gatekeeper })
+            foreach (var kind in new[] { Arena.RoomKind.Shop, Arena.RoomKind.Vendor, Arena.RoomKind.Gatekeeper })
             {
                 if (waiting >= Expansion.MaxSealed)
                     break;
