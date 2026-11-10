@@ -2,6 +2,8 @@
 
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
+
+- 261: portal links: the Expanding arena's bought portal pairs (PortalLink list after the openings in Msg.ExpandState), Msg.ExpandLink, RoomKind.Link proposals (ExpansionGame.cs)
 - 260: snapshots carry each player's Double Barrel shells and charge (`ScatShells`, `ScatCharge`); new `Msg.WeaponDash` kinds 21-23, `ZoneKind.FlakMine`/`TearGas`, `FxKind.DoubleBarrel`
 - 259: the Repulsion Cannon's Undertow: `Player.RepelMeter` (byte) and `Player.RepelPull` (bool) after `TwinCharge` in each player's snapshot; `Msg.WeaponDash` kinds 19/20 (pull on/off)
 - 258: shop shelf grows with Add stock: `Player.ShelfSold` is an Int (was a Byte) and only `Game.ShelfCount` shelf slots are sent (6 per stock, up to 4 stocks)

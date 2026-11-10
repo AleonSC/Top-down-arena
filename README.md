@@ -806,6 +806,11 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
 - **Open a wall**: on the draw screen, switch to **Open wall** and click both ends of a stretch of a wall two rooms share (the cyan stretches; the outer wall can't be
   opened, nor a sealed floating room's). It goes to the vote like a room. If it wins, that stretch of wall comes down (a short stretch is a door, a long
   one joins the rooms) and its proposer gets **1 vector back for every tile that was wall** (up to their cap). At least 2 tiles, up to 40 openings.
+- **Portals**: on the draw screen, switch to **Portal** and click a spot in one room, then a spot in another: a **portal pair** goes to the
+  vote like a room. If it wins, step into one end and you come out of the other (enemies use them too). It costs **8 vectors + 1 per 2 tiles
+  of walking it saves** (at most 30) and must save at least 6 tiles. Each end sits inside a connected room, 90 px off its walls, clear of
+  obstacles, 150 px from a door and 250 px from another portal. At most **3 pairs**, not counted as rooms. Bots sometimes link the two
+  rooms farthest apart.
 - **Themed rooms**: pick a theme under the map when you draw a room: a path's ground and rules (Swarm Fields, Sniper Ridge, Elite Gauntlet, Burning
   Grounds, Sanctuary, Frozen Lake, Blood Moon) inside that room only, with its kill bonus. A theme costs extra vectors (+3 / +6 / +10 for
   danger 1 / 2 / 3) and unlocks with bosses: danger 2 after the first boss, danger 3 after the second.
@@ -815,6 +820,13 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
 - **Shop and vendor rooms**: with one connected, kills drop gold and the shop opens every intermission without holding the countdown. Buy
   upgrades and add stock in the **shop room**; heal, revive and remove upgrades at the **vendor**. Gold and your shelf carry over between waves
   (the shelf is new each boss cycle).
+- **Breaches**: once the first room is built, enemies come in through **breaches** in the outer wall: a stretch of wall cracks open
+  and a **red holographic barrier** stands in the gap (you can't go out through it; red chevrons on the floor point where they come
+  from, and a red dash marks each on the minimap). 2 open every regular wave, one more per 3 rooms built (at most 6), 400 px apart or
+  more, picked by the wave and the map so everyone sees the same ones. Every 100 px of outer wall is a spot, so long outer walls
+  break more often, and a **dead end** (a room with one door) more still: compact builds and loops have fewer places to be hit
+  from. The barriers flicker up for 1.5 s before the first enemy steps through; an enemy uses a breach at least 350 px from every
+  player when there is one. Never on a floating room, a shop, vendor or Gatekeeper room, or on boss waves (the fixed boss arena).
 - **Obstacles**: a built room comes with obstacles and bars of wall (pillars, bars, an L, blocks: one per ~220,000 px2, up to 4),
   laid out from the room's own box so every machine builds the same ones. They keep off the room's walls, its doors and its middle,
   so you can always walk round them; hallways stay clear.
