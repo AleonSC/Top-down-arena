@@ -1,0 +1,289 @@
+<title>Balance Test Run</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the field-manual look of the other mockups. Three stops in order of use: 1) the F1 dev tools Tools tab with the
+   new Balance Test card (interactive), 2) the strip shown while it runs, 3) the report at the end (all numbers are
+   made-up examples). Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547; --red: #ff6b6b; --blue: #73b7ff;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 30px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 44px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: .04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header, section { display: grid; gap: 12px; min-width: 0; }
+kbd { font: 500 12px var(--font-data); padding: 1px 6px; border: 1px solid var(--edge); border-bottom-width: 2px; border-radius: 5px; background: var(--panel-2); }
+button { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+.mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+
+/* F1 frame */
+.f1 { display: grid; grid-template-columns: 190px minmax(0, 1fr); background: #0c1117; border: 1px solid var(--edge); border-radius: 12px; overflow: hidden; }
+.side { background: #0a0e13; border-right: 1px solid var(--line); padding: 14px 10px; display: grid; gap: 6px; align-content: start; }
+.side .tab { text-align: left; padding: 8px 12px; border-radius: 8px; border: 1px solid transparent; background: transparent; display: grid; gap: 1px; }
+.side .tab b { font: 700 16px var(--font-display); color: var(--soft); }
+.side .tab i { font: 400 11px var(--font-body); color: var(--muted); font-style: normal; }
+.side .tab.on { background: #1b2230; border-color: #ffd05a66; } .side .tab.on b { color: #ffd05a; }
+.stat { margin-top: 10px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; display: grid; gap: 4px; font: 500 11px var(--font-data); color: var(--muted); }
+.stat div { display: flex; justify-content: space-between; gap: 8px; } .stat em { font-style: normal; color: var(--soft); }
+.main { padding: 16px; display: grid; gap: 14px; min-width: 0; }
+.dcard { border: 1px solid var(--line); border-left: 3px solid var(--c, var(--edge)); border-radius: 8px; background: var(--panel-2); padding: 12px 14px; display: grid; gap: 4px; }
+.dcard.dim { opacity: .55; } .dcard.dim h3 { font-size: 15px; }
+.dcard h3 { font-size: 16px; letter-spacing: .03em; } .dcard .blurb { font-size: 12.5px; color: var(--muted); }
+.new { --c: var(--teal); border-color: #2c5a50; background: linear-gradient(0deg, #11201f, #151f24); }
+.new h3 .badge { margin-left: 8px; font: 700 10px var(--font-display); letter-spacing: .14em; padding: 2px 6px; border-radius: 4px; background: var(--teal); color: #06231d; vertical-align: 2px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px 22px; margin-top: 8px; }
+.fld { display: grid; gap: 6px; align-content: start; }
+.fld > .lbl { font: 600 10.5px var(--font-display); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; width: fit-content; max-width: 100%; }
+.seg button { height: 28px; padding: 0 11px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 12.5px var(--font-body); cursor: pointer; }
+.seg button:hover { color: var(--fg); background: #1c252e; }
+.seg button.on { color: #fff; background: #133a33; box-shadow: inset 0 0 0 1px var(--teal); }
+.tog { display: flex; gap: 8px; align-items: center; font: 500 13px var(--font-body); color: var(--soft); cursor: pointer; }
+.tog input { accent-color: var(--teal); width: 15px; height: 15px; margin: 0; }
+.loadout { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 600 12px var(--font-body); padding: 3px 9px; border-radius: 999px; border: 1px solid var(--edge); color: var(--soft); background: var(--bg); }
+.chip b { color: var(--amber); font-weight: 600; margin-right: 4px; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; }
+.go { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.btn { height: 40px; padding: 0 20px; border-radius: 9px; border: 0; background: var(--teal); color: #06231d; font: 800 15px var(--font-display); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
+.btn:hover { filter: brightness(1.1); }
+.hint { font-size: 12.5px; color: var(--muted); }
+.logs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 6px 14px; margin-top: 6px; }
+
+/* run strip */
+.game { background: #070910; border: 1px solid var(--edge); border-radius: 12px; padding: 14px; display: grid; gap: 12px; position: relative; overflow: hidden; }
+.arena { height: 150px; border-radius: 8px; background: radial-gradient(circle at 50% 60%, #121a24, #080b10); border: 1px solid var(--line); position: relative; }
+.arena .dot { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: var(--red); box-shadow: 0 0 10px #ff6b6b88; }
+.arena .me { background: var(--teal); box-shadow: 0 0 12px #6fe3c4aa; width: 14px; height: 14px; left: 48%; top: 56%; }
+.tbar { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; padding: 8px 12px; border: 1px solid #2c5a50; background: #0d1a19; border-radius: 8px; }
+.rec { display: inline-flex; gap: 7px; align-items: center; font: 800 12px var(--font-display); letter-spacing: .14em; color: var(--red); }
+.rec::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--red); animation: pulse 1.2s infinite; }
+@keyframes pulse { 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .rec::before { animation: none; } }
+.pips { display: flex; gap: 5px; } .pips i { width: 26px; height: 8px; border-radius: 3px; background: var(--line); } .pips i.d { background: var(--teal); } .pips i.n { background: var(--amber); }
+.tbar .kv { font: 500 12px var(--font-data); color: var(--muted); } .tbar .kv b { color: var(--fg); font-weight: 500; }
+.tbar .sp { flex: 1; }
+
+/* report */
+.rep { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 14px; min-width: 0; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+.tile { border: 1px solid var(--line); background: var(--panel-2); border-radius: 8px; padding: 9px 12px; display: grid; gap: 2px; }
+.tile span { font: 600 10px var(--font-display); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.tile b { font: 700 22px var(--font-display); } .tile small { font: 400 11px var(--font-data); color: var(--muted); }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line); }
+.tabs button { padding: 8px 14px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); font: 700 14px var(--font-display); letter-spacing: .05em; cursor: pointer; }
+.tabs button:hover { color: var(--fg); } .tabs button.on { color: var(--teal); border-bottom-color: var(--teal); }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font: 400 13px var(--font-data); font-variant-numeric: tabular-nums; min-width: 640px; }
+th { text-align: right; font: 600 10.5px var(--font-display); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 6px 10px; border-bottom: 1px solid var(--edge); white-space: nowrap; }
+td { text-align: right; padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; color: var(--soft); }
+td .bar { display: inline-block; height: 6px; border-radius: 3px; background: var(--teal); vertical-align: middle; margin-right: 8px; }
+.flag { font: 700 10px var(--font-display); letter-spacing: .1em; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; }
+.flag.hi { background: #3a1b1b; color: var(--red); } .flag.lo { background: #2d2512; color: var(--amber); } .flag.ok { background: #12302a; color: var(--teal); }
+.find { display: grid; gap: 6px; padding: 12px 14px; border: 1px solid var(--line); border-left: 3px solid var(--amber); border-radius: 8px; background: var(--panel-2); }
+.find h3 { font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: var(--amber); }
+.find ul { margin: 0; padding-left: 18px; display: grid; gap: 3px; font-size: 14px; color: var(--soft); }
+.json { background: #0a0e12; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; font: 400 12.5px/1.6 var(--font-data); color: var(--soft); overflow-x: auto; white-space: pre; margin: 0; }
+.json .k { color: var(--blue); } .json .n { color: var(--amber); } .json .s { color: var(--teal); }
+.note { font-size: 12.5px; color: var(--muted); }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.list { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 8px; align-content: start; }
+.list h3 { font-size: 15px; letter-spacing: .06em; color: var(--teal); }
+.list ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; color: var(--soft); }
+@media (max-width: 640px) { .f1 { grid-template-columns: 1fr; } .side { grid-auto-flow: column; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--line); } .stat { display: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · Dev tools</div>
+    <h1>Balance <span>Test Run</span></h1>
+    <p class="lead">Pick your loadout in the lobby as usual, start a match, press <kbd>F1</kbd>, open Tools and launch the test. It plays waves 1 to 5 with your build, records every number needed to tune weapons, abilities and enemies, and ends in a report you can read in-game or send as one file.</p>
+  </header>
+
+  <section>
+    <div class="eyebrow">1 · Launch</div>
+    <h2>F1 › Tools › Balance Test</h2>
+    <div class="f1">
+      <nav class="side" aria-label="Dev tool tabs">
+        <button class="tab"><b>Match</b><i>Waves and bosses</i></button>
+        <button class="tab"><b>Players</b><i>Stats, god mode, levels</i></button>
+        <button class="tab on"><b>Tools</b><i>Recording, Boss Lab, waves</i></button>
+        <button class="tab"><b>DPS</b><i>Meter and target dummy</i></button>
+        <button class="tab"><b>Replays</b><i>Record, scrub, rewind</i></button>
+        <div class="stat" aria-label="Status"><div>WAVE<em>1 / 30</em></div><div>RECORDING<em>off</em></div><div>BOT<em>off</em></div><div>PLAYERS<em>1</em></div></div>
+      </nav>
+      <div class="main">
+        <div class="dcard new">
+          <h3>Balance Test<span class="badge">NEW</span></h3>
+          <div class="blurb">Restarts the match as a 5-wave test with the loadout you picked, then logs everything. Runs with this are never saved to Records or XP.</div>
+          <div class="loadout" aria-label="Your loadout">
+            <span class="chip"><b>Class</b>DPS · Hemomancer</span><span class="chip"><b>Weapon</b>Blood Bolts</span><span class="chip"><b>Ability</b>Arterial Spray</span><span class="chip"><b>Ult</b>Crimson Harvest</span>
+          </div>
+          <div class="grid">
+            <div class="fld"><span class="lbl">Start wave</span>
+              <div class="seg" data-grp="start"><button class="on">1</button><button>6</button><button>11</button><button>16</button><button>21</button></div>
+              <span class="hint" id="rangeHint">Tests waves 1 to 5.</span></div>
+            <div class="fld"><span class="lbl">Who plays</span>
+              <div class="seg" data-grp="who"><button class="on">Me</button><button>Bot, my build</button></div>
+              <span class="hint">Bot gives repeatable runs to compare changes.</span></div>
+            <div class="fld"><span class="lbl">Speed</span>
+              <div class="seg" data-grp="speed"><button class="on">1x</button><button>2x</button><button>4x</button></div></div>
+            <div class="fld"><span class="lbl">Difficulty</span>
+              <div class="seg" data-grp="diff"><button>Easy</button><button class="on">Normal</button><button>Hard</button></div></div>
+            <div class="fld"><span class="lbl">Between waves</span>
+              <label class="tog"><input type="checkbox" id="heal" checked> Refill health</label>
+              <label class="tog"><input type="checkbox" id="lvl" checked> Level up as normal</label>
+              <label class="tog"><input type="checkbox" id="skip"> Skip upgrade picks (keep base kit)</label></div>
+            <div class="fld"><span class="lbl">Log detail</span>
+              <div class="seg" data-grp="detail"><button>Summary</button><button class="on">Full</button><button>Full + 1 s samples</button></div>
+              <span class="hint" id="detailHint">Everything below, per wave and per second of fight time.</span></div>
+          </div>
+          <div class="go"><button class="btn" id="launch">Launch test</button><span class="hint" id="goHint">Starts in 3 s. Esc ends it early and keeps the log.</span></div>
+        </div>
+        <div class="dcard dim" style="--c:#ff7373"><h3>Session recording</h3><div class="blurb">Saves each match you host as JSON for balancing.</div></div>
+        <div class="dcard dim" style="--c:#73b7ff"><h3>Boss Lab</h3><div class="blurb">Watch bots fight any boss, with any party.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">2 · While it runs</div>
+    <h2>Test strip over the normal HUD</h2>
+    <div class="game">
+      <div class="tbar" role="status">
+        <span class="rec">TEST</span>
+        <span class="pips" aria-label="Wave 3 of 5"><i class="d"></i><i class="d"></i><i class="n"></i><i></i><i></i></span>
+        <span class="kv">WAVE <b>3 / 5</b></span><span class="kv">TIME <b>02:41</b></span><span class="kv">DAMAGE <b>18,420</b></span><span class="kv">TAKEN <b>612</b></span><span class="kv">DPS <b>214</b></span>
+        <span class="sp"></span><span class="kv">F1 › Tools › End test</span>
+      </div>
+      <div class="arena" aria-hidden="true"><span class="dot" style="left:14%;top:30%"></span><span class="dot" style="left:30%;top:68%"></span><span class="dot" style="left:72%;top:24%"></span><span class="dot" style="left:84%;top:62%"></span><span class="dot" style="left:60%;top:80%"></span><span class="dot me"></span></div>
+      <p class="note">Waves play exactly as in a normal run. The strip is only a recording light and live totals. Each wave end flashes its time to clear and damage taken for a second.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">3 · When wave 5 clears</div>
+    <h2>The report</h2>
+    <p class="lead">Example numbers, shown to lay out the screen. Click a tab. Each table is sorted so the outliers sit at the top, and flags mark what is far from the test average.</p>
+    <div class="rep">
+      <div class="tiles">
+        <div class="tile"><span>Result</span><b style="color:var(--teal)">Cleared</b><small>5 / 5 waves</small></div>
+        <div class="tile"><span>Time</span><b>6:12</b><small>avg 74 s / wave</small></div>
+        <div class="tile"><span>Damage dealt</span><b>52,380</b><small>avg DPS 141</small></div>
+        <div class="tile"><span>Damage taken</span><b>1,240</b><small>3 hits ≥ 100</small></div>
+        <div class="tile"><span>Downs</span><b>0</b><small>low HP 4.1 s</small></div>
+        <div class="tile"><span>Accuracy</span><b>68%</b><small>shots 2,904</small></div>
+      </div>
+      <div class="tabs" id="tabs" role="tablist">
+        <button class="on" data-t="waves">Waves</button><button data-t="weapons">Weapons &amp; abilities</button><button data-t="enemies">Enemies</button><button data-t="taken">Damage taken</button><button data-t="picks">Picks &amp; levels</button><button data-t="json">Raw file</button>
+      </div>
+      <div class="scroll" id="pane"></div>
+      <div class="find">
+        <h3>Auto findings</h3>
+        <ul>
+          <li>Arterial Spray did 31% of all damage with 2.1 s of use per cast. It is far above the other abilities.</li>
+          <li>Heavy took 4.8 s of focused fire to kill at wave 4. The test average is 1.9 s.</li>
+          <li>Bomber caused 38% of damage taken from 6% of enemies. Check its blast radius.</li>
+          <li>Blood Bolts accuracy fell to 52% in wave 5 when Swarmers took over the screen.</li>
+        </ul>
+      </div>
+      <div class="go"><button class="btn" id="copy">Copy summary</button><span class="hint" id="copyHint">Also saved as a file in your sessions folder, next to the normal recordings, tagged <span class="mono">balance-test</span>.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">What the log holds</div>
+    <h2>Everything needed to tune a number</h2>
+    <div class="two">
+      <div class="list"><h3>Weapons</h3><ul><li>Shots fired, hits, accuracy</li><li>Damage per hit, per second of use, per wave</li><li>Share of total damage, kills, overkill</li><li>Status effects applied (burn, bleed, slow, stun) and time spent</li><li>Healing or shielding done, for support weapons</li></ul></div>
+      <div class="list"><h3>Abilities &amp; ultimate</h3><ul><li>Casts, cooldown uptime, time cast was idle</li><li>Damage, healing, shield soaked, enemies affected per cast</li><li>Kills per cast, damage per cooldown second</li><li>Whiffs (cast that hit nothing)</li></ul></div>
+      <div class="list"><h3>Enemies</h3><ul><li>Spawned, killed, time alive, time to kill</li><li>Damage they dealt to you, by attack</li><li>Health at spawn after scaling, elite count</li><li>Distance they died at, how often they reached you</li></ul></div>
+      <div class="list"><h3>You</h3><ul><li>Health every second, low-health time, downs</li><li>Damage taken by source and by wave</li><li>Dash, parry and dodge use, time standing still</li><li>Upgrade offers, picks and the level at each wave</li></ul></div>
+    </div>
+    <p class="note">The report builds on the existing session recorder (format 3), so a test file also opens in <span class="mono">Tools/SessionReport/report.py</span>. New fields are per-weapon and per-ability counters, time-to-kill per enemy type and the findings list.</p>
+  </section>
+</div>
+
+<script>
+(function () {
+  function grp(name) { return document.querySelector('[data-grp="' + name + '"]'); }
+  document.querySelectorAll('.seg').forEach(function (seg) {
+    seg.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      seg.querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); });
+      var s = grp('start').querySelector('.on').textContent | 0;
+      document.getElementById('rangeHint').textContent = 'Tests waves ' + s + ' to ' + (s + 4) + (s % 5 === 0 || [10, 20, 30].some(function (w) { return w >= s && w <= s + 4; }) ? ', includes a boss wave.' : '.');
+      var d = grp('detail').querySelector('.on').textContent;
+      document.getElementById('detailHint').textContent = d === 'Summary' ? 'Per-wave totals only. Small file.' : d === 'Full' ? 'Everything below, per wave and per fight.' : 'Everything, plus a sample every second (health, position, nearest enemy).';
+    });
+  });
+  document.getElementById('launch').addEventListener('click', function () {
+    var h = document.getElementById('goHint'); h.textContent = 'Example only: this would restart the match as a test now.'; h.style.color = 'var(--teal)';
+  });
+  document.getElementById('copy').addEventListener('click', function () {
+    var h = document.getElementById('copyHint'); var t = 'Balance test, waves 1-5, Hemomancer DPS: 52,380 dmg, 1,240 taken, 0 downs';
+    try { navigator.clipboard.writeText(t).then(function () { h.textContent = 'Copied.'; }, function () { h.textContent = 'Copy blocked here; select the text instead.'; }); } catch (e) { h.textContent = 'Copy blocked here.'; }
+  });
+
+  function f(c) { return '<span class="flag ' + c[0] + '">' + c[1] + '</span>'; }
+  function tbl(head, rows) {
+    return '<table><thead><tr>' + head.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      rows.map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + c + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table>';
+  }
+  function bar(p) { return '<span class="bar" style="width:' + Math.round(p * 0.9) + 'px"></span>' + p + '%'; }
+  var panes = {
+    waves: tbl(['Wave', 'Clear time', 'Enemies', 'Elites', 'Damage dealt', 'DPS', 'Taken', 'Min HP', 'Flag'], [
+      ['1', '38 s', '24', '0', '3,120', '82', '0', '100%', f(['ok', 'fine'])],
+      ['2', '55 s', '36', '2', '6,980', '127', '140', '88%', f(['ok', 'fine'])],
+      ['3', '71 s', '48', '3', '11,340', '160', '210', '74%', f(['ok', 'fine'])],
+      ['4', '96 s', '52', '5', '14,900', '155', '520', '41%', f(['hi', 'spike'])],
+      ['5', '112 s', '60', '6', '16,040', '143', '370', '52%', f(['lo', 'slow'])]]),
+    weapons: tbl(['Source', 'Shots', 'Accuracy', 'Hits', 'Avg hit', 'Damage', 'Share', 'Per use-sec', 'Flag'], [
+      ['Arterial Spray (ability)', '-', '-', '1,860', '8.4', '16,240', bar(31), '7,730', f(['hi', 'high'])],
+      ['Blood Bolts (weapon)', '2,904', '68%', '1,975', '9.0', '17,770', bar(34), '121', f(['ok', 'fine'])],
+      ['Crimson Harvest (ult)', '-', '-', '5', '742', '3,710', bar(7), '-', f(['lo', 'low'])],
+      ['Bleed (status)', '-', '-', '-', '-', '9,860', bar(19), '-', f(['ok', 'fine'])],
+      ['Vein Rush (ability)', '-', '-', '38', '25', '950', bar(2), '95', f(['lo', 'low'])]]),
+    enemies: tbl(['Enemy', 'Spawned', 'Killed', 'Time alive', 'Time to kill', 'HP (scaled)', 'Dmg to you', 'Share', 'Flag'], [
+      ['Bomber', '14', '14', '6.2 s', '0.9 s', '60', '472', bar(38), f(['hi', 'hurts'])],
+      ['Heavy', '9', '9', '14.8 s', '4.8 s', '540', '310', bar(25), f(['hi', 'tanky'])],
+      ['Sniper', '11', '11', '9.1 s', '1.4 s', '70', '248', bar(20), f(['ok', 'fine'])],
+      ['Swarmer', '62', '62', '4.4 s', '0.5 s', '25', '150', bar(12), f(['ok', 'fine'])],
+      ['Grunt', '35', '35', '5.0 s', '0.8 s', '45', '60', bar(5), f(['lo', 'weak'])]]),
+    taken: tbl(['Source', 'Hits', 'Total', 'Avg hit', 'Biggest', 'Wave of first hit', 'Avoidable'], [
+      ['Bomber blast', '9', '472', '52', '118', '2', '7 of 9'],
+      ['Heavy slam', '4', '310', '78', '110', '3', '3 of 4'],
+      ['Sniper shot', '10', '248', '25', '30', '2', '6 of 10'],
+      ['Swarmer touch', '25', '150', '6', '6', '1', '0 of 25'],
+      ['Grunt bullet', '12', '60', '5', '5', '1', '9 of 12']]),
+    picks: tbl(['Wave', 'Level', 'Offered', 'Picked', 'Rerolls left', 'Effect on DPS'], [
+      ['1', '2', 'Fire rate · Max HP · Crit', 'Fire rate', '2', '+11%'],
+      ['2', '4', 'Bleed · Pierce · Dash', 'Bleed', '2', '+9%'],
+      ['3', '5', 'Spray width · Heal · Speed', 'Spray width', '1', '+14%'],
+      ['4', '7', 'Ult charge · Armor · Crit', 'Armor', '1', '0%'],
+      ['5', '8', 'Fire rate · Vein Rush · Bleed', 'Vein Rush', '1', '+3%']]),
+    json: '<pre class="json"><span class="k">"format"</span>: <span class="n">4</span>, <span class="k">"kind"</span>: <span class="s">"balance-test"</span>, <span class="k">"startWave"</span>: <span class="n">1</span>, <span class="k">"waves"</span>: <span class="n">5</span>, <span class="k">"bot"</span>: <span class="n">false</span>,\n<span class="k">"build"</span>: { <span class="k">"role"</span>: <span class="s">"DPS"</span>, <span class="k">"weapon"</span>: <span class="s">"BloodBolts"</span>, <span class="k">"ability"</span>: <span class="s">"ArterialSpray"</span>, <span class="k">"ult"</span>: <span class="s">"CrimsonHarvest"</span> },\n<span class="k">"weapons"</span>: { <span class="s">"BloodBolts"</span>: { <span class="k">"shots"</span>: <span class="n">2904</span>, <span class="k">"hits"</span>: <span class="n">1975</span>, <span class="k">"damage"</span>: <span class="n">17770</span>, <span class="k">"byWave"</span>: [<span class="n">2100</span>, <span class="n">3400</span>, <span class="n">3900</span>, <span class="n">4300</span>, <span class="n">4070</span>] } },\n<span class="k">"abilities"</span>: { <span class="s">"ArterialSpray"</span>: { <span class="k">"casts"</span>: <span class="n">22</span>, <span class="k">"activeSec"</span>: <span class="n">2.1</span>, <span class="k">"damage"</span>: <span class="n">16240</span>, <span class="k">"whiffs"</span>: <span class="n">1</span> } },\n<span class="k">"enemies"</span>: { <span class="s">"Heavy"</span>: { <span class="k">"spawned"</span>: <span class="n">9</span>, <span class="k">"ttkAvg"</span>: <span class="n">4.8</span>, <span class="k">"hpScaled"</span>: <span class="n">540</span>, <span class="k">"dmgToPlayers"</span>: <span class="n">310</span> } },\n<span class="k">"samples"</span>: [ { <span class="k">"t"</span>: <span class="n">1.0</span>, <span class="k">"wave"</span>: <span class="n">1</span>, <span class="k">"hp"</span>: <span class="n">95</span>, <span class="k">"enemies"</span>: <span class="n">6</span>, <span class="k">"nearest"</span>: <span class="n">212</span> }, <span class="s">...</span> ]</pre>'
+  };
+  var pane = document.getElementById('pane');
+  function show(k) { pane.innerHTML = panes[k]; }
+  document.getElementById('tabs').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    document.querySelectorAll('#tabs button').forEach(function (x) { x.classList.toggle('on', x === b); });
+    show(b.dataset.t);
+  });
+  show('waves');
+})();
+</script>
