@@ -1,0 +1,217 @@
+<title>Wildcard Gear Carousel</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap">
+<style>
+/* Layout: the lobby's loadout screen, right column only (preview strip on the left), CRT blue on navy, one dark look. */
+:root {
+  --bg: #050b18; --panel: #0a1a2c; --line: #1d4372; --ink: #8ac4ff; --dim: #4d6d92;
+  --hi: #cfe3ff; --wild: #c77dff; --gold: #ffc247; --red: #ff4d5e;
+  --display: "Rajdhani", "Segoe UI", system-ui, sans-serif; --mono: "Share Tech Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--hi); font-family: var(--display); padding-block: 24px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1 { font-size: 20px; letter-spacing: 4px; color: var(--ink); margin: 0 0 4px; font-weight: 600; }
+.sub { color: var(--dim); font-size: 14px; margin: 0 0 18px; max-width: 70ch; }
+.screen { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 20px; max-width: 900px;
+  background: var(--panel); border: 1px solid var(--line); padding: 16px; box-shadow: inset 0 0 60px #000a, 0 0 30px #1d6cc422; position: relative; }
+.screen::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(0deg, #0000 0 2px, #0003 2px 3px); }
+@media (max-width: 720px) { .screen { grid-template-columns: minmax(0, 1fr); } }
+.preview { border: 1px solid #c77dff55; background: radial-gradient(circle at 50% 45%, #2a1440 0, #05060d 70%); min-height: 260px;
+  display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding: 10px; position: relative; }
+.preview .orb { position: absolute; top: 38%; left: 50%; width: 70px; height: 70px; margin: -35px; border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 25%, var(--wild) 55%, #0000 72%); filter: blur(1px); animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(1.15); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) { .preview .orb, .wheel .icons { animation: none !important; transition: none !important; } }
+.preview .what { font-family: var(--mono); font-size: 12px; letter-spacing: 2px; color: var(--hi); }
+.preview .kind { font-size: 11px; letter-spacing: 2px; color: var(--wild); }
+.head { display: flex; align-items: baseline; gap: 10px; margin: 0 0 8px; }
+.head b { font-size: 13px; letter-spacing: 3px; color: var(--ink); font-weight: 600; }
+.head i { flex: 1; height: 1px; background: var(--line); }
+.head small { font-size: 11px; letter-spacing: 1px; color: var(--dim); }
+.col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.gear { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 14px; }
+@media (max-width: 480px) { .gear { grid-template-columns: minmax(0, 1fr); } }
+/* The class wheel: big icon in the middle, neighbours faded at the sides, arrows, dots. */
+.wheel { border: 1px solid var(--line); background: #071426; height: 170px; position: relative; overflow: hidden; user-select: none; }
+.wheel .icons { position: absolute; inset: 0; transition: transform .28s cubic-bezier(.3,.7,.3,1); }
+.wheel .ic { position: absolute; top: 22px; width: 70px; height: 70px; margin-left: -35px; transition: opacity .28s, transform .28s; }
+.wheel .ic svg { width: 100%; height: 100%; }
+.wheel .name { position: absolute; left: 0; right: 0; top: 102px; text-align: center; font-size: 17px; letter-spacing: 3px; font-weight: 700; color: var(--hi); text-shadow: 0 0 8px #8ac4ff88; }
+.wheel .arrow { position: absolute; top: 40px; width: 26px; height: 36px; background: #0b2447; border: 1px solid var(--line); color: var(--ink);
+  font: 700 16px var(--display); cursor: pointer; z-index: 2; }
+.wheel .arrow:hover, .wheel .arrow:focus-visible { border-color: var(--ink); color: var(--hi); outline: none; }
+.wheel .l { left: 4px; } .wheel .r { right: 4px; }
+.dots { position: absolute; bottom: 12px; left: 0; right: 0; display: flex; justify-content: center; gap: 7px; }
+.dots span { width: 7px; height: 7px; border: 1px solid var(--dim); transform: rotate(45deg); cursor: pointer; }
+.dots span.on { background: var(--ink); border-color: var(--ink); box-shadow: 0 0 6px var(--ink); }
+.dots span.used { border-color: var(--wild); }
+.dots span.used:not(.on) { background: #c77dff55; }
+.picks { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.lbl { font-size: 11px; letter-spacing: 2px; color: var(--dim); display: flex; justify-content: space-between; }
+.lbl em { font-style: normal; color: var(--wild); }
+.row3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.key { position: relative; height: 38px; border: 1px solid var(--line); background: #0b2447aa; color: var(--ink); cursor: pointer;
+  font: 600 13px var(--display); letter-spacing: 1px; text-transform: uppercase; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.key:hover, .key:focus-visible { border-color: var(--ink); color: var(--hi); outline: none; }
+.key.on { background: var(--hi); color: #071426; border-color: var(--hi); box-shadow: 0 0 12px #8ac4ff66; }
+.key .badge { position: absolute; top: 2px; right: 3px; font: 10px var(--mono); padding: 0 3px; background: var(--wild); color: #12051e; }
+.key.locked { border-style: dashed; color: var(--dim); cursor: default; opacity: .55; }
+.strip { display: grid; grid-template-columns: 1.1fr 1fr 1fr 1fr; gap: 6px; }
+@media (max-width: 560px) { .strip { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.chip { border: 1px solid var(--line); background: #071426; padding: 5px 7px; cursor: pointer; text-align: left; color: var(--hi); font-family: var(--display); min-width: 0; }
+.chip small { display: block; font-size: 10px; letter-spacing: 2px; color: var(--dim); }
+.chip span { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chip span svg { width: 16px; height: 16px; flex: none; }
+.chip.edit { border-color: var(--wild); box-shadow: inset 0 0 0 1px var(--wild), 0 0 10px #c77dff44; }
+.chip.edit small { color: var(--wild); }
+.chip:focus-visible { outline: 1px solid var(--ink); }
+.keyrow { display: flex; align-items: center; gap: 6px; }
+.keyrow .key { height: 26px; width: 64px; flex: none; }
+.keyrow .lbl { width: 110px; }
+.ultnote { font-size: 11px; color: var(--dim); letter-spacing: 1px; }
+.row4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.row4 .key { height: 40px; }
+.detail { border: 1px solid var(--line); background: #071426; padding: 10px 12px; min-height: 92px; }
+.detail .k { font-size: 11px; letter-spacing: 2px; color: var(--ink); }
+.detail .n { font-size: 20px; font-weight: 700; margin: 2px 0 4px; }
+.detail p { margin: 0; font-size: 14px; color: #bcdcff; max-width: 65ch; }
+.notes { max-width: 900px; margin-top: 16px; color: var(--dim); font-size: 14px; line-height: 1.5; }
+.notes b { color: var(--ink); font-weight: 600; }
+</style>
+
+<h1>WILDCARD GEAR</h1>
+<p class="sub">Scroll the class wheel (arrows, dots or the mouse wheel). The weapon, ability and ultimate buttons show that class only. Click a loadout chip to choose which ability slot an ability click fills; the preview shows whatever you clicked last.</p>
+
+<div class="screen">
+  <div class="preview" aria-live="polite">
+    <div class="orb"></div>
+    <div class="kind" id="pvKind">ABILITY · 2ND (Q)</div>
+    <div class="what" id="pvWhat">BLADE FAN</div>
+  </div>
+  <div class="col">
+    <div>
+      <div class="head"><b>GEAR</b><i></i><small>ANY CLASS'S DPS WEAPON AND TWO ABILITIES</small></div>
+      <div class="gear">
+        <div class="wheel" id="wheel" tabindex="0" aria-label="Class wheel">
+          <button class="arrow l" id="prev" aria-label="Previous class">‹</button>
+          <button class="arrow r" id="next" aria-label="Next class">›</button>
+          <div class="icons" id="icons"></div>
+          <div class="name" id="kitName"></div>
+          <div class="dots" id="dots"></div>
+        </div>
+        <div class="picks">
+          <div class="lbl">WEAPON</div>
+          <div class="row3" id="weapons"></div>
+          <div class="lbl" style="margin-top:6px">ABILITY <em id="fillsLbl">CLICK FILLS 2ND</em></div>
+          <div class="row3" id="abilities"></div>
+          <div class="keyrow" style="margin-top:6px"><div class="lbl">2ND ABILITY KEY</div><div id="keys" style="display:flex;gap:4px"></div></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="head"><b>LOADOUT</b><i></i><small>CLICK A CHIP TO JUMP TO ITS CLASS</small></div>
+      <div class="strip" id="strip"></div>
+    </div>
+    <div>
+      <div class="head"><b>ULTIMATE</b><i></i><small id="ultFrom"></small></div>
+      <div class="row4" id="ults"></div>
+    </div>
+    <div class="detail"><div class="k" id="dK"></div><div class="n" id="dN"></div><p id="dD"></p></div>
+  </div>
+</div>
+
+<div class="notes">
+  <p><b>Saves space:</b> the six rows of 36 small keys become one wheel and six readable keys, so names fit in full.</p>
+  <p><b>Ultimates:</b> the row lists the wheel's class's ultimates; a Wildcard can now pick any class's DPS ultimate (it no longer follows the first ability).</p>
+  <p><b>Dots:</b> a purple diamond marks each class your current gear comes from.</p>
+</div>
+
+<script>
+const ICON = {
+  Soldier: '<svg viewBox="0 0 32 32"><path d="M5 18c0-7 5-12 11-12s11 5 11 12H5z" fill="#3f8f4a"/><rect x="3" y="18" width="26" height="4" fill="#2c6b35"/><rect x="9" y="22" width="14" height="5" fill="#d9b48a"/></svg>',
+  Elementalist: '<svg viewBox="0 0 32 32"><path d="M16 3c3 6 9 9 9 16a9 9 0 0 1-18 0c0-4 2-6 4-8 0 3 1 5 3 5-1-5 0-9 2-13z" fill="#ff8a2b"/><path d="M16 15c2 3 4 4 4 7a4 4 0 0 1-8 0c0-2 2-4 4-7z" fill="#ffe26b"/></svg>',
+  Summoner: '<svg viewBox="0 0 32 32"><path d="M6 28V14a10 10 0 0 1 20 0v14l-3.3-3-3.4 3-3.3-3-3.3 3-3.4-3z" fill="#7fe6ff"/><circle cx="12.5" cy="14" r="2.2" fill="#0a1a2c"/><circle cx="19.5" cy="14" r="2.2" fill="#0a1a2c"/></svg>',
+  Knight: '<svg viewBox="0 0 32 32"><path d="M7 7h18v14a9 9 0 0 1-18 0z" fill="#c9d3e0"/><rect x="9" y="13" width="14" height="3" fill="#2a3442"/><rect x="15" y="16" width="2" height="9" fill="#2a3442"/></svg>',
+  Ninja: '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="#3a3f4f"/><rect x="5" y="12" width="22" height="6" fill="#c9d3e0"/><rect x="10" y="14" width="4" height="2" fill="#0a1a2c"/><rect x="18" y="14" width="4" height="2" fill="#0a1a2c"/><path d="M27 13l4-3v8z" fill="#ff4d5e"/></svg>',
+  Hemomancer: '<svg viewBox="0 0 32 32"><path d="M16 3C12 11 7 15 7 21a9 9 0 0 0 18 0c0-6-5-10-9-18z" fill="#d81b3b"/><path d="M12 20a4 4 0 0 0 4 5" stroke="#ff8aa0" stroke-width="2" fill="none"/></svg>'
+};
+const KITS = [
+  { n: 'Soldier', w: ['Twin Rifle', 'Railgun', 'Burst SMG'], a: ['Poison Dart', 'Airstrike', 'Mark for Death'], u: 'Artillery Assault' },
+  { n: 'Elementalist', w: ['Fireball', 'Arc Lightning', 'Ice Shards'], a: ['Meteor', 'Blizzard', 'Tsunami'], u: 'Bullet Rain' },
+  { n: 'Summoner', w: ['Wolf Whistle', 'Wisp Lantern', 'Imp Caller'], a: ['Bot Swarm', 'Hydra', 'Alpha Call'], u: 'Legion' },
+  { n: 'Knight', w: ['Twin Blades', 'Greatsword', 'Rapier'], a: ['Misericorde', 'The Gauntlet', 'Caught Steel'], u: 'Drawbridge' },
+  { n: 'Ninja', w: ['Shuriken', 'Katana', 'Kunai'], a: ['Shadow Step', 'Vanish', 'Blade Fan'], u: 'Death Lotus' },
+  { n: 'Hemomancer', w: ['Blood Bolts', 'Implosion', 'Bone Spear'], a: ['Arterial Spray', 'Blood Debt', 'Vein Rush'], u: 'Crimson Harvest' }
+];
+const KEYS = ['Q', 'E', 'SHIFT'];
+// Picks are kit * 3 + choice, as in the game (Defs.WildcardChoices).
+const S = { browse: 3, pos: 3, weapon: 9, a1: 12, a2: 14, key: 0, ult: 4, slot: 1, last: 'a2' };
+const kitOf = i => Math.floor(i / 3), nameW = i => KITS[kitOf(i)].w[i % 3], nameA = i => KITS[kitOf(i)].a[i % 3];
+const $ = id => document.getElementById(id);
+const mod = a => ((a % 6) + 6) % 6;
+
+function el(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+
+function drawWheel() {
+  const icons = $('icons'); icons.innerHTML = '';
+  for (let d = -2; d <= 2; d++) {
+    const k = mod(S.browse + d), ic = el('div', 'ic', ICON[KITS[k].n]);
+    const off = d * 62, sc = d === 0 ? 1 : 0.55;
+    ic.style.left = `calc(50% + ${off}px)`;
+    ic.style.transform = `scale(${sc})`;
+    ic.style.opacity = d === 0 ? 1 : Math.abs(d) === 1 ? 0.35 : 0;
+    ic.style.filter = d === 0 ? 'drop-shadow(0 0 8px #8ac4ff88)' : 'grayscale(.6)';
+    icons.appendChild(ic);
+  }
+  $('kitName').textContent = KITS[S.browse].n.toUpperCase();
+  const dots = $('dots'); dots.innerHTML = '';
+  const used = new Set([kitOf(S.weapon), kitOf(S.a1), kitOf(S.a2), S.ult]);
+  KITS.forEach((k, i) => {
+    const s = el('span', (i === S.browse ? 'on ' : '') + (used.has(i) ? 'used' : ''));
+    s.title = k.n; s.onclick = () => go(i - S.browse); dots.appendChild(s);
+  });
+}
+
+function draw() {
+  drawWheel();
+  const b = S.browse, K = KITS[b];
+  const W = $('weapons'); W.innerHTML = '';
+  K.w.forEach((n, c) => { const i = b * 3 + c, k = el('button', 'key' + (S.weapon === i ? ' on' : ''), n);
+    k.onclick = () => { S.weapon = i; S.last = 'w'; draw(); }; W.appendChild(k); });
+  const A = $('abilities'); A.innerHTML = '';
+  K.a.forEach((n, c) => { const i = b * 3 + c, inSlot = S.a1 === i ? 1 : S.a2 === i ? 2 : 0;
+    const k = el('button', 'key' + (inSlot === S.slot ? ' on' : ''), n + (inSlot ? `<span class="badge">${inSlot}</span>` : ''));
+    k.onclick = () => {  // fills the slot being edited; picking the other slot's ability swaps them
+      if (S.slot === 1) { if (S.a2 === i) S.a2 = S.a1; S.a1 = i; } else { if (S.a1 === i) S.a1 = S.a2; S.a2 = i; }
+      S.last = S.slot === 1 ? 'a1' : 'a2'; draw(); };
+    A.appendChild(k); });
+  $('fillsLbl').textContent = 'CLICK FILLS ' + (S.slot === 1 ? '1ST' : '2ND');
+  const KY = $('keys'); KY.innerHTML = '';
+  KEYS.forEach((n, i) => { const k = el('button', 'key' + (S.key === i ? ' on' : ''), n); k.onclick = () => { S.key = i; draw(); }; KY.appendChild(k); });
+  const st = $('strip'); st.innerHTML = '';
+  const chip = (label, name, kit, edit, onclick) => { const c = el('button', 'chip' + (edit ? ' edit' : ''),
+    `<small>${label}</small><span>${ICON[KITS[kit].n]}${name}</span>`); c.onclick = onclick; st.appendChild(c); };
+  chip('WEAPON', nameW(S.weapon), kitOf(S.weapon), false, () => { S.last = 'w'; jump(kitOf(S.weapon)); });
+  chip('1ST · SPACE', nameA(S.a1), kitOf(S.a1), S.slot === 1, () => { S.slot = 1; S.last = 'a1'; jump(kitOf(S.a1)); });
+  chip('2ND · ' + KEYS[S.key], nameA(S.a2), kitOf(S.a2), S.slot === 2, () => { S.slot = 2; S.last = 'a2'; jump(kitOf(S.a2)); });
+  chip('ULTIMATE · F', KITS[S.ult].u, S.ult, false, () => { S.last = 'u'; jump(S.ult); });
+  const U = $('ults'); U.innerHTML = '';
+  const uk = el('button', 'key' + (S.ult === b ? ' on' : ''), K.u); uk.onclick = () => { S.ult = b; S.last = 'u'; draw(); }; U.appendChild(uk);
+  for (let i = 0; i < 3; i++) U.appendChild(el('div', 'key locked', '🔒︎ LOCKED'));
+  $('ultFrom').textContent = K.n.toUpperCase() + "'S ULTIMATES";
+  const L = { w: ['WEAPON', nameW(S.weapon), 'The weapon you fire with left click.'],
+    a1: ['ABILITY · 1ST (SPACE)', nameA(S.a1), 'Your first ability, on Space.'],
+    a2: ['ABILITY · 2ND (' + KEYS[S.key] + ')', nameA(S.a2), 'Your second ability, on the key picked above. The preview now casts this one when you click it.'],
+    u: ['ULTIMATE (F)', KITS[S.ult].u, 'Any class\'s DPS ultimate. Pick it on the row above.'] }[S.last];
+  $('dK').textContent = L[0]; $('dN').textContent = L[1]; $('dD').textContent = L[2];
+  $('pvKind').textContent = L[0]; $('pvWhat').textContent = L[1].toUpperCase();
+}
+function go(d) { S.browse = mod(S.browse + d); draw(); }
+function jump(k) { S.browse = k; draw(); }
+$('prev').onclick = () => go(-1); $('next').onclick = () => go(1);
+$('wheel').addEventListener('wheel', e => { e.preventDefault(); go(e.deltaY > 0 ? 1 : -1); }, { passive: false });
+$('wheel').addEventListener('keydown', e => { if (e.key === 'ArrowLeft') go(-1); if (e.key === 'ArrowRight') go(1); });
+draw();
+</script>

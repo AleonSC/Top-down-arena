@@ -3,7 +3,7 @@ using System;
 using Arena;
 
 // Wildcard (Docs/Wildcard.md): a fourth role that borrows DPS gear from any class. Checks the loadout it resolves to (weapon,
-// two abilities with the second on its chosen key, the ultimate of the first ability's class), the middle health, the damage and
+// two abilities with the second on its chosen key, any class's DPS ultimate picked on the Ultimate row), the middle health, the damage and
 // cooldown penalty, that class passives don't carry (no Hemomancer low-health bonus), moving the second ability to another key,
 // the lobby clamps, what a client sees, and the unlock (a win with each of the other three roles).
 static partial class Program
@@ -16,7 +16,7 @@ static partial class Program
         int second = (int)Kit.Hemomancer * Defs.WeaponsPerRole;
         int port = nextPort++;
         var host = new Session { AutoStart = 2 };
-        host.Host(port, "Host", Role.Wildcard, weapon, first, Kit.Soldier, Defs.MakeWild(second, 2));
+        host.Host(port, "Host", Role.Wildcard, weapon, first, Kit.Soldier, Defs.MakeWild(second, 2), Upgrades.WildUlt(Kit.Ninja, 0));
         var client = JoinAs(port, false, "Friend", Role.Tank, 0);
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
@@ -32,7 +32,7 @@ static partial class Program
         var bonus = Upgrades.RoleAbility(Role.Dps, Kit.Hemomancer, 0);
         Check(p.Slots[2].Id == bonus && p.Slots[1].Id == AbilityId.None && p.Slots[3].Id == AbilityId.None,
             "the second ability sits on E (slot 2) and Q and Shift are free");
-        Check(p.Slots[Upgrades.UltSlot].Id == Upgrades.Ultimate(Role.Dps, Kit.Elementalist), "the ultimate is the first ability's class's DPS ultimate");
+        Check(p.Slots[Upgrades.UltSlot].Id == AbilityId.DeathLotus && p.WildKit == Kit.Ninja, "the ultimate is the one picked (the Ninja's Death Lotus), not the first ability's class's");
         Check(p.Slots.Length == Upgrades.SlotCount, "a Wildcard has the same number of ability slots");
 
         // The price: less damage and slower cooldowns than the same build as a DPS.
@@ -68,9 +68,20 @@ static partial class Program
         lobby.RequestWildcard(99, 99, 99, 9);
         e = lobby.Lobby[1];
         Check(e.Weapon < Defs.WildcardChoices && e.Ability < Defs.WildcardChoices && Defs.WildKey(e.Wild) == 3, "out-of-range Wildcard picks are clamped");
+        lobby.RequestUlt(Upgrades.WildUlt(Kit.Hemomancer, 0));
+        e = lobby.Lobby[1];
+        Check(e.Ult == Upgrades.WildUlt(Kit.Hemomancer, 0) && e.UltKit == Kit.Hemomancer && e.UltId == AbilityId.CrimsonApotheosis, "a Wildcard picks any class's DPS ultimate");
+        lobby.RequestUlt(Upgrades.WildUlt(Kit.Knight, 3));
+        e = lobby.Lobby[1];
+        Check(e.Ult == Upgrades.WildUlt(Kit.Knight, 0), "a key that class has no ultimate on falls back to its default, the class kept");
+        lobby.RequestUlt(Defs.KitCount * Upgrades.UltKeys);
+        e = lobby.Lobby[1];
+        Check(e.Ult == 0, "a pick past the last class is clamped");
+        for (int k = 0; k < Defs.KitCount; k++)
+            Check(Upgrades.Ultimate(Role.Wildcard, (Kit)k, Upgrades.WildUlt((Kit)k, 0)) == Upgrades.Ultimate(Role.Dps, (Kit)k), "Wildcard ultimate " + k + " is that class's DPS one");
         lobby.RequestRole(Role.Tank);
         e = lobby.Lobby[1];
-        Check(e.Wild == 0 && e.Weapon == 0, "leaving Wildcard clears its picks");
+        Check(e.Wild == 0 && e.Weapon == 0 && e.Ult == 0, "leaving Wildcard clears its picks");
 
         // Every Wildcard choice maps to a real DPS weapon and ability.
         for (int i = 0; i < Defs.WildcardChoices; i++)
