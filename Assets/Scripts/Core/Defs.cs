@@ -216,7 +216,7 @@ namespace Arena
             // Melee
             new EnemyDef { Name = "Spiker", Hp = 22f, Radius = 9f, Speed = 135f, Score = 5, Xp = 5, Sides = 3, Color = new Rgba(1f, 0.6f, 0.3f), Melee = true, Contact = 10f,
                 Picker = PickerGroup.Melee, Blurb = "Small and fast melee rusher with long thin spikes. It zig-zags toward you in pairs." },
-            new EnemyDef { Name = "Brute", Hp = 110f, Radius = 19f, Speed = 62f, Score = 15, Xp = 14, Sides = 7, Color = new Rgba(0.8f, 0.45f, 0.35f), Melee = true, Contact = 24f,
+            new EnemyDef { Name = "Brute", Hp = 200f, Radius = 19f, Speed = 62f, Score = 15, Xp = 14, Sides = 7, Color = new Rgba(0.8f, 0.45f, 0.35f), Melee = true, Contact = 24f,
                 Picker = PickerGroup.Melee, Blurb = "Slow, tough melee bruiser that hits hard (24) when it reaches you." },
             new EnemyDef { Name = "Lunger", Hp = 45f, Radius = 12f, Speed = 95f, Score = 12, Xp = 12, Sides = 4, Color = new Rgba(0.95f, 0.35f, 0.65f), Melee = true, Contact = 18f,
                 Picker = PickerGroup.Melee, Blurb = "Circles in close, flashes a pink line, then leaps along it." },
