@@ -215,7 +215,10 @@ namespace Arena
             V2 lo = ArenaMin + new V2(m, m), hi = ArenaMax - new V2(m, m);  // along the edges (Narrow Pass: its walls)
             V2 pos;
             int home = -1;
-            if (RoomsOn && !d.IsBoss)
+            V2? breach = d.IsBoss ? null : BreachSpot(d.Radius);  // the Expanding arena: through one of the wave's breaches (Breaches.cs)
+            if (breach.HasValue)
+                pos = breach.Value;
+            else if (RoomsOn && !d.IsBoss)
                 pos = Rooms.RoomByRoom ? RoomSpawnSpot(d.Radius, out home) : RoomsRandomSpot(d.Radius);  // anywhere on the map, away from you (or by a room's nest: Rooms.cs)
             else if (LayoutOn && !d.IsBoss)
                 pos = LayoutSpawn(m);  // through an enemy gate, or an edge the layout allows (LayoutRules.cs)

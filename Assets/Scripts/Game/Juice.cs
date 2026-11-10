@@ -171,6 +171,7 @@ namespace Arena
             ClearTombLook();  // GlacialTombLook.cs
             ClearBloodFreezeLook();  // BloodFreezeLook.cs
             ClearTankGunLooks();  // TankGunLooks.cs
+            ClearTankAltLooks();  // TankAltFx.cs
             ClearDpsGunLooks();  // DpsGunLooks.cs
             ClearAirTrails();  // AirTrailLooks.cs
             trauma = holdT = holdGap = hurtTint = introT = 0f;
@@ -314,6 +315,8 @@ namespace Arena
                     Hold(0.05f, 0.1f);  // your own Vein Rush cut something: the Needle's hit-stop (VeinRushLook.cs)
                     Shake(0.05f);
                 }
+                if (fx.Kind == FxKind.DoubleBarrel)
+                    DoubleBarrelFeel(fx);  // TankAltFx.cs
                 KnightDpsFeel(fx, me);  // the DPS Knight's cut, impact and executions (KnightDpsLook.cs)
                 if (fx.Kind == FxKind.TwinHit && (int)fx.Pos2.X == game.MyId)
                     TwinHitFeel((int)fx.Pos2.Y, (int)fx.Radius);  // your own Twin Blades cut something (below)
@@ -562,6 +565,7 @@ namespace Arena
 
             UpdateBowLooks();    // GunBowLooks.cs: the string snapping and the ring of light on a release
             UpdateTankGunLooks();  // TankGunLooks.cs: a pumped Scattergun's shell dropping out
+            UpdateTankAltLooks(dt);  // TankAltFx.cs: the Tank Soldier's Alt fires
             UpdateDpsGunLooks(dt);  // DpsGunLooks.cs: the SMG's barrels turning, a fired Railgun's steam
             UpdateOrbs();        // Ambience.cs: orb trails, pickup pulses
             UpdateDust(dt);      // dust at your feet

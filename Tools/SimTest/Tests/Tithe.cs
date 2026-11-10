@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Arena;
 
 // Vein Tithe (VeinTithe.cs): the tendrils to every enemy on screen, held enemies that can't move, the per-enemy health drain, 40% less
-// damage dealt, the let-go at 30 s, going down, dead enemies dropping out, and the mastered length.
+// damage dealt, the let-go at 15 s, the slow, going down, dead enemies dropping out, and the mastered length.
 static partial class Program
 {
     static void TitheTest(float dt)
@@ -44,12 +44,14 @@ static partial class Program
         for (int i = 0; i < 5; i++) foes.Add(make(new V2(600f + i * 150f, 300f + (i % 2) * 300f)));
         var spawning = make(new V2(900f, 700f)); spawning.SpawnT = 5f;
         float normal = dealt(100f);
+        float walk = me.Speed;
         hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, mePos, false });
-        Check(me.UltT == Game.TitheLen && Game.TitheActive(me) && me.Tithed.Count == 5 && !me.Tithed.Contains(spawning.Id), "casting holds every enemy on screen (not one still spawning) for 30 s");
+        Check(me.UltT == Game.TitheLen && Game.TitheActive(me) && me.Tithed.Count == 5 && !me.Tithed.Contains(spawning.Id), "casting holds every enemy on screen (not one still spawning) for 15 s");
         Check(me.Tithed.Select(id => g.Enemies[id].Pos.DistanceTo(mePos)).SequenceEqual(me.Tithed.Select(id => g.Enemies[id].Pos.DistanceTo(mePos)).OrderBy(d => d)), "the tendrils reach the nearest first");
         float cut = dealt(100f);
         Console.WriteLine("  tithe: damage {0:0.0} -> {1:0.0}", normal, cut);
         Check(Math.Abs(cut / normal - Game.TitheOutputMult) < 0.01f, "you deal 40% less damage while it lasts");
+        Check(Math.Abs(me.Speed / walk - Game.TitheSlow) < 0.01f, "you move at 65% speed while it lasts");
 
         // Held enemies don't move or shoot.
         var before = foes.Select(e => e.Pos).ToList();
@@ -64,7 +66,7 @@ static partial class Program
         float lost = h0 - me.Hp;
         float want = me.MaxHp * Game.TitheCost * 5f * 4f - regen * 4f;
         Console.WriteLine("  tithe: lost {0:0.0} in 4 s (expect about {1:0.0}); max {2:0}", lost, want, me.MaxHp);
-        Check(Math.Abs(lost - want) < me.MaxHp * 0.01f + 1f, "five enemies cost 1.25% of max health a second");
+        Check(Math.Abs(lost - want) < me.MaxHp * 0.01f + 1f, "five enemies cost 2% of max health a second");
         Check(me.InvulnT <= 0.01f, "the drain gives no hit grace");
 
         // A dead enemy drops out of the hold and the bill.
@@ -72,9 +74,9 @@ static partial class Program
         step(0.2f);
         Check(!me.Tithed.Contains(foes[0].Id) && me.Tithed.Count <= 4, "a dead enemy is let go and stops costing");
 
-        // It lets go at 30 s: one snap each.
+        // It lets go at 15 s: one snap each.
         step(Game.TitheLen - 7.2f + 0.4f);
-        Check(!Game.TitheActive(me) && me.Tithed.Count == 0 && me.UltT <= 0f, "it ends when the 30 s are up");
+        Check(!Game.TitheActive(me) && me.Tithed.Count == 0 && me.UltT <= 0f, "it ends when the 15 s are up");
         Check(g.Effects.Count(e => e.Kind == FxKind.TitheSnap) >= 4, "every held enemy gets a tendril letting go");
         me.Hp = me.MaxHp;
         float after = dealt(100f);
@@ -90,16 +92,16 @@ static partial class Program
         Check(me.Downed && !Game.TitheActive(me) && me.Tithed.Count == 0, "if the drain takes you down it ends");
         reset();
 
-        // Bosses cost four times as much; mastered costs 25% less and lasts 40 s.
+        // Bosses cost four times as much; mastered costs 25% less and lasts 20 s.
         make(new V2(800f, 450f));
         hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, mePos, false });
         float one = g.TitheRate(me);
-        Check(Math.Abs(one - Game.TitheCost) < 1e-6f, "one enemy costs 0.25% of max health a second");
+        Check(Math.Abs(one - Game.TitheCost) < 1e-6f, "one enemy costs 0.4% of max health a second");
         reset();
         make(new V2(800f, 450f));
         me.MasteryXp[AbilityId.BloodRite] = 1e6f;
         hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, mePos, false });
-        Check(me.UltT == Game.TitheLenMastered && Math.Abs(g.TitheRate(me) - Game.TitheCost * Game.TitheMasteredCost) < 1e-6f, "mastered it lasts 40 s and costs 25% less");
+        Check(me.UltT == Game.TitheLenMastered && Math.Abs(g.TitheRate(me) - Game.TitheCost * Game.TitheMasteredCost) < 1e-6f, "mastered it lasts 20 s and costs 25% less");
         me.MasteryXp.Remove(AbilityId.BloodRite);
         reset();
         Check(Game.TitheBossMult == 4f && Game.TitheMasteredCost == 0.75f, "a boss costs four times as much and mastered costs 25% less");
