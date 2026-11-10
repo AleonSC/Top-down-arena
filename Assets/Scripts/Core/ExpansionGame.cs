@@ -4,39 +4,30 @@ using System.IO;
 
 namespace Arena
 {
-    /// The Expanding arena in a run (Docs/ExpandingArena.md, step 3): the team purse, the rooms bought, the offer the
-    /// team votes on after each boss and the world built from them. The host decides; everyone else is told by
-    /// Msg.ExpandState (the rooms, the offer, the votes) and the snapshot (the purse). Expansion.cs holds the maps.
+    /// The Expanding arena in a run (Docs/ExpandingArena.md, Docs/VectorBuilding.md): each player's vectors, the rooms built, the
+    /// building round between waves (players draw proposals, the team votes, the winner's drawer pays) and the world built from
+    /// the rooms. The host decides; everyone else is told by Msg.ExpandState (the rooms, the proposals, the votes) and the
+    /// player snapshot (the vectors). Expansion.cs holds the maps.
     public partial class Game
     {
-        /// Purse gold per point of the gold a kill is worth (Shop.GoldPerXp): every kill pays the team.
-        public const float PurseRate = 1f;
-
         /// How much more a bigger map adds to a wave's enemies: 1 + this x (floor area / hub area - 1), up to MaxExpandScale.
         public const float ExpandScaleRate = 0.35f, MaxExpandScale = 2f;
 
-        /// The team's shared gold for rooms (synced in the snapshot).
-        public int Purse;
-
-        /// The rooms bought so far, in order (area 1, 2, ...).
+        /// The rooms built so far, in order (area 1, 2, ...).
         public readonly List<ExpansionRoom> Expanded = new List<ExpansionRoom>();
 
-        /// The rooms on offer while the team is voting (else null), and each player's vote: an offer's index, or
-        /// ExpandOffer.Count for "buy nothing".
-        public List<ExpansionRoom> ExpandOffer;
+        /// A building round is open: from a cleared wave until the next one starts, any player can draw a room and put it to
+        /// the team (synced by Msg.ExpandState).
+        public bool ExpandOpen;
+
+        /// This round's proposals (at most one per player; Owner is the drawer) and the votes on them: voter id -> the proposer
+        /// id voted for, or 0 for "no room".
+        public readonly List<ExpansionRoom> ExpandProposals = new List<ExpansionRoom>();
         public readonly Dictionary<int, int> ExpandVotes = new Dictionary<int, int>();
-
-        /// Which of the offers is a room a player drew (the last one), or -1.
-        public int ExpandCustom = -1;
-
-        /// The offer is an optional one (after a regular wave): it doesn't hold the countdown, and it closes when the next wave starts.
-        public bool ExpandOptional;
-
-        /// An offer is open that the wave has to wait for (the vote after a boss).
-        public bool ExpandBlocksWave => ExpandOffer != null && !ExpandOptional;
 
         int expandSeed;
         float botVoteT;
+        bool botProposed;
         World expWorld;
 
         /// The run's arena is the Expanding one.
@@ -175,65 +166,45 @@ namespace Arena
 
         void ResetExpansion()
         {
-            Purse = 0;
             Expanded.Clear();
-            ExpandOffer = null;
-            ExpandCustom = -1;
-            ExpandOptional = false;
+            ExpandOpen = false;
+            ExpandProposals.Clear();
             ExpandVotes.Clear();
             expWorld = null;
             botVoteT = 0f;
+            botProposed = false;
             expandSeed = new Random().Next(1, 1 << 30);  // (not the game's rng: asking it would shift every other random choice of the run)
         }
 
-        /// Host, on a kill: the team purse gets the kill's gold.
-        void AddPurse(Enemy e)
+        // --- The building round -------------------------------------------------------------------------------------
+
+        /// This player's proposal in the open round, if any.
+        public ExpansionRoom? ProposalOf(int owner)
         {
-            if (!ExpandingOn)
-                return;
-            Purse += Math.Max(1, (int)Math.Round(e.Def.Xp * (e.Elite ? 3 : 1) * GoldPerXp * PurseRate));
+            foreach (var q in ExpandProposals)
+                if (q.Owner == owner)
+                    return q;
+            return null;
         }
 
-        bool CanBuy(int i) => ExpandOffer != null && i >= 0 && i < ExpandOffer.Count && ExpandOffer[i].Price <= Purse;
-
-        /// Host, after a boss wave is cleared: offer rooms for the purse (nothing if none is affordable, or at the cap).
-        void OfferExpansion() => MakeExpansionOffer(false);
-
-        /// Host, after a regular wave is cleared: if the purse covers a room, an optional offer (a chip on screen; the team can
-        /// vote while the countdown runs, and a room is bought only if most of the team voted for it before the wave starts).
-        void OfferOptionalExpansion()
+        /// Host, when a wave is cleared: a building round opens (not in the Practice Range, a Boss Hunt, after the last wave or on a full map).
+        void OpenBuildRound()
         {
-            if (!IsBossWave(Wave) && ExpandOffer == null)
-                MakeExpansionOffer(true);
-        }
-
-        void MakeExpansionOffer(bool optional)
-        {
-            if (!IsHost || !ExpandingOn || Practice != null || Hunt != null || (Wave >= MaxWave && !Endless))
+            if (!IsHost || !ExpandingOn || Practice != null || Hunt != null || (Wave >= MaxWave && !Endless) || Expanded.Count >= Expansion.MaxRooms)
                 return;
-            var offers = Expansion.Offers(expandSeed + (optional ? 7 : 0), Wave, Expanded);
-            bool any = false;
-            foreach (var o in offers)
-                any |= o.Price <= Purse;
-            if (!any)
-            {
-                if (!optional)
-                    DoLog("expansion: nothing affordable (purse " + Purse + (offers.Count == 0 ? ", map full" : "") + ")");
-                return;
-            }
-            ExpandOffer = offers;
-            ExpandOptional = optional;
-            ExpandCustom = -1;
+            ExpandOpen = true;
+            ExpandProposals.Clear();
             ExpandVotes.Clear();
             botVoteT = 0f;
+            botProposed = false;
             BroadcastExpansion();
-            DoLog((optional ? "optional " : "") + "expansion offered (purse " + Purse + "): " + string.Join(" / ", offers.ConvertAll(o => o.Shape + " " + o.Kind + " " + o.Price).ToArray()));
+            DoLog("building round opens");
         }
 
-        /// A vote from this game's player: an offer's index, or ExpandOffer.Count to buy nothing.
+        /// A vote from this game's player: the proposer's id, or 0 for "no room".
         public void CastExpandVote(int choice)
         {
-            if (ExpandOffer == null || Me == null || choice < 0 || choice > ExpandOffer.Count)
+            if (!ExpandOpen || Me == null || choice < 0 || (choice != 0 && ProposalOf(choice) == null))
                 return;
             if (IsHost)
             {
@@ -241,17 +212,25 @@ namespace Arena
                 return;
             }
             var w = Proto.Begin(Msg.ExpandVote);
-            w.Write((byte)choice);
+            w.Write((short)choice);
             session.SendToHost(Proto.End(w));
             ExpandVotes[MyId] = choice;  // (shown at once; the host's state confirms it)
         }
 
-        public void OnExpandVote(int peer, BinaryReader r) => HostExpandVote(peer, r.ReadByte());
+        public void OnExpandVote(int peer, BinaryReader r) => HostExpandVote(peer, r.ReadInt16());
+
+        void HostExpandVote(int id, int choice)
+        {
+            if (!IsHost || !ExpandOpen || !Players.ContainsKey(id) || choice < 0 || (choice != 0 && ProposalOf(choice) == null))
+                return;
+            ExpandVotes[id] = choice;
+            FinishOrBroadcast();
+        }
 
         /// This game's player draws a room (a box in world px on the 100 px grid) and puts it to the vote.
         public void ProposeExpandRoom(int x, int y, int w, int h)
         {
-            if (ExpandOffer == null || Me == null)
+            if (!ExpandOpen || Me == null)
                 return;
             if (IsHost)
             {
@@ -265,109 +244,124 @@ namespace Arena
 
         public void OnExpandDraw(int peer, BinaryReader r) => HostExpandDraw(peer, r.ReadInt16(), r.ReadInt16(), r.ReadInt16(), r.ReadInt16());
 
-        /// Host: a drawn room joins the offer as its last card (a newer drawing replaces the last one, and its votes go).
+        /// Host: a drawing becomes its drawer's proposal (a newer one replaces the last, and the votes for the old one go). The drawer
+        /// backs their own. It must fit and the drawer must have the vectors; they only pay if it wins.
         void HostExpandDraw(int id, int x, int y, int w, int h)
         {
-            if (!IsHost || ExpandOffer == null || !Players.ContainsKey(id))
+            Player p;
+            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
                 return;
             string why;
-            var room = Expansion.Custom(Expanded, x, y, w, h, out why);
-            if (!room.HasValue || room.Value.Price > Purse)
+            var made = Expansion.Custom(Expanded, x, y, w, h, out why);
+            if (!made.HasValue || made.Value.Price > p.Vectors)
             {
-                DoLog("expansion: drawn room refused (" + (why ?? "can't afford it") + ")");
+                DoLog("proposal refused (" + (why ?? "needs " + made.Value.Price + " vectors, has " + p.Vectors) + ")");
                 return;
             }
-            if (ExpandCustom >= 0)
+            var room = made.Value;
+            room.Owner = id;
+            int old = ExpandProposals.FindIndex(q => q.Owner == id);
+            if (old >= 0)
             {
-                ExpandOffer[ExpandCustom] = room.Value;
-                var drop = new List<int>();
-                foreach (var kv in ExpandVotes)
-                    if (kv.Value == ExpandCustom)
-                        drop.Add(kv.Key);
-                foreach (int pid in drop)
-                    ExpandVotes.Remove(pid);
+                ExpandProposals[old] = room;
+                foreach (int voter in new List<int>(ExpandVotes.Keys))
+                    if (ExpandVotes[voter] == id)
+                        ExpandVotes.Remove(voter);
             }
             else
-            {
-                int skip = ExpandOffer.Count;  // the "buy nothing" vote moves up one place
-                foreach (int pid in new List<int>(ExpandVotes.Keys))
-                    if (ExpandVotes[pid] == skip)
-                        ExpandVotes[pid] = skip + 1;
-                ExpandOffer.Add(room.Value);
-                ExpandCustom = skip;
-            }
-            DoLog("expansion: a drawn room, " + room.Value.W + " x " + room.Value.H + " for " + room.Value.Price);
-            BroadcastExpansion();
+                ExpandProposals.Add(room);
+            ExpandVotes[id] = id;
+            DoLog(p.Name + " proposes a " + w + " x " + h + " room for " + room.Price + " vectors");
+            FinishOrBroadcast();
         }
 
-        void HostExpandVote(int id, int choice)
+        /// Host: once everyone has voted the round is settled; until then everyone is told how it stands.
+        void FinishOrBroadcast()
         {
-            if (!IsHost || ExpandOffer == null || !Players.ContainsKey(id) || choice < 0 || choice > ExpandOffer.Count)
-                return;
-            if (choice < ExpandOffer.Count && !CanBuy(choice))
-                return;
-            ExpandVotes[id] = choice;
             bool all = true;
             foreach (int pid in Players.Keys)
                 all &= ExpandVotes.ContainsKey(pid);
             if (all)
-                ResolveExpansion();
+                ResolveBuildRound();
             else
                 BroadcastExpansion();
         }
 
-        /// Host: everyone has voted. The most votes wins (a tie goes to the lower offer, and buying beats buying nothing).
-        /// Host, as the next wave is about to start: an optional offer closes. A room is bought only if more than half the
-        /// team voted for it; anything less and the purse keeps its gold.
-        void ResolveOptionalExpansion()
+        /// Host, when everyone has voted or the next wave is about to start: the proposal with the most votes is built, its drawer
+        /// pays; a tie (a 50/50) is a random pick among the tied, and "no room" counts as one of them. Nothing is built with no
+        /// proposals, no votes, or "no room" winning.
+        void ResolveBuildRound()
         {
-            if (ExpandOffer != null && ExpandOptional)
-                ResolveExpansion(true);
-        }
-
-        void ResolveExpansion(bool deadline = false)
-        {
-            int n = ExpandOffer.Count;
-            var tally = new int[n + 1];
-            foreach (var v in ExpandVotes.Values)
-                tally[Math.Min(v, n)]++;
-            int win = 0;
-            for (int i = 1; i <= n; i++)
-                if (tally[i] > tally[win])
-                    win = i;
-            if (win < n && CanBuy(win) && (!deadline || tally[win] > Players.Count / 2))
+            if (!IsHost || !ExpandOpen)
+                return;
+            var standing = ExpandProposals.FindAll(q => Players.ContainsKey(q.Owner) && Players[q.Owner].Vectors >= q.Price);
+            var tally = new Dictionary<int, int>();
+            foreach (int choice in ExpandVotes.Values)
             {
-                var room = ExpandOffer[win];
-                Purse -= room.Price;
-                Expanded.Add(room);
-                expWorld = null;
-                LayoutAge = 0f;  // the new walls rise
-                Sounds.Add(Sfx.Pick);
-                DoLog("expansion bought: " + room.Shape + " " + room.Kind + (room.Kind == Arena.RoomKind.Floor ? " " + room.Floor : "") + " for " + room.Price + " (purse " + Purse + ")");
+                if (choice != 0 && !standing.Exists(q => q.Owner == choice))
+                    continue;
+                int n;
+                tally.TryGetValue(choice, out n);
+                tally[choice] = n + 1;
+            }
+            int best = 0;
+            foreach (var kv in tally)
+                best = Math.Max(best, kv.Value);
+            if (best > 0 && standing.Count > 0)
+            {
+                var leaders = new List<int>();
+                foreach (var kv in tally)
+                    if (kv.Value == best)
+                        leaders.Add(kv.Key);
+                leaders.Sort();
+                int pick = leaders[rng.Next(leaders.Count)];
+                if (leaders.Count > 1)
+                    DoLog("tied vote: random pick among " + leaders.Count);
+                if (pick != 0)
+                {
+                    var room = standing.Find(q => q.Owner == pick);
+                    Players[pick].Vectors -= room.Price;
+                    Expanded.Add(room);
+                    expWorld = null;
+                    LayoutAge = 0f;  // the new walls rise
+                    Sounds.Add(Sfx.Pick);
+                    DoLog("room built: " + room.W + " x " + room.H + " by " + Players[pick].Name + " for " + room.Price + " vectors");
+                }
+                else
+                    DoLog("the team voted for no room");
             }
             else
-                DoLog("expansion: nothing bought (purse " + Purse + ")");
-            ExpandOffer = null;
-            ExpandCustom = -1;
-            ExpandOptional = false;
+                DoLog("building round closes: nothing built");
+            ExpandOpen = false;
+            ExpandProposals.Clear();
             ExpandVotes.Clear();
             BroadcastExpansion();
         }
 
-        /// Every frame, every game: a bot player votes for a random room it can afford a moment after the offer comes up.
+        /// Every frame, every game: a bot player draws a room it can afford a moment after the round opens, then votes.
         void TickExpansion(float dt)
         {
-            if (ExpandOffer == null || !Bot || Me == null || ExpandVotes.ContainsKey(MyId))
+            if (!ExpandOpen)
+            {
+                botVoteT = 0f;
+                botProposed = false;
+                return;
+            }
+            if (!Bot || Me == null)
                 return;
             botVoteT += dt;
-            if (botVoteT < 1.5f)
-                return;
-            var ok = new List<int>();
-            for (int i = 0; i < ExpandOffer.Count; i++)
-                if (CanBuy(i))
-                    ok.Add(i);
-            bool pass = ExpandOptional && rng.Next(10) < 4;  // (a bot passes on an optional room now and then)
-            CastExpandVote(ok.Count > 0 && !pass ? ok[rng.Next(ok.Count)] : ExpandOffer.Count);
+            if (!botProposed && botVoteT >= 1.2f)
+            {
+                botProposed = true;
+                foreach (var o in Expansion.Offers(expandSeed + MyId * 31, Wave, Expanded))
+                    if (o.Price <= Me.Vectors && rng.Next(10) < 7)
+                    {
+                        ProposeExpandRoom(o.X, o.Y, o.W, o.H);
+                        break;
+                    }
+            }
+            if (botVoteT >= 3f && !ExpandVotes.ContainsKey(MyId) && ExpandProposals.Count > 0)
+                CastExpandVote(rng.Next(10) < 2 ? 0 : ExpandProposals[rng.Next(ExpandProposals.Count)].Owner);
         }
 
         // --- Net ---------------------------------------------------------------------------------------------------
@@ -381,6 +375,7 @@ namespace Arena
                 w.Write((short)r.X); w.Write((short)r.Y); w.Write((short)r.W); w.Write((short)r.H);
                 w.Write((byte)r.Kind); w.Write((byte)r.Floor);
                 w.Write((short)r.Price);
+                w.Write((short)r.Owner);
             }
         }
 
@@ -394,28 +389,27 @@ namespace Arena
                 room.Kind = (RoomKind)r.ReadByte();
                 room.Floor = (PathId)r.ReadByte();
                 room.Price = r.ReadInt16();
+                room.Owner = r.ReadInt16();
                 list.Add(room);
             }
             return list;
         }
 
-        /// Host -> all: the rooms bought, the offer (if the team is voting) and the votes so far.
+        /// Host -> all: the rooms built, whether a round is open, its proposals and the votes so far.
         void BroadcastExpansion()
         {
             var w = Proto.Begin(Msg.ExpandState);
             WriteRooms(w, Expanded);
-            w.Write(ExpandOffer != null);
-            if (ExpandOffer != null)
+            w.Write(ExpandOpen);
+            if (ExpandOpen)
             {
-                WriteRooms(w, ExpandOffer);
-                w.Write((byte)(ExpandCustom < 0 ? 255 : ExpandCustom));
-                w.Write(ExpandOptional);
-            }
-            w.Write((byte)ExpandVotes.Count);
-            foreach (var kv in ExpandVotes)
-            {
-                w.Write(kv.Key);
-                w.Write((byte)kv.Value);
+                WriteRooms(w, ExpandProposals);
+                w.Write((byte)ExpandVotes.Count);
+                foreach (var kv in ExpandVotes)
+                {
+                    w.Write(kv.Key);
+                    w.Write((short)kv.Value);
+                }
             }
             session.Broadcast(Proto.End(w));
         }
@@ -433,20 +427,18 @@ namespace Arena
                 expWorld = null;
                 LayoutAge = 0f;
             }
-            ExpandOffer = r.ReadBoolean() ? ReadRooms(r) : null;
-            ExpandCustom = ExpandOffer != null ? (r.ReadByte() == 255 ? -1 : ExpandOffer.Count - 1) : -1;
-            ExpandOptional = ExpandOffer != null && r.ReadBoolean();
+            ExpandProposals.Clear();
             ExpandVotes.Clear();
+            ExpandOpen = r.ReadBoolean();
+            if (!ExpandOpen)
+                return;
+            ExpandProposals.AddRange(ReadRooms(r));
             int n = r.ReadByte();
             for (int i = 0; i < n; i++)
             {
                 int id = r.ReadInt32();
-                ExpandVotes[id] = r.ReadByte();
+                ExpandVotes[id] = r.ReadInt16();
             }
-            if (ExpandOffer == null)
-                ExpandVotes.Clear();
         }
-
-        void SyncExpansion(NetSync s) => s.Int(ref Purse);
     }
 }

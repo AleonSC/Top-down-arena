@@ -1,6 +1,6 @@
 # Vector building: the Expanding arena without a purse
 
-Status: **step 1 built** (the vector economy); steps 2-5 not started. Decided with the owner on Nov 10, 2026. It replaces the
+Status: **steps 1-2 built** (the vector economy; proposals, the vote with random ties, the purse and offers gone); steps 3-5 not started. Decided with the owner on Nov 10, 2026. It replaces the
 purse and the random room offers of [`ExpandingArena.md`](ExpandingArena.md) (steps 1-5, all built and merged) with per-player
 vectors; **the team still votes on rooms**. The map builder, the draw tool, loops, walls, sync of the room list and the
 camera/minimap/spawn work all stay.
@@ -53,6 +53,25 @@ random offers. Boss kills refill the stock, upgrades raise how much you can hold
 - **Dormant**: `RoomKind` Shop/Floor, shop-room gold and shop opening, floor rules (`FloorAt`...). Nothing creates such a room,
   so they never run; they come back as a later step (a kind picked when drawing, floors unlocked by bosses).
 - **Personal shop gold** stays where it was (Bazaar, Gold Rush).
+
+## Step 2 (built, protocol 249)
+
+- **Round**: every cleared wave (`Waves.cs`) calls `OpenBuildRound` after `GrantVectorsForWave`; `ResolveBuildRound` runs as the next
+  wave starts (and early, once every player has voted). Never blocks the countdown. Not in the Practice Range, Boss Hunts, after
+  the last wave or on a full map.
+- **Proposals** (`ExpandProposals`, one per player, `ExpansionRoom.Owner`): `Msg.ExpandDraw` (x, y, w, h) -> `HostExpandDraw`:
+  `Expansion.Custom` must accept it and the drawer must have the vectors (`Price` is now `Expansion.Cost`); a newer one replaces the
+  last and drops its votes; the drawer's own vote is cast for them.
+- **Votes** (`ExpandVotes`: voter -> proposer id, 0 = no room, `Msg.ExpandVote` carries a short): most votes wins, ties are a random
+  pick among the tied (`rng`), "no room" counts as one of them; proposals whose drawer can no longer pay are dropped before the
+  count; only the winner's drawer pays. Bots propose a room they can afford from `Expansion.Offers` after 1.2 s (7 times in 10) and
+  vote after 3 s (2 in 10 for no room).
+- **Gone**: the purse (`Purse`, `AddPurse`, the snapshot field), the boss vote and the optional chip, `ExpandOpen` replacing `ExpandOffer`.
+  **Kept, dormant**: `Expansion.Offers` (random blueprints, used by the bots to find a box), `PriceFor`, `RoomKind` Shop/Floor and
+  their rules (nothing builds those rooms now). Ask before deleting them.
+- **UI**: chip "Build rooms" (`ExpandChipUp`), the window with proposal cards (who drew it, cost, votes), "Draw a room / Redraw
+  your room", "No room", "Decide later"; the draw screen shows the live vector cost. Previews: `EXPANDVOTE=<rooms>` (window),
+  `EXPANDVOTE=<rooms> EXPANDCHIP=1` (chip), `EXPANDDRAW=x,y,w,h`.
 
 ## Steps
 

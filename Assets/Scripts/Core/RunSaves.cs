@@ -47,7 +47,7 @@ namespace Arena
         /// Host: write the run to its slot, if it's between waves with nothing left to choose.
         public bool SaveRun()
         {
-            if (!Saveable || State != MatchState.Intermission || AnyonePicking() || PathOffer != null || ExpandOffer != null || ShopOpen || Players.Count == 0)
+            if (!Saveable || State != MatchState.Intermission || AnyonePicking() || PathOffer != null || ShopOpen || Players.Count == 0)
                 return false;
             var save = new RunSave
             {
