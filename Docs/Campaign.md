@@ -23,31 +23,29 @@ guesses. It builds on [`Approaches.md`](Approaches.md) (boss factions, `Core/App
 
 ## Proposal
 
-### 1. Themed share per faction, per wave
+### 1. Every wave is 100% themed (*owner*)
 
-Replace "only the next boss's faction, only in its approach" with a **share curve per faction** over the whole run.
-Each wave asks every faction for a share; shares add up to the themed part of the wave (the rest stays the usual
-random mix, as today).
+No random filler: **every enemy in a campaign wave belongs to a faction.** A wave's mix is split between the factions
+below; within a faction the members, `From` waves and squads work as today.
 
-For boss *N* (fights at wave `B`):
+For the wave that is step `p` (1-5) of the cycle leading to boss *k*:
 
-| Phase | Waves | Share of that faction |
+| Slice | Share | Notes |
 |---|---|---|
-| Build | `B-9 … B-1` | ramps up from ~10% to the approach share (replaces the 4-wave ramp) |
-| Peak | the waves just before the fight | full approach share (85%) |
-| Fade | `B+1 … B+5` | falls linearly to a **residue** (~5-10%) |
-| Return | any later wave | residue, plus occasional **comeback** waves (below) |
+| Fading (boss *k-1*) | 35 / 25 / 15 / 5 / 0 % for `p` = 1-5 | the last boss's world phases out slowly |
+| Older pool | 10% from wave 11 on | members of all earlier factions, plus comeback squads (below) |
+| Current (boss *k*) | the rest: 65 → 100% (55 → 90% with the pool) | builds up to the boss |
 
-So at any wave you see two factions overlapping: the one fading (the boss you just beat) and the one building (the
-next). The overlap is the "phase out slowly, replaced by the next" feel.
+Waves 1-5 are 100% the Warden's faction. Where the pool is empty (waves 6-10) the current faction takes its 10%.
+The boss wave itself is unchanged. Bosses with no faction yet keep today's random mix until their faction is built.
 
 ### 2. Comebacks
 
-- **Residue:** a faction keeps a small weight forever, so single members drift back in.
-- **Comeback squad:** every few waves (seeded, so all players agree) one *earlier* faction's squad is added to the
-  wave. Squads are the faction's existing set pieces (e.g. the Warden's wall of Riot Shields).
-- Limits: at most one comeback per wave, never in the 4 waves before a boss (keep the approach clean), comeback
-  members still respect their `From` wave and the bullet budget.
+- **Pool:** the 10% older slice picks single members of earlier factions (weights as in their `FactionDef`).
+- **Comeback squad:** every few waves (seeded, so all players agree) one *earlier* faction's squad takes part of
+  the pool slice. Squads are the faction's existing set pieces (e.g. the Warden's wall of Riot Shields).
+- Limits: at most one comeback squad per wave, never on step 5 of a cycle (keep the approach clean), members still
+  respect their `From` wave and the bullet budget.
 
 ### 3. Boss Hunt as the enhanced faction
 
@@ -58,13 +56,13 @@ The hunt uses the same faction data, turned up:
 | Types in the pool | those allowed by the `From` wave | **all** members from the first wave |
 | Count | normal wave count | ~1.5x, rising toward the boss |
 | Squads | occasional | every wave has one; tougher variants (more members, elites) |
-| Share | up to 85% | 100% (as built today) |
+| Share | 100% (current faction 55-100%, rest fading/older) | 100% of the boss's own faction only |
 
 Because the hunt reads the same `FactionDef`, adding a member to a faction improves both the campaign and the hunt.
 
 ## Build plan
 
-1. **Share curve**: `FactionDef` gets build/fade/residue; `Approaches` returns shares for all factions on a wave
+1. **Share curve**: the slice table above (fading / pool / current), no random filler; `Approaches` returns shares for all factions on a wave
    (generalising `ShareFor`). Wave spawner picks by share. Tests in the `features` suite: shares sum, ramp and fade
    shape, determinism.
 2. **Comebacks**: seeded comeback picker, with the limits above. Test: same seed gives the same comeback waves.
@@ -79,9 +77,9 @@ panel chip needs a new snapshot field.
 
 ## Open questions
 
-- Fade length: 5 waves, or until the next boss? Should the residue ever reach 0?
+- Fade length: 5 waves, or until the next boss? Should the older pool ever reach 0?
 - Do comebacks scale with the original wave number or the current one? (Current, so they stay a threat.)
 - Factions that don't exist yet (only the Warden and the Lich's zombies are built): the buildup needs each faction
   built first; unbuilt bosses keep the plain mix until then.
-- Endless mode (`BossCycle`): do factions fade and rebuild every cycle, or stay at residue after the first lap?
+- Endless mode (`BossCycle`): do factions fade and rebuild every cycle, or stay in the older pool after the first lap?
 - Should the hunt unlock its enhanced faction pool one member at a time as perks do?
