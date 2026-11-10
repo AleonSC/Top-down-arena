@@ -110,6 +110,11 @@ namespace Arena
         /// The whole model: back, shoulders, role trim, arms, held weapon, head. `col` carries the alpha and hit flash.
         void DrawPlayerModel(Player p, float r, float t, Rgba col)
         {
+            if (PacSkin)
+            {
+                DrawPacChomper(p, r, t, col);  // PacmanLook.cs
+                return;
+            }
             int kit = (int)p.Kit, role = Mathf.Min((int)p.Role, 2);  // (a Wildcard wears the DPS build in its own purple trim)
             ModelPal K = ModelPals[kit];
             Rgba RC = p.Def.Color;

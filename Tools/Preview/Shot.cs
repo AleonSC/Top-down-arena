@@ -69,6 +69,7 @@ static partial class Shot {
     var names = Environment.GetEnvironmentVariable("TWO") != null ? new[] { "Anthony", "Sam" } : new[] { "Anthony", "Sam", "Little Bee" };
     if (Environment.GetEnvironmentVariable("SANDREAS") != null) names[names.Length - 1] = "GTA:SA";  // the San Andreas disk easter egg
     if (Environment.GetEnvironmentVariable("DOOM") != null) names[1] = "Doom";  // the Doom disk easter egg
+    if (Environment.GetEnvironmentVariable("PAC") != null) names[1] = "Pacman";  // the Pac-Man disk easter egg
     if (Environment.GetEnvironmentVariable("HOLO") != null) names[0] = "Antaleon";  // the hologram disk easter egg
     if (Environment.GetEnvironmentVariable("WIN95") != null) names[2] = "Windows 95";  // the Windows 95 disk easter egg
     if (Environment.GetEnvironmentVariable("MI") != null) names[0] = "Mission Impossible";  // the Mission: Impossible disk easter egg
@@ -381,6 +382,7 @@ static partial class Shot {
       GL.Tris.Clear();
       typeof(ArenaApp).GetField("holdT", f2).SetValue(app, 0f);  // (a hit-pause it started would replay a frame)
     }
+    if (Environment.GetEnvironmentVariable("PACSKIN") != null) Profile.Current.DiskLook = "pac";  // the Pac-Man skin (PacmanLook.cs)
     typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
     typeof(ArenaApp).GetMethod("InitStyles", f2).Invoke(app, null);
     Ui.Init();

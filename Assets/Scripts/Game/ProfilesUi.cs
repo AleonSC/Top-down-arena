@@ -480,6 +480,11 @@ namespace Arena
         /// A disk: plastic tinted by the rank tier with its chamfered corner, the metal shutter, and a paper label.
         void DrawWhoDisk(Rect d, ProfileInfo p, bool current)
         {
+            if (p.Disk == "pac")
+            {
+                DrawPacDisk(d);
+                return;
+            }
             if (p.Disk == "holo")
             {
                 DrawHoloDisk(d, p);

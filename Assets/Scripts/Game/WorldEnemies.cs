@@ -449,13 +449,16 @@ namespace Arena
                 DrawFlankBomber(e, pos, r, e.Flash > 0f || JuiceFlash(e), spawning, t);  // Swarm's flanking bombers (QueenLook.cs)
                 return;
             }
+            bool pac = PacSkin && !spawning && PacGhostable(e);  // the Pac-Man skin: a ghost in its role's colour (PacmanLook.cs)
             // Melee enemies are spiky, so you can tell rushers from shooters at a glance.
-            if (e.Def.Melee && !spawning && e.Type != EnemyType.Swarmer && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type) && !Game.IsNonShooter(e.Type))
+            if (e.Def.Melee && !pac && !spawning && e.Type != EnemyType.Swarmer && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type) && !Game.IsNonShooter(e.Type))
                 DrawMeleeSpikes(e, pos, r, col, t);
             if (Zombies.Is(e.Type))
                 DrawZombieUnder(e, pos, r, t);  // its spore haze, frenzy streaks and the Crawler's hold (ZombieLook.cs)
             DrawEnemyShadow(e, pos, r);  // EnemyPresenceLook.cs
             col = DrawEnemyUnderlay(e, pos, r, col, spawning, t);
+            if (pac)
+                col = PacRoleColor(e);
             if (e.Type == EnemyType.SecurityGuard && !spawning)
                 DrawSecurityUnder(e, pos, r, t);  // its locked shot and its reload ring (SecurityLook.cs)
             if (Game.IsNonShooter(e.Type) && !spawning)
@@ -465,7 +468,9 @@ namespace Arena
             col = DrawEnemyStatus(e, pos, r, col, t);
             if (e.Flash > 0f || JuiceFlash(e))
                 col = col.Mix(Rgba.White, HitFlashMix(e));  // softer under steady fire (Juice.cs)
-            if (Zombies.Is(e.Type))
+            if (pac)
+                DrawPacGhost(e, pos, r, col, t);
+            else if (Zombies.Is(e.Type))
                 DrawZombieBody(e, pos, r, col, t);  // its own shape (ZombieLook.cs)
             else if (e.Type == EnemyType.Warder)
                 DrawWarderBody(e, pos, r, col, t);  // WarderLook.cs
@@ -491,7 +496,8 @@ namespace Arena
                 DrawBloodShatter(e, pos, r, t);  // the crystal breaking as the freeze ends (BloodFreezeLook.cs)
             if (tombStates.Count > 0)
                 DrawTombShatter(e, pos, r, t);  // the spires breaking as the freeze ends (GlacialTombLook.cs)
-            DrawEnemyDetails(e, pos, r, col, t);
+            if (!pac)
+                DrawEnemyDetails(e, pos, r, col, t);
             if (e.Venomed)
                 DrawVenomOver(e, pos, r, t);  // Poison Dart: the rim, bubbles and the stuck dart (PoisonDartLook.cs)
             DrawJobMarker(e, pos, r);  // JobMarkerLook.cs
