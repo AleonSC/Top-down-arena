@@ -334,9 +334,12 @@ namespace Arena
                 if (picked && partyBots.Bots.Count > 0)
                     Ui.Rim(r, Ui.Gold, 0.9f);
                 float room = botSeat != null ? 118f : 0f;
-                if (Ui.HitArea(new Rect(r.x, r.y, r.width - 9f - room, r.height)))
+                if (Ui.HitArea(new Rect(tx, r.y, r.width - (tx - r.x) - 9f - room, r.height)))
                     editBotId = botSeat != null ? e.Id : -1;
+                PartyCardClick(new Rect(r.x, r.y, tx - r.x, r.height), e, ToColor(Rank.TierColor(e.Rank)), t);  // the portrait: your profile / their holo card (PlayerInspect.cs)
             }
+            else
+                PartyCardClick(r, e, ToColor(Rank.TierColor(e.Rank)), t);  // the whole card (a remote player's, or a non-host's own)
             if (botSeat != null)
                 DrawBotButtons(r, botSeat);
             // READY / NOT READY, bottom right.

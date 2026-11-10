@@ -122,6 +122,7 @@ namespace Arena
         void OpenLobbyMenu()
         {
             lobbyMenuOpen = true;
+            profileFromCard = false;
             lobbySel = 0;
             pauseSettings = pauseHowTo = pauseRecords = false;
             drawerKey = null;
@@ -447,7 +448,12 @@ namespace Arena
                 if (CabWindowOpen)
                     CloseCabWindow();  // the profile's window first
                 else
+                {
                     pauseRecords = false;
+                    if (profileFromCard)
+                        CloseLobbyMenu();  // opened from your party card: straight back to the lobby
+                    profileFromCard = false;
+                }
                 return;
             }
             if (CabWindowOpen)
