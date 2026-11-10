@@ -264,6 +264,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `DpsMeterUi.cs`: F2 DPS meter overlay and the F1 DPS tab
 - `ReplayUi.cs`: F1 Replays tab (record, folder, list, rename, delete) and the replay timeline bar; `Core/Replay.cs` is the file, recorder and player
 - `BalanceTestUi.cs`: F1 > Balance tab, the TEST strip and the report screen
+- `DevKit.cs`: the CRT look of the dev tools and the chat box: `DkPanel`, `DkSub`, `DkCard`, `DkTitle`, `DkKey`, `DkChoice`, `DkSwitch`, `DkField`, drop-ins for the old `Ui.Panel/Button/Toggle/Choice/Field/Pill` (used by `DevMenu.cs`, `ReplayUi.cs`, `BalanceTestUi.cs`, `DpsMeterUi.cs`, `ChatBox.cs`)
 - `DevMenu.cs`, `DevTextEdit.cs`, `BossLabUi.cs`, `WaveEditorUi.cs`: F1 tools, F4 text edit, Boss Lab, F1 wave editor
 - `PracticeUi.cs`: the lobby's Practice tab (CRT look A of `Docs/Mockups/crt-practice-redesign.html`: wave rack, enemy grid, setup files); `TrainingUi.cs`: the Training tab (drill cartridges by group, detail, Load this drill, the training folder); `PracticeDownedUi.cs`: the Practice Range's DOWNED window with Respawn, Restart wave and Back to lobby
 - `../Editor/ArenaEditor.cs`: scene setup and Windows build menu item
