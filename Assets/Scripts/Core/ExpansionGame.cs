@@ -29,6 +29,12 @@ namespace Arena
         /// Which of the offers is a room a player drew (the last one), or -1.
         public int ExpandCustom = -1;
 
+        /// The offer is an optional one (after a regular wave): it doesn't hold the countdown, and it closes when the next wave starts.
+        public bool ExpandOptional;
+
+        /// An offer is open that the wave has to wait for (the vote after a boss).
+        public bool ExpandBlocksWave => ExpandOffer != null && !ExpandOptional;
+
         int expandSeed;
         float botVoteT;
         World expWorld;
@@ -130,6 +136,7 @@ namespace Arena
             Expanded.Clear();
             ExpandOffer = null;
             ExpandCustom = -1;
+            ExpandOptional = false;
             ExpandVotes.Clear();
             expWorld = null;
             botVoteT = 0f;
@@ -147,25 +154,37 @@ namespace Arena
         bool CanBuy(int i) => ExpandOffer != null && i >= 0 && i < ExpandOffer.Count && ExpandOffer[i].Price <= Purse;
 
         /// Host, after a boss wave is cleared: offer rooms for the purse (nothing if none is affordable, or at the cap).
-        void OfferExpansion()
+        void OfferExpansion() => MakeExpansionOffer(false);
+
+        /// Host, after a regular wave is cleared: if the purse covers a room, an optional offer (a chip on screen; the team can
+        /// vote while the countdown runs, and a room is bought only if most of the team voted for it before the wave starts).
+        void OfferOptionalExpansion()
+        {
+            if (!IsBossWave(Wave) && ExpandOffer == null)
+                MakeExpansionOffer(true);
+        }
+
+        void MakeExpansionOffer(bool optional)
         {
             if (!IsHost || !ExpandingOn || Practice != null || Hunt != null || (Wave >= MaxWave && !Endless))
                 return;
-            var offers = Expansion.Offers(expandSeed, Wave, Expanded);
+            var offers = Expansion.Offers(expandSeed + (optional ? 7 : 0), Wave, Expanded);
             bool any = false;
             foreach (var o in offers)
                 any |= o.Price <= Purse;
             if (!any)
             {
-                DoLog("expansion: nothing affordable (purse " + Purse + (offers.Count == 0 ? ", map full" : "") + ")");
+                if (!optional)
+                    DoLog("expansion: nothing affordable (purse " + Purse + (offers.Count == 0 ? ", map full" : "") + ")");
                 return;
             }
             ExpandOffer = offers;
+            ExpandOptional = optional;
             ExpandCustom = -1;
             ExpandVotes.Clear();
             botVoteT = 0f;
             BroadcastExpansion();
-            DoLog("expansion offered (purse " + Purse + "): " + string.Join(" / ", offers.ConvertAll(o => o.Shape + " " + o.Kind + " " + o.Price).ToArray()));
+            DoLog((optional ? "optional " : "") + "expansion offered (purse " + Purse + "): " + string.Join(" / ", offers.ConvertAll(o => o.Shape + " " + o.Kind + " " + o.Price).ToArray()));
         }
 
         /// A vote from this game's player: an offer's index, or ExpandOffer.Count to buy nothing.
@@ -255,7 +274,15 @@ namespace Arena
         }
 
         /// Host: everyone has voted. The most votes wins (a tie goes to the lower offer, and buying beats buying nothing).
-        void ResolveExpansion()
+        /// Host, as the next wave is about to start: an optional offer closes. A room is bought only if more than half the
+        /// team voted for it; anything less and the purse keeps its gold.
+        void ResolveOptionalExpansion()
+        {
+            if (ExpandOffer != null && ExpandOptional)
+                ResolveExpansion(true);
+        }
+
+        void ResolveExpansion(bool deadline = false)
         {
             int n = ExpandOffer.Count;
             var tally = new int[n + 1];
@@ -265,7 +292,7 @@ namespace Arena
             for (int i = 1; i <= n; i++)
                 if (tally[i] > tally[win])
                     win = i;
-            if (win < n && CanBuy(win))
+            if (win < n && CanBuy(win) && (!deadline || tally[win] > Players.Count / 2))
             {
                 var room = ExpandOffer[win];
                 Purse -= room.Price;
@@ -279,6 +306,7 @@ namespace Arena
                 DoLog("expansion: nothing bought (purse " + Purse + ")");
             ExpandOffer = null;
             ExpandCustom = -1;
+            ExpandOptional = false;
             ExpandVotes.Clear();
             BroadcastExpansion();
         }
@@ -295,7 +323,8 @@ namespace Arena
             for (int i = 0; i < ExpandOffer.Count; i++)
                 if (CanBuy(i))
                     ok.Add(i);
-            CastExpandVote(ok.Count > 0 ? ok[rng.Next(ok.Count)] : ExpandOffer.Count);
+            bool pass = ExpandOptional && rng.Next(10) < 4;  // (a bot passes on an optional room now and then)
+            CastExpandVote(ok.Count > 0 && !pass ? ok[rng.Next(ok.Count)] : ExpandOffer.Count);
         }
 
         // --- Net ---------------------------------------------------------------------------------------------------
@@ -337,6 +366,7 @@ namespace Arena
             {
                 WriteRooms(w, ExpandOffer);
                 w.Write((byte)(ExpandCustom < 0 ? 255 : ExpandCustom));
+                w.Write(ExpandOptional);
             }
             w.Write((byte)ExpandVotes.Count);
             foreach (var kv in ExpandVotes)
@@ -362,6 +392,7 @@ namespace Arena
             }
             ExpandOffer = r.ReadBoolean() ? ReadRooms(r) : null;
             ExpandCustom = ExpandOffer != null ? (r.ReadByte() == 255 ? -1 : ExpandOffer.Count - 1) : -1;
+            ExpandOptional = ExpandOffer != null && r.ReadBoolean();
             ExpandVotes.Clear();
             int n = r.ReadByte();
             for (int i = 0; i < n; i++)

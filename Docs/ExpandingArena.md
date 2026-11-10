@@ -157,6 +157,15 @@ in that layout with a switch; don't delete code.
 - Not done: Sniper Ridge has only the crowd and the bonus (no ranged-only mix); the vote card text states what each floor does.
 - Previews: `EXPANDSHOP=1` (banner) / `2` (in the shop room). Test: `ExpandingFeaturesTest` in suite `expand`.
 
+## Optional offers (the chip, protocol 247)
+
+- After any regular wave `OfferOptionalExpansion` makes an offer if the purse covers one (seed + 7, so it differs from the
+  boss vote's). It sets `ExpandOptional`: the countdown doesn't wait (`ExpandBlocksWave`), the window shows only after "See the
+  rooms" (`ExpansionUi.cs` `ExpandChipUp`/`ExpandWindowUp`), and `ResolveOptionalExpansion` runs as the next wave starts:
+  buy only with more than half the team's votes, else nothing. Everyone voting resolves it at once as usual. Bots pass on
+  an optional room 4 times in 10. The mandatory vote after each boss is unchanged.
+- Preview: `EXPANDVOTE=<rooms> EXPANDCHIP=1|2`. Test: `ExpandingFeaturesTest`.
+
 ## Open questions (defaults in bold)
 
 - Do expansions ever shrink or close (a destroyed room)? **No.**
