@@ -1,0 +1,2 @@
+# Every session appends lines here; keep both sides instead of conflicting.
+CODEMAP.md merge=union
