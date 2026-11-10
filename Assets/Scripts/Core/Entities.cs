@@ -249,6 +249,11 @@ namespace Arena
         public float RapierTempoF;   // host: the exact Tempo (it drains a little at a time)
         public float RapierHitAgo = 99f;  // host: seconds since a Rapier thrust last hit an enemy (Tempo holds for RapierGrace, then drains)
         public byte RapierGraceLeft; // Rapier: how much of the grace period is left, 0 to 255 (replicated: the arc under the diamonds; 0 = draining)
+        public bool RapierGuard;     // Rapier: the weapon-action key is held, the Riposte stance is up (replicated; you move slowly and reflect bullets)
+        public byte RapierCharge;    // Rapier: the stance's charge, 0 to 255 (replicated: the lunge's reach; drawn on the blade and as an arc)
+        public float RapierChargeF, RapierLungeEl, RapierLungeDur, RapierLungeLen, RapierLungeDmg;  // host: exact charge; the lunge's clock, length, damage
+        public V2 RapierLungeFrom, RapierLungeDir;  // host: where the lunge started and which way
+        public readonly HashSet<int> RapierLungeHit = new HashSet<int>();  // host: enemies this lunge already hit
         public int RapierFlourishLeft, RapierFlourishCharge;  // host: Flourish swings still to come, and the Tempo it spent
         public float RapierFlourishT, RapierFlourishAim;      // host: until the next Flourish swing; where it is aimed
         public float MeleeGraceT;   // host: a melee swing just landed: bodies you're touching can't hurt you for a moment (Balance.MeleeContactGrace)
@@ -349,7 +354,7 @@ namespace Arena
         public float RiotT;  // Riot Gear: seconds until the shield is back, 0 = ready (RiotGear.cs)
         public readonly AbilitySlot[] Slots = { new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot() };  // Upgrades.SlotCount
 
-        public float Speed => Def.Speed * Stats.SpeedMult * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f) * (DashT > 0f ? Game.HealDashSpeed : 1f) * (SwiftT > 0f ? Game.HolySwiftMult : 1f) * (HarvestHold > 0f ? Game.HarvestSlow : 1f) * (GreatGuard ? Game.GreatGuardSlow : 1f) * (KusariWhirl ? Game.KusariWhirlSlow : 1f) * (JuggT > 0f ? Game.JuggSlow : 1f);
+        public float Speed => Def.Speed * Stats.SpeedMult * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f) * (DashT > 0f ? Game.HealDashSpeed : 1f) * (SwiftT > 0f ? Game.HolySwiftMult : 1f) * (HarvestHold > 0f ? Game.HarvestSlow : 1f) * (GreatGuard ? Game.GreatGuardSlow : 1f) * (RapierGuard ? Game.RapierStanceSlow : 1f) * (KusariWhirl ? Game.KusariWhirlSlow : 1f) * (JuggT > 0f ? Game.JuggSlow : 1f);
         public float BarrierRadius => Game.BarrierRadius * Stats.BarrierRadiusMult;
         public float AuraRange => Game.AuraRange * Stats.AuraRangeMult;
     }
