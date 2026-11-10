@@ -88,6 +88,9 @@ namespace Arena
         public int Rank = 1;  // the player's account rank (Rank.cs), cosmetic and client-reported (the host clamps it)
         public byte Frame;    // their equipped frame: 0 none, else Rank.FrameIndex
         public byte Trail;    // their equipped trail: 0 none, else Rank.TrailIndex (drawn behind them in the match)
+        public byte XpPct;    // their XP towards the next rank, 0-100 (the inspect card, Game/PlayerInspect.cs)
+        public short BestWave;
+        public int Kills, BossKills;  // public records shown on the inspect card (client-reported, cosmetic)
         public byte NameFx;   // their equipped name effect: 0 none, else Rank.NameFxIndex (how their name is drawn, Game/NameEffects.cs)
         public byte CardBg;   // their equipped card background: 0 none, else Rank.CardBgIndex (the fill of their party card)
         public PerkId[] PerkIds = Perks.Empty;      // the perks they will bring (Perks.cs): what they picked, or on a continued run what their seat was saved with
@@ -103,7 +106,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 238;  // 238: Msg.Respawn (the Practice Range's respawn and restart wave, PracticeRespawn.cs); 237: Player.Wound in the snapshot (Combat.cs); 236: main (235) merged with the Rooms arena (233-234: DiffKnob.ArenaRooms, the layout byte's top bit, SyncRooms)
+        public const int ProtocolVersion = 239;  // 239: LobbyEntry.XpPct/BestWave/Kills/BossKills (the inspect card's records, in Msg.Cosmetics and Msg.Lobby); 238: Msg.Respawn (the Practice Range's respawn and restart wave, PracticeRespawn.cs); 237: Player.Wound in the snapshot (Combat.cs); 236: main (235) merged with the Rooms arena (233-234: DiffKnob.ArenaRooms, the layout byte's top bit, SyncRooms)
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -635,6 +638,8 @@ namespace Arena
                 {
                     int rank = Math.Max(1, Math.Min(Arena.Rank.MaxRank, r.ReadInt32()));
                     int frame = r.ReadByte(), trail = r.ReadByte(), card = r.ReadByte(), namefx = r.ReadByte();
+                    int xpPct = Math.Min(100, (int)r.ReadByte()), bestWave = Math.Max(0, Math.Min(9999, (int)r.ReadInt16()));
+                    int kills = Math.Max(0, r.ReadInt32()), bossKills = Math.Max(0, r.ReadInt32());
                     var perkBytes = new List<byte>();
                     for (int pn = r.ReadByte(); pn > 0; pn--)
                         perkBytes.Add(r.ReadByte());
@@ -642,6 +647,7 @@ namespace Arena
                     if (Lobby.TryGetValue(peer, out who))
                     {
                         who.Rank = rank;
+                        who.XpPct = (byte)xpPct; who.BestWave = (short)bestWave; who.Kills = kills; who.BossKills = bossKills;
                         who.Frame = Arena.Rank.Owns(rank, Arena.Rank.FrameId(frame)) ? (byte)frame : (byte)0;  // only a frame or trail their rank has
                         who.Trail = Arena.Rank.Owns(rank, Arena.Rank.TrailId(trail)) ? (byte)trail : (byte)0;
                         who.CardBg = Arena.Rank.Owns(rank, Arena.Rank.CardBgId(card)) ? (byte)card : (byte)0;
@@ -949,6 +955,10 @@ namespace Arena
             me.CardBg = Arena.Rank.Owns(me.Rank, p.CardBg) ? Arena.Rank.CardBgIndex(p.CardBg) : (byte)0;
             me.NameFx = Arena.Rank.Owns(me.Rank, p.NameFx) ? Arena.Rank.NameFxIndex(p.NameFx) : (byte)0;
             me.ChosenPerks = Perks.Brought(p);
+            me.XpPct = (byte)Math.Round(Arena.Rank.Of(p.Xp).Fraction * 100f);
+            me.BestWave = (short)Math.Min(9999, p.BestWave);
+            me.Kills = p.Kills;
+            me.BossKills = p.BossKills;
         }
 
         /// Tells the lobby this player's rank and equipped frame: the host refreshes its own entry, a client tells the
@@ -969,6 +979,10 @@ namespace Arena
             w.Write(Arena.Rank.Owns(p.RankNow, p.Trail) ? Arena.Rank.TrailIndex(p.Trail) : (byte)0);
             w.Write(Arena.Rank.Owns(p.RankNow, p.CardBg) ? Arena.Rank.CardBgIndex(p.CardBg) : (byte)0);
             w.Write(Arena.Rank.Owns(p.RankNow, p.NameFx) ? Arena.Rank.NameFxIndex(p.NameFx) : (byte)0);
+            w.Write((byte)Math.Round(Arena.Rank.Of(p.Xp).Fraction * 100f));
+            w.Write((short)Math.Min(9999, p.BestWave));
+            w.Write(p.Kills);
+            w.Write(p.BossKills);
             var mine = Perks.Brought(p);
             w.Write((byte)mine.Length);
             foreach (var id in mine)
@@ -1019,6 +1033,10 @@ namespace Arena
                 w.Write(e.Trail);
                 w.Write(e.CardBg);
                 w.Write(e.NameFx);
+                w.Write(e.XpPct);
+                w.Write(e.BestWave);
+                w.Write(e.Kills);
+                w.Write(e.BossKills);
                 w.Write((byte)e.PerkIds.Length);
                 foreach (var id in e.PerkIds)
                     w.Write((byte)id);
@@ -1425,6 +1443,10 @@ namespace Arena
                         e.Trail = r.ReadByte();
                         e.CardBg = r.ReadByte();
                         e.NameFx = r.ReadByte();
+                        e.XpPct = (byte)Math.Min(100, (int)r.ReadByte());
+                        e.BestWave = Math.Max((short)0, r.ReadInt16());
+                        e.Kills = Math.Max(0, r.ReadInt32());
+                        e.BossKills = Math.Max(0, r.ReadInt32());
                         var perkBytes = new List<byte>();
                         for (int pn = r.ReadByte(); pn > 0; pn--)
                             perkBytes.Add(r.ReadByte());
