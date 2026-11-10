@@ -1,0 +1,180 @@
+<title>Shield Tells</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one control strip drives every card at once (shield level, hit, break, colour source), then today's bubble
+   and three reworks side by side on the same enemy, then the colour key. Palette: house mockup neutrals; the shield
+   colours are the game's own (bubble blue, Warder violet). */
+:root{
+  --bg:#eceae4; --fg:#1d1f22; --muted:#5f636a; --panel:#f8f7f3; --line:#d3d0c6;
+  --acc:#2f6fb3; --chip:#e1ded4; --chip-on:#1d1f22; --chip-on-fg:#f6f4ee; --arena:#14161a;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101215; --fg:#e8e9ea; --muted:#979ca4; --panel:#181b20; --line:#2c3138;
+  --acc:#6fb0f0; --chip:#23272e; --chip-on:#e8e9ea; --chip-on-fg:#101215; --arena:#0b0c0f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101215; --fg:#e8e9ea; --muted:#979ca4; --panel:#181b20; --line:#2c3138;
+  --acc:#6fb0f0; --chip:#23272e; --chip-on:#e8e9ea; --chip-on-fg:#101215; --arena:#0b0c0f; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1060px;margin:0 auto;display:flex;flex-direction:column;gap:26px}
+h1{font:700 clamp(40px,7vw,64px)/.95 var(--display);text-transform:uppercase;margin:0 0 10px;text-wrap:balance}
+h1 small{display:block;font:500 13px var(--mono);letter-spacing:.06em;color:var(--acc);margin-bottom:8px}
+header p{margin:0;max-width:68ch;color:var(--muted)}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 14px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+button{font:600 15px var(--display);letter-spacing:.04em;text-transform:uppercase;padding:7px 13px;border:1px solid var(--line);border-radius:6px;background:var(--chip);color:var(--fg);cursor:pointer}
+.seg button{border:0;border-right:1px solid var(--line);border-radius:0}.seg button:last-child{border-right:0}
+button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.chk,.lab{display:inline-flex;gap:8px;align-items:center;font:500 13px var(--mono);color:var(--muted)}
+input[type=range]{accent-color:var(--acc);width:150px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:14px}
+.card{display:flex;flex-direction:column;gap:8px;min-width:0}
+.card canvas{display:block;width:100%;aspect-ratio:1;height:auto;border:1px solid var(--line);border-radius:6px;background:var(--arena)}
+.card h3{margin:0;font:700 20px var(--display);text-transform:uppercase;letter-spacing:.04em}
+.card p{margin:0;color:var(--muted);font-size:15px}
+.key{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+.key div{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.key b{font:700 18px var(--display);text-transform:uppercase;letter-spacing:.04em;display:flex;gap:8px;align-items:center}
+.key i{width:14px;height:14px;border-radius:50%;display:inline-block;border:2px solid}
+.key span{color:var(--muted);font-size:15px}
+</style>
+<main>
+<header>
+  <h1><small>MOCKUP · READABILITY</small>Shield tells</h1>
+  <p>Today a shielded enemy gets one thin ring that fades as the shield drops, so you can't tell how much is left, which enemies have it, or when a shot was soaked. These three each show the amount, the hit and the break. Drag the slider or hit them to compare; all four cards run the same state.</p>
+</header>
+<div class="bar">
+  <span class="lab">Shield <input id="lvl" type="range" min="0" max="100" value="100" aria-label="Shield level"> <output id="lvlv">100%</output></span>
+  <button id="hit" type="button">Hit</button>
+  <button id="brk" type="button">Break</button>
+  <label class="chk"><input id="auto" type="checkbox" checked> Auto</label>
+  <span class="seg" role="group" aria-label="Shield source">
+    <button type="button" data-src="ward" aria-pressed="true">Warder</button>
+    <button type="button" data-src="elite" aria-pressed="false">Shielded elite</button>
+  </span>
+</div>
+<section class="grid" id="cards"></section>
+<section style="display:flex;flex-direction:column;gap:12px">
+  <h2>Colour key</h2>
+  <div class="key">
+    <div><b><i style="border-color:#b59cff;background:#b59cff33"></i>Violet · Warder</b><span>Tethered. Kill the Warder and it pops, so the violet shield also points at what to shoot.</span></div>
+    <div><b><i style="border-color:#8fd1ff;background:#8fd1ff33"></i>Blue · Shielded elite</b><span>Its own bubble, no tether. Soaks damage first, then comes off for good.</span></div>
+    <div><b><i style="border-color:#b9d3ee;background:#6d8aa8"></i>Steel · Plates</b><span>Shielder and Riot Shield. Front plates block shots from one side; they are not a bubble and keep today's look.</span></div>
+  </div>
+</section>
+</main>
+<script>
+const TAU=Math.PI*2, clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const COL={ward:{base:[181,156,255],lite:'#e6dcff'},elite:{base:[143,209,255],lite:'#dff3ff'}};
+const S={frac:1,src:'ward',hits:[],breakT:-1,auto:true,nextAuto:1.5,regenAt:0};
+const rgba=(b,a)=>'rgba('+b[0]+','+b[1]+','+b[2]+','+a+')';
+function circ(c,x,y,r){c.beginPath();c.arc(x,y,r,0,TAU)}
+function hexPath(c,x,y,r,rot){c.beginPath();for(let i=0;i<6;i++){const a=rot+i*TAU/6;i?c.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r):c.moveTo(x+Math.cos(a)*r,y+Math.sin(a)*r)}c.closePath()}
+function grunt(c,x,y,r,flash){circ(c,x,y,r);c.fillStyle=flash>0?'#fff':'#d9534b';c.fill();c.lineWidth=2;c.strokeStyle='#5a1b17';c.stroke();
+  circ(c,x+r*.35,y-r*.2,2);c.fillStyle=flash>0?'#d9534b':'#fff';c.fill();circ(c,x-r*.35,y-r*.2,2);c.fill()}
+
+/* every style gets: c, centre, enemy radius r, time t, fraction left f, base colour, lite colour, hits [{a,k}] (k 0..1 fade) */
+function hitArcs(c,x,y,R,col,hits,w){hits.forEach(h=>{c.beginPath();c.arc(x,y,R,h.a-.5,h.a+.5);c.lineWidth=w;c.lineCap='round';c.strokeStyle='rgba(255,255,255,'+(1-h.k)+')';c.stroke();
+  for(let s=0;s<4;s++){const a=h.a+(s-1.5)*.3,d=R+h.k*14+s%2*4;circ(c,x+Math.cos(a)*d,y+Math.sin(a)*d,1.6*(1-h.k));c.fillStyle=col.lite;c.fill()}})}
+
+function styleToday(c,x,y,r,t,f,col,hits){const R=r+11;
+  circ(c,x,y,R);c.fillStyle=rgba(col.base,.07+.1*f);c.fill();circ(c,x,y,R);c.lineWidth=2;c.strokeStyle=rgba(col.base,.35+.5*f);c.stroke()}
+
+function styleHex(c,x,y,r,t,f,col,hits){ // A: twelve cells, one lost per twelfth; cell grid inside; sweep
+  const R=r+12,N=12,lit=Math.ceil(f*N-1e-6);
+  c.save();circ(c,x,y,R);c.clip();
+  c.lineWidth=1;c.strokeStyle=rgba(col.base,.18*Math.min(1,f*3));
+  for(let gy=-R;gy<=R;gy+=9){for(let gx=-R;gx<=R;gx+=10.4){hexPath(c,x+gx+((gy/9)%2?5.2:0),y+gy,6,0);c.stroke()}}
+  const sw=((t*.7)%1.6)-.3;c.fillStyle=rgba(col.base,.12*(f>0?1:0));c.fillRect(x-R+sw*R*2,y-R,10,R*2);
+  c.restore();
+  for(let i=0;i<N;i++){const a0=-Math.PI/2+i*TAU/N+.05,a1=a0+TAU/N-.1,on=i<lit;
+    c.beginPath();c.arc(x,y,R,a0,a1);c.lineCap='butt';
+    if(on){const last=i===lit-1&&f<1&&f*N-Math.floor(f*N-1e-6)<1;c.lineWidth=4.5;c.strokeStyle=last?rgba(col.base,.55+.45*Math.sin(t*10)):col.lite;c.globalAlpha=.9}
+    else{c.lineWidth=1.6;c.strokeStyle=rgba(col.base,.35);c.setLineDash([2,3]);c.globalAlpha=1}
+    c.stroke();c.setLineDash([]);c.globalAlpha=1}
+  hitArcs(c,x,y,R,col,hits,6)}
+
+function styleDome(c,x,y,r,t,f,col,hits){ // B: glass dome; cracks as it fails
+  const R=r+12,g=c.createRadialGradient(x,y,R*.35,x,y,R);
+  g.addColorStop(0,rgba(col.base,0));g.addColorStop(.7,rgba(col.base,.1+.14*f));g.addColorStop(1,rgba(col.base,.3+.3*f));
+  circ(c,x,y,R);c.fillStyle=g;c.fill();
+  circ(c,x,y,R);c.lineWidth=2+2*f;c.strokeStyle=rgba(col.base,.5+.5*f);c.stroke();
+  c.beginPath();c.arc(x,y,R-4,Math.PI*1.1,Math.PI*1.45);c.lineWidth=3;c.lineCap='round';c.strokeStyle='rgba(255,255,255,'+(.25+.45*f)+')';c.stroke(); // specular
+  const cracks=f<.66?(f<.33?5:3):0, ang=[.4,1.9,3.2,4.4,5.5];
+  c.lineWidth=1.4;c.strokeStyle='rgba(255,255,255,.7)';
+  for(let i=0;i<cracks;i++){const a=ang[i],r0=R,r1=R*.55+ i*2;c.beginPath();c.moveTo(x+Math.cos(a)*r0,y+Math.sin(a)*r0);
+    c.lineTo(x+Math.cos(a+.12)*(r0*.8),y+Math.sin(a+.12)*(r0*.8));c.lineTo(x+Math.cos(a-.05)*r1,y+Math.sin(a-.05)*r1);c.stroke()}
+  hitArcs(c,x,y,R,col,hits,5);
+  hits.forEach(h=>{const k=h.k;const gx=x+Math.cos(h.a)*R,gy=y+Math.sin(h.a)*R;circ(c,x,y,R*(1+k*.0));
+    const gr=c.createRadialGradient(gx,gy,0,gx,gy,R*.8);gr.addColorStop(0,'rgba(255,255,255,'+.5*(1-k)+')');gr.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=gr;c.fill()})}
+
+function stylePlates(c,x,y,r,t,f,col,hits){ // C: five plates orbiting, one lost per fifth
+  const R=r+13,N=5,lit=Math.ceil(f*N-1e-6);
+  circ(c,x,y,R);c.lineWidth=1;c.strokeStyle=rgba(col.base,.2);c.stroke();
+  for(let i=0;i<N;i++){const a=t*.9+i*TAU/N,px=x+Math.cos(a)*R,py=y+Math.sin(a)*R,on=i<lit;
+    c.save();c.translate(px,py);c.rotate(a+Math.PI/2);
+    c.beginPath();c.roundRect(-9,-3.5,18,7,2.5);
+    if(on){c.fillStyle=col.lite;c.fill();c.lineWidth=1.6;c.strokeStyle=rgba(col.base,1);c.stroke();c.fillStyle=rgba(col.base,.9);c.fillRect(-5,-1,10,2)}
+    else{c.setLineDash([2,2]);c.lineWidth=1;c.strokeStyle=rgba(col.base,.3);c.stroke();c.setLineDash([])}
+    c.restore()}
+  hits.forEach(h=>{ // nearest plate flashes
+    let best=0,bd=9;for(let i=0;i<N;i++){const a=(t*.9+i*TAU/N)%TAU,d=Math.abs(((a-h.a+Math.PI*3)%TAU)-Math.PI);if(d<bd){bd=d;best=i}}
+    const a=t*.9+best*TAU/N;circ(c,x+Math.cos(a)*R,y+Math.sin(a)*R,9);c.fillStyle='rgba(255,255,255,'+.8*(1-h.k)+')';c.fill()})}
+
+/* the bar under the enemy: health, with the shield as a second segment on top */
+function hpBar(c,x,y,r,f,col){const w=r*3,h=5,bx=x-w/2,by=y+r+22;
+  c.fillStyle='rgba(255,255,255,.12)';c.fillRect(bx,by,w,h);c.fillStyle='#5fcf80';c.fillRect(bx,by,w,h);
+  c.fillStyle='rgba(255,255,255,.12)';c.fillRect(bx,by-6,w,3);c.fillStyle=col.lite;c.fillRect(bx,by-6,w*f,3)}
+
+const STYLES=[['Today','Thin ring; fades with the shield. No count, nothing on a hit, no bar.',styleToday,false],
+ ['A · Cells','Twelve cells round the rim, one gone per twelfth of the shield, the next-to-go one flickering. A cell grid and a slow sweep fill the inside. Hits flash the cells they land on.',styleHex,true],
+ ['B · Glass dome','A filled dome that gets thinner and cracks (a few cracks under 66%, more under 33%). Hits glint on the side they land. Reads from far away.',styleDome,true],
+ ['C · Plates','Five plates orbiting, one lost per fifth. The plate nearest a hit lights up. The most countable of the three, and the plates stay legible in a crowd.',stylePlates,true]];
+const cards=document.getElementById('cards'),cvs=[];
+STYLES.forEach(s=>{const el=document.createElement('div');el.className='card';el.innerHTML='<canvas></canvas><h3>'+s[0]+'</h3><p>'+s[1]+'</p>';cards.append(el);cvs.push(el.querySelector('canvas'))});
+
+const L=140;
+function fit(cv){const d=Math.min(devicePixelRatio||1,2),w=cv.clientWidth||L;cv.width=cv.height=Math.round(w*d);const c=cv.getContext('2d');c.setTransform(cv.width/L,0,0,cv.width/L,0,0);return c}
+let ctxs=cvs.map(fit);addEventListener('resize',()=>{ctxs=cvs.map(fit)});
+
+/* absorbed-damage numbers and the break */
+function drawBreak(c,x,y,r,col,k){ // k 0..1
+  const R=r+12;c.globalAlpha=1-k;circ(c,x,y,R+k*30);c.lineWidth=5*(1-k);c.strokeStyle=col.lite;c.stroke();
+  for(let s=0;s<10;s++){const a=s*TAU/10+.3,d=R+k*38;c.save();c.translate(x+Math.cos(a)*d,y+Math.sin(a)*d);c.rotate(a+k*4);
+    c.beginPath();c.moveTo(0,-5);c.lineTo(4,4);c.lineTo(-4,4);c.closePath();c.fillStyle=rgba(col.base,1);c.fill();c.restore()}
+  c.globalAlpha=1}
+
+function setLvl(v){S.frac=clamp(v);const el=document.getElementById('lvl');el.value=Math.round(S.frac*100);document.getElementById('lvlv').textContent=el.value+'%'}
+function doHit(now){S.hits.push({a:Math.random()*TAU,t0:now,dmg:Math.round(8+Math.random()*10)});
+  if(S.frac>0){setLvl(S.frac-.18);if(S.frac<=0)startBreak(now)}}
+function startBreak(now){S.breakT=now;setLvl(0)}
+document.getElementById('hit').onclick=()=>doHit(performance.now()/1000);
+document.getElementById('brk').onclick=()=>startBreak(performance.now()/1000);
+document.getElementById('lvl').oninput=e=>{setLvl(e.target.value/100);S.breakT=-1};
+document.getElementById('auto').onchange=e=>{S.auto=e.target.checked};
+document.querySelectorAll('[data-src]').forEach(b=>b.onclick=()=>{S.src=b.dataset.src;document.querySelectorAll('[data-src]').forEach(o=>o.setAttribute('aria-pressed',o===b))});
+
+function loop(ms){
+  const now=ms/1000,col=COL[S.src];
+  if(S.auto&&S.breakT<0&&now>S.nextAuto){doHit(now);S.nextAuto=now+1.1}
+  if(S.breakT>=0&&now-S.breakT>1.6){S.breakT=-1;setLvl(1);S.nextAuto=now+1}
+  S.hits=S.hits.filter(h=>now-h.t0<.5);
+  const hits=S.hits.map(h=>({a:h.a,k:(now-h.t0)/.5}));
+  STYLES.forEach((s,i)=>{const c=ctxs[i];c.clearRect(0,0,L,L);const x=L/2,y=L/2-6,r=16;
+    const flash=S.hits.some(h=>now-h.t0<.06)&&S.frac<=0;
+    if(S.breakT>=0){const k=(now-S.breakT)/.7;grunt(c,x,y,r,0);if(k<1)drawBreak(c,x,y,r,col,k);
+      c.font='600 11px Barlow Condensed, sans-serif';c.fillStyle='rgba(255,255,255,.8)';c.textAlign='center';
+      if(s[3])c.fillText('SHIELD DOWN',x,y-r-24);hpBar(c,x,y,r,0,col);}
+    else{s[2](c,x,y,r,now,S.frac,col,hits);grunt(c,x,y,r,0);if(s[3])hpBar(c,x,y,r,S.frac,col)}
+    // absorbed damage numbers (new tell for all but Today)
+    if(s[3])S.hits.forEach(h=>{const k=(now-h.t0)/.5;c.globalAlpha=1-k;c.font='700 14px Barlow Condensed, sans-serif';c.textAlign='center';c.fillStyle=col.lite;
+      c.fillText(h.dmg,x+Math.cos(h.a)*(r+34),y+Math.sin(h.a)*(r+34)-k*14);c.globalAlpha=1});
+    c.font='500 9px IBM Plex Mono, monospace';c.fillStyle='rgba(255,255,255,.5)';c.textAlign='left';c.fillText(Math.round(S.frac*100)+'%',8,L-8)});
+  requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+</script>
