@@ -10,6 +10,8 @@ namespace Arena
         {
             if (State == MatchState.GameOver || State == MatchState.Idle || State == MatchState.Victory || Players.Count == 0)
                 return;
+            if (Practice != null)
+                return;  // the Practice Range never ends in a wipe: a downed player respawns (PracticeRespawn.cs)
             if (InRoom)
             {
                 foreach (var p in Players.Values)
