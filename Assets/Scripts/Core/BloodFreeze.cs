@@ -4,15 +4,15 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// Blood Freeze (Healer Hemomancer ability, replaces Siphon Field; `AbilityId.SiphonField` kept), from Docs/Mockups/blood-freeze.html.
-    /// You pay 10% of your max health, a rune circle spins up at your feet for FreezeCharge s, then a shockwave tears across the whole
-    /// arena (FreezeSweep s, slowing as it goes, `FreezeWaveR`). Every enemy it reaches is frozen (`Enemy.FrozenT`: no moving, no shooting)
+    /// You pay 25% of your max health, a rune circle spins up at your feet for FreezeCharge s, then a shockwave bursts out to
+    /// FreezeMaxR around you (FreezeSweep s, slowing as it goes, `FreezeWaveR`): a close-range panic button, not a map-wide pause. Every enemy it reaches is frozen (`Enemy.FrozenT`: no moving, no shooting)
     /// for FreezeTime s, a boss for FreezeBossTime s. Enemies still spawning, training dummies and anything that turns up after the wave
     /// has passed are skipped, and allies are untouched. It does no damage; mastered, frozen enemies take FreezeVuln times the damage
     /// (`Enemy.IceT` and `IceMult`, applied in `HurtEnemy`). Hungry Earth adds `Stats.FreezeBonusTime` seconds.
     /// The cast sends one `FxKind.BloodFreeze`; every screen draws the whole show from its age (Game/BloodFreezeLook.cs).
     public partial class Game
     {
-        public const float FreezeCharge = 0.55f, FreezeSweep = 1.1f, FreezeMaxR = 1950f;
+        public const float FreezeCharge = 0.55f, FreezeSweep = 0.4f, FreezeMaxR = 260f;
         public const float FreezeTime = 5f, FreezeBossTime = 3f, FreezeThaw = 0.6f, FreezeVuln = 1.25f;
 
         class FreezeWave

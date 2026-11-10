@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Arena;
 
 // Blood Freeze (BloodFreeze.cs): the cost and numbers, the charge before the wave, the wave reaching near enemies before far ones, every
-// enemy frozen for 5 s and a boss for 3 s, nothing damaged, allies untouched, the thaw, Hungry Earth's extra time and the mastered +25% damage.
+// enemy within 260 px frozen for 5 s and a boss for 3 s, nothing damaged, allies untouched, the thaw, Hungry Earth's extra time and the mastered +25% damage.
 static partial class Program
 {
     static void BloodFreezeTest(float dt)
@@ -15,10 +15,10 @@ static partial class Program
         var hurt = typeof(Game).GetMethod("HurtEnemy", flags);
 
         var def = Upgrades.Ability(AbilityId.SiphonField);
-        Check(def.Name == "Blood Freeze" && def.Cooldown == 14f && def.HealthCost == 0.1f && def.Kit == Kit.Hemomancer && def.Role == Role.Healer,
-            "the Healer Hemomancer's second ability is Blood Freeze: 14 s, 10% of max health");
-        Check(Game.FreezeWaveR(0.3f) == 0f && Game.FreezeWaveR(Game.FreezeCharge + 0.2f) > 300f && Math.Abs(Game.FreezeWaveR(Game.FreezeCharge + Game.FreezeSweep) - Game.FreezeMaxR) < 0.5f
-            && Game.FreezeWaveAt(Game.FreezeMaxR) - (Game.FreezeCharge + Game.FreezeSweep) < 0.01f && Math.Abs(Game.FreezeWaveR(Game.FreezeWaveAt(700f)) - 700f) < 1f,
+        Check(def.Name == "Blood Freeze" && def.Cooldown == 14f && def.HealthCost == 0.25f && def.Kit == Kit.Hemomancer && def.Role == Role.Healer,
+            "the Healer Hemomancer's second ability is Blood Freeze: 14 s, 25% of max health");
+        Check(Game.FreezeWaveR(0.3f) == 0f && Game.FreezeWaveR(Game.FreezeCharge + 0.2f) > 200f && Math.Abs(Game.FreezeWaveR(Game.FreezeCharge + Game.FreezeSweep) - Game.FreezeMaxR) < 0.5f
+            && Game.FreezeWaveAt(Game.FreezeMaxR) - (Game.FreezeCharge + Game.FreezeSweep) < 0.01f && Math.Abs(Game.FreezeWaveR(Game.FreezeWaveAt(200f)) - 200f) < 1f,
             "the wave waits for the charge, then rushes out and slows, and its timing inverts cleanly");
 
         int port = nextPort++;
@@ -45,26 +45,28 @@ static partial class Program
         Action reset = () => { g.Enemies.Clear(); spots.Clear(); g.Bullets.Clear(); g.Effects.Clear(); me.Pos = mePos; me.Hp = me.MaxHp; };
 
         reset();
-        var near = pin(new V2(500f, 450f), EnemyType.Grunt);
-        var far = pin(new V2(1500f, 800f), EnemyType.Grunt);
-        var boss = pin(new V2(900f, 200f), EnemyType.Boss);
+        var near = pin(new V2(360f, 450f), EnemyType.Grunt);
+        var far = pin(new V2(300f, 680f), EnemyType.Grunt);
+        var outside = pin(new V2(900f, 450f), EnemyType.Grunt);
+        var boss = pin(new V2(480f, 300f), EnemyType.Boss);
         var spawning = pin(new V2(700f, 600f), EnemyType.Grunt); spawning.SpawnT = 5f;
         friend.Pos = new V2(600f, 450f);
         float hp0 = me.Hp, nearHp = near.Hp, friendHp = friend.Hp;
         castIt(false);
         float paid = hp0 - me.Hp;
-        Check(Math.Abs(paid - me.MaxHp * 0.1f) < 0.5f, "it costs 10% of max health");
+        Check(Math.Abs(paid - me.MaxHp * 0.25f) < 0.5f, "it costs 25% of max health");
         var fx = g.Effects.FirstOrDefault(e => e.Kind == FxKind.BloodFreeze);
         Check(fx != null && fx.Radius == Game.FreezeMaxR && Math.Abs(fx.Dur - Game.FreezeFxTime(0f)) < 0.01f && fx.Pos2.Y == Game.FreezeTime, "one Blood Freeze effect carries the whole show");
         step(0.4f);
         Check(near.FrozenT <= 0f && far.FrozenT <= 0f, "nothing freezes while the rune circle charges");
-        step(Game.FreezeCharge - 0.4f + 0.12f);
+        step(Game.FreezeCharge - 0.4f + 0.05f);
         Check(near.FrozenT > 0f && far.FrozenT <= 0f, "the wave reaches the near enemy before the far one");
         step(Game.FreezeSweep - 0.2f);
         Console.WriteLine("  blood freeze: near {0:0.00}, far {1:0.00}, boss {2:0.00} s left", near.FrozenT, far.FrozenT, boss.FrozenT);
-        Check(far.FrozenT > 0f && near.FrozenT > 0f, "the wave reaches every enemy in the arena");
-        Check(far.FrozenT > 3.9f && far.FrozenT <= Game.FreezeTime, "an enemy is frozen for 5 s from the moment the wave reaches it");
-        Check(boss.FrozenT > 1.9f && boss.FrozenT <= Game.FreezeBossTime, "a boss is frozen for 3 s");
+        Check(far.FrozenT > 0f && near.FrozenT > 0f, "the wave reaches every enemy within its radius");
+        Check(outside.FrozenT <= 0f, "an enemy beyond the radius is not frozen");
+        Check(far.FrozenT > 4.4f && far.FrozenT <= Game.FreezeTime, "an enemy is frozen for 5 s from the moment the wave reaches it");
+        Check(boss.FrozenT > 2.4f && boss.FrozenT <= Game.FreezeBossTime, "a boss is frozen for 3 s");
         Check(spawning.FrozenT <= 0f, "an enemy still spawning is skipped");
         Check(near.Hp == nearHp && friend.Hp == friendHp, "it does no damage and allies are untouched");
         Check(near.Frozen == true || g.Enemies.Values.Any(e => e.FrozenT > 0f), "frozen enemies are replicated as frozen");

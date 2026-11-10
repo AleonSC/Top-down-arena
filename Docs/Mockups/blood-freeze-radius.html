@@ -1,0 +1,142 @@
+<title>Blood Freeze Radius</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Teko:wght@500;600;700&display=swap">
+<style>
+/* Layout: arena canvas to scale (1600x900 px) on top, radius picker and numbers below. Single dark look, like the game. */
+:root {
+  --bg: #0b0709; --panel: #150d10; --line: #2c1a20; --fg: #f3e6e8; --mute: #a58a90;
+  --blood: #e0284a; --ice: #8fe3ff; --frost: #eefbff;
+  --f-display: "Teko", "Arial Narrow", Impact, sans-serif;
+  --f-body: "Barlow", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 15px/1.5 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 40px; }
+.wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 18px; }
+h1 { margin: 0; font: 700 clamp(40px, 8vw, 68px)/.9 var(--f-display); text-transform: uppercase; letter-spacing: .02em;
+  background: linear-gradient(100deg, var(--blood) 15%, var(--frost) 70%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lede { margin: 4px 0 0; color: var(--mute); max-width: 64ch; }
+canvas { width: 100%; max-width: 100%; height: auto; aspect-ratio: 16 / 9; display: block; border: 1px solid var(--line); border-radius: 6px; background: #0d080a; }
+.opts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 640px) { .opts { grid-template-columns: minmax(0, 1fr); } }
+.opt { text-align: left; background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; cursor: pointer; font: inherit; display: grid; gap: 2px; }
+.opt[aria-pressed="true"] { border-color: var(--ice); box-shadow: 0 0 0 1px var(--ice) inset; }
+.opt:focus-visible, button:focus-visible { outline: 2px solid var(--ice); outline-offset: 2px; }
+.opt b { font: 600 30px/1 var(--f-display); letter-spacing: .04em; text-transform: uppercase; }
+.opt span { color: var(--mute); font-size: 13px; }
+.row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+button.cast { background: var(--blood); color: #fff; border: 0; border-radius: 4px; padding: 11px 20px; cursor: pointer; font: 600 14px var(--f-body); letter-spacing: .06em; text-transform: uppercase; }
+.stat { color: var(--mute); font-variant-numeric: tabular-nums; }
+.stat strong { color: var(--ice); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 7px 8px 7px 0; border-bottom: 1px solid var(--line); }
+th { color: var(--mute); font-weight: 500; }
+.tw { overflow-x: auto; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Blood Freeze radius</h1>
+    <p class="lede">Today the wave covers the whole arena for 10% health. Proposed: 25% of max health, and the freeze only reaches enemies near the Hemomancer. Drawn to scale on the 1600 × 900 arena with a typical wave. Pick a radius.</p>
+  </header>
+
+  <canvas id="c" width="1600" height="900" aria-label="Arena with the Hemomancer, enemies, and the freeze radius"></canvas>
+
+  <div class="opts" role="group" aria-label="Freeze radius">
+    <button class="opt" id="o1" data-r="260" aria-pressed="false"><b>Tight · 260 px</b><span>Panic button: only what's on top of you</span></button>
+    <button class="opt" id="o2" data-r="380" aria-pressed="true"><b>Medium · 380 px</b><span>About a quarter of the arena's width</span></button>
+    <button class="opt" id="o3" data-r="520" aria-pressed="false"><b>Wide · 520 px</b><span>A big bubble, still not the whole map</span></button>
+  </div>
+
+  <div class="row">
+    <button class="cast" id="cast">Cast again</button>
+    <div class="stat" id="stat"></div>
+  </div>
+
+  <div class="tw"><table>
+    <tr><th></th><th>Now</th><th>Proposed</th></tr>
+    <tr><td>Cost</td><td>10% max health</td><td>25% max health</td></tr>
+    <tr><td>Reach</td><td>Whole arena (1950 px wave)</td><td>Circle around you (picked above)</td></tr>
+    <tr><td>Freeze</td><td>5 s, bosses 3 s</td><td>Same</td></tr>
+    <tr><td>Cooldown</td><td>14 s</td><td>14 s</td></tr>
+  </table></div>
+</div>
+
+<script>
+(() => {
+  const c = document.getElementById('c'), g = c.getContext('2d');
+  const W = 1600, H = 900, CHARGE = 0.55, SWEEP = 0.45, HOLD = 2.6;
+  const me = { x: 640, y: 470 }, ally = { x: 760, y: 360 };
+  // A fixed spread of enemies, like a mid-run wave.
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const foes = [];
+  for (let i = 0; i < 34; i++) foes.push({ x: 80 + rnd() * 1440, y: 70 + rnd() * 760, r: 12 + rnd() * 6, s: 3 + Math.floor(rnd() * 4) });
+  foes.push({ x: 1180, y: 300, r: 46, s: 8, boss: true });
+  let R = 380, t0 = performance.now();
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function poly(x, y, r, n, rot, fill, stroke) {
+    g.beginPath();
+    for (let i = 0; i < n; i++) { const a = rot + i / n * Math.PI * 2; g.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); }
+    g.closePath(); g.fillStyle = fill; g.fill(); if (stroke) { g.strokeStyle = stroke; g.lineWidth = 3; g.stroke(); }
+  }
+  const dist = f => Math.hypot(f.x - me.x, f.y - me.y);
+
+  function frame(now) {
+    let t = reduce ? CHARGE + SWEEP + 1 : (now - t0) / 1000;
+    if (!reduce && t > CHARGE + SWEEP + HOLD + 0.8) { t0 = now; t = 0; }
+    g.clearRect(0, 0, W, H);
+    // floor grid
+    g.strokeStyle = '#1a1014'; g.lineWidth = 1;
+    for (let x = 0; x <= W; x += 80) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
+    for (let y = 0; y <= H; y += 80) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+
+    const u = Math.max(0, Math.min(1, (t - CHARGE) / SWEEP)), wave = R * (1 - Math.pow(1 - u, 3));
+    // reach preview (dashed) and frost disc
+    g.setLineDash([14, 10]); g.strokeStyle = 'rgba(143,227,255,.35)'; g.lineWidth = 2;
+    g.beginPath(); g.arc(me.x, me.y, R, 0, 7); g.stroke(); g.setLineDash([]);
+    if (wave > 0) {
+      const gr = g.createRadialGradient(me.x, me.y, 0, me.x, me.y, wave);
+      gr.addColorStop(0, 'rgba(224,40,74,.10)'); gr.addColorStop(.85, 'rgba(143,227,255,.12)'); gr.addColorStop(1, 'rgba(238,251,255,.30)');
+      g.fillStyle = gr; g.beginPath(); g.arc(me.x, me.y, wave, 0, 7); g.fill();
+      if (u < 1) { g.strokeStyle = 'rgba(238,251,255,.9)'; g.lineWidth = 6; g.beginPath(); g.arc(me.x, me.y, wave, 0, 7); g.stroke(); }
+    }
+    // charge rune
+    if (t < CHARGE + SWEEP) {
+      const k = Math.min(1, t / CHARGE);
+      g.strokeStyle = `rgba(224,40,74,${.9 * k})`; g.lineWidth = 3;
+      g.beginPath(); g.arc(me.x, me.y, 30 + 30 * k, t * 4, t * 4 + Math.PI * 1.6 * k); g.stroke();
+    }
+    // enemies
+    let n = 0;
+    for (const f of foes) {
+      const inR = dist(f) <= R + f.r, frozen = inR && dist(f) <= wave + f.r;
+      if (frozen) n++;
+      poly(f.x, f.y, f.r, f.s, f.boss ? 0 : t * (frozen ? 0 : 1.2), frozen ? '#3b6f86' : (f.boss ? '#ff4080' : '#ff5a5a'), frozen ? '#eefbff' : null);
+      if (frozen) { g.strokeStyle = 'rgba(143,227,255,.7)'; g.lineWidth = 2; g.beginPath(); g.arc(f.x, f.y, f.r + 7, 0, 7); g.stroke(); }
+    }
+    // players
+    g.fillStyle = '#4fd27a'; g.beginPath(); g.arc(ally.x, ally.y, 16, 0, 7); g.fill();
+    g.fillStyle = '#e0284a'; g.beginPath(); g.arc(me.x, me.y, 18, 0, 7); g.fill();
+    g.strokeStyle = '#fff'; g.lineWidth = 2; g.stroke();
+    // health bar: 25% paid
+    const paid = Math.min(1, t / 0.25);
+    g.fillStyle = '#2a1418'; g.fillRect(me.x - 40, me.y + 28, 80, 8);
+    g.fillStyle = '#4fd27a'; g.fillRect(me.x - 40, me.y + 28, 80 * (1 - .25 * paid), 8);
+    if (paid > 0) { g.fillStyle = `rgba(224,40,74,${1 - Math.min(1, t)})`; g.font = '600 26px Barlow, sans-serif'; g.textAlign = 'center'; g.fillText('-25%', me.x, me.y - 30 - t * 30); }
+    // radius label
+    g.fillStyle = 'rgba(238,251,255,.75)'; g.font = '500 22px Barlow, sans-serif'; g.textAlign = 'left';
+    g.fillText(R + ' px', me.x + R * .707 + 8, me.y - R * .707);
+    const total = foes.length;
+    document.getElementById('stat').innerHTML = `<strong>${n}</strong> of ${total} enemies frozen` + (t < CHARGE + SWEEP ? '' : ` · ${foes.filter(f => dist(f) <= R + f.r).length} in reach`);
+    requestAnimationFrame(frame);
+  }
+  document.querySelectorAll('.opt').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.opt').forEach(o => o.setAttribute('aria-pressed', o === b));
+    R = +b.dataset.r; t0 = performance.now();
+  }));
+  document.getElementById('cast').addEventListener('click', () => t0 = performance.now());
+  requestAnimationFrame(frame);
+})();
+</script>

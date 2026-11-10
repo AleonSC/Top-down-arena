@@ -788,7 +788,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.SiphonField, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 1,
-                Name = "Blood Freeze", Cooldown = 14f, HealthCost = 0.1f, Desc = "Pay 10% of your max health: a shockwave tears across the arena and freezes every enemy it reaches for 5 s (bosses for 3 s). Frozen enemies can't move or shoot.",
+                Name = "Blood Freeze", Cooldown = 14f, HealthCost = 0.25f, Desc = "Pay 25% of your max health: a shockwave bursts out 260 px around you and freezes every enemy it reaches for 5 s (bosses for 3 s). Frozen enemies can't move or shoot.",
                 Capstone = "Frozen enemies take 25% more damage.",
                 Bot = b => b.Danger && b.Me.Hp > b.Me.MaxHp * 0.5f,
             },
