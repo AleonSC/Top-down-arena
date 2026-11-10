@@ -351,7 +351,7 @@ namespace Arena
             parryBlocked = overlay || parryOnMenu;
             mouseBlocked = fireBlocked || parryBlocked;
             bool inMenus = session.Screen != AppScreen.Game;
-            bool overlayPointer = choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab() || WaveBoxUp(me) || PracticeDownedUp(me)
+            bool overlayPointer = choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab() || WaveBoxUp(me) || PracticeDownedUp(me) || BalanceReportUp()
                 || game.State == MatchState.GameOver || game.State == MatchState.Victory;  // the end screen and rank report need the pointer
             // The system pointer is always hidden: wherever a pointer is wanted we draw the Corner pointer of your cursor look, and it
             // morphs into the crosshair when the match takes over (CursorLooks.cs).

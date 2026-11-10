@@ -101,10 +101,17 @@ namespace Arena
 
         // --- The report -------------------------------------------------------------------
 
+        /// True while the report is on screen (it needs the pointer; ArenaApp.cs).
+        bool BalanceReportUp()
+        {
+            var t = game.Test;
+            return t != null && t.Done && t.Report != null && t != btDismissed;
+        }
+
         void DrawBalanceReport()
         {
             var t = game.Test;
-            if (t == null || !t.Done || t.Report == null || t == btDismissed)
+            if (!BalanceReportUp())
                 return;
             var rep = t.Report;
             Ui.Fill(new Rect(0, 0, W, H), new Color(0f, 0f, 0.02f, 0.78f));
