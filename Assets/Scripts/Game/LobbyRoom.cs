@@ -313,7 +313,7 @@ namespace Arena
             var tog = new Rect(box.x + 8f, box.y + 2f, box.width - 12f, 28f);
             if (live)
             {
-                bool now = Ui.Toggle(tog, on, "PVP");
+                bool now = DkSwitch(tog, on, "PVP");
                 if (now != on)
                     session.SetMyPvp(now);
             }

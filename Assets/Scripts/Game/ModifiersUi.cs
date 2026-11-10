@@ -25,7 +25,7 @@ namespace Arena
             Ui.Label(new Rect(x + 16f, y, w, 28f), status, 12, sc, TextAnchor.MiddleLeft, true);
             if (fxReduced || Mathf.Repeat(t * 1.6f, 1f) < 0.6f)
                 Ui.Fill(new Rect(x + 16f + Ui.TextWidth(status, 12, true) + 5f, y + 8f, 7f, 12f), new Color(ModLit.r, ModLit.g, ModLit.b, 0.8f));
-            if (n > 0 && host && Ui.Button(new Rect(x + w - 150f, y + 2f, 100f, 24f), "Turn all off"))
+            if (n > 0 && host && DkKey(new Rect(x + w - 150f, y + 2f, 100f, 24f), "Turn all off", Ui.Neutral))
                 foreach (var d in Modifiers.All)
                     session.SetModifier(d.Mod, false);
             Ui.Label(new Rect(x, y + 28f, w, 18f), "// " + (host ? "click a tile to turn it on or off. they last the whole run, for everyone (Practice Range too)."

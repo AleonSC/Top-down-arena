@@ -163,8 +163,7 @@ namespace Arena
             f = 1f - (1f - f) * (1f - f);
             var old = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, alpha * f);
-            Ui.Fancy(new Rect(r.x + (1f - f) * 18f * bgChangeDir, r.y, r.width, r.height), BackgroundNames[menuBg], size, Color.white,
-                Color.Lerp(accent, Color.white, 0.45f), r.width > 120f ? TextAnchor.MiddleCenter : TextAnchor.MiddleLeft, accent);
+            DkTitle(new Rect(r.x + (1f - f) * 18f * bgChangeDir, r.y, r.width, r.height), BackgroundNames[menuBg], size, Color.Lerp(accent, Color.white, 0.45f), r.width > 120f ? TextAnchor.MiddleCenter : TextAnchor.MiddleLeft);
             GUI.color = old;
         }
 
@@ -249,14 +248,14 @@ namespace Arena
             float now = Time.unscaledTime;
             var accent = BackgroundAccents[menuBg];
             var bar = new Rect(W / 2f - 260f, H - 84f, 520f, 56f);
-            Ui.Card(bar, accent, 0.4f + 0.15f * Mathf.Sin(now * 2f));
+            DkBox(bar, accent, 0.4f + 0.15f * Mathf.Sin(now * 2f));
             var prev = new Rect(bar.x + 12f, bar.y + 15f, 26f, 26f);
             var next = new Rect(prev.xMax + 190f, prev.y, 26f, 26f);
             var live = new Rect(next.xMax + 12f, bar.y + 18f, 64f, 20f);
             var back = new Rect(bar.xMax - 12f - 110f, bar.y + 10f, 110f, 36f);
-            bool clickPrev = Ui.Button(prev, "", Ui.Neutral);
-            bool clickNext = Ui.Button(next, "", Ui.Neutral);
-            bool clickBack = Ui.Button(back, "Back  [Esc]", Ui.Primary);
+            bool clickPrev = DkKey(prev, "", Ui.Neutral);
+            bool clickNext = DkKey(next, "", Ui.Neutral);
+            bool clickBack = DkKey(back, "Back  [Esc]", Ui.Primary);
             BackgroundName(new Rect(prev.xMax + 4f, prev.y, next.x - prev.xMax - 8f, prev.height), 18, 1f);
             Ui.Pill(live, menuBgAnimate ? new Color(accent.r * 0.35f, accent.g * 0.35f, accent.b * 0.35f, 0.9f) : new Color(1f, 1f, 1f, 0.08f));
             Ui.Label(new Rect(live.x + 20f, live.y, live.width - 22f, live.height), menuBgAnimate ? "LIVE" : "STILL", 10, menuBgAnimate ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
