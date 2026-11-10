@@ -786,7 +786,8 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
 - **Vectors**: every player holds a drawing budget (chip under the wave plate, "Vectors 25 / 35"): 1 vector = 1 tile of wall.
   You start with 25 and can hold 35; each cleared wave gives 4, every 15 kills gives 1, and a cleared boss wave refills
   everyone to the cap and adds 10 on top. Two cards raise the cap, in the Expanding arena only: **Deep Inkwell** (uncommon, +10,
-  stacks to 4) and the milestone card **Architect** (+20 and 10 vectors now, stacks to 3).
+  stacks to 4) and the milestone card **Architect** (+20 and 10 vectors now, stacks to 3). The **vendor** also sells a **Vector pack**: +10 vectors for 50 gold, as
+  many as you can afford, and it can take you past the cap.
 - **Building rounds**: every cleared wave opens a round (a chip "Build rooms" under the wave plate; the countdown never waits
   for it). Open it, **draw a room or hallway** (**left click** a corner on the zoomed-out map, move, **left click** again to place the box on the grid, or press, drag and let go; **right click** or Esc cancels it, and a right click with no box goes back; 3 to 12 tiles a side, at most 96
   tiles; it must share 3 tiles of wall with a room and not overlap anything) and it becomes **your proposal**; a newer
