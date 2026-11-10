@@ -272,7 +272,7 @@ namespace Arena
                 Ui.Fill(new Rect(r.xMax - ch + i * 6f - 1f, r.y + i * 6f + 1f, 3f, 3f), c);
         }
 
-        /// The Mission: Impossible disk: a pale magneto-optical disk, blood-spattered, with a small Verbatim "230 MB" label.
+        /// The Mission: Impossible disk: a pale magneto-optical disk, blood-spattered, with a small generic "230 MB" label.
         void DrawMissionDisk(Rect d)
         {
             float k = d.width / 200f;
@@ -315,14 +315,77 @@ namespace Arena
             var lb = new Rect(d.x + 24f * k, d.y + 66f * k, 76f * k, 60f * k);                                 // the Verbatim label
             Ui.Fill(lb, new Color(0.97f, 0.96f, 0.94f));
             Ui.Fill(new Rect(lb.x, lb.yMax - 1f, lb.width, 1f), new Color(0f, 0f, 0f, 0.2f));
-            Ui.Label(new Rect(lb.x + 4f * k, lb.y + 2f * k, lb.width - 8f * k, 16f * k), "Verbatim", Mathf.RoundToInt(13f * k), new Color(0.12f, 0.12f, 0.16f), TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(lb.x + 4f * k, lb.y + 2f * k, lb.width - 8f * k, 16f * k), "DataDisk", Mathf.RoundToInt(13f * k), new Color(0.12f, 0.12f, 0.16f), TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(lb.x + 4f * k, lb.y + 18f * k, lb.width - 8f * k, 10f * k), "FORMATTED", Mathf.Max(6, Mathf.RoundToInt(6.5f * k)), new Color(0.3f, 0.3f, 0.34f), TextAnchor.MiddleLeft);
             Ui.Label(new Rect(lb.x + 4f * k, lb.y + 28f * k, lb.width - 8f * k, 18f * k), "230 MB", Mathf.RoundToInt(15f * k), new Color(0.12f, 0.12f, 0.16f), TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(lb.x + 4f * k, lb.y + 46f * k, lb.width - 8f * k, 10f * k), "Optical Disk", Mathf.Max(6, Mathf.RoundToInt(6.5f * k)), new Color(0.3f, 0.3f, 0.34f), TextAnchor.MiddleLeft);
             Ui.Fill(new Rect(d.x + 10f * k, d.yMax - 22f * k, 10f * k, 10f * k), new Color(0.3f, 0.28f, 0.27f));
         }
 
-        /// The Windows 95 disk: a dark grey floppy with a white label, the four-colour flag and "Microsoft Windows 95 / Setup Disk 1".
+        /// The hologram disk: a see-through cyan floppy of light with scanlines, a sweeping glint, a faint flicker and a chromatic ghost; the label
+        /// shows the profile's name as a floating readout.
+        void DrawHoloDisk(Rect d, ProfileInfo p)
+        {
+            float k = d.width / 200f, t = Time.unscaledTime;
+            float flick = 0.9f + 0.1f * Mathf.Sin(t * 23f) * Mathf.Sin(t * 7.3f);
+            Color cy = new Color(0.25f, 0.95f, 1f), mg = new Color(1f, 0.3f, 0.85f);
+            float ch = 22f * k;
+            // soft base glow and a faint body
+            Ui.Pill(new Rect(d.x - 4f, d.y - 2f, d.width + 8f, d.height + 6f), new Color(cy.r, cy.g, cy.b, 0.07f * flick));
+            for (float y = 0f; y < d.height; y += 2f)
+            {
+                float w = y < ch ? d.width - ch + y : d.width;
+                float a = (0.14f + 0.1f * (1f - y / d.height)) * flick;
+                Ui.Fill(new Rect(d.x, d.y + y, w, 2.5f), new Color(0.05f, 0.4f, 0.5f, a));
+            }
+            for (float y = 1f; y < d.height; y += 4f)   // scanlines
+            {
+                float w = y < ch ? d.width - ch + y : d.width;
+                Ui.Fill(new Rect(d.x, d.y + y, w, 1f), new Color(cy.r, cy.g, cy.b, 0.16f * flick));
+            }
+            // the outline, with a magenta ghost one pixel off
+            for (int pass = 0; pass < 2; pass++)
+            {
+                float o = pass == 0 ? 2f : 0f;
+                Color c = pass == 0 ? new Color(mg.r, mg.g, mg.b, 0.35f * flick) : new Color(cy.r, cy.g, cy.b, 0.95f * flick);
+                Ui.Fill(new Rect(d.x + o, d.y, d.width - ch - o, 2f), c);
+                Ui.Fill(new Rect(d.x + o, d.yMax - 2f, d.width, 2f), c);
+                Ui.Fill(new Rect(d.x + o, d.y, 2f, d.height), c);
+                Ui.Fill(new Rect(d.xMax - 2f + o, d.y + ch, 2f, d.height - ch), c);
+                for (int i = 0; i < 4; i++)
+                    Ui.Fill(new Rect(d.xMax - ch + i * ch / 4f + o, d.y + i * ch / 4f, ch / 4f + 1f, 2f), c);
+            }
+            // the shutter and hub holes as wireframes
+            var sh = new Rect(d.x + 46f * k, d.y + 4f * k, 106f * k, 52f * k);
+            Color wf = new Color(cy.r, cy.g, cy.b, 0.7f * flick);
+            Ui.Fill(new Rect(sh.x, sh.y, sh.width, 1.5f), wf); Ui.Fill(new Rect(sh.x, sh.yMax, sh.width, 1.5f), wf);
+            Ui.Fill(new Rect(sh.x, sh.y, 1.5f, sh.height), wf); Ui.Fill(new Rect(sh.xMax, sh.y, 1.5f, sh.height + 1.5f), wf);
+            Ui.Fill(new Rect(sh.x + 14f * k, sh.y + 8f * k, 22f * k, 34f * k), new Color(cy.r, cy.g, cy.b, 0.35f * flick));
+            // the readout panel with the name
+            var lb = new Rect(d.x + 16f * k, d.y + 74f * k, 168f * k, 98f * k);
+            Ui.Fill(lb, new Color(cy.r, cy.g, cy.b, 0.1f * flick));
+            Ui.Fill(new Rect(lb.x, lb.y, lb.width, 1.5f), wf); Ui.Fill(new Rect(lb.x, lb.yMax, lb.width, 1.5f), wf);
+            Ui.Fill(new Rect(lb.x, lb.y, 1.5f, lb.height), wf); Ui.Fill(new Rect(lb.xMax, lb.y, 1.5f, lb.height + 1.5f), wf);
+            string nm = p.Name.ToUpperInvariant();
+            int size = Mathf.RoundToInt(22f * k);
+            while (size > 10 && Ui.TextWidth(nm, size, true) + 12f > lb.width)
+                size--;
+            Ui.Label(new Rect(lb.x + 2f, lb.y + 12f * k, lb.width, 34f * k), nm, size, new Color(mg.r, mg.g, mg.b, 0.4f * flick), TextAnchor.MiddleCenter, true);   // ghost
+            Ui.Label(new Rect(lb.x, lb.y + 12f * k, lb.width, 34f * k), nm, size, new Color(0.8f, 1f, 1f, flick), TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(lb.x, lb.y + 52f * k, lb.width, 16f * k), "HOLOGRAPHIC PROFILE", Mathf.Max(6, Mathf.RoundToInt(8.5f * k)), new Color(cy.r, cy.g, cy.b, 0.85f * flick), TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(lb.x, lb.y + 70f * k, lb.width, 16f * k), "RANK " + p.Rank, Mathf.Max(6, Mathf.RoundToInt(9f * k)), new Color(cy.r, cy.g, cy.b, 0.6f * flick), TextAnchor.MiddleCenter);
+            // the glint: a bright band that sweeps down the disk every few seconds
+            float sweep = Mathf.Repeat(t * 0.35f, 1.6f) - 0.3f;
+            float gy = d.y + sweep * d.height;
+            for (int i = 0; i < 6; i++)
+            {
+                float yy = gy + i * 2.5f * k - 7f * k;
+                if (yy < d.y || yy > d.yMax - 2f) continue;
+                Ui.Fill(new Rect(d.x + 2f, yy, d.width - 4f, 2.5f * k), new Color(1f, 1f, 1f, 0.12f * (1f - Mathf.Abs(i - 2.5f) / 3f) * flick));
+            }
+        }
+
+        /// The Windows 95 disk: a dark grey floppy with a white label, a four-pane logo of its own and "Desktop System 95 / Setup Disk n".
         void DrawWin95Disk(Rect d, int slot)
         {
             float k = d.width / 200f;
@@ -342,18 +405,18 @@ namespace Arena
             Ui.Fill(lb, new Color(0.97f, 0.97f, 0.95f));
             Ui.Fill(new Rect(lb.x, lb.y, lb.width, 5f * k), new Color(0f, 0.5f, 0.5f));                        // a teal band, the desktop colour
             float fx = lb.x + 12f * k, fy = lb.y + 16f * k, fs = 20f * k;                                     // the flag: four panes
-            Ui.Fill(new Rect(fx, fy, fs, fs), new Color(0.93f, 0.25f, 0.15f));
-            Ui.Fill(new Rect(fx + fs + 3f * k, fy - 2f * k, fs, fs), new Color(0.3f, 0.7f, 0.2f));
-            Ui.Fill(new Rect(fx, fy + fs + 3f * k, fs, fs), new Color(0.1f, 0.45f, 0.9f));
-            Ui.Fill(new Rect(fx + fs + 3f * k, fy + fs + 1f * k, fs, fs), new Color(1f, 0.75f, 0.1f));
-            Ui.Label(new Rect(lb.x + 62f * k, lb.y + 14f * k, lb.width - 66f * k, 14f * k), "Microsoft", Mathf.RoundToInt(11f * k), ink, TextAnchor.MiddleLeft);
-            Ui.Label(new Rect(lb.x + 62f * k, lb.y + 28f * k, lb.width - 66f * k, 30f * k), "Windows 95", Mathf.RoundToInt(16f * k), ink, TextAnchor.MiddleLeft, true);
+            Ui.Fill(new Rect(fx, fy, fs, fs), new Color(0.95f, 0.45f, 0.2f));
+            Ui.Fill(new Rect(fx + fs + 3f * k, fy, fs, fs), new Color(0.2f, 0.65f, 0.6f));
+            Ui.Fill(new Rect(fx, fy + fs + 3f * k, fs, fs), new Color(0.5f, 0.3f, 0.8f));
+            Ui.Fill(new Rect(fx + fs + 3f * k, fy + fs + 3f * k, fs, fs), new Color(0.9f, 0.3f, 0.5f));
+            Ui.Label(new Rect(lb.x + 62f * k, lb.y + 14f * k, lb.width - 66f * k, 14f * k), "Desktop", Mathf.RoundToInt(11f * k), ink, TextAnchor.MiddleLeft);
+            Ui.Label(new Rect(lb.x + 62f * k, lb.y + 28f * k, lb.width - 66f * k, 30f * k), "System 95", Mathf.RoundToInt(17f * k), ink, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(lb.x + 62f * k, lb.y + 58f * k, lb.width - 66f * k, 14f * k), "Setup Disk " + (slot + 1), Mathf.RoundToInt(11f * k), new Color(0.25f, 0.25f, 0.3f), TextAnchor.MiddleLeft);
             Ui.Fill(new Rect(lb.x + 8f * k, lb.y + 86f * k, lb.width - 16f * k, 1f), new Color(0f, 0f, 0f, 0.2f));
             Ui.Label(new Rect(lb.x + 8f * k, lb.y + 90f * k, lb.width - 16f * k, 16f * k), "Insert this disk in drive A:", Mathf.Max(6, Mathf.RoundToInt(8f * k)), new Color(0.3f, 0.3f, 0.34f), TextAnchor.MiddleLeft);
         }
 
-        /// The Doom disk: black plastic, a cream label with the red logo ("REGISTERED DISK n", n = the slot), a silver shutter with its window.
+        /// The Doom disk: black plastic, a cream label with the red lettering ("REGISTERED DISK n", n = the slot), a silver shutter with its window.
         void DrawDoomDisk(Rect d, int slot)
         {
             float k = d.width / 200f;
@@ -371,13 +434,13 @@ namespace Arena
             var lb = new Rect(d.x + 14f * k, d.y + 12f * k, 172f * k, 104f * k);                                   // the label
             Ui.Fill(lb, new Color(0.93f, 0.9f, 0.82f));
             Ui.Fill(new Rect(lb.x, lb.yMax - 1f, lb.width, 1f), new Color(0f, 0f, 0f, 0.15f));
-            Ui.Label(new Rect(lb.x, lb.y + 2f * k, lb.width, 12f * k), "To install DOOM, type INSTALL and press ENTER", Mathf.Max(6, Mathf.RoundToInt(6.6f * k)), red, TextAnchor.MiddleCenter);
-            int ls = Mathf.RoundToInt(46f * k);                                                                    // the logo: a dark edge under red letters
-            Ui.Label(new Rect(lb.x + 2f * k, lb.y + 16f * k, lb.width, 44f * k), "DOOM", ls, new Color(0.45f, 0.06f, 0.08f), TextAnchor.MiddleCenter, true);
-            Ui.Label(new Rect(lb.x, lb.y + 14f * k, lb.width, 44f * k), "DOOM", ls, red, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(lb.x, lb.y + 2f * k, lb.width, 12f * k), "To install, type INSTALL and press ENTER", Mathf.Max(6, Mathf.RoundToInt(6.6f * k)), red, TextAnchor.MiddleCenter);
+            int ls = Mathf.RoundToInt(37f * k);                                                                    // the logo: a dark edge under red letters
+            Ui.Label(new Rect(lb.x + 2f * k, lb.y + 16f * k, lb.width, 44f * k), "DEMON", ls, new Color(0.45f, 0.06f, 0.08f), TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(lb.x, lb.y + 14f * k, lb.width, 44f * k), "DEMON", ls, red, TextAnchor.MiddleCenter, true);
             Ui.Label(new Rect(lb.x, lb.y + 60f * k, lb.width, 14f * k), "REGISTERED", Mathf.RoundToInt(11f * k), ink, TextAnchor.MiddleCenter);
             Ui.Label(new Rect(lb.x, lb.y + 73f * k, lb.width, 14f * k), "DISK " + (slot + 1), Mathf.RoundToInt(11f * k), ink, TextAnchor.MiddleCenter);
-            Ui.Label(new Rect(lb.x + 4f * k, lb.y + 88f * k, lb.width - 8f * k, 11f * k), "Created by id Software      V 1.2", Mathf.Max(6, Mathf.RoundToInt(7f * k)), red, TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(lb.x + 4f * k, lb.y + 88f * k, lb.width - 8f * k, 11f * k), "Shareware Edition      V 1.2", Mathf.Max(6, Mathf.RoundToInt(7f * k)), red, TextAnchor.MiddleCenter);
             var sh = new Rect(d.x + 44f * k, d.y + 128f * k, 82f * k, 66f * k);                                    // the silver shutter and its window
             Ui.Fill(sh, new Color(0.72f, 0.73f, 0.76f));
             Ui.Fill(new Rect(sh.x + 42f * k, sh.y, 40f * k, sh.height), new Color(0.82f, 0.83f, 0.86f));
@@ -417,6 +480,11 @@ namespace Arena
         /// A disk: plastic tinted by the rank tier with its chamfered corner, the metal shutter, and a paper label.
         void DrawWhoDisk(Rect d, ProfileInfo p, bool current)
         {
+            if (p.Disk == "holo")
+            {
+                DrawHoloDisk(d, p);
+                return;
+            }
             if (p.Disk == "win95")
             {
                 DrawWin95Disk(d, Mathf.Max(0, whoList.IndexOf(p)));
