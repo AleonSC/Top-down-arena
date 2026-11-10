@@ -826,7 +826,7 @@ with an objective plate at the top of the screen:
 a **Challenge prize** pick: three cards, each rare or very rare (no rerolls), and a 1 in 4 chance of a legendary
 pick too. **Lose** (the crystal breaks, the clock runs out, or everyone goes down) and you're simply sent back:
 it's safe to fail, the downed get back up at 30% health and nothing else is lost. Either way the break then starts
-over. The room's two enemies are in the Field guide under **Challenge rooms** (the Bestiary page keeps that name for now). Developer tools (F1, Match) can take
+over. The room's two enemies are in the Field guide under **Challenge rooms**. Developer tools (F1, Match) can take
 everyone straight into any of the five.
 
 ## Run modifiers
@@ -1363,8 +1363,7 @@ Esc goes back (from the pause menu's Settings, to its list). The **Field guide**
 
 Both have a search box (it matches names and descriptions), ↑/↓ to browse, and names inside an entry link to their own
 entries (a class's weapons, an upgrade's ability...). Whatever is yours this match is marked **YOU**. It reopens where
-you left it, and **Esc** goes back. Its **Web page** button opens the published page of the book you're in (the
-Armory's has live weapon demos; in the Unity editor it opens the local copy from `Docs/`). The same audio options are
+you left it, and **Esc** goes back. The same audio options are
 under **Settings** on the main menu, and they're saved between sessions.
 
 **Visual effects** (the right-hand column of **Settings**, saved between sessions; all drawn on your own screen only,
@@ -1687,7 +1686,7 @@ It reads every file with the game's own parser and writes `Assets/Scripts/Core/D
 builds each set, so a final build carries them with no loose files (`DesignedWaves.Get("<name>")`). A file with a
 problem stops it with the file, the line and what's wrong, and nothing is written. The Load panel lists the built-in
 sets under **Built into the game** (open one to look at or change a copy). The `wavegen` sim test fails if a file
-was added or changed without running the script. Next: hunts, approaches and paths using them (`Docs/AfterReset.md`).
+was added or changed without running the script.
 
 ### Session recording (for balancing)
 

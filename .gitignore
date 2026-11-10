@@ -23,7 +23,6 @@ Tools/SimTest/*.exe
 Tools/Preview/out/
 Tools/SoundCheck/out/
 Tools/SoundCheck/*.exe
-Docs/Armory/out/
 
 # Python bytecode (Tools/Preview/raster.py)
 __pycache__/

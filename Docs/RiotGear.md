@@ -100,7 +100,7 @@ static class Perks { All[]; Get(id); BossOf(id); Slots(Profile); Unlocked(Profil
 3. Lobby sync (`LobbyEntry`, snapshot), protocol 152, saved runs.
 4. `PerksUi.cs` (Look A) and the lobby seat icons.
 5. `RiotGearLook.cs` and the HUD chip.
-6. README, CODEMAP, HANDOFF, `AfterReset.md`. Run `CompileCheck`, `SimTest core` and `features` and the new `perks` suite.
+6. README, CODEMAP, HANDOFF. Run `CompileCheck`, `SimTest core` and `features` and the new `perks` suite.
 
 Steps 1 to 3 are the framework and are testable without Unity. Steps 4 and 5 need a try in Unity.
 
