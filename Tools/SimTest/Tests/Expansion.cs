@@ -628,6 +628,39 @@ static partial class Program
         Check(g.CurrentWorld.Areas[2].Kind == RoomKind.Combat && cg.CurrentWorld.Areas[2].Kind == RoomKind.Combat && !g.AreaLocked(2), "the room is an ordinary combat room now, on both screens");
     }
 
+    // Themed rooms (Expansion.cs, Docs/FloatingRooms.md step 4): a path as a room's theme costs extra vectors and unlocks with bosses.
+    static void ExpandingThemesTest(float dt)
+    {
+        Check(Expansion.ThemeCost(PathId.None) == 0 && Expansion.ThemeCost(PathId.Sanctuary) == 3 && Expansion.ThemeCost(PathId.FrozenLake) == 6 && Expansion.ThemeCost(PathId.BloodMoon) == 10, "a theme costs 3, 6 or 10 vectors by its path's danger");
+        Check(Expansion.ThemeUnlocked(PathId.Sanctuary, 1) && !Expansion.ThemeUnlocked(PathId.FrozenLake, 5) && Expansion.ThemeUnlocked(PathId.FrozenLake, 6) && !Expansion.ThemeUnlocked(PathId.BloodMoon, 10) && Expansion.ThemeUnlocked(PathId.BloodMoon, 11), "danger 1 themes are free, danger 2 unlock after the first boss, danger 3 after the second");
+        var built = new List<ExpansionRoom>();
+        string why;
+        var boxes = FindBoxes(built, 1);
+        var b = boxes[0];
+        var plain = Expansion.Custom(built, b[0], b[1], b[2], b[3], out why).Value;
+        var ice = Expansion.Custom(built, b[0], b[1], b[2], b[3], PathId.FrozenLake, out why).Value;
+        Check(ice.Kind == RoomKind.Floor && ice.Floor == PathId.FrozenLake && ice.Price == plain.Price + 6, "a themed room is a Floor room of that path and costs the theme on top");
+        Check(!Expansion.Custom(built, b[0], b[1], b[2], b[3], PathId.Fogbound, out why).HasValue, "only the floor paths are themes");
+
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.ExpandOpen = true; }
+        foreach (var p in g.Players.Values) p.Vectors = 60;
+        cg.ProposeExpandRoom(b[0], b[1], b[2], b[3], PathId.BloodMoon);
+        Run(s, dt, 0.4f);
+        Check(g.ExpandProposals.Count == 0, "a theme still locked is refused (Blood Moon on wave 6)");
+        cg.ProposeExpandRoom(b[0], b[1], b[2], b[3], PathId.FrozenLake);
+        Run(s, dt, 0.5f, () => cg.ExpandProposals.Count == 1);
+        var prop = g.ExpandProposals.Count == 1 ? g.ExpandProposals[0] : default(ExpansionRoom);
+        Check(g.ExpandProposals.Count == 1 && prop.Kind == RoomKind.Floor && prop.Floor == PathId.FrozenLake && prop.Price == plain.Price + 6 && prop.Owner == 2, "an unlocked theme goes to the vote as a Floor room, priced with the theme");
+        Check(cg.ExpandProposals.Count == 1 && cg.ExpandProposals[0].Floor == PathId.FrozenLake, "and both screens see its theme");
+    }
+
     // Vectors (ExpansionGame.cs, Docs/VectorBuilding.md step 1): the start, the cap, a cleared wave, every 25 kills, a boss refill, synced.
     static void ExpandingVectorsTest(float dt)
     {

@@ -309,6 +309,36 @@ namespace Arena
             return Placement(built, r.X, r.Y, r.W, r.H, out p, out loops, out why) ? loops : 0;
         }
 
+        // --- Themed rooms (Docs/FloatingRooms.md step 4): a path as a room's theme, drawn for extra vectors, unlocked by bosses ---
+
+        /// Extra vectors a theme costs on top of the room's walls: its path's danger (1: 3, 2: 6, 3: 10).
+        public static int ThemeCost(PathId floor)
+        {
+            if (floor == PathId.None) return 0;
+            int d = Paths.Get(floor).Danger;
+            return d <= 1 ? 3 : d == 2 ? 6 : 10;
+        }
+
+        /// Bosses beaten before the theme can be drawn (danger 1: none, 2: one, 3: two).
+        public static int ThemeBoss(PathId floor) => floor == PathId.None ? 0 : Math.Max(0, Paths.Get(floor).Danger - 1);
+
+        /// Bosses beaten by this wave (a boss closes every fifth wave).
+        public static int BossesBeaten(int wave) => Math.Max(0, (wave - 1) / Milestone);
+
+        public static bool ThemeUnlocked(PathId floor, int wave) => BossesBeaten(wave) >= ThemeBoss(floor);
+
+        /// A room the team drew with a theme: the same room, a Floor room of that path, priced with the theme's vectors on top.
+        public static ExpansionRoom? Custom(IList<ExpansionRoom> built, int x, int y, int w, int h, PathId floor, out string why)
+        {
+            if (floor != PathId.None && Array.IndexOf(Floors, floor) < 0) { why = "Not a theme"; return null; }
+            var room = Custom(built, x, y, w, h, out why);
+            if (!room.HasValue || floor == PathId.None)
+                return room;
+            var r = room.Value;
+            r.Kind = RoomKind.Floor; r.Floor = floor; r.Price += ThemeCost(floor);
+            return r;
+        }
+
         /// A room the team drew (a box in world px, any 100 px grid position): checks it and prices it. Null with `why` set if it can't go there.
         public static ExpansionRoom? Custom(IList<ExpansionRoom> built, int x, int y, int w, int h, out string why)
         {

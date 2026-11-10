@@ -379,31 +379,36 @@ namespace Arena
         }
 
         /// This game's player draws a room (a box in world px on the 100 px grid) and puts it to the vote.
-        public void ProposeExpandRoom(int x, int y, int w, int h)
+        public void ProposeExpandRoom(int x, int y, int w, int h, PathId theme = PathId.None)
         {
             if (!ExpandOpen || Me == null)
                 return;
             if (IsHost)
             {
-                HostExpandDraw(MyId, x, y, w, h);
+                HostExpandDraw(MyId, x, y, w, h, theme);
                 return;
             }
             var pw = Proto.Begin(Msg.ExpandDraw);
-            pw.Write((short)x); pw.Write((short)y); pw.Write((short)w); pw.Write((short)h);
+            pw.Write((short)x); pw.Write((short)y); pw.Write((short)w); pw.Write((short)h); pw.Write((byte)theme);
             session.SendToHost(Proto.End(pw));
         }
 
-        public void OnExpandDraw(int peer, BinaryReader r) => HostExpandDraw(peer, r.ReadInt16(), r.ReadInt16(), r.ReadInt16(), r.ReadInt16());
+        public void OnExpandDraw(int peer, BinaryReader r) => HostExpandDraw(peer, r.ReadInt16(), r.ReadInt16(), r.ReadInt16(), r.ReadInt16(), (PathId)r.ReadByte());
 
         /// Host: a drawing becomes its drawer's proposal (a newer one replaces the last, and the votes for the old one go). Drawing
         /// doesn't cast a vote: the drawer backs their own until they vote, and the round isn't settled early by drawing. It must fit and the drawer must have the vectors; they only pay if it wins.
-        void HostExpandDraw(int id, int x, int y, int w, int h)
+        void HostExpandDraw(int id, int x, int y, int w, int h, PathId theme = PathId.None)
         {
             Player p;
             if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
                 return;
             string why;
-            var made = Expansion.Custom(Expanded, x, y, w, h, out why);
+            if (!Expansion.ThemeUnlocked(theme, Wave))
+            {
+                DoLog("proposal refused (the " + theme + " theme is still locked)");
+                return;
+            }
+            var made = Expansion.Custom(Expanded, x, y, w, h, theme, out why);
             if (!made.HasValue || made.Value.Price > p.Vectors)
             {
                 DoLog("proposal refused (" + (why ?? "needs " + made.Value.Price + " vectors, has " + p.Vectors) + ")");
@@ -422,7 +427,7 @@ namespace Arena
             else
                 ExpandProposals.Add(room);
             ExpandVotes.Remove(id);  // (back to backing their own until they cast a vote)
-            DoLog(p.Name + " proposes a " + w + " x " + h + " room for " + room.Price + " vectors");
+            DoLog(p.Name + " proposes a " + w + " x " + h + (theme != PathId.None ? " " + theme : "") + " room for " + room.Price + " vectors");
             FinishOrBroadcast();
         }
 
@@ -518,11 +523,14 @@ namespace Arena
             {
                 botProposed = true;
                 foreach (var o in Expansion.Offers(expandSeed + MyId * 31, Wave, Expanded))
-                    if (o.Price <= Me.Vectors && rng.Next(10) < 7)
+                {
+                    var theme = o.Kind == Arena.RoomKind.Floor && Expansion.ThemeUnlocked(o.Floor, Wave) ? o.Floor : PathId.None;
+                    if (o.Price + Expansion.ThemeCost(theme) <= Me.Vectors && rng.Next(10) < 7)
                     {
-                        ProposeExpandRoom(o.X, o.Y, o.W, o.H);
+                        ProposeExpandRoom(o.X, o.Y, o.W, o.H, theme);
                         break;
                     }
+                }
             }
             if (botVoteT >= 3f && !ExpandVotes.ContainsKey(MyId) && ExpandProposals.Count > 0)
                 CastExpandVote(rng.Next(10) < 2 ? 0 : ExpandProposals[rng.Next(ExpandProposals.Count)].Owner);

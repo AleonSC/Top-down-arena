@@ -1,6 +1,6 @@
 # Floating rooms and themed rooms: paths, shops, vendors and the Gatekeeper in the Expanding arena
 
-Status: **steps 1-3 built** (floating rooms exist, are sealed, connect and show; shop, vendor and Gatekeeper rooms work); steps 4-5 not started. Decided with the owner on Nov 10, 2026 (one idea from a friend: shops and vendors in "floating rooms"
+Status: **steps 1-4 built** (floating rooms exist, are sealed, connect and show; shop, vendor and Gatekeeper rooms work; rooms can be drawn with a path's theme); step 5 not started. Decided with the owner on Nov 10, 2026 (one idea from a friend: shops and vendors in "floating rooms"
 you have to build to). It builds on [`ExpandingArena.md`](ExpandingArena.md) and [`VectorBuilding.md`](VectorBuilding.md) (all built).
 
 ## Decisions (owner)
@@ -74,6 +74,16 @@ you have to build to). It builds on [`ExpandingArena.md`](ExpandingArena.md) and
 - Beating it gives everyone the vault's prize pick (`GrantVaultPrize`) and turns the room into an ordinary Combat room (the room list is re-broadcast).
 - The duel is optional: the wave ends without it (`FoesOutsideVault`); an unbeaten Gatekeeper goes when the wave clears and anyone inside is put out the door,
   and walking in on a later wave wakes a fresh one. Bots don't walk in on purpose.
+
+## Step 4 (built, protocol 255)
+
+- The draw screen has a theme row under the map: **Plain**, then Swarm Fields, Sniper Ridge, Elite Gauntlet, Burning Grounds, Sanctuary, Frozen Lake, Blood Moon.
+  A themed room is a Floor room of that path (its ground, rules and kill bonus hold in that room only; the code already existed) and costs its
+  path's danger in extra vectors on top of its walls: danger 1 **+3**, 2 **+6**, 3 **+10** (`Expansion.ThemeCost`).
+- Unlocked by bosses (`Expansion.ThemeUnlocked`): danger 1 from the start, danger 2 after the first boss (wave 6), danger 3 after the second (wave 11).
+  Locked themes show "BOSS n TO UNLOCK".
+- `Msg.ExpandDraw` carries the theme (protocol 255); the host refuses a locked theme and checks the price with it. Bots propose their offer's floor when unlocked.
+- **Not built:** per-room Fogbound (a fog inside one room) and Narrow Pass are left out; the map-wide path vote stays off in this arena.
 
 ## Open questions (defaults in bold)
 

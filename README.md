@@ -800,6 +800,9 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   tiles of wall with one and its door opens (a box touching only a floating room is refused: it must also touch the connected map). At most 4
   wait at once, they don't count towards the 24-room cap, add no enemies and no spawns, and a floating shop counts as a shop once it's opened.
   (The Gatekeeper has its own room, below.)
+- **Themed rooms**: pick a theme under the map when you draw a room: a path's ground and rules (Swarm Fields, Sniper Ridge, Elite Gauntlet, Burning
+  Grounds, Sanctuary, Frozen Lake, Blood Moon) inside that room only, with its kill bonus. A theme costs extra vectors (+3 / +6 / +10 for
+  danger 1 / 2 / 3) and unlocks with bosses: danger 2 after the first boss, danger 3 after the second.
 - **Gatekeeper room**: once a built room opens it, walking in during a wave wakes **The Gatekeeper** and the room locks behind you until it falls.
   Beating it gives everyone a prize pick (sometimes a legendary) and the room becomes an ordinary one. It's optional: if the wave ends first, the
   Gatekeeper goes, you're let out, and walking in later starts a fresh duel.
