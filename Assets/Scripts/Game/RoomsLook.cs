@@ -14,6 +14,7 @@ namespace Arena
     ///            players, and the box your screen shows.
     public partial class ArenaApp
     {
+        static readonly Rgba OpenRoomTint = new Rgba(0.45f, 0.6f, 1f, 0.03f);
         static readonly Rgba RoomTint = new Rgba(1f, 0.3f, 0.35f, 0.03f), ClearTint = new Rgba(0.25f, 0.9f, 0.7f, 0.035f), HallTint = new Rgba(0.2f, 0.3f, 0.6f, 0.05f),
             VaultTint = new Rgba(1f, 0.62f, 0.3f, 0.06f), DoorInk = new Rgba(0.373f, 0.941f, 1f), DoorRed = new Rgba(1f, 0.3f, 0.36f),
             DoorAmber = new Rgba(1f, 0.7f, 0.28f), DoorTeal = new Rgba(0.25f, 0.9f, 0.7f), DoorGold = new Rgba(1f, 0.82f, 0.4f);
@@ -28,7 +29,7 @@ namespace Arena
                 if (a.Hub || a.Vault && !vault)
                     continue;
                 var rs = RoomStateOf(i);
-                var tint = a.Vault ? VaultTint : a.Hall ? HallTint : rs != null && rs.Cleared ? ClearTint : RoomTint;
+                var tint = a.Vault ? VaultTint : a.Hall ? HallTint : !Rooms.RoomByRoom ? OpenRoomTint : rs != null && rs.Cleared ? ClearTint : RoomTint;
                 FillRect(a.Min.X, a.Min.Y, a.Size.X, a.Size.Y, tint);
             }
             for (float x = lo.X; x <= hi.X + 0.5f; x += 64f)
@@ -81,8 +82,8 @@ namespace Arena
                     return game.VaultCleared ? DoorTeal : DoorGold;
                 }
                 var rs = RoomStateOf(area);
-                if (rs == null)
-                    continue;
+                if (rs == null || !Rooms.RoomByRoom)
+                    continue;  // (the open map: a room's doors are plain doorways)
                 if (rs.Cleared)
                     return DoorTeal;
                 locked = game.AreaLocked(area) && SomeoneIn(a);
@@ -128,6 +129,7 @@ namespace Arena
                 if (a.Hub) { fill = new Rgba(0.4f, 0.64f, 1f, 0.14f); line = new Rgba(0.4f, 0.64f, 1f, 0.75f); }
                 else if (a.Hall) { fill = new Rgba(0.4f, 0.64f, 1f, 0.06f); line = new Rgba(0.4f, 0.64f, 1f, 0.35f); }
                 else if (a.Vault) { fill = game.VaultCleared ? DoorTeal.WithAlpha(0.3f) : DoorGold.WithAlpha(0.22f); line = game.VaultCleared ? DoorTeal : DoorGold; }
+                else if (!Rooms.RoomByRoom) { fill = new Rgba(0.4f, 0.64f, 1f, 0.09f); line = new Rgba(0.4f, 0.64f, 1f, 0.5f); }
                 else if (rs != null && rs.Cleared) { fill = DoorTeal.WithAlpha(0.3f); line = DoorTeal; }
                 else if (rs != null && rs.Seen) { fill = DoorRed.WithAlpha(0.2f); line = DoorRed; }
                 else { fill = new Rgba(0.4f, 0.64f, 1f, 0.04f); line = new Rgba(0.4f, 0.64f, 1f, 0.3f); }

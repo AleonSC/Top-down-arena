@@ -11,6 +11,9 @@ static partial class Program
 {
     static void RoomsArenaTest(float dt)
     {
+        // The parked room-by-room version (nests, spills, room locks, overflow) runs first, then the open map (the default).
+        Check(!Rooms.RoomByRoom, "the open map is the default (the room-by-room version is parked)");
+        Rooms.RoomByRoom = true;
         Game.LayoutsByDefault = true;
         Game.PropsByDefault = true;
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
@@ -218,6 +221,29 @@ static partial class Program
         Quiet();
         Run(s, dt, 0.3f);
 
+        Rooms.RoomByRoom = false;
+        Quiet();
+        Run(s, dt, 0.3f);
+        // The open map (Rooms.RoomByRoom off, the default since Nov 10): no nests, no room locks, enemies come in anywhere
+        // at random but never close to a player, and the camera follows you over the whole map.
+        startRooms.Invoke(g, null);
+        Check(!g.Enemies.Values.Any(e => e.Type == EnemyType.Nest) && !g.AreaLocked(Rooms.West) && !g.AreaLocked(Rooms.East), "no nests and no room locks on the open map");
+        {
+            var mine = new HashSet<int>(g.Enemies.Keys);
+            for (int i = 0; i < 80; i++) spawnEnemy.Invoke(g, new object[] { EnemyType.Grunt });
+            var got = g.Enemies.Values.Where(e => !mine.Contains(e.Id)).ToList();
+            float nearest = got.Min(e => g.Players.Values.Min(p => p.Pos.DistanceTo(e.Pos)));
+            int areasUsed = got.Select(e => Rooms.AreaAt(e.Pos)).Distinct().Count();
+            bool clear = got.All(e => g.ActiveLayout.Solids.All(sd => !Layouts.Inside(sd, e.Pos, e.Radius)) && Rooms.AreaAt(e.Pos) != Rooms.Vault);
+            Check(got.Count == 80 && nearest >= Rooms.SpawnClear - 1f && areasUsed >= 4 && clear,
+                "enemies come in anywhere on the map: " + areasUsed + " of 5 areas, never closer than " + (int)nearest + " px to a player, never in a wall or the vault");
+            foreach (var e in got) e.Hp = 0f;
+            Run(s, dt, 0.3f);
+        }
+        V2 camAt = Rooms.ViewCentre(new V2(-300f, 450f), Game.Width / 3f, Game.Height / 3f, false);
+        Check(Math.Abs(camAt.X + 300f) < 0.5f && Math.Abs(camAt.Y - 450f) < 0.5f, "the camera follows you anywhere (no snapping to the room you're in)");
+
+
         // The Data Gate opens in the hub.
         {
             var state0 = g.State;
@@ -363,6 +389,8 @@ static partial class Program
             g.Wave = 8; fStretch.SetValue(g, 0); fWave.SetValue(g, 8);
             pickRooms.Invoke(g, null);
             startRooms.Invoke(g, null);
+            var keepWave = (Enemy)spawnEnemyAt.Invoke(g, new object[] { EnemyType.Grunt, new V2(-450f, 800f), 0f, 0, false });  // (keeps the wave going: the vault is optional)
+            keepWave.Hp = keepWave.MaxHp = 99999f;
             var picks0 = g.Players.Values.Select(p => p.PrizePicks).ToList();
             Run(s, dt, 0.3f);
             foreach (var e in g.Enemies.Values) if (e.Type == EnemyType.Gatekeeper) e.Hp = 0f;

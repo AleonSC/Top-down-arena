@@ -774,36 +774,24 @@ been) or **Rooms arena**. The Rooms arena is new and still being tuned (design: 
 - **No wrapping**: the world has walls all round. The hub keeps the boss cycle's arena layout (walls, pillars and
   crates; its edge gates make way for the doors), and the rooms and hallways have a few pillars and short walls of
   their own. Walls stop walking and every shot, as in the layouts.
-- **The camera follows you.** It stays inside the part of the world you're in, so at 1x in the hub you see the whole
-  hub exactly as before; step through a door and it slides to the room or hallway. Arrows at the edge of the screen
-  point at enemies and teammates you can't see (at any zoom). The scroll-wheel zoom works as usual.
-- **Nests.** Each side room has a **nest** (a Nest with three times the health). The wave's enemies come in by the
-  nests, a few at a time (4 to a room early on, one more every 7 waves and per extra player, at most 10), and **guard their room**: they
-  stay round the nest, without shooting, until someone comes in, but only for so long. After **10 s** (down to 5 s
-  late in the run) each one **overflows**: it leaves the room through one of its doors (any of them, picked at random:
-  into the hub or a hallway) and hunts you, and the nest fills the room up again behind it. So while a nest lives the
-  rooms keep pouring out, and a slow party gets the whole arena full. Kill a nest and its room stops filling up; once
-  both nests are down **the rest of the wave is called off**, so killing them fast means fewer enemies.
-- **Spills.** While its nest lives, a room sends out a squad of fast **Runners** (3 or more) every 22 s (down to 11 s
-  late in the run), out through one of its doors: into the hub or a hallway, picked at random each time (and never
-  right on top of you: if someone stands where it would come out, it picks another door before its warning). That
-  door flashes amber for 2 s before. Spilled runners hunt you anywhere. Once a nest is down, what's left in its room comes
-  for you too.
-- **Doors lock behind you.** Step into a room while its nest lives and you can't leave through its doors (dodges and
-  dashes included) until the nest dies. Doors lock one way: teammates can always come in. A locked door shows a solid
-  bar. Hallways and the hub never lock.
-- **Clearing a room** (its nest and everything it kept): its doors turn teal, two big health orbs drop by the nest,
-  and everyone gets some XP. A regular wave ends when the nests are down and nothing is left (the vault aside).
+- **One open map.** You and the enemies go anywhere through the doors; there's no locking and no room-by-room
+  camera. **The camera follows you** over the whole map. **Room rounds start zoomed in (1.5x)** with a "SCROLL ▼ TO
+  ZOOM OUT" prompt low in the middle until you scroll out (the zoom goes from 2x in to 1x out, one hub-sized screen).
+  Arrows at the edge of the screen point at enemies and teammates you can't see.
+- **Enemies come in anywhere.** Each enemy (and each squad) appears at a random spot on the map, in the hub, a room or
+  a hallway (picked by size), clear of walls, never in the vault and never within 350 px of a player, then makes its
+  way to you through the doors.
 - **Rooms waves hit harder**: while the rooms are up, everything that hurts you hits **1.3x** as hard (fewer
   threats at once, so each one counts). Boss waves and the Classic arena are unchanged.
 - **The vault**: one regular wave in each stretch of ten (never before the first boss: waves 6-9, 12-19, 22-29, ...) opens a small gold room off the top hallway with **The
   Gatekeeper** in it (his Data Gate duel moved here: in the Rooms arena he's never in a Data Gate). He stays in the
   vault, and the vault locks behind you until he falls. Beat him and everyone gets a **prize pick** (rare or better,
   sometimes a legendary), as from his old Data Gate. It's optional: the wave ends without him (he goes with it), and
-  the rooms keep spilling while you're in there. His boss bar shows once you're at the vault.
-- **The minimap** (top right): the hub, rooms (red once seen, teal once cleared), hallways and the vault, the doors
-  with a ring filling up to each room's next spill, enemies (spilled runners orange, nests green, the vault's
+  the wave carries on outside while you're in there. His boss bar shows once you're at the vault.
+- **The minimap** (top right): the hub, rooms, hallways and the vault (gold), the doors, enemies (the vault's
   Gatekeeper big and orange), the players, and the box your screen shows.
+- (The room-by-room version from before, with nests that kept each room stocked, Runner spills, doors that locked
+  behind you and enemies overflowing out of the rooms, is parked behind a switch, `Rooms.RoomByRoom`, off.)
 - Enemies make their way through the doors and round every wall. The F1 "Bot plays for you" bot walks through doors
   too.
 - Data Gates open in the hub. The rooms aren't used with **Tiny Arena** or on the **Narrow Pass** path (they wall the

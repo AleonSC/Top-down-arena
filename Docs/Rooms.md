@@ -1,11 +1,9 @@
 # Rooms: a hub with side rooms on every regular wave
 
-**Status: phases 0-3 built (protocol 234; 236 once merged into main, Nov 10): the Arena setting, the Wings world and its camera, nests, spills, locked
-doors, room rewards, the minimap, the vault with the Gatekeeper, and a first tuning pass (Rooms-only 1.3x enemy damage).
-Next: play it in Unity and adjust; then phase 4 (the power-stacking nerf pass).**
-Mockup: [`Mockups/rooms.html`](Mockups/rooms.html) (https://claude.ai/artifact/4GPVBfq2ytFkB3oKkbSevj): three maps (Wings,
-Cross, Annexes), hallways on or off (with the vault), a following camera at 1x / 1.5x / 2x, minimap or room strip, split
-up or stay together, a live sim.
+**Status: open map since Nov 10 (protocol 237): one big map (hub, rooms, hallways, doors), enemies coming in at random
+spots anywhere, a free camera starting at 1.5x zoom with a prompt to zoom out, the vault with its lock. The room-by-room
+version (phases 2-3: nests, spills, room locks, overflow) is parked behind `Rooms.RoomByRoom` (off). See "Open map" at
+the end.**
 
 ## Why
 
@@ -296,3 +294,26 @@ Each client already draws its own screen, so every player's camera follows thems
 - How many room plans, and do rooms have their own types (an elite room, a hazard room, a loot room)?
 - What does a cleared room give exactly: a chest every time, or a chance?
 - Endless mode and Boss Hunts: rooms too, or the hub only?
+
+
+## Open map (owner, Nov 10)
+
+"The nest idea feels too cookie cutter now. Keep the room and hallway layout but add random spawns in them and no room
+transition, so it's just one big map a player and enemies can freely traverse. Start room rounds zoomed in and prompt
+the player to zoom out with the mouse wheel." Decisions: spawns **anywhere, random** (not the out-of-sight-with-pacing or
+spawn-pad options), zoom out **only to 1x**, start at **1.5x**, **keep the vault and its lock**.
+
+- `Rooms.RoomByRoom` (off) parks the nests, spills, room locks, overflow and the room-by-room camera; the code is kept
+  and the `wings` suite still checks it with the switch on. Say if it should be deleted.
+- **Spawns** (`RoomsRandomSpot`): singles and squad bases at a random spot in an area picked by size (never the vault),
+  clear of walls, at least `SpawnClear` (350 px) from every player; the wave queue spawns at its usual pace (no room
+  cap). Enemies hunt you through the doors.
+- **Camera** (`Rooms.ViewCentre`): on you, held inside the world only. When the rooms come up (a cycle's first wave)
+  the zoom jumps to `StartZoom` 1.5x (if the scroll-wheel zoom is on) and "SCROLL ▼ TO ZOOM OUT" shows until you scroll
+  back to 1x or 14 s pass (`CameraZoom.cs` `DrawZoomHint`).
+- **Look**: room doors are plain cyan doorways, the rooms a faint neutral tint, the minimap neutral (the vault gold).
+- **Shooters come round walls**: on the Rooms map a ranged enemy with a wall between it and its target keeps routing
+  (`MoveEnemy`) instead of holding its distance behind the wall (a Sniper sat in the top hallway shooting the wall).
+- The 1.3x Rooms damage, the vault (its lock, the Gatekeeper, the prize pick) and everything else stay.
+- Tests: `wings` (open-map checks: no nests or locks, spawns spread over the map and never near you, the free camera).
+  Preview: `ROOMS=x,y [ZOOM=1.5] [ZOOMHINT=1]`.

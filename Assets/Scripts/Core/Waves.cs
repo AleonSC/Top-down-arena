@@ -110,7 +110,7 @@ namespace Arena
                     TickRisers(dt);  // Zombie Infection's dead getting back up (Zombies.cs)
                     TickDesign(dt);  // a designed wave's groups arriving on their timers (WaveDesign.cs)
                     TickRoomsWave(dt);  // the Rooms arena's nests, spills and cleared rooms (Rooms.cs)
-                    if ((spawnQueue.Count > 0 || squadQueue.Count > 0) && RoomsOn && !RoomsSpawnReady())
+                    if ((spawnQueue.Count > 0 || squadQueue.Count > 0) && RoomsOn && Rooms.RoomByRoom && !RoomsSpawnReady())
                         spawnTimer = Math.Max(spawnTimer, 0.3f);  // every room full (or every nest down: the rest is called off)
                     else if (spawnQueue.Count > 0 || squadQueue.Count > 0)
                     {
