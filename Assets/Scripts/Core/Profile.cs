@@ -52,6 +52,7 @@ namespace Arena
 
         /// The profile's name (also the lobby name). "" until ProfileStore gives it one.
         public string Name = "";
+        public string DiskLook = "";  // the easter-egg floppy look ("sa", "doom", "mi"; "" the usual): set when a name earns one, kept if the profile is renamed (ProfileStore.DiskLookFor)
 
         /// Set by Parse/Load: the file's version, whether it read as a whole profile, and how many lines were skipped.
         public int LoadedVersion;
@@ -282,6 +283,7 @@ namespace Arena
             var sb = new StringBuilder();
             RunSave.Line(sb, "arena-profile", FormatVersion);
             if (Name.Length > 0) RunSave.Line(sb, "name", Name);
+            if (DiskLook.Length > 0) RunSave.Line(sb, "disk", DiskLook);
             RunSave.Line(sb, "runs", RunsStarted + " " + RunsWon + " " + RunsLost);
             RunSave.Line(sb, "best", BestWave + " " + BestScore + " " + BestEndlessWave);
             RunSave.Line(sb, "time", PlayTime);
@@ -325,6 +327,7 @@ namespace Arena
                         case "arena-profile": p.LoadedVersion = RunSave.I(f[0]); sawHeader = true; break;
                         case "end": sawEnd = true; break;
                         case "name": p.Name = val.Trim(); break;
+                        case "disk": p.DiskLook = val.Trim(); break;
                         case "runs": p.RunsStarted = RunSave.I(f[0]); p.RunsWon = RunSave.I(f[1]); p.RunsLost = RunSave.I(f[2]); break;
                         case "best": p.BestWave = RunSave.I(f[0]); p.BestScore = RunSave.I(f[1]); p.BestEndlessWave = RunSave.I(f[2]); break;
                         case "time": p.PlayTime = RunSave.Fl(val); break;

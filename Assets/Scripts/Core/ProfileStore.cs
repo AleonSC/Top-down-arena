@@ -12,6 +12,7 @@ namespace Arena
         public string Id;      // the folder's name under Root
         public string Name;
         public int Rank, Wins, Runs;
+        public string Disk = "";  // the easter-egg disk look, "" for the usual one (ProfileStore.DiskLookFor)
     }
 
     /// Several profiles on one computer (Docs/Profiles.md). Each is a folder under Root: profile.txt (records, rank,
@@ -113,6 +114,7 @@ namespace Arena
                     Rank = p != null ? p.RankNow : 1,
                     Wins = p != null ? p.RunsWon : 0,
                     Runs = p != null ? p.RunsWon + p.RunsLost : 0,
+                    Disk = p == null ? "" : p.DiskLook.Length > 0 ? p.DiskLook : DiskLookFor(p.Name),  // (a profile named before the look was kept still gets it)
                 });
             }
             all.Sort((a, b) => { int c = string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase); return c != 0 ? c : string.CompareOrdinal(a.Id, b.Id); });
@@ -180,6 +182,26 @@ namespace Arena
             return id;
         }
 
+        /// Easter egg: the disk look a name earns, "" for none. "sa": San Andreas, SanAndreas, GTA:SA, GTASA or SA; "doom": any name with
+        /// Doom in it; "mi": Mission Impossible, MI, MI1, MI2, Ethan Hunt, NOC list (case, spaces and punctuation ignored).
+        public static string DiskLookFor(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return "";
+            var sb = new StringBuilder();
+            foreach (char ch in name)
+                if (char.IsLetterOrDigit(ch))
+                    sb.Append(char.ToLowerInvariant(ch));
+            string n = sb.ToString();
+            if (n == "mi" || n == "mi1" || n == "mi2" || n.Contains("missionimpossible") || n.Contains("ethanhunt") || n.Contains("noclist"))
+                return "mi";
+            if (n.Contains("doom"))
+                return "doom";
+            if (n == "sa" || n == "gtasa" || n.Contains("sanandreas"))
+                return "sa";
+            return "";
+        }
+
         /// Makes a profile and returns its id (null: not made, see NameProblem; the limit is MaxProfiles).
         public static string Create(string name)
         {
@@ -189,7 +211,7 @@ namespace Arena
             try
             {
                 Directory.CreateDirectory(Path.Combine(PathOf(id), "saves"));
-                if (!new Profile { Name = n }.SaveTo(PathOf(id)))
+                if (!new Profile { Name = n, DiskLook = DiskLookFor(n) }.SaveTo(PathOf(id)))
                     return null;
             }
             catch (IOException) { return null; }
@@ -202,7 +224,12 @@ namespace Arena
             if (Root == null || NameProblem(name, id).Length > 0 || !Directory.Exists(PathOf(id)))
                 return false;
             var p = id == ActiveId ? Profile.Current : ReadProfile(PathOf(id)) ?? new Profile();
+            if (p.DiskLook.Length == 0)
+                p.DiskLook = DiskLookFor(p.Name);   // the old name's look is kept
             p.Name = Clean(name);
+            string look = DiskLookFor(p.Name);
+            if (look.Length > 0)
+                p.DiskLook = look;                   // a new name that earns another look swaps it; a plain name keeps the one it has
             return id == ActiveId ? p.Save() : p.SaveTo(PathOf(id));
         }
 
