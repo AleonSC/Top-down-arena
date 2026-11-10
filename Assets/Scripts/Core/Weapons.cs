@@ -19,13 +19,13 @@ namespace Arena
         {
             // Tank
             new WeaponDef { Id = WeaponId.Scattergun, Kit = Kit.Soldier, Role = Role.Tank, Choice = 0, Speed = 520f, Life = 0.5f, Damage = 7f, BotRange = 210f, ExtraDesc = "+2 pellets and a 15% tighter cone", Name = "Scattergun", FireInterval = 0.45f,
-                Desc = "A short-range spread of pellets. Up close every pellet hits much harder and shoves the enemy back.",
+                Desc = "A short-range spread of pellets. Up close every pellet hits much harder and shoves the enemy back. Point-blank hits load shells: Alt fires them all at once and the kick throws you back.",
                 Sound = Sfx.ShotShotgun },
             new WeaponDef { Id = WeaponId.FlakCannon, Kit = Kit.Soldier, Role = Role.Tank, Choice = 1, Speed = 380f, Life = 1.1f, Damage = 30f, ExtraDesc = "Shells burst into 2 more bomblets", Name = "Flak Cannon", FireInterval = 0.8f,
-                Desc = "Shells fly to your cursor and burst in the air there, hurting enemies and destroying enemy bullets caught in the burst.",
+                Desc = "Shells fly to your cursor and burst in the air there, hurting enemies and destroying enemy bullets caught in the burst. Alt lays a proximity shell that bursts when an enemy steps on it.",
                 Sound = Sfx.ShotCannon, AreaDesc = "blasts (and bomblets) 25% wider" },
             new WeaponDef { Id = WeaponId.RiotRepeater, Kit = Kit.Soldier, Role = Role.Tank, Choice = 2, Speed = 600f, Life = 0.8f, Damage = 11f, ExtraDesc = "+1 round per burst (each trigger pull fires a burst, then a short pause)", Name = "Riot Repeater", FireInterval = 0.18f,
-                Desc = "Steady single shots. Every hit suppresses the enemy so it shoots slower, building up the more you hit it and fading when you stop.",
+                Desc = "Steady single shots. Every hit suppresses the enemy so it shoots slower, building up the more you hit it and fading when you stop. Alt lobs tear gas that suppresses and slows everything in it.",
                 Sound = Sfx.ShotRifle },
             // Healer
             new WeaponDef { Id = WeaponId.LightBolt, Kit = Kit.Soldier, Role = Role.Healer, Choice = 0, Damage = 6f, Reach = 240f, ExtraDesc = "+20° wider blast, +2 damage and a harder push", Name = "Repulsion Cannon", FireInterval = 0.7f,
@@ -121,6 +121,7 @@ namespace Arena
                 V2 away = (e.Pos - p.Pos).Normalized();
                 KnockEnemy(e, (away.IsZero ? b.Vel.Normalized() : away) * ScatterShove);  // slides (Knock.cs)
             }
+            ScatterLoad(b);  // loads Double Barrel's shells (TankAlts.cs)
             return ScatterPointBlank;
         }
 

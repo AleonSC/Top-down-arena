@@ -829,6 +829,7 @@ namespace Arena
                 c.Disp = IsHost ? c.Pos : V2.Lerp(c.Disp, c.Pos, k);
             foreach (var m in Minions.Values)
                 m.Disp = IsHost ? m.Pos : V2.Lerp(m.Disp, m.Pos, k);
+            BreachAge += dt;
             for (int i = Effects.Count - 1; i >= 0; i--)
             {
                 Effects[i].T += dt;
@@ -839,7 +840,10 @@ namespace Arena
             if (State != lastState)
             {
                 if (State == MatchState.Fighting)
+                {
                     Sounds.Add(Sfx.WaveStart);
+                    BreachAge = 0f;  // this wave's breaches open (Breaches.cs)
+                }
                 else if (State == MatchState.Intermission && lastState == MatchState.Fighting)
                     Sounds.Add(Sfx.WaveClear);
                 else if (State == MatchState.GameOver)
@@ -1197,6 +1201,7 @@ namespace Arena
             TickStaff(dt);      // Quarterstaff.cs: the jab's cooldown, stacks dropped with the staff
             TickRepulsion(dt);  // Repulsion.cs: the Undertow pulling and draining its meter
             TickTwinRifle(dt);  // TwinGrenades.cs: the grenade tubes' cooldown, emptied with the rifle
+            TickTankAlts(dt);   // TankAlts.cs: Double Barrel, Proximity Shells, Tear Gas
             TickGreat(dt);      // Greatsword.cs: the chain forgetting its place, the guard arc stopping bullets
             TickSteelWalls(dt);  // Knight.cs: Greatsword crescents stopping bullets
             TickStuckStars(dt);  // Ninja.cs: Shuriken stars falling out

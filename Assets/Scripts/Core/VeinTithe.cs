@@ -7,14 +7,14 @@ namespace Arena
     /// that turns up later) and holds it for TitheLen s (mastered TitheLenMastered): a held enemy can't move or shoot (`Enemy.GraspT`, kept
     /// topped up every tick). You pay TitheCost of your max health a second for each one held (TitheBossMult times that for a boss, mastered
     /// times TitheMasteredCost), and deal TitheOutputMult of your damage while it lasts. The drain is not a hit: it gives no hit grace and
-    /// nothing cuts it, and it takes you down if it empties your health. It ends when the time runs out, when you go down, or when the
+    /// nothing cuts it, and it takes you down if it empties your health. You move at TitheSlow speed while it lasts (`Player.Speed`). It ends when the time runs out, when you go down, or when the
     /// ultimate is swapped; every tendril then lets go (`FxKind.TitheSnap`, one per enemy).
     /// `Player.TitheClock` (seconds since the cast, 0 = off) and `Player.Tithed` (the held enemies' ids, in the order the tendrils reach them)
     /// are replicated, so every screen draws the same tendrils (Game/VeinTitheLook.cs); `Player.UltT` holds the time left.
     public partial class Game
     {
-        public const float TitheLen = 30f, TitheLenMastered = 40f, TitheReach = 1.2f, TitheReachStep = 0.05f, TitheReachTime = 0.55f;
-        public const float TitheCost = 0.0025f, TitheBossMult = 4f, TitheMasteredCost = 0.75f, TitheOutputMult = 0.6f;
+        public const float TitheLen = 15f, TitheLenMastered = 20f, TitheReach = 1.2f, TitheReachStep = 0.05f, TitheReachTime = 0.55f;
+        public const float TitheCost = 0.004f, TitheBossMult = 4f, TitheMasteredCost = 0.75f, TitheOutputMult = 0.6f, TitheSlow = 0.65f;
         const float TitheHold = 0.25f;  // how long each tick tops up an enemy's hold
 
         /// A Vein Tithe is holding enemies for this player.

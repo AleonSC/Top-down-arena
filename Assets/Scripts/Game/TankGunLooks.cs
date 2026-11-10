@@ -105,6 +105,7 @@ namespace Arena
                     float tp = (age - ScatterKick) / ScatterPump;
                     if (tp > 0f && tp < 1f)
                         pump = 11f * Mathf.Sin(MathX.Pi * tp);
+                    TankAltPose(p, ref kick, ref pump);  // a Double Barrel kicks harder and breaks open (TankAltFx.cs)
                     break;
                 }
                 case WeaponId.FlakCannon:

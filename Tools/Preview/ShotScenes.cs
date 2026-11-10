@@ -563,6 +563,31 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();  // (only the mode's own draw goes in the picture)
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // TANKALT=<s>: the Tank Soldier's Alt fires (TankAltLook.cs): you with the Scattergun and two shells loaded (the third filling),
+    // Double Barrel fired that long ago, an armed Proximity Shell, one still flying in, and a Tear Gas cloud. FXOFF=1 for plain looks.
+    if (Environment.GetEnvironmentVariable("TANKALT") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear(); gm.Zones.Clear();
+      me.Role = Role.Tank; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Tank); me.Weapon = Defs.Weapon(Role.Tank, Kit.Soldier, 0); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      V2 home = new V2(420f, 360f); me.Pos = me.Disp = home; me.Aim = 0f;
+      me.ScatShells = 1; me.ScatCharge = 9;
+      V2 aimAt = home + new V2(200f, 0f);
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      var add = typeof(Game).GetMethod("AddZone", BindingFlags.NonPublic | BindingFlags.Instance);
+      Func<ZoneKind, V2, float, float, float, Zone> Z = (k, zp, r, life, age) => { var z = (Zone)add.Invoke(gm, new object[] { k, me, zp, r, life }); z.T = life - age; z.Aim = (zp - home).Angle; return z; };
+      Z(ZoneKind.FlakMine, new V2(760f, 220f), Game.MineBurst, Game.MineLife, 3f);
+      Z(ZoneKind.FlakMine, new V2(600f, 600f), Game.MineBurst, Game.MineLife, Game.MineArm * 0.55f);
+      Z(ZoneKind.TearGas, new V2(800f, 520f), Game.TearGasRadius, Game.TearGasFlight + Game.TearGasLife, 2f);
+      Action frame = () => { me.Pos = me.Disp = home; me.Aim = 0f; Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f; foreach (var z in gm.Zones.Values) z.T += 1f / 60f; gm.FixedStep(1f / 60f, new PlayerInput { AimAt = aimAt }); me.Disp = me.Pos = home; me.Aim = 0f; draw.Invoke(app, null); };
+      for (int f = 0; f < 6; f++) frame();
+      me.ScatShells = 2;
+      typeof(Game).GetMethod("HostDoubleBarrel", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { me, aimAt });
+      me.ScatShells = 1; me.ScatCharge = 9;
+      float at = float.Parse(Environment.GetEnvironmentVariable("TANKALT"), ci);
+      for (int f = 0; f < Math.Round(at * 60f); f++) frame();
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // SHOTW=<WeaponId>: that weapon in your hand, three volleys fired by the game's own code and moved on 0.06 / 0.18 /
     // 0.3 s, aiming right, the arena otherwise empty (for comparing shot looks with Docs/Mockups/projectiles.html).
     if (Environment.GetEnvironmentVariable("SHOTW") != null) {
@@ -1197,6 +1222,21 @@ static partial class Shot {
         if (en.Def.IsBoss) continue;
         var ar = xg.CurrentWorld.Areas[xi++ % xg.CurrentWorld.Areas.Length];
         en.Pos = en.Disp = xg.PushOutOfProps(new V2(ar.Min.X + 60f + (float)xrng.NextDouble() * Math.Max(1f, ar.Size.X - 120f), ar.Min.Y + 50f + (float)xrng.NextDouble() * Math.Max(1f, ar.Size.Y - 100f)), en.Radius);
+      }
+      if (Environment.GetEnvironmentVariable("EXPANDPORTAL") != null) {  // EXPANDPORTAL=1: the best portal pair built, you standing by one end
+        var bl = Expansion.BestLink(xg.ExpansionWorld, 0);
+        if (bl.HasValue) {
+          xg.Links.Add(bl.Value); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
+          int pi2 = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = bl.Value.A + new V2(90f + 50f * pi2, 80f); pi2++; }
+        }
+      }
+      string bage = Environment.GetEnvironmentVariable("BREACHAGE");  // BREACHAGE=<s>: this wave's breaches opened that long ago (BreachLook.cs); BREACHAT=1 stands you by the first
+      if (bage != null) {
+        xg.State = MatchState.Fighting;
+        xg.BreachAge = float.Parse(bage, System.Globalization.CultureInfo.InvariantCulture);
+        var bb = xg.ActiveBreaches;
+        Console.Error.WriteLine("breaches: " + bb.Length + (bb.Length > 0 ? " first at " + bb[0].Pos.X + "," + bb[0].Pos.Y : "") + " state " + xg.State + " wave " + xg.Wave);
+        if (bb.Length > 0 && Environment.GetEnvironmentVariable("BREACHAT") != null) { int bi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = bb[0].Pos + bb[0].In * (90f + 40f * bi) + bb[0].Along * (bi * 60f - 30f); bi++; } }
       }
       string fp = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: where you stand (default the hub)
       if (fp != null) { var q = fp.Split(','); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(float.Parse(q[0], System.Globalization.CultureInfo.InvariantCulture), float.Parse(q[1], System.Globalization.CultureInfo.InvariantCulture)); }
