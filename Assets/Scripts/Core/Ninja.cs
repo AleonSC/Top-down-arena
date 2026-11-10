@@ -8,23 +8,21 @@ namespace Arena
     /// swapping places, wards), and DPS strike from the shadows (Shadow Step, Vanish's ambush, Blade Fan).
     public partial class Game
     {
-        // The Katana (Katana.cs; Docs/KatanaCombo.md): two stances, switched with the weapon-action key. Each has its attack and a
-        // meter that holding fire spends (the weapon's base damage, reach and speed are in Defs).
-        public const float KatanaDashLen = 150f, KatanaDashTime = 0.1f, KatanaDashWidth = 18f, KatanaDashMult = 1.4f, KatanaDashCd = 0.55f;  // Hayate's dash-cut: its line, how long you take along it, its half width, its damage (x the weapon's), its cooldown unless it killed
-        public const float KatanaFlowLen = 0.08f, KatanaFlowDmg = 0.2f, KatanaFlowKeep = 2.2f, KatanaFlowFall = 0.7f;  // Flow, a level per killing dash: +8% length and +0.2x damage each; after KatanaFlowKeep without a kill it drops a level every KatanaFlowFall (only in Hayate)
-        public const int KatanaFlowMax = 5;
-        public const float KatanaSwipeArc = 120f, KatanaSwipeTime = 0.26f, KatanaSwipeMult = 0.8f;  // Senbon's swipes: the arc, how long each holds the next off, damage (x the weapon's)
-        public const int KatanaMarkMax = 3;                         // Senbon marks an enemy can carry
-        public const int KatanaKageNeed = 10, KatanaZanNeed = 10;   // enemy hits that fill the Kage Chain's meter (Hayate) and Zanshin's (Senbon)
-        public const int KatanaKageHops = 6;                        // enemies the Kage Chain cuts (+1 a extra projectile)
-        public const float KatanaKageHop = 0.075f, KatanaKageMult = 3.5f, KatanaHopPast = 18f;  // a hop's time, its cut (x the weapon's damage), how far past each enemy it takes you
-        public const float KatanaZanHop = 0.06f, KatanaZanBack = 0.09f, KatanaZanStill = 0.28f, KatanaZanSheathe = 0.42f;  // Zanshin: a hop, the way back, the still moment, the sheathe
-        public const float KatanaZanMult = 1.7f, KatanaZanCutRange = 380f;  // each mark's cut (x the weapon's damage); enemy shots within this of you are cut as you sheathe
-        public const float KatanaHoldFire = 0.35f;                  // hold fire this long with the stance's meter full to spend it
-        public const float KatanaSwitchTime = 0.22f, KatanaSwitchCd = 1f, KatanaSwitchRadius = 110f, KatanaSwitchPush = 45f;  // the switch: no swinging while the blade turns, its cooldown, the burst's reach and push
-        public const float KatanaExtraMult = 0.6f;                  // each extra projectile: every dash and swipe strikes once more at this
-        public const float KatanaDashHold = 0.03f, KatanaDashHoldPer = 0.01f;  // your own dash's hit-pause: the picture holds this long, plus this per extra enemy it cut (up to 3 more)
-        public static float KatanaZanTotal(int marked) => marked * KatanaZanHop + KatanaZanBack + KatanaZanStill + KatanaZanSheathe;
+        // The Katana (Katana.cs; Docs/KatanaCombo.md): two stance combos, switched with the weapon-action key; each keeps its place while
+        // you're in the other. Damage is x the weapon's (20); times are seconds.
+        public static readonly float[] KatanaHayNext = { 0.22f, 0.22f, 0.36f, 0.32f }, KatanaSenNext = { 0.25f, 0.25f, 0.34f, 0.36f, 0.48f };  // each step holds the next one off this long
+        public const float KatanaDashLen = 120f, KatanaDashTime = 0.09f, KatanaDashWidth = 16f, KatanaDashMult = 1.1f, KatanaZig = 0.35f;  // Kiri and Kaeshi: the dash, its line's half width, its cut; Kaeshi angles this far to alternate sides
+        public const float KatanaSpinDash = 70f, KatanaSpinDashTime = 0.08f, KatanaSpinReach = 85f, KatanaSpinMult = 1.3f;  // Tsumuji: a short dash into a full spin
+        public const float KatanaBurstRadius = 150f, KatanaBurstPush = 120f, KatanaBurstMult = 0.4f, KatanaBurstMark = 4f, KatanaBurstAt = 0.12f, KatanaPlant = 0.2f;  // the Momentum Burst: its ring, shove, damage, how long it marks, when the blade goes in, how long you're planted
+        public const float KatanaSwipeArc = 130f, KatanaSwipeMult = 0.8f, KatanaSweepTime = 0.12f;  // Agari and Kaeshi
+        public const float KatanaMoonStep = 30f, KatanaMoonStepTime = 0.12f, KatanaMoonReach = 105f, KatanaMoonMult = 1f, KatanaMoonTime = 0.2f;  // Engetsu: a step into a full-moon spin
+        public const int KatanaSlashes = 6;
+        public const float KatanaSlashLen = 95f, KatanaSlashMult = 0.35f, KatanaSlashGap = 0.05f, KatanaSlashCone = 0.6f;  // Senbon: six crossing slashes in a cone
+        public const int KatanaCaltropCount = 16;  // +2 a extra projectile
+        public const float KatanaCaltropAt = 0.1f, KatanaToss = 0.25f, KatanaCaltropLife = 8f, KatanaCaltropMult = 0.2f, KatanaCaltropFlyMult = 0.4f, KatanaCaltropSlow = 0.5f, KatanaCaltropSpeed = 420f;  // thrown 60-150 px out, lying 8 s (hurts and slows), flung or seeking (8)
+        public const float KatanaSwitchCd = 0.3f, KatanaIdleReset = 1.5f;  // the switch's cooldown; the stance you're in starts over after this long without a step
+        public const float KatanaExtraMult = 0.6f;  // +1: each dash strikes once more at this; also +2 caltrops and a 25% wider Burst
+        public const float KatanaDashHold = 0.025f, KatanaDashHoldPer = 0.01f;  // your own hits' hit-pause: the picture holds this long, plus this per extra enemy (up to 3 more)
         // The Bo Staff (Docs/Mockups/bo-staff-rework.html): slash, jab, spin, then round again. There is no timer: a click always carries
         // on from where you left off. The weapon-action key shoves and starts the chain over.
         public const float BoSlashArc = 130f, BoJabReach = 140f, BoJabWidth = 14f, BoSpinReach = 100f;  // the slash's cone (degrees), the jab's reach and half width, the spin's reach (the slash uses the weapon's own Reach)
@@ -304,8 +302,8 @@ namespace Arena
             // DPS
             new WeaponDef { Id = WeaponId.Shuriken, Kit = Kit.Ninja, Role = Role.Dps, Choice = 0, Speed = 700f, Life = 0.75f, Damage = 9f, ExtraDesc = "+1 star in the fan", Name = "Shuriken", FireInterval = 0.35f,
                 Desc = "Tight fans of spinning stars that stick in what they hit. After a while each rips out for another hit and flies back to you, cutting through what it passes. Press your weapon-action key to recall them sooner." },
-            new WeaponDef { Id = WeaponId.Katana, Kit = Kit.Ninja, Role = Role.Dps, Choice = 1, Damage = 20f, Reach = 120f, Melee = true, ExtraDesc = "+1: every dash and swipe strikes once more (60%), the Kage Chain cuts one more", Name = "Katana", FireInterval = 0.3f,
-                Desc = "Two stances; your weapon-action key switches between them with a small burst. Hayate: dash-cuts through enemies, back at once on a kill. Senbon: swipes that mark enemies. Each stance fills its own meter; hold fire when it's full for the Kage Chain or Zanshin." },
+            new WeaponDef { Id = WeaponId.Katana, Kit = Kit.Ninja, Role = Role.Dps, Choice = 1, Damage = 20f, Reach = 120f, Melee = true, ExtraDesc = "+1: each dash strikes once more (60%), two more caltrops and a wider Momentum Burst", Name = "Katana", FireInterval = 0.3f,
+                Desc = "Two stance combos; your weapon-action key switches between them, and the one you leave keeps its place. Hayate dashes and slices and ends in a Momentum Burst that shoves enemies away. Senbon cuts, spins and slashes and ends in a storm of caltrops. The burst flings caltrops on the ground; caltrops thrown after a burst seek what it hit." },
             new WeaponDef { Id = WeaponId.Kunai, Kit = Kit.Ninja, Role = Role.Dps, Choice = 2, Speed = 1400f, Life = 0.5f, Damage = 42f, ExtraDesc = "+1 knife, fanned out (half damage)", Name = "Kunai", FireInterval = 0.7f, Sound = Sfx.ShotKunai,
                 Desc = "Slow, heavy throwing knives that hit harder against enemies not targeting you. Every throw leaves a mark where it lands: press your weapon-action key to blink there, and your next hit lands double." },
         };
@@ -652,7 +650,7 @@ namespace Arena
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashKatanaKage = 17, DashKatanaZan = 18;
+        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16;
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -888,8 +886,8 @@ namespace Arena
             if (LocalLanceHook(me, aimAt, pressed))
                 return;  // the Lance's Hook & Haul (Lance.cs)
             LocalCenserTick(dt);    // Censer Cast's cooldown (Censer.cs)
-            if (LocalKatana(me, aimAt, pressed, katanaFireHeld, dt))
-                return;  // the Katana's stance switch, Kage Chain and Zanshin (Katana.cs)
+            if (LocalKatana(me, aimAt, pressed, dt))
+                return;  // the Katana's stance switch and steps (Katana.cs)
             if (me.Weapon.Id == WeaponId.Kusarigama && (pressed || released))  // the Kusarigama's whirl: held, so both edges go to the host (Kusarigama.cs)
             {
                 byte whirlKind = pressed ? DashWhirlOn : DashWhirlOff;
@@ -1066,9 +1064,9 @@ namespace Arena
                 HostGreatGuard(p, kind == DashGuardOn, target);  // (target: where they were aiming)
                 return;
             }
-            if (kind == DashKatanaStance || kind == DashKatanaKage || kind == DashKatanaZan)
+            if (kind == DashKatanaStance)
             {
-                HostKatanaDash(p, kind);  // the stance switch, the Kage Chain or Zanshin (Katana.cs)
+                HostKatanaSwitch(p);  // the stance switch (Katana.cs)
                 return;
             }
             if (kind == DashHammerSlam)
