@@ -519,6 +519,31 @@ static partial class Shot {
     // NADET=<s>: the Twin Rifle's Rocket assist (TwinNadeLook.cs), a grenade fired from the left tube that long ago (aiming
     // right, the arena otherwise empty). NADELOAD=<s>: instead, the left tube loading that long ago (its breech and shell).
     // RIFLEFIRE=1 holds fire as well (NADET=0.4 RIFLEFIRE=1 shows the rifles mid-burst); CROSSAT=<px> sets the cursor distance.
+    // UNDERTOW=<meter>,<s held>: the Repulsion Cannon's Undertow (Repulsion.cs, RepulseLook.cs): the meter at that much, then
+    // Alt held that long (0 = not pulling, just the meter) on a pack of grunts in the cone.
+    if (Environment.GetEnvironmentVariable("UNDERTOW") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var ut = Environment.GetEnvironmentVariable("UNDERTOW").Split(',');
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Healer; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Healer); me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 0); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      V2 home = new V2(450f, 450f); me.Pos = me.Disp = home; me.Aim = 0f;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      foreach (var at0 in new[] { new V2(700f, 360f), new V2(680f, 430f), new V2(730f, 470f), new V2(660f, 520f), new V2(740f, 550f), new V2(620f, 330f) }) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, at0, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e5f; }
+      typeof(Game).GetMethod("SetRepelMeter", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, new object[] { me, float.Parse(ut[0], ci) });
+      float held = ut.Length > 1 ? float.Parse(ut[1], ci) : 0f;
+      V2 aimAt = home + new V2(300f, 0f);
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(6, (int)Math.Round(held * 60f));
+      for (int f = 0; f < frames; f++) {
+        me.Pos = me.Disp = home; me.Aim = 0f; Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = aimAt, WeaponAction = held > 0f });
+        me.Disp = me.Pos; me.Aim = 0f; foreach (var e in gm.Enemies.Values) e.Disp = e.Pos; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+      foreach (var e in gm.Enemies.Values) e.Disp = e.Pos;
+    }
     if (Environment.GetEnvironmentVariable("NADET") != null || Environment.GetEnvironmentVariable("NADELOAD") != null) {
       var ci = System.Globalization.CultureInfo.InvariantCulture;
       var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
@@ -536,6 +561,31 @@ static partial class Shot {
       float at = float.Parse(Environment.GetEnvironmentVariable(load ? "NADELOAD" : "NADET"), ci);
       for (int f = 0; f < Math.Round(at * 60f); f++) { if (load) me.TwinNades = 1; frame(); }
       GL.Tris.Clear(); GUI.Log.Clear();  // (only the mode's own draw goes in the picture)
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
+    // TANKALT=<s>: the Tank Soldier's Alt fires (TankAltLook.cs): you with the Scattergun and two shells loaded (the third filling),
+    // Double Barrel fired that long ago, an armed Proximity Shell, one still flying in, and a Tear Gas cloud. FXOFF=1 for plain looks.
+    if (Environment.GetEnvironmentVariable("TANKALT") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear(); gm.Zones.Clear();
+      me.Role = Role.Tank; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Tank); me.Weapon = Defs.Weapon(Role.Tank, Kit.Soldier, 0); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      V2 home = new V2(420f, 360f); me.Pos = me.Disp = home; me.Aim = 0f;
+      me.ScatShells = 1; me.ScatCharge = 9;
+      V2 aimAt = home + new V2(200f, 0f);
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      var add = typeof(Game).GetMethod("AddZone", BindingFlags.NonPublic | BindingFlags.Instance);
+      Func<ZoneKind, V2, float, float, float, Zone> Z = (k, zp, r, life, age) => { var z = (Zone)add.Invoke(gm, new object[] { k, me, zp, r, life }); z.T = life - age; z.Aim = (zp - home).Angle; return z; };
+      Z(ZoneKind.FlakMine, new V2(760f, 220f), Game.MineBurst, Game.MineLife, 3f);
+      Z(ZoneKind.FlakMine, new V2(600f, 600f), Game.MineBurst, Game.MineLife, Game.MineArm * 0.55f);
+      Z(ZoneKind.TearGas, new V2(800f, 520f), Game.TearGasRadius, Game.TearGasFlight + Game.TearGasLife, 2f);
+      Action frame = () => { me.Pos = me.Disp = home; me.Aim = 0f; Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f; foreach (var z in gm.Zones.Values) z.T += 1f / 60f; gm.FixedStep(1f / 60f, new PlayerInput { AimAt = aimAt }); me.Disp = me.Pos = home; me.Aim = 0f; draw.Invoke(app, null); };
+      for (int f = 0; f < 6; f++) frame();
+      me.ScatShells = 2;
+      typeof(Game).GetMethod("HostDoubleBarrel", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { me, aimAt });
+      me.ScatShells = 1; me.ScatCharge = 9;
+      float at = float.Parse(Environment.GetEnvironmentVariable("TANKALT"), ci);
+      for (int f = 0; f < Math.Round(at * 60f); f++) frame();
+      GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
     // SHOTW=<WeaponId>: that weapon in your hand, three volleys fired by the game's own code and moved on 0.06 / 0.18 /

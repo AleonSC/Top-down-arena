@@ -1,6 +1,6 @@
 # Room building, part 2: breaches, portals and fittings
 
-Status: **steps 1-2 built** (breach spawns, no protocol change; buyable portals, protocol 259); step 3 not started. Owner picked these three on Nov 10, 2026. Builds on [`VectorBuilding.md`](VectorBuilding.md) and
+Status: **steps 1-2 built** (breach spawns, no protocol change; buyable portals, protocol 261); step 3 not started. Owner picked these three on Nov 10, 2026. Builds on [`VectorBuilding.md`](VectorBuilding.md) and
 [`FloatingRooms.md`](FloatingRooms.md) (all built).
 
 ## Why
@@ -35,7 +35,7 @@ Status: **steps 1-2 built** (breach spawns, no protocol change; buyable portals,
 - Reuses the Wings portals (`Rooms.Portals`, `PortalHop` corner-graph links, cooldown, look); enemies use them too.
 - Fixes "too linear" on big maps and gives a late-game vector sink. Cap: 3 pairs.
 
-### Built (step 2, protocol 259)
+### Built (step 2, protocol 261)
 
 - `PortalLink` (two grid spots) in `Game.Links`, synced after the openings in `Msg.ExpandState`; proposed with `Msg.ExpandLink` as a
   `RoomKind.Link` proposal (X, Y = one end; W, H = to the other), voted like a room; the winner's proposer pays.
