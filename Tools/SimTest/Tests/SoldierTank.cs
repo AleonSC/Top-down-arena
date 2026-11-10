@@ -54,6 +54,7 @@ static partial class Program
         Check(me.ScatShells == Game.ScatShellMax, "point-blank hits load two shells");
         Step(0.5f, false, false);
         Check(client.Game.Players[1].ScatShells == 2, "the other screen sees both shells");
+        foePos = from + new V2(0f, 400f);  // out of the way, so no pellet is used up before they're counted
         g.Bullets.Clear();
         hold = false;
         float x0 = me.Pos.X;
@@ -65,6 +66,7 @@ static partial class Program
         Check(me.ScatShells == 0, "the shells are spent");
         Check(x0 - me.Pos.X > Game.ScatKick * 1.5f, "the recoil kicks you back for each shell");
         hold = true;
+        foePos = aimAt;
         Step(2f, true, false);
         Check(me.ScatShells >= 1, "the shells load again");
         me.Weapon = Defs.Weapon(Role.Tank, Kit.Soldier, 1);
