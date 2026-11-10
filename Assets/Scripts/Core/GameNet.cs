@@ -516,10 +516,9 @@ namespace Arena
             s.Int(ref p.PreyId);
             s.Byte(ref p.Orbiters);
             s.Byte(ref p.Combo);
-            s.Byte(ref p.KatanaStance);  // the Katana's stance, Flow, meters, next swipe and dashes (Katana.cs)
-            s.Byte(ref p.KatanaFlow);
-            s.Byte(ref p.KatanaKage);
-            s.Byte(ref p.KatanaZan);
+            s.Byte(ref p.KatanaStance);  // the Katana's stance, where each combo waits, the last step and the moving steps (Katana.cs)
+            s.Byte(ref p.KatanaHay);
+            s.Byte(ref p.KatanaSen);
             s.Byte(ref p.KatanaStep);
             s.Byte(ref p.KatanaDashes);
             s.Byte(ref p.BoStep);
@@ -693,8 +692,8 @@ namespace Arena
             float challengeT = !s.Reading && challengeBy > 0 ? e.ChallengeT : 0f;
             if (challengeBy > 0)
                 s.Float(ref challengeT);
-            int katanaMarks = !s.Reading ? e.KatanaMarks : 0;
-            s.Byte(ref katanaMarks);  // Senbon marks on it (Katana.cs)
+            bool katanaShock = !s.Reading && e.KatanaShockT > 0f;
+            s.Bool(ref katanaShock);  // marked by a Momentum Burst (Katana.cs)
             var kind = (EnemyType)type;
             if (s.Reading && !Enemies.TryGetValue(id, out e))
             {
@@ -709,7 +708,7 @@ namespace Arena
                 e.Pos = pos;
                 e.Hp = hp;
                 e.MaxHp = maxHp;
-                e.KatanaMarks = (byte)katanaMarks;
+                e.KatanaShocked = katanaShock;
                 e.Spawning = spawning;
                 e.Facing = facing;
                 e.Phase = phase;

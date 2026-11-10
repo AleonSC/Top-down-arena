@@ -699,17 +699,21 @@ static partial class Shot {
           }
           break;
         }
-        case WeaponId.Katana:  // KATANA=hayate|senbon[,flow,kage,zan] the stance and meters (senbon marks the enemies 1-3); KATANAMOVE=dash|swipe|switch|hop
+        case WeaponId.Katana:  // KATANA=hayate|senbon[,hay,sen] the stance and where each combo waits; KATANAMOVE=dash|sweep|spin|slash|burst|caltrops|kill|idle
         {
           var kp = (Environment.GetEnvironmentVariable("KATANA") ?? "hayate").Split(',');
           me.KatanaStance = (byte)(kp[0] == "senbon" ? 1 : 0);
-          if (kp.Length > 3) { me.KatanaFlow = byte.Parse(kp[1]); me.KatanaKage = byte.Parse(kp[2]); me.KatanaZan = byte.Parse(kp[3]); }
-          int km = 0; if (me.KatanaStance == 1) foreach (var en in gm.Enemies.Values) if (!en.Def.IsBoss && km < 3) en.KatanaMarks = (byte)(++km);
-          string mv = Environment.GetEnvironmentVariable("KATANAMOVE") ?? "swipe";
-          if (mv == "dash") fx(FxKind.Slash, me.Pos + V2.FromAngle(me.Aim) * Game.KatanaDashReach(me), -0.1f, 0f, 0.3f);
-          else if (mv == "switch") gm.Effects.Add(new Effect { Kind = FxKind.KatanaStanceFx, Pos = me.Pos, Pos2 = new V2(me.Id, me.KatanaStance), Color = me.KatanaStance == 0 ? Game.KatanaSteel : Game.KatanaRose, Radius = Game.KatanaSwitchRadius, T = st, Dur = 0.5f });
-          else if (mv == "hop") { V2 prev = me.Pos; int hk = 0; foreach (var en in gm.Enemies.Values) { if (en.Def.IsBoss || hk++ >= 3) continue; gm.Effects.Add(new Effect { Kind = FxKind.KatanaHop, Pos = prev, Pos2 = en.Pos, Color = (me.KatanaStance == 1 ? Game.KatanaRose : Game.KatanaSteel).WithAlpha(me.KatanaStance == 1 ? 1f : 0.5f), Radius = me.Id, T = st, Dur = 1.2f }); prev = en.Pos; } }
-          else fx(FxKind.Slash, to, Game.KatanaSwipeArc * MathX.Pi / 360f, 0f, 0.16f);
+          if (kp.Length > 2) { me.KatanaHay = byte.Parse(kp[1]); me.KatanaSen = byte.Parse(kp[2]); }
+          string mv = Environment.GetEnvironmentVariable("KATANAMOVE") ?? "sweep";
+          var kcol = me.KatanaStance == 0 ? Game.KatanaSteel : Game.KatanaRose;
+          Enemy first = null; foreach (var en in gm.Enemies.Values) if (!en.Def.IsBoss) { first = en; break; }
+          if (mv == "dash") gm.Effects.Add(new Effect { Kind = FxKind.KatanaDash, Pos = me.Pos - V2.FromAngle(me.Aim) * Game.KatanaDashLen * Math.Min(1f, st / Game.KatanaDashTime), Pos2 = me.Pos + V2.FromAngle(me.Aim) * Game.KatanaDashLen * (1f - Math.Min(1f, st / Game.KatanaDashTime)), Color = kcol, Radius = me.Id, T = st, Dur = 0.42f });
+          else if (mv == "sweep") gm.Effects.Add(new Effect { Kind = FxKind.KatanaSweep, Pos = me.Pos, Pos2 = new V2(me.Aim - 1.13f, 2.27f), Color = kcol, Radius = me.Id * 1000 + Game.MeleeReach(me, me.Weapon.Reach), T = st, Dur = Game.KatanaSweepTime });
+          else if (mv == "spin") gm.Effects.Add(new Effect { Kind = FxKind.KatanaSweep, Pos = me.Pos, Pos2 = new V2(me.Aim, MathX.Tau), Color = kcol, Radius = me.Id * 1000 + Game.KatanaMoonReach, T = st, Dur = Game.KatanaMoonTime });
+          else if (mv == "slash") for (int sk = 0; sk < 6; sk++) { float a = me.Aim + (sk - 2.5f) * 0.22f, la = a + 1.2f + sk * 0.4f; V2 c = me.Pos + V2.FromAngle(a) * (70f + 10f * sk), h = V2.FromAngle(la) * 47f; gm.Effects.Add(new Effect { Kind = FxKind.KatanaSlash, Pos = c - h, Pos2 = c + h, Color = Game.KatanaRose, Radius = me.Id, T = st - 0.05f * sk * 0.3f, Dur = 0.3f }); }
+          else if (mv == "burst") { gm.Effects.Add(new Effect { Kind = FxKind.KatanaBurst, Pos = me.Pos, Pos2 = new V2(me.Id, me.Aim), Color = Game.KatanaSteel, Radius = Game.KatanaBurstRadius, T = st, Dur = 0.9f }); foreach (var en in gm.Enemies.Values) if (!en.Def.IsBoss) en.KatanaShocked = true; }
+          else if (mv == "caltrops") for (int ck = 0; ck < 16; ck++) { V2 at = me.Pos + V2.FromAngle(ck * MathX.Tau / 16f + 0.2f) * (60f + 90f * ((ck * 7) % 5) / 4f); var cb = new Bullet { Id = 990000 + ck, Kind = Defs.Caltrop, Owner = me.Id, Pos = at, Vel = V2.Zero, Radius = 5f, Life0 = 8.25f, Life = 6f }; gm.Bullets[cb.Id] = cb; }
+          else if (mv == "kill" && first != null) gm.Effects.Add(new Effect { Kind = FxKind.KatanaCut, Pos = first.Pos, Pos2 = V2.FromAngle(me.Aim + 1.3f) * first.Def.Sides, Color = first.Def.Color.WithAlpha(1f), Radius = first.Radius, T = st, Dur = 0.9f });
           break;
         }
         case WeaponId.BoStaff:  // BOSTEP=0 slash, 1 jab, 2 spin, 3 shove (the Bo Staff's chain; default the slash)

@@ -157,7 +157,7 @@ namespace Arena
 
         /// Weapon mods apply to players' shots, but not to grenades (they land where you aim)
         /// or to Swarm Rounds' splinters.
-        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed && kind != Defs.SteelShard;
+        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed && kind != Defs.SteelShard && kind != Defs.Caltrop;
 
         Bullet MakeBullet(int id, byte kind, int owner, V2 pos, V2 vel, float angVel, float life, bool fromBoss = false, float homing = 0f)
         {
@@ -435,8 +435,8 @@ namespace Arena
             FindEclipseMoon();    // the Eclipse's moon (Eclipse.cs)
             foreach (var b in Bullets.Values)
             {
-                if (b.Kind == Defs.GrenadeShot || b.Kind == Defs.BoulderShot || b.Kind == Defs.ClotShot || b.Kind == Defs.MedkitShot || b.Kind == Defs.FlakShell || b.Ward)
-                    continue;  // grenades, boulders, Clot Cannon clots, medkits and flak shells fly over enemies and land or burst where you aimed
+                if (b.Kind == Defs.GrenadeShot || b.Kind == Defs.BoulderShot || b.Kind == Defs.ClotShot || b.Kind == Defs.MedkitShot || b.Kind == Defs.FlakShell || b.Ward || b.Tossed)
+                    continue;  // grenades, boulders, Clot Cannon clots, medkits, flak shells and tossed caltrops fly over enemies and land or burst where you aimed
                 if (LayoutOn && SolidStops(b))
                 {
                     scratchIds.Add(b.Id);  // a wall or pillar stops every shot (LayoutRules.cs)

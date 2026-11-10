@@ -3,207 +3,426 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The Katana's two stances (Docs/KatanaCombo.md; mockup Docs/Mockups/katana-stances.html). The weapon-action key switches
-    /// between them: the blade turns from one guard to the other and a small burst pushes nearby enemies back (KatanaSwitchCd
-    /// between switches). The switch does nothing else.
+    /// The Katana's two stance combos (Docs/KatanaCombo.md; mockup Docs/Mockups/katana-stance-cancels.html). The weapon-action key
+    /// switches stance at once; the stance you leave keeps its place in its combo for as long as you're away, so the skill is
+    /// storing a combo one step from its finisher and calling it when it counts. The stance you're in starts over after
+    /// KatanaIdleReset without a step.
     ///
-    /// Hayate (0): every attack is a dash-cut along your aim (KatanaDashLen, untouchable), cutting everything on the line. A
-    /// dash that kills comes back at once and adds a level of Flow (longer, harder dashes; it fades while you're in Hayate
-    /// without a kill). Every enemy a dash hits fills the Kage Chain's meter; full, holding fire hops you through the nearest
-    /// enemies, cutting each.
+    /// Hayate (0) dashes and slices: Kiri and Kaeshi (dash-cuts, the second angled to the other side), Tsumuji (a short dash into
+    /// a spin), then the Momentum Burst: the blade stabbed into the ground, a shockwave that shoves enemies away, cuts small
+    /// bullets and marks what it hits. Senbon (1) is the fancy one: Agari and Kaeshi (sweeps), Engetsu (a step into a full-moon
+    /// spin), Senbon (six crossing slashes in a cone), then Caltrops: a storm of them thrown round you, lying for a while,
+    /// hurting and slowing what steps on them. The two finishers feed each other: a Burst flings the caltrops lying on the
+    /// ground at the nearest enemies, and caltrops thrown after a Burst seek the enemies it marked.
     ///
-    /// Senbon (1): swipes that mark every enemy they don't kill (up to KatanaMarkMax). Every enemy a swipe hits fills Zanshin's
-    /// meter; full, holding fire cuts through every marked enemy, brings you back to where you stood, and as you sheathe each
-    /// takes a cut per mark (and enemy shots near you are cut). Both meters are kept when you switch.
-    ///
-    /// As with other weapon moves, your own game moves you (the dash when KatanaDashes changes, the hops of a
-    /// Kage Chain or Zanshin: LocalKatana) and tells the host (Msg.WeaponDash); the host checks the meter, picks its own
-    /// targets (the same rule, from where it sees you) and lands the cuts on time (TickKatanaRuns).
+    /// As with other weapon moves, your own game moves you (each dash and step, when KatanaDashes changes: LocalKatana); the host
+    /// lands the cuts on time (pendingSwings and TickKatanaLater) and sends the look (FxKind.KatanaDash, KatanaSweep, KatanaSlash,
+    /// KatanaBurst, KatanaCut; Game/KatanaLook.cs). Caltrops are bullets (Defs.Caltrop) the host steers.
     public partial class Game
     {
-        public static readonly Rgba KatanaRose = new Rgba(1f, 0.56f, 0.66f);   // Senbon, Zanshin
-        public static readonly Rgba KatanaSteel = new Rgba(0.745f, 0.87f, 1f);  // Hayate, the Kage Chain
+        public static readonly Rgba KatanaRose = new Rgba(1f, 0.56f, 0.66f);   // Senbon
+        public static readonly Rgba KatanaSteel = new Rgba(0.745f, 0.87f, 1f);  // Hayate
+        public static readonly string[] KatanaHayNames = { "Kiri", "Kaeshi", "Tsumuji", "Momentum Burst" }, KatanaSenNames = { "Agari", "Kaeshi", "Engetsu", "Senbon", "Caltrops" };
+        public static int KatanaSteps(int stance) => stance == 0 ? 4 : 5;
 
-        class KatanaRun
+        /// A step that moves you: how far, how long, and how far off your aim (Kaeshi zig-zags by the count's parity). code = stance * 8 + step.
+        public static float KatanaStepMove(int code) => code == 0 || code == 1 ? KatanaDashLen : code == 2 ? KatanaSpinDash : code == 10 ? KatanaMoonStep : 0f;
+        public static float KatanaStepTime(int code) => code == 2 ? KatanaSpinDashTime : code == 10 ? KatanaMoonStepTime : KatanaDashTime;
+        public static float KatanaStepTurn(int code, int count) => code == 1 ? KatanaZig * ((count & 1) == 0 ? 1f : -1f) : 0f;
+        static bool KatanaMoves(int code) => code == 0 || code == 1 || code == 2 || code == 3 || code == 10;  // (the Burst plants you)
+
+        class KatanaLater
         {
             public int Owner;
-            public bool Zan;               // Zanshin (else the Kage Chain)
-            public List<int> Targets = new List<int>();
-            public List<V2> Hops = new List<V2>();  // where each hop ends (Zanshin: then back to Start)
-            public V2 Start;
-            public float T, Total;
-            public int Done;               // hops landed
-            public bool Sheathed;          // Zanshin: the sheathe's sound raised
+            public float T;
+            public Action Run;
         }
 
-        readonly List<KatanaRun> katanaRuns = new List<KatanaRun>();
-        static readonly Sfx[] KatanaHopSfx = { Sfx.KatanaChain1, Sfx.KatanaChain2, Sfx.KatanaChain3, Sfx.KatanaChain4, Sfx.KatanaChain5 };
-
-        // Local (your own screen): the Kage Chain or Zanshin you are in the middle of, the hold that spends a meter, the switch's cooldown.
-        class LocalRun
+        class Caltrop
         {
-            public bool Zan;
-            public List<V2> Hops;
-            public int Next;
-            public float T, Total;
+            public Bullet B;
+            public int Owner, Target;
+            public byte Mode;  // 0 thrown (in the air), 1 lying, 2 flying at an enemy
+            public float T;
         }
 
-        LocalRun katanaLocal;
-        float katanaHoldT, katanaSwitchLocalCd;
+        readonly List<KatanaLater> katanaLater = new List<KatanaLater>();
+        readonly List<Caltrop> caltrops = new List<Caltrop>();
+
+        // Local (your own screen): the steps you've moved along, the switch's cooldown, the Burst's plant.
         byte katanaDashesSeen;
-        bool katanaFireHeld;         // fire held this tick (set by LocalControl)
-        bool katanaFullSeen;         // the stance's meter was full last frame (a fill plays KatanaReady)
-        public bool KatanaStriking => katanaLocal != null;  // a Kage Chain or Zanshin under way on your own screen: you can't move or swing
-        public float KatanaHoldProgress => katanaHoldT / KatanaHoldFire;  // how far the hold that spends the meter has got (the look)
-        public bool KatanaZanshinLocal => katanaLocal != null && katanaLocal.Zan;  // your own Zanshin: the look dims the arena and letterboxes the screen
-        public float KatanaRunT => katanaLocal != null ? katanaLocal.T : 0f;
-        public float KatanaRunTotal => katanaLocal != null ? katanaLocal.Total : 0f;
+        float katanaSwitchLocalCd, katanaPlantT;
+        public bool KatanaStriking => katanaPlantT > 0f;  // planted for the Momentum Burst: you can't move or swing
 
-        public static bool KatanaMeterFull(Player p) => p.KatanaStance == 0 ? p.KatanaKage >= KatanaKageNeed : p.KatanaZan >= KatanaZanNeed;
+        void Later(Player p, float t, Action run) => katanaLater.Add(new KatanaLater { Owner = p.Id, T = t, Run = run });
 
-        /// How far Hayate's dash-cut goes: longer with Flow and Piercing Rounds.
-        public static float KatanaDashReach(Player p) => MeleeReach(p, KatanaDashLen) * (1f + KatanaFlowLen * p.KatanaFlow);
+        // --- The steps (host) -------------------------------------------------------------------------------------------
 
-        bool KatanaBusy(Player p)
-        {
-            foreach (var r in katanaRuns)
-                if (r.Owner == p.Id)
-                    return true;
-            return false;
-        }
-
-        // --- The attacks (host) -----------------------------------------------------------------------------------------
-
-        /// Hayate's dash-cut or Senbon's swipe. Each extra projectile strikes once more at KatanaExtraMult.
+        /// The next step of the stance you're in.
         void FireKatana(Player p, float aim, float dmg, int extra)
         {
-            var w = p.Weapon;
-            if (p.KatanaStance == 0)
+            int stance = p.KatanaStance, idx = stance == 0 ? p.KatanaHay : p.KatanaSen, code = stance * 8 + idx;
+            if (stance == 0)
+                p.KatanaHay = (byte)((idx + 1) % 4);
+            else
+                p.KatanaSen = (byte)((idx + 1) % 5);
+            p.KatanaStep = (byte)code;
+            p.KatanaIdle = 0f;
+            p.FireCd = (stance == 0 ? KatanaHayNext : KatanaSenNext)[idx] / FireRate(p);
+            float w = p.Weapon.Damage * dmg, ang = aim;
+            V2 from = p.Pos, to = from;
+            if (KatanaMoves(code))
             {
-                // A line from where you stand to where the dash ends; your own game moves you along it (LocalKatana).
-                V2 from = p.Pos, to = ClampToArena(from + V2.FromAngle(aim) * KatanaDashReach(p), p.Def.BodyR);
-                float len = Math.Max(20f, to.DistanceTo(from));
-                p.FireCd = KatanaDashCd / FireRate(p);
-                p.InvulnT = Math.Max(p.InvulnT, KatanaDashTime + 0.05f);
                 p.KatanaDashes++;
-                float d = w.Damage * (KatanaDashMult + KatanaFlowDmg * p.KatanaFlow) * dmg;
-                for (int k = 0; k <= extra; k++)
-                {
-                    var s = NewSwing(p, aim, len, 20f, k == 0 ? d : d * KatanaExtraMult);
-                    s.Reach = len;
-                    s.HalfWidth = KatanaDashWidth;
-                    s.FromSet = true;
-                    s.From = from;
-                    s.DrawCut = true;
-                    s.Heavy = true;
-                    s.KatanaMove = 1;
-                    s.Delay = KatanaDashTime * 0.5f + 0.05f * k;
-                    if (k == 0)
-                        s.Sound = Sfx.KatanaLunge;
-                    else
-                    {
-                        s.NoFx = true;  // the extra strike rides the same line
-                        s.Silent = true;
-                    }
-                    pendingSwings.Add(s);
-                }
-                return;
+                ang = aim + KatanaStepTurn(code, p.KatanaDashes);
+                float move = KatanaStepMove(code);
+                if (move > 0f)
+                    to = ClampToArena(from + V2.FromAngle(ang) * MeleeReach(p, move), p.Def.BodyR);
             }
-            int step = p.KatanaStep;
-            p.KatanaStep = (byte)(step ^ 1);  // the look alternates the swipes
-            p.FireCd = KatanaSwipeTime / FireRate(p);
-            for (int k = 0; k <= extra; k++)
+            var col = stance == 0 ? KatanaSteel : KatanaRose;
+            switch (code)
             {
-                var s = NewSwing(p, aim + (k == 0 ? 0f : (k % 2 == 1 ? 0.2f : -0.2f)), w.Reach, KatanaSwipeArc, w.Damage * KatanaSwipeMult * dmg * (k == 0 ? 1f : KatanaExtraMult));
-                s.KatanaMove = 2;
-                if (k == 0)
-                    s.Sound = step == 0 ? Sfx.KatanaSwipe1 : Sfx.KatanaSwipe2;
-                else
+                case 0:
+                case 1:  // Kiri, Kaeshi: a dash-cut along the line
                 {
-                    s.Delay = 0.05f * k;
-                    s.Silent = true;
+                    p.InvulnT = Math.Max(p.InvulnT, KatanaDashTime + 0.06f);
+                    KatanaDashFx(p, from, to, col);
+                    for (int k = 0; k <= extra; k++)
+                        KatanaLine(p, from, to, k == 0 ? w * KatanaDashMult : w * KatanaDashMult * KatanaExtraMult, KatanaDashTime * 0.5f + 0.05f * k, 1, k > 0, Sfx.KatanaLunge);
+                    break;
                 }
-                pendingSwings.Add(s);
+                case 2:  // Tsumuji: a short dash, then a spin where it ends
+                {
+                    p.InvulnT = Math.Max(p.InvulnT, KatanaSpinDashTime + 0.06f);
+                    KatanaDashFx(p, from, to, col);
+                    float reach = MeleeReach(p, KatanaSpinReach);
+                    Later(p, KatanaSpinDashTime + 0.04f, () => KatanaSweepFx(p, to, ang, MathX.Tau, reach, 0.14f, col));
+                    KatanaArc(p, to, ang, 360f, reach, w * KatanaSpinMult, KatanaSpinDashTime + 0.1f, Sfx.KatanaSwipe1);
+                    break;
+                }
+                case 3:  // the Momentum Burst: the blade goes into the ground
+                    Later(p, KatanaBurstAt, () => MomentumBurst(p, w, extra));
+                    break;
+                case 8:
+                case 9:  // Agari, Kaeshi: sweeps, the second back the other way
+                {
+                    float arc = KatanaSwipeArc * MathX.Pi / 180f, side = idx == 0 ? 1f : -1f, reach = MeleeReach(p, p.Weapon.Reach);
+                    Later(p, 0.05f, () => KatanaSweepFx(p, p.Pos, ang, side * arc, reach, KatanaSweepTime, col));
+                    KatanaArc(p, null, ang, KatanaSwipeArc, reach, w * KatanaSwipeMult, 0.05f + KatanaSweepTime * 0.6f, idx == 0 ? Sfx.KatanaSwipe1 : Sfx.KatanaSwipe2);
+                    break;
+                }
+                case 10:  // Engetsu: a step into a full-moon spin
+                {
+                    float reach = MeleeReach(p, KatanaMoonReach);
+                    Later(p, 0.04f, () => KatanaSweepFx(p, to, ang, MathX.Tau, reach, KatanaMoonTime, col));
+                    KatanaArc(p, to, ang, 360f, reach, w * KatanaMoonMult, 0.04f + KatanaMoonTime * 0.6f, Sfx.KatanaSwipe1);
+                    break;
+                }
+                case 11:  // Senbon: six crossing slashes in a cone ahead
+                    BroadcastSound(Sfx.KatanaStrikeCut);
+                    for (int k = 0; k < KatanaSlashes; k++)
+                        Later(p, 0.02f + KatanaSlashGap * k, () => KatanaSlash(p, aim, w * KatanaSlashMult));
+                    break;
+                case 12:  // Caltrops
+                    Later(p, KatanaCaltropAt, () => ThrowCaltrops(p, w, extra));
+                    break;
             }
         }
 
-        /// A dash-cut or swipe landed (LandSwing): its hits fill the stance's meter; a dash that killed comes back at once and adds
-        /// Flow; a swipe marks what it didn't kill.
+        /// A dash-cut's line (a box from where it began), landing `delay` from now.
+        void KatanaLine(Player p, V2 from, V2 to, float dmg, float delay, byte move, bool silent, Sfx sound)
+        {
+            V2 d = to - from;
+            float len = Math.Max(20f, d.Length);
+            var s = NewSwing(p, d.IsZero ? p.Aim : d.Angle, len, 20f, dmg);
+            s.Reach = len;
+            s.HalfWidth = KatanaDashWidth;
+            s.FromSet = true;
+            s.From = from;
+            s.Heavy = true;
+            s.NoFx = true;  // (the look is the step's own effect: KatanaLook.cs)
+            s.KatanaMove = move;
+            s.Delay = delay;
+            s.Silent = silent;
+            s.Sound = silent ? Sfx.None : sound;
+            pendingSwings.Add(s);
+        }
+
+        /// A sweep or spin (`at` null: round where you stand when it lands).
+        void KatanaArc(Player p, V2? at, float aim, float arcDeg, float reach, float dmg, float delay, Sfx sound)
+        {
+            var s = NewSwing(p, aim, reach, arcDeg, dmg);
+            s.Reach = reach;
+            if (at.HasValue)
+            {
+                s.FromSet = true;
+                s.From = at.Value;
+            }
+            s.NoFx = true;
+            s.KatanaMove = 2;
+            s.Delay = delay;
+            s.Sound = sound;
+            pendingSwings.Add(s);
+        }
+
+        /// One of Senbon's slashes: a line across a point in the cone ahead.
+        void KatanaSlash(Player p, float aim, float dmg)
+        {
+            float a = aim + Rand(-KatanaSlashCone, KatanaSlashCone), dist = Rand(60f, 125f), la = a + MathX.Pi / 2f + Rand(-0.9f, 0.9f);
+            V2 c = p.Pos + V2.FromAngle(a) * dist, half = V2.FromAngle(la) * (KatanaSlashLen / 2f);
+            V2 x0 = c - half, x1 = c + half;
+            BroadcastFx(FxKind.KatanaSlash, x0, x1, KatanaRose, p.Id, 0.3f, Sfx.None);
+            var s = NewSwing(p, la, KatanaSlashLen, 20f, dmg);
+            s.Reach = KatanaSlashLen;
+            s.HalfWidth = 12f;
+            s.FromSet = true;
+            s.From = x0;
+            s.NoFx = true;
+            s.Silent = true;
+            s.KatanaMove = 2;
+            LandSwing(p, s);
+        }
+
+        void KatanaDashFx(Player p, V2 from, V2 to, Rgba col) => BroadcastFx(FxKind.KatanaDash, from, to, col, p.Id, 0.42f, Sfx.None);
+
+        /// A sweep's crescent: Pos where it's centred, Pos2 its start angle and signed arc, Radius the owner * 1000 + its reach.
+        void KatanaSweepFx(Player p, V2 at, float aim, float arc, float reach, float time, Rgba col)
+        {
+            float a0 = arc >= MathX.Tau - 0.01f ? aim : aim - arc / 2f;
+            BroadcastFx(FxKind.KatanaSweep, at, new V2(a0, arc), col, p.Id * 1000 + reach, time, Sfx.None);
+        }
+
+        /// A step's cut landed (LandSwing): every enemy hit gets its cut drawn (and splits if it died); a dash that killed brings
+        /// the next step at once; the hit cue holds your picture a moment.
         void KatanaLanded(Player p, Swing s, List<Enemy> hits)
         {
             if (hits.Count == 0)
                 return;
-            if (s.KatanaMove == 1)
+            V2 o = s.FromSet ? s.From : p.Pos;
+            bool killed = false;
+            foreach (var e in hits)
             {
-                p.KatanaKage = (byte)Math.Min(KatanaKageNeed, p.KatanaKage + hits.Count);
-                bool killed = false;
-                foreach (var e in hits)
-                    killed |= e.Hp <= 0f;
-                if (killed)
-                {
-                    p.FireCd = 0f;  // a killing dash comes back at once
-                    p.TapQueued = false;
-                    if (!s.NoFx)  // (the extra strike doesn't add Flow again)
-                    {
-                        p.KatanaFlow = (byte)Math.Min(KatanaFlowMax, p.KatanaFlow + 1);
-                        p.KatanaFlowT = 0f;
-                    }
-                }
+                bool dead = e.Hp <= 0f;
+                killed |= dead;
+                V2 dir = s.HalfWidth > 0f ? V2.FromAngle(s.Aim) : (e.Pos - o).Normalized().Orthogonal();
+                if (dir.IsZero)
+                    dir = V2.FromAngle(s.Aim);
+                KatanaCutFx(e, dir, dead, p.KatanaStance == 0 ? KatanaSteel : KatanaRose);
             }
-            else
+            if (killed && s.KatanaMove == 1)
             {
-                p.KatanaZan = (byte)Math.Min(KatanaZanNeed, p.KatanaZan + hits.Count);
-                foreach (var e in hits)
-                    if (e.Hp > 0f)
-                        e.KatanaMarks = (byte)Math.Min(KatanaMarkMax, e.KatanaMarks + 1);
+                p.FireCd = 0f;  // a dash that kills brings the next step at once
             }
             if (!s.Silent)
-                KatanaHitCue(p, s.KatanaMove == 1, hits.Count);
+                KatanaHitCue(p, false, hits.Count);
+        }
+
+        /// The look of one enemy cut: a line across it and, if it died, its two halves sliding apart in its own colour and shape.
+        /// Pos2 is the cut's direction times the enemy's number of sides.
+        void KatanaCutFx(Enemy e, V2 dir, bool dead, Rgba col)
+        {
+            BroadcastFx(FxKind.KatanaCut, e.Pos, dir * Math.Max(1, e.Def.Sides), e.Def.Color.WithAlpha(dead ? 1f : 0.5f), e.Radius, dead ? 0.9f : 0.3f, Sfx.None);
         }
 
         /// Host: a cut landed. Sent as an effect that draws nothing: it carries the cut's sound, and the striker's own game holds
-        /// the picture for a moment (Game/Juice.cs; harder for a dash).
-        void KatanaHitCue(Player p, bool dash, int hits)
+        /// the picture a moment (Game/Juice.cs; harder for the Burst).
+        void KatanaHitCue(Player p, bool heavy, int hits)
         {
-            BroadcastFx(FxKind.KatanaHitCue, p.Pos, new V2(p.Id, 0f), KatanaRose.WithAlpha(dash ? 1f : 0.5f), hits, 0.2f, Sfx.KatanaHit);
+            BroadcastFx(FxKind.KatanaHitCue, p.Pos, new V2(p.Id, 0f), KatanaRose.WithAlpha(heavy ? 1f : 0.5f), hits, 0.2f, Sfx.KatanaHit);
         }
 
-        /// Every tick, for every player: Flow fading in Hayate, the switch's cooldown.
+        // --- The finishers --------------------------------------------------------------------------------------------------
+
+        /// The Momentum Burst: shoves everything round you away, cuts it a little, cuts the small bullets in the ring, and marks
+        /// what it hit. Caltrops lying on the ground fly at the nearest enemy.
+        void MomentumBurst(Player p, float w, int extra)
+        {
+            if (p.Downed)
+                return;
+            float r = MeleeReach(p, KatanaBurstRadius) * (1f + 0.25f * extra);
+            int hit = 0;
+            foreach (var e in new List<Enemy>(Enemies.Values))
+            {
+                if (IsSpawning(e) || e.Hp <= 0f)
+                    continue;
+                V2 d = e.Pos - p.Pos;
+                float dist = d.Length;
+                if (dist > r + e.Radius)
+                    continue;
+                V2 away = dist > 1f ? d / dist : V2.FromAngle(p.Aim);
+                if (!Heavy(e))
+                    KnockEnemy(e, away * KatanaBurstPush);
+                e.KatanaShockT = KatanaBurstMark;
+                float dmg = w * KatanaBurstMult * NinjaHitMult(p.Id, Defs.KnightSlash, e);
+                HurtEnemy(e, dmg, p.Id);
+                OnBulletHit(new Bullet { Pos = e.Pos, Vel = away, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
+                KatanaCutFx(e, away.Orthogonal(), e.Hp <= 0f, KatanaSteel);
+                hit++;
+            }
+            CutBulletsInCircle(p.Pos, r, false);  // the small bullets in the ring
+            BroadcastFx(FxKind.KatanaBurst, p.Pos, new V2(p.Id, p.Aim), KatanaSteel, r, 0.9f, Sfx.KatanaBurstSfx);
+            if (hit > 0)
+                KatanaHitCue(p, true, hit);
+            int flung = 0;
+            foreach (var c in caltrops)
+            {
+                if (c.Owner != p.Id || c.Mode != 1)
+                    continue;
+                var t = NearestEnemy(c.B.Pos);
+                if (t == null)
+                    break;
+                c.Mode = 2;
+                c.Target = t.Id;
+                c.T = 0f;
+                c.B.Dmg = w * KatanaCaltropFlyMult;
+                c.B.SlowAmt = 0f;
+                c.B.Life = 3f;
+                flung++;
+            }
+            if (flung > 0)
+                BroadcastSound(Sfx.KatanaFling);
+        }
+
+        /// Caltrops: thrown out round you to lie on the ground; after a Burst, they seek the enemies it marked instead.
+        void ThrowCaltrops(Player p, float w, int extra)
+        {
+            if (p.Downed)
+                return;
+            var marked = new List<Enemy>();
+            foreach (var e in Enemies.Values)
+                if (e.KatanaShockT > 0f && e.Hp > 0f && !IsSpawning(e))
+                    marked.Add(e);
+            int n = KatanaCaltropCount + 2 * extra;
+            for (int i = 0; i < n; i++)
+            {
+                float a = MathX.Tau * i / n + Rand(-0.15f, 0.15f), r = Rand(60f, 150f);
+                V2 land = ClampToArena(p.Pos + V2.FromAngle(a) * r, 6f);
+                var c = new Caltrop { Owner = p.Id };
+                if (marked.Count > 0)
+                {
+                    c.B = SpawnBullet(Defs.Caltrop, p.Pos, V2.FromAngle(a) * 240f, 0f, 3f, w * KatanaCaltropFlyMult, p.Id);
+                    c.Mode = 2;
+                    c.Target = marked[i % marked.Count].Id;
+                }
+                else
+                {
+                    c.B = SpawnBullet(Defs.Caltrop, p.Pos, (land - p.Pos) / KatanaToss, 0f, KatanaToss + KatanaCaltropLife, w * KatanaCaltropMult, p.Id);
+                    c.B.Tossed = true;
+                    c.B.SlowAmt = KatanaCaltropSlow;
+                }
+                c.B.Pulled = true;  // (the host steers it: its course is sent to every game)
+                caltrops.Add(c);
+            }
+            BroadcastSound(Sfx.KatanaCaltrops);
+            if (marked.Count > 0)
+                BroadcastSound(Sfx.KatanaFling);
+        }
+
+        Enemy NearestEnemy(V2 at)
+        {
+            Enemy best = null;
+            foreach (var e in Enemies.Values)
+                if (!IsSpawning(e) && e.Hp > 0f && (best == null || e.Pos.DistanceSq(at) < best.Pos.DistanceSq(at)))
+                    best = e;
+            return best;
+        }
+
+        /// Host, every tick: the steps' timed cuts, the marks fading, and the caltrops landing and flying.
+        void TickKatanaLater(float dt)
+        {
+            for (int i = 0; i < katanaLater.Count; i++)
+            {
+                var l = katanaLater[i];
+                if ((l.T -= dt) > 0f)
+                    continue;
+                katanaLater.RemoveAt(i--);
+                Player p;
+                if (Players.TryGetValue(l.Owner, out p) && !p.Downed)
+                    l.Run();
+            }
+            foreach (var e in Enemies.Values)
+                if (e.KatanaShockT > 0f)
+                    e.KatanaShockT = Math.Max(0f, e.KatanaShockT - dt);
+            for (int i = caltrops.Count - 1; i >= 0; i--)
+            {
+                var c = caltrops[i];
+                if (!Bullets.ContainsKey(c.B.Id))
+                {
+                    caltrops.RemoveAt(i);
+                    continue;
+                }
+                c.T += dt;
+                if (c.Mode == 0 && c.T >= KatanaToss)
+                {
+                    c.Mode = 1;  // landed: it lies still and hurts what steps on it
+                    c.B.Vel = V2.Zero;
+                    c.B.Tossed = false;
+                }
+                else if (c.Mode == 2)
+                {
+                    Enemy t;
+                    if (!Enemies.TryGetValue(c.Target, out t) || t.Hp <= 0f)
+                    {
+                        t = NearestEnemy(c.B.Pos);
+                        if (t == null)
+                        {
+                            c.B.Life = 0f;
+                            continue;
+                        }
+                        c.Target = t.Id;
+                    }
+                    V2 d = t.Pos - c.B.Pos;
+                    float k = (float)Math.Pow(0.02, dt);
+                    c.B.Vel = c.B.Vel * k + (d.IsZero ? V2.Zero : d.Normalized() * KatanaCaltropSpeed) * (1f - k);
+                }
+            }
+        }
+
+        // --- The switch and the combos' memory ------------------------------------------------------------------------------
+
+        /// Every tick, for every player: the switch's cooldown, and the stance you're in starting over after a while.
         void TickKatana(Player p, float dt)
         {
             p.KatanaSwitchCd = Math.Max(0f, p.KatanaSwitchCd - dt);
-            if (p.Downed)
+            p.KatanaIdle = Math.Min(p.KatanaIdle + dt, 10f);
+            if (p.KatanaIdle > KatanaIdleReset)
             {
-                p.KatanaFlow = 0;
-                return;
-            }
-            if (p.KatanaStance != 0 || p.KatanaFlow == 0)
-                return;  // (Flow only fades while you're in Hayate)
-            p.KatanaFlowT += dt;
-            if (p.KatanaFlowT >= KatanaFlowKeep)
-            {
-                p.KatanaFlow--;
-                p.KatanaFlowT = KatanaFlowKeep - KatanaFlowFall;
+                if (p.KatanaStance == 0)
+                    p.KatanaHay = 0;
+                else
+                    p.KatanaSen = 0;  // (only the stance you're in: the other keeps its place)
             }
         }
 
+        /// The switch: the stance turns over at once and the step you're in stops (what hasn't landed of it never does).
+        void HostKatanaSwitch(Player p)
+        {
+            if (p.Weapon.Id != WeaponId.Katana || p.Downed || p.StunT > 0f || p.KatanaSwitchCd > 0f)
+                return;
+            p.KatanaStance = (byte)(p.KatanaStance ^ 1);
+            p.KatanaSwitchCd = KatanaSwitchCd - 0.05f;  // (a little slack for the trip from a guest's game, which keeps the real cooldown)
+            p.KatanaIdle = 0f;
+            p.FireCd = 0f;
+            p.TapQueued = false;
+            pendingSwings.RemoveAll(s => s.Owner == p.Id && s.KatanaMove > 0);
+            katanaLater.RemoveAll(l => l.Owner == p.Id);
+            BroadcastFx(FxKind.KatanaStanceFx, p.Pos, new V2(p.Id, p.KatanaStance), p.KatanaStance == 0 ? KatanaSteel : KatanaRose, 42f, 0.3f, Sfx.KatanaStanceSwap);
+        }
+
         /// The Katana and Bo Staff fire on their own timing: a press during a step is remembered and starts the next step the
-        /// moment this one ends. With the Katana's stance meter full only a press attacks (holding fire spends the meter: your
-        /// own game, LocalKatana), and nothing does during a Kage Chain or Zanshin.
+        /// moment this one allows it.
         void TickKatanaFire(Player p)
         {
             bool pressed = p.Firing && !p.WasFiring;
             p.WasFiring = p.Firing;
             if (pressed)
                 p.TapQueued = true;
-            bool katana = p.Weapon.Id == WeaponId.Katana;
-            if (p.ParryActive || State == MatchState.GameOver || katana && KatanaBusy(p))
+            if (p.ParryActive || State == MatchState.GameOver)
             {
                 p.TapQueued = false;
                 return;
             }
-            bool held = p.Firing && !(katana && KatanaMeterFull(p));
-            if ((held || p.TapQueued) && p.FireCd <= 0f)
+            if ((p.Firing || p.TapQueued) && p.FireCd <= 0f)
             {
                 p.TapQueued = false;
                 p.FireCd = p.Weapon.FireInterval / FireRate(p);  // (the step sets its own, in FireNinjaWeapon)
@@ -211,9 +430,9 @@ namespace Arena
             }
         }
 
-        /// Raising the parry is an animation cancel for weapons that attack in a fixed order: the chain goes back to its first
-        /// step, the wait for the next step is cleared, and an attack that hasn't landed yet never does. Builds you have earned
-        /// (the Katana's meters and Flow, the Rapier's streak) are left alone. Called on the host.
+        /// Raising the parry is an animation cancel for weapons that attack in a fixed order: the wait for the next step is
+        /// cleared and an attack that hasn't landed yet never does. Builds you have earned (the Rapier's streak) are left alone.
+        /// The Katana keeps both combos' places. Called on the host.
         void ResetAttackChains(Player p)
         {
             if (p.Weapon.Id == WeaponId.BoStaff)
@@ -258,304 +477,66 @@ namespace Arena
             }
             if (p.Weapon.Id != WeaponId.Katana)
                 return;
-            p.KatanaStep = 0;  // the next swipe is the first again, and the wait for it is gone (a dash already thrown still lands)
             p.FireCd = 0f;
             p.TapQueued = false;
+            katanaLater.RemoveAll(l => l.Owner == p.Id);
         }
-
-        // --- The Kage Chain and Zanshin: who they cut, and where they take you ----------------------------------------------
-
-        /// The enemies a Kage Chain (the `max` nearest, each from the last) or Zanshin (every marked enemy, in the same order)
-        /// cuts, from `from`.
-        List<Enemy> KatanaTargets(V2 from, bool zan, int max)
-        {
-            var pool = new List<Enemy>();
-            foreach (var e in Enemies.Values)
-                if (!IsSpawning(e) && e.Hp > 0f && (!zan || e.KatanaMarks > 0))
-                    pool.Add(e);
-            var list = new List<Enemy>();
-            V2 at = from;
-            while (pool.Count > 0 && list.Count < max)
-            {
-                int best = 0;
-                for (int i = 1; i < pool.Count; i++)
-                    if (pool[i].Pos.DistanceSq(at) < pool[best].Pos.DistanceSq(at))
-                        best = i;
-                var e = pool[best];
-                pool.RemoveAt(best);
-                list.Add(e);
-                at = e.Pos;
-            }
-            return list;
-        }
-
-        /// Where each hop ends: just past each enemy, on the far side from where the hop began.
-        List<V2> KatanaHopPoints(V2 from, List<Enemy> targets, float bodyR)
-        {
-            var hops = new List<V2>();
-            V2 at = from;
-            foreach (var e in targets)
-            {
-                V2 d = e.Pos - at;
-                V2 dir = d.IsZero ? new V2(1f, 0f) : d.Normalized();
-                at = ClampToArena(e.Pos + dir * (e.Radius + KatanaHopPast), bodyR);
-                hops.Add(at);
-            }
-            return hops;
-        }
-
-        int KatanaKageMax(Player p) => KatanaKageHops + ExtraShots(p);
 
         // --- Your own screen ---------------------------------------------------------------------------------------------
 
-        /// Your own game, every tick: your dashes, the switch on the weapon-action key, the hold that spends a full meter, and
-        /// the hops of a Kage Chain or Zanshin. Returns true while the Katana is out (nothing else uses the key then).
-        bool LocalKatana(Player me, V2 aimAt, bool pressed, bool fireHeld, float dt)
+        /// Your own game, every tick: each step that moves you (a dash, Tsumuji's, Engetsu's step), the Burst's plant, and the
+        /// switch on the weapon-action key. Returns true while the Katana is out (nothing else uses the key then).
+        bool LocalKatana(Player me, V2 aimAt, bool pressed, float dt)
         {
             katanaSwitchLocalCd = Math.Max(0f, katanaSwitchLocalCd - dt);
+            katanaPlantT = Math.Max(0f, katanaPlantT - dt);
             bool katana = me.Weapon.Id == WeaponId.Katana;
-            KatanaLocalSounds(me, katana);
             if (!katana)
                 katanaDashesSeen = me.KatanaDashes;  // (picking the Katana up never replays an old count)
-            // A dash thrown (the host counts them): you dash along it, on your own screen like every move.
             if (me.KatanaDashes != katanaDashesSeen)
             {
                 katanaDashesSeen = me.KatanaDashes;
-                if (katana && !me.Downed && me.StunT <= 0f && katanaLocal == null)
+                int code = me.KatanaStep;
+                if (katana && !me.Downed && me.StunT <= 0f)
                 {
-                    V2 dir = V2.FromAngle(me.Aim);
-                    V2 to = ClampToArena(me.Pos + dir * KatanaDashReach(me), me.Def.BodyR);
-                    dashSpeed = KatanaDashReach(me) / KatanaDashTime;
-                    DashDir = dir;
-                    DashT = to.DistanceTo(me.Pos) / dashSpeed;
+                    float move = KatanaStepMove(code);
+                    if (code == 3)
+                    {
+                        katanaPlantT = KatanaPlant;  // the Burst: planted a moment
+                        DashT = 0f;
+                    }
+                    else if (move > 0f)
+                    {
+                        V2 dir = V2.FromAngle(me.Aim + KatanaStepTurn(code, me.KatanaDashes));
+                        float len = MeleeReach(me, move), time = KatanaStepTime(code);
+                        V2 to = ClampToArena(me.Pos + dir * len, me.Def.BodyR);
+                        dashSpeed = len / time;
+                        DashDir = dir;
+                        DashT = to.DistanceTo(me.Pos) / dashSpeed;
+                    }
                 }
             }
             if (me.Downed || me.StunT > 0f)
             {
-                katanaHoldT = 0f;
-                if (katanaLocal != null)
-                {
-                    katanaLocal = null;
-                    DashT = 0f;
-                }
+                katanaPlantT = 0f;
                 return katana;
             }
-            if (katanaLocal != null)
-            {
-                TickLocalKatanaRun(me, dt);
-                return true;
-            }
             if (!katana)
-            {
-                katanaHoldT = 0f;
                 return false;
-            }
-            if (fireHeld && KatanaMeterFull(me) && !me.Parrying)
-            {
-                katanaHoldT += dt;
-                if (katanaHoldT >= KatanaHoldFire && DashT <= 0f)
-                {
-                    katanaHoldT = 0f;
-                    StartLocalKatanaRun(me);
-                    return true;
-                }
-            }
-            else
-                katanaHoldT = 0f;
-            if (pressed && katanaSwitchLocalCd <= 0f && DashT <= 0f)
+            if (pressed && katanaSwitchLocalCd <= 0f && DashT <= 0f && katanaPlantT <= 0f)
             {
                 katanaSwitchLocalCd = KatanaSwitchCd;
-                SendKatanaDash(DashKatanaStance, aimAt);
+                if (IsHost)
+                    HostWeaponDash(MyId, DashKatanaStance, aimAt);
+                else
+                {
+                    var w = Proto.Begin(Msg.WeaponDash);
+                    w.Write(DashKatanaStance);
+                    w.Write(aimAt);
+                    session.SendToHost(Proto.End(w));
+                }
             }
             return true;
-        }
-
-        void SendKatanaDash(byte kind, V2 at)
-        {
-            if (IsHost)
-                HostWeaponDash(MyId, kind, at);
-            else
-            {
-                var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(kind);
-                w.Write(at);
-                session.SendToHost(Proto.End(w));
-            }
-        }
-
-        void StartLocalKatanaRun(Player me)
-        {
-            bool zan = me.KatanaStance == 1;
-            var targets = KatanaTargets(me.Pos, zan, zan ? int.MaxValue : KatanaKageMax(me));
-            if (targets.Count == 0)
-                return;  // nothing to cut: the meter waits
-            var hops = KatanaHopPoints(me.Pos, targets, me.Def.BodyR);
-            if (zan)
-                hops.Add(me.Pos);  // and back to where you stood
-            katanaLocal = new LocalRun { Zan = zan, Hops = hops, Total = zan ? KatanaZanTotal(targets.Count) : targets.Count * KatanaKageHop };
-            DashT = 0f;
-            SendKatanaDash(zan ? DashKatanaZan : DashKatanaKage, me.Pos);
-        }
-
-        /// One hop at a time, each a dash to its point; Zanshin then holds you still through the sheathe.
-        void TickLocalKatanaRun(Player me, float dt)
-        {
-            var r = katanaLocal;
-            r.T += dt;
-            if (DashT > 0f)
-                return;
-            if (r.Next < r.Hops.Count)
-            {
-                bool back = r.Zan && r.Next == r.Hops.Count - 1;
-                float hop = r.Zan ? (back ? KatanaZanBack : KatanaZanHop) : KatanaKageHop;
-                V2 d = r.Hops[r.Next] - me.Pos;
-                float len = d.Length;
-                DashDir = len > 1f ? d / len : V2.Zero;
-                DashT = hop;
-                dashSpeed = len / hop;
-                r.Next++;
-                return;
-            }
-            if (!r.Zan || r.T >= r.Total)
-                katanaLocal = null;
-        }
-
-        /// Your own screen only, never sent: the stance's meter filling.
-        void KatanaLocalSounds(Player me, bool katana)
-        {
-            bool full = katana && !me.Downed && KatanaMeterFull(me);
-            if (full && !katanaFullSeen)
-                Sounds.Add(me.KatanaStance == 0 ? Sfx.KatanaReady : Sfx.KatanaEmpReady);
-            katanaFullSeen = full;
-        }
-
-        // --- The host: the switch, the Kage Chain and Zanshin -------------------------------------------------------------
-
-        /// A Katana move asked for on the weapon-action key or by holding fire (Msg.WeaponDash).
-        void HostKatanaDash(Player p, int kind)
-        {
-            if (p.Weapon.Id != WeaponId.Katana || p.Downed || p.StunT > 0f || KatanaBusy(p))
-                return;
-            if (kind == DashKatanaStance)
-            {
-                HostKatanaSwitch(p);
-                return;
-            }
-            bool zan = kind == DashKatanaZan;
-            if (zan != (p.KatanaStance == 1) || !KatanaMeterFull(p))
-                return;
-            var targets = KatanaTargets(p.Pos, zan, zan ? int.MaxValue : KatanaKageMax(p));
-            if (targets.Count == 0)
-                return;
-            var run = new KatanaRun { Owner = p.Id, Zan = zan, Start = p.Pos, Hops = KatanaHopPoints(p.Pos, targets, p.Def.BodyR) };
-            foreach (var e in targets)
-                run.Targets.Add(e.Id);
-            run.Total = zan ? KatanaZanTotal(targets.Count) : targets.Count * KatanaKageHop;
-            if (zan)
-            {
-                p.KatanaZan = 0;
-                foreach (var e in targets)
-                    if (!e.Def.IsBoss)
-                        e.FrozenT = Math.Max(e.FrozenT, run.Total);  // the marked hold still until the cut falls
-            }
-            else
-                p.KatanaKage = 0;
-            p.InvulnT = Math.Max(p.InvulnT, run.Total + 0.15f);
-            katanaRuns.Add(run);
-            BroadcastSound(Sfx.KatanaStance);
-        }
-
-        /// The switch: the stance turns over and a small burst pushes nearby enemies back. Nothing else.
-        void HostKatanaSwitch(Player p)
-        {
-            if (p.KatanaSwitchCd > 0f)
-                return;
-            p.KatanaStance = (byte)(p.KatanaStance ^ 1);
-            p.KatanaSwitchCd = KatanaSwitchCd - 0.1f;  // (a little slack for the trip from a guest's game, which keeps the real cooldown)
-            p.FireCd = Math.Max(p.FireCd, KatanaSwitchTime);
-            p.TapQueued = false;
-            p.KatanaFlowT = Math.Min(p.KatanaFlowT, KatanaFlowKeep - KatanaFlowFall);
-            foreach (var e in Enemies.Values)
-            {
-                if (IsSpawning(e) || e.Hp <= 0f || Heavy(e))
-                    continue;
-                V2 d = e.Pos - p.Pos;
-                float dist = d.Length;
-                if (dist > KatanaSwitchRadius + e.Radius)
-                    continue;
-                KnockEnemy(e, (dist > 1f ? d / dist : V2.FromAngle(p.Aim)) * KatanaSwitchPush);
-            }
-            // Pos2: who switched and to which stance; Radius: the burst's reach (Game/KatanaLook.cs).
-            BroadcastFx(FxKind.KatanaStanceFx, p.Pos, new V2(p.Id, p.KatanaStance), p.KatanaStance == 0 ? KatanaSteel : KatanaRose, KatanaSwitchRadius, 0.5f, Sfx.KatanaStanceSwap);
-        }
-
-        /// Host: the Kage Chain's cuts land one hop at a time; Zanshin's all fall as the blade is sheathed.
-        void TickKatanaRuns(float dt)
-        {
-            for (int i = katanaRuns.Count - 1; i >= 0; i--)
-            {
-                var r = katanaRuns[i];
-                r.T += dt;
-                Player p;
-                if (!Players.TryGetValue(r.Owner, out p) || p.Downed)
-                {
-                    katanaRuns.RemoveAt(i);
-                    continue;
-                }
-                float hop = r.Zan ? KatanaZanHop : KatanaKageHop;
-                while (r.Done < r.Targets.Count && r.T >= (r.Done + 1) * hop)
-                {
-                    V2 from = r.Done == 0 ? r.Start : r.Hops[r.Done - 1], to = r.Hops[r.Done];
-                    // Each hop's streak: the Kage Chain's fades quickly, Zanshin's hang in the air until the cuts fall.
-                    float left = r.Zan ? r.Total - r.T + 0.45f : 0.6f;
-                    BroadcastFx(FxKind.KatanaHop, from, to, (r.Zan ? KatanaRose : KatanaSteel).WithAlpha(r.Zan ? 1f : 0.5f), p.Id, left,
-                        KatanaHopSfx[Math.Min(KatanaHopSfx.Length - 1, r.Done)]);
-                    if (!r.Zan)
-                        KatanaCutEnemy(p, r.Targets[r.Done], (to - from).Normalized(), w => w.Damage * KatanaKageMult, KatanaSteel, true);
-                    r.Done++;
-                }
-                if (!r.Zan)
-                {
-                    if (r.Done >= r.Targets.Count)
-                        katanaRuns.RemoveAt(i);
-                    continue;
-                }
-                if (!r.Sheathed && r.T >= r.Total - KatanaZanSheathe)
-                {
-                    r.Sheathed = true;
-                    BroadcastSound(Sfx.KatanaSheathe);
-                }
-                if (r.T < r.Total)
-                    continue;
-                // The click: every marked enemy takes a cut per mark, and the shots near you fall.
-                katanaRuns.RemoveAt(i);
-                for (int k = 0; k < r.Targets.Count; k++)
-                {
-                    Enemy e;
-                    if (!Enemies.TryGetValue(r.Targets[k], out e))
-                        continue;
-                    int marks = Math.Max(1, (int)e.KatanaMarks);
-                    e.KatanaMarks = 0;
-                    e.FrozenT = 0f;
-                    V2 from = k == 0 ? r.Start : r.Hops[k - 1];
-                    KatanaCutEnemy(p, e.Id, (r.Hops[k] - from).Normalized(), w => w.Damage * KatanaZanMult * marks, KatanaRose, k == 0);
-                }
-                CutBulletsInCircle(p.Pos, KatanaZanCutRange, true);
-                BroadcastSound(Sfx.KatanaEmpStrikeCut);
-            }
-        }
-
-        /// One cut from a Kage Chain or Zanshin: its damage (through the usual on-hit pipeline) and its KatanaCut effect.
-        void KatanaCutEnemy(Player p, int id, V2 dir, Func<WeaponDef, float> baseDmg, Rgba col, bool blowSound)
-        {
-            Enemy e;
-            if (!Enemies.TryGetValue(id, out e) || IsSpawning(e) || e.Hp <= 0f)
-                return;
-            float hit = baseDmg(p.Weapon) * p.Stats.DmgMult;
-            hit *= NinjaHitMult(p.Id, Defs.KnightSlash, e);  // Vanish's ambush (Ninja.cs)
-            HurtEnemy(e, hit, p.Id);
-            OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = hit, Kind = Defs.KnightSlash }, e);
-            BroadcastFx(FxKind.KatanaCut, e.Pos, dir, col.WithAlpha(e.Hp <= 0f ? 1f : 0.5f), e.Radius, 0.9f, blowSound ? Sfx.KatanaBlow : Sfx.None);
         }
     }
 }

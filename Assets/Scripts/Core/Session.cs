@@ -106,7 +106,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 240;  // 240: Enemy.Cells (a bubble's twelve cells in the enemy snapshot, Variety.cs); 239: LobbyEntry.XpPct/BestWave/Kills/BossKills (the inspect card's records, in Msg.Cosmetics and Msg.Lobby); 238: Msg.Respawn (the Practice Range's respawn and restart wave, PracticeRespawn.cs); 237: Player.Wound in the snapshot (Combat.cs); 236: main (235) merged with the Rooms arena (233-234: DiffKnob.ArenaRooms, the layout byte's top bit, SyncRooms)
+        public const int ProtocolVersion = 241;  // 241: Enemy.Cells (a bubble's twelve cells in the enemy snapshot, Variety.cs); 240: the Katana's stance combos (Player.KatanaHay/Sen, Enemy.KatanaShocked, Defs.Caltrop, four FxKinds, three Sfx); 239: LobbyEntry.XpPct/BestWave/Kills/BossKills (the inspect card's records, in Msg.Cosmetics and Msg.Lobby); 238: Msg.Respawn (the Practice Range's respawn and restart wave, PracticeRespawn.cs); 237: Player.Wound in the snapshot (Combat.cs); 236: main (235) merged with the Rooms arena (233-234: DiffKnob.ArenaRooms, the layout byte's top bit, SyncRooms)
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
