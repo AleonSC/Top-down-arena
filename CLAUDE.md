@@ -31,6 +31,9 @@ no Unity in the cloud container: check changes with the tools below.
 - Ask every question to the owner through the in-chat question box (`AskUserQuestion`), never as plain text or an artifact form. Batch related questions into one box. Ask before deleting code.
 - The Bestiary and Armory web pages are gone. The in-game Field guide (`FieldGuide.cs`) replaces them: the Armory
   reads the game's definitions, the Bestiary text is hand-edited in `BestiaryData.Entries.cs` / `BestiaryData.cs`.
+- **Keep the session title current** with `set_session_title`: a short task name plus the current phase in
+  brackets, updated as the phase changes, e.g. "Implement Lancer class (thinking)" → "(planning)" → "(coding)" →
+  "(testing)" → "(merging)" → "(done)".
 - There is no to-do file. Say in the final report what needs a try in Unity ("check in Unity").
 
 ## How the owner works
