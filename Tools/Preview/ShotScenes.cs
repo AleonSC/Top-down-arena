@@ -911,6 +911,36 @@ static partial class Shot {
         me.StunT = Math.Max(0.1f, Game.StunTime - since);
       }
     }
+    if (Environment.GetEnvironmentVariable("SECURITY") != null) {
+      // The Security Guard (SECURITY=<s since the lock-on began>, 0.25 fills the lane): one locking on (red lane, reticle), one that just fired
+      // (kick, flash, a brass casing, a tracer in flight over a field of bullets), one reloading half way, one ready, one empty. Set beside
+      // Docs/Mockups/security-guard.html. Draws once to start the lane and the casing, then moves the clock on. Mode hud.
+      var sbt = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      var set = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var sg = host.Game; sg.Enemies.Clear(); sg.Bullets.Clear(); sg.Bot = false;
+      me.Pos = me.Disp = new V2(780f, 470f);
+      Func<V2, byte, float, Enemy> sec = (at, ammo, seen) => { var en = (Enemy)set.Invoke(sg, new object[] { EnemyType.SecurityGuard, at, 0f, 0, false }); en.SpawnT = 0f; en.Disp = en.Pos; en.Facing = (me.Pos - at).Angle; en.Phase = en.SeenPhase = ammo; en.SeenT = seen; return en; };
+      var sa = sec(new V2(520f, 470f), 4, 2f); sa.Winding = true;
+      var sb = sec(new V2(620f, 330f), 6, 2f);
+      var sc = sec(new V2(620f, 620f), 0, 1.2f);
+      sec(new V2(450f, 340f), 7, 2f);
+      sec(new V2(450f, 610f), 0, 0.3f);
+      V2 bd = (me.Pos - new V2(700f, 360f)).Normalized();
+      sbt.Invoke(sg, new object[] { Defs.TracerRound, new V2(700f, 360f), bd * Game.SecurityBulletSpeed, 0f, 8f, 12f, 0, false, 0f });
+      var rng = new System.Random(7);
+      for (int k = 0; k < 90; k++) {
+        float a = (float)(rng.NextDouble() * Math.PI * 2), d = 60f + (float)rng.NextDouble() * 420f;
+        V2 at = new V2(800f, 440f) + V2.FromAngle(a) * d;
+        sbt.Invoke(sg, new object[] { Defs.SmallShot, at, V2.FromAngle(a) * 60f, 0f, 8f, 12f, 0, false, 0f });
+      }
+      typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);   // sees the lock-on start and the full magazine
+      sb.Phase = 5; sb.SeenPhase = 5; sb.SeenT = 0.05f;               // ...then a shot: the casing starts
+      typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
+      GL.Tris.Clear(); GUI.Log.Clear();  // (only the mode's own draw goes in the picture)
+      sb.SeenT = 0.05f + float.Parse(Environment.GetEnvironmentVariable("SECURITY"), System.Globalization.CultureInfo.InvariantCulture);
+      sc.SeenT = 1.2f;
+      sg.AnimT += float.Parse(Environment.GetEnvironmentVariable("SECURITY"), System.Globalization.CultureInfo.InvariantCulture);
+    }
     if (Environment.GetEnvironmentVariable("FLANKERS") != null) {
       // The Hive Queen's Swarm bombers: two swooping out to your sides (gold) and two diving in (red-hot).
       var sef = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);

@@ -566,7 +566,7 @@ Runners (in packs of three) and Spitters from wave 32, Crawlers from 33 and Mend
 shift, Grave rush) and a last-wave **Dead march** (six Shamblers, two Menders, three Runners). They don't get back up
 outside the modifier. His fight itself is unchanged. The other bosses' factions come next.
 
-The Warden's faction pays XP like regular enemies of their health (Rioter 7, Guard 15, Riot Shield 10, Gas Grenadier 9, Taser Guard 11),
+The Warden's faction pays XP like regular enemies of their health (Rioter 7, Guard 15, Riot Shield 10, Gas Grenadier 9, Taser Guard 11, Security Guard 9),
 so its tougher approach waves don't leave you levels behind at his wave (about level 4 at Blend). The Rioters and Guards of
 his own riot, on the boss wave, still give 2 and 4.
 
@@ -576,6 +576,7 @@ his own riot, on the boss wave, still give 2 and 4.
 | 1 | **Guard** | A riot guard with a baton, straight at you (contact 14) |
 | 2 | **Riot Shield** | A guard behind a tall shield that stops shots and swings from the front. Up close the shield flashes (0.4 s), then it lunges and **bashes** you: 10 damage and knocked **160 px** back (you can't be bashed again for 0.8 s). It holds the shield low for a second after, when front hits land. The shield holds 4x its health and cracks as it wears; broken, the guard staggers for a second, then flails and takes 50% more damage. Go round it or break it. Squad (wave 3): Cell block (two Riot Shields with Rioters pouring past) |
 | 2 | **Gas Grenadier** | Keeps its distance and lobs a tear-gas canister near you every 3.6 s: a 70 px cloud that settles after 1 s and hurts (8 a second) for 4 s |
+| 2 | **Security Guard** | A guard with a service pistol: slate uniform, hi-vis vest, peaked cap. It holds about 300 px away and strafes, then **plants its feet and locks on for 0.25 s**: a red lane fills on the floor toward where you're heading (it **leads you**, in a straight line from how you're moving) and a reticle closes on the spot. Then one **tracer round** (340 px/s, 7 damage): a hot-white streak with a long tail. Semi-auto, one every 0.8 s, and the aim doesn't follow you once locked, so a sudden turn beats it. Its pips above its head count the **seven rounds** in the magazine; empty, it drops the magazine and **reloads for 2.2 s** (a cream ring fills round it), standing still and not shooting: rush it. Squad (wave 2): Patrol (three Security Guards with two Rioters) |
 | 3 | **Taser Guard** | A guard with a taser that keeps its distance (320 px), plants its feet and **charges for 0.7 s**: a dashed aim line and the prongs crackling, brighter as it nears the shot. Then it fires one **Fork Bolt** straight at you (260 px/s, 8 damage; it doesn't lead you, so strafe across the line): a white lightning glyph that flickers its zigzag 16 times a second, with a fork, among rounder bullets. A hit **stuns you for 1 s** (a flash and six bolts web out from you); a perfect parry sends it back like any shot. One bolt every 3.2 s |
 
 **Bubbles (Shielded elites and the Warder's wards):** a bubble is twelve cells round the rim, each holding a twelfth of the shield. A hit wears down the cell facing whoever shot it (flashing, then breaking into shards) and spills over to its neighbours once that cell is gone, so the side you shoot from is the side that opens. Burning and bleeding keep chewing the weakest cell. A honeycomb inside only shows where its cell is still up, and a thin shield bar sits above the health bar. Blue is a Shielded elite, violet is the Warder's.
@@ -915,7 +916,7 @@ on top (Tough Crowd, Frenzy, Swift Foes, Glass Cannon...).
 
 In the lobby the host picks **Run**, **Boss Hunt** or **Practice** at the top. A Boss Hunt is a short run that ends
 with one boss: **ten waves**. Waves 1-9 bring only the boss's own enemies (its faction: for the Warden, Rioters and
-Guards, then Riot Shields, Gas Grenadiers and Taser Guards, its Breakout and Cell block squads, and its Riot line on waves 5 and
+Guards, then Riot Shields, Gas Grenadiers, Security Guards and Taser Guards, its Breakout, Patrol and Cell block squads, and its Riot line on waves 5 and
 9); wave 10 is the boss, at wave-10 strength. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no
 path offer, no Data Gate, and a hunt isn't saved to continue. Modifiers and the difficulty apply as in a run,
 and so does the boss's health boost for strong builds. The HUD and the Tab screen count the hunt's waves (n / 10).
