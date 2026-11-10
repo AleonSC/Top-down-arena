@@ -128,7 +128,9 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Net.cs`: `NetPeer`, length-prefixed TCP (`BytesIn`/`BytesOut` for the lag chart)
 - `LagStats.cs`, `LagNet.cs`, `Game/LagChartUi.cs`: the lag chart (F5): `LagStats` (30 s strip of quarter-second columns: ping, snapshot gap, frame time, fps, KB/s; stalls, p95, 1% low, quality, marks, the copied summary, the CSV log), `Game.TickLag` (pings 4/s, `Msg.NetPings` with every player's ping, wave/boss/storm marks), the overlay and its Settings row; `Docs/LagChart.md`; test `run.sh 1 1 lag`; preview `LAG=pill|chart|guest Tools/Preview/shot.sh x hud 6 12.2 3`
 - `GameNet.cs`, `NetSync.cs`: all snapshot and input serialisation (one ref pass for read and write)
-- `SessionRecorder.cs`: session JSON recorder (format 3: samples carry each player's nearest enemy and the threats in a 2x-zoom view, Docs/Rooms.md phase 0)
+- `BalanceTest.cs`: the F1 Balance test (`BalanceRun`, `DevStartBalanceTest`): five waves with a fresh recording, then a report
+- `BalanceReport.cs`: `BalanceReport` (tiles, tables, findings) and `SessionRecorder.BuildReport`
+- `SessionRecorder.cs`: session JSON recorder (format 4: damage by source, shots, enemy health, the "test" block; 3: samples carry each player's nearest enemy and the threats in a 2x-zoom view, Docs/Rooms.md phase 0)
 - `RunTimeline.cs`: Records > Recent runs data: `RunTimeline` (a sample of every player's running totals and HP% every 10 s of play: `Rates`, `Series`, `AccuracyPerWave`, text save/load), `RunTimelineStore` (`Profile.Folder/runs/<id>.run`, newest `Profile.RecentKept` kept), and the `Game` sampler (`TickRunTimeline` from `FixedStep`, `FinishTimeline` from the run's End record in `RunSaves.cs`). `RankLog` (in `Profile.cs`) carries the run's class, mode, time, damage and the file name
 - `Replay.cs`: replays: `ReplayFile` (.replay: header, marks, frame lengths, every host message), `ReplayRecorder` (fed by `Session.Broadcast` and `Game.FixedStep`), `ReplayPlayer` (a private client-mode `Session` that reads the messages; seek, step, speeds)
 
@@ -167,7 +169,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `NimbusLook.cs`, `ChalkLook.cs`: the Nimbus's cloud, rain and lightning; Spirit Chalk's ink, sealed loops and the ring on penned enemies
 - `ShotLooks.cs`, `Juice.cs`, `Ambience.cs`: weapon shot looks, screen shake/particles/glow, weather and trails
 - `CameraZoom.cs`: scroll-wheel zoom (1x to 2x on you, focus held inside the arena; Settings → Gameplay), `ZoomPoint`/`UnzoomPoint` used by `Px`, `ToUi` and `MouseArena`, `UiWorldScale` for HUD sizes around world things
-- `OffscreenMarkers.cs`: while zoomed, edge arrows to off-screen teammates (colour + name, red when downed) and enemies (nearest 40, bosses always), drawn in `DrawHud`
+- `OffscreenMarkers.cs`: while zoomed, edge arrows to off-screen teammates (colour + name, red when downed) and enemies (nearest 40, bosses always) and unopened treasure chests (gold), drawn in `DrawHud`
 - `CameraLean.cs`: the camera lean (view eases toward your aim and movement, 50% of 5% of the arena; Settings → Gameplay), `ToUi` for labels placed from a world position
 - `MeleeLooks.cs`: melee attacks with Visual effects on: the weapon model swinging through a glowing arc (style E); the held poses (`MeleeRest`; the Kusarigama and Blood Lash held with arms, `DrawMeleeHeldIdle`), each swing's return into them (`DrawSwingModel`) and the hand-over (`MeleeSwingShowing`)
 - `BearLooks.cs`: the Bear Totem: a claw on each hand, claw trails, the Bear companion, claw scars on bleeding enemies
@@ -261,6 +263,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 ## Dev tools and editors (Game)
 - `DpsMeterUi.cs`: F2 DPS meter overlay and the F1 DPS tab
 - `ReplayUi.cs`: F1 Replays tab (record, folder, list, rename, delete) and the replay timeline bar; `Core/Replay.cs` is the file, recorder and player
+- `BalanceTestUi.cs`: F1 > Balance tab, the TEST strip and the report screen
 - `DevMenu.cs`, `DevTextEdit.cs`, `BossLabUi.cs`, `WaveEditorUi.cs`: F1 tools, F4 text edit, Boss Lab, F1 wave editor
 - `PracticeUi.cs`: the lobby's Practice tab (CRT look A of `Docs/Mockups/crt-practice-redesign.html`: wave rack, enemy grid, setup files); `TrainingUi.cs`: the Training tab (drill cartridges by group, detail, Load this drill, the training folder); `PracticeDownedUi.cs`: the Practice Range's DOWNED window with Respawn, Restart wave and Back to lobby
 - `../Editor/ArenaEditor.cs`: scene setup and Windows build menu item

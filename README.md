@@ -1030,10 +1030,10 @@ The file is a Practice setup with a few extra lines first, and is documented in 
 | Developer tools | F1 (see below) |
 | Kill every enemy on the field (dev, host) | X, once the F1 Match tab's kill-all key is on |
 | Camera lean on / off | Settings → Gameplay (on by default). The view eases a few percent toward where you aim and move; the arena and wrapping are unchanged |
-| Zoom in / out | Mouse scroll wheel during a match: up zooms in on you (up to 2x, the view follows you and stays inside the arena), down zooms back out to the whole arena. Eases back out when a run ends. While zoomed, arrows at the edge of the view point to everything off-screen: teammates in their colour with their name (pulsing red when downed), enemies in red (elites orange, bosses a big crimson arrow with a ring); nearer ones are bigger. Settings → Gameplay → Scroll-wheel zoom turns it off (on by default) |
+| Zoom in / out | Mouse scroll wheel during a match: up zooms in on you (up to 2x, the view follows you and stays inside the arena), down zooms back out to the whole arena. Eases back out when a run ends. While zoomed, arrows at the edge of the view point to everything off-screen: teammates in their colour with their name (pulsing red when downed), enemies in red (elites orange, bosses a big crimson arrow with a ring), and any unopened treasure chest in a pulsing gold arrow with a ring (also a gold square on the Rooms minimap); nearer ones are bigger. Settings → Gameplay → Scroll-wheel zoom turns it off (on by default) |
 | Teammate shots 25–100% | Settings → Gameplay (100% by default). How solid other players' bullets are drawn, so a crowd of them doesn't hide the fight; yours and the enemies' stay full. Local only, saved on your machine |
 | Aim line on / off | V (the line runs from you to the crosshair, but never past your weapon's range: as far as your shots fly, or your swing reaches; a small cap marks the end when the crosshair is beyond it) |
-| Hide / show the HUD | H, or Settings > Gameplay; the mode is remembered between launches (H cycles four modes: Full, Corner text (CRT phosphor readouts in bracket corners: health with a 20-cell bar bottom-left, each ability key over its seconds left (the ult's charge %) and its name at the bottom, the wave and enemies left top-right), On the player (a leader line from you to a small CRT tag with your health, a cell bar and a row per ability: its key, its name and its seconds left, green when ready, the ult's charge in gold; it switches sides near the left wall and the top, and hides while you're downed; the wave and enemies left at the top), Hidden; it slides away and fades, "Press H to show the HUD" stays faintly at the bottom while it's hidden, and a slim health bar for each boss stays at the top in every mode but Full; also a Settings choice) |
+| Hide / show the HUD | H, or Settings > Gameplay; the mode is remembered between launches (H cycles four modes: Full, Corner text (CRT phosphor readouts in bracket corners: health with a 20-cell bar bottom-left (teammates' health in slim rows above it), each ability key over its seconds left (the ult's charge %) and its name at the bottom, the wave and enemies left bottom-right, so the minimap keeps the top right), On the player (a leader line from you to a small CRT tag with your health, a cell bar and a row per ability: its key, its name and its seconds left, green when ready, the ult's charge in gold; it switches sides near the left wall and the top, and hides while you're downed; the wave and enemies left at the top), Hidden; it slides away and fades, "Press H to show the HUD" stays faintly at the bottom while it's hidden, and a slim health bar for each boss stays at the top in every mode but Full; also a Settings choice) |
 | Aim debug overlay | F3 |
 | Lag chart: off / pill / chart; freeze it; copy a summary | F5; Shift+F5; Ctrl+F5 (also Settings → Gameplay; see *Lag chart*, under *Playing with a friend*) |
 | DPS meter on / off (host); reset it | F2; Shift+F2 (see *DPS meter and target dummy*, below) |
@@ -1549,6 +1549,18 @@ the bottom of them shows what's on (wave, recording, bot, aim debug, players):
   **Rank 30** (every reward), **Max rank** (999) and **Reset** (rank 1). Cosmetics the new rank hasn't reached come off.
 - **DPS (host, in a match):** the DPS meter and target dummies, below.
 - **Replays:** record the runs you host and watch them back, below.
+- **Balance (host, in a normal run):** a five-wave test with your own build. Pick your loadout as usual, start a run, press
+  F1 > Balance, choose the **start wave** (1, 6, 11 ... 26), **who plays** (you, or the bot with your build for repeatable
+  runs), whether health refills between waves and whether to sample every second, then **Launch test**. It jumps to
+  that wave and starts a fresh recording; a small TEST strip with the wave pips shows at the top while it runs. When the fifth
+  wave clears (or you press **End test now**, or everyone goes down) a report opens: six tiles (result, time, damage dealt,
+  damage taken, downs, accuracy), tabs for **Waves**, **Weapons and abilities** (damage by source: your weapon, each ability's
+  own hit, burn/bleed/poison, ability and summon shots, and the rest), **Ability use**, **Enemies** (health, time alive, damage
+  to you), **Damage taken** and **Picks**, and a list of automatic **findings** (a source with most of the damage, an enemy
+  that hurts far more than it appears, a long-lived enemy, low accuracy). **Copy summary** puts it on the clipboard and
+  **Open logs folder** opens the `balance` folder, which holds one JSON file per test (session format 4, summarised by
+  `Tools/SessionReport`). Tests never count in Records, XP or ranks. Damage from zones, minions and other lasting effects
+  can't be traced to the cast that made it and shows as "Other". Design and fields: `Docs/BalanceTest.md`.
 
 ### Replays (F1)
 
