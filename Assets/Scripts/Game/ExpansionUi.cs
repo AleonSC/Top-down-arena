@@ -69,11 +69,13 @@ namespace Arena
         // --- The shop room ------------------------------------------------------------------------------------
 
         /// The shop covers your screen: in the Expanding arena, only while you stand in a shop room (and haven't clicked Done).
-        bool ShopScreenUp(Player me) => game.ShopOpen && me != null && (!game.ExpandingOn || !game.HasShopRoom || game.InShopRoom(me) && !me.ShopDone);
+        bool ShopScreenUp(Player me) => game.ShopOpen && me != null && (!game.ServiceRooms || game.InServiceRoom(me) && !me.ShopDone);
 
         /// The shop is open but you're not in a shop room: a banner and a way to skip it.
         void DrawShopRoomHint(Player me)
         {
+            if (game.ServiceRooms)
+                return;  // (the room shops hold nothing up: the HUD chip says they're open)
             Ui.Alpha = 1f;
             bool calm = CabCalm;
             float dy = 0f;
@@ -340,6 +342,21 @@ namespace Arena
         // --- Vector chip --------------------------------------------------------------------------------------
 
         /// Under the wave plate: your vectors and the most you can hold. True if it drew (the next chip goes a line up).
+        /// The room shops are open this intermission: a chip that says where to walk.
+        bool DrawServiceChip(float x, float y)
+        {
+            var me = game.Me;
+            if (!game.ShopOpen || !game.ServiceRooms || me == null || me.ShopDone)
+                return false;
+            string text = "SHOP OPEN  ·  " + me.Gold + " GOLD  ·  walk into the " + (game.HasShopRoom && game.HasVendorRoom ? "shop or vendor room" : game.HasShopRoom ? "shop room" : "vendor room");
+            float w = 30f + text.Length * 6.2f;
+            var chip = new Rect(x, y, w, 20f);
+            Ui.Pill(chip, new Color(0f, 0f, 0f, 0.55f));
+            Ui.Fill(new Rect(chip.x + 3f, chip.y + 4f, 3f, chip.height - 8f), Ui.Gold);
+            Ui.Label(new Rect(chip.x + 12f, chip.y, w, chip.height), text, 10, Ui.Gold, TextAnchor.MiddleLeft, true);
+            return true;
+        }
+
         bool DrawVectorChip(float x, float y)
         {
             var me = game.Me;

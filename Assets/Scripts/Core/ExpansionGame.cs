@@ -109,6 +109,52 @@ namespace Arena
             }
         }
 
+        /// A vendor room is on the connected map.
+        public bool HasVendorRoom
+        {
+            get
+            {
+                foreach (var a in ExpansionWorld.Areas)
+                    if (a.Kind == Arena.RoomKind.Vendor && !a.Sealed)
+                        return true;
+                return false;
+            }
+        }
+
+        /// The Expanding arena has a shop or vendor you can walk into: kills drop gold, the shop opens in each intermission without holding the
+        /// countdown, your gold and shelf are kept between waves, and what you can do depends on the room you stand in.
+        public bool ServiceRooms => ExpandingOn && (HasShopRoom || HasVendorRoom);
+
+        /// The shop is open and the wave has to wait for it (the Bazaar and Gold Rush shops; the room shops never hold the countdown).
+        public bool ShopBlocksWave => ShopOpen && !ServiceRooms;
+
+        public bool InVendorRoom(Player p)
+        {
+            var a = ExpandedAreaAt(p.Disp);
+            return a.HasValue && a.Value.Kind == Arena.RoomKind.Vendor;
+        }
+
+        public bool InServiceRoom(Player p) => InShopRoom(p) || InVendorRoom(p);
+
+        /// In a room shop, upgrades and restocks are bought in the shop room and heals, revives and removals at the vendor.
+        bool ServiceAllowed(Player p, ShopAction action)
+        {
+            if (!ServiceRooms)
+                return true;
+            switch (action)
+            {
+                case ShopAction.Buy:
+                case ShopAction.Restock:
+                    return InShopRoom(p);
+                case ShopAction.Heal:
+                case ShopAction.Revive:
+                case ShopAction.Remove:
+                    return InVendorRoom(p);
+                default:
+                    return true;
+            }
+        }
+
         /// The room this point is in, if the Expanding map is up (else null).
         RoomArea? ExpandedAreaAt(V2 pos)
         {

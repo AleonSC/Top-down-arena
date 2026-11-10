@@ -1,6 +1,6 @@
 # Floating rooms and themed rooms: paths, shops, vendors and the Gatekeeper in the Expanding arena
 
-Status: **step 1 built** (floating rooms exist, are sealed, connect and show; the vendor and the Gatekeeper do nothing yet); steps 2-5 not started. Decided with the owner on Nov 10, 2026 (one idea from a friend: shops and vendors in "floating rooms"
+Status: **steps 1-2 built** (floating rooms exist, are sealed, connect and show; shop and vendor rooms work; the Gatekeeper does nothing yet); steps 3-5 not started. Decided with the owner on Nov 10, 2026 (one idea from a friend: shops and vendors in "floating rooms"
 you have to build to). It builds on [`ExpandingArena.md`](ExpandingArena.md) and [`VectorBuilding.md`](VectorBuilding.md) (all built).
 
 ## Decisions (owner)
@@ -57,6 +57,14 @@ you have to build to). It builds on [`ExpandingArena.md`](ExpandingArena.md) and
   screen show them as ghosts with their names. Previews: `EXPANDFLOAT=1` with `EXPANDMAP` or `EXPANDVOTE`.
 - Tests (suite `expand`): determinism, clearance and caps over 80 seeds, sealed rooms have no doors, a lone touch is refused, a connecting hallway opens a room,
   a boss cycle places a shop and the Gatekeeper on both screens with no crowd and no spawns.
+
+## Step 2 (built, no protocol change)
+
+- With a connected shop or vendor room (`Game.ServiceRooms`) kills drop gold and the shop opens in **every** intermission, without holding the
+  countdown (`ShopBlocksWave`); it closes as the wave starts. The shelf is rolled once a boss cycle; gold and shelf are kept between waves.
+- Upgrades and restocks are bought only in the **shop room**; heals, revives and removals only at the **vendor** (checked on the host,
+  greyed out on the client). Done, Give and Close work anywhere. Bots don't walk to them (they mark Done).
+- HUD chip "SHOP OPEN · walk into the room"; the shop screen opens when you stand in either room.
 
 ## Open questions (defaults in bold)
 

@@ -794,7 +794,10 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   off the map, each a sealed box with no door, marked on the arena floor, the minimap and the draw screen. Draw a room or hallway that shares 3
   tiles of wall with one and its door opens (a box touching only a floating room is refused: it must also touch the connected map). At most 4
   wait at once, they don't count towards the 24-room cap, add no enemies and no spawns, and a floating shop counts as a shop once it's opened.
-  (The vendor and the Gatekeeper do nothing yet.)
+  (The Gatekeeper does nothing yet.)
+- **Shop and vendor rooms**: with one connected, kills drop gold and the shop opens every intermission without holding the countdown. Buy
+  upgrades and restock in the **shop room**; heal, revive and remove upgrades at the **vendor**. Gold and your shelf carry over between waves
+  (the shelf is new each boss cycle).
 - **Obstacles**: a built room comes with obstacles and bars of wall (pillars, bars, an L, blocks: one per ~220,000 px2, up to 4),
   laid out from the room's own box so every machine builds the same ones. They keep off the room's walls, its doors and its middle,
   so you can always walk round them; hallways stay clear.

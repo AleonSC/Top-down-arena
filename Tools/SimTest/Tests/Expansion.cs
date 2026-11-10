@@ -467,6 +467,7 @@ static partial class Program
         add(500, 900, 600, 600, RoomKind.Floor, PathId.FrozenLake);          // 3: south
         add(-600, 300, 600, 300, RoomKind.Floor, PathId.BloodMoon);          // 4: west
         add(1600, 600, 600, 300, RoomKind.Floor, PathId.EliteGauntlet);      // 5: south-east (touches the shop and the hub: a loop)
+        add(500, -1200, 600, 600, RoomKind.Vendor, PathId.None);             // 6: north of the north room
         foreach (var gg in new[] { g, cg })
         {
             gg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
@@ -474,7 +475,7 @@ static partial class Program
         }
         pickRooms.Invoke(g, null);
         Run(s, dt, 0.3f);
-        Check(g.RoomsOn && g.CurrentWorld.Areas.Length == 6 && g.HasShopRoom, "the map with a shop room and four floors is up");
+        Check(g.RoomsOn && g.CurrentWorld.Areas.Length == 7 && g.HasShopRoom && g.HasVendorRoom, "the map with a shop room and four floors is up");
         V2 shopAt = g.CurrentWorld.Areas[1].Mid, fireAt = g.CurrentWorld.Areas[2].Mid, iceAt = g.CurrentWorld.Areas[3].Mid, bloodAt = g.CurrentWorld.Areas[4].Mid, eliteAt = g.CurrentWorld.Areas[5].Mid, hubAt = new V2(800f, 450f);
         Check(g.FloorAt(fireAt) == PathId.BurningGrounds && g.FloorAt(iceAt) == PathId.FrozenLake && g.FloorAt(bloodAt) == PathId.BloodMoon && g.FloorAt(eliteAt) == PathId.EliteGauntlet && g.FloorAt(hubAt) == PathId.None && g.FloorAt(shopAt) == PathId.None,
             "each Floor room knows its path's ground; the hub and the shop room have none");
@@ -523,10 +524,29 @@ static partial class Program
         Check(g.State == MatchState.Intermission && g.ShopOpen && cg.ShopOpen, "the wave after a boss ends with the shop open, on both screens");
         Check(g.Players.Values.All(p => p.Shelf.Any(u => u >= 0)), "everyone has a shelf");
         Check(g.Players.Values.All(p => p.Vectors >= Game.VectorStart + Game.VectorWaveGain) && cg.Players[1].Vectors == g.Players[1].Vectors, "a cleared wave gives everyone " + Game.VectorWaveGain + " vectors, and the client sees them (" + g.Players[1].Vectors + ")");
-        host.Game.Shop(ShopAction.Done, 1);
+        // The room shops: upgrades and restocks only in the shop room, heals, revives and removals only at the vendor.
+        Check(g.ServiceRooms && !g.ShopBlocksWave, "with a shop and a vendor room the shop never holds the countdown");
+        V2 vendorAt = g.CurrentWorld.Areas[6].Mid;
+        var pm = g.Players[1];
+        pm.Gold = 1000; pm.Hp = pm.MaxHp * 0.5f; pm.Pos = pm.Disp = hubAt;
+        int slot = Enumerable.Range(0, Game.ShelfSize).First(i => pm.Shelf[i] >= 0);
+        g.Shop(ShopAction.Buy, slot);
+        g.Shop(ShopAction.Heal);
+        Check(pm.Gold == 1000 && pm.Hp < pm.MaxHp * 0.6f, "in the hub you can neither buy nor heal");
+        pm.Pos = pm.Disp = vendorAt;
+        g.Shop(ShopAction.Buy, slot);
+        Check(pm.Gold == 1000, "the vendor sells no upgrades");
+        g.Shop(ShopAction.Heal);
+        Check(pm.Gold == 1000 - Game.HealPrice && pm.Hp >= pm.MaxHp, "the vendor heals");
+        pm.Pos = pm.Disp = shopAt;
+        int gold1 = pm.Gold;
+        g.Shop(ShopAction.Buy, slot);
+        Check(pm.Gold < gold1, "the shop room sells upgrades");
+        g.Shop(ShopAction.Done, 1);
         client.Game.Shop(ShopAction.Done, 1);
         Run(s, dt, 0.5f);
         Check(!g.ShopOpen && !cg.ShopOpen, "everyone clicking Done closes the shop");
+        Check(pm.Gold == gold1 - (gold1 - pm.Gold) && pm.Gold > 0, "closing the shop keeps your gold (" + pm.Gold + ")");
 
         // The cleared wave opened a building round; a lone proposal is built as the next wave starts (the votes cast count).
         Check(g.ExpandOpen && cg.ExpandOpen && g.ExpandProposals.Count == 0 && !g.ShopOpen, "the cleared wave opened a building round, on both screens");
