@@ -275,9 +275,12 @@ namespace Arena
                 LogQuitRun();  // RunSaves.cs (the run you walk away from still shows in Recent runs)
             if (Running)
                 SaveRun();  // between waves: keep the run to continue later (RunSaves.cs)
+            if (TestRunning)
+                TestRunEnded("left the match");
             if (Recorder != null && Running)
                 Recorder.End(this, how);
             Running = false;
+            Test = null;
             State = MatchState.Idle;
             HuntedId = 0;
             Wave = 0;

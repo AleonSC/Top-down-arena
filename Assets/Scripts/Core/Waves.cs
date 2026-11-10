@@ -27,6 +27,7 @@ namespace Arena
                 if (m.Kind == MinionKind.Phoenix)
                     return;  // a phoenix brings someone back on its next beat (Minions.cs)
             State = MatchState.GameOver;
+            TestRunEnded("everyone went down");  // BalanceTest.cs
             spawnQueue.Clear();
             squadQueue.Clear();
             foreach (var p in Players.Values)
@@ -160,6 +161,7 @@ namespace Arena
         {
             EndRoomsWave();  // the vault closes with the wave (Rooms.cs)
             Recorder?.WaveEnd(this);
+            TestWaveCleared();  // BalanceTest.cs
             SummariseWave();  // clear time, each player's numbers and awards (WaveReady.cs)
             ResetBossState();
             ResetVariety(false);  // pending Volatile bursts and Mirrored shots die with the wave (Variety.cs)

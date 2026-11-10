@@ -10,9 +10,9 @@ namespace Arena
     /// Everything happens on the host, which decides every hit, so the numbers cover all players.
     /// The file is JSON, rewritten after every wave (so a crash keeps what came before) and at
     /// the end. Tools/SessionReport/report.py summarizes one or many of them.
-    public class SessionRecorder
+    public partial class SessionRecorder
     {
-        public const int FormatVersion = 3;  // 3: per-player "near" in the samples (Docs/Rooms.md); 2: mode, endless, paths, dev tools, healing received, final loadouts
+        public const int FormatVersion = 4;  // 4: balance test runs ("test", damage by source, shots, enemy health); 3: per-player "near" in the samples (Docs/Rooms.md); 2: mode, endless, paths, dev tools, healing received, final loadouts
         public readonly string Path;
         public bool Ended { get; private set; }
 
@@ -31,6 +31,9 @@ namespace Arena
             public int Downs, Revives, Kills, ParryPerfect, ParryBreaks, LevelEnd, Orbs;
             public readonly Dictionary<string, float> TakenBy = new Dictionary<string, float>();
             public readonly Dictionary<string, int> Abilities = new Dictionary<string, int>();
+            public readonly Dictionary<string, float> Src = new Dictionary<string, float>();  // damage to enemies by source (format 4)
+            public readonly Dictionary<string, int> SrcHits = new Dictionary<string, int>();
+            public int ShotsFired, ShotsHit, InstantHits;
         }
 
         class WaveRec
@@ -56,7 +59,7 @@ namespace Arena
             public readonly Dictionary<int, float> DmgBy = new Dictionary<int, float>();
         }
 
-        class EnemyAgg { public int Spawned, Killed, Elites; public float Lifetime, DmgToPlayers; }
+        class EnemyAgg { public int Spawned, Killed, Elites; public float Lifetime, DmgToPlayers, HpSum; }
 
         class PickRec { public int Player, Wave, Level, RerollsLeft; public string Kind, Picked; public string[] Offered; }
         class DownRec { public int Player, Wave; public float Time; public string Source; }
@@ -181,7 +184,7 @@ namespace Arena
             sampleT -= dt;
             if (sampleT > 0f)
                 return;
-            sampleT = 5f;
+            sampleT = SampleEvery;
             var s = new Sample { Time = now, Wave = g.Wave, Enemies = g.Enemies.Count, Bullets = g.Bullets.Count };
             foreach (var p in g.Players.Values)
             {
@@ -292,6 +295,7 @@ namespace Arena
             enemyBorn[e.Id] = now;
             var a = Agg(e.Def.Name);
             a.Spawned++;
+            a.HpSum += e.MaxHp;
             if (e.Elite)
                 a.Elites++;
             var w = Current;
@@ -342,7 +346,7 @@ namespace Arena
             }
         }
 
-        public void DamageDealt(int attacker, Enemy e, float amount)
+        public void DamageDealt(int attacker, Enemy e, float amount, string src = null)
         {
             if (amount <= 0f || attacker == 0)
                 return;
@@ -352,11 +356,64 @@ namespace Arena
                 pw.DmgDealt += amount;
                 if (e.Def.IsBoss)
                     pw.DmgToBosses += amount;
+                string key = SourceName(attacker, src);
+                Add(pw.Src, key, amount);
+                Add(pw.SrcHits, key, 1);
             }
             BossRec b;
             if (bosses.TryGetValue(e.Id, out b))
                 Add(b.DmgBy, attacker, amount);
         }
+
+        /// "weapon" is the player's gun, "status" burning, bleeding and poison, "shot" a bullet an ability or summon fired, "ability:Name" a cast's own hit; nothing known is the rest (zones, minions, delayed hits).
+        string SourceName(int attacker, string src)
+        {
+            if (src == "weapon")
+                foreach (var pi in players)
+                    if (pi.Id == attacker)
+                        return "Weapon: " + pi.Weapon;
+            if (src == "status") return "Burn, bleed and poison";
+            if (src == "shot") return "Ability and summon shots";
+            if (src != null && src.StartsWith("ability:", StringComparison.Ordinal)) return "Ability: " + src.Substring(8);
+            return "Other (zones, minions, delayed hits)";
+        }
+
+        public void ShotFired(Player p)
+        {
+            var pw = Pw(p.Id);
+            if (pw != null)
+                pw.ShotsFired++;
+        }
+
+        public void ShotHit(Player p)
+        {
+            var pw = Pw(p.Id);
+            if (pw != null)
+                pw.ShotsHit++;
+        }
+
+        /// How many enemies a cast's own hit reached the moment it was cast (lasting abilities do their work later).
+        public void CastHits(Player p, int hits)
+        {
+            var pw = Pw(p.Id);
+            if (pw != null)
+                pw.InstantHits += hits;
+        }
+
+        /// Marks this recording as a balance test run (Core/BalanceTest.cs): one-second samples on request.
+        public void MarkTest(int firstWave, int waveCount, bool bot, bool fineSamples)
+        {
+            IsTest = true;
+            testFirst = firstWave;
+            testWaves = waveCount;
+            testBot = bot;
+            SampleEvery = fineSamples ? 1f : 5f;
+        }
+
+        public bool IsTest { get; private set; }
+        int testFirst, testWaves;
+        bool testBot;
+        public float SampleEvery = 5f;
 
         public void HazardDamage(float amount)
         {
@@ -524,6 +581,13 @@ namespace Arena
             j.Field("modifiers", modifiers);
             j.Field("difficulty", difficulty);
             j.Field("arena", arena);
+            if (IsTest)
+            {
+                j.Key("test"); j.Open();
+                j.Field("kind", "balance-test"); j.Field("firstWave", testFirst); j.Field("waves", testWaves); j.Field("bot", testBot);
+                j.Field("sampleEverySeconds", SampleEvery);
+                j.Close();
+            }
             j.Key("end"); j.Open();
             j.Field("outcome", outcome); j.Field("wave", endWave); j.Field("time", endTime); j.Field("score", endScore);
             j.Close();
@@ -568,6 +632,8 @@ namespace Arena
                     j.Field("downs", pw.Downs); j.Field("revives", pw.Revives); j.Field("lowHpSeconds", pw.LowHpTime);
                     j.Field("hpStart", pw.HpStart); j.Field("hpEnd", pw.HpEnd); j.Field("maxHp", pw.MaxHp); j.Field("levelEnd", pw.LevelEnd);
                     j.Key("abilitiesUsed"); j.Map(pw.Abilities);
+                    j.Key("damageBySource"); j.Map(pw.Src); j.Key("hitsBySource"); j.Map(pw.SrcHits);
+                    j.Field("shotsFired", pw.ShotsFired); j.Field("shotsHit", pw.ShotsHit); j.Field("castInstantHits", pw.InstantHits);
                     j.Field("parryBlocked", pw.ParryBlocked); j.Field("perfectParries", pw.ParryPerfect); j.Field("parryBreaks", pw.ParryBreaks);
                     j.Close();
                 }
@@ -601,6 +667,7 @@ namespace Arena
                 j.Field("avgLifetime", a.Killed > 0 ? a.Lifetime / a.Killed : 0f);
                 j.Field("damageToPlayers", a.DmgToPlayers);
                 j.Field("damagePerSpawn", a.Spawned > 0 ? a.DmgToPlayers / a.Spawned : 0f);
+                j.Field("avgMaxHp", a.Spawned > 0 ? a.HpSum / a.Spawned : 0f);
                 j.Close();
             }
             j.Close();
