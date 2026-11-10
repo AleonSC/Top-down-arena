@@ -771,6 +771,7 @@ wave, everyone gets a shop before the boss:
 The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expanding**). Design:
 [`Docs/ExpandingArena.md`](Docs/ExpandingArena.md). It starts as the plain Classic box and grows as you play:
 
+- **Gold coins:** every kill drops its gold as coins (5-gold and 1-gold). They never despawn, spin and glint on the floor, and drift to the nearest living player within 90 px, who gets the gold.
 - **Vectors**: every player holds a drawing budget (chip under the wave plate, "Vectors 25 / 35"): 1 vector = 1 tile of wall.
   You start with 25 and can hold 35; each cleared wave gives 4, every 15 kills gives 1, and a cleared boss wave refills
   everyone to the cap and adds 10 on top. Two cards raise the cap, in the Expanding arena only: **Deep Inkwell** (uncommon, +10,

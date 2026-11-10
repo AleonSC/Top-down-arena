@@ -398,6 +398,18 @@ namespace Arena
             else
                 foreach (var o in Orbs.Values)
                     SyncOrb(s, o);
+            count = Coins.Count;
+            s.Short(ref count);
+            if (s.Reading)
+            {
+                snapSeen.Clear();
+                for (int i = 0; i < count; i++)
+                    snapSeen.Add(SyncCoin(s, null));
+                RemoveUnseen(Coins);
+            }
+            else
+                foreach (var c in Coins.Values)
+                    SyncCoin(s, c);
             SyncProps(s);  // crates, pots, barrels, chests and chest items (Props.cs)
             SyncLayout(s);  // the floor plan (LayoutRules.cs)
         }
