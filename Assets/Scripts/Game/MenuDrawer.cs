@@ -208,7 +208,7 @@ namespace Arena
                 case 1: pauseSettings = true; CloseCabWindow(); break;
                 case 2: OpenFieldGuide(); break;
                 case 3: pauseRecords = true; break;
-                case 4: pauseHowTo = true; break;
+                case 4: pauseHowTo = true; OpenCabWindow(2); break;  // a window beside the list
                 case 5:
                     lobbyMenuOpen = false;
                     pauseSettings = pauseHowTo = false;
