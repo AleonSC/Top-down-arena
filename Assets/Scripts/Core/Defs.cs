@@ -46,6 +46,8 @@ namespace Arena
         Swordsman, ShieldSwordsman,
         // the Warden's faction: a ranged guard whose Fork Bolt stuns you (WardenFaction.cs, Game/TaserLook.cs)
         TaserGuard,
+        // the Warden's faction: a guard with a service pistol, seven tracer rounds a magazine (SecurityGuard.cs, Game/SecurityLook.cs)
+        SecurityGuard,
     }
 
     public class RoleDef
@@ -288,6 +290,8 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "A Swordsman behind a shield that stops every shot from the front. The shield drops when it cuts and stays down while it recovers: shoot it then, or from the side." },
             new EnemyDef { Name = "Taser Guard", Hp = 70f, Radius = 13f, Speed = 80f, Score = 9, Xp = 11, Sides = 8, Color = new Rgba(0.4f, 0.6f, 1f),
                 Picker = PickerGroup.Ranged, Blurb = "Keeps its distance, charges its taser and fires a white Fork Bolt that stuns you. Dodge the bolt, or parry it." },
+            new EnemyDef { Name = "Security Guard", Hp = 45f, Radius = 15f, Speed = 70f, Score = 9, Xp = 9, Sides = 24, Color = new Rgba(0.42f, 0.61f, 0.7f),
+                Picker = PickerGroup.Ranged, Blurb = "Locks on where you're heading, then fires one tracer round at a time: seven shots, then a long reload. Change direction in the red lane, or rush it while it reloads." },
         };
 
         public const int WeaponsPerRole = 3;
@@ -403,9 +407,10 @@ namespace Arena
             SteelShard = 58,   // a bullet Caught Steel caught, hurled back as a sliver of steel (CaughtSteel.cs, Game/CaughtSteelLook.cs)
             ParryNeedle = 59,  // a perfectly parried shot, sent straight back as a fast white needle (Parry.cs, Game/ParryLook.cs)
             Caltrop = 60,      // a Katana caltrop: thrown, lying (it hurts and slows what steps on it), flung or seeking (Katana.cs, Game/KatanaLook.cs)
-            TaserBolt = 61;    // the Taser Guard's Fork Bolt: a white lightning glyph that stuns you for a second (WardenFaction.cs, Game/TaserLook.cs)
+            TaserBolt = 61,    // the Taser Guard's Fork Bolt: a white lightning glyph that stuns you for a second (WardenFaction.cs, Game/TaserLook.cs)
+            TracerRound = 62;  // the Security Guard's pistol round: a hot-white tracer with a long tail (SecurityGuard.cs, Game/SecurityLook.cs)
 
-        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot || kind == TaserBolt;
+        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot || kind == TaserBolt || kind == TracerRound;
 
         /// Bosses' aimed attacks: barriers, walls and other blockers can't stop these.
         public static bool Unblockable(byte kind) => kind == PierceShot;
@@ -471,6 +476,7 @@ namespace Arena
                 case PauseShot: return 6.5f;
                 case StitchShot: return 8f;
                 case TaserBolt: return 7f;
+                case TracerRound: return 5f;
                 case BileShot: return 6f;
                 case ToothShot: return 10f;
                 default: return 6f;
@@ -492,6 +498,7 @@ namespace Arena
                 case FastShot: return 15f;
                 case StunShot: return 8f;  // the Warden's searchlight turn: it stuns you for 1 s
                 case TaserBolt: return 8f;  // a Taser Guard's Fork Bolt: the same stun
+                case TracerRound: return 6.1f;  // a Security Guard's round: 7 once the enemy bullet multiplier is on
                 case HoneyShot: return 14f;  // the Hive Queen's nectar spray
                 case ToothShot: return 20f;  // the Devourer's Jaws
                 case HollowShot: return 0f;  // the Duelist's decoys fire these: they pass through you
@@ -563,6 +570,7 @@ namespace Arena
                 case PauseShot: return new Rgba(0.45f, 0.95f, 0.85f);  // the Pauser's teal
                 case StitchShot: return new Rgba(1f, 0.82f, 0.45f);    // the Stitcher's gold
                 case TaserBolt: return new Rgba(0.75f, 0.91f, 1f);     // the Fork Bolt's ice white
+                case TracerRound: return new Rgba(0.94f, 0.97f, 1f);   // the Security Guard's hot-white tracer
                 case BileShot: return new Rgba(0.75f, 0.9f, 0.31f);  // the Devourer's vomit
                 case ToothShot: return new Rgba(0.96f, 0.9f, 0.82f);  // the Devourer's Jaws
                 default: return new Rgba(1f, 0.3f, 0.45f);
