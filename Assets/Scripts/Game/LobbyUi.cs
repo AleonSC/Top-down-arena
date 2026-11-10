@@ -759,11 +759,11 @@ namespace Arena
                 float ax = x + w - col, cell = (col - gap) / 2f;
                 LobbyKit.Heading(x, y, col, "Weapon", null, calm, 15);
                 LobbyKit.Heading(ax, y, col, "Ability", null, calm, 15);
-                int weaponSlots = Mathf.Max(WeaponSlots, Defs.WeaponsPerRole);
+                int weaponCount = Defs.WeaponCount(me.Role, me.Kit), weaponSlots = Mathf.Max(WeaponSlots, weaponCount);
                 for (int i = 0; i < weaponSlots; i++)
                 {
                     var b = new Rect(x + (i % 2) * (cell + gap), y + 32f + (i / 2) * 40f, cell, 34f);
-                    if (i >= Defs.WeaponsPerRole)
+                    if (i >= weaponCount)  // (the 4th key is a weapon where the class has a fourth: the Knight DPS's Arc Knuckles)
                     {
                         LockedSlot(b, null, true);
                         continue;

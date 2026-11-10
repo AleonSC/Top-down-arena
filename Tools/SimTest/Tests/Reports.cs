@@ -184,7 +184,7 @@ static partial class Program
                 for (int i = 0; i < 300 && !g.Running; i++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); }
                 var me = g.Players[1];
                 g.DevSetGod(1, true);
-                for (int w = 0; w < Defs.WeaponsPerRole; w++)
+                for (int w = 0; w < Defs.WeaponCount(role, kit); w++)
                 {
                     var weapon = Defs.Weapon(role, kit, w);
                     // Returns damage dealt, the strongest slow seen (1 = none) and the health you gained.
@@ -290,7 +290,7 @@ static partial class Program
                 for (int i = 0; i < 300 && !g.Running; i++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); }
                 var me = g.Players[1];
                 g.DevSetGod(1, true);
-                for (int w = 0; w < Defs.WeaponsPerRole; w++)
+                for (int w = 0; w < Defs.WeaponCount(role, kit); w++)
                 {
                     var weapon = Defs.Weapon(role, kit, w);
                     weaponNames.Add(weapon.Name);
@@ -442,7 +442,7 @@ static partial class Program
             for (int r = 0; r < 3; r++)
             {
                 var line = new List<string>();
-                for (int wi = 0; wi < Defs.WeaponsPerRole; wi++)
+                for (int wi = 0; wi < Defs.WeaponCount((Role)r, (Kit)k); wi++)
                 {
                     var weapon = Defs.Weapon((Role)r, (Kit)k, wi);
                     float best = 0f;

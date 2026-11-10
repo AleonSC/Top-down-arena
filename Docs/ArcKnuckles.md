@@ -1,6 +1,6 @@
 # Arc Knuckles: the Knight DPS's fourth weapon (design)
 
-Status: **planned** (Nov 2026, protocol 262 when planned). Mockup: [`Docs/Mockups/gauntlets.html`](Mockups/gauntlets.html)
+Status: **step 1 built** (Nov 2026, protocol 264): the slot, the combo, the parry reset and Counter Hammer, the Arc Coil look. Steps 2-4 to come. Mockup: [`Docs/Mockups/gauntlets.html`](Mockups/gauntlets.html)
 (https://claude.ai/artifact/Rqn2WEDWUQL1RTJaxvPf8Y), version 5. The **Arc Coil** look, the **Full combo**, **Parry cancel**
 and **Perfect parry** scenarios, and the **Rocket Dash**, **Dash → Flurry** and **Full dash chain** Alt scenarios are the
 design; the page's other Alt fires (Ground Pound, Grab & Throw on its own, Rocket Fist, Shockwave Clap, Seismic Line,
@@ -47,7 +47,8 @@ Magnet Yank) were not picked.
 1. **Slot and combo.**
    - Per-class weapon count: `Defs.WeaponCount(role, kit)` (Knight DPS 4, the rest 3) replaces the fixed `WeaponsPerRole` where it means "this class's
      weapons": `Defs.Weapon`, the lobby's 4th key (`LobbyUi.cs`), saves (`SaveData.cs`), session checks (`Session.cs`),
-     bots (`PartyBots.cs`), Run stats (`RunStatsUi.cs`). The Wildcard's DPS list gains it too.
+     bots (`PartyBots.cs`), Run stats (`RunStatsUi.cs`). **Built.** Not yet: the Wildcard's class wheel still lists each class's
+     first three DPS weapons (its picks are numbered kit × 3 + choice, shared with the abilities), so the Wildcard can't pick it yet.
    - `WeaponId.ArcKnuckles` at the end of the enum, with its `WeaponDef` in the Knight's list.
    - `Core/ArcKnuckles.cs`: the five steps, the perfect-parry Counter Hammer, the parry reset.
    - `Game/ArcKnucklesLook.cs`: the Arc Coil fists, trails, arcs, shockwave, pips.

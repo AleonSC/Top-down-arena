@@ -52,6 +52,7 @@ namespace Arena
         public byte CenserStep;       // a Censer step (1-3; Censer.cs): its hits light Embers, and it leaves incense as it lands
         public byte LanceKind;        // a Lance step (1-4; Lance.cs): its hits are cued and spark, and what it shoves can Impact; Hook & Haul takes back one still winding up
         public float LanceAcross;     // the Lance's Wide Sweep: the way its swing bats what it hits (LanceKnockDir)
+        public byte Knuckle;          // an Arc Knuckles punch (1-6; ArcKnuckles.cs): the parry takes back one still winding up
     }
 
     /// The Knight: a melee class for every role. Its weapons swing instead of shooting, cutting small
@@ -204,6 +205,9 @@ namespace Arena
                     SteelWall(p, aim, s.Reach, s.HalfArc, GreatWall[step - 1], s.Delay);  // the sweep's edge lingers, stopping bullets
                     break;
                 }
+                case WeaponId.ArcKnuckles:
+                    FireArcKnuckles(p, aim, dmg, extra);  // the next punch, or the Counter Hammer (ArcKnuckles.cs)
+                    break;
                 case WeaponId.Rapier:
                 {
                     // Tempo sets how soon the next thrust comes: slow at 0, quick at full (Rapier.cs).
@@ -334,7 +338,7 @@ namespace Arena
             }
             if (s.NoFx)
             {
-                if (!s.Silent && !((s.Twin || s.LanceKind > 0) && s.Sound == Sfx.None))  // (a Twin Blades or Lance hit with no sound of its own: the step's is already playing)
+                if (!s.Silent && !((s.Twin || s.LanceKind > 0 || s.Knuckle > 0) && s.Sound == Sfx.None))  // (a Twin Blades or Lance hit with no sound of its own: the step's is already playing)
                     BroadcastSound(s.Sound != Sfx.None ? s.Sound : Sfx.SwingHeavy);  // a Halberd sweep's or Twin Blades step's whoosh (its effect was sent at the click)
             }
             else if (s.FxHalf > 0f)  // the Halberd's whole sweep, from its first step (MeleeLooks.cs plays it over HalberdSweepTime)
@@ -665,6 +669,8 @@ namespace Arena
                 Desc = "A three-hit chain: two quick cuts, then a slow overhead rend. The edge of each sweep hangs in the air as a crescent of steel that stops enemy bullets. Hold the weapon-action key to guard: the arc stops bullets and builds Temper, and letting go fires a beam that hits harder for every point of Temper." },
             new WeaponDef { Id = WeaponId.Rapier, Kit = Kit.Knight, Role = Role.Dps, Choice = 2, Damage = 18f, Reach = 130f, Melee = true, ExtraDesc = "Skewers 1 more enemy behind the first", Name = "Rapier", FireInterval = 0.48f,  // the first thrust; Tempo makes them quicker (Rapier.cs)
                 Desc = "Precise thrusts at the nearest enemy in front, and they skewer enemy bullets along their line. The first thrust is slow, but every enemy you hit adds Tempo, and Tempo makes the thrusts quicker. Stop hitting and it holds a moment, then drains. The weapon-action key spends it on a Flourish: the blade whips back and forth, each swing throwing a crescent wave." },
+            new WeaponDef { Id = WeaponId.ArcKnuckles, Kit = Kit.Knight, Role = Role.Dps, Choice = 3, Damage = 12f, Reach = 70f, Melee = true, ExtraDesc = "+1 aftershock: the Twin Hammer slams again 0.2 s later, 40 px further out (60% damage)", Name = "Arc Knuckles", FireInterval = 0.24f,
+                Desc = "Coiled blue fists in a five-punch chain: jab, cross, a hook that sweeps a crowd, an uppercut that launches, and the Twin Hammer, a ground slam whose shockwave stuns. Raising the parry cancels a punch and starts the chain over; a perfect parry arms the gold Counter Hammer for your next press." },
         };
 
         /// The Knight's abilities and ultimates. (Upgrades.Abilities gathers every class's list.)

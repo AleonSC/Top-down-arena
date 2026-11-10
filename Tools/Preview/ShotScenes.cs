@@ -724,6 +724,17 @@ static partial class Shot {
             gm.Effects.Add(new Effect { Kind = FxKind.CenserStep, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * cr, Color = Game.CenserGold, Radius = me.Id * 10 + ci, T = st, Dur = CenserMotion.Steps[ci - 1].Dur + CenserMotion.Recover }); }
           break;
         }
+        case WeaponId.ArcKnuckles:  // KNUCKLESTEP=1..5 a punch (Jab, Cross, Hook, Uppercut, Twin Hammer; default 1), 6 the Counter Hammer, 0 the guard (ARMED=1: the Counter Hammer armed); SWING = seconds after the press
+        {
+          int kn = int.Parse(Environment.GetEnvironmentVariable("KNUCKLESTEP") ?? "1");
+          me.KnuckleArmed = Environment.GetEnvironmentVariable("ARMED") == "1";
+          if (kn > 0)
+          {
+            me.Combo = (1 << 3) | kn;
+            gm.Effects.Add(new Effect { Kind = FxKind.KnuckleStep, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * reach, Color = kn == 6 ? Game.ArcGold : Game.ArcBlue, Radius = me.Id * 10 + kn, T = st, Dur = kn >= 5 ? Game.KnuckleLand[kn - 1] + 0.7f : Game.KnuckleDur[kn - 1] });
+          }
+          break;
+        }
         case WeaponId.TwinBlades:  // TWINSTEP=1..5 a step of the Crescent Waltz (default 1), TWINSTEP=fang Twin Fang (SWING = seconds after the click)
         {
           string tsn = Environment.GetEnvironmentVariable("TWINSTEP") ?? "1";

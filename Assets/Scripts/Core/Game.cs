@@ -205,7 +205,7 @@ namespace Arena
                 var def = Defs.Get(role);
                 var p = new Player { Id = id, Role = role, Def = def, Name = name, Hp = def.Hp, MaxHp = def.Hp, Aim = -MathX.Pi / 2f };
                 p.Kit = kit;
-                p.Weapon = Defs.Weapon(role, kit, weapon < (role == Role.Wildcard ? Defs.WildcardChoices : Defs.WeaponsPerRole) ? weapon : 0);
+                p.Weapon = Defs.Weapon(role, kit, weapon < Defs.WeaponCount(role, kit) ? weapon : 0);
                 p.RoleAbility = Upgrades.RoleAbility(role, kit, ability);
                 p.UltPick = (byte)Upgrades.ClampUlt(role, kit, ult);
                 if (role == Role.Wildcard)
@@ -1203,6 +1203,7 @@ namespace Arena
             TickTwinRifle(dt);  // TwinGrenades.cs: the grenade tubes' cooldown, emptied with the rifle
             TickTankAlts(dt);   // TankAlts.cs: Double Barrel, Proximity Shells, Tear Gas
             TickGreat(dt);      // Greatsword.cs: the chain forgetting its place, the guard arc stopping bullets
+            TickArcKnuckles(dt);  // ArcKnuckles.cs: an unused Counter Hammer fading
             TickSteelWalls(dt);  // Knight.cs: Greatsword crescents stopping bullets
             TickStuckStars(dt);  // Ninja.cs: Shuriken stars falling out
             TickVines(dt);    // KitWeapons.cs: the Treant Rod's vine
