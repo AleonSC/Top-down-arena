@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 
+- 251: no wire change: main had two different changes both numbered 250 (Game.BossSlot, and the vector cap cards at the end of Upgrades.All), so builds with only one of them could join each other; everyone on 251 has both
 - 250: Game.BossSlot in the snapshot (the boss between waves, Hunts.cs); Msg.Start's start wave may be negative (the boss after that wave)
 - 250: two new upgrades at the end of Upgrades.All (Deep Inkwell, Architect: the Expanding arena's vector cap cards, Core/Upgrades.cs)
 - 249: the Expanding arena's building rounds: Msg.ExpandState (rooms with owners, open flag, proposals, votes), Msg.ExpandVote carries a proposer id, the purse is gone from the snapshot (ExpansionGame.cs)

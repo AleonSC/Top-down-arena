@@ -97,7 +97,7 @@ static partial class Program
         Check(badWall == 0, "every room's middle is open ground in its own area (" + badWall + " bad)");
         Check(badCap == 0, "the map stops at " + Expansion.MaxRooms + " rooms and its size cap (" + badCap + " over)");
         Check(shapes.Count == Expansion.Shapes.Length && kinds.Count == 3 && floors.Count >= 4, "the offers use every shape (" + shapes.Count + "), every kind and several floors (" + floors.Count + ")");
-        Check(maxShops >= 1 && maxShops <= 3, "shops turn up, a few at most (" + maxShops + ")");
+        Check(maxShops >= 1 && maxShops <= 1 + Expansion.MaxRooms / 6, "shops turn up, a few at most (" + maxShops + ")");
         Check(prevPriceBad == 0, "every offer costs its vector cost (the new wall length)");
 
         // Drawn rooms (Expansion.Custom): a hallway off the hub is fine; thin, huge, off the grid, overlapping, floating and sliver boxes are refused.
@@ -510,10 +510,10 @@ static partial class Program
         Check(p1.VectorCap == Game.VectorCapBase + 30 && p1.Vectors == 15, "Architect raises it by 20 more and gives 10 vectors now (" + p1.VectorCap + ", " + p1.Vectors + ")");
         Run(s, dt, 0.6f);
         Check(cg.Players[1].VectorCap == p1.VectorCap && cg.Players[1].Vectors == p1.Vectors, "the client sees the new cap");
-        g.Wave = 10;
+        g.Wave = 10; g.BossSlot = true;
         grantWave.Invoke(g, null);
-        Check(p1.Vectors == p1.VectorCap + Game.VectorBossBonus, "a boss refill fills the raised cap");
-        g.Wave = 6;
+        Check(p1.Vectors == p1.VectorCap + Game.VectorBossBonus, "a boss refill fills the raised cap (" + p1.Vectors + " of " + p1.VectorCap + " + " + Game.VectorBossBonus + ")");
+        g.Wave = 6; g.BossSlot = false;
         g.Diff.Set(DiffKnob.ArenaExpanding, 0f);
         p1.Vectors = 5;
         grantWave.Invoke(g, null);

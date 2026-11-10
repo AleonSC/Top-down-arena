@@ -29,8 +29,8 @@ random offers. Boss kills refill the stock, upgrades raise how much you can hold
   rooms is cheaper by the second shared wall (loops pay).
 - **Placement**: the existing `Expansion.Custom` rules (100 px grid, sides 300-1200, at most 96 tiles, shares at least 300 px of
   wall with a room, no overlap, 16 rooms, the size cap). Rooms sharing a door's width of wall get a door.
-- **Stock** (tuned in step 5): start 15, cap 25. A cleared boss wave refills everyone to the cap and adds 5 on top (kept
-  until spent; ordinary gains never push you over the cap). Each other cleared wave +2; every 25 kills +1. Numbers come from
+- **Stock** (retuned after play-testing, Nov 10): start 25, cap 35. A cleared boss wave refills everyone to the cap and adds 10 on top (kept
+  until spent; ordinary gains never push you over the cap). Each other cleared wave +4; every 15 kills +1. Numbers come from
   play-testing: a player should be able to afford about one decent room a round.
 - **Proposing**: in the intermission each player has a chip "Draw rooms" and the draw screen (as today) with a vector meter and the
   live cost. A drawing becomes your proposal (one per player; a newer one replaces it). It is checked when you draw it and again
@@ -104,6 +104,8 @@ Changes: start **15**, cap **25**, wave gain **2**, boss bonus **5**, kills +1 p
 rounds** (11 built by wave 19; 7 by wave 13), 15 of 40 and 7 of 26 player-rounds at the cap, the crowd 1.4x at most, the bots
 reaching wave **21** (seed 1) and dying at wave **14** (seed 2). Even with no crowd scaling at all the bots died at waves 15-16, so most of
 the extra danger is the map's shape (long hallways, dead-end rooms, enemies spread out), not the head count.
+
+**Retune (owner: "vectors need to be more abundant")**: start **25**, cap **35**, wave gain **4**, boss bonus **10**, a vector every **15** kills, `MaxRooms` **24**. Bots (who always propose) then build about **0.85 rooms a round** (8 in 10 rounds on seed 1, 13 in 15 on seed 2), so the map would fill within ~25 waves of 50; people propose less. Seed 1's bots died at wave 10 with the bigger map earlier, so watch the difficulty.
 
 Not done: Expanding is still harder for bots than Classic (they die around wave 14-21 against Classic's 26+); the owner's play-tests
 should say if people feel it too. Shop and Floor rooms stay dormant until the owner decides about bringing kinds back.
