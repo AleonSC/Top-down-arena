@@ -8,7 +8,7 @@ namespace Arena
     /// mode the shared wave editor (PracticeUi.cs).
     public partial class ArenaApp
     {
-        static readonly Color PracticeColor = new Color(0.22f, 0.78f, 0.62f);
+        
         static readonly Color ModColor = new Color(0.85f, 0.45f, 0.95f);
 
         int lobbyTab;              // 0 = your loadout, 1 = practice waves, 2 = modifiers, 3 = difficulty, 4 = boss hunt, 5 = perks, 6 = hangout
@@ -53,7 +53,7 @@ namespace Arena
                 lobbyTab = practice ? 1 : 0;  // jump to the waves when the host turns practice on
                 lobbyWasPractice = practice;
             }
-            if (!practice && lobbyTab == 1)
+            if (!practice && (lobbyTab == 1 || lobbyTab == TrainingTab))
                 lobbyTab = 0;
             bool hunt = session.HuntMode && !practice && session.Resume == null;
             if (hunt != lobbyWasHunt)
@@ -136,6 +136,8 @@ namespace Arena
                 DrawHangoutTransition(me, body, t);  // the preview window growing into the Hangout (or shrinking back)
             else if (lobbyTab == 1 && practice)
                 DrawPracticeEditor(body, t);
+            else if (lobbyTab == TrainingTab && practice)
+                DrawTraining(body, t);  // TrainingUi.cs
             else if (lobbyTab == 4 && hunt)
                 DrawHuntPicker(body, t);  // HuntUi.cs
             else if (lobbyTab == 2)
@@ -201,8 +203,8 @@ namespace Arena
             {
                 var k = new Rect(r.x + i * (kw + 6f), r.y, kw, r.height);
                 string title = i == 0 ? "GAUNTLET" : i == 1 ? "BOSS HUNT" : "PRACTICE";
-                string sub = i == 0 ? "50 waves, a boss every 5" : i == 1 ? "10 waves to one boss" : "Build your own waves";
-                if (LobbyKit.Key(k, title, i == mode, fxReduced, size: 15, minSize: 11, enabled: session.IsHost, accent: i == 1 ? new Color(1f, 0.62f, 0.58f) : i == 2 ? new Color(0.55f, 0.95f, 0.8f) : (Color?)null) && session.IsHost && i != mode)
+                string sub = i == 0 ? "50 waves, a boss every 5" : i == 1 ? "10 waves to one boss" : "Build your own waves, or train a mechanic";
+                if (LobbyKit.Key(k, title, i == mode, fxReduced, size: 15, minSize: 11, enabled: session.IsHost, accent: i == 1 ? new Color(1f, 0.62f, 0.58f) : i == 2 ? new Color(0.37f, 0.94f, 1f) : (Color?)null) && session.IsHost && i != mode)
                     session.SetMode(i == 2, i == 1);
                 if (k.Contains(Event.current.mousePosition))  // the description is a hover tip
                 {
@@ -220,9 +222,9 @@ namespace Arena
             int mods = Modifiers.Count(session.Modifiers);
             bool hunt = session.HuntMode && !practice && session.Resume == null;
             // Indexed by tab id (0 loadout, 1 practice, 2 modifiers, 3 difficulty, 4 boss hunt, 5 perks, 6 hangout); null = not shown.
-            string[] names = { session.Resume != null ? "Seats" : "Loadout", practice ? "Practice waves  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers",
-                "Difficulty", hunt ? "Boss hunt" : null, practice ? null : "Perks", null };  // Hangout has its own key on the Party line
-            int[] order = { 0, PerkTab, 3, 2, 1, 4 };
+            string[] names = { session.Resume != null ? "Seats" : "Loadout", practice ? "Practice  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers",
+                "Difficulty", hunt ? "Boss hunt" : null, practice ? null : "Perks", null, practice ? "Training" : null };  // Hangout has its own key on the Party line
+            int[] order = { 0, PerkTab, 3, 2, 1, TrainingTab, 4 };
             // Quiet tabs (the mockup's): about 135 px each (wider for a long name), the row centred in r (over the loadout box); too many squeeze together.
             var ws = new float[order.Length];
             float total = -6f;

@@ -955,22 +955,35 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 ## Practice Range
 
 In the lobby the host picks **Run** (the normal 50 waves), **Boss Hunt** (above) or **Practice** (the Practice Range)
-at the top. Practice Range plays waves you build yourself, with everyone in the lobby, and upgrade picks between waves
-as usual.
+at the top. Practice has two sections, as tabs on the big screen: **Practice** (build your own waves) and **Training**
+(short mechanic drills). Whichever you use, it's with everyone in the lobby, with upgrade picks between waves as usual, and
+**no XP counts**: a Practice run never reaches your profile (no rank XP, records, unlocks or run history), and the header
+says `NO XP · RESPAWN ON`. (Level-ups inside the run still give their upgrade picks.)
 
-- **Practice waves** tab: add as many waves as you like (**+ Add**, **Copy**, **Remove**). Each has a **level**
-  (1-50) that sets how strong its enemies are: their health and fire rate as on that wave of a normal run.
+**Respawn.** There's no game over in the Practice Range. When you go down, a **DOWNED** window opens in the middle of the
+screen and the wave keeps running behind it:
+
+- **RESPAWN HERE** (**R**): you're back on your feet where you fell, at full health, with the usual 1.5 s of invulnerability.
+  Each player respawns on their own; teammates can still revive you instead.
+- **RESTART WAVE** (the host's; **Enter**): clears the arena and starts this wave again after a short countdown, with
+  everyone on their feet at full health.
+- **BACK TO LOBBY** (the host's): everyone beams out, as from the pause menu.
+
+### Practice tab
+
+- **Waves** (left): a rack of cards, each with its number, level and what's in it (**+ Add**, **Copy**, **Remove**). The
+  **level** (1-50) sets how strong its enemies are: their health and fire rate as on that wave of a normal run.
   Tick **Loop the waves** to go round again after the last one; otherwise the run ends with **PRACTICE COMPLETE**.
 - **Enemies:** every one of the 17 regular enemies and 10 bosses is shown moving, as in a match, so you don't
   need to know their names. Click one to add it to the selected wave, right-click (or its corner **-**) to take
   one away; hovering shows what it does. Bosses spawn first and bring their usual adds; the Twin Reapers come
   as a pair.
 - **Shared:** everyone in the lobby sees the waves change as they're edited, with the editor's name on the wave
-  they're working on (players who can't edit follow along to it). The host can tick **Let others edit** so
+  they're working on (players who can't edit follow along to it). The host can switch on **Let others edit** so
   friends can change the waves too.
 - Everyone keeps their own loadout (the **Loadout** tab).
 - **Save** writes the setup to a text file named after the name box, in the `practice` folder next to the
-  sessions folder (**Open folder** shows it). **Load** lists saved setups. The files are easy to edit by hand:
+  sessions folder (**Folder** shows it). **Load** lists saved setups. The files are easy to edit by hand:
 
   ```
   # Top-Down Arena practice setup: warden drills
@@ -981,6 +994,15 @@ as usual.
 
   One line per wave: `wave <level>:` then each enemy as `<name> x<count>` (the count defaults to 1). Names
   ignore case and "The". Unknown names are skipped and listed when you load.
+
+### Training tab
+
+Small, one-mechanic drills, laid out as cartridges in rows by group (**Move & Dodge**, **Weapons**, **Abilities**,
+**Enemies**, **Co-op**; four slots each, empty ones dashed). Click a drill to see its goal and steps, then **Load this drill**
+(the host's): its waves go into the Practice setup (so everyone sees them on the Practice tab), and Ready and Start play it
+with the rules above. This is groundwork: the built-in list has one placeholder drill marked **EXAMPLE**. Drills are
+`.training` text files: put them in the `training` folder (next to `practice`; **Folder** opens it, **Reload** re-reads it).
+The file is a Practice setup with a few extra lines first, and is documented in [`Docs/Training.md`](Docs/Training.md).
 
 ## Controls
 

@@ -263,3 +263,70 @@ static partial class Program
         Check(host.Modifiers == RunMod.None && client.Modifiers == RunMod.None, "leaving clears the modifiers");
     }
 }
+
+// Practice Range: no game over, Respawn, Restart wave, and the Training drills' groundwork.
+static partial class Program
+{
+    static void PracticeRespawnTest(float dt)
+    {
+        int port = nextPort++;
+        var host = HostAs(new Session(), port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        WaitForLobby(host, client);
+        List<string> problems;
+        host.SetPracticeMode(true);
+        host.Plan = PracticePlan.Parse("loop: yes\nwave 3: Grunt x2\nwave 5: Sniper x1\n", out problems);
+        host.PracticeEdited(0);
+        PollBoth(host, client);
+        client.RequestReady(true); host.RequestReady(true);
+        PollBoth(host, client);
+        host.StartMatch();
+        WaitForGame(host, client, dt);
+        var g = host.Game;
+        Action<float> Run = secs => { for (int f = 0; f < secs * 60; f++) { Step(host, dt); Step(client, dt); } };
+        Func<bool> Fighting = () => g.State == MatchState.Fighting;
+        for (int f = 0; f < 60 * 20 && !Fighting(); f++) { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.Offer = null; } Step(host, dt); Step(client, dt); }
+        Check(Fighting() && g.Players.Count == 2, "a two-player practice run is under way");
+
+        // A wipe doesn't end it, and a downed player can get back up.
+        foreach (var p in g.Players.Values) { p.Hp = 0f; p.Downed = true; }
+        Run(2f);
+        Check(g.State == MatchState.Fighting, "everyone down in the Practice Range is not a game over");
+        client.Game.RequestRespawn(Game.RespawnHere);
+        Run(1f);
+        Check(!g.Players[2].Downed && g.Players[2].Hp >= g.Players[2].MaxHp * 0.99f && g.Players[2].InvulnT > 0f && g.Players[1].Downed,
+            "a client's Respawn gets only that player back up, at full health with a moment of invulnerability");
+        Check(!client.Game.Players[2].Downed, "the client's own game sees itself back up");
+        g.RequestRespawn(Game.RespawnHere);
+        Run(0.5f);
+        Check(!g.Players[1].Downed, "the host can respawn too");
+        g.RequestRespawn(Game.RespawnHere);  // standing up already: nothing to do
+        Check(g.State == MatchState.Fighting, "respawning while standing does nothing");
+
+        // Restart wave: the host's, back to the same wave with a clean arena.
+        int idx = g.PracticeIndex;
+        Run(3f);
+        client.Game.RequestRespawn(Game.RespawnRestart);
+        Run(0.5f);
+        Check(g.State == MatchState.Fighting, "a client can't restart the wave");
+        g.Players[1].Hp = 10f;
+        g.RequestRespawn(Game.RespawnRestart);
+        Check(g.State == MatchState.Intermission && g.Enemies.Count == 0 && g.Players[1].Hp >= g.Players[1].MaxHp * 0.99f, "Restart wave clears the arena and heals everyone");
+        for (int f = 0; f < 60 * 12 && !(Fighting() && g.Enemies.Count > 0); f++) { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.Offer = null; } Step(host, dt); Step(client, dt); }
+        Check(Fighting() && g.PracticeIndex == idx && g.Enemies.Count > 0, "...and the same practice wave starts again");
+
+        // Respawn means nothing outside the Practice Range.
+        host.Leave(""); client.Leave("");
+        var normal = HostAs(new Session { AutoStart = 1 }, nextPort++, false, "Solo", Role.Dps);
+        normal.StartMatch();
+        normal.Game.RequestRespawn(Game.RespawnHere);
+        Check(normal.Game.Practice == null, "a normal run has no Respawn");
+        normal.Leave("");
+
+        // Training drills: the text format, the groups and the sample drill.
+        var drill = TrainingDrill.Parse("t", "name: Test\ngroup: weapons\ngoal: g\nstep: one\nstep: two\nloop: yes\nwave 7: Grunt x2\n", out problems);
+        Check(problems.Count == 0 && drill.Name == "Test" && drill.Steps.Count == 2 && drill.Plan.Loop && drill.Plan.Waves[0].Level == 7 && TrainingLibrary.GroupOf(drill) == 1,
+            "a training drill loads from text, with its group, steps and waves");
+        Check(TrainingLibrary.All.Count > 0 && TrainingLibrary.All.All(d => d.Plan.Waves.Count > 0 && d.Name.Length > 0), "every built-in training drill has a name and waves");
+    }
+}

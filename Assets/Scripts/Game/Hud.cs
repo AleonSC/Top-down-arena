@@ -94,6 +94,7 @@ namespace Arena
             DrawMiniHud(me);  // corner text / on the player (HudModes.cs)
             DrawMyLedger();  // Blood Debt's ledger card beside you, over the enemy tags (BloodDebtLook.cs)
             DrawDownedBand(me);  // the DOWNED and REVIVED scan band (DownedLooks.cs)
+            DrawPracticeDowned(me);  // the Practice Range's DOWNED window with Respawn (PracticeDownedUi.cs)
             if (me != null && !me.Downed)
                 DrawEmoteBar(HudEmoteBarAt.X, HudEmoteBarAt.Y);  // hold the Emote key: the bar above the ability bar (EmoteBar.cs)
             DrawPingWheel();  // hold the Ping key: the wheel at the cursor (PingLooks.cs)
