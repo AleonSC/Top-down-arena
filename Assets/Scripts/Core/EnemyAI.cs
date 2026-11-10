@@ -423,6 +423,8 @@ namespace Arena
                     TickDummy(e, dt);  // a balancing dummy (DpsTools.cs)
                     continue;
                 }
+                if (DevFreeze)
+                    continue;  // F1 dev tool: frozen in place, no moving or shooting (DevTools.cs)
                 if (ShowcaseMode)
                     continue;  // the loadout preview's target dummies stand still and never shoot (Showcase.cs)
                 if (e.FrozenT > 0f)  // Glacial Tomb: frozen solid, no moving or shooting

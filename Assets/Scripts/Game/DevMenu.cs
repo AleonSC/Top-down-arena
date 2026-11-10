@@ -32,13 +32,13 @@ namespace Arena
                 devTab = inMatch ? 0 : 2;
             var panel = DevPanel;
             Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.55f));
-            Ui.Panel(panel, true);
+            DkPanel(panel);
 
             // Header.
-            Ui.Fancy(new Rect(panel.x + 24f, panel.y + 14f, 400f, 36f), "DEVELOPER TOOLS", 26, Color.white, new Color(0.7f, 0.8f, 1f), TextAnchor.MiddleLeft, Ui.Accent);
+            DkTitle(new Rect(panel.x + 24f, panel.y + 14f, 400f, 36f), "DEVELOPER TOOLS", 26);
             Ui.Label(new Rect(panel.x + 26f, panel.y + 48f, 500f, 16f), (inMatch ? "In a match" : "Not in a match") + (session.IsHost ? "" : "  ·  only the host can change the match") + "  ·  F1 or Esc to close",
-                11, Ui.Muted);
-            if (Ui.Button(new Rect(panel.xMax - 52f, panel.y + 16f, 32f, 30f), "X", Ui.Danger))
+                11, CrtStyle.Desc);
+            if (DkKey(new Rect(panel.xMax - 52f, panel.y + 16f, 32f, 30f), "X", Ui.Danger))
                 devMenuOpen = false;
             Ui.Fill(new Rect(panel.x + 20f, panel.y + 74f, panel.width - 40f, 1f), new Color(1f, 1f, 1f, 0.07f));
 
@@ -49,11 +49,10 @@ namespace Arena
                 var r = new Rect(sx, sy + i * 62f, sw, 55f);
                 bool on = devTab == i, hover = r.Contains(Event.current.mousePosition);
                 var c = DevTabColors[i];
-                Ui.Pill(r, on ? new Color(c.r * 0.35f, c.g * 0.35f, c.b * 0.35f, 0.95f) : new Color(1f, 1f, 1f, hover ? 0.08f : 0.035f));
-                if (on)
-                    Ui.Fill(new Rect(r.x, r.y + 8f, 4f, r.height - 16f), c);
-                Ui.Fancy(new Rect(r.x + 16f, r.y + 7f, r.width - 20f, 26f), DevTabNames[i], 17, Color.white, on ? Color.Lerp(c, Color.white, 0.4f) : new Color(0.8f, 0.84f, 0.95f), TextAnchor.MiddleLeft);
-                Ui.Label(new Rect(r.x + 16f, r.y + 31f, r.width - 20f, 18f), DevTabBlurbs[i], 11, on ? new Color(1f, 1f, 1f, 0.75f) : Ui.Muted);
+                CrtKit.SoftBox(r, c, on, hover, false);
+                Ui.NoteHover(r);
+                DkTitle(new Rect(r.x + 16f, r.y + 6f, r.width - 20f, 26f), DevTabNames[i].ToUpperInvariant(), 16, CrtKit.SoftText(c, on || hover));
+                Ui.Label(new Rect(r.x + 16f, r.y + 31f, r.width - 20f, 18f), DevTabBlurbs[i], 11, on ? Color.white : CrtStyle.Desc);
                 if (!on && Ui.HitArea(r))
                 {
                     devTab = i;
@@ -89,49 +88,44 @@ namespace Arena
 
         void DevNotInMatch(Rect body, string what)
         {
-            Ui.Pill(new Rect(body.x, body.y, body.width, 90f), new Color(1f, 1f, 1f, 0.03f));
+            DkSub(new Rect(body.x, body.y, body.width, 90f));
             Ui.Label(new Rect(body.x, body.y + 18f, body.width, 24f), "Not in a match", 16, Color.white, TextAnchor.MiddleCenter, true);
-            Ui.Label(new Rect(body.x, body.y + 46f, body.width, 20f), "Start or join a match to " + what + ".", 13, Ui.Muted, TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(body.x, body.y + 46f, body.width, 20f), "Start or join a match to " + what + ".", 13, CrtStyle.Desc, TextAnchor.MiddleCenter);
         }
 
         /// Bottom of the sidebar: what's on right now.
         void DrawDevStatusCard(Rect r, bool inMatch)
         {
-            Ui.Pill(r, new Color(0f, 0f, 0f, 0.3f));
+            DkSub(r);
             float y = r.y + 10f;
             Action<string, string, Color> line = (k, v, c) =>
             {
-                Ui.Label(new Rect(r.x + 12f, y, 90f, 18f), k, 10, Ui.Muted, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(r.x + 12f, y, 90f, 18f), k, 10, CrtStyle.Desc, TextAnchor.MiddleLeft, true);
                 Ui.Label(new Rect(r.x + 12f, y, r.width - 24f, 18f), v, 11, c, TextAnchor.MiddleRight, true);
                 y += 20f;
             };
             line("WAVE", inMatch ? Mathf.Max(1, game.Wave) + (game.Endless ? " (endless)" : " / " + Game.MaxWave) : "-", Color.white);
-            line("RECORDING", recordSessions ? (game.Recorder != null ? "on, recording" : "on") : "off", recordSessions ? new Color(1f, 0.5f, 0.5f) : Ui.Muted);
-            line("REPLAYS", replay != null ? "watching" : recordReplays ? (game.Replay != null ? "on, recording" : "on") : "off", replay != null ? Ui.Accent : recordReplays ? new Color(1f, 0.5f, 0.5f) : Ui.Muted);
-            line("BOT", game.Bot ? "playing for you" : "off", game.Bot ? Ui.Good : Ui.Muted);
-            line("AIM DEBUG", aimDebug ? "on" : "off", aimDebug ? Ui.Accent : Ui.Muted);
+            line("RECORDING", recordSessions ? (game.Recorder != null ? "on, recording" : "on") : "off", recordSessions ? new Color(1f, 0.5f, 0.5f) : CrtStyle.Desc);
+            line("REPLAYS", replay != null ? "watching" : recordReplays ? (game.Replay != null ? "on, recording" : "on") : "off", replay != null ? Ui.Accent : recordReplays ? new Color(1f, 0.5f, 0.5f) : CrtStyle.Desc);
+            line("BOT", game.Bot ? "playing for you" : "off", game.Bot ? Ui.Good : CrtStyle.Desc);
+            line("AIM DEBUG", aimDebug ? "on" : "off", aimDebug ? Ui.Accent : CrtStyle.Desc);
             line("PLAYERS", session.Lobby.Count.ToString(), Color.white);
         }
 
         /// A titled card for the content area; returns the y to draw its contents at.
         float DevCard(Rect r, string title, string blurb, Color accent)
         {
-            Ui.Card(r, accent, 0.35f);
-            Ui.Fill(new Rect(r.x + 1f, r.y + 10f, 3f, 24f), accent);
-            Ui.Label(new Rect(r.x + 16f, r.y + 8f, r.width - 32f, 22f), title, 15, Color.white, TextAnchor.MiddleLeft, true);
-            if (blurb.Length > 0)
-                Ui.Label(new Rect(r.x + 16f, r.y + 30f, r.width - 32f, 18f), blurb, 11, Ui.Muted);
-            return r.y + (blurb.Length > 0 ? 56f : 40f);
+            return DkCard(r, title, blurb, accent);
         }
 
         // --- Match ------------------------------------------------------------------------
 
         void DrawDevMatch(Rect body, float t)
         {
-            var card = new Rect(body.x, body.y, body.width, 250f);
+            var card = new Rect(body.x, body.y, body.width, 280f);
             float y = DevCard(card, "Jump to a wave", "Clears the arena and starts that wave in 2 s. Downed players get back up.", DevTabColors[0]);
             float x = card.x + 16f;
-            Ui.Label(new Rect(x, y, 300f, 20f), "Now on wave " + Mathf.Max(1, game.Wave) + (game.Endless ? " (endless)" : " of " + Game.MaxWave), 13, Ui.Text);
+            Ui.Label(new Rect(x, y, 300f, 20f), "Now on wave " + Mathf.Max(1, game.Wave) + (game.Endless ? " (endless)" : " of " + Game.MaxWave), 13, CrtStyle.Body);
             y += 30f;
             int max = game.Endless ? 999 : Game.MaxWave;
             bool host = session.IsHost;
@@ -142,31 +136,34 @@ namespace Arena
             {
                 if (step == 0)
                 {
-                    Ui.Fancy(new Rect(bx, y, 70f, 40f), devWave.ToString(), 28, Color.white, Ui.Gold, TextAnchor.MiddleCenter, Ui.Gold);
+                    DkTitle(new Rect(bx, y, 70f, 40f), devWave.ToString(), 28, CrtStyle.Gold, TextAnchor.MiddleCenter);
                     bx += 74f;
                     continue;
                 }
-                if (Ui.Button(new Rect(bx, y + 4f, 42f, 32f), step > 0 ? "+" + step : step.ToString()))
+                if (DkKey(new Rect(bx, y + 4f, 42f, 32f), step > 0 ? "+" + step : step.ToString()))
                     devWave = Mathf.Clamp(devWave + step, 1, max);
                 bx += 46f;
             }
             y += 54f;
-            if (Ui.Button(new Rect(x, y, 300f, 40f), "Go to wave " + devWave, Ui.Primary))
+            if (DkKey(new Rect(x, y, 300f, 40f), "Go to wave " + devWave, Ui.Primary))
                 game.DevJumpToWave(devWave);
             // The kill-all key: X kills every enemy on the field as if you had (XP, score, drops, kill credit).
-            bool killAll = Ui.Toggle(new Rect(x, y + 48f, 520f, 26f), devKillAllKey, "Kill-all key  (X): kill every enemy on screen, as your kills");
+            bool killAll = DkSwitch(new Rect(x, y + 48f, 520f, 26f), devKillAllKey, "Kill-all key  (X): kill every enemy on screen, as your kills");
             if (killAll != devKillAllKey)
             {
                 devKillAllKey = killAll;
                 PlayerPrefs.SetInt("dev_killall", killAll ? 1 : 0);
             }
+            bool freeze = DkSwitch(new Rect(x, y + 76f, 520f, 26f), game.DevFreeze, "Freeze enemies: they stop moving, shooting and spawning (still killable)");
+            if (freeze != game.DevFreeze)
+                game.DevSetFreeze(freeze);
             GUI.enabled = wasEnabled;
             if (!host)
-                Ui.Label(new Rect(x, y + 76f, 400f, 18f), "Only the host can change the wave or kill everything.", 11, Ui.Muted);
+                Ui.Label(new Rect(x, y + 104f, 400f, 18f), "Only the host can change the wave or kill everything.", 11, CrtStyle.Desc);
 
             // What's waiting on that wave: the boss, drawn live, or the next one.
             var show = new Rect(card.xMax - 230f, card.y + 52f, 210f, 184f);
-            Ui.Pill(show, new Color(0f, 0f, 0f, 0.35f));
+            DkSub(show);
             int bossWave = devWave % 5 == 0 ? devWave : (devWave / 5 + 1) * 5;
             var boss = Game.BossForWave(bossWave);
             if (BeginUiGl())
@@ -174,8 +171,8 @@ namespace Arena
                 DrawEnemyPreview(boss == EnemyType.TwinB ? EnemyType.TwinA : boss, new V2(show.center.x, show.y + 78f), 120f, t, true);
                 EndUiGl();
             }
-            Ui.Label(new Rect(show.x, show.yMax - 50f, show.width, 18f), devWave % 5 == 0 ? "BOSS ON THIS WAVE" : "NEXT BOSS  ·  WAVE " + bossWave, 10, Ui.Muted, TextAnchor.MiddleCenter, true);
-            Ui.Fancy(new Rect(show.x, show.yMax - 32f, show.width, 24f), PracticePlan.NameOf(boss == EnemyType.TwinB ? EnemyType.TwinA : boss), 16, Color.white, Ui.Gold, TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(show.x, show.yMax - 50f, show.width, 18f), devWave % 5 == 0 ? "BOSS ON THIS WAVE" : "NEXT BOSS  ·  WAVE " + bossWave, 10, CrtStyle.Desc, TextAnchor.MiddleCenter, true);
+            DkTitle(new Rect(show.x, show.yMax - 32f, show.width, 24f), PracticePlan.NameOf(boss == EnemyType.TwinB ? EnemyType.TwinA : boss), 16, CrtStyle.Gold, TextAnchor.MiddleCenter);
 
             // Quick actions for everyone.
             var quick = new Rect(body.x, card.yMax + 14f, body.width, 120f);
@@ -184,7 +181,7 @@ namespace Arena
             float qw = (quick.width - 32f - 24f) / 4f;
             string[] names = { "Full heal", "Level up", "Max mastery", "God mode on/off" };
             for (int i = 0; i < names.Length; i++)
-                if (Ui.Button(new Rect(quick.x + 16f + i * (qw + 8f), y, qw, 34f), names[i], i == 3 ? Ui.GoldButton : Ui.Neutral))
+                if (DkKey(new Rect(quick.x + 16f + i * (qw + 8f), y, qw, 34f), names[i], i == 3 ? Ui.GoldButton : Ui.Neutral))
                     foreach (var p in game.Players.Values)
                     {
                         if (i == 0) game.DevHeal(p.Id);
@@ -199,7 +196,7 @@ namespace Arena
             GUI.enabled = canRoom;
             float rw = (rooms.width - 32f - 32f) / 5f;
             for (int i = 0; i < Challenges.All.Length; i++)
-                if (Ui.Button(new Rect(rooms.x + 16f + i * (rw + 8f), y, rw, 34f), new[] { "Crystal", "Gatekeeper", "Kill Rush", "Zones", "Mirror" }[i], Color.Lerp(ToColor(Challenges.Accent(Challenges.All[i])), new Color(0f, 0f, 0f, 1f), 0.3f)))
+                if (DkKey(new Rect(rooms.x + 16f + i * (rw + 8f), y, rw, 34f), new[] { "Crystal", "Gatekeeper", "Kill Rush", "Zones", "Mirror" }[i], Color.Lerp(ToColor(Challenges.Accent(Challenges.All[i])), new Color(0f, 0f, 0f, 1f), 0.3f)))
                     game.DevOpenPortal(Challenges.All[i], true);
             GUI.enabled = wasEnabled;
         }
@@ -212,7 +209,7 @@ namespace Arena
             // Recording.
             var rec = new Rect(body.x, body.y, half, 150f);
             float y = DevCard(rec, "Session recording", "Saves each match you host as JSON for balancing.", new Color(1f, 0.45f, 0.45f));
-            bool on = Ui.Toggle(new Rect(rec.x + 16f, y, rec.width - 32f, 26f), recordSessions, "Record sessions (when hosting)");
+            bool on = DkSwitch(new Rect(rec.x + 16f, y, rec.width - 32f, 26f), recordSessions, "Record sessions (when hosting)");
             if (on != recordSessions)
             {
                 recordSessions = on;
@@ -221,9 +218,9 @@ namespace Arena
                 ApplyRecording();
             }
             y += 34f;
-            if (Ui.Button(new Rect(rec.x + 16f, y, 190f, 30f), "Open sessions folder"))
+            if (DkKey(new Rect(rec.x + 16f, y, 190f, 30f), "Open sessions folder"))
                 OpenFolder(SessionsFolder);
-            Ui.Label(new Rect(rec.x + 16f, y + 36f, rec.width - 32f, 18f), "Summarise them with Tools/SessionReport", 11, Ui.Muted);
+            Ui.Label(new Rect(rec.x + 16f, y + 36f, rec.width - 32f, 18f), "Summarise them with Tools/SessionReport", 11, CrtStyle.Desc);
 
             // Account rank (RankUi.cs): set this computer's rank without playing for it.
             var rk = new Rect(body.x, body.y + 164f, half, 120f);
@@ -232,61 +229,61 @@ namespace Arena
             float rbw = (rk.width - 32f - 16f) / 3f;
             string[] rankNames = { "+1 rank", "+10 ranks", "Rank 30" };
             for (int i = 0; i < 3; i++)
-                if (Ui.Button(new Rect(rk.x + 16f + i * (rbw + 8f), y, rbw, 26f), rankNames[i], Ui.Neutral))
+                if (DkKey(new Rect(rk.x + 16f + i * (rbw + 8f), y, rbw, 26f), rankNames[i], Ui.Neutral))
                     DevSetRank(i == 0 ? prof.RankNow + 1 : i == 1 ? prof.RankNow + 10 : 30);
             y += 32f;
-            if (Ui.Button(new Rect(rk.x + 16f, y, rbw, 26f), "Max rank", Ui.GoldButton))
+            if (DkKey(new Rect(rk.x + 16f, y, rbw, 26f), "Max rank", Ui.GoldButton))
                 DevSetRank(Rank.MaxRank);
-            if (Ui.Button(new Rect(rk.x + 16f + (rbw + 8f), y, rbw, 26f), "Reset", Ui.Danger))
+            if (DkKey(new Rect(rk.x + 16f + (rbw + 8f), y, rbw, 26f), "Reset", Ui.Danger))
                 DevSetRank(1);
-            Ui.Label(new Rect(rk.x + 16f + 2f * (rbw + 8f) - 8f, y, rbw + 8f, 26f), "Rank 30: every reward", 10, Ui.Muted, TextAnchor.MiddleLeft);
+            Ui.Label(new Rect(rk.x + 16f + 2f * (rbw + 8f) - 8f, y, rbw + 8f, 26f), "Rank 30: every reward", 10, CrtStyle.Desc, TextAnchor.MiddleLeft);
 
             // Overlays and the bot.
             var ov = new Rect(body.x + half + 14f, body.y, half, 212f);
             y = DevCard(ov, "Overlays and helpers", "Just for you, on this computer.", Ui.Accent);
-            aimDebug = Ui.Toggle(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), aimDebug, "Aim debug overlay  (F3)");
+            aimDebug = DkSwitch(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), aimDebug, "Aim debug overlay  (F3)");
             y += 30f;
             // P freezes the match with no menu on screen, for screenshots (ArenaApp.cs). Pausing is shared: it stops everyone.
-            bool pauseKey = Ui.Toggle(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), devPauseKey, "Freeze-time key  (P): hold everything, no menu");
+            bool pauseKey = DkSwitch(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), devPauseKey, "Freeze-time key  (P): hold everything, no menu");
             if (pauseKey != devPauseKey)
             {
                 devPauseKey = pauseKey;
                 PlayerPrefs.SetInt("dev_pausekey", pauseKey ? 1 : 0);
             }
             y += 30f;
-            bool bot = Ui.Toggle(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), game.Bot, "Bot plays for you");
+            bool bot = DkSwitch(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), game.Bot, "Bot plays for you");
             if (bot != game.Bot)
             {
                 game.Bot = bot;
                 game.BotLevel = bot ? BotSkill.Good : BotSkill.Off;  // the Boss Lab's smart bot; the sim tests keep the simple one
             }
             y += 30f;
-            bool editText = Ui.Toggle(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), textEditMode, "Edit any text on screen  (F4)");
+            bool editText = DkSwitch(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), textEditMode, "Edit any text on screen  (F4)");
             if (editText != textEditMode)
             {
                 SetTextEditMode(editText);
                 devMenuOpen = !editText;  // out of the way, so you can click the text you want
             }
             y += 30f;
-            if (Ui.Button(new Rect(ov.x + 16f, y, 190f, 30f), "Open practice folder"))
+            if (DkKey(new Rect(ov.x + 16f, y, 190f, 30f), "Open practice folder"))
                 OpenFolder(PracticeFolder);
 
             // Boss Lab.
             var lab = new Rect(body.x, body.y + 296f, body.width, 112f);
             y = DevCard(lab, "Boss Lab", "Watch bots that play like people fight any boss, with any party, at up to 8x speed, and see what hurts them.", Ui.Gold);
-            if (Ui.Button(new Rect(lab.x + 16f, y + 6f, 260f, 44f), "Open Boss Lab", Ui.GoldButton))
+            if (DkKey(new Rect(lab.x + 16f, y + 6f, 260f, 44f), "Open Boss Lab", Ui.GoldButton))
             {
                 devMenuOpen = false;
                 labSetupOpen = true;
             }
-            Ui.Label(new Rect(lab.x + 292f, y + 6f, lab.width - 308f, 44f), "Starting the lab leaves any match you're in.", 11, Ui.Muted, TextAnchor.MiddleLeft, false, true);
+            Ui.Label(new Rect(lab.x + 292f, y + 6f, lab.width - 308f, 44f), "Starting the lab leaves any match you're in.", 11, CrtStyle.Desc, TextAnchor.MiddleLeft, false, true);
 
             // The wave editor (WaveEditorUi.cs).
             var wed = new Rect(body.x, body.y + 420f, body.width, 110f);
             y = DevCard(wed, "Wave editor", "Design waves on a timeline: enemies, squads, spawn points, timing and props. Test them in the Practice Range.", EdColor);
-            if (Ui.Button(new Rect(wed.x + 16f, y + 6f, 260f, 44f), "Open wave editor", EdDark(EdColor, 0.75f)))
+            if (DkKey(new Rect(wed.x + 16f, y + 6f, 260f, 44f), "Open wave editor", EdDark(EdColor, 0.75f)))
                 OpenWaveEditor();
-            Ui.Label(new Rect(wed.x + 292f, y + 6f, wed.width - 308f, 44f), "Saves .waves files to the waves folder. Test hosts a Practice Range match (it replaces any match you host).", 11, Ui.Muted, TextAnchor.MiddleLeft, false, true);
+            Ui.Label(new Rect(wed.x + 292f, y + 6f, wed.width - 308f, 44f), "Saves .waves files to the waves folder. Test hosts a Practice Range match (it replaces any match you host).", 11, CrtStyle.Desc, TextAnchor.MiddleLeft, false, true);
         }
 
         static void OpenFolder(string path)
@@ -310,7 +307,7 @@ namespace Arena
             {
                 var q = players[i];
                 string label = q.Name + (q.Id == game.MyId ? " (you)" : "");
-                if (Ui.Choice(new Rect(x + i * (tw + 8f), y, tw, 32f), label, q.Id == p.Id, ToColor(q.Def.Color)))
+                if (DkChoice(new Rect(x + i * (tw + 8f), y, tw, 32f), label, q.Id == p.Id, ToColor(q.Def.Color)))
                 {
                     devPlayer = q.Id;
                     devFocus = "";
@@ -320,20 +317,20 @@ namespace Arena
 
             bool host = session.IsHost;
             Ui.Label(new Rect(x, y, w, 20f), string.Format("{0} {1} · level {2} · HP {3:0}/{4:0}{5}", Defs.KitName(p.Kit), p.Def.Name, p.Level, p.Hp, p.MaxHp,
-                p.StatOverrides.Count > 0 ? "  ·  " + p.StatOverrides.Count + " edited" : ""), 13, Ui.Text);
+                p.StatOverrides.Count > 0 ? "  ·  " + p.StatOverrides.Count + " edited" : ""), 13, CrtStyle.Body);
             y += 26f;
             if (host)
             {
-                bool god = Ui.Toggle(new Rect(x, y, 140f, 28f), p.DevGod, "God mode");
+                bool god = DkSwitch(new Rect(x, y, 140f, 28f), p.DevGod, "God mode");
                 if (god != p.DevGod)
                     game.DevSetGod(p.Id, god);
-                if (Ui.Button(new Rect(x + 150f, y, 100f, 28f), "Full heal"))
+                if (DkKey(new Rect(x + 150f, y, 100f, 28f), "Full heal"))
                     game.DevHeal(p.Id);
-                if (Ui.Button(new Rect(x + 256f, y, 100f, 28f), "Level up"))
+                if (DkKey(new Rect(x + 256f, y, 100f, 28f), "Level up"))
                     game.DevLevelUp(p.Id);
-                if (Ui.Button(new Rect(x + 362f, y, 120f, 28f), "Max mastery"))
+                if (DkKey(new Rect(x + 362f, y, 120f, 28f), "Max mastery"))
                     game.DevMasterAll(p.Id);
-                if (Ui.Button(new Rect(x + w - 130f, y, 130f, 28f), "Reset stats", Ui.Danger))
+                if (DkKey(new Rect(x + w - 130f, y, 130f, 28f), "Reset stats", Ui.Danger))
                 {
                     game.DevResetStats(p.Id);
                     devFocus = "";
@@ -343,8 +340,8 @@ namespace Arena
 
             // The stat list: every stat (or those matching the filter), scrollable. Edited ones are gold;
             // click a value to type one in.
-            Ui.Label(new Rect(x, y, 60f, 28f), "FILTER", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            string filter = Ui.Field(new Rect(x + 52f, y, 220f, 28f), devFilter, 24);
+            Ui.Label(new Rect(x, y, 60f, 28f), "FILTER", 10, CrtStyle.Desc, TextAnchor.MiddleLeft, true);
+            string filter = DkField(new Rect(x + 52f, y, 220f, 28f), devFilter, 24);
             if (filter != devFilter)
             {
                 devFilter = filter;
@@ -354,10 +351,10 @@ namespace Arena
             for (int i = 0; i < Game.StatFields.Length; i++)
                 if (devFilter.Trim().Length == 0 || Spaced(Game.StatFields[i].Name).IndexOf(devFilter.Trim(), StringComparison.OrdinalIgnoreCase) >= 0)
                     shownStats.Add(i);
-            Ui.Label(new Rect(x + 280f, y, w - 280f, 28f), shownStats.Count + " of " + Game.StatFields.Length + " stats" + (devFilter.Length > 0 ? "" : "  ·  type to narrow down"), 11, Ui.Muted);
+            Ui.Label(new Rect(x + 280f, y, w - 280f, 28f), shownStats.Count + " of " + Game.StatFields.Length + " stats" + (devFilter.Length > 0 ? "" : "  ·  type to narrow down"), 11, CrtStyle.Desc);
             y += 36f;
             var list = new Rect(x, y, w, bottom - y);
-            Ui.Pill(list, new Color(0f, 0f, 0f, 0.3f));
+            DkSub(list);
             const float row = 30f;
             int n = shownStats.Count;
             float maxScroll = Mathf.Max(0f, n * row - list.height + 8f);
@@ -392,25 +389,25 @@ namespace Arena
             var f = Game.StatFields[i];
             float value = Game.StatValue(p.Stats, i);
             bool edited = p.StatOverrides.ContainsKey(i);
-            Ui.Label(new Rect(r.x, r.y, r.width * 0.45f, r.height), Spaced(f.Name), 13, edited ? Ui.Gold : Ui.Text);
+            Ui.Label(new Rect(r.x, r.y, r.width * 0.45f, r.height), Spaced(f.Name), 13, edited ? Ui.Gold : CrtStyle.Body);
             bool isInt = f.FieldType == typeof(int), isBool = f.FieldType == typeof(bool);
             string shown = isBool ? (value != 0f ? "on" : "off") : isInt ? value.ToString("0") : value.ToString("0.###");
             float vx = r.x + r.width * 0.45f;
             if (!host)
             {
-                Ui.Label(new Rect(vx, r.y, 120f, r.height), shown, 13, edited ? Ui.Gold : Ui.Muted);
+                Ui.Label(new Rect(vx, r.y, 120f, r.height), shown, 13, edited ? Ui.Gold : CrtStyle.Desc);
                 return;
             }
             if (isBool)
             {
-                bool on = Ui.Toggle(new Rect(vx, r.y, 120f, r.height), value != 0f, shown);
+                bool on = DkSwitch(new Rect(vx, r.y, 120f, r.height), value != 0f, shown);
                 if (on != (value != 0f))
                     game.DevSetStat(p.Id, i, on ? 1f : 0f);
             }
             else
             {
                 float step = StatStep(f.Name, isInt);
-                if (Ui.Button(new Rect(vx, r.y, 32f, r.height), "-"))
+                if (DkKey(new Rect(vx, r.y, 32f, r.height), "-"))
                     Commit(p, i, value - step);
                 // Typing: the field keeps what you type while it has focus, and applies it whenever it's a number.
                 string name = "devstat" + p.Id + "_" + i;
@@ -419,7 +416,7 @@ namespace Arena
                     devFocus = "";
                 string text = focused && devFocus == name ? devBuffer : shown;
                 GUI.SetNextControlName(name);
-                string typed = Ui.Field(new Rect(vx + 36f, r.y, 96f, r.height), text, 10);
+                string typed = DkField(new Rect(vx + 36f, r.y, 96f, r.height), text, 10);
                 if (focused)
                 {
                     devFocus = name;
@@ -428,7 +425,7 @@ namespace Arena
                     if (typed != text && float.TryParse(typed, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out v) && v != value)
                         Commit(p, i, v);
                 }
-                if (Ui.Button(new Rect(vx + 136f, r.y, 32f, r.height), "+"))
+                if (DkKey(new Rect(vx + 136f, r.y, 32f, r.height), "+"))
                     Commit(p, i, value + step);
             }
             if (edited)

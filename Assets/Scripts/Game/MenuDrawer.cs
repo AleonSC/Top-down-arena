@@ -208,7 +208,7 @@ namespace Arena
                 case 1: pauseSettings = true; CloseCabWindow(); break;
                 case 2: OpenFieldGuide(); break;
                 case 3: pauseRecords = true; break;
-                case 4: pauseHowTo = true; break;
+                case 4: pauseHowTo = true; OpenCabWindow(2); break;  // a window beside the list
                 case 5:
                     lobbyMenuOpen = false;
                     pauseSettings = pauseHowTo = false;
@@ -226,11 +226,9 @@ namespace Arena
         /// The pause menu's choices for this player.
         List<int> PauseRows()
         {
-            var rows = new List<int>();
-            for (int i = 0; i < PauseChoices.Length; i++)
-                if (i != FieldGuideRow)  // the Field guide (Bestiary + Armory) is hidden for now
-                    rows.Add(i);
-            return rows;
+            // Resume, Settings, How to play, Quit. Run stats is the small key beside the cabinet (DrawRunStatsKey); the Field guide is
+            // hidden for now; the profile opens from the main menu or your lobby card only.
+            return new List<int> { 0, 5, 4, PauseQuit };
         }
 
         bool CanQuitToLobby => session.IsHost && !LabRunning;
@@ -298,7 +296,35 @@ namespace Arena
             EndDrawerScreen();
             CabFoot("ESC RESUME / ARROWS SELECT / ENTER CHOOSE", "HOLD TAB RUN STATS & BUILD   H HIDE HUD");
             EndDrawer();
+            DrawRunStatsKey();
             DrawRunScreen(t);
+        }
+
+        /// The small square key right of the pause cabinet: three statistic bars, "Current run stats" on hover. Opens the Run stats screen.
+        void DrawRunStatsKey()
+        {
+            if (!cabScreenOn || cabWin)
+                return;
+            var r = new Rect(CabX + CabW + 6f, CabY + 26f, 32f, 32f);
+            bool hover = r.Contains(Event.current.mousePosition);
+            Ui.NoteHover(r);
+            Color c = CrtStyle.KeyColor(Ui.Gold);
+            CrtKit.SoftBox(r, c, false, hover, false);
+            Color tc = CrtKit.SoftText(c, hover);
+            float[] hs = { 0.45f, 0.8f, 0.6f };
+            for (int i = 0; i < 3; i++)
+            {
+                float bh = 18f * hs[i];
+                Ui.Fill(new Rect(r.x + 7f + i * 7f, r.yMax - 7f - bh, 5f, bh), tc);
+            }
+            TipClear();
+            if (hover)
+            {
+                TipStart(r, "Current run stats", Ui.Gold);
+                DrawTip(true);
+            }
+            if (Ui.HitArea(r))
+                runStatsOpen = true;
         }
 
         /// The run's screen on the right, fading as a window comes out over it.

@@ -588,7 +588,8 @@ namespace Arena
 
         void AlarmVertex(V2 p, float a)
         {
-            GL.Color(new Color(alarmCol.r, alarmCol.g, alarmCol.b, a));
+            glCur = new Color(alarmCol.r, alarmCol.g, alarmCol.b, a);
+            GL.Color(glCur);
             Vtx(Px(p));  // through Vtx, so a held frame replays it (Juice.cs)
         }
 
