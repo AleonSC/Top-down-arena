@@ -776,6 +776,10 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
 - **Expand the arena**: after each boss (every 5 waves) the team sees up to three random rooms and **votes**: click a room to
   vote, or "Buy nothing" to keep the purse. The most votes wins (a tie goes to the room). A room you can't afford is
   greyed out; if none is affordable there is no vote. Paths are off in this arena.
+- **Vectors** (new): every player holds a drawing budget (chip under the wave plate, "Vectors 25 / 40"): 1 vector = 1 tile of
+  wall. You start with 25 and can hold 40; each cleared wave gives 6, every 25 kills gives 1, and a cleared boss wave refills
+  everyone to the cap and adds 10 on top. Vectors aren't spent yet: the room vote still runs on the team purse until the
+  vote moves to vectors (Docs/VectorBuilding.md).
 - **Optional offers**: after any regular wave, if the purse covers a room, a chip "Rooms available" shows under the wave plate
   (the countdown doesn't wait for it). "See the rooms" opens the same cards and draw tool ("Decide later" closes it). When the
   next wave starts the offer closes: a room is bought only if more than half the team voted for it by then (everyone voting

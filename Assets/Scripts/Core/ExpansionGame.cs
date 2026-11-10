@@ -59,6 +59,49 @@ namespace Arena
             }
         }
 
+        // --- Vectors (Docs/VectorBuilding.md, step 1) ------------------------------------------------------------
+
+        /// Each player's drawing budget: 1 vector = 1 tile of new wall (Expansion.Cost). Start with VectorStart, hold up to VectorCap
+        /// (VectorCapBase for now), +VectorWaveGain for each cleared wave, +1 every VectorKillEvery kills, and a cleared boss wave
+        /// refills everyone to the cap and VectorBossBonus on top.
+        public const int VectorStart = 25, VectorCapBase = 40, VectorWaveGain = 6, VectorBossBonus = 10, VectorKillEvery = 25;
+
+        /// Host: gains stop at the cap (a stock already above it, from a boss, is left alone).
+        void AddVectors(Player p, int n)
+        {
+            if (n > 0 && p.Vectors < p.VectorCap)
+                p.Vectors = Math.Min(p.VectorCap, p.Vectors + n);
+        }
+
+        /// Host, when a wave is cleared: a boss wave refills everyone (downed too), any other gives a few.
+        void GrantVectorsForWave()
+        {
+            if (!ExpandingOn)
+                return;
+            bool boss = IsBossWave(Wave);
+            foreach (var p in Players.Values)
+            {
+                p.VectorCap = VectorCapBase;
+                if (boss)
+                    p.Vectors = Math.Max(p.Vectors, p.VectorCap + VectorBossBonus);
+                else
+                    AddVectors(p, VectorWaveGain);
+            }
+        }
+
+        /// Host, on a kill: every VectorKillEvery kills a player has made give them a vector.
+        void GrantVectorKill(Player killer)
+        {
+            if (ExpandingOn && killer != null && killer.Run.Kills > 0 && killer.Run.Kills % VectorKillEvery == 0)
+                AddVectors(killer, 1);
+        }
+
+        void SyncVectors(NetSync s, Player p)
+        {
+            s.Short(ref p.Vectors);
+            s.Short(ref p.VectorCap);
+        }
+
         // --- Room features (Docs/ExpandingArena.md, step 5) ------------------------------------------------------------
 
         /// The map has a shop room: kills drop personal gold, and the shop opens after the first wave following each boss.

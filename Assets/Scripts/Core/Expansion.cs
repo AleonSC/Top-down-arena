@@ -136,6 +136,22 @@ namespace Arena
             return true;
         }
 
+        /// What a room costs in vectors (Docs/VectorBuilding.md): its new wall length in tiles, the perimeter minus every wall it
+        /// shares with a room already there, so sharing walls is cheaper and a loop pays.
+        public static int Cost(IList<ExpansionRoom> built, int x, int y, int w, int h)
+        {
+            int shared = 0;
+            for (int a = 0; a <= built.Count; a++)
+            {
+                int bx0, by0, bx1, by1;
+                BoxOf(built, a, out bx0, out by0, out bx1, out by1);
+                shared += SharedRun(x, y, x + w, y + h, bx0, by0, bx1, by1);
+            }
+            return Math.Max(1, (2 * (w + h) - shared) / Step);
+        }
+
+        public static int Cost(IList<ExpansionRoom> built, ExpansionRoom r) => Cost(built, r.X, r.Y, r.W, r.H);
+
         /// How many loops a room would close (other rooms it gets a door to besides its parent).
         public static int LoopsOf(IList<ExpansionRoom> built, ExpansionRoom r)
         {

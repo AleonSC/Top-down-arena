@@ -240,6 +240,8 @@ namespace Arena
                 DrawPathChip(SideL, y);  // PathsUi.cs
                 y -= HudChipLine;
             }
+            if (DrawVectorChip(SideL, y))  // ExpansionUi.cs
+                y -= HudChipLine;
             if (DrawPurseChip(SideL, y))  // ExpansionUi.cs
                 y -= HudChipLine;
             if (DrawGoldChip(SideL, y))  // ShopUi.cs

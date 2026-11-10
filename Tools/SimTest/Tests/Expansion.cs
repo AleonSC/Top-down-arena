@@ -117,6 +117,12 @@ static partial class Program
         var loopWorld = Expansion.Build(new List<ExpansionRoom> { east, under.Value });
         Check(loopWorld.Doors.Length == 3 && loopWorld.Doors.Count(d => d.Joins(0)) == 2, "and gets a door to each (" + loopWorld.Doors.Length + " doors)");
         Check(Expansion.Custom(Enumerable.Range(0, Expansion.MaxRooms).Select(i => east).ToList(), 500, -600, 300, 600, out why) == null, "a full map takes no more");
+
+        // Vector cost (Docs/VectorBuilding.md): the new wall length, so a shared wall is free and a loop is cheap.
+        Check(Expansion.Cost(none, 500, -400, 600, 400) == 14, "a 6 x 4 closet along the hub's wall costs its perimeter 20 less the 6 it shares: 14 (" + Expansion.Cost(none, 500, -400, 600, 400) + ")");
+        Check(Expansion.Cost(none, 500, -1200, 300, 1200) == 27, "a 3 x 12 hallway standing off the hub costs 30 less the 3 it shares: 27 (" + Expansion.Cost(none, 500, -1200, 300, 1200) + ")");
+        Check(Expansion.Cost(withEast, under.Value) == 9, "a box that touches two rooms costs less again: 18 less 3 and 6 = 9 (" + Expansion.Cost(withEast, under.Value) + ")");
+        Check(Expansion.Cost(none, 500, -400, 600, 400) < Expansion.Cost(none, 500, -400, 1200, 400), "a bigger room costs more");
     }
 
     // The Expanding arena in a run (ExpansionGame.cs): the Arena setting, the purse, the vote on the offer, the bought
@@ -244,14 +250,14 @@ static partial class Program
         Run(s, dt, 0.3f);
         Check(g.ExpandOffer.Count == n0 && g.ExpandCustom == -1, "a bad drawing is refused");
         cg.ProposeExpandRoom(dx, dy, dw, dh);
-        Run(s, dt, 0.4f);
+        Run(s, dt, 3f, () => g.ExpandCustom == n0 && cg.ExpandCustom == n0 && cg.ExpandOffer != null && cg.ExpandOffer.Count == n0 + 1);
         Check(g.ExpandOffer.Count == n0 + 1 && g.ExpandCustom == n0 && cg.ExpandCustom == n0 && cg.ExpandOffer.Count == n0 + 1 && cg.ExpandOffer[n0].W == dw,
             "a drawn room joins the offer as its last card, on both screens");
         Check(g.ExpandVotes.ContainsKey(1) && g.ExpandVotes[1] == n0 + 1, "the \"buy nothing\" vote moved up a place");
         g.CastExpandVote(n0);  // the host switches to the drawn room (the client hasn't voted, so it stays open)
         Run(s, dt, 0.3f);
         cg.ProposeExpandRoom(dx, dy, dw + 100, dh);  // a newer drawing replaces it and its votes go
-        Run(s, dt, 0.4f);
+        Run(s, dt, 3f, () => g.ExpandOffer[n0].W == dw + 100 && cg.ExpandOffer != null && cg.ExpandOffer[n0].W == dw + 100);
         Check(g.ExpandOffer.Count == n0 + 1 && g.ExpandOffer[n0].W == dw + 100 && !g.ExpandVotes.ContainsValue(n0), "a newer drawing replaces the old one and its votes");
         int purseKeep = g.Purse;
         g.Purse = 10;
@@ -261,7 +267,7 @@ static partial class Program
         g.Purse = purseKeep;
         int beforeDraw = g.Expanded.Count;
         g.CastExpandVote(n0); cg.CastExpandVote(n0);
-        Run(s, dt, 0.4f);
+        Run(s, dt, 3f, () => g.Expanded.Count == beforeDraw + 1 && cg.Expanded.Count == g.Expanded.Count);
         Check(g.Expanded.Count == beforeDraw + 1 && g.Expanded[beforeDraw].X == dx && g.Expanded[beforeDraw].W == dw + 100 && cg.Expanded.Count == g.Expanded.Count, "both vote for it: the drawn room is bought, on both screens");
         var drawn = Expansion.Build(g.Expanded);
         Check(drawn.Doors.Length >= drawn.Areas.Length - 1, "and the map still connects");
@@ -398,6 +404,7 @@ static partial class Program
         Run(s, dt, 30f, () => g.State == MatchState.Intermission, NoPicks);
         Check(g.State == MatchState.Intermission && g.ShopOpen && cg.ShopOpen, "the wave after a boss ends with the shop open, on both screens");
         Check(g.Players.Values.All(p => p.Shelf.Any(u => u >= 0)), "everyone has a shelf");
+        Check(g.Players.Values.All(p => p.Vectors >= Game.VectorStart + Game.VectorWaveGain) && cg.Players[1].Vectors == g.Players[1].Vectors, "a cleared wave gives everyone " + Game.VectorWaveGain + " vectors, and the client sees them (" + g.Players[1].Vectors + ")");
         host.Game.Shop(ShopAction.Done, 1);
         client.Game.Shop(ShopAction.Done, 1);
         Run(s, dt, 0.5f);
@@ -422,5 +429,52 @@ static partial class Program
         g.CastExpandVote(0); cg.CastExpandVote(0);
         Run(s, dt, 0.4f);
         Check(g.Expanded.Count == rooms0 + 1 && g.ExpandOffer == null && cg.Expanded.Count == g.Expanded.Count, "both vote for a room: it is bought at once, countdown or not");
+    }
+}
+
+static partial class Program
+{
+    // Vectors (ExpansionGame.cs, Docs/VectorBuilding.md step 1): the start, the cap, a cleared wave, every 25 kills, a boss refill, synced.
+    static void ExpandingVectorsTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var grantWave = typeof(Game).GetMethod("GrantVectorsForWave", flags);
+        var grantKill = typeof(Game).GetMethod("GrantVectorKill", flags);
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        var p1 = g.Players[1];
+        Check(p1.Vectors == Game.VectorStart && p1.VectorCap == Game.VectorCapBase && Game.VectorStart < Game.VectorCapBase, "everyone starts with " + Game.VectorStart + " vectors and a cap of " + Game.VectorCapBase);
+        g.Diff.Set(DiffKnob.ArenaExpanding, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+        g.Wave = 6;
+        grantWave.Invoke(g, null);
+        Check(p1.Vectors == Game.VectorStart + Game.VectorWaveGain, "a cleared wave gives " + Game.VectorWaveGain + " (" + p1.Vectors + ")");
+        p1.Vectors = p1.VectorCap - 2;
+        grantWave.Invoke(g, null);
+        Check(p1.Vectors == p1.VectorCap, "gains stop at the cap");
+        p1.Run.Kills = Game.VectorKillEvery - 1; p1.Vectors = 10;
+        grantKill.Invoke(g, new object[] { p1 });
+        Check(p1.Vectors == 10, "24 kills give nothing yet");
+        p1.Run.Kills = Game.VectorKillEvery;
+        grantKill.Invoke(g, new object[] { p1 });
+        Check(p1.Vectors == 11, "the 25th kill gives a vector");
+        p1.Vectors = 3;
+        g.Wave = 10;
+        grantWave.Invoke(g, null);
+        Check(g.Players.Values.All(p => p.Vectors == p.VectorCap + Game.VectorBossBonus), "a cleared boss wave refills everyone to the cap and adds " + Game.VectorBossBonus + " on top");
+        grantWave.Invoke(g, null);
+        Check(p1.Vectors == p1.VectorCap + Game.VectorBossBonus, "and doesn't stack with itself");
+        g.Wave = 6;
+        grantWave.Invoke(g, null);
+        Check(p1.Vectors == p1.VectorCap + Game.VectorBossBonus, "ordinary gains leave a stock above the cap alone");
+        Run(s, dt, 0.5f);
+        Check(cg.Players[1].Vectors == p1.Vectors && cg.Players[2].Vectors == g.Players[2].Vectors && cg.Players[1].VectorCap == p1.VectorCap, "the client sees everyone's vectors");
+        g.Diff.Set(DiffKnob.ArenaExpanding, 0f);
+        p1.Vectors = 5;
+        grantWave.Invoke(g, null);
+        Check(p1.Vectors == 5, "outside the Expanding arena vectors don't change");
     }
 }

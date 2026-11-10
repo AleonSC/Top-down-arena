@@ -303,6 +303,24 @@ namespace Arena
             }
         }
 
+        // --- Vector chip --------------------------------------------------------------------------------------
+
+        /// Under the wave plate: your vectors and the most you can hold. True if it drew (the next chip goes a line up).
+        bool DrawVectorChip(float x, float y)
+        {
+            var me = game.Me;
+            if (!game.ExpandingOn || me == null)
+                return false;
+            string text = "VECTORS  " + me.Vectors + " / " + me.VectorCap;
+            float w = 30f + text.Length * 6.4f;
+            var chip = new Rect(x, y, w, 20f);
+            var ink = new Color(0.37f, 0.94f, 1f);
+            Ui.Pill(chip, new Color(0f, 0f, 0f, 0.55f));
+            Ui.Fill(new Rect(chip.x + 3f, chip.y + 4f, 3f, chip.height - 8f), ink);
+            Ui.Label(new Rect(chip.x + 12f, chip.y, w, chip.height), text, 10, ink, TextAnchor.MiddleLeft, true);
+            return true;
+        }
+
         // --- HUD chip ----------------------------------------------------------------------------------------
 
         /// Under the wave plate: the team purse. Returns true if it drew (the next chip goes a line up).

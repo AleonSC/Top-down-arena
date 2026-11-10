@@ -198,6 +198,7 @@ namespace Arena
             }
             else if (ExpandingOn && RoomsOn && HasShopRoom && Wave % Expansion.Milestone == 1 && !ShopOpen && Practice == null && Hunt == null)
                 OpenShop();  // the Expanding arena's shop room: the first wave after each boss ends with the shop open (walk into the room)
+            GrantVectorsForWave();  // vectors for everyone (ExpansionGame.cs)
             OfferOptionalExpansion();  // a regular wave cleared with the purse for a room: an optional offer, a chip on screen (ExpansionGame.cs)
             RemoveTemporaryMinions();
             MaybeOpenPortal();  // once every five waves: a challenge room (Challenges.cs)
