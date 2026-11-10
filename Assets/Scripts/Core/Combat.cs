@@ -809,7 +809,9 @@ namespace Arena
                 Score += (int)Math.Round(e.Score * (e.Elite ? 3 : 1) * PathBonus * FloorBonusAt(e.Pos));
                 GrantXp(KillXp(e) * (e.Elite ? 3 : 1) * PathBonus * FloorBonusAt(e.Pos) * ZombieXpScale(e));  // (Zombie Infection splits it over the horde)
                 MaybeRise(e, killer);  // Zombies.cs
-                if (OnPathOf(PathId.Bazaar) || Has(RunMod.GoldRush) || ServiceRooms)  // (a shop room in the Expanding map: gold for its shop)
+                if (ExpandingOn)
+                    DropCoins(e);  // Coins.cs: gold lies on the ground as coins that never despawn
+                else if (OnPathOf(PathId.Bazaar) || Has(RunMod.GoldRush) || ServiceRooms)
                     GrantGold(e);  // Shop.cs
                 GrantVectorKill(killer);  // and a vector every 25 kills
                 DropOrbs(e, bossReward);
