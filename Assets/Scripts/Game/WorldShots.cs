@@ -74,6 +74,11 @@ namespace Arena
         /// Small shots (enemies', arrows, sword waves...), drawn over everything else.
         void DrawSmallShot(Bullet b, float t)
         {
+            if (PacSkin)
+            {
+                DrawPacDot(b, t);  // PacmanLook.cs
+                return;
+            }
             float keep = glAlpha;
             glAlpha = keep * TeammateShotAlpha(b);  // a teammate's shot, as faded in Settings > Gameplay
             DrawSmallShotLook(b, t);
