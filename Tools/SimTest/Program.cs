@@ -405,6 +405,7 @@ static partial class Program
             args => LabRun(int.Parse(args[3]), (BotSkill)int.Parse(args[4]), int.Parse(args[5]), args.Skip(6).ToArray())),
         Report("levels", "the level a team of Good bots has at each boss", args => LevelReport(Dt)),
         Report("arenabal", "the Rooms arena vs Classic: a duo of Good bots, each regular wave's length, damage taken, threats in view (run.sh 1 1 arenabal [last wave] [seed] [Rooms damage x])", args => ArenaBalanceReport(Dt, Arg(args, 3, 20), Arg(args, 4, 1), args.Length > 5 ? float.Parse(args[5], System.Globalization.CultureInfo.InvariantCulture) : 0f)),
+        Report("vecbal", "the Expanding arena's vector economy: a duo of Good bots on Classic vs Expanding, each round's vectors, proposals and rooms built (run.sh 1 1 vecbal [last wave] [seed])", args => VectorBalanceReport(Dt, Arg(args, 3, 25), Arg(args, 4, 1), Arg(args, 5, 0) == 1)),
         Report("rooms", "a duo of Good bots plays with challenge rooms on: how each room went (run.sh 1 1 rooms [last wave] [seed])", args => RoomsReport(Dt, Arg(args, 3, 30), Arg(args, 4, 1))),
         Report("wavemix", "what a regular wave is made of: shooters, melee and support, wave by wave", args => WaveMixReport()),
         Report("bulletcount", "enemy bullets on screen through a wave", args => BulletCountReport(Dt)),
