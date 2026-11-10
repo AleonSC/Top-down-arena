@@ -1649,22 +1649,29 @@ Soldier, first weapon), `H/M/1`, `D/U/2` (U = Summoner) or `T/K/0` (K = Knight).
 **F1 → Tools → Wave editor** designs waves on a timeline. A design is a set of waves; each wave has a **level** (how
 strong its enemies are, as that wave of a run), **groups** and **props**.
 
+- **Waves strip** (under the title): one numbered key per wave (click to open it), **+ NEW WAVE**, **DUPLICATE**,
+  **DELETE**, `<` `>` to move the wave earlier or later, its **LEVEL**, and **Loop the waves**. **UNDO** / **REDO**
+  (Ctrl+Z, Ctrl+Y or Ctrl+Shift+Z) cover every change, including deletes.
 - **Arena map** (top left): the five **spawn points A-E** (drag a letter to move it, for every wave) and the wave's
-  props. **Props** mode: click to place the picked prop (crate, big crate, pot, barrel, chest), drag to move,
-  right-click to remove. The map also shows the wave at the playhead: who has arrived and where they're heading.
-- **Palette** (top middle): **Enemies** (the bosses' factions first, then everyone else), **Squads** (the regular
-  squads and the bosses' own, like the Riot line) and **Bosses**. Click one to add a new group at the playhead;
+  props. With a group selected, click a letter to send the group from it too (click it again to stop), or click empty
+  ground to send it from the nearest point. **Props** mode: click to place the picked prop (crate, big crate, pot,
+  barrel, chest), drag to move, right-click to remove. The map also shows the wave at the playhead: who has arrived
+  and where they're heading.
+- **Palette** (top middle): **Enemies** (the bosses' factions first, then everyone else; scroll for more),
+  **Squads** (the regular squads and the bosses' own, like the Riot line) and **Bosses**. **Drag** one onto the
+  timeline (a new group that starts where you let go), onto the map (a new group from the nearest spawn point, at the
+  playhead) or onto an existing group's bar (adds that enemy to it). A plain click adds a group at the playhead;
   Shift-click an enemy to add one more to the selected group.
 - **Selected group** (top right): its name, which spawn points it comes from (several take turns), when it starts,
-  how it arrives (**one by one** every so many seconds, **together**, side by side in a **line**, or in a **ring**
-  round a player) and how many of each enemy. A squad keeps its own members and formation.
-- **Timeline** (bottom): one track per group. Drag a clip to change when it starts, drag its right edge to spread
-  its enemies out; click or drag on the tracks to move the playhead; **Play** (or Space) runs the wave on the map.
-  Delete removes the selected group. A wave ends once every group has arrived and everyone is down.
-- **Waves:** `<` `>` step through them, `+` adds one, **Copy** duplicates it, `X` removes it; **Level** and **Loop**.
-- **Save** writes `<name>.waves` to the `waves` folder next to the practice folder; **Load** opens one (or starts a
-  new set). **Test** plays the waves in the Practice Range, hosted by you, starting on the wave you're editing (from
-  the main menu, the lobby, or a match you host; it replaces that match). Esc closes the editor.
+  how it arrives (**one by one** with a **gap** between enemies, **together**, side by side in a **line**, or in a
+  **ring** round a player) and how many of each enemy. A squad keeps its own members and formation. **COPY** and
+  **DELETE** (or Ctrl+D and Delete).
+- **Timeline** (bottom): one track per group. Drag a bar to change when it starts, drag its right edge to spread
+  its enemies out; click or drag on the tracks to move the playhead; **PLAY** (or Space) runs the wave on the map.
+  The line under it says what you can do next. A wave ends once every group has arrived and everyone is down.
+- **SAVE** writes `<name>.waves` to the `waves` folder next to the practice folder; **OPEN** opens one (or starts a
+  new set). **TEST IN PRACTICE** plays the waves in the Practice Range, hosted by you, starting on the wave you're
+  editing (from the main menu, the lobby, or a match you host; it replaces that match).
 
 The `.waves` file is plain text, e.g.
 
