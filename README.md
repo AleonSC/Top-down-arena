@@ -783,8 +783,9 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   cheaper again.
 - **Who drew what**: every built room has a thin line of its drawer's colour just inside its walls, and the minimap fills it in their
   colour. While a round is open the minimap and the draw screen show everyone's proposals as pulsing ghosts in their colours.
-- **The vote**: each player backs one proposal (your own counts for you when you draw it) or "No room". When everyone has
-  voted, or the next wave starts, **the most votes wins, a tie (a 50/50) is a random pick** (with "No room" as one of the
+- **The vote**: each player backs one proposal or "No room". Drawing a room doesn't cast your vote: until you click a card your
+  own proposal counts for you (the round never ends just because the last player drew). When everyone has clicked a vote, or the
+  next wave starts, **the most votes wins, a tie (a 50/50) is a random pick** (with "No room" as one of the
   tied options), and the winning drawer pays; nobody else does. One room is built a round, with a door to every room it
   shares a door's width of wall with (loops). Paths are off in this arena.
 - **How it plays**: regular waves use the whole map (walled, no wrapping, a minimap top right) and bring more enemies the

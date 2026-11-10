@@ -62,7 +62,9 @@ random offers. Boss kills refill the stock, upgrades raise how much you can hold
 - **Proposals** (`ExpandProposals`, one per player, `ExpansionRoom.Owner`): `Msg.ExpandDraw` (x, y, w, h) -> `HostExpandDraw`:
   `Expansion.Custom` must accept it and the drawer must have the vectors (`Price` is now `Expansion.Cost`); a newer one replaces the
   last and drops its votes; the drawer's own vote is cast for them.
-- **Votes** (`ExpandVotes`: voter -> proposer id, 0 = no room, `Msg.ExpandVote` carries a short): most votes wins, ties are a random
+- **Votes** (`ExpandVotes`: the votes players have *cast*, voter -> proposer id, 0 = no room, `Msg.ExpandVote` carries a short; a player
+  who hasn't cast one backs their own proposal, `EffectiveVote`/`VotesFor`; only cast votes from everyone settle the round early, so drawing
+  never ends it - fixed after a play-test where the last player to draw closed the round with a coin flip): most votes wins, ties are a random
   pick among the tied (`rng`), "no room" counts as one of them; proposals whose drawer can no longer pay are dropped before the
   count; only the winner's drawer pays. Bots propose a room they can afford from `Expansion.Offers` after 1.2 s (7 times in 10) and
   vote after 3 s (2 in 10 for no room).

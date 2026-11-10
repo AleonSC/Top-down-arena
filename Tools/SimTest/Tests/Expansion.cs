@@ -213,9 +213,9 @@ static partial class Program
         Check(g.ExpandProposals.Count == 0, "a drawing its drawer can't pay for is refused");
         g.Players[2].Vectors = Game.VectorStart;
         cg.ProposeExpandRoom(b0[0], b0[1], b0[2], b0[3]);
-        Run(s, dt, 3f, () => g.ExpandProposals.Count == 1 && cg.ExpandProposals.Count == 1 && cg.ExpandVotes.ContainsKey(2));
-        Check(g.ExpandProposals.Count == 1 && g.ExpandProposals[0].Owner == 2 && g.ExpandProposals[0].Price == Expansion.Cost(g.Expanded, b0[0], b0[1], b0[2], b0[3]) && cg.ExpandProposals[0].Equals(g.ExpandProposals[0]) && g.ExpandVotes[2] == 2 && cg.ExpandVotes[2] == 2 && g.ExpandOpen,
-            "a good drawing becomes its drawer's proposal, costs its wall length, backed by its drawer, the same on both screens, and the round waits for the host's vote");
+        Run(s, dt, 3f, () => g.ExpandProposals.Count == 1 && cg.ExpandProposals.Count == 1);
+        Check(g.ExpandProposals.Count == 1 && g.ExpandProposals[0].Owner == 2 && g.ExpandProposals[0].Price == Expansion.Cost(g.Expanded, b0[0], b0[1], b0[2], b0[3]) && cg.ExpandProposals[0].Equals(g.ExpandProposals[0]) && !g.ExpandVotes.ContainsKey(2) && g.VotesFor(2) == 1 && cg.VotesFor(2) == 1 && g.ExpandOpen,
+            "a good drawing becomes its drawer's proposal, costs its wall length, backs itself without casting a vote, the same on both screens, and the round stays open");
         cg.ProposeExpandRoom(b1[0], b1[1], b1[2], b1[3]);  // a newer drawing replaces it
         Run(s, dt, 3f, () => g.ExpandProposals.Count == 1 && g.ExpandProposals[0].X == b1[0] && cg.ExpandProposals.Count == 1 && cg.ExpandProposals[0].X == b1[0]);
         Check(g.ExpandProposals.Count == 1 && g.ExpandProposals[0].X == b1[0] && g.ExpandProposals[0].Y == b1[1], "a newer drawing replaces the drawer's last one");
@@ -223,6 +223,9 @@ static partial class Program
         // The vote: the host backs the client's room; everyone has voted, so it is built and paid for by its drawer.
         int cost = g.ExpandProposals[0].Price, clientBefore = g.Players[2].Vectors, hostBefore = g.Players[1].Vectors;
         g.CastExpandVote(2);
+        Run(s, dt, 0.5f);
+        Check(g.ExpandOpen, "one cast vote of two doesn't settle the round");
+        cg.CastExpandVote(2);
         Run(s, dt, 3f, () => !g.ExpandOpen && !cg.ExpandOpen && cg.Expanded.Count == 1 && cg.Players[2].Vectors == g.Players[2].Vectors);
         Check(g.Expanded.Count == 1 && g.Expanded[0].X == b1[0] && g.Expanded[0].Owner == 2 && g.Players[2].Vectors == clientBefore - cost && g.Players[1].Vectors == hostBefore && cg.Players[2].Vectors == g.Players[2].Vectors && cg.Expanded.Count == 1 && cg.Expanded[0].Equals(g.Expanded[0]),
             "everyone voting settles the round: the room is built, its drawer pays " + cost + " vectors, nobody else does, both screens agree");
@@ -250,6 +253,21 @@ static partial class Program
         g.Wave = w0; g.BossSlot = (w0) % 5 == 0 && (w0) > 0;
         pickRooms.Invoke(g, null);
 
+        // The vote decides, not who drew last: the client draws first, the host draws second, both vote for the client's room.
+        foreach (var p in g.Players.Values) p.Vectors = 35;
+        openRound.Invoke(g, null);
+        Run(s, dt, 3f, () => g.ExpandOpen && cg.ExpandOpen);
+        var lb = FindBoxes(g.Expanded, 2);
+        cg.ProposeExpandRoom(lb[0][0], lb[0][1], lb[0][2], lb[0][3]);
+        Run(s, dt, 3f, () => g.ExpandProposals.Count == 1 && cg.ExpandProposals.Count == 1);
+        g.ProposeExpandRoom(lb[1][0], lb[1][1], lb[1][2], lb[1][3]);  // the host draws last
+        Run(s, dt, 3f, () => g.ExpandProposals.Count == 2 && cg.ExpandProposals.Count == 2);
+        Check(g.ExpandOpen && cg.ExpandOpen && g.ExpandProposals.Count == 2, "the second drawing doesn't end the round: both proposals stand");
+        int lastBuilt = g.Expanded.Count;
+        g.CastExpandVote(2); cg.CastExpandVote(2);
+        Run(s, dt, 3f, () => !g.ExpandOpen && !cg.ExpandOpen && cg.Expanded.Count == g.Expanded.Count);
+        Check(g.Expanded.Count == lastBuilt + 1 && g.Expanded[g.Expanded.Count - 1].Owner == 2 && g.Expanded[g.Expanded.Count - 1].X == lb[0][0], "both vote for the first drawing: it wins, not the last one drawn");
+
         // A 50/50 tie is a random pick: over eight rounds both players' rooms win, one room is built each round, and the loser pays nothing.
         var winners = new HashSet<int>();
         int built0 = g.Expanded.Count, rounds = 0;
@@ -263,6 +281,8 @@ static partial class Program
             if (bx.Count < 2) break;
             g.ProposeExpandRoom(bx[0][0], bx[0][1], bx[0][2], bx[0][3]);
             cg.ProposeExpandRoom(bx[1][0], bx[1][1], bx[1][2], bx[1][3]);
+            Run(s, dt, 3f, () => g.ExpandProposals.Count == 2 && cg.ExpandProposals.Count == 2);
+            g.CastExpandVote(1); cg.CastExpandVote(2);  // each backs their own: a 50/50 tie
             Run(s, dt, 3f, () => !g.ExpandOpen && !cg.ExpandOpen && cg.Expanded.Count == g.Expanded.Count);
             rounds++;
             var last = g.Expanded[g.Expanded.Count - 1];
