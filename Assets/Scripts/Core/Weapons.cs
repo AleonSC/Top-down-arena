@@ -36,8 +36,8 @@ namespace Arena
             new WeaponDef { Id = WeaponId.MendersBow, Kit = Kit.Soldier, Role = Role.Healer, Choice = 2, BotRange = 390f, ExtraDesc = "+1 arrow nocked: a full draw also looses an extra arrow (half damage) in a tight fan", Name = "Mender's Bow", FireInterval = 0.9f, Desc = "Hold to draw, release to fire. A full draw hits hard, pierces enemies and heals allies it passes. Let go right at full draw for a perfect shot.",
                 Sound = Sfx.ShotBow },
             // DPS
-            new WeaponDef { Id = WeaponId.TwinRifle, Kit = Kit.Soldier, Role = Role.Dps, Choice = 0, Speed = 820f, Life = 0.7f, Damage = 4f, ExtraDesc = "+1 barrel", Name = "Twin Rifle", FireInterval = 0.1f,
-                Desc = "Two streams from wide-set barrels, angled to cross at your cursor. Hits where they cross are crossfire and do double.",
+            new WeaponDef { Id = WeaponId.TwinRifle, Kit = Kit.Soldier, Role = Role.Dps, Choice = 0, Speed = 820f, Life = 0.7f, Damage = 4f, ExtraDesc = "+1 barrel", Name = "Twin Rifle", FireInterval = 0.125f,
+                Desc = "Two streams from wide-set barrels, angled to cross at your cursor. Hits where they cross are crossfire and do 1.5×.",
                 Sound = Sfx.ShotAssault },
             new WeaponDef { Id = WeaponId.Railgun, Kit = Kit.Soldier, Role = Role.Dps, Choice = 1, Speed = 1600f, Life = 0.7f, Damage = 45f, BotRange = 460f, ExtraDesc = "Throws 2 shrapnel shards sideways at every enemy it pierces", Name = "Railgun", FireInterval = 0.7f,
                 Desc = "Slow, devastating shots that pierce through enemies. The path of each round stays charged for a moment and hurts anything in it.",
@@ -89,7 +89,7 @@ namespace Arena
         /// How far past your edge the Twin Rifle's muzzles are: the guns are held out wide (Spread arms,
         /// Docs/Mockups/twin-rifle-firing.html) and the rounds start at the drawn muzzles. Against a wall they start at your edge.
         public const float TwinMuzzleOut = 22f;
-        public const float TwinBarrelGap = 60f, TwinCrossMin = 120f, TwinCrossZone = 45f, TwinCrossMult = 2f;
+        public const float TwinBarrelGap = 60f, TwinCrossMin = 120f, TwinCrossZone = 45f, TwinCrossMult = 1.5f;
         public float TwinCrossDistance(Player p) => Math.Max(TwinCrossMin, Math.Min(p.Weapon.Speed * p.Weapon.Life * p.Stats.ShotSpeedMult, p.AimAt.DistanceTo(p.Pos)));
 
         float CrossfireMult(Bullet b, Enemy e) => b.Crossfire && e.Pos.DistanceTo(b.Cross) <= TwinCrossZone + e.Radius ? TwinCrossMult : 1f;
@@ -423,7 +423,7 @@ namespace Arena
                 case WeaponId.TwinRifle:
                 {
                     // Barrels spread apart (two, plus one per extra projectile), angled in so every stream crosses at
-                    // your cursor's distance; hits near the crossing are crossfire, for double. Each volley strays up to 2°.
+                    // your cursor's distance; hits near the crossing are crossfire, for 1.5x. Each volley strays up to 2°.
                     // The barrels share a fixed width (extra projectiles fill it in, not widen it), and Barrage's fanned
                     // copies fire from a narrow cluster so the fan reads as a fan, not overlapping wide pairs.
                     int n = 2 + extra;

@@ -268,7 +268,10 @@ namespace Arena
             if (session.Screen == AppScreen.Game ? !pauseMenuOpen && !game.Paused : session.Screen == AppScreen.Lobby && !lobbyMenuOpen)
                 fieldGuideOpen = false;  // (the Field guide opens from the pause menu, the lobby's menu, or the main menu)
             if (session.Screen != AppScreen.Lobby)
+            {
                 lobbyMenuOpen = false;
+                inspectId = -1;
+            }
             if (session.Screen != AppScreen.Game || !pauseMenuOpen && !game.Paused)
                 runStatsOpen = false;  // the pause menu's Run stats closes with it (RunStatsUi.cs)
             else if (fieldGuideOpen && !devMenuOpen && !labSetupOpen)
@@ -351,7 +354,7 @@ namespace Arena
             parryBlocked = overlay || parryOnMenu;
             mouseBlocked = fireBlocked || parryBlocked;
             bool inMenus = session.Screen != AppScreen.Game;
-            bool overlayPointer = choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab() || WaveBoxUp(me) || PracticeDownedUp(me)
+            bool overlayPointer = choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab() || WaveBoxUp(me) || PracticeDownedUp(me) || BalanceReportUp()
                 || game.State == MatchState.GameOver || game.State == MatchState.Victory;  // the end screen and rank report need the pointer
             // The system pointer is always hidden: wherever a pointer is wanted we draw the Corner pointer of your cursor look, and it
             // morphs into the crosshair when the match takes over (CursorLooks.cs).
@@ -472,6 +475,8 @@ namespace Arena
             {
                 if (fieldGuideOpen)
                     CloseFieldGuide();  // back to the lobby's menu
+                else if (inspectId >= 0)
+                    CloseInspect();
                 else if (lobbyMenuOpen && (pauseSettings || pauseHowTo || pauseRecords))
                     MenuBack();  // a window closes first; then the lobby menu's Settings: back to its list
                 else if (lobbyMenuOpen)
@@ -751,9 +756,11 @@ namespace Arena
                         else
                             DrawLobbyEntering();  // just in from the menu: the card becomes your loadout (LobbyEnter.cs)
                     }
-                    else if (!settingsOpen && !lobbyMenuOpen || Event.current.type == EventType.Repaint)
+                    else if (!settingsOpen && !lobbyMenuOpen && inspectId < 0 || Event.current.type == EventType.Repaint)
                         DrawLobby();
                     DrawLobbyCrtGlass(Time.unscaledTime);  // corners, highlight and bezel over it (LobbyCrt.cs)
+                    if (inspectId >= 0 && !lobbyMenuOpen && !settingsOpen)
+                        DrawInspect();  // a teammate's holo card (PlayerInspect.cs)
                     if (lobbyMenuOpen)
                     {
                         if (fieldGuideOpen)

@@ -1,0 +1,192 @@
+<title>Warder Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the live scenes first (today's Warder and three reworks, each running the same 10 s loop: cast, bubbles up,
+   an ally takes a hit, the Warder dies and the bubbles pop), then a size-for-size lineup against the enemies it gets
+   mistaken for. House mockup palette (steel and parchment neutrals); violet is the Warder's own colour. */
+:root{
+  --bg:#eceae4; --fg:#1d1f22; --muted:#5f636a; --panel:#f8f7f3; --line:#d3d0c6;
+  --acc:#6b4fd0; --chip:#e1ded4; --chip-on:#1d1f22; --chip-on-fg:#f6f4ee; --arena:#14161a;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101215; --fg:#e8e9ea; --muted:#979ca4; --panel:#181b20; --line:#2c3138;
+  --acc:#b59cff; --chip:#23272e; --chip-on:#e8e9ea; --chip-on-fg:#101215; --arena:#0b0c0f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101215; --fg:#e8e9ea; --muted:#979ca4; --panel:#181b20; --line:#2c3138;
+  --acc:#b59cff; --chip:#23272e; --chip-on:#e8e9ea; --chip-on-fg:#101215; --arena:#0b0c0f; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1060px;margin:0 auto;display:flex;flex-direction:column;gap:26px}
+h1{font:700 clamp(40px,7vw,64px)/.95 var(--display);text-transform:uppercase;margin:0 0 10px;text-wrap:balance}
+h1 small{display:block;font:500 13px var(--mono);letter-spacing:.06em;color:var(--acc);margin-bottom:8px}
+header p{margin:0;max-width:68ch;color:var(--muted)}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button{font:600 15px var(--display);letter-spacing:.04em;text-transform:uppercase;padding:7px 13px;border:1px solid var(--line);border-radius:6px;background:var(--chip);color:var(--fg);cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.chk{display:inline-flex;gap:6px;align-items:center;font:500 13px var(--mono);color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:16px}
+.card{display:flex;flex-direction:column;gap:8px;min-width:0}
+.card canvas,.strip canvas{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:6px;background:var(--arena)}
+.card canvas{aspect-ratio:8/5}
+.card h3{margin:0;font:700 20px var(--display);text-transform:uppercase;letter-spacing:.04em;display:flex;gap:10px;align-items:baseline}
+.card h3 i{font:500 12px var(--mono);font-style:normal;color:var(--acc);letter-spacing:.06em}
+.card p{margin:0;color:var(--muted);font-size:15px;max-width:60ch}
+.strip{display:flex;flex-direction:column;gap:10px}
+.strip canvas{aspect-ratio:1040/230}
+.notes{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+.notes ul{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px;color:var(--muted)}
+.notes b{color:var(--fg)}
+</style>
+<main>
+<header>
+  <h1><small>MOCKUP · ENEMY REWORK</small>Warder rework</h1>
+  <p>Today's Warder is a violet octagon, the same size and silhouette as the other 16 px enemies, and its tell is a thin dashed line. These three give it a shape you can pick out from across the arena, a visible cast, and a "kill me first" read. Each scene loops the same 10 s: cast, bubbles up, an ally takes a hit, the Warder dies and the bubbles pop.</p>
+</header>
+<div class="controls">
+  <button id="pause" type="button">Pause</button>
+  <label class="chk"><input id="mark" type="checkbox" checked> Kill-first marker</label>
+  <label class="chk"><input id="range" type="checkbox" checked> Show 320 px reach</label>
+</div>
+<section class="grid" id="scenes"></section>
+<section class="strip">
+  <h2>Next to its neighbours</h2>
+  <canvas id="lineup" width="1040" height="230" aria-label="Enemies drawn at the same size"></canvas>
+</section>
+<section class="notes">
+  <h2>What would change in the game</h2>
+  <ul>
+    <li><b>Body:</b> new silhouette and idle motion in <code>VarietyLook.cs</code> / <code>WorldEnemies.cs</code>; hitbox, health and AI stay as they are.</li>
+    <li><b>Cast:</b> a 1.4 s charge before each ward (today it is instant), then glyphs fly to the allies. Gameplay-neutral if the ward still lands at the end of the charge.</li>
+    <li><b>Tether:</b> beads flowing from the Warder to each ally instead of a dashed line, so you can see which way it points.</li>
+    <li><b>Marker:</b> a small violet chevron over the Warder while any ward is up. Optional.</li>
+  </ul>
+</section>
+</main>
+<script>
+const TAU=Math.PI*2, VIO='#b59cff', VIOL='#e6dcff', DARK='#1b1530';
+const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)), ease=x=>1-Math.pow(1-clamp(x),3);
+const LOOP=10;
+const opt={mark:true,range:true};
+function poly(c,x,y,r,n,rot){c.beginPath();for(let i=0;i<n;i++){const a=rot+i*TAU/n,px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;i?c.lineTo(px,py):c.moveTo(px,py)}c.closePath()}
+function circ(c,x,y,r){c.beginPath();c.arc(x,y,r,0,TAU)}
+
+/* ---- stand-in enemies (not the real art) ---- */
+function grunt(c,x,y,r=12){circ(c,x,y,r);c.fillStyle='#d9534b';c.fill();c.lineWidth=2;c.strokeStyle='#5a1b17';c.stroke();
+  circ(c,x+r*.35,y-r*.2,2);c.fillStyle='#fff';c.fill();circ(c,x-r*.35,y-r*.2,2);c.fill()}
+function medic(c,x,y,r=13){circ(c,x,y,r);c.fillStyle='#3fae78';c.fill();c.lineWidth=2;c.strokeStyle='#124a31';c.stroke();
+  c.fillStyle='#eafff3';c.fillRect(x-r*.55,y-2,r*1.1,4);c.fillRect(x-2,y-r*.55,4,r*1.1)}
+function shielder(c,x,y,r=16){circ(c,x,y,r);c.fillStyle='#6d8aa8';c.fill();c.lineWidth=2;c.strokeStyle='#1d2e40';c.stroke();
+  c.beginPath();c.arc(x,y,r+5,-1,1);c.lineWidth=6;c.strokeStyle='#b9d3ee';c.stroke()}
+function todayWarder(c,x,y,r,t){poly(c,x,y,r,8,t*.3);c.fillStyle='#b59cff';c.fill();c.lineWidth=2;c.strokeStyle=DARK;c.stroke();circ(c,x,y,r*.35);c.fillStyle=DARK;c.fill()}
+
+/* ---- the three reworks. k = charge 0..1, out = how many glyphs have left, a = alpha ---- */
+function glyphs(c,x,y,r,t,k,out,spin){ // three hex sigils orbiting; the ones that have left aren't drawn
+  for(let i=0;i<3;i++){ if(i<out) continue;
+    const a=t*(spin+k*5)+i*TAU/3, d=r+15+k*4;
+    poly(c,x+Math.cos(a)*d,y+Math.sin(a)*d,4.5+k*1.5,6,a);c.fillStyle=k>.05?VIOL:VIO;c.fill();c.lineWidth=1.2;c.strokeStyle=DARK;c.stroke()}
+}
+function wardA(c,x,y,r,t,k,out){ // Censer Priest: tall diamond with a hood notch, glyphs orbiting
+  const R=r*1.25;
+  c.save();c.translate(x,y);c.rotate(Math.sin(t*.8)*.08);
+  c.beginPath();c.moveTo(0,-R*1.15);c.lineTo(R*.8,0);c.lineTo(0,R*.95);c.lineTo(-R*.8,0);c.closePath();
+  c.fillStyle='#8f74e6';c.fill();c.lineWidth=2.2;c.strokeStyle=DARK;c.stroke();
+  c.beginPath();c.moveTo(0,-R*1.15);c.lineTo(R*.8,0);c.lineTo(0,R*.1);c.closePath();c.fillStyle='#b59cff';c.fill(); // lit facet
+  circ(c,0,-R*.18,R*.22+k*2);c.fillStyle=k>.05?'#fff':DARK;c.fill();                                              // the eye
+  c.restore();
+  glyphs(c,x,y,r,t,k,out,1.1)}
+function wardB(c,x,y,r,t,k,out){ // Pylon: counter-rotating split rings round a core
+  const rings=[[r*1.25,1,5],[r*.95,-1.4,4],[r*.65,2,3]];
+  rings.forEach(([rr,sp,n],i)=>{for(let j=0;j<n;j++){const a0=t*sp*(1+k*3)+j*TAU/n;c.beginPath();c.arc(x,y,rr,a0,a0+TAU/n*.7);c.lineWidth=4-i*.6;c.lineCap='round';c.strokeStyle=i===0?VIO:i===1?'#9d82f0':VIOL;c.stroke()}});
+  poly(c,x,y,r*.38+k*3,4,t*.6);c.fillStyle=k>.05?'#fff':VIOL;c.fill();c.lineWidth=1.5;c.strokeStyle=DARK;c.stroke();
+  for(let i=0;i<3;i++){ if(i<out) continue; const a=-Math.PI/2+i*TAU/3; circ(c,x+Math.cos(a)*r*1.75,y+Math.sin(a)*r*1.75,3.2);c.fillStyle=VIOL;c.fill()} // charge pips outside
+}
+function wardC(c,x,y,r,t,k,out){ // Canopy: eight scalloped petals that open to cast
+  const open=.25+k*.55, n=8, R=r*1.35;
+  for(let i=0;i<n;i++){const a=t*.35+i*TAU/n;c.save();c.translate(x,y);c.rotate(a);
+    c.beginPath();c.moveTo(R*.2,0);c.quadraticCurveTo(R*.75,-R*open*.9,R*1.05,0);c.quadraticCurveTo(R*.75,R*open*.9,R*.2,0);
+    c.fillStyle=i%2?'#a78af2':'#8f74e6';c.fill();c.lineWidth=1.6;c.strokeStyle=DARK;c.stroke();c.restore()}
+  circ(c,x,y,r*.34);c.fillStyle=k>.05?'#fff':VIOL;c.fill();c.lineWidth=1.5;c.strokeStyle=DARK;c.stroke();
+  glyphs(c,x,y,r*.1,t,k,out,.7)}
+function marker(c,x,y,t){const dy=Math.sin(t*3)*2;c.beginPath();c.moveTo(x,y+dy);c.lineTo(x-6,y-9+dy);c.lineTo(x+6,y-9+dy);c.closePath();c.fillStyle=VIOL;c.fill();c.lineWidth=1.5;c.strokeStyle=DARK;c.stroke();
+  c.beginPath();c.moveTo(x-6,y-14+dy);c.lineTo(x,y-9+dy);c.lineTo(x+6,y-14+dy);c.lineWidth=2.2;c.strokeStyle=VIOL;c.stroke()}
+
+/* ---- scene: 480 x 300 logical ---- */
+const W=320,H=200, WX=160, WY=95, REACH=115;
+const allies=[[-92,-42],[86,-52],[15,72]].map(([dx,dy])=>[WX+dx,WY+dy]);
+function bubble(c,x,y,r,k,hp,t,hitK,pop,i){
+  const R=r+11;
+  if(pop>0){ // pop: ring flares and fades, six shards leave
+    c.globalAlpha=1-pop;circ(c,x,y,R+pop*16);c.lineWidth=3*(1-pop);c.strokeStyle=VIOL;c.stroke();
+    for(let s=0;s<6;s++){const a=s*TAU/6+i,d=R+pop*26;poly(c,x+Math.cos(a)*d,y+Math.sin(a)*d,3,3,a);c.fillStyle=VIO;c.fill()}c.globalAlpha=1;return}
+  if(k<=0)return;
+  const RR=R*(.6+.4*ease(k));c.globalAlpha=clamp(k*2);
+  circ(c,x,y,RR);c.fillStyle='rgba(181,156,255,'+(.07+.1*hp)+')';c.fill();
+  circ(c,x,y,RR);c.lineWidth=2;c.strokeStyle='rgba(181,156,255,'+(.4+.5*hp)+')';c.stroke();
+  poly(c,x,y-RR,4.5,6,0);c.fillStyle=VIOL;c.fill();c.lineWidth=1;c.strokeStyle=DARK;c.stroke(); // glyph on the rim
+  if(hitK>0){c.beginPath();c.arc(x,y,RR,-2.4,-.9);c.lineWidth=4;c.strokeStyle='rgba(255,255,255,'+(1-hitK)+')';c.stroke()}
+  c.globalAlpha=1}
+function tether(c,ax,ay,bx,by,t,a){const dx=bx-ax,dy=by-ay,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L;
+  c.globalAlpha=a;c.beginPath();c.moveTo(ax,ay);c.lineTo(bx,by);c.lineWidth=1;c.strokeStyle='rgba(181,156,255,.3)';c.stroke();
+  for(let s=(t*55)%16;s<L;s+=16){circ(c,ax+ux*s,ay+uy*s,2);c.fillStyle=VIOL;c.fill()}c.globalAlpha=1}
+
+function frame(c,T,t,draw,today){
+  c.clearRect(0,0,W,H);
+  // timeline
+  const charge=T<2.4?clamp((T-1)/1.4):0, fly=clamp((T-2.4)/.8), bub=T<7?clamp((T-3.2)/.4):0;
+  const pop=T>=7&&T<7.6?(T-7)/.6:0, shown=T<7;
+  const alpha=T<7?1:T<7.5?1-(T-7)/.5:T<9?0:clamp((T-9));
+  const hitK=T>5&&T<5.5?(T-5)/.5:0, hp0=T>5?.55:1;
+  const out=T>2.4&&T<7?(fly>0?3:0):0;
+  // floor: reach ring + charge fill
+  if(opt.range){circ(c,WX,WY,REACH);c.setLineDash([4,6]);c.lineWidth=1;c.strokeStyle='rgba(181,156,255,'+(.12+.25*charge)+')';c.stroke();c.setLineDash([])}
+  if(charge>0){circ(c,WX,WY,REACH*charge);c.fillStyle='rgba(181,156,255,'+(.06*(1-charge))+')';c.fill()}
+  if(!today&&shown&&bub>0)allies.forEach(([ax,ay])=>tether(c,WX,WY,ax,ay,t,bub*alpha));
+  if(today&&shown&&bub>0)allies.forEach(([ax,ay])=>{c.setLineDash([5,5]);c.beginPath();c.moveTo(WX,WY);c.lineTo(ax,ay);c.lineWidth=2;c.strokeStyle='rgba(181,156,255,.55)';c.stroke();c.setLineDash([])});
+  allies.forEach(([ax,ay],i)=>{const sh=Math.sin(t*2+i)*1.2;grunt(c,ax,ay+sh)});
+  allies.forEach(([ax,ay],i)=>bubble(c,ax,ay+Math.sin(t*2+i)*1.2,12,bub,i===0?hp0:1,t,i===0?hitK:0,pop,i));
+  // glyphs in flight
+  if(!today&&T>=2.4&&T<3.4)allies.forEach(([ax,ay],i)=>{const f=ease(fly),a0=t*1.1+i*TAU/3,sx=WX+Math.cos(a0)*30,sy=WY+Math.sin(a0)*30;
+    poly(c,sx+(ax-sx)*f,sy+(ay-sy)*f-Math.sin(f*Math.PI)*22,5,6,t*6);c.fillStyle=VIOL;c.fill()});
+  // the Warder
+  c.globalAlpha=alpha;
+  if(today)todayWarder(c,WX,WY,16,t);else draw(c,WX,WY,16,t,charge,T>=2.4&&T<7?3:0);
+  if(!today&&opt.mark&&shown&&bub>0)marker(c,WX,WY-36,t);
+  c.globalAlpha=1;
+  // time bar
+  c.fillStyle='rgba(255,255,255,.08)';c.fillRect(0,H-3,W,3);c.fillStyle='rgba(181,156,255,.7)';c.fillRect(0,H-3,W*T/LOOP,3);
+  c.font='500 10px IBM Plex Mono, monospace';c.fillStyle='rgba(255,255,255,.55)';
+  const lab=T<1?'idle':T<2.4?'charging':T<3.2?'wards fly':T<5?'bubbles up':T<5.6?'ally takes a hit':T<7?'bubbles hold':T<7.6?'Warder dies: bubbles pop':'';
+  c.fillText(lab,10,H-10)}
+
+const defs=[['Today','octagon',null,'Same 16 px octagon silhouette as a dozen others; one violet ring and a dashed line are the only tells.',true],
+ ['A · Censer Priest','tall diamond',wardA,'A pointed, hooded diamond taller than it is wide, with three hex sigils orbiting it. Sigils spin up while it charges and fly out to become the glyph on each bubble.'],
+ ['B · Pylon','gyroscope',wardB,'Three split rings counter-rotating round a core, so it reads as a machine, not a unit. Rings whip up on the charge. Fits the Beam Sentry family of tech enemies.'],
+ ['C · Canopy','scalloped',wardC,'Eight petals like an umbrella seen from above. They fan open while charging and release the glyphs. The widest silhouette of the three, unmistakable among round enemies.']];
+const scenes=document.getElementById('scenes'), cvs=[];
+defs.forEach(d=>{const el=document.createElement('div');el.className='card';
+  el.innerHTML='<canvas></canvas><h3>'+d[0]+' <i>'+d[1]+'</i></h3><p>'+d[3]+'</p>';scenes.append(el);cvs.push([el.querySelector('canvas'),d])});
+
+function fit(cv,lw,lh){const dpr=Math.min(window.devicePixelRatio||1,2),w=cv.clientWidth||lw;cv.width=Math.round(w*dpr);cv.height=Math.round(w*lh/lw*dpr);const c=cv.getContext('2d');c.setTransform(cv.width/lw,0,0,cv.width/lw,0,0);return c}
+
+function lineup(){
+  const cv=document.getElementById('lineup'),c=fit(cv,1040,230);c.clearRect(0,0,1040,230);
+  const items=[['Grunt',x=>grunt(c,x,95,12)],['Medic',x=>medic(c,x,95,13)],['Shielder',x=>shielder(c,x,95,16)],
+    ['Today',x=>todayWarder(c,x,95,16,0)],['A',x=>wardA(c,x,95,16,1,0,0)],['B',x=>wardB(c,x,95,16,1,0,0)],['C',x=>wardC(c,x,95,16,1,0,0)]];
+  items.forEach(([n,f],i)=>{const x=80+i*146;f(x);c.font='600 15px Barlow Condensed, sans-serif';c.fillStyle=i>=3?VIOL:'rgba(255,255,255,.7)';c.textAlign='center';
+    c.fillText(n.toUpperCase(),x,170)});
+  // x2 zoom of today vs A/B/C
+  c.font='500 11px IBM Plex Mono, monospace';c.fillStyle='rgba(255,255,255,.45)';c.textAlign='left';c.fillText('same scale as in game; stand-ins for the other enemies',16,214)}
+
+let T0=performance.now(),paused=false,pausedAt=0;
+document.getElementById('pause').onclick=e=>{paused=!paused;e.target.textContent=paused?'Play':'Pause';if(paused)pausedAt=performance.now();else T0+=performance.now()-pausedAt};
+document.getElementById('mark').onchange=e=>{opt.mark=e.target.checked};
+document.getElementById('range').onchange=e=>{opt.range=e.target.checked};
+const ctxs=cvs.map(([cv])=>fit(cv,W,H));
+addEventListener('resize',()=>{cvs.forEach(([cv],i)=>ctxs[i]=fit(cv,W,H));lineup()});
+function loop(now){if(!paused){const s=(now-T0)/1000,T=s%LOOP;cvs.forEach(([cv,d],i)=>frame(ctxs[i],T,s,d[2],!!d[4]))}requestAnimationFrame(loop)}
+(document.fonts&&document.fonts.ready||Promise.resolve()).then(lineup);lineup();requestAnimationFrame(loop);
+</script>

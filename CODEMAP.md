@@ -106,6 +106,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Game/LungeLaneLook.cs`: the shared lunge wind-up lane for the Lunger, Spike Block, Charger and Riot Shield (`Docs/Mockups/lunge-telegraph.html`)
 - `Game/ShooterAimLook.cs`: the dashed aim line of the aimed shooters while they wind up (Sniper, Shard, Medic, Splitter, Phantom, Grunt)
 - `Game/EnemyTagLook.cs`, `Profile.TagSeen`: (also the Settings > Gameplay "Enemy names on hover" tag under the cursor) the name and job tag an enemy type carries for its first three sightings (profile "tag" lines, format 6)
+- `Core/BruteEnrage.cs`: Brute enrage (`BruteRage`/`BruteSpeedMult`/`BruteDamageMult`, from health lost; used in `MoveEnemy` and the contact damage in `EnemyAI.cs`; redder in `Game/WorldEnemies.cs`)
 - `Core/NewEnemies.cs`, `Game/NewEnemyChips.cs`: the new-enemy chips under the between-waves box (`Game.NewTypesAt`, `Game.EnemyNote`; unmet types only, via `Profile.TagSeen`)
 - `Zombies.cs`: Zombie Infection modifier (seven zombie kinds)
 - `Approaches.cs`, `WardenFaction.cs`: boss factions/approach mixes, Warden's faction enemies
@@ -144,6 +145,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `BestiaryData.cs`: Bestiary entry types (`BestiaryData.Generated.cs` is generated, don't edit)
 - `TextOverrides.cs`: dev text-editor edits
 - `WeaponDps.Generated.cs`: generated weapon DPS table, don't edit
+- `Game/DodgeSoundBank.cs`: the Dodge's Cloth Swish (`Sfx.DodgeSwish`, raised in `Dodge.cs`, own screen only; `Docs/Mockups/dodge-sounds.html`)
 - `BossSounds.cs`: audio cues for boss attacks
 - `Game/NinjaSoundBank.cs`: the Ninja DPS's sounds (Kunai whoosh `ShotKunai` via the weapon def's `Sound`, `NinjaBlink`, `NinjaStepCast`/`NinjaStepStrike`, `NinjaVanish`, `NinjaFanOpen`/`NinjaFanBurst`, `NinjaLotusCast`), raised in `Ninja.cs`; the Shinobi set of `Docs/Mockups/ninja-dps-sounds.html`
 - `Game/TreantSoundBank.cs`, `Game/SeedLook.cs`: the Treant Rod's sounds (`SwingRoot` leaf rustle on the lash, `ShotSeed` Pod Pop, `ShotSeedHit` Tick; `Docs/Mockups/treant-rod-sounds-seeds.html`) and the Treant's seed as a Thorn Dart (`Defs.TreantSeed`, fired by `TickTreantSeeds` in `Core/KitWeapons.cs`)
@@ -240,8 +242,9 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `CrtUi.cs`: the blue-phosphor CRT look of the Play picker and the path choice (`Begin`, glowing `Text`, `SoftKey` (lit, danger, quiet) for every key on these screens, `End` for scanlines and glass); Reduced effects drops glow, roll bar and flicker
 - `KeyUi.cs`: the menu's mechanical keycap buttons (`KeyUi.Key`: a keycap in a dark well with a corner lamp and a few pixels of travel; `KeyUi.Well` for rings). Used by the main menu's Play / Join game / Records / Settings (`Menus.cs`) and the Play screen's New run and Back (`SavesUi.cs`)
 - `StormHammer.cs`, `Game/StormHammerLook.cs`: the Elementalist Tank's Storm Hammer: the throw is queued by `FireVolley` (`QueueHammerThrow`) and leaves the hand `HammerThrowRelease` later (`TickHammerThrows`); the Alt slam (`DashHammerSlam` over `Msg.WeaponDash`, `HostHammerSlam`, `TickHammerSlams`: wind-up, then a shockwave that hurts, shoves and electrifies each enemy once); `FxKind.HammerThrow` is the held hammer's pose clock (Pos2.X 0 throw, 1 slam), `FxKind.HammerSlam` the wave. Looks: held pose (`DrawStormHammerHeld`), Thunderhead projectile (`DrawStormHammerThunder`), Pulse wave (`DrawHammerSlamFx`, `DrawHammerGlow`); mockups `Docs/Mockups/storm-hammer-throw.html`, `storm-hammer-slam.html`; preview `HAMMERFX=throw:0.1|slam:0.45|wave:0.25`; tests `run.sh 1 30 storm` and `stormslam`
-- `Keybinds.cs`, `KeybindsUi.cs`: every rebindable key (`KeyAction`, defaults, saved in PlayerPrefs, rebind capture) and Settings → Keybinds. Weapon secondaries read `PlayerInput.WeaponAction` (Left Alt) in `Core/Ninja.cs` `LocalWeaponDash`
+- `Keybinds.cs`, `KeybindsUi.cs`: every rebindable key (`KeyAction`, defaults, optional second key per action, saved in PlayerPrefs, rebind capture) and Settings → Keybinds. Weapon secondaries read `PlayerInput.WeaponAction` (Left Alt) in `Core/Ninja.cs` `LocalWeaponDash`
 - `PerksUi.cs`: the lobby's Perks tab (look A: your slots left, perk cards right; click to equip, hover for the rules) and the perk icons on party cards (`DrawSeatPerks`); see `Docs/RiotGear.md`
+- `PlayerInspect.cs`: click a lobby party card: yours opens your profile (`OpenOwnProfile`), a teammate's opens their large holo card (`OpenInspect`/`DrawInspect`: frame, card background, name effect, trail, rank badge, XP, kills / best wave / bosses, equipped names; `LobbyEntry.XpPct/BestWave/Kills/BossKills`); `Docs/Mockups/lobby-profile-inspect.html`
 - `ProfileUi.cs`: your profile as a CRT cabinet (header, profile screen with badge/name/XP, four tab keys, option keys, Back; opened by the main menu's player card, also the pause and lobby menus' Profile row without Look) and the "YOUR PROFILE" nudge beside the card (`DrawProfileHint`)
 - `ProfileWindows.cs`: the profile's CRT windows (cab window kind 3): Rank > Progress / Tiers / XP sources, the Unlocks tab
 - `BackgroundReactSet.cs`: the six reactive backgrounds after Ripples, with state (Boot Log, Vector Rocks, Life Grid, Phosphor Pond, Vector Tunnel, Signal Lost; mockup `Docs/Mockups/crt-backgrounds.html`)
@@ -263,6 +266,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `DpsMeterUi.cs`: F2 DPS meter overlay and the F1 DPS tab
 - `ReplayUi.cs`: F1 Replays tab (record, folder, list, rename, delete) and the replay timeline bar; `Core/Replay.cs` is the file, recorder and player
 - `BalanceTestUi.cs`: F1 > Balance tab, the TEST strip and the report screen
+- `DevKit.cs`: the CRT look of the dev tools and the chat box: `DkPanel`, `DkSub`, `DkCard`, `DkTitle`, `DkKey`, `DkChoice`, `DkSwitch`, `DkField`, drop-ins for the old `Ui.Panel/Button/Toggle/Choice/Field/Pill` (used by `DevMenu.cs`, `ReplayUi.cs`, `BalanceTestUi.cs`, `DpsMeterUi.cs`, `ChatBox.cs`)
 - `DevMenu.cs`, `DevTextEdit.cs`, `BossLabUi.cs`, `WaveEditorUi.cs`: F1 tools, F4 text edit, Boss Lab, F1 wave editor
 - `PracticeUi.cs`: the lobby's Practice tab (CRT look A of `Docs/Mockups/crt-practice-redesign.html`: wave rack, enemy grid, setup files); `TrainingUi.cs`: the Training tab (drill cartridges by group, detail, Load this drill, the training folder); `PracticeDownedUi.cs`: the Practice Range's DOWNED window with Respawn, Restart wave and Back to lobby
 - `../Editor/ArenaEditor.cs`: scene setup and Windows build menu item

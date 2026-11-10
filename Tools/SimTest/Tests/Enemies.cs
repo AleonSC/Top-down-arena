@@ -286,12 +286,12 @@ static partial class Program
             int ghosts = 0, frame = 0;
             var ghostKinds = new List<string>();  // bullets the client has and the host doesn't, for the log
             // The Eclipse's five stages are checked one by one in its own test (eclipse); here the simple bots (they walk
-            // in circles, so they can't hide from its flashes or keep to the light) can't be killed, and it starts at 45%
+            // in circles, so they can't hide from its flashes or keep to the light) can't be killed, and it starts at 30%
             // so the fight fits the time limit, still changing stage through the Umbra, Last Light and Totality.
             var eclipse = Find(s[0], EnemyType.Eclipse);
             if (eclipse != null)
             {
-                eclipse.Hp = eclipse.MaxHp * 0.45f;
+                eclipse.Hp = eclipse.MaxHp * 0.3f;
                 foreach (var p in s[0].Game.Players.Values)
                     s[0].Game.DevSetGod(p.Id, true);
             }

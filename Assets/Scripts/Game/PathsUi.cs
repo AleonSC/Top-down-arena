@@ -535,7 +535,8 @@ namespace Arena
 
         void NightVertex(V2 p, float a)
         {
-            GL.Color(new Color(0.015f, 0.02f, 0.06f, a));
+            glCur = new Color(0.015f, 0.02f, 0.06f, a);  // (glCur, so a held frame replays it)
+            GL.Color(glCur);
             Vtx(Px(p));
         }
 
@@ -590,7 +591,8 @@ namespace Arena
 
         void FogVertex(V2 p, float a)
         {
-            GL.Color(new Color(0.12f, 0.13f, 0.16f, a));
+            glCur = new Color(0.12f, 0.13f, 0.16f, a);  // (glCur, so a held frame replays the mist's colour, not the last SetColor's)
+            GL.Color(glCur);
             Vtx(Px(p));
         }
 

@@ -47,12 +47,13 @@ namespace Arena
             int rows = session.IsHost ? game.Players.Count : 0;
             int dummies = session.IsHost ? game.DummyCount() : 0;
             var r = new Rect(14f, 124f, 300f, 36f + Mathf.Max(1, rows) * rowH + (dummies > 0 ? 22f : 0f));
-            Ui.HudPanel(r, DpsColor);
+            DkSub(r, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.9f));
+            Ui.Fill(new Rect(r.x, r.y, 3f, r.height), DpsColor);
             Ui.Label(new Rect(r.x + 12f, r.y + 6f, r.width - 24f, 16f), "DPS METER", 11, DpsColor, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(r.x + 12f, r.y + 6f, r.width - 24f, 16f), "F2 hide  ·  Shift+F2 reset", 10, Ui.Muted, TextAnchor.MiddleRight);
+            Ui.Label(new Rect(r.x + 12f, r.y + 6f, r.width - 24f, 16f), "F2 hide  ·  Shift+F2 reset", 10, CrtStyle.Desc, TextAnchor.MiddleRight);
             if (!session.IsHost)
             {
-                Ui.Label(new Rect(r.x + 12f, r.y + 30f, r.width - 24f, 40f), "Only the host sees the meter.", 12, Ui.Muted, TextAnchor.MiddleLeft, false, true);
+                Ui.Label(new Rect(r.x + 12f, r.y + 30f, r.width - 24f, 40f), "Only the host sees the meter.", 12, CrtStyle.Desc, TextAnchor.MiddleLeft, false, true);
                 return;
             }
             float y = r.y + 28f;
@@ -64,23 +65,23 @@ namespace Arena
                 float now = t != null ? t.Window(1f) : 0f, avg = t != null ? t.Average : 0f;
                 float sim = p.Weapon != null ? Defs.WeaponDps(p.Weapon.Id) : 0f;
                 Ui.Label(new Rect(r.x + 12f, y, 170f, 18f), p.Name + (p.Weapon != null ? "  ·  " + p.Weapon.Name : ""), 11, ToColor(p.Def.Color), TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(r.x + 120f, y - 2f, r.width - 132f, 24f), live ? Whole(now) : "-", 20, live ? Color.white : Ui.Muted, TextAnchor.MiddleRight, true);
+                Ui.Label(new Rect(r.x + 120f, y - 2f, r.width - 132f, 24f), live ? Whole(now) : "-", 20, live ? Color.white : CrtStyle.Desc, TextAnchor.MiddleRight, true);
                 if (t != null && t.Total > 0f)
                 {
-                    Ui.Label(new Rect(r.x + 12f, y + 20f, r.width - 24f, 16f), "5 s " + Whole(t.Window(5f)) + "  ·  avg " + Whole(avg) + "  ·  peak " + Whole(t.Peak), 11, Ui.Text);
+                    Ui.Label(new Rect(r.x + 12f, y + 20f, r.width - 24f, 16f), "5 s " + Whole(t.Window(5f)) + "  ·  avg " + Whole(avg) + "  ·  peak " + Whole(t.Peak), 11, CrtStyle.Body);
                     float over = t.OverTime / t.Total;
                     Ui.Label(new Rect(r.x + 12f, y + 36f, r.width - 24f, 16f),
-                        Whole(t.Total) + " total" + (over >= 0.005f ? "  ·  " + Mathf.RoundToInt(over * 100f) + "% burn/bleed" : ""), 10, Ui.Muted);
+                        Whole(t.Total) + " total" + (over >= 0.005f ? "  ·  " + Mathf.RoundToInt(over * 100f) + "% burn/bleed" : ""), 10, CrtStyle.Desc);
                     if (sim > 0f)
                         Ui.Label(new Rect(r.x + 12f, y + 36f, r.width - 24f, 16f), "sim " + Whole(sim) + "  (" + Mathf.RoundToInt(avg / sim * 100f) + "%)", 10,
-                            avg >= sim * 0.9f ? Ui.Good : Ui.Muted, TextAnchor.MiddleRight);
+                            avg >= sim * 0.9f ? Ui.Good : CrtStyle.Desc, TextAnchor.MiddleRight);
                 }
                 else
-                    Ui.Label(new Rect(r.x + 12f, y + 20f, r.width - 24f, 16f), "waiting for a hit" + (sim > 0f ? "  ·  sim " + Whole(sim) : ""), 11, Ui.Muted);
+                    Ui.Label(new Rect(r.x + 12f, y + 20f, r.width - 24f, 16f), "waiting for a hit" + (sim > 0f ? "  ·  sim " + Whole(sim) : ""), 11, CrtStyle.Desc);
                 y += rowH;
             }
             if (dummies > 0)
-                Ui.Label(new Rect(r.x + 12f, r.yMax - 22f, r.width - 24f, 16f), dummies + (dummies == 1 ? " dummy" : " dummies") + " took " + Whole(game.DummyDamage()), 10, Ui.Muted);
+                Ui.Label(new Rect(r.x + 12f, r.yMax - 22f, r.width - 24f, 16f), dummies + (dummies == 1 ? " dummy" : " dummies") + " took " + Whole(game.DummyDamage()), 10, CrtStyle.Desc);
         }
 
         // --- The DPS tab of the F1 menu ----------------------------------------------------
@@ -91,34 +92,34 @@ namespace Arena
             bool wasEnabled = GUI.enabled;
             var meter = new Rect(body.x, body.y, body.width, 190f);
             float y = DevCard(meter, "DPS meter", "Damage a second for every player, from every source (shots, minions, burning). Host only.", DpsColor);
-            dpsMeter = Ui.Toggle(new Rect(meter.x + 16f, y, meter.width - 32f, 26f), dpsMeter, "Show the meter on screen  (F2)");
+            dpsMeter = DkSwitch(new Rect(meter.x + 16f, y, meter.width - 32f, 26f), dpsMeter, "Show the meter on screen  (F2)");
             y += 34f;
             GUI.enabled = host;
-            if (Ui.Button(new Rect(meter.x + 16f, y, 190f, 30f), "Reset  (Shift+F2)"))
+            if (DkKey(new Rect(meter.x + 16f, y, 190f, 30f), "Reset  (Shift+F2)"))
                 game.DevResetDps();
             GUI.enabled = wasEnabled;
             Ui.Label(new Rect(meter.x + 16f, y + 38f, meter.width - 32f, 54f),
                 "Now is the last second; avg counts only the seconds you were hitting something. The sim figure is the no-upgrades number from the lobby (Defs.WeaponDps), so a low percentage means a weapon misses, or you do.",
-                11, Ui.Muted, TextAnchor.UpperLeft, false, true);
+                11, CrtStyle.Desc, TextAnchor.UpperLeft, false, true);
 
             var dummy = new Rect(body.x, meter.yMax + 14f, body.width, 230f);
             y = DevCard(dummy, "Target dummy", "A Juggernaut that never dies, shoots or hurts, and doesn't hold up the wave. Up to " + Game.MaxDummies + ".", DpsColor);
             int count = host ? game.DummyCount() : 0;
             GUI.enabled = host && count < Game.MaxDummies;
-            if (Ui.Button(new Rect(dummy.x + 16f, y, 220f, 34f), "Spawn one in front of you", Ui.Primary))
+            if (DkKey(new Rect(dummy.x + 16f, y, 220f, 34f), "Spawn one in front of you", Ui.Primary))
                 game.DevSpawnDummy(game.MyId);
             GUI.enabled = host && count > 0;
-            if (Ui.Button(new Rect(dummy.x + 246f, y, 160f, 34f), "Remove all"))
+            if (DkKey(new Rect(dummy.x + 246f, y, 160f, 34f), "Remove all"))
                 game.DevClearDummies();
             GUI.enabled = host;
             y += 44f;
-            game.DummyMoves = Ui.Toggle(new Rect(dummy.x + 16f, y, dummy.width - 32f, 26f), game.DummyMoves, "Patrol side to side (tests moving targets and aim)");
+            game.DummyMoves = DkSwitch(new Rect(dummy.x + 16f, y, dummy.width - 32f, 26f), game.DummyMoves, "Patrol side to side (tests moving targets and aim)");
             GUI.enabled = wasEnabled;
             y += 34f;
-            Ui.Label(new Rect(dummy.x + 16f, y, dummy.width - 32f, 18f), host ? count + " on the field  ·  taken " + Whole(game.DummyDamage()) + " since the last reset" : "Only the host can spawn dummies.", 12, Ui.Text);
+            Ui.Label(new Rect(dummy.x + 16f, y, dummy.width - 32f, 18f), host ? count + " on the field  ·  taken " + Whole(game.DummyDamage()) + " since the last reset" : "Only the host can spawn dummies.", 12, CrtStyle.Body);
             Ui.Label(new Rect(dummy.x + 16f, y + 22f, dummy.width - 32f, 36f),
                 "Using this marks the run as a dev run, like god mode. In the Practice Range, build a wave with no enemies and untick Loop to test undisturbed.",
-                11, Ui.Muted, TextAnchor.UpperLeft, false, true);
+                11, CrtStyle.Desc, TextAnchor.UpperLeft, false, true);
         }
     }
 }

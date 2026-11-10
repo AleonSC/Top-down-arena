@@ -113,7 +113,7 @@ namespace Arena
         {
             var rows = new List<int>();
             for (int i = 0; i < LobbyChoices.Length; i++)
-                if (i != FieldGuideRow)
+                if (i != FieldGuideRow && i != 3 && i != 5)  // no Profile (main menu or your lobby card) and no Main menu (the lobby's back arrow does that)
                     rows.Add(i);
             return rows;
         }
@@ -122,6 +122,7 @@ namespace Arena
         void OpenLobbyMenu()
         {
             lobbyMenuOpen = true;
+            profileFromCard = false;
             lobbySel = 0;
             pauseSettings = pauseHowTo = pauseRecords = false;
             drawerKey = null;
@@ -159,7 +160,7 @@ namespace Arena
             }
             LobbyMenuKeys();
             cabBootLog = "> LINK OK   > SAVE OK   > LOBBY";
-            BeginDrawer("MENU", Ui.Accent, 1f, session.IsHost && session.Lobby.Count > 1 ? "Leaving closes the lobby for everyone" : "Esc closes this menu");
+            BeginDrawer("MENU", Ui.Accent, 1f, "Esc closes this menu");
             string[] lines = { "Close this menu", "Audio, visual effects, aim line", "Every enemy, weapon and upgrade", "Your rank, records and unlocks", "Controls and tips",
                 session.IsHost ? "Close the lobby, back to the title screen" : "Leave the lobby, back to the title screen", "Close the game" };
             Color[] lcols = { Ui.Primary, new Color(0.6f, 0.66f, 0.82f), FieldGuideColor, Ui.Gold, HowToColor, new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
@@ -208,7 +209,7 @@ namespace Arena
                 case 1: pauseSettings = true; CloseCabWindow(); break;
                 case 2: OpenFieldGuide(); break;
                 case 3: pauseRecords = true; break;
-                case 4: pauseHowTo = true; break;
+                case 4: pauseHowTo = true; OpenCabWindow(2); break;  // a window beside the list
                 case 5:
                     lobbyMenuOpen = false;
                     pauseSettings = pauseHowTo = false;
@@ -226,11 +227,9 @@ namespace Arena
         /// The pause menu's choices for this player.
         List<int> PauseRows()
         {
-            var rows = new List<int>();
-            for (int i = 0; i < PauseChoices.Length; i++)
-                if (i != FieldGuideRow)  // the Field guide (Bestiary + Armory) is hidden for now
-                    rows.Add(i);
-            return rows;
+            // Resume, Settings, How to play, Quit. Run stats is the small key beside the cabinet (DrawRunStatsKey); the Field guide is
+            // hidden for now; the profile opens from the main menu or your lobby card only.
+            return new List<int> { 0, 5, 4, PauseQuit };
         }
 
         bool CanQuitToLobby => session.IsHost && !LabRunning;
@@ -296,9 +295,36 @@ namespace Arena
             if (Event.current.type == EventType.Repaint)
                 pauseMouse = Event.current.mousePosition;
             EndDrawerScreen();
+            DrawRunStatsKey();
             CabFoot("ESC RESUME / ARROWS SELECT / ENTER CHOOSE", "HOLD TAB RUN STATS & BUILD   H HIDE HUD");
             EndDrawer();
+            DrawTip(true);
             DrawRunScreen(t);
+        }
+
+        /// The small square key in the pause box's header, lined up with the right edge of the rows: three statistic bars, "Current run
+        /// stats" on hover. Opens the Run stats screen. Call inside the drawer (cabinet coordinates).
+        void DrawRunStatsKey()
+        {
+            TipClear();
+            if (!cabScreenOn)
+                return;
+            var r = new Rect(34f + CabRowW - 36f, 52f, 36f, 36f);
+            bool hover = r.Contains(Event.current.mousePosition);
+            Ui.NoteHover(r);
+            Color c = CrtStyle.KeyColor(CrtStyle.Gold);
+            CrtKit.SoftBox(r, c, false, hover, false);
+            Color tc = CrtKit.SoftText(c, hover);
+            float[] hs = { 0.45f, 0.8f, 0.6f };
+            for (int i = 0; i < 3; i++)
+            {
+                float bh = 20f * hs[i];
+                Ui.Fill(new Rect(r.x + 8f + i * 8f, r.yMax - 8f - bh, 6f, bh), tc);
+            }
+            if (hover)
+                TipStart(new Rect(CabX + 1f + DrawerSlide + r.x, CabY + 1f + r.y, r.width, r.height), "Current run stats", Ui.Gold);
+            if (Ui.HitArea(r))
+                runStatsOpen = true;
         }
 
         /// The run's screen on the right, fading as a window comes out over it.
@@ -421,7 +447,12 @@ namespace Arena
                 if (CabWindowOpen)
                     CloseCabWindow();  // the profile's window first
                 else
+                {
                     pauseRecords = false;
+                    if (profileFromCard)
+                        CloseLobbyMenu();  // opened from your party card: straight back to the lobby
+                    profileFromCard = false;
+                }
                 return;
             }
             if (CabWindowOpen)

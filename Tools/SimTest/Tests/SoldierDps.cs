@@ -48,9 +48,9 @@ static partial class Program
         Check(NewGrenade() == null, "the weapon-action key does nothing with the tubes empty");
 
         var dummy = Dummy(aimAt);
-        Step(1.5f, true, false);
-        Console.WriteLine("  twin tubes: after 1.5 s of crossfire, {0} loaded, charge {1}", me.TwinNades, me.TwinCharge);
-        Check(me.TwinNades >= 1, "crossfire hits load a grenade in about a second (40 hits, each counting twice)");
+        Step(2.5f, true, false);
+        Console.WriteLine("  twin tubes: after 2.5 s of crossfire, {0} loaded, charge {1}", me.TwinNades, me.TwinCharge);
+        Check(me.TwinNades >= 1, "crossfire hits load a grenade in about two seconds (60 hits, each counting twice)");
         Step(3f, true, false);
         Check(me.TwinNades == Game.TwinNadeMax && me.TwinCharge == 0, "the tubes hold two at most (" + me.TwinNades + ", charge " + me.TwinCharge + ")");
         Step(0.3f, false, false);
@@ -72,12 +72,12 @@ static partial class Program
 
         // Fire the left, refill, and the right still goes next.
         g.Bullets.Clear();
-        Step(3f, true, false);
+        Step(4.5f, true, false);
         Check(me.TwinNades == 2 && me.TwinNext == 0, "reloaded: two, the left next");
         Step(0.3f, false, false);
         Step(0.05f, false, true);
         Check(me.TwinNades == 1 && me.TwinNext == 1, "the left fired");
-        Step(1.5f, true, false);
+        Step(2.5f, true, false);
         Check(me.TwinNades == 2, "the left tube is refilled");
         g.Bullets.Clear();
         Step(0.3f, false, false);

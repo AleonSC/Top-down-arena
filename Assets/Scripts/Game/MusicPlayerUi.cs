@@ -211,48 +211,48 @@ namespace Arena
             var entry = juke.Selected == null ? null : MusicLibrary.Find(juke.Selected);
             string shown = sounds.PlayingId;
             var playing = shown == null ? null : MusicLibrary.Find(shown);
-            Color accent = entry != null ? MoodColor(entry.Mood) : Ui.Accent;
+            Color accent = entry != null ? MoodColor(entry.Mood) : CrtUi.Ink;
 
             // Now playing.
             var card = new Rect(x, y, w, 134f);
-            Ui.Pill(card, new Color(1f, 1f, 1f, 0.04f));
+            DkSub(card, new Color(1f, 1f, 1f, 0.03f));
             string title = entry != null ? entry.Title : "Automatic";
             string line = entry != null ? entry.Mood + "  ·  " + entry.Blurb
                 : "The game picks: menu theme, wave battle, and each boss's own theme" + (playing != null ? "  ·  now: " + playing.Title : "");
             Ui.Label(new Rect(card.x + 18f, card.y + 8f, w - 160f, 32f), title, 22, Color.white, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(card.x + 18f, card.y + 38f, w - 36f, 18f), line, 13, Ui.Muted);
+            Ui.Label(new Rect(card.x + 18f, card.y + 38f, w - 36f, 18f), line, 13, CrtStyle.Desc);
             bool failed = juke.Selected != null && CustomMusic.IsFailed(juke.Selected);
             bool loading = juke.Selected != null && !failed && !sounds.IsTrackReady(juke.Selected);
             string state = failed ? "CAN'T PLAY THIS FILE" : sounds.MusicPaused ? "PAUSED" : loading ? (entry != null && entry.NeedsUnity ? "LOADING THE FILE…" : "RENDERING THE TRACK…") : sounds.Muted ? "MUTED" : "PLAYING";
             Ui.Label(new Rect(card.xMax - 230f, card.y + 10f, 212f, 20f), state, 11, failed || sounds.MusicPaused || loading || sounds.Muted ? Ui.Warn : Ui.Good, TextAnchor.MiddleRight, true);
             float len = sounds.PlayingLength, pos = sounds.PlayingTime;
-            Ui.Bar(new Rect(card.x + 18f, card.y + 66f, w - 36f, 8f), len > 0f ? pos / len : 0f, accent);
-            Ui.Label(new Rect(card.x + 18f, card.y + 76f, 80f, 16f), Clock(pos), 11, Ui.Muted, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(card.xMax - 98f, card.y + 76f, 80f, 16f), Clock(len), 11, Ui.Muted, TextAnchor.MiddleRight, true);
+            DkBar(new Rect(card.x + 18f, card.y + 66f, w - 36f, 8f), len > 0f ? pos / len : 0f, accent);
+            Ui.Label(new Rect(card.x + 18f, card.y + 76f, 80f, 16f), Clock(pos), 11, CrtStyle.Desc, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(card.xMax - 98f, card.y + 76f, 80f, 16f), Clock(len), 11, CrtStyle.Desc, TextAnchor.MiddleRight, true);
 
             float bx = card.x + 18f, by = card.y + 96f;
-            if (Ui.SmallButton(new Rect(bx, by, 70f, 30f), "Prev", Ui.Neutral, 13))
+            if (DkKey(new Rect(bx, by, 70f, 30f), "Prev", Ui.Neutral, false, 13))
             {
                 juke.Previous();
                 PlayTrack(juke.Selected);
             }
             bx += 78f;
-            if (Ui.SmallButton(new Rect(bx, by, 96f, 30f), sounds.MusicPaused ? "Play" : "Pause", Ui.Primary, 13))
+            if (DkKey(new Rect(bx, by, 96f, 30f), sounds.MusicPaused ? "Play" : "Pause", Ui.Primary, true, 13))
                 sounds.MusicPaused = !sounds.MusicPaused;
             bx += 104f;
-            if (Ui.SmallButton(new Rect(bx, by, 70f, 30f), "Next", Ui.Neutral, 13))
+            if (DkKey(new Rect(bx, by, 70f, 30f), "Next", Ui.Neutral, false, 13))
             {
                 juke.Select(juke.PickNext());
                 PlayTrack(juke.Selected);
             }
             bx += 100f;
-            if (Ui.SmallButton(new Rect(bx, by, 110f, 30f), juke.Shuffle ? "Shuffle: on" : "Shuffle: off", juke.Shuffle ? Ui.Primary : Ui.Neutral, 13))
+            if (DkKey(new Rect(bx, by, 110f, 30f), juke.Shuffle ? "Shuffle: on" : "Shuffle: off", Ui.Neutral, juke.Shuffle, 13))
             {
                 juke.Shuffle = !juke.Shuffle;
                 SaveJukebox();
             }
             bx += 118f;
-            if (Ui.SmallButton(new Rect(bx, by, 130f, 30f), juke.RepeatOne ? "Repeat: this one" : "Repeat: all", Ui.Neutral, 13))
+            if (DkKey(new Rect(bx, by, 130f, 30f), juke.RepeatOne ? "Repeat: this one" : "Repeat: all", Ui.Neutral, false, 13))
             {
                 juke.RepeatOne = !juke.RepeatOne;
                 SaveJukebox();
@@ -260,12 +260,12 @@ namespace Arena
             y += 144f;
 
             bool boss = SwitchRow(new Rect(x, y, w - 250f, 40f), juke.BossThemes, "Boss themes still play", "A boss fight plays its own theme, then yours returns");
-            if (Ui.SmallButton(new Rect(x + w - 240f, y + 5f, 132f, 30f), "Open folder", Ui.Neutral, 13))
+            if (DkKey(new Rect(x + w - 240f, y + 5f, 132f, 30f), "Open folder", Ui.Neutral, false, 13))
             {
                 Directory.CreateDirectory(MusicFolder);
                 Application.OpenURL("file:///" + MusicFolder.Replace('\\', '/'));
             }
-            if (Ui.SmallButton(new Rect(x + w - 100f, y + 5f, 100f, 30f), "Rescan", Ui.Neutral, 13))
+            if (DkKey(new Rect(x + w - 100f, y + 5f, 100f, 30f), "Rescan", Ui.Neutral, false, 13))
                 ScanCustomMusic();
             if (boss != juke.BossThemes)
             {
@@ -276,7 +276,7 @@ namespace Arena
 
             // The track list (scrolls with the mouse wheel).
             var list = new Rect(x, y, w, DrawerPanel.yMax - 22f - y);
-            Ui.Pill(list, new Color(0f, 0f, 0f, 0.3f));
+            DkSub(list);
             const float row = 40f;
             int n = MusicLibrary.All.Count + 2;   // "Automatic" first, a tip for your own tracks last
             float maxScroll = Mathf.Max(0f, n * row - list.height + 8f);
@@ -297,25 +297,27 @@ namespace Arena
                 if (i == n - 1)
                 {
                     Ui.Label(new Rect(r.x + 14f, r.y, r.width - 28f, r.height), "Your own tracks: click Open folder, drop .wav, .mp3 or .ogg files in, then Rescan.  "
-                        + (customCount > 0 ? customCount + " found." : "None yet."), 12, Ui.Muted, TextAnchor.MiddleLeft, false, true);
+                        + (customCount > 0 ? customCount + " found." : "None yet."), 12, CrtStyle.Desc, TextAnchor.MiddleLeft, false, true);
                     continue;
                 }
                 var e = i == 0 ? null : MusicLibrary.All[i - 1];
                 bool chosen = e == null ? juke.Selected == null : juke.Selected == e.Id;
                 bool hover = r.Contains(Event.current.mousePosition);
-                Color c = e == null ? Ui.Accent : MoodColor(e.Mood);
-                Ui.Pill(r, chosen ? new Color(c.r, c.g, c.b, 0.3f) : new Color(1f, 1f, 1f, hover ? 0.1f : 0.04f));
+                Color c = e == null ? CrtUi.Ink : MoodColor(e.Mood);
+                DkSub(r, chosen ? new Color(c.r, c.g, c.b, 0.22f) : new Color(1f, 1f, 1f, hover ? 0.07f : 0.025f));
+                if (chosen)
+                    CrtKit.Frame(r, 2f, c);
                 if (chosen)
                     for (int b = 0; b < 3; b++)  // a little equaliser on the chosen track
                     {
                         float hgt = sounds.MusicPaused ? 4f : 5f + 11f * Mathf.Abs(Mathf.Sin(t * (3.1f + b * 1.7f) + b));
                         Ui.Fill(new Rect(r.x + 14f + b * 6f, r.center.y + 8f - hgt, 4f, hgt), c);
                     }
-                Ui.Label(new Rect(r.x + 44f, r.y, 210f, r.height), e == null ? "Automatic" : e.Title, 15, chosen ? Color.white : Ui.Text, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(r.x + 44f, r.y, 210f, r.height), e == null ? "Automatic" : e.Title, 15, chosen ? Color.white : CrtStyle.Body, TextAnchor.MiddleLeft, true);
                 bool bad = e != null && CustomMusic.IsFailed(e.Id);
-                Ui.Label(new Rect(r.x + 260f, r.y, r.width - 360f, r.height), e == null ? "Let the game choose the music" : bad ? "Couldn't read this file" : e.Blurb, 12, bad ? Ui.Warn : Ui.Muted);
+                Ui.Label(new Rect(r.x + 260f, r.y, r.width - 360f, r.height), e == null ? "Let the game choose the music" : bad ? "Couldn't read this file" : e.Blurb, 12, bad ? Ui.Warn : CrtStyle.Desc);
                 if (e != null)
-                    Ui.Badge(new Rect(r.xMax - 86f, r.y + 8f, 76f, r.height - 16f), e.Mood, c);
+                    DkTag(new Rect(r.xMax - 86f, r.y + 8f, 76f, r.height - 16f), e.Mood, c);
                 if (Ui.HitArea(r) && !chosen)
                     PlayTrack(e == null ? null : e.Id);
             }

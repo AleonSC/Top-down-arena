@@ -86,6 +86,8 @@ namespace Arena
         PerfectParry,
         // The Katana switching stance (KatanaSoundBank.cs): the blade turned from one guard to the other and a short burst. Sent.
         KatanaStanceSwap,
+        // The Dodge (DodgeSoundBank.cs, Cloth Swish of Docs/Mockups/dodge-sounds.html): a soft fabric rush as you dodge. Your own screen only; the Effects volume.
+        DodgeSwish,
     }
 
     public struct SoundCue

@@ -425,6 +425,8 @@ namespace Arena
         void DrawEnemy(Enemy e, float t)
         {
             Rgba col = e.Def.Color;
+            if (e.Type == EnemyType.Brute)
+                col = col.Mix(new Rgba(1f, 0.15f, 0.1f), 0.7f * Game.BruteRage(e));  // enrage: redder as it is shot (BruteEnrage.cs)
             V2 pos = e.Disp;
             float r = (e.Type == EnemyType.Singularity ? e.Def.Radius : e.Radius) * JuiceScale(e);  // its Radius grows with the event horizon (SingularityLook.cs); JuiceScale: a hit's bulge (Juice.cs)
             bool spawning = game.IsSpawning(e);

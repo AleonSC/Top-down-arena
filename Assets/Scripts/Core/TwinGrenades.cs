@@ -3,7 +3,7 @@ using System;
 namespace Arena
 {
     /// The Twin Rifle's grenade tubes (Docs/Mockups/twin-rifle-grenade-rework.html: Twin Tubes, loaded like the Cluster Mag). A launcher
-    /// sits under each rifle. Rifle hits load them: every TwinNadeHits (40) hits (a crossfire hit counts twice) loads a grenade, two at most
+    /// sits under each rifle. Rifle hits load them: every TwinNadeHits (60) hits (a crossfire hit counts twice) loads a grenade, two at most
     /// (Player.TwinNades). The weapon-action key (Left Alt) fires one grenade at a time and the tubes take turns (Player.TwinNext,
     /// 0 = left, 1 = right): with two loaded it fires the left, and the next press fires the right, even if you reloaded the left in
     /// between. With one loaded, that one is in the tube TwinNext names; reloading fills the other. The grenade leaves its own tube and
@@ -13,7 +13,7 @@ namespace Arena
     /// Replicated: TwinNades, TwinNext, TwinCharge (hits toward the next grenade), drawn as tubes on the guns and pips behind you.
     public partial class Game
     {
-        public const int TwinNadeMax = 2, TwinNadeHits = 40;
+        public const int TwinNadeMax = 2, TwinNadeHits = 60;
         public const float TwinNadeDamage = 60f, TwinNadeFlight = 0.45f, TwinNadeCd = 0.25f;
 
         /// Which tube a loaded grenade sits in, for the screen: with two, both; with one, the one TwinNext names.

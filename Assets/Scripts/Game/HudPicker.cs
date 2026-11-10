@@ -579,7 +579,7 @@ namespace Arena
             bool showParts = shown != null;
             if (capped)
             {
-                int total = Math.Min(u.MaxStacks, 8), have = Upgrades.Count(me.Taken, me.Offer[index]);
+                int total = Math.Min(u.MaxStacks, 8), have = me.Offer != null && index < me.Offer.Length ? Upgrades.Count(me.Taken, me.Offer[index]) : 0;
                 const float d = 15f, pg = 9f;
                 float px = r.center.x - (total * d + (total - 1) * pg) / 2f, py = r.yMax - 98f;
                 for (int k = 0; k < total; k++)
@@ -606,7 +606,7 @@ namespace Arena
                         Ui.Label(new Rect(r.x + 6f, r.yMax - 76f + i * 15f, r.width - 12f, 16f), shown[i], shown[i].Length > 34 ? 11 : 12, ms && !selected ? new Color(0.45f, 0.85f, 0.52f) : new Color(0.5f, 1f, 0.58f), TextAnchor.MiddleCenter, true);
             }
             else if (showParts && !grants)
-                DrawPickStrip(new Rect(r.x + 15.4f, r.yMax - 100f, r.width - 30.8f, 56f), 12, true, shown, Upgrades.Count(me.Taken, me.Offer[index]));  // (the mockup's 1.2cqw side margin; the panel's bottom sits 44 px up, over the key)
+                DrawPickStrip(new Rect(r.x + 15.4f, r.yMax - 100f, r.width - 30.8f, 56f), 12, true, shown, Upgrades.Count(me.Taken, me.Offer != null && index < me.Offer.Length ? me.Offer[index] : 0));  // (the mockup's 1.2cqw side margin; the panel's bottom sits 44 px up, over the key)
 
             // The key, bottom centre, over the fading rarity line.
             string keyText = (index + 1).ToString();
@@ -688,7 +688,7 @@ namespace Arena
         /// The small line on a card: where a new ability goes, a role restriction, or how many you have.
         string UpgradeNote(Player me, int index, UpgradeDef u)
         {
-            int have = Upgrades.Count(me.Taken, me.Offer[index]);
+            int have = me.Offer != null && index < me.Offer.Length ? Upgrades.Count(me.Taken, me.Offer[index]) : 0;  // (the offer is cleared the moment you pick, while the card is still flying out)
             if (u.Rarity == Rarity.Mod)
                 return have > 0 ? "YOU HAVE " + have + " / " + u.MaxStacks : "NEW";
             if (u.Grants != AbilityId.None)
