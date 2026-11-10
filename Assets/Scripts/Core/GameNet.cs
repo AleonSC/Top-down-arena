@@ -476,6 +476,7 @@ namespace Arena
             s.Float(ref p.WardT);
             s.Float(ref p.StunT);
             s.Float(ref p.SwallowT);
+            s.Float(ref p.WarpT);  // (BossBeam.cs)
             int grasped = p.Grasp.Count;  // Leech Tendrils' held enemies (BloodMage.cs)
             s.Byte(ref grasped);
             if (s.Reading)
@@ -542,6 +543,10 @@ namespace Arena
             s.Byte(ref p.TwinNades);    // the Twin Rifle's grenade tubes (TwinGrenades.cs)
             s.Byte(ref p.TwinNext);
             s.Byte(ref p.TwinCharge);
+            s.Byte(ref p.ScatShells);   // the Scattergun's Double Barrel shells (TankAlts.cs)
+            s.Byte(ref p.ScatCharge);
+            s.Byte(ref p.RepelMeter);   // the Repulsion Cannon's Undertow (Repulsion.cs)
+            s.Bool(ref p.RepelPull);
             s.Byte(ref p.Embers);       // the Censer's Embers (Censer.cs)
             s.Byte(ref p.GreatStep);    // the Greatsword's chain, Temper and guard (Greatsword.cs)
             s.Byte(ref p.GreatTemper);

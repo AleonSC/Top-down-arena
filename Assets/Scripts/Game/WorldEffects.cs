@@ -138,8 +138,14 @@ namespace Arena
                 case FxKind.Airstrike:
                     DrawAirstrikeFx(fx);  // AirstrikeLook.cs
                     break;
+                case FxKind.DoubleBarrel:
+                    DrawDoubleBarrelFx(fx);  // TankAltLook.cs
+                    break;
                 case FxKind.JuggShard:
                     DrawJuggShardFx(fx);  // JuggernautLook.cs
+                    break;
+                case FxKind.BossBeam:
+                    DrawBossBeamFx(fx);  // BossBeamLook.cs
                     break;
                 case FxKind.TaserHit:
                     DrawTaserHitFx(fx);  // TaserLook.cs

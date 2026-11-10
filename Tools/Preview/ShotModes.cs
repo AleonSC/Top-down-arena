@@ -504,7 +504,7 @@ static partial class Shot {
     }
     else if (mode == "shop")
     {
-      // The Bazaar's shop (ShopUi.cs): SHOPSEL=n selects a card, REMOVE=1 opens the remove list, GIVE=1 the Give popup.
+      // The Bazaar's shop (ShopUi.cs): SHOPSEL=n puts item n (a card, then the services) in the middle, REMOVE=1 opens the remove list, GIVE=1 the Give popup.
       Func<string, int> U = n => Array.FindIndex(Upgrades.All, u => u.Name == n);
       foreach (var n in new[] { "Hollow Points", "Fortitude", "Multishot", "Thick Skin", "Riposte" })
         host.Game.GrantUpgrade(1, U(n));
@@ -518,6 +518,7 @@ static partial class Shot {
       g.ShopNotices.Add(new ShopNotice { Text = "Mira gave you 40 gold", Life = 2f });
       int sel = Environment.GetEnvironmentVariable("SHOPSEL") != null ? int.Parse(Environment.GetEnvironmentVariable("SHOPSEL")) : 0;
       typeof(ArenaApp).GetField("shopSel", f2).SetValue(app, sel);
+      typeof(ArenaApp).GetField("shopTurn", f2).SetValue(app, (float)sel);
       if (Environment.GetEnvironmentVariable("REMOVE") != null) typeof(ArenaApp).GetField("shopRemoveOpen", f2).SetValue(app, true);
       if (Environment.GetEnvironmentVariable("GIVE") != null) foreach (var p in g.Players.Values) if (p.Id != me.Id) typeof(ArenaApp).GetField("shopGiveTo", f2).SetValue(app, p.Id);
       typeof(ArenaApp).GetMethod("DrawShop", f2).Invoke(app, new object[] { me, 1f });

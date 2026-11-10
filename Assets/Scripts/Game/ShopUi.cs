@@ -3,15 +3,20 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The Bazaar's shop on screen (Shop.cs): your stats on the left, a shelf of six cards, services, who's done,
-    /// and giving gold to teammates. Click a card to select it (the stats preview it), click again to buy.
+    /// The Bazaar's shop on screen (Shop.cs): one sideways carousel (like the lobby's tab carousel) holds the shelf cards, then the
+    /// services; the one in the middle is big and shows what it changes as the picker's green readout on the card (Docs/Mockups/shop-carousel.html,
+    /// layout A). Below it: who's done, the Done button and giving gold to teammates. Click a side card (or use the arrows, the wheel
+    /// or the arrow keys) to bring it to the middle, click the one in the middle to buy it.
     public partial class ArenaApp
     {
-        int shopSel = -1;          // shelf card selected
+        int shopSel = -1;          // carousel item in the middle: a shelf card (0..count-1), then the services
+        float shopTurn;            // the carousel's position, easing toward shopSel
+        int shopCountSeen;         // how many shelf cards there were last frame (Add stock moves the middle to the new ones)
         int shopGiveTo;            // teammate whose Give popup is open (0 = none)
         bool shopRemoveOpen;       // choosing an upgrade to remove
 
         static readonly string[] ServiceIcons = { "ricochet", "axe", "regen2", "halo", "ricochet" };
+        static readonly string[] ServiceNames = { "Add stock", "Remove upgrade", "Full heal", "Revive token", "Floor kit" };
 
         void DrawShop(Player me, float t)
         {
@@ -25,98 +30,144 @@ namespace Arena
             bool popup = shopGiveTo != 0 || shopRemoveOpen;
             bool shopping = !me.ShopDone;
             RoundBackdrop(ShopDark);  // (RoundWindows.cs)
-
-            // Which card the stats preview: the one under the mouse, else the selected one.
-            const float x0 = StatsSidebarW + 20f, areaW = W - StatsSidebarW - 40f;
-            const float cw = 150f, ch = 270f, gap = 12f, top = 140f;
-            int hover = -1;
-            for (int i = 0; i < Game.ShelfSize; i++)
-                if (!popup && new Rect(x0 + 5f + i * (cw + gap), top, cw, ch).Contains(Event.current.mousePosition))
-                    hover = i;
-            int preview = popup ? -1 : hover >= 0 ? hover : shopSel;
-            DrawStatPanel(me, StatsSidebar(me), preview >= 0 && me.Shelf[preview] >= 0 && !Game.Sold(me, preview) ? me.Shelf[preview] : -1);
+            const float x0 = 36f, areaW = W - 72f;
 
             // The room shops: upgrades are bought in the shop room, heals, revives and removals at the vendor.
             bool atShop = !game.ServiceRooms || game.InShopRoom(me), atVendor = !game.ServiceRooms || game.InVendorRoom(me);
 
             // Heading and wallet.
-            string tag = game.ServiceRooms ? (atShop ? "SHOP ROOM  ·  UPGRADES AND RESTOCKS" : "VENDOR ROOM  ·  HEALS, REVIVES, REMOVALS") : "BAZAAR  ·  BEFORE THE WAVE " + (game.Wave + 1) + " BOSS";
+            string tag = game.ServiceRooms ? (atShop ? "SHOP ROOM  ·  UPGRADES AND STOCK" : "VENDOR ROOM  ·  HEALS, REVIVES, REMOVALS") : "BAZAAR  ·  BEFORE THE WAVE " + (game.Wave + 1) + " BOSS";
             float tagW = 30f + tag.Length * 7.5f;
-            var tagRect = new Rect(x0 + areaW / 2f - tagW / 2f, 28f, tagW, 22f);
+            var tagRect = new Rect(W / 2f - tagW / 2f, 24f, tagW, 22f);
             Ui.Pill(tagRect, new Color(1f, 0.8f, 0.35f, 0.22f));
             Ui.Label(tagRect, tag, 11, Ui.Gold, TextAnchor.MiddleCenter, true);
-            DkTitle(new Rect(x0, 52f, areaW, 44f), game.ServiceRooms ? (atShop && atVendor ? "THE SHOP" : atShop ? "THE SHOP" : "THE VENDOR") : "THE BAZAAR", 34, Ui.Gold, TextAnchor.MiddleCenter);
-            Ui.Label(new Rect(x0, 98f, areaW, 18f), game.ServiceRooms ? "Your gold and shelf stay with you between waves." : "Spend your gold before the boss. Whatever's left becomes XP.", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
-            var wallet = new Rect(W - 210f, 24f, 190f, 56f);
+            DkTitle(new Rect(0f, 46f, W, 44f), game.ServiceRooms ? (atShop ? "THE SHOP" : "THE VENDOR") : "THE BAZAAR", 34, Ui.Gold, TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(0f, 92f, W, 18f), game.ServiceRooms ? "Your gold and shelf stay with you between waves." : "Spend your gold before the boss. Whatever's left becomes XP.", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
+            var wallet = new Rect(W - 210f, 22f, 190f, 54f);
             Ui.Pill(wallet, new Color(0.16f, 0.12f, 0.03f, 0.92f));
-            Ui.Icon(new Rect(wallet.x + 12f, wallet.y + 14f, 28f, 28f), PixelArt.Get("ui_coin"));
-            Ui.Label(new Rect(wallet.x + 48f, wallet.y + 6f, 80f, 44f), me.Gold.ToString(), 26, Ui.Gold, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(wallet.x + 112f, wallet.y + 8f, 74f, 40f), "your gold\nleftover → XP", 10, new Color(1f, 0.85f, 0.6f, 0.75f), TextAnchor.MiddleLeft);
+            Ui.Icon(new Rect(wallet.x + 12f, wallet.y + 13f, 28f, 28f), PixelArt.Get("ui_coin"));
+            Ui.Label(new Rect(wallet.x + 48f, wallet.y + 5f, 80f, 44f), me.Gold.ToString(), 26, Ui.Gold, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(wallet.x + 112f, wallet.y + 7f, 74f, 40f), "your gold\nleftover → XP", 10, new Color(1f, 0.85f, 0.6f, 0.75f), TextAnchor.MiddleLeft);
 
-            // The shelf.
-            for (int i = 0; i < Game.ShelfSize; i++)
+            // The list: the shelf's cards, then the services.
+            int count = Game.ShelfCount(me), nSvc = game.ExpandingOn ? 5 : 4, n = count + nSvc;  // (the room kit is sold in the Expanding arena)
+            if (shopSel < 0)
             {
-                var r = new Rect(x0 + 5f + i * (cw + gap), top, cw, ch);
-                int u = me.Shelf[i];
-                if (u < 0)
-                {
-                    DkBox(r, new Color(1f, 1f, 1f, 0.2f), 0.2f);
-                    Ui.Label(r, "Sold out", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
+                shopSel = 0;
+                shopTurn = 0f;
+            }
+            if (count > shopCountSeen && shopCountSeen > 0)
+                shopSel = shopCountSeen;  // Add stock: the middle moves to the first new card
+            shopCountSeen = count;
+            shopSel = Mathf.Clamp(shopSel, 0, n - 1);
+            var ev = Event.current;
+            if (ev.type == EventType.Repaint)
+            {
+                shopTurn += (shopSel - shopTurn) * (fxReduced ? 1f : 1f - Mathf.Exp(-Time.unscaledDeltaTime * 12f));
+                if (Mathf.Abs(shopSel - shopTurn) < 0.004f)
+                    shopTurn = shopSel;
+            }
+
+            // Tabs: jump to the shelf or to the services.
+            const float railY = 158f, cardW = 250f, cardH = 372f;
+            float tabY = 118f;
+            bool onShelf = shopSel < count;
+            if (!popup)
+            {
+                if (LobbyKit.QuietTab(new Rect(W / 2f - 150f, tabY, 148f, 26f), "SHELF  (" + count + ")", onShelf))
+                    shopSel = 0;
+                if (LobbyKit.QuietTab(new Rect(W / 2f + 2f, tabY, 148f, 26f), "SERVICES  (" + nSvc + ")", !onShelf))
+                    shopSel = count;
+            }
+            else
+            {
+                LobbyKit.QuietTab(new Rect(W / 2f - 150f, tabY, 148f, 26f), "SHELF  (" + count + ")", onShelf, false);
+                LobbyKit.QuietTab(new Rect(W / 2f + 2f, tabY, 148f, 26f), "SERVICES  (" + nSvc + ")", !onShelf, false);
+            }
+
+            // The wheel: far cards first, so the middle one is on top. Each is drawn at full size, scaled about its own centre.
+            var order = new List<int>();
+            for (int i = 0; i < n; i++)
+                order.Add(i);
+            order.Sort((a, b) => Mathf.Abs(b - shopTurn).CompareTo(Mathf.Abs(a - shopTurn)));
+            float oldAlpha = Ui.Alpha;
+            int click = -1;
+            foreach (int i in order)
+            {
+                float d = i - shopTurn, ad = Mathf.Abs(d);
+                float s = 1f - 0.2f * Mathf.Min(ad, 1f) - 0.05f * Mathf.Max(0f, Mathf.Min(ad, 2f) - 1f);
+                float cx = W / 2f + Mathf.Sign(d) * (ad <= 1f ? 232f * ad : 232f + 150f * (ad - 1f));
+                float a = Mathf.Clamp01((3.2f - ad) / 1.4f) * (1f - 0.25f * Mathf.Min(ad, 1f));
+                if (a <= 0.02f)
                     continue;
-                }
-                bool sold = Game.Sold(me, i);
-                if (DrawShopCard(me, i, Upgrades.All[u], r, sold, shopping && shopSel == i && !sold, hover == i, t) && !popup && shopping && !sold && atShop)
+                var r = new Rect(cx - cardW / 2f, railY, cardW, cardH);
+                bool mid = i == shopSel;
+                var oldM = GUI.matrix;
+                Ui.Alpha = oldAlpha * a;
+                GUIUtility.ScaleAroundPivot(new Vector2(s, s), r.center);
+                if (i < count)
                 {
-                    if (shopSel == i)
-                        game.Shop(ShopAction.Buy, i);
+                    int u = me.Shelf[i];
+                    if (u < 0)
+                    {
+                        DkBox(r, new Color(1f, 1f, 1f, 0.2f), 0.2f);
+                        Ui.Label(r, "Sold out", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
+                    }
                     else
-                        shopSel = i;
+                        DrawShopCard(me, i, Upgrades.All[u], r, Game.Sold(me, i), mid, t, shopping && atShop);
+                }
+                else
+                    DrawShopService(me, i - count, r, mid, t, shopping, i - count == 0 ? atShop : atVendor);
+                GUI.matrix = oldM;
+                Ui.Alpha = oldAlpha;
+                var hit = new Rect(r.center.x - r.width * s / 2f, r.center.y - r.height * s / 2f, r.width * s, r.height * s);
+                if (!popup && a > 0.3f && Ui.HitArea(hit))
+                    click = i;
+            }
+            if (click >= 0)
+            {
+                if (click != shopSel)
+                    shopSel = click;
+                else if (shopping)
+                    ShopUse(me, click, count, atShop, atVendor);
+            }
+
+            // Arrows, the mouse wheel and the arrow keys turn it.
+            if (!popup)
+            {
+                for (int side = -1; side <= 1; side += 2)
+                {
+                    var ab = new Rect(side < 0 ? 18f : W - 58f, railY, 40f, cardH);
+                    bool dis = shopSel + side < 0 || shopSel + side >= n;
+                    if (LobbyKit.Key(ab, "", false, fxReduced) && !dis)
+                        shopSel += side;
+                    Chevron(ab.center, side, CrtKit.SoftText(CrtUi.Ink, !dis && ab.Contains(ev.mousePosition)));
+                }
+                if (ev.type == EventType.ScrollWheel && ev.mousePosition.y > railY - 20f && ev.mousePosition.y < railY + cardH + 20f)
+                {
+                    shopSel = Mathf.Clamp(shopSel + (ev.delta.y > 0f ? 1 : -1), 0, n - 1);
+                    ev.Use();
+                }
+                else if (ev.type == EventType.KeyDown && (ev.keyCode == KeyCode.LeftArrow || ev.keyCode == KeyCode.RightArrow))
+                {
+                    shopSel = Mathf.Clamp(shopSel + (ev.keyCode == KeyCode.LeftArrow ? -1 : 1), 0, n - 1);
+                    ev.Use();
                 }
             }
 
-            // Services.
-            float sy = top + ch + 18f;
-            Ui.Label(new Rect(x0 + 5f, sy, 200f, 16f), "SERVICES", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
-            int nSvc = game.ExpandingOn ? 5 : 4;  // (the room kit is sold in the Expanding arena)
-            float sw = (areaW - 10f - (nSvc - 1) * 12f) / nSvc;
-            for (int k = 0; k < nSvc; k++)
+            // Where you are in the list: a pip each, the services in gold after a gap.
+            float px = W / 2f - (n * 24f + 12f) / 2f;
+            for (int i = 0; i < n; i++)
             {
-                var r = new Rect(x0 + 5f + k * (sw + 12f), sy + 20f, sw, 66f);
-                string name, desc;
-                int price;
-                bool used = false;
-                switch (k)
-                {
-                    case 0: name = "Restock"; desc = "Six new items"; price = Game.RestockPrice(me); break;
-                    case 1: name = "Remove upgrade"; desc = "Drop one you regret"; price = Game.RemovePrice; used = me.Taken.Count == 0; break;
-                    case 2: name = "Full heal"; desc = me.Hp >= me.MaxHp ? "You're at full health" : "Back to full HP"; price = Game.HealPrice; used = me.Hp >= me.MaxHp || me.Downed; break;
-                    case 4: name = "Floor kit"; desc = game.RoomTokens.Count >= Expansion.MaxTokens ? "Kit slots are full" : "Turn a room into a hazard floor"; price = Game.RoomKitPrice; used = game.RoomTokens.Count >= Expansion.MaxTokens; break;
-                    default: name = "Revive token"; desc = me.ReviveToken ? "You have one" : "Revive yourself once"; price = Game.RevivePrice; used = me.ReviveToken; break;
-                }
-                bool afford = me.Gold >= price && shopping && !used && (k == 0 ? atShop : atVendor);
-                bool over = !popup && afford && r.Contains(Event.current.mousePosition);
-                DkHud(r, over ? Ui.Gold : (Color?)null);
-                float a = afford || used ? 1f : 0.5f;
-                Ui.Icon(new Rect(r.x + 12f, r.y + 15f, 36f, 36f), PixelArt.Get(ServiceIcons[k]), used ? 0.4f : a);
-                Ui.Label(new Rect(r.x + 56f, r.y + 12f, r.width - 126f, 20f), name, 13, new Color(1f, 1f, 1f, used ? 0.45f : a), TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(r.x + 56f, r.y + 32f, r.width - 126f, 28f), desc, 11, new Color(Ui.Muted.r, Ui.Muted.g, Ui.Muted.b, used ? 0.6f : a), TextAnchor.UpperLeft, false, true);
-                if (used && k >= 2)
-                    Ui.Icon(new Rect(r.xMax - 36f, r.y + 23f, 20f, 20f), PixelArt.Get("ui_check"), Ui.Good);
-                else
-                    DrawPriceTag(new Rect(r.xMax - 68f, r.y + 20f, 58f, 26f), price, me.Gold >= price);
-                if (!popup && afford && Ui.HitArea(r))
-                {
-                    if (k == 1)
-                        shopRemoveOpen = true;
-                    else
-                        game.Shop(k == 0 ? ShopAction.Restock : k == 2 ? ShopAction.Heal : k == 4 ? ShopAction.RoomKit : ShopAction.Revive);
-                    if (k == 0)
-                        shopSel = -1;
-                }
+                var pr = new Rect(px + i * 24f + (i >= count ? 12f : 0f), railY + cardH + 14f, 18f, 4f);
+                bool svc = i >= count;
+                Ui.Fill(pr, i == shopSel ? (svc ? Ui.Gold : Color.white) : (svc ? new Color(1f, 0.8f, 0.35f, 0.3f) : new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.3f)));
+                if (!popup && Ui.HitArea(new Rect(pr.x - 3f, pr.y - 6f, pr.width + 6f, pr.height + 12f)))
+                    shopSel = i;
             }
 
             // Who's done, the Done button and your teammates.
-            float by = sy + 104f;
+            float by = 584f;
             int done = 0;
             var waiting = new List<string>();
             foreach (var p in game.Players.Values)
@@ -127,15 +178,15 @@ namespace Arena
                     waiting.Add(p.Id == game.MyId ? "you" : p.Name);
             }
             string status = done + " of " + game.Players.Count + " done shopping" + (waiting.Count > 0 ? "  ·  waiting for " + string.Join(", ", waiting.ToArray()) : "");
-            Ui.Label(new Rect(x0 + 5f, by, areaW - 10f, 18f), status, 13, Ui.Muted, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(x0, by, areaW, 18f), status, 13, Ui.Muted, TextAnchor.MiddleLeft, true);
             if (session.IsHost && game.ShopT >= Game.ShopHostCloseAfter && waiting.Count > 0)
             {
                 if (!popup && DkKey(new Rect(x0 + areaW - 245f, by - 4f, 240f, 26f), "Close the shop for everyone", Ui.Danger, false, 13))
                     game.Shop(ShopAction.Close);
             }
             else
-                Ui.Label(new Rect(x0 + 5f, by, areaW - 10f, 18f), "Leftover gold becomes XP when everyone is done", 13, Ui.Muted, TextAnchor.MiddleRight, true);
-            var doneRect = new Rect(x0 + 5f, by + 28f, 320f, 48f);
+                Ui.Label(new Rect(x0, by, areaW, 18f), "Leftover gold becomes XP when everyone is done", 13, Ui.Muted, TextAnchor.MiddleRight, true);
+            var doneRect = new Rect(x0, by + 30f, 320f, 48f);
             string doneText = me.ShopDone ? "Done ✓   (click to keep shopping)" : "Done shopping  ·  " + me.Gold + " gold → +" + Mathf.RoundToInt(me.Gold * Game.GoldToXp) + " XP";
             if (DkKey(doneRect, doneText, Ui.Primary, me.ShopDone, 15) && !popup)
                 game.Shop(ShopAction.Done, me.ShopDone ? 0 : 1);
@@ -144,58 +195,152 @@ namespace Arena
             // Gift notices.
             for (int i = 0; i < game.ShopNotices.Count; i++)
             {
-                var n = game.ShopNotices[i];
-                float w = Ui.TextWidth(n.Text, 14, true) + 50f;
-                var r = new Rect(W - 20f - w, 86f + i * 30f, w, 26f);  // under the wallet
-                Ui.Pill(r, new Color(0.16f, 0.12f, 0.03f, 0.95f * Mathf.Clamp01(n.Life * 2f)));
-                Ui.Icon(new Rect(r.x + 10f, r.y + 5f, 16f, 16f), PixelArt.Get("ui_coin"), Mathf.Clamp01(n.Life * 2f));
-                Ui.Label(new Rect(r.x + 32f, r.y, w - 36f, r.height), n.Text, 14, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, Mathf.Clamp01(n.Life * 2f)), TextAnchor.MiddleLeft, true);
+                var nt = game.ShopNotices[i];
+                float w = Ui.TextWidth(nt.Text, 14, true) + 50f;
+                var r = new Rect(W - 20f - w, 82f + i * 30f, w, 26f);  // under the wallet
+                Ui.Pill(r, new Color(0.16f, 0.12f, 0.03f, 0.95f * Mathf.Clamp01(nt.Life * 2f)));
+                Ui.Icon(new Rect(r.x + 10f, r.y + 5f, 16f, 16f), PixelArt.Get("ui_coin"), Mathf.Clamp01(nt.Life * 2f));
+                Ui.Label(new Rect(r.x + 32f, r.y, w - 36f, r.height), nt.Text, 14, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, Mathf.Clamp01(nt.Life * 2f)), TextAnchor.MiddleLeft, true);
             }
 
             if (shopRemoveOpen)
                 DrawRemoveUpgrade(me);
         }
 
-        /// One shelf card: rarity ribbon, icon, name, description and price. Returns true when clicked.
-        bool DrawShopCard(Player me, int index, UpgradeDef u, Rect r, bool sold, bool selected, bool hover, float t)
+        /// The middle item was clicked: buy the card, or use the service.
+        void ShopUse(Player me, int item, int count, bool atShop, bool atVendor)
+        {
+            if (item < count)
+            {
+                if (me.Shelf[item] >= 0 && !Game.Sold(me, item) && atShop)
+                    game.Shop(ShopAction.Buy, item);
+                return;
+            }
+            int k = item - count;
+            int price = ServicePrice(me, k, out bool used);
+            if (used || me.Gold < price || !(k == 0 ? atShop : atVendor))
+                return;
+            if (k == 1)
+                shopRemoveOpen = true;
+            else
+                game.Shop(k == 0 ? ShopAction.Restock : k == 2 ? ShopAction.Heal : k == 4 ? ShopAction.RoomKit : ShopAction.Revive);
+        }
+
+        /// A service's price, and whether it can't be used right now.
+        int ServicePrice(Player me, int k, out bool used)
+        {
+            switch (k)
+            {
+                case 0: used = me.Restocks >= Game.StockMax; return Game.RestockPrice(me);
+                case 1: used = me.Taken.Count == 0; return Game.RemovePrice;
+                case 2: used = me.Hp >= me.MaxHp || me.Downed; return Game.HealPrice;
+                case 4: used = game.RoomTokens.Count >= Expansion.MaxTokens; return Game.RoomKitPrice;
+                default: used = me.ReviveToken; return Game.RevivePrice;
+            }
+        }
+
+        /// One shelf card: rarity ribbon, icon, name, description, price, and (in the middle) the green readout of what it changes.
+        void DrawShopCard(Player me, int index, UpgradeDef u, Rect r, bool sold, bool selected, float t, bool canBuy)
         {
             Color rc = ToColor(Upgrades.RarityColor(u.Rarity));
             int price = Game.Price(me.Shelf[index]);
             bool afford = me.Gold >= price;
             float dim = sold || !afford ? 0.5f : 1f;
             // The picker's holographic screen (HudPicker.DrawHolo) in the rarity colour, with the same glow and outline.
-            Ui.Glow(r, rc, selected ? 0.55f + 0.1f * Mathf.Sin(t * 4f) : hover ? 0.32f : 0.2f * dim);
+            Ui.Glow(r, rc, selected ? 0.55f + 0.1f * Mathf.Sin(t * 4f) : 0.2f * dim);
             DrawHolo(r, rc, t);
             if (dim < 1f)  // sold or too dear: the screen dims
                 Ui.Fill(r, new Color(0.01f, 0.012f, 0.03f, 0.5f));
-            CrtEdge(r, selected ? 2f : 1f, selected ? Color.Lerp(rc, Color.white, 0.55f) : new Color(rc.r, rc.g, rc.b, hover ? 0.9f : 0.5f * dim + 0.1f));
+            CrtEdge(r, selected ? 2f : 1f, selected ? Color.Lerp(rc, Color.white, 0.55f) : new Color(rc.r, rc.g, rc.b, 0.5f * dim + 0.1f));
             string rarity = Upgrades.RarityName(u.Rarity);
-            float rw = 20f + rarity.Length * 7f;
-            var ribbon = new Rect(r.center.x - rw / 2f, r.y + 10f, rw, 18f);
+            float rw = 24f + rarity.Length * 7.5f;
+            var ribbon = new Rect(r.center.x - rw / 2f, r.y + 12f, rw, 20f);
             Ui.Pill(ribbon, new Color(rc.r, rc.g, rc.b, 0.85f * dim));
-            Ui.Label(ribbon, rarity, 9, new Color(0.06f, 0.06f, 0.1f), TextAnchor.MiddleCenter, true);
-            var tile = new Rect(r.center.x - 38f, r.y + 36f, 76f, 76f);
+            Ui.Label(ribbon, rarity, 10, new Color(0.06f, 0.06f, 0.1f), TextAnchor.MiddleCenter, true);
+            var tile = new Rect(r.center.x - 40f, r.y + 42f, 80f, 80f);
             Ui.Pill(new Rect(tile.x - 3f, tile.y - 3f, tile.width + 6f, tile.height + 6f), new Color(rc.r, rc.g, rc.b, selected ? 0.35f : 0.18f));
             Ui.Pill(tile, new Color(rc.r * 0.22f, rc.g * 0.22f, rc.b * 0.22f, 1f));
-            Ui.Icon(new Rect(tile.x + 10f, tile.y + 10f + (selected ? 2f * Mathf.Sin(t * 3f) : 0f), 56f, 56f), PixelArt.ForUpgrade(u.Name), dim);
-            Ui.Label(new Rect(r.x + 6f, r.y + 118f, r.width - 12f, 24f), u.Name, u.Name.Length > 15 ? 13 : 16, new Color(1f, 1f, 1f, dim), TextAnchor.MiddleCenter, true);
-            Ui.Fill(new Rect(r.x + 32f, r.y + 146f, r.width - 64f, 1f), new Color(rc.r, rc.g, rc.b, 0.4f));
+            Ui.Icon(new Rect(tile.x + 10f, tile.y + 10f + (selected ? 2f * Mathf.Sin(t * 3f) : 0f), 60f, 60f), PixelArt.ForUpgrade(u.Name), dim);
+            Ui.Label(new Rect(r.x + 8f, r.y + 130f, r.width - 16f, 26f), u.Name, u.Name.Length > 16 ? 15 : 18, new Color(1f, 1f, 1f, dim), TextAnchor.MiddleCenter, true);
+            Ui.Fill(new Rect(r.x + 36f, r.y + 160f, r.width - 72f, 1f), new Color(rc.r, rc.g, rc.b, 0.4f));
             string desc = Upgrades.DescFor(u, me.Weapon);
+            var body = new Rect(r.x + 14f, r.y + 166f, r.width - 28f, selected ? 78f : 130f);
             if (u.Grants != AbilityId.None)  // an ability: what mastering it adds too (LobbyUi.cs)
-                DrawDescAndMastery(new Rect(r.x + 10f, r.y + 152f, r.width - 20f, 74f), desc, u.Grants, desc.Length > 70 ? 10 : 12, new Color(Ui.Text.r, Ui.Text.g, Ui.Text.b, dim), true);
+                DrawDescAndMastery(body, desc, u.Grants, desc.Length > 70 ? 11 : 13, new Color(Ui.Text.r, Ui.Text.g, Ui.Text.b, dim), true);
             else
-                Ui.Label(new Rect(r.x + 10f, r.y + 152f, r.width - 20f, 74f), desc, desc.Length > 70 ? 10 : 12, new Color(Ui.Text.r, Ui.Text.g, Ui.Text.b, dim), TextAnchor.UpperCenter, false, true);
+                Ui.Label(body, desc, desc.Length > 70 ? 11 : 13, new Color(Ui.Text.r, Ui.Text.g, Ui.Text.b, dim), TextAnchor.UpperCenter, false, true);
+            if (selected && !sold)
+            {
+                var parts = ChangeParts(me, me.Shelf[index], 0, false);
+                if (parts != null)
+                    DrawPickStrip(new Rect(r.x + 10f, r.yMax - 50f, r.width - 20f, 0f), 13, true, parts, Upgrades.Count(me.Taken, me.Shelf[index]));
+            }
             if (sold)
             {
-                var stamp = new Rect(r.center.x - 56f, r.center.y - 18f, 112f, 34f);
+                var stamp = new Rect(r.center.x - 60f, r.center.y - 18f, 120f, 36f);
                 Ui.Pill(stamp, new Color(0.05f, 0.2f, 0.08f, 0.92f));
-                Ui.Label(stamp, "BOUGHT", 18, Ui.Good, TextAnchor.MiddleCenter, true);
+                Ui.Label(stamp, "BOUGHT", 19, Ui.Good, TextAnchor.MiddleCenter, true);
             }
             else if (selected)
-                DrawPriceTag(new Rect(r.center.x - 50f, r.yMax - 38f, 100f, 26f), price, afford, afford ? "Buy · " : "");
+                DrawPriceTag(new Rect(r.center.x - 55f, r.yMax - 38f, 110f, 28f), price, afford, afford && canBuy ? "Buy · " : "");
             else
                 DrawPriceTag(new Rect(r.center.x - 34f, r.yMax - 38f, 68f, 26f), price, afford);
-            return Ui.HitArea(r);
+        }
+
+        /// One service in the same frame as the cards, in gold: Add stock, Remove upgrade, Full heal, Revive token, Floor kit.
+        void DrawShopService(Player me, int k, Rect r, bool selected, float t, bool shopping, bool allowed)
+        {
+            int price = ServicePrice(me, k, out bool used);
+            bool afford = me.Gold >= price && shopping && !used && allowed;
+            Color rc = Ui.Gold;
+            float dim = afford || used ? 1f : 0.5f;
+            string desc;
+            List<string> parts;
+            switch (k)
+            {
+                case 0:
+                    desc = used ? "The shelf is full" : "Six more items join the shelf. Each add costs more.";
+                    parts = used ? null : new List<string> { "Cards  " + Game.ShelfCount(me) + " → " + (Game.ShelfCount(me) + Game.ShelfSize), "Next add  " + price + " → " + (price + 25) };
+                    break;
+                case 1:
+                    desc = me.Taken.Count == 0 ? "You have nothing to remove" : "Drop one you regret. Abilities it gave you go too.";
+                    parts = me.Taken.Count == 0 ? null : new List<string> { "Upgrades  " + me.Taken.Count + " → " + (me.Taken.Count - 1) };
+                    break;
+                case 2:
+                    desc = me.Hp >= me.MaxHp ? "You're at full health" : "Back to full health.";
+                    parts = me.Hp >= me.MaxHp || me.Downed ? null : new List<string> { "HP  " + Mathf.CeilToInt(me.Hp) + " → " + Mathf.CeilToInt(me.MaxHp) };
+                    break;
+                case 4:
+                    desc = used ? "Kit slots are full" : "Turn a room into a hazard floor.";
+                    parts = used ? null : new List<string> { "Kit slots  " + game.RoomTokens.Count + "/" + Expansion.MaxTokens + " → " + (game.RoomTokens.Count + 1) + "/" + Expansion.MaxTokens };
+                    break;
+                default:
+                    desc = me.ReviveToken ? "You have one" : "Get back up once if you go down.";
+                    parts = me.ReviveToken ? null : new List<string> { "Revive token  0 → 1" };
+                    break;
+            }
+            Ui.Glow(r, rc, selected ? 0.5f + 0.1f * Mathf.Sin(t * 4f) : 0.14f * dim);
+            DkBox(r, rc, selected ? 0.9f : 0.4f);
+            Ui.Fill(r, new Color(0.1f, 0.08f, 0.02f, 0.55f));
+            CrtEdge(r, selected ? 2f : 1f, selected ? Color.Lerp(rc, Color.white, 0.5f) : new Color(rc.r, rc.g, rc.b, 0.45f));
+            var ribbon = new Rect(r.center.x - 40f, r.y + 12f, 80f, 20f);
+            Ui.Pill(ribbon, new Color(rc.r, rc.g, rc.b, 0.85f * dim));
+            Ui.Label(ribbon, "Service", 10, new Color(0.06f, 0.06f, 0.1f), TextAnchor.MiddleCenter, true);
+            var tile = new Rect(r.center.x - 40f, r.y + 42f, 80f, 80f);
+            Ui.Pill(new Rect(tile.x - 3f, tile.y - 3f, tile.width + 6f, tile.height + 6f), new Color(rc.r, rc.g, rc.b, selected ? 0.35f : 0.18f));
+            Ui.Pill(tile, new Color(rc.r * 0.22f, rc.g * 0.22f, rc.b * 0.22f, 1f));
+            Ui.Icon(new Rect(tile.x + 10f, tile.y + 10f + (selected ? 2f * Mathf.Sin(t * 3f) : 0f), 60f, 60f), PixelArt.Get(ServiceIcons[k]), used ? 0.4f : dim);
+            Ui.Label(new Rect(r.x + 8f, r.y + 130f, r.width - 16f, 26f), ServiceNames[k], 18, new Color(1f, 1f, 1f, used ? 0.45f : dim), TextAnchor.MiddleCenter, true);
+            Ui.Fill(new Rect(r.x + 36f, r.y + 160f, r.width - 72f, 1f), new Color(rc.r, rc.g, rc.b, 0.4f));
+            Ui.Label(new Rect(r.x + 14f, r.y + 166f, r.width - 28f, selected ? 78f : 130f), desc, 13, new Color(Ui.Text.r, Ui.Text.g, Ui.Text.b, used ? 0.6f : dim), TextAnchor.UpperCenter, false, true);
+            if (selected && parts != null)
+                DrawPickStrip(new Rect(r.x + 10f, r.yMax - 50f, r.width - 20f, 0f), 13, true, parts, -1, false);
+            if (used && k >= 2)
+                Ui.Icon(new Rect(r.center.x - 10f, r.yMax - 38f, 20f, 20f), PixelArt.Get("ui_check"), Ui.Good);
+            else if (selected)
+                DrawPriceTag(new Rect(r.center.x - 55f, r.yMax - 38f, 110f, 28f), price, me.Gold >= price, afford ? "Buy · " : "");
+            else
+                DrawPriceTag(new Rect(r.center.x - 34f, r.yMax - 38f, 68f, 26f), price, me.Gold >= price);
         }
 
         /// Above the wave panel, with the path chip: your Bazaar gold, while you're on the Bazaar or have some.
@@ -295,7 +440,7 @@ namespace Arena
             float bw = 180f, bh = 34f, gap = 8f;
             int rows = (seen.Count + perRow - 1) / perRow;
             float pw = perRow * bw + (perRow - 1) * gap + 40f, ph = 110f + rows * (bh + gap);
-            var r = new Rect(StatsSidebarW + (W - StatsSidebarW) / 2f - pw / 2f, Mathf.Max(30f, H / 2f - ph / 2f), pw, ph);
+            var r = new Rect(W / 2f - pw / 2f, Mathf.Max(30f, H / 2f - ph / 2f), pw, ph);
             Ui.Fill(new Rect(0, 0, W, H), new Color(0f, 0f, 0f, 0.5f));
             DkBox(r, Ui.Gold, 0.9f);
             Ui.Label(new Rect(r.x + 20f, r.y + 14f, r.width - 40f, 24f), "Remove an upgrade  ·  " + Game.RemovePrice + " gold", 17, Color.white, TextAnchor.MiddleLeft, true);

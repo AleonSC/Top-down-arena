@@ -5,7 +5,7 @@ namespace Arena
 {
     /// The Repulsion Cannon as a cannon blast (Docs/Mockups/repulsion-cannon.html, look D), with Visual effects on: a white
     /// muzzle star, smoke billowing through the cone, a crisp shock ring, sparks, and a very small screen kick (Juice.cs).
-    /// Drawing only; the cone, shove and orbs are in Repulsion.cs.
+    /// Also the Undertow (Alt pull) current and its meter. Drawing only; the cone, shove, orbs and pull are in Repulsion.cs.
     public partial class ArenaApp
     {
         /// FxKind.Repulse. f is how far through the effect's life it is (Game.RepulseFxTime).
@@ -62,5 +62,66 @@ namespace Arena
                 Line(c + V2.FromAngle(a) * Mathf.Max(0f, d - tail), c + V2.FromAngle(a) * d, 1.6f, Rgba.White.WithAlpha(1f - u));
             }
         }
-    }
+    
+        static readonly Rgba PullViolet = new Rgba(0.77f, 0.61f, 1f), PullDeep = new Rgba(0.62f, 0.4f, 1f), PullPale = new Rgba(0.94f, 0.89f, 1f);
+
+        /// The Undertow (Repulsion.cs; Docs/Mockups/repulsion-pull.html, option B): while the pull is held, a violet current
+        /// fills its cone, flow lines crawl in toward the muzzle, the muzzle throbs, and every enemy caught gets a violet rim.
+        void DrawRepelPull(Player p)
+        {
+            if (!fxOn || p.Downed || !p.RepelPull)
+                return;
+            float t = Time.unscaledTime, reach = game.RepelPullReachOf(p), half = game.RepelPullHalfOf(p), aim = p.Aim;
+            V2 c = p.Disp, muzzle = c + V2.FromAngle(aim) * (p.Def.BodyR + 12f);
+            FanGradient(c, reach, PullViolet.WithAlpha(0.16f), PullViolet.WithAlpha(0.03f), 20, aim - half, 2f * half);
+            Arc(c, reach, 1.6f, PullViolet.WithAlpha(0.45f), 24, aim - half, 2f * half);
+            for (int i = 0; i < 14; i++)  // flow lines: three dashes a lane, crawling inward and swaying
+            {
+                float lane = (i / 13f - 0.5f) * 2f * half * 0.9f;
+                for (int j = 0; j < 3; j++)
+                {
+                    float u = (t * 1.4f + j / 3f + i * 0.13f) % 1f, d = reach * (1f - u) + 28f;
+                    float a1 = aim + lane + Mathf.Sin(u * 6f + i) * 0.08f, a2 = aim + lane + Mathf.Sin((u + 0.06f) * 6f + i) * 0.08f;
+                    Line(c + V2.FromAngle(a1) * d, c + V2.FromAngle(a2) * Mathf.Max(24f, d - 26f), 2f, PullViolet.WithAlpha(0.7f * Mathf.Sin(MathX.Pi * u)));
+                }
+            }
+            float throb = 0.7f + 0.3f * Mathf.Sin(t * 20f);
+            Circle(muzzle, 14f, PullViolet.WithAlpha(0.3f * throb), 14);
+            Circle(muzzle, 6f, PullPale.WithAlpha(0.7f * throb), 10);
+            foreach (var e in game.Enemies.Values)  // the caught
+            {
+                if (e.Hp <= 0f || e.Def.IsBoss || e.Def.Heavy)
+                    continue;
+                V2 rel = e.Disp - c;
+                float d = rel.Length;
+                if (d < 1f || d - e.Radius > reach)
+                    continue;
+                float off = Mathf.Abs(MathX.Fmod(rel.Angle - aim + MathX.Pi, MathX.Tau) - MathX.Pi);
+                if (off > half + (float)Math.Asin(Math.Min(1f, e.Radius / d)))
+                    continue;
+                Arc(e.Disp, e.Radius + 4f, 2f, PullViolet.WithAlpha(0.8f), 18);
+            }
+        }
+
+        /// The Undertow meter: a curved gauge behind you, violet as it fills, with a notch where a pull can start; it glows
+        /// when full and drains as you pull.
+        void DrawRepelMeter(Player p)
+        {
+            if (!fxOn || p.Downed || p.RepelMeter == 0 && !p.RepelPull)
+                return;
+            float fill = Mathf.Clamp01(p.RepelMeter / Game.RepelMeterMax), sweep = 1.9f, r = p.Def.BodyR + 13f;
+            float start = p.Aim + MathX.Pi - sweep / 2f;  // centred behind you, filling from your right round to your left
+            bool ready = p.RepelMeter >= Game.RepelPullMin, full = p.RepelMeter >= Game.RepelMeterMax;
+            Arc(p.Disp, r, 5f, PullViolet.WithAlpha(0.16f), 20, start, sweep);
+            if (fill > 0f)
+            {
+                Rgba col = ready ? PullDeep : PullDeep.WithAlpha(0.45f);
+                if (full || p.RepelPull)
+                    Arc(p.Disp, r, 9f, PullViolet.WithAlpha(0.18f + 0.1f * Mathf.Sin(Time.unscaledTime * 7f)), 20, start, sweep * fill);
+                Arc(p.Disp, r, 5f, col, 20, start, sweep * fill);
+            }
+            float notch = start + sweep * Game.RepelPullMin / Game.RepelMeterMax;
+            Line(p.Disp + V2.FromAngle(notch) * (r - 4f), p.Disp + V2.FromAngle(notch) * (r + 4f), 1.4f, PullPale.WithAlpha(0.6f));
+        }
+}
 }
