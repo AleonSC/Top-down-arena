@@ -1,0 +1,363 @@
+<title>Fuma Shuriken Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, three concept stages (each: move buttons, live canvas, input + caption line), comparison table.
+   Same page tokens as the other Ninja mockups; canvas is steel blades with an ink-violet glow on a night arena. */
+:root{
+  --bg:#efedf4; --fg:#1c1a2b; --muted:#5d5a73; --panel:#f9f8fc; --line:#d3cfe2; --chip:#e2dff0; --chip-on:#1c1a2b; --chip-on-fg:#f3f1fa; --accent:#5b45c9;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e0c18; --fg:#e9e6f5; --muted:#9a96b3; --panel:#17142a; --line:#2c2845; --chip:#221e38; --chip-on:#e9e6f5; --chip-on-fg:#0e0c18; --accent:#b3a3ff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e0c18; --fg:#e9e6f5; --muted:#9a96b3; --panel:#17142a; --line:#2c2845; --chip:#221e38; --chip-on:#e9e6f5; --chip-on-fg:#0e0c18; --accent:#b3a3ff; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+header h1{font:700 clamp(34px,6vw,58px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+header p{margin:0 0 6px;max-width:68ch;color:var(--muted)}
+h2{font:700 28px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 6px;text-wrap:balance}
+h2 .tag{font:500 13px var(--mono);letter-spacing:.04em;color:var(--accent);margin-right:10px;vertical-align:middle}
+section>p{margin:0 0 12px;max-width:70ch;color:var(--muted);font-size:15px}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#0d0b17}
+canvas{display:block;width:100%;max-width:100%;height:auto;aspect-ratio:1000/420}
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+button{font:600 14px var(--body);padding:7px 12px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover{border-color:var(--muted)}
+button.on{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+label.tg{display:flex;gap:6px;align-items:center;font-size:14px;cursor:pointer;margin-left:auto}
+.cap{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-top:10px;min-height:2.6em;font-size:15px}
+.cap .keys{display:flex;gap:4px;flex-wrap:wrap}
+kbd{font:500 12px var(--mono);border:1px solid var(--line);background:var(--chip);border-radius:4px;padding:1px 6px;white-space:nowrap}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:14.5px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 13px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+td:first-child{font-weight:600;white-space:nowrap}
+.n{font-family:var(--mono);font-variant-numeric:tabular-nums}
+</style>
+
+<main>
+<header>
+  <h1>Fuma Shuriken: two stances</h1>
+  <p>Three reworks for the Tank Ninja's Fuma Shuriken. In all three, <kbd>Left Alt</kbd> swaps between <b>Throw</b> stance (today's loop) and a new <b>Blade</b> stance, and the parry <kbd>RMB</kbd> does something special mid-attack.</p>
+  <p>Each stage plays its moves on a loop. Click a move to repeat it. Nothing in the game has changed yet.</p>
+</header>
+
+<section id="secA">
+  <h2><span class="tag">A</span>Recall &amp; Buzzsaw</h2>
+  <p>Parry pulls the thrown star back to your hand. Blade stance holds it out as a grinding saw.</p>
+  <div class="bar" id="barA"></div>
+  <div class="frame"><canvas id="cA" width="1000" height="420" aria-label="Concept A preview"></canvas></div>
+  <div class="cap" id="capA"></div>
+</section>
+
+<section id="secB">
+  <h2><span class="tag">B</span>Twin Halves</h2>
+  <p>Blade stance splits the star into two blades with a 3-step chain. Parry skips ahead and leaves ghost halves behind for the finisher.</p>
+  <div class="bar" id="barB"></div>
+  <div class="frame"><canvas id="cB" width="1000" height="420" aria-label="Concept B preview"></canvas></div>
+  <div class="cap" id="capB"></div>
+</section>
+
+<section id="secC">
+  <h2><span class="tag">C</span>Orbit</h2>
+  <p>Blade stance sets the star circling you; Fire lashes it out. Parry flips the orbit or turns shots into extra stars.</p>
+  <div class="bar" id="barC"></div>
+  <div class="frame"><canvas id="cC" width="1000" height="420" aria-label="Concept C preview"></canvas></div>
+  <div class="cap" id="capC"></div>
+</section>
+
+<section>
+  <h2>Side by side</h2>
+  <div class="tw"><table>
+    <thead><tr><th>&nbsp;</th><th>A · Recall &amp; Buzzsaw</th><th>B · Twin Halves</th><th>C · Orbit</th></tr></thead>
+    <tbody>
+      <tr><td>Throw + parry</td><td>Recall: star flies straight back (×1.5), throw ready at once</td><td>Scissor: star splits, halves sweep both flanks home</td><td>Same throw; parry catches it into orbit</td></tr>
+      <tr><td>Throw + perfect</td><td>Mirror Star: shot homes to the star, splits into 3 needles</td><td>Reflected shot as usual</td><td>Reflected shot as usual</td></tr>
+      <tr><td>Blade stance</td><td>Buzzsaw held in front: hold Fire, <span class="n">9</span> × 8/s, eats small bullets</td><td>Cross Cut <span class="n">14+14</span> → Whirl <span class="n">14+14</span> → Rejoin <span class="n">40</span> burst</td><td>Orbit <span class="n">80 px</span> (8 a pass); Lash ×2 (<span class="n">24</span>), Cyclone (<span class="n">20</span>, 160 px)</td></tr>
+      <tr><td>Blade + parry</td><td>Saw Toss: sticks in an enemy, grinds 0.8 s</td><td>Skips to the next step, leaves ghost halves; Rejoin pulls them in</td><td>Reversal (30 to the ring); perfect: shots become 3 orbiting stars</td></tr>
+      <tr><td>Feels like</td><td>Chainsaw + boomerang: simple, sticky DPS</td><td>Fighting-game combo: most skill, most flash</td><td>Space control: best for a tank holding a crowd</td></tr>
+      <tr><td>Build size</td><td>Small: recall reuses the bullet; saw is a held melee tick</td><td>Large: new chain, ghosts, split bullets</td><td>Medium: orbiting bullet + lash path</td></tr>
+    </tbody>
+  </table></div>
+</section>
+</main>
+
+<script>
+(function(){
+var W=1000,H=420,TAU=Math.PI*2,INK='179,163,255',HOT='255,214,150',RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+var slow=false;
+function clamp(v,a,b){return v<a?a:v>b?b:v}
+function lerp(a,b,t){return a+(b-a)*t}
+function eo(t){t=clamp(t,0,1);return 1-Math.pow(1-t,3)}
+function sm(t){t=clamp(t,0,1);return t*t*(3-2*t)}
+function C(c,a){return 'rgba('+c+','+a+')'}
+function pt(x,y){return {x:x,y:y}}
+function lp(a,b,t){return pt(lerp(a.x,b.x,t),lerp(a.y,b.y,t))}
+function polar(P,r,a){return pt(P.x+Math.cos(a)*r,P.y+Math.sin(a)*r)}
+function bez(a,c,b,t){var u=1-t;return pt(u*u*a.x+2*u*t*c.x+t*t*b.x,u*u*a.y+2*u*t*c.y+t*t*b.y)}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function seg(t,a,b){return (t-a)/(b-a)}
+function inn(t,a,b){return t>=a&&t<b}
+var P0=pt(230,210);
+function loopPos(P,t,lap,sg){var a=TAU*clamp(t/lap,0,1);return pt(P.x+190*(1-Math.cos(a)),P.y+(sg||1)*110*Math.sin(a))}
+
+/* ---------- drawing ---------- */
+function drawFloor(g){
+  g.fillStyle='#0d0b17';g.fillRect(0,0,W,H);g.fillStyle='#1d1a30';
+  for(var x=20;x<W;x+=40)for(var y=20;y<H;y+=40)g.fillRect(x,y,2,2);
+  var v=g.createRadialGradient(W/2,H/2,H*.3,W/2,H/2,W*.62);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.45)');g.fillStyle=v;g.fillRect(0,0,W,H);
+}
+function drawEnemy(g,e){
+  g.save();g.translate(e.x,e.y);var fl=e.flash>0;
+  g.fillStyle=fl?'#fff':'#5e2335';g.strokeStyle=fl?'#fff':'#d4707e';g.lineWidth=2;
+  g.beginPath();g.arc(0,0,e.r,0,TAU);g.fill();g.stroke();
+  g.fillStyle=fl?'rgba(255,255,255,.9)':'rgba(255,200,205,.5)';g.beginPath();g.arc(0,0,e.r*.4,0,TAU);g.fill();g.restore();
+}
+function drawPlayer(g,P,t,shield){
+  var x=P.x,y=P.y,w=Math.sin(t*9)*5;
+  g.save();g.lineCap='round';
+  g.strokeStyle='#8f7bf0';g.lineWidth=4;g.beginPath();g.moveTo(x-10,y);g.quadraticCurveTo(x-26,y+w,x-40,y-w);g.stroke();
+  g.fillStyle='#3d3570';g.strokeStyle='#7a6bd0';g.lineWidth=1.5;
+  [-1,1].forEach(function(s){g.beginPath();g.arc(x,y+15*s,7,0,TAU);g.fill();g.stroke()});
+  g.fillStyle='#262043';g.strokeStyle='#6a5bb8';g.lineWidth=2.5;g.beginPath();g.arc(x,y,14,0,TAU);g.fill();g.stroke();
+  g.fillStyle='#14111f';g.beginPath();g.arc(x+2,y,8.5,0,TAU);g.fill();
+  g.strokeStyle='#b3a3ff';g.lineWidth=2;g.beginPath();g.arc(x+2,y,8.5,-1.1,1.1);g.stroke();
+  if(shield){
+    var pf=shield===2;
+    g.globalCompositeOperation='lighter';
+    g.strokeStyle=pf?'rgba(255,255,255,.95)':C(INK,.85);g.lineWidth=pf?6:4;
+    g.beginPath();g.arc(x,y,26,-.85,.85);g.stroke();
+    if(pf){g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=14;g.beginPath();g.arc(x,y,26,-.85,.85);g.stroke()}
+  }
+  g.restore();
+}
+/* one Fuma blade: hooked kite from the hub to the tip */
+function blade(g,a,R){
+  var c=Math.cos,s=Math.sin;
+  g.beginPath();
+  g.moveTo(c(a-.55)*6,s(a-.55)*6);
+  g.quadraticCurveTo(c(a-.5)*R*.62,s(a-.5)*R*.62,c(a)*R,s(a)*R);
+  g.quadraticCurveTo(c(a+.2)*R*.5,s(a+.2)*R*.5,c(a+.6)*7,s(a+.6)*7);
+  g.closePath();g.fill();g.stroke();
+}
+function drawFuma(g,st,t){
+  var s=st.s||1,R=24*s,rot=st.rot!==undefined?st.rot:t*24,al=st.alpha===undefined?1:st.alpha,bl=st.blades||[0,1,2,3];
+  g.save();g.translate(st.x,st.y);g.globalAlpha=al;
+  var gl=(st.glow||0)+.35;
+  g.globalCompositeOperation='lighter';
+  var gr=g.createRadialGradient(0,0,2,0,0,R*1.6);gr.addColorStop(0,C(st.hot?HOT:INK,.5*gl));gr.addColorStop(1,C(INK,0));
+  g.fillStyle=gr;g.beginPath();g.arc(0,0,R*1.6,0,TAU);g.fill();
+  if(!st.ghost){g.strokeStyle=C(INK,.25);g.lineWidth=3;g.beginPath();g.arc(0,0,R*.82,0,TAU);g.stroke()}
+  g.globalCompositeOperation='source-over';
+  g.rotate(rot);
+  g.fillStyle=st.ghost?'rgba(150,135,240,.35)':'#c9cde0';g.strokeStyle=st.ghost?C(INK,.9):'#f4f5ff';g.lineWidth=1.4;
+  bl.forEach(function(i){blade(g,i*TAU/4,R)});
+  if(bl.length===4||!st.ghost){g.fillStyle='#3a3d52';g.strokeStyle='#dfe2f2';g.lineWidth=1.6;g.beginPath();g.arc(0,0,5*Math.max(.7,s),0,TAU);g.fill();g.stroke()}
+  g.restore();
+}
+function drawTrail(g,tr,col){
+  if(tr.length<2)return;
+  g.save();g.globalCompositeOperation='lighter';g.lineCap='round';
+  for(var i=1;i<tr.length;i++){var u=i/tr.length;g.strokeStyle=C(col||INK,.45*u);g.lineWidth=14*u;g.beginPath();g.moveTo(tr[i-1].x,tr[i-1].y);g.lineTo(tr[i].x,tr[i].y);g.stroke()}
+  g.restore();
+}
+
+/* ---------- stage engine: each move is a timeline f(t) -> frame ---------- */
+function Stage(cv,bar,cap,moves){
+  var self=this;this.cv=cv;this.cap=cap;this.moves=moves;this.mi=0;this.auto=true;this.vis=true;
+  var dpr=Math.min(2,window.devicePixelRatio||1);cv.width=W*dpr;cv.height=H*dpr;this.g=cv.getContext('2d');this.g.setTransform(dpr,0,0,dpr,0,0);
+  this.btns=[];
+  var ab=document.createElement('button');ab.type='button';ab.textContent='Play all';bar.appendChild(ab);ab.onclick=function(){self.auto=true;self.start(0)};this.ab=ab;
+  moves.forEach(function(m,i){var b=document.createElement('button');b.type='button';b.textContent=m.name;bar.appendChild(b);b.onclick=function(){self.auto=false;self.start(i)};self.btns.push(b)});
+  var lab=document.createElement('label');lab.className='tg';lab.innerHTML='<input type="checkbox" class="slowcb"> Slow motion';bar.appendChild(lab);
+  lab.firstChild.onchange=function(e){slow=e.target.checked;[].forEach.call(document.querySelectorAll('.slowcb'),function(c){c.checked=slow})};
+  this.start(0);
+}
+Stage.prototype.start=function(i){
+  var m=this.moves[i];this.mi=i;this.t=0;this.fired={};this.cd={};this.trails={};this.fx=[];this.flash=0;this.lastCap='';
+  this.en=m.enemies.map(function(p){return {x:p[0],y:p[1],r:p[2]||16,flash:0,x0:p[0],y0:p[1]}});
+  this.ab.classList.toggle('on',this.auto);
+  this.btns.forEach(function(b,j){b.classList.toggle('on',j===i)});
+};
+Stage.prototype.hit=function(e,d,tag){
+  e.flash=.12;this.fx.push({k:'n',x:e.x,y:e.y-e.r-8,v:tag?d+' '+tag:''+d,age:0,life:.75});
+  for(var i=0;i<5;i++){var a=Math.random()*TAU,s=120+Math.random()*120;this.fx.push({k:'s',x:e.x,y:e.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,age:0,life:.25})}
+};
+Stage.prototype.ring=function(x,y,r0,r1,life,col){this.fx.push({k:'r',x:x,y:y,r0:r0,r1:r1,age:0,life:life,col:col||INK})};
+Stage.prototype.step=function(rdt){
+  var m=this.moves[this.mi],dt=rdt*(slow?.3:1),self=this;
+  this.t+=dt;var t=this.t;
+  if(t>m.dur+.45){if(this.auto)this.start((this.mi+1)%this.moves.length);else this.start(this.mi);return}
+  if(m.path)this.en.forEach(function(e,i){var p=m.path(t,i,e);if(p){e.x=p.x;e.y=p.y}});
+  (m.ev||[]).forEach(function(ev,i){if(t>=ev[0]&&!self.fired[i]){self.fired[i]=1;ev[1](self)}});
+  var F=m.f(t,this);this.F=F;
+  (F.stars||[]).forEach(function(st){
+    var tr=self.trails[st.id]||(self.trails[st.id]=[]);tr.push(pt(st.x,st.y));if(tr.length>(st.ghost?6:11))tr.shift();
+    if(st.hit===false||st.ghost&&!st.live)return;
+    self.en.forEach(function(e,ei){
+      if(dist(e,st)<e.r+20*(st.s||1)){var k=st.id+'_'+ei;if(self.cd[k]===undefined||t-self.cd[k]>(st.cd||.35)){self.cd[k]=t;self.hit(e,st.dmg||30,st.tag)}}
+    });
+  });
+  for(var id in this.trails){if(!(F.stars||[]).some(function(s){return s.id==id}))this.trails[id].shift()}
+  this.en.forEach(function(e){if(e.flash>0)e.flash-=dt});
+  for(var i=this.fx.length-1;i>=0;i--){var f=this.fx[i];f.age+=dt;if(f.k==='s'){f.x+=f.vx*dt;f.y+=f.vy*dt}else if(f.k==='n')f.y-=40*dt;if(f.age>f.life)this.fx.splice(i,1)}
+  if(this.flash>0)this.flash-=rdt;
+  this.draw(t,F,m);
+  var cap='',ci;(m.caps||[]).forEach(function(c){if(t>=c[0])cap=c[1]});
+  var keys=(m.press||[]).filter(function(p){return t>=p[0]}).map(function(p){return '<kbd>'+p[1]+'</kbd>'}).join('');
+  var html='<span class="keys">'+keys+'</span><span>'+cap+'</span>';
+  if(html!==this.lastCap){this.cap.innerHTML=html;this.lastCap=html}
+};
+Stage.prototype.draw=function(t,F,m){
+  var g=this.g,self=this;drawFloor(g);
+  (F.arcs||[]).forEach(function(a){g.save();g.globalCompositeOperation='lighter';g.strokeStyle=C(a.col||INK,a.a);g.lineWidth=a.w||10;g.lineCap='round';g.beginPath();g.arc(a.x,a.y,a.r,a.a0,a.a1,a.ccw);g.stroke();g.restore()});
+  this.en.forEach(function(e){drawEnemy(g,e)});
+  (F.bullets||[]).forEach(function(b){g.save();g.fillStyle='#ff6f86';g.shadowColor='#ff6f86';g.shadowBlur=8;g.beginPath();g.arc(b.x,b.y,5,0,TAU);g.fill();g.restore()});
+  (F.lines||[]).forEach(function(l){g.save();g.globalCompositeOperation='lighter';g.strokeStyle=C(l.col||'255,255,255',l.a||.95);g.lineWidth=l.w||3;g.lineCap='round';g.beginPath();g.moveTo(l.x1,l.y1);g.lineTo(l.x2,l.y2);g.stroke();g.restore()});
+  for(var id in this.trails){var st=(F.stars||[]).filter(function(s){return s.id==id})[0];drawTrail(g,this.trails[id],st&&st.hot?HOT:INK)}
+  drawPlayer(g,F.P||P0,t,F.shield);
+  (F.stars||[]).forEach(function(st){drawFuma(g,st,t)});
+  g.save();
+  this.fx.forEach(function(f){var u=f.age/f.life;
+    if(f.k==='r'){g.globalCompositeOperation='lighter';g.strokeStyle=C(f.col,(1-u)*.9);g.lineWidth=3*(1-u)+.6;g.beginPath();g.arc(f.x,f.y,lerp(f.r0,f.r1,eo(u)),0,TAU);g.stroke()}
+    else if(f.k==='s'){g.globalCompositeOperation='lighter';g.strokeStyle=C(HOT,1-u);g.lineWidth=2;g.beginPath();g.moveTo(f.x,f.y);g.lineTo(f.x-f.vx*.04,f.y-f.vy*.04);g.stroke()}
+    else{g.globalCompositeOperation='source-over';g.globalAlpha=1-u*u;g.font="600 15px 'IBM Plex Mono',monospace";g.textAlign='center';g.lineWidth=3;g.strokeStyle='rgba(0,0,0,.75)';g.strokeText(f.v,f.x,f.y);g.fillStyle='#ffe2b0';g.fillText(f.v,f.x,f.y);g.globalAlpha=1}});
+  g.restore();
+  // perfect-parry flash
+  if(F.shield===2){g.save();g.fillStyle='rgba(255,255,255,.06)';g.fillRect(0,0,W,H);g.restore()}
+  // input pops over the player
+  var P=F.P||P0;(m.press||[]).forEach(function(p){var u=(t-p[0])/.45;if(u>=0&&u<1){g.save();g.globalAlpha=1-u;g.font="600 13px 'IBM Plex Mono',monospace";g.textAlign='center';
+    var w=g.measureText(p[1]).width+12,y=P.y-38-u*14;g.fillStyle='rgba(20,17,31,.85)';g.strokeStyle=C(INK,.9);g.lineWidth=1;g.beginPath();g.rect(P.x-w/2,y-13,w,19);g.fill();g.stroke();g.fillStyle='#efeaff';g.fillText(p[1],P.x,y+1);g.restore()}});
+  // stance tag
+  g.save();g.font="700 15px 'Barlow Condensed',sans-serif";g.fillStyle=F.stance==='BLADE'?'#ffd696':'#b3a3ff';g.fillText((F.stance||'THROW')+' STANCE',18,28);
+  g.fillStyle='rgba(233,230,245,.55)';g.font="500 12px 'IBM Plex Mono',monospace";g.fillText(m.name,18,46);g.restore();
+};
+
+/* ---------- A: Recall & Buzzsaw ---------- */
+var A=[
+ {name:'Throw',dur:1.25,press:[[0,'LMB']],enemies:[[420,318],[590,212],[420,102],[520,272]],
+  caps:[[0,'Throw stance, Fire: the star loops 380 px out and back, cutting both ways (as today).']],
+  f:function(t){return {stars:t<1.1?[Object.assign({id:'a',dmg:30},loopPos(P0,t,1.1))]:[]}}},
+ {name:'Throw → Parry: Recall',dur:1.9,press:[[0,'LMB'],[.42,'RMB'],[.8,'LMB']],enemies:[[420,318],[450,259],[345,236],[580,150]],
+  caps:[[0,'Fire: throw.'],[.42,'Parry while it flies: <b>Recall</b>. The star snaps straight back to you, ×1.5 damage on the way.'],[.66,'Caught: the throw cooldown resets, so you throw again at once.']],
+  ev:[[.66,function(S){S.ring(P0.x,P0.y,14,70,.4,HOT)}]],
+  f:function(t){var Q=loopPos(P0,.42,1.1),st=[];
+   if(t<.42)st.push(Object.assign({id:'a',dmg:30},loopPos(P0,t,1.1)));
+   else if(t<.66)st.push(Object.assign({id:'r',dmg:45,tag:'×1.5',hot:1,glow:1,s:1.1,rot:t*40},lp(Q,P0,eo(seg(t,.42,.66)))));
+   else if(t>=.8&&t<1.9)st.push(Object.assign({id:'b',dmg:30},loopPos(P0,t-.8,1.1)));
+   return {stars:st,shield:inn(t,.42,.6)?1:0,lines:t>=.42&&t<.7?[{x1:Q.x,y1:Q.y,x2:P0.x,y2:P0.y,col:HOT,a:.25*(1-seg(t,.42,.7)),w:2}]:[]}}},
+ {name:'Throw → Perfect: Mirror Star',dur:1.6,press:[[0,'LMB'],[.44,'RMB']],enemies:[[760,140],[700,300],[800,222],[420,318]],
+  caps:[[0,'Fire: throw.'],[.44,'Perfect parry while the star is out…'],[.6,'<b>Mirror Star</b>: the reflected shot homes to the star and bursts into 3 needles (40 each).']],
+  ev:[[.6,function(S){var p=loopPos(P0,.6,1.1);S.ring(p.x,p.y,10,60,.35,'255,255,255')}],[.76,function(S){for(var i=0;i<3;i++)S.hit(S.en[i],40,'')}]],
+  f:function(t,S){var st=[],L=[],B=[],sp=loopPos(P0,Math.min(t,1.1),1.1);
+   if(t<1.1)st.push(Object.assign({id:'a',dmg:30,glow:inn(t,.6,.8)?1:0},sp));
+   if(inn(t,.05,.47)){var u=seg(t,.05,.47);B.push(lp(pt(760,140),pt(256,206),u))}
+   if(inn(t,.47,.6)){var h=lp(pt(256,206),sp,eo(seg(t,.47,.6))),h0=lp(pt(256,206),sp,eo(seg(t-.04,.47,.6)));L.push({x1:h0.x,y1:h0.y,x2:h.x,y2:h.y,w:4})}
+   if(inn(t,.6,.76)){var s0=loopPos(P0,.6,1.1);for(var i=0;i<3;i++){var e=S.en[i],a=lp(s0,e,eo(seg(t,.6,.76))),b=lp(s0,e,eo(seg(t-.04,.6,.76)));L.push({x1:b.x,y1:b.y,x2:a.x,y2:a.y,w:3})}}
+   return {stars:st,lines:L,bullets:B,shield:inn(t,.44,.74)?2:0}}},
+ {name:'Alt: Buzzsaw',dur:2.0,press:[[0,'Alt'],[.3,'LMB hold']],enemies:[[520,210],[600,150]],
+  caps:[[0,'<kbd>Left Alt</kbd>: Blade stance. The star unfolds into a buzzsaw held 70 px in front.'],[.3,'Hold Fire: <b>grind</b>. 9 a hit, 8 hits a second, and it eats small bullets.']],
+  path:function(t,i,e){return i===0?pt(lerp(520,336,sm(t/.8)),210):pt(lerp(600,520,sm(t/1.4)),lerp(150,170,sm(t/1.4)))},
+  f:function(t,S){var s=lerp(.5,1.35,eo(t/.25)),sp=pt(P0.x+72,P0.y),B=[];
+   [.35,.6,.85,1.1,1.35].forEach(function(t0,i){var y=i%2?186:234;if(inn(t,t0,t0+.5)){var x=lerp(900,306,seg(t,t0,t0+.5));B.push(pt(x,lerp(y,210,seg(t,t0,t0+.5))))}
+     if(t>=t0+.5&&!S.fired['b'+i]){S.fired['b'+i]=1;S.ring(sp.x+18,sp.y,4,22,.2,HOT)}});
+   return {stance:'BLADE',stars:[{id:'saw',x:sp.x+(Math.random()-.5)*(t>.3?2:0),y:sp.y,s:s,rot:t*(t>.3?60:18),dmg:9,cd:.12,hit:t>.3,hot:t>.3,glow:t>.3?.8:0}],bullets:B,
+     arcs:t>.3?[{x:sp.x,y:sp.y,r:31,a0:t*20,a1:t*20+2,a:.5,w:3,col:HOT}]:[]}}},
+ {name:'Saw → Parry: Saw Toss',dur:2.0,press:[[0,'LMB hold'],[.55,'RMB']],enemies:[[505,210],[600,160]],
+  caps:[[0,'Blade stance, grinding.'],[.55,'Parry: <b>Saw Toss</b>. The saw flies 180 px and sticks in the first enemy.'],[.72,'Stuck: it grinds for 0.8 s (about 70), then whips back to your hand.']],
+  ev:[[.72,function(S){S.ring(483,210,10,50,.3,HOT)}]],
+  f:function(t){var h=pt(302,210),T=pt(483,210),p,hit=false;
+   if(t<.55)p=h;else if(t<.72)p=lp(h,T,eo(seg(t,.55,.72)));else if(t<1.52){p=pt(T.x+(Math.random()-.5)*3,T.y+(Math.random()-.5)*3);hit=true}else if(t<1.72)p=lp(T,h,sm(seg(t,1.52,1.72)));else p=h;
+   return {stance:'BLADE',shield:inn(t,.55,.75)?1:0,stars:[Object.assign({id:'saw',s:1.35,rot:t*60,dmg:9,cd:.12,hit:hit,hot:1,glow:hit?1:.4},p)]}}}
+];
+
+/* ---------- B: Twin Halves ---------- */
+var HA=[0,2],HB=[1,3];
+function xcut(P,u,dir){return polar(P,82,lerp(-1.25*dir,1.25*dir,sm(u)))}
+function whirl(P,u,sg){return polar(P,88,sg*(1.25+TAU*eo(u)))}
+var B=[
+ {name:'Alt: 3-step chain',dur:1.85,press:[[0,'Alt'],[.12,'LMB'],[.6,'LMB'],[1.15,'LMB']],enemies:[[322,140],[322,282],[140,210],[352,212],[150,130]],
+  caps:[[0,'<kbd>Left Alt</kbd>: Blade stance. The star splits into two halves.'],[.12,'<b>1 Cross Cut</b>: both halves scissor across the front.'],[.6,'<b>2 Whirl</b>: the halves counter-spin all round you.'],[1.15,'<b>3 Rejoin</b>: they slam together in front, a 40 burst.']],
+  ev:[[1.42,function(S){var F=pt(P0.x+110,P0.y);S.ring(F.x,F.y,10,85,.4,HOT);S.en.forEach(function(e){if(dist(e,F)<90)S.hit(e,40,'SLAM')})}]],
+  f:function(t){var a,b,arcs=[];
+   if(t<.12){a=lp(P0,xcut(P0,0,1),t/.12);b=lp(P0,xcut(P0,0,-1),t/.12)}
+   else if(t<.6){var u=seg(t,.12,.42);a=xcut(P0,u,1);b=xcut(P0,u,-1);if(u<1.2)arcs.push({x:P0.x,y:P0.y,r:82,a0:-1.25,a1:1.25,a:.18*(1-clamp(u-1,0,1))})}
+   else if(t<1.15){var u=seg(t,.6,1.05);a=whirl(P0,u,1);b=whirl(P0,u,-1)}
+   else{var u=seg(t,1.15,1.42),F=pt(P0.x+110,P0.y);a=lp(whirl(P0,1,1),F,eo(u));b=lp(whirl(P0,1,-1),F,eo(u))}
+   if(t>=1.42)return {stance:'BLADE',stars:[{id:'f',x:lerp(P0.x+110,P0.x+40,sm(seg(t,1.5,1.8))),y:P0.y,s:1.1,hit:false}]};
+   var slam=t>=1.15;
+   return {stance:'BLADE',arcs:arcs,stars:[Object.assign({id:'ha',blades:HA,dmg:14,cd:.3,hit:!slam,s:1.05},a),Object.assign({id:'hb',blades:HB,dmg:14,cd:.3,hit:!slam,s:1.05},b)]}}},
+ {name:'Chain → Parry: Ghosts',dur:1.7,press:[[0,'LMB'],[.24,'RMB'],[.42,'LMB'],[.66,'RMB'],[.8,'LMB']],enemies:[[300,128],[300,292],[405,128],[470,212],[405,296]],
+  caps:[[0,'<b>1 Cross Cut</b>…'],[.24,'Parry cancels it: you skip to the next step, and a <b>ghost half</b> stays where each half was.'],[.42,'<b>2 Whirl</b>… parry again: two more ghosts.'],[.8,'<b>3 Rejoin</b> pulls every ghost into the slam, cutting on the way in: 55 burst.']],
+  ev:[[1.05,function(S){var F=pt(425,210);S.ring(F.x,F.y,10,105,.45,HOT);S.flash=.1;S.en.forEach(function(e){if(dist(e,F)<110)S.hit(e,55,'SLAM')})}]],
+  f:function(t){
+   var P=t<.3?P0:lp(P0,pt(320,210),sm(seg(t,.3,.5))),F=pt(425,210);
+   var g1a=xcut(P0,seg(.24,0,.3),1),g1b=xcut(P0,seg(.24,0,.3),-1),P2=pt(320,210),g2a=whirl(P2,seg(.66,.42,.9),1),g2b=whirl(P2,seg(.66,.42,.9),-1);
+   var st=[],a,b;
+   if(t<.24){a=xcut(P0,seg(t,0,.3),1);b=xcut(P0,seg(t,0,.3),-1)}
+   else if(t<.42){a=lp(g1a,polar(P,88,1.25),sm(seg(t,.24,.42)));b=lp(g1b,polar(P,88,-1.25),sm(seg(t,.24,.42)))}
+   else if(t<.66){a=whirl(P2,seg(t,.42,.9),1);b=whirl(P2,seg(t,.42,.9),-1)}
+   else if(t<.8){a=g2a;b=g2b}
+   else if(t<1.05){a=lp(g2a,F,eo(seg(t,.8,1.05)));b=lp(g2b,F,eo(seg(t,.8,1.05)))}
+   var gh=[[g1a,.24,'g1',HA],[g1b,.24,'g2',HB],[g2a,.66,'g3',HA],[g2b,.66,'g4',HB]];
+   gh.forEach(function(q){if(t>=q[1]&&t<1.05){var pull=t>=.8,p=pull?lp(q[0],F,eo(seg(t,.8,1.05))):q[0];
+     st.push(Object.assign({id:q[2],blades:q[3],ghost:!pull,live:pull,alpha:pull?.9:.55+.15*Math.sin(t*20),dmg:20,tag:'ghost',rot:pull?t*30:q[1]*24,s:1},p))}});
+   if(a&&t<1.05){var nh=t>=.8;st.push(Object.assign({id:'ha',blades:HA,dmg:14,hit:!nh,s:1.05},a));st.push(Object.assign({id:'hb',blades:HB,dmg:14,hit:!nh,s:1.05},b))}
+   if(t>=1.05)st.push({id:'f',x:lerp(F.x,P2.x+40,sm(seg(t,1.15,1.45))),y:210,s:1.15,hit:false,hot:1,glow:1-seg(t,1.05,1.4)});
+   return {stance:'BLADE',P:P,stars:st,shield:inn(t,.24,.4)||inn(t,.66,.8)?1:0}}},
+ {name:'Throw → Parry: Scissor',dur:1.8,press:[[0,'LMB'],[.45,'RMB'],[.95,'LMB']],enemies:[[392,306],[416,168],[590,190],[420,318]],
+  caps:[[0,'Throw stance, Fire: throw.'],[.45,'Parry while it flies: <b>Scissor</b>. The star splits and the halves sweep home round both flanks (22 each).'],[.85,'They rejoin in your hand, ready to throw.']],
+  ev:[[.45,function(S){var q=loopPos(P0,.45,1.1);S.ring(q.x,q.y,8,45,.3,HOT)}]],
+  f:function(t){var Q=loopPos(P0,.45,1.1),st=[];
+   if(t<.45)st.push(Object.assign({id:'a',dmg:30},loopPos(P0,t,1.1)));
+   else if(t<.85){var u=sm(seg(t,.45,.85)),M=lp(Q,P0,.5),dx=P0.x-Q.x,dy=P0.y-Q.y,l=Math.hypot(dx,dy),nx=-dy/l*140,ny=dx/l*140;
+     st.push(Object.assign({id:'ha',blades:HA,dmg:22,hot:1,rot:t*40},bez(Q,pt(M.x+nx,M.y+ny),P0,u)));st.push(Object.assign({id:'hb',blades:HB,dmg:22,hot:1,rot:-t*40},bez(Q,pt(M.x-nx,M.y-ny),P0,u)))}
+   else if(t>=.95)st.push(Object.assign({id:'b',dmg:30},loopPos(P0,t-.95,1.1,-1)));
+   return {stars:st,shield:inn(t,.45,.62)?1:0}}}
+];
+
+/* ---------- C: Orbit ---------- */
+var OM=TAU/.75;
+function orb(t,r){return polar(P0,r||80,OM*t)}
+function lash(u,dir){return polar(P0,80+110*Math.sin(Math.PI*u),lerp(-.75*dir,.75*dir,u))}
+function blendIn(u){return sm(u/.15)*sm((1-u)/.15)}
+var Cm=[
+ {name:'Alt: Orbit, Lash, Cyclone',dur:2.9,press:[[0,'Alt'],[.7,'LMB'],[1.35,'LMB'],[2.0,'LMB']],enemies:[[358,172],[402,250],[150,150],[330,330],[100,258]],
+  caps:[[0,'<kbd>Left Alt</kbd>: Blade stance. The star leaves your hand and circles you at 80 px (8 a pass).'],[.7,'Fire: <b>Lash</b>. It whips out 190 px across your aim (24).'],[1.35,'Fire: Lash back the other way.'],[2.0,'Third Fire: <b>Cyclone</b>. One wide circle at 160 px (20).']],
+  f:function(t){var o=orb(t,lerp(0,80,eo(t/.3))),p=o,d=8,hot=0,r=80;
+   [[.7,1],[1.35,-1]].forEach(function(L){var u=seg(t,L[0],L[0]+.35);if(u>=0&&u<=1){p=lp(o,lash(u,L[1]),blendIn(u));d=24;hot=1}});
+   var u=seg(t,2.0,2.65);if(u>=0&&u<=1){r=80+80*Math.sin(Math.PI*u);p=orb(t,r);d=20;hot=1}
+   return {stance:'BLADE',stars:[Object.assign({id:'o',dmg:d,cd:.3,hot:hot,s:1},p)],arcs:[{x:P0.x,y:P0.y,r:r,a0:0,a1:TAU,a:.07,w:2}]}}},
+ {name:'Parry: Reversal',dur:2.0,press:[[.78,'RMB']],enemies:[[P0.x+Math.cos(.4)*96,P0.y+Math.sin(.4)*96],[P0.x+Math.cos(2.4)*96,P0.y+Math.sin(2.4)*96],[P0.x+Math.cos(4.2)*96,P0.y+Math.sin(4.2)*96],[760,200]],
+  caps:[[0,'Blade stance, orbiting.'],[.78,'Parry: <b>Reversal</b>. The orbit flips direction, and every enemy in its ring takes 30.'],[1.0,'For 2 s after, it spins 1.5× faster.']],
+  ev:[[.8,function(S){S.ring(P0.x,P0.y,60,120,.35,HOT);S.flash=.1;S.en.forEach(function(e){var d=dist(e,P0);if(d>55&&d<130)S.hit(e,30,'REV')})}]],
+  f:function(t){var th=t<.8?OM*t:OM*.8-1.5*OM*(t-.8),B=[];
+   if(inn(t,.3,.79))B.push(lp(pt(760,200),pt(256,208),seg(t,.3,.79)));
+   return {stance:'BLADE',shield:inn(t,.78,1)?1:0,bullets:B,stars:[Object.assign({id:'o',dmg:8,cd:.3,hot:t>.8&&t<1.3,glow:t>.8?.6:0,rot:t<.8?t*24:.8*24-(t-.8)*36},polar(P0,80,th))],
+     arcs:[{x:P0.x,y:P0.y,r:80,a0:0,a1:TAU,a:t>.8&&t<1.1?.25:.07,w:t>.8&&t<1.1?6:2,col:t>.8&&t<1.1?HOT:INK}]}}},
+ {name:'Perfect: Stolen Stars',dur:2.2,press:[[.44,'RMB']],enemies:[[760,110],[800,210],[760,310]],
+  caps:[[0,'Blade stance, orbiting.'],[.44,'Perfect parry: each blocked shot becomes a small star circling you.'],[1.75,'After 1.3 s they fly back at whoever fired them (25 each).']],
+  ev:[[1.95,function(S){S.en.forEach(function(e){S.hit(e,25,'')})}]],
+  f:function(t,S){var st=[Object.assign({id:'o',dmg:8,hit:false},orb(t))],B=[];
+   S.en.forEach(function(e,i){
+     if(inn(t,.05,.48))B.push(lp(e,pt(256,206+(i-1)*6),seg(t,.05,.48)));
+     var ang=i*TAU/3+2*OM*t;
+     if(inn(t,.48,1.75))st.push(Object.assign({id:'m'+i,s:.45,hit:false,hot:1,glow:.6},lp(pt(256,206),polar(P0,46,ang),eo(seg(t,.48,.65)))));
+     else if(inn(t,1.75,1.95))st.push(Object.assign({id:'m'+i,s:.45,hit:false,hot:1,glow:1},lp(polar(P0,46,i*TAU/3+2*OM*1.75),e,eo(seg(t,1.75,1.95)))));
+   });
+   return {stance:'BLADE',stars:st,bullets:B,shield:inn(t,.44,.74)?2:0}}}
+];
+
+var stages=[new Stage(cA,barA,capA,A),new Stage(cB,barB,capB,B),new Stage(cC,barC,capC,Cm)];
+if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(en){stages.forEach(function(s){if(s.cv===en.target)s.vis=en.isIntersecting})})});stages.forEach(function(s){io.observe(s.cv)})}
+var last=performance.now();
+function frame(now){var rdt=Math.min(.033,(now-last)/1000);last=now;stages.forEach(function(s){if(s.vis)s.step(RM?rdt*.5:rdt)});requestAnimationFrame(frame)}
+stages.forEach(function(s){s.step(0.5)});
+requestAnimationFrame(frame);
+})();
+</script>

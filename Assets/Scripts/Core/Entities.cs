@@ -196,6 +196,15 @@ namespace Arena
         public float KusariGap, KusariLock;           // host: seconds since the last piece; seconds before the whirl can start again
         public float KusariDmg, KusariD0;             // host: the throw's damage; how far its target was from you when it landed
         public bool KusariHit;                        // host: the throw landed and is dragging its target in
+        // The Fuma Shuriken's Orbit stance (FumaOrbit.cs; Docs/FumaRework.md). Replicated: the stance (0 Throw, 1 Orbit); the move under
+        // way (0 circling, 1/2 a Lash either way, 3 the Cyclone) and the next one (0-2); stars circling; stolen stars; the stance's clock,
+        // and the orbit's anchor (angle FumaAng0 at clock FumaClk0, turning FumaSpin radians a second) so every screen works out the same
+        // circle from the clock alone; where it came out from (FumaR0); when the move started and along which aim; when the last shot was stolen.
+        public byte FumaStance, FumaMove, FumaStep, FumaStars, FumaMinis;
+        public float FumaClock, FumaAng0, FumaClk0, FumaSpin, FumaR0, FumaMoveAt, FumaLashAim, FumaMiniAt;
+        public float FumaFastT, FumaRevCd, FumaSwitchCd, FumaMoveDmg;  // host: Reversal's speed-up left, its cooldown, the switch's, the move's damage
+        public readonly Dictionary<int, float> FumaCut = new Dictionary<int, float>();  // host: enemy id -> FumaClock of the star's last cut
+        public readonly List<int> FumaMiniFrom = new List<int>();  // host: who fired each stolen shot
         public float AmbushT;                         // host: Vanish's double-damage hit is ready for this long
         public float IronPower = 1f;                  // host: Iron Body's mastery, for its shockwave
         public bool IronMastered;
