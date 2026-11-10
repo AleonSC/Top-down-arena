@@ -237,7 +237,7 @@ namespace Arena
             RoundBackdrop(PathDim);
             CrtUi.Title(new Rect(0, 22f, W, 56f), "DRAW A ROOM OR HALLWAY", 46, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
             Ui.Label(new Rect(0, 80f, W, 20f), "Drag on the map  ·  share at least " + Expansion.MinDoorRun / 100 + " tiles of wall with a room  ·  " + Expansion.MinSide / 100 + " tiles wide is a hallway  ·  touching two rooms makes a loop", 13, Ui.Muted, TextAnchor.MiddleCenter);
-            var map = new Rect(70f, 116f, W - 140f, 440f);
+            var map = new Rect(70f, 116f, W - 140f, 400f);
             var wd = game.ExpansionWorld;
             float pad = 1300f;
             V2 lo = wd.Min - new V2(pad, pad), hi = wd.Max + new V2(pad, pad);
@@ -264,7 +264,7 @@ namespace Arena
             ExpansionRoom? box = null;
             if (hasBox)
             {
-                box = Expansion.Custom(game.Expanded, rx, ry, rw, rh, out why);
+                box = Expansion.Custom(game.Expanded, rx, ry, rw, rh, expTheme, out why);
                 int have = game.Me != null ? game.Me.Vectors : 0;
                 if (box.HasValue && box.Value.Price > have) { why = "Can't afford it: " + box.Value.Price + " vectors, you have " + have; box = null; }
             }
@@ -273,7 +273,7 @@ namespace Arena
                 expDragging = false;
                 if (box.HasValue)
                 {
-                    game.ProposeExpandRoom(rx, ry, rw, rh);
+                    game.ProposeExpandRoom(rx, ry, rw, rh, expTheme);
                     expDrawing = false;
                 }
                 ev.Use();
@@ -346,9 +346,40 @@ namespace Arena
                 line = "Your vectors " + (game.Me != null ? game.Me.Vectors : 0) + "  ·  a room costs its new wall: shared walls are free, so touching rooms is cheaper";
                 lineInk = Ui.Muted;
             }
-            Ui.Label(new Rect(0, map.yMax + 10f, W, 22f), line, 15, lineInk, TextAnchor.MiddleCenter, true);
-            if (CrtUi.SoftKey(new Rect(W / 2f - 120f, map.yMax + 44f, 240f, 34f), "BACK", null, 20, calm))
+            DrawThemeRow(new Rect(map.x, map.yMax + 6f, map.width, 32f), calm);
+            Ui.Label(new Rect(0, map.yMax + 46f, W, 22f), line, 15, lineInk, TextAnchor.MiddleCenter, true);
+            if (CrtUi.SoftKey(new Rect(W / 2f - 120f, map.yMax + 80f, 240f, 34f), "BACK", null, 20, calm))
                 expDrawing = expDragging = false;
+        }
+
+        PathId expTheme = PathId.None;  // the theme the next drawn room carries
+
+        /// The themes you can draw a room with: Plain, then each path as a room (its extra vectors; locked until enough bosses are down).
+        void DrawThemeRow(Rect row, bool calm)
+        {
+            var themes = new List<PathId> { PathId.None };
+            themes.AddRange(Expansion.Floors);
+            float gap = 6f, w = (row.width - gap * (themes.Count - 1)) / themes.Count;
+            if (!Expansion.ThemeUnlocked(expTheme, game.Wave))
+                expTheme = PathId.None;
+            for (int i = 0; i < themes.Count; i++)
+            {
+                var f = themes[i];
+                var r = new Rect(row.x + i * (w + gap), row.y, w, row.height);
+                bool locked = !Expansion.ThemeUnlocked(f, game.Wave);
+                string name = f == PathId.None ? "PLAIN" : Paths.Get(f).Name.ToUpperInvariant();
+                string tag = locked ? "BOSS " + Expansion.ThemeBoss(f) : f == PathId.None ? "FREE" : "+" + Expansion.ThemeCost(f);
+                if (locked)
+                {
+                    Ui.Pill(r, new Color(0f, 0f, 0f, 0.45f));
+                    Ui.Label(new Rect(r.x, r.y + 2f, r.width, 15f), name, 10, new Color(1f, 1f, 1f, 0.35f), TextAnchor.MiddleCenter, true);
+                    Ui.Label(new Rect(r.x, r.y + 16f, r.width, 14f), tag + " TO UNLOCK", 9, Ui.Muted, TextAnchor.MiddleCenter);
+                    continue;
+                }
+                bool on = expTheme == f;
+                if (CrtUi.SoftKey(r, name + "  " + tag, null, 11, calm, lit: on))
+                    expTheme = f;
+            }
         }
 
         /// One proposal as a CRT tube: a little map with the room lit where it would go, who drew it, what it costs and how it's voted.
@@ -372,9 +403,9 @@ namespace Arena
             float ty = stage.yMax + 14f;
             int loops = Expansion.LoopsOf(game.Expanded, o);
             bool mineCard = o.Owner == game.MyId;
-            CrtUi.Text(new Rect(r.x + 22f, ty, r.width - 44f, 34f), (mineCard ? "YOUR " : "") + o.Shape.ToUpperInvariant(), r.width < 330f ? 22 : 28, ink, TextAnchor.MiddleLeft, true, calm);
+            CrtUi.Text(new Rect(r.x + 22f, ty, r.width - 44f, 34f), (mineCard ? "YOUR " : "") + (o.Kind == RoomKind.Floor ? Paths.Get(o.Floor).Name.ToUpperInvariant() + " " : "") + o.Shape.ToUpperInvariant(), r.width < 330f ? 22 : 28, ink, TextAnchor.MiddleLeft, true, calm);
             CrtUi.Text(new Rect(r.x + 22f, ty + 34f, r.width - 44f, 22f), (owner != null ? "DRAWN BY " + owner.Name.ToUpperInvariant() : "DRAWN") + "  ·  " + o.W / 100 + " x " + o.H / 100 + " tiles" + (loops > 0 ? "  ·  LOOP" : ""), 15, afford ? CrtUi.Ink : dim, TextAnchor.MiddleLeft, false, calm);
-            string blurb = loops > 0 ? "It joins " + (loops + 1) + " rooms, so the map loops round." : "More floor to fight on, and more enemies come with it.";
+            string blurb = o.Kind == RoomKind.Floor ? FloorBlurb(o.Floor) : loops > 0 ? "It joins " + (loops + 1) + " rooms, so the map loops round." : "More floor to fight on, and more enemies come with it.";
             CrtUi.Text(new Rect(r.x + 22f, ty + 62f, r.width - 44f, 70f), blurb, 14, dim, TextAnchor.UpperLeft, false, calm, true);
             int votes = game.VotesFor(o.Owner);
             CrtUi.Text(new Rect(r.x + 22f, r.yMax - 82f, r.width - 44f, 30f), o.Price + " VECTORS" + (owner != null ? "  ·  " + owner.Name.ToUpperInvariant() + " HAS " + owner.Vectors : ""), r.width < 330f ? 17 : 20, afford ? new Color(0.37f, 0.94f, 1f) : dim, TextAnchor.MiddleLeft, true, calm);

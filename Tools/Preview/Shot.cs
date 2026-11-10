@@ -426,6 +426,8 @@ static partial class Shot {
         var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         float dx0 = float.Parse(dq[0], ci), dy0 = float.Parse(dq[1], ci), dw0 = float.Parse(dq[2], ci), dh0 = float.Parse(dq[3], ci);
         typeof(ArenaApp).GetField("expDrawing", bf).SetValue(app, true);
+        string themeName = Environment.GetEnvironmentVariable("EXPANDTHEME");  // EXPANDTHEME=FrozenLake: that theme picked on the drawing screen
+        if (themeName != null) typeof(ArenaApp).GetField("expTheme", bf).SetValue(app, (PathId)Enum.Parse(typeof(PathId), themeName));
         typeof(ArenaApp).GetField("expA", bf).SetValue(app, new V2(dx0, dy0));
         typeof(ArenaApp).GetField("expB", bf).SetValue(app, new V2(dx0 + dw0, dy0 + dh0));
       }
