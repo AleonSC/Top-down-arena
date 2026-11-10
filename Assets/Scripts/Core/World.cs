@@ -119,7 +119,7 @@ namespace Arena
         /// A wall along a line (horizontal at y from x0 to x1, or vertical at x from y0 to y1), cut at its doors.
         void WallLine(List<Solid> to, bool vault, WallSpan s)
         {
-            var gaps = new List<float>();
+            var gaps = new List<float[]>();  // each gap: its centre and half length
             for (int i = 0; i < Doors.Length; i++)
             {
                 var d = Doors[i];
@@ -127,19 +127,19 @@ namespace Arena
                 {
                     float u = s.Vertical ? d.Pos.Y : d.Pos.X;
                     if (u > s.From && u < s.Till)
-                        gaps.Add(u);
+                        gaps.Add(new[] { u, d.W / 2f });
                 }
             }
-            gaps.Sort();
+            gaps.Sort((p, q) => p[0].CompareTo(q[0]));
             float a = s.From, t = Rooms.WallT / 2f;
-            gaps.Add(float.NaN);
+            gaps.Add(null);
             foreach (var g in gaps)
             {
-                float b = float.IsNaN(g) ? s.Till : g - Rooms.DoorW / 2f;
+                float b = g == null ? s.Till : g[0] - g[1];
                 if (b - a > 1f)
                     to.Add(s.Vertical ? Box(s.At - t, a, s.At + t, b) : Box(a, s.At - t, b, s.At + t));
-                if (!float.IsNaN(g))
-                    a = g + Rooms.DoorW / 2f;
+                if (g != null)
+                    a = g[0] + g[1];
             }
         }
 

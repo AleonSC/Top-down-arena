@@ -430,6 +430,12 @@ static partial class Shot {
         if (themeName != null) typeof(ArenaApp).GetField("expTheme", bf).SetValue(app, (PathId)Enum.Parse(typeof(PathId), themeName));
         typeof(ArenaApp).GetField("expA", bf).SetValue(app, new V2(dx0, dy0));
         typeof(ArenaApp).GetField("expB", bf).SetValue(app, new V2(dx0 + dw0, dy0 + dh0));
+        if (Environment.GetEnvironmentVariable("EXPANDCUT") != null) {  // EXPANDCUT=1: the draw screen in Open wall mode with the first shared wall dragged out
+          typeof(ArenaApp).GetField("expCutMode", bf).SetValue(app, true);
+          string cw; var cr = Expansion.Custom(eg.Expanded, 1600, 100, 800, 600, out cw); if (cr.HasValue) { eg.Expanded.Add(cr.Value); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(eg, null); }
+          var sws = Expansion.SharedWalls(eg.ExpansionWorld);
+          if (sws.Count > 0) { var sw = sws[0]; bool vtc = sw[0] == 1; typeof(ArenaApp).GetField("expA", bf).SetValue(app, new V2(vtc ? sw[1] : sw[2], vtc ? sw[2] : sw[1])); typeof(ArenaApp).GetField("expB", bf).SetValue(app, new V2(vtc ? sw[1] : Math.Min(sw[3], sw[2] + 400), vtc ? Math.Min(sw[3], sw[2] + 400) : sw[1])); }
+        }
       }
     }
     if (Environment.GetEnvironmentVariable("EXPANDSHOP") != null) {  // EXPANDSHOP=1: the shop is open in the Expanding arena and you're not in the shop room (hint banner); EXPANDSHOP=2: you're in it (the shop)

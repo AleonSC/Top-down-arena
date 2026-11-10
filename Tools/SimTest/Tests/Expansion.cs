@@ -598,6 +598,11 @@ static partial class Program
         pickRooms.Invoke(g, null);
         Run(s, dt, 0.3f, null, NoPicks);
         Check(g.RoomsOn && g.CurrentWorld.Areas.Length == 3 && g.CurrentWorld.Areas[2].Kind == RoomKind.Gatekeeper && !g.CurrentWorld.Areas[2].Sealed, "a Gatekeeper room touching the hub is open (rooms " + g.RoomsOn + ", areas " + g.CurrentWorld.Areas.Length + ", kind " + g.CurrentWorld.Areas[g.CurrentWorld.Areas.Length - 1].Kind + ")");
+        // A spawn point in a hole of the world's box (outside every room) is moved into the nearest room.
+        var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var stray = (Enemy)spawnAt.Invoke(g, new object[] { EnemyType.Grunt, new V2(2500f, 30f), 0f, 0, false });
+        Check(g.CurrentWorld.Areas.Any(a => !a.Sealed && a.Contains(stray.Pos)) && stray.Pos.Y > 100f, "an enemy placed outside every room is moved into the nearest one (" + stray.Pos.X + "," + stray.Pos.Y + ")");
+        stray.Hp = 0f;
         Func<Game, int> keepers = gm => gm.Enemies.Values.Count(e => e.Type == EnemyType.Gatekeeper && e.Hp > 0f);
         Func<Game, int> area1 = gm => gm.CurrentWorld.AreaAt(gm.Players[1].Pos);
         var me = g.Players[1];
@@ -659,6 +664,50 @@ static partial class Program
         var prop = g.ExpandProposals.Count == 1 ? g.ExpandProposals[0] : default(ExpansionRoom);
         Check(g.ExpandProposals.Count == 1 && prop.Kind == RoomKind.Floor && prop.Floor == PathId.FrozenLake && prop.Price == plain.Price + 6 && prop.Owner == 2, "an unlocked theme goes to the vote as a Floor room, priced with the theme");
         Check(cg.ExpandProposals.Count == 1 && cg.ExpandProposals[0].Floor == PathId.FrozenLake, "and both screens see its theme");
+    }
+
+    // Opened walls (Expansion.cs CutRefund/Build, ExpansionGame.cs): a stretch of interior wall opens for vectors back, by vote.
+    static void ExpandingWallsTest(float dt)
+    {
+        string why;
+        var list = new List<ExpansionRoom>();
+        var east = Expansion.Custom(list, 1600, 100, 800, 600, out why).Value;
+        list.Add(east);
+        var none = new List<WallCut>();
+        // The shared wall (x = 1600, y 100..700) has one 160 px door in the middle (2 of its 6 tiles).
+        var all = new WallCut { Vertical = true, At = 1600, From = 100, Till = 700 };
+        Check(Expansion.CutRefund(list, none, all, out why) == 4, "opening the whole shared wall gives back its closed tiles: 6 minus the 2 the door covers");
+        Check(Expansion.CutRefund(list, none, new WallCut { Vertical = true, At = 1600, From = 100, Till = 300 }, out why) == 2, "two closed tiles give back 2");
+        Check(Expansion.CutRefund(list, none, new WallCut { Vertical = true, At = 0, From = 100, Till = 400 }, out why) == 0 && why != null, "the outer wall can't be opened");
+        Check(Expansion.CutRefund(list, none, new WallCut { Vertical = true, At = 1600, From = 100, Till = 200 }, out why) == 0, "one tile is too short");
+        Check(Expansion.CutRefund(list, none, new WallCut { Vertical = true, At = 1600, From = 150, Till = 450 }, out why) == 0, "an opening must sit on the grid");
+        var w0 = Expansion.Build(list, none);
+        var cuts = new List<WallCut> { all };
+        var w1 = Expansion.Build(list, cuts);
+        Check(w1.Doors.Length == 1 && w1.Doors[0].Width == 600f && Expansion.CutRefund(list, cuts, all, out why) == 0, "the opening replaces the door and a second try finds nothing left to open");
+        Func<World, int> wallsAt = w => w.WallsFor(false).Count(sl => Math.Abs(sl.Pos.X - 1600f) < 1f && sl.Pos.Y + sl.HH > 160f && sl.Pos.Y - sl.HH < 640f);
+        Check(wallsAt(w0) > 0 && wallsAt(w1) == 0, "the wall is gone along the whole opening");
+
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Add(east); gg.ExpandOpen = true; }
+        g.Players[2].Vectors = 10;
+        cg.ProposeExpandCut(all);
+        Run(s, dt, 0.5f, () => cg.ExpandProposals.Count == 1);
+        Check(g.ExpandProposals.Count == 1 && g.ExpandProposals[0].Kind == RoomKind.Opening && g.ExpandProposals[0].Price == -4 && cg.ExpandProposals.Count == 1, "a friend's wall opening goes to the vote, priced at minus its refund, on both screens");
+        cg.ProposeExpandCut(new WallCut { Vertical = true, At = 0, From = 100, Till = 400 });
+        Run(s, dt, 0.3f);
+        Check(g.ExpandProposals.Count == 1 && g.ExpandProposals[0].Owner == 2 && g.ExpandProposals[0].H == 600, "an opening that can't be made is refused (their proposal stays)");
+        g.CastExpandVote(2);
+        typeof(Game).GetMethod("ResolveBuildRound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(g, null);
+        Run(s, dt, 0.5f, () => cg.Openings.Count == 1);
+        Check(g.Openings.Count == 1 && cg.Openings.Count == 1 && g.Players[2].Vectors == 14, "the winning opening is made on both screens and its proposer gets the vectors (" + g.Players[2].Vectors + ")");
+        Check(g.ExpansionWorld.Doors.Length == 1 && g.ExpansionWorld.Doors[0].Width == 600f && cg.ExpansionWorld.Doors[0].Width == 600f, "and both see the wide gap");
     }
 
     // Vectors (ExpansionGame.cs, Docs/VectorBuilding.md step 1): the start, the cap, a cleared wave, every 25 kills, a boss refill, synced.

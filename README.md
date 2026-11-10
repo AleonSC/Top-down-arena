@@ -800,6 +800,9 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   tiles of wall with one and its door opens (a box touching only a floating room is refused: it must also touch the connected map). At most 6
   wait at once, they don't count towards the 24-room cap, add no enemies and no spawns, and a floating shop counts as a shop once it's opened.
   (The Gatekeeper has its own room, below.)
+- **Open a wall**: on the draw screen, switch to **Open wall** and drag along a wall two rooms share (the cyan stretches; the outer wall can't be
+  opened, nor a sealed floating room's). It goes to the vote like a room. If it wins, that stretch of wall comes down (a short stretch is a door, a long
+  one joins the rooms) and its proposer gets **1 vector back for every tile that was wall** (up to their cap). At least 2 tiles, up to 40 openings.
 - **Themed rooms**: pick a theme under the map when you draw a room: a path's ground and rules (Swarm Fields, Sniper Ridge, Elite Gauntlet, Burning
   Grounds, Sanctuary, Frozen Lake, Blood Moon) inside that room only, with its kill bonus. A theme costs extra vectors (+3 / +6 / +10 for
   danger 1 / 2 / 3) and unlocks with bosses: danger 2 after the first boss, danger 3 after the second.
