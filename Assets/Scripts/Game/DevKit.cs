@@ -103,5 +103,21 @@ namespace Arena
                 Ui.Label(new Rect(r.x + 16f, r.y + 30f, r.width - 32f, 18f), blurb, 11, CrtStyle.Desc);
             return r.y + (blurb.Length > 0 ? 56f : 40f);
         }
+
+        /// A thin CRT meter: a faint track and a lit fill (a progress or health bar).
+        static void DkBar(Rect r, float frac, Color fill, Color? track = null)
+        {
+            var ink = CrtUi.Ink;
+            Ui.Fill(r, track ?? new Color(ink.r, ink.g, ink.b, 0.14f));
+            Ui.Fill(new Rect(r.x, r.y, r.width * Mathf.Clamp01(frac), r.height), fill);
+        }
+
+        /// A small outlined tag (the old Badge).
+        static void DkTag(Rect r, string text, Color c)
+        {
+            Ui.Fill(r, new Color(c.r, c.g, c.b, 0.1f));
+            CrtKit.Frame(r, 1f, new Color(c.r, c.g, c.b, 0.7f));
+            Ui.Label(r, text, 11, CrtKit.SoftText(c, true), TextAnchor.MiddleCenter, true);
+        }
     }
 }
