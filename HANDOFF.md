@@ -38,8 +38,6 @@ There is no to-do file; the owner sends requests per session. Design docs in `Do
   bonus and a prize). Bosses are always standard. See `Docs/Paths.md`.
 - **Dev tools (F1):** a tabbed menu (Match / Players / Tools / DPS): stat editor, god mode, wave skip, session
   recording toggle, **DPS meter (F2) and target dummies**, **Boss Lab** (bots that play like people fight any boss; live stats; also a CLI batch mode).
-- **Field guide (a button in the pause menu and in Settings):** in-game **Bestiary** and **Armory** databases
-  (`FieldGuide.cs`): searchable lists, live models, stats, links between entries.
 - **Session recording:** the host's matches are saved as JSON (per-wave damage by source, picks, downs,
   samples). The owner uploads these into sessions for balance analysis; `Tools/SessionReport/report.py`
   summarises them.
@@ -100,6 +98,27 @@ notes (function names, message flow) are in `Docs/CodeNotes.md`, kept as a refer
   `KitLook` line in `Game/ClassLooks.cs`. See "Adding a class" below. Blood Mage abilities cost health:
   `AbilityDef.HealthCost` (share of max health, or of current with `CostsCurrent`), paid in `HostAbility` before the
   cast, never below 1 HP.
+
+### Adding a screen or a menu row
+
+UI code is built from four small pieces (all CRT look; `Ui.cs` is drawing primitives only):
+
+- **Widgets** (`Game/DevKit.cs`): `DkKey` (button), `DkChoice` (lit while chosen), `DkSwitch`, `DkField`, `DkSub` / `DkPanel` /
+  `DkHud` / `DkBox` (boxes), `DkTitle`, `DkTag`, `DkBar`. Pick a colour with `Ui.Neutral` (phosphor), `Ui.Danger`, `Ui.GoldButton`
+  or any colour for an accent.
+- **Layout** (`Game/UiLayout.cs`): `DkStack.Column/Row(area, gap)` with `.Next(size)`, `.Space`, `.Rest()`, and `DkStack.Cells` /
+  `Grid` for keys and tiles, so rows reflow when you change a size. `DkWindow(panel, title, sub, onClose)` is the shell of a tool
+  window (dim backdrop, box, title, X key) and returns the body rect.
+- **Tool screens** (`Game/UiScreens.cs`): a `UiScreen` (id, draw method, `Modal`, `OnEsc`, `EscNeedsFreeFocus`, `OnClose`) in a stack.
+  To add one: make a `UiScreen` in `InitScreens()` (draw method = your `DrawFoo`), optionally a `bool fooOpen` property over it like
+  `devMenuOpen`, and call `OpenScreen` / `CloseScreen`. ArenaApp blocks the game's input while a modal screen is open, draws the top
+  one and gives it Esc: no edits to the Esc chain or the draw switch.
+- **Menu rows** (`Game/MenuDrawer.cs`): the pause and lobby menus are `List<MenuRow>` (title, line, icon, colour, action, `Key`,
+  `Danger`, `Visible`) drawn by `DrawMenuRows` and moved by `MenuRowKeys`. Add or remove a row in `PauseMenuRows()` /
+  `LobbyMenuRows()`; nothing else changes.
+
+Screens that are part of a flow (the pause menu, lobby, Settings, profile, run stats) still use their own flags and the Esc chain in
+`ArenaApp.Update`; move one onto the stack by giving it a `UiScreen` the same way.
 
 ### Adding a class
 

@@ -114,10 +114,10 @@ namespace Arena
             if (fade)
             {
                 if (cardA > 0f)
-                    WithAlpha(cardA, () => Ui.BodyBox(r));
+                    WithAlpha(cardA, () => DkPanel(r));
             }
             else if (k < 1f || e < 1.05f)
-                Ui.BodyBox(r);
+                DkPanel(r);
             float empty = Seg(e, 0f, 0.15f);
             if (empty < 1f)
                 WithAlpha(1f - empty, () => DrawMenuCardInside(t, false));

@@ -119,27 +119,6 @@ static partial class Shot {
       typeof(ArenaApp).GetMethod("DrawPauseMenu", f2).Invoke(app, null);
       GL.ToUi = false;
     }
-    else if (mode == "guide")
-    {
-      // The pause menu's Field guide (FieldGuide.cs). GUIDE=page (0 Bestiary, 1 Classes, 2 Weapons, 3 Abilities, 4 Upgrades),
-      // GUIDESEL=key (an EnemyType, "role/kit", a WeaponId, an AbilityId or an upgrade index), GUIDESEARCH=text, GUIDESCROLL=px.
-      set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank)));
-      typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
-      int page = int.Parse(Environment.GetEnvironmentVariable("GUIDE") ?? "0");
-      set("fieldGuideOpen", true);
-      set("guidePage", page); set("guideScrollToSel", true);
-      if (Environment.GetEnvironmentVariable("GUIDESEL") != null) ((string[])typeof(ArenaApp).GetField("guideSel", f2).GetValue(app))[page] = Environment.GetEnvironmentVariable("GUIDESEL");
-      if (Environment.GetEnvironmentVariable("GUIDESEARCH") != null) set("guideSearch", Environment.GetEnvironmentVariable("GUIDESEARCH"));
-      // GUIDEOPEN=<seconds>: the guide that far into its opening (it rises in over 0.4 s).
-      if (Environment.GetEnvironmentVariable("GUIDEOPEN") != null) set("guideOpenAt", Time.unscaledTime - float.Parse(Environment.GetEnvironmentVariable("GUIDEOPEN"), System.Globalization.CultureInfo.InvariantCulture));
-      Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true;
-      int mark = GUI.Log.Count;
-      typeof(ArenaApp).GetMethod("DrawFieldGuideScreen", f2).Invoke(app, null);  // a first pass measures the entry's height
-      if (Environment.GetEnvironmentVariable("GUIDESCROLL") != null) set("guideDetailScroll", float.Parse(Environment.GetEnvironmentVariable("GUIDESCROLL")));
-      GUI.Log.RemoveRange(mark, GUI.Log.Count - mark);
-      typeof(ArenaApp).GetMethod("DrawFieldGuideScreen", f2).Invoke(app, null);
-      GL.ToUi = false;
-    }
     else if (mode == "bg")
     {
       GL.Tris.Clear();
@@ -409,6 +388,7 @@ static partial class Shot {
     {
       var lab = (BossLab)typeof(ArenaApp).GetField("lab", f2).GetValue(app);
       lab.Wave = 20; lab.PlayerCount = 3; lab.Seats[1].Kit = Kit.Elementalist; lab.Seats[2].Kit = Kit.Knight; lab.Seats[2].Weapon = 1;
+      Event.current.type = EventType.Repaint; set("glMaterial", new Material(null));
       typeof(ArenaApp).GetMethod("DrawLabSetup", f2).Invoke(app, null);
     }
     else if (mode == "labpanel")
@@ -450,7 +430,7 @@ static partial class Shot {
       set("edWave", 1);
       set("edGroup", int.Parse(Environment.GetEnvironmentVariable("EDGROUP") ?? "1"));
       set("edT", float.Parse(Environment.GetEnvironmentVariable("EDT") ?? "6.7"));
-      set("waveEdOpen", true);
+      typeof(ArenaApp).GetProperty("waveEdOpen", f2).SetValue(app, true, null);
       if (Environment.GetEnvironmentVariable("EDPROPS") != null) set("edPropsMode", true);
       if (Environment.GetEnvironmentVariable("EDLOAD") != null) set("edLoadOpen", true);
       var hv2 = Environment.GetEnvironmentVariable("MOUSE");

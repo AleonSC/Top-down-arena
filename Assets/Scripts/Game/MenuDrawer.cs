@@ -102,21 +102,74 @@ namespace Arena
                 Ui.Icon(new Rect(r.center.x - iconSize / 2f, r.center.y - iconSize / 2f, iconSize, iconSize), icon);
         }
 
+        // --- Menu rows (the pause and lobby menus) -----------------------------------------------------------------------
+
+        /// One row of a cabinet menu: what it says, its icon and colour, and what it does. Menus are lists of these.
+        sealed class MenuRow
+        {
+            public readonly string Title, Line, Icon;
+            public readonly Color Color;
+            public readonly Action Do;
+            public string Key;        // a key hint shown on the row ("Esc")
+            public bool Danger;       // drawn red
+            public Func<bool> Visible;  // null = always shown
+
+            public MenuRow(string title, string line, string icon, Color color, Action action)
+            {
+                Title = title;
+                Line = line;
+                Icon = icon;
+                Color = color;
+                Do = action;
+            }
+        }
+
+        /// Draw a menu's rows in the cabinet's screen: the mouse moves the highlight (`sel`), a click does the row.
+        void DrawMenuRows(List<MenuRow> rows, ref int sel)
+        {
+            rows = rows.FindAll(r => r.Visible == null || r.Visible());
+            sel = Mathf.Clamp(sel, 0, Mathf.Max(0, rows.Count - 1));
+            float y = cabScreen.y + 10f;
+            for (int k = 0; k < rows.Count; k++)
+            {
+                var row = rows[k];
+                var r = new Rect(34f, y, CabRowW, 58f);
+                if (cabScreenOn && r.Contains(Event.current.mousePosition) && Event.current.type == EventType.Repaint && Event.current.mousePosition != pauseMouse)
+                    sel = k;  // the mouse moved onto it (the keys move it otherwise)
+                if (DrawerRow(r, PixelArt.Get(row.Icon), row.Title, row.Line, row.Key, null, row.Color, k == sel, null, row.Danger))
+                    row.Do();
+                y += 62f;
+            }
+            if (Event.current.type == EventType.Repaint)
+                pauseMouse = Event.current.mousePosition;
+        }
+
+        /// ↑ ↓ (or W S) move through the rows, Enter does the highlighted one.
+        void MenuRowKeys(List<MenuRow> rows, ref int sel)
+        {
+            var e = Event.current;
+            if (e.type != EventType.KeyDown || GUIUtility.keyboardControl != 0)
+                return;
+            rows = rows.FindAll(r => r.Visible == null || r.Visible());
+            int n = rows.Count;
+            if (n == 0)
+                return;
+            if (e.keyCode == KeyCode.UpArrow || e.keyCode == KeyCode.W)
+                sel = (sel + n - 1) % n;
+            else if (e.keyCode == KeyCode.DownArrow || e.keyCode == KeyCode.S)
+                sel = (sel + 1) % n;
+            else if (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter)
+                rows[Mathf.Clamp(sel, 0, n - 1)].Do();
+            else
+                return;
+            e.Use();
+        }
+
         // --- The lobby's menu (Esc) --------------------------------------------------------------------------------------
 
-        static readonly string[] LobbyChoices = { "LOBBY", "SETTINGS", "FIELD GUIDE", "PROFILE", "HOW TO PLAY", "MAIN MENU", "QUIT GAME" };
-        const int FieldGuideRow = 2;  // hidden from both menus for now (the code in FieldGuide.cs stays)
+        // (No Profile row: it opens from the main menu or your lobby card. No Main menu row: the lobby's red back arrow leaves.)
         bool lobbyMenuOpen;
         int lobbySel;
-
-        static List<int> LobbyRows()
-        {
-            var rows = new List<int>();
-            for (int i = 0; i < LobbyChoices.Length; i++)
-                if (i != FieldGuideRow && i != 3 && i != 5)  // no Profile (main menu or your lobby card) and no Main menu (the lobby's back arrow does that)
-                    rows.Add(i);
-            return rows;
-        }
 
         /// Esc in the lobby: the menu slides in (its own clock starts here).
         void OpenLobbyMenu()
@@ -161,76 +214,39 @@ namespace Arena
             LobbyMenuKeys();
             cabBootLog = "> LINK OK   > SAVE OK   > LOBBY";
             BeginDrawer("MENU", Ui.Accent, 1f, "Esc closes this menu");
-            string[] lines = { "Close this menu", "Audio, visual effects, aim line", "Every enemy, weapon and upgrade", "Your rank, records and unlocks", "Controls and tips",
-                session.IsHost ? "Close the lobby, back to the title screen" : "Leave the lobby, back to the title screen", "Close the game" };
-            Color[] lcols = { Ui.Primary, new Color(0.6f, 0.66f, 0.82f), FieldGuideColor, Ui.Gold, HowToColor, new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
-            string[] licons = { "ui_play", "ui_gear", "ui_book", "ui_trophy", "ui_help", "ui_back", "ui_power" };
-            float y = cabScreen.y + 10f;
-            var lrows = LobbyRows();
-            for (int k = 0; k < lrows.Count; k++)
-            {
-                int i = lrows[k];
-                var r = new Rect(34f, y, CabRowW, 58f);
-                if (cabScreenOn && r.Contains(Event.current.mousePosition) && Event.current.type == EventType.Repaint && Event.current.mousePosition != pauseMouse)
-                    lobbySel = k;
-                if (DrawerRow(r, PixelArt.Get(licons[i]), LobbyChoices[i], lines[i], i == 0 ? "Esc" : null, null, lcols[i], k == lobbySel, null, i == LobbyChoices.Length - 1))
-                    LobbyChoose(i);
-                y += 62f;
-            }
-            if (Event.current.type == EventType.Repaint)
-                pauseMouse = Event.current.mousePosition;
+            DrawMenuRows(LobbyMenuRows(), ref lobbySel);
             EndDrawerScreen();
             CabFoot("ESC CLOSE / ARROWS SELECT / ENTER CHOOSE");
             EndDrawer();
         }
 
-        void LobbyMenuKeys()
+        /// The lobby menu's rows. (No Profile row: it opens from the main menu or your lobby card. No Main menu row: the lobby's red
+        /// back arrow leaves.) Add a row here and it shows, selects and clicks like the rest.
+        List<MenuRow> LobbyMenuRows() => new List<MenuRow>
         {
-            var e = Event.current;
-            if (e.type != EventType.KeyDown || GUIUtility.keyboardControl != 0)
-                return;
-            var rows = LobbyRows();
-            if (e.keyCode == KeyCode.UpArrow || e.keyCode == KeyCode.W)
-                lobbySel = (lobbySel + rows.Count - 1) % rows.Count;
-            else if (e.keyCode == KeyCode.DownArrow || e.keyCode == KeyCode.S)
-                lobbySel = (lobbySel + 1) % rows.Count;
-            else if (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter)
-                LobbyChoose(rows[Mathf.Clamp(lobbySel, 0, rows.Count - 1)]);
-            else
-                return;
-            e.Use();
-        }
+            new MenuRow("LOBBY", "Close this menu", "ui_play", Ui.Primary, CloseLobbyMenu) { Key = "Esc" },
+            new MenuRow("SETTINGS", "Audio, visual effects, aim line", "ui_gear", new Color(0.6f, 0.66f, 0.82f), () => { pauseSettings = true; CloseCabWindow(); }),
+            new MenuRow("HOW TO PLAY", "Controls and tips", "ui_help", HowToColor, () => { pauseHowTo = true; OpenCabWindow(2); }),  // a window beside the list
+            new MenuRow("QUIT GAME", "Close the game", "ui_power", new Color(1f, 0.45f, 0.5f), Application.Quit) { Danger = true },
+        };
 
-        void LobbyChoose(int i)
-        {
-            switch (i)
-            {
-                case 0: CloseLobbyMenu(); break;
-                case 1: pauseSettings = true; CloseCabWindow(); break;
-                case 2: OpenFieldGuide(); break;
-                case 3: pauseRecords = true; break;
-                case 4: pauseHowTo = true; OpenCabWindow(2); break;  // a window beside the list
-                case 5:
-                    lobbyMenuOpen = false;
-                    pauseSettings = pauseHowTo = false;
-                    StartLobbyLeave();  // the way in from the menu, backwards (LobbyEnter.cs)
-                    break;
-                default: Application.Quit(); break;
-            }
-        }
+        void LobbyMenuKeys() => MenuRowKeys(LobbyMenuRows(), ref lobbySel);
 
         // --- The pause menu -------------------------------------------------------------------------------------------
 
-        static readonly string[] PauseChoices = { "RESUME", "RUN STATS", "FIELD GUIDE", "PROFILE", "HOW TO PLAY", "SETTINGS", "QUIT" };
-        const int PauseQuit = 6;  // asks "to lobby or desktop?" (DrawLobbyConfirm); the lobby is the host's: it takes everyone back
-
-        /// The pause menu's choices for this player.
-        List<int> PauseRows()
+        /// The pause menu's rows. Run stats is the small key beside the cabinet (DrawRunStatsKey); no Profile row, it opens from the main
+        /// menu or your lobby card. Quit asks "to lobby or desktop?" first (DrawLobbyConfirm); the lobby is the host's: it takes everyone back.
+        List<MenuRow> PauseMenuRows() => new List<MenuRow>
         {
-            // Resume, Settings, How to play, Quit. Run stats is the small key beside the cabinet (DrawRunStatsKey); the Field guide is
-            // hidden for now; the profile opens from the main menu or your lobby card only.
-            return new List<int> { 0, 5, 4, PauseQuit };
-        }
+            new MenuRow("RESUME", "Back into wave " + Mathf.Max(1, game.Wave), "ui_play", Ui.Primary, ResumeGame) { Key = "Esc" },
+            new MenuRow("SETTINGS", "Audio, visual effects, aim line", "ui_gear", new Color(0.6f, 0.66f, 0.82f), () => { pauseSettings = true; CloseCabWindow(); }),
+            new MenuRow("HOW TO PLAY", "Controls and tips", "ui_help", HowToColor, () => { pauseHowTo = true; OpenCabWindow(2); }),
+            new MenuRow("QUIT", CanQuitToLobby ? "Back to the lobby, or out to the desktop" : "Out to the desktop", "ui_power", new Color(1f, 0.6f, 0.45f), () =>
+            {
+                pauseConfirmLobby = true;  // asks first (DrawLobbyConfirm)
+                confirmSel = 0;            // "keep playing" is first, so a stray Enter doesn't end the run
+            }) { Danger = true },
+        };
 
         bool CanQuitToLobby => session.IsHost && !LabRunning;
 
@@ -275,25 +291,7 @@ namespace Arena
                 sub = "The arena is waiting";
             cabBootLog = "> LINK OK   > SAVE OK   > WAVE " + Mathf.Max(1, game.Wave);
             BeginDrawer("PAUSED", Ui.Accent, 1f, sub);
-            string[] lines = { "Back into wave " + Mathf.Max(1, game.Wave), "Your build, damage and kills so far", "Every enemy, weapon and upgrade", "Your rank, records and unlocks", "Controls and tips",
-                "Audio, visual effects, aim line", CanQuitToLobby ? "Back to the lobby, or out to the desktop" : "Out to the desktop" };
-            Color[] pcols = { Ui.Primary, Ui.Gold, FieldGuideColor, Ui.Gold, HowToColor, new Color(0.6f, 0.66f, 0.82f), new Color(1f, 0.6f, 0.45f) };
-            string[] picons = { "ui_play", "ui_trophy", "ui_book", "ui_star", "ui_help", "ui_gear", "ui_power" };
-            var rows = PauseRows();
-            pauseSel = Mathf.Clamp(pauseSel, 0, rows.Count - 1);
-            float y = cabScreen.y + 10f;
-            for (int k = 0; k < rows.Count; k++)
-            {
-                int i = rows[k];
-                var r = new Rect(34f, y, CabRowW, 58f);
-                if (cabScreenOn && r.Contains(Event.current.mousePosition) && Event.current.type == EventType.Repaint && Event.current.mousePosition != pauseMouse)
-                    pauseSel = k;  // the mouse moved onto it (the keys move it otherwise)
-                if (DrawerRow(r, PixelArt.Get(picons[i]), PauseChoices[i], lines[i], i == 0 ? "Esc" : null, null, pcols[i], k == pauseSel, null, i == PauseQuit))
-                    PauseChoose(i);
-                y += 62f;
-            }
-            if (Event.current.type == EventType.Repaint)
-                pauseMouse = Event.current.mousePosition;
+            DrawMenuRows(PauseMenuRows(), ref pauseSel);
             EndDrawerScreen();
             DrawRunStatsKey();
             CabFoot("ESC RESUME / ARROWS SELECT / ENTER CHOOSE", "HOLD TAB RUN STATS & BUILD   H HIDE HUD");
@@ -421,22 +419,7 @@ namespace Arena
         }
 
         /// ↑ ↓ to move through the pause menu, Enter to choose.
-        void PauseKeys()
-        {
-            var e = Event.current;
-            if (e.type != EventType.KeyDown || GUIUtility.keyboardControl != 0)
-                return;
-            int n = PauseRows().Count;
-            if (e.keyCode == KeyCode.UpArrow || e.keyCode == KeyCode.W)
-                pauseSel = (pauseSel + n - 1) % n;
-            else if (e.keyCode == KeyCode.DownArrow || e.keyCode == KeyCode.S)
-                pauseSel = (pauseSel + 1) % n;
-            else if (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter)
-                PauseChoose(PauseRows()[Mathf.Clamp(pauseSel, 0, n - 1)]);
-            else
-                return;
-            e.Use();
-        }
+        void PauseKeys() => MenuRowKeys(PauseMenuRows(), ref pauseSel);
 
         /// Esc in the pause or lobby menu's Settings, How to play or profile: an open window slides back in first, then the
         /// cabinet returns to its list.
@@ -461,23 +444,6 @@ namespace Arena
                 return;
             }
             pauseSettings = pauseHowTo = false;
-        }
-
-        void PauseChoose(int i)
-        {
-            switch (i)
-            {
-                case 0: ResumeGame(); break;
-                case 1: runStatsOpen = true; break;
-                case 2: OpenFieldGuide(); break;
-                case 3: pauseRecords = true; break;
-                case 4: pauseHowTo = true; OpenCabWindow(2); break;  // a window beside the list
-                case 5: pauseSettings = true; CloseCabWindow(); break;  // the list switches to the sections
-                default:  // PauseQuit
-                    pauseConfirmLobby = true;  // asks first (DrawLobbyConfirm)
-                    confirmSel = 0;            // "keep playing" is first, so a stray Enter doesn't end the run
-                    break;
-            }
         }
 
         /// The run's card over the arena: the wave, time and score, the path, modifiers and difficulty, the next boss

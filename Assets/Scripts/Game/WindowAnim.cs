@@ -105,7 +105,7 @@ namespace Arena
         float pauseOpenedAt = -10f;  // when the pause menu last opened: its cabinet's clock (the opening plays once from here, CrtWindows.cs)
 
         /// Is the pause menu (or a screen opened from it) wanted?
-        bool PauseMenuWanted => session.Screen == AppScreen.Game && (pauseMenuOpen || (game.Paused && !tabPaused && !devFrozen)) && !devMenuOpen && !labSetupOpen && !RecallActive;
+        bool PauseMenuWanted => session.Screen == AppScreen.Game && (pauseMenuOpen || (game.Paused && !tabPaused && !devFrozen)) && !ModalScreenOpen && !RecallActive;
 
         /// Each frame: run the pause menu's opening or closing, and its sounds.
         void StepPauseAnim(float dt)

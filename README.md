@@ -330,7 +330,7 @@ once mastered); the Tab menu shows the level.
 A popup appears when an ability levels up. The **Tab** menu shows each ability's level as five pips (the next one
 fills as it earns XP). What level 5 unlocks is always written in gold under each ability's description: in the lobby
 (your Space ability and your ultimate), on the Tab screen's ability tiles, on the cards that give an ability (in the
-level-up picks and the Bazaar), and in the Field guide. Where space is tight the text gets smaller, then shortened
+level-up picks and the Bazaar). Where space is tight the text gets smaller, then shortened
 with "…"; hover a Tab tile to read it in full.
 
 In the lobby, the loadout screen's **Ultimate** row has four keys. Key 0 is your role and class's default ultimate;
@@ -835,7 +835,7 @@ with an objective plate at the top of the screen:
 a **Challenge prize** pick: three cards, each rare or very rare (no rerolls), and a 1 in 4 chance of a legendary
 pick too. **Lose** (the crystal breaks, the clock runs out, or everyone goes down) and you're simply sent back:
 it's safe to fail, the downed get back up at 30% health and nothing else is lost. Either way the break then starts
-over. The room's two enemies are in the Field guide under **Challenge rooms**. Developer tools (F1, Match) can take
+over. Developer tools (F1, Match) can take
 everyone straight into any of the five.
 
 ## Run modifiers
@@ -866,7 +866,7 @@ computer). When the open tiers don't fit, the list scrolls with the mouse wheel.
 | Solid Walls | No wrapping round the edges: the arena's sides are walls (drawn as a glowing border), and bullets stop at them | Harder |
 | Cluttered | Every wave piles a lot more crates into the arena: 17 on wave 1, +3 a wave, up to 48 (a normal run has 2 to 10), heavy crates from wave 8. They stay until enemy fire breaks them, so the field turns into a maze you have to wind through. Your shots still fly over them; enemy shots stop at them. Boss fights clear the arena, as usual. Not in the Practice Range | Harder |
 | Second Wind | Once per boss cycle (waves 1-5, 6-10, ...), each player who goes down gets back up by themselves 2 s later at half health; it's used before a revive token. The HUD chip shows whether yours is ready. While anyone holds one, everyone being down isn't game over | Easier |
-| Zombie Infection | Every regular wave is a horde of green zombies, and the arena turns dark green. The count is the wave's usual x1.5 at wave 1, growing to x3 by wave 20, at most 60 alive at once (the rest come in as others fall), arriving faster so a bigger wave doesn't take longer; each zombie's XP is split so levels keep pace. **Seven kinds** (see the Field guide's Zombies group): **Shambler** (wide triangle, slow, hits hard; from wave 1), **Runner** (narrow triangle, faster than you, packs of three; 3), **Spitter** (pentagon; hangs back and lobs acid that burns 10/s and slows 30%; 6, at most 4 a wave), **Bloater** (swelling circle; bursts into a spore cloud that slows 40%, on you if it reaches you; 8), **Crawler** (trapezoid; grabs and roots you for 1.5 s, 6/s, until you shoot it for 25; 9, at most 3), **Shrieker** (diamond; screams every 6 s, frenzying the zombies within 320 px: 30% faster for 4 s; 12, at most 2), **Mender** (cross; heals the zombies within 220 px by 15% every 3 s; 15, at most 2). **The dead rise:** a killed zombie has a 25% chance to get back up 3 s later (a green marker where it lies) at half health, worth no XP, and it won't rise twice; near a Mender it's 50%, in half the time. One that was burning or cut down by a melee weapon stays down (a Bloater never rises), and the wave isn't over until they're up and beaten. **Sounds:** a groan now and then from the horde, a wet rasp as the dead get back up, a spit, a grab, the Shrieker's scream, a Bloater's burst and a Mender's chime (volume: Enemies). Bosses, their adds and challenge rooms are unchanged. Not in the Practice Range (the zombies are in its picker, though) | Harder |
+| Zombie Infection | Every regular wave is a horde of green zombies, and the arena turns dark green. The count is the wave's usual x1.5 at wave 1, growing to x3 by wave 20, at most 60 alive at once (the rest come in as others fall), arriving faster so a bigger wave doesn't take longer; each zombie's XP is split so levels keep pace. **Seven kinds**: **Shambler** (wide triangle, slow, hits hard; from wave 1), **Runner** (narrow triangle, faster than you, packs of three; 3), **Spitter** (pentagon; hangs back and lobs acid that burns 10/s and slows 30%; 6, at most 4 a wave), **Bloater** (swelling circle; bursts into a spore cloud that slows 40%, on you if it reaches you; 8), **Crawler** (trapezoid; grabs and roots you for 1.5 s, 6/s, until you shoot it for 25; 9, at most 3), **Shrieker** (diamond; screams every 6 s, frenzying the zombies within 320 px: 30% faster for 4 s; 12, at most 2), **Mender** (cross; heals the zombies within 220 px by 15% every 3 s; 15, at most 2). **The dead rise:** a killed zombie has a 25% chance to get back up 3 s later (a green marker where it lies) at half health, worth no XP, and it won't rise twice; near a Mender it's 50%, in half the time. One that was burning or cut down by a melee weapon stays down (a Bloater never rises), and the wave isn't over until they're up and beaten. **Sounds:** a groan now and then from the horde, a wet rasp as the dead get back up, a spit, a grab, the Shrieker's scream, a Bloater's burst and a Mender's chime (volume: Enemies). Bosses, their adds and challenge rooms are unchanged. Not in the Practice Range (the zombies are in its picker, though) | Harder |
 
 ## Difficulty
 
@@ -1335,8 +1335,8 @@ out (Back or Esc), and only then does the window really close.
   can open). The card runs down to near the bottom of the screen, with the players at its foot as compact cards
   (class, level, health; the Tab screen has the rest), stacked from the bottom up.
 - **The lobby's menu** (Esc in the lobby): **Back to the lobby** (Esc again), **Settings** (the cabinet's list
-  switches, like the pause menu's), the **FIELD GUIDE**, **HOW TO PLAY** (in the drawer too), **MAIN MENU** (the host leaving
-  closes the lobby for everyone) and **Quit game**. The lobby has no Leave button or settings cog any more; its bottom
+  switches, like the pause menu's), **HOW TO PLAY** (in the drawer too) and **Quit game** (no Profile or Main menu
+  rows: your lobby card opens the profile and the lobby's red back arrow leaves). The lobby has no Leave button or settings cog any more; its bottom
   bar is just **Ready** and **Start** (host), side by side in the middle, with who you're waiting on to their left.
 - **The main menu**: the title over a small disk drive (it says DRIVE A: EMPTY on the picker and your name and READY once a profile is loaded) with a shot arcing over it on a tapered vector stroke. In a box in the middle of the screen: a big **Play** key over **Join game** and **Settings**; these are mechanical keycaps in a dark well, with a lamp in the corner that lights under the mouse, and they press down when clicked (so do **New run** and **Back** in the saved-runs picker). Under the box is
   **your player card** (your party card in small; click it to open your **Profile**, where the pencil next to your name renames you; it's remembered; hover it for **Switch
@@ -1357,22 +1357,9 @@ out (Back or Esc), and only then does the window really close.
   won) and **Unlocks**. Mid-run and in the lobby it has no Look tab.
 - **How to play** (in Settings: the drawer turns into its topics, and Back returns to the groups): Controls, The
   basics, Fighting, Between waves, Data Gates (with a little animated gate), Paths and modifiers, Playing
-  together, and the **Field guide** under them.
+  together.
 
-Esc goes back (from the pause menu's Settings, to its list). The **Field guide** is hidden from both menus for now (its code stays; `FieldGuideRow` in MenuDrawer.cs). It opens two in-game databases:
-
-- **Bestiary:** every enemy, boss and boss add (44 entries), each with its live model, its stats, its health
-  at your wave for your party (with the run's modifiers), what it does, when it appears, a staged boss's stages, and
-  every attack (shot kind, count, speed, damage, and how often it fires now that enemies fire faster).
-- **Armory:** tabs for **Classes** (each role × class: health, speed, its three weapons, Space abilities and
-  ultimate), **Weapons** (live character, damage, attack rate, range as the aim line shows it, companions,
-  what extra projectiles do), **Abilities** (cooldown, charges, health cost, mastery capstone, your mastery
-  level, the cards that improve it) and **Upgrades** (every card by rarity: stacks, who it's offered to, which
-  boss gives it, how many you have). The Armory reads the game's own definitions, so it's never out of date.
-
-Both have a search box (it matches names and descriptions), ↑/↓ to browse, and names inside an entry link to their own
-entries (a class's weapons, an upgrade's ability...). Whatever is yours this match is marked **YOU**. It reopens where
-you left it, and **Esc** goes back. The same audio options are
+Esc goes back (from the pause menu's Settings, to its list). The same audio options are
 under **Settings** on the main menu, and they're saved between sessions.
 
 **Visual effects** (the right-hand column of **Settings**, saved between sessions; all drawn on your own screen only,

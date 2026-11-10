@@ -114,13 +114,8 @@ namespace Arena
             if (!BalanceReportUp())
                 return;
             var rep = t.Report;
-            Ui.Fill(new Rect(0, 0, W, H), new Color(0f, 0f, 0.02f, 0.78f));
             var panel = new Rect(W / 2f - 520f, 28f, 1040f, H - 56f);
-            DkPanel(panel);
-            DkTitle(new Rect(panel.x + 24f, panel.y + 12f, 600f, 34f), "BALANCE TEST", 26, BtColor);
-            Ui.Label(new Rect(panel.x + 26f, panel.y + 46f, panel.width - 60f, 16f), rep.Title, 12, CrtStyle.Desc);
-            if (DkKey(new Rect(panel.xMax - 52f, panel.y + 14f, 32f, 30f), "X", Ui.Danger))
-                btDismissed = t;
+            DkWindow(panel, "BALANCE TEST", rep.Title, () => btDismissed = t, BtColor, 0.78f);
 
             // Tiles.
             float tw = (panel.width - 48f - 5f * 8f) / 6f, ty = panel.y + 74f;

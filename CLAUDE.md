@@ -29,12 +29,21 @@ no Unity in the cloud container: check changes with the tools below.
 - **Bump `Session.ProtocolVersion`** (`Core/Session.cs`) whenever a network message or snapshot format changes. New
   enum values (`Msg`, `Kit`, `WeaponId`, `AbilityId`, `EnemyType`, ...) go at the **end**, before `None`.
 - Ask every question to the owner through the in-chat question box (`AskUserQuestion`), never as plain text or an artifact form. Batch related questions into one box. Ask before deleting code.
-- The Bestiary and Armory web pages are gone. The in-game Field guide (`FieldGuide.cs`) replaces them: the Armory
-  reads the game's definitions, the Bestiary text is hand-edited in `BestiaryData.Entries.cs` / `BestiaryData.cs`.
+- The Bestiary and Armory web pages and the in-game Field guide are gone (`BestiaryData*.cs` stays: the sim test and `Juice.cs` read it).
+- New UI uses `DevKit.cs`'s CRT widgets (`DkKey`, `DkSwitch`, `DkField`, `DkSub`, `DkPanel`, `DkTitle`, ...); `Ui.cs` holds drawing primitives only.
 - **Keep the session title current** with `set_session_title`: a short task name plus the current phase in
   brackets, updated as the phase changes, e.g. "Implement Lancer class (thinking)" → "(planning)" → "(coding)" →
   "(testing)" → "(merging)" → "(done)".
-- There is no to-do file. Say in the final report what needs a try in Unity ("check in Unity").
+- There is no to-do file. The owner tries every change in Unity and reports bugs as they find them: never ask or
+  remind them to check or test anything in Unity, and leave "check in Unity" lines out of reports.
+- **Screenshot first** for visual changes: send the before/after PNG from `Tools/Preview` (`SendUserFile`) instead
+  of describing the look in words.
+- **Final report format**: bullets only, no prose, each a one-line description: **Changed** (what, per system),
+  **Protocol** (version), **Next** (what's left or proposed). Last line is `Branch used: ...`.
+- **Tidy sessions**: tag sessions by system (weapons, bosses, UI, ...) with `set_session_tags`. Before archiving one
+  (`archive_session`), always ask the owner through `AskUserQuestion`; never archive on your own.
+- **Cheaper replies**: keep long tool output out of the chat. Report test and build results as one pass/fail line
+  (plus the failing lines if any), and read only the file ranges the task needs.
 
 ## How the owner works
 

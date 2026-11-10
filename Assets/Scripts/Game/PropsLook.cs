@@ -672,7 +672,7 @@ namespace Arena
                 x = at.X - 46f - w;
             var r = new Rect(Mathf.Clamp(x, 10f, W - w - 10f), Mathf.Clamp(at.Y - h / 2f - 20f, 40f, H - h - 100f), w, h);
             Ui.Pill(new Rect(r.x - 6f, r.y - 6f, r.width + 12f, r.height + 12f), new Color(rc.r, rc.g, rc.b, 0.16f + 0.06f * Mathf.Sin(now * 4f)));
-            Ui.Card(r, rc, 1f);
+            DkBox(r, rc, 1f);
             Ui.Pill(new Rect(r.x + 3f, r.y + 3f, r.width - 6f, 92f), new Color(rc.r, rc.g, rc.b, 0.08f));
             if (u.Rarity == Rarity.Legendary)
             {

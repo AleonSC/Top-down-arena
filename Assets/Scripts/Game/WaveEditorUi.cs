@@ -17,7 +17,6 @@ namespace Arena
     /// Ctrl+Z / Ctrl+Y undo and redo every change.
     public partial class ArenaApp
     {
-        bool waveEdOpen;
         WaveSet edSet = WaveSet.Starter();
         int edWave, edGroup, edTrackScroll, edWaveScroll, edPalScroll;
         float edT;                // the playhead, in seconds

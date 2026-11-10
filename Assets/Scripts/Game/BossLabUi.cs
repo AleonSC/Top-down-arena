@@ -10,7 +10,6 @@ namespace Arena
     public partial class ArenaApp
     {
         readonly BossLab lab = new BossLab();
-        bool labSetupOpen;
         float labSpeed = 1f;
         bool labPaused;
         static readonly float[] LabSpeeds = { 1f, 2f, 4f, 8f };
@@ -83,10 +82,7 @@ namespace Arena
         void DrawLabSetup()
         {
             var panel = DevPanel;
-            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.55f));
-            DkPanel(panel);
-            Ui.Title(new Rect(panel.x, panel.y + 14f, panel.width, 36f), "BOSS LAB", 28, Color.white);
-            Ui.Label(new Rect(panel.x, panel.y + 48f, panel.width, 18f), "Bots fight a boss on the real game so you can watch it play out. Esc to close.", 12, Ui.Muted, TextAnchor.MiddleCenter);
+            DkWindow(panel, "BOSS LAB", "Bots fight a boss on the real game so you can watch it play out. Esc to close.", () => labSetupOpen = false, CrtStyle.Gold);
 
             float x = panel.x + 28f, w = 300f, y = panel.y + 82f;
             Ui.Heading(x, y, w, "Boss");
@@ -151,7 +147,7 @@ namespace Arena
         {
             var s = lab.Seats[i];
             var box = new Rect(x, y, w, 150f);
-            Ui.HudPanel(box, ToColor(Defs.Get(s.Role).Color));
+            DkHud(box, ToColor(Defs.Get(s.Role).Color));
             float ix = x + 12f, iw = w - 24f, iy = y + 8f;
             Ui.Label(new Rect(ix, iy, 200f, 20f), "Player " + (i + 1), 14, Color.white, TextAnchor.MiddleLeft, true);
             if (i == 0)
@@ -187,7 +183,7 @@ namespace Arena
         void DrawLabPanel()
         {
             var r = LabPanel;
-            Ui.HudPanel(r, Ui.Gold);
+            DkHud(r, Ui.Gold);
             float x = r.x + 10f, w = r.width - 20f, y = r.y + 8f;
             Ui.Label(new Rect(x, y, w, 18f), "BOSS LAB", 11, Ui.Gold, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(x, y, w, 18f), lab.BossName.Length > 0 ? lab.BossName : LabBossName(lab.Wave), 12, Color.white, TextAnchor.MiddleRight, true);
