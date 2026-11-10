@@ -486,7 +486,7 @@ namespace Arena
                     : e.Type == EnemyType.Charger && e.Phase == 2 || e.Type == EnemyType.Juggernaut ? 25f
                     : e.Type == EnemyType.Lunger && e.Phase == 2 ? 26f
                     : e.Type == EnemyType.SpikeBlock && e.Phase == 2 ? SpikeLungeDamage
-                    : e.Def.Contact > 0f ? e.Def.Contact : ContactDamage;
+                    : e.Def.Contact > 0f ? e.Def.Contact * BruteDamageMult(e) : ContactDamage;
                 GuardContact(e, contact);  // Warden's Guards in the way get hurt too (Stun.cs)
                 foreach (var p in Players.Values)
                 {
@@ -715,7 +715,7 @@ namespace Arena
             if (IsHost && dist > 0.01f && !e.Def.IsBoss && Props.Count > 0)
                 dir = PropDir(e, dir);  // round crates and barrels if there's a way; shove them if not (Props.cs)
             V2 v = V2.Zero;
-            float speed = e.Speed;
+            float speed = e.Speed * BruteSpeedMult(e);  // Brutes enrage as they are shot (BruteEnrage.cs)
             switch (e.Type)
             {
                 case EnemyType.Grunt:

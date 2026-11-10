@@ -512,7 +512,7 @@ squad as often as a melee enemy used to come). Paths with their own mix keep it.
 |---|---|---|
 | 1 | **Swarmer** | The simplest enemy: a small white chomper with a wedge for a mouth and no eyes. Walks straight at you (115), 14 health, 6 per bite. Comes in packs of four, so cut them down together |
 | 2 | **Spiker** | Small and fast, with a long thin spike on each face. Zig-zags toward you (swinging 40 to 65 degrees off line, flipping side every 0.2 to 0.45 s, straightening as it gets close), comes in pairs. (Called the Swarmer before the plain white one arrived) |
-| 3 | **Brute** | Slow and tough; hits hard (24) when it reaches you |
+| 3 | **Brute** | Slow and tough; hits hard (24) when it reaches you. **Enrages as it is shot**: the more health it has lost, the faster it walks (up to +80%) and the harder it hits (up to +60%), and it turns redder. Healing calms it down. Burst it down or back off |
 | 5 | **Lunger** | Circles in close, flashes a pink line, then leaps along it. Step aside |
 | 5 | **Buzzsaw** | A ring of spinning spikes. Fast (170) and it steers with momentum, so it swoops and overshoots. Each touch is only 4, but they land about eight times a second |
 | 5 | **Spike Block** | A square with a big spike on each face. Rocks from side to side as it closes in; within about 140 px it stops, shakes and shows a red line (0.55 s, the line is locked), then lunges along it for 35. It rests 0.8 s afterward: shoot it then |
