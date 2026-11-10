@@ -1523,7 +1523,8 @@ the bottom of them shows what's on (wave, recording, bot, aim debug, players):
   beside it. **Kill-all key (X)**: a switch (saved between sessions) that makes **X** kill every enemy on the field,
   bosses included, as your kills: XP, score, drops, gold and kill credit as usual, through shields and immunity. It
   doesn't end the wave: enemies still to come keep coming. X still throws away a chest item while you're standing on
-  one. **Everyone** buttons: full heal, level up, max mastery and god mode for every player at once. **Challenge
+  one. **Freeze enemies**: a switch under it that stops every enemy moving and shooting and stops new ones spawning
+  (you can still kill the frozen ones; the wave won't clear while it's on; it resets when a match starts). **Everyone** buttons: full heal, level up, max mastery and god mode for every player at once. **Challenge
   rooms** buttons (between waves): straight into Crystal, Gatekeeper, Kill Rush, Zones or Mirror.
 - **Players (host):** choose a player, then edit any of their stats by hand: type a number or use - / +.
   Type in **Filter** to narrow the list (e.g. "barrier"). Edited stats show in gold, are sent to every player's
