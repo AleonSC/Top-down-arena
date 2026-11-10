@@ -285,6 +285,50 @@ namespace Arena
             return n == "sa" || n == "gtasa" || n.Contains("sanandreas");
         }
 
+        /// Easter egg: any name with "doom" in it (Doom, DOOM, doom 2, Doomguy, ...): the retail Doom install disk.
+        public static bool IsDoomName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return false;
+            var sb = new System.Text.StringBuilder();
+            foreach (char ch in name)
+                if (char.IsLetterOrDigit(ch))
+                    sb.Append(char.ToLowerInvariant(ch));
+            return sb.ToString().Contains("doom");
+        }
+
+        /// The Doom disk: black plastic, a cream label with the red logo ("REGISTERED DISK n", n = the slot), a silver shutter with its window.
+        void DrawDoomDisk(Rect d, int slot)
+        {
+            float k = d.width / 200f;
+            Color black = new Color(0.14f, 0.14f, 0.16f), red = new Color(0.78f, 0.14f, 0.18f), ink = new Color(0.1f, 0.1f, 0.1f);
+            Ui.Pill(new Rect(d.x + 3f, d.y + 12f * k, d.width - 6f, d.height - 8f * k), new Color(0f, 0f, 0f, 0.4f));
+            float ch = 10f * k;
+            for (float y = 0f; y < d.height; y += 2f)
+            {
+                float w = y > d.height - ch ? d.width - (y - (d.height - ch)) : d.width;
+                Ui.Fill(new Rect(d.x, d.y + y, w, 2.5f), Color.Lerp(black, new Color(0.08f, 0.08f, 0.1f), y / d.height));
+            }
+            Ui.Fill(new Rect(d.x + 2f, d.y, d.width - 4f, 2f), new Color(1f, 1f, 1f, 0.14f));
+            Ui.Fill(new Rect(d.x + 8f * k, d.y + 8f * k, 9f * k, 9f * k), new Color(0.04f, 0.04f, 0.06f));      // the two notches at the top
+            Ui.Fill(new Rect(d.xMax - 17f * k, d.y + 8f * k, 9f * k, 9f * k), new Color(0.04f, 0.04f, 0.06f));
+            var lb = new Rect(d.x + 14f * k, d.y + 12f * k, 172f * k, 104f * k);                                   // the label
+            Ui.Fill(lb, new Color(0.93f, 0.9f, 0.82f));
+            Ui.Fill(new Rect(lb.x, lb.yMax - 1f, lb.width, 1f), new Color(0f, 0f, 0f, 0.15f));
+            Ui.Label(new Rect(lb.x, lb.y + 2f * k, lb.width, 12f * k), "To install DOOM, type INSTALL and press ENTER", Mathf.Max(6, Mathf.RoundToInt(6.6f * k)), red, TextAnchor.MiddleCenter);
+            int ls = Mathf.RoundToInt(46f * k);                                                                    // the logo: a dark edge under red letters
+            Ui.Label(new Rect(lb.x + 2f * k, lb.y + 16f * k, lb.width, 44f * k), "DOOM", ls, new Color(0.45f, 0.06f, 0.08f), TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(lb.x, lb.y + 14f * k, lb.width, 44f * k), "DOOM", ls, red, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(lb.x, lb.y + 60f * k, lb.width, 14f * k), "REGISTERED", Mathf.RoundToInt(11f * k), ink, TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(lb.x, lb.y + 73f * k, lb.width, 14f * k), "DISK " + (slot + 1), Mathf.RoundToInt(11f * k), ink, TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(lb.x + 4f * k, lb.y + 88f * k, lb.width - 8f * k, 11f * k), "Created by id Software      V 1.2", Mathf.Max(6, Mathf.RoundToInt(7f * k)), red, TextAnchor.MiddleCenter);
+            var sh = new Rect(d.x + 44f * k, d.y + 128f * k, 82f * k, 66f * k);                                    // the silver shutter and its window
+            Ui.Fill(sh, new Color(0.72f, 0.73f, 0.76f));
+            Ui.Fill(new Rect(sh.x + 42f * k, sh.y, 40f * k, sh.height), new Color(0.82f, 0.83f, 0.86f));
+            Ui.Fill(new Rect(sh.x + 12f * k, sh.y + 4f * k, 26f * k, 48f * k), black);
+            Ui.Fill(new Rect(d.xMax - 26f * k, d.y + 150f * k, 10f * k, 20f * k), new Color(0.3f, 0.3f, 0.33f));  // the little arrow
+        }
+
         /// The San Andreas disk: a plain blue floppy with a big paper shutter, a round metal hub and the black slot at the bottom.
         void DrawSanAndreasDisk(Rect d)
         {
@@ -317,6 +361,11 @@ namespace Arena
         /// A disk: plastic tinted by the rank tier with its chamfered corner, the metal shutter, and a paper label.
         void DrawWhoDisk(Rect d, ProfileInfo p, bool current)
         {
+            if (IsDoomName(p.Name))
+            {
+                DrawDoomDisk(d, Mathf.Max(0, whoList.IndexOf(p)));
+                return;
+            }
             if (IsSanAndreasName(p.Name))
             {
                 DrawSanAndreasDisk(d);
