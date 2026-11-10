@@ -398,6 +398,18 @@ namespace Arena
             else
                 foreach (var o in Orbs.Values)
                     SyncOrb(s, o);
+            count = Coins.Count;
+            s.Short(ref count);
+            if (s.Reading)
+            {
+                snapSeen.Clear();
+                for (int i = 0; i < count; i++)
+                    snapSeen.Add(SyncCoin(s, null));
+                RemoveUnseen(Coins);
+            }
+            else
+                foreach (var c in Coins.Values)
+                    SyncCoin(s, c);
             SyncProps(s);  // crates, pots, barrels, chests and chest items (Props.cs)
             SyncLayout(s);  // the floor plan (LayoutRules.cs)
         }
@@ -464,6 +476,7 @@ namespace Arena
             s.Float(ref p.WardT);
             s.Float(ref p.StunT);
             s.Float(ref p.SwallowT);
+            s.Float(ref p.WarpT);  // (BossBeam.cs)
             int grasped = p.Grasp.Count;  // Leech Tendrils' held enemies (BloodMage.cs)
             s.Byte(ref grasped);
             if (s.Reading)

@@ -70,6 +70,8 @@ namespace Arena
                     TickShop(dt);  // the Bazaar's shop closes when everyone is done (Shop.cs)
                     if (!AnyonePicking() && PathOffer == null && !ShopBlocksWave && Room == RoomPhase.None)  // (and while a portal is open)
                         TickReadyTimer(ref StateTimer, dt);  // ...and until everyone is ready (WaveReady.cs)
+                    if (StateTimer <= 0f && BossBeamHold(dt))
+                        break;  // everyone outside the hub is beamed into it before the boss wave (BossBeam.cs)
                     if (StateTimer <= 0f)
                     {
                         if (ShopOpen && ServiceRooms)

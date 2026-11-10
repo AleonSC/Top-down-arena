@@ -754,12 +754,14 @@ On the Bazaar's waves every kill gives **every player the same gold** (0.3 per p
 325 each over waves 6-10, rising to about 1000 by wave 40); your gold shows above the wave panel. After its last
 wave, everyone gets a shop before the boss:
 
+- **One sideways carousel** holds everything: your shelf, then the services. The item in the middle is big and shows what it
+  changes as the green readout on the card (old ▸▸ new). Click a side card, use the arrows, the mouse wheel or the arrow
+  keys to bring one to the middle, and click the middle one to buy it. The SHELF and SERVICES tabs jump to each part.
 - **Your shelf** (rolled for your class): four upgrades, one legendary and one weapon mod. Prices by rarity: common
-  40, uncommon 60, rare 100, very rare 160, weapon mod 200, legendary 280. Click a card to select it (your stats
-  preview it), click again to buy.
-- **Services:** restock the shelf (25, then +25 each time), remove an upgrade (75; one stack, and abilities it gave
-  go too), full heal (40), and a revive token (120; one at a time: when you go down you get back up 2 s later at
-  half health, and it isn't game over while it's waiting).
+  40, uncommon 60, rare 100, very rare 160, weapon mod 200, legendary 280.
+- **Services:** add stock (six more cards on the shelf, none you already see; 25, then +25 each time, up to 3 times),
+  remove an upgrade (75; one stack, and abilities it gave go too), full heal (40), and a revive token (120; one at a
+  time: when you go down you get back up 2 s later at half health, and it isn't game over while it's waiting).
 - **Give** sends a teammate 10, 50, 100 or all of your gold. Giving to someone who's already done reopens their
   shop so they can choose what to do with it.
 - **No timer:** the shop closes when everyone has clicked **Done shopping** (click again to keep shopping until the
@@ -771,6 +773,7 @@ wave, everyone gets a shop before the boss:
 The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expanding**). Design:
 [`Docs/ExpandingArena.md`](Docs/ExpandingArena.md). It starts as the plain Classic box and grows as you play:
 
+- **Gold coins:** every kill drops its gold as coins (5-gold and 1-gold). They never despawn, spin and glint on the floor, and drift to the nearest living player within 90 px, who gets the gold.
 - **Vectors**: every player holds a drawing budget (chip under the wave plate, "Vectors 25 / 35"): 1 vector = 1 tile of wall.
   You start with 25 and can hold 35; each cleared wave gives 4, every 15 kills gives 1, and a cleared boss wave refills
   everyone to the cap and adds 10 on top. Two cards raise the cap, in the Expanding arena only: **Deep Inkwell** (uncommon, +10,
@@ -810,7 +813,7 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   Beating it gives everyone a prize pick (sometimes a legendary) and the room becomes an ordinary one. It's optional: if the wave ends first, the
   Gatekeeper goes, you're let out, and walking in later starts a fresh duel.
 - **Shop and vendor rooms**: with one connected, kills drop gold and the shop opens every intermission without holding the countdown. Buy
-  upgrades and restock in the **shop room**; heal, revive and remove upgrades at the **vendor**. Gold and your shelf carry over between waves
+  upgrades and add stock in the **shop room**; heal, revive and remove upgrades at the **vendor**. Gold and your shelf carry over between waves
   (the shelf is new each boss cycle).
 - **Breaches**: once the first room is built, enemies come in through **breaches** in the outer wall: a stretch of wall cracks open
   and a **red holographic barrier** stands in the gap (you can't go out through it; red chevrons on the floor point where they come
@@ -836,8 +839,10 @@ been) or **Rooms arena**. The Rooms arena is new and still being tuned (design: 
   side (900 x 900), and a **hallway** (260 px wide) runs above and below the hub, joining the two rooms into a loop
   round it. **Doors** (160 px gaps with cyan brackets) join them: one from the hub into each room, and one from each
   room into each hallway. The hub's top and bottom walls have no door.
-- **Boss waves** are the hub alone (bosses are built for it). When a boss wave starts, anyone out in a room or
-  hallway is brought into the hub, and the props out there are cleared away.
+- **Boss waves** are the hub alone (bosses are built for it). Before a boss wave, anyone out in a room or
+  hallway is **beamed into the hub**: a pillar of light in their colour takes them up where they stand, a second one
+  sets them down on a ring that shows in the hub from the start (about 2 s; they can't move or shoot meanwhile, and the
+  boss wave waits for them). The props out there are cleared away when it starts.
 - **No wrapping**: the world has walls all round. The hub keeps the boss cycle's arena layout (walls, pillars and
   crates; its edge gates make way for the doors), and the rooms and hallways have a few pillars and short walls of
   their own. Walls stop walking and every shot, as in the layouts.
