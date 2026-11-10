@@ -1,0 +1,276 @@
+<title>Shop Carousel</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Layout: a 1280x720 stage (the game canvas) scaled to fit. The shop with no stats sidebar: one sideways carousel holds the six shelf
+   cards, then the services (Add stock, Remove, Heal, Revive, Floor kit). The picked item shows the level-up picker's green readout
+   (old >> new) on the card itself. Three looks for how the carousel moves. Status: mockup, nothing built yet. */
+:root { --bg: #070a14; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --accent: #5b8cff;
+  --ink: #66a3ff; --dim: #7499da; --gold: #f2c14e; --good: #4dff9a; --hot: #ff6b7a;
+  --f-crt: "VT323", "Courier New", monospace; --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --f-game: Arial, "Liberation Sans", Helvetica, sans-serif; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); margin: 0; padding-block: 28px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1160px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+h1 { font-size: 28px; margin: 0 0 4px; text-wrap: balance; }
+.sub { margin: 0; color: var(--muted); font: 500 16px/1.45 var(--f-ui); max-width: 78ch; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.seg { font: 700 15px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--accent); color: #05102c; border-color: var(--accent); }
+.seg:focus-visible, .it:focus-visible, .nav:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.note { font: 500 13px/1.5 var(--f-mono); color: var(--muted); margin: 0; max-width: 100ch; }
+.note b { color: var(--fg); font-weight: 500; }
+.view { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0b0e1c; }
+.stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden; font-family: var(--f-game); color: var(--ink); user-select: none; }
+.arena { position: absolute; inset: 0; background: #0d1020; background-image: linear-gradient(rgba(120,140,200,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(120,140,200,.06) 1px, transparent 1px); background-size: 40px 40px; }
+.dark { position: absolute; inset: 0; background: rgba(3,4,10,.5); }
+.abs { position: absolute; }
+
+/* header */
+.tag { left: 50%; top: 24px; transform: translateX(-50%); font: 700 11px var(--f-game); letter-spacing: .1em; color: var(--gold); background: rgba(242,193,78,.2); padding: 4px 14px; border-radius: 11px; white-space: nowrap; }
+.ttl { left: 0; right: 0; top: 46px; text-align: center; font: 400 44px var(--f-crt); letter-spacing: .12em; color: var(--gold); text-shadow: 0 0 14px rgba(242,193,78,.55); }
+.hint { left: 0; right: 0; top: 96px; text-align: center; font: 13px var(--f-game); color: var(--dim); }
+.wallet { right: 24px; top: 22px; width: 190px; height: 54px; border-radius: 27px; background: rgba(40,30,8,.92); display: flex; align-items: center; gap: 10px; padding: 0 16px; }
+.coin { width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffe9a0, var(--gold) 55%, #a8761b); flex: none; }
+.wallet b { font: 700 26px var(--f-game); color: var(--gold); }
+.wallet small { font: 10px/1.2 var(--f-game); color: rgba(255,217,153,.75); }
+
+/* jump tabs, like the lobby's */
+.tabs { left: 0; right: 0; top: 124px; display: flex; justify-content: center; gap: 6px; }
+.tab { font: 700 12px var(--f-game); letter-spacing: .12em; color: rgba(102,163,255,.48); padding: 7px 18px; border: 1px solid transparent; border-radius: 3px; cursor: pointer; background: none; }
+.tab:hover { color: #b9d4ff; }
+.tab.on { color: #fff; background: rgba(102,163,255,.3); border-color: rgba(102,163,255,.75); }
+
+/* carousel */
+.rail { left: 0; right: 0; top: 160px; height: 400px; }
+.it { position: absolute; top: 0; height: 380px; width: 230px; margin: 0; padding: 0; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; text-align: center;
+  transition: transform .32s cubic-bezier(.2,.8,.25,1), opacity .32s, width .32s, left .32s; will-change: transform; }
+.it > .face { position: absolute; inset: 0; --c: #66a3ff; border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); overflow: hidden; isolation: isolate;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--c) 22%, #0a1430) 0%, #07102a 60%, #040a1c 100%); transition: box-shadow .3s, border-color .3s; }
+.it .face::before { content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none; background: repeating-linear-gradient(to top, color-mix(in srgb, var(--c) 12%, transparent) 0 1px, transparent 1px 4px); }
+.it .face::after { content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none; background: linear-gradient(to right, rgba(255,60,200,.3) 0 2px, transparent 2px calc(100% - 2px), rgba(60,240,255,.3) calc(100% - 2px)); }
+.it.sel > .face { border-color: color-mix(in srgb, var(--c) 60%, #fff); box-shadow: 0 0 22px color-mix(in srgb, var(--c) 70%, transparent), inset 0 0 26px color-mix(in srgb, var(--c) 30%, transparent); }
+.it.svc > .face { background: linear-gradient(to bottom, #1c1a10, #0a0a0c 70%); border-style: dashed; }
+.it.dim > .face > .body { opacity: .45; }
+.body { position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; align-items: center; padding: 12px 12px 0; }
+.chip { font: 700 10px var(--f-game); letter-spacing: .1em; padding: 3px 10px; background: var(--c); color: #030814; border-radius: 9px; text-transform: uppercase; }
+.ico { width: 76px; height: 76px; margin-top: 12px; flex: none; display: grid; place-items: center; background: color-mix(in srgb, var(--c) 18%, #05081a); border: 2px solid color-mix(in srgb, var(--c) 70%, transparent); }
+.ico i { font: 400 38px/1 var(--f-crt); font-style: normal; color: var(--c); text-shadow: 0 0 10px var(--c); }
+.nm { font: 400 26px/1 var(--f-crt); letter-spacing: .06em; color: #fff; margin-top: 10px; text-shadow: 0 0 8px color-mix(in srgb, var(--c) 70%, transparent); }
+.ds { font: 12px/1.35 var(--f-game); color: #c2ccea; margin-top: 6px; padding: 6px 4px 0; border-top: 1px solid color-mix(in srgb, var(--c) 40%, transparent); width: 100%; }
+.price { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 5; display: flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 13px; background: rgba(242,193,78,.16); font: 700 13px var(--f-game); color: var(--gold); white-space: nowrap; }
+.price .coin { width: 14px; height: 14px; }
+.price.no { background: rgba(255,90,80,.14); color: #ff8c84; }
+.it.sel .price { background: rgba(242,193,78,.34); padding: 5px 16px; }
+.stamp { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%) rotate(-6deg); z-index: 6; font: 700 18px var(--f-game); color: var(--good); background: rgba(8,40,16,.92); padding: 6px 16px; border-radius: 12px; }
+
+/* the green readout: THIS PICK, old >> new, stack segments (holo-level-up-cards.html "A readout") */
+.ro { position: absolute; left: 8px; right: 8px; bottom: 44px; z-index: 5; padding: 6px 9px 7px; background: rgba(2,10,8,.88); border: 1px solid rgba(77,255,154,.55);
+  box-shadow: inset 0 0 12px rgba(77,255,154,.12), 0 0 14px rgba(77,255,154,.18); display: none; text-align: left; }
+.it.sel .ro { display: block; animation: roin .25s ease-out both; }
+@keyframes roin { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.ro::before { content: ""; position: absolute; left: -1px; top: -1px; width: 7px; height: 7px; border-top: 2px solid var(--good); border-left: 2px solid var(--good); }
+.ro::after { content: ""; position: absolute; right: -1px; bottom: -1px; width: 7px; height: 7px; border-bottom: 2px solid var(--good); border-right: 2px solid var(--good); }
+.ro .rt { font: 500 9px var(--f-mono); letter-spacing: .14em; color: var(--good); opacity: .8; display: flex; align-items: center; gap: 5px; }
+.ro .rt i { width: 5px; height: 5px; background: var(--good); animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.ro .rr { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; font: 400 19px/1.15 var(--f-crt); letter-spacing: .04em; color: var(--good); margin-top: 3px; text-shadow: 0 0 6px rgba(77,255,154,.5); }
+.ro .rr em { font-style: normal; opacity: .6; }
+.ro .rr b { font-weight: 400; white-space: nowrap; }
+.ro .sg { display: flex; gap: 2px; margin-top: 5px; }
+.ro .sg s { flex: 1; height: 5px; background: rgba(77,255,154,.18); }
+.ro .sg s.on { background: var(--good); box-shadow: 0 0 4px var(--good); }
+.ro .sg s.nx { background: var(--good); animation: blink 1s steps(1) infinite; }
+
+/* arrows and pips */
+.nav { position: absolute; top: 160px; height: 380px; width: 40px; display: grid; place-items: center; background: none; border: 0; cursor: pointer; z-index: 20; color: var(--ink); opacity: .75; }
+.nav:hover { opacity: 1; background: rgba(102,163,255,.12); }
+.nav svg { width: 18px; height: 26px; }
+.pips { left: 0; right: 0; top: 556px; display: flex; justify-content: center; align-items: center; gap: 6px; }
+.pip { width: 18px; height: 4px; background: rgba(102,163,255,.28); cursor: pointer; }
+.pip.on { background: #fff; box-shadow: 0 0 6px var(--ink); }
+.pip.sv { background: rgba(242,193,78,.3); } .pip.sv.on { background: var(--gold); box-shadow: 0 0 6px var(--gold); }
+.pip.gap { margin-left: 12px; }
+
+/* bottom bar */
+.foot { left: 0; right: 0; top: 590px; height: 120px; padding: 0 36px; }
+.status { font: 700 13px var(--f-game); color: var(--dim); }
+.done { position: absolute; left: 36px; top: 34px; width: 320px; height: 48px; display: flex; align-items: center; justify-content: center; font: 700 15px var(--f-game); color: #fff; background: rgba(40,110,230,.5); border: 1px solid rgba(120,170,255,.9); cursor: pointer; letter-spacing: .02em; }
+.team { position: absolute; left: 376px; top: 40px; display: flex; gap: 8px; }
+.mate { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 8px 0 12px; background: rgba(20,30,60,.75); border: 1px solid rgba(102,163,255,.4); font: 700 12px var(--f-game); color: #fff; }
+.mate small { font-weight: 400; color: var(--dim); font-size: 11px; } .mate small.ok { color: var(--good); }
+.mate .g { color: var(--gold); display: flex; align-items: center; gap: 4px; } .mate .g .coin { width: 12px; height: 12px; }
+.mate .give { font: 700 11px var(--f-game); color: #2a1a00; background: var(--gold); padding: 4px 8px; }
+.left { position: absolute; right: 36px; top: 0; font: 13px var(--f-game); color: var(--dim); }
+
+@media (prefers-reduced-motion: reduce) { .it, .ro, .ro .rt i, .ro .sg s.nx { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Shop Carousel</h1>
+    <p class="sub">No stats sidebar. Everything you can buy sits in one sideways carousel, shelf first, then services. The picked item shows its green stat change on the card. Click, arrows, mouse wheel or arrow keys to move.</p>
+  </header>
+  <div class="bar" role="group" aria-label="Layout">
+    <button class="seg" data-v="A" aria-pressed="true">A · Wheel</button>
+    <button class="seg" data-v="B" aria-pressed="false">B · Strip</button>
+    <button class="seg" data-v="C" aria-pressed="false">C · Unfold</button>
+    <button class="seg" id="restock" aria-pressed="false">Add stock: reroll shelf</button>
+  </div>
+  <p class="note" id="vnote"></p>
+  <div class="view" id="view">
+    <div class="stage" id="stage">
+      <div class="arena"></div><div class="dark"></div>
+      <div class="abs tag">SHOP ROOM  ·  UPGRADES AND STOCK</div>
+      <div class="abs ttl">THE SHOP</div>
+      <div class="abs hint">Your gold and shelf stay with you between waves.</div>
+      <div class="abs wallet"><span class="coin"></span><b id="gold">340</b><small>your gold<br>leftover → XP</small></div>
+      <div class="abs tabs" id="tabs"></div>
+      <button class="nav" style="left:20px" id="prev" aria-label="Previous"><svg viewBox="0 0 18 26"><path d="M15 2 4 13l11 11" fill="none" stroke="currentColor" stroke-width="3"/></svg></button>
+      <button class="nav" style="right:20px" id="next" aria-label="Next"><svg viewBox="0 0 18 26"><path d="M3 2l11 11L3 24" fill="none" stroke="currentColor" stroke-width="3"/></svg></button>
+      <div class="abs rail" id="rail"></div>
+      <div class="abs pips" id="pips"></div>
+      <div class="abs foot">
+        <div class="status">1 of 3 done shopping  ·  waiting for you, Nova</div>
+        <div class="done">Done shopping  ·  340 gold → +85 XP</div>
+        <div class="team">
+          <div class="mate">Rook <small class="ok">Done</small><span class="g"><span class="coin"></span>112</span><span class="give">Give</span></div>
+          <div class="mate">Nova <small>Shopping</small><span class="g"><span class="coin"></span>64</span><span class="give">Give</span></div>
+        </div>
+        <div class="left">Leftover gold becomes XP when everyone is done</div>
+      </div>
+    </div>
+  </div>
+  <p class="note"><b>Removed:</b> the YOUR STATS sidebar. <b>Renamed:</b> Restock → Add stock (adds six more shelf cards instead of replacing them, so the list grows; the button above shows that).</p>
+</div>
+
+<script>
+(function () {
+  var RC = { Common: "#9fb4d8", Uncommon: "#5fd38a", Rare: "#5b9bff", Epic: "#c07bff", Legendary: "#ffb23e", "Weapon mod": "#ff7a5c" };
+  var base = [
+    { n: "Sharpened Rounds", r: "Common", g: "Sh", d: "Your shots hit harder.", p: 45, rows: [["Damage", "12", "14"], ["DPS", "36", "42"]], st: 2 },
+    { n: "Quick Hands", r: "Uncommon", g: "Qh", d: "Fire a little faster.", p: 70, rows: [["Fire rate", "3.0/s", "3.4/s"], ["DPS", "36", "41"]], st: 1 },
+    { n: "Iron Heart", r: "Rare", g: "Ih", d: "More max health, and heal the difference.", p: 110, rows: [["Max HP", "120", "150"]], st: 0 },
+    { n: "Ricochet", r: "Epic", g: "Ri", d: "Shots bounce once off walls.", p: 180, rows: [["Bounces", "0", "1"], ["Mastery", "0/3", "1/3"]], st: 0, bought: true },
+    { n: "Last Stand", r: "Legendary", g: "Ls", d: "Under 25% HP, take half damage and deal double.", p: 260, rows: [["Low-HP guard", "none", "−50% dmg"], ["Low-HP damage", "×1", "×2"]], st: 0 },
+    { n: "Long Barrel", r: "Weapon mod", g: "Lb", d: "Rifle: bullets travel further and pierce one enemy.", p: 150, rows: [["Range", "620", "760"], ["Pierce", "0", "1"]], st: 0 }
+  ];
+  var svc = [
+    { n: "Add Stock", r: "Service", g: "+6", d: "Six more items join the shelf. Each add costs more.", p: 25, rows: [["Shelf", "6 cards", "12 cards"], ["Next add", "25", "50"]], st: 0, s: 1 },
+    { n: "Remove Upgrade", r: "Service", g: "−1", d: "Drop one you regret, then pick which.", p: 75, rows: [["Upgrades", "9", "8"]], st: 0, s: 1 },
+    { n: "Full Heal", r: "Service", g: "HP", d: "Back to full health.", p: 40, rows: [["HP", "62", "120"]], st: 0, s: 1 },
+    { n: "Revive Token", r: "Service", g: "Rv", d: "Get back up once if you go down.", p: 120, rows: [["Revives", "0", "1"]], st: 0, s: 1 },
+    { n: "Floor Kit", r: "Service", g: "Fk", d: "Turn a room into a hazard floor.", p: 200, rows: [["Kit slots", "1/3", "2/3"]], st: 0, s: 1 }
+  ];
+  var gold = 340, items = base.concat(svc), sel = 1, variant = "A", stock = 0;
+  var rail = document.getElementById("rail"), els = [];
+
+  var notes = {
+    A: "<b>A · Wheel</b> — same motion as the lobby tabs: the picked card is big in the middle, the rest sit either side, smaller and fading toward the arrows. The readout sits on the card.",
+    B: "<b>B · Strip</b> — all cards the same size in one scrolling row, like a shelf. The picked card lifts and lights up; the strip slides so it stays centred. Shows the most items at once.",
+    C: "<b>C · Unfold</b> — the picked card widens into a wide card: art and text on the left, the green readout in full on the right. The others stay slim tiles, so the numbers have room."
+  };
+
+  function el(i) {
+    var it = items[i], c = it.s ? "#f2c14e" : RC[it.r];
+    var b = document.createElement("button");
+    b.className = "it" + (it.s ? " svc" : "") + (it.bought ? " dim" : "");
+    b.setAttribute("aria-label", it.n);
+    b.style.setProperty("--c", c);
+    var afford = gold >= it.p;
+    var seg = ""; for (var k = 0; k < 8; k++) seg += "<s class='" + (k < it.st ? "on" : k === it.st ? "nx" : "") + "'></s>";
+    var rows = it.rows.map(function (r) { return "<div class='rr'><em>" + r[0] + "</em><b>" + r[1] + " ▸▸ " + r[2] + "</b></div>"; }).join("");
+    b.innerHTML = "<div class='face' style='--c:" + c + "'><div class='body'><span class='chip'>" + it.r + "</span><div class='ico'><i>" + it.g + "</i></div><div class='nm'>" + it.n + "</div><div class='ds'>" + it.d + "</div></div>" +
+      (it.bought ? "<div class='stamp'>BOUGHT</div>" : "") +
+      "<div class='ro'><div class='rt'><i></i>THIS PICK</div>" + rows + (it.s ? "" : "<div class='sg'>" + seg + "</div>") + "</div>" +
+      "<div class='price" + (afford ? "" : " no") + "'><span class='coin'></span><span class='pt'>" + it.p + "</span></div></div>";
+    b.addEventListener("click", function () { if (sel === i) { buy(i); } else { go(i); } });
+    return b;
+  }
+  function build() {
+    rail.innerHTML = ""; els = items.map(function (_, i) { var e = el(i); rail.appendChild(e); return e; });
+    var tabs = document.getElementById("tabs");
+    tabs.innerHTML = "<button class='tab' data-t='0'>SHELF  (" + (6 + stock * 6) + ")</button><button class='tab' data-t='" + (6 + stock * 6) + "'>SERVICES  (5)</button>";
+    tabs.querySelectorAll(".tab").forEach(function (t) { t.onclick = function () { go(+t.dataset.t); }; });
+    var pips = document.getElementById("pips"); pips.innerHTML = "";
+    items.forEach(function (it, i) {
+      var p = document.createElement("span"); p.className = "pip" + (it.s ? " sv" : "") + (i === 6 + stock * 6 ? " gap" : ""); p.onclick = function () { go(i); }; pips.appendChild(p);
+    });
+    layout();
+  }
+  var W = 1280;
+  function layout() {
+    var cfg = {
+      A: function (d, ad) { var s = 1 - .2 * Math.min(ad, 1) - .05 * Math.max(0, Math.min(ad, 2) - 1); var x = 640 + Math.sign(d) * (ad <= 1 ? 232 * ad : 232 + 150 * (ad - 1)); return { x: x, w: 250, s: s, o: Math.max(0, Math.min(1, (3.2 - ad) / 1.4)) * (1 - .25 * Math.min(ad, 1)) }; },
+      B: function (d, ad) { return { x: 640 + d * 196, w: 184, s: ad === 0 ? 1.04 : 1, o: Math.max(0, Math.min(1, (3.9 - ad))) * (ad === 0 ? 1 : .82) }; },
+      C: null
+    };
+    var pos = items.map(function (_, i) { return i - sel; });
+    els.forEach(function (e, i) {
+      var d = pos[i], ad = Math.abs(d), x, w, s = 1, o = 1;
+      if (variant === "C") {
+        var big = 480, small = 150, gap = 14;
+        w = i === sel ? big : small;
+        // centre of item i: sum of widths between
+        var cx = 640;
+        if (d > 0) cx += big / 2 + gap + (d - 1) * (small + gap) + small / 2;
+        else if (d < 0) cx -= big / 2 + gap + (-d - 1) * (small + gap) + small / 2;
+        x = cx; o = Math.max(0, Math.min(1, 3.4 - ad)) * (ad === 0 ? 1 : .8);
+      } else { var r = cfg[variant](d, ad); x = r.x; w = r.w; s = r.s; o = r.o; }
+      e.style.width = w + "px"; e.style.left = Math.round(x - w / 2) + "px"; e.style.opacity = o; e.style.pointerEvents = o < .05 ? "none" : "auto";
+      e.style.transform = "scale(" + s + ")"; e.style.zIndex = 100 - Math.round(ad * 10);
+      e.style.top = (variant === "B" && ad === 0 ? -8 : 0) + "px";
+      e.classList.toggle("sel", i === sel);
+      e.classList.toggle("wide", variant === "C" && i === sel);
+    });
+    document.querySelectorAll(".pip").forEach(function (p, i) { p.classList.toggle("on", i === sel); });
+    var shelfN = 6 + stock * 6;
+    document.querySelectorAll(".tab").forEach(function (t, k) { t.classList.toggle("on", k === (sel < shelfN ? 0 : 1)); });
+    document.getElementById("vnote").innerHTML = notes[variant];
+    wide();
+  }
+  // variant C: the picked card spreads into two columns (art + text left, readout right)
+  function wide() {
+    els.forEach(function (e, i) {
+      var f = e.querySelector(".face"), ro = e.querySelector(".ro"), body = e.querySelector(".body");
+      var w = variant === "C" && i === sel;
+      body.style.cssText = w ? "right:50%;padding-right:6px" : "";
+      ro.style.cssText = w ? "left:calc(50% + 4px);right:12px;top:52px;bottom:auto" : "";
+      f.classList.toggle("w", w);
+    });
+  }
+  function go(i) { sel = (i + items.length) % items.length; layout(); }
+  function buy(i) {
+    var it = items[i]; if (it.bought || gold < it.p) return;
+    if (it.n === "Add Stock") { addStock(); return; }
+    gold -= it.p; document.getElementById("gold").textContent = gold; if (!it.s) it.bought = true; build();
+  }
+  function addStock() {
+    stock++;
+    var extra = [
+      { n: "Thick Skin", r: "Common", g: "Ts", d: "Take 8% less damage.", p: 50, rows: [["Armor", "0%", "8%"]], st: 0 },
+      { n: "Magnet", r: "Uncommon", g: "Mg", d: "Pick up gold from further away.", p: 60, rows: [["Pickup", "90", "130"]], st: 1 },
+      { n: "Overcharge", r: "Rare", g: "Oc", d: "Every 5th shot deals triple damage.", p: 120, rows: [["Crit shot", "none", "every 5th"]], st: 0 },
+      { n: "Second Wind", r: "Epic", g: "Sw", d: "Heal 20% HP when a wave starts.", p: 190, rows: [["Heal", "0", "+24 HP"]], st: 0 },
+      { n: "Ghost Rounds", r: "Legendary", g: "Gr", d: "Shots pass through walls.", p: 280, rows: [["Wall pass", "no", "yes"]], st: 0 },
+      { n: "Choke Mod", r: "Weapon mod", g: "Cm", d: "Rifle: tighter spread.", p: 140, rows: [["Spread", "6°", "3°"]], st: 0 }
+    ];
+    var at = 6 + (stock - 1) * 6; items.splice.apply(items, [at, 0].concat(extra));
+    var s = items.filter(function (x) { return x.n === "Add Stock"; })[0]; s.rows = [["Shelf", (6 + (stock - 1) * 6) + " cards", (6 + stock * 6) + " cards"], ["Next add", String(s.p), String(s.p + 25)]];
+    gold -= s.p; s.p += 25; document.getElementById("gold").textContent = gold;
+    s.rows = [["Shelf", (6 + stock * 6) + " cards", (12 + stock * 6) + " cards"], ["Next add", String(s.p), String(s.p + 25)]];
+    sel = at; build();
+  }
+  document.getElementById("restock").onclick = function () { gold = Math.max(gold, 340); if (!stock) { addStock(); } };
+  document.getElementById("prev").onclick = function () { go(sel - 1); };
+  document.getElementById("next").onclick = function () { go(sel + 1); };
+  document.addEventListener("keydown", function (e) { if (e.key === "ArrowLeft") go(sel - 1); if (e.key === "ArrowRight") go(sel + 1); });
+  document.getElementById("view").addEventListener("wheel", function (e) { e.preventDefault(); go(sel + (e.deltaY + e.deltaX > 0 ? 1 : -1)); }, { passive: false });
+  document.querySelectorAll("[data-v]").forEach(function (b) {
+    b.onclick = function () { variant = b.dataset.v; document.querySelectorAll("[data-v]").forEach(function (x) { x.setAttribute("aria-pressed", x === b); }); layout(); };
+  });
+  function fit() { var v = document.getElementById("view"); document.getElementById("stage").style.transform = "scale(" + (v.clientWidth / 1280) + ")"; }
+  window.addEventListener("resize", fit); fit(); build();
+})();
+</script>

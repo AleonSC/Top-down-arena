@@ -421,7 +421,22 @@ static partial class Program
         before = friend.Gold;
         client.Game.Shop(ShopAction.Restock);
         Run(s, dt, 0.3f, null, NoPicks);
-        Check(friend.Restocks == 1 && friend.Gold == before - 25 && friend.ShelfSold == 0 && Game.RestockPrice(friend) == 50, "restocking rolls a new shelf; the next restock costs more");
+        Check(friend.Restocks == 1 && friend.Gold == before - 25 && Game.Sold(friend, slot) && Game.RestockPrice(friend) == 50 && Game.ShelfCount(friend) == 12, "Add stock adds six cards and keeps what you bought; the next one costs more");
+        int fresh = 0, dupes = 0;
+        for (int i = Game.ShelfSize; i < 12; i++)
+        {
+            if (friend.Shelf[i] >= 0) fresh++;
+            if (friend.Shelf[i] >= 0 && Array.IndexOf(friend.Shelf, friend.Shelf[i]) != i) dupes++;
+        }
+        Check(fresh >= 3 && dupes == 0 && cme.Restocks == 1 && cme.Shelf[Game.ShelfSize] == friend.Shelf[Game.ShelfSize] && cme.ShelfSold == friend.ShelfSold, "the new cards are real, not repeats, and the client sees the longer shelf (" + fresh + " new)");
+        friend.Gold = 1000;
+        for (int k = 0; k < 4; k++)
+        {
+            client.Game.Shop(ShopAction.Restock);
+            Run(s, dt, 0.3f, null, NoPicks);
+        }
+        Check(friend.Restocks == Game.StockMax && Game.ShelfCount(friend) == Game.MaxShelf, "Add stock stops at " + Game.StockMax + " (" + Game.MaxShelf + " cards)");
+        friend.Gold = before - 25;
 
         // Giving gold, and giving to someone who's done reopens their shop.
         client.Game.Shop(ShopAction.Done, 1);

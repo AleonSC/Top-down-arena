@@ -282,9 +282,15 @@ namespace Arena
         {
             if (index < 0 || me.Offer == null || index >= me.Offer.Length)
                 return null;
-            var u = Upgrades.All[me.Offer[index]];
+            return ChangeParts(me, me.Offer[index], pickKey, pickKey >= 1 && index == selectedCard);
+        }
+
+        /// The same for any upgrade (the Bazaar's shelf cards use it too).
+        List<string> ChangeParts(Player me, int upgrade, int key, bool showKey)
+        {
+            var u = Upgrades.All[upgrade];
             var now = StatSheet.Describe(me, me.Taken, 0, game.PassiveRegen);
-            var after = StatSheet.Describe(me, new List<int>(me.Taken) { me.Offer[index] }, pickKey, game.PassiveRegen);
+            var after = StatSheet.Describe(me, new List<int>(me.Taken) { upgrade }, key, game.PassiveRegen);
             var parts = new List<string>();
             string grant = u.Grants != AbilityId.None ? Upgrades.Ability(u.Grants).Name : null;
             foreach (var line in after)
@@ -302,7 +308,7 @@ namespace Arena
                 parts.Add(old != null ? line.Label + "  " + old + " → " + line.Value : line.Label + "  " + line.Value);
             }
             if (grant != null)
-                parts.Insert(0, "New ability: " + grant + (pickKey >= 1 && index == selectedCard ? " on " + SlotKeys[pickKey] : ""));
+                parts.Insert(0, "New ability: " + grant + (showKey ? " on " + SlotKeys[key] : ""));
             return parts.Count == 0 ? null : parts;
         }
 
@@ -421,14 +427,14 @@ namespace Arena
         /// readout"): THIS PICK with a blinking square, then per line the stat in the CRT font on the left and old ▸▸ new on
         /// the right, and a row of 8 segments for the stacks you hold with the next one blinking. The panel sits with its
         /// bottom on the strip's bottom and grows upward. stacks: how many you hold (-1: all segments off).
-        void DrawPickStrip(Rect strip, int size, bool label, List<string> parts = null, int stacks = -1)
+        void DrawPickStrip(Rect strip, int size, bool label, List<string> parts = null, int stacks = -1, bool segments = true)
         {
             if (parts == null)
                 parts = pickParts;
             int lines = Math.Min(2, parts.Count);
             float now = Time.unscaledTime;
             const float pad = 9f, rowH = 17f;
-            float h = 25.5f + (label ? 11f : 0f) + lines * (rowH + 3.2f);  // top 6.4, label, gap 3.2, rows, gap 5, segments 6.4, bottom 7.7
+            float h = (segments ? 25.5f : 14f) + (label ? 11f : 0f) + lines * (rowH + 3.2f);  // top 6.4, label, gap 3.2, rows, gap 5, segments 6.4, bottom 7.7
             var r = new Rect(strip.x, strip.yMax - h, strip.width, h);
             var go = PickGo;
             Ui.Fill(r, new Color(2f / 255f, 10f / 255f, 8f / 255f, 0.82f));
@@ -484,6 +490,8 @@ namespace Arena
                 }
             }
             Ui.CrtFont = was;
+            if (!segments)
+                return;
             y += 5f - 3.2f;
             const int segs = 8;
             const float gap = 2.56f, sh = 6.4f;
