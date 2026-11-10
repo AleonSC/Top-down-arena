@@ -2,9 +2,9 @@
 
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
-- 257: snapshots carry the gold coins on the ground (`Game.Coins`: count, then id, value, position each)
 
-- 257: shop shelf grows with Add stock: `Player.ShelfSold` is an Int (was a Byte) and only `Game.ShelfCount` shelf slots are sent (6 per stock, up to 4 stocks)
+- 258: shop shelf grows with Add stock: `Player.ShelfSold` is an Int (was a Byte) and only `Game.ShelfCount` shelf slots are sent (6 per stock, up to 4 stocks)
+- 257: snapshots carry the gold coins on the ground (`Game.Coins`: count, then id, value, position each)
 - 256: opened walls: the Expanding arena's openings (WallCut list after the rooms in Msg.ExpandState), Msg.ExpandCut, RoomKind.Opening proposals (ExpansionGame.cs)
 - 255: Msg.ExpandDraw carries the drawn room's theme (a PathId byte; themed rooms, ExpansionGame.cs)
 - 254: room kits (RoomToken list after the rooms in Msg.ExpandState), Msg.ExpandApply, ShopAction.RoomKit (the vendor sells one) (ExpansionGame.cs, Shop.cs)
