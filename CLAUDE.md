@@ -34,7 +34,8 @@ no Unity in the cloud container: check changes with the tools below.
 - **Keep the session title current** with `set_session_title`: a short task name plus the current phase in
   brackets, updated as the phase changes, e.g. "Implement Lancer class (thinking)" → "(planning)" → "(coding)" →
   "(testing)" → "(merging)" → "(done)".
-- There is no to-do file. Say in the final report what needs a try in Unity ("check in Unity").
+- There is no to-do file. The owner tries every change in Unity and reports bugs as they find them: never ask or
+  remind them to check or test anything in Unity, and leave "check in Unity" lines out of reports.
 
 ## How the owner works
 
