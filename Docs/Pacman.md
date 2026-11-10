@@ -3,7 +3,7 @@
 Owner (Nov 2026): "do one for 'pacman' variants that loads in a pacman-type game that uses the chomper as the player and the
 roles, dps tank healer and wildcard as the ghosts. bullet are the dots to eat." Then: "oh no i wanted it to play like pacman".
 
-**Status (Nov 2026, protocol 243):** steps 1 (the disk and the arena skin) and 2 (the maze simulation, `Core/Pacman.cs`, suite `pacman`) built. Next: step 3, the front end.
+**Status (Nov 2026, protocol 243):** steps 1 (the disk and the arena skin), 2 (the maze simulation, `Core/Pacman.cs`, suite `pacman`) and 3 (the one-player screen, `Game/PacmanUi.cs`) built. Next: step 4, multiplayer.
 
 ## Decisions (from the owner)
 
@@ -33,7 +33,7 @@ roles, dps tank healer and wildcard as the ghosts. bullet are the dots to eat." 
 - Lives, level clear, speed ups, extra life at 10,000.
 - Tests in a new `pacman` suite: dots counted, a turn queues, tunnels wrap, each ghost's target, frightened and eaten, level clear.
 
-## Step 3: the front end, one player
+## Step 3 (built): the front end, one player
 
 - `Game/PacmanGame.cs`: draws the maze (blue walls), dots, chomper, ghosts (`DrawPacGhost` / `DrawPacChomper`), the score, lives and "READY!".
 - Play from a Pac profile opens it; Esc pauses. WASD / arrows to steer.
@@ -62,3 +62,12 @@ Waka-waka and the start jingle (`SoundBank.cs`), death animation, fruit, the int
 - Shared lives: one pool for everyone; a chomper that dies loses one and comes back at its start, safe for 2 s. Out of lives: it stays out; the game ends when every chomper is out.
 - Ghost release: pink at once, cyan after 30 dots, orange after 60; if nobody eats for 4 s, the next one comes out anyway.
 - Not built yet: the bonus fruit, the "no turning up" junctions, the dot-eating pause, Cruise Elroy (red speeding up), the 244-dot count.
+
+## What step 3 built
+
+- `Game/PacmanUi.cs`: Play on the main menu opens it for a Pac profile (`Menus.cs`). Black screen, blue maze outline, dots, blinking power pellets,
+  the chomper (mouth chews while it moves, opens until it vanishes when it dies), the four role ghosts (blue and flashing when scared,
+  eyes only when eaten), 1UP / HIGH SCORE / LEVEL, lives in reserve, READY! and GAME OVER.
+- Keys: WASD, your move binds, or the arrows; Esc pauses (Esc resumes, Q leaves); Enter plays again after GAME OVER; Esc leaves.
+- The high score lasts until the game is closed (it is saved with the profile in step 5). No sounds yet (step 5).
+- Preview: `Tools/Preview/shot.sh x pacman` (`PACKEYS=l1.7,u0.6 PACFRIGHT=5 PACDIE=0.7 PACOVER=1 PACPAUSE=1`).
