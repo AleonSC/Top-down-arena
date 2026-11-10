@@ -347,6 +347,16 @@ static partial class Program
             ProfileStore.Init(data, "ignored");
             Check(ProfileStore.ActiveId == sam && Profile.Current.Name == "samantha" && Profile.Current.RunsWon == 1, "a restart opens the profile used last, with its name");
 
+            // Easter-egg disk looks: earned by a name, kept when the profile is renamed, kept across a restart.
+            Check(ProfileStore.DiskLookFor("San Andreas") == "sa" && ProfileStore.DiskLookFor("GTA:SA") == "sa" && ProfileStore.DiskLookFor("SA") == "sa" && ProfileStore.DiskLookFor("doom 2") == "doom"
+                && ProfileStore.DiskLookFor("Mission Impossible") == "mi" && ProfileStore.DiskLookFor("Sam") == "", "disk looks: the names that earn one");
+            ProfileStore.Root = Path.Combine(data, "profiles");
+            Check(ProfileStore.Rename(sam, "Doomguy") && ProfileStore.List().Find(i => i.Id == sam).Disk == "doom", "disk looks: renaming to a Doom name gives the Doom disk");
+            Check(ProfileStore.Rename(sam, "Plain Sam") && ProfileStore.List().Find(i => i.Id == sam).Disk == "doom", "disk looks: renaming to a plain name keeps it");
+            ProfileStore.Init(data, "ignored");
+            Check(ProfileStore.List().Find(i => i.Id == sam).Disk == "doom", "disk looks: kept after a restart");
+            Check(ProfileStore.Rename(sam, "SA") && ProfileStore.List().Find(i => i.Id == sam).Disk == "sa", "disk looks: another earning name swaps it");
+
             // Hostile names make safe folder ids.
             ProfileStore.Root = Path.Combine(data, "profiles");
             bool safe = true;
