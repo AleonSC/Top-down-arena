@@ -174,6 +174,7 @@ namespace Arena
                 OpenShop();  // Gold Rush: a shop before every boss
             foreach (var p in Players.Values)
             {
+                p.Wound = 0f;  // wounds heal between waves (Combat.cs)
                 if (p.Downed)
                     RevivePlayer(p, 0.4f);
                 else

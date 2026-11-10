@@ -101,6 +101,8 @@ namespace Arena
             if (!preview)  // menu previews (LobbyUi.cs) leave out the health bar
             {
                 GhostBar(p.Disp + new V2(-20f, -r - 12f), 40f, 4f, p.Hp / p.MaxHp, new Rgba(0.3f, 1f, 0.4f), PlayerKey(p.Id, false));  // HealthBars.cs
+                if (p.Wound > 0.5f && p.MaxHp > 0f)  // the wound: the bar's end that heals can't reach this wave
+                    FillRect(p.Disp.X + 20f - 40f * Mathf.Clamp01(p.Wound / p.MaxHp), p.Disp.Y - r - 12f, 40f * Mathf.Clamp01(p.Wound / p.MaxHp), 4f, WoundWorld);
                 DrawDebtBar(p, r, t);  // Blood Debt's ghost segment (BloodDebtLook.cs)
                 DrawJuggBar(p, r);     // the Juggernaut Suit's armour, over the health bar (JuggernautLook.cs)
             }

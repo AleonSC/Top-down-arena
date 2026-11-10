@@ -128,6 +128,9 @@ namespace Arena
         public bool Firing;
         public bool FiringSeen;  // holding fire, as everyone's screen knows it (for drawing beams; synced in snapshots)
         public float Hp, MaxHp;
+        public float Wound;     // health a hit took that can't be healed back until the wave is cleared (WoundShare of each hit; synced)
+        /// The most healing can bring you to: max health less the wound.
+        public float HealCap => Math.Max(1f, MaxHp - Wound);
         public bool Downed;
         public float Revive, FireCd, BarrierT, InvulnT, OverdriveT, AdrenalineT, SwiftT, Flash, LevelFlash;  // AdrenalineT: the Healer's Adrenaline Shot (Adrenaline.cs)
         public float TauntT;  // Roar: enemies target this player

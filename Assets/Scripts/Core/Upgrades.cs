@@ -671,10 +671,57 @@ namespace Arena
         public static Stats Compute(List<int> taken)
         {
             var s = new Stats();
+            var copies = new Dictionary<int, int>();
             foreach (int id in taken)
-                if (All[id].Apply != null)
+            {
+                if (All[id].Apply == null)
+                    continue;
+                int n;
+                copies.TryGetValue(id, out n);
+                copies[id] = ++n;
+                float f = CopyStrength(All[id], n);
+                if (f >= 0.999f)
+                {
                     All[id].Apply(s);
+                    continue;
+                }
+                // Diminishing returns: this copy moves every number it touches only f of the way.
+                var before = new float[statFloats.Length];
+                for (int i = 0; i < statFloats.Length; i++)
+                    before[i] = (float)statFloats[i].GetValue(s);
+                All[id].Apply(s);
+                for (int i = 0; i < statFloats.Length; i++)
+                {
+                    float after = (float)statFloats[i].GetValue(s);
+                    if (after != before[i])
+                        statFloats[i].SetValue(s, before[i] + (after - before[i]) * f);
+                }
+            }
             return s;
+        }
+
+        static readonly System.Reflection.FieldInfo[] statFloats = Array.FindAll(typeof(Stats).GetFields(), fi => fi.FieldType == typeof(float));
+
+        /// Diminishing returns (Docs/PowerStacking.md, owner Nov 2026): the cards you can take any number of times (the
+        /// plain stat cards: no MaxStacks) give each extra copy a bit less: copy n is worth 1 / (1 + DiminishStep x (n - 1))
+        /// of the first (100%, 80%, 67%, 57%, 50%, ...). Fourteen Hair Triggers come to +128% fire rate, not +280%.
+        /// Cards with a stack limit are already held in check and keep full strength.
+        public const float DiminishStep = 0.25f;
+
+        public static bool Diminishes(UpgradeDef u) => u.MaxStacks >= 99 && u.Apply != null;
+
+        public static float CopyStrength(UpgradeDef u, int copy) => Diminishes(u) && copy > 1 ? 1f / (1f + DiminishStep * (copy - 1)) : 1f;
+
+        /// "Copy 3: 67% strength" for an offer of a card you already have (empty for a first copy or a capped card).
+        public static string CopyNote(UpgradeDef u, List<int> taken)
+        {
+            int idx = Array.IndexOf(All, u), have = 0;
+            foreach (int t in taken)
+                if (t == idx)
+                    have++;
+            if (have == 0 || !Diminishes(u))
+                return "";
+            return "Copy " + (have + 1) + ": " + Math.Round(CopyStrength(u, have + 1) * 100f) + "% strength";
         }
     }
 }

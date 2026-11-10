@@ -34,7 +34,8 @@ static partial class Program
         g.ScaleBosses = false;
         float off = bossScale();
         Console.WriteLine("  boss health at wave 20: no upgrades x{0:0.00}; the Hemomancer run's build x{1:0.00} (formula x{2:0.00}); scaling off x{3:0.00}", plain, strong, expect, off);
-        Check(Math.Abs(plain - 1f) < 0.001f && strong > 2f && Math.Abs(strong - expect) < 0.01f && strong <= Game.BossPowerCap + 0.001f && Math.Abs(off - 1f) < 0.001f,
+        // (The run's build measured x2.6 before repeat cards diminished, Upgrades.CopyStrength; x1.98 since.)
+        Check(Math.Abs(plain - 1f) < 0.001f && strong > 1.6f && Math.Abs(strong - expect) < 0.01f && strong <= Game.BossPowerCap + 0.001f && Math.Abs(off - 1f) < 0.001f,
             "a boss gets more health (up to x3) for a party far above a typical build, and the usual health otherwise");
         host.Leave("");
     }
