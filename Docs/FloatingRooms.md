@@ -1,6 +1,6 @@
 # Floating rooms and themed rooms: paths, shops, vendors and the Gatekeeper in the Expanding arena
 
-Status: **steps 1-4 built** (floating rooms exist, are sealed, connect and show; shop, vendor and Gatekeeper rooms work; rooms can be drawn with a path's theme); step 5 not started. Decided with the owner on Nov 10, 2026 (one idea from a friend: shops and vendors in "floating rooms"
+Status: **all five steps built** (floating shop, vendor and Gatekeeper rooms, themed rooms, balance pass). Decided with the owner on Nov 10, 2026 (one idea from a friend: shops and vendors in "floating rooms"
 you have to build to). It builds on [`ExpandingArena.md`](ExpandingArena.md) and [`VectorBuilding.md`](VectorBuilding.md) (all built).
 
 ## Decisions (owner)
@@ -19,7 +19,7 @@ you have to build to). It builds on [`ExpandingArena.md`](ExpandingArena.md) and
   that touches a floating room opens it; the draw tool just has to accept a box whose only neighbour is the map *and* a floating room
   (the floating room is not a valid parent: a drawn room must still touch a connected room).
 - **Placement** (`Expansion.FloatingFor(seed, cycle, built)`): deterministic from the run seed and the boss cycle, so every machine agrees and nothing
-  needs syncing beyond the room list. 3 to 6 tiles from the nearest built room, never overlapping or touching anything, inside the size cap, the
+  needs syncing beyond the room list. 4 to 8 tiles from the nearest built room, never overlapping or touching anything, inside the size cap, the
   shop and vendor on different sides when possible. Seen as a pulsing ghost with an icon on the minimap, the draw screen and in the arena.
 - **Shop**: the existing shop (`Shop.cs`: shelf, services, Done) opens while you stand in the room, as the dormant shop-room code does (`InShopRoom`).
   **Vendor**: a second service room (what it sells is open: see below). Both are safe rooms (no enemy spawns, `SpawnWeight` 0).
@@ -46,7 +46,7 @@ you have to build to). It builds on [`ExpandingArena.md`](ExpandingArena.md) and
 ## Step 1 (built, protocol 252)
 
 - `ExpansionRoom.Floating` (in `Msg.ExpandState`'s room list); `RoomKind.Vendor` and `Gatekeeper` at the end of the enum; `RoomArea.Floating` / `Sealed`
-  (sealed = floating with no door). `Expansion.FloatingFor(seed, cycle, built, kind)` places one 3-6 tiles off a connected room, 2 tiles clear
+  (sealed = floating with no door). `Expansion.FloatingFor(seed, cycle, built, kind)` places one 4-8 tiles off a connected room, 2 tiles clear
   of everything and inside the size cap (shop/vendor 6 x 4 tiles, Gatekeeper 8 x 6); `PlaceFloatingRooms` runs as a regular wave starts, once per
   boss cycle (`(Wave - 1) / 5`): a shop, a vendor and the Gatekeeper (all three each cycle since Nov 10), at most `MaxSealed` 6 waiting.
 - `Expansion.ConnectedAreas` / `SealedCount` / `BoughtCount`: `Placement` only takes a connected room as the parent (a box touching only a floating room is
@@ -84,6 +84,16 @@ you have to build to). It builds on [`ExpandingArena.md`](ExpandingArena.md) and
   Locked themes show "BOSS n TO UNLOCK".
 - `Msg.ExpandDraw` carries the theme (protocol 255); the host refuses a locked theme and checks the price with it. Bots propose their offer's floor when unlocked.
 - **Not built:** per-room Fogbound (a fog inside one room) and Narrow Pass are left out; the map-wide path vote stays off in this arena.
+
+## Step 5 (built, no protocol change)
+
+- **Distance vs income**: floating rooms now float 4 to 8 tiles off the map (was 3 to 6). `Expansion.ConnectorFor` finds the cheapest box that opens one: over 120
+  sample rooms it costs 6 to 18 vectors, median 12 (a plain room costs 10 to 20; a player starts with 25 and gains 4 a wave), so reaching a shop is about one room's worth.
+  A floating room nobody could build to (no connector fits) is not placed.
+- **Bots** now build to floating rooms: 60% of the time they propose the cheapest connector to the nearest sealed shop, then vendor, then Gatekeeper, if they can afford it.
+- The draw screen's map and BACK button no longer overlap the bottom HUD.
+- Also fixed: the `Themes` and `Walls` tests were not registered in the `expand` suite on main (a merge dropped them); they run again.
+- Left open: the opened-wall refund is 1 vector per tile (an owner choice); if it proves farmable, halve it. Per-room Fogbound is still not built.
 
 ## Open questions (defaults in bold)
 

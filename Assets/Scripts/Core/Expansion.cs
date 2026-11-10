@@ -264,7 +264,7 @@ namespace Arena
 
         public const int MaxSealed = 6;  // floating rooms waiting to be connected at once
 
-        /// A floating room for this boss cycle (Docs/FloatingRooms.md): a shop, vendor or Gatekeeper room placed 3 to 6 tiles off a room on the
+        /// A floating room for this boss cycle (Docs/FloatingRooms.md): a shop, vendor or Gatekeeper room placed 4 to 8 tiles off a room on the
         /// connected map, touching nothing and at least 2 tiles from every room, inside the size cap. The same on every machine for the same
         /// seed, cycle and map. Null if nothing fits.
         public static ExpansionRoom? FloatingFor(int seed, int cycle, IList<ExpansionRoom> built, RoomKind kind)
@@ -279,7 +279,7 @@ namespace Arena
                     continue;
                 int bx0, by0, bx1, by1;
                 BoxOf(built, a, out bx0, out by0, out bx1, out by1);
-                int side = rng.Int(4), gap = 300 + rng.Int(4) * 100, x, y;
+                int side = rng.Int(4), gap = 400 + rng.Int(5) * 100, x, y;
                 if (side == 0 || side == 2)
                 {
                     int lo = bx0 - w / 2, hi = bx1 - w / 2;
@@ -306,9 +306,39 @@ namespace Arena
                 }
                 if (!ok || maxX - minX > MaxWidth || maxY - minY > MaxHeight)
                     continue;
-                return new ExpansionRoom { Parent = 0, X = x, Y = y, W = w, H = h, Kind = kind, Floating = true };
+                var found = new ExpansionRoom { Parent = 0, X = x, Y = y, W = w, H = h, Kind = kind, Floating = true };
+                var with = new List<ExpansionRoom>(built) { found };
+                if (!ConnectorFor(with, with.Count - 1).HasValue)
+                    continue;  // (a floating room nobody could ever build to isn't worth placing)
+                return found;
             }
             return null;
+        }
+
+        /// The cheapest box that would connect a sealed floating room (its index in `built`) to the map: touching it and a connected room.
+        /// Null if none fits. Bots use it to build to shops; the balance report reads its price.
+        public static ExpansionRoom? ConnectorFor(IList<ExpansionRoom> built, int floatIndex)
+        {
+            var f = built[floatIndex];
+            ExpansionRoom? best = null;
+            string why;
+            for (int side = 0; side < 4; side++)
+                for (int along = 300; along <= 600; along += Step)      // the box's width along the floating room's wall
+                    for (int reach = 300; reach <= 900; reach += Step)       // ...and how far it reaches out from it
+                    {
+                        bool horizontalWall = side < 2;                  // 0 north, 1 south: the box sits above or below
+                        int w = horizontalWall ? along : reach, h = horizontalWall ? reach : along;
+                        int lo = (horizontalWall ? f.X : f.Y) - along + MinDoorRun, hi = (horizontalWall ? f.X1 : f.Y1) - MinDoorRun;
+                        for (int p = lo; p <= hi; p += Step)
+                        {
+                            int x = horizontalWall ? p : side == 2 ? f.X - w : f.X1;
+                            int y = horizontalWall ? (side == 0 ? f.Y - h : f.Y1) : p;
+                            var c = Custom(built, x, y, w, h, out why);
+                            if (c.HasValue && (!best.HasValue || c.Value.Price < best.Value.Price))
+                                best = c;
+                        }
+                    }
+            return best;
         }
 
         /// How many loops a room would close (other rooms it gets a door to besides its parent).

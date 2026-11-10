@@ -710,6 +710,41 @@ static partial class Program
         Check(g.ExpansionWorld.Doors.Length == 1 && g.ExpansionWorld.Doors[0].Width == 600f && cg.ExpansionWorld.Doors[0].Width == 600f, "and both see the wide gap");
     }
 
+    // Balance (Docs/FloatingRooms.md step 5): what it costs to connect a floating room, against the vectors a player has.
+    static void ExpandingFloatCostTest()
+    {
+        var costs = new List<int>();
+        int noConnector = 0;
+        for (int seed = 1; seed <= 40; seed++)
+        {
+            var map = new List<ExpansionRoom>();
+            var rng = new Random(seed);
+            for (int k = 0; k < rng.Next(0, 5); k++)
+            {
+                var boxes = FindBoxes(map, 12);
+                if (boxes.Count == 0) break;
+                var b = boxes[rng.Next(boxes.Count)];
+                string why;
+                var r = Expansion.Custom(map, b[0], b[1], b[2], b[3], out why);
+                if (r.HasValue) map.Add(r.Value);
+            }
+            foreach (var kind in new[] { RoomKind.Shop, RoomKind.Vendor, RoomKind.Gatekeeper })
+            {
+                var f = Expansion.FloatingFor(seed, seed % 4, map, kind);
+                if (!f.HasValue) continue;
+                map.Add(f.Value);
+                var c = Expansion.ConnectorFor(map, map.Count - 1);
+                if (!c.HasValue) noConnector++;
+                else costs.Add(c.Value.Price);
+                map.RemoveAt(map.Count - 1);
+            }
+        }
+        costs.Sort();
+        Console.WriteLine("  floating rooms: connector cost min " + costs[0] + ", median " + costs[costs.Count / 2] + ", max " + costs[costs.Count - 1] + " vectors over " + costs.Count + " rooms (" + noConnector + " with none)");
+        Check(noConnector == 0, "every floating room can be reached by some box");
+        Check(costs[costs.Count / 2] >= 10 && costs[costs.Count - 1] <= 22, "reaching a floating room costs about a room's worth (10 to 22 vectors, median " + costs[costs.Count / 2] + ")");
+    }
+
     // Vectors (ExpansionGame.cs, Docs/VectorBuilding.md step 1): the start, the cap, a cleared wave, every 25 kills, a boss refill, synced.
     static void ExpandingVectorsTest(float dt)
     {
