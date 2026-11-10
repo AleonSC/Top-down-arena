@@ -96,11 +96,8 @@ namespace Arena
         void DrawTextEditBox()
         {
             var p = new Rect(W / 2f - 330f, H / 2f - 190f, 660f, 380f);
-            Ui.Fill(new Rect(0, 0, W, H), new Color(0f, 0f, 0f, 0.45f));
-            DkPanel(p);
-            float x = p.x + 24f, w = p.width - 48f, y = p.y + 16f;
-            DkTitle(new Rect(x, y, w, 30f), "EDIT TEXT", 22, new Color(1f, 0.85f, 0.5f), TextAnchor.MiddleLeft);
-            y += 38f;
+            var inner = DkWindow(p, "EDIT TEXT", null, () => textEditOpen = false, CrtStyle.Gold, 0.45f);
+            float x = p.x + 24f, w = p.width - 48f, y = inner.y - 8f;
             Ui.Label(new Rect(x, y, w, 16f), "ORIGINAL (IN THE CODE)", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
             y += 18f;
             Ui.Label(new Rect(x, y, w, 40f), textEditOriginal, 13, new Color(0.8f, 0.84f, 0.95f), TextAnchor.UpperLeft, false, true);

@@ -10,7 +10,6 @@ namespace Arena
     public partial class ArenaApp
     {
         readonly BossLab lab = new BossLab();
-        bool labSetupOpen;
         float labSpeed = 1f;
         bool labPaused;
         static readonly float[] LabSpeeds = { 1f, 2f, 4f, 8f };
@@ -83,10 +82,7 @@ namespace Arena
         void DrawLabSetup()
         {
             var panel = DevPanel;
-            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.55f));
-            DkPanel(panel);
-            Ui.Title(new Rect(panel.x, panel.y + 14f, panel.width, 36f), "BOSS LAB", 28, Color.white);
-            Ui.Label(new Rect(panel.x, panel.y + 48f, panel.width, 18f), "Bots fight a boss on the real game so you can watch it play out. Esc to close.", 12, Ui.Muted, TextAnchor.MiddleCenter);
+            DkWindow(panel, "BOSS LAB", "Bots fight a boss on the real game so you can watch it play out. Esc to close.", () => labSetupOpen = false, CrtStyle.Gold);
 
             float x = panel.x + 28f, w = 300f, y = panel.y + 82f;
             Ui.Heading(x, y, w, "Boss");

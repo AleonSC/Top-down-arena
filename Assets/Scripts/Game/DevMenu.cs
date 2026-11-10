@@ -9,7 +9,6 @@ namespace Arena
     /// wave, and editing each player's stats by hand. Changes to the match are host only.
     public partial class ArenaApp
     {
-        bool devMenuOpen;
         int devTab = -1;          // 0 Match, 1 Players, 2 Tools, 3 DPS, 4 Replays (-1: pick one when the menu opens)
         int devWave = 1;          // the wave the "Go" button jumps to
         int devPlayer;            // whose stats are shown (player id; 0 = you)
@@ -31,19 +30,11 @@ namespace Arena
             if (devTab < 0)
                 devTab = inMatch ? 0 : 2;
             var panel = DevPanel;
-            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.55f));
-            DkPanel(panel);
-
-            // Header.
-            DkTitle(new Rect(panel.x + 24f, panel.y + 14f, 400f, 36f), "DEVELOPER TOOLS", 26);
-            Ui.Label(new Rect(panel.x + 26f, panel.y + 48f, 500f, 16f), (inMatch ? "In a match" : "Not in a match") + (session.IsHost ? "" : "  ·  only the host can change the match") + "  ·  F1 or Esc to close",
-                11, CrtStyle.Desc);
-            if (DkKey(new Rect(panel.xMax - 52f, panel.y + 16f, 32f, 30f), "X", Ui.Danger))
-                devMenuOpen = false;
-            Ui.Fill(new Rect(panel.x + 20f, panel.y + 74f, panel.width - 40f, 1f), new Color(1f, 1f, 1f, 0.07f));
+            var inner = DkWindow(panel, "DEVELOPER TOOLS", (inMatch ? "In a match" : "Not in a match") + (session.IsHost ? "" : "  ·  only the host can change the match") + "  ·  F1 or Esc to close",
+                () => devMenuOpen = false);
 
             // Sidebar.
-            float sx = panel.x + 20f, sw = 196f, sy = panel.y + 90f;
+            float sx = inner.x, sw = 196f, sy = inner.y;
             for (int i = 0; i < DevTabNames.Length; i++)
             {
                 var r = new Rect(sx, sy + i * 62f, sw, 55f);
@@ -59,10 +50,10 @@ namespace Arena
                     devFocus = "";
                 }
             }
-            DrawDevStatusCard(new Rect(sx, panel.yMax - 156f, sw, 136f), inMatch);
+            DrawDevStatusCard(new Rect(sx, inner.yMax - 136f, sw, 136f), inMatch);
 
             // Content.
-            var body = new Rect(sx + sw + 20f, panel.y + 90f, panel.xMax - 24f - (sx + sw + 20f), panel.height - 110f);
+            var body = new Rect(sx + sw + 20f, inner.y, inner.xMax - (sx + sw + 20f), inner.height);
             switch (devTab)
             {
                 case 0:
@@ -122,7 +113,8 @@ namespace Arena
 
         void DrawDevMatch(Rect body, float t)
         {
-            var card = new Rect(body.x, body.y, body.width, 280f);
+            var col = DkStack.Column(body, 14f);
+            var card = col.Next(280f);
             float y = DevCard(card, "Jump to a wave", "Clears the arena and starts that wave in 2 s. Downed players get back up.", DevTabColors[0]);
             float x = card.x + 16f;
             Ui.Label(new Rect(x, y, 300f, 20f), "Now on wave " + Mathf.Max(1, game.Wave) + (game.Endless ? " (endless)" : " of " + Game.MaxWave), 13, CrtStyle.Body);
@@ -175,7 +167,7 @@ namespace Arena
             DkTitle(new Rect(show.x, show.yMax - 32f, show.width, 24f), PracticePlan.NameOf(boss == EnemyType.TwinB ? EnemyType.TwinA : boss), 16, CrtStyle.Gold, TextAnchor.MiddleCenter);
 
             // Quick actions for everyone.
-            var quick = new Rect(body.x, card.yMax + 14f, body.width, 120f);
+            var quick = col.Next(120f);
             y = DevCard(quick, "Everyone", "Applies to every player in the match.", DevTabColors[0]);
             GUI.enabled = host;
             float qw = (quick.width - 32f - 24f) / 4f;
@@ -190,7 +182,7 @@ namespace Arena
                         else game.DevSetGod(p.Id, !p.DevGod);
                     }
             // Challenge rooms: straight into one (Challenges.cs).
-            var rooms = new Rect(body.x, quick.yMax + 14f, body.width, 110f);
+            var rooms = col.Next(110f);
             y = DevCard(rooms, "Data Gates", "Between waves: takes everyone straight through that gate.", DevTabColors[0]);
             bool canRoom = host && game.State == MatchState.Intermission && game.Room == RoomPhase.None;
             GUI.enabled = canRoom;
