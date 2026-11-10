@@ -122,6 +122,11 @@ static partial class Program
             for (int k = 0; k < 20; k++) host.Game.GrantUpgrade(id, U("Fortitude"));
             for (int k = 0; k < 10; k++) host.Game.GrantUpgrade(id, U("Regeneration"));
             for (int k = 0; k < damageStacks; k++) host.Game.GrantUpgrade(id, U("Hollow Points"));
+            // (Repeat copies diminish now, Upgrades.CopyStrength: the test buff sets the stats those copies used to give.)
+            Action<string, float> set = (field, v) => host.Game.DevSetStat(id, Array.FindIndex(Game.StatFields, f => f.Name == field), v);
+            set("BonusHp", 20 * 40f);
+            set("Regen", 10 * 3f);
+            if (damageStacks > 0) set("DmgMult", 1f + 0.2f * damageStacks);
         }
         return new[] { host, client };
     }
@@ -384,6 +389,7 @@ static partial class Program
         Test("partybots", "bots in the lobby's open slots", () => { PartyBotsTest(Dt); PartyBotShelterTest(Dt); }),
         Test("wildcard", "Wildcard: DPS gear from any class, a second ability on a chosen key, the damage and cooldown price, the unlock", () => WildcardTest(Dt)),
         Test("lag", "the lag chart: LagStats (stalls, p95, 1% low, freeze, summary, CSV) and pings shared over the network", () => LagChartTest(Dt)),
+        Test("stacking", "power stacking: diminishing returns on unlimited cards, wounds (a share of each hit no heal brings back this wave)", () => StackingTest(Dt)),
         Test("dodge", "Dodge: the tiny dash with invulnerability (host and client), its cooldown, the step back", () => DodgeTest(Dt)),
         Test("f1bot", "F1 \"Bot plays for you\" (the smart bot) through waves and the Bazaar", () => F1BotTest(Dt)),
         new Suite { Name = "session", What = "session recording (run.sh 1 30 session [copy-to])", Run = args =>

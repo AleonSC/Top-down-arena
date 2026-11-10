@@ -94,6 +94,14 @@ So friends can play without Tailscale or port forwarding.
 - Deliverables: the relay program, the two menu buttons and code entry, a version check through the relay, and
   step-by-step server setup instructions (rent, install, run as a service) in the README.
 - Until then, a no-code stopgap: the host runs a free tunnel app like playit.gg and friends join its address + port.
+## Power stacking (built, Nov 2026, protocol 237; check in Unity)
+
+- [ ] **Diminishing returns and wounds** ([`PowerStacking.md`](PowerStacking.md)). Repeat copies of the twelve unlimited
+      stat cards give less (2nd 80%, 3rd 67%, 5th 50%; Hair Trigger x14 = x2.3 fire rate); the pick card says what the next
+      copy is worth. 10% of every hit is a wound no heal brings back until the wave is cleared (dark red end on the
+      health bars). Both arenas; parry unchanged. Check in Unity: the card note, the wound on the health bars, and
+      whether a late run still turns into a cleanup.
+
 ## Rooms arena (built, Nov 2026; check in Unity)
 
 - [ ] **Rooms arena, phases 0-3** ([`Rooms.md`](Rooms.md); mockup [`Mockups/rooms.html`](Mockups/rooms.html),
