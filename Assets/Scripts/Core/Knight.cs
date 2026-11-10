@@ -388,7 +388,9 @@ namespace Arena
                     float along = Dot(rel, dir), across = Math.Abs(Dot(rel, dir.Orthogonal()));
                     if (along < -e.Radius - p.Def.BodyR || along > s.Reach + e.Radius || across > s.HalfWidth + e.Radius || across < s.Hollow)
                         continue;
-                    if (!BlocksShot(e, origin))
+                    // A Katana dash-cut that runs past an enemy's centre cuts it from behind: a shield facing you can't stop it.
+                    V2 blockFrom = s.KatanaMove == 1 && along < s.Reach ? origin + dir * s.Reach : origin;
+                    if (!BlocksShot(e, blockFrom))
                         hits.Add(e);
                     else
                         WearShield(e, s.Dmg);

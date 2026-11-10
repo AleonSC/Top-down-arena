@@ -188,7 +188,7 @@ your weapon. Per extra projectile:
 | | **Spirit Fan** | A short gust (6) that heals allies in it for 3 and blows small bullets back; shots alternate blowing enemies in front 60 px away and drawing them 60 px in | +25% reach and +1 HP healed |
 | | **Ofuda** | Charms fly to your cursor (up to 460 px) and lie as wards (up to 5, 10 s); an enemy stepping on one sets it off: 25 within 70 px and 12 healing to allies within 110 px | +1 charm, fanned out |
 | DPS · Ninja | **Shuriken** | Tight fans of 3 stars (9, 0.08 rad apart: all three hit a boss out to about 650 px) that stick in what they hit. After 5 s each rips out on its own for another hit and flies back to you, cutting what it passes (50%); press the weapon-action key to recall them sooner | +1 star in the fan |
-| | **Katana** | Two basic-attack combos, one per stance. The weapon-action key (Left Alt) switches stance at once (0.3 s cooldown) and stops the step you're in; the stance you leave **keeps its place** for as long as you're away (the one you're in starts over after 1.5 s without a step), so you can store a combo one step from its finisher and call it later. Pips over your head show where each combo waits. **Hayate** (blade low and trailing, moon steel): Kiri (dash-cut 120 px, 22 to all on the line, untouchable), Kaeshi (the same, angled to the other side), Tsumuji (a 70 px dash into a spin, 85 px, 26), then the **Momentum Burst**: you stab the blade into the ground and a 150 px shockwave shoves enemies 120 px, deals 8, cuts the small bullets in it and marks what it hits for 4 s. A dash that kills brings the next step at once. **Senbon** (blade forward, its edge lit rose): Agari and Kaeshi (130° sweeps, 120 px, 16), Engetsu (a step into a full-moon spin, 105 px, 20), Senbon (six crossing slashes in a cone ahead, 7 each), then **Caltrops**: 16 thrown out to 150 px round you that lie 8 s; one stepped on deals 4, slows to half speed for 1.5 s and breaks. **Together:** a Burst flings every caltrop you have lying at the nearest enemy (8 each); caltrops thrown after a Burst seek the enemies it marked (8 each). Every cut flashes a line across the enemy and a kill splits it in two; the Burst cracks the ground | +1: each dash strikes once more (60%), two more caltrops and a 25% wider Momentum Burst |
+| | **Katana** | Two basic-attack combos, one per stance. The weapon-action key (Left Alt) switches stance at once (0.3 s cooldown) and stops the step you're in; the stance you leave **keeps its place** for as long as you're away (the one you're in starts over after 1.5 s without a step), so you can store a combo one step from its finisher and call it later. Pips over your head show where each combo waits. **Hayate** (blade low and trailing, moon steel): Kiri (dash-cut 120 px, 22 to all on the line, untouchable; a dash that runs past a Riot Shield or Shielder cuts it from behind, so the shield doesn't stop it), Kaeshi (the same, angled to the other side), Tsumuji (a 70 px dash into a spin, 85 px, 26), then the **Momentum Burst**: you stab the blade into the ground and a 150 px shockwave shoves enemies 120 px, deals 8, cuts the small bullets in it and marks what it hits for 4 s. A dash that kills brings the next step at once. **Senbon** (blade forward, its edge lit rose): Agari and Kaeshi (130° sweeps, 120 px, 16), Engetsu (a step into a full-moon spin, 105 px, 20), Senbon (six crossing slashes in a cone ahead, 7 each), then **Caltrops**: 16 thrown out to 150 px round you that lie 8 s; one stepped on deals 4, slows to half speed for 1.5 s and breaks. **Together:** a Burst flings every caltrop you have lying at the nearest enemy (8 each); caltrops thrown after a Burst seek the enemies it marked (8 each). Every cut flashes a line across the enemy and a kill splits it in two; the Burst cracks the ground | +1: each dash strikes once more (60%), two more caltrops and a 25% wider Momentum Burst |
 | | **Kunai** | Slow, heavy knives (42 damage, one every 0.7 s, fast flying), +50% on enemies that aren't targeting you; every throw is a shadow kunai that leaves a mark where it lands (3 s, the newest replaces the old): press the weapon-action key to blink there, and your next hit lands double | +1 knife, fanned out (half damage) |
 | Tank · Hemomancer | **Blood Lash** | 110° whip (24) with 130 px reach: the tip cracks for double and taunts; hits build Clot (4% less damage taken each, up to 5); full Clot makes the next lash a burst all round you | +20 px reach and +1 max Clot |
 | | **Clot Cannon** | Hold to charge, let go to lob a massive blood clot over enemies (it can't be blocked by the ones under its arc): 160 px on a tap, out to 520 px at full charge (0.9 s), shown by an arc of drops that grows as you hold. Each shot costs 6% of your max health (never below 1; extra clots come free). It splashes 34 to every enemy within 70 px of where it lands, the same at any range, and leaves a 130 px pool slowing enemies 40% and healing anyone standing in it 4 a second, for 4 s; after 1 s it congeals: enemies still in it are stuck for 1 s (not bosses). Blood drips from your hand as you walk (more while charging) and from the clot as it flies | +1 clot, fanned out, landing at the same distance |
@@ -224,7 +224,7 @@ every shot, not the players) slows to 30% for 0.3 s on every screen, at most onc
 it wears and blinking red when it's nearly gone; when it breaks it cracks and shatters, and while it's lowered a faint
 bar shows it refilling. Against the Warden up close it holds for about 3 seconds of fire, enough to close the gap.
 
-**Animation cancel:** raising the parry sends an attack chain back to its first step, clears the wait for the next step and cancels an attack that hasn't landed yet. Today that is the Katana (the wait for its next step is cleared; both combos keep their place) and the Bo Staff's slash, jab, spin (a shove still drawing back never lands and costs no cooldown). Streaks you have built (the Rapier's) are kept. The Twin Blades' chain goes back to the Rising Cut too, and a step still winding up never lands.
+**Animation cancel:** raising the parry sends an attack chain back to its first step, clears the wait for the next step and cancels an attack that hasn't landed yet. Today that is the Katana (the wait for its next step is cleared; both combos' buildups reset) and the Bo Staff's slash, jab, spin (a shove still drawing back never lands and costs no cooldown). Streaks you have built (the Rapier's) are kept. The Twin Blades' chain goes back to the Rising Cut too, and a step still winding up never lands.
 
 Parry upgrades show up like any other card:
 
@@ -1513,31 +1513,35 @@ they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds] [suite]`, needs 
 (`SEED=random` for fresh rolls).
 ### Developer tools (F1)
 
-Press **F1** anywhere for the developer menu (Esc, F1 or its X closes it). Tabs down the left, and a card at
-the bottom of them shows what's on (wave, recording, bot, aim debug, players):
+Press **F1** anywhere for the developer **dock** (Esc, F1 or its X closes it). It's a slim bar across the top of the screen. In a
+match the game keeps running behind it (the mouse only stops shooting while it's over the dock); in the lobby and menus it covers the
+screen. On the bar: the wave, **GOD** (everyone), **FULL HEAL**, **SKIP WAVE** and **KILL ALL** pinned for one click, four keys that
+open a small drawer under them (**WAVE**, **PARTY**, **VIEW**, **LABS**), and **BOT** and **REC** lamps you can click. The stat editor opens
+as a drawer on the right, and the bigger tools (DPS meter and dummies, Replays, Balance test) open as one sheet. While you type in one of
+its fields the game's keys are off. Outside a match only VIEW and LABS show.
 
-- **Match (host):** pick a wave with -10 / -5 / -1 / +1 / +5 / +10 and **Go to wave N**. It clears the arena, gets
+- **WAVE drawer (host):** pick a wave with -10 / -5 / -1 / +1 / +5 / +10 and **Go to wave N**. It clears the arena, gets
   downed players back up and starts that wave after 2 s. The boss on that wave (or the next boss) is shown moving
   beside it. **Kill-all key (X)**: a switch (saved between sessions) that makes **X** kill every enemy on the field,
   bosses included, as your kills: XP, score, drops, gold and kill credit as usual, through shields and immunity. It
   doesn't end the wave: enemies still to come keep coming. X still throws away a chest item while you're standing on
   one. **Freeze enemies**: a switch under it that stops every enemy moving and shooting and stops new ones spawning
-  (you can still kill the frozen ones; the wave won't clear while it's on; it resets when a match starts). **Everyone** buttons: full heal, level up, max mastery and god mode for every player at once. **Challenge
+  (you can still kill the frozen ones; the wave won't clear while it's on; it resets when a match starts). The **PARTY drawer** has **Everyone** buttons: level up, max mastery, full heal and reset stats for every player at once (god mode and full heal are also pinned on the bar). **Challenge
   rooms** buttons (between waves): straight into Crystal, Gatekeeper, Kill Rush, Zones or Mirror.
-- **Players (host):** choose a player, then edit any of their stats by hand: type a number or use - / +.
+- **PARTY > EDIT STATS… (host):** choose a player, then edit any of their stats by hand: type a number or use - / +.
   Type in **Filter** to narrow the list (e.g. "barrier"). Edited stats show in gold, are sent to every player's
   game, and stay on top of upgrades they pick later; **Reset stats** goes back to what their upgrades give.
   Also **God mode** (takes no damage), **Full heal**, **Level up** (an extra upgrade pick) and **Max mastery**
   (every ability they have to level 5). Joining players can see everyone's stats but not change them.
-- **Tools:** record sessions (below) and open the sessions folder, the aim debug overlay (also F3), the **freeze-time key (P)**
+- **VIEW and LABS drawers:** record sessions (below) and open the sessions folder, the aim debug overlay (also F3), the **freeze-time key (P)**
   (a saved switch: P freezes the whole picture, effects and animations included, without opening the pause menu; press it again to resume;
   hide the HUD with H), a bot that plays for you, **text editing** (also F4, below), open the practice folder, and the **Boss Lab**.
-  **Account rank** sets this computer's rank without playing for it (works on the main menu too): **+1 rank**, **+10 ranks**,
-  **Rank 30** (every reward), **Max rank** (999) and **Reset** (rank 1). Cosmetics the new rank hasn't reached come off.
-- **DPS (host, in a match):** the DPS meter and target dummies, below.
-- **Replays:** record the runs you host and watch them back, below.
+  **Account rank** (PARTY drawer) sets this computer's rank without playing for it (works on the main menu too): **+1**, **+10**,
+  **30** (every reward), **MAX** (999) and **RESET** (rank 1). Cosmetics the new rank hasn't reached come off.
+- **VIEW > DPS DETAILS AND TARGET DUMMIES… (host, in a match):** the DPS meter and target dummies, below.
+- **LABS > REPLAYS…:** record the runs you host and watch them back, below.
 - **Balance (host, in a normal run):** a five-wave test with your own build. Pick your loadout as usual, start a run, press
-  F1 > Balance, choose the **start wave** (1, 6, 11 ... 26), **who plays** (you, or the bot with your build for repeatable
+  F1 > LABS > Balance test…, choose the **start wave** (1, 6, 11 ... 26), **who plays** (you, or the bot with your build for repeatable
   runs), whether health refills between waves and whether to sample every second, then **Launch test**. It jumps to
   that wave and starts a fresh recording; a small TEST strip with the wave pips shows at the top while it runs. When the fifth
   wave clears (or you press **End test now**, or everyone goes down) a report opens: six tiles (result, time, damage dealt,
@@ -1551,7 +1555,7 @@ the bottom of them shows what's on (wave, recording, bot, aim debug, players):
 
 ### Replays (F1)
 
-**F1 → Replays** records every run you host (switch **Record replays of runs I host** on first; it's saved between sessions, off by
+**F1 → LABS → Replays…** records every run you host (switch **Record replays of runs I host** on first; it's saved between sessions, off by
 default) and saves it as a `.replay` file in the `replays` folder when the run ends (or press **Stop and save**). The tab has
 **Open folder**, **Refresh** and a list of your replays, newest first: name, date, mode, wave reached, length, size and who played. Each has **Open**,
 **Rename** (type, then Enter or Save) and **Delete** (asks "Delete for good?" first). Runs under a second, the Practice Range's lobby preview and

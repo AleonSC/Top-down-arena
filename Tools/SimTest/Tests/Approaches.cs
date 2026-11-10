@@ -153,6 +153,26 @@ static partial class Program
         Check((bool)blocks.Invoke(g2, new object[] { shield, new V2(600f, 450f) }) && !(bool)blocks.Invoke(g2, new object[] { shield, new V2(200f, 450f) }),
             "its shield stops shots from the front, not from behind");
 
+        // A Katana dash-cut that runs past the shield cuts it from behind; one that stops short is blocked and wears it.
+        {
+            var newSwing = typeof(Game).GetMethod("NewSwing", NP);
+            var land = typeof(Game).GetMethod("LandSwing", NP);
+            var kHost = g2.Players[1];
+            Func<float, float, Tuple<float, float>> dash = (reach, startX) =>
+            {
+                shield.Pos = new V2(400f, 450f); shield.Facing = 0f; shield.Hp = shield.MaxHp; shield.ShieldHp = shield.ShieldMax;
+                var sw = (Swing)newSwing.Invoke(g2, new object[] { kHost, 3.14159265f, reach, 20f, 22f });  // dashing left, at the shield's face (it faces +x)
+                sw.Reach = reach; sw.HalfWidth = 32f; sw.FromSet = true; sw.From = new V2(startX, 450f); sw.KatanaMove = 1; sw.NoFx = true; sw.Silent = true;
+                land.Invoke(g2, new object[] { kHost, sw });
+                return Tuple.Create(shield.Hp, shield.ShieldHp);
+            };
+            var through = dash(120f, 440f);  // from x=440 to x=320: passes its centre
+            var short1 = dash(30f, 440f);    // x=440 to x=410: stops in front of it
+            Check(through.Item1 < shield.MaxHp && through.Item2 == shield.ShieldMax, "a Katana dash through a Riot Shield cuts it from behind (the shield doesn't stop it)");
+            Check(short1.Item1 == shield.MaxHp && short1.Item2 < shield.ShieldMax, "a dash that stops in front of the shield is blocked and wears it");
+            shield.Pos = new V2(400f, 450f); shield.Facing = 0f; shield.Hp = shield.MaxHp; shield.ShieldHp = shield.ShieldMax;
+        }
+
         // The bash: the friend stands in front of it; their own game moves them back about 160 px.
         var friendH = g2.Players[2];
         var friendC = c2.Me;

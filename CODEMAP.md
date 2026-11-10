@@ -272,7 +272,8 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `UiScreens.cs`: the tool-screen stack (`UiScreen`, `OpenScreen`/`CloseScreen`, `HandleScreenEsc`, `DrawScreens`; `devMenuOpen`, `labSetupOpen`, `waveEdOpen` are properties over it): add a window by registering one screen (HANDOFF.md "Adding a screen or a menu row")
 - `UiLayout.cs`: `DkStack` (column / row / cell / grid layout) and `DkWindow` (the tool window shell)
 - `DevKit.cs`: the CRT look of the dev tools and the chat box: `DkPanel`, `DkSub`, `DkCard`, `DkTitle`, `DkKey`, `DkChoice`, `DkSwitch`, `DkField`, the one widget kit for the dev tools, chat, wave editor and most menus (the old `Ui.Panel/Button/Toggle/Choice/Field/Card/Fancy/HudPanel` are gone); also `DkBox`, `DkHud`, `DkTag`, `DkBar` (used by `DevMenu.cs`, `ReplayUi.cs`, `BalanceTestUi.cs`, `DpsMeterUi.cs`, `ChatBox.cs`)
-- `DevMenu.cs`, `DevTextEdit.cs`, `BossLabUi.cs`, `WaveEditorUi.cs`: F1 tools, F4 text edit, Boss Lab, F1 wave editor
+- `DevDock.cs`: the F1 dock (`DrawDevMenu`: pinned keys, WAVE / PARTY / VIEW / LABS drawers, stat-editor side drawer, DPS / Replays / Balance sheet; non-modal in a match, `MouseOnDock` stops shots under it)
+- `DevMenu.cs` (the stat editor `DrawDevPlayers`, `DevCard`), `DevTextEdit.cs`, `BossLabUi.cs`, `WaveEditorUi.cs`: stat editor rows, F4 text edit, Boss Lab, F1 wave editor
 - `PracticeUi.cs`: the lobby's Practice tab (CRT look A of `Docs/Mockups/crt-practice-redesign.html`: wave rack, enemy grid, setup files); `TrainingUi.cs`: the Training tab (drill cartridges by group, detail, Load this drill, the training folder); `PracticeDownedUi.cs`: the Practice Range's DOWNED window with Respawn, Restart wave and Back to lobby
 - `../Editor/ArenaEditor.cs`: scene setup and Windows build menu item
 - `Game/ClickLog.cs`: a temporary lost-click debugging aid: F9 shows the last mouse presses and releases and logs them
