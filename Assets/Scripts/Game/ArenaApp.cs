@@ -790,6 +790,7 @@ namespace Arena
             }
             TextEditEndGui();
             DrawCabEdges();  // the cabinet menus' soft edges, over them (CrtWindows.cs)
+            DrawSkipStatic();  // an intro just skipped: the channel flip over everything (SkipStatic.cs)
             DrawMenuCursor();  // the equipped crosshair over the menus (CursorLooks.cs)
             bool clicked = Ui.TakeClick();
             ClickLogEnd(clicked);

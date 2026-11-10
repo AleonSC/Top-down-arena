@@ -97,7 +97,10 @@ namespace Arena
         {
             profTrAge += dt;
             if (Input.anyKeyDown && profTrAge > 0.25f)
+            {
                 profEjT = EjLen;  // skipped: straight to the end, silently
+                StartSkipStatic();  // under the channel flip (SkipStatic.cs)
+            }
             else
             {
                 profEjT = Mathf.Min(EjLen, profEjT + dt);

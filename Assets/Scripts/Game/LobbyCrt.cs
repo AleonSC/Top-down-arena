@@ -8,7 +8,7 @@ namespace Arena
     ///   faintly) and a glow in the middle.
     ///   Over everything (DrawLobbyCrtGlass): faint scanlines, unless Reduced effects a slow rolling bar, the dark corners, a glass highlight,
     ///   a rounded bezel and now and then a flicker.
-    /// New run (StartNewRun) plays about 7.1 s, and any key or click after half a second skips to the end:
+    /// New run (StartNewRun) plays about 7.1 s, and any key or click after half a second skips to the end (with the channel flip, SkipStatic.cs):
     ///   0.0 s   the saved-runs screen flares; the title, box and player card fade away
     ///   0.25-0.45 s the screen fades in over the flare (no pop); 0.4 s   that screen grows from its own edges to the whole window, going from the runs screen's blue to the lobby's. It is a CRT the whole way
     ///           (glow, scanlines, dark corners, glass highlight and rounded bezel: DrawCrtGrowScreen), never a flat fill, and the
@@ -416,7 +416,10 @@ namespace Arena
         void SkipCrtEntry()
         {
             if (crtEntry && enterT > 0.5f && enterT < EnterCrtLen && (Input.anyKeyDown))
+            {
                 enterT = EnterCrtLen;
+                StartSkipStatic();  // the channel flip (SkipStatic.cs)
+            }
         }
     }
 }
