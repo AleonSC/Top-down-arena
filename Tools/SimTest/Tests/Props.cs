@@ -109,6 +109,13 @@ static partial class Program
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Enemies.Count > 0, NoPicks);  // the next wave
         g.Props.Clear();
         me.Pos = new V2(200f, 200f); friend.Pos = new V2(1400f, 200f); cg.Players[2].Pos = friend.Pos;
+        // The dev tool: any enemy in a row in front of you, bosses in the middle; host only, while a wave is on.
+        int foes0 = g.Enemies.Count;
+        Check(g.State == MatchState.Fighting && g.DevSpawnEnemy(1, EnemyType.Brute, 3, false) == 3 && g.Enemies.Count == foes0 + 3 && g.Enemies.Values.Count(e => e.Type == EnemyType.Brute) >= 3,
+            "the dev spawn puts three brutes on the field");
+        Check(cg.DevSpawnEnemy(2, EnemyType.Brute, 1, false) == 0, "only the host can spawn enemies");
+        Check(g.DevSpawnEnemy(1, EnemyType.TwinA, 1, false) == 2 && g.Enemies.Values.Any(e => e.Type == EnemyType.TwinA) && g.Enemies.Values.Any(e => e.Type == EnemyType.TwinB), "a Twin Reapers spawn brings both twins");
+        Check(g.DevSpawnEnemy(1, EnemyType.Grunt, 1, true) == 1 && g.Enemies.Values.Any(e => e.Type == EnemyType.Grunt && e.Elite), "Elite spawns a tougher one");
         var chest = g.AddProp(PropKind.Chest, new V2(800f, 450f));
         Quiet();
         Run(s, dt, 1.5f, null, Quiet);
@@ -141,6 +148,27 @@ static partial class Program
         Check(friend.Taken.Count == friendHad && !g.Loots.ContainsKey(friendLoot.Id) && cg.Loots.Count == 0, "discarding it (from the client) throws it away");
         Run(s, dt, 0.5f, null, NoPicks);
         Check(g.State == MatchState.Intermission, "with everything dealt with, the wave clears");
+
+        // The dev tool: any upgrade for your build drops like a chest's item; one for another build, or from a guest, doesn't.
+        int okId = -1, badId = -1;
+        for (int i = 0; i < Upgrades.All.Length; i++)
+        {
+            bool av = Upgrades.Available(i, me.Role, me.RoleAbility, me.Taken, me.Weapon.Id);
+            if (av && okId < 0 && !Upgrades.All[i].Unoffered) okId = i;
+            if (!av && badId < 0 && !Upgrades.All[i].Unoffered) badId = i;
+        }
+        Check(okId >= 0 && badId >= 0 && !g.DevSpawnLoot(1, badId) && g.Loots.Count == 0, "the dev spawn refuses an upgrade your build can't be offered");
+        Check(!cg.DevSpawnLoot(2, okId), "only the host can spawn one");
+        Check(g.DevSpawnLoot(1, okId), "the dev spawn drops an upgrade for your build");
+        Run(s, dt, 0.3f);
+        var devLoot = g.Loots.Values.FirstOrDefault(l => l.Owner == 1 && l.Upgrade == okId);
+        Check(devLoot != null && devLoot.Pos.DistanceTo(me.Pos) > 40f && devLoot.Pos.DistanceTo(me.Pos) < 160f, "it lands a few steps in front of you, as a chest's item does");
+        int hadDev = me.Taken.Count;
+        me.Pos = devLoot.Pos;
+        Run(s, dt, 0.1f);
+        g.ResolveLoot(true);
+        Run(s, dt, 0.3f, null, NoPicks);
+        Check(me.Taken.Count == hadDev + 1 && me.Taken.Last() == okId, "walking onto it and taking it gives you that upgrade");
 
         // Bosses get a clear arena.
         g.AddProp(PropKind.Crate, new V2(300f, 700f));

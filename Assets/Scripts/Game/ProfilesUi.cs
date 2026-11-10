@@ -272,9 +272,173 @@ namespace Arena
                 Ui.Fill(new Rect(r.xMax - ch + i * 6f - 1f, r.y + i * 6f + 1f, 3f, 3f), c);
         }
 
+        /// Easter egg: a name like "San Andreas", "SanAndreas", "san_andreas", "GTA:SA", "GTASA" or "SA" (case, spaces and punctuation ignored).
+        public static bool IsSanAndreasName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return false;
+            var sb = new System.Text.StringBuilder();
+            foreach (char ch in name)
+                if (char.IsLetterOrDigit(ch))
+                    sb.Append(char.ToLowerInvariant(ch));
+            string n = sb.ToString();
+            return n == "sa" || n == "gtasa" || n.Contains("sanandreas");
+        }
+
+        /// Easter egg: any name with "doom" in it (Doom, DOOM, doom 2, Doomguy, ...): the retail Doom install disk.
+        public static bool IsDoomName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return false;
+            var sb = new System.Text.StringBuilder();
+            foreach (char ch in name)
+                if (char.IsLetterOrDigit(ch))
+                    sb.Append(char.ToLowerInvariant(ch));
+            return sb.ToString().Contains("doom");
+        }
+
+        /// Easter egg: "Mission Impossible", "MI", "MI1", "Ethan Hunt", "NOC list" (case, spaces and punctuation ignored): the bloodied 230 MB disk from the film.
+        public static bool IsMissionImpossibleName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return false;
+            var sb = new System.Text.StringBuilder();
+            foreach (char ch in name)
+                if (char.IsLetterOrDigit(ch))
+                    sb.Append(char.ToLowerInvariant(ch));
+            string n = sb.ToString();
+            return n == "mi" || n == "mi1" || n == "mi2" || n.Contains("missionimpossible") || n.Contains("ethanhunt") || n.Contains("noclist");
+        }
+
+        /// The Mission: Impossible disk: a pale magneto-optical disk, blood-spattered, with a small Verbatim "230 MB" label.
+        void DrawMissionDisk(Rect d)
+        {
+            float k = d.width / 200f;
+            Color cream = new Color(0.9f, 0.87f, 0.83f), blood = new Color(0.55f, 0.1f, 0.1f, 0.75f);
+            Ui.Pill(new Rect(d.x + 3f, d.y + 12f * k, d.width - 6f, d.height - 8f * k), new Color(0f, 0f, 0f, 0.4f));
+            float ch = 22f * k;
+            for (float y = 0f; y < d.height; y += 2f)
+            {
+                float w = y < ch ? d.width - ch + y : d.width;
+                Ui.Fill(new Rect(d.x, d.y + y, w, 2.5f), Color.Lerp(cream, new Color(0.72f, 0.68f, 0.64f), y / d.height));
+            }
+            Ui.Fill(new Rect(d.x + 2f, d.y, d.width - ch - 2f, 2f), new Color(1f, 1f, 1f, 0.5f));
+            Ui.Fill(new Rect(d.x + 44f * k, d.y, 104f * k, 44f * k), new Color(0.74f, 0.75f, 0.78f));      // the shutter
+            Ui.Fill(new Rect(d.x + 110f * k, d.y, 38f * k, 44f * k), new Color(0.84f, 0.85f, 0.88f));
+            Ui.Fill(new Rect(d.x + 56f * k, d.y + 8f * k, 24f * k, 30f * k), new Color(0.2f, 0.2f, 0.22f));
+            // the spatter: a few big pools, each throwing a spray of droplets (smaller the further they fly), plus drips running down
+            float[] bx = { 0.16f, 0.82f, 0.7f, 0.3f, 0.52f, 0.9f };
+            float[] by = { 0.24f, 0.3f, 0.78f, 0.74f, 0.5f, 0.9f };
+            float[] bs = { 30f, 26f, 32f, 20f, 16f, 18f };
+            Color deep = new Color(0.4f, 0.05f, 0.06f, 0.85f);
+            uint seed = 7u;
+            for (int i = 0; i < bx.Length; i++)
+            {
+                float cx = d.x + bx[i] * d.width, cy = d.y + by[i] * d.height;
+                Ui.Dot(new Rect(cx - bs[i] * k * 0.5f, cy - bs[i] * k * 0.5f, bs[i] * k, bs[i] * k), blood);
+                Ui.Dot(new Rect(cx - bs[i] * k * 0.3f, cy - bs[i] * k * 0.3f, bs[i] * k * 0.55f, bs[i] * k * 0.55f), deep);
+                for (int j = 0; j < 9; j++)   // the spray
+                {
+                    seed = seed * 1664525u + 1013904223u; float ang = (seed >> 8 & 0xFFFF) / 65536f * 6.2832f;
+                    seed = seed * 1664525u + 1013904223u; float dist = (0.55f + (seed >> 8 & 0xFFFF) / 65536f * 1.6f) * bs[i] * k;
+                    float ds = Mathf.Max(2f, bs[i] * 0.34f * (1.9f - dist / (bs[i] * k)) * k * 0.6f);
+                    Ui.Dot(new Rect(cx + Mathf.Cos(ang) * dist - ds / 2f, cy + Mathf.Sin(ang) * dist - ds / 2f, ds, ds), blood);
+                    if (j % 3 == 0)   // a short streak behind the bigger droplets, pointing back at the pool
+                        Ui.Fill(new Rect(cx + Mathf.Cos(ang) * dist * 0.7f - 1f, cy + Mathf.Sin(ang) * dist * 0.7f - 1f, 2f, 2f), blood);
+                }
+                float dl = (10f + (i * 7 % 5) * 5f) * k;   // a drip running down from the pool
+                Ui.Fill(new Rect(cx - 2f * k, cy, 4f * k, dl), blood);
+                Ui.Dot(new Rect(cx - 3f * k, cy + dl - 2f * k, 6f * k, 6f * k), deep);
+            }
+            var lb = new Rect(d.x + 24f * k, d.y + 66f * k, 76f * k, 60f * k);                                 // the Verbatim label
+            Ui.Fill(lb, new Color(0.97f, 0.96f, 0.94f));
+            Ui.Fill(new Rect(lb.x, lb.yMax - 1f, lb.width, 1f), new Color(0f, 0f, 0f, 0.2f));
+            Ui.Label(new Rect(lb.x + 4f * k, lb.y + 2f * k, lb.width - 8f * k, 16f * k), "Verbatim", Mathf.RoundToInt(13f * k), new Color(0.12f, 0.12f, 0.16f), TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(lb.x + 4f * k, lb.y + 18f * k, lb.width - 8f * k, 10f * k), "FORMATTED", Mathf.Max(6, Mathf.RoundToInt(6.5f * k)), new Color(0.3f, 0.3f, 0.34f), TextAnchor.MiddleLeft);
+            Ui.Label(new Rect(lb.x + 4f * k, lb.y + 28f * k, lb.width - 8f * k, 18f * k), "230 MB", Mathf.RoundToInt(15f * k), new Color(0.12f, 0.12f, 0.16f), TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(lb.x + 4f * k, lb.y + 46f * k, lb.width - 8f * k, 10f * k), "Optical Disk", Mathf.Max(6, Mathf.RoundToInt(6.5f * k)), new Color(0.3f, 0.3f, 0.34f), TextAnchor.MiddleLeft);
+            Ui.Fill(new Rect(d.x + 10f * k, d.yMax - 22f * k, 10f * k, 10f * k), new Color(0.3f, 0.28f, 0.27f));
+        }
+
+        /// The Doom disk: black plastic, a cream label with the red logo ("REGISTERED DISK n", n = the slot), a silver shutter with its window.
+        void DrawDoomDisk(Rect d, int slot)
+        {
+            float k = d.width / 200f;
+            Color black = new Color(0.14f, 0.14f, 0.16f), red = new Color(0.78f, 0.14f, 0.18f), ink = new Color(0.1f, 0.1f, 0.1f);
+            Ui.Pill(new Rect(d.x + 3f, d.y + 12f * k, d.width - 6f, d.height - 8f * k), new Color(0f, 0f, 0f, 0.4f));
+            float ch = 10f * k;
+            for (float y = 0f; y < d.height; y += 2f)
+            {
+                float w = y > d.height - ch ? d.width - (y - (d.height - ch)) : d.width;
+                Ui.Fill(new Rect(d.x, d.y + y, w, 2.5f), Color.Lerp(black, new Color(0.08f, 0.08f, 0.1f), y / d.height));
+            }
+            Ui.Fill(new Rect(d.x + 2f, d.y, d.width - 4f, 2f), new Color(1f, 1f, 1f, 0.14f));
+            Ui.Fill(new Rect(d.x + 8f * k, d.y + 8f * k, 9f * k, 9f * k), new Color(0.04f, 0.04f, 0.06f));      // the two notches at the top
+            Ui.Fill(new Rect(d.xMax - 17f * k, d.y + 8f * k, 9f * k, 9f * k), new Color(0.04f, 0.04f, 0.06f));
+            var lb = new Rect(d.x + 14f * k, d.y + 12f * k, 172f * k, 104f * k);                                   // the label
+            Ui.Fill(lb, new Color(0.93f, 0.9f, 0.82f));
+            Ui.Fill(new Rect(lb.x, lb.yMax - 1f, lb.width, 1f), new Color(0f, 0f, 0f, 0.15f));
+            Ui.Label(new Rect(lb.x, lb.y + 2f * k, lb.width, 12f * k), "To install DOOM, type INSTALL and press ENTER", Mathf.Max(6, Mathf.RoundToInt(6.6f * k)), red, TextAnchor.MiddleCenter);
+            int ls = Mathf.RoundToInt(46f * k);                                                                    // the logo: a dark edge under red letters
+            Ui.Label(new Rect(lb.x + 2f * k, lb.y + 16f * k, lb.width, 44f * k), "DOOM", ls, new Color(0.45f, 0.06f, 0.08f), TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(lb.x, lb.y + 14f * k, lb.width, 44f * k), "DOOM", ls, red, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(lb.x, lb.y + 60f * k, lb.width, 14f * k), "REGISTERED", Mathf.RoundToInt(11f * k), ink, TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(lb.x, lb.y + 73f * k, lb.width, 14f * k), "DISK " + (slot + 1), Mathf.RoundToInt(11f * k), ink, TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(lb.x + 4f * k, lb.y + 88f * k, lb.width - 8f * k, 11f * k), "Created by id Software      V 1.2", Mathf.Max(6, Mathf.RoundToInt(7f * k)), red, TextAnchor.MiddleCenter);
+            var sh = new Rect(d.x + 44f * k, d.y + 128f * k, 82f * k, 66f * k);                                    // the silver shutter and its window
+            Ui.Fill(sh, new Color(0.72f, 0.73f, 0.76f));
+            Ui.Fill(new Rect(sh.x + 42f * k, sh.y, 40f * k, sh.height), new Color(0.82f, 0.83f, 0.86f));
+            Ui.Fill(new Rect(sh.x + 12f * k, sh.y + 4f * k, 26f * k, 48f * k), black);
+            Ui.Fill(new Rect(d.xMax - 26f * k, d.y + 150f * k, 10f * k, 20f * k), new Color(0.3f, 0.3f, 0.33f));  // the little arrow
+        }
+
+        /// The San Andreas disk: a plain blue floppy with a big paper shutter, a round metal hub and the black slot at the bottom.
+        void DrawSanAndreasDisk(Rect d)
+        {
+            float k = d.width / 200f;
+            Color blue = new Color(0.12f, 0.1f, 0.62f), blueHi = new Color(0.2f, 0.18f, 0.74f), blueLo = new Color(0.08f, 0.06f, 0.46f);
+            Color black = new Color(0.03f, 0.03f, 0.06f), paper = new Color(0.78f, 0.74f, 0.68f);
+            Ui.Pill(new Rect(d.x + 3f, d.y + 12f * k, d.width - 6f, d.height - 8f * k), new Color(0f, 0f, 0f, 0.4f));
+            float ch = 12f * k;
+            for (float y = 0f; y < d.height; y += 2f)
+            {
+                float w = y < ch ? d.width - ch + y : d.width;
+                Ui.Fill(new Rect(d.x, d.y + y, w, 2.5f), Color.Lerp(blue, blueLo, y / d.height * 0.5f));
+            }
+            Ui.Fill(new Rect(d.x, d.y + ch, 6f * k, d.height - ch), blueHi);                     // lit left edge
+            Ui.Fill(new Rect(d.xMax - 12f * k, d.y, 12f * k, d.height), blueHi);                  // right-hand rail
+            var sh = new Rect(d.x + 36f * k, d.y + 2f * k, 108f * k, 70f * k);                    // the paper shutter and its window
+            Ui.Fill(sh, paper);
+            Ui.Fill(new Rect(sh.x, sh.yMax - 3f * k, sh.width, 3f * k), new Color(0.55f, 0.52f, 0.48f));
+            Ui.Fill(new Rect(sh.x + 22f * k, sh.y + 10f * k, 38f * k, 50f * k), blue);
+            var hub = new Rect(d.x + 62f * k, d.y + 82f * k, 76f * k, 76f * k);                   // the metal hub: ring, blue glint, black hole
+            Ui.Dot(new Rect(hub.x - 2f * k, hub.y - 2f * k, hub.width + 4f * k, hub.height + 4f * k), new Color(0.08f, 0.07f, 0.4f));
+            Ui.Dot(hub, new Color(0.72f, 0.73f, 0.76f));
+            Ui.Dot(new Rect(hub.x + 5f * k, hub.y + 5f * k, hub.width - 10f * k, hub.height - 10f * k), new Color(0.62f, 0.63f, 0.67f));
+            Ui.Fill(new Rect(hub.x + 42f * k, hub.y + 12f * k, 14f * k, 11f * k), new Color(0.2f, 0.45f, 0.95f));
+            Ui.Fill(new Rect(hub.x + 34f * k, hub.y + 38f * k, 10f * k, 10f * k), black);
+            Ui.Fill(new Rect(d.x + 28f * k, d.yMax - 42f * k, 134f * k, 36f * k), black);        // the slot at the bottom
+            Ui.Fill(new Rect(d.x + 10f * k, d.yMax - 22f * k, 10f * k, 10f * k), black);         // the small hole at the bottom left
+        }
+
         /// A disk: plastic tinted by the rank tier with its chamfered corner, the metal shutter, and a paper label.
         void DrawWhoDisk(Rect d, ProfileInfo p, bool current)
         {
+            if (IsMissionImpossibleName(p.Name))
+            {
+                DrawMissionDisk(d);
+                return;
+            }
+            if (IsDoomName(p.Name))
+            {
+                DrawDoomDisk(d, Mathf.Max(0, whoList.IndexOf(p)));
+                return;
+            }
+            if (IsSanAndreasName(p.Name))
+            {
+                DrawSanAndreasDisk(d);
+                return;
+            }
             float k = d.width / 200f;
             var tier = RankLook.TierColor(p.Rank);
             Color c1 = Color.Lerp(tier, new Color(0f, 0f, 0f), 0.17f), c2 = Color.Lerp(tier, new Color(0f, 0f, 0f), 0.55f);

@@ -6,7 +6,7 @@ concurrency:
   group: checks-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  checks:
+  core:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -17,5 +17,21 @@ jobs:
         run: Tools/CompileCheck/check.sh
       - name: Core suite
         run: Tools/SimTest/run.sh
+  features:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install mono
+        run: sudo apt-get update && sudo apt-get install -y mono-mcs mono-runtime libmono-system-core4.0-cil
       - name: Feature suite
         run: Tools/SimTest/run.sh 1 30 features
+  # The branch ruleset requires a check named `checks`: it passes only when both jobs above do.
+  checks:
+    if: always()
+    needs: [core, features]
+    runs-on: ubuntu-latest
+    steps:
+      - name: All suites passed
+        run: |
+          [ "${{ needs.core.result }}" = success ] && [ "${{ needs.features.result }}" = success ]

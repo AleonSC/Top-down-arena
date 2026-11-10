@@ -78,6 +78,64 @@ namespace Arena
             BroadcastDevStats(p);
         }
 
+        /// Dev: put `count` of an enemy in a row in front of this player (a boss comes in the middle of the arena, as on its wave; the Twin
+        /// Reapers both). Host only, while a wave is on; returns how many were spawned. They count toward the wave like any enemy.
+        public int DevSpawnEnemy(int id, EnemyType type, int count, bool elite)
+        {
+            Player p;
+            if (!IsHost || State != MatchState.Fighting || !Players.TryGetValue(id, out p))
+                return 0;
+            var d = Defs.Get(type);
+            count = Math.Max(1, Math.Min(count, 20));
+            if (d.IsBoss)
+            {
+                for (int i = 0; i < (type == EnemyType.TwinA ? 1 : count); i++)
+                {
+                    SpawnEnemy(type);
+                    if (type == EnemyType.TwinA)
+                        SpawnEnemy(EnemyType.TwinB);
+                }
+                DevUsed(p.Name + ": spawned " + d.Name);
+                return type == EnemyType.TwinA ? 2 : count;
+            }
+            V2 fwd = V2.FromAngle(p.Aim);
+            V2 side = new V2(-fwd.Y, fwd.X);
+            float gap = d.Radius * 2f + 16f;
+            for (int i = 0; i < count; i++)
+            {
+                int row = i / 6, inRow = Math.Min(6, count - row * 6);
+                V2 at = p.Pos + fwd * (300f + row * gap) + side * ((i % 6 - (inRow - 1) / 2f) * gap);
+                SpawnEnemyAt(type, ClampToArena(at, d.Radius + 20f), 0.9f, 0, elite);
+            }
+            DevUsed(p.Name + ": spawned " + count + " " + d.Name);
+            return count;
+        }
+
+        /// Dev: drop an upgrade a few steps in front of this player, exactly as a treasure chest drops theirs (a Loot only they see:
+        /// walk onto it, then take it (G) or discard it (X)). Host only, and only an upgrade that could be offered to their build
+        /// (their class, abilities and weapon); true when it was dropped. Marks the run as a dev run.
+        public bool DevSpawnLoot(int id, int upgrade)
+        {
+            Player p;
+            if (!IsHost || State == MatchState.Idle || upgrade < 0 || upgrade >= Upgrades.All.Length || !Players.TryGetValue(id, out p))
+                return false;
+            if (!Upgrades.Available(upgrade, p.Role, p.RoleAbility, p.Taken, p.Weapon.Id))
+                return false;
+            int n = 0;
+            foreach (var l in Loots.Values)
+                if (l.Owner == id)
+                    n++;
+            V2 fwd = V2.FromAngle(p.Aim);
+            V2 side = new V2(-fwd.Y, fwd.X);
+            float shift = ((n + 1) / 2) * 44f * (n % 2 == 1 ? 1f : -1f);
+            var loot = new Loot { Id = nextLootId++, Owner = id, Upgrade = upgrade, Pos = ClampToArena(p.Pos + fwd * 90f + side * shift, 20f) };
+            Loots[loot.Id] = loot;
+            BroadcastFx(FxKind.Ring, loot.Pos, Upgrades.RarityColor(Upgrades.All[upgrade].Rarity), 40f, 0.4f, Sfx.None);
+            DevUsed(p.Name + ": spawned " + Upgrades.All[upgrade].Name);
+            SendSnapshot();
+            return true;
+        }
+
         public void DevHeal(int id)
         {
             Player p;
