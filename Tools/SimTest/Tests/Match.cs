@@ -568,7 +568,7 @@ static partial class Program
         Check(ok, "a recorded session has waves, the boss fight, damage sources, picks and samples, as valid JSON");
         bool extra = true;
         var missing = new List<string>();
-        foreach (var key in new[] { "\"format\": 3", "\"mode\": \"run\"", "\"paths\"", "\"afterWave\": 5", "\"chosen\": \"", "\"healingReceivedFrom\"", "\"regeneration\"",
+        foreach (var key in new[] { "\"format\": 4", "\"mode\": \"run\"", "\"paths\"", "\"afterWave\": 5", "\"chosen\": \"", "\"healingReceivedFrom\"", "\"regeneration\"",
                                     "\"devTools\"", "bot plays for the host: on", "\"abilityMastery\"", "\"levelEnd\"" })
             if (!text.Contains(key)) { extra = false; missing.Add(key); }
         if (missing.Count > 0) Console.WriteLine("  missing: " + string.Join(" ", missing));

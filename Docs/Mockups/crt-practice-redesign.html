@@ -1,0 +1,387 @@
+<title>CRT Practice Range</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Practice Range redesign in the CRT lobby look. One dark CRT look by choice. A 1280x720 stage (the game canvas) scaled to fit.
+   Three screens (Practice builder, Training, Downed) x two layouts (A, B). Accent: cyan = Practice, amber = Training, red = Downed, mint = Respawn. */
+:root { --page: #05070f; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --f-crt: "VT323", "Courier New", monospace; --f-ui: "Rajdhani", system-ui, sans-serif; color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { background: var(--page); }
+body { margin: 0; color: var(--fg); font-family: var(--f-ui); padding-block: 28px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+h1 { font: 400 44px/1 var(--f-crt); letter-spacing: .06em; margin: 0 0 6px; color: #d6e6ff; text-shadow: 0 0 12px rgba(102,163,255,.55); }
+header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 76ch; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: center; }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span { font: 500 12px/1 var(--f-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #141b36; border: 1px solid var(--line); border-radius: 6px; padding: 7px 13px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: #5b8cff; color: #05102c; border-color: #5b8cff; }
+.seg:focus-visible, .k:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.note { font: 500 14px/1.5 var(--f-ui); color: var(--muted); max-width: 90ch; }
+.note b { color: #c9d6f7; }
+.view { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #02040c; }
+.stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden; font-family: var(--f-ui); background: #030814;
+  --ink: #66a3ff; --dim: #4068b8; --sbg: #030814; --glow: rgba(102,163,255,.5); --rim: #12203f; --red: #ff6b7a; --mint: #6dffb8; --cy: #5ff0ff; --am: #ffb347; --gold: #f2c14e; color: var(--ink); font-family: var(--f-crt); text-shadow: 0 0 6px var(--glow); }
+.stage * { box-sizing: border-box; }
+.a { position: absolute; }
+.deco { position: absolute; inset: 0; background: radial-gradient(70% 60% at 30% 15%, rgba(102,163,255,.1), transparent), var(--sbg); }
+.glass { position: absolute; inset: 0; z-index: 50; pointer-events: none; border-radius: 36px; box-shadow: inset 0 0 130px rgba(0,0,0,.7), inset 0 0 0 7px var(--rim), inset 0 0 0 9px var(--dim); background: repeating-linear-gradient(to bottom, rgba(0,0,0,.2) 0 1px, transparent 1px 3px); overflow: hidden; }
+.roll { position: absolute; left: 0; right: 0; height: 26%; background: linear-gradient(to bottom, transparent, rgba(255,255,255,.04), transparent); animation: roll 9s linear infinite; }
+@keyframes roll { from { top: -30%; } to { top: 110%; } }
+@keyframes blink { 50% { opacity: 0; } }
+.cur { display: inline-block; width: .5em; height: .72em; background: currentColor; margin-left: 4px; animation: blink 1s steps(1) infinite; }
+.panel { border: 1px solid rgba(102,163,255,.5); background: rgba(102,163,255,.04); }
+.panel::before, .panel::after { content: ""; position: absolute; width: 22px; height: 22px; border: 2px solid var(--c, var(--ink)); }
+.panel::before { left: -6px; top: -6px; border-right: 0; border-bottom: 0; } .panel::after { right: -6px; bottom: -6px; border-left: 0; border-top: 0; }
+.lab { font: 18px/1 var(--f-crt); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); text-shadow: none; }
+.hd { font: 25px/1 var(--f-crt); letter-spacing: .08em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: baseline; }
+.hd small { font: 500 13px var(--f-ui); letter-spacing: .04em; color: var(--dim); text-shadow: none; }
+.rule { height: 1px; background: color-mix(in srgb, var(--c, var(--ink)) 35%, transparent); }
+/* digital keys */
+.k { --c: var(--ink); font: 24px/1 var(--f-crt); letter-spacing: .05em; color: var(--c); background: color-mix(in srgb, var(--c) 8%, transparent); border: 2px solid var(--c); padding: 3px 8px 0; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px; text-shadow: 0 0 6px color-mix(in srgb, var(--c) 55%, transparent); white-space: nowrap; transition: background .1s, color .1s; }
+.k:hover, .k.sel { background: var(--c); color: var(--sbg); text-shadow: none; }
+.k.q { border-style: dashed; border-width: 1px; background: transparent; --c: var(--dim); text-shadow: none; }
+.k.q:hover { background: color-mix(in srgb, var(--c) 18%, transparent); color: var(--ink); }
+.k.lock { --c: var(--dim); border-style: dashed; cursor: not-allowed; opacity: .75; text-shadow: none; }
+.k.lock:hover { background: color-mix(in srgb, var(--c) 8%, transparent); color: var(--c); }
+.k .lamp { width: 9px; height: 9px; flex: none; background: currentColor; box-shadow: 0 0 8px currentColor; margin-top: -2px; }
+.k.off .lamp { background: transparent; border: 1px solid currentColor; box-shadow: none; }
+.k small { font: 500 12px var(--f-ui); letter-spacing: .02em; opacity: .85; text-shadow: none; }
+.k.mk { font-size: 17px; letter-spacing: 0; padding: 3px 1px 0; }
+.k.two { flex-direction: column; gap: 3px; } .k.two b { font: 400 28px/.9 var(--f-crt); letter-spacing: .06em; } .k.two small { font-size: 13px; }
+.k .kb { font: 16px/1 var(--f-crt); border: 1px solid currentColor; padding: 2px 5px 0; letter-spacing: 0; }
+.cy { --c: var(--cy); --glow: rgba(95,240,255,.5); } .am { --c: var(--am); } .rd { --c: var(--red); } .mt { --c: var(--mint); }
+/* panels */
+.card { border: 2px solid #b36bff; box-shadow: 0 0 18px rgba(179,107,255,.45), inset 0 0 18px rgba(179,107,255,.2); background: #120626; overflow: hidden; }
+.card .nm { position: absolute; left: 84px; top: 8px; font: 700 24px/1 var(--f-ui); color: #d9a8ff; text-shadow: none; }
+.card .cl { position: absolute; left: 84px; top: 36px; font: 700 17px/1 var(--f-ui); color: #7fb2ff; text-shadow: none; }
+.card .lo { position: absolute; left: 84px; top: 58px; font: 500 14px/1 var(--f-ui); color: #c3cdf0; text-shadow: none; }
+.tag { position: absolute; top: 8px; font: 700 12px/1 var(--f-ui); letter-spacing: .08em; padding: 3px 6px 2px; border-radius: 3px; text-shadow: none; }
+.slot { border: 2px dashed rgba(102,163,255,.35); background: rgba(102,163,255,.03); text-align: center; }
+/* enemy tiles */
+.et { position: absolute; width: 100px; height: 50px; border: 1px solid color-mix(in srgb, var(--ink) 30%, transparent); background: color-mix(in srgb, var(--ink) 6%, transparent); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; text-shadow: none; }
+.et svg { width: 24px; height: 24px; filter: drop-shadow(0 0 4px var(--g)); } .et span { font: 16px/1 var(--f-crt); letter-spacing: .03em; color: #b9c8ee; white-space: nowrap; }
+.et:hover { border-color: var(--cy); background: color-mix(in srgb, var(--cy) 12%, transparent); }
+.et.h { flex-direction: row; justify-content: flex-start; gap: 6px; padding-left: 7px; } .et.h span { font-size: 15px; letter-spacing: 0; overflow: hidden; } .et.h svg { width: 20px; height: 20px; flex: none; } .et.h .n { top: 8px; }
+.et.on { border: 2px solid var(--cy); background: color-mix(in srgb, var(--cy) 14%, transparent); } .et.on span { color: #fff; }
+.et .n { position: absolute; right: 3px; top: 2px; font: 19px/1 var(--f-crt); color: var(--cy); }
+.et.boss { border-color: color-mix(in srgb, var(--gold) 45%, transparent); } .et.boss span { color: #e8d08a; }
+.wv { position: absolute; border: 1px solid color-mix(in srgb, var(--ink) 35%, transparent); background: color-mix(in srgb, var(--ink) 5%, transparent); cursor: pointer; text-shadow: none; padding: 7px 9px; }
+.wv.on { border: 2px solid var(--cy); background: color-mix(in srgb, var(--cy) 12%, transparent); padding: 6px 8px; }
+.wv .t { font: 22px/1 var(--f-crt); letter-spacing: .06em; color: #dbe6ff; display: flex; justify-content: space-between; } .wv .t i { font-style: normal; color: var(--cy); }
+.wv .c { font: 500 13px/1.25 var(--f-ui); color: #8ea0cc; margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.step { display: flex; align-items: center; gap: 6px; } .step .v { min-width: 44px; text-align: center; font: 30px/1 var(--f-crt); color: #fff; text-shadow: 0 0 8px rgba(255,255,255,.4); }
+.input { border: 1px solid var(--dim); background: #050c1e; font: 22px/1 var(--f-crt); color: #dbe6ff; padding: 6px 10px 3px; text-shadow: none; }
+.blurb { font: 500 15px/1.3 var(--f-ui); color: #c2cde8; text-shadow: none; } .blurb b { font: 22px var(--f-crt); letter-spacing: .05em; color: var(--cy); margin-right: 8px; }
+.row { position: absolute; display: flex; align-items: center; gap: 8px; text-shadow: none; padding: 0 8px; border-bottom: 1px dashed color-mix(in srgb, var(--ink) 22%, transparent); }
+.row svg { width: 24px; height: 24px; flex: none; } .row b { font: 22px/1 var(--f-crt); color: #dbe6ff; letter-spacing: .04em; flex: 1; }
+.cart { position: absolute; border: 2px solid var(--c); background: color-mix(in srgb, var(--c) 7%, transparent); cursor: pointer; text-shadow: none; padding: 8px 10px; --c: var(--am); }
+.cart:hover, .cart.on { background: color-mix(in srgb, var(--c) 18%, transparent); box-shadow: 0 0 14px color-mix(in srgb, var(--c) 40%, transparent); }
+.cart b { display: block; font: 20px/1 var(--f-crt); letter-spacing: .05em; color: #fff; } .cart span { display: block; margin-top: 5px; font: 500 12px/1.2 var(--f-ui); color: #c0cbe6; }
+.cart .st { position: absolute; right: 7px; bottom: 7px; font: 700 11px/1 var(--f-ui); letter-spacing: .1em; padding: 3px 5px 2px; background: color-mix(in srgb, var(--c) 25%, transparent); color: var(--c); }
+.cart.empty { border: 1px dashed color-mix(in srgb, var(--ink) 40%, transparent); background: transparent; --c: var(--dim); cursor: default; } .cart.empty:hover { box-shadow: none; background: transparent; }
+.cart.empty b { color: var(--dim); font-size: 18px; } .cart.empty span { color: #5d6e99; }
+.chk { display: flex; gap: 8px; align-items: flex-start; font: 500 15px/1.25 var(--f-ui); color: #cfd9f3; text-shadow: none; margin-bottom: 6px; } .chk i { width: 12px; height: 12px; border: 1px solid var(--am); margin-top: 2px; flex: none; }
+.scene { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hudchip { position: absolute; font: 18px/1 var(--f-crt); letter-spacing: .1em; padding: 5px 10px 3px; border: 1px solid var(--cy); color: var(--cy); background: rgba(3,8,20,.85); }
+@keyframes glitch { 0%, 90%, 100% { transform: none; } 92% { transform: translate(-3px, 0); } 94% { transform: translate(3px, 1px); } 96% { transform: translate(-1px, -1px); } }
+.glitch { animation: glitch 3.2s infinite; }
+@media (prefers-reduced-motion: reduce) { .roll, .cur, .glitch { animation: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>PRACTICE RANGE REDESIGN</h1>
+    <p>The lobby's Practice mode rebuilt in the CRT look, split into two sections: <b>Practice</b> (build your own waves) and <b>Training</b> (short mechanic drills, groundwork only for now). Plus the Downed screen with a Respawn option. Pick a layout for each screen.</p>
+  </header>
+  <div class="bar">
+    <div class="grp"><span>Screen</span>
+      <button class="seg" data-v="build" aria-pressed="true">1 · PRACTICE</button>
+      <button class="seg" data-v="train" aria-pressed="false">2 · TRAINING</button>
+      <button class="seg" data-v="down" aria-pressed="false">3 · DOWNED</button></div>
+    <div class="grp"><span>Layout</span>
+      <button class="seg" data-l="A" aria-pressed="true">A</button>
+      <button class="seg" data-l="B" aria-pressed="false">B</button></div>
+  </div>
+  <div class="note" id="desc"></div>
+  <div class="view" id="view"><div class="stage" id="stage"></div></div>
+  <div class="note" id="legend"></div>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var stage = $("stage"), view = $("view"), V = "build", L = "A", selWave = 0, filter = "ALL", cart = 0;
+
+  /* ---------- enemy glyphs ---------- */
+  var SH = { tri: "12,3 21,20 3,20", hex: "12,2 21,7 21,17 12,22 3,17 3,7", dia: "12,2 22,12 12,22 2,12", sq: "4,4 20,4 20,20 4,20", pent: "12,2 22,10 18,22 6,22 2,10",
+    cross: "9,3 15,3 15,9 21,9 21,15 15,15 15,21 9,21 9,15 3,15 3,9 9,9", star: "12,1 15,8 23,9 17,14 19,22 12,18 5,22 7,14 1,9 9,8", wtri: "12,5 22,19 2,19", oct: "8,3 16,3 21,8 21,16 16,21 8,21 3,16 3,8" };
+  function glyph(shape, col) {
+    var inner = shape === "circ" ? '<circle cx="12" cy="12" r="9" fill="' + col + '33" stroke="' + col + '" stroke-width="2"/>'
+      : shape === "ring" ? '<circle cx="12" cy="12" r="8" fill="none" stroke="' + col + '" stroke-width="3"/>'
+      : '<polygon points="' + SH[shape] + '" fill="' + col + '33" stroke="' + col + '" stroke-width="2" stroke-linejoin="round"/>';
+    return '<svg viewBox="0 0 24 24" style="--g:' + col + '88">' + inner + "</svg>";
+  }
+  var E = [
+    ["Spiker","star","#ff9a4d","Melee","Charges in, spikes out."],["Brute","oct","#ff6b4d","Melee","Slow and tough. Hits hard up close."],["Lunger","star","#ff4d9a","Melee","Winds up, then lunges at you."],["Riot Shield","hex","#7fd0ff","Melee","Walks behind a shield that stops your shots."],
+    ["Shambler","wtri","#7fe08a","Melee","Slow zombie. Hits hard."],["Runner","tri","#d6e64d","Melee","Fast and narrow. Comes in packs."],["Crawler","dia","#5fd0a0","Melee","Grabs and roots you until shot."],["Bloater","circ","#c8d64d","Melee","Bursts into a slowing cloud."],
+    ["Buzzsaw","star","#4dd0ff","Melee","Spinning blade that bounces off walls."],["Grunt","tri","#ff6b7a","Melee","Walks at you and fires single shots."],["Swarmer","circ","#e6e6ff","Melee","Weak but many."],["Swordsman","tri","#ff8a5f","Melee","Closes in and slashes."],
+    ["Charger","tri","#4dd8e8","Melee","Telegraphs, then rams in a line."],["Splitter","dia","#9be64d","Melee","Breaks into Shards when killed."],["Shard","tri","#e6e64d","Melee","Small fast fragment."],["Phantom","hex","#9bd0ff","Melee","Fades in and out of reach."],
+    ["Burster","hex","#b44dff","Ranged","Fires bursts of three."],["Sniper","sq","#ffd24d","Ranged","Long range, one hard shot."],["Spinner","pent","#ff9a3d","Ranged","Sprays a rotating ring."],["Mortar","circ","#ff8a3d","Ranged","Lobs shells onto your spot."],
+    ["Shielder","ring","#9bb4ff","Ranged","Gives allies a bullet shield."],["Medic","cross","#ff4dc8","Ranged","Heals other enemies."],["Gas Grenadier","oct","#9be64d","Ranged","Throws gas that burns."],["Spitter","pent","#6fe08a","Ranged","Lobs acid that slows."],
+    ["Shrieker","dia","#d6e64d","Ranged","Screams: nearby enemies speed up."],["Mender","cross","#6fe08a","Ranged","Heals zombies near it."],["Hexer","hex","#b44dff","Late","Curses: your cooldowns slow."],["Juggernaut","ring","#aab4c8","Late","Huge. Soaks a lot."],
+    ["Nest","hex","#7fe08a","Late","Spawns small enemies."],["Beam Sentry","hex","#4dd8e8","Late","Sweeps a beam across the floor."],["Scorcher","pent","#ff9a3d","Late","Leaves fire trails."],["Reaver","star","#ff4d4d","Late","Fast melee, bleeds you."],
+    ["Warder","oct","#b4a0ff","Late","Shields the enemies near it."],["Pauser","hex","#4dd0c8","Late","Briefly freezes your abilities."],["Leader","tri","#ff4dc8","Late","Buffs the pack around it."],["Stitcher","pent","#e6c84d","Late","Pulls enemies back to life."],
+    ["The Warden","oct","#f2c14e","Boss","Armoured boss with a bullet ring."],["Hive Queen","hex","#f2c14e","Boss","Calls bombers and eggs."],["Twin Reapers","star","#f2c14e","Boss","Two bosses at once."],["Singularity","ring","#f2c14e","Boss","Gravity wells pull you in."],
+    ["Colossus","oct","#f2c14e","Boss","Three stages, each tougher."],["Duelist","dia","#f2c14e","Boss","Fast blades, parry window."],["Lich","pent","#f2c14e","Boss","Phylactery keeps it alive."],["Storm Herald","star","#f2c14e","Boss","Lightning across the arena."],
+    ["Devourer","circ","#f2c14e","Boss","Eats the floor."],["Eclipse","ring","#f2c14e","Boss","Blots out the light."]
+  ];
+  var counts = { "Grunt": 5 };
+  var WAVES = [{ lv: 1, c: { "Grunt": 5 } }, { lv: 8, c: { "Sniper": 2, "Charger": 3, "Medic": 1 } }, { lv: 20, c: { "The Warden": 1, "Medic": 2 } }, { lv: 35, c: { "Reaver": 4, "Hexer": 2, "Juggernaut": 1 } }];
+  function wc(w) { var s = []; for (var k in w.c) s.push(k + " ×" + w.c[k]); return s.join(" · "); }
+  function tot(w) { var n = 0; for (var k in w.c) n += w.c[k]; return n; }
+  function find(n) { for (var i = 0; i < E.length; i++) if (E[i][0] === n) return E[i]; }
+
+  /* ---------- shared bits ---------- */
+  function key(x, y, w, h, label, cls, extra) { return '<div class="a k ' + (cls || "") + '" style="left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + h + 'px" ' + (extra || "") + ">" + label + "</div>"; }
+  function sk(t) { return '<div class="k q" style="position:relative;width:34px;height:30px;padding:0">' + t + "</div>"; }
+  function lamp(on) { return '<i class="lamp"></i>'; }
+  function lobbyLeft(modeSub) {
+    var s = "";
+    s += key(36, 34, 56, 44, "‹", "", "");
+    s += '<div class="a lab" style="left:112px;top:46px;font-size:22px;letter-spacing:.3em;color:#9fc0ff">LOBBY</div>';
+    s += key(36, 96, 78, 40, "GAUNTLET", "mk");
+    s += key(116, 96, 80, 40, "BOSS HUNT", "rd mk");
+    s += key(198, 96, 78, 40, "PRACTICE", "cy sel mk");
+    s += '<div class="a lab" style="left:36px;top:' + (modeSub ? 262 : 158) + 'px">PARTY (1/3)</div>';
+    s += key(188, modeSub ? 254 : 150, 88, 28, "HANGOUT ›", "q");
+    var py = modeSub ? 284 : 180;
+    s += '<div class="a card" style="left:36px;top:' + py + 'px;width:240px;height:88px"><div class="a" style="left:8px;top:10px;width:64px;height:64px;border:2px solid #5a3a8a;background:rgba(10,6,28,.7)"></div><div class="nm">Aleon</div><div class="cl">Soldier Tank</div><div class="lo">Scattergun · Barrier</div><div class="tag" style="right:50px;background:#8a6a1f;color:#ffe08a">HOST</div><div class="tag" style="right:8px;background:#2f4aa6;color:#cfe0ff">YOU</div></div>';
+    s += '<div class="a slot" style="left:36px;top:' + (py + 98) + 'px;width:240px;height:70px"><div class="lab" style="margin-top:8px">OPEN SLOT</div>' + key(60, 30, 120, 26, "+ ADD A BOT", "q").replace("position:absolute;", "") + "</div>";
+    s += '<div class="a slot" style="left:36px;top:' + (py + 176) + 'px;width:240px;height:70px"><div class="lab" style="margin-top:8px">OPEN SLOT</div>' + key(60, 30, 120, 26, "+ ADD A BOT", "q").replace("position:absolute;", "") + "</div>";
+    s += key(36, 556, 240, 52, "✔ READY?", "");
+    s += key(36, 616, 240, 52, "▶ START", "lock");
+    return s;
+  }
+  function frame(inner) {
+    return '<div class="deco"></div>' + inner + '<div class="glass"><div class="roll"></div></div>';
+  }
+  function footer(y, accent) {
+    var s = "";
+    s += '<div class="a rule" style="left:300px;top:' + (y - 8) + 'px;width:944px"></div>';
+    s += '<div class="a lab" style="left:312px;top:' + (y + 14) + 'px">SETUP</div>';
+    s += '<div class="a input" style="left:376px;top:' + (y + 4) + 'px;width:210px;height:34px">my practice<span class="cur"></span></div>';
+    s += key(594, y + 4, 72, 34, "SAVE", "mt") + key(672, y + 4, 72, 34, "LOAD", "") + key(750, y + 4, 96, 34, "FOLDER", "q");
+    s += key(856, y + 4, 168, 34, "<i class='lamp'></i>LEVEL-UPS ON", "cy", 'title="Level-up picks between waves"');
+    s += '<div class="a" style="left:1034px;top:' + (y + 2) + 'px;width:210px;text-align:right;font:20px/1 var(--f-crt);letter-spacing:.05em;color:var(--mint)"><span style="color:var(--mint)">● RANK XP: 0</span><br><span style="font-size:16px;color:var(--dim);text-shadow:none">NOTHING SAVED TO PROFILE</span></div>';
+    return s;
+  }
+  function tabs(active, sub) {
+    var s = "", x = 300, defs = sub ? [["LOADOUT", 120], ["DIFFICULTY", 130], ["MODIFIERS", 130], ["WAVES", 120]] : [["LOADOUT", 112], ["DIFFICULTY", 124], ["MODIFIERS", 124], ["PRACTICE", 124], ["TRAINING", 124]];
+    defs.forEach(function (d) {
+      var cls = d[0] === "PRACTICE" || d[0] === "WAVES" ? "cy" : d[0] === "TRAINING" ? "am" : "";
+      s += key(x, 28, d[1], 34, d[0], cls + (d[0] === active ? " sel" : ""), 'data-go="' + d[0] + '"');
+      x += d[1] + 8;
+    });
+    s += '<div class="a lab" style="right:36px;top:38px;left:auto;text-align:right;color:var(--mint)">● NO XP · RESPAWN ON</div>';
+    return s;
+  }
+  function enemyTile(e, x, y, w, h, horiz) {
+    var n = (WAVES[selWave].c[e[0]]) || 0;
+    return '<div class="et' + (horiz ? " h" : "") + (n ? " on" : "") + (e[3] === "Boss" ? " boss" : "") + '" style="left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + h + 'px" data-en="' + e[0] + '">' + (n ? '<div class="n">×' + n + "</div>" : "") + glyph(e[1], e[2]) + "<span>" + e[0] + "</span></div>";
+  }
+
+  /* ---------- 1 · PRACTICE ---------- */
+  function build() {
+    var s = lobbyLeft(L === "B");
+    if (L === "B") {
+      s += '<div class="a lab" style="left:36px;top:150px;color:var(--cy)">PRACTICE MODE</div>';
+      s += key(36, 172, 118, 66, "<b>SANDBOX</b><small>build waves</small>", "cy two sel", 'data-go="PRACTICE"');
+      s += key(158, 172, 118, 66, "<b>TRAINING</b><small>mechanic drills</small>", "am two", 'data-go="TRAINING"');
+    }
+    s += '<div class="a panel" style="left:300px;top:20px;width:944px;height:680px;--c:var(--cy)"></div>';
+    s += tabs(L === "A" ? "PRACTICE" : "WAVES", L === "B");
+    var W = WAVES[selWave], top = 76;
+    if (L === "A") {
+      // wave rack (left), enemy library (right)
+      s += '<div class="a hd" style="left:314px;top:' + top + 'px;width:210px"><span>WAVES</span><small>' + WAVES.length + '</small></div><div class="a rule" style="left:314px;top:' + (top + 28) + 'px;width:210px"></div>';
+      WAVES.forEach(function (w, i) {
+        s += '<div class="wv' + (i === selWave ? " on" : "") + '" data-w="' + i + '" style="left:314px;top:' + (top + 40 + i * 72) + 'px;width:210px;height:66px"><div class="t"><span>WAVE ' + (i + 1) + '</span><i>LV ' + (w.lv < 10 ? "0" : "") + w.lv + '</i></div><div class="c">' + tot(w) + " enemies · " + wc(w) + "</div></div>";
+      });
+      s += key(314, 432, 64, 32, "+ ADD", "mt") + key(382, 432, 62, 32, "COPY", "") + key(448, 432, 76, 32, "REMOVE", "rd");
+      s += '<div class="a lab" style="left:314px;top:486px;font-size:16px">LEVEL · HEALTH + FIRE RATE</div>';
+      s += '<div class="a step" style="left:314px;top:508px">' + sk("−5") + sk("−1") + '<div class="v">' + W.lv + "</div>" + sk("+1") + sk("+5") + "</div>";
+      s += key(314, 552, 210, 32, "<i class='lamp'></i>LOOP THE WAVES", "off cy");
+      s += '<div class="a" style="left:538px;top:66px;width:1px;height:520px;background:rgba(102,163,255,.25)"></div>';
+      // library
+      s += '<div class="a hd" style="left:552px;top:' + top + 'px;width:682px"><span>ENEMIES IN WAVE ' + (selWave + 1) + ' · ' + tot(W) + '</span><small>CLICK + · RIGHT-CLICK −</small></div><div class="a rule" style="left:552px;top:' + (top + 28) + 'px;width:682px"></div>';
+      var y = top + 40, grp = "";
+      ["Melee", "Ranged", "Late", "Boss"].forEach(function (g) {
+        var list = E.filter(function (e) { return e[3] === g; });
+        s += '<div class="a lab" style="left:552px;top:' + y + 'px;' + (g === "Boss" ? "color:var(--gold)" : "") + '">' + (g === "Boss" ? "BOSSES · THEY BRING THEIR USUAL ADDS" : g === "Late" ? "LATE GAME" : g.toUpperCase()) + "</div>";
+        y += 20;
+        list.forEach(function (e, i) { s += enemyTile(e, 552 + (i % 6) * 114, y + Math.floor(i / 6) * 38, 108, 34, true); });
+        y += Math.ceil(list.length / 6) * 38 + 8;
+      });
+    } else {
+      // wave strip on top
+      s += '<div class="a lab" style="left:314px;top:72px">WAVES</div>';
+      WAVES.forEach(function (w, i) {
+        s += '<div class="wv' + (i === selWave ? " on" : "") + '" data-w="' + i + '" style="left:' + (314 + i * 126) + 'px;top:92px;width:120px;height:50px"><div class="t"><span>W' + (i + 1) + '</span><i>LV ' + w.lv + '</i></div><div class="c" style="margin-top:2px">' + tot(w) + " enemies</div></div>";
+      });
+      s += key(314 + WAVES.length * 126, 92, 60, 50, "+", "mt", "") + key(314 + WAVES.length * 126 + 66, 92, 74, 50, "COPY", "") + key(314 + WAVES.length * 126 + 146, 92, 80, 50, "REMOVE", "rd");
+      s += '<div class="a rule" style="left:314px;top:152px;width:916px"></div>';
+      // roster
+      s += '<div class="a hd" style="left:314px;top:162px;width:290px"><span>WAVE ' + (selWave + 1) + ' ROSTER</span><small>' + tot(W) + ' TOTAL</small></div>';
+      var i = 0;
+      for (var n in W.c) {
+        var e = find(n);
+        s += '<div class="row" style="left:314px;top:' + (198 + i * 42) + 'px;width:290px;height:38px">' + glyph(e[1], e[2]) + "<b>" + n + "</b>" + '<div class="step" style="gap:3px"><div class="k q" style="position:relative;width:26px;height:26px;padding:0">−</div><div class="v" style="min-width:30px;font-size:24px">' + W.c[n] + '</div><div class="k q" style="position:relative;width:26px;height:26px;padding:0">+</div></div></div>';
+        i++;
+      }
+      if (!i) s += '<div class="a lab" style="left:314px;top:204px">EMPTY · PICK AN ENEMY →</div>';
+      s += '<div class="a lab" style="left:314px;top:486px;font-size:16px">LEVEL · HEALTH + FIRE RATE</div>';
+      s += '<div class="a step" style="left:314px;top:508px">' + sk("−5") + sk("−1") + '<div class="v">' + W.lv + "</div>" + sk("+1") + sk("+5") + "</div>";
+      s += key(314, 552, 290, 32, "<i class='lamp'></i>LOOP THE WAVES", "off cy");
+      s += '<div class="a" style="left:618px;top:162px;width:1px;height:424px;background:rgba(102,163,255,.25)"></div>';
+      // library with filter
+      s += '<div class="a hd" style="left:634px;top:162px;width:596px"><span>LIBRARY</span><small>' + E.length + ' ENEMIES</small></div>';
+      var fx = 634;
+      ["ALL", "MELEE", "RANGED", "LATE", "BOSS"].forEach(function (f) { var w = f === "ALL" ? 56 : f === "RANGED" ? 80 : 68; s += key(fx, 194, w, 28, f, (filter === f ? "sel " : "") + (f === "BOSS" ? "" : ""), 'data-f="' + f + '"'); fx += w + 6; });
+      s += '<div class="a input" style="left:1000px;top:194px;width:210px;height:28px;padding-top:4px;font-size:19px;color:var(--dim)">FILTER<span class="cur"></span></div>';
+      var list = E.filter(function (e) { return filter === "ALL" || e[3].toUpperCase() === filter; });
+      list.slice(0, 30).forEach(function (e, i) { s += enemyTile(e, 634 + (i % 5) * 120, 232 + Math.floor(i / 5) * 56, 114, 50); });
+      if (list.length > 30) s += '<div class="a lab" style="left:634px;top:572px;color:var(--cy)">▼ SCROLL FOR ' + (list.length - 30) + ' MORE</div>';
+    }
+    // info strip + footer
+    s += '<div class="a" style="left:314px;top:594px;width:916px;height:34px;border:1px solid rgba(102,163,255,.25);background:rgba(0,0,0,.25);padding:6px 10px" id="info"><div class="blurb"><b>HOVER</b>Move over an enemy to see what it does.</div></div>';
+    s += footer(644);
+    return frame(s);
+  }
+
+  /* ---------- 2 · TRAINING ---------- */
+  var CATS = [
+    ["MOVE & DODGE", [["Dodge Basics", "Slip through three bullet patterns."], ["Dash Timing", ""], ["Wall Play", ""], ["", ""]]],
+    ["WEAPONS", [["Melee Chains", "Land a full combo on a dummy."], ["", ""], ["", ""], ["", ""]]],
+    ["ABILITIES", [["Parry Practice", "Parry ten shots in a row."], ["Ultimate Timing", ""], ["", ""], ["", ""]]],
+    ["ENEMIES", [["Know Your Foes", "Meet each enemy type alone."], ["", ""], ["", ""], ["", ""]]],
+    ["CO-OP", [["Revive Drill", "Pick up a downed ally."], ["", ""], ["", ""], ["", ""]]]
+  ];
+  function train() {
+    var s = lobbyLeft(L === "B");
+    if (L === "B") {
+      s += '<div class="a lab" style="left:36px;top:150px;color:var(--am)">PRACTICE MODE</div>';
+      s += key(36, 172, 118, 66, "<b>SANDBOX</b><small>build waves</small>", "cy two", 'data-go="PRACTICE"');
+      s += key(158, 172, 118, 66, "<b>TRAINING</b><small>mechanic drills</small>", "am two sel", 'data-go="TRAINING"');
+    }
+    s += '<div class="a panel" style="left:300px;top:20px;width:944px;height:680px;--c:var(--am)"></div>';
+    s += tabs(L === "A" ? "TRAINING" : "", L === "B");
+    s += '<div class="a hd" style="left:314px;top:76px;width:620px;color:var(--am)"><span>TRAINING</span><small>SHORT DRILLS · ONE MECHANIC EACH</small></div><div class="a rule" style="left:314px;top:104px;width:620px;--c:var(--am)"></div>';
+    var y = 114, idx = 0;
+    CATS.forEach(function (c) {
+      s += '<div class="a lab" style="left:314px;top:' + y + 'px;color:#c98a3a">' + c[0] + "</div>";
+      c[1].forEach(function (d, i) {
+        var filled = !!d[0] && d[1], x = 314 + i * 156, id = idx++;
+        if (filled) s += '<div class="cart' + (id === cart ? " on" : "") + '" data-c="' + id + '" style="left:' + x + 'px;top:' + (y + 18) + 'px;width:150px;height:78px"><div class="st">EXAMPLE</div><b>' + d[0].toUpperCase() + "</b><span>" + d[1] + "</span></div>";
+        else s += '<div class="cart empty" style="left:' + x + 'px;top:' + (y + 18) + 'px;width:150px;height:78px"><b>EMPTY SLOT</b><span>' + (d[0] ? "Planned: " + d[0] : "Drill goes here") + "</span></div>";
+      });
+      y += 98;
+    });
+    // detail
+    var sel = null, k = 0;
+    CATS.forEach(function (c) { c[1].forEach(function (d) { if (k++ === cart) sel = d; }); });
+    sel = sel && sel[1] ? sel : CATS[0][1][0];
+    s += '<div class="a" style="left:954px;top:76px;width:1px;height:526px;background:rgba(255,179,71,.3)"></div>';
+    s += '<div class="a" style="left:970px;top:76px;width:262px;text-shadow:none"><div class="lab" style="color:#c98a3a">DRILL</div><div style="font:34px/1 var(--f-crt);letter-spacing:.05em;color:#fff;margin:6px 0 4px;text-shadow:0 0 8px rgba(255,179,71,.4)">' + sel[0].toUpperCase() + '</div><div class="blurb" style="color:#cfd9f3">' + sel[1] + '</div>' +
+      '<div class="lab" style="color:#c98a3a;margin:18px 0 8px">GOALS</div><div class="chk"><i></i>Clear three bullet patterns without a hit</div><div class="chk"><i></i>Dash through one volley</div><div class="chk"><i></i>Finish under 2:00</div>' +
+      '<div class="lab" style="color:#c98a3a;margin:16px 0 8px">RULES</div><div class="chk" style="color:var(--mint)"><i style="border-color:var(--mint)"></i>No XP · respawn on</div><div class="chk"><i></i>Fixed loadout (set by the drill)</div><div class="chk"><i></i>Solo or with the lobby</div></div>';
+    s += key(970, 534, 262, 56, "▶ START DRILL", "am");
+    s += '<div class="a" style="left:314px;top:644px;width:916px;border-top:1px solid rgba(255,179,71,.3);padding-top:10px;font:500 14px/1.3 var(--f-ui);color:var(--dim);text-shadow:none">GROUNDWORK: each drill is one data file in <b style="color:#c98a3a">Data/Training/</b> (name, group, goal, enemies, loadout, goals). Empty slots fill themselves as drills are added. Entries marked EXAMPLE are placeholders.</div>';
+    return frame(s);
+  }
+
+  /* ---------- 3 · DOWNED ---------- */
+  function drawScene(c) {
+    var x = c.getContext("2d"), w = c.width, h = c.height, r = 7;
+    function rnd() { r = (r * 16807) % 2147483647; return r / 2147483647; }
+    x.fillStyle = "#050a18"; x.fillRect(0, 0, w, h);
+    x.strokeStyle = "rgba(102,163,255,.08)"; x.lineWidth = 1;
+    for (var i = 0; i < w; i += 64) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, h); x.stroke(); }
+    for (var j = 0; j < h; j += 64) { x.beginPath(); x.moveTo(0, j); x.lineTo(w, j); x.stroke(); }
+    x.strokeStyle = "rgba(102,163,255,.35)"; x.lineWidth = 3; x.strokeRect(70, 60, w - 140, h - 120);
+    // enemies + bullets
+    for (var e = 0; e < 9; e++) {
+      var ex = 140 + rnd() * (w - 280), ey = 110 + rnd() * (h - 220);
+      x.fillStyle = "#ff6b7a33"; x.strokeStyle = "#ff6b7a"; x.lineWidth = 2; x.beginPath(); x.moveTo(ex, ey - 16); x.lineTo(ex + 14, ey + 12); x.lineTo(ex - 14, ey + 12); x.closePath(); x.fill(); x.stroke();
+    }
+    x.fillStyle = "#ffd24d"; for (var b = 0; b < 46; b++) { x.beginPath(); x.arc(160 + rnd() * (w - 320), 100 + rnd() * (h - 200), 3, 0, 7); x.fill(); }
+    // the fallen player
+    var px = w * .42, py = h * .46;
+    x.strokeStyle = "#ff6b7a"; x.lineWidth = 2; x.setLineDash([5, 5]); x.beginPath(); x.arc(px, py, 34, 0, 7); x.stroke(); x.setLineDash([]);
+    x.fillStyle = "#66a3ff55"; x.strokeStyle = "#66a3ff"; x.beginPath(); x.arc(px, py, 16, 0, 7); x.fill(); x.stroke();
+    x.strokeStyle = "#ff6b7a"; x.beginPath(); x.moveTo(px - 8, py - 8); x.lineTo(px + 8, py + 8); x.moveTo(px + 8, py - 8); x.lineTo(px - 8, py + 8); x.stroke();
+    x.fillStyle = "rgba(60,0,10,.45)"; x.fillRect(0, 0, w, h);
+    var g = x.createRadialGradient(w / 2, h / 2, h * .3, w / 2, h / 2, h * .85); g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(30,0,6,.75)"); x.fillStyle = g; x.fillRect(0, 0, w, h);
+  }
+  function down() {
+    var s = '<div class="deco" style="background:#02040c"></div><canvas class="scene" id="sc" width="1280" height="720"></canvas>';
+    s += '<div class="hudchip" style="right:34px;top:30px;border-color:var(--mint);color:var(--mint)">PRACTICE · NO XP</div>';
+    s += '<div class="hudchip" style="left:34px;top:30px">PRACTICE WAVE 3 · LV 20</div>';
+    if (L === "A") {
+      s += '<div class="a panel" style="left:340px;top:200px;width:600px;height:320px;background:rgba(3,8,20,.94);--c:var(--red);border-color:rgba(255,107,122,.6)"></div>';
+      s += '<div class="a glitch" style="left:340px;top:214px;width:600px;text-align:center;font:72px/1 var(--f-crt);letter-spacing:.14em;color:var(--red);text-shadow:3px 0 rgba(95,240,255,.5),-3px 0 rgba(255,60,120,.6),0 0 18px rgba(255,107,122,.6)">DOWNED</div>';
+      s += '<div class="a lab" style="left:340px;top:292px;width:600px;text-align:center;color:#c46a74">NO PENALTY IN PRACTICE · WAVE KEEPS RUNNING</div>';
+      s += '<div class="a rule" style="left:370px;top:322px;width:540px;--c:var(--red)"></div>';
+      s += key(370, 340, 540, 60, "<span class='kb'>R</span> RESPAWN HERE", "mt", 'style="font-size:32px"');
+      s += key(370, 410, 262, 44, "RESTART WAVE", "cy") + key(648, 410, 262, 44, "BACK TO LOBBY", "q");
+      s += '<div class="a" style="left:340px;top:466px;width:600px;text-align:center;font:500 14px/1.3 var(--f-ui);color:var(--dim);text-shadow:none">Respawn: full health, 1.5 s shield, enemies stay where they are. In co-op each player respawns on their own.</div>';
+    } else {
+      s += '<div class="a" style="left:0;top:270px;width:1280px;height:170px;background:linear-gradient(90deg,transparent,rgba(40,4,12,.92) 12%,rgba(40,4,12,.92) 88%,transparent);border-top:2px solid var(--red);border-bottom:2px solid var(--red)"></div>';
+      s += '<div class="a glitch" style="left:0;top:282px;width:1280px;text-align:center;font:76px/1 var(--f-crt);letter-spacing:.3em;color:var(--red);text-shadow:3px 0 rgba(95,240,255,.5),-3px 0 rgba(255,60,120,.6),0 0 20px rgba(255,107,122,.6)">DOWNED</div>';
+      s += key(250, 374, 320, 48, "<span class='kb'>R</span> RESPAWN HERE", "mt", 'style="font-size:28px"') + key(580, 374, 230, 48, "RESTART WAVE", "cy") + key(820, 374, 210, 48, "BACK TO LOBBY", "q");
+    }
+    s += '<div class="glass" style="border-radius:0;background:repeating-linear-gradient(to bottom,rgba(0,0,0,.18) 0 1px,transparent 1px 3px);box-shadow:inset 0 0 120px rgba(0,0,0,.6)"><div class="roll"></div></div>';
+    return s;
+  }
+
+  /* ---------- wiring ---------- */
+  var DESC = {
+    build: { A: "<b>A · Wave rack.</b> Waves stack on the left with their level and a one-line roster; the library on the right keeps the six-column tile grid but groups by Melee, Ranged, Late and Boss. PRACTICE and TRAINING are two tab keys, so the mode's two sections sit beside Loadout and Modifiers.",
+      B: "<b>B · Timeline.</b> Waves run along the top like tracks. The selected wave's roster (with − / + steppers) sits on the left; the library on the right has filter keys and a search box, so it scales to more enemies. PRACTICE and TRAINING move under the mode key as a pair of big keys." },
+    train: { A: "<b>Training, tab layout.</b> Drill cartridges grouped by mechanic, one detail panel on the right. Entries marked EXAMPLE are placeholders; empty slots show where future drills go.",
+      B: "<b>Training, nested layout.</b> Same screen, reached from the pair of keys under the Practice mode key instead of a tab." },
+    down: { A: "<b>A · Console box.</b> A framed CRT window like the wave-cleared box, with the glitching DOWNED title and RESPAWN as the big primary key. The world keeps running behind it.",
+      B: "<b>B · Scan band.</b> The wide band from the wave banners in red, keys inline on one rail. Takes less of the screen, so you can see the arena while you decide." }
+  };
+  var LEG = {
+    build: "Rank XP: 0, already true today (Practice runs never reach the profile). <b>Open question:</b> in-run XP still levels you up for the upgrade picks between waves; the LEVEL-UPS key above is the option to turn that off.",
+    train: "Training uses the same no-XP, respawn-on rules. Drills would be data files, built later.",
+    down: "Respawn: full health, 1.5 s shield, the wave keeps running. Keyboard: R respawns, Enter restarts the wave. In co-op the Downed screen is per player, and teammates can still revive you."
+  };
+  function render() {
+    stage.innerHTML = V === "build" ? build() : V === "train" ? train() : down();
+    $("desc").innerHTML = DESC[V][L]; $("legend").innerHTML = LEG[V];
+    if (V === "down") drawScene($("sc"));
+    document.querySelectorAll("[data-v]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.v === V)); });
+    document.querySelectorAll("[data-l]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.l === L)); });
+  }
+  function fit() { var sc = view.clientWidth / 1280; stage.style.transform = "scale(" + sc + ")"; }
+  document.addEventListener("click", function (ev) {
+    var t = ev.target.closest("[data-v],[data-l],[data-w],[data-go],[data-f],[data-c]");
+    if (!t) return;
+    var d = t.dataset;
+    if (d.v) V = d.v; else if (d.l) L = d.l; else if (d.w) selWave = +d.w; else if (d.f) filter = d.f; else if (d.c) cart = +d.c;
+    else if (d.go === "TRAINING") V = "train"; else if (d.go === "PRACTICE" || d.go === "WAVES") V = "build"; else return;
+    render();
+  });
+  document.addEventListener("mouseover", function (ev) {
+    var t = ev.target.closest("[data-en]"), i = $("info");
+    if (!t || !i) return;
+    var e = find(t.dataset.en);
+    i.innerHTML = '<div class="blurb"><b>' + e[0].toUpperCase() + "</b>" + e[4] + "</div>";
+  });
+  window.addEventListener("resize", fit);
+  render(); fit();
+})();
+</script>

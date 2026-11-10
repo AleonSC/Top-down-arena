@@ -18,7 +18,8 @@ namespace Arena
         const float MarkFar = 700f;  // arena units past the view's edge where an arrow reaches its smallest
         static readonly Rect MarkArea = new Rect(20f, 80f, W - 40f, 590f - 80f);  // (below the boss bars and the top hints, above the console)
         static readonly Rgba MarkEnemy = new Rgba(1f, 0.32f, 0.3f), MarkElite = new Rgba(1f, 0.62f, 0.25f), MarkBoss = new Rgba(0.95f, 0.15f, 0.22f);
-        static readonly Rgba MarkRim = new Rgba(0.02f, 0.03f, 0.06f, 0.85f);
+        static readonly Rgba MarkChest = new Rgba(1f, 0.82f, 0.3f);
+        static readonly Rgba MarkRim= new Rgba(0.02f, 0.03f, 0.06f, 0.85f);
 
         readonly List<Enemy> markEnemies = new List<Enemy>();
         readonly List<float> markDist = new List<float>();
@@ -69,6 +70,15 @@ namespace Arena
                     MarkArrow(tip, (at - mid).Normalized(), size, col.WithAlpha(fade * (0.45f + 0.5f * near)));
                     if (boss)
                         Arc(tip - (at - mid).Normalized() * (size * 0.4f), size * 1.35f, 2f, col.WithAlpha(fade * 0.6f), 24);
+                }
+                foreach (var c in game.Props.Values)  // unopened treasure chests: a gold arrow with a ring
+                {
+                    if (c.Kind != PropKind.Chest || c.Open || c.Hp <= 0f || OffBy(ToUi(c.Pos), Game.ChestW * 0.5f * UiWorldScale) <= 0f)
+                        continue;
+                    V2 at = ToUi(c.Pos), dir = (at - mid).Normalized(), tip = EdgePoint(mid, at);
+                    float pulse = 0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 5f);
+                    MarkArrow(tip, dir, 12f, MarkChest.WithAlpha(fade * pulse));
+                    Arc(tip - dir * 5f, 16f, 2f, MarkChest.WithAlpha(fade * 0.55f * pulse), 24);
                 }
                 foreach (var p in game.Players.Values)
                 {

@@ -43,6 +43,7 @@ namespace Arena
         Carry,        // host -> all: (player id, where to, seconds, kind) a Knight ability carries a player (the Gauntlet's charge, Misericorde's leaps); only that player's own game moves them
         UltRequest,   // client -> host: the key picked on the lobby's Ultimate row (Session.SetUlt; LobbyEntry.Ult)
         NetPings,     // host -> all: every player's round trip to the host, once a second, for the lag chart (LagNet.cs, Game/LagChartUi.cs)
+        Respawn,      // client -> host: Practice Range only: kind 0 = get back up where you fell, 1 = restart the wave (the host's own only) (PracticeRespawn.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -102,7 +103,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 237;  // 237: Player.Wound in the snapshot (Combat.cs); 236: main (235) merged with the Rooms arena (233-234: DiffKnob.ArenaRooms, the layout byte's top bit, SyncRooms)
+        public const int ProtocolVersion = 238;  // 238: Msg.Respawn (the Practice Range's respawn and restart wave, PracticeRespawn.cs); 237: Player.Wound in the snapshot (Combat.cs); 236: main (235) merged with the Rooms arena (233-234: DiffKnob.ArenaRooms, the layout byte's top bit, SyncRooms)
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -562,6 +563,9 @@ namespace Arena
                     break;
                 case Msg.SetKey:
                     Game.OnSetKey(peer, r);
+                    break;
+                case Msg.Respawn:
+                    Game.OnRespawn(peer, r);
                     break;
                 case Msg.Dodge:
                     Game.OnDodge(peer, r);

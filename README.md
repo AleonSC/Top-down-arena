@@ -943,22 +943,35 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 ## Practice Range
 
 In the lobby the host picks **Run** (the normal 50 waves), **Boss Hunt** (above) or **Practice** (the Practice Range)
-at the top. Practice Range plays waves you build yourself, with everyone in the lobby, and upgrade picks between waves
-as usual.
+at the top. Practice has two sections, as tabs on the big screen: **Practice** (build your own waves) and **Training**
+(short mechanic drills). Whichever you use, it's with everyone in the lobby, with upgrade picks between waves as usual, and
+**no XP counts**: a Practice run never reaches your profile (no rank XP, records, unlocks or run history), and the header
+says `NO XP · RESPAWN ON`. (Level-ups inside the run still give their upgrade picks.)
 
-- **Practice waves** tab: add as many waves as you like (**+ Add**, **Copy**, **Remove**). Each has a **level**
-  (1-50) that sets how strong its enemies are: their health and fire rate as on that wave of a normal run.
+**Respawn.** There's no game over in the Practice Range. When you go down, a **DOWNED** window opens in the middle of the
+screen and the wave keeps running behind it:
+
+- **RESPAWN HERE** (**R**): you're back on your feet where you fell, at full health, with the usual 1.5 s of invulnerability.
+  Each player respawns on their own; teammates can still revive you instead.
+- **RESTART WAVE** (the host's; **Enter**): clears the arena and starts this wave again after a short countdown, with
+  everyone on their feet at full health.
+- **BACK TO LOBBY** (the host's): everyone beams out, as from the pause menu.
+
+### Practice tab
+
+- **Waves** (left): a rack of cards, each with its number, level and what's in it (**+ Add**, **Copy**, **Remove**). The
+  **level** (1-50) sets how strong its enemies are: their health and fire rate as on that wave of a normal run.
   Tick **Loop the waves** to go round again after the last one; otherwise the run ends with **PRACTICE COMPLETE**.
 - **Enemies:** every one of the 17 regular enemies and 10 bosses is shown moving, as in a match, so you don't
   need to know their names. Click one to add it to the selected wave, right-click (or its corner **-**) to take
   one away; hovering shows what it does. Bosses spawn first and bring their usual adds; the Twin Reapers come
   as a pair.
 - **Shared:** everyone in the lobby sees the waves change as they're edited, with the editor's name on the wave
-  they're working on (players who can't edit follow along to it). The host can tick **Let others edit** so
+  they're working on (players who can't edit follow along to it). The host can switch on **Let others edit** so
   friends can change the waves too.
 - Everyone keeps their own loadout (the **Loadout** tab).
 - **Save** writes the setup to a text file named after the name box, in the `practice` folder next to the
-  sessions folder (**Open folder** shows it). **Load** lists saved setups. The files are easy to edit by hand:
+  sessions folder (**Folder** shows it). **Load** lists saved setups. The files are easy to edit by hand:
 
   ```
   # Top-Down Arena practice setup: warden drills
@@ -969,6 +982,15 @@ as usual.
 
   One line per wave: `wave <level>:` then each enemy as `<name> x<count>` (the count defaults to 1). Names
   ignore case and "The". Unknown names are skipped and listed when you load.
+
+### Training tab
+
+Small, one-mechanic drills, laid out as cartridges in rows by group (**Move & Dodge**, **Weapons**, **Abilities**,
+**Enemies**, **Co-op**; four slots each, empty ones dashed). Click a drill to see its goal and steps, then **Load this drill**
+(the host's): its waves go into the Practice setup (so everyone sees them on the Practice tab), and Ready and Start play it
+with the rules above. This is groundwork: the built-in list has one placeholder drill marked **EXAMPLE**. Drills are
+`.training` text files: put them in the `training` folder (next to `practice`; **Folder** opens it, **Reload** re-reads it).
+The file is a Practice setup with a few extra lines first, and is documented in [`Docs/Training.md`](Docs/Training.md).
 
 ## Controls
 
@@ -996,10 +1018,10 @@ as usual.
 | Developer tools | F1 (see below) |
 | Kill every enemy on the field (dev, host) | X, once the F1 Match tab's kill-all key is on |
 | Camera lean on / off | Settings → Gameplay (on by default). The view eases a few percent toward where you aim and move; the arena and wrapping are unchanged |
-| Zoom in / out | Mouse scroll wheel during a match: up zooms in on you (up to 2x, the view follows you and stays inside the arena), down zooms back out to the whole arena. Eases back out when a run ends. While zoomed, arrows at the edge of the view point to everything off-screen: teammates in their colour with their name (pulsing red when downed), enemies in red (elites orange, bosses a big crimson arrow with a ring); nearer ones are bigger. Settings → Gameplay → Scroll-wheel zoom turns it off (on by default) |
+| Zoom in / out | Mouse scroll wheel during a match: up zooms in on you (up to 2x, the view follows you and stays inside the arena), down zooms back out to the whole arena. Eases back out when a run ends. While zoomed, arrows at the edge of the view point to everything off-screen: teammates in their colour with their name (pulsing red when downed), enemies in red (elites orange, bosses a big crimson arrow with a ring), and any unopened treasure chest in a pulsing gold arrow with a ring (also a gold square on the Rooms minimap); nearer ones are bigger. Settings → Gameplay → Scroll-wheel zoom turns it off (on by default) |
 | Teammate shots 25–100% | Settings → Gameplay (100% by default). How solid other players' bullets are drawn, so a crowd of them doesn't hide the fight; yours and the enemies' stay full. Local only, saved on your machine |
 | Aim line on / off | V (the line runs from you to the crosshair, but never past your weapon's range: as far as your shots fly, or your swing reaches; a small cap marks the end when the crosshair is beyond it) |
-| Hide / show the HUD | H, or Settings > Gameplay; the mode is remembered between launches (H cycles four modes: Full, Corner text (CRT phosphor readouts in bracket corners: health with a 20-cell bar bottom-left, each ability key over its seconds left (the ult's charge %) and its name at the bottom, the wave and enemies left top-right), On the player (a leader line from you to a small CRT tag with your health, a cell bar and a row per ability: its key, its name and its seconds left, green when ready, the ult's charge in gold; it switches sides near the left wall and the top, and hides while you're downed; the wave and enemies left at the top), Hidden; it slides away and fades, "Press H to show the HUD" stays faintly at the bottom while it's hidden, and a slim health bar for each boss stays at the top in every mode but Full; also a Settings choice) |
+| Hide / show the HUD | H, or Settings > Gameplay; the mode is remembered between launches (H cycles four modes: Full, Corner text (CRT phosphor readouts in bracket corners: health with a 20-cell bar bottom-left (teammates' health in slim rows above it), each ability key over its seconds left (the ult's charge %) and its name at the bottom, the wave and enemies left bottom-right, so the minimap keeps the top right), On the player (a leader line from you to a small CRT tag with your health, a cell bar and a row per ability: its key, its name and its seconds left, green when ready, the ult's charge in gold; it switches sides near the left wall and the top, and hides while you're downed; the wave and enemies left at the top), Hidden; it slides away and fades, "Press H to show the HUD" stays faintly at the bottom while it's hidden, and a slim health bar for each boss stays at the top in every mode but Full; also a Settings choice) |
 | Aim debug overlay | F3 |
 | Lag chart: off / pill / chart; freeze it; copy a summary | F5; Shift+F5; Ctrl+F5 (also Settings → Gameplay; see *Lag chart*, under *Playing with a friend*) |
 | DPS meter on / off (host); reset it | F2; Shift+F2 (see *DPS meter and target dummy*, below) |
@@ -1515,6 +1537,18 @@ the bottom of them shows what's on (wave, recording, bot, aim debug, players):
   **Rank 30** (every reward), **Max rank** (999) and **Reset** (rank 1). Cosmetics the new rank hasn't reached come off.
 - **DPS (host, in a match):** the DPS meter and target dummies, below.
 - **Replays:** record the runs you host and watch them back, below.
+- **Balance (host, in a normal run):** a five-wave test with your own build. Pick your loadout as usual, start a run, press
+  F1 > Balance, choose the **start wave** (1, 6, 11 ... 26), **who plays** (you, or the bot with your build for repeatable
+  runs), whether health refills between waves and whether to sample every second, then **Launch test**. It jumps to
+  that wave and starts a fresh recording; a small TEST strip with the wave pips shows at the top while it runs. When the fifth
+  wave clears (or you press **End test now**, or everyone goes down) a report opens: six tiles (result, time, damage dealt,
+  damage taken, downs, accuracy), tabs for **Waves**, **Weapons and abilities** (damage by source: your weapon, each ability's
+  own hit, burn/bleed/poison, ability and summon shots, and the rest), **Ability use**, **Enemies** (health, time alive, damage
+  to you), **Damage taken** and **Picks**, and a list of automatic **findings** (a source with most of the damage, an enemy
+  that hurts far more than it appears, a long-lived enemy, low accuracy). **Copy summary** puts it on the clipboard and
+  **Open logs folder** opens the `balance` folder, which holds one JSON file per test (session format 4, summarised by
+  `Tools/SessionReport`). Tests never count in Records, XP or ranks. Damage from zones, minions and other lasting effects
+  can't be traced to the cast that made it and shows as "Other". Design and fields: `Docs/BalanceTest.md`.
 
 ### Replays (F1)
 

@@ -46,6 +46,8 @@ namespace Arena
                 DrawAimDebug(me);
             if (dpsMeter)
                 DrawDpsMeter();  // F2 (DpsMeterUi.cs)
+            DrawBalanceStrip();   // the balance test's recording light (BalanceTestUi.cs)
+            DrawBalanceReport();  // and its report when it ends
 
             // Names, level-up popups and downed labels over players (hidden while they're under
             // the between-waves banner, so they don't show on top of its text).
@@ -93,6 +95,7 @@ namespace Arena
             DrawMiniHud(me);  // corner text / on the player (HudModes.cs)
             DrawMyLedger();  // Blood Debt's ledger card beside you, over the enemy tags (BloodDebtLook.cs)
             DrawDownedBand(me);  // the DOWNED and REVIVED scan band (DownedLooks.cs)
+            DrawPracticeDowned(me);  // the Practice Range's DOWNED window with Respawn (PracticeDownedUi.cs)
             if (me != null && !me.Downed)
                 DrawEmoteBar(HudEmoteBarAt.X, HudEmoteBarAt.Y);  // hold the Emote key: the bar above the ability bar (EmoteBar.cs)
             DrawPingWheel();  // hold the Ping key: the wheel at the cursor (PingLooks.cs)

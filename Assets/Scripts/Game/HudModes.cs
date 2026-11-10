@@ -141,7 +141,7 @@ namespace Arena
             return "WAVE " + game.Wave.ToString("00") + (game.Endless ? "" : " / " + Game.MaxWave);
         }
 
-        // ---- A: Phosphor Corners. Health bottom-left, the keys bottom-centre, the wave top-right; text only, framed by brackets.
+        // ---- A: Phosphor Corners. Health bottom-left, the keys bottom-centre, the wave bottom-right; text only, framed by brackets.
 
         void MiniCorners(Player me, float a)
         {
@@ -168,6 +168,23 @@ namespace Arena
                 MiniCells(new Rect(hr.x, hr.y + 64f, hr.width, 8f), frac, 20, hc, low ? MiniBlink(a) : a);
             }
             MiniScan(new Rect(hr.x - 4f, hr.y - 4f, hr.width + 8f, hr.height + 8f), a);
+
+            // Teammates: one slim row each, stacked above your health
+            float ty = hr.y - 20f;
+            foreach (var p in game.Players.Values)
+            {
+                if (p.Id == game.MyId)
+                    continue;
+                float pf = Mathf.Clamp01(p.Hp / Mathf.Max(1f, p.MaxHp));
+                bool plow = !p.Downed && pf < MiniLow;
+                Color pc = p.Downed || plow ? red : ink;
+                var row = new Rect(hr.x, ty, hr.width, 22f);
+                MiniText(new Rect(row.x, row.y, 110f, 16f), p.Name.ToUpperInvariant(), 16, dim, a);
+                MiniText(new Rect(row.x + 110f, row.y, row.width - 110f, 16f),
+                    p.Downed ? "DOWNED " + Mathf.RoundToInt(p.Revive * 100f) + "%" : Mathf.CeilToInt(p.Hp) + " / " + Mathf.CeilToInt(p.MaxHp), 16, pc, a, TextAnchor.MiddleRight);
+                MiniCells(new Rect(row.x, row.y + 17f, row.width, 4f), p.Downed ? p.Revive : pf, 20, pc, plow ? MiniBlink(a) : a);
+                ty -= 28f;
+            }
 
             // The keys: each keycap over its seconds left (RDY when ready), a six-cell recharge bar and the ability's name; the ult in
             // gold with its charge. A column is as wide as its name.
@@ -206,7 +223,7 @@ namespace Arena
             }
 
             // The wave and the enemies left
-            var wr = new Rect(W - 240f, 40f, 200f, 76f);
+            var wr = new Rect(W - 240f, H - 110f, 200f, 76f);  // bottom right, level with the health: the minimap keeps the top right
             MiniBrackets(wr, ink, a);
             MiniText(new Rect(wr.x, wr.y, wr.width, 16f), MiniWave(), 16, dim, a, TextAnchor.MiddleRight);
             MiniText(new Rect(wr.x, wr.y + 12f, wr.width, 50f), game.Remaining.ToString(), 52, ink, a, TextAnchor.MiddleRight);

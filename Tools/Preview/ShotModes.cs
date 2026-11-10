@@ -246,6 +246,7 @@ static partial class Shot {
         host.OthersCanEdit = Environment.GetEnvironmentVariable("EDIT") != null;
         host.PlanEditor = "Aleon"; host.PlanEditorSel = 1;
         set("practiceSel", 1);
+        if (Environment.GetEnvironmentVariable("LOBBYTAB") != null) set("lobbyWasPractice", true);  // (so LOBBYTAB=7 stays on the Training tab)
       }
       var hv = Environment.GetEnvironmentVariable("MOUSE");
       if (hv != null) { var xy = hv.Split(','); Event.current.mousePosition = new Vector2(float.Parse(xy[0]), float.Parse(xy[1])); }
@@ -393,6 +394,7 @@ static partial class Shot {
       System.Collections.Generic.List<string> pr;
       host.Game.Practice = PracticePlan.Parse("wave 3: Grunt x4\nwave 6: Swarmer x8\nwave 10: The Warden x1", out pr);
       host.Game.PracticeIndex = 1;
+      if (Environment.GetEnvironmentVariable("PDT") != null) typeof(ArenaApp).GetField("pdBorn", f2).SetValue(app, Time.unscaledTime - float.Parse(Environment.GetEnvironmentVariable("PDT"), System.Globalization.CultureInfo.InvariantCulture));  // PDT=<s>: the practice DOWNED window that long since it opened (with DOWNED=down:1; PracticeDownedUi.cs)
       typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
     }
     else if (mode == "labsetup")

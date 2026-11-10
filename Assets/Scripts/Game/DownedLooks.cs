@@ -377,6 +377,8 @@ namespace Arena
             const float top = 118f;
             if (me.Downed)
             {
+                if (game.Practice != null)
+                    return;  // the Practice Range has its own DOWNED window with Respawn (PracticeDownedUi.cs)
                 float age = s.DownAt < -50f ? 99f : now - s.DownAt - BandInDelay;
                 float open = age / BandInTime;
                 if (open <= 0f)

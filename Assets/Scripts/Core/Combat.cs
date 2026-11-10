@@ -145,6 +145,7 @@ namespace Arena
                 {
                     b.FromWeapon = true;
                     p.Run.ShotsFired++;
+                    Recorder?.ShotFired(p);
                 }
                 b.Pierce = p.Stats.Pierce;
             }
@@ -491,7 +492,10 @@ namespace Arena
                             {
                                 Player shooter;
                                 if (Players.TryGetValue(b.Owner, out shooter))
+                                {
                                     shooter.Run.ShotsHit++;
+                                    Recorder?.ShotHit(shooter);
+                                }
                             }
                             if (b.Kind == Defs.SanguineShot)
                             {
@@ -502,7 +506,9 @@ namespace Arena
                             if (b.StunBack && e.Type == EnemyType.Boss)
                                 StunWarden(e);  // its own stun shot, parried back (Warden.cs)
                             float hit = b.Dmg * NinjaHitMult(b.Owner, b.Kind, e) * PointBlankMult(b, e) * CrossfireMult(b, e);  // Kunai and ambush bonuses (Ninja.cs); the Scattergun up close and the Twin Rifle's crossfire (Weapons.cs)
+                            dmgSrc = b.FromWeapon ? "weapon" : "shot";  // (what the balance test log credits the hit to)
                             HurtEnemy(e, hit, b.Owner);
+                            dmgSrc = null;
                             if (b.Crossfire)
                                 TwinRifleHit(b, e);  // Twin Rifle hits load the grenade tubes (TwinGrenades.cs)
                             foreach (var onHit in Classes.HitHooks)  // each class's KitDef.OnShotHit (BloodShotHit: Blood Mage shots drain, pool and drop orbs)
@@ -922,7 +928,7 @@ namespace Arena
                 p.Run.BiggestHit = Math.Max(p.Run.BiggestHit, dmg);
                 BloodLifesteal(p, e, Math.Min(dmg, Math.Max(0f, e.Hp)));
             }
-            Recorder?.DamageDealt(attacker, e, Math.Min(dmg, Math.Max(0f, e.Hp)));
+            Recorder?.DamageDealt(attacker, e, Math.Min(dmg, Math.Max(0f, e.Hp)), casting ? "ability:" + Upgrades.Ability(castId).Name : dmgSrc);
             if (WardenArmorTakes(e, ref dmg))
             {
                 e.Flash = 0.06f;
@@ -1119,7 +1125,7 @@ namespace Arena
             Player p;
             if (Players.TryGetValue(by, out p))
             {
-                Recorder?.DamageDealt(p.Id, e, Math.Min(dmg, Math.Max(0f, e.Hp)));
+                Recorder?.DamageDealt(p.Id, e, Math.Min(dmg, Math.Max(0f, e.Hp)), "status");
                 p.Run.DamageDealt += Math.Min(dmg, Math.Max(0f, e.Hp));
                 DpsDot(p.Id, Math.Min(dmg, Math.Max(0f, e.Hp)));  // the DPS meter's over-time share (DpsTools.cs)
                 if (e.Def.IsBoss)

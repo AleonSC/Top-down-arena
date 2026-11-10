@@ -162,6 +162,14 @@ namespace Arena
                 if (e.Def.Mini || e.Def.IsBoss) { RoomMapRect(c.X - 3f, c.Y - 3f, 6f, 6f, new Rgba(1f, 0.62f, 0.3f)); continue; }
                 RoomMapRect(c.X - 1f, c.Y - 1f, 2f, 2f, e.Type == EnemyType.Runner ? new Rgba(1f, 0.55f, 0.24f) : new Rgba(1f, 0.32f, 0.36f, 0.85f));
             }
+            foreach (var ch in game.Props.Values)  // unopened treasure chests: a gold diamond-ish square
+            {
+                if (ch.Kind != PropKind.Chest || ch.Open || ch.Hp <= 0f)
+                    continue;
+                V2 c = M(ch.Pos);
+                RoomMapRect(c.X - 4f, c.Y - 4f, 8f, 8f, new Rgba(0.02f, 0.03f, 0.06f, 0.9f));
+                RoomMapRect(c.X - 3f, c.Y - 3f, 6f, 6f, new Rgba(1f, 0.82f, 0.3f));
+            }
             foreach (var p in game.Players.Values)
             {
                 V2 c = M(p.Disp);
