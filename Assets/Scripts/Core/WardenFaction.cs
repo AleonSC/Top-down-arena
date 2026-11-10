@@ -95,6 +95,8 @@ namespace Arena
         {
             if (e.Type == EnemyType.GasGrenadier)
                 return KeepDistance(dir, dist, GrenadierRange) + dir.Orthogonal() * e.Strafe * 0.5f;
+            if (e.Type == EnemyType.SecurityGuard)
+                return SecurityMove(e, dir, dist);  // SecurityGuard.cs
             if (e.Type == EnemyType.TaserGuard)
                 return e.Winding ? V2.Zero : KeepDistance(dir, dist, TaserRange) + dir.Orthogonal() * e.Strafe * 0.5f;  // plants its feet while it charges
             switch (RiotState(e))

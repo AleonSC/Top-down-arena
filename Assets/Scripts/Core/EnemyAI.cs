@@ -313,6 +313,8 @@ namespace Arena
             e.SpawnT = spawnT;
             e.FireT = Rand(0.3f, 1.2f);
             e.PhaseT = Rand(1f, 3f);
+            if (type == EnemyType.SecurityGuard)
+                e.Phase = SecurityMag;  // a full magazine (SecurityGuard.cs)
             e.Strafe = rng.NextDouble() < 0.5 ? 1f : -1f;
             e.Ang = Rand(0f, MathX.Tau);
             Enemies[e.Id] = e;
@@ -472,7 +474,7 @@ namespace Arena
                     e.FireT -= dt * mult * (1f - e.Suppress);  // the Riot Repeater's suppression (Weapons.cs)
                     // A regular shooter glows just before it fires (Readability.cs).
                     float rateNow = mult * (1f - e.Suppress);
-                    e.Winding = TakesTurns(e) && HasTurn(e) && rateNow > 0f && e.FireT / rateNow <= WindUpOf(e.Type) && e.FireT > -0.5f;
+                    e.Winding = (e.Type == EnemyType.SecurityGuard ? e.Phase > 0 : TakesTurns(e) && HasTurn(e)) && rateNow > 0f && e.FireT / rateNow <= WindUpOf(e.Type) && e.FireT > -0.5f;
                     if (held && e.FireT <= 0f)
                         e.FireT = Rand(0.2f, 0.4f);  // nobody in its room: nothing to shoot at
                     if (e.FireT <= 0f)
@@ -591,6 +593,11 @@ namespace Arena
             if (IsSwordsman(e.Type))
             {
                 SwordsmanTurn(e, want, dt);  // Swordsman.cs
+                return;
+            }
+            if (e.Type == EnemyType.SecurityGuard)
+            {
+                SecurityFace(e, tpos, dt);  // SecurityGuard.cs
                 return;
             }
             if (e.Type == EnemyType.Shielder)
@@ -835,7 +842,7 @@ namespace Arena
                 v = VarietyMove(e, tpos, dir, dist, ref speed);  // Variety.cs
             if (Challenges.Own(e.Type))
                 v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
-            if (e.Type == EnemyType.RiotShield || e.Type == EnemyType.GasGrenadier || e.Type == EnemyType.TaserGuard)
+            if (e.Type == EnemyType.RiotShield || e.Type == EnemyType.GasGrenadier || e.Type == EnemyType.TaserGuard || e.Type == EnemyType.SecurityGuard)
                 v = WardenFactionMove(e, tpos, dir, dist, ref speed);  // WardenFaction.cs
             if (Zombies.Is(e.Type))
                 v = ZombieMove(e, tpos, dir, dist, ref speed);  // Zombies.cs
@@ -1030,6 +1037,11 @@ namespace Arena
             if (e.Type == EnemyType.TaserGuard)
             {
                 TaserFire(e, aim);  // WardenFaction.cs
+                return;
+            }
+            if (e.Type == EnemyType.SecurityGuard)
+            {
+                SecurityFire(e);  // SecurityGuard.cs
                 return;
             }
             switch (e.Type)

@@ -13,6 +13,7 @@
 # SWORD=1 (the Swordsman and Shield Swordsman in each phase: closing in, wind-up, cut, recovery; SWORDBLOCK=1 flashes the shield).
 # LUNGE=0.5 (the Lunger, Spike Block, Charger and Riot Shield part-way through their wind-up: the shared lane).
 # TASER=0.3 (the Taser Guard charging, a Fork Bolt in flight over a field of bullets, and the hit on you 0.3 s ago; TASER=-1 for no hit; mode hud).
+# SECURITY=0.2 (the Security Guard: locking on with its lane, just fired with a casing and a tracer, reloading, ready and empty; mode hud).
 # AIM=0.7 (the aimed shooters winding up: Sniper, Shard, Medic, Splitter, Phantom, Grunt with their aim lines).
 # TAGS=1 (a row of enemies on first sight, each with its name and job tag; uses a fresh profile).
 # WAVECLEARED=1 WCWAVE=17 (the between-waves box after wave 17: the new-enemy chips for wave 18).

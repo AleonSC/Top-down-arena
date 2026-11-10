@@ -262,6 +262,55 @@ static partial class Program
         Check(Approaches.For(EnemyType.Boss).Members.Any(m => m.Type == EnemyType.TaserGuard && m.From >= 2), "the Warden's faction includes the Taser Guard, from its third wave");
         taser.Hp = 0f;
 
+        // --- The Security Guard: a magazine of seven tracer rounds that lead you, then a reload; the friend sees it all -----------
+        foreach (var e in g2.Enemies.Values) e.Hp = 0f;
+        Run(s2, dt, 0.3f, null, () => { hold(); g2.Me.Pos = spot; });
+        var sec = (Enemy)spawn.Invoke(g2, new object[] { EnemyType.SecurityGuard, new V2(900f, 300f), 0f, -7, false });
+        sec.FireT = 0.6f;
+        sec.TargetId = 1;
+        sec.RetargetT = 99f;
+        Check(sec.Phase == Game.SecurityMag, "a Security Guard starts with a full magazine");
+        float hpS = hostMe.Hp, tS = 0f, firstWindS = -1f, firstShotS = -1f, lastShotS = -1f, reloadStart = -1f, reloadEnd = -1f;
+        int shotsS = 0;
+        bool clientSaw = false, clientPhase = false, leads = false, damaged = false;
+        var seenBullets = new HashSet<int>();
+        Run(s2, dt, 14f, null, () =>
+        {
+            hold(); sec.TargetId = 1; sec.RetargetT = 99f;
+            tS += dt;
+            g2.Me.Pos = new V2(spot.X, 300f + 110f * (float)Math.Sin(tS * 0.9f));  // moving up and down, so it has to lead
+            if (sec.Winding && firstWindS < 0f) firstWindS = tS;
+            foreach (var b in g2.Bullets.Values.Where(b => b.Kind == Defs.TracerRound && b.Shooter == sec.Id).ToList())
+                if (seenBullets.Add(b.Id))
+                {
+                    shotsS++;
+                    if (firstShotS < 0f) firstShotS = tS;
+                    lastShotS = tS;
+                    V2 direct = (g2.Me.Pos - sec.Pos).Normalized();
+                    V2 vel = b.Vel.Normalized();
+                    float motionY = hostMe.Motion.Y;
+                    // a shot leads when it is aimed past where you stand, the way you're moving
+                    if (Math.Abs(motionY) > 40f && (vel.Y - direct.Y) * motionY > 0f) leads = true;
+                }
+            if (reloadStart < 0f && sec.Phase == 0) reloadStart = tS;
+            if (reloadStart > 0f && reloadEnd < 0f && sec.Phase == Game.SecurityMag) reloadEnd = tS;
+            clientSaw |= c2.Bullets.Values.Any(b => b.Kind == Defs.TracerRound);
+            Enemy ce;
+            if (c2.Enemies.TryGetValue(sec.Id, out ce) && ce.Phase == 0) clientPhase = true;
+            if (shotsS >= 8) sec.FireT = 99f;
+        });
+        damaged = hostMe.Hp < hpS;
+        Console.WriteLine("  security guard: first lock-on {0:0.00} s, {1} rounds (first {2:0.00} s, 7th ~{3:0.00} s), reloaded from {4:0.00} s to {5:0.00} s ({6:0.00} s), leads {7}, friend sees {8}/{9}",
+            firstWindS, shotsS, firstShotS, lastShotS, reloadStart, reloadEnd, reloadEnd - reloadStart, leads, clientSaw, clientPhase);
+        Check(firstWindS > 0f && firstShotS - firstWindS > 0.15f && firstShotS - firstWindS < 0.4f, "a Security Guard locks on (Winding) for about 0.25 s before each round");
+        Check(shotsS >= 8 && reloadStart > 0f, "it fires seven rounds, then the magazine runs dry and it reloads");
+        Check(reloadEnd - reloadStart > 1.9f && reloadEnd - reloadStart < 2.6f, "the reload takes about 2.2 s");
+        Check(leads, "its rounds are aimed ahead of where you are heading");
+        Check(clientSaw && clientPhase, "the friend's game sees the tracer rounds and the reload (its ammo is Enemy.Phase)");
+        Check(damaged, "a tracer round that lands hurts");
+        Check(Approaches.For(EnemyType.Boss).Members.Any(m => m.Type == EnemyType.SecurityGuard && m.From <= 2), "the Warden's faction includes the Security Guard, from its second wave");
+        sec.Hp = 0f;
+
         // --- The Riot Line (the last wave before the Warden): shields march in a wall, guards behind, then charge --------
         var finale = Approaches.For(EnemyType.Boss).Finale;
         Check(finale != null && w4.Count(t => t == EnemyType.RiotShield) >= 4 && w4.Count(t => t == EnemyType.Guard) >= 5,
