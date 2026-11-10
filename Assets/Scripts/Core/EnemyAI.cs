@@ -454,6 +454,13 @@ namespace Arena
                 if (e.Type != EnemyType.Singularity && e.Type != EnemyType.Devourer && !(e.Type == EnemyType.Gatekeeper && e.Phase != 0))  // (the Gatekeeper's charge keeps its line)  // their Facing is the lasers' sweep, or the Devourer's mouth (Devourer.cs)
                     Face(e, tpos, dt);
                 MoveEnemy(e, tpos, dt);
+                if (RoomsOn && !e.Def.IsBoss && e.Home != Rooms.Vault)
+                {
+                    V2 was = e.Pos;
+                    e.Pos = RoomsPortal(e.Pos, ref e.PortalT, dt);  // wraparound portals (Rooms.cs)
+                    if (e.Pos.DistanceTo(was) > 600f)
+                        steerMem.Remove(e.Id);  // a fresh route from the far side
+                }
                 if (State == MatchState.Fighting)
                 {
                     Special(e, tpos, dt);

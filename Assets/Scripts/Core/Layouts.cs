@@ -47,6 +47,7 @@ namespace Arena
         public EdgeSpan[] PlayerGates;   // gaps in the edge wall you can wrap through
         public EdgeSpan[] EnemyGates;    // the holographic parts of the edge wall enemies come in through
         public V2[] Waypoints;           // corners enemies steer round (LayoutRules.cs)
+        public int[] Links;              // pairs of waypoints joined by a portal (the Rooms map: Rooms.cs), or null
         public bool HasHold;             // the Bunker's hold point
         public V2 HoldPos;
         public float HoldR;

@@ -790,7 +790,7 @@ namespace Arena
                     ? p.Pos : V2.Lerp(p.Disp, p.Pos, k);
             foreach (var e in Enemies.Values)
             {
-                e.Disp = V2.Lerp(e.Disp, e.Pos, k);
+                e.Disp = e.Disp.DistanceTo(e.Pos) > 600f ? e.Pos : V2.Lerp(e.Disp, e.Pos, k);  // (a jump through a Rooms portal: snap, don't slide)
                 if (IsSwordsman(e.Type))
                 {
                     if (e.Phase != e.SeenPhase)
@@ -1100,6 +1100,12 @@ namespace Arena
             katanaFireHeld = firing;  // the Katana spends a full meter on a held fire (Katana.cs)
             LocalWeaponDash(me, move, aimAt, input.WeaponAction && !me.ParryActive, dt);  // weapon secondaries on their own key (Ninja.cs)
             me.Pos = KeepInArena(RoomsHold(before, me.Pos, me.Def.BodyR), me.Def.BodyR);  // (a room locks behind you: Rooms.cs)
+            me.Pos = RoomsPortal(me.Pos, ref me.PortalT, dt);  // wraparound portals (Rooms.cs)
+            if (me.Pos.DistanceTo(before) > 600f)
+            {
+                me.Disp = me.Pos;
+                steerMem.Remove(-me.Id);  // (the bot's route: fresh from the far side)
+            }
             me.FiringSeen = firing;
             me.AimAt = aimAt;
             if (IsHost)

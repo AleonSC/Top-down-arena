@@ -128,6 +128,7 @@ namespace Arena
         public bool Firing;
         public bool FiringSeen;  // holding fire, as everyone's screen knows it (for drawing beams; synced in snapshots)
         public float Hp, MaxHp;
+        public float PortalT;   // your own game: just came out of a Rooms portal (Rooms.cs)
         public float Wound;     // health a hit took that can't be healed back until the wave is cleared (WoundShare of each hit; synced)
         /// The most healing can bring you to: max health less the wound.
         public float HealCap => Math.Max(1f, MaxHp - Wound);
@@ -363,6 +364,7 @@ namespace Arena
         public bool Spilled;    // host only: sent out of its room in a spill, or overflowed out of it (it hunts instead of guarding)
         public float HomeT;     // host only: how long it has guarded its room (Rooms.GuardTime, then it overflows)
         public int ExitDoor = -1;  // host only: the door an overflowing enemy is leaving its room by (Rooms.Doors index)
+        public float PortalT;      // host only: just came out of a Rooms portal (it can't take one again until this runs out)
         public float Hp, MaxHp, Radius, Speed;
         public int Score;
         public float T, SpawnT, FireT, Ang, Strafe = 1f, RetargetT, Flash, T2;

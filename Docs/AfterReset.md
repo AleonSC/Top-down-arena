@@ -111,6 +111,9 @@ So friends can play without Tailscale or port forwarding.
       spots anywhere on the map (never within 350 px of you), the camera follows you freely, room rounds start at 1.5x
       zoom with a "scroll to zoom out" prompt, the vault keeps its lock. Check: does the open map feel right, is 350 px
       enough warning, is the prompt clear? Say if the parked room-by-room code should be deleted.
+- [ ] **Rooms shortcuts (Nov 10, check in Unity)**: doors from the hub into both hallways, and wraparound portals (West
+      room ↔ East room, each hallway's ends) that players and enemies both use. Check: does the map still feel linear,
+      do the portals read clearly (colours, chevrons), and is coming out of one fair (the 1.2 s no-bounce)?
 
 - [ ] **Rooms arena, phases 0-3** ([`Rooms.md`](Rooms.md); mockup [`Mockups/rooms.html`](Mockups/rooms.html),
       https://claude.ai/artifact/4GPVBfq2ytFkB3oKkbSevj). Lobby → Difficulty → **Classic arena / Rooms arena** (Classic

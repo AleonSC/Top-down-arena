@@ -778,6 +778,11 @@ been) or **Rooms arena**. The Rooms arena is new and still being tuned (design: 
   camera. **The camera follows you** over the whole map. **Room rounds start zoomed in (1.5x)** with a "SCROLL ▼ TO
   ZOOM OUT" prompt low in the middle until you scroll out (the zoom goes from 2x in to 1x out, one hub-sized screen).
   Arrows at the edge of the screen point at enemies and teammates you can't see.
+- **Shortcuts.** The hub has a door into each hallway (top and bottom, in the middle) as well as the two room doors,
+  and **wraparound portals** join the far ends of the map: the West room's far wall with the East room's, and each
+  hallway's two ends (each pair a swirling ring in its own colour, purple, teal or pink, with chevrons pointing the way
+  out; rings on the minimap too). Step into one and you come out of its partner on the far side; enemies use them too,
+  whenever that's the shorter way to you.
 - **Enemies come in anywhere.** Each enemy (and each squad) appears at a random spot on the map, in the hub, a room or
   a hallway (picked by size), clear of walls, never in the vault and never within 350 px of a player, then makes its
   way to you through the doors.

@@ -70,8 +70,38 @@ namespace Arena
             new RoomDoor { Pos = new V2(W + RoomW / 2f, 0f), A = East, B = TopHall },
             new RoomDoor { Pos = new V2(-RoomW / 2f, H), A = West, B = BottomHall },
             new RoomDoor { Pos = new V2(W + RoomW / 2f, H), A = East, B = BottomHall },
-            new RoomDoor { Pos = new V2(W / 2f, -HallH), A = TopHall, B = Vault },  // the vault's: only on a vault wave
+            new RoomDoor { Pos = new V2(W / 2f, 0f), A = Hub, B = TopHall },     // the hub's top and bottom doors (owner, Nov 10: less linear)
+            new RoomDoor { Pos = new V2(W / 2f, H), A = Hub, B = BottomHall },
+            new RoomDoor { Pos = new V2(W / 2f, -HallH), A = TopHall, B = Vault },  // the vault's: only on a vault wave (keep it last: VaultDoor)
         };
+
+        /// The vault's door (the last one).
+        public static int VaultDoor => Doors.Length - 1;
+
+        /// Wraparound portals (owner, Nov 10): step into one and you come out of its partner on the far side of the map,
+        /// which makes the map a ring. Players and enemies both use them (enemies steer through them when it's shorter).
+        /// Pairs: the West room's far wall with the East room's, and each hallway's two ends.
+        public struct Portal { public V2 A, B; public V2 InA, InB; }  // centres, and the way into the map from each
+        public const float PortalR = 42f, PortalExit = 70f, PortalCooldown = 1.2f, PortalInset = 40f;
+        public static readonly Portal[] Portals =
+        {
+            new Portal { A = new V2(-RoomW + PortalInset, H / 2f), B = new V2(W + RoomW - PortalInset, H / 2f), InA = new V2(1f, 0f), InB = new V2(-1f, 0f) },
+            new Portal { A = new V2(-RoomW + PortalInset, -HallH / 2f), B = new V2(W + RoomW - PortalInset, -HallH / 2f), InA = new V2(1f, 0f), InB = new V2(-1f, 0f) },
+            new Portal { A = new V2(-RoomW + PortalInset, H + HallH / 2f), B = new V2(W + RoomW - PortalInset, H + HallH / 2f), InA = new V2(1f, 0f), InB = new V2(-1f, 0f) },
+        };
+
+        /// Where something stepping into a portal at `at` comes out (null: not in a portal). Keeps its offset along the wall.
+        public static V2? PortalExitFor(V2 at)
+        {
+            foreach (var p in Portals)
+            {
+                if (at.DistanceTo(p.A) < PortalR)
+                    return p.B + p.InB * PortalExit + new V2(0f, at.Y - p.A.Y);
+                if (at.DistanceTo(p.B) < PortalR)
+                    return p.A + p.InA * PortalExit + new V2(0f, at.Y - p.B.Y);
+            }
+            return null;
+        }
 
         /// Is this door there (the vault's only with the vault up)?
         public static bool DoorUp(int i, bool vault) => vault || !Doors[i].Joins(Vault);
@@ -249,6 +279,14 @@ namespace Arena
                 if (!tight)
                     wps.Add(p);
             }
+            // The portals: a steering spot in each, linked to its partner (LayoutRules.cs GraphFor), so enemies route through them.
+            var links = new List<int>();
+            foreach (var pt in Portals)
+            {
+                links.Add(wps.Count); wps.Add(pt.A);
+                links.Add(wps.Count); wps.Add(pt.B);
+            }
+            d.Links = links.ToArray();
             d.Waypoints = wps.ToArray();
             withRooms[key] = d;
             return d;
@@ -693,7 +731,7 @@ namespace Arena
             if (Enemies.TryGetValue(vaultBossId, out boss))
                 Enemies.Remove(vaultBossId);
             var v = Rooms.Areas[Rooms.Vault];
-            var door = Rooms.Doors[Rooms.Doors.Length - 1];
+            var door = Rooms.Doors[Rooms.VaultDoor];
             foreach (var p in Players.Values)
                 if (v.Contains(p.Pos))
                     MovePlayer(p, door.Side(Rooms.TopHall) + new V2(0f, 40f));
@@ -762,6 +800,19 @@ namespace Arena
             }
         }
 
+        /// Your own game for you, the host for enemies: through a portal if you're in one (and not just out of one).
+        V2 RoomsPortal(V2 pos, ref float cooldown, float dt)
+        {
+            cooldown = Math.Max(0f, cooldown - dt);
+            if (!RoomsOn || cooldown > 0f)
+                return pos;
+            var exit = Rooms.PortalExitFor(pos);
+            if (!exit.HasValue)
+                return pos;
+            cooldown = Rooms.PortalCooldown;
+            return exit.Value;
+        }
+
         /// The hub's bounds while the rooms are up (else the playable arena): things that belong in the middle of
         /// the fight, like a Data Gate, go here.
         public V2 HubMin => RoomsOn ? V2.Zero : ArenaMin;
@@ -771,7 +822,7 @@ namespace Arena
         public bool InVault(Enemy e) => VaultOn && Rooms.Areas[Rooms.Vault].Contains(e.Disp, 20f);
 
         /// Is someone at the vault: in it, or in the top hallway near its door?
-        public bool AtVault(Player p) => VaultOn && p != null && (Rooms.Areas[Rooms.Vault].Contains(p.Disp) || p.Disp.DistanceTo(Rooms.Doors[Rooms.Doors.Length - 1].Pos) < 260f);
+        public bool AtVault(Player p) => VaultOn && p != null && (Rooms.Areas[Rooms.Vault].Contains(p.Disp) || p.Disp.DistanceTo(Rooms.Doors[Rooms.VaultDoor].Pos) < 260f);
 
         /// Which part of the Rooms world a point is in (the hub when the rooms aren't up).
         public int AreaAt(V2 p) => RoomsOn ? Rooms.AreaAt(p) : Rooms.Hub;

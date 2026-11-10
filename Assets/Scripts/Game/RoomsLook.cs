@@ -37,6 +37,12 @@ namespace Arena
             for (float y = Mathf.Ceil(lo.Y / 64f) * 64f; y <= hi.Y + 0.5f; y += 64f)
                 Line(new V2(lo.X, y), new V2(hi.X, y), 1f, grid);
             float a2 = Mathf.Clamp01(game.LayoutAge / 0.35f);
+            for (int i = 0; i < Rooms.Portals.Length; i++)  // the wraparound portals, each pair in its own colour
+            {
+                var pt = Rooms.Portals[i];
+                DrawPortal(pt.A, pt.InA, PortalColours[i % PortalColours.Length], a2, i);
+                DrawPortal(pt.B, pt.InB, PortalColours[i % PortalColours.Length], a2, i + 0.5f);
+            }
             for (int i = 0; i < Rooms.Doors.Length; i++)
             {
                 if (!Rooms.DoorUp(i, vault))
@@ -57,6 +63,34 @@ namespace Arena
                     Line(j - t, j + t, 6f, col.WithAlpha(0.2f * a2));
                     Line(j - t, j + t, 2.5f, col.WithAlpha(a2));
                 }
+            }
+        }
+
+        static readonly Rgba[] PortalColours = { new Rgba(0.75f, 0.45f, 1f), new Rgba(0.35f, 0.95f, 0.85f), new Rgba(1f, 0.6f, 0.85f) };
+
+        /// A portal on the floor: a dark core, a turning dashed ring, a slow pulse, and chevrons pointing into the map
+        /// (the way you come out).
+        void DrawPortal(V2 at, V2 inward, Rgba col, float a, float seed)
+        {
+            float t = game.AnimT, r = Rooms.PortalR;
+            Circle(at, r, new Rgba(0.02f, 0.01f, 0.05f, 0.8f * a), 28);
+            Circle(at, r * 0.75f, col.WithAlpha(0.12f * a), 24);
+            float pulse = Mathf.Repeat(t * 0.8f + seed, 1f);
+            Arc(at, r * (0.35f + 0.65f * pulse), 2f, col.WithAlpha((1f - pulse) * 0.6f * a), 28);
+            int n = 12;
+            for (int k = 0; k < n; k++)
+            {
+                float st = MathX.Tau * k / n + t * 1.6f;
+                Arc(at, r, 6f, col.WithAlpha(0.18f * a), 3, st, MathX.Tau / n * 0.55f);
+                Arc(at, r, 2.5f, col.WithAlpha(a), 3, st, MathX.Tau / n * 0.55f);
+            }
+            Arc(at, r * 0.55f, 2f, col.WithAlpha(0.7f * a), 20, -t * 2.2f, MathX.Tau * 0.6f);
+            V2 side = inward.Orthogonal();
+            for (int k = 0; k < 2; k++)
+            {
+                V2 c = at + inward * (r + 14f + k * 12f);
+                Line(c - inward * 6f + side * 8f, c, 2.5f, col.WithAlpha((0.8f - 0.3f * k) * a));
+                Line(c - inward * 6f - side * 8f, c, 2.5f, col.WithAlpha((0.8f - 0.3f * k) * a));
             }
         }
 
@@ -152,6 +186,12 @@ namespace Arena
                     float f = Mathf.Clamp01(1f - rs.SpillT / Rooms.SpillTime(game.Wave));
                     V2 c = M(Rooms.Doors[rs.NextDoor].Pos);
                     Arc(c, 7f, 1.5f, (rs.SpillT < Rooms.SpillWarn ? DoorAmber : DoorRed).WithAlpha(0.9f), 16, -Mathf.PI / 2f, MathX.Tau * f);
+                }
+            for (int i = 0; i < Rooms.Portals.Length; i++)  // the portals, in their pair's colour
+                foreach (var pp in new[] { Rooms.Portals[i].A, Rooms.Portals[i].B })
+                {
+                    V2 c = M(pp);
+                    Arc(c, 4f, 2f, PortalColours[i % PortalColours.Length], 12);
                 }
             foreach (var e in game.Enemies.Values)
             {

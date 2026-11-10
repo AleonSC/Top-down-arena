@@ -317,3 +317,22 @@ spawn-pad options), zoom out **only to 1x**, start at **1.5x**, **keep the vault
 - The 1.3x Rooms damage, the vault (its lock, the Gatekeeper, the prize pick) and everything else stay.
 - Tests: `wings` (open-map checks: no nests or locks, spawns spread over the map and never near you, the free camera).
   Preview: `ROOMS=x,y [ZOOM=1.5] [ZOOMHINT=1]`.
+
+## Shortcuts (owner, Nov 10)
+
+"It feels too linear: you have to go from one side of the map to the other slowly." Decisions: **hub-to-hallway
+doors** and **wraparound portals**, enemies use them too (not speed pads, not a smaller map).
+
+- **Doors**: two more, the hub's top and bottom walls into the hallways at x = 800 (`Rooms.Doors`; the vault's stays
+  last, `VaultDoor`).
+- **Portals** (`Rooms.Portals`): three pairs, the West room's far wall with the East room's (y 450) and each hallway's
+  two ends, 40 px in from the world's edge, `PortalR` 42. Step in and you come out `PortalExit` 70 px into the map from
+  the partner, keeping your offset along the wall; `PortalCooldown` 1.2 s stops a bounce back. Your own game moves you
+  (`Game.cs`), the host moves enemies (`TickEnemies`; not bosses or the vault's mini-boss); either way the steering
+  memory is cleared and the drawn position snaps instead of sliding. Steering: each portal is a waypoint, and the two of
+  a pair are linked in the corner graph (`LayoutDef.Links`, `PortalHop` 40 px in `GraphFor`), so enemies and the smart
+  bot route through them whenever it's shorter.
+- **Look** (`RoomsLook.cs` `DrawPortal`): a dark core, a turning dashed ring, a pulse and chevrons pointing into the map,
+  each pair in its own colour (purple, teal, pink); rings on the minimap.
+- Measured: a Brute from the top hallway's west end to its east end takes 2.4 s through the portal instead of ~48 s
+  on foot; bot Rooms waves average ~41 s (Classic ~35 s; ~45-55 s before). Tests in `wings`.

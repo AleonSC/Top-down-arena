@@ -345,7 +345,7 @@ namespace Arena
             public int[] Next;    // the corner to head for from there (-1: straight at the target)
         }
 
-        const float GraphR = 22f;
+        const float GraphR = 22f, PortalHop = 40f;
         readonly Dictionary<LayoutDef, WayGraph> wayGraphs = new Dictionary<LayoutDef, WayGraph>();
         readonly Dictionary<long, GoalInfo> goalCost = new Dictionary<long, GoalInfo>();
         int goalStamp = -1;
@@ -362,6 +362,9 @@ namespace Arena
             for (int i = 0; i < n; i++)
                 for (int j = 0; j < n; j++)
                     dist[i, j] = i == j ? 0f : (SegBlocked(d, w[i], w[j], GraphR) ? float.MaxValue : w[i].DistanceTo(w[j]));
+            if (d.Links != null)  // portals: their two spots count as next to each other (Rooms.cs)
+                for (int l = 0; l + 1 < d.Links.Length; l += 2)
+                    dist[d.Links[l], d.Links[l + 1]] = dist[d.Links[l + 1], d.Links[l]] = PortalHop;
             var direct = (float[,])dist.Clone();
             for (int k = 0; k < n; k++)  // Floyd-Warshall: corner to corner, round as many walls as it takes
                 for (int i = 0; i < n; i++)

@@ -41,7 +41,7 @@ static partial class Program
             foreach (var p in g.Players.Values) { p.PendingMods = 0; }
             // The bots can get stuck on crates going for a chest or an item (they don't steer round props, in either arena):
             // after 20 s with nothing left to fight, take the treasure for them, as a person would.
-            idle = g.State == MatchState.Fighting && g.Foes() == 0 ? idle + dt : 0f;
+            idle = g.State == MatchState.Fighting && g.Foes() - g.Enemies.Values.Count(e => g.InVault(e)) == 0 ? idle + dt : 0f;  // (the vault's mini-boss is optional)
             if (idle > 20f)
             {
                 foreach (var pr in g.Props.Values.Where(pr => pr.Kind == PropKind.Chest).ToList()) g.Props.Remove(pr.Id);

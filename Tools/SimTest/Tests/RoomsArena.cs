@@ -24,6 +24,7 @@ static partial class Program
         var pickRooms = typeof(Game).GetMethod("PickRooms", flags);
         var pickLayout = typeof(Game).GetMethod("PickLayout", flags);
         var keepIn = typeof(Game).GetMethod("KeepInArena", flags);
+        var roomsPortal = typeof(Game).GetMethod("RoomsPortal", flags);
 
         // The world: one box round the hub, the same margin on each side; doors in the walls; nothing inside a wall.
         V2 lo = Rooms.WorldMin, hi = Rooms.WorldMax;
@@ -50,7 +51,7 @@ static partial class Program
         }
         Check(wallsOk, "with every floor plan in the hub, with and without the vault: steering spots clear of the walls, no edge gates, a spot each side of every door");
         var vaultWalls = Rooms.With(LayoutId.Open, true);
-        var vd = Rooms.Doors[Rooms.Doors.Length - 1];
+        var vd = Rooms.Doors[Rooms.VaultDoor];
         Check(vaultWalls.Solids.All(sd => !Layouts.Inside(sd, vd.Pos, 30f)) && withRooms.Solids.Any(sd => Layouts.Inside(sd, vd.Pos, 0f)), "the vault's door is open on a vault wave and walled up otherwise");
         Check(Rooms.Cover.All(c => Rooms.Areas.Count(a => !a.Hub && a.Contains(c.Pos, -30f)) == 1), "the small obstacles stand inside the rooms and hallways");
 
@@ -243,6 +244,43 @@ static partial class Program
         V2 camAt = Rooms.ViewCentre(new V2(-300f, 450f), Game.Width / 3f, Game.Height / 3f, false);
         Check(Math.Abs(camAt.X + 300f) < 0.5f && Math.Abs(camAt.Y - 450f) < 0.5f, "the camera follows you anywhere (no snapping to the room you're in)");
 
+        // Less linear (Nov 10): doors from the hub into both hallways, and wraparound portals at the far ends.
+        Check(Rooms.Doors.Count(d => d.Joins(Rooms.Hub) && (d.Joins(Rooms.TopHall) || d.Joins(Rooms.BottomHall))) == 2
+            && g.ActiveLayout.Solids.All(sd => !Layouts.Inside(sd, new V2(Game.Width / 2f, 0f), 20f)), "the hub has a door into each hallway");
+        {
+            var hostMe = g.Players[1];
+            hostMe.PortalT = 0f;
+            hostMe.Pos = hostMe.Disp = Rooms.Portals[0].A + new V2(10f, 0f);
+            Run(s, dt, 0.2f);
+            Check(hostMe.Pos.X > Game.Width + Rooms.RoomW / 2f, "step into the West room's portal and you come out by the East room's (" + (int)hostMe.Pos.X + ")");
+            Run(s, dt, 0.3f);
+            Check(hostMe.Pos.X > Game.Width + Rooms.RoomW / 2f, "...and don't bounce straight back");
+            hostMe.Pos = hostMe.Disp = new V2(Game.Width / 2f, Game.Height / 2f);
+            Run(s, dt, 0.2f);
+            // An enemy at the far west end of the top hallway after a target at the far east end takes the portal.
+            Quiet();
+            g.Props.Clear();
+            var runner = (Enemy)spawnEnemyAt.Invoke(g, new object[] { EnemyType.Brute, new V2(-700f, -130f), 0f, 0, false });
+            runner.SpawnT = 0f; runner.Hp = runner.MaxHp = 99999f;
+            V2 goalE = new V2(Game.Width + Rooms.RoomW - 200f, -130f);
+            float walkT = goalE.DistanceTo(runner.Pos) / runner.Speed, took = -1f;
+            bool jumped = false;
+            for (int i = 0; i < 2400 && took < 0f; i++)
+            {
+                V2 was = runner.Pos;
+                moveEnemy.Invoke(g, new object[] { runner, goalE, dt });
+                var pa = new object[] { runner.Pos, runner.PortalT, dt };
+                runner.Pos = (V2)roomsPortal.Invoke(g, pa);
+                runner.PortalT = (float)pa[1];
+                jumped |= runner.Pos.DistanceTo(was) > 600f;
+                runner.T += dt;
+                if (runner.Pos.DistanceTo(goalE) < 60f) took = i * dt;
+            }
+            Check(jumped && took > 0f && took < walkT * 0.5f, "enemies take the portals when it's shorter (" + took.ToString("0.0") + " s instead of about " + walkT.ToString("0") + " s on foot)");
+            runner.Hp = 0f;
+            Quiet();
+        }
+
 
         // The Data Gate opens in the hub.
         {
@@ -287,9 +325,12 @@ static partial class Program
                     var walker = (Enemy)spawnEnemyAt.Invoke(g, new object[] { k % 3 == 2 ? EnemyType.Runner : EnemyType.Brute, from, 0f, 0, false });
                     walker.SpawnT = 0f; walker.Hp = walker.MaxHp = 99999f;
                     float near = 9999f;
+                    var portalArgs = new object[] { walker.Pos, 0f, dt };
                     for (int i = 0; i < 4000 && near > 50f; i++)
                     {
                         moveEnemy.Invoke(g, new object[] { walker, to, dt });
+                        portalArgs[0] = walker.Pos;  // (the tick takes portals too: Rooms.cs)
+                        walker.Pos = (V2)roomsPortal.Invoke(g, portalArgs);
                         walker.T += dt;
                         near = Math.Min(near, walker.Pos.DistanceTo(to));
                     }
