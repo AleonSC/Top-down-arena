@@ -277,6 +277,58 @@ namespace Arena
 
         // --- The world ---------------------------------------------------------------------------------------------
 
+        /// Obstacles in a built room: pillars, bars of wall, an L of wall and blocks, laid out from the room's own box (so every
+        /// machine builds the same ones, and a saved map needs nothing more). They keep CoverWall px off the room's walls, CoverDoor off
+        /// every door, CoverMid off the middle and CoverGap off each other, so every door and every wall can still be walked along;
+        /// a hallway (a side of MinSide or less) stays clear, and a bigger room gets more (one per ~220000 px2, up to 4).
+        public const int CoverWall = 130, CoverDoor = 230, CoverMid = 130, CoverGap = 70;
+
+        static void AddCover(List<Solid> to, ExpansionRoom r, List<V2> doors)
+        {
+            if (Math.Min(r.W, r.H) <= MinSide)
+                return;
+            var rng = new DetRandom(r.X * 73856093 ^ r.Y * 19349663 ^ r.W * 83492791 ^ r.H * 2654435);
+            int want = Math.Max(1, Math.Min(4, r.W * r.H / 220000));
+            var placed = new List<int[]>();  // each obstacle's bounding box: x0, y0, x1, y1
+            V2 mid = new V2(r.X + r.W / 2f, r.Y + r.H / 2f);
+            for (int n = 0, tries = 0; n < want && tries < 60; tries++)
+            {
+                int kind = rng.Int(4);  // 0 pillar, 1 bar, 2 an L, 3 block
+                bool horizontal = rng.Int(2) == 0;
+                int hw, hh;
+                switch (kind)
+                {
+                    case 0: hw = hh = 30 + rng.Int(3) * 10; break;
+                    case 1: hw = horizontal ? 70 + rng.Int(4) * 25 : 20; hh = horizontal ? 20 : 70 + rng.Int(4) * 25; break;
+                    case 2: hw = hh = 90; break;
+                    default: hw = hh = 45; break;
+                }
+                int ix0 = r.X + CoverWall + hw, ix1 = r.X + r.W - CoverWall - hw, iy0 = r.Y + CoverWall + hh, iy1 = r.Y + r.H - CoverWall - hh;
+                if (ix1 <= ix0 || iy1 <= iy0)
+                    continue;
+                int cx = ix0 + rng.Int((ix1 - ix0) / 10 + 1) * 10, cy = iy0 + rng.Int((iy1 - iy0) / 10 + 1) * 10;
+                int bx0 = cx - hw, by0 = cy - hh, bx1 = cx + hw, by1 = cy + hh;
+                bool ok = Math.Abs(cx - mid.X) > hw + CoverMid || Math.Abs(cy - mid.Y) > hh + CoverMid;
+                foreach (var d in doors)
+                    ok &= Math.Abs(cx - d.X) > hw + CoverDoor || Math.Abs(cy - d.Y) > hh + CoverDoor;
+                foreach (var o in placed)
+                    ok &= bx0 > o[2] + CoverGap || bx1 < o[0] - CoverGap || by0 > o[3] + CoverGap || by1 < o[1] - CoverGap;
+                if (!ok)
+                    continue;
+                placed.Add(new[] { bx0, by0, bx1, by1 });
+                n++;
+                switch (kind)
+                {
+                    case 0: to.Add(World.Pillar(cx, cy, hw)); break;
+                    case 2:  // an L: one bar along the top and one down the left side
+                        to.Add(World.Box(bx0, by0, bx1, by0 + 36));
+                        to.Add(World.Box(bx0, by0, bx0 + 36, by1));
+                        break;
+                    default: to.Add(World.Box(bx0, by0, bx1, by1)); break;
+                }
+            }
+        }
+
         /// The World for the hub plus these rooms. With no rooms it is the hub alone, walled in (the Single world has no walls).
         /// Rooms sharing a stretch of wall of at least MinDoorRun have a door there (the parent's, and loops).
         public static World Build(IList<ExpansionRoom> rooms)
@@ -339,10 +391,19 @@ namespace Arena
                     if (till > pos) spans.Add(new WallSpan(vertical, at, pos, till));
                 }
             }
+            var cover = new List<Solid>();
+            for (int a = 1; a < n; a++)
+            {
+                var doorSpots = new List<V2>();
+                foreach (var d in doors)
+                    if (d.Joins(a))
+                        doorSpots.Add(d.Pos);
+                AddCover(cover, rooms[a - 1], doorSpots);
+            }
             return new World
             {
                 Name = "Expanding",
-                Areas = areas, Doors = doors.ToArray(), Portals = new WorldPortal[0], Spans = spans.ToArray(), Cover = new Solid[0],
+                Areas = areas, Doors = doors.ToArray(), Portals = new WorldPortal[0], Spans = spans.ToArray(), Cover = cover.ToArray(),
                 Min = new V2(minX, minY), VaultMin = new V2(minX, minY), Max = new V2(maxX, maxY),
                 Hub = 0, Vault = -1,
             };

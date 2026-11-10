@@ -168,6 +168,13 @@ in that layout with a switch; don't delete code.
   an optional room 4 times in 10. The mandatory vote after each boss is unchanged.
 - Preview: `EXPANDVOTE=<rooms> EXPANDCHIP=1|2`. Test: `ExpandingFeaturesTest`.
 
+## Obstacles in built rooms (Nov 10)
+
+`Expansion.AddCover` gives every built room of more than a hallway's width obstacles (`World.Cover`, added to the floor plan by `With` like the
+Wings rooms' cover): pillars, bars, an L, blocks; count = area / 220000 clamped 1-4. Deterministic from the room's box (`DetRandom`), so no wire
+change. Keep-outs: `CoverWall` 130 px off the room's walls, `CoverDoor` 230 off every door, `CoverMid` 130 off the middle, `CoverGap` 70 between
+obstacles. Test: `ExpansionTest` (inside the room, off the doors, none in a hallway, identical on every build).
+
 ## Open questions (defaults in bold)
 
 - Do expansions ever shrink or close (a destroyed room)? **No.**

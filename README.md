@@ -788,6 +788,9 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   next wave starts, **the most votes wins, a tie (a 50/50) is a random pick** (with "No room" as one of the
   tied options), and the winning drawer pays; nobody else does. One room is built a round, with a door to every room it
   shares a door's width of wall with (loops). Paths are off in this arena.
+- **Obstacles**: a built room comes with obstacles and bars of wall (pillars, bars, an L, blocks: one per ~220,000 px2, up to 4),
+  laid out from the room's own box so every machine builds the same ones. They keep off the room's walls, its doors and its middle,
+  so you can always walk round them; hallways stay clear.
 - **How it plays**: regular waves use the whole map (walled, no wrapping, a minimap top right) and bring more enemies the
   bigger it is (up to 1.4 times); the map stops at 24 rooms. Boss waves are fought in the hub alone, as always.
 - Runs in this arena can't be saved and continued yet.
