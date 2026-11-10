@@ -297,6 +297,51 @@ namespace Arena
             return sb.ToString().Contains("doom");
         }
 
+        /// Easter egg: "Mission Impossible", "MI", "MI1", "Ethan Hunt", "NOC list" (case, spaces and punctuation ignored): the bloodied 230 MB disk from the film.
+        public static bool IsMissionImpossibleName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return false;
+            var sb = new System.Text.StringBuilder();
+            foreach (char ch in name)
+                if (char.IsLetterOrDigit(ch))
+                    sb.Append(char.ToLowerInvariant(ch));
+            string n = sb.ToString();
+            return n == "mi" || n == "mi1" || n == "mi2" || n.Contains("missionimpossible") || n.Contains("ethanhunt") || n.Contains("noclist");
+        }
+
+        /// The Mission: Impossible disk: a pale magneto-optical disk, blood-spattered, with a small Verbatim "230 MB" label.
+        void DrawMissionDisk(Rect d)
+        {
+            float k = d.width / 200f;
+            Color cream = new Color(0.9f, 0.87f, 0.83f), blood = new Color(0.55f, 0.1f, 0.1f, 0.75f);
+            Ui.Pill(new Rect(d.x + 3f, d.y + 12f * k, d.width - 6f, d.height - 8f * k), new Color(0f, 0f, 0f, 0.4f));
+            float ch = 22f * k;
+            for (float y = 0f; y < d.height; y += 2f)
+            {
+                float w = y < ch ? d.width - ch + y : d.width;
+                Ui.Fill(new Rect(d.x, d.y + y, w, 2.5f), Color.Lerp(cream, new Color(0.72f, 0.68f, 0.64f), y / d.height));
+            }
+            Ui.Fill(new Rect(d.x + 2f, d.y, d.width - ch - 2f, 2f), new Color(1f, 1f, 1f, 0.5f));
+            Ui.Fill(new Rect(d.x + 44f * k, d.y, 104f * k, 44f * k), new Color(0.74f, 0.75f, 0.78f));      // the shutter
+            Ui.Fill(new Rect(d.x + 110f * k, d.y, 38f * k, 44f * k), new Color(0.84f, 0.85f, 0.88f));
+            Ui.Fill(new Rect(d.x + 56f * k, d.y + 8f * k, 24f * k, 30f * k), new Color(0.2f, 0.2f, 0.22f));
+            // the spatter: fixed blotches, bigger at the corners
+            float[] bx = { 0.12f, 0.2f, 0.78f, 0.86f, 0.62f, 0.9f, 0.1f, 0.5f, 0.35f, 0.72f, 0.28f, 0.92f };
+            float[] by = { 0.2f, 0.62f, 0.35f, 0.7f, 0.8f, 0.12f, 0.88f, 0.5f, 0.92f, 0.55f, 0.4f, 0.45f };
+            float[] bs = { 22f, 16f, 20f, 26f, 14f, 12f, 18f, 10f, 12f, 9f, 8f, 7f };
+            for (int i = 0; i < bx.Length; i++)
+                Ui.Dot(new Rect(d.x + bx[i] * d.width - bs[i] * k / 2f, d.y + by[i] * d.height - bs[i] * k / 2f, bs[i] * k, bs[i] * k), blood);
+            var lb = new Rect(d.x + 24f * k, d.y + 66f * k, 76f * k, 60f * k);                                 // the Verbatim label
+            Ui.Fill(lb, new Color(0.97f, 0.96f, 0.94f));
+            Ui.Fill(new Rect(lb.x, lb.yMax - 1f, lb.width, 1f), new Color(0f, 0f, 0f, 0.2f));
+            Ui.Label(new Rect(lb.x + 4f * k, lb.y + 2f * k, lb.width - 8f * k, 16f * k), "Verbatim", Mathf.RoundToInt(13f * k), new Color(0.12f, 0.12f, 0.16f), TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(lb.x + 4f * k, lb.y + 18f * k, lb.width - 8f * k, 10f * k), "FORMATTED", Mathf.Max(6, Mathf.RoundToInt(6.5f * k)), new Color(0.3f, 0.3f, 0.34f), TextAnchor.MiddleLeft);
+            Ui.Label(new Rect(lb.x + 4f * k, lb.y + 28f * k, lb.width - 8f * k, 18f * k), "230 MB", Mathf.RoundToInt(15f * k), new Color(0.12f, 0.12f, 0.16f), TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(lb.x + 4f * k, lb.y + 46f * k, lb.width - 8f * k, 10f * k), "Optical Disk", Mathf.Max(6, Mathf.RoundToInt(6.5f * k)), new Color(0.3f, 0.3f, 0.34f), TextAnchor.MiddleLeft);
+            Ui.Fill(new Rect(d.x + 10f * k, d.yMax - 22f * k, 10f * k, 10f * k), new Color(0.3f, 0.28f, 0.27f));
+        }
+
         /// The Doom disk: black plastic, a cream label with the red logo ("REGISTERED DISK n", n = the slot), a silver shutter with its window.
         void DrawDoomDisk(Rect d, int slot)
         {
@@ -361,6 +406,11 @@ namespace Arena
         /// A disk: plastic tinted by the rank tier with its chamfered corner, the metal shutter, and a paper label.
         void DrawWhoDisk(Rect d, ProfileInfo p, bool current)
         {
+            if (IsMissionImpossibleName(p.Name))
+            {
+                DrawMissionDisk(d);
+                return;
+            }
             if (IsDoomName(p.Name))
             {
                 DrawDoomDisk(d, Mathf.Max(0, whoList.IndexOf(p)));
