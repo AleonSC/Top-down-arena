@@ -350,12 +350,12 @@ namespace Arena
             bool lobby = CanQuitToLobby;
             var names = new List<string>(); var lines = new List<string>(); var ids = new List<int>();
             bool many = game.Players.Count > 1, saved = game.RunId != null && game.Practice == null;
+            names.Add("KEEP PLAYING"); lines.Add("Back to the pause menu"); ids.Add(2);
             if (lobby)
             {
                 names.Add("TO LOBBY"); lines.Add(many ? "Everyone beams out to the lobby" : "Beam out to the lobby"); ids.Add(0);
             }
             names.Add("TO DESKTOP"); lines.Add(many && session.IsHost ? "Close the game (the party leaves)" : "Close the game"); ids.Add(1);
-            names.Add("KEEP PLAYING"); lines.Add("Back to the pause menu"); ids.Add(2);
             int n = names.Count;
             confirmSel = Mathf.Clamp(confirmSel, 0, n - 1);
             if (e.type == EventType.KeyDown && GUIUtility.keyboardControl == 0)
@@ -475,7 +475,7 @@ namespace Arena
                 case 5: pauseSettings = true; CloseCabWindow(); break;  // the list switches to the sections
                 default:  // PauseQuit
                     pauseConfirmLobby = true;  // asks first (DrawLobbyConfirm)
-                    confirmSel = 9;            // clamped onto "keep playing", so a stray Enter doesn't end the run
+                    confirmSel = 0;            // "keep playing" is first, so a stray Enter doesn't end the run
                     break;
             }
         }

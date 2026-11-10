@@ -540,7 +540,7 @@ squad as often as a melee enemy used to come). Paths with their own mix keep it.
 | 26 | **Juggernaut** | Armored and slow; can't be slowed or knocked back; fires rotating stars of big orbs |
 | 28 | **Reaver** | Armoured melee (can't be slowed or knocked back): in reach it shows a red 120° cone for 0.4 s, then rakes it (26; a perfect parry blocks it). For 0.7 s after a swipe it's **open**: +50% damage |
 | 31 | **Nest** | Stationary spawner that keeps hatching Shards until destroyed |
-| 36 | **Warder** | Hangs back behind its allies; every 6 s up to three allies within 320 px get a bubble worth half their health, tethered to it. Kill it and every bubble pops |
+| 36 | **Warder** | Hangs back behind its allies; every 6 s up to three allies within 320 px get a bubble worth half their health, tethered to it by a line of flowing beads. Kill it and every bubble pops. A pointed violet diamond that turns to face you, with three hex sigils orbiting it: they spin faster and its reach fills up for its last 1.4 s before a ward, and one sigil leaves for each ally it wards. A chevron bobs over it while any ward is up: shoot it first |
 
 | Wave | Doesn't shoot | What it does |
 |---|---|---|
@@ -576,6 +576,8 @@ his own riot, on the boss wave, still give 2 and 4.
 | 1 | **Guard** | A riot guard with a baton, straight at you (contact 14) |
 | 2 | **Riot Shield** | A guard behind a tall shield that stops shots and swings from the front. Up close the shield flashes (0.4 s), then it lunges and **bashes** you: 10 damage and knocked **160 px** back (you can't be bashed again for 0.8 s). It holds the shield low for a second after, when front hits land. The shield holds 4x its health and cracks as it wears; broken, the guard staggers for a second, then flails and takes 50% more damage. Go round it or break it. Squad (wave 3): Cell block (two Riot Shields with Rioters pouring past) |
 | 2 | **Gas Grenadier** | Keeps its distance and lobs a tear-gas canister near you every 3.6 s: a 70 px cloud that settles after 1 s and hurts (8 a second) for 4 s |
+
+**Bubbles (Shielded elites and the Warder's wards):** a bubble is twelve cells round the rim, each holding a twelfth of the shield. A hit wears down the cell facing whoever shot it (flashing, then breaking into shards) and spills over to its neighbours once that cell is gone, so the side you shoot from is the side that opens. Burning and bleeding keep chewing the weakest cell. A honeycomb inside only shows where its cell is still up, and a thin shield bar sits above the health bar. Blue is a Shielded elite, violet is the Warder's.
 
 ## Bosses
 
@@ -1653,22 +1655,29 @@ Soldier, first weapon), `H/M/1`, `D/U/2` (U = Summoner) or `T/K/0` (K = Knight).
 **F1 → Tools → Wave editor** designs waves on a timeline. A design is a set of waves; each wave has a **level** (how
 strong its enemies are, as that wave of a run), **groups** and **props**.
 
+- **Waves strip** (under the title): one numbered key per wave (click to open it), **+ NEW WAVE**, **DUPLICATE**,
+  **DELETE**, `<` `>` to move the wave earlier or later, its **LEVEL**, and **Loop the waves**. **UNDO** / **REDO**
+  (Ctrl+Z, Ctrl+Y or Ctrl+Shift+Z) cover every change, including deletes.
 - **Arena map** (top left): the five **spawn points A-E** (drag a letter to move it, for every wave) and the wave's
-  props. **Props** mode: click to place the picked prop (crate, big crate, pot, barrel, chest), drag to move,
-  right-click to remove. The map also shows the wave at the playhead: who has arrived and where they're heading.
-- **Palette** (top middle): **Enemies** (the bosses' factions first, then everyone else), **Squads** (the regular
-  squads and the bosses' own, like the Riot line) and **Bosses**. Click one to add a new group at the playhead;
+  props. With a group selected, click a letter to send the group from it too (click it again to stop), or click empty
+  ground to send it from the nearest point. **Props** mode: click to place the picked prop (crate, big crate, pot,
+  barrel, chest), drag to move, right-click to remove. The map also shows the wave at the playhead: who has arrived
+  and where they're heading.
+- **Palette** (top middle): **Enemies** (the bosses' factions first, then everyone else; scroll for more),
+  **Squads** (the regular squads and the bosses' own, like the Riot line) and **Bosses**. **Drag** one onto the
+  timeline (a new group that starts where you let go), onto the map (a new group from the nearest spawn point, at the
+  playhead) or onto an existing group's bar (adds that enemy to it). A plain click adds a group at the playhead;
   Shift-click an enemy to add one more to the selected group.
 - **Selected group** (top right): its name, which spawn points it comes from (several take turns), when it starts,
-  how it arrives (**one by one** every so many seconds, **together**, side by side in a **line**, or in a **ring**
-  round a player) and how many of each enemy. A squad keeps its own members and formation.
-- **Timeline** (bottom): one track per group. Drag a clip to change when it starts, drag its right edge to spread
-  its enemies out; click or drag on the tracks to move the playhead; **Play** (or Space) runs the wave on the map.
-  Delete removes the selected group. A wave ends once every group has arrived and everyone is down.
-- **Waves:** `<` `>` step through them, `+` adds one, **Copy** duplicates it, `X` removes it; **Level** and **Loop**.
-- **Save** writes `<name>.waves` to the `waves` folder next to the practice folder; **Load** opens one (or starts a
-  new set). **Test** plays the waves in the Practice Range, hosted by you, starting on the wave you're editing (from
-  the main menu, the lobby, or a match you host; it replaces that match). Esc closes the editor.
+  how it arrives (**one by one** with a **gap** between enemies, **together**, side by side in a **line**, or in a
+  **ring** round a player) and how many of each enemy. A squad keeps its own members and formation. **COPY** and
+  **DELETE** (or Ctrl+D and Delete).
+- **Timeline** (bottom): one track per group. Drag a bar to change when it starts, drag its right edge to spread
+  its enemies out; click or drag on the tracks to move the playhead; **PLAY** (or Space) runs the wave on the map.
+  The line under it says what you can do next. A wave ends once every group has arrived and everyone is down.
+- **SAVE** writes `<name>.waves` to the `waves` folder next to the practice folder; **OPEN** opens one (or starts a
+  new set). **TEST IN PRACTICE** plays the waves in the Practice Range, hosted by you, starting on the wave you're
+  editing (from the main menu, the lobby, or a match you host; it replaces that match).
 
 The `.waves` file is plain text, e.g.
 

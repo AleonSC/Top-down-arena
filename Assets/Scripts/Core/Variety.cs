@@ -41,7 +41,7 @@ namespace Arena
         // The Reaver: Phase 0 chases, 1 winds up (a red cone), 2 has just swiped, 3 is open.
         public const float ReaverWindup = 0.4f, ReaverSwipeR = 110f, ReaverCone = MathX.Pi / 3f, ReaverOpen = 0.7f, ReaverOpenMult = 1.5f, ReaverDamage = 26f;
         // The Warder: wards up to three allies near it every 6 s.
-        public const float WarderEvery = 6f, WarderRange = 320f, WarderShare = 0.5f;
+        public const float WarderEvery = 6f, WarderRange = 320f, WarderShare = 0.5f, WarderCharge = 1.4f;  // WarderCharge: the last stretch before a ward, when Phase is 1 (the look winds up)
         public const int WarderMax = 3;
         // The Pauser: a fan of shots that fly out slowing to a stop (PauseFly), hang (PauseHold), then rush at a player.
         public const int PauseShots = 8;
@@ -669,9 +669,11 @@ namespace Arena
                 }
                 case EnemyType.Warder:
                     e.WardT -= dt;
+                    e.Phase = (byte)(e.WardT <= WarderCharge ? 1 : 0);  // charging: drawn only, the timing is unchanged
                     if (e.WardT <= 0f)
                     {
                         e.WardT = WarderEvery;
+                        e.Phase = 0;
                         var near = new List<Enemy>();
                         foreach (var o in Enemies.Values)
                             if (o != e && !o.Def.IsBoss && o.Type != EnemyType.Warder && Targetable(o) && o.Pos.DistanceTo(e.Pos) < WarderRange)
@@ -919,19 +921,95 @@ namespace Arena
 
         // --- Hits and deaths -------------------------------------------------------------------------------------
 
-        /// A bubble (Shielded, or a Warder's) soaks damage first. Returns what gets through.
-        float SoakBubble(Enemy e, float dmg)
+        public const int BubbleCells = 12;
+
+        /// The cell a direction points at. Cell i sits at angle -90 degrees + i * 30 degrees.
+        public static int CellAt(float ang)
+        {
+            int c = (int)Math.Round((ang + MathX.Tau * 0.25f) / (MathX.Tau / BubbleCells));
+            return ((c % BubbleCells) + BubbleCells) % BubbleCells;
+        }
+
+        /// Keeps the twelve cells adding up to BubbleHp. Anything that sets BubbleHp directly (a new ward, a regrow, a
+        /// dev tool) just refills them evenly; only SoakBubble wears single cells down.
+        void SyncCells(Enemy e)
+        {
+            if (e.CellHp == null)
+                e.CellHp = new float[BubbleCells];
+            float sum = 0f;
+            for (int i = 0; i < BubbleCells; i++)
+                sum += e.CellHp[i];
+            if (Math.Abs(sum - e.BubbleHp) > 0.01f)
+                for (int i = 0; i < BubbleCells; i++)
+                    e.CellHp[i] = e.BubbleHp / BubbleCells;
+        }
+
+        /// The mask that goes in the snapshot: bits 0-11 cells still up, bits 12-23 cells worn below full.
+        public static int CellMask(Enemy e)
+        {
+            if (e.BubbleHp <= 0f || e.CellHp == null)
+                return 0;
+            float full = e.BubbleMax / BubbleCells - 0.01f;
+            int m = 0;
+            for (int i = 0; i < BubbleCells; i++)
+                if (e.CellHp[i] > 0.01f)
+                {
+                    m |= 1 << i;
+                    if (e.CellHp[i] < full)
+                        m |= 1 << (i + BubbleCells);
+                }
+            return m;
+        }
+
+        /// A bubble (Shielded, or a Warder's) soaks damage first. Returns what gets through. The damage lands on the
+        /// cell facing whoever hit it (attacker > 0), spilling to its neighbours once that cell is gone; burning and
+        /// bleeding (attacker -1) keep working on the weakest cell instead.
+        float SoakBubble(Enemy e, float dmg, int attacker = 0)
         {
             if (e.BubbleHp <= 0f)
                 return dmg;
-            float soak = Math.Min(e.BubbleHp, dmg);
+            SyncCells(e);
+            float soak = Math.Min(e.BubbleHp, dmg), left = soak;
+            int start = -1;
+            Player p;
+            if (attacker > 0 && Players.TryGetValue(attacker, out p) && !(p.Pos - e.Pos).IsZero)
+                start = CellAt((p.Pos - e.Pos).Angle);
+            else if (attacker == 0)
+                start = rng.Next(BubbleCells);
+            else
+            {
+                float low = float.MaxValue;
+                for (int i = 0; i < BubbleCells; i++)
+                    if (e.CellHp[i] > 0.01f && e.CellHp[i] < low)
+                    {
+                        low = e.CellHp[i];
+                        start = i;
+                    }
+            }
+            for (int step = 0; step < BubbleCells && left > 0f; step++)  // 0, +1, -1, +2, -2 ... round the ring
+            {
+                int off = (step + 1) / 2 * ((step & 1) == 1 ? 1 : -1);
+                int c = ((start + off) % BubbleCells + BubbleCells) % BubbleCells;
+                float take = Math.Min(e.CellHp[c], left);
+                e.CellHp[c] -= take;
+                left -= take;
+            }
             e.BubbleHp -= soak;
             e.BubbleT = 0f;
-            if (e.BubbleHp <= 0f)
+            if (e.BubbleHp <= 0.001f)
             {
                 e.BubbleHp = 0f;
+                for (int i = 0; i < BubbleCells; i++)
+                    e.CellHp[i] = 0f;
                 e.WardId = 0;
                 BroadcastFx(FxKind.Ring, e.Pos, new Rgba(0.71f, 0.61f, 1f), e.Radius + 16f, 0.3f, Sfx.Clang);
+            }
+            else
+            {
+                float sum = 0f;
+                for (int i = 0; i < BubbleCells; i++)
+                    sum += e.CellHp[i];
+                e.BubbleHp = sum;  // no drift from rounding
             }
             return dmg - soak;
         }

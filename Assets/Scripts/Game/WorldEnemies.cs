@@ -465,6 +465,8 @@ namespace Arena
                 col = col.Mix(Rgba.White, HitFlashMix(e));  // softer under steady fire (Juice.cs)
             if (Zombies.Is(e.Type))
                 DrawZombieBody(e, pos, r, col, t);  // its own shape (ZombieLook.cs)
+            else if (e.Type == EnemyType.Warder)
+                DrawWarderBody(e, pos, r, col, t);  // WarderLook.cs
             else if (e.Type == EnemyType.Swarmer)
                 DrawChomper(e, pos, r, col, t);
             else if (Game.IsNonShooter(e.Type))
@@ -497,6 +499,8 @@ namespace Arena
                 float w = Mathf.Max(30f, r * 2f);
                 GhostBar(pos + new V2(-w / 2f, -r - 10f), w, 4f, e.Hp / e.MaxHp, e.Venomed ? VenomBar : new Rgba(1f, 0.3f, 0.3f), EnemyKey(e.Id));  // (green while Poison Dart's venom eats it)  // HealthBars.cs
             }
+            if (e.BubbleFrac > 0f && !spawning && !e.Def.IsBoss)
+                DrawShieldBar(e, pos, r);  // WarderLook.cs
             if (e.Caged)
                 DrawBoneCage(pos, r, t);
             if (e.Hemorrhage > 0)
