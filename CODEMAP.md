@@ -142,6 +142,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `BestiaryData.cs`: Bestiary entry types (`BestiaryData.Generated.cs` is generated, don't edit)
 - `TextOverrides.cs`: dev text-editor edits
 - `WeaponDps.Generated.cs`: generated weapon DPS table, don't edit
+- `Game/DodgeSoundBank.cs`: the Dodge's Cloth Swish (`Sfx.DodgeSwish`, raised in `Dodge.cs`, own screen only; `Docs/Mockups/dodge-sounds.html`)
 - `BossSounds.cs`: audio cues for boss attacks
 - `Game/NinjaSoundBank.cs`: the Ninja DPS's sounds (Kunai whoosh `ShotKunai` via the weapon def's `Sound`, `NinjaBlink`, `NinjaStepCast`/`NinjaStepStrike`, `NinjaVanish`, `NinjaFanOpen`/`NinjaFanBurst`, `NinjaLotusCast`), raised in `Ninja.cs`; the Shinobi set of `Docs/Mockups/ninja-dps-sounds.html`
 - `Game/TreantSoundBank.cs`, `Game/SeedLook.cs`: the Treant Rod's sounds (`SwingRoot` leaf rustle on the lash, `ShotSeed` Pod Pop, `ShotSeedHit` Tick; `Docs/Mockups/treant-rod-sounds-seeds.html`) and the Treant's seed as a Thorn Dart (`Defs.TreantSeed`, fired by `TickTreantSeeds` in `Core/KitWeapons.cs`)

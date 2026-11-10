@@ -255,6 +255,7 @@ namespace Arena
             BuildLance();  // LanceSoundBank.cs
             BuildParry();  // ParrySoundBank.cs
             BuildTreant();  // TreantSoundBank.cs
+            BuildDodge();  // DodgeSoundBank.cs
         }
 
         void Build()

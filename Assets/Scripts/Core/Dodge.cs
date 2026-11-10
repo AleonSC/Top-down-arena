@@ -26,6 +26,7 @@ namespace Arena
             dodgeCd = DodgeCd;
             me.InvulnT = Math.Max(me.InvulnT, DodgeInvuln);
             AddFx(FxKind.Ring, me.Pos, new Rgba(0.75f, 0.85f, 1f), 22f, 0.25f);
+            Sounds.Add(Sfx.DodgeSwish);  // your own screen only
             if (IsHost)
                 return;  // (the host's own player is the one simulated here)
             var w = Proto.Begin(Msg.Dodge);
