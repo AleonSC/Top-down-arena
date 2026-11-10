@@ -1255,10 +1255,10 @@ static partial class Program
         Check(plusCals == Game.KatanaCaltropCount + 2 && Math.Abs(took(plus) - kw * Game.KatanaDashMult * (1f + Game.KatanaExtraMult)) < 1f, "+1: two more caltrops, and each dash strikes once more at 60%");
         reset();
 
-        // Raising the parry clears the wait and keeps both combos' places.
+        // Raising the parry clears the wait and both combos' buildups.
         setK(0, 2, 3); me.FireCd = 0.2f;
         play(0.05f, new PlayerInput { Parry = true });
-        Check(me.FireCd <= 0f && me.KatanaHay == 2 && me.KatanaSen == 3, "raising the parry clears the Katana's wait and keeps both combos' places");
+        Check(me.FireCd <= 0f && me.KatanaHay == 0 && me.KatanaSen == 0, "raising the parry clears the Katana's wait and both combos' buildups");
         play(0.6f, new PlayerInput());
         // The same for the Bo Staff: back to the slash with no wait, and a shove still drawing back never lands (no cooldown spent).
         reset();

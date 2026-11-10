@@ -224,7 +224,7 @@ every shot, not the players) slows to 30% for 0.3 s on every screen, at most onc
 it wears and blinking red when it's nearly gone; when it breaks it cracks and shatters, and while it's lowered a faint
 bar shows it refilling. Against the Warden up close it holds for about 3 seconds of fire, enough to close the gap.
 
-**Animation cancel:** raising the parry sends an attack chain back to its first step, clears the wait for the next step and cancels an attack that hasn't landed yet. Today that is the Katana (the wait for its next step is cleared; both combos keep their place) and the Bo Staff's slash, jab, spin (a shove still drawing back never lands and costs no cooldown). Streaks you have built (the Rapier's) are kept. The Twin Blades' chain goes back to the Rising Cut too, and a step still winding up never lands.
+**Animation cancel:** raising the parry sends an attack chain back to its first step, clears the wait for the next step and cancels an attack that hasn't landed yet. Today that is the Katana (the wait for its next step is cleared; both combos' buildups reset) and the Bo Staff's slash, jab, spin (a shove still drawing back never lands and costs no cooldown). Streaks you have built (the Rapier's) are kept. The Twin Blades' chain goes back to the Rising Cut too, and a step still winding up never lands.
 
 Parry upgrades show up like any other card:
 

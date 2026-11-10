@@ -432,7 +432,7 @@ namespace Arena
 
         /// Raising the parry is an animation cancel for weapons that attack in a fixed order: the wait for the next step is
         /// cleared and an attack that hasn't landed yet never does. Builds you have earned (the Rapier's streak) are left alone.
-        /// The Katana keeps both combos' places. Called on the host.
+        /// The Katana loses both combos' buildups (back to step 1 in each stance). Called on the host.
         void ResetAttackChains(Player p)
         {
             if (p.Weapon.Id == WeaponId.BoStaff)
@@ -479,6 +479,8 @@ namespace Arena
                 return;
             p.FireCd = 0f;
             p.TapQueued = false;
+            p.KatanaHay = 0;  // the parry cancels both stances' buildups
+            p.KatanaSen = 0;
             katanaLater.RemoveAll(l => l.Owner == p.Id);
         }
 
