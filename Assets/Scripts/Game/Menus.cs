@@ -190,7 +190,7 @@ namespace Arena
             if (session.Connecting)
             {
                 // How it's going, on a CRT screen of its own, with Cancel as a key beside it.
-                Ui.Panel(row, false);
+                DkSub(row);
                 var ss = new Rect(row.x + 14f, row.y + 10f, row.width - 14f - 170f, 44f);
                 CrtUi.Begin(ss);
                 CrtUi.Text(new Rect(ss.x + 14f, ss.y, ss.width - 28f, ss.height), session.Status, 14, CrtUi.Ink, TextAnchor.MiddleLeft, false, fxReduced);
@@ -202,7 +202,7 @@ namespace Arena
             else if (menuJoinOpen && join >= 1f && !menuPlayOpen)
             {
                 // The address on a CRT screen (label above it), and Connect as a key with a lamp beside it.
-                Ui.Panel(row, false);
+                DkSub(row);
                 var ss = new Rect(row.x + 14f, row.y + 10f, row.width - 14f - 170f, 44f);
                 CrtUi.Begin(ss);
                 CrtUi.Text(new Rect(ss.x + 14f, ss.y + 3f, 200f, 12f), "HOST ADDRESS", 9, CrtUi.Dim, TextAnchor.MiddleLeft, false, true);
@@ -326,7 +326,7 @@ namespace Arena
                 DrawFrameCard(r, Rank.FrameIndex(prof.Frame), t, false, cardBg);  // FrameLooks.cs
             else
             {
-                Ui.Card(r, color, hover ? 1f : 0.85f);
+                DkBox(r, color, hover ? 1f : 0.85f);
                 DrawCardBackground(r, cardBg, t);  // CardBackgrounds.cs
             }
             if (hover)

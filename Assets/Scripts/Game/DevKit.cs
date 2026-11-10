@@ -104,6 +104,14 @@ namespace Arena
             return r.y + (blurb.Length > 0 ? 56f : 40f);
         }
 
+        /// A card backing: a faint tint of the colour and a thin rim in it (`strength` 0..1 brightens the rim). The CRT look of the old Ui.Card.
+        static void DkBox(Rect r, Color accent, float strength)
+        {
+            strength = Mathf.Clamp01(strength);
+            Ui.Fill(r, new Color(accent.r, accent.g, accent.b, 0.05f + 0.08f * strength));
+            CrtKit.Frame(r, strength > 0.6f ? 2f : 1f, new Color(accent.r, accent.g, accent.b, 0.3f + 0.6f * strength));
+        }
+
         /// A thin CRT meter: a faint track and a lit fill (a progress or health bar).
         static void DkBar(Rect r, float frac, Color fill, Color? track = null)
         {

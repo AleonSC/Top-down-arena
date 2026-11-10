@@ -245,8 +245,9 @@ namespace Arena
             {
                 var r = new Rect(mid - w / 2f + (k - 1) * kw, by, kw, 48f);
                 string hint = me.Slots[k].Id != AbilityId.None ? "swap" : "empty";
-                if (Ui.Choice(r, SlotKeys[k], pickKey == k, ToColor(me.Def.Color), null, hint) && !opening)
+                if (DkChoice(new Rect(r.x, r.y, r.width, r.height - 14f), SlotKeys[k], pickKey == k, ToColor(me.Def.Color)) && !opening)
                     pickKey = k;
+                Ui.Label(new Rect(r.x, r.yMax - 14f, r.width, 14f), hint, 10, CrtStyle.Desc, TextAnchor.MiddleCenter);
             }
             GUI.matrix = oldMatrix;
             GUI.color = oldColor;

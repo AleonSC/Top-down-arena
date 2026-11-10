@@ -236,7 +236,7 @@ namespace Arena
             var color = ToColor(p.Def.Color);
             bool mine = p.Id == game.MyId, compact = r.width < 600f;
             var art = compact ? new Rect(r.x + 10f, r.y + 10f, r.width - 20f, 88f) : new Rect(r.x + 14f, r.y + 14f, 200f, r.height - 28f);
-            Ui.Card(art, color, mine ? 0.85f : 0.45f);
+            DkBox(art, color, mine ? 0.85f : 0.45f);
             var inner = new Rect(art.x + 3f, art.y + 3f, art.width - 6f, art.height - 6f);
             Ui.Pill(inner, new Color(color.r * 0.12f, color.g * 0.12f, color.b * 0.12f, 0.95f));
             if (!compact)
@@ -284,8 +284,7 @@ namespace Arena
             // Name and class, then the numbers.
             float x = compact ? r.x + 14f : art.xMax + 22f, w = compact ? r.width - 28f : r.xMax - 16f - x;
             float ny = compact ? art.yMax + 6f : r.y + 16f;
-            Ui.Fancy(new Rect(x, ny, w, compact ? 26f : 34f), p.Name, compact ? 20 : 26, Color.white, Color.Lerp(color, Color.white, 0.35f), TextAnchor.MiddleLeft,
-                mine ? (Color?)new Color(color.r, color.g, color.b, 0.5f) : null);
+            DkTitle(new Rect(x, ny, w, compact ? 26f : 34f), p.Name, compact ? 20 : 26, Color.Lerp(color, Color.white, 0.35f), TextAnchor.MiddleLeft);
             string cls = Defs.KitName(p.Kit) + " " + p.Def.Name + (compact ? "" : "  ·  " + p.Weapon.Name);
             Ui.Label(new Rect(x, ny + (compact ? 26f : 38f), w, 18f), cls, compact ? 11 : 13, color, TextAnchor.MiddleLeft, true);
             float y = ny + (compact ? 50f : 66f);

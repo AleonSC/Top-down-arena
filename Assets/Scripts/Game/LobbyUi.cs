@@ -283,7 +283,7 @@ namespace Arena
             }
             else
             {
-                Ui.Card(r, color, mine ? 0.85f : 0.3f);
+                DkBox(r, color, mine ? 0.85f : 0.3f);
                 DrawCardBackground(r, e.CardBg, t);  // CardBackgrounds.cs
             }
             // Portrait: their character, aiming around.
@@ -1100,12 +1100,12 @@ namespace Arena
             Ui.Label(new Rect(bar.x + 6f, bar.y, 62f, bar.height), "ZOOM " + Mathf.RoundToInt(showcaseZoom * 100f) + "%", 10, LobbyKit.Gold, TextAnchor.MiddleLeft, true);
             float lo = (float)System.Math.Log(Min), hi = (float)System.Math.Log(Max);  // log scale: out and in feel even
             float t = Mathf.Clamp01(((float)System.Math.Log(showcaseZoom) - lo) / (hi - lo));
-            float nt = Ui.Slider(track, t);
+            float nt = Ui.CrtSlider(track, t);
             if (nt != t)
                 showcaseZoom = (float)System.Math.Exp(lo + (hi - lo) * nt);
-            if (showcaseZoomA > 0.3f && Ui.SmallButton(muteKey, showcaseMute ? "MUTED" : "MUTE", showcaseMute ? LobbyKit.Gold : Ui.Neutral, 10))
+            if (showcaseZoomA > 0.3f && DkKey(muteKey, showcaseMute ? "MUTED" : "MUTE", showcaseMute ? LobbyKit.Gold : Ui.Neutral, false, 10))
                 showcaseMute = !showcaseMute;
-            if (showcaseZoomA > 0.3f && Ui.SmallButton(idleKey, "IDLE", showcaseIdle ? LobbyKit.Gold : Ui.Neutral, 10))
+            if (showcaseZoomA > 0.3f && DkKey(idleKey, "IDLE", showcaseIdle ? LobbyKit.Gold : Ui.Neutral, false, 10))
                 showcaseIdle = !showcaseIdle;
             GUI.color = oc;
             Ui.Alpha = oa;

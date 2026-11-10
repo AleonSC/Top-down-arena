@@ -141,7 +141,7 @@ namespace Arena
                 y += 3f;
             }
             else
-                Ui.Panel(pop, true);
+                DkSub(pop, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.98f));
             if (!crt)
                 Ui.Label(new Rect(pop.x + pad, y - 2f, pw - pad * 2f, 22f), tipTitle, 16, tipColor, TextAnchor.MiddleLeft, true);
             y += 24f;

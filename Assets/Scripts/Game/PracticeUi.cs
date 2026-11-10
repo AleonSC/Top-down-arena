@@ -167,7 +167,7 @@ namespace Arena
             }
             Ui.Label(new Rect(row.x + 10f, row.y + 24f, row.width - 20f, 22f), LobbyKit.Truncate(brief, 11, row.width - (other.Length > 0 && session.PlanEditorSel == i ? 76f : 20f), false), 11, boss != null ? CrtStyle.Gold : CrtStyle.Desc, TextAnchor.MiddleLeft, false);
             if (other.Length > 0 && session.PlanEditorSel == i)  // where the other editor is working
-                Ui.Badge(new Rect(row.xMax - 60f, row.y + 28f, 52f, 16f), other.Length > 6 ? other.Substring(0, 6) : other, Ui.Accent);
+                DkTag(new Rect(row.xMax - 60f, row.y + 28f, 52f, 16f), other.Length > 6 ? other.Substring(0, 6) : other, Ui.Accent);
         }
 
         static EnemyType? BossIn(PracticeWave w)
@@ -215,7 +215,7 @@ namespace Arena
                     session.SetOthersCanEdit(!session.OthersCanEdit);
             }
             else if (canEdit)
-                Ui.Badge(new Rect(r.xMax - 116f, y + 5f, 100f, 20f), "YOU CAN EDIT", new Color(0.2f, 0.62f, 0.32f));
+                DkTag(new Rect(r.xMax - 116f, y + 5f, 100f, 20f), "YOU CAN EDIT", new Color(0.2f, 0.62f, 0.32f));
             Ui.Fill(new Rect(r.x + 14f, r.y + 46f, r.width - 28f, 1f), LobbyKit.Ink(0.25f));
         }
 
@@ -389,7 +389,7 @@ namespace Arena
             float x = r.x + 16f, y = r.yMax - 48f;
             Ui.Fill(new Rect(r.x + 14f, y - 8f, r.width - 28f, 1f), LobbyKit.Ink(0.25f));
             LobbyKit.Lab(new Rect(x, y, 54f, 32f), "Setup", 12, calm);
-            practiceName = Ui.Field(new Rect(x + 56f, y, 190f, 32f), practiceName, 40);
+            practiceName = DkField(new Rect(x + 56f, y, 190f, 32f), practiceName, 40);
             float bx = x + 256f;
             if (LobbyKit.Key(new Rect(bx, y, 70f, 32f), "SAVE", false, calm, size: 14, minSize: 10, accent: ReviveMintUi))
                 SavePractice();
