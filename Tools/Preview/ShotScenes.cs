@@ -739,10 +739,17 @@ static partial class Shot {
             gm.Effects.Add(new Effect { Kind = FxKind.CenserStep, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * cr, Color = Game.CenserGold, Radius = me.Id * 10 + ci, T = st, Dur = CenserMotion.Steps[ci - 1].Dur + CenserMotion.Recover }); }
           break;
         }
-        case WeaponId.ArcKnuckles:  // KNUCKLESTEP=1..5 a punch (Jab, Cross, Hook, Uppercut, Twin Hammer; default 1), 6 the Counter Hammer, 0 the guard (ARMED=1: the Counter Hammer armed); SWING = seconds after the press
+        case WeaponId.ArcKnuckles:  // KNUCKLESTEP=dash the Rocket Dash; KNUCKLESTEP=1..5 a punch (Jab, Cross, Hook, Uppercut, Twin Hammer; default 1), 6 the Counter Hammer, 0 the guard (ARMED=1: the Counter Hammer armed); SWING = seconds after the press
         {
-          int kn = int.Parse(Environment.GetEnvironmentVariable("KNUCKLESTEP") ?? "1");
+          string kns = Environment.GetEnvironmentVariable("KNUCKLESTEP") ?? "1";
           me.KnuckleArmed = Environment.GetEnvironmentVariable("ARMED") == "1";
+          if (kns == "dash")  // the Rocket Dash, SWING = seconds after the press: you part-way along it (DASHCD=<s> left on its cooldown ring)
+          {
+            V2 d0 = me.Pos - V2.FromAngle(me.Aim) * Game.KnuckleDashLen * Math.Min(1f, st / Game.KnuckleDashTime), d1 = d0 + V2.FromAngle(me.Aim) * Game.KnuckleDashLen;
+            gm.Effects.Add(new Effect { Kind = FxKind.KnuckleDash, Pos = d0, Pos2 = d1, Color = Game.ArcBlue, Radius = me.Id, T = st, Dur = Game.KnuckleDashFxTime });
+            break;
+          }
+          int kn = int.Parse(kns);
           if (kn > 0)
           {
             me.Combo = (1 << 3) | kn;

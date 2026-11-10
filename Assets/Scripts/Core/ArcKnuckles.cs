@@ -9,7 +9,11 @@ namespace Arena
     ///   - Parry: raising it cancels a punch still winding up and sends the chain back to the Jab (ResetAttackChains). A
     ///     perfect parry also arms the Counter Hammer (Player.KnuckleArmed): the next press is a bigger, gold Twin Hammer, from
     ///     any step. It fades after KnuckleArmTime unused.
-    /// Each punch is one effect (FxKind.KnuckleStep), drawn from its age (Game/ArcKnucklesLook.cs).
+    ///   - Alt (the weapon-action key): the Rocket Dash. The rear gauntlet's thruster throws you KnuckleDashLen along your aim in
+    ///     KnuckleDashTime, fist first and untouchable; the first enemy in the lane takes KnuckleDashDmg and a short shove that
+    ///     keeps it in reach. Your own game moves you when Player.KnuckleDashes changes (LocalKnuckleDash), as the Katana's dashes do;
+    ///     the press goes to the host as Msg.WeaponDash (DashRocket), which checks the cooldown, lands the hit and sends the look.
+    /// Each punch is one effect (FxKind.KnuckleStep), each dash one (FxKind.KnuckleDash), drawn from their age (Game/ArcKnucklesLook.cs).
     public partial class Game
     {
         public const float KnuckleChainWindow = 1.2f, KnuckleArmTime = 3f;
@@ -27,6 +31,10 @@ namespace Arena
         public const float KnuckleCounterR = 135f, KnuckleCounterKnock = 48f, KnuckleCounterStun = 0.8f;
         public const float KnuckleAftershock = 0.2f, KnuckleAftershockOut = 40f, KnuckleAftershockMult = 0.6f;
         public static readonly Rgba ArcBlue = new Rgba(0.48f, 0.83f, 1f), ArcGold = new Rgba(1f, 0.82f, 0.29f);
+        /// The Rocket Dash: how far and how fast you go, the cooldown, the hit (on the first enemy in a lane KnuckleDashWidth either
+        /// side of the line, out to the fist ahead of where you stop) and its short shove, and the moment it lands after the press.
+        public const float KnuckleDashLen = 130f, KnuckleDashTime = 0.2f, KnuckleDashCooldown = 3f, KnuckleDashDmg = 24f, KnuckleDashWidth = 18f;
+        public const float KnuckleDashFist = 30f, KnuckleDashKnock = 24f, KnuckleDashLand = 0.15f, KnuckleDashGrace = 0.08f, KnuckleDashFxTime = 0.55f;
 
         /// The step a Combo value holds (0: the next press is the Jab).
         public static int KnuckleStepOf(int combo) => combo & 7;
@@ -122,6 +130,7 @@ namespace Arena
         {
             foreach (var p in Players.Values)
             {
+                TickKnuckleDash(p, dt);
                 if (!p.KnuckleArmed)
                     continue;
                 if (p.Weapon.Id != WeaponId.ArcKnuckles || p.Downed || (p.KnuckleArmedT -= dt) <= 0f)
@@ -140,6 +149,91 @@ namespace Arena
             p.ComboT = 0f;
             p.FireCd = 0f;
             pendingSwings.RemoveAll(s => s.Owner == p.Id && s.Knuckle != 0 && s.Delay > 0f);
+        }
+
+        // --- The Rocket Dash (the weapon-action key) -----------------------------------------------------------------
+
+        float knuckleDashLocalCd;   // your own game: until the key dashes again (the host checks its own)
+        int knuckleDashesSeen = -1;
+        public float KnuckleDashCd => knuckleDashLocalCd;
+
+        /// Host: the weapon-action key with the Arc Knuckles, aimed at `aimAt`: the Rocket Dash, if it is ready.
+        void HostRocketDash(Player p, V2 aimAt)
+        {
+            if (p.Weapon.Id != WeaponId.ArcKnuckles || p.KnuckleDashCd > 0f || p.Downed || p.StunT > 0f || p.ParryActive || p.SwallowT > 0f
+                || State == MatchState.GameOver)
+                return;
+            V2 toward = aimAt - p.Pos;
+            float aim = toward.Length > 1f ? toward.Angle : p.Aim;
+            V2 dir = V2.FromAngle(aim), from = p.Pos, to = ClampToArena(from + dir * KnuckleDashLen, p.Def.BodyR);
+            p.KnuckleDashCd = KnuckleDashCooldown;
+            p.KnuckleDashes++;
+            p.InvulnT = Math.Max(p.InvulnT, KnuckleDashTime + KnuckleDashGrace);
+            p.FireCd = Math.Max(p.FireCd, KnuckleDashTime);  // (no punches mid-flight)
+            pendingSwings.RemoveAll(s => s.Owner == p.Id && s.Knuckle != 0 && s.Delay > 0f);  // a punch still winding up never lands
+            var hit = NewSwing(p, aim, 0f, 0f, KnuckleDashDmg * p.Stats.DmgMult);
+            hit.Reach = to.DistanceTo(from) + MeleeReach(p, KnuckleDashFist);  // the whole lane, out to the fist where you stop
+            hit.HalfWidth = KnuckleDashWidth;
+            hit.FromSet = true;
+            hit.From = from;
+            hit.MaxTargets = 1;  // the first enemy in the way
+            hit.Knock = KnuckleDashKnock;
+            hit.Thrust = true;
+            hit.Heavy = true;
+            hit.NoFx = true;
+            hit.Knuckle = 7;
+            hit.Delay = KnuckleDashLand;
+            pendingSwings.Add(hit);
+            BroadcastFx(FxKind.KnuckleDash, from, to, ArcBlue, p.Id, KnuckleDashFxTime, Sfx.KnuckleRocket);
+        }
+
+        /// Host: the dash's hit landed (from LandSwing): the fist's crack and burst on what it hit, if anything.
+        void KnuckleDashLanded(Player p, System.Collections.Generic.List<Enemy> hits)
+        {
+            if (hits.Count == 0)
+                return;
+            var e = hits[0];
+            BroadcastFx(FxKind.Ring, e.Pos, ArcBlue, e.Radius + 22f, 0.3f, Sfx.KnuckleRocketHit);
+        }
+
+        /// Host, every tick (from TickArcKnuckles): the dash's cooldown.
+        void TickKnuckleDash(Player p, float dt) => p.KnuckleDashCd = Math.Max(0f, p.KnuckleDashCd - dt);
+
+        /// Your own game, every tick: a dash the host started moves you (when the count changes); a press with the key asks for
+        /// one. Returns true while the Arc Knuckles are out (nothing else uses the key then).
+        bool LocalKnuckleDash(Player me, V2 aimAt, bool pressed, float dt)
+        {
+            knuckleDashLocalCd = Math.Max(0f, knuckleDashLocalCd - dt);
+            bool knuckles = me.Weapon.Id == WeaponId.ArcKnuckles;
+            if (!knuckles || knuckleDashesSeen < 0)
+                knuckleDashesSeen = me.KnuckleDashes;  // (picking the weapon up never replays an old count)
+            if (me.KnuckleDashes != knuckleDashesSeen)
+            {
+                knuckleDashesSeen = me.KnuckleDashes;
+                if (!me.Downed && me.StunT <= 0f)
+                {
+                    V2 dir = V2.FromAngle(me.Aim), to = ClampToArena(me.Pos + dir * KnuckleDashLen, me.Def.BodyR);
+                    dashSpeed = KnuckleDashLen / KnuckleDashTime;
+                    DashDir = dir;
+                    DashT = to.DistanceTo(me.Pos) / dashSpeed;
+                }
+            }
+            if (!knuckles)
+                return false;
+            if (pressed && knuckleDashLocalCd <= 0f && DashT <= 0f && !me.Downed && me.StunT <= 0f && !me.Parrying)
+            {
+                knuckleDashLocalCd = KnuckleDashCooldown;
+                if (IsHost)
+                    HostWeaponDash(MyId, DashRocket, aimAt);
+                else
+                {
+                    var w = Proto.Begin(Msg.WeaponDash);
+                    w.Write(DashRocket);
+                    w.Write(aimAt);
+                    session.SendToHost(Proto.End(w));
+                }
+            }
+            return true;
         }
     }
 }

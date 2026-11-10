@@ -10,7 +10,7 @@ namespace Arena
         static bool IsKnuckleWeaponSfx(Sfx s)
         {
             return s == Sfx.KnuckleJab || s == Sfx.KnuckleHook || s == Sfx.KnuckleUpper || s == Sfx.KnuckleSlam || s == Sfx.KnuckleCounter
-                || s == Sfx.KnuckleArm;
+                || s == Sfx.KnuckleArm || s == Sfx.KnuckleRocket || s == Sfx.KnuckleRocketHit;
         }
 
         void BuildKnuckles()
@@ -43,6 +43,16 @@ namespace Arena
                 Tone(0.26f, Osc.Square, KnuckleZap * 1.2f, KnuckleZap * 0.4f, 0.06f, noise: 0.6f, lowpass: 0.7f, decay: 2f),
                 Bell(0.7f, 1320f, 0.08f),
                 Bell(0.6f, 1980f, 0.05f)), 0.3f), 0.68f), 0.15f);
+            // The Rocket Dash: a spark catches, the thruster roars and falls away as you fly.
+            Set(Sfx.KnuckleRocket, Finish(Mix(
+                Tone(0.03f, Osc.Square, KnuckleZap, KnuckleZap * 0.8f, 0.05f, noise: 0.6f, lowpass: 0.7f, decay: 3f),
+                Delay(Tone(0.32f, S, 160f, 90f, 0.22f, noise: 0.95f, lowpass: 0.35f, attack: 0.02f, decay: 1.4f), 0.02f),
+                Delay(Tone(0.26f, S, 900f, 2200f, 0.08f, noise: 0.9f, lowpass: 0.6f, attack: 0.03f, decay: 1.8f), 0.02f)), 0.5f), 0.1f);
+            // The fist lands at the end of it: a heavy knock with a burst of static.
+            Set(Sfx.KnuckleRocketHit, Finish(Room(Mix(
+                Tone(0.12f, S, 200f, 60f, 0.36f, noise: 0.3f, lowpass: 0.3f, decay: 2.4f),
+                Tone(0.06f, S, 2400f, 700f, 0.18f, noise: 0.9f, lowpass: 0.85f, decay: 3f),
+                Tone(0.14f, Osc.Square, KnuckleZap * 1.2f, KnuckleZap * 0.5f, 0.05f, noise: 0.6f, lowpass: 0.7f, decay: 2.2f)), 0.2f), 0.55f), 0.06f);
             // Armed: the coils whine up and click.
             Set(Sfx.KnuckleArm, Finish(Mix(
                 Tone(0.22f, S, 600f, 2200f, 0.08f, lowpass: 0.6f, attack: 0.08f, decay: 1.4f),

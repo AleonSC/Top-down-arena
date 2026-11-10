@@ -336,6 +336,9 @@ namespace Arena
                 case FxKind.KnuckleStep:
                     DrawKnuckleStepFx(fx);  // ArcKnucklesLook.cs
                     break;
+                case FxKind.KnuckleDash:
+                    DrawKnuckleDashFx(fx);  // ArcKnucklesLook.cs
+                    break;
                 case FxKind.LightStep:
                     DrawLightStepFx(fx);  // LightbringerLook.cs
                     break;

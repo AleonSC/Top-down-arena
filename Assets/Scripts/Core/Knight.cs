@@ -455,7 +455,9 @@ namespace Arena
             if (hits.Count > 0 && s.LanceKind > 0)
                 LanceHitCue(p, s.LanceKind, hits.Count);  // a Lance step hit something: its sound, your hit-pause and shake (Lance.cs)
             if (s.Rapier && hits.Count > 0)
-                RapierGainTempo(p, hits.Count);  // a stack of Tempo for every enemy the thrust hits (Rapier.cs)
+                RapierGainTempo(p, hits.Count);
+            if (s.Knuckle == 7)
+                KnuckleDashLanded(p, hits);  // the Arc Knuckles' Rocket Dash (ArcKnuckles.cs)  // a stack of Tempo for every enemy the thrust hits (Rapier.cs)
             int healed = 0;
             foreach (var e in hits)
             {

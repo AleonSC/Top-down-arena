@@ -1,6 +1,6 @@
 # Arc Knuckles: the Knight DPS's fourth weapon (design)
 
-Status: **step 1 built** (Nov 2026, protocol 265): the slot, the combo, the parry reset and Counter Hammer, the Arc Coil look. Steps 2-4 to come. Mockup: [`Docs/Mockups/gauntlets.html`](Mockups/gauntlets.html)
+Status: **steps 1-2 built** (Nov 2026, protocol 266): the slot, the combo, the parry reset and Counter Hammer, the Arc Coil look, the Rocket Dash. Steps 3-4 to come. Mockup: [`Docs/Mockups/gauntlets.html`](Mockups/gauntlets.html)
 (https://claude.ai/artifact/Rqn2WEDWUQL1RTJaxvPf8Y), version 5. The **Arc Coil** look, the **Full combo**, **Parry cancel**
 and **Perfect parry** scenarios, and the **Rocket Dash**, **Dash → Flurry** and **Full dash chain** Alt scenarios are the
 design; the page's other Alt fires (Ground Pound, Grab & Throw on its own, Rocket Fist, Shockwave Clap, Seismic Line,
@@ -53,7 +53,9 @@ Magnet Yank) were not picked.
    - `Core/ArcKnuckles.cs`: the five steps, the perfect-parry Counter Hammer, the parry reset.
    - `Game/ArcKnucklesLook.cs`: the Arc Coil fists, trails, arcs, shockwave, pips.
    - Sounds, bot use, a `knuckles` sim suite, a preview shot, README, CODEMAP, protocol bump.
-2. **Rocket Dash** on the weapon-action key: the thruster lunge, the hit, its cooldown, the bot use, the look and sound.
+2. **Rocket Dash** on the weapon-action key: the thruster lunge, the hit, its cooldown, the look and sound. **Built** (your own game
+   moves you when `Player.KnuckleDashes` changes, like the Katana's dashes, not `Msg.Carry`). Bots don't use the weapon-action key
+   for any weapon, so they don't dash either.
 3. **The chain**: Flurry, Grab & Throw (the carried enemy, the no-boss rule), Rocket Punch (the chained fist), the 0.35 s windows.
 4. **Upgrades and balance**: what Homing Rounds, Barrage and extra projectiles do for it (`HomingDesc`, `BarrageDesc`,
    `ExtraDesc`), its ascension, and a balance-test pass against Twin Blades, Greatsword and Rapier.

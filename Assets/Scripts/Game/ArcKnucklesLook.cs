@@ -8,6 +8,8 @@ namespace Arena
     ///   - each punch (FxKind.KnuckleStep, its Radius = the puncher's id * 10 + the step), played from its age off the same
     ///     keyframes as the mockup, with a blue streak behind the fist that's moving fast and small arcs where it lands
     ///     (DrawKnuckleStepFx); the Twin Hammer's and the Counter Hammer's shockwave, cracks and dust;
+    ///   - the Rocket Dash (FxKind.KnuckleDash): the lead fist thrown forward, the rear gauntlet's thruster, afterimages and speed
+    ///     lines along the path (DrawKnuckleDashFx); a ring under your own feet fills as it comes back;
     ///   - five diamonds over the head for the chain, gold while a perfect parry has the Counter Hammer armed (DrawKnucklePips).
     public partial class ArenaApp
     {
@@ -48,6 +50,83 @@ namespace Arena
             new[] { K(0f, 0, 17, -13, 0, 17, 13, 0, 0, 0, 0), K(0.18f, 0, 8, -7, 1.25f, 8, 7, 1.25f, -4, 0, 0.6f), K(0.26f, 2, 44, -9, 0, 44, 9, 0, 10, 0, 1f),
                     K(0.40f, 0, 42, -9, 0, 42, 9, 0, 10, 0, 0.3f), K(0.62f, 0, 17, -13, 0, 17, 13, 0, 0, 0, 0) },
         };
+
+        // The Rocket Dash: a flick back, the lead fist out in front for the flight, the hit, then back to the guard.
+        static readonly KnKey[] KnDash =
+        {
+            K(0f, 0, 17, -13, 0, 17, 13, 0, 0, 0, 0), K(0.04f, 0, 18, -12, 0, 6, 16, 0, 0, -0.3f, 0.4f), K(0.08f, 1, 12, -14, 0, 40, 2, 0, 0, 0.2f, 0.8f),
+            K(0.2f, 3, 12, -14, 0, 42, 2, 0, 0, 0.2f, 0.8f), K(0.24f, 1, 14, -14, 0, 46, 2, 0, 0, 0.25f, 1f), K(0.55f, 0, 17, -13, 0, 17, 13, 0, 0, 0, 0),
+        };
+        const float KnDashPose = 0.55f;
+
+        static KnPose KnuckleDashAt(float c)
+        {
+            if (c <= 0f)
+                return KnDash[0].P;
+            for (int i = 1; i < KnDash.Length; i++)
+                if (c <= KnDash[i].T)
+                    return KnPose.Lerp(KnDash[i - 1].P, KnDash[i].P, KnEase(KnDash[i].E, (c - KnDash[i - 1].T) / (KnDash[i].T - KnDash[i - 1].T)));
+            return KnDash[KnDash.Length - 1].P;
+        }
+
+        /// The Rocket Dash effect of this player still playing its pose (the newest), or null.
+        Effect KnuckleDashFxOf(int id)
+        {
+            Effect best = null;
+            foreach (var fx in game.Effects)
+                if (fx.Kind == FxKind.KnuckleDash && Mathf.RoundToInt(fx.Radius) == id && fx.T < KnDashPose && (best == null || fx.T < best.T))
+                    best = fx;
+            return best;
+        }
+
+        /// The Rocket Dash, from its effect's age: the pose, the thruster, the afterimages along the path.
+        void DrawKnuckleDashFx(Effect fx)
+        {
+            int id = Mathf.RoundToInt(fx.Radius);
+            Player owner;
+            game.Players.TryGetValue(id, out owner);
+            float c = fx.T, t = Time.time, aim = (fx.Pos2 - fx.Pos).Angle, fly = Mathf.Clamp01(c / Game.KnuckleDashTime);
+            V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
+            V2 o = owner != null ? owner.Disp : fx.Pos + (fx.Pos2 - fx.Pos) * fly;
+            // afterimages and speed lines along the path while it flies (and a moment after)
+            if (c < Game.KnuckleDashTime + 0.2f)
+            {
+                float fade = Mathf.Clamp01(1f - (c - Game.KnuckleDashTime) / 0.2f);
+                for (int j = 1; j <= 5; j++)
+                {
+                    float k = fly - j * 0.16f;
+                    if (k < 0f)
+                        break;
+                    V2 at = fx.Pos + (fx.Pos2 - fx.Pos) * k;
+                    float a = 0.22f * (6 - j) / 5f * fade;
+                    Circle(at, 16f, KnArc.WithAlpha(a * 0.5f), 18);
+                    Arc(at, 16f, 1.4f, KnArc.WithAlpha(a), 18);
+                }
+                for (int i = 0; i < 6; i++)
+                {
+                    float y = (KnHash(i + Mathf.FloorToInt(t * 30f)) - 0.5f) * 36f, x = -20f - KnHash(i * 3) * 60f;
+                    V2 a0 = o + dir * x + side * y;
+                    Line(a0, a0 - dir * 22f, 1f, new Rgba(0.9f, 0.9f, 0.9f, 0.25f * fade));
+                }
+            }
+            if (owner != null && KnuckleDashFxOf(id) != fx)
+                return;
+            if (c >= KnDashPose)
+                return;
+            var m = KnuckleDashAt(c);
+            DrawKnucklePose(o, aim, m, owner != null ? owner.Def.Color : new Rgba(0.45f, 0.5f, 0.6f), t, false);
+            if (c > 0.03f && c < Game.KnuckleDashTime + 0.04f)  // the lead gauntlet's thruster, firing back along the arm (over it)
+            {
+                V2 f = KnuckleFist(o, aim, m, true) - dir * 9f;
+                float fl = 24f + 8f * Mathf.Sin(t * 95f);
+                SetColor(KnArc.WithAlpha(0.85f));
+                Tri(f + side * 7f, f - dir * fl, f - side * 7f);
+                SetColor(KnArcHi);
+                Tri(f + side * 2.5f, f - dir * fl * 0.55f, f - side * 2.5f);
+            }
+            if (owner != null)
+                DrawKnucklePips(owner, t);
+        }
 
         static float KnEase(int e, float k)
         {
@@ -92,7 +171,7 @@ namespace Arena
         /// The fists up in a guard, when no punch is moving.
         void DrawKnuckleIdle(Player p, float t)
         {
-            if (p.Weapon.Id != WeaponId.ArcKnuckles || KnuckleFxOf(p.Id) != null)
+            if (p.Weapon.Id != WeaponId.ArcKnuckles || KnuckleFxOf(p.Id) != null || KnuckleDashFxOf(p.Id) != null)
                 return;
             float b = Mathf.Sin(t * 2.6f);
             var m = KnRest;
@@ -115,8 +194,8 @@ namespace Arena
             bool gold = step == 6;
             if (step >= 5)
                 DrawKnuckleQuake(fx.Pos + V2.FromAngle(aim) * Game.KnuckleHammerAt, c - Game.KnuckleLand[step - 1], gold ? Game.KnuckleCounterR : Game.KnuckleHammerR, gold, id);
-            if (c >= Game.KnuckleDur[step - 1] || (owner != null && KnuckleFxOf(id) != fx))
-                return;  // the punch is over, or a newer one by the same player has taken over
+            if (c >= Game.KnuckleDur[step - 1] || (owner != null && (KnuckleFxOf(id) != fx || KnuckleDashFxOf(id) != null)))
+                return;  // (a dash takes over from a punch)  // the punch is over, or a newer one by the same player has taken over
             // the streak behind a fist that moves fast
             for (int side = 0; side < 2; side++)
             {
@@ -309,6 +388,12 @@ namespace Arena
         {
             int step = Game.KnuckleStepOf(p.Combo);
             bool gold = p.KnuckleArmed || step == 6;
+            if (p.Id == game.MyId && game.KnuckleDashCd > 0f)  // the Rocket Dash coming back: a ring filling under your feet
+            {
+                float k = 1f - game.KnuckleDashCd / Game.KnuckleDashCooldown;
+                Arc(p.Disp, p.Def.BodyR + 7f, 2f, new Rgba(1f, 1f, 1f, 0.1f), 28);
+                Arc(p.Disp, p.Def.BodyR + 7f, 2f, KnArc.WithAlpha(0.6f), 28, -MathX.Pi / 2f, MathX.Tau * k);
+            }
             if (step == 0 && !gold)
                 return;
             V2 c = p.Disp + new V2(0f, -p.Def.BodyR - 16f);

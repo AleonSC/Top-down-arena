@@ -135,6 +135,55 @@ static partial class Program
         Step((int)((Game.KnuckleArmTime + 0.3f) / dt), false, false);
         Check(armed && !me.KnuckleArmed, "an unused Counter Hammer fades after 3 s");
 
+        // The Rocket Dash (the weapon-action key): you fly 130 px along your aim, untouchable; the first enemy in the lane takes
+        // its hit and a short shove, the one behind it nothing.
+        Step(80, false, false);
+        g.Bullets.Clear();
+        foreach (var kv in pinned) kv.Key.Pos = new V2(150f, 120f);
+        pinned.Clear();
+        var front = Dummy(new V2(640f, 450f));
+        var behind = Dummy(new V2(680f, 450f));
+        pinned.Clear();  // (they move: the shove)
+        float frontX = front.Pos.X;
+        V2 start = from;
+        me.Pos = start;
+        bool clientSawDash = false, untouchable = false;
+        Action<int, bool> Fly = (frames, alt) =>
+        {
+            for (int f = 0; f < frames; f++)
+            {
+                queue.Clear();
+                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = me.Pos + new V2(300f, 0f), WeaponAction = alt && f < 2 } : new PlayerInput()); }
+                foreach (var c in g.Sounds) heard.Add(c.Sfx);
+                g.Sounds.Clear();
+                untouchable |= me.InvulnT > 0f;
+                foreach (var fx in s[1].Game.Effects)
+                    clientSawDash |= fx.Kind == FxKind.KnuckleDash && (int)Math.Round(fx.Radius) == 1;
+            }
+        };
+        front.Hp = front.MaxHp; behind.Hp = behind.MaxHp;
+        Fly(2, true);
+        Fly(28, false);
+        float moved = me.Pos.DistanceTo(start);
+        float frontTook = front.MaxHp - front.Hp, behindTook = behind.MaxHp - behind.Hp;
+        Console.WriteLine("  rocket dash: moved {0:0} px, front took {1:0}, behind {2:0}, shoved {3:0} px", moved, frontTook, behindTook, front.Pos.X - frontX);
+        Check(Math.Abs(moved - Game.KnuckleDashLen) < 12f, "the Rocket Dash carries you 130 px along your aim (" + moved + "; dashes move in whole 1/60 s frames)");
+        Check(untouchable, "and you're untouchable while you fly");
+        Check(Math.Abs(frontTook - Game.KnuckleDashDmg * me.Stats.DmgMult) < 0.6f && behindTook == 0f, "the first enemy in the lane takes the hit, the one behind it nothing");
+        Check(front.Pos.X - frontX > 5f && front.Pos.X - frontX < Game.KnuckleDashKnock + 10f, "and it's shoved a short way, still in reach");
+        Check(heard.Contains(Sfx.KnuckleRocket) && heard.Contains(Sfx.KnuckleRocketHit), "the thruster and the hit are heard");
+        Check(clientSawDash, "the other player sees the dash");
+        V2 after = me.Pos;
+        front.Hp = front.MaxHp;
+        Fly(2, true);
+        Fly(20, false);
+        Check(me.Pos.DistanceTo(after) < 2f && front.Hp == front.MaxHp, "it can't dash again until its 3 s cooldown is up");
+        Fly((int)(Game.KnuckleDashCooldown / dt), false);
+        after = me.Pos;
+        Fly(2, true);
+        Fly(20, false);
+        Check(me.Pos.DistanceTo(after) > 100f, "after the cooldown it dashes again");
+
         s[0].Leave(""); s[1].Leave("");
     }
 }
