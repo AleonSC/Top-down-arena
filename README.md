@@ -754,12 +754,14 @@ On the Bazaar's waves every kill gives **every player the same gold** (0.3 per p
 325 each over waves 6-10, rising to about 1000 by wave 40); your gold shows above the wave panel. After its last
 wave, everyone gets a shop before the boss:
 
+- **One sideways carousel** holds everything: your shelf, then the services. The item in the middle is big and shows what it
+  changes as the green readout on the card (old ▸▸ new). Click a side card, use the arrows, the mouse wheel or the arrow
+  keys to bring one to the middle, and click the middle one to buy it. The SHELF and SERVICES tabs jump to each part.
 - **Your shelf** (rolled for your class): four upgrades, one legendary and one weapon mod. Prices by rarity: common
-  40, uncommon 60, rare 100, very rare 160, weapon mod 200, legendary 280. Click a card to select it (your stats
-  preview it), click again to buy.
-- **Services:** restock the shelf (25, then +25 each time), remove an upgrade (75; one stack, and abilities it gave
-  go too), full heal (40), and a revive token (120; one at a time: when you go down you get back up 2 s later at
-  half health, and it isn't game over while it's waiting).
+  40, uncommon 60, rare 100, very rare 160, weapon mod 200, legendary 280.
+- **Services:** add stock (six more cards on the shelf, none you already see; 25, then +25 each time, up to 3 times),
+  remove an upgrade (75; one stack, and abilities it gave go too), full heal (40), and a revive token (120; one at a
+  time: when you go down you get back up 2 s later at half health, and it isn't game over while it's waiting).
 - **Give** sends a teammate 10, 50, 100 or all of your gold. Giving to someone who's already done reopens their
   shop so they can choose what to do with it.
 - **No timer:** the shop closes when everyone has clicked **Done shopping** (click again to keep shopping until the
@@ -810,7 +812,7 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   Beating it gives everyone a prize pick (sometimes a legendary) and the room becomes an ordinary one. It's optional: if the wave ends first, the
   Gatekeeper goes, you're let out, and walking in later starts a fresh duel.
 - **Shop and vendor rooms**: with one connected, kills drop gold and the shop opens every intermission without holding the countdown. Buy
-  upgrades and restock in the **shop room**; heal, revive and remove upgrades at the **vendor**. Gold and your shelf carry over between waves
+  upgrades and add stock in the **shop room**; heal, revive and remove upgrades at the **vendor**. Gold and your shelf carry over between waves
   (the shelf is new each boss cycle).
 - **Obstacles**: a built room comes with obstacles and bars of wall (pillars, bars, an L, blocks: one per ~220,000 px2, up to 4),
   laid out from the room's own box so every machine builds the same ones. They keep off the room's walls, its doors and its middle,

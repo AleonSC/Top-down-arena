@@ -145,7 +145,7 @@ namespace Arena
 
         public bool InServiceRoom(Player p) => InShopRoom(p) || InVendorRoom(p);
 
-        /// In a room shop, upgrades and restocks are bought in the shop room and heals, revives and removals at the vendor.
+        /// In a room shop, upgrades and Add stock are bought in the shop room and heals, revives and removals at the vendor.
         bool ServiceAllowed(Player p, ShopAction action)
         {
             if (!ServiceRooms)

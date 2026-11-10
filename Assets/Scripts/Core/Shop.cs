@@ -6,7 +6,7 @@ namespace Arena
 {
     /// The Bazaar (a 1-skull path, Paths.cs): kills on its waves drop gold, the same amount to every player, and
     /// before the boss everyone gets a shop. Each player has their own shelf (four upgrades for their class, one
-    /// legendary, one weapon mod) and services (restock, remove an upgrade, full heal, revive token), and can give
+    /// legendary, one weapon mod) and services (add stock, remove an upgrade, full heal, revive token), and can give
     /// gold to teammates. There's no timer: the shop closes when everyone has clicked Done (the host can close it
     /// after a minute), and each player's leftover gold becomes their XP. Host-authoritative: clients send
     /// Msg.Shop requests and see the result in the snapshot.
@@ -20,7 +20,9 @@ namespace Arena
 
     public partial class Game
     {
-        public const int ShelfSize = 6;                 // four upgrades, a legendary, a weapon mod
+        public const int ShelfSize = 6;                 // one stock: four upgrades, a legendary, a weapon mod
+        public const int StockMax = 3;                  // Add stock can be bought this many times a visit (each adds a stock of ShelfSize)
+        public const int MaxShelf = ShelfSize * (1 + StockMax);
         public const float GoldPerXp = 0.3f;            // gold dropped per point of XP a kill gives
         public const float GoldToXp = 1f;               // XP per leftover gold when the shop closes
         public const float ShopHostCloseAfter = 60f;    // the host can close the shop for everyone after this long
@@ -45,7 +47,11 @@ namespace Arena
             }
         }
 
+        /// Add stock: the price of the next one (25, then +25 each time).
         public static int RestockPrice(Player p) => 25 + 25 * p.Restocks;
+
+        /// How many cards are on a player's shelf now: one stock, plus one per Add stock.
+        public static int ShelfCount(Player p) => ShelfSize * (1 + Math.Min(StockMax, p.Restocks));
 
         public static bool Sold(Player p, int slot) => (p.ShelfSold & (1 << slot)) != 0;
 
@@ -71,7 +77,7 @@ namespace Arena
             {
                 p.ShopDone = false;
                 bool empty = true;
-                for (int i = 0; i < ShelfSize; i++)
+                for (int i = 0; i < MaxShelf; i++)
                     empty &= p.Shelf[i] < 0;
                 if (reroll || empty)  // (the room shop keeps a player's shelf until the next boss cycle)
                 {
@@ -84,21 +90,39 @@ namespace Arena
 
         void RollShelf(Player p)
         {
+            for (int i = 0; i < MaxShelf; i++)
+                p.Shelf[i] = -1;
+            p.ShelfSold = 0;
+            RollStock(p, 0);
+        }
+
+        /// One stock of ShelfSize cards into the shelf from slot `at` on (cards already on the shelf aren't rolled again).
+        void RollStock(Player p, int at)
+        {
             var shelf = new List<int>();
             for (int tries = 0; tries < 6 && shelf.Count < 4; tries++)
                 foreach (int u in Upgrades.RollOffer(rng, p.Role, p.RoleAbility, p.Taken, p.Level, p.Weapon.Id, ExpandingOn))
-                    if (u >= 0 && shelf.Count < 4 && !shelf.Contains(u))
+                    if (u >= 0 && shelf.Count < 4 && !shelf.Contains(u) && Array.IndexOf(p.Shelf, u) < 0)
                         shelf.Add(u);
             while (shelf.Count < 4)
                 shelf.Add(-1);
             var boss = BossForWave(ExpandingOn ? Math.Max(5, Wave - Wave % 5) : Math.Max(5, PathFrom - 1));  // (the Expanding arena: the last boss beaten)
             var legendaries = Upgrades.LegendaryOffer(rng, IsReaper(boss) ? EnemyType.TwinA : boss, p.Role, p.RoleAbility, p.Taken);
-            shelf.Add(legendaries != null && legendaries.Length > 0 ? legendaries[rng.Next(legendaries.Length)] : -1);
-            var mods = Upgrades.ModOffer(p.Role, p.RoleAbility, p.Taken);
-            shelf.Add(mods != null ? mods[rng.Next(mods.Length)] : -1);
+            shelf.Add(PickNew(p, legendaries));
+            shelf.Add(PickNew(p, Upgrades.ModOffer(p.Role, p.RoleAbility, p.Taken)));
             for (int i = 0; i < ShelfSize; i++)
-                p.Shelf[i] = shelf[i];
-            p.ShelfSold = 0;
+                p.Shelf[at + i] = shelf[i];
+        }
+
+        /// A random one of these that isn't on the shelf yet (-1 if none).
+        int PickNew(Player p, int[] from)
+        {
+            var left = new List<int>();
+            if (from != null)
+                foreach (int u in from)
+                    if (Array.IndexOf(p.Shelf, u) < 0)
+                        left.Add(u);
+            return left.Count > 0 ? left[rng.Next(left.Count)] : -1;
         }
 
         /// The local player does something in the shop (arg: shelf slot, upgrade to remove, Done on/off, or the
@@ -140,24 +164,24 @@ namespace Arena
             {
                 case ShopAction.Buy:
                 {
-                    if (!shopping || arg < 0 || arg >= ShelfSize || Sold(p, arg) || p.Shelf[arg] < 0)
+                    if (!shopping || arg < 0 || arg >= ShelfCount(p) || Sold(p, arg) || p.Shelf[arg] < 0)
                         return;
                     int u = p.Shelf[arg], price = Price(u);
                     if (p.Gold < price || !Upgrades.Available(u, p.Role, p.RoleAbility, p.Taken, p.Weapon.Id, ExpandingOn))
                         return;
                     p.Gold -= price;
-                    p.ShelfSold |= (byte)(1 << arg);
+                    p.ShelfSold |= 1 << arg;
                     Recorder?.Picked(this, p, (int[])p.Shelf.Clone(), u, "shop");
                     GrantUpgrade(id, u);
                     DoLog(p.Role + " bought " + Upgrades.All[u].Name + " for " + price);
                     break;
                 }
                 case ShopAction.Restock:
-                    if (!shopping || p.Gold < RestockPrice(p))
+                    if (!shopping || p.Restocks >= StockMax || p.Gold < RestockPrice(p))
                         return;
                     p.Gold -= RestockPrice(p);
+                    RollStock(p, ShelfCount(p));  // Add stock: six more cards after the ones already there
                     p.Restocks++;
-                    RollShelf(p);
                     break;
                 case ShopAction.Remove:
                     if (!shopping || p.Gold < RemovePrice || !p.Taken.Contains(arg))
@@ -245,9 +269,10 @@ namespace Arena
                 p.ShopDone = false;
                 if (!ServiceRooms)  // (the room shops keep a shelf until the next boss cycle)
                 {
-                    for (int i = 0; i < ShelfSize; i++)
+                    for (int i = 0; i < MaxShelf; i++)
                         p.Shelf[i] = -1;
                     p.ShelfSold = 0;
+                    p.Restocks = 0;
                 }
                 if (p.Offer == null)
                     NextOffer(p);  // a level-up from the XP
@@ -316,7 +341,7 @@ namespace Arena
                 return;
             }
             int best = -1;
-            for (int i = 0; i < ShelfSize; i++)
+            for (int i = 0; i < ShelfCount(me); i++)
                 if (me.Shelf[i] >= 0 && !Sold(me, i) && Price(me.Shelf[i]) <= me.Gold && Upgrades.Available(me.Shelf[i], me.Role, me.RoleAbility, me.Taken, me.Weapon.Id, ExpandingOn)
                     && (best < 0 || Price(me.Shelf[i]) < Price(me.Shelf[best])))
                     best = i;
@@ -335,8 +360,9 @@ namespace Arena
             s.Bool(ref p.ReviveToken);
             s.Bool(ref p.SecondWind);  // Modifiers.cs
             s.Byte(ref p.Restocks);
-            s.Byte(ref p.ShelfSold);
-            for (int i = 0; i < ShelfSize; i++)
+            s.Int(ref p.ShelfSold);
+            int count = ShelfCount(p);  // (Restocks came first: only the cards on the shelf are sent)
+            for (int i = 0; i < count; i++)
                 s.Short(ref p.Shelf[i]);
         }
     }
