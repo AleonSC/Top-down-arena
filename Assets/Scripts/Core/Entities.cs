@@ -249,6 +249,7 @@ namespace Arena
         public float RapierTempoF;   // host: the exact Tempo (it drains a little at a time)
         public float RapierHitAgo = 99f;  // host: seconds since a Rapier thrust last hit an enemy (Tempo holds for RapierGrace, then drains)
         public byte RapierGraceLeft; // Rapier: how much of the grace period is left, 0 to 255 (replicated: the arc under the diamonds; 0 = draining)
+        public bool RapierFireWas;   // host: fire was held last tick (a click is the press)
         public bool RapierGuard;     // Rapier: the weapon-action key is held, the Riposte stance is up (replicated; you move slowly and reflect bullets)
         public byte RapierCharge;    // Rapier: the stance's charge, 0 to 255 (replicated: the lunge's reach; drawn on the blade and as an arc)
         public float RapierChargeF, RapierLungeEl, RapierLungeDur, RapierLungeLen, RapierLungeDmg;  // host: exact charge; the lunge's clock, length, damage

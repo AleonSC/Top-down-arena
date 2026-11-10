@@ -16,7 +16,7 @@ namespace Arena
         public const float RapierSlow = 0.48f, RapierFast = 0.16f, RapierMinInterval = 0.08f;
         public const float RapierGrace = 1.2f, RapierDrain = 2f;
         public const float RapierFlourishSwing = 0.1f, RapierWaveDmg = 22f, RapierWaveSpeed = 560f, RapierWaveRange = 380f;
-        // Riposte: press the weapon-action key to stand guard, press again to lunge. Reflected bullets fill the charge; it also creeps up on its own.
+        // Riposte: press the weapon-action key to stand guard (again to drop it), click to lunge. Reflected bullets fill the charge; it also creeps up on its own.
         public const float RapierStanceSlow = 0.4f, RapierStanceRadius = 62f, RapierStanceHalfArc = 70f * MathX.Pi / 180f, RapierStanceBand = 14f;
         public const float RapierChargePassive = 0.04f, RapierChargePerBullet = 0.1f, RapierLungeMinCharge = 0.06f;  // charge is 0 to 1: per second held; per bullet reflected
         public const float RapierLungeMin = 130f, RapierLungeMax = 720f, RapierLungeSpeed = 1500f, RapierLungeBase = 20f, RapierLungeBonus = 50f, RapierLungeWidth = 18f;
@@ -44,7 +44,7 @@ namespace Arena
         public static float RapierLungeLength(float charge) => RapierLungeMin + (RapierLungeMax - RapierLungeMin) * Math.Min(1f, Math.Max(0f, charge));
         public static float RapierLungeDamage(float charge) => RapierLungeBase + RapierLungeBonus * Math.Min(1f, Math.Max(0f, charge));
 
-        /// Host: the weapon-action key was pressed with the Rapier, aiming at `aimAt`: the stance goes up (on), or comes down in a lunge.
+        /// Host: the stance goes up (on), or comes down in a lunge along `aimAt` (off: your primary click while on guard, RapierClickLunge).
         void HostRapierStance(Player p, bool on, V2 aimAt)
         {
             if (p.Weapon.Id != WeaponId.Rapier || State == MatchState.GameOver)
@@ -81,6 +81,23 @@ namespace Arena
             p.FireCd = Math.Max(p.FireCd, p.RapierLungeDur + 0.1f);
             CarryPlayer(p, to, p.RapierLungeDur);
             BroadcastFx(FxKind.GauntletCharge, p.Pos, to, new Rgba(0.8f, 0.72f, 1f), p.Id, p.RapierLungeDur + 0.8f, Sfx.Blink);
+        }
+
+        /// Host: the weapon-action key was pressed with the stance up: it drops, charge and all, with no lunge.
+        void RapierDropStance(Player p)
+        {
+            p.RapierGuard = false;
+            p.RapierChargeF = 0f;
+            p.RapierCharge = 0;
+        }
+
+        /// Host: your primary click while on guard lunges along your aim (the press itself, not a held button).
+        void RapierClickLunge(Player p)
+        {
+            bool click = p.Firing && !p.RapierFireWas;
+            p.RapierFireWas = p.Firing;
+            if (click && p.RapierGuard)
+                HostRapierStance(p, false, p.Pos + V2.FromAngle(p.Aim) * 100f);
         }
 
         /// Host: the stance stops bullets in front of you and sends them back as your own; each adds charge.
@@ -155,6 +172,7 @@ namespace Arena
                 else
                 {
                     p.RapierChargeF = Math.Min(1f, p.RapierChargeF + RapierChargePassive * dt);
+                    RapierClickLunge(p);
                     RapierStanceReflect(p);
                     p.RapierHitAgo = Math.Min(p.RapierHitAgo, 0.01f);  // Tempo holds while you stand guard
                 }
