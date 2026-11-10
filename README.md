@@ -1528,6 +1528,9 @@ its fields the game's keys are off. Outside a match only VIEW and LABS show.
   one. **Freeze enemies**: a switch under it that stops every enemy moving and shooting and stops new ones spawning
   (you can still kill the frozen ones; the wave won't clear while it's on; it resets when a match starts). The **PARTY drawer** has **Everyone** buttons: level up, max mastery, full heal and reset stats for every player at once (god mode and full heal are also pinned on the bar). **Challenge
   rooms** buttons (between waves): straight into Crystal, Gatekeeper, Kill Rush, Zones or Mirror.
+- **WAVE > SPAWN AN ENEMY… (host, while a wave is under way):** a sheet with every enemy (and a **BOSSES** tab) shown as its live model; filter by
+  name, pick a **count** (1, 3, 5, 10) and **Elite**, then click one to put them in a row in front of you. A boss comes in the middle of the
+  arena as on its wave (the Twin Reapers bring both twins). They count toward the wave like any enemy. Marks the run as a dev run.
 - **PARTY > SPAWN AN UPGRADE… (host, in a match):** a sheet listing every upgrade (filter by name or text, or by rarity, including weapon mods and milestone
   cards; pick whose build it is for with several players). Click one and it drops a few steps in front of that player exactly as a treasure
   chest's item does: only they see it, walk onto it, then **G** takes it and **X** throws it away (the wave waits for it, like a chest's). Only

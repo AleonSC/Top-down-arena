@@ -12,7 +12,7 @@ namespace Arena
     {
         int devDrawer;            // 0 none, 1 wave, 2 party, 3 view, 4 labs
         bool devSide;             // the stat editor, as a side drawer
-        int devSheet;             // 0 none, 1 DPS meter and dummies, 2 Replays, 3 Balance test, 4 Spawn an upgrade
+        int devSheet;             // 0 none, 1 DPS meter and dummies, 2 Replays, 3 Balance test, 4 Spawn an upgrade, 5 Spawn an enemy
         readonly List<Rect> dockHit = new List<Rect>();  // the dock's rects as last drawn (the mouse over one doesn't shoot)
 
         static readonly Rect DockBar = new Rect(16f, 10f, W - 32f, 52f);
@@ -67,7 +67,7 @@ namespace Arena
                 dockHit.Clear();
             bool inMatch = session.Screen == AppScreen.Game;
             bool host = session.IsHost;
-            if (!inMatch && (devDrawer == 1 || devDrawer == 2 || devSide || devSheet == 1 || devSheet == 3 || devSheet == 4))
+            if (!inMatch && (devDrawer == 1 || devDrawer == 2 || devSide || devSheet == 1 || devSheet == 3 || devSheet == 4 || devSheet == 5))
             {
                 devDrawer = devDrawer == 1 || devDrawer == 2 ? 0 : devDrawer;
                 devSide = false;
@@ -159,7 +159,7 @@ namespace Arena
                 var kr = keyRects[devDrawer - 1];
                 switch (devDrawer)
                 {
-                    case 1: DrawDockWave(new Rect(Mathf.Min(kr.x, edge - 400f), 70f, 400f, 296f), host); break;
+                    case 1: DrawDockWave(new Rect(Mathf.Min(kr.x, edge - 400f), 70f, 400f, 340f), host); break;
                     case 2: DrawDockParty(new Rect(Mathf.Min(kr.x, edge - 380f), 70f, 380f, 282f), host); break;
                     case 3: DrawDockView(new Rect(Mathf.Min(kr.x, edge - 400f), 70f, 400f, 270f), inMatch); break;
                     default: DrawDockLabs(new Rect(Mathf.Min(kr.x, edge - 340f), 70f, 340f, 300f), inMatch); break;
@@ -203,6 +203,11 @@ namespace Arena
             var boss = Game.BossForWave(bossWave);
             Ui.Label(col.Next(18f), (devWave % 5 == 0 ? "Boss on this wave: " : "Next boss (wave " + bossWave + "): ") + PracticePlan.NameOf(boss == EnemyType.TwinB ? EnemyType.TwinA : boss),
                 12, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
+            if (DkKey(col.Next(34f), "SPAWN AN ENEMY…", CrtStyle.Head, false, 14))
+            {
+                devSheet = 5;
+                devDrawer = 0;
+            }
             Ui.Label(col.Next(14f), "DATA GATES  (between waves)", 10, CrtStyle.Desc, TextAnchor.MiddleLeft, true);
             bool canRoom = host && game.State == MatchState.Intermission && game.Room == RoomPhase.None;
             GUI.enabled = was && canRoom;
@@ -352,7 +357,7 @@ namespace Arena
 
         void DrawDockSheet(Rect r, bool inMatch)
         {
-            string title = devSheet == 1 ? "DPS meter and target dummies" : devSheet == 2 ? "Replays" : devSheet == 4 ? "Spawn an upgrade" : "Balance test";
+            string title = devSheet == 1 ? "DPS meter and target dummies" : devSheet == 2 ? "Replays" : devSheet == 4 ? "Spawn an upgrade" : devSheet == 5 ? "Spawn an enemy" : "Balance test";
             var inner = DockBox(r, title);
             if (DkKey(new Rect(r.xMax - 40f, r.y + 6f, 30f, 22f), "x", Ui.Neutral, false, 11))
                 devSheet = 0;
@@ -365,6 +370,10 @@ namespace Arena
             else if (devSheet == 4)
             {
                 if (inMatch) DrawDockUpgrades(inner); else DevNotInMatch(inner, "spawn an upgrade");
+            }
+            else if (devSheet == 5)
+            {
+                if (inMatch) DrawDockEnemies(inner); else DevNotInMatch(inner, "spawn an enemy");
             }
             else if (inMatch)
                 DrawDevBalance(inner);  // BalanceTestUi.cs
@@ -478,5 +487,96 @@ namespace Arena
             Ui.Label(new Rect(r.x, r.yMax - 20f, r.width, 18f), devUpNote.Length > 0 ? devUpNote : ids.Count + " upgrades  ·  click one to drop it like a chest's item (host only; marks the run as a dev run)",
                 11, devUpNote.Length > 0 ? CrtStyle.Gold : CrtStyle.Desc);
         }
+
+        // --- Spawn an enemy -----------------------------------------------------------------------------------
+
+        int devEnemyTab;          // 0 enemies, 1 bosses
+        int devEnemyCount = 1;
+        bool devEnemyElite;
+        float devEnemyScroll;
+        string devEnemyFilter = "";
+        string devEnemyNote = "";
+
+        /// Every enemy (or boss) with its live model: click one to put it in front of you (several with the count keys, tougher with
+        /// Elite). Needs a wave under way, and the host.
+        void DrawDockEnemies(Rect r)
+        {
+            bool host = session.IsHost, fighting = game.State == MatchState.Fighting;
+            var col = DkStack.Column(r, 8f);
+            var top = col.Next(30f);
+            string[] tabs = { "ENEMIES", "BOSSES" };
+            for (int i = 0; i < 2; i++)
+                if (DkChoice(new Rect(top.x + i * 92f, top.y, 88f, 30f), tabs[i], devEnemyTab == i, CrtStyle.Head))
+                {
+                    devEnemyTab = i;
+                    devEnemyScroll = 0f;
+                }
+            devEnemyFilter = DkField(new Rect(top.x + 196f, top.y, 190f, 30f), devEnemyFilter, 20);
+            if (devEnemyFilter.Length == 0)
+                Ui.Label(new Rect(top.x + 206f, top.y, 170f, 30f), "Filter by name", 13, new Color(1f, 1f, 1f, 0.35f), TextAnchor.MiddleLeft);
+            float cx = top.x + 400f;
+            Ui.Label(new Rect(cx, top.y, 50f, 30f), "COUNT", 10, CrtStyle.Desc, TextAnchor.MiddleLeft, true);
+            int[] counts = { 1, 3, 5, 10 };
+            for (int i = 0; i < counts.Length; i++)
+                if (DkChoice(new Rect(cx + 50f + i * 38f, top.y, 34f, 30f), counts[i].ToString(), devEnemyCount == counts[i], CrtStyle.Gold))
+                    devEnemyCount = counts[i];
+            devEnemyElite = DkSwitch(new Rect(cx + 212f, top.y, top.xMax - cx - 212f, 30f), devEnemyElite, "Elite");
+
+            var all = EdPaletteEnemies(devEnemyTab == 1);
+            var list = new List<EnemyType>();
+            string f = devEnemyFilter.Trim();
+            foreach (var t in all)
+                if (f.Length == 0 || PracticePlan.NameOf(t).IndexOf(f, StringComparison.OrdinalIgnoreCase) >= 0)
+                    list.Add(t);
+            var area = col.Rest();
+            area.height -= 26f;
+            DkSub(area);
+            const int cols = 9;
+            float gap = 4f, cw = (area.width - 12f - gap * (cols - 1)) / cols, chh = 78f;
+            int rowsAll = (list.Count + cols - 1) / cols;
+            int rowsVisible = Mathf.Max(1, Mathf.FloorToInt((area.height - 8f + gap) / (chh + gap)));
+            var ev = Event.current;
+            if (ev.type == EventType.ScrollWheel && area.Contains(ev.mousePosition))
+            {
+                devEnemyScroll += ev.delta.y > 0 ? 1 : -1;
+                ev.Use();
+            }
+            devEnemyScroll = Mathf.Clamp(devEnemyScroll, 0, Mathf.Max(0, rowsAll - rowsVisible));
+            int first = (int)devEnemyScroll * cols;
+            var cells = new List<KeyValuePair<EnemyType, Rect>>();
+            bool canSpawn = host && fighting;
+            for (int i = first; i < list.Count && i < first + rowsVisible * cols; i++)
+            {
+                int k = i - first;
+                var cell = new Rect(area.x + 6f + (k % cols) * (cw + gap), area.y + 4f + (k / cols) * (chh + gap), cw, chh);
+                bool hover = canSpawn && cell.Contains(ev.mousePosition);
+                bool boss = Defs.Get(list[i]).IsBoss;
+                Color tint = boss ? CrtStyle.Danger : Approaches.Of(list[i]) != null ? CrtStyle.Gold : CrtUi.Ink;
+                Ui.Fill(cell, new Color(tint.r, tint.g, tint.b, hover ? 0.16f : 0.05f));
+                CrtKit.Frame(cell, 1f, new Color(tint.r, tint.g, tint.b, hover ? 0.8f : 0.25f));
+                Ui.Label(new Rect(cell.x, cell.yMax - 15f, cell.width, 13f), PracticePlan.NameOf(list[i]), 9, canSpawn ? CrtStyle.Body : CrtStyle.Desc, TextAnchor.MiddleCenter);
+                cells.Add(new KeyValuePair<EnemyType, Rect>(list[i], cell));
+                if (canSpawn && Ui.HitArea(cell))
+                {
+                    int n = game.DevSpawnEnemy(game.MyId, list[i], boss ? 1 : devEnemyCount, devEnemyElite && !boss);
+                    devEnemyNote = n > 0 ? "Spawned " + (n > 1 ? n + " " : "") + PracticeEnemyName(list[i]) + " in front of you." : "Couldn't spawn it.";
+                }
+            }
+            if (BeginUiGl())
+            {
+                foreach (var kv in cells)
+                {
+                    UiClip(kv.Value);
+                    DrawEnemyPreview(kv.Key, new V2(kv.Value.center.x, kv.Value.y + 30f), 40f, Time.unscaledTime, kv.Value.Contains(ev.mousePosition));
+                }
+                EndUiGl();
+            }
+            if (rowsAll > rowsVisible)
+                Ui.Label(new Rect(area.xMax - 110f, area.yMax + 6f, 104f, 16f), "scroll " + ((int)devEnemyScroll + 1) + "/" + (rowsAll - rowsVisible + 1), 10, CrtStyle.Desc, TextAnchor.MiddleRight);
+            string idle = !host ? "Only the host can spawn enemies." : !fighting ? "Start a wave first: enemies can only be spawned while one is under way." : list.Count + " " + (devEnemyTab == 1 ? "bosses" : "enemies") + "  ·  click one to put it in front of you (marks the run as a dev run)";
+            Ui.Label(new Rect(r.x, r.yMax - 20f, r.width - 120f, 18f), devEnemyNote.Length > 0 && canSpawn ? devEnemyNote : idle, 11, devEnemyNote.Length > 0 && canSpawn ? CrtStyle.Gold : CrtStyle.Desc);
+        }
+
+        static string PracticeEnemyName(EnemyType t) => PracticePlan.NameOf(t);
     }
 }
