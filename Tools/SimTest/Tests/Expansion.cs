@@ -367,7 +367,7 @@ static partial class Program
         Run(s, dt, 3f, () => !g.ExpandOpen && !cg.ExpandOpen && cg.Expanded.Count == g.Expanded.Count);
         Check(g.Expanded.Count == builtNow + 1 && g.Expanded[g.Expanded.Count - 1].Owner == 1 && cg.Expanded.Count == g.Expanded.Count, "when the wave starts the votes cast count: the only vote builds that room");
 
-        // Floating rooms: a new boss cycle places its shop or vendor and its Gatekeeper, sealed, the same on the client, adding no crowd and no spawns.
+        // Floating rooms: a new boss cycle places its shop, vendor and Gatekeeper, sealed, the same on the client, adding no crowd and no spawns.
         var placeFloating = typeof(Game).GetMethod("PlaceFloatingRooms", flags);
         int boughtNow = Expansion.BoughtCount(g.Expanded), allNow = g.Expanded.Count;
         float scale0 = g.ExpansionScale;
@@ -376,10 +376,10 @@ static partial class Program
         placeFloating.Invoke(g, null);
         Run(s, dt, 3f, () => cg.Expanded.Count == g.Expanded.Count);
         var added = g.Expanded.Skip(allNow).ToList();
-        Check(added.Count == 2 && added.All(r => r.Floating) && added.Any(r => r.Kind == RoomKind.Shop) && added.Any(r => r.Kind == RoomKind.Gatekeeper) && cg.Expanded.Skip(allNow).All(r => r.Floating) && Expansion.BoughtCount(g.Expanded) == boughtNow,
-            "a new boss cycle places a floating shop and Gatekeeper, the same on the client, and they aren't counted as bought");
+        Check(added.Count == 3 && added.All(r => r.Floating) && added.Any(r => r.Kind == RoomKind.Shop) && added.Any(r => r.Kind == RoomKind.Vendor) && added.Any(r => r.Kind == RoomKind.Gatekeeper) && cg.Expanded.Skip(allNow).All(r => r.Floating) && Expansion.BoughtCount(g.Expanded) == boughtNow,
+            "a new boss cycle places a floating shop, vendor and Gatekeeper, the same on the client, and they aren't counted as bought");
         placeFloating.Invoke(g, null);
-        Check(g.Expanded.Count == allNow + 2, "the same cycle places them only once");
+        Check(g.Expanded.Count == allNow + 3, "the same cycle places them only once");
         pickRooms.Invoke(g, null);
         var floatWorld = g.ExpansionWorld;
         Check(floatWorld.Areas.Skip(allNow + 1).All(a => a.Floating && a.Sealed) && Math.Abs(g.ExpansionScale - scale0) < 0.001f && !g.HasShopRoom, "they stay sealed, add no crowd and a sealed shop isn't a shop room yet");

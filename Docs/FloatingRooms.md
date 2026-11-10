@@ -48,7 +48,7 @@ you have to build to). It builds on [`ExpandingArena.md`](ExpandingArena.md) and
 - `ExpansionRoom.Floating` (in `Msg.ExpandState`'s room list); `RoomKind.Vendor` and `Gatekeeper` at the end of the enum; `RoomArea.Floating` / `Sealed`
   (sealed = floating with no door). `Expansion.FloatingFor(seed, cycle, built, kind)` places one 3-6 tiles off a connected room, 2 tiles clear
   of everything and inside the size cap (shop/vendor 6 x 4 tiles, Gatekeeper 8 x 6); `PlaceFloatingRooms` runs as a regular wave starts, once per
-  boss cycle (`(Wave - 1) / 5`): a shop on even cycles or a vendor on odd ones, and the Gatekeeper, at most `MaxSealed` 4 waiting.
+  boss cycle (`(Wave - 1) / 5`): a shop, a vendor and the Gatekeeper (all three each cycle since Nov 10), at most `MaxSealed` 6 waiting.
 - `Expansion.ConnectedAreas` / `SealedCount` / `BoughtCount`: `Placement` only takes a connected room as the parent (a box touching only a floating room is
   refused: "Must share at least 3 tiles of wall with the connected map"); touching a floating room as well gives it a door (the loop rule). The room cap
   counts bought rooms only.

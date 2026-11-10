@@ -253,7 +253,7 @@ namespace Arena
             return n;
         }
 
-        public const int MaxSealed = 4;  // floating rooms waiting to be connected at once
+        public const int MaxSealed = 6;  // floating rooms waiting to be connected at once
 
         /// A floating room for this boss cycle (Docs/FloatingRooms.md): a shop, vendor or Gatekeeper room placed 3 to 6 tiles off a room on the
         /// connected map, touching nothing and at least 2 tiles from every room, inside the size cap. The same on every machine for the same
