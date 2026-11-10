@@ -272,44 +272,6 @@ namespace Arena
                 Ui.Fill(new Rect(r.xMax - ch + i * 6f - 1f, r.y + i * 6f + 1f, 3f, 3f), c);
         }
 
-        /// Easter egg: a name like "San Andreas", "SanAndreas", "san_andreas", "GTA:SA", "GTASA" or "SA" (case, spaces and punctuation ignored).
-        public static bool IsSanAndreasName(string name)
-        {
-            if (string.IsNullOrEmpty(name))
-                return false;
-            var sb = new System.Text.StringBuilder();
-            foreach (char ch in name)
-                if (char.IsLetterOrDigit(ch))
-                    sb.Append(char.ToLowerInvariant(ch));
-            string n = sb.ToString();
-            return n == "sa" || n == "gtasa" || n.Contains("sanandreas");
-        }
-
-        /// Easter egg: any name with "doom" in it (Doom, DOOM, doom 2, Doomguy, ...): the retail Doom install disk.
-        public static bool IsDoomName(string name)
-        {
-            if (string.IsNullOrEmpty(name))
-                return false;
-            var sb = new System.Text.StringBuilder();
-            foreach (char ch in name)
-                if (char.IsLetterOrDigit(ch))
-                    sb.Append(char.ToLowerInvariant(ch));
-            return sb.ToString().Contains("doom");
-        }
-
-        /// Easter egg: "Mission Impossible", "MI", "MI1", "Ethan Hunt", "NOC list" (case, spaces and punctuation ignored): the bloodied 230 MB disk from the film.
-        public static bool IsMissionImpossibleName(string name)
-        {
-            if (string.IsNullOrEmpty(name))
-                return false;
-            var sb = new System.Text.StringBuilder();
-            foreach (char ch in name)
-                if (char.IsLetterOrDigit(ch))
-                    sb.Append(char.ToLowerInvariant(ch));
-            string n = sb.ToString();
-            return n == "mi" || n == "mi1" || n == "mi2" || n.Contains("missionimpossible") || n.Contains("ethanhunt") || n.Contains("noclist");
-        }
-
         /// The Mission: Impossible disk: a pale magneto-optical disk, blood-spattered, with a small Verbatim "230 MB" label.
         void DrawMissionDisk(Rect d)
         {
@@ -424,17 +386,17 @@ namespace Arena
         /// A disk: plastic tinted by the rank tier with its chamfered corner, the metal shutter, and a paper label.
         void DrawWhoDisk(Rect d, ProfileInfo p, bool current)
         {
-            if (IsMissionImpossibleName(p.Name))
+            if (p.Disk == "mi")
             {
                 DrawMissionDisk(d);
                 return;
             }
-            if (IsDoomName(p.Name))
+            if (p.Disk == "doom")
             {
                 DrawDoomDisk(d, Mathf.Max(0, whoList.IndexOf(p)));
                 return;
             }
-            if (IsSanAndreasName(p.Name))
+            if (p.Disk == "sa")
             {
                 DrawSanAndreasDisk(d);
                 return;
