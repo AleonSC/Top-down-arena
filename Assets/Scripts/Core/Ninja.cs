@@ -93,6 +93,11 @@ namespace Arena
                 }
                 case WeaponId.FumaShuriken:
                 {
+                    if (p.FumaStance == 1)
+                    {
+                        FireFumaOrbit(p, aim, dmg);  // the Orbit stance: Lash, Lash, Cyclone (FumaOrbit.cs)
+                        break;
+                    }
                     // A giant star thrown in an oval loop out in front of you and back, cutting through everything.
                     // Each extra one loops the other way, and every second pair loops a little wider.
                     V2 front = V2.FromAngle(aim);
@@ -653,7 +658,7 @@ namespace Arena
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18;
+        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashFumaStance = 19;
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -868,7 +873,7 @@ namespace Arena
         static readonly Rgba Steel = new Rgba(0.75f, 0.78f, 0.85f);
 
         // Local: this machine's player's weapon dashes.
-        float reelCd, staffJabLocalCd, twinNadeLocalCd;
+        float reelCd, staffJabLocalCd, twinNadeLocalCd, fumaSwitchLocalCd;
         bool wasWeaponAction;
 
         /// Your own game, every tick: weapon secondaries go on the weapon-action key (Keybinds, Left Alt by default;
@@ -959,6 +964,21 @@ namespace Arena
                     cw.Write(DashCast);
                     cw.Write(aimAt);
                     session.SendToHost(Proto.End(cw));
+                }
+                return;
+            }
+            fumaSwitchLocalCd -= dt;
+            if (me.Weapon.Id == WeaponId.FumaShuriken && pressed && fumaSwitchLocalCd <= 0f && !me.Downed && me.StunT <= 0f)
+            {
+                fumaSwitchLocalCd = FumaSwitchCd;  // the Fuma Shuriken's stance switch (FumaOrbit.cs)
+                if (IsHost)
+                    HostWeaponDash(MyId, DashFumaStance, aimAt);
+                else
+                {
+                    var fsw = Proto.Begin(Msg.WeaponDash);
+                    fsw.Write(DashFumaStance);
+                    fsw.Write(aimAt);
+                    session.SendToHost(Proto.End(fsw));
                 }
                 return;
             }
@@ -1066,6 +1086,11 @@ namespace Arena
             if (kind == DashGuardOn || kind == DashGuardOff)
             {
                 HostGreatGuard(p, kind == DashGuardOn, target);  // (target: where they were aiming)
+                return;
+            }
+            if (kind == DashFumaStance)
+            {
+                HostFumaSwitch(p);  // Throw stance to Orbit and back (FumaOrbit.cs)
                 return;
             }
             if (kind == DashKatanaStance)
@@ -1270,6 +1295,7 @@ namespace Arena
                     p.BoStep = 0;  // (a downed or re-armed Ninja starts the chain over)
             }
             TickKusari(dt);  // Kusarigama.cs: the combo's place, the throw, the whirl
+            TickFuma(dt);    // FumaOrbit.cs: the Fuma Shuriken's Orbit stance
             clones.Clear();
             foreach (var m in Minions.Values)
                 if (m.Kind == MinionKind.Clone || m.Kind == MinionKind.CloneWall)

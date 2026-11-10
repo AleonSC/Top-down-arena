@@ -279,9 +279,8 @@ namespace Arena
                         }
                     DrawStar(b.Pos, b.Radius + 2f, t * 20f + b.Id, c);
                     break;
-                case Defs.FumaStar:  // big, with a blur ring as it spins
-                    Arc(b.Pos, b.Radius + 3f, 2f, c.WithAlpha(0.35f), 16);
-                    DrawStar(b.Pos, b.Radius + 2f, t * 16f + b.Id, c);
+                case Defs.FumaStar:  // the hooked four-bladed star with its trail (FumaLook.cs)
+                    DrawFumaShot(b, t);
                     break;
                 case Defs.NeedleShot:
                     Line(b.Pos - dir * 9f, b.Pos + dir * 4f, 1.5f, c);

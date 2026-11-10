@@ -221,6 +221,7 @@ static partial class Program
         Check(hp.Weapon.Name == "Fuma Shuriken" && star.Radius >= 20f && Math.Abs(ahead - Game.FumaReach) < 15f && Math.Abs(wide - Game.FumaWidth) < 10f && lastGap < 40f,
             "the Fuma Shuriken is a giant star that loops an oval out in front of you and comes back");
         Check(drift < 25f, "the Fuma Shuriken follows the same loop on the client");
+        FumaOrbitTest(g, client, hp, s, dt, run, dummy, place, keep);
         hp.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 0);
 
         // Iron Body: 80% less damage for 2 s, then a shockwave.

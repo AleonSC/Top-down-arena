@@ -570,7 +570,7 @@ namespace Arena
                             // The parry stops anything in front of it, even shots barriers can't.
                             scratchIds.Add(b.Id);
                             bool perfect = PerfectNow(p);
-                            if (ParryHit(p, b.Dmg, b.Pos))  // perfect parry (a needle) or Mirror Guard (an arcane bolt): sent back
+                            if (ParryHit(p, b.Dmg, b.Pos) && !(perfect && FumaSteal(p, b)))  // perfect parry (a needle) or Mirror Guard (an arcane bolt): sent back; the Fuma's Orbit stance keeps it (FumaOrbit.cs)
                                 reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.Stats.ReflectMult, StunBack = b.Kind == Defs.StunShot || b.Kind == Defs.TaserBolt, Kind = perfect ? Defs.ParryNeedle : Defs.ArcaneShot });
                             break;
                         }
