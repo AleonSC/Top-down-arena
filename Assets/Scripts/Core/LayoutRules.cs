@@ -58,7 +58,7 @@ namespace Arena
         void PickLayout()
         {
             LayoutId was = Layout;
-            if (!LayoutsOn || D(DiffKnob.ArenaLayouts) < 0.5f || Practice != null || ShowcaseMode || IsBossWave(Wave))
+            if (!LayoutsOn || D(DiffKnob.ArenaLayouts) < 0.5f || Practice != null || ShowcaseMode || BossNow)
                 Layout = LayoutId.Open;
             else
             {

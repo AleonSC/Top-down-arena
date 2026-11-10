@@ -102,7 +102,7 @@ namespace Arena
         /// arena already holds the cap. Returns false to hold this spawn back.
         bool ZombieSpawnReady(ref float timer)
         {
-            if (!ZombiesOn || IsBossWave(Wave))
+            if (!ZombiesOn || BossNow)
                 return true;
             if (Enemies.Count >= Zombies.Cap)
                 return false;
@@ -117,7 +117,7 @@ namespace Arena
                 return 1f;
             if (e.Risen)
                 return 0f;
-            return IsBossWave(Wave) ? 1f : 1f / Zombies.CountMult(Wave);
+            return BossNow ? 1f : 1f / Zombies.CountMult(Wave);
         }
 
         Enemy MenderNear(V2 at, Enemy not = null)
@@ -136,7 +136,7 @@ namespace Arena
                 SpawnPatchAt(PatchKind.Spores, ClampToArena(e.Pos, 40f), 0f, Zombies.SporeLife, Zombies.SporeRadius, Zombies.SporeRadius);
             if (e.Type == EnemyType.Crawler)
                 ReleaseGrab(e);
-            if (!ZombiesOn || State != MatchState.Fighting || InRoom || IsBossWave(Wave) || e.Risen || e.Def.IsBoss || e.Def.Xp <= 0)
+            if (!ZombiesOn || State != MatchState.Fighting || InRoom || BossNow || e.Risen || e.Def.IsBoss || e.Def.Xp <= 0)
                 return;
             if (!Zombies.Is(e.Type) || e.Type == EnemyType.Bloater)
                 return;  // (a Bloater burst: nothing left to rise)

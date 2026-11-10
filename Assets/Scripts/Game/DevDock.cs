@@ -105,7 +105,12 @@ namespace Arena
                         game.DevHeal(p.Id);
                 x += 110f;
                 if (DkKey(new Rect(x, y, 104f, h), "SKIP WAVE", Ui.Neutral, false, 13))
-                    game.DevJumpToWave(Mathf.Max(1, game.Wave) + 1);
+                {
+                    if (game.BossNext && game.Wave > 0)
+                        game.DevJumpToWave(game.Wave, true);  // the boss comes after every fifth wave
+                    else
+                        game.DevJumpToWave(Mathf.Max(1, game.Wave) + 1);
+                }
                 x += 110f;
                 if (DkKey(new Rect(x, y, 90f, h), "KILL ALL", Ui.Danger, false, 13))
                     game.DevKillAll(game.MyId);
@@ -199,10 +204,12 @@ namespace Arena
             }
             if (DkKey(col.Next(38f), "GO TO WAVE " + devWave, Ui.GoldButton, false, 14))
                 game.DevJumpToWave(devWave);
-            int bossWave = devWave % 5 == 0 ? devWave : (devWave / 5 + 1) * 5;
+            int bossWave = (devWave + 4) / 5 * 5;
             var boss = Game.BossForWave(bossWave);
-            Ui.Label(col.Next(18f), (devWave % 5 == 0 ? "Boss on this wave: " : "Next boss (wave " + bossWave + "): ") + PracticePlan.NameOf(boss == EnemyType.TwinB ? EnemyType.TwinA : boss),
+            Ui.Label(col.Next(18f), "Next boss (after wave " + bossWave + "): " + PracticePlan.NameOf(boss == EnemyType.TwinB ? EnemyType.TwinA : boss),
                 12, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
+            if (DkKey(col.Next(30f), "GO TO THE BOSS AFTER WAVE " + bossWave, Ui.Neutral, false, 12))
+                game.DevJumpToWave(Mathf.Min(bossWave, max), true);
             if (DkKey(col.Next(34f), "SPAWN AN ENEMY…", CrtStyle.Head, false, 14))
             {
                 devSheet = 5;

@@ -196,7 +196,7 @@ static partial class Program
 
         // A run ending pays out in every profile; a run with dev tools doesn't.
         port = nextPort++;
-        host = new Session { AutoStart = 2, StartWave = 5 };
+        host = new Session { AutoStart = 2, StartWave = -5 };
         hp = host.Game.ProfileOverride = new Profile();
         host.Host(port, "Host", Role.Tank);
         client = new Session();
@@ -221,7 +221,7 @@ static partial class Program
         host.Leave(""); client.Leave("");
 
         port = nextPort++;
-        host = new Session { StartWave = 5, AutoStart = 1 };
+        host = new Session { StartWave = -5, AutoStart = 1 };
         var dp = host.Game.ProfileOverride = new Profile();
         host.Host(port, "Host", Role.Tank);
         host.StartMatch();

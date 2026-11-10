@@ -149,7 +149,7 @@ static partial class Program
         Console.WriteLine("  F1 bot: wave {0}, {1} cards taken, {2} picks pending, score {3}", g.Wave, me.Taken.Count, me.PendingPicks, g.Score);
         Check(g.Wave >= 4 && me.Taken.Count > 0 && g.Score > 0, "the F1 smart bot clears waves and picks its level-up cards");
 
-        g.CurrentPath = PathId.Bazaar; g.PathFrom = 6; g.PathTo = 9; g.Wave = 9;
+        g.CurrentPath = PathId.Bazaar; g.PathFrom = 6; g.PathTo = 9; g.Wave = 9; g.BossSlot = false;
         for (int f = 0; f < 60 * 20 && !(g.State == MatchState.Fighting && g.Enemies.Count > 0); f++) Step(host, dt);
         foreach (var e in g.Enemies.Values) e.Hp = 0f;
         me.Gold = 300;

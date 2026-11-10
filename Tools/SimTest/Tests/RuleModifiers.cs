@@ -103,10 +103,10 @@ static partial class Program
         Check(!friend.Downed && Math.Abs(friend.Hp / friend.MaxHp - 0.5f) < 0.05f && !friend.SecondWind && !c.Players[2].SecondWind,
             "Second Wind: back up by yourself at half health, and it's used up (on every screen)");
         // It comes back with the next boss cycle (wave 6), not before.
-        g.Wave = 3;
+        g.Wave = 3; g.BossSlot = false;
         typeof(Game).GetMethod("ModsWaveStart", flags).Invoke(g, null);
         bool early = friend.SecondWind;
-        g.Wave = 6;
+        g.Wave = 6; g.BossSlot = false;
         typeof(Game).GetMethod("ModsWaveStart", flags).Invoke(g, null);
         Check(!early && friend.SecondWind, "Second Wind: it comes back after each boss, not before");
         host.Leave(""); client.Leave("");

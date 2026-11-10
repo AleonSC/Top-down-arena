@@ -51,7 +51,7 @@ namespace Arena
                 return false;
             var save = new RunSave
             {
-                Id = RunId, SavedAt = DateTime.UtcNow, Wave = Wave, Score = Score, Mods = Mods, Diff = Diff.Copy(), Endless = Endless, DevUsed = devTouched,
+                Id = RunId, SavedAt = DateTime.UtcNow, Wave = Wave, BossSlot = BossSlot, Score = Score, Mods = Mods, Diff = Diff.Copy(), Endless = Endless, DevUsed = devTouched,
                 RunTime = RunTime, CurrentPath = CurrentPath, PathFrom = PathFrom, PathTo = PathTo, LastPath = lastPath,
             };
             save.Route.AddRange(Route);
@@ -134,6 +134,7 @@ namespace Arena
                 BroadcastUpgrades(p);
             }
             Score = save.Score;
+            BossSlot = save.BossSlot;
             Endless = save.Endless;
             RunTime = save.RunTime;
             devTouched = save.DevUsed;

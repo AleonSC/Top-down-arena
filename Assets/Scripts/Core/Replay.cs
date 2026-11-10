@@ -285,6 +285,7 @@ namespace Arena
         readonly string folder;
         readonly ReplayFile file = new ReplayFile();
         int frame, lastWave;
+        bool lastBoss;
         long bytes;
         bool full;
         readonly Dictionary<int, bool> wasDown = new Dictionary<int, bool>();
@@ -327,10 +328,11 @@ namespace Arena
                 return;
             frame++;
             file.Dts.Add(dt);
-            if (game.Wave != lastWave && game.Wave > 0)
+            if ((game.Wave != lastWave || game.BossNow != lastBoss) && game.Wave > 0)
             {
                 lastWave = game.Wave;
-                file.Marks.Add(new ReplayMark { Frame = frame, Kind = game.IsBossWave(game.Wave) ? ReplayMark.Boss : ReplayMark.Wave, Value = game.Wave });
+                lastBoss = game.BossNow;
+                file.Marks.Add(new ReplayMark { Frame = frame, Kind = game.BossNow ? ReplayMark.Boss : ReplayMark.Wave, Value = game.Wave });
                 if (game.Wave > file.MaxWave)
                     file.MaxWave = game.Wave;
             }

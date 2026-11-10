@@ -245,7 +245,17 @@ namespace Arena
             if (resumed && !IsHost)
                 foreach (var p in entries)
                     p.Level = 1;  // a continued run: the host sends everyone's levels and picks next (Head Start doesn't apply again)
-            Wave = Math.Max(0, startWave - 1);
+            if (startWave < 0)
+            {
+                Wave = -startWave;  // a negative start is the boss after that wave (the Boss Lab, Hunts.cs)
+                BossSlot = false;
+                startWave = Wave;
+            }
+            else
+            {
+                Wave = Math.Max(0, startWave - 1);
+                BossSlot = Wave > 0 && Wave % 5 == 0;  // starting after a boss: its wave is done (a saved run says so itself: ApplyResume)
+            }
             State = MatchState.Intermission;
             lastState = State;
             StateTimer = StartDelay;

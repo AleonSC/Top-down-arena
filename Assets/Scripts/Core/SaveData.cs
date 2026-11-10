@@ -36,7 +36,8 @@ namespace Arena
 
         public string Id = "";        // its file name (without .run); a run keeps it from start to finish
         public DateTime SavedAt = DateTime.UtcNow;
-        public int Wave;              // waves cleared: resuming starts wave Wave + 1
+        public int Wave;              // waves cleared: resuming starts wave Wave + 1 (or the boss after it, unless BossSlot)
+        public bool BossSlot;         // the boss after wave Wave was beaten (Hunts.cs); saves from before the boss slot: a multiple of 5 means yes
         public int Score;
         public RunMod Mods;
         public Difficulty Diff = new Difficulty();  // saves from before difficulties load as Normal
@@ -48,7 +49,7 @@ namespace Arena
         public readonly List<SeatSave> Seats = new List<SeatSave>();
 
         /// "Wave 14 · 2 players · 23 min" for lists.
-        public string Summary => "Wave " + (Wave + 1) + (Endless ? " (endless)" : "") + " · " + Seats.Count + (Seats.Count == 1 ? " player" : " players")
+        public string Summary => (Wave > 0 && Wave % 5 == 0 && !BossSlot ? "Boss " + Wave : "Wave " + (Wave + 1)) + (Endless ? " (endless)" : "") + " · " + Seats.Count + (Seats.Count == 1 ? " player" : " players")
                                  + " · " + (int)(RunTime / 60f) + " min";
 
         public static string NewId() => DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture) + "-" + Guid.NewGuid().ToString("N").Substring(0, 4);
@@ -59,6 +60,7 @@ namespace Arena
             Line(sb, "arena-run", FormatVersion);
             Line(sb, "saved", SavedAt.ToString("o", CultureInfo.InvariantCulture));
             Line(sb, "wave", Wave);
+            Line(sb, "slot", BossSlot ? 1 : 0);
             Line(sb, "score", Score);
             Line(sb, "mods", (int)Mods);
             Line(sb, "difficulty", Diff.ToText());
@@ -99,7 +101,7 @@ namespace Arena
         {
             var save = new RunSave { Id = id };
             SeatSave seat = null;
-            bool header = false;
+            bool header = false, sawSlot = false;
             foreach (var raw in (text ?? "").Split('\n'))
             {
                 string line = raw.Trim();
@@ -113,7 +115,8 @@ namespace Arena
                     {
                         case "arena-run": header = true; break;
                         case "saved": save.SavedAt = DateTime.Parse(val, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind); break;
-                        case "wave": save.Wave = I(val); break;
+                        case "wave": save.Wave = I(val); if (!sawSlot) save.BossSlot = save.Wave > 0 && save.Wave % 5 == 0; break;
+                        case "slot": save.BossSlot = I(val) != 0; sawSlot = true; break;
                         case "score": save.Score = I(val); break;
                         case "mods": save.Mods = (RunMod)I(val); break;
                         case "difficulty": save.Diff = Difficulty.Parse(val); break;

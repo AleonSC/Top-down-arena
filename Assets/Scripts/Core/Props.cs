@@ -247,7 +247,7 @@ namespace Arena
         {
             if (!PropsOn || Practice != null || ShowcaseMode)
                 return;
-            if (IsBossWave(Wave))
+            if (BossNow)
             {
                 ClearProps(true);
                 return;
@@ -390,7 +390,7 @@ namespace Arena
         /// somewhere clear of the players and the boss.
         void TickBossBarrels(float dt)
         {
-            if (!PropsOn || Practice != null || ShowcaseMode || State != MatchState.Fighting || !IsBossWave(Wave))
+            if (!PropsOn || Practice != null || ShowcaseMode || State != MatchState.Fighting || !BossNow)
             {
                 bossBarrelT = BossBarrelFirst;
                 return;
@@ -610,7 +610,7 @@ namespace Arena
         {
             if (rng.NextDouble() < ChestLegendaryChance)
             {
-                int cycles = Math.Max(1, Wave / 5 + 1);
+                int cycles = Math.Max(1, (Wave - 1) / 5 + 1);  // the bosses beaten, and the next
                 var boss = BossForWave(5 * (1 + rng.Next(cycles)));
                 if (IsReaper(boss))
                     boss = EnemyType.TwinA;

@@ -8,7 +8,7 @@ their base health, set per boss so each fight lasts about 60-120 s (`BossHpMult`
 Queen 2.5x), and every boss has 10% more on top (`BossHpBonus`), and every enemy bullet hits 15% harder than its
 listed damage. **Enemy damage grows 3% a wave** (Normal: 1.3x at wave 11, 2.5x at wave 50), on everything that hurts
 you. The host picks a [difficulty](#difficulty) in the lobby: Easy, Normal, Hard, Nightmare or Custom. Pick a role,
-then survive endless waves of enemies with a boss every 5th wave.
+then survive endless waves of enemies with a boss after every 5th wave.
 
 There are no art assets: everything is drawn in code, and the game sets itself up when you
 press Play, so there are no scenes or prefabs to wire together.
@@ -436,7 +436,7 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 - After a hit you can't be hit again for 0.25 s (Normal). Small health orbs drop from 12% of kills (Normal), large
   ones from 3%.
 - If everyone is downed, it's game over. Clearing a wave revives anyone downed and heals everyone a bit.
-- New enemy types unlock as the waves go up (see below), with a boss every 5 waves.
+- New enemy types unlock as the waves go up (see below), with a boss fight after every 5th wave.
 - **Knockback slides:** anything that shoves enemies (the Repulsion Cannon, Roar, Shockwave, the Scattergun up close,
   Knight swings, Bulldoze, Fortress, the Fuma Shuriken's fan) slides them the distance over 0.18 s instead of jumping
   them there, with a streak behind them, dust kicked up along the way and a puff where they were hit.
@@ -620,9 +620,9 @@ Bosses give soft sound cues when they start an ability: a low swell when they sw
 before something telegraphed (lasers, bombers, lightning), a deep thump for slams and stomps, and a chime for
 summons and phase changes.
 
-The game has **50 waves** with a different boss every 5 waves. Bosses after wave 20 get extra health (+10% per wave on
+The game has **50 regular waves** with a different boss after every 5th one. The boss is its own fight between wave 5 and 6, wave 10 and 11 and so on: it keeps the wave number of the wave before it (the HUD says BOSS FIGHT, the wave box says BOSS CLEARED) and doesn't use up a wave, so 5 regular waves lead up to each boss. Bosses after wave 20 get extra health (+10% per wave on
 top of the normal scaling: x2 at wave 30, x4 at wave 50) to keep up with stacked upgrades. Their name, health bar and
-warnings show at the top. Beat The Eclipse at wave 50 to win; the host can then keep going in **endless** mode (C),
+warnings show at the top. Beat The Eclipse after wave 50 to win; the host can then keep going in **endless** mode (C),
 where the bosses come back around, tougher each time.
 
 | Wave | Boss | Mechanic |
@@ -720,7 +720,7 @@ and right; enemy gates on all four edges).
 
 ## Paths
 
-After each boss (and its rewards), the host picks one of **two paths** for the four regular waves before the next
+After each boss (and its rewards), the host picks one of **two paths** for the five regular waves before the next
 boss, or **no path** (the plain arena, no bonus or prize); everyone sees the choice, and the next wave waits for it.
 Bosses are always the standard fight. A path changes the enemy mix and the arena floor, and pays off by its danger
 (1-3 skulls):
@@ -751,7 +751,7 @@ Design notes and the decisions behind them are in `Docs/Paths.md`.
 ### The Bazaar's shop
 
 On the Bazaar's waves every kill gives **every player the same gold** (0.3 per point of XP the kill is worth: about
-325 each over waves 6-9, rising to about 1000 by wave 40); your gold shows above the wave panel. After its last
+325 each over waves 6-10, rising to about 1000 by wave 40); your gold shows above the wave panel. After its last
 wave, everyone gets a shop before the boss:
 
 - **Your shelf** (rolled for your class): four upgrades, one legendary and one weapon mod. Prices by rarity: common
@@ -820,7 +820,7 @@ been) or **Rooms arena**. The Rooms arena is new and still being tuned (design: 
   way to you through the doors.
 - **Rooms waves hit harder**: while the rooms are up, everything that hurts you hits **1.3x** as hard (fewer
   threats at once, so each one counts). Boss waves and the Classic arena are unchanged.
-- **The vault**: one regular wave in each stretch of ten (never before the first boss: waves 6-9, 12-19, 22-29, ...) opens a small gold room off the top hallway with **The
+- **The vault**: one regular wave in each stretch of ten (never before the first boss: waves 6-10, 12-20, 22-30, ...) opens a small gold room off the top hallway with **The
   Gatekeeper** in it (his Data Gate duel moved here: in the Rooms arena he's never in a Data Gate). He stays in the
   vault, and the vault locks behind you until he falls. Beat him and everyone gets a **prize pick** (rare or better,
   sometimes a legendary), as from his old Data Gate. It's optional: the wave ends without him (he goes with it), and

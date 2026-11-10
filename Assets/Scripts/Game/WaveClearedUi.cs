@@ -86,8 +86,8 @@ namespace Arena
             Color ink = CrtUi.Ink, dim = CrtUi.Dim;
 
             // Head: WAVE n CLEARED (gold after a boss) with the blinking cursor, and the wave's two numbers.
-            bool boss = game.IsBossWave(game.Wave);
-            string title = (game.Practice != null ? "PRACTICE WAVE " : "WAVE ") + game.Wave + " CLEARED";
+            bool boss = game.BossNow;
+            string title = boss && game.Practice == null ? "BOSS CLEARED" : (game.Practice != null ? "PRACTICE WAVE " : "WAVE ") + game.Wave + " CLEARED";
             Color tc = boss ? CrtStyle.Gold : ink;
             CrtUi.Title(new Rect(x + WcPad, y + 12f, 600f, 56f), title, 52, tc, TextAnchor.MiddleLeft, calm);
             if (calm || Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0)
@@ -223,11 +223,12 @@ namespace Arena
             CrtKit.Dashed(r, 1f, new Color(ink.r, ink.g, ink.b, 0.45f));
             float x = r.x + 14f, y = r.y + 12f, w = r.width - 28f;
             int next = game.Wave + 1;
-            HudCrt(new Rect(x, y, w, 18f), "NEXT: WAVE " + next, 18, CrtUi.Dim);
+            bool bossNext = game.BossNext;  // the boss after wave Wave comes before wave Wave + 1
+            HudCrt(new Rect(x, y, w, 18f), bossNext ? "NEXT: BOSS" : "NEXT: WAVE " + next, 18, CrtUi.Dim);
             y += 26f;
-            if (game.IsBossWave(next))
+            if (bossNext)
             {
-                var d = Defs.Get(game.BossAt(next));
+                var d = Defs.Get(game.BossAt(game.Hunt != null ? next : game.Wave));
                 Ui.Dot(new Rect(x, y + 6f, 12f, 12f), ToColor(d.Color));
                 CrtUi.Title(new Rect(x + 22f, y, w - 22f, 26f), d.Name.ToUpperInvariant(), 26, CrtStyle.Gold, TextAnchor.MiddleLeft, CabCalm);
                 y += 28f;
@@ -260,15 +261,10 @@ namespace Arena
 
         void DrawBossRoad(Rect r)
         {
-            int next = game.Wave + 1;
-            while (next < game.Wave + 60 && !game.IsBossWave(next))
-                next++;
-            int prev = game.Wave;
-            while (prev > 0 && !game.IsBossWave(prev))
-                prev--;
-            if (game.Hunt != null)
-                prev = 0;
-            int steps = Mathf.Clamp(next - prev, 1, 10), done = Mathf.Clamp(game.Wave - prev, 0, steps);
+            int next = game.NextBossWave(game.Wave, false);  // a run: the wave the boss follows; a hunt: its last wave
+            int prev = game.Hunt != null ? 0 : next - 5;
+            int steps = game.Hunt != null ? Mathf.Clamp(next - prev, 1, 10) : next - prev + 1;  // a run: the cycle's five waves and the boss
+            int done = Mathf.Clamp(game.Wave - prev, 0, game.Hunt != null ? steps : steps - 1);
             string boss = Defs.Get(game.BossAt(next)).Name;
             HudCrt(new Rect(r.x, r.y, r.width, 18f), "ROAD TO " + boss.ToUpperInvariant(), 18, CrtUi.Dim);
             float gap = 4f, w = (r.width - gap * (steps - 1)) / steps;
@@ -278,7 +274,7 @@ namespace Arena
                 var seg = new Rect(r.x + i * (w + gap), r.y + 26f, w, 8f);
                 Ui.Fill(seg, i == steps - 1 ? CrtStyle.Gold : i < done ? ink : new Color(1f, 1f, 1f, 0.1f));
             }
-            HudCrt(new Rect(r.x, r.y + 38f, r.width, 18f), "WAVE " + game.Wave + " OF " + next, 19, CrtUi.Dim);
+            HudCrt(new Rect(r.x, r.y + 38f, r.width, 18f), game.BossNext && game.Hunt == null ? "BOSS NEXT" : "WAVE " + game.Wave + " OF " + next, 19, CrtUi.Dim);
         }
 
         /// The Ready key, the Auto-ready switch, the status line, and the countdown bar along the bottom.
