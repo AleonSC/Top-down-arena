@@ -110,6 +110,8 @@ namespace Arena
                             PickLayout();  // this cycle's floor plan, or the open arena for a boss (LayoutRules.cs)
                             BuildWave(Wave);
                             StartRoomsWave();  // the rooms' nests and the vault's mini-boss (Rooms.cs)
+                            if (BreachesOn)
+                                spawnTimer = Math.Max(spawnTimer, Breaches.Telegraph);  // the breaches' barriers flicker up first (Breaches.cs)
                             CapSentries();  // at most 3 Beam Sentries (Variety.cs)
                             WaveProps();  // crates, pots, barrels and now and then a chest (Props.cs)
                             bossName = BossNow ? Defs.Get(BossAt(Wave)).Name : null;

@@ -292,6 +292,16 @@ namespace Arena
                     V2 c = M(pp);
                     if (InMap(c)) Arc(c, 4f, 2f, PortalColours[i % PortalColours.Length], 12);
                 }
+            foreach (var b in game.ActiveBreaches)  // the wave's breaches: a red dash on the wall (BreachLook.cs)
+            {
+                V2 c = M(b.Pos);
+                if (!InMap(c))
+                    continue;
+                float lh = Breaches.Len * k / 2f + 1f;
+                var bc = new Rgba(1f, 0.22f, 0.26f, 0.7f + 0.3f * Mathf.Sin(Time.unscaledTime * 6f));
+                if (b.Vertical) MapRect(c.X - 2f, c.Y - lh, 4f, 2f * lh, bc);
+                else MapRect(c.X - lh, c.Y - 2f, 2f * lh, 4f, bc);
+            }
             foreach (var e in game.Enemies.Values)
             {
                 if (e.Hp <= 0f)

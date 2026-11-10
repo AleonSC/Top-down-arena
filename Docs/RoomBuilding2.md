@@ -1,6 +1,6 @@
 # Room building, part 2: breaches, portals and fittings
 
-Status: **plan, nothing built.** Owner picked these three on Nov 10, 2026. Builds on [`VectorBuilding.md`](VectorBuilding.md) and
+Status: **step 1 built** (breach spawns, no protocol change); steps 2-3 not started. Owner picked these three on Nov 10, 2026. Builds on [`VectorBuilding.md`](VectorBuilding.md) and
 [`FloatingRooms.md`](FloatingRooms.md) (all built).
 
 ## Why
@@ -15,6 +15,19 @@ Status: **plan, nothing built.** Owner picked these three on Nov 10, 2026. Build
 - Compact builds and loops have less outer wall, so fewer breaches: the shape you draw decides where fights happen.
 - Breaches telegraph 1.5 s before spawning (readability, Docs/EnemyReadability.md).
 - Ties to the existing cost rule (new wall length): outer wall is both what you pay for and where the danger comes from.
+
+### Built (step 1)
+
+- `Core/Breaches.cs`: every 100 px of outer wall (a wall with a connected Combat or Floor room on one side only, 70 px off its ends) is a spot;
+  weight 1, +1.5 in a dead end (one door). `CountFor`: 2 + 1 per 3 built rooms, max 6, 400 px apart. Seeded from the wave and the map's
+  boxes, so every machine works out the same breaches: **no wire change**.
+- Spawns: `SpawnEnemy` and `SpawnSquadAt` use `BreachSpot` (a breach 350 px from every player when there is one, else the farthest;
+  45-85 px inside it). Squads face into the map and a Pincer comes in together. Designed waves keep their own spawn points.
+- The first spawn waits `Breaches.Telegraph` (1.5 s) while the barriers flicker up (`BreachAge`, every game).
+- Look (`Game/BreachLook.cs`, owner: "a holographic red barrier indicating you can't pass it"): the wall torn dark with glowing jagged
+  ends, a red field that scans out from the middle and flickers while it opens, scrolling scanlines, bright edges, emitter posts, a glitch
+  now and then, a halo, a ripple and flare as you walk up, three chevrons on the floor pointing in; a red dash on the minimap.
+- Not done: a sound for a breach opening; balance against the bot report (`vecbal`) is in the PR notes.
 
 ## 2. Buyable portals
 

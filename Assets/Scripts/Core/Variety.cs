@@ -208,7 +208,11 @@ namespace Arena
             V2 basePos = at.HasValue ? ClampToArena(at.Value, 50f)
                 : side == 0 ? new V2(Rand(lo.X + 150f, hi.X - 150f), lo.Y) : side == 1 ? new V2(Rand(lo.X + 150f, hi.X - 150f), hi.Y)
                 : side == 2 ? new V2(lo.X, Rand(lo.Y + 120f, hi.Y - 120f)) : new V2(hi.X, Rand(lo.Y + 120f, hi.Y - 120f));
-            if (RoomsOn && !at.HasValue)
+            V2 breachIn = V2.Zero;
+            V2? breach = at.HasValue ? null : BreachSpot(60f, out breachIn);  // the Expanding arena: through one of the wave's breaches (Breaches.cs)
+            if (breach.HasValue)
+                basePos = breach.Value;
+            else if (RoomsOn && !at.HasValue)
             {
                 if (Rooms.RoomByRoom)
                     basePos = RoomSpawnSpot(60f, out spawnHome);  // by a room's nest (Rooms.cs); its members guard that room
@@ -217,7 +221,7 @@ namespace Arena
             }
             else if (LayoutOn && !at.HasValue)
                 basePos = LayoutSquadBase();  // in front of an enemy gate (LayoutRules.cs)
-            V2 fwd = (new V2(Width / 2f, Height / 2f) - basePos).Normalized(), across = fwd.Orthogonal();
+            V2 fwd = breach.HasValue ? breachIn : (new V2(Width / 2f, Height / 2f) - basePos).Normalized(), across = fwd.Orthogonal();  // (through a breach: facing into the map)
             Player target = null;
             var alive = AlivePlayersList();
             if (alive.Count > 0)
@@ -231,7 +235,7 @@ namespace Arena
                 else if (s.Form == SquadForm.RiotLine)
                     pos = ClampToArena(basePos + across * ((RiotLineSlot(s, i) - (RiotLineCount(s, type) - 1) / 2f) * (type == EnemyType.RiotShield ? RiotLineGap : RiotGuardGap))
                         - fwd * (type == EnemyType.RiotShield ? 0f : RiotGuardBehind), 40f);  // the wall in front, the guards behind
-                else if (s.Form == SquadForm.Pincer && i < 2)
+                else if (s.Form == SquadForm.Pincer && i < 2 && !breach.HasValue)  // (through a breach: they come in together)
                     pos = ClampToArena(new V2(i == 0 ? lo.X : hi.X, LayoutOn ? LayoutSideY(i == 0 ? 2 : 3, 150f) : Rand(lo.Y + 150f, hi.Y - 150f)), 40f);
                 else
                 {

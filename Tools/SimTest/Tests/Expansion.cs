@@ -710,6 +710,64 @@ static partial class Program
         Check(g.ExpansionWorld.Doors.Length == 1 && g.ExpansionWorld.Doors[0].Width == 600f && cg.ExpansionWorld.Doors[0].Width == 600f, "and both see the wide gap");
     }
 
+    // Breaches (Docs/RoomBuilding2.md step 1): enemies come in through the outer wall, the same breaches on every machine.
+    static void ExpandingBreachesTest(float dt)
+    {
+        string why;
+        var list = new List<ExpansionRoom>();
+        var east = Expansion.Custom(list, 1600, 100, 800, 600, out why).Value;  // a dead end off the hub's east wall
+        list.Add(east);
+        var w = Expansion.Build(list);
+        var cand = Breaches.Candidates(w);
+        bool outer = cand.Count > 0;
+        foreach (var c in cand)
+        {
+            V2 inside = c.Key.Pos + c.Key.In * 20f, outside = c.Key.Pos - c.Key.In * 20f;
+            bool inAny = false, outAny = false;
+            foreach (var a in w.Areas) { inAny |= a.Contains(inside); outAny |= a.Contains(outside); }
+            outer &= inAny && !outAny;
+        }
+        Check(outer, "every breach spot is on the outer wall, facing into the map (" + cand.Count + " spots)");
+        Check(cand.All(c => !(c.Key.Vertical && Math.Abs(c.Key.Pos.X - 1600f) < 1f && c.Key.Pos.Y > 100f && c.Key.Pos.Y < 700f)), "never on the wall the hub and the room share");
+        float hubW = cand.Where(c => c.Key.Area == 0).Max(c => c.Value), endW = cand.Where(c => c.Key.Area == 1).Max(c => c.Value);
+        Check(endW > hubW, "a dead end's outer wall breaks more often than the hub's (" + endW.ToString("0.00") + " vs " + hubW.ToString("0.00") + ")");
+        var b1 = Breaches.For(w, 6); var b2 = Breaches.For(Expansion.Build(list), 6);
+        Check(b1.Length == Breaches.CountFor(1) && b1.Select(b => b.Pos).SequenceEqual(b2.Select(b => b.Pos)), "a wave's breaches are the same on every build of the map (" + b1.Length + ")");
+        bool apart = true;
+        for (int i = 0; i < b1.Length; i++) for (int j = i + 1; j < b1.Length; j++) apart &= b1[i].Pos.DistanceTo(b1[j].Pos) >= Breaches.Apart;
+        Check(apart, "and kept apart");
+        var withShop = new List<ExpansionRoom>(list);
+        var fl = Expansion.FloatingFor(3, 0, withShop, RoomKind.Shop);
+        if (fl.HasValue)
+        {
+            withShop.Add(fl.Value);
+            var ws = Expansion.Build(withShop);
+            Check(Breaches.Candidates(ws).All(c => !ws.Areas[c.Key.Area].Floating), "a floating room's walls never break");
+        }
+
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Expanded.Add(east); }
+        var first = new Dictionary<int, V2>();
+        float earliest = float.MaxValue;
+        Run(s, dt, 30f, () => g.State == MatchState.Fighting && g.BreachAge > 6f, () =>
+        {
+            foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; }
+            if (g.State != MatchState.Fighting) return;
+            foreach (var e in g.Enemies.Values)
+                if (!e.Def.IsBoss && !first.ContainsKey(e.Id)) { first[e.Id] = e.Pos; earliest = Math.Min(earliest, g.BreachAge); }
+        });
+        var hb = g.ActiveBreaches; var cb = cg.ActiveBreaches;
+        Check(g.BreachesOn && hb.Length > 0 && hb.Select(b => b.Pos).SequenceEqual(cb.Select(b => b.Pos)), "in a wave the host and a friend see the same breaches (" + hb.Length + " / " + cb.Length + ")");
+        int byBreach = first.Values.Count(p => hb.Any(b => b.Pos.DistanceTo(p) < 260f));
+        Check(first.Count > 0 && byBreach >= first.Count * 0.8f, "enemies come in through them (" + byBreach + " of " + first.Count + " by a breach)");
+        Check(earliest >= Breaches.Telegraph - 0.2f, "not before the barriers are up (first at " + earliest.ToString("0.00") + " s)");
+    }
+
     // Balance (Docs/FloatingRooms.md step 5): what it costs to connect a floating room, against the vectors a player has.
     static void ExpandingFloatCostTest()
     {

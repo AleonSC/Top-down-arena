@@ -812,6 +812,13 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
 - **Shop and vendor rooms**: with one connected, kills drop gold and the shop opens every intermission without holding the countdown. Buy
   upgrades and restock in the **shop room**; heal, revive and remove upgrades at the **vendor**. Gold and your shelf carry over between waves
   (the shelf is new each boss cycle).
+- **Breaches**: once the first room is built, enemies come in through **breaches** in the outer wall: a stretch of wall cracks open
+  and a **red holographic barrier** stands in the gap (you can't go out through it; red chevrons on the floor point where they come
+  from, and a red dash marks each on the minimap). 2 open every regular wave, one more per 3 rooms built (at most 6), 400 px apart or
+  more, picked by the wave and the map so everyone sees the same ones. Every 100 px of outer wall is a spot, so long outer walls
+  break more often, and a **dead end** (a room with one door) more still: compact builds and loops have fewer places to be hit
+  from. The barriers flicker up for 1.5 s before the first enemy steps through; an enemy uses a breach at least 350 px from every
+  player when there is one. Never on a floating room, a shop, vendor or Gatekeeper room, or on boss waves (the fixed boss arena).
 - **Obstacles**: a built room comes with obstacles and bars of wall (pillars, bars, an L, blocks: one per ~220,000 px2, up to 4),
   laid out from the room's own box so every machine builds the same ones. They keep off the room's walls, its doors and its middle,
   so you can always walk round them; hallways stay clear.
