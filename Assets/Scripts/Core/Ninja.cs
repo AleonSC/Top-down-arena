@@ -935,7 +935,7 @@ namespace Arena
             }
             if (me.Weapon.Id == WeaponId.Rapier && pressed)
             {
-                // Riposte (Rapier.cs): one press switches the stance on, the next lunges; the host decides which (the Flourish is still there: DashFlourish)
+                // Riposte (Rapier.cs): one press switches the stance on, the next drops it; a click while it is up lunges; the host decides which (the Flourish is still there: DashFlourish)
                 byte rapierKind = DashRapierOn;
                 if (IsHost)
                     HostWeaponDash(MyId, rapierKind, aimAt);
@@ -1085,7 +1085,10 @@ namespace Arena
             }
             if (kind == DashRapierOn || kind == DashRapierOff)
             {
-                HostRapierStance(p, !p.RapierGuard, target);  // (a press toggles)  // (Rapier.cs)
+                if (p.RapierGuard)
+                    RapierDropStance(p);  // (a press toggles; the click lunges)
+                else
+                    HostRapierStance(p, true, target);  // (Rapier.cs)
                 return;
             }
             if (kind == DashFlourish)
