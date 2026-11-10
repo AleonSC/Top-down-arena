@@ -421,6 +421,10 @@ static partial class Shot {
         string lw; var bl = Expansion.BestLink(eg.ExpansionWorld, 0);
         if (bl.HasValue) { var lp = Expansion.LinkProposal(bl.Value, Expansion.LinkPrice(eg.ExpansionWorld, 0, bl.Value, out lw)); lp.Owner = eg.ExpandProposals[0].Owner; eg.ExpandProposals[0] = lp; }
       }
+      if (Environment.GetEnvironmentVariable("EXPANDHALLCARD") != null && eg.ExpandProposals.Count > 0) {  // EXPANDHALLCARD=1: the first proposal is a 3-leg bent hallway
+        string hw0; var hl = Expansion.Hall(eg.Expanded, new System.Collections.Generic.List<int[]> { new[] { 500, -1200, 300, 1200 }, new[] { 800, -1200, 1200, 300 }, new[] { 1700, -900, 300, 600 } }, out hw0);
+        if (hl != null) { int ho = eg.ExpandProposals[0].Owner; eg.ExpandProposals.RemoveAt(0); for (int hi = 0; hi < hl.Count; hi++) { var hq = hl[hi]; hq.Owner = ho; eg.ExpandProposals.Insert(hi, hq); } }
+      }
       if (eg.ExpandProposals.Count > 0) eg.ExpandVotes[eg.MyId] = eg.ExpandProposals[0].Owner;
       // EXPANDCHIP=1: just the chip; otherwise the window is open (=2 too)
       if (Environment.GetEnvironmentVariable("EXPANDCHIP") != "1") typeof(ArenaApp).GetField("expOpen", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, true);
@@ -440,6 +444,12 @@ static partial class Shot {
           if (first.HasValue) { eg.Links.Add(first.Value); typeof(Game).GetField("expWorld", bf).SetValue(eg, null); }
           var next = Expansion.BestLink(eg.ExpansionWorld, eg.Links.Count);
           if (next.HasValue) { typeof(ArenaApp).GetField("expA", bf).SetValue(app, next.Value.A); typeof(ArenaApp).GetField("expB", bf).SetValue(app, next.Value.B); }
+        }
+        if (Environment.GetEnvironmentVariable("EXPANDHALL") != null) {  // EXPANDHALL=1: the draw screen in Hallway mode, two legs laid (up, then right) and the box as the third
+          typeof(ArenaApp).GetField("expHallMode", bf).SetValue(app, true);
+          var hlegs = (System.Collections.Generic.List<int[]>)typeof(ArenaApp).GetField("expLegs", bf).GetValue(app);
+          hlegs.Add(new[] { 500, -1200, 300, 1200 }); hlegs.Add(new[] { 800, -1200, 1200, 300 });
+          eg.Me.Vectors = 40;
         }
         if (Environment.GetEnvironmentVariable("EXPANDCUT") != null) {  // EXPANDCUT=1: the draw screen in Open wall mode with the first shared wall dragged out
           typeof(ArenaApp).GetField("expCutMode", bf).SetValue(app, true);
