@@ -349,7 +349,7 @@ static partial class Program
 
             // Easter-egg disk looks: earned by a name, kept when the profile is renamed, kept across a restart.
             Check(ProfileStore.DiskLookFor("San Andreas") == "sa" && ProfileStore.DiskLookFor("GTA:SA") == "sa" && ProfileStore.DiskLookFor("SA") == "sa" && ProfileStore.DiskLookFor("doom 2") == "doom"
-                && ProfileStore.DiskLookFor("Mission Impossible") == "mi" && ProfileStore.DiskLookFor("Windows 95") == "win95" && ProfileStore.DiskLookFor("Win95") == "win95" && ProfileStore.DiskLookFor("Sam") == "", "disk looks: the names that earn one");
+                && ProfileStore.DiskLookFor("Mission Impossible") == "mi" && ProfileStore.DiskLookFor("Windows 95") == "win95" && ProfileStore.DiskLookFor("Win95") == "win95" && ProfileStore.DiskLookFor("Antaleon") == "holo" && ProfileStore.DiskLookFor("antaleon_2") == "holo" && ProfileStore.DiskLookFor("Sam") == "", "disk looks: the names that earn one");
             ProfileStore.Root = Path.Combine(data, "profiles");
             Check(ProfileStore.Rename(sam, "Doomguy") && ProfileStore.List().Find(i => i.Id == sam).Disk == "doom", "disk looks: renaming to a Doom name gives the Doom disk");
             Check(ProfileStore.Rename(sam, "Plain Sam") && ProfileStore.List().Find(i => i.Id == sam).Disk == "doom", "disk looks: renaming to a plain name keeps it");
