@@ -16,7 +16,7 @@ namespace Arena
         public const float RapierSlow = 0.48f, RapierFast = 0.16f, RapierMinInterval = 0.08f;
         public const float RapierGrace = 1.2f, RapierDrain = 2f;
         public const float RapierFlourishSwing = 0.1f, RapierWaveDmg = 22f, RapierWaveSpeed = 560f, RapierWaveRange = 380f;
-        // Riposte: hold the weapon-action key to stand guard, let go to lunge. Reflected bullets fill the charge; it also creeps up on its own.
+        // Riposte: press the weapon-action key to stand guard, press again to lunge. Reflected bullets fill the charge; it also creeps up on its own.
         public const float RapierStanceSlow = 0.4f, RapierStanceRadius = 62f, RapierStanceHalfArc = 70f * MathX.Pi / 180f, RapierStanceBand = 14f;
         public const float RapierChargePassive = 0.04f, RapierChargePerBullet = 0.1f, RapierLungeMinCharge = 0.06f;  // charge is 0 to 1: per second held; per bullet reflected
         public const float RapierLungeMin = 130f, RapierLungeMax = 720f, RapierLungeSpeed = 1500f, RapierLungeBase = 20f, RapierLungeBonus = 50f, RapierLungeWidth = 18f;
@@ -44,7 +44,7 @@ namespace Arena
         public static float RapierLungeLength(float charge) => RapierLungeMin + (RapierLungeMax - RapierLungeMin) * Math.Min(1f, Math.Max(0f, charge));
         public static float RapierLungeDamage(float charge) => RapierLungeBase + RapierLungeBonus * Math.Min(1f, Math.Max(0f, charge));
 
-        /// Host: the weapon-action key went down (on) or up with the Rapier, aiming at `aimAt`.
+        /// Host: the weapon-action key was pressed with the Rapier, aiming at `aimAt`: the stance goes up (on), or comes down in a lunge.
         void HostRapierStance(Player p, bool on, V2 aimAt)
         {
             if (p.Weapon.Id != WeaponId.Rapier || State == MatchState.GameOver)

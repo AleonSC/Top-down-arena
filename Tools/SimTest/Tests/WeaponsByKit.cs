@@ -1110,7 +1110,7 @@ static partial class Program
         Check(smallFl > 0f && left == 0, "a Flourish throws waves and spends the Tempo");
         Check(Math.Abs(fullFl / smallFl - Game.RapierFlourishSwings(Game.RapierTempoMax) / (float)Game.RapierFlourishSwings(4)) < 0.6f, "a full-Tempo Flourish throws a wave per two stacks, each piercing both enemies in line");
 
-        // Riposte: hold the key to stand guard (slow, bullets sent back, charge builds), let go to lunge as far as the charge allows.
+        // Riposte: press the key to stand guard (slow, bullets sent back, charge builds), press again to lunge as far as the charge allows.
         var stance = typeof(Game).GetMethod("HostRapierStance", flags);
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Rapier);
         me.Aim = 0f;
