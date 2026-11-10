@@ -92,7 +92,7 @@ namespace Arena
 
             // --- Left column, top: Back, LOBBY_ and the "!" key (Leaving, Settings and the Field guide are in the Esc menu, MenuDrawer.cs),
             // then the mode keys (a choice for the whole lobby, so they sit with the party).
-            if (LobbyKit.Key(LobbyBackKey, "", false, calm, PixelArt.Get("ui_back"), size: 22))
+            if (LobbyKit.Key(LobbyBackKey, "", false, calm, PixelArt.Get("ui_back"), size: 22, accent: Color.Lerp(CrtUi.Ink, CrtStyle.Danger, 0.55f)))  // a slight red: it leaves the lobby
                 StartLobbyLeave();  // LobbyEnter.cs
             DrawLobbyTitle(LobbyTitleRect, 1f, calm, t);
             bool infoShown = connInfoOpen || (GUI.enabled && infoButton.Contains(Event.current.mousePosition));
