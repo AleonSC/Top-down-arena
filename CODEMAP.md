@@ -106,6 +106,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Game/LungeLaneLook.cs`: the shared lunge wind-up lane for the Lunger, Spike Block, Charger and Riot Shield (`Docs/Mockups/lunge-telegraph.html`)
 - `Game/ShooterAimLook.cs`: the dashed aim line of the aimed shooters while they wind up (Sniper, Shard, Medic, Splitter, Phantom, Grunt)
 - `Game/EnemyTagLook.cs`, `Profile.TagSeen`: (also the Settings > Gameplay "Enemy names on hover" tag under the cursor) the name and job tag an enemy type carries for its first three sightings (profile "tag" lines, format 6)
+- `Core/BruteEnrage.cs`: Brute enrage (`BruteRage`/`BruteSpeedMult`/`BruteDamageMult`, from health lost; used in `MoveEnemy` and the contact damage in `EnemyAI.cs`; redder in `Game/WorldEnemies.cs`)
 - `Core/NewEnemies.cs`, `Game/NewEnemyChips.cs`: the new-enemy chips under the between-waves box (`Game.NewTypesAt`, `Game.EnemyNote`; unmet types only, via `Profile.TagSeen`)
 - `Zombies.cs`: Zombie Infection modifier (seven zombie kinds)
 - `Approaches.cs`, `WardenFaction.cs`: boss factions/approach mixes, Warden's faction enemies

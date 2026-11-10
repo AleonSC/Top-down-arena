@@ -303,6 +303,7 @@ static partial class Program
         Test("ninja", "the Ninja", () => NinjaTest(Dt)),
         Test("blood", "the Blood Mage", () => VeinBeamTest(Dt), () => LeechGraspTest(Dt), () => BloodMageTest(Dt)),
         Test("melee", "early melee rushers", () => MeleeTest(Dt)),
+        Test("brute", "Brute enrage", () => BruteEnrageTest()),
         Test("meleesounds", "melee rushers' sounds: quieter with distance, Buzzsaw contact whirr, distinct deaths that merge", () => MeleeSoundsTest(Dt)),
         Test("grunts", "melee grunts: Buzzsaw and Spike Block from wave 5, the zig-zagging Spiker", () => MeleeGruntsTest(Dt)),
         Test("late", "waves 11-13: new enemies and elites", () => LateGameEnemies(Dt)),
