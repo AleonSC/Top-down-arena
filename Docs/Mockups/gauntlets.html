@@ -131,14 +131,14 @@ td.n{font:500 13px var(--mono);font-variant-numeric:tabular-nums;white-space:now
       <tr><td>Uppercut</td><td>Fire</td><td class="n">18</td><td>Launches: airborne 0.55 s, can't shoot</td></tr>
       <tr><td>Twin Hammer</td><td>Fire</td><td class="n">30</td><td>110 px shockwave, 0.6 s stun</td></tr>
       <tr><td>Counter Hammer</td><td>Perfect parry</td><td class="n">38</td><td>135 px gold shockwave, skips steps 3–4</td></tr>
-      <tr><td>Rocket Dash</td><td>Alt tap</td><td class="n">24</td><td>130 px lunge, big knockback · 3 s</td></tr>
+      <tr><td>Rocket Dash</td><td>Alt tap</td><td class="n">24</td><td>130 px lunge, short knockback that keeps the enemy in reach · 3 s</td></tr>
       <tr><td>Ground Pound</td><td>Alt hold 0.5 s</td><td class="n">40</td><td>140 px, clears small bullets, 0.9 s stun · 6 s</td></tr>
       <tr><td>Grab &amp; Throw</td><td>Alt beside an enemy</td><td class="n">20 + 26</td><td>The thrown enemy hits whoever it lands on · 5 s, not bosses</td></tr>
       <tr><td>Rocket Fist</td><td>Alt tap</td><td class="n">22</td><td>Chained fist pierces a 200 px line, then reels back · 4 s</td></tr>
       <tr><td>Shockwave Clap</td><td>Alt tap</td><td class="n">10</td><td>64° × 170 px cone, deletes small bullets, big shove · 5 s</td></tr>
       <tr><td>Seismic Line</td><td>Alt tap</td><td class="n">14</td><td>7 rock spikes out to 230 px, each enemy popped up once · 4 s</td></tr>
       <tr><td>Magnet Yank</td><td>Alt tap</td><td class="n">18</td><td>Pulls one enemy up to 220 px into a free cross, not bosses · 5 s</td></tr>
-      <tr><td>Flurry</td><td>Alt hold</td><td class="n">8×6 + 20</td><td>0.7 s of jabs, then a knockback straight; you can't move · 5 s</td></tr>
+      <tr><td>Flurry</td><td>Fire within 0.35 s of a dash hit</td><td class="n">8×6 + 20</td><td>Rocket Dash follow-up: 0.7 s of jabs, then a knockback straight</td></tr>
     </table>
   </div>
   <div class="card">
@@ -190,7 +190,7 @@ const MOVES={
   hammer:{name:'Twin Hammer',input:'Fire · 5',step:5,dur:.62,keys:fill([{t:0},{t:.18,L:[8,-7,1.25],R:[8,7,1.25],dx:-4,g:.6},{t:.26,L:[44,-9,0],R:[44,9,0],dx:10,g:1,e:'in'},{t:.40,L:[42,-9,0],R:[42,9,0],g:.3},{t:.62,L:REST.L,R:REST.R,dx:0,g:0}]),
     hits:[{t:.26,sh:{type:'ring',c:[44,0],r:110},dmg:30,kn:'radial',knr:38,stun:.6,fx:'quake'}]},
   dash:{name:'Rocket Dash',input:'Alt · tap',alt:true,dur:.72,keys:fill([{t:0},{t:.10,R:[4,16,0],L:[20,-12,0],tw:-.3,dx:-4},{t:.14,R:[34,2,0],L:[12,-14,0],tw:.2,dx:10,e:'out'},{t:.30,dx:122,e:'lin'},{t:.33,R:[44,2,0],dx:128,e:'out'},{t:.40,R:[40,2,0]},{t:.72,R:REST.R,L:REST.L,tw:0}]),
-    hits:[{t:.31,sh:{type:'cap',a:[30,0],b:[52,0],r:16},dmg:24,kn:[70,0],fx:'big'}]},
+    hits:[{t:.31,sh:{type:'cap',a:[30,0],b:[52,0],r:16},dmg:24,kn:[24,0],fx:'big'}]},
   pound:{name:'Ground Pound',input:'Alt · hold',alt:true,dur:1.1,keys:fill([{t:0},{t:.10,L:[6,-10,1.1],R:[6,10,1.1],g:.15},{t:.58,g:1},{t:.66,L:[20,-11,0],R:[20,11,0],dx:3,e:'in'},{t:.85,g:.2},{t:1.1,L:REST.L,R:REST.R,dx:0,g:0}]),
     hits:[{t:.66,sh:{type:'ring',c:[20,0],r:140},dmg:40,kn:'radial',knr:30,stun:.9,fx:'quake'}]},
   grab:{name:'Grab & Throw',input:'Alt · beside an enemy',alt:true,dur:1.15,grab:true,hits:[],custom(u){
@@ -233,15 +233,18 @@ Object.assign(MOVES,{
       else{const k=E.io((u-.86)/.19);p.R=[lerp(72,17,k),lerp(2,13,k),0];p.L=[lerp(15,17,k),lerp(-14,-13,k),0];p.tw=lerp(.35,0,k);p.dx=lerp(9,0,k);p.g=lerp(.6,0,k);}
       return p;}},
 });
+MOVES.chase={...MOVES.flurry,name:'Flurry',input:'Fire within 0.35 s of a dash hit'};
 MOVES.counter={...MOVES.hammer,name:'Counter Hammer',input:'Fire after a perfect parry',gold:true,
   hits:[{t:.26,sh:{type:'ring',c:[44,0],r:135},dmg:38,kn:'radial',knr:48,stun:.8,fx:'quake'}]};
 
 const durOf=s=>s.d||s.m.dur;
 function movePose(seg,u){
   const m=seg.m; u=clamp(u,0,durOf(seg));
-  if(m.custom) return m.custom(u,seg);
-  const K=m.keys; let j=0; while(j<K.length-2&&u>K[j+1].t) j++;
-  const a=K[j],b=K[j+1]; return blend(a,b,E[b.e](clamp((u-a.t)/(b.t-a.t))));
+  let p;
+  if(m.custom) p=m.custom(u,seg);
+  else{const K=m.keys; let j=0; while(j<K.length-2&&u>K[j+1].t) j++;
+  const a=K[j],b=K[j+1]; p=blend(a,b,E[b.e](clamp((u-a.t)/(b.t-a.t))));}
+  if(seg.ox) p.dx+=seg.ox; return p;
 }
 function poseAt(sc,t){
   let i=-1; for(let k=0;k<sc.segs.length;k++) if(sc.segs[k].s<=t) i=k;
@@ -266,7 +269,7 @@ const SCN={
     segs:[{m:'jab',s:0},{m:'cross',s:.24},{m:'hook',s:.52},{m:'parry',s:.60,d:.26},{m:'counter',s:.86}],
     enemies:()=>[...GRUNTS(),{...SHOOTER}],bullets:[{from:3,th:.68,out:'perfect'}],slow:.68,len:1.9,
     caps:[{t0:.60,t1:.68,txt:'PARRY CANCELS THE HOOK'},{t0:.68,t1:1.4,txt:'PERFECT → COUNTER HAMMER',gold:true}]},
-  dash:{alt:true,label:'Rocket Dash',blurb:'Alt tap. The rear gauntlet fires a thruster and throws you 130 px forward, fist first. The first enemy in the way takes 24 damage and gets launched back.',
+  dash:{alt:true,label:'Rocket Dash',blurb:'Alt tap. The rear gauntlet fires a thruster and throws you 130 px forward, fist first. The first enemy in the way takes 24 damage and gets knocked a short way back, still in reach for the follow-up Flurry.',
     segs:[{m:'dash',s:0}],enemies:()=>[{x:172,y:2,r:13,k:'grunt'},{x:110,y:-62,r:11,k:'grunt'}],len:1.1},
   pound:{alt:true,label:'Ground Pound',blurb:'Hold Alt. Both fists rise and charge for half a second, then slam down. The 140 px shockwave pops every small bullet inside it, knocks enemies back and stuns them for 0.9 s.',
     segs:[{m:'pound',s:0}],
@@ -275,6 +278,9 @@ const SCN={
     caps:[{t0:.1,t1:.6,txt:'CHARGING'}]},
   grab:{alt:true,label:'Grab & Throw',blurb:'Alt next to an enemy. Grab it, swing it all the way round, and throw it where you aim. It takes 20 damage, and whatever it hits takes 26 and gets knocked back. Bosses can\'t be grabbed.',
     segs:[{m:'grab',s:0,target:0,into:1}],enemies:()=>[{x:54,y:0,r:12,k:'grunt'},{x:232,y:6,r:13,k:'grunt'}],len:1.6},
+  dashflurry:{alt:true,label:'Dash → Flurry',blurb:'Rocket Dash, then press Fire within 0.35 s of the hit: you go straight into the Flurry where you landed. Eight jabs (6 each) and a finishing straight (20) that sends the enemy flying. A dash that misses gives no follow-up.',
+    segs:[{m:'dash',s:0},{m:'chase',s:.42,ox:128}],enemies:()=>[{x:172,y:2,r:13,k:'grunt'},{x:110,y:-62,r:11,k:'grunt'},{x:200,y:-26,r:11,k:'grunt'}],len:1.75,
+    caps:[{t0:.31,t1:.42,txt:'FIRE → FLURRY'},{t0:.42,t1:1.5,txt:'DASH FOLLOW-UP',gold:true}]},
   rfist:{alt:true,label:'Rocket Fist',blurb:'Alt tap. The gauntlet fires off the wrist on a chain, punches through everything in a 200 px line (22 damage each), hangs for a beat, then reels back in on reverse thrusters.',
     segs:[{m:'rfist',s:0}],enemies:()=>[{x:100,y:0,r:13,k:'grunt'},{x:180,y:-6,r:12,k:'grunt'},{x:60,y:-60,r:11,k:'grunt'}],len:1.2},
   clap:{alt:true,label:'Shockwave Clap',blurb:'Alt tap. Both fists slam together and send a 64° pressure wave 170 px forward. It deletes every small bullet it passes and shoves enemies back hard. Only 10 damage: it buys space.',
@@ -631,6 +637,7 @@ const ROWS=[
   {t:'Rocket Dash',s:'Alt tap · 24 dmg · 130 px',sc:SCN.dash,ts:[.06,.12,.20,.28,.32,.48],v:[100,0,300]},
   {t:'Ground Pound',s:'Alt hold · 40 dmg · clears bullets',sc:SCN.pound,ts:[.06,.30,.58,.67,.74,.95],v:[20,0,330]},
   {t:'Grab & Throw',s:'Alt beside an enemy · 20 + 26 dmg',sc:SCN.grab,ts:[.08,.18,.40,.62,.82,1.0],v:[110,0,330]},
+  {t:'Dash → Flurry',s:'Alt tap, then Fire on hit · 24 + 8 × 6 + 20 dmg',sc:SCN.dashflurry,ts:[.20,.31,.40,.62,.86,1.24],v:[130,0,300]},
   {t:'Rocket Fist',s:'Alt tap · 22 dmg per enemy in a 200 px line',sc:SCN.rfist,ts:[.08,.17,.25,.44,.62,.80],v:[110,0,300]},
   {t:'Shockwave Clap',s:'Alt tap · 10 dmg · deletes bullets in a 170 px cone',sc:SCN.clap,ts:[.06,.12,.17,.24,.32,.48],v:[90,0,280]},
   {t:'Seismic Line',s:'Alt tap · 14 dmg per spike · 230 px',sc:SCN.seismic,ts:[.10,.20,.28,.36,.46,.70],v:[125,0,300]},
