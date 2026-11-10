@@ -135,6 +135,19 @@ namespace Arena
             return n;
         }
 
+        /// F1 "Freeze enemies": enemies stop moving and shooting and no new ones spawn (host only; they can still be
+        /// killed). Checked in TickEnemies (EnemyAI.cs) and the Fighting spawner (Waves.cs).
+        public bool DevFreeze;
+
+        public void DevSetFreeze(bool on)
+        {
+            if (!IsHost)
+                return;
+            if (DevFreeze != on)
+                DevUsed("enemies " + (on ? "frozen" : "unfrozen"));
+            DevFreeze = on;
+        }
+
         /// Clear the arena and start the given wave after a short countdown.
         public void DevJumpToWave(int wave)
         {

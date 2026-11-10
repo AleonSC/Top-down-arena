@@ -110,6 +110,8 @@ namespace Arena
                     }
                     break;
                 case MatchState.Fighting:
+                    if (DevFreeze)
+                        break;  // F1 dev tool: nothing new spawns and the wave doesn't clear (DevTools.cs)
                     TickRisers(dt);  // Zombie Infection's dead getting back up (Zombies.cs)
                     TickDesign(dt);  // a designed wave's groups arriving on their timers (WaveDesign.cs)
                     TickRoomsWave(dt);  // the Rooms arena's nests, spills and cleared rooms (Rooms.cs)

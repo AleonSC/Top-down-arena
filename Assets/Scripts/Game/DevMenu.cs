@@ -128,7 +128,7 @@ namespace Arena
 
         void DrawDevMatch(Rect body, float t)
         {
-            var card = new Rect(body.x, body.y, body.width, 250f);
+            var card = new Rect(body.x, body.y, body.width, 280f);
             float y = DevCard(card, "Jump to a wave", "Clears the arena and starts that wave in 2 s. Downed players get back up.", DevTabColors[0]);
             float x = card.x + 16f;
             Ui.Label(new Rect(x, y, 300f, 20f), "Now on wave " + Mathf.Max(1, game.Wave) + (game.Endless ? " (endless)" : " of " + Game.MaxWave), 13, Ui.Text);
@@ -160,9 +160,12 @@ namespace Arena
                 devKillAllKey = killAll;
                 PlayerPrefs.SetInt("dev_killall", killAll ? 1 : 0);
             }
+            bool freeze = Ui.Toggle(new Rect(x, y + 76f, 520f, 26f), game.DevFreeze, "Freeze enemies: they stop moving, shooting and spawning (still killable)");
+            if (freeze != game.DevFreeze)
+                game.DevSetFreeze(freeze);
             GUI.enabled = wasEnabled;
             if (!host)
-                Ui.Label(new Rect(x, y + 76f, 400f, 18f), "Only the host can change the wave or kill everything.", 11, Ui.Muted);
+                Ui.Label(new Rect(x, y + 104f, 400f, 18f), "Only the host can change the wave or kill everything.", 11, Ui.Muted);
 
             // What's waiting on that wave: the boss, drawn live, or the next one.
             var show = new Rect(card.xMax - 230f, card.y + 52f, 210f, 184f);
