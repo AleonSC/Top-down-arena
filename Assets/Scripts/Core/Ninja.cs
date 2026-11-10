@@ -11,6 +11,7 @@ namespace Arena
         // The Katana (Katana.cs; Docs/KatanaCombo.md): two stance combos, switched with the weapon-action key; each keeps its place while
         // you're in the other. Damage is x the weapon's (20); times are seconds.
         public static readonly float[] KatanaHayNext = { 0.22f, 0.22f, 0.36f, 0.32f }, KatanaSenNext = { 0.25f, 0.25f, 0.34f, 0.36f, 0.48f };  // each step holds the next one off this long
+        public const float KatanaDashGrace = 0.15f;  // i-frames kept after a dash ends (covers the lag before your own screen starts it)
         public const float KatanaDashLen = 120f, KatanaDashTime = 0.09f, KatanaDashWidth = 16f, KatanaDashMult = 1.1f, KatanaZig = 0.35f;  // Kiri and Kaeshi: the dash, its line's half width, its cut; Kaeshi angles this far to alternate sides
         public const float KatanaSpinDash = 70f, KatanaSpinDashTime = 0.08f, KatanaSpinReach = 85f, KatanaSpinMult = 1.3f;  // Tsumuji: a short dash into a full spin
         public const float KatanaBurstRadius = 150f, KatanaBurstPush = 120f, KatanaBurstMult = 0.4f, KatanaBurstMark = 4f, KatanaBurstAt = 0.12f, KatanaPlant = 0.2f;  // the Momentum Burst: its ring, shove, damage, how long it marks, when the blade goes in, how long you're planted
