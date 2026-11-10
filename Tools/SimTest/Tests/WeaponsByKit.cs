@@ -1199,6 +1199,8 @@ static partial class Program
         reset();
 
         // Caltrops: thrown round you, lying still; one stepped on hurts and slows (and breaks).
+        foreach (var e in g.Enemies.Values) if (!keep.Contains(e)) e.Hp = 0f;  // (the wave's own enemies mustn't step on them)
+        g.DevFreeze = true;
         foreach (var b in cals()) g.Bullets.Remove(b.Id);
         setK(1, 0, 4);
         g.Sounds.Clear();

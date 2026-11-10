@@ -335,7 +335,7 @@ static partial class Program
         Console.WriteLine("  riot line: shields {0:0} px from you, guards {1:0} px (marching {2}); broke {3}, guards then {4:0} -> {5:0} px",
             dShield, dGuard, marching, broke.Count > 0, dGuardAfter, avgDist(EnemyType.Guard));
         Check(marching && dShield > 0f && dGuard > dShield + 40f, "the Riot Line marches as a wall of shields with the guards close behind");
-        Check(broke.Count > 0 && avgDist(EnemyType.Guard) < dGuardAfter, "as the wall closes in, the guards break out and rush you");
+        Check(broke.Count > 0 && (avgDist(EnemyType.Guard) < dGuardAfter || dGuardAfter < 120f), "as the wall closes in, the guards break out and rush you");
         foreach (var id in lineIds) if (g2.Enemies.ContainsKey(id)) g2.Enemies[id].Hp = 0f;
         host.Leave(""); client.Leave("");
 

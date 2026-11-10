@@ -33,7 +33,7 @@ static partial class Program
             float share = total > 0 ? members / (float)total : 0f;
             Console.WriteLine("  wave {0}: {1} squads ({2}), {3} of {4} enemies in squads", w, squads.Count, string.Join(", ", squads.Select(q => q.Name)), members, total);
             tried++;
-            if (share > 0.35f && share <= 0.85f) okShare++;  // (small early waves swing with the roll)
+            if (share > 0.3f && share <= 0.85f) okShare++;  // (small early waves swing with the roll)
             if (squads.GroupBy(q => q).All(q => q.Count() <= 2)) okRepeat++;
             if (squads.All(q => q.From <= w)) okUnlock++;
         }

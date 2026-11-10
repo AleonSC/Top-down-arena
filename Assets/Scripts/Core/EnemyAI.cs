@@ -153,7 +153,7 @@ namespace Arena
             var pool = WavePool(n);  // the types that can join the mix on this wave
             int count = Math.Min(4 + n * 2, n < 20 ? 32 : Math.Min(40, 32 + (n - 20) / 2));
             if (n <= 5)
-                count += 7 - n;  // the first waves get extra (12, 13, 14, 15, 16), so the opening isn't too quiet
+                count += (7 - n) / 2;  // the first waves get a little extra (9, 10, 12, 13, 14 picks; swarmers and spikers come in packs), so the opening isn't too quiet
             if (LayoutOn && Layout != LayoutId.Open)  // (the Rooms world alone doesn't count: Rooms.cs)
                 count = (int)Math.Round(count * LayoutEnemyMult);  // a floor plan's walls and gates make the crowd easier to read: more of them (Balance.cs)
             count = (int)Math.Round(count * ExpansionScale);  // a bigger Expanding map: more of them (ExpansionGame.cs)
