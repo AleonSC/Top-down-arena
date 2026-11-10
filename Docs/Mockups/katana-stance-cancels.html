@@ -1,4 +1,4 @@
-<title>Katana Stance Cancels</title>
+<title>Katana Stored Combos</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -143,12 +143,12 @@ ol.steps code{font-family:var(--mono);font-size:12px;color:var(--steel)}
 <main>
 <header>
   <div class="eyebrow">Ninja · Katana · Stance rework, round 2 · Nov 2026</div>
-  <div class="cut" aria-label="Stance and Cancel">
-    <h1 aria-hidden="true"><span class="top">Stance &amp;<br>Cancel</span></h1>
-    <h1 aria-hidden="true" class="bot"><span>Stance &amp;<br>Cancel</span></h1>
+  <div class="cut" aria-label="Store and Call">
+    <h1 aria-hidden="true"><span class="top">Store &amp;<br>Call</span></h1>
+    <h1 aria-hidden="true" class="bot"><span>Store &amp;<br>Call</span></h1>
     <div class="line" aria-hidden="true"></div>
   </div>
-  <p class="lede">No more held specials. Each stance is a <strong>basic-attack combo</strong> with a finisher worth reaching: <strong>Hayate</strong> dashes and slices, four steps ending in a zig-zag through the crowd; <strong>Senbon</strong> is the showy one, five steps ending in a sheathe that drops every cut you left. <strong>Switching is instant</strong> and is the skill: switch once a hit has landed and you skip the rest of that step and hit harder with the other stance's next one. Each stance remembers its place for a second, so you can weave between them.</p>
+  <p class="lede">No held specials and no cancel buffs. Each stance is a <strong>basic-attack combo</strong> with its own finisher, and <strong>switching stance keeps your place</strong> in the one you left. The skill is deciding when to <strong>store</strong> a combo one step from its finisher and when to <strong>call</strong> it. <strong>Hayate</strong> dashes and slices, then stabs the ground for a <strong>Momentum Burst</strong>. <strong>Senbon</strong> is the showy one, ending in a storm of <strong>caltrops</strong>. The two finishers feed each other in either order.</p>
   <p class="lede">Everything in the arena is drawn at <strong>game scale with only the shapes the game itself draws</strong> (filled triangles, lines, arcs, soft glows, an additive light pass, hit-stop and shake; no canvas blur). What you see here is what it can look like in Unity.</p>
   <div class="global">
     <button type="button" id="snd" aria-pressed="false">Sound off</button>
@@ -161,8 +161,8 @@ ol.steps code{font-family:var(--mono);font-size:12px;color:var(--steel)}
   <div class="body">
     <div class="head">
       <div class="eyebrow"><b>Live</b> · the demo plays the routes below</div>
-      <h2>Weave the two</h2>
-      <p class="pitch">The strip along the bottom shows every input: steel for Hayate, rose for Senbon, white for a switch, gold when it was a <b>cancel</b>. The ring that flashes white round the swordsman is the cancel window opening.</p>
+      <h2>Store one, call the other</h2>
+      <p class="pitch">The pips over the swordsman show where each stance's combo is waiting (white: the next step). The strip along the bottom shows every input: steel for Hayate, rose for Senbon, white for a switch.</p>
     </div>
     <div class="frame"><canvas data-k="stances" aria-label="Live arena: the Katana's two stance combos"></canvas>
       <div class="ov tl"><span class="pill">Auto demo</span><span id="routeName" class="pill">Route: cycling</span></div>
@@ -172,8 +172,8 @@ ol.steps code{font-family:var(--mono);font-size:12px;color:var(--steel)}
       <button type="button" data-r="cycle" aria-pressed="true">All, in turn</button>
       <button type="button" data-r="hayate">Hayate chain</button>
       <button type="button" data-r="senbon">Senbon chain</button>
-      <button type="button" data-r="weave">Weave</button>
-      <button type="button" data-r="dancer">Dash dancer</button>
+      <button type="button" data-r="fling">Fling</button>
+      <button type="button" data-r="seek">Seek</button>
     </div>
 
     <div class="cards">
@@ -182,7 +182,7 @@ ol.steps code{font-family:var(--mono);font-size:12px;color:var(--steel)}
           <li><div><b>Kiri</b><span>Dash-cut 120 px along your aim, 22 to all on the line. <code>0.04 + 0.09 dash + 0.16</code></span></div></li>
           <li><div><b>Kaeshi</b><span>Dash-cut 120 px, angled 20° to the other side (a zig). 22. <code>same timing</code></span></div></li>
           <li><div><b>Tsumuji</b><span>A short 70 px dash into a full spin, 85 px round you, 26. <code>0.04 + 0.08 + spin 0.14 + 0.18</code></span></div></li>
-          <li class="fin"><div><b>Shippū</b> (finisher)<span>Four hops, each to the nearest enemy ahead (60° cone, 230 px), cutting through it: 18 a hop. Then a skid, 0.38 s, that you'll want to cancel. <code>4 × 0.065 + 0.38</code></span></div></li>
+          <li class="fin"><div><b>Momentum Burst</b> (finisher)<span>You stab the katana into the ground: a shockwave 150 px round you shoves enemies 120 px and deals 8. Everything it hits is <b>marked</b> for 4 s. You keep control; only a 0.2 s plant. <code>0.12 plant + burst + 0.28</code></span></div></li>
         </ol>
         <p class="fit" style="margin:0">Untouchable during every dash. A dash that kills skips its own recovery, so killing keeps you moving.</p>
       </div>
@@ -192,23 +192,22 @@ ol.steps code{font-family:var(--mono);font-size:12px;color:var(--steel)}
           <li><div><b>Kaeshi</b><span>The return cut the other way, 16. <code>same timing</code></span></div></li>
           <li><div><b>Engetsu</b><span>Full-moon spin with a 30 px step, 105 px round you, 20. <code>0.04 + 0.2 + 0.18</code></span></div></li>
           <li><div><b>Senbon</b><span>Six crossing slashes in a 70° cone over 0.3 s, 7 each. <code>0.3 + 0.12</code></span></div></li>
-          <li class="fin"><div><b>Nōtō</b> (finisher)<span>You sheathe. Every cut you left on an enemy lights up, and at the click each enemy takes 10 per cut (up to 6). <code>0.3 still, then the click, 0.3</code></span></div></li>
+          <li class="fin"><div><b>Caltrops</b> (finisher)<span>You throw 16 caltrops out to 60-150 px round you. They lie for 8 s; an enemy that steps on one takes 4 and breaks it. <code>0.1 + throw 0.25 + 0.3</code></span></div></li>
         </ol>
-        <p class="fit" style="margin:0">Every Senbon hit leaves a glowing cut on the enemy (the marks of the last version, now drawn as the cuts themselves).</p>
+        <p class="fit" style="margin:0">Swipes and the spin cut small bullets out of the air.</p>
       </div>
     </div>
 
     <div class="cols">
-      <div><h3>The switch</h3><ul class="play">
-        <li><b>Alt switches stance at once.</b> No wind-up and a 0.3 s cooldown.</li>
-        <li><b>Cancel:</b> switch after a step has hit (from the end of its dash or sweep until it ends) and the rest of that step is skipped. You get a small burst (30 px push within 90 px), a gold flash and <b>+25% and no wind-up</b> on the next attack, if it comes within 0.8 s.</li>
-        <li>Switching before a step has hit drops that step: no bonus.</li>
-        <li><b>Each stance keeps its place for 1 s</b> after its last step, so Senbon 1-2-3-4 ⇄ Hayate 1 ⇄ Senbon goes on to Nōtō.</li>
-        <li>Mashing one stance waits for each step's recovery; cancelling skips it. That's the reward.</li>
+      <div><h3>The switch and the two finishers</h3><ul class="play">
+        <li><b>Alt switches stance at once</b> (0.3 s cooldown). It stops the step you're in, with no bonus and no penalty.</li>
+        <li><b>The stance you leave keeps its place</b> for as long as you're away: two steps into Hayate, switch, and the next Hayate attack is step three. The stance you're in starts over if you stop attacking for 1.5 s.</li>
+        <li><b>Caltrops, then Momentum Burst:</b> the shockwave launches every caltrop on the ground at the nearest enemy, 8 each.</li>
+        <li><b>Momentum Burst, then Caltrops:</b> the caltrops you throw seek the enemies the shockwave marked, shared out between them, 8 each.</li>
       </ul></div>
       <div><h3>Example routes</h3>
-        <div class="route"><div class="chips"><span class="chip s">S1</span><span class="chip s">S2</span><span class="chip s">S3</span><span class="chip s">S4</span><span class="chip x">⇄</span><span class="chip h">H1</span><span class="chip x">⇄</span><span class="chip s">S5</span></div><p><b>Weave.</b> Cut them up, dash out of the flurry's recovery, cancel back and sheathe.</p></div>
-        <div class="route"><div class="chips"><span class="chip h">H1</span><span class="chip h">H2</span><span class="chip x">⇄</span><span class="chip s">S1</span><span class="chip x">⇄</span><span class="chip h">H3</span><span class="chip h">H4</span></div><p><b>Dash dancer.</b> Each cancel lands the next hit early and 25% harder.</p></div>
+        <div class="route"><div class="chips"><span class="chip h">H1</span><span class="chip h">H2</span><span class="chip h">H3</span><span class="chip x">⇄</span><span class="chip s">S1</span><span class="chip s">S2</span><span class="chip s">S3</span><span class="chip s">S4</span><span class="chip s">S5</span><span class="chip x">⇄</span><span class="chip h">H4</span></div><p><b>Fling.</b> Store Hayate one step from its finisher, run Senbon to the caltrops, switch and burst: the caltrops fly.</p></div>
+        <div class="route"><div class="chips"><span class="chip s">S1</span><span class="chip s">S2</span><span class="chip s">S3</span><span class="chip s">S4</span><span class="chip x">⇄</span><span class="chip h">H1</span><span class="chip h">H2</span><span class="chip h">H3</span><span class="chip h">H4</span><span class="chip x">⇄</span><span class="chip s">S5</span></div><p><b>Seek.</b> Store Senbon at the caltrops, burst with Hayate, switch back: the caltrops find everything the shockwave hit.</p></div>
       </div>
     </div>
 
@@ -218,10 +217,12 @@ ol.steps code{font-family:var(--mono);font-size:12px;color:var(--steel)}
       <tr><td>Crescent sweeps, thick at the blade, eaten from the tail</td><td><code>KatanaCrescent</code> (MeleeLooks.cs) already; draw them 40% wider and keep the white edge</td></tr>
       <tr><td>Dash line with afterimages</td><td><code>KatanaSpear</code> + <code>KatanaGhosts</code>, one per dash and per Shippū hop</td></tr>
       <tr><td>Enemies split in two along the cut, in their own colour and shape</td><td>New: <code>DrawEnemyHalf</code>, the enemy's polygon cut by a line (triangles). Today's halves are flat red discs</td></tr>
-      <tr><td>Bright line across each enemy hit</td><td><code>KatanaMarks</code> per hit; Senbon's stay on the enemy until Nōtō (replicated cut angles)</td></tr>
+      <tr><td>Bright line across each enemy hit</td><td><code>KatanaMarks</code> per hit</td></tr>
+      <tr><td>Shockwave: rings, cracks from the blade, a flash</td><td>A new <code>FxKind</code>, drawn with <code>Arc</code> and <code>Line</code>; the marked enemies get a steel ring (replicated with the enemy)</td></tr>
+      <tr><td>Caltrops lying, thrown, flung and seeking</td><td>Bullets of a new kind (lying ones stand still, like Shuriken stars), drawn as small crossed spikes with a glint; flying ones trail</td></tr>
       <tr><td>Soft light on cuts, dashes and the burst</td><td>The additive glow pass (<code>SoftLine</code>, <code>GlowDisc</code>)</td></tr>
-      <tr><td>Hit-stop per step and on finishers, small shake</td><td><code>Juice.cs</code> Hold/Shake: 25 ms a step, 70 ms on Shippū's last hop and Nōtō, 50 ms on a cancel</td></tr>
-      <tr><td>Cancel window ring, combo pips, input strip</td><td>Ring and pips in <code>KatanaLook.cs</code>; the input strip is mockup-only</td></tr>
+      <tr><td>Hit-stop per step and on finishers, small shake</td><td><code>Juice.cs</code> Hold/Shake: 25 ms a step, 70 ms on the Momentum Burst</td></tr>
+      <tr><td>Combo pips for both stances, input strip</td><td>Pips in <code>KatanaLook.cs</code>; the input strip is mockup-only</td></tr>
     </table></div>
     <p class="fit"><b>Why the built version looked flat:</b> its hops were 2 px lines with no hit-stop, its cuts were drawn after the fact rather than as you dashed, the halves were plain red discs, and nothing marked the moment to act. This version puts the hit, the split and the hold on every step.</p>
   </div>
@@ -230,10 +231,10 @@ ol.steps code{font-family:var(--mono);font-size:12px;color:var(--steel)}
 <section class="closing">
   <h3 class="eyebrow">Open questions</h3>
   <ol class="q">
-    <li>Should a cancel also refund something (Flow-like) or is +25% and no wind-up enough?</li>
-    <li>Does Shippū pick targets in front of you only (as here), or anywhere near you?</li>
-    <li>Keep the 1 s memory per stance, or shorter (0.7 s) to make weaving harder?</li>
-    <li>+1: one more Shippū hop and one more Senbon slash?</li>
+    <li>Should a stored combo ever run out (say after 6 s away), or keep forever?</li>
+    <li>Caltrops on the ground: do they also slow enemies, or only hurt?</li>
+    <li>Should the Momentum Burst stop small bullets in its ring too?</li>
+    <li>+1: two more caltrops and a wider shockwave?</li>
   </ol>
   <footer>Mockup only; nothing in the game has changed. Controls: aim with the mouse, <span class="kbd">WASD</span> to move, click (or hold) to attack, <span class="kbd">Space</span> or right click to switch stance (Left Alt in the game), <span class="kbd">Esc</span> to hand back to the demo.</footer>
 </section>
@@ -280,9 +281,10 @@ const SND={ctx:null,on:false,last:{},
       case 'zan': this.tone(55,1.0,.4,'sine',35); this.noiseHit('lowpass',600,80,.8,.2); break;
       case 'release': this.noiseHit('lowpass',4000,200,.5,.55); this.tone(80,.6,.5,'sine',28); this.bell(1660,.8,.12); break;
       case 'ouch': this.tone(300,.12,.1,'square',120); break;
-      case 'sheathe': this.noiseHit('bandpass',2400,900,.28,.12,3); break;
       case 'switch': this.noiseHit('bandpass',900,2600,.12,.2,1.2); this.bell(1320,.25,.06); break;
-      case 'cancel': this.noiseHit('bandpass',1200,4200,.14,.28,1.2); this.bell(1760,.45,.12); this.bell(2637,.3,.05); break;
+      case 'burst': this.tone(70,.45,.5,'sine',30); this.noiseHit('lowpass',2500,120,.45,.5); this.bell(990,.5,.06); break;
+      case 'throw': for(let i=0;i<4;i++) setTimeout(()=>this.noiseHit('highpass',3000,6000,.04,.12),i*30); this.noiseHit('bandpass',700,2400,.18,.18,1.2); break;
+      case 'fling': this.noiseHit('bandpass',1500,5000,.2,.25,1); this.bell(1760,.3,.07); break;
       case 'mark': this.bell(2100,.12,.05); break;
     }}
 };
@@ -311,22 +313,21 @@ function drawEnemyShape(g,e,x,y,a){ const f=e.flash>0; g.globalAlpha=a;
 /* -------- state -------- */
 function newState(){ const p={x:W/2,y:H/2+40,ang:-.3,r:13,inv:0,band:[],blade:2,moving:false};
   for(let i=0;i<7;i++)p.band.push({x:p.x,y:p.y});
-  return {t:0,p,en:[],bul:[],fx:{cres:[],spear:[],ghost:[],spark:[],piece:[],ring:[],line:[],text:[],glow:[]},
-    hitstop:0,trauma:0,flash:0,flashCol:WHITE,nid:1,spawnT:.4,stance:1,step:null,chain:[{i:0,idle:9},{i:0,idle:9}],swCd:0,bonusT:0,buffer:0,log:[],winFlash:0,hsGate:0}; }
+  return {t:0,p,en:[],bul:[],fx:{cres:[],spear:[],ghost:[],spark:[],piece:[],ring:[],line:[],text:[],glow:[],crack:[]},
+    hitstop:0,trauma:0,flash:0,flashCol:WHITE,nid:1,spawnT:.4,stance:1,step:null,chain:[{i:0,idle:0},{i:0,idle:0}],swCd:0,buffer:0,log:[],hsGate:0,cal:[]}; }
 function spawn(s,instant){ const t=TYPES[Math.random()<.4?0:Math.random()<.4?1:Math.random()<.5?2:3]; let x,y,k=0;
   do{ x=rnd(60,W-60); y=rnd(60,H-60); k++; }while(Math.hypot(x-s.p.x,y-s.p.y)<230&&k<30);
-  s.en.push({id:s.nid++,t,x,y,r:t.r,hp:t.hp,max:t.hp,rot:rnd(0,TAU),flash:0,kx:0,ky:0,cuts:[],spawnT:instant?.5:0,shootT:rnd(1.5,3)});
+  s.en.push({id:s.nid++,t,x,y,r:t.r,hp:t.hp,max:t.hp,rot:rnd(0,TAU),flash:0,kx:0,ky:0,shockT:0,spawnT:instant?.5:0,shootT:rnd(1.5,3)});
   if(!instant) s.fx.ring.push({x,y,r0:34,r1:t.r,t:0,life:.45,c:t.c,w:2}); }
 
 /* -------- hits -------- */
 function sparks(s,x,y,a,n,c,spd=1){ for(let i=0;i<n;i++){ const aa=a+(Math.random()<.5?0:Math.PI)+rnd(-.55,.55), v=rnd(140,420)*spd; s.fx.spark.push({x,y,vx:Math.cos(aa)*v,vy:Math.sin(aa)*v,t:0,life:rnd(.14,.3),c}); } }
-function hitEnemy(s,d,e,dmg,cut,o={}){ if(e.dead)return false; const st=s.step; if(st&&st.bonus) dmg*=1.25;
+function hitEnemy(s,d,e,dmg,cut,o={}){ if(e.dead)return false; const st=s.step;
   e.hp-=dmg; e.flash=.07; const ka=Math.atan2(e.y-s.p.y,e.x-s.p.x); e.kx+=Math.cos(ka)*(o.kb??55); e.ky+=Math.sin(ka)*(o.kb??55);
   const col=o.col||STEEL;
   s.fx.line.push({x:e.x,y:e.y,a:cut,len:e.r*2.8,t:0,life:.22,c:WHITE,w:2.4});
   sparks(s,e.x,e.y,cut,o.big?10:6,Math.random()<.5?col:WHITE);
-  s.fx.text.push({x:e.x+rnd(-6,6),y:e.y-e.r-8,v:Math.round(dmg),t:0,life:.65,c:st&&st.bonus?GOLD:(o.big?col:WHITE)});
-  if(o.mark&&e.cuts.length<6) e.cuts.push({a:cut+rnd(-.2,.2),o:rnd(-.4,.4)});
+  s.fx.text.push({x:e.x+rnd(-6,6),y:e.y-e.r-8,v:Math.round(dmg),t:0,life:.65,c:o.big?col:WHITE});
   if(s.hsGate<=0){ s.hitstop=Math.max(s.hitstop,o.hold??.025); s.hsGate=.06; }
   s.trauma=Math.min(1,s.trauma+(o.shake??.07));
   if(e.hp<=0){ kill(s,d,e,cut,col); return true; } d.sfx('hit'); return false; }
@@ -340,7 +341,7 @@ function segDist(px,py,ax,ay,bx,by){ const dx=bx-ax,dy=by-ay,L=dx*dx+dy*dy; let 
 const live=s=>s.en.filter(e=>!e.dead&&e.spawnT>=.5);
 
 /* -------- the steps -------- */
-// Each step: start(s,d,st), tick(s,d,st,dt); cancelAt: from here a switch cancels it; next: from here the same stance's next step can start; dur.
+// Each step: start(s,d,st), tick(s,d,st,dt); next: from here the same stance's next step can start; dur: when it ends.
 function dashTo(s,st,len,ang){ const p=s.p; st.from={x:p.x,y:p.y}; const tx=clamp(p.x+Math.cos(ang)*len,30,W-30), ty=clamp(p.y+Math.sin(ang)*len,30,H-30); st.to={x:tx,y:ty}; st.dang=ang; }
 function moveDash(s,d,st,t0,dur,dmg,o={}){ const p=s.p; if(st.t<t0||st.dashDone)return; const f=Math.min(1,(st.t-t0)/dur), ox=p.x,oy=p.y;
   if(!st.spearSent){ st.spearSent=true; s.fx.spear.push({x0:st.from.x,y0:st.from.y,x1:st.to.x,y1:st.to.y,t:0,dur,life:dur+.32,c:o.col||STEEL,w:11}); d.sfx('dash'); }
@@ -355,58 +356,74 @@ function sweep(s,d,st,t0,dur,arc,reach,dmg,o={}){ const p=s.p; if(st.t<t0)return
     const rel=angDiff(st.sw.a0,Math.atan2(dy,dx))*st.sw.side, pad=Math.asin(Math.min(1,e.r/Math.max(dist,e.r)));
     if(arc>=TAU-.01||rel>=-pad&&rel<=prog+pad){ st.hit.add(e.id); hitEnemy(s,d,e,dmg,Math.atan2(dy,dx)+st.sw.side*Math.PI/2,o); } }
   for(const b of s.bul){ if(b.dead)continue; const dx=b.x-p.x,dy=b.y-p.y; if(Math.hypot(dx,dy)<reach){ const rel=angDiff(st.sw.a0,Math.atan2(dy,dx))*st.sw.side; if(arc>=TAU-.01||rel>=0&&rel<=prog){ b.dead=true; sparks(s,b.x,b.y,Math.atan2(dy,dx),3,GOLD,.6); } } } }
-const SEN={col:ROSE,mark:true};
+const SEN={col:ROSE};
 const STEPS=[
  [ // Hayate
-  {n:'Kiri',cancelAt:.13,next:.22,dur:.29,start:(s,d,st)=>dashTo(s,st,120,st.ang),tick:(s,d,st)=>moveDash(s,d,st,.04,.09,22)},
-  {n:'Kaeshi',cancelAt:.13,next:.22,dur:.29,start:(s,d,st)=>dashTo(s,st,120,st.ang+.35*(s.zig=-(s.zig||1))),tick:(s,d,st)=>moveDash(s,d,st,.04,.09,22)},
-  {n:'Tsumuji',cancelAt:.26,next:.36,dur:.44,start:(s,d,st)=>{ dashTo(s,st,70,st.ang); st.side=1; },tick:(s,d,st)=>{ moveDash(s,d,st,.04,.08,0); if(st.t>=.12){ st.ang0=st.ang0??st.ang; sweep(s,d,st,.12,.14,TAU,85,26,{col:STEEL,w:.22,big:true}); } }},
-  {n:'Shippū',cancelAt:.3,next:.55,dur:.68,start:(s,d,st)=>{ st.hop=-1; st.hopT=0; st.tgt=new Set(); },tick:(s,d,st,dt)=>{
-    const HOP=.065; const want=Math.min(3,Math.floor((st.t-.02)/HOP));
-    if(st.t>=.02&&want>st.hop&&st.hop<3){ st.hop++; const p=s.p; let best=null,bd=1e9;
-      for(const e of live(s)){ if(st.tgt.has(e.id))continue; const dx=e.x-p.x,dy=e.y-p.y,dd=Math.hypot(dx,dy); if(dd<230&&Math.abs(angDiff(st.ang,Math.atan2(dy,dx)))<1.05&&dd<bd){bd=dd;best=e;} }
-      let a,len; if(best){ st.tgt.add(best.id); a=Math.atan2(best.y-p.y,best.x-p.x); len=bd+best.r+18; } else { a=st.ang+(st.hop%2?.7:-.7); len=80; }
-      dashTo(s,st,len,a); st.dashDone=false; st.spearSent=false; st.hopT0=st.t; st.hit=new Set(); st.last=st.hop===3; }
-    if(st.hopT0!=null) moveDash(s,d,st,st.hopT0,HOP,18,{hold:st.last?.07:.025,shake:st.last?.25:.08,big:st.last});
-    if(st.t>.3&&!st.skid){ st.skid=true; s.fx.ring.push({x:s.p.x,y:s.p.y,r0:10,r1:60,t:0,life:.35,c:STEEL,w:2.5}); } }}
+  {n:'Kiri',next:.22,dur:.29,start:(s,d,st)=>dashTo(s,st,120,st.ang),tick:(s,d,st)=>moveDash(s,d,st,.04,.09,22)},
+  {n:'Kaeshi',next:.22,dur:.29,start:(s,d,st)=>dashTo(s,st,120,st.ang+.35*(s.zig=-(s.zig||1))),tick:(s,d,st)=>moveDash(s,d,st,.04,.09,22)},
+  {n:'Tsumuji',next:.36,dur:.44,start:(s,d,st)=>{ dashTo(s,st,70,st.ang); st.side=1; },tick:(s,d,st)=>{ moveDash(s,d,st,.04,.08,0); if(st.t>=.12){ st.ang0=st.ang0??st.ang; sweep(s,d,st,.12,.14,TAU,85,26,{col:STEEL,w:.22,big:true}); } }},
+  {n:'Burst',next:.32,dur:.4,start:(s,d,st)=>{ st.fired=false; },tick:(s,d,st)=>{ const p=s.p; p.blade=st.ang+Math.PI*.5; p.planted=st.t<.3;
+    if(!st.fired&&st.t>=.12){ st.fired=true; momentumBurst(s,d); } }}
  ],
  [ // Senbon
-  {n:'Agari',cancelAt:.17,next:.25,dur:.32,start:(s,d,st)=>{st.side=1;},tick:(s,d,st)=>sweep(s,d,st,.05,.12,2.27,120,16,SEN)},
-  {n:'Kaeshi',cancelAt:.17,next:.25,dur:.32,start:(s,d,st)=>{st.side=-1;},tick:(s,d,st)=>sweep(s,d,st,.05,.12,2.27,120,16,SEN)},
-  {n:'Engetsu',cancelAt:.24,next:.34,dur:.42,start:(s,d,st)=>{st.side=1; dashTo(s,st,30,st.ang);},tick:(s,d,st)=>{ if(st.t<.12){ const f=st.t/.12; s.p.x=lerp(st.from.x,st.to.x,easeOut(f)); s.p.y=lerp(st.from.y,st.to.y,easeOut(f)); } sweep(s,d,st,.04,.2,TAU,105,20,{...SEN,w:.24,big:true}); }},
-  {n:'Senbon',cancelAt:.3,next:.36,dur:.42,start:(s,d,st)=>{st.k=0;},tick:(s,d,st)=>{
+  {n:'Agari',next:.25,dur:.32,start:(s,d,st)=>{st.side=1;},tick:(s,d,st)=>sweep(s,d,st,.05,.12,2.27,120,16,SEN)},
+  {n:'Kaeshi',next:.25,dur:.32,start:(s,d,st)=>{st.side=-1;},tick:(s,d,st)=>sweep(s,d,st,.05,.12,2.27,120,16,SEN)},
+  {n:'Engetsu',next:.34,dur:.42,start:(s,d,st)=>{st.side=1; dashTo(s,st,30,st.ang);},tick:(s,d,st)=>{ if(st.t<.12){ const f=st.t/.12; s.p.x=lerp(st.from.x,st.to.x,easeOut(f)); s.p.y=lerp(st.from.y,st.to.y,easeOut(f)); } sweep(s,d,st,.04,.2,TAU,105,20,{...SEN,w:.24,big:true}); }},
+  {n:'Senbon',next:.36,dur:.42,start:(s,d,st)=>{st.k=0;},tick:(s,d,st)=>{
     while(st.k<6&&st.t>=.02+st.k*.05){ const p=s.p, a=st.ang+rnd(-.6,.6), dist=rnd(60,125), cx=p.x+Math.cos(a)*dist, cy=p.y+Math.sin(a)*dist, la=a+Math.PI/2+rnd(-.9,.9), L=95;
       const x0=cx-Math.cos(la)*L/2,y0=cy-Math.sin(la)*L/2,x1=cx+Math.cos(la)*L/2,y1=cy+Math.sin(la)*L/2;
       s.fx.spear.push({x0,y0,x1,y1,t:0,dur:.04,life:.3,c:ROSE,w:7,lens:true}); d.sfx(st.k%2?'swish':'swishB'); p.blade=a;
       for(const e of live(s)){ if(segDist(e.x,e.y,x0,y0,x1,y1)<e.r+12) hitEnemy(s,d,e,7,la,{...SEN,hold:.015,shake:.04}); }
       st.k++; } }},
-  {n:'Nōtō',cancelAt:.31,next:.5,dur:.62,start:(s,d,st)=>{ st.fired=false; d.sfx('sheathe'); },tick:(s,d,st)=>{
-    if(!st.fired&&st.t>=.3){ st.fired=true; let n=0; d.sfx('chin');
-      for(const e of live(s)){ if(!e.cuts.length)continue; const k=e.cuts.length, a=e.cuts[0].a; e.cuts=[]; n++;
-        hitEnemy(s,d,e,10*k,a,{...SEN,mark:false,big:true,hold:.07,shake:.12,kb:90}); s.fx.glow.push({x:e.x,y:e.y,r:40+6*k,c:ROSE,t:0,life:.3}); }
-      if(n){ s.flash=.35; s.flashCol='255,225,235'; d.sfx('release'); }
-      s.fx.ring.push({x:s.p.x,y:s.p.y,r0:12,r1:70,t:0,life:.35,c:ROSE,w:2}); } }}
+  {n:'Caltrops',next:.48,dur:.62,start:(s,d,st)=>{ st.fired=false; },tick:(s,d,st)=>{ if(!st.fired&&st.t>=.1){ st.fired=true; throwCaltrops(s,d); } }}
  ]];
+
+/* -------- the finishers and the caltrops -------- */
+function momentumBurst(s,d){ const p=s.p, R=150; let n=0;
+  s.fx.ring.push({x:p.x,y:p.y,r0:16,r1:R,t:0,life:.42,c:STEEL,w:5}); s.fx.ring.push({x:p.x,y:p.y,r0:10,r1:R*.6,t:0,life:.3,c:WHITE,w:2.5});
+  s.fx.glow.push({x:p.x,y:p.y,r:90,c:STEEL,t:0,life:.3}); s.fx.crack.push({x:p.x,y:p.y,a:rnd(0,TAU),t:0,life:.9});
+  for(const e of live(s)){ const dx=e.x-p.x,dy=e.y-p.y,dd=Math.hypot(dx,dy)||1; if(dd>R+e.r)continue; n++;
+    const push=120*(1-dd/(R+e.r)*.4); e.kx+=dx/dd*push*5.8; e.ky+=dy/dd*push*5.8; e.shockT=4; hitEnemy(s,d,e,8,Math.atan2(dy,dx)+Math.PI/2,{kb:0,hold:.07,shake:.3,col:STEEL}); }
+  s.hitstop=Math.max(s.hitstop,.07); s.trauma=Math.min(1,s.trauma+.35); s.flash=.2; s.flashCol='225,238,255'; d.sfx('burst');
+  // caltrops lying on the ground are launched at the nearest enemy
+  let flung=0; for(const c of s.cal){ if(c.state!=='lie')continue; const t=nearestTo(s,c.x,c.y); if(!t)continue; c.state='fly'; c.tgt=t.id; c.spd=520; flung++; }
+  if(flung){ s.fx.text.push({x:p.x,y:p.y-36,v:'FLUNG ×'+flung,t:0,life:.8,c:STEEL}); d.sfx('fling'); } }
+function throwCaltrops(s,d){ const p=s.p, marked=live(s).filter(e=>e.shockT>0); d.sfx('throw');
+  for(let i=0;i<16;i++){ const a=i/16*TAU+rnd(-.15,.15), r=rnd(60,150);
+    const c={x:p.x,y:p.y,sx:p.x,sy:p.y,tx:clamp(p.x+Math.cos(a)*r,30,W-30),ty:clamp(p.y+Math.sin(a)*r,30,H-30),t:0,state:'toss',rot:rnd(0,TAU),life:8};
+    if(marked.length){ c.state='fly'; c.tgt=marked[i%marked.length].id; c.spd=360; c.vx=Math.cos(a)*240; c.vy=Math.sin(a)*240; }
+    s.cal.push(c); }
+  s.fx.ring.push({x:p.x,y:p.y,r0:12,r1:70,t:0,life:.35,c:ROSE,w:2});
+  if(marked.length) s.fx.text.push({x:p.x,y:p.y-36,v:'SEEK ×'+marked.length,t:0,life:.8,c:ROSE}); }
+function nearestTo(s,x,y){ let b=null,bd=1e9; for(const e of live(s)){ const dd=Math.hypot(e.x-x,e.y-y); if(dd<bd){bd=dd;b=e;} } return b; }
+function tickCaltrops(s,d,dt){
+  for(const c of s.cal){ c.t+=dt; c.rot+=dt*(c.state==='lie'?0:14);
+    if(c.state==='toss'){ const f=Math.min(1,c.t/.25); c.x=lerp(c.sx,c.tx,easeOut(f)); c.y=lerp(c.sy,c.ty,easeOut(f)); c.h=Math.sin(f*Math.PI)*16; if(f>=1){ c.state='lie'; c.h=0; c.t=0; } }
+    else if(c.state==='lie'){ if(c.t>c.life){ c.dead=true; continue; } for(const e of live(s)){ if(Math.hypot(e.x-c.x,e.y-c.y)<e.r+4){ c.dead=true; hitEnemy(s,d,e,4,rnd(0,TAU),{kb:10,hold:0,shake:.02,col:ROSE}); break; } } }
+    else if(c.state==='fly'){ let t=s.en.find(e=>e.id===c.tgt&&!e.dead); if(!t){ t=nearestTo(s,c.x,c.y); if(!t){ c.dead=true; continue; } c.tgt=t.id; }
+      const dx=t.x-c.x,dy=t.y-c.y,dd=Math.hypot(dx,dy)||1; c.vx=(c.vx||0)*Math.pow(.02,dt)+dx/dd*c.spd*(1-Math.pow(.02,dt)); c.vy=(c.vy||0)*Math.pow(.02,dt)+dy/dd*c.spd*(1-Math.pow(.02,dt));
+      c.px=c.x; c.py=c.y; c.x+=c.vx*dt; c.y+=c.vy*dt; if(dd<t.r+4){ c.dead=true; hitEnemy(s,d,t,8,Math.atan2(c.vy,c.vx)+Math.PI/2,{kb:30,hold:.012,shake:.03,col:ROSE}); } if(c.t>3) c.dead=true; } }
+  s.cal=s.cal.filter(c=>!c.dead); }
+function drawCaltrop(g,c){ const x=c.x,y=c.y-(c.h||0), r=4.5; g.save(); g.translate(x,y); g.rotate(c.rot);
+  if(c.state==='fly'&&c.px!=null){ g.restore(); g.strokeStyle=rgba(ROSE,.55); g.lineWidth=2; g.beginPath(); g.moveTo(x,y); g.lineTo(x-(c.vx||0)*.04,y-(c.vy||0)*.04); g.stroke(); g.save(); g.translate(x,y); g.rotate(c.rot); }
+  g.strokeStyle='#cfd6e6'; g.lineWidth=1.8; g.lineCap='round';
+  for(let k=0;k<3;k++){ const a=k*TAU/3; g.beginPath(); g.moveTo(0,0); g.lineTo(Math.cos(a)*r,Math.sin(a)*r); g.stroke(); }
+  g.fillStyle=rgba(ROSE,.9); g.beginPath(); g.arc(0,0,1.6,0,TAU); g.fill(); g.restore(); }
 
 /* -------- the swordsman's actions -------- */
 function attack(s,d){ const stc=s.stance, ch=s.chain[stc]; const def=STEPS[stc][ch.i];
-  const bonus=s.bonusT>0; s.bonusT=0;
-  const st={stc,idx:ch.i,def,t:bonus?Math.min(.04,def.cancelAt*.3):0,ang:s.p.ang,hit:new Set(),bonus,kills:0}; st.t=bonus?.04:0;
+  const st={stc,idx:ch.i,def,t:0,ang:s.p.ang,hit:new Set(),kills:0};
   s.step=st; def.start(s,d,st); ch.i=(ch.i+1)%STEPS[stc].length; ch.idle=0;
-  s.log.push({k:stc?'s':'h',lab:(stc?'S':'H')+(st.idx+1)+' '+def.n,bonus,t:s.t}); if(s.log.length>14)s.log.shift(); }
-function canAttack(s){ const st=s.step; if(!st)return true; if(st.stc!==s.stance)return true; return st.t>=st.def.next||(st.kills>0&&st.stc===0&&st.dashDone&&st.t>=st.def.cancelAt); }
-function doSwitch(s,d){ if(s.swCd>0||s.p.moving)return false; const st=s.step, cancel=!!st&&st.t>=st.def.cancelAt;
-  s.stance^=1; s.swCd=.3; s.step=null; const p=s.p;
-  if(cancel){ s.bonusT=.8; s.hitstop=Math.max(s.hitstop,.05);
-    for(const e of live(s)){ const dx=e.x-p.x,dy=e.y-p.y,dd=Math.hypot(dx,dy); if(dd<90+e.r&&dd>0){ e.kx+=dx/dd*170; e.ky+=dy/dd*170; } }
-    s.fx.ring.push({x:p.x,y:p.y,r0:14,r1:92,t:0,life:.35,c:GOLD,w:3}); s.fx.glow.push({x:p.x,y:p.y,r:60,c:GOLD,t:0,life:.25}); s.fx.text.push({x:p.x,y:p.y-34,v:'CANCEL',t:0,life:.6,c:GOLD});
-    d.sfx('cancel'); }
-  else { s.fx.ring.push({x:p.x,y:p.y,r0:12,r1:40,t:0,life:.25,c:s.stance?ROSE:STEEL,w:2}); d.sfx('switch'); }
-  s.log.push({k:'x',lab:cancel?'⇄ cancel':'⇄',bonus:cancel,t:s.t}); if(s.log.length>14)s.log.shift(); return true; }
+  s.log.push({k:stc?'s':'h',lab:(stc?'S':'H')+(st.idx+1)+' '+def.n,t:s.t}); if(s.log.length>14)s.log.shift(); }
+function canAttack(s){ const st=s.step; if(!st)return true; if(st.stc!==s.stance)return true; return st.t>=st.def.next||(st.kills>0&&st.stc===0&&st.dashDone); }
+function doSwitch(s,d){ if(s.swCd>0||s.p.moving)return false;
+  s.stance^=1; s.swCd=.3; s.step=null; s.chain[s.stance].idle=0; const p=s.p;
+  s.fx.ring.push({x:p.x,y:p.y,r0:12,r1:42,t:0,life:.28,c:s.stance?ROSE:STEEL,w:2.2}); d.sfx('switch');
+  s.log.push({k:'x',lab:'⇄',t:s.t}); if(s.log.length>14)s.log.shift(); return true; }
 
 /* -------- AI: plays routes -------- */
-const ROUTES={hayate:{n:'Hayate chain',seq:'HHHH'},senbon:{n:'Senbon chain',seq:'SSSSS'},weave:{n:'Weave',seq:'SSSSXHXS'},dancer:{n:'Dash dancer',seq:'HHXSXHH'}};
-const CYCLE=['senbon','hayate','weave','dancer'];
+const ROUTES={hayate:{n:'Hayate chain',seq:'HHHH'},senbon:{n:'Senbon chain',seq:'SSSSS'},fling:{n:'Fling: caltrops, then the burst',seq:'HHHXSSSSSXH'},seek:{n:'Seek: the burst, then caltrops',seq:'SSSSXHHHHXS'}};
+const CYCLE=['fling','seek','hayate','senbon'];
 function aiTick(s,d,a,dt){ const p=s.p; a.cd=(a.cd||0)-dt; a.press=false; a.sw=false;
   const L=live(s); let n=null,nd=1e9; for(const e of L){const dd=Math.hypot(e.x-p.x,e.y-p.y); if(dd<nd){nd=dd;n=e;}}
   let cx=0,cy=0,c=0; for(const e of L){ if(Math.hypot(e.x-p.x,e.y-p.y)<200){cx+=e.x;cy+=e.y;c++;} }
@@ -416,18 +433,18 @@ function aiTick(s,d,a,dt){ const p=s.p; a.cd=(a.cd||0)-dt; a.press=false; a.sw=f
   if(a.wait>0){ a.wait-=dt; return; }
   const seq=ROUTES[a.route].seq, tok=seq[a.pos];
   if(tok===undefined){ a.route=null; return; }
-  if(tok==='X'){ const st=s.step; if(!st||st.t>=st.def.cancelAt+.02){ if(doSwitch(s,d)) a.pos++; } return; }
+  if(tok==='X'){ const st=s.step; if(!st||st.t>=st.def.next){ if(doSwitch(s,d)) a.pos++; } return; }
   if(!n||nd>(s.stance?170:240))return;
   const want=tok==='H'?0:1;
   if(s.stance!==want){ if(!s.step||s.step.t>=s.step.def.dur){ doSwitch(s,d); } return; }
-  if(a.pos===0&&s.chain[want].i!==0){ if(!s.step) s.chain[want].i=0; else return; }
+  if(a.pos===0){ if(s.step)return; s.chain[0].i=0; s.chain[1].i=0; }
   if(canAttack(s)&&a.cd<=0){ a.press=true; a.pos++; a.cd=.02; } }
 
 /* -------- update -------- */
 function tick(s,d,dt){ const p=s.p; s.t+=dt;
-  s.trauma=Math.max(0,s.trauma-dt*1.7); s.flash=Math.max(0,s.flash-dt*4); s.winFlash-=dt; s.hsGate-=dt;
+  s.trauma=Math.max(0,s.trauma-dt*1.7); s.flash=Math.max(0,s.flash-dt*4); s.hsGate-=dt;
   if(s.hitstop>0){ s.hitstop-=dt; return; }
-  s.swCd-=dt; s.bonusT-=dt; p.inv-=dt;
+  s.swCd-=dt; p.inv-=dt;
   let inp;
   if(d.mode==='demo'){ aiTick(s,d,d.ai,dt); inp={ax:d.ai.ax,ay:d.ai.ay,mvx:d.ai.mvx||0,mvy:d.ai.mvy||0,press:d.ai.press,sw:false}; }
   else { const r=d.real,K=r.keys; inp={ax:r.ax,ay:r.ay,mvx:(K.d?1:0)-(K.a?1:0),mvy:(K.s?1:0)-(K.w?1:0),press:r.pq||r.down,sw:r.sq}; r.pq=false; r.sq=false; }
@@ -436,14 +453,14 @@ function tick(s,d,dt){ const p=s.p; s.t+=dt;
   if(inp.press) s.buffer=.22; else s.buffer-=dt;
   if(s.buffer>0&&canAttack(s)){ s.buffer=0; attack(s,d); }
   const st=s.step;
-  if(st){ st.t+=dt; const before=st.wasOpen; st.def.tick(s,d,st,dt); st.wasOpen=st.t>=st.def.cancelAt; if(!before&&st.wasOpen) s.winFlash=.18;
-    if(st.t>=st.def.dur){ s.step=null; p.moving=false; } }
-  for(const c of [0,1]){ if(!st||st.stc!==c){ s.chain[c].idle+=dt; if(s.chain[c].idle>1) s.chain[c].i=0; } }
+  if(st){ st.t+=dt; st.def.tick(s,d,st,dt); if(st.t>=st.def.dur){ s.step=null; p.moving=false; p.planted=false; } }
+  if(!s.step){ const ch=s.chain[s.stance]; ch.idle+=dt; if(ch.idle>1.5) ch.i=0; }  // (only the stance you're in forgets; the other keeps its place)
+  tickCaltrops(s,d,dt);
   if(!p.moving&&!(st&&st.t<st.def.next)){ let mx=inp.mvx,my=inp.mvy; const m=Math.hypot(mx,my); if(m>1){mx/=m;my/=m;} p.x=clamp(p.x+mx*230*dt,30,W-30); p.y=clamp(p.y+my*230*dt,30,H-30); }
   if(!st||!p.moving&&!st.sw){ const rest=s.stance?p.ang+.3:p.ang+2.35; p.blade=lerpAng(p.blade,rest,Math.min(1,dt*14)); }
   const back=p.ang+Math.PI; p.band[0].x=p.x+Math.cos(back)*7; p.band[0].y=p.y+Math.sin(back)*7;
   for(let i=1;i<p.band.length;i++){ const a=p.band[i-1],b=p.band[i]; b.x+=Math.cos(back)*10*dt+Math.sin(s.t*9+i)*.25; b.y+=Math.sin(back)*10*dt+Math.cos(s.t*8+i)*.25; const dx=b.x-a.x,dy=b.y-a.y,dd=Math.hypot(dx,dy)||1; b.x=a.x+dx/dd*5; b.y=a.y+dy/dd*5; }
-  for(const e of s.en){ if(e.spawnT<.5){ e.spawnT+=dt; continue; } e.flash-=dt; const k=Math.pow(.003,dt); e.kx*=k; e.ky*=k;
+  for(const e of s.en){ if(e.spawnT<.5){ e.spawnT+=dt; continue; } e.flash-=dt; e.shockT-=dt; const k=Math.pow(.003,dt); e.kx*=k; e.ky*=k;
     const dx=p.x-e.x,dy=p.y-e.y,dd=Math.hypot(dx,dy)||1; let want=e.t.shoot?(dd>200?1:dd<160?-.6:0):(dd<p.r+e.r+4?0:1);
     let vx=dx/dd*want*e.t.spd, vy=dy/dd*want*e.t.spd;
     for(const o of s.en){ if(o===e)continue; const ox=e.x-o.x,oy=e.y-o.y,od=Math.hypot(ox,oy); if(od>0&&od<e.r+o.r+8){ vx+=ox/od*80; vy+=oy/od*80; } }
@@ -478,6 +495,7 @@ function drawPlayer(g,s){ const p=s.p, sc=s.stance?ROSE:STEEL;
   for(const off of [-1.4,1.4]){ g.strokeStyle='#ff6f91'; g.lineCap='round'; for(let i=1;i<p.band.length;i++){ const a=p.band[i-1],b=p.band[i],pa=p.ang+Math.PI/2; g.lineWidth=2.4*(1-i/p.band.length)+.6; g.beginPath(); g.moveTo(a.x+Math.cos(pa)*off*i/3,a.y+Math.sin(pa)*off*i/3); g.lineTo(b.x+Math.cos(pa)*off*(i+1)/3,b.y+Math.sin(pa)*off*(i+1)/3); g.stroke(); } }
   g.fillStyle='#161c2c'; g.beginPath(); g.arc(p.x,p.y,p.r,0,TAU); g.fill(); g.strokeStyle=rgba(DPS,1); g.lineWidth=2.4; g.stroke();
   g.strokeStyle='#ece6d8'; g.lineWidth=2.6; g.beginPath(); g.arc(p.x,p.y,7,p.ang-.55,p.ang+.55); g.stroke();
+  if(p.planted){ drawBlade(g,p.x+Math.cos(p.ang)*6,p.y+Math.sin(p.ang)*6,Math.PI/2,26,true,sc); g.strokeStyle=rgba(WHITE,.8); g.lineWidth=2; g.beginPath(); g.arc(p.x+Math.cos(p.ang)*6,p.y+Math.sin(p.ang)*6+34,5,0,TAU); g.stroke(); return; }
   drawBlade(g,p.x,p.y,p.blade,s.step?44:38,s.stance===1||!!s.step,sc); }
 function drawPips(g,s){ const p=s.p;
   for(const c of [0,1]){ const n=STEPS[c].length, on=s.stance===c, y=p.y-p.r-(c?22:30), ch=s.chain[c], col=c?ROSE:STEEL;
@@ -486,11 +504,10 @@ function drawPips(g,s){ const p=s.p;
       if(c===0){ g.beginPath(); g.moveTo(x,y-3.5); g.lineTo(x+3.5,y); g.lineTo(x,y+3.5); g.lineTo(x-3.5,y); g.closePath(); g.fill(); }
       else g.fillRect(x-1.2,y-4,2.4,8); } }
   g.globalAlpha=1;
-  const st=s.step; if(st&&st.t>=st.def.cancelAt){ const k=s.winFlash>0?1:.35; g.strokeStyle=rgba(WHITE,.8*k); g.lineWidth=s.winFlash>0?2.5:1.2; g.beginPath(); g.arc(p.x,p.y,p.r+9,0,TAU); g.stroke(); }
-  if(s.bonusT>0){ g.strokeStyle=rgba(GOLD,.5+.4*Math.sin(s.t*30)); g.lineWidth=2; g.beginPath(); g.arc(p.x,p.y,p.r+5,0,TAU); g.stroke(); } }
-function drawCuts(g,s){ for(const e of s.en){ if(!e.cuts.length)continue; const glow=s.step&&s.step.stc===1&&s.step.idx===4&&!s.step.fired?clamp(s.step.t/.3,0,1):0;
-  for(const c of e.cuts){ const L=e.r*1.7, ox=Math.cos(c.a+Math.PI/2)*c.o*e.r, oy=Math.sin(c.a+Math.PI/2)*c.o*e.r;
-    g.strokeStyle=rgba(glow?WHITE:ROSE,.75+.25*glow); g.lineWidth=1.6+2*glow; g.beginPath(); g.moveTo(e.x+ox-Math.cos(c.a)*L,e.y+oy-Math.sin(c.a)*L); g.lineTo(e.x+ox+Math.cos(c.a)*L,e.y+oy+Math.sin(c.a)*L); g.stroke(); } } }
+}
+function drawShock(g,s){ for(const e of s.en){ if(e.shockT<=0||e.dead)continue; const a=Math.min(1,e.shockT/.5); g.strokeStyle=rgba(STEEL,.75*a); g.lineWidth=1.6; g.setLineDash([4,3]); g.beginPath(); g.arc(e.x,e.y,e.r+6,s.t*2,s.t*2+TAU); g.stroke(); g.setLineDash([]); }
+  for(const f of s.fx.crack){ const a=1-f.t/f.life; for(let k=0;k<7;k++){ const an=f.a+k*TAU/7+Math.sin(k*3.1)*.3; let x=f.x,y=f.y; g.strokeStyle=rgba(STEEL,.8*a); g.lineWidth=2*a+.5; g.beginPath(); g.moveTo(x,y);
+    for(let j=1;j<=4;j++){ x=f.x+Math.cos(an+Math.sin(j*1.7+k)*.25)*j*16; y=f.y+Math.sin(an+Math.sin(j*1.7+k)*.25)*j*16; g.lineTo(x,y); } g.stroke(); } } }
 function drawPiece(g,f){ const k=1-f.t/f.life; g.save(); g.translate(f.x,f.y); g.rotate(f.cut+f.rot); g.beginPath(); g.rect(-40,f.side>0?0:-40,80,40); g.clip(); g.rotate(-f.cut-f.rot);
   drawEnemyShape(g,f.e,0,0,Math.min(1,k*1.6)); g.restore();
   g.save(); g.translate(f.x,f.y); g.rotate(f.cut+f.rot); g.strokeStyle=rgba(WHITE,.9*k); g.lineWidth=2; g.beginPath(); g.moveTo(-f.e.r,0); g.lineTo(f.e.r,0); g.stroke(); g.restore(); }
@@ -498,15 +515,16 @@ function drawLog(g,s){ let x=16; const y=H-30; g.font=`500 11px ${MONO}`; g.text
   const items=s.log.slice(-11);
   for(const it of items){ const w=g.measureText(it.lab).width+14, age=s.t-it.t, a=Math.max(.35,1-age/6);
     const c=it.k==='h'?STEEL:it.k==='s'?ROSE:WHITE;
-    g.fillStyle=it.bonus?rgba(GOLD,.22*a):'rgba(10,14,26,.75)'; g.fillRect(x,y-10,w,20);
-    g.strokeStyle=rgba(it.bonus?GOLD:c,.9*a); g.lineWidth=1; g.strokeRect(x+.5,y-9.5,w-1,19);
-    g.fillStyle=rgba(it.bonus?GOLD:c,a); g.fillText(it.lab,x+7,y+.5); x+=w+5; if(x>W-60)break; } }
+    g.fillStyle='rgba(10,14,26,.75)'; g.fillRect(x,y-10,w,20);
+    g.strokeStyle=rgba(c,.9*a); g.lineWidth=1; g.strokeRect(x+.5,y-9.5,w-1,19);
+    g.fillStyle=rgba(c,a); g.fillText(it.lab,x+7,y+.5); x+=w+5; if(x>W-60)break; } }
 function draw(d){ const g=d.g,s=d.s,p=s.p; g.setTransform(d.scale,0,0,d.scale,0,0); g.drawImage(floor,0,0,W,H);
   const sh=REDUCED?0:s.trauma*s.trauma*12; g.save(); g.translate(rnd(-sh,sh),rnd(-sh,sh));
   for(const f of s.fx.piece) drawPiece(g,f);
   for(const e of s.en){ const a=Math.min(1,e.spawnT/.5); g.fillStyle='rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(e.x,e.y+e.r*.6,e.r,e.r*.45,0,0,TAU); g.fill(); drawEnemyShape(g,e,e.x,e.y,a);
     if(e.hp<e.max){ g.fillStyle='rgba(0,0,0,.6)'; g.fillRect(e.x-e.r,e.y-e.r-9,e.r*2,3); g.fillStyle=rgba(e.t.c,1); g.fillRect(e.x-e.r,e.y-e.r-9,e.r*2*clamp(e.hp/e.max,0,1),3); } }
-  drawCuts(g,s);
+  drawShock(g,s);
+  for(const c of s.cal) drawCaltrop(g,c);
   for(const b of s.bul){ g.fillStyle='rgba(255,120,60,.3)'; g.beginPath(); g.arc(b.x,b.y,9,0,TAU); g.fill(); g.fillStyle='#ffd8bf'; g.beginPath(); g.arc(b.x,b.y,4,0,TAU); g.fill(); }
   // ghosts (afterimages)
   for(const f of s.fx.ghost){ const a=(1-f.t/f.life)*.45; g.strokeStyle=rgba(f.c,a); g.fillStyle=rgba(f.c,a*.25); g.lineWidth=1.4; g.beginPath(); g.arc(f.x,f.y,13,0,TAU); g.fill(); g.stroke(); }
@@ -545,7 +563,7 @@ class Demo{ constructor(cv){ this.cv=cv; this.g=cv.getContext('2d'); this.frame=
   showRoute(n){ const el=document.getElementById('routeName'); if(el) el.textContent='Route: '+(this.mode==='demo'?n:'yours'); }
   resize(){ const r=this.cv.getBoundingClientRect(), dpr=Math.min(2,devicePixelRatio||1), w=Math.max(320,Math.round(r.width*dpr)); this.cv.width=w; this.cv.height=Math.round(w*H/W); this.scale=w/W; draw(this); }
   setMode(m){ this.mode=m; this.pill.textContent=m==='demo'?'Auto demo':'Your control'; this.pill.classList.toggle('you',m!=='demo');
-    this.hintEl.textContent=m==='demo'?'':'Click to attack · Space or right click to switch (after a hit: cancel) · WASD · Esc demo'; if(this.ctrlBtn) this.ctrlBtn.textContent=m==='demo'?'Take control':'Back to demo'; this.showRoute(''); this.ai.route=null; }
+    this.hintEl.textContent=m==='demo'?'':'Click to attack · Space or right click to switch (each stance keeps its place) · WASD · Esc demo'; if(this.ctrlBtn) this.ctrlBtn.textContent=m==='demo'?'Take control':'Back to demo'; this.showRoute(''); this.ai.route=null; }
   bind(){ const cv=this.cv,r=this.real; cv.addEventListener('contextmenu',e=>e.preventDefault());
     const loc=e=>{ const b=cv.getBoundingClientRect(); return {x:(e.clientX-b.left)/b.width*W,y:(e.clientY-b.top)/b.height*H}; };
     cv.addEventListener('pointermove',e=>{ const q=loc(e); r.ax=q.x; r.ay=q.y; });
