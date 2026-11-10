@@ -272,4 +272,4 @@ The October 2026 audit and its work plan are done; the full notes (and the Novem
 - **Campaign as a themed-enemy buildup (idea, not designed):** the campaign accumulates each boss's themed enemies;
   after a boss falls they phase out slowly while the next boss's faction phases in, and some squads or enemies can
   return later on. The **Boss Hunt** should then be an enhanced version of those themed mobs (more types, more of
-  them, tougher squads). See [`Docs/BossHuntsAndPerks.md`](Docs/BossHuntsAndPerks.md) for the current hunt.
+  them, tougher squads). Design: [`Docs/Campaign.md`](Docs/Campaign.md).
