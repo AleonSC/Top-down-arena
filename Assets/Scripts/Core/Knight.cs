@@ -37,7 +37,7 @@ namespace Arena
         public float Hollow;          // a box that skips enemies centred within this distance of the aim line (the splinters miss the icicle's own line)
         public float Slow;            // slows what it hits by this much (as frost shots do)
         public bool DrawCut;          // the Katana's dash-cut: a box (HalfWidth) drawn as a long thin slash, not a jab
-        public byte KatanaMove;       // a Katana attack (Katana.cs): 1 Hayate's dash-cut, 2 Senbon's swipe (its hits fill the stance's meter)
+        public byte KatanaMove;       // a Katana step (Katana.cs): 1 a dash (a kill brings the next step at once), 2 any other cut
         public bool FromSet;          // lands from From, not from where the swinger stands by then (the Katana's dash-cut, along the line you dashed)
         public V2 From;
         public Sfx Sound;             // played in place of the usual swing sound (the Katana's own: KatanaSoundBank.cs)
@@ -504,7 +504,7 @@ namespace Arena
                     AddClot(p, crack ? 2 : 1);
             }
             if (s.KatanaMove > 0)
-                KatanaLanded(p, s, hits);  // the stance's meter, Senbon's marks, a killing dash coming back, the cut's cue (Katana.cs)
+                KatanaLanded(p, s, hits);  // each cut's look, a killing dash bringing the next step at once, the hit cue (Katana.cs)
             if (s.CenserStep > 0)
                 CenserLanded(p, s, hits.Count);  // Embers, the Benediction's bonus heal and the step's incense (Censer.cs)
             if (s.HealSpin > 0f)

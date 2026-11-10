@@ -1110,158 +1110,155 @@ static partial class Program
         Check(smallFl > 0f && left == 0, "a Flourish throws waves and spends the Tempo");
         Check(Math.Abs(fullFl / smallFl - Game.RapierFlourishSwings(Game.RapierTempoMax) / (float)Game.RapierFlourishSwings(4)) < 0.6f, "a full-Tempo Flourish throws a wave per two stacks, each piercing both enemies in line");
 
-        // Katana (Katana.cs; Docs/KatanaCombo.md): two stances. Hayate dash-cuts along a line (a kill brings the dash back and adds
-        // Flow); Senbon swipes and marks. Each fills its own meter; holding fire with it full spends it on the Kage Chain or Zanshin.
-        // The weapon-action key switches stance with a small push.
+        // Katana (Katana.cs; Docs/KatanaCombo.md): two stance combos. The weapon-action key switches stance at once and the stance
+        // you leave keeps its place. Hayate: Kiri, Kaeshi, Tsumuji, Momentum Burst. Senbon: Agari, Kaeshi, Engetsu, Senbon, Caltrops.
+        // The Burst flings lying caltrops at the nearest enemies; caltrops thrown after a Burst seek what it marked.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Katana);
         me.Hp = me.MaxHp;  // (Blood Price would change the damage as health moves)
         var hostDash = typeof(Game).GetMethod("HostWeaponDash", flags);
         float kw = me.Weapon.Damage * me.Stats.DmgMult;
         Func<Sfx, bool> heard = x => g.Sounds.Any(c => c.Sfx == x);
         Func<Enemy, float> took = e => e.MaxHp - e.Hp;
-        me.KatanaStance = 0; me.KatanaFlow = 0; me.KatanaKage = 0; me.KatanaZan = 0; me.FireCd = 0f;
-        var onLine1 = dummy(from + new V2(60f, 0f), 1e5f);
-        var onLine2 = dummy(from + new V2(140f, 0f), 1e5f);
+        Func<List<Bullet>> cals = () => g.Bullets.Values.Where(b => b.Kind == Defs.Caltrop).ToList();
+        Action<int, int, int> setK = (st, hay, sen) => { me.KatanaStance = (byte)st; me.KatanaHay = (byte)hay; me.KatanaSen = (byte)sen; me.FireCd = 0f; me.KatanaIdle = 0f; me.KatanaSwitchCd = 0f; };
+
+        // Kiri: a dash-cut along the line; everything on it takes 1.1x, nothing off it.
+        setK(0, 0, 0);
+        var onLine1 = dummy(from + new V2(50f, 0f), 1e5f);
+        var onLine2 = dummy(from + new V2(105f, 0f), 1e5f);
         var offLine = dummy(from + new V2(70f, 90f), 1e5f);
         byte dashes0 = me.KatanaDashes;
         g.Sounds.Clear();
         volley.Invoke(g, new object[] { me, 0f, 0 });
-        float dashCd = me.FireCd;
         play(0.2f, new PlayerInput());
-        Console.WriteLine("  katana hayate: on the line {0:0.0} and {1:0.0}, off it {2:0.0}; Kage {3}, dashes {4} -> {5}, wait {6:0.00}",
-            took(onLine1), took(onLine2), took(offLine), me.KatanaKage, dashes0, me.KatanaDashes, dashCd);
+        Console.WriteLine("  katana kiri: on the line {0:0.0} and {1:0.0}, off it {2:0.0}; next Hayate step {3} (client {4}), dashes {5} -> {6}",
+            took(onLine1), took(onLine2), took(offLine), me.KatanaHay, client.Game.Players[1].KatanaHay, dashes0, me.KatanaDashes);
         Check(Math.Abs(took(onLine1) - kw * Game.KatanaDashMult) < 1f && Math.Abs(took(onLine2) - took(onLine1)) < 0.5f && took(offLine) == 0f,
-            "Hayate's dash-cut cuts everything along its line (and nothing off it)");
-        Check(me.KatanaDashes == (byte)(dashes0 + 1) && me.KatanaKage == 2 && client.Game.Players[1].KatanaKage == 2, "every enemy a dash hits fills the Kage Chain's meter (every screen sees it)");
-        Check(dashCd > 0.3f && heard(Sfx.KatanaLunge) && heard(Sfx.KatanaHit), "a dash that kills nothing waits for its cooldown; it plays the dash and the cut");
+            "Kiri cuts everything along its dash (and nothing off it)");
+        Check(me.KatanaHay == 1 && client.Game.Players[1].KatanaHay == 1 && me.KatanaDashes == (byte)(dashes0 + 1) && heard(Sfx.KatanaLunge)
+            && client.Game.Effects.Any(fx => fx.Kind == FxKind.KatanaDash), "the combo moves on, your game dashes you, and every screen sees it");
         reset();
 
-        // A dash that kills comes back at once and adds a level of Flow; Flow lengthens and strengthens the dash, and fades in Hayate.
-        var weak = dummy(from + new V2(80f, 0f), 5f);
-        me.KatanaFlow = 0; me.FireCd = 0f;
+        // A dash that kills brings the next step at once.
+        setK(0, 0, 0);
+        var weak = dummy(from + new V2(70f, 0f), 5f);
         volley.Invoke(g, new object[] { me, 0f, 0 });
-        play(0.15f, new PlayerInput());
-        Check(weak.Hp <= 0f && me.FireCd <= 0f && me.KatanaFlow == 1, "a dash that kills comes back at once and adds a level of Flow");
-        reset();
-        var flowT = dummy(from + new V2(60f, 0f), 1e5f);
-        me.KatanaFlow = 5; me.FireCd = 0f;
-        float reach5 = Game.KatanaDashReach(me);
-        volley.Invoke(g, new object[] { me, 0f, 0 });
-        play(0.15f, new PlayerInput());
-        Check(Math.Abs(took(flowT) - kw * (Game.KatanaDashMult + 5 * Game.KatanaFlowDmg)) < 1f && Math.Abs(reach5 - Game.MeleeReach(me, Game.KatanaDashLen) * (1f + 5 * Game.KatanaFlowLen)) < 0.5f,
-            "each level of Flow adds damage and length to the dash");
-        me.KatanaFlow = 3; me.KatanaFlowT = 0f;
-        play(Game.KatanaFlowKeep + 0.1f, new PlayerInput());
-        int afterKeep = me.KatanaFlow;
-        me.KatanaStance = 1; me.KatanaFlow = 3; me.KatanaFlowT = 0f;
-        play(Game.KatanaFlowKeep + 1f, new PlayerInput());
-        Check(afterKeep == 2 && me.KatanaFlow == 3, "Flow fades in Hayate after a while without a kill, and holds while you're in Senbon");
+        play(0.12f, new PlayerInput());
+        Check(weak.Hp <= 0f && me.FireCd <= 0f, "a dash that kills brings the next step at once");
         reset();
 
-        // +1: each dash strikes once more at 60% (on the same line).
-        var plus = dummy(from + new V2(60f, 0f), 1e5f);
-        me.KatanaStance = 0; me.KatanaFlow = 0; me.FireCd = 0f;
-        volley.Invoke(g, new object[] { me, 0f, 1 });
-        play(0.25f, new PlayerInput());
-        Check(Math.Abs(took(plus) - kw * Game.KatanaDashMult * (1f + Game.KatanaExtraMult)) < 1f, "+1 makes each dash strike once more at 60%");
+        // Storing: two Hayate steps, switch, a Senbon step, switch back: Hayate goes on at its third step.
+        setK(0, 0, 0);
+        dummy(from + new V2(60f, 0f), 1e5f);
+        for (int k = 0; k < 2; k++) { me.FireCd = 0f; volley.Invoke(g, new object[] { me, 0f, 0 }); play(0.3f, new PlayerInput()); }
+        g.Sounds.Clear();
+        hostDash.Invoke(g, new object[] { 1, 5, from });
+        bool toSen = me.KatanaStance == 1 && me.KatanaHay == 2 && heard(Sfx.KatanaStanceSwap);
+        hostDash.Invoke(g, new object[] { 1, 5, from });
+        bool cdHeld = me.KatanaStance == 1;
+        me.FireCd = 0f; volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(Game.KatanaSwitchCd + 0.05f, new PlayerInput());
+        hostDash.Invoke(g, new object[] { 1, 5, from });
+        me.FireCd = 0f; volley.Invoke(g, new object[] { me, 0f, 0 });
+        Console.WriteLine("  katana store: switched with Hayate at step {0}, Senbon now at {1}, back in Hayate the step thrown is {2}", 3, me.KatanaSen, me.KatanaStep);
+        Check(toSen && cdHeld, "the switch is instant, keeps Hayate's place, and has a short cooldown");
+        Check(me.KatanaStance == 0 && me.KatanaStep == 2 && me.KatanaSen == 1, "switching back calls the stored combo where it left off (Tsumuji), and Senbon keeps its place too");
+        play(0.6f, new PlayerInput());
+        setK(1, 2, 3);
+        play(Game.KatanaIdleReset + 0.5f, new PlayerInput());
+        Check(me.KatanaSen == 0 && me.KatanaHay == 2, "the stance you're in starts over after a while; the stored one never runs out");
         reset();
 
-        // Senbon: swipes in an arc; every enemy hit fills Zanshin's meter and takes a mark (up to 3) that every screen sees.
-        me.KatanaStance = 1; me.KatanaZan = 0; me.FireCd = 0f;
+        // Senbon's Agari: a sweep in front of you.
+        setK(1, 0, 0);
         var front = dummy(from + new V2(70f, 0f), 1e5f);
         var behind = dummy(from + new V2(-70f, 0f), 1e5f);
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(0.3f, new PlayerInput());
+        Check(Math.Abs(took(front) - kw * Game.KatanaSwipeMult) < 1f && took(behind) == 0f, "Agari sweeps the enemies in front of you");
+        reset();
+
+        // The Momentum Burst: shoves enemies away, cuts them a little, cuts small bullets in its ring, and marks what it hit.
+        setK(0, 3, 0);
+        var shoved = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, from + new V2(70f, 0f), 0f, 0, false });
+        shoved.SpawnT = 0f; shoved.Hp = shoved.MaxHp = 1e5f; shoved.FireT = 99f; keep.Add(shoved);
+        var farB = dummy(from + new V2(-400f, 0f), 1e5f);
+        V2 shoveFrom = shoved.Pos;
+        var shot = (Bullet)shoot.Invoke(g, new object[] { Defs.SmallShot, from + new V2(0f, -90f), new V2(0f, 0f), 0f, 9f, 5f, 0, false, 0f });
         g.Sounds.Clear();
         volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(0.45f, new PlayerInput());
+        float moved = shoved.Pos.DistanceTo(shoveFrom);
+        var seenShoved = client.Game.Enemies.ContainsKey(shoved.Id) ? client.Game.Enemies[shoved.Id] : null;
+        Console.WriteLine("  katana burst: shoved {0:0} px, cut {1:0.0}, marked {2} (client {3}); far {4:0.0}; small bullet cut {5}",
+            moved, took(shoved), shoved.KatanaShockT > 0f, seenShoved != null && seenShoved.KatanaShocked, took(farB), !g.Bullets.ContainsKey(shot.Id));
+        Check(moved > 70f && Math.Abs(took(shoved) - kw * Game.KatanaBurstMult) < 1f && took(farB) == 0f, "the Momentum Burst shoves enemies near you away and cuts them a little");
+        Check(shoved.KatanaShockT > 0f && seenShoved != null && seenShoved.KatanaShocked && !g.Bullets.ContainsKey(shot.Id) && heard(Sfx.KatanaBurstSfx),
+            "it marks what it hit (every screen sees it) and cuts the small bullets in its ring");
+        Check(me.KatanaHay == 0, "the Burst ends the Hayate combo");
+        reset();
+
+        // Caltrops: thrown round you, lying still; one stepped on hurts and slows (and breaks).
+        foreach (var b in cals()) g.Bullets.Remove(b.Id);
+        setK(1, 0, 4);
+        g.Sounds.Clear();
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(0.5f, new PlayerInput());
+        var lying = cals();
+        bool allStill = lying.All(b => b.Vel.IsZero && !b.Tossed) && lying.All(b => b.Pos.DistanceTo(from) > 50f && b.Pos.DistanceTo(from) < 160f);
+        Console.WriteLine("  katana caltrops: {0} thrown, all lying still 60-150 px out {1}", lying.Count, allStill);
+        Check(lying.Count == Game.KatanaCaltropCount && allStill && heard(Sfx.KatanaCaltrops), "Caltrops throws 16 that lie still round you");
+        var stepper = dummy(lying[0].Pos, 1e5f);
         play(0.2f, new PlayerInput());
-        float swipe = took(front);
-        int marks1 = front.KatanaMarks;
-        var seenFront = client.Game.Enemies.ContainsKey(front.Id) ? client.Game.Enemies[front.Id] : null;
-        Console.WriteLine("  katana senbon: swipe {0:0.0}, behind {1:0.0}; marks {2} (the client sees {3}); Zan {4}", swipe, took(behind), marks1, seenFront != null ? seenFront.KatanaMarks : -1, me.KatanaZan);
-        Check(Math.Abs(swipe - kw * Game.KatanaSwipeMult) < 1f && took(behind) == 0f && heard(Sfx.KatanaSwipe1), "Senbon's swipe cuts in front of you");
-        Check(marks1 == 1 && seenFront != null && seenFront.KatanaMarks == 1 && me.KatanaZan == 1, "a swipe marks what it hits and fills Zanshin's meter (every screen sees the mark)");
-        for (int k = 0; k < 4; k++) { volley.Invoke(g, new object[] { me, 0f, 0 }); play(0.2f, new PlayerInput()); }
-        Check(front.KatanaMarks == Game.KatanaMarkMax && me.KatanaZan == 5, "marks stop at 3 an enemy; the meter keeps counting hits");
+        Check(Math.Abs(took(stepper) - kw * Game.KatanaCaltropMult) < 0.5f && stepper.SlowT > 0f && cals().Count == Game.KatanaCaltropCount - 1, "an enemy that steps on one is hurt and slowed, and the caltrop breaks");
+
+        // Caltrops, then the Burst: the lying caltrops fly at the nearest enemy.
+        var target = dummy(from + new V2(0f, -300f), 1e5f);
+        stepper.Hp = 0f;
+        setK(0, 3, me.KatanaSen);
+        int lyingBefore = cals().Count;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(1.4f, new PlayerInput());
+        Console.WriteLine("  katana fling: {0} caltrops lying, {1} left after the Burst; the nearest enemy took {2:0}", lyingBefore, cals().Count, took(target));
+        Check(cals().Count == 0 && took(target) >= kw * Game.KatanaCaltropFlyMult * (lyingBefore - 2), "a Burst flings the lying caltrops at the nearest enemy");
         reset();
 
-        // The switch: the weapon-action key turns the stance over and pushes nearby enemies back a little; it has a short cooldown.
-        me.KatanaStance = 0; me.KatanaSwitchCd = 0f; me.KatanaKage = 4; me.KatanaZan = 7;
-        var pushed = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, from + new V2(60f, 0f), 0f, 0, false });
-        pushed.SpawnT = 0f; pushed.Hp = pushed.MaxHp = 1e5f; pushed.FireT = 99f; keep.Add(pushed);
-        V2 pushFrom = pushed.Pos;
-        g.Sounds.Clear();
-        hostDash.Invoke(g, new object[] { 1, 5, from });
-        play(0.1f, new PlayerInput());
-        bool switchFx = client.Game.Effects.Any(fx => fx.Kind == FxKind.KatanaStanceFx);
+        // The Burst, then Caltrops: they seek the enemies the Burst marked (shared out), not the others.
+        foreach (var b in cals()) g.Bullets.Remove(b.Id);
+        setK(0, 3, 4);
+        var m1 = dummy(from + new V2(80f, 40f), 1e5f);
+        var m2 = dummy(from + new V2(-60f, -70f), 1e5f);
+        var unm = dummy(from + new V2(380f, 0f), 1e5f);
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(0.4f, new PlayerInput());
+        float burst1 = took(m1), burst2 = took(m2);
+        me.KatanaStance = 1; me.FireCd = 0f;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(1.6f, new PlayerInput());
+        float seek1 = took(m1) - burst1, seek2 = took(m2) - burst2;
+        Console.WriteLine("  katana seek: marked enemies took {0:0} and {1:0} from caltrops, the unmarked one {2:0}; caltrops left {3}", seek1, seek2, took(unm), cals().Count);
+        Check(Math.Abs(seek1 + seek2 - Game.KatanaCaltropCount * kw * Game.KatanaCaltropFlyMult) < 1f && seek1 > 0f && seek2 > 0f && took(unm) == 0f,
+            "caltrops thrown after a Burst seek the enemies it marked, shared out");
+        reset();
+
+        // +1: two more caltrops, and each dash strikes once more at 60%.
+        foreach (var b in cals()) g.Bullets.Remove(b.Id);
+        setK(1, 0, 4);
+        volley.Invoke(g, new object[] { me, 0f, 1 });
+        play(0.4f, new PlayerInput());
+        int plusCals = cals().Count;
+        foreach (var b in cals()) g.Bullets.Remove(b.Id);
+        setK(0, 0, 0);
+        var plus = dummy(from + new V2(60f, 0f), 1e5f);
+        volley.Invoke(g, new object[] { me, 0f, 1 });
         play(0.3f, new PlayerInput());
-        float moved = pushed.Pos.DistanceTo(pushFrom);
-        bool switched = me.KatanaStance == 1 && client.Game.Players[1].KatanaStance == 1;
-        hostDash.Invoke(g, new object[] { 1, 5, from });
-        bool blocked = me.KatanaStance == 1;
-        play(Game.KatanaSwitchCd, new PlayerInput());
-        hostDash.Invoke(g, new object[] { 1, 5, from });
-        Console.WriteLine("  katana switch: stance {0}, pushed {1:0} px, again at once {2}, after the cooldown {3}; meters {4}/{5}", switched, moved, blocked, me.KatanaStance, me.KatanaKage, me.KatanaZan);
-        Console.WriteLine("  katana switch seen: sound {0}, client fx {1}", heard(Sfx.KatanaStanceSwap), switchFx);
-        Check(switched && heard(Sfx.KatanaStanceSwap) && switchFx, "the weapon-action key switches stance (everyone sees and hears it)");
-        Check(moved > 20f && moved < 80f && took(pushed) == 0f, "the switch pushes nearby enemies back a little and hurts nothing");
-        Check(blocked && me.KatanaStance == 0, "the switch has a short cooldown");
-        Check(me.KatanaKage == 4 && me.KatanaZan == 7, "both meters are kept when you switch");
+        Check(plusCals == Game.KatanaCaltropCount + 2 && Math.Abs(took(plus) - kw * Game.KatanaDashMult * (1f + Game.KatanaExtraMult)) < 1f, "+1: two more caltrops, and each dash strikes once more at 60%");
         reset();
 
-        // The Kage Chain (Hayate, Kage meter full, hold fire): hops through the nearest enemies, cutting each; +1 adds a hop.
-        me.KatanaStance = 0; me.KatanaKage = (byte)Game.KatanaKageNeed;
-        var chain = new List<Enemy>();
-        for (int k = 0; k < 8; k++) chain.Add(dummy(from + V2.FromAngle(k * 0.785f) * (90f + 15f * k), 1e5f));
-        g.Sounds.Clear();
-        hostDash.Invoke(g, new object[] { 1, 17, from });
-        float inv = me.InvulnT;
-        play(Game.KatanaKageHops * Game.KatanaKageHop + 0.3f, new PlayerInput());
-        int cutK = chain.Count(e => Math.Abs(took(e) - kw * Game.KatanaKageMult) < 1f);
-        Console.WriteLine("  katana kage chain: {0} of 8 cut for {1:0} each; meter {2}; untouchable {3:0.00} s", cutK, kw * Game.KatanaKageMult, me.KatanaKage, inv);
-        Check(cutK == Game.KatanaKageHops && me.KatanaKage == 0 && inv > 0.4f && heard(Sfx.KatanaChain1), "a full Kage meter spends on a chain through the 6 nearest enemies, untouchable");
-        Check(chain.Take(6).All(e => took(e) > 0f) && took(chain[7]) == 0f, "the chain hops to the nearest enemy each time");
-        var kageMax = typeof(Game).GetMethod("KatanaKageMax", flags);
-        me.Stats.ExtraShots++;
-        int hops1 = (int)kageMax.Invoke(g, new object[] { me });
-        me.Stats.ExtraShots--;
-        Check(hops1 == Game.KatanaKageHops + 1, "+1 adds a hop to the Kage Chain");
-        me.KatanaKage = 3;
-        hostDash.Invoke(g, new object[] { 1, 17, from });
-        Check(me.KatanaKage == 3, "the chain needs a full meter");
-        reset();
-
-        // Zanshin (Senbon, Zan meter full, hold fire): the marked freeze, and as you sheathe each takes a cut per mark; shots near you fall.
-        me.KatanaStance = 1; me.KatanaZan = (byte)Game.KatanaZanNeed;
-        var m1 = dummy(from + new V2(90f, 0f), 1e5f); m1.KatanaMarks = 1;
-        var m3 = dummy(from + new V2(0f, 120f), 1e5f); m3.KatanaMarks = 3;
-        var plain = dummy(from + new V2(-90f, 0f), 1e5f);
-        var near = (Bullet)shoot.Invoke(g, new object[] { Defs.SmallShot, from + new V2(150f, -150f), new V2(0f, 0f), 0f, 9f, 5f, 0, false, 0f });
-        g.Sounds.Clear();
-        hostDash.Invoke(g, new object[] { 1, 18, from });
-        play(Game.KatanaZanTotal(2) * 0.5f, new PlayerInput());
-        bool frozenMid = m1.FrozenT > 0f && took(m1) == 0f;
-        play(Game.KatanaZanTotal(2) * 0.5f + 0.2f, new PlayerInput());
-        Console.WriteLine("  katana zanshin: frozen midway {0}; one mark {1:0.0}, three {2:0.0}, unmarked {3:0.0}; marks left {4}/{5}; meter {6}; shot cut {7}",
-            frozenMid, took(m1), took(m3), took(plain), m1.KatanaMarks, m3.KatanaMarks, me.KatanaZan, !g.Bullets.ContainsKey(near.Id));
-        Check(frozenMid, "Zanshin holds the marked still and the cuts wait for the sheathe");
-        Check(Math.Abs(took(m1) - kw * Game.KatanaZanMult) < 1f && Math.Abs(took(m3) - 3f * kw * Game.KatanaZanMult) < 1f && took(plain) == 0f,
-            "as you sheathe, every marked enemy takes a cut per mark (unmarked ones nothing)");
-        Check(m1.KatanaMarks == 0 && m3.KatanaMarks == 0 && me.KatanaZan == 0 && !g.Bullets.ContainsKey(near.Id) && heard(Sfx.KatanaSheathe),
-            "Zanshin spends the marks and the meter, and cuts the shots near you");
-        reset();
-
-        // Holding fire with the meter full: the press still attacks once, then the hold spends the meter (your own game asks).
-        me.KatanaStance = 0; me.KatanaKage = (byte)Game.KatanaKageNeed; me.FireCd = 0f;
-        for (int k = 0; k < 3; k++) dummy(from + new V2(200f, -80f + 80f * k), 1e5f);
-        byte d0 = me.KatanaDashes;
-        play(Game.KatanaHoldFire + 0.15f, new PlayerInput { Fire = true, AimAt = from + new V2(-100f, 0f) });
-        Check(me.KatanaDashes == (byte)(d0 + 1) && me.KatanaKage == 0, "with the meter full, a held fire dashes once, then spends the meter on the chain");
-        play(0.6f, new PlayerInput());
-        reset();
-
-        // Raising the parry sends Senbon's swipes back to the first and clears the wait; the meters and Flow are kept.
-        me.KatanaStance = 1; me.KatanaStep = 1; me.FireCd = 0.2f; me.KatanaZan = 6; me.KatanaFlow = 2;
+        // Raising the parry clears the wait and keeps both combos' places.
+        setK(0, 2, 3); me.FireCd = 0.2f;
         play(0.05f, new PlayerInput { Parry = true });
-        Check(me.KatanaStep == 0 && me.FireCd <= 0f && me.KatanaZan == 6 && me.KatanaFlow == 2, "raising the parry cancels the Katana's wait and keeps its meters and Flow");
+        Check(me.FireCd <= 0f && me.KatanaHay == 2 && me.KatanaSen == 3, "raising the parry clears the Katana's wait and keeps both combos' places");
         play(0.6f, new PlayerInput());
         // The same for the Bo Staff: back to the slash with no wait, and a shove still drawing back never lands (no cooldown spent).
         reset();

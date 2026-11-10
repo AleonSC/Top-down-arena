@@ -281,7 +281,7 @@ static partial class Program
         Test("healingrain", "Healing Rain: heals allies inside, slows enemies, ends on time, mastered lasts 10 s", () => HealingRainTest(Dt)),
         Test("lumenward", "Lumen Ward: a cone of light that heals inside, burns bullets in it and holds the ones outside", () => LumenWardTest(Dt)),
         Test("wards", "Spirit Ward, Healing Mist and Energy Ward", () => HealerWardsTest(Dt)),
-        Test("lastfour", "Clot Cannon, Transfusion Darts, Rapier (Tempo, Flourish) and the Katana (two stances, meters, Kage Chain, Zanshin)", () => LastFourTest(Dt)),
+        Test("lastfour", "Clot Cannon, Transfusion Darts, Rapier (Tempo, Flourish) and the Katana (stance combos, Momentum Burst, caltrops)", () => LastFourTest(Dt)),
         Test("repulsion", "the Repulsion Cannon", () => RepulsionTest(Dt)),
         Test("quarterstaff", "the Quarterstaff", () => { QuarterstaffTest(Dt); QuarterstaffStacksTest(Dt); }),
         Test("greatsword", "the Greatsword's chain, guard and Rend", () => GreatswordTest(Dt)),

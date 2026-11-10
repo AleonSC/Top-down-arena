@@ -3,6 +3,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 
+
+
 /* Layout: a cut-open title, then one section per rework: a big kanji mark, a live arena you can take over, how it plays,
    a timeline of the feel beats and the numbers. A comparison and a recommendation close the page.
    Deliberately single-theme: an indigo night arena, warm paper text, moon-steel for the blade, rose for the big moments. */
@@ -182,7 +184,7 @@ ol.steps code{font-family:var(--mono);font-size:12px;color:var(--steel)}
           <li><div><b>Kiri</b><span>Dash-cut 120 px along your aim, 22 to all on the line. <code>0.04 + 0.09 dash + 0.16</code></span></div></li>
           <li><div><b>Kaeshi</b><span>Dash-cut 120 px, angled 20° to the other side (a zig). 22. <code>same timing</code></span></div></li>
           <li><div><b>Tsumuji</b><span>A short 70 px dash into a full spin, 85 px round you, 26. <code>0.04 + 0.08 + spin 0.14 + 0.18</code></span></div></li>
-          <li class="fin"><div><b>Momentum Burst</b> (finisher)<span>You stab the katana into the ground: a shockwave 150 px round you shoves enemies 120 px and deals 8. Everything it hits is <b>marked</b> for 4 s. You keep control; only a 0.2 s plant. <code>0.12 plant + burst + 0.28</code></span></div></li>
+          <li class="fin"><div><b>Momentum Burst</b> (finisher)<span>You stab the katana into the ground: a shockwave 150 px round you shoves enemies 120 px, deals 8 and cuts the small bullets in it. Everything it hits is <b>marked</b> for 4 s. You keep control; only a 0.2 s plant. <code>0.12 plant + burst + 0.28</code></span></div></li>
         </ol>
         <p class="fit" style="margin:0">Untouchable during every dash. A dash that kills skips its own recovery, so killing keeps you moving.</p>
       </div>
@@ -192,7 +194,7 @@ ol.steps code{font-family:var(--mono);font-size:12px;color:var(--steel)}
           <li><div><b>Kaeshi</b><span>The return cut the other way, 16. <code>same timing</code></span></div></li>
           <li><div><b>Engetsu</b><span>Full-moon spin with a 30 px step, 105 px round you, 20. <code>0.04 + 0.2 + 0.18</code></span></div></li>
           <li><div><b>Senbon</b><span>Six crossing slashes in a 70° cone over 0.3 s, 7 each. <code>0.3 + 0.12</code></span></div></li>
-          <li class="fin"><div><b>Caltrops</b> (finisher)<span>You throw 16 caltrops out to 60-150 px round you. They lie for 8 s; an enemy that steps on one takes 4 and breaks it. <code>0.1 + throw 0.25 + 0.3</code></span></div></li>
+          <li class="fin"><div><b>Caltrops</b> (finisher)<span>You throw 16 caltrops out to 60-150 px round you. They lie for 8 s; an enemy that steps on one takes 4, breaks it and is slowed to half speed for 1.5 s. <code>0.1 + throw 0.25 + 0.3</code></span></div></li>
         </ol>
         <p class="fit" style="margin:0">Swipes and the spin cut small bullets out of the air.</p>
       </div>
@@ -201,7 +203,7 @@ ol.steps code{font-family:var(--mono);font-size:12px;color:var(--steel)}
     <div class="cols">
       <div><h3>The switch and the two finishers</h3><ul class="play">
         <li><b>Alt switches stance at once</b> (0.3 s cooldown). It stops the step you're in, with no bonus and no penalty.</li>
-        <li><b>The stance you leave keeps its place</b> for as long as you're away: two steps into Hayate, switch, and the next Hayate attack is step three. The stance you're in starts over if you stop attacking for 1.5 s.</li>
+        <li><b>The stance you leave keeps its place</b> for as long as you're away, however long that is: two steps into Hayate, switch, and the next Hayate attack is step three. The stance you're in starts over if you stop attacking for 1.5 s.</li>
         <li><b>Caltrops, then Momentum Burst:</b> the shockwave launches every caltrop on the ground at the nearest enemy, 8 each.</li>
         <li><b>Momentum Burst, then Caltrops:</b> the caltrops you throw seek the enemies the shockwave marked, shared out between them, 8 each.</li>
       </ul></div>
@@ -229,12 +231,12 @@ ol.steps code{font-family:var(--mono);font-size:12px;color:var(--steel)}
 </section>
 
 <section class="closing">
-  <h3 class="eyebrow">Open questions</h3>
+  <h3 class="eyebrow">Decided</h3>
   <ol class="q">
-    <li>Should a stored combo ever run out (say after 6 s away), or keep forever?</li>
-    <li>Caltrops on the ground: do they also slow enemies, or only hurt?</li>
-    <li>Should the Momentum Burst stop small bullets in its ring too?</li>
-    <li>+1: two more caltrops and a wider shockwave?</li>
+    <li>A stored combo never runs out.</li>
+    <li>Caltrops on the ground also slow what steps on them (half speed, 1.5 s).</li>
+    <li>The Momentum Burst cuts the small bullets inside its ring.</li>
+    <li>+1: two more caltrops and a 25% wider shockwave.</li>
   </ol>
   <footer>Mockup only; nothing in the game has changed. Controls: aim with the mouse, <span class="kbd">WASD</span> to move, click (or hold) to attack, <span class="kbd">Space</span> or right click to switch stance (Left Alt in the game), <span class="kbd">Esc</span> to hand back to the demo.</footer>
 </section>
@@ -384,6 +386,7 @@ function momentumBurst(s,d){ const p=s.p, R=150; let n=0;
   s.fx.glow.push({x:p.x,y:p.y,r:90,c:STEEL,t:0,life:.3}); s.fx.crack.push({x:p.x,y:p.y,a:rnd(0,TAU),t:0,life:.9});
   for(const e of live(s)){ const dx=e.x-p.x,dy=e.y-p.y,dd=Math.hypot(dx,dy)||1; if(dd>R+e.r)continue; n++;
     const push=120*(1-dd/(R+e.r)*.4); e.kx+=dx/dd*push*5.8; e.ky+=dy/dd*push*5.8; e.shockT=4; hitEnemy(s,d,e,8,Math.atan2(dy,dx)+Math.PI/2,{kb:0,hold:.07,shake:.3,col:STEEL}); }
+  for(const b of s.bul){ if(Math.hypot(b.x-p.x,b.y-p.y)<R){ b.dead=true; sparks(s,b.x,b.y,rnd(0,TAU),3,GOLD,.6); } }
   s.hitstop=Math.max(s.hitstop,.07); s.trauma=Math.min(1,s.trauma+.35); s.flash=.2; s.flashCol='225,238,255'; d.sfx('burst');
   // caltrops lying on the ground are launched at the nearest enemy
   let flung=0; for(const c of s.cal){ if(c.state!=='lie')continue; const t=nearestTo(s,c.x,c.y); if(!t)continue; c.state='fly'; c.tgt=t.id; c.spd=520; flung++; }
@@ -399,7 +402,7 @@ function nearestTo(s,x,y){ let b=null,bd=1e9; for(const e of live(s)){ const dd=
 function tickCaltrops(s,d,dt){
   for(const c of s.cal){ c.t+=dt; c.rot+=dt*(c.state==='lie'?0:14);
     if(c.state==='toss'){ const f=Math.min(1,c.t/.25); c.x=lerp(c.sx,c.tx,easeOut(f)); c.y=lerp(c.sy,c.ty,easeOut(f)); c.h=Math.sin(f*Math.PI)*16; if(f>=1){ c.state='lie'; c.h=0; c.t=0; } }
-    else if(c.state==='lie'){ if(c.t>c.life){ c.dead=true; continue; } for(const e of live(s)){ if(Math.hypot(e.x-c.x,e.y-c.y)<e.r+4){ c.dead=true; hitEnemy(s,d,e,4,rnd(0,TAU),{kb:10,hold:0,shake:.02,col:ROSE}); break; } } }
+    else if(c.state==='lie'){ if(c.t>c.life){ c.dead=true; continue; } for(const e of live(s)){ if(Math.hypot(e.x-c.x,e.y-c.y)<e.r+4){ c.dead=true; e.slowT=1.5; hitEnemy(s,d,e,4,rnd(0,TAU),{kb:10,hold:0,shake:.02,col:ROSE}); break; } } }
     else if(c.state==='fly'){ let t=s.en.find(e=>e.id===c.tgt&&!e.dead); if(!t){ t=nearestTo(s,c.x,c.y); if(!t){ c.dead=true; continue; } c.tgt=t.id; }
       const dx=t.x-c.x,dy=t.y-c.y,dd=Math.hypot(dx,dy)||1; c.vx=(c.vx||0)*Math.pow(.02,dt)+dx/dd*c.spd*(1-Math.pow(.02,dt)); c.vy=(c.vy||0)*Math.pow(.02,dt)+dy/dd*c.spd*(1-Math.pow(.02,dt));
       c.px=c.x; c.py=c.y; c.x+=c.vx*dt; c.y+=c.vy*dt; if(dd<t.r+4){ c.dead=true; hitEnemy(s,d,t,8,Math.atan2(c.vy,c.vx)+Math.PI/2,{kb:30,hold:.012,shake:.03,col:ROSE}); } if(c.t>3) c.dead=true; } }
@@ -460,9 +463,9 @@ function tick(s,d,dt){ const p=s.p; s.t+=dt;
   if(!st||!p.moving&&!st.sw){ const rest=s.stance?p.ang+.3:p.ang+2.35; p.blade=lerpAng(p.blade,rest,Math.min(1,dt*14)); }
   const back=p.ang+Math.PI; p.band[0].x=p.x+Math.cos(back)*7; p.band[0].y=p.y+Math.sin(back)*7;
   for(let i=1;i<p.band.length;i++){ const a=p.band[i-1],b=p.band[i]; b.x+=Math.cos(back)*10*dt+Math.sin(s.t*9+i)*.25; b.y+=Math.sin(back)*10*dt+Math.cos(s.t*8+i)*.25; const dx=b.x-a.x,dy=b.y-a.y,dd=Math.hypot(dx,dy)||1; b.x=a.x+dx/dd*5; b.y=a.y+dy/dd*5; }
-  for(const e of s.en){ if(e.spawnT<.5){ e.spawnT+=dt; continue; } e.flash-=dt; e.shockT-=dt; const k=Math.pow(.003,dt); e.kx*=k; e.ky*=k;
+  for(const e of s.en){ if(e.spawnT<.5){ e.spawnT+=dt; continue; } e.flash-=dt; e.shockT-=dt; e.slowT=(e.slowT||0)-dt; const k=Math.pow(.003,dt); e.kx*=k; e.ky*=k;
     const dx=p.x-e.x,dy=p.y-e.y,dd=Math.hypot(dx,dy)||1; let want=e.t.shoot?(dd>200?1:dd<160?-.6:0):(dd<p.r+e.r+4?0:1);
-    let vx=dx/dd*want*e.t.spd, vy=dy/dd*want*e.t.spd;
+    const spd=e.t.spd*(e.slowT>0?.5:1); let vx=dx/dd*want*spd, vy=dy/dd*want*spd;
     for(const o of s.en){ if(o===e)continue; const ox=e.x-o.x,oy=e.y-o.y,od=Math.hypot(ox,oy); if(od>0&&od<e.r+o.r+8){ vx+=ox/od*80; vy+=oy/od*80; } }
     e.x=clamp(e.x+(vx+e.kx)*dt,30,W-30); e.y=clamp(e.y+(vy+e.ky)*dt,30,H-30); e.rot+=dt*.6;
     if(e.t.shoot){ e.shootT-=dt; if(e.shootT<=0){ e.shootT=rnd(2.2,3.2); const a=Math.atan2(dy,dx); s.bul.push({x:e.x,y:e.y,vx:Math.cos(a)*180,vy:Math.sin(a)*180,t:0}); } } }
@@ -505,7 +508,8 @@ function drawPips(g,s){ const p=s.p;
       else g.fillRect(x-1.2,y-4,2.4,8); } }
   g.globalAlpha=1;
 }
-function drawShock(g,s){ for(const e of s.en){ if(e.shockT<=0||e.dead)continue; const a=Math.min(1,e.shockT/.5); g.strokeStyle=rgba(STEEL,.75*a); g.lineWidth=1.6; g.setLineDash([4,3]); g.beginPath(); g.arc(e.x,e.y,e.r+6,s.t*2,s.t*2+TAU); g.stroke(); g.setLineDash([]); }
+function drawShock(g,s){ for(const e of s.en){ if(!(e.slowT>0)||e.dead)continue; g.fillStyle=rgba(ROSE,.18); g.beginPath(); g.arc(e.x,e.y,e.r+3,0,TAU); g.fill(); }
+  for(const e of s.en){ if(e.shockT<=0||e.dead)continue; const a=Math.min(1,e.shockT/.5); g.strokeStyle=rgba(STEEL,.75*a); g.lineWidth=1.6; g.setLineDash([4,3]); g.beginPath(); g.arc(e.x,e.y,e.r+6,s.t*2,s.t*2+TAU); g.stroke(); g.setLineDash([]); }
   for(const f of s.fx.crack){ const a=1-f.t/f.life; for(let k=0;k<7;k++){ const an=f.a+k*TAU/7+Math.sin(k*3.1)*.3; let x=f.x,y=f.y; g.strokeStyle=rgba(STEEL,.8*a); g.lineWidth=2*a+.5; g.beginPath(); g.moveTo(x,y);
     for(let j=1;j<=4;j++){ x=f.x+Math.cos(an+Math.sin(j*1.7+k)*.25)*j*16; y=f.y+Math.sin(an+Math.sin(j*1.7+k)*.25)*j*16; g.lineTo(x,y); } g.stroke(); } } }
 function drawPiece(g,f){ const k=1-f.t/f.life; g.save(); g.translate(f.x,f.y); g.rotate(f.cut+f.rot); g.beginPath(); g.rect(-40,f.side>0?0:-40,80,40); g.clip(); g.rotate(-f.cut-f.rot);
