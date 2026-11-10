@@ -951,7 +951,7 @@ on top (Tough Crowd, Frenzy, Swift Foes, Glass Cannon...).
 
 ## Boss Hunt
 
-In the lobby the host picks **Run**, **Boss Hunt** or **Practice** at the top. A Boss Hunt is a short run that ends
+In the lobby the host picks **Gauntlet**, **Boss Hunt** or **Practice** on the mode carousel at the top (arrows, the mouse wheel or a click on a side mode turn it). The tabs over the big screen (Loadout, Perks, Difficulty, ...) are a carousel too: the open tab in the middle, the rest wrapping round either side. A Boss Hunt is a short run that ends
 with one boss: **ten waves**. Waves 1-9 bring only the boss's own enemies (its faction: for the Warden, Rioters and
 Guards, then Riot Shields, Gas Grenadiers, Security Guards and Taser Guards, its Breakout, Patrol and Cell block squads, and its Riot line on waves 5 and
 9); wave 10 is the boss, at wave-10 strength. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no
@@ -988,7 +988,7 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 
 ## Practice Range
 
-In the lobby the host picks **Run** (the normal 50 waves), **Boss Hunt** (above) or **Practice** (the Practice Range)
+In the lobby the host picks **Gauntlet** (the normal 50 waves), **Boss Hunt** (above) or **Practice** (the Practice Range)
 at the top. Practice has two sections, as tabs on the big screen: **Practice** (build your own waves) and **Training**
 (short mechanic drills). Whichever you use, it's with everyone in the lobby, with upgrade picks between waves as usual, and
 **no XP counts**: a Practice run never reaches your profile (no rank XP, records, unlocks or run history), and the header
