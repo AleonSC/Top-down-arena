@@ -38,6 +38,7 @@ namespace Arena
                     new FactionMember { Type = EnemyType.Guard, Weight = 2f },
                     new FactionMember { Type = EnemyType.RiotShield, Weight = 2f, From = 2 },
                     new FactionMember { Type = EnemyType.GasGrenadier, Weight = 1.5f, From = 2 },
+                    new FactionMember { Type = EnemyType.TaserGuard, Weight = 1.5f, From = 3 },  // the faction's shooter that stuns (WardenFaction.cs)
                 },
                 Squads = new[]
                 {

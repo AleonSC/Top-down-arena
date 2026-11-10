@@ -646,6 +646,11 @@ namespace Arena
                                     p.StunT = StunTime;  // the Warden's stun shot: stuck for 1 s (Warden.cs)
                                     BroadcastFx(FxKind.Spark, p.Pos, Defs.BulletColor(Defs.StunShot), 30f, 0.35f, Sfx.SpellZap);
                                 }
+                                else if (b.Kind == Defs.TaserBolt && !p.Downed)
+                                {
+                                    p.StunT = StunTime;  // a Taser Guard's Fork Bolt: the same stun (WardenFaction.cs)
+                                    BroadcastFx(FxKind.TaserHit, p.Pos, p.Pos + b.Vel.Normalized(), Defs.BulletColor(Defs.TaserBolt), 1f, 0.7f, Sfx.SpellZap);
+                                }
                             }
                             break;
                         }

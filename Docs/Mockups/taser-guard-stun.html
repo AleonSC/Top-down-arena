@@ -1,0 +1,415 @@
+<title>Taser Guard Stun Shot</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one live arena (the shot among Warden-level clutter, with grayscale and squint views), then every option
+   looping side by side, a comparison table and a pick. House mockup palette (steel and parchment neutrals, amber accent);
+   the arena is always dark because the game is. */
+:root{
+  --bg:#eceae4; --fg:#1d1f22; --muted:#5f636a; --panel:#f8f7f3; --line:#d3d0c6;
+  --acc:#a8700a; --chip:#e1ded4; --chip-on:#1d1f22; --chip-on-fg:#f6f4ee; --arena:#0c0e12;
+  --good:#2b7a4b; --mid:#a8700a; --bad:#b4412f;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101215; --fg:#e8e9ea; --muted:#979ca4; --panel:#181b20; --line:#2c3138;
+  --acc:#f0bd54; --chip:#23272e; --chip-on:#e8e9ea; --chip-on-fg:#101215; --arena:#0c0e12;
+  --good:#6fd39a; --mid:#f0bd54; --bad:#ff8a78; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101215; --fg:#e8e9ea; --muted:#979ca4; --panel:#181b20; --line:#2c3138;
+  --acc:#f0bd54; --chip:#23272e; --chip-on:#e8e9ea; --chip-on-fg:#101215; --arena:#0c0e12;
+  --good:#6fd39a; --mid:#f0bd54; --bad:#ff8a78; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1060px;margin:0 auto;display:flex;flex-direction:column;gap:38px}
+h1{font:700 clamp(40px,7vw,64px)/.95 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+h1 small{display:block;font:500 12px var(--mono);letter-spacing:.08em;color:var(--acc);margin-bottom:10px}
+h2{font:700 28px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;text-wrap:balance}
+.lede{margin:0;max-width:68ch;color:var(--muted)}
+section{display:flex;flex-direction:column;gap:14px;min-width:0}
+.controls{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:5px;min-width:0}
+.ctl>span{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.seg{display:flex;flex-wrap:wrap;gap:4px}
+.seg button,.act{font:500 14px var(--body);color:var(--fg);background:var(--chip);border:1px solid var(--line);border-radius:6px;padding:7px 11px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.stage{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--arena)}
+.stage canvas{display:block;width:100%;height:auto}
+.note{margin:0;color:var(--muted);font-size:14px;max-width:80ch}
+.note b{color:var(--fg);font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.card canvas{display:block;width:100%;height:auto;background:var(--arena)}
+.card .body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px;flex:1}
+.card h3{font:700 22px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0}
+.card h3 b{font:500 12px var(--mono);color:var(--acc);margin-right:8px;letter-spacing:.06em}
+.card p{margin:0;color:var(--muted);font-size:14px}
+.tags{display:flex;flex-wrap:wrap;gap:5px}
+.tags span{font:500 11px var(--mono);background:var(--chip);border-radius:4px;padding:2px 6px}
+.card .act{align-self:flex-start;margin-top:auto}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:700px;font-size:14px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+td:first-child{font:700 18px/1.1 var(--display);text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}
+.r-s{color:var(--good);font-weight:600}.r-m{color:var(--mid);font-weight:600}.r-w{color:var(--bad);font-weight:600}
+.pick{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.pick p,.pick li{margin:0;max-width:74ch}
+.pick ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;color:var(--muted)}
+</style>
+
+<main>
+<header>
+  <h1><small>MOCKUP · WARDEN FACTION · RANGED ENEMY</small>Taser Guard stun shot</h1>
+  <p class="lede">The Warden's stun shot is a cyan orb, the same size and shape as the bullets around it. Four ways to make the Taser Guard's shot impossible to lose, tested against Warden-level clutter. Switch the view to grayscale or squint to see what survives when colour and detail don't.</p>
+</header>
+
+<section id="arena">
+  <h2>Find the stun shot</h2>
+  <div class="controls">
+    <div class="ctl"><span>Shot</span><div class="seg" data-g="opt">
+      <button data-v="cur">Current</button><button data-v="A">A · Dart &amp; Wire</button><button data-v="B">B · Fork Bolt</button><button data-v="C">C · Pulse Ring</button><button data-v="D">D · Hazard Strobe</button></div></div>
+    <div class="ctl"><span>Clutter</span><div class="seg" data-g="dens">
+      <button data-v="0">Off</button><button data-v="1">Light</button><button data-v="2">Warden</button><button data-v="3">Heavy</button></div></div>
+    <div class="ctl"><span>View</span><div class="seg" data-g="view">
+      <button data-v="normal">Normal</button><button data-v="gray">Grayscale</button><button data-v="squint">Squint</button></div></div>
+    <div class="ctl"><span>Run</span><div class="seg"><button class="act" id="fire">Fire now</button><button class="act" id="pause">Pause</button></div></div>
+  </div>
+  <div class="stage"><canvas id="main" role="img" aria-label="Animated arena: a Taser Guard in the top left fires a stun shot at a player while the Warden fills the screen with bullets"></canvas></div>
+  <p class="note" id="optNote"></p>
+  <p class="note">The guard leads its target and charges for 0.7 s first: a dashed aim line and arcing prongs, as other aimed shooters already do. Bullets pass through you here, and a stunned player freezes for 1 s.</p>
+</section>
+
+<section>
+  <h2>The shots, side by side</h2>
+  <p class="lede">Each loop is the same moment: charge, fire across a little clutter, hit, stunned. Press "Try it" to load one into the arena above.</p>
+  <div class="grid" id="cards"></div>
+</section>
+
+<section>
+  <h2>How they compare</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>Shot</th><th>What sets it apart</th><th>Reads without colour</th><th>On hit</th><th>Watch out for</th></tr></thead>
+    <tbody>
+      <tr><td>Current</td><td>Colour only. Same size and shape as every other orb.</td><td class="r-w">Weak</td><td>Cyan ring</td><td>Cyan is already common in the Warden's patterns.</td></tr>
+      <tr><td>A · Dart &amp; Wire</td><td>Arrow shape, and a thin crackling wire back to the guard. No other bullet is a line.</td><td class="r-s">Strong</td><td>Dart sticks, wire snaps, sparks</td><td>The wire is a long thin line, so it needs a fade at about 300 px to keep clutter readable.</td></tr>
+      <tr><td>B · Fork Bolt</td><td>Jagged outline that re-rolls 16 times a second. Pure white, which no bullet uses.</td><td class="r-s">Strong</td><td>Bolts web out from you</td><td>The flicker is shape only, not brightness, so it stays photosensitivity-safe.</td></tr>
+      <tr><td>C · Pulse Ring</td><td>Hollow among filled orbs, with a sonar ping three times a second. Lime is unused.</td><td class="r-m">Good</td><td>Ring collapses onto you</td><td>Small hollow ring can fill in at a distance. The ping does most of the work.</td></tr>
+      <tr><td>D · Hazard Strobe</td><td>Biggest of the four. Warning stripes and a bolt glyph, instantly read as danger.</td><td class="r-m">Good</td><td>One bright flash and a ring</td><td>Strobe is held to 2.5 flashes a second, under the usual 3 a second limit. Its size also hides more of the screen.</td></tr>
+    </tbody></table></div>
+  <p class="note">Ratings are my read of this mockup, not playtest numbers.</p>
+</section>
+
+<section>
+  <h2>My pick</h2>
+  <div class="pick">
+    <p><b>A · Dart &amp; Wire.</b> It is the only option with something no other bullet can have at any size: a line back to the shooter. You can find the source, trace the shot to you and judge the timing, all from one glance. It also survives grayscale and squinting best.</p>
+    <ul>
+      <li>Give the charge and the fire a distinct sound, so it is never only a visual cue. Sound is the one thing clutter can't hide.</li>
+      <li>D is the fallback if you want a shot that reads as "danger" with no learning at all, at the cost of size.</li>
+      <li>Wiring it in would replace <code>DrawStunShot</code> in <code>WardenLook.cs</code> for this enemy. The Warden's own stun shot can stay as it is or take a second option's look, so the two are never confused.</li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<script>
+(()=>{
+const TAU=Math.PI*2, lerp=(a,b,k)=>a+(b-a)*k;
+const rnd=n=>{const x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x)};
+const CLUT=['#ff5a4a','#ff9a3c','#ff5fa8','#5ad0ff','#b07cff'];
+const DENS=[0,.5,1.2,2];
+const STUN=1, CHARGE=.7;
+
+const sprites={};
+function sprite(col){
+  if(sprites[col])return sprites[col];
+  const s=document.createElement('canvas');s.width=s.height=32;const c=s.getContext('2d');
+  const g=c.createRadialGradient(16,16,0,16,16,16);g.addColorStop(0,col);g.addColorStop(1,'rgba(0,0,0,0)');
+  c.globalCompositeOperation='lighter';c.globalAlpha=.4;c.fillStyle=g;c.beginPath();c.arc(16,16,16,0,TAU);c.fill();
+  c.globalCompositeOperation='source-over';c.globalAlpha=1;c.fillStyle=col;c.beginPath();c.arc(16,16,6,0,TAU);c.fill();
+  c.fillStyle='rgba(255,255,255,.75)';c.beginPath();c.arc(14.5,14.5,2,0,TAU);c.fill();
+  return sprites[col]=s;
+}
+function glow(c,x,y,r,col,a){
+  const g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,col);g.addColorStop(1,'rgba(0,0,0,0)');
+  c.save();c.globalCompositeOperation='lighter';c.globalAlpha=a;c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,TAU);c.fill();c.restore();
+}
+function zig(c,x0,y0,x1,y1,amp,seed,n){
+  const dx=x1-x0,dy=y1-y0,L=Math.hypot(dx,dy)||1,nx=-dy/L,ny=dx/L;
+  c.beginPath();c.moveTo(x0,y0);
+  for(let i=1;i<n;i++){const k=i/n,o=(rnd(seed+i*3.1)-.5)*2*amp;c.lineTo(x0+dx*k+nx*o,y0+dy*k+ny*o)}
+  c.lineTo(x1,y1);c.stroke();
+}
+function bolt(c,x0,y0,x1,y1,amp,seed,n,col,w,a,core){
+  c.save();c.lineCap='round';c.lineJoin='round';
+  c.globalAlpha=a*.3;c.strokeStyle=col;c.lineWidth=w*3;zig(c,x0,y0,x1,y1,amp,seed,n);
+  c.globalAlpha=a;c.strokeStyle=core||'#fff';c.lineWidth=w;zig(c,x0,y0,x1,y1,amp,seed,n);
+  c.restore();
+}
+function ring(c,x,y,r,col,w,a){c.save();c.globalAlpha=Math.max(0,a);c.strokeStyle=col;c.lineWidth=w;c.beginPath();c.arc(x,y,r,0,TAU);c.stroke();c.restore()}
+function disc(c,x,y,r,col,a){c.save();c.globalAlpha=Math.max(0,a);c.fillStyle=col;c.beginPath();c.arc(x,y,r,0,TAU);c.fill();c.restore()}
+
+/* ---- the five stun shots: shot(c,b,t) draws a bullet, hit(c,x,y,k,ang) the first 0.7 s of the hit ---- */
+const OPT={
+cur:{name:'Current',col:'#6ee0ff',
+  note:'<b>Current Warden stun shot.</b> A cyan orb, radius 6, with a few small arcs. Colour is the only thing that tells it from a bullet.',
+  shot(c,b,t){
+    glow(c,b.x,b.y,18,'#6ee0ff',.55);disc(c,b.x,b.y,6,'#6ee0ff',1);
+    const q=Math.floor(t*14);
+    for(let i=0;i<3;i++){const a=rnd(q*3+i+b.id)*TAU;bolt(c,b.x,b.y,b.x+Math.cos(a)*13,b.y+Math.sin(a)*13,2,q+i,3,'#6ee0ff',1,.9,'#dffcff')}
+  },
+  hit(c,x,y,k){ring(c,x,y,12+k*30,'#6ee0ff',3,1-k)}},
+A:{name:'Dart & Wire',col:'#ffd21f',
+  note:'<b>A · Dart &amp; Wire.</b> An arrow-shaped dart trailing a crackling wire back toward the guard, with bright beads running along it. Nothing else on screen is a long thin line.',
+  shot(c,b,t){
+    const ux=Math.cos(b.ang),uy=Math.sin(b.ang),nx=-uy,ny=ux;
+    const L=Math.min(b.dist+14,300),sx=b.x-ux*L,sy=b.y-uy*L,sd=Math.floor(t*20)*7.7+b.id*31;
+    for(let i=0;i<10;i++){const k0=i/10,k1=(i+1)/10;
+      bolt(c,lerp(sx,b.x,k0),lerp(sy,b.y,k0),lerp(sx,b.x,k1),lerp(sy,b.y,k1),3.2,sd+i*5,3,'#ffd21f',1.5,.12+.78*k1*k1,'#fff1a0')}
+    for(let j=0;j<3;j++){const k=(t*1.6+j/3)%1;disc(c,lerp(sx,b.x,k),lerp(sy,b.y,k),1.9,'#fff',.9)}
+    glow(c,b.x,b.y,24,'#ffd21f',.6);
+    const tx=b.x+ux*14,ty=b.y+uy*14;
+    c.beginPath();c.moveTo(tx,ty);c.lineTo(b.x-ux*7+nx*6,b.y-uy*7+ny*6);c.lineTo(b.x-ux*3,b.y-uy*3);c.lineTo(b.x-ux*7-nx*6,b.y-uy*7-ny*6);c.closePath();
+    c.fillStyle='#fff6b8';c.fill();c.lineJoin='round';c.lineWidth=1.8;c.strokeStyle='#ffc400';c.stroke();
+    c.strokeStyle='#fff';c.lineWidth=1.6;c.lineCap='round';
+    for(const s of[-1,1]){c.beginPath();c.moveTo(tx+nx*s*2.2,ty+ny*s*2.2);c.lineTo(tx+ux*5+nx*s*2.6,ty+uy*5+ny*s*2.6);c.stroke()}
+    if(rnd(Math.floor(t*30)+b.id)>.4)bolt(c,tx+ux*5+nx*2.6,ty+uy*5+ny*2.6,tx+ux*5-nx*2.6,ty+uy*5-ny*2.6,1.5,Math.floor(t*30),3,'#ffe14a',1,1);
+  },
+  hit(c,x,y,k,ang){
+    disc(c,x,y,6+k*26,'#fff',1-k*1.6);
+    for(let i=0;i<8;i++){const a=i/8*TAU+.3,r0=10+k*8,r1=14+k*34;
+      bolt(c,x+Math.cos(a)*r0,y+Math.sin(a)*r0,x+Math.cos(a)*r1,y+Math.sin(a)*r1,2.5,i*4+Math.floor(k*10),3,'#ffd21f',1.5,1-k,'#fff1a0')}
+    const ux=-Math.cos(ang),uy=-Math.sin(ang);
+    bolt(c,x+ux*10,y+uy*10,x+ux*(40+k*90),y+uy*(40+k*90),4,Math.floor(k*14),5,'#ffd21f',1.5,Math.max(0,1-k*2),'#fff1a0');
+  }},
+B:{name:'Fork Bolt',col:'#bfe9ff',
+  note:'<b>B · Fork Bolt.</b> A white lightning glyph along its path that re-rolls its zigzag 16 times a second, with a fork. Jagged and flickering where every other bullet is round and still.',
+  shot(c,b,t){
+    const ux=Math.cos(b.ang),uy=Math.sin(b.ang),nx=-uy,ny=ux,sd=Math.floor(t*16)*4.3+b.id*9;
+    const n=5,len=36,pts=[];
+    for(let i=0;i<=n;i++){const k=i/n-.5,o=(i===0||i===n)?0:(i%2?1:-1)*(5+rnd(sd+i)*6);pts.push([b.x+ux*len*k+nx*o,b.y+uy*len*k+ny*o])}
+    glow(c,b.x,b.y,24,'#9fdcff',.55);
+    c.save();c.lineCap=c.lineJoin='round';
+    const path=()=>{c.beginPath();pts.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke()};
+    c.globalAlpha=.4;c.strokeStyle='#8fd4ff';c.lineWidth=10;path();
+    c.globalAlpha=1;c.strokeStyle='#dff4ff';c.lineWidth=4.2;path();
+    c.strokeStyle='#fff';c.lineWidth=1.8;path();
+    const f=pts[2],fa=rnd(sd+7)>.5?1:-1;
+    bolt(c,f[0],f[1],f[0]+nx*fa*13+ux*6,f[1]+ny*fa*13+uy*6,2,sd,3,'#8fd4ff',1.3,.95);
+    c.restore();
+  },
+  hit(c,x,y,k){
+    disc(c,x,y,10+k*16,'#dff4ff',(1-k)*.7);
+    const q=Math.floor(k*18);
+    for(let i=0;i<6;i++){const a=i/6*TAU+.5;
+      bolt(c,x+Math.cos(a)*8,y+Math.sin(a)*8,x+Math.cos(a)*(16+k*40),y+Math.sin(a)*(16+k*40),5,q*5+i,5,'#8fd4ff',2,1-k)}
+  }},
+C:{name:'Pulse Ring',col:'#b6ff3c',
+  note:'<b>C · Pulse Ring.</b> A hollow lime ring with spinning ticks and a sonar ping expanding off it three times a second. Hollow among filled orbs, in a colour nothing else uses.',
+  shot(c,b,t){
+    const R=9;
+    for(let i=0;i<2;i++){const p=(t*3+i/2+b.id*.13)%1;ring(c,b.x,b.y,R+p*22,'#b6ff3c',2,(1-p)*.75)}
+    glow(c,b.x,b.y,24,'#b6ff3c',.4);
+    disc(c,b.x,b.y,R,'#142800',.7);
+    ring(c,b.x,b.y,R,'#d8ff7a',3.5,1);
+    c.save();c.strokeStyle='#fff';c.lineWidth=1.8;c.lineCap='round';
+    for(let i=0;i<4;i++){const a=t*2.4+i*TAU/4;c.beginPath();c.moveTo(b.x+Math.cos(a)*(R+2),b.y+Math.sin(a)*(R+2));c.lineTo(b.x+Math.cos(a)*(R+8),b.y+Math.sin(a)*(R+8));c.stroke()}
+    c.restore();disc(c,b.x,b.y,2.2,'#fff',1);
+  },
+  hit(c,x,y,k){
+    const s=Math.min(1,k/.4);
+    ring(c,x,y,lerp(44,13,s*s),'#b6ff3c',3,1-Math.max(0,(k-.4)/.6));
+    if(k>.4){const e=(k-.4)/.6;ring(c,x,y,13+e*34,'#d8ff7a',2,1-e);disc(c,x,y,13*(1-e)+4,'#fff',(1-e)*.6)}
+  }},
+D:{name:'Hazard Strobe',col:'#ffd21f',
+  note:'<b>D · Hazard Strobe.</b> The biggest of the four: a rotating warning-striped orb with a bolt glyph, flipping between yellow and white 2.5 times a second.',
+  shot(c,b,t){
+    const R=11,on=Math.floor(t*5)%2===0;
+    glow(c,b.x,b.y,30,on?'#ffffff':'#ffd21f',.5);
+    c.save();c.beginPath();c.arc(b.x,b.y,R,0,TAU);c.clip();
+    c.fillStyle=on?'#fff0a0':'#ffd21f';c.fillRect(b.x-R,b.y-R,R*2,R*2);
+    c.translate(b.x,b.y);c.rotate(t*2.5);c.fillStyle='#14110a';
+    for(let i=-3;i<=3;i+=2)c.fillRect(i*3.4-1.7,-R,3.4,R*2);
+    c.restore();
+    ring(c,b.x,b.y,R,on?'#fff':'#ffd21f',2.5,1);
+    disc(c,b.x,b.y,5.2,'#14110a',1);
+    c.save();c.translate(b.x,b.y);c.fillStyle='#fff';c.beginPath();
+    c.moveTo(1.4,-4.6);c.lineTo(-2.8,.8);c.lineTo(-.1,.8);c.lineTo(-1.4,4.6);c.lineTo(2.8,-1);c.lineTo(.1,-1);c.closePath();c.fill();c.restore();
+  },
+  hit(c,x,y,k){
+    disc(c,x,y,10+k*30,'#fff',Math.pow(1-k,2));
+    ring(c,x,y,14+k*40,'#ffd21f',4,1-k);ring(c,x,y,8+k*24,'#14110a',2,(1-k)*.8);
+  }}
+};
+
+/* ---- stunned player, guard, charge ---- */
+function stunFx(c,x,y,t,left,total,col){
+  c.save();c.strokeStyle=col;c.globalAlpha=.9;c.lineWidth=3;c.beginPath();
+  c.arc(x,y,21,-Math.PI/2,-Math.PI/2+TAU*Math.max(0,left/total));c.stroke();c.restore();
+  const q=Math.floor(t*14);
+  for(let i=0;i<4;i++){const a=t*2.6+i*TAU/4,r1=22+rnd(q+i*5)*8,a2=a+(rnd(q+i)-.5)*1.1;
+    bolt(c,x+Math.cos(a)*13,y+Math.sin(a)*13,x+Math.cos(a2)*r1,y+Math.sin(a2)*r1,3,q*3+i,3,col,1.4,.9)}
+}
+function drawGuard(c,x,y,ang,label){
+  c.save();c.translate(x,y);c.rotate(ang);
+  c.fillStyle='#2b4580';c.strokeStyle='#7fa2ec';c.lineWidth=2;c.beginPath();c.arc(0,0,13,0,TAU);c.fill();c.stroke();
+  c.fillStyle='#0a1328';c.fillRect(2,-6,9,12);
+  c.fillStyle='#cfd8ee';c.fillRect(11,-2.5,12,5);
+  c.strokeStyle='#fff';c.lineWidth=1.5;c.lineCap='round';
+  for(const s of[-1,1]){c.beginPath();c.moveTo(23,s*3);c.lineTo(27,s*3);c.stroke()}
+  c.restore();
+  if(label){c.fillStyle='rgba(255,255,255,.55)';c.font='500 10px "IBM Plex Mono",monospace';c.textAlign='center';c.fillText('TASER GUARD',x,y+30)}
+}
+function drawPlayer(c,x,y,stunned,t){
+  const sx=stunned?(rnd(Math.floor(t*40))-.5)*3:0,sy=stunned?(rnd(Math.floor(t*40)+9)-.5)*3:0;
+  c.save();c.translate(x+sx,y+sy);
+  c.fillStyle='#a9c8ff';c.strokeStyle='#e8f1ff';c.lineWidth=2;c.beginPath();c.arc(0,0,11,0,TAU);c.fill();c.stroke();
+  c.fillStyle='#1c3566';c.beginPath();c.arc(0,0,4,0,TAU);c.fill();
+  c.restore();
+}
+
+/* ---- scene: the shared sim for the big arena and every card ---- */
+class Scene{
+  constructor(cv,W,H,cfg){
+    this.cv=cv;this.W=W;this.H=H;this.cfg=cfg;this.opt=cfg.opt;this.dens=cfg.dens;this.sc=cfg.sc||W/880;this.vis=true;
+    const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=W*dpr;cv.height=H*dpr;
+    this.c=cv.getContext('2d');this.c.setTransform(dpr,0,0,dpr,0,0);
+    this.reset();
+    for(let i=0;i<420;i++)this.step(1/60,true);
+    this.t=0;this.pt=0;this.cd=.9;
+  }
+  reset(){this.t=0;this.pt=0;this.bul=[];this.shots=[];this.fx=[];this.stunT=0;this.charge=-1;this.cd=1.2;this.ringT=0;this.spT=0;this.spA=0;this.id=0;this.gAng=0}
+  playerPos(pt){
+    const {W,H,cfg}=this;
+    return cfg.moving?{x:W*.66+W*.15*Math.cos(pt*.55),y:H*.5+H*.2*Math.sin(pt*.9)}:cfg.player;
+  }
+  aim(){
+    const g=this.cfg.guard,sp=this.cfg.speed;let p=this.playerPos(this.pt);
+    for(let i=0;i<5;i++){const T=Math.hypot(p.x-g.x,p.y-g.y)/sp;p=this.playerPos(this.pt+T)}
+    return {p,ang:Math.atan2(p.y-g.y,p.x-g.x)};
+  }
+  fire(){
+    const g=this.cfg.guard,a=this.aim().ang,sp=this.cfg.speed;
+    this.shots.push({x:g.x+Math.cos(a)*24,y:g.y+Math.sin(a)*24,ang:a,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,dist:0,id:++this.id});
+  }
+  step(dt,warm){
+    const {W,H,sc,cfg}=this,e=cfg.emit;this.t+=dt;
+    if(this.stunT>0)this.stunT=Math.max(0,this.stunT-dt);else this.pt+=dt;
+    const d=DENS[this.dens];
+    if(d>0){
+      this.ringT-=dt;
+      if(this.ringT<=0){this.ringT=1.15/d;const n=16,o=Math.random()*TAU,sp=(90+Math.random()*25)*sc,col=CLUT[(Math.random()*5)|0];
+        for(let i=0;i<n;i++){const a=o+i/n*TAU;this.bul.push({x:e.x,y:e.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,col})}}
+      this.spT-=dt;
+      if(this.spT<=0){this.spT=.12/d;this.spA+=.43;const sp=125*sc;
+        for(let k=0;k<2;k++){const a=k?Math.PI-this.spA:this.spA;this.bul.push({x:e.x,y:e.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,col:CLUT[((this.spA*7)|0)%5]})}}
+    }
+    for(const b of this.bul){b.x+=b.vx*dt;b.y+=b.vy*dt}
+    this.bul=this.bul.filter(b=>b.x>-20&&b.x<W+20&&b.y>-20&&b.y<H+20);
+    if(this.bul.length>700)this.bul.splice(0,this.bul.length-700);
+    if(!warm){
+      if(this.charge>=0){this.charge+=dt;if(this.charge>=CHARGE){this.fire();this.charge=-1;this.cd=cfg.interval}}
+      else if(!this.shots.length&&this.stunT<=0){this.cd-=dt;if(this.cd<=0)this.charge=0}
+      for(const s of this.shots){
+        s.x+=s.vx*dt;s.y+=s.vy*dt;s.dist+=cfg.speed*dt;
+        const p=this.playerPos(this.pt);
+        if(this.stunT<=0&&Math.hypot(s.x-p.x,s.y-p.y)<20){s.dead=true;this.fx.push({x:p.x,y:p.y,age:0,ang:s.ang,opt:this.opt});this.stunT=STUN}
+        else if(s.x<-40||s.x>W+40||s.y<-40||s.y>H+40)s.dead=true;
+      }
+      this.shots=this.shots.filter(s=>!s.dead);
+      for(const f of this.fx)f.age+=dt;
+      this.fx=this.fx.filter(f=>f.age<.7);
+    }
+  }
+  draw(){
+    const c=this.c,{W,H,cfg,t}=this,o=OPT[this.opt],g=cfg.guard,e=cfg.emit;
+    c.clearRect(0,0,W,H);c.fillStyle='#0c0e12';c.fillRect(0,0,W,H);
+    c.strokeStyle='rgba(255,255,255,.04)';c.lineWidth=1;c.beginPath();
+    for(let x=40;x<W;x+=40){c.moveTo(x,0);c.lineTo(x,H)}for(let y=40;y<H;y+=40){c.moveTo(0,y);c.lineTo(W,y)}c.stroke();
+    // the boss in the middle
+    c.fillStyle='#1a1013';c.strokeStyle='#6a2c2c';c.lineWidth=2;c.beginPath();c.arc(e.x,e.y,cfg.label?24:14,0,TAU);c.fill();c.stroke();
+    if(cfg.label){c.fillStyle='rgba(255,255,255,.4)';c.font='500 10px "IBM Plex Mono",monospace';c.textAlign='center';c.fillText('WARDEN',e.x,e.y+4)}
+    for(const b of this.bul)c.drawImage(sprite(b.col),b.x-16,b.y-16);
+    // guard and its charge
+    const aim=this.aim();
+    if(this.charge>=0)this.gAng=aim.ang;else if(!this.shots.length&&this.stunT<=0)this.gAng=aim.ang;
+    drawGuard(c,g.x,g.y,this.gAng,cfg.label);
+    if(this.charge>=0){
+      const k=Math.min(1,this.charge/CHARGE),ux=Math.cos(this.gAng),uy=Math.sin(this.gAng),nx=-uy,ny=ux,mx=g.x+ux*26,my=g.y+uy*26;
+      const L=Math.hypot(aim.p.x-g.x,aim.p.y-g.y)+30;
+      c.save();c.setLineDash([5,7]);c.strokeStyle=o.col;c.globalAlpha=.15+.4*k;c.lineWidth=1.2;c.beginPath();c.moveTo(mx,my);c.lineTo(g.x+ux*L,g.y+uy*L);c.stroke();c.restore();
+      glow(c,mx,my,8+16*k,o.col,.55*k);
+      bolt(c,mx+nx*4,my+ny*4,mx-nx*4,my-ny*4,1+4*k,Math.floor(t*30),3,o.col,1.3,.5+.5*k);
+    }
+    // player
+    const p=this.playerPos(this.pt);
+    drawPlayer(c,p.x,p.y,this.stunT>0,t);
+    if(this.stunT>0)stunFx(c,p.x,p.y,t,this.stunT,STUN,o.col);
+    for(const s of this.shots)o.shot(c,s,t);
+    for(const f of this.fx)OPT[f.opt].hit(c,f.x,f.y,f.age/.7,f.ang);
+  }
+}
+
+/* ---- page ---- */
+const reduced=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+let paused=reduced;
+const scenes=[];
+const mainCv=document.getElementById('main');
+const main=new Scene(mainCv,880,440,{opt:'A',dens:2,guard:{x:110,y:92},emit:{x:440,y:220},moving:true,speed:250,interval:2.6,label:true});
+scenes.push(main);
+
+const cards=document.getElementById('cards');
+const CARD={
+  cur:{tag:'NOW',desc:'Cyan orb with a few arcs. Same size and shape as every bullet around it, so colour alone has to do the work.',tags:['orb','cyan','radius 6']},
+  A:{tag:'A',desc:'An arrow-shaped dart trailing a crackling wire back to the guard. Nothing else on screen is a long thin line, and it points at who fired it.',tags:['dart','wire to the guard','yellow']},
+  B:{tag:'B',desc:'A white lightning glyph that re-rolls its zigzag 16 times a second. No other bullet has a jagged outline or flickers like it.',tags:['jagged','flicker','white']},
+  C:{tag:'C',desc:'A hollow ring with spinning ticks and a sonar ping every third of a second. Hollow among filled orbs; the ping reads like a radar sweep.',tags:['hollow','pulse','lime']},
+  D:{tag:'D',desc:'A hazard-striped orb with a bolt glyph, flipping between yellow and white. The biggest and busiest; it reads as a warning with no learning.',tags:['large','strobe 2.5 Hz','yellow/black']}
+};
+for(const k of['cur','A','B','C','D']){
+  const el=document.createElement('article');el.className='card';
+  el.innerHTML='<canvas aria-label="Loop of the '+OPT[k].name+' stun shot"></canvas><div class="body"><h3><b>'+CARD[k].tag+'</b>'+OPT[k].name+'</h3><p>'+CARD[k].desc+'</p><div class="tags">'+CARD[k].tags.map(t=>'<span>'+t+'</span>').join('')+'</div><button class="act" data-try="'+k+'">Try it in the arena</button></div>';
+  cards.appendChild(el);
+  scenes.push(new Scene(el.querySelector('canvas'),440,230,{opt:k,dens:1,guard:{x:42,y:115},emit:{x:220,y:115},player:{x:392,y:115},moving:false,speed:200,interval:2.2,sc:.7,label:false}));
+}
+
+if('IntersectionObserver' in window){
+  const io=new IntersectionObserver(es=>es.forEach(en=>{const s=scenes.find(s=>s.cv===en.target);if(s)s.vis=en.isIntersecting}));
+  scenes.forEach(s=>io.observe(s.cv));
+}
+
+const st={opt:'A',dens:'2',view:'normal'};
+function setNote(){document.getElementById('optNote').innerHTML=OPT[st.opt].note}
+function sync(){
+  document.querySelectorAll('.seg[data-g]').forEach(g=>g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(st[g.dataset.g]===b.dataset.v))));
+  main.opt=st.opt;main.dens=+st.dens;
+  mainCv.style.filter=st.view==='gray'?'grayscale(1)':st.view==='squint'?'grayscale(1) blur(2.2px)':'none';
+  setNote();
+}
+document.querySelectorAll('.seg[data-g]').forEach(g=>g.addEventListener('click',ev=>{
+  const b=ev.target.closest('button');if(!b)return;st[g.dataset.g]=b.dataset.v;sync();
+}));
+document.getElementById('fire').addEventListener('click',()=>{main.cd=0});
+const pauseBtn=document.getElementById('pause');
+function pauseLabel(){pauseBtn.textContent=paused?'Play':'Pause'}
+pauseBtn.addEventListener('click',()=>{paused=!paused;pauseLabel()});
+cards.addEventListener('click',ev=>{
+  const b=ev.target.closest('[data-try]');if(!b)return;
+  st.opt=b.dataset.try;sync();
+  document.getElementById('arena').scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});
+});
+pauseLabel();sync();
+
+let last=performance.now();
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;
+  for(const s of scenes){if(!s.vis)continue;if(!paused)s.step(dt);s.draw()}
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>

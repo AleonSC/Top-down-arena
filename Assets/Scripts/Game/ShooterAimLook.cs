@@ -24,6 +24,7 @@ namespace Arena
                 case EnemyType.Splitter: reach = 260f; return true;
                 case EnemyType.Phantom: reach = 300f; return true;
                 case EnemyType.Grunt: reach = 230f; fan = 0.22f; return true;
+                case EnemyType.TaserGuard: reach = 420f; return true;
             }
             reach = 0f;
             return false;
@@ -43,7 +44,7 @@ namespace Arena
                     aimSince.Clear();  // dead enemies leave entries behind
                 since = aimSince[e.Id] = t;
             }
-            float p = MathX.Clamp01((t - since) / Game.WindUp);
+            float p = MathX.Clamp01((t - since) / Game.WindUpOf(e.Type));
             Rgba c = e.Def.Color.Mix(Rgba.White, 0.5f);
             float a = 0.25f + 0.45f * p;
             V2 from = pos + V2.FromAngle(e.Facing) * e.Radius;

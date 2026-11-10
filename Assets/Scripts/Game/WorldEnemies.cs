@@ -881,6 +881,9 @@ namespace Arena
                 case EnemyType.GasGrenadier:
                     DrawGrenadier(e, pos, r, t);  // WardenLook.cs
                     break;
+                case EnemyType.TaserGuard:
+                    DrawTaserGuardDetails(e, pos, r, t);  // TaserLook.cs
+                    break;
                 case EnemyType.HiveEgg:
                     DrawEggDetails(e, pos, r, t);  // QueenLook.cs
                     break;

@@ -95,6 +95,8 @@ namespace Arena
         {
             if (e.Type == EnemyType.GasGrenadier)
                 return KeepDistance(dir, dist, GrenadierRange) + dir.Orthogonal() * e.Strafe * 0.5f;
+            if (e.Type == EnemyType.TaserGuard)
+                return e.Winding ? V2.Zero : KeepDistance(dir, dist, TaserRange) + dir.Orthogonal() * e.Strafe * 0.5f;  // plants its feet while it charges
             switch (RiotState(e))
             {
                 case RiotWinding:
@@ -341,6 +343,19 @@ namespace Arena
             V2 at = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 50f), 60f);
             SpawnPatchAt(PatchKind.Gas, at, GasFlight, GasFlight + GrenadierGasLife, GrenadierGasRadius, GrenadierGasRadius);
             BroadcastFx(FxKind.Target, at, new Rgba(0.6f, 0.95f, 0.4f), GrenadierGasRadius, GasFlight, Sfx.Throw);
+        }
+
+        // --- Taser Guard ---------------------------------------------------------------------------------------------
+        // Keeps TaserRange away, plants its feet and charges for TaserWindUp s (prongs crackling, a dashed aim line: Game/TaserLook.cs),
+        // then fires one Fork Bolt (Defs.TaserBolt) straight at you. A hit stuns you for StunTime (Combat.cs); a perfect parry
+        // sends it back as a needle like any shot. It doesn't lead its target: strafe across the line.
+        public const float TaserWindUp = 0.7f, TaserEvery = 3.2f, TaserRange = 320f, TaserBoltSpeed = 260f;
+
+        void TaserFire(Enemy e, float aim)
+        {
+            e.FireT = TaserEvery;
+            EnemyShot(e, aim, TaserBoltSpeed, Defs.TaserBolt);
+            BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(aim) * (e.Radius + 12f), Defs.BulletColor(Defs.TaserBolt), 22f, 0.2f, Sfx.SpellZap);
         }
 
         float looseGasT;

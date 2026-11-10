@@ -109,7 +109,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Core/BruteEnrage.cs`: Brute enrage (`BruteRage`/`BruteSpeedMult`/`BruteDamageMult`, from health lost; used in `MoveEnemy` and the contact damage in `EnemyAI.cs`; redder in `Game/WorldEnemies.cs`)
 - `Core/NewEnemies.cs`, `Game/NewEnemyChips.cs`: the new-enemy chips under the between-waves box (`Game.NewTypesAt`, `Game.EnemyNote`; unmet types only, via `Profile.TagSeen`)
 - `Zombies.cs`: Zombie Infection modifier (seven zombie kinds)
-- `Approaches.cs`, `WardenFaction.cs`: boss factions/approach mixes, Warden's faction enemies
+- `Approaches.cs`, `WardenFaction.cs`: boss factions/approach mixes, Warden's faction enemies (Riot Shield, Gas Grenadier, Taser Guard: it charges `TaserWindUp` 0.7 s, then one Fork Bolt, `Defs.TaserBolt`, that stuns for `StunTime`)
 - Bosses by wave: `Warden.cs` (5), `Queen.cs` (10), `Reapers.cs` (15), `Singularity.cs` (20), `Colossus.cs` (25),
   `Duelist.cs` (30), `Lich.cs` (35), `Herald.cs` (40), `Devourer.cs` (45), `Eclipse.cs` (50); `LateGame.cs` is the shared
   late-boss logic
@@ -207,6 +207,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `BarrierLook.cs`: the Tank Soldier's Barrier with Visual effects on: eight armour plates that slam down, recoil on blocks and are knocked off as it soaks (style C, Bulwark Plates)
 - `ArcLightningLooks.cs`: Arc Lightning with Visual effects on: violet halo, sparks, dashed cone with tendrils, and the whipping fractal tree (style F, Lichtenberg)
 - `PropsLook.cs`, `ZombieLook.cs`, `VarietyLook.cs`, `ChallengeLook.cs`: props, zombies, wave 15+ enemies, challenge rooms
+- `TaserLook.cs` (Game): the Taser Guard's Fork Bolt (white zigzag glyph, 16 Hz flicker, fork, halo), its hit (`FxKind.TaserHit`) and the guard's taser and charge; numbers match `Docs/Mockups/taser-guard-stun.html` option B; preview `TASER=0.3 Tools/Preview/shot.sh taser hud 3`
 - `WarderLook.cs`: the Warder's body (Censer Priest: diamond, orbiting sigils, chevron), its charge ring and bead tethers, and the twelve-cell bubble (`DrawBubble`, cells flash and break from the `Enemy.Cells` mask) and shield bar; mockups `Docs/Mockups/warder-rework.html`, `shield-tells.html`
 - Boss visuals: `WardenLook.cs`, `QueenLook.cs`, `ReaperLook.cs`, `SingularityLook.cs`, `ColossusLook.cs`,
   `DuelistLook.cs`, `LichLook.cs`, `HeraldLook.cs`, `DevourerLook.cs`, `EclipseLook.cs`, `StageShiftLook.cs`,
