@@ -509,6 +509,7 @@ static partial class Shot {
       foreach (var n in new[] { "Hollow Points", "Fortitude", "Multishot", "Thick Skin", "Riposte" })
         host.Game.GrantUpgrade(1, U(n));
       var g = host.Game;
+      if (Environment.GetEnvironmentVariable("SHOPEXPAND") != null) g.Diff.Set(DiffKnob.ArenaExpanding, 1f);  // SHOPEXPAND=1: the Expanding arena's services (Floor kit, Vector pack)
       g.CurrentPath = PathId.Bazaar; g.PathFrom = 11; g.PathTo = 14; g.Wave = 14; g.State = MatchState.Intermission;
       typeof(Game).GetMethod("OpenShop", f2).Invoke(g, null);
       g.CurrentPath = PathId.None;
