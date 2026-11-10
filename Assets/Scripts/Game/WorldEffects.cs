@@ -117,9 +117,11 @@ namespace Arena
                 case FxKind.KatanaStanceFx:
                     DrawKatanaStanceFx(fx);  // KatanaLook.cs
                     break;
-                case FxKind.KatanaHop:
-                    DrawKatanaHopFx(fx);  // KatanaLook.cs
+                case FxKind.KatanaDash:
+                    DrawKatanaDashFx(fx);  // KatanaLook.cs (its light: DrawKatanaGlow)
                     break;
+                case FxKind.KatanaHop: case FxKind.KatanaSweep: case FxKind.KatanaSlash: case FxKind.KatanaBurst:
+                    break;  // all light (KatanaLook.cs DrawKatanaGlow); the Burst's cracks are DrawKatanaMarks
                 case FxKind.PerfectParry:
                     DrawPerfectParryFx(fx);  // ParryLook.cs
                     break;

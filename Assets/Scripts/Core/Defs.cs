@@ -397,7 +397,8 @@ namespace Arena
             MedkitShot = 56,   // the Deployable Medkit, lobbed: it flies over everything and bursts into healing orbs where it lands (Medkit.cs)
             TreantSeed = 57,   // a tiny seed the Treant Rod's Treant flicks at enemies, drawn as a thorn dart (KitWeapons.cs, Game/SeedLook.cs)
             SteelShard = 58,   // a bullet Caught Steel caught, hurled back as a sliver of steel (CaughtSteel.cs, Game/CaughtSteelLook.cs)
-            ParryNeedle = 59;  // a perfectly parried shot, sent straight back as a fast white needle (Parry.cs, Game/ParryLook.cs)
+            ParryNeedle = 59,  // a perfectly parried shot, sent straight back as a fast white needle (Parry.cs, Game/ParryLook.cs)
+            Caltrop = 60;      // a Katana caltrop: thrown, lying (it hurts and slows what steps on it), flung or seeking (Katana.cs, Game/KatanaLook.cs)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot;
 
@@ -429,6 +430,7 @@ namespace Arena
                 case TreantSeed: return 2.5f;
                 case SteelShard: return 4f;
                 case ParryNeedle: return 4f;
+                case Caltrop: return 5f;
                 case BoneShot: return 3.5f;
                 case RockShot: return 6f;
                 case MinionShot: return 3.5f;
@@ -516,6 +518,7 @@ namespace Arena
                 case TreantSeed: return new Rgba(0.74f, 0.94f, 0.54f);
                 case SteelShard: return new Rgba(1f, 0.59f, 0.24f);
                 case ParryNeedle: return new Rgba(1f, 1f, 1f);
+                case Caltrop: return new Rgba(0.81f, 0.84f, 0.9f);
                 case BoneShot: return new Rgba(0.92f, 0.9f, 0.8f);
                 case RockShot: return new Rgba(0.7f, 0.6f, 0.5f);
                 case MinionShot: return new Rgba(0.85f, 1f, 0.95f);

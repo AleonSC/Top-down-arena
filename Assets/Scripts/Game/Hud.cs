@@ -37,7 +37,6 @@ namespace Arena
             });
             DrawStageBanner();  // a boss changing stage (StageShiftLook.cs)
             DrawFreezeBanner();  // Blood Freeze's count and timer (BloodFreezeLook.cs)
-            DrawKatanaLetterbox();  // the bars over your own Zanshin (KatanaLook.cs)
             DrawChallengeHud(me);  // a challenge room's portal, title, objective and result (ChallengeLook.cs)
             DrawMiniBossBars(introHidHud ? 0f : 1f - hudT);  // (not while a boss's entrance card has the HUD off: they'd sit on the card's bars)  // the HUD hidden (H): a slim bar per boss stays at the top (HealthBars.cs)
             DrawWardenTags();   // "EXPOSED" / "STUNNED" over the Warden (WardenLook.cs)

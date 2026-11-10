@@ -923,7 +923,7 @@ namespace Arena
             }
             if (KatanaStriking && DashT <= 0f)
             {
-                move = V2.Zero;  // a Kage Chain or Zanshin under way: you go where it takes you and can't swing (Katana.cs)
+                move = V2.Zero;  // the Katana's Momentum Burst: planted for a moment (Katana.cs)
                 firing = false;
             }
             float bowRelease = LocalBow(me, firing, dt);
@@ -1098,7 +1098,6 @@ namespace Arena
             }
 
             LocalDodge(me, move, input.Dodge, dt);  // the tiny dash with invulnerability (Dodge.cs)
-            katanaFireHeld = firing;  // the Katana spends a full meter on a held fire (Katana.cs)
             LocalWeaponDash(me, move, aimAt, input.WeaponAction && !me.ParryActive, dt);  // weapon secondaries on their own key (Ninja.cs)
             me.Pos = KeepInArena(RoomsHold(before, me.Pos, me.Def.BodyR), me.Def.BodyR);  // (a room locks behind you: Rooms.cs)
             me.FiringSeen = firing;
@@ -1164,7 +1163,7 @@ namespace Arena
             TickLightbringer(dt);  // Lightbringer.cs: Mercy's wards fading, Sunlances flying
             TickLance(dt);  // Lance.cs: Hook & Haul's cooldown and hooks landing
             TickCenser(dt);      // Censer.cs: the rite forgetting its place, Censer Cast landing
-            TickKatanaRuns(dt);  // Katana.cs: the Kage Chain and Zanshin landing
+            TickKatanaLater(dt);  // Katana.cs: the Katana's timed cuts, the Momentum Burst, the caltrops
             TickHammerThrows(dt);   // StormHammer.cs: throws leaving the hand
             TickHammerSlams(dt);    // StormHammer.cs: slams landing and their shockwaves
             TickBoShoves(dt);   // BoStaff.cs: the Bo Staff's shoves landing

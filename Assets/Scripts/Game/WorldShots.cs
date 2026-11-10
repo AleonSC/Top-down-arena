@@ -88,6 +88,11 @@ namespace Arena
             if (!Defs.IsEnemyShot(b.Kind))
                 DrawShotMods(b, t);
             Rgba c = Defs.BulletColor(b.Kind);
+            if (b.Kind == Defs.Caltrop)
+            {
+                DrawCaltrop(b, t);  // KatanaLook.cs
+                return;
+            }
             if (b.Kind == Defs.ParryNeedle)
             {
                 DrawParryNeedle(b);  // ParryLook.cs
