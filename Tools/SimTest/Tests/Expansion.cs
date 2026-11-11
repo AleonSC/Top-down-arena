@@ -512,12 +512,22 @@ static partial class Program
         Check(fires.Count > 0 && fires.All(pt => g.FloorAt(pt.Pos) == PathId.BurningGrounds) && fires.Count <= (int)Math.Ceiling(Paths.FireMax * 0.25f), "fire patches burn inside the Burning room only (" + fires.Count + ")");
         Check(g.Patches.Values.All(pt => pt.Kind == PatchKind.Fire), "no healing pools without a Sanctuary room");
 
-        // Gold and the shop: kills drop gold with a shop room; the wave after a boss ends with the shop open; walking in and shopping closes it.
+        // Gold and the shop: kills drop coins that lie on the ground for whoever walks over them (Coins.cs); the wave after a boss ends with the shop open; walking in and shopping closes it.
+        Action<V2, V2> PutBoth = (p1, p2) => { g.Players[1].Pos = g.Players[1].Disp = cg.Players[1].Pos = p1; g.Players[2].Pos = g.Players[2].Disp = cg.Players[2].Pos = p2; };  // (each game moves its own player)
+        PutBoth(hubAt, hubAt);
+        Quiet();
+        Run(s, dt, 0.3f);
         foreach (var p in g.Players.Values) p.Gold = 0;
-        for (int i = 0; i < 4; i++) spawnEnemyAt.Invoke(g, new object[] { EnemyType.Grunt, hubAt + new V2(30f * i, 0f), 0f, 0, false });
+        g.Coins.Clear();
+        for (int i = 0; i < 4; i++) spawnEnemyAt.Invoke(g, new object[] { EnemyType.Grunt, shopAt + new V2(30f * i, 0f), 0f, 0, false });
         Quiet();
         Run(s, dt, 0.5f);
-        Check(g.Players.Values.All(p => p.Gold > 0), "kills drop gold for everyone while the map has a shop room (" + g.Players[1].Gold + ")");
+        int coinGold = g.Coins.Values.Sum(c => c.Value);
+        Check(g.Coins.Count > 0 && cg.Coins.Count == g.Coins.Count && g.Players.Values.All(p => p.Gold == 0), "kills drop coins that stay on the ground, on both screens, until someone walks over them (" + g.Coins.Count + "/" + cg.Coins.Count + " coins, " + g.Players[1].Gold + "/" + g.Players[2].Gold + " held, " + coinGold + " gold)");
+        PutBoth(hubAt, shopAt + new V2(45f, 0f));
+        Run(s, dt, 2f, () => g.Coins.Count == 0);
+        Check(g.Coins.Count == 0 && g.Players[2].Gold == coinGold && g.Players[1].Gold == 0, "the player who walks over the coins gets their gold (" + g.Players[2].Pos.DistanceTo(shopAt) + " away, " + g.Players[1].Gold + "/" + g.Players[2].Gold + "/" + coinGold + ")");
+        PutBoth(hubAt, hubAt);
         Quiet();
         Run(s, dt, 30f, () => g.State == MatchState.Intermission, NoPicks);
         Check(g.State == MatchState.Intermission && g.ShopOpen && cg.ShopOpen, "the wave after a boss ends with the shop open, on both screens");
