@@ -998,6 +998,18 @@ static partial class Shot {
       for (int k = 0; k < 4; k++) put(EnemyType.Rioter, new V2(260f + k * 34f, 160f + (k % 2) * 30f));
       put(EnemyType.Guard, new V2(220f, 230f));
     }
+    if (Environment.GetEnvironmentVariable("VECPICK") != null) {
+      // VECPICK=1: vector pickups (Game/VectorPickupLook.cs, Docs/Mockups/vector-pickup.html look D) beside gold coins: three small, one big. Mode hud.
+      host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); host.Game.Bot = false;
+      me.Pos = me.Disp = new V2(900f, 470f);
+      int cid = 9000;
+      foreach (var q in new[] { new V2(980f, 400f), new V2(1050f, 500f), new V2(960f, 540f), new V2(1100f, 420f) }) {
+        bool big = cid == 9003;
+        host.Game.Coins[++cid] = new Coin { Id = cid, Vec = true, Value = big ? Game.VectorDropBig : Game.VectorDropSmall, Pos = q, Disp = q };
+      }
+      host.Game.Coins[9100] = new Coin { Id = 9100, Value = 5, Pos = new V2(1000f, 470f), Disp = new V2(1000f, 470f) };
+      host.Game.Coins[9101] = new Coin { Id = 9101, Value = 1, Pos = new V2(1030f, 450f), Disp = new V2(1030f, 450f) };
+    }
     if (Environment.GetEnvironmentVariable("TASER") != null) {
       // The Taser Guard (TASER=<s since a Fork Bolt hit you>): one charging at you (visor, taser, crackling prongs, aim line), another's
       // Fork Bolt flying in across a field of bullets, and the hit on you. Set beside Docs/Mockups/taser-guard-stun.html, option B. Mode hud.
