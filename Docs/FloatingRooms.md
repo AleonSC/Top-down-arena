@@ -1,5 +1,7 @@
 # Floating rooms and themed rooms: paths, shops, vendors and the Gatekeeper in the Expanding arena
 
+**Superseded in part (Nov 11): shop and vendor become nodes, see [`Nodes.md`](Nodes.md).**
+
 Status: **all five steps built** (floating shop, vendor and Gatekeeper rooms, themed rooms, balance pass). Decided with the owner on Nov 10, 2026 (one idea from a friend: shops and vendors in "floating rooms"
 you have to build to). It builds on [`ExpandingArena.md`](ExpandingArena.md) and [`VectorBuilding.md`](VectorBuilding.md) (all built).
 

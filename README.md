@@ -418,6 +418,7 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 
 ## Rules
 
+- **Timed waves:** a regular wave's enemies arrive over about 45 s instead of in one burst: a ramp-up (first 15%), a steady stream, then a taper as the wave dies down, and the wave ends when the last one is dead (the clear-up brings it to about a minute). Spawning waits while 14 + 3 per wave (at most 60) foes are alive. Boss, Practice, designed, Zombie Infection and room-by-room waves keep their own pacing. Enemies pick the nearest breach (or the nearest valid spot on the open Rooms map, of four) to a player that is at least 350 px away, so big maps don't feel empty.
 - The arena is 1600x900 and **wraps around for players**: walk off any edge and you come in on the opposite side.
 - **Wall slams:** an enemy knocked back into the arena edge stops there and takes damage: 6 plus 0.12 per px of push the wall cut short, up to 40 (pushes that lose under 8 px do nothing). Bosses and shielded enemies still use their normal damage rules.
   Enemies and bullets don't wrap, so the edges make a good escape route.
@@ -840,10 +841,13 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   tied options), and the winning drawer pays; nobody else does. One room is built a round, with a door to every room it
   shares a door's width of wall with (loops). Paths are off in this arena.
   **Solo players skip the vote**: your proposal is built the moment you make it.
-- **Floating rooms**: every boss cycle the game places a **shop**, a **vendor** and a **Gatekeeper** room 4 to 8 tiles
-  off the map, each a sealed box with no door, marked on the arena floor, the minimap and the draw screen. Draw a room or hallway that shares 3
-  tiles of wall with one and its door opens (a box touching only a floating room is refused: it must also touch the connected map). Bots build to them too. At most 6
-  wait at once, they don't count towards the 24-room cap, add no enemies and no spawns, and a floating shop counts as a shop once it's opened.
+- **Nodes and the floating Gatekeeper room**: every boss cycle the game places a **shop node**, a **vendor node** and a **chest node**: points 10 to 16
+  tiles straight out from the map (at least 8 tiles from each other), marked on the arena floor, the minimap and the draw screen. A node is locked until you
+  build a **room** that encloses it (a hallway doesn't count: build a hallway out, then a room round the node); that room then becomes the shop or vendor
+  room, and a chest node's room stays a normal combat room with enemies. Walk up to a claimed **chest** to open it once: every player gets gold
+  (40, +10 a boss cycle) and 6 vectors. No cover stands on a node. Nodes never respawn: a claimed one stays, and new ones appear around the current map.
+  At most 6 wait at once. A **Gatekeeper** room is still placed each cycle as a sealed box 4 to 8 tiles off the map: share 3 tiles of wall with it and its
+  door opens (it doesn't count towards the 24-room cap and adds no enemies; at most 6 wait). Bots build a hallway and a room to nodes (not to chests' loot: they don't walk to them).
   (The Gatekeeper has its own room, below.)
 - **Open a wall**: on the draw screen, switch to **Open wall** and click both ends of a stretch of a wall two rooms share (the cyan stretches; the outer wall can't be
   opened, nor a sealed floating room's). It goes to the vote like a room. If it wins, that stretch of wall comes down (a short stretch is a door, a long
@@ -873,7 +877,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   more, picked by the wave and the map so everyone sees the same ones. Every 100 px of outer wall is a spot, so long outer walls
   break more often, and a **dead end** (a room with one door) more still: compact builds and loops have fewer places to be hit
   from. The barriers flicker up for 1.5 s before the first enemy steps through; an enemy uses a breach at least 350 px from every
-  player when there is one. Never on a floating room, a shop, vendor or Gatekeeper room, or on boss waves (the fixed boss arena).
+  player when there is one. Never on a sealed room, a shop, vendor or Gatekeeper room, or on boss waves (the fixed boss arena).
 - **Obstacles**: a built room comes with obstacles and bars of wall (pillars, bars, an L, blocks: one per ~220,000 px2, up to 4),
   laid out from the room's own box so every machine builds the same ones. They keep off the room's walls, its doors and its middle,
   so you can always walk round them; a hallway gets a pillar or block every ~500 px, alternating sides with a 180 px lane past each, none near a door or bend. A small or narrow room with doors at both ends still gets at least one

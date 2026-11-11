@@ -1,0 +1,57 @@
+# Nodes: map points you build a room around
+
+Status: **steps 1-2 built (protocol 282)**, steps 3-4 open. Decided with the owner on Nov 11, 2026. Replaces the floating shop and vendor rooms of
+[`FloatingRooms.md`](FloatingRooms.md); the Gatekeeper (mini-boss) stays a sealed room.
+
+## The idea
+
+A **node** is a point in empty space (no walls, no size): chest, shop, vendor, ... It is locked until a built room **fully encloses** it.
+Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay sealed rooms as today.
+
+## Decisions
+
+| Question | Decision |
+|---|---|
+| Placement | Far from the start room and from each other. Start: 10-16 tiles from the nearest connected room, at least 8 tiles between nodes (first guesses, tune with `vecbal`). Never next to the start. |
+| Enemies | **Shop and vendor nodes: no spawns** in the room (`SpawnWeight` 0, as now). **Chests and other nodes: the room spawns enemies as normal.** |
+| Respawn | **None**, for nodes and for the existing sealed rooms. Each is placed once and stays until claimed. |
+| New nodes | May appear **around the current build** as it grows (each boss cycle, placed relative to the built map, never inside it). They are new nodes, not respawns. |
+| Mini-bosses | Unchanged: sealed rooms, touch to open, duel, prize pick. |
+
+## Build rules
+
+- A node counts as enclosed when its point is inside a built room's box (not on a wall). The draw tool allows boxes that cover a node.
+- Cost is the usual room price; there is no node fee.
+- **Rooms only** (owner, Nov 11): a hallway never claims a node; it takes a room (wider than 3 tiles, or a drawn outline) round it.
+- Claiming: shop/vendor open their screen while you stand in the room; a chest opens when walked to, then is spent (the room stays).
+
+## Plan (one step at a time)
+
+1. `MapNode` data + placement (`Expansion`), seeded like `FloatingFor`, no respawn; remove shop/vendor floating rooms. **Protocol bump** (`Msg.ExpandState`).
+2. Enclose check, fixture inside the room, spawn rules per kind.
+3. Look: ghost marker in the arena, minimap and draw screen (`Tools/Preview` shots first).
+4. Bots build around nodes; `vecbal` balance pass; README.
+
+## Step 1 (built, protocol 282)
+
+- `MapNode` / `NodeKind` (Shop, Vendor, Chest; chests aren't placed yet) in `Expansion.cs`; `Game.Nodes` synced after the kits in `Msg.ExpandState`, saved as `node` lines.
+- `Expansion.NodeFor(seed, cycle, built, nodes, kind)`: 10-16 tiles straight out from a connected room (so a straight 3-tile hallway reaches it: `NodeHall`), 2 tiles clear of every room,
+  8+ tiles from other nodes; one shop and one vendor node per boss cycle (`PlaceFloatingRooms`), at most 4 unclaimed. The Gatekeeper stays a floating room.
+- Claiming: `Expansion.Build(..., nodes)` makes a Combat room that encloses a shop or vendor node a Shop or Vendor room (all boxes of a multi-box room), so spawns, gold and the shop screens work unchanged.
+- Bots build the cheapest straight hallway to the nearest unclaimed node (`BotBuildsToFloater`).
+- Look: breathing ring and mark on the arena floor, a square on the minimap and the draw screen with its name (`RoomsLook.cs`, `ExpansionUi.cs`). Preview: `EXPANDFLOAT=1` with `EXPANDVOTE=0 EXPANDDRAW=0,-1200,300,1200`.
+- Not yet: a fixture drawn inside the claimed room (step 3).
+- Old saves with floating shop or vendor rooms still load and work as before.
+
+## Step 2 (built, protocol 282)
+
+- **Rooms only**: `Expansion.NodeEncloses`; `Build(..., nodes)` and `NodeClaimed` use it. `NodeStep` is the next box toward a node: a 5 x 5 tile room round it if it reaches back to a connected
+  room, else the straight hallway out to where that room would start; `NodeReachable` checks (at most 4 boxes) that a node can be claimed. Bots follow `NodeStep`.
+- **Chests**: one chest node per boss cycle (owner: one, enemies spawn). Walking within 45 px of a claimed chest opens it (`TickNodes`, host): every player +40 gold (+10 per boss cycle) and +6 vectors,
+  once (`MapNode.Spent`, synced and saved); spent chests draw dim. Bots don't walk to chests. Max waiting nodes 6.
+- No cover within 90 px of a node (`Expansion.NodeClear`). Spawn rules need no change: a Shop or Vendor room spawns nothing, a chest's room is a Combat room.
+- Tests (suite `expand`): hallway first then room, claims only with the node in the map, chest opens once.
+
+## Open
+
+- Whether chest gold and vectors should scale harder (balance pass with `vecbal`).
