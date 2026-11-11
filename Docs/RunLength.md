@@ -85,7 +85,8 @@ damage about 4x.
 2. Effective-wave scaling + 100 waves, a boss every 10; the bot balance check. **Built** as *legs*: each track wave
    (1-50) is fought twice, so all scaling and unlocks read the track wave (= shown wave / 2, rounded up) unchanged; XP,
    kill gold, chests and vectors x0.5 (`Game.Pace`); the party reaches the first boss at level 4.73 vs 4.87 on the old
-   track (suite `longrun`). Old saves stay 50 waves. Profile records stay on the track's scale (a follow-up).
+   track (suite `longrun`). Old saves stay 50 waves. Records (best wave, Recent runs, run charts) count the Campaign's waves (`Game.RecordWave`); older profiles are
+   doubled once (profile format 7); Rank XP is unchanged.
 3. The Warden's teaching cycle (waves 1-9 as above) and its mid-boss. **Built**: the table above as `FactionDef.Lessons`
    (`Approaches.cs` `WaveLesson`, one per Campaign wave: members, squads, a guaranteed "star" enemy, the Riot line on
    wave 10). The mid-boss: a Lockdown Drill Data Gate was built and then **removed by the owner**; the stretch

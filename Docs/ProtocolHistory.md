@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 280: records count the Campaign's waves: the Boss and End records carry the record wave (`Game.RecordWave`) at their ends
 - 279: checkpoints and lives: `Game.LivesUsed`, `RetryReady` and `RetryWave` in the snapshot, a deathless flag at the end of the End record
 - 278: `RunMod.SimpleArena` (a new modifier flag that changes the arena), and a Campaign is the Expanding arena (mixed builds would disagree on the map)
 - 277: `DiffKnob.BuildVote` (the Expanding arena's building rule: team vote on, free building off; free building builds a drawing at once, no new messages, and `Msg.ExpandCut` is also accepted mid-wave) and `DiffKnob.BuildPurse` (Team purse: builds spend the whole team's vectors, builder first): two more difficulty knobs.

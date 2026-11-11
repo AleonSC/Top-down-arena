@@ -1389,6 +1389,10 @@ upgrades, the path is chosen and the shop is closed), and again if the match is 
 waves. Every arena saves (Classic, Rooms and Expanding, with its map). Leaving mid-wave keeps the save from that wave's start. A run that's won or lost loses its save. The
 Practice Range, the lobby's loadout preview and Boss Lab fights are never saved.
 
+**Records count the Campaign's waves** (1-100): best wave, best endless wave, Recent runs and the run charts. A profile
+from before the Campaign has its waves doubled once when it loads (a 50-wave run's wave n is about the Campaign's wave
+2n); Boss Hunt entries keep their ten waves. Rank XP is unchanged: it pays by bosses and progress, not the wave number.
+
 **Play** on the main menu opens the saved-runs picker in the menu's box: a header screen (**YOUR RUNS**) with a **Back** key
 beside it, and under it one scrolling screen with every save, newest first. The newest run is a tall row (wave, when,
 score, time played, each seat's player and class, the path, difficulty and modifiers) with a big **Continue**, always lit; every

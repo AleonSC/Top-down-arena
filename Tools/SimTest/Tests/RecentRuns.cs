@@ -53,7 +53,7 @@ static partial class Program
         Check(pb.Recent.Count == 2 && pb.Recent[0].Class == "Knight Tank" && pb.Recent[0].Mode == "Endless" && Math.Abs(pb.Recent[0].Seconds - 640.5f) < 0.01f && pb.Recent[0].Players == 2
             && pb.Recent[0].File == "20260101-120000-ab12" && Math.Abs(pb.Recent[0].Dealt - 81234f) < 1f && pb.Recent[1].File == "" && pb.Recent[1].Class == "", "the profile's run log keeps class, mode, time, damage and the curve's file");
         var old = Profile.Parse("arena-profile 5\nrlog 7 1 300 150 Tough_Crowd\nend 1\n");
-        Check(old.Recent.Count == 1 && old.Recent[0].Wave == 7 && old.Recent[0].Mods == "Tough Crowd" && old.Recent[0].File == "", "an older run log line (no summary) still loads");
+        Check(old.Recent.Count == 1 && old.Recent[0].Wave == 14 && old.Recent[0].Mods == "Tough Crowd" && old.Recent[0].File == "", "an older run log line (no summary) still loads (its wave moved to the Campaign's scale: 7 -> 14)");
 
         // Files: saved, loaded, trimmed to the newest few.
         string folder = Path.Combine(Path.GetTempPath(), "arena-runs-test-" + Guid.NewGuid().ToString("N"));

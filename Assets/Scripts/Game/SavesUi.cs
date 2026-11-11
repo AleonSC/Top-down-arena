@@ -199,7 +199,7 @@ namespace Arena
                 // Run column: label, wave, then Saved / Score / Played as label-value pairs.
                 float x = r.x + 18f;
                 CrtUi.Text(new Rect(x, r.y + 8f, 140f, 14f), "LATEST RUN", 10, CrtUi.Dim, TextAnchor.MiddleLeft, false, calm);
-                CrtUi.Text(new Rect(x, r.y + 20f, 160f, 34f), "Wave " + (s.Wave + 1) + (s.Endless ? " (endless)" : ""), 26, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
+                CrtUi.Text(new Rect(x, r.y + 20f, 160f, 34f), "Wave " + (s.ShownWave + 1) + (s.Endless ? " (endless)" : ""), 26, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
                 string[] labs = { "SAVED", "SCORE", "PLAYED" };
                 string[] vals = { s.SavedAt.ToLocalTime().ToString("MMM d, HH:mm"), s.Score.ToString(), (int)(s.RunTime / 60f) + " min" };
                 for (int i = 0; i < 3; i++)
@@ -232,7 +232,7 @@ namespace Arena
             // A compact row: wave, saved, score, played, players, then Continue and the delete key.
             float[] colX = { 0f, 38f, 126f, 170f, 218f };
             float cx = r.x + 14f;
-            CrtUi.Text(new Rect(cx + colX[0], r.y + 4f, 46f, s.Endless ? 30f : r.height - 8f), (s.Wave + 1).ToString(), 24, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
+            CrtUi.Text(new Rect(cx + colX[0], r.y + 4f, 46f, s.Endless ? 30f : r.height - 8f), (s.ShownWave + 1).ToString(), 24, CrtUi.Ink, TextAnchor.MiddleLeft, true, calm);
             if (s.Endless)
                 CrtUi.Text(new Rect(cx + colX[0], r.y + 32f, 46f, 14f), "endless", 10, CrtUi.Dim, TextAnchor.MiddleLeft, false, calm);
             CrtUi.Text(new Rect(cx + colX[1], r.y + 4f, 86f, r.height - 8f), s.SavedAt.ToLocalTime().ToString("MMM d, HH:mm"), 12, CrtUi.Ink, TextAnchor.MiddleLeft, false, calm);
@@ -332,7 +332,7 @@ namespace Arena
             Ui.Fill(r, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.95f));  // a lit key that does nothing: which run this is
             CrtKit.Frame(r, 2f, CrtUi.Ink);
             Ui.Label(new Rect(r.x + 6f, r.y + 4f, r.width - 12f, 26f), "CONTINUING A SAVED RUN", 17, CrtUi.Bg, TextAnchor.MiddleCenter, true);
-            string line = "Starts at wave " + (s.Wave + 1) + (s.Endless ? " (endless)" : "") + "  ·  each player takes a seat";
+            string line = "Starts at wave " + (s.ShownWave + 1) + (s.Endless ? " (endless)" : "") + "  ·  each player takes a seat";
             int ls = LobbyKit.FitSize(line, 12, 9, r.width - 12f, false);
             Ui.Label(new Rect(r.x + 6f, r.y + 29f, r.width - 12f, 18f), line, ls, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.85f), TextAnchor.MiddleCenter);
         }

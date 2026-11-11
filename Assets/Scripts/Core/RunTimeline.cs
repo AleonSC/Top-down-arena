@@ -324,7 +324,7 @@ namespace Arena
         {
             if (timeline == null)
                 timeline = new RunTimeline();
-            var s = timeline.Begin(timelineT, Wave, State == MatchState.Fighting && BossNow);
+            var s = timeline.Begin(timelineT, Hunt != null ? Wave : RecordWave, State == MatchState.Fighting && BossNow);  // (1-100 in a Campaign)
             foreach (var p in Players.Values)
             {
                 int i = timeline.PlayerIndex(p.Id, p.Name, p.Id == MyId);

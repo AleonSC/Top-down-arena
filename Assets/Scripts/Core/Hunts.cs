@@ -76,6 +76,10 @@ namespace Arena
         /// The run's last wave as the player sees it (100 in a Campaign).
         public int ShownLastWave => LongLegs ? MaxWave * 2 : LastWave;
 
+        /// The wave as records keep it (best wave, Recent runs, the run's curve): the shown wave in a Campaign (1-100), the
+        /// wave itself otherwise (a 50-wave run saved before the Campaign; a Boss Hunt keeps its own, HuntWave).
+        public int RecordWave => LongLegs ? ShownWave : Wave;
+
         /// Per-wave rewards: half in a Campaign, which has twice the waves.
         public float Pace => LongLegs ? 0.5f : 1f;
 

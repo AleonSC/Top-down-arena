@@ -48,7 +48,9 @@ namespace Arena
         /// 4: adds the "perks" line (the perks equipped, Perks.cs). Older files load with none.
         /// 5: adds the "hint" line (how many launches the menu has pointed at the player card, and whether the profile was ever opened). Older files load with none.
         /// 6: adds the "tag" lines (how many times each enemy type has been tagged with its name on sight, EnemyTagLook.cs). Older files load with none.
-        public const int FormatVersion = 6;
+        /// 7: waves on the Campaign's 100-wave scale (Docs/RunLength.md): an older file's best waves and run log are doubled
+        /// (a 50-wave run's wave n is about the Campaign's wave 2n), Boss Hunt lines left as they are.
+        public const int FormatVersion = 7;
 
         /// The profile's name (also the lobby name). "" until ProfileStore gives it one.
         public string Name = "";
@@ -381,6 +383,14 @@ namespace Arena
         static void Migrate(Profile p)
         {
             // 1 -> 2 only added the "end" line, 2 -> 3 the name, 3 -> 4 the perks, 4 -> 5 the hint line, 5 -> 6 the tag lines: nothing to convert.
+            if (p.LoadedVersion < 7)  // 6 -> 7: the 100-wave Campaign counts waves twice as far
+            {
+                p.BestWave *= 2;
+                p.BestEndlessWave *= 2;
+                foreach (var log in p.Recent)
+                    if (log.Result != 2 && log.Result != 3)  // (a Boss Hunt keeps its ten waves)
+                        log.Wave *= 2;
+            }
             Perks.Clean(p);  // drop a perk that isn't unlocked (a hand-edited file) or no longer fits the slots
             p.LoadedVersion = FormatVersion;
         }
