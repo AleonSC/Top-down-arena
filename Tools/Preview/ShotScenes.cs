@@ -642,6 +642,21 @@ static partial class Shot {
       var needleShot = new Bullet { Id = 999999, Kind = Defs.ParryNeedle, Owner = me.Id, Pos = hitAt + V2.FromAngle(me.Aim) * (Game.NeedleSpeed * pt), Vel = V2.FromAngle(me.Aim) * Game.NeedleSpeed, Radius = 4f, Life0 = 1f, Life = 1f - pt };
       gm.Bullets[needleShot.Id] = needleShot;
     }
+    // FUMA=orbit|lash|cyclone|steal FUMAT=<clock s> (with NINJA=2: the Fuma Shuriken's Orbit stance at that clock; FumaLook.cs).
+    if (Environment.GetEnvironmentVariable("FUMA") != null) {
+      string fm = Environment.GetEnvironmentVariable("FUMA");
+      float ft = float.Parse(Environment.GetEnvironmentVariable("FUMAT") ?? "1", System.Globalization.CultureInfo.InvariantCulture);
+      var gm = host.Game; gm.Bot = false; gm.Effects.Clear(); gm.Bullets.Clear();
+      me.Pos = me.Disp = new V2(640f, 420f); me.Aim = 0f; me.Flash = 0f;
+      me.FumaStance = 1; me.FumaClock = ft; me.FumaClk0 = 0f; me.FumaAng0 = 0f; me.FumaSpin = Game.FumaOmega; me.FumaR0 = 0f; me.FumaStars = 1;
+      me.FumaMove = 0; me.FumaLashAim = me.Aim;
+      if (fm == "lash") { me.FumaMove = 1; me.FumaMoveAt = ft - Game.FumaLashTime * 0.5f; }
+      if (fm == "cyclone") { me.FumaMove = 3; me.FumaMoveAt = ft - Game.FumaCycloneTime * 0.5f; }
+      if (fm == "steal") { me.FumaMinis = 3; me.FumaMiniAt = ft - 0.5f; me.Parrying = true; }
+      int k = 0;
+      foreach (var en in gm.Enemies.Values) { if (en.Def.IsBoss) continue; en.Pos = en.Disp = me.Pos + V2.FromAngle(0.9f + k * 2.1f) * (110f + 40f * k); if (++k >= 3) break; }
+      foreach (var en in gm.Enemies.Values) if (!en.Def.IsBoss && k-- <= 0) { en.Pos = en.Disp = new V2(150f, 120f); }
+    }
     if (Environment.GetEnvironmentVariable("SWING") != null) {
       float st = float.Parse(Environment.GetEnvironmentVariable("SWING"), System.Globalization.CultureInfo.InvariantCulture);
       var gm = host.Game; gm.Bot = false; gm.Effects.Clear(); gm.Bullets.Clear();

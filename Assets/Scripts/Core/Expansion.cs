@@ -35,6 +35,7 @@ namespace Arena
         public int Price;       // what it costs in vectors (Expansion.Cost; the drawer pays if it wins the vote)
         public int Owner;       // the player who drew it (0: none)
         public bool Floating;   // placed by the game off the map (a shop, vendor or Gatekeeper), not drawn: sealed until a built room touches it
+        public byte Leg;        // a bent hallway's second or third leg (1, 2): it opens full width onto the leg just before it in the list (Expansion.Hall)
         public int X1 => X + W;
         public int Y1 => Y + H;
         public string Shape => Expansion.ShapeName(W, H);
@@ -71,6 +72,8 @@ namespace Arena
         public const int Milestone = 5;          // an offer every this many waves
         public const int MinSide = 300;          // a drawn room's shortest side (a hallway is this wide)
         public const int MaxSide = 1200, MaxArea = 960000;  // and its limits
+        public const int HallMax = 2400;         // a hallway (MinSide wide) may run this long
+        public const int MaxLegs = 3;            // a bent hallway: up to this many legs, joined end to end, built in one go
 
         public static readonly int[][] Shapes =
         {
@@ -170,7 +173,7 @@ namespace Arena
         }
 
         /// Can a box go here? It must not overlap a room, must share at least MinDoorRun of wall with some room (that
-        /// room is its parent: the longest shared wall) and never a shorter stretch (a sliver), and the map stays inside
+        /// room is its parent: the longest shared wall; a shorter touch just stays wall), and the map stays inside
         /// its size cap. Every other room it shares MinDoorRun of wall with gets a door too: that closes a loop.
         public static bool Placement(IList<ExpansionRoom> rooms, int x0, int y0, int w, int h, out int parent, out int loops, out string why)
         {
@@ -191,8 +194,7 @@ namespace Arena
                 int bx0, by0, bx1, by1;
                 BoxOf(rooms, a, out bx0, out by0, out bx1, out by1);
                 if (Overlaps(x0, y0, x1, y1, bx0, by0, bx1, by1)) { why = "Overlaps a room"; return false; }
-                int run = SharedRun(x0, y0, x1, y1, bx0, by0, bx1, by1);
-                if (run > 0 && run < MinDoorRun) { why = "Touches a wall too briefly for a door (" + run + " px)"; return false; }
+                int run = SharedRun(x0, y0, x1, y1, bx0, by0, bx1, by1);  // (a shorter stretch is fine: it stays wall, no door)
                 if (run >= MinDoorRun)
                 {
                     loops++;
@@ -205,7 +207,8 @@ namespace Arena
         }
 
         /// What a room costs in vectors (Docs/VectorBuilding.md): its new wall length in tiles, the perimeter minus every wall it
-        /// shares with a room already there, so sharing walls is cheaper and a loop pays.
+        /// shares with a room already there, so sharing walls is cheaper and a loop pays. A hallway (MinSide wide) pays half, rounded up:
+        /// it is nearly all wall, so a full price made it the dearest thing to build.
         public static int Cost(IList<ExpansionRoom> built, int x, int y, int w, int h)
         {
             int shared = 0;
@@ -215,7 +218,10 @@ namespace Arena
                 BoxOf(built, a, out bx0, out by0, out bx1, out by1);
                 shared += SharedRun(x, y, x + w, y + h, bx0, by0, bx1, by1);
             }
-            return Math.Max(1, (2 * (w + h) - shared) / Step);
+            int tiles = (2 * (w + h) - shared) / Step;
+            if (Math.Min(w, h) <= MinSide)
+                tiles = (tiles + 1) / 2;
+            return Math.Max(1, tiles);
         }
 
         public static int Cost(IList<ExpansionRoom> built, ExpansionRoom r) => Cost(built, r.X, r.Y, r.W, r.H);
@@ -596,11 +602,59 @@ namespace Arena
             why = null;
             if (x % Step != 0 || y % Step != 0 || w % Step != 0 || h % Step != 0) { why = "Not on the grid"; return null; }
             if (w < MinSide || h < MinSide) { why = "Too thin (at least " + MinSide + " px)"; return null; }
-            if (w > MaxSide || h > MaxSide || w * h > MaxArea) { why = "Too big (at most " + MaxSide + " px a side, " + MaxArea / 10000 + " tiles)"; return null; }
+            int longest = Math.Min(w, h) <= MinSide ? HallMax : MaxSide;  // (a hallway may run longer)
+            if (w > longest || h > longest || w * h > MaxArea) { why = "Too big (at most " + longest / Step + " tiles a side" + (longest == MaxSide ? ", " + HallMax / Step + " for a hallway" : "") + ")"; return null; }
             int parent, loops;
             if (!Placement(built, x, y, w, h, out parent, out loops, out why))
                 return null;
             return new ExpansionRoom { Parent = parent, X = x, Y = y, W = w, H = h, Kind = RoomKind.Combat, Floor = PathId.None, Price = Cost(built, x, y, w, h) };
+        }
+
+        /// Does this box meet the leg before it end to end: exactly MinSide of shared wall, at one end of that leg (a corner or straight on, not a T)?
+        static bool EndToEnd(ExpansionRoom prev, int x, int y, int w, int h)
+        {
+            if (SharedRun(x, y, x + w, y + h, prev.X, prev.Y, prev.X1, prev.Y1) != MinSide)
+                return false;
+            bool vertical = x + w == prev.X || x == prev.X1;  // the shared wall runs up and down
+            int lo = vertical ? Math.Max(y, prev.Y) : Math.Max(x, prev.X), hi = vertical ? Math.Min(y + h, prev.Y1) : Math.Min(x + w, prev.X1);
+            return vertical ? lo == prev.Y || hi == prev.Y1 : lo == prev.X || hi == prev.X1;
+        }
+
+        /// A bent hallway (up to MaxLegs boxes, each {x, y, w, h}, MinSide wide): the first leg must fit like any drawn room, each next
+        /// one meets the leg before it end to end (exactly MinSide of shared wall) and opens full width onto it. The legs come back in
+        /// order, built together; the first carries the whole price (each leg's new wall, halved like any hallway). Null with `why` set if it can't go.
+        public static List<ExpansionRoom> Hall(IList<ExpansionRoom> built, IList<int[]> legs, out string why)
+        {
+            why = null;
+            if (legs == null || legs.Count == 0) { why = "Draw a leg"; return null; }
+            if (legs.Count > MaxLegs) { why = "At most " + MaxLegs + " legs"; return null; }
+            var all = new List<ExpansionRoom>(built);
+            var made = new List<ExpansionRoom>();
+            int total = 0;
+            for (int i = 0; i < legs.Count; i++)
+            {
+                int x = legs[i][0], y = legs[i][1], w = legs[i][2], h = legs[i][3];
+                if (Math.Min(w, h) != MinSide) { why = "A hallway leg is " + MinSide / Step + " tiles wide"; return null; }
+                var leg = Custom(all, x, y, w, h, out why);
+                if (!leg.HasValue)
+                    return null;
+                var r = leg.Value;
+                if (i > 0)
+                {
+                    var prev = all[all.Count - 1];
+                    if (!EndToEnd(prev, x, y, w, h)) { why = "Each leg starts at the end of the last one"; return null; }
+                    r.Leg = (byte)i;
+                    r.Parent = all.Count;  // (the leg before it: area index = list index + 1)
+                }
+                total += r.Price;
+                r.Price = 0;
+                all.Add(r);
+                made.Add(r);
+            }
+            var head = made[0];
+            head.Price = total;
+            made[0] = head;
+            return made;
         }
 
         /// Doors an area has (to its parent, children and loops).
@@ -798,10 +852,11 @@ namespace Arena
                     if (SharedRun(x0, y0, x1, y1, bx0, by0, bx1, by1) < MinDoorRun)
                         continue;
                     int ox0 = Math.Max(x0, bx0), ox1 = Math.Min(x1, bx1), oy0 = Math.Max(y0, by0), oy1 = Math.Min(y1, by1);
-                    if (x0 == bx1) doors.Add(new RoomDoor { Pos = new V2(x0, (oy0 + oy1) / 2f), Vertical = true, A = b, B = a });
-                    else if (x1 == bx0) doors.Add(new RoomDoor { Pos = new V2(x1, (oy0 + oy1) / 2f), Vertical = true, A = b, B = a });
-                    else if (y0 == by1) doors.Add(new RoomDoor { Pos = new V2((ox0 + ox1) / 2f, y0), A = b, B = a });
-                    else doors.Add(new RoomDoor { Pos = new V2((ox0 + ox1) / 2f, y1), A = b, B = a });
+                    float open = b == a - 1 && rooms[a - 1].Leg > 0 ? Math.Max(ox1 - ox0, oy1 - oy0) : 0f;  // a bent hallway's corner: open full width
+                    if (x0 == bx1) doors.Add(new RoomDoor { Pos = new V2(x0, (oy0 + oy1) / 2f), Vertical = true, Width = open, A = b, B = a });
+                    else if (x1 == bx0) doors.Add(new RoomDoor { Pos = new V2(x1, (oy0 + oy1) / 2f), Vertical = true, Width = open, A = b, B = a });
+                    else if (y0 == by1) doors.Add(new RoomDoor { Pos = new V2((ox0 + ox1) / 2f, y0), Width = open, A = b, B = a });
+                    else doors.Add(new RoomDoor { Pos = new V2((ox0 + ox1) / 2f, y1), Width = open, A = b, B = a });
                 }
                 // The four walls. Where an earlier room already has the wall (they share it), this room leaves that stretch out.
                 for (int edge = 0; edge < 4; edge++)  // 0 west, 1 east, 2 north, 3 south

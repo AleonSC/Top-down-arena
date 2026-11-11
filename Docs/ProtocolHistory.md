@@ -4,7 +4,9 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 264: built rooms lay out obstacles differently (fallback passes in `Expansion.AddCover`), so mixed builds would disagree on the map
+- 266: built rooms lay out obstacles differently (fallback passes in `Expansion.AddCover`), so mixed builds would disagree on the map
+- 265: drawn hallways: `ExpansionRoom` carries `Leg` (a bent hallway's later legs) in the room lists; `Msg.ExpandHall` (client -> host) proposes a bent hallway (leg count, then x, y, w, h each)
+- 264: the Fuma Shuriken's Orbit stance: snapshots carry `Player.FumaStance`, then (in the Orbit stance) its move, step, stars, stolen stars, clock, anchor, start radius, move start, lash aim and steal time; `Msg.WeaponDash` kind 24 switches stance
 - 263: the difficulty carries one more knob (`DiffKnob.Campaign`, the campaign buildup switch)
 - 262: `ShopAction.Vectors` (the vendor's vector pack, +10 vectors for 50 gold) in Msg.Shop
 - 261: portal links: the Expanding arena's bought portal pairs (PortalLink list after the openings in Msg.ExpandState), Msg.ExpandLink, RoomKind.Link proposals (ExpansionGame.cs)
