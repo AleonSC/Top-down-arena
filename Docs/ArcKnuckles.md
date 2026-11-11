@@ -1,6 +1,6 @@
 # Arc Knuckles: the Knight DPS's fourth weapon (design)
 
-Status: **built** (Nov 2026, protocol 271): all four steps. The weapon's damage went from 12 to 22 in step 4 (about 88 a second, with the other DPS Knight weapons); every number below is the step-1 design at 12, scaled by 22/12 in the game.
+Status: **built** (Nov 2026, protocol 272): all four steps, then the lock-on and hit feel. The weapon's damage went from 12 to 22 in step 4 (about 88 a second, with the other DPS Knight weapons); every number below is the step-1 design at 12, scaled by 22/12 in the game.
 (https://claude.ai/artifact/Rqn2WEDWUQL1RTJaxvPf8Y), version 5. The **Arc Coil** look, the **Full combo**, **Parry cancel**
 and **Perfect parry** scenarios, and the **Rocket Dash**, **Dash → Flurry** and **Full dash chain** Alt scenarios are the
 design; the page's other Alt fires (Ground Pound, Grab & Throw on its own, Rocket Fist, Shockwave Clap, Seismic Line,
@@ -69,3 +69,13 @@ Magnet Yank) were not picked.
    lobby's placeholder for every weapon. The Wildcard can pick it: its weapon picks run on past kit × 3 + choice to
    the DPS fourth weapons (`Defs.WildWeaponPick`, `WildWeaponKit`; the Arc Knuckles are pick 18), and the class wheel shows the
    Knight's four. Not done: bots on the weapon-action key (no weapon has that).
+
+## After play-testing (Nov 2026, protocol 272)
+- The arms crossed over the body: the look put the fists on the far side from their shoulders (and from where the host carries a
+  grabbed enemy). Fixed: +y in the poses is clockwise of the aim everywhere, as in the mockup.
+- **Lock-on:** the Rocket Dash locks onto the enemy nearest the cursor within 300 px (`KnuckleLockTarget`) and flies you up to it (up
+  to 280 px); the Flurry and the Rocket Punch turn to it, the grab takes it, the Rocket Punch reaches it and 80 px past. A faint
+  reticle shows the pick while the dash is ready, a bright one while the dash and chain run.
+- **Hit feel**, as the Twin Blades have: each punch that connects sends `FxKind.KnuckleHit` with its contact sound; every screen throws
+  sparks and a ring, and the puncher's own holds the picture and shakes, sized to the punch (`Juice.KnuckleHitFeel`). The press
+  sounds are whooshes now; the knock is the contact's.

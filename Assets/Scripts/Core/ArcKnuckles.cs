@@ -34,7 +34,12 @@ namespace Arena
         /// The Rocket Dash: how far and how fast you go, the cooldown, the hit (on the first enemy in a lane KnuckleDashWidth either
         /// side of the line, out to the fist ahead of where you stop) and its short shove, and the moment it lands after the press.
         public const float KnuckleDashLen = 130f, KnuckleDashTime = 0.2f, KnuckleDashCooldown = 3f, KnuckleDashMult = 2f, KnuckleDashWidth = 18f;
-        public const float KnuckleDashFist = 30f, KnuckleDashKnock = 24f, KnuckleDashLand = 0.15f, KnuckleDashGrace = 0.08f, KnuckleDashFxTime = 0.55f;
+        public const float KnuckleDashFist = 30f, KnuckleDashKnock = 24f, KnuckleDashGrace = 0.08f;
+        /// The lock-on: how far from you an enemy can be locked (the one nearest the cursor), the most a locked dash flies, where it
+        /// stops short of the enemy, its speed (px/s, the same 130 px in 0.2 s), the shortest flight, the longest your own game
+        /// takes to cover it (a far-off client catches up), when in the flight the fist lands, and how long its look lasts after.
+        public const float KnuckleLockRange = 300f, KnuckleDashMax = 280f, KnuckleDashStop = 8f, KnuckleDashSpeed = 650f, KnuckleDashMinTime = 0.08f;
+        public const float KnuckleDashMaxTime = 0.5f, KnuckleDashLandAt = 0.8f, KnuckleDashFxAfter = 0.35f;
 
         /// The step a Combo value holds (0: the next press is the Jab).
         public static int KnuckleStepOf(int combo) => combo & 7;
@@ -164,34 +169,62 @@ namespace Arena
         int knuckleDashesSeen = -1;
         public float KnuckleDashCd => knuckleDashLocalCd;
 
-        /// Host: the weapon-action key with the Arc Knuckles, aimed at `aimAt`: the Rocket Dash, if it is ready.
+        /// The enemy a Rocket Dash from `from` locks onto: of those within KnuckleLockRange of you, the one closest to the cursor
+        /// (`cursor`), or null (the dash then goes straight along your aim). Your own game asks too, to show the reticle.
+        public Enemy KnuckleLockTarget(V2 from, V2 cursor)
+        {
+            Enemy best = null;
+            float bestD = float.MaxValue;
+            foreach (var e in Enemies.Values)
+            {
+                if (!Targetable(e) || e.Pos.DistanceTo(from) > KnuckleLockRange + e.Radius)
+                    continue;
+                float d = e.Pos.DistanceTo(cursor);
+                if (d < bestD)
+                {
+                    bestD = d;
+                    best = e;
+                }
+            }
+            return best;
+        }
+
+        /// Host: the weapon-action key with the Arc Knuckles, aimed at `aimAt`: the Rocket Dash, if it is ready. It locks onto the
+        /// enemy nearest the cursor (KnuckleLockTarget) and flies you up to it, fist first; the chain's moves then turn to it too.
         void HostRocketDash(Player p, V2 aimAt)
         {
             if (p.Weapon.Id != WeaponId.ArcKnuckles || p.KnuckleDashCd > 0f || p.Downed || p.StunT > 0f || p.ParryActive || p.SwallowT > 0f
                 || State == MatchState.GameOver)
                 return;
-            V2 toward = aimAt - p.Pos;
-            float aim = toward.Length > 1f ? toward.Angle : p.Aim;
-            V2 dir = V2.FromAngle(aim), from = p.Pos, to = ClampToArena(from + dir * KnuckleDashLen, p.Def.BodyR);
+            V2 from = p.Pos, toward = aimAt - from;
+            var lockOn = KnuckleLockTarget(from, aimAt);
+            float aim = lockOn != null ? (lockOn.Pos - from).Angle : toward.Length > 1f ? toward.Angle : p.Aim;
+            V2 dir = V2.FromAngle(aim);
+            float len = lockOn != null ? Math.Max(0f, Math.Min(KnuckleDashMax, lockOn.Pos.DistanceTo(from) - lockOn.Radius - p.Def.BodyR - KnuckleDashStop)) : KnuckleDashLen;
+            V2 to = ClampToArena(from + dir * len, p.Def.BodyR);
+            float time = Math.Max(KnuckleDashMinTime, to.DistanceTo(from) / KnuckleDashSpeed);
             p.KnuckleDashCd = KnuckleDashCooldown;
             p.KnuckleDashes++;
-            p.InvulnT = Math.Max(p.InvulnT, KnuckleDashTime + KnuckleDashGrace);
-            p.FireCd = Math.Max(p.FireCd, KnuckleDashTime);  // (no punches mid-flight)
+            p.KnuckleDashTo = to;
+            p.KnuckleTarget = lockOn != null ? lockOn.Id : 0;
+            p.InvulnT = Math.Max(p.InvulnT, time + KnuckleDashGrace);
+            p.FireCd = Math.Max(p.FireCd, time);  // (no punches mid-flight)
             pendingSwings.RemoveAll(s => s.Owner == p.Id && s.Knuckle != 0 && s.Delay > 0f);  // a punch still winding up never lands
             var hit = NewSwing(p, aim, 0f, 0f, p.Weapon.Damage * KnuckleDashMult * p.Stats.DmgMult);
-            hit.Reach = to.DistanceTo(from) + MeleeReach(p, KnuckleDashFist);  // the whole lane, out to the fist where you stop
+            hit.Reach = to.DistanceTo(from) + MeleeReach(p, KnuckleDashFist) + (lockOn != null ? lockOn.Radius + 20f : 0f);  // the lane, out to the fist where you stop
             hit.HalfWidth = KnuckleDashWidth;
             hit.FromSet = true;
             hit.From = from;
-            hit.MaxTargets = 1;  // the first enemy in the way
+            hit.MaxTargets = 1;  // the first enemy in the way...
+            hit.OnlyEnemy = lockOn != null ? lockOn.Id : 0;  // ...or the one it locked onto
             hit.Knock = KnuckleDashKnock;
             hit.Thrust = true;
             hit.Heavy = true;
             hit.NoFx = true;
             hit.Knuckle = 7;
-            hit.Delay = KnuckleDashLand;
+            hit.Delay = time * KnuckleDashLandAt;
             pendingSwings.Add(hit);
-            BroadcastFx(FxKind.KnuckleDash, from, to, ArcBlue, p.Id, KnuckleDashFxTime, Sfx.KnuckleRocket);
+            BroadcastFx(FxKind.KnuckleDash, from, to, ArcBlue, p.Id, time + KnuckleDashFxAfter, Sfx.KnuckleRocket);
         }
 
         /// Host: the dash's hit landed (from LandSwing): the fist's crack and burst on what it hit, if anything.
@@ -200,8 +233,20 @@ namespace Arena
             if (hits.Count == 0)
                 return;
             var e = hits[0];
-            BroadcastFx(FxKind.Ring, e.Pos, ArcBlue, e.Radius + 22f, 0.3f, Sfx.KnuckleRocketHit);
+            BroadcastFx(FxKind.Ring, e.Pos, ArcBlue, e.Radius + 22f, 0.3f, Sfx.None);
+            KnuckleHitCue(p, 7, hits.Count, e.Pos);  // the fist lands: its crack, your hit-pause and shake
             OpenKnuckleChain(p, e);  // press Fire now for the Flurry (ArcKnucklesChain.cs)
+        }
+
+        /// Host: a punch of `kind` connected with `hits` enemies, the first at `at` (1-6 the chain and the Counter Hammer, 7 the Rocket
+        /// Dash, 8 a Flurry jab, 9 the Rocket Punch, 10 the Flurry's straight, 11 a thrown enemy landing). Sent as an effect
+        /// (FxKind.KnuckleHit): every screen throws its sparks; the puncher's own game holds the picture and shakes, sized to
+        /// the punch (Game/Juice.cs, KnuckleHitFeel). It carries the contact sound (the hammers' slams have their own).
+        void KnuckleHitCue(Player p, int kind, int hits, V2 at)
+        {
+            bool heavy = kind == 4 || kind == 7 || kind >= 9;
+            Sfx sound = kind == 5 || kind == 6 ? Sfx.None : heavy ? Sfx.KnuckleImpactHeavy : Sfx.KnuckleImpact;
+            BroadcastFx(FxKind.KnuckleHit, at, new V2(p.Id, kind), kind == 6 ? ArcGold : ArcBlue, hits, 0.25f, sound);
         }
 
         /// Host, every tick (from TickArcKnuckles): the dash's cooldown.
@@ -220,10 +265,14 @@ namespace Arena
                 knuckleDashesSeen = me.KnuckleDashes;
                 if (!me.Downed && me.StunT <= 0f)
                 {
-                    V2 dir = V2.FromAngle(me.Aim), to = ClampToArena(me.Pos + dir * KnuckleDashLen, me.Def.BodyR);
-                    dashSpeed = KnuckleDashLen / KnuckleDashTime;
-                    DashDir = dir;
-                    DashT = to.DistanceTo(me.Pos) / dashSpeed;
+                    V2 d = me.KnuckleDashTo - me.Pos;  // where the host's dash ends (its lock-on picked it)
+                    float len = d.Length;
+                    if (len > 1f)
+                    {
+                        dashSpeed = Math.Max(KnuckleDashSpeed, len / KnuckleDashMaxTime);
+                        DashDir = d / len;
+                        DashT = len / dashSpeed;
+                    }
                 }
             }
             if (!knuckles)

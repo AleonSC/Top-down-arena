@@ -88,13 +88,13 @@ namespace Arena
             int id = Mathf.RoundToInt(fx.Radius);
             Player owner;
             game.Players.TryGetValue(id, out owner);
-            float c = fx.T, t = Time.time, aim = (fx.Pos2 - fx.Pos).Angle, fly = Mathf.Clamp01(c / Game.KnuckleDashTime);
+            float c = fx.T, t = Time.time, aim = (fx.Pos2 - fx.Pos).Angle, ft = Mathf.Max(Game.KnuckleDashMinTime, (fx.Pos2 - fx.Pos).Length / Game.KnuckleDashSpeed), fly = Mathf.Clamp01(c / ft);  // (ft: the flight; a locked dash flies as far as its enemy)
             V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
             V2 o = owner != null ? owner.Disp : fx.Pos + (fx.Pos2 - fx.Pos) * fly;
             // afterimages and speed lines along the path while it flies (and a moment after)
-            if (c < Game.KnuckleDashTime + 0.2f)
+            if (c < ft + 0.2f)
             {
-                float fade = Mathf.Clamp01(1f - (c - Game.KnuckleDashTime) / 0.2f);
+                float fade = Mathf.Clamp01(1f - (c - ft) / 0.2f);
                 for (int j = 1; j <= 5; j++)
                 {
                     float k = fly - j * 0.16f;
@@ -118,7 +118,7 @@ namespace Arena
                 return;
             var m = KnuckleDashAt(c);
             DrawKnucklePose(o, aim, m, owner != null ? owner.Def.Color : new Rgba(0.45f, 0.5f, 0.6f), t, false);
-            if (c > 0.03f && c < Game.KnuckleDashTime + 0.04f)  // the lead gauntlet's thruster, firing back along the arm (over it)
+            if (c > 0.03f && c < ft + 0.04f)  // the lead gauntlet's thruster, firing back along the arm (over it)
             {
                 V2 f = KnuckleFist(o, aim, m, true) - dir * 9f;
                 float fl = 24f + 8f * Mathf.Sin(t * 95f);
@@ -253,14 +253,14 @@ namespace Arena
         static V2 KnuckleFist(V2 o, float aim, KnPose m, bool right)
         {
             float x = right ? m.Rx : m.Lx, y = right ? m.Ry : m.Ly, z = right ? m.Rz : m.Lz;
-            V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
+            V2 dir = V2.FromAngle(aim), side = dir.Orthogonal() * -1f;  // (+y is clockwise of the aim, as in the mockup and the host's KnuckleGrabFist)
             return o + dir * (x + m.Dx) + side * y + new V2(0f, -z * 12f);
         }
 
         /// Both arms and gauntlets in a pose (the body and head are the model's).
         void DrawKnucklePose(V2 o, float aim, KnPose m, Rgba armCol, float t, bool gold, int rDet = 0)
         {
-            V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
+            V2 dir = V2.FromAngle(aim), side = dir.Orthogonal() * -1f;
             float body = aim + m.Tw;
             for (int k = 0; k < 2; k++)
             {
@@ -503,7 +503,7 @@ namespace Arena
 
         /// The Rocket Punch's pose: the fist fired off on its chain down the line, a beat at the end, reeled back. `det` says where
         /// its thruster points (1 out, -1 back, 2 hanging, 0 back in the hand).
-        static KnPose RocketPunchAt(float c, out int det)
+        static KnPose RocketPunchAt(float c, float reach, out int det)
         {
             var m = KnRest;
             det = 0;
@@ -515,16 +515,16 @@ namespace Arena
             else if (c < 0.40f)
             {
                 float k = KnOut((c - 0.12f) / 0.28f);
-                m.Rx = 6f + (Game.RocketPunchReach - 6f) * k; m.Ry = 16f - 14f * k; m.Tw = -0.25f + 0.5f * KnOut((c - 0.12f) / 0.06f); m.G = 0.7f; det = 1;
+                m.Rx = 6f + (reach - 6f) * k; m.Ry = 16f - 14f * k; m.Tw = -0.25f + 0.5f * KnOut((c - 0.12f) / 0.06f); m.G = 0.7f; det = 1;
             }
             else if (c < 0.48f)
             {
-                m.Rx = Game.RocketPunchReach; m.Ry = 2f; m.Tw = 0.25f; m.G = 0.5f; det = 2;
+                m.Rx = reach; m.Ry = 2f; m.Tw = 0.25f; m.G = 0.5f; det = 2;
             }
             else if (c < 0.74f)
             {
                 float k = KnIn((c - 0.48f) / 0.26f);
-                m.Rx = Game.RocketPunchReach + (24f - Game.RocketPunchReach) * k; m.Ry = 2f + 10f * k; m.Tw = 0.25f; m.G = 0.5f; det = -1;
+                m.Rx = reach + (24f - reach) * k; m.Ry = 2f + 10f * k; m.Tw = 0.25f; m.G = 0.5f; det = -1;
             }
             else
             {
@@ -574,7 +574,7 @@ namespace Arena
                     Arc(o + V2.FromAngle(aim) * 50f, 6f + 12f * (c - Game.GrabLatch) / 0.2f, 2f, KnArcHi.WithAlpha(1f - (c - Game.GrabLatch) / 0.2f), 16);
             }
             else
-                m = RocketPunchAt(c, out det);
+                m = RocketPunchAt(c, Mathf.Max(60f, (fx.Pos2 - fx.Pos).Length), out det);  // (Pos2: as far as the fist flies; a lock reaches further)
             DrawKnucklePose(o, aim, m, arm, t, false, det);
             if (owner != null)
                 DrawKnucklePips(owner, t);
@@ -611,6 +611,33 @@ namespace Arena
                 Line(tip - dir * 5f + side * 5f, tip, 2f, KnArc.WithAlpha(a));
                 Line(tip - dir * 5f - side * 5f, tip, 2f, KnArc.WithAlpha(a));
             }
+        }
+
+        /// Your own Arc Knuckles' lock-on: while the Rocket Dash is ready, a faint reticle on the enemy it would lock onto (nearest your
+        /// cursor, within reach); while the dash and its chain run, a bright one on the enemy they're locked onto.
+        void DrawKnuckleLock(Player p, float t)
+        {
+            if (p.Id != game.MyId || p.Weapon.Id != WeaponId.ArcKnuckles || p.Downed)
+                return;
+            Enemy e = null;
+            bool locked = false;
+            if (p.KnuckleChain != 0 || KnuckleDashFxOf(p.Id) != null)
+            {
+                locked = p.KnuckleTarget != 0 && game.Enemies.TryGetValue(p.KnuckleTarget, out e) && e.Hp > 0f;
+            }
+            else if (game.KnuckleDashCd <= 0f)
+                e = game.KnuckleLockTarget(p.Pos, MouseArena());
+            if (e == null)
+                return;
+            float r = e.Radius + 10f + (locked ? 2f * Mathf.Sin(t * 14f) : 0f), a = locked ? 0.95f : 0.4f, spin = locked ? t * 2.5f : 0f;
+            Rgba col = (locked ? KnArcHi : KnArc).WithAlpha(a);
+            for (int i = 0; i < 4; i++)  // four corner brackets round it
+            {
+                float ang = spin + i * MathX.Pi / 2f + MathX.Pi / 4f;
+                Arc(e.Disp, r, locked ? 2.4f : 1.6f, col, 6, ang - 0.32f, 0.64f);
+            }
+            if (locked)
+                Circle(e.Disp, 2.2f, col, 8);
         }
     }
 }
