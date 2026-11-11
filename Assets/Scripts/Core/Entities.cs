@@ -90,6 +90,9 @@ namespace Arena
         DodgeSwish,
         // The Katana's finishers (KatanaSoundBank.cs): the Momentum Burst's ground stab and shockwave, the caltrops thrown, caltrops flung or seeking. Sent.
         KatanaBurstSfx, KatanaCaltrops, KatanaFling,
+        // The Repulsion Cannon's Undertow (SoundBank.cs; Repulsion.cs): the inhale as the pull starts, a swirling hum repeated while it holds, and the
+        // soft pop as it lets go. Sent by the host; named Spell so they use the Weapons volume.
+        SpellPullStart, SpellPullHum, SpellPullStop,
     }
 
     public struct SoundCue
@@ -256,6 +259,7 @@ namespace Arena
         public float RepelMeterF;    // host: the exact meter
         public bool RepelPull;       // Repulsion Cannon: the weapon-action key is held and the Undertow is pulling (replicated; you move at 75% and can't fire)
         public float RepelTickT;     // host: till the pull's next sting
+        public float RepelHumT;      // host: till the pull's hum plays again
         public byte GreatStep;       // Greatsword: which cut of the chain landed last, 0 to 3 (replicated, drawn as pips behind you)
         public byte GreatTemper;     // Greatsword: Temper stored while guarding, 0 to 6 (replicated, drawn as pips and on the blade)
         public bool GreatGuard;      // Greatsword: the weapon-action key is held, the guard arc is up (replicated; you move at half speed and can't swing)

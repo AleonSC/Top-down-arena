@@ -382,6 +382,23 @@ namespace Arena
                     all[i] = (i < dry.Length ? dry[i] : 0f) + (i < wet.Length ? wet[i] * 0.7f : 0f);
                 Set(Sfx.ShotRepulse, Finish(all, 0.6f), 0.1f);
             }
+            // The Undertow (the Repulsion Cannon's Alt pull): the blast run backwards. The start is an inhale, air rushing in and rising
+            // to the muzzle with a vacuum motor spinning up under it; the hum is that motor and a swirl of air, made to overlap itself as
+            // it's repeated (RepelHumEvery); letting go is a soft cork-like pop and a sigh of air.
+            {
+                var rush = Reverse(Tone(0.42f, Osc.Sine, 900f, 260f, 0.5f, noise: 0.95f, lowpass: 0.2f, attack: 0.003f, decay: 2.2f));
+                var motor = Tremolo(Tone(0.55f, Osc.Saw, 70f, 150f, 0.32f, lowpass: 0.14f, attack: 0.12f, decay: 0.6f), 22f, 0.45f);
+                var whine = Tone(0.55f, Osc.Sine, 380f, 760f, 0.1f, attack: 0.2f, decay: 1f);
+                var suck = Concat(new float[(int)(0.36f * Rate)], Tone(0.12f, Osc.Sine, 110f, 220f, 0.45f, lowpass: 0.4f, attack: 0.01f, decay: 3f));
+                Set(Sfx.SpellPullStart, Finish(Mix(rush, motor, whine, suck), 0.5f), 0.15f);
+                Set(Sfx.SpellPullHum, Finish(Mix(
+                    Tremolo(Tone(0.8f, Osc.Saw, 150f, 150f, 0.3f, lowpass: 0.12f, attack: 0.15f, decay: 0.5f), 22f, 0.4f),             // the motor
+                    Tremolo(Tone(0.8f, Osc.Sine, 700f, 520f, 0.32f, noise: 1f, lowpass: 0.16f, attack: 0.18f, decay: 0.6f), 6f, 0.6f),  // air swirling in
+                    Tone(0.8f, Osc.Sine, 760f, 740f, 0.06f, attack: 0.2f, decay: 0.6f)), 0.32f), 0.3f);                              // the whine held
+                Set(Sfx.SpellPullStop, Finish(Mix(
+                    Tone(0.16f, Osc.Sine, 260f, 70f, 0.7f, lowpass: 0.5f, attack: 0.002f, decay: 2.5f),                                  // the pop
+                    Tone(0.3f, Osc.Sine, 500f, 160f, 0.3f, noise: 0.95f, lowpass: 0.15f, attack: 0.01f, decay: 2f)), 0.42f), 0.12f);     // air let go
+            }
             // Chain Light: a bright flash and rising shimmer, a buzzing zap, and a crackle of light arcing to each enemy.
             Set(Sfx.SpellChainCone, Finish(Mix(
                 Tone(0.1f, Osc.Sine, 3400f, 900f, 0.5f, noise: 0.8f, lowpass: 0.85f, attack: 0.001f, decay: 3f),                                          // the flash

@@ -22,7 +22,8 @@ namespace Arena
         public const float RepelPullReach = 300f, RepelPullHalfArc = 0.52f;                   // the current's cone: 60 degrees across
         public const float RepelPullSpeed = 140f, RepelPullPerExtra = 30f, RepelPullStop = 44f;  // px a second toward you (more per extra projectile); stops this far in front
         public const float RepelPullSlow = 0.6f, RepelPullDps = 4f, RepelPullTick = 0.25f;    // caught enemies move at 60% and take 4 a second
-        public const float RepelPullSelfSlow = 0.75f;                                         // your speed while pulling
+        public const float RepelPullSelfSlow = 0.75f;
+        public const float RepelHumEvery = 0.7f;                                              // the hum (Sfx.SpellPullHum) repeats this often while pulling                                         // your speed while pulling
 
         /// How much a blast that hits `n` enemies adds to the Undertow meter: 5, 13, 24, 38, 55, 75...
         public static float RepelGain(int n)
@@ -94,14 +95,24 @@ namespace Arena
                 return;
             if (!on)
             {
-                p.RepelPull = false;
+                EndRepelPull(p);
                 return;
             }
             if (p.RepelPull || p.Downed || p.StunT > 0f || p.SwallowT > 0f || p.ParryActive || p.RepelMeterF < RepelPullMin)
                 return;
             p.RepelPull = true;
             p.RepelTickT = 0f;
-            BroadcastSound(Sfx.SpellArcane);
+            p.RepelHumT = RepelHumEvery * 0.6f;  // (the inhale carries it into the first hum)
+            BroadcastSound(Sfx.SpellPullStart);
+        }
+
+        /// The pull stops (let go, ran dry, or taken out of it): the release pop.
+        void EndRepelPull(Player p)
+        {
+            if (!p.RepelPull)
+                return;
+            p.RepelPull = false;
+            BroadcastSound(Sfx.SpellPullStop);
         }
 
         /// Host, every tick: the current drags what's in its cone toward you and drains the meter; the meter empties when
@@ -120,13 +131,18 @@ namespace Arena
                     continue;
                 if (p.Downed || p.StunT > 0f || p.SwallowT > 0f || p.ParryActive || State == MatchState.GameOver || p.RepelMeterF <= 0f)
                 {
-                    p.RepelPull = false;
+                    EndRepelPull(p);
                     continue;
                 }
                 SetRepelMeter(p, p.RepelMeterF - RepelDrain * dt);
                 RepelPullStep(p, dt);
+                if ((p.RepelHumT -= dt) <= 0f)
+                {
+                    p.RepelHumT += RepelHumEvery;
+                    BroadcastSound(Sfx.SpellPullHum);
+                }
                 if (p.RepelMeterF <= 0f)
-                    p.RepelPull = false;  // ran dry
+                    EndRepelPull(p);  // ran dry
             }
         }
 
