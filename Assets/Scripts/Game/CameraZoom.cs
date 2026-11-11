@@ -95,6 +95,9 @@ namespace Arena
                     camFocus = want2;  // (the rooms just came up, or a teleport: a cut)
                 else
                     camFocus += (want2 - camFocus) * Mathf.Min(1f, dt * RoomEase);
+                V2 tour;
+                if (BreachTourFocus(want2, out tour))
+                    camFocus = tour;  // a breach wave's start: the camera tours the breaches (BreachTour.cs)
                 return;
             }
             if (camFollow)

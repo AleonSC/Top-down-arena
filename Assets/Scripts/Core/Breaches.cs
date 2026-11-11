@@ -23,6 +23,15 @@ namespace Arena
         public const float Apart = 400f;      // breaches of one wave at least this far apart
         public const float DeadEnd = 1.5f;    // extra weight for a dead-end room's wall
 
+        /// The warning at a breach wave's start (Game/BreachTour.cs): every camera flies to each breach in turn (Pan), holds
+        /// while it flashes (Hold), then flies back to you (Back). Nothing spawns and nobody moves until it's over.
+        public const float Lead = 0.3f, Pan = 0.5f, Hold = 0.6f, Back = 0.8f;
+        public static float WarnTime(int count) => count <= 0 ? Telegraph : Math.Max(Telegraph, Lead + count * (Pan + Hold) + Back);
+
+        /// A breach wave brings Flood times the wave's enemies (bosses not), with room for half as many again alive at once.
+        public const int Flood = 3;
+        public const float AliveScale = 1.5f;
+
         /// A breach wave is a rare event (they reveal rooms, so often would clutter the map): wave 3, then every 4th
         /// after it. Every other regular wave enemies come in at a random spot at least Rooms.SpawnClear from every player.
         public const int FirstWave = 3, Every = 4;
@@ -127,6 +136,23 @@ namespace Arena
         /// Are enemies coming in through breaches now? The grown Expanding arena on a breach wave (Breaches.IsBreachWave: a
         /// rare event, not the room-by-room version, which uses its nests, and never a boss wave).
         public bool BreachesOn => ExpandingOn && RoomsOn && !Rooms.RoomByRoom && !BossNow && State == MatchState.Fighting && Breaches.IsBreachWave(Wave);
+
+        /// The breach warning is playing (Breaches.WarnTime): the cameras are touring the breaches and the players stand still.
+        public bool BreachWarnOn => BreachesOn && Practice == null && BreachAge < Breaches.WarnTime(ActiveBreaches.Length);
+
+        /// Host: a breach wave just built: Breaches.Flood times its enemies (no extra bosses).
+        void FloodBreachWave()
+        {
+            int n = spawnQueue.Count;
+            for (int k = 1; k < Breaches.Flood; k++)
+                for (int i = 0; i < n; i++)
+                    if (!Defs.Get(spawnQueue[i]).IsBoss)
+                        spawnQueue.Add(spawnQueue[i]);
+            int m = squadQueue.Count;
+            for (int k = 1; k < Breaches.Flood; k++)
+                for (int i = 0; i < m; i++)
+                    squadQueue.Add(squadQueue[i]);
+        }
 
         /// New rooms opened mid-wave (a breach event): the breaches stay, except any the new rooms now stand behind.
         void PinBreaches(IList<ExpansionRoom> added)

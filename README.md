@@ -483,7 +483,7 @@ A Phantom shows a ring where it is about to blink (half a second before it does,
 
 A Charger shows a ring where its dash will end, which is also where its ring of shots will burst.
 
-Shooters that fire straight at you (Sniper, Shard, Medic, Splitter, Phantom, Grunt, Taser Guard) draw a thin dashed line along the shot for the instant before they fire; the Grunt shows all three of its shots.
+Shooters that fire straight at you (Sniper, Shard, Medic, Splitter, Phantom, Grunt, Taser Guard, Security Guard) share one **shooting line**: for the instant before they fire, a slim lane in their colour fills from the muzzle along the shot, brighter at its head, and caps off when the shot is due; the Grunt shows all three of its shots. The Leader and Beam Sentry keep their own blinking lines.
 
 From wave 13, a regular wave shows at most 6 different enemy types (8 from wave 25), so each kind is easier to learn. Boss waves, paths with their own mix and Zombie Infection hordes are unchanged.
 
@@ -601,8 +601,8 @@ his own riot, on the boss wave, still give 2 and 4.
 | 1 | **Guard** | A riot guard with a baton, straight at you (contact 14) |
 | 2 | **Riot Shield** | A guard behind a tall shield that stops shots and swings from the front. Up close the shield flashes (0.4 s), then it lunges and **bashes** you: 10 damage and knocked **160 px** back (you can't be bashed again for 0.8 s). It holds the shield low for a second after, when front hits land. The shield holds 4x its health and cracks as it wears; broken, the guard staggers for a second, then flails and takes 50% more damage. Go round it or break it. Squad (wave 3): Cell block (two Riot Shields with Rioters pouring past) |
 | 2 | **Gas Grenadier** | Keeps its distance and lobs a tear-gas canister near you every 3.6 s: a 70 px cloud that settles after 1 s and hurts (8 a second) for 4 s |
-| 2 | **Security Guard** | A guard with a service pistol: slate uniform, hi-vis vest, peaked cap. It holds about 300 px away and strafes, then **plants its feet and locks on for 0.25 s**: a red lane fills on the floor toward where you're heading (it **leads you**, in a straight line from how you're moving) and a reticle closes on the spot. Then one **tracer round** (340 px/s, 7 damage): a hot-white streak with a long tail. It only starts shooting once within about 380 px of you, then semi-auto, one every 1.5 s, and the aim doesn't follow you once locked, so a sudden turn beats it. Its pips above its head count the **seven rounds** in the magazine; empty, it drops the magazine and **reloads for 2.2 s** (a cream ring fills round it), standing still and not shooting: rush it. Squad (wave 2): Patrol (three Security Guards with two Rioters) |
-| 3 | **Taser Guard** | A guard with a taser that keeps its distance (320 px), plants its feet and **charges for 0.7 s**: a dashed aim line and the prongs crackling, brighter as it nears the shot. Then it fires one **Fork Bolt** straight at you (260 px/s, 8 damage; it doesn't lead you, so strafe across the line): a white lightning glyph that flickers its zigzag 16 times a second, with a fork, among rounder bullets. A hit **stuns you for 1 s** (a flash and six bolts web out from you); a perfect parry sends it back like any shot. One bolt every 3.2 s |
+| 2 | **Security Guard** | A guard with a service pistol: slate uniform, hi-vis vest, peaked cap. It holds about 300 px away and strafes, then **plants its feet and locks on for 0.25 s**: the shooting line fills toward where you're heading (it **leads you**, in a straight line from how you're moving). Then one **tracer round** (340 px/s, 7 damage): a hot-white streak with a long tail. It only starts shooting once within about 380 px of you, then semi-auto, one every 1.5 s, and the aim doesn't follow you once locked, so a sudden turn beats it. Its pips above its head count the **seven rounds** in the magazine; empty, it drops the magazine and **reloads for 2.2 s** (a cream ring fills round it), standing still and not shooting: rush it. Squad (wave 2): Patrol (three Security Guards with two Rioters) |
+| 3 | **Taser Guard** | A guard with a taser that keeps its distance (320 px), plants its feet and **charges for 0.7 s**: the shooting line and the prongs crackling, brighter as it nears the shot. Then it fires one **Fork Bolt** straight at you (260 px/s, 8 damage; it doesn't lead you, so strafe across the line): a white lightning glyph that flickers its zigzag 16 times a second, with a fork, among rounder bullets. A hit **stuns you for 1 s** (a flash and six bolts web out from you); a perfect parry sends it back like any shot. One bolt every 3.2 s |
 
 **Bubbles (Shielded elites and the Warder's wards):** a bubble is twelve cells round the rim, each holding a twelfth of the shield. A hit wears down the cell facing whoever shot it (flashing, then breaking into shards) and spills over to its neighbours once that cell is gone, so the side you shoot from is the side that opens. Burning and bleeding keep chewing the weakest cell. A honeycomb inside only shows where its cell is still up, and a thin shield bar sits above the health bar. Blue is a Shielded elite, violet is the Warder's.
 
@@ -810,7 +810,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   own walls close off the space on one side, that space fills in as the room and goes to the vote (the green fill shows it; if both sides
   are closed off, the smaller one). You pay only for the walls you drew. **Right click** (or Esc, Backspace, **Undo**) takes the last corner back, and with none laid goes back;
   with no corner laid, press, drag and let go draws a plain box. Any shape works (L, T, U, cross, zig-zag) as long as it is **2 tiles
-  wide everywhere**, at most 144 tiles of floor and 24 tiles each way, its walls don't cross, it shares 3 tiles of one wall with a room
+  wide everywhere**, at most 144 tiles of floor and 24 tiles each way, its walls don't cross, it shares 2 tiles of one wall with a room
   and overlaps nothing (a shorter touch with another room's wall is fine, it just stays wall). The map shows it green when it fits (red,
   with the reason, when not). It is built as one room, however many boxes it takes inside, and it becomes **your proposal**; a newer
   drawing replaces it. You can only propose what you can afford. A proposal costs its **new wall length**: the perimeter
@@ -826,7 +826,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
 - **The draw screen's layout**: the tools down the left (**Room**, **Open wall**, **Portal**, **Gate**; keys **1-4**) with a
   key to what the map's colours mean under them; the map in the middle (scroll to zoom, middle drag to pan) drawn as the real floor: each room's
   tile grid, the walls and side walls with their door gaps, and the cover (crates, barriers, pillars, the hub's floor plan), this wave's
-  breaches (red, chevrons pointing in), gates (an orange laser grid, faint while open) and portals (rings joined by a dotted line); on the right your vectors with a
+  breaches (red, chevrons pointing in), gates (an orange laser grid, faint while open) and portals (rings joined by a dotted line), each named in the map key; on the right your vectors with a
   bar showing what the drawing would spend, the tool's three steps (the one you're on lit gold), what's wrong or what it costs, the room
   types (Plain plus the unlocked floors, two to a row; the picked one says what it does), and **Build**/**Undo** and **Done**.
 - **Room kits**: a one-use modifier the team holds (up to 6; the build chip counts them). Spend one in a building round
@@ -854,7 +854,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   **Solo players skip the vote**: your proposal is built the moment you make it.
 - **Shop and vendor rooms, chest nodes and the Gatekeeper room**: every boss cycle the game places a **shop room** and a **vendor room** (tiny
   4 x 4 tile squares) and a **Gatekeeper** room (8 x 6) as sealed boxes 4 to 8 tiles off the map, plus a **chest node**: a point 10 to 16 tiles straight
-  out (at least 8 tiles from other nodes). Build a room or hallway that shares 3 tiles of wall with a sealed room and its door opens: walk in to shop
+  out (at least 8 tiles from other nodes). Build a room or hallway that shares 2 tiles of wall with a sealed room and its door opens: walk in to shop
   (the shop's stall or the vendor's pedestal stands in the middle). Sealed rooms don't count towards the 24-room cap and add no enemies; at most 6 wait.
   A chest node is locked until you build a **room** that encloses it (a normal combat room with enemies); walk up to the chest to open it once: every
   player gets gold (40, +10 a boss cycle) and 6 vectors (opened ones lie dim with the lid up). No cover stands on a node. Nothing respawns: new ones
@@ -895,8 +895,11 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   from, and a red dash marks each on the minimap). 2 open on a breach wave, one more per 3 rooms built (at most 6), 400 px apart or
   more, picked by the wave and the map so everyone sees the same ones. Every 100 px of outer wall is a spot, so long outer walls
   break more often, and a **dead end** (a room with one door) more still: compact builds and loops have fewer places to be hit
-  from. The barriers flicker up for 1.5 s before the first enemy steps through; an enemy uses a breach at least 350 px from every
-  player when there is one. On every other regular wave enemies simply appear at a random spot in the rooms, at least 350 px from every player. Never on a sealed room, a shop, vendor or Gatekeeper room, or on boss waves (the fixed boss arena).
+  from. **Breach warning:** when the wave starts, before anything spawns, everyone's camera flies to each breach in turn (0.5 s),
+  holds while it flashes with red rings (0.6 s; a siren, and a red BREACH 1/3 band at the top), then flies back to you (0.8 s), with
+  letterbox bars while it's away; you can't move, shoot or use abilities until it's over (about 3 s for 2 breaches, 7.7 s for 6).
+  A breach wave brings **three times** the wave's enemies (bosses not tripled), with room for 1.5x as many alive at once. An enemy
+  uses a breach at least 350 px from every player when there is one. On every other regular wave enemies simply appear at a random spot in the rooms, at least 350 px from every player. Never on a sealed room, a shop, vendor or Gatekeeper room, or on boss waves (the fixed boss arena).
 - **Obstacles**: a built room comes with obstacles and bars of wall (pillars, bars, an L, blocks: one per ~220,000 px2, up to 4),
   laid out from the room's own box so every machine builds the same ones. They keep off the room's walls, its doors and its middle,
   so you can always walk round them; a room 3 tiles wide or less gets a pillar or block every ~500 px, alternating sides with a 180 px lane past each, none near a door or bend. A small or narrow room with doors at both ends still gets at least one

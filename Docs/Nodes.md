@@ -65,7 +65,7 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
 ## Shop and vendor as tiny rooms (built, no protocol change)
 
 - Owner, Nov 11: "the shop nodes should be tiny square rooms that you walk into instead of nodes you build around". Shop **and** vendor (chests stay nodes), **4 x 4 tiles** (`Expansion.ShopRoomSide`).
-- They are floating rooms again (`FloatingFor`, as the Gatekeeper's, sealed until a built box shares 3 tiles of wall): `PlaceFloatingRooms` places Gatekeeper, shop and vendor rooms (at most `MaxSealed` waiting) and only chest nodes.
+- They are floating rooms again (`FloatingFor`, as the Gatekeeper's, sealed until a built box shares 2 tiles of wall): `PlaceFloatingRooms` places Gatekeeper, shop and vendor rooms (at most `MaxSealed` waiting) and only chest nodes.
 - An opened shop or vendor room draws the node's stall or pedestal in its middle (`DrawFloatingMark` -> `DrawNodeFixture`); the draw screen's legend lists Shop room / Vendor room.
 - Bots: `BotBuildsToFloater` ranks shop, vendor, chest, Gatekeeper across nodes and sealed rooms (`ConnectorFor` for rooms).
 - Old saves with shop or vendor nodes still load and claim as before. Preview: `EXPANDMAP=0 EXPANDFLOAT=3` (hud, you stand in the opened shop) or with `EXPANDVOTE=0 EXPANDDRAW=0,-1200,300,1200` (draw screen).

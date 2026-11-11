@@ -587,7 +587,8 @@ namespace Arena
                     float ghost = a.Sealed ? 0.55f + 0.25f * Mathf.Sin(Time.unscaledTime * 2.5f) : 1f;  // a sealed floating room breathes
                     RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, ink.WithAlpha((a.Hub ? 0.16f : 0.1f) * ghost));
                     DrawHoloGrid(a, M, k, ink.WithAlpha(ghost));
-                    RimFrame(wd, ai, M, a.Floating ? 1.5f : 1f, ink.WithAlpha(0.45f * ghost));
+                    if (a.Floating || a.Sealed)  // (a built room's outline is its walls, drawn below: a rim would run across the door gaps)
+                        RimFrame(wd, ai, M, 1.5f, ink.WithAlpha(0.8f * ghost));
                 }
                 DrawHoloSolids(wd, M, k, map);  // walls, fins and cover over the floors (BuildMapLook.cs)
                 foreach (var nd in game.Nodes)  // the nodes still waiting for a room built round them (claimed ones are part of their room)
@@ -980,6 +981,14 @@ namespace Arena
             foreach (var nd in game.Nodes)
                 if (!Expansion.NodeClaimed(game.Expanded, nd) && seen.Add(nd.Kind))
                     items.Add(new KeyValuePair<string, Rgba>(nd.Kind.ToString().ToUpperInvariant() + " NODE", NodeInk(nd.Kind)));
+            items.Add(new KeyValuePair<string, Rgba>("WALL", HoloWallInk));  // the map's floor (BuildMapLook.cs): walls, cover, and what's on it this wave
+            items.Add(new KeyValuePair<string, Rgba>("COVER", HoloCoverInk));
+            if (game.ActiveBreaches.Length > 0)
+                items.Add(new KeyValuePair<string, Rgba>("BREACH", HoloBreachInk));
+            if (game.GateFits.Count > 0)
+                items.Add(new KeyValuePair<string, Rgba>("GATE", HoloGateInk));
+            if (game.Links.Count > 0)
+                items.Add(new KeyValuePair<string, Rgba>("PORTAL", PortalColours[(game.ExpansionWorld.Portals.Length - game.Links.Count) % PortalColours.Length]));
             bool sealedRoom = false;
             var sealedKinds = new HashSet<RoomKind>();
             foreach (var fa in game.ExpansionWorld.Areas)

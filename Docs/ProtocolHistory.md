@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 288: rooms join with 2 tiles of shared wall (Expansion.MinDoorRun 300 -> 200): maps and doors differ from 287
 - 287: breach event: `Msg.ExpandState` carries the gold breach (a flag and its position, `Game.EventMark`) between the nodes and the open round
 - 286: hallways are gone: `Msg.ExpandHall` retired (no handler), drawn rooms 2-24 tiles a side up to 144 tiles; built rooms grow side walls (rolled per room, from the map, no wire).
 - 285: the player snapshot carries `Player.MomentumStacks` and `MomentumT` (the DPS role passive, Momentum; after `AdrenalineT`)
