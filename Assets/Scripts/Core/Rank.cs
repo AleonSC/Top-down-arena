@@ -38,6 +38,7 @@ namespace Arena
         public long Before, After;
         public int RankBefore, RankAfter;
         public readonly List<CosmeticDef> Unlocked = new List<CosmeticDef>();
+        public int Cores, CoresFound;  // Cores the run paid, and the part of them found as drops (Variants.cs, CoreDrops.cs)
         public bool RankedUp => RankAfter > RankBefore;
     }
 

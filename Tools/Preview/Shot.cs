@@ -398,7 +398,8 @@ static partial class Shot {
     }
     if (Environment.GetEnvironmentVariable("WAVECLEARED") != null) {  // the between-waves box: WAVECLEARED=1 (waiting), =auto (everyone on auto-ready), =boss (the boss is next), =beaten (the boss was just beaten)
       var wg = host.Game; string wc = Environment.GetEnvironmentVariable("WAVECLEARED");
-      wg.State = MatchState.Intermission; wg.Wave = Environment.GetEnvironmentVariable("WCWAVE") != null ? int.Parse(Environment.GetEnvironmentVariable("WCWAVE")) : wc == "boss" || wc == "beaten" ? 5 : 4; wg.BossSlot = wc == "beaten"; wg.Leg = 1;  // (a Campaign: both legs of the wave cleared) wg.ProfileOverride = new Profile();  // boss: the boss comes next; beaten: it was just beaten  // WCWAVE=<n>: the wave just cleared (the new-enemy chips show what wave n+1 brings) wg.StateTimer = 3.2f; wg.Me.Offer = null;
+      wg.State = MatchState.Intermission; wg.Wave = Environment.GetEnvironmentVariable("WCWAVE") != null ? int.Parse(Environment.GetEnvironmentVariable("WCWAVE")) : wc == "boss" || wc == "beaten" ? 5 : 4; wg.BossSlot = wc == "beaten"; wg.Leg = 1;  // (a Campaign: both legs of the wave cleared; boss: the boss comes next; beaten: it was just beaten; WCWAVE=<n>: the wave just cleared)
+      wg.ProfileOverride = new Profile(); wg.StateTimer = 3.2f; wg.Me.Offer = null;
       var rep = new WaveSummary { Wave = wg.Wave, ClearTime = 42f, ScoreGain = 120 };
       int wi = 0; foreach (var wp in wg.Players.Values) { rep.Lines.Add(new WaveLine { Id = wp.Id, Kills = new[] { 18, 21, 13 }[wi % 3], Damage = new[] { 2140f, 2880f, 1310f }[wi % 3], Taken = new[] { 0f, 96f, 22f }[wi % 3], Awards = new[] { WaveAward.Untouched, WaveAward.MostDamage | WaveAward.MostKills, WaveAward.Reviver }[wi % 3] }); wp.AutoReady = wc == "auto"; wp.Ready = wi == 1; wi++; }
       wg.WaveReport = rep;
@@ -407,6 +408,7 @@ static partial class Shot {
       if (Time.unscaledTime < 5f) Time.unscaledTime = 5f;  // (a negative birth time reads as "not up yet")
       set("wcBorn", Time.unscaledTime - wct); set("wcWave", wg.Wave);
       if (Environment.GetEnvironmentVariable("WCSTEP") != null) set("wcStep", int.Parse(Environment.GetEnvironmentVariable("WCSTEP")));  // WCSTEP=0|1|2: Results, Build (needs EXPANDVOTE=<rooms> EXPANDFREE=1), Ready
+      if (Environment.GetEnvironmentVariable("WCMIN") != null) set("wcMin", true);  // WCMIN=1: minimized to the strip at the top
     }
     if (Environment.GetEnvironmentVariable("PATHOFFER") != null) { host.Game.PathOffer = Environment.GetEnvironmentVariable("PATHOFFER") == "bazaar" ? new[] { PathId.Bazaar, PathId.EliteGauntlet } : Environment.GetEnvironmentVariable("PATHOFFER") == "4" ? new[] { PathId.Fogbound, PathId.NarrowPass } : Environment.GetEnvironmentVariable("PATHOFFER") == "3" ? new[] { PathId.FrozenLake, PathId.BloodMoon } : Environment.GetEnvironmentVariable("PATHOFFER") == "2" ? new[] { PathId.BurningGrounds, PathId.Sanctuary } : new[] { PathId.SwarmFields, PathId.EliteGauntlet }; host.Game.State = MatchState.Intermission; host.Game.Route.Add(PathId.SniperRidge); }
     if (Environment.GetEnvironmentVariable("EXPANDVOTE") != null) {  // EXPANDVOTE=<rooms already bought>: the Expanding arena's vote after a boss (ExpansionUi.cs)
@@ -426,10 +428,6 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("EXPANDLINKCARD") != null && eg.ExpandProposals.Count > 0) {  // EXPANDLINKCARD=1: the first proposal is a portal pair
         string lw; var bl = Expansion.BestLink(eg.ExpansionWorld, 0);
         if (bl.HasValue) { var lp = Expansion.LinkProposal(bl.Value, Expansion.LinkPrice(eg.ExpansionWorld, 0, bl.Value, out lw)); lp.Owner = eg.ExpandProposals[0].Owner; eg.ExpandProposals[0] = lp; }
-      }
-      if (Environment.GetEnvironmentVariable("EXPANDHALLCARD") != null && eg.ExpandProposals.Count > 0) {  // EXPANDHALLCARD=1: the first proposal is a 3-leg bent hallway
-        string hw0; var hl = Expansion.Hall(eg.Expanded, new System.Collections.Generic.List<int[]> { new[] { 500, -1200, 300, 1200 }, new[] { 800, -1200, 1200, 300 }, new[] { 1700, -900, 300, 600 } }, out hw0);
-        if (hl != null) { int ho = eg.ExpandProposals[0].Owner; eg.ExpandProposals.RemoveAt(0); for (int hi = 0; hi < hl.Count; hi++) { var hq = hl[hi]; hq.Owner = ho; eg.ExpandProposals.Insert(hi, hq); } }
       }
       if (eg.ExpandProposals.Count > 0) eg.ExpandVotes[eg.MyId] = eg.ExpandProposals[0].Owner;
       // EXPANDCHIP=1: just the chip; otherwise the window is open (=2 too)
@@ -454,12 +452,6 @@ static partial class Shot {
           if (first.HasValue) { eg.Links.Add(first.Value); typeof(Game).GetField("expWorld", bf).SetValue(eg, null); }
           var next = Expansion.BestLink(eg.ExpansionWorld, eg.Links.Count);
           if (next.HasValue) { typeof(ArenaApp).GetField("expA", bf).SetValue(app, next.Value.A); typeof(ArenaApp).GetField("expB", bf).SetValue(app, next.Value.B); }
-        }
-        if (Environment.GetEnvironmentVariable("EXPANDHALL") != null) {  // EXPANDHALL=1: the draw screen in Hallway mode, two legs laid (up, then right) and the box as the third
-          typeof(ArenaApp).GetField("expHallMode", bf).SetValue(app, true);
-          var hlegs = (System.Collections.Generic.List<int[]>)typeof(ArenaApp).GetField("expLegs", bf).GetValue(app);
-          hlegs.Add(new[] { 500, -1200, 300, 1200 }); hlegs.Add(new[] { 800, -1200, 1200, 300 });
-          eg.Me.Vectors = 40;
         }
         string outl = Environment.GetEnvironmentVariable("EXPANDOUTLINE");  // EXPANDOUTLINE=x,y;x,y;...: the draw screen in Room mode with those corners laid (closed back to the first)
         if (outl != null) {
@@ -489,6 +481,7 @@ static partial class Shot {
     using (var w = new BinaryWriter(File.Create(args[0] + ".tris"))) foreach (var v in GL.Tris) w.Write(v);
     File.WriteAllLines(args[0] + ".ui", GUI.Log.ToArray());
     Console.WriteLine("state {0} wave {1}, tris {2}, ui items {3}", host.Game.State, host.Game.Wave, GL.Tris.Count / 18, GUI.Log.Count);
+    ClipFrames();
     host.Leave(""); foreach (var c in others) c.Leave("");
   }
 }

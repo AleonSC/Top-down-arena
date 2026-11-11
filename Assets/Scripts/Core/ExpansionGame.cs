@@ -433,10 +433,10 @@ namespace Arena
             return null;
         }
 
-        /// The open round's proposals, one each (a bent hallway's later legs left out: LegsOf has them).
+        /// The open round's proposals, one each (a drawn outline's later pieces left out: LegsOf has them).
         public List<ExpansionRoom> ProposalHeads => ExpandProposals.FindAll(q => q.Leg == 0);
 
-        /// A bent hallway proposal's second and third legs, in order (empty for anything else).
+        /// A drawn outline proposal's later pieces, in order (empty for anything else).
         public List<ExpansionRoom> LegsOf(int owner) => ExpandProposals.FindAll(q => q.Owner == owner && q.Leg > 0);
 
         /// Host: this player's proposal is now these entries (a newer one replaces the last, and the votes for the old one go;
@@ -700,68 +700,6 @@ namespace Arena
             FinishOrBroadcast();
         }
 
-        /// This game's player draws a bent hallway (up to Expansion.MaxLegs legs, each {x, y, w, h}, joined end to end) and puts it to the vote.
-        public void ProposeExpandHall(IList<int[]> legs)
-        {
-            if (!ExpandOpen || Me == null || legs == null || legs.Count == 0 || legs.Count > Expansion.MaxLegs)
-                return;
-            if (IsHost)
-            {
-                HostExpandHall(MyId, legs);
-                return;
-            }
-            var pw = Proto.Begin(Msg.ExpandHall);
-            pw.Write((byte)legs.Count);
-            foreach (var l in legs)
-            {
-                pw.Write((short)l[0]); pw.Write((short)l[1]); pw.Write((short)l[2]); pw.Write((short)l[3]);
-            }
-            session.SendToHost(Proto.End(pw));
-        }
-
-        public void OnExpandHall(int peer, BinaryReader r)
-        {
-            int n = r.ReadByte();
-            if (n > Expansion.MaxLegs)
-                return;
-            var legs = new List<int[]>(n);
-            for (int i = 0; i < n; i++)
-                legs.Add(new int[] { r.ReadInt16(), r.ReadInt16(), r.ReadInt16(), r.ReadInt16() });
-            HostExpandHall(peer, legs);
-        }
-
-        /// Host: a bent hallway becomes its drawer's proposal, if every leg fits and they can pay for the lot.
-        void HostExpandHall(int id, IList<int[]> legs)
-        {
-            Player p;
-            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
-                return;
-            string why;
-            var made = Expansion.Hall(Expanded, legs, out why);
-            if (made == null || made[0].Price > SpendableVectors(p))
-            {
-                DoLog("hallway refused (" + (why ?? "needs " + made[0].Price + " vectors, has " + p.Vectors) + ")");
-                return;
-            }
-            if (FreeBuild)
-            {
-                var head = made[0];
-                head.Owner = id;
-                var rest = new List<ExpansionRoom>();
-                for (int i = 1; i < made.Count; i++)
-                {
-                    var leg = made[i];
-                    leg.Owner = id;
-                    rest.Add(leg);
-                }
-                BuildNow(id, head, rest);
-                return;
-            }
-            SetProposal(id, made);
-            DoLog(p.Name + " proposes a " + made.Count + "-leg hallway for " + made[0].Price + " vectors");
-            FinishOrBroadcast();
-        }
-
         /// This game's player draws a room as an outline (corners on the 100 px grid, each {x, y}, walls straight across or up) and puts it
         /// to the vote. fill: the corners are an open run of walls from one room's wall to another, and the space they fence in is the room (Expansion.Fill).
         public void ProposeExpandOutline(IList<int[]> points, PathId theme = PathId.None, bool fill = false)
@@ -859,7 +797,7 @@ namespace Arena
             BroadcastExpansion();
         }
 
-        /// Host: build this drawing for this player (a room or hallway, a wall opening or a portal pair), charging or paying them.
+        /// Host: build this drawing for this player (a room, a wall opening or a portal pair), charging or paying them.
         void ApplyBuilt(int pick, ExpansionRoom room, List<ExpansionRoom> legs)
         {
             if (room.Kind == Arena.RoomKind.Gate)
@@ -884,8 +822,8 @@ namespace Arena
             {
                 PayVectors(Players[pick], room.Price);
                 Expanded.Add(room);
-                Expanded.AddRange(legs);  // (a bent hallway's other legs, right after the first)
-                DoLog((legs.Count > 0 && Expansion.IsPiece(legs[0]) ? "drawn room of " + (legs.Count + 1) + " boxes" : legs.Count > 0 ? (legs.Count + 1) + "-leg hallway" : "room") + " built: " + room.W + " x " + room.H + " by " + Players[pick].Name + " for " + room.Price + " vectors");
+                Expanded.AddRange(legs);  // (a drawn outline's other pieces, right after the first)
+                DoLog((legs.Count > 0 ? "drawn room of " + (legs.Count + 1) + " boxes" : "room") + " built: " + room.W + " x " + room.H + " by " + Players[pick].Name + " for " + room.Price + " vectors");
             }
             expWorld = null;
             LayoutAge = 0f;  // the new walls rise
@@ -946,7 +884,7 @@ namespace Arena
             BroadcastExpansion();
         }
 
-        /// A bot draws the cheapest box that claims an unclaimed node (a straight hallway out to it, then a room round it), else opens the Gatekeeper's
+        /// A bot draws the cheapest box that claims an unclaimed node (a 3-tile strip out to it, then a room round it), else opens the Gatekeeper's
         /// floating room, if it can afford it. True if it proposed one.
         bool BotBuildsToFloater()
         {

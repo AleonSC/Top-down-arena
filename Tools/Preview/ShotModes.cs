@@ -151,6 +151,13 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("WILDCARD") != null) { host.Lobby[1].Role = Role.Wildcard; host.Lobby[1].Kit = Kit.Soldier; host.Lobby[1].Weapon = (byte)int.Parse(Environment.GetEnvironmentVariable("WILDWEAPON") ?? "9");  // WILDWEAPON=<pick>: 18 the Arc Knuckles
        host.Lobby[1].Ability = 12; host.Lobby[1].Wild = Defs.MakeWild(14, 1); host.Lobby[1].Ult = (byte)Upgrades.WildUlt(Kit.Ninja, 0); }  // WILDCARD=1: Twin Blades, Shadow Step, Blade Fan on Q, Death Lotus
       if (Environment.GetEnvironmentVariable("SOLO") != null) host.Lobby.Remove(2);
+      // VARIANTS=1: your weapon's variants window open with 25 Cores and tier I bought (VARIANTS=0: none bought, 5 Cores).
+      if (Environment.GetEnvironmentVariable("VARIANTS") != null) {
+        bool one = Environment.GetEnvironmentVariable("VARIANTS") == "1";
+        Profile.Current.Cores = one ? 25 : 5; Profile.Current.VariantTiers.Clear();
+        if (one) Profile.Current.VariantTiers[Defs.Weapon(Role.Tank, Kit.Knight, 1).Name] = 1;
+        set("ascOpen", 1);
+      }
       // BOTS=1: Aleon's seat is a bot (the host's skill, MIX and remove keys on its card); BOTS=edit: the host is also choosing that bot's loadout (its name box over the preview).
       if (Environment.GetEnvironmentVariable("BOTS") != null) {
         host.Lobby[2] = new LobbyEntry { Id = 2, Name = "Bot 1", Role = Role.Healer, Kit = Kit.Hemomancer, Weapon = 0, Ability = 0, Ready = true, Rank = 3 };

@@ -802,6 +802,8 @@ namespace Arena
                     if (e.Def.IsBoss)
                         killer.Run.BossKills++;
                 }
+                if (HasTrait(e, EliteTrait.CoreCarrier))
+                    DropCores(e);  // CoreDrops.cs
                 if (killer != null && e.Def.Xp > 0 && (OnPathOf(PathId.BloodMoon) || FloorAt(killer.Pos) == PathId.BloodMoon))
                     Heal(killer, Paths.BloodMoonHeal(Wave), null, "Blood Moon");  // Blood Moon: the hunt keeps you alive
                 else if (killer != null && e.Def.Xp > 0 && Has(RunMod.Bloodlust))
@@ -814,6 +816,7 @@ namespace Arena
                 else if (OnPathOf(PathId.Bazaar) || Has(RunMod.GoldRush) || ServiceRooms)
                     GrantGold(e);  // Shop.cs
                 GrantVectorKill(killer);  // and a vector every 25 kills
+                MomentumKill(killer, e);  // DPS role passive (Momentum.cs)
                 DropOrbs(e, bossReward);
                 DeathFx(e, e.Pos);
                 Enemies.Remove(e.Id);
