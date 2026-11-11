@@ -17,9 +17,8 @@ namespace Arena
         float HoloT => holoClock >= 0f ? holoClock : Time.unscaledTime;
 
         /// Where the hologram slab goes: centred over the button with a gap for the beam.
-        Rect HoloPlace(Rect anchor, float pw, float h)
+        Rect HoloPlace(Rect anchor, float pw, float h, float gap = 26f)
         {
-            const float gap = 26f;
             holoSide = false;
             float x = Mathf.Clamp(anchor.center.x - pw / 2f, 8f, W - 8f - pw);
             if (anchor.y - gap - h >= 8f)
@@ -113,18 +112,29 @@ namespace Arena
             Ui.Fill(new Rect(r.xMax - L + 3f, r.yMax + 1f, L, w), col); Ui.Fill(new Rect(r.xMax + 1f, r.yMax - L + 3f, w, L), col);
         }
 
-        /// The title in the hologram look: near-white cyan (the glitch style adds offset cyan and magenta ghosts behind it).
+        /// The title in the hologram look: near-white cyan, a ghost in cyan and one in magenta behind it, and the tip's colour as a marker.
         void DrawHoloTitle(Rect r, string title, Color accent)
         {
+            DrawHoloText(r, title.ToUpperInvariant(), 16, TextAnchor.MiddleLeft, accent);
+            Ui.Fill(new Rect(r.x - 8f, r.y + 4f, 3f, r.height - 8f), accent);
+        }
+
+        void DrawHoloText(Rect r, string s, int size, TextAnchor align, Color accent)
+        {
             var c = HoloTint(accent);
-            string s = title.ToUpperInvariant();
-            {
-                float j = Mathf.Repeat(HoloT, 2.3f) > 2.2f ? 3.5f : 1.5f;
-                Ui.Label(new Rect(r.x - j, r.y, r.width, r.height), s, 16, new Color(1f, 0.2f, 0.7f, 0.6f), TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(r.x + j, r.y, r.width, r.height), s, 16, new Color(0.2f, 0.95f, 1f, 0.6f), TextAnchor.MiddleLeft, true);
-            }
-            Ui.Label(r, s, 16, Color.Lerp(c, Color.white, 0.65f), TextAnchor.MiddleLeft, true);
-            Ui.Fill(new Rect(r.x - 8f, r.y + 4f, 3f, r.height - 8f), accent);  // the tip's own colour, as a marker
+            float j = Mathf.Repeat(HoloT, 2.3f) > 2.2f ? 3.5f : 1.5f;
+            Ui.Label(new Rect(r.x - j, r.y, r.width, r.height), s, size, new Color(1f, 0.2f, 0.7f, 0.6f), align, true);
+            Ui.Label(new Rect(r.x + j, r.y, r.width, r.height), s, size, new Color(0.2f, 0.95f, 1f, 0.6f), align, true);
+            Ui.Label(r, s, size, Color.Lerp(c, Color.white, 0.65f), align, true);
+        }
+
+        /// A small one-line chip ("Coming soon") over a hovered locked slot, in the same hologram look.
+        void DrawHoloChip(Rect anchor, string text)
+        {
+            float w = Ui.TextWidth(text, 14, true) + 28f, h = 30f;
+            var pop = HoloPlace(anchor, w, h, 16f);
+            DrawHoloBack(pop, anchor, CrtUi.Ink);
+            DrawHoloText(pop, text.ToUpperInvariant(), 14, TextAnchor.MiddleCenter, CrtUi.Ink);
         }
     }
 }

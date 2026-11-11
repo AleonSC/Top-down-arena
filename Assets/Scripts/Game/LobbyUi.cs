@@ -1258,6 +1258,11 @@ namespace Arena
             if (!lockedTipOn)
                 return;
             string text = lockedTipText;
+            if (holoTips)
+            {
+                DrawHoloChip(lockedTip, text);
+                return;
+            }
             float w = Ui.TextWidth(text, 14, true) + 22f, h = 30f;
             var tip = new Rect(lockedTip.center.x - w / 2f, lockedTip.y - h - 6f, w, h);
             if (tip.y < 4f)
