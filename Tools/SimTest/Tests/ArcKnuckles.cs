@@ -135,54 +135,61 @@ static partial class Program
         Step((int)((Game.KnuckleArmTime + 0.3f) / dt), false, false);
         Check(armed && !me.KnuckleArmed, "an unused Counter Hammer fades after 3 s");
 
-        // The Rocket Dash (the weapon-action key): you fly 130 px along your aim, untouchable; the first enemy in the lane takes
-        // its hit and a short shove, the one behind it nothing.
+        // The Rocket Dash (the weapon-action key): it locks onto the enemy nearest your cursor and flies you up to it, untouchable;
+        // that enemy takes the hit and a short shove, even with another in the way. With nothing in reach it flies 130 px along your aim.
         Step(80, false, false);
         g.Bullets.Clear();
         foreach (var kv in pinned) kv.Key.Pos = new V2(150f, 120f);
         pinned.Clear();
-        var front = Dummy(new V2(640f, 450f));
-        var behind = Dummy(new V2(680f, 450f));
+        var front = Dummy(new V2(600f, 450f));   // in the way along your aim
+        var locked = Dummy(new V2(700f, 470f));  // nearest the cursor
         pinned.Clear();  // (they move: the shove)
-        float frontX = front.Pos.X;
+        V2 lockedAt0 = locked.Pos;
         V2 start = from;
         me.Pos = start;
-        bool clientSawDash = false, untouchable = false;
+        bool clientSawDash = false, untouchable = false, clientSawHit = false;
+        V2 cursor = locked.Pos + new V2(10f, 5f);
         Action<int, bool> Fly = (frames, alt) =>
         {
             for (int f = 0; f < frames; f++)
             {
                 queue.Clear();
-                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = me.Pos + new V2(300f, 0f), WeaponAction = alt && f < 2 } : new PlayerInput()); }
+                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = cursor, WeaponAction = alt && f < 2 } : new PlayerInput()); }
                 foreach (var c in g.Sounds) heard.Add(c.Sfx);
                 g.Sounds.Clear();
                 untouchable |= me.InvulnT > 0f;
                 foreach (var fx in s[1].Game.Effects)
+                {
                     clientSawDash |= fx.Kind == FxKind.KnuckleDash && (int)Math.Round(fx.Radius) == 1;
+                    clientSawHit |= fx.Kind == FxKind.KnuckleHit && (int)fx.Pos2.X == 1 && (int)fx.Pos2.Y == 7;
+                }
             }
         };
-        front.Hp = front.MaxHp; behind.Hp = behind.MaxHp;
+        front.Hp = front.MaxHp; locked.Hp = locked.MaxHp;
         Fly(2, true);
         Fly(28, false);
-        float moved = me.Pos.DistanceTo(start);
-        float frontTook = front.MaxHp - front.Hp, behindTook = behind.MaxHp - behind.Hp;
-        Console.WriteLine("  rocket dash: moved {0:0} px, front took {1:0}, behind {2:0}, shoved {3:0} px", moved, frontTook, behindTook, front.Pos.X - frontX);
-        Check(Math.Abs(moved - Game.KnuckleDashLen) < 12f, "the Rocket Dash carries you 130 px along your aim (" + moved + "; dashes move in whole 1/60 s frames)");
-        Check(untouchable, "and you're untouchable while you fly");
-        Check(Math.Abs(frontTook - me.Weapon.Damage * Game.KnuckleDashMult * me.Stats.DmgMult) < 0.6f && behindTook == 0f, "the first enemy in the lane takes the hit, the one behind it nothing");
-        Check(front.Pos.X - frontX > 5f && front.Pos.X - frontX < Game.KnuckleDashKnock + 10f, "and it's shoved a short way, still in reach");
-        Check(heard.Contains(Sfx.KnuckleRocket) && heard.Contains(Sfx.KnuckleRocketHit), "the thruster and the hit are heard");
-        Check(clientSawDash, "the other player sees the dash");
+        float frontTook = front.MaxHp - front.Hp, lockedTook = locked.MaxHp - locked.Hp, gap = me.Pos.DistanceTo(locked.Pos);
+        Console.WriteLine("  rocket dash: ended {0:0} px from the locked enemy, it took {1:0}, the one in the way {2:0}", gap, lockedTook, frontTook);
+        Check(me.KnuckleTarget == locked.Id && s[1].Game.Players[1].KnuckleTarget == locked.Id, "the Rocket Dash locks onto the enemy nearest your cursor (the other player's game knows it)");
+        Check(gap < locked.Radius + me.Def.BodyR + Game.KnuckleDashKnock + 20f, "and flies you right up to it (" + gap + " px)");
+        Check(untouchable, "you're untouchable while you fly");
+        Check(Math.Abs(lockedTook - me.Weapon.Damage * Game.KnuckleDashMult * me.Stats.DmgMult) < 0.6f && frontTook == 0f, "the locked enemy takes the hit, the one in the way nothing");
+        Check(locked.Pos.DistanceTo(lockedAt0) > 5f && locked.Pos.DistanceTo(lockedAt0) < Game.KnuckleDashKnock + 10f, "and it's shoved a short way, still in reach");
+        Check(heard.Contains(Sfx.KnuckleRocket) && heard.Contains(Sfx.KnuckleImpactHeavy), "the thruster and the hit are heard");
+        Check(clientSawDash && clientSawHit, "the other player sees the dash and the hit (sparks; your own game holds and shakes)");
         V2 after = me.Pos;
-        front.Hp = front.MaxHp;
+        locked.Hp = locked.MaxHp;
         Fly(2, true);
         Fly(20, false);
-        Check(me.Pos.DistanceTo(after) < 2f && front.Hp == front.MaxHp, "it can't dash again until its 3 s cooldown is up");
+        Check(me.Pos.DistanceTo(after) < 2f && locked.Hp == locked.MaxHp, "it can't dash again until its 3 s cooldown is up");
         Fly((int)(Game.KnuckleDashCooldown / dt), false);
-        after = me.Pos;
+        foreach (var en in new List<Enemy>(g.Enemies.Values)) en.Pos = new V2(150f, 120f);
+        after = me.Pos = new V2(500f, 700f);
+        cursor = me.Pos + new V2(300f, 0f);
         Fly(2, true);
         Fly(20, false);
-        Check(me.Pos.DistanceTo(after) > 100f, "after the cooldown it dashes again");
+        float free = me.Pos.DistanceTo(after);
+        Check(Math.Abs(free - Game.KnuckleDashLen) < 12f, "with nothing in reach it flies 130 px along your aim (" + free + "; dashes move in whole 1/60 s frames)");
 
         // The dash chain: a dash that hits opens a window; Fire throws the Flurry where you landed, then Grab & Throw (the Flurry's
         // target thrown into the next enemy), then the Rocket Punch down the line.
@@ -202,7 +209,7 @@ static partial class Program
                 queue.Clear();
                 V2 before = me.Pos;
                 bool rooted = me.KnuckleChain == 2 || me.KnuckleChain == 4;
-                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = me.Pos + new V2(300f, 0f), Fire = fire && f < 2, WeaponAction = alt && f < 2, Move = move } : new PlayerInput()); }
+                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = alt ? tgt.Pos : me.Pos + new V2(300f, 0f), Fire = fire && f < 2, WeaponAction = alt && f < 2, Move = move } : new PlayerInput()); }  // (the dash's cursor on the target: it locks on)
                 foreach (var c in g.Sounds) heard.Add(c.Sfx);
                 g.Sounds.Clear();
                 if (rooted && me.KnuckleChain == (rooted ? me.KnuckleChain : 0) && me.Pos.DistanceTo(before) > 0.5f) movedWhileRooted = true;
