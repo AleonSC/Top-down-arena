@@ -1,6 +1,6 @@
 # Nodes: map points you build a room around
 
-Status: **steps 1-3 built (protocol 282)**, step 4 open. Decided with the owner on Nov 11, 2026. Replaces the floating shop and vendor rooms of
+Status: **steps 1-3 built (protocol 282)**, step 4 open. **Changed Nov 11 (owner): shop and vendor are tiny 4 x 4 tile sealed rooms you open and walk into, not nodes; only chests stay nodes** (see the end). Decided with the owner on Nov 11, 2026. Replaces the floating shop and vendor rooms of
 [`FloatingRooms.md`](FloatingRooms.md); the Gatekeeper (mini-boss) stays a sealed room.
 
 ## The idea
@@ -61,3 +61,11 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
 ## Open
 
 - Whether chest gold and vectors should scale harder (balance pass with `vecbal`).
+
+## Shop and vendor as tiny rooms (built, no protocol change)
+
+- Owner, Nov 11: "the shop nodes should be tiny square rooms that you walk into instead of nodes you build around". Shop **and** vendor (chests stay nodes), **4 x 4 tiles** (`Expansion.ShopRoomSide`).
+- They are floating rooms again (`FloatingFor`, as the Gatekeeper's, sealed until a built box shares 3 tiles of wall): `PlaceFloatingRooms` places Gatekeeper, shop and vendor rooms (at most `MaxSealed` waiting) and only chest nodes.
+- An opened shop or vendor room draws the node's stall or pedestal in its middle (`DrawFloatingMark` -> `DrawNodeFixture`); the draw screen's legend lists Shop room / Vendor room.
+- Bots: `BotBuildsToFloater` ranks shop, vendor, chest, Gatekeeper across nodes and sealed rooms (`ConnectorFor` for rooms).
+- Old saves with shop or vendor nodes still load and claim as before. Preview: `EXPANDMAP=0 EXPANDFLOAT=3` (hud, you stand in the opened shop) or with `EXPANDVOTE=0 EXPANDDRAW=0,-1200,300,1200` (draw screen).

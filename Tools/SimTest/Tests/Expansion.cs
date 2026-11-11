@@ -372,7 +372,8 @@ static partial class Program
         Run(s, dt, 3f, () => !g.ExpandOpen && !cg.ExpandOpen && cg.Expanded.Count == g.Expanded.Count);
         Check(g.Expanded.Count == builtNow + 1 && g.Expanded[g.Expanded.Count - 1].Owner == 1 && cg.Expanded.Count == g.Expanded.Count, "when the wave starts the votes cast count: the only vote builds that room");
 
-        // A new boss cycle places a sealed Gatekeeper room and a shop and a vendor node (Docs/Nodes.md), the same on the client, adding no crowd and no spawns.
+        // A new boss cycle places sealed Gatekeeper, shop and vendor rooms (shop and vendor tiny 4 x 4 tile squares) and a chest node (Docs/Nodes.md),
+        // the same on the client, adding no crowd and no spawns.
         var placeFloating = typeof(Game).GetMethod("PlaceFloatingRooms", flags);
         int boughtNow = Expansion.BoughtCount(g.Expanded), allNow = g.Expanded.Count, nodesNow = g.Nodes.Count;
         float scale0 = g.ExpansionScale;
@@ -381,15 +382,30 @@ static partial class Program
         placeFloating.Invoke(g, null);
         Run(s, dt, 3f, () => cg.Expanded.Count == g.Expanded.Count && cg.Nodes.Count == g.Nodes.Count);
         var added = g.Expanded.Skip(allNow).ToList();
-        Check(added.Count == 1 && added[0].Floating && added[0].Kind == RoomKind.Gatekeeper && cg.Expanded.Skip(allNow).All(r => r.Floating) && Expansion.BoughtCount(g.Expanded) == boughtNow,
-            "a new boss cycle places a floating Gatekeeper room, the same on the client, and it isn't counted as bought");
-        Check(g.Nodes.Count == nodesNow + 3 && g.Nodes.Skip(nodesNow).Any(n => n.Kind == NodeKind.Shop) && g.Nodes.Skip(nodesNow).Any(n => n.Kind == NodeKind.Vendor) && g.Nodes.Skip(nodesNow).Any(n => n.Kind == NodeKind.Chest) && cg.Nodes.SequenceEqual(g.Nodes),
-            "and a shop, a vendor and a chest node, the same on the client");
+        Check(added.Count == 3 && added.All(r => r.Floating) && added.Any(r => r.Kind == RoomKind.Gatekeeper) && cg.Expanded.Skip(allNow).All(r => r.Floating) && Expansion.BoughtCount(g.Expanded) == boughtNow,
+            "a new boss cycle places floating Gatekeeper, shop and vendor rooms, the same on the client, and they aren't counted as bought");
+        Check(added.Count(r => r.Kind == RoomKind.Shop && r.W == Expansion.ShopRoomSide && r.H == Expansion.ShopRoomSide) == 1 && added.Count(r => r.Kind == RoomKind.Vendor && r.W == Expansion.ShopRoomSide && r.H == Expansion.ShopRoomSide) == 1,
+            "the shop and vendor rooms are tiny 4 x 4 tile squares");
+        Check(g.Nodes.Count == nodesNow + 1 && g.Nodes[g.Nodes.Count - 1].Kind == NodeKind.Chest && cg.Nodes.SequenceEqual(g.Nodes),
+            "and a chest node (no shop or vendor nodes any more), the same on the client");
         placeFloating.Invoke(g, null);
-        Check(g.Expanded.Count == allNow + 1 && g.Nodes.Count == nodesNow + 3, "the same cycle places them only once");
+        Check(g.Expanded.Count == allNow + 3 && g.Nodes.Count == nodesNow + 1, "the same cycle places them only once");
         pickRooms.Invoke(g, null);
         var floatWorld = g.ExpansionWorld;
-        Check(floatWorld.Areas.Skip(allNow + 1).All(a => a.Floating && a.Sealed) && Math.Abs(g.ExpansionScale - scale0) < 0.001f && !g.HasShopRoom, "the room stays sealed, adds no crowd and an unclaimed shop node isn't a shop room");
+        Check(floatWorld.Areas.Skip(allNow + 1).All(a => a.Floating && a.Sealed) && Math.Abs(g.ExpansionScale - scale0) < 0.001f && !g.HasShopRoom, "the rooms stay sealed, add no crowd and a sealed shop room isn't a shop yet");
+        {
+            int si = g.Expanded.FindIndex(r => r.Floating && r.Kind == RoomKind.Shop);
+            var con = si >= 0 ? Expansion.ConnectorFor(g.Expanded, si) : null;
+            Check(con.HasValue, "a box can be built up to the shop room");
+            if (con.HasValue)
+            {
+                var open = new List<ExpansionRoom>(g.Expanded) { con.Value };
+                var ow = Expansion.Build(open);
+                var sa = ow.Areas[si + 1];
+                Check(!sa.Sealed && sa.Kind == RoomKind.Shop && ow.Areas.Any(x => x.Hub) && floatWorld.Areas[si + 1].Sealed,
+                    "touching it with a built box opens its door: you walk into a shop room");
+            }
+        }
         int inSealed = 0;
         for (int i = 0; i < 400; i++)
         {
@@ -403,12 +419,12 @@ static partial class Program
         // A chest node inside a built room opens when a player walks up to it: gold and vectors for everyone, once.
         {
             ExpansionRoom? extra = null;
-            for (int cy = -500; cy <= 900 && !extra.HasValue; cy += 100)
-                for (int cx = 1600; cx <= 1700 && !extra.HasValue; cx += 100)
+            for (int cy = -600; cy <= 1000 && !extra.HasValue; cy += 100)
+                for (int cx = -600; cx <= 1700 && !extra.HasValue; cx += 100)  // (anywhere touching the map: the new shop and vendor rooms may sit beside the hub)
                     extra = Expansion.Custom(g.Expanded, cx, cy, 500, 500, out string whyNot);
             int ri = -1;
             if (extra.HasValue) { g.Expanded.Add(extra.Value); ri = g.Expanded.Count - 1; }
-            Check(ri >= 0, "a 5 x 5 room fits beside the hub for the chest test");
+            Check(ri >= 0, "a 5 x 5 room fits on the map for the chest test");
             if (ri >= 0)
             {
                 var rm = g.Expanded[ri];

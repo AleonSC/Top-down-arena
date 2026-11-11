@@ -22,6 +22,11 @@ namespace Arena
         /// The mark in the middle of a floating room: a ring, and a coin ring (shop), a plus (vendor) or a diamond (Gatekeeper).
         void DrawFloatingMark(RoomArea a)
         {
+            if (!a.Sealed && (a.Kind == RoomKind.Shop || a.Kind == RoomKind.Vendor))  // an opened shop or vendor room: its stall or pedestal
+            {
+                DrawNodeFixture(a.Mid, a.Kind == RoomKind.Shop ? NodeKind.Shop : NodeKind.Vendor, false);
+                return;
+            }
             var ink = KindInk(a.Kind, a.Floor);
             float breathe = a.Sealed ? 0.5f + 0.25f * Mathf.Sin(game.AnimT * 2.5f) : 0.85f;
             var col = ink.WithAlpha(breathe);

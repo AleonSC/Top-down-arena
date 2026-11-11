@@ -981,10 +981,13 @@ namespace Arena
                 if (!Expansion.NodeClaimed(game.Expanded, nd) && seen.Add(nd.Kind))
                     items.Add(new KeyValuePair<string, Rgba>(nd.Kind.ToString().ToUpperInvariant() + " NODE", NodeInk(nd.Kind)));
             bool sealedRoom = false;
+            var sealedKinds = new HashSet<RoomKind>();
             foreach (var fa in game.ExpansionWorld.Areas)
-                sealedRoom |= fa.Sealed;
-            if (sealedRoom)
-                items.Add(new KeyValuePair<string, Rgba>("SEALED ROOM", KindInk(RoomKind.Gatekeeper, PathId.None)));
+                if (fa.Sealed && sealedKinds.Add(fa.Kind))
+                {
+                    sealedRoom = true;
+                    items.Add(new KeyValuePair<string, Rgba>(fa.Kind == RoomKind.Shop ? "SHOP ROOM" : fa.Kind == RoomKind.Vendor ? "VENDOR ROOM" : "SEALED ROOM", KindInk(fa.Kind, PathId.None)));
+                }
             float lh = 34f + items.Count * 20f + (seen.Count > 0 || sealedRoom ? 40f : 0f);
             float ly = Mathf.Max(y + 8f, H - 30f - lh);
             DkSub(new Rect(x, ly, w, lh));

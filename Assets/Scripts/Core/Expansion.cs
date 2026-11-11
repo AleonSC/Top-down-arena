@@ -439,14 +439,15 @@ namespace Arena
             return null;
         }
 
-        public const int MaxSealed = 6;  // floating rooms waiting to be connected at once
+        public const int MaxSealed = 6;
+        public const int ShopRoomSide = 400;  // a floating shop or vendor room is this square (4 x 4 tiles, owner Nov 11)  // floating rooms waiting to be connected at once
 
         /// A floating room for this boss cycle (Docs/FloatingRooms.md): a shop, vendor or Gatekeeper room placed 4 to 8 tiles off a room on the
         /// connected map, touching nothing and at least 2 tiles from every room, inside the size cap. The same on every machine for the same
         /// seed, cycle and map. Null if nothing fits.
         public static ExpansionRoom? FloatingFor(int seed, int cycle, IList<ExpansionRoom> built, RoomKind kind)
         {
-            int w = kind == RoomKind.Gatekeeper ? 800 : 600, h = kind == RoomKind.Gatekeeper ? 600 : 400;
+            int w = kind == RoomKind.Gatekeeper ? 800 : ShopRoomSide, h = kind == RoomKind.Gatekeeper ? 600 : ShopRoomSide;  // (shop and vendor: a tiny square room)
             var rng = new DetRandom(seed * 40503 + cycle * 9176 + (int)kind * 131);
             var linked = ConnectedAreas(built);
             for (int attempt = 0; attempt < 120; attempt++)
