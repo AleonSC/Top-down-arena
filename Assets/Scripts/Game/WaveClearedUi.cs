@@ -16,6 +16,8 @@ namespace Arena
         int autoReadySent = -1;       // the Auto-ready choice the host was last told (-1: not yet this run)
         float wcBorn = -1f;           // unscaled time the box appeared (for its drop-in)
         int wcWave = -1;
+        bool wcMin;                   // minimized to a strip at the top so you can walk to a shop or a chest (until the next break)
+        Rect wcStripHit;              // the strip's rect as last drawn (a click on it isn't a shot)
 
         static bool AutoReadyPref
         {
@@ -40,7 +42,12 @@ namespace Arena
             }
             if (WaveBoxUp(me) && GUIUtility.keyboardControl == 0 && Keybinds.Down(KeyAction.ReadyUp))
             {
-                if (WcStepNow() == 2)
+                if (wcMin)
+                {
+                    wcStep = 2;  // minimized: the key readies at once (you saw the results, the build window has its chip)
+                    PressReady(me);
+                }
+                else if (WcStepNow() == 2)
                     PressReady(me);
                 else
                     WcAdvance();  // the Ready key walks Results -> Build -> Ready first
@@ -63,6 +70,7 @@ namespace Arena
             {
                 wcStep = 0;
                 wcSawWindow = false;
+                wcMin = false;
                 return;
             }
             if (expOpen)
@@ -98,6 +106,18 @@ namespace Arena
             me != null && game.State == MatchState.Intermission && game.Wave > 0 && game.WaveReport != null && game.WaveReport.Wave == game.Wave
             && me.Offer == null && game.PathOffer == null && !ExpandWindowUp && !game.ShopBlocksWave && game.Room != RoomPhase.Portal && game.Practice == null;  // (the Practice Range has no ready-up)
 
+        /// The full box is on screen (not minimized): it takes the mouse, and the build chip waits behind it.
+        bool WaveBoxShown(Player me) => WaveBoxUp(me) && !wcMin;
+
+        /// The mouse is over the minimized strip (a click there is the strip's, not a shot).
+        bool MouseOnWcStrip(Player me)
+        {
+            if (!wcMin || !WaveBoxUp(me) || wcStripHit.width <= 0f)
+                return false;
+            Vector3 m = Input.mousePosition;
+            return wcStripHit.Contains(new Vector2((m.x - offX) / scale, (UnityEngine.Screen.height - m.y - offY) / scale));
+        }
+
         /// Draws the box; false when it isn't up (the plain banner is drawn instead).
         bool DrawWaveCleared(Player me, string waiting)
         {
@@ -114,6 +134,11 @@ namespace Arena
             }
             var rep = game.WaveReport;
             bool calm = CabCalm;
+            if (wcMin)
+            {
+                DrawWcStrip(me, waiting, calm);
+                return true;
+            }
             // Drops in over a third of a second (at once with Reduced effects), over a light dark layer.
             float t = calm ? 1f : Mathf.Clamp01((now - wcBorn) / 0.35f);
             float ease = 1f - (1f - t) * (1f - t);
@@ -193,7 +218,48 @@ namespace Arena
                 if (CrtUi.SoftKey(new Rect(x + i * (tw + gap), r.y + 10f, tw, 34f), label, null, 22, calm, lit: id == step) && id != step)
                     wcStep = id;
             }
+            // Minimize (top right): the box folds into a strip at the top so you can walk to a shop or a chest.
+            if (CrtUi.SoftKey(new Rect(r.xMax - WcPad - 160f, r.y + 10f, 160f, 34f), "MINIMIZE  _", null, 20, calm))
+                wcMin = true;
             Ui.Fill(new Rect(r.x + WcPad, r.y + WcTabH + 6f, r.width - 2f * WcPad, 1f), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.3f));
+        }
+
+        /// The minimized box: a slim tube at the top (under the build or door chip when one is up) with the next wave, the status, Ready and Open.
+        void DrawWcStrip(Player me, string waiting, bool calm)
+        {
+            float y = ExpandChipUp ? 88f : DoorChipUp ? 72f : 34f;  // (under the build chip or the door chip)
+            var r = new Rect(W / 2f - 330f, y, 660f, 60f);
+            wcStripHit = r;
+            RoundTube(r, 1f, false, () =>
+            {
+                bool boss = game.BossNow;
+                string next = boss ? "NEXT: THE BOSS" : "NEXT: WAVE " + (game.Hunt != null ? game.Wave + 1 : game.ShownWave + 1);
+                HudCrt(new Rect(r.x + 16f, r.y + 6f, 250f, 26f), next, 24, CrtUi.Ink);
+                string st;
+                if (me.AutoReady || game.AllAutoReady() || game.AllReady())
+                    st = "STARTS IN " + Mathf.CeilToInt(game.StateTimer);
+                else if (!string.IsNullOrEmpty(waiting) && waiting.StartsWith("Waiting for"))
+                    st = waiting.ToUpperInvariant().Replace("…", "...");
+                else
+                    st = me.Ready ? "WAITING FOR THE SQUAD" : "NO TIMER YET";
+                bool was = Ui.CrtFont;
+                Ui.CrtFont = true;
+                st = LobbyKit.Truncate(st, 16, 250f, false);
+                Ui.CrtFont = was;
+                HudCrt(new Rect(r.x + 16f, r.y + 32f, 250f, 20f), st, 16, CrtUi.Dim);
+                var rb = new Rect(r.x + 276f, r.y + 8f, 210f, 44f);
+                string key = Keybinds.KeyName(Keybinds.Get(KeyAction.ReadyUp)).ToUpperInvariant();
+                if (me.AutoReady)
+                    LobbyKit.Key(rb, "AUTO-READY", false, calm, size: 20, locked: true);
+                else if (LobbyKit.Key(rb, me.Ready ? "READY" : "READY  [" + key + "]", me.Ready, calm, me.Ready ? PixelArt.Get("ui_check") : null, size: 20, minSize: 12,
+                             accent: me.Ready ? Ui.Good : (Color?)null))
+                {
+                    wcStep = 2;
+                    PressReady(me);
+                }
+                if (LobbyKit.Key(new Rect(r.x + 496f, r.y + 8f, 148f, 44f), "OPEN", false, calm, size: 20, minSize: 12))
+                    wcMin = false;
+            });
         }
 
         /// The squad's tally (Results) or the same rows with the ready marks (Ready); a Squad total row for more than one player.

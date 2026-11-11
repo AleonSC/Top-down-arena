@@ -457,6 +457,8 @@ namespace Arena
             s.Float(ref p.InvulnT);
             s.Float(ref p.OverdriveT);
             s.Float(ref p.AdrenalineT);
+            s.Int(ref p.MomentumStacks);  // Momentum.cs
+            s.Float(ref p.MomentumT);
             s.Float(ref p.SwiftT);  // Consecrate's Swiftness (HolyCross.cs)
             s.Float(ref p.TauntT);
             s.Float(ref p.AegisT);

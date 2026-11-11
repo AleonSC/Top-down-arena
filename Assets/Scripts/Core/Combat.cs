@@ -816,6 +816,7 @@ namespace Arena
                 else if (OnPathOf(PathId.Bazaar) || Has(RunMod.GoldRush) || ServiceRooms)
                     GrantGold(e);  // Shop.cs
                 GrantVectorKill(killer);  // and a vector every 25 kills
+                MomentumKill(killer, e);  // DPS role passive (Momentum.cs)
                 DropOrbs(e, bossReward);
                 DeathFx(e, e.Pos);
                 Enemies.Remove(e.Id);
