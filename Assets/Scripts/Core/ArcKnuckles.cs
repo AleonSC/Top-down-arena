@@ -10,7 +10,7 @@ namespace Arena
     ///     perfect parry also arms the Counter Hammer (Player.KnuckleArmed): the next press is a bigger, gold Twin Hammer, from
     ///     any step. It fades after KnuckleArmTime unused.
     ///   - Alt (the weapon-action key): the Rocket Dash. The rear gauntlet's thruster throws you KnuckleDashLen along your aim in
-    ///     KnuckleDashTime, fist first and untouchable; the first enemy in the lane takes KnuckleDashDmg and a short shove that
+    ///     KnuckleDashTime, fist first and untouchable; the first enemy in the lane takes KnuckleDashMult times the weapon's damage and a short shove that
     ///     keeps it in reach. Your own game moves you when Player.KnuckleDashes changes (LocalKnuckleDash), as the Katana's dashes do;
     ///     the press goes to the host as Msg.WeaponDash (DashRocket), which checks the cooldown, lands the hit and sends the look.
     /// Each punch is one effect (FxKind.KnuckleStep), each dash one (FxKind.KnuckleDash), drawn from their age (Game/ArcKnucklesLook.cs).
@@ -18,7 +18,7 @@ namespace Arena
     {
         public const float KnuckleChainWindow = 1.2f, KnuckleArmTime = 3f;
         /// Each step (1 Jab, 2 Cross, 3 Hook, 4 Uppercut, 5 Twin Hammer, 6 Counter Hammer): damage against the weapon's Damage
-        /// (12, 14, 16, 18, 30, 38), when the punch lands after the press, and when the next press counts.
+        /// (22, 26, 29, 33, 55, 70; balanced in step 4 to sit with the other DPS Knight weapons), when the punch lands after the press, and when the next press counts.
         public static readonly float[] KnuckleMult = { 1f, 14f / 12f, 16f / 12f, 18f / 12f, 30f / 12f, 38f / 12f };
         public static readonly float[] KnuckleLand = { 0.09f, 0.11f, 0.16f, 0.14f, 0.26f, 0.26f };
         public static readonly float[] KnuckleNext = { 0.24f, 0.28f, 0.32f, 0.38f, 0.62f, 0.62f };
@@ -33,7 +33,7 @@ namespace Arena
         public static readonly Rgba ArcBlue = new Rgba(0.48f, 0.83f, 1f), ArcGold = new Rgba(1f, 0.82f, 0.29f);
         /// The Rocket Dash: how far and how fast you go, the cooldown, the hit (on the first enemy in a lane KnuckleDashWidth either
         /// side of the line, out to the fist ahead of where you stop) and its short shove, and the moment it lands after the press.
-        public const float KnuckleDashLen = 130f, KnuckleDashTime = 0.2f, KnuckleDashCooldown = 3f, KnuckleDashDmg = 24f, KnuckleDashWidth = 18f;
+        public const float KnuckleDashLen = 130f, KnuckleDashTime = 0.2f, KnuckleDashCooldown = 3f, KnuckleDashMult = 2f, KnuckleDashWidth = 18f;
         public const float KnuckleDashFist = 30f, KnuckleDashKnock = 24f, KnuckleDashLand = 0.15f, KnuckleDashGrace = 0.08f, KnuckleDashFxTime = 0.55f;
 
         /// The step a Combo value holds (0: the next press is the Jab).
@@ -178,7 +178,7 @@ namespace Arena
             p.InvulnT = Math.Max(p.InvulnT, KnuckleDashTime + KnuckleDashGrace);
             p.FireCd = Math.Max(p.FireCd, KnuckleDashTime);  // (no punches mid-flight)
             pendingSwings.RemoveAll(s => s.Owner == p.Id && s.Knuckle != 0 && s.Delay > 0f);  // a punch still winding up never lands
-            var hit = NewSwing(p, aim, 0f, 0f, KnuckleDashDmg * p.Stats.DmgMult);
+            var hit = NewSwing(p, aim, 0f, 0f, p.Weapon.Damage * KnuckleDashMult * p.Stats.DmgMult);
             hit.Reach = to.DistanceTo(from) + MeleeReach(p, KnuckleDashFist);  // the whole lane, out to the fist where you stop
             hit.HalfWidth = KnuckleDashWidth;
             hit.FromSet = true;

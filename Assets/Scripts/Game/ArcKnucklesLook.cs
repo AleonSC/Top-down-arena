@@ -196,7 +196,14 @@ namespace Arena
             float aim = (fx.Pos2 - fx.Pos).Angle, c = fx.T, t = Time.time;
             bool gold = step == 6;
             if (step >= 5)
+            {
                 DrawKnuckleQuake(fx.Pos + V2.FromAngle(aim) * Game.KnuckleHammerAt, c - Game.KnuckleLand[step - 1], gold ? Game.KnuckleCounterR : Game.KnuckleHammerR, gold, id);
+                // the aftershocks (extra projectiles), each further out and later: the host stretched the effect by one gap per aftershock
+                int after = Mathf.RoundToInt((fx.Dur - Game.KnuckleLand[step - 1] - 0.7f) / Game.KnuckleAftershock);
+                for (int k = 1; k <= after; k++)
+                    DrawKnuckleQuake(fx.Pos + V2.FromAngle(aim) * (Game.KnuckleHammerAt + Game.KnuckleAftershockOut * k), c - Game.KnuckleLand[step - 1] - Game.KnuckleAftershock * k,
+                        (gold ? Game.KnuckleCounterR : Game.KnuckleHammerR) * 0.8f, gold, id * 7 + k);
+            }
             if (c >= Game.KnuckleDur[step - 1] || (owner != null && (KnuckleFxOf(id) != fx || KnuckleDashFxOf(id) != null || KnuckleChainFxOf(id) != null)))
                 return;  // (a dash takes over from a punch)  // the punch is over, or a newer one by the same player has taken over
             // the streak behind a fist that moves fast

@@ -74,7 +74,7 @@ static partial class Program
         for (int k = 0; k < 5; k++)
             dmgOk &= Math.Abs(got[k] - baseDmg * Game.KnuckleMult[k]) < 0.6f;
         Console.WriteLine("  arc knuckles chain: {0:0} / {1:0} / {2:0} / {3:0} / {4:0}", got[0], got[1], got[2], got[3], got[4]);
-        Check(dmgOk, "each punch lands for its own damage (12, 14, 16, 18, 30 before upgrades)");
+        Check(dmgOk, "each punch lands for its own damage (22, 26, 29, 33, 55 before upgrades)");
         Check(heard.Contains(Sfx.KnuckleJab) && heard.Contains(Sfx.KnuckleHook) && heard.Contains(Sfx.KnuckleUpper) && heard.Contains(Sfx.KnuckleSlam),
             "each punch has its sound, and the Twin Hammer slams");
         Check(clientSawPunch, "the other player sees the punches");
@@ -169,7 +169,7 @@ static partial class Program
         Console.WriteLine("  rocket dash: moved {0:0} px, front took {1:0}, behind {2:0}, shoved {3:0} px", moved, frontTook, behindTook, front.Pos.X - frontX);
         Check(Math.Abs(moved - Game.KnuckleDashLen) < 12f, "the Rocket Dash carries you 130 px along your aim (" + moved + "; dashes move in whole 1/60 s frames)");
         Check(untouchable, "and you're untouchable while you fly");
-        Check(Math.Abs(frontTook - Game.KnuckleDashDmg * me.Stats.DmgMult) < 0.6f && behindTook == 0f, "the first enemy in the lane takes the hit, the one behind it nothing");
+        Check(Math.Abs(frontTook - me.Weapon.Damage * Game.KnuckleDashMult * me.Stats.DmgMult) < 0.6f && behindTook == 0f, "the first enemy in the lane takes the hit, the one behind it nothing");
         Check(front.Pos.X - frontX > 5f && front.Pos.X - frontX < Game.KnuckleDashKnock + 10f, "and it's shoved a short way, still in reach");
         Check(heard.Contains(Sfx.KnuckleRocket) && heard.Contains(Sfx.KnuckleRocketHit), "the thruster and the hit are heard");
         Check(clientSawDash, "the other player sees the dash");

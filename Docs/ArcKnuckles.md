@@ -1,6 +1,6 @@
 # Arc Knuckles: the Knight DPS's fourth weapon (design)
 
-Status: **steps 1-3 built** (Nov 2026, protocol 266): the slot, the combo, the parry reset and Counter Hammer, the Arc Coil look, the Rocket Dash and its chain. Step 4 (upgrades and balance) to come.
+Status: **built** (Nov 2026, protocol 266): all four steps. The weapon's damage went from 12 to 22 in step 4 (about 88 a second, with the other DPS Knight weapons); every number below is the step-1 design at 12, scaled by 22/12 in the game.
 (https://claude.ai/artifact/Rqn2WEDWUQL1RTJaxvPf8Y), version 5. The **Arc Coil** look, the **Full combo**, **Parry cancel**
 and **Perfect parry** scenarios, and the **Rocket Dash**, **Dash → Flurry** and **Full dash chain** Alt scenarios are the
 design; the page's other Alt fires (Ground Pound, Grab & Throw on its own, Rocket Fist, Shockwave Clap, Seismic Line,
@@ -62,3 +62,9 @@ Magnet Yank) were not picked.
    A grab needs the target within 110 px; on a boss, or with the target gone, the press throws a normal punch and the chain ends.
 4. **Upgrades and balance**: what Homing Rounds, Barrage and extra projectiles do for it (`HomingDesc`, `BarrageDesc`,
    `ExtraDesc`), its ascension, and a balance-test pass against Twin Blades, Greatsword and Rapier.
+
+   **Built:** the generic melee rules cover it (damage, fire rate, crits, elemental rounds through the hit pipeline; Piercing Rounds'
+   reach; Barrage's sword waves); +1 extra projectile is an aftershock slam, now drawn. Damage 22 (measured 88 a second against
+   Twin Blades 83, Rapier 85, Greatsword 89); the dash and chain hits are multiples of it, so upgrades lift them too. Ascension is the
+   lobby's placeholder for every weapon. Not done: the Wildcard's class wheel (picks are numbered kit × 3 + choice), bots on the
+   weapon-action key (no weapon has that).

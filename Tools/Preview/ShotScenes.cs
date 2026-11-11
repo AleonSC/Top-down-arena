@@ -766,7 +766,7 @@ static partial class Shot {
           if (kn > 0)
           {
             me.Combo = (1 << 3) | kn;
-            gm.Effects.Add(new Effect { Kind = FxKind.KnuckleStep, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * reach, Color = kn == 6 ? Game.ArcGold : Game.ArcBlue, Radius = me.Id * 10 + kn, T = st, Dur = kn >= 5 ? Game.KnuckleLand[kn - 1] + 0.7f : Game.KnuckleDur[kn - 1] });
+            gm.Effects.Add(new Effect { Kind = FxKind.KnuckleStep, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * reach, Color = kn == 6 ? Game.ArcGold : Game.ArcBlue, Radius = me.Id * 10 + kn, T = st, Dur = kn >= 5 ? Game.KnuckleLand[kn - 1] + 0.7f + Game.KnuckleAftershock * int.Parse(Environment.GetEnvironmentVariable("EXTRA") ?? "0") : Game.KnuckleDur[kn - 1] });  // EXTRA=<n>: the hammer's aftershocks
           }
           break;
         }
