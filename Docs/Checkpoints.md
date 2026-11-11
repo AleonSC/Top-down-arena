@@ -63,14 +63,7 @@ Today the host saves the run (`RunSave`) as each wave starts and deletes it in `
 - Does a retry re-roll the waves (a new seed) or replay the same ones? Proposed: **a new seed**, so it isn't memorised.
 - A co-op player who left before the wipe: does their seat come back empty (a bot) as with Continue today?
 
-## The 100-wave run (proposed, not decided)
+## The 100-wave Campaign
 
-The owner asked about a 100-wave run so each boss gets a proper buildup. Proposed shape, still open:
-
-- **The same 10 bosses, one every 10 waves**: 9 Campaign buildup waves and the boss on wave 10, the same shape as a Boss
-  Hunt, so a hunt is a sample of a real run.
-- **Scaling by boss cycle, not by wave**: today's per-wave growth (health +15%, damage +3%, fire rate, elites) halved,
-  so wave 100 is about as hard as wave 50 is now. Otherwise health would reach about 16x and damage about 4x.
-- **A mid-cycle event on wave 5** (an elite squad or mini-boss) so the buildup doesn't drag.
-- **A slower XP curve**, so builds peak at the final boss and not at wave 60.
-- Checkpoints matter more in a run this long; with a boss every 10 waves, a checkpoint costs at most 10 waves.
+Decided: the Campaign becomes 100 waves, a boss every 10. The plan is in [`RunLength.md`](RunLength.md). With a boss
+every 10 waves, a lost life costs at most 9 waves.

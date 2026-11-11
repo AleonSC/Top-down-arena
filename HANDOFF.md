@@ -274,4 +274,6 @@ The October 2026 audit and its work plan are done; the full notes (and the Novem
   return later on. The **Boss Hunt** should then be an enhanced version of those themed mobs (more types, more of
   them, tougher squads). Design: [`Docs/Campaign.md`](Docs/Campaign.md).
 - **Checkpoints and lives (planned):** every boss kill is a checkpoint; a wipe can retry from it while lives last
-  (by difficulty: 3/2/1/0), at a score cut. Also proposes a 100-wave run. Design: [`Docs/Checkpoints.md`](Docs/Checkpoints.md).
+  (by difficulty: 3/2/1/0), at a score cut. Design: [`Docs/Checkpoints.md`](Docs/Checkpoints.md).
+- **100-wave Campaign (planned):** two main modes (Campaign, Boss Hunt); a boss every 10 waves, each cycle teaching its
+  boss, arena style per cycle, scaling by effective wave. Design: [`Docs/RunLength.md`](Docs/RunLength.md).
