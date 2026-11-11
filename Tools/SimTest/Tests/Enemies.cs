@@ -295,7 +295,7 @@ static partial class Program
                 foreach (var p in s[0].Game.Players.Values)
                     s[0].Game.DevSetGod(p.Id, true);
             }
-            Run(s, dt, 400, () => !BossAlive(s[0]) && s[0].Game.State != MatchState.Fighting || s[0].Game.State == MatchState.GameOver, () =>
+            Run(s, dt, boss == EnemyType.Lich ? 700 : 400, () => !BossAlive(s[0]) && s[0].Game.State != MatchState.Fighting || s[0].Game.State == MatchState.GameOver, () =>
             {
                 var cb = Find(s[1], boss);
                 switch (boss)

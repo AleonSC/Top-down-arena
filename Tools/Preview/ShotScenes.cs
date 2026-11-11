@@ -229,6 +229,18 @@ static partial class Shot {
       }
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    if (Environment.GetEnvironmentVariable("MOMENTUM") != null) {
+      // Momentum (MomentumLook.cs): MOMENTUM=<stacks 0-5>, a DPS Soldier standing in the middle with that many stacks.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear();
+      me.Role = Role.Dps; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 0); me.MaxHp = me.Def.Hp; me.Hp = me.MaxHp;
+      foreach (var sl in me.Slots) sl.Id = AbilityId.None;
+      foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; me.AimAt = me.Pos + V2.FromAngle(me.Aim) * 200f;
+      me.MomentumStacks = int.Parse(Environment.GetEnvironmentVariable("MOMENTUM")); me.MomentumT = 3f;
+      foreach (var q in gm.Players.Values) if (q != me) { q.Pos = q.Disp = me.Pos + new V2(-240f, 90f); }
+    }
     if (Environment.GetEnvironmentVariable("SHADOWSTEP") != null) {
       // A Ninja's Shadow Step look (ShadowStepLook.cs): SHADOWSTEP=<seconds after the press>, SHADOWDIST=<px from where you stood to the enemy, default 400>, SHADOWNONE=1 for a short step with no enemy. Use with mode hud.
       var gm = host.Game; gm.Bot = false;
