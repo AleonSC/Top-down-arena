@@ -22,6 +22,7 @@ static partial class Program
         public float Scale;
     }
 
+    static string arenaNodeStats = "";  // the Expanding arena's nodes at the end of a run: claimed/placed per kind
     static List<ArenaRound> arenaRounds = new List<ArenaRound>();  // the Expanding arena's building rounds, filled by PlayArena(expanding: true)
 
     static Dictionary<int, ArenaWave> PlayArena(float dt, bool rooms, int lastWave, int seed, out string ending, bool expanding = false)
@@ -145,6 +146,8 @@ static partial class Program
             }
         }
         ending = g.State + " at wave " + g.Wave + " (" + g.RunTime.ToString("0") + " s)";
+        arenaNodeStats = !expanding ? "" : string.Join(", ", new[] { NodeKind.Shop, NodeKind.Vendor, NodeKind.Chest }.Select(k =>
+            k + " " + g.Nodes.Count(n => n.Kind == k && Expansion.NodeClaimed(g.Expanded, n)) + "/" + g.Nodes.Count(n => n.Kind == k) + (k == NodeKind.Chest ? " (" + g.Nodes.Count(n => n.Spent) + " opened)" : "")).ToArray());
         foreach (var w in waves.Values) if (w.Samples > 0) { w.ViewAvg /= w.Samples; w.Shots /= w.Samples; }
         host.Leave(""); c.Leave("");
         return waves;

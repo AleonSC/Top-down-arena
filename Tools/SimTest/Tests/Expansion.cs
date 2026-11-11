@@ -756,6 +756,12 @@ static partial class Program
             float d0 = farFoe.Pos.DistanceTo(new V2(800f, 450f));
             Run(s, dt, 90f, () => g.CurrentWorld.AreaAt(farFoe.Pos) == 0 || farFoe.Hp <= 0f, NoPicks);
             Check(farFoe.Hp <= 0f || g.CurrentWorld.AreaAt(farFoe.Pos) == 0, "a Riot Shield that spawned in the node's far room reaches the hub (started " + d0.ToString("0") + " px away, now " + farFoe.Pos.DistanceTo(new V2(800f, 450f)).ToString("0") + ")");
+            // And the other way: players waiting in the far room are still hunted by an enemy from the hub.
+            farFoe.Hp = 0f;
+            var hubFoe = (Enemy)spawnAt.Invoke(g, new object[] { EnemyType.Grunt, new V2(800f, 450f), 0f, 0, false });
+            foreach (var p in g.Players.Values) p.Pos = p.Disp = g.CurrentWorld.Areas[last].Mid;
+            Run(s, dt, 90f, () => g.CurrentWorld.AreaAt(hubFoe.Pos) == last || hubFoe.Hp <= 0f, NoPicks);
+            Check(hubFoe.Hp <= 0f || g.CurrentWorld.AreaAt(hubFoe.Pos) == last, "a Grunt in the hub walks to players waiting in the node's far room (now in area " + g.CurrentWorld.AreaAt(hubFoe.Pos) + ", " + hubFoe.Pos.DistanceTo(g.CurrentWorld.Areas[last].Mid).ToString("0") + " px away)");
         }
     }
 
