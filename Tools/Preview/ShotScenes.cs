@@ -1159,6 +1159,12 @@ static partial class Shot {
       var sbc = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
       for (int k = 0; k < 2; k++) sbc.Invoke(host.Game, new object[] { Defs.MinionShot, me.Pos + new V2(60f + 40f * k, -10f - 20f * k), new V2(650f, -40f), 0f, 0.5f, 8f, 1, false, 0f });
     }
+    if (Environment.GetEnvironmentVariable("DAZE") != null) {
+      // Dazed by a close-in hit (Daze.cs): three enemies round you with stars over their heads.
+      me.Pos = me.Disp = new V2(640f, 420f); host.Game.Bot = false;
+      int dk = 0;
+      foreach (var e in host.Game.Enemies.Values) { if (dk >= 3) break; e.Pos = e.Disp = me.Pos + V2.FromAngle(-0.5f + dk * 1.2f) * 110f; e.DazeT = 10f; e.Dazed = true; dk++; }
+    }
     if (Environment.GetEnvironmentVariable("WEAPONS5") != null) {
       // Five reworked weapons at once: a Fuma Shuriken mid-loop, Chain Light's cone, a Sanguine Orb coating an enemy
       // (and an ally coated in healing blood), Fireballs, and Arc Lightning going off.

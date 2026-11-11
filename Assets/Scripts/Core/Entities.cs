@@ -471,6 +471,8 @@ namespace Arena
         public int BoneDarts;               // host: Bone Guard darts stuck in it (the third cages it; Minions.cs)
         public float BoneDartT, CageT, CageImmuneT;  // host: until the darts fall out; caged (can't move or shoot); until darts count again
         public bool Caged;                  // replicated, for drawing (and the Skeleton Guards' aim)
+        public float DazeT, DazeImmuneT;    // host: dazed by a close-in hit (no attacking), and until it can be dazed again (Daze.cs)
+        public bool Dazed;                  // replicated, for the stars over its head
         public int LastHitBy;
         public bool Penned;                 // replicated: held in by an ink loop (Chalk.cs), for drawing
         public int PenId;                   // host: the ink loop (Chalk.cs InkPen) holding it in, 0 if none
