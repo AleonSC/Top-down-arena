@@ -750,6 +750,11 @@ static partial class Program
         V2 held = (V2)roomsHold.Invoke(g, new object[] { inside, new V2(1800f, 450f), 20f });
         Check(g.CurrentWorld.Areas[2].Contains(held), "a locked room holds you in (a step out of it is clamped)");
 
+        // No other foe may be in a locked duel room.
+        var intruder = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", flags).Invoke(g, new object[] { EnemyType.Grunt, g.CurrentWorld.Areas[2].Mid + new V2(200f, 0f), 1f, 0, false });
+        Run(s, dt, 0.5f, null, NoPicks);
+        Check(!g.Enemies.ContainsKey(intruder.Id) || !g.CurrentWorld.Areas[2].Contains(intruder.Pos), "other foes are kept out of a locked duel room");
+
         // An unbeaten duel ends with the wave: the Gatekeeper goes and you are let out.
         endDuels.Invoke(g, null);
         Run(s, dt, 0.4f, null, NoPicks);

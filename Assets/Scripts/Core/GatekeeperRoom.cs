@@ -84,6 +84,33 @@ namespace Arena
             DoLog("the Gatekeeper room is cleared");
         }
 
+        /// A spot just past the room's door, in the room beyond.
+        V2 DuelDoorOutside(int area)
+        {
+            var areas = CurrentWorld.Areas;
+            foreach (var d in CurrentWorld.Doors)
+                if (d.Joins(area))
+                {
+                    var other = areas[d.Other(area)];
+                    V2 toward = other.Contains(d.Pos + d.Across * Rooms.DoorPad) ? d.Across : new V2(-d.Across.X, -d.Across.Y);
+                    return d.Pos + toward * (Rooms.DoorPad + 40f);  // (just past the door, in the room beyond)
+                }
+            return areas[area].Mid;
+        }
+
+        /// Host, every enemy move: while a duel has its room locked, no other foe may be in it (you can't leave, so they'd trap you with them).
+        void KeepOutOfDuel(Enemy e)
+        {
+            if (duelBoss.Count == 0 || e.Type == EnemyType.Gatekeeper || !IsHost)
+                return;
+            foreach (var area in duelBoss.Keys)
+                if (CurrentWorld.Areas[area].Contains(e.Pos))
+                {
+                    e.Pos = DuelDoorOutside(area);
+                    return;
+                }
+        }
+
         /// Host, as a wave is cleared: an unbeaten Gatekeeper goes, anyone still in its room is put out of the door.
         void EndDuels()
         {
@@ -98,15 +125,7 @@ namespace Arena
                 foreach (var e in new List<Enemy>(Enemies.Values))
                     if (e.Type == EnemyType.Gatekeeper && a.Contains(e.Disp, 40f))
                         Enemies.Remove(e.Id);
-                V2 outside = a.Mid;
-                foreach (var d in CurrentWorld.Doors)
-                    if (d.Joins(area))
-                    {
-                        var other = areas[d.Other(area)];
-                        V2 toward = other.Contains(d.Pos + d.Across * Rooms.DoorPad) ? d.Across : new V2(-d.Across.X, -d.Across.Y);
-                        outside = d.Pos + toward * (Rooms.DoorPad + 40f);  // (just past the door, in the room beyond)
-                        break;
-                    }
+                V2 outside = DuelDoorOutside(area);
                 foreach (var p in Players.Values)
                     if (a.Contains(p.Pos))
                         MovePlayer(p, outside);
