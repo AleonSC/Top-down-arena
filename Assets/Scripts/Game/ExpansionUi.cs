@@ -714,19 +714,27 @@ namespace Arena
                 EndUiGl();
             }
             CrtKit.Frame(map, 1f, new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.25f));
-            foreach (var nd in game.Nodes)  // the nodes, named
+            foreach (var nd in game.Nodes)  // the nodes: named in a hover tip, not on the map (the legend shows the colours)
                 if (!Expansion.NodeClaimed(game.Expanded, nd))
                 {
                     V2 n0 = M(nd.Pos);
-                    if (map.Contains(new Vector2(n0.X + 12f, n0.Y - 6f)) && n0.X + 70f < map.xMax)
-                        Ui.Label(new Rect(n0.X + 12f, n0.Y - 7f, 220f, 14f), nd.Kind.ToString().ToUpperInvariant(), 10, ToColor(NodeInk(nd.Kind)), TextAnchor.UpperLeft, true);
+                    var nr = new Rect(n0.X - 12f, n0.Y - 12f, 24f, 24f);
+                    if (map.Contains(Event.current.mousePosition) && TipHover(nr))
+                    {
+                        TipStart(nr, nd.Kind.ToString(), ToColor(NodeInk(nd.Kind)));
+                        TipAdd("Build a room round it to claim it.", 12, Ui.Text);
+                    }
                 }
-            foreach (var fa in wd.Areas)  // the floating rooms, named
+            foreach (var fa in wd.Areas)  // the floating rooms: named in a hover tip too
                 if (fa.Floating)
                 {
-                    V2 f0 = M(fa.Min);
-                    if (!map.Contains(new Vector2(f0.X + 3f, f0.Y + 2f))) continue;
-                    Ui.Label(new Rect(f0.X + 3f, f0.Y + 2f, 200f, 14f), fa.Name.ToUpperInvariant() + (fa.Sealed ? "  ·  SEALED" : ""), 10, ToColor(KindInk(fa.Kind, fa.Floor)), TextAnchor.UpperLeft, true);
+                    V2 f0 = M(fa.Min), f1 = M(fa.Max);
+                    var fr = new Rect(f0.X, f0.Y, f1.X - f0.X, f1.Y - f0.Y);
+                    if (!map.Contains(Event.current.mousePosition) || !TipHover(fr))
+                        continue;
+                    TipStart(fr, fa.Name, ToColor(KindInk(fa.Kind, fa.Floor)));
+                    if (fa.Sealed)
+                        TipAdd("SEALED  ·  build a room up to it to claim it.", 12, Ui.Text);
                 }
             foreach (var q in game.ProposalHeads)
             {
