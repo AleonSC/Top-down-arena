@@ -10,7 +10,7 @@ namespace Arena
     /// gold to teammates. There's no timer: the shop closes when everyone has clicked Done (the host can close it
     /// after a minute), and each player's leftover gold becomes their XP. Host-authoritative: clients send
     /// Msg.Shop requests and see the result in the snapshot.
-    public enum ShopAction : byte { Buy, Restock, Remove, Heal, Revive, Done, Give, Close, RoomKit, Vectors }
+    public enum ShopAction : byte { Buy, Restock, Remove, Heal, Revive, Done, Give, Close, RoomKit, Vectors, BuyBuild }  // (BuyBuild: the Black Market, arg = BuildKind)
 
     public class ShopNotice
     {
@@ -244,6 +244,13 @@ namespace Arena
                     p.Vectors += VectorPack;
                     DoLog(p.Role + " bought " + VectorPack + " vectors");
                     break;
+                case ShopAction.BuyBuild:  // the Black Market sells something to build into the buyer's stash (Market.cs)
+                    if (!shopping || !ExpandingOn || !Market.Valid(arg) || p.Gold < Market.Prices[arg] || p.Stash[arg] >= Market.StashMax)
+                        return;
+                    p.Gold -= Market.Prices[arg];
+                    p.Stash[arg]++;
+                    DoLog(p.Role + " bought a " + Market.Names[arg].ToLowerInvariant() + " for " + Market.Prices[arg]);
+                    break;
                 case ShopAction.Done:
                     p.ShopDone = arg != 0;
                     break;
@@ -396,6 +403,8 @@ namespace Arena
             s.Byte(ref p.Restocks);
             s.Byte(ref p.ShelfLen);
             s.Int(ref p.ShelfSold);
+            for (int i = 0; i < Market.Count; i++)
+                s.Byte(ref p.Stash[i]);
             int count = ShelfCount(p);  // (ShelfLen came first: only the cards on the shelf are sent)
             for (int i = 0; i < count; i++)
                 s.Short(ref p.Shelf[i]);

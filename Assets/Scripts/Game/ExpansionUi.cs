@@ -20,7 +20,7 @@ namespace Arena
             return owner != 0 && game.Players.TryGetValue(owner, out p) ? p.Def.Color : new Rgba(0.4f, 0.64f, 1f);
         }
 
-        static string KindName(ExpansionRoom r) => r.Kind == RoomKind.Shop ? "Shop" : r.Kind == RoomKind.Vendor ? "Vendor" : r.Kind == RoomKind.Gatekeeper ? "Gatekeeper" : r.Kind == RoomKind.Floor ? Paths.Get(r.Floor).Name : "Combat";
+        static string KindName(ExpansionRoom r) => r.Kind == RoomKind.Shop ? "Shop" : r.Kind == RoomKind.Vendor ? "Black Market" : r.Kind == RoomKind.Gatekeeper ? "Gatekeeper" : r.Kind == RoomKind.Floor ? Paths.Get(r.Floor).Name : "Combat";
 
         /// What a Floor room does: that path's rule inside the room only, and its bonus for kills there.
         static string FloorBlurb(PathId f)
@@ -312,10 +312,10 @@ namespace Arena
             if (doorsOnly)
             {
                 expCutMode = true;
-                expLinkMode = expGateMode = false;
+                expLinkMode = expGateMode = expTrapMode = false;
             }
             DrawBuildRail(doorsOnly, free, calm);
-            bool roomMode = !expCutMode && !expLinkMode && !expGateMode;
+            bool roomMode = !expCutMode && !expLinkMode && !expGateMode && !expTrapMode;
             if (!roomMode)
                 expPts.Clear();
             var map = DrawMapRect;
@@ -387,6 +387,11 @@ namespace Arena
             // The room is an outline: left clicks lay corners (a slanted click an L), the first corner or Enter closes it and puts it
             // to the vote, right click (Esc, Backspace) takes the last corner back; with none laid, a press, drag and let go draws a box.
             V2 cursor = Snap(ev.mousePosition);
+            V2 trapSpot = cursor;  // trap mode: where a click would put the trap, and whether it fits
+            string trapWhy = null;
+            bool trapOk = expTrapMode && over && game.Me != null && game.Me.Stash[expTrapKind] > 0 && Expansion.PlaceSpot(wd, game.Placed, trapSpot, out trapWhy);
+            if (expTrapMode && over && trapWhy == null && (game.Me == null || game.Me.Stash[expTrapKind] == 0))
+                trapWhy = "None in your stash: buy one at the Black Market";
             bool closeRoom = false, laidWall = false;
             List<int[]> dragBox = null;
             if (roomMode)
@@ -443,6 +448,12 @@ namespace Arena
                     if (free)
                         expOpen = false;
                 }
+                ev.Use();
+            }
+            else if (expTrapMode && ev.type == EventType.MouseDown && ev.button == 0 && over)
+            {
+                if (trapOk)
+                    game.PlaceBuild((BuildKind)expTrapKind, (int)trapSpot.X, (int)trapSpot.Y);
                 ev.Use();
             }
             else if (!roomMode && ev.type == EventType.MouseDown && ev.button == 0 && over)
@@ -519,7 +530,7 @@ namespace Arena
                     expPts.Clear();
                 }
             }
-            bool hasBox = !roomMode && !expCutMode && !expLinkMode && !expGateMode && rw > 0 && rh > 0;
+            bool hasBox = !roomMode && !expCutMode && !expLinkMode && !expGateMode && !expTrapMode && rw > 0 && rh > 0;
             string why = null;
             ExpansionRoom? box = null;
             WallCut cut = default(WallCut);
@@ -531,8 +542,7 @@ namespace Arena
             if (hasLink)
             {
                 linkPrice = Expansion.LinkPrice(wd, game.Links.Count, link, out why);
-                int have = game.SpendableVectors(game.Me);
-                if (linkPrice > have) { why = "Can't afford it: " + linkPrice + " vectors, you have " + have; linkPrice = 0; }
+                if (linkPrice > 0 && (game.Me == null || game.Me.Stash[(int)BuildKind.Teleporter] == 0)) { why = "No teleporter in your stash: buy one at the Black Market"; linkPrice = 0; }
             }
             if (hasCut)
             {
@@ -621,6 +631,20 @@ namespace Arena
                     }
                 for (int li = 0; li < game.Links.Count; li++)  // the portal pairs built, in their pair's colour
                     DrawLinkMark(M(game.Links[li].A), M(game.Links[li].B), PortalColours[(wd.Portals.Length - game.Links.Count + li) % PortalColours.Length], 1f);
+                foreach (var pb in game.Placed)  // the Black Market traps standing on the map
+                {
+                    V2 bp = M(pb.Pos);
+                    var bi = VendorInk;
+                    RoomMapFrame(bp.X - 7f, bp.Y - 7f, 14f, 14f, 1.5f, bi);
+                    RoomMapRect(bp.X - 3f, bp.Y - 3f, 6f, 6f, bi.WithAlpha(0.8f));
+                }
+                if (expTrapMode && over)  // the trap about to go down: green where it fits, red where it doesn't
+                {
+                    V2 bp = M(trapSpot);
+                    var bi = trapOk ? new Rgba(0.35f, 1f, 0.55f) : new Rgba(1f, 0.3f, 0.36f);
+                    RoomMapRect(bp.X - 8f, bp.Y - 8f, 16f, 16f, bi.WithAlpha(0.3f));
+                    RoomMapFrame(bp.X - 8f, bp.Y - 8f, 16f, 16f, 2f, bi);
+                }
                 DrawHoloGates(wd, M, k);  // the gates fitted (BuildMapLook.cs)
                 DrawHoloBreaches(M, k, map);  // this wave's breaches
                 if (expGateMode)  // the doors a gate can go on, and the one under the mouse
@@ -729,9 +753,14 @@ namespace Arena
                 line = "OPEN " + cut.Length / Expansion.Step + " TILES OF WALL  ·  +" + cutRefund + " VECTORS (you have " + game.SpendableVectors(game.Me) + " of " + (game.Me != null ? game.Me.VectorCap : 0) + ")  ·  click to " + (free ? "build it" : "propose it") + "";
                 lineInk = Ui.Gold;
             }
+            else if (expTrapMode)
+            {
+                line = trapWhy != null ? trapWhy : trapOk ? Market.Names[expTrapKind].ToUpperInvariant() + "  ·  click to place it  ·  " + game.Me.Stash[expTrapKind] + " in your stash" : "Move over a room to place a " + Market.Names[expTrapKind].ToLowerInvariant() + ".";
+                lineInk = trapWhy != null ? new Color(1f, 0.45f, 0.5f) : trapOk ? Ui.Gold : Ui.Muted;
+            }
             else if (hasLink && linkPrice > 0)
             {
-                line = "PORTAL PAIR  ·  " + linkPrice + " VECTORS (of " + game.SpendableVectors(game.Me) + ")  ·  saves " + Mathf.RoundToInt(Expansion.WalkDistance(wd, link.A, link.B) / 100f) + " tiles of walking  ·  click to " + (free ? "build it" : "propose it") + "";
+                line = "TELEPORTER PAIR  ·  from your stash  ·  saves " + Mathf.RoundToInt(Expansion.WalkDistance(wd, link.A, link.B) / 100f) + " tiles of walking  ·  click to build it";
                 lineInk = Ui.Gold;
             }
             else if (hasLink)
@@ -780,7 +809,6 @@ namespace Arena
             int pending = 0;  // what the thing being drawn costs (a refund is negative), for the wallet bar
             if (roomMode && outlineRoom != null) pending = outlineRoom[0].Price;
             else if (hasBox && box.HasValue) pending = box.Value.Price;
-            else if (hasLink && linkPrice > 0) pending = linkPrice;
             else if (hasCut && cutRefund > 0) pending = -cutRefund;
             else if (expGateMode && gateDoor >= 0 && gateWhy == null) pending = Gates.Price;
             var panel = new Rect(map.xMax + 16f, map.y, win.xMax - map.xMax - 32f, H - 30f - map.y);
@@ -790,7 +818,7 @@ namespace Arena
             py += 84f;
             float bx = panel.x + 10f, bw = panel.width - 20f;
             float actY = panel.yMax - 98f;  // the action keys sit just above DONE
-            if (!expCutMode && !expLinkMode && !expGateMode)
+            if (!expCutMode && !expLinkMode && !expGateMode && !expTrapMode)
                 DrawThemeGrid(new Rect(bx, py, bw, actY - 46f - py), calm);
             if (roomMode && expPts.Count > 0)
             {
@@ -830,7 +858,9 @@ namespace Arena
         bool expHeld;  // the mouse button of the box being drawn is still down
         Vector2 expPressAt;
         bool expCutMode;  // the draw screen opens a wall instead of drawing a room
-        bool expLinkMode;  // the draw screen places a portal pair (Docs/RoomBuilding2.md step 2)
+        bool expLinkMode;  // the draw screen places a portal pair (Docs/RoomBuilding2.md step 2): a teleporter from the stash (Market.cs)
+        bool expTrapMode;  // the draw screen places a trap from the stash (Market.cs), one click
+        int expTrapKind = (int)BuildKind.SpikeTrap;
         bool expGateMode;  // the draw screen fits a shutter gate to a door (Docs/RoomBuilding2.md step 3)
         readonly List<int[]> expPts = new List<int[]>();   // the room outline's corners laid so far: x, y (Expansion.Outline)
 
@@ -934,11 +964,11 @@ namespace Arena
             float x = 48f, w = 158f;
             CrtUi.Title(new Rect(x, 26f, w, 40f), "BUILD", 32, CrtUi.Ink, TextAnchor.MiddleLeft, calm);
             Ui.Label(new Rect(x + 2f, 64f, w, 16f), doorsOnly ? "WAVE ON  ·  DOORS ONLY" : free ? "BUILT AS YOU PLACE IT" : "THE TEAM VOTES", 10, doorsOnly ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
-            string[] names = { "ROOM", "OPEN WALL", "PORTAL", "GATE" };
-            int cur = expGateMode ? 3 : expLinkMode ? 2 : expCutMode ? 1 : 0;
+            string[] names = { "ROOM", "OPEN WALL", "TELEPORTER", "GATE", "TRAP" };
+            int cur = expTrapMode ? 4 : expGateMode ? 3 : expLinkMode ? 2 : expCutMode ? 1 : 0;
             var ev = Event.current;
             int pick = -1;
-            if (!doorsOnly && ev.type == EventType.KeyDown && ev.keyCode >= KeyCode.Alpha1 && ev.keyCode <= KeyCode.Alpha4)
+            if (!doorsOnly && ev.type == EventType.KeyDown && ev.keyCode >= KeyCode.Alpha1 && ev.keyCode <= KeyCode.Alpha5)
             {
                 pick = ev.keyCode - KeyCode.Alpha1;
                 ev.Use();
@@ -962,10 +992,21 @@ namespace Arena
                 expCutMode = pick == 1;
                 expLinkMode = pick == 2;
                 expGateMode = pick == 3;
+                expTrapMode = pick == 4;
                 expDragging = false;
                 expA = expB = V2.Zero;
             }
             float y = 92f + names.Length * 42f + 6f;
+            if (expTrapMode && !doorsOnly && game.Me != null)  // the traps in your stash: pick which one a click places
+            {
+                for (int tk = 1; tk < Market.Count; tk++)
+                {
+                    if (CrtUi.SoftKey(new Rect(x, y, w, 28f), Market.Names[tk].ToUpperInvariant() + "  ·  " + game.Me.Stash[tk], null, 12, calm, lit: tk == expTrapKind))
+                        expTrapKind = tk;
+                    y += 32f;
+                }
+                y += 4f;
+            }
             if (free && !doorsOnly && game.RoomTokens.Count > 0)  // (free building has no vote window to hold the kit key)
             {
                 if (CrtUi.SoftKey(new Rect(x, y, w, 32f), "ROOM KITS  ·  " + game.RoomTokens.Count, null, 14, calm))
@@ -995,7 +1036,7 @@ namespace Arena
                 if (fa.Sealed && sealedKinds.Add(fa.Kind))
                 {
                     sealedRoom = true;
-                    items.Add(new KeyValuePair<string, Rgba>(fa.Kind == RoomKind.Shop ? "SHOP ROOM" : fa.Kind == RoomKind.Vendor ? "VENDOR ROOM" : "SEALED ROOM", KindInk(fa.Kind, PathId.None)));
+                    items.Add(new KeyValuePair<string, Rgba>(fa.Kind == RoomKind.Shop ? "SHOP ROOM" : fa.Kind == RoomKind.Vendor ? "BLACK MARKET" : "SEALED ROOM", KindInk(fa.Kind, PathId.None)));
                 }
             float lh = 34f + items.Count * 20f + (seen.Count > 0 || sealedRoom ? 40f : 0f);
             float ly = Mathf.Max(y + 8f, H - 30f - lh);
@@ -1052,10 +1093,17 @@ namespace Arena
             }
             else if (expLinkMode)
             {
-                title = "PORTAL PAIR";
+                title = "TELEPORTER PAIR";
                 steps = new[] { "Click a spot in one room", "Click a spot in another room", "Walk in one, come out the other" };
                 step = expDragging ? 1 : 0;
-                tip = Expansion.LinkBase + " vectors + 1 per 2 tiles of walking saved. Enemies use them too.  " + game.Links.Count + " of " + Expansion.MaxLinks + " built.";
+                tip = "Uses one from your stash (" + (game.Me != null ? game.Me.Stash[(int)BuildKind.Teleporter] : 0) + "). Enemies use them too.  " + game.Links.Count + " of " + Expansion.MaxLinks + " built.";
+            }
+            else if (expTrapMode)
+            {
+                title = "PLACE A TRAP";
+                steps = new[] { "Pick one from your stash", "Point at a spot in a room", "Click to place it" };
+                step = 1;
+                tip = "Bought at the Black Market. They stand on the map, " + game.Placed.Count + " of " + Market.MaxPlaced + ". They have no effect yet.";
             }
             else if (expCutMode)
             {
@@ -1236,7 +1284,7 @@ namespace Arena
             var me = game.Me;
             if (!game.ShopOpen || !game.ServiceRooms || me == null || me.ShopDone)
                 return false;
-            string text = "SHOP OPEN  ·  " + me.Gold + " GOLD  ·  walk into the " + (game.HasShopRoom && game.HasVendorRoom ? "shop or vendor room" : game.HasShopRoom ? "shop room" : "vendor room");
+            string text = "SHOP OPEN  ·  " + me.Gold + " GOLD  ·  walk into the " + (game.HasShopRoom && game.HasVendorRoom ? "shop room or Black Market" : game.HasShopRoom ? "shop room" : "Black Market");
             float w = 30f + text.Length * 6.2f;
             var chip = new Rect(x, y, w, 20f);
             Ui.Pill(chip, new Color(0f, 0f, 0f, 0.55f));

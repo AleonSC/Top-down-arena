@@ -227,6 +227,7 @@ namespace Arena
                 case ShopAction.Remove:
                 case ShopAction.RoomKit:
                 case ShopAction.Vectors:
+                case ShopAction.BuyBuild:
                     return InVendorRoom(p);
                 default:
                     return true;
@@ -748,21 +749,21 @@ namespace Arena
                 return;
             string why;
             int price = Expansion.LinkPrice(ExpansionWorld, Links.Count, l, out why);
-            if (price <= 0 || price > SpendableVectors(p))
+            if (p.Stash[(int)BuildKind.Teleporter] == 0)
             {
-                DoLog("portal refused (" + (why ?? "needs " + price + " vectors, has " + p.Vectors) + ")");
+                DoLog("portal refused (no teleporter in your stash: buy one at the Black Market)");
                 return;
             }
-            if (FreeBuild)
+            if (price <= 0)
             {
-                var linkRoom = Expansion.LinkProposal(l, price);
-                linkRoom.Owner = id;
-                BuildNow(id, linkRoom, null);
+                DoLog("portal refused (" + why + ")");
                 return;
             }
-            SetProposal(id, new List<ExpansionRoom> { Expansion.LinkProposal(l, price) });
-            DoLog(p.Name + " proposes a portal pair for " + price + " vectors");
-            FinishOrBroadcast();
+            p.Stash[(int)BuildKind.Teleporter]--;  // (a teleporter pair from the stash: no vote, no vectors)
+            var linkRoom = Expansion.LinkProposal(l, 0);
+            linkRoom.Owner = id;
+            BuildNow(id, linkRoom, null);
+            SendSnapshot();
         }
 
         /// This game's player draws a room as an outline (corners on the 100 px grid, each {x, y}, walls straight across or up) and puts it
@@ -900,7 +901,7 @@ namespace Arena
             {
                 Links.Add(Expansion.LinkOf(room));
                 PayVectors(Players[pick], room.Price);
-                DoLog("portal pair built by " + Players[pick].Name + " for " + room.Price + " vectors");
+                DoLog("portal pair built by " + Players[pick].Name);
             }
             else if (room.Kind == Arena.RoomKind.Opening)
             {
@@ -1043,17 +1044,6 @@ namespace Arena
                     return;  // (free building: a bot adds a room only if nobody has this round, so the map doesn't fill at once)
                 if (rng.Next(10) < 6 && BotBuildsToFloater())
                     return;
-                if (rng.Next(10) < 2)  // now and then a bot links the two rooms farthest apart (Docs/RoomBuilding2.md step 2)
-                {
-                    var bl = Expansion.BestLink(ExpansionWorld, Links.Count);
-                    string lw;
-                    int lp = bl.HasValue ? Expansion.LinkPrice(ExpansionWorld, Links.Count, bl.Value, out lw) : 0;
-                    if (lp >= 15 && lp <= SpendableVectors(Me))
-                    {
-                        ProposeExpandLink(bl.Value);
-                        return;
-                    }
-                }
                 foreach (var o in Expansion.Offers(expandSeed + MyId * 31, Wave, Expanded))
                 {
                     var theme = o.Kind == Arena.RoomKind.Floor && Expansion.ThemeUnlocked(o.Floor, Wave) ? o.Floor : PathId.None;
@@ -1085,6 +1075,7 @@ namespace Arena
             }
             save.Cuts.AddRange(Openings);
             save.Portals.AddRange(Links);
+            save.Builds.AddRange(Placed);
             save.Kits.AddRange(RoomTokens);
             save.Nodes.AddRange(Nodes);
         }
@@ -1093,6 +1084,8 @@ namespace Arena
         static void SaveExpansionSeat(Player p, SeatSave seat)
         {
             seat.Vectors = p.Vectors;
+            for (int i = 0; i < Market.Count; i++)
+                seat.Stash[i] = p.Stash[i];
             seat.VectorCap = p.VectorCap;
             bool any = false;
             for (int i = 0; i < MaxShelf; i++)
@@ -1125,6 +1118,8 @@ namespace Arena
             Openings.AddRange(save.Cuts);
             Links.Clear();
             Links.AddRange(save.Portals);
+            Placed.Clear();
+            Placed.AddRange(save.Builds);
             Nodes.Clear();
             Nodes.AddRange(save.Nodes);
             RoomTokens.Clear();
@@ -1147,6 +1142,8 @@ namespace Arena
                     string name = i < s.Shelf.Count ? s.Shelf[i] : "";
                     p.Shelf[i] = name.Length == 0 ? -1 : Array.FindIndex(Upgrades.All, u => u.Name == name);
                 }
+                for (int i = 0; i < Market.Count; i++)
+                    p.Stash[i] = (byte)Math.Min(Market.StashMax, s.Stash[i]);
                 p.ShelfSold = s.ShelfSold;
                 p.Restocks = Math.Min(255, s.Restocks);
                 p.ShelfLen = 0;
@@ -1209,6 +1206,11 @@ namespace Arena
             foreach (var l in Links)
             {
                 w.Write(l.AX); w.Write(l.AY); w.Write(l.BX); w.Write(l.BY);
+            }
+            w.Write((byte)Placed.Count);
+            foreach (var b in Placed)
+            {
+                w.Write((byte)b.Kind); w.Write(b.X); w.Write(b.Y);
             }
             w.Write((byte)GateFits.Count);
             foreach (var g in GateFits)
@@ -1289,6 +1291,10 @@ namespace Arena
                 expWorld = null;
                 LayoutAge = 0f;
             }
+            int npb = r.ReadByte();
+            Placed.Clear();
+            for (int i = 0; i < npb; i++)
+                Placed.Add(new PlacedBuild { Kind = (BuildKind)r.ReadByte(), X = r.ReadInt16(), Y = r.ReadInt16() });
             int ng = r.ReadByte();
             GateFits.Clear();
             for (int i = 0; i < ng; i++)
