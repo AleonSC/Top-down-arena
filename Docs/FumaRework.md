@@ -28,4 +28,5 @@ same mockup and were not picked.
   (the same circle sampled a moment back) move smoothly whatever the snapshot rate.
 - Extra projectiles: more stars evenly round the circle (up to 4); the Lash moves the first, the Cyclone all of them.
 - Tests: `Tools/SimTest/Tests/FumaOrbit.cs` (in the `ninja` suite). Preview: `NINJA=2 FUMA=orbit|lash|cyclone|steal Tools/Preview/shot.sh`.
-- Not done: the star cutting enemy bullets; bots stay in the Throw stance.
+- The circling stars (and the Lash and Cyclone) cut small enemy bullets like a sword swing (`CutBulletsInCircle`).
+- Not done: bots stay in the Throw stance.
