@@ -2,6 +2,8 @@
 
 **Status: steps 1 and 2 built** (Cores and bought tiers saved in the profile, the lobby's Variants window with a Buy button). Not built: the tier effects themselves (the window says "Effect coming soon").
 
+**Weapon variants (first one):** the Twin Rifle's tier I is the **Twin Rifle Auto**, a whole other weapon (`WeaponDef.Variant`, `Variants.VariantOf`): the window shows it with an Equip button (unlocked for now, `Variants.WeaponVariantsUnlocked`; no Cores needed until the unlock rules are set). It rides on the class's fourth weapon pick (`Defs.WeaponLimit`) but has no lobby key.
+
 ## Decisions (owner)
 
 - Renamed **Ascensions -> Variants**.

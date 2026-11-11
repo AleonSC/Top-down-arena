@@ -898,7 +898,7 @@ namespace Arena
             }
             else
             {
-                if (e.Weapon >= Defs.WeaponCount(e.Role, e.Kit))
+                if (e.Weapon >= Defs.WeaponLimit(e.Role, e.Kit))
                     e.Weapon = 0;  // (three weapons, or four where the class has a fourth)
                 if (e.Ability >= Upgrades.RoleAbilityChoices)
                     e.Ability = 0;

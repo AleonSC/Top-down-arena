@@ -6,6 +6,15 @@ namespace Arena
     public static class Variants
     {
         public const int Tiers = 2;
+
+        /// Variants that are whole other weapons, picked in the base weapon's Variants window (WeaponDef.Variant): the Twin Rifle's is the Twin Rifle Auto.
+        /// Unlocked for testing: no Cores needed yet (TODO: tie to a tier when the unlock rules are decided).
+        public const bool WeaponVariantsUnlocked = true;
+
+        public static WeaponId? VariantOf(WeaponId id) => id == WeaponId.TwinRifle ? WeaponId.TwinRifleAuto : (WeaponId?)null;
+
+        public static string Blurb(WeaponId variant) => variant == WeaponId.TwinRifleAuto
+            ? "Both rifles aim and fire on their own at the nearest enemy on their side. Alt locks both onto one enemy until it dies." : "";
         static readonly int[] Costs = { 10, 20 };
 
         public const int WinCores = 5, BossCores = 1, HuntWinCores = 5, CarrierMin = 1, CarrierMax = 3;

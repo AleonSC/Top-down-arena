@@ -88,6 +88,8 @@ namespace Arena
             {
                 if (ascBuyRect.Contains(Event.current.mousePosition))
                     Profile.Current.BuyVariant(ascWeapon);  // the Buy button keeps the window open
+                else if (ascEquipRect.Contains(Event.current.mousePosition))
+                    ascEquipPick = ascEquipTo;  // the Equip button too: the weapon variant on or off (applied where the loadout is drawn)
                 else
                     ascOpen = -1;  // the variants window closes on any other click (and the click goes no further)
                 Event.current.Use();
@@ -618,6 +620,8 @@ namespace Arena
 
         int ascOpen = -1;
         Rect ascBuyRect;   // the variants window's Buy button this frame (empty when none)
+        Rect ascEquipRect; // its Equip button this frame (a weapon that has a variant weapon; empty when none)
+        int ascEquipTo, ascEquipPick = -1;  // the weapon pick the Equip button would set, and a click waiting to be applied
         string ascWeapon;  // the weapon whose variants window is open   // the weapon slot whose ascension window is open (-1 = closed; any click closes it)
         int detailSel;      // what the detail box shows: 0 = weapon, 1 = ability, 2 = ultimate (whichever was clicked last)
 
@@ -774,14 +778,14 @@ namespace Arena
                         continue;
                     }
                     var main = new Rect(b.x, b.y, Mathf.Round(b.width * 0.74f), b.height);
-                    if (LobbyKit.Key(main, Defs.Weapon(me.Role, me.Kit, i).Name.ToUpperInvariant(), me.Weapon == i, calm, size: 14, minSize: 9))
+                    if (LobbyKit.Key(main, Defs.Weapon(me.Role, me.Kit, i).Name.ToUpperInvariant(), WeaponKeyOn(me, i), calm, size: 14, minSize: 9))
                     {
                         tgt.RequestWeapon(i);
                         if (self)
                             weaponChoice = i;
                         detailSel = 0;
                     }
-                    if (AscensionKey(new Rect(main.xMax - 2f, b.y, b.xMax - (main.xMax - 2f), b.height), Defs.Weapon(me.Role, me.Kit, i).Name, me.Weapon == i, calm))
+                    if (AscensionKey(new Rect(main.xMax - 2f, b.y, b.xMax - (main.xMax - 2f), b.height), Defs.Weapon(me.Role, me.Kit, i).Name, WeaponKeyOn(me, i), calm))
                         ascOpen = i;
                 }
                 int abilitySlots = Mathf.Max(AbilitySlots, Upgrades.RoleAbilityChoices);
@@ -836,10 +840,18 @@ namespace Arena
             var ability = Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, ShownAbility(me)));
             DrawDetailBox(new Rect(x, dy, w, r.yMax - 12f - dy), wdef, ability, ult);
 
+            if (ascEquipPick >= 0)
+            {
+                tgt.RequestWeapon(ascEquipPick);  // the Variants window's Equip button: the weapon's variant (or back to the weapon)
+                if (self)
+                    weaponChoice = ascEquipPick;
+                detailSel = 0;
+                ascEquipPick = -1;
+            }
             if (ascOpen >= 0)
             {
                 lockedTipOn = false;  // (the keys under the window must not show their tips)
-                DrawAscensionWindow(r, Defs.Weapon(me.Role, me.Kit, ascOpen).Name, calm);
+                DrawAscensionWindow(r, Defs.Weapon(me.Role, me.Kit, ascOpen), me, calm);
             }
         }
 
@@ -867,6 +879,15 @@ namespace Arena
         }
 
         /// The ascension button on the right quarter of a weapon key: a rank mark over "0/3". True on a click (it opens the ascension window).
+        /// Weapon key `i` is lit when it is the picked weapon, or when its variant weapon is (the Twin Rifle while the Twin Rifle Auto is out).
+        bool WeaponKeyOn(LobbyEntry me, int i)
+        {
+            if (me.Weapon == i)
+                return true;
+            var v = Variants.VariantOf(Defs.Weapon(me.Role, me.Kit, i).Id);
+            return v != null && Defs.Weapon(me.Role, me.Kit, me.Weapon).Id == v.Value;
+        }
+
         bool AscensionKey(Rect r, string weapon, bool on, bool calm)
         {
             bool hover = GUI.enabled && r.Contains(Event.current.mousePosition);
@@ -893,10 +914,17 @@ namespace Arena
 
         /// The variants window over the loadout panel: the weapon's name, its two variant tiers (bought or locked) and a Buy button for the
         /// next one, paid in Cores. Any other click closes it (DrawLobby).
-        void DrawAscensionWindow(Rect r, string weapon, bool calm)
+        void DrawAscensionWindow(Rect r, WeaponDef baseDef, LobbyEntry me, bool calm)
         {
+            string weapon = baseDef.Name;
+            var variantId = Variants.VariantOf(baseDef.Id);  // a weapon with a variant weapon shows it as tier I (unlocked for now, Variants.WeaponVariantsUnlocked)
+            bool hasVariant = variantId != null && Variants.WeaponVariantsUnlocked;
+            WeaponDef variant = hasVariant ? Defs.WeaponOf(variantId.Value) : null;
+            bool variantOn = hasVariant && Defs.Weapon(me.Role, me.Kit, me.Weapon).Id == variantId.Value;
             var prof = Profile.Current;
             int owned = prof.VariantTier(weapon), cost = Variants.Cost(owned);
+            if (hasVariant && owned < 1)
+                cost = -1;  // (tier I is the variant weapon, there is nothing to buy yet)
             ascWeapon = weapon;
             Ui.Fill(r, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.86f));
             float ww = r.width * 0.78f, wh = 280f;
@@ -908,17 +936,25 @@ namespace Arena
             Ui.Label(new Rect(px, win.y + 10f, 300f, 16f), "WEAPON VARIANTS", 11, LobbyKit.Gold, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(win.xMax - 218f, win.y + 10f, 200f, 16f), "CORES  " + prof.Cores, 11, LobbyKit.Gold, TextAnchor.MiddleRight, true);
             LobbyKit.Fit(new Rect(px, win.y + 26f, win.width - 36f, 40f), weapon.ToUpperInvariant(), 32, 16, Color.white, TextAnchor.MiddleLeft, calm);
-            Ui.Label(new Rect(px, win.y + 68f, 300f, 18f), "VARIANTS " + owned + " / " + AscensionsPerWeapon + " UNLOCKED", 12, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(px, win.y + 68f, 300f, 18f), "VARIANTS " + System.Math.Max(owned, hasVariant ? 1 : 0) + " / " + AscensionsPerWeapon + " UNLOCKED", 12, CrtUi.Dim, TextAnchor.MiddleLeft, true);
             float tw = (win.width - 36f - 10f * (AscensionsPerWeapon - 1)) / AscensionsPerWeapon;
             var dim = CrtUi.Dim;
             for (int i = 0; i < AscensionsPerWeapon; i++)
             {
-                bool got = i < owned;
+                bool isVariant = hasVariant && i == 0;
+                bool got = i < owned || isVariant;
                 var col = got ? LobbyKit.Gold : dim;
                 var c = new Rect(px + i * (tw + 10f), win.y + 96f, tw, 112f);
                 Ui.Fill(c, new Color(col.r, col.g, col.b, 0.03f));
                 if (got) CrtKit.Frame(c, 2f, col); else CrtKit.Dashed(c, 2f, new Color(dim.r, dim.g, dim.b, 0.7f));
                 Ui.Label(new Rect(c.x + 10f, c.y + 6f, c.width - 20f, 34f), Numerals[i], 28, col, TextAnchor.MiddleLeft, true);
+                if (isVariant)
+                {
+                    Ui.Label(new Rect(c.x + 36f, c.y + 6f, c.width - 46f, 34f), variant.Name.ToUpperInvariant(), 13, variantOn ? Color.white : col, TextAnchor.MiddleLeft, true);
+                    Ui.Label(new Rect(c.x + 10f, c.y + 44f, c.width - 20f, 16f), variantOn ? "EQUIPPED" : "UNLOCKED", 11, col, TextAnchor.MiddleLeft, true);
+                    Ui.Label(new Rect(c.x + 10f, c.y + 62f, c.width - 20f, 46f), Variants.Blurb(variantId.Value), 12, CrtUi.Dim, TextAnchor.UpperLeft, false, true);
+                    continue;
+                }
                 if (got)
                     Ui.Label(new Rect(c.x + 10f, c.y + 44f, c.width - 20f, 16f), "UNLOCKED", 11, col, TextAnchor.MiddleLeft, true);
                 else
@@ -930,6 +966,17 @@ namespace Arena
                 Ui.Label(new Rect(c.x + 10f, c.y + 62f, c.width - 20f, 44f), "Effect coming soon", 12, dim, TextAnchor.UpperLeft, false, true);
             }
             ascBuyRect = default;
+            ascEquipRect = default;
+            if (hasVariant && owned < 1)
+            {
+                var eq = new Rect(win.center.x - 110f, win.yMax - 58f, 220f, 24f);
+                bool hv = eq.Contains(Event.current.mousePosition);
+                var ec = LobbyKit.Gold;
+                CrtKit.SoftBox(eq, ec, variantOn, hv, false);
+                Ui.Label(eq, variantOn ? "USE " + baseDef.Name.ToUpperInvariant() : "EQUIP " + variant.Name.ToUpperInvariant(), 11, CrtKit.SoftText(ec, hv), TextAnchor.MiddleCenter, true);
+                ascEquipRect = eq;
+                ascEquipTo = variantOn ? 0 : Defs.MaxWeapons - 1;  // (the fourth pick is where the variant sits)
+            }
             if (cost >= 0)
             {
                 bool afford = prof.Cores >= cost;

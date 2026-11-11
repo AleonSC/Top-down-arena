@@ -156,7 +156,7 @@ static partial class Shot {
         bool one = Environment.GetEnvironmentVariable("VARIANTS") == "1";
         Profile.Current.Cores = one ? 25 : 5; Profile.Current.VariantTiers.Clear();
         if (one) Profile.Current.VariantTiers[Defs.Weapon(Role.Tank, Kit.Knight, 1).Name] = 1;
-        set("ascOpen", 1);
+        set("ascOpen", int.Parse(Environment.GetEnvironmentVariable("VARSLOT") ?? "1"));  // VARSLOT=<n>: which weapon key's window
       }
       // BOTS=1: Aleon's seat is a bot (the host's skill, MIX and remove keys on its card); BOTS=edit: the host is also choosing that bot's loadout (its name box over the preview).
       if (Environment.GetEnvironmentVariable("BOTS") != null) {
