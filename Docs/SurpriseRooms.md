@@ -1,6 +1,6 @@
 # Surprise rooms: free, well-shaped rooms the map gets after a boss or a breach event
 
-Status: **all three steps built** (shapes and placement; the boss trigger, `Surprise` flag on the wire (protocol 283), gold look and chip; the breach event, protocol 284). Decided with the owner on Nov 11, 2026. Builds on [`VectorBuilding.md`](VectorBuilding.md)
+Status: **all three steps built** (shapes and placement; the boss trigger, `Surprise` flag on the wire (protocol 283), gold look and chip; the breach event, protocol 285; it rides on the breach waves). Decided with the owner on Nov 11, 2026. Builds on [`VectorBuilding.md`](VectorBuilding.md)
 and [`RoomBuilding2.md`](RoomBuilding2.md) (breaches). Expanding arena only.
 
 ## Decisions (owner)
@@ -55,7 +55,7 @@ If nothing scores (the map is full or no spot fits), a smaller shape is tried, t
 
 1. **After a boss** (right after the boss vote resolves): one surprise room, always. The shape is the one not yet built
    (rotating), else seeded.
-2. **Breach event** (new, rare): roughly one regular wave in 8 from wave 10, never two in a row, never the wave after a boss.
+2. **Breach event** (new, rare): on about half of the breach waves (3, 7, 11, ... since PR #90) from wave 7, never the wave after a boss.
    A breach flashes gold instead of red; after 20 s (or at the wave's end, whichever is first) the cracked wall opens onto the
    surprise room, which was already placed behind it. The same room goes in either way; the event only adds the reveal and
    one extra spawn from that breach for the wave.
@@ -88,10 +88,11 @@ One bump: the `Surprise` flag in the room list (snapshot/`ExpandState`) and the 
   gold on the minimap while fresh, and the chip (SURPRISE ROOM, the shape's name, FREE) for 4.5 s. Cover is not added: every box is a 3-wide lane, so none qualified already.
 - Preview: `EXPANDMAP=3 EXPANDSURPRISE=ring|cross|l|t|chamfer [SURPRISEAGE=<s>] ZOOM=0.4 Tools/Preview/shot.sh x hud`. Tests: `ExpandingSurpriseTest`, `ExpandingSurpriseGameTest`.
 
-## Step 3 (built, protocol 284): the breach event
+## Step 3 (built, protocol 285): the breach event
 
-- `BreachEvent.IsEventWave(seed, wave)` (`Core/BreachEvent.cs`): from wave 10, a seeded 1 in 8 (`BreachEvent.Chance`), never the wave after a boss (wave % 5 == 1), never two waves in a row.
-  Host only (the seed isn't synced). Skipped in Practice and Boss Hunts, and within 2 rooms of `MaxRooms`.
+- `BreachEvent.IsEventWave(seed, wave)` (`Core/BreachEvent.cs`): a **breach wave** (`Breaches.IsBreachWave`: 3, 7, 11, 15, ... since the breaches became a rare event, PR #90) from wave 7 (`FromWave`), a seeded
+  half of them (`Chance` 0.5), never the wave after a boss (wave % 5 == 1). Host only (the seed isn't synced). Skipped in Practice and Boss Hunts, and within 2 rooms of `MaxRooms`.
+  (The first design was "1 in 8 regular waves from wave 10"; the breaches themselves are now rare, so the event rides on them.)
 - `Game.EventPlan()` (host, once the wave's breaches are up): the wave's breaches are shuffled by seed and the first one that has a legal surprise room **behind its wall** is
   the event's (`Expansion.Surprise(..., through)`: only spots with floor on the point 30 px behind the wall; the shape comes round as for a boss). No fit, no event. The gold
   breach goes out as `Game.EventMark` in `Msg.ExpandState` (a flag and its position).
@@ -112,7 +113,7 @@ One bump: the `Surprise` flag in the room list (snapshot/`ExpandState`) and the 
 
 - Sizes: **one size per shape**, or S and L picked by how many rooms exist?
 - Should a surprise room be able to carry a **path floor** sometimes? Default **no**, plain combat.
-- Breach event frequency: **~1 in 8 waves** from wave 10; tune after the balance pass.
+- Breach event frequency: **half of the breach waves** from wave 7; tune after the balance pass.
 
 ## Balance notes (Nov 11)
 

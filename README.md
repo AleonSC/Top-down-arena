@@ -858,7 +858,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   (and touches a dead end), so it mends the map's shape; nobody pays. It builds in with a gold flash and scan line, a **SURPRISE ROOM** chip names it, and it stays
   gold-rimmed on the arena floor and minimap for the rest of that wave. The shapes come round in turn. It counts towards the 24-room cap and
   none is given within 2 rooms of it. ([`Docs/SurpriseRooms.md`](Docs/SurpriseRooms.md))
-  **Breach events**: from wave 10, about one regular wave in eight (never the one after a boss, never two in a row) has one of its breaches flash **gold** instead of red. 20 seconds into the
+  **Breach events**: on about half of the breach waves from wave 7 on (so waves like 7, 15, 19, 23, ...; never the wave after a boss) one of the breaches flashes **gold** instead of red. 20 seconds into the
   wave, or when it ends if that comes first, the wall behind that breach opens onto a free surprise room. The wave's other breaches stay where they were.
 - **Open a wall**: on the draw screen, switch to **Open wall** and click both ends of a stretch of a wall two rooms share (the cyan stretches; the outer wall can't be
   opened, nor a sealed floating room's). It goes to the vote like a room. If it wins, that stretch of wall comes down (a short stretch is a door, a long

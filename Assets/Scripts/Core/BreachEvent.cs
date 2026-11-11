@@ -3,19 +3,18 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The breach event (Docs/SurpriseRooms.md step 3): now and then one of a regular wave's breaches flashes gold, and when the wave has run
+    /// The breach event (Docs/SurpriseRooms.md step 3): on some breach waves (Breaches.IsBreachWave) one of the breaches flashes gold, and when the wave has run
     /// BreachEvent.Delay seconds (or ends first) the wall behind it opens onto a free surprise room.
     public static class BreachEvent
     {
         public const float Delay = 20f;   // seconds into the wave the room is revealed (sooner if the wave ends)
-        public const int FromWave = 10;   // the first wave that can have one
-        public const float Chance = 0.125f;  // about one wave in eight
+        public const int FromWave = 7;    // the first wave that can have one (breach waves are 3, 7, 11, 15, ...)
+        public const float Chance = 0.5f; // about half the breach waves from then on
         public const float Behind = 30f;  // the room has floor this far behind the breach's wall
 
-        static bool Raw(int seed, int wave) => wave >= FromWave && wave % Expansion.Milestone != 1 && new DetRandom(seed * 977 + wave * 131 + 5).Float() < Chance;
-
-        /// Does this wave have one? Never the wave after a boss, never two waves in a row. Seeded, so it is the same for a replay.
-        public static bool IsEventWave(int seed, int wave) => Raw(seed, wave) && !Raw(seed, wave - 1);
+        /// Does this wave have one? A breach wave from FromWave on, about half of them, never the wave after a boss (that intermission gets a boss's
+        /// gift). Seeded, so it is the same for a replay.
+        public static bool IsEventWave(int seed, int wave) => Breaches.IsBreachWave(wave) && wave >= FromWave && wave % Expansion.Milestone != 1 && new DetRandom(seed * 977 + wave * 131 + 5).Float() < Chance;
     }
 
     /// An event's plan: the breach that flashes gold and the room that opens behind it.

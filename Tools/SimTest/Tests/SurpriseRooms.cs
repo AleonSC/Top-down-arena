@@ -123,25 +123,26 @@ static partial class Program
 {
     static void ExpandingBreachEventTest(float dt)
     {
-        // Which waves: never before wave 10, never the wave after a boss, never two in a row, about one in eight.
-        int total = 0, hits = 0; bool rules = true;
+        // Which waves: breach waves only, from wave 7, never the wave after a boss, about half of those.
+        int eligible = 0, hits = 0; bool rules = true;
         for (int seed = 1; seed <= 300; seed++)
             for (int wave = 1; wave <= 100; wave++)
             {
                 bool ev = BreachEvent.IsEventWave(seed, wave);
-                total++; hits += ev ? 1 : 0;
-                if (ev) rules &= wave >= BreachEvent.FromWave && wave % Expansion.Milestone != 1 && !BreachEvent.IsEventWave(seed, wave - 1);
+                bool could = Breaches.IsBreachWave(wave) && wave >= BreachEvent.FromWave && wave % Expansion.Milestone != 1;
+                eligible += could ? 1 : 0; hits += ev ? 1 : 0;
+                rules &= !ev || could;
             }
-        double rate = hits / (double)(300 * 91);  // (waves 10 to 100)
-        Check(rules, "an event wave is 10 or later, not the wave after a boss, not right after another");
-        Check(rate > 0.07 && rate < 0.13, "about one regular wave in eight has one (" + rate.ToString("0.000") + ")");
+        double rate = hits / (double)eligible;
+        Check(rules, "an event wave is a breach wave, wave 7 or later, not the wave after a boss");
+        Check(rate > 0.4 && rate < 0.6, "about half of those have one (" + rate.ToString("0.000") + ")");
 
         // A room behind a breach: every spot has floor on the point just behind the wall, and a plain map still gets a plan.
         string why;
         var list = new List<ExpansionRoom>();
         list.Add(Expansion.Custom(list, 1600, 100, 800, 600, out why).Value);
         var w = Expansion.Build(list);
-        var bs = Breaches.For(w, 12);
+        var bs = Breaches.For(w, 15);
         bool any = false, behind = true;
         foreach (var b in bs)
         {
@@ -160,13 +161,13 @@ static partial class Program
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
         foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Expanded.Add(list[0]); }
-        int seedPick = Enumerable.Range(1, 100000).First(sd => BreachEvent.IsEventWave(sd, 12));
+        int seedPick = Enumerable.Range(1, 100000).First(sd => BreachEvent.IsEventWave(sd, 15));
         typeof(Game).GetField("expandSeed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(g, seedPick);
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.BreachAge > 0.2f, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
-        g.Wave = 12; cg.Wave = 12;
+        g.Wave = 15; cg.Wave = 15;
         g.BreachAge = 2f; cg.BreachAge = 2f;
         Run(s, dt, 3f, () => cg.EventMark.HasValue);
-        Check(g.EventMark.HasValue && cg.EventMark.HasValue && g.EventMark.Value.DistanceTo(cg.EventMark.Value) < 2f, "the host plans an event and the friend sees its gold breach");
+        Check(g.EventMark.HasValue && cg.EventMark.HasValue && g.EventMark.Value.DistanceTo(cg.EventMark.Value) < 2f, "the host plans an event and the friend sees its gold breach (on " + g.BreachesOn + " exp " + g.ExpandingOn + " rooms " + g.RoomsOn + " byroom " + Rooms.RoomByRoom + " boss " + g.BossNow + ", " + g.State + ", wave " + g.Wave + ", age " + g.BreachAge + ", breaches " + g.ActiveBreaches.Length + ", event wave " + BreachEvent.IsEventWave(seedPick, 15) + ", rooms " + g.Expanded.Count + ", host mark " + g.EventMark.HasValue + ", client " + cg.EventMark.HasValue + ")");
         var before = g.ActiveBreaches.Select(b => b.Pos).ToList();
         Check(g.ActiveBreaches.Any(b => b.Pos.DistanceTo(g.EventMark.Value) < 3f) && cg.ActiveBreaches.Any(b => b.Pos.DistanceTo(cg.EventMark.Value) < 3f), "it is one of the wave's breaches on both screens");
         int rooms0 = g.Expanded.Count;

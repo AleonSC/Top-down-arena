@@ -4,9 +4,9 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 284: breach event: `Msg.ExpandState` carries the gold breach (a flag and its position, `Game.EventMark`) between the nodes and the open round
-- 283: surprise rooms: each room in the room list carries a `Surprise` byte (1 + its shape, 0: none; `Msg.ExpandState`, proposals, saves) (`ExpansionRoom.Surprise`)
+- 285: breach event: `Msg.ExpandState` carries the gold breach (a flag and its position, `Game.EventMark`) between the nodes and the open round
 - 284: the End record carries `CoresFound` (Cores dropped by the run's glowing Core Carrier enemies, `EliteTrait.CoreCarrier` = 64 in the replicated `Traits` byte; `CoreDrops.cs`)
+- 283: surprise rooms: each room in the room list carries a `Surprise` byte (1 + its shape, 0: none; `Msg.ExpandState`, proposals, saves) (`ExpansionRoom.Surprise`)
 - 283: Scattergun Double Barrel now holds 8 shells that refill over time (`Player.ScatCharge` is a percent toward the next); no format change.
 - 282: `Msg.ExpandState` carries the map nodes (shop, vendor and chest points, claimed by building a room round them; each has a Spent flag, Docs/Nodes.md) after the room kits; saved runs get `node` lines. The floating shop and vendor rooms are gone (the Gatekeeper room stays)
 - 281: vector pickups: each coin in the snapshot carries a vector flag (`Coin.Vec`; the rare enemy drop that adds vectors)
@@ -16,8 +16,8 @@ Before bumping, `git fetch origin main` and take main's number + 1, so two sessi
 - 277: `DiffKnob.BuildVote` (the Expanding arena's building rule: team vote on, free building off; free building builds a drawing at once, no new messages, and `Msg.ExpandCut` is also accepted mid-wave) and `DiffKnob.BuildPurse` (Team purse: builds spend the whole team's vectors, builder first): two more difficulty knobs.
 - 276: `Msg.ExpandOutline` carries a fill flag after the theme (an open run of walls whose fenced-in space is the room, `Expansion.Fill`)
 - 275: rooms drawn as outlines: `Msg.ExpandOutline` (theme, corners) and outline pieces in the rooms list (`ExpansionRoom.Leg` from `Expansion.PieceBase`); vectors doubled
-- 273: a 100-wave Campaign: the start message says whether the run is one (`Game.LongRun`) and the snapshot carries the wave's leg (`Game.Leg`)
 - 274: shutter gates: the Expanding arena's gate list (x, y, vertical) after the portal pairs in Msg.ExpandState, Msg.ExpandGate, Msg.GateUse, Msg.GateState, RoomKind.Gate proposals (Gates.cs)
+- 273: a 100-wave Campaign: the start message says whether the run is one (`Game.LongRun`) and the snapshot carries the wave's leg (`Game.Leg`)
 - 272: the Arc Knuckles' lock-on and hit feel: `Player.KnuckleDashTo` and `KnuckleTarget` in the player snapshot, `FxKind.KnuckleHit`, `Sfx.KnuckleImpact`/`KnuckleImpactHeavy`
 - 271: `WeaponId.ArcKnuckles` (the Knight DPS's fourth weapon, lobby weapon pick 3), `FxKind.KnuckleStep`, six `Sfx.Knuckle*` cues, `Player.KnuckleArmed` in the player snapshot; the Rocket Dash: `FxKind.KnuckleDash`, `Sfx.KnuckleRocket`/`KnuckleRocketHit`, `Player.KnuckleDashes` in the player snapshot, Msg.WeaponDash kind 25 (DashRocket); the dash chain: `FxKind.KnuckleChain`, `Sfx.KnuckleGrab`/`KnuckleThrow`, `Player.KnuckleChain` in the player snapshot; a Wildcard's lobby weapon pick can be 18 (the Arc Knuckles: `Defs.WildWeaponPick`)
 - 270: three new `Sfx` values at the end (`SpellPullStart`, `SpellPullHum`, `SpellPullStop`: the Repulsion Cannon's Undertow sounds)
@@ -34,7 +34,6 @@ Before bumping, `git fetch origin main` and take main's number + 1, so two sessi
 - 259: the Repulsion Cannon's Undertow: `Player.RepelMeter` (byte) and `Player.RepelPull` (bool) after `TwinCharge` in each player's snapshot; `Msg.WeaponDash` kinds 19/20 (pull on/off)
 - 258: shop shelf grows with Add stock: `Player.ShelfSold` is an Int (was a Byte) and only `Game.ShelfCount` shelf slots are sent (6 per stock, up to 4 stocks)
 - 257: snapshots carry the gold coins on the ground (`Game.Coins`: count, then id, value, position each)
-- 257 (second, shipped in parallel with the coins; 258 on carries both): boss wave beam-in: `FxKind.BossBeam` (last in the enum) and `Player.WarpT` (a float after `SwallowT` in each player's snapshot).
 - 256: opened walls: the Expanding arena's openings (WallCut list after the rooms in Msg.ExpandState), Msg.ExpandCut, RoomKind.Opening proposals (ExpansionGame.cs)
 - 255: Msg.ExpandDraw carries the drawn room's theme (a PathId byte; themed rooms, ExpansionGame.cs)
 - 254: room kits (RoomToken list after the rooms in Msg.ExpandState), Msg.ExpandApply, ShopAction.RoomKit (the vendor sells one) (ExpansionGame.cs, Shop.cs)
