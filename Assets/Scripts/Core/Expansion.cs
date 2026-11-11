@@ -1387,15 +1387,26 @@ namespace Arena
         /// A built room's side walls: 0 a design rolled per room (seeded by the box, the same on every machine), 1 fins, 2 baffles,
         /// 3 pincers, 4 T-fins (the preview's FINSTYLE forces one), -1 none.
         public static int FinStyle = 0;
-        public const int FinT = 24, FinEnd = 160, FinDoor = 200, FinLane = 260;
+        public const int FinT = 24, FinEnd = 160, FinDoor = 120, FinLane = 260, FinPass = 150, FinMin = 50;  // FinPass: the narrowest gap a wall leaves
+
+        /// Where a side wall off this edge at u, this deep, ends.
+        static V2 Tip(int edge, int u, int depth, int x0, int y0, int x1, int y1)
+            => edge == 0 ? new V2(x0 + depth, u) : edge == 1 ? new V2(x1 - depth, u) : edge == 2 ? new V2(u, y0 + depth) : new V2(u, y1 - depth);
+
+        /// Is this point within a door's half width plus 70 px of one of this area's doors?
+        static bool NearDoor(int area, List<RoomDoor> doors, V2 p)
+        {
+            foreach (var d in doors)
+                if (d.Joins(area) && d.Pos.DistanceTo(p) < d.W / 2f + 70f)
+                    return true;
+            return false;
+        }
 
         /// Walls that come out from a drawn room's outer walls into the room, as wall spans (drawn and solid like any wall).
         /// Only from real wall (not a seam to the room's other boxes, not near a door or a corner); cover in the way goes.
         static void AddFins(List<WallSpan> spans, List<Solid> cover, IList<ExpansionRoom> rooms, int[] group, int a, List<RoomDoor> doors, IList<MapNode> nodes)
         {
             var r = rooms[a - 1];
-            if (Math.Min(r.W, r.H) < OutlineCoverMin)
-                return;
             int x0 = r.X, y0 = r.Y, x1 = r.X1, y1 = r.Y1;
             // Is the wall at this spot on this edge real wall a fin can stand on? (0 west, 1 east, 2 north, 3 south)
             Func<int, int, bool> real = (edge, u) =>
@@ -1403,7 +1414,8 @@ namespace Arena
                 bool vertical = edge < 2;
                 int at = edge == 0 ? x0 : edge == 1 ? x1 : edge == 2 ? y0 : y1;
                 int lo = vertical ? y0 : x0, hi = vertical ? y1 : x1;
-                if (u - lo < FinEnd || hi - u < FinEnd)
+                int end = Math.Max(60, Math.Min(FinEnd, (hi - lo) / 4));  // (off the corners; less in a small room)
+                if (u - lo < end || hi - u < end)
                     return false;
                 for (int k = -1; k <= 1; k++)  // (the spot and a little either side: no seam behind it)
                 {
@@ -1416,30 +1428,50 @@ namespace Arena
                                 return false;
                         }
                 }
+                V2 foot = vertical ? new V2(at, u) : new V2(u, at);
                 foreach (var d in doors)
-                    if (d.Joins(a) && d.Vertical == vertical && Math.Abs((vertical ? d.Pos.X : d.Pos.Y) - at) < 1f
-                        && Math.Abs((vertical ? d.Pos.Y : d.Pos.X) - u) < d.W / 2f + FinDoor)
-                        return false;
+                    if (d.Joins(a) && (d.Vertical == vertical && Math.Abs((vertical ? d.Pos.X : d.Pos.Y) - at) < 1f
+                        && Math.Abs((vertical ? d.Pos.Y : d.Pos.X) - u) < d.W / 2f + FinDoor || d.Pos.DistanceTo(foot) < d.W / 2f + FinDoor))
+                        return false;  // (off its own wall's doors, and off a door round the corner in a small room)
                 return true;
             };
             var made = new List<int[]>();  // each fin: edge, spot, depth
             Action<int, int, int> fin = (edge, u, depth) =>
             {
-                if (depth < 80 || !real(edge, u))
+                if (depth < FinMin || !real(edge, u))
                     return;
+                if (NearDoor(a, doors, Tip(edge, u, depth, x0, y0, x1, y1)))
+                    return;  // (its tip, too, keeps off the doors)
                 made.Add(new[] { edge, u, depth });
+            };
+            Action stubs = () =>  // fins (and T-fins): short stubs off every wall, one per ~550 px (at least one)
+            {
+                for (int edge = 0; edge < 4; edge++)
+                {
+                    int el = edge < 2 ? r.H : r.W, ed = edge < 2 ? r.W : r.H, es = edge < 2 ? y0 : x0;
+                    int count = Math.Max(1, el / 550);
+                    for (int i = 0; i < count; i++)
+                        fin(edge, es + el * (i + 1) / (count + 1) / 10 * 10, Math.Min(220, ed * 3 / 10));
+                }
             };
             int style = FinStyle > 0 ? FinStyle : 1 + new DetRandom(r.X * 19349663 ^ r.Y * 83492791 ^ r.W * 73856093 ^ r.H * 5).Int(4);
             bool wide = r.W >= r.H;
             int len = wide ? r.W : r.H, deep = wide ? r.H : r.W;
             int sideA = wide ? 2 : 0, sideB = wide ? 3 : 1, start = wide ? x0 : y0;  // the two long walls
-            switch (style)
+            if (deep <= StripMax)  // a narrow room: stubs from alternate sides, a FinPass lane past each (an even count: the middle stays open)
+            {
+                int count = Math.Max(2, len / 800 * 2);
+                for (int i = 0; i < count; i++)
+                    fin(i % 2 == 0 ? sideA : sideB, start + len * (i + 1) / (count + 1) / 10 * 10, deep - FinPass);
+                style = 1;  // (no crossbars in a strip)
+            }
+            else switch (style)
             {
                 case 2:  // baffles: long walls from alternate sides, a lane left at the far end of each
                 {
                     int count = Math.Max(2, len / 1000 * 2);  // (an even count: an odd one puts a baffle across the middle)
                     for (int i = 0; i < count; i++)
-                        fin(i % 2 == 0 ? sideA : sideB, start + len * (i + 1) / (count + 1), Math.Min(deep - FinLane, deep * 2 / 3));
+                        fin(i % 2 == 0 ? sideA : sideB, start + len * (i + 1) / (count + 1), Math.Min(deep - Math.Min(FinLane, Math.Max(FinPass, deep / 3)), deep * 2 / 3));
                     break;
                 }
                 case 3:  // pincers: a pair from both long walls facing each other, a choke in the middle
@@ -1447,20 +1479,19 @@ namespace Arena
                     int count = len >= 1300 ? 2 : 1;
                     for (int i = 0; i < count; i++)
                     {
-                        int u = start + len * (i + 1) / (count + 1), depth = (deep - 300) / 2;
+                        int u = start + len * (i + 1) / (count + 1), depth = (deep - Math.Min(300, Math.Max(FinPass, deep / 2))) / 2;
                         if (real(sideA, u) && real(sideB, u)) { fin(sideA, u, depth); fin(sideB, u, depth); }
                     }
                     break;
                 }
-                default:  // fins (and T-fins): short stubs off every long enough wall, one per ~550 px
-                    for (int edge = 0; edge < 4; edge++)
-                    {
-                        int el = edge < 2 ? r.H : r.W, ed = edge < 2 ? r.W : r.H, es = edge < 2 ? y0 : x0;
-                        int count = el / 550;
-                        for (int i = 0; i < count; i++)
-                            fin(edge, es + el * (i + 1) / (count + 1) / 10 * 10, Math.Min(220, ed * 3 / 10));
-                    }
+                default:
+                    stubs();
                     break;
+            }
+            if (made.Count == 0 && style != 1)  // (no room for this design, a door in the way: plain fins instead)
+            {
+                style = 1;
+                stubs();
             }
             foreach (var f in made)
             {
@@ -1476,20 +1507,27 @@ namespace Arena
                 if (onNode)
                     continue;
                 float t = FinT / 2f;
+                int ch = Math.Min(80, Math.Min(u - (edge < 2 ? y0 : x0), (edge < 2 ? y1 : x1) - u) - 40);  // a T-fin's crossbar, half: shorter near a corner
+                bool cap = style == 4 && ch >= 30;
+                if (cap)
+                {
+                    V2 tip = Tip(edge, u, depth, x0, y0, x1, y1), along = edge < 2 ? new V2(0f, ch) : new V2(ch, 0f);
+                    cap = !NearDoor(a, doors, tip + along) && !NearDoor(a, doors, tip - along);
+                }
                 WallSpan s; float bx0, by0, bx1, by1;
                 if (edge < 2)  // off a west or east wall: a horizontal fin
                 {
                     int from = edge == 0 ? x0 : x1 - depth, till = edge == 0 ? x0 + depth : x1;
                     s = new WallSpan(false, u, from, till);
                     bx0 = from; bx1 = till; by0 = u - t; by1 = u + t;
-                    if (style == 4) { int e = edge == 0 ? till : from; spans.Add(new WallSpan(true, e, u - 80, u + 80)); by0 = u - 80; by1 = u + 80; }
+                    if (cap) { int e = edge == 0 ? till : from; spans.Add(new WallSpan(true, e, u - ch, u + ch)); by0 = u - ch; by1 = u + ch; }
                 }
                 else
                 {
                     int from = edge == 2 ? y0 : y1 - depth, till = edge == 2 ? y0 + depth : y1;
                     s = new WallSpan(true, u, from, till);
                     by0 = from; by1 = till; bx0 = u - t; bx1 = u + t;
-                    if (style == 4) { int e = edge == 2 ? till : from; spans.Add(new WallSpan(false, e, u - 80, u + 80)); bx0 = u - 80; bx1 = u + 80; }
+                    if (cap) { int e = edge == 2 ? till : from; spans.Add(new WallSpan(false, e, u - ch, u + ch)); bx0 = u - ch; bx1 = u + ch; }
                 }
                 spans.Add(s);
                 cover.RemoveAll(c => c.Pos.X + c.HW + c.R > bx0 - CoverGap && c.Pos.X - c.HW - c.R < bx1 + CoverGap

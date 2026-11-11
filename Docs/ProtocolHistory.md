@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 292: built rooms of every size grow side walls (small rooms and narrow strips too; derived from the map, so both ends must build the same walls).
 - 291: Black Market: `ShopAction.BuyBuild`, the player snapshot carries `Player.Stash` (a byte per `BuildKind`, after `ShelfSold`), `Msg.PlaceBuild`, `Msg.ExpandState` carries the placed traps (after the portal pairs); a portal pair is built from the stash (no vectors, no vote)
 - 290: shop shelf is 3 cards plus 2 per Add stock, unlimited (`Player.ShelfLen` byte sent before the cards; past 31 cards the oldest bought ones drop off)
 - 289: the enemy snapshot carries `Enemy.Dazed` (a bool after the Katana shock flag; Daze.cs)
