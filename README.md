@@ -858,8 +858,8 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   4 x 4 tile squares) and a **Gatekeeper** room (8 x 6) as sealed boxes 4 to 8 tiles off the map, plus a **chest node**: a point 10 to 16 tiles straight
   out (at least 8 tiles from other nodes). Build a room or hallway that shares 2 tiles of wall with a sealed room and its door opens: walk in to shop
   (the shop's stall or the vendor's pedestal stands in the middle). Sealed rooms don't count towards the 24-room cap and add no enemies; at most 6 wait.
-  A chest node is locked until you build a **room** that encloses it (a normal combat room with enemies); walk up to the chest to open it once: every
-  player gets gold (40, +10 a boss cycle) and 6 vectors (opened ones lie dim with the lid up). No cover stands on a node. Nothing respawns: new ones
+  A chest node is locked until you build a **room** that encloses it (a normal combat room with enemies); a claimed chest node holds a real treasure chest (the same as the rare wave chests): touch it and every
+  player gets their own item. It opens once and never holds the wave up (opened ones lie dim with the lid up). No cover stands on a node. Nothing respawns: new ones
   appear around the current map. Bots build up to the shop room first, then the vendor, then chests, then the Gatekeeper (they don't walk to chests' loot).
   Old saves with shop or vendor nodes still work: a room round one becomes that shop.
   (The Gatekeeper has its own room, below.)

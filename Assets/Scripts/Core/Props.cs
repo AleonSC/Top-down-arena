@@ -368,12 +368,14 @@ namespace Arena
                 foreach (var p in Props.Values)
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.8f, 0.75f, 0.6f, 0.6f), 30f, 0.3f, Sfx.None);
             Props.Clear();
+            nodeChests.Clear();
             Loots.Clear();
         }
 
         void ResetProps()
         {
             Props.Clear();
+            nodeChests.Clear();
             Loots.Clear();
             lootSent.Clear();
             nextPropId = nextLootId = 1;
@@ -630,7 +632,7 @@ namespace Arena
         public bool PropsHoldWave()
         {
             foreach (var p in Props.Values)
-                if (p.Kind == PropKind.Chest && !p.Open && p.Hp > 0f)
+                if (p.Kind == PropKind.Chest && !p.Open && p.Hp > 0f && !IsNodeChest(p))
                     return true;
             foreach (var l in Loots.Values)
                 if (Players.ContainsKey(l.Owner))

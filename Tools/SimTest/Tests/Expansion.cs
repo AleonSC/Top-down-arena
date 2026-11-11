@@ -433,15 +433,19 @@ static partial class Program
                 int ci = g.Nodes.Count - 1;
                 var tickNodes = typeof(Game).GetMethod("TickNodes", flags);
                 var pl = g.Players.Values.First();
-                float gold0 = pl.Gold;
+                var tickProps = typeof(Game).GetMethod("TickProps", flags);
                 pl.Pos = chest.Pos + new V2(400f, 0f);
                 tickNodes.Invoke(g, null);
-                Check(!g.Nodes[ci].Spent && pl.Gold == gold0, "a chest stays shut while nobody is next to it");
+                tickNodes.Invoke(g, null);
+                var chests = g.Props.Values.Where(q => q.Kind == PropKind.Chest && q.Pos.DistanceTo(chest.Pos) < 1f).ToList();
+                Check(chests.Count == 1 && !chests[0].Open && !g.Nodes[ci].Spent, "a claimed chest node holds one real treasure chest, shut");
+                Check(!g.PropsHoldWave(), "the wave doesn't wait on a node's chest");
                 pl.Pos = chest.Pos;
+                tickProps.Invoke(g, new object[] { 0.05f });
                 tickNodes.Invoke(g, null);
-                float gold1 = pl.Gold;
                 tickNodes.Invoke(g, null);
-                Check(g.Nodes[ci].Spent && gold1 > gold0 && pl.Gold == gold1, "walking up to it opens it once: gold for the player and no second payout");
+                Check(chests[0].Open && g.Nodes[ci].Spent && g.Loots.Values.Any(l => l.Owner == pl.Id), "walking onto it opens it: the node is spent and the player gets their own item");
+                Check(g.Props.Values.Count(q => q.Kind == PropKind.Chest && !q.Open) == 0, "a spent node holds no second chest");
                 g.Nodes.RemoveAt(ci);
                 g.Expanded.RemoveAt(ri);
             }
@@ -1417,7 +1421,7 @@ static partial class Program
         Run(s, dt, 0.5f, () => cg.Expanded.Count == 2);
         Check(g.Expanded.Count == 2 && cg.Expanded.Count == 2 && g.Expanded[1].Owner == 2 && g.ProposalHeads.Count == 0 && g.ExpandOpen, "a friend's room is built the moment it's drawn; the round stays open");
         Run(s, dt, 1f, () => cg.Players[2].Vectors == g.Players[2].Vectors);
-        Check(g.Players[2].Vectors == v2 - west.Price && cg.Players[2].Vectors == g.Players[2].Vectors, "and only they pay (" + west.Price)");
+        Check(g.Players[2].Vectors == v2 - west.Price && cg.Players[2].Vectors == g.Players[2].Vectors, "and only they pay (" + west.Price + ")");
         var offers = Expansion.Offers(5, 6, g.Expanded);
         Check(offers.Count > 0, "there is room for another");
         var o = offers[0];
