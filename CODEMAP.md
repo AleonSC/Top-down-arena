@@ -246,7 +246,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 
 ## HUD and in-run UI (Game)
 - `RoundWindows.cs`: the between-round windows' shared frame: the dark layer over the arena (`RoundBackdrop`, each window's strength), a part fading and sliding in (`RoundPart`, fades `Ui.Alpha` too), the CRT tube a window sits in (`RoundTube`); used by the results, picker, shop, path choice and Wave cleared box
-- `WaveClearedUi.cs`: the "Wave n cleared" box between waves as one CRT tube with Results / Build / Ready tabs (`Docs/Mockups/between-waves-flow.html` look B; squad tally, award tags, build summary, next wave, Ready key, Auto-ready switch, countdown); `ExpansionUi.cs` opens the build window from its Build step
+- `WaveClearedUi.cs`: the "Wave n cleared" box between waves as one CRT tube with Results / Build / Ready tabs (`Docs/Mockups/between-waves-flow.html` look B; squad tally, award tags, build summary, next wave, Ready key, Auto-ready switch, countdown; Minimize folds it into a strip at the top, `wcMin`); `ExpansionUi.cs` opens the build window from its Build step
 - `ChatBox.cs`: the match text chat (Enter opens, bottom right, pills that fade; state in `Session.Chat`)
 - `Hud.cs`: wave plate, player cards, ability bar, banners
 - `HudLayout.cs`: **the HUD's layout**: the console (wave plate, the five keys and XP strip, your card), what stacks above it (chips, Riot Gear chip, teammate rows, chat, emote bar, mastery toasts, chest hint), the top row (boss bars, objective line, hint pill), the banner; the hide/show slides pivot on these rects
