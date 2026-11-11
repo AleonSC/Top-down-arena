@@ -388,9 +388,11 @@ namespace Arena
             BroadcastExpansion();
         }
 
-        public const int ChestGold = 40, ChestGoldPerCycle = 10, ChestVectors = 6;  // what a chest node gives each player, once
+        /// Host: a claimed chest node holds a real treasure chest (Props.cs: everyone gets their own item). Not synced: node index -> prop id.
+        readonly Dictionary<int, int> nodeChests = new Dictionary<int, int>();
 
-        /// Host, every tick of a wave: a player who walks up to a claimed chest node opens it. Everyone gets gold and a few vectors; it stays spent.
+        /// Host, every tick of a wave: a chest node whose room is built holds a treasure chest (put back each wave if it was cleared away).
+        /// Once it is opened the node is spent. The wave never waits on it (`IsNodeChest`).
         void TickNodes()
         {
             if (!IsHost || !ExpandingOn || Nodes.Count == 0)
@@ -400,23 +402,30 @@ namespace Arena
                 var nd = Nodes[i];
                 if (nd.Kind != NodeKind.Chest || nd.Spent || !Expansion.NodeClaimed(Expanded, nd))
                     continue;
-                bool near = false;
-                foreach (var p in Players.Values)
-                    near |= !p.Downed && p.Pos.DistanceTo(nd.Pos) < p.Def.BodyR + 45f;
-                if (!near)
-                    continue;
-                nd.Spent = true;
-                Nodes[i] = nd;
-                int gold = ChestGold + ChestGoldPerCycle * ((Wave - 1) / Expansion.Milestone);
-                foreach (var p in Players.Values)
+                int id;
+                Prop pr;
+                if (nodeChests.TryGetValue(i, out id) && Props.TryGetValue(id, out pr))
                 {
-                    p.Gold += gold;
-                    AddVectors(p, ChestVectors);
+                    if (!pr.Open)
+                        continue;
+                    nd.Spent = true;
+                    Nodes[i] = nd;
+                    nodeChests.Remove(i);
+                    DoLog("a chest node's chest was opened");
+                    BroadcastExpansion();
+                    continue;
                 }
-                BroadcastFx(FxKind.Ring, nd.Pos, new Rgba(1f, 0.82f, 0.3f), 110f, 0.7f, Sfx.Pick);
-                DoLog("a chest opens: " + gold + " gold and " + ChestVectors + " vectors each");
-                BroadcastExpansion();
+                nodeChests[i] = AddProp(PropKind.Chest, nd.Pos).Id;
             }
+        }
+
+        /// Host: is this prop the chest of a chest node (it never holds the wave)?
+        bool IsNodeChest(Prop p)
+        {
+            foreach (var kv in nodeChests)
+                if (kv.Value == p.Id)
+                    return true;
+            return false;
         }
 
         /// Host: the team gains a room kit (at most Expansion.MaxTokens held).

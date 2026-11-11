@@ -74,7 +74,7 @@ you have to build to). It builds on [`ExpandingArena.md`](ExpandingArena.md) and
   full health for the wave) in the middle; the room locks behind whoever is inside (`AreaLocked`/`RoomsHold`, now read from the current world, so they work in
   both arenas). The lock is read from the Gatekeeper enemy itself, so nothing new is synced.
 - Beating it gives everyone the vault's prize pick (`GrantVaultPrize`) and turns the room into an ordinary Combat room (the room list is re-broadcast).
-- The duel is optional: the wave ends without it (`FoesOutsideVault`); an unbeaten Gatekeeper goes when the wave clears and anyone inside is put out the door,
+- Once the duel has started the wave does not end until the Gatekeeper falls, and no other foe may enter or stay in the locked room (`KeepOutOfDuel`); an unbeaten Gatekeeper still goes if the wave is ended some other way and anyone inside is put out the door,
   and walking in on a later wave wakes a fresh one. Bots don't walk in on purpose.
 
 ## Step 4 (built, protocol 255)

@@ -49,7 +49,7 @@ textarea{width:100%;height:200px;resize:vertical;font-size:12px}
 <div id="top">
   <h1>WAVE LAB</h1>
   <label class="dim small">Class
-    <select id="role"></select><select id="kit"></select><select id="weapon"></select></label>
+    <select id="role"></select><select id="kit"></select><select id="weapon"></select><select id="ability"></select><select id="ult"></select></label>
   <label class="dim small">Bot <select id="bot"><option value="off">Off (me)</option><option value="casual">Casual</option><option value="good">Good</option><option value="expert">Expert</option></select></label>
   <label class="dim small"><input type="checkbox" id="god"> God mode</label>
   <label class="dim small">Start wave <input type="number" id="startwave" value="1" min="1" style="width:56px"></label>
@@ -75,8 +75,9 @@ textarea{width:100%;height:200px;resize:vertical;font-size:12px}
     <div class="row"><label>Level <input type="number" id="level" min="1" max="100"></label>
       <button id="addGroup">+ Group</button><button id="dupWave">Duplicate wave</button><button id="delWave">Delete wave</button><span id="stat" class="dim small"></span></div>
     <div id="groups"></div>
+    <div class="row small dim">Map tool: <button id="tPts" class="on">Move points</button><span id="tProps"></span><button id="tClr">Clear props</button></div>
     <canvas id="mini" width="800" height="450" style="width:100%;max-width:640px;border:1px solid var(--line);border-radius:6px;background:#0a0e13"></canvas>
-    <div class="small dim">Spawn points A–E (drag to move). Dots are props.</div>
+    <div class="small dim">Move points: drag A–E. Prop tools: click empty floor to place, click a prop to remove.</div>
   </div>
 
   <div class="col">
@@ -95,9 +96,12 @@ textarea{width:100%;height:200px;resize:vertical;font-size:12px}
     <span class="stat" id="hWave"></span><span class="stat" id="hLeft"></span>
     <span class="bar"><b id="hHp"></b></span><span class="stat" id="hTime"></span>
     <select id="pBot"><option value="off">Bot: off</option><option value="casual">Bot: casual</option><option value="good">Bot: good</option><option value="expert">Bot: expert</option></select>
-    <button id="pGod">God</button><button id="pRestart">↻ Restart</button><button id="pStop">✕ Editor</button>
+    <button id="pGod">God</button><button id="pRestart">↻ Restart</button><button id="pRep">Report</button><button id="pStop">✕ Editor</button>
   </div>
   <div id="msg"></div>
+  <div id="rep" style="display:none;position:absolute;inset:0;background:#000c;overflow:auto;padding:16px"><div class="card" style="max-width:760px;margin:auto;background:#101822">
+    <div class="row"><b id="repTitle"></b><span style="flex:1"></span><button id="repCsv">CSV</button><button id="repJson">JSON</button><button id="repClose">Close</button></div>
+    <div id="repSub" class="small dim"></div><div style="overflow:auto"><table id="repTbl" style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px"></table></div></div></div>
   <div class="stick" id="sL"><b></b></div><div class="stick" id="sR"><b></b></div>
   <div id="btns"><div><button id="bAlt">Alt</button><button id="bQ">Q</button><button id="bE">E</button></div><div><button id="bUlt">Ult</button><button id="bDodge">Dodge</button><button id="bAb">Ability</button></div></div>
 </div>
@@ -116,7 +120,8 @@ function connect(){
   ws.onmessage=e=>{const m=JSON.parse(e.data);
     if(m.t==="s")snap=m,draw();
     else if(m.t==="started"){if(m.err){alert(m.err);showEdit()}}
-    else if(m.t==="parsed")loadSet(m.set);};
+    else if(m.t==="parsed")loadSet(m.set);
+    else if(m.t==="report"){lastRep=m;showReport(m)}};
 }
 function send(o){if(ws&&ws.readyState===1)ws.send(JSON.stringify(o))}
 
@@ -186,12 +191,19 @@ $("sets").onchange=()=>{const s=meta.sets[+$("sets").value];if(s)send({t:"parse"
 
 // mini map: spawn points + props; drag points
 const mini=$("mini"),mc=mini.getContext("2d");let dragPt=-1;
+let tool="pts";const PCOL=["#a07a46","#7c5a2e","#9aa","#c0553a","#e0c050","#4ade80"];
+function renderTools(){$("tPts").className=tool==="pts"?"on":"";$("tProps").innerHTML=PROPS.map((n,i)=>`<button data-p="${i}" class="${tool===i?"on":""}" style="border-left:4px solid ${PCOL[i]}">${n}</button>`).join("");
+  $("tProps").querySelectorAll("button").forEach(b=>b.onclick=()=>{tool=+b.dataset.p;renderTools()})}
+$("tPts").onclick=()=>{tool="pts";renderTools()};$("tClr").onclick=()=>{set.waves[selWave].props=[];sync()};renderTools();
 function drawMini(){const k=mini.width/1600;mc.clearRect(0,0,mini.width,mini.height);mc.strokeStyle="#243040";mc.strokeRect(0,0,mini.width,mini.height);
-  const w=set.waves[selWave];w.props.forEach(p=>{mc.fillStyle="#8a6a3a";mc.fillRect(p.x*k-5,p.y*k-5,10,10)});
+  const w=set.waves[selWave];w.props.forEach(p=>{mc.fillStyle=PCOL[Math.max(0,PROPS.indexOf(p.kind))];mc.fillRect(p.x*k-7,p.y*k-7,14,14)});
   const used=new Set();w.groups.forEach(g=>(g.from||"").split("").forEach(l=>used.add(l)));
   set.points.forEach((p,i)=>{const l="ABCDE"[i];mc.beginPath();mc.arc(p[0]*k,p[1]*k,13,0,7);mc.fillStyle=used.has(l)?"#4fd1c5":"#334";mc.fill();mc.fillStyle="#04201d";mc.font="bold 14px monospace";mc.textAlign="center";mc.textBaseline="middle";mc.fillText(l,p[0]*k,p[1]*k+1)})}
 function mpos(e){const r=mini.getBoundingClientRect();return [(e.clientX-r.left)/r.width*1600,(e.clientY-r.top)/r.height*900]}
-mini.onpointerdown=e=>{const [x,y]=mpos(e);dragPt=set.points.findIndex(p=>Math.hypot(p[0]-x,p[1]-y)<45);if(dragPt>=0)mini.setPointerCapture(e.pointerId)};
+mini.onpointerdown=e=>{const [x,y]=mpos(e);
+  if(tool!=="pts"){const w=set.waves[selWave];const i=w.props.findIndex(p=>Math.hypot(p.x-x,p.y-y)<30);
+    if(i>=0)w.props.splice(i,1);else w.props.push({kind:PROPS[tool],x:Math.round(Math.max(40,Math.min(1560,x))/10)*10,y:Math.round(Math.max(40,Math.min(860,y))/10)*10});sync();return}
+  dragPt=set.points.findIndex(p=>Math.hypot(p[0]-x,p[1]-y)<45);if(dragPt>=0)mini.setPointerCapture(e.pointerId)};
 mini.onpointermove=e=>{if(dragPt<0)return;const [x,y]=mpos(e);set.points[dragPt]=[Math.round(Math.max(20,Math.min(1580,x))),Math.round(Math.max(20,Math.min(880,y)))];drawMini()};
 mini.onpointerup=()=>{if(dragPt>=0){dragPt=-1;sync()}};
 
@@ -208,7 +220,8 @@ fetch("/api/meta").then(r=>r.json()).then(m=>{
   $("sets").innerHTML=m.sets.map((s,i)=>`<option value="${i}">${esc(s.name)}</option>`).join("");
   m.roles.forEach((r,i)=>{const o=document.createElement("option");o.value=i;o.textContent=r.name;$("role").appendChild(o)});
   m.roles[0].kits.forEach((k,i)=>{const o=document.createElement("option");o.value=i;o.textContent=k.name;$("kit").appendChild(o)});
-  const fillW=()=>{const w=m.roles[+$("role").value].kits[+$("kit").value].weapons;$("weapon").innerHTML=w.map((n,i)=>`<option value="${i}">${esc(n)}</option>`).join("")};
+  const fillW=()=>{const k=m.roles[+$("role").value].kits[+$("kit").value];$("weapon").innerHTML=k.weapons.map((n,i)=>`<option value="${i}">${esc(n)}</option>`).join("");
+    $("ability").innerHTML=k.abilities.map((n,i)=>`<option value="${i}">Space: ${esc(n)}</option>`).join("");$("ult").innerHTML=k.ults.map(u=>`<option value="${u.key}">Ult: ${esc(u.name)}</option>`).join("")};
   $("role").onchange=$("kit").onchange=fillW;$("role").value=2;fillW();
   m.sets.length?send0(m.sets[0].text):loadSet(blankSet());
   renderAll0();
@@ -217,15 +230,30 @@ function send0(text){const t=setInterval(()=>{if(ws&&ws.readyState===1){clearInt
 function renderAll0(){if(!set)loadSet(blankSet())}
 connect();
 
+// ---------- run report ----------
+let lastRep=null;
+function showReport(r){
+  $("repTitle").textContent=`${r.set||"waves"}: ${r.result.toUpperCase()} in ${Math.round(r.time)}s`;
+  $("repSub").textContent=`${r.who} · bot ${r.bot}${r.god?" · god mode":""}`;
+  $("repTbl").innerHTML="<tr>"+["Wave","Lvl","Enemies","Result","Clear s","Kills","Dmg dealt","Dmg taken","Healed","Min HP %","Downs"].map(h=>`<th style="text-align:left;padding:3px 6px;border-bottom:1px solid var(--line)">${h}</th>`).join("")+"</tr>"+
+   r.rows.map(x=>"<tr>"+[x.wave,x.level,x.enemies,x.cleared?"cleared":"unfinished",x.clear,x.cleared?x.kills:"-",x.cleared?x.dealt:"-",x.cleared?x.taken:"-",x.cleared?x.healing:"-",x.minHp,x.downs].map(v=>`<td style="padding:3px 6px">${v}</td>`).join("")+"</tr>").join("");
+  $("rep").style.display="block"}
+function dl(name,text,type){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click()}
+$("repClose").onclick=()=>$("rep").style.display="none";
+$("pRep").onclick=()=>send({t:"report"});
+$("repJson").onclick=()=>lastRep&&dl((lastRep.set||"run")+"-report.json",JSON.stringify(lastRep,null,2),"application/json");
+$("repCsv").onclick=()=>{if(!lastRep)return;const h=["wave","level","enemies","cleared","clear","kills","dealt","taken","healing","minHp","downs"];
+  dl((lastRep.set||"run")+"-report.csv",h.join(",")+"\n"+lastRep.rows.map(r=>h.map(k=>r[k]).join(",")).join("\n"),"text/csv")};
+
 // ---------- play ----------
 let snap=null,playing=false,view={s:1,ox:0,oy:0};
 const cv=$("cv"),cx=cv.getContext("2d");
-function startPlay(){
-  send({t:"start",waves:toText(set),role:+$("role").value,kit:+$("kit").value,weapon:+$("weapon").value,bot:$("bot").value,god:$("god").checked,wave:+$("startwave").value||1});
+function startPlay(){$("rep").style.display="none";
+  send({t:"start",waves:toText(set),role:+$("role").value,kit:+$("kit").value,weapon:+$("weapon").value,ability:+$("ability").value,ult:+$("ult").value,bot:$("bot").value,god:$("god").checked,wave:+$("startwave").value||1});
   $("pBot").value=$("bot").value;god=$("god").checked;$("pGod").className=god?"on":"";
   $("play").style.display="block";$("edit").style.display=$("top").style.display="none";playing=true;snap=null;resize();
 }
-function showEdit(){send({t:"stop"});playing=false;$("play").style.display="none";$("edit").style.display="";$("top").style.display="flex"}
+function showEdit(){$("rep").style.display="none";send({t:"stop"});playing=false;$("play").style.display="none";$("edit").style.display="";$("top").style.display="flex"}
 let god=false;
 $("playBtn").onclick=startPlay;$("pStop").onclick=showEdit;$("pRestart").onclick=startPlay;
 $("pBot").onchange=()=>send({t:"bot",level:$("pBot").value});
