@@ -136,6 +136,25 @@ namespace Arena
                     session.SetDifficultyKnob(DiffKnob.ArenaExpanding, 1f);
                 }
             }
+            // How the Expanding arena is built (ExpansionGame.cs): free by default, or every room to a team vote. Right of the Arena row.
+            if (diff[DiffKnob.ArenaExpanding] >= 0.5f)
+            {
+                var slot = new Rect(x + colW + colGap, y + rows * rowH + 34f, colW, 24f);
+                bool vote = diff[DiffKnob.BuildVote] >= 0.5f;
+                float bw = (colW - 16f) / 3f;
+                bool purse = diff[DiffKnob.BuildPurse] >= 0.5f;
+                if (slot.Contains(Event.current.mousePosition))
+                {
+                    int hover = (int)((Event.current.mousePosition.x - slot.x) / (bw + 8f));
+                    hoverDesc = hover >= 2 ? "Team purse: " + Difficulty.Knobs[(int)DiffKnob.BuildPurse].Desc : "Building: " + Difficulty.Knobs[(int)DiffKnob.BuildVote].Desc;
+                }
+                if (LobbyKit.Key(new Rect(slot.x, slot.y, bw, slot.height), "Free building", !vote, fxReduced, size: 14, minSize: 11, enabled: canEdit) && canEdit && vote)
+                    session.SetDifficultyKnob(DiffKnob.BuildVote, 0f);
+                if (LobbyKit.Key(new Rect(slot.x + bw + 8f, slot.y, bw, slot.height), "Team vote", vote, fxReduced, size: 14, minSize: 11, enabled: canEdit) && canEdit && !vote)
+                    session.SetDifficultyKnob(DiffKnob.BuildVote, 1f);
+                if (LobbyKit.Key(new Rect(slot.x + 2f * (bw + 8f), slot.y, bw, slot.height), "Team purse", purse, fxReduced, size: 14, minSize: 11, enabled: canEdit) && canEdit)
+                    session.SetDifficultyKnob(DiffKnob.BuildPurse, purse ? 0f : 1f);
+            }
             Ui.Label(lineRect, hoverDesc ?? line, 12, hoverDesc != null ? LobbyKit.Soft : CrtUi.Dim);
         }
 

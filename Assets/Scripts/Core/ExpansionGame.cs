@@ -30,7 +30,68 @@ namespace Arena
         /// Shop kit, the vendor sells a Floor kit.
         public readonly List<RoomToken> RoomTokens = new List<RoomToken>();
 
+        /// The run builds by team vote (the lobby's "Team vote building"): off = free building, a drawing is built at once.
+        public bool BuildVoting => D(DiffKnob.BuildVote) >= 0.5f;
+
+        /// The lobby's "Team purse": builds can spend every player's vectors, not just the builder's.
+        public bool TeamPurse => D(DiffKnob.BuildPurse) >= 0.5f;
+
+        /// What this player can put towards a build: their own vectors, or (Team purse) the whole team's.
+        public int SpendableVectors(Player p)
+        {
+            if (p == null)
+                return 0;
+            if (!TeamPurse)
+                return p.Vectors;
+            int n = 0;
+            foreach (var q in Players.Values)
+                n += q.Vectors;
+            return n;
+        }
+
+        /// Host: charge a build. The payer goes first, then (Team purse) the richest teammates until it's covered.
+        void PayVectors(Player payer, int price)
+        {
+            int take = Math.Min(payer.Vectors, price);
+            payer.Vectors -= take;
+            price -= take;
+            while (TeamPurse && price > 0)
+            {
+                Player rich = null;
+                foreach (var q in Players.Values)
+                    if (q.Vectors > 0 && (rich == null || q.Vectors > rich.Vectors))
+                        rich = q;
+                if (rich == null)
+                    break;
+                take = Math.Min(rich.Vectors, price);
+                rich.Vectors -= take;
+                price -= take;
+            }
+        }
+
+        /// Free building: anyone builds with their own vectors the moment they draw, any number of rooms a round.
+        public bool FreeBuild => ExpandingOn && !BuildVoting;
+
+        /// Free building, outside a building round (a wave is on, or the map is full): only openings, so doors can go in mid-wave.
+        /// Not while a Gatekeeper duel has its room locked.
+        public bool DoorsOpen
+        {
+            get
+            {
+                if (!FreeBuild || ExpandOpen || Practice != null || Hunt != null || (State != MatchState.Fighting && State != MatchState.Intermission))
+                    return false;
+                for (int a = 1; a < ExpansionWorld.Areas.Length; a++)
+                    if (AreaLocked(a))
+                        return false;
+                return true;
+            }
+        }
+
+        /// A wall can be opened now: in a building round, or (free building) mid-wave.
+        public bool CanCut => ExpandOpen || DoorsOpen;
+
         int expandSeed;
+        int roundBuilt;  // free building: drawings built since this round opened (bots only build when it's 0)
         float botVoteT;
         bool botProposed;
         World expWorld;
@@ -359,6 +420,7 @@ namespace Arena
             if (!IsHost || !ExpandingOn || Practice != null || Hunt != null || (Wave >= MaxWave && !Endless) || Expansion.BoughtCount(Expanded) >= Expansion.MaxRooms)
                 return;
             ExpandOpen = true;
+            roundBuilt = 0;
             ExpandProposals.Clear();
             ExpandVotes.Clear();
             botVoteT = 0f;
@@ -389,7 +451,7 @@ namespace Arena
         /// A vote from this game's player: the proposer's id, or 0 for "no room".
         public void CastExpandVote(int choice)
         {
-            if (!ExpandOpen || Me == null || choice < 0 || (choice != 0 && ProposalOf(choice) == null))
+            if (!ExpandOpen || !BuildVoting || Me == null || choice < 0 || (choice != 0 && ProposalOf(choice) == null))
                 return;
             if (IsHost)
             {
@@ -406,7 +468,7 @@ namespace Arena
 
         void HostExpandVote(int id, int choice)
         {
-            if (!IsHost || !ExpandOpen || !Players.ContainsKey(id) || choice < 0 || (choice != 0 && ProposalOf(choice) == null))
+            if (!IsHost || !ExpandOpen || !BuildVoting || !Players.ContainsKey(id) || choice < 0 || (choice != 0 && ProposalOf(choice) == null))
                 return;
             ExpandVotes[id] = choice;
             FinishOrBroadcast();
@@ -443,12 +505,18 @@ namespace Arena
                 return;
             }
             var made = Expansion.Custom(Expanded, x, y, w, h, theme, out why);
-            if (!made.HasValue || made.Value.Price > p.Vectors)
+            if (!made.HasValue || made.Value.Price > SpendableVectors(p))
             {
                 DoLog("proposal refused (" + (why ?? "needs " + made.Value.Price + " vectors, has " + p.Vectors) + ")");
                 return;
             }
             var room = made.Value;
+            if (FreeBuild)
+            {
+                room.Owner = id;
+                BuildNow(id, room, null);
+                return;
+            }
             SetProposal(id, new List<ExpansionRoom> { room });
             DoLog(p.Name + " proposes a " + w + " x " + h + (theme != PathId.None ? " " + theme : "") + " room for " + room.Price + " vectors");
             FinishOrBroadcast();
@@ -457,7 +525,7 @@ namespace Arena
         /// This game's player proposes opening a stretch of interior wall (it pays vectors back, 1 per tile still wall).
         public void ProposeExpandCut(WallCut c)
         {
-            if (!ExpandOpen || Me == null)
+            if (!CanCut || Me == null)
                 return;
             if (IsHost)
             {
@@ -475,13 +543,20 @@ namespace Arena
         void HostExpandCut(int id, WallCut c)
         {
             Player p;
-            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
+            if (!IsHost || !CanCut || !Players.TryGetValue(id, out p))
                 return;
             string why;
             int refund = Expansion.CutRefund(Expanded, Openings, c, out why);
             if (refund <= 0)
             {
                 DoLog("opening refused (" + why + ")");
+                return;
+            }
+            if (FreeBuild)
+            {
+                var cutRoom = Expansion.CutProposal(c, refund);
+                cutRoom.Owner = id;
+                BuildNow(id, cutRoom, null);
                 return;
             }
             SetProposal(id, new List<ExpansionRoom> { Expansion.CutProposal(c, refund) });
@@ -513,13 +588,18 @@ namespace Arena
             if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
                 return;
             string why;
-            if (!Gates.CanFit(ExpansionWorld, GateFits, at, out why) || Gates.Price > p.Vectors)
+            if (!Gates.CanFit(ExpansionWorld, GateFits, at, out why) || Gates.Price > SpendableVectors(p))
             {
                 DoLog("gate refused (" + (why ?? "needs " + Gates.Price + " vectors, has " + p.Vectors) + ")");
                 return;
             }
             var prop = Gates.Proposal(Gates.Of(ExpansionWorld.Doors[Gates.DoorAt(ExpansionWorld, at)]));
             prop.Owner = id;
+            if (FreeBuild)
+            {
+                BuildNow(id, prop, null);
+                return;
+            }
             int old = ExpandProposals.FindIndex(q => q.Owner == id);
             if (old >= 0)
             {
@@ -560,9 +640,16 @@ namespace Arena
                 return;
             string why;
             int price = Expansion.LinkPrice(ExpansionWorld, Links.Count, l, out why);
-            if (price <= 0 || price > p.Vectors)
+            if (price <= 0 || price > SpendableVectors(p))
             {
                 DoLog("portal refused (" + (why ?? "needs " + price + " vectors, has " + p.Vectors) + ")");
+                return;
+            }
+            if (FreeBuild)
+            {
+                var linkRoom = Expansion.LinkProposal(l, price);
+                linkRoom.Owner = id;
+                BuildNow(id, linkRoom, null);
                 return;
             }
             SetProposal(id, new List<ExpansionRoom> { Expansion.LinkProposal(l, price) });
@@ -608,9 +695,23 @@ namespace Arena
                 return;
             string why;
             var made = Expansion.Hall(Expanded, legs, out why);
-            if (made == null || made[0].Price > p.Vectors)
+            if (made == null || made[0].Price > SpendableVectors(p))
             {
                 DoLog("hallway refused (" + (why ?? "needs " + made[0].Price + " vectors, has " + p.Vectors) + ")");
+                return;
+            }
+            if (FreeBuild)
+            {
+                var head = made[0];
+                head.Owner = id;
+                var rest = new List<ExpansionRoom>();
+                for (int i = 1; i < made.Count; i++)
+                {
+                    var leg = made[i];
+                    leg.Owner = id;
+                    rest.Add(leg);
+                }
+                BuildNow(id, head, rest);
                 return;
             }
             SetProposal(id, made);
@@ -666,9 +767,23 @@ namespace Arena
             }
             string why;
             var made = fill ? Expansion.Fill(Expanded, points, theme, out why) : Expansion.Outline(Expanded, points, theme, out why);
-            if (made == null || made[0].Price > p.Vectors)
+            if (made == null || made[0].Price > SpendableVectors(p))
             {
                 DoLog("proposal refused (" + (why ?? "needs " + made[0].Price + " vectors, has " + p.Vectors) + ")");
+                return;
+            }
+            if (FreeBuild)
+            {
+                var ohead = made[0];
+                ohead.Owner = id;
+                var opieces = new List<ExpansionRoom>();
+                for (int i = 1; i < made.Count; i++)
+                {
+                    var piece = made[i];
+                    piece.Owner = id;
+                    opieces.Add(piece);
+                }
+                BuildNow(id, ohead, opieces);
                 return;
             }
             SetProposal(id, made);
@@ -693,6 +808,47 @@ namespace Arena
                 BroadcastExpansion();
         }
 
+        /// Host, free building: a drawing is built the moment it's valid, its drawer pays (an opening pays them), everyone is told.
+        void BuildNow(int id, ExpansionRoom room, List<ExpansionRoom> legs)
+        {
+            ApplyBuilt(id, room, legs ?? new List<ExpansionRoom>());
+            roundBuilt++;
+            BroadcastExpansion();
+        }
+
+        /// Host: build this drawing for this player (a room or hallway, a wall opening or a portal pair), charging or paying them.
+        void ApplyBuilt(int pick, ExpansionRoom room, List<ExpansionRoom> legs)
+        {
+            if (room.Kind == Arena.RoomKind.Gate)
+            {
+                GateFits.Add(Gates.FromProposal(room));
+                PayVectors(Players[pick], room.Price);
+                DoLog("gate fitted by " + Players[pick].Name + " for " + room.Price + " vectors");
+            }
+            else if (room.Kind == Arena.RoomKind.Link)
+            {
+                Links.Add(Expansion.LinkOf(room));
+                PayVectors(Players[pick], room.Price);
+                DoLog("portal pair built by " + Players[pick].Name + " for " + room.Price + " vectors");
+            }
+            else if (room.Kind == Arena.RoomKind.Opening)
+            {
+                Openings.Add(Expansion.CutOf(room));
+                AddVectors(Players[pick], -room.Price);
+                DoLog("wall opened: " + (room.W + room.H) / Expansion.Step + " tiles by " + Players[pick].Name + " for +" + -room.Price + " vectors");
+            }
+            else
+            {
+                PayVectors(Players[pick], room.Price);
+                Expanded.Add(room);
+                Expanded.AddRange(legs);  // (a bent hallway's other legs, right after the first)
+                DoLog((legs.Count > 0 && Expansion.IsPiece(legs[0]) ? "drawn room of " + (legs.Count + 1) + " boxes" : legs.Count > 0 ? (legs.Count + 1) + "-leg hallway" : "room") + " built: " + room.W + " x " + room.H + " by " + Players[pick].Name + " for " + room.Price + " vectors");
+            }
+            expWorld = null;
+            LayoutAge = 0f;  // the new walls rise
+            Sounds.Add(Sfx.Pick);
+        }
+
         /// Host, when everyone has voted or the next wave is about to start: the proposal with the most votes is built, its drawer
         /// pays; a tie (a 50/50) is a random pick among the tied, and "no room" counts as one of them. Nothing is built with no
         /// proposals, no votes, or "no room" winning.
@@ -700,7 +856,13 @@ namespace Arena
         {
             if (!IsHost || !ExpandOpen)
                 return;
-            var standing = ExpandProposals.FindAll(q => q.Leg == 0 && Players.ContainsKey(q.Owner) && Players[q.Owner].Vectors >= q.Price);
+            if (!BuildVoting)  // free building: everything was built as it was drawn, the round just closes
+            {
+                ExpandOpen = false;
+                BroadcastExpansion();
+                return;
+            }
+            var standing = ExpandProposals.FindAll(q => q.Leg == 0 && Players.ContainsKey(q.Owner) && SpendableVectors(Players[q.Owner]) >= q.Price);
             var tally = new Dictionary<int, int>();
             foreach (int pid in new List<int>(Players.Keys))
             {
@@ -728,36 +890,7 @@ namespace Arena
                     DoLog("tied vote: random pick among " + leaders.Count);
                 if (pick != 0)
                 {
-                    var room = standing.Find(q => q.Owner == pick);
-                    if (room.Kind == Arena.RoomKind.Gate)
-                    {
-                        GateFits.Add(Gates.FromProposal(room));
-                        Players[pick].Vectors -= room.Price;
-                        DoLog("gate fitted by " + Players[pick].Name + " for " + room.Price + " vectors");
-                    }
-                    else if (room.Kind == Arena.RoomKind.Link)
-                    {
-                        Links.Add(Expansion.LinkOf(room));
-                        Players[pick].Vectors -= room.Price;
-                        DoLog("portal pair built by " + Players[pick].Name + " for " + room.Price + " vectors");
-                    }
-                    else if (room.Kind == Arena.RoomKind.Opening)
-                    {
-                        Openings.Add(Expansion.CutOf(room));
-                        AddVectors(Players[pick], -room.Price);
-                        DoLog("wall opened: " + (room.W + room.H) / Expansion.Step + " tiles by " + Players[pick].Name + " for +" + -room.Price + " vectors");
-                    }
-                    else
-                    {
-                        Players[pick].Vectors -= room.Price;
-                        var legs = LegsOf(pick);
-                        Expanded.Add(room);
-                        Expanded.AddRange(legs);  // (a bent hallway's other legs, right after the first)
-                        DoLog((legs.Count > 0 && Expansion.IsPiece(legs[0]) ? "drawn room of " + (legs.Count + 1) + " boxes" : legs.Count > 0 ? (legs.Count + 1) + "-leg hallway" : "room") + " built: " + room.W + " x " + room.H + " by " + Players[pick].Name + " for " + room.Price + " vectors");
-                    }
-                    expWorld = null;
-                    LayoutAge = 0f;  // the new walls rise
-                    Sounds.Add(Sfx.Pick);
+                    ApplyBuilt(pick, standing.Find(q => q.Owner == pick), LegsOf(pick));
                 }
                 else
                     DoLog("the team voted for no room");
@@ -789,7 +922,7 @@ namespace Arena
             if (best < 0)
                 return false;
             var c = Expansion.ConnectorFor(Expanded, best);
-            if (!c.HasValue || c.Value.Price > Me.Vectors)
+            if (!c.HasValue || c.Value.Price > SpendableVectors(Me))
                 return false;
             ProposeExpandRoom(c.Value.X, c.Value.Y, c.Value.W, c.Value.H);
             return true;
@@ -820,6 +953,8 @@ namespace Arena
             if (!botProposed && botVoteT >= 1.2f)
             {
                 botProposed = true;
+                if (FreeBuild && roundBuilt > 0)
+                    return;  // (free building: a bot adds a room only if nobody has this round, so the map doesn't fill at once)
                 if (rng.Next(10) < 6 && BotBuildsToFloater())
                     return;
                 if (rng.Next(10) < 2)  // now and then a bot links the two rooms farthest apart (Docs/RoomBuilding2.md step 2)
@@ -827,7 +962,7 @@ namespace Arena
                     var bl = Expansion.BestLink(ExpansionWorld, Links.Count);
                     string lw;
                     int lp = bl.HasValue ? Expansion.LinkPrice(ExpansionWorld, Links.Count, bl.Value, out lw) : 0;
-                    if (lp >= 15 && lp <= Me.Vectors)
+                    if (lp >= 15 && lp <= SpendableVectors(Me))
                     {
                         ProposeExpandLink(bl.Value);
                         return;
@@ -836,7 +971,7 @@ namespace Arena
                 foreach (var o in Expansion.Offers(expandSeed + MyId * 31, Wave, Expanded))
                 {
                     var theme = o.Kind == Arena.RoomKind.Floor && Expansion.ThemeUnlocked(o.Floor, Wave) ? o.Floor : PathId.None;
-                    if (o.Price + Expansion.ThemeCost(theme) <= Me.Vectors && rng.Next(10) < 7)
+                    if (o.Price + Expansion.ThemeCost(theme) <= SpendableVectors(Me) && rng.Next(10) < 7)
                     {
                         ProposeExpandRoom(o.X, o.Y, o.W, o.H, theme);
                         break;

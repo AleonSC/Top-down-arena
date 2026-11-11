@@ -168,6 +168,13 @@ namespace Arena
                         DrawRunSummary();
                     break;
             }
+            if (me != null && !PauseMenuWanted)  // free building: doors mid-wave (ExpansionUi.cs; between waves the Intermission case above draws the window)
+            {
+                if (DoorChipUp && !tabHeld)
+                    DrawDoorChip(me);
+                if (game.State == MatchState.Fighting && ExpandWindowUp && !tabHeld)
+                    DrawExpansionChoice(Time.unscaledTime);
+            }
             if (tabHeld)
                 DrawRunStatsScreen(me, false);  // RunStatsUi.cs
             else if (me != null && game.State != MatchState.GameOver && game.State != MatchState.Victory)
