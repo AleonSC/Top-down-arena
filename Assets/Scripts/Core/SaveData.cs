@@ -266,7 +266,7 @@ namespace Arena
                     s.Role = Enum<Role>(p[0]);
                     s.Kit = KitFromSave(p[1]);
                     int top = s.Role == Role.Wildcard ? Defs.WildcardChoices : Defs.WeaponsPerRole;  // (a Wildcard picks from every class's three)
-                    s.Weapon = Math.Max(0, Math.Min(Defs.WeaponCount(s.Role, s.Kit) - 1, I(p[2])));
+                    s.Weapon = Math.Max(0, Math.Min(Defs.WeaponLimit(s.Role, s.Kit) - 1, I(p[2])));
                     s.Ability = Math.Max(0, Math.Min(top - 1, I(p[3])));
                     s.Wild = p.Length > 4 ? Math.Max(0, Math.Min(3 * Defs.WildcardChoices - 1, I(p[4]))) : 0;  // (saves from before Wildcard have no fifth number)
                     s.Ult = p.Length > 5 ? Upgrades.ClampUlt(s.Role, s.Kit, I(p[5])) : 0;  // (saves from before the Ultimate row's picks have no sixth)

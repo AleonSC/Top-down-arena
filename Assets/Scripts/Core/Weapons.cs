@@ -45,7 +45,7 @@ namespace Arena
             new WeaponDef { Id = WeaponId.BurstSmg, Kit = Kit.Soldier, Role = Role.Dps, Choice = 2, Speed = 760f, Life = 0.8f, Damage = 5f, BotRange = 280f, ExtraDesc = "+1 bullet per shot, with a wider spray", Name = "Burst SMG", FireInterval = 0.055f,
                 Desc = "Sprays very fast shots. Keep firing to spin it up: the spray tightens and damage climbs. It winds down fast when you stop.",
                 Sound = Sfx.ShotSmg },
-            new WeaponDef { Id = WeaponId.TwinRifleAuto, Kit = Kit.Soldier, Role = Role.Dps, Choice = 3, Speed = 820f, Life = 0.7f, Damage = 4f, ExtraDesc = "+1 round per gun, fanned a little", Name = "Twin Rifle Auto", FireInterval = 0.125f,
+            new WeaponDef { Id = WeaponId.TwinRifleAuto, Kit = Kit.Soldier, Role = Role.Dps, Choice = 3, Speed = 820f, Life = 0.7f, Damage = 4f, ExtraDesc = "+1 round per gun, fanned a little", Name = "Twin Rifle Auto", Variant = true, FireInterval = 0.125f,
                 Desc = "Two rifles held out to your sides, each aiming and firing on its own at the nearest enemy on its side. You can't shoot. Alt locks both onto the enemy nearest your cursor until it dies: their streams meet on it for crossfire (1.5×).",
                 Sound = Sfx.ShotAssault },
         };

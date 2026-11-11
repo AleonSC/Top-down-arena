@@ -94,6 +94,7 @@ namespace Arena
         public string BarrageDesc; // what Barrage does for it, when that isn't the usual fanned copies (the card text after the weapon's name)
         public string ExtraDesc;  // what each extra projectile (Multishot, Artillery Assault) does for this weapon
         public float FireInterval;
+        public bool Variant;      // a variant of another weapon (Variants.VariantOf): picked in that weapon's Variants window, not on its own lobby key
         // Summoner weapons keep companions around. Imps blow themselves up, so a new one
         // arrives every CompanionRespawn seconds; the others stay until they are lost.
         public MinionKind Companion = MinionKind.None;
@@ -313,6 +314,11 @@ namespace Arena
         /// How many weapons a role and class has in the lobby: three, or four where it has a fourth (the Knight DPS's Arc
         /// Knuckles). A Wildcard picks from WildcardChoices (every class's first three DPS weapons).
         public static int WeaponCount(Role role, Kit kit) =>
+            role == Role.Wildcard ? WildcardWeaponChoices : WeaponsPerRole + (Fourth(role, kit) != null && !Fourth(role, kit).Variant ? 1 : 0);
+
+        /// The highest weapon pick a role and class accepts, plus one: WeaponCount, and one more where its fourth weapon is a variant
+        /// (Variants.cs: picked in the Variants window, so the lobby shows no key for it).
+        public static int WeaponLimit(Role role, Kit kit) =>
             role == Role.Wildcard ? WildcardWeaponChoices : WeaponsPerRole + (Fourth(role, kit) != null ? 1 : 0);
 
         /// How many weapons a Wildcard can pick from: every class's three DPS ones (kit * 3 + choice, as its abilities are
@@ -328,7 +334,7 @@ namespace Arena
             {
                 wildFourth = new List<Kit>();
                 for (int k = 0; k < KitCount; k++)
-                    if (Fourth(Role.Dps, (Kit)k) != null)
+                    if (Fourth(Role.Dps, (Kit)k) != null && !Fourth(Role.Dps, (Kit)k).Variant)
                         wildFourth.Add((Kit)k);
             }
             return wildFourth;
