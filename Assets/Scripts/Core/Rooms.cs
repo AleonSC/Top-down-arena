@@ -259,6 +259,18 @@ namespace Arena
             }
         }
 
+        /// Host: a room was just built or gifted between waves. The Expanding arena is the plain box until the first room exists, and
+        /// PickRooms only runs as a wave starts, so the world goes up now, not a wave late. Only ever raises it (PickRooms lowers it).
+        void RaiseRoomsNow()
+        {
+            if (RoomsUp || ArenaKind != ArenaLayout.Expanding || Expansion.BoughtCount(Expanded) == 0 || Practice != null || ShowcaseMode || Hunt != null
+                || Has(RunMod.TinyArena) || OnPathOf(PathId.NarrowPass))
+                return;
+            RoomsUp = true;
+            LayoutAge = 0f;
+            DoLog("rooms: up (Expanding, " + Expanded.Count + " rooms, built between waves)");
+        }
+
         /// The wave in this stretch of ten that has the vault (picked once per stretch, among its regular waves still to come).
         int VaultWaveFor(int wave)
         {
