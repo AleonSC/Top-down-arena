@@ -1,6 +1,6 @@
 # Checkpoints and lives (design)
 
-Status: **built** (Nov 2026, protocol 278: `Core/Checkpoints.cs`, `Game/LivesUi.cs`, suite `checkpoints`). As built: the retry key is **Retry [Y]** (the wave is in the subtitle); the save becomes the retry point at once (so Continue works after closing the game); Deathless shows on the results screen and as the Recent runs mode "Campaign · Deathless"; a retry rebuilds the waves with new rolls. The owner's decisions are in bold. The numbers are first guesses. It
+Status: **built** (Nov 2026, protocol 279: `Core/Checkpoints.cs`, `Game/LivesUi.cs`, suite `checkpoints`). As built: the retry key is **Retry [Y]** (the wave is in the subtitle); the save becomes the retry point at once (so Continue works after closing the game); Deathless shows on the results screen and as the Recent runs mode "Campaign · Deathless"; a retry rebuilds the waves with new rolls. The owner's decisions are in bold. The numbers are first guesses. It
 builds on saved runs (`Core/RunSaves.cs`, `Core/SaveData.cs`) and the Difficulty tab (`Core/Difficulty.cs`).
 
 ## The idea (owner)

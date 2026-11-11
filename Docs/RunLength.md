@@ -1,6 +1,6 @@
 # Campaign and Boss Hunt: run length, cycles and modes (design)
 
-Status: **steps 1-5 built** (Nov 2026: every arena saves; the Campaign is 100 waves, protocol 273; the Warden's teaching cycle); step 4: the Campaign is the Expanding arena, Simple Arena a Risky modifier, protocol 277; step 5: checkpoints and lives (Docs/Checkpoints.md), protocol 278; step 6 not built. The owner's decisions are in bold. The numbers are first guesses.
+Status: **steps 1-5 built** (Nov 2026: every arena saves; the Campaign is 100 waves, protocol 273; the Warden's teaching cycle); step 4: the Campaign is the Expanding arena, Simple Arena a Risky modifier, protocol 278; step 5: checkpoints and lives (Docs/Checkpoints.md), protocol 279; step 6 not built. The owner's decisions are in bold. The numbers are first guesses.
 Related: [`Checkpoints.md`](Checkpoints.md) (lives), [`Campaign.md`](Campaign.md) (themed build-up, steps 1-2 built),
 [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md), [`LateGamePressure.md`](LateGamePressure.md).
 
