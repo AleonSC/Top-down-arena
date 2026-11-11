@@ -447,6 +447,10 @@ namespace Arena
                     }
                     break;
                 }
+                case WeaponId.TwinRifleAuto:  // (it fires itself, TickTwinAuto; this is for anything that fires the weapon by hand, like the range test)
+                    for (int gun = 0; gun < 2; gun++)
+                        AutoShoot(p, gun, null, false, extra);
+                    break;
                 case WeaponId.Railgun:
                 {
                     var b = SpawnBullet(Defs.RailShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
