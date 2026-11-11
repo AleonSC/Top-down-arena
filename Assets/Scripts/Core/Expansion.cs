@@ -765,7 +765,7 @@ namespace Arena
         /// Obstacles in a built room: pillars, bars of wall, an L of wall and blocks, laid out from the room's own box (so every
         /// machine builds the same ones, and a saved map needs nothing more). They keep CoverWall px off the room's walls, CoverDoor off
         /// every door, CoverMid off the middle and CoverGap off each other, so every door and every wall can still be walked along;
-        /// a hallway (a side of MinSide or less) stays clear, and a bigger room gets more (one per ~220000 px2, up to 4).
+        /// a hallway (a side of MinSide or less) gets AddHallCover instead, and a bigger room gets more (one per ~220000 px2, up to 4).
         /// A room too small or too doored for that (a 400-800 px room with doors at both ends had no legal spot) gets fallback
         /// passes: first the middle kept clear by only CoverMidTight, then a lone pillar or block CoverTight off the walls, doors
         /// (plus CoverDoorTight) and the middle point.
@@ -774,10 +774,49 @@ namespace Arena
         /// Last pass, for a room only 400 px deep between two doors: one small pillar to a side, its centre CoverDoorMin from every door.
         public const int CoverDoorMin = 200;
 
+        /// A hallway's obstacles: a pillar or block every ~HallCoverEvery px along it, alternating sides, HallCoverWall px off the
+        /// side wall (so the far side keeps a wide lane), each centre CoverDoorMin from every door and bend.
+        public const int HallCoverEvery = 500, HallCoverWall = 60, HallCoverR = 30;
+
+        static void AddHallCover(List<Solid> to, ExpansionRoom r, List<V2> doors)
+        {
+            var rng = new DetRandom(r.X * 19349663 ^ r.Y * 73856093 ^ r.W * 2654435 ^ r.H * 83492791);
+            bool alongX = r.W >= r.H;
+            int len = alongX ? r.W : r.H, wid = alongX ? r.H : r.W;
+            int count = Math.Max(1, len / HallCoverEvery);
+            int side = rng.Int(2) == 0 ? -1 : 1;
+            float off = wid / 2f - HallCoverWall - HallCoverR;  // from the hallway's middle line
+            for (int i = 0; i < count; i++, side = -side)
+            {
+                bool pillar = rng.Int(2) == 0;
+                float t0 = (i + 0.5f) * len / count + (rng.Int(9) - 4) * 10;
+                for (int shift = 0; shift < 7; shift++)  // 0, +50, -50, +100, ... until it is clear of the doors
+                {
+                    float t = t0 + (shift + 1) / 2 * 50 * (shift % 2 == 0 ? -1 : 1);
+                    if (t < HallCoverR + 40 || t > len - HallCoverR - 40)
+                        continue;
+                    V2 c = alongX ? new V2(r.X + t, r.Y + wid / 2f + side * off) : new V2(r.X + wid / 2f + side * off, r.Y + t);
+                    bool ok = true;
+                    foreach (var d in doors)
+                        ok &= c.DistanceTo(d) >= CoverDoorMin;
+                    if (!ok)
+                        continue;
+                    int cx = (int)c.X, cy = (int)c.Y;
+                    to.Add(pillar ? World.Pillar(cx, cy, HallCoverR) : World.Box(cx - HallCoverR, cy - HallCoverR, cx + HallCoverR, cy + HallCoverR));
+                    break;
+                }
+            }
+        }
+
         static void AddCover(List<Solid> to, ExpansionRoom r, List<V2> doors)
         {
-            if (Math.Min(r.W, r.H) <= MinSide || r.Floating)
-                return;  // (hallways and the floating rooms stay clear)
+            if (r.Floating)
+                return;  // (the floating rooms stay clear)
+            if (Math.Min(r.W, r.H) <= MinSide)
+            {
+                AddHallCover(to, r, doors);
+                return;
+            }
             var rng = new DetRandom(r.X * 73856093 ^ r.Y * 19349663 ^ r.W * 83492791 ^ r.H * 2654435);
             int want = Math.Max(1, Math.Min(4, r.W * r.H / 220000));
             var placed = new List<int[]>();  // each obstacle's bounding box: x0, y0, x1, y1
