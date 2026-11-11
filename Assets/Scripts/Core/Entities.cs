@@ -274,6 +274,9 @@ namespace Arena
         public byte TwinNext;        // Twin Rifle: the tube the weapon-action key fires next, 0 left, 1 right (replicated)
         public byte TwinCharge;      // Twin Rifle: hits toward the next grenade, 0 to TwinNadeHits (replicated)
         public float TwinNadeCd;     // host: the tubes can't fire again for this long
+        public float TwinAimL, TwinAimR;  // Twin Rifle Auto: each gun's heading relative to your facing, radians, + toward your right (replicated; TwinAuto.cs)
+        public int TwinLock;         // Twin Rifle Auto: the enemy id both guns are locked on, 0 none (replicated)
+        public float TwinAutoCd;     // host: Alt can't lock or let go again for this long
         public byte ScatShells;      // Scattergun: Double Barrel shells loaded, 0 to 8, refilling over time (replicated; TankAlts.cs)
         public byte ScatCharge;      // Scattergun: percent toward the next shell (replicated)
         public float ScatCd, MineCd, GasCd;  // host: the Tank Soldier's Alt fires cool down (TankAlts.cs)

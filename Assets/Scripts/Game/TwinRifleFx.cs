@@ -85,7 +85,7 @@ namespace Arena
         float TwinJolt(Player p)
         {
             DpsSeen s;
-            if (!Juicy || p.Weapon.Id != WeaponId.TwinRifle || !dpsSeen.TryGetValue(p.Id, out s))
+            if (!Juicy || !Game.IsTwinRifle(p.Weapon.Id) || !dpsSeen.TryGetValue(p.Id, out s))
                 return 0f;
             float age = juiceClock - s.T, jolt = age >= 0f && age < TwinJoltTime ? TwinJoltPx * (1f - age / TwinJoltTime) : 0f;
             for (int tube = 0; tube < 2; tube++)

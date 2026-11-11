@@ -576,6 +576,31 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();  // (only the mode's own draw goes in the picture)
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // TWINAUTO=<s>: the Soldier DPS's Twin Rifle Auto (Core/TwinAuto.cs, TwinAutoLook.cs) that long into a fight: two grunts either side of
+    // you and a third further out, aiming right, nobody pulling the trigger. TWINLOCK=1: Alt pressed 0.3 s in, locking the one lower down
+    // (the cursor sits by it). Needs a few seconds for the guns to get going.
+    if (Environment.GetEnvironmentVariable("TWINAUTO") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Dps; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      V2 home = new V2(450f, 330f); me.Pos = me.Disp = home; me.Aim = 0f;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      foreach (var at0 in new[] { new V2(620f, 200f), new V2(600f, 470f), new V2(760f, 390f) }) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, at0, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      bool lockIt = Environment.GetEnvironmentVariable("TWINLOCK") != null;
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(6, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("TWINAUTO"), ci) * 60f));
+      for (int f = 0; f < frames; f++) {
+        me.Pos = me.Disp = home; Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        V2 aimAt = lockIt && f >= 18 ? foes[1].Pos : home + new V2(300f, 0f);
+        me.Aim = (aimAt - home).Angle;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = aimAt, WeaponAction = lockIt && f >= 18 && f < 21 });
+        me.Disp = me.Pos = home; me.Aim = (aimAt - home).Angle; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // TANKALT=<s>: the Tank Soldier's Alt fires (TankAltLook.cs): you with the Scattergun and two shells loaded (the third filling),
     // Double Barrel fired that long ago, an armed Proximity Shell, one still flying in, and a Tear Gas cloud. FXOFF=1 for plain looks.
     if (Environment.GetEnvironmentVariable("TANKALT") != null) {

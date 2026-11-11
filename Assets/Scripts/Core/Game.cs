@@ -1324,6 +1324,8 @@ namespace Arena
                 if (p.Downed)
                     p.TauntT = 0f;
                 p.FireCd -= dt;
+                if (p.Weapon.Id != WeaponId.TwinRifleAuto)
+                    p.TwinLock = 0;  // (TwinAuto.cs)
                 TickSpinUp(p, dt);  // the Burst SMG (Weapons.cs)
                 TickRapier(p, dt);  // the Rapier's Tempo and Flourish (Rapier.cs)
                 if (p.Weapon.Id == WeaponId.RadiantOrb)
@@ -1341,6 +1343,8 @@ namespace Arena
                     TickBow(p);  // the bow and the Warhammer fire when you let go
                 else if (p.Weapon.Id == WeaponId.Katana || p.Weapon.Id == WeaponId.BoStaff)
                     TickKatanaFire(p);  // the Katana's dash or swipe, or the Bo Staff's slash, jab, spin, with the next one queued if you tap ahead (Katana.cs)
+                else if (p.Weapon.Id == WeaponId.TwinRifleAuto)
+                    TickTwinAuto(p, dt);  // the guns aim and fire on their own, no trigger (TwinAuto.cs)
                 else if (p.Weapon.Id != WeaponId.RadiantOrb && p.Firing && !p.ParryActive && !p.GreatGuard && !p.RapierGuard && !p.RepelPull && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
                 {
                     p.FireCd = p.Weapon.FireInterval / FireRate(p);
