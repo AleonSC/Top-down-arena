@@ -10,10 +10,11 @@ namespace Arena
     ///   Enemy.Phase is the rounds left (SecurityMag..1) and 0 while it reloads; the host's FireT counts the gap to the next shot
     ///   (or the reload), and Enemy.Winding is the lock-on (replicated). Clients time the recoil, the casing and the reload ring
     ///   from the age of the Phase they see (Enemy.SeenT).
+    /// It only shoots once within SecurityEngage of its target (the countdown holds at SecurityEvery until then), then one round every SecurityEvery s.
     /// It doesn't wait for a shooter's turn (Readability.cs): its magazine is its pacing.
     public partial class Game
     {
-        public const float SecurityWindUp = 0.25f, SecurityEvery = 0.8f, SecurityReload = 2.2f, SecurityRange = 300f,
+        public const float SecurityWindUp = 0.25f, SecurityEvery = 1.5f, SecurityReload = 2.2f, SecurityRange = 300f, SecurityEngage = 380f,
             SecurityTurn = 2.8f, SecurityBulletSpeed = 340f, SecurityAfterReload = 0.75f;
         public const byte SecurityMag = 7;
 
