@@ -99,6 +99,17 @@ static partial class Program
         Step(0.1f, false, false);
         Check(me.TwinNades == 0 && me.TwinCharge == 0, "putting the rifle away empties the tubes");
         host.Leave(""); client.Leave("");
+        // The lobby's loadout preview presses Alt for it (ShowcaseAlt.cs): grenades fly with no hits needed, and not while idle.
+        var show = new Showcase();
+        show.Show(Role.Dps, Kit.Soldier, 0, Upgrades.RoleAbility(Role.Dps, Kit.Soldier, 0), false);
+        int nades = 0;
+        for (int i = 0; i < 60 * 6; i++) { show.Step(dt); nades = Math.Max(nades, show.Game.Bullets.Values.Count(b => b.Kind == Defs.GrenadeShot)); }
+        Check(nades > 0, "the lobby's preview fires the Twin Rifle's grenades");
+        show.Idle = true;
+        show.Game.Bullets.Clear();
+        for (int i = 0; i < 60 * 4; i++) show.Step(dt);
+        Check(!show.Game.Bullets.Values.Any(b => b.Kind == Defs.GrenadeShot), "and holds them while idle");
+        show.Stop();
     }
 
     /// Airstrike: replaces the Cluster Grenade; a lane across the aim through the flare, wall to wall; nothing before the jet; each
