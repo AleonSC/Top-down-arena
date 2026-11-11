@@ -1326,6 +1326,10 @@ namespace Arena
                 p.FireCd -= dt;
                 if (p.Weapon.Id != WeaponId.TwinRifleAuto)
                     p.TwinLock = 0;  // (TwinAuto.cs)
+                if (p.Weapon.Id != WeaponId.OutOfAmmo)
+                    p.AmmoMove = 0;  // (OutOfAmmo.cs)
+                if (p.Weapon.Id != WeaponId.OutOfAmmo)
+                    p.AmmoSpin = 0f;
                 TickSpinUp(p, dt);  // the Burst SMG (Weapons.cs)
                 TickRapier(p, dt);  // the Rapier's Tempo and Flourish (Rapier.cs)
                 if (p.Weapon.Id == WeaponId.RadiantOrb)
@@ -1343,6 +1347,8 @@ namespace Arena
                     TickBow(p);  // the bow and the Warhammer fire when you let go
                 else if (p.Weapon.Id == WeaponId.Katana || p.Weapon.Id == WeaponId.BoStaff)
                     TickKatanaFire(p);  // the Katana's dash or swipe, or the Bo Staff's slash, jab, spin, with the next one queued if you tap ahead (Katana.cs)
+                else if (p.Weapon.Id == WeaponId.OutOfAmmo)
+                    TickOutOfAmmo(p, dt);  // the swats, the knife chain and Alt's spin, no trigger (OutOfAmmo.cs)
                 else if (p.Weapon.Id == WeaponId.TwinRifleAuto)
                     TickTwinAuto(p, dt);  // the guns aim and fire on their own, no trigger (TwinAuto.cs)
                 else if (p.Weapon.Id != WeaponId.RadiantOrb && p.Firing && !p.ParryActive && !p.GreatGuard && !p.RapierGuard && !p.RepelPull && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))

@@ -601,6 +601,26 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // OUTAMMO=<s>: the Soldier DPS's Out of Ammo (Core/OutOfAmmo.cs, Game/OutOfAmmoLook.cs) that long into a fight, a dummy close in front of you
+    // (the chain runs by itself); OUTSPIN=1: Alt pressed 0.3 s in (the spin, with a ring of enemy bullets coming in).
+    if (Environment.GetEnvironmentVariable("OUTAMMO") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Dps; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 4); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      V2 home = new V2(450f, 330f); me.Pos = me.Disp = home; me.Aim = 0f;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var dummy = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Brute, home + new V2(62f, 0f), 0f, 0, false }); dummy.Speed = 0f; dummy.FireT = 99f; dummy.SpawnT = 0f; dummy.MaxHp = dummy.Hp = 1e6f; dummy.Disp = dummy.Pos;
+      bool spin = Environment.GetEnvironmentVariable("OUTSPIN") != null;
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(6, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("OUTAMMO"), ci) * 60f));
+      for (int f = 0; f < frames; f++) {
+        me.Pos = me.Disp = home; me.Aim = 0f; dummy.Pos = dummy.Disp = home + new V2(62f, 0f); Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = home + new V2(300f, 0f), WeaponAction = spin && f >= 18 && f < 21 });
+        me.Disp = me.Pos = home; me.Aim = 0f; dummy.Disp = dummy.Pos; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // TANKALT=<s>: the Tank Soldier's Alt fires (TankAltLook.cs): you with the Scattergun and two shells loaded (the third filling),
     // Double Barrel fired that long ago, an armed Proximity Shell, one still flying in, and a Tear Gas cloud. FXOFF=1 for plain looks.
     if (Environment.GetEnvironmentVariable("TANKALT") != null) {

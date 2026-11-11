@@ -277,6 +277,13 @@ namespace Arena
         public float TwinAimL, TwinAimR;  // Twin Rifle Auto: each gun's heading relative to your facing, radians, + toward your right (replicated; TwinAuto.cs)
         public int TwinLock;         // Twin Rifle Auto: the enemy id both guns are locked on, 0 none (replicated)
         public float TwinAutoCd;     // host: Alt can't lock or let go again for this long
+        public byte AmmoMove, AmmoSeq;   // Out of Ammo: the knife chain's move running (1-5, 0 none) and a count that rises with every move started (replicated; OutOfAmmo.cs)
+        public byte SwatSeqL, SwatSeqR;  // Out of Ammo: counts that rise with each rifle's swat (replicated)
+        public float SwatAngL, SwatAngR; // Out of Ammo: the world angle each rifle last swatted at (replicated)
+        public float AmmoSpin;           // Out of Ammo: seconds of Alt's spin left, 0 none (replicated)
+        public int AmmoCombo;            // host: the next move of the chain, 0-4
+        public float AmmoT, AmmoIdle, AmmoCd, AmmoSwatCdL, AmmoSwatCdR, AmmoTick;  // host: seconds into the move, since the last one, Alt's cooldown, each rifle's swat recovery, the spin's tick
+        public bool AmmoHit;             // host: this move has landed
         public byte ScatShells;      // Scattergun: Double Barrel shells loaded, 0 to 8, refilling over time (replicated; TankAlts.cs)
         public byte ScatCharge;      // Scattergun: percent toward the next shell (replicated)
         public float ScatCd, MineCd, GasCd;  // host: the Tank Soldier's Alt fires cool down (TankAlts.cs)

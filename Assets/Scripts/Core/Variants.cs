@@ -11,10 +11,15 @@ namespace Arena
         /// Unlocked for testing: no Cores needed yet (TODO: tie to a tier when the unlock rules are decided).
         public const bool WeaponVariantsUnlocked = true;
 
-        public static WeaponId? VariantOf(WeaponId id) => id == WeaponId.TwinRifle ? WeaponId.TwinRifleAuto : (WeaponId?)null;
+        /// The weapon that is tier `tier` (0 or 1) of `id`'s Variants window, or null: the Twin Rifle's are the Auto and Out of Ammo.
+        public static WeaponId? VariantOf(WeaponId id, int tier = 0) => id != WeaponId.TwinRifle ? (WeaponId?)null : tier == 0 ? WeaponId.TwinRifleAuto : tier == 1 ? WeaponId.OutOfAmmo : (WeaponId?)null;
+
+        /// Is `variant` any of `id`'s variant weapons?
+        public static bool IsVariantOf(WeaponId id, WeaponId variant) => VariantOf(id, 0) == variant || VariantOf(id, 1) == variant;
 
         public static string Blurb(WeaponId variant) => variant == WeaponId.TwinRifleAuto
-            ? "Both rifles aim and fire on their own at the nearest enemy on their side. Alt locks both onto one enemy until it dies." : "";
+            ? "Both rifles aim and fire on their own at the nearest enemy on their side. Alt locks both onto one enemy until it dies."
+            : variant == WeaponId.OutOfAmmo ? "The rifles swat the nearest bullet each. A knife chain on close enemies, ending in a rifle clap. Alt: a spin." : "";
         static readonly int[] Costs = { 10, 20 };
 
         public const int WinCores = 5, BossCores = 1, HuntWinCores = 5, CarrierMin = 1, CarrierMax = 3;

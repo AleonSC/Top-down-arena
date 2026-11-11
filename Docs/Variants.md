@@ -4,6 +4,8 @@
 
 **Weapon variants (first one):** the Twin Rifle's tier I is the **Twin Rifle Auto**, a whole other weapon (`WeaponDef.Variant`, `Variants.VariantOf`): the window shows it with an Equip button (unlocked for now, `Variants.WeaponVariantsUnlocked`; no Cores needed until the unlock rules are set). It rides on the class's fourth weapon pick (`Defs.WeaponLimit`) but has no lobby key.
 
+**Tier II of the Twin Rifle is Out of Ammo** (`WeaponId.OutOfAmmo`, the class's fifth weapon pick, `Defs.WeaponLimit`): swats bullets, a five-move knife chain, Alt's spin. Both Twin Rifle variants have an Equip button in the window.
+
 ## Decisions (owner)
 
 - Renamed **Ascensions -> Variants**.

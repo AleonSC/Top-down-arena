@@ -41,6 +41,8 @@ namespace Arena
                 } },
             // The Twin Rifle Auto: lock on, and let go again a few seconds later (a dummy under the cursor is locked if one is near; TwinAuto.cs).
             { WeaponId.TwinRifleAuto, (g, me, t, dt) => Tap(t, dt, 4f, 1f) || Tap(t, dt, 4f, 3f) },
+            // Out of Ammo: the spin, every 5 s.
+            { WeaponId.OutOfAmmo, (g, me, t, dt) => Tap(t, dt, 5f, 2.5f) },
         };
 
         public static bool Has(WeaponId id) => Table.ContainsKey(id);

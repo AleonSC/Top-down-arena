@@ -442,7 +442,7 @@ static partial class Program
             for (int r = 0; r < 3; r++)
             {
                 var line = new List<string>();
-                for (int wi = 0; wi < Defs.WeaponCount((Role)r, (Kit)k); wi++)
+                for (int wi = 0; wi < Defs.WeaponLimit((Role)r, (Kit)k); wi++)
                 {
                     var weapon = Defs.Weapon((Role)r, (Kit)k, wi);
                     float best = 0f;

@@ -48,6 +48,9 @@ namespace Arena
             new WeaponDef { Id = WeaponId.TwinRifleAuto, Kit = Kit.Soldier, Role = Role.Dps, Choice = 3, Speed = 820f, Life = 0.5f, Damage = 4f, ExtraDesc = "+1 round per gun, fanned a little", Name = "Twin Rifle Auto", Variant = true, FireInterval = 0.125f,
                 Desc = "Two rifles held out to your sides, each aiming and firing on its own at the nearest enemy on its side. You can't shoot. Alt locks both onto the enemy nearest your cursor until it dies: their streams meet on it for crossfire (1.5×).",
                 Sound = Sfx.ShotAssault },
+            new WeaponDef { Id = WeaponId.OutOfAmmo, Kit = Kit.Soldier, Role = Role.Dps, Choice = 4, Damage = 12f, Reach = 80f, Name = "Out of Ammo", Variant = true, FireInterval = 0.5f, ExtraDesc = "+50% damage on every strike and spin tick",
+                Desc = "The rifles are out of rounds, so they swat. Each rifle knocks the nearest enemy bullet out of the air (one each, then a half-second recovery). Enemies close in front of you get a five-move chain: left bash, cross cut, right bash, reverse cut, then a rifle clap with a shockwave. Alt spins you for 1.2 s: it cuts everything round you and swats every bullet.",
+                Sound = Sfx.SwingLight },
         };
 
         /// Everything that speeds up firing: upgrades, Overdrive (Adrenaline Shot doesn't stack with it: the bigger wins), Artillery Assault, Counterstance.
@@ -447,6 +450,10 @@ namespace Arena
                     }
                     break;
                 }
+                case WeaponId.OutOfAmmo:  // (it works on its own, TickOutOfAmmo; this is for anything that fires the weapon by hand: the next move of the chain)
+                    if (p.AmmoMove == 0)
+                        AmmoStart(p);
+                    break;
                 case WeaponId.TwinRifleAuto:  // (it fires itself, TickTwinAuto; this is for anything that fires the weapon by hand, like the range test)
                     for (int gun = 0; gun < 2; gun++)
                         AutoShoot(p, gun, null, false, extra);
@@ -530,6 +537,8 @@ namespace Arena
                     return ChalkReach(p);
                 case WeaponId.TwinRifle:  // the rounds start out at the muzzles
                     return p.Def.BodyR + TwinMuzzleOut + w.Speed * w.Life * (1f + w.Grow * x) * p.Stats.ShotSpeedMult;
+                case WeaponId.OutOfAmmo:  // how far the knife chain's strikes reach (OutOfAmmo.cs)
+                    return p.Def.BodyR + AmmoReach;
                 case WeaponId.TwinRifleAuto:  // the rounds start out at the guns' muzzles, out to your sides (TwinAuto.cs)
                     return p.Def.BodyR + AutoShoulder + w.Speed * w.Life * (1f + w.Grow * x) * p.Stats.ShotSpeedMult;
                 case WeaponId.Fireball:  // Piercing Rounds roll it farther (Minions.cs)
