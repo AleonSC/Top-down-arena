@@ -824,11 +824,12 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   cheaper again.
 - **Any size**: there are no hallways, just rooms. A dragged box can be anything from **2 to 24 tiles a side**, up to **144 tiles**
   of floor (a 2 x 24 strip, a 12 x 12 hall, a 24 x 6 gallery), and every room pays its new wall the same way.
-- **Side walls**: every built room at least 5 tiles across grows walls out from its own outer walls, one design rolled per room
+- **Side walls**: every built room grows walls out from its own outer walls, one design rolled per room
   (the same on every machine): **Fins** (short stubs, one per ~5 tiles of wall), **Baffles** (long walls from alternate sides, a
   zig-zag with a lane at each end), **Pincers** (a pair facing each other, leaving a 3-tile choke) or **T-fins** (stubs with a
   crossbar: a pocket of cover each side). They stay 2 tiles off doors and corners and off the room's middle, avoid nodes, and
-  any obstacle in their way is left out. They block shots and movement like any wall.
+  any obstacle in their way is left out. They block shots and movement like any wall. A narrow strip (3 tiles or less) gets stubs
+  from alternate sides that always leave a 1.5-tile lane; a small room gets smaller ones, and plain fins when its design won't fit past a door.
 - **The draw screen's layout**: the tools down the left (**Room**, **Open wall**, **Teleporter**, **Gate**, **Trap**; keys **1-5**) with a
   key to what the map's colours mean under them; the map in the middle (scroll to zoom, middle drag to pan) drawn as the real floor: each room's
   tile grid, the walls and side walls with their door gaps, and the cover (crates, barriers, pillars, the hub's floor plan), this wave's
