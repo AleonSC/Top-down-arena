@@ -20,7 +20,7 @@ jobs:
             echo "apt failed (try $i), retrying"; sleep 20
           done
       - name: Build zip
-        run: Tools/WaveLab/package.sh out
+        run: Tools/WaveLab/package.sh "$GITHUB_WORKSPACE/out"
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
