@@ -27,6 +27,7 @@ static partial class Program
         var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(g);
         V2 from = new V2(400f, 450f), aimAt = new V2(470f, 450f), foePos = aimAt;
         bool hold = true;
+        var heard = new HashSet<Sfx>();  // what the other screen played
         Func<V2, Enemy> Dummy = at =>
         {
             var d = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false });
@@ -41,6 +42,8 @@ static partial class Program
                 queue.Clear();
                 foreach (var e in g.Enemies.Values) { e.Pos = foePos; e.FireT = 99f; }
                 foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == host ? new PlayerInput { AimAt = aimAt, Fire = fire, WeaponAction = alt && f < 3 } : new PlayerInput()); }
+                foreach (var c in client.Game.Sounds) heard.Add(c.Sfx);
+                client.Game.Sounds.Clear();
             }
         };
         queue.Clear(); g.Enemies.Clear(); g.Bullets.Clear();
@@ -108,6 +111,9 @@ static partial class Program
         Check(client.Game.Zones.Values.Any(z => z.Kind == ZoneKind.TearGas), "the other screen sees the cloud");
         Step(Game.TearGasFlight + Game.TearGasLife, false, false);
         Check(!g.Zones.Values.Any(z => z.Kind == ZoneKind.TearGas), "the cloud clears");
+        foreach (var cue in new[] { Sfx.TankDouble, Sfx.TankShellLoad, Sfx.TankMineLaunch, Sfx.TankMineArm, Sfx.TankMineBurst, Sfx.TankGasLaunch, Sfx.TankGasHiss })
+            Check(heard.Contains(cue), "the other screen hears " + cue);
+        Check(!heard.Contains(Sfx.ShotCannon), "Double Barrel has its own blast, not the Flak Cannon's");
         host.Leave(""); client.Leave("");
     }
 }
