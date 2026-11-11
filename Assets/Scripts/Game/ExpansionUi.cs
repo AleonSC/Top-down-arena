@@ -181,6 +181,15 @@ namespace Arena
             CrtUi.End(S, t, calm);
         }
 
+        /// The CRT window the room kit and draw screens sit in: a blue bezel round one phosphor screen (as the vote window).
+        Rect CrtWindowBegin()
+        {
+            CrtKit.LoadoutBox(new Rect(20f, 6f, W - 40f, H - 12f));
+            var S = new Rect(32f, 18f, W - 64f, H - 36f);
+            CrtUi.Begin(S);
+            return S;
+        }
+
         /// The room kit screen (Docs/RoomModifiers.md): pick a kit, then click a plain room on the map to turn it into a Shop or Floor room.
         void DrawExpansionModify(float t, bool calm)
         {
@@ -192,6 +201,7 @@ namespace Arena
                 return;
             }
             expKit = Mathf.Clamp(expKit, 0, kits.Count - 1);
+            var win = CrtWindowBegin();
             CrtUi.Title(new Rect(0, 22f, W, 56f), "ROOM KITS", 46, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
             Ui.Label(new Rect(0, 80f, W, 20f), "Pick a kit, then click a plain room  ·  one change per room, it can't be undone  ·  bosses give floors, won challenges give shops, the vendor sells floors", 13, Ui.Muted, TextAnchor.MiddleCenter);
             float kw = 190f, kgap = 10f, kx = W / 2f - (kits.Count * kw + (kits.Count - 1) * kgap) / 2f;
@@ -253,17 +263,19 @@ namespace Arena
             Ui.Label(new Rect(0, map.yMax + 10f, W, 22f), hover >= 0 ? "Click to turn this room into: " + kit.Name + ".  " + line : line, 14, hover >= 0 ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
             if (CrtUi.SoftKey(new Rect(W / 2f - 120f, map.yMax + 44f, 240f, 34f), "BACK", null, 20, calm))
                 expModify = false;
+            CrtUi.End(win, t, calm);
         }
 
         /// The drawing screen: the whole map, zoomed out; drag a box on the 100 px grid. It's checked live (Expansion.Custom) and goes to the vote on release.
         void DrawExpansionDraw(float t, bool calm)
         {
             RoundBackdrop(PathDim);
+            var win = CrtWindowBegin();
             CrtUi.Title(new Rect(0, 22f, W, 56f), expLinkMode ? "LINK TWO ROOMS" : expCutMode ? "OPEN A WALL" : expHallMode ? "LAY A HALLWAY" : "DRAW A ROOM", 46, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
-            if (CrtUi.SoftKey(new Rect(20f, 26f, 80f, 30f), "ROOM", null, 15, calm, lit: !expCutMode && !expLinkMode && !expHallMode)) { expCutMode = expLinkMode = expHallMode = false; expDragging = false; expA = expB = V2.Zero; }
-            if (CrtUi.SoftKey(new Rect(106f, 26f, 110f, 30f), "HALLWAY", null, 15, calm, lit: expHallMode)) { expHallMode = true; expCutMode = expLinkMode = false; expDragging = false; expA = expB = V2.Zero; }
-            if (CrtUi.SoftKey(new Rect(222f, 26f, 120f, 30f), "OPEN WALL", null, 15, calm, lit: expCutMode)) { expCutMode = true; expLinkMode = expHallMode = false; expDragging = false; expA = expB = V2.Zero; }
-            if (CrtUi.SoftKey(new Rect(348f, 26f, 90f, 30f), "PORTAL", null, 15, calm, lit: expLinkMode)) { expLinkMode = true; expCutMode = expHallMode = false; expDragging = false; expA = expB = V2.Zero; }
+            if (CrtUi.SoftKey(new Rect(50f, 26f, 80f, 30f), "ROOM", null, 15, calm, lit: !expCutMode && !expLinkMode && !expHallMode)) { expCutMode = expLinkMode = expHallMode = false; expDragging = false; expA = expB = V2.Zero; }
+            if (CrtUi.SoftKey(new Rect(136f, 26f, 110f, 30f), "HALLWAY", null, 15, calm, lit: expHallMode)) { expHallMode = true; expCutMode = expLinkMode = false; expDragging = false; expA = expB = V2.Zero; }
+            if (CrtUi.SoftKey(new Rect(252f, 26f, 120f, 30f), "OPEN WALL", null, 15, calm, lit: expCutMode)) { expCutMode = true; expLinkMode = expHallMode = false; expDragging = false; expA = expB = V2.Zero; }
+            if (CrtUi.SoftKey(new Rect(378f, 26f, 90f, 30f), "PORTAL", null, 15, calm, lit: expLinkMode)) { expLinkMode = true; expCutMode = expHallMode = false; expDragging = false; expA = expB = V2.Zero; }
             if (!expHallMode)
                 expLegs.Clear();
             Ui.Label(new Rect(0, 80f, W, 20f), expHallMode ? "Left click where it starts, move along it, left click to lay a leg  ·  up to " + Expansion.MaxLegs + " legs, each from the end of the last  ·  right click undoes  ·  Enter proposes  ·  a hallway costs half its new wall" : expLinkMode ? "Left click a spot in one room, then a spot in another  ·  right click cancels  ·  " + Expansion.LinkBase + " vectors + 1 per 2 tiles of walking it saves  ·  enemies use it too  ·  " + game.Links.Count + " of " + Expansion.MaxLinks + " pairs built" : expCutMode ? "Left click one end of a wall stretch, then the other (the cyan stretches)  ·  right click cancels  ·  at least " + Expansion.MinCut / 100 + " tiles  ·  you get 1 vector back for every tile that was wall  ·  a door is just a short opening" : "Left click a corner, move, left click to place it  ·  right click cancels  ·  share at least " + Expansion.MinDoorRun / 100 + " tiles of wall with a room  ·  " + Expansion.MinSide / 100 + " tiles wide is a hallway (half price, up to " + Expansion.HallMax / 100 + " long)  ·  touching two rooms makes a loop", 13, Ui.Muted, TextAnchor.MiddleCenter);
@@ -570,6 +582,7 @@ namespace Arena
             Ui.Label(new Rect(0, map.yMax + 44f, W, 22f), line, 15, lineInk, TextAnchor.MiddleCenter, true);
             if (CrtUi.SoftKey(new Rect(W / 2f - 120f, map.yMax + 72f, 240f, 34f), "BACK", null, 20, calm))
                 expDrawing = expDragging = false;
+            CrtUi.End(win, t, calm);
         }
 
         bool expHeld;  // the mouse button of the box being drawn is still down
