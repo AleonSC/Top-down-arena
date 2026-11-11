@@ -840,10 +840,11 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   tied options), and the winning drawer pays; nobody else does. One room is built a round, with a door to every room it
   shares a door's width of wall with (loops). Paths are off in this arena.
   **Solo players skip the vote**: your proposal is built the moment you make it.
-- **Floating rooms**: every boss cycle the game places a **shop**, a **vendor** and a **Gatekeeper** room 4 to 8 tiles
-  off the map, each a sealed box with no door, marked on the arena floor, the minimap and the draw screen. Draw a room or hallway that shares 3
-  tiles of wall with one and its door opens (a box touching only a floating room is refused: it must also touch the connected map). Bots build to them too. At most 6
-  wait at once, they don't count towards the 24-room cap, add no enemies and no spawns, and a floating shop counts as a shop once it's opened.
+- **Nodes and the floating Gatekeeper room**: every boss cycle the game places a **shop node** and a **vendor node**: points 10 to 16 tiles
+  straight out from the map (at least 8 tiles from each other), marked on the arena floor, the minimap and the draw screen. A node is locked until you
+  build a room or hallway that **encloses** it; that room then becomes the shop or vendor room. Nodes never respawn: a claimed one stays, and new ones
+  appear around the current map. At most 4 wait at once. A **Gatekeeper** room is still placed each cycle as a sealed box 4 to 8 tiles off the map: share
+  3 tiles of wall with it and its door opens (it doesn't count towards the 24-room cap and adds no enemies; at most 6 wait). Bots build hallways to nodes.
   (The Gatekeeper has its own room, below.)
 - **Open a wall**: on the draw screen, switch to **Open wall** and click both ends of a stretch of a wall two rooms share (the cyan stretches; the outer wall can't be
   opened, nor a sealed floating room's). It goes to the vote like a room. If it wins, that stretch of wall comes down (a short stretch is a door, a long
@@ -873,7 +874,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   more, picked by the wave and the map so everyone sees the same ones. Every 100 px of outer wall is a spot, so long outer walls
   break more often, and a **dead end** (a room with one door) more still: compact builds and loops have fewer places to be hit
   from. The barriers flicker up for 1.5 s before the first enemy steps through; an enemy uses a breach at least 350 px from every
-  player when there is one. Never on a floating room, a shop, vendor or Gatekeeper room, or on boss waves (the fixed boss arena).
+  player when there is one. Never on a sealed room, a shop, vendor or Gatekeeper room, or on boss waves (the fixed boss arena).
 - **Obstacles**: a built room comes with obstacles and bars of wall (pillars, bars, an L, blocks: one per ~220,000 px2, up to 4),
   laid out from the room's own box so every machine builds the same ones. They keep off the room's walls, its doors and its middle,
   so you can always walk round them; a hallway gets a pillar or block every ~500 px, alternating sides with a 180 px lane past each, none near a door or bend. A small or narrow room with doors at both ends still gets at least one

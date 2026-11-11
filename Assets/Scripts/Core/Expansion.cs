@@ -24,6 +24,18 @@ namespace Arena
         public bool Equals(PortalLink o) => AX == o.AX && AY == o.AY && BX == o.BX && BY == o.BY;
     }
 
+    /// What a map node is (Docs/Nodes.md). A node is a point in empty space; a built room that encloses it takes on its job.
+    public enum NodeKind : byte { Shop, Vendor, Chest }  // (Chest: defined, not placed yet; its contents are open in Docs/Nodes.md)
+
+    /// A point on the Expanding map, at the centre of a 100 px tile: locked until a built room encloses it, then a fixture of that room.
+    public struct MapNode : IEquatable<MapNode>
+    {
+        public short X, Y;
+        public NodeKind Kind;
+        public bool Equals(MapNode o) => X == o.X && Y == o.Y && Kind == o.Kind;
+        public V2 Pos => new V2(X, Y);
+    }
+
     /// One bought room: a box attached to its parent room (area index; 0 is the hub) with a door on their shared wall.
     /// Stored as the resolved box, so rebuilding the map needs no random numbers: the map is the hub plus this list.
     public struct ExpansionRoom
@@ -302,6 +314,107 @@ namespace Arena
                 if (rooms[i].Floating && !linked[i + 1])
                     n++;
             return n;
+        }
+
+        // --- Map nodes (Docs/Nodes.md): shop and vendor points out in empty space, claimed by building a room around them ---
+
+        public const int NodeMin = 1000, NodeMax = 1600;  // a node sits this far (10 to 16 tiles) from the room it was placed off
+        public const int NodeApart = 800;                 // and at least this far from every other node
+        public const int MaxNodesWaiting = 4;             // unclaimed nodes on the map at once
+
+        public static bool NodeInside(MapNode n, int x0, int y0, int x1, int y1) => n.X > x0 && n.X < x1 && n.Y > y0 && n.Y < y1;
+
+        /// A built (non-floating) room encloses this node.
+        public static bool NodeClaimed(IList<ExpansionRoom> built, MapNode n)
+        {
+            foreach (var r in built)
+                if (!r.Floating && NodeInside(n, r.X, r.Y, r.X1, r.Y1))
+                    return true;
+            return false;
+        }
+
+        public static int UnclaimedCount(IList<ExpansionRoom> built, IList<MapNode> nodes)
+        {
+            int n = 0;
+            foreach (var nd in nodes)
+                if (!NodeClaimed(built, nd))
+                    n++;
+            return n;
+        }
+
+        /// The straight hallway (MinSide wide) from connected area `a` out to the tile holding the node, on the side the node lies on; false if the
+        /// node isn't straight out from that room's wall.
+        static bool NodeHallFrom(IList<ExpansionRoom> built, int a, MapNode n, out int x, out int y, out int w, out int h)
+        {
+            x = y = w = h = 0;
+            BoxOf(built, a, out int bx0, out int by0, out int bx1, out int by1);
+            bool alongX = n.X - 150 >= bx0 && n.X + 150 <= bx1, alongY = n.Y - 150 >= by0 && n.Y + 150 <= by1;
+            if (alongX && n.Y + 50 <= by0) { x = n.X - 150; y = n.Y - 50; w = 300; h = by0 - y; return true; }
+            if (alongX && n.Y - 50 >= by1) { x = n.X - 150; y = by1; w = 300; h = n.Y + 50 - by1; return true; }
+            if (alongY && n.X + 50 <= bx0) { x = n.X - 50; y = n.Y - 150; w = bx0 - x; h = 300; return true; }
+            if (alongY && n.X - 50 >= bx1) { x = bx1; y = n.Y - 150; w = n.X + 50 - bx1; h = 300; return true; }
+            return false;
+        }
+
+        /// The cheapest straight hallway from the connected map that encloses the node (it is what a bot builds to claim it). Null if none fits.
+        public static ExpansionRoom? NodeHall(IList<ExpansionRoom> built, MapNode n)
+        {
+            var linked = ConnectedAreas(built);
+            ExpansionRoom? best = null;
+            int bestCost = int.MaxValue;
+            for (int a = 0; a <= built.Count; a++)
+            {
+                if (!linked[a] || !NodeHallFrom(built, a, n, out int x, out int y, out int w, out int h) || Math.Max(w, h) > HallMax)
+                    continue;
+                if (!Placement(built, x, y, w, h, out _, out _, out _))
+                    continue;
+                int c = Cost(built, x, y, w, h);
+                if (c < bestCost)
+                {
+                    bestCost = c;
+                    best = new ExpansionRoom { Parent = 0, X = x, Y = y, W = w, H = h, Kind = RoomKind.Combat, Price = c };
+                }
+            }
+            return best;
+        }
+
+        /// A new node for this boss cycle: 10 to 16 tiles straight out from a room on the connected map (so a hallway can reach it), clear of every
+        /// room and at least 8 tiles from every other node, inside the size cap. The same on every machine for the same seed, cycle and map.
+        /// Null if nothing fits.
+        public static MapNode? NodeFor(int seed, int cycle, IList<ExpansionRoom> built, IList<MapNode> nodes, NodeKind kind)
+        {
+            var rng = new DetRandom(seed * 7919 + cycle * 3571 + (int)kind * 211 + 5);
+            var linked = ConnectedAreas(built);
+            for (int attempt = 0; attempt < 160; attempt++)
+            {
+                int a = rng.Int(built.Count + 1);
+                if (!linked[a])
+                    continue;
+                BoxOf(built, a, out int bx0, out int by0, out int bx1, out int by1);
+                int side = rng.Int(4), gap = NodeMin + rng.Int((NodeMax - NodeMin) / Step + 1) * Step, x, y;
+                if (side == 0 || side == 2)
+                {
+                    x = bx0 + 150 + rng.Int((bx1 - bx0 - 300) / Step + 1) * Step;
+                    y = side == 0 ? by0 - gap - 50 : by1 + gap + 50;
+                }
+                else
+                {
+                    y = by0 + 150 + rng.Int((by1 - by0 - 300) / Step + 1) * Step;
+                    x = side == 1 ? bx1 + gap + 50 : bx0 - gap - 50;
+                }
+                var n = new MapNode { X = (short)x, Y = (short)y, Kind = kind };
+                bool ok = true;
+                foreach (var o in nodes)
+                    ok &= new V2(o.X - x, o.Y - y).Length >= NodeApart;
+                for (int i = 0; i <= built.Count && ok; i++)
+                {
+                    BoxOf(built, i, out int cx0, out int cy0, out int cx1, out int cy1);
+                    ok = !Overlaps(x - 250, y - 250, x + 250, y + 250, cx0, cy0, cx1, cy1);  // (two tiles clear of every room)
+                }
+                if (ok && NodeHallFrom(built, a, n, out int hx, out int hy, out int hw, out int hh) && Placement(built, hx, hy, hw, hh, out _, out _, out _))
+                    return n;  // (it can be built to: the straight hallway from its room fits)
+            }
+            return null;
         }
 
         public const int MaxSealed = 6;  // floating rooms waiting to be connected at once
@@ -1276,7 +1389,7 @@ namespace Arena
 
         /// The World for the hub plus these rooms. With no rooms it is the hub alone, walled in (the Single world has no walls).
         /// Rooms sharing a stretch of wall of at least MinDoorRun have a door there (the parent's, and loops).
-        public static World Build(IList<ExpansionRoom> rooms, IList<WallCut> cuts = null, IList<PortalLink> links = null)
+        public static World Build(IList<ExpansionRoom> rooms, IList<WallCut> cuts = null, IList<PortalLink> links = null, IList<MapNode> nodes = null)
         {
             int n = rooms.Count + 1;
             var areas = new RoomArea[n];
@@ -1379,6 +1492,24 @@ namespace Arena
                     foreach (var d in doors)
                         open |= d.Joins(a);
                     areas[a].Sealed = !open;
+                }
+            if (nodes != null)  // a built room that encloses a shop or vendor node takes on its job (Docs/Nodes.md); a multi-box room all of it
+                foreach (var nd in nodes)
+                {
+                    var job = nd.Kind == NodeKind.Shop ? RoomKind.Shop : nd.Kind == NodeKind.Vendor ? RoomKind.Vendor : RoomKind.Combat;
+                    if (job == RoomKind.Combat)
+                        continue;
+                    for (int a = 1; a < n; a++)
+                        if (!areas[a].Floating && areas[a].Kind == RoomKind.Combat && NodeInside(nd, rooms[a - 1].X, rooms[a - 1].Y, rooms[a - 1].X1, rooms[a - 1].Y1))
+                        {
+                            for (int b = 1; b < n; b++)
+                                if (b == a || areas[a].Group != 0 && areas[b].Group == areas[a].Group && areas[b].Kind == RoomKind.Combat)
+                                {
+                                    areas[b].Kind = job;
+                                    areas[b].Name += job == RoomKind.Shop ? " (shop)" : " (vendor)";
+                                }
+                            break;
+                        }
                 }
             var cover = new List<Solid>();
             for (int a = 1; a < n; a++)

@@ -367,22 +367,24 @@ static partial class Program
         Run(s, dt, 3f, () => !g.ExpandOpen && !cg.ExpandOpen && cg.Expanded.Count == g.Expanded.Count);
         Check(g.Expanded.Count == builtNow + 1 && g.Expanded[g.Expanded.Count - 1].Owner == 1 && cg.Expanded.Count == g.Expanded.Count, "when the wave starts the votes cast count: the only vote builds that room");
 
-        // Floating rooms: a new boss cycle places its shop, vendor and Gatekeeper, sealed, the same on the client, adding no crowd and no spawns.
+        // A new boss cycle places a sealed Gatekeeper room and a shop and a vendor node (Docs/Nodes.md), the same on the client, adding no crowd and no spawns.
         var placeFloating = typeof(Game).GetMethod("PlaceFloatingRooms", flags);
-        int boughtNow = Expansion.BoughtCount(g.Expanded), allNow = g.Expanded.Count;
+        int boughtNow = Expansion.BoughtCount(g.Expanded), allNow = g.Expanded.Count, nodesNow = g.Nodes.Count;
         float scale0 = g.ExpansionScale;
         int waveHere = g.Wave;
         g.Wave = 11;
         placeFloating.Invoke(g, null);
-        Run(s, dt, 3f, () => cg.Expanded.Count == g.Expanded.Count);
+        Run(s, dt, 3f, () => cg.Expanded.Count == g.Expanded.Count && cg.Nodes.Count == g.Nodes.Count);
         var added = g.Expanded.Skip(allNow).ToList();
-        Check(added.Count == 3 && added.All(r => r.Floating) && added.Any(r => r.Kind == RoomKind.Shop) && added.Any(r => r.Kind == RoomKind.Vendor) && added.Any(r => r.Kind == RoomKind.Gatekeeper) && cg.Expanded.Skip(allNow).All(r => r.Floating) && Expansion.BoughtCount(g.Expanded) == boughtNow,
-            "a new boss cycle places a floating shop, vendor and Gatekeeper, the same on the client, and they aren't counted as bought");
+        Check(added.Count == 1 && added[0].Floating && added[0].Kind == RoomKind.Gatekeeper && cg.Expanded.Skip(allNow).All(r => r.Floating) && Expansion.BoughtCount(g.Expanded) == boughtNow,
+            "a new boss cycle places a floating Gatekeeper room, the same on the client, and it isn't counted as bought");
+        Check(g.Nodes.Count == nodesNow + 2 && g.Nodes.Skip(nodesNow).Any(n => n.Kind == NodeKind.Shop) && g.Nodes.Skip(nodesNow).Any(n => n.Kind == NodeKind.Vendor) && cg.Nodes.SequenceEqual(g.Nodes),
+            "and a shop node and a vendor node, the same on the client");
         placeFloating.Invoke(g, null);
-        Check(g.Expanded.Count == allNow + 3, "the same cycle places them only once");
+        Check(g.Expanded.Count == allNow + 1 && g.Nodes.Count == nodesNow + 2, "the same cycle places them only once");
         pickRooms.Invoke(g, null);
         var floatWorld = g.ExpansionWorld;
-        Check(floatWorld.Areas.Skip(allNow + 1).All(a => a.Floating && a.Sealed) && Math.Abs(g.ExpansionScale - scale0) < 0.001f && !g.HasShopRoom, "they stay sealed, add no crowd and a sealed shop isn't a shop room yet");
+        Check(floatWorld.Areas.Skip(allNow + 1).All(a => a.Floating && a.Sealed) && Math.Abs(g.ExpansionScale - scale0) < 0.001f && !g.HasShopRoom, "the room stays sealed, adds no crowd and an unclaimed shop node isn't a shop room");
         int inSealed = 0;
         for (int i = 0; i < 400; i++)
         {
@@ -392,6 +394,47 @@ static partial class Program
         }
         Check(inSealed == 0, "no enemy comes in to a floating room");
         g.Wave = waveHere;
+
+        // Nodes (Docs/Nodes.md): 10+ tiles out, deterministic, 8+ tiles apart, claimed by a room built round them, which takes on their job.
+        {
+            var nodeMap = new List<ExpansionRoom>();
+            bool placedOk = true, farOk = true, hallOk = true, claimOk = true, sameOk = true;
+            int placedN = 0;
+            for (int seed = 1; seed <= 40; seed++)
+            {
+                var list = new List<MapNode>();
+                foreach (var nk in new[] { NodeKind.Shop, NodeKind.Vendor })
+                {
+                    var nd = Expansion.NodeFor(seed, seed % 5, nodeMap, list, nk);
+                    if (!nd.HasValue) { placedOk = false; continue; }
+                    placedN++;
+                    var n = nd.Value;
+                    var again = Expansion.NodeFor(seed, seed % 5, nodeMap, list, nk);
+                    sameOk &= again.HasValue && again.Value.Equals(n);
+                    farOk &= n.X <= -1000 || n.X >= Game.Width + 1000 || n.Y <= -1000 || n.Y >= Game.Height + 1000;
+                    foreach (var o in list) farOk &= new V2(o.X - n.X, o.Y - n.Y).Length >= Expansion.NodeApart;
+                    var hall = Expansion.NodeHall(nodeMap, n);
+                    hallOk &= hall.HasValue && !Expansion.NodeClaimed(nodeMap, n);
+                    if (hall.HasValue)
+                    {
+                        var built = new List<ExpansionRoom>(nodeMap) { hall.Value };
+                        var with = Expansion.Build(built, null, null, new List<MapNode> { n });
+                        var kind = nk == NodeKind.Shop ? RoomKind.Shop : RoomKind.Vendor;
+                        claimOk &= Expansion.NodeClaimed(built, n) && with.Areas[1].Kind == kind && Expansion.Build(built).Areas[1].Kind == RoomKind.Combat;
+                    }
+                    list.Add(n);
+                }
+            }
+            Check(placedOk && placedN == 80 && sameOk, "a node is found for every seed, the same each time (" + placedN + " placed)");
+            Check(farOk, "nodes sit 10 or more tiles off the start room and 8 or more tiles apart");
+            Check(hallOk && claimOk, "a straight hallway can be built to each, and the room round it takes on the node's job (only with the node in the map)");
+            var saved = new RunSave { Wave = 6, HasExpansion = true };
+            saved.Nodes.Add(new MapNode { X = -1250, Y = 450, Kind = NodeKind.Vendor });
+            saved.Nodes.Add(new MapNode { X = 850, Y = 2150, Kind = NodeKind.Shop });
+            saved.Seats.Add(new SeatSave());
+            var back = RunSave.Parse(saved.ToText());
+            Check(back != null && back.Nodes.Count == 2 && back.Nodes[0].Equals(saved.Nodes[0]) && back.Nodes[1].Equals(saved.Nodes[1]), "nodes survive a saved run");
+        }
 
         // The map stops growing at the cap.
         var full = new List<ExpansionRoom>();

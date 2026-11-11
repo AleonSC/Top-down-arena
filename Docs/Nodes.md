@@ -1,6 +1,6 @@
 # Nodes: map points you build a room around
 
-Status: **design only, nothing built.** Decided with the owner on Nov 11, 2026. Replaces the floating shop and vendor rooms of
+Status: **step 1 built (protocol 282)**, steps 2-4 open. Decided with the owner on Nov 11, 2026. Replaces the floating shop and vendor rooms of
 [`FloatingRooms.md`](FloatingRooms.md); the Gatekeeper (mini-boss) stays a sealed room.
 
 ## The idea
@@ -30,6 +30,17 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
 2. Enclose check, fixture inside the room, spawn rules per kind.
 3. Look: ghost marker in the arena, minimap and draw screen (`Tools/Preview` shots first).
 4. Bots build around nodes; `vecbal` balance pass; README.
+
+## Step 1 (built, protocol 282)
+
+- `MapNode` / `NodeKind` (Shop, Vendor, Chest; chests aren't placed yet) in `Expansion.cs`; `Game.Nodes` synced after the kits in `Msg.ExpandState`, saved as `node` lines.
+- `Expansion.NodeFor(seed, cycle, built, nodes, kind)`: 10-16 tiles straight out from a connected room (so a straight 3-tile hallway reaches it: `NodeHall`), 2 tiles clear of every room,
+  8+ tiles from other nodes; one shop and one vendor node per boss cycle (`PlaceFloatingRooms`), at most 4 unclaimed. The Gatekeeper stays a floating room.
+- Claiming: `Expansion.Build(..., nodes)` makes a Combat room that encloses a shop or vendor node a Shop or Vendor room (all boxes of a multi-box room), so spawns, gold and the shop screens work unchanged.
+- Bots build the cheapest straight hallway to the nearest unclaimed node (`BotBuildsToFloater`).
+- Look: breathing ring and mark on the arena floor, a square on the minimap and the draw screen with its name (`RoomsLook.cs`, `ExpansionUi.cs`). Preview: `EXPANDFLOAT=1` with `EXPANDVOTE=0 EXPANDDRAW=0,-1200,300,1200`.
+- Not yet: chests, a fixture drawn inside the claimed room (step 2/3), a room that spans a node still needs the node in the box, cover can land on a node.
+- Old saves with floating shop or vendor rooms still load and work as before.
 
 ## Open
 
