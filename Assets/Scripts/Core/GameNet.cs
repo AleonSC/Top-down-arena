@@ -552,6 +552,9 @@ namespace Arena
             s.Int(ref p.PreyId);
             s.Byte(ref p.Orbiters);
             s.Byte(ref p.Combo);
+            s.Bool(ref p.KnuckleArmed);
+            s.Byte(ref p.KnuckleDashes);
+            s.Byte(ref p.KnuckleChain);  // the dash chain's stage: your own game roots you and shows the Fire prompt  // Rocket Dashes started: your own game dashes when it changes  // the Arc Knuckles' Counter Hammer is armed (ArcKnuckles.cs)
             s.Byte(ref p.KatanaStance);  // the Katana's stance, where each combo waits, the last step and the moving steps (Katana.cs)
             s.Byte(ref p.KatanaHay);
             s.Byte(ref p.KatanaSen);

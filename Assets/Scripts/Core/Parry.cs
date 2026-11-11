@@ -84,6 +84,7 @@ namespace Arena
             {
                 if (p.Stats.CounterFireRate > 0f)
                     p.CounterT = CounterTime;  // Counterstance
+                ArmKnuckleCounter(p);  // the Arc Knuckles' next press is the Counter Hammer (ArcKnuckles.cs)
                 // The flash (every screen): Pos is where the shot met the shield, Pos2 the parrier's id and aim, Radius half the
                 // shield's arc, the colour the parrier's; alpha 1 means this one slows the world (the first in PerfectSlowGap).
                 bool slow = RunTime - lastPerfectSlow >= PerfectSlowGap || RunTime < lastPerfectSlow;

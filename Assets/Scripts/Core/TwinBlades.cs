@@ -102,7 +102,7 @@ namespace Arena
                 p.FangCd = Math.Max(0f, p.FangCd - dt);
                 if (p.Weapon.Id == WeaponId.Censer)
                     continue;  // the Censer keeps its rite in Combo too (Censer.cs)
-                if (TwinBladesMotion.StepOf(p.Combo) != 0 && ((p.ComboT -= dt) <= 0f || p.Downed || (p.Weapon.Id != WeaponId.TwinBlades && p.Weapon.Id != WeaponId.Lightbringer && p.Weapon.Id != WeaponId.Lance)))  // (the Lightbringer's and the Lance's chains share Combo)
+                if (TwinBladesMotion.StepOf(p.Combo) != 0 && ((p.ComboT -= dt) <= 0f || p.Downed || (p.Weapon.Id != WeaponId.TwinBlades && p.Weapon.Id != WeaponId.Lightbringer && p.Weapon.Id != WeaponId.Lance && p.Weapon.Id != WeaponId.ArcKnuckles)))  // (the Lightbringer's, the Lance's and the Arc Knuckles' chains share Combo)
                     p.Combo &= ~7;  // back to the first step (the swing count stays)
             }
             for (int i = fangRuns.Count - 1; i >= 0; i--)

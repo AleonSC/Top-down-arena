@@ -22,7 +22,7 @@ static partial class Program
         Check(hubOnly.Areas.Length == 1 && hubOnly.Doors.Length == 0 && hubOnly.WallsFor(false).Length == 4 && hubOnly.Max.X == Game.Width && hubOnly.Max.Y == Game.Height,
             "with nothing bought the world is the hub alone, walled in");
 
-        int coverSeen = 0, badCover = 0, loopDoors = 0, badWallGap = 0, badFit = 0, badTree = 0, badDoor = 0, badWall = 0, badSteer = 0, badCap = 0, worlds = 0, offersSeen = 0;
+        int coverSeen = 0, hallCover = 0, badCover = 0, loopDoors = 0, badWallGap = 0, badFit = 0, badTree = 0, badDoor = 0, badWall = 0, badSteer = 0, badCap = 0, worlds = 0, offersSeen = 0;
         var shapes = new HashSet<string>(); var kinds = new HashSet<RoomKind>(); var floors = new HashSet<PathId>();
         int maxShops = 0; int prevPriceBad = 0;
         for (int seed = 1; seed <= 60; seed++)
@@ -84,14 +84,15 @@ static partial class Program
                         bool atDoor = w.Doors.Any(d => pt.DistanceTo(d.Pos) < Rooms.DoorW / 2f + 14f);
                         if (!atDoor && !plan.Solids.Any(sd => Layouts.Inside(sd, pt, 0f))) badWallGap++;
                     }
-            // obstacles: inside their room clear of its walls, off every door, none in a hallway, the same every time
+            // obstacles: inside their room clear of its walls (a hallway's to one side, leaving a lane), off every door, the same every time
             var again = Expansion.Build(built);
             coverSeen += w.Cover.Length;
             if (again.Cover.Length != w.Cover.Length || w.Cover.Where((c, i) => c.Pos.DistanceTo(again.Cover[i].Pos) > 0.01f).Any()) badCover++;
             foreach (var c in w.Cover)
             {
-                var host = w.Areas.Skip(1).Where(ar2 => ar2.Contains(c.Pos, -Expansion.CoverWall + 5f)).ToList();
-                if (host.Count != 1 || Math.Min(host[0].Size.X, host[0].Size.Y) <= Expansion.MinSide) badCover++;
+                var host = w.Areas.Skip(1).Where(ar2 => ar2.Contains(c.Pos, -(ar2.Hall ? Expansion.HallCoverWall + Expansion.HallCoverR : Expansion.CoverWall) + 5f)).ToList();
+                if (host.Count != 1) badCover++;
+                else if (host[0].Hall) { hallCover++; float r = c.Round ? c.R : c.HW; if (Math.Min(host[0].Size.X, host[0].Size.Y) - Expansion.HallCoverWall - 2f * r < 150f) badCover++; }  // a 150 px lane past it
                 if (w.Doors.Any(d => d.Pos.DistanceTo(c.Pos) < 200f)) badCover++;
             }
             // every room's centre is in the open and in its own area
@@ -99,7 +100,7 @@ static partial class Program
                 if (plan.Solids.Any(sd => Layouts.Inside(sd, w.Areas[i].Mid, 0f)) || w.AreaAt(w.Areas[i].Mid) != i) badWall++;
         }
         Check(offersSeen > 600, "offers keep coming until the cap (" + offersSeen + " seen over " + worlds + " maps)");
-        Check(badCover == 0 && coverSeen > 60, "built rooms hold obstacles and bars of wall: inside their room clear of its walls, off every door, none in a hallway, the same on every build (" + coverSeen + " over " + worlds + " maps, " + badCover + " bad)");
+        Check(badCover == 0 && coverSeen > 60 && hallCover > 10, "built rooms hold obstacles and bars of wall: inside their room clear of its walls, hallways' to one side with a lane past them, off every door, the same on every build (" + coverSeen + " over " + worlds + " maps, " + hallCover + " in hallways, " + badCover + " bad)");
         Check(badWallGap == 0, "every wall is closed all the way along, even where a room is wider than the one it joins (" + badWallGap + " gaps)");
         Check(loopDoors > worlds * 3, "rooms touching along a door's width get a door, so loops form (" + loopDoors + " doors over " + worlds + " maps)");
         Check(badFit == 0, "rooms never overlap, never touch in a sliver, and every shared stretch of wall has its door (" + badFit + " bad)");

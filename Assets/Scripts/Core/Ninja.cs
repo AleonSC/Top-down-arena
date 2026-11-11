@@ -658,7 +658,7 @@ namespace Arena
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24;
+        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashRocket = 25;
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -896,6 +896,8 @@ namespace Arena
             LocalCenserTick(dt);    // Censer Cast's cooldown (Censer.cs)
             if (LocalKatana(me, aimAt, pressed, dt))
                 return;  // the Katana's stance switch and steps (Katana.cs)
+            if (LocalKnuckleDash(me, aimAt, pressed, dt))
+                return;  // the Arc Knuckles' Rocket Dash (ArcKnuckles.cs)
             if (me.Weapon.Id == WeaponId.Kusarigama && (pressed || released))  // the Kusarigama's whirl: held, so both edges go to the host (Kusarigama.cs)
             {
                 byte whirlKind = pressed ? DashWhirlOn : DashWhirlOff;
@@ -1105,6 +1107,11 @@ namespace Arena
             if (kind == DashGuardOn || kind == DashGuardOff)
             {
                 HostGreatGuard(p, kind == DashGuardOn, target);  // (target: where they were aiming)
+                return;
+            }
+            if (kind == DashRocket)
+            {
+                HostRocketDash(p, target);  // the Arc Knuckles' Rocket Dash (target: where they were aiming; ArcKnuckles.cs)
                 return;
             }
             if (kind == DashFumaStance)

@@ -1,0 +1,166 @@
+<title>Build the Arena CRT</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Layout: three takes on the vote window, each a 16:10 stage over the dimmed arena. Single dark CRT look by choice. */
+:root {
+  --bg: #080b14; --panel: #10162a; --fg: #dfe8ff; --muted: #7d8bb0; --line: #243055;
+  --ink: #6ea8ff; --dim: #3d6fc4; --sbg: #040a1a; --glow: rgba(90,150,255,.55); --rule: rgba(110,168,255,.28); --gold: #ffd166; --cyan: #5ff0ff;
+  --f-display: "VT323", "Courier New", monospace; --f-mono: "IBM Plex Mono", ui-monospace, monospace; --f-ui: "Rajdhani", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); margin: 0;
+  padding-block: 40px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 44px; }
+h1 { font-size: 28px; margin: 0 0 6px; text-wrap: balance; }
+header p, .opt p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.45; max-width: 66ch; }
+.tools { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.tools button { font: 700 13px var(--f-ui); color: var(--fg); background: #1a2344; border: 1px solid #3a4a82; padding: 7px 14px; cursor: pointer; letter-spacing: .04em; }
+.tools button[aria-pressed="true"] { background: #2d417e; border-color: var(--ink); }
+.opt { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.tag { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.tag b { font-size: 20px; letter-spacing: .04em; }
+.tag span { font: 12px var(--f-mono); color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+
+/* stage: dimmed arena behind the window */
+.stage { position: relative; aspect-ratio: 16/10; overflow: hidden; border: 1px solid var(--line); background: #050812; container-type: inline-size; }
+.arena { position: absolute; inset: 0; background:
+  linear-gradient(#0000 0 0),
+  repeating-linear-gradient(90deg, rgba(60,120,200,.10) 0 1px, transparent 1px 6.25%),
+  repeating-linear-gradient(0deg, rgba(60,120,200,.10) 0 1px, transparent 1px 10%); }
+.arena i { position: absolute; border: 2px solid rgba(70,160,220,.28); background: repeating-linear-gradient(45deg, rgba(70,160,220,.12) 0 3px, transparent 3px 7px); }
+.dim { position: absolute; inset: 0; background: rgba(2,4,12,.72); }
+.win { position: absolute; font-family: var(--f-display); color: var(--ink); text-shadow: 0 0 6px var(--glow); font-size: clamp(11px, 2.4cqw, 22px); line-height: 1.05; }
+.win * { min-width: 0; }
+
+/* crt screen bits (scanlines, glass, roll) */
+.crt { position: relative; isolation: isolate; overflow: hidden; background: var(--sbg); }
+.crt::before { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.28) 0 1px, transparent 1px 3px); }
+.crt::after { content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none; background: radial-gradient(120% 140% at 50% 45%, transparent 55%, rgba(0,0,0,.5)), linear-gradient(115deg, rgba(255,255,255,.06) 0 14%, transparent 30%); }
+.roll { position: absolute; left: 0; right: 0; height: 30%; z-index: 2; pointer-events: none; background: linear-gradient(transparent, rgba(255,255,255,.05), transparent); animation: roll 7s linear infinite; }
+@keyframes roll { from { top: -40%; } to { top: 110%; } }
+@keyframes blink { 50% { opacity: 0; } }
+.in { position: relative; z-index: 1; }
+
+/* blue loadout panel */
+.panel { position: relative; border: 1px solid #4a68b8; background: linear-gradient(#2f3d68, #12162c 85%); box-shadow: 0 0 30px rgba(80,120,255,.16); }
+.panel::before, .panel::after { content: ""; position: absolute; width: 1.6em; height: 1.6em; pointer-events: none; border: 2px solid rgba(110,165,255,.75); }
+.panel::before { left: -6px; top: -6px; border-right: 0; border-bottom: 0; }
+.panel::after { right: -6px; bottom: -6px; border-left: 0; border-top: 0; }
+
+h2 { font: inherit; margin: 0; letter-spacing: .06em; }
+.ttl { font-size: 2.2em; text-shadow: 0 0 8px var(--glow), 0 0 20px var(--glow); }
+.sub { font-family: var(--f-ui); font-weight: 500; font-size: .62em; color: #9db4e6; letter-spacing: .02em; text-shadow: none; }
+.sub b { color: var(--fg); font-weight: 700; }
+.key { font-family: var(--f-display); font-size: 1.25em; letter-spacing: .06em; padding: .22em .8em .12em; border: 2px solid var(--ink); color: var(--ink); background: rgba(110,168,255,.07); cursor: pointer; text-shadow: inherit; white-space: nowrap; line-height: 1; }
+.key:hover, .key:focus-visible, .key.on { background: var(--ink); color: var(--sbg); text-shadow: none; outline: none; }
+.key.gold { border-color: var(--gold); color: var(--gold); } .key.gold.on, .key.gold:hover { background: var(--gold); color: var(--sbg); }
+
+/* proposal cards */
+.cards { display: grid; grid-template-columns: repeat(var(--n, 2), 1fr); gap: 1.2em; }
+.card { border: 1px solid var(--rule); background: rgba(110,168,255,.04); padding: .8em; cursor: pointer; display: grid; gap: .45em; text-align: left; font: inherit; color: inherit; text-shadow: inherit; }
+.card:hover { border-color: var(--ink); }
+.card.pick { border: 2px solid var(--gold); box-shadow: 0 0 14px rgba(255,209,102,.25); }
+.mini { aspect-ratio: 2/1; border: 1px solid var(--rule); background: rgba(0,0,0,.35); position: relative; }
+.mini i { position: absolute; background: rgba(110,168,255,.16); border: 1px solid rgba(110,168,255,.5); }
+.mini i.new { background: rgba(95,240,255,.28); border-color: var(--cyan); animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .55; } }
+.cn { font-size: 1.35em; letter-spacing: .04em; }
+.pr { color: var(--cyan); letter-spacing: .06em; } .vt { color: var(--dim); font-size: .85em; } .pick .vt { color: var(--gold); }
+.empty { text-align: center; color: #9db4e6; font-family: var(--f-ui); font-size: .95em; text-shadow: none; padding: 2.4em 0; }
+.row { display: flex; gap: .8em; justify-content: center; }
+.row .key { flex: 1; max-width: 16em; text-align: center; }
+.status { text-align: center; font-family: var(--f-ui); font-size: .62em; color: #9db4e6; text-shadow: none; letter-spacing: .03em; }
+.status.go { color: var(--gold); }
+.timer { display: flex; gap: 2px; } .timer s { display: block; width: .7em; height: .55em; background: var(--ink); box-shadow: 0 0 6px var(--glow); } .timer s.off { background: rgba(110,168,255,.18); box-shadow: none; }
+
+/* A: one blue box, recessed screens inside */
+.A { left: 8%; right: 8%; top: 5%; bottom: 5%; padding: 1.1em 1.3em; display: grid; grid-template-rows: auto 1fr auto auto; gap: .8em; }
+.A .head { display: flex; justify-content: space-between; align-items: center; gap: 1em; }
+.A .scr { padding: .9em; border: 2px solid #1c2c55; box-shadow: inset 0 0 26px rgba(0,0,0,.8); align-content: center; display: grid; }
+
+/* B: the whole window is one big phosphor screen in a blue frame */
+.B { left: 6%; right: 6%; top: 4%; bottom: 4%; padding: .8em; }
+.B .crt { height: 100%; padding: .9em 1.2em; display: grid; grid-template-rows: auto auto 1fr auto auto; gap: .6em; box-shadow: inset 0 0 40px rgba(0,0,0,.85), 0 0 0 3px #0a1330, 0 0 0 4px #1c2f66; border-radius: 4px; }
+.B .osd { display: flex; justify-content: space-between; align-items: center; font-size: .85em; color: var(--dim); letter-spacing: .12em; text-shadow: none; border-bottom: 1px dashed var(--rule); padding-bottom: .4em; }
+.B .osd .live::before { content: "● "; color: #ff5d5d; animation: blink 1.2s steps(1) infinite; }
+.B .tt { text-align: center; }
+.B .cur { display: inline-block; width: .5em; height: .8em; background: var(--ink); vertical-align: -.05em; margin-left: .2em; animation: blink 1s steps(1) infinite; }
+
+/* C: smaller centered box, title on a tab, bar countdown, keys docked on the lip */
+.C { left: 15%; right: 15%; top: 14%; bottom: 8%; padding: 2.2em 1.2em 1.4em; display: grid; grid-template-rows: 1fr auto auto; gap: .8em; }
+.C .tab { position: absolute; left: 50%; top: -1.15em; transform: translateX(-50%); padding: .3em 1.4em .2em; background: #12162c; border: 1px solid #4a68b8; font-size: 1.9em; letter-spacing: .08em; text-shadow: 0 0 8px var(--glow), 0 0 20px var(--glow); white-space: nowrap; }
+.C .x { position: absolute; right: .6em; top: .6em; }
+.C .scr { padding: .8em; border: 2px solid #1c2c55; box-shadow: inset 0 0 26px rgba(0,0,0,.8); align-content: center; display: grid; gap: .5em; }
+.C .meta { display: flex; justify-content: space-between; align-items: center; font-size: .66em; font-family: var(--f-ui); color: #9db4e6; text-shadow: none; gap: .6em; flex-wrap: wrap; }
+.C .meta b { color: var(--fg); }
+@media (prefers-reduced-motion: reduce) { .roll, .cur, .mini i.new, .live::before { animation: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Build the Arena window</h1>
+    <p>Today the vote floats on the dimmed arena with no frame. Three ways to put it in a CRT box, using the loadout panel, phosphor screens and soft keys from the other menus. Click a card to back it, toggle the empty state to see the screen with no proposals.</p>
+    <div class="tools"><button type="button" id="b-cards" aria-pressed="true">Two proposals</button><button type="button" id="b-empty" aria-pressed="false">No proposals yet</button></div>
+  </header>
+
+  <section class="opt"><div class="tag"><b>A. Loadout box</b><span>blue panel, screen inset</span></div>
+    <div class="stage"><div class="arena" data-arena></div><div class="dim"></div>
+      <div class="win panel A">
+        <div class="head"><div><h2 class="ttl">BUILD THE ARENA</h2><div class="sub">Your vectors <b>29 / 35</b> · 3 rooms so far · most votes wins, a tie is a coin flip</div></div><button class="key" type="button">DECIDE LATER</button></div>
+        <div class="crt scr"><div class="roll"></div><div class="in" data-cards></div></div>
+        <div class="row"><button class="key" type="button">DRAW A ROOM</button><button class="key" type="button">NO ROOM</button></div>
+        <div class="status go" data-msg></div>
+      </div></div>
+    <p>The title and Decide later sit in the box header, the proposals sit on one recessed phosphor screen, and the two big keys dock underneath. Closest to the lobby and loadout boxes.</p></section>
+
+  <section class="opt"><div class="tag"><b>B. All on the screen</b><span>one big phosphor display</span></div>
+    <div class="stage"><div class="arena" data-arena></div><div class="dim"></div>
+      <div class="win panel B"><div class="crt"><div class="roll"></div>
+        <div class="osd in"><span class="live">VOTE OPEN</span><span>VECTORS 29 / 35 · ROOMS 3</span><span>WAVE IN 0:04</span></div>
+        <div class="tt in"><h2 class="ttl">BUILD THE ARENA<span class="cur"></span></h2><div class="sub">Most votes wins, a tie is a coin flip</div></div>
+        <div class="in" data-cards style="align-self:center"></div>
+        <div class="row in"><button class="key" type="button">DRAW A ROOM</button><button class="key" type="button">NO ROOM</button><button class="key" type="button">DECIDE LATER</button></div>
+        <div class="status go in" data-msg></div>
+      </div></div></div>
+    <p>Everything is phosphor: a status strip on top like the other terminal screens, a blinking cursor on the title, and three keys in one row. The blue frame is just a bezel.</p></section>
+
+  <section class="opt"><div class="tag"><b>C. Compact tabbed box</b><span>the arena stays visible</span></div>
+    <div class="stage"><div class="arena" data-arena></div><div class="dim" style="background:rgba(2,4,12,.5)"></div>
+      <div class="win panel C"><div class="tab">BUILD THE ARENA</div><button class="key x" type="button" style="font-size:1em">DECIDE LATER</button>
+        <div class="crt scr"><div class="roll"></div><div class="in" data-cards></div></div>
+        <div class="meta"><span>Your vectors <b>29 / 35</b> · 3 rooms so far</span><span class="timer" aria-label="4 seconds left"><s></s><s></s><s></s><s></s><s class="off"></s><s class="off"></s><s class="off"></s><s class="off"></s></span><span>wave starts in <b>4 s</b></span></div>
+        <div class="row"><button class="key" type="button">DRAW A ROOM</button><button class="key" type="button">NO ROOM</button></div>
+      </div></div>
+    <p>A smaller box with the title on a tab over its top edge, the countdown as a segmented bar, and a lighter dim so the arena shows around it. Fits one or two proposals best; three get tight.</p></section>
+</div>
+<script>
+var cards=[
+ {n:"RECTANGLE",p:"6 VECTORS",who:"ALEX",b:[[10,20,50,60]],nw:[56,20,34,60]},
+ {n:"BENT HALLWAY",p:"4 VECTORS",who:"MIRA",b:[[10,20,50,60]],nw:[60,20,30,18]}
+], mode="cards", pick=-1;
+function render(){
+  document.querySelectorAll('[data-cards]').forEach(function(el){
+    if(mode==="empty"){el.innerHTML='<div class="empty">No proposals yet. Draw a room or hallway and put it to the team.</div>';return;}
+    el.innerHTML='<div class="cards" style="--n:'+cards.length+'">'+cards.map(function(c,i){
+      var v=(i===pick?1:0)+(i===0?1:0);
+      return '<button type="button" class="card'+(i===pick?' pick':'')+'" data-i="'+i+'"><div class="mini">'+c.b.map(function(r){return '<i style="left:'+r[0]+'%;top:'+r[1]+'%;width:'+r[2]+'%;height:'+r[3]+'%"></i>'}).join('')+'<i class="new" style="left:'+c.nw[0]+'%;top:'+c.nw[1]+'%;width:'+c.nw[2]+'%;height:'+c.nw[3]+'%"></i></div><div class="cn">'+c.n+'</div><div class="pr">'+c.p+' · '+c.who+' HAS 29</div><div class="vt">'+(v?v+' VOTE'+(v>1?'S':'')+(i===pick?' · YOURS':''):'NO VOTES')+'</div></button>';
+    }).join('')+'</div>';
+    el.querySelectorAll('.card').forEach(function(b){b.onclick=function(){pick=+b.dataset.i;render();};});
+  });
+  document.querySelectorAll('[data-msg]').forEach(function(el){
+    el.textContent=mode==="empty"?"Nothing to vote on yet":pick>=0?"Voted. Waiting for 1 more player to vote (or the wave to start)":"Vote for a room, or draw your own";
+    el.classList.toggle('go',mode!=="empty"&&pick<0);
+  });
+}
+// arena backdrop: a few wall blocks
+document.querySelectorAll('[data-arena]').forEach(function(a){
+  [[18,28,6,10],[70,28,6,10],[18,70,6,10],[70,70,6,10],[47,10,1.2,38],[47,64,1.2,30],[8,52,24,3],[58,52,24,3]].forEach(function(r){
+    var i=document.createElement('i');i.style.cssText='left:'+r[0]+'%;top:'+r[1]+'%;width:'+r[2]+'%;height:'+r[3]+'%';a.appendChild(i);});
+});
+function setMode(m){mode=m;document.getElementById('b-cards').setAttribute('aria-pressed',m==="cards");document.getElementById('b-empty').setAttribute('aria-pressed',m==="empty");render();}
+document.getElementById('b-cards').onclick=function(){setMode("cards")};
+document.getElementById('b-empty').onclick=function(){setMode("empty")};
+render();
+</script>

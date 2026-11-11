@@ -139,11 +139,13 @@ static partial class Program
         Check(g.Sounds.Count(x => x.Sfx == Sfx.ShotRepulse) == blasts0, "you can't fire while pulling");
         Check(s[1].Game.Players[1].RepelPull, "the other screen sees the pull");
         Check(far.Hp < far.MaxHp, "the current stings what it holds");
+        Check(g.Sounds.Any(x => x.Sfx == Sfx.SpellPullStart) && g.Sounds.Any(x => x.Sfx == Sfx.SpellPullHum), "the pull has its own sound: an inhale, then a hum while it holds");
         me.RepelMeterF = Game.RepelMeterMax;  // (enough to bring it all the way in)
         Hold(240, false, true);
         float stopAt = far.Pos.DistanceTo(from);
         Console.WriteLine("  undertow: held till dry, the grunt stopped {0:0} px from you; meter {1:0.0}, pulling {2}", stopAt, me.RepelMeterF, me.RepelPull);
         Check(!me.RepelPull && me.RepelMeter == 0, "the pull ends when the meter runs dry");
+        Check(g.Sounds.Any(x => x.Sfx == Sfx.SpellPullStop), "letting go pops");
         Check(stopAt > far.Radius + me.Def.BodyR + Game.RepelPullStop - 2f && stopAt < 110f, "pulled enemies stop just in front of you, not inside you");
         // Let go, pull, let go: the blast lands on the pulled crowd and refills the meter.
         me.RepelMeterF = 50f; me.RepelMeter = 50;
@@ -813,7 +815,7 @@ static partial class Program
                         if (first.Contains(b.Id))
                             far = Math.Max(far, b.Pos.DistanceTo(new V2(120f, 450f)));
                     foreach (var fx in g.Effects)
-                        if (fx.Kind == FxKind.Slash || fx.Kind == FxKind.Jab || fx.Kind == FxKind.Claw || fx.Kind == FxKind.Icicle || fx.Kind == FxKind.RootLash || fx.Kind == FxKind.TwinStep || fx.Kind == FxKind.CenserStep || fx.Kind == FxKind.LanceStep || fx.Kind == FxKind.KatanaDash)
+                        if (fx.Kind == FxKind.Slash || fx.Kind == FxKind.Jab || fx.Kind == FxKind.Claw || fx.Kind == FxKind.Icicle || fx.Kind == FxKind.RootLash || fx.Kind == FxKind.TwinStep || fx.Kind == FxKind.CenserStep || fx.Kind == FxKind.LanceStep || fx.Kind == FxKind.KnuckleStep || fx.Kind == FxKind.KatanaDash)
                             far = Math.Max(far, fx.Pos2.DistanceTo(fx.Pos));
                     host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) });
                 }
