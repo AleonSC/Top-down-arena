@@ -84,15 +84,15 @@ static partial class Program
                         bool atDoor = w.Doors.Any(d => pt.DistanceTo(d.Pos) < Rooms.DoorW / 2f + 14f);
                         if (!atDoor && !plan.Solids.Any(sd => Layouts.Inside(sd, pt, 0f))) badWallGap++;
                     }
-            // obstacles: inside their room clear of its walls (a hallway's to one side, leaving a lane), off every door, the same every time
+            // obstacles: inside their room clear of its walls (a narrow strip's to one side, leaving a lane), off every door, the same every time
             var again = Expansion.Build(built);
             coverSeen += w.Cover.Length;
             if (again.Cover.Length != w.Cover.Length || w.Cover.Where((c, i) => c.Pos.DistanceTo(again.Cover[i].Pos) > 0.01f).Any()) badCover++;
             foreach (var c in w.Cover)
             {
-                var host = w.Areas.Skip(1).Where(ar2 => ar2.Contains(c.Pos, -(ar2.Hall ? Expansion.HallCoverWall + Expansion.HallCoverR : Expansion.CoverWall) + 5f)).ToList();
+                var host = w.Areas.Skip(1).Where(ar2 => ar2.Contains(c.Pos, -(Strip(ar2) ? Expansion.StripCoverWall + Expansion.StripCoverR : Expansion.CoverWall) + 5f)).ToList();
                 if (host.Count != 1) badCover++;
-                else if (host[0].Hall) { hallCover++; float r = c.Round ? c.R : c.HW; if (Math.Min(host[0].Size.X, host[0].Size.Y) - Expansion.HallCoverWall - 2f * r < 150f) badCover++; }  // a 150 px lane past it
+                else if (Strip(host[0])) { hallCover++; float r = c.Round ? c.R : c.HW; if (Math.Min(host[0].Size.X, host[0].Size.Y) - Expansion.StripCoverWall - 2f * r < 150f) badCover++; }  // a 150 px lane past it
                 if (w.Doors.Any(d => d.Pos.DistanceTo(c.Pos) < 200f)) badCover++;
             }
             // every room's centre is in the open and in its own area
@@ -100,7 +100,7 @@ static partial class Program
                 if (plan.Solids.Any(sd => Layouts.Inside(sd, w.Areas[i].Mid, 0f)) || w.AreaAt(w.Areas[i].Mid) != i) badWall++;
         }
         Check(offersSeen > 600, "offers keep coming until the cap (" + offersSeen + " seen over " + worlds + " maps)");
-        Check(badCover == 0 && coverSeen > 60 && hallCover > 10, "built rooms hold obstacles and bars of wall: inside their room clear of its walls, hallways' to one side with a lane past them, off every door, the same on every build (" + coverSeen + " over " + worlds + " maps, " + hallCover + " in hallways, " + badCover + " bad)");
+        Check(badCover == 0 && coverSeen > 60 && hallCover > 10, "built rooms hold obstacles and bars of wall: inside their room clear of its walls, narrow strips' to one side with a lane past them, off every door, the same on every build (" + coverSeen + " over " + worlds + " maps, " + hallCover + " in strips, " + badCover + " bad)");
         Check(badWallGap == 0, "every wall is closed all the way along, even where a room is wider than the one it joins (" + badWallGap + " gaps)");
         Check(loopDoors > worlds * 3, "rooms touching along a door's width get a door, so loops form (" + loopDoors + " doors over " + worlds + " maps)");
         Check(badFit == 0, "rooms never overlap, never touch in a sliver, and every shared stretch of wall has its door (" + badFit + " bad)");
@@ -112,11 +112,11 @@ static partial class Program
         Check(maxShops >= 1 && maxShops <= 1 + Expansion.MaxRooms / 6, "shops turn up, a few at most (" + maxShops + ")");
         Check(prevPriceBad == 0, "every offer costs its vector cost (the new wall length)");
 
-        // Drawn rooms (Expansion.Custom): a hallway off the hub is fine; thin, huge, off the grid, overlapping and floating boxes are refused.
+        // Drawn rooms (Expansion.Custom): a narrow room off the hub is fine; thin, huge, off the grid, overlapping and floating boxes are refused.
         string why;
         var hall = Expansion.Custom(none, 500, -600, 300, 600, out why);
-        Check(hall.HasValue && hall.Value.Parent == 0 && hall.Value.Shape == "Hallway" && hall.Value.Kind == RoomKind.Combat && hall.Value.Price > 0, "a 3-wide hallway off the hub is accepted (" + (hall.HasValue ? hall.Value.Price + " gold" : why) + ")");
-        Check(Expansion.Custom(none, 500, -600, 200, 600, out why) == null && why.Contains("thin"), "too thin is refused: " + why);
+        Check(hall.HasValue && hall.Value.Parent == 0 && hall.Value.Shape == "Room" && hall.Value.Kind == RoomKind.Combat && hall.Value.Price > 0, "a 3-wide room off the hub is accepted (" + (hall.HasValue ? hall.Value.Price + " gold" : why) + ")");
+        Check(Expansion.Custom(none, 500, -600, 100, 600, out why) == null && why.Contains("thin"), "too thin is refused: " + why);
         Check(Expansion.Custom(none, 500, -1300, 1300, 1300, out why) == null && why.Contains("big"), "too big is refused: " + why);
         Check(Expansion.Custom(none, 550, -600, 300, 600, out why) == null && why.Contains("grid"), "off the grid is refused: " + why);
         Check(Expansion.Custom(none, 100, 100, 300, 300, out why) == null && why.Contains("Overlaps"), "overlapping the hub is refused: " + why);
@@ -160,15 +160,15 @@ static partial class Program
         int fp, fl2; string fwhy;
         Check(!Expansion.Placement(withFloater, 500, -1600, 600, 400, out fp, out fl2, out fwhy) && fwhy.Contains("connected"), "a box touching only a floating room is refused: " + fwhy);
         var link = Expansion.Custom(withFloater, 700, -800, 300, 800, out why);
-        Check(link.HasValue && link.Value.Parent == 0 && Expansion.LoopsOf(withFloater, link.Value) == 1, "a hallway from the hub to the floating room is accepted and opens it (" + (link.HasValue ? "ok" : why) + ")");
+        Check(link.HasValue && link.Value.Parent == 0 && Expansion.LoopsOf(withFloater, link.Value) == 1, "a strip from the hub to the floating room is accepted and opens it (" + (link.HasValue ? "ok" : why) + ")");
         var opened = new List<ExpansionRoom> { floater, link.Value };
         var openedWorld = Expansion.Build(opened);
         Check(Expansion.SealedCount(withFloater) == 1 && Expansion.SealedCount(opened) == 0 && openedWorld.Areas[1].Floating && !openedWorld.Areas[1].Sealed && openedWorld.Doors.Any(d => d.Joins(1)) && Expansion.BoughtCount(opened) == 1,
-            "built rooms that touch it give it a door: it is no longer sealed, and only the hallway counts as bought");
+            "built rooms that touch it give it a door: it is no longer sealed, and only the strip counts as bought");
         // Vector cost (Docs/VectorBuilding.md): the new wall length, so a shared wall is free and a loop is cheap.
         Check(Expansion.Cost(none, 500, -400, 600, 400) == 14, "a 6 x 4 closet along the hub's wall costs its perimeter 20 less the 6 it shares: 14 (" + Expansion.Cost(none, 500, -400, 600, 400) + ")");
-        Check(Expansion.Cost(none, 500, -1200, 300, 1200) == 14, "a 3 x 12 hallway standing off the hub pays half its new wall (30 less the 3 it shares): 14 (" + Expansion.Cost(none, 500, -1200, 300, 1200) + ")");
-        Check(Expansion.Cost(withEast, under.Value) == 5, "a box that touches two rooms costs less again: 18 less 3 and 6 = 9, halved for a hallway: 5 (" + Expansion.Cost(withEast, under.Value) + ")");
+        Check(Expansion.Cost(none, 500, -1200, 300, 1200) == 27, "a 3 x 12 room standing off the hub pays its new wall like any room (30 less the 3 it shares): 27 (" + Expansion.Cost(none, 500, -1200, 300, 1200) + ")");
+        Check(Expansion.Cost(withEast, under.Value) == 9, "a box that touches two rooms costs less again: 18 less 3 and 6 = 9 (" + Expansion.Cost(withEast, under.Value) + ")");
         Check(Expansion.Cost(none, 500, -400, 600, 400) < Expansion.Cost(none, 500, -400, 1200, 400), "a bigger room costs more");
         var owned = east; owned.Owner = 2;
         var ownedWorld = Expansion.Build(new List<ExpansionRoom> { owned });
@@ -445,24 +445,25 @@ static partial class Program
                     farOk &= n.X <= -1000 || n.X >= Game.Width + 1000 || n.Y <= -1000 || n.Y >= Game.Height + 1000;
                     foreach (var o in list) farOk &= new V2(o.X - n.X, o.Y - n.Y).Length >= Expansion.NodeApart;
                     var step = Expansion.NodeStep(nodeMap, n);
-                    hallOk &= step.HasValue && step.Value.Kind == RoomKind.Combat && Math.Min(step.Value.W, step.Value.H) == Expansion.MinSide && !Expansion.NodeClaimed(nodeMap, n) && Expansion.NodeReachable(nodeMap, n);
+                    hallOk &= step.HasValue && step.Value.Kind == RoomKind.Combat && !Expansion.NodeClaimed(nodeMap, n) && Expansion.NodeReachable(nodeMap, n);
                     var built = new List<ExpansionRoom>(nodeMap);
                     if (step.HasValue) built.Add(step.Value);
-                    var step2 = step.HasValue ? Expansion.NodeStep(built, n) : null;
-                    if (step2.HasValue)
+                    if (step.HasValue && !Expansion.NodeClaimed(built, n))  // (a strip first, then the room round it)
                     {
-                        built.Add(step2.Value);
-                        var kind = nk == NodeKind.Shop ? RoomKind.Shop : nk == NodeKind.Vendor ? RoomKind.Vendor : RoomKind.Combat;
-                        var with = Expansion.Build(built, null, null, new List<MapNode> { n });
-                        claimOk &= Expansion.NodeClaimed(built, n) && with.Areas[2].Kind == kind && with.Areas[1].Kind == RoomKind.Combat && Expansion.Build(built).Areas[2].Kind == RoomKind.Combat;
+                        var step2 = Expansion.NodeStep(built, n);
+                        hallOk &= Math.Min(step.Value.W, step.Value.H) == 300;
+                        if (step2.HasValue) built.Add(step2.Value);
                     }
-                    else claimOk = false;
+                    int at = built.FindIndex(br => Expansion.NodeEncloses(br, n)) + 1;
+                    var kind = nk == NodeKind.Shop ? RoomKind.Shop : nk == NodeKind.Vendor ? RoomKind.Vendor : RoomKind.Combat;
+                    var with = Expansion.Build(built, null, null, new List<MapNode> { n });
+                    claimOk &= at > nodeMap.Count && with.Areas[at].Kind == kind && Expansion.Build(built).Areas[at].Kind == RoomKind.Combat && (at == nodeMap.Count + 1 || with.Areas[nodeMap.Count + 1].Kind == RoomKind.Combat);
                     list.Add(n);
                 }
             }
             Check(placedOk && placedN == 120 && sameOk, "a node is found for every seed, the same each time (" + placedN + " placed)");
             Check(farOk, "nodes sit 10 or more tiles off the start room and 8 or more tiles apart");
-            Check(hallOk && claimOk, "a hallway then a room can be built to each: a hallway alone claims nothing, and the room takes on the node's job (only with the node in the map)");
+            Check(hallOk && claimOk, "a room (or a strip, then a room) can be built to each: a strip alone claims nothing, and the room takes on the node's job (only with the node in the map)");
             var saved = new RunSave { Wave = 6, HasExpansion = true };
             saved.Nodes.Add(new MapNode { X = -1250, Y = 450, Kind = NodeKind.Vendor });
             saved.Nodes.Add(new MapNode { X = 850, Y = 2150, Kind = NodeKind.Chest, Spent = true });
@@ -1004,33 +1005,20 @@ static partial class Program
         Check(g.ExpansionWorld.Portals.Length == 1 && cg.ExpansionWorld.Portals.Length == 1, "and both maps have the portals");
     }
 
-    // Hallways: half price, up to 24 tiles long, bent hallways (up to 3 legs joined end to end, open full width at the corners,
-    // built together), and a room that only brushes another's wall is fine (no door there, no breach on it).
-    static void ExpandingHallwaysTest(float dt)
+    static bool Strip(RoomArea a) => Math.Min(a.Size.X, a.Size.Y) <= Expansion.StripMax;
+
+    // Room sizes (no hallways: any box 2 to 24 tiles a side, up to 144 tiles of floor, priced by its new wall), a room that only
+    // brushes another's wall (no door there, no breach on it), and side walls: built from the map alone (the same every build), out
+    // from a room's own outer walls, off its doors, clear of its middle, and every design turns up.
+    static void ExpandingRoomSizesTest(float dt)
     {
         string why;
         var none = new List<ExpansionRoom>();
-        Check(Expansion.Custom(none, 500, -2400, 300, 2400, out why).HasValue, "a 3 x 24 hallway is fine (" + why + ")");
-        Check(Expansion.Custom(none, 500, -2500, 300, 2500, out why) == null && why.Contains("big"), "a 3 x 25 one is too long: " + why);
-        Check(Expansion.Custom(none, 500, -1300, 400, 1300, out why) == null && why.Contains("big"), "a room (4 wide) still stops at 12 tiles: " + why);
-        var legs = new List<int[]> { new[] { 500, -1200, 300, 1200 }, new[] { 800, -1200, 1200, 300 }, new[] { 1700, -900, 300, 600 } };
-        var hall = Expansion.Hall(none, legs, out why);
-        Check(hall != null && hall.Count == 3 && hall[0].Leg == 0 && hall[1].Leg == 1 && hall[2].Leg == 2 && hall[1].Parent == 1 && hall[2].Parent == 2, "an up-right-down hallway is three legs, each the child of the one before (" + why + ")");
-        if (hall == null) return;
-        var map = new List<ExpansionRoom>();
-        int sum = 0;
-        foreach (var l in legs)
-        {
-            sum += Expansion.Cost(map, l[0], l[1], l[2], l[3]);
-            map.Add(new ExpansionRoom { X = l[0], Y = l[1], W = l[2], H = l[3] });
-        }
-        Check(hall[0].Price == sum && hall[1].Price == 0 && hall[2].Price == 0 && sum == 14 + 14 + 8, "the first leg carries the whole price, each leg's new wall halved: " + hall[0].Price);
-        var hw = Expansion.Build(hall);
-        Check(hw.Doors.Count(d => d.Joins(1) && d.Joins(2) && d.W == 300f) == 1 && hw.Doors.Count(d => d.Joins(2) && d.Joins(3) && d.W == 300f) == 1, "its corners open the full 3 tiles");
-        Check(hw.Doors.Count(d => d.Joins(0) && d.Joins(1) && d.Width == 0f) == 1 && hw.Doors.Length == 3, "and it meets the hub through a plain door (" + hw.Doors.Length + " doors)");
-        Check(Expansion.Hall(none, new List<int[]> { legs[0], new[] { 800, -1200, 600, 600 } }, out why) == null && why.Contains("wide"), "a leg wider than 3 tiles is refused: " + why);
-        Check(Expansion.Hall(none, new List<int[]> { legs[0], new[] { 800, -900, 900, 300 } }, out why) == null && why.Contains("end"), "a leg that doesn't start at the last one's end is refused: " + why);
-        Check(Expansion.Hall(none, new List<int[]> { legs[0], legs[1], legs[2], new[] { 2000, -600, 300, 300 } }, out why) == null && why.Contains("legs"), "at most " + Expansion.MaxLegs + " legs: " + why);
+        Check(Expansion.Custom(none, 0, -200, 2400, 200, out why).HasValue, "a 24 x 2 strip along the hub is fine (" + why + ")");
+        Check(Expansion.Custom(none, 500, -600, 2400, 600, out why).HasValue, "a 24 x 6 room is fine (" + why + ")");
+        Check(Expansion.Custom(none, 500, -2500, 300, 2500, out why) == null && why.Contains("big"), "25 tiles is too long: " + why);
+        Check(Expansion.Custom(none, 500, -1300, 1200, 1300, out why) == null && why.Contains("big"), "more than 144 tiles of floor is too big: " + why);
+        Check(Expansion.Custom(none, 500, -1200, 1200, 1200, out why).HasValue, "a 12 x 12 room is fine (" + why + ")");
         // Brushing: a box that shares 3 tiles with the hub and 1 with the east room: accepted, a door to the hub only, no breach on the brushed stretch.
         var east = Expansion.Custom(none, 1600, 0, 600, 300, out why).Value;
         var withEast = new List<ExpansionRoom> { east };
@@ -1042,28 +1030,49 @@ static partial class Program
         int badBreach = Breaches.Candidates(bw).Count(c => bw.Areas.Any(ar => ar.Contains(c.Key.Pos + c.Key.In * 20f)) && bw.Areas.Any(ar => ar.Contains(c.Key.Pos - c.Key.In * 20f)));
         Check(badBreach == 0, "no breach spot has floor on both sides (" + badBreach + ")");
 
-        // In a run: a friend's bent hallway goes to the vote as one card, and winning builds all its legs on both screens.
-        int port = nextPort++;
-        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
-        var client = JoinAs(port, false, "Friend", Role.Dps);
-        var s = new[] { host, client };
-        WaitForGame(host, client, dt);
-        var g = host.Game; var cg = client.Game;
-        Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
-        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f); gg.Expanded.Clear(); gg.ExpandOpen = true; }
-        g.Players[2].Vectors = sum - 1;
-        cg.ProposeExpandHall(legs);
-        Run(s, dt, 0.5f, () => g.ExpandProposals.Count > 0);
-        Check(g.ExpandProposals.Count == 0, "a hallway its drawer can't pay for is refused");
-        g.Players[2].Vectors = sum + 2;
-        cg.ProposeExpandHall(legs);
-        Run(s, dt, 0.5f, () => cg.ExpandProposals.Count == 3);
-        Check(g.ExpandProposals.Count == 3 && g.ProposalHeads.Count == 1 && cg.ProposalHeads.Count == 1 && cg.LegsOf(2).Count == 2 && g.ProposalOf(2).Value.Price == sum, "it goes to the vote as one proposal with its two other legs, on both screens");
-        g.CastExpandVote(2);
-        typeof(Game).GetMethod("ResolveBuildRound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(g, null);
-        Run(s, dt, 0.5f, () => cg.Expanded.Count == 3);
-        Check(g.Expanded.Count == 3 && cg.Expanded.Count == 3 && cg.Expanded[2].Leg == 2 && g.Players[2].Vectors == 2, "winning builds all three legs on both screens, and the drawer pays once (" + g.Players[2].Vectors + " left)");
-        Check(cg.ExpansionWorld.Doors.Count(d => d.Width == 300f) == 2, "and the client's map has the open corners");
+        // Side walls (Expansion.AddFins): every design, forced and rolled, on rooms of many sizes off the hub's north wall.
+        int finRooms = 0, badFin = 0, notSame = 0;
+        var styles = new HashSet<int>();
+        for (int style = 0; style <= 4; style++)
+            for (int w = 500; w <= 1600; w += 100)
+                for (int h = 500; h * w <= Expansion.MaxArea && h <= 1600; h += 100)
+                {
+                    Expansion.FinStyle = style;
+                    var r = Expansion.Custom(none, 0, -h, w, h, out why);
+                    if (!r.HasValue) continue;
+                    var map = new List<ExpansionRoom> { r.Value };
+                    var wd = Expansion.Build(map);
+                    var plain = wd.Spans.Where(sp => !Inner(wd, sp)).Count();
+                    var fins = wd.Spans.Where(sp => Inner(wd, sp)).ToList();
+                    if (fins.Count > 0) { finRooms++; if (style > 0) styles.Add(style); }
+                    var again = Expansion.Build(map);
+                    if (again.Spans.Length != wd.Spans.Length) notSame++;
+                    var room = wd.Areas[1];
+                    foreach (var sp in fins)
+                    {
+                        V2 a = sp.Vertical ? new V2(sp.At, sp.From) : new V2(sp.From, sp.At), b = sp.Vertical ? new V2(sp.At, sp.Till) : new V2(sp.Till, sp.At);
+                        if (!room.Contains(a, 1f) || !room.Contains(b, 1f)) badFin++;                                     // inside its room
+                        foreach (var d in wd.Doors) if (Math.Min(d.Pos.DistanceTo(a), d.Pos.DistanceTo(b)) < 150f) badFin++;  // off the doors
+                    }
+                    foreach (var sd in wd.WallsFor(false)) if (Layouts.Inside(sd, room.Mid, 30f)) badFin++;               // the middle is open
+                    if (style == 3 && fins.Count % 2 != 0) badFin++;                                                          // pincers come in pairs
+                }
+        Expansion.FinStyle = 0;
+        Check(finRooms > 100 && badFin == 0 && notSame == 0, "rooms grow side walls inside, off their doors, clear of their middle, the same every build (" + finRooms + " rooms, " + badFin + " bad)");
+        Check(styles.Count == 4, "every design turns up: fins, baffles, pincers, T-fins (" + styles.Count + ")");
+        var rolled = new HashSet<int>();
+        for (int w = 500; w <= 1200; w += 100) { var r = Expansion.Custom(none, 0, -800, w, 800, out why); if (r.HasValue) rolled.Add(Expansion.Build(new List<ExpansionRoom> { r.Value }).Spans.Count(sp => Inner(Expansion.Build(new List<ExpansionRoom> { r.Value }), sp))); }
+        Check(rolled.Count >= 2, "rolled per room, rooms differ (" + rolled.Count + " different wall counts)");
+    }
+
+    /// A wall span with the same room on both sides: a side wall.
+    static bool Inner(World w, WallSpan sp)
+    {
+        float mid = (sp.From + sp.Till) / 2f;
+        V2 across = sp.Vertical ? new V2(1f, 0f) : new V2(0f, 1f), on = sp.Vertical ? new V2(sp.At, mid) : new V2(mid, sp.At);
+        int a = -1, b = -1;
+        for (int i = 0; i < w.Areas.Length; i++) { if (w.Areas[i].Contains(on + across * 20f)) a = i; if (w.Areas[i].Contains(on - across * 20f)) b = i; }
+        return a >= 0 && a == b;
     }
 
     // Drawn outlines (Expansion.Outline): corners on the grid become a room of boxes joined open, priced by new wall, sent to the vote and built.
@@ -1094,7 +1103,7 @@ static partial class Program
         var u = Expansion.Outline(none, P(new[] { 0, 0, 300, 0, 300, -600, 900, -600, 900, 0, 1200, 0, 1200, -900, 0, -900 }), PathId.None, out why);
         Check(u != null && u.Count == 3, "a U is three boxes (" + why + ")");
         // Refusals.
-        Check(Expansion.Outline(none, P(new[] { 0, 0, 200, 0, 200, -600, 0, -600 }), PathId.None, out why) == null && why.Contains("thin"), "2 tiles wide is too thin: " + why);
+        Check(Expansion.Outline(none, P(new[] { 0, 0, 1000, 0, 1000, -600, 900, -600, 900, -100, 0, -100 }), PathId.None, out why) == null && why.Contains("thin"), "1 tile wide is too thin: " + why);
         Check(Expansion.Outline(none, P(new[] { 0, 0, 600, -600, 0, -600, 0, -300 }), PathId.None, out why) == null, "a slanted wall is refused: " + why);
         Check(Expansion.Outline(none, P(new[] { 0, 0, 900, 0, 900, -900, 300, -900, 300, 300, 600, 300, 600, -600, 0, -600 }), PathId.None, out why) == null && why.Contains("cross"), "walls that cross are refused: " + why);
         Check(Expansion.Outline(none, P(new[] { 200, 100, 800, 100, 800, -600, 200, -600 }), PathId.None, out why) == null && why.Contains("Overlaps"), "an outline over the hub is refused: " + why);
@@ -1180,7 +1189,7 @@ static partial class Program
         costs.Sort();
         Console.WriteLine("  floating rooms: connector cost min " + costs[0] + ", median " + costs[costs.Count / 2] + ", max " + costs[costs.Count - 1] + " vectors over " + costs.Count + " rooms (" + noConnector + " with none)");
         Check(noConnector == 0, "every floating room can be reached by some box");
-        Check(costs[costs.Count / 2] >= 4 && costs[costs.Count - 1] <= 22, "reaching a floating room mostly takes a half-price hallway (median 4+, at most 22 vectors, median " + costs[costs.Count / 2] + ")");
+        Check(costs[costs.Count / 2] >= 4 && costs[costs.Count - 1] <= 44, "reaching a floating room mostly takes a narrow strip (median 4+, at most 44 vectors, median " + costs[costs.Count / 2] + ")");
     }
 
     // Vectors (ExpansionGame.cs, Docs/VectorBuilding.md step 1): the start, the cap, a cleared wave, every 25 kills, a boss refill, synced.

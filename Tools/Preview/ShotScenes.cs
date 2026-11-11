@@ -1279,6 +1279,7 @@ static partial class Shot {
     }
     if (Environment.GetEnvironmentVariable("EXPANDMAP") != null) {  // EXPANDMAP=<rooms bought>: the Expanding arena with that many rooms up, you in the hub, enemies spread over the rooms
       var xg = host.Game; xg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+      if (Environment.GetEnvironmentVariable("FINSTYLE") != null) Expansion.FinStyle = int.Parse(Environment.GetEnvironmentVariable("FINSTYLE"));  // FINSTYLE=<n>: a drawn room's side walls (Expansion.AddFins)
       int nb = int.Parse(Environment.GetEnvironmentVariable("EXPANDMAP"));
       for (int k = 0; k < nb; k++) { var rr = Expansion.Offers(5, 5 + 5 * k, xg.Expanded)[0]; rr.Owner = 1 + k % 2; xg.Expanded.Add(rr); }
       string xr = Environment.GetEnvironmentVariable("EXPANDROOMS");  // EXPANDROOMS=x,y,w,h;...: drawn rooms added in order (each must fit, Expansion.Custom)

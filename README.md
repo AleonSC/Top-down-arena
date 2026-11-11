@@ -809,22 +809,24 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   **Propose**) to close it. You don't have to close it yourself: **end a run of walls on another room's wall** and, if the map's
   own walls close off the space on one side, that space fills in as the room and goes to the vote (the green fill shows it; if both sides
   are closed off, the smaller one). You pay only for the walls you drew. **Right click** (or Esc, Backspace, **Undo**) takes the last corner back, and with none laid goes back;
-  with no corner laid, press, drag and let go draws a plain box. Any shape works (L, T, U, cross, zig-zag) as long as it is **3 tiles
-  wide everywhere**, at most 96 tiles of floor and 24 tiles each way, its walls don't cross, it shares 3 tiles of one wall with a room
+  with no corner laid, press, drag and let go draws a plain box. Any shape works (L, T, U, cross, zig-zag) as long as it is **2 tiles
+  wide everywhere**, at most 144 tiles of floor and 24 tiles each way, its walls don't cross, it shares 3 tiles of one wall with a room
   and overlaps nothing (a shorter touch with another room's wall is fine, it just stays wall). The map shows it green when it fits (red,
   with the reason, when not). It is built as one room, however many boxes it takes inside, and it becomes **your proposal**; a newer
   drawing replaces it. You can only propose what you can afford. A proposal costs its **new wall length**: the perimeter
   minus every wall it shares with existing rooms, so touching rooms is cheaper and a room that touches two rooms (a loop)
-  cheaper again. A shape never wider than 3 tiles counts as a hallway: half price.
-- **The draw screen's layout**: the tools down the left (**Room**, **Hallway**, **Open wall**, **Portal**, **Gate**; keys **1-5**) with a
+  cheaper again.
+- **Any size**: there are no hallways, just rooms. A dragged box can be anything from **2 to 24 tiles a side**, up to **144 tiles**
+  of floor (a 2 x 24 strip, a 12 x 12 hall, a 24 x 6 gallery), and every room pays its new wall the same way.
+- **Side walls**: every built room at least 5 tiles across grows walls out from its own outer walls, one design rolled per room
+  (the same on every machine): **Fins** (short stubs, one per ~5 tiles of wall), **Baffles** (long walls from alternate sides, a
+  zig-zag with a lane at each end), **Pincers** (a pair facing each other, leaving a 3-tile choke) or **T-fins** (stubs with a
+  crossbar: a pocket of cover each side). They stay 2 tiles off doors and corners and off the room's middle, avoid nodes, and
+  any obstacle in their way is left out. They block shots and movement like any wall.
+- **The draw screen's layout**: the tools down the left (**Room**, **Open wall**, **Portal**, **Gate**; keys **1-4**) with a
   key to what the map's colours mean under them; the map in the middle (scroll to zoom, middle drag to pan); on the right your vectors with a
   bar showing what the drawing would spend, the tool's three steps (the one you're on lit gold), what's wrong or what it costs, the room
   types (Plain plus the unlocked floors, two to a row; the picked one says what it does), and **Build**/**Undo** and **Done**.
-- **Hallways**: anything 3 tiles wide is a hallway: it costs **half** its new wall (rounded up; a 3 x 12 hallway off the hub
-  is 14) and can run up to **24 tiles**. The draw screen's **Hallway** mode lays a **bent hallway**: left click where it
-  starts, move along it (it stays 3 tiles wide) and left click to lay a leg; each next leg starts at the end of the last
-  (a corner or straight on), up to 3 legs, and the corners are open the full width. Right click undoes a leg; **Enter** or
-  **Propose hallway** puts it to the vote as one proposal (the third leg goes straight to the vote), built in one round.
 - **Room kits**: a one-use modifier the team holds (up to 6; the build chip counts them). Spend one in a building round
   (**Room kits** button on the build window): pick a kit, click a plain Combat room, and it becomes a **Shop** room or a **Floor**
   room (a path's ground and rules inside that room only, and its XP bonus). One change per room, permanent; floating rooms keep their job.
@@ -835,9 +837,9 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
 - **Who drew what**: every built room has a thin line of its drawer's colour just inside its walls, and the minimap fills it in their
   colour. While a round is open the minimap and the draw screen show everyone's proposals as pulsing ghosts in their colours.
 - **Free building (the default)**: the lobby's **Free building / Team vote** pair (Difficulty tab, shown with the Expanding arena, host only) sets how it's built.
-  With **Free building** there is no vote: a room, hallway, wall opening or portal pair is **built the moment you place it**, you pay for it (an opening pays you), and
+  With **Free building** there is no vote: a room, wall opening or portal pair is **built the moment you place it**, you pay for it (an opening pays you), and
   anyone can build as many as they can afford in a round (the round window is just the draw screen; **Done** closes it). **Mid-wave you can open doors**: press **B**
-  ("[B] Open a door" under the build chips) for the draw screen in Open wall mode; new rooms, hallways and portals wait for the next break. Doors are off while a
+  ("[B] Open a door" under the build chips) for the draw screen in Open wall mode; new rooms and portals wait for the next break. Doors are off while a
   Gatekeeper duel has its room locked. Bots still add one room a round, and only if nobody has built that round.
   The lobby's **Team purse** toggle (any building mode, off by default) lets a build spend the whole team's vectors: the builder pays first, then the richest teammates; the chip and draw screen show the team total.
   **Team vote** keeps the rules below (proposals, one build a round, nothing mid-wave) for lobbies of strangers.
@@ -849,11 +851,11 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   **Solo players skip the vote**: your proposal is built the moment you make it.
 - **Nodes and the floating Gatekeeper room**: every boss cycle the game places a **shop node**, a **vendor node** and a **chest node**: points 10 to 16
   tiles straight out from the map (at least 8 tiles from each other), marked on the arena floor, the minimap and the draw screen. A node is locked until you
-  build a **room** that encloses it (a hallway doesn't count: build a hallway out, then a room round the node); that room then becomes the shop or vendor
+  build a **room** that encloses it (any room; a long one can reach it straight off the map); that room then becomes the shop or vendor
   room, and a chest node's room stays a normal combat room with enemies. Walk up to a claimed **chest** to open it once: every player gets gold
   (40, +10 a boss cycle) and 6 vectors. No cover stands on a node. Nodes never respawn: a claimed one stays, and new ones appear around the current map.
   At most 6 wait at once. A **Gatekeeper** room is still placed each cycle as a sealed box 4 to 8 tiles off the map: share 3 tiles of wall with it and its
-  door opens (it doesn't count towards the 24-room cap and adds no enemies; at most 6 wait). Bots build a hallway and a room to nodes (not to chests' loot: they don't walk to them).
+  door opens (it doesn't count towards the 24-room cap and adds no enemies; at most 6 wait). Bots build a room (or a narrow strip, then a room) to nodes (not to chests' loot: they don't walk to them).
   (The Gatekeeper has its own room, below.)
 - **Open a wall**: on the draw screen, switch to **Open wall** and click both ends of a stretch of a wall two rooms share (the cyan stretches; the outer wall can't be
   opened, nor a sealed floating room's). It goes to the vote like a room. If it wins, that stretch of wall comes down (a short stretch is a door, a long
@@ -886,7 +888,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   player when there is one. On every other regular wave enemies simply appear at a random spot in the rooms, at least 350 px from every player. Never on a sealed room, a shop, vendor or Gatekeeper room, or on boss waves (the fixed boss arena).
 - **Obstacles**: a built room comes with obstacles and bars of wall (pillars, bars, an L, blocks: one per ~220,000 px2, up to 4),
   laid out from the room's own box so every machine builds the same ones. They keep off the room's walls, its doors and its middle,
-  so you can always walk round them; a hallway gets a pillar or block every ~500 px, alternating sides with a 180 px lane past each, none near a door or bend. A small or narrow room with doors at both ends still gets at least one
+  so you can always walk round them; a room 3 tiles wide or less gets a pillar or block every ~500 px, alternating sides with a 180 px lane past each, none near a door or bend. A small or narrow room with doors at both ends still gets at least one
   (pillar or block, closer to the walls and doors), and a 400 px deep room between two doors gets a small pillar to one side.
 - **How it plays**: regular waves use the whole map (walled, no wrapping, a minimap top right) and bring more enemies the
   bigger it is (up to 1.4 times); the map stops at 24 rooms. Boss waves are fought in the hub alone, as always.
