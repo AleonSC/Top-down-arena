@@ -66,7 +66,6 @@ namespace Arena
 
         /// Where your character stands; the dummies are straight ahead (up), Distance away.
         public static readonly V2 Home = new V2(Game.Width / 2f, Game.Height / 2f + 150f);
-        const float BoStaffDemoEvery = 5.2f, BoStaffDemoShove = 3.3f;  // the Bo Staff demo: two full chains and a third cut short by the shove
         public float Distance { get; private set; } = 250f;
 
         /// How far ahead the view should reach: the dummies' distance, growing to fit when a weapon
@@ -140,13 +139,8 @@ namespace Arena
                 float c = MathX.Clamp01((Distance / me.Stats.ShotSpeedMult - Game.ClotMin) / (Game.ClotMax - Game.ClotMin));
                 input.Fire = !Idle && MathX.Fmod(t, 1.3f) < Game.BowMinDraw + c * (Game.BowFull(me) - Game.BowMinDraw) + 0.02f;
             }
-            // The Bo Staff: fire runs the slash, jab, spin chain; every few seconds the weapon-action key shoves, partway into a chain so the
-            // reset shows (BoStaff.cs).
-            if (me.Weapon.Id == WeaponId.BoStaff)
-            {
-                float phase = MathX.Fmod(t, BoStaffDemoEvery);
-                input.WeaponAction = phase >= BoStaffDemoShove && phase - dt < BoStaffDemoShove;
-            }
+            // Weapons with an Alt press it on a loop (ShowcaseAlt.cs).
+            input.WeaponAction = !Idle && ShowcaseAlt.Held(Game, me, t, dt);
             if (demoAbility && !ultimate && ability == AbilityId.Whirlwind && castT <= 0.1f)
                 Game.ShowcaseWoundDummies();  // Misericorde needs wounded enemies to execute (Misericorde.cs); just before the cast, or your swings finish them first
             if (demoAbility)

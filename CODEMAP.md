@@ -40,6 +40,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Coins.cs`, `Game/CoinLook.cs`: gold coins dropped by kills in the Expanding arena (`Coin`, `DropCoins`, `TickCoins`, `SyncCoin`); they never despawn, magnet to the nearest living player and give that player their gold; the look spins and glints; vector pickups are coins with `Coin.Vec` (`DropVector`, rare drops that `AddVectors`)
 - `Game/VectorPickupLook.cs`: the vector pickup's look ("Drawn room": a tile whose outline draws itself, amber ring when big; mockup `Docs/Mockups/vector-pickup.html`; preview `VECPICK=1 Tools/Preview/shot.sh x hud`)
 - `Difficulty.cs`, `Modifiers.cs`, `Balance.cs`: difficulty presets, run modifiers, general balance numbers
+- `ShowcaseAlt.cs`: how the lobby loadout preview presses a weapon's Alt: one `Table` line per weapon (Bo Staff, Twin Rifle; `Tap`/`Hold` helpers, stages loaded grenades etc.)
 - `Pause.cs`, `DevTools.cs`, `Showcase.cs`: pause sync, F1 dev tools, lobby loadout preview game (with stand-in teammates for ally abilities)
 - `Tsunami.cs`: the Elementalist DPS's Tsunami: the wave, wet (slow) and lightning that arcs to every wet enemy (`WetArcs`, called from each lightning source)
 - `Nimbus.cs`, `Chalk.cs`: the Nimbus (cloud minion, rain, strikes) and Spirit Chalk (ink dots, burn/heal/bullets, loops that pen enemies in)
