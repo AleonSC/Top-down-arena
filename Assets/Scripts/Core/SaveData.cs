@@ -61,6 +61,7 @@ namespace Arena
         public int ExpandSeed, FloatCycle = -1;
         public readonly List<ExpansionRoom> Rooms = new List<ExpansionRoom>();
         public readonly List<WallCut> Cuts = new List<WallCut>();
+        public readonly List<MapNode> Nodes = new List<MapNode>();
         public readonly List<PortalLink> Portals = new List<PortalLink>();
         public readonly List<RoomToken> Kits = new List<RoomToken>();
 
@@ -112,6 +113,8 @@ namespace Arena
                     Line(sb, "portal", l.AX + " " + l.AY + " " + l.BX + " " + l.BY);
                 foreach (var k in Kits)
                     Line(sb, "kit", k.Kind + " " + k.Floor);
+                foreach (var nd in Nodes)
+                    Line(sb, "node", nd.Kind + " " + nd.X + " " + nd.Y + " " + (nd.Spent ? 1 : 0));
             }
             foreach (var s in Seats)
             {
@@ -200,6 +203,12 @@ namespace Arena
                             var p = val.Split(' ');
                             save.Rooms.Add(new ExpansionRoom { Parent = I(p[0]), X = I(p[1]), Y = I(p[2]), W = I(p[3]), H = I(p[4]), Kind = Enum<RoomKind>(p[5]), Floor = Enum<PathId>(p[6]),
                                 Price = I(p[7]), Owner = I(p[8]), Floating = I(p[9]) != 0, Leg = (byte)I(p[10]), Surprise = p.Length > 11 ? (byte)I(p[11]) : (byte)0 });
+                            break;
+                        }
+                        case "node":
+                        {
+                            var p = val.Split(' ');
+                            save.Nodes.Add(new MapNode { Kind = Enum<NodeKind>(p[0]), X = (short)I(p[1]), Y = (short)I(p[2]), Spent = p.Length > 3 && I(p[3]) != 0 });
                             break;
                         }
                         case "cut":

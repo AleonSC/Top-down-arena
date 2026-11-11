@@ -43,6 +43,41 @@ namespace Arena
             }
         }
 
+        static Rgba NodeInk(NodeKind k) => k == NodeKind.Shop ? ShopInk : k == NodeKind.Vendor ? VendorInk : CombatInk;
+
+        /// A map node (Docs/Nodes.md): a ring and a mark of what it is. Breathing in empty space until a room is built round it, then steady.
+        void DrawNodeMark(MapNode n, bool claimed)
+        {
+            var col = NodeInk(n.Kind).WithAlpha(n.Spent ? 0.25f : claimed ? 0.85f : 0.5f + 0.25f * Mathf.Sin(game.AnimT * 2.5f));
+            V2 c = n.Pos;
+            Arc(c, 36f, 3f, col, 28);
+            switch (n.Kind)
+            {
+                case NodeKind.Shop: Arc(c, 14f, 3f, col, 16); break;
+                case NodeKind.Vendor:
+                    Line(c - new V2(16f, 0f), c + new V2(16f, 0f), 4f, col);
+                    Line(c - new V2(0f, 16f), c + new V2(0f, 16f), 4f, col);
+                    break;
+                default:  // a chest: a square
+                    Line(c + new V2(-14f, -14f), c + new V2(14f, -14f), 3f, col);
+                    Line(c + new V2(14f, -14f), c + new V2(14f, 14f), 3f, col);
+                    Line(c + new V2(14f, 14f), c + new V2(-14f, 14f), 3f, col);
+                    Line(c + new V2(-14f, 14f), c + new V2(-14f, -14f), 3f, col);
+                    break;
+            }
+        }
+
+        /// Widens a map view's bounds to hold the nodes still waiting for a room.
+        void IncludeNodes(ref V2 lo, ref V2 hi)
+        {
+            foreach (var n in game.Nodes)
+                if (!Expansion.NodeClaimed(game.Expanded, n))
+                {
+                    lo = new V2(Mathf.Min(lo.X, n.X - 150f), Mathf.Min(lo.Y, n.Y - 150f));
+                    hi = new V2(Mathf.Max(hi.X, n.X + 150f), Mathf.Max(hi.Y, n.Y + 150f));
+                }
+        }
+
         void DrawRoomsFloor(Rgba grid)
         {
             bool vault = game.VaultOn;
@@ -68,6 +103,9 @@ namespace Arena
                         Line(seg[0], seg[1], 2f, oi);
                 }
             }
+            if (game.ArenaKind == ArenaLayout.Expanding)
+                foreach (var n in game.Nodes)
+                    DrawNodeMark(n, Expansion.NodeClaimed(game.Expanded, n));
             if (game.ArenaKind == ArenaLayout.Expanding)
             {
                 // The Expanding map isn't a full box: the grid runs inside each room only.
@@ -221,6 +259,7 @@ namespace Arena
             bool vault = game.VaultOn;
             var wd = game.CurrentWorld;
             V2 lo = wd.MinFor(vault), hi = wd.Max;
+            IncludeNodes(ref lo, ref hi);
             if (game.ExpandOpen)  // the open round's proposals count too
                 foreach (var q in game.ExpandProposals)
                 {
@@ -260,6 +299,11 @@ namespace Arena
                 V2 p0 = M(a.Min), p1 = M(a.Max);
                 MapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, fill);
                 RimFrame(wd, i, M, 1f, line, true);
+            }
+            foreach (var n in game.Nodes)  // the nodes: a small square, breathing until a room is built round it
+            {
+                V2 np = M(n.Pos);
+                MapRect(np.X - 4f, np.Y - 4f, 8f, 8f, NodeInk(n.Kind).WithAlpha(n.Spent ? 0.25f : Expansion.NodeClaimed(game.Expanded, n) ? 0.9f : 0.55f + 0.3f * Mathf.Sin(Time.unscaledTime * 2.5f)));
             }
             if (game.ExpandOpen)  // proposals as ghosts in their drawer's colour, pulsing
                 foreach (var q in game.ExpandProposals)

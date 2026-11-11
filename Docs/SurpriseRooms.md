@@ -1,6 +1,6 @@
 # Surprise rooms: free, well-shaped rooms the map gets after a boss or a breach event
 
-Status: **steps 1-2 built** (shapes and placement; the boss trigger, `Surprise` flag on the wire (protocol 282), gold look and chip). The breach event (step 3) is not built. Decided with the owner on Nov 11, 2026. Builds on [`VectorBuilding.md`](VectorBuilding.md)
+Status: **steps 1-2 built** (shapes and placement; the boss trigger, `Surprise` flag on the wire (protocol 283), gold look and chip). The breach event (step 3) is not built. Decided with the owner on Nov 11, 2026. Builds on [`VectorBuilding.md`](VectorBuilding.md)
 and [`RoomBuilding2.md`](RoomBuilding2.md) (breaches). Expanding arena only.
 
 ## Decisions (owner)
@@ -75,7 +75,7 @@ If nothing scores (the map is full or no spot fits), a smaller shape is tried, t
 
 One bump: the `Surprise` flag in the room list (snapshot/`ExpandState`) and the event state for the gold breach reveal.
 
-## Step 2 (built, protocol 282)
+## Step 2 (built, protocol 283)
 
 - `GiveSurpriseRoom` (`ExpansionGame.cs`) runs when a boss is cleared (`Waves.cs`, where the Classic arena offers paths), before the build round opens. The shape
   rotates: a seeded start (`expandSeed % 5`) plus the surprise rooms already built. Skipped in Practice and Boss Hunts, after the last wave, and when the map is within

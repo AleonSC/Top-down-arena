@@ -24,6 +24,19 @@ namespace Arena
         public bool Equals(PortalLink o) => AX == o.AX && AY == o.AY && BX == o.BX && BY == o.BY;
     }
 
+    /// What a map node is (Docs/Nodes.md). A node is a point in empty space; a built room that encloses it takes on its job.
+    public enum NodeKind : byte { Shop, Vendor, Chest }  // (a chest gives gold and vectors once, Docs/Nodes.md)
+
+    /// A point on the Expanding map, at the centre of a 100 px tile: locked until a built room encloses it, then a fixture of that room.
+    public struct MapNode : IEquatable<MapNode>
+    {
+        public short X, Y;
+        public NodeKind Kind;
+        public bool Spent;   // a chest that has been opened
+        public bool Equals(MapNode o) => X == o.X && Y == o.Y && Kind == o.Kind && Spent == o.Spent;
+        public V2 Pos => new V2(X, Y);
+    }
+
     /// One bought room: a box attached to its parent room (area index; 0 is the hub) with a door on their shared wall.
     /// Stored as the resolved box, so rebuilding the map needs no random numbers: the map is the hub plus this list.
     public struct ExpansionRoom
@@ -303,6 +316,132 @@ namespace Arena
                 if (rooms[i].Floating && !linked[i + 1])
                     n++;
             return n;
+        }
+
+        // --- Map nodes (Docs/Nodes.md): shop and vendor points out in empty space, claimed by building a room around them ---
+
+        public const int NodeMin = 1000, NodeMax = 1600;  // a node sits this far (10 to 16 tiles) from the room it was placed off
+        public const int NodeClear = 90;                  // cover keeps this far off a node
+        public const int NodeApart = 800;                 // and at least this far from every other node
+        public const int MaxNodesWaiting = 6;             // unclaimed nodes on the map at once
+
+        public static bool NodeInside(MapNode n, int x0, int y0, int x1, int y1) => n.X > x0 && n.X < x1 && n.Y > y0 && n.Y < y1;
+
+        /// Can this built room claim a node round it: a real room, not a hallway (a drawn outline's pieces count; a bent hallway's legs don't)?
+        public static bool NodeEncloses(ExpansionRoom r, MapNode n)
+            => !r.Floating && (Math.Min(r.W, r.H) > MinSide || r.Leg >= PieceBase) && NodeInside(n, r.X, r.Y, r.X1, r.Y1);
+
+        /// A built room encloses this node.
+        public static bool NodeClaimed(IList<ExpansionRoom> built, MapNode n)
+        {
+            foreach (var r in built)
+                if (NodeEncloses(r, n))
+                    return true;
+            return false;
+        }
+
+        public static int UnclaimedCount(IList<ExpansionRoom> built, IList<MapNode> nodes)
+        {
+            int n = 0;
+            foreach (var nd in nodes)
+                if (!NodeClaimed(built, nd))
+                    n++;
+            return n;
+        }
+
+        /// The next box on the way to claiming a node (a bot builds it): a 5 x 5 tile room round the node reaching back to a connected room's wall
+        /// if it can, else the straight hallway out from that wall to where that room would start. Null if neither fits. Price is filled in.
+        public static ExpansionRoom? NodeStep(IList<ExpansionRoom> built, MapNode n)
+        {
+            var linked = ConnectedAreas(built);
+            ExpansionRoom? best = null;
+            int bestKey = int.MaxValue;
+            for (int a = 0; a <= built.Count; a++)
+            {
+                if (!linked[a])
+                    continue;
+                BoxOf(built, a, out int bx0, out int by0, out int bx1, out int by1);
+                for (int side = 0; side < 4; side++)
+                {
+                    int rx, ry, rw, rh, hx, hy, hw, hh;
+                    switch (side)
+                    {
+                        case 0: if (n.Y + 250 > by0) continue; rx = n.X - 250; ry = n.Y - 250; rw = 500; rh = by0 - ry; hx = n.X - 150; hy = n.Y + 250; hw = 300; hh = by0 - hy; break;
+                        case 1: if (n.Y - 250 < by1) continue; rx = n.X - 250; ry = by1; rw = 500; rh = n.Y + 250 - by1; hx = n.X - 150; hy = by1; hw = 300; hh = n.Y - 250 - by1; break;
+                        case 2: if (n.X + 250 > bx0) continue; rx = n.X - 250; ry = n.Y - 250; rw = bx0 - rx; rh = 500; hx = n.X + 250; hy = n.Y - 150; hw = bx0 - hx; hh = 300; break;
+                        default: if (n.X - 250 < bx1) continue; rx = bx1; ry = n.Y - 250; rw = n.X + 250 - bx1; rh = 500; hx = bx1; hy = n.Y - 150; hw = n.X - 250 - bx1; hh = 300; break;
+                    }
+                    var room = Custom(built, rx, ry, rw, rh, out _);
+                    if (room.HasValue && NodeEncloses(room.Value, n) && room.Value.Price < bestKey)
+                    {
+                        bestKey = room.Value.Price;
+                        best = room;
+                        continue;
+                    }
+                    var hall = hw > 0 && hh > 0 && Math.Min(hw, hh) >= MinSide ? Custom(built, hx, hy, hw, hh, out _) : null;
+                    if (hall.HasValue && 100000 + hall.Value.Price < bestKey)
+                    {
+                        bestKey = 100000 + hall.Value.Price;
+                        best = hall;
+                    }
+                }
+            }
+            return best;
+        }
+
+        /// Could the team claim this node by building NodeStep after NodeStep (at most four boxes)?
+        public static bool NodeReachable(IList<ExpansionRoom> built, MapNode n)
+        {
+            var plan = new List<ExpansionRoom>(built);
+            for (int i = 0; i < 4; i++)
+            {
+                if (NodeClaimed(plan, n))
+                    return true;
+                var step = NodeStep(plan, n);
+                if (!step.HasValue)
+                    return false;
+                plan.Add(step.Value);
+            }
+            return NodeClaimed(plan, n);
+        }
+
+        /// A new node for this boss cycle: 10 to 16 tiles straight out from a room on the connected map (so a hallway and a room can reach it), clear of every
+        /// room and at least 8 tiles from every other node, inside the size cap. The same on every machine for the same seed, cycle and map.
+        /// Null if nothing fits.
+        public static MapNode? NodeFor(int seed, int cycle, IList<ExpansionRoom> built, IList<MapNode> nodes, NodeKind kind)
+        {
+            var rng = new DetRandom(seed * 7919 + cycle * 3571 + (int)kind * 211 + 5);
+            var linked = ConnectedAreas(built);
+            for (int attempt = 0; attempt < 160; attempt++)
+            {
+                int a = rng.Int(built.Count + 1);
+                if (!linked[a])
+                    continue;
+                BoxOf(built, a, out int bx0, out int by0, out int bx1, out int by1);
+                int side = rng.Int(4), gap = NodeMin + rng.Int((NodeMax - NodeMin) / Step + 1) * Step, x, y;
+                if (side == 0 || side == 2)
+                {
+                    x = bx0 + 150 + rng.Int((bx1 - bx0 - 300) / Step + 1) * Step;
+                    y = side == 0 ? by0 - gap - 50 : by1 + gap + 50;
+                }
+                else
+                {
+                    y = by0 + 150 + rng.Int((by1 - by0 - 300) / Step + 1) * Step;
+                    x = side == 1 ? bx1 + gap + 50 : bx0 - gap - 50;
+                }
+                var n = new MapNode { X = (short)x, Y = (short)y, Kind = kind };
+                bool ok = true;
+                foreach (var o in nodes)
+                    ok &= new V2(o.X - x, o.Y - y).Length >= NodeApart;
+                for (int i = 0; i <= built.Count && ok; i++)
+                {
+                    BoxOf(built, i, out int cx0, out int cy0, out int cx1, out int cy1);
+                    ok = !Overlaps(x - 250, y - 250, x + 250, y + 250, cx0, cy0, cx1, cy1);  // (two tiles clear of every room)
+                }
+                if (ok && NodeReachable(built, n))
+                    return n;  // (it can be built to: a hallway out and a room round it fit)
+            }
+            return null;
         }
 
         public const int MaxSealed = 6;  // floating rooms waiting to be connected at once
@@ -1277,7 +1416,7 @@ namespace Arena
 
         /// The World for the hub plus these rooms. With no rooms it is the hub alone, walled in (the Single world has no walls).
         /// Rooms sharing a stretch of wall of at least MinDoorRun have a door there (the parent's, and loops).
-        public static World Build(IList<ExpansionRoom> rooms, IList<WallCut> cuts = null, IList<PortalLink> links = null)
+        public static World Build(IList<ExpansionRoom> rooms, IList<WallCut> cuts = null, IList<PortalLink> links = null, IList<MapNode> nodes = null)
         {
             int n = rooms.Count + 1;
             var areas = new RoomArea[n];
@@ -1381,6 +1520,24 @@ namespace Arena
                         open |= d.Joins(a);
                     areas[a].Sealed = !open;
                 }
+            if (nodes != null)  // a built room that encloses a shop or vendor node takes on its job (Docs/Nodes.md); a multi-box room all of it
+                foreach (var nd in nodes)
+                {
+                    var job = nd.Kind == NodeKind.Shop ? RoomKind.Shop : nd.Kind == NodeKind.Vendor ? RoomKind.Vendor : RoomKind.Combat;
+                    if (job == RoomKind.Combat)
+                        continue;
+                    for (int a = 1; a < n; a++)
+                        if (areas[a].Kind == RoomKind.Combat && NodeEncloses(rooms[a - 1], nd))
+                        {
+                            for (int b = 1; b < n; b++)
+                                if (b == a || areas[a].Group != 0 && areas[b].Group == areas[a].Group && areas[b].Kind == RoomKind.Combat)
+                                {
+                                    areas[b].Kind = job;
+                                    areas[b].Name += job == RoomKind.Shop ? " (shop)" : " (vendor)";
+                                }
+                            break;
+                        }
+                }
             var cover = new List<Solid>();
             for (int a = 1; a < n; a++)
             {
@@ -1393,6 +1550,14 @@ namespace Arena
                     continue;  // (a sliver of a drawn outline: no cover in it)
                 AddCover(cover, cr, doorSpots);
             }
+            if (nodes != null && nodes.Count > 0)  // no cover on a node: it is a fixture of its room
+                cover.RemoveAll(c =>
+                {
+                    foreach (var nd in nodes)
+                        if (Math.Abs(c.Pos.X - nd.X) < c.HW + c.R + NodeClear && Math.Abs(c.Pos.Y - nd.Y) < c.HH + c.R + NodeClear)
+                            return true;
+                    return false;
+                });
             var portals = new WorldPortal[links == null ? 0 : links.Count];  // bought portal pairs (Docs/RoomBuilding2.md step 2)
             for (int i = 0; i < portals.Length; i++)
                 portals[i] = PortalOf(areas, links[i]);
