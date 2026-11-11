@@ -362,6 +362,17 @@ namespace Arena
                 MapRect(c.X - 4f, c.Y - 4f, 8f, 8f, new Rgba(0.02f, 0.03f, 0.06f, 0.9f));
                 MapRect(c.X - 3f, c.Y - 3f, 6f, 6f, new Rgba(1f, 0.82f, 0.3f));
             }
+            foreach (var co in game.Coins.Values)  // gold coins: a small gold dot (5-gold coins a bit bigger); vector pickups stay off
+            {
+                if (co.Vec)
+                    continue;
+                V2 c = M(co.Disp);
+                if (!InMap(c))
+                    continue;
+                float s = co.Value >= 5 ? 2.5f : 1.5f;
+                MapRect(c.X - s - 0.5f, c.Y - s - 0.5f, 2f * s + 1f, 2f * s + 1f, new Rgba(0.02f, 0.03f, 0.06f, 0.8f));
+                MapRect(c.X - s, c.Y - s, 2f * s, 2f * s, new Rgba(1f, 0.82f, 0.3f));
+            }
             foreach (var p in game.Players.Values)
             {
                 V2 c = M(p.Disp);
