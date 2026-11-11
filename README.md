@@ -795,7 +795,7 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   stacks to 4) and the milestone card **Architect** (+40 and 20 vectors now, stacks to 3). The **vendor** also sells a **Vector pack**: +20 vectors for 50 gold, as
   many as you can afford, and it can take you past the cap.
 - **Building rounds**: every cleared wave opens a round (a chip "Build rooms" under the wave plate; the countdown never waits
-  for it). Open it and **draw a room by its walls**: **left click** corners on the zoomed-out map's grid and a wall runs from each
+  for it). Open it and **draw a room by its walls** (zoom the map with the **mouse wheel**, **+ / -** or the buttons under it, pan with the **middle mouse**, **FIT** resets): **left click** corners on the zoomed-out map's grid and a wall runs from each
   to the next, straight across or straight up (a slanted click makes an L); **click the first corner again** (or press **Enter**, or
   **Propose**) to close it. You don't have to close it yourself: **end a run of walls on another room's wall** and, if the map's
   own walls close off the space on one side, that space fills in as the room and goes to the vote (the green fill shows it; if both sides
