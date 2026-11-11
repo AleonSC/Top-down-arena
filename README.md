@@ -814,6 +814,10 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   drawing replaces it. You can only propose what you can afford. A proposal costs its **new wall length**: the perimeter
   minus every wall it shares with existing rooms, so touching rooms is cheaper and a room that touches two rooms (a loop)
   cheaper again. A shape never wider than 3 tiles counts as a hallway: half price.
+- **The draw screen's layout**: the tools down the left (**Room**, **Hallway**, **Open wall**, **Portal**, **Gate**; keys **1-5**) with a
+  key to what the map's colours mean under them; the map in the middle (scroll to zoom, middle drag to pan); on the right your vectors with a
+  bar showing what the drawing would spend, the tool's three steps (the one you're on lit gold), what's wrong or what it costs, the room
+  types (Plain plus the unlocked floors, two to a row; the picked one says what it does), and **Build**/**Undo** and **Done**.
 - **Hallways**: anything 3 tiles wide is a hallway: it costs **half** its new wall (rounded up; a 3 x 12 hallway off the hub
   is 14) and can run up to **24 tiles**. The draw screen's **Hallway** mode lays a **bent hallway**: left click where it
   starts, move along it (it stays 3 tiles wide) and left click to lay a leg; each next leg starts at the end of the last
