@@ -267,15 +267,12 @@ static partial class Program
         Run(s, dt, 3f, () => g.ExpandProposals.Count == 1 && g.ExpandProposals[0].X == b1[0] && cg.ExpandProposals.Count == 1 && cg.ExpandProposals[0].X == b1[0]);
         Check(g.ExpandProposals.Count == 1 && g.ExpandProposals[0].X == b1[0] && g.ExpandProposals[0].Y == b1[1], "a newer drawing replaces the drawer's last one");
 
-        // The vote: the host backs the client's room; everyone has voted, so it is built and paid for by its drawer.
+        // The vote: the host backs the client's room; with the drawer backing their own that's a majority, so it is built at once and paid for by its drawer.
         int cost = g.ExpandProposals[0].Price, clientBefore = g.Players[2].Vectors, hostBefore = g.Players[1].Vectors;
         g.CastExpandVote(2);
-        Run(s, dt, 0.5f);
-        Check(g.ExpandOpen, "one cast vote of two doesn't settle the round");
-        cg.CastExpandVote(2);
         Run(s, dt, 3f, () => !g.ExpandOpen && !cg.ExpandOpen && cg.Expanded.Count == 1 && cg.Players[2].Vectors == g.Players[2].Vectors);
         Check(g.Expanded.Count == 1 && g.Expanded[0].X == b1[0] && g.Expanded[0].Owner == 2 && g.Players[2].Vectors == clientBefore - cost && g.Players[1].Vectors == hostBefore && cg.Players[2].Vectors == g.Players[2].Vectors && cg.Expanded.Count == 1 && cg.Expanded[0].Equals(g.Expanded[0]),
-            "everyone voting settles the round: the room is built, its drawer pays " + cost + " vectors, nobody else does, both screens agree");
+            "a deciding vote settles the round at once: the room is built, its drawer pays " + cost + " vectors, nobody else does, both screens agree");
 
         // The room comes up on the next regular wave, with its walls and a bigger crowd; boss waves stay in the middle.
         pickRooms.Invoke(g, null);

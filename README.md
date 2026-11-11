@@ -845,7 +845,8 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   The lobby's **Team purse** toggle (any building mode, off by default) lets a build spend the whole team's vectors: the builder pays first, then the richest teammates; the chip and draw screen show the team total.
   **Team vote** keeps the rules below (proposals, one build a round, nothing mid-wave) for lobbies of strangers.
 - **The vote** (Team vote only): each player backs one proposal or "No room". Drawing a room doesn't cast your vote: until you click a card your
-  own proposal counts for you (the round never ends just because the last player drew). When everyone has clicked a vote, or the
+  own proposal counts for you (the round never ends just because the last player drew). **The moment one choice is backed by more than
+  half the team its room is built** (no waiting for the wave). Otherwise, when everyone has clicked a vote, or the
   next wave starts, **the most votes wins, a tie (a 50/50) is a random pick** (with "No room" as one of the
   tied options), and the winning drawer pays; nobody else does. One room is built a round, with a door to every room it
   shares a door's width of wall with (loops). Paths are off in this arena.

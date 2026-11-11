@@ -827,7 +827,8 @@ namespace Arena
             FinishOrBroadcast();
         }
 
-        /// Host: once everyone has cast a vote the round is settled; until then everyone is told how it stands.
+        /// Host: the round is settled the moment a vote decides it (a choice backed by more than half the team, a drawer who
+        /// hasn't voted backing their own) or once everyone has cast a vote; until then everyone is told how it stands.
         void FinishOrBroadcast()
         {
             bool all = true;
@@ -838,10 +839,34 @@ namespace Arena
                     ExpandVotes[pid] = pid;
                 all &= ExpandVotes.ContainsKey(pid);
             }
-            if (all)
+            if (all || HasMajority())
                 ResolveBuildRound();
             else
                 BroadcastExpansion();
+        }
+
+        /// True when one choice (a standing proposal or "no room") is backed by more than half the players: no later vote can change it.
+        bool HasMajority()
+        {
+            var tally = new Dictionary<int, int>();
+            foreach (int pid in Players.Keys)
+            {
+                int choice = EffectiveVote(pid);
+                if (choice < 0)
+                    continue;
+                if (choice != 0)
+                {
+                    var q = ProposalOf(choice);
+                    if (!q.HasValue || !Players.ContainsKey(choice) || SpendableVectors(Players[choice]) < q.Value.Price)
+                        continue;
+                }
+                int n;
+                tally.TryGetValue(choice, out n);
+                tally[choice] = ++n;
+                if (n * 2 > Players.Count)
+                    return true;
+            }
+            return false;
         }
 
         /// Host, free building: a drawing is built the moment it's valid, its drawer pays (an opening pays them), everyone is told.
