@@ -339,6 +339,7 @@ static partial class Program
         Test("longrun", "the 100-wave Campaign: two legs a track wave, the boss after every tenth, half XP, saves and continuing, the party's level at the first boss", () => LongRunTest(Dt), () => LongRunPaceTest(Dt)),
         Test("wardencycle", "the Campaign's Warden cycle: one lesson a wave (Rioters, guards, shields, gas, tasers, squads, the Riot line) (one guaranteed star enemy each)", () => WardenCycleTest(Dt)),
         Test("checkpoints", "checkpoints and lives: a boss leaves a checkpoint, a wipe with a life left retries from it (score cut), Play again or no lives end the run", () => CheckpointsTest(Dt)),
+        Test("coredrops", "weapon variants: what runs and hunts pay in Cores, the glowing Core Carrier", () => CoreDropsTest(Dt)),
         Test("saves", "saved runs (continuing them, in co-op) and the profile", () => SavesTest(Dt), () => ProfileTest(Dt)),
         Test("colossus", "the Colossus's three stages, stomp rings, plates and last stand", () => ColossusTest(Dt)),
         Test("bosssound", "boss sound cues", () => BossSoundTest(Dt)),

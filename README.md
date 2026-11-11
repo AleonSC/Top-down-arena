@@ -1267,6 +1267,14 @@ plays a 0.85 s grow: the loadout's preview window stretches into the room (it ju
 
 **Abilities** (PvP on only; **Space** or **right click**, one per role, like the very first build): a **DPS** has **Dash** (a quick 240 px lunge the way you walk, or the way you face when standing still; 2.5 s cooldown). A **Tank** has **Barrier** (a 360 degree bubble around you that deletes every other player's shots for 4 s; 10 s cooldown; your own shots pass out). A **Healer** has **Burst heal** (heals everyone within 230 px, you included, for 60 health and **revives anyone knocked out at once** with 60; 8 s cooldown). Your ability and its cooldown show under the PvP box. Turning PvP off drops a barrier.
 
+## Weapon variants
+
+Each weapon has **2 variant tiers** (lobby: the button on the right of a weapon key, "Variants n/2"), bought with **Cores**, an account
+currency saved in your profile. Tier I costs 10 Cores, tier II 20. The tier effects are not built yet.
+Earning Cores: a won or lost **Campaign** pays 1 per boss defeated and 5 for the win (a full 100-wave win: 15); a won **Boss Hunt** pays 5;
+Endless pays none. **Core Carriers** are the surprise: from wave 3, a regular enemy now and then spawns with a pulsing gold halo (one at a
+time, at most 6 a run); killing it adds 1-3 Cores to the run's total, paid when the run ends and shown on the results. Design: [`Docs/Variants.md`](Docs/Variants.md).
+
 ## Rank
 
 **Lobby profiles:** click your party card's portrait (or the card, if you are not the host) to open your profile; click a teammate's card to see their holo card, large: their frame, card background, name effect and trail, rank badge, XP, kills, best wave, bosses and what they have equipped. Esc, the close key or a click outside closes it.

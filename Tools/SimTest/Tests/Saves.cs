@@ -295,6 +295,7 @@ static partial class Program
             Run(s, dt, 3f, () => cp.Beaten(EnemyType.Boss) > 0, () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; });
             Console.WriteLine("  profiles: runs started host {0} client {1}; the Warden beaten host {2} client {3}; best wave {4}/{5}", hp.RunsStarted, cp.RunsStarted, hp.Beaten(EnemyType.Boss), cp.Beaten(EnemyType.Boss), hp.BestWave, cp.BestWave);
             Check(hp.RunsStarted == 1 && cp.RunsStarted == 1 && hp.Beaten(EnemyType.Boss) == 1 && cp.Beaten(EnemyType.Boss) == 1 && cp.BestWave == 5, "every player's profile counts the run and the boss");
+            g.CoresFound = 4;  // (as if a Core Carrier dropped them)
             foreach (var p in g.Players.Values) { p.Downed = true; p.ReviveToken = false; }
             typeof(Game).GetMethod("CheckGameOver", flags).Invoke(g, null);
             Run(s, dt, 1f, () => cp.RunsLost > 0);
@@ -302,6 +303,8 @@ static partial class Program
                 hp.RunsLost, cp.RunsLost, string.Join(",", cp.RunsAs.Keys), hp.IsUnlocked("test-loss"), cp.IsUnlocked("test-loss"), client.Game.UnlockToasts.Count);
             Check(hp.RunsLost == 1 && cp.RunsLost == 1 && cp.RunsAs.ContainsKey(Profile.ClassKey(Role.Dps, Kit.Soldier)), "the run's end counts for every player, as the class they played");
             Check(hp.IsUnlocked("test-loss") && cp.IsUnlocked("test-loss") && client.Game.UnlockToasts.Any(t => t.Unlock.Id == "test-loss"), "an unlock's condition met: it's earned, with a toast");
+            Console.WriteLine("  cores host {0} client {1} found {2}", hp.Cores, cp.Cores, client.Game.LastGain == null ? -1 : client.Game.LastGain.CoresFound);
+            Check(hp.Cores >= 4 && hp.Cores == cp.Cores && client.Game.LastGain != null && client.Game.LastGain.CoresFound == 4, "a run's Cores (payout and drops found) go to every player's profile and the results");
             host.Leave(""); client.Leave("");
 
             // A run with dev tools used, or the bot playing, doesn't count.

@@ -96,6 +96,7 @@ namespace Arena
         public readonly Dictionary<string, int> VariantTiers = new Dictionary<string, int>();
         public int VariantTier(string weapon) => weapon != null && VariantTiers.TryGetValue(weapon, out int t) ? t : 0;
         /// Buys the weapon's next variant tier if there is one and the Cores cover it. True when bought.
+        public void AddCores(int n) { if (n > 0) Cores = (int)Math.Min(int.MaxValue, (long)Cores + n); }
         public bool BuyVariant(string weapon)
         {
             int t = VariantTier(weapon), cost = Variants.Cost(t);
