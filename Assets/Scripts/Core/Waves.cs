@@ -120,7 +120,10 @@ namespace Arena
                             CapSentries();  // at most 3 Beam Sentries (Variety.cs)
                             WaveProps();  // crates, pots, barrels and now and then a chest (Props.cs)
                             bossName = BossNow ? Defs.Get(BossAt(Wave)).Name : null;
+                            BeginTimedWave();  // the wave's enemies arrive over a window (TimedWaves.cs)
                         }
+                        if (Practice != null)
+                            timedWave = false;
                         ModsWaveStart();  // Hunted's quarry, Second Wind back each boss cycle (Modifiers.cs)
                         MarkWaveStart();  // the wave's numbers start from here (WaveReady.cs)
                         Recorder?.WaveStart(this, Wave, bossName);
@@ -135,6 +138,10 @@ namespace Arena
                     TickRoomsWave(dt);  // the Rooms arena's nests, spills and cleared rooms (Rooms.cs)
                     if ((spawnQueue.Count > 0 || squadQueue.Count > 0) && RoomsOn && Rooms.RoomByRoom && !RoomsSpawnReady())
                         spawnTimer = Math.Max(spawnTimer, 0.3f);  // every room full (or every nest down: the rest is called off)
+                    else if ((spawnQueue.Count > 0 || squadQueue.Count > 0) && TickTimedSpawn(dt))
+                    {
+                        // (a timed wave: TimedWaves.cs)
+                    }
                     else if (spawnQueue.Count > 0 || squadQueue.Count > 0)
                     {
                         spawnTimer -= dt;
