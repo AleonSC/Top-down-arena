@@ -7,6 +7,8 @@ camera/minimap/spawn work all stay.
 
 **Update (Nov 11, 2026):** rooms are now drawn by their corners (walls between clicked grid points, any 3-tile-wide rectilinear shape; `Expansion.Outline`, protocol 274) instead of as boxes, and every vector number is doubled (start 50, cap 70, +8 a wave, +1 per 8 kills, boss +20, Deep Inkwell +20, Architect +40/+20, Vector pack +20). Numbers below are the originals.
 
+**Update (Nov 11, 2026):** a rare **vector pickup** drops from kills (normal 1 in 60 for +6, elite 1 in 8 and boss always for +12; `Coins.cs`, protocol 281). It waits while your stock is full.
+
 ## The idea
 
 Every player holds a stock of **vectors**. **Every round, between waves, any player can draw a room or hallway and put it to

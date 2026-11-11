@@ -528,6 +528,25 @@ static partial class Program
         PutBoth(hubAt, shopAt + new V2(45f, 0f));
         Run(s, dt, 2f, () => g.Coins.Count == 0);
         Check(g.Coins.Count == 0 && g.Players[2].Gold == coinGold && g.Players[1].Gold == 0, "the player who walks over the coins gets their gold (" + g.Players[2].Pos.DistanceTo(shopAt) + " away, " + g.Players[1].Gold + "/" + g.Players[2].Gold + "/" + coinGold + ")");
+        // Vector pickups (Coins.cs, Docs/VectorBuilding.md): the rare drop adds vectors to whoever walks over it, waits while their stock is full, and shows on both screens.
+        var vp = g.Players[2];
+        int vpWas = vp.Vectors, p1Was = g.Players[1].Vectors;
+        vp.Vectors = 10;
+        g.Coins.Clear();
+        g.Coins[9001] = new Coin { Id = 9001, Vec = true, Value = Game.VectorDropSmall, Pos = vp.Pos, Disp = vp.Pos };
+        Run(s, dt, 0.2f);
+        Check(cg.Coins.Values.Any(c => c.Vec && c.Value == Game.VectorDropSmall) || g.Coins.Count == 0, "a vector pickup reaches the other screen with its flag");
+        Run(s, dt, 2f, () => g.Coins.Count == 0);
+        Check(g.Coins.Count == 0 && vp.Vectors == 10 + Game.VectorDropSmall && g.Players[1].Vectors == p1Was, "walking over a vector pickup adds its vectors to that player only (" + vp.Vectors + ")");
+        vp.Vectors = vp.VectorCap;
+        g.Coins[9002] = new Coin { Id = 9002, Vec = true, Value = Game.VectorDropBig, Pos = vp.Pos, Disp = vp.Pos };
+        Run(s, dt, 1f);
+        Check(g.Coins.ContainsKey(9002) && vp.Vectors == vp.VectorCap, "a vector pickup waits while the stock is full");
+        vp.Vectors = vp.VectorCap - 5;
+        Run(s, dt, 1f, () => g.Coins.Count == 0);
+        Check(g.Coins.Count == 0 && vp.Vectors == vp.VectorCap, "and is taken once there is room, never past the cap");
+        g.Coins.Clear();
+        vp.Vectors = vpWas;
         PutBoth(hubAt, hubAt);
         Quiet();
         Run(s, dt, 30f, () => g.State == MatchState.Intermission, NoPicks);

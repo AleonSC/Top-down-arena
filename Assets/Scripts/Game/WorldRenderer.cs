@@ -221,7 +221,12 @@ namespace Arena
             foreach (var o in game.Orbs.Values)
                 DrawOrb(o, t);
             foreach (var c in game.Coins.Values)
-                DrawCoin(c, t);  // CoinLook.cs
+            {
+                if (c.Vec)
+                    DrawVectorPickup(c, t);  // VectorPickupLook.cs
+                else
+                    DrawCoin(c, t);  // CoinLook.cs
+            }
             DrawReaperTether(t);
             DrawSingularityHazards(t);
             DrawHeraldHazards(t);  // rods, arcs, the Conductor and the spokes (HeraldLook.cs)
