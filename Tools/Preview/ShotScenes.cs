@@ -1276,6 +1276,10 @@ static partial class Shot {
         xg.ExpandOpen = true; int pi = 0;
         foreach (var pl in xg.Players.Values) { var pr = Expansion.Offers(9, 20 + pi, xg.Expanded); if (pr.Count > pi) { var q = pr[pi]; q.Owner = pl.Id; xg.ExpandProposals.Add(q); } pi++; }
       }
+      string xnode = Environment.GetEnvironmentVariable("EXPANDNODE");  // EXPANDNODE=kind:x,y[:spent];...: nodes at world points (kind shop|vendor|chest), e.g. inside an EXPANDROOMS room
+      if (xnode != null) foreach (var part in xnode.Split(';')) { var np = part.Split(':'); var nc = Array.ConvertAll(np[1].Split(','), int.Parse); xg.Nodes.Add(new MapNode { Kind = (NodeKind)Enum.Parse(typeof(NodeKind), np[0], true), X = (short)nc[0], Y = (short)nc[1], Spent = np.Length > 2 }); }
+      string xat = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: every player stands there
+      if (xat != null) { var xa = Array.ConvertAll(xat.Split(','), int.Parse); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(xa[0], xa[1]); }
       xg.RoomsUp = true; xg.LayoutAge = 5f;
       if (Environment.GetEnvironmentVariable("EXPANDFLOAT") != null && xg.Nodes.Count == 0) { var gk = Expansion.FloatingFor(3, 2, xg.Expanded, RoomKind.Gatekeeper); if (gk.HasValue) xg.Expanded.Add(gk.Value); foreach (var nk in new[] { NodeKind.Shop, NodeKind.Vendor, NodeKind.Chest }) { var nn = Expansion.NodeFor(3, 0, xg.Expanded, xg.Nodes, nk); if (nn.HasValue) xg.Nodes.Add(nn.Value); } if (Environment.GetEnvironmentVariable("EXPANDFLOAT") == "2" && xg.Nodes.Count > 0) { for (int stp = 0; stp < 3 && !Expansion.NodeClaimed(xg.Expanded, xg.Nodes[0]); stp++) { var hh = Expansion.NodeStep(xg.Expanded, xg.Nodes[0]); if (!hh.HasValue) break; var h2 = hh.Value; h2.Owner = 1; xg.Expanded.Add(h2); } } }  // EXPANDFLOAT=1: a floating Gatekeeper room and a shop and a vendor node off the map; =2 also builds a hallway and a room round the shop node=1: a floating shop, vendor and Gatekeeper room off the map
 
