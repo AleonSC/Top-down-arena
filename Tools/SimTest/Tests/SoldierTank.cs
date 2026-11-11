@@ -49,32 +49,30 @@ static partial class Program
         queue.Clear(); g.Enemies.Clear(); g.Bullets.Clear();
 
         // --- Double Barrel
-        Step(0.3f, false, true);
-        Check(me.ScatShells == 0 && g.Bullets.Count == 0, "Alt does nothing with no shells loaded");
-        var dummy = Dummy(foePos);
-        Step(5f, true, false);
-        Console.WriteLine("  double barrel: after 5 s point-blank, {0} shells, charge {1}", me.ScatShells, me.ScatCharge);
-        Check(me.ScatShells == Game.ScatShellMax, "point-blank hits load two shells");
-        Step(0.5f, false, false);
-        Check(client.Game.Players[1].ScatShells == 2, "the other screen sees both shells");
-        foePos = from + new V2(0f, 400f);  // out of the way, so no pellet is used up before they're counted
+        Check(me.ScatShells == Game.ScatShellMax, "the Scattergun starts with all its shells");
+        foePos = from + new V2(0f, 400f);
         g.Bullets.Clear();
         hold = false;
+        me.Pos = from;
         float x0 = me.Pos.X;
         Step(dt * 2f, false, true);
         int pellets = g.Bullets.Values.Count(b => b.Kind == Defs.TankShot && b.Owner == 1);
         Step(0.3f, false, false);
         Console.WriteLine("  double barrel: {0} pellets, kicked back {1:0} px", pellets, x0 - me.Pos.X);
-        Check(pellets == Game.ScatDumpPellets * 2, "both shells go at once (" + pellets + " pellets)");
-        Check(me.ScatShells == 0, "the shells are spent");
-        Check(x0 - me.Pos.X > Game.ScatKick * 1.5f, "the recoil kicks you back for each shell");
-        hold = true;
-        foePos = aimAt;
-        Step(2f, true, false);
-        Check(me.ScatShells >= 1, "the shells load again");
+        Check(pellets == Game.ScatDumpPellets, "one shell a press (" + pellets + " pellets)");
+        Check(me.ScatShells == Game.ScatShellMax - 1, "one shell is spent");
+        Check(x0 - me.Pos.X > Game.ScatKick * 0.8f, "the recoil kicks you back");
+        Check(client.Game.Players[1].ScatShells == Game.ScatShellMax - 1, "the other screen sees it");
+        Step(Game.ScatRegen + 0.2f, false, false);
+        Check(me.ScatShells == Game.ScatShellMax, "a shell loads back over time");
+        me.ScatShells = 0;
+        Step(0.3f, false, true);
+        Check(g.Bullets.Values.Count(b => b.Kind == Defs.TankShot && b.Owner == 1) == 0, "Alt does nothing with no shells loaded");
         me.Weapon = Defs.Weapon(Role.Tank, Kit.Soldier, 1);
         Step(0.1f, false, false);
-        Check(me.ScatShells == 0 && me.ScatCharge == 0, "putting the Scattergun away empties the shells");
+        Check(me.ScatShells == Game.ScatShellMax, "putting the Scattergun away refills it");
+
+        var dummy = Dummy(foePos);
 
         // --- Proximity Shell
         Check(me.Weapon.Id == WeaponId.FlakCannon, "the second weapon is the Flak Cannon");

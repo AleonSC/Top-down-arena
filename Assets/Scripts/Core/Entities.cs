@@ -272,8 +272,8 @@ namespace Arena
         public byte TwinNext;        // Twin Rifle: the tube the weapon-action key fires next, 0 left, 1 right (replicated)
         public byte TwinCharge;      // Twin Rifle: hits toward the next grenade, 0 to TwinNadeHits (replicated)
         public float TwinNadeCd;     // host: the tubes can't fire again for this long
-        public byte ScatShells;      // Scattergun: Double Barrel shells loaded, 0 to 2 (replicated; TankAlts.cs)
-        public byte ScatCharge;      // Scattergun: point-blank hits toward the next shell (replicated)
+        public byte ScatShells;      // Scattergun: Double Barrel shells loaded, 0 to 8, refilling over time (replicated; TankAlts.cs)
+        public byte ScatCharge;      // Scattergun: percent toward the next shell (replicated)
         public float ScatCd, MineCd, GasCd;  // host: the Tank Soldier's Alt fires cool down (TankAlts.cs)
                 public byte RepelMeter;      // Repulsion Cannon: the Undertow meter, 0 to 100, filled by blasts that hit (replicated; Repulsion.cs)
         public float RepelMeterF;    // host: the exact meter
@@ -526,7 +526,6 @@ namespace Arena
         public int Shooter;       // host only: the enemy that fired it, when known (0: not known); the Juggernaut Suit's flak goes back at it
         public bool FromWeapon;   // host only: fired by the player's gun (for accuracy)
         public float Splash;      // host only: explosion radius on impact
-        public bool Dumped;       // host only: a Double Barrel pellet (it doesn't load shells; TankAlts.cs)
         public bool PointBlank;   // host only: a Scattergun pellet (double damage and a shove up close)
         public ShotLook Look;     // its shape: a dart (aimed), a crescent (curving) or round (sent with its spawn; Readability.cs)
         public Bullet Sent;       // host only: its entry in the spawn message still to go out (so its Look can be set after)
