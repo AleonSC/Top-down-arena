@@ -244,6 +244,13 @@ static partial class Program
             "a profile's text reads back the same");
 
         // The menu's "your profile" nudge: shown for the first 5 launches, gone for good once the profile is opened, and kept in the file.
+        var vp = new Profile { Cores = 35 };
+        Check(vp.BuyVariant("Twin Blades") && vp.Cores == 25 && vp.VariantTier("Twin Blades") == 1, "variant tier I costs 10 Cores");
+        Check(vp.BuyVariant("Twin Blades") && vp.Cores == 5 && vp.VariantTier("Twin Blades") == 2, "variant tier II costs 20 Cores");
+        Check(!vp.BuyVariant("Twin Blades") && vp.Cores == 5, "no third variant tier, no charge");
+        Check(!vp.BuyVariant("Rapier") && vp.Cores == 5 && vp.VariantTier("Rapier") == 0, "too few Cores buys nothing");
+        var vb = Profile.Parse(vp.ToText());
+        Check(vb.Valid && vb.Cores == 5 && vb.VariantTier("Twin Blades") == 2 && vb.VariantTier("Rapier") == 0, "Cores and variant tiers survive a save");
         var hint = new Profile();
         for (int i = 1; i <= Profile.HintMaxLaunches; i++)
         {

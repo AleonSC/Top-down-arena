@@ -1,6 +1,6 @@
 # Weapon Variants (was "Ascensions")
 
-**Status: design agreed, nothing built.** The lobby's ascension button is still a placeholder ("0/3", `LobbyUi.AscensionKey`); it becomes "Variants".
+**Status: step 1 built** (Cores and bought tiers saved in the profile, the lobby's Variants window with a Buy button). Not built: earning Cores, and the tier effects themselves (the window says "Effect coming soon").
 
 ## Decisions (owner)
 
@@ -19,3 +19,9 @@
 - The two effects per weapon (one design pass per weapon).
 - Co-op: whose profile receives Cores.
 - Profile save format and protocol bump when built.
+
+## Steps
+
+1. Done: `Variants.cs` (tiers, costs), `Profile.Cores` / `VariantTiers` / `BuyVariant`, the lobby window (`LobbyUi.DrawAscensionWindow`). Preview: `VARIANTS=1 Tools/Preview/shot.sh variants lobby`.
+2. Earn Cores: Campaign and Boss Hunt payouts, the glowing drop enemy.
+3. The two effects per weapon.

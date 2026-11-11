@@ -91,6 +91,20 @@ namespace Arena
         public const int RecentKept = 20;  // (the Rank page lists the newest RankPageRuns)
         public const int RankPageRuns = 6;
 
+        // Weapon variants (Docs/Variants.md): Cores earned from runs, hunts and drops, spent on a weapon's variant tiers (weapon name -> tiers bought).
+        public int Cores;
+        public readonly Dictionary<string, int> VariantTiers = new Dictionary<string, int>();
+        public int VariantTier(string weapon) => weapon != null && VariantTiers.TryGetValue(weapon, out int t) ? t : 0;
+        /// Buys the weapon's next variant tier if there is one and the Cores cover it. True when bought.
+        public bool BuyVariant(string weapon)
+        {
+            int t = VariantTier(weapon), cost = Variants.Cost(t);
+            if (weapon == null || cost < 0 || Cores < cost) return false;
+            Cores -= cost;
+            VariantTiers[weapon] = t + 1;
+            return true;
+        }
+
         // The main menu's "your profile" nudge beside the player card: shown until the profile has been opened once, for at most HintMaxLaunches launches.
         public int HintLaunches;
 
@@ -301,6 +315,8 @@ namespace Arena
             if (HintLaunches > 0 || ProfileOpened) RunSave.Line(sb, "hint", HintLaunches + " " + (ProfileOpened ? 1 : 0));
             foreach (var kv in TagSeen) RunSave.Line(sb, "tag", kv.Key + " " + kv.Value);
             RunSave.Line(sb, "xp", Xp);
+            if (Cores > 0) RunSave.Line(sb, "cores", Cores);
+            foreach (var kv in VariantTiers) RunSave.Line(sb, "variant", Dash(kv.Key.Replace(' ', '_')) + " " + kv.Value);
             RunSave.Line(sb, "equip", Dash(Frame) + " " + Dash(Trail) + " " + Dash(Background) + " " + Dash(CardBg) + " " + Dash(NameFx) + " " + Dash(AimLine) + " " + Dash(Cursor));
             foreach (var l in Recent) RunSave.Line(sb, "rlog", l.Wave + " " + l.Result + " " + l.Xp + " " + l.MultPct + " " + Dash(l.Mods.Replace(' ', '_')) + " " + Dash(l.Class.Replace(' ', '_')) + " " + Dash(l.Mode) + " " + RunSave.F(l.Seconds) + " " + RunSave.F(l.Dealt) + " " + RunSave.F(l.Taken) + " " + RunSave.F(l.Heal) + " " + l.Players + " " + Dash(l.File));
             RunSave.Line(sb, "end", 1);
@@ -352,6 +368,8 @@ namespace Arena
                         case "hint": p.HintLaunches = Math.Max(0, RunSave.I(f[0])); p.ProfileOpened = f.Length > 1 && RunSave.I(f[1]) != 0; break;
                         case "tag": p.TagSeen[f[0]] = Math.Max(0, RunSave.I(f[1])); break;
                         case "xp": p.Xp = Math.Max(0, long.Parse(f[0], System.Globalization.CultureInfo.InvariantCulture)); break;
+                        case "cores": p.Cores = Math.Max(0, RunSave.I(f[0])); break;
+                        case "variant": p.VariantTiers[UnDash(f[0]).Replace('_', ' ')] = Math.Max(0, Math.Min(Variants.Tiers, RunSave.I(f[1]))); break;
                         case "equip": p.Frame = UnDash(f[0]); p.Trail = UnDash(f[1]); p.Background = UnDash(f[2]); if (f.Length > 3) p.CardBg = UnDash(f[3]); if (f.Length > 4) p.NameFx = UnDash(f[4]); if (f.Length > 5) p.AimLine = UnDash(f[5]); if (f.Length > 6) p.Cursor = UnDash(f[6]); break;
                         case "rlog":
                             if (p.Recent.Count < RecentKept)
