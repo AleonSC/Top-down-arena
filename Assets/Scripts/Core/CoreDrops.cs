@@ -18,7 +18,7 @@ namespace Arena
         {
             if (!IsHost || !RecordsRuns || Endless || e.Def.IsBoss || e.Def.Xp <= 0 || Wave < CoreCarrierFromWave || coreCarriersSpawned >= CoreCarrierMaxPerRun)
                 return;
-            if (rng.NextDouble() >= CoreCarrierChance)
+            if (IdRoll(e.Id, 1) >= CoreCarrierChance)  // (a hash of the enemy's id, not the game's rng, so the rest of the run plays out the same)
                 return;
             foreach (var o in Enemies.Values)
                 if (HasTrait(o, EliteTrait.CoreCarrier))
@@ -27,10 +27,18 @@ namespace Arena
             coreCarriersSpawned++;
         }
 
+        /// A repeatable 0..1 value for an enemy id (and a salt), from a small integer hash.
+        static float IdRoll(int id, uint salt)
+        {
+            uint h = (uint)id * 2654435761u + salt * 40503u;
+            h ^= h >> 15; h *= 2246822519u; h ^= h >> 13;
+            return (h & 0xFFFFFF) / 16777216f;
+        }
+
         /// Host: the glowing enemy died: 1-3 Cores for the run.
         void DropCores(Enemy e)
         {
-            int n = Variants.CarrierMin + rng.Next(Variants.CarrierMax - Variants.CarrierMin + 1);
+            int n = Variants.CarrierMin + (int)(IdRoll(e.Id, 2) * (Variants.CarrierMax - Variants.CarrierMin + 1));
             CoresFound += n;
             BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.82f, 0.25f), 60f, 0.5f, Sfx.PickupBig);
         }
