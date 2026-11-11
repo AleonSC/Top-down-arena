@@ -429,14 +429,19 @@ static partial class Program
             g.Mods &= ~RunMod.TinyArena;
             fStretch.SetValue(g, -1);
             var vaultWaves = new List<int>();
+            int bossVaults = 0;
             for (int w = 1; w <= 50; w++)
             {
-                g.Wave = w; g.BossSlot = (w) % 5 == 0 && (w) > 0;
+                g.Wave = w; g.BossSlot = false;  // every wave number is a regular wave...
                 pickRooms.Invoke(g, null);
                 if (g.VaultUp) vaultWaves.Add(w);
+                if (w % 5 != 0) continue;
+                g.BossSlot = true;  // ...and after 5, 10, ... the boss fights on the same number (Hunts.cs)
+                pickRooms.Invoke(g, null);
+                if (g.VaultUp) bossVaults++;
             }
-            bool onePer = Enumerable.Range(0, 5).All(st => vaultWaves.Count(w => (w - 1) / 10 == st) == 1) && vaultWaves.All(w => w % 5 != 0);
-            Check(onePer, "one regular wave in each stretch of ten has the vault (" + string.Join(", ", vaultWaves) + ")");
+            bool onePer = Enumerable.Range(0, 5).All(st => vaultWaves.Count(w => (w - 1) / 10 == st) == 1) && vaultWaves[0] >= Rooms.FirstVault && bossVaults == 0;
+            Check(onePer, "one regular wave in each stretch of ten has the vault, never a boss fight (" + string.Join(", ", vaultWaves) + "; " + bossVaults + " on a boss)");
 
             // A vault wave: the world reaches up to it, its mini-boss is the Gatekeeper, and he stays in it.
             Quiet();
