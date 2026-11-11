@@ -308,6 +308,7 @@ namespace Arena
         {
             RoundBackdrop(PathDim);
             var win = CrtWindowBegin();
+            TipClear();
             bool free = game.FreeBuild, doorsOnly = !game.ExpandOpen;  // doorsOnly: free building with a wave on, walls only
             if (doorsOnly)
             {
@@ -813,9 +814,12 @@ namespace Arena
             else if (expGateMode && gateDoor >= 0 && gateWhy == null) pending = Gates.Price;
             var panel = new Rect(map.xMax + 16f, map.y, win.xMax - map.xMax - 32f, H - 30f - map.y);
             float py = DrawBuildPanelTop(panel, doorsOnly, roomMode, pending, gateDoor);
-            DkSub(new Rect(panel.x + 10f, py, panel.width - 20f, 74f), new Color(0f, 0f, 0f, 0.35f));
-            Ui.Label(new Rect(panel.x + 18f, py + 4f, panel.width - 36f, 66f), line, 13, lineInk, TextAnchor.MiddleLeft, true, true);
-            py += 84f;
+            if (!lineInk.Equals(Ui.Muted) && !string.IsNullOrEmpty(line))  // (the standing hints are hover tips now: only live feedback shows here)
+            {
+                DkSub(new Rect(panel.x + 10f, py, panel.width - 20f, 74f), new Color(0f, 0f, 0f, 0.35f));
+                Ui.Label(new Rect(panel.x + 18f, py + 4f, panel.width - 36f, 66f), line, 13, lineInk, TextAnchor.MiddleLeft, true, true);
+                py += 84f;
+            }
             float bx = panel.x + 10f, bw = panel.width - 20f;
             float actY = panel.yMax - 98f;  // the action keys sit just above DONE
             if (!expCutMode && !expLinkMode && !expGateMode && !expTrapMode)
@@ -849,6 +853,7 @@ namespace Arena
                     expOpen = false;
             }
             Ui.Label(new Rect(map.x, map.yMax + 6f, map.width, 20f), "SCROLL  zoom   ·   MIDDLE DRAG  pan   ·   RIGHT CLICK  undo   ·   ESC  close", 12, Ui.Muted, TextAnchor.MiddleLeft, true);
+            DrawTip(true);
             CrtUi.End(win, t, calm);
         }
 
@@ -986,6 +991,16 @@ namespace Arena
                 if (CrtUi.SoftKey(r, names[i], null, 15, calm, lit: on) && !doorsOnly)
                     pick = i;
                 Ui.Label(new Rect(r.x + 8f, r.y, 14f, r.height), (i + 1).ToString(), 10, on ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
+                if (TipHover(r))
+                {
+                    string tt, tp;
+                    string[] st;
+                    BuildToolHelp(i, doorsOnly, out tt, out st, out tp);
+                    TipStart(r, tt, CrtUi.Ink);
+                    for (int si = 0; si < st.Length; si++)
+                        TipAdd((si + 1) + "  " + st[si], 12, Ui.Text);
+                    TipAdd(tp, 11, Ui.Muted);
+                }
             }
             if (pick >= 0 && pick != cur)
             {
@@ -1038,7 +1053,7 @@ namespace Arena
                     sealedRoom = true;
                     items.Add(new KeyValuePair<string, Rgba>(fa.Kind == RoomKind.Shop ? "SHOP ROOM" : fa.Kind == RoomKind.Vendor ? "BLACK MARKET" : "SEALED ROOM", KindInk(fa.Kind, PathId.None)));
                 }
-            float lh = 34f + items.Count * 20f + (seen.Count > 0 || sealedRoom ? 40f : 0f);
+            float lh = 34f + items.Count * 20f;
             float ly = Mathf.Max(y + 8f, H - 30f - lh);
             DkSub(new Rect(x, ly, w, lh));
             Ui.Label(new Rect(x + 10f, ly + 6f, w - 20f, 16f), "ON THE MAP", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
@@ -1050,8 +1065,11 @@ namespace Arena
                 CrtKit.Frame(new Rect(x + 10f, iy + 2f, 12f, 12f), 1.5f, c);
                 Ui.Label(new Rect(x + 30f, iy, w - 36f, 16f), items[i].Key, 11, c, TextAnchor.MiddleLeft, true);
             }
-            if (seen.Count > 0 || sealedRoom)
-                Ui.Label(new Rect(x + 10f, ly + lh - 40f, w - 20f, 36f), "Build a room round a node or up to a sealed room to claim it.", 10, Ui.Muted, TextAnchor.UpperLeft, false, true);
+            if ((seen.Count > 0 || sealedRoom) && TipHover(new Rect(x, ly, w, lh)))
+            {
+                TipStart(new Rect(x, ly, w, lh), "On the map", CrtUi.Ink);
+                TipAdd("Build a room round a node or up to a sealed room to claim it.", 12, Ui.Text);
+            }
         }
 
         /// The top of the draw screen's guide panel: the wallet (with what the drawing would cost), the tool's name and its three steps.
@@ -1076,64 +1094,56 @@ namespace Arena
             else if (pending < 0)
                 Ui.Fill(new Rect(bar.x + bar.width * fHave, bar.y, bar.width * (fAfter - fHave), bar.height), new Color(0.35f, 1f, 0.55f, 0.8f));
             y += 12f;
-            string sub = pending > 0 ? (over ? "Needs " + pending + ": " + (pending - have) + " short" : "This uses " + pending + "  ·  " + (have - pending) + " left") : pending < 0 ? "Gives back " + -pending : "Touching rooms cost less";
+            string sub = pending > 0 ? (over ? "Needs " + pending + ": " + (pending - have) + " short" : "This uses " + pending + "  ·  " + (have - pending) + " left") : pending < 0 ? "Gives back " + -pending : "";
+            if (TipHover(new Rect(p.x, p.y, p.width, y + 18f - p.y)))
+            {
+                TipStart(new Rect(p.x, p.y, p.width, y + 18f - p.y), "Vectors", CrtUi.Ink);
+                TipAdd("What rooms cost. Touching rooms cost less, and opening walls gives some back.", 12, Ui.Text);
+            }
             Ui.Label(new Rect(x, y, w, 16f), sub, 11, over ? new Color(1f, 0.45f, 0.5f) : pending != 0 ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
             y += 30f;
             CrtKit.Frame(new Rect(x, y - 8f, w, 1f), 1f, new Color(1f, 1f, 1f, 0.08f));
-            string title;
+            string title, tip;
             string[] steps;
-            int step;
-            string tip;
-            if (expGateMode)
+            BuildToolHelp(expTrapMode ? 4 : expGateMode ? 3 : expLinkMode ? 2 : expCutMode ? 1 : 0, doorsOnly, out title, out steps, out tip);
+            CrtUi.Text(new Rect(x, y, w, 26f), title, 20, CrtUi.Ink, TextAnchor.MiddleLeft, true, CabCalm);
+            y += 32f;
+            return y + 4f;
+        }
+
+        /// What each build tool does, for its hover tip: tool 0 room, 1 open wall, 2 teleporter, 3 gate, 4 trap.
+        void BuildToolHelp(int tool, bool doorsOnly, out string title, out string[] steps, out string tip)
+        {
+            if (tool == 3)
             {
                 title = "FIT A GATE";
                 steps = new[] { "Point at a door (gold squares)", "Click it to fit a gate: " + Gates.Price + " vectors", "In a wave, by it press " + Keybinds.KeyName(Keybinds.Get(KeyAction.TakeItem)).ToUpperInvariant() };
-                step = gateDoor >= 0 ? 1 : 0;
                 tip = "Shuts for " + (int)Gates.CloseTime + " s, " + (int)Gates.Cooldown + " s to recharge.  " + game.GateFits.Count + " of " + Gates.Max + " fitted.";
             }
-            else if (expLinkMode)
+            else if (tool == 2)
             {
                 title = "TELEPORTER PAIR";
                 steps = new[] { "Click a spot in one room", "Click a spot in another room", "Walk in one, come out the other" };
-                step = expDragging ? 1 : 0;
                 tip = "Uses one from your stash (" + (game.Me != null ? game.Me.Stash[(int)BuildKind.Teleporter] : 0) + "). Enemies use them too.  " + game.Links.Count + " of " + Expansion.MaxLinks + " built.";
             }
-            else if (expTrapMode)
+            else if (tool == 4)
             {
                 title = "PLACE A TRAP";
                 steps = new[] { "Pick one from your stash", "Point at a spot in a room", "Click to place it" };
-                step = 1;
                 tip = "Bought at the Black Market. They stand on the map, " + game.Placed.Count + " of " + Market.MaxPlaced + ". They have no effect yet.";
             }
-            else if (expCutMode)
+            else if (tool == 1)
             {
                 title = "OPEN A WALL";
                 steps = new[] { "Find a cyan wall two rooms share", "Click one end of the stretch", "Click the other end" };
-                step = expDragging ? 2 : 0;
                 tip = (doorsOnly ? "A wave is on: only doors for now. " : "") + "At least " + Expansion.MinCut / 100 + " tiles. You get 1 vector back per tile of wall.";
             }
             else
             {
                 title = "DRAW A ROOM";
                 steps = new[] { "Click a corner on the grid", "Click more corners", "Click the first corner or a wall" };
-                step = expPts.Count == 0 ? 0 : expPts.Count < 3 ? 1 : 2;
                 tip = "A slanted click makes an L. Or drag a box. " + Expansion.MinSide / 100 + " tiles wide everywhere.";
             }
-            CrtUi.Text(new Rect(x, y, w, 26f), title, 20, CrtUi.Ink, TextAnchor.MiddleLeft, true, CabCalm);
-            y += 32f;
-            for (int i = 0; i < steps.Length; i++)
-            {
-                bool done = i < step, now = i == step;
-                var c = done ? new Color(0.35f, 1f, 0.55f) : now ? Ui.Gold : Ui.Muted;
-                var box = new Rect(x, y + 1f, 18f, 18f);
-                if (now || done) Ui.Fill(box, new Color(c.r, c.g, c.b, done ? 0.3f : 0.18f));
-                CrtKit.Frame(box, 1f, c);
-                Ui.Label(box, (i + 1).ToString(), 11, c, TextAnchor.MiddleCenter, true);
-                Ui.Label(new Rect(x + 26f, y, w - 26f, 20f), steps[i], 12, done ? Ui.Muted : now ? Color.white : new Color(0.75f, 0.8f, 0.9f), TextAnchor.MiddleLeft, now, false);
-                y += 24f;
-            }
-            Ui.Label(new Rect(x, y + 2f, w, 34f), tip, 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
-            return y + 42f;
         }
 
         /// The room types for a drawn room, two to a row; the locked ones say which boss unlocks them, the picked one says what it does.
@@ -1160,6 +1170,11 @@ namespace Arena
                     expTheme = f;
                 Ui.Label(new Rect(r.x, r.y + 3f, r.width, 16f), name, 11, on ? Color.white : CrtUi.Ink, TextAnchor.MiddleCenter, true);
                 Ui.Label(new Rect(r.x, r.y + 18f, r.width, 13f), f == PathId.None ? "FREE" : "+" + Expansion.ThemeCost(f) + " VECTORS", 9, on ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
+                if (TipHover(r))
+                {
+                    TipStart(r, name, CrtUi.Ink);
+                    TipAdd(f == PathId.None ? "An ordinary room: no theme, no extra cost." : FloorBlurb(f), 12, Ui.Text);
+                }
             }
             float y = y0 + ((open.Count + 1) / 2) * (ch + gap);
             if (lockedCount > 0)
@@ -1170,8 +1185,6 @@ namespace Arena
                 Ui.Label(new Rect(area.x, y, area.width, 16f), "+" + lockedCount + " more after boss " + next, 10, Ui.Muted, TextAnchor.MiddleLeft, true);
                 y += 20f;
             }
-            if (expTheme != PathId.None && y + 30f < area.yMax)
-                Ui.Label(new Rect(area.x, y, area.width, area.yMax - y), FloorBlurb(expTheme), 11, new Color(0.75f, 0.8f, 0.9f), TextAnchor.UpperLeft, false, true);
         }
 
         /// One proposal as a CRT tube: a little map with the room lit where it would go, who drew it, what it costs and how it's voted.
