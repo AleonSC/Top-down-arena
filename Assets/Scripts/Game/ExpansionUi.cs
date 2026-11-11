@@ -337,6 +337,7 @@ namespace Arena
             var wd = game.ExpansionWorld;
             float pad = 1300f;
             V2 lo = wd.Min - new V2(pad, pad), hi = wd.Max + new V2(pad, pad);
+            IncludeNodes(ref lo, ref hi);
             float k0 = Mathf.Min(map.width / (hi.X - lo.X), map.height / (hi.Y - lo.Y));
             var ev = Event.current;
             // Zoom: mouse wheel (about the pointer), + / - keys, middle-drag to pan, the buttons under the map; FIT resets.
@@ -643,6 +644,14 @@ namespace Arena
                     RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, ink.WithAlpha((a.Hub ? 0.16f : 0.1f) * ghost));
                     RimFrame(wd, ai, M, a.Floating ? 1.5f : 1f, ink.WithAlpha(0.8f * ghost));
                 }
+                foreach (var nd in game.Nodes)  // the nodes still waiting for a room built round them (claimed ones are part of their room)
+                    if (!Expansion.NodeClaimed(game.Expanded, nd))
+                    {
+                        V2 np = M(nd.Pos);
+                        var ni = NodeInk(nd.Kind);
+                        RoomMapRect(np.X - 6f, np.Y - 6f, 12f, 12f, ni.WithAlpha(0.55f + 0.3f * Mathf.Sin(Time.unscaledTime * 2.5f)));
+                        RoomMapFrame(np.X - 9f, np.Y - 9f, 18f, 18f, 1.5f, ni);
+                    }
                 for (int di = 0; di < wd.Doors.Length; di++)
                 {
                     if (wd.Seam(di))
@@ -741,6 +750,13 @@ namespace Arena
                 roomClip = null;
                 EndUiGl();
             }
+            foreach (var nd in game.Nodes)  // the nodes, named
+                if (!Expansion.NodeClaimed(game.Expanded, nd))
+                {
+                    V2 n0 = M(nd.Pos);
+                    if (map.Contains(new Vector2(n0.X + 12f, n0.Y - 6f)))
+                        Ui.Label(new Rect(n0.X + 12f, n0.Y - 7f, 220f, 14f), nd.Kind.ToString().ToUpperInvariant() + " NODE", 10, ToColor(NodeInk(nd.Kind)), TextAnchor.UpperLeft, true);
+                }
             foreach (var fa in wd.Areas)  // the floating rooms, named
                 if (fa.Floating)
                 {
@@ -1055,8 +1071,9 @@ namespace Arena
                 all.AddRange(legs);
                 added = 1 + legs.Count;
             }
-            var wd = Expansion.Build(all, game.Openings, game.Links);
+            var wd = Expansion.Build(all, game.Openings, game.Links, game.Nodes);
             V2 lo = wd.Min, hi = wd.Max;
+            IncludeNodes(ref lo, ref hi);
             float pad = 14f, k = Mathf.Min((stage.width - 2f * pad) / (hi.X - lo.X), (stage.height - 2f * pad) / (hi.Y - lo.Y));
             float ox = stage.center.x - (hi.X - lo.X) * k / 2f, oy = stage.center.y - (hi.Y - lo.Y) * k / 2f;
             System.Func<V2, V2> M = p => new V2(ox + (p.X - lo.X) * k, oy + (p.Y - lo.Y) * k);
@@ -1076,6 +1093,12 @@ namespace Arena
                 RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, fill);
                 RimFrame(wd, i, M, isNew ? 2f : 1f, line);
             }
+            foreach (var nd in game.Nodes)  // the nodes still waiting for a room round them
+                if (!Expansion.NodeClaimed(all, nd))
+                {
+                    V2 np = M(nd.Pos);
+                    RoomMapRect(np.X - 3f, np.Y - 3f, 6f, 6f, NodeInk(nd.Kind).WithAlpha(0.6f + 0.3f * Mathf.Sin(t * 3f)));
+                }
             for (int di = 0; di < wd.Doors.Length; di++)
             {
                 var d = wd.Doors[di];

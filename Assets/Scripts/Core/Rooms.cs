@@ -343,6 +343,7 @@ namespace Arena
             if (!RoomsOn || State != MatchState.Fighting)
                 return;
             TickDuelRooms();  // the Expanding arena's Gatekeeper rooms (GatekeeperRoom.cs)
+            TickNodes();      // chest nodes (ExpansionGame.cs)
             int players = Players.Count;
             foreach (var rs in RoomStates)
             {
