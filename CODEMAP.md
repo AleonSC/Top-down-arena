@@ -129,7 +129,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Variety.cs`, `Readability.cs`: wave 15+ enemies and elite traits, shooters taking turns
 - `Game/JobMarkerLook.cs`: the job marker under each regular enemy (bar + shape: dot Pressure, chevron Hunter, ring Zoner, diamond Disruptor, square Anchor; `Docs/EnemyReadability.md`)
 - `Game/LungeLaneLook.cs`: the shared lunge wind-up lane for the Lunger, Spike Block, Charger and Riot Shield (`Docs/Mockups/lunge-telegraph.html`)
-- `Game/ShooterAimLook.cs`: the dashed aim line of the aimed shooters while they wind up (Sniper, Shard, Medic, Splitter, Phantom, Grunt)
+- `Game/ShooterAimLook.cs`: the shared shooting line (DrawAimLane) of the aimed shooters while they wind up (Sniper, Shard, Medic, Splitter, Phantom, Grunt, Taser and Security Guards)
 - `Game/EnemyTagLook.cs`, `Profile.TagSeen`: (also the Settings > Gameplay "Enemy names on hover" tag under the cursor) the name and job tag an enemy type carries for its first three sightings (profile "tag" lines, format 6)
 - `Core/BruteEnrage.cs`: Brute enrage (`BruteRage`/`BruteSpeedMult`/`BruteDamageMult`, from health lost; used in `MoveEnemy` and the contact damage in `EnemyAI.cs`; redder in `Game/WorldEnemies.cs`)
 - `Core/NewEnemies.cs`, `Game/NewEnemyChips.cs`: the new-enemy chips under the between-waves box (`Game.NewTypesAt`, `Game.EnemyNote`; unmet types only, via `Profile.TagSeen`)
