@@ -859,8 +859,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
 - **Nodes and the floating Gatekeeper room**: every boss cycle the game places a **shop node**, a **vendor node** and a **chest node**: points 10 to 16
   tiles straight out from the map (at least 8 tiles from each other), marked on the arena floor, the minimap and the draw screen. A node is locked until you
   build a **room** that encloses it (any room; a long one can reach it straight off the map); that room then becomes the shop or vendor
-  room, and a chest node's room stays a normal combat room with enemies. Walk up to a claimed **chest** to open it once: every player gets gold
-  (40, +10 a boss cycle) and 6 vectors. No cover stands on a node. A claimed node shows as a fixture in its room: a stall, a pedestal or a chest (opened ones lie dim with the lid up). Nodes never respawn: a claimed one stays, and new ones appear around the current map.
+  room, and a chest node's room stays a normal combat room with enemies. A claimed **chest** node holds a real treasure chest (the same as the rare wave chests): touch it and every player gets their own item. It opens once and never holds the wave up. No cover stands on a node. A claimed node shows as a fixture in its room: a stall, a pedestal or a chest (opened ones lie dim with the lid up). Nodes never respawn: a claimed one stays, and new ones appear around the current map.
   At most 6 wait at once. A **Gatekeeper** room is still placed each cycle as a sealed box 4 to 8 tiles off the map: share 2 tiles of wall with it and its
   door opens (it doesn't count towards the 24-room cap and adds no enemies; at most 6 wait). Bots build a room (or a narrow strip, then a room) to nodes (not to chests' loot: they don't walk to them).
   (The Gatekeeper has its own room, below.)

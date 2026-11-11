@@ -68,7 +68,8 @@ namespace Arena
                         Circle(c, 62f, ink.WithAlpha(0.05f + 0.05f * pulse), 28);
                         Arc(c, 66f + 4f * pulse, 2f, ink.WithAlpha(0.35f + 0.25f * pulse), 28);  // walk up to it
                     }
-                    ChestBox(c, 1f, ink.WithAlpha(n.Spent ? 0.3f : 0.95f), n.Spent);
+                    if (n.Spent || !Expansion.NodeClaimed(game.Expanded, n))  // (a claimed chest is the real prop, Props.cs)
+                        ChestBox(c, 1f, ink.WithAlpha(n.Spent ? 0.3f : 0.95f), n.Spent);
                     break;
             }
         }
