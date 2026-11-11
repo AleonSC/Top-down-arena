@@ -53,6 +53,7 @@ namespace Arena
         public byte LanceKind;        // a Lance step (1-4; Lance.cs): its hits are cued and spark, and what it shoves can Impact; Hook & Haul takes back one still winding up
         public float LanceAcross;     // the Lance's Wide Sweep: the way its swing bats what it hits (LanceKnockDir)
         public byte Knuckle;          // an Arc Knuckles punch (1-6; ArcKnuckles.cs): the parry takes back one still winding up
+        public int OnlyEnemy;         // != 0: hits only this enemy (the Arc Knuckles' locked-on Rocket Dash)
     }
 
     /// The Knight: a melee class for every role. Its weapons swing instead of shooting, cutting small
@@ -435,6 +436,8 @@ namespace Arena
                 foreach (var e in hits)
                     e.SweepMark = s.Sweep;
             }
+            if (s.OnlyEnemy != 0)
+                hits.RemoveAll(e => e.Id != s.OnlyEnemy);  // a locked-on hit (the Arc Knuckles' Rocket Dash)
             if (s.MaxTargets > 0 && hits.Count > s.MaxTargets)
             {
                 hits.Sort((a, b) => a.Pos.DistanceSq(origin).CompareTo(b.Pos.DistanceSq(origin)));
@@ -457,7 +460,9 @@ namespace Arena
             if (s.Rapier && hits.Count > 0)
                 RapierGainTempo(p, hits.Count);
             if (s.Knuckle == 7)
-                KnuckleDashLanded(p, hits);  // the Arc Knuckles' Rocket Dash (ArcKnuckles.cs)  // a stack of Tempo for every enemy the thrust hits (Rapier.cs)
+                KnuckleDashLanded(p, hits);  // the Arc Knuckles' Rocket Dash (ArcKnuckles.cs)
+            else if (s.Knuckle > 0 && hits.Count > 0)
+                KnuckleHitCue(p, s.Knuckle, hits.Count, hits[0].Pos);  // an Arc Knuckles punch connected: its crack, your hit-pause and shake  // a stack of Tempo for every enemy the thrust hits (Rapier.cs)
             int healed = 0;
             foreach (var e in hits)
             {

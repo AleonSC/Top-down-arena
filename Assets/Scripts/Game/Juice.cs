@@ -209,6 +209,39 @@ namespace Arena
             }
         }
 
+        /// An Arc Knuckles punch connected (Core/ArcKnuckles.cs, KnuckleHitCue): a burst of blue sparks and a ring where it landed on
+        /// every screen; on the puncher's own, the picture holds and shakes, sized to the punch (a Flurry jab barely, the hammers,
+        /// the dash and a thrown enemy landing the most). More enemies caught shake a little more.
+        void KnuckleHitFeel(Effect fx, bool mine)
+        {
+            int kind = (int)fx.Pos2.Y, hits = Mathf.Max(1, Mathf.RoundToInt(fx.Radius));
+            float more = Mathf.Min(3, hits - 1);
+            bool heavy = kind == 4 || kind >= 5 && kind != 8;
+            var col = fx.Color;
+            if (!fxReduced)
+            {
+                Sparks(fx.Pos, col, heavy ? 14 : kind == 8 ? 4 : 8, heavy ? 340f : 240f, heavy ? 0.32f : 0.22f, heavy ? 2.6f : 2f);
+                Sparks(fx.Pos, new Rgba(0.93f, 0.98f, 1f), heavy ? 6 : 3, heavy ? 420f : 300f, 0.16f, 1.6f);
+                Ring(fx.Pos, heavy ? 34f : kind == 8 ? 16f : 24f, heavy ? 0.26f : 0.18f, col);
+            }
+            if (!mine)
+                return;
+            switch (kind)
+            {
+                case 1: Hold(0.03f, 0.1f); Shake(0.05f + 0.01f * more); break;                    // jab
+                case 2: Hold(0.035f, 0.1f); Shake(0.07f + 0.01f * more); break;                   // cross
+                case 3: Hold(0.045f, 0.12f); Shake(0.09f + 0.015f * more); break;                 // hook
+                case 4: Hold(0.06f, 0.15f); Shake(0.12f + 0.015f * more); break;                  // uppercut
+                case 5: Hold(0.08f + 0.01f * more, 0.2f); Shake(0.24f + 0.02f * more); break;     // Twin Hammer
+                case 6: Hold(0.1f + 0.01f * more, 0.2f); Shake(0.34f + 0.02f * more); break;      // Counter Hammer
+                case 7: Hold(0.07f, 0.15f); Shake(0.2f); break;                                   // the Rocket Dash's fist
+                case 8: Hold(0.012f, 0.05f); Shake(0.025f); break;                                // a Flurry jab
+                case 9: Hold(0.06f, 0.15f); Shake(0.18f + 0.02f * more); break;                   // the Rocket Punch
+                case 10: Hold(0.06f, 0.12f); Shake(0.15f); break;                                 // the Flurry's straight
+                case 11: Hold(0.08f, 0.15f); Shake(0.22f + 0.03f * more); break;                  // a thrown enemy landing
+            }
+        }
+
         void Shake(float amount)
         {
             if (fxShake == 0 || fxReduced)
@@ -320,6 +353,8 @@ namespace Arena
                 KnightDpsFeel(fx, me);  // the DPS Knight's cut, impact and executions (KnightDpsLook.cs)
                 if (fx.Kind == FxKind.TwinHit && (int)fx.Pos2.X == game.MyId)
                     TwinHitFeel((int)fx.Pos2.Y, (int)fx.Radius);  // your own Twin Blades cut something (below)
+                if (fx.Kind == FxKind.KnuckleHit)
+                    KnuckleHitFeel(fx, (int)fx.Pos2.X == game.MyId);  // an Arc Knuckles punch connected: sparks, and for your own a hit-stop and shake (below)
                 if (fx.Kind == FxKind.LanceHit && (int)fx.Pos2.X == game.MyId)
                     LanceHitFeel((int)fx.Pos2.Y, (int)fx.Radius);  // your own Lance hit something (below)
                 if (fx.Kind == FxKind.LanceImpact)
