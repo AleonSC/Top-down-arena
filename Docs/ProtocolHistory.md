@@ -4,7 +4,9 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 266: `WeaponId.ArcKnuckles` (the Knight DPS's fourth weapon, lobby weapon pick 3), `FxKind.KnuckleStep`, six `Sfx.Knuckle*` cues, `Player.KnuckleArmed` in the player snapshot; the Rocket Dash: `FxKind.KnuckleDash`, `Sfx.KnuckleRocket`/`KnuckleRocketHit`, `Player.KnuckleDashes` in the player snapshot, Msg.WeaponDash kind 25 (DashRocket); the dash chain: `FxKind.KnuckleChain`, `Sfx.KnuckleGrab`/`KnuckleThrow`, `Player.KnuckleChain` in the player snapshot
+- 268: `WeaponId.ArcKnuckles` (the Knight DPS's fourth weapon, lobby weapon pick 3), `FxKind.KnuckleStep`, six `Sfx.Knuckle*` cues, `Player.KnuckleArmed` in the player snapshot; the Rocket Dash: `FxKind.KnuckleDash`, `Sfx.KnuckleRocket`/`KnuckleRocketHit`, `Player.KnuckleDashes` in the player snapshot, Msg.WeaponDash kind 25 (DashRocket); the dash chain: `FxKind.KnuckleChain`, `Sfx.KnuckleGrab`/`KnuckleThrow`, `Player.KnuckleChain` in the player snapshot
+- 267: a 400 px deep room between two doors gets a small pillar (last pass in `Expansion.AddCover`), so mixed builds would disagree on the map
+- 266: built rooms lay out obstacles differently (fallback passes in `Expansion.AddCover`), so mixed builds would disagree on the map
 - 265: drawn hallways: `ExpansionRoom` carries `Leg` (a bent hallway's later legs) in the room lists; `Msg.ExpandHall` (client -> host) proposes a bent hallway (leg count, then x, y, w, h each)
 - 264: the Fuma Shuriken's Orbit stance: snapshots carry `Player.FumaStance`, then (in the Orbit stance) its move, step, stars, stolen stars, clock, anchor, start radius, move start, lash aim and steal time; `Msg.WeaponDash` kind 24 switches stance
 - 263: the difficulty carries one more knob (`DiffKnob.Campaign`, the campaign buildup switch)

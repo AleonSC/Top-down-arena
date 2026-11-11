@@ -1256,6 +1256,8 @@ static partial class Shot {
       var xg = host.Game; xg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
       int nb = int.Parse(Environment.GetEnvironmentVariable("EXPANDMAP"));
       for (int k = 0; k < nb; k++) { var rr = Expansion.Offers(5, 5 + 5 * k, xg.Expanded)[0]; rr.Owner = 1 + k % 2; xg.Expanded.Add(rr); }
+      string xr = Environment.GetEnvironmentVariable("EXPANDROOMS");  // EXPANDROOMS=x,y,w,h;...: drawn rooms added in order (each must fit, Expansion.Custom)
+      if (xr != null) foreach (var part in xr.Split(';')) { var q = Array.ConvertAll(part.Split(','), int.Parse); string why; var cr = Expansion.Custom(xg.Expanded, q[0], q[1], q[2], q[3], out why); if (cr.HasValue) xg.Expanded.Add(cr.Value); else Console.Error.WriteLine("EXPANDROOMS " + part + ": " + why); }
       if (Environment.GetEnvironmentVariable("EXPANDPROP") != null) {  // EXPANDPROP=1: a building round is open with a proposal from each player
         xg.ExpandOpen = true; int pi = 0;
         foreach (var pl in xg.Players.Values) { var pr = Expansion.Offers(9, 20 + pi, xg.Expanded); if (pr.Count > pi) { var q = pr[pi]; q.Owner = pl.Id; xg.ExpandProposals.Add(q); } pi++; }

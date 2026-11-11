@@ -5,7 +5,7 @@ namespace Arena
     /// The Fuma Shuriken's two stances (Docs/FumaRework.md; Docs/Mockups/fuma-shuriken-rework.html, concept C).
     ///   - Throw stance (0): the oval loop as before (FireNinjaWeapon, FumaTurn in Ninja.cs). Raising the parry while one of your stars
     ///     is out catches it straight into the Orbit stance, circling from where it was.
-    ///   - Orbit stance (1, the weapon-action key): the star circles you at FumaOrbitR and cuts what it passes. Fire Lashes it out
+    ///   - Orbit stance (1, the weapon-action key): the star circles you at FumaOrbitR and cuts what it passes, small enemy bullets too. Fire Lashes it out
     ///     across your aim (one way, then back), and every third press is the Cyclone, a wide lap. Raising the parry is Reversal: the
     ///     orbit flips and spins faster for a while, and everything in its ring is cut. A perfect parry steals the shot instead of
     ///     sending it back: it circles you as a small star, then flies at whoever fired it.
@@ -267,6 +267,10 @@ namespace Arena
                 for (int i = 0; i < n; i++)
                 {
                     V2 at = p.Pos + FumaPose(p, p.FumaClock, i, n);
+                    int before = Bullets.Count;
+                    CutBulletsInCircle(at, FumaStarR, false);  // a blade: it slices small enemy bullets out of the air (Knight.cs)
+                    if (Bullets.Count < before)
+                        BroadcastFx(FxKind.Spark, at, FumaHot, 10f, 0.15f, Sfx.None);
                     bool moving = p.FumaMove != 0 && (i == 0 || p.FumaMove == 3);
                     foreach (var e in Enemies.Values)
                     {
