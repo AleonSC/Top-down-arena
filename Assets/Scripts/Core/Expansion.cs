@@ -765,37 +765,80 @@ namespace Arena
         /// Obstacles in a built room: pillars, bars of wall, an L of wall and blocks, laid out from the room's own box (so every
         /// machine builds the same ones, and a saved map needs nothing more). They keep CoverWall px off the room's walls, CoverDoor off
         /// every door, CoverMid off the middle and CoverGap off each other, so every door and every wall can still be walked along;
-        /// a hallway (a side of MinSide or less) stays clear, and a bigger room gets more (one per ~220000 px2, up to 4).
+        /// a hallway (a side of MinSide or less) gets AddHallCover instead, and a bigger room gets more (one per ~220000 px2, up to 4).
         /// A room too small or too doored for that (a 400-800 px room with doors at both ends had no legal spot) gets fallback
         /// passes: first the middle kept clear by only CoverMidTight, then a lone pillar or block CoverTight off the walls, doors
         /// (plus CoverDoorTight) and the middle point.
         public const int CoverWall = 130, CoverDoor = 230, CoverMid = 130, CoverGap = 70;
         public const int CoverMidTight = 60, CoverTight = 100, CoverDoorTight = 180;
+        /// Last pass, for a room only 400 px deep between two doors: one small pillar to a side, its centre CoverDoorMin from every door.
+        public const int CoverDoorMin = 200;
+
+        /// A hallway's obstacles: a pillar or block every ~HallCoverEvery px along it, alternating sides, HallCoverWall px off the
+        /// side wall (so the far side keeps a wide lane), each centre CoverDoorMin from every door and bend.
+        public const int HallCoverEvery = 500, HallCoverWall = 60, HallCoverR = 30;
+
+        static void AddHallCover(List<Solid> to, ExpansionRoom r, List<V2> doors)
+        {
+            var rng = new DetRandom(r.X * 19349663 ^ r.Y * 73856093 ^ r.W * 2654435 ^ r.H * 83492791);
+            bool alongX = r.W >= r.H;
+            int len = alongX ? r.W : r.H, wid = alongX ? r.H : r.W;
+            int count = Math.Max(1, len / HallCoverEvery);
+            int side = rng.Int(2) == 0 ? -1 : 1;
+            float off = wid / 2f - HallCoverWall - HallCoverR;  // from the hallway's middle line
+            for (int i = 0; i < count; i++, side = -side)
+            {
+                bool pillar = rng.Int(2) == 0;
+                float t0 = (i + 0.5f) * len / count + (rng.Int(9) - 4) * 10;
+                for (int shift = 0; shift < 7; shift++)  // 0, +50, -50, +100, ... until it is clear of the doors
+                {
+                    float t = t0 + (shift + 1) / 2 * 50 * (shift % 2 == 0 ? -1 : 1);
+                    if (t < HallCoverR + 40 || t > len - HallCoverR - 40)
+                        continue;
+                    V2 c = alongX ? new V2(r.X + t, r.Y + wid / 2f + side * off) : new V2(r.X + wid / 2f + side * off, r.Y + t);
+                    bool ok = true;
+                    foreach (var d in doors)
+                        ok &= c.DistanceTo(d) >= CoverDoorMin;
+                    if (!ok)
+                        continue;
+                    int cx = (int)c.X, cy = (int)c.Y;
+                    to.Add(pillar ? World.Pillar(cx, cy, HallCoverR) : World.Box(cx - HallCoverR, cy - HallCoverR, cx + HallCoverR, cy + HallCoverR));
+                    break;
+                }
+            }
+        }
 
         static void AddCover(List<Solid> to, ExpansionRoom r, List<V2> doors)
         {
-            if (Math.Min(r.W, r.H) <= MinSide || r.Floating)
-                return;  // (hallways and the floating rooms stay clear)
+            if (r.Floating)
+                return;  // (the floating rooms stay clear)
+            if (Math.Min(r.W, r.H) <= MinSide)
+            {
+                AddHallCover(to, r, doors);
+                return;
+            }
             var rng = new DetRandom(r.X * 73856093 ^ r.Y * 19349663 ^ r.W * 83492791 ^ r.H * 2654435);
             int want = Math.Max(1, Math.Min(4, r.W * r.H / 220000));
             var placed = new List<int[]>();  // each obstacle's bounding box: x0, y0, x1, y1
             V2 mid = new V2(r.X + r.W / 2f, r.Y + r.H / 2f);
-            for (int n = 0, tries = 0; n < want && tries < 200; tries++)
+            for (int n = 0, tries = 0; n < want && tries < 400; tries++)
             {
-                int stage = tries < 60 ? 0 : tries < 120 ? 1 : 2;  // 0 the full rules, 1 a smaller clear middle, 2 closer to doors too
+                int stage = tries < 60 ? 0 : tries < 120 ? 1 : tries < 200 ? 2 : 3;  // 0 the full rules, 1 a smaller clear middle, 2 closer to doors too, 3 a lone pillar by distance
+                if (stage == 3 && n > 0)
+                    break;  // (the last pass only makes sure a room has one)
                 int kind = rng.Int(4);  // 0 pillar, 1 bar, 2 an L, 3 block
-                if (stage == 2)
-                    kind = kind < 2 ? 0 : 3;  // (only a pillar or block that tight)
+                if (stage >= 2)
+                    kind = kind < 2 || stage == 3 ? 0 : 3;  // (only a pillar or block that tight)
                 bool horizontal = rng.Int(2) == 0;
                 int hw, hh;
                 switch (kind)
                 {
-                    case 0: hw = hh = 30 + rng.Int(3) * 10; break;
+                    case 0: hw = hh = stage == 3 ? 30 : 30 + rng.Int(3) * 10; break;
                     case 1: hw = horizontal ? 70 + rng.Int(4) * 25 : 20; hh = horizontal ? 20 : 70 + rng.Int(4) * 25; break;
                     case 2: hw = hh = 90; break;
                     default: hw = hh = 45; break;
                 }
-                int wall = stage == 2 ? CoverTight : CoverWall;
+                int wall = stage >= 2 ? CoverTight : CoverWall;
                 int ix0 = r.X + wall + hw, ix1 = r.X + r.W - wall - hw, iy0 = r.Y + wall + hh, iy1 = r.Y + r.H - wall - hh;
                 if (ix1 <= ix0 || iy1 <= iy0)
                     continue;
@@ -804,7 +847,7 @@ namespace Arena
                 int keepMid = stage == 0 ? CoverMid : stage == 1 ? CoverMidTight : CoverTight / 3, keepDoor = stage == 2 ? CoverDoorTight : CoverDoor;
                 bool ok = Math.Abs(cx - mid.X) > hw + keepMid || Math.Abs(cy - mid.Y) > hh + keepMid;
                 foreach (var d in doors)
-                    ok &= Math.Abs(cx - d.X) > hw + keepDoor || Math.Abs(cy - d.Y) > hh + keepDoor;
+                    ok &= stage == 3 ? new V2(cx, cy).DistanceTo(d) >= CoverDoorMin : Math.Abs(cx - d.X) > hw + keepDoor || Math.Abs(cy - d.Y) > hh + keepDoor;
                 foreach (var o in placed)
                     ok &= bx0 > o[2] + CoverGap || bx1 < o[0] - CoverGap || by0 > o[3] + CoverGap || by1 < o[1] - CoverGap;
                 if (!ok)
