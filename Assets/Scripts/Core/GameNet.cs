@@ -141,6 +141,9 @@ namespace Arena
                 case Msg.ExpandState:
                     ReadExpandState(r);
                     break;
+                case Msg.GateState:
+                    ReadGateState(r);
+                    break;
                 case Msg.Record:
                     ReadRecord(r);  // RunSaves.cs
                     break;
@@ -312,6 +315,7 @@ namespace Arena
             State = (MatchState)state;
             s.Int(ref Wave);
             s.Bool(ref BossSlot);  // the boss after wave Wave (Hunts.cs)
+            s.Byte(ref Leg);       // a Campaign wave's leg (Hunts.cs)
             s.Float(ref StateTimer);
             s.Int(ref Remaining);
             s.Int(ref Score);

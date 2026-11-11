@@ -200,6 +200,7 @@ namespace Arena
                 expDrawing = true; expDragging = false;
                 expA = expB = V2.Zero;
                 expLegs.Clear();
+                expPts.Clear();
             }
             bool skip = voted && backing == 0;
             if (CrtUi.SoftKey(new Rect(kx + slot++ * (kw + kg), by, kw, 34f), "NO ROOM" + (skip ? "  ✓" : ""), null, 20, calm, lit: skip))
@@ -275,23 +276,24 @@ namespace Arena
             if (BeginUiGl())
             {
                 RoomMapRect(map.x, map.y, map.width, map.height, new Rgba(0.01f, 0.03f, 0.08f, 0.7f));
+                var hoverGroup = hover >= 0 ? Expansion.GroupOf(game.Expanded, hover) : new List<int>();  // (a drawn room lights up whole)
                 for (int i = 0; i < wd.Areas.Length; i++)
                 {
                     var a = wd.Areas[i];
                     V2 p0 = M(a.Min), p1 = M(a.Max);
                     var ink = a.Hub ? new Rgba(0.4f, 0.64f, 1f) : KindInk(a.Kind, a.Floor);
-                    bool can = i > 0 && i - 1 == hover;
+                    bool can = i > 0 && hoverGroup.Contains(i - 1);
                     var pick = KindInk(kit.Kind, kit.Floor);
                     float pulse = 0.6f + 0.4f * Mathf.Sin(t * 5f);
                     RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, (can ? pick : ink).WithAlpha(can ? 0.35f * pulse : a.Hub ? 0.16f : 0.12f));
-                    RoomMapFrame(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, can ? 2.5f : 1f, (can ? pick : ink).WithAlpha(0.85f));
+                    RimFrame(wd, i, M, can ? 2.5f : 1f, (can ? pick : ink).WithAlpha(0.85f));
                 }
                 EndUiGl();
             }
             for (int i = 0; i < game.Expanded.Count; i++)
             {
                 var r = game.Expanded[i];
-                if (r.Kind == RoomKind.Combat || r.Floating)
+                if (r.Kind == RoomKind.Combat || r.Floating || r.Leg > 0)  // (one label for a room of several boxes)
                     continue;
                 V2 p0 = M(new V2(r.X, r.Y));
                 Ui.Label(new Rect(p0.X + 3f, p0.Y + 2f, 200f, 14f), KindName(r).ToUpperInvariant(), 10, ToColor(KindInk(r.Kind, r.Floor)), TextAnchor.UpperLeft, true);
@@ -312,13 +314,14 @@ namespace Arena
             if (doorsOnly)
             {
                 expCutMode = true;
-                expLinkMode = expHallMode = false;
+                expLinkMode = expHallMode = expGateMode = false;
             }
-            CrtUi.Title(new Rect(0, 22f, W, 56f), expLinkMode ? "LINK TWO ROOMS" : expCutMode ? "OPEN A WALL" : expHallMode ? "LAY A HALLWAY" : "DRAW A ROOM", 46, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
-            if (!doorsOnly && CrtUi.SoftKey(new Rect(50f, 26f, 80f, 30f), "ROOM", null, 15, calm, lit: !expCutMode && !expLinkMode && !expHallMode)) { expCutMode = expLinkMode = expHallMode = false; expDragging = false; expA = expB = V2.Zero; }
-            if (!doorsOnly && CrtUi.SoftKey(new Rect(136f, 26f, 110f, 30f), "HALLWAY", null, 15, calm, lit: expHallMode)) { expHallMode = true; expCutMode = expLinkMode = false; expDragging = false; expA = expB = V2.Zero; }
-            if (!doorsOnly && CrtUi.SoftKey(new Rect(252f, 26f, 120f, 30f), "OPEN WALL", null, 15, calm, lit: expCutMode)) { expCutMode = true; expLinkMode = expHallMode = false; expDragging = false; expA = expB = V2.Zero; }
-            if (!doorsOnly && CrtUi.SoftKey(new Rect(378f, 26f, 90f, 30f), "PORTAL", null, 15, calm, lit: expLinkMode)) { expLinkMode = true; expCutMode = expHallMode = false; expDragging = false; expA = expB = V2.Zero; }
+            CrtUi.Title(new Rect(0, 22f, W, 56f), expGateMode ? "FIT A GATE" : expLinkMode ? "LINK TWO ROOMS" : expCutMode ? "OPEN A WALL" : expHallMode ? "LAY A HALLWAY" : "DRAW A ROOM", 40, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
+            if (!doorsOnly && CrtUi.SoftKey(new Rect(50f, 26f, 62f, 30f), "ROOM", null, 15, calm, lit: !expCutMode && !expLinkMode && !expHallMode && !expGateMode)) { expCutMode = expLinkMode = expHallMode = expGateMode = false; expDragging = false; expA = expB = V2.Zero; }
+            if (!doorsOnly && CrtUi.SoftKey(new Rect(116f, 26f, 90f, 30f), "HALLWAY", null, 15, calm, lit: expHallMode)) { expHallMode = true; expCutMode = expLinkMode = expGateMode = false; expDragging = false; expA = expB = V2.Zero; }
+            if (!doorsOnly && CrtUi.SoftKey(new Rect(210f, 26f, 100f, 30f), "OPEN WALL", null, 15, calm, lit: expCutMode)) { expCutMode = true; expLinkMode = expHallMode = expGateMode = false; expDragging = false; expA = expB = V2.Zero; }
+            if (!doorsOnly && CrtUi.SoftKey(new Rect(314f, 26f, 74f, 30f), "PORTAL", null, 15, calm, lit: expLinkMode)) { expLinkMode = true; expCutMode = expHallMode = expGateMode = false; expDragging = false; expA = expB = V2.Zero; }
+            if (!doorsOnly && CrtUi.SoftKey(new Rect(392f, 26f, 56f, 30f), "GATE", null, 15, calm, lit: expGateMode)) { expGateMode = true; expCutMode = expHallMode = expLinkMode = false; expDragging = false; expA = expB = V2.Zero; }
             if (free && !doorsOnly && game.RoomTokens.Count > 0 && CrtUi.SoftKey(new Rect(W - 200f, 26f, 150f, 30f), "KITS  ·  " + game.RoomTokens.Count, null, 15, calm))  // (free building has no vote window to hold the kit key)
             {
                 expModify = true;
@@ -326,7 +329,10 @@ namespace Arena
             }
             if (!expHallMode)
                 expLegs.Clear();
-            Ui.Label(new Rect(0, 80f, W, 20f), (doorsOnly ? "A wave is on: doors only  ·  click both ends of a wall stretch (the cyan ones)  ·  right click cancels  ·  you get 1 vector back for every tile that was wall" : expHallMode ? "Left click where it starts, move along it, left click to lay a leg  ·  up to " + Expansion.MaxLegs + " legs, each from the end of the last  ·  right click undoes  ·  Enter proposes  ·  a hallway costs half its new wall" : expLinkMode ? "Left click a spot in one room, then a spot in another  ·  right click cancels  ·  " + Expansion.LinkBase + " vectors + 1 per 2 tiles of walking it saves  ·  enemies use it too  ·  " + game.Links.Count + " of " + Expansion.MaxLinks + " pairs built" : expCutMode ? "Left click one end of a wall stretch, then the other (the cyan stretches)  ·  right click cancels  ·  at least " + Expansion.MinCut / 100 + " tiles  ·  you get 1 vector back for every tile that was wall  ·  a door is just a short opening" : "Left click a corner, move, left click to place it  ·  right click cancels  ·  share at least " + Expansion.MinDoorRun / 100 + " tiles of wall with a room  ·  " + Expansion.MinSide / 100 + " tiles wide is a hallway (half price, up to " + Expansion.HallMax / 100 + " long)  ·  touching two rooms makes a loop"), 13, Ui.Muted, TextAnchor.MiddleCenter);
+            bool roomMode = !expCutMode && !expLinkMode && !expHallMode && !expGateMode;
+            if (!roomMode)
+                expPts.Clear();
+            Ui.Label(new Rect(0, 80f, W, 20f), doorsOnly ? "A wave is on: doors only  ·  click both ends of a wall stretch (the cyan ones)  ·  right click cancels  ·  you get 1 vector back for every tile that was wall" : expGateMode ? "Click a door to fit a shutter gate  ·  " + Gates.Price + " vectors  ·  stand by it and press " + Keybinds.KeyName(Keybinds.Get(KeyAction.TakeItem)).ToUpperInvariant() + " to shut it for " + (int)Gates.CloseTime + " s (" + (int)Gates.Cooldown + " s to recharge)  ·  " + game.GateFits.Count + " of " + Gates.Max + " fitted" : expHallMode ? "Left click where it starts, move along it, left click to lay a leg  ·  up to " + Expansion.MaxLegs + " legs, each from the end of the last  ·  right click undoes  ·  Enter proposes  ·  a hallway costs half its new wall" : expLinkMode ? "Left click a spot in one room, then a spot in another  ·  right click cancels  ·  " + Expansion.LinkBase + " vectors + 1 per 2 tiles of walking it saves  ·  enemies use it too  ·  " + game.Links.Count + " of " + Expansion.MaxLinks + " pairs built" : expCutMode ? "Left click one end of a wall stretch, then the other (the cyan stretches)  ·  right click cancels  ·  at least " + Expansion.MinCut / 100 + " tiles  ·  you get 1 vector back for every tile that was wall  ·  a door is just a short opening" : "Left click corners: walls run straight (a slanted click makes an L)  ·  click the first corner or press Enter to close it  ·  right click undoes a corner  ·  or drag a box  ·  " + Expansion.MinSide / 100 + " tiles wide everywhere, " + Expansion.MinDoorRun / 100 + " tiles of wall shared with a room", 13, Ui.Muted, TextAnchor.MiddleCenter);
             var map = new Rect(70f, 112f, W - 140f, 370f);
             var wd = game.ExpansionWorld;
             float pad = 1300f;
@@ -340,9 +346,65 @@ namespace Arena
             // Controls: left click sets the first corner, the box follows the mouse, a second left click places it (or press, drag and let go);
             // right click or Escape cancels the box (and, with none started, goes back).
             bool confirm = false, dragRelease = false;
+            // Gate mode: the door nearest the mouse (a click proposes a gate on it).
+            int gateDoor = -1;
+            string gateWhy = null;
+            if (expGateMode && over)
+            {
+                V2 wm = new V2((ev.mousePosition.x - ox) / k + lo.X, (ev.mousePosition.y - oy) / k + lo.Y);
+                gateDoor = Gates.NearestDoor(wd, wm, 14f / k);
+                if (gateDoor >= 0 && !Gates.CanFit(wd, game.GateFits, wd.Doors[gateDoor].Pos, out gateWhy)) { }
+                else if (gateDoor >= 0 && game.SpendableVectors(game.Me) < Gates.Price) gateWhy = "Can't afford it: " + Gates.Price + " vectors, you have " + game.SpendableVectors(game.Me);
+                if (gateDoor >= 0 && gateWhy == null && ev.type == EventType.MouseDown && ev.button == 0)
+                {
+                    game.ProposeExpandGate(wd.Doors[gateDoor].Pos);
+                    expDrawing = expDragging = false;
+                    ev.Use();
+                }
+            }
+            if (expGateMode && ev.type == EventType.MouseDown && ev.button == 0 && over)
+                ev.Use();  // (gate mode never draws a box)
             if (expDragging && ev.type != EventType.Layout && ev.type != EventType.Used)
                 expB = Snap(ev.mousePosition);
-            if ((ev.type == EventType.MouseDown && ev.button == 1) || (ev.type == EventType.KeyDown && ev.keyCode == KeyCode.Escape))
+            // The room is an outline: left clicks lay corners (a slanted click an L), the first corner or Enter closes it and puts it
+            // to the vote, right click (Esc, Backspace) takes the last corner back; with none laid, a press, drag and let go draws a box.
+            V2 cursor = Snap(ev.mousePosition);
+            bool closeRoom = false;
+            List<int[]> dragBox = null;
+            if (roomMode)
+            {
+                if ((ev.type == EventType.MouseDown && ev.button == 1) || (ev.type == EventType.KeyDown && (ev.keyCode == KeyCode.Escape || ev.keyCode == KeyCode.Backspace)))
+                {
+                    if (expHeld) expHeld = false;
+                    else if (expPts.Count > 0) expPts.RemoveAt(expPts.Count - 1);
+                    else expDrawing = false;
+                    ev.Use();
+                }
+                else if (ev.type == EventType.MouseDown && ev.button == 0 && over)
+                {
+                    expHeld = true;
+                    expPressAt = ev.mousePosition;
+                    expA = cursor;
+                    ev.Use();
+                }
+                else if (ev.type == EventType.MouseUp && ev.button == 0 && expHeld)
+                {
+                    expHeld = false;
+                    if (expPts.Count == 0 && (ev.mousePosition - expPressAt).magnitude > 12f && expA.X != cursor.X && expA.Y != cursor.Y)
+                        dragBox = BoxCorners(expA, cursor);
+                    else if (expPts.Count >= 3 && expPts[0][0] == (int)cursor.X && expPts[0][1] == (int)cursor.Y)
+                        closeRoom = true;
+                    else if (expPts.Count < Expansion.MaxPoints)
+                        AddWall(expPts, (int)cursor.X, (int)cursor.Y);
+                    ev.Use();
+                }
+                else if (ev.type == EventType.KeyDown && (ev.keyCode == KeyCode.Return || ev.keyCode == KeyCode.KeypadEnter) && expPts.Count >= 2)
+                {
+                    closeRoom = true;
+                    ev.Use();
+                }
+            }
+            else if ((ev.type == EventType.MouseDown && ev.button == 1) || (ev.type == EventType.KeyDown && ev.keyCode == KeyCode.Escape))
             {
                 if (expDragging)
                 {
@@ -359,7 +421,7 @@ namespace Arena
                 }
                 ev.Use();
             }
-            else if (ev.type == EventType.MouseDown && ev.button == 0 && over)
+            else if (!roomMode && ev.type == EventType.MouseDown && ev.button == 0 && over)
             {
                 if (!expDragging)
                 {
@@ -371,7 +433,7 @@ namespace Arena
                     confirm = true;
                 ev.Use();
             }
-            else if (ev.type == EventType.MouseUp && ev.button == 0 && expHeld)
+            else if (!roomMode && ev.type == EventType.MouseUp && ev.button == 0 && expHeld)
             {
                 expHeld = false;
                 if (expDragging && (ev.mousePosition - expPressAt).magnitude > 12f)
@@ -388,7 +450,37 @@ namespace Arena
                 else { rw = Expansion.MinSide; rx = expB.X >= expA.X ? (int)expA.X : (int)expA.X - Expansion.MinSide; }
             }
             var hallSoFar = expHallMode && expLegs.Count > 0 ? Expansion.Hall(game.Expanded, expLegs, out string hallWhy) : null;
-            bool hasBox = !expCutMode && !expLinkMode && rw > 0 && rh > 0;
+            // The outline as it stands: the corners laid, the wall to the cursor, and back to the first corner (or the box being dragged).
+            List<int[]> shape = null, laid = null;
+            List<ExpansionRoom> outlineRoom = null;
+            string outlineWhy = null;
+            int myVectors = game.SpendableVectors(game.Me);
+            if (roomMode)
+            {
+                if (dragBox != null) shape = dragBox;
+                else if (expHeld && expPts.Count == 0 && (ev.mousePosition - expPressAt).magnitude > 12f && expA.X != cursor.X && expA.Y != cursor.Y) shape = BoxCorners(expA, cursor);
+                else if (expPts.Count > 0)
+                {
+                    laid = new List<int[]>(expPts);
+                    if (!closeRoom && over)
+                        AddWall(laid, (int)cursor.X, (int)cursor.Y);
+                    shape = Closed(laid);
+                }
+                if (shape != null && shape.Count >= 4)
+                {
+                    outlineRoom = Expansion.Outline(game.Expanded, shape, expTheme, out outlineWhy);
+                    if (outlineRoom != null && outlineRoom[0].Price > myVectors) { outlineWhy = "Can't afford it: " + outlineRoom[0].Price + " vectors, you have " + myVectors; outlineRoom = null; }
+                }
+                else if (shape != null)
+                    outlineWhy = "Keep going: click more corners";
+                if ((closeRoom || dragBox != null) && outlineRoom != null)
+                {
+                    game.ProposeExpandOutline(shape, expTheme);
+                    expDrawing = false;
+                    expPts.Clear();
+                }
+            }
+            bool hasBox = !roomMode && !expCutMode && !expLinkMode && !expGateMode && rw > 0 && rh > 0;
             string why = null;
             ExpansionRoom? box = null;
             WallCut cut = default(WallCut);
@@ -477,16 +569,20 @@ namespace Arena
                     RoomMapRect(M(new V2(gx, lo.Y)).X, map.y, 1f, map.height, new Rgba(0.4f, 0.64f, 1f, 0.07f));
                 for (float gy = Mathf.Ceil(lo.Y / 500f) * 500f; gy <= hi.Y; gy += 500f)
                     RoomMapRect(map.x, M(new V2(lo.X, gy)).Y, map.width, 1f, new Rgba(0.4f, 0.64f, 1f, 0.07f));
-                foreach (var a in wd.Areas)
+                for (int ai = 0; ai < wd.Areas.Length; ai++)
                 {
+                    var a = wd.Areas[ai];
                     V2 p0 = M(a.Min), p1 = M(a.Max);
                     var ink = a.Hub ? new Rgba(0.4f, 0.64f, 1f) : KindInk(a.Kind, a.Floor);
                     float ghost = a.Sealed ? 0.55f + 0.25f * Mathf.Sin(Time.unscaledTime * 2.5f) : 1f;  // a sealed floating room breathes
                     RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, ink.WithAlpha((a.Hub ? 0.16f : 0.1f) * ghost));
-                    RoomMapFrame(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, a.Floating ? 1.5f : 1f, ink.WithAlpha(0.8f * ghost));
+                    RimFrame(wd, ai, M, a.Floating ? 1.5f : 1f, ink.WithAlpha(0.8f * ghost));
                 }
-                foreach (var d in wd.Doors)
+                for (int di = 0; di < wd.Doors.Length; di++)
                 {
+                    if (wd.Seam(di))
+                        continue;  // (inside one room)
+                    var d = wd.Doors[di];
                     V2 c = M(d.Pos);
                     if (d.Width > 0f)  // an opened wall: its whole length
                     {
@@ -504,10 +600,31 @@ namespace Arena
                     }
                 for (int li = 0; li < game.Links.Count; li++)  // the portal pairs built, in their pair's colour
                     DrawLinkMark(M(game.Links[li].A), M(game.Links[li].B), PortalColours[(wd.Portals.Length - game.Links.Count + li) % PortalColours.Length], 1f);
+                foreach (var gf in game.GateFits)  // the gates fitted: a red bar on the door
+                {
+                    V2 gc = M(gf.Pos);
+                    RoomMapRect(gc.X - (gf.Vertical ? 2.5f : 6f), gc.Y - (gf.Vertical ? 6f : 2.5f), gf.Vertical ? 5f : 12f, gf.Vertical ? 12f : 5f, new Rgba(1f, 0.3f, 0.32f, 0.95f));
+                }
+                if (expGateMode)  // the doors a gate can go on, and the one under the mouse
+                    for (int di = 0; di < wd.Doors.Length; di++)
+                    {
+                        string dw;
+                        if (!Gates.CanFit(wd, game.GateFits, wd.Doors[di].Pos, out dw))
+                            continue;
+                        V2 dc = M(wd.Doors[di].Pos);
+                        bool hot = di == gateDoor;
+                        float s2 = hot ? 9f : 6f;
+                        RoomMapFrame(dc.X - s2, dc.Y - s2, 2f * s2, 2f * s2, hot ? 2f : 1.5f, (hot ? (gateWhy == null ? new Rgba(0.35f, 1f, 0.55f) : new Rgba(1f, 0.3f, 0.36f)) : new Rgba(1f, 0.85f, 0.4f)).WithAlpha(hot ? 1f : 0.5f + 0.3f * Mathf.Sin(Time.unscaledTime * 3f)));
+                    }
                 foreach (var q in game.ExpandProposals)  // everyone's proposals so far, in their drawer's colour
                 {
                     V2 q0 = M(new V2(q.X, q.Y)), q1 = M(new V2(q.X + q.W, q.Y + q.H));
                     var qi = OwnerInk(q.Owner);
+                    if (q.Kind == RoomKind.Gate)
+                    {
+                        RoomMapFrame(q0.X - 7f, q0.Y - 7f, 14f, 14f, 2f, qi.WithAlpha(0.95f));
+                        continue;
+                    }
                     if (q.Kind == RoomKind.Link)
                     {
                         DrawLinkMark(q0, q1, qi, 0.85f);
@@ -518,10 +635,11 @@ namespace Arena
                         RoomMapRect(q0.X - 2f, q0.Y - 2f, q1.X - q0.X + 4f, q1.Y - q0.Y + 4f, qi.WithAlpha(0.9f));
                         continue;
                     }
-                    RoomMapRect(q0.X, q0.Y, q1.X - q0.X, q1.Y - q0.Y, qi.WithAlpha(0.14f));
-                    RoomMapFrame(q0.X, q0.Y, q1.X - q0.X, q1.Y - q0.Y, 1.5f, qi.WithAlpha(0.85f));
+                    RoomMapRect(q0.X, q0.Y, q1.X - q0.X, q1.Y - q0.Y, qi.WithAlpha(Expansion.IsPiece(q) || game.LegsOf(q.Owner).Count > 0 ? 0.22f : 0.14f));
+                    if (q.Leg == 0 && game.LegsOf(q.Owner).Count == 0)  // (a room of several boxes shows as one fill, no seams)
+                        RoomMapFrame(q0.X, q0.Y, q1.X - q0.X, q1.Y - q0.Y, 1.5f, qi.WithAlpha(0.85f));
                 }
-                if (over || expDragging)  // the snapped cursor (a cross) and the corner already placed (a square)
+                if ((over || expDragging) && !expGateMode)  // the snapped cursor (a cross) and the corner already placed (a square)
                 {
                     V2 cur = M(Snap(ev.mousePosition));
                     RoomMapRect(cur.X - 7f, cur.Y - 0.5f, 14f, 1f, Rgba.White.WithAlpha(0.8f));
@@ -546,6 +664,8 @@ namespace Arena
                     RoomMapRect(l0.X, l0.Y, l1.X - l0.X, l1.Y - l0.Y, new Rgba(1f, 0.85f, 0.4f, 0.3f));
                     RoomMapFrame(l0.X, l0.Y, l1.X - l0.X, l1.Y - l0.Y, 2f, new Rgba(1f, 0.85f, 0.4f, 0.95f));
                 }
+                if (roomMode)
+                    DrawOutlineDraft(M, shape, laid, outlineRoom, cursor, over);
                 if (hasBox)
                 {
                     V2 p0 = M(new V2(rx, ry)), p1 = M(new V2(rx + rw, ry + rh));
@@ -571,7 +691,17 @@ namespace Arena
             }
             string line;
             Color lineInk;
-            if (hasCut && cutRefund > 0)
+            if (expGateMode && gateDoor >= 0)
+            {
+                line = gateWhy ?? "SHUTTER GATE ON THIS DOOR  ·  " + Gates.Price + " VECTORS (of " + game.SpendableVectors(game.Me) + ")  ·  click to propose it";
+                lineInk = gateWhy == null ? Ui.Gold : new Color(1f, 0.45f, 0.5f);
+            }
+            else if (expGateMode)
+            {
+                line = "Point at a door (the gold squares)  ·  a gate shuts the doorway to everyone; shots still pass";
+                lineInk = Ui.Muted;
+            }
+            else if (hasCut && cutRefund > 0)
             {
                 line = "OPEN " + cut.Length / Expansion.Step + " TILES OF WALL  ·  +" + cutRefund + " VECTORS (you have " + game.SpendableVectors(game.Me) + " of " + (game.Me != null ? game.Me.VectorCap : 0) + ")  ·  click to " + (free ? "build it" : "propose it") + "";
                 lineInk = Ui.Gold;
@@ -590,6 +720,23 @@ namespace Arena
             {
                 line = why ?? "";
                 lineInk = new Color(1f, 0.45f, 0.5f);
+            }
+            else if (roomMode && outlineRoom != null)
+            {
+                int loops = 0;
+                foreach (var pr in outlineRoom) loops += Expansion.LoopsOf(game.Expanded, pr);
+                line = "ROOM  ·  " + Expansion.FloorTiles(outlineRoom[0], outlineRoom.GetRange(1, outlineRoom.Count - 1)) + " TILES OF FLOOR  ·  " + outlineRoom[0].Price + " VECTORS (of " + myVectors + ")" + (loops > 0 ? "  ·  CLOSES " + (loops == 1 ? "A LOOP" : loops + " LOOPS") : "") + (expPts.Count >= 3 ? "  ·  click the first corner or press Enter to propose it" : "");
+                lineInk = Ui.Gold;
+            }
+            else if (roomMode && shape != null)
+            {
+                line = outlineWhy ?? "";
+                lineInk = new Color(1f, 0.45f, 0.5f);
+            }
+            else if (roomMode && expPts.Count == 0)
+            {
+                line = "Your vectors " + myVectors + "  ·  click a corner to start  ·  a room costs its new wall: shared walls are free, so touching rooms is cheaper";
+                lineInk = Ui.Muted;
             }
             else if (hasBox && box.HasValue && expHallMode)
             {
@@ -629,8 +776,22 @@ namespace Arena
                 if (CrtUi.SoftKey(new Rect(W / 2f + 80f, hy, 250f, 32f), "UNDO LEG", null, 17, calm) && expLegs.Count > 0)
                     expLegs.RemoveAt(expLegs.Count - 1);
             }
-            else if (!expCutMode && !expLinkMode)
+            else if (!expCutMode && !expLinkMode && !expGateMode)
                 DrawThemeRow(new Rect(map.x, map.yMax + 4f, map.width, 32f), calm);
+            if (roomMode && expPts.Count > 0)
+            {
+                var closedLaid = Closed(new List<int[]>(expPts));
+                var laidRoom = closedLaid.Count >= 4 ? Expansion.Outline(game.Expanded, closedLaid, expTheme, out string _) : null;
+                bool can = laidRoom != null && laidRoom[0].Price <= myVectors;
+                if (CrtUi.SoftKey(new Rect(map.xMax - 330f, map.y + 6f, 190f, 28f), can ? "PROPOSE  ·  " + laidRoom[0].Price : "PROPOSE", null, 14, calm, lit: can) && can)
+                {
+                    game.ProposeExpandOutline(closedLaid, expTheme);
+                    expDrawing = false;
+                    expPts.Clear();
+                }
+                if (CrtUi.SoftKey(new Rect(map.xMax - 134f, map.y + 6f, 128f, 28f), "UNDO", null, 14, calm) && expPts.Count > 0)
+                    expPts.RemoveAt(expPts.Count - 1);
+            }
             Ui.Label(new Rect(0, map.yMax + 44f, W, 22f), line, 15, lineInk, TextAnchor.MiddleCenter, true);
             if (CrtUi.SoftKey(new Rect(W / 2f - 120f, map.yMax + 72f, 240f, 34f), free ? "DONE" : "BACK", null, 20, calm))
             {
@@ -646,7 +807,74 @@ namespace Arena
         bool expCutMode;  // the draw screen opens a wall instead of drawing a room
         bool expLinkMode;  // the draw screen places a portal pair (Docs/RoomBuilding2.md step 2)
         bool expHallMode;  // the draw screen lays a hallway, leg by leg (Expansion.Hall)
+        bool expGateMode;  // the draw screen fits a shutter gate to a door (Docs/RoomBuilding2.md step 3)
         readonly List<int[]> expLegs = new List<int[]>();  // its legs laid so far: x, y, w, h
+        readonly List<int[]> expPts = new List<int[]>();   // the room outline's corners laid so far: x, y (Expansion.Outline)
+
+        /// A wall from the last corner to (x, y): straight on, or an L (the longer way first) when the click is slanted.
+        static void AddWall(List<int[]> pts, int x, int y)
+        {
+            if (pts.Count > 0)
+            {
+                var l = pts[pts.Count - 1];
+                if (l[0] == x && l[1] == y)
+                    return;
+                if (l[0] != x && l[1] != y)
+                    pts.Add(Mathf.Abs(x - l[0]) >= Mathf.Abs(y - l[1]) ? new[] { x, l[1] } : new[] { l[0], y });
+            }
+            pts.Add(new[] { x, y });
+        }
+
+        /// The corners with the walls back to the first one added.
+        static List<int[]> Closed(List<int[]> pts)
+        {
+            var c = new List<int[]>(pts);
+            if (c.Count < 2)
+                return c;
+            var f = c[0];
+            AddWall(c, f[0], f[1]);
+            if (c.Count > 1 && c[c.Count - 1][0] == f[0] && c[c.Count - 1][1] == f[1])
+                c.RemoveAt(c.Count - 1);
+            return c;
+        }
+
+        static List<int[]> BoxCorners(V2 a, V2 b) => new List<int[]>
+        {
+            new[] { (int)a.X, (int)a.Y }, new[] { (int)b.X, (int)a.Y }, new[] { (int)b.X, (int)b.Y }, new[] { (int)a.X, (int)b.Y },
+        };
+
+        /// The outline being drawn: its floor (green when it fits, the pieces it would be built from), the walls laid (bright), the wall to
+        /// the cursor and the way back to the first corner (dim), each corner, and the first corner ringed when clicking it would close it.
+        void DrawOutlineDraft(System.Func<V2, V2> M, List<int[]> shape, List<int[]> laid, List<ExpansionRoom> room, V2 cursor, bool over)
+        {
+            if (shape == null)
+                return;
+            var ink = room != null ? new Rgba(0.35f, 1f, 0.55f) : new Rgba(1f, 0.3f, 0.36f);
+            if (room != null)
+                foreach (var r in room)
+                {
+                    V2 p0 = M(new V2(r.X, r.Y)), p1 = M(new V2(r.X1, r.Y1));
+                    RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, ink.WithAlpha(0.22f));
+                }
+            int solid = laid == null ? shape.Count : expPts.Count - 1;  // walls up to here are laid; the rest follow the cursor
+            for (int i = 0; i < shape.Count; i++)
+            {
+                if (laid != null && i == shape.Count - 1 && shape.Count < 3)
+                    break;
+                V2 a = M(new V2(shape[i][0], shape[i][1])), b = M(new V2(shape[(i + 1) % shape.Count][0], shape[(i + 1) % shape.Count][1]));
+                bool firm = i < solid;
+                float th = firm ? 2.5f : 1.5f;
+                RoomMapRect(Mathf.Min(a.X, b.X) - th / 2f, Mathf.Min(a.Y, b.Y) - th / 2f, Mathf.Abs(b.X - a.X) + th, Mathf.Abs(b.Y - a.Y) + th, ink.WithAlpha(firm ? 1f : 0.5f));
+            }
+            for (int i = 0; i < expPts.Count; i++)
+            {
+                V2 c = M(new V2(expPts[i][0], expPts[i][1]));
+                float s = i == 0 ? 5f : 3f;
+                RoomMapRect(c.X - s, c.Y - s, 2f * s, 2f * s, i == 0 ? new Rgba(1f, 0.85f, 0.4f, 0.95f) : Rgba.White.WithAlpha(0.9f));
+            }
+            if (over && expPts.Count >= 3 && expPts[0][0] == (int)cursor.X && expPts[0][1] == (int)cursor.Y)
+                Arc(M(cursor), 10f, 2f, new Rgba(1f, 0.85f, 0.4f, 0.6f + 0.4f * Mathf.Sin(Time.unscaledTime * 6f)), 20);
+        }
 
         /// A portal pair on a map: a ring at each end and a dashed line between them.
         void DrawLinkMark(V2 a, V2 b, Rgba ink, float alpha)
@@ -701,7 +929,7 @@ namespace Arena
         {
             Player owner;
             game.Players.TryGetValue(o.Owner, out owner);
-            bool afford = owner != null && o.Price <= owner.Vectors;
+            bool afford = owner != null && o.Price <= game.SpendableVectors(owner);
             bool hover = afford && r.Contains(Event.current.mousePosition);
             Color ink = afford ? CrtUi.Ink : CrtUi.Dim, dim = CrtUi.Dim;
             bool taken = false;
@@ -715,15 +943,16 @@ namespace Arena
                 EndUiGl();
             }
             float ty = stage.yMax + 14f;
-            int loops = o.Kind == RoomKind.Link || o.Kind == RoomKind.Opening ? 0 : Expansion.LoopsOf(game.Expanded, o);
+            int loops = o.Kind == RoomKind.Link || o.Kind == RoomKind.Opening || o.Kind == RoomKind.Gate ? 0 : Expansion.LoopsOf(game.Expanded, o);
             var legs = game.LegsOf(o.Owner);
+            bool drawn = legs.Count > 0 && Expansion.IsPiece(legs[0]);  // a room drawn as an outline
             int hallTiles = Mathf.Max(o.W, o.H) / 100;
             foreach (var lg in legs)
                 hallTiles += Mathf.Max(lg.W, lg.H) / 100;
             bool mineCard = o.Owner == game.MyId;
-            CrtUi.Text(new Rect(r.x + 22f, ty, r.width - 44f, 34f), (mineCard ? "YOUR " : "") + (o.Kind == RoomKind.Link ? "PORTAL PAIR" : o.Kind == RoomKind.Opening ? "OPEN A WALL" : (o.Kind == RoomKind.Floor ? Paths.Get(o.Floor).Name.ToUpperInvariant() + " " : "") + (legs.Count > 0 ? "BENT HALLWAY" : o.Shape.ToUpperInvariant())), r.width < 330f ? 22 : 28, ink, TextAnchor.MiddleLeft, true, calm);
-            CrtUi.Text(new Rect(r.x + 22f, ty + 34f, r.width - 44f, 22f), (owner != null ? "DRAWN BY " + owner.Name.ToUpperInvariant() : "DRAWN") + "  ·  " + (o.Kind == RoomKind.Link ? "saves " + Mathf.RoundToInt(Expansion.WalkDistance(game.ExpansionWorld, Expansion.LinkOf(o).A, Expansion.LinkOf(o).B) / 100f) + " tiles of walking" : o.Kind == RoomKind.Opening ? (o.W + o.H) / 100 + " tiles of wall" : legs.Count > 0 ? (legs.Count + 1) + " legs, " + hallTiles + " tiles long" : o.W / 100 + " x " + o.H / 100 + " tiles" + (loops > 0 ? "  ·  LOOP" : "")), 15, afford ? CrtUi.Ink : dim, TextAnchor.MiddleLeft, false, calm);
-            string blurb = o.Kind == RoomKind.Link ? "Two portals: step into one and come out of the other. Enemies use them too." : o.Kind == RoomKind.Opening ? "Takes this stretch of wall down: the rooms either side open into one, and the proposer gets the vectors back." : o.Kind == RoomKind.Floor ? FloorBlurb(o.Floor) : loops > 0 ? "It joins " + (loops + 1) + " rooms, so the map loops round." : "More floor to fight on, and more enemies come with it.";
+            CrtUi.Text(new Rect(r.x + 22f, ty, r.width - 44f, 34f), (mineCard ? "YOUR " : "") + (o.Kind == RoomKind.Gate ? "SHUTTER GATE" : o.Kind == RoomKind.Link ? "PORTAL PAIR" : o.Kind == RoomKind.Opening ? "OPEN A WALL" : (o.Kind == RoomKind.Floor ? Paths.Get(o.Floor).Name.ToUpperInvariant() + " " : "") + (drawn ? "DRAWN ROOM" : legs.Count > 0 ? "BENT HALLWAY" : o.Shape.ToUpperInvariant())), r.width < 330f ? 22 : 28, ink, TextAnchor.MiddleLeft, true, calm);
+            CrtUi.Text(new Rect(r.x + 22f, ty + 34f, r.width - 44f, 22f), (owner != null ? "DRAWN BY " + owner.Name.ToUpperInvariant() : "DRAWN") + "  ·  " + (o.Kind == RoomKind.Gate ? "on a door" : o.Kind == RoomKind.Link ? "saves " + Mathf.RoundToInt(Expansion.WalkDistance(game.ExpansionWorld, Expansion.LinkOf(o).A, Expansion.LinkOf(o).B) / 100f) + " tiles of walking" : o.Kind == RoomKind.Opening ? (o.W + o.H) / 100 + " tiles of wall" : drawn ? Expansion.FloorTiles(o, legs) + " tiles of floor" + (loops > 0 ? "  ·  LOOP" : "") : legs.Count > 0 ? (legs.Count + 1) + " legs, " + hallTiles + " tiles long" : o.W / 100 + " x " + o.H / 100 + " tiles" + (loops > 0 ? "  ·  LOOP" : "")), 15, afford ? CrtUi.Ink : dim, TextAnchor.MiddleLeft, false, calm);
+            string blurb = o.Kind == RoomKind.Gate ? "A red laser grid on this door. Stand by it and press " + Keybinds.KeyName(Keybinds.Get(KeyAction.TakeItem)).ToUpperInvariant() + " to shut it for " + (int)Gates.CloseTime + " s and split a crowd." : o.Kind == RoomKind.Link ? "Two portals: step into one and come out of the other. Enemies use them too." : o.Kind == RoomKind.Opening ? "Takes this stretch of wall down: the rooms either side open into one, and the proposer gets the vectors back." : o.Kind == RoomKind.Floor ? FloorBlurb(o.Floor) : loops > 0 ? "It joins " + (loops + 1) + " rooms, so the map loops round." : "More floor to fight on, and more enemies come with it.";
             CrtUi.Text(new Rect(r.x + 22f, ty + 62f, r.width - 44f, 70f), blurb, 14, dim, TextAnchor.UpperLeft, false, calm, true);
             int votes = game.VotesFor(o.Owner);
             CrtUi.Text(new Rect(r.x + 22f, r.yMax - 82f, r.width - 44f, 30f), (o.Price < 0 ? "+" + -o.Price : o.Price.ToString()) + " VECTORS" + (owner != null ? "  ·  " + owner.Name.ToUpperInvariant() + " HAS " + owner.Vectors : ""), r.width < 330f ? 17 : 20, afford ? new Color(0.37f, 0.94f, 1f) : dim, TextAnchor.MiddleLeft, true, calm);
@@ -738,7 +967,7 @@ namespace Arena
         /// The map so far (dim), with the offered room lit in its colour and a marker on its door.
         void DrawExpansionMini(Rect stage, ExpansionRoom o, bool afford, float t)
         {
-            bool isCut = o.Kind == RoomKind.Opening || o.Kind == RoomKind.Link;  // (neither adds a room)
+            bool isCut = o.Kind == RoomKind.Opening || o.Kind == RoomKind.Link || o.Kind == RoomKind.Gate;  // (none adds a room)
             var all = new List<ExpansionRoom>(game.Expanded);
             int added = 0;
             if (!isCut)
@@ -767,16 +996,22 @@ namespace Arena
                 else if (a.Owner != 0 && a.Kind == RoomKind.Combat) { fill = OwnerInk(a.Owner).WithAlpha(0.14f); line = OwnerInk(a.Owner).WithAlpha(0.7f); }
                 else { fill = KindInk(a.Kind, a.Floor).WithAlpha(a.Kind == RoomKind.Combat ? 0.08f : 0.16f); line = KindInk(a.Kind, a.Floor).WithAlpha(0.5f); }
                 RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, fill);
-                RoomMapFrame(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, isNew ? 2f : 1f, line);
+                RimFrame(wd, i, M, isNew ? 2f : 1f, line);
             }
-            foreach (var d in wd.Doors)
+            for (int di = 0; di < wd.Doors.Length; di++)
             {
-                if (d.Width > 0f && d.A >= wd.Areas.Length - added && d.B >= wd.Areas.Length - added)
-                    continue;  // (a bent hallway's open corner)
+                var d = wd.Doors[di];
+                if (wd.Seam(di))
+                    continue;  // (inside one room: a bent hallway's open corner, an outline's seam)
                 V2 c = M(d.Pos);
                 RoomMapRect(c.X - 3f, c.Y - 3f, 6f, 6f, !isCut && (d.A >= wd.Areas.Length - added) != (d.B >= wd.Areas.Length - added) ? Rgba.White.WithAlpha(0.9f) : new Rgba(0.37f, 0.94f, 1f, 0.7f));
             }
-            if (o.Kind == RoomKind.Link)  // the two portals it would place
+            if (o.Kind == RoomKind.Gate)  // the door it would go on
+            {
+                V2 gc = M(new V2(o.X, o.Y));
+                RoomMapFrame(gc.X - 8f, gc.Y - 8f, 16f, 16f, 2.5f, new Rgba(1f, 0.3f, 0.32f, (afford ? 1f : 0.5f) * pulse));
+            }
+            else if (o.Kind == RoomKind.Link)  // the two portals it would place
                 DrawLinkMark(M(Expansion.LinkOf(o).A), M(Expansion.LinkOf(o).B), ink.WithAlpha(afford ? 1f : 0.5f), 1f);
             else if (isCut)  // the stretch of wall it would open
             {

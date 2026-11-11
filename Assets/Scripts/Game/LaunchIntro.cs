@@ -219,7 +219,7 @@ namespace Arena
                 return;
             float a = 1f - o;
             bool boss = game.BossNow;
-            int w = Mathf.Max(1, game.Wave);
+            int w = Mathf.Max(1, game.ShownWave);
             var oldColor = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, a);
             Ui.Alpha = a;

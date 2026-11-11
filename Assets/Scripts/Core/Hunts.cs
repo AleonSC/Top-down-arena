@@ -50,6 +50,35 @@ namespace Arena
         /// The run's last wave: 50 (before endless), or a hunt's tenth.
         public int LastWave => Hunt != null ? Hunts.Length : MaxWave;
 
+        /// The Campaign's 100 waves (Docs/RunLength.md step 2): each wave of the 50-wave track is fought twice, as two
+        /// "legs", so the player sees waves 1-100 with a boss after every tenth, while everything that scales or unlocks by
+        /// wave (enemy health, damage, fire rate, elites, new types, squads, approaches...) reads Wave, the track's wave:
+        /// wave 37 plays as wave 19 does on the track (effective wave = shown wave / 2, rounded up). Per-wave rewards (XP,
+        /// kill gold, vectors, chests) are halved (Pace) so a build reaches each boss as strong as before. Off for Boss Hunts,
+        /// the Practice Range, the Boss Lab, the lobby preview and runs saved before it (LongRun false: the old 50 waves).
+        public bool LongRun;                          // this run is a 100-wave Campaign (set by the start message; saved)
+        public static bool LongRunDefault = true;     // a new run from the lobby is (the sim tests turn it off for the older suites)
+        public int Leg;                               // 0: the first of the wave's two legs, 1: the second (replicated; saved)
+        public bool LongLegs => LongRun && Hunt == null && Practice == null && !ShowcaseMode && !Unrecorded;
+        bool LegDone => !LongLegs || Leg == 1;
+        bool FirstLeg => !LongLegs || Leg == 0;       // once-a-wave things happen on a Campaign wave's first leg only        // the track's wave is done with this fight (the boss or the next wave is next)
+
+        /// The wave number the player sees (1-100 in a Campaign).
+        public int ShownWave => LongLegs && Wave > 0 ? Wave * 2 - 1 + Leg : Wave;
+
+        /// The shown numbers of a track wave's first and last legs (ShownEnd: the wave a boss follows, in a Campaign).
+        public int ShownStart(int wave) => LongLegs ? wave * 2 - 1 : wave;
+        public int ShownEnd(int wave) => LongLegs ? wave * 2 : wave;
+
+        /// The track wave of the next regular fight (a Campaign's second leg is the same track wave again).
+        public int NextTrackWave => LongLegs && Wave > 0 && Leg == 0 && !BossSlot ? Wave : Wave + 1;
+
+        /// The run's last wave as the player sees it (100 in a Campaign).
+        public int ShownLastWave => LongLegs ? MaxWave * 2 : LastWave;
+
+        /// Per-wave rewards: half in a Campaign, which has twice the waves.
+        public float Pace => LongLegs ? 0.5f : 1f;
+
         /// Does a boss belong to this wave? In a run the boss comes after every fifth regular wave, as its own fight that
         /// doesn't use up a wave number (BossSlot); only the last wave of a hunt is a boss. For "is the boss being fought
         /// (or just beaten)" ask BossNow, for "is the boss next" BossNext.
@@ -63,10 +92,10 @@ namespace Arena
         public bool BossNow => Hunt != null ? IsBossWave(Wave) : BossSlot;
 
         /// The next fight to start is a boss (the wave box between waves shows it).
-        public bool BossNext => Hunt != null ? IsBossWave(Wave + 1) : !BossSlot && IsBossWave(Wave);
+        public bool BossNext => Hunt != null ? IsBossWave(Wave + 1) : !BossSlot && IsBossWave(Wave) && LegDone;
 
         /// Host: the fight that starts next is the boss after wave `Wave` (and not wave `Wave + 1`).
-        bool BossStartsNext => Hunt == null && Practice == null && !BossSlot && IsBossWave(Wave);
+        bool BossStartsNext => Hunt == null && Practice == null && !BossSlot && IsBossWave(Wave) && LegDone;
 
         /// The boss of this wave, or of the next boss wave after it.
         public EnemyType BossAt(int wave) => Hunt != null ? Hunt.Boss : BossForWave(wave);

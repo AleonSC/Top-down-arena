@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// What a room of the Expanding arena does (Docs/ExpandingArena.md). Floor rooms carry a path's ground and hazards.
-    public enum RoomKind : byte { Combat, Shop, Floor, Vendor, Gatekeeper, Opening, Link }  // (Vendor and Gatekeeper: the floating rooms, Docs/FloatingRooms.md; Opening and Link: only in a round's proposals, a stretch of wall to open or a portal pair)
+    public enum RoomKind : byte { Combat, Shop, Floor, Vendor, Gatekeeper, Opening, Link, Gate }  // (Vendor and Gatekeeper: the floating rooms, Docs/FloatingRooms.md; Opening, Link and Gate: only in a round's proposals, a stretch of wall to open, a portal pair or a shutter gate on a door)
 
     /// A stretch of interior wall the team opened (the Expanding arena): a vertical wall at x = At from y = From to Till, or a horizontal one at y = At.
     public struct WallCut : IEquatable<WallCut>
@@ -35,7 +35,7 @@ namespace Arena
         public int Price;       // what it costs in vectors (Expansion.Cost; the drawer pays if it wins the vote)
         public int Owner;       // the player who drew it (0: none)
         public bool Floating;   // placed by the game off the map (a shop, vendor or Gatekeeper), not drawn: sealed until a built room touches it
-        public byte Leg;        // a bent hallway's second or third leg (1, 2): it opens full width onto the leg just before it in the list (Expansion.Hall)
+        public byte Leg;        // a bent hallway's second or third leg (1, 2), or a drawn outline's piece (Expansion.PieceBase + n): it opens full width onto its Parent (Expansion.Hall, Expansion.Outline)
         public int X1 => X + W;
         public int Y1 => Y + H;
         public string Shape => Expansion.ShapeName(W, H);
@@ -130,6 +130,33 @@ namespace Arena
                 if (Shapes[i][0] == w && Shapes[i][1] == h)
                     return shapeNames[i];
             return Math.Min(w, h) <= MinSide ? "Hallway" : "Room";  // (a drawn one)
+        }
+
+        /// Is this entry a later part of a multi-box room (a bent hallway's leg or an outline's piece), joined open onto its Parent?
+        public static bool Joined(IList<ExpansionRoom> rooms, int a, int b)
+        {
+            if (a == b || a < 0 || b < 0 || a > rooms.Count || b > rooms.Count)
+                return false;
+            return a > 0 && rooms[a - 1].Leg > 0 && rooms[a - 1].Parent == b || b > 0 && rooms[b - 1].Leg > 0 && rooms[b - 1].Parent == a;
+        }
+
+        /// The first entry (list index) of the multi-box room this entry belongs to (itself for a plain box).
+        public static int HeadOf(IList<ExpansionRoom> rooms, int index)
+        {
+            for (int guard = 0; guard < 64 && index >= 0 && index < rooms.Count && rooms[index].Leg > 0; guard++)
+                index = rooms[index].Parent - 1;
+            return index;
+        }
+
+        /// Every entry (list index) of the multi-box room this entry belongs to: its head and all its legs or pieces.
+        public static List<int> GroupOf(IList<ExpansionRoom> rooms, int index)
+        {
+            int head = HeadOf(rooms, index);
+            var all = new List<int>();
+            for (int i = 0; i < rooms.Count; i++)
+                if (HeadOf(rooms, i) == head)
+                    all.Add(i);
+            return all;
         }
 
         static int ShapeIndex(int w, int h)
@@ -231,7 +258,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var r in rooms)
-                if (!r.Floating)
+                if (!r.Floating && r.Leg == 0)  // (a bent hallway or a drawn outline is one room, however many boxes)
                     n++;
             return n;
         }
@@ -256,7 +283,7 @@ namespace Arena
                         continue;
                     int bx0, by0, bx1, by1;
                     BoxOf(rooms, b, out bx0, out by0, out bx1, out by1);
-                    if (SharedRun(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1) >= MinDoorRun)
+                    if (SharedRun(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1) >= MinDoorRun || Joined(rooms, a, b))
                     {
                         seen[b] = true;
                         queue.Enqueue(b);
@@ -657,6 +684,252 @@ namespace Arena
             return made;
         }
 
+        // --- Drawn outlines -----------------------------------------------------------------------------------------
+
+        public const byte PieceBase = 16;        // ExpansionRoom.Leg from here up: a piece of a drawn outline (not a hallway leg)
+        public const int MaxPoints = 32;         // corners an outline may have
+        public const int OutlineMaxSide = 2400;  // an outline's bounding box, each way
+        public const int OutlineCoverMin = 500;  // an outline's piece narrower than this gets no cover
+
+        public static bool IsPiece(ExpansionRoom r) => r.Leg >= PieceBase;
+
+        /// The corners of an outline with the in-between points of straight walls taken out (each point {x, y}). Null with `why` set
+        /// if it isn't a closed loop of straight walls on the grid (each wall across or up, corners apart, no wall doubling back).
+        public static List<int[]> CleanOutline(IList<int[]> pts, out string why)
+        {
+            why = null;
+            if (pts == null || pts.Count < 4) { why = "Click at least 4 corners"; return null; }
+            if (pts.Count > MaxPoints) { why = "At most " + MaxPoints + " corners"; return null; }
+            int n = pts.Count;
+            for (int i = 0; i < n; i++)
+            {
+                int[] a = pts[i], b = pts[(i + 1) % n];
+                if (a[0] % Step != 0 || a[1] % Step != 0) { why = "Not on the grid"; return null; }
+                if (a[0] == b[0] && a[1] == b[1]) { why = "Two corners in one spot"; return null; }
+                if (a[0] != b[0] && a[1] != b[1]) { why = "Walls run straight across or straight up"; return null; }
+            }
+            var c = new List<int[]>();
+            for (int i = 0; i < n; i++)
+            {
+                int[] p = pts[(i + n - 1) % n], q = pts[i], r = pts[(i + 1) % n];
+                bool across0 = p[1] == q[1], across1 = q[1] == r[1];
+                if (across0 != across1)
+                {
+                    c.Add(new[] { q[0], q[1] });
+                    continue;
+                }
+                // Straight on: fine; doubling back over the wall just drawn is not.
+                int d0 = across0 ? Math.Sign(q[0] - p[0]) : Math.Sign(q[1] - p[1]), d1 = across1 ? Math.Sign(r[0] - q[0]) : Math.Sign(r[1] - q[1]);
+                if (d0 != d1) { why = "A wall doubles back on itself"; return null; }
+            }
+            if (c.Count < 4) { why = "Click at least 4 corners"; return null; }
+            // No two walls may cross or touch, except neighbours at their shared corner.
+            int m = c.Count;
+            for (int i = 0; i < m; i++)
+                for (int j = i + 1; j < m; j++)
+                {
+                    if (j == i + 1 || (i == 0 && j == m - 1))
+                        continue;
+                    if (SegmentsTouch(c[i], c[(i + 1) % m], c[j], c[(j + 1) % m])) { why = "Walls cross or touch"; return null; }
+                }
+            return c;
+        }
+
+        static bool SegmentsTouch(int[] a0, int[] a1, int[] b0, int[] b1)
+        {
+            int ax0 = Math.Min(a0[0], a1[0]), ax1 = Math.Max(a0[0], a1[0]), ay0 = Math.Min(a0[1], a1[1]), ay1 = Math.Max(a0[1], a1[1]);
+            int bx0 = Math.Min(b0[0], b1[0]), bx1 = Math.Max(b0[0], b1[0]), by0 = Math.Min(b0[1], b1[1]), by1 = Math.Max(b0[1], b1[1]);
+            return ax0 <= bx1 && bx0 <= ax1 && ay0 <= by1 && by0 <= ay1;
+        }
+
+        /// The tiles inside a clean outline: inside[col, row] from (x0, y0), Step px each.
+        static bool[,] Tiles(List<int[]> c, out int x0, out int y0)
+        {
+            x0 = int.MaxValue; y0 = int.MaxValue;
+            int x1 = int.MinValue, y1 = int.MinValue;
+            foreach (var p in c)
+            {
+                x0 = Math.Min(x0, p[0]); y0 = Math.Min(y0, p[1]); x1 = Math.Max(x1, p[0]); y1 = Math.Max(y1, p[1]);
+            }
+            int cols = (x1 - x0) / Step, rows = (y1 - y0) / Step;
+            var inside = new bool[cols, rows];
+            for (int row = 0; row < rows; row++)
+            {
+                double cy = y0 + (row + 0.5) * Step;
+                for (int col = 0; col < cols; col++)
+                {
+                    double cx = x0 + (col + 0.5) * Step;
+                    bool inn = false;
+                    for (int i = 0; i < c.Count; i++)  // a ray to the right: count the up-and-down walls it crosses
+                    {
+                        int[] a = c[i], b = c[(i + 1) % c.Count];
+                        if (a[0] != b[0] || a[0] < cx)
+                            continue;
+                        if (cy > Math.Min(a[1], b[1]) && cy < Math.Max(a[1], b[1]))
+                            inn = !inn;
+                    }
+                    inside[col, row] = inn;
+                }
+            }
+            return inside;
+        }
+
+        static bool Block(bool[,] inside, int col, int row, int size)
+        {
+            if (col < 0 || row < 0 || col + size > inside.GetLength(0) || row + size > inside.GetLength(1))
+                return false;
+            for (int i = 0; i < size; i++)
+                for (int j = 0; j < size; j++)
+                    if (!inside[col + i, row + j])
+                        return false;
+            return true;
+        }
+
+        /// The tiles cut into boxes: runs of each row (or column) carried on while the next row has the very same run. Each {col, row, w, h} in tiles.
+        static List<int[]> Slabs(bool[,] inside, bool byRows)
+        {
+            int cols = inside.GetLength(0), rows = inside.GetLength(1);
+            int lines = byRows ? rows : cols, len = byRows ? cols : rows;
+            var done = new List<int[]>();
+            var open = new List<int[]>();  // {from, till, start line}
+            for (int l = 0; l <= lines; l++)
+            {
+                var runs = new List<int[]>();
+                if (l < lines)
+                    for (int u = 0; u < len; )
+                    {
+                        if (!(byRows ? inside[u, l] : inside[l, u])) { u++; continue; }
+                        int s = u;
+                        while (u < len && (byRows ? inside[u, l] : inside[l, u])) u++;
+                        runs.Add(new[] { s, u });
+                    }
+                var next = new List<int[]>();
+                foreach (var o in open)
+                {
+                    var same = runs.Find(r => r[0] == o[0] && r[1] == o[1]);
+                    if (same != null) { next.Add(o); runs.Remove(same); continue; }
+                    done.Add(byRows ? new[] { o[0], o[2], o[1] - o[0], l - o[2] } : new[] { o[2], o[0], l - o[2], o[1] - o[0] });
+                }
+                foreach (var r in runs)
+                    next.Add(new[] { r[0], r[1], l });
+                open = next;
+            }
+            return done;
+        }
+
+        /// A room drawn as an outline (Docs/ExpandingArena.md): click corners on the grid, walls running straight across or up, round
+        /// back to the first. It is cut into boxes, the first carrying the whole price and the door to the map, each next one a piece
+        /// (ExpansionRoom.Leg = PieceBase + n) open full width onto the piece it grew from. Rules: at least 3 tiles wide everywhere,
+        /// at most MaxArea, OutlineMaxSide each way, no overlap, and 3 tiles of wall shared with the connected map. It costs its new wall
+        /// (a shape never more than 3 tiles wide is a hallway: half), plus the theme. Null with `why` set if it can't go there.
+        public static List<ExpansionRoom> Outline(IList<ExpansionRoom> built, IList<int[]> points, PathId floor, out string why)
+        {
+            if (floor != PathId.None && Array.IndexOf(Floors, floor) < 0) { why = "Not a theme"; return null; }
+            var c = CleanOutline(points, out why);
+            if (c == null)
+                return null;
+            if (BoughtCount(built) >= MaxRooms) { why = "The map is full"; return null; }
+            int x0, y0;
+            var inside = Tiles(c, out x0, out y0);
+            int cols = inside.GetLength(0), rows = inside.GetLength(1), count = 0;
+            if (cols * Step > OutlineMaxSide || rows * Step > OutlineMaxSide) { why = "Too big (at most " + OutlineMaxSide / Step + " tiles each way)"; return null; }
+            var wide = new bool[cols, rows];  // tiles inside some 3 x 3 block
+            bool roomy = false;               // some 4 x 4 block: not a hallway
+            for (int i = 0; i < cols; i++)
+                for (int j = 0; j < rows; j++)
+                {
+                    if (inside[i, j]) count++;
+                    roomy |= Block(inside, i, j, MinSide / Step + 1);
+                    if (Block(inside, i, j, MinSide / Step))
+                        for (int a = 0; a < MinSide / Step; a++)
+                            for (int b = 0; b < MinSide / Step; b++)
+                                wide[i + a, j + b] = true;
+                }
+            if (count * Step * Step > MaxArea) { why = "Too big (" + count + " tiles of floor, at most " + MaxArea / (Step * Step) + ")"; return null; }
+            for (int i = 0; i < cols; i++)
+                for (int j = 0; j < rows; j++)
+                    if (inside[i, j] && !wide[i, j]) { why = "Too thin in places (at least " + MinSide / Step + " tiles wide)"; return null; }
+            // Boxes: rows or columns, whichever makes fewer.
+            var byRows = Slabs(inside, true);
+            var byCols = Slabs(inside, false);
+            var boxes = byCols.Count < byRows.Count ? byCols : byRows;
+            var pieces = new List<int[]>();  // world px {x, y, w, h}
+            foreach (var t in boxes)
+                pieces.Add(new[] { x0 + t[0] * Step, y0 + t[1] * Step, t[2] * Step, t[3] * Step });
+            // Nothing in the way, and the map stays inside its size cap.
+            int minX = Math.Min(0, x0), minY = Math.Min(0, y0), maxX = Math.Max((int)Game.Width, x0 + cols * Step), maxY = Math.Max((int)Game.Height, y0 + rows * Step);
+            foreach (var r in built)
+            {
+                minX = Math.Min(minX, r.X); minY = Math.Min(minY, r.Y); maxX = Math.Max(maxX, r.X1); maxY = Math.Max(maxY, r.Y1);
+            }
+            if (maxX - minX > MaxWidth || maxY - minY > MaxHeight) { why = "The map would get too big"; return null; }
+            var linked = ConnectedAreas(built);
+            int root = -1, rootParent = -1, best = 0, shared = 0, perimeter = 0;
+            for (int p = 0; p < pieces.Count; p++)
+            {
+                int[] q = pieces[p];
+                perimeter += 2 * (q[2] + q[3]);
+                for (int a = 0; a <= built.Count; a++)
+                {
+                    BoxOf(built, a, out int bx0, out int by0, out int bx1, out int by1);
+                    if (Overlaps(q[0], q[1], q[0] + q[2], q[1] + q[3], bx0, by0, bx1, by1)) { why = "Overlaps a room"; return null; }
+                    int run = SharedRun(q[0], q[1], q[0] + q[2], q[1] + q[3], bx0, by0, bx1, by1);
+                    shared += run;
+                    if (run >= MinDoorRun && linked[a] && run > best) { best = run; root = p; rootParent = a; }
+                }
+                for (int o = 0; o < pieces.Count; o++)
+                    if (o != p)
+                        shared += SharedRun(q[0], q[1], q[0] + q[2], q[1] + q[3], pieces[o][0], pieces[o][1], pieces[o][0] + pieces[o][2], pieces[o][1] + pieces[o][3]);
+            }
+            if (root < 0) { why = "Must share at least " + MinDoorRun / Step + " tiles of one wall with the connected map"; return null; }
+            // Order the pieces out from the one on the map, each joined to the piece it was reached from.
+            var order = new List<int> { root };
+            var from = new Dictionary<int, int> { { root, -1 } };
+            for (int k = 0; k < order.Count; k++)
+            {
+                int[] q = pieces[order[k]];
+                for (int o = 0; o < pieces.Count; o++)
+                {
+                    if (from.ContainsKey(o))
+                        continue;
+                    int[] r = pieces[o];
+                    if (SharedRun(q[0], q[1], q[0] + q[2], q[1] + q[3], r[0], r[1], r[0] + r[2], r[1] + r[3]) > 0)
+                    {
+                        from[o] = order[k];
+                        order.Add(o);
+                    }
+                }
+            }
+            if (order.Count != pieces.Count) { why = "The shape must be in one piece"; return null; }
+            int tiles = (perimeter - shared) / Step;
+            if (!roomy)
+                tiles = (tiles + 1) / 2;  // never more than 3 tiles wide: a hallway, half price
+            int price = Math.Max(1, tiles) + ThemeCost(floor);
+            var made = new List<ExpansionRoom>();
+            for (int k = 0; k < order.Count; k++)
+            {
+                int[] q = pieces[order[k]];
+                made.Add(new ExpansionRoom
+                {
+                    Parent = k == 0 ? rootParent : built.Count + 1 + order.IndexOf(from[order[k]]),
+                    X = q[0], Y = q[1], W = q[2], H = q[3],
+                    Kind = floor == PathId.None ? RoomKind.Combat : RoomKind.Floor, Floor = floor,
+                    Price = k == 0 ? price : 0,
+                    Leg = k == 0 ? (byte)0 : (byte)Math.Min(255, PieceBase + k),
+                });
+            }
+            return made;
+        }
+
+        /// How many tiles of floor a room has (its boxes together).
+        public static int FloorTiles(ExpansionRoom head, IList<ExpansionRoom> rest)
+        {
+            int n = head.W * head.H;
+            foreach (var r in rest)
+                n += r.W * r.H;
+            return n / (Step * Step);
+        }
+
         /// Doors an area has (to its parent, children and loops).
         static int Doors(IList<ExpansionRoom> rooms, int area)
         {
@@ -667,7 +940,7 @@ namespace Arena
                 if (b == area) continue;
                 int bx0, by0, bx1, by1;
                 BoxOf(rooms, b, out bx0, out by0, out bx1, out by1);
-                if (SharedRun(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1) >= MinDoorRun)
+                if (SharedRun(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1) >= MinDoorRun || Joined(rooms, area, b))
                     n++;
             }
             return n;
@@ -872,6 +1145,8 @@ namespace Arena
         {
             int n = rooms.Count + 1;
             var areas = new RoomArea[n];
+            var group = new int[n];       // each area's multi-box room: the area index of its head (itself for a plain box)
+            var outline = new bool[n];    // (by head) a drawn outline: its pieces aren't hallways, whatever their size
             var doors = new List<RoomDoor>();
             var spans = new List<WallSpan>();
             int minX = 0, minY = 0, maxX = (int)Game.Width, maxY = (int)Game.Height;
@@ -881,6 +1156,9 @@ namespace Arena
                 BoxOf(rooms, a, out x0, out y0, out x1, out y1);
                 minX = Math.Min(minX, x0); minY = Math.Min(minY, y0); maxX = Math.Max(maxX, x1); maxY = Math.Max(maxY, y1);
                 var kind = a == 0 ? RoomKind.Combat : rooms[a - 1].Kind;
+                group[a] = a > 0 && rooms[a - 1].Leg > 0 && rooms[a - 1].Parent < a ? group[rooms[a - 1].Parent] : a;
+                if (a > 0 && rooms[a - 1].Leg >= PieceBase)
+                    outline[group[a]] = true;
                 areas[a] = new RoomArea
                 {
                     Name = a == 0 ? "Hub" : rooms[a - 1].Floating ? (kind == RoomKind.Shop ? "Shop" : kind == RoomKind.Vendor ? "Vendor" : "Gatekeeper") : rooms[a - 1].Shape + (kind == RoomKind.Shop ? " (shop)" : kind == RoomKind.Floor ? " (" + rooms[a - 1].Floor + ")" : ""),
@@ -892,10 +1170,12 @@ namespace Arena
                 {
                     int bx0, by0, bx1, by1;
                     BoxOf(rooms, b, out bx0, out by0, out bx1, out by1);
-                    if (SharedRun(x0, y0, x1, y1, bx0, by0, bx1, by1) < MinDoorRun)
+                    bool joined = rooms[a - 1].Leg > 0 && rooms[a - 1].Parent == b;  // a bent hallway's corner or an outline's inner seam: open full width
+                    int run = SharedRun(x0, y0, x1, y1, bx0, by0, bx1, by1);
+                    if (run < MinDoorRun && !(joined && run > 0))
                         continue;
                     int ox0 = Math.Max(x0, bx0), ox1 = Math.Min(x1, bx1), oy0 = Math.Max(y0, by0), oy1 = Math.Min(y1, by1);
-                    float open = b == a - 1 && rooms[a - 1].Leg > 0 ? Math.Max(ox1 - ox0, oy1 - oy0) : 0f;  // a bent hallway's corner: open full width
+                    float open = joined ? Math.Max(ox1 - ox0, oy1 - oy0) : 0f;
                     if (x0 == bx1) doors.Add(new RoomDoor { Pos = new V2(x0, (oy0 + oy1) / 2f), Vertical = true, Width = open, A = b, B = a });
                     else if (x1 == bx0) doors.Add(new RoomDoor { Pos = new V2(x1, (oy0 + oy1) / 2f), Vertical = true, Width = open, A = b, B = a });
                     else if (y0 == by1) doors.Add(new RoomDoor { Pos = new V2((ox0 + ox1) / 2f, y0), Width = open, A = b, B = a });
@@ -929,6 +1209,19 @@ namespace Arena
                     if (till > pos) spans.Add(new WallSpan(vertical, at, pos, till));
                 }
             }
+            for (int a = 1; a < n; a++)  // a multi-box room's areas know each other (their rims, Game/RoomsLook.cs); an outline's pieces are one room, not hallways
+            {
+                bool multi = false;
+                for (int j = 1; j < n; j++)
+                    multi |= j != a && group[j] == group[a];
+                areas[a].Group = multi ? group[a] + 1 : 0;
+                if (outline[group[a]])
+                {
+                    areas[a].Hall = false;
+                    var k = rooms[a - 1].Kind;
+                    areas[a].Name = "Drawn room" + (k == RoomKind.Shop ? " (shop)" : k == RoomKind.Floor ? " (" + rooms[a - 1].Floor + ")" : "");
+                }
+            }
             if (cuts != null)  // opened walls: a wide gap between the two rooms, replacing any door it covers
                 foreach (var c in cuts)
                     for (int a = 0; a < n; a++)
@@ -959,7 +1252,10 @@ namespace Arena
                 foreach (var d in doors)
                     if (d.Joins(a))
                         doorSpots.Add(d.Pos);
-                AddCover(cover, rooms[a - 1], doorSpots);
+                var cr = rooms[a - 1];
+                if (outline[group[a]] && Math.Min(cr.W, cr.H) < OutlineCoverMin)
+                    continue;  // (a sliver of a drawn outline: no cover in it)
+                AddCover(cover, cr, doorSpots);
             }
             var portals = new WorldPortal[links == null ? 0 : links.Count];  // bought portal pairs (Docs/RoomBuilding2.md step 2)
             for (int i = 0; i < portals.Length; i++)

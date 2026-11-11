@@ -437,7 +437,12 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 - After a hit you can't be hit again for 0.25 s (Normal). Small health orbs drop from 12% of kills (Normal), large
   ones from 3%.
 - If everyone is downed, it's game over. Clearing a wave revives anyone downed and heals everyone a bit.
-- New enemy types unlock as the waves go up (see below), with a boss fight after every 5th wave.
+- **The Campaign is 100 waves, with a boss fight after every 10th.** Each wave of the old 50-wave track is fought
+  twice (two "legs"), so enemies, new types and every number that grows by wave grow at half the pace: wave 37 plays
+  like wave 19 of the old run, and the wave numbers in this README are track waves (double them, roughly, for the
+  Campaign's). XP, kill gold, chests and the Expanding arena's vectors per wave are halved to match, so you reach each
+  boss about as strong as before. Runs saved before this stay 50 waves; Boss Hunts stay ten.
+- New enemy types unlock as the waves go up (see below).
 - **Knockback slides:** anything that shoves enemies (the Repulsion Cannon, Roar, Shockwave, the Scattergun up close,
   Knight swings, Bulldoze, Fortress, the Fuma Shuriken's fan) slides them the distance over 0.18 s instead of jumping
   them there, with a streak behind them, dust kicked up along the way and a puff where they were hit.
@@ -632,7 +637,7 @@ summons and phase changes.
 
 The game has **50 regular waves** with a different boss after every 5th one. The boss is its own fight between wave 5 and 6, wave 10 and 11 and so on: it keeps the wave number of the wave before it (the HUD says BOSS FIGHT, the wave box says BOSS CLEARED) and doesn't use up a wave, so 5 regular waves lead up to each boss. Bosses after wave 20 get extra health (+10% per wave on
 top of the normal scaling: x2 at wave 30, x4 at wave 50) to keep up with stacked upgrades. Their name, health bar and
-warnings show at the top. Beat The Eclipse after wave 50 to win; the host can then keep going in **endless** mode (C),
+warnings show at the top. Beat The Eclipse after wave 100 (50 in a run saved before the Campaign) to win; the host can then keep going in **endless** mode (C),
 where the bosses come back around, tougher each time.
 
 | Wave | Boss | Mechanic |
@@ -784,18 +789,22 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
 [`Docs/ExpandingArena.md`](Docs/ExpandingArena.md). It starts as the plain Classic box and grows as you play:
 
 - **Gold coins:** every kill drops its gold as coins (5-gold and 1-gold). They never despawn, spin and glint on the floor, and drift to the nearest living player within 90 px, who gets the gold.
-- **Vectors**: every player holds a drawing budget (chip under the wave plate, "Vectors 25 / 35"): 1 vector = 1 tile of wall.
-  You start with 25 and can hold 35; each cleared wave gives 4, every 15 kills gives 1, and a cleared boss wave refills
-  everyone to the cap and adds 10 on top. Two cards raise the cap, in the Expanding arena only: **Deep Inkwell** (uncommon, +10,
-  stacks to 4) and the milestone card **Architect** (+20 and 10 vectors now, stacks to 3). The **vendor** also sells a **Vector pack**: +10 vectors for 50 gold, as
+- **Vectors**: every player holds a drawing budget (chip under the wave plate, "Vectors 50 / 70"): 1 vector = 1 tile of wall.
+  You start with 50 and can hold 70; each cleared wave gives 8, every 8 kills gives 1, and a cleared boss wave refills
+  everyone to the cap and adds 20 on top. Two cards raise the cap, in the Expanding arena only: **Deep Inkwell** (uncommon, +20,
+  stacks to 4) and the milestone card **Architect** (+40 and 20 vectors now, stacks to 3). The **vendor** also sells a **Vector pack**: +20 vectors for 50 gold, as
   many as you can afford, and it can take you past the cap.
 - **Building rounds**: every cleared wave opens a round (a chip "Build rooms" under the wave plate; the countdown never waits
-  for it). Open it, **draw a room or hallway** (**left click** a corner on the zoomed-out map, move, **left click** again to place the box on the grid, or press, drag and let go; **right click** or Esc cancels it, and a right click with no box goes back; 3 to 12 tiles a side, at most 96
-  tiles; it must share 3 tiles of wall with a room and not overlap anything; a shorter touch with another room's wall is fine,
-  it just stays wall) and it becomes **your proposal**; a newer
+  for it). Open it and **draw a room by its walls**: **left click** corners on the zoomed-out map's grid and a wall runs from each
+  to the next, straight across or straight up (a slanted click makes an L); **click the first corner again** (or press **Enter**, or
+  **Propose**) to close it. **Right click** (or Esc, Backspace, **Undo**) takes the last corner back, and with none laid goes back;
+  with no corner laid, press, drag and let go draws a plain box. Any shape works (L, T, U, cross, zig-zag) as long as it is **3 tiles
+  wide everywhere**, at most 96 tiles of floor and 24 tiles each way, its walls don't cross, it shares 3 tiles of one wall with a room
+  and overlaps nothing (a shorter touch with another room's wall is fine, it just stays wall). The map shows it green when it fits (red,
+  with the reason, when not). It is built as one room, however many boxes it takes inside, and it becomes **your proposal**; a newer
   drawing replaces it. You can only propose what you can afford. A proposal costs its **new wall length**: the perimeter
-  minus every wall it shares with existing rooms, so touching rooms is cheaper and a box that touches two rooms (a loop)
-  cheaper again.
+  minus every wall it shares with existing rooms, so touching rooms is cheaper and a room that touches two rooms (a loop)
+  cheaper again. A shape never wider than 3 tiles counts as a hallway: half price.
 - **Hallways**: anything 3 tiles wide is a hallway: it costs **half** its new wall (rounded up; a 3 x 12 hallway off the hub
   is 14) and can run up to **24 tiles**. The draw screen's **Hallway** mode lays a **bent hallway**: left click where it
   starts, move along it (it stays 3 tiles wide) and left click to lay a leg; each next leg starts at the end of the last
@@ -836,6 +845,11 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   of walking it saves** (at most 30) and must save at least 6 tiles. Each end sits inside a connected room, 90 px off its walls, clear of
   obstacles, 150 px from a door and 250 px from another portal. At most **3 pairs**, not counted as rooms. Bots sometimes link the two
   rooms farthest apart.
+- **Shutter gates**: on the draw screen, switch to **Gate** and click a door (the gold squares): a gate goes to the vote like a room,
+  for **8 vectors**. Once fitted, stand within 150 px of it and press **G** (the Take item key) to shut it: a red laser grid fills the doorway
+  for **8 s**, a wall to everyone (players and enemies); shots still pass. Then it needs **30 s** to recharge (an arc fills round its
+  posts). Anyone on the team can work it. Enemies (and bots) route round a shut gate through another door; with no other way in, they wait at it. Plain doors only (not an opened wall), one gate a door, at most **6** on the map. A red bar marks
+  each on the minimap, bright while shut.
 - **Themed rooms**: pick a theme under the map when you draw a room: a path's ground and rules (Swarm Fields, Sniper Ridge, Elite Gauntlet, Burning
   Grounds, Sanctuary, Frozen Lake, Blood Moon) inside that room only, with its kill bonus. A theme costs extra vectors (+3 / +6 / +10 for
   danger 1 / 2 / 3) and unlocks with bosses: danger 2 after the first boss, danger 3 after the second.
@@ -858,7 +872,9 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   (pillar or block, closer to the walls and doors), and a 400 px deep room between two doors gets a small pillar to one side.
 - **How it plays**: regular waves use the whole map (walled, no wrapping, a minimap top right) and bring more enemies the
   bigger it is (up to 1.4 times); the map stops at 24 rooms. Boss waves are fought in the hub alone, as always.
-- Runs in this arena can't be saved and continued yet.
+- Runs in this arena are saved like any other: Continue brings back the map (rooms, opened walls, portals, floating
+  rooms), the team's room kits and each seat's vectors and shop shelf. A room someone drew keeps their colour for
+  whoever takes their seat.
 
 ## Rooms arena
 
@@ -1050,7 +1066,7 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 
 ## Practice Range
 
-In the lobby the host picks **Gauntlet** (the normal 50 waves), **Boss Hunt** (above) or **Practice** (the Practice Range)
+In the lobby the host picks **Gauntlet** (the Campaign: 100 waves), **Boss Hunt** (above) or **Practice** (the Practice Range)
 at the top. Practice has two sections, as tabs on the big screen: **Practice** (build your own waves) and **Training**
 (short mechanic drills). Whichever you use, it's with everyone in the lobby, with upgrade picks between waves as usual, and
 **no XP counts**: a Practice run never reaches your profile (no rank XP, records, unlocks or run history), and the header
@@ -1355,7 +1371,7 @@ players report, and only accepts a frame or trail your rank has. XP, what's equi
 
 **Runs save themselves.** The host's game saves the run as each wave starts (once everyone has picked their
 upgrades, the path is chosen and the shop is closed), and again if the match is left or the game closed between
-waves. Leaving mid-wave keeps the save from that wave's start. A run that's won or lost loses its save. The
+waves. Every arena saves (Classic, Rooms and Expanding, with its map). Leaving mid-wave keeps the save from that wave's start. A run that's won or lost loses its save. The
 Practice Range, the lobby's loadout preview and Boss Lab fights are never saved.
 
 **Play** on the main menu opens the saved-runs picker in the menu's box: a header screen (**YOUR RUNS**) with a **Back** key

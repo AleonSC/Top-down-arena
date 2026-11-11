@@ -229,6 +229,7 @@ namespace Arena
                 if (p.Downed)
                     RevivePlayer(p, 1f);
             Wave = boss ? wave : wave - 1;
+            Leg = Wave > 0 ? 1 : 0;  // (a Campaign: the jump lands on the first leg of wave n)
             BossSlot = !boss && Wave > 0 && Wave % 5 == 0;  // (jumping to wave n lands on regular wave n, not the boss before it; boss: the boss after wave n)
             State = MatchState.Intermission;
             StateTimer = 2f;

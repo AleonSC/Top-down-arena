@@ -6,6 +6,9 @@ Before bumping, `git fetch origin main` and take main's number + 1, so two sessi
 
 - 276: `DiffKnob.BuildPurse` (Team purse: builds spend the whole team's vectors, builder first), one more difficulty knob.
 - 273: `DiffKnob.BuildVote` (the Expanding arena's building rule: team vote on, free building off), so the difficulty carries one more knob; with free building the host builds a drawing at once (no new messages), and `Msg.ExpandCut` is also accepted mid-wave (doors only).
+- 275: rooms drawn as outlines: `Msg.ExpandOutline` (theme, corners) and outline pieces in the rooms list (`ExpansionRoom.Leg` from `Expansion.PieceBase`); vectors doubled
+- 274: shutter gates: the Expanding arena's gate list (x, y, vertical) after the portal pairs in Msg.ExpandState, Msg.ExpandGate, Msg.GateUse, Msg.GateState, RoomKind.Gate proposals (Gates.cs)
+- 273: a 100-wave Campaign: the start message says whether the run is one (`Game.LongRun`) and the snapshot carries the wave's leg (`Game.Leg`)
 - 272: the Arc Knuckles' lock-on and hit feel: `Player.KnuckleDashTo` and `KnuckleTarget` in the player snapshot, `FxKind.KnuckleHit`, `Sfx.KnuckleImpact`/`KnuckleImpactHeavy`
 - 271: `WeaponId.ArcKnuckles` (the Knight DPS's fourth weapon, lobby weapon pick 3), `FxKind.KnuckleStep`, six `Sfx.Knuckle*` cues, `Player.KnuckleArmed` in the player snapshot; the Rocket Dash: `FxKind.KnuckleDash`, `Sfx.KnuckleRocket`/`KnuckleRocketHit`, `Player.KnuckleDashes` in the player snapshot, Msg.WeaponDash kind 25 (DashRocket); the dash chain: `FxKind.KnuckleChain`, `Sfx.KnuckleGrab`/`KnuckleThrow`, `Player.KnuckleChain` in the player snapshot; a Wildcard's lobby weapon pick can be 18 (the Arc Knuckles: `Defs.WildWeaponPick`)
 - 270: three new `Sfx` values at the end (`SpellPullStart`, `SpellPullHum`, `SpellPullStop`: the Repulsion Cannon's Undertow sounds)
