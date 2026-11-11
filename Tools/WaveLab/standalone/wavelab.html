@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>[hidden]{display:none!important}body{margin:0}</style>
+</head>
+<body>
+<title>Wave Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: a three-column editor (sets and enemies | waves and map | controls and text) that stacks on a phone, and a full-screen arena for playing.
+   Look: a committed dark control-room palette, one teal accent; the arena itself stays dark in every theme. */
+:root{
+  --bg:#0b0f14;--panel:#121a23;--panel2:#0e151d;--line:#243040;--fg:#d8e3f0;--dim:#8394a8;--acc:#4fd1c5;--acc-ink:#04201d;--bad:#ff6b6b;--good:#4ade80;
+  --font-ui:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font:14px/1.45 var(--font-ui);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0;overscroll-behavior:none}
+button,select,input,textarea{font:inherit;color:var(--fg);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 8px;max-width:100%}
+button{cursor:pointer;background:#1b2634}button:hover{border-color:var(--acc)}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+button.pri{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:700}
+button.on{border-color:var(--acc);color:var(--acc)}
+#app{display:flex;flex-direction:column;min-height:100%;gap:10px;padding-block:10px}
+#top{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line)}
+#top h1{font-size:15px;margin:0 8px 0 0;letter-spacing:.1em;color:var(--acc)}
+#top label{color:var(--dim);font-size:12px;display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+#edit{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr) minmax(0,300px);gap:12px;flex:1;min-height:0}
+.col{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px;min-width:0;overflow:auto}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin:12px 0 6px;font-weight:600}h2:first-child{margin-top:0}
+.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:4px 0}
+.chip{display:inline-flex;gap:4px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:2px 8px;margin:2px;cursor:pointer;background:var(--panel2);font-size:12px;color:var(--fg)}
+.chip i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.chip:hover{border-color:var(--acc)}
+.card{border:1px solid var(--line);border-radius:8px;padding:8px;margin:8px 0;background:var(--panel2)}
+.card.sel{border-color:var(--acc)}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tab{padding:4px 10px;border:1px solid var(--line);border-radius:6px;cursor:pointer;background:var(--panel2)}.tab.sel{border-color:var(--acc);color:var(--acc)}
+input[type=number]{width:64px}input.w{width:100%}
+textarea{width:100%;height:200px;resize:vertical;font-size:12px}
+.dim{color:var(--dim)}.small{font-size:12px}
+#blurb{min-height:40px;color:var(--dim);font-size:12px}
+#mini{width:100%;max-width:640px;border:1px solid var(--line);border-radius:6px;background:#0a0e13;touch-action:none}
+#play{position:fixed;inset:0;background:#000;touch-action:none;user-select:none;-webkit-user-select:none;z-index:20}
+#cv{position:absolute;left:0;top:0;width:100%;height:100%}
+#hud{position:absolute;left:0;right:0;top:0;display:flex;gap:8px;align-items:center;padding:6px 10px;padding-top:max(6px,env(safe-area-inset-top,0px));padding-left:max(10px,env(safe-area-inset-left,0px));pointer-events:none;flex-wrap:wrap}
+#hud>*{pointer-events:auto}
+#hud .bar{width:150px;height:12px;border:1px solid #fff4;border-radius:6px;overflow:hidden;background:#0008}
+#hud .bar b{display:block;height:100%;background:var(--good)}
+#hud .stat{background:#000a;border-radius:6px;padding:3px 8px;color:#e8eef6}
+#msg{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font-size:26px;font-weight:700;text-shadow:0 0 12px #000;text-align:center;pointer-events:none;color:#fff}
+.stick{position:absolute;width:130px;height:130px;border-radius:50%;border:2px solid #fff3;background:#fff1;display:none;pointer-events:none}
+.stick b{position:absolute;left:35px;top:35px;width:60px;height:60px;border-radius:50%;background:#fff5}
+#btns{position:absolute;right:max(12px,env(safe-area-inset-right,0px));bottom:max(12px,env(safe-area-inset-bottom,0px));display:none;gap:10px;flex-direction:column;align-items:flex-end}
+#btns div{display:flex;gap:10px}
+#btns button{width:68px;height:68px;border-radius:50%;background:#1b2634cc;font-size:11px;padding:0;touch-action:none;color:#e8eef6}
+#rep{position:absolute;inset:0;background:#000d;overflow:auto;padding:16px}
+#rep .card{max-width:780px;margin:auto;background:#101822}
+#repTbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+#repTbl th{text-align:left;padding:3px 6px;border-bottom:1px solid var(--line);font-weight:600;color:var(--dim)}
+#repTbl td{padding:3px 6px;font-variant-numeric:tabular-nums}
+.tblwrap{overflow-x:auto}
+@media (max-width:900px){#edit{grid-template-columns:minmax(0,1fr)}.col{overflow:visible}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div id="app">
+<div id="top">
+  <h1>WAVE LAB</h1>
+  <label>Class <select id="role"><option>Tank</option><option>Healer</option><option selected>DPS</option></select>
+    <select id="weapon"><option value="0">Pistol</option><option value="1">Scatter gun</option><option value="2">Railgun</option></select>
+    <select id="ability"><option value="0">Space: Dash</option><option value="1">Space: Barrier</option><option value="2">Space: Heal pulse</option></select>
+    <select id="gear"><option value="0">Gear: starter</option><option value="1">Gear: mid (2x dmg, +50% hp)</option><option value="2">Gear: late (4x dmg, 2.2x hp)</option></select></label>
+  <label>Bot <select id="bot"><option value="off">Off (me)</option><option value="casual">Casual</option><option value="good">Good</option><option value="expert">Expert</option></select></label>
+  <label><input type="checkbox" id="god"> God mode</label>
+  <label>Start wave <input type="number" id="startwave" value="1" min="1" style="width:56px"></label>
+  <button class="pri" id="playBtn">▶ Play</button>
+</div>
+
+<div id="edit">
+  <div class="col">
+    <h2>Wave set</h2>
+    <div class="row"><select id="sets" style="width:100%"></select></div>
+    <div class="row"><input id="setname" class="w" placeholder="name" aria-label="Set name"><label class="small dim"><input type="checkbox" id="loop"> loop</label></div>
+    <div class="row"><button id="newSet">New</button><button id="ulSet">Open file</button><input type="file" id="file" hidden></div>
+    <h2>Enemies <span class="dim small">(tap to add to the selected group)</span></h2>
+    <div id="palette"></div>
+    <div id="blurb"></div>
+    <h2>Squads</h2>
+    <div id="squads"></div>
+  </div>
+
+  <div class="col">
+    <div class="tabs" id="waveTabs"></div>
+    <div class="row"><label>Level <input type="number" id="level" min="1" max="100"></label>
+      <button id="addGroup">+ Group</button><button id="dupWave">Duplicate wave</button><button id="delWave">Delete wave</button><span id="stat" class="dim small"></span></div>
+    <div id="groups"></div>
+    <div class="row small dim">Map tool: <button id="tPts" class="on">Move points</button><span id="tProps"></span><button id="tClr">Clear props</button></div>
+    <canvas id="mini" width="800" height="450"></canvas>
+    <div class="small dim">Move points: drag A–E. Prop tools: tap empty floor to place, tap a prop to remove.</div>
+  </div>
+
+  <div class="col">
+    <h2>Controls</h2>
+    <div class="small dim">Desktop: WASD move, mouse aim and fire, Space ability, F ultimate, Ctrl dodge, Esc back to the editor.<br>
+    Phone (landscape): left thumb moves, right thumb aims and fires; buttons for ability, ultimate and dodge.<br>
+    This is a simplified simulation: enemies move and shoot in their own style with the real health, size and speed, but they are not the full game's AI.</div>
+    <h2>.waves text</h2>
+    <textarea id="text" spellcheck="false" aria-label="Wave set text"></textarea>
+    <div class="row"><button id="applyText">Apply text</button><button id="copyText">Copy text</button><span id="problems" class="small" style="color:var(--bad)"></span></div>
+  </div>
+</div>
+</div>
+
+<div id="play" hidden>
+  <canvas id="cv"></canvas>
+  <div id="hud">
+    <span class="stat" id="hWave"></span><span class="stat" id="hLeft"></span>
+    <span class="bar"><b id="hHp"></b></span><span class="stat" id="hTime"></span><span class="stat" id="hCd"></span>
+    <select id="pBot" aria-label="Bot"><option value="off">Bot: off</option><option value="casual">Bot: casual</option><option value="good">Bot: good</option><option value="expert">Bot: expert</option></select>
+    <button id="pGod">God</button><button id="pRestart">↻ Restart</button><button id="pRep">Report</button><button id="pStop">✕ Editor</button>
+  </div>
+  <div id="msg"></div>
+  <div class="stick" id="sL"><b></b></div><div class="stick" id="sR"><b></b></div>
+  <div id="btns"><div><button id="bUlt">Ult</button><button id="bDodge">Dodge</button><button id="bAb">Ability</button></div></div>
+  <div id="rep" hidden><div class="card">
+    <div class="row"><b id="repTitle"></b><span style="flex:1"></span><button id="repCsv">Copy CSV</button><button id="repClose">Close</button></div>
+    <div id="repSub" class="small dim"></div><div class="tblwrap"><table id="repTbl"></table></div>
+    <textarea id="repText" readonly style="height:90px;margin-top:8px" aria-label="Report as CSV"></textarea></div></div>
+</div>
+
+<script>
+const META={"enemies":[{"id":0,"name":"Grunt","key":"Grunt","hp":60,"r":14,"speed":85,"boss":false,"melee":false,"contact":0,"sides":3,"group":"Ranged","color":"#ff5959","blurb":"Fires aimed 3-shot spreads."},{"id":1,"name":"Burster","key":"Burster","hp":110,"r":17,"speed":55,"boss":false,"melee":false,"contact":0,"sides":6,"group":"Ranged","color":"#cc66ff","blurb":"Fires rings of bullets; more in each ring on later waves."},{"id":2,"name":"Sniper","key":"Sniper","hp":50,"r":12,"speed":95,"boss":false,"melee":false,"contact":0,"sides":4,"group":"Ranged","color":"#ffe54c","blurb":"Fast, accurate shots from far away."},{"id":3,"name":"Spinner","key":"Spinner","hp":150,"r":18,"speed":35,"boss":false,"melee":false,"contact":0,"sides":5,"group":"Ranged","color":"#ff9933","blurb":"Wanders and sprays spirals in bursts; it spins up while bursting."},{"id":4,"name":"The Warden","key":"Boss","hp":2400,"r":46,"speed":45,"boss":true,"melee":false,"contact":0,"sides":8,"group":"Boss","color":"#ff3f7f","blurb":"Boss (wave 5): a prison riot in three stages \u2014 searchlight, gates and gas, then rioters."},{"id":5,"name":"Charger","key":"Charger","hp":90,"r":15,"speed":70,"boss":false,"melee":false,"contact":0,"sides":3,"group":"Ranged","color":"#4ce5e5","blurb":"Flashes a red line, then dashes along it and bursts into a ring."},{"id":6,"name":"Splitter","key":"Splitter","hp":120,"r":19,"speed":50,"boss":false,"melee":false,"contact":0,"sides":4,"group":"Ranged","color":"#99ff4c","blurb":"Splits into 3 fast Shards when killed."},{"id":7,"name":"Shard","key":"Shard","hp":25,"r":8,"speed":130,"boss":false,"melee":false,"contact":0,"sides":3,"group":"Ranged","color":"#ccff8c","blurb":"Tiny and fast. Comes from Splitters, Nests and the Hive Queen."},{"id":8,"name":"Mortar","key":"Mortar","hp":80,"r":16,"speed":40,"boss":false,"melee":false,"contact":0,"sides":7,"group":"Ranged","color":"#f28c4c","blurb":"Lobs bombs at where you stand; they burst into a ring on landing."},{"id":9,"name":"Shielder","key":"Shielder","hp":140,"r":17,"speed":60,"boss":false,"melee":false,"contact":0,"sides":6,"group":"Ranged","color":"#99b2e5","blurb":"A front shield blocks shots and swings. It turns slowly: flank it."},{"id":10,"name":"Medic","key":"Medic","hp":70,"r":13,"speed":75,"boss":false,"melee":false,"contact":0,"sides":4,"group":"Ranged","color":"#ff7fbf","blurb":"Heals nearby enemies every few seconds. Kill it first."},{"id":11,"name":"Hive Queen","key":"HiveQueen","hp":3000,"r":44,"speed":40,"boss":true,"melee":false,"contact":0,"sides":6,"group":"Boss","color":"#ffcc33","blurb":"Boss (wave 10): a hive in three stages \u2014 drones and bombers, sealing cells and honey, then a frenzied swarm."},{"id":12,"name":"Reaper of Dusk","key":"TwinA","hp":2600,"r":34,"speed":95,"boss":true,"melee":false,"contact":0,"sides":5,"group":"Boss","color":"#ff5999","blurb":"Boss pair (wave 15): a tether sweep, then they fuse into the Dual Reaper (pillars, holes), then split for a finale."},{"id":13,"name":"Reaper of Dawn","key":"TwinB","hp":2600,"r":34,"speed":95,"boss":true,"melee":false,"contact":0,"sides":5,"group":"Hidden","color":"#728cff","blurb":""},{"id":14,"name":"The Singularity","key":"Singularity","hp":3600,"r":40,"speed":0,"boss":true,"melee":false,"contact":0,"sides":10,"group":"Boss","color":"#9959ff","blurb":"Boss (wave 20): corner gravity wells, pull, lasers and shrinking cages."},{"id":15,"name":"Phantom","key":"Phantom","hp":90,"r":13,"speed":90,"boss":false,"melee":false,"contact":0,"sides":4,"group":"Late","color":"#8cd8ff","blurb":"Flickers, blinks next to you and bursts into a ring."},{"id":16,"name":"Hexer","key":"Hexer","hp":100,"r":14,"speed":60,"boss":false,"melee":false,"contact":0,"sides":5,"group":"Late","color":"#bf4ce5","blurb":"Fires curving pincer shots that close in from both sides."},{"id":17,"name":"Juggernaut","key":"Juggernaut","hp":420,"r":26,"speed":32,"boss":false,"melee":false,"contact":0,"sides":8,"group":"Late","color":"#8c8c9e","blurb":"Armored and slow, can't be slowed or knocked back. Rotating stars of orbs."},{"id":18,"name":"Nest","key":"Nest","hp":260,"r":22,"speed":0,"boss":false,"melee":false,"contact":0,"sides":6,"group":"Late","color":"#b2e566","blurb":"Stationary spawner that keeps hatching Shards until destroyed."},{"id":19,"name":"The Colossus","key":"Colossus","hp":6800,"r":54,"speed":35,"boss":true,"melee":false,"contact":0,"sides":6,"group":"Boss","color":"#c69e72","blurb":"Boss (wave 25): huge stomp rings with one gap, and thrown rocks."},{"id":20,"name":"The Duelist","key":"Duelist","hp":6000,"r":30,"speed":80,"boss":true,"melee":false,"contact":0,"sides":4,"group":"Boss","color":"#d8d8ff","blurb":"Boss (wave 30): teleports and leaves decoys that burst unless killed."},{"id":21,"name":"The Duelist","key":"Decoy","hp":70,"r":30,"speed":0,"boss":false,"melee":false,"contact":0,"sides":4,"group":"Hidden","color":"#d8d8ff","blurb":""},{"id":22,"name":"The Lich","key":"Lich","hp":5000,"r":36,"speed":45,"boss":true,"melee":false,"contact":0,"sides":7,"group":"Boss","color":"#7fffbf","blurb":"Boss (wave 35): immune while its phylactery stands; raises skeletons."},{"id":23,"name":"Phylactery","key":"Phylactery","hp":600,"r":18,"speed":0,"boss":false,"melee":false,"contact":0,"sides":4,"group":"Hidden","color":"#66ff99","blurb":""},{"id":24,"name":"Storm Herald","key":"StormHerald","hp":6000,"r":40,"speed":55,"boss":true,"melee":false,"contact":0,"sides":9,"group":"Boss","color":"#8cbfff","blurb":"Boss (wave 40), three stages: a gathering storm (strikes, lightning rods), a gale that pushes you and bends bullets, then a supercell that marks one player at a time."},{"id":25,"name":"The Devourer","key":"Devourer","hp":6500,"r":50,"speed":40,"boss":true,"melee":false,"contact":0,"sides":12,"group":"Boss","color":"#d84760","blurb":"Boss (wave 45), three stages: hungry for morsels (your shots heal it), then swallowing players, then a mouth that heals it from the front."},{"id":26,"name":"The Eclipse","key":"Eclipse","hp":9000,"r":52,"speed":30,"boss":true,"melee":false,"contact":0,"sides":16,"group":"Boss","color":"#ffd866","blurb":"Final boss (wave 50), five stages and Totality: a sun and its moon. Hide in the moon's shadow from the flash, stay in the light, and kill it before the nova."},{"id":27,"name":"Gravity Well","key":"GravityWell","hp":260,"r":15,"speed":160,"boss":false,"melee":false,"contact":0,"sides":6,"group":"Hidden","color":"#b272ff","blurb":""},{"id":28,"name":"Spiker","key":"Spiker","hp":22,"r":9,"speed":135,"boss":false,"melee":true,"contact":10,"sides":3,"group":"Melee","color":"#ff994c","blurb":"Small and fast melee rusher with long thin spikes. It zig-zags toward you in pairs."},{"id":29,"name":"Brute","key":"Brute","hp":200,"r":19,"speed":62,"boss":false,"melee":true,"contact":24,"sides":7,"group":"Melee","color":"#cc7259","blurb":"Slow, tough melee bruiser that hits hard (24) when it reaches you."},{"id":30,"name":"Lunger","key":"Lunger","hp":45,"r":12,"speed":95,"boss":false,"melee":true,"contact":18,"sides":4,"group":"Melee","color":"#f259a5","blurb":"Circles in close, flashes a pink line, then leaps along it."},{"id":31,"name":"Hive Bomber","key":"HiveBomber","hp":30,"r":10,"speed":330,"boss":false,"melee":true,"contact":0,"sides":3,"group":"Hidden","color":"#ff7226","blurb":""},{"id":32,"name":"Cage Well","key":"CageWell","hp":40,"r":11,"speed":0,"boss":false,"melee":true,"contact":0,"sides":6,"group":"Hidden","color":"#d866ff","blurb":""},{"id":33,"name":"Rioter","key":"Rioter","hp":40,"r":12,"speed":110,"boss":false,"melee":true,"contact":10,"sides":8,"group":"Hidden","color":"#ff8c33","blurb":""},{"id":34,"name":"Hive Egg","key":"HiveEgg","hp":60,"r":15,"speed":0,"boss":false,"melee":true,"contact":0,"sides":10,"group":"Hidden","color":"#f4eac6","blurb":""},{"id":35,"name":"Guard","key":"Guard","hp":90,"r":13,"speed":125,"boss":false,"melee":true,"contact":14,"sides":8,"group":"Hidden","color":"#598cff","blurb":""},{"id":36,"name":"The Dual Reaper","key":"DualReaper","hp":5200,"r":58,"speed":150,"boss":true,"melee":false,"contact":0,"sides":10,"group":"Hidden","color":"#ffcc72","blurb":""},{"id":37,"name":"Reaper Pillar","key":"ReaperPillar","hp":120,"r":24,"speed":0,"boss":false,"melee":true,"contact":0,"sides":4,"group":"Hidden","color":"#8c7fbf","blurb":""},{"id":38,"name":"Singularity Shard","key":"SingShard","hp":1000000,"r":20,"speed":0,"boss":false,"melee":true,"contact":0,"sides":5,"group":"Hidden","color":"#cc7fff","blurb":""},{"id":39,"name":"Ball Lightning","key":"BallLightning","hp":70,"r":15,"speed":0,"boss":false,"melee":true,"contact":20,"sides":8,"group":"Hidden","color":"#bfe5ff","blurb":""},{"id":40,"name":"Morsel","key":"Morsel","hp":60,"r":14,"speed":0,"boss":false,"melee":false,"contact":0,"sides":7,"group":"Hidden","color":"#e07f59","blurb":""},{"id":41,"name":"Beam Sentry","key":"BeamSentry","hp":160,"r":17,"speed":70,"boss":false,"melee":false,"contact":0,"sides":6,"group":"Late","color":"#70e2ff","blurb":"Plants itself, aims a line at you, then sweeps a beam across your side."},{"id":42,"name":"Scorcher","key":"Scorcher","hp":130,"r":15,"speed":95,"boss":false,"melee":false,"contact":0,"sides":5,"group":"Late","color":"#ffb547","blurb":"Circles you leaving a trail of embers. Cut across before it closes."},{"id":43,"name":"Reaver","key":"Reaver","hp":240,"r":19,"speed":150,"boss":false,"melee":true,"contact":20,"sides":3,"group":"Late","color":"#ff4c6d","blurb":"Armoured melee: a red cone, then a rake. Open for a moment after: +50% damage."},{"id":44,"name":"Warder","key":"Warder","hp":180,"r":16,"speed":65,"boss":false,"melee":false,"contact":0,"sides":8,"group":"Late","color":"#b59bff","blurb":"Puts bubbles on up to three allies. Kill it and they all pop."},{"id":45,"name":"Pauser","key":"Pauser","hp":100,"r":15,"speed":60,"boss":false,"melee":false,"contact":0,"sides":6,"group":"Late","color":"#72f2d8","blurb":"Fans out shots that stop dead, glow, then all rush at where you are. Keep moving."},{"id":46,"name":"Leader","key":"Leader","hp":90,"r":13,"speed":80,"boss":false,"melee":false,"contact":0,"sides":3,"group":"Late","color":"#ff8cd8","blurb":"Aims where you're going, not where you are. Change direction when it fires."},{"id":47,"name":"Stitcher","key":"Stitcher","hp":120,"r":15,"speed":65,"boss":false,"melee":false,"contact":0,"sides":5,"group":"Late","color":"#ffd172","blurb":"Fires slow orbs; nearby orbs are tied by a harmful thread. Slip through the gaps."},{"id":48,"name":"Riot Shield","key":"RiotShield","hp":60,"r":16,"speed":120,"boss":false,"melee":true,"contact":8,"sides":6,"group":"Melee","color":"#8cadf2","blurb":"A guard behind a tall shield that bashes you back. Go round it, or break the shield: then it falls fast."},{"id":49,"name":"Gas Grenadier","key":"GasGrenadier","hp":50,"r":14,"speed":75,"boss":false,"melee":false,"contact":0,"sides":5,"group":"Ranged","color":"#9eea6b","blurb":"Lobs tear-gas canisters at you. Step out of the cloud."},{"id":50,"name":"The Gatekeeper","key":"Gatekeeper","hp":3000,"r":34,"speed":55,"boss":false,"melee":false,"contact":25,"sides":8,"group":"Hidden","color":"#ff9e4c","blurb":"Challenge room mini-boss: a ring of shots with a gap, three aimed fans, and a charge along a shown line that ends in a burst."},{"id":51,"name":"Shadow","key":"Shadow","hp":1800,"r":16,"speed":190,"boss":false,"melee":false,"contact":0,"sides":0,"group":"Hidden","color":"#9e66ff","blurb":"Mirror Match: a dark copy of a player, with their class and their way of fighting. It sidesteps every few seconds."},{"id":52,"name":"Shambler","key":"Shambler","hp":70,"r":14,"speed":70,"boss":false,"melee":true,"contact":18,"sides":3,"group":"Melee","color":"#7fd359","blurb":"Zombie: a wide, slow lurcher that hits hard. Don't get cornered."},{"id":53,"name":"Runner","key":"Runner","hp":28,"r":10,"speed":175,"boss":false,"melee":true,"contact":10,"sides":3,"group":"Melee","color":"#c4ff5b","blurb":"Zombie: frail but faster than you walk, in packs of three. Turn and shoot."},{"id":54,"name":"Spitter","key":"Spitter","hp":45,"r":12,"speed":60,"boss":false,"melee":false,"contact":0,"sides":5,"group":"Ranged","color":"#4fe0a5","blurb":"Zombie: hangs back and lobs globs that leave burning, slowing acid. Keep moving."},{"id":55,"name":"Crawler","key":"Crawler","hp":55,"r":11,"speed":95,"boss":false,"melee":true,"contact":6,"sides":4,"group":"Melee","color":"#3faa54","blurb":"Zombie: scuttles low and grabs you, rooting you in place. Shoot it to break free."},{"id":56,"name":"Bloater","key":"Bloater","hp":90,"r":18,"speed":50,"boss":false,"melee":true,"contact":20,"sides":12,"group":"Melee","color":"#a8c93a","blurb":"Zombie: swollen and slow; it bursts into a slowing spore cloud. Pop it at range."},{"id":57,"name":"Shrieker","key":"Shrieker","hp":40,"r":11,"speed":80,"boss":false,"melee":false,"contact":0,"sides":4,"group":"Ranged","color":"#e2ff9b","blurb":"Zombie: hangs back and screams, sending the horde round it into a frenzy. Silence it."},{"id":58,"name":"Mender","key":"Mender","hp":50,"r":12,"speed":65,"boss":false,"melee":false,"contact":0,"sides":4,"group":"Ranged","color":"#2dd67c","blurb":"Zombie: heals the horde round it and makes the dead rise faster. Kill it first."},{"id":59,"name":"Buzzsaw","key":"Buzzsaw","hp":30,"r":12,"speed":170,"boss":false,"melee":true,"contact":4,"sides":24,"group":"Melee","color":"#59d1ff","blurb":"A fast ring of spinning spikes that swoops round on curves. Each touch is small, but they come about eight times a second."},{"id":60,"name":"Spike Block","key":"SpikeBlock","hp":60,"r":14,"speed":120,"boss":false,"melee":true,"contact":12,"sides":4,"group":"Melee","color":"#e5474c","blurb":"Rocks from side to side as it closes in, then stops, flashes a red line and lunges for a big hit (35). Slow to recover."},{"id":61,"name":"Swarmer","key":"Swarmer","hp":14,"r":9,"speed":115,"boss":false,"melee":true,"contact":6,"sides":24,"group":"Melee","color":"#f7f7f2","blurb":"The simplest melee rusher: a white chomper with no eyes that walks straight at you. Weak alone, and it comes in packs."},{"id":62,"name":"Fuse Runner","key":"FuseRunner","hp":50,"r":12,"speed":200,"boss":false,"melee":true,"contact":8,"sides":24,"group":"Late","color":"#ff8c26","blurb":"A powder keg on the run: it plants its feet near you and blows up after a 0.8 s fuse, hurting enemies too. Step out, or shoot it early."},{"id":63,"name":"Hookman","key":"Hookman","hp":150,"r":15,"speed":70,"boss":false,"melee":true,"contact":0,"sides":4,"group":"Late","color":"#ba8cff","blurb":"Throws a harpoon along a blinking line and yanks you to its squad. Sidestep or parry; a miss leaves it open (+50%)."},{"id":64,"name":"Sapper","key":"Sapper","hp":110,"r":14,"speed":85,"boss":false,"melee":true,"contact":0,"sides":6,"group":"Late","color":"#e8ce49","blurb":"Plants tripwire pods; armed pods are joined by lasers. Cross a laser or step on a pod and it blows. Shoot a pod to use it on enemies."},{"id":65,"name":"Tripwire Pod","key":"SapperMine","hp":1,"r":7,"speed":0,"boss":false,"melee":true,"contact":0,"sides":6,"group":"Hidden","color":"#ff6b59","blurb":"A Sapper's pod: arms in 1 s, then a laser joins it to armed pods near it. Shoot it to blow it up."},{"id":66,"name":"Swordsman","key":"Swordsman","hp":85,"r":15,"speed":95,"boss":false,"melee":true,"contact":8,"sides":24,"group":"Melee","color":"#db4c3f","blurb":"Walks up, raises a long sword and cuts the cone drawn on the floor in front of it. Step out of the cone, then hit it while it recovers."},{"id":67,"name":"Shield Swordsman","key":"ShieldSwordsman","hp":85,"r":15,"speed":75,"boss":false,"melee":true,"contact":8,"sides":24,"group":"Melee","color":"#db4c3f","blurb":"A Swordsman behind a shield that stops every shot from the front. The shield drops when it cuts and stays down while it recovers: shoot it then, or from the side."},{"id":68,"name":"Taser Guard","key":"TaserGuard","hp":70,"r":13,"speed":80,"boss":false,"melee":false,"contact":0,"sides":8,"group":"Ranged","color":"#6699ff","blurb":"Keeps its distance, charges its taser and fires a white Fork Bolt that stuns you. Dodge the bolt, or parry it."},{"id":69,"name":"Security Guard","key":"SecurityGuard","hp":45,"r":15,"speed":70,"boss":false,"melee":false,"contact":0,"sides":24,"group":"Ranged","color":"#6b9bb2","blurb":"Locks on where you're heading, then fires one tracer round at a time: seven shots, then a long reload. Change direction in the red lane, or rush it while it reloads."}],"squads":[{"name":"Breakout","members":"Guard, Rioter x6"},{"name":"Patrol","members":"Security Guard x3, Rioter x2"},{"name":"Cell block","members":"Riot Shield x2, Rioter x4"},{"name":"Riot line","members":"Riot Shield x4, Guard x5"},{"name":"Graveyard shift","members":"Shambler x6"},{"name":"Grave rush","members":"Runner x5, Shambler x2"},{"name":"Dead march","members":"Shambler x6, Mender x2, Runner x3"},{"name":"Rush","members":"Swarmer x5"},{"name":"Firing line","members":"Grunt x3, Sniper"},{"name":"Brute pack","members":"Brute x2, Lunger"},{"name":"Splinters","members":"Splitter x2, Grunt"},{"name":"Bombardment","members":"Charger, Mortar x2"},{"name":"Shield wall","members":"Shielder, Sniper x2"},{"name":"Field hospital","members":"Brute x3, Medic"},{"name":"Ambush","members":"Phantom x3"},{"name":"Beam battery","members":"Shielder, Beam Sentry x2"},{"name":"Pincer","members":"Hexer x2, Grunt x2"},{"name":"Scorched earth","members":"Scorcher x2, Spiker x2"},{"name":"Siege","members":"Juggernaut, Medic x2"},{"name":"Reaver pack","members":"Reaver x2, Lunger x2"},{"name":"Hive","members":"Nest, Splitter x2"},{"name":"Hold the line","members":"Pauser, Grunt x2"},{"name":"Hunting party","members":"Leader x2, Sniper"},{"name":"Seamstresses","members":"Stitcher x2, Grunt"},{"name":"Bastion","members":"Warder, Juggernaut, Grunt x2"},{"name":"Sword line","members":"Swordsman x3"},{"name":"Shield line","members":"Shield Swordsman x2, Swordsman"},{"name":"Demolition","members":"Fuse Runner x2, Grunt"},{"name":"Whalers","members":"Hookman, Lunger x2"},{"name":"Minefield","members":"Sapper, Spike Block x2"}],"sets":[{"name":"warden-drills","text":"# Top-Down Arena waves: warden drills\nloop: no\npoint A 800,70\npoint B 70,450\npoint C 110,110\npoint D 1490,790\npoint E 1530,450\n\nwave 1 level 3\n  group Breakout | squad Breakout | from B | at 0\n  group Guards | Guard x3 | from E | at 4 | every 0.6 | one by one\n  prop crate 620,330\n  prop crate 980,570\n\nwave 2 level 6\n  group Breakout rush | Rioter x6, Guard | from B | at 0 | every 0.4 | one by one\n  group Gas pair | Gas Grenadier x2 | from CD | at 5 | every 0.4 | together\n  group Riot line | squad Riot line | from A | at 11\n  prop crate 610,330\n  prop crate 990,330\n  prop barrel 800,640\n  prop pot 300,200\n"}]};
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const ARR=["one by one","together","line","ring"],PROPS=["crate","heavy crate","pot","barrel","chest","health barrel"],LET="ABCDE";
+const PCOL=["#a07a46","#7c5a2e","#9aa","#c0553a","#e0c050","#4ade80"];
+const W=1600,H=900;
+
+// ---------- data ----------
+const enemyById={},enemyByName={};
+META.enemies.forEach(e=>{enemyById[e.id]=e;enemyByName[e.name.toLowerCase().replace(/^the /,"")]=e;enemyByName[e.key.toLowerCase()]=e});
+const squadMap={};META.squads.forEach(q=>squadMap[q.name.toLowerCase()]=q);
+function findEnemy(n){return enemyByName[n.trim().toLowerCase().replace(/^the /,"")]||null}
+function parseMembers(str){const out=[];(str||"").split(",").forEach(p=>{const m=p.trim().match(/^(.*?)(?:\s*x\s*(\d+))?$/i);if(m&&m[1])out.push({name:m[1].trim(),n:m[2]?+m[2]:1})});return out}
+function membersStr(list){return list.filter(x=>x.n>0).map(x=>x.n>1?`${x.name} x${x.n}`:x.name).join(", ")}
+function expand(str){const o=[];parseMembers(str).forEach(x=>{const e=findEnemy(x.name);if(e)for(let i=0;i<Math.min(200,x.n);i++)o.push(e)});return o}
+function squadCount(n){const q=squadMap[(n||"").toLowerCase()];return q?expand(q.members).length:0}
+
+// ---------- .waves text ----------
+function fmt(v){return String(Math.round(v*100)/100)}
+function toText(s){
+  let t=`# Top-Down Arena waves: ${s.name}\nloop: ${s.loop?"yes":"no"}\n`;
+  LET.split("").forEach((l,i)=>t+=`point ${l} ${fmt(s.points[i][0])},${fmt(s.points[i][1])}\n`);
+  s.waves.forEach((w,k)=>{t+=`\nwave ${k+1} level ${w.level}\n`;
+    w.groups.forEach(g=>{t+=`  group ${g.name.replace(/\|/g,"/")} | ${g.squad!==null?"squad "+g.squad:g.members} | from ${g.from} | at ${fmt(g.at)}`;
+      if(g.squad===null)t+=` | every ${fmt(g.every)} | ${g.arrive}`;t+="\n"});
+    w.props.forEach(p=>t+=`  prop ${p.kind} ${fmt(p.x)},${fmt(p.y)}\n`)});
+  return t}
+function pos(s){const xy=s.split(",");if(xy.length<2||isNaN(+xy[0])||isNaN(+xy[1]))throw new Error("bad position");return [clamp(+xy[0],0,W),clamp(+xy[1],0,H)]}
+function parseGroup(text,problems,ln){
+  const parts=text.split("|").map(x=>x.trim());
+  const g={name:parts[0]||"Group",squad:null,members:"",from:"",at:0,every:.4,arrive:"one by one"};
+  if(parts.length<2)throw new Error("a group needs its enemies after a |");
+  if(/^squad /i.test(parts[1])){const n=parts[1].slice(6).trim();const q=squadMap[n.toLowerCase()];if(!q)throw new Error(`unknown squad "${n}"`);g.squad=q.name}
+  else{const list=[];parts[1].split(",").forEach(piece=>{let p=piece.trim(),n=1;const x=p.toLowerCase().lastIndexOf(" x");if(x>0&&!isNaN(parseInt(p.slice(x+2)))){n=parseInt(p.slice(x+2));p=p.slice(0,x)}
+      const e=findEnemy(p);if(!e){problems.push(`line ${ln}: unknown enemy "${p}"`);return}list.push({name:e.name,n:Math.min(n,200)})});g.members=membersStr(list)}
+  for(let i=2;i<parts.length;i++){const p=parts[i],l=p.toLowerCase();
+    if(l.startsWith("from "))g.from=p.slice(5).toUpperCase().split("").filter(c=>LET.includes(c)).join("");
+    else if(l.startsWith("at "))g.at=Math.max(0,parseFloat(p.slice(3))||0);
+    else if(l.startsWith("every "))g.every=Math.max(0,parseFloat(p.slice(6))||0);
+    else if(ARR.includes(l))g.arrive=l;
+    else problems.push(`line ${ln}: skipped "${p}"`)}
+  if(!g.from)g.from="A";return g}
+function parseWaves(text){
+  const s={name:"untitled",loop:false,points:[[800,70],[70,450],[110,110],[1490,790],[1530,450]],waves:[],problems:[]};let cur=null;
+  (text||"").split("\n").forEach((raw,i)=>{const line=raw.trim();if(!line)return;const ln=i+1;
+    try{
+      if(line[0]==="#"){const c=line.indexOf(":");if(c>0&&line.includes("waves"))s.name=line.slice(c+1).trim();return}
+      if(line.startsWith("loop:")){s.loop=/^y/i.test(line.slice(5).trim());return}
+      const w=line.split(/\s+/),k=w[0].toLowerCase();
+      if(k==="point"){const idx=LET.indexOf((w[1]||"?")[0].toUpperCase());if(idx<0)throw new Error("spawn points are A to E");s.points[idx]=pos(w[2]||"")}
+      else if(k==="wave"){const li=w.findIndex(x=>x.toLowerCase()==="level");cur={level:clamp(li>=0?parseInt(w[li+1])||1:1,1,100),groups:[],props:[]};s.waves.push(cur)}
+      else if(k==="group"){if(!cur)throw new Error("a group before any wave");cur.groups.push(parseGroup(line.slice(5).trim(),s.problems,ln))}
+      else if(k==="prop"){if(!cur)throw new Error("a prop before any wave");const rest=line.slice(4).trim(),sp=rest.lastIndexOf(" ");const kind=rest.slice(0,sp).trim().toLowerCase();
+        if(!PROPS.includes(kind))throw new Error(`unknown prop "${kind}"`);const p=pos(rest.slice(sp+1));cur.props.push({kind,x:p[0],y:p[1]})}
+      else throw new Error(`don't know "${w[0]}"`);
+    }catch(e){s.problems.push(`line ${ln}: ${e.message}`)}});
+  if(!s.waves.length)s.problems.push("no waves found");return s}
+
+// ---------- the simplified simulation ----------
+// Enemies keep their real health, size, speed and colour. Behaviour is one of a few styles picked by name (see AI), scaled by wave level.
+const AI={sniper:{k:"shoot",iv:2.3,spd:520,keep:540,n:1,r:4,dm:1.5},burster:{k:"ring",iv:3,n:10,spd:150,keep:300},spinner:{k:"spin",iv:.28,spd:170,keep:260},
+  mortar:{k:"lob",iv:3.2,keep:420},charger:{k:"dash",cd:2.6},lunger:{k:"dash",cd:2.4},reaver:{k:"dash",cd:2.2},"fuse runner":{k:"dash",cd:2.8},
+  medic:{k:"heal"},mender:{k:"heal"},"gas grenadier":{k:"gas"},scorcher:{k:"shoot",iv:.5,spd:300,keep:200,n:1,r:6,dm:.5},
+  phantom:{k:"shoot",iv:1.6,keep:260,n:3},shrieker:{k:"ring",iv:3.4,n:8,spd:130,keep:340},spitter:{k:"shoot",iv:1.4,spd:170,keep:300,n:1,r:8,dm:1.1},
+  "taser guard":{k:"shoot",iv:1.6,keep:240,n:2},"security guard":{k:"shoot",iv:1.8,keep:260,n:1}};
+function aiFor(d){const key=d.name.toLowerCase().replace(/^the /,"");if(AI[key])return AI[key];
+  if(d.boss)return{k:"boss"};if(d.speed<=0)return{k:d.melee?"still":"turret"};if(d.melee)return{k:"chase"};return{k:"shoot",keep:300,n:3}}
+const ROLE={Tank:{hp:240,spd:185,iv:.45,dmg:22,r:13},Healer:{hp:140,spd:215,iv:.25,dmg:12,r:11},DPS:{hp:95,spd:240,iv:.1,dmg:8,r:10}};
+const GEAR=[{d:1,h:1},{d:2,h:1.5},{d:4,h:2.2}];
+const WEAPONS=[{iv:1,dm:1,n:1,sp:0,v:700,life:1.4,pierce:0,r:4},{iv:1.6,dm:.45,n:6,sp:.38,v:560,life:.36,pierce:0,r:4},{iv:3.2,dm:3.6,n:1,sp:0,v:1100,life:1.2,pierce:3,r:4}];
+
+function newMatch(set,o){
+  const b=ROLE[o.role],g=GEAR[o.gear];
+  const p={x:800,y:450,r:b.r,hp:b.hp*g.h,mhp:b.hp*g.h,spd:b.spd,iv:b.iv,dmg:b.dmg*g.d,fcd:0,aim:0,abCd:0,ultCd:15,dodgeCd:0,inv:0,bar:0,dashT:0,dx:0,dy:0,down:0,downs:0,flash:0};
+  return{set,o,p,t:0,wi:Math.max(0,o.startWave-1),phase:"break",phaseT:1.5,clock:0,enemies:[],bullets:[],zones:[],orbs:[],fx:[],props:[],queue:[],rows:[],cur:null,result:"",
+    kills:0,dealt:0,taken:0,healing:0,bot:o.bot,god:o.god,prev:{},B:{flip:1,flipT:0,next:0,inp:{mx:0,my:0,ax:800,ay:450}},nextId:1}}
+
+function startWave(M){
+  const w=M.set.waves[M.wi],lv=w.level;M.clock=0;M.queue=[];M.enemies.length=0;M.bullets.length=0;M.zones.length=0;
+  w.groups.forEach(g=>{
+    const from=g.from||"A",pt=l=>M.set.points[Math.max(0,LET.indexOf(l))];
+    if(g.squad!==null){const list=expand((squadMap[g.squad.toLowerCase()]||{members:""}).members),at=pt(from[0]);const c=[W/2-at[0],H/2-at[1]],cl=Math.hypot(c[0],c[1])||1,ox=-c[1]/cl,oy=c[0]/cl;
+      list.forEach((e,i)=>M.queue.push({t:g.at,e,x:at[0]+ox*(i-(list.length-1)/2)*40,y:at[1]+oy*(i-(list.length-1)/2)*40}));return}
+    const list=expand(g.members),n=list.length;
+    list.forEach((e,i)=>{const at=pt(from[i%from.length]);let x=at[0],y=at[1],t=g.at,ring=false;
+      if(g.arrive==="one by one")t+=g.every*i;
+      else if(g.arrive==="together"&&n>1){const a=Math.PI*2*i/n;x+=Math.cos(a)*45;y+=Math.sin(a)*45}
+      else if(g.arrive==="line"){const c=[W/2-x,H/2-y],cl=Math.hypot(c[0],c[1])||1;x+=(-c[1]/cl)*(i-(n-1)/2)*60;y+=(c[0]/cl)*(i-(n-1)/2)*60}
+      else if(g.arrive==="ring")ring=true;
+      M.queue.push({t,e,x,y,ring,i})})});
+  M.queue.sort((a,b)=>a.t-b.t);
+  M.props=w.props.map(p=>({kind:PROPS.indexOf(p.kind),x:p.x,y:p.y,h:p.kind==="heavy crate"?20:16}));
+  const total=M.queue.length;
+  M.cur={wave:M.wi+1,level:lv,enemies:total,cleared:false,clear:0,kills:0,dealt:0,taken:0,healing:0,minHp:1,downs:0,k0:M.kills,d0:M.dealt,t0:M.taken,h0:M.healing};
+  M.phase="fight"}
+
+function spawnEnemy(M,q){
+  const d=q.e,lv=M.set.waves[M.wi].level;let x=q.x,y=q.y;
+  if(q.ring){const a=Math.PI*2*q.i/8+M.clock;x=M.p.x+Math.cos(a)*280;y=M.p.y+Math.sin(a)*280}
+  x=clamp(x,d.r+10,W-d.r-10);y=clamp(y,d.r+10,H-d.r-10);
+  const hpm=1+(d.boss?.06:.1)*(lv-1),ai=aiFor(d);
+  M.enemies.push({id:M.nextId++,d,ai,x,y,hp:d.hp*hpm,mhp:d.hp*hpm,r:d.r,spd:d.speed,spawnT:d.boss?1.5:.9,cd:.6+Math.random()*1.2,st:0,stT:0,dir:Math.random()<.5?-1:1,dirT:1+Math.random()*2,vx:0,vy:0,hitCd:0,ang:Math.random()*6.28,
+    face:0,flash:0,lv})}
+
+function eBullet(M,e,ang,spd,r,dm,life){M.bullets.push({x:e.x,y:e.y,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,r:r||5,dmg:(8+e.lv*.7)*(dm||1),life:life||5,own:0,boss:e.d.boss})}
+function hurtPlayer(M,dmg){const p=M.p;if(p.down>0||p.inv>0||p.bar>0||M.god)return;p.hp-=dmg;M.taken+=dmg;p.flash=.15;if(p.hp<=0){p.hp=0;p.down=3;p.downs++;p.bar=0;if(M.cur)M.cur.downs++}}
+function healPlayer(M,a){const p=M.p;if(p.down>0)return;const h=Math.min(a,p.mhp-p.hp);p.hp+=h;M.healing+=h}
+function dmgEnemy(M,e,dmg){if(e.spawnT>0)return;const d=Math.min(dmg,e.hp);e.hp-=dmg;M.dealt+=d;e.flash=.08;if(e.hp<=0&&!e.dead){e.dead=true;M.kills++;if(Math.random()<.12)M.orbs.push({x:e.x,y:e.y,life:12})}}
+function boom(M,x,y,r,dmgE,dmgP){M.enemies.forEach(e=>{if(Math.hypot(e.x-x,e.y-y)<r+e.r)dmgEnemy(M,e,dmgE)});if(Math.hypot(M.p.x-x,M.p.y-y)<r+M.p.r)hurtPlayer(M,dmgP);
+  M.fx.push({x,y,r,t:.3})}
+function pushOutProps(M,o){M.props.forEach(pr=>{const nx=clamp(o.x,pr.x-pr.h,pr.x+pr.h),ny=clamp(o.y,pr.y-pr.h,pr.y+pr.h);let dx=o.x-nx,dy=o.y-ny,d=Math.hypot(dx,dy);
+  if(d<o.r){if(d<.001){dx=1;dy=0;d=1}o.x+=dx/d*(o.r-d);o.y+=dy/d*(o.r-d)}})}
+
+function enemyAct(M,e,dt){
+  const p=M.p,d=e.ai;e.flash=Math.max(0,e.flash-dt);e.hitCd=Math.max(0,e.hitCd-dt);
+  if(e.spawnT>0){e.spawnT-=dt;return}
+  const alive=p.down<=0,dx=p.x-e.x,dy=p.y-e.y,dist=Math.hypot(dx,dy)||1,ux=dx/dist,uy=dy/dist,lv=e.lv,rate=1+.03*lv;
+  e.face=Math.atan2(dy,dx);e.cd-=dt;e.dirT-=dt;if(e.dirT<=0){e.dir=-e.dir;e.dirT=1.5+Math.random()*2}
+  const move=(vx,vy,s)=>{e.x+=vx*s*dt;e.y+=vy*s*dt};
+  const keepAt=(keep,s)=>{if(!alive){return}if(dist<keep-40)move(-ux,-uy,s*.85);else if(dist>keep+60)move(ux,uy,s);else move(-uy*e.dir,ux*e.dir,s*.6)};
+  const contact=(dmg)=>{if(alive&&dist<e.r+p.r+2&&e.hitCd<=0){hurtPlayer(M,dmg);e.hitCd=.7}};
+  switch(d.k){
+   case"chase":{if(alive)move(ux,uy,e.spd);contact((e.d.contact||10)*(1+.03*lv));break}
+   case"still":{contact((e.d.contact||10)*(1+.03*lv));break}
+   case"dash":{
+     if(e.st===0){if(alive&&dist>150)move(ux,uy,e.spd*.8);contact((e.d.contact||14)*(1+.03*lv));if(e.cd<=0&&dist<340&&alive){e.st=1;e.stT=.5;e.vx=ux;e.vy=uy}}
+     else if(e.st===1){e.stT-=dt;e.vx=ux;e.vy=uy;if(e.stT<=0){e.st=2;e.stT=.45}}
+     else{e.stT-=dt;move(e.vx,e.vy,e.spd*3.2);contact((e.d.contact||14)*1.4*(1+.03*lv));if(e.stT<=0){e.st=0;e.cd=d.cd||2.5}}
+     break}
+   case"shoot":{keepAt((d.keep||300)+e.r,e.spd);
+     if(e.cd<=0&&alive){const iv=(d.iv||1.9)/rate;e.cd=iv*(.85+Math.random()*.3);const n=d.n||3,a0=Math.atan2(dy,dx);for(let i=0;i<n;i++)eBullet(M,e,a0+(i-(n-1)/2)*.24,d.spd||260,d.r||5,d.dm||1)}break}
+   case"turret":{if(e.cd<=0&&alive){e.cd=2/rate;const a0=Math.atan2(dy,dx);for(let i=0;i<3;i++)eBullet(M,e,a0+(i-1)*.3,240)}break}
+   case"ring":{keepAt(d.keep||300,e.spd);if(e.cd<=0){e.cd=(d.iv||3)/rate;const n=(d.n||10)+Math.floor(lv/4),off=Math.random()*6.28;for(let i=0;i<n;i++)eBullet(M,e,off+Math.PI*2*i/n,d.spd||150,5,.9)}break}
+   case"spin":{keepAt(d.keep||260,e.spd);if(e.cd<=0){e.cd=(d.iv||.28)/rate;e.ang+=.5;eBullet(M,e,e.ang,d.spd||170,5,.7);eBullet(M,e,e.ang+Math.PI,d.spd||170,5,.7)}break}
+   case"lob":{keepAt(d.keep||420,e.spd);if(e.cd<=0&&alive){e.cd=(d.iv||3.2)/rate;eBullet(M,e,Math.atan2(dy,dx),130,10,2.2,6)}break}
+   case"gas":{keepAt(380,e.spd);if(e.cd<=0&&alive){e.cd=3.5/rate;M.zones.push({x:p.x,y:p.y,r:70,t:5,delay:.9,dps:10+lv*.5})}break}
+   case"heal":{keepAt(420,e.spd);if(e.cd<=0){e.cd=2.6;let best=null;M.enemies.forEach(o=>{if(o!==e&&o.hp<o.mhp&&o.spawnT<=0&&Math.hypot(o.x-e.x,o.y-e.y)<260&&(!best||o.hp/o.mhp<best.hp/best.mhp))best=o});
+      if(best){best.hp=Math.min(best.mhp,best.hp+best.mhp*.2);M.fx.push({x:best.x,y:best.y,r:best.r+10,t:.4,heal:1,x2:e.x,y2:e.y})}else if(alive)eBullet(M,e,Math.atan2(dy,dx),220,5,.7)}break}
+   case"boss":{keepAt(300+e.r,e.spd);const enr=e.hp<e.mhp*.5?1.5:1;e.stT+=dt*enr;
+     if(e.cd<=0&&alive){const ph=Math.floor(e.stT/6)%3,a0=Math.atan2(dy,dx);
+       if(ph===0){e.cd=1.1/rate;for(let i=0;i<5;i++)eBullet(M,e,a0+(i-2)*.2,300,6,1)}
+       else if(ph===1){e.cd=1.8/rate;const n=18;const off=Math.random()*6.28;for(let i=0;i<n;i++)eBullet(M,e,off+Math.PI*2*i/n,190,6,1)}
+       else{e.cd=.12/rate;e.ang+=.45;eBullet(M,e,e.ang,230,6,.8);eBullet(M,e,e.ang+Math.PI,230,6,.8)}}
+     contact(20);break}
+  }
+  e.x=clamp(e.x,e.r,W-e.r);e.y=clamp(e.y,e.r,H-e.r)}
+
+function playerShoot(M){const p=M.p,w=WEAPONS[M.o.weapon];p.fcd=p.iv*w.iv;
+  for(let i=0;i<w.n;i++){const a=p.aim+(w.n>1?(Math.random()-.5)*w.sp*2:0);M.bullets.push({x:p.x+Math.cos(p.aim)*p.r,y:p.y+Math.sin(p.aim)*p.r,vx:Math.cos(a)*w.v,vy:Math.sin(a)*w.v,r:w.r,dmg:p.dmg*w.dm,life:w.life,own:1,pierce:w.pierce,hit:[]})}}
+
+function step(M,dt,inp){
+  if(M.phase==="victory")return;
+  M.t+=dt;const p=M.p;
+  // phases
+  if(M.phase==="break"){M.phaseT-=dt;if(M.phaseT<=0)startWave(M)}
+  else if(M.phase==="fight"){
+    M.clock+=dt;
+    while(M.queue.length&&M.queue[0].t<=M.clock)spawnEnemy(M,M.queue.shift());
+    if(M.cur){M.cur.clear=M.clock;M.cur.minHp=Math.min(M.cur.minHp,p.hp/p.mhp)}
+    if(!M.queue.length&&!M.enemies.length){
+      const c=M.cur;c.cleared=true;c.kills=M.kills-c.k0;c.dealt=M.dealt-c.d0;c.taken=M.taken-c.t0;c.healing=M.healing-c.h0;M.rows.push(c);M.cur=null;
+      if(M.wi+1>=M.set.waves.length&&!M.set.loop){M.phase="victory";M.result="victory"}
+      else{M.wi=(M.wi+1)%M.set.waves.length;M.phase="break";M.phaseT=3;p.hp=Math.min(p.mhp,p.hp+p.mhp*.3)}}}
+  // bot
+  if(M.bot!=="off"){M.B.next-=dt;if(M.B.next<=0){M.B.next=({casual:.28,good:.12,expert:.05})[M.bot];M.B.inp=botThink(M)}inp=M.B.inp}
+  // player
+  p.flash=Math.max(0,p.flash-dt);
+  if(p.down>0){p.down-=dt;if(p.down<=0){p.hp=p.mhp*.5;p.inv=1.5}}
+  p.fcd-=dt;p.abCd-=dt;p.ultCd-=dt;p.dodgeCd-=dt;p.inv=Math.max(0,p.inv-dt);p.bar=Math.max(0,p.bar-dt);
+  const pv=M.prev,edge=(k,v)=>{const r=v&&!pv[k];pv[k]=v;return r};
+  const eDodge=edge("dodge",inp.dodge),eAb=edge("ab",inp.ab),eUlt=edge("ult",inp.ult);
+  if(p.down<=0){
+    p.aim=Math.atan2(inp.ay-p.y,inp.ax-p.x);
+    let mx=inp.mx,my=inp.my;const ml=Math.hypot(mx,my);if(ml>1){mx/=ml;my/=ml}
+    if(p.dashT>0){p.dashT-=dt;p.x+=p.dx*800*dt;p.y+=p.dy*800*dt}else{p.x+=mx*p.spd*dt;p.y+=my*p.spd*dt}
+    if(eDodge&&p.dodgeCd<=0){p.dodgeCd=1.1;p.inv=Math.max(p.inv,.22);p.dashT=.12;const l=Math.hypot(mx,my);p.dx=l>.1?mx/l:-Math.cos(p.aim);p.dy=l>.1?my/l:-Math.sin(p.aim)}
+    if(eAb&&p.abCd<=0){const a=M.o.ability;
+      if(a===0){p.abCd=3.5;p.inv=Math.max(p.inv,.3);p.dashT=.18;const l=Math.hypot(mx,my);p.dx=l>.1?mx/l:Math.cos(p.aim);p.dy=l>.1?my/l:Math.sin(p.aim)}
+      else if(a===1){p.abCd=12;p.bar=1.8}
+      else{p.abCd=10;healPlayer(M,p.mhp*.35);M.fx.push({x:p.x,y:p.y,r:60,t:.4,heal:2})}}
+    if(eUlt&&p.ultCd<=0){p.ultCd=40;const n=36;for(let i=0;i<n;i++){const a=Math.PI*2*i/n;M.bullets.push({x:p.x,y:p.y,vx:Math.cos(a)*600,vy:Math.sin(a)*600,r:6,dmg:p.dmg*4,life:1.2,own:1,pierce:99,hit:[]})}
+      M.bullets=M.bullets.filter(b=>b.own||Math.hypot(b.x-p.x,b.y-p.y)>260);M.fx.push({x:p.x,y:p.y,r:260,t:.4})}
+    if(inp.fire&&p.fcd<=0)playerShoot(M);
+    p.x=clamp(p.x,p.r,W-p.r);p.y=clamp(p.y,p.r,H-p.r);pushOutProps(M,p)}
+  // enemies
+  M.enemies.forEach(e=>enemyAct(M,e,dt));
+  for(let i=0;i<M.enemies.length;i++){const a=M.enemies[i];if(a.spawnT>0||a.spd<=0)continue;
+    for(let j=i+1;j<M.enemies.length;j++){const b=M.enemies[j];if(b.spawnT>0||b.spd<=0)continue;const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),m=a.r+b.r;
+      if(d<m&&d>.01){const k=(m-d)/2/d;a.x-=dx*k;a.y-=dy*k;b.x+=dx*k;b.y+=dy*k}}
+    pushOutProps(M,a)}
+  // bullets
+  M.bullets.forEach(b=>{b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;if(b.x<-20||b.x>W+20||b.y<-20||b.y>H+20)b.life=0;
+    for(const pr of M.props){if(Math.abs(b.x-pr.x)<pr.h+b.r&&Math.abs(b.y-pr.y)<pr.h+b.r){b.life=0;if(pr.kind===3||pr.kind===5){pr.dead=true;if(pr.kind===3)boom(M,pr.x,pr.y,110,70,18);else for(let k=0;k<3;k++)M.orbs.push({x:pr.x+(k-1)*18,y:pr.y,life:12})}break}}
+    if(b.life<=0)return;
+    if(b.own){for(const e of M.enemies){if(e.spawnT>0||e.dead||b.hit.includes(e.id))continue;if(Math.hypot(e.x-b.x,e.y-b.y)<e.r+b.r){dmgEnemy(M,e,b.dmg);b.hit.push(e.id);if(b.pierce--<=0){b.life=0;break}}}}
+    else if(p.down<=0&&Math.hypot(p.x-b.x,p.y-b.y)<p.r*.7+b.r){hurtPlayer(M,b.dmg);b.life=0}});
+  M.bullets=M.bullets.filter(b=>b.life>0);M.props=M.props.filter(x=>!x.dead);M.enemies=M.enemies.filter(e=>!e.dead&&e.hp>0);
+  M.orbs.forEach(o=>{o.life-=dt;if(p.down<=0&&Math.hypot(o.x-p.x,o.y-p.y)<p.r+12){healPlayer(M,p.mhp*.06);o.life=0}});M.orbs=M.orbs.filter(o=>o.life>0);
+  M.zones.forEach(z=>{if(z.delay>0){z.delay-=dt;return}z.t-=dt;if(p.down<=0&&Math.hypot(p.x-z.x,p.y-z.y)<z.r)hurtPlayer(M,z.dps*dt)});M.zones=M.zones.filter(z=>z.t>0);
+  M.fx.forEach(f=>f.t-=dt);M.fx=M.fx.filter(f=>f.t>0)}
+
+// ---------- the bot ----------
+function botThink(M){
+  const p=M.p,lvl=M.bot,sk=({casual:0,good:1,expert:2})[lvl],B=M.B;
+  B.flipT-=.1;if(B.flipT<=0){B.flip=-B.flip;B.flipT=2+Math.random()*2}
+  let near=null,nd=1e9,close=0;
+  M.enemies.forEach(e=>{if(e.spawnT>0)return;const d=Math.hypot(e.x-p.x,e.y-p.y);if(d<nd){nd=d;near=e}if(d<320)close++});
+  const w=M.o.weapon,pref=[330,190,450][w],range=[700,300,900][w];
+  let mx=0,my=0;
+  if(near){const ux=(near.x-p.x)/nd,uy=(near.y-p.y)/nd,k=clamp((nd-pref)/120,-1,1);mx+=ux*k;my+=uy*k;mx+=-uy*B.flip*.55;my+=ux*B.flip*.55}
+  M.enemies.forEach(e=>{const dx=p.x-e.x,dy=p.y-e.y,d=Math.hypot(dx,dy)||1,r=e.ai.k==="chase"||e.ai.k==="dash"?210:120;if(d<r){const f=(1-d/r)*(e.ai.k==="chase"||e.ai.k==="dash"?2.4:1.2);mx+=dx/d*f;my+=dy/d*f}});
+  let threat=0,imminent=false;const margin=[8,16,24][sk],horizon=[.45,.65,.85][sk];
+  M.bullets.forEach(b=>{if(b.own)return;const rx=b.x-p.x,ry=b.y-p.y,v2=b.vx*b.vx+b.vy*b.vy;if(v2<1)return;const t=-(rx*b.vx+ry*b.vy)/v2;if(t<0||t>horizon)return;
+    const cx=rx+b.vx*t,cy=ry+b.vy*t,d=Math.hypot(cx,cy),lim=p.r+b.r+margin;if(d>lim)return;
+    threat++;if(t<.2)imminent=true;const side=Math.sign(rx*b.vy-ry*b.vx)||1,l=Math.sqrt(v2),f=(1-t/horizon)*2.4;mx+=(-b.vy/l)*side*-f;my+=(b.vx/l)*side*-f});
+  const edge=110;if(p.x<edge)mx+=(edge-p.x)/edge*1.6;if(p.x>W-edge)mx-=(p.x-(W-edge))/edge*1.6;if(p.y<edge)my+=(edge-p.y)/edge*1.6;if(p.y>H-edge)my-=(p.y-(H-edge))/edge*1.6;
+  M.props.forEach(pr=>{const dx=p.x-pr.x,dy=p.y-pr.y,d=Math.hypot(dx,dy)||1;if(d<70){mx+=dx/d*(1-d/70);my+=dy/d*(1-d/70)}});
+  if(lvl==="casual"&&threat>0&&Math.random()<.5){mx*=.4;my*=.4}
+  const l=Math.hypot(mx,my);if(l>1){mx/=l;my/=l}
+  let ax=p.x+Math.cos(p.aim)*100,ay=p.y+Math.sin(p.aim)*100,fire=false;
+  if(near&&nd<range){let tx=near.x,ty=near.y;if(sk>0){const t=nd/[700,560,1100][w];tx+=(near.vx||0)*t;ty+=(near.vy||0)*t}
+    const err=[.12,.04,.012][sk]*(Math.random()-.5)*2,a=Math.atan2(ty-p.y,tx-p.x)+err;ax=p.x+Math.cos(a)*400;ay=p.y+Math.sin(a)*400;fire=true}
+  let ab=false,ult=false,dodge=false;
+  if(sk>0){const a=M.o.ability;
+    if(a===2&&p.hp<p.mhp*.45&&p.abCd<=0)ab=true;
+    if(a===1&&p.abCd<=0&&(threat>=3||p.hp<p.mhp*.5)&&imminent)ab=true;
+    if(a===0&&imminent&&p.abCd<=0&&p.dodgeCd>0)ab=true;
+    if(imminent&&p.dodgeCd<=0&&Math.random()<[0,.6,.95][sk])dodge=true;
+    if(p.ultCd<=0&&(close>=6||M.enemies.some(e=>e.d.boss&&nd<500)))ult=true}
+  return{mx,my,ax,ay,fire,ab,ult,dodge}}
+
+// ---------- run report ----------
+function reportOf(M){
+  const rows=M.rows.slice();if(M.cur){const c=M.cur;rows.push({...c,clear:M.clock,kills:0,dealt:0,taken:0,healing:0,cleared:false})}
+  return{set:M.set.name,who:`${M.o.role}, ${["Pistol","Scatter gun","Railgun"][M.o.weapon]}, ${["Dash","Barrier","Heal pulse"][M.o.ability]}, ${["starter","mid","late"][M.o.gear]} gear`,
+    bot:M.bot,god:M.god,result:M.result||"stopped",time:M.t,rows:rows.map(r=>({wave:r.wave,level:r.level,enemies:r.enemies,cleared:r.cleared,clear:+r.clear.toFixed(1),kills:r.kills,dealt:Math.round(r.dealt),taken:Math.round(r.taken),healing:Math.round(r.healing),minHp:Math.round(r.minHp*100),downs:r.downs}))}}
+const CSVH=["wave","level","enemies","cleared","clear","kills","dealt","taken","healing","minHp","downs"];
+function csvOf(r){return CSVH.join(",")+"\n"+r.rows.map(x=>CSVH.map(k=>x[k]).join(",")).join("\n")}
+function showReport(){if(!M)return;const r=reportOf(M);
+  $("repTitle").textContent=`${r.set||"waves"}: ${r.result.toUpperCase()} in ${Math.round(r.time)}s`;$("repSub").textContent=`${r.who}, bot ${r.bot}${r.god?", god mode":""}`;
+  $("repTbl").innerHTML="<tr>"+["Wave","Lvl","Enemies","Result","Clear s","Kills","Dmg dealt","Dmg taken","Healed","Min HP %","Downs"].map(h=>`<th>${h}</th>`).join("")+"</tr>"+
+    r.rows.map(x=>"<tr>"+[x.wave,x.level,x.enemies,x.cleared?"cleared":"unfinished",x.clear,x.cleared?x.kills:"-",x.cleared?x.dealt:"-",x.cleared?x.taken:"-",x.cleared?x.healing:"-",x.minHp,x.downs].map(v=>`<td>${v}</td>`).join("")+"</tr>").join("");
+  $("repText").value=csvOf(r);$("rep").hidden=false}
+function copy(text,ta,btn){const done=()=>{const o=btn.textContent;btn.textContent="Copied";setTimeout(()=>btn.textContent=o,1200)};
+  const fallback=()=>{ta.focus();ta.select();try{document.execCommand("copy")&&done()}catch(e){}};
+  try{navigator.clipboard.writeText(text).then(done,fallback)}catch(e){fallback()}}
+
+// ---------- editor ----------
+let set=null,selWave=0,selGroup=0,tool="pts";
+const blank=()=>({name:"my waves",loop:false,points:[[800,70],[70,450],[110,110],[1490,790],[1530,450]],waves:[{level:1,groups:[{name:"Group 1",squad:null,members:"Grunt x4",from:"B",at:0,every:.6,arrive:"one by one"}],props:[]}],problems:[]});
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")}
+function curGroup(){const w=set.waves[selWave];return w&&w.groups[selGroup]}
+function addEnemy(name){const g=curGroup();if(!g)return;if(g.squad!==null){g.squad=null;g.members=""}
+  const l=parseMembers(g.members),f=l.find(x=>x.name===name);if(f)f.n++;else l.push({name,n:1});g.members=membersStr(l);renderAll()}
+function loadSet(s){set=s;selWave=0;selGroup=0;$("problems").textContent=(s.problems||[]).slice(0,2).join("; ");renderAll()}
+function memberChips(g){return parseMembers(g.members).map(x=>{const e=findEnemy(x.name);
+  return `<span class="chip"><i style="background:${e?e.color:"#888"}"></i>${esc(x.name)} ×${x.n}<button data-a="m-" data-n="${esc(x.name)}" style="padding:0 5px">−</button><button data-a="m+" data-n="${esc(x.name)}" style="padding:0 5px">+</button></span>`}).join("")||'<span class="dim small">empty: tap an enemy on the left</span>'}
+function mod(g,name,d){const l=parseMembers(g.members),f=l.find(x=>x.name===name);if(f)f.n+=d;g.members=membersStr(l)}
+function save(){try{localStorage.setItem("wavelab.set",toText(set))}catch(e){}}
+function sync(){$("text").value=toText(set);drawMini();save()}
+function renderAll(){
+  $("setname").value=set.name;$("loop").checked=set.loop;
+  const tabs=$("waveTabs");tabs.innerHTML="";
+  set.waves.forEach((w,i)=>{const d=document.createElement("div");d.className="tab"+(i===selWave?" sel":"");d.textContent="Wave "+(i+1);d.onclick=()=>{selWave=i;selGroup=0;renderAll()};tabs.appendChild(d)});
+  const a=document.createElement("div");a.className="tab";a.textContent="+";a.title="Add wave";a.onclick=()=>{set.waves.push({level:(set.waves[set.waves.length-1]||{level:1}).level+1,groups:[{name:"Group 1",squad:null,members:"Grunt x4",from:"A",at:0,every:.6,arrive:"one by one"}],props:[]});selWave=set.waves.length-1;selGroup=0;renderAll()};tabs.appendChild(a);
+  const w=set.waves[selWave];$("level").value=w.level;
+  let total=0;w.groups.forEach(g=>{total+=g.squad!==null?squadCount(g.squad):parseMembers(g.members).reduce((s,x)=>s+x.n,0)});$("stat").textContent=total+" enemies";
+  const G=$("groups");G.innerHTML="";
+  w.groups.forEach((g,i)=>{
+    const c=document.createElement("div");c.className="card"+(i===selGroup?" sel":"");c.onclick=()=>{if(selGroup!==i){selGroup=i;renderAll()}};
+    c.innerHTML=`<div class="row"><input class="w" style="flex:1" data-k="name" value="${esc(g.name)}" aria-label="Group name"><button data-a="del" title="Delete group">✕</button><button data-a="dup" title="Duplicate group">⧉</button></div>
+    <div class="row">${g.squad!==null?`<span class="chip">squad: ${esc(g.squad)}</span><button data-a="unsquad">use enemies</button>`:memberChips(g)}</div>
+    <div class="row small dim">from <input data-k="from" value="${esc(g.from)}" style="width:56px" aria-label="Spawn points"> at <input type="number" data-k="at" step="0.5" min="0" value="${g.at}" aria-label="Start time"> s
+    ${g.squad===null?`every <input type="number" data-k="every" step="0.1" min="0.1" value="${g.every}" aria-label="Interval"> <select data-k="arrive" aria-label="Arrival">${ARR.map(x=>`<option${x===g.arrive?" selected":""}>${x}</option>`).join("")}</select>`:""}</div>`;
+    c.querySelectorAll("input,select").forEach(el=>el.onchange=()=>{const k=el.dataset.k;g[k]=el.type==="number"?+el.value:k==="from"?el.value.toUpperCase().split("").filter(ch=>LET.includes(ch)).join("")||"A":el.value;sync()});
+    c.querySelectorAll("button[data-a]").forEach(b=>b.onclick=ev=>{ev.stopPropagation();const a=b.dataset.a;
+      if(a==="del"){w.groups.splice(i,1);selGroup=Math.max(0,i-1)}else if(a==="dup"){w.groups.splice(i+1,0,JSON.parse(JSON.stringify(g)));selGroup=i+1}else if(a==="unsquad"){g.squad=null;g.members="Grunt"}
+      else if(a==="m+")mod(g,b.dataset.n,1);else if(a==="m-")mod(g,b.dataset.n,-1);renderAll();save()});
+    G.appendChild(c)});
+  $("text").value=toText(set);drawMini()}
+function renderTools(){$("tPts").className=tool==="pts"?"on":"";$("tProps").innerHTML=PROPS.map((n,i)=>`<button data-p="${i}" class="${tool===i?"on":""}" style="border-left:4px solid ${PCOL[i]}">${n}</button>`).join("");
+  $("tProps").querySelectorAll("button").forEach(b=>b.onclick=()=>{tool=+b.dataset.p;renderTools()})}
+const mini=$("mini"),mc=mini.getContext("2d");let dragPt=-1;
+function drawMini(){const k=mini.width/W;mc.clearRect(0,0,mini.width,mini.height);mc.strokeStyle="#243040";mc.strokeRect(0,0,mini.width,mini.height);
+  const w=set.waves[selWave];w.props.forEach(p=>{mc.fillStyle=PCOL[Math.max(0,PROPS.indexOf(p.kind))];mc.fillRect(p.x*k-7,p.y*k-7,14,14)});
+  const used=new Set();w.groups.forEach(g=>(g.from||"").split("").forEach(l=>used.add(l)));
+  set.points.forEach((p,i)=>{const l=LET[i];mc.beginPath();mc.arc(p[0]*k,p[1]*k,13,0,7);mc.fillStyle=used.has(l)?"#4fd1c5":"#334";mc.fill();mc.fillStyle="#04201d";mc.font="bold 14px monospace";mc.textAlign="center";mc.textBaseline="middle";mc.fillText(l,p[0]*k,p[1]*k+1)})}
+function mpos(e){const r=mini.getBoundingClientRect();return[(e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H]}
+mini.onpointerdown=e=>{const[x,y]=mpos(e);
+  if(tool!=="pts"){const w=set.waves[selWave],i=w.props.findIndex(p=>Math.hypot(p.x-x,p.y-y)<30);
+    if(i>=0)w.props.splice(i,1);else w.props.push({kind:PROPS[tool],x:Math.round(clamp(x,40,1560)/10)*10,y:Math.round(clamp(y,40,860)/10)*10});sync();return}
+  dragPt=set.points.findIndex(p=>Math.hypot(p[0]-x,p[1]-y)<45);if(dragPt>=0)mini.setPointerCapture(e.pointerId)};
+mini.onpointermove=e=>{if(dragPt<0)return;const[x,y]=mpos(e);set.points[dragPt]=[Math.round(clamp(x,20,1580)),Math.round(clamp(y,20,880))];drawMini()};
+mini.onpointerup=()=>{if(dragPt>=0){dragPt=-1;sync()}};
+$("tPts").onclick=()=>{tool="pts";renderTools()};$("tClr").onclick=()=>{set.waves[selWave].props=[];sync()};
+$("level").onchange=()=>{set.waves[selWave].level=Math.max(1,+$("level").value||1);sync()};
+$("setname").onchange=()=>{set.name=$("setname").value;sync()};
+$("loop").onchange=()=>{set.loop=$("loop").checked;sync()};
+$("addGroup").onclick=()=>{const w=set.waves[selWave];w.groups.push({name:"Group "+(w.groups.length+1),squad:null,members:"Grunt x3",from:"A",at:0,every:.6,arrive:"one by one"});selGroup=w.groups.length-1;renderAll();save()};
+$("dupWave").onclick=()=>{set.waves.splice(selWave+1,0,JSON.parse(JSON.stringify(set.waves[selWave])));selWave++;renderAll();save()};
+$("delWave").onclick=()=>{if(set.waves.length>1){set.waves.splice(selWave,1);selWave=Math.max(0,selWave-1);renderAll();save()}};
+$("newSet").onclick=()=>loadSet(blank());
+$("applyText").onclick=()=>loadSet(parseWaves($("text").value));
+$("copyText").onclick=()=>copy($("text").value,$("text"),$("copyText"));
+$("ulSet").onclick=()=>$("file").click();
+$("file").onchange=()=>{const f=$("file").files[0];if(!f)return;const r=new FileReader();r.onload=()=>loadSet(parseWaves(String(r.result)));r.readAsText(f);$("file").value=""};
+$("sets").onchange=()=>{const s=META.sets[+$("sets").value];if(s)loadSet(parseWaves(s.text))};
+// palette
+(function(){const groups={Melee:"Melee",Ranged:"Ranged",Late:"Late game",Boss:"Bosses"},P=$("palette");
+  Object.keys(groups).forEach(g=>{const h=document.createElement("div");h.className="small dim";h.textContent=groups[g];P.appendChild(h);
+    META.enemies.filter(e=>e.group===g).forEach(e=>{const c=document.createElement("span");c.className="chip";c.innerHTML=`<i style="background:${e.color}"></i>${esc(e.name)}`;
+      c.onclick=()=>addEnemy(e.name);c.onmouseenter=()=>$("blurb").textContent=`${e.name} · ${e.hp} hp · speed ${e.speed}: ${e.blurb||""}`;P.appendChild(c)})});
+  const S=$("squads");META.squads.forEach(q=>{const c=document.createElement("span");c.className="chip";c.textContent=q.name;c.title=q.members;
+    c.onclick=()=>{const g=curGroup();if(!g)return;g.squad=q.name;renderAll();save()};c.onmouseenter=()=>$("blurb").textContent=q.name+": "+q.members;S.appendChild(c)});
+  $("sets").innerHTML=META.sets.map((s,i)=>`<option value="${i}">${esc(s.name)}</option>`).join("")})();
+renderTools();
+(function(){let saved=null;try{saved=localStorage.getItem("wavelab.set")}catch(e){}
+  loadSet(saved?parseWaves(saved):META.sets.length?parseWaves(META.sets[0].text):blank())})();
+
+// ---------- play ----------
+let M=null,last=0,raf=0,view={s:1,ox:0,oy:0,d:1};
+const cv=$("cv"),cx=cv.getContext("2d");
+function startPlay(){
+  $("rep").hidden=true;
+  const parsed=parseWaves(toText(set));
+  if(!parsed.waves.some(w=>w.groups.length)){$("problems").textContent="Nothing to play: add an enemy group first";return}
+  M=newMatch(parsed,{role:$("role").value,weapon:+$("weapon").value,ability:+$("ability").value,gear:+$("gear").value,bot:$("bot").value,god:$("god").checked,startWave:Math.min(parsed.waves.length,Math.max(1,+$("startwave").value||1))});
+  $("pBot").value=M.bot;$("pGod").className=M.god?"on":"";
+  $("app").hidden=true;$("play").hidden=false;resize();last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(frame)}
+function showEdit(){cancelAnimationFrame(raf);$("rep").hidden=true;$("play").hidden=true;$("app").hidden=false;M=null}
+function frame(now){raf=requestAnimationFrame(frame);if(!M)return;let dt=Math.min(.1,(now-last)/1000);last=now;
+  const inp=readInput();let acc=dt;while(acc>0){const s=Math.min(acc,1/60);step(M,s,inp);acc-=s;if(M.phase==="victory")break}
+  dodgeEdge=false;draw();
+  if(M.phase==="victory"&&!M.reported){M.reported=true;showReport()}}
+function resize(){const d=window.devicePixelRatio||1;cv.width=innerWidth*d;cv.height=innerHeight*d;const s=Math.min(cv.width/W,cv.height/H);view={s,ox:(cv.width-W*s)/2,oy:(cv.height-H*s)/2,d}}
+addEventListener("resize",()=>{if(!$("play").hidden)resize()});
+$("playBtn").onclick=startPlay;$("pStop").onclick=showEdit;$("pRestart").onclick=startPlay;$("pRep").onclick=showReport;$("repClose").onclick=()=>$("rep").hidden=true;
+$("repCsv").onclick=()=>copy($("repText").value,$("repText"),$("repCsv"));
+$("pBot").onchange=()=>{if(M){M.bot=$("pBot").value;M.prev={}}};
+$("pGod").onclick=()=>{if(M){M.god=!M.god;$("pGod").className=M.god?"on":""}};
+
+function poly(x,y,r,n,rot){cx.beginPath();for(let i=0;i<n;i++){const a=rot+i*2*Math.PI/n,px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;i?cx.lineTo(px,py):cx.moveTo(px,py)}cx.closePath()}
+function draw(){
+  cx.setTransform(1,0,0,1,0,0);cx.fillStyle="#05080c";cx.fillRect(0,0,cv.width,cv.height);
+  cx.setTransform(view.s,0,0,view.s,view.ox,view.oy);
+  cx.fillStyle="#0c121a";cx.fillRect(0,0,W,H);cx.strokeStyle="#16202c";cx.lineWidth=1;
+  for(let x=0;x<=W;x+=100){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,H);cx.stroke()}for(let y=0;y<=H;y+=100){cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke()}
+  cx.strokeStyle="#2c3c50";cx.lineWidth=4;cx.strokeRect(0,0,W,H);
+  M.zones.forEach(z=>{cx.beginPath();cx.arc(z.x,z.y,z.r,0,7);cx.fillStyle=z.delay>0?"#ff8a3d18":"#9acd3c33";cx.fill();cx.strokeStyle=z.delay>0?"#ff8a3d88":"#9acd3c99";cx.lineWidth=2;cx.stroke()});
+  M.props.forEach(p=>{cx.fillStyle=PCOL[p.kind]||"#999";cx.fillRect(p.x-p.h,p.y-p.h,p.h*2,p.h*2);cx.strokeStyle="#0006";cx.lineWidth=2;cx.strokeRect(p.x-p.h,p.y-p.h,p.h*2,p.h*2)});
+  M.orbs.forEach(o=>{cx.beginPath();cx.arc(o.x,o.y,6,0,7);cx.fillStyle="#4ade80";cx.fill()});
+  M.fx.forEach(f=>{const a=clamp(f.t/.4,0,1);cx.globalAlpha=a*.6;if(f.x2!==undefined){cx.strokeStyle="#4ade80";cx.lineWidth=3;cx.beginPath();cx.moveTo(f.x2,f.y2);cx.lineTo(f.x,f.y);cx.stroke()}
+    cx.beginPath();cx.arc(f.x,f.y,f.r*(f.heal?1:1.2-a*.2),0,7);cx.strokeStyle=f.heal?"#4ade80":"#ffd27a";cx.lineWidth=4;cx.stroke();cx.globalAlpha=1});
+  M.enemies.forEach(e=>{const d=e.d;cx.globalAlpha=e.spawnT>0?.4:1;
+    if(d.sides>=3)poly(e.x,e.y,e.r,d.sides,e.face);else{cx.beginPath();cx.arc(e.x,e.y,e.r,0,7)}
+    cx.fillStyle=e.flash>0?"#fff":d.color;cx.fill();cx.lineWidth=d.boss?4:2;cx.strokeStyle=e.ai.k==="dash"&&e.st===1?"#fff":"#000a";cx.stroke();cx.globalAlpha=1;
+    if(e.ai.k==="dash"&&e.st===1){cx.strokeStyle="#ff4d4d";cx.lineWidth=3;cx.beginPath();cx.moveTo(e.x,e.y);cx.lineTo(e.x+e.vx*160,e.y+e.vy*160);cx.stroke()}
+    if(e.hp<e.mhp||d.boss){const w=Math.max(28,e.r*2);cx.fillStyle="#000a";cx.fillRect(e.x-w/2,e.y-e.r-12,w,5);cx.fillStyle=d.boss?"#c084fc":"#f87171";cx.fillRect(e.x-w/2,e.y-e.r-12,w*Math.max(0,e.hp/e.mhp),5)}});
+  M.bullets.forEach(b=>{cx.beginPath();cx.arc(b.x,b.y,Math.max(2.5,b.r),0,7);cx.fillStyle=b.own?"#7dd3fc":b.boss?"#c084fc":"#fb923c";cx.fill()});
+  const p=M.p;cx.globalAlpha=p.down>0?.4:1;cx.beginPath();cx.arc(p.x,p.y,p.r+3,0,7);cx.fillStyle=p.flash>0?"#fff":p.down>0?"#666":"#ff9a52";cx.fill();cx.globalAlpha=1;
+  if(p.bar>0){cx.beginPath();cx.arc(p.x,p.y,p.r+11,0,7);cx.strokeStyle="#7dd3fc";cx.lineWidth=4;cx.stroke()}else if(p.inv>0){cx.strokeStyle="#7dd3fc88";cx.lineWidth=2;cx.beginPath();cx.arc(p.x,p.y,p.r+7,0,7);cx.stroke()}
+  cx.strokeStyle="#fff";cx.lineWidth=3;cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(p.x+Math.cos(p.aim)*(p.r+16),p.y+Math.sin(p.aim)*(p.r+16));cx.stroke();
+  cx.setTransform(1,0,0,1,0,0);
+  const left=M.queue.length+M.enemies.length;
+  $("hWave").textContent=`Wave ${M.wi+1}/${M.set.waves.length}`;$("hLeft").textContent=`Enemies ${left}`;$("hTime").textContent=Math.floor(M.t)+"s";
+  $("hHp").style.width=Math.max(0,p.hp/p.mhp*100)+"%";
+  $("hCd").textContent=`Ab ${Math.max(0,p.abCd).toFixed(0)}  Ult ${Math.max(0,p.ultCd).toFixed(0)}`;
+  $("msg").textContent=M.phase==="break"?(M.rows.length?"Wave cleared. Next wave starting…":"Get ready…"):M.phase==="victory"?"All waves cleared!":p.down>0?"Down. Back up in "+Math.ceil(p.down)+"s":""}
+
+// ---------- input ----------
+const keys={};let mouse={x:800,y:450,fire:false},tb={ab:false,ult:false,dodge:false},dodgeEdge=false;const sticks={};const R=65;
+addEventListener("keydown",e=>{if($("play").hidden)return;if(e.key==="Escape"){showEdit();return}if(e.target&&/SELECT|INPUT|TEXTAREA/.test(e.target.tagName))return;keys[e.code]=true;if(e.code==="ControlLeft"||e.code==="ControlRight")dodgeEdge=true;if(["Space","Tab"].includes(e.code))e.preventDefault()});
+addEventListener("keyup",e=>{keys[e.code]=false});addEventListener("blur",()=>{for(const k in keys)keys[k]=false});
+function toArena(x,y){const d=view.d||1;return[(x*d-view.ox)/view.s,(y*d-view.oy)/view.s]}
+cv.addEventListener("contextmenu",e=>e.preventDefault());
+cv.addEventListener("pointerdown",e=>{if(e.pointerType==="mouse"){[mouse.x,mouse.y]=toArena(e.clientX,e.clientY);if(e.button===0)mouse.fire=true;return}
+  const side=e.clientX<innerWidth/2?"L":"R";if(sticks[side])return;sticks[side]={id:e.pointerId,x:e.clientX,y:e.clientY,dx:0,dy:0};
+  const el=$(side==="L"?"sL":"sR");el.style.display="block";el.style.left=(e.clientX-R)+"px";el.style.top=(e.clientY-R)+"px";cv.setPointerCapture(e.pointerId);$("btns").style.display="flex"});
+cv.addEventListener("pointermove",e=>{if(e.pointerType==="mouse"){[mouse.x,mouse.y]=toArena(e.clientX,e.clientY);return}
+  for(const side in sticks){const s=sticks[side];if(s.id!==e.pointerId)continue;let dx=e.clientX-s.x,dy=e.clientY-s.y;const l=Math.hypot(dx,dy);if(l>R){dx*=R/l;dy*=R/l}s.dx=dx/R;s.dy=dy/R;$(side==="L"?"sL":"sR").firstChild.style.transform=`translate(${dx}px,${dy}px)`}});
+addEventListener("pointerup",e=>{if(e.pointerType==="mouse"){if(e.button===0)mouse.fire=false}});
+function endStick(e){for(const side in sticks)if(sticks[side].id===e.pointerId){const el=$(side==="L"?"sL":"sR");el.style.display="none";el.firstChild.style.transform="";delete sticks[side]}}
+cv.addEventListener("pointerup",endStick);cv.addEventListener("pointercancel",endStick);
+[["bAb","ab"],["bUlt","ult"],["bDodge","dodge"]].forEach(([id,k])=>{const b=$(id);b.addEventListener("pointerdown",e=>{e.stopPropagation();tb[k]=true;b.setPointerCapture(e.pointerId)});const up=()=>tb[k]=false;b.addEventListener("pointerup",up);b.addEventListener("pointercancel",up)});
+if(matchMedia("(pointer:coarse)").matches)$("btns").style.display="flex";
+function readInput(){
+  const p=M.p;let mx=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0),my=(keys.KeyS||keys.ArrowDown?1:0)-(keys.KeyW||keys.ArrowUp?1:0);
+  let ax=mouse.x,ay=mouse.y,fire=mouse.fire;
+  if(sticks.L){mx=sticks.L.dx;my=sticks.L.dy}
+  if(sticks.R){const r=sticks.R,l=Math.hypot(r.dx,r.dy);if(l>.15){ax=p.x+r.dx/l*300;ay=p.y+r.dy/l*300}fire=true}
+  return{mx,my,ax,ay,fire,ab:!!keys.Space||tb.ab,ult:!!keys.KeyF||tb.ult,dodge:dodgeEdge||tb.dodge||!!(keys.ControlLeft||keys.ControlRight)}}
+</script>
+
+</body>
+</html>
