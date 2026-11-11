@@ -831,6 +831,13 @@ namespace Arena
             if (BoughtCount(built) >= MaxRooms) { why = "The map is full"; return null; }
             int x0, y0;
             var inside = Tiles(c, out x0, out y0);
+            return FromTiles(built, inside, x0, y0, floor, out why);
+        }
+
+        /// The room for these tiles (inside[col, row] from (x0, y0)): checked against the outline rules, cut into boxes and priced.
+        static List<ExpansionRoom> FromTiles(IList<ExpansionRoom> built, bool[,] inside, int x0, int y0, PathId floor, out string why)
+        {
+            why = null;
             int cols = inside.GetLength(0), rows = inside.GetLength(1), count = 0;
             if (cols * Step > OutlineMaxSide || rows * Step > OutlineMaxSide) { why = "Too big (at most " + OutlineMaxSide / Step + " tiles each way)"; return null; }
             var wide = new bool[cols, rows];  // tiles inside some 3 x 3 block
@@ -919,6 +926,134 @@ namespace Arena
                 });
             }
             return made;
+        }
+
+        /// A run of walls (corners {x, y}, not closed) that the map's own walls close off: the space it fences in becomes a room
+        /// (Docs/ExpandingArena.md, "fill"). Both ends must sit on a room's wall. The walls may not run through a room. If it fences in
+        /// a space on both sides, the smaller one is built. The same rules and price as Outline. Null with `why` set if nothing is fenced in.
+        public static List<ExpansionRoom> Fill(IList<ExpansionRoom> built, IList<int[]> points, PathId floor, out string why)
+        {
+            why = null;
+            if (floor != PathId.None && Array.IndexOf(Floors, floor) < 0) { why = "Not a theme"; return null; }
+            if (points == null || points.Count < 2) { why = "Draw a wall from one wall to another"; return null; }
+            if (points.Count > MaxPoints) { why = "At most " + MaxPoints + " corners"; return null; }
+            for (int i = 0; i < points.Count; i++)
+            {
+                int[] a = points[i];
+                if (a[0] % Step != 0 || a[1] % Step != 0) { why = "Not on the grid"; return null; }
+                if (i == 0) continue;
+                int[] p = points[i - 1];
+                if (a[0] == p[0] && a[1] == p[1]) { why = "Two corners in one spot"; return null; }
+                if (a[0] != p[0] && a[1] != p[1]) { why = "Walls run straight across or straight up"; return null; }
+            }
+            if (!OnWall(built, points[0]) || !OnWall(built, points[points.Count - 1])) { why = "Start and end the wall on a room's wall"; return null; }
+            for (int i = 1; i < points.Count; i++)  // no two walls may cross or touch, except neighbours at their corner
+                for (int j = i + 2; j < points.Count; j++)
+                    if (SegmentsTouch(points[i - 1], points[i], points[j - 1], points[j])) { why = "Walls cross or touch"; return null; }
+            if (BoughtCount(built) >= MaxRooms) { why = "The map is full"; return null; }
+            // A tile grid round the walls, big enough for any room: room tiles are solid, the drawn walls stop a step between two tiles.
+            int lx = int.MaxValue, ly = int.MaxValue, hx = int.MinValue, hy = int.MinValue;
+            foreach (var p in points)
+            {
+                lx = Math.Min(lx, p[0]); ly = Math.Min(ly, p[1]); hx = Math.Max(hx, p[0]); hy = Math.Max(hy, p[1]);
+            }
+            int margin = OutlineMaxSide + Step;
+            int gx0 = lx - margin, gy0 = ly - margin, cols = (hx - lx + 2 * margin) / Step, rows = (hy - ly + 2 * margin) / Step;
+            var solid = new bool[cols, rows];
+            for (int a = 0; a <= built.Count; a++)
+            {
+                BoxOf(built, a, out int bx0, out int by0, out int bx1, out int by1);
+                for (int i = Math.Max(0, (bx0 - gx0) / Step); i < Math.Min(cols, (bx1 - gx0 + Step - 1) / Step); i++)
+                    for (int j = Math.Max(0, (by0 - gy0) / Step); j < Math.Min(rows, (by1 - gy0 + Step - 1) / Step); j++)
+                        solid[i, j] = true;
+            }
+            var blockX = new bool[cols + 1, rows];  // a wall on the left edge of tile (i, j): no step between i - 1 and i
+            var blockY = new bool[cols, rows + 1];  // a wall on the top edge of tile (i, j)
+            var seeds = new List<int[]>();          // the tiles either side of each drawn wall
+            for (int k = 1; k < points.Count; k++)
+            {
+                int[] a = points[k - 1], b = points[k];
+                if (a[1] == b[1])
+                {
+                    int j = (a[1] - gy0) / Step;
+                    for (int x = Math.Min(a[0], b[0]); x < Math.Max(a[0], b[0]); x += Step)
+                    {
+                        int i = (x - gx0) / Step;
+                        if (solid[i, j - 1] && solid[i, j]) { why = "The wall runs through a room"; return null; }
+                        blockY[i, j] = true;
+                        seeds.Add(new[] { i, j - 1 }); seeds.Add(new[] { i, j });
+                    }
+                }
+                else
+                {
+                    int i = (a[0] - gx0) / Step;
+                    for (int y = Math.Min(a[1], b[1]); y < Math.Max(a[1], b[1]); y += Step)
+                    {
+                        int j = (y - gy0) / Step;
+                        if (solid[i - 1, j] && solid[i, j]) { why = "The wall runs through a room"; return null; }
+                        blockX[i, j] = true;
+                        seeds.Add(new[] { i - 1, j }); seeds.Add(new[] { i, j });
+                    }
+                }
+            }
+            // Fill out from each side: a space that stays small (no bigger than a room may be) is fenced in.
+            int limit = MaxArea / (Step * Step);
+            var seen = new int[cols, rows];  // 0: not reached; else the fill's number
+            int fills = 0;
+            List<int[]> best = null;
+            bool tooBig = false;
+            foreach (var s in seeds)
+            {
+                if (solid[s[0], s[1]] || seen[s[0], s[1]] != 0)
+                    continue;
+                fills++;
+                var got = new List<int[]> { s };
+                seen[s[0], s[1]] = fills;
+                bool open = false;
+                for (int q = 0; q < got.Count && !open; q++)
+                {
+                    int i = got[q][0], j = got[q][1];
+                    for (int d = 0; d < 4; d++)
+                    {
+                        int ni = i + (d == 0 ? -1 : d == 1 ? 1 : 0), nj = j + (d == 2 ? -1 : d == 3 ? 1 : 0);
+                        if (ni < 0 || nj < 0 || ni >= cols || nj >= rows) { open = true; break; }
+                        bool wall = d == 0 ? blockX[i, j] : d == 1 ? blockX[i + 1, j] : d == 2 ? blockY[i, j] : blockY[i, j + 1];
+                        if (wall || solid[ni, nj] || seen[ni, nj] != 0)
+                            continue;
+                        seen[ni, nj] = fills;
+                        got.Add(new[] { ni, nj });
+                    }
+                    if (got.Count > 4 * limit) open = true;  // (far bigger than a room: call it open)
+                }
+                if (open)
+                    continue;
+                if (got.Count > limit) { tooBig = true; continue; }
+                if (best == null || got.Count < best.Count)
+                    best = got;
+            }
+            if (best == null) { why = tooBig ? "Too big to fill (at most " + limit + " tiles of floor)" : "Nothing fenced in yet: end the wall on another room's wall"; return null; }
+            int mi = int.MaxValue, mj = int.MaxValue, xi = 0, xj = 0;
+            foreach (var t in best)
+            {
+                mi = Math.Min(mi, t[0]); mj = Math.Min(mj, t[1]); xi = Math.Max(xi, t[0]); xj = Math.Max(xj, t[1]);
+            }
+            var inside = new bool[xi - mi + 1, xj - mj + 1];
+            foreach (var t in best)
+                inside[t[0] - mi, t[1] - mj] = true;
+            return FromTiles(built, inside, gx0 + mi * Step, gy0 + mj * Step, floor, out why);
+        }
+
+        /// Is this grid point on a room's wall (the edge of the hub or a room)?
+        public static bool OnWall(IList<ExpansionRoom> built, int[] p)
+        {
+            for (int a = 0; a <= built.Count; a++)
+            {
+                BoxOf(built, a, out int x0, out int y0, out int x1, out int y1);
+                bool inX = p[0] >= x0 && p[0] <= x1, inY = p[1] >= y0 && p[1] <= y1;
+                if (inX && inY && (p[0] == x0 || p[0] == x1 || p[1] == y0 || p[1] == y1))
+                    return true;
+            }
+            return false;
         }
 
         /// How many tiles of floor a room has (its boxes together).

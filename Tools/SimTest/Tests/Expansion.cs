@@ -1005,6 +1005,19 @@ static partial class Program
         var themed = Expansion.Outline(none, ell, PathId.SwarmFields, out why);
         Check(themed != null && themed.All(r => r.Kind == RoomKind.Floor && r.Floor == PathId.SwarmFields) && themed[0].Price == l[0].Price + Expansion.ThemeCost(PathId.SwarmFields), "a theme goes on every box and costs its extra once");
 
+        // Fill: a run of walls from one room's wall to another that the map's walls close off. Two rooms above the hub, 4 tiles apart.
+        string fw;
+        var pair = new List<ExpansionRoom> { Expansion.Custom(none, 0, -600, 600, 600, out fw).Value };
+        pair.Add(Expansion.Custom(pair, 1000, -600, 600, 600, out fw).Value);
+        var lid = Expansion.Fill(pair, P(new[] { 600, -600, 1000, -600 }), PathId.None, out why);
+        Check(lid != null && lid.Count == 1 && lid[0].X == 600 && lid[0].Y == -600 && lid[0].W == 400 && lid[0].H == 600 && lid[0].Price == 4, "a lid across the gap between two rooms fills the gap, paying only the lid (" + why + (lid != null ? ", " + lid[0].Price : "") + ")");
+        var east = new List<ExpansionRoom>(pair) { Expansion.Custom(pair, 1600, 0, 600, 300, out fw).Value };
+        var corner = Expansion.Fill(east, P(new[] { 1600, -600, 2200, -600, 2200, 0 }), PathId.None, out why);
+        Check(corner != null && Expansion.FloorTiles(corner[0], corner.GetRange(1, corner.Count - 1)) == 36 && corner[0].Price == 12, "an L from one room's corner to another's fills the corner between them (" + why + (corner != null ? ", " + corner[0].Price : "") + ")");
+        Check(Expansion.Fill(pair, P(new[] { 600, -600, 600, -1200 }), PathId.None, out why) == null && why.Contains("wall"), "a wall ending in the open is refused: " + why);
+        Check(Expansion.Fill(pair, P(new[] { 0, -600, 0, -1500, 1600, -1500, 1600, -600 }), PathId.None, out why) == null && why.Contains("big"), "fencing in more than a room may hold is refused: " + why);
+        Check(Expansion.Fill(pair, P(new[] { 100, 0, 100, -600 }), PathId.None, out why) == null && why.Contains("through"), "a wall through a room is refused: " + why);
+
         // In a run: a friend's outline goes to the vote as one card and is built whole on both screens.
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
@@ -1028,6 +1041,13 @@ static partial class Program
         Check(g.Expanded.Count == 2 && cg.Expanded.Count == 2 && g.Players[2].Vectors == 3, "winning builds both boxes on both screens, and the drawer pays once (" + g.Players[2].Vectors + " left)");
         Check(cg.ExpansionWorld.Doors.Count(d => d.Width == 300f) == 1, "and the client's map has the open seam");
         Check(Expansion.GroupOf(g.Expanded, 1).Count == 2 && Expansion.HeadOf(g.Expanded, 1) == 0, "a box of it finds its whole room");
+        // And a friend's fill: the lid between two rooms, sent as an open run of walls.
+        foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Expanded.AddRange(pair); gg.ExpandOpen = true; }
+        g.ExpandProposals.Clear(); g.ExpandVotes.Clear();
+        g.Players[2].Vectors = 10;
+        cg.ProposeExpandOutline(P(new[] { 600, -600, 1000, -600 }), PathId.None, true);
+        Run(s, dt, 0.5f, () => g.ExpandProposals.Count > 0);
+        Check(g.ExpandProposals.Count == 1 && g.ProposalOf(2).Value.W == 400 && g.ProposalOf(2).Value.Price == 4, "a friend's fill reaches the host as the space it fences in");
     }
 
     // Balance (Docs/FloatingRooms.md step 5): what it costs to connect a floating room, against the vectors a player has.

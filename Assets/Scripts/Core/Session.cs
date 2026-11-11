@@ -54,7 +54,7 @@ namespace Arena
         ExpandGate,   // client -> host: a shutter gate this player proposes on the door at (x, y) (Docs/RoomBuilding2.md step 3, Gates.cs)
         GateUse,      // client -> host: shut this gate (index) (Gates.cs)
         GateState,    // host -> all: a gate's clocks: index, seconds shut, seconds of cooldown (Gates.cs)
-        ExpandOutline, // client -> host: a room this player drew as an outline (theme, corners, then x, y each) (ExpansionGame.cs)
+        ExpandOutline, // client -> host: a room this player drew as an outline (theme, fill?, corners, then x, y each; fill: an open run of walls that fences in a space) (ExpansionGame.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
