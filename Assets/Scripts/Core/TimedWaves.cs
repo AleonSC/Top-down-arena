@@ -62,7 +62,7 @@ namespace Arena
             if (left > timedTotal)
                 timedTotal = left;  // (something added to the queue mid-wave)
             int spawned = timedTotal - left;
-            if (spawned < (int)Math.Ceiling(TimedWaves.Share(timedClock / TimedWaves.Window) * timedTotal) && Foes() < TimedWaves.AliveCap(Wave))
+            if (spawned < (int)Math.Ceiling(TimedWaves.Share(timedClock / TimedWaves.Window) * timedTotal) && Foes() < (BreachesOn ? (int)(TimedWaves.AliveCap(Wave) * Breaches.AliveScale) : TimedWaves.AliveCap(Wave)))
             {
                 if (!SpawnNextSquad())
                 {

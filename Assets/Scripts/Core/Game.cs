@@ -740,6 +740,8 @@ namespace Arena
             }
             if (IsHost)
                 Replay?.Tick(dt);
+            if (BreachWarnOn)
+                input = new PlayerInput { AimAt = input.AimAt };  // the breach warning: everyone stands still while the cameras tour (Breaches.cs)
             if (!Replaying)
                 LocalControl(dt, input);  // (a replay has nobody at the controls)
             if (Bot)

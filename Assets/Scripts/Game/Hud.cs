@@ -169,6 +169,8 @@ namespace Arena
                         DrawRunSummary();
                     break;
             }
+            if (game.State == MatchState.Fighting && !PauseMenuWanted)
+                DrawBreachWarning();  // a breach wave's start: letterbox and BREACH n/N while the camera tours (BreachTour.cs)
             if (me != null && !PauseMenuWanted)  // free building: doors mid-wave (ExpansionUi.cs; between waves the Intermission case above draws the window)
             {
                 if (DoorChipUp && !tabHeld)
