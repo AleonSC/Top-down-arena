@@ -738,6 +738,25 @@ static partial class Program
         Run(s, dt, 0.8f, null, NoPicks);
         Check(g.Players.Values.Sum(p => p.PrizePicks) == picks0 + g.Players.Count, "beating it gives everyone a prize pick");
         Check(g.CurrentWorld.Areas[2].Kind == RoomKind.Combat && cg.CurrentWorld.Areas[2].Kind == RoomKind.Combat && !g.AreaLocked(2), "the room is an ordinary combat room now, on both screens");
+
+        // A node's far room (a long hallway, then a room round it): an enemy there still walks all the way back to the players in the hub.
+        {
+            var far = new List<ExpansionRoom>();
+            var node = Expansion.NodeFor(5, 0, far, new List<MapNode>(), NodeKind.Chest);
+            Check(node.HasValue, "a node for the path test");
+            for (int i = 0; i < 2 && node.HasValue; i++) { var st = Expansion.NodeStep(far, node.Value); if (st.HasValue) far.Add(st.Value); }
+            foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Expanded.AddRange(far); gg.Nodes.Clear(); if (node.HasValue) gg.Nodes.Add(node.Value); typeof(Game).GetField("expWorld", flags).SetValue(gg, null); }
+            pickRooms.Invoke(g, null);
+            Run(s, dt, 0.3f, null, NoPicks);
+            int last = g.CurrentWorld.Areas.Length - 1;
+            Check(last == 2 && g.CurrentWorld.Areas[last].Kind == RoomKind.Combat, "the node's hallway and room are up (" + g.CurrentWorld.Areas.Length + " areas)");
+            foreach (var e in g.Enemies.Values) e.Hp = 0f;
+            var farFoe = (Enemy)spawnAt.Invoke(g, new object[] { EnemyType.RiotShield, g.CurrentWorld.Areas[last].Mid, 0f, 0, false });
+            foreach (var p in g.Players.Values) p.Pos = p.Disp = new V2(800f, 450f);
+            float d0 = farFoe.Pos.DistanceTo(new V2(800f, 450f));
+            Run(s, dt, 90f, () => g.CurrentWorld.AreaAt(farFoe.Pos) == 0 || farFoe.Hp <= 0f, NoPicks);
+            Check(farFoe.Hp <= 0f || g.CurrentWorld.AreaAt(farFoe.Pos) == 0, "a Riot Shield that spawned in the node's far room reaches the hub (started " + d0.ToString("0") + " px away, now " + farFoe.Pos.DistanceTo(new V2(800f, 450f)).ToString("0") + ")");
+        }
     }
 
     // Themed rooms (Expansion.cs, Docs/FloatingRooms.md step 4): a path as a room's theme costs extra vectors and unlocks with bosses.
