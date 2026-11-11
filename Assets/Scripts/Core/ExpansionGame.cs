@@ -575,7 +575,12 @@ namespace Arena
         {
             bool all = true;
             foreach (int pid in Players.Keys)
+            {
+                // A solo player has nobody to vote with: their proposal is built the moment it is made.
+                if (Players.Count == 1 && ProposalOf(pid).HasValue)
+                    ExpandVotes[pid] = pid;
                 all &= ExpandVotes.ContainsKey(pid);
+            }
             if (all)
                 ResolveBuildRound();
             else
