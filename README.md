@@ -815,6 +815,7 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   anyone can build as many as they can afford in a round (the round window is just the draw screen; **Done** closes it). **Mid-wave you can open doors**: press **B**
   ("[B] Open a door" under the build chips) for the draw screen in Open wall mode; new rooms, hallways and portals wait for the next break. Doors are off while a
   Gatekeeper duel has its room locked. Bots still add one room a round, and only if nobody has built that round.
+  The lobby's **Team purse** toggle (any building mode, off by default) lets a build spend the whole team's vectors: the builder pays first, then the richest teammates; the chip and draw screen show the team total.
   **Team vote** keeps the rules below (proposals, one build a round, nothing mid-wave) for lobbies of strangers.
 - **The vote** (Team vote only): each player backs one proposal or "No room". Drawing a room doesn't cast your vote: until you click a card your
   own proposal counts for you (the round never ends just because the last player drew). When everyone has clicked a vote, or the

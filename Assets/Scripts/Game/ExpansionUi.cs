@@ -61,7 +61,7 @@ namespace Arena
             Ui.Fill(new Rect(chip.x + 4f, chip.y + 7f, 3f, chip.height - 14f), new Color(0.37f, 0.94f, 1f, 0.6f + 0.4f * pulse));
             if (!mine)
                 CrtKit.Frame(chip, 1.5f, new Color(0.37f, 0.94f, 1f, 0.35f + 0.5f * pulse));
-            Ui.Label(new Rect(chip.x + 16f, chip.y + 3f, 400f, 22f), "BUILD ROOMS" + (game.RoomTokens.Count > 0 ? "  ·  " + game.RoomTokens.Count + " KIT" + (game.RoomTokens.Count == 1 ? "" : "S") : "") + "  ·  " + (free ? game.Expanded.Count + " ROOMS" : n == 0 ? "NO PROPOSALS YET" : n + " PROPOSAL" + (n == 1 ? "" : "S")) + "  ·  YOUR VECTORS " + me.Vectors + " / " + me.VectorCap, 13, new Color(0.37f, 0.94f, 1f), TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(chip.x + 16f, chip.y + 3f, 400f, 22f), "BUILD ROOMS" + (game.RoomTokens.Count > 0 ? "  ·  " + game.RoomTokens.Count + " KIT" + (game.RoomTokens.Count == 1 ? "" : "S") : "") + "  ·  " + (free ? game.Expanded.Count + " ROOMS" : n == 0 ? "NO PROPOSALS YET" : n + " PROPOSAL" + (n == 1 ? "" : "S")) + (game.TeamPurse ? "  ·  TEAM PURSE " + game.SpendableVectors(me) : "  ·  YOUR VECTORS " + me.Vectors + " / " + me.VectorCap), 13, new Color(0.37f, 0.94f, 1f), TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(chip.x + 16f, chip.y + 23f, 400f, 18f), (free ? "Build freely with your own vectors" : game.ExpandVotes.Count + " of " + game.Players.Count + " voted") + "  ·  the wave starts in " + Mathf.CeilToInt(game.StateTimer) + " s", 11, Ui.Muted, TextAnchor.MiddleLeft);
             if (CrtUi.SoftKey(new Rect(chip.xMax - 170f, chip.y + 7f, 156f, 32f), game.FreeBuild ? "BUILD" : "BUILD / VOTE", null, 15, calm))
                 expOpen = true;
@@ -400,7 +400,7 @@ namespace Arena
             if (hasLink)
             {
                 linkPrice = Expansion.LinkPrice(wd, game.Links.Count, link, out why);
-                int have = game.Me != null ? game.Me.Vectors : 0;
+                int have = game.SpendableVectors(game.Me);
                 if (linkPrice > have) { why = "Can't afford it: " + linkPrice + " vectors, you have " + have; linkPrice = 0; }
             }
             if (hasCut)
@@ -417,18 +417,18 @@ namespace Arena
                 var legs = new List<int[]>(expLegs) { new[] { rx, ry, rw, rh } };
                 var hall = legs.Count > Expansion.MaxLegs ? null : Expansion.Hall(game.Expanded, legs, out why);
                 if (legs.Count > Expansion.MaxLegs) why = "At most " + Expansion.MaxLegs + " legs: press Enter to propose it";
-                int have = game.Me != null ? game.Me.Vectors : 0;
+                int have = game.SpendableVectors(game.Me);
                 if (hall != null && hall[0].Price > have) { why = "Can't afford it: " + hall[0].Price + " vectors, you have " + have; hall = null; }
                 if (hall != null) { box = hall[hall.Count - 1]; hallPrice = hall[0].Price; }
             }
             else if (hasBox)
             {
                 box = Expansion.Custom(game.Expanded, rx, ry, rw, rh, expTheme, out why);
-                int have = game.Me != null ? game.Me.Vectors : 0;
+                int have = game.SpendableVectors(game.Me);
                 if (box.HasValue && box.Value.Price > have) { why = "Can't afford it: " + box.Value.Price + " vectors, you have " + have; box = null; }
             }
             int laidPrice = hallSoFar != null ? hallSoFar[0].Price : 0;  // what PROPOSE puts to the vote: the legs laid so far
-            bool hallReady = hallSoFar != null && game.Me != null && hallSoFar[0].Price <= game.Me.Vectors;
+            bool hallReady = hallSoFar != null && game.Me != null && hallSoFar[0].Price <= game.SpendableVectors(game.Me);
             if (proposeHall && hallReady)
             {
                 game.ProposeExpandHall(expLegs);
@@ -573,12 +573,12 @@ namespace Arena
             Color lineInk;
             if (hasCut && cutRefund > 0)
             {
-                line = "OPEN " + cut.Length / Expansion.Step + " TILES OF WALL  ·  +" + cutRefund + " VECTORS (you have " + (game.Me != null ? game.Me.Vectors : 0) + " of " + (game.Me != null ? game.Me.VectorCap : 0) + ")  ·  click to " + (free ? "build it" : "propose it") + "";
+                line = "OPEN " + cut.Length / Expansion.Step + " TILES OF WALL  ·  +" + cutRefund + " VECTORS (you have " + game.SpendableVectors(game.Me) + " of " + (game.Me != null ? game.Me.VectorCap : 0) + ")  ·  click to " + (free ? "build it" : "propose it") + "";
                 lineInk = Ui.Gold;
             }
             else if (hasLink && linkPrice > 0)
             {
-                line = "PORTAL PAIR  ·  " + linkPrice + " VECTORS (of " + (game.Me != null ? game.Me.Vectors : 0) + ")  ·  saves " + Mathf.RoundToInt(Expansion.WalkDistance(wd, link.A, link.B) / 100f) + " tiles of walking  ·  click to " + (free ? "build it" : "propose it") + "";
+                line = "PORTAL PAIR  ·  " + linkPrice + " VECTORS (of " + game.SpendableVectors(game.Me) + ")  ·  saves " + Mathf.RoundToInt(Expansion.WalkDistance(wd, link.A, link.B) / 100f) + " tiles of walking  ·  click to " + (free ? "build it" : "propose it") + "";
                 lineInk = Ui.Gold;
             }
             else if (hasLink)
@@ -593,7 +593,7 @@ namespace Arena
             }
             else if (hasBox && box.HasValue && expHallMode)
             {
-                line = "HALLWAY LEG " + (expLegs.Count + 1) + " OF " + Expansion.MaxLegs + "  ·  " + Mathf.Max(rw, rh) / 100 + " tiles  ·  " + hallPrice + " VECTORS IN ALL (of " + (game.Me != null ? game.Me.Vectors : 0) + ")  ·  click to lay it";
+                line = "HALLWAY LEG " + (expLegs.Count + 1) + " OF " + Expansion.MaxLegs + "  ·  " + Mathf.Max(rw, rh) / 100 + " tiles  ·  " + hallPrice + " VECTORS IN ALL (of " + game.SpendableVectors(game.Me) + ")  ·  click to lay it";
                 lineInk = Ui.Gold;
             }
             else if (expHallMode && !hasBox && hallSoFar != null)
@@ -604,7 +604,7 @@ namespace Arena
             else if (hasBox && box.HasValue)
             {
                 int loops = Expansion.LoopsOf(game.Expanded, box.Value);
-                line = (box.Value.Shape == "Hallway" ? "HALLWAY" : "ROOM") + " " + rw / 100 + " x " + rh / 100 + " tiles  ·  " + box.Value.Price + " VECTORS (of " + (game.Me != null ? game.Me.Vectors : 0) + ")" + (loops > 0 ? "  ·  CLOSES " + (loops == 1 ? "A LOOP" : loops + " LOOPS") : "") + "  ·  click to " + (free ? "build it" : "propose it") + "";
+                line = (box.Value.Shape == "Hallway" ? "HALLWAY" : "ROOM") + " " + rw / 100 + " x " + rh / 100 + " tiles  ·  " + box.Value.Price + " VECTORS (of " + game.SpendableVectors(game.Me) + ")" + (loops > 0 ? "  ·  CLOSES " + (loops == 1 ? "A LOOP" : loops + " LOOPS") : "") + "  ·  click to " + (free ? "build it" : "propose it") + "";
                 lineInk = Ui.Gold;
             }
             else if (hasBox)
@@ -614,7 +614,7 @@ namespace Arena
             }
             else
             {
-                line = (free ? "Builds the moment you place it  ·  " : "") + "Your vectors " + (game.Me != null ? game.Me.Vectors : 0) + "  ·  a room costs its new wall: shared walls are free, so touching rooms is cheaper";
+                line = (free ? "Builds the moment you place it  ·  " : "") + (game.TeamPurse ? "Team purse " : "Your vectors ") + game.SpendableVectors(game.Me) + "  ·  a room costs its new wall: shared walls are free, so touching rooms is cheaper";
                 lineInk = Ui.Muted;
             }
             if (expHallMode)

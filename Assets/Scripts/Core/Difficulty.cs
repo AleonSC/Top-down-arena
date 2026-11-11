@@ -36,6 +36,7 @@ namespace Arena
         ArenaExpanding, // on/off: the Arena setting, Expanding (on: starts as the Classic box and grows by rooms the team buys, ExpansionGame.cs); wins over Rooms
         Campaign,       // on/off: every wave is themed enemies, the last boss's fading out and the next one's building up (Approaches.cs, Docs/Campaign.md); off = the Boss approach setting
         BuildVote,      // on/off: the Expanding arena's building rule: on = rooms go to a team vote, one a round; off = free building (ExpansionGame.cs)
+        BuildPurse,     // on/off: the Expanding arena's builds are paid from the whole team's vectors, not just the builder's (ExpansionGame.cs)
     }
 
     public enum KnobUnit { Times, Percent, PercentPerWave, Seconds, HpPerSecond, OnOff }
@@ -301,6 +302,9 @@ namespace Arena
             // How the Expanding arena is built (ExpansionGame.cs): flavour. Free by default; the vote is for lobbies that don't know each other.
             new KnobDef { Knob = DiffKnob.BuildVote, Name = "Team vote building", Flavour = true,
                 Desc = "On: every room goes to a team vote and one is built a round. Off: anyone builds at once with their own vectors, any number a round, and doors can be opened mid-wave.",
+                Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 0f, 0f, 0f, 0f } },
+            new KnobDef { Knob = DiffKnob.BuildPurse, Name = "Team purse", Flavour = true,
+                Desc = "On: a build can use the whole team's vectors: the builder pays first, then the richest teammates. Off: you only spend your own.",
                 Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 0f, 0f, 0f, 0f } },
         };
     }

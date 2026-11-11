@@ -33,6 +33,42 @@ namespace Arena
         /// The run builds by team vote (the lobby's "Team vote building"): off = free building, a drawing is built at once.
         public bool BuildVoting => D(DiffKnob.BuildVote) >= 0.5f;
 
+        /// The lobby's "Team purse": builds can spend every player's vectors, not just the builder's.
+        public bool TeamPurse => D(DiffKnob.BuildPurse) >= 0.5f;
+
+        /// What this player can put towards a build: their own vectors, or (Team purse) the whole team's.
+        public int SpendableVectors(Player p)
+        {
+            if (p == null)
+                return 0;
+            if (!TeamPurse)
+                return p.Vectors;
+            int n = 0;
+            foreach (var q in Players.Values)
+                n += q.Vectors;
+            return n;
+        }
+
+        /// Host: charge a build. The payer goes first, then (Team purse) the richest teammates until it's covered.
+        void PayVectors(Player payer, int price)
+        {
+            int take = Math.Min(payer.Vectors, price);
+            payer.Vectors -= take;
+            price -= take;
+            while (TeamPurse && price > 0)
+            {
+                Player rich = null;
+                foreach (var q in Players.Values)
+                    if (q.Vectors > 0 && (rich == null || q.Vectors > rich.Vectors))
+                        rich = q;
+                if (rich == null)
+                    break;
+                take = Math.Min(rich.Vectors, price);
+                rich.Vectors -= take;
+                price -= take;
+            }
+        }
+
         /// Free building: anyone builds with their own vectors the moment they draw, any number of rooms a round.
         public bool FreeBuild => ExpandingOn && !BuildVoting;
 
@@ -467,7 +503,7 @@ namespace Arena
                 return;
             }
             var made = Expansion.Custom(Expanded, x, y, w, h, theme, out why);
-            if (!made.HasValue || made.Value.Price > p.Vectors)
+            if (!made.HasValue || made.Value.Price > SpendableVectors(p))
             {
                 DoLog("proposal refused (" + (why ?? "needs " + made.Value.Price + " vectors, has " + p.Vectors) + ")");
                 return;
@@ -551,7 +587,7 @@ namespace Arena
                 return;
             string why;
             int price = Expansion.LinkPrice(ExpansionWorld, Links.Count, l, out why);
-            if (price <= 0 || price > p.Vectors)
+            if (price <= 0 || price > SpendableVectors(p))
             {
                 DoLog("portal refused (" + (why ?? "needs " + price + " vectors, has " + p.Vectors) + ")");
                 return;
@@ -606,7 +642,7 @@ namespace Arena
                 return;
             string why;
             var made = Expansion.Hall(Expanded, legs, out why);
-            if (made == null || made[0].Price > p.Vectors)
+            if (made == null || made[0].Price > SpendableVectors(p))
             {
                 DoLog("hallway refused (" + (why ?? "needs " + made[0].Price + " vectors, has " + p.Vectors) + ")");
                 return;
@@ -661,7 +697,7 @@ namespace Arena
             if (room.Kind == Arena.RoomKind.Link)
             {
                 Links.Add(Expansion.LinkOf(room));
-                Players[pick].Vectors -= room.Price;
+                PayVectors(Players[pick], room.Price);
                 DoLog("portal pair built by " + Players[pick].Name + " for " + room.Price + " vectors");
             }
             else if (room.Kind == Arena.RoomKind.Opening)
@@ -672,7 +708,7 @@ namespace Arena
             }
             else
             {
-                Players[pick].Vectors -= room.Price;
+                PayVectors(Players[pick], room.Price);
                 Expanded.Add(room);
                 Expanded.AddRange(legs);  // (a bent hallway's other legs, right after the first)
                 DoLog((legs.Count > 0 ? (legs.Count + 1) + "-leg hallway" : "room") + " built: " + room.W + " x " + room.H + " by " + Players[pick].Name + " for " + room.Price + " vectors");
@@ -695,7 +731,7 @@ namespace Arena
                 BroadcastExpansion();
                 return;
             }
-            var standing = ExpandProposals.FindAll(q => q.Leg == 0 && Players.ContainsKey(q.Owner) && Players[q.Owner].Vectors >= q.Price);
+            var standing = ExpandProposals.FindAll(q => q.Leg == 0 && Players.ContainsKey(q.Owner) && SpendableVectors(Players[q.Owner]) >= q.Price);
             var tally = new Dictionary<int, int>();
             foreach (int pid in new List<int>(Players.Keys))
             {
@@ -755,7 +791,7 @@ namespace Arena
             if (best < 0)
                 return false;
             var c = Expansion.ConnectorFor(Expanded, best);
-            if (!c.HasValue || c.Value.Price > Me.Vectors)
+            if (!c.HasValue || c.Value.Price > SpendableVectors(Me))
                 return false;
             ProposeExpandRoom(c.Value.X, c.Value.Y, c.Value.W, c.Value.H);
             return true;
@@ -795,7 +831,7 @@ namespace Arena
                     var bl = Expansion.BestLink(ExpansionWorld, Links.Count);
                     string lw;
                     int lp = bl.HasValue ? Expansion.LinkPrice(ExpansionWorld, Links.Count, bl.Value, out lw) : 0;
-                    if (lp >= 15 && lp <= Me.Vectors)
+                    if (lp >= 15 && lp <= SpendableVectors(Me))
                     {
                         ProposeExpandLink(bl.Value);
                         return;
@@ -804,7 +840,7 @@ namespace Arena
                 foreach (var o in Expansion.Offers(expandSeed + MyId * 31, Wave, Expanded))
                 {
                     var theme = o.Kind == Arena.RoomKind.Floor && Expansion.ThemeUnlocked(o.Floor, Wave) ? o.Floor : PathId.None;
-                    if (o.Price + Expansion.ThemeCost(theme) <= Me.Vectors && rng.Next(10) < 7)
+                    if (o.Price + Expansion.ThemeCost(theme) <= SpendableVectors(Me) && rng.Next(10) < 7)
                     {
                         ProposeExpandRoom(o.X, o.Y, o.W, o.H, theme);
                         break;

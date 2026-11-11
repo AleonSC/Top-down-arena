@@ -1120,4 +1120,29 @@ static partial class Program
             Check(g.ExpandProposals.Count == 1 && g.Expanded.Count == before, "a drawing waits for the vote");
         }
     }
+
+    /// Team purse: a build can spend the whole team's vectors, the builder paying first then the richest teammate; off, only your own.
+    static void ExpandingPurseTest(float dt)
+    {
+        string why;
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.ExpandOpen = true; }
+        var west = Expansion.Custom(g.Expanded, -800, 100, 800, 600, out why).Value;
+        g.Players[2].Vectors = 5; g.Players[1].Vectors = 30;
+        Check(west.Price > 5 && west.Price <= 35, "(the test room costs more than the friend holds: " + west.Price + ")");
+        cg.ProposeExpandRoom(-800, 100, 800, 600);
+        Run(s, dt, 0.4f);
+        Check(g.Expanded.Count == 0, "without Team purse the friend can't afford it");
+        foreach (var gg in new[] { g, cg }) gg.Diff.Set(DiffKnob.BuildPurse, 1f);
+        Check(g.SpendableVectors(g.Players[2]) == 35, "Team purse counts everyone's vectors (" + g.SpendableVectors(g.Players[2]) + ")");
+        cg.ProposeExpandRoom(-800, 100, 800, 600);
+        Run(s, dt, 0.5f, () => cg.Expanded.Count == 1);
+        Check(g.Expanded.Count == 1 && cg.Expanded.Count == 1, "with it the room is built");
+        Check(g.Players[2].Vectors == 0 && g.Players[1].Vectors == 35 - west.Price, "the builder pays first, then the richest teammate (" + g.Players[2].Vectors + ", " + g.Players[1].Vectors + ")");
+    }
 }
