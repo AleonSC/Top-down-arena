@@ -5,6 +5,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
 - 269: three new `Sfx` values at the end (`SpellPullStart`, `SpellPullHum`, `SpellPullStop`: the Repulsion Cannon's Undertow sounds)
+- 269: hallways get obstacles (`Expansion.AddHallCover`), so mixed builds would disagree on the map
 - 268: seven new `Sfx` values for the Tank Soldier's Alt fires (`TankDouble` ... `TankGasHiss`, last in the enum)
 - 267: a 400 px deep room between two doors gets a small pillar (last pass in `Expansion.AddCover`), so mixed builds would disagree on the map
 - 266: built rooms lay out obstacles differently (fallback passes in `Expansion.AddCover`), so mixed builds would disagree on the map
