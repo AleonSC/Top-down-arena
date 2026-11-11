@@ -48,6 +48,7 @@ namespace Arena
         public int Price;       // what it costs in vectors (Expansion.Cost; the drawer pays if it wins the vote)
         public int Owner;       // the player who drew it (0: none)
         public bool Floating;   // placed by the game off the map (a shop, vendor or Gatekeeper), not drawn: sealed until a built room touches it
+        public byte Surprise;   // a surprise room (Docs/SurpriseRooms.md): 1 + its SurpriseShape, on each of its boxes; 0: none
         public byte Leg;        // a drawn outline's piece (Expansion.PieceBase + n; an old save's 1 or 2: a retired bent hallway's leg): it opens full width onto its Parent (Expansion.Outline)
         public int X1 => X + W;
         public int Y1 => Y + H;
@@ -75,7 +76,7 @@ namespace Arena
     /// The Expanding arena's maps (Docs/ExpandingArena.md, step 2): room shapes, the seeded offers for each milestone and
     /// the World built from the hub plus the rooms bought so far. The map is a tree (every room has one door to its
     /// parent), rooms never overlap or touch except through their own door, and it stops growing at a size cap.
-    public static class Expansion
+    public static partial class Expansion
     {
         public const int MaxTokens = 6;          // room kits the team can hold
         public const int MaxRooms = 24;          // bought rooms (the hub is extra)
@@ -1498,7 +1499,7 @@ namespace Arena
                 {
                     Name = a == 0 ? "Hub" : rooms[a - 1].Floating ? (kind == RoomKind.Shop ? "Shop" : kind == RoomKind.Vendor ? "Vendor" : "Gatekeeper") : rooms[a - 1].Shape + (kind == RoomKind.Shop ? " (shop)" : kind == RoomKind.Floor ? " (" + rooms[a - 1].Floor + ")" : ""),
                     Min = new V2(x0, y0), Max = new V2(x1, y1), Hub = a == 0,
-                    Kind = kind, Floor = a == 0 ? PathId.None : rooms[a - 1].Floor, Owner = a == 0 ? 0 : rooms[a - 1].Owner, Floating = a > 0 && rooms[a - 1].Floating,
+                    Kind = kind, Floor = a == 0 ? PathId.None : rooms[a - 1].Floor, Owner = a == 0 ? 0 : rooms[a - 1].Owner, Floating = a > 0 && rooms[a - 1].Floating, Surprise = a == 0 ? (byte)0 : rooms[a - 1].Surprise,
                 };
                 // Doors to every earlier room it shares enough wall with (its parent is always one of them).
                 for (int b = 0; b < a; b++)

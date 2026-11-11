@@ -176,6 +176,8 @@ namespace Arena
                 if (game.State == MatchState.Fighting && ExpandWindowUp && !tabHeld)
                     DrawExpansionChoice(Time.unscaledTime);
             }
+            if (!tabHeld)
+                DrawSurpriseBanner();  // SurpriseLook.cs
             if (tabHeld)
                 DrawRunStatsScreen(me, false);  // RunStatsUi.cs
             else if (me != null && game.State != MatchState.GameOver && game.State != MatchState.Victory)

@@ -331,6 +331,61 @@ namespace Arena
             }
         }
 
+        // --- Surprise rooms (Docs/SurpriseRooms.md) --------------------------------------------------------------
+
+        /// Seconds since the last surprise room appeared (every game, for the look), the wave it came in, and its shape + 1.
+        public float SurpriseAge = 99f;
+        public int SurpriseWave = -1;
+        public byte SurpriseKind;
+
+        /// Its rooms stay gold on the minimap for the rest of the wave they came in.
+        public bool SurpriseFresh => SurpriseKind > 0 && Wave <= SurpriseWave;
+
+        public static int SurpriseCount(IList<ExpansionRoom> rooms)
+        {
+            int n = 0;
+            foreach (var r in rooms)
+                if (r.Surprise > 0 && r.Leg == 0)
+                    n++;
+            return n;
+        }
+
+        /// The shape the next surprise room tries first: the five come round in turn from a seeded start.
+        SurpriseShape NextSurpriseShape()
+        {
+            int shapes = Enum.GetValues(typeof(SurpriseShape)).Length;
+            return (SurpriseShape)(int)(((uint)expandSeed % (uint)shapes + (uint)SurpriseCount(Expanded)) % (uint)shapes);
+        }
+
+        void NoteSurprise(byte kind)
+        {
+            SurpriseAge = 0f;
+            SurpriseWave = Wave;
+            SurpriseKind = kind;
+        }
+
+        /// Host, when a boss is cleared: the map gets a free, well-shaped room that closes a loop (Expansion.Surprise). The shape rotates
+        /// through the five from a seeded start. Nothing on a full map or without a spot.
+        void GiveSurpriseRoom()
+        {
+            if (!IsHost || !ExpandingOn || Practice != null || Hunt != null || (Wave >= MaxWave && !Endless) || Expansion.BoughtCount(Expanded) > Expansion.MaxRooms - 2)
+                return;
+            string why;
+            var pick = Expansion.Surprise(expandSeed, Wave, Expanded, NextSurpriseShape(), out why);
+            if (!pick.HasValue)
+            {
+                DoLog("no surprise room: " + why);
+                return;
+            }
+            Expanded.AddRange(pick.Value.Rooms);
+            expWorld = null;
+            LayoutAge = 0f;
+            NoteSurprise(pick.Value.Rooms[0].Surprise);
+            Sounds.Add(Sfx.Pick);
+            DoLog("surprise room: " + Expansion.SurpriseName(pick.Value.Shape) + " of " + pick.Value.Rooms.Count + " boxes at " + pick.Value.Rooms[0].X + "," + pick.Value.Rooms[0].Y + ", closes " + pick.Value.Loops + " loops");
+            BroadcastExpansion();
+        }
+
         public const int ChestGold = 40, ChestGoldPerCycle = 10, ChestVectors = 6;  // what a chest node gives each player, once
 
         /// Host, every tick of a wave: a player who walks up to a claimed chest node opens it. Everyone gets gold and a few vectors; it stays spent.
@@ -1085,6 +1140,7 @@ namespace Arena
                 w.Write((short)r.Owner);
                 w.Write(r.Floating);
                 w.Write(r.Leg);
+                w.Write(r.Surprise);
             }
         }
 
@@ -1101,6 +1157,7 @@ namespace Arena
                 room.Owner = r.ReadInt16();
                 room.Floating = r.ReadBoolean();
                 room.Leg = r.ReadByte();
+                room.Surprise = r.ReadByte();
                 list.Add(room);
             }
             return list;
@@ -1136,6 +1193,8 @@ namespace Arena
             {
                 w.Write(nd.X); w.Write(nd.Y); w.Write((byte)nd.Kind); w.Write(nd.Spent);
             }
+            w.Write(EventMark.HasValue);  // the breach event's gold breach (BreachEvent.cs)
+            w.Write((short)(EventMark.HasValue ? EventMark.Value.X : 0f)); w.Write((short)(EventMark.HasValue ? EventMark.Value.Y : 0f));
             w.Write(ExpandOpen);
             if (ExpandOpen)
             {
@@ -1158,10 +1217,17 @@ namespace Arena
                 changed |= !rooms[i].Equals(Expanded[i]);
             if (changed)
             {
+                int before = SurpriseCount(Expanded), oldCount = Expanded.Count;
+                bool eventOn = EventMark.HasValue;  // (the gold breach was up when the room came)
                 Expanded.Clear();
                 Expanded.AddRange(rooms);
                 expWorld = null;
                 LayoutAge = 0f;
+                if (SurpriseCount(Expanded) > before && Expanded.Count > oldCount && ((BossNow && State == MatchState.Intermission) || eventOn))
+                {
+                    PinBreaches(Expanded.GetRange(oldCount, Expanded.Count - oldCount));  // (Breaches.cs: the wave's other breaches stay put)
+                    NoteSurprise(Expanded[Expanded.Count - 1].Surprise);  // (the host's gift, after a boss or from a breach event: the build-in and the chip; a joiner mid-run gets the rooms quietly)
+                }
             }
             int nc = r.ReadByte();
             var cuts = new List<WallCut>(nc);
@@ -1213,6 +1279,9 @@ namespace Arena
                 expWorld = null;
                 LayoutAge = 0f;
             }
+            bool hasMark = r.ReadBoolean();
+            short markX = r.ReadInt16(), markY = r.ReadInt16();
+            EventMark = hasMark ? new V2(markX, markY) : (V2?)null;
             ExpandProposals.Clear();
             ExpandVotes.Clear();
             ExpandOpen = r.ReadBoolean();

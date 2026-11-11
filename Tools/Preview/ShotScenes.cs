@@ -1290,6 +1290,13 @@ static partial class Shot {
         xg.ExpandOpen = true; int pi = 0;
         foreach (var pl in xg.Players.Values) { var pr = Expansion.Offers(9, 20 + pi, xg.Expanded); if (pr.Count > pi) { var q = pr[pi]; q.Owner = pl.Id; xg.ExpandProposals.Add(q); } pi++; }
       }
+      string xsur = Environment.GetEnvironmentVariable("EXPANDSURPRISE");  // EXPANDSURPRISE=ring|cross|l|t|chamfer: that surprise room built, SURPRISEAGE=<s since it appeared> (default 0.6)
+      if (xsur != null) {
+        var xsh = (SurpriseShape)Array.IndexOf(new[] { "ring", "cross", "l", "t", "chamfer" }, xsur); string xwhy;
+        var xsp = Expansion.Surprise(5, 10, xg.Expanded, xsh, out xwhy);
+        if (xsp.HasValue) { xg.Expanded.AddRange(xsp.Value.Rooms); xg.SurpriseKind = xsp.Value.Rooms[0].Surprise; xg.SurpriseWave = xg.Wave; xg.SurpriseAge = float.Parse(Environment.GetEnvironmentVariable("SURPRISEAGE") ?? "0.6"); float sx0 = 1e9f, sy0 = 1e9f, sx1 = -1e9f, sy1 = -1e9f; foreach (var sr in xsp.Value.Rooms) { sx0 = Math.Min(sx0, sr.X); sy0 = Math.Min(sy0, sr.Y); sx1 = Math.Max(sx1, sr.X1); sy1 = Math.Max(sy1, sr.Y1); } int spi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = new V2((sx0 + sx1) / 2f + 60f * spi, (sy0 + sy1) / 2f + 220f); spi++; } }
+        else Console.Error.WriteLine("surprise room: " + xwhy);
+      }
       string xnode = Environment.GetEnvironmentVariable("EXPANDNODE");  // EXPANDNODE=kind:x,y[:spent];...: nodes at world points (kind shop|vendor|chest), e.g. inside an EXPANDROOMS room
       if (xnode != null) foreach (var part in xnode.Split(';')) { var np = part.Split(':'); var nc = Array.ConvertAll(np[1].Split(','), int.Parse); xg.Nodes.Add(new MapNode { Kind = (NodeKind)Enum.Parse(typeof(NodeKind), np[0], true), X = (short)nc[0], Y = (short)nc[1], Spent = np.Length > 2 }); }
       string xat = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: every player stands there
@@ -1329,6 +1336,7 @@ static partial class Shot {
         xg.BreachAge = float.Parse(bage, System.Globalization.CultureInfo.InvariantCulture);
         var bb = xg.ActiveBreaches;
         Console.Error.WriteLine("breaches: " + bb.Length + (bb.Length > 0 ? " first at " + bb[0].Pos.X + "," + bb[0].Pos.Y : "") + " state " + xg.State + " wave " + xg.Wave);
+        if (bb.Length > 0 && Environment.GetEnvironmentVariable("BREACHEVENT") != null) xg.EventMark = bb[0].Pos;  // BREACHEVENT=1: the first breach is the breach event's (gold)
         if (bb.Length > 0 && Environment.GetEnvironmentVariable("BREACHAT") != null) { int bi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = bb[0].Pos + bb[0].In * (90f + 40f * bi) + bb[0].Along * (bi * 60f - 30f); bi++; } }
       }
       string fp = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: where you stand (default the hub)

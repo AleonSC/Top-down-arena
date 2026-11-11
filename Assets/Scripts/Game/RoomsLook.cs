@@ -65,9 +65,11 @@ namespace Arena
                 if (a.Hub || a.Vault && !vault)
                     continue;
                 var rs = RoomStateOf(i);
-                var tint = a.Floating ? KindInk(a.Kind, a.Floor).WithAlpha(a.Sealed ? 0.05f : 0.08f) : a.Owner != 0 && a.Kind == RoomKind.Combat ? OwnerInk(a.Owner).WithAlpha(0.06f) : a.Vault ? VaultTint : a.Kind == RoomKind.Shop ? ShopTint : a.Kind == RoomKind.Floor ? Paths.Get(a.Floor).Accent.WithAlpha(0.07f)
+                var tint = a.Surprise > 0 ? DoorGold.WithAlpha(0.06f) : a.Floating ? KindInk(a.Kind, a.Floor).WithAlpha(a.Sealed ? 0.05f : 0.08f) : a.Owner != 0 && a.Kind == RoomKind.Combat ? OwnerInk(a.Owner).WithAlpha(0.06f) : a.Vault ? VaultTint : a.Kind == RoomKind.Shop ? ShopTint : a.Kind == RoomKind.Floor ? Paths.Get(a.Floor).Accent.WithAlpha(0.07f)
                     : a.Hall ? HallTint : !Rooms.RoomByRoom ? OpenRoomTint : rs != null && rs.Cleared ? ClearTint : RoomTint;
                 FillRect(a.Min.X, a.Min.Y, a.Size.X, a.Size.Y, tint);
+                if (a.Surprise > 0)  // a surprise room: gold build-in and rim (SurpriseLook.cs)
+                    DrawSurpriseRoom(wd, i, a);
                 if (a.Floating)  // a floating room: a ring and a mark of what it is, breathing while it is sealed
                     DrawFloatingMark(a);
                 if (a.Owner != 0)  // a room somebody drew: a thin line of their colour just inside its walls
@@ -259,6 +261,7 @@ namespace Arena
                 var rs = RoomStateOf(i);
                 Rgba fill, line;
                 if (a.Floating) { var fi = KindInk(a.Kind, a.Floor); float fb = a.Sealed ? 0.5f + 0.25f * Mathf.Sin(Time.unscaledTime * 2.5f) : 1f; fill = fi.WithAlpha(0.2f * fb); line = fi.WithAlpha(0.9f * fb); }
+                else if (a.Surprise > 0 && game.SurpriseFresh) { fill = DoorGold.WithAlpha(0.22f); line = DoorGold; }
                 else if (a.Owner != 0 && a.Kind == RoomKind.Combat) { fill = OwnerInk(a.Owner).WithAlpha(0.18f); line = OwnerInk(a.Owner).WithAlpha(0.85f); }
                 else if (a.Kind == RoomKind.Shop) { fill = ShopTint.WithAlpha(0.22f); line = DoorGold; }
                 else if (a.Kind == RoomKind.Floor) { fill = Paths.Get(a.Floor).Accent.WithAlpha(0.2f); line = Paths.Get(a.Floor).Accent; }

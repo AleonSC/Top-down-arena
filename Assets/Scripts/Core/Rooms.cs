@@ -10,6 +10,7 @@ namespace Arena
         public V2 Min, Max;
         public bool Hub, Hall, Vault;
         public bool Floating, Sealed;  // a floating room off the map, and one nobody has connected yet (Expansion.cs)
+        public byte Surprise;   // a surprise room: 1 + its SurpriseShape (Docs/SurpriseRooms.md); 0: none
         public int Owner;       // the player who drew it (the Expanding arena; 0: none)
         public RoomKind Kind;   // what the room does (Expansion.cs; the Wings rooms are all Combat)
         public PathId Floor;    // a Floor room's path (its ground and hazards); None otherwise
@@ -344,6 +345,7 @@ namespace Arena
                 return;
             TickDuelRooms();  // the Expanding arena's Gatekeeper rooms (GatekeeperRoom.cs)
             TickNodes();      // chest nodes (ExpansionGame.cs)
+            TickBreachEvent();  // the gold breach and its surprise room (BreachEvent.cs)
             int players = Players.Count;
             foreach (var rs in RoomStates)
             {

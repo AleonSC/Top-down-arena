@@ -15,11 +15,16 @@ namespace Arena
         {
             var bs = game.ActiveBreaches;
             for (int i = 0; i < bs.Length; i++)
-                DrawBreach(bs[i], i * 1.37f);
+                DrawBreach(bs[i], i * 1.37f, game.EventMark.HasValue && bs[i].Pos.DistanceTo(game.EventMark.Value) < 3f);
         }
 
-        void DrawBreach(Breach b, float seed)
+        static readonly Rgba EventGold = new Rgba(1f, 0.82f, 0.3f), EventHot = new Rgba(1f, 0.94f, 0.62f);
+
+        /// `gold`: this is the breach event's (BreachEvent.cs): it pulses gold, and the wall behind it opens onto a surprise room soon.
+        void DrawBreach(Breach b, float seed, bool gold = false)
         {
+            var BreachRed = gold ? EventGold : ArenaApp.BreachRed;  // (the same drawing, in gold)
+            var BreachHot = gold ? EventHot : ArenaApp.BreachHot;
             float t = game.AnimT, age = game.BreachAge, tele = Breaches.Telegraph;
             float open = Mathf.Clamp01(age / tele);
             float ease = 1f - (1f - open) * (1f - open);

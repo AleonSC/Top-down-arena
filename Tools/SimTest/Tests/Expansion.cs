@@ -285,14 +285,22 @@ static partial class Program
         Check(g.LayoutOn && g.ActiveLayout.Name.Contains("Expanding") && g.ActiveLayout.Solids.Length >= g.CurrentWorld.WallsFor(false).Length, "its walls are part of the floor plan (" + g.ActiveLayout.Name + ")");
         Check(g.ExpansionScale > 1f && g.ExpansionScale <= Game.MaxExpandScale, "a bigger map means a bigger crowd (x" + g.ExpansionScale.ToString("0.00") + ")");
         bool inRooms = true, inNew = false;
-        for (int i = 0; i < 300; i++)
+        // (A spot is the nearest a player of four valid ones, so it follows the players: sample once with everyone in the hub, once with a player by the new room's door.)
+        var savedAt = g.Players.ToDictionary(kv => kv.Key, kv => kv.Value.Pos);
+        for (int round = 0; round < 2; round++)
         {
-            V2 at = (V2)randomSpot.Invoke(g, new object[] { 20f });
-            var a = g.CurrentWorld.Areas[g.CurrentWorld.AreaAt(at)];
-            inRooms &= a.Contains(at);
-            inNew |= !a.Hub;
+            if (round == 1)
+                { V2 door = g.CurrentWorld.Doors[0].Pos, hubMid = g.CurrentWorld.Areas[0].Mid; V2 by = door + (hubMid - door).Normalized() * 60f; foreach (var pl in g.Players.Values) pl.Pos = pl.Disp = by; }  // (in the hub by the new room's door)
+            for (int i = 0; i < 300; i++)
+            {
+                V2 at = (V2)randomSpot.Invoke(g, new object[] { 20f });
+                var a = g.CurrentWorld.Areas[g.CurrentWorld.AreaAt(at)];
+                inRooms &= a.Contains(at);
+                inNew |= !a.Hub;
+            }
         }
-        Check(inRooms && inNew, "enemies come in inside a room, never in the gaps between them, and the new room gets some");
+        foreach (var kv in savedAt) g.Players[kv.Key].Pos = g.Players[kv.Key].Disp = kv.Value;
+        Check(inRooms && inNew, "enemies come in inside a room, never in the gaps between them, and the new room gets some (" + inRooms + "/" + inNew + ")");
         int w0 = g.Wave;
         g.Wave = 10; g.BossSlot = true;
         pickRooms.Invoke(g, null);

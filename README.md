@@ -857,6 +857,13 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   At most 6 wait at once. A **Gatekeeper** room is still placed each cycle as a sealed box 4 to 8 tiles off the map: share 3 tiles of wall with it and its
   door opens (it doesn't count towards the 24-room cap and adds no enemies; at most 6 wait). Bots build a room (or a narrow strip, then a room) to nodes (not to chests' loot: they don't walk to them).
   (The Gatekeeper has its own room, below.)
+- **Surprise rooms**: every time you clear a **boss**, the map gets a **free** room in one of five shapes the game picks for you: a **ring** (a block in the
+  middle with a lane to run round), a **cross**, an **L hall**, a **T hall** or a **chamfer** (a box with notched corners). It goes where it closes the most loops
+  (and touches a dead end), so it mends the map's shape; nobody pays. It builds in with a gold flash and scan line, a **SURPRISE ROOM** chip names it, and it stays
+  gold-rimmed on the arena floor and minimap for the rest of that wave. The shapes come round in turn. It counts towards the 24-room cap and
+  none is given within 2 rooms of it. ([`Docs/SurpriseRooms.md`](Docs/SurpriseRooms.md))
+  **Breach events**: on about half of the breach waves from wave 7 on (so waves like 7, 15, 19, 23, ...; never the wave after a boss) one of the breaches flashes **gold** instead of red. 20 seconds into the
+  wave, or when it ends if that comes first, the wall behind that breach opens onto a free surprise room. The wave's other breaches stay where they were.
 - **Open a wall**: on the draw screen, switch to **Open wall** and click both ends of a stretch of a wall two rooms share (the cyan stretches; the outer wall can't be
   opened, nor a sealed floating room's). It goes to the vote like a room. If it wins, that stretch of wall comes down (a short stretch is a door, a long
   one joins the rooms) and its proposer gets **1 vector back for every tile that was wall** (up to their cap). At least 2 tiles, up to 40 openings.

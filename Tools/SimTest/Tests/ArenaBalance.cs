@@ -25,6 +25,8 @@ static partial class Program
     static string arenaNodeStats = "";  // the Expanding arena's nodes at the end of a run: claimed/placed per kind
     static List<ArenaRound> arenaRounds = new List<ArenaRound>();  // the Expanding arena's building rounds, filled by PlayArena(expanding: true)
 
+    const float StallSeconds = 600f;  // a regular wave longer than this ends the run as stalled (the bots can't finish it)
+
     static Dictionary<int, ArenaWave> PlayArena(float dt, bool rooms, int lastWave, int seed, out string ending, bool expanding = false)
     {
         arenaRounds = new List<ArenaRound>();
@@ -44,7 +46,7 @@ static partial class Program
         ArenaWave cur = null;
         int curWave = -1;
         float startT = 0f, sampleT = 0f, idle = 0f;
-        bool dumped = false;
+        bool dumped = false, stalled = false;
         var downSeen = new Dictionary<int, bool>();
         var taken0 = new Dictionary<int, float>();
         var downs0 = new Dictionary<int, int>();
@@ -107,6 +109,7 @@ static partial class Program
                 if (fighting)
                 {
                     cur.Length = g.RunTime - startT;
+                    if (cur.Length > StallSeconds && Environment.GetEnvironmentVariable("ARENADBG") == null) { stalled = true; break; }  // a wave that never ends (bots that can't reach the last foes): stop, say so
                     if (cur.Length > 150f && !dumped && Environment.GetEnvironmentVariable("ARENADBG") != null)
                     {
                         Console.WriteLine("  STUCK wave {0}: remaining {1}, foes {2}, rooms {3}, vault {4}", g.Wave, g.Remaining, g.Foes(),
@@ -145,7 +148,7 @@ static partial class Program
                 }
             }
         }
-        ending = g.State + " at wave " + g.Wave + " (" + g.RunTime.ToString("0") + " s)";
+        ending = (stalled ? "STALLED (a wave ran over " + StallSeconds + " s) at wave " : g.State + " at wave ") + g.Wave + " (" + g.RunTime.ToString("0") + " s)";
         arenaNodeStats = !expanding ? "" : string.Join(", ", new[] { NodeKind.Shop, NodeKind.Vendor, NodeKind.Chest }.Select(k =>
             k + " " + g.Nodes.Count(n => n.Kind == k && Expansion.NodeClaimed(g.Expanded, n)) + "/" + g.Nodes.Count(n => n.Kind == k) + (k == NodeKind.Chest ? " (" + g.Nodes.Count(n => n.Spent) + " opened)" : "")).ToArray());
         foreach (var w in waves.Values) if (w.Samples > 0) { w.ViewAvg /= w.Samples; w.Shots /= w.Samples; }

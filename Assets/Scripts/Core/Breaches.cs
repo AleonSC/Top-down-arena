@@ -122,10 +122,29 @@ namespace Arena
         Breach[] breachCache;
         World breachWorld;
         int breachWave = -1;
+        bool breachPinned;  // a surprise room opened mid-wave: keep this wave's other breaches where they are
 
         /// Are enemies coming in through breaches now? The grown Expanding arena on a breach wave (Breaches.IsBreachWave: a
         /// rare event, not the room-by-room version, which uses its nests, and never a boss wave).
         public bool BreachesOn => ExpandingOn && RoomsOn && !Rooms.RoomByRoom && !BossNow && State == MatchState.Fighting && Breaches.IsBreachWave(Wave);
+
+        /// New rooms opened mid-wave (a breach event): the breaches stay, except any the new rooms now stand behind.
+        void PinBreaches(IList<ExpansionRoom> added)
+        {
+            if (breachCache == null || breachWave != Wave)
+                return;
+            var keep = new List<Breach>();
+            foreach (var b in breachCache)
+            {
+                bool covered = false;
+                foreach (var r in added)
+                    covered |= b.Pos.X > r.X - 40f && b.Pos.X < r.X1 + 40f && b.Pos.Y > r.Y - 40f && b.Pos.Y < r.Y1 + 40f;
+                if (!covered)
+                    keep.Add(b);
+            }
+            breachCache = keep.ToArray();
+            breachPinned = true;
+        }
 
         /// This wave's breaches (empty while they're off).
         public Breach[] ActiveBreaches
@@ -135,8 +154,9 @@ namespace Arena
                 if (!BreachesOn)
                     return Array.Empty<Breach>();
                 var w = CurrentWorld;
-                if (breachCache == null || breachWorld != w || breachWave != Wave)
+                if (breachCache == null || breachWave != Wave || (!breachPinned && breachWorld != w))
                 {
+                    breachPinned = false;
                     breachCache = Breaches.For(w, Wave);
                     breachWorld = w;
                     breachWave = Wave;
