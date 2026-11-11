@@ -234,7 +234,7 @@ static partial class Program
         Quiet();
 
         // The setting: Expanding wins over Rooms, and until a room is built the arena is the plain Classic box.
-        g.Diff.Set(DiffKnob.ArenaExpanding, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+        g.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f); cg.Diff.Set(DiffKnob.BuildVote, 1f);
         g.Diff.Set(DiffKnob.ArenaRooms, 1f);
         Check(g.ArenaKind == ArenaLayout.Expanding && g.ExpandingOn, "the Expanding setting wins over Rooms");
         g.Diff.Set(DiffKnob.ArenaRooms, 0f);
@@ -412,7 +412,7 @@ static partial class Program
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
         g.DevSetGod(1, true); g.DevSetGod(2, true);
-        g.Diff.Set(DiffKnob.ArenaExpanding, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+        g.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f); cg.Diff.Set(DiffKnob.BuildVote, 1f);
         Run(s, dt, 700f, () => g.Wave >= 8 && g.State == MatchState.Fighting);
         Console.WriteLine("  by wave " + g.Wave + ": " + g.Expanded.Count + " rooms built (owners " + string.Join(",", g.Expanded.Select(r => r.Owner.ToString()).ToArray()) + "), vectors " + string.Join("/", g.Players.Values.Select(p => p.Vectors.ToString()).ToArray()));
         Check(g.Expanded.Count >= 1 && cg.Expanded.Count == g.Expanded.Count, "bot players draw rooms they can afford and vote: the map grows (" + g.Expanded.Count + " rooms)");
@@ -470,7 +470,7 @@ static partial class Program
         add(500, -1200, 600, 600, RoomKind.Vendor, PathId.None);             // 6: north of the north room
         foreach (var gg in new[] { g, cg })
         {
-            gg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+            gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f);
             gg.Expanded.AddRange(built);
         }
         pickRooms.Invoke(g, null);
@@ -601,7 +601,7 @@ static partial class Program
         var room = r.Value; room.Kind = RoomKind.Gatekeeper; room.Floating = true;
         foreach (var gg in new[] { g, cg })
         {
-            gg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+            gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f);
             gg.Expanded.Add(hall.Value);
             gg.Expanded.Add(room);
         }
@@ -664,7 +664,7 @@ static partial class Program
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
-        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.ExpandOpen = true; }
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f); gg.ExpandOpen = true; }
         foreach (var p in g.Players.Values) p.Vectors = 60;
         cg.ProposeExpandRoom(b[0], b[1], b[2], b[3], PathId.BloodMoon);
         Run(s, dt, 0.4f);
@@ -705,7 +705,7 @@ static partial class Program
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
-        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Add(east); gg.ExpandOpen = true; }
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f); gg.Expanded.Add(east); gg.ExpandOpen = true; }
         g.Players[2].Vectors = 10;
         cg.ProposeExpandCut(all);
         Run(s, dt, 0.5f, () => cg.ExpandProposals.Count == 1);
@@ -761,7 +761,7 @@ static partial class Program
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
-        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Expanded.Add(east); }
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f); gg.Expanded.Clear(); gg.Expanded.Add(east); }
         var first = new Dictionary<int, V2>();
         float earliest = float.MaxValue;
         Run(s, dt, 30f, () => g.State == MatchState.Fighting && g.BreachAge > 6f, () =>
@@ -820,7 +820,7 @@ static partial class Program
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
-        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Expanded.AddRange(list); gg.ExpandOpen = true; }
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f); gg.Expanded.Clear(); gg.Expanded.AddRange(list); gg.ExpandOpen = true; }
         g.Players[2].Vectors = price + 3;
         cg.ProposeExpandLink(link);
         Run(s, dt, 0.5f, () => cg.ExpandProposals.Count == 1);
@@ -878,7 +878,7 @@ static partial class Program
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
-        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.ExpandOpen = true; }
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f); gg.Expanded.Clear(); gg.ExpandOpen = true; }
         g.Players[2].Vectors = sum - 1;
         cg.ProposeExpandHall(legs);
         Run(s, dt, 0.5f, () => g.ExpandProposals.Count > 0);
@@ -943,7 +943,7 @@ static partial class Program
         var g = host.Game; var cg = client.Game;
         var p1 = g.Players[1];
         Check(p1.Vectors == Game.VectorStart && p1.VectorCap == Game.VectorCapBase && Game.VectorStart < Game.VectorCapBase, "everyone starts with " + Game.VectorStart + " vectors and a cap of " + Game.VectorCapBase);
-        g.Diff.Set(DiffKnob.ArenaExpanding, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+        g.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f); cg.Diff.Set(DiffKnob.BuildVote, 1f);
         g.Wave = 6; g.BossSlot = false;
         grantWave.Invoke(g, null);
         Check(p1.Vectors == Game.VectorStart + Game.VectorWaveGain, "a cleared wave gives " + Game.VectorWaveGain + " (" + p1.Vectors + ")");
@@ -1008,7 +1008,7 @@ static partial class Program
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
-        g.Diff.Set(DiffKnob.ArenaExpanding, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+        g.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f); cg.Diff.Set(DiffKnob.BuildVote, 1f);
         g.Expanded.Add(new ExpansionRoom { Parent = 0, X = 1600, Y = 100, W = 800, H = 600, Kind = RoomKind.Combat });
         g.Expanded.Add(new ExpansionRoom { Parent = 0, X = -800, Y = 100, W = 800, H = 600, Kind = RoomKind.Combat });
         string why;
@@ -1046,5 +1046,78 @@ static partial class Program
         g.ApplyRoomToken(0, 0);
         Check(g.Expanded[0].Kind == RoomKind.Shop && g.RoomTokens.Count == 0, "a Shop kit makes a shop room");
         g.ExpandOpen = false; cg.ExpandOpen = false;
+    }
+
+    /// Free building (the default; "Team vote building" off): a drawing is built the moment it's valid, any number a round, and with a wave on
+    /// only wall openings (doors) are accepted. Team vote building keeps the old rules.
+    static void ExpandingFreeBuildTest(float dt)
+    {
+        string why;
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
+        var list = new List<ExpansionRoom>();
+        var east = Expansion.Custom(list, 1600, 100, 800, 600, out why).Value;
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Add(east); }
+        Check(g.FreeBuild && cg.FreeBuild && !g.BuildVoting, "free building is the default for the Expanding arena");
+        Check(g.State == MatchState.Fighting && !g.ExpandOpen && g.DoorsOpen && cg.DoorsOpen, "with a wave on, doors can be built");
+
+        // Mid-wave: a room is refused, a door goes in at once and pays its drawer.
+        cg.ProposeExpandRoom(-800, 100, 800, 600);
+        g.ProposeExpandRoom(-800, 100, 800, 600);
+        Run(s, dt, 0.4f);
+        Check(g.Expanded.Count == 1 && cg.Expanded.Count == 1, "no new room mid-wave");
+        g.Players[2].Vectors = 10;
+        var all = new WallCut { Vertical = true, At = 1600, From = 100, Till = 700 };
+        cg.ProposeExpandCut(all);
+        Run(s, dt, 0.5f, () => cg.Openings.Count == 1);
+        Check(g.Openings.Count == 1 && cg.Openings.Count == 1 && g.ExpandProposals.Count == 0, "a door mid-wave is built at once on both screens, with no vote");
+        Check(g.Players[2].Vectors == 14, "and its drawer is paid the wall back (" + g.Players[2].Vectors + ")");
+
+        // Between waves: every drawing is built at once, as many as people can pay for.
+        foreach (var gg in new[] { g, cg }) gg.ExpandOpen = true;
+        Check(!g.DoorsOpen, "(the building round has its own rules, not the doors-only ones)");
+        int v2 = g.Players[2].Vectors = 100, v1 = g.Players[1].Vectors = 100;
+        var west = Expansion.Custom(g.Expanded, -800, 100, 800, 600, out why).Value;
+        cg.ProposeExpandRoom(-800, 100, 800, 600);
+        Run(s, dt, 0.5f, () => cg.Expanded.Count == 2);
+        Check(g.Expanded.Count == 2 && cg.Expanded.Count == 2 && g.Expanded[1].Owner == 2 && g.ProposalHeads.Count == 0 && g.ExpandOpen, "a friend's room is built the moment it's drawn; the round stays open");
+        Check(g.Players[2].Vectors == v2 - west.Price && cg.Players[2].Vectors == g.Players[2].Vectors, "and only they pay (" + west.Price + ")");
+        var offers = Expansion.Offers(5, 6, g.Expanded);
+        Check(offers.Count > 0, "there is room for another");
+        var o = offers[0];
+        g.ProposeExpandRoom(o.X, o.Y, o.W, o.H);
+        Run(s, dt, 0.5f, () => cg.Expanded.Count == 3);
+        Check(g.Expanded.Count == 3 && cg.Expanded.Count == 3 && g.Players[1].Vectors == v1 - o.Price, "a second room in the same round is built too (no one-at-a-time limit)");
+        cg.CastExpandVote(0);
+        Run(s, dt, 0.3f);
+        Check(g.ExpandVotes.Count == 0, "votes mean nothing in free building");
+        var west2 = new WallCut { Vertical = true, At = 0, From = 100, Till = 700 };
+        g.ProposeExpandCut(west2);
+        Run(s, dt, 0.5f, () => cg.Openings.Count == 2);
+        Check(g.Openings.Count == 2 && cg.Openings.Count == 2, "a door between waves is built at once");
+        typeof(Game).GetMethod("ResolveBuildRound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(g, null);
+        Run(s, dt, 0.5f, () => !cg.ExpandOpen);
+        Check(!g.ExpandOpen && !cg.ExpandOpen && g.Expanded.Count == 3, "when the wave starts the round just closes, nothing changes");
+
+        // Team vote building: no instant builds, no doors mid-wave.
+        foreach (var gg in new[] { g, cg }) gg.Diff.Set(DiffKnob.BuildVote, 1f);
+        Check(g.BuildVoting && !g.FreeBuild && !g.DoorsOpen && !g.CanCut, "with Team vote building on, doors mid-wave are off");
+        cg.ProposeExpandCut(new WallCut { Vertical = true, At = 0, From = 300, Till = 600 });
+        Run(s, dt, 0.4f);
+        Check(g.Openings.Count == 2 && g.ExpandProposals.Count == 0, "and a mid-wave door is refused");
+        foreach (var gg in new[] { g, cg }) gg.ExpandOpen = true;
+        var o2 = Expansion.Offers(6, 6, g.Expanded);
+        if (o2.Count > 0)
+        {
+            int before = g.Expanded.Count;
+            cg.ProposeExpandRoom(o2[0].X, o2[0].Y, o2[0].W, o2[0].H);
+            Run(s, dt, 0.5f, () => g.ExpandProposals.Count == 1);
+            Check(g.ExpandProposals.Count == 1 && g.Expanded.Count == before, "a drawing waits for the vote");
+        }
     }
 }

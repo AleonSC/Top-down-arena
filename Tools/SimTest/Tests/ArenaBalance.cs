@@ -34,6 +34,7 @@ static partial class Program
         host.Host(port, "A", Role.Tank, 0);
         host.Diff.Set(DiffKnob.ArenaRooms, rooms && !expanding ? 1f : 0f);  // (after Host: hosting starts from the saved lobby)
         host.Diff.Set(DiffKnob.ArenaExpanding, expanding ? 1f : 0f);
+        host.Diff.Set(DiffKnob.BuildVote, 1f);  // (the balance report measures the voted rounds)
         var c = new Session(); c.Game.Bot = true; c.Game.BotLevel = BotSkill.Good; c.Game.BotRerolls = false;
         c.Join("127.0.0.1", port, "B", Role.Dps, 0);
         WaitForGame(host, c, dt);
