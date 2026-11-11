@@ -315,6 +315,8 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 
 ## Tools and docs (repo root)
 - `Tools/CompileCheck`, `Tools/SimTest` (tests in `Tools/SimTest/Tests`), `Tools/RenderCheck`, `Tools/Preview`, `Tools/SoundCheck`, `Tools/SessionReport`, `Tools/TextEdits`, `Tools/WaveGen` (builds `Data/Waves` into code): see `HANDOFF.md` §3
+- `Tools/Preview/variants.sh`, `Tools/Preview/clip.sh`, `Tools/Preview/sweep.py`, `Tools/Preview/ShotClip.cs`: the variant sheet (one scene with different env flags, a labelled grid) and GIF clips (the live match running on from the shot, `CLIP=<frames>` in `ShotClip.cs`, or a sweep of a scene's time flag)
+- `Tools/BalanceGrid/grid.sh`, `Tools/BalanceGrid/heatmap.py`, `Tools/SimTest/Tests/BalanceGrid.cs`: the balance grid (report `grid`: every role, class and weapon vs each listed boss in the Boss Lab, `LabFight` in `BossLab.cs`; run in parallel, drawn as a heatmap with outliers)
 - `Docs/History.md` (finished to-do entries, audit notes, changelog), `Docs/CodeNotes.md` (older detailed per-file notes, not maintained), `Docs/Mockups/`
 
 ## Where to look for...
@@ -351,5 +353,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 | Pixel icons | `PixelArt.cs` |
 | Bots, Boss Lab, lobby bots | `BotBrain.cs`, `BossLab.cs`, `BossLabUi.cs`, `PartyBots.cs` |
 | Practice Range, Training drills, respawn, wave editor | `Practice.cs`, `PracticeUi.cs`, `TrainingUi.cs`, `Training.cs`, `PracticeRespawn.cs`, `PracticeDownedUi.cs`, `WaveDesign.cs`, `WaveEditorUi.cs`; built-in designs: `Data/Waves`, `Tools/WaveGen/build.sh`, `DesignedWaves.cs` |
+| Pick between looks (variants) or see motion (GIF) | `Tools/Preview/variants.sh`, `Tools/Preview/clip.sh` (`HANDOFF.md` §3) |
+| Which class or weapon is too strong or weak vs a boss | `Tools/BalanceGrid/grid.sh [waves] [runs] [roles]` (heatmap in `Tools/BalanceGrid/out/grid.png`) |
 | See every UI screen, or what a UI change changed | `Tools/Preview/uishots.sh [-r git-ref]` (list in `Tools/Preview/ui-screens.txt`; `HANDOFF.md` §3) |
 | A change doesn't compile or a test fails | `Tools/CompileCheck/check.sh`, `Tools/SimTest/run.sh`; Unity stubs in `Tools/Preview/Stubs.cs` (one copy for every tool) |

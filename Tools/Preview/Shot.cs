@@ -491,6 +491,7 @@ static partial class Shot {
     using (var w = new BinaryWriter(File.Create(args[0] + ".tris"))) foreach (var v in GL.Tris) w.Write(v);
     File.WriteAllLines(args[0] + ".ui", GUI.Log.ToArray());
     Console.WriteLine("state {0} wave {1}, tris {2}, ui items {3}", host.Game.State, host.Game.Wave, GL.Tris.Count / 18, GUI.Log.Count);
+    ClipFrames();
     host.Leave(""); foreach (var c in others) c.Leave("");
   }
 }

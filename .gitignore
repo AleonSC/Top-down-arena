@@ -22,6 +22,7 @@ crashlytics-buildsettings.properties
 Tools/SimTest/*.exe
 Tools/Preview/out/
 Tools/SoundCheck/out/
+Tools/BalanceGrid/out/
 Tools/SoundCheck/*.exe
 
 # Python bytecode (Tools/Preview/raster.py)
