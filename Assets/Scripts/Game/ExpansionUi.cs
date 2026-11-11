@@ -337,11 +337,43 @@ namespace Arena
             var wd = game.ExpansionWorld;
             float pad = 1300f;
             V2 lo = wd.Min - new V2(pad, pad), hi = wd.Max + new V2(pad, pad);
-            float k = Mathf.Min(map.width / (hi.X - lo.X), map.height / (hi.Y - lo.Y));
-            float ox = map.center.x - (hi.X - lo.X) * k / 2f, oy = map.center.y - (hi.Y - lo.Y) * k / 2f;
+            float k0 = Mathf.Min(map.width / (hi.X - lo.X), map.height / (hi.Y - lo.Y));
+            var ev = Event.current;
+            // Zoom: mouse wheel (about the pointer), + / - keys, middle-drag to pan, the buttons under the map; FIT resets.
+            if (ev.type == EventType.ScrollWheel && map.Contains(ev.mousePosition))
+            {
+                float z0 = expZoom;
+                expZoom = Mathf.Clamp(expZoom * Mathf.Pow(1.2f, -ev.delta.y), 1f, 8f);
+                V2 under = new V2(expViewC.X + (ev.mousePosition.x - map.center.x) / (k0 * z0), expViewC.Y + (ev.mousePosition.y - map.center.y) / (k0 * z0));
+                expViewC = new V2(under.X - (ev.mousePosition.x - map.center.x) / (k0 * expZoom), under.Y - (ev.mousePosition.y - map.center.y) / (k0 * expZoom));
+                ev.Use();
+            }
+            else if (ev.type == EventType.KeyDown && (ev.character == '+' || ev.character == '=' || ev.character == '-' || ev.character == '_'))
+            {
+                expZoom = Mathf.Clamp(expZoom * (ev.character == '-' || ev.character == '_' ? 1f / 1.4f : 1.4f), 1f, 8f);
+                ev.Use();
+            }
+            else if (ev.type == EventType.MouseDown && ev.button == 2 && map.Contains(ev.mousePosition))
+            {
+                expPan = true;
+                ev.Use();
+            }
+            else if (ev.type == EventType.MouseDrag && expPan)
+            {
+                expViewC = new V2(expViewC.X - ev.delta.x / (k0 * expZoom), expViewC.Y - ev.delta.y / (k0 * expZoom));
+                ev.Use();
+            }
+            else if (ev.type == EventType.MouseUp && ev.button == 2)
+                expPan = false;
+            if (expZoom <= 1.001f) { expZoom = 1f; expViewC = (lo + hi) * 0.5f; }
+            expViewC = new V2(Mathf.Clamp(expViewC.X, lo.X, hi.X), Mathf.Clamp(expViewC.Y, lo.Y, hi.Y));
+            float k = k0 * expZoom;
+            float ox = map.center.x - (expViewC.X - lo.X) * k, oy = map.center.y - (expViewC.Y - lo.Y) * k;
             System.Func<V2, V2> M = p => new V2(ox + (p.X - lo.X) * k, oy + (p.Y - lo.Y) * k);
             System.Func<Vector2, V2> Snap = m => new V2(Mathf.Round(((m.x - ox) / k + lo.X) / Expansion.Step) * Expansion.Step, Mathf.Round(((m.y - oy) / k + lo.Y) / Expansion.Step) * Expansion.Step);
-            var ev = Event.current;
+            if (CrtUi.SoftKey(new Rect(map.xMax - 150f, map.yMax - 34f, 40f, 28f), "-", null, 18, calm)) expZoom = Mathf.Max(1f, expZoom / 1.4f);
+            if (CrtUi.SoftKey(new Rect(map.xMax - 106f, map.yMax - 34f, 40f, 28f), "+", null, 18, calm)) expZoom = Mathf.Min(8f, expZoom * 1.4f);
+            if (CrtUi.SoftKey(new Rect(map.xMax - 62f, map.yMax - 34f, 56f, 28f), "FIT", null, 14, calm)) expZoom = 1f;
             bool over = map.Contains(ev.mousePosition);
             // Controls: left click sets the first corner, the box follows the mouse, a second left click places it (or press, drag and let go);
             // right click or Escape cancels the box (and, with none started, goes back).
@@ -596,6 +628,7 @@ namespace Arena
             }
             if (BeginUiGl())
             {
+                roomClip = map;
                 RoomMapRect(map.x, map.y, map.width, map.height, new Rgba(0.01f, 0.03f, 0.08f, 0.7f));
                 for (float gx = Mathf.Ceil(lo.X / 500f) * 500f; gx <= hi.X; gx += 500f)  // a faint grid every 5 tiles
                     RoomMapRect(M(new V2(gx, lo.Y)).X, map.y, 1f, map.height, new Rgba(0.4f, 0.64f, 1f, 0.07f));
@@ -705,12 +738,14 @@ namespace Arena
                     RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, ink.WithAlpha(0.25f));
                     RoomMapFrame(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, 2f, ink);
                 }
+                roomClip = null;
                 EndUiGl();
             }
             foreach (var fa in wd.Areas)  // the floating rooms, named
                 if (fa.Floating)
                 {
                     V2 f0 = M(fa.Min);
+                    if (!map.Contains(new Vector2(f0.X + 3f, f0.Y + 2f))) continue;
                     Ui.Label(new Rect(f0.X + 3f, f0.Y + 2f, 200f, 14f), fa.Name.ToUpperInvariant() + (fa.Sealed ? "  ·  SEALED: BUILD TO IT" : ""), 10, ToColor(KindInk(fa.Kind, fa.Floor)), TextAnchor.UpperLeft, true);
                 }
             foreach (var q in game.ProposalHeads)
@@ -719,6 +754,7 @@ namespace Arena
                 if (!game.Players.TryGetValue(q.Owner, out qo))
                     continue;
                 V2 q0 = M(new V2(q.X, q.Y));
+                if (!map.Contains(new Vector2(q0.X + 3f, q0.Y + 2f))) continue;
                 Ui.Label(new Rect(q0.X + 3f, q0.Y + 2f, 160f, 14f), qo.Name + "  " + q.Price, 10, ToColor(OwnerInk(q.Owner)), TextAnchor.UpperLeft, true);
             }
             string line;
@@ -841,6 +877,9 @@ namespace Arena
             CrtUi.End(win, t, calm);
         }
 
+        float expZoom = 1f;  // the drawing map's zoom (1 = the whole map)
+        V2 expViewC;  // the world point at the middle of the zoomed drawing map
+        bool expPan;  // middle mouse is panning it
         bool expHeld;  // the mouse button of the box being drawn is still down
         Vector2 expPressAt;
         bool expCutMode;  // the draw screen opens a wall instead of drawing a room
