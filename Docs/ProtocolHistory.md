@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 276: `Msg.ExpandOutline` carries a fill flag after the theme (an open run of walls whose fenced-in space is the room, `Expansion.Fill`)
 - 275: rooms drawn as outlines: `Msg.ExpandOutline` (theme, corners) and outline pieces in the rooms list (`ExpansionRoom.Leg` from `Expansion.PieceBase`); vectors doubled
 - 274: shutter gates: the Expanding arena's gate list (x, y, vertical) after the portal pairs in Msg.ExpandState, Msg.ExpandGate, Msg.GateUse, Msg.GateState, RoomKind.Gate proposals (Gates.cs)
 - 273: a 100-wave Campaign: the start message says whether the run is one (`Game.LongRun`) and the snapshot carries the wave's leg (`Game.Leg`)

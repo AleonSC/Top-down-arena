@@ -618,18 +618,20 @@ namespace Arena
             FinishOrBroadcast();
         }
 
-        /// This game's player draws a room as an outline (corners on the 100 px grid, each {x, y}, walls straight across or up) and puts it to the vote.
-        public void ProposeExpandOutline(IList<int[]> points, PathId theme = PathId.None)
+        /// This game's player draws a room as an outline (corners on the 100 px grid, each {x, y}, walls straight across or up) and puts it
+        /// to the vote. fill: the corners are an open run of walls from one room's wall to another, and the space they fence in is the room (Expansion.Fill).
+        public void ProposeExpandOutline(IList<int[]> points, PathId theme = PathId.None, bool fill = false)
         {
-            if (!ExpandOpen || Me == null || points == null || points.Count < 4 || points.Count > Expansion.MaxPoints)
+            if (!ExpandOpen || Me == null || points == null || points.Count < (fill ? 2 : 4) || points.Count > Expansion.MaxPoints)
                 return;
             if (IsHost)
             {
-                HostExpandOutline(MyId, points, theme);
+                HostExpandOutline(MyId, points, theme, fill);
                 return;
             }
             var pw = Proto.Begin(Msg.ExpandOutline);
             pw.Write((byte)theme);
+            pw.Write(fill);
             pw.Write((byte)points.Count);
             foreach (var p in points)
             {
@@ -641,17 +643,18 @@ namespace Arena
         public void OnExpandOutline(int peer, BinaryReader r)
         {
             var theme = (PathId)r.ReadByte();
+            bool fill = r.ReadBoolean();
             int n = r.ReadByte();
             if (n > Expansion.MaxPoints)
                 return;
             var points = new List<int[]>(n);
             for (int i = 0; i < n; i++)
                 points.Add(new int[] { r.ReadInt16(), r.ReadInt16() });
-            HostExpandOutline(peer, points, theme);
+            HostExpandOutline(peer, points, theme, fill);
         }
 
         /// Host: a drawn outline becomes its drawer's proposal (one head and its pieces), if it fits and they can pay.
-        void HostExpandOutline(int id, IList<int[]> points, PathId theme)
+        void HostExpandOutline(int id, IList<int[]> points, PathId theme, bool fill)
         {
             Player p;
             if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
@@ -662,14 +665,14 @@ namespace Arena
                 return;
             }
             string why;
-            var made = Expansion.Outline(Expanded, points, theme, out why);
+            var made = fill ? Expansion.Fill(Expanded, points, theme, out why) : Expansion.Outline(Expanded, points, theme, out why);
             if (made == null || made[0].Price > p.Vectors)
             {
                 DoLog("proposal refused (" + (why ?? "needs " + made[0].Price + " vectors, has " + p.Vectors) + ")");
                 return;
             }
             SetProposal(id, made);
-            DoLog(p.Name + " proposes a " + points.Count + "-corner room (" + made.Count + " boxes) for " + made[0].Price + " vectors");
+            DoLog(p.Name + " proposes a " + points.Count + "-corner " + (fill ? "fenced-in " : "") + "room (" + made.Count + " boxes) for " + made[0].Price + " vectors");
             FinishOrBroadcast();
         }
 

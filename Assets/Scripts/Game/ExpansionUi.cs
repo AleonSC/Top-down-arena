@@ -284,7 +284,7 @@ namespace Arena
             bool roomMode = !expCutMode && !expLinkMode && !expHallMode && !expGateMode;
             if (!roomMode)
                 expPts.Clear();
-            Ui.Label(new Rect(0, 80f, W, 20f), expGateMode ? "Click a door to fit a shutter gate  ·  " + Gates.Price + " vectors  ·  stand by it and press " + Keybinds.KeyName(Keybinds.Get(KeyAction.TakeItem)).ToUpperInvariant() + " to shut it for " + (int)Gates.CloseTime + " s (" + (int)Gates.Cooldown + " s to recharge)  ·  " + game.GateFits.Count + " of " + Gates.Max + " fitted" : expHallMode ? "Left click where it starts, move along it, left click to lay a leg  ·  up to " + Expansion.MaxLegs + " legs, each from the end of the last  ·  right click undoes  ·  Enter proposes  ·  a hallway costs half its new wall" : expLinkMode ? "Left click a spot in one room, then a spot in another  ·  right click cancels  ·  " + Expansion.LinkBase + " vectors + 1 per 2 tiles of walking it saves  ·  enemies use it too  ·  " + game.Links.Count + " of " + Expansion.MaxLinks + " pairs built" : expCutMode ? "Left click one end of a wall stretch, then the other (the cyan stretches)  ·  right click cancels  ·  at least " + Expansion.MinCut / 100 + " tiles  ·  you get 1 vector back for every tile that was wall  ·  a door is just a short opening" : "Left click corners: walls run straight (a slanted click makes an L)  ·  click the first corner or press Enter to close it  ·  right click undoes a corner  ·  or drag a box  ·  " + Expansion.MinSide / 100 + " tiles wide everywhere, " + Expansion.MinDoorRun / 100 + " tiles of wall shared with a room", 13, Ui.Muted, TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(0, 80f, W, 20f), expGateMode ? "Click a door to fit a shutter gate  ·  " + Gates.Price + " vectors  ·  stand by it and press " + Keybinds.KeyName(Keybinds.Get(KeyAction.TakeItem)).ToUpperInvariant() + " to shut it for " + (int)Gates.CloseTime + " s (" + (int)Gates.Cooldown + " s to recharge)  ·  " + game.GateFits.Count + " of " + Gates.Max + " fitted" : expHallMode ? "Left click where it starts, move along it, left click to lay a leg  ·  up to " + Expansion.MaxLegs + " legs, each from the end of the last  ·  right click undoes  ·  Enter proposes  ·  a hallway costs half its new wall" : expLinkMode ? "Left click a spot in one room, then a spot in another  ·  right click cancels  ·  " + Expansion.LinkBase + " vectors + 1 per 2 tiles of walking it saves  ·  enemies use it too  ·  " + game.Links.Count + " of " + Expansion.MaxLinks + " pairs built" : expCutMode ? "Left click one end of a wall stretch, then the other (the cyan stretches)  ·  right click cancels  ·  at least " + Expansion.MinCut / 100 + " tiles  ·  you get 1 vector back for every tile that was wall  ·  a door is just a short opening" : "Click corners (a slanted click makes an L)  ·  close on the first corner, or end on another wall to fill what it fences in  ·  right click undoes  ·  or drag a box  ·  " + Expansion.MinSide / 100 + " tiles wide everywhere", 13, Ui.Muted, TextAnchor.MiddleCenter);
             var map = new Rect(70f, 112f, W - 140f, 370f);
             var wd = game.ExpansionWorld;
             float pad = 1300f;
@@ -321,7 +321,7 @@ namespace Arena
             // The room is an outline: left clicks lay corners (a slanted click an L), the first corner or Enter closes it and puts it
             // to the vote, right click (Esc, Backspace) takes the last corner back; with none laid, a press, drag and let go draws a box.
             V2 cursor = Snap(ev.mousePosition);
-            bool closeRoom = false;
+            bool closeRoom = false, laidWall = false;
             List<int[]> dragBox = null;
             if (roomMode)
             {
@@ -347,7 +347,10 @@ namespace Arena
                     else if (expPts.Count >= 3 && expPts[0][0] == (int)cursor.X && expPts[0][1] == (int)cursor.Y)
                         closeRoom = true;
                     else if (expPts.Count < Expansion.MaxPoints)
+                    {
                         AddWall(expPts, (int)cursor.X, (int)cursor.Y);
+                        laidWall = true;
+                    }
                     ev.Use();
                 }
                 else if (ev.type == EventType.KeyDown && (ev.keyCode == KeyCode.Return || ev.keyCode == KeyCode.KeypadEnter) && expPts.Count >= 2)
@@ -402,6 +405,7 @@ namespace Arena
             List<int[]> shape = null, laid = null;
             List<ExpansionRoom> outlineRoom = null;
             string outlineWhy = null;
+            bool fillDraft = false;  // the walls run from one wall to another and fence a space in (no closing back to the first corner)
             int myVectors = game.Me != null ? game.Me.Vectors : 0;
             if (roomMode)
             {
@@ -413,8 +417,31 @@ namespace Arena
                     if (!closeRoom && over)
                         AddWall(laid, (int)cursor.X, (int)cursor.Y);
                     shape = Closed(laid);
+                    // Ending on another room's wall: the map's walls may close it off, and the space fenced in is the room (Expansion.Fill).
+                    if (laid.Count >= 2 && Expansion.OnWall(game.Expanded, laid[laid.Count - 1]))
+                    {
+                        var filled = Expansion.Fill(game.Expanded, laid, expTheme, out string fillWhy);
+                        if (filled != null)
+                        {
+                            fillDraft = true;
+                            shape = laid;
+                            outlineRoom = filled;
+                            if (filled[0].Price > myVectors) { outlineWhy = "Can't afford it: " + filled[0].Price + " vectors, you have " + myVectors; outlineRoom = null; }
+                        }
+                    }
                 }
-                if (shape != null && shape.Count >= 4)
+                if (fillDraft)
+                {
+                    if (outlineRoom != null && (laidWall || closeRoom))  // the wall just reached another wall and fences a space in: propose it
+                    {
+                        game.ProposeExpandOutline(expPts, expTheme, true);
+                        expDrawing = false;
+                        expPts.Clear();
+                        outlineRoom = null;
+                        shape = null;
+                    }
+                }
+                else if (shape != null && shape.Count >= 4)
                 {
                     outlineRoom = Expansion.Outline(game.Expanded, shape, expTheme, out outlineWhy);
                     if (outlineRoom != null && outlineRoom[0].Price > myVectors) { outlineWhy = "Can't afford it: " + outlineRoom[0].Price + " vectors, you have " + myVectors; outlineRoom = null; }
@@ -613,7 +640,7 @@ namespace Arena
                     RoomMapFrame(l0.X, l0.Y, l1.X - l0.X, l1.Y - l0.Y, 2f, new Rgba(1f, 0.85f, 0.4f, 0.95f));
                 }
                 if (roomMode)
-                    DrawOutlineDraft(M, shape, laid, outlineRoom, cursor, over);
+                    DrawOutlineDraft(M, shape, laid, outlineRoom, cursor, over, fillDraft);
                 if (hasBox)
                 {
                     V2 p0 = M(new V2(rx, ry)), p1 = M(new V2(rx + rw, ry + rh));
@@ -673,7 +700,7 @@ namespace Arena
             {
                 int loops = 0;
                 foreach (var pr in outlineRoom) loops += Expansion.LoopsOf(game.Expanded, pr);
-                line = "ROOM  ·  " + Expansion.FloorTiles(outlineRoom[0], outlineRoom.GetRange(1, outlineRoom.Count - 1)) + " TILES OF FLOOR  ·  " + outlineRoom[0].Price + " VECTORS (of " + myVectors + ")" + (loops > 0 ? "  ·  CLOSES " + (loops == 1 ? "A LOOP" : loops + " LOOPS") : "") + (expPts.Count >= 3 ? "  ·  click the first corner or press Enter to propose it" : "");
+                line = "ROOM  ·  " + Expansion.FloorTiles(outlineRoom[0], outlineRoom.GetRange(1, outlineRoom.Count - 1)) + " TILES OF FLOOR  ·  " + outlineRoom[0].Price + " VECTORS (of " + myVectors + ")" + (loops > 0 ? "  ·  CLOSES " + (loops == 1 ? "A LOOP" : loops + " LOOPS") : "") + (fillDraft ? "  ·  FENCED IN BY THE WALLS AROUND IT: click to propose it" : expPts.Count >= 3 ? "  ·  click the first corner or press Enter to propose it" : "");
                 lineInk = Ui.Gold;
             }
             else if (roomMode && shape != null)
@@ -728,12 +755,19 @@ namespace Arena
                 DrawThemeRow(new Rect(map.x, map.yMax + 4f, map.width, 32f), calm);
             if (roomMode && expPts.Count > 0)
             {
-                var closedLaid = Closed(new List<int[]>(expPts));
-                var laidRoom = closedLaid.Count >= 4 ? Expansion.Outline(game.Expanded, closedLaid, expTheme, out string _) : null;
+                bool laidFill = expPts.Count >= 2 && Expansion.OnWall(game.Expanded, expPts[expPts.Count - 1]);
+                var closedLaid = laidFill ? new List<int[]>(expPts) : Closed(new List<int[]>(expPts));
+                var laidRoom = laidFill ? Expansion.Fill(game.Expanded, closedLaid, expTheme, out string fw0) : null;
+                if (laidRoom == null)
+                {
+                    laidFill = false;
+                    closedLaid = Closed(new List<int[]>(expPts));
+                    laidRoom = closedLaid.Count >= 4 ? Expansion.Outline(game.Expanded, closedLaid, expTheme, out string fw1) : null;
+                }
                 bool can = laidRoom != null && laidRoom[0].Price <= myVectors;
                 if (CrtUi.SoftKey(new Rect(map.xMax - 330f, map.y + 6f, 190f, 28f), can ? "PROPOSE  ·  " + laidRoom[0].Price : "PROPOSE", null, 14, calm, lit: can) && can)
                 {
-                    game.ProposeExpandOutline(closedLaid, expTheme);
+                    game.ProposeExpandOutline(closedLaid, expTheme, laidFill);
                     expDrawing = false;
                     expPts.Clear();
                 }
@@ -789,7 +823,7 @@ namespace Arena
 
         /// The outline being drawn: its floor (green when it fits, the pieces it would be built from), the walls laid (bright), the wall to
         /// the cursor and the way back to the first corner (dim), each corner, and the first corner ringed when clicking it would close it.
-        void DrawOutlineDraft(System.Func<V2, V2> M, List<int[]> shape, List<int[]> laid, List<ExpansionRoom> room, V2 cursor, bool over)
+        void DrawOutlineDraft(System.Func<V2, V2> M, List<int[]> shape, List<int[]> laid, List<ExpansionRoom> room, V2 cursor, bool over, bool open = false)
         {
             if (shape == null)
                 return;
@@ -803,8 +837,8 @@ namespace Arena
             int solid = laid == null ? shape.Count : expPts.Count - 1;  // walls up to here are laid; the rest follow the cursor
             for (int i = 0; i < shape.Count; i++)
             {
-                if (laid != null && i == shape.Count - 1 && shape.Count < 3)
-                    break;
+                if (laid != null && i == shape.Count - 1 && (shape.Count < 3 || open))
+                    break;  // (an open run of walls has no way back to its first corner)
                 V2 a = M(new V2(shape[i][0], shape[i][1])), b = M(new V2(shape[(i + 1) % shape.Count][0], shape[(i + 1) % shape.Count][1]));
                 bool firm = i < solid;
                 float th = firm ? 2.5f : 1.5f;
