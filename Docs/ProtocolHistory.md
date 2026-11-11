@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 271: a 100-wave Campaign: the start message says whether the run is one (`Game.LongRun`) and the snapshot carries the wave's leg (`Game.Leg`)
 - 270: three new `Sfx` values at the end (`SpellPullStart`, `SpellPullHum`, `SpellPullStop`: the Repulsion Cannon's Undertow sounds)
 - 269: hallways get obstacles (`Expansion.AddHallCover`), so mixed builds would disagree on the map
 - 268: seven new `Sfx` values for the Tank Soldier's Alt fires (`TankDouble` ... `TankGasHiss`, last in the enum)

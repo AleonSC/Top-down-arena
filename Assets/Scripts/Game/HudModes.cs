@@ -138,7 +138,7 @@ namespace Arena
                 return "PRACTICE " + Math.Max(1, game.PracticeIndex + 1).ToString("00") + " / " + practice.Waves.Count;
             if (game.Hunt != null)
                 return "HUNT WAVE " + game.HuntWave.ToString("00") + " / " + Hunts.Length;
-            return "WAVE " + game.Wave.ToString("00") + (game.Endless ? "" : " / " + Game.MaxWave);
+            return "WAVE " + game.ShownWave.ToString("00") + (game.Endless ? "" : " / " + game.ShownLastWave);
         }
 
         // ---- A: Phosphor Corners. Health bottom-left, the keys bottom-centre, the wave bottom-right; text only, framed by brackets.

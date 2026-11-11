@@ -208,6 +208,7 @@ static partial class Program
         Game.PropsByDefault = false;  // props only where a test asks for them (the core match, the props test)
         Game.LayoutsByDefault = false;  // floor plans too (the layouts test)
         Game.ChallengesByDefault = false;  // challenge rooms too (the challenges test)
+        Game.LongRunDefault = false;  // the 50-wave track (the longrun suite turns the 100-wave Campaign on)
         test();
     }
 
@@ -334,6 +335,7 @@ static partial class Program
         Test("devourer", "the Devourer's three stages and last meal", () => DevourerTest(Dt)),
         Test("recentruns", "Records > Recent runs: the run's curve, its file, the profile's run log", () => RecentRunsTest(Dt)),
         Test("pacman", "the Pac-Man maze game: maze, steering, tunnel, dots and pellets, the four role ghosts, lives, levels, the ghost house, co-op", () => PacmanTest(Dt)),
+        Test("longrun", "the 100-wave Campaign: two legs a track wave, the boss after every tenth, half XP, saves and continuing, the party's level at the first boss", () => LongRunTest(Dt), () => LongRunPaceTest(Dt)),
         Test("saves", "saved runs (continuing them, in co-op) and the profile", () => SavesTest(Dt), () => ProfileTest(Dt)),
         Test("colossus", "the Colossus's three stages, stomp rings, plates and last stand", () => ColossusTest(Dt)),
         Test("bosssound", "boss sound cues", () => BossSoundTest(Dt)),

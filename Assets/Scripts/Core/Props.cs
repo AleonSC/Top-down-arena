@@ -302,7 +302,7 @@ namespace Arena
                 TryAdd(PropKind.Barrel);
             if (Wave >= 20 && rng.NextDouble() < 0.15)
                 TryAdd(PropKind.Barrel);
-            bool chest = Wave >= 2 && rng.NextDouble() < ChestChance;
+            bool chest = Wave >= 2 && rng.NextDouble() < ChestChance * Pace;  // (a Campaign: half as often, twice the waves)
             if (!chest && ContrabandChest())
             {
                 chest = true;  // Contraband: the first wave after each boss always has one (Contraband.cs)

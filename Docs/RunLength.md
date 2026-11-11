@@ -1,6 +1,6 @@
 # Campaign and Boss Hunt: run length, cycles and modes (design)
 
-Status: **step 1 built** (Nov 2026: Expanding runs save and continue; Rooms runs already did); steps 2-6 not built. The owner's decisions are in bold. The numbers are first guesses.
+Status: **steps 1-2 built** (Nov 2026: every arena saves; the Campaign is 100 waves, protocol 271); steps 3-6 not built. The owner's decisions are in bold. The numbers are first guesses.
 Related: [`Checkpoints.md`](Checkpoints.md) (lives), [`Campaign.md`](Campaign.md) (themed build-up, steps 1-2 built),
 [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md), [`LateGamePressure.md`](LateGamePressure.md).
 
@@ -79,7 +79,10 @@ damage about 4x.
 
 1. Saving in Rooms and Expanding runs. **Built**: Rooms runs already saved; Expanding saves its map, kits, seed, vectors
    and shop shelves (`saves` suite).
-2. Effective-wave scaling + 100 waves, a boss every 10; the bot balance check.
+2. Effective-wave scaling + 100 waves, a boss every 10; the bot balance check. **Built** as *legs*: each track wave
+   (1-50) is fought twice, so all scaling and unlocks read the track wave (= shown wave / 2, rounded up) unchanged; XP,
+   kill gold, chests and vectors x0.5 (`Game.Pace`); the party reaches the first boss at level 4.73 vs 4.87 on the old
+   track (suite `longrun`). Old saves stay 50 waves. Profile records stay on the track's scale (a follow-up).
 3. The Warden's teaching cycle (waves 1-9 as above) and its mid-boss.
 4. Arena style per cycle; lobby shows Campaign / Boss Hunt / Practice; switches moved to Custom.
 5. Checkpoints and lives (`Checkpoints.md`).

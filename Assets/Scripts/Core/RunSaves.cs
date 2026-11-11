@@ -52,7 +52,7 @@ namespace Arena
                 return false;
             var save = new RunSave
             {
-                Id = RunId, SavedAt = DateTime.UtcNow, Wave = Wave, BossSlot = BossSlot, Score = Score, Mods = Mods, Diff = Diff.Copy(), Endless = Endless, DevUsed = devTouched,
+                Id = RunId, SavedAt = DateTime.UtcNow, Wave = Wave, BossSlot = BossSlot, LongRun = LongLegs, Leg = Leg, Score = Score, Mods = Mods, Diff = Diff.Copy(), Endless = Endless, DevUsed = devTouched,
                 RunTime = RunTime, CurrentPath = CurrentPath, PathFrom = PathFrom, PathTo = PathTo, LastPath = lastPath,
             };
             save.Route.AddRange(Route);
@@ -85,7 +85,7 @@ namespace Arena
                 SaveExpansion(save, seatOf);
             bool ok = SaveStore.Write(save);
             if (ok)
-                DoLog("run saved before wave " + (Wave + 1));
+                DoLog("run saved before wave " + (ShownWave + 1));
             return ok;
         }
 
@@ -142,6 +142,7 @@ namespace Arena
             }
             Score = save.Score;
             BossSlot = save.BossSlot;
+            Leg = save.LongRun ? save.Leg : 1;
             Endless = save.Endless;
             RunTime = save.RunTime;
             devTouched = save.DevUsed;
@@ -162,7 +163,7 @@ namespace Arena
             foreach (var r in Route)
                 w.Write((byte)r);
             session.Broadcast(Proto.End(w));
-            DoLog("resumed a saved run at wave " + (Wave + 1));
+            DoLog("resumed a saved run at wave " + (ShownWave + 1));
             SendSnapshot();
         }
 

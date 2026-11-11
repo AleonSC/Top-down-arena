@@ -88,6 +88,12 @@ notes (function names, message flow) are in `Docs/CodeNotes.md`, kept as a refer
   `ClampToArena` / `KeepInArena` / `RandomInArena` / `ArenaMin`-`ArenaMax` (instance members, in `Paths.cs`
   and `Game.cs`) rather than `0..Width`, so new code respects the walls. Boss-only code still uses the full
   arena (paths never apply to boss fights).
+- **The 100-wave Campaign (legs):** `Game.LongRun` (start message, saved) makes each track wave `Wave` two fights, `Leg` 0
+  and 1 (snapshot, saved); the player sees `ShownWave` (1-100), `ShownStart/ShownEnd(n)` convert a track wave, and
+  `NextTrackWave` is the next regular fight's. Everything that scales or unlocks keeps reading `Wave`; per-wave rewards
+  multiply by `Pace` (0.5). Show numbers to players with `ShownWave`, never `Wave`. Off (`LongLegs` false) in Hunts,
+  Practice, the Boss Lab, the lobby preview and older saves. Sim tests run the 50-wave track (`Game.LongRunDefault`
+  false) except suite `longrun`. Profile records (best wave, unlocks, rank XP) are still on the track's scale.
 - **The boss between waves:** `Game.BossSlot` (`Hunts.cs`) is true while the boss after regular wave `Wave` is fought (and in the box after it); `Wave` itself doesn't move for it. Ask `BossNow` ("a boss fight, or just beaten") and `BossNext` ("the boss starts next") instead of `Wave % 5`; `IsBossWave(n)` only says "a boss follows wave n" (and, in a hunt, "n is the last wave"). `Waves.cs` starts it (`BossStartsNext`), the snapshot and saves carry it (a save from before it counts a multiple of 5 as beaten), and a negative `Session.StartWave` (-10) starts at the boss after that wave (Boss Lab, tests; `DevJumpToWave(n, true)` in the dev dock).
 - **Path state is derived, not sent:** each game eases `NarrowF` / `FogF` from `CurrentPath` + wave, and ages
   patches itself; only the offer, the choice and each patch's spawn go over the network.
@@ -176,7 +182,7 @@ The lobby fits about 8 class cards in a row before they get too small.
   - `run.sh 1 30 features` = the **feature** suite (~247 checks). `music` still works: it was its old name.
     **Run both before committing.** `run.sh 1 30 all` runs the two back to back.
   - Single systems: `parry`, `aim`, `extra`, `knight`, `ninja`, `blood`, `paths`, `bazaar`, `practice`, `bosses`,
-    `warden`, `singularity`, `mastery`, `classcards`, `showcase`, `ults`, `mods`, `hitfx` (hit flash and blast thinning), `nonshooters` (Fuse Runner, Hookman, Sapper), ... Reports (numbers, no pass/fail):
+    `warden`, `singularity`, `mastery`, `longrun` (the 100-wave Campaign), `classcards`, `showcase`, `ults`, `mods`, `hitfx` (hit flash and blast thinning), `nonshooters` (Fuse Runner, Hookman, Sapper), ... Reports (numbers, no pass/fail):
     `ttk`, `lab`, `levels`, `bulletcount`, `wavemix` (each wave's share of shooters, melee and support), `dps`, `ultdps`, `balance` (each damage upgrade's worth per pick and full
     stack in a boss, pack and spread fight; see `Docs/UpgradeBalance.md`), `upgradecov` (which weapon upgrades each
     weapon ignores, and each upgrade's damage gain), `laserdebug`. A new test: add it to its system's file, then to

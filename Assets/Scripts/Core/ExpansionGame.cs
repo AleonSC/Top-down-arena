@@ -89,7 +89,7 @@ namespace Arena
                 if (boss)
                     p.Vectors = Math.Max(p.Vectors, p.VectorCap + VectorBossBonus);
                 else
-                    AddVectors(p, VectorWaveGain);
+                    AddVectors(p, LongLegs ? VectorWaveGain / 2 : VectorWaveGain);  // (a Campaign has twice the waves)
             }
         }
 

@@ -41,7 +41,9 @@ namespace Arena
         public string Id = "";        // its file name (without .run); a run keeps it from start to finish
         public DateTime SavedAt = DateTime.UtcNow;
         public int Wave;              // waves cleared: resuming starts wave Wave + 1 (or the boss after it, unless BossSlot)
-        public bool BossSlot;         // the boss after wave Wave was beaten (Hunts.cs); saves from before the boss slot: a multiple of 5 means yes
+        public bool BossSlot;
+        public bool LongRun;          // a 100-wave Campaign (Hunts.cs); saves from before it are the old 50 waves
+        public int Leg = 1;           // a Campaign: the leg of Wave that was cleared (0 first, 1 second)         // the boss after wave Wave was beaten (Hunts.cs); saves from before the boss slot: a multiple of 5 means yes
         public int Score;
         public RunMod Mods;
         public Difficulty Diff = new Difficulty();  // saves from before difficulties load as Normal
@@ -62,8 +64,11 @@ namespace Arena
         public readonly List<RoomToken> Kits = new List<RoomToken>();
 
         /// "Wave 14 · 2 players · 23 min" for lists.
-        public string Summary => (Wave > 0 && Wave % 5 == 0 && !BossSlot ? "Boss " + Wave : "Wave " + (Wave + 1)) + (Endless ? " (endless)" : "") + " · " + Seats.Count + (Seats.Count == 1 ? " player" : " players")
+        public string Summary => (Wave > 0 && Wave % 5 == 0 && !BossSlot && Leg == 1 ? "Boss " + ShownWave : "Wave " + (ShownWave + 1)) + (Endless ? " (endless)" : "") + " · " + Seats.Count + (Seats.Count == 1 ? " player" : " players")
                                  + " · " + (int)(RunTime / 60f) + " min";
+
+        /// The last wave cleared as the player saw it (1-100 in a Campaign).
+        public int ShownWave => LongRun && Wave > 0 ? Wave * 2 - 1 + Leg : Wave;
 
         public static string NewId() => DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture) + "-" + Guid.NewGuid().ToString("N").Substring(0, 4);
 
@@ -74,6 +79,7 @@ namespace Arena
             Line(sb, "saved", SavedAt.ToString("o", CultureInfo.InvariantCulture));
             Line(sb, "wave", Wave);
             Line(sb, "slot", BossSlot ? 1 : 0);
+            if (LongRun) Line(sb, "campaign", Leg);
             Line(sb, "score", Score);
             Line(sb, "mods", (int)Mods);
             Line(sb, "difficulty", Diff.ToText());
@@ -148,6 +154,7 @@ namespace Arena
                         case "saved": save.SavedAt = DateTime.Parse(val, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind); break;
                         case "wave": save.Wave = I(val); if (!sawSlot) save.BossSlot = save.Wave > 0 && save.Wave % 5 == 0; break;
                         case "slot": save.BossSlot = I(val) != 0; sawSlot = true; break;
+                        case "campaign": save.LongRun = true; save.Leg = I(val) != 0 ? 1 : 0; break;
                         case "score": save.Score = I(val); break;
                         case "mods": save.Mods = (RunMod)I(val); break;
                         case "difficulty": save.Diff = Difficulty.Parse(val); break;

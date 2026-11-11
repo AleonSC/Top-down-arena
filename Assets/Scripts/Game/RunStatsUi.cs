@@ -83,8 +83,8 @@ namespace Arena
             var head = new Rect(x, HoloTop, w, HoloHeadH);
             HoloPanel(head, holoPageAt, () =>
             {
-                string waveText = practice ? "PRACTICE" : game.Hunt != null ? "HUNT WAVE " + wave : "WAVE " + wave;
-                string of = practice ? "" : game.Endless ? " ENDLESS" : " / " + game.LastWave;
+                string waveText = practice ? "PRACTICE" : game.Hunt != null ? "HUNT WAVE " + wave : "WAVE " + game.ShownWave;
+                string of = practice ? "" : game.Endless ? " ENDLESS" : " / " + game.ShownLastWave;
                 string where;
                 Color whereC = HoloDim;
                 if (practice)
@@ -96,7 +96,7 @@ namespace Arena
                 }
                 else if (game.CurrentPath != PathId.None && wave >= game.PathFrom && wave <= game.PathTo)
                 {
-                    where = Game.PathName(game.CurrentPath) + " path · wave " + (wave - game.PathFrom + 1) + " of " + (game.PathTo - game.PathFrom + 1);
+                    where = Game.PathName(game.CurrentPath) + " path · wave " + (game.ShownWave - game.ShownStart(game.PathFrom) + 1) + " of " + (game.ShownEnd(game.PathTo) - game.ShownStart(game.PathFrom) + 1);
                     whereC = Color.Lerp(ToColor(Paths.Get(game.CurrentPath).Accent), Color.white, 0.3f);
                 }
                 else if (game.Hunt != null)
@@ -165,7 +165,8 @@ namespace Arena
             var rows = new List<RouteRow>();
             int wave = Mathf.Max(1, game.Wave);
             bool between = game.State == MatchState.Intermission && game.Wave > 0;
-            int cur = between ? (game.BossNext ? wave : wave + 1) : wave;  // the regular wave being played, or the one coming up (the boss keeps its wave's number)
+            int cur = between ? (game.BossNext ? wave : game.NextTrackWave) : wave;  // the regular wave being played, or the one coming up (the boss keeps its wave's number)
+            int shownCur = between && !game.BossNext ? game.ShownWave + 1 : game.ShownWave;  // (as the player counts: a Campaign's 1-100)
             bool bossFight = game.BossSlot && game.State == MatchState.Fighting;
             var plain = new Color(0.48f, 0.52f, 0.62f);
             if (game.Hunt != null)
@@ -198,8 +199,8 @@ namespace Arena
                     rows.Add(new RouteRow
                     {
                         Name = k == 0 ? "Standard" : Game.PathName(id),
-                        Waves = "waves " + from + "–" + to,
-                        Note = st == 0 ? "cleared" : "now · " + (cur - from + 1) + " of 5",
+                        Waves = "waves " + game.ShownStart(from) + "–" + game.ShownEnd(to),
+                        Note = st == 0 ? "cleared" : "now · " + (shownCur - game.ShownStart(from) + 1) + " of " + (game.ShownEnd(to) - game.ShownStart(from) + 1),
                         Color = id == PathId.None ? plain : ToColor(Paths.Get(id).Accent),
                         State = st,
                     });
@@ -207,8 +208,8 @@ namespace Arena
                 int bs = cur > bossWave ? 0 : bossFight && cur == bossWave ? 1 : 2;
                 rows.Add(new RouteRow
                 {
-                    Name = BossName(Game.BossForWave(bossWave)), Waves = "after wave " + bossWave, Boss = true, State = bs,
-                    Note = bs == 0 ? "beaten" : bs == 1 ? "fighting now" : bossWave - wave <= 0 ? "next up" : "after wave " + bossWave,
+                    Name = BossName(Game.BossForWave(bossWave)), Waves = "after wave " + game.ShownEnd(bossWave), Boss = true, State = bs,
+                    Note = bs == 0 ? "beaten" : bs == 1 ? "fighting now" : game.ShownEnd(bossWave) - game.ShownWave <= 0 ? "next up" : "after wave " + game.ShownEnd(bossWave),
                     Color = new Color(0.89f, 0.33f, 0.42f),
                 });
                 if (bs != 0)

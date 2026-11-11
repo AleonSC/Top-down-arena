@@ -121,7 +121,7 @@ namespace Arena
                     DoLog(h.Role + " is hunted on wave " + Wave);
                 }
             }
-            if (Has(RunMod.SecondWind) && (Wave - 1) % 5 == 0)
+            if (Has(RunMod.SecondWind) && (Wave - 1) % 5 == 0 && FirstLeg)
                 foreach (var p in Players.Values)
                     p.SecondWind = true;
         }
