@@ -20,16 +20,12 @@ namespace Arena
             float lift = (1f - rise * rise) * 22f;
             if (d.HasHold)
                 DrawHoldPoint(d.HoldPos, d.HoldR, t, a);
-            foreach (var s in d.Solids)
-            {
-                if (s.Edge)
-                {
-                    if (!game.Walled)
-                        DrawSolid(s, 0f, true, a);
-                    continue;
-                }
-                DrawSolid(s, lift, false, a);
-            }
+            foreach (var s in d.Solids)  // discs one by one; boxes merged below so corners and crossings read as one solid
+                if (s.Round && (!s.Edge || !game.Walled))
+                    DrawSolid(s, s.Edge ? 0f : lift, s.Edge, a);
+            if (!game.Walled)
+                DrawSolidUnion(SolidUnion.For(d.Solids, true, ref edgeUnion), 0f, true, a);
+            DrawSolidUnion(SolidUnion.For(d.Solids, false, ref wallUnion), lift, false, a);
             if (game.EdgesGated)
                 DrawEdgeGates(d, t, a);
         }
@@ -59,6 +55,52 @@ namespace Arena
             OutlineRect(x, y, w, h, lw + 8f, Ink.WithAlpha(0.10f * a));
             OutlineRect(x, y, w, h, lw + 4f, Ink.WithAlpha(0.18f * a));
             OutlineRect(x, y, w, h, lw, Ink.WithAlpha(a));
+        }
+
+        SolidUnion wallUnion, edgeUnion;  // cached: rebuilt only when the boxes change
+
+        /// The boxes as one solid: each spot filled and hatched once (the hatching lined up across them), and the
+        /// glowing outline only round the outside, so corners, T-joins and crossings have no seams.
+        void DrawSolidUnion(SolidUnion u, float lift, bool edge, float a)
+        {
+            if (u == null || u.Fills.Length == 0)
+                return;
+            float lw = edge ? 1.5f : 2.5f;
+            var f = u.Fills;
+            for (int i = 0; i < f.Length; i += 4)
+                FillRect(f[i], f[i + 1] - lift, f[i + 2], f[i + 3], Ink.WithAlpha(0.10f * a));
+            for (int i = 0; i < f.Length; i += 4)
+                HatchWorld(f[i], f[i + 1], f[i + 2], f[i + 3], lift, Ink.WithAlpha(0.22f * a));
+            UnionOutline(u, lift, lw + 8f, Ink.WithAlpha(0.10f * a));
+            UnionOutline(u, lift, lw + 4f, Ink.WithAlpha(0.18f * a));
+            UnionOutline(u, lift, lw, Ink.WithAlpha(a));
+        }
+
+        /// The outside edges; the horizontal ones run half a width past their ends to square off every corner.
+        void UnionOutline(SolidUnion u, float lift, float width, Rgba c)
+        {
+            float e = width * 0.5f;
+            var g = u.Edges;
+            for (int i = 0; i < g.Length; i += 4)
+            {
+                bool flat = g[i + 1] == g[i + 3];
+                float ext = flat ? e : 0f;
+                Line(new V2(g[i] - ext, g[i + 1] - lift), new V2(g[i + 2] + ext, g[i + 3] - lift), width, c);
+            }
+        }
+
+        /// 45 degree lines every 12 px on a world-fixed grid (x + y a multiple of 12), clipped to the box, so boxes
+        /// side by side hatch as one.
+        void HatchWorld(float x, float y, float w, float h, float lift, Rgba c)
+        {
+            float c0 = Mathf.Ceil((x + y) / 12f) * 12f, c1 = x + w + y + h;
+            for (float k = c0; k < c1; k += 12f)
+            {
+                float x0 = Mathf.Max(x, k - (y + h)), x1 = Mathf.Min(x + w, k - y);
+                if (x1 - x0 < 0.35f)
+                    continue;
+                Line(new V2(x0, k - x0 - lift), new V2(x1, k - x1 - lift), 1.5f, c);
+            }
         }
 
         void OutlineRect(float x, float y, float w, float h, float width, Rgba c)

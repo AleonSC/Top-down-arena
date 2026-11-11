@@ -453,6 +453,10 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 - **Knockback slides:** anything that shoves enemies (the Repulsion Cannon, Roar, Shockwave, the Scattergun up close,
   Knight swings, Bulldoze, Fortress, the Fuma Shuriken's fan) slides them the distance over 0.18 s instead of jumping
   them there, with a streak behind them, dust kicked up along the way and a puff where they were hit.
+- **Daze:** a close-in hit (Bulldoze, Knight and Lance swings, the Katana's Momentum Burst, the Bo Staff, the Kusarigama's
+  whirl) dazes the enemy for 0.4 s (bosses 0.2 s): it still moves, but can't shoot, use its special attacks or hurt you by
+  touch, and a wind-up it was in starts over. Three gold stars wheel over its head. After a daze it can't be dazed again
+  for 0.8 s, so steady swings can't lock it down. Bulldoze also keeps you invulnerable 0.35 s past the end of the charge.
 - **Boss bodies:** touching a boss hurts once (25, plus the difficulty's 3% a wave) and shoves you about 100 px back
   out; it can't hurt you again for 1 s.
 - **Bullet budget:** enemy bullets on screen are capped at 40 + 3 per wave, up to 85 from wave 15 (20% more per extra
@@ -827,7 +831,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
 - **The draw screen's layout**: the tools down the left (**Room**, **Open wall**, **Portal**, **Gate**; keys **1-4**) with a
   key to what the map's colours mean under them; the map in the middle (scroll to zoom, middle drag to pan) drawn as the real floor: each room's
   tile grid, the walls and side walls with their door gaps, and the cover (crates, barriers, pillars, the hub's floor plan), this wave's
-  breaches (red, chevrons pointing in), gates (an orange laser grid, faint while open) and portals (rings joined by a dotted line); on the right your vectors with a
+  breaches (red, chevrons pointing in), gates (an orange laser grid, faint while open) and portals (rings joined by a dotted line), each named in the map key; on the right your vectors with a
   bar showing what the drawing would spend, the tool's three steps (the one you're on lit gold), what's wrong or what it costs, the room
   types (Plain plus the unlocked floors, two to a row; the picked one says what it does), and **Build**/**Undo** and **Done**.
 - **Room kits**: a one-use modifier the team holds (up to 6; the build chip counts them). Spend one in a building round
@@ -835,15 +839,13 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   room (a path's ground and rules inside that room only, and its XP bonus). One change per room, permanent; floating rooms keep their job.
   A cleared **boss** wave gives a Floor kit (a floor not on the map yet when one is left), a won **challenge room** gives a Shop kit,
   and the **vendor** sells a Floor kit for 200 gold.
-- **Minimap**: top right, a fixed-size window that follows you (centred on you, held inside the map; the whole map when it fits).
+- **Minimap**: top right, a fixed-size window that follows you (centred on you, held inside the map; the whole map when it fits). Gold coins show as small gold dots on it.
   Anything beyond its edge is clipped, and teammates off the window show as dots on its edge.
 - **Who drew what**: every built room has a thin line of its drawer's colour just inside its walls, and the minimap fills it in their
   colour. While a round is open the minimap and the draw screen show everyone's proposals as pulsing ghosts in their colours.
 - **Free building (the default)**: the lobby's **Free building / Team vote** pair (Difficulty tab, shown with the Expanding arena, host only) sets how it's built.
   With **Free building** there is no vote: a room, wall opening or portal pair is **built the moment you place it**, you pay for it (an opening pays you), and
-  anyone can build as many as they can afford in a round (the round window is just the draw screen; **Done** closes it). **Mid-wave you can open doors**: press **B**
-  ("[B] Open a door" under the build chips) for the draw screen in Open wall mode; new rooms and portals wait for the next break. Doors are off while a
-  Gatekeeper duel has its room locked. Bots still add one room a round, and only if nobody has built that round.
+  anyone can build as many as they can afford in a round (the round window is just the draw screen; **Done** closes it). **Nothing can be built mid-wave**: rooms, doors and portals all wait for the break between waves. Bots still add one room a round, and only if nobody has built that round.
   The lobby's **Team purse** toggle (any building mode, off by default) lets a build spend the whole team's vectors: the builder pays first, then the richest teammates; the chip and draw screen show the team total.
   **Team vote** keeps the rules below (proposals, one build a round, nothing mid-wave) for lobbies of strangers.
 - **The vote** (Team vote only): each player backs one proposal or "No room". Drawing a room doesn't cast your vote: until you click a card your
@@ -853,13 +855,14 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   tied options), and the winning drawer pays; nobody else does. One room is built a round, with a door to every room it
   shares a door's width of wall with (loops). Paths are off in this arena.
   **Solo players skip the vote**: your proposal is built the moment you make it.
-- **Nodes and the floating Gatekeeper room**: every boss cycle the game places a **shop node**, a **vendor node** and a **chest node**: points 10 to 16
-  tiles straight out from the map (at least 8 tiles from each other), marked on the arena floor, the minimap and the draw screen. A node is locked until you
-  build a **room** that encloses it (any room; a long one can reach it straight off the map); that room then becomes the shop or vendor
-  room, and a chest node's room stays a normal combat room with enemies. Walk up to a claimed **chest** to open it once: every player gets gold
-  (40, +10 a boss cycle) and 6 vectors. No cover stands on a node. A claimed node shows as a fixture in its room: a stall, a pedestal or a chest (opened ones lie dim with the lid up). Nodes never respawn: a claimed one stays, and new ones appear around the current map.
-  At most 6 wait at once. A **Gatekeeper** room is still placed each cycle as a sealed box 4 to 8 tiles off the map: share 2 tiles of wall with it and its
-  door opens (it doesn't count towards the 24-room cap and adds no enemies; at most 6 wait). Bots build a room (or a narrow strip, then a room) to nodes (not to chests' loot: they don't walk to them).
+- **Shop and vendor rooms, chest nodes and the Gatekeeper room**: every boss cycle the game places a **shop room** and a **vendor room** (tiny
+  4 x 4 tile squares) and a **Gatekeeper** room (8 x 6) as sealed boxes 4 to 8 tiles off the map, plus a **chest node**: a point 10 to 16 tiles straight
+  out (at least 8 tiles from other nodes). Build a room or hallway that shares 2 tiles of wall with a sealed room and its door opens: walk in to shop
+  (the shop's stall or the vendor's pedestal stands in the middle). Sealed rooms don't count towards the 24-room cap and add no enemies; at most 6 wait.
+  A chest node is locked until you build a **room** that encloses it (a normal combat room with enemies); walk up to the chest to open it once: every
+  player gets gold (40, +10 a boss cycle) and 6 vectors (opened ones lie dim with the lid up). No cover stands on a node. Nothing respawns: new ones
+  appear around the current map. Bots build up to the shop room first, then the vendor, then chests, then the Gatekeeper (they don't walk to chests' loot).
+  Old saves with shop or vendor nodes still work: a room round one becomes that shop.
   (The Gatekeeper has its own room, below.)
 - **Surprise rooms**: every time you clear a **boss**, the map gets a **free** room in one of five shapes the game picks for you: a **ring** (a block in the
   middle with a lane to run round), a **cross**, an **L hall**, a **T hall** or a **chamfer** (a box with notched corners). It goes where it closes the most loops
@@ -895,8 +898,11 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   from, and a red dash marks each on the minimap). 2 open on a breach wave, one more per 3 rooms built (at most 6), 400 px apart or
   more, picked by the wave and the map so everyone sees the same ones. Every 100 px of outer wall is a spot, so long outer walls
   break more often, and a **dead end** (a room with one door) more still: compact builds and loops have fewer places to be hit
-  from. The barriers flicker up for 1.5 s before the first enemy steps through; an enemy uses a breach at least 350 px from every
-  player when there is one. On every other regular wave enemies simply appear at a random spot in the rooms, at least 350 px from every player. Never on a sealed room, a shop, vendor or Gatekeeper room, or on boss waves (the fixed boss arena).
+  from. **Breach warning:** when the wave starts, before anything spawns, everyone's camera flies to each breach in turn (0.5 s),
+  holds while it flashes with red rings (0.6 s; a siren, and a red BREACH 1/3 band at the top), then flies back to you (0.8 s), with
+  letterbox bars while it's away; you can't move, shoot or use abilities until it's over (about 3 s for 2 breaches, 7.7 s for 6).
+  A breach wave brings **three times** the wave's enemies (bosses not tripled), with room for 1.5x as many alive at once. An enemy
+  uses a breach at least 350 px from every player when there is one. On every other regular wave enemies simply appear at a random spot in the rooms, at least 350 px from every player. Never on a sealed room, a shop, vendor or Gatekeeper room, or on boss waves (the fixed boss arena).
 - **Obstacles**: a built room comes with obstacles and bars of wall (pillars, bars, an L, blocks: one per ~220,000 px2, up to 4),
   laid out from the room's own box so every machine builds the same ones. They keep off the room's walls, its doors and its middle,
   so you can always walk round them; a room 3 tiles wide or less gets a pillar or block every ~500 px, alternating sides with a 180 px lane past each, none near a door or bend. A small or narrow room with doors at both ends still gets at least one
@@ -1653,6 +1659,15 @@ chart**, and **Settings → Gameplay → Lag chart** sets the same thing (saved 
 - **Log lag to a file** (Settings → Gameplay) writes a CSV for each run to the `lag` folder in your profile folder: a row
   every quarter second (time, ping, snapshot gap, worst frame, fps, KB/s in and out) and a row for each wave, boss and
   storm.
+
+## Wave Lab (web wave tester)
+
+`Tools/WaveLab/run.sh [port]` (needs mono) serves a browser page that runs the **real game simulation** on the host machine.
+Open `http://localhost:8080`, or the machine's LAN address on a phone. Build a wave set (enemy palette, squads, spawn
+points A-E you can drag, timing, level) or load a built-in set / `.waves` file, pick a class and weapon, then **Play**.
+Play by hand (WASD, mouse, Space, Q/E/Shift, F, Ctrl; on a phone two thumb sticks and buttons) or switch the **bot**
+(Casual / Good / Expert) on at any time; God mode and a start wave are optional. One shared match at a time; no upgrade
+cards, you play the class as it starts.
 
 ## Making a build to send to your friend
 

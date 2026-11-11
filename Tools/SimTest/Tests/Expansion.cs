@@ -372,7 +372,8 @@ static partial class Program
         Run(s, dt, 3f, () => !g.ExpandOpen && !cg.ExpandOpen && cg.Expanded.Count == g.Expanded.Count);
         Check(g.Expanded.Count == builtNow + 1 && g.Expanded[g.Expanded.Count - 1].Owner == 1 && cg.Expanded.Count == g.Expanded.Count, "when the wave starts the votes cast count: the only vote builds that room");
 
-        // A new boss cycle places a sealed Gatekeeper room and a shop and a vendor node (Docs/Nodes.md), the same on the client, adding no crowd and no spawns.
+        // A new boss cycle places sealed Gatekeeper, shop and vendor rooms (shop and vendor tiny 4 x 4 tile squares) and a chest node (Docs/Nodes.md),
+        // the same on the client, adding no crowd and no spawns.
         var placeFloating = typeof(Game).GetMethod("PlaceFloatingRooms", flags);
         int boughtNow = Expansion.BoughtCount(g.Expanded), allNow = g.Expanded.Count, nodesNow = g.Nodes.Count;
         float scale0 = g.ExpansionScale;
@@ -381,15 +382,30 @@ static partial class Program
         placeFloating.Invoke(g, null);
         Run(s, dt, 3f, () => cg.Expanded.Count == g.Expanded.Count && cg.Nodes.Count == g.Nodes.Count);
         var added = g.Expanded.Skip(allNow).ToList();
-        Check(added.Count == 1 && added[0].Floating && added[0].Kind == RoomKind.Gatekeeper && cg.Expanded.Skip(allNow).All(r => r.Floating) && Expansion.BoughtCount(g.Expanded) == boughtNow,
-            "a new boss cycle places a floating Gatekeeper room, the same on the client, and it isn't counted as bought");
-        Check(g.Nodes.Count == nodesNow + 3 && g.Nodes.Skip(nodesNow).Any(n => n.Kind == NodeKind.Shop) && g.Nodes.Skip(nodesNow).Any(n => n.Kind == NodeKind.Vendor) && g.Nodes.Skip(nodesNow).Any(n => n.Kind == NodeKind.Chest) && cg.Nodes.SequenceEqual(g.Nodes),
-            "and a shop, a vendor and a chest node, the same on the client");
+        Check(added.Count == 3 && added.All(r => r.Floating) && added.Any(r => r.Kind == RoomKind.Gatekeeper) && cg.Expanded.Skip(allNow).All(r => r.Floating) && Expansion.BoughtCount(g.Expanded) == boughtNow,
+            "a new boss cycle places floating Gatekeeper, shop and vendor rooms, the same on the client, and they aren't counted as bought");
+        Check(added.Count(r => r.Kind == RoomKind.Shop && r.W == Expansion.ShopRoomSide && r.H == Expansion.ShopRoomSide) == 1 && added.Count(r => r.Kind == RoomKind.Vendor && r.W == Expansion.ShopRoomSide && r.H == Expansion.ShopRoomSide) == 1,
+            "the shop and vendor rooms are tiny 4 x 4 tile squares");
+        Check(g.Nodes.Count == nodesNow + 1 && g.Nodes[g.Nodes.Count - 1].Kind == NodeKind.Chest && cg.Nodes.SequenceEqual(g.Nodes),
+            "and a chest node (no shop or vendor nodes any more), the same on the client");
         placeFloating.Invoke(g, null);
-        Check(g.Expanded.Count == allNow + 1 && g.Nodes.Count == nodesNow + 3, "the same cycle places them only once");
+        Check(g.Expanded.Count == allNow + 3 && g.Nodes.Count == nodesNow + 1, "the same cycle places them only once");
         pickRooms.Invoke(g, null);
         var floatWorld = g.ExpansionWorld;
-        Check(floatWorld.Areas.Skip(allNow + 1).All(a => a.Floating && a.Sealed) && Math.Abs(g.ExpansionScale - scale0) < 0.001f && !g.HasShopRoom, "the room stays sealed, adds no crowd and an unclaimed shop node isn't a shop room");
+        Check(floatWorld.Areas.Skip(allNow + 1).All(a => a.Floating && a.Sealed) && Math.Abs(g.ExpansionScale - scale0) < 0.001f && !g.HasShopRoom, "the rooms stay sealed, add no crowd and a sealed shop room isn't a shop yet");
+        {
+            int si = g.Expanded.FindIndex(r => r.Floating && r.Kind == RoomKind.Shop);
+            var con = si >= 0 ? Expansion.ConnectorFor(g.Expanded, si) : null;
+            Check(con.HasValue, "a box can be built up to the shop room");
+            if (con.HasValue)
+            {
+                var open = new List<ExpansionRoom>(g.Expanded) { con.Value };
+                var ow = Expansion.Build(open);
+                var sa = ow.Areas[si + 1];
+                Check(!sa.Sealed && sa.Kind == RoomKind.Shop && ow.Areas.Any(x => x.Hub) && floatWorld.Areas[si + 1].Sealed,
+                    "touching it with a built box opens its door: you walk into a shop room");
+            }
+        }
         int inSealed = 0;
         for (int i = 0; i < 400; i++)
         {
@@ -403,12 +419,12 @@ static partial class Program
         // A chest node inside a built room opens when a player walks up to it: gold and vectors for everyone, once.
         {
             ExpansionRoom? extra = null;
-            for (int cy = -500; cy <= 900 && !extra.HasValue; cy += 100)
-                for (int cx = 1600; cx <= 1700 && !extra.HasValue; cx += 100)
+            for (int cy = -600; cy <= 1000 && !extra.HasValue; cy += 100)
+                for (int cx = -600; cx <= 1700 && !extra.HasValue; cx += 100)  // (anywhere touching the map: the new shop and vendor rooms may sit beside the hub)
                     extra = Expansion.Custom(g.Expanded, cx, cy, 500, 500, out string whyNot);
             int ri = -1;
             if (extra.HasValue) { g.Expanded.Add(extra.Value); ri = g.Expanded.Count - 1; }
-            Check(ri >= 0, "a 5 x 5 room fits beside the hub for the chest test");
+            Check(ri >= 0, "a 5 x 5 room fits on the map for the chest test");
             if (ri >= 0)
             {
                 var rm = g.Expanded[ri];
@@ -892,10 +908,15 @@ static partial class Program
         foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f); gg.Expanded.Clear(); gg.Expanded.Add(east); }
         var first = new Dictionary<int, V2>();
         float earliest = float.MaxValue;
-        Run(s, dt, 30f, () => g.State == MatchState.Fighting && g.BreachAge > 6f, () =>
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        int startUnits = -1;
+        bool warned = false, clientWarned = false;
+        Run(s, dt, 30f, () => g.State == MatchState.Fighting && g.BreachAge > 9f, () =>
         {
             foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; }
             if (g.State != MatchState.Fighting) return;
+            if (startUnits < 0) startUnits = (int)typeof(Game).GetMethod("QueuedUnits", flags).Invoke(g, null) + g.Enemies.Count;
+            warned |= g.BreachWarnOn; clientWarned |= cg.BreachWarnOn;
             foreach (var e in g.Enemies.Values)
                 if (!e.Def.IsBoss && !first.ContainsKey(e.Id)) { first[e.Id] = e.Pos; earliest = Math.Min(earliest, g.BreachAge); }
         });
@@ -906,6 +927,12 @@ static partial class Program
         Check(first.Count > 0 && byBreach >= first.Count * 0.8f, "enemies come in through them (" + byBreach + " of " + first.Count + " by a breach)");
         Check(first.Values.All(p => g.CurrentWorld.Areas.Any(a => a.Contains(p))), "every one of them comes in inside a room");
         Check(earliest >= Breaches.Telegraph - 0.2f, "not before the barriers are up (first at " + earliest.ToString("0.00") + " s)");
+        float warn = Breaches.WarnTime(hb.Length);
+        Check(warned && clientWarned && earliest >= warn - 0.2f, "the breach warning plays on both screens and nothing comes in until it's over (" + warn.ToString("0.0") + " s, first at " + earliest.ToString("0.00") + " s)");
+        Check(!g.BreachWarnOn && !cg.BreachWarnOn, "and it ends");
+        typeof(Game).GetMethod("BuildWave", flags).Invoke(g, new object[] { g.Wave });
+        int plain = (int)typeof(Game).GetMethod("QueuedUnits", flags).Invoke(g, null);
+        Check(startUnits >= plain * (Breaches.Flood - 0.5f), "a breach wave brings " + Breaches.Flood + "x the enemies (" + startUnits + " vs " + plain + " for the plain wave)");
     }
 
     // Shutter gates (Docs/RoomBuilding2.md step 3): a gate on a door, voted, synced; G shuts it for everyone for 8 s, then it recharges.
@@ -1369,29 +1396,28 @@ static partial class Program
         var east = Expansion.Custom(list, 1600, 100, 800, 600, out why).Value;
         foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Add(east); }
         Check(g.FreeBuild && cg.FreeBuild && !g.BuildVoting, "free building is the default for the Expanding arena");
-        Check(g.State == MatchState.Fighting && !g.ExpandOpen && g.DoorsOpen && cg.DoorsOpen, "with a wave on, doors can be built");
+        Check(g.State == MatchState.Fighting && !g.ExpandOpen && !g.DoorsOpen && !g.CanCut, "with a wave on, nothing can be built");
 
-        // Mid-wave: a room is refused, a door goes in at once and pays its drawer.
+        // Mid-wave: a room and a door are both refused.
         cg.ProposeExpandRoom(-800, 100, 800, 600);
         g.ProposeExpandRoom(-800, 100, 800, 600);
-        Run(s, dt, 0.4f);
-        Check(g.Expanded.Count == 1 && cg.Expanded.Count == 1, "no new room mid-wave");
+        cg.ProposeExpandCut(new WallCut { Vertical = true, At = 1600, From = 100, Till = 700 });
+        Run(s, dt, 0.5f);
+        Check(g.Expanded.Count == 1 && cg.Expanded.Count == 1 && g.Openings.Count == 0 && cg.Openings.Count == 0, "no room or door mid-wave");
         g.Players[2].Vectors = 10;
         var all = new WallCut { Vertical = true, At = 1600, From = 100, Till = 700 };
-        cg.ProposeExpandCut(all);
-        Run(s, dt, 0.5f, () => cg.Openings.Count == 1);
-        Check(g.Openings.Count == 1 && cg.Openings.Count == 1 && g.ExpandProposals.Count == 0, "a door mid-wave is built at once on both screens, with no vote");
-        Check(g.Players[2].Vectors == 14, "and its drawer is paid the wall back (" + g.Players[2].Vectors + ")");
 
         // Between waves: every drawing is built at once, as many as people can pay for.
         foreach (var gg in new[] { g, cg }) gg.ExpandOpen = true;
         Check(!g.DoorsOpen, "(the building round has its own rules, not the doors-only ones)");
+        Run(s, dt, 0.3f);
         int v2 = g.Players[2].Vectors = 100, v1 = g.Players[1].Vectors = 100;
         var west = Expansion.Custom(g.Expanded, -800, 100, 800, 600, out why).Value;
         cg.ProposeExpandRoom(-800, 100, 800, 600);
         Run(s, dt, 0.5f, () => cg.Expanded.Count == 2);
         Check(g.Expanded.Count == 2 && cg.Expanded.Count == 2 && g.Expanded[1].Owner == 2 && g.ProposalHeads.Count == 0 && g.ExpandOpen, "a friend's room is built the moment it's drawn; the round stays open");
-        Check(g.Players[2].Vectors == v2 - west.Price && cg.Players[2].Vectors == g.Players[2].Vectors, "and only they pay (" + west.Price + ")");
+        Run(s, dt, 1f, () => cg.Players[2].Vectors == g.Players[2].Vectors);
+        Check(g.Players[2].Vectors == v2 - west.Price && cg.Players[2].Vectors == g.Players[2].Vectors, "and only they pay (" + west.Price)");
         var offers = Expansion.Offers(5, 6, g.Expanded);
         Check(offers.Count > 0, "there is room for another");
         var o = offers[0];
@@ -1403,8 +1429,8 @@ static partial class Program
         Check(g.ExpandVotes.Count == 0, "votes mean nothing in free building");
         var west2 = new WallCut { Vertical = true, At = 0, From = 100, Till = 700 };
         g.ProposeExpandCut(west2);
-        Run(s, dt, 0.5f, () => cg.Openings.Count == 2);
-        Check(g.Openings.Count == 2 && cg.Openings.Count == 2, "a door between waves is built at once");
+        Run(s, dt, 0.5f, () => cg.Openings.Count == 1);
+        Check(g.Openings.Count == 1 && cg.Openings.Count == 1, "a door between waves is built at once");
         typeof(Game).GetMethod("ResolveBuildRound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(g, null);
         Run(s, dt, 0.5f, () => !cg.ExpandOpen);
         Check(!g.ExpandOpen && !cg.ExpandOpen && g.Expanded.Count == 3, "when the wave starts the round just closes, nothing changes");
@@ -1414,7 +1440,7 @@ static partial class Program
         Check(g.BuildVoting && !g.FreeBuild && !g.DoorsOpen && !g.CanCut, "with Team vote building on, doors mid-wave are off");
         cg.ProposeExpandCut(new WallCut { Vertical = true, At = 0, From = 300, Till = 600 });
         Run(s, dt, 0.4f);
-        Check(g.Openings.Count == 2 && g.ExpandProposals.Count == 0, "and a mid-wave door is refused");
+        Check(g.Openings.Count == 1 && g.ExpandProposals.Count == 0, "and a mid-wave door is refused");
         foreach (var gg in new[] { g, cg }) gg.ExpandOpen = true;
         var o2 = Expansion.Offers(6, 6, g.Expanded);
         if (o2.Count > 0)

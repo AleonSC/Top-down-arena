@@ -1159,6 +1159,12 @@ static partial class Shot {
       var sbc = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
       for (int k = 0; k < 2; k++) sbc.Invoke(host.Game, new object[] { Defs.MinionShot, me.Pos + new V2(60f + 40f * k, -10f - 20f * k), new V2(650f, -40f), 0f, 0.5f, 8f, 1, false, 0f });
     }
+    if (Environment.GetEnvironmentVariable("DAZE") != null) {
+      // Dazed by a close-in hit (Daze.cs): three enemies round you with stars over their heads.
+      me.Pos = me.Disp = new V2(640f, 420f); host.Game.Bot = false;
+      int dk = 0;
+      foreach (var e in host.Game.Enemies.Values) { if (dk >= 3) break; e.Pos = e.Disp = me.Pos + V2.FromAngle(-0.5f + dk * 1.2f) * 110f; e.DazeT = 10f; e.Dazed = true; dk++; }
+    }
     if (Environment.GetEnvironmentVariable("WEAPONS5") != null) {
       // Five reworked weapons at once: a Fuma Shuriken mid-loop, Chain Light's cone, a Sanguine Orb coating an enemy
       // (and an ally coated in healing blood), Fireballs, and Arc Lightning going off.
@@ -1302,7 +1308,8 @@ static partial class Shot {
       string xat = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: every player stands there
       if (xat != null) { var xa = Array.ConvertAll(xat.Split(','), int.Parse); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(xa[0], xa[1]); }
       xg.RoomsUp = true; xg.LayoutAge = 5f;
-      if (Environment.GetEnvironmentVariable("EXPANDFLOAT") != null && xg.Nodes.Count == 0) { var gk = Expansion.FloatingFor(3, 2, xg.Expanded, RoomKind.Gatekeeper); if (gk.HasValue) xg.Expanded.Add(gk.Value); foreach (var nk in new[] { NodeKind.Shop, NodeKind.Vendor, NodeKind.Chest }) { var nn = Expansion.NodeFor(3, 0, xg.Expanded, xg.Nodes, nk); if (nn.HasValue) xg.Nodes.Add(nn.Value); } if (Environment.GetEnvironmentVariable("EXPANDFLOAT") == "2" && xg.Nodes.Count > 0) { for (int stp = 0; stp < 3 && !Expansion.NodeClaimed(xg.Expanded, xg.Nodes[0]); stp++) { var hh = Expansion.NodeStep(xg.Expanded, xg.Nodes[0]); if (!hh.HasValue) break; var h2 = hh.Value; h2.Owner = 1; xg.Expanded.Add(h2); } } }  // EXPANDFLOAT=1: a floating Gatekeeper room and a shop and a vendor node off the map; =2 also builds a hallway and a room round the shop node=1: a floating shop, vendor and Gatekeeper room off the map
+      if (Environment.GetEnvironmentVariable("EXPANDFLOAT") != null && xg.Nodes.Count == 0) { foreach (var fk in new[] { RoomKind.Gatekeeper, RoomKind.Shop, RoomKind.Vendor }) { var gk = Expansion.FloatingFor(3, 2, xg.Expanded, fk); if (gk.HasValue) xg.Expanded.Add(gk.Value); } foreach (var nk in new[] { NodeKind.Chest }) { var nn = Expansion.NodeFor(3, 0, xg.Expanded, xg.Nodes, nk); if (nn.HasValue) xg.Nodes.Add(nn.Value); } if (Environment.GetEnvironmentVariable("EXPANDFLOAT") == "2" && xg.Nodes.Count > 0) { for (int stp = 0; stp < 3 && !Expansion.NodeClaimed(xg.Expanded, xg.Nodes[0]); stp++) { var hh = Expansion.NodeStep(xg.Expanded, xg.Nodes[0]); if (!hh.HasValue) break; var h2 = hh.Value; h2.Owner = 1; xg.Expanded.Add(h2); } } }  // EXPANDFLOAT=1: floating Gatekeeper, shop and vendor rooms and a chest node off the map; =2 also builds a hallway and a room round the chest node; =3 builds a box up to the shop room (opened)=1: a floating shop, vendor and Gatekeeper room off the map
+      if (Environment.GetEnvironmentVariable("EXPANDFLOAT") == "3") { int sfi = xg.Expanded.FindIndex(r => r.Floating && r.Kind == RoomKind.Shop); var sfc = sfi >= 0 ? Expansion.ConnectorFor(xg.Expanded, sfi) : null; if (sfc.HasValue) { var sf2 = sfc.Value; sf2.Owner = 1; xg.Expanded.Add(sf2);  typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null); } if (sfi >= 0) { var sr = xg.Expanded[sfi]; foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(sr.X + sr.W / 2, sr.Y + sr.H - 90); } }  // EXPANDFLOAT=3 (you stand in it, in the arena view): a box built up to the shop room, so it is open
 
       var xrng = new System.Random(7); int xi = 0;
       foreach (var en in xg.Enemies.Values) {

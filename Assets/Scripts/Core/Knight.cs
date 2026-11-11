@@ -472,6 +472,7 @@ namespace Arena
                     dmg *= LashCrack;
                 dmg *= NinjaHitMult(p.Id, Defs.KnightSlash, e);  // Vanish's ambush (Ninja.cs)
                 HurtEnemy(e, dmg, p.Id);
+                Daze(e);  // a melee hit: it can't hit back for a split second (Daze.cs)
                 OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash, SlowAmt = s.Slow }, e);
                 if (s.Bleed > 0f)
                     ApplyBleed(e, dmg * s.Bleed, p.Id, true);  // KitWeapons.cs

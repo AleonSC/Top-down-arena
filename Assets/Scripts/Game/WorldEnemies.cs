@@ -529,7 +529,27 @@ namespace Arena
                     DrawPreyMark(pos, r, t);  // the Wolf Whistle's pack is hunting it
                     break;
                 }
+            if (e.Dazed && !spawning)
+                DrawDazeStars(pos + new V2(0f, -r - 7f), r, t);
             DrawStatusIcons(e, pos + new V2(0f, -r - (bar ? 25f : 17f)), t);
+        }
+
+        /// Dazed by a close-in hit (Core/Daze.cs): three little yellow stars wheel round over its head.
+        void DrawDazeStars(V2 c, float r, float t)
+        {
+            float rx = Mathf.Clamp(r * 0.9f, 14f, 30f), ry = rx * 0.35f;
+            var gold = new Rgba(1f, 0.88f, 0.3f);
+            for (int k = 0; k < 3; k++)
+            {
+                float a = t * 7f + k * MathX.Tau / 3f;
+                float depth = 0.5f + 0.5f * Mathf.Sin(a);  // 1 in front, 0 behind
+                V2 at = c + new V2(Mathf.Cos(a) * rx, Mathf.Sin(a) * ry);
+                float sz = 4.5f + 2f * depth;
+                var col = gold.WithAlpha(0.55f + 0.45f * depth);
+                Polygon(at, sz, 3, -MathX.Pi / 2f + t * 3f, col);   // two triangles: a six-point star
+                Polygon(at, sz, 3, MathX.Pi / 2f + t * 3f, col);
+                Circle(at, sz * 0.35f, Rgba.White.WithAlpha(0.8f * depth), 6);
+            }
         }
 
         /// A Swarmer: a white disc with a wedge for a mouth that points where it runs. No eyes. The mouth gapes wider as it

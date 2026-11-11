@@ -116,7 +116,10 @@ namespace Arena
                             BuildWave(Wave);
                             StartRoomsWave();  // the rooms' nests and the vault's mini-boss (Rooms.cs)
                             if (BreachesOn)
-                                spawnTimer = Math.Max(spawnTimer, Breaches.Telegraph);  // the breaches' barriers flicker up first (Breaches.cs)
+                            {
+                                FloodBreachWave();  // a breach wave: three times the enemies (Breaches.cs)
+                                spawnTimer = Math.Max(spawnTimer, Practice == null ? Breaches.WarnTime(ActiveBreaches.Length) : Breaches.Telegraph);  // the cameras tour the breaches first (Game/BreachTour.cs)
+                            }
                             CapSentries();  // at most 3 Beam Sentries (Variety.cs)
                             WaveProps();  // crates, pots, barrels and now and then a chest (Props.cs)
                             bossName = BossNow ? Defs.Get(BossAt(Wave)).Name : null;

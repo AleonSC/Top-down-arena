@@ -76,13 +76,13 @@ namespace Arena
         /// Free building: anyone builds with their own vectors the moment they draw, any number of rooms a round.
         public bool FreeBuild => ExpandingOn && !BuildVoting;
 
-        /// Free building, outside a building round (a wave is on, or the map is full): only openings, so doors can go in mid-wave.
+        /// Free building, between waves but outside a building round (the map is full): only openings. Never mid-wave.
         /// Not while a Gatekeeper duel has its room locked.
         public bool DoorsOpen
         {
             get
             {
-                if (!FreeBuild || ExpandOpen || Practice != null || Hunt != null || (State != MatchState.Fighting && State != MatchState.Intermission))
+                if (!FreeBuild || ExpandOpen || Practice != null || Hunt != null || State != MatchState.Intermission)
                     return false;
                 for (int a = 1; a < ExpansionWorld.Areas.Length; a++)
                     if (AreaLocked(a))
@@ -91,7 +91,7 @@ namespace Arena
             }
         }
 
-        /// A wall can be opened now: in a building round, or (free building) mid-wave.
+        /// A wall can be opened now: in a building round, or (free building, full map) between waves.
         public bool CanCut => ExpandOpen || DoorsOpen;
 
         int expandSeed;
@@ -292,8 +292,8 @@ namespace Arena
 
         int floatCycle = -1;
 
-        /// Host, as a regular wave starts: a new boss cycle gets a Gatekeeper room off the connected map (sealed until a built room touches it)
-        /// and a shop, a vendor and a chest node (Docs/Nodes.md). Nothing placed is ever placed again: at most MaxSealed rooms and MaxNodesWaiting nodes wait.
+        /// Host, as a regular wave starts: a new boss cycle gets a Gatekeeper, a shop and a vendor room off the connected map (sealed until a built
+        /// room touches it; shop and vendor are tiny 4 x 4 tile rooms) and a chest node (Docs/Nodes.md). Nothing placed is ever placed again: at most MaxSealed rooms and MaxNodesWaiting nodes wait.
         void PlaceFloatingRooms()
         {
             if (!IsHost || !ExpandingOn || Practice != null || Hunt != null)
@@ -303,17 +303,18 @@ namespace Arena
                 return;
             floatCycle = cycle;
             bool added = false;
-            if (Expansion.SealedCount(Expanded) < Expansion.MaxSealed)
+            foreach (var rk in new[] { Arena.RoomKind.Gatekeeper, Arena.RoomKind.Shop, Arena.RoomKind.Vendor })  // (shop and vendor: tiny 4 x 4 tile rooms you open and walk into)
             {
-                var f = Expansion.FloatingFor(expandSeed, cycle, Expanded, Arena.RoomKind.Gatekeeper);
-                if (f.HasValue)
-                {
-                    Expanded.Add(f.Value);
-                    added = true;
-                    DoLog("a floating Gatekeeper room appears at " + f.Value.X + "," + f.Value.Y);
-                }
+                if (Expansion.SealedCount(Expanded) >= Expansion.MaxSealed)
+                    break;
+                var f = Expansion.FloatingFor(expandSeed, cycle, Expanded, rk);
+                if (!f.HasValue)
+                    continue;
+                Expanded.Add(f.Value);
+                added = true;
+                DoLog("a floating " + rk + " room appears at " + f.Value.X + "," + f.Value.Y);
             }
-            foreach (var kind in new[] { NodeKind.Shop, NodeKind.Vendor, NodeKind.Chest })
+            foreach (var kind in new[] { NodeKind.Chest })  // (old saves may still hold shop and vendor nodes: they work as before)
             {
                 if (Expansion.UnclaimedCount(Expanded, Nodes) >= Expansion.MaxNodesWaiting)
                     break;
@@ -964,8 +965,8 @@ namespace Arena
             BroadcastExpansion();
         }
 
-        /// A bot draws the cheapest box that claims an unclaimed node (a 3-tile strip out to it, then a room round it), else opens the Gatekeeper's
-        /// floating room, if it can afford it. True if it proposed one.
+        /// A bot builds toward what matters most: a sealed shop room (or an old save's shop node), then a vendor, then a chest node (a 3-tile strip
+        /// out to it, then a room round it), then the Gatekeeper's room, if it can afford the box. True if it proposed one.
         bool BotBuildsToFloater()
         {
             ExpansionRoom? pick = null;
@@ -975,39 +976,32 @@ namespace Arena
                 if (Expansion.NodeClaimed(Expanded, nd))
                     continue;
                 int rank = nd.Kind == NodeKind.Shop ? 0 : nd.Kind == NodeKind.Vendor ? 1 : 2;
+                if (rank >= bestRank)
+                    continue;
                 var hall = Expansion.NodeStep(Expanded, nd);
-                if (hall.HasValue && rank < bestRank)
+                if (hall.HasValue)
                 {
                     pick = hall;
                     bestRank = rank;
                 }
             }
-            if (pick.HasValue)
-            {
-                if (pick.Value.Price > SpendableVectors(Me))
-                    return false;
-                ProposeExpandRoom(pick.Value.X, pick.Value.Y, pick.Value.W, pick.Value.H);
-                return true;
-            }
-            int best = -1;
             for (int i = 0; i < Expanded.Count; i++)
             {
-                if (!Expanded[i].Floating)
+                if (!Expanded[i].Floating || !ExpansionWorld.Areas[i + 1].Sealed)
                     continue;
-                int rank = Expanded[i].Kind == Arena.RoomKind.Shop ? 0 : Expanded[i].Kind == Arena.RoomKind.Vendor ? 1 : 2;
-                var a = ExpansionWorld.Areas[i + 1];
-                if (a.Sealed && rank < bestRank)
+                int rank = Expanded[i].Kind == Arena.RoomKind.Shop ? 0 : Expanded[i].Kind == Arena.RoomKind.Vendor ? 1 : 3;
+                if (rank >= bestRank)
+                    continue;
+                var c = Expansion.ConnectorFor(Expanded, i);
+                if (c.HasValue)
                 {
-                    best = i;
+                    pick = c;
                     bestRank = rank;
                 }
             }
-            if (best < 0)
+            if (!pick.HasValue || pick.Value.Price > SpendableVectors(Me))
                 return false;
-            var c = Expansion.ConnectorFor(Expanded, best);
-            if (!c.HasValue || c.Value.Price > SpendableVectors(Me))
-                return false;
-            ProposeExpandRoom(c.Value.X, c.Value.Y, c.Value.W, c.Value.H);
+            ProposeExpandRoom(pick.Value.X, pick.Value.Y, pick.Value.W, pick.Value.H);
             return true;
         }
 
