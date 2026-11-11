@@ -113,7 +113,7 @@ static class Lab
         {
             var d = Defs.Get(t);
             sb.Append(first ? "" : ",").Append("{\"id\":").Append((int)t).Append(",\"name\":").Append(S(d.Name)).Append(",\"key\":").Append(S(t.ToString()))
-              .Append(",\"hp\":").Append(N(d.Hp)).Append(",\"r\":").Append(N(d.Radius)).Append(",\"speed\":").Append(N(d.Speed)).Append(",\"boss\":").Append(d.IsBoss ? "true" : "false")
+              .Append(",\"hp\":").Append(N(d.Hp)).Append(",\"r\":").Append(N(d.Radius)).Append(",\"speed\":").Append(N(d.Speed)).Append(",\"boss\":").Append(d.IsBoss ? "true" : "false").Append(",\"melee\":").Append(d.Melee ? "true" : "false").Append(",\"contact\":").Append(N(d.Contact))
               .Append(",\"sides\":").Append(d.Sides).Append(",\"group\":").Append(S(d.Picker.ToString())).Append(",\"color\":").Append(Col(d.Color)).Append(",\"blurb\":").Append(S(d.Blurb)).Append('}');
             first = false;
         }

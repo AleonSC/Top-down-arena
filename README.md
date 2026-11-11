@@ -1660,18 +1660,21 @@ chart**, and **Settings → Gameplay → Lag chart** sets the same thing (saved 
   every quarter second (time, ping, snapshot gap, worst frame, fps, KB/s in and out) and a row for each wave, boss and
   storm.
 
-## Wave Lab (web wave tester)
+## Wave Lab (wave tester, no install)
 
-**Simple app (Windows):** download `WaveLab.exe` from the repo's [wave-lab release](https://github.com/AleonSC/Top-down-arena/releases/tag/wave-lab) and double-click it. It opens Wave Lab in its own window (Edge or Chrome app mode), needs nothing installed, and quits when you close the window. SmartScreen may warn about the unsigned file (More info, Run anyway). Mac/Linux: `mono WaveLab.exe`. The top bar shows the address to open on a phone on the same Wi-Fi. `Tools/WaveLab/package.sh` builds it and `.github/workflows/wavelab-release.yml` republishes it on every change.
-From the repo: double-click `Tools/WaveLab/WaveLab.command` (Mac/Linux) or `WaveLab.bat` (Windows), or run `Tools/WaveLab/run.sh [port]`: it installs mono if
-needed (apt/brew), builds, opens the browser and prints the phone address. It serves a browser page that runs the **real game simulation** on the host machine.
-Open `http://localhost:8080`, or the machine's LAN address on a phone. Build a wave set (enemy palette, squads, spawn
-points A-E you can drag, timing, level) or load a built-in set / `.waves` file, pick a class and weapon, then **Play**.
-Play by hand (WASD, mouse, Space, Q/E/Shift, F, Ctrl; on a phone two thumb sticks and buttons) or switch the **bot**
-(Casual / Good / Expert) on at any time; God mode and a start wave are optional. One shared match at a time; no upgrade
-cards, you play the class as it starts. Pick the Space ability and ultimate beside the weapon; the map under the wave editor
-places props (crate, barrel, chest...) as well as moving spawn points. When a run ends, or on **Report**, a per-wave table
-(clear time, kills, damage dealt/taken, healing, lowest HP, downs) shows, with CSV and JSON download for comparing bot runs.
+Open `Tools/WaveLab/standalone/wavelab.html` in any browser (double-click it, or open the file on a phone): one page, no server, works
+offline. Build a wave set (enemy palette, squads, spawn points A-E you can drag, props, timing, level), load a built-in set or a `.waves`
+file, pick a class, weapon, Space ability and gear tier, then **Play**. Play by hand (WASD, mouse, Space, F, Ctrl; on a phone two thumb
+sticks and buttons) or switch the **bot** (Casual / Good / Expert) on at any time; God mode and a start wave are optional. When a run
+ends, or on **Report**, a per-wave table (clear time, kills, damage dealt/taken, healing, lowest HP, downs) appears, with Copy CSV.
+It is a **simplified simulation**: enemies have the real health, size, speed and colour, but move and shoot in a few generic styles
+(chaser, dasher, shooter, ring, boss...), not the game's own AI. Edit `Tools/WaveLab/standalone/app.html`, then run
+`python3 Tools/WaveLab/standalone/build.py` to rebuild `wavelab.html` (after enemy or wave-set changes, refresh `meta.json` first from the
+faithful server below).
+
+**Faithful version (real game simulation, needs a host):** `Tools/WaveLab/run.sh` serves the same editor on top of the real C# game
+code, and `WaveLab.exe` from the repo's [wave-lab release](https://github.com/AleonSC/Top-down-arena/releases/tag/wave-lab) opens it in its
+own window on Windows. Use it when the simplified enemies are not close enough.
 
 ## Making a build to send to your friend
 
