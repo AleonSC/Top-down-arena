@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Wave Lab</title>
+<style>
+:root{--bg:#0b0f14;--panel:#141b24;--line:#243040;--fg:#d8e3f0;--dim:#7f90a5;--acc:#4fd1c5;--bad:#ff6b6b}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:14px/1.4 ui-monospace,Menlo,Consolas,monospace;overscroll-behavior:none}
+button,select,input,textarea{font:inherit;color:var(--fg);background:#0e141c;border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+button{cursor:pointer;background:#1b2634}button:hover{border-color:var(--acc)}
+button.pri{background:var(--acc);color:#04201d;border-color:var(--acc);font-weight:700}
+button.on{border-color:var(--acc);color:var(--acc)}
+#top{display:flex;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+#top h1{font-size:15px;margin:0 8px 0 0;letter-spacing:.08em;color:var(--acc)}
+#edit{display:grid;grid-template-columns:260px 1fr 300px;gap:12px;padding:12px;height:calc(100% - 52px);overflow:hidden}
+.col{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px;overflow:auto;min-height:0}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin:12px 0 6px}h2:first-child{margin-top:0}
+.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:4px 0}
+.chip{display:inline-flex;gap:4px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:2px 8px;margin:2px;cursor:pointer;background:#0e141c;font-size:12px}
+.chip i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.chip:hover{border-color:var(--acc)}
+.card{border:1px solid var(--line);border-radius:8px;padding:8px;margin:8px 0;background:#0f1620}
+.card.sel{border-color:var(--acc)}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tab{padding:4px 10px;border:1px solid var(--line);border-radius:6px;cursor:pointer;background:#0e141c}.tab.sel{border-color:var(--acc);color:var(--acc)}
+input[type=number]{width:64px}input.w{width:100%}
+textarea{width:100%;height:200px;resize:vertical;font-size:12px}
+.dim{color:var(--dim)}.small{font-size:12px}
+#blurb{min-height:40px;color:var(--dim);font-size:12px}
+#play{display:none;position:fixed;inset:0;background:#000;touch-action:none;user-select:none;-webkit-user-select:none}
+#cv{position:absolute;left:0;top:0;width:100%;height:100%}
+#hud{position:absolute;left:0;right:0;top:0;display:flex;gap:8px;align-items:center;padding:6px 10px;pointer-events:none;flex-wrap:wrap}
+#hud>*{pointer-events:auto}
+#hud .bar{width:160px;height:12px;border:1px solid #fff4;border-radius:6px;overflow:hidden;background:#0008}
+#hud .bar b{display:block;height:100%;background:#4ade80}
+#hud .stat{background:#000a;border-radius:6px;padding:3px 8px}
+#msg{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font-size:28px;font-weight:700;text-shadow:0 0 12px #000;text-align:center;pointer-events:none}
+.stick{position:absolute;width:130px;height:130px;border-radius:50%;border:2px solid #fff3;background:#fff1;display:none;pointer-events:none}
+.stick b{position:absolute;left:35px;top:35px;width:60px;height:60px;border-radius:50%;background:#fff5}
+#btns{position:absolute;right:12px;bottom:12px;display:none;gap:10px;flex-direction:column;align-items:flex-end}
+#btns div{display:flex;gap:10px}
+#btns button{width:64px;height:64px;border-radius:50%;background:#1b2634cc;font-size:11px;padding:0;touch-action:none}
+@media (max-width:900px){#edit{grid-template-columns:1fr;height:auto;overflow:auto}.col{overflow:visible}body{overflow:auto}}
+</style>
+</head>
+<body>
+<div id="top">
+  <h1>WAVE LAB</h1>
+  <label class="dim small">Class
+    <select id="role"></select><select id="kit"></select><select id="weapon"></select></label>
+  <label class="dim small">Bot <select id="bot"><option value="off">Off (me)</option><option value="casual">Casual</option><option value="good">Good</option><option value="expert">Expert</option></select></label>
+  <label class="dim small"><input type="checkbox" id="god"> God mode</label>
+  <label class="dim small">Start wave <input type="number" id="startwave" value="1" min="1" style="width:56px"></label>
+  <button class="pri" id="playBtn">▶ Play</button>
+  <span id="conn" class="dim small">connecting…</span>
+</div>
+
+<div id="edit">
+  <div class="col">
+    <h2>Wave set</h2>
+    <div class="row"><select id="sets" class="w" style="width:100%"></select></div>
+    <div class="row"><input id="setname" class="w" placeholder="name"><label class="small dim"><input type="checkbox" id="loop"> loop</label></div>
+    <div class="row"><button id="newSet">New</button><button id="dlSet">Download</button><button id="ulSet">Upload</button><input type="file" id="file" hidden></div>
+    <h2>Enemies <span class="dim small">(tap to add to the selected group)</span></h2>
+    <div id="palette"></div>
+    <div id="blurb"></div>
+    <h2>Squads</h2>
+    <div id="squads"></div>
+  </div>
+
+  <div class="col">
+    <div class="tabs" id="waveTabs"></div>
+    <div class="row"><label>Level <input type="number" id="level" min="1" max="100"></label>
+      <button id="addGroup">+ Group</button><button id="dupWave">Duplicate wave</button><button id="delWave">Delete wave</button><span id="stat" class="dim small"></span></div>
+    <div id="groups"></div>
+    <canvas id="mini" width="800" height="450" style="width:100%;max-width:640px;border:1px solid var(--line);border-radius:6px;background:#0a0e13"></canvas>
+    <div class="small dim">Spawn points A–E (drag to move). Dots are props.</div>
+  </div>
+
+  <div class="col">
+    <h2>Controls</h2>
+    <div class="small dim">Desktop: WASD move · mouse aim · click fire · Space ability · Q/E/Shift bonus · F ultimate · Ctrl dodge · right-click parry · Alt weapon alt · Esc stop.<br>
+    Phone: left thumb moves, right thumb aims and fires; buttons for ability / ultimate / dodge. Use landscape.</div>
+    <h2>.waves text</h2>
+    <textarea id="text" spellcheck="false"></textarea>
+    <div class="row"><button id="applyText">Apply text</button><span id="problems" class="small" style="color:var(--bad)"></span></div>
+  </div>
+</div>
+
+<div id="play">
+  <canvas id="cv"></canvas>
+  <div id="hud">
+    <span class="stat" id="hWave"></span><span class="stat" id="hLeft"></span>
+    <span class="bar"><b id="hHp"></b></span><span class="stat" id="hTime"></span>
+    <select id="pBot"><option value="off">Bot: off</option><option value="casual">Bot: casual</option><option value="good">Bot: good</option><option value="expert">Bot: expert</option></select>
+    <button id="pGod">God</button><button id="pRestart">↻ Restart</button><button id="pStop">✕ Editor</button>
+  </div>
+  <div id="msg"></div>
+  <div class="stick" id="sL"><b></b></div><div class="stick" id="sR"><b></b></div>
+  <div id="btns"><div><button id="bAlt">Alt</button><button id="bQ">Q</button><button id="bE">E</button></div><div><button id="bUlt">Ult</button><button id="bDodge">Dodge</button><button id="bAb">Ability</button></div></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let meta=null,ws=null,set=null,selWave=0,selGroup=0;
+const enemyById={};
+const ARR=["one by one","together","line","ring"],PROPS=["crate","heavy crate","pot","barrel","chest","health barrel"];
+
+// ---------- connection ----------
+function connect(){
+  ws=new WebSocket((location.protocol==="https:"?"wss://":"ws://")+location.host+"/ws");
+  ws.onopen=()=>{$("conn").textContent="connected";$("conn").style.color="var(--acc)"};
+  ws.onclose=()=>{$("conn").textContent="disconnected, retrying…";$("conn").style.color="var(--bad)";setTimeout(connect,1500)};
+  ws.onmessage=e=>{const m=JSON.parse(e.data);
+    if(m.t==="s")snap=m,draw();
+    else if(m.t==="started"){if(m.err){alert(m.err);showEdit()}}
+    else if(m.t==="parsed")loadSet(m.set);};
+}
+function send(o){if(ws&&ws.readyState===1)ws.send(JSON.stringify(o))}
+
+// ---------- editor model ----------
+function blankSet(){return {name:"my waves",loop:false,points:[[800,70],[70,450],[110,110],[1490,790],[1530,450]],
+  waves:[{level:1,groups:[{name:"Group 1",squad:null,members:"Grunt x4",from:"B",at:0,every:0.6,arrive:"one by one"}],props:[]}]}}
+function fmt(v){return String(Math.round(v*100)/100)}
+function toText(s){
+  let t=`# Top-Down Arena waves: ${s.name}\nloop: ${s.loop?"yes":"no"}\n`;
+  "ABCDE".split("").forEach((l,i)=>t+=`point ${l} ${fmt(s.points[i][0])},${fmt(s.points[i][1])}\n`);
+  s.waves.forEach((w,k)=>{t+=`\nwave ${k+1} level ${w.level}\n`;
+    w.groups.forEach(g=>{t+=`  group ${g.name.replace(/\|/g,"/")} | ${g.squad!==null?"squad "+g.squad:g.members} | from ${g.from} | at ${fmt(g.at)}`;
+      if(g.squad===null)t+=` | every ${fmt(g.every)} | ${g.arrive}`;t+="\n"});
+    w.props.forEach(p=>t+=`  prop ${p.kind} ${fmt(p.x)},${fmt(p.y)}\n`)});
+  return t}
+function loadSet(s){set=s;selWave=0;selGroup=0;$("problems").textContent=(s.problems||[]).slice(0,2).join("; ");renderAll()}
+function parseMembers(str){const out=[];(str||"").split(",").forEach(p=>{const m=p.trim().match(/^(.*?)(?:\s*x\s*(\d+))?$/i);if(m&&m[1])out.push({name:m[1].trim(),n:m[2]?+m[2]:1})});return out}
+function membersStr(list){return list.filter(x=>x.n>0).map(x=>x.n>1?`${x.name} x${x.n}`:x.name).join(", ")}
+function curGroup(){const w=set.waves[selWave];return w&&w.groups[selGroup]}
+function addEnemy(name){const g=curGroup();if(!g)return;if(g.squad!==null){g.squad=null;g.members=""}
+  const l=parseMembers(g.members);const f=l.find(x=>x.name===name);if(f)f.n++;else l.push({name,n:1});g.members=membersStr(l);renderAll()}
+
+// ---------- editor UI ----------
+function renderAll(){
+  $("setname").value=set.name;$("loop").checked=set.loop;
+  const tabs=$("waveTabs");tabs.innerHTML="";
+  set.waves.forEach((w,i)=>{const d=document.createElement("div");d.className="tab"+(i===selWave?" sel":"");d.textContent="Wave "+(i+1);d.onclick=()=>{selWave=i;selGroup=0;renderAll()};tabs.appendChild(d)});
+  const a=document.createElement("div");a.className="tab";a.textContent="+";a.onclick=()=>{set.waves.push({level:(set.waves[set.waves.length-1]||{level:1}).level+1,groups:[{name:"Group 1",squad:null,members:"Grunt x4",from:"A",at:0,every:.6,arrive:"one by one"}],props:[]});selWave=set.waves.length-1;selGroup=0;renderAll()};tabs.appendChild(a);
+  const w=set.waves[selWave];$("level").value=w.level;
+  let total=0;w.groups.forEach(g=>{total+=g.squad!==null?squadCount(g.squad):parseMembers(g.members).reduce((s,x)=>s+x.n,0)});
+  $("stat").textContent=total+" enemies";
+  const G=$("groups");G.innerHTML="";
+  w.groups.forEach((g,i)=>{
+    const c=document.createElement("div");c.className="card"+(i===selGroup?" sel":"");c.onclick=()=>{if(selGroup!==i){selGroup=i;renderAll()}};
+    c.innerHTML=`<div class="row"><input class="w" style="flex:1" data-k="name" value="${esc(g.name)}"><button data-a="del">✕</button><button data-a="dup">⧉</button></div>
+    <div class="row">${g.squad!==null?`<span class="chip">squad: ${esc(g.squad)}</span><button data-a="unsquad">use enemies</button>`:memberChips(g)}</div>
+    <div class="row small dim">from <input data-k="from" value="${esc(g.from)}" style="width:56px"> at <input type="number" data-k="at" step="0.5" min="0" value="${g.at}"> s
+    ${g.squad===null?`every <input type="number" data-k="every" step="0.1" min="0.1" value="${g.every}"> <select data-k="arrive">${ARR.map(x=>`<option${x===g.arrive?" selected":""}>${x}</option>`).join("")}</select>`:""}</div>`;
+    c.querySelectorAll("input,select").forEach(el=>el.onchange=()=>{const k=el.dataset.k;g[k]=el.type==="number"?+el.value:el.value.toUpperCase&&k==="from"?el.value.toUpperCase():el.value;sync()});
+    c.querySelectorAll("button[data-a]").forEach(b=>b.onclick=ev=>{ev.stopPropagation();const a=b.dataset.a;
+      if(a==="del"){w.groups.splice(i,1);selGroup=Math.max(0,i-1)}else if(a==="dup"){w.groups.splice(i+1,0,JSON.parse(JSON.stringify(g)));selGroup=i+1}else if(a==="unsquad"){g.squad=null;g.members="Grunt"}
+      else if(a==="m+"){mod(g,b.dataset.n,1)}else if(a==="m-"){mod(g,b.dataset.n,-1)}renderAll()});
+    G.appendChild(c)});
+  $("text").value=toText(set);drawMini();
+}
+function memberChips(g){return parseMembers(g.members).map(x=>{const e=enemyByName[x.name.toLowerCase().replace(/^the /,"")];
+  return `<span class="chip"><i style="background:${e?e.color:"#888"}"></i>${esc(x.name)} ×${x.n}<button data-a="m-" data-n="${esc(x.name)}" style="padding:0 5px">−</button><button data-a="m+" data-n="${esc(x.name)}" style="padding:0 5px">+</button></span>`}).join("")||'<span class="dim small">empty: tap an enemy on the left</span>'}
+function mod(g,name,d){const l=parseMembers(g.members);const f=l.find(x=>x.name===name);if(f)f.n+=d;g.members=membersStr(l)}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")}
+function sync(){$("text").value=toText(set);drawMini();}
+const enemyByName={};
+let squadMap={};
+function squadCount(n){return (squadMap[n]||"").split(",").reduce((s,p)=>{const m=p.trim().match(/x\s*(\d+)$/);return s+(p.trim()?(m?+m[1]:1):0)},0)}
+
+$("level").onchange=()=>{set.waves[selWave].level=Math.max(1,+$("level").value||1);sync()};
+$("setname").onchange=()=>{set.name=$("setname").value;sync()};
+$("loop").onchange=()=>{set.loop=$("loop").checked;sync()};
+$("addGroup").onclick=()=>{const w=set.waves[selWave];w.groups.push({name:"Group "+(w.groups.length+1),squad:null,members:"Grunt x3",from:"A",at:0,every:.6,arrive:"one by one"});selGroup=w.groups.length-1;renderAll()};
+$("dupWave").onclick=()=>{set.waves.splice(selWave+1,0,JSON.parse(JSON.stringify(set.waves[selWave])));selWave++;renderAll()};
+$("delWave").onclick=()=>{if(set.waves.length>1){set.waves.splice(selWave,1);selWave=Math.max(0,selWave-1);renderAll()}};
+$("newSet").onclick=()=>loadSet(blankSet());
+$("applyText").onclick=()=>send({t:"parse",text:$("text").value});
+$("dlSet").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([toText(set)],{type:"text/plain"}));a.download=(set.name||"waves")+".waves";a.click()};
+$("ulSet").onclick=()=>$("file").click();
+$("file").onchange=async()=>{const f=$("file").files[0];if(f)send({t:"parse",text:await f.text()});$("file").value=""};
+$("sets").onchange=()=>{const s=meta.sets[+$("sets").value];if(s)send({t:"parse",text:s.text})};
+
+// mini map: spawn points + props; drag points
+const mini=$("mini"),mc=mini.getContext("2d");let dragPt=-1;
+function drawMini(){const k=mini.width/1600;mc.clearRect(0,0,mini.width,mini.height);mc.strokeStyle="#243040";mc.strokeRect(0,0,mini.width,mini.height);
+  const w=set.waves[selWave];w.props.forEach(p=>{mc.fillStyle="#8a6a3a";mc.fillRect(p.x*k-5,p.y*k-5,10,10)});
+  const used=new Set();w.groups.forEach(g=>(g.from||"").split("").forEach(l=>used.add(l)));
+  set.points.forEach((p,i)=>{const l="ABCDE"[i];mc.beginPath();mc.arc(p[0]*k,p[1]*k,13,0,7);mc.fillStyle=used.has(l)?"#4fd1c5":"#334";mc.fill();mc.fillStyle="#04201d";mc.font="bold 14px monospace";mc.textAlign="center";mc.textBaseline="middle";mc.fillText(l,p[0]*k,p[1]*k+1)})}
+function mpos(e){const r=mini.getBoundingClientRect();return [(e.clientX-r.left)/r.width*1600,(e.clientY-r.top)/r.height*900]}
+mini.onpointerdown=e=>{const [x,y]=mpos(e);dragPt=set.points.findIndex(p=>Math.hypot(p[0]-x,p[1]-y)<45);if(dragPt>=0)mini.setPointerCapture(e.pointerId)};
+mini.onpointermove=e=>{if(dragPt<0)return;const [x,y]=mpos(e);set.points[dragPt]=[Math.round(Math.max(20,Math.min(1580,x))),Math.round(Math.max(20,Math.min(880,y)))];drawMini()};
+mini.onpointerup=()=>{if(dragPt>=0){dragPt=-1;sync()}};
+
+// ---------- start up ----------
+fetch("/api/meta").then(r=>r.json()).then(m=>{
+  meta=m;m.enemies.forEach(e=>{enemyById[e.id]=e;enemyByName[e.name.toLowerCase().replace(/^the /,"")]=e;enemyByName[e.key.toLowerCase()]=e});
+  m.squads.forEach(q=>squadMap[q.name]=q.members);
+  const groups={Melee:"Melee",Ranged:"Ranged",Late:"Late game",Boss:"Bosses"};const P=$("palette");
+  Object.keys(groups).forEach(g=>{const h=document.createElement("div");h.className="small dim";h.textContent=groups[g];P.appendChild(h);
+    m.enemies.filter(e=>e.group===g).forEach(e=>{const c=document.createElement("span");c.className="chip";c.innerHTML=`<i style="background:${e.color}"></i>${esc(e.name)}`;
+      c.onclick=()=>addEnemy(e.name);c.onmouseenter=()=>$("blurb").textContent=`${e.name} · ${e.hp} hp · speed ${e.speed} — ${e.blurb||""}`;P.appendChild(c)})});
+  const S=$("squads");m.squads.forEach(q=>{const c=document.createElement("span");c.className="chip";c.textContent=q.name;c.title=q.members;
+    c.onclick=()=>{const g=curGroup();if(!g)return;g.squad=q.name;renderAll()};c.onmouseenter=()=>$("blurb").textContent=q.name+": "+q.members;S.appendChild(c)});
+  $("sets").innerHTML=m.sets.map((s,i)=>`<option value="${i}">${esc(s.name)}</option>`).join("");
+  m.roles.forEach((r,i)=>{const o=document.createElement("option");o.value=i;o.textContent=r.name;$("role").appendChild(o)});
+  m.roles[0].kits.forEach((k,i)=>{const o=document.createElement("option");o.value=i;o.textContent=k.name;$("kit").appendChild(o)});
+  const fillW=()=>{const w=m.roles[+$("role").value].kits[+$("kit").value].weapons;$("weapon").innerHTML=w.map((n,i)=>`<option value="${i}">${esc(n)}</option>`).join("")};
+  $("role").onchange=$("kit").onchange=fillW;$("role").value=2;fillW();
+  m.sets.length?send0(m.sets[0].text):loadSet(blankSet());
+  renderAll0();
+});
+function send0(text){const t=setInterval(()=>{if(ws&&ws.readyState===1){clearInterval(t);send({t:"parse",text})}},100)}
+function renderAll0(){if(!set)loadSet(blankSet())}
+connect();
+
+// ---------- play ----------
+let snap=null,playing=false,view={s:1,ox:0,oy:0};
+const cv=$("cv"),cx=cv.getContext("2d");
+function startPlay(){
+  send({t:"start",waves:toText(set),role:+$("role").value,kit:+$("kit").value,weapon:+$("weapon").value,bot:$("bot").value,god:$("god").checked,wave:+$("startwave").value||1});
+  $("pBot").value=$("bot").value;god=$("god").checked;$("pGod").className=god?"on":"";
+  $("play").style.display="block";$("edit").style.display=$("top").style.display="none";playing=true;snap=null;resize();
+}
+function showEdit(){send({t:"stop"});playing=false;$("play").style.display="none";$("edit").style.display="";$("top").style.display="flex"}
+let god=false;
+$("playBtn").onclick=startPlay;$("pStop").onclick=showEdit;$("pRestart").onclick=startPlay;
+$("pBot").onchange=()=>send({t:"bot",level:$("pBot").value});
+$("pGod").onclick=()=>{god=!god;$("pGod").className=god?"on":"";send({t:"god",on:god})};
+function resize(){const d=window.devicePixelRatio||1;cv.width=innerWidth*d;cv.height=innerHeight*d;
+  const s=Math.min(cv.width/1600,cv.height/900);view={s,ox:(cv.width-1600*s)/2,oy:(cv.height-900*s)/2,d};}
+addEventListener("resize",resize);
+
+function poly(x,y,r,n,rot){cx.beginPath();for(let i=0;i<n;i++){const a=rot+i*2*Math.PI/n;const px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;i?cx.lineTo(px,py):cx.moveTo(px,py)}cx.closePath()}
+function draw(){
+  if(!playing||!snap)return;const s=snap;
+  cx.setTransform(1,0,0,1,0,0);cx.fillStyle="#05080c";cx.fillRect(0,0,cv.width,cv.height);
+  cx.setTransform(view.s,0,0,view.s,view.ox,view.oy);
+  cx.fillStyle="#0c121a";cx.fillRect(0,0,1600,900);cx.strokeStyle="#16202c";cx.lineWidth=1;
+  for(let x=0;x<=1600;x+=100){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,900);cx.stroke()}for(let y=0;y<=900;y+=100){cx.beginPath();cx.moveTo(0,y);cx.lineTo(1600,y);cx.stroke()}
+  cx.strokeStyle="#2c3c50";cx.lineWidth=4;cx.strokeRect(0,0,1600,900);
+  s.zones.forEach(z=>{cx.beginPath();cx.arc(z[1],z[2],z[3],0,7);cx.fillStyle="#ff8a3d22";cx.fill();cx.strokeStyle="#ff8a3d66";cx.lineWidth=2;cx.stroke()});
+  s.props.forEach(p=>{const c=["#a07a46","#7c5a2e","#9aa","#c0553a","#e0c050","#4ade80"][p[0]]||"#999";cx.fillStyle=c;cx.fillRect(p[1]-16,p[2]-16,32,32);cx.strokeStyle="#0006";cx.lineWidth=2;cx.strokeRect(p[1]-16,p[2]-16,32,32)});
+  s.orbs.forEach(o=>{cx.beginPath();cx.arc(o[0],o[1],6,0,7);cx.fillStyle="#4ade80";cx.fill()});
+  s.enemies.forEach(e=>{const d=enemyById[e[0]]||{color:"#999",sides:0,boss:false};const [,x,y,hp,mhp,r,face,elite,spawning]=e;
+    cx.globalAlpha=spawning?.45:1;
+    if(d.sides>=3)poly(x,y,r,d.sides,face);else{cx.beginPath();cx.arc(x,y,r,0,7)}
+    cx.fillStyle=d.color;cx.fill();cx.lineWidth=elite?4:2;cx.strokeStyle=elite?"#fff":"#000a";cx.stroke();
+    cx.globalAlpha=1;if(mhp>0&&hp<mhp||d.boss){const w=Math.max(28,r*2);cx.fillStyle="#000a";cx.fillRect(x-w/2,y-r-12,w,5);cx.fillStyle=d.boss?"#c084fc":"#f87171";cx.fillRect(x-w/2,y-r-12,w*Math.max(0,hp/mhp),5)}});
+  s.bullets.forEach(b=>{cx.beginPath();cx.arc(b[0],b[1],Math.max(2.5,b[2]),0,7);cx.fillStyle=b[3]?"#7dd3fc":b[4]?"#c084fc":"#fb923c";cx.fill()});
+  s.players.forEach(p=>{cx.beginPath();cx.arc(p.x,p.y,p.r+4,0,7);cx.fillStyle=p.down?"#666":p.c;cx.globalAlpha=p.down?.5:1;cx.fill();cx.globalAlpha=1;
+    if(p.inv){cx.strokeStyle="#7dd3fc";cx.lineWidth=3;cx.stroke()}
+    cx.strokeStyle="#fff";cx.lineWidth=3;cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(p.x+Math.cos(p.a)*(p.r+16),p.y+Math.sin(p.a)*(p.r+16));cx.stroke()});
+  cx.setTransform(1,0,0,1,0,0);
+  // HUD
+  const me=s.players.find(p=>p.id===s.me);
+  $("hWave").textContent="Wave "+Math.max(1,s.idx+1)+"/"+(set?set.waves.length:"?");$("hLeft").textContent="Enemies "+s.left;$("hTime").textContent=Math.floor(s.time)+"s";
+  if(me)$("hHp").style.width=Math.max(0,me.hp/me.mhp*100)+"%";
+  $("msg").textContent=s.state===2?"Wave cleared: next wave starting…":s.state===4?"All waves cleared!":s.state===3?"Wiped":"";
+}
+
+// ---------- input ----------
+const keys={};let mouse={x:800,y:450,fire:false,parry:false},touch={mx:0,my:0,fire:false,aimDir:null},tb={ab:false,q:false,e:false,ult:false,dodge:false,alt:false};
+let dodgeEdge=false;
+addEventListener("keydown",e=>{if(!playing)return;if(e.key==="Escape"){showEdit();return}keys[e.code]=true;if(e.code==="ControlLeft"||e.code==="ControlRight")dodgeEdge=true;if(["Space","Tab","AltLeft"].includes(e.code))e.preventDefault()});
+addEventListener("keyup",e=>{keys[e.code]=false});
+addEventListener("blur",()=>{for(const k in keys)keys[k]=false});
+function toArena(cx_,cy_){const d=view.d||1;return [(cx_*d-view.ox)/view.s,(cy_*d-view.oy)/view.s]}
+cv.addEventListener("pointermove",e=>{if(e.pointerType==="mouse"){[mouse.x,mouse.y]=toArena(e.clientX,e.clientY)}});
+cv.addEventListener("contextmenu",e=>e.preventDefault());
+cv.addEventListener("pointerdown",e=>{if(e.pointerType==="mouse"){[mouse.x,mouse.y]=toArena(e.clientX,e.clientY);if(e.button===0)mouse.fire=true;if(e.button===2)mouse.parry=true}});
+addEventListener("pointerup",e=>{if(e.pointerType==="mouse"){if(e.button===0)mouse.fire=false;if(e.button===2)mouse.parry=false}});
+
+// touch sticks: left half = move, right half = aim+fire
+const sticks={};const R=65;
+function stickEl(side){return $(side==="L"?"sL":"sR")}
+cv.addEventListener("pointerdown",e=>{if(e.pointerType==="mouse")return;const side=e.clientX<innerWidth/2?"L":"R";if(sticks[side])return;
+  sticks[side]={id:e.pointerId,x:e.clientX,y:e.clientY,dx:0,dy:0};const el=stickEl(side);el.style.display="block";el.style.left=(e.clientX-R)+"px";el.style.top=(e.clientY-R)+"px";cv.setPointerCapture(e.pointerId);
+  $("btns").style.display="flex"});
+cv.addEventListener("pointermove",e=>{if(e.pointerType==="mouse")return;for(const side in sticks){const s=sticks[side];if(s.id!==e.pointerId)continue;
+  let dx=e.clientX-s.x,dy=e.clientY-s.y;const l=Math.hypot(dx,dy);if(l>R){dx*=R/l;dy*=R/l}s.dx=dx/R;s.dy=dy/R;stickEl(side).firstChild.style.transform=`translate(${dx}px,${dy}px)`}});
+function endStick(e){for(const side in sticks){if(sticks[side].id===e.pointerId){stickEl(side).style.display="none";stickEl(side).firstChild.style.transform="";delete sticks[side]}}}
+cv.addEventListener("pointerup",endStick);cv.addEventListener("pointercancel",endStick);
+[["bAb","ab"],["bQ","q"],["bE","e"],["bUlt","ult"],["bDodge","dodge"],["bAlt","alt"]].forEach(([id,k])=>{const b=$(id);
+  b.addEventListener("pointerdown",e=>{e.stopPropagation();tb[k]=true;b.setPointerCapture(e.pointerId)});
+  const up=()=>tb[k]=false;b.addEventListener("pointerup",up);b.addEventListener("pointercancel",up)});
+if(matchMedia("(pointer:coarse)").matches)$("btns").style.display="flex";
+
+setInterval(()=>{if(!playing||!snap)return;
+  const me=snap.players.find(p=>p.id===snap.me);if(!me)return;
+  let mx=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0),my=(keys.KeyS||keys.ArrowDown?1:0)-(keys.KeyW||keys.ArrowUp?1:0);
+  let ax=mouse.x,ay=mouse.y,fire=mouse.fire;
+  if(sticks.L){mx=sticks.L.dx;my=sticks.L.dy}
+  if(sticks.R){const r=sticks.R,l=Math.hypot(r.dx,r.dy);if(l>0.15){ax=me.x+r.dx/l*300;ay=me.y+r.dy/l*300}fire=true}
+  send({t:"in",mx,my,ax,ay,fire,parry:mouse.parry,ab:!!keys.Space||tb.ab,q:!!keys.KeyQ||tb.q,e:!!keys.KeyE||tb.e,sh:!!(keys.ShiftLeft||keys.ShiftRight),ult:!!keys.KeyF||tb.ult,
+    dodge:dodgeEdge||tb.dodge,alt:!!(keys.AltLeft||keys.AltRight)||tb.alt});dodgeEdge=false},33);
+</script>
+</body>
+</html>

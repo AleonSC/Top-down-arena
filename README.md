@@ -1661,6 +1661,15 @@ chart**, and **Settings → Gameplay → Lag chart** sets the same thing (saved 
   every quarter second (time, ping, snapshot gap, worst frame, fps, KB/s in and out) and a row for each wave, boss and
   storm.
 
+## Wave Lab (web wave tester)
+
+`Tools/WaveLab/run.sh [port]` (needs mono) serves a browser page that runs the **real game simulation** on the host machine.
+Open `http://localhost:8080`, or the machine's LAN address on a phone. Build a wave set (enemy palette, squads, spawn
+points A-E you can drag, timing, level) or load a built-in set / `.waves` file, pick a class and weapon, then **Play**.
+Play by hand (WASD, mouse, Space, Q/E/Shift, F, Ctrl; on a phone two thumb sticks and buttons) or switch the **bot**
+(Casual / Good / Expert) on at any time; God mode and a start wave are optional. One shared match at a time; no upgrade
+cards, you play the class as it starts.
+
 ## Making a build to send to your friend
 
 In Unity, use the menu **Arena → Build Windows Game**. It builds to `Build/TopDownArena/` and opens the folder. Zip
