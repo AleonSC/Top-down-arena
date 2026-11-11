@@ -248,7 +248,7 @@ static partial class Program
             for (int k = 0; k < Defs.KitCount; k++)
             {
                 var kit = (Kit)k;
-                for (int w = 0; w < Defs.WeaponsPerRole; w++)
+                for (int w = 0; w < Defs.WeaponCount(role, kit); w++)
                 {
                     var sc = new Showcase();
                     sc.Show(role, kit, w, Upgrades.RoleAbility(role, kit, 0), false);

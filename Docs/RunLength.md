@@ -1,6 +1,6 @@
 # Campaign and Boss Hunt: run length, cycles and modes (design)
 
-Status: **steps 1-2 built** (Nov 2026: every arena saves; the Campaign is 100 waves, protocol 271); steps 3-6 not built. The owner's decisions are in bold. The numbers are first guesses.
+Status: **steps 1-2 built** (Nov 2026: every arena saves; the Campaign is 100 waves, protocol 273); steps 3-6 not built. The owner's decisions are in bold. The numbers are first guesses.
 Related: [`Checkpoints.md`](Checkpoints.md) (lives), [`Campaign.md`](Campaign.md) (themed build-up, steps 1-2 built),
 [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md), [`LateGamePressure.md`](LateGamePressure.md).
 

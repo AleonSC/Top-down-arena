@@ -739,6 +739,37 @@ static partial class Shot {
             gm.Effects.Add(new Effect { Kind = FxKind.CenserStep, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * cr, Color = Game.CenserGold, Radius = me.Id * 10 + ci, T = st, Dur = CenserMotion.Steps[ci - 1].Dur + CenserMotion.Recover }); }
           break;
         }
+        case WeaponId.ArcKnuckles:  // KNUCKLESTEP=dash the Rocket Dash; flurry|grab|punch the dash chain, prompt its Fire window; KNUCKLESTEP=1..5 a punch (Jab, Cross, Hook, Uppercut, Twin Hammer; default 1), 6 the Counter Hammer, 0 the guard (ARMED=1: the Counter Hammer armed); SWING = seconds after the press
+        {
+          string kns = Environment.GetEnvironmentVariable("KNUCKLESTEP") ?? "1";
+          me.KnuckleArmed = Environment.GetEnvironmentVariable("ARMED") == "1";
+          if (kns == "dash")  // the Rocket Dash, SWING = seconds after the press: you part-way along it (DASHCD=<s> left on its cooldown ring)
+          {
+            V2 d0 = me.Pos - V2.FromAngle(me.Aim) * Game.KnuckleDashLen * Math.Min(1f, st / Game.KnuckleDashTime), d1 = d0 + V2.FromAngle(me.Aim) * Game.KnuckleDashLen;
+            gm.Effects.Add(new Effect { Kind = FxKind.KnuckleDash, Pos = d0, Pos2 = d1, Color = Game.ArcBlue, Radius = me.Id, T = st, Dur = Game.KnuckleDashTime + Game.KnuckleDashFxAfter });
+            break;
+          }
+          if (kns == "flurry" || kns == "grab" || kns == "punch" || kns == "prompt")  // the dash chain (SWING = seconds into the move); prompt: a Fire window open
+          {
+            if (kns == "prompt") { me.KnuckleChain = 1; break; }
+            int mv = kns == "flurry" ? 1 : kns == "grab" ? 2 : 3;
+            me.KnuckleChain = (byte)(mv * 2);
+            gm.Effects.Add(new Effect { Kind = FxKind.KnuckleChain, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * 60f, Color = Game.ArcBlue, Radius = me.Id * 10 + mv, T = st, Dur = mv == 1 ? Game.FlurryDur : mv == 2 ? Game.GrabDur : Game.RocketPunchDur });
+            if (mv == 2 && st >= Game.GrabLatch)  // the grabbed enemy beside the fist (thrown along the aim after the release)
+            {
+              Enemy held = null; foreach (var en in gm.Enemies.Values) if (!en.Def.IsBoss) { held = en; break; }
+              if (held != null) { V2 hp = st < Game.GrabRelease ? Game.KnuckleHoldPoint(me.Pos, me.Aim, st) : Game.KnuckleHoldPoint(me.Pos, me.Aim, Game.GrabRelease) + V2.FromAngle(me.Aim) * Game.KnuckleThrowSpeed * (st - Game.GrabRelease); held.Pos = held.Disp = hp; }
+            }
+            break;
+          }
+          int kn = int.Parse(kns);
+          if (kn > 0)
+          {
+            me.Combo = (1 << 3) | kn;
+            gm.Effects.Add(new Effect { Kind = FxKind.KnuckleStep, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * reach, Color = kn == 6 ? Game.ArcGold : Game.ArcBlue, Radius = me.Id * 10 + kn, T = st, Dur = kn >= 5 ? Game.KnuckleLand[kn - 1] + 0.7f + Game.KnuckleAftershock * int.Parse(Environment.GetEnvironmentVariable("EXTRA") ?? "0") : Game.KnuckleDur[kn - 1] });  // EXTRA=<n>: the hammer's aftershocks
+          }
+          break;
+        }
         case WeaponId.TwinBlades:  // TWINSTEP=1..5 a step of the Crescent Waltz (default 1), TWINSTEP=fang Twin Fang (SWING = seconds after the click)
         {
           string tsn = Environment.GetEnvironmentVariable("TWINSTEP") ?? "1";

@@ -348,7 +348,7 @@ namespace Arena
                 }
             CrtKit.Frame(stage, 2f, rc);
             int weapon = 0;
-            for (int k = 0; k < Defs.WeaponsPerRole; k++)
+            for (int k = 0; k < Defs.WeaponCount(p.Role, p.Kit); k++)
                 if (Defs.Weapon(p.Role, p.Kit, k) == p.Weapon)
                     weapon = k;
             if (!holoBusy && BeginUiGl())

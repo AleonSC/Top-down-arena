@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 namespace Arena
 {
     /// Wildcard (Nov 2026, Docs/Wildcard.md) is a fourth role that borrows DPS gear from any class: it is unlocked by winning a run
@@ -76,6 +77,8 @@ namespace Arena
         Kusarigama, BoStaff, FumaShuriken, MedicineDarts, SpiritFan, Ofuda, Shuriken, Katana, Kunai,
         // Blood Mage (BloodMage.cs): blood spells that drain and heal
         BloodLash, ClotBolt, LeechBeam, TransfusionDarts, SanguineOrb, VeinTether, BloodBolts, Implosion, BoneSpear,
+        // Fourth weapons (Choice 3), where a class has one: the Knight DPS's Arc Knuckles (ArcKnuckles.cs)
+        ArcKnuckles,
     }
 
     public class WeaponDef
@@ -294,14 +297,68 @@ namespace Arena
                 Picker = PickerGroup.Ranged, Blurb = "Locks on where you're heading, then fires one tracer round at a time: seven shots, then a long reload. Change direction in the red lane, or rush it while it reloads." },
         };
 
-        public const int WeaponsPerRole = 3;
+        public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount
+        public const int MaxWeapons = 4;
 
         public const int KitCount = 6;
 
         /// Every weapon, in lobby order (Role, then Kit, then Choice), gathered from each class's list: Weapons.cs (Soldier),
         /// Minions.cs (Mage, Summoner), Knight.cs, Ninja.cs, BloodMage.cs. Every place must be filled exactly once.
+        /// The three weapons of every role and class come first (indexed by role, kit and choice); the fourth weapons follow them.
         public static readonly WeaponDef[] Weapons = WeaponRegistry(Game.SoldierWeapons, Game.ElementalistWeapons, Game.SummonerWeapons,
             Game.KnightWeapons, Game.NinjaWeapons, Game.HemomancerWeapons);
+
+        static WeaponDef[] fourth;  // a role and class's fourth weapon (Choice 3), or null: [role * KitCount + kit]
+
+        /// How many weapons a role and class has in the lobby: three, or four where it has a fourth (the Knight DPS's Arc
+        /// Knuckles). A Wildcard picks from WildcardChoices (every class's first three DPS weapons).
+        public static int WeaponCount(Role role, Kit kit) =>
+            role == Role.Wildcard ? WildcardWeaponChoices : WeaponsPerRole + (Fourth(role, kit) != null ? 1 : 0);
+
+        /// How many weapons a Wildcard can pick from: every class's three DPS ones (kit * 3 + choice, as its abilities are
+        /// numbered), then the DPS fourth weapons after them, in class order (WildcardChoices + n: the Arc Knuckles are 18).
+        public static int WildcardWeaponChoices => WildcardChoices + WildFourthKits().Count;
+
+        static List<Kit> wildFourth;
+
+        /// The classes with a fourth DPS weapon, in class order (the Wildcard's picks after WildcardChoices).
+        static List<Kit> WildFourthKits()
+        {
+            if (wildFourth == null)
+            {
+                wildFourth = new List<Kit>();
+                for (int k = 0; k < KitCount; k++)
+                    if (Fourth(Role.Dps, (Kit)k) != null)
+                        wildFourth.Add((Kit)k);
+            }
+            return wildFourth;
+        }
+
+        /// The class a Wildcard weapon pick comes from.
+        public static Kit WildWeaponKit(int pick)
+        {
+            if (pick >= 0 && pick < WildcardChoices)
+                return (Kit)(pick / WeaponsPerRole);
+            var f = WildFourthKits();
+            int i = pick - WildcardChoices;
+            return i >= 0 && i < f.Count ? f[i] : Kit.Soldier;
+        }
+
+        /// A Wildcard weapon pick from a class's DPS weapon `choice` (0-2, or 3 for its fourth).
+        public static int WildWeaponPick(Kit kit, int choice)
+        {
+            if (choice < WeaponsPerRole)
+                return (int)kit * WeaponsPerRole + Math.Max(0, choice);
+            int i = WildFourthKits().IndexOf(kit);
+            return i >= 0 ? WildcardChoices + i : (int)kit * WeaponsPerRole;
+        }
+
+        static WeaponDef Fourth(Role role, Kit kit)
+        {
+            if (Weapons == null || (int)role >= 3 || (int)kit >= KitCount)
+                return null;
+            return fourth[(int)role * KitCount + (int)kit];
+        }
 
         /// A weapon's damage a second with no upgrades (companions and burning included), measured in the sim
         /// (Tools/SimTest/run.sh 1 1 weapondps write, which writes WeaponDps.Generated.cs); 0 if not measured.
@@ -317,11 +374,17 @@ namespace Arena
 
         public static WeaponDef Weapon(Role role, Kit kit, int index)
         {
-            if (role == Role.Wildcard)  // index = kit * 3 + choice, DPS gear of any class
+            if (role == Role.Wildcard)  // index = kit * 3 + choice, DPS gear of any class; then the DPS fourth weapons (WildWeaponPick)
             {
+                if (index >= WildcardChoices && index < WildcardWeaponChoices)
+                    return Fourth(Role.Dps, WildWeaponKit(index));
                 index = index >= 0 && index < WildcardChoices ? index : 0;
                 return Weapons[((int)Role.Dps * KitCount + index / WeaponsPerRole) * WeaponsPerRole + index % WeaponsPerRole];
             }
+            if (index == WeaponsPerRole && Fourth(role, kit) != null)
+                return Fourth(role, kit);
+            if (index < 0 || index >= WeaponsPerRole)
+                index = 0;
             return Weapons[((int)role * KitCount + (int)kit) * WeaponsPerRole + index];
         }
 
@@ -329,10 +392,20 @@ namespace Arena
         static WeaponDef[] WeaponRegistry(params WeaponDef[][] lists)
         {
             var all = new WeaponDef[3 * KitCount * WeaponsPerRole];
+            var four = new WeaponDef[3 * KitCount];
             var seen = new bool[Enum.GetValues(typeof(WeaponId)).Length];
             foreach (var list in lists)
                 foreach (var w in list)
                 {
+                    if (w.Choice == WeaponsPerRole && (int)w.Kit < KitCount && w.Role != Role.Wildcard)
+                    {
+                        int f = (int)w.Role * KitCount + (int)w.Kit;
+                        if (four[f] != null || seen[(int)w.Id])
+                            throw new InvalidOperationException(w.Id + ": two fourth weapons for one place, or two WeaponDefs");
+                        four[f] = w;
+                        seen[(int)w.Id] = true;
+                        continue;
+                    }
                     if (w.Choice < 0 || w.Choice >= WeaponsPerRole || (int)w.Kit >= KitCount)
                         throw new InvalidOperationException(w.Id + " has no lobby place (Kit " + w.Kit + ", Choice " + w.Choice + ")");
                     int i = ((int)w.Role * KitCount + (int)w.Kit) * WeaponsPerRole + w.Choice;
@@ -350,7 +423,12 @@ namespace Arena
             for (int i = 0; i < seen.Length; i++)
                 if (!seen[i])
                     throw new InvalidOperationException("No WeaponDef for " + (WeaponId)i);
-            return all;
+            fourth = four;
+            var withFourth = new List<WeaponDef>(all);
+            foreach (var w in four)
+                if (w != null)
+                    withFourth.Add(w);
+            return withFourth.ToArray();
         }
 
         static WeaponDef[] byId;

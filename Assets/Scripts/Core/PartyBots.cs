@@ -68,7 +68,7 @@ namespace Arena
             bot.EmoteT = 2f + (float)rng.NextDouble() * 4f;
             var kit = (Kit)rng.Next(Defs.KitCount);
             // role null: it takes the first role nobody has (Tank, then Healer, then DPS)
-            bot.S.Join("127.0.0.1", host.Port, bot.Name, null, rng.Next(Defs.WeaponsPerRole), rng.Next(Upgrades.RoleAbilityChoices), kit);
+            bot.S.Join("127.0.0.1", host.Port, bot.Name, null, rng.Next(Defs.WeaponsPerRole), rng.Next(Upgrades.RoleAbilityChoices), kit);  // (a fourth weapon is only picked by RequestWeapon below)
             Bots.Add(bot);
             return true;
         }
@@ -90,7 +90,7 @@ namespace Arena
         public void Shuffle(PartyBot bot)
         {
             bot.S.RequestKit((Kit)rng.Next(Defs.KitCount));
-            bot.S.RequestWeapon(rng.Next(Defs.WeaponsPerRole));
+            bot.S.RequestWeapon(rng.Next(Defs.MaxWeapons));  // (the host turns a fourth pick the class doesn't have into the first)
             bot.S.RequestAbility(rng.Next(Upgrades.RoleAbilityChoices));
         }
 
