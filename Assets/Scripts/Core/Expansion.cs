@@ -62,7 +62,7 @@ namespace Arena
     /// The Expanding arena's maps (Docs/ExpandingArena.md, step 2): room shapes, the seeded offers for each milestone and
     /// the World built from the hub plus the rooms bought so far. The map is a tree (every room has one door to its
     /// parent), rooms never overlap or touch except through their own door, and it stops growing at a size cap.
-    public static class Expansion
+    public static partial class Expansion
     {
         public const int MaxTokens = 6;          // room kits the team can hold
         public const int MaxRooms = 24;          // bought rooms (the hub is extra)

@@ -1,6 +1,6 @@
 # Surprise rooms: free, well-shaped rooms the map gets after a boss or a breach event
 
-Status: **design only, nothing built.** Decided with the owner on Nov 11, 2026. Builds on [`VectorBuilding.md`](VectorBuilding.md)
+Status: **step 1 built** (shapes, `Expansion.Surprise` placement, tests; no triggers or look yet, no protocol change). Decided with the owner on Nov 11, 2026. Builds on [`VectorBuilding.md`](VectorBuilding.md)
 and [`RoomBuilding2.md`](RoomBuilding2.md) (breaches). Expanding arena only.
 
 ## Decisions (owner)
@@ -23,21 +23,23 @@ that break line of sight) exactly where the map is weakest.
 All tile-aligned (100 px grid), every passage at least 3 tiles (300 px) wide, so each is a legal `Expansion.Outline`. Sizes are
 the footprint at the base scale (one size each for now).
 
-| Shape | Footprint | Why it plays well |
+| Shape | Footprint (tiles of 100 px) | Why it plays well |
 |---|---|---|
-| **Ring** | 1100 x 1100, a 500 x 500 solid block in the middle, 300 px lane all round | A loop to run round; enemies split or chase in circles. Four doors, one per side. |
-| **Cross** | arms 300 wide, 1500 across, a 500 x 500 crossing | Four sightlines, one fight point, a door at the end of each arm. |
-| **L hall** | two legs 300 wide, 1200 + 900 | Corner breaks line of sight; ranged enemies must walk into melee. |
-| **T hall** | stem 300 x 900, bar 1500 x 300 | Two exits, one choke. |
-| **Chamfer** | 900 x 700 with 300 px cut corners | An octagon: no dead corner to be pinned in. |
+| **Ring** | 11 x 11, a 5 x 5 block in the middle, a 3 tile lane all round (96 floor tiles, the area cap) | A loop to run round; enemies split or chase in circles. |
+| **Cross** | arms 3 wide, 15 across, a 3 x 3 crossing (81) | Four sightlines, one fight point, an exit at the end of each arm. |
+| **L hall** | a 12 tile leg and a 9 tile leg, 3 wide (54) | Corner breaks line of sight; ranged enemies must walk into melee. |
+| **T hall** | a 15 tile bar with a 9 tile stem down the middle, 3 wide (63) | Two exits, one choke. |
+| **Chamfer** | 9 x 7 with the four corners notched 2 x 2 (47) | Rounded corners: no dead corner to be pinned in. |
 
-The ring is the one shape a single outline can't draw (it has a hole): it is built as four boxes round the void (the
-block is simply unbuilt floor, drawn as a solid like cover), using the same piece rules as `Outline` (`Leg = PieceBase + n`).
-The others go through `Expansion.Outline` as corner lists.
+Each is tried in all 8 turns and mirrors (duplicates dropped). `Expansion.SurpriseBase`/`SurpriseMask` give the floor as a tile mask.
+
+All five go through the same code as a drawn outline (`FromTiles`: cut into boxes, `Leg = PieceBase + n`, joined open), so the ring's
+hole is simply unbuilt floor. A ring is 4 boxes; where two of its boxes meet away from their parent seam they get an ordinary door
+(not open full width), so the lane has a door at the loop's closing point.
 
 ## Placement ("close a loop")
 
-`Expansion.SurpriseSpot(seed, wave, built, shape)` tries every anchor (each outer wall of each room, sliding in `Step`s, every
+`Expansion.SurpriseOptions(built, shape)` lists every spot best first and `Expansion.Surprise(seed, wave, built, shape, out why)` picks one. It tries every anchor (each outer wall of each room, sliding in `Step`s, every
 rotation and mirror of the shape) and scores it with `Placement` (so it obeys the normal rules: no overlap, 300 px of shared
 wall per door, `MaxRooms`):
 
@@ -75,7 +77,7 @@ One bump: the `Surprise` flag in the room list (snapshot/`ExpandState`) and the 
 
 ## Build steps
 
-1. Shapes + `SurpriseSpot` + tests (each shape legal, 3-tile minimum, deterministic, never overlaps, closes loops when it can).
+1. (built) Shapes + `Surprise` + tests (each shape legal, 3-tile minimum, deterministic, never overlaps, closes loops when it can).
 2. Boss trigger + sync + gold look + banner; previews for all five shapes.
 3. Breach event trigger and reveal; balance pass with `vecbal` bots (does it lift the wave where bots die?).
 
