@@ -6,6 +6,8 @@ Before bumping, `git fetch origin main` and take main's number + 1, so two sessi
 
 - 284: breach event: `Msg.ExpandState` carries the gold breach (a flag and its position, `Game.EventMark`) between the nodes and the open round
 - 283: surprise rooms: each room in the room list carries a `Surprise` byte (1 + its shape, 0: none; `Msg.ExpandState`, proposals, saves) (`ExpansionRoom.Surprise`)
+- 284: the End record carries `CoresFound` (Cores dropped by the run's glowing Core Carrier enemies, `EliteTrait.CoreCarrier` = 64 in the replicated `Traits` byte; `CoreDrops.cs`)
+- 283: Scattergun Double Barrel now holds 8 shells that refill over time (`Player.ScatCharge` is a percent toward the next); no format change.
 - 282: `Msg.ExpandState` carries the map nodes (shop, vendor and chest points, claimed by building a room round them; each has a Spent flag, Docs/Nodes.md) after the room kits; saved runs get `node` lines. The floating shop and vendor rooms are gone (the Gatekeeper room stays)
 - 281: vector pickups: each coin in the snapshot carries a vector flag (`Coin.Vec`; the rare enemy drop that adds vectors)
 - 280: records count the Campaign's waves: the Boss and End records carry the record wave (`Game.RecordWave`) at their ends

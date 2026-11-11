@@ -5,7 +5,7 @@ namespace Arena
 {
     /// An elite's traits (flags; one from wave 12, two from wave 35). Replicated so every screen draws them.
     [Flags]
-    public enum EliteTrait : byte { None = 0, Hasted = 1, Shielded = 2, Volatile = 4, Splitting = 8, Mirrored = 16, Commander = 32 }
+    public enum EliteTrait : byte { None = 0, Hasted = 1, Shielded = 2, Volatile = 4, Splitting = 8, Mirrored = 16, Commander = 32, CoreCarrier = 64 }  // CoreCarrier: not an elite trait (never rolled) but a glowing enemy that drops Cores (CoreDrops.cs)
 
     /// A squad: a small team that arrives together from one edge and looks after itself.
     public class SquadDef

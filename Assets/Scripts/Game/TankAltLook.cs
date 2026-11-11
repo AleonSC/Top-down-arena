@@ -11,7 +11,7 @@ namespace Arena
         static readonly Rgba MineSteel = new Rgba(0.3f, 0.32f, 0.36f), MineAmber = new Rgba(1f, 0.72f, 0.3f);
         static readonly Rgba GasPale = new Rgba(0.92f, 0.9f, 0.7f), CanisterGrey = new Rgba(0.55f, 0.58f, 0.6f);
 
-        /// Behind you: the Scattergun's two shells (red with brass caps, lit when loaded, the next one filling ringed by its progress).
+        /// Behind you: the Scattergun's eight shells (red with brass caps, lit when loaded, the next one filling ringed by its progress).
         /// Under your own feet: the Proximity Shell's or Tear Gas's cooldown filling.
         void DrawTankAltPips(Player p)
         {
@@ -27,7 +27,7 @@ namespace Arena
                     Arc(p.Disp, p.Def.BodyR + 7f, 2f, col.WithAlpha(0.6f), 28, -MathX.Pi / 2f, MathX.Tau * (1f - cd));
                 }
             }
-            if (p.Weapon.Id != WeaponId.Scattergun || p.ScatShells == 0 && p.ScatCharge == 0)
+            if (p.Weapon.Id != WeaponId.Scattergun || p.ScatShells >= Game.ScatShellMax && p.Id != game.MyId)
                 return;
             float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 6f);
             V2 back = V2.FromAngle(p.Aim + MathX.Pi), side = back.Orthogonal();
@@ -53,7 +53,7 @@ namespace Arena
                 if (on && fxOn)
                     Line(c + new V2(-1.6f * sc, -5f * sc), c + new V2(-1.6f * sc, 2f * sc), 1.4f, new Rgba(1f, 1f, 1f, 0.35f));  // a highlight down the hull
                 if (i == p.ScatShells && p.ScatCharge > 0)  // a ring closing round the next one as your point-blank hits load it
-                    Arc(c, 11f, 1.8f, ShellBrass.WithAlpha(0.75f), 16, -MathX.Pi / 2f, MathX.Tau * Mathf.Clamp01(p.ScatCharge / (float)Game.ScatShellHits));
+                    Arc(c, 11f, 1.8f, ShellBrass.WithAlpha(0.75f), 16, -MathX.Pi / 2f, MathX.Tau * Mathf.Clamp01(p.ScatCharge / 100f));
             }
         }
 
@@ -61,7 +61,7 @@ namespace Arena
         V2 ShellPipAt(Player p, int i)
         {
             V2 back = V2.FromAngle(p.Aim + MathX.Pi), side = back.Orthogonal();
-            return p.Disp + back * 30f + side * (i == 0 ? -8f : 8f);
+            return p.Disp + back * 30f + side * ((i - (Game.ScatShellMax - 1) / 2f) * 10f);
         }
 
         /// Double Barrel going off: a fat cone of flame along the aim, both barrels' smoke rolling back, a shell or two kicked out.
