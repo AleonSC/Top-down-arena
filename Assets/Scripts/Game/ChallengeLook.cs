@@ -462,10 +462,6 @@ namespace Arena
                     frac = game.RoomGoal > 0 ? (float)game.RoomKills / game.RoomGoal : 0f;
                     line = game.RoomKills + " / " + game.RoomGoal + " kills";
                     break;
-                case ChallengeKind.Lockdown:
-                    frac = game.RoomGoal > 0 ? (float)game.RoomKills / game.RoomGoal : 0f;
-                    line = game.RoomKills + " / " + game.RoomGoal + " locks broken  ·  shoot the gold lock on a gate";
-                    break;
                 case ChallengeKind.HoldZones:
                     frac = game.ZoneFill;
                     line = "Zone " + Mathf.Min(Challenges.ZoneCount, game.ZoneIndex + 1) + " of " + Challenges.ZoneCount + "  ·  stand in it";

@@ -5,7 +5,7 @@ using System.Linq;
 using Arena;
 
 // The Campaign's Warden cycle (Docs/RunLength.md step 3): each of its ten waves uses one lesson's enemies
-// (Approaches.cs WaveLesson), and the break after wave 5 opens the Lockdown Drill (LockdownDrill.cs).
+// (Approaches.cs WaveLesson), each with its star enemy.
 static partial class Program
 {
     static void WardenCycleTest(float dt)
@@ -32,7 +32,6 @@ static partial class Program
             var inSquads = new Dictionary<int, int>();
             var singles = new Dictionary<int, int>();
             int seenKey = -1;
-            bool drillSeen = false, drillOnClient = false;
             Run(s, dt, 300f, () => g.BossSlot && g.State == MatchState.Fighting, () =>
             {
                 NoPicks();
@@ -55,11 +54,6 @@ static partial class Program
                     squadQ.Clear();
                     foreach (var e in g.Enemies.Values) e.Hp = 0f;
                 }
-                if (g.Room == RoomPhase.Portal && g.RoomKind == ChallengeKind.Lockdown)
-                {
-                    drillSeen = drillSeen || g.ShownWave == 5;
-                    drillOnClient = drillOnClient || cg.Room == RoomPhase.Portal && cg.RoomKind == ChallengeKind.Lockdown;
-                }
             });
             Func<int, string> show = w => waves.ContainsKey(w) ? string.Join(",", waves[w].Select(t => t.ToString()).OrderBy(x => x)) + (squads[w].Count > 0 ? " [" + string.Join(",", squads[w]) + "]" : "") : "-";
             for (int w = 1; w <= 10; w++)
@@ -75,53 +69,10 @@ static partial class Program
             Check(squads.ContainsKey(10) && squads[10].Contains("Riot line") && !Enumerable.Range(1, 9).Any(w => squads.ContainsKey(w) && squads[w].Contains("Riot line")), "the Riot line is wave 10's exam, and only there");
             Check(has(7, EnemyType.TaserGuard) && has(7, EnemyType.RiotShield), "wave 7 puts the Taser Guards with the shields");
 
-            // The Lockdown Drill's gate opened in the break after wave 5 (on both games); the boss came after wave 10.
-            Console.WriteLine("  drill gate after wave 5: {0} (client {1}); boss after shown wave {2}", drillSeen, drillOnClient, g.ShownWave);
-            Check(drillSeen && drillOnClient, "the break after Campaign wave 5 opens the Lockdown Drill's Data Gate, on every game");
+            // The boss came after wave 10.
             Check(g.ShownWave == 10 && g.BossSlot, "the Warden comes after wave 10");
 
-            // Into the drill (dev: straight in, in a break): gates come, the client sees them, three locks win it.
-            Run(s, dt, 60f, () => g.State == MatchState.Intermission && !g.BossSlot && g.Room == RoomPhase.None, () =>
-            {
-                NoPicks();
-                foreach (var e in g.Enemies.Values) e.Hp = 0f;
-                if (g.PathOffer != null) { g.ChoosePath(0); cg.ChoosePath(0); }
-                spawnQ.Clear(); squadQ.Clear();
-            });
-            NoPicks();
-            g.DevOpenPortal(ChallengeKind.Lockdown, true);
-            Run(s, dt, 10f, () => g.Room == RoomPhase.Active && g.DrillGates.Count(x => x.Warn <= 0f) >= 1, NoPicks);
-            Run(s, dt, 0.4f, null, NoPicks);
-            Console.WriteLine("  drill: phase {0}, goal {1}, gates {2} (client {3}), clock {4:0}", g.Room, g.RoomGoal, g.DrillGates.Count, cg.DrillGates.Count, g.RoomClock);
-            Check(g.Room == RoomPhase.Active && g.RoomGoal == Game.DrillLocks && g.DrillGates.Count > 0 && cg.DrillGates.Count == g.DrillGates.Count, "the drill sends gates, and the client sees them");
-            var hit = typeof(Game).GetMethod("TakeLockHit", flags);
-            int broken = 0;
-            Run(s, dt, 20f, () => g.Room != RoomPhase.Active, () =>
-            {
-                NoPicks();
-                foreach (var gate in g.DrillGates.ToList())
-                    if (gate.Warn <= 0f && !gate.LockOpen)
-                    {
-                        while (!gate.LockOpen) hit.Invoke(g, new object[] { gate });
-                        broken++;
-                    }
-            });
-            Run(s, dt, 0.5f, null, NoPicks);
-            Console.WriteLine("  drill: {0} locks broken ({1}); phase {2} (client {3}, {4} / {5})", g.RoomKills, broken, g.Room, cg.Room, cg.RoomKills, cg.RoomGoal);
-            Check(g.Room == RoomPhase.Won && g.RoomKills >= Game.DrillLocks && cg.RoomKills >= Game.DrillLocks, "breaking three gate locks wins the drill (the altar's prize follows)");
-            Run(s, dt, 20f, () => g.Room == RoomPhase.None, NoPicks);
-            Check(g.Room == RoomPhase.None && g.DrillGates.Count == 0 && g.Players.Values.All(p => p.PrizePicks > 0 || p.Offer != null), "the prize is given and the gates go with the room");
-
-            // Out of time: lost, no prize.
-            Run(s, dt, 2f, null, NoPicks);
-            g.DevOpenPortal(ChallengeKind.Lockdown, true);
-            Run(s, dt, 10f, () => g.Room == RoomPhase.Active, NoPicks);
-            g.RoomClock = 0.05f;
-            Run(s, dt, 2f, () => g.Room != RoomPhase.Active, NoPicks);
-            Check(g.Room == RoomPhase.Lost, "running out of time loses the drill");
-
             // Wave 8 (track wave 4's second leg) is mostly squads: build it a few times and count.
-            Run(s, dt, 5f, () => g.Room == RoomPhase.None, NoPicks);
             var build = typeof(Game).GetMethod("BuildWave", flags);
             int sq8 = 0, all8 = 0;
             for (int i = 0; i < 6; i++)

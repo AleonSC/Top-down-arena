@@ -1,6 +1,6 @@
 # Campaign and Boss Hunt: run length, cycles and modes (design)
 
-Status: **steps 1-3 built** (Nov 2026: every arena saves; the Campaign is 100 waves, protocol 273; the Warden's teaching cycle and the Lockdown Drill, protocol 274); steps 4-6 not built. The owner's decisions are in bold. The numbers are first guesses.
+Status: **steps 1-3 built** (Nov 2026: every arena saves; the Campaign is 100 waves, protocol 273; the Warden's teaching cycle); steps 4-6 not built. The owner's decisions are in bold. The numbers are first guesses.
 Related: [`Checkpoints.md`](Checkpoints.md) (lives), [`Campaign.md`](Campaign.md) (themed build-up, steps 1-2 built),
 [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md), [`LateGamePressure.md`](LateGamePressure.md).
 
@@ -33,7 +33,7 @@ ramps through what you have to know, not only through health and damage.
 |---|---|---|
 | 1-2 | **Introduce**: one mechanic at a time, on its own | Riot Shields only: learn to flank |
 | 3-4 | **Second mechanic**, then the two mixed | Gas Grenadiers (zones you must leave); then shields that push you into the gas |
-| 5 | **Mid-boss**: an elite with one of the boss's real moves | a Guard captain with the Warden's cell slam (open: see below) |
+| 5 | **Recap** (a mid-boss here is still open: see below) | everything so far (built); the stretch's usual Data Gate can follow |
 | 6-7 | **Third mechanic** plus pressure | Taser Guards (stun lines) mixed with what came before |
 | 8 | **Remix**: everything, in tighter squads | Breakout and Cell-block squads |
 | 9 | **Exam**: the hardest wave before the boss | the Riot line + gas + tasers |
@@ -85,8 +85,8 @@ damage about 4x.
    track (suite `longrun`). Old saves stay 50 waves. Profile records stay on the track's scale (a follow-up).
 3. The Warden's teaching cycle (waves 1-9 as above) and its mid-boss. **Built**: the table above as `FactionDef.Lessons`
    (`Approaches.cs` `WaveLesson`, one per Campaign wave: members, squads, a guaranteed "star" enemy, the Riot line on
-   wave 10). Owner's choice for the mid-boss: an **optional Data Gate after wave 5, the Lockdown Drill**
-   (`LockdownDrill.cs`): the Warden's gates sweep the room, break 3 gold locks in 45 s for a prize pick. Suite
+   wave 10). The mid-boss: a Lockdown Drill Data Gate was built and then **removed by the owner**; the stretch
+   keeps its usual random Data Gate. Wave 5 is a recap. Suite
    `wardencycle`.
 4. Arena style per cycle; lobby shows Campaign / Boss Hunt / Practice; switches moved to Custom.
 5. Checkpoints and lives (`Checkpoints.md`).

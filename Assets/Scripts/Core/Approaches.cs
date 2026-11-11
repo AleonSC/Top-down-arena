@@ -65,15 +65,14 @@ namespace Arena
                 Finale = new SquadDef { Name = "Riot line", From = 4, Form = SquadForm.RiotLine, Members = new[] {
                     EnemyType.RiotShield, EnemyType.RiotShield, EnemyType.RiotShield, EnemyType.RiotShield,
                     EnemyType.Guard, EnemyType.Guard, EnemyType.Guard, EnemyType.Guard, EnemyType.Guard } },
-                // The Campaign's Warden cycle: each wave previews one part of its fight (Docs/RunLength.md). After wave 5 a
-                // Data Gate to the Lockdown Drill opens (LockdownDrill.cs): its gates, the one move no enemy previews.
+                // The Campaign's Warden cycle: each wave previews one part of its fight (Docs/RunLength.md).
                 Lessons = new[]
                 {
                     new WaveLesson { Teaches = "Rioters swarm (the riot stage's crowds)", Members = new[] { M(EnemyType.Rioter, 1f) } },
                     new WaveLesson { Teaches = "Security Guards' aimed tracers (its aimed fans)", Star = EnemyType.SecurityGuard, Members = new[] { M(EnemyType.Rioter, 2f), M(EnemyType.SecurityGuard, 2f) }, Squads = new[] { "Patrol" } },
                     new WaveLesson { Teaches = "Riot Shields: flank them (its riot shield)", Star = EnemyType.RiotShield, Members = new[] { M(EnemyType.RiotShield, 2f), M(EnemyType.Rioter, 2f), M(EnemyType.SecurityGuard, 1f) }, Squads = new[] { "Cell block" } },
                     new WaveLesson { Teaches = "Tear gas, and shields shoving you into it", Star = EnemyType.GasGrenadier, Members = new[] { M(EnemyType.GasGrenadier, 2f), M(EnemyType.RiotShield, 2f), M(EnemyType.Rioter, 1f) } },
-                    new WaveLesson { Teaches = "A recap, then the Lockdown Drill's gates", Members = new[] { M(EnemyType.Rioter, 2f), M(EnemyType.Guard, 2f), M(EnemyType.SecurityGuard, 1f), M(EnemyType.RiotShield, 1f), M(EnemyType.GasGrenadier, 1f) }, Squads = new[] { "Breakout" } },
+                    new WaveLesson { Teaches = "A recap of everything so far", Members = new[] { M(EnemyType.Rioter, 2f), M(EnemyType.Guard, 2f), M(EnemyType.SecurityGuard, 1f), M(EnemyType.RiotShield, 1f), M(EnemyType.GasGrenadier, 1f) }, Squads = new[] { "Breakout" } },
                     new WaveLesson { Teaches = "Taser Guards: stuns, and parrying the Fork Bolt back", Star = EnemyType.TaserGuard, Members = new[] { M(EnemyType.TaserGuard, 2.5f), M(EnemyType.Rioter, 2f), M(EnemyType.Guard, 1f) } },
                     new WaveLesson { Teaches = "Tasers, shields and gas together (the searchlight turn)", Star = EnemyType.TaserGuard, Members = new[] { M(EnemyType.TaserGuard, 1.5f), M(EnemyType.RiotShield, 1.5f), M(EnemyType.GasGrenadier, 1.5f), M(EnemyType.Rioter, 1f) }, Squads = new[] { "Cell block" } },
                     new WaveLesson { Teaches = "Squads: Breakout, Patrol, Cell block", Members = new[] { M(EnemyType.Rioter, 1f), M(EnemyType.Guard, 1f) }, Squads = null, SquadChance = 0.9f },

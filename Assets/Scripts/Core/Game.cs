@@ -790,7 +790,6 @@ namespace Arena
             UpdatePropView(dt);    // crates, barrels, chests and their items (Props.cs)
             UpdateInkView(dt);     // Chalk.cs: the chalk's tip easing, a client's ink ageing
             UpdateWardenView(dt);  // Warden.cs
-            UpdateDrillView(dt);   // the Lockdown Drill's gates (LockdownDrill.cs)
             UpdateSingView(dt);    // Singularity.cs
             UpdateHeraldView(dt);  // Herald.cs
             UpdateEclipseView(dt); // Eclipse.cs

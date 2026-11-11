@@ -953,7 +953,7 @@ static partial class Shot {
       gg.Enemies.Clear(); gg.Bullets.Clear(); gg.Props.Clear(); gg.Patches.Clear(); gg.Bot = false; gg.CurrentPath = PathId.None;
       foreach (var pl in gg.Players.Values) { pl.Offer = null; pl.PendingPicks = 0; }
       Func<EnemyType, V2, Enemy> put = (ty, at) => { var en = (Enemy)sep.Invoke(gg, new object[] { ty, at, 0f, 0, false }); en.SpawnT = 0f; en.Disp = en.Pos; en.Facing = (me.Pos - at).Angle; return en; };
-      Func<string, ChallengeKind> kindOf = n => n == "defend" ? ChallengeKind.Defend : n == "boss" ? ChallengeKind.MiniBoss : n == "rush" ? ChallengeKind.KillRush : n == "zones" ? ChallengeKind.HoldZones : n == "drill" ? ChallengeKind.Lockdown : ChallengeKind.Mirror;
+      Func<string, ChallengeKind> kindOf = n => n == "defend" ? ChallengeKind.Defend : n == "boss" ? ChallengeKind.MiniBoss : n == "rush" ? ChallengeKind.KillRush : n == "zones" ? ChallengeKind.HoldZones : ChallengeKind.Mirror;
       var rps = new System.Collections.Generic.List<Player>(gg.Players.Values);
       for (int i = 0; i < rps.Count; i++) rps[i].Pos = rps[i].Disp = new V2(700f + i * 160f, 640f);
       if (room == "portal") {
@@ -972,13 +972,6 @@ static partial class Shot {
           if (gg.RoomKind == ChallengeKind.KillRush) for (int i = 0; i < 9; i++) put(i % 3 == 0 ? EnemyType.Grunt : EnemyType.Spiker, new V2(300f + i * 120f, 250f + (i % 3) * 90f));
           if (gg.RoomKind == ChallengeKind.HoldZones) { rps[0].Pos = rps[0].Disp = gg.RoomZones[1] + new V2(-30f, 20f); put(EnemyType.Grunt, gg.RoomZones[1] + new V2(140f, -90f)); put(EnemyType.Sniper, new V2(800f, 160f)); }
           if (gg.RoomKind == ChallengeKind.MiniBoss) { var gk = put(EnemyType.Gatekeeper, new V2(800f, 330f)); gk.Hp = gk.MaxHp * 0.42f; gk.Phase = 1; gk.Facing = (rps[0].Pos - gk.Pos).Angle; }
-          if (gg.RoomKind == ChallengeKind.Lockdown) {  // the Lockdown Drill (LockdownDrill.cs): a gate sweeping down, one coming up with its lock shot out
-            gg.RoomGoal = Game.DrillLocks; gg.RoomKills = 1;
-            gg.DrillGates.Add(new WardenGate { Dir = 1f, Front = 330f, Gap1 = 170f, Gap2 = 1260f, Warn = -1.5f, LockX = 760f, LockHp = 3 });
-            gg.DrillGates.Add(new WardenGate { Dir = -1f, Front = 780f, Gap1 = 230f, Gap2 = 1190f, Warn = -0.5f, LockX = 900f, LockHp = 0, LockOpen = true });
-            rps[0].Pos = rps[0].Disp = new V2(760f, 520f);
-            put(EnemyType.Guard, new V2(460f, 560f)); put(EnemyType.Rioter, new V2(1080f, 470f)); put(EnemyType.Rioter, new V2(1120f, 520f)); put(EnemyType.Rioter, new V2(380f, 200f));
-          }
           if (gg.RoomKind == ChallengeKind.Mirror) foreach (var pl in rps) { var sh = put(EnemyType.Shadow, new V2(1600f - pl.Pos.X, 900f - pl.Pos.Y)); gg.ShadowOf[sh.Id] = pl.Id; sh.Facing = (pl.Pos - sh.Pos).Angle; }
         }
       }
