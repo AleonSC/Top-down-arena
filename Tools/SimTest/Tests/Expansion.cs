@@ -1076,15 +1076,17 @@ static partial class Program
         cg.ProposeExpandLink(link);
         Run(s, dt, 0.5f, () => cg.Links.Count == 1);
         Check(g.Links.Count == 1 && cg.Links.Count == 1 && g.Players[2].Vectors == 3 && g.Players[2].Stash[0] == 0 && g.ExpandProposals.Count == 0, "a teleporter from the stash builds the pair at once on both screens, for no vectors");
-        var spot = Expansion.BestLink(g.ExpansionWorld, 1);
-        V2 trap = clearSpot(g.ExpansionWorld.Areas[1]);
-        trap = new V2(trap.X + 200f, trap.Y);
-        string pw;
-        bool spotOk = Expansion.PlaceSpot(g.ExpansionWorld, g.Placed, trap, out pw);
-        if (!spotOk) { trap = clearSpot(g.ExpansionWorld.Areas[2]); spotOk = Expansion.PlaceSpot(g.ExpansionWorld, g.Placed, trap, out pw); }
+        V2 trap = V2.Zero;
+        string pw = null;
+        bool spotOk = false;
+        foreach (var ar in g.ExpansionWorld.Areas)
+            for (float ty = ar.Min.Y; ty <= ar.Max.Y && !spotOk; ty += 100f)
+                for (float tx = ar.Min.X; tx <= ar.Max.X && !spotOk; tx += 100f)
+                    spotOk = Expansion.PlaceSpot(g.ExpansionWorld, g.Placed, trap = new V2(tx, ty), out pw);
         cg.PlaceBuild(BuildKind.SpikeTrap, (int)trap.X, (int)trap.Y);
         Run(s, dt, 0.5f, () => cg.Placed.Count == 1);
-        Check(!spotOk || (g.Placed.Count == 1 && cg.Placed.Count == 1 && g.Players[2].Stash[(int)BuildKind.SpikeTrap] == 0), "a trap from the stash is placed on both screens (" + (spotOk ? "ok" : pw) + ")");
+        Check(spotOk && g.Placed.Count == 1 && cg.Placed.Count == 1 && g.Players[2].Stash[(int)BuildKind.SpikeTrap] == 0, "a trap from the stash is placed on both screens (" + pw + ")");
+        Check(!Expansion.PlaceSpot(g.ExpansionWorld, g.Placed, trap, out pw), "and a second one right on it is refused (" + pw + ")");
         Check(g.ExpansionWorld.Portals.Length == 1 && cg.ExpansionWorld.Portals.Length == 1, "and both maps have the portals");
     }
 

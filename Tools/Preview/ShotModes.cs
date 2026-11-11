@@ -525,9 +525,23 @@ static partial class Shot {
         host.Game.GrantUpgrade(1, U(n));
       var g = host.Game;
       if (Environment.GetEnvironmentVariable("SHOPEXPAND") != null) g.Diff.Set(DiffKnob.ArenaExpanding, 1f);  // SHOPEXPAND=1: the Expanding arena's services (Floor kit, Vector pack)
+      if (Environment.GetEnvironmentVariable("MARKET") != null)  // MARKET=1: you stand in the opened Black Market (the vendor room) of an Expanding arena; SHOPSEL picks the card, BUILDS=1 puts some in your stash
+      {
+        g.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+        var vk = Expansion.FloatingFor(3, 2, g.Expanded, RoomKind.Vendor); if (vk.HasValue) g.Expanded.Add(vk.Value);
+        int vi = g.Expanded.FindIndex(r => r.Floating && r.Kind == RoomKind.Vendor);
+        var vc = vi >= 0 ? Expansion.ConnectorFor(g.Expanded, vi) : null; if (vc.HasValue) { var v2 = vc.Value; v2.Owner = 1; g.Expanded.Add(v2); }
+        typeof(Game).GetField("expWorld", f2).SetValue(g, null);
+        g.RoomsUp = true;
+        var va = g.ExpansionWorld.Areas[g.ExpansionWorld.Areas.Length - 1];
+        foreach (var ar in g.ExpansionWorld.Areas) if (ar.Kind == RoomKind.Vendor) va = ar;
+        me.Pos = va.Mid; me.Disp = va.Mid;
+        if (Environment.GetEnvironmentVariable("BUILDS") != null) { me.Stash[0] = 1; me.Stash[1] = 2; me.Stash[2] = 5; }
+      }
       g.CurrentPath = PathId.Bazaar; g.PathFrom = 11; g.PathTo = 14; g.Wave = 14; g.State = MatchState.Intermission;
       typeof(Game).GetMethod("OpenShop", f2).Invoke(g, null);
       g.CurrentPath = PathId.None;
+      if (Environment.GetEnvironmentVariable("MARKET") != null) g.ShopOpen = true;
       int k = 0;
       foreach (var p in g.Players.Values) { p.Gold = k == 0 ? 252 : k == 1 ? 112 : 162; p.ShopDone = k == 2; k++; }
       me.ShelfSold = 1 << 2; me.Hp = me.MaxHp * 0.6f;

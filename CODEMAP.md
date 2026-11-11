@@ -44,6 +44,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Layouts.cs`, `LayoutRules.cs`, `Game/LayoutLook.cs`: the six arena layouts (walls, pillars, player and enemy edge gates, per boss cycle): the data, how they play (push-out, shots, spawns, steering), the look (phosphor vector, Docs/Mockups/arena-layouts-digital.html)
 - `Game/SolidUnion.cs`: a floor plan's box walls merged into one shape for drawing (non-overlapping fills, outside edges only, cached), so corners, T-joins and crossings draw seamless; drawn by `DrawSolidUnion` in `LayoutLook.cs` (world-fixed hatching `HatchWorld`)
 - `Shop.cs`: the Bazaar (gold, shelves that grow with Add stock, shop actions)
+- `Market.cs`: the Black Market (the vendor room, Docs/BlackMarket.md): `BuildKind` (teleporter, traps), prices, each player's stash, `PlacedBuild` traps on the map, `PlaceBuild` / `Msg.PlaceBuild`
 - `Shop.cs`: the Bazaar (gold, shelves, shop actions)
 - `Coins.cs`, `Game/CoinLook.cs`: gold coins dropped by kills in the Expanding arena (`Coin`, `DropCoins`, `TickCoins`, `SyncCoin`); they never despawn, magnet to the nearest living player and give that player their gold; the look spins and glints, and they show as gold dots on the minimap (`RoomsLook.cs`); vector pickups are coins with `Coin.Vec` (`DropVector`, rare drops that `AddVectors`)
 - `Game/VectorPickupLook.cs`: the vector pickup's look ("Drawn room": a tile whose outline draws itself, amber ring when big; mockup `Docs/Mockups/vector-pickup.html`; preview `VECPICK=1 Tools/Preview/shot.sh x hud`)
@@ -356,6 +357,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 | Profiles, "Who's playing?" | `ProfileStore.cs`, `ProfilesUi.cs`, `ProfileTransition.cs`, `DriveSlot.cs`, `DiskEject.cs` (`Docs/Profiles.md`) |
 | Account rank, XP, cosmetics | `Rank.cs`, `Profile.cs`, `RankLook.cs`, `RankUi.cs`, `RankTrails.cs` (`Docs/Rank.md`) |
 | Shop and gold | `Shop.cs`, `ShopUi.cs` |
+| Black Market (buildables, stash, trap placing) | `Market.cs`, `ShopUi.cs` (`DrawBuildCard`), `ExpansionUi.cs` (Teleporter and Trap tools) |
 | Power stacking (diminishing returns, wounds) | `Upgrades.cs` (`Compute`, `CopyStrength`), `Combat.cs` (`Player.Wound` in `Damage`, `HealCap` in every heal), `RunStats.cs` (`Heal`), `HealthBars.cs` (`DrawWound`), `HudPicker.cs` (`UpgradeNote`), `Tools/SimTest/Tests/Stacking.cs` (suite `stacking`); Docs/PowerStacking.md |
 | The boss between waves (BossSlot, BossNow/BossNext, negative start wave) | `Hunts.cs`, `Waves.cs` (`BossStartsNext`), `GameNet.cs` (snapshot), `SaveData.cs`/`RunSaves.cs` (`slot`), `DevTools.cs` (`DevJumpToWave(n, true)`), `Tools/SimTest/Tests/BossSlot.cs` (suite `bossslot`) |
 | Rooms vs Classic balance (bots) | `Tools/SimTest/Tests/ArenaBalance.cs` (report `arenabal`) |

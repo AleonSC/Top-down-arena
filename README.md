@@ -827,7 +827,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   zig-zag with a lane at each end), **Pincers** (a pair facing each other, leaving a 3-tile choke) or **T-fins** (stubs with a
   crossbar: a pocket of cover each side). They stay 2 tiles off doors and corners and off the room's middle, avoid nodes, and
   any obstacle in their way is left out. They block shots and movement like any wall.
-- **The draw screen's layout**: the tools down the left (**Room**, **Open wall**, **Portal**, **Gate**; keys **1-4**) with a
+- **The draw screen's layout**: the tools down the left (**Room**, **Open wall**, **Teleporter**, **Gate**, **Trap**; keys **1-5**) with a
   key to what the map's colours mean under them; the map in the middle (scroll to zoom, middle drag to pan) drawn as the real floor: each room's
   tile grid, the walls and side walls with their door gaps, and the cover (crates, barriers, pillars, the hub's floor plan), this wave's
   breaches (red, chevrons pointing in), gates (an orange laser grid, faint while open) and portals (rings joined by a dotted line), each named in the map key; on the right your vectors with a
@@ -837,7 +837,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   (**Room kits** button on the build window): pick a kit, click a plain Combat room, and it becomes a **Shop** room or a **Floor**
   room (a path's ground and rules inside that room only, and its XP bonus). One change per room, permanent; floating rooms keep their job.
   A cleared **boss** wave gives a Floor kit (a floor not on the map yet when one is left), a won **challenge room** gives a Shop kit,
-  and the **vendor** sells a Floor kit for 200 gold.
+  and the **Black Market** sells a Floor kit for 200 gold.
 - **Minimap**: top right, a fixed-size window that follows you (centred on you, held inside the map; the whole map when it fits). Gold coins show as small gold dots on it.
   Anything beyond its edge is clipped, and teammates off the window show as dots on its edge.
 - **Who drew what**: every built room has a thin line of its drawer's colour just inside its walls, and the minimap fills it in their
@@ -873,11 +873,14 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
 - **Open a wall**: on the draw screen, switch to **Open wall** and click both ends of a stretch of a wall two rooms share (the cyan stretches; the outer wall can't be
   opened, nor a sealed floating room's). It goes to the vote like a room. If it wins, that stretch of wall comes down (a short stretch is a door, a long
   one joins the rooms) and its proposer gets **1 vector back for every tile that was wall** (up to their cap). At least 2 tiles, up to 40 openings.
-- **Portals**: on the draw screen, switch to **Portal** and click a spot in one room, then a spot in another: a **portal pair** goes to the
-  vote like a room. If it wins, step into one end and you come out of the other (enemies use them too). It costs **8 vectors + 1 per 2 tiles
-  of walking it saves** (at most 30) and must save at least 6 tiles. Each end sits inside a connected room, 90 px off its walls, clear of
-  obstacles, 150 px from a door and 250 px from another portal. At most **3 pairs**, not counted as rooms. Bots sometimes link the two
-  rooms farthest apart.
+- **Teleporters (portals)**: buy a **Teleporter pair** (150 gold) at the **Black Market** (the vendor room), then on the draw screen switch to
+  **Teleporter** and click a spot in one room, then a spot in another: the pair is **built at once** from your stash (no vote, no vectors). Step
+  into one end and you come out of the other (enemies use them too). It must save at least 6 tiles of walking. Each end sits inside a connected
+  room, 90 px off its walls, clear of obstacles, 150 px from a door and 250 px from another portal. At most **3 pairs**, not counted as rooms.
+  Bots don't build them.
+- **Black Market traps (placeholders)**: the Black Market also sells a **Spike trap** (60), **Landmine** (80) and **Slow field** (90). Switch the
+  draw screen to **Trap**, pick one from your stash and click a spot in a room (90 px off walls, 150 px from doors, 120 px from portals and other
+  traps; at most 12). They stand on the map and have **no effect yet**. A stash holds at most 5 of a kind.
 - **Shutter gates**: on the draw screen, switch to **Gate** and click a door (the gold squares): a gate goes to the vote like a room,
   for **8 vectors**. Once fitted, stand within 150 px of it and press **G** (the Take item key) to shut it: a red laser grid fills the doorway
   for **8 s**, a wall to everyone (players and enemies); shots still pass. Then it needs **30 s** to recharge (an arc fills round its
@@ -890,7 +893,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   Beating it gives everyone a prize pick (sometimes a legendary) and the room becomes an ordinary one. It's optional: if the wave ends first, the
   Gatekeeper goes, you're let out, and walking in later starts a fresh duel.
 - **Shop and vendor rooms**: with one connected, kills drop gold and the shop opens every intermission without holding the countdown. Buy
-  upgrades and add stock in the **shop room**; heal, revive and remove upgrades at the **vendor**. Gold and your shelf carry over between waves
+  upgrades and add stock in the **shop room**; heal, revive and remove upgrades, and buy buildables, at the **Black Market** (the vendor room: a Buildables tab and a Services tab). Gold and your shelf carry over between waves
   (the shelf is new each boss cycle).
 - **Breaches**: a rare event: on wave 3 and every 4th wave after it (7, 11, 15, ...), once the first room is built, enemies come in through **breaches** in the outer wall: a stretch of wall cracks open
   and a **red holographic barrier** stands in the gap (you can't go out through it; red chevrons on the floor point where they come
