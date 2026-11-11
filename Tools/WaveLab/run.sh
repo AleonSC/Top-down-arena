@@ -18,4 +18,4 @@ if [ ! -f WaveLab.exe ] || [ -n "$(find Server.cs ../../Assets/Scripts/Core -nam
   mcs -langversion:7.2 -nologo -out:WaveLab.exe Server.cs ../../Assets/Scripts/Core/*.cs 2>&1 | grep -v 'warning' ; [ -f WaveLab.exe ] || exit 1
 fi
 ( sleep 2; (xdg-open "http://localhost:$PORT" || open "http://localhost:$PORT") >/dev/null 2>&1 ) &
-exec mono WaveLab.exe "$PORT"
+exec mono WaveLab.exe --serve "$PORT"
