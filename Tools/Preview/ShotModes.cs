@@ -159,8 +159,9 @@ static partial class Shot {
         pbs.Bots.Add(new PartyBots.PartyBot { S = bs, Skill = BotSkill.Good, Name = "Bot 1" });
         if (Environment.GetEnvironmentVariable("BOTS") == "edit") set("editBotId", 2);
       }
-      // HOLO=1|2|3 (+ HOLOT=<s>): the lobby hover tips in the hologram looks (TipHolo.cs); use with MOUSE=x,y.
-      if (Environment.GetEnvironmentVariable("HOLO") != null) { set("holoStyle", int.Parse(Environment.GetEnvironmentVariable("HOLO"))); set("holoClock", float.Parse(Environment.GetEnvironmentVariable("HOLOT") ?? "1.3")); }
+      // HOLOT=<s>: the lobby hover tips (the hologram look, TipHolo.cs) that far into their animation; HOLO=0 shows the older soft glass. Use with MOUSE=x,y.
+      if (Environment.GetEnvironmentVariable("HOLO") == "0") set("holoTips", false);
+      set("holoClock", float.Parse(Environment.GetEnvironmentVariable("HOLOT") ?? "1.3"));
       // RESUME=1: the lobby continuing a saved run (the host in its seat, Aleon's seat still free; SavesUi.cs).
       if (Environment.GetEnvironmentVariable("RESUME") != null) {
         PreviewSaves(); host.Resume = SaveStore.List()[0];

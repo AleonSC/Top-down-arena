@@ -130,10 +130,10 @@ namespace Arena
             if (x < 8f)
                 x = Mathf.Clamp(Event.current.mousePosition.x + 16f, 8f, W - 8f - pw);
             var pop = new Rect(x, Mathf.Clamp(tipAnchor.y - 6f, 8f, H - 8f - h), pw, h);
-            if (crt && holoStyle > 0)
+            if (crt && holoTips)
                 pop = HoloPlace(tipAnchor, pw, h);
             float y = pop.y + pad;
-            if (crt && holoStyle > 0)
+            if (crt && holoTips)
             {
                 DrawHoloBack(pop, tipAnchor, tipColor);
                 DrawHoloTitle(new Rect(pop.x + pad, y - 2f, pw - pad * 2f, 22f), tipTitle, tipColor);
