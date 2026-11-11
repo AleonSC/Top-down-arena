@@ -793,18 +793,22 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
 [`Docs/ExpandingArena.md`](Docs/ExpandingArena.md). It starts as the plain Classic box and grows as you play:
 
 - **Gold coins:** every kill drops its gold as coins (5-gold and 1-gold). They never despawn, spin and glint on the floor, and drift to the nearest living player within 90 px, who gets the gold.
-- **Vectors**: every player holds a drawing budget (chip under the wave plate, "Vectors 25 / 35"): 1 vector = 1 tile of wall.
-  You start with 25 and can hold 35; each cleared wave gives 4, every 15 kills gives 1, and a cleared boss wave refills
-  everyone to the cap and adds 10 on top. Two cards raise the cap, in the Expanding arena only: **Deep Inkwell** (uncommon, +10,
-  stacks to 4) and the milestone card **Architect** (+20 and 10 vectors now, stacks to 3). The **vendor** also sells a **Vector pack**: +10 vectors for 50 gold, as
+- **Vectors**: every player holds a drawing budget (chip under the wave plate, "Vectors 50 / 70"): 1 vector = 1 tile of wall.
+  You start with 50 and can hold 70; each cleared wave gives 8, every 8 kills gives 1, and a cleared boss wave refills
+  everyone to the cap and adds 20 on top. Two cards raise the cap, in the Expanding arena only: **Deep Inkwell** (uncommon, +20,
+  stacks to 4) and the milestone card **Architect** (+40 and 20 vectors now, stacks to 3). The **vendor** also sells a **Vector pack**: +20 vectors for 50 gold, as
   many as you can afford, and it can take you past the cap.
 - **Building rounds**: every cleared wave opens a round (a chip "Build rooms" under the wave plate; the countdown never waits
-  for it). Open it, **draw a room or hallway** (**left click** a corner on the zoomed-out map, move, **left click** again to place the box on the grid, or press, drag and let go; **right click** or Esc cancels it, and a right click with no box goes back; 3 to 12 tiles a side, at most 96
-  tiles; it must share 3 tiles of wall with a room and not overlap anything; a shorter touch with another room's wall is fine,
-  it just stays wall) and it becomes **your proposal**; a newer
+  for it). Open it and **draw a room by its walls**: **left click** corners on the zoomed-out map's grid and a wall runs from each
+  to the next, straight across or straight up (a slanted click makes an L); **click the first corner again** (or press **Enter**, or
+  **Propose**) to close it. **Right click** (or Esc, Backspace, **Undo**) takes the last corner back, and with none laid goes back;
+  with no corner laid, press, drag and let go draws a plain box. Any shape works (L, T, U, cross, zig-zag) as long as it is **3 tiles
+  wide everywhere**, at most 96 tiles of floor and 24 tiles each way, its walls don't cross, it shares 3 tiles of one wall with a room
+  and overlaps nothing (a shorter touch with another room's wall is fine, it just stays wall). The map shows it green when it fits (red,
+  with the reason, when not). It is built as one room, however many boxes it takes inside, and it becomes **your proposal**; a newer
   drawing replaces it. You can only propose what you can afford. A proposal costs its **new wall length**: the perimeter
-  minus every wall it shares with existing rooms, so touching rooms is cheaper and a box that touches two rooms (a loop)
-  cheaper again.
+  minus every wall it shares with existing rooms, so touching rooms is cheaper and a room that touches two rooms (a loop)
+  cheaper again. A shape never wider than 3 tiles counts as a hallway: half price.
 - **Hallways**: anything 3 tiles wide is a hallway: it costs **half** its new wall (rounded up; a 3 x 12 hallway off the hub
   is 14) and can run up to **24 tiles**. The draw screen's **Hallway** mode lays a **bent hallway**: left click where it
   starts, move along it (it stays 3 tiles wide) and left click to lay a leg; each next leg starts at the end of the last
@@ -838,6 +842,11 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   of walking it saves** (at most 30) and must save at least 6 tiles. Each end sits inside a connected room, 90 px off its walls, clear of
   obstacles, 150 px from a door and 250 px from another portal. At most **3 pairs**, not counted as rooms. Bots sometimes link the two
   rooms farthest apart.
+- **Shutter gates**: on the draw screen, switch to **Gate** and click a door (the gold squares): a gate goes to the vote like a room,
+  for **8 vectors**. Once fitted, stand within 150 px of it and press **G** (the Take item key) to shut it: a red laser grid fills the doorway
+  for **8 s**, a wall to everyone (players and enemies); shots still pass. Then it needs **30 s** to recharge (an arc fills round its
+  posts). Anyone on the team can work it. Enemies (and bots) route round a shut gate through another door; with no other way in, they wait at it. Plain doors only (not an opened wall), one gate a door, at most **6** on the map. A red bar marks
+  each on the minimap, bright while shut.
 - **Themed rooms**: pick a theme under the map when you draw a room: a path's ground and rules (Swarm Fields, Sniper Ridge, Elite Gauntlet, Burning
   Grounds, Sanctuary, Frozen Lake, Blood Moon) inside that room only, with its kill bonus. A theme costs extra vectors (+3 / +6 / +10 for
   danger 1 / 2 / 3) and unlocks with bosses: danger 2 after the first boss, danger 3 after the second.

@@ -779,6 +779,80 @@ static partial class Program
         Check(earliest >= Breaches.Telegraph - 0.2f, "not before the barriers are up (first at " + earliest.ToString("0.00") + " s)");
     }
 
+    // Shutter gates (Docs/RoomBuilding2.md step 3): a gate on a door, voted, synced; G shuts it for everyone for 8 s, then it recharges.
+    static void ExpandingGatesTest(float dt)
+    {
+        string why;
+        var list = new List<ExpansionRoom>();
+        var east = Expansion.Custom(list, 1600, 100, 800, 600, out why).Value; list.Add(east);
+        var w = Expansion.Build(list);
+        var door = w.Doors[0];
+        Check(Gates.CanFit(w, new List<GateFit>(), door.Pos, out why), "a plain door takes a gate" + (why != null ? " (" + why + ")" : ""));
+        Check(!Gates.CanFit(w, new List<GateFit>(), door.Pos + new V2(0f, 200f), out why) && why != null, "a spot that isn't a door doesn't (" + why + ")");
+        Check(!Gates.CanFit(w, new List<GateFit> { Gates.Of(door) }, door.Pos, out why) && why != null, "nor a door that has one (" + why + ")");
+        var cutW = Expansion.Build(list, new List<WallCut> { new WallCut { Vertical = true, At = 1600, From = 100, Till = 700 } });
+        Check(Gates.DoorAt(cutW, door.Pos) < 0, "an opened wall isn't a door");
+
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Expanded.AddRange(list); gg.RoomsUp = true; gg.ExpandOpen = true; }
+        g.Players[2].Vectors = Gates.Price + 2;
+        cg.ProposeExpandGate(door.Pos);
+        Run(s, dt, 0.5f, () => cg.ExpandProposals.Count == 1);
+        Check(g.ExpandProposals.Count == 1 && g.ExpandProposals[0].Kind == RoomKind.Gate && cg.ExpandProposals.Count == 1, "a friend's gate goes to the vote on both screens");
+        g.CastExpandVote(2);
+        typeof(Game).GetMethod("ResolveBuildRound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(g, null);
+        Run(s, dt, 0.5f, () => cg.GateFits.Count == 1);
+        Check(g.GateFits.Count == 1 && cg.GateFits.Count == 1 && g.Players[2].Vectors == 2, "the winning gate is fitted on both screens and its proposer pays");
+        foreach (var gg in new[] { g, cg }) gg.RoomsUp = true;
+        Check(g.GateLive(0) && g.GateShut(0) == 0f && g.PushOutOfSolids(door.Pos, 14f).DistanceTo(door.Pos) < 0.5f, "open, the doorway is free");
+        foreach (var gg in new[] { g, cg }) foreach (var p in gg.Players.Values) if (p.Id == 2) p.Pos = p.Disp = door.Pos + new V2(-80f, 0f);
+        Run(s, dt, 0.3f);  // (the host hears where the friend now stands)
+        cg.UseGate();
+        Run(s, dt, 0.5f, () => cg.GateShut(0) > 0f);
+        Check(g.GateShut(0) > 7f && cg.GateShut(0) > 7f, "a friend by it shuts it: shut on both screens (" + g.GateShut(0).ToString("0.0") + " s)");
+        V2 pushed = g.PushOutOfSolids(door.Pos + new V2(-3f, 0f), 14f);
+        Check(pushed.DistanceTo(door.Pos) > 20f && pushed.X < door.Pos.X, "shut, it's a wall: someone in the doorway is put back out the side they came from");
+        cg.UseGate();
+        Run(s, dt, 0.3f);
+        Check(g.GateShut(0) < Gates.CloseTime - 0.2f, "shutting it again does nothing while it's shut");
+        Run(s, dt, Gates.CloseTime + 0.5f);
+        Check(g.GateShut(0) == 0f && g.GateCool(0) > 0f && g.PushOutOfSolids(door.Pos, 14f).DistanceTo(door.Pos) < 0.5f, "after 8 s it opens and recharges");
+        g.UseGate();
+        Run(s, dt, 0.3f);
+        Check(g.GateShut(0) == 0f, "it can't be shut again until it has recharged");
+
+        // Steering: with a loop round the gated door, an enemy heads for the other way round while it's shut.
+        var loop = new List<ExpansionRoom>();
+        var eastL = Expansion.Custom(loop, 1600, 100, 800, 800, out why).Value; loop.Add(eastL);
+        var southL = Expansion.Custom(loop, 1100, 900, 1200, 400, out why);
+        Check(southL.HasValue, "a loop room fits" + (why != null ? " (" + why + ")" : ""));
+        if (!southL.HasValue) return;
+        loop.Add(southL.Value);
+        foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Expanded.AddRange(loop); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(gg, null); gg.RoomsUp = true; }
+        var lw = g.ExpansionWorld;
+        int hubEast = Array.FindIndex(lw.Doors, d => d.Vertical && Math.Abs(d.Pos.X - 1600f) < 1f);
+        var gd = lw.Doors[hubEast];
+        g.GateFits.Clear(); g.GateFits.Add(Gates.Of(gd));
+        var steer = typeof(Game).GetMethod("SteerDir", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        V2 from = gd.Pos + new V2(-260f, 0f), to = gd.Pos + new V2(300f, 0f);
+        Func<int, V2> ask = key => (V2)steer.Invoke(g, new object[] { key, from, 0f, 14f, to, (to - from).Normalized() });
+        V2 open = ask(9001);
+        typeof(Game).GetMethod("SyncGateClocks", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(g, null);
+        ((List<float>)typeof(Game).GetField("gateShut", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(g))[0] = 5f;
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        V2 shutDir = ask(9002);
+        long ms = sw.ElapsedMilliseconds;
+        Check(open.X > 0.7f, "open, an enemy walks straight through the door (" + open.X.ToString("0.00") + ", " + open.Y.ToString("0.00") + ")");
+        Check(shutDir.Y > 0.5f, "shut, it heads the other way round, for the south room's door (" + shutDir.X.ToString("0.00") + ", " + shutDir.Y.ToString("0.00") + ", route worked out in " + ms + " ms)");
+        Check(g.ActiveLayout.Solids.Length < ((Arena.LayoutDef)typeof(Game).GetProperty("SteerLayout", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(g)).Solids.Length, "the drawn floor plan doesn't change (only steering sees the gate)");
+    }
+
     // Portal links (Docs/RoomBuilding2.md step 2): a portal pair between two rooms, priced by the walking it saves, voted, synced.
     static void ExpandingLinksTest(float dt)
     {
@@ -894,6 +968,68 @@ static partial class Program
         Check(cg.ExpansionWorld.Doors.Count(d => d.Width == 300f) == 2, "and the client's map has the open corners");
     }
 
+    // Drawn outlines (Expansion.Outline): corners on the grid become a room of boxes joined open, priced by new wall, sent to the vote and built.
+    static void ExpandingOutlineTest(float dt)
+    {
+        string why;
+        var none = new List<ExpansionRoom>();
+        System.Func<int[], List<int[]>> P = xy => { var pl = new List<int[]>(); for (int i = 0; i < xy.Length; i += 2) pl.Add(new[] { xy[i], xy[i + 1] }); return pl; };
+        // A plain box drawn as four corners: one box, priced like the same box drawn the old way.
+        var box = Expansion.Outline(none, P(new[] { 0, -600, 800, -600, 800, 0, 0, 0 }), PathId.None, out why);
+        Check(box != null && box.Count == 1 && box[0].Parent == 0 && box[0].Price == Expansion.Cost(none, 0, -600, 800, 600), "four corners on the hub's wall make one box at the box's price (" + why + ")");
+        // An L above the hub: 6 wide at the bottom, an arm going up on the left. A straight-on corner in the middle of a wall is fine.
+        var ell = P(new[] { 0, 0, 300, 0, 600, 0, 600, -400, 300, -400, 300, -1000, 0, -1000 });
+        var l = Expansion.Outline(none, ell, PathId.None, out why);
+        Check(l != null && l.Count == 2 && l[0].Leg == 0 && Expansion.IsPiece(l[1]) && l[1].Parent == 1 && l[1].Price == 0, "an L is two boxes: the one on the hub, then a piece joined to it (" + why + ")");
+        if (l == null) return;
+        Check(l[0].Price == 2 * (600 + 1000) / 100 - 6 && Expansion.FloorTiles(l[0], l.GetRange(1, 1)) == 6 * 4 + 3 * 6, "it costs its new wall: the outline less the 6 tiles on the hub (" + l[0].Price + ")");
+        var lw = Expansion.Build(l);
+        int seam = System.Array.FindIndex(lw.Doors, d => d.Joins(1) && d.Joins(2));
+        Check(seam >= 0 && lw.Doors[seam].W == 300f && lw.Seam(seam), "its seam is open the full width and counts as a seam");
+        Check(lw.Areas[1].Group != 0 && lw.Areas[1].Group == lw.Areas[2].Group && !lw.Areas[1].Hall && !lw.Areas[2].Hall && lw.Areas[0].Group == 0, "both boxes are one room (a group), not hallways");
+        float rimLen = lw.Rim(1, 0f).Concat(lw.Rim(2, 0f)).Sum(e => e[0].DistanceTo(e[1]));
+        Check(System.Math.Abs(rimLen - 3200f) < 1f, "its rim runs round the L, not across the seam (" + rimLen + " px)");
+        var inset = lw.Rim(1, 18f).Concat(lw.Rim(2, 18f)).ToList();
+        Check(inset.All(e => lw.Areas[1].Contains(e[0]) || lw.Areas[2].Contains(e[0])) && System.Math.Abs(inset.Sum(e => e[0].DistanceTo(e[1])) - (3200f - 8f * 18f)) < 1f, "pulled in 18 px it stays inside and closes up at the corners");
+        Check(Expansion.BoughtCount(l) == 1 && Expansion.ConnectedAreas(l).All(c => c), "it counts as one room, and both boxes are on the map");
+        // A U on the hub's north wall, three wide everywhere: three boxes.
+        var u = Expansion.Outline(none, P(new[] { 0, 0, 300, 0, 300, -600, 900, -600, 900, 0, 1200, 0, 1200, -900, 0, -900 }), PathId.None, out why);
+        Check(u != null && u.Count == 3, "a U is three boxes (" + why + ")");
+        // Refusals.
+        Check(Expansion.Outline(none, P(new[] { 0, 0, 200, 0, 200, -600, 0, -600 }), PathId.None, out why) == null && why.Contains("thin"), "2 tiles wide is too thin: " + why);
+        Check(Expansion.Outline(none, P(new[] { 0, 0, 600, -600, 0, -600, 0, -300 }), PathId.None, out why) == null, "a slanted wall is refused: " + why);
+        Check(Expansion.Outline(none, P(new[] { 0, 0, 900, 0, 900, -900, 300, -900, 300, 300, 600, 300, 600, -600, 0, -600 }), PathId.None, out why) == null && why.Contains("cross"), "walls that cross are refused: " + why);
+        Check(Expansion.Outline(none, P(new[] { 200, 100, 800, 100, 800, -600, 200, -600 }), PathId.None, out why) == null && why.Contains("Overlaps"), "an outline over the hub is refused: " + why);
+        Check(Expansion.Outline(none, P(new[] { 0, -1000, 600, -1000, 600, -400, 0, -400 }), PathId.None, out why) == null && why.Contains("share"), "one off the map is refused: " + why);
+        Check(Expansion.Outline(none, P(new[] { 0, 0, 1300, 0, 1300, -1300, 0, -1300 }), PathId.None, out why) == null && why.Contains("big"), "more than " + Expansion.MaxArea / 10000 + " tiles of floor is refused: " + why);
+        var themed = Expansion.Outline(none, ell, PathId.SwarmFields, out why);
+        Check(themed != null && themed.All(r => r.Kind == RoomKind.Floor && r.Floor == PathId.SwarmFields) && themed[0].Price == l[0].Price + Expansion.ThemeCost(PathId.SwarmFields), "a theme goes on every box and costs its extra once");
+
+        // In a run: a friend's outline goes to the vote as one card and is built whole on both screens.
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.ExpandOpen = true; }
+        g.Players[2].Vectors = l[0].Price - 1;
+        cg.ProposeExpandOutline(ell);
+        Run(s, dt, 0.5f, () => g.ExpandProposals.Count > 0);
+        Check(g.ExpandProposals.Count == 0, "an outline its drawer can't pay for is refused");
+        g.Players[2].Vectors = l[0].Price + 3;
+        cg.ProposeExpandOutline(ell);
+        Run(s, dt, 0.5f, () => cg.ExpandProposals.Count == 2);
+        Check(g.ProposalHeads.Count == 1 && cg.LegsOf(2).Count == 1 && Expansion.IsPiece(cg.LegsOf(2)[0]), "it goes to the vote as one proposal with its piece, on both screens");
+        g.CastExpandVote(2);
+        typeof(Game).GetMethod("ResolveBuildRound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(g, null);
+        Run(s, dt, 0.5f, () => cg.Expanded.Count == 2);
+        Check(g.Expanded.Count == 2 && cg.Expanded.Count == 2 && g.Players[2].Vectors == 3, "winning builds both boxes on both screens, and the drawer pays once (" + g.Players[2].Vectors + " left)");
+        Check(cg.ExpansionWorld.Doors.Count(d => d.Width == 300f) == 1, "and the client's map has the open seam");
+        Check(Expansion.GroupOf(g.Expanded, 1).Count == 2 && Expansion.HeadOf(g.Expanded, 1) == 0, "a box of it finds its whole room");
+    }
+
     // Balance (Docs/FloatingRooms.md step 5): what it costs to connect a floating room, against the vectors a player has.
     static void ExpandingFloatCostTest()
     {
@@ -983,9 +1119,9 @@ static partial class Program
         Check(offeredPlain == 0 && offeredExpanding > 0, "level-up offers hold a vector card only in the Expanding arena (" + offeredExpanding + " of 1200 cards)");
         p1.Vectors = 5;
         g.GrantUpgrade(1, inkwell);
-        Check(p1.VectorCap == Game.VectorCapBase + 10 && p1.Vectors == 5, "Deep Inkwell raises the cap by 10 and gives nothing now");
+        Check(p1.VectorCap == Game.VectorCapBase + 20 && p1.Vectors == 5, "Deep Inkwell raises the cap by 20 and gives nothing now");
         g.GrantUpgrade(1, architect);
-        Check(p1.VectorCap == Game.VectorCapBase + 30 && p1.Vectors == 15, "Architect raises it by 20 more and gives 10 vectors now (" + p1.VectorCap + ", " + p1.Vectors + ")");
+        Check(p1.VectorCap == Game.VectorCapBase + 60 && p1.Vectors == 25, "Architect raises it by 40 more and gives 20 vectors now (" + p1.VectorCap + ", " + p1.Vectors + ")");
         Run(s, dt, 0.6f);
         Check(cg.Players[1].VectorCap == p1.VectorCap && cg.Players[1].Vectors == p1.Vectors, "the client sees the new cap");
         g.Wave = 10; g.BossSlot = true;

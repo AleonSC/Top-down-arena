@@ -1,6 +1,6 @@
 # Room building, part 2: breaches, portals and fittings
 
-Status: **steps 1-2 built** (breach spawns, no protocol change; buyable portals, protocol 261); step 3 not started. Owner picked these three on Nov 10, 2026. Builds on [`VectorBuilding.md`](VectorBuilding.md) and
+Status: **steps 1-2 built** (breach spawns, no protocol change; buyable portals, protocol 261); step 3: the shutter gate built (protocol 274); the other fittings on hold. Owner picked these three on Nov 10, 2026. Builds on [`VectorBuilding.md`](VectorBuilding.md) and
 [`FloatingRooms.md`](FloatingRooms.md) (all built).
 
 ## Why
@@ -57,6 +57,20 @@ Status: **steps 1-2 built** (breach spawns, no protocol change; buyable portals,
   - **Trap floor**: a strip that slows and burns enemies.
   - **Shutter gate**: a door the team can close for 8 s (cooldown 30 s) to split a crowd.
 - Gives late-game use for vectors and turns rooms into planned defensive spots.
+
+### Built (step 3, protocol 274): the shutter gate only
+
+- Owner, Nov 11: "only do the door for now", the **Laser grid** look (B in `Docs/Mockups/room-fittings.html`). Turret, well and trap
+  are on hold: none of the mockup's looks fit, so they need new directions first.
+- `Core/Gates.cs`: a `RoomKind.Gate` proposal (`Msg.ExpandGate`, X, Y = the door, W = 1 for a vertical wall), 8 vectors, voted like a room;
+  plain doors only, one each, 6 at most. `GateFits` sync after the portal pairs in `Msg.ExpandState`.
+- Using it: G (the Take item key) within 150 px: `Msg.GateUse`; the host shuts it for 8 s with a 30 s cooldown and sends `Msg.GateState`;
+  every game runs the clocks down. Shut, it's a wall to everyone (`PushOutOfGates` in `PushOutOfSolids`, back out the side you came from);
+  shots pass. Steering routes round a shut gate (`SteerLayout`: the active plan plus a wall per shut gate, one copy per set of shut
+  gates, its corner graph built once), so enemies and bots take another door; with no other way they wait at it.
+- Look (`Game/GateLook.cs`): emitter posts at the door's ends, seven red beams filling the doorway in 0.4 s, a red field, a timer bar
+  that empties, flicker in the last 1.5 s, a recharge arc on the posts; the hint pill by it; Gate mode on the draw screen (gold squares on
+  the doors that can take one), its card and a red bar on the minimap.
 
 ## Build steps
 

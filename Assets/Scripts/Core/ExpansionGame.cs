@@ -66,7 +66,7 @@ namespace Arena
         /// Each player's drawing budget: 1 vector = 1 tile of new wall (Expansion.Cost). Start with VectorStart, hold up to VectorCap
         /// (VectorCapBase for now), +VectorWaveGain for each cleared wave, +1 every VectorKillEvery kills, and a cleared boss wave
         /// refills everyone to the cap and VectorBossBonus on top.
-        public const int VectorStart = 25, VectorCapBase = 35, VectorWaveGain = 4, VectorBossBonus = 10, VectorKillEvery = 15;
+        public const int VectorStart = 50, VectorCapBase = 70, VectorWaveGain = 8, VectorBossBonus = 20, VectorKillEvery = 8;
 
         /// Host: gains stop at the cap (a stock already above it, from a boss, is left alone).
         void AddVectors(Player p, int n)
@@ -292,7 +292,8 @@ namespace Arena
             if (!IsHost || !ExpandOpen || token < 0 || token >= RoomTokens.Count || !Expansion.CanRetype(Expanded, room, RoomTokens[token], out why))
                 return;
             var t = RoomTokens[token];
-            Expanded[room] = Expansion.Retype(Expanded[room], t);
+            foreach (int i in Expansion.GroupOf(Expanded, room))  // (a drawn outline's pieces all change: they are one room)
+                Expanded[i] = Expansion.Retype(Expanded[i], t);
             RoomTokens.RemoveAt(token);
             expWorld = null;
             Sounds.Add(Sfx.Pick);
@@ -307,6 +308,7 @@ namespace Arena
             Expanded.Clear();
             Openings.Clear();
             Links.Clear();
+            ResetGates();
             ExpandOpen = false;
             ExpandProposals.Clear();
             ExpandVotes.Clear();
@@ -487,6 +489,52 @@ namespace Arena
             FinishOrBroadcast();
         }
 
+        /// This game's player proposes a shutter gate on the door at `at` (Docs/RoomBuilding2.md step 3).
+        public void ProposeExpandGate(V2 at)
+        {
+            if (!ExpandOpen || Me == null)
+                return;
+            if (IsHost)
+            {
+                HostExpandGate(MyId, at);
+                return;
+            }
+            var pw = Proto.Begin(Msg.ExpandGate);
+            pw.Write((short)Math.Round(at.X)); pw.Write((short)Math.Round(at.Y));
+            session.SendToHost(Proto.End(pw));
+        }
+
+        public void OnExpandGate(int peer, BinaryReader r) => HostExpandGate(peer, new V2(r.ReadInt16(), r.ReadInt16()));
+
+        /// Host: a gate becomes its proposer's proposal (replacing theirs, and the votes it had), if the door can take one and they can pay.
+        void HostExpandGate(int id, V2 at)
+        {
+            Player p;
+            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
+                return;
+            string why;
+            if (!Gates.CanFit(ExpansionWorld, GateFits, at, out why) || Gates.Price > p.Vectors)
+            {
+                DoLog("gate refused (" + (why ?? "needs " + Gates.Price + " vectors, has " + p.Vectors) + ")");
+                return;
+            }
+            var prop = Gates.Proposal(Gates.Of(ExpansionWorld.Doors[Gates.DoorAt(ExpansionWorld, at)]));
+            prop.Owner = id;
+            int old = ExpandProposals.FindIndex(q => q.Owner == id);
+            if (old >= 0)
+            {
+                ExpandProposals[old] = prop;
+                foreach (int voter in new List<int>(ExpandVotes.Keys))
+                    if (ExpandVotes[voter] == id)
+                        ExpandVotes.Remove(voter);
+            }
+            else
+                ExpandProposals.Add(prop);
+            ExpandVotes.Remove(id);
+            DoLog(p.Name + " proposes a gate for " + Gates.Price + " vectors");
+            FinishOrBroadcast();
+        }
+
         /// This game's player proposes a portal pair between two rooms (it costs vectors, by the walking it saves).
         public void ProposeExpandLink(PortalLink l)
         {
@@ -570,6 +618,61 @@ namespace Arena
             FinishOrBroadcast();
         }
 
+        /// This game's player draws a room as an outline (corners on the 100 px grid, each {x, y}, walls straight across or up) and puts it to the vote.
+        public void ProposeExpandOutline(IList<int[]> points, PathId theme = PathId.None)
+        {
+            if (!ExpandOpen || Me == null || points == null || points.Count < 4 || points.Count > Expansion.MaxPoints)
+                return;
+            if (IsHost)
+            {
+                HostExpandOutline(MyId, points, theme);
+                return;
+            }
+            var pw = Proto.Begin(Msg.ExpandOutline);
+            pw.Write((byte)theme);
+            pw.Write((byte)points.Count);
+            foreach (var p in points)
+            {
+                pw.Write((short)p[0]); pw.Write((short)p[1]);
+            }
+            session.SendToHost(Proto.End(pw));
+        }
+
+        public void OnExpandOutline(int peer, BinaryReader r)
+        {
+            var theme = (PathId)r.ReadByte();
+            int n = r.ReadByte();
+            if (n > Expansion.MaxPoints)
+                return;
+            var points = new List<int[]>(n);
+            for (int i = 0; i < n; i++)
+                points.Add(new int[] { r.ReadInt16(), r.ReadInt16() });
+            HostExpandOutline(peer, points, theme);
+        }
+
+        /// Host: a drawn outline becomes its drawer's proposal (one head and its pieces), if it fits and they can pay.
+        void HostExpandOutline(int id, IList<int[]> points, PathId theme)
+        {
+            Player p;
+            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
+                return;
+            if (!Expansion.ThemeUnlocked(theme, Wave))
+            {
+                DoLog("proposal refused (the " + theme + " theme is still locked)");
+                return;
+            }
+            string why;
+            var made = Expansion.Outline(Expanded, points, theme, out why);
+            if (made == null || made[0].Price > p.Vectors)
+            {
+                DoLog("proposal refused (" + (why ?? "needs " + made[0].Price + " vectors, has " + p.Vectors) + ")");
+                return;
+            }
+            SetProposal(id, made);
+            DoLog(p.Name + " proposes a " + points.Count + "-corner room (" + made.Count + " boxes) for " + made[0].Price + " vectors");
+            FinishOrBroadcast();
+        }
+
         /// Host: once everyone has cast a vote the round is settled; until then everyone is told how it stands.
         void FinishOrBroadcast()
         {
@@ -623,7 +726,13 @@ namespace Arena
                 if (pick != 0)
                 {
                     var room = standing.Find(q => q.Owner == pick);
-                    if (room.Kind == Arena.RoomKind.Link)
+                    if (room.Kind == Arena.RoomKind.Gate)
+                    {
+                        GateFits.Add(Gates.FromProposal(room));
+                        Players[pick].Vectors -= room.Price;
+                        DoLog("gate fitted by " + Players[pick].Name + " for " + room.Price + " vectors");
+                    }
+                    else if (room.Kind == Arena.RoomKind.Link)
                     {
                         Links.Add(Expansion.LinkOf(room));
                         Players[pick].Vectors -= room.Price;
@@ -641,7 +750,7 @@ namespace Arena
                         var legs = LegsOf(pick);
                         Expanded.Add(room);
                         Expanded.AddRange(legs);  // (a bent hallway's other legs, right after the first)
-                        DoLog((legs.Count > 0 ? (legs.Count + 1) + "-leg hallway" : "room") + " built: " + room.W + " x " + room.H + " by " + Players[pick].Name + " for " + room.Price + " vectors");
+                        DoLog((legs.Count > 0 && Expansion.IsPiece(legs[0]) ? "drawn room of " + (legs.Count + 1) + " boxes" : legs.Count > 0 ? (legs.Count + 1) + "-leg hallway" : "room") + " built: " + room.W + " x " + room.H + " by " + Players[pick].Name + " for " + room.Price + " vectors");
                     }
                     expWorld = null;
                     LayoutAge = 0f;  // the new walls rise
@@ -868,6 +977,11 @@ namespace Arena
             {
                 w.Write(l.AX); w.Write(l.AY); w.Write(l.BX); w.Write(l.BY);
             }
+            w.Write((byte)GateFits.Count);
+            foreach (var g in GateFits)
+            {
+                w.Write(g.X); w.Write(g.Y); w.Write(g.Vertical);
+            }
             w.Write((byte)RoomTokens.Count);
             foreach (var t in RoomTokens)
             {
@@ -928,6 +1042,10 @@ namespace Arena
                 expWorld = null;
                 LayoutAge = 0f;
             }
+            int ng = r.ReadByte();
+            GateFits.Clear();
+            for (int i = 0; i < ng; i++)
+                GateFits.Add(new GateFit { X = r.ReadInt16(), Y = r.ReadInt16(), Vertical = r.ReadBoolean() });
             RoomTokens.Clear();
             int nt = r.ReadByte();
             for (int i = 0; i < nt; i++)
