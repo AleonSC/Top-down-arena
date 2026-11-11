@@ -523,7 +523,18 @@ static class Lab
         new Thread(SimLoop) { IsBackground = true }.Start();
         var ls = new TcpListener(IPAddress.Any, port);
         ls.Start();
-        Console.WriteLine("Wave Lab running: open http://localhost:" + port + "  (on a phone: http://<this machine's LAN address>:" + port + ")");
+        string lan = null;
+        try
+        {
+            foreach (var ni in System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces())
+            {
+                if (ni.OperationalStatus != System.Net.NetworkInformation.OperationalStatus.Up || ni.NetworkInterfaceType == System.Net.NetworkInformation.NetworkInterfaceType.Loopback) continue;
+                foreach (var ua in ni.GetIPProperties().UnicastAddresses)
+                    if (ua.Address.AddressFamily == AddressFamily.InterNetwork && lan == null) lan = ua.Address.ToString();
+            }
+        }
+        catch { }
+        Console.WriteLine("\n  Wave Lab is running.\n  This computer:  http://localhost:" + port + "\n  Phone (same Wi-Fi):  http://" + (lan ?? "<this computer's IP>") + ":" + port + "\n  Ctrl+C to stop.\n");
         for (;;)
         {
             var tc = ls.AcceptTcpClient();
