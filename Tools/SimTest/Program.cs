@@ -55,7 +55,7 @@ static partial class Program
     static int pickups;
     static bool clientSawOrbs;
 
-    static int nextPort = 7810;
+    static int nextPort = Environment.GetEnvironmentVariable("PORTBASE") != null ? int.Parse(Environment.GetEnvironmentVariable("PORTBASE")) : 7810;  // PORTBASE=n: parallel runs (BalanceGrid) each take their own ports
 
     // Shared setup for host + friend tests over localhost.
     // HostAs: host a match on `port` with `s` (pass `new Session { AutoStart = 2, StartWave = 3 }` etc.).
@@ -421,6 +421,7 @@ static partial class Program
         Report("rooms", "a duo of Good bots plays with challenge rooms on: how each room went (run.sh 1 1 rooms [last wave] [seed])", args => RoomsReport(Dt, Arg(args, 3, 30), Arg(args, 4, 1))),
         Report("wavemix", "what a regular wave is made of: shooters, melee and support, wave by wave", args => WaveMixReport()),
         Report("bulletcount", "enemy bullets on screen through a wave", args => BulletCountReport(Dt)),
+        Report("grid", "the balance grid: every role, class and weapon vs each listed boss (run.sh 1 1 grid <waves> [runs] [roles DTH] [skill] [classes]; Tools/BalanceGrid/grid.sh draws it)", args => BalanceGrid(args)),
         Report("dps", "every weapon's damage per second", args => WeaponDpsReport(Dt)),
         Report("weapondps", "every weapon's damage a second as the lobby shows it; \"write\" saves Defs.WeaponDps's table", args => MeasuredWeaponDps(Dt, args.Contains("write"))),
         Report("upgradecov", "which weapon upgrades each weapon ignores", args => UpgradeCoverageReport(Dt)),
