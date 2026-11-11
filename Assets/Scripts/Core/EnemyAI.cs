@@ -450,6 +450,7 @@ namespace Arena
                 foreach (var tick in Classes.EnemyHooks)  // each class's KitDef.TickEnemy
                     tick(this, e, dt);
                 e.Suppress = Math.Max(0f, e.Suppress - SuppressFade * dt);
+                KeepOutOfDuel(e);  // GatekeeperRoom.cs
                 if (e.SpawnT > 0f)
                 {
                     e.SpawnT -= dt;

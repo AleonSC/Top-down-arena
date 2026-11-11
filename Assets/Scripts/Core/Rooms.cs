@@ -622,10 +622,6 @@ namespace Arena
         int FoesOutsideVault()
         {
             int n = Foes();
-            if (ExpandingOn)
-                foreach (var e in Enemies.Values)
-                    if (IsDuelFoe(e))
-                        n--;
             if (VaultOn)
                 foreach (var e in Enemies.Values)
                     if (e.Home == Rooms.Vault)
