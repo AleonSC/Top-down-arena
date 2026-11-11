@@ -844,9 +844,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   colour. While a round is open the minimap and the draw screen show everyone's proposals as pulsing ghosts in their colours.
 - **Free building (the default)**: the lobby's **Free building / Team vote** pair (Difficulty tab, shown with the Expanding arena, host only) sets how it's built.
   With **Free building** there is no vote: a room, wall opening or portal pair is **built the moment you place it**, you pay for it (an opening pays you), and
-  anyone can build as many as they can afford in a round (the round window is just the draw screen; **Done** closes it). **Mid-wave you can open doors**: press **B**
-  ("[B] Open a door" under the build chips) for the draw screen in Open wall mode; new rooms and portals wait for the next break. Doors are off while a
-  Gatekeeper duel has its room locked. Bots still add one room a round, and only if nobody has built that round.
+  anyone can build as many as they can afford in a round (the round window is just the draw screen; **Done** closes it). **Nothing can be built mid-wave**: rooms, doors and portals all wait for the break between waves. Bots still add one room a round, and only if nobody has built that round.
   The lobby's **Team purse** toggle (any building mode, off by default) lets a build spend the whole team's vectors: the builder pays first, then the richest teammates; the chip and draw screen show the team total.
   **Team vote** keeps the rules below (proposals, one build a round, nothing mid-wave) for lobbies of strangers.
 - **The vote** (Team vote only): each player backs one proposal or "No room". Drawing a room doesn't cast your vote: until you click a card your

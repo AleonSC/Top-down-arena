@@ -76,13 +76,13 @@ namespace Arena
         /// Free building: anyone builds with their own vectors the moment they draw, any number of rooms a round.
         public bool FreeBuild => ExpandingOn && !BuildVoting;
 
-        /// Free building, outside a building round (a wave is on, or the map is full): only openings, so doors can go in mid-wave.
+        /// Free building, between waves but outside a building round (the map is full): only openings. Never mid-wave.
         /// Not while a Gatekeeper duel has its room locked.
         public bool DoorsOpen
         {
             get
             {
-                if (!FreeBuild || ExpandOpen || Practice != null || Hunt != null || (State != MatchState.Fighting && State != MatchState.Intermission))
+                if (!FreeBuild || ExpandOpen || Practice != null || Hunt != null || State != MatchState.Intermission)
                     return false;
                 for (int a = 1; a < ExpansionWorld.Areas.Length; a++)
                     if (AreaLocked(a))
@@ -91,7 +91,7 @@ namespace Arena
             }
         }
 
-        /// A wall can be opened now: in a building round, or (free building) mid-wave.
+        /// A wall can be opened now: in a building round, or (free building, full map) between waves.
         public bool CanCut => ExpandOpen || DoorsOpen;
 
         int expandSeed;
