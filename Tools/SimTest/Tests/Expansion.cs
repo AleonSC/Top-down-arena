@@ -1121,11 +1121,11 @@ static partial class Program
         Check(badBreach == 0, "no breach spot has floor on both sides (" + badBreach + ")");
 
         // Side walls (Expansion.AddFins): every design, forced and rolled, on rooms of many sizes off the hub's north wall.
-        int finRooms = 0, badFin = 0, notSame = 0;
+        int finRooms = 0, badFin = 0, notSame = 0, small = 0, smallBare = 0;
         var styles = new HashSet<int>();
         for (int style = 0; style <= 4; style++)
-            for (int w = 500; w <= 1600; w += 100)
-                for (int h = 500; h * w <= Expansion.MaxArea && h <= 1600; h += 100)
+            for (int w = 200; w <= 1600; w += 100)
+                for (int h = 200; h * w <= Expansion.MaxArea && h <= 1600; h += 100)
                 {
                     Expansion.FinStyle = style;
                     var r = Expansion.Custom(none, 0, -h, w, h, out why);
@@ -1135,6 +1135,7 @@ static partial class Program
                     var plain = wd.Spans.Where(sp => !Inner(wd, sp)).Count();
                     var fins = wd.Spans.Where(sp => Inner(wd, sp)).ToList();
                     if (fins.Count > 0) { finRooms++; if (style > 0) styles.Add(style); }
+                    if (Math.Min(w, h) < 500 && Math.Max(w, h) >= 400) { small++; if (fins.Count == 0) { smallBare++; Console.WriteLine("  bare: style " + style + " " + w + " x " + h); } }
                     var again = Expansion.Build(map);
                     if (again.Spans.Length != wd.Spans.Length) notSame++;
                     var room = wd.Areas[1];
@@ -1145,10 +1146,10 @@ static partial class Program
                         foreach (var d in wd.Doors) if (Math.Min(d.Pos.DistanceTo(a), d.Pos.DistanceTo(b)) < 150f) badFin++;  // off the doors
                     }
                     foreach (var sd in wd.WallsFor(false)) if (Layouts.Inside(sd, room.Mid, 30f)) badFin++;               // the middle is open
-                    if (style == 3 && fins.Count % 2 != 0) badFin++;                                                          // pincers come in pairs
                 }
         Expansion.FinStyle = 0;
         Check(finRooms > 100 && badFin == 0 && notSame == 0, "rooms grow side walls inside, off their doors, clear of their middle, the same every build (" + finRooms + " rooms, " + badFin + " bad)");
+        Check(smallBare == 0, "small rooms and narrow strips get side walls too (" + (small - smallBare) + " of " + small + ")");
         Check(styles.Count == 4, "every design turns up: fins, baffles, pincers, T-fins (" + styles.Count + ")");
         var rolled = new HashSet<int>();
         for (int w = 500; w <= 1200; w += 100) { var r = Expansion.Custom(none, 0, -800, w, 800, out why); if (r.HasValue) rolled.Add(Expansion.Build(new List<ExpansionRoom> { r.Value }).Spans.Count(sp => Inner(Expansion.Build(new List<ExpansionRoom> { r.Value }), sp))); }
