@@ -210,6 +210,8 @@ namespace Arena
             {
                 if (!ExpandingOn)
                     OfferPaths();  // after a boss: two paths for the next stretch (the Expanding arena has no paths)
+                else
+                    GiveSurpriseRoom();  // ...but a free, well-shaped room that closes a loop (ExpansionGame.cs, Docs/SurpriseRooms.md)
             }
             else if (ServiceRooms && RoomsOn && !ShopOpen && Practice == null && Hunt == null)
                 OpenShopRoom(Wave % Expansion.Milestone == 1 && FirstLeg);  // a connected shop or vendor room: open each intermission (walk in); the shelf is new once a boss cycle

@@ -85,4 +85,35 @@ static partial class Program
         for (int i = 0; i < Expansion.MaxRooms; i++) full.Add(new ExpansionRoom { Parent = 0, X = 10000 + i * 400, Y = 0, W = 300, H = 300 });
         Check(Expansion.Surprise(1, 10, full, SurpriseShape.Ring, out why) == null && why != null, "a full map gets no surprise room: " + why);
     }
+
+    // In a run (step 2): the host gives a surprise room, both screens get it free with its flag, the look's clock starts, and the world's areas carry the flag.
+    static void ExpandingSurpriseGameTest(float dt)
+    {
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); }
+        g.BossSlot = true; g.State = MatchState.Intermission;  // (a boss just cleared)
+        Run(s, dt, 1f, () => cg.State == MatchState.Intermission && cg.BossNow);
+        int vec = g.Players[1].Vectors;
+        var give = typeof(Game).GetMethod("GiveSurpriseRoom", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        give.Invoke(g, null);
+        Run(s, dt, 1f, () => cg.Expanded.Count == g.Expanded.Count && g.Expanded.Count > 0);
+        var sur = g.Expanded.Where(r => r.Surprise > 0).ToList();
+        Check(sur.Count > 0 && sur.All(r => r.Price == 0) && Game.SurpriseCount(g.Expanded) == 1, "the host gives one free surprise room (" + sur.Count + " boxes)");
+        Check(cg.Expanded.Count == g.Expanded.Count && cg.Expanded.Where(r => r.Surprise > 0).Count() == sur.Count, "it reaches the client with its flag");
+        Check(g.Players[1].Vectors == vec && g.SurpriseKind == sur[0].Surprise && cg.SurpriseKind == g.SurpriseKind && cg.SurpriseAge < 2f, "nobody pays, and both screens start the build-in and the chip (vec " + g.Players[1].Vectors + "/" + vec + ", kind " + g.SurpriseKind + "/" + cg.SurpriseKind + ", age " + cg.SurpriseAge + ")");
+        Check(g.SurpriseFresh && g.ExpansionWorld.Areas.Count(a => a.Surprise > 0) == sur.Count, "the world's areas carry the flag, and it is fresh this wave");
+        give.Invoke(g, null);
+        Check(Game.SurpriseCount(g.Expanded) == 2 && g.Expanded.Where(r => r.Leg == 0 && r.Surprise > 0).Select(r => r.Surprise).Distinct().Count() == 2, "the next one is another shape");
+        // Not on a full map.
+        while (Expansion.BoughtCount(g.Expanded) <= Expansion.MaxRooms - 2) g.Expanded.Add(new ExpansionRoom { Parent = 0, X = 20000 + g.Expanded.Count * 400, Y = 0, W = 300, H = 300 });
+        int before = g.Expanded.Count;
+        give.Invoke(g, null);
+        Check(g.Expanded.Count == before, "a map within two rooms of full gets none");
+    }
 }

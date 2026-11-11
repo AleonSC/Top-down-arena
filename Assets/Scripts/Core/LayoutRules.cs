@@ -121,6 +121,7 @@ namespace Arena
         void TickLayout(float dt)
         {
             LayoutAge += dt;
+            SurpriseAge += dt;  // (ExpansionGame.cs)
         }
 
         // --- Walking and shots ----------------------------------------------------------------------

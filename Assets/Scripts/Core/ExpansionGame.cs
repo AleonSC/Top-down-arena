@@ -320,6 +320,56 @@ namespace Arena
             }
         }
 
+        // --- Surprise rooms (Docs/SurpriseRooms.md) --------------------------------------------------------------
+
+        /// Seconds since the last surprise room appeared (every game, for the look), the wave it came in, and its shape + 1.
+        public float SurpriseAge = 99f;
+        public int SurpriseWave = -1;
+        public byte SurpriseKind;
+
+        /// Its rooms stay gold on the minimap for the rest of the wave they came in.
+        public bool SurpriseFresh => SurpriseKind > 0 && Wave <= SurpriseWave;
+
+        public static int SurpriseCount(IList<ExpansionRoom> rooms)
+        {
+            int n = 0;
+            foreach (var r in rooms)
+                if (r.Surprise > 0 && r.Leg == 0)
+                    n++;
+            return n;
+        }
+
+        void NoteSurprise(byte kind)
+        {
+            SurpriseAge = 0f;
+            SurpriseWave = Wave;
+            SurpriseKind = kind;
+        }
+
+        /// Host, when a boss is cleared: the map gets a free, well-shaped room that closes a loop (Expansion.Surprise). The shape rotates
+        /// through the five from a seeded start. Nothing on a full map or without a spot.
+        void GiveSurpriseRoom()
+        {
+            if (!IsHost || !ExpandingOn || Practice != null || Hunt != null || (Wave >= MaxWave && !Endless) || Expansion.BoughtCount(Expanded) > Expansion.MaxRooms - 2)
+                return;
+            int shapes = Enum.GetValues(typeof(SurpriseShape)).Length;
+            var shape = (SurpriseShape)(int)(((uint)expandSeed % (uint)shapes + (uint)SurpriseCount(Expanded)) % (uint)shapes);
+            string why;
+            var pick = Expansion.Surprise(expandSeed, Wave, Expanded, shape, out why);
+            if (!pick.HasValue)
+            {
+                DoLog("no surprise room: " + why);
+                return;
+            }
+            Expanded.AddRange(pick.Value.Rooms);
+            expWorld = null;
+            LayoutAge = 0f;
+            NoteSurprise(pick.Value.Rooms[0].Surprise);
+            Sounds.Add(Sfx.Pick);
+            DoLog("surprise room: " + Expansion.SurpriseName(pick.Value.Shape) + " of " + pick.Value.Rooms.Count + " boxes at " + pick.Value.Rooms[0].X + "," + pick.Value.Rooms[0].Y + ", closes " + pick.Value.Loops + " loops");
+            BroadcastExpansion();
+        }
+
         /// Host: the team gains a room kit (at most Expansion.MaxTokens held).
         void GrantRoomToken(RoomToken t)
         {
@@ -1079,6 +1129,7 @@ namespace Arena
                 w.Write((short)r.Owner);
                 w.Write(r.Floating);
                 w.Write(r.Leg);
+                w.Write(r.Surprise);
             }
         }
 
@@ -1095,6 +1146,7 @@ namespace Arena
                 room.Owner = r.ReadInt16();
                 room.Floating = r.ReadBoolean();
                 room.Leg = r.ReadByte();
+                room.Surprise = r.ReadByte();
                 list.Add(room);
             }
             return list;
@@ -1147,10 +1199,13 @@ namespace Arena
                 changed |= !rooms[i].Equals(Expanded[i]);
             if (changed)
             {
+                int before = SurpriseCount(Expanded);
                 Expanded.Clear();
                 Expanded.AddRange(rooms);
                 expWorld = null;
                 LayoutAge = 0f;
+                if (SurpriseCount(Expanded) > before && BossNow && State == MatchState.Intermission)
+                    NoteSurprise(Expanded[Expanded.Count - 1].Surprise);  // (the host's gift, just after a boss: the build-in and the chip; a joiner mid-run gets the rooms quietly)
             }
             int nc = r.ReadByte();
             var cuts = new List<WallCut>(nc);

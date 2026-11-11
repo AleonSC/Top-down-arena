@@ -1,6 +1,6 @@
 # Surprise rooms: free, well-shaped rooms the map gets after a boss or a breach event
 
-Status: **step 1 built** (shapes, `Expansion.Surprise` placement, tests; no triggers or look yet, no protocol change). Decided with the owner on Nov 11, 2026. Builds on [`VectorBuilding.md`](VectorBuilding.md)
+Status: **steps 1-2 built** (shapes and placement; the boss trigger, `Surprise` flag on the wire (protocol 282), gold look and chip). The breach event (step 3) is not built. Decided with the owner on Nov 11, 2026. Builds on [`VectorBuilding.md`](VectorBuilding.md)
 and [`RoomBuilding2.md`](RoomBuilding2.md) (breaches). Expanding arena only.
 
 ## Decisions (owner)
@@ -75,10 +75,23 @@ If nothing scores (the map is full or no spot fits), a smaller shape is tried, t
 
 One bump: the `Surprise` flag in the room list (snapshot/`ExpandState`) and the event state for the gold breach reveal.
 
+## Step 2 (built, protocol 282)
+
+- `GiveSurpriseRoom` (`ExpansionGame.cs`) runs when a boss is cleared (`Waves.cs`, where the Classic arena offers paths), before the build round opens. The shape
+  rotates: a seeded start (`expandSeed % 5`) plus the surprise rooms already built. Skipped in Practice and Boss Hunts, after the last wave, and when the map is within
+  2 rooms of `MaxRooms`; no spot just logs "no surprise room".
+- `ExpansionRoom.Surprise` (1 + `SurpriseShape`, on every box, 0: none) goes over the wire with the rooms (`WriteRooms`, so `Msg.ExpandState` and proposals) and into saves
+  (`room` line, an optional 12th number); `RoomArea.Surprise` carries it into the built world.
+- Clients notice a new surprise room in `ReadExpandState` (the rooms grew while it is the intermission after a boss) and start the same clock the host does:
+  `SurpriseAge`, `SurpriseWave`, `SurpriseKind` (`SurpriseFresh`: gold until the next wave starts). A joiner mid-run gets the rooms without the chip.
+- Look (`Game/SurpriseLook.cs`, `RoomsLook.cs`): a gold flash and a scan line down each box over 1.5 s, a gold rim round the whole room (fainter once the wave is over),
+  gold on the minimap while fresh, and the chip (SURPRISE ROOM, the shape's name, FREE) for 4.5 s. Cover is not added: every box is a 3-wide lane, so none qualified already.
+- Preview: `EXPANDMAP=3 EXPANDSURPRISE=ring|cross|l|t|chamfer [SURPRISEAGE=<s>] ZOOM=0.4 Tools/Preview/shot.sh x hud`. Tests: `ExpandingSurpriseTest`, `ExpandingSurpriseGameTest`.
+
 ## Build steps
 
 1. (built) Shapes + `Surprise` + tests (each shape legal, 3-tile minimum, deterministic, never overlaps, closes loops when it can).
-2. Boss trigger + sync + gold look + banner; previews for all five shapes.
+2. (built) Boss trigger + sync + gold look + banner; previews for all five shapes.
 3. Breach event trigger and reveal; balance pass with `vecbal` bots (does it lift the wave where bots die?).
 
 ## Open questions (defaults in bold)

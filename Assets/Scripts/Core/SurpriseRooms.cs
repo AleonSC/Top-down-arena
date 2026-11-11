@@ -139,7 +139,7 @@ namespace Arena
                                     continue;
                                 var opt = new SurpriseOption { Rooms = made, Shape = shape };
                                 for (int p = 0; p < made.Count; p++)
-                                    made[p] = Free(made[p]);
+                                    made[p] = Free(made[p], shape);
                                 int touched = 0;
                                 for (int b = 0; b <= built.Count; b++)
                                 {
@@ -170,9 +170,10 @@ namespace Arena
             return sorted;
         }
 
-        static ExpansionRoom Free(ExpansionRoom r)
+        static ExpansionRoom Free(ExpansionRoom r, SurpriseShape shape)
         {
             r.Price = 0;
+            r.Surprise = (byte)(1 + (int)shape);
             return r;
         }
 
