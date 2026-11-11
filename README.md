@@ -815,6 +815,7 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   next wave starts, **the most votes wins, a tie (a 50/50) is a random pick** (with "No room" as one of the
   tied options), and the winning drawer pays; nobody else does. One room is built a round, with a door to every room it
   shares a door's width of wall with (loops). Paths are off in this arena.
+  **Solo players skip the vote**: your proposal is built the moment you make it.
 - **Floating rooms**: every boss cycle the game places a **shop**, a **vendor** and a **Gatekeeper** room 4 to 8 tiles
   off the map, each a sealed box with no door, marked on the arena floor, the minimap and the draw screen. Draw a room or hallway that shares 3
   tiles of wall with one and its door opens (a box touching only a floating room is refused: it must also touch the connected map). Bots build to them too. At most 6
