@@ -115,12 +115,29 @@ namespace Arena
                 return;
             }
             RoundBackdrop(PathDim);  // (RoundWindows.cs)
-            CrtUi.Title(new Rect(0, 22f, W, 56f), "BUILD THE ARENA", 52, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
+            // One big phosphor screen in a blue bezel (look B of Docs/Mockups/crt-build-arena.html).
+            CrtKit.LoadoutBox(new Rect(30f, 12f, W - 60f, H - 24f));
+            var S = new Rect(42f, 24f, W - 84f, H - 48f);
+            CrtUi.Begin(S);
             bool voted = game.ExpandVotes.ContainsKey(game.MyId);
             int backing = game.EffectiveVote(game.MyId);
             var props = game.ProposalHeads;
-            Ui.Label(new Rect(0, 80f, W, 20f), "Your vectors " + me.Vectors + " / " + me.VectorCap + "  ·  " + game.Expanded.Count + " room" + (game.Expanded.Count == 1 ? "" : "s") + " so far  ·  most votes wins, a tie is a coin flip  ·  the wave starts in " + Mathf.CeilToInt(game.StateTimer) + " s", 13, Ui.Muted, TextAnchor.MiddleCenter);
-            float gap = 30f, cw = Mathf.Min(370f, (W - 80f - (props.Count - 1) * gap) / Mathf.Max(1, props.Count)), ch = 452f, y = 118f;
+            int secs = Mathf.CeilToInt(game.StateTimer);
+            var dim = CrtUi.Dim;
+            // The status strip: vote lamp, vectors and rooms, the wave countdown.
+            float sy = S.y + 8f;
+            bool lampOn = calm || Mathf.Repeat(t, 1.2f) < 0.6f;
+            CrtUi.Text(new Rect(S.x + 20f, sy, 200f, 20f), (lampOn ? "● " : "  ") + "VOTE OPEN", 15, lampOn ? new Color(1f, 0.36f, 0.36f) : dim, TextAnchor.MiddleLeft, false, calm);
+            CrtUi.Text(new Rect(S.x, sy, S.width, 20f), "VECTORS " + me.Vectors + " / " + me.VectorCap + "  ·  ROOMS " + game.Expanded.Count, 15, dim, TextAnchor.MiddleCenter, false, calm);
+            CrtUi.Text(new Rect(S.xMax - 220f, sy, 200f, 20f), "WAVE IN " + secs / 60 + ":" + (secs % 60).ToString("00"), 15, secs <= 5 ? Ui.Gold : dim, TextAnchor.MiddleRight, false, calm);
+            Ui.Fill(new Rect(S.x + 20f, sy + 24f, S.width - 40f, 1f), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.28f));
+            // The title with a blinking block cursor.
+            const string heading = "BUILD THE ARENA";
+            CrtUi.Title(new Rect(S.x, S.y + 38f, S.width, 54f), heading, 50, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
+            if (calm || Mathf.Repeat(t, 1f) < 0.5f)
+                Ui.Fill(new Rect(S.center.x + CrtUi.TitleWidth(heading, 50) / 2f + 8f, S.y + 54f, 20f, 26f), CrtUi.Ink);
+            Ui.Label(new Rect(S.x, S.y + 92f, S.width, 20f), "Most votes wins, a tie is a coin flip", 13, Ui.Muted, TextAnchor.MiddleCenter);
+            float gap = 30f, cw = Mathf.Min(370f, (S.width - 80f - (props.Count - 1) * gap) / Mathf.Max(1, props.Count)), ch = 452f, y = S.y + 118f;
             float x0 = W / 2f - (props.Count * cw + (props.Count - 1) * gap) / 2f;
             if (props.Count == 0)
                 Ui.Label(new Rect(0, y + 180f, W, 40f), "No proposals yet. Draw a room or hallway and put it to the team.", 20, Ui.Muted, TextAnchor.MiddleCenter);
@@ -130,23 +147,28 @@ namespace Arena
                 if (DrawProposalCard(r, props[i], backing == props[i].Owner, t, calm))
                     game.CastExpandVote(props[i].Owner);
             }
-            float by = y + ch + 12f;
+            // The keys in one row: room kits (when you hold any), draw, no room, decide later.
+            float by = y + ch + 10f;
             bool mineDrawn = game.ProposalOf(game.MyId).HasValue;
-            if (CrtUi.SoftKey(new Rect(W / 2f - 450f, by, 440f, 34f), mineDrawn ? "REDRAW YOUR ROOM" : "DRAW A ROOM", null, 22, calm))
+            bool kits = game.RoomTokens.Count > 0;
+            int nk = kits ? 4 : 3;
+            float kg = 14f, kw = Mathf.Min(300f, (S.width - 80f - (nk - 1) * kg) / nk), kx = W / 2f - (nk * kw + (nk - 1) * kg) / 2f;
+            int slot = 0;
+            if (kits && CrtUi.SoftKey(new Rect(kx + slot++ * (kw + kg), by, kw, 34f), "ROOM KITS  ·  " + game.RoomTokens.Count, null, 20, calm))
+            {
+                expModify = true; expKit = 0;
+            }
+            if (CrtUi.SoftKey(new Rect(kx + slot++ * (kw + kg), by, kw, 34f), mineDrawn ? "REDRAW YOUR ROOM" : "DRAW A ROOM", null, 20, calm))
             {
                 expDrawing = true; expDragging = false;
                 expA = expB = V2.Zero;
                 expLegs.Clear();
             }
             bool skip = voted && backing == 0;
-            if (CrtUi.SoftKey(new Rect(W / 2f + 10f, by, 440f, 34f), "NO ROOM" + (skip ? "  ✓" : ""), null, 22, calm, lit: skip))
+            if (CrtUi.SoftKey(new Rect(kx + slot++ * (kw + kg), by, kw, 34f), "NO ROOM" + (skip ? "  ✓" : ""), null, 20, calm, lit: skip))
                 game.CastExpandVote(0);
-            if (CrtUi.SoftKey(new Rect(W - 270f, 28f, 220f, 32f), "DECIDE LATER", null, 18, calm))
+            if (CrtUi.SoftKey(new Rect(kx + slot++ * (kw + kg), by, kw, 34f), "DECIDE LATER", null, 20, calm))
                 expOpen = false;
-            if (game.RoomTokens.Count > 0 && CrtUi.SoftKey(new Rect(50f, 28f, 260f, 32f), "ROOM KITS  ·  " + game.RoomTokens.Count, null, 18, calm))
-            {
-                expModify = true; expKit = 0;
-            }
             int waiting = 0;
             foreach (int id in game.Players.Keys)
                 if (!game.ExpandVotes.ContainsKey(id))
@@ -156,6 +178,7 @@ namespace Arena
                 : ownDrawn ? "Your room counts as your vote. Click a card to back another, or click yours to lock it in"
                 : props.Count > 0 ? "Vote for a room, or draw your own" : "Nothing to vote on yet";
             Ui.Label(new Rect(0, by + 40f, W, 22f), msg, 14, !voted && !ownDrawn && props.Count > 0 ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
+            CrtUi.End(S, t, calm);
         }
 
         /// The room kit screen (Docs/RoomModifiers.md): pick a kit, then click a plain room on the map to turn it into a Shop or Floor room.
