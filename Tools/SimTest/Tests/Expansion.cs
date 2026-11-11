@@ -826,6 +826,31 @@ static partial class Program
         g.UseGate();
         Run(s, dt, 0.3f);
         Check(g.GateShut(0) == 0f, "it can't be shut again until it has recharged");
+
+        // Steering: with a loop round the gated door, an enemy heads for the other way round while it's shut.
+        var loop = new List<ExpansionRoom>();
+        var eastL = Expansion.Custom(loop, 1600, 100, 800, 800, out why).Value; loop.Add(eastL);
+        var southL = Expansion.Custom(loop, 1100, 900, 1200, 400, out why);
+        Check(southL.HasValue, "a loop room fits" + (why != null ? " (" + why + ")" : ""));
+        if (!southL.HasValue) return;
+        loop.Add(southL.Value);
+        foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Expanded.AddRange(loop); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(gg, null); gg.RoomsUp = true; }
+        var lw = g.ExpansionWorld;
+        int hubEast = Array.FindIndex(lw.Doors, d => d.Vertical && Math.Abs(d.Pos.X - 1600f) < 1f);
+        var gd = lw.Doors[hubEast];
+        g.GateFits.Clear(); g.GateFits.Add(Gates.Of(gd));
+        var steer = typeof(Game).GetMethod("SteerDir", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        V2 from = gd.Pos + new V2(-260f, 0f), to = gd.Pos + new V2(300f, 0f);
+        Func<int, V2> ask = key => (V2)steer.Invoke(g, new object[] { key, from, 0f, 14f, to, (to - from).Normalized() });
+        V2 open = ask(9001);
+        typeof(Game).GetMethod("SyncGateClocks", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(g, null);
+        ((List<float>)typeof(Game).GetField("gateShut", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(g))[0] = 5f;
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        V2 shutDir = ask(9002);
+        long ms = sw.ElapsedMilliseconds;
+        Check(open.X > 0.7f, "open, an enemy walks straight through the door (" + open.X.ToString("0.00") + ", " + open.Y.ToString("0.00") + ")");
+        Check(shutDir.Y > 0.5f, "shut, it heads the other way round, for the south room's door (" + shutDir.X.ToString("0.00") + ", " + shutDir.Y.ToString("0.00") + ", route worked out in " + ms + " ms)");
+        Check(g.ActiveLayout.Solids.Length < ((Arena.LayoutDef)typeof(Game).GetProperty("SteerLayout", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(g)).Solids.Length, "the drawn floor plan doesn't change (only steering sees the gate)");
     }
 
     // Portal links (Docs/RoomBuilding2.md step 2): a portal pair between two rooms, priced by the walking it saves, voted, synced.

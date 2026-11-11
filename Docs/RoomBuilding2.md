@@ -66,7 +66,8 @@ Status: **steps 1-2 built** (breach spawns, no protocol change; buyable portals,
   plain doors only, one each, 6 at most. `GateFits` sync after the portal pairs in `Msg.ExpandState`.
 - Using it: G (the Take item key) within 150 px: `Msg.GateUse`; the host shuts it for 8 s with a 30 s cooldown and sends `Msg.GateState`;
   every game runs the clocks down. Shut, it's a wall to everyone (`PushOutOfGates` in `PushOutOfSolids`, back out the side you came from);
-  shots pass; steering doesn't route round it, so enemies press against it.
+  shots pass. Steering routes round a shut gate (`SteerLayout`: the active plan plus a wall per shut gate, one copy per set of shut
+  gates, its corner graph built once), so enemies and bots take another door; with no other way they wait at it.
 - Look (`Game/GateLook.cs`): emitter posts at the door's ends, seven red beams filling the doorway in 0.4 s, a red field, a timer bar
   that empties, flicker in the last 1.5 s, a recharge arc on the posts; the hint pill by it; Gate mode on the draw screen (gold squares on
   the doors that can take one), its card and a red bar on the minimap.

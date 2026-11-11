@@ -175,6 +175,47 @@ namespace Arena
             gateCool.Clear();
         }
 
+        readonly Dictionary<long, LayoutDef> gatePlans = new Dictionary<long, LayoutDef>();
+        LayoutDef gatePlanBase;
+
+        /// The floor plan steering uses: the active one, plus a wall across every shut gate, so enemies (and bots) route round it
+        /// through the other doors instead of pressing against it. One copy per set of shut gates, kept (its corner graph is built once).
+        LayoutDef SteerLayout
+        {
+            get
+            {
+                var d = ActiveLayout;
+                if (d == null || GateFits.Count == 0)
+                    return d;
+                long mask = 0;
+                for (int i = 0; i < GateFits.Count && i < gateShut.Count; i++)
+                    if (gateShut[i] > 0f && GateLive(i))
+                        mask |= 1L << i;
+                if (mask == 0)
+                    return d;
+                if (gatePlanBase != d)
+                {
+                    foreach (var old in gatePlans.Values)
+                        wayGraphs.Remove(old);  // (their corner graphs go with them)
+                    gatePlans.Clear();
+                    gatePlanBase = d;
+                }
+                LayoutDef plan;
+                if (gatePlans.TryGetValue(mask, out plan))
+                    return plan;
+                var extra = new List<Solid>();
+                for (int i = 0; i < GateFits.Count; i++)
+                    if ((mask & (1L << i)) != 0)
+                    {
+                        var g = GateFits[i];
+                        float hw = g.Vertical ? Rooms.WallT / 2f : Rooms.DoorW / 2f, hh = g.Vertical ? Rooms.DoorW / 2f : Rooms.WallT / 2f;
+                        extra.Add(new Solid { Pos = g.Pos, HW = hw, HH = hh });
+                    }
+                gatePlans[mask] = plan = d.WithSolids(extra.ToArray());
+                return plan;
+            }
+        }
+
         /// A shut gate is a wall across its doorway for everyone (from PushOutOfSolids). Shots pass through.
         V2 PushOutOfGates(V2 pos, float r)
         {

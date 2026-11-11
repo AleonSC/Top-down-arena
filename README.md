@@ -831,7 +831,7 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
 - **Shutter gates**: on the draw screen, switch to **Gate** and click a door (the gold squares): a gate goes to the vote like a room,
   for **8 vectors**. Once fitted, stand within 150 px of it and press **G** (the Take item key) to shut it: a red laser grid fills the doorway
   for **8 s**, a wall to everyone (players and enemies); shots still pass. Then it needs **30 s** to recharge (an arc fills round its
-  posts). Anyone on the team can work it. Plain doors only (not an opened wall), one gate a door, at most **6** on the map. A red bar marks
+  posts). Anyone on the team can work it. Enemies (and bots) route round a shut gate through another door; with no other way in, they wait at it. Plain doors only (not an opened wall), one gate a door, at most **6** on the map. A red bar marks
   each on the minimap, bright while shut.
 - **Themed rooms**: pick a theme under the map when you draw a room: a path's ground and rules (Swarm Fields, Sniper Ridge, Elite Gauntlet, Burning
   Grounds, Sanctuary, Frozen Lake, Blood Moon) inside that room only, with its kill bonus. A theme costs extra vectors (+3 / +6 / +10 for
