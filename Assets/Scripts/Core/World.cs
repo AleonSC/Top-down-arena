@@ -61,6 +61,9 @@ namespace Arena
             Max = new V2(Game.Width, Game.Height),
         };
 
+        /// Is this door a seam inside one multi-box room (a drawn outline's or bent hallway's boxes, RoomArea.Group)? Open, and not drawn as a door.
+        public bool Seam(int i) => Areas[Doors[i].A].Group != 0 && Areas[Doors[i].A].Group == Areas[Doors[i].B].Group;
+
         /// Is this door there (the vault's only with the vault up)?
         public bool DoorUp(int i, bool vault) => vault || !Doors[i].Joins(Vault);
 
@@ -109,6 +112,68 @@ namespace Arena
             float y = a.Size.Y >= 2f * hy ? Math.Max(a.Min.Y + hy, Math.Min(a.Max.Y - hy, at.Y)) : a.Mid.Y;
             V2 lo = MinFor(vault), hi = Max;
             return new V2(Math.Max(lo.X + hx, Math.Min(hi.X - hx, x)), Math.Max(lo.Y + hy, Math.Min(hi.Y - hy, y)));
+        }
+
+        /// An area's outline as drawn: its four sides less the stretches open onto another box of the same room (RoomArea.Group: a
+        /// drawn outline's pieces, a bent hallway's legs), each pulled `ins` px into the room (longer at an inside corner, shorter at an
+        /// outside one). A plain box gives its four sides. Each {from, to}.
+        public List<V2[]> Rim(int area, float ins)
+        {
+            var rim = new List<V2[]>();
+            var a = Areas[area];
+            for (int side = 0; side < 4; side++)  // 0 west, 1 east, 2 north, 3 south
+            {
+                bool vertical = side < 2;
+                float at = side == 0 ? a.Min.X : side == 1 ? a.Max.X : side == 2 ? a.Min.Y : a.Max.Y;
+                float lo = vertical ? a.Min.Y : a.Min.X, hi = vertical ? a.Max.Y : a.Max.X;
+                V2 n = side == 0 ? new V2(1f, 0f) : side == 1 ? new V2(-1f, 0f) : side == 2 ? new V2(0f, 1f) : new V2(0f, -1f);  // into the room
+                var open = new List<float[]>();
+                if (a.Group != 0)
+                    for (int j = 0; j < Areas.Length; j++)
+                    {
+                        var b = Areas[j];
+                        if (j == area || b.Group != a.Group)
+                            continue;
+                        float bat = side == 0 ? b.Max.X : side == 1 ? b.Min.X : side == 2 ? b.Max.Y : b.Min.Y;
+                        if (Math.Abs(bat - at) > 0.5f)
+                            continue;
+                        float o0 = Math.Max(lo, vertical ? b.Min.Y : b.Min.X), o1 = Math.Min(hi, vertical ? b.Max.Y : b.Max.X);
+                        if (o1 > o0)
+                            open.Add(new[] { o0, o1 });
+                    }
+                open.Sort((p, q) => p[0].CompareTo(q[0]));
+                float pos = lo;
+                open.Add(new[] { hi, hi });
+                foreach (var o in open)
+                {
+                    if (o[0] > pos + 0.5f)
+                    {
+                        V2 p0 = vertical ? new V2(at, pos) : new V2(pos, at), p1 = vertical ? new V2(at, o[0]) : new V2(o[0], at);
+                        V2 t = (p1 - p0) * (1f / (o[0] - pos));
+                        float e0 = RimEnd(a.Group, area, p0 - t, n, ins), e1 = RimEnd(a.Group, area, p1 + t, n, ins);
+                        rim.Add(new[] { p0 + n * ins + t * e0, p1 + n * ins - t * e1 });
+                    }
+                    pos = Math.Max(pos, o[1]);
+                }
+            }
+            return rim;
+        }
+
+        /// How far a rim line stops short of its end (`past`: just beyond that end, on the wall's line): an outside corner stops short by
+        /// ins, an inside corner goes on by ins (negative), and a wall the next box carries straight on meets it (0).
+        float RimEnd(int group, int area, V2 past, V2 n, float ins)
+        {
+            if (!InGroup(group, area, past + n))
+                return ins;
+            return InGroup(group, area, past - n) ? -ins : 0f;
+        }
+
+        bool InGroup(int group, int area, V2 p)
+        {
+            for (int j = 0; j < Areas.Length; j++)
+                if ((j == area || group != 0 && Areas[j].Group == group) && Areas[j].Contains(p) && p.X > Areas[j].Min.X && p.X < Areas[j].Max.X && p.Y > Areas[j].Min.Y && p.Y < Areas[j].Max.Y)
+                    return true;
+            return false;
         }
 
         // --- The walls ---------------------------------------------------------------------------------------------

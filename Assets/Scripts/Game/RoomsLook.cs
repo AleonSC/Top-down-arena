@@ -62,11 +62,8 @@ namespace Arena
                 if (a.Owner != 0)  // a room somebody drew: a thin line of their colour just inside its walls
                 {
                     var oi = OwnerInk(a.Owner).WithAlpha(0.35f);
-                    float ins = 18f;
-                    Line(new V2(a.Min.X + ins, a.Min.Y + ins), new V2(a.Max.X - ins, a.Min.Y + ins), 2f, oi);
-                    Line(new V2(a.Min.X + ins, a.Max.Y - ins), new V2(a.Max.X - ins, a.Max.Y - ins), 2f, oi);
-                    Line(new V2(a.Min.X + ins, a.Min.Y + ins), new V2(a.Min.X + ins, a.Max.Y - ins), 2f, oi);
-                    Line(new V2(a.Max.X - ins, a.Min.Y + ins), new V2(a.Max.X - ins, a.Max.Y - ins), 2f, oi);
+                    foreach (var seg in wd.Rim(i, 18f))  // (a drawn outline's or bent hallway's boxes: round the whole room, not across its seams)
+                        Line(seg[0], seg[1], 2f, oi);
                 }
             }
             if (game.ArenaKind == ArenaLayout.Expanding)
@@ -96,7 +93,7 @@ namespace Arena
             }
             for (int i = 0; i < wd.Doors.Length; i++)
             {
-                if (!wd.DoorUp(i, vault))
+                if (!wd.DoorUp(i, vault) || wd.Seam(i))
                     continue;
                 var d = wd.Doors[i];
                 bool locked;
@@ -259,7 +256,7 @@ namespace Arena
                 else { fill = new Rgba(0.4f, 0.64f, 1f, 0.04f); line = new Rgba(0.4f, 0.64f, 1f, 0.3f); }
                 V2 p0 = M(a.Min), p1 = M(a.Max);
                 MapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, fill);
-                MapFrame(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, 1f, line);
+                RimFrame(wd, i, M, 1f, line, true);
             }
             if (game.ExpandOpen)  // proposals as ghosts in their drawer's colour, pulsing
                 foreach (var q in game.ExpandProposals)
@@ -283,7 +280,7 @@ namespace Arena
                 }
             for (int i = 0; i < wd.Doors.Length; i++)
             {
-                if (!wd.DoorUp(i, vault))
+                if (!wd.DoorUp(i, vault) || wd.Seam(i))
                     continue;
                 bool locked;
                 var col = DoorColour(i, out locked);
@@ -368,6 +365,27 @@ namespace Arena
             SetColor(c);
             Tri(new V2(x, y), new V2(x + w, y), new V2(x + w, y + h));
             Tri(new V2(x, y), new V2(x + w, y + h), new V2(x, y + h));
+        }
+
+        /// An area's frame on a map: round its whole room (a drawn outline's or bent hallway's boxes leave their seams open), `t` px
+        /// thick. clip: inside the minimap window.
+        void RimFrame(World wd, int i, System.Func<V2, V2> M, float t, Rgba c, bool clip = false)
+        {
+            var a = wd.Areas[i];
+            if (a.Group == 0)
+            {
+                V2 p0 = M(a.Min), p1 = M(a.Max);
+                if (clip) MapFrame(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, t, c);
+                else RoomMapFrame(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, t, c);
+                return;
+            }
+            foreach (var seg in wd.Rim(i, 0f))
+            {
+                V2 e0 = M(seg[0]), e1 = M(seg[1]);
+                float x = Mathf.Min(e0.X, e1.X) - t / 2f, y = Mathf.Min(e0.Y, e1.Y) - t / 2f, w = Mathf.Abs(e1.X - e0.X) + t, h = Mathf.Abs(e1.Y - e0.Y) + t;
+                if (clip) MapRect(x, y, w, h, c);
+                else RoomMapRect(x, y, w, h, c);
+            }
         }
 
         void RoomMapFrame(float x, float y, float w, float h, float t, Rgba c)

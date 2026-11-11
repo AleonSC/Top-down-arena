@@ -188,6 +188,7 @@ static partial class Program
 
         // A map: a drawn room (the friend's), a shop room off it, a kit held; vectors and a shelf for the friend.
         string why;
+        g.Expanded.Clear();  // (the cycle's floating rooms land at random and could sit where this test builds)
         var east = Expansion.Custom(g.Expanded, 1600, 300, 600, 300, out why).Value;
         east.Owner = 2;
         g.Expanded.Add(east);

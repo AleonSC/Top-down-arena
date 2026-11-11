@@ -1258,6 +1258,8 @@ static partial class Shot {
       for (int k = 0; k < nb; k++) { var rr = Expansion.Offers(5, 5 + 5 * k, xg.Expanded)[0]; rr.Owner = 1 + k % 2; xg.Expanded.Add(rr); }
       string xr = Environment.GetEnvironmentVariable("EXPANDROOMS");  // EXPANDROOMS=x,y,w,h;...: drawn rooms added in order (each must fit, Expansion.Custom)
       if (xr != null) foreach (var part in xr.Split(';')) { var q = Array.ConvertAll(part.Split(','), int.Parse); string why; var cr = Expansion.Custom(xg.Expanded, q[0], q[1], q[2], q[3], out why); if (cr.HasValue) xg.Expanded.Add(cr.Value); else Console.Error.WriteLine("EXPANDROOMS " + part + ": " + why); }
+      string xs = Environment.GetEnvironmentVariable("EXPANDSHAPES");  // EXPANDSHAPES=x,y;x,y;...|...: rooms drawn as outlines added in order (Expansion.Outline), owner 1
+      if (xs != null) foreach (var sh in xs.Split('|')) { var pts = new System.Collections.Generic.List<int[]>(); foreach (var part in sh.Split(';')) pts.Add(Array.ConvertAll(part.Split(','), int.Parse)); string why; var made = Expansion.Outline(xg.Expanded, pts, PathId.None, out why); if (made != null) foreach (var mr in made) { var m2 = mr; m2.Owner = 1; xg.Expanded.Add(m2); } else Console.Error.WriteLine("EXPANDSHAPES " + sh + ": " + why); }
       if (Environment.GetEnvironmentVariable("EXPANDPROP") != null) {  // EXPANDPROP=1: a building round is open with a proposal from each player
         xg.ExpandOpen = true; int pi = 0;
         foreach (var pl in xg.Players.Values) { var pr = Expansion.Offers(9, 20 + pi, xg.Expanded); if (pr.Count > pi) { var q = pr[pi]; q.Owner = pl.Id; xg.ExpandProposals.Add(q); } pi++; }
