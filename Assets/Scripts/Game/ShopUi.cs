@@ -47,7 +47,7 @@ namespace Arena
             Ui.Pill(wallet, new Color(0.16f, 0.12f, 0.03f, 0.92f));
             Ui.Icon(new Rect(wallet.x + 12f, wallet.y + 13f, 28f, 28f), PixelArt.Get("ui_coin"));
             Ui.Label(new Rect(wallet.x + 48f, wallet.y + 5f, 80f, 44f), me.Gold.ToString(), 26, Ui.Gold, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(wallet.x + 112f, wallet.y + 7f, 74f, 40f), "your gold\nleftover → XP", 10, new Color(1f, 0.85f, 0.6f, 0.75f), TextAnchor.MiddleLeft);
+            Ui.Label(new Rect(wallet.x + 112f, wallet.y + 7f, 74f, 40f), game.ServiceRooms ? "your gold" : "your gold\nleftover → XP", 10, new Color(1f, 0.85f, 0.6f, 0.75f), TextAnchor.MiddleLeft);
 
             // The list: the shelf's cards, then the services.
             int count = Game.ShelfCount(me), nSvc = game.ExpandingOn ? 6 : 4, n = count + nSvc;  // (the room kit and vector pack are sold in the Expanding arena)
@@ -184,10 +184,10 @@ namespace Arena
                 if (!popup && DkKey(new Rect(x0 + areaW - 245f, by - 4f, 240f, 26f), "Close the shop for everyone", Ui.Danger, false, 13))
                     game.Shop(ShopAction.Close);
             }
-            else
+            else if (!game.ServiceRooms)  // (the room shops keep your gold: nothing becomes XP)
                 Ui.Label(new Rect(x0, by, areaW, 18f), "Leftover gold becomes XP when everyone is done", 13, Ui.Muted, TextAnchor.MiddleRight, true);
             var doneRect = new Rect(x0, by + 30f, 320f, 48f);
-            string doneText = me.ShopDone ? "Done ✓   (click to keep shopping)" : "Done shopping  ·  " + me.Gold + " gold → +" + Mathf.RoundToInt(me.Gold * Game.GoldToXp) + " XP";
+            string doneText = me.ShopDone ? "Done ✓   (click to keep shopping)" : game.ServiceRooms ? "Done shopping" : "Done shopping  ·  " + me.Gold + " gold → +" + Mathf.RoundToInt(me.Gold * Game.GoldToXp) + " XP";
             if (DkKey(doneRect, doneText, Ui.Primary, me.ShopDone, 15) && !popup)
                 game.Shop(ShopAction.Done, me.ShopDone ? 0 : 1);
             DrawShopTeam(me, new Rect(doneRect.xMax + 16f, doneRect.y + 6f, areaW - doneRect.width - 30f, 36f), popup);
@@ -300,8 +300,8 @@ namespace Arena
             switch (k)
             {
                 case 0:
-                    desc = used ? "The shelf is full" : "Six more items join the shelf. Each add costs more.";
-                    parts = used ? null : new List<string> { "Cards  " + Game.ShelfCount(me) + " → " + (Game.ShelfCount(me) + Game.ShelfSize), "Next add  " + price + " → " + (price + 25) };
+                    desc = used ? "The shelf is full" : "Two more items join the shelf. Each add costs more.";
+                    parts = used ? null : new List<string> { "Cards  " + Game.ShelfCount(me) + " → " + (Game.ShelfCount(me) + Game.StockSize), "Next add  " + price + " → " + (price + 25) };
                     break;
                 case 1:
                     desc = me.Taken.Count == 0 ? "You have nothing to remove" : "Drop one you regret. Abilities it gave you go too.";

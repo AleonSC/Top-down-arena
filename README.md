@@ -779,9 +779,10 @@ wave, everyone gets a shop before the boss:
 - **One sideways carousel** holds everything: your shelf, then the services. The item in the middle is big and shows what it
   changes as the green readout on the card (old ▸▸ new). Click a side card, use the arrows, the mouse wheel or the arrow
   keys to bring one to the middle, and click the middle one to buy it. The SHELF and SERVICES tabs jump to each part.
-- **Your shelf** (rolled for your class): four upgrades, one legendary and one weapon mod. Prices by rarity: common
+- **Your shelf** (rolled for your class): three cards, two upgrades and a legendary (a weapon mod if no legendary is left). Prices by rarity: common
   40, uncommon 60, rare 100, very rare 160, weapon mod 200, legendary 280.
-- **Services:** add stock (six more cards on the shelf, none you already see; 25, then +25 each time, up to 3 times),
+- **Services:** add stock (two more cards on the shelf, none you already see: an upgrade, then a weapon mod and a
+  legendary in turn; 25, then +25 each time, up to 6 times),
   remove an upgrade (75; one stack, and abilities it gave go too), full heal (40), and a revive token (120; one at a
   time: when you go down you get back up 2 s later at half health, and it isn't game over while it's waiting).
 - **Give** sends a teammate 10, 50, 100 or all of your gold. Giving to someone who's already done reopens their

@@ -392,7 +392,7 @@ static partial class Program
         var cme = client.Game.Players[2];
         int stocked = 0;
         foreach (int u in cme.Shelf) if (u >= 0) stocked++;
-        Check(g.ShopOpen && client.Game.ShopOpen && g.CurrentPath == PathId.None && stocked >= 5, "after the Bazaar's last wave the shop opens with a shelf for each player (" + stocked + " items)");
+        Check(g.ShopOpen && client.Game.ShopOpen && g.CurrentPath == PathId.None && stocked == Game.ShelfSize, "after the Bazaar's last wave the shop opens with a shelf for each player (" + stocked + " items)");
         float timer = g.StateTimer;
         Run(s, dt, 2f, null, NoPicks);
         Check(g.State == MatchState.Intermission && g.StateTimer >= timer, "the next wave waits while the shop is open (no timer)");
@@ -421,16 +421,16 @@ static partial class Program
         before = friend.Gold;
         client.Game.Shop(ShopAction.Restock);
         Run(s, dt, 0.3f, null, NoPicks);
-        Check(friend.Restocks == 1 && friend.Gold == before - 25 && Game.Sold(friend, slot) && Game.RestockPrice(friend) == 50 && Game.ShelfCount(friend) == 12, "Add stock adds six cards and keeps what you bought; the next one costs more");
+        Check(friend.Restocks == 1 && friend.Gold == before - 25 && Game.Sold(friend, slot) && Game.RestockPrice(friend) == 50 && Game.ShelfCount(friend) == Game.ShelfSize + Game.StockSize, "Add stock adds two cards and keeps what you bought; the next one costs more");
         int fresh = 0, dupes = 0;
-        for (int i = Game.ShelfSize; i < 12; i++)
+        for (int i = Game.ShelfSize; i < Game.ShelfSize + Game.StockSize; i++)
         {
             if (friend.Shelf[i] >= 0) fresh++;
             if (friend.Shelf[i] >= 0 && Array.IndexOf(friend.Shelf, friend.Shelf[i]) != i) dupes++;
         }
-        Check(fresh >= 3 && dupes == 0 && cme.Restocks == 1 && cme.Shelf[Game.ShelfSize] == friend.Shelf[Game.ShelfSize] && cme.ShelfSold == friend.ShelfSold, "the new cards are real, not repeats, and the client sees the longer shelf (" + fresh + " new)");
+        Check(fresh >= 1 && dupes == 0 && cme.Restocks == 1 && cme.Shelf[Game.ShelfSize] == friend.Shelf[Game.ShelfSize] && cme.ShelfSold == friend.ShelfSold, "the new cards are real, not repeats, and the client sees the longer shelf (" + fresh + " new)");
         friend.Gold = 1000;
-        for (int k = 0; k < 4; k++)
+        for (int k = 0; k < Game.StockMax + 1; k++)
         {
             client.Game.Shop(ShopAction.Restock);
             Run(s, dt, 0.3f, null, NoPicks);
