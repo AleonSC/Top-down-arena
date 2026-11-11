@@ -1,0 +1,174 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Vector Pickup</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, four pickup looks as cards (each shows normal / big / last 3 s / collect burst at 5x), an arena strip at true game scale
+   with a player collecting them and the "Vectors n / cap" chip counting up, then open questions.
+   Colour: cyan (the phosphor wall colour, never green = health, never gold = gold). Big (elite / boss drop) gets an amber ring. Single dark look by choice. */
+:root{
+  --bg:#080b0f; --panel:#0e141b; --line:#22303c; --fg:#e4eef5; --muted:#8aa0b0;
+  --cy:#4de1ff; --amber:#ffd666; --f-d:"Oxanium","Segoe UI",system-ui,sans-serif; --f-m:"IBM Plex Mono",ui-monospace,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:400 16px/1.5 var(--f-d);margin:0;
+  padding-block:30px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:24px}
+h1{font:800 clamp(28px,5vw,42px)/1.05 var(--f-d);letter-spacing:.04em;text-transform:uppercase;margin:0 0 8px;text-wrap:balance}
+h2{font:500 12px var(--f-m);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+header p{margin:0;color:var(--muted);max-width:68ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.card{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);cursor:pointer;min-width:0}
+.card[aria-pressed="true"]{border-color:var(--cy);box-shadow:0 0 0 2px var(--cy)}
+.card:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.card canvas{width:100%;height:auto;display:block;background:#04070a;border-radius:4px}
+.card b{font:700 17px var(--f-d);letter-spacing:.05em;text-transform:uppercase}
+.card small{font:400 12px/1.45 var(--f-m);color:var(--muted)}
+.cap{display:flex;justify-content:space-between;font:400 11px var(--f-m);color:var(--muted);padding:0 4px}
+.view{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#000;position:relative}
+.view canvas{display:block;width:100%;height:auto}
+.chip{position:absolute;left:12px;top:10px;font:500 13px var(--f-m);color:var(--cy);background:rgba(4,12,18,.85);border:1px solid #1d5a6b;padding:5px 9px;border-radius:4px;letter-spacing:.06em}
+.chip i{display:block;height:3px;margin-top:4px;background:#12303a}
+.chip i s{display:block;height:100%;background:var(--cy);width:0;text-decoration:none}
+.chip.pop{animation:pop .35s}
+@keyframes pop{0%{box-shadow:0 0 0 0 rgba(77,225,255,.9)}100%{box-shadow:0 0 0 14px rgba(77,225,255,0)}}
+.note{font:400 13px/1.55 var(--f-m);color:var(--muted);margin:10px 0 0;max-width:90ch}
+ul{margin:0;padding-left:20px;color:var(--muted);font:400 14px/1.6 var(--f-m)}
+@media (prefers-reduced-motion:reduce){.chip.pop{animation:none}}
+</style>
+<div class="wrap">
+<header>
+  <h1>Vector Pickup</h1>
+  <p>A rare enemy drop that adds vectors (the Expanding arena's drawing budget) when walked over. Four looks, all cyan so they never read as health or gold. Click a card to see it in the arena strip. Small drops give <b>+6</b>, big ones (elites, bosses) <b>+20</b>, never past your cap.</p>
+</header>
+<section>
+  <h2>Looks (each card: normal, big, last 3 s, collect)</h2>
+  <div class="grid" id="cards"></div>
+</section>
+<section>
+  <h2>Arena strip at game scale</h2>
+  <div class="view"><canvas id="arena" width="1100" height="260"></canvas>
+    <div class="chip" id="chip">VECTORS <span id="vn">50</span> / 70<i><s id="vb"></s></i></div></div>
+  <p class="note" id="desc"></p>
+</section>
+<section>
+  <h2>Open questions</h2>
+  <ul>
+    <li>Drop rate: about 1 in 60 normal kills, 1 in 8 elites, guaranteed from bosses? Or only while you are below half your cap?</li>
+    <li>Should a full stock leave the pickup lying (it waits, blinking slower) instead of being wasted?</li>
+    <li>Co-op: the walker's own vectors only, or split to the whole team?</li>
+  </ul>
+</section>
+</div>
+<script>
+const C=[0.3,0.88,1], A=[1,.84,.4];
+const rgba=(c,a)=>`rgba(${c[0]*255|0},${c[1]*255|0},${c[2]*255|0},${a})`;
+const fr=(x,m)=>x-Math.floor(x/m)*m;
+function hash(n){const s=Math.sin(n*127.1+311.7)*43758.5453;return s-Math.floor(s);}
+const ring=(c,o,r)=>{ // amber ring for big drops
+  c.strokeStyle=rgba(A,.85);c.lineWidth=Math.max(1,1.6*o.k);c.setLineDash([4*o.k,3*o.k]);c.lineDashOffset=-o.t*12*o.k;
+  c.beginPath();c.arc(o.x,o.y,r,0,7);c.stroke();c.setLineDash([]);};
+const glow=(c,o,r,a)=>{c.fillStyle=rgba(C,a);c.beginPath();c.arc(o.x,o.y,r,0,7);c.fill();};
+
+/* o = {x,y,r (base radius),big,id,t,k (px per arena px)} */
+const LOOKS=[
+{name:'A  Wire cube',desc:'The "vector model": a spinning wireframe cube in phosphor lines, with a faint ghost cube behind it. The most literal vector-graphics read.',
+ draw(c,o){const r=o.r*1.15*o.k,lw=Math.max(1,1.3*o.k);glow(c,o,r*2,.08);
+  const V=[];for(let i=0;i<8;i++)V.push([(i&1?1:-1),(i&2?1:-1),(i&4?1:-1)]);
+  const E=[[0,1],[2,3],[4,5],[6,7],[0,2],[1,3],[4,6],[5,7],[0,4],[1,5],[2,6],[3,7]];
+  const proj=(v,s,ax,ay)=>{let[x,y,z]=v;let c1=Math.cos(ax),s1=Math.sin(ax);[y,z]=[y*c1-z*s1,y*s1+z*c1];let c2=Math.cos(ay),s2=Math.sin(ay);[x,z]=[x*c2+z*s2,-x*s2+z*c2];return[o.x+x*s,o.y+y*s];};
+  const pass=(s,ax,ay,a)=>{c.strokeStyle=rgba(C,a);c.lineWidth=lw;c.beginPath();E.forEach(([p,q])=>{const P=proj(V[p],s,ax,ay),Q=proj(V[q],s,ax,ay);c.moveTo(P[0],P[1]);c.lineTo(Q[0],Q[1]);});c.stroke();};
+  pass(r*.95,o.t*.9+o.id,o.t*1.3,.28);pass(r*.6,o.t*.9+o.id,o.t*1.3,1);
+  c.fillStyle='#fff';V.forEach(v=>{const P=proj(v,r*.6,o.t*.9+o.id,o.t*1.3);c.fillRect(P[0]-lw,P[1]-lw,lw*2,lw*2);});
+  if(o.big)ring(c,o,r*1.75);}},
+
+{name:'B  Vector arrow',desc:'A chamfered frame around a bold arrow glyph (a math vector), with corner brackets that rotate. Clear at a glance, closest to the HUD chip language.',
+ draw(c,o){const r=o.r*1.2*o.k*(1+.05*Math.sin(o.t*7+o.id)),lw=Math.max(1,1.4*o.k);glow(c,o,r*2,.08);
+  const oct=(rr)=>{c.beginPath();for(let i=0;i<8;i++){const a=Math.PI/8+i*Math.PI/4;c.lineTo(o.x+Math.cos(a)*rr,o.y+Math.sin(a)*rr);}c.closePath();};
+  c.fillStyle='rgba(3,16,24,.92)';oct(r*1.25);c.fill();c.strokeStyle=rgba(C,1);c.lineWidth=lw;oct(r*1.25);c.stroke();
+  c.strokeStyle='#fff';c.fillStyle='#fff';c.lineWidth=lw*1.3;c.lineCap='round';const x0=o.x-r*.6,y0=o.y+r*.6,x1=o.x+r*.65,y1=o.y-r*.65,h=r*.55;
+  c.beginPath();c.moveTo(x0,y0);c.lineTo(x1-h*.3,y1+h*.3);c.stroke();
+  c.beginPath();c.moveTo(x1,y1);c.lineTo(x1-h,y1+h*.22);c.lineTo(x1-h*.22,y1+h);c.closePath();c.fill();c.lineCap='butt';
+  c.strokeStyle=rgba(C,.9);c.lineWidth=lw;const a=o.t*1.6,rr=r*1.75;for(let q=0;q<4;q++){c.beginPath();c.arc(o.x,o.y,rr,a+q*Math.PI/2,a+q*Math.PI/2+.28);c.stroke();}
+  if(o.big)ring(c,o,r*2.1);}},
+
+{name:'C  Wall segment',desc:'One tile of wall: a short line with node dots at both ends and ruler ticks, tumbling slowly. Teaches that 1 vector = 1 tile of wall.',
+ draw(c,o){const r=o.r*1.3*o.k,lw=Math.max(1,1.6*o.k),a=o.t*.8+o.id,dx=Math.cos(a)*r,dy=Math.sin(a)*r;glow(c,o,r*1.8,.08);
+  c.strokeStyle=rgba(C,.25);c.lineWidth=lw*4;c.beginPath();c.moveTo(o.x-dx,o.y-dy);c.lineTo(o.x+dx,o.y+dy);c.stroke();
+  c.strokeStyle=rgba(C,1);c.lineWidth=lw;c.beginPath();c.moveTo(o.x-dx,o.y-dy);c.lineTo(o.x+dx,o.y+dy);c.stroke();
+  const nx=-Math.sin(a),ny=Math.cos(a);c.beginPath();for(let i=-2;i<=2;i++){const f=i/2.5,l=i%2?.12:.2;const px=o.x+dx*f,py=o.y+dy*f;c.moveTo(px-nx*r*l,py-ny*r*l);c.lineTo(px+nx*r*l,py+ny*r*l);}c.stroke();
+  c.fillStyle='#fff';[-1,1].forEach(s=>{c.beginPath();c.arc(o.x+dx*s,o.y+dy*s,Math.max(1.5,r*.14),0,7);c.fill();});
+  c.strokeStyle=rgba(C,.5);c.lineWidth=lw*.7;c.setLineDash([2*o.k,3*o.k]);c.beginPath();c.arc(o.x,o.y,r*1.45,0,7);c.stroke();c.setLineDash([]);
+  if(o.big)ring(c,o,r*1.9);}},
+
+{name:'D  Drawn room',desc:'A square tile that draws itself corner by corner (the way you place rooms), then flashes and redraws. Loops forever, quietest of the four.',
+ draw(c,o){const r=o.r*1.1*o.k,lw=Math.max(1,1.5*o.k),p=fr(o.t*.5+o.id*.13,1);glow(c,o,r*2,.07);
+  const pts=[[-1,-1],[1,-1],[1,1],[-1,1],[-1,-1]].map(q=>[o.x+q[0]*r,o.y+q[1]*r]);
+  c.fillStyle='rgba(3,16,24,.9)';c.fillRect(o.x-r,o.y-r,r*2,r*2);
+  c.strokeStyle=rgba(C,.3);c.lineWidth=lw;c.strokeRect(o.x-r,o.y-r,r*2,r*2);
+  const L=p*4*1.0;c.strokeStyle=rgba(C,1);c.lineWidth=lw*1.2;c.beginPath();c.moveTo(pts[0][0],pts[0][1]);
+  for(let i=0;i<4;i++){const f=Math.min(1,Math.max(0,L-i));if(f<=0)break;c.lineTo(pts[i][0]+(pts[i+1][0]-pts[i][0])*f,pts[i][1]+(pts[i+1][1]-pts[i][1])*f);}c.stroke();
+  const seg=Math.min(3,Math.floor(L)),f=L-seg,tip=[pts[seg][0]+(pts[seg+1][0]-pts[seg][0])*f,pts[seg][1]+(pts[seg+1][1]-pts[seg][1])*f];
+  c.fillStyle='#fff';c.beginPath();c.arc(tip[0],tip[1],Math.max(1.5,r*.13),0,7);c.fill();
+  c.fillStyle=rgba(C,.45);const u=r*.14;c.fillRect(o.x-u*.5,o.y-u*2,u,u*4);c.fillRect(o.x-u*2,o.y-u*.5,u*4,u);
+  if(o.big)ring(c,o,r*1.9);}}
+];
+
+/* collect burst: f 0..1, a ring, spokes and square pixels */
+function burst(c,x,y,k,f,i){
+  const e=1-(1-f)*(1-f),a=1-f;c.strokeStyle=rgba(C,a);c.lineWidth=Math.max(1,2*k*a);c.beginPath();c.arc(x,y,(6+22*e)*k,0,7);c.stroke();
+  c.fillStyle=rgba([1,1,1],a);for(let n=0;n<8;n++){const ang=n/8*Math.PI*2+hash(i)*2,d=(4+26*e)*k;c.fillRect(x+Math.cos(ang)*d-k,y+Math.sin(ang)*d-k,2*k,2*k);}
+}
+
+let sel=1;
+const cards=document.getElementById('cards'),cv=[];
+LOOKS.forEach((L,i)=>{
+  const b=document.createElement('button');b.className='card';b.setAttribute('aria-pressed',i==sel);
+  b.innerHTML=`<canvas width="440" height="140"></canvas><b>${L.name}</b><div class="cap"><span>normal</span><span>big</span><span>last 3 s</span><span>collect</span></div>`;
+  b.onclick=()=>{sel=i;cards.querySelectorAll('.card').forEach((x,j)=>x.setAttribute('aria-pressed',j==i));desc();};
+  cards.appendChild(b);cv.push(b.querySelector('canvas'));
+});
+function desc(){document.getElementById('desc').textContent=LOOKS[sel].desc;}desc();
+
+const arena=document.getElementById('arena'),ac=arena.getContext('2d');
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+let vec=50;const CAP=70;
+const chip=document.getElementById('chip'),vn=document.getElementById('vn'),vb=document.getElementById('vb');
+function setVec(){vn.textContent=vec;vb.style.width=(vec/CAP*100)+'%';}setVec();
+const orbs=[];for(let i=0;i<4;i++)orbs.push({x:120+hash(i*3)*860,y:50+hash(i*3+1)*160,big:i==0,id:i+1,age:hash(i*7)*6});
+const fx=[]; // bursts + floating text
+
+function tick(ms){
+  const t=reduce?2:ms/1000;
+  LOOKS.forEach((L,i)=>{
+    const c=cv[i].getContext('2d'),W=440,H=140;c.clearRect(0,0,W,H);
+    [{r:7},{r:11,big:true},{r:7,life:true}].forEach((s,j)=>{
+      if(s.life&&fr(t,.25)<.1)return;
+      L.draw(c,{x:W/8+j*W/4,y:H/2,r:s.r,big:s.big,id:j+1,t,k:2.4});
+    });
+    burst(c,W*7/8,H/2,1.6,fr(t*.8,1),i);
+  });
+  const W=arena.width,H=arena.height;
+  ac.fillStyle='#050b10';ac.fillRect(0,0,W,H);
+  ac.strokeStyle='rgba(60,110,140,.12)';ac.lineWidth=1;for(let x=0;x<W;x+=50){ac.beginPath();ac.moveTo(x,0);ac.lineTo(x,H);ac.stroke();}for(let y=0;y<H;y+=50){ac.beginPath();ac.moveTo(0,y);ac.lineTo(W,y);ac.stroke();}
+  const px=60+fr(t*85,W-120),py=H/2+Math.sin(t*1.1)*75;
+  orbs.forEach(o=>{
+    if(Math.hypot(px-o.x,py-o.y)<22){
+      const gain=o.big?20:6;vec=Math.min(CAP,vec+gain);if(vec>=CAP)setTimeout(()=>{vec=50;setVec();},900);
+      setVec();chip.classList.remove('pop');void chip.offsetWidth;chip.classList.add('pop');
+      fx.push({x:o.x,y:o.y,t0:t,id:o.id,txt:'+'+gain});
+      o.x=100+hash(Math.floor(t*10)+o.id)*(W-200);o.y=40+hash(Math.floor(t*10)+o.id+9)*(H-80);o.age=0;
+    }
+    o.age=fr(o.age+.016,12);
+    if(12-o.age<3&&fr(t,.25)<.1)return;
+    LOOKS[sel].draw(ac,{x:o.x,y:o.y,r:o.big?11:7,big:o.big,id:o.id,t,k:1});
+  });
+  for(let i=fx.length-1;i>=0;i--){const f=fx[i],d=(t-f.t0)/.9;if(d>1||d<0){fx.splice(i,1);continue;}
+    burst(ac,f.x,f.y,1,d,f.id);ac.fillStyle=rgba([1,1,1],1-d);ac.font='700 15px "IBM Plex Mono",monospace';ac.textAlign='center';ac.fillText(f.txt,f.x,f.y-18-d*22);}
+  ac.fillStyle='#4aa8ff';ac.beginPath();ac.arc(px,py,14,0,7);ac.fill();ac.strokeStyle='#cfe8ff';ac.lineWidth=2;ac.stroke();
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+</script>
