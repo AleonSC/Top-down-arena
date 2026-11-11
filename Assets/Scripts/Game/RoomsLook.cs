@@ -360,8 +360,19 @@ namespace Arena
             EndUiGl();
         }
 
+        /// When set, RoomMapRect clips to it (the zoomed drawing map).
+        Rect? roomClip;
+
         void RoomMapRect(float x, float y, float w, float h, Rgba c)
         {
+            if (roomClip.HasValue)
+            {
+                var cl = roomClip.Value;
+                float x1 = Mathf.Min(x + w, cl.xMax), y1 = Mathf.Min(y + h, cl.yMax);
+                x = Mathf.Max(x, cl.x); y = Mathf.Max(y, cl.y);
+                w = x1 - x; h = y1 - y;
+                if (w <= 0f || h <= 0f) return;
+            }
             SetColor(c);
             Tri(new V2(x, y), new V2(x + w, y), new V2(x + w, y + h));
             Tri(new V2(x, y), new V2(x + w, y + h), new V2(x, y + h));
