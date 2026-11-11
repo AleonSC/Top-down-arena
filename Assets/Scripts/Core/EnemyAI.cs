@@ -326,6 +326,8 @@ namespace Arena
             e.Hp = e.MaxHp;
             if (elite)
                 RollTraits(e);  // Variety.cs
+            else if (parent == 0)
+                RollCoreCarrier(e);  // CoreDrops.cs
             if (type == EnemyType.Shielder)
                 e.ShieldHp = e.ShieldMax = e.MaxHp * ShieldShare;
             if (type == EnemyType.RiotShield)

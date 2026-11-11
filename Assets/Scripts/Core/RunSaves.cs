@@ -217,6 +217,7 @@ namespace Arena
             w.Write(RunTime);
             w.Write(won && Deathless);  // won without using a life (Checkpoints.cs)
             w.Write(RecordWave);  // the wave as records count it (Hunts.cs: 1-100 in a Campaign)
+            w.Write(CoresFound);  // Cores the run's carriers dropped (CoreDrops.cs)
             var msg = Proto.End(w);
             session.Broadcast(msg);
             ReadRecordFrom(msg);
@@ -340,6 +341,7 @@ namespace Arena
                     float time = r.ReadSingle();
                     bool deathless = r.ReadBoolean();
                     int recorded = r.ReadInt32();  // (best wave, Recent runs and the curve; Rank XP keeps counting the track's waves)
+                    int found = Math.Max(0, r.ReadInt32());
                     if (me == null || dev || botTouched || runRecorded)
                         return;
                     runRecorded = true;
@@ -348,6 +350,7 @@ namespace Arena
                         AddUnlockToasts(Profile.HuntEnded(Hunt.Boss, won, time, Diff.Level == DifficultyLevel.Hard || Diff.Level == DifficultyLevel.Nightmare));  // Hunts.cs
                         int cleared = won ? Hunts.Length : Math.Max(0, HuntWave - 1);
                         LastGain = Profile.AwardXp(Rank.Award(false, cleared, won ? 1 : 0, me.Run.Revives, Mods, Diff.Level), HuntWave, won ? 3 : 2);
+                        PayCores(Variants.HuntCores(won), found);
                         var hunted = Profile.Recent[0];  // (the hunt just added by AwardXp: its curve for the results screen and Recent runs)
                         hunted.Class = Arena.Profile.ClassKey(me.Role, me.Kit);
                         hunted.Mode = "Hunt";
@@ -361,6 +364,7 @@ namespace Arena
                     AddUnlockToasts(Profile.RunEnded(won, recorded, score, endless, Mods, me.Role, me.Kit, me.Run, time));
                     int wavesCleared = won || runLastBossWave >= wave ? wave : Math.Max(0, wave - 1);
                     LastGain = Profile.AwardXp(Rank.Award(won, wavesCleared, Rank.BossesIn(wavesCleared), me.Run.Revives, Mods, Diff.Level), recorded, won ? 1 : 0);
+                    PayCores(Variants.RunCores(won, Rank.BossesIn(wavesCleared), Endless), found);
                     var logged = Profile.Recent[0];  // (the run just added by AwardXp)
                     logged.Class = Arena.Profile.ClassKey(me.Role, me.Kit);
                     logged.Mode = Endless ? "Endless" : deathless ? "Campaign · Deathless" : "Campaign";
@@ -372,6 +376,14 @@ namespace Arena
                     return;
                 }
             }
+        }
+
+        /// Adds a finished run's Cores (its payout plus the drops found) to your profile and notes them on the results (LastGain).
+        void PayCores(int paid, int found)
+        {
+            Profile.AddCores(paid + found);
+            LastGain.Cores = paid + found;
+            LastGain.CoresFound = found;
         }
 
         /// Saves the profile; if the disk refuses, warns the player once (the next successful save clears it).
