@@ -65,6 +65,9 @@ namespace Arena
                 float weight = 1f + (doorsOf[area] <= 1 && !w.Areas[area].Hub ? DeadEnd : 0f);  // (a long wall has more spots, so it breaks more often already)
                 for (float u = s.From + EndPad + Len / 2f; u <= s.Till - EndPad - Len / 2f + 0.5f; u += Expansion.Step)
                 {
+                    V2 spot = s.Vertical ? new V2(s.At, u) : new V2(u, s.At);
+                    if (OpenAreaAt(w, spot + across * 20f) >= 0 && OpenAreaAt(w, spot - across * 20f) >= 0)
+                        continue;  // (a room brushes this stretch of the wall: there's floor behind it)
                     var b = new Breach { Pos = s.Vertical ? new V2(s.At, u) : new V2(u, s.At), In = inward, Vertical = s.Vertical, Area = area };
                     list.Add(new KeyValuePair<Breach, float>(b, weight));
                 }

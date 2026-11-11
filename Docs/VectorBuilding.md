@@ -25,10 +25,12 @@ random offers. Boss kills refill the stock, upgrades raise how much you can hold
 ## Rules (first guesses to tune)
 
 - **Unit**: 1 vector = 1 tile (100 px) of wall. Cost = (perimeter - every wall it shares with existing rooms) in tiles. A 6 x 4
-  closet along the hub's top wall: 20 - 6 = **14**; a 3 x 12 hallway standing off it: 30 - 3 = **27**; a box that touches two
+  closet along the hub's top wall: 20 - 6 = **14**; a 3 x 12 hallway standing off it: 30 - 3 = 27, **halved for a hallway: 14** (Nov 10, owner: hallways were too dear); a box that touches two
   rooms is cheaper by the second shared wall (loops pay).
-- **Placement**: the existing `Expansion.Custom` rules (100 px grid, sides 300-1200, at most 96 tiles, shares at least 300 px of
-  wall with a room, no overlap, 16 rooms, the size cap). Rooms sharing a door's width of wall get a door.
+- **Placement**: the existing `Expansion.Custom` rules (100 px grid, sides 300-1200, a hallway up to 2400, at most 96 tiles, shares at least 300 px of
+  wall with a room, no overlap, 16 rooms, the size cap; a shorter touch with a wall is fine and stays wall). Rooms sharing a door's width of wall get a door.
+  **Bent hallways** (`Expansion.Hall`, `Msg.ExpandHall`, protocol 265): up to 3 legs, 3 tiles wide, each meeting the last end to end and
+  opening full width onto it (`ExpansionRoom.Leg`); one proposal, the first leg carries the price, all legs built together.
 - **Stock** (retuned after play-testing, Nov 10): start 25, cap 35. A cleared boss wave refills everyone to the cap and adds 10 on top (kept
   until spent; ordinary gains never push you over the cap). Each other cleared wave +4; every 15 kills +1. Numbers come from
   play-testing: a player should be able to afford about one decent room a round.

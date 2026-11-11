@@ -790,10 +790,16 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   many as you can afford, and it can take you past the cap.
 - **Building rounds**: every cleared wave opens a round (a chip "Build rooms" under the wave plate; the countdown never waits
   for it). Open it, **draw a room or hallway** (**left click** a corner on the zoomed-out map, move, **left click** again to place the box on the grid, or press, drag and let go; **right click** or Esc cancels it, and a right click with no box goes back; 3 to 12 tiles a side, at most 96
-  tiles; it must share 3 tiles of wall with a room and not overlap anything) and it becomes **your proposal**; a newer
+  tiles; it must share 3 tiles of wall with a room and not overlap anything; a shorter touch with another room's wall is fine,
+  it just stays wall) and it becomes **your proposal**; a newer
   drawing replaces it. You can only propose what you can afford. A proposal costs its **new wall length**: the perimeter
   minus every wall it shares with existing rooms, so touching rooms is cheaper and a box that touches two rooms (a loop)
   cheaper again.
+- **Hallways**: anything 3 tiles wide is a hallway: it costs **half** its new wall (rounded up; a 3 x 12 hallway off the hub
+  is 14) and can run up to **24 tiles**. The draw screen's **Hallway** mode lays a **bent hallway**: left click where it
+  starts, move along it (it stays 3 tiles wide) and left click to lay a leg; each next leg starts at the end of the last
+  (a corner or straight on), up to 3 legs, and the corners are open the full width. Right click undoes a leg; **Enter** or
+  **Propose hallway** puts it to the vote as one proposal (the third leg goes straight to the vote), built in one round.
 - **Room kits**: a one-use modifier the team holds (up to 6; the build chip counts them). Spend one in a building round
   (**Room kits** button on the build window): pick a kit, click a plain Combat room, and it becomes a **Shop** room or a **Floor**
   room (a path's ground and rules inside that room only, and its XP bonus). One change per room, permanent; floating rooms keep their job.
@@ -839,7 +845,8 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   player when there is one. Never on a floating room, a shop, vendor or Gatekeeper room, or on boss waves (the fixed boss arena).
 - **Obstacles**: a built room comes with obstacles and bars of wall (pillars, bars, an L, blocks: one per ~220,000 px2, up to 4),
   laid out from the room's own box so every machine builds the same ones. They keep off the room's walls, its doors and its middle,
-  so you can always walk round them; hallways stay clear.
+  so you can always walk round them; hallways stay clear. A small or narrow room with doors at both ends still gets at least one
+  (pillar or block, closer to the walls and doors); only a 400 px deep room between two doors stays empty.
 - **How it plays**: regular waves use the whole map (walled, no wrapping, a minimap top right) and bring more enemies the
   bigger it is (up to 1.4 times); the map stops at 24 rooms. Boss waves are fought in the hub alone, as always.
 - Runs in this arena can't be saved and continued yet.
