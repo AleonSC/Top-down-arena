@@ -354,9 +354,10 @@ namespace Arena
         public int Gold;                       // the Bazaar's gold (Shop.cs, replicated)
         public readonly byte[] Stash = new byte[Market.Count];  // Black Market buys not yet placed, by BuildKind (Market.cs, replicated)
         public int Vectors = Game.VectorStart, VectorCap = Game.VectorCapBase;  // the Expanding arena's drawing budget and the most you hold (ExpansionGame.cs, replicated)
-        public readonly int[] Shelf = NewShelf();  // this player's shop: upgrade ids, Game.ShelfSize per stock (Game.ShelfCount of them are live, replicated)
+        public readonly int[] Shelf = NewShelf();  // this player's shop: upgrade ids, the first Game.ShelfLen of them are live (replicated)
         public int ShelfSold;                  // bit per shelf slot: bought (replicated)
-        public int Restocks;                   // Add stock bought this visit (replicated; each costs more, Game.StockMax at most)
+        public int ShelfLen;                   // cards on the shelf now (replicated; Game.MaxShelf at most)
+        public int Restocks;                   // Add stock bought this visit (replicated; each costs more, no limit)
         static int[] NewShelf() { var a = new int[Game.MaxShelf]; for (int i = 0; i < a.Length; i++) a[i] = -1; return a; }
         public bool ShopDone;                  // clicked Done shopping (replicated)
         public bool ReviveToken;               // bought at the Bazaar: get back up once by yourself (replicated)

@@ -9,5 +9,5 @@ if not exist WaveLab.exe (
   if not exist WaveLab.exe (pause & exit /b 1)
 )
 start "" http://localhost:8080
-mono WaveLab.exe 8080
+mono WaveLab.exe --serve 8080
 pause

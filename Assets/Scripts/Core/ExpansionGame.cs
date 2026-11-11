@@ -1145,7 +1145,11 @@ namespace Arena
                 for (int i = 0; i < Market.Count; i++)
                     p.Stash[i] = (byte)Math.Min(Market.StashMax, s.Stash[i]);
                 p.ShelfSold = s.ShelfSold;
-                p.Restocks = Math.Min(StockMax, s.Restocks);
+                p.Restocks = Math.Min(255, s.Restocks);
+                p.ShelfLen = 0;
+                for (int i = 0; i < MaxShelf; i++)
+                    if (p.Shelf[i] >= 0)
+                        p.ShelfLen = i + 1;  // (the saved shelf's length: up to its last card)
             }
             DoLog("the Expanding arena's map is back: " + Expansion.BoughtCount(Expanded) + " rooms");
             BroadcastExpansion();

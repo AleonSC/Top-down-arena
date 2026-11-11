@@ -1,6 +1,6 @@
 # Black Market
 
-Status: **built (protocol 290)**: buying, stash, placing and the UI. Only the teleporter does anything; the traps are placeholders.
+Status: **built (protocol 291)**: buying, stash, placing and the UI. Only the teleporter does anything; the traps are placeholders.
 
 The vendor room is now the **Black Market** (`RoomKind.Vendor` keeps its name in code). Decided with the owner on Nov 11, 2026.
 

@@ -783,9 +783,10 @@ wave, everyone gets a shop before the boss:
 - **One sideways carousel** holds everything: your shelf, then the services. The item in the middle is big and shows what it
   changes as the green readout on the card (old ▸▸ new). Click a side card, use the arrows, the mouse wheel or the arrow
   keys to bring one to the middle, and click the middle one to buy it. The SHELF and SERVICES tabs jump to each part.
-- **Your shelf** (rolled for your class): four upgrades, one legendary and one weapon mod. Prices by rarity: common
+- **Your shelf** (rolled for your class): three cards, two upgrades and a legendary (a weapon mod if no legendary is left). Prices by rarity: common
   40, uncommon 60, rare 100, very rare 160, weapon mod 200, legendary 280.
-- **Services:** add stock (six more cards on the shelf, none you already see; 25, then +25 each time, up to 3 times),
+- **Services:** add stock (two more cards on the shelf, none you already see: an upgrade, then a weapon mod and a
+  legendary in turn; 25, then +25 each time, no limit: past 31 cards the oldest bought ones drop off to make room),
   remove an upgrade (75; one stack, and abilities it gave go too), full heal (40), and a revive token (120; one at a
   time: when you go down you get back up 2 s later at half health, and it isn't game over while it's waiting).
 - **Give** sends a teammate 10, 50, 100 or all of your gold. Giving to someone who's already done reopens their
@@ -1664,7 +1665,8 @@ chart**, and **Settings → Gameplay → Lag chart** sets the same thing (saved 
 
 ## Wave Lab (web wave tester)
 
-Double-click `Tools/WaveLab/WaveLab.command` (Mac/Linux) or `WaveLab.bat` (Windows), or run `Tools/WaveLab/run.sh [port]`: it installs mono if
+**Simple app (Windows):** download `WaveLab.exe` from the repo's [wave-lab release](https://github.com/AleonSC/Top-down-arena/releases/tag/wave-lab) and double-click it. It opens Wave Lab in its own window (Edge or Chrome app mode), needs nothing installed, and quits when you close the window. SmartScreen may warn about the unsigned file (More info, Run anyway). Mac/Linux: `mono WaveLab.exe`. The top bar shows the address to open on a phone on the same Wi-Fi. `Tools/WaveLab/package.sh` builds it and `.github/workflows/wavelab-release.yml` republishes it on every change.
+From the repo: double-click `Tools/WaveLab/WaveLab.command` (Mac/Linux) or `WaveLab.bat` (Windows), or run `Tools/WaveLab/run.sh [port]`: it installs mono if
 needed (apt/brew), builds, opens the browser and prints the phone address. It serves a browser page that runs the **real game simulation** on the host machine.
 Open `http://localhost:8080`, or the machine's LAN address on a phone. Build a wave set (enemy palette, squads, spawn
 points A-E you can drag, timing, level) or load a built-in set / `.waves` file, pick a class and weapon, then **Play**.
