@@ -377,7 +377,12 @@ namespace Arena
                 {
                     if (expHeld) expHeld = false;
                     else if (expPts.Count > 0) expPts.RemoveAt(expPts.Count - 1);
-                    else expDrawing = false;
+                    else
+                    {
+                        expDrawing = false;
+                        if (free)
+                            expOpen = false;
+                    }
                     ev.Use();
                 }
                 else if (ev.type == EventType.MouseDown && ev.button == 0 && over)

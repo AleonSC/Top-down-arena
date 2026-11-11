@@ -234,7 +234,7 @@ static partial class Program
         Quiet();
 
         // The setting: Expanding wins over Rooms, and until a room is built the arena is the plain Classic box.
-        g.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f); cg.Diff.Set(DiffKnob.BuildVote, 1f);
+        g.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); cg.Diff.Set(DiffKnob.BuildVote, 1f);
         g.Diff.Set(DiffKnob.ArenaRooms, 1f);
         Check(g.ArenaKind == ArenaLayout.Expanding && g.ExpandingOn, "the Expanding setting wins over Rooms");
         g.Diff.Set(DiffKnob.ArenaRooms, 0f);
@@ -412,7 +412,7 @@ static partial class Program
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
         g.DevSetGod(1, true); g.DevSetGod(2, true);
-        g.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f); cg.Diff.Set(DiffKnob.BuildVote, 1f);
+        g.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); cg.Diff.Set(DiffKnob.BuildVote, 1f);
         Run(s, dt, 700f, () => g.Wave >= 8 && g.State == MatchState.Fighting);
         Console.WriteLine("  by wave " + g.Wave + ": " + g.Expanded.Count + " rooms built (owners " + string.Join(",", g.Expanded.Select(r => r.Owner.ToString()).ToArray()) + "), vectors " + string.Join("/", g.Players.Values.Select(p => p.Vectors.ToString()).ToArray()));
         Check(g.Expanded.Count >= 1 && cg.Expanded.Count == g.Expanded.Count, "bot players draw rooms they can afford and vote: the map grows (" + g.Expanded.Count + " rooms)");
@@ -470,7 +470,7 @@ static partial class Program
         add(500, -1200, 600, 600, RoomKind.Vendor, PathId.None);             // 6: north of the north room
         foreach (var gg in new[] { g, cg })
         {
-            gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f);
+            gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f);
             gg.Expanded.AddRange(built);
         }
         pickRooms.Invoke(g, null);
@@ -601,7 +601,7 @@ static partial class Program
         var room = r.Value; room.Kind = RoomKind.Gatekeeper; room.Floating = true;
         foreach (var gg in new[] { g, cg })
         {
-            gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f);
+            gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f);
             gg.Expanded.Add(hall.Value);
             gg.Expanded.Add(room);
         }
@@ -664,7 +664,7 @@ static partial class Program
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
-        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f); gg.ExpandOpen = true; }
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f); gg.ExpandOpen = true; }
         foreach (var p in g.Players.Values) p.Vectors = 60;
         cg.ProposeExpandRoom(b[0], b[1], b[2], b[3], PathId.BloodMoon);
         Run(s, dt, 0.4f);
@@ -705,7 +705,7 @@ static partial class Program
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
-        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f); gg.Expanded.Add(east); gg.ExpandOpen = true; }
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f); gg.Expanded.Add(east); gg.ExpandOpen = true; }
         g.Players[2].Vectors = 10;
         cg.ProposeExpandCut(all);
         Run(s, dt, 0.5f, () => cg.ExpandProposals.Count == 1);
@@ -761,7 +761,7 @@ static partial class Program
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
-        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f); gg.Expanded.Clear(); gg.Expanded.Add(east); }
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f); gg.Expanded.Clear(); gg.Expanded.Add(east); }
         var first = new Dictionary<int, V2>();
         float earliest = float.MaxValue;
         Run(s, dt, 30f, () => g.State == MatchState.Fighting && g.BreachAge > 6f, () =>
@@ -800,7 +800,7 @@ static partial class Program
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
-        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Expanded.AddRange(list); gg.RoomsUp = true; gg.ExpandOpen = true; }
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f); gg.Expanded.Clear(); gg.Expanded.AddRange(list); gg.RoomsUp = true; gg.ExpandOpen = true; }
         g.Players[2].Vectors = Gates.Price + 2;
         cg.ProposeExpandGate(door.Pos);
         Run(s, dt, 0.5f, () => cg.ExpandProposals.Count == 1);
@@ -894,7 +894,7 @@ static partial class Program
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
-        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f); gg.Expanded.Clear(); gg.Expanded.AddRange(list); gg.ExpandOpen = true; }
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f); gg.Expanded.Clear(); gg.Expanded.AddRange(list); gg.ExpandOpen = true; }
         g.Players[2].Vectors = price + 3;
         cg.ProposeExpandLink(link);
         Run(s, dt, 0.5f, () => cg.ExpandProposals.Count == 1);
@@ -952,7 +952,7 @@ static partial class Program
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
-        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f); gg.Expanded.Clear(); gg.ExpandOpen = true; }
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f); gg.Expanded.Clear(); gg.ExpandOpen = true; }
         g.Players[2].Vectors = sum - 1;
         cg.ProposeExpandHall(legs);
         Run(s, dt, 0.5f, () => g.ExpandProposals.Count > 0);
@@ -1013,7 +1013,7 @@ static partial class Program
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
-        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.ExpandOpen = true; }
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f); gg.Expanded.Clear(); gg.ExpandOpen = true; }
         g.Players[2].Vectors = l[0].Price - 1;
         cg.ProposeExpandOutline(ell);
         Run(s, dt, 0.5f, () => g.ExpandProposals.Count > 0);
@@ -1079,7 +1079,7 @@ static partial class Program
         var g = host.Game; var cg = client.Game;
         var p1 = g.Players[1];
         Check(p1.Vectors == Game.VectorStart && p1.VectorCap == Game.VectorCapBase && Game.VectorStart < Game.VectorCapBase, "everyone starts with " + Game.VectorStart + " vectors and a cap of " + Game.VectorCapBase);
-        g.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f); cg.Diff.Set(DiffKnob.BuildVote, 1f);
+        g.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); cg.Diff.Set(DiffKnob.BuildVote, 1f);
         g.Wave = 6; g.BossSlot = false;
         grantWave.Invoke(g, null);
         Check(p1.Vectors == Game.VectorStart + Game.VectorWaveGain, "a cleared wave gives " + Game.VectorWaveGain + " (" + p1.Vectors + ")");
@@ -1144,7 +1144,7 @@ static partial class Program
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
-        g.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f); cg.Diff.Set(DiffKnob.BuildVote, 1f);
+        g.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); cg.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); cg.Diff.Set(DiffKnob.BuildVote, 1f);
         g.Expanded.Add(new ExpansionRoom { Parent = 0, X = 1600, Y = 100, W = 800, H = 600, Kind = RoomKind.Combat });
         g.Expanded.Add(new ExpansionRoom { Parent = 0, X = -800, Y = 100, W = 800, H = 600, Kind = RoomKind.Combat });
         string why;
