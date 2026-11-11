@@ -1380,29 +1380,28 @@ static partial class Program
         var east = Expansion.Custom(list, 1600, 100, 800, 600, out why).Value;
         foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Add(east); }
         Check(g.FreeBuild && cg.FreeBuild && !g.BuildVoting, "free building is the default for the Expanding arena");
-        Check(g.State == MatchState.Fighting && !g.ExpandOpen && g.DoorsOpen && cg.DoorsOpen, "with a wave on, doors can be built");
+        Check(g.State == MatchState.Fighting && !g.ExpandOpen && !g.DoorsOpen && !g.CanCut, "with a wave on, nothing can be built");
 
-        // Mid-wave: a room is refused, a door goes in at once and pays its drawer.
+        // Mid-wave: a room and a door are both refused.
         cg.ProposeExpandRoom(-800, 100, 800, 600);
         g.ProposeExpandRoom(-800, 100, 800, 600);
-        Run(s, dt, 0.4f);
-        Check(g.Expanded.Count == 1 && cg.Expanded.Count == 1, "no new room mid-wave");
+        cg.ProposeExpandCut(new WallCut { Vertical = true, At = 1600, From = 100, Till = 700 });
+        Run(s, dt, 0.5f);
+        Check(g.Expanded.Count == 1 && cg.Expanded.Count == 1 && g.Openings.Count == 0 && cg.Openings.Count == 0, "no room or door mid-wave");
         g.Players[2].Vectors = 10;
         var all = new WallCut { Vertical = true, At = 1600, From = 100, Till = 700 };
-        cg.ProposeExpandCut(all);
-        Run(s, dt, 0.5f, () => cg.Openings.Count == 1);
-        Check(g.Openings.Count == 1 && cg.Openings.Count == 1 && g.ExpandProposals.Count == 0, "a door mid-wave is built at once on both screens, with no vote");
-        Check(g.Players[2].Vectors == 14, "and its drawer is paid the wall back (" + g.Players[2].Vectors + ")");
 
         // Between waves: every drawing is built at once, as many as people can pay for.
         foreach (var gg in new[] { g, cg }) gg.ExpandOpen = true;
         Check(!g.DoorsOpen, "(the building round has its own rules, not the doors-only ones)");
+        Run(s, dt, 0.3f);
         int v2 = g.Players[2].Vectors = 100, v1 = g.Players[1].Vectors = 100;
         var west = Expansion.Custom(g.Expanded, -800, 100, 800, 600, out why).Value;
         cg.ProposeExpandRoom(-800, 100, 800, 600);
         Run(s, dt, 0.5f, () => cg.Expanded.Count == 2);
         Check(g.Expanded.Count == 2 && cg.Expanded.Count == 2 && g.Expanded[1].Owner == 2 && g.ProposalHeads.Count == 0 && g.ExpandOpen, "a friend's room is built the moment it's drawn; the round stays open");
-        Check(g.Players[2].Vectors == v2 - west.Price && cg.Players[2].Vectors == g.Players[2].Vectors, "and only they pay (" + west.Price + ")");
+        Run(s, dt, 1f, () => cg.Players[2].Vectors == g.Players[2].Vectors);
+        Check(g.Players[2].Vectors == v2 - west.Price && cg.Players[2].Vectors == g.Players[2].Vectors, "and only they pay (" + west.Price)");
         var offers = Expansion.Offers(5, 6, g.Expanded);
         Check(offers.Count > 0, "there is room for another");
         var o = offers[0];
@@ -1414,8 +1413,8 @@ static partial class Program
         Check(g.ExpandVotes.Count == 0, "votes mean nothing in free building");
         var west2 = new WallCut { Vertical = true, At = 0, From = 100, Till = 700 };
         g.ProposeExpandCut(west2);
-        Run(s, dt, 0.5f, () => cg.Openings.Count == 2);
-        Check(g.Openings.Count == 2 && cg.Openings.Count == 2, "a door between waves is built at once");
+        Run(s, dt, 0.5f, () => cg.Openings.Count == 1);
+        Check(g.Openings.Count == 1 && cg.Openings.Count == 1, "a door between waves is built at once");
         typeof(Game).GetMethod("ResolveBuildRound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(g, null);
         Run(s, dt, 0.5f, () => !cg.ExpandOpen);
         Check(!g.ExpandOpen && !cg.ExpandOpen && g.Expanded.Count == 3, "when the wave starts the round just closes, nothing changes");
@@ -1425,7 +1424,7 @@ static partial class Program
         Check(g.BuildVoting && !g.FreeBuild && !g.DoorsOpen && !g.CanCut, "with Team vote building on, doors mid-wave are off");
         cg.ProposeExpandCut(new WallCut { Vertical = true, At = 0, From = 300, Till = 600 });
         Run(s, dt, 0.4f);
-        Check(g.Openings.Count == 2 && g.ExpandProposals.Count == 0, "and a mid-wave door is refused");
+        Check(g.Openings.Count == 1 && g.ExpandProposals.Count == 0, "and a mid-wave door is refused");
         foreach (var gg in new[] { g, cg }) gg.ExpandOpen = true;
         var o2 = Expansion.Offers(6, 6, g.Expanded);
         if (o2.Count > 0)
