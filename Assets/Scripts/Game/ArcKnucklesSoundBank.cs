@@ -10,7 +10,8 @@ namespace Arena
         static bool IsKnuckleWeaponSfx(Sfx s)
         {
             return s == Sfx.KnuckleJab || s == Sfx.KnuckleHook || s == Sfx.KnuckleUpper || s == Sfx.KnuckleSlam || s == Sfx.KnuckleCounter
-                || s == Sfx.KnuckleArm || s == Sfx.KnuckleRocket || s == Sfx.KnuckleRocketHit;
+                || s == Sfx.KnuckleArm || s == Sfx.KnuckleRocket || s == Sfx.KnuckleRocketHit
+                || s == Sfx.KnuckleGrab || s == Sfx.KnuckleThrow;
         }
 
         void BuildKnuckles()
@@ -53,6 +54,15 @@ namespace Arena
                 Tone(0.12f, S, 200f, 60f, 0.36f, noise: 0.3f, lowpass: 0.3f, decay: 2.4f),
                 Tone(0.06f, S, 2400f, 700f, 0.18f, noise: 0.9f, lowpass: 0.85f, decay: 3f),
                 Tone(0.14f, Osc.Square, KnuckleZap * 1.2f, KnuckleZap * 0.5f, 0.05f, noise: 0.6f, lowpass: 0.7f, decay: 2.2f)), 0.2f), 0.55f), 0.06f);
+            // The grab: plates clanking shut on it, a crackle as the coils lock.
+            Set(Sfx.KnuckleGrab, Finish(Mix(
+                Tone(0.04f, Osc.Square, 900f, 600f, 0.1f, noise: 0.4f, lowpass: 0.45f, decay: 3f),
+                Delay(Tone(0.05f, Osc.Square, 1300f, 800f, 0.08f, noise: 0.4f, lowpass: 0.45f, decay: 3f), 0.1f),
+                Delay(Tone(0.18f, Osc.Square, KnuckleZap * 0.8f, KnuckleZap * 1.1f, 0.04f, noise: 0.6f, lowpass: 0.6f, decay: 2f), 0.1f)), 0.4f), 0.08f);
+            // The throw: a heavy whoosh as it leaves your hand.
+            Set(Sfx.KnuckleThrow, Finish(Mix(
+                Tone(0.22f, S, 300f, 1100f, 0.2f, noise: 0.9f, lowpass: 0.5f, attack: 0.02f, decay: 1.6f),
+                Tone(0.16f, S, 140f, 80f, 0.14f, noise: 0.3f, lowpass: 0.3f, decay: 2.4f)), 0.45f), 0.06f);
             // Armed: the coils whine up and click.
             Set(Sfx.KnuckleArm, Finish(Mix(
                 Tone(0.22f, S, 600f, 2200f, 0.08f, lowpass: 0.6f, attack: 0.08f, decay: 1.4f),

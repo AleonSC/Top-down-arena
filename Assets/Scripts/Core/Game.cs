@@ -951,6 +951,8 @@ namespace Arena
                 move = V2.Zero;  // the Katana's Momentum Burst: planted for a moment (Katana.cs)
                 firing = false;
             }
+            if (me.Weapon.Id == WeaponId.ArcKnuckles && (me.KnuckleChain == 2 || me.KnuckleChain == 4) && DashT <= 0f)
+                move = V2.Zero;  // the Arc Knuckles' Flurry and Grab & Throw: rooted while they run (ArcKnucklesChain.cs)
             float bowRelease = LocalBow(me, firing, dt);
             if (me.Downed)
                 DashT = 0f;

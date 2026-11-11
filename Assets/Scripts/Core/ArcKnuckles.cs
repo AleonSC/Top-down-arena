@@ -42,6 +42,10 @@ namespace Arena
         /// Host: one press of the primary with the Arc Knuckles (from FireKnightWeapon): the next punch, or the Counter Hammer.
         void FireArcKnuckles(Player p, float aim, float dmg, int extra)
         {
+            if (p.KnuckleChain == 2 || p.KnuckleChain == 4 || p.KnuckleChain == 6)
+                return;  // a dash chain move is running (ArcKnucklesChain.cs)
+            if ((p.KnuckleChain & 1) == 1 && FireKnuckleChain(p, aim, dmg))
+                return;  // a dash chain window was open: its next move
             var w = p.Weapon;
             int last = KnuckleStepOf(p.Combo);
             int step = p.KnuckleArmed ? 6 : last >= 1 && last < 5 && p.ComboT > 0f ? last + 1 : 1;
@@ -131,6 +135,7 @@ namespace Arena
             foreach (var p in Players.Values)
             {
                 TickKnuckleDash(p, dt);
+                TickKnuckleChain(p, dt);  // the dash chain (ArcKnucklesChain.cs)
                 if (!p.KnuckleArmed)
                     continue;
                 if (p.Weapon.Id != WeaponId.ArcKnuckles || p.Downed || (p.KnuckleArmedT -= dt) <= 0f)
@@ -139,6 +144,7 @@ namespace Arena
                     p.KnuckleArmedT = 0f;
                 }
             }
+            TickGrabRuns(dt);  // grabbed enemies carried and thrown (ArcKnucklesChain.cs)
         }
 
         /// Raising the parry cancels the chain (ResetAttackChains): back to the Jab, a punch still winding up never lands. An
@@ -149,6 +155,7 @@ namespace Arena
             p.ComboT = 0f;
             p.FireCd = 0f;
             pendingSwings.RemoveAll(s => s.Owner == p.Id && s.Knuckle != 0 && s.Delay > 0f);
+            EndKnuckleChain(p);  // (and the dash chain ends; ArcKnucklesChain.cs)
         }
 
         // --- The Rocket Dash (the weapon-action key) -----------------------------------------------------------------
@@ -194,6 +201,7 @@ namespace Arena
                 return;
             var e = hits[0];
             BroadcastFx(FxKind.Ring, e.Pos, ArcBlue, e.Radius + 22f, 0.3f, Sfx.KnuckleRocketHit);
+            OpenKnuckleChain(p, e);  // press Fire now for the Flurry (ArcKnucklesChain.cs)
         }
 
         /// Host, every tick (from TickArcKnuckles): the dash's cooldown.

@@ -260,6 +260,7 @@ namespace Arena
                 DrawMeleeHeldIdle(p);  // the Kusarigama and Blood Lash held at the ready (MeleeLooks.cs)
                 DrawTwinIdle(p, t);  // the Twin Blades' sabres held at the ready (TwinBladesLook.cs)
                 DrawKnuckleIdle(p, t);  // the Arc Knuckles up in a guard (ArcKnucklesLook.cs)
+                DrawKnucklePrompt(p, t);  // the Arc Knuckles' dash chain: Fire now (ArcKnucklesLook.cs)
                 DrawLightIdle(p, t);  // the Lightbringer held at the ready (LightbringerLook.cs)
                 DrawLanceIdle(p, t);  // the Lance and shield held at the ready (LanceLook.cs)
                 DrawMercyWard(p, t);  // a Lightbringer's ward on anyone (LightbringerLook.cs)

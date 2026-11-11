@@ -184,6 +184,94 @@ static partial class Program
         Fly(20, false);
         Check(me.Pos.DistanceTo(after) > 100f, "after the cooldown it dashes again");
 
+        // The dash chain: a dash that hits opens a window; Fire throws the Flurry where you landed, then Grab & Throw (the Flurry's
+        // target thrown into the next enemy), then the Rocket Punch down the line.
+        Fly((int)(Game.KnuckleDashCooldown / dt) + 10, false);
+        foreach (var en in new List<Enemy>(g.Enemies.Values)) en.Pos = new V2(150f, 120f);
+        V2 S = new V2(400f, 450f);
+        me.Pos = S;
+        var tgt = Dummy(new V2(S.X + 150f, S.Y));
+        var next = Dummy(new V2(S.X + 300f, S.Y + 4f));
+        pinned.Clear();
+        tgt.Hp = tgt.MaxHp; next.Hp = next.MaxHp;
+        bool movedWhileRooted = false, clientSawChain = false;
+        Action<int, bool, bool, V2> Do = (frames, fire, alt, move) =>
+        {
+            for (int f = 0; f < frames; f++)
+            {
+                queue.Clear();
+                V2 before = me.Pos;
+                bool rooted = me.KnuckleChain == 2 || me.KnuckleChain == 4;
+                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = me.Pos + new V2(300f, 0f), Fire = fire && f < 2, WeaponAction = alt && f < 2, Move = move } : new PlayerInput()); }
+                foreach (var c in g.Sounds) heard.Add(c.Sfx);
+                g.Sounds.Clear();
+                if (rooted && me.KnuckleChain == (rooted ? me.KnuckleChain : 0) && me.Pos.DistanceTo(before) > 0.5f) movedWhileRooted = true;
+                foreach (var fx in s[1].Game.Effects)
+                    clientSawChain |= fx.Kind == FxKind.KnuckleChain && (int)Math.Round(fx.Radius) / 10 == 1;
+            }
+        };
+        Func<Enemy, float> Took = en => { float t = en.MaxHp - en.Hp; en.Hp = en.MaxHp; return t; };
+        Do(2, false, true, V2.Zero);
+        Do(12, false, false, V2.Zero);
+        Took(tgt);
+        Check(me.KnuckleChain == 1, "a Rocket Dash that hits opens the chain's window (" + me.KnuckleChain + ")");
+        Check(s[1].Game.Players[1].KnuckleChain == 1, "the other player's game knows (the Fire prompt shows)");
+        Do(2, true, false, V2.Zero);
+        Check(me.KnuckleChain == 2, "Fire throws the Flurry");
+        Do(10, false, false, new V2(0f, 1f));  // (trying to walk away)
+        Do(38, false, false, V2.Zero);
+        float flurry = Took(tgt);
+        Check(!movedWhileRooted, "you're rooted while the Flurry runs");
+        Check(Math.Abs(flurry - baseDmg * (Game.FlurryJabs * Game.FlurryJabMult + Game.FlurryStraightMult)) < 1f, "eight jabs and a straight land on the target (" + flurry + ")");
+        Check(me.KnuckleChain == 3, "the straight opens the grab's window");
+        Do(2, true, false, V2.Zero);
+        Check(me.KnuckleChain == 4 && heard.Contains(Sfx.KnuckleGrab), "Fire grabs the Flurry's target");
+        float nearAt = -1f;
+        for (int f = 0; f < 70 && me.KnuckleChain == 4; f++)
+        {
+            Do(1, false, false, V2.Zero);
+            if (f == 25) nearAt = tgt.Pos.DistanceTo(me.Pos);
+        }
+        Check(nearAt > 0f && nearAt < 60f, "it's held right beside you as you swing it round (" + nearAt + " px)");
+        float thrown = Took(tgt), hitBy = Took(next);
+        Check(heard.Contains(Sfx.KnuckleThrow), "the throw is heard");
+        Check(Math.Abs(thrown - baseDmg * Game.KnuckleThrowMult) < 1f && Math.Abs(hitBy - baseDmg * Game.KnuckleThrowHitMult) < 1f,
+            "the thrown enemy takes 20 and the one it hits 26 (" + thrown + ", " + hitBy + ")");
+        Check(next.FrozenT > 0f, "and the one it hits is stunned");
+        Check(me.KnuckleChain == 5, "the landing opens the Rocket Punch's window");
+        Do(2, true, false, V2.Zero);
+        Check(me.KnuckleChain == 6, "Fire throws the Rocket Punch");
+        Do(25, false, false, V2.Zero);
+        float p1 = Took(tgt), p2 = Took(next);
+        Check(Math.Abs(p1 - baseDmg * Game.RocketPunchMult) < 1f && Math.Abs(p2 - baseDmg * Game.RocketPunchMult) < 1f, "the Rocket Punch hits both down the line (" + p1 + ", " + p2 + ")");
+        Do(50, false, false, V2.Zero);
+        Check(me.KnuckleChain == 0, "and the chain is over when the fist is back");
+        Check(clientSawChain, "the other player sees the chain's moves");
+
+        // A window you miss closes, and the parry ends the chain.
+        Do((int)(Game.KnuckleDashCooldown / dt), false, false, V2.Zero);
+        foreach (var en in new List<Enemy>(g.Enemies.Values)) en.Pos = new V2(150f, 120f);
+        me.Pos = S;
+        tgt.Pos = new V2(S.X + 150f, S.Y);
+        Do(2, false, true, V2.Zero);
+        Do(14, false, false, V2.Zero);
+        bool opened = me.KnuckleChain == 1;
+        Do(40, false, false, V2.Zero);
+        Check(opened && me.KnuckleChain == 0, "a missed window closes the chain");
+        Do((int)(Game.KnuckleDashCooldown / dt), false, false, V2.Zero);
+        me.Pos = S;
+        tgt.Pos = new V2(S.X + 150f, S.Y);
+        Do(2, false, true, V2.Zero);
+        Do(14, false, false, V2.Zero);
+        Do(2, true, false, V2.Zero);
+        bool flurrying = me.KnuckleChain == 2;
+        for (int f = 0; f < 6; f++)
+        {
+            queue.Clear();
+            foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = me.Pos + new V2(300f, 0f), Parry = true } : new PlayerInput()); }
+        }
+        Check(flurrying && me.KnuckleChain == 0, "raising the parry ends the chain");
+
         s[0].Leave(""); s[1].Leave("");
     }
 }

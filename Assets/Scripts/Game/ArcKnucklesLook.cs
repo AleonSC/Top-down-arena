@@ -10,6 +10,9 @@ namespace Arena
     ///     (DrawKnuckleStepFx); the Twin Hammer's and the Counter Hammer's shockwave, cracks and dust;
     ///   - the Rocket Dash (FxKind.KnuckleDash): the lead fist thrown forward, the rear gauntlet's thruster, afterimages and speed
     ///     lines along the path (DrawKnuckleDashFx); a ring under your own feet fills as it comes back;
+    ///   - the dash chain (FxKind.KnuckleChain): the Flurry's alternating jabs, Grab & Throw's reach, pull and full swing (the host
+    ///     carries the enemy along the same KnuckleGrabFist), the Rocket Punch's fist flying out on its chain and reeled back
+    ///     (DrawKnuckleChainFx); while a Fire window is open, a pulsing ring and chevrons ahead say "press now" (DrawKnucklePrompt);
     ///   - five diamonds over the head for the chain, gold while a perfect parry has the Counter Hammer armed (DrawKnucklePips).
     public partial class ArenaApp
     {
@@ -109,7 +112,7 @@ namespace Arena
                     Line(a0, a0 - dir * 22f, 1f, new Rgba(0.9f, 0.9f, 0.9f, 0.25f * fade));
                 }
             }
-            if (owner != null && KnuckleDashFxOf(id) != fx)
+            if (owner != null && (KnuckleDashFxOf(id) != fx || KnuckleChainFxOf(id) != null))
                 return;
             if (c >= KnDashPose)
                 return;
@@ -171,7 +174,7 @@ namespace Arena
         /// The fists up in a guard, when no punch is moving.
         void DrawKnuckleIdle(Player p, float t)
         {
-            if (p.Weapon.Id != WeaponId.ArcKnuckles || KnuckleFxOf(p.Id) != null || KnuckleDashFxOf(p.Id) != null)
+            if (p.Weapon.Id != WeaponId.ArcKnuckles || KnuckleFxOf(p.Id) != null || KnuckleDashFxOf(p.Id) != null || KnuckleChainFxOf(p.Id) != null)
                 return;
             float b = Mathf.Sin(t * 2.6f);
             var m = KnRest;
@@ -194,7 +197,7 @@ namespace Arena
             bool gold = step == 6;
             if (step >= 5)
                 DrawKnuckleQuake(fx.Pos + V2.FromAngle(aim) * Game.KnuckleHammerAt, c - Game.KnuckleLand[step - 1], gold ? Game.KnuckleCounterR : Game.KnuckleHammerR, gold, id);
-            if (c >= Game.KnuckleDur[step - 1] || (owner != null && (KnuckleFxOf(id) != fx || KnuckleDashFxOf(id) != null)))
+            if (c >= Game.KnuckleDur[step - 1] || (owner != null && (KnuckleFxOf(id) != fx || KnuckleDashFxOf(id) != null || KnuckleChainFxOf(id) != null)))
                 return;  // (a dash takes over from a punch)  // the punch is over, or a newer one by the same player has taken over
             // the streak behind a fist that moves fast
             for (int side = 0; side < 2; side++)
@@ -248,7 +251,7 @@ namespace Arena
         }
 
         /// Both arms and gauntlets in a pose (the body and head are the model's).
-        void DrawKnucklePose(V2 o, float aim, KnPose m, Rgba armCol, float t, bool gold)
+        void DrawKnucklePose(V2 o, float aim, KnPose m, Rgba armCol, float t, bool gold, int rDet = 0)
         {
             V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
             float body = aim + m.Tw;
@@ -266,12 +269,29 @@ namespace Arena
             {
                 bool right = n == 0 ? rightFirst : !rightFirst;
                 V2 s = o + V2.FromAngle(body + (right ? 1.48f : -1.48f)) * 12f, f = KnuckleFist(o, aim, m, right);
-                Line(s, f, 7.5f, KnInk);
-                Line(s, f, 5f, armCol.Mix(KnSleeve, 0.35f));
+                bool det = right && rDet != 0;
+                V2 hand = det ? s + dir * 12f : f;  // a fist fired off on its chain: the arm ends in a stub at the wrist
+                Line(s, hand, 7.5f, KnInk);
+                Line(s, hand, 5f, armCol.Mix(KnSleeve, 0.35f));
                 Circle(s, 6.2f, KnInk, 12);
                 Circle(s, 5f, KnSleeve.Mix(armCol, 0.25f), 12);
                 V2 d = f - s;
                 float ang = d.IsZero ? aim : d.Angle;
+                if (det)
+                {
+                    KnuckleCable(hand, f - dir * 12f);
+                    Circle(hand, 3.5f, KnCuff, 10);
+                    ang = aim;
+                    if (rDet == 1 || rDet == -1)  // the thruster: behind it going out, in front of it (reversed) coming back
+                    {
+                        V2 at = rDet == 1 ? f - dir * 13f : f + dir * 9f, back = rDet == 1 ? dir * -1f : dir;
+                        float fl = 16f + 7f * Mathf.Sin(t * 95f);
+                        SetColor(KnArc.WithAlpha(0.85f));
+                        Tri(at + side * 5f, at + back * fl, at - side * 5f);
+                        SetColor(KnArcHi);
+                        Tri(at + side * 2.5f, at + back * fl * 0.55f, at - side * 2.5f);
+                    }
+                }
                 DrawGauntlet(f, ang, right ? m.Rz : m.Lz, m.G, t, right ? 1 : -1, gold);
             }
         }
@@ -405,6 +425,184 @@ namespace Arena
                 Rgba col = gold ? KnGold.WithAlpha(p.KnuckleArmed ? 0.65f + 0.35f * Mathf.Sin(t * 14f) : 1f) : lit ? KnArc : new Rgba(1f, 1f, 1f, 0.15f);
                 Polygon(at, r + 1f, 4, 0f, new Rgba(0f, 0f, 0f, 0.55f));
                 Polygon(at, r, 4, 0f, col);
+            }
+        }
+
+        // --- The dash chain ---------------------------------------------------------------------------------------------
+
+        /// The dash chain move of this player still playing (the newest), or null.
+        Effect KnuckleChainFxOf(int id)
+        {
+            Effect best = null;
+            foreach (var fx in game.Effects)
+                if (fx.Kind == FxKind.KnuckleChain && Mathf.RoundToInt(fx.Radius) / 10 == id && fx.T < fx.Dur && (best == null || fx.T < best.T))
+                    best = fx;
+            return best;
+        }
+
+        static float KnIo(float k) { k = Mathf.Clamp01(k); return k < 0.5f ? 2f * k * k : 1f - (-2f * k + 2f) * (-2f * k + 2f) / 2f; }
+        static float KnOut(float k) { k = Mathf.Clamp01(k); return 1f - (1f - k) * (1f - k) * (1f - k); }
+        static float KnIn(float k) { k = Mathf.Clamp01(k); return k * k * k; }
+
+        /// The Flurry's pose `c` seconds in: eight alternating jabs, a wind-back, the straight, back to the guard.
+        static KnPose FlurryAt(float c)
+        {
+            var m = KnRest;
+            if (c < Game.FlurryStart - 0.04f)
+            {
+                float k = KnIo(c / 0.05f);
+                m.Ly = -13f + 4f * k; m.Ry = 13f - 4f * k;
+                return m;
+            }
+            if (c < 0.73f)
+            {
+                int q = Mathf.Min(Game.FlurryJabs - 1, Mathf.FloorToInt((c - 0.05f) / Game.FlurryGap));
+                float ph = Mathf.Clamp01((c - 0.05f - q * Game.FlurryGap) / Game.FlurryGap), ext = Mathf.Sin(Mathf.PI * ph), sg = q % 2 == 1 ? 1f : -1f;
+                m.Ly = -9f; m.Ry = 9f; m.G = 0.4f;
+                float x = 17f + 50f * ext, y = sg * 9f * (1f - ext * 0.8f) + (KnHash(q) - 0.5f) * 16f * ext;
+                if (q % 2 == 1) { m.Rx = x; m.Ry = y; } else { m.Lx = x; m.Ly = y; }
+                m.Tw = sg * 0.22f * ext;
+                return m;
+            }
+            if (c < 0.80f)
+            {
+                float k = KnOut((c - 0.73f) / 0.07f);
+                m.Lx = 17f; m.Ly = -11f; m.Rx = 10f + 66f * k; m.Ry = 15f - 13f * k; m.Tw = -0.25f + 0.6f * k; m.G = 1f;
+                return m;
+            }
+            if (c < 0.86f)
+            {
+                m.Lx = 15f; m.Ly = -14f; m.Rx = 72f; m.Ry = 2f; m.Tw = 0.35f; m.G = 0.6f;
+                return m;
+            }
+            float u = KnIo((c - 0.86f) / 0.19f);
+            m.Lx = 15f + 2f * u; m.Ly = -14f + u; m.Rx = 72f - 55f * u; m.Ry = 2f + 11f * u; m.Tw = 0.35f * (1f - u); m.G = 0.6f * (1f - u);
+            return m;
+        }
+
+        /// Grab & Throw's pose: the grabbing fist (the host carries the enemy beside it), the other turning with the body.
+        static KnPose GrabAt(float c)
+        {
+            var m = KnRest;
+            V2 f = Game.KnuckleGrabFist(c);
+            float spin = Game.KnuckleGrabSpin(c);
+            m.Rx = f.X; m.Ry = f.Y;
+            V2 l = new V2(KnRest.Lx * Mathf.Cos(spin) - KnRest.Ly * Mathf.Sin(spin), KnRest.Lx * Mathf.Sin(spin) + KnRest.Ly * Mathf.Cos(spin));
+            m.Lx = l.X; m.Ly = l.Y;
+            m.Tw = spin + (c < Game.GrabLatch ? 0.2f * c / Game.GrabLatch : 0f);
+            m.G = c >= Game.GrabLatch && c < Game.GrabRelease ? 0.8f : 0.2f;
+            return m;
+        }
+
+        /// The Rocket Punch's pose: the fist fired off on its chain down the line, a beat at the end, reeled back. `det` says where
+        /// its thruster points (1 out, -1 back, 2 hanging, 0 back in the hand).
+        static KnPose RocketPunchAt(float c, out int det)
+        {
+            var m = KnRest;
+            det = 0;
+            if (c < 0.12f)
+            {
+                float k = KnIo(c / 0.12f);
+                m.Rx = 17f - 11f * k; m.Ry = 13f + 3f * k; m.Tw = -0.25f * k; m.G = 0.7f * k;
+            }
+            else if (c < 0.40f)
+            {
+                float k = KnOut((c - 0.12f) / 0.28f);
+                m.Rx = 6f + (Game.RocketPunchReach - 6f) * k; m.Ry = 16f - 14f * k; m.Tw = -0.25f + 0.5f * KnOut((c - 0.12f) / 0.06f); m.G = 0.7f; det = 1;
+            }
+            else if (c < 0.48f)
+            {
+                m.Rx = Game.RocketPunchReach; m.Ry = 2f; m.Tw = 0.25f; m.G = 0.5f; det = 2;
+            }
+            else if (c < 0.74f)
+            {
+                float k = KnIn((c - 0.48f) / 0.26f);
+                m.Rx = Game.RocketPunchReach + (24f - Game.RocketPunchReach) * k; m.Ry = 2f + 10f * k; m.Tw = 0.25f; m.G = 0.5f; det = -1;
+            }
+            else
+            {
+                float k = KnIo((c - 0.74f) / 0.16f);
+                m.Rx = 24f - 7f * k; m.Ry = 12f + k; m.Tw = 0.25f * (1f - k); m.G = 0.5f * (1f - k);
+            }
+            return m;
+        }
+
+        /// A dash chain move, from its effect's age.
+        void DrawKnuckleChainFx(Effect fx)
+        {
+            int code = Mathf.RoundToInt(fx.Radius), id = code / 10, move = code % 10;
+            Player owner;
+            game.Players.TryGetValue(id, out owner);
+            if (owner != null && KnuckleChainFxOf(id) != fx)
+                return;
+            V2 o = owner != null ? owner.Disp : fx.Pos;
+            float aim = (fx.Pos2 - fx.Pos).Angle, c = fx.T, t = Time.time;
+            Rgba arm = owner != null ? owner.Def.Color : new Rgba(0.45f, 0.5f, 0.6f);
+            int det = 0;
+            KnPose m;
+            if (move == 1)
+            {
+                m = FlurryAt(c);
+                for (int side = 0; side < 2; side++)  // the jabs' streaks: a blur of fists
+                    for (int i = 1; i <= 4; i++)
+                    {
+                        float ci = c - i * 0.012f;
+                        if (ci < 0f)
+                            break;
+                        V2 a = KnuckleFist(o, aim, FlurryAt(ci + 0.012f), side == 1), b = KnuckleFist(o, aim, FlurryAt(ci), side == 1);
+                        if (a.DistanceTo(b) > 2.5f)
+                            Line(a, b, 9f * (1f - i / 5f), KnArc.WithAlpha(0.28f * (1f - i / 5f)));
+                    }
+            }
+            else if (move == 2)
+            {
+                m = GrabAt(c);
+                if (c > Game.GrabPull + 0.08f && c < Game.GrabRelease)  // the swing's blur round you
+                {
+                    float spin = Game.KnuckleGrabSpin(c), sp = Mathf.Min(2.4f, Mathf.Pow((c - Game.GrabPull) / 0.5f, 0.7f) * 3f);
+                    Arc(o, 48f, 10f, KnArc.WithAlpha(0.12f), 24, aim + spin, sp * 0.6f);
+                    Arc(o, 48f, 2f, KnArcHi.WithAlpha(0.35f), 24, aim + spin + 0.1f, sp * 0.45f);
+                }
+                if (c >= Game.GrabLatch && c < Game.GrabLatch + 0.2f)  // the fist closing on it
+                    Arc(o + V2.FromAngle(aim) * 50f, 6f + 12f * (c - Game.GrabLatch) / 0.2f, 2f, KnArcHi.WithAlpha(1f - (c - Game.GrabLatch) / 0.2f), 16);
+            }
+            else
+                m = RocketPunchAt(c, out det);
+            DrawKnucklePose(o, aim, m, arm, t, false, det);
+            if (owner != null)
+                DrawKnucklePips(owner, t);
+        }
+
+        /// A chain of small links from `a` to `b`, sagging a little.
+        void KnuckleCable(V2 a, V2 b)
+        {
+            float len = a.DistanceTo(b);
+            int n = Mathf.Max(2, Mathf.FloorToInt(len / 7f));
+            float sag = Mathf.Min(6f, len * 0.03f);
+            V2 d = b - a, nrm = (d.IsZero ? new V2(1f, 0f) : d.Normalized()).Orthogonal();
+            for (int i = 0; i <= n; i++)
+            {
+                float k = (float)i / n;
+                V2 at = a + d * k + nrm * (Mathf.Sin(Mathf.PI * k) * sag);
+                Circle(at, 2.6f, i % 2 == 1 ? new Rgba(0.49f, 0.52f, 0.58f) : new Rgba(0.35f, 0.38f, 0.44f), 6);
+                Circle(at, 1.2f, KnInk, 5);
+            }
+        }
+
+        /// While a dash chain window is open (Fire now): a pulsing ring round the body and three chevrons ahead.
+        void DrawKnucklePrompt(Player p, float t)
+        {
+            if (p.Weapon.Id != WeaponId.ArcKnuckles || (p.KnuckleChain & 1) == 0 || p.Downed)
+                return;
+            float pulse = 0.5f + 0.5f * Mathf.Sin(t * 22f);
+            Arc(p.Disp, p.Def.BodyR + 10f + 2f * pulse, 2f, KnArcHi.WithAlpha(0.45f + 0.4f * pulse), 30);
+            V2 dir = V2.FromAngle(p.Aim), side = dir.Orthogonal();
+            for (int i = 0; i < 3; i++)
+            {
+                float a = Mathf.Clamp01(pulse * 1.4f - i * 0.25f);
+                V2 tip = p.Disp + dir * (p.Def.BodyR + 22f + i * 9f);
+                Line(tip - dir * 5f + side * 5f, tip, 2f, KnArc.WithAlpha(a));
+                Line(tip - dir * 5f - side * 5f, tip, 2f, KnArc.WithAlpha(a));
             }
         }
     }
