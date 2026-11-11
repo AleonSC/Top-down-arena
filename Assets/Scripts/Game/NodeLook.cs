@@ -15,7 +15,7 @@ namespace Arena
         {
             if (claimed)
             {
-                DrawNodeFixture(n);
+                DrawNodeFixture(n.Pos, n.Kind, n.Spent);
                 return;
             }
             var col = NodeInk(n.Kind).WithAlpha(0.5f + 0.25f * Mathf.Sin(game.AnimT * 2.5f));
@@ -32,13 +32,12 @@ namespace Arena
             }
         }
 
-        /// The shop's stall, the vendor's pedestal or the chest, centred on the node.
-        void DrawNodeFixture(MapNode n)
+        /// The shop's stall, the vendor's pedestal or the chest, centred on the node (or on an opened floating shop or vendor room).
+        void DrawNodeFixture(V2 c, NodeKind kind, bool spent)
         {
-            var ink = NodeInk(n.Kind);
-            V2 c = n.Pos;
+            var ink = NodeInk(kind);
             float t = game.AnimT, pulse = 0.5f + 0.5f * Mathf.Sin(t * 2.2f);
-            switch (n.Kind)
+            switch (kind)
             {
                 case NodeKind.Shop:
                 {
@@ -63,13 +62,13 @@ namespace Arena
                     break;
                 }
                 default:
-                    if (!n.Spent)
+                    if (!spent)
                     {
                         Circle(c, 62f, ink.WithAlpha(0.05f + 0.05f * pulse), 28);
                         Arc(c, 66f + 4f * pulse, 2f, ink.WithAlpha(0.35f + 0.25f * pulse), 28);  // walk up to it
                     }
-                    if (n.Spent || !Expansion.NodeClaimed(game.Expanded, n))  // (a claimed chest is the real prop, Props.cs)
-                        ChestBox(c, 1f, ink.WithAlpha(n.Spent ? 0.3f : 0.95f), n.Spent);
+                    if (spent)  // (a claimed, unopened chest is the real prop, Props.cs)
+                        ChestBox(c, 1f, ink.WithAlpha(spent ? 0.3f : 0.95f), spent);
                     break;
             }
         }

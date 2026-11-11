@@ -844,9 +844,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   colour. While a round is open the minimap and the draw screen show everyone's proposals as pulsing ghosts in their colours.
 - **Free building (the default)**: the lobby's **Free building / Team vote** pair (Difficulty tab, shown with the Expanding arena, host only) sets how it's built.
   With **Free building** there is no vote: a room, wall opening or portal pair is **built the moment you place it**, you pay for it (an opening pays you), and
-  anyone can build as many as they can afford in a round (the round window is just the draw screen; **Done** closes it). **Mid-wave you can open doors**: press **B**
-  ("[B] Open a door" under the build chips) for the draw screen in Open wall mode; new rooms and portals wait for the next break. Doors are off while a
-  Gatekeeper duel has its room locked. Bots still add one room a round, and only if nobody has built that round.
+  anyone can build as many as they can afford in a round (the round window is just the draw screen; **Done** closes it). **Nothing can be built mid-wave**: rooms, doors and portals all wait for the break between waves. Bots still add one room a round, and only if nobody has built that round.
   The lobby's **Team purse** toggle (any building mode, off by default) lets a build spend the whole team's vectors: the builder pays first, then the richest teammates; the chip and draw screen show the team total.
   **Team vote** keeps the rules below (proposals, one build a round, nothing mid-wave) for lobbies of strangers.
 - **The vote** (Team vote only): each player backs one proposal or "No room". Drawing a room doesn't cast your vote: until you click a card your
@@ -856,12 +854,14 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   tied options), and the winning drawer pays; nobody else does. One room is built a round, with a door to every room it
   shares a door's width of wall with (loops). Paths are off in this arena.
   **Solo players skip the vote**: your proposal is built the moment you make it.
-- **Nodes and the floating Gatekeeper room**: every boss cycle the game places a **shop node**, a **vendor node** and a **chest node**: points 10 to 16
-  tiles straight out from the map (at least 8 tiles from each other), marked on the arena floor, the minimap and the draw screen. A node is locked until you
-  build a **room** that encloses it (any room; a long one can reach it straight off the map); that room then becomes the shop or vendor
-  room, and a chest node's room stays a normal combat room with enemies. A claimed **chest** node holds a real treasure chest (the same as the rare wave chests): touch it and every player gets their own item. It opens once and never holds the wave up. No cover stands on a node. A claimed node shows as a fixture in its room: a stall, a pedestal or a chest (opened ones lie dim with the lid up). Nodes never respawn: a claimed one stays, and new ones appear around the current map.
-  At most 6 wait at once. A **Gatekeeper** room is still placed each cycle as a sealed box 4 to 8 tiles off the map: share 2 tiles of wall with it and its
-  door opens (it doesn't count towards the 24-room cap and adds no enemies; at most 6 wait). Bots build a room (or a narrow strip, then a room) to nodes (not to chests' loot: they don't walk to them).
+- **Shop and vendor rooms, chest nodes and the Gatekeeper room**: every boss cycle the game places a **shop room** and a **vendor room** (tiny
+  4 x 4 tile squares) and a **Gatekeeper** room (8 x 6) as sealed boxes 4 to 8 tiles off the map, plus a **chest node**: a point 10 to 16 tiles straight
+  out (at least 8 tiles from other nodes). Build a room or hallway that shares 2 tiles of wall with a sealed room and its door opens: walk in to shop
+  (the shop's stall or the vendor's pedestal stands in the middle). Sealed rooms don't count towards the 24-room cap and add no enemies; at most 6 wait.
+  A chest node is locked until you build a **room** that encloses it (a normal combat room with enemies); a claimed chest node holds a real treasure chest (the same as the rare wave chests): touch it and every
+  player gets their own item. It opens once and never holds the wave up (opened ones lie dim with the lid up). No cover stands on a node. Nothing respawns: new ones
+  appear around the current map. Bots build up to the shop room first, then the vendor, then chests, then the Gatekeeper (they don't walk to chests' loot).
+  Old saves with shop or vendor nodes still work: a room round one becomes that shop.
   (The Gatekeeper has its own room, below.)
 - **Surprise rooms**: every time you clear a **boss**, the map gets a **free** room in one of five shapes the game picks for you: a **ring** (a block in the
   middle with a lane to run round), a **cross**, an **L hall**, a **T hall** or a **chamfer** (a box with notched corners). It goes where it closes the most loops
@@ -1658,6 +1658,15 @@ chart**, and **Settings → Gameplay → Lag chart** sets the same thing (saved 
 - **Log lag to a file** (Settings → Gameplay) writes a CSV for each run to the `lag` folder in your profile folder: a row
   every quarter second (time, ping, snapshot gap, worst frame, fps, KB/s in and out) and a row for each wave, boss and
   storm.
+
+## Wave Lab (web wave tester)
+
+`Tools/WaveLab/run.sh [port]` (needs mono) serves a browser page that runs the **real game simulation** on the host machine.
+Open `http://localhost:8080`, or the machine's LAN address on a phone. Build a wave set (enemy palette, squads, spawn
+points A-E you can drag, timing, level) or load a built-in set / `.waves` file, pick a class and weapon, then **Play**.
+Play by hand (WASD, mouse, Space, Q/E/Shift, F, Ctrl; on a phone two thumb sticks and buttons) or switch the **bot**
+(Casual / Good / Expert) on at any time; God mode and a start wave are optional. One shared match at a time; no upgrade
+cards, you play the class as it starts.
 
 ## Making a build to send to your friend
 
