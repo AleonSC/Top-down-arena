@@ -38,7 +38,7 @@ namespace Arena
             {
                 charge = 0;
                 p.ScatShells++;
-                BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.TankShot), 24f, 0.25f, Sfx.Pick);
+                BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.TankShot), 24f, 0.25f, Sfx.TankShellLoad);
             }
             p.ScatCharge = (byte)charge;
         }
@@ -122,7 +122,7 @@ namespace Arena
             }
             p.ScatShells = 0;
             p.ScatCd = ScatDumpCd;
-            BroadcastFx(FxKind.DoubleBarrel, muzzle, muzzle + V2.FromAngle(aim) * 100f, Defs.BulletColor(Defs.TankShot), p.Id * 10 + shells, 0.45f, Sfx.ShotCannon);
+            BroadcastFx(FxKind.DoubleBarrel, muzzle, muzzle + V2.FromAngle(aim) * 100f, Defs.BulletColor(Defs.TankShot), p.Id * 10 + shells, 0.45f, Sfx.TankDouble);
         }
 
         /// Host: Proximity Shell. Lobbed to the cursor; your oldest goes if you have MineCap.
@@ -147,7 +147,7 @@ namespace Arena
             m.Aim = (at - p.Pos).Angle;
             m.Radius = MineBurst * AreaMult(p);  // drawn as the burst's reach; it goes off at MineTrigger
             p.MineCd = MineCd;
-            BroadcastFx(FxKind.Ring, p.Pos + V2.FromAngle(m.Aim) * p.Def.BodyR, Defs.BulletColor(Defs.FlakShell), 14f, 0.2f, Sfx.Throw);
+            BroadcastFx(FxKind.Ring, p.Pos + V2.FromAngle(m.Aim) * p.Def.BodyR, Defs.BulletColor(Defs.FlakShell), 14f, 0.2f, Sfx.TankMineLaunch);
         }
 
         /// Host: Tear Gas. The canister flies for TearGasFlight, then the cloud is up.
@@ -160,7 +160,7 @@ namespace Arena
             var z = AddZone(ZoneKind.TearGas, p, at, TearGasRadius * AreaMult(p), TearGasFlight + TearGasLife);
             z.Aim = (at - p.Pos).Angle;
             p.GasCd = TearGasCd;
-            BroadcastFx(FxKind.Ring, p.Pos + V2.FromAngle(z.Aim) * p.Def.BodyR, TearGasColor, 14f, 0.2f, Sfx.Throw);
+            BroadcastFx(FxKind.Ring, p.Pos + V2.FromAngle(z.Aim) * p.Def.BodyR, TearGasColor, 14f, 0.2f, Sfx.TankGasLaunch);
         }
 
         public static readonly Rgba TearGasColor = new Rgba(0.92f, 0.9f, 0.7f);
@@ -187,6 +187,11 @@ namespace Arena
             {
                 if (z.Kind != ZoneKind.FlakMine && z.Kind != ZoneKind.TearGas || TankAltInFlight(z))
                     continue;
+                if (!z.Landed)
+                {
+                    z.Landed = true;  // down: the mine clunks and arms, the canister clatters and starts to hiss (TankAltSoundBank.cs)
+                    BroadcastFx(FxKind.Spark, z.Pos, z.Def.Color, 6f, 0.1f, z.Kind == ZoneKind.FlakMine ? Sfx.TankMineArm : Sfx.TankGasHiss);
+                }
                 if (z.Kind == ZoneKind.FlakMine)
                 {
                     foreach (var e in Enemies.Values)
@@ -210,6 +215,7 @@ namespace Arena
                 foreach (var z in burst)
                 {
                     Zones.Remove(z.Id);
+                    BroadcastFx(FxKind.Spark, z.Pos, z.Def.Color, 6f, 0.1f, Sfx.TankMineBurst);  // the crack and shrapnel, over the burst's boom
                     FlakAirburst(new Bullet { Pos = z.Pos, Owner = z.Owner, Kind = Defs.FlakShell, Dmg = MineDamage * z.DmgMult, Splash = z.Radius });
                 }
         }

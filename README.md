@@ -846,7 +846,7 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   player when there is one. Never on a floating room, a shop, vendor or Gatekeeper room, or on boss waves (the fixed boss arena).
 - **Obstacles**: a built room comes with obstacles and bars of wall (pillars, bars, an L, blocks: one per ~220,000 px2, up to 4),
   laid out from the room's own box so every machine builds the same ones. They keep off the room's walls, its doors and its middle,
-  so you can always walk round them; hallways stay clear. A small or narrow room with doors at both ends still gets at least one
+  so you can always walk round them; a hallway gets a pillar or block every ~500 px, alternating sides with a 180 px lane past each, none near a door or bend. A small or narrow room with doors at both ends still gets at least one
   (pillar or block, closer to the walls and doors), and a 400 px deep room between two doors gets a small pillar to one side.
 - **How it plays**: regular waves use the whole map (walled, no wrapping, a minimap top right) and bring more enemies the
   bigger it is (up to 1.4 times); the map stops at 24 rooms. Boss waves are fought in the hub alone, as always.

@@ -90,6 +90,9 @@ namespace Arena
         DodgeSwish,
         // The Katana's finishers (KatanaSoundBank.cs): the Momentum Burst's ground stab and shockwave, the caltrops thrown, caltrops flung or seeking. Sent.
         KatanaBurstSfx, KatanaCaltrops, KatanaFling,
+        // The Tank Soldier's Alt fires (TankAltSoundBank.cs): Double Barrel and a shell loading, the Proximity Shell fired, armed and
+        // going off, Tear Gas fired and hissing. Sent; the three launches use the Weapons volume.
+        TankDouble, TankShellLoad, TankMineLaunch, TankMineArm, TankMineBurst, TankGasLaunch, TankGasHiss,
         // The Arc Knuckles (ArcKnucklesSoundBank.cs, the Arc Coil look): a jab or cross, the hook, the uppercut, the Twin Hammer's slam,
         // the Counter Hammer, and the coils charging when a perfect parry arms it. Sent.
         KnuckleJab, KnuckleHook, KnuckleUpper, KnuckleSlam, KnuckleCounter, KnuckleArm,
@@ -575,6 +578,7 @@ namespace Arena
     public class Zone
     {
         public int Id, Owner;
+        public bool Landed;         // host: a Proximity Shell or Tear Gas canister has come down (its landing sound sent; TankAlts.cs)
         public ZoneKind Kind;
         public V2 Pos;
         public float Radius, T, Duration;
