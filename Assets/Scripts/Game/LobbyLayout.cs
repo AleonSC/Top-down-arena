@@ -24,7 +24,7 @@ namespace Arena
         static V2 LobbyTitleAnchor => new V2(LobbyTitleRect.x + 34f, LobbyTitleRect.center.y);
         /// The "!" connection key, at the column's right end (shown while the mouse is over it).
         static Rect LobbyInfoKey => new Rect(PartyX + PartyW - LobbyHeadKey, LobbyHeadY, LobbyHeadKey, LobbyHeadKey);
-        /// Gauntlet / Boss Hunt / Practice (or the Resume banner).
+        /// Campaign / Boss Hunt / Practice (or the Resume banner).
         static Rect LobbyModeRect => new Rect(PartyX, 82f, PartyW, 52f);
         /// "PARTY (n/3)", and the Hangout key at the right end of the same line.
         static Rect LobbyPartyLabel => new Rect(PartyX, 146f, 220f, 22f);

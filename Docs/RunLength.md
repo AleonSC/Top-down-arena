@@ -1,6 +1,6 @@
 # Campaign and Boss Hunt: run length, cycles and modes (design)
 
-Status: **steps 1-3 built** (Nov 2026: every arena saves; the Campaign is 100 waves, protocol 273; the Warden's teaching cycle); steps 4-6 not built. The owner's decisions are in bold. The numbers are first guesses.
+Status: **steps 1-4 built** (Nov 2026: every arena saves; the Campaign is 100 waves, protocol 273; the Warden's teaching cycle); step 4: the Campaign is the Expanding arena, Simple Arena a Risky modifier, protocol 276; steps 5-6 not built. The owner's decisions are in bold. The numbers are first guesses.
 Related: [`Checkpoints.md`](Checkpoints.md) (lives), [`Campaign.md`](Campaign.md) (themed build-up, steps 1-2 built),
 [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md), [`LateGamePressure.md`](LateGamePressure.md).
 
@@ -51,7 +51,7 @@ ramps through what you have to know, not only through health and damage.
 - **Simple Arena** becomes a **run modifier** (the Modifiers tab, tier **Risky**): today's Classic arena (with its
   floor plans) all run, no building. With Boss Hunts it's the quicker, simpler way to play.
 - The Difficulty tab loses its arena switches (Arena layouts, Classic/Rooms, Expanding).
-- The Rooms arena (Wings) has no switch left; whether it stays reachable (Custom, dev) or goes is open.
+- The Rooms arena (Wings) stays as a prototype: a host switch in the F1 dev dock (owner: may help generate layouts later).
 - **Boss Hunts stay a single arena (Classic).**
 - Later (owner): a game mode that generates rooms automatically.
 
@@ -92,13 +92,13 @@ damage about 4x.
    keeps its usual random Data Gate. Wave 5 is a recap. Suite
    `wardencycle`.
 4. The Campaign is the Expanding arena; Simple Arena becomes a Risky modifier; the Difficulty tab loses its arena
-   switches; the lobby shows Campaign / Boss Hunt / Practice (Gauntlet renamed).
+   switches; the lobby shows Campaign / Boss Hunt / Practice (Gauntlet renamed). **Built** (`Rooms.cs` `ArenaKind`,
+   `RunMod.SimpleArena`); the Rooms arena is kept as a dev-dock prototype (owner: it may help generate layouts later).
 5. Checkpoints and lives (`Checkpoints.md`).
 6. A teaching cycle for each later boss, together with its Hunt.
 
 ## Open
 
 - The wave-5 mid-boss: an elite with one boss move, a small copy of the boss, or a scripted squad event?
-- Does the Rooms arena (Wings) stay reachable anywhere?
 - Rename Gauntlet to Campaign in the lobby and the README?
 - A reward for the furthest boss reached on a lost run?

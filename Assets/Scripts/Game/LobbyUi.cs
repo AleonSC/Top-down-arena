@@ -198,8 +198,8 @@ namespace Arena
         float modeTurnPos;
         bool modeTurnSet;
 
-        static string ModeTitle(int i) => i == 0 ? "GAUNTLET" : i == 1 ? "BOSS HUNT" : "PRACTICE";
-        static string ModeSub(int i) => i == 0 ? "50 waves, a boss every 5" : i == 1 ? "10 waves to one boss" : "Build your own waves, or train a mechanic";
+        static string ModeTitle(int i) => i == 0 ? "CAMPAIGN" : i == 1 ? "BOSS HUNT" : "PRACTICE";
+        static string ModeSub(int i) => i == 0 ? "100 waves, build as you go" : i == 1 ? "10 waves to one boss" : "Build your own waves, or train a mechanic";
         static Color? ModeAccent(int i) => i == 1 ? new Color(1f, 0.62f, 0.58f) : i == 2 ? new Color(0.37f, 0.94f, 1f) : (Color?)null;
 
         /// The mode carousel (like the Wildcard's class wheel): the mode in play big in the middle with its line under it, the other

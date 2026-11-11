@@ -26,6 +26,7 @@ namespace Arena
         SecondWind = 32768,
         ZombieInfection = 65536,
         Cluttered = 131072,
+        SimpleArena = 262144,  // the Campaign in the open arena (with its floor plans), no building rooms (Rooms.cs ArenaKind)
     }
 
     public enum ModLean { Harder, Easier, Risky }
@@ -58,6 +59,7 @@ namespace Arena
             new ModDef { Mod = RunMod.SolidWalls, Name = "Solid Walls", Desc = "No wrapping round the edges: the arena's sides are walls.", Lean = ModLean.Harder },
             new ModDef { Mod = RunMod.ZombieInfection, Name = "Zombie Infection", Desc = "Every wave is a growing horde of melee zombies, and some of the dead get back up.", Lean = ModLean.Harder },
             new ModDef { Mod = RunMod.Cluttered, Name = "Cluttered", Desc = "Every wave piles a lot more crates into the arena. Wind your way through the maze; boss fights clear it.", Lean = ModLean.Harder },
+            new ModDef { Mod = RunMod.SimpleArena, Name = "Simple Arena", Desc = "The open arena with its floor plans, all run: no building rooms, and paths after each boss.", Lean = ModLean.Risky },
             new ModDef { Mod = RunMod.SecondWind, Name = "Second Wind", Desc = "Once between bosses, each player gets back up by themselves at half health.", Lean = ModLean.Easier },
         };
 

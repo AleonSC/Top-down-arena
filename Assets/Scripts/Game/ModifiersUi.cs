@@ -160,6 +160,7 @@ namespace Arena
                 case RunMod.SolidWalls: return "mod_solidwalls";
                 case RunMod.ZombieInfection: return "mod_zombie";
                 case RunMod.Cluttered: return "mod_cluttered";
+                case RunMod.SimpleArena: return "mod_simplearena";
                 default: return null;
             }
         }

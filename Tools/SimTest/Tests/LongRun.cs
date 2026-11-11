@@ -39,6 +39,7 @@ static partial class Program
                 foreach (var e in g.Enemies.Values) e.Hp = 0f;
             };
             Check(g.LongRun && cg.LongRun && g.LongLegs && g.Pace == 0.5f, "a new run is a 100-wave Campaign on every game");
+            Check(g.ExpandingOn && cg.ExpandingOn, "a new Campaign is the Expanding arena on every game");
             var seen = new System.Collections.Generic.List<string>();
             bool clientAgrees = true;
             int lastKey = -1;
@@ -114,6 +115,18 @@ static partial class Program
             // Boss Hunts stay ten waves.
             var hunt = new Game(new Session()) { LongRun = true, Hunt = Hunts.All[0] };
             Check(!hunt.LongLegs && hunt.Pace == 1f, "a Boss Hunt isn't a Campaign (ten waves, full rewards)");
+
+            // The arena (Rooms.cs ArenaKind): a Campaign is the Expanding arena; Simple Arena keeps the open one; a Boss Hunt
+            // and an older 50-wave run use the plain arena; the dev dock's Rooms prototype still works.
+            var camp = new Game(new Session()) { LongRun = true };
+            var simple = new Game(new Session()) { LongRun = true, Mods = RunMod.SimpleArena };
+            var oldRun = new Game(new Session()) { LongRun = false };
+            var wings = new Game(new Session()) { LongRun = true };
+            wings.Diff.Set(DiffKnob.ArenaRooms, 1f);
+            Console.WriteLine("  arenas: campaign {0}, simple {1}, hunt {2}, old run {3}, rooms prototype {4}", camp.ArenaKind, simple.ArenaKind, hunt.ArenaKind, oldRun.ArenaKind, wings.ArenaKind);
+            Check(camp.ArenaKind == ArenaLayout.Expanding && simple.ArenaKind == ArenaLayout.Single && hunt.ArenaKind == ArenaLayout.Single
+                && oldRun.ArenaKind == ArenaLayout.Single && wings.ArenaKind == ArenaLayout.Wings,
+                "the Campaign is the Expanding arena; Simple Arena, a Boss Hunt and an older run are the open arena; the Rooms prototype still works");
         }
         finally
         {

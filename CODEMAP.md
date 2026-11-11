@@ -14,6 +14,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Practice.cs`: Practice Range plan and picker list
 - `PracticeRespawn.cs`: the Practice Range's Respawn and Restart wave (`Msg.Respawn`, `RequestRespawn`, `HostRespawn`, `RestartPracticeWave`); a Practice run never ends in a wipe (`CheckGameOver`)
 - `Training.cs`: the Training section's drills: `TrainingDrill` (name, group, goal, steps, a `PracticePlan`; the `.training` text format), `TrainingLibrary` (groups, built-in drills); `Docs/Training.md`
+- (`Rooms.cs` `ArenaKind` picks the arena: the Campaign is Expanding, `RunMod.SimpleArena` the open arena, the Rooms arena a dev-dock prototype.)
 - `Hunts.cs`: Boss Hunt mode (ten waves ending in a boss); the 100-wave Campaign's legs (`LongRun`, `Leg`, `ShownWave`, `ShownEnd`, `NextTrackWave`, `Pace`; test suite `longrun`); the boss between waves of a run (`BossSlot`, `BossNow`, `BossNext`, `IsBossWave`: the boss follows every fifth regular wave and keeps its number; HANDOFF §2)
 - `Contraband.cs`: Contraband (the cycle chest on waves 6, 11, 16... when anyone has it; its holder's chest items are rare or better, in `Props.cs`)
 - `RiotGearLook.cs` (Game): Riot Gear's Plate look: the plate that swings toward incoming shots, the recharge ghost, the block effect (`FxKind.RiotBlock`) and the HUD chip above the XP strip
