@@ -1666,7 +1666,9 @@ Open `http://localhost:8080`, or the machine's LAN address on a phone. Build a w
 points A-E you can drag, timing, level) or load a built-in set / `.waves` file, pick a class and weapon, then **Play**.
 Play by hand (WASD, mouse, Space, Q/E/Shift, F, Ctrl; on a phone two thumb sticks and buttons) or switch the **bot**
 (Casual / Good / Expert) on at any time; God mode and a start wave are optional. One shared match at a time; no upgrade
-cards, you play the class as it starts.
+cards, you play the class as it starts. Pick the Space ability and ultimate beside the weapon; the map under the wave editor
+places props (crate, barrel, chest...) as well as moving spawn points. When a run ends, or on **Report**, a per-wave table
+(clear time, kills, damage dealt/taken, healing, lowest HP, downs) shows, with CSV and JSON download for comparing bot runs.
 
 ## Making a build to send to your friend
 
