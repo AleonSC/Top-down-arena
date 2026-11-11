@@ -542,7 +542,7 @@ namespace Arena
 
         static string RoomIcon(ChallengeKind k) =>
             k == ChallengeKind.Defend ? "shield" : k == ChallengeKind.MiniBoss ? "ui_skull" : k == ChallengeKind.KillRush ? "bolt"
-            : k == ChallengeKind.HoldZones ? "pulse" : k == ChallengeKind.Mirror ? "mirror" : "blink";
+            : k == ChallengeKind.HoldZones ? "pulse" : k == ChallengeKind.Mirror ? "mirror" : k == ChallengeKind.Lockdown ? "ui_lock" : "blink";
 
         // --- Settings ---------------------------------------------------------------------------------------------------
 

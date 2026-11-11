@@ -1,6 +1,6 @@
 # Campaign and Boss Hunt: run length, cycles and modes (design)
 
-Status: **steps 1-2 built** (Nov 2026: every arena saves; the Campaign is 100 waves, protocol 273); steps 3-6 not built. The owner's decisions are in bold. The numbers are first guesses.
+Status: **steps 1-3 built** (Nov 2026: every arena saves; the Campaign is 100 waves, protocol 273; the Warden's teaching cycle and the Lockdown Drill, protocol 274); steps 4-6 not built. The owner's decisions are in bold. The numbers are first guesses.
 Related: [`Checkpoints.md`](Checkpoints.md) (lives), [`Campaign.md`](Campaign.md) (themed build-up, steps 1-2 built),
 [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md), [`LateGamePressure.md`](LateGamePressure.md).
 
@@ -83,7 +83,11 @@ damage about 4x.
    (1-50) is fought twice, so all scaling and unlocks read the track wave (= shown wave / 2, rounded up) unchanged; XP,
    kill gold, chests and vectors x0.5 (`Game.Pace`); the party reaches the first boss at level 4.73 vs 4.87 on the old
    track (suite `longrun`). Old saves stay 50 waves. Profile records stay on the track's scale (a follow-up).
-3. The Warden's teaching cycle (waves 1-9 as above) and its mid-boss.
+3. The Warden's teaching cycle (waves 1-9 as above) and its mid-boss. **Built**: the table above as `FactionDef.Lessons`
+   (`Approaches.cs` `WaveLesson`, one per Campaign wave: members, squads, a guaranteed "star" enemy, the Riot line on
+   wave 10). Owner's choice for the mid-boss: an **optional Data Gate after wave 5, the Lockdown Drill**
+   (`LockdownDrill.cs`): the Warden's gates sweep the room, break 3 gold locks in 45 s for a prize pick. Suite
+   `wardencycle`.
 4. Arena style per cycle; lobby shows Campaign / Boss Hunt / Practice; switches moved to Custom.
 5. Checkpoints and lives (`Checkpoints.md`).
 6. A teaching cycle for each later boss, together with its Hunt.

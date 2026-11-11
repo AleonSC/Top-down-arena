@@ -14,6 +14,8 @@ namespace Arena
         /// On the floor, under everything else: the doors, the searchlight and the gates.
         void DrawWardenYard(float t)
         {
+            foreach (var g in game.DrillGates)
+                DrawGate(g, t);  // the Lockdown Drill's gates (LockdownDrill.cs): the Warden's own look
             var e = game.TheWarden();
             if (e == null || e.Warden == null)
                 return;

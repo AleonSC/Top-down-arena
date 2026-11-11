@@ -741,7 +741,10 @@ namespace Arena
 
         // --- The gates and the gas ------------------------------------------------------------------
 
-        void AddWardenGate(WardenState w, float dir)
+        void AddWardenGate(WardenState w, float dir) => AddGate(w.Gates, dir);
+
+        /// A new gate from the top (dir +1) or bottom (-1) into `gates` (the Warden's, or the Lockdown Drill's).
+        void AddGate(List<WardenGate> gates, float dir)
         {
             var g = new WardenGate { Dir = dir, Front = GateStart(dir), Warn = GateWarn };
             // The door gaps sit near the side walls, outside where the cross ever plants (28-72% of the width),
@@ -761,7 +764,7 @@ namespace Arena
                     break;
             }
             g.LockHp = LockHits;
-            w.Gates.Add(g);
+            gates.Add(g);
         }
 
         static float GateStart(float dir) => dir > 0f ? 6f : Height - 6f;
@@ -798,10 +801,7 @@ namespace Arena
         /// door there.
         bool GateLockHit(Bullet b)
         {
-            var e = TheWarden();
-            if (e == null || e.Warden == null || e.Warden.Gates.Count == 0)
-                return false;
-            foreach (var g in e.Warden.Gates)
+            foreach (var g in AllGates())
             {
                 if (!OnGateLock(g, b.Pos, b.Radius))
                     continue;
@@ -818,6 +818,8 @@ namespace Arena
             if (--g.LockHp <= 0)
             {
                 g.LockOpen = true;
+                if (DrillGates.Contains(g))
+                    DrillLockBroken();  // the Lockdown Drill counts them (LockdownDrill.cs)
                 BroadcastFx(FxKind.Boom, at, new Rgba(1f, 0.82f, 0.3f), 60f, 0.4f, Sfx.Clang);
                 DoLog("a gate's lock was shot out");
             }
@@ -829,10 +831,7 @@ namespace Arena
         /// says so for any point along it (the lock counts as a target LockW/2 wide). Each gate takes one hit per strike.
         void GateLockStrike(Func<V2, bool> reaches)
         {
-            var e = TheWarden();
-            if (e == null || e.Warden == null || e.Warden.Gates.Count == 0)
-                return;
-            foreach (var g in e.Warden.Gates)
+            foreach (var g in AllGates())
             {
                 if (g.Warn > 0f || g.LockOpen)
                     continue;
@@ -858,25 +857,29 @@ namespace Arena
         }
 
         /// Moves the gates along (every game: the host, and clients between snapshots).
-        static void AdvanceGates(WardenState w, float dt)
+        static void AdvanceGates(WardenState w, float dt) => AdvanceGates(w.Gates, dt);
+
+        static void AdvanceGates(List<WardenGate> gates, float dt)
         {
             // Warn keeps counting down past 0 (it's replicated), so -Warn is how long the gate has been live and
             // every game puts it in the same place, stop included.
-            foreach (var g in w.Gates)
+            foreach (var g in gates)
             {
                 g.Warn -= dt;
                 if (g.Warn <= 0f)
                     g.Front = GateStart(g.Dir) + g.Dir * GateSpeed * GateMoved(-g.Warn);
             }
-            w.Gates.RemoveAll(g => g.Dir > 0f ? GateBack(g) > Height + 20f : GateBack(g) < -20f);
+            gates.RemoveAll(g => g.Dir > 0f ? GateBack(g) > Height + 20f : GateBack(g) < -20f);
         }
 
         /// Host: move the gates and hurt whoever they touch: once per gate, and once more if it rolls over you
         /// against the edge. (The shove itself happens on each player's own game.)
-        void TickWardenGates(WardenState w, float dt)
+        void TickWardenGates(WardenState w, float dt) => TickGates(w.Gates, dt, "The Warden (gate)");
+
+        void TickGates(List<WardenGate> gates, float dt, string by)
         {
-            AdvanceGates(w, dt);
-            foreach (var g in w.Gates)
+            AdvanceGates(gates, dt);
+            foreach (var g in gates)
             {
                 if (g.Warn > 0f)
                     continue;
@@ -889,7 +892,7 @@ namespace Arena
                     if (p.Pos.Y < lo - pad || p.Pos.Y > hi + pad || InGateGap(g, p.Pos.X))
                         continue;
                     if (g.Hit.Add(p.Id))
-                        Damage(p, GateDamage, "The Warden (gate)");  // once a gate (pinned at the edge, it rolls over you without hurting again)
+                        Damage(p, GateDamage, by);  // once a gate (pinned at the edge, it rolls over you without hurting again)
                 }
             }
         }
@@ -898,10 +901,9 @@ namespace Arena
         /// pinned against the edge, it rolls over you and you end up behind it.
         void WardenGatePush(Player me, V2 before)
         {
-            var e = TheWarden();
-            if (e == null || e.Warden == null || me.Downed)
+            if (me.Downed)
                 return;
-            foreach (var g in e.Warden.Gates)
+            foreach (var g in AllGates())
             {
                 if (g.Warn > 0f)
                     continue;
@@ -1184,15 +1186,21 @@ namespace Arena
             s.Float(ref w.StunT);
             s.Float(ref w.FanAim);
             s.Float(ref w.FanWarn);
-            int n = w.Gates.Count;
+            SyncGates(s, w.Gates);
+        }
+
+        /// A list of gates in the snapshot (the Warden's, or the Lockdown Drill's in SyncRoom).
+        static void SyncGates(NetSync s, List<WardenGate> gates)
+        {
+            int n = gates.Count;
             s.Byte(ref n);
             if (s.Reading)
             {
-                w.Gates.Clear();
+                gates.Clear();
                 for (int i = 0; i < n; i++)
-                    w.Gates.Add(new WardenGate());
+                    gates.Add(new WardenGate());
             }
-            foreach (var g in w.Gates)
+            foreach (var g in gates)
             {
                 int dir = (int)g.Dir;
                 s.Float(ref g.Front);

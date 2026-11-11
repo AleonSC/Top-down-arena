@@ -11,7 +11,7 @@ namespace Arena
     /// back, the downed back up at low health. Either way the break then carries on. Ignore it and it closes.
     /// The room is the same arena with its own look (drawn in Game/ChallengeLook.cs); the room's state rides in
     /// every snapshot (SyncRoom).
-    public enum ChallengeKind : byte { None, Defend, MiniBoss, KillRush, HoldZones, Mirror }
+    public enum ChallengeKind : byte { None, Defend, MiniBoss, KillRush, HoldZones, Mirror, Lockdown }  // (Lockdown: the Campaign's Lockdown Drill, LockdownDrill.cs; never a random gate)
 
     /// None; Portal (open, in the break); Intro (in the room, the challenge named); Active; Won (the altar is up);
     /// Claimed (the prize given, leaving); Lost (failed, leaving).
@@ -52,6 +52,7 @@ namespace Arena
                 case ChallengeKind.KillRush: return "Kill Rush";
                 case ChallengeKind.HoldZones: return "Hold the Zones";
                 case ChallengeKind.Mirror: return "Mirror Match";
+                case ChallengeKind.Lockdown: return "Lockdown Drill";
             }
             return "";
         }
@@ -65,12 +66,13 @@ namespace Arena
                 case ChallengeKind.KillRush: return "Kill " + RushGoal(players) + " enemies in " + (int)RushTime + " seconds";
                 case ChallengeKind.HoldZones: return "Stand in each zone until it fills";
                 case ChallengeKind.Mirror: return players > 1 ? "Defeat your shadows" : "Defeat your shadow";
+                case ChallengeKind.Lockdown: return "Break " + Game.DrillLocks + " gate locks in " + (int)Game.DrillTime + " seconds";
             }
             return "";
         }
 
         /// The room's timer (0: none, only the safety limit).
-        public static float Clock(ChallengeKind k) => k == ChallengeKind.Defend ? DefendTime : k == ChallengeKind.KillRush ? RushTime : k == ChallengeKind.HoldZones ? ZonesTime : 0f;
+        public static float Clock(ChallengeKind k) => k == ChallengeKind.Defend ? DefendTime : k == ChallengeKind.KillRush ? RushTime : k == ChallengeKind.HoldZones ? ZonesTime : k == ChallengeKind.Lockdown ? Game.DrillTime : 0f;
 
         public static Rgba Accent(ChallengeKind k)
         {
@@ -81,6 +83,7 @@ namespace Arena
                 case ChallengeKind.KillRush: return new Rgba(1f, 0.38f, 0.42f);
                 case ChallengeKind.HoldZones: return new Rgba(0.55f, 1f, 0.55f);
                 case ChallengeKind.Mirror: return new Rgba(0.72f, 0.5f, 1f);
+                case ChallengeKind.Lockdown: return new Rgba(1f, 0.82f, 0.3f);  // the gates' gold locks
             }
             return new Rgba(0.7f, 0.6f, 1f);
         }
@@ -128,6 +131,7 @@ namespace Arena
             portalBlock = -1;
             lastRoom = ChallengeKind.None;
             ShadowOf.Clear();
+            DrillGates.Clear();
             RoomsWon = RoomsPlayed = 0;
         }
 
@@ -137,6 +141,8 @@ namespace Arena
         /// (each equally likely; the first stretch skips wave 1).
         void MaybeOpenPortal()
         {
+            if (MaybeOpenDrill() || DrillStretch)
+                return;  // a Campaign's Warden cycle: its Lockdown Drill is the stretch's Data Gate (LockdownDrill.cs)
             if (!IsHost || !ChallengesOn || Practice != null || Hunt != null || ShowcaseMode || Room != RoomPhase.None || Wave >= MaxWave && !Endless)
                 return;
             int k = Wave % 5, block = (Wave - 1) / 5;
@@ -345,6 +351,9 @@ namespace Arena
                 case ChallengeKind.MiniBoss:
                     SpawnEnemyAt(EnemyType.Gatekeeper, top, 1.2f, 0).T2 = 2.5f;
                     break;
+                case ChallengeKind.Lockdown:
+                    StartDrill();  // LockdownDrill.cs
+                    break;
                 case ChallengeKind.Mirror:
                     foreach (var p in Players.Values)
                     {
@@ -397,6 +406,9 @@ namespace Arena
                     else if (RoomClock <= 0f)
                         LoseRoom("out of time");
                     break;
+                case ChallengeKind.Lockdown:
+                    TickDrill(dt);  // LockdownDrill.cs
+                    break;
                 case ChallengeKind.MiniBoss:
                 case ChallengeKind.Mirror:
                     if (Foes() == 0)
@@ -415,7 +427,9 @@ namespace Arena
                 return;
             roomSpawnT = every;
             EnemyType type;
-            if (RoomKind == ChallengeKind.KillRush)
+            if (RoomKind == ChallengeKind.Lockdown)
+                type = rng.Next(3) == 0 ? EnemyType.Guard : EnemyType.Rioter;  // the Warden's own: batons and a mob
+            else if (RoomKind == ChallengeKind.KillRush)
             {
                 var weak = new[] { EnemyType.Swarmer, EnemyType.Swarmer, EnemyType.Spiker, EnemyType.Grunt, EnemyType.Lunger, EnemyType.Sniper };
                 type = weak[rng.Next(weak.Length)];
@@ -540,7 +554,7 @@ namespace Arena
         /// Host, when an enemy dies in the room (OnEnemyKilled).
         void RoomKilled(Enemy e)
         {
-            if (RoomActive)
+            if (RoomActive && RoomKind != ChallengeKind.Lockdown)  // (the drill counts locks, not kills)
                 RoomKills++;
             ShadowOf.Remove(e.Id);
         }
@@ -573,6 +587,7 @@ namespace Arena
                 AddFx(FxKind.Implode, e.Pos, Defs.Get(e.Type).Color, e.Radius + 20f, 0.4f);
             Enemies.Clear();
             ShadowOf.Clear();
+            DrillGates.Clear();
             ClearEnemyBullets();
             session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
         }
@@ -856,6 +871,8 @@ namespace Arena
             s.Byte(ref kind);
             Room = (RoomPhase)room;
             RoomKind = (ChallengeKind)kind;
+            if (s.Reading && (Room == RoomPhase.None || RoomKind != ChallengeKind.Lockdown))
+                DrillGates.Clear();
             if (Room == RoomPhase.None)
                 return;
             s.Float(ref RoomT);
@@ -893,6 +910,8 @@ namespace Arena
                     s.Int(ref id);
                     s.Byte(ref of);
                 }
+            if (RoomKind == ChallengeKind.Lockdown)
+                SyncGates(s, DrillGates);  // the Lockdown Drill's gates (Warden.cs)
         }
     }
 }

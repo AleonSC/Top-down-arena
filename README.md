@@ -442,6 +442,11 @@ Rarer cards show up a bit more often as you level. All the numbers live in
   like wave 19 of the old run, and the wave numbers in this README are track waves (double them, roughly, for the
   Campaign's). XP, kill gold, chests and the Expanding arena's vectors per wave are halved to match, so you reach each
   boss about as strong as before. Runs saved before this stay 50 waves; Boss Hunts stay ten.
+- **Each boss's ten Campaign waves teach its fight.** The Warden's (waves 1-10): 1 Rioters only; 2 Security Guards'
+  aimed tracers; 3 Riot Shields (flank them); 4 Gas Grenadiers with shields shoving you into the gas; 5 a recap, then
+  the optional **Lockdown Drill** (Data Gates); 6 Taser Guards (stuns; parry the Fork Bolt back); 7 tasers, shields and
+  gas together; 8 mostly squads (Breakout, Patrol, Cell block); 9 everything, tighter; 10 the exam, the Riot line with
+  everything. Each wave always brings the enemy it's about. Other bosses build up as before until they get theirs.
 - New enemy types unlock as the waves go up (see below).
 - **Knockback slides:** anything that shoves enemies (the Repulsion Cannon, Roar, Shockwave, the Scattergun up close,
   Knight swings, Bulldoze, Fortress, the Fuma Shuriken's fan) slides them the distance over 0.18 s instead of jumping
@@ -911,6 +916,13 @@ about 4 threats in a 1x view at a time instead of 10, a third of the enemy shots
 pass (phase 4). Classic stays as it is.
 
 ## Data Gates
+
+**The Lockdown Drill** (Campaign only): in the Warden's cycle the break after wave 5 opens a gold Data Gate to the
+Lockdown Drill instead of the stretch's random one. It's optional. Inside, the Warden's own Lockdown gates (two rows of
+push bullets with two doors and a gold lock) sweep the room, three from the top, then three from the bottom, one every
+3.2 s, while Guards and Rioters come at you: **shoot out 3 gold locks in 45 s** (shots, blasts, swings and beams all
+count, as against the Warden). Win and the altar gives everyone a prize pick; run out of time and you're sent back.
+It's the one move of the Warden's fight that no enemy previews.
 
 Once in every five waves a **Data Gate** opens during the break: a dark disc of scrolling data in the challenge's colour, ringed by turning dashes, with a ring of pips that lights as the party steps in. It never opens under a wall, pillar or crate: after the 1st, 2nd or 3rd wave of each stretch
 (in the first stretch after wave 2 or 3), so never right before a boss. A card over it names the challenge on the
