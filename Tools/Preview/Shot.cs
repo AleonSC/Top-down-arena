@@ -412,6 +412,8 @@ static partial class Shot {
       var eg = host.Game; eg.Diff.Set(DiffKnob.ArenaExpanding, 1f); if (Environment.GetEnvironmentVariable("EXPANDFREE") == null) eg.Diff.Set(DiffKnob.BuildVote, 1f); eg.State = MatchState.Intermission;  // EXPANDFREE=1: free building (the default setting; the vote shows by default here)
       int bought = int.Parse(Environment.GetEnvironmentVariable("EXPANDVOTE"));
       for (int k = 0; k < bought; k++) eg.Expanded.Add(Expansion.Offers(5, 5 + 5 * k, eg.Expanded)[0]);
+      string ebuilt = Environment.GetEnvironmentVariable("EXPANDBUILT");  // EXPANDBUILT=x,y,w,h;...: drawn boxes on the map first (Expansion.Custom), owner 1
+      if (ebuilt != null) foreach (var part in ebuilt.Split(';')) { var q = Array.ConvertAll(part.Split(','), int.Parse); string bw; var br = Expansion.Custom(eg.Expanded, q[0], q[1], q[2], q[3], out bw); if (br.HasValue) { var b2 = br.Value; b2.Owner = 1; eg.Expanded.Add(b2); } else Console.Error.WriteLine("EXPANDBUILT " + part + ": " + bw); }
 
       if (Environment.GetEnvironmentVariable("EXPANDFLOAT") != null) { var fk = new[] { RoomKind.Shop, RoomKind.Vendor, RoomKind.Gatekeeper }; for (int fi = 0; fi < fk.Length; fi++) { var ff = Expansion.FloatingFor(3, fi, eg.Expanded, fk[fi]); if (ff.HasValue) eg.Expanded.Add(ff.Value); } }  // EXPANDFLOAT=1: a floating shop, vendor and Gatekeeper room off the map
       eg.StateTimer = 8f; eg.ExpandOpen = true;  // the round is open: each player's proposal, the first one backed

@@ -797,7 +797,9 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
 - **Building rounds**: every cleared wave opens a round (a chip "Build rooms" under the wave plate; the countdown never waits
   for it). Open it and **draw a room by its walls**: **left click** corners on the zoomed-out map's grid and a wall runs from each
   to the next, straight across or straight up (a slanted click makes an L); **click the first corner again** (or press **Enter**, or
-  **Propose**) to close it. **Right click** (or Esc, Backspace, **Undo**) takes the last corner back, and with none laid goes back;
+  **Propose**) to close it. You don't have to close it yourself: **end a run of walls on another room's wall** and, if the map's
+  own walls close off the space on one side, that space fills in as the room and goes to the vote (the green fill shows it; if both sides
+  are closed off, the smaller one). You pay only for the walls you drew. **Right click** (or Esc, Backspace, **Undo**) takes the last corner back, and with none laid goes back;
   with no corner laid, press, drag and let go draws a plain box. Any shape works (L, T, U, cross, zig-zag) as long as it is **3 tiles
   wide everywhere**, at most 96 tiles of floor and 24 tiles each way, its walls don't cross, it shares 3 tiles of one wall with a room
   and overlaps nothing (a shorter touch with another room's wall is fine, it just stays wall). The map shows it green when it fits (red,

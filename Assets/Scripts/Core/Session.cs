@@ -54,7 +54,7 @@ namespace Arena
         ExpandGate,   // client -> host: a shutter gate this player proposes on the door at (x, y) (Docs/RoomBuilding2.md step 3, Gates.cs)
         GateUse,      // client -> host: shut this gate (index) (Gates.cs)
         GateState,    // host -> all: a gate's clocks: index, seconds shut, seconds of cooldown (Gates.cs)
-        ExpandOutline, // client -> host: a room this player drew as an outline (theme, corners, then x, y each) (ExpansionGame.cs)
+        ExpandOutline, // client -> host: a room this player drew as an outline (theme, fill?, corners, then x, y each; fill: an open run of walls that fences in a space) (ExpansionGame.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -117,7 +117,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 276;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 277;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
