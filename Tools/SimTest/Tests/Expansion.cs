@@ -631,6 +631,11 @@ static partial class Program
         Check(g.Coins.Count > 0 && cg.Coins.Count == g.Coins.Count && g.Players.Values.All(p => p.Gold == 0), "kills drop coins that stay on the ground, on both screens, until someone walks over them (" + g.Coins.Count + "/" + cg.Coins.Count + " coins, " + g.Players[1].Gold + "/" + g.Players[2].Gold + " held, " + coinGold + " gold)");
         PutBoth(hubAt, shopAt + new V2(45f, 0f));
         Run(s, dt, 2f, () => g.Coins.Count == 0);
+        for (int k = 0; k < 20 && g.Coins.Count > 0; k++)  // (a grunt can wander off before it dies: walk to each coin left)
+        {
+            PutBoth(hubAt, g.Coins.Values.First().Pos);
+            Run(s, dt, 0.5f, () => g.Coins.Count == 0);
+        }
         Check(g.Coins.Count == 0 && g.Players[2].Gold == coinGold && g.Players[1].Gold == 0, "the player who walks over the coins gets their gold (" + g.Players[2].Pos.DistanceTo(shopAt) + " away, " + g.Players[1].Gold + "/" + g.Players[2].Gold + "/" + coinGold + ")");
         // Vector pickups (Coins.cs, Docs/VectorBuilding.md): the rare drop adds vectors to whoever walks over it, waits while their stock is full, and shows on both screens.
         var vp = g.Players[2];
