@@ -337,6 +337,12 @@ namespace Arena
                 devDrawer = 0;
             }
             col.Space(4f);
+            if (!inMatch && session.IsHost)  // the Rooms arena prototype (Rooms.cs): kept for building generated layouts later
+            {
+                bool rooms = session.Diff[DiffKnob.ArenaRooms] >= 0.5f;
+                if (DkSwitch(col.Next(26f), rooms, "Rooms arena prototype (next runs)") != rooms)
+                    session.SetDifficultyKnob(DiffKnob.ArenaRooms, rooms ? 0f : 1f);
+            }
             bool on = DkSwitch(col.Next(26f), recordSessions, "Record sessions (when hosting)");
             if (on != recordSessions)
             {

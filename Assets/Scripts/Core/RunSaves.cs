@@ -52,7 +52,7 @@ namespace Arena
                 return false;
             var save = new RunSave
             {
-                Id = RunId, SavedAt = DateTime.UtcNow, Wave = Wave, BossSlot = BossSlot, LongRun = LongLegs, Leg = Leg, Score = Score, Mods = Mods, Diff = Diff.Copy(), Endless = Endless, DevUsed = devTouched,
+                Id = RunId, SavedAt = DateTime.UtcNow, Wave = Wave, BossSlot = BossSlot, LongRun = LongLegs, Leg = Leg, LivesUsed = LivesUsed, Score = Score, Mods = Mods, Diff = Diff.Copy(), Endless = Endless, DevUsed = devTouched,
                 RunTime = RunTime, CurrentPath = CurrentPath, PathFrom = PathFrom, PathTo = PathTo, LastPath = lastPath,
             };
             save.Route.AddRange(Route);
@@ -84,6 +84,8 @@ namespace Arena
             if (ExpandingOn)
                 SaveExpansion(save, seatOf);
             bool ok = SaveStore.Write(save);
+            if (ok && BossSlot && Hunt == null)
+                SaveStore.WriteCheckpoint(save);  // a boss just fell: this is the run's checkpoint (Checkpoints.cs)
             if (ok)
                 DoLog("run saved before wave " + (ShownWave + 1));
             return ok;
@@ -142,6 +144,7 @@ namespace Arena
             }
             Score = save.Score;
             BossSlot = save.BossSlot;
+            LivesUsed = save.LivesUsed;  // Checkpoints.cs
             Leg = save.LongRun ? save.Leg : 1;
             Endless = save.Endless;
             RunTime = save.RunTime;
@@ -193,6 +196,14 @@ namespace Arena
         {
             if (!IsHost)
                 return;
+            if (!won && OfferRetry())
+                return;  // a life left: the game over screen offers a retry from the checkpoint (Checkpoints.cs)
+            EndRun(won);
+        }
+
+        /// Host: the run is over for good: its save (and checkpoint) go, and everyone's profile hears about it.
+        void EndRun(bool won)
+        {
             if (RunId != null)
                 SaveStore.Delete(RunId);
             if (!RecordsRuns)
@@ -204,6 +215,8 @@ namespace Arena
             w.Write(Endless);
             w.Write(devTouched);
             w.Write(RunTime);
+            w.Write(won && Deathless);  // won without using a life (Checkpoints.cs)
+            w.Write(RecordWave);  // the wave as records count it (Hunts.cs: 1-100 in a Campaign)
             var msg = Proto.End(w);
             session.Broadcast(msg);
             ReadRecordFrom(msg);
@@ -213,16 +226,16 @@ namespace Arena
         /// Only your own profile, and only if a curve was started (so not the lobby or a match that never began).
         void LogQuitRun()
         {
-            if (runRecorded || timeline == null || Me == null || !TimelineOn || Hunt != null)  // (a quit Boss Hunt isn't logged)
+            if (runRecorded || RetryReady || retrying || timeline == null || Me == null || !TimelineOn || Hunt != null)  // (a quit Boss Hunt isn't logged)
                 return;
             runRecorded = true;
-            var logged = Profile.AddQuitLog(Wave, Rank.Award(false, 0, 0, 0, Mods, Diff.Level).Mods);  // (no XP: only the modifier names are used)
+            var logged = Profile.AddQuitLog(RecordWave, Rank.Award(false, 0, 0, 0, Mods, Diff.Level).Mods);  // (no XP: only the modifier names are used)
             logged.Class = Arena.Profile.ClassKey(Me.Role, Me.Kit);
             logged.Mode = Endless ? "Endless" : "Campaign";
             logged.Seconds = RunTime;
             logged.Dealt = Me.Run.DamageDealt; logged.Taken = Me.Run.DamageTaken; logged.Heal = Me.Run.HealingDone;
             logged.Players = Players.Count;
-            logged.File = FinishTimeline(false, Wave, Endless, RunTime, logged.Class, logged.Mods);
+            logged.File = FinishTimeline(false, RecordWave, Endless, RunTime, logged.Class, logged.Mods);
             SaveProfile();
         }
 
@@ -235,6 +248,7 @@ namespace Arena
             w.Write((byte)(IsReaper(e.Type) ? EnemyType.TwinA : e.Type));
             w.Write(Wave);
             w.Write(devTouched);
+            w.Write(RecordWave);  // the wave as records count it (Hunts.cs: 1-100 in a Campaign)
             var msg = Proto.End(w);
             session.Broadcast(msg);
             ReadRecordFrom(msg);
@@ -299,9 +313,10 @@ namespace Arena
                     var boss = (EnemyType)r.ReadByte();
                     int wave = r.ReadInt32();
                     bool dev = r.ReadBoolean();
+                    int recorded = r.ReadInt32();
                     if (me == null || dev || botTouched)
                         return;
-                    Profile.BossBeaten(boss, wave);
+                    Profile.BossBeaten(boss, recorded);
                     runLastBossWave = Math.Max(runLastBossWave, wave);
                     AddUnlockToasts(Profile.CheckUnlocks());
                     SaveProfile();
@@ -323,6 +338,8 @@ namespace Arena
                     int wave = r.ReadInt32(), score = r.ReadInt32();
                     bool endless = r.ReadBoolean(), dev = r.ReadBoolean();
                     float time = r.ReadSingle();
+                    bool deathless = r.ReadBoolean();
+                    int recorded = r.ReadInt32();  // (best wave, Recent runs and the curve; Rank XP keeps counting the track's waves)
                     if (me == null || dev || botTouched || runRecorded)
                         return;
                     runRecorded = true;
@@ -341,16 +358,16 @@ namespace Arena
                         SaveProfile();
                         return;
                     }
-                    AddUnlockToasts(Profile.RunEnded(won, wave, score, endless, Mods, me.Role, me.Kit, me.Run, time));
+                    AddUnlockToasts(Profile.RunEnded(won, recorded, score, endless, Mods, me.Role, me.Kit, me.Run, time));
                     int wavesCleared = won || runLastBossWave >= wave ? wave : Math.Max(0, wave - 1);
-                    LastGain = Profile.AwardXp(Rank.Award(won, wavesCleared, Rank.BossesIn(wavesCleared), me.Run.Revives, Mods, Diff.Level), wave, won ? 1 : 0);
+                    LastGain = Profile.AwardXp(Rank.Award(won, wavesCleared, Rank.BossesIn(wavesCleared), me.Run.Revives, Mods, Diff.Level), recorded, won ? 1 : 0);
                     var logged = Profile.Recent[0];  // (the run just added by AwardXp)
                     logged.Class = Arena.Profile.ClassKey(me.Role, me.Kit);
-                    logged.Mode = Endless ? "Endless" : "Campaign";
+                    logged.Mode = Endless ? "Endless" : deathless ? "Campaign · Deathless" : "Campaign";
                     logged.Seconds = time;
                     logged.Dealt = me.Run.DamageDealt; logged.Taken = me.Run.DamageTaken; logged.Heal = me.Run.HealingDone;
                     logged.Players = Players.Count;
-                    logged.File = FinishTimeline(won, wave, Endless, time, logged.Class, logged.Mods);  // RunTimeline.cs
+                    logged.File = FinishTimeline(won, recorded, Endless, time, logged.Class, logged.Mods);  // RunTimeline.cs
                     SaveProfile();
                     return;
                 }

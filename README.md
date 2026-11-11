@@ -442,6 +442,10 @@ Rarer cards show up a bit more often as you level. All the numbers live in
   like wave 19 of the old run, and the wave numbers in this README are track waves (double them, roughly, for the
   Campaign's). XP, kill gold, chests and the Expanding arena's vectors per wave are halved to match, so you reach each
   boss about as strong as before. Runs saved before this stay 50 waves; Boss Hunts stay ten.
+- **Each boss's ten Campaign waves teach its fight.** The Warden's (waves 1-10): 1 Rioters only; 2 Security Guards'
+  aimed tracers; 3 Riot Shields (flank them); 4 Gas Grenadiers with shields shoving you into the gas; 5 a recap; 6 Taser Guards (stuns; parry the Fork Bolt back); 7 tasers, shields and
+  gas together; 8 mostly squads (Breakout, Patrol, Cell block); 9 everything, tighter; 10 the exam, the Riot line with
+  everything. Each wave always brings the enemy it's about. Other bosses build up as before until they get theirs.
 - New enemy types unlock as the waves go up (see below).
 - **Knockback slides:** anything that shoves enemies (the Repulsion Cannon, Roar, Shockwave, the Scattergun up close,
   Knight swings, Bulldoze, Fortress, the Fuma Shuriken's fan) slides them the distance over 0.18 s instead of jumping
@@ -785,7 +789,8 @@ wave, everyone gets a shop before the boss:
 
 ## Expanding arena
 
-The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expanding**). Design:
+**The Campaign's arena**: every new Campaign is played here (the **Simple Arena** modifier keeps the open arena
+instead; Boss Hunts, the Practice Range and runs saved before the Campaign use the open arena). Design:
 [`Docs/ExpandingArena.md`](Docs/ExpandingArena.md). It starts as the plain Classic box and grows as you play:
 
 - **Gold coins:** every kill drops its gold as coins (5-gold and 1-gold). They never despawn, spin and glint on the floor, and drift to the nearest living player within 90 px, who gets the gold.
@@ -880,8 +885,8 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
 
 ## Rooms arena
 
-**The Arena** setting on the lobby's **Difficulty** tab: **Classic arena** (the default, everything above as it has always
-been) or **Rooms arena**. The Rooms arena is new and still being tuned (design: [`Docs/Rooms.md`](Docs/Rooms.md), mockup:
+A **prototype**, kept for building generated room layouts later: the host turns it on for the next runs with **Rooms arena
+prototype** in the F1 dev dock (Labs, in the lobby); otherwise the Campaign is the Expanding arena. It is still being tuned (design: [`Docs/Rooms.md`](Docs/Rooms.md), mockup:
 [`Docs/Mockups/rooms.html`](Docs/Mockups/rooms.html)). What's in so far (phase 1, the map **Wings**):
 
 - On **regular waves** the arena grows: the middle (the hub, today's 1600 x 900 arena) gets a big **room** on each
@@ -957,7 +962,7 @@ everyone straight into any of the five.
 
 ## Run modifiers
 
-The lobby's **Modifiers** tab lists 18 switches (tiles in two columns, each with an icon, its name, what it does and an ON/OFF key like Ready's, grouped under **Easier**, **Risky** and **Harder**
+The lobby's **Modifiers** tab lists 19 switches (tiles in two columns, each with an icon, its name, what it does and an ON/OFF key like Ready's, grouped under **Easier**, **Risky** and **Harder**
 headings, each tile marked with its tier's colour; click anywhere on a tile to switch it) that change the whole run, for everyone (Practice
 Range too). The host turns them on and off; the others see them, and changing one takes back everyone's Ready. Active
 ones show as chips above the wave panel during the match, and session recordings list them. Each tier has its own heading;
@@ -982,6 +987,7 @@ computer). When the open tiers don't fit, the list scrolls with the mouse wheel.
 | Death Throes | Every regular enemy (not bosses, nor things that give no XP) bursts into a ring of 6 slow shots 0.5 s after it dies, with a warning circle. Killing up close costs you | Harder |
 | Solid Walls | No wrapping round the edges: the arena's sides are walls (drawn as a glowing border), and bullets stop at them | Harder |
 | Cluttered | Every wave piles a lot more crates into the arena: 17 on wave 1, +3 a wave, up to 48 (a normal run has 2 to 10), heavy crates from wave 8. They stay until enemy fire breaks them, so the field turns into a maze you have to wind through. Your shots still fly over them; enemy shots stop at them. Boss fights clear the arena, as usual. Not in the Practice Range | Harder |
+| Simple Arena | The open arena with its floor plans all run, instead of the Campaign's Expanding arena: no building rooms, and a path offer after each boss | Risky |
 | Second Wind | Once per boss cycle (waves 1-5, 6-10, ...), each player who goes down gets back up by themselves 2 s later at half health; it's used before a revive token. The HUD chip shows whether yours is ready. While anyone holds one, everyone being down isn't game over | Easier |
 | Zombie Infection | Every regular wave is a horde of green zombies, and the arena turns dark green. The count is the wave's usual x1.5 at wave 1, growing to x3 by wave 20, at most 60 alive at once (the rest come in as others fall), arriving faster so a bigger wave doesn't take longer; each zombie's XP is split so levels keep pace. **Seven kinds**: **Shambler** (wide triangle, slow, hits hard; from wave 1), **Runner** (narrow triangle, faster than you, packs of three; 3), **Spitter** (pentagon; hangs back and lobs acid that burns 10/s and slows 30%; 6, at most 4 a wave), **Bloater** (swelling circle; bursts into a spore cloud that slows 40%, on you if it reaches you; 8), **Crawler** (trapezoid; grabs and roots you for 1.5 s, 6/s, until you shoot it for 25; 9, at most 3), **Shrieker** (diamond; screams every 6 s, frenzying the zombies within 320 px: 30% faster for 4 s; 12, at most 2), **Mender** (cross; heals the zombies within 220 px by 15% every 3 s; 15, at most 2). **The dead rise:** a killed zombie has a 25% chance to get back up 3 s later (a green marker where it lies) at half health, worth no XP, and it won't rise twice; near a Mender it's 50%, in half the time. One that was burning or cut down by a melee weapon stays down (a Bloater never rises), and the wave isn't over until they're up and beaten. **Sounds:** a groan now and then from the horde, a wet rasp as the dead get back up, a spit, a grab, the Shrieker's scream, a Bloater's burst and a Mender's chime (volume: Enemies). Bosses, their adds and challenge rooms are unchanged. Not in the Practice Range (the zombies are in its picker, though) | Harder |
 
@@ -1012,18 +1018,16 @@ and green when it's easier. Hover a number for what it does.
 | Health orb drops (small) | 18% | **12%** | 9% | 6% | 0-50% |
 | Revive time | 3 s | **4 s** | 5 s | 6 s | 1-10 s |
 | Hit grace (after a hit) | 0.35 s | **0.25 s** | 0.2 s | 0.15 s | 0.05-1 s |
+| Lives (retries from the last boss's checkpoint) | 3 | **2** | 1 | 0 | 0-5 |
 | Boss approach (the themed share of the wave before a boss) | 85% | **85%** | 85% | 85% | 0-100% |
 | Approach ramp (build up over the four waves) | On | **On** | On | On | On / Off |
-| Arena layouts (a fixed floor plan each boss cycle) | On | **On** | On | On | On / Off |
-| Arena: Classic or Rooms (side rooms and hallways on regular waves) | Classic | **Classic** | Classic | Classic | Classic / Rooms |
 
 The two **boss approach** numbers are flavour, not difficulty: they're the same on every preset, changing them doesn't
 make the difficulty Custom, and picking a preset keeps them. **Blend** and **Fully themed** buttons under them set
 both at once (60% with the ramp; 100% without).
-The **Arena layouts** setting is flavour too: **Layouts on / Layouts off** buttons beside them. Off keeps the open arena all run
-(and the usual enemy count); see Arena layouts above.
-The **Arena** (Classic or Rooms) is flavour as well: **Classic arena / Rooms arena** buttons on the row below. See Rooms
-arena above. A third key, **Expanding arena**, picks the Expanding arena (see above).
+The arena isn't picked here any more: the Campaign is the Expanding arena, the **Simple Arena** modifier keeps the open
+arena with its floor plans (always on), and the Rooms arena is a prototype in the dev dock. A run saved before the
+Campaign keeps the arena it was saved with.
 
 Easy is close to how the game played before difficulties (without the per-wave damage growth). Damage growth
 multiplies with Enemy damage: Nightmare at wave 11 hits 1.5 × 1.5 = 2.25x as hard as a listed shot. Modifiers stack
@@ -1031,7 +1035,7 @@ on top (Tough Crowd, Frenzy, Swift Foes, Glass Cannon...).
 
 ## Boss Hunt
 
-In the lobby the host picks **Gauntlet**, **Boss Hunt** or **Practice** on the mode carousel at the top (arrows, the mouse wheel or a click on a side mode turn it). The tabs over the big screen (Loadout, Perks, Difficulty, ...) are a carousel too: the open tab in the middle, the rest wrapping round either side. A Boss Hunt is a short run that ends
+In the lobby the host picks **Campaign**, **Boss Hunt** or **Practice** on the mode carousel at the top (arrows, the mouse wheel or a click on a side mode turn it). The tabs over the big screen (Loadout, Perks, Difficulty, ...) are a carousel too: the open tab in the middle, the rest wrapping round either side. A Boss Hunt is a short run that ends
 with one boss: **ten waves**. Waves 1-9 bring only the boss's own enemies (its faction: for the Warden, Rioters and
 Guards, then Riot Shields, Gas Grenadiers, Security Guards and Taser Guards, its Breakout, Patrol and Cell block squads, and its Riot line on waves 5 and
 9); wave 10 is the boss, at wave-10 strength. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no
@@ -1068,7 +1072,7 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 
 ## Practice Range
 
-In the lobby the host picks **Gauntlet** (the Campaign: 100 waves), **Boss Hunt** (above) or **Practice** (the Practice Range)
+In the lobby the host picks **Campaign** (100 waves in the Expanding arena), **Boss Hunt** (above) or **Practice** (the Practice Range)
 at the top. Practice has two sections, as tabs on the big screen: **Practice** (build your own waves) and **Training**
 (short mechanic drills). Whichever you use, it's with everyone in the lobby, with upgrade picks between waves as usual, and
 **no XP counts**: a Practice run never reaches your profile (no rank XP, records, unlocks or run history), and the header
@@ -1217,6 +1221,15 @@ without taking your keyboard). The line also closes itself after 12 seconds with
 about one message a second per player. Mockup: `Docs/Mockups/chat-box.html`.
 
 ## End of a run
+
+**Checkpoints and lives.** Every boss you beat leaves a **checkpoint** (the wave box after it says **CHECKPOINT SAVED**
+and the lives left). If everyone goes down and the run has a **life** left (the difficulty's Lives: Easy 3, Normal 2,
+Hard 1, Nightmare 0; a hearts chip over the wave panel shows them), the GAME OVER screen says where you'd restart and the
+host gets **Retry [Y]**: the run comes back exactly as it was at the checkpoint (everyone's upgrades, levels, gold, the
+map), a life used and **the score cut by a quarter**. Play again, Back to lobby or Leave instead ends the run for good.
+Closing the game keeps it at the checkpoint, so **Continue** retries it later (the saved-runs list shows the lives left).
+Out of lives, or before the first boss, it's a plain game over. A run won without using a life is **Deathless** (on the
+results screen and in Recent runs). Not in Boss Hunts or the Practice Range.
 
 When a run ends a results screen in the level-up picker's style says **GAME OVER** (red, with the boss that
 stopped you) or **VICTORY!** (gold), with the wave reached, time, score and total kills as tiles, then a card per
@@ -1375,6 +1388,10 @@ players report, and only accepts a frame or trail your rank has. XP, what's equi
 upgrades, the path is chosen and the shop is closed), and again if the match is left or the game closed between
 waves. Every arena saves (Classic, Rooms and Expanding, with its map). Leaving mid-wave keeps the save from that wave's start. A run that's won or lost loses its save. The
 Practice Range, the lobby's loadout preview and Boss Lab fights are never saved.
+
+**Records count the Campaign's waves** (1-100): best wave, best endless wave, Recent runs and the run charts. A profile
+from before the Campaign has its waves doubled once when it loads (a 50-wave run's wave n is about the Campaign's wave
+2n); Boss Hunt entries keep their ten waves. Rank XP is unchanged: it pays by bosses and progress, not the wave number.
 
 **Play** on the main menu opens the saved-runs picker in the menu's box: a header screen (**YOUR RUNS**) with a **Back** key
 beside it, and under it one scrolling screen with every save, newest first. The newest run is a tall row (wave, when,

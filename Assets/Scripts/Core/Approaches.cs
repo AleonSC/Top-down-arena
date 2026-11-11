@@ -18,6 +18,20 @@ namespace Arena
         public FactionMember[] Members;
         public SquadDef[] Squads = new SquadDef[0];
         public SquadDef Finale;  // always in the last wave before the boss (when the approach is on), counting toward its share
+        public WaveLesson[] Lessons;  // a Campaign's ten waves before this boss, one lesson each (null: built by reach, as before)
+    }
+
+    /// One wave of a boss's teaching cycle in the 100-wave Campaign (Docs/RunLength.md step 3): the faction's enemies and
+    /// squads that wave uses, so each wave previews one thing the boss will test. Squads by name (FactionDef.Squads).
+    public class WaveLesson
+    {
+        public string Teaches;                 // what the wave is for (the docs and the test)
+        public FactionMember[] Members;        // null: all the faction's members
+        public string[] Squads = new string[0];  // null: all the faction's squads
+        public bool Finale;                    // the faction's set piece comes in
+        public float SquadChance = 0.5f;       // how often a fitting squad is picked over a single
+        public EnemyType? Star;  // the enemy the wave is about: always at least StarPicks of it (null: none)
+        public const int StarPicks = 2;
     }
 
     /// Boss approaches (Docs/Approaches.md): the four regular waves before each boss take part of their enemies from
@@ -51,6 +65,20 @@ namespace Arena
                 Finale = new SquadDef { Name = "Riot line", From = 4, Form = SquadForm.RiotLine, Members = new[] {
                     EnemyType.RiotShield, EnemyType.RiotShield, EnemyType.RiotShield, EnemyType.RiotShield,
                     EnemyType.Guard, EnemyType.Guard, EnemyType.Guard, EnemyType.Guard, EnemyType.Guard } },
+                // The Campaign's Warden cycle: each wave previews one part of its fight (Docs/RunLength.md).
+                Lessons = new[]
+                {
+                    new WaveLesson { Teaches = "Rioters swarm (the riot stage's crowds)", Members = new[] { M(EnemyType.Rioter, 1f) } },
+                    new WaveLesson { Teaches = "Security Guards' aimed tracers (its aimed fans)", Star = EnemyType.SecurityGuard, Members = new[] { M(EnemyType.Rioter, 2f), M(EnemyType.SecurityGuard, 2f) }, Squads = new[] { "Patrol" } },
+                    new WaveLesson { Teaches = "Riot Shields: flank them (its riot shield)", Star = EnemyType.RiotShield, Members = new[] { M(EnemyType.RiotShield, 2f), M(EnemyType.Rioter, 2f), M(EnemyType.SecurityGuard, 1f) }, Squads = new[] { "Cell block" } },
+                    new WaveLesson { Teaches = "Tear gas, and shields shoving you into it", Star = EnemyType.GasGrenadier, Members = new[] { M(EnemyType.GasGrenadier, 2f), M(EnemyType.RiotShield, 2f), M(EnemyType.Rioter, 1f) } },
+                    new WaveLesson { Teaches = "A recap of everything so far", Members = new[] { M(EnemyType.Rioter, 2f), M(EnemyType.Guard, 2f), M(EnemyType.SecurityGuard, 1f), M(EnemyType.RiotShield, 1f), M(EnemyType.GasGrenadier, 1f) }, Squads = new[] { "Breakout" } },
+                    new WaveLesson { Teaches = "Taser Guards: stuns, and parrying the Fork Bolt back", Star = EnemyType.TaserGuard, Members = new[] { M(EnemyType.TaserGuard, 2.5f), M(EnemyType.Rioter, 2f), M(EnemyType.Guard, 1f) } },
+                    new WaveLesson { Teaches = "Tasers, shields and gas together (the searchlight turn)", Star = EnemyType.TaserGuard, Members = new[] { M(EnemyType.TaserGuard, 1.5f), M(EnemyType.RiotShield, 1.5f), M(EnemyType.GasGrenadier, 1.5f), M(EnemyType.Rioter, 1f) }, Squads = new[] { "Cell block" } },
+                    new WaveLesson { Teaches = "Squads: Breakout, Patrol, Cell block", Members = new[] { M(EnemyType.Rioter, 1f), M(EnemyType.Guard, 1f) }, Squads = null, SquadChance = 0.9f },
+                    new WaveLesson { Teaches = "Everything, tighter", Members = null, Squads = null, SquadChance = 0.75f },
+                    new WaveLesson { Teaches = "The exam: the Riot line with everything", Members = null, Squads = null, Finale = true },
+                },
             },
             new FactionDef
             {
@@ -74,6 +102,8 @@ namespace Arena
                     EnemyType.Mender, EnemyType.Mender, EnemyType.Runner, EnemyType.Runner, EnemyType.Runner } },
             },
         };
+
+        static FactionMember M(EnemyType t, float weight) => new FactionMember { Type = t, Weight = weight };
 
         /// The faction of a boss, or null if it has none yet.
         public static FactionDef For(EnemyType boss) => Array.Find(All, f => f.Boss == boss);
@@ -217,7 +247,9 @@ namespace Arena
                 foreach (var sl in Approaches.Campaign(n))  // (every faction's enemies, each by its slice; the rest stays the usual mix)
                 {
                     int themed = Math.Min(count, (int)Math.Round(of * (cb != null ? sl.Share - sl.Pool : sl.Share)));
-                    if (themed > 0)
+                    if (themed > 0 && sl.Current && LessonNow(sl.Faction) != null)
+                        PickLesson(sl.Faction, LessonNow(sl.Faction), ref count, themed);  // a Campaign's teaching cycle: this wave's lesson
+                    else if (themed > 0)
                         PickFaction(sl.Faction, sl.Current ? step : 99, sl.Current && (n - 1) % 5 == 4, ref count, themed);  // (older factions are in full; only the next boss's builds up)
                 }
                 if (cb != null)
@@ -235,22 +267,52 @@ namespace Arena
             if (themed1 <= 0)
                 return;
             int reach = Hunt != null ? Hunts.Step(n) : ApproachStep(n);  // (a hunt's nine waves reach through the faction as a run's four do)
+            if (LessonNow(f) != null)
+            {
+                PickLesson(f, LessonNow(f), ref count, themed1);
+                return;
+            }
             PickFaction(f, reach, Hunt != null ? Hunts.FinaleWave(n) : (n - 1) % 5 == 4, ref count, themed1);
         }
 
         /// Takes `themed` enemies off `count` and picks them from a faction: squads where they fit, singles for the rest.
         /// `reach` is how far into the faction's members and squads the wave goes (their From); the finale comes in when
         /// asked for, whatever the share.
-        void PickFaction(FactionDef f, int reach, bool withFinale, ref int count, int themed)
+        void PickFaction(FactionDef f, int reach, bool withFinale, ref int count, int themed) =>
+            PickFrom(Array.FindAll(f.Members, m => m.From <= reach), Array.FindAll(f.Squads, s => s.From <= reach),
+                withFinale && f.Finale != null && f.Finale.From <= reach ? f.Finale : null, 0.5f, ref count, themed);
+
+        /// The lesson of the wave being built, in a Campaign wave that leads to this faction's boss (null: none).
+        public WaveLesson LessonNow(FactionDef f)
         {
-            var members = Array.FindAll(f.Members, m => m.From <= reach);
-            var squads = Array.FindAll(f.Squads, s => s.From <= reach);
+            if (!LongLegs || f == null || f.Lessons == null || f.Lessons.Length == 0 || ShownWave < 1)
+                return null;
+            return f.Lessons[Math.Min(f.Lessons.Length - 1, (ShownWave - 1) % 10)];  // (a cycle is ten Campaign waves)
+        }
+
+        /// Takes `themed` enemies off `count` from a lesson's members and squads (Approaches.cs WaveLesson).
+        void PickLesson(FactionDef f, WaveLesson l, ref int count, int themed)
+        {
+            var members = l.Members ?? f.Members;
+            var squads = l.Squads == null ? f.Squads : Array.FindAll(f.Squads, s => Array.IndexOf(l.Squads, s.Name) >= 0);
+            int stars = 0;
+            if (l.Star.HasValue)
+                for (; stars < WaveLesson.StarPicks && stars < themed; stars++)
+                    approachSingles.Add(l.Star.Value);  // the wave's lesson always shows up
+            count -= stars;
+            PickFrom(members, squads, l.Finale ? f.Finale : null, l.SquadChance, ref count, themed - stars);
+        }
+
+        /// Takes `themed` enemies off `count`: the finale if given (whatever the share), then squads (about `squadChance`
+        /// of picks, where one fits) and weighted singles for the rest.
+        void PickFrom(FactionMember[] members, SquadDef[] squads, SquadDef finale, float squadChance, ref int count, int themed)
+        {
             int spent = 0;
-            if (withFinale && f.Finale != null && f.Finale.From <= reach)
+            if (finale != null)
             {
-                themed = Math.Max(themed, Math.Min(count, f.Finale.Members.Length));  // the set piece comes whatever the share
-                approachSquads.Add(f.Finale);
-                spent = f.Finale.Members.Length;
+                themed = Math.Max(themed, Math.Min(count, finale.Members.Length));  // the set piece comes whatever the share
+                approachSquads.Add(finale);
+                spent = finale.Members.Length;
             }
             count -= themed;
             float total = 0f;
@@ -260,7 +322,7 @@ namespace Arena
             {
                 // About half of it as squads, if one fits in what's left.
                 var fits = Array.FindAll(squads, s => s.Members.Length <= themed - spent && approachSquads.FindAll(a => a == s).Count < 2);  // (none more than twice)
-                if (fits.Length > 0 && rng.NextDouble() < 0.5)
+                if (fits.Length > 0 && rng.NextDouble() < squadChance)
                 {
                     var s = fits[rng.Next(fits.Length)];
                     approachSquads.Add(s);

@@ -39,6 +39,8 @@ static partial class Shot {
     {
       // The end of a run (VICTORY=1 or mode victory: a win): sample numbers for each player.
       var gg = host.Game; gg.State = mode == "victory" ? MatchState.Victory : MatchState.GameOver; gg.RunStatsReady = true; gg.RunTime = 286f; gg.Score = 546;
+      // RETRY=1: a life left, the host can retry from the checkpoint (Checkpoints.cs).
+      if (Environment.GetEnvironmentVariable("RETRY") != null) { gg.RetryReady = true; gg.RetryWave = 11; gg.LivesUsed = 0; }
       int k = 0;
       foreach (var pl in gg.Players.Values)
       {
@@ -171,6 +173,8 @@ static partial class Shot {
         host.Lobby[1].PerkIds = new[] { PerkId.RiotGear }; if (host.Lobby.ContainsKey(2)) host.Lobby[2].PerkIds = new[] { PerkId.RiotGear };
       }
       if (Environment.GetEnvironmentVariable("LOBBYTAB") != null) { set("lobbyTab", int.Parse(Environment.GetEnvironmentVariable("LOBBYTAB"))); host.Modifiers = RunMod.GlassCannon | RunMod.Frenzy | RunMod.Lucky | RunMod.Hunted | RunMod.SecondWind; }
+      // MODSCROLL=<px>: the Modifiers tab's list scrolled down (e.g. 420 shows the Risky tier, Simple Arena among it).
+      if (Environment.GetEnvironmentVariable("MODSCROLL") != null) set("modsScroll", float.Parse(Environment.GetEnvironmentVariable("MODSCROLL")));
       // HANGOUT=<trail,trail,trail>: the lobby's Hangout tab (LobbyRoom.cs) with three characters, each wearing that trail id and
       // mid-stride (so the trail shows), e.g. HANGOUT=trail-void,trail-prism,trail-frost.
       if (Environment.GetEnvironmentVariable("HANGOUT") != null) {

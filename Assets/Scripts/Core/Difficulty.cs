@@ -37,9 +37,10 @@ namespace Arena
         Campaign,       // on/off: every wave is themed enemies, the last boss's fading out and the next one's building up (Approaches.cs, Docs/Campaign.md); off = the Boss approach setting
         BuildVote,      // on/off: the Expanding arena's building rule: on = rooms go to a team vote, one a round; off = free building (ExpansionGame.cs)
         BuildPurse,     // on/off: the Expanding arena's builds are paid from the whole team's vectors, not just the builder's (ExpansionGame.cs)
+        Lives,          // count: retries from the last boss's checkpoint when everyone goes down (Checkpoints.cs)
     }
 
-    public enum KnobUnit { Times, Percent, PercentPerWave, Seconds, HpPerSecond, OnOff }
+    public enum KnobUnit { Times, Percent, PercentPerWave, Seconds, HpPerSecond, OnOff, Count }
 
     public class KnobDef
     {
@@ -63,6 +64,7 @@ namespace Arena
                 case KnobUnit.PercentPerWave: return "+" + (v * 100f).ToString("0.0", CultureInfo.InvariantCulture) + "% / wave";
                 case KnobUnit.Seconds: return v.ToString("0.##", CultureInfo.InvariantCulture) + " s";
                 case KnobUnit.OnOff: return v >= 0.5f ? "On" : "Off";
+                case KnobUnit.Count: return Math.Round(v).ToString(CultureInfo.InvariantCulture);
                 default: return v.ToString("0.##", CultureInfo.InvariantCulture) + " HP/s";
             }
         }
@@ -72,6 +74,8 @@ namespace Arena
         {
             if (Unit == KnobUnit.OnOff)
                 return v >= 0.5f ? "on" : "off";
+            if (Unit == KnobUnit.Count)
+                return Math.Round(v).ToString(CultureInfo.InvariantCulture);
             bool pct = Unit == KnobUnit.Percent || Unit == KnobUnit.PercentPerWave;
             return (pct ? v * 100f : v).ToString(Unit == KnobUnit.PercentPerWave ? "0.0" : "0.##", CultureInfo.InvariantCulture);
         }
@@ -306,6 +310,10 @@ namespace Arena
             new KnobDef { Knob = DiffKnob.BuildPurse, Name = "Team purse", Flavour = true,
                 Desc = "On: a build can use the whole team's vectors: the builder pays first, then the richest teammates. Off: you only spend your own.",
                 Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 0f, 0f, 0f, 0f } },
+            // Lives (Checkpoints.cs, Docs/Checkpoints.md): retries from the last boss's checkpoint when everyone goes down.
+            new KnobDef { Knob = DiffKnob.Lives, Name = "Lives", HarderUp = false,
+                Desc = "Retries from the last boss's checkpoint when everyone goes down: the run comes back as it was there, and its score drops by a quarter each time.",
+                Unit = KnobUnit.Count, Min = 0f, Max = 5f, Step = 1f, Presets = new[] { 3f, 2f, 1f, 0f } },
         };
     }
 

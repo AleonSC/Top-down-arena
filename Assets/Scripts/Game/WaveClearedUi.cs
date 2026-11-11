@@ -92,6 +92,8 @@ namespace Arena
             CrtUi.Title(new Rect(x + WcPad, y + 12f, 600f, 56f), title, 52, tc, TextAnchor.MiddleLeft, calm);
             if (calm || Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0)
                 Ui.Fill(new Rect(x + WcPad + CrtUi.TitleWidth(title, 52) + 6f, y + 27f, 14f, 28f), tc);
+            if (boss && game.LivesMax > 0)  // the boss is down: the run's checkpoint is here now (Core/Checkpoints.cs)
+                HudCrt(new Rect(x + WcPad + 2f, y + 62f, 400f, 18f), "CHECKPOINT SAVED  ·  " + (game.LivesLeft == 1 ? "1 LIFE" : game.LivesLeft + " LIVES") + " LEFT", 16, CrtStyle.Gold);
             WcTile(new Rect(x + 646f, y + 16f, 130f, 50f), FormatClear(rep.ClearTime), "CLEAR TIME", calm);
             WcTile(new Rect(x + 786f, y + 16f, 132f, 50f), "+" + rep.ScoreGain, "SCORE", calm);
 

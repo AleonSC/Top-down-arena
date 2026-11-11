@@ -1,6 +1,6 @@
 # Campaign and Boss Hunt: run length, cycles and modes (design)
 
-Status: **steps 1-2 built** (Nov 2026: every arena saves; the Campaign is 100 waves, protocol 273); steps 3-6 not built. The owner's decisions are in bold. The numbers are first guesses.
+Status: **steps 1-5 built** (Nov 2026: every arena saves; the Campaign is 100 waves, protocol 273; the Warden's teaching cycle); step 4: the Campaign is the Expanding arena, Simple Arena a Risky modifier, protocol 278; step 5: checkpoints and lives (Docs/Checkpoints.md), protocol 279; step 6 not built. The owner's decisions are in bold. The numbers are first guesses.
 Related: [`Checkpoints.md`](Checkpoints.md) (lives), [`Campaign.md`](Campaign.md) (themed build-up, steps 1-2 built),
 [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md), [`LateGamePressure.md`](LateGamePressure.md).
 
@@ -15,9 +15,9 @@ Related: [`Checkpoints.md`](Checkpoints.md) (lives), [`Campaign.md`](Campaign.md
 **The loop:** Campaign → beat a boss → its Hunt opens → win the Hunt → its perk → take the perk into the Campaign →
 reach the next boss.
 
-**Fewer choices, not more:** no 50/100 toggle (Hunts are the short mode). The arena styles (Classic, Rooms, Expanding)
-stop being lobby choices: they become what the Campaign's cycles look like (below). The lobby's mode carousel shows
-Campaign, Boss Hunt and Practice.
+**Fewer choices, not more:** no 50/100 toggle (Hunts are the short mode). The lobby's mode carousel shows Campaign,
+Boss Hunt and Practice. **The Campaign is the Expanding arena** (owner, Nov 2026: building rooms is unique to the genre
+and a selling point); the arena switches leave the Difficulty tab (see below).
 
 ## The owner's problem with today's run
 
@@ -33,7 +33,7 @@ ramps through what you have to know, not only through health and damage.
 |---|---|---|
 | 1-2 | **Introduce**: one mechanic at a time, on its own | Riot Shields only: learn to flank |
 | 3-4 | **Second mechanic**, then the two mixed | Gas Grenadiers (zones you must leave); then shields that push you into the gas |
-| 5 | **Mid-boss**: an elite with one of the boss's real moves | a Guard captain with the Warden's cell slam (open: see below) |
+| 5 | **Recap** (a mid-boss here is still open: see below) | everything so far (built); the stretch's usual Data Gate can follow |
 | 6-7 | **Third mechanic** plus pressure | Taser Guards (stun lines) mixed with what came before |
 | 8 | **Remix**: everything, in tighter squads | Breakout and Cell-block squads |
 | 9 | **Exam**: the hardest wave before the boss | the Riot line + gas + tasers |
@@ -45,14 +45,17 @@ ramps through what you have to know, not only through health and damage.
   most of this; the other nine bosses need factions anyway for their Hunts, so it's the same work.
 - A Boss Hunt is the **hard version of the same cycle** (more types, tougher squads), as `Campaign.md` plans.
 
-## Arena style per cycle
+## The arena (owner's decision, replaces "arena style per cycle")
 
-Each cycle has a fixed arena style that fits its boss, so a Campaign shows every style without the player picking one:
-e.g. the Warden's cycle in **Rooms** (cell blocks), a later one in **Expanding**, others in **Classic** with its layouts.
-Which style goes with which boss is open. The switches stay in the Difficulty tab's Custom, for players who want one
-style the whole run. **Boss Hunts stay a single arena (Classic).**
+- **The Campaign is always the Expanding arena**: the team builds rooms between waves for the whole run.
+- **Simple Arena** becomes a **run modifier** (the Modifiers tab, tier **Risky**): today's Classic arena (with its
+  floor plans) all run, no building. With Boss Hunts it's the quicker, simpler way to play.
+- The Difficulty tab loses its arena switches (Arena layouts, Classic/Rooms, Expanding).
+- The Rooms arena (Wings) stays as a prototype: a host switch in the F1 dev dock (owner: may help generate layouts later).
+- **Boss Hunts stay a single arena (Classic).**
+- Later (owner): a game mode that generates rooms automatically.
 
-Saving works in every style (step 1, built).
+Saving works in every arena (step 1, built).
 
 ## Balance for 100 waves
 
@@ -82,15 +85,21 @@ damage about 4x.
 2. Effective-wave scaling + 100 waves, a boss every 10; the bot balance check. **Built** as *legs*: each track wave
    (1-50) is fought twice, so all scaling and unlocks read the track wave (= shown wave / 2, rounded up) unchanged; XP,
    kill gold, chests and vectors x0.5 (`Game.Pace`); the party reaches the first boss at level 4.73 vs 4.87 on the old
-   track (suite `longrun`). Old saves stay 50 waves. Profile records stay on the track's scale (a follow-up).
-3. The Warden's teaching cycle (waves 1-9 as above) and its mid-boss.
-4. Arena style per cycle; lobby shows Campaign / Boss Hunt / Practice; switches moved to Custom.
-5. Checkpoints and lives (`Checkpoints.md`).
+   track (suite `longrun`). Old saves stay 50 waves. Records (best wave, Recent runs, run charts) count the Campaign's waves (`Game.RecordWave`); older profiles are
+   doubled once (profile format 7); Rank XP is unchanged.
+3. The Warden's teaching cycle (waves 1-9 as above) and its mid-boss. **Built**: the table above as `FactionDef.Lessons`
+   (`Approaches.cs` `WaveLesson`, one per Campaign wave: members, squads, a guaranteed "star" enemy, the Riot line on
+   wave 10). The mid-boss: a Lockdown Drill Data Gate was built and then **removed by the owner**; the stretch
+   keeps its usual random Data Gate. Wave 5 is a recap. Suite
+   `wardencycle`.
+4. The Campaign is the Expanding arena; Simple Arena becomes a Risky modifier; the Difficulty tab loses its arena
+   switches; the lobby shows Campaign / Boss Hunt / Practice (Gauntlet renamed). **Built** (`Rooms.cs` `ArenaKind`,
+   `RunMod.SimpleArena`); the Rooms arena is kept as a dev-dock prototype (owner: it may help generate layouts later).
+5. Checkpoints and lives (`Checkpoints.md`). **Built.**
 6. A teaching cycle for each later boss, together with its Hunt.
 
 ## Open
 
 - The wave-5 mid-boss: an elite with one boss move, a small copy of the boss, or a scripted squad event?
-- Which arena style goes with which boss?
 - Rename Gauntlet to Campaign in the lobby and the README?
 - A reward for the furthest boss reached on a lost run?

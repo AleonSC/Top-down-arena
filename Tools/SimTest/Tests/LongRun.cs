@@ -39,6 +39,7 @@ static partial class Program
                 foreach (var e in g.Enemies.Values) e.Hp = 0f;
             };
             Check(g.LongRun && cg.LongRun && g.LongLegs && g.Pace == 0.5f, "a new run is a 100-wave Campaign on every game");
+            Check(g.ExpandingOn && cg.ExpandingOn, "a new Campaign is the Expanding arena on every game");
             var seen = new System.Collections.Generic.List<string>();
             bool clientAgrees = true;
             int lastKey = -1;
@@ -60,6 +61,7 @@ static partial class Program
             Console.WriteLine("  campaign fights: {0}; boss after track wave {1} (shown {2}); client shows {3}", string.Join(" ", seen), g.Wave, g.ShownWave, cg.ShownWave);
             Check(string.Join(" ", seen) == "1 2 3 4 5 6 7 8 9 10 B" && g.Wave == 5 && g.ShownWave == 10, "shown waves 1-10 are track waves 1-5, two legs each, then the boss");
             Check(clientAgrees, "the client sees the same wave, leg and shown number");
+            Check(g.RecordWave == 10 && cg.RecordWave == 10, "records count the Campaign's waves (the boss after wave 10 is wave 10)");
             Check(g.ShownLastWave == 100 && g.ShownEnd(50) == 100 && g.ShownStart(6) == 11, "the Campaign is 100 waves, a boss after every tenth");
 
             // After the boss: shown wave 11 is track wave 6's first leg.
@@ -114,6 +116,30 @@ static partial class Program
             // Boss Hunts stay ten waves.
             var hunt = new Game(new Session()) { LongRun = true, Hunt = Hunts.All[0] };
             Check(!hunt.LongLegs && hunt.Pace == 1f, "a Boss Hunt isn't a Campaign (ten waves, full rewards)");
+
+            // Records: a profile from before the Campaign has its waves doubled once (50-wave wave n ~ Campaign wave 2n); Boss Hunt lines stay.
+            var oldProfile = new Profile { BestWave = 37, BestEndlessWave = 55 };
+            oldProfile.Recent.Add(new RankLog { Wave = 30, Result = 1, Mode = "Campaign" });
+            oldProfile.Recent.Add(new RankLog { Wave = 10, Result = 3, Mode = "Hunt" });
+            string text = oldProfile.ToText();
+            var migrated = Profile.Parse(text.Replace("arena-profile " + Profile.FormatVersion, "arena-profile 6"));
+            var again = Profile.Parse(migrated.ToText());
+            Console.WriteLine("  profile from before: best {0} (endless {1}), run log {2} and hunt {3}; read again: best {4}",
+                migrated.BestWave, migrated.BestEndlessWave, migrated.Recent[0].Wave, migrated.Recent[1].Wave, again.BestWave);
+            Check(migrated.BestWave == 74 && migrated.BestEndlessWave == 110 && migrated.Recent[0].Wave == 60 && migrated.Recent[1].Wave == 10 && again.BestWave == 74,
+                "an older profile's best waves and run log move to the Campaign's scale once (Boss Hunts keep theirs)");
+
+            // The arena (Rooms.cs ArenaKind): a Campaign is the Expanding arena; Simple Arena keeps the open one; a Boss Hunt
+            // and an older 50-wave run use the plain arena; the dev dock's Rooms prototype still works.
+            var camp = new Game(new Session()) { LongRun = true };
+            var simple = new Game(new Session()) { LongRun = true, Mods = RunMod.SimpleArena };
+            var oldRun = new Game(new Session()) { LongRun = false };
+            var wings = new Game(new Session()) { LongRun = true };
+            wings.Diff.Set(DiffKnob.ArenaRooms, 1f);
+            Console.WriteLine("  arenas: campaign {0}, simple {1}, hunt {2}, old run {3}, rooms prototype {4}", camp.ArenaKind, simple.ArenaKind, hunt.ArenaKind, oldRun.ArenaKind, wings.ArenaKind);
+            Check(camp.ArenaKind == ArenaLayout.Expanding && simple.ArenaKind == ArenaLayout.Single && hunt.ArenaKind == ArenaLayout.Single
+                && oldRun.ArenaKind == ArenaLayout.Single && wings.ArenaKind == ArenaLayout.Wings,
+                "the Campaign is the Expanding arena; Simple Arena, a Boss Hunt and an older run are the open arena; the Rooms prototype still works");
         }
         finally
         {

@@ -258,6 +258,9 @@ namespace Arena
                 Wave = Math.Max(0, startWave - 1);
                 BossSlot = Wave > 0 && Wave % 5 == 0;  // starting after a boss: its wave is done (a saved run says so itself: ApplyResume)
             }
+            retrying = false;  // (Stop above has let the retried run go without recording it: Checkpoints.cs)
+            LivesUsed = 0;  // (a continued run gets its own back: ApplyResume)
+            RetryReady = false;
             Leg = Wave > 0 ? 1 : 0;  // starting after a wave: it's done, both legs (a saved run says where it was: ApplyResume)
             State = MatchState.Intermission;
             lastState = State;
@@ -286,7 +289,8 @@ namespace Arena
                 Replay = null;
             }
             if (Running)
-                LogQuitRun();  // RunSaves.cs (the run you walk away from still shows in Recent runs)
+                LogQuitRun();  // (not while a retry is on offer or starting: the run isn't over)
+            SettleRetry(how);  // a retry left untaken ends the run for good (Checkpoints.cs)  // RunSaves.cs (the run you walk away from still shows in Recent runs)
             if (Running)
                 SaveRun();  // between waves: keep the run to continue later (RunSaves.cs)
             if (TestRunning)

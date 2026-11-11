@@ -524,7 +524,9 @@ namespace Arena
                 }
                 else if (session.IsHost && (game.State == MatchState.GameOver || game.State == MatchState.Victory) && !menuUp)
                 {
-                    if (Input.GetKeyDown(KeyCode.R))
+                    if (Input.GetKeyDown(KeyCode.Y) && game.RetryReady && game.State == MatchState.GameOver)
+                        session.RetryRun();  // a life left: back to the last boss's checkpoint (Checkpoints.cs)
+                    else if (Input.GetKeyDown(KeyCode.R))
                         session.StartMatch();
                     else if (Input.GetKeyDown(KeyCode.L))
                         RecallToLobby();  // everyone beams out first (Recall.cs)

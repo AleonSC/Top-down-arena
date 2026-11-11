@@ -254,6 +254,8 @@ namespace Arena
                 y -= HudChipLine;
             if (DrawGoldChip(SideL, y))  // ShopUi.cs
                 y -= HudChipLine;
+            if (DrawLivesChip(SideL, y))  // LivesUi.cs
+                y -= HudChipLine;
             DrawActiveModifiers(DrawActiveDifficulty(SideL, y + 2f), y + 2f);  // DifficultyUi.cs, ModifiersUi.cs
         }
 

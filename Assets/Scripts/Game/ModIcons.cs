@@ -188,6 +188,21 @@ namespace Arena
                 "............",
                 "............",
             },
+            ["mod_simplearena"] = new[]  // an open arena: four corner brackets and you in the middle, nothing built
+            {
+                "www......www",
+                "w..........w",
+                "w..........w",
+                "............",
+                "............",
+                ".....ww.....",
+                ".....ww.....",
+                "............",
+                "............",
+                "w..........w",
+                "w..........w",
+                "www......www",
+            },
             ["mod_tinyarena"] = new[]
             {
                 "wwwwwwwwwwww",

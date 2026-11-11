@@ -223,7 +223,10 @@ namespace Arena
         public bool RoomsArena => D(DiffKnob.ArenaRooms) >= 0.5f;
 
         /// The run's arena layout (Docs/ExpandingArena.md): Wings with the Rooms setting on, else Single. Expanding comes later.
-        public ArenaLayout ArenaKind => D(DiffKnob.ArenaExpanding) >= 0.5f ? ArenaLayout.Expanding : RoomsArena ? ArenaLayout.Wings : ArenaLayout.Single;
+        /// The Campaign (a 100-wave run, Hunts.cs LongLegs) is the Expanding arena; the Simple Arena modifier keeps it the open
+        /// arena; the Rooms arena (Wings) is a prototype set from the dev dock. Older 50-wave saves keep their Arena knobs.
+        public ArenaLayout ArenaKind => Has(RunMod.SimpleArena) ? ArenaLayout.Single
+            : D(DiffKnob.ArenaExpanding) >= 0.5f || LongLegs && !RoomsArena ? ArenaLayout.Expanding : RoomsArena ? ArenaLayout.Wings : ArenaLayout.Single;
 
         /// The geometry being played on right now: the Wings world while the rooms are up, else the plain arena box.
         public World CurrentWorld => RoomsOn ? (ArenaKind == ArenaLayout.Expanding ? ExpansionWorld : Rooms.Wings) : World.Single;
