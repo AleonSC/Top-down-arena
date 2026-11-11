@@ -1,0 +1,37 @@
+# Nodes: map points you build a room around
+
+Status: **design only, nothing built.** Decided with the owner on Nov 11, 2026. Replaces the floating shop and vendor rooms of
+[`FloatingRooms.md`](FloatingRooms.md); the Gatekeeper (mini-boss) stays a sealed room.
+
+## The idea
+
+A **node** is a point in empty space (no walls, no size): chest, shop, vendor, ... It is locked until a built room **fully encloses** it.
+Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay sealed rooms as today.
+
+## Decisions
+
+| Question | Decision |
+|---|---|
+| Placement | Far from the start room and from each other. Start: 10-16 tiles from the nearest connected room, at least 8 tiles between nodes (first guesses, tune with `vecbal`). Never next to the start. |
+| Enemies | **Shop and vendor nodes: no spawns** in the room (`SpawnWeight` 0, as now). **Chests and other nodes: the room spawns enemies as normal.** |
+| Respawn | **None**, for nodes and for the existing sealed rooms. Each is placed once and stays until claimed. |
+| New nodes | May appear **around the current build** as it grows (each boss cycle, placed relative to the built map, never inside it). They are new nodes, not respawns. |
+| Mini-bosses | Unchanged: sealed rooms, touch to open, duel, prize pick. |
+
+## Build rules
+
+- A node counts as enclosed when its point is inside a built room's box (not on a wall). The draw tool allows boxes that cover a node.
+- Cost is the usual room price; there is no node fee.
+- Claiming: shop/vendor open their screen while you stand in the room; a chest opens when walked to, then is spent (the room stays).
+
+## Plan (one step at a time)
+
+1. `MapNode` data + placement (`Expansion`), seeded like `FloatingFor`, no respawn; remove shop/vendor floating rooms. **Protocol bump** (`Msg.ExpandState`).
+2. Enclose check, fixture inside the room, spawn rules per kind.
+3. Look: ghost marker in the arena, minimap and draw screen (`Tools/Preview` shots first).
+4. Bots build around nodes; `vecbal` balance pass; README.
+
+## Open
+
+- Chest contents and how many chests per cycle.
+- Whether a node can be enclosed by a hallway or only by a room box.
