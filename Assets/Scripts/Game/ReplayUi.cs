@@ -249,7 +249,7 @@ namespace Arena
 
             // Bottom line: where, who, keys, close.
             float ly = bar.y + 112f;
-            int wave = Math.Max(0, game.Wave);
+            int wave = Math.Max(0, game.ShownWave);
             Ui.Label(new Rect(bar.x + 14f, ly, 330f, 22f), ReplayClock(replay.Time) + " / " + ReplayClock(replay.Length) + "   ·   " + (wave > 0 ? "wave " + wave : "start") + "   ·   frame " + replay.Frame, 12, CrtStyle.Body, TextAnchor.MiddleLeft, true);
             string seeing = game.Me != null ? game.Me.Name : "-";
             if (game.Players.Count > 1 && DkKey(new Rect(bar.x + 350f, ly - 2f, 160f, 26f), "Following: " + seeing, Ui.Neutral))

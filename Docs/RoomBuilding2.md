@@ -1,6 +1,6 @@
 # Room building, part 2: breaches, portals and fittings
 
-Status: **steps 1-2 built** (breach spawns, no protocol change; buyable portals, protocol 261); step 3: the shutter gate built (protocol 272); the other fittings on hold. Owner picked these three on Nov 10, 2026. Builds on [`VectorBuilding.md`](VectorBuilding.md) and
+Status: **steps 1-2 built** (breach spawns, no protocol change; buyable portals, protocol 261); step 3: the shutter gate built (protocol 274); the other fittings on hold. Owner picked these three on Nov 10, 2026. Builds on [`VectorBuilding.md`](VectorBuilding.md) and
 [`FloatingRooms.md`](FloatingRooms.md) (all built).
 
 ## Why
@@ -58,7 +58,7 @@ Status: **steps 1-2 built** (breach spawns, no protocol change; buyable portals,
   - **Shutter gate**: a door the team can close for 8 s (cooldown 30 s) to split a crowd.
 - Gives late-game use for vectors and turns rooms into planned defensive spots.
 
-### Built (step 3, protocol 272): the shutter gate only
+### Built (step 3, protocol 274): the shutter gate only
 
 - Owner, Nov 11: "only do the door for now", the **Laser grid** look (B in `Docs/Mockups/room-fittings.html`). Turret, well and trap
   are on hold: none of the mockup's looks fit, so they need new directions first.

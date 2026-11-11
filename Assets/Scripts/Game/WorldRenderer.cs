@@ -262,6 +262,7 @@ namespace Arena
                 DrawTwinIdle(p, t);  // the Twin Blades' sabres held at the ready (TwinBladesLook.cs)
                 DrawKnuckleIdle(p, t);  // the Arc Knuckles up in a guard (ArcKnucklesLook.cs)
                 DrawKnucklePrompt(p, t);  // the Arc Knuckles' dash chain: Fire now (ArcKnucklesLook.cs)
+                DrawKnuckleLock(p, t);  // the Arc Knuckles' lock-on reticle (ArcKnucklesLook.cs)
                 DrawLightIdle(p, t);  // the Lightbringer held at the ready (LightbringerLook.cs)
                 DrawLanceIdle(p, t);  // the Lance and shield held at the ready (LanceLook.cs)
                 DrawMercyWard(p, t);  // a Lightbringer's ward on anyone (LightbringerLook.cs)

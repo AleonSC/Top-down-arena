@@ -86,7 +86,7 @@ namespace Arena
             x += 70f;
             var wr = new Rect(x, y, 124f, h);
             DkSub(wr);
-            Ui.Label(wr, inMatch ? "WAVE " + Mathf.Max(1, game.Wave) + (game.Endless ? " ∞" : " / " + Game.MaxWave) : "NO MATCH", 13, Color.white, TextAnchor.MiddleCenter, true);
+            Ui.Label(wr, inMatch ? "WAVE " + Mathf.Max(1, game.ShownWave) + (game.Endless ? " ∞" : " / " + game.ShownLastWave) : "NO MATCH", 13, Color.white, TextAnchor.MiddleCenter, true);
             x += 136f;
 
             bool was = GUI.enabled;

@@ -11,27 +11,24 @@ namespace Arena
         {
             return s == Sfx.KnuckleJab || s == Sfx.KnuckleHook || s == Sfx.KnuckleUpper || s == Sfx.KnuckleSlam || s == Sfx.KnuckleCounter
                 || s == Sfx.KnuckleArm || s == Sfx.KnuckleRocket || s == Sfx.KnuckleRocketHit
-                || s == Sfx.KnuckleGrab || s == Sfx.KnuckleThrow;
+                || s == Sfx.KnuckleGrab || s == Sfx.KnuckleThrow || s == Sfx.KnuckleImpact || s == Sfx.KnuckleImpactHeavy;
         }
 
         void BuildKnuckles()
         {
             const Osc S = Osc.Sine;
-            // A jab or cross: a quick dry whoosh, a thick knock, a tick of static.
+            // A jab or cross: a quick dry whoosh with a tick of static off the coils (the knock is the contact's: KnuckleImpact).
             Set(Sfx.KnuckleJab, Finish(Mix(
-                Tone(0.07f, S, 700f, 1300f, 0.14f, noise: 0.9f, lowpass: 0.6f, attack: 0.004f, decay: 2.6f),
-                Delay(Tone(0.07f, S, 190f, 90f, 0.22f, noise: 0.25f, lowpass: 0.3f, decay: 3f), 0.06f),
-                Delay(Tone(0.03f, Osc.Square, KnuckleZap, KnuckleZap * 0.7f, 0.04f, noise: 0.5f, lowpass: 0.7f, decay: 3f), 0.07f)), 0.4f), 0.03f);
-            // The hook: a wider swing round, then the knock.
+                Tone(0.08f, S, 700f, 1400f, 0.16f, noise: 0.9f, lowpass: 0.6f, attack: 0.004f, decay: 2.4f),
+                Delay(Tone(0.025f, Osc.Square, KnuckleZap, KnuckleZap * 0.7f, 0.035f, noise: 0.5f, lowpass: 0.7f, decay: 3f), 0.03f)), 0.38f), 0.03f);
+            // The hook: a wider swing round.
             Set(Sfx.KnuckleHook, Finish(Mix(
-                Tone(0.16f, S, 450f, 1000f, 0.15f, noise: 0.85f, lowpass: 0.5f, attack: 0.05f, decay: 1.6f),
-                Delay(Tone(0.08f, S, 170f, 80f, 0.26f, noise: 0.25f, lowpass: 0.3f, decay: 3f), 0.15f),
-                Delay(Tone(0.04f, Osc.Square, KnuckleZap * 1.1f, KnuckleZap * 0.6f, 0.05f, noise: 0.5f, lowpass: 0.7f, decay: 3f), 0.16f)), 0.45f), 0.04f);
-            // The uppercut: a low scoop rising, a hard knock, a zap that climbs.
+                Tone(0.17f, S, 450f, 1050f, 0.17f, noise: 0.85f, lowpass: 0.5f, attack: 0.05f, decay: 1.6f),
+                Delay(Tone(0.03f, Osc.Square, KnuckleZap * 1.1f, KnuckleZap * 0.6f, 0.04f, noise: 0.5f, lowpass: 0.7f, decay: 3f), 0.12f)), 0.42f), 0.04f);
+            // The uppercut: a low scoop rising, a zap that climbs with it.
             Set(Sfx.KnuckleUpper, Finish(Mix(
-                Tone(0.14f, S, 250f, 900f, 0.14f, noise: 0.8f, lowpass: 0.45f, attack: 0.04f, decay: 1.6f),
-                Delay(Tone(0.09f, S, 220f, 70f, 0.28f, noise: 0.3f, lowpass: 0.3f, decay: 2.6f), 0.13f),
-                Delay(Tone(0.12f, Osc.Square, KnuckleZap * 0.6f, KnuckleZap * 1.4f, 0.05f, noise: 0.4f, lowpass: 0.6f, decay: 2.5f), 0.14f)), 0.48f), 0.05f);
+                Tone(0.15f, S, 250f, 950f, 0.16f, noise: 0.8f, lowpass: 0.45f, attack: 0.04f, decay: 1.6f),
+                Delay(Tone(0.1f, Osc.Square, KnuckleZap * 0.6f, KnuckleZap * 1.4f, 0.045f, noise: 0.4f, lowpass: 0.6f, decay: 2.5f), 0.08f)), 0.44f), 0.05f);
             // The Twin Hammer lands: a deep thump in the floor, stone cracking, a wide crackle of static.
             Set(Sfx.KnuckleSlam, Finish(Room(Mix(
                 Tone(0.3f, S, 110f, 40f, 0.4f, noise: 0.2f, lowpass: 0.2f, decay: 2f),
@@ -63,6 +60,15 @@ namespace Arena
             Set(Sfx.KnuckleThrow, Finish(Mix(
                 Tone(0.22f, S, 300f, 1100f, 0.2f, noise: 0.9f, lowpass: 0.5f, attack: 0.02f, decay: 1.6f),
                 Tone(0.16f, S, 140f, 80f, 0.14f, noise: 0.3f, lowpass: 0.3f, decay: 2.4f)), 0.45f), 0.06f);
+            // A punch connecting: a thick, dry knock with a snap of static; the heavy one has a deeper body and a crackle that hangs.
+            Set(Sfx.KnuckleImpact, Finish(Mix(
+                Tone(0.07f, S, 210f, 85f, 0.34f, noise: 0.3f, lowpass: 0.3f, decay: 3f),
+                Tone(0.035f, S, 2600f, 900f, 0.14f, noise: 0.9f, lowpass: 0.85f, decay: 3.4f),
+                Tone(0.03f, Osc.Square, KnuckleZap, KnuckleZap * 0.6f, 0.05f, noise: 0.5f, lowpass: 0.7f, decay: 3f)), 0.42f), 0.025f);
+            Set(Sfx.KnuckleImpactHeavy, Finish(Room(Mix(
+                Tone(0.14f, S, 170f, 50f, 0.42f, noise: 0.3f, lowpass: 0.25f, decay: 2.4f),
+                Tone(0.05f, S, 2400f, 700f, 0.2f, noise: 0.95f, lowpass: 0.9f, decay: 3f),
+                Tone(0.16f, Osc.Square, KnuckleZap * 1.2f, KnuckleZap * 0.45f, 0.06f, noise: 0.6f, lowpass: 0.7f, decay: 2.2f)), 0.18f), 0.58f), 0.05f);
             // Armed: the coils whine up and click.
             Set(Sfx.KnuckleArm, Finish(Mix(
                 Tone(0.22f, S, 600f, 2200f, 0.08f, lowpass: 0.6f, attack: 0.08f, decay: 1.4f),

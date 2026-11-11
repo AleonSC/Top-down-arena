@@ -236,7 +236,7 @@ namespace Arena
             bool wings = ArenaKind == ArenaLayout.Wings, grown = ArenaKind == ArenaLayout.Expanding && Expansion.BoughtCount(Expanded) > 0;  // (the Expanding arena is the plain box until the first room is bought)
             RoomsUp = (wings || grown) && Practice == null && !ShowcaseMode && Hunt == null && !BossNow
                 && !Has(RunMod.TinyArena) && !OnPathOf(PathId.NarrowPass);
-            VaultUp = RoomsUp && wings && Wave == VaultWaveFor(Wave);
+            VaultUp = RoomsUp && wings && Wave == VaultWaveFor(Wave) && FirstLeg;  // (a Campaign: the vault's wave's first leg)
             VaultCleared = false;
             if (RoomsUp != was || VaultUp != vaultWas)
             {

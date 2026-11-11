@@ -162,6 +162,7 @@ namespace Arena
                     w.Write((byte)id);
             }
             w.Write(ResumeFrom != null);  // continuing a saved run (RunSaves.cs)
+            w.Write(ResumeFrom != null ? ResumeFrom.LongRun : LongRunDefault);  // a 100-wave Campaign (Hunts.cs); a saved run keeps its length
             var msg = Proto.End(w);
             session.Broadcast(msg);
             var r = new BinaryReader(new MemoryStream(msg));
@@ -242,6 +243,7 @@ namespace Arena
                 lastLevel[id] = p.Level;
             }
             bool resumed = r.ReadBoolean();
+            LongRun = r.ReadBoolean();  // a 100-wave Campaign (Hunts.cs)
             if (resumed && !IsHost)
                 foreach (var p in entries)
                     p.Level = 1;  // a continued run: the host sends everyone's levels and picks next (Head Start doesn't apply again)
@@ -256,6 +258,7 @@ namespace Arena
                 Wave = Math.Max(0, startWave - 1);
                 BossSlot = Wave > 0 && Wave % 5 == 0;  // starting after a boss: its wave is done (a saved run says so itself: ApplyResume)
             }
+            Leg = Wave > 0 ? 1 : 0;  // starting after a wave: it's done, both legs (a saved run says where it was: ApplyResume)
             State = MatchState.Intermission;
             lastState = State;
             StateTimer = StartDelay;
@@ -295,6 +298,7 @@ namespace Arena
             State = MatchState.Idle;
             HuntedId = 0;
             Wave = 0;
+            Leg = 0;
             Score = 0;
             WaveReport = null;  // (WaveReady.cs)
             Remaining = 0;
@@ -490,7 +494,7 @@ namespace Arena
 
         void GrantXpTo(Player p, float amount)
         {
-            p.Xp += amount * p.Stats.XpMult;  // Scholar
+            p.Xp += amount * p.Stats.XpMult * Pace;  // Scholar; half in a Campaign (twice the waves, Hunts.cs)
             while (p.Xp >= Defs.XpToNext(p.Level))
             {
                 p.Xp -= Defs.XpToNext(p.Level);

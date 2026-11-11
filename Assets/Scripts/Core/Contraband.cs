@@ -12,7 +12,7 @@ namespace Arena
         /// Host: does this wave get Contraband's guaranteed chest?
         bool ContrabandChest()
         {
-            if (Hunt != null || !IsCycleStart(Wave))
+            if (Hunt != null || !IsCycleStart(Wave) || !FirstLeg)  // (a Campaign: only the cycle's first leg)
                 return false;
             foreach (var p in Players.Values)
                 if (HasPerk(p, PerkId.Contraband))

@@ -160,12 +160,75 @@ static partial class Program
             Check(w1 && w2 && listed.Count == 1 && listed[0].Wave == 9 && Directory.GetFiles(folder, "*.tmp").Length == 0,
                 "saving over a saved run replaces it, leaving no temp file");
             SaveStore.Delete("over");
+
+            ExpandingSaveTest(dt);
         }
         finally
         {
             SaveStore.Folder = null;
             try { Directory.Delete(folder, true); } catch (IOException) { }
         }
+    }
+
+    /// The Expanding arena's map, kits, vectors and shop shelf go in the save and come back on Continue (ExpansionGame.cs).
+    static void ExpandingSaveTest(float dt)
+    {
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank, 0, 0, Kit.Knight);
+        var client = JoinAs(port, false, "Friend", Role.Dps, 1, 0, Kit.Elementalist);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        foreach (var gg in new[] { g, cg }) gg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, NoPicks);
+        foreach (var e in g.Enemies.Values) e.Hp = 0f;
+        Run(s, dt, 40f, () => g.State == MatchState.Intermission && g.Wave == 6 && !g.AnyonePicking(), () => { NoPicks(); foreach (var e in g.Enemies.Values) e.Hp = 0f; });
+
+        // A map: a drawn room (the friend's), a shop room off it, a kit held; vectors and a shelf for the friend.
+        string why;
+        var east = Expansion.Custom(g.Expanded, 1600, 300, 600, 300, out why).Value;
+        east.Owner = 2;
+        g.Expanded.Add(east);
+        var shop = Expansion.Custom(g.Expanded, 2200, 300, 400, 300, out why);
+        if (shop.HasValue) { var sh = shop.Value; sh.Kind = RoomKind.Shop; g.Expanded.Add(sh); }
+        g.RoomTokens.Add(new RoomToken { Kind = RoomKind.Floor, Floor = PathId.FrozenLake });
+        var friend = g.Players[2];
+        friend.Vectors = 31;
+        int fortitude = Array.FindIndex(Upgrades.All, u => u.Name == "Fortitude");
+        friend.Shelf[0] = fortitude; friend.Shelf[1] = -1; friend.ShelfSold = 1; friend.Restocks = 1;
+        int rooms = g.Expanded.Count;
+        host.Leave(""); client.Leave("");
+        var sv = SaveStore.List().FirstOrDefault(x => x.HasExpansion);
+        var back = sv == null ? null : RunSave.Parse(sv.ToText(), sv.Id);
+        Console.WriteLine("  expanding save: {0} rooms (in game {1}), kits {2}, friend vectors {3}, shelf '{4}'", back?.Rooms.Count, rooms, back?.Kits.Count, back?.Seats[1].Vectors, back == null ? "" : string.Join(",", back.Seats[1].Shelf.Take(2)));
+        Check(back != null && back.Rooms.Count == rooms && back.Rooms.Any(r => r.X == 1600 && r.Y == 300 && r.Owner == 2) && back.Kits.Count == 1 && back.Kits[0].Floor == PathId.FrozenLake && back.Seats[1].Vectors == 31
+            && back.Seats[1].Shelf[0] == "Fortitude" && back.Seats[1].ShelfSold == 1 && back.Seats[1].Restocks == 1, "an Expanding run saves its map (drawer by seat), kits, vectors and shelf");
+
+        // Continue it: the friend takes their seat under another name; the map, kit, vectors and shelf come back on both games.
+        port = nextPort++;
+        host = new Session { AutoStart = 2 };
+        host.HostResume(back, port, "Host");
+        client = new Session();
+        client.Join("127.0.0.1", port, "Pal", Role.Healer, 0, 0, Kit.Summoner);
+        s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        Run(s, dt, 0.5f);
+        g = host.Game; cg = client.Game;
+        var pal = g.Players.Values.FirstOrDefault(p => p.Name == "Pal");
+        var palC = cg.Players.Values.FirstOrDefault(p => p.Name == "Pal");
+        Console.WriteLine("  expanding continued: arena expanding {0}/{1}, rooms {2} (client {3}), owner {4} (pal {5}), kits {6} (client {7}), pal vectors {8} (client {9}), shelf {10} sold {11} restocks {12} areas {13}",
+            g.ExpandingOn, cg.ExpandingOn, g.Expanded.Count, cg.Expanded.Count, g.Expanded.FirstOrDefault(r => r.X == 1600 && r.Y == 300).Owner, pal?.Id, g.RoomTokens.Count, cg.RoomTokens.Count, pal?.Vectors, palC?.Vectors, pal?.Shelf[0], pal?.ShelfSold, pal?.Restocks, g.CurrentWorld.Areas.Length);
+        Check(g.ExpandingOn && cg.ExpandingOn && g.Expanded.Count == rooms && cg.Expanded.Count == rooms && pal != null && g.Expanded.Any(r => r.X == 1600 && r.Y == 300 && r.Owner == pal.Id) && g.RoomTokens.Count == 1 && cg.RoomTokens.Count == 1,
+            "continuing an Expanding run rebuilds its map and kits on every game, the drawn room going to whoever took its seat");
+        Check(pal != null && pal.Vectors == 31 && palC?.Vectors == 31 && pal.Shelf[0] == fortitude && pal.ShelfSold == 1 && pal.Restocks == 1,
+            "each seat gets back its vectors and shop shelf");
+        Run(s, dt, 15f, () => g.State == MatchState.Fighting);
+        Run(s, dt, 1f);
+        Console.WriteLine("  expanding next wave: wave {0}, rooms up {1}/{4}, areas {2} (client {3}), client rooms {5}", g.Wave, g.RoomsOn, g.CurrentWorld.Areas.Length, cg.CurrentWorld.Areas.Length, cg.RoomsOn, cg.Expanded.Count);
+        Check(g.RoomsOn && g.CurrentWorld.Areas.Length >= 2 && cg.CurrentWorld.Areas.Length == g.CurrentWorld.Areas.Length, "the next wave is fought on the saved map");
+        host.Leave(""); client.Leave("");
     }
 
     static void ProfileTest(float dt)

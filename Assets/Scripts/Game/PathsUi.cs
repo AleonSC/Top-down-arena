@@ -17,7 +17,7 @@ namespace Arena
             bool calm = CabCalm;
             RoundBackdrop(PathDim);  // (RoundWindows.cs)
             CrtUi.Title(new Rect(0, 22f, W, 56f), "CHOOSE YOUR PATH", 52, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
-            int from = game.Wave + 1, to = game.Wave + Paths.Length, boss = to;
+            int from = game.ShownStart(game.Wave + 1), to = game.ShownEnd(game.Wave + Paths.Length), boss = to;
             Ui.Label(new Rect(0, 80f, W, 20f), "Waves " + from + "-" + to + "  ·  the boss after wave " + boss + " is the same either way", 13, Ui.Muted, TextAnchor.MiddleCenter);
             if (game.Route.Count > 0)
             {

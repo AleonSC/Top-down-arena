@@ -102,8 +102,11 @@ namespace Arena
                         {
                             if (BossStartsNext)
                                 BossSlot = true;  // the boss after every fifth regular wave: the wave number stays (Hunts.cs)
+                            else if (LongLegs && Wave > 0 && !BossSlot && Leg == 0)
+                                Leg = 1;  // a Campaign: the same track wave again, its second leg (Hunts.cs)
                             else
                             {
+                                Leg = 0;
                                 BossSlot = false;
                                 Wave++;
                             }
@@ -189,7 +192,7 @@ namespace Arena
             Cages.Clear();
             State = MatchState.Intermission;
             StateTimer = IntermissionTime;
-            if (CurrentPath != PathId.None && Wave >= PathTo)
+            if (CurrentPath != PathId.None && Wave >= PathTo && LegDone)
                 FinishPath();  // its prize, then the plain arena for the boss (Paths.cs)
             if (Has(RunMod.GoldRush) && BossNext && !ShopOpen && Practice == null)
                 OpenShop();  // Gold Rush: a shop before every boss
@@ -209,7 +212,7 @@ namespace Arena
                     OfferPaths();  // after a boss: two paths for the next stretch (the Expanding arena has no paths)
             }
             else if (ServiceRooms && RoomsOn && !ShopOpen && Practice == null && Hunt == null)
-                OpenShopRoom(Wave % Expansion.Milestone == 1);  // a connected shop or vendor room: open each intermission (walk in); the shelf is new once a boss cycle
+                OpenShopRoom(Wave % Expansion.Milestone == 1 && FirstLeg);  // a connected shop or vendor room: open each intermission (walk in); the shelf is new once a boss cycle
             GrantVectorsForWave();  // vectors for everyone (ExpansionGame.cs)
             OpenBuildRound();  // a cleared wave opens a round of room proposals and a vote (ExpansionGame.cs)
             RemoveTemporaryMinions();

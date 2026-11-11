@@ -59,7 +59,7 @@ namespace Arena
         /// Host: a kill on the Bazaar's waves gives every player the same gold.
         void GrantGold(Enemy e)
         {
-            int gold = (int)Math.Round(e.Def.Xp * (e.Elite ? 3 : 1) * GoldPerXp);
+            int gold = (int)Math.Round(e.Def.Xp * (e.Elite ? 3 : 1) * GoldPerXp * Pace);  // (a Campaign: half, twice the waves)
             if (gold <= 0)
                 return;
             foreach (var p in Players.Values)
