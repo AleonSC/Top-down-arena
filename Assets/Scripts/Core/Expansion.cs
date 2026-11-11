@@ -771,6 +771,8 @@ namespace Arena
         /// (plus CoverDoorTight) and the middle point.
         public const int CoverWall = 130, CoverDoor = 230, CoverMid = 130, CoverGap = 70;
         public const int CoverMidTight = 60, CoverTight = 100, CoverDoorTight = 180;
+        /// Last pass, for a room only 400 px deep between two doors: one small pillar to a side, its centre CoverDoorMin from every door.
+        public const int CoverDoorMin = 200;
 
         static void AddCover(List<Solid> to, ExpansionRoom r, List<V2> doors)
         {
@@ -780,22 +782,24 @@ namespace Arena
             int want = Math.Max(1, Math.Min(4, r.W * r.H / 220000));
             var placed = new List<int[]>();  // each obstacle's bounding box: x0, y0, x1, y1
             V2 mid = new V2(r.X + r.W / 2f, r.Y + r.H / 2f);
-            for (int n = 0, tries = 0; n < want && tries < 200; tries++)
+            for (int n = 0, tries = 0; n < want && tries < 400; tries++)
             {
-                int stage = tries < 60 ? 0 : tries < 120 ? 1 : 2;  // 0 the full rules, 1 a smaller clear middle, 2 closer to doors too
+                int stage = tries < 60 ? 0 : tries < 120 ? 1 : tries < 200 ? 2 : 3;  // 0 the full rules, 1 a smaller clear middle, 2 closer to doors too, 3 a lone pillar by distance
+                if (stage == 3 && n > 0)
+                    break;  // (the last pass only makes sure a room has one)
                 int kind = rng.Int(4);  // 0 pillar, 1 bar, 2 an L, 3 block
-                if (stage == 2)
-                    kind = kind < 2 ? 0 : 3;  // (only a pillar or block that tight)
+                if (stage >= 2)
+                    kind = kind < 2 || stage == 3 ? 0 : 3;  // (only a pillar or block that tight)
                 bool horizontal = rng.Int(2) == 0;
                 int hw, hh;
                 switch (kind)
                 {
-                    case 0: hw = hh = 30 + rng.Int(3) * 10; break;
+                    case 0: hw = hh = stage == 3 ? 30 : 30 + rng.Int(3) * 10; break;
                     case 1: hw = horizontal ? 70 + rng.Int(4) * 25 : 20; hh = horizontal ? 20 : 70 + rng.Int(4) * 25; break;
                     case 2: hw = hh = 90; break;
                     default: hw = hh = 45; break;
                 }
-                int wall = stage == 2 ? CoverTight : CoverWall;
+                int wall = stage >= 2 ? CoverTight : CoverWall;
                 int ix0 = r.X + wall + hw, ix1 = r.X + r.W - wall - hw, iy0 = r.Y + wall + hh, iy1 = r.Y + r.H - wall - hh;
                 if (ix1 <= ix0 || iy1 <= iy0)
                     continue;
@@ -804,7 +808,7 @@ namespace Arena
                 int keepMid = stage == 0 ? CoverMid : stage == 1 ? CoverMidTight : CoverTight / 3, keepDoor = stage == 2 ? CoverDoorTight : CoverDoor;
                 bool ok = Math.Abs(cx - mid.X) > hw + keepMid || Math.Abs(cy - mid.Y) > hh + keepMid;
                 foreach (var d in doors)
-                    ok &= Math.Abs(cx - d.X) > hw + keepDoor || Math.Abs(cy - d.Y) > hh + keepDoor;
+                    ok &= stage == 3 ? new V2(cx, cy).DistanceTo(d) >= CoverDoorMin : Math.Abs(cx - d.X) > hw + keepDoor || Math.Abs(cy - d.Y) > hh + keepDoor;
                 foreach (var o in placed)
                     ok &= bx0 > o[2] + CoverGap || bx1 < o[0] - CoverGap || by0 > o[3] + CoverGap || by1 < o[1] - CoverGap;
                 if (!ok)
