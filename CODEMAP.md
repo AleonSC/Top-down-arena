@@ -130,7 +130,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Variety.cs`, `Readability.cs`: wave 15+ enemies and elite traits, shooters taking turns
 - `Game/JobMarkerLook.cs`: the job marker under each regular enemy (bar + shape: dot Pressure, chevron Hunter, ring Zoner, diamond Disruptor, square Anchor; `Docs/EnemyReadability.md`)
 - `Game/LungeLaneLook.cs`: the shared lunge wind-up lane for the Lunger, Spike Block, Charger and Riot Shield (`Docs/Mockups/lunge-telegraph.html`)
-- `Game/ShooterAimLook.cs`: the dashed aim line of the aimed shooters while they wind up (Sniper, Shard, Medic, Splitter, Phantom, Grunt)
+- `Game/ShooterAimLook.cs`: the shared shooting line (DrawAimLane) of the aimed shooters while they wind up (Sniper, Shard, Medic, Splitter, Phantom, Grunt, Taser and Security Guards)
 - `Game/EnemyTagLook.cs`, `Profile.TagSeen`: (also the Settings > Gameplay "Enemy names on hover" tag under the cursor) the name and job tag an enemy type carries for its first three sightings (profile "tag" lines, format 6)
 - `Core/BruteEnrage.cs`: Brute enrage (`BruteRage`/`BruteSpeedMult`/`BruteDamageMult`, from health lost; used in `MoveEnemy` and the contact damage in `EnemyAI.cs`; redder in `Game/WorldEnemies.cs`)
 - `Core/NewEnemies.cs`, `Game/NewEnemyChips.cs`: the new-enemy chips under the between-waves box (`Game.NewTypesAt`, `Game.EnemyNote`; unmet types only, via `Profile.TagSeen`)
@@ -241,7 +241,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `BarrierLook.cs`: the Tank Soldier's Barrier with Visual effects on: eight armour plates that slam down, recoil on blocks and are knocked off as it soaks (style C, Bulwark Plates)
 - `ArcLightningLooks.cs`: Arc Lightning with Visual effects on: violet halo, sparks, dashed cone with tendrils, and the whipping fractal tree (style F, Lichtenberg)
 - `Game/NodeLook.cs`: map nodes on the arena floor (Docs/Nodes.md): the ghost marker until a room is built round one, then the shop stall, vendor pedestal or chest (lid up and dim once opened); preview `EXPANDNODE=kind:x,y[:spent];... EXPANDROOMS=... EXPANDAT=x,y`
-- `Game/BuildMapLook.cs`: the build window's map as the "Holo floor": each room's tile grid (`DrawHoloGrid`), the walls and fins (`World.WallsFor`) and cover plus the hub's floor plan as lit blocks (`DrawHoloSolids`), from `DrawExpansionDraw`; preview `EXPANDDRAW=0,0,0,0 EXPANDZOOM=z,x,y`
+- `Game/BuildMapLook.cs`: the build window's map as the "Holo floor": each room's tile grid (`DrawHoloGrid`), the walls and fins (`World.WallsFor`) and cover plus the hub's floor plan as lit blocks (`DrawHoloSolids`), breaches (`DrawHoloBreaches`) and gates (`DrawHoloGates`), from `DrawExpansionDraw`; preview `EXPANDDRAW=0,0,0,0 EXPANDZOOM=z,x,y`, `EXPANDMIDWAVE=1` (mid-wave, breaches)
 - `PropsLook.cs`, `ZombieLook.cs`, `VarietyLook.cs`, `ChallengeLook.cs`: props, zombies, wave 15+ enemies, challenge rooms
 - `BossBeamLook.cs` (Game): the boss wave's beam-in drawing (pillar up from where a player stood in a room, a second one down onto a landing ring in the hub; `FxKind.BossBeam`, hides the body in between); logic in `Core/BossBeam.cs`; mockup `Docs/Mockups/boss-teleport.html`
 - `TaserLook.cs` (Game): the Taser Guard's Fork Bolt (white zigzag glyph, 16 Hz flicker, fork, halo), its hit (`FxKind.TaserHit`) and the guard's taser and charge; numbers match `Docs/Mockups/taser-guard-stun.html` option B; preview `TASER=0.3 Tools/Preview/shot.sh taser hud 3`

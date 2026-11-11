@@ -620,11 +620,8 @@ namespace Arena
                     }
                 for (int li = 0; li < game.Links.Count; li++)  // the portal pairs built, in their pair's colour
                     DrawLinkMark(M(game.Links[li].A), M(game.Links[li].B), PortalColours[(wd.Portals.Length - game.Links.Count + li) % PortalColours.Length], 1f);
-                foreach (var gf in game.GateFits)  // the gates fitted: a red bar on the door
-                {
-                    V2 gc = M(gf.Pos);
-                    RoomMapRect(gc.X - (gf.Vertical ? 2.5f : 6f), gc.Y - (gf.Vertical ? 6f : 2.5f), gf.Vertical ? 5f : 12f, gf.Vertical ? 12f : 5f, new Rgba(1f, 0.3f, 0.32f, 0.95f));
-                }
+                DrawHoloGates(wd, M, k);  // the gates fitted (BuildMapLook.cs)
+                DrawHoloBreaches(M, k, map);  // this wave's breaches
                 if (expGateMode)  // the doors a gate can go on, and the one under the mouse
                     for (int di = 0; di < wd.Doors.Length; di++)
                     {
@@ -916,8 +913,13 @@ namespace Arena
                     Line(p, q, 1.5f, ink.WithAlpha(0.55f * alpha));
                 }
             }
-            Arc(a, 6f, 2.5f, ink.WithAlpha(alpha * pulse), 16);
-            Arc(b, 6f, 2.5f, ink.WithAlpha(alpha * pulse), 16);
+            float spin = Time.unscaledTime * 2f;
+            foreach (var e in new[] { a, b })  // each end: a ring and a turning inner arc (the portal in the arena)
+            {
+                Arc(e, 7f, 2f, ink.WithAlpha(alpha * pulse), 18);
+                Arc(e, 3.5f, 1.5f, ink.WithAlpha(alpha), 12, spin, 4f);
+                spin += 3f;
+            }
         }
         PathId expTheme = PathId.None;  // the theme the next drawn room carries
 
