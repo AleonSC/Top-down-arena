@@ -746,7 +746,7 @@ static partial class Shot {
           if (kns == "dash")  // the Rocket Dash, SWING = seconds after the press: you part-way along it (DASHCD=<s> left on its cooldown ring)
           {
             V2 d0 = me.Pos - V2.FromAngle(me.Aim) * Game.KnuckleDashLen * Math.Min(1f, st / Game.KnuckleDashTime), d1 = d0 + V2.FromAngle(me.Aim) * Game.KnuckleDashLen;
-            gm.Effects.Add(new Effect { Kind = FxKind.KnuckleDash, Pos = d0, Pos2 = d1, Color = Game.ArcBlue, Radius = me.Id, T = st, Dur = Game.KnuckleDashFxTime });
+            gm.Effects.Add(new Effect { Kind = FxKind.KnuckleDash, Pos = d0, Pos2 = d1, Color = Game.ArcBlue, Radius = me.Id, T = st, Dur = Game.KnuckleDashTime + Game.KnuckleDashFxAfter });
             break;
           }
           if (kns == "flurry" || kns == "grab" || kns == "punch" || kns == "prompt")  // the dash chain (SWING = seconds into the move); prompt: a Fire window open
