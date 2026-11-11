@@ -453,6 +453,10 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 - **Knockback slides:** anything that shoves enemies (the Repulsion Cannon, Roar, Shockwave, the Scattergun up close,
   Knight swings, Bulldoze, Fortress, the Fuma Shuriken's fan) slides them the distance over 0.18 s instead of jumping
   them there, with a streak behind them, dust kicked up along the way and a puff where they were hit.
+- **Daze:** a close-in hit (Bulldoze, Knight and Lance swings, the Katana's Momentum Burst, the Bo Staff, the Kusarigama's
+  whirl) dazes the enemy for 0.4 s (bosses 0.2 s): it still moves, but can't shoot, use its special attacks or hurt you by
+  touch, and a wind-up it was in starts over. Three gold stars wheel over its head. After a daze it can't be dazed again
+  for 0.8 s, so steady swings can't lock it down. Bulldoze also keeps you invulnerable 0.35 s past the end of the charge.
 - **Boss bodies:** touching a boss hurts once (25, plus the difficulty's 3% a wave) and shoves you about 100 px back
   out; it can't hurt you again for 1 s.
 - **Bullet budget:** enemy bullets on screen are capped at 40 + 3 per wave, up to 85 from wave 15 (20% more per extra

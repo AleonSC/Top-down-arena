@@ -717,6 +717,7 @@ namespace Arena
                 stars = e.StarsStuck;
                 e.Suppressed = e.Suppress >= SuppressShown;
                 e.Poisoned = e.PoisonT > 0f;
+                e.Dazed = e.DazeT > 0f;
             }
             s.Int(ref id);
             s.Byte(ref type);
@@ -748,6 +749,8 @@ namespace Arena
                 s.Float(ref challengeT);
             bool katanaShock = !s.Reading && e.KatanaShockT > 0f;
             s.Bool(ref katanaShock);  // marked by a Momentum Burst (Katana.cs)
+            bool dazed = !s.Reading && e.Dazed;
+            s.Bool(ref dazed);  // dazed by a close-in hit: the stars over its head (Daze.cs)
             var kind = (EnemyType)type;
             if (s.Reading && !Enemies.TryGetValue(id, out e))
             {
@@ -763,6 +766,7 @@ namespace Arena
                 e.Hp = hp;
                 e.MaxHp = maxHp;
                 e.KatanaShocked = katanaShock;
+                e.Dazed = dazed;
                 e.Spawning = spawning;
                 e.Facing = facing;
                 e.Phase = phase;

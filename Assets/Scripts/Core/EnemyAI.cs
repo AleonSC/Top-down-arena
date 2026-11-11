@@ -446,6 +446,7 @@ namespace Arena
                 TickHemorrhage(e, dt);  // BloodMage.cs
                 TickPoison(e, dt);  // Ninja.cs
                 TickVenom(e, dt);   // Poison Dart (PoisonDart.cs)
+                TickDaze(e, dt);    // Daze.cs
                 foreach (var tick in Classes.EnemyHooks)  // each class's KitDef.TickEnemy
                     tick(this, e, dt);
                 e.Suppress = Math.Max(0f, e.Suppress - SuppressFade * dt);
@@ -499,7 +500,14 @@ namespace Arena
                     if (e.Pos.DistanceTo(was) > 600f)
                         steerMem.Remove(e.Id);  // a fresh route from the far side
                 }
-                if (State == MatchState.Fighting)
+                if (State == MatchState.Fighting && e.DazeT > 0f)
+                {
+                    // Dazed (Daze.cs): no attacking, and a wind-up starts over once it wears off.
+                    float rateDazed = rate * TraitFireMult(e) * (IsTwin(e.Type) && e.Phase == 1 ? 1.7f : 1f) * (Has(RunMod.Frenzy) ? Modifiers.FrenzyFire : 1f) * (1f - e.Suppress);
+                    e.FireT = Math.Max(e.FireT, WindUpOf(e.Type) * rateDazed + 0.05f);
+                    e.Winding = false;
+                }
+                else if (State == MatchState.Fighting)
                 {
                     Special(e, tpos, dt);
                     if (e.Def.IsBoss)
@@ -526,8 +534,8 @@ namespace Arena
                     }
                 }
                 if (e.Hp <= 0f || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.HiveEgg || e.Type == EnemyType.ReaperPillar || QueenAirborne(e)
-                    || e.Type == EnemyType.Morsel || e.Type == EnemyType.SapperMine || DevourUnder(e) || e.Dummy)
-                    continue;  // blew up this tick, explodes instead of bumping, an egg, the Hive Queen up in a dive, a morsel, the Devourer underground
+                    || e.Type == EnemyType.Morsel || e.Type == EnemyType.SapperMine || DevourUnder(e) || e.Dummy || e.DazeT > 0f)
+                    continue;  // blew up this tick, explodes instead of bumping, an egg, the Hive Queen up in a dive, a morsel, the Devourer underground, dazed (Daze.cs)
                 // Bosses and heavies hurt to stand in (the difficulty's per-wave damage growth scales all of these).
                 float contact = e.Def.IsBoss ? 25f
                     : e.Type == EnemyType.Charger && e.Phase == 2 || e.Type == EnemyType.Juggernaut ? 25f

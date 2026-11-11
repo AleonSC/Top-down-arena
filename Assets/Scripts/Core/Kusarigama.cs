@@ -272,6 +272,7 @@ namespace Arena
                 float dmg = p.Weapon.Damage * p.Stats.DmgMult * (1f + KusariExtraDmg * ExtraShots(p)) * KusariWhirlDmg * NinjaHitMult(p.Id, Defs.KnightSlash, e);
                 hitAny = true;
                 HurtEnemy(e, dmg, p.Id);
+                Daze(e);  // Daze.cs
                 OnBulletHit(new Bullet { Pos = e.Pos, Vel = rel / d, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
                 BroadcastFx(FxKind.Spark, p.Pos + rel / d * Math.Min(d, orbit), new Rgba(1f, 1f, 1f), 8f, 0.15f, Sfx.None);
             }
