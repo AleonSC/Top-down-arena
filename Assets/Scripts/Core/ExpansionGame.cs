@@ -382,6 +382,7 @@ namespace Arena
             Expanded.AddRange(pick.Value.Rooms);
             expWorld = null;
             LayoutAge = 0f;
+            RaiseRoomsNow();
             NoteSurprise(pick.Value.Rooms[0].Surprise);
             Sounds.Add(Sfx.Pick);
             DoLog("surprise room: " + Expansion.SurpriseName(pick.Value.Shape) + " of " + pick.Value.Rooms.Count + " boxes at " + pick.Value.Rooms[0].X + "," + pick.Value.Rooms[0].Y + ", closes " + pick.Value.Loops + " loops");
@@ -918,6 +919,7 @@ namespace Arena
             }
             expWorld = null;
             LayoutAge = 0f;  // the new walls rise
+            RaiseRoomsNow();  // (the first room: the world goes up now, Rooms.cs)
             Sounds.Add(Sfx.Pick);
         }
 
