@@ -9,6 +9,7 @@
 # records: SECTION=4 (Recent runs), RTAB=1 (Trends), RSEL=n (the open run), MOUSE=x,y (hover).
 # DOWNED=down:<s since the hit>|revive:<0-1>|up:<s since standing> (you downed, being revived, getting up; mode hud, 2 players).
 # RIOT=ready|wait,17|block,0.1 (Riot Gear: the plate, the recharge, a block that long ago; use with mode hud).
+# MOMENTUM=<0-5> (the DPS passive's stack pips round you; mode hud, 2 players).
 # NONSHOOT=1 (the Fuse Runner, Hookman and Sapper caught mid-move, with Tripwire Pods).
 # SWORD=1 (the Swordsman and Shield Swordsman in each phase: closing in, wind-up, cut, recovery; SWORDBLOCK=1 flashes the shield).
 # LUNGE=0.5 (the Lunger, Spike Block, Charger and Riot Shield part-way through their wind-up: the shared lane).

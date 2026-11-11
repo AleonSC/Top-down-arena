@@ -12,7 +12,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install mono
-        run: sudo apt-get update && sudo apt-get install -y mono-mcs mono-runtime libmono-system-core4.0-cil
+        # (the runners' apt mirrors sometimes fail to resolve: retry with short timeouts instead of hanging for minutes)
+        run: |
+          for i in 1 2 3 4; do
+            sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 update \
+              && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 install -y mono-mcs mono-runtime libmono-system-core4.0-cil \
+              && break
+            echo "apt failed (try $i), retrying"; sleep 20
+          done
+          command -v mcs && command -v mono
       - name: Compile check
         run: Tools/CompileCheck/check.sh
       - name: Core suite
@@ -23,7 +31,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install mono
-        run: sudo apt-get update && sudo apt-get install -y mono-mcs mono-runtime libmono-system-core4.0-cil
+        # (the runners' apt mirrors sometimes fail to resolve: retry with short timeouts instead of hanging for minutes)
+        run: |
+          for i in 1 2 3 4; do
+            sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 update \
+              && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 install -y mono-mcs mono-runtime libmono-system-core4.0-cil \
+              && break
+            echo "apt failed (try $i), retrying"; sleep 20
+          done
+          command -v mcs && command -v mono
       - name: Feature suite
         run: Tools/SimTest/run.sh 1 30 features
   # The branch ruleset requires a check named `checks`: it passes only when both jobs above do.

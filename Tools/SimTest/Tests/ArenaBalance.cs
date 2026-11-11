@@ -22,6 +22,7 @@ static partial class Program
         public float Scale;
     }
 
+    static string arenaNodeStats = "";  // the Expanding arena's nodes at the end of a run: claimed/placed per kind
     static List<ArenaRound> arenaRounds = new List<ArenaRound>();  // the Expanding arena's building rounds, filled by PlayArena(expanding: true)
 
     const float StallSeconds = 600f;  // a regular wave longer than this ends the run as stalled (the bots can't finish it)
@@ -114,6 +115,7 @@ static partial class Program
                         Console.WriteLine("  STUCK wave {0}: remaining {1}, foes {2}, rooms {3}, vault {4}", g.Wave, g.Remaining, g.Foes(),
                             string.Join("; ", g.RoomStates.Select(r => r.Area + " nest " + r.NestAlive + " clr " + r.Cleared + " spill " + r.SpillT.ToString("0"))), g.VaultUp);
                         foreach (var e in g.Enemies.Values) Console.WriteLine("    {0} at {1:0},{2:0} home {3} spilled {4} hp {5:0} spawnT {6}", e.Type, e.Pos.X, e.Pos.Y, e.Home, e.Spilled, e.Hp, e.SpawnT);
+                        if (g.RoomsOn) foreach (var e in g.Enemies.Values) { var w = g.CurrentWorld; int ai = w.AreaAt(e.Pos); Console.WriteLine("    {0} is in area {1} {2} {3:0},{4:0}-{5:0},{6:0} (floating {7}, sealed {8}); {9} areas", e.Type, ai, w.Areas[ai].Name, w.Areas[ai].Min.X, w.Areas[ai].Min.Y, w.Areas[ai].Max.X, w.Areas[ai].Max.Y, w.Areas[ai].Floating, w.Areas[ai].Sealed, w.Areas.Length); }
                         foreach (var p in g.Players.Values) Console.WriteLine("    player {0} at {1:0},{2:0} downed {3}", p.Id, p.Pos.X, p.Pos.Y, p.Downed);
                         foreach (var pr in g.Props.Values) Console.WriteLine("    prop {0} at {1:0},{2:0} open {3} hp {4}", pr.Kind, pr.Pos.X, pr.Pos.Y, pr.Open, pr.Hp);
                         foreach (var l in g.Loots.Values) Console.WriteLine("    loot owner {0} at {1:0},{2:0}", l.Owner, l.Pos.X, l.Pos.Y);
@@ -147,6 +149,8 @@ static partial class Program
             }
         }
         ending = (stalled ? "STALLED (a wave ran over " + StallSeconds + " s) at wave " : g.State + " at wave ") + g.Wave + " (" + g.RunTime.ToString("0") + " s)";
+        arenaNodeStats = !expanding ? "" : string.Join(", ", new[] { NodeKind.Shop, NodeKind.Vendor, NodeKind.Chest }.Select(k =>
+            k + " " + g.Nodes.Count(n => n.Kind == k && Expansion.NodeClaimed(g.Expanded, n)) + "/" + g.Nodes.Count(n => n.Kind == k) + (k == NodeKind.Chest ? " (" + g.Nodes.Count(n => n.Spent) + " opened)" : "")).ToArray());
         foreach (var w in waves.Values) if (w.Samples > 0) { w.ViewAvg /= w.Samples; w.Shots /= w.Samples; }
         host.Leave(""); c.Leave("");
         return waves;

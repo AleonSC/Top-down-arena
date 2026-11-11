@@ -230,6 +230,18 @@ static partial class Shot {
       }
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    if (Environment.GetEnvironmentVariable("MOMENTUM") != null) {
+      // Momentum (MomentumLook.cs): MOMENTUM=<stacks 0-5>, a DPS Soldier standing in the middle with that many stacks.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear();
+      me.Role = Role.Dps; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 0); me.MaxHp = me.Def.Hp; me.Hp = me.MaxHp;
+      foreach (var sl in me.Slots) sl.Id = AbilityId.None;
+      foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; me.AimAt = me.Pos + V2.FromAngle(me.Aim) * 200f;
+      me.MomentumStacks = int.Parse(Environment.GetEnvironmentVariable("MOMENTUM")); me.MomentumT = 3f;
+      foreach (var q in gm.Players.Values) if (q != me) { q.Pos = q.Disp = me.Pos + new V2(-240f, 90f); }
+    }
     if (Environment.GetEnvironmentVariable("SHADOWSTEP") != null) {
       // A Ninja's Shadow Step look (ShadowStepLook.cs): SHADOWSTEP=<seconds after the press>, SHADOWDIST=<px from where you stood to the enemy, default 400>, SHADOWNONE=1 for a short step with no enemy. Use with mode hud.
       var gm = host.Game; gm.Bot = false;
@@ -1267,6 +1279,7 @@ static partial class Shot {
     }
     if (Environment.GetEnvironmentVariable("EXPANDMAP") != null) {  // EXPANDMAP=<rooms bought>: the Expanding arena with that many rooms up, you in the hub, enemies spread over the rooms
       var xg = host.Game; xg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+      if (Environment.GetEnvironmentVariable("FINSTYLE") != null) Expansion.FinStyle = int.Parse(Environment.GetEnvironmentVariable("FINSTYLE"));  // FINSTYLE=<n>: a drawn room's side walls (Expansion.AddFins)
       int nb = int.Parse(Environment.GetEnvironmentVariable("EXPANDMAP"));
       for (int k = 0; k < nb; k++) { var rr = Expansion.Offers(5, 5 + 5 * k, xg.Expanded)[0]; rr.Owner = 1 + k % 2; xg.Expanded.Add(rr); }
       string xr = Environment.GetEnvironmentVariable("EXPANDROOMS");  // EXPANDROOMS=x,y,w,h;...: drawn rooms added in order (each must fit, Expansion.Custom)
@@ -1284,6 +1297,10 @@ static partial class Shot {
         if (xsp.HasValue) { xg.Expanded.AddRange(xsp.Value.Rooms); xg.SurpriseKind = xsp.Value.Rooms[0].Surprise; xg.SurpriseWave = xg.Wave; xg.SurpriseAge = float.Parse(Environment.GetEnvironmentVariable("SURPRISEAGE") ?? "0.6"); float sx0 = 1e9f, sy0 = 1e9f, sx1 = -1e9f, sy1 = -1e9f; foreach (var sr in xsp.Value.Rooms) { sx0 = Math.Min(sx0, sr.X); sy0 = Math.Min(sy0, sr.Y); sx1 = Math.Max(sx1, sr.X1); sy1 = Math.Max(sy1, sr.Y1); } int spi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = new V2((sx0 + sx1) / 2f + 60f * spi, (sy0 + sy1) / 2f + 220f); spi++; } }
         else Console.Error.WriteLine("surprise room: " + xwhy);
       }
+      string xnode = Environment.GetEnvironmentVariable("EXPANDNODE");  // EXPANDNODE=kind:x,y[:spent];...: nodes at world points (kind shop|vendor|chest), e.g. inside an EXPANDROOMS room
+      if (xnode != null) foreach (var part in xnode.Split(';')) { var np = part.Split(':'); var nc = Array.ConvertAll(np[1].Split(','), int.Parse); xg.Nodes.Add(new MapNode { Kind = (NodeKind)Enum.Parse(typeof(NodeKind), np[0], true), X = (short)nc[0], Y = (short)nc[1], Spent = np.Length > 2 }); }
+      string xat = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: every player stands there
+      if (xat != null) { var xa = Array.ConvertAll(xat.Split(','), int.Parse); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(xa[0], xa[1]); }
       xg.RoomsUp = true; xg.LayoutAge = 5f;
       if (Environment.GetEnvironmentVariable("EXPANDFLOAT") != null && xg.Nodes.Count == 0) { var gk = Expansion.FloatingFor(3, 2, xg.Expanded, RoomKind.Gatekeeper); if (gk.HasValue) xg.Expanded.Add(gk.Value); foreach (var nk in new[] { NodeKind.Shop, NodeKind.Vendor, NodeKind.Chest }) { var nn = Expansion.NodeFor(3, 0, xg.Expanded, xg.Nodes, nk); if (nn.HasValue) xg.Nodes.Add(nn.Value); } if (Environment.GetEnvironmentVariable("EXPANDFLOAT") == "2" && xg.Nodes.Count > 0) { for (int stp = 0; stp < 3 && !Expansion.NodeClaimed(xg.Expanded, xg.Nodes[0]); stp++) { var hh = Expansion.NodeStep(xg.Expanded, xg.Nodes[0]); if (!hh.HasValue) break; var h2 = hh.Value; h2.Owner = 1; xg.Expanded.Add(h2); } } }  // EXPANDFLOAT=1: a floating Gatekeeper room and a shop and a vendor node off the map; =2 also builds a hallway and a room round the shop node=1: a floating shop, vendor and Gatekeeper room off the map
 

@@ -4,7 +4,9 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 285: breach event: `Msg.ExpandState` carries the gold breach (a flag and its position, `Game.EventMark`) between the nodes and the open round
+- 287: breach event: `Msg.ExpandState` carries the gold breach (a flag and its position, `Game.EventMark`) between the nodes and the open round
+- 286: hallways are gone: `Msg.ExpandHall` retired (no handler), drawn rooms 2-24 tiles a side up to 144 tiles; built rooms grow side walls (rolled per room, from the map, no wire).
+- 285: the player snapshot carries `Player.MomentumStacks` and `MomentumT` (the DPS role passive, Momentum; after `AdrenalineT`)
 - 284: the End record carries `CoresFound` (Cores dropped by the run's glowing Core Carrier enemies, `EliteTrait.CoreCarrier` = 64 in the replicated `Traits` byte; `CoreDrops.cs`)
 - 283: surprise rooms: each room in the room list carries a `Surprise` byte (1 + its shape, 0: none; `Msg.ExpandState`, proposals, saves) (`ExpansionRoom.Surprise`)
 - 283: Scattergun Double Barrel now holds 8 shells that refill over time (`Player.ScatCharge` is a percent toward the next); no format change.

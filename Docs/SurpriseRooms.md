@@ -1,6 +1,6 @@
 # Surprise rooms: free, well-shaped rooms the map gets after a boss or a breach event
 
-Status: **all three steps built** (shapes and placement; the boss trigger, `Surprise` flag on the wire (protocol 283), gold look and chip; the breach event, protocol 285; it rides on the breach waves). Decided with the owner on Nov 11, 2026. Builds on [`VectorBuilding.md`](VectorBuilding.md)
+Status: **all three steps built** (shapes and placement; the boss trigger, `Surprise` flag on the wire (protocol 283), gold look and chip; the breach event, protocol 287; it rides on the breach waves). Decided with the owner on Nov 11, 2026. Builds on [`VectorBuilding.md`](VectorBuilding.md)
 and [`RoomBuilding2.md`](RoomBuilding2.md) (breaches). Expanding arena only.
 
 ## Decisions (owner)
@@ -88,7 +88,7 @@ One bump: the `Surprise` flag in the room list (snapshot/`ExpandState`) and the 
   gold on the minimap while fresh, and the chip (SURPRISE ROOM, the shape's name, FREE) for 4.5 s. Cover is not added: every box is a 3-wide lane, so none qualified already.
 - Preview: `EXPANDMAP=3 EXPANDSURPRISE=ring|cross|l|t|chamfer [SURPRISEAGE=<s>] ZOOM=0.4 Tools/Preview/shot.sh x hud`. Tests: `ExpandingSurpriseTest`, `ExpandingSurpriseGameTest`.
 
-## Step 3 (built, protocol 285): the breach event
+## Step 3 (built, protocol 287): the breach event
 
 - `BreachEvent.IsEventWave(seed, wave)` (`Core/BreachEvent.cs`): a **breach wave** (`Breaches.IsBreachWave`: 3, 7, 11, 15, ... since the breaches became a rare event, PR #90) from wave 7 (`FromWave`), a seeded
   half of them (`Chance` 0.5), never the wave after a boss (wave % 5 == 1). Host only (the seed isn't synced). Skipped in Practice and Boss Hunts, and within 2 rooms of `MaxRooms`.

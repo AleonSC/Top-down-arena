@@ -38,6 +38,7 @@ static partial class Program
                 string.Join("  ", r.Vectors.Select((v, i) => v + "/" + r.Caps[i]).ToArray()), r.Proposals, r.BuiltCost > 0 ? r.BuiltCost + " by " + r.BuiltOwner : "nothing");
         int built = rounds.Count(r => r.BuiltCost > 0);
         int atCap = rounds.Sum(r => r.Vectors.Where((v, i) => v >= r.Caps[i]).Count()), seats = rounds.Sum(r => r.Vectors.Length);
+        Console.WriteLine("  nodes claimed/placed at the end: {0}", arenaNodeStats);
         Console.WriteLine("  {0} rounds, {1} rooms built, {2} of {3} player-rounds opened at the cap (income wasted), average cost {4:0.0} vectors",
             rounds.Count, built, atCap, seats, built == 0 ? 0f : (float)rounds.Where(r => r.BuiltCost > 0).Average(r => r.BuiltCost));
     }
