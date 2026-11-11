@@ -5,6 +5,8 @@ purse and the random room offers of [`ExpandingArena.md`](ExpandingArena.md) (st
 vectors; **the team still votes on rooms**. The map builder, the draw tool, loops, walls, sync of the room list and the
 camera/minimap/spawn work all stay.
 
+**Update (Nov 11, 2026):** rooms are now drawn by their corners (walls between clicked grid points, any 3-tile-wide rectilinear shape; `Expansion.Outline`, protocol 274) instead of as boxes, and every vector number is doubled (start 50, cap 70, +8 a wave, +1 per 8 kills, boss +20, Deep Inkwell +20, Architect +40/+20, Vector pack +20). Numbers below are the originals.
+
 ## The idea
 
 Every player holds a stock of **vectors**. **Every round, between waves, any player can draw a room or hallway and put it to

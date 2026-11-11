@@ -66,7 +66,7 @@ namespace Arena
         /// Each player's drawing budget: 1 vector = 1 tile of new wall (Expansion.Cost). Start with VectorStart, hold up to VectorCap
         /// (VectorCapBase for now), +VectorWaveGain for each cleared wave, +1 every VectorKillEvery kills, and a cleared boss wave
         /// refills everyone to the cap and VectorBossBonus on top.
-        public const int VectorStart = 25, VectorCapBase = 35, VectorWaveGain = 4, VectorBossBonus = 10, VectorKillEvery = 15;
+        public const int VectorStart = 50, VectorCapBase = 70, VectorWaveGain = 8, VectorBossBonus = 20, VectorKillEvery = 8;
 
         /// Host: gains stop at the cap (a stock already above it, from a boss, is left alone).
         void AddVectors(Player p, int n)
@@ -292,7 +292,8 @@ namespace Arena
             if (!IsHost || !ExpandOpen || token < 0 || token >= RoomTokens.Count || !Expansion.CanRetype(Expanded, room, RoomTokens[token], out why))
                 return;
             var t = RoomTokens[token];
-            Expanded[room] = Expansion.Retype(Expanded[room], t);
+            foreach (int i in Expansion.GroupOf(Expanded, room))  // (a drawn outline's pieces all change: they are one room)
+                Expanded[i] = Expansion.Retype(Expanded[i], t);
             RoomTokens.RemoveAt(token);
             expWorld = null;
             Sounds.Add(Sfx.Pick);
@@ -570,6 +571,61 @@ namespace Arena
             FinishOrBroadcast();
         }
 
+        /// This game's player draws a room as an outline (corners on the 100 px grid, each {x, y}, walls straight across or up) and puts it to the vote.
+        public void ProposeExpandOutline(IList<int[]> points, PathId theme = PathId.None)
+        {
+            if (!ExpandOpen || Me == null || points == null || points.Count < 4 || points.Count > Expansion.MaxPoints)
+                return;
+            if (IsHost)
+            {
+                HostExpandOutline(MyId, points, theme);
+                return;
+            }
+            var pw = Proto.Begin(Msg.ExpandOutline);
+            pw.Write((byte)theme);
+            pw.Write((byte)points.Count);
+            foreach (var p in points)
+            {
+                pw.Write((short)p[0]); pw.Write((short)p[1]);
+            }
+            session.SendToHost(Proto.End(pw));
+        }
+
+        public void OnExpandOutline(int peer, BinaryReader r)
+        {
+            var theme = (PathId)r.ReadByte();
+            int n = r.ReadByte();
+            if (n > Expansion.MaxPoints)
+                return;
+            var points = new List<int[]>(n);
+            for (int i = 0; i < n; i++)
+                points.Add(new int[] { r.ReadInt16(), r.ReadInt16() });
+            HostExpandOutline(peer, points, theme);
+        }
+
+        /// Host: a drawn outline becomes its drawer's proposal (one head and its pieces), if it fits and they can pay.
+        void HostExpandOutline(int id, IList<int[]> points, PathId theme)
+        {
+            Player p;
+            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
+                return;
+            if (!Expansion.ThemeUnlocked(theme, Wave))
+            {
+                DoLog("proposal refused (the " + theme + " theme is still locked)");
+                return;
+            }
+            string why;
+            var made = Expansion.Outline(Expanded, points, theme, out why);
+            if (made == null || made[0].Price > p.Vectors)
+            {
+                DoLog("proposal refused (" + (why ?? "needs " + made[0].Price + " vectors, has " + p.Vectors) + ")");
+                return;
+            }
+            SetProposal(id, made);
+            DoLog(p.Name + " proposes a " + points.Count + "-corner room (" + made.Count + " boxes) for " + made[0].Price + " vectors");
+            FinishOrBroadcast();
+        }
+
         /// Host: once everyone has cast a vote the round is settled; until then everyone is told how it stands.
         void FinishOrBroadcast()
         {
@@ -641,7 +697,7 @@ namespace Arena
                         var legs = LegsOf(pick);
                         Expanded.Add(room);
                         Expanded.AddRange(legs);  // (a bent hallway's other legs, right after the first)
-                        DoLog((legs.Count > 0 ? (legs.Count + 1) + "-leg hallway" : "room") + " built: " + room.W + " x " + room.H + " by " + Players[pick].Name + " for " + room.Price + " vectors");
+                        DoLog((legs.Count > 0 && Expansion.IsPiece(legs[0]) ? "drawn room of " + (legs.Count + 1) + " boxes" : legs.Count > 0 ? (legs.Count + 1) + "-leg hallway" : "room") + " built: " + room.W + " x " + room.H + " by " + Players[pick].Name + " for " + room.Price + " vectors");
                     }
                     expWorld = null;
                     LayoutAge = 0f;  // the new walls rise

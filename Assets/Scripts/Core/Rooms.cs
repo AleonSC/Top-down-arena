@@ -13,6 +13,7 @@ namespace Arena
         public int Owner;       // the player who drew it (the Expanding arena; 0: none)
         public RoomKind Kind;   // what the room does (Expansion.cs; the Wings rooms are all Combat)
         public PathId Floor;    // a Floor room's path (its ground and hazards); None otherwise
+        public int Group;       // a multi-box room (an Expanding arena outline or bent hallway): its head's area index + 1, shared by its boxes; 0: a plain box
         public V2 Mid => (Min + Max) * 0.5f;
         public V2 Size => Max - Min;
         public bool Contains(V2 p, float pad = 0f) => p.X >= Min.X - pad && p.X <= Max.X + pad && p.Y >= Min.Y - pad && p.Y <= Max.Y + pad;

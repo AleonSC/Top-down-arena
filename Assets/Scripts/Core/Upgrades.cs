@@ -552,8 +552,8 @@ namespace Arena
             var all = new List<UpgradeDef>(before);
             all.AddRange(new[]
             {
-                new UpgradeDef { Rarity = Rarity.Uncommon, MaxStacks = 4, NeedsExpanding = true, Name = "Deep Inkwell", Desc = "Hold 10 more vectors (the Expanding arena)", Apply = s => s.VectorCap += 10 },
-                new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 3, NeedsExpanding = true, Name = "Architect", Desc = "Hold 20 more vectors, and gain 10 now (the Expanding arena)", VectorsNow = 10, Apply = s => s.VectorCap += 20 },
+                new UpgradeDef { Rarity = Rarity.Uncommon, MaxStacks = 4, NeedsExpanding = true, Name = "Deep Inkwell", Desc = "Hold 20 more vectors (the Expanding arena)", Apply = s => s.VectorCap += 20 },
+                new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 3, NeedsExpanding = true, Name = "Architect", Desc = "Hold 40 more vectors, and gain 20 now (the Expanding arena)", VectorsNow = 20, Apply = s => s.VectorCap += 40 },
             });
             return all.ToArray();
         }

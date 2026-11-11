@@ -451,6 +451,12 @@ static partial class Shot {
           hlegs.Add(new[] { 500, -1200, 300, 1200 }); hlegs.Add(new[] { 800, -1200, 1200, 300 });
           eg.Me.Vectors = 40;
         }
+        string outl = Environment.GetEnvironmentVariable("EXPANDOUTLINE");  // EXPANDOUTLINE=x,y;x,y;...: the draw screen in Room mode with those corners laid (closed back to the first)
+        if (outl != null) {
+          var pts = (System.Collections.Generic.List<int[]>)typeof(ArenaApp).GetField("expPts", bf).GetValue(app);
+          foreach (var part in outl.Split(';')) pts.Add(Array.ConvertAll(part.Split(','), int.Parse));
+          eg.Me.Vectors = 60;
+        }
         if (Environment.GetEnvironmentVariable("EXPANDCUT") != null) {  // EXPANDCUT=1: the draw screen in Open wall mode with the first shared wall dragged out
           typeof(ArenaApp).GetField("expCutMode", bf).SetValue(app, true);
           string cw; var cr = Expansion.Custom(eg.Expanded, 1600, 100, 800, 600, out cw); if (cr.HasValue) { eg.Expanded.Add(cr.Value); typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(eg, null); }
