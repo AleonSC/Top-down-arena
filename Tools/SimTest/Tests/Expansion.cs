@@ -1051,14 +1051,31 @@ static partial class Program
         var g = host.Game; var cg = client.Game;
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
         foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f); gg.Expanded.Clear(); gg.Expanded.AddRange(list); gg.ExpandOpen = true; }
-        g.Players[2].Vectors = price + 3;
+        // The Black Market sells the teleporter: bought with gold into the stash, then placed (no vectors, no vote).
+        g.Players[2].Vectors = 3;
         cg.ProposeExpandLink(link);
-        Run(s, dt, 0.5f, () => cg.ExpandProposals.Count == 1);
-        Check(g.ExpandProposals.Count == 1 && g.ExpandProposals[0].Kind == RoomKind.Link && g.ExpandProposals[0].Price == price && cg.ExpandProposals.Count == 1, "a friend's portal pair goes to the vote at its price, on both screens");
-        g.CastExpandVote(2);
-        typeof(Game).GetMethod("ResolveBuildRound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(g, null);
+        Run(s, dt, 0.5f, () => false);
+        Check(g.Links.Count == 0 && g.ExpandProposals.Count == 0, "a portal pair is refused without a teleporter in the stash");
+        g.Players[1].Gold = 200;
+        g.ShopOpen = true;
+        g.Shop(ShopAction.BuyBuild, (int)BuildKind.Teleporter);
+        Check(g.Players[1].Stash[0] == 1 && g.Players[1].Gold == 200 - Market.Prices[0], "the Black Market sells a teleporter for gold into the stash");
+        g.Shop(ShopAction.BuyBuild, (int)BuildKind.SpikeTrap);
+        g.ShopOpen = false;
+        g.Players[2].Stash[0] = 1;
+        g.Players[2].Stash[(int)BuildKind.SpikeTrap] = 1;
+        cg.ProposeExpandLink(link);
         Run(s, dt, 0.5f, () => cg.Links.Count == 1);
-        Check(g.Links.Count == 1 && cg.Links.Count == 1 && g.Players[2].Vectors == 3, "the winning pair is built on both screens and its proposer pays (" + g.Players[2].Vectors + " left)");
+        Check(g.Links.Count == 1 && cg.Links.Count == 1 && g.Players[2].Vectors == 3 && g.Players[2].Stash[0] == 0 && g.ExpandProposals.Count == 0, "a teleporter from the stash builds the pair at once on both screens, for no vectors");
+        var spot = Expansion.BestLink(g.ExpansionWorld, 1);
+        V2 trap = clearSpot(g.ExpansionWorld.Areas[1]);
+        trap = new V2(trap.X + 200f, trap.Y);
+        string pw;
+        bool spotOk = Expansion.PlaceSpot(g.ExpansionWorld, g.Placed, trap, out pw);
+        if (!spotOk) { trap = clearSpot(g.ExpansionWorld.Areas[2]); spotOk = Expansion.PlaceSpot(g.ExpansionWorld, g.Placed, trap, out pw); }
+        cg.PlaceBuild(BuildKind.SpikeTrap, (int)trap.X, (int)trap.Y);
+        Run(s, dt, 0.5f, () => cg.Placed.Count == 1);
+        Check(!spotOk || (g.Placed.Count == 1 && cg.Placed.Count == 1 && g.Players[2].Stash[(int)BuildKind.SpikeTrap] == 0), "a trap from the stash is placed on both screens (" + (spotOk ? "ok" : pw) + ")");
         Check(g.ExpansionWorld.Portals.Length == 1 && cg.ExpansionWorld.Portals.Length == 1, "and both maps have the portals");
     }
 

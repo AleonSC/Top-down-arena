@@ -26,6 +26,7 @@ namespace Arena
         public int Vectors = -1, VectorCap = -1;                   // -1: not saved (a save from another arena, or from before)
         public readonly List<string> Shelf = new List<string>();   // upgrade names by slot, "" for an empty slot
         public int ShelfSold, Restocks;
+        public readonly int[] Stash = new int[Market.Count];       // Black Market buys not yet placed, by BuildKind
 
         /// "Tank Knight, level 12" for lists.
         public string Summary => Role + " " + Defs.KitName(Kit) + ", level " + Level;
@@ -63,6 +64,7 @@ namespace Arena
         public readonly List<WallCut> Cuts = new List<WallCut>();
         public readonly List<MapNode> Nodes = new List<MapNode>();
         public readonly List<PortalLink> Portals = new List<PortalLink>();
+        public readonly List<PlacedBuild> Builds = new List<PlacedBuild>();  // the Black Market traps on the map
         public readonly List<RoomToken> Kits = new List<RoomToken>();
 
         /// "Wave 14 · 2 players · 23 min" for lists.
@@ -111,6 +113,8 @@ namespace Arena
                     Line(sb, "cut", (c.Vertical ? 1 : 0) + " " + c.At + " " + c.From + " " + c.Till);
                 foreach (var l in Portals)
                     Line(sb, "portal", l.AX + " " + l.AY + " " + l.BX + " " + l.BY);
+                foreach (var b in Builds)
+                    Line(sb, "build", b.Kind + " " + b.X + " " + b.Y);
                 foreach (var k in Kits)
                     Line(sb, "kit", k.Kind + " " + k.Floor);
                 foreach (var nd in Nodes)
@@ -130,6 +134,7 @@ namespace Arena
                 Line(sb, "keys", string.Join(",", s.BonusKeys));
                 if (s.Perks.Count > 0) Line(sb, "perks", string.Join(",", s.Perks));
                 if (s.Vectors >= 0) Line(sb, "vectors", s.Vectors + " " + s.VectorCap);
+                if (Array.Exists(s.Stash, n => n > 0)) Line(sb, "stash", string.Join(" ", s.Stash));
                 if (s.Shelf.Count > 0)
                 {
                     Line(sb, "shop", s.Restocks + " " + s.ShelfSold);
@@ -223,6 +228,12 @@ namespace Arena
                             save.Portals.Add(new PortalLink { AX = (short)I(p[0]), AY = (short)I(p[1]), BX = (short)I(p[2]), BY = (short)I(p[3]) });
                             break;
                         }
+                        case "build":
+                        {
+                            var p = val.Split(' ');
+                            save.Builds.Add(new PlacedBuild { Kind = Enum<BuildKind>(p[0]), X = (short)I(p[1]), Y = (short)I(p[2]) });
+                            break;
+                        }
                         case "kit":
                         {
                             var p = val.Split(' ');
@@ -276,6 +287,13 @@ namespace Arena
                     break;
                 }
                 case "upgrade": s.Taken.Add(val); break;
+                case "stash":
+                {
+                    var p = val.Split(' ');
+                    for (int i = 0; i < p.Length && i < Market.Count; i++)
+                        s.Stash[i] = Math.Max(0, I(p[i]));
+                    break;
+                }
                 case "vectors":
                 {
                     var p = val.Split(' ');

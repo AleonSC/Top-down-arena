@@ -716,6 +716,27 @@ namespace Arena
             return top;
         }
 
+        /// Whether a Black Market trap can stand at p (Market.cs): on the grid, in a connected room off its walls, clear of cover, doors,
+        /// portals and other traps; `why` says what is wrong.
+        public static bool PlaceSpot(World w, IList<PlacedBuild> placed, V2 p, out string why)
+        {
+            why = null;
+            if (placed.Count >= Market.MaxPlaced) { why = "The map holds " + Market.MaxPlaced + " traps at most"; return false; }
+            if ((int)p.X % Step != 0 || (int)p.Y % Step != 0) { why = "Not on the grid"; return false; }
+            if (OpenArea(w, p, LinkEdge) < 0) { why = "Must be inside a connected room, off its walls"; return false; }
+            foreach (var c in w.Cover)
+                if (Layouts.Inside(c, p, 50f)) { why = "An obstacle is in the way"; return false; }
+            foreach (var c in w.WallsFor(false))
+                if (Layouts.Inside(c, p, 50f)) { why = "A wall is in the way"; return false; }
+            foreach (var d in w.Doors)
+                if (d.Pos.DistanceTo(p) < LinkDoor) { why = "Too near a door"; return false; }
+            foreach (var pt in w.Portals)
+                if (pt.A.DistanceTo(p) < Market.PlaceClear || pt.B.DistanceTo(p) < Market.PlaceClear) { why = "Too near a portal"; return false; }
+            foreach (var o in placed)
+                if (o.Pos.DistanceTo(p) < Market.PlaceClear) { why = "Too near another trap"; return false; }
+            return true;
+        }
+
         /// A built link as a World portal: each end faces into its room (the way you come out).
         static WorldPortal PortalOf(RoomArea[] areas, PortalLink l)
         {
