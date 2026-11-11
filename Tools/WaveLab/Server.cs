@@ -21,7 +21,8 @@ static class Lab
     static PlayerInput inp;
     static bool god;
     static BotSkill botSkill = BotSkill.Off;
-    static string webRoot;
+    static string webRoot, phoneUrl = "";
+    static bool everConnected;
     static readonly List<Client> clients = new List<Client>();
 
     // ---- JSON out (hand-written: no JSON library in the mono set we build with) ----
@@ -106,7 +107,7 @@ static class Lab
     // ---- Static data the page needs once: enemies, squads, built-in sets, classes ----
     static string Meta()
     {
-        var sb = new StringBuilder("{\"enemies\":[");
+        var sb = new StringBuilder("{\"phone\":" + S(phoneUrl) + ",\"enemies\":[");
         bool first = true;
         foreach (EnemyType t in Enum.GetValues(typeof(EnemyType)))
         {
@@ -466,6 +467,11 @@ static class Lab
             if (path == "/api/meta") { Reply(st, "application/json", Encoding.UTF8.GetBytes(Meta())); return; }
             if (path == "/") path = "/index.html";
             string file = Path.GetFullPath(Path.Combine(webRoot, path.TrimStart('/')));
+            if (path == "/index.html" && !File.Exists(file))  // the single-file build carries its page inside the exe
+            {
+                using (var rs = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("index.html"))
+                    if (rs != null) { var ms = new MemoryStream(); rs.CopyTo(ms); Reply(st, "text/html; charset=utf-8", ms.ToArray()); return; }
+            }
             if (!file.StartsWith(webRoot) || !File.Exists(file)) { Reply(st, "text/plain", Encoding.UTF8.GetBytes("not found"), "404 Not Found"); return; }
             string ext = Path.GetExtension(file);
             Reply(st, ext == ".html" ? "text/html; charset=utf-8" : ext == ".js" ? "text/javascript" : ext == ".css" ? "text/css" : "application/octet-stream", File.ReadAllBytes(file));
@@ -488,7 +494,7 @@ static class Lab
         var resp = Encoding.ASCII.GetBytes("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: " + acc + "\r\n\r\n");
         st.Write(resp, 0, resp.Length);
         var c = new Client { Stream = st };
-        lock (L) clients.Add(c);
+        lock (L) { clients.Add(c); everConnected = true; }
         new Thread(c.Pump) { IsBackground = true }.Start();
         try
         {
@@ -515,14 +521,54 @@ static class Lab
         lock (L) clients.Remove(c);
     }
 
+    // Opens the page in its own window: Edge or Chrome in app mode (no tabs or address bar), else the default browser.
+    static void OpenWindow(string url)
+    {
+        var cands = new List<string>();
+        string pf = Environment.GetEnvironmentVariable("ProgramFiles") ?? "", pf86 = Environment.GetEnvironmentVariable("ProgramFiles(x86)") ?? "", la = Environment.GetEnvironmentVariable("LOCALAPPDATA") ?? "";
+        if (Path.DirectorySeparatorChar == '\\')
+        {
+            cands.Add(Path.Combine(pf86, "Microsoft", "Edge", "Application", "msedge.exe")); cands.Add(Path.Combine(pf, "Microsoft", "Edge", "Application", "msedge.exe"));
+            cands.Add(Path.Combine(pf, "Google", "Chrome", "Application", "chrome.exe")); cands.Add(Path.Combine(pf86, "Google", "Chrome", "Application", "chrome.exe")); cands.Add(Path.Combine(la, "Google", "Chrome", "Application", "chrome.exe"));
+        }
+        else if (Directory.Exists("/Applications"))
+        {
+            cands.Add("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"); cands.Add("/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"); cands.Add("/Applications/Chromium.app/Contents/MacOS/Chromium");
+        }
+        else cands.AddRange(new[] { "google-chrome", "chromium", "chromium-browser", "microsoft-edge", "google-chrome-stable" });
+        string prof = Path.Combine(Path.GetTempPath(), "wavelab-window");
+        foreach (var c in cands)
+        {
+            try
+            {
+                if (c.Contains("/") || c.Contains("\\")) { if (!File.Exists(c)) continue; }
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(c, "--app=" + url + " --window-size=1360,820 --user-data-dir=\"" + prof + "\" --no-first-run") { UseShellExecute = false });
+                return;
+            }
+            catch { }
+        }
+        try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true }); }
+        catch { try { System.Diagnostics.Process.Start(Directory.Exists("/Applications") ? "open" : "xdg-open", url); } catch { } }
+    }
+
     static int Main(string[] args)
     {
-        int port = args.Length > 0 ? int.Parse(args[0]) : 8080;
+        int port = 8080;
+        bool serveOnly = false;
+        foreach (var a in args)
+        {
+            if (a == "--serve") serveOnly = true;
+            else int.TryParse(a, out port);
+        }
         string here = AppDomain.CurrentDomain.BaseDirectory;
         webRoot = Path.GetFullPath(Path.Combine(here, "web"));
+        TcpListener ls = null;
+        for (int tryPort = port; tryPort < port + 20 && ls == null; tryPort++)
+        {
+            try { var l = new TcpListener(IPAddress.Any, tryPort); l.Start(); ls = l; port = tryPort; } catch (SocketException) { }
+        }
+        if (ls == null) { Console.Error.WriteLine("No free port near " + port); return 1; }
         new Thread(SimLoop) { IsBackground = true }.Start();
-        var ls = new TcpListener(IPAddress.Any, port);
-        ls.Start();
         string lan = null;
         try
         {
@@ -534,7 +580,28 @@ static class Lab
             }
         }
         catch { }
-        Console.WriteLine("\n  Wave Lab is running.\n  This computer:  http://localhost:" + port + "\n  Phone (same Wi-Fi):  http://" + (lan ?? "<this computer's IP>") + ":" + port + "\n  Ctrl+C to stop.\n");
+        if (lan != null) phoneUrl = "http://" + lan + ":" + port;
+        Console.WriteLine("\n  Wave Lab is running.\n  This computer:  http://localhost:" + port + "\n  Phone (same Wi-Fi):  " + (phoneUrl.Length > 0 ? phoneUrl : "<this computer's IP>:" + port) + "\n  Ctrl+C to stop.\n");
+        if (!serveOnly)
+        {
+            // App mode: open the window, and quit when it has been closed (nobody connected for a few seconds), or if nobody ever opens it.
+            OpenWindow("http://localhost:" + port);
+            new Thread(() =>
+            {
+                var clock = System.Diagnostics.Stopwatch.StartNew();
+                double emptySince = -1;
+                for (;;)
+                {
+                    Thread.Sleep(500);
+                    int n; bool seen;
+                    lock (L) { n = clients.Count; seen = everConnected; }
+                    double t = clock.Elapsed.TotalSeconds;
+                    if (n > 0) { emptySince = -1; continue; }
+                    if (emptySince < 0) emptySince = t;
+                    if (t - emptySince > (seen ? 6 : 60)) Environment.Exit(0);
+                }
+            }) { IsBackground = true }.Start();
+        }
         for (;;)
         {
             var tc = ls.AcceptTcpClient();
