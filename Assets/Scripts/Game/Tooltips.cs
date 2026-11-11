@@ -130,8 +130,17 @@ namespace Arena
             if (x < 8f)
                 x = Mathf.Clamp(Event.current.mousePosition.x + 16f, 8f, W - 8f - pw);
             var pop = new Rect(x, Mathf.Clamp(tipAnchor.y - 6f, 8f, H - 8f - h), pw, h);
+            if (crt && holoTips)
+                pop = HoloPlace(tipAnchor, pw, h);
             float y = pop.y + pad;
-            if (crt)
+            if (crt && holoTips)
+            {
+                DrawHoloBack(pop, tipAnchor, tipColor);
+                DrawHoloTitle(new Rect(pop.x + pad, y - 2f, pw - pad * 2f, 22f), tipTitle, tipColor);
+                Ui.Fill(new Rect(pop.x + pad, y + 21f, pw - pad * 2f, 1f), new Color(0.45f, 0.95f, 1f, 0.45f));
+                y += 3f;
+            }
+            else if (crt)
             {
                 Ui.Fill(pop, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.98f));
                 Ui.Fill(pop, new Color(tipColor.r, tipColor.g, tipColor.b, 0.09f));
@@ -142,7 +151,7 @@ namespace Arena
             }
             else
                 DkSub(pop, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.98f));
-            if (!crt)
+            if (!crt)  // (the crt and hologram looks drew their title above)
                 Ui.Label(new Rect(pop.x + pad, y - 2f, pw - pad * 2f, 22f), tipTitle, 16, tipColor, TextAnchor.MiddleLeft, true);
             y += 24f;
             foreach (var l in tipLines)
