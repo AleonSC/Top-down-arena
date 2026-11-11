@@ -238,7 +238,7 @@ namespace Arena
         /// menu or your lobby card. Quit asks "to lobby or desktop?" first (DrawLobbyConfirm); the lobby is the host's: it takes everyone back.
         List<MenuRow> PauseMenuRows() => new List<MenuRow>
         {
-            new MenuRow("RESUME", "Back into wave " + Mathf.Max(1, game.Wave), "ui_play", Ui.Primary, ResumeGame) { Key = "Esc" },
+            new MenuRow("RESUME", "Back into wave " + Mathf.Max(1, game.ShownWave), "ui_play", Ui.Primary, ResumeGame) { Key = "Esc" },
             new MenuRow("SETTINGS", "Audio, visual effects, aim line", "ui_gear", new Color(0.6f, 0.66f, 0.82f), () => { pauseSettings = true; CloseCabWindow(); }),
             new MenuRow("HOW TO PLAY", "Controls and tips", "ui_help", HowToColor, () => { pauseHowTo = true; OpenCabWindow(2); }),
             new MenuRow("QUIT", CanQuitToLobby ? "Back to the lobby, or out to the desktop" : "Out to the desktop", "ui_power", new Color(1f, 0.6f, 0.45f), () =>
@@ -289,7 +289,7 @@ namespace Arena
                 sub = "Nobody moves until someone resumes";
             else
                 sub = "The arena is waiting";
-            cabBootLog = "> LINK OK   > SAVE OK   > WAVE " + Mathf.Max(1, game.Wave);
+            cabBootLog = "> LINK OK   > SAVE OK   > WAVE " + Mathf.Max(1, game.ShownWave);
             BeginDrawer("PAUSED", Ui.Accent, 1f, sub);
             DrawMenuRows(PauseMenuRows(), ref pauseSel);
             EndDrawerScreen();
@@ -374,7 +374,7 @@ namespace Arena
                     e.Use();
                 }
             }
-            cabBootLog = "> LINK OK   > SAVE OK   > WAVE " + Mathf.Max(1, game.Wave);
+            cabBootLog = "> LINK OK   > SAVE OK   > WAVE " + Mathf.Max(1, game.ShownWave);
             BeginDrawer("QUIT?", LobbyConfirmColor, 1f, lobby ? "To the lobby, or out to the desktop" : "Out to the desktop");
             float y = cabScreen.y + 10f;
             for (int i = 0; i < n; i++)
@@ -471,7 +471,7 @@ namespace Arena
             float x = r.x + 20f, y = r.y + 16f;
             Ui.Label(new Rect(x, y, 200f, 14f), game.Practice != null ? "PRACTICE RANGE" : "THIS RUN", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
             y += 18f;
-            string wave = game.Practice != null ? "WAVE " + Mathf.Max(1, game.PracticeIndex + 1) : "WAVE " + Mathf.Max(1, game.Wave);
+            string wave = game.Practice != null ? "WAVE " + Mathf.Max(1, game.PracticeIndex + 1) : "WAVE " + Mathf.Max(1, game.ShownWave);
             DkTitle(new Rect(x, y, 260f, 48f), wave, 38, Ui.Gold, TextAnchor.MiddleLeft);
             float ww = Ui.TextWidth(wave, 38, true) + 16f;
             int secs = Mathf.RoundToInt(game.RunTime);
@@ -499,11 +499,11 @@ namespace Arena
             var tile = new Rect(x, y, 64f, 64f);
             IconTile(tile, null, Ui.Gold, 0f);
             bool fighting = game.BossNow && game.State == MatchState.Fighting;
-            Ui.Label(new Rect(x + 78f, y + 4f, 300f, 14f), (fighting ? "BOSS · NOW" : "NEXT BOSS · AFTER WAVE " + next), 10, Ui.Muted, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(x + 78f, y + 4f, 300f, 14f), (fighting ? "BOSS · NOW" : "NEXT BOSS · AFTER WAVE " + (game.Hunt != null ? next : game.ShownEnd(next))), 10, Ui.Muted, TextAnchor.MiddleLeft, true);
             DkTitle(new Rect(x + 78f, y + 18f, 300f, 28f), PracticePlan.NameOf(boss == EnemyType.TwinB ? EnemyType.TwinA : boss), 20, new Color(1f, 0.85f, 0.55f), TextAnchor.MiddleLeft);
             if (!fighting && game.Practice == null)
             {
-                int to = game.Hunt != null ? next - game.Wave - 1 : next - game.Wave;  // (a run: the regular waves left before the boss)
+                int to = game.Hunt != null ? next - game.Wave - 1 : game.ShownEnd(next) - game.ShownWave;  // (a run: the regular waves left before the boss)
                 Ui.Label(new Rect(x + 78f, y + 46f, 320f, 16f), to <= 0 ? "Next up" : to + (to == 1 ? " wave" : " waves") + " before it", 12, Ui.Muted);
             }
             var bossAt = new V2(tile.center.x, tile.center.y);
@@ -514,7 +514,8 @@ namespace Arena
             IconTile(room, PixelArt.Get(RoomIcon(rc)), rc != ChallengeKind.None ? ToColor(Challenges.Accent(rc)) : new Color(0.7f, 0.6f, 1f), 36f);
             Ui.Label(new Rect(x + 78f, y + 4f, 320f, 14f), "DATA GATE · THIS STRETCH", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
             int block = (Mathf.Max(1, game.Wave) - 1) / 5;
-            string nextPortal = "Next Data Gate after wave " + (block * 5 + 6) + ", " + (block * 5 + 7) + " or " + (block * 5 + 8);
+            string nextPortal = game.LongLegs ? "Next Data Gate after one of waves " + game.ShownStart(block * 5 + 6) + "-" + game.ShownEnd(block * 5 + 8)
+                : "Next Data Gate after wave " + (block * 5 + 6) + ", " + (block * 5 + 7) + " or " + (block * 5 + 8);
             if (rc != ChallengeKind.None)
             {
                 DkTitle(new Rect(x + 78f, y + 18f, 320f, 28f), Challenges.Name(rc) + (lastRoomWon ? "  ✓" : "  ✗"), 19, lastRoomWon ? ToColor(Challenges.Accent(rc)) : new Color(1f, 0.5f, 0.5f), TextAnchor.MiddleLeft);

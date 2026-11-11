@@ -89,7 +89,7 @@ namespace Arena
                 if (boss)
                     p.Vectors = Math.Max(p.Vectors, p.VectorCap + VectorBossBonus);
                 else
-                    AddVectors(p, VectorWaveGain);
+                    AddVectors(p, LongLegs ? VectorWaveGain / 2 : VectorWaveGain);  // (a Campaign has twice the waves)
             }
         }
 
@@ -733,6 +733,89 @@ namespace Arena
             }
             if (botVoteT >= 3f && !ExpandVotes.ContainsKey(MyId) && ExpandProposals.Count > 0)
                 CastExpandVote(rng.Next(10) < 2 ? 0 : ExpandProposals[rng.Next(ExpandProposals.Count)].Owner);
+        }
+
+        // --- Saved runs (RunSaves.cs, SaveData.cs) ------------------------------------------------------------------
+
+        /// Host, saving the run: the map the team built, its kits and the seed. A room's drawer is kept as their seat + 1.
+        void SaveExpansion(RunSave save, Dictionary<int, int> seatOf)
+        {
+            save.HasExpansion = true;
+            save.ExpandSeed = expandSeed;
+            save.FloatCycle = floatCycle;
+            foreach (var r in Expanded)
+            {
+                var room = r;
+                int seat;
+                room.Owner = r.Owner != 0 && seatOf.TryGetValue(r.Owner, out seat) ? seat + 1 : 0;
+                save.Rooms.Add(room);
+            }
+            save.Cuts.AddRange(Openings);
+            save.Portals.AddRange(Links);
+            save.Kits.AddRange(RoomTokens);
+        }
+
+        /// Host, saving the run: this player's vectors and shop room shelf.
+        static void SaveExpansionSeat(Player p, SeatSave seat)
+        {
+            seat.Vectors = p.Vectors;
+            seat.VectorCap = p.VectorCap;
+            bool any = false;
+            for (int i = 0; i < MaxShelf; i++)
+                any |= p.Shelf[i] >= 0;
+            if (!any)
+                return;
+            for (int i = 0; i < MaxShelf; i++)
+                seat.Shelf.Add(p.Shelf[i] >= 0 && p.Shelf[i] < Upgrades.All.Length ? Upgrades.All[p.Shelf[i]].Name : "");
+            seat.ShelfSold = p.ShelfSold;
+            seat.Restocks = p.Restocks;
+        }
+
+        /// Host, continuing a saved run: the map, kits, seed and each seat's vectors and shelf back, then everyone is told.
+        void ResumeExpansion(RunSave save)
+        {
+            var playerOf = new Dictionary<int, int>();  // seat -> the player id now in it
+            foreach (var kv in ResumeSeats)
+                playerOf[kv.Value] = kv.Key;
+            expandSeed = save.ExpandSeed;
+            floatCycle = save.FloatCycle;
+            Expanded.Clear();
+            foreach (var r in save.Rooms)
+            {
+                var room = r;
+                int id;
+                room.Owner = r.Owner > 0 && playerOf.TryGetValue(r.Owner - 1, out id) ? id : 0;
+                Expanded.Add(room);
+            }
+            Openings.Clear();
+            Openings.AddRange(save.Cuts);
+            Links.Clear();
+            Links.AddRange(save.Portals);
+            RoomTokens.Clear();
+            RoomTokens.AddRange(save.Kits);
+            expWorld = null;
+            LayoutAge = 0f;
+            foreach (var p in Players.Values)
+            {
+                int idx;
+                if (!ResumeSeats.TryGetValue(p.Id, out idx) || idx < 0 || idx >= save.Seats.Count)
+                    continue;
+                var s = save.Seats[idx];
+                if (s.Vectors >= 0)
+                {
+                    p.Vectors = s.Vectors;
+                    p.VectorCap = Math.Max(VectorCapBase, s.VectorCap);
+                }
+                for (int i = 0; i < MaxShelf; i++)
+                {
+                    string name = i < s.Shelf.Count ? s.Shelf[i] : "";
+                    p.Shelf[i] = name.Length == 0 ? -1 : Array.FindIndex(Upgrades.All, u => u.Name == name);
+                }
+                p.ShelfSold = s.ShelfSold;
+                p.Restocks = Math.Min(StockMax, s.Restocks);
+            }
+            DoLog("the Expanding arena's map is back: " + Expansion.BoughtCount(Expanded) + " rooms");
+            BroadcastExpansion();
         }
 
         // --- Net ---------------------------------------------------------------------------------------------------

@@ -144,7 +144,7 @@ namespace Arena
                     string sub = choosing.Count > 0 ? "Waiting for " + string.Join(" and ", choosing.ToArray()) + " to choose an upgrade…"
                         : game.AnyonePicking() ? ""
                         : pr != null ? "Practice wave " + (pNext + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer)
-                        : ApproachLine(game.Wave + 1) + "Wave " + (game.Wave + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer);  // ApproachUi.cs
+                        : ApproachLine(game.NextTrackWave) + "Wave " + (game.ShownWave + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer);  // ApproachUi.cs
                     if (LaunchHoldsBanner)
                         break;  // a run launching: GET READY waits until the players have landed (LaunchIntro.cs)
                     if (game.Room == RoomPhase.Portal)
@@ -157,7 +157,7 @@ namespace Arena
                     if (pr != null)
                         DrawBanner(game.PracticeIndex < 0 ? "PRACTICE RANGE" : "PRACTICE WAVE " + (game.PracticeIndex + 1) + " CLEARED", sub, Ui.Accent);
                     else
-                        DrawBanner(game.Wave == 0 ? "GET READY" : game.BossNow ? "BOSS CLEARED" : "WAVE " + game.Wave + " CLEARED", sub, game.BossNow ? Ui.Gold : Ui.Accent);
+                        DrawBanner(game.Wave == 0 ? "GET READY" : game.BossNow ? "BOSS CLEARED" : "WAVE " + game.ShownWave + " CLEARED", sub, game.BossNow ? Ui.Gold : Ui.Accent);
                     if (pr == null)
                         DrawNewEnemyChips(BandRect.yMax + 14f, Mathf.Clamp01((Time.unscaledTime - bandShownAt) / 0.4f));
                     break;
@@ -356,10 +356,10 @@ namespace Arena
             Color ink = bossWave ? Ui.Gold : CrtUi.Ink, dim = bossWave ? new Color(Ui.Gold.r * 0.7f, Ui.Gold.g * 0.7f, Ui.Gold.b * 0.5f) : CrtUi.Dim;
             string head = practice != null ? "PRACTICE  ·  LV " + game.Wave : game.Hunt != null ? (bossWave ? "HUNT  ·  BOSS" : "HUNT  ·  WAVE") : bossWave ? "BOSS FIGHT" : "WAVE";
             HudCrt(new Rect(r.x + 14f, r.y + 5f, 150f, 16f), head, 17, dim);
-            string num = practice != null ? Math.Max(1, game.PracticeIndex + 1).ToString() : game.Hunt != null ? game.HuntWave.ToString() : game.Wave.ToString();
+            string num = practice != null ? Math.Max(1, game.PracticeIndex + 1).ToString() : game.Hunt != null ? game.HuntWave.ToString() : game.ShownWave.ToString();
             HudCrt(new Rect(r.x + 12f, r.y + 14f, 120f, 46f), num, 54, ink);
             float nw = CrtUi.TitleWidth(num, 54);
-            string of = practice != null ? (practice.Loop ? "/ " + practice.Waves.Count + "  LOOP" : "/ " + practice.Waves.Count) : game.Endless ? "ENDLESS" : game.Hunt != null ? "/ " + Hunts.Length : "/ " + Game.MaxWave;
+            string of = practice != null ? (practice.Loop ? "/ " + practice.Waves.Count + "  LOOP" : "/ " + practice.Waves.Count) : game.Endless ? "ENDLESS" : game.Hunt != null ? "/ " + Hunts.Length : "/ " + game.ShownLastWave;
             HudCrt(new Rect(r.x + 18f + nw, r.y + 28f, 100f, 24f), of, 22, game.Endless || practice != null && practice.Loop ? Ui.Gold : dim);
             HudCrt(new Rect(r.xMax - 110f, r.y + 5f, 100f, 16f), "LEFT", 17, dim, TextAnchor.MiddleRight);
             HudCrt(new Rect(r.xMax - 110f, r.y + 16f, 100f, 30f), game.Remaining.ToString(), 32, ink, TextAnchor.MiddleRight);

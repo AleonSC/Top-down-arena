@@ -437,7 +437,12 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 - After a hit you can't be hit again for 0.25 s (Normal). Small health orbs drop from 12% of kills (Normal), large
   ones from 3%.
 - If everyone is downed, it's game over. Clearing a wave revives anyone downed and heals everyone a bit.
-- New enemy types unlock as the waves go up (see below), with a boss fight after every 5th wave.
+- **The Campaign is 100 waves, with a boss fight after every 10th.** Each wave of the old 50-wave track is fought
+  twice (two "legs"), so enemies, new types and every number that grows by wave grow at half the pace: wave 37 plays
+  like wave 19 of the old run, and the wave numbers in this README are track waves (double them, roughly, for the
+  Campaign's). XP, kill gold, chests and the Expanding arena's vectors per wave are halved to match, so you reach each
+  boss about as strong as before. Runs saved before this stay 50 waves; Boss Hunts stay ten.
+- New enemy types unlock as the waves go up (see below).
 - **Knockback slides:** anything that shoves enemies (the Repulsion Cannon, Roar, Shockwave, the Scattergun up close,
   Knight swings, Bulldoze, Fortress, the Fuma Shuriken's fan) slides them the distance over 0.18 s instead of jumping
   them there, with a streak behind them, dust kicked up along the way and a puff where they were hit.
@@ -632,7 +637,7 @@ summons and phase changes.
 
 The game has **50 regular waves** with a different boss after every 5th one. The boss is its own fight between wave 5 and 6, wave 10 and 11 and so on: it keeps the wave number of the wave before it (the HUD says BOSS FIGHT, the wave box says BOSS CLEARED) and doesn't use up a wave, so 5 regular waves lead up to each boss. Bosses after wave 20 get extra health (+10% per wave on
 top of the normal scaling: x2 at wave 30, x4 at wave 50) to keep up with stacked upgrades. Their name, health bar and
-warnings show at the top. Beat The Eclipse after wave 50 to win; the host can then keep going in **endless** mode (C),
+warnings show at the top. Beat The Eclipse after wave 100 (50 in a run saved before the Campaign) to win; the host can then keep going in **endless** mode (C),
 where the bosses come back around, tougher each time.
 
 | Wave | Boss | Mechanic |
@@ -851,7 +856,9 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   (pillar or block, closer to the walls and doors), and a 400 px deep room between two doors gets a small pillar to one side.
 - **How it plays**: regular waves use the whole map (walled, no wrapping, a minimap top right) and bring more enemies the
   bigger it is (up to 1.4 times); the map stops at 24 rooms. Boss waves are fought in the hub alone, as always.
-- Runs in this arena can't be saved and continued yet.
+- Runs in this arena are saved like any other: Continue brings back the map (rooms, opened walls, portals, floating
+  rooms), the team's room kits and each seat's vectors and shop shelf. A room someone drew keeps their colour for
+  whoever takes their seat.
 
 ## Rooms arena
 
@@ -1043,7 +1050,7 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 
 ## Practice Range
 
-In the lobby the host picks **Gauntlet** (the normal 50 waves), **Boss Hunt** (above) or **Practice** (the Practice Range)
+In the lobby the host picks **Gauntlet** (the Campaign: 100 waves), **Boss Hunt** (above) or **Practice** (the Practice Range)
 at the top. Practice has two sections, as tabs on the big screen: **Practice** (build your own waves) and **Training**
 (short mechanic drills). Whichever you use, it's with everyone in the lobby, with upgrade picks between waves as usual, and
 **no XP counts**: a Practice run never reaches your profile (no rank XP, records, unlocks or run history), and the header
@@ -1348,7 +1355,7 @@ players report, and only accepts a frame or trail your rank has. XP, what's equi
 
 **Runs save themselves.** The host's game saves the run as each wave starts (once everyone has picked their
 upgrades, the path is chosen and the shop is closed), and again if the match is left or the game closed between
-waves. Leaving mid-wave keeps the save from that wave's start. A run that's won or lost loses its save. The
+waves. Every arena saves (Classic, Rooms and Expanding, with its map). Leaving mid-wave keeps the save from that wave's start. A run that's won or lost loses its save. The
 Practice Range, the lobby's loadout preview and Boss Lab fights are never saved.
 
 **Play** on the main menu opens the saved-runs picker in the menu's box: a header screen (**YOUR RUNS**) with a **Back** key

@@ -37,7 +37,7 @@ namespace Arena
         /// Draws the chips in a centred row, their tops at `top`, fading in over `ease` (0-1).
         void DrawNewEnemyChips(float top, float ease)
         {
-            var list = ChipsFor(game.Wave + 1);
+            var list = ChipsFor(game.NextTrackWave);
             if (list.Count == 0 || ease <= 0f)
                 return;
             float oldAlpha = Ui.Alpha;

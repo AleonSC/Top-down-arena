@@ -14,7 +14,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Practice.cs`: Practice Range plan and picker list
 - `PracticeRespawn.cs`: the Practice Range's Respawn and Restart wave (`Msg.Respawn`, `RequestRespawn`, `HostRespawn`, `RestartPracticeWave`); a Practice run never ends in a wipe (`CheckGameOver`)
 - `Training.cs`: the Training section's drills: `TrainingDrill` (name, group, goal, steps, a `PracticePlan`; the `.training` text format), `TrainingLibrary` (groups, built-in drills); `Docs/Training.md`
-- `Hunts.cs`: Boss Hunt mode (ten waves ending in a boss); the boss between waves of a run (`BossSlot`, `BossNow`, `BossNext`, `IsBossWave`: the boss follows every fifth regular wave and keeps its number; HANDOFF §2)
+- `Hunts.cs`: Boss Hunt mode (ten waves ending in a boss); the 100-wave Campaign's legs (`LongRun`, `Leg`, `ShownWave`, `ShownEnd`, `NextTrackWave`, `Pace`; test suite `longrun`); the boss between waves of a run (`BossSlot`, `BossNow`, `BossNext`, `IsBossWave`: the boss follows every fifth regular wave and keeps its number; HANDOFF §2)
 - `Contraband.cs`: Contraband (the cycle chest on waves 6, 11, 16... when anyone has it; its holder's chest items are rare or better, in `Props.cs`)
 - `RiotGearLook.cs` (Game): Riot Gear's Plate look: the plate that swings toward incoming shots, the recharge ghost, the block effect (`FxKind.RiotBlock`) and the HUD chip above the XP strip
 - `RiotGear.cs`: Riot Gear's shield (`RiotBlocks`, called first in `Damage`; `TickRiot`; `PerksFor` picks who brings what at match start, `GivePerks` applies it on every screen); burns, gas, acid and lava ticks pass `overTime` and go through
@@ -147,7 +147,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Replay.cs`: replays: `ReplayFile` (.replay: header, marks, frame lengths, every host message), `ReplayRecorder` (fed by `Session.Broadcast` and `Game.FixedStep`), `ReplayPlayer` (a private client-mode `Session` that reads the messages; seek, step, speeds)
 
 ## Saving, stats and text data (Core)
-- `SaveData.cs`, `RunSaves.cs`, `Profile.cs`: saved runs, profile, records, unlocks
+- `SaveData.cs`, `RunSaves.cs`, `Profile.cs`: saved runs (every arena; the Expanding map via `ExpansionGame.cs` `SaveExpansion`/`ResumeExpansion`), profile, records, unlocks
 - `Core/Pacman.cs`: the Pac-Man maze game's simulation (maze, chompers, role ghosts, waves, lives, levels; no Unity; test suite `pacman`; `Docs/Pacman.md`)
 - `PacmanUi.cs`: the Pac-Man game screen for a Pac profile (Play opens it): maze, dots, chomper, role ghosts, HUD, keys (`Docs/Pacman.md`)
 - `PacmanLook.cs`: the Pac-Man skin for Pac profiles (chomper, role ghosts, dots) and the Pac-Man disk (`Docs/Pacman.md`)
