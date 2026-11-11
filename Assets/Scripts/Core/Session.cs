@@ -837,7 +837,7 @@ namespace Arena
         }
 
         // (A Wildcard's weapon and ability picks run 0-17: its kit * 3 + choice. Those are checked against the role, ClampLoadout.)
-        static int ClampWeapon(int weapon) => weapon >= 0 && weapon < Defs.WildcardChoices ? weapon : 0;
+        static int ClampWeapon(int weapon) => weapon >= 0 && weapon < Defs.WildcardWeaponChoices ? weapon : 0;  // (a Wildcard's weapons run past 17: the DPS fourth weapons)
         static int ClampAbility(int ability) => ability >= 0 && ability < Defs.WildcardChoices ? ability : 0;
         static int ClampUltByte(int ult) => ult >= 0 && ult < Defs.KitCount * Upgrades.UltKeys ? ult : 0;  // (a Wildcard's runs to 23; checked against the role and class by ClampLoadout)
 

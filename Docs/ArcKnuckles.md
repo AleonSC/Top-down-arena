@@ -66,5 +66,6 @@ Magnet Yank) were not picked.
    **Built:** the generic melee rules cover it (damage, fire rate, crits, elemental rounds through the hit pipeline; Piercing Rounds'
    reach; Barrage's sword waves); +1 extra projectile is an aftershock slam, now drawn. Damage 22 (measured 88 a second against
    Twin Blades 83, Rapier 85, Greatsword 89); the dash and chain hits are multiples of it, so upgrades lift them too. Ascension is the
-   lobby's placeholder for every weapon. Not done: the Wildcard's class wheel (picks are numbered kit × 3 + choice), bots on the
-   weapon-action key (no weapon has that).
+   lobby's placeholder for every weapon. The Wildcard can pick it: its weapon picks run on past kit × 3 + choice to
+   the DPS fourth weapons (`Defs.WildWeaponPick`, `WildWeaponKit`; the Arc Knuckles are pick 18), and the class wheel shows the
+   Knight's four. Not done: bots on the weapon-action key (no weapon has that).

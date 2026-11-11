@@ -313,7 +313,45 @@ namespace Arena
         /// How many weapons a role and class has in the lobby: three, or four where it has a fourth (the Knight DPS's Arc
         /// Knuckles). A Wildcard picks from WildcardChoices (every class's first three DPS weapons).
         public static int WeaponCount(Role role, Kit kit) =>
-            role == Role.Wildcard ? WildcardChoices : WeaponsPerRole + (Fourth(role, kit) != null ? 1 : 0);
+            role == Role.Wildcard ? WildcardWeaponChoices : WeaponsPerRole + (Fourth(role, kit) != null ? 1 : 0);
+
+        /// How many weapons a Wildcard can pick from: every class's three DPS ones (kit * 3 + choice, as its abilities are
+        /// numbered), then the DPS fourth weapons after them, in class order (WildcardChoices + n: the Arc Knuckles are 18).
+        public static int WildcardWeaponChoices => WildcardChoices + WildFourthKits().Count;
+
+        static List<Kit> wildFourth;
+
+        /// The classes with a fourth DPS weapon, in class order (the Wildcard's picks after WildcardChoices).
+        static List<Kit> WildFourthKits()
+        {
+            if (wildFourth == null)
+            {
+                wildFourth = new List<Kit>();
+                for (int k = 0; k < KitCount; k++)
+                    if (Fourth(Role.Dps, (Kit)k) != null)
+                        wildFourth.Add((Kit)k);
+            }
+            return wildFourth;
+        }
+
+        /// The class a Wildcard weapon pick comes from.
+        public static Kit WildWeaponKit(int pick)
+        {
+            if (pick >= 0 && pick < WildcardChoices)
+                return (Kit)(pick / WeaponsPerRole);
+            var f = WildFourthKits();
+            int i = pick - WildcardChoices;
+            return i >= 0 && i < f.Count ? f[i] : Kit.Soldier;
+        }
+
+        /// A Wildcard weapon pick from a class's DPS weapon `choice` (0-2, or 3 for its fourth).
+        public static int WildWeaponPick(Kit kit, int choice)
+        {
+            if (choice < WeaponsPerRole)
+                return (int)kit * WeaponsPerRole + Math.Max(0, choice);
+            int i = WildFourthKits().IndexOf(kit);
+            return i >= 0 ? WildcardChoices + i : (int)kit * WeaponsPerRole;
+        }
 
         static WeaponDef Fourth(Role role, Kit kit)
         {
@@ -336,8 +374,10 @@ namespace Arena
 
         public static WeaponDef Weapon(Role role, Kit kit, int index)
         {
-            if (role == Role.Wildcard)  // index = kit * 3 + choice, DPS gear of any class
+            if (role == Role.Wildcard)  // index = kit * 3 + choice, DPS gear of any class; then the DPS fourth weapons (WildWeaponPick)
             {
+                if (index >= WildcardChoices && index < WildcardWeaponChoices)
+                    return Fourth(Role.Dps, WildWeaponKit(index));
                 index = index >= 0 && index < WildcardChoices ? index : 0;
                 return Weapons[((int)Role.Dps * KitCount + index / WeaponsPerRole) * WeaponsPerRole + index % WeaponsPerRole];
             }

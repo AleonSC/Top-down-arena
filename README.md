@@ -54,7 +54,7 @@ row lists its class wheel's class, and a saved run's seats keep theirs.
 **Wildcard** (a fourth role, locked until you have won a run as a Tank, a Healer and a DPS; a co-op win counts): it
 has no class. You pick any class's DPS weapon, any DPS Space ability for the usual Space key, a second DPS ability
 that sits on Q, E or Shift (your choice, changeable in the Tab menu like any bonus ability), and any class's DPS ultimate.
-The lobby's Gear box has a class wheel (arrows, the mouse wheel or the dots turn it) with that class's three weapons and
+The lobby's Gear box has a class wheel (arrows, the mouse wheel or the dots turn it) with that class's DPS weapons (three, or four for the Knight: the Arc Knuckles) and
 three abilities beside it, and the Ultimate row lists its ultimates. Under the wheel, the loadout shows each pick with its
 class's icon (click one to turn the wheel to it); the 1st and 2nd chips choose which slot an ability click fills (the
 other slot's ability swaps over), and the preview casts whichever you clicked last. 130 health, no role passive (no taunt, no aura). The price: 10% less damage

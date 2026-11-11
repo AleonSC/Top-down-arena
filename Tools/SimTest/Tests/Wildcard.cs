@@ -68,6 +68,13 @@ static partial class Program
         lobby.RequestWildcard(99, 99, 99, 9);
         e = lobby.Lobby[1];
         Check(e.Weapon < Defs.WildcardChoices && e.Ability < Defs.WildcardChoices && Defs.WildKey(e.Wild) == 3, "out-of-range Wildcard picks are clamped");
+        int knuckles = Defs.WildWeaponPick(Kit.Knight, 3);
+        lobby.RequestWildcard(knuckles, 2, 5, 1);
+        e = lobby.Lobby[1];
+        Check(knuckles == Defs.WildcardChoices && e.Weapon == knuckles && Defs.Weapon(Role.Wildcard, Kit.Soldier, e.Weapon).Id == WeaponId.ArcKnuckles,
+            "a Wildcard can pick the Knight DPS's fourth weapon, the Arc Knuckles (pick " + knuckles + ", after every class's three)");
+        Check(Defs.WildWeaponKit(knuckles) == Kit.Knight && Defs.WeaponCount(Role.Wildcard, Kit.Soldier) == Defs.WildcardChoices + 1,
+            "its class on the wheel is the Knight, and the Wildcard has 19 weapons to pick from");
         lobby.RequestUlt(Upgrades.WildUlt(Kit.Hemomancer, 0));
         e = lobby.Lobby[1];
         Check(e.Ult == Upgrades.WildUlt(Kit.Hemomancer, 0) && e.UltKit == Kit.Hemomancer && e.UltId == AbilityId.CrimsonApotheosis, "a Wildcard picks any class's DPS ultimate");
@@ -83,7 +90,13 @@ static partial class Program
         e = lobby.Lobby[1];
         Check(e.Wild == 0 && e.Weapon == 0 && e.Ult == 0, "leaving Wildcard clears its picks");
 
-        // Every Wildcard choice maps to a real DPS weapon and ability.
+        // Every Wildcard choice maps to a real DPS weapon and ability (and the picks after them to each class's fourth).
+        for (int i = Defs.WildcardChoices; i < Defs.WildcardWeaponChoices; i++)
+        {
+            var wd = Defs.Weapon(Role.Wildcard, Kit.Soldier, i);
+            Check(wd.Role == Role.Dps && wd.Choice == Defs.WeaponsPerRole && Defs.WildWeaponPick(wd.Kit, wd.Choice) == i && Defs.WildWeaponKit(i) == wd.Kit,
+                "Wildcard weapon " + i + " is " + wd.Kit + "'s fourth DPS weapon");
+        }
         for (int i = 0; i < Defs.WildcardChoices; i++)
         {
             var wd = Defs.Weapon(Role.Wildcard, Kit.Soldier, i);
