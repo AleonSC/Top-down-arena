@@ -213,7 +213,7 @@ namespace Arena
                 case AbilityId.Bulldoze:
                 {
                     // Everything near the charge's path takes damage and is shoved aside.
-                    p.InvulnT = Math.Max(p.InvulnT, BulldozeTime + 0.1f);
+                    p.InvulnT = Math.Max(p.InvulnT, BulldozeTime + BulldozeTail);  // a short tail past the charge's end, as you land among them
                     V2 from = p.Pos, path = target - from;
                     float len = Math.Max(1f, path.Length);
                     V2 dir = path / len;
@@ -226,6 +226,7 @@ namespace Arena
                         if (e.Pos.DistanceTo(closest) > e.Radius + 30f)
                             continue;
                         HurtEnemy(e, BulldozeDamage * s.DmgMult * s.BulldozeMult, p.Id);
+                        Daze(e);  // can't hit back for a split second (Daze.cs)
                         if (!Heavy(e))
                         {
                             V2 away = (e.Pos - closest).Normalized();

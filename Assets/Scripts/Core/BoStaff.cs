@@ -71,6 +71,7 @@ namespace Arena
                     any = true;
                     float hit = dmg * NinjaHitMult(p.Id, Defs.KnightSlash, e);  // Vanish's ambush (Ninja.cs)
                     HurtEnemy(e, hit, p.Id);
+                    Daze(e);  // Daze.cs
                     OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = hit, Kind = Defs.KnightSlash }, e);
                     if (e.Hp > 0f && !Heavy(e))
                         KnockEnemy(e, dir * push);  // slides (Knock.cs)
