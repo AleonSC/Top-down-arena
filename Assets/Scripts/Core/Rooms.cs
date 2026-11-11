@@ -472,19 +472,24 @@ namespace Arena
         /// size, never the vault), clear of walls and at least SpawnClear from every player.
         V2 RoomsRandomSpot(float radius)
         {
-            V2 at = new V2(Width / 2f, Height / 2f);
-            for (int tries = 0; tries < 60; tries++)
+            V2 at = new V2(Width / 2f, Height / 2f), best = at;
+            float bestD = float.MaxValue;
+            int found = 0;
+            for (int tries = 0; tries < 60 && found < 4; tries++)
             {
                 at = RandomInRooms(radius + 30f, radius + 30f);
                 if (NearSolid(at, radius + 8f))
                     continue;
-                bool near = false;
+                float nearest = float.MaxValue;
                 foreach (var p in Players.Values)
-                    near |= !p.Downed && p.Pos.DistanceTo(at) < Rooms.SpawnClear;
-                if (!near)
-                    return at;
+                    if (!p.Downed)
+                        nearest = Math.Min(nearest, p.Pos.DistanceTo(at));
+                if (nearest < Rooms.SpawnClear)
+                    continue;
+                found++;  // (of four valid spots, the one nearest a player: big maps don't feel empty)
+                if (nearest < bestD) { bestD = nearest; best = at; }
             }
-            return at;
+            return found > 0 ? best : at;
         }
 
         /// Where the next of the wave's enemies comes in: by the nest of the room with the most room to spare.

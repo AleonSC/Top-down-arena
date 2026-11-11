@@ -171,6 +171,7 @@ namespace Arena
             if (bs.Length == 0)
                 return null;
             var clear = new List<int>();
+            var dist = new float[bs.Length];
             int far = 0;
             float farD = -1f;
             for (int i = 0; i < bs.Length; i++)
@@ -179,11 +180,27 @@ namespace Arena
                 foreach (var p in Players.Values)
                     if (!p.Downed)
                         near = Math.Min(near, p.Pos.DistanceTo(bs[i].Pos));
+                dist[i] = near;
                 if (near >= Rooms.SpawnClear)
                     clear.Add(i);
                 if (near > farD) { farD = near; far = i; }
             }
-            var b = bs[clear.Count > 0 ? clear[rng.Next(clear.Count)] : far];
+            int pick = far;
+            if (clear.Count > 0)
+            {
+                // The nearer a clear breach is to a player, the likelier it is (1 / distance squared): big maps don't feel empty.
+                float total = 0f;
+                foreach (int i in clear)
+                    total += 1f / Math.Max(1f, dist[i] * dist[i]);
+                float roll = Rand(0f, total);
+                pick = clear[clear.Count - 1];
+                foreach (int i in clear)
+                {
+                    roll -= 1f / Math.Max(1f, dist[i] * dist[i]);
+                    if (roll <= 0f) { pick = i; break; }
+                }
+            }
+            var b = bs[pick];
             inward = b.In;
             for (int tries = 0; tries < 8; tries++)
             {
