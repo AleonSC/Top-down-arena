@@ -6,7 +6,8 @@ namespace Arena
 {
     /// Saved runs and the player's profile, on the game's side (SaveData.cs and Profile.cs hold the data).
     ///   Saving: the host writes the run to its save slot as each wave starts (everyone's picks made, the path
-    ///     chosen, the shop closed), and when the match stops between waves. A run that ends (won or lost) loses
+    ///     chosen, the shop closed), and when the match stops between waves. The Expanding arena's map, kits, vectors and shop
+    ///     shelves go in too (ExpansionGame.cs SaveExpansion / ResumeExpansion). A run that ends (won or lost) loses
     ///     its save. Practice Range matches and the lobby preview are never saved.
     ///   Resuming: the host's lobby loads a save (Session.Resume); each player takes a seat; the match starts at
     ///     the next wave and ApplyResume gives every seat back its upgrades, levels, mastery and gold.
@@ -32,7 +33,7 @@ namespace Arena
 
         enum RecordKind : byte { Boss, End, Resume, Room }
 
-        bool Saveable => IsHost && !ExpandingOn && Practice == null && Hunt == null && !ShowcaseMode && !Unrecorded && RunId != null;
+        bool Saveable => IsHost && Practice == null && Hunt == null && !ShowcaseMode && !Unrecorded && RunId != null;
 
         /// Counts towards records at all (a real run, not practice, the lobby preview or the Boss Lab).
         bool RecordsRuns => Practice == null && !ShowcaseMode && !Unrecorded;
@@ -55,8 +56,10 @@ namespace Arena
                 RunTime = RunTime, CurrentPath = CurrentPath, PathFrom = PathFrom, PathTo = PathTo, LastPath = lastPath,
             };
             save.Route.AddRange(Route);
+            var seatOf = new Dictionary<int, int>();  // player id -> seat (the Expanding arena's room owners)
             foreach (var p in Players.Values)
             {
+                seatOf[p.Id] = save.Seats.Count;
                 LobbyEntry e;
                 session.Lobby.TryGetValue(p.Id, out e);
                 var seat = new SeatSave
@@ -74,8 +77,12 @@ namespace Arena
                 foreach (var kv in p.MasteryXp)
                     if (kv.Key != AbilityId.None && kv.Value > 0f)
                         seat.Mastery[kv.Key.ToString()] = kv.Value;
+                if (ExpandingOn)
+                    SaveExpansionSeat(p, seat);
                 save.Seats.Add(seat);
             }
+            if (ExpandingOn)
+                SaveExpansion(save, seatOf);
             bool ok = SaveStore.Write(save);
             if (ok)
                 DoLog("run saved before wave " + (Wave + 1));
@@ -144,6 +151,8 @@ namespace Arena
             lastPath = save.LastPath;
             Route.Clear();
             Route.AddRange(save.Route);
+            if (ExpandingOn && save.HasExpansion)
+                ResumeExpansion(save);  // ExpansionGame.cs
             var w = BeginRecord(RecordKind.Resume);
             w.Write(RunTime);
             w.Write((byte)CurrentPath);

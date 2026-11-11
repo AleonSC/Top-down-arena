@@ -22,6 +22,10 @@ namespace Arena
         public bool ReviveToken;
         public readonly Dictionary<string, float> Mastery = new Dictionary<string, float>();  // ability name -> XP
         public RunStats Run = new RunStats();
+        // The Expanding arena (ExpansionGame.cs): the seat's vectors and its shop room shelf (kept until the next boss cycle).
+        public int Vectors = -1, VectorCap = -1;                   // -1: not saved (a save from another arena, or from before)
+        public readonly List<string> Shelf = new List<string>();   // upgrade names by slot, "" for an empty slot
+        public int ShelfSold, Restocks;
 
         /// "Tank Knight, level 12" for lists.
         public string Summary => Role + " " + Defs.KitName(Kit) + ", level " + Level;
@@ -48,6 +52,15 @@ namespace Arena
         public readonly List<PathId> Route = new List<PathId>();
         public readonly List<SeatSave> Seats = new List<SeatSave>();
 
+        // The Expanding arena (ExpansionGame.cs): the map the team built. A room's Owner is its drawer's seat + 1 here (0: none),
+        // so it can go back to whoever takes that seat.
+        public bool HasExpansion;
+        public int ExpandSeed, FloatCycle = -1;
+        public readonly List<ExpansionRoom> Rooms = new List<ExpansionRoom>();
+        public readonly List<WallCut> Cuts = new List<WallCut>();
+        public readonly List<PortalLink> Portals = new List<PortalLink>();
+        public readonly List<RoomToken> Kits = new List<RoomToken>();
+
         /// "Wave 14 · 2 players · 23 min" for lists.
         public string Summary => (Wave > 0 && Wave % 5 == 0 && !BossSlot ? "Boss " + Wave : "Wave " + (Wave + 1)) + (Endless ? " (endless)" : "") + " · " + Seats.Count + (Seats.Count == 1 ? " player" : " players")
                                  + " · " + (int)(RunTime / 60f) + " min";
@@ -70,6 +83,18 @@ namespace Arena
             Line(sb, "path", CurrentPath + " " + PathFrom + " " + PathTo);
             Line(sb, "lastpath", LastPath);
             Line(sb, "route", string.Join(",", Route));
+            if (HasExpansion)
+            {
+                Line(sb, "expand", ExpandSeed + " " + FloatCycle);
+                foreach (var r in Rooms)
+                    Line(sb, "room", string.Join(" ", new object[] { r.Parent, r.X, r.Y, r.W, r.H, r.Kind, r.Floor, r.Price, r.Owner, r.Floating ? 1 : 0, r.Leg }));
+                foreach (var c in Cuts)
+                    Line(sb, "cut", (c.Vertical ? 1 : 0) + " " + c.At + " " + c.From + " " + c.Till);
+                foreach (var l in Portals)
+                    Line(sb, "portal", l.AX + " " + l.AY + " " + l.BX + " " + l.BY);
+                foreach (var k in Kits)
+                    Line(sb, "kit", k.Kind + " " + k.Floor);
+            }
             foreach (var s in Seats)
             {
                 sb.Append("seat\n");
@@ -83,6 +108,12 @@ namespace Arena
                 Line(sb, "hp", s.HpFrac);
                 Line(sb, "keys", string.Join(",", s.BonusKeys));
                 if (s.Perks.Count > 0) Line(sb, "perks", string.Join(",", s.Perks));
+                if (s.Vectors >= 0) Line(sb, "vectors", s.Vectors + " " + s.VectorCap);
+                if (s.Shelf.Count > 0)
+                {
+                    Line(sb, "shop", s.Restocks + " " + s.ShelfSold);
+                    Line(sb, "shelf", string.Join(",", s.Shelf));
+                }
                 foreach (var t in s.Taken)
                     Line(sb, "upgrade", t);
                 foreach (var kv in s.Mastery)
@@ -136,6 +167,39 @@ namespace Arena
                             foreach (var p in val.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
                                 save.Route.Add(Enum<PathId>(p));
                             break;
+                        case "expand":
+                        {
+                            var p = val.Split(' ');
+                            save.HasExpansion = true;
+                            save.ExpandSeed = I(p[0]);
+                            save.FloatCycle = I(p[1]);
+                            break;
+                        }
+                        case "room":
+                        {
+                            var p = val.Split(' ');
+                            save.Rooms.Add(new ExpansionRoom { Parent = I(p[0]), X = I(p[1]), Y = I(p[2]), W = I(p[3]), H = I(p[4]), Kind = Enum<RoomKind>(p[5]), Floor = Enum<PathId>(p[6]),
+                                Price = I(p[7]), Owner = I(p[8]), Floating = I(p[9]) != 0, Leg = (byte)I(p[10]) });
+                            break;
+                        }
+                        case "cut":
+                        {
+                            var p = val.Split(' ');
+                            save.Cuts.Add(new WallCut { Vertical = I(p[0]) != 0, At = (short)I(p[1]), From = (short)I(p[2]), Till = (short)I(p[3]) });
+                            break;
+                        }
+                        case "portal":
+                        {
+                            var p = val.Split(' ');
+                            save.Portals.Add(new PortalLink { AX = (short)I(p[0]), AY = (short)I(p[1]), BX = (short)I(p[2]), BY = (short)I(p[3]) });
+                            break;
+                        }
+                        case "kit":
+                        {
+                            var p = val.Split(' ');
+                            save.Kits.Add(new RoomToken { Kind = Enum<RoomKind>(p[0]), Floor = Enum<PathId>(p[1]) });
+                            break;
+                        }
                         case "seat": seat = new SeatSave(); save.Seats.Add(seat); break;
                         default:
                             if (seat != null)
@@ -183,6 +247,21 @@ namespace Arena
                     break;
                 }
                 case "upgrade": s.Taken.Add(val); break;
+                case "vectors":
+                {
+                    var p = val.Split(' ');
+                    s.Vectors = Math.Max(0, I(p[0]));
+                    s.VectorCap = Math.Max(0, I(p[1]));
+                    break;
+                }
+                case "shop":
+                {
+                    var p = val.Split(' ');
+                    s.Restocks = Math.Max(0, I(p[0]));
+                    s.ShelfSold = I(p[1]);
+                    break;
+                }
+                case "shelf": s.Shelf.Clear(); s.Shelf.AddRange(val.Split(',')); break;
                 case "mastery":
                 {
                     int sp = val.LastIndexOf(' ');

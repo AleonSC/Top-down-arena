@@ -849,7 +849,9 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   (pillar or block, closer to the walls and doors); only a 400 px deep room between two doors stays empty.
 - **How it plays**: regular waves use the whole map (walled, no wrapping, a minimap top right) and bring more enemies the
   bigger it is (up to 1.4 times); the map stops at 24 rooms. Boss waves are fought in the hub alone, as always.
-- Runs in this arena can't be saved and continued yet.
+- Runs in this arena are saved like any other: Continue brings back the map (rooms, opened walls, portals, floating
+  rooms), the team's room kits and each seat's vectors and shop shelf. A room someone drew keeps their colour for
+  whoever takes their seat.
 
 ## Rooms arena
 
@@ -1346,7 +1348,7 @@ players report, and only accepts a frame or trail your rank has. XP, what's equi
 
 **Runs save themselves.** The host's game saves the run as each wave starts (once everyone has picked their
 upgrades, the path is chosen and the shop is closed), and again if the match is left or the game closed between
-waves. Leaving mid-wave keeps the save from that wave's start. A run that's won or lost loses its save. The
+waves. Every arena saves (Classic, Rooms and Expanding, with its map). Leaving mid-wave keeps the save from that wave's start. A run that's won or lost loses its save. The
 Practice Range, the lobby's loadout preview and Boss Lab fights are never saved.
 
 **Play** on the main menu opens the saved-runs picker in the menu's box: a header screen (**YOUR RUNS**) with a **Back** key

@@ -146,7 +146,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Replay.cs`: replays: `ReplayFile` (.replay: header, marks, frame lengths, every host message), `ReplayRecorder` (fed by `Session.Broadcast` and `Game.FixedStep`), `ReplayPlayer` (a private client-mode `Session` that reads the messages; seek, step, speeds)
 
 ## Saving, stats and text data (Core)
-- `SaveData.cs`, `RunSaves.cs`, `Profile.cs`: saved runs, profile, records, unlocks
+- `SaveData.cs`, `RunSaves.cs`, `Profile.cs`: saved runs (every arena; the Expanding map via `ExpansionGame.cs` `SaveExpansion`/`ResumeExpansion`), profile, records, unlocks
 - `Core/Pacman.cs`: the Pac-Man maze game's simulation (maze, chompers, role ghosts, waves, lives, levels; no Unity; test suite `pacman`; `Docs/Pacman.md`)
 - `PacmanUi.cs`: the Pac-Man game screen for a Pac profile (Play opens it): maze, dots, chomper, role ghosts, HUD, keys (`Docs/Pacman.md`)
 - `PacmanLook.cs`: the Pac-Man skin for Pac profiles (chomper, role ghosts, dots) and the Pac-Man disk (`Docs/Pacman.md`)

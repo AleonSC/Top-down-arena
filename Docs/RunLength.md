@@ -1,6 +1,6 @@
 # Campaign and Boss Hunt: run length, cycles and modes (design)
 
-Status: **planned, nothing built** (Nov 2026). The owner's decisions are in bold. The numbers are first guesses.
+Status: **step 1 built** (Nov 2026: Expanding runs save and continue; Rooms runs already did); steps 2-6 not built. The owner's decisions are in bold. The numbers are first guesses.
 Related: [`Checkpoints.md`](Checkpoints.md) (lives), [`Campaign.md`](Campaign.md) (themed build-up, steps 1-2 built),
 [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md), [`LateGamePressure.md`](LateGamePressure.md).
 
@@ -52,8 +52,7 @@ e.g. the Warden's cycle in **Rooms** (cell blocks), a later one in **Expanding**
 Which style goes with which boss is open. The switches stay in the Difficulty tab's Custom, for players who want one
 style the whole run. **Boss Hunts stay a single arena (Classic).**
 
-Blocker: Rooms and Expanding runs can't be saved yet (README, Expanding arena). A 100-wave Campaign needs saving
-in every style, so that comes first.
+Saving works in every style (step 1, built).
 
 ## Balance for 100 waves
 
@@ -78,7 +77,8 @@ damage about 4x.
 
 ## Steps (proposed)
 
-1. Saving in Rooms and Expanding runs.
+1. Saving in Rooms and Expanding runs. **Built**: Rooms runs already saved; Expanding saves its map, kits, seed, vectors
+   and shop shelves (`saves` suite).
 2. Effective-wave scaling + 100 waves, a boss every 10; the bot balance check.
 3. The Warden's teaching cycle (waves 1-9 as above) and its mid-boss.
 4. Arena style per cycle; lobby shows Campaign / Boss Hunt / Practice; switches moved to Custom.
