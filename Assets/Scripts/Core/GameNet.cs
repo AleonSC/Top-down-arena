@@ -573,6 +573,9 @@ namespace Arena
             s.Byte(ref p.TwinNades);    // the Twin Rifle's grenade tubes (TwinGrenades.cs)
             s.Byte(ref p.TwinNext);
             s.Byte(ref p.TwinCharge);
+            s.Float(ref p.TwinAimL);    // the Twin Rifle Auto's guns and lock (TwinAuto.cs)
+            s.Float(ref p.TwinAimR);
+            s.Int(ref p.TwinLock);
             s.Byte(ref p.ScatShells);   // the Scattergun's Double Barrel shells (TankAlts.cs)
             s.Byte(ref p.ScatCharge);
             s.Byte(ref p.RepelMeter);   // the Repulsion Cannon's Undertow (Repulsion.cs)

@@ -48,7 +48,7 @@ namespace Arena
 
         void ClearDpsGunLooks() { dpsSeen.Clear(); nadeSeen.Clear(); }
 
-        static bool IsDpsGun(WeaponId id) => id == WeaponId.TwinRifle || id == WeaponId.Railgun || id == WeaponId.BurstSmg;
+        static bool IsDpsGun(WeaponId id) => Game.IsTwinRifle(id) || id == WeaponId.Railgun || id == WeaponId.BurstSmg;
 
         DpsSeen DpsOf(int id)
         {
@@ -67,6 +67,7 @@ namespace Arena
             switch (owner.Weapon.Id)
             {
                 case WeaponId.TwinRifle:
+                case WeaponId.TwinRifleAuto:
                 {
                     // The round starts at the gun's muzzle (Spread arms), so the flash sits on the gun: a star whose size varies a
                     // little shot to shot, two puffs out of the muzzle brake's side ports, and brass flipping out of the port.
@@ -88,7 +89,7 @@ namespace Arena
                         AddPart(new Part { Kind = PDust, Pos = at, Vel = bd * 28f, Life = 0.4f, Max = 0.4f, Size = 2.6f, Col = SmokeCol });
                     // where the streams cross, from how far this round turns in (for drawing other players' guns, TwinSpreadPose)
                     float turn = Mathf.Abs(MathX.Fmod(bd.Angle - owner.Aim + MathX.Pi, MathX.Tau) - MathX.Pi), lat = Mathf.Abs((b.Pos - owner.Pos).Dot(side));
-                    if (turn > 0.01f && lat > 4f)
+                    if (turn > 0.01f && lat > 4f && owner.Weapon.Id == WeaponId.TwinRifle)
                         s.Cross += (Mathf.Clamp(TwinOut(owner) + lat / Mathf.Tan(turn), Game.TwinCrossMin, 600f) - s.Cross) * 0.3f;
                     if (volley)
                     {
@@ -131,16 +132,19 @@ namespace Arena
                 if (!IsDpsGun(p.Weapon.Id))
                     continue;
                 var s = DpsOf(p.Id);
-                if (p.Weapon.Id == WeaponId.TwinRifle)
+                if (Game.IsTwinRifle(p.Weapon.Id))
                 {
-                    UpdateTwinTubes(p, s);  // TwinNadeLook.cs: a tube loading
+                    if (p.Weapon.Id == WeaponId.TwinRifle)
+                        UpdateTwinTubes(p, s);  // TwinNadeLook.cs: a tube loading
                     float age = juiceClock - s.T, heat = Mathf.Max(0f, s.Heat - TwinHeatDown * age);
                     if (age > 0.15f && age < 1.05f && heat > 0.2f && Rnd(0f, 1f) < dt * 30f * heat)  // smoke curls out of both muzzles after a burst
                     {
-                        V2 dir = V2.FromAngle(p.Aim);
                         for (int k = 0; k < 2; k++)
                             if (!s.Muzzle[k].IsZero && s.Muzzle[k].DistanceTo(p.Disp) < 90f)
+                            {
+                                V2 dir = V2.FromAngle(p.Weapon.Id == WeaponId.TwinRifleAuto ? game.AutoHeading(p, k) : p.Aim);  // (each Auto gun smokes along its own barrel)
                                 AddPart(new Part { Kind = PDust, Pos = s.Muzzle[k], Vel = dir * Rnd(8f, 18f) + dir.Orthogonal() * Rnd(-6f, 6f), Life = Rnd(0.6f, 1f), Max = 1f, Size = 2.4f, Col = SmokeCol });
+                            }
                     }
                 }
                 if (p.Weapon.Id == WeaponId.BurstSmg)
@@ -172,6 +176,7 @@ namespace Arena
             switch (p.Weapon.Id)
             {
                 case WeaponId.TwinRifle:
+                case WeaponId.TwinRifleAuto:
                     if (age < TwinKick)  // each gun recoils along its own barrel and climbs outward (TwinSpreadPose), not along the aim
                     {
                         float f = 1f - age / TwinKick;
@@ -256,6 +261,21 @@ namespace Arena
             lhx -= kL * c; lhy -= kL * sn;
             climbR = mTwinClimb + mNadeClimb1;
             climbL = mTwinClimb + mNadeClimb0;
+        }
+
+        /// The hands for the Twin Rifle Auto (Core/TwinAuto.cs): each gun's grip out at your side, the gun turned to its own heading
+        /// (Player.TwinAimL / TwinAimR, relative to your facing, + toward your right), recoiling back along its barrel and climbing outward.
+        /// headR / headL are the headings the model draws each gun at.
+        void TwinAutoPose(Player p, ref float rhx, ref float rhy, ref float lhx, ref float lhy, out float headR, out float headL)
+        {
+            float gx = Game.AutoForward / mU, gy = Game.AutoShoulder / mU;
+            headR = p.TwinAimR;
+            headL = p.TwinAimL;
+            float cR = Mathf.Cos(headR), sR = Mathf.Sin(headR), cL = Mathf.Cos(headL), sL = Mathf.Sin(headL), k = mTwinKick;
+            rhx = gx - k * cR; rhy = gy - k * sR;
+            lhx = gx - k * cL; lhy = -gy - k * sL;
+            headR += mTwinClimb;  // (each gun's own recoil turns it outward)
+            headL -= mTwinClimb;
         }
 
         // --- the Twin Rifle's grenade tubes (Core/TwinGrenades.cs) -----------------------------------------------------

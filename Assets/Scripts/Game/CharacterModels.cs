@@ -161,8 +161,14 @@ namespace Arena
             // The Twin Rifle is held out wide, each muzzle where its stream starts, turned toward the crossing; each gun recoils
             // along its own barrel (DpsGunLooks.cs TwinSpreadPose).
             float twist = 0f, climbR = 0f, climbL = 0f;
-            bool spread = p.Weapon.Id == WeaponId.TwinRifle;
-            if (spread)
+            bool spread = Game.IsTwinRifle(p.Weapon.Id), auto = p.Weapon.Id == WeaponId.TwinRifleAuto;
+            float headR = 0f, headL = 0f;  // each gun's heading in the model's frame (the Auto's guns turn on their own, DpsGunLooks.cs TwinAutoPose)
+            if (auto)
+            {
+                TwinAutoPose(p, ref rhx, ref rhy, ref lhx, ref lhy, out headR, out headL);
+                twist = -headR; climbR = 0f; climbL = 0f;
+            }
+            else if (spread)
                 TwinSpreadPose(p, wk, ref rhx, ref rhy, ref lhx, ref lhy, out twist, out climbR, out climbL);
             bool ownArms = LookDrawsArms(p);
             if (!ownArms)
@@ -186,7 +192,7 @@ namespace Arena
                 mHeldTube = 1;  // (the right hand's Twin Rifle carries the right grenade tube, DpsGunLooks.cs)
                 mHeldOwner = p;
                 DrawHeld(p, t, hold);
-                if (hold == 2) { mHeldTube = 0; MFrame(lhx, lhy, twist - climbL, wk, true); DrawHeld(p, t, hold); }
+                if (hold == 2) { mHeldTube = 0; MFrame(lhx, lhy, auto ? headL : twist - climbL, wk, true); DrawHeld(p, t, hold); }
             }
             mAlpha = keepA;
             MFrame(0f, 0f, 0f, 1f, false);
@@ -425,7 +431,7 @@ namespace Arena
                 case WeaponId.Flamethrower: case WeaponId.Warhammer: hold = 1; offX = 12f; break;
                 case WeaponId.Lance: hold = 1; offX = -4f; break;
                 case WeaponId.Greatsword: hold = 1; offX = -8f; break;
-                case WeaponId.TwinRifle: case WeaponId.TwinBlades: hold = 2; break;
+                case WeaponId.TwinRifle: case WeaponId.TwinRifleAuto: case WeaponId.TwinBlades: hold = 2; break;
                 case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.ArcaneMissiles: case WeaponId.ClotBolt: case WeaponId.SanguineOrb: case WeaponId.Implosion:
                 case WeaponId.GolemStaff: case WeaponId.SpriteStaff: case WeaponId.Nimbus: case WeaponId.SpiritChalk: hold = 3; break;
             }
@@ -487,6 +493,7 @@ namespace Arena
                     break;
                 }
                 case WeaponId.TwinRifle:
+                case WeaponId.TwinRifleAuto:
                     if (mDpsOn) { DrawTwinRifleFx(); break; }  // DpsGunLooks.cs
                     MRect(-6f, -2f, 8f, 4f, MWood); MRect(0f, -2.6f, 14f, 5.2f, MDark); MLine(12f, 0f, 26f, 0f, 2.4f, MSteel); MRect(5f, -5f, 8f, 2.6f, Hx(0x7bd0ff));
                     DrawTwinTube();

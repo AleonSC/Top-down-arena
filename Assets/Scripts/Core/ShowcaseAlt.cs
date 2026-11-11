@@ -39,6 +39,8 @@ namespace Arena
                         me.TwinNades = (byte)Game.TwinNadeMax;
                     return tap;
                 } },
+            // The Twin Rifle Auto: lock on, and let go again a few seconds later (a dummy under the cursor is locked if one is near; TwinAuto.cs).
+            { WeaponId.TwinRifleAuto, (g, me, t, dt) => Tap(t, dt, 4f, 1f) || Tap(t, dt, 4f, 3f) },
         };
 
         public static bool Has(WeaponId id) => Table.ContainsKey(id);

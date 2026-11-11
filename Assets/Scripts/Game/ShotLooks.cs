@@ -28,7 +28,7 @@ namespace Arena
             var w = p.Weapon.Id;
             switch (kind)
             {
-                case Defs.DpsShot: return w == WeaponId.TwinRifle || w == WeaponId.BurstSmg ? w : (WeaponId?)null;
+                case Defs.DpsShot: return w == WeaponId.TwinRifleAuto ? WeaponId.TwinRifle : w == WeaponId.TwinRifle || w == WeaponId.BurstSmg ? w : (WeaponId?)null;  // (the Twin Rifle Auto's rounds look like the Twin Rifle's)
                 case Defs.RailShot: return w == WeaponId.Railgun ? w : (WeaponId?)null;
                 case Defs.HealerShot: return w == WeaponId.Pistol ? w : (WeaponId?)null;
                 case Defs.TankShot: return w == WeaponId.Scattergun || w == WeaponId.RiotRepeater ? w : (WeaponId?)null;
