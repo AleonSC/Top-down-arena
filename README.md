@@ -814,6 +814,10 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   drawing replaces it. You can only propose what you can afford. A proposal costs its **new wall length**: the perimeter
   minus every wall it shares with existing rooms, so touching rooms is cheaper and a room that touches two rooms (a loop)
   cheaper again. A shape never wider than 3 tiles counts as a hallway: half price.
+- **The draw screen's layout**: the tools down the left (**Room**, **Hallway**, **Open wall**, **Portal**, **Gate**; keys **1-5**) with a
+  key to what the map's colours mean under them; the map in the middle (scroll to zoom, middle drag to pan); on the right your vectors with a
+  bar showing what the drawing would spend, the tool's three steps (the one you're on lit gold), what's wrong or what it costs, the room
+  types (Plain plus the unlocked floors, two to a row; the picked one says what it does), and **Build**/**Undo** and **Done**.
 - **Hallways**: anything 3 tiles wide is a hallway: it costs **half** its new wall (rounded up; a 3 x 12 hallway off the hub
   is 14) and can run up to **24 tiles**. The draw screen's **Hallway** mode lays a **bent hallway**: left click where it
   starts, move along it (it stays 3 tiles wide) and left click to lay a leg; each next leg starts at the end of the last
@@ -871,13 +875,13 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
 - **Shop and vendor rooms**: with one connected, kills drop gold and the shop opens every intermission without holding the countdown. Buy
   upgrades and add stock in the **shop room**; heal, revive and remove upgrades at the **vendor**. Gold and your shelf carry over between waves
   (the shelf is new each boss cycle).
-- **Breaches**: once the first room is built, enemies come in through **breaches** in the outer wall: a stretch of wall cracks open
+- **Breaches**: a rare event: on wave 3 and every 4th wave after it (7, 11, 15, ...), once the first room is built, enemies come in through **breaches** in the outer wall: a stretch of wall cracks open
   and a **red holographic barrier** stands in the gap (you can't go out through it; red chevrons on the floor point where they come
-  from, and a red dash marks each on the minimap). 2 open every regular wave, one more per 3 rooms built (at most 6), 400 px apart or
+  from, and a red dash marks each on the minimap). 2 open on a breach wave, one more per 3 rooms built (at most 6), 400 px apart or
   more, picked by the wave and the map so everyone sees the same ones. Every 100 px of outer wall is a spot, so long outer walls
   break more often, and a **dead end** (a room with one door) more still: compact builds and loops have fewer places to be hit
   from. The barriers flicker up for 1.5 s before the first enemy steps through; an enemy uses a breach at least 350 px from every
-  player when there is one. Never on a sealed room, a shop, vendor or Gatekeeper room, or on boss waves (the fixed boss arena).
+  player when there is one. On every other regular wave enemies simply appear at a random spot in the rooms, at least 350 px from every player. Never on a sealed room, a shop, vendor or Gatekeeper room, or on boss waves (the fixed boss arena).
 - **Obstacles**: a built room comes with obstacles and bars of wall (pillars, bars, an L, blocks: one per ~220,000 px2, up to 4),
   laid out from the room's own box so every machine builds the same ones. They keep off the room's walls, its doors and its middle,
   so you can always walk round them; a hallway gets a pillar or block every ~500 px, alternating sides with a 180 px lane past each, none near a door or bend. A small or narrow room with doors at both ends still gets at least one
@@ -1266,6 +1270,14 @@ plays a 0.85 s grow: the loadout's preview window stretches into the room (it ju
 **PvP** is a checkbox under the minimap, **off** by default and yours alone; everyone sees each player's setting. With it **on** you face the mouse and **hold the left button** to fire your loadout weapon (its fire rate, shot speed and reach; one plain shot, none of the abilities, pellets, beams or swings), and other players with PvP on can shoot you. With it **off** you can neither shoot nor be shot, shots pass through you. Everyone has 100 health with a bar overhead; it comes back 3 s after the last hit. At 0 you are **knocked out** for 2.5 s (a ghost, can't move or shoot), then return at a spawn spot with full health. Turning PvP off heals you. The host decides every hit.
 
 **Abilities** (PvP on only; **Space** or **right click**, one per role, like the very first build): a **DPS** has **Dash** (a quick 240 px lunge the way you walk, or the way you face when standing still; 2.5 s cooldown). A **Tank** has **Barrier** (a 360 degree bubble around you that deletes every other player's shots for 4 s; 10 s cooldown; your own shots pass out). A **Healer** has **Burst heal** (heals everyone within 230 px, you included, for 60 health and **revives anyone knocked out at once** with 60; 8 s cooldown). Your ability and its cooldown show under the PvP box. Turning PvP off drops a barrier.
+
+## Weapon variants
+
+Each weapon has **2 variant tiers** (lobby: the button on the right of a weapon key, "Variants n/2"), bought with **Cores**, an account
+currency saved in your profile. Tier I costs 10 Cores, tier II 20. The tier effects are not built yet.
+Earning Cores: a won or lost **Campaign** pays 1 per boss defeated and 5 for the win (a full 100-wave win: 15); a won **Boss Hunt** pays 5;
+Endless pays none. **Core Carriers** are the surprise: from wave 3, a regular enemy now and then spawns with a pulsing gold halo (one at a
+time, at most 6 a run); killing it adds 1-3 Cores to the run's total, paid when the run ends and shown on the results. Design: [`Docs/Variants.md`](Docs/Variants.md).
 
 ## Rank
 
