@@ -23,5 +23,5 @@
 ## Steps
 
 1. Done: `Variants.cs` (tiers, costs), `Profile.Cores` / `VariantTiers` / `BuyVariant`, the lobby window (`LobbyUi.DrawAscensionWindow`). Preview: `VARIANTS=1 Tools/Preview/shot.sh variants lobby`.
-2. Done: Campaign pays 1 a boss + 5 for a win, a Hunt win 5, Endless none (`Variants.RunCores`/`HuntCores`); the glowing Core Carrier (`CoreDrops.cs`, 0.8% of regular spawns from wave 3, one alive, 6 a run, 1-3 Cores) rides the End record (protocol 283). Cores show on the results' XP line.
+2. Done: Campaign pays 1 a boss + 5 for a win, a Hunt win 5, Endless none (`Variants.RunCores`/`HuntCores`); the glowing Core Carrier (`CoreDrops.cs`, 0.8% of regular spawns from wave 3, one alive, 6 a run, 1-3 Cores) rides the End record (protocol 284). Cores show on the results' XP line.
 3. The two effects per weapon.
