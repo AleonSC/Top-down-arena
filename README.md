@@ -856,13 +856,14 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   tied options), and the winning drawer pays; nobody else does. One room is built a round, with a door to every room it
   shares a door's width of wall with (loops). Paths are off in this arena.
   **Solo players skip the vote**: your proposal is built the moment you make it.
-- **Nodes and the floating Gatekeeper room**: every boss cycle the game places a **shop node**, a **vendor node** and a **chest node**: points 10 to 16
-  tiles straight out from the map (at least 8 tiles from each other), marked on the arena floor, the minimap and the draw screen. A node is locked until you
-  build a **room** that encloses it (any room; a long one can reach it straight off the map); that room then becomes the shop or vendor
-  room, and a chest node's room stays a normal combat room with enemies. Walk up to a claimed **chest** to open it once: every player gets gold
-  (40, +10 a boss cycle) and 6 vectors. No cover stands on a node. A claimed node shows as a fixture in its room: a stall, a pedestal or a chest (opened ones lie dim with the lid up). Nodes never respawn: a claimed one stays, and new ones appear around the current map.
-  At most 6 wait at once. A **Gatekeeper** room is still placed each cycle as a sealed box 4 to 8 tiles off the map: share 2 tiles of wall with it and its
-  door opens (it doesn't count towards the 24-room cap and adds no enemies; at most 6 wait). Bots build a room (or a narrow strip, then a room) to nodes (not to chests' loot: they don't walk to them).
+- **Shop and vendor rooms, chest nodes and the Gatekeeper room**: every boss cycle the game places a **shop room** and a **vendor room** (tiny
+  4 x 4 tile squares) and a **Gatekeeper** room (8 x 6) as sealed boxes 4 to 8 tiles off the map, plus a **chest node**: a point 10 to 16 tiles straight
+  out (at least 8 tiles from other nodes). Build a room or hallway that shares 2 tiles of wall with a sealed room and its door opens: walk in to shop
+  (the shop's stall or the vendor's pedestal stands in the middle). Sealed rooms don't count towards the 24-room cap and add no enemies; at most 6 wait.
+  A chest node is locked until you build a **room** that encloses it (a normal combat room with enemies); walk up to the chest to open it once: every
+  player gets gold (40, +10 a boss cycle) and 6 vectors (opened ones lie dim with the lid up). No cover stands on a node. Nothing respawns: new ones
+  appear around the current map. Bots build up to the shop room first, then the vendor, then chests, then the Gatekeeper (they don't walk to chests' loot).
+  Old saves with shop or vendor nodes still work: a room round one becomes that shop.
   (The Gatekeeper has its own room, below.)
 - **Surprise rooms**: every time you clear a **boss**, the map gets a **free** room in one of five shapes the game picks for you: a **ring** (a block in the
   middle with a lane to run round), a **cross**, an **L hall**, a **T hall** or a **chamfer** (a box with notched corners). It goes where it closes the most loops
