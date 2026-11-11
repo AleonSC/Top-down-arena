@@ -1280,6 +1280,19 @@ static partial class Shot {
           int pi2 = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = bl.Value.A + new V2(90f + 50f * pi2, 80f); pi2++; }
         }
       }
+      string gshut = Environment.GetEnvironmentVariable("EXPANDGATE");  // EXPANDGATE=<s left shut>: a shutter gate on the hub's first door (0: open, ready), you beside it; GATECOOL=<s> while open
+      if (gshut != null) {
+        var gw = xg.ExpansionWorld; var gd = gw.Doors[0];
+        xg.GateFits.Add(Gates.Of(gd));
+        var bfl = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        typeof(Game).GetMethod("SyncGateClocks", bfl).Invoke(xg, null);
+        ((System.Collections.Generic.List<float>)typeof(Game).GetField("gateShut", bfl).GetValue(xg))[0] = float.Parse(gshut, System.Globalization.CultureInfo.InvariantCulture);
+        string gc = Environment.GetEnvironmentVariable("GATECOOL");
+        ((System.Collections.Generic.List<float>)typeof(Game).GetField("gateCool", bfl).GetValue(xg))[0] = gc != null ? float.Parse(gc, System.Globalization.CultureInfo.InvariantCulture) : (float.Parse(gshut, System.Globalization.CultureInfo.InvariantCulture) > 0f ? 25f : 0f);
+        V2 side = gd.Across * -1f; if (gw.AreaAt(gd.Pos + side * 60f) != gd.A) side = gd.Across;
+        int gi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = gd.Pos + side * (90f + 60f * gi) + gd.Along * 40f; gi++; }
+        int ei = 0; foreach (var en in xg.Enemies.Values) { if (en.Def.IsBoss || ei >= 6) continue; en.Pos = en.Disp = gd.Pos - side * (40f + 26f * (ei % 3)) + gd.Along * (-50f + 34f * (ei / 3) + 10f * (ei % 2)); ei++; }
+      }
       string bage = Environment.GetEnvironmentVariable("BREACHAGE");  // BREACHAGE=<s>: this wave's breaches opened that long ago (BreachLook.cs); BREACHAT=1 stands you by the first
       if (bage != null) {
         xg.State = MatchState.Fighting;

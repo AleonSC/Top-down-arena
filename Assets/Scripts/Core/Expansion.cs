@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// What a room of the Expanding arena does (Docs/ExpandingArena.md). Floor rooms carry a path's ground and hazards.
-    public enum RoomKind : byte { Combat, Shop, Floor, Vendor, Gatekeeper, Opening, Link }  // (Vendor and Gatekeeper: the floating rooms, Docs/FloatingRooms.md; Opening and Link: only in a round's proposals, a stretch of wall to open or a portal pair)
+    public enum RoomKind : byte { Combat, Shop, Floor, Vendor, Gatekeeper, Opening, Link, Gate }  // (Vendor and Gatekeeper: the floating rooms, Docs/FloatingRooms.md; Opening, Link and Gate: only in a round's proposals, a stretch of wall to open, a portal pair or a shutter gate on a door)
 
     /// A stretch of interior wall the team opened (the Expanding arena): a vertical wall at x = At from y = From to Till, or a horizontal one at y = At.
     public struct WallCut : IEquatable<WallCut>

@@ -787,6 +787,7 @@ namespace Arena
             AnimT += dt;
             TickShopNotices(dt);
             TickExpansion(dt);     // a bot player's vote (ExpansionGame.cs)
+            TickGates(dt);         // the shutter gates' clocks (Gates.cs)
             UpdatePropView(dt);    // crates, barrels, chests and their items (Props.cs)
             UpdateInkView(dt);     // Chalk.cs: the chalk's tip easing, a client's ink ageing
             UpdateWardenView(dt);  // Warden.cs
