@@ -35,8 +35,8 @@ namespace Arena
         /// Gun `gun`'s muzzle in the world, from `pos` (your Pos for the sim, Disp for drawing).
         public V2 AutoMuzzle(Player p, V2 pos, int gun) => AutoGrip(p, pos, gun) + V2.FromAngle(AutoHeading(p, gun)) * AutoBarrel;
 
-        /// How far from you the guns reach (a round's speed times its life).
-        float AutoRange(Player p) => p.Weapon.Speed * p.Weapon.Life * p.Stats.ShotSpeedMult * 0.92f;
+        /// How far from you the guns reach (a round's speed times its life: 0.5 s, against the Twin Rifle's 0.7 s).
+        public float AutoRange(Player p) => p.Weapon.Speed * p.Weapon.Life * p.Stats.ShotSpeedMult * 0.92f;
 
         static float AutoWrap(float a) => MathX.Fmod(a + MathX.Pi, MathX.Tau) - MathX.Pi;
 
