@@ -750,12 +750,12 @@ static partial class Program
             var far = new List<ExpansionRoom>();
             var node = Expansion.NodeFor(5, 0, far, new List<MapNode>(), NodeKind.Chest);
             Check(node.HasValue, "a node for the path test");
-            for (int i = 0; i < 2 && node.HasValue; i++) { var st = Expansion.NodeStep(far, node.Value); if (st.HasValue) far.Add(st.Value); }
+            for (int i = 0; i < 4 && node.HasValue && !Expansion.NodeClaimed(far, node.Value); i++) { var st = Expansion.NodeStep(far, node.Value); if (st.HasValue) far.Add(st.Value); }
             foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Expanded.AddRange(far); gg.Nodes.Clear(); if (node.HasValue) gg.Nodes.Add(node.Value); typeof(Game).GetField("expWorld", flags).SetValue(gg, null); }
             pickRooms.Invoke(g, null);
             Run(s, dt, 0.3f, null, NoPicks);
             int last = g.CurrentWorld.Areas.Length - 1;
-            Check(last == 2 && g.CurrentWorld.Areas[last].Kind == RoomKind.Combat, "the node's hallway and room are up (" + g.CurrentWorld.Areas.Length + " areas)");
+            Check(last == far.Count && last >= 1 && Expansion.NodeClaimed(far, node.Value) && g.CurrentWorld.Areas[last].Kind == RoomKind.Combat, "the rooms out to the node are up (" + g.CurrentWorld.Areas.Length + " areas)");
             foreach (var e in g.Enemies.Values) e.Hp = 0f;
             var farFoe = (Enemy)spawnAt.Invoke(g, new object[] { EnemyType.RiotShield, g.CurrentWorld.Areas[last].Mid, 0f, 0, false });
             foreach (var p in g.Players.Values) p.Pos = p.Disp = new V2(800f, 450f);
@@ -1132,6 +1132,18 @@ static partial class Program
         // A U on the hub's north wall, three wide everywhere: three boxes.
         var u = Expansion.Outline(none, P(new[] { 0, 0, 300, 0, 300, -600, 900, -600, 900, 0, 1200, 0, 1200, -900, 0, -900 }), PathId.None, out why);
         Check(u != null && u.Count == 3, "a U is three boxes (" + why + ")");
+        // A 2-tile-tall box wedged between two rooms, sharing 2 tiles with each (the owner's notch fill): it builds, with a door to each.
+        var sides = new List<ExpansionRoom>();
+        var lr = Expansion.Custom(sides, 0, -800, 600, 800, out why); if (lr.HasValue) sides.Add(lr.Value);
+        var rr = Expansion.Custom(sides, 800, -800, 800, 800, out why); if (rr.HasValue) sides.Add(rr.Value);
+        var notch = Expansion.Outline(sides, P(new[] { 600, -800, 800, -800, 800, -600, 600, -600 }), PathId.None, out why);
+        Check(sides.Count == 2 && notch != null && notch.Count == 1, "a 2-tall box between two rooms, 2 tiles on each, builds (" + why + ")");
+        if (notch != null)
+        {
+            var nw = Expansion.Build(sides.Concat(notch).ToList());
+            Check(nw.Doors.Count(d => d.Joins(3)) == 2, "it gets a door to both rooms (" + nw.Doors.Count(d => d.Joins(3)) + ")");
+        }
+        Check(Expansion.Outline(none, P(new[] { 1600, 0, 1800, 0, 1800, -200, 1600, -200 }), PathId.None, out why) == null, "a box touching the hub only at a corner is refused: " + why);
         // Refusals.
         Check(Expansion.Outline(none, P(new[] { 0, 0, 1000, 0, 1000, -600, 900, -600, 900, -100, 0, -100 }), PathId.None, out why) == null && why.Contains("thin"), "1 tile wide is too thin: " + why);
         Check(Expansion.Outline(none, P(new[] { 0, 0, 600, -600, 0, -600, 0, -300 }), PathId.None, out why) == null, "a slanted wall is refused: " + why);

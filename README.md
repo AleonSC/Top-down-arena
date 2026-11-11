@@ -810,7 +810,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   own walls close off the space on one side, that space fills in as the room and goes to the vote (the green fill shows it; if both sides
   are closed off, the smaller one). You pay only for the walls you drew. **Right click** (or Esc, Backspace, **Undo**) takes the last corner back, and with none laid goes back;
   with no corner laid, press, drag and let go draws a plain box. Any shape works (L, T, U, cross, zig-zag) as long as it is **2 tiles
-  wide everywhere**, at most 144 tiles of floor and 24 tiles each way, its walls don't cross, it shares 3 tiles of one wall with a room
+  wide everywhere**, at most 144 tiles of floor and 24 tiles each way, its walls don't cross, it shares 2 tiles of one wall with a room
   and overlaps nothing (a shorter touch with another room's wall is fine, it just stays wall). The map shows it green when it fits (red,
   with the reason, when not). It is built as one room, however many boxes it takes inside, and it becomes **your proposal**; a newer
   drawing replaces it. You can only propose what you can afford. A proposal costs its **new wall length**: the perimeter
@@ -857,7 +857,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   build a **room** that encloses it (any room; a long one can reach it straight off the map); that room then becomes the shop or vendor
   room, and a chest node's room stays a normal combat room with enemies. Walk up to a claimed **chest** to open it once: every player gets gold
   (40, +10 a boss cycle) and 6 vectors. No cover stands on a node. A claimed node shows as a fixture in its room: a stall, a pedestal or a chest (opened ones lie dim with the lid up). Nodes never respawn: a claimed one stays, and new ones appear around the current map.
-  At most 6 wait at once. A **Gatekeeper** room is still placed each cycle as a sealed box 4 to 8 tiles off the map: share 3 tiles of wall with it and its
+  At most 6 wait at once. A **Gatekeeper** room is still placed each cycle as a sealed box 4 to 8 tiles off the map: share 2 tiles of wall with it and its
   door opens (it doesn't count towards the 24-room cap and adds no enemies; at most 6 wait). Bots build a room (or a narrow strip, then a room) to nodes (not to chests' loot: they don't walk to them).
   (The Gatekeeper has its own room, below.)
 - **Surprise rooms**: every time you clear a **boss**, the map gets a **free** room in one of five shapes the game picks for you: a **ring** (a block in the

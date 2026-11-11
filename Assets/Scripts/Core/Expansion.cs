@@ -82,7 +82,7 @@ namespace Arena
         public const int MaxRooms = 24;          // bought rooms (the hub is extra)
         public const int MaxWidth = 6400, MaxHeight = 4000;  // the whole map's bounding box
         public const int Step = 100;             // rooms slide along a wall in steps of this
-        public const int MinDoorRun = 300;       // a room must share at least this much wall with its parent (a door, plus a margin)
+        public const int MinDoorRun = 200;       // a room must share at least this much wall with its parent (a door, plus a margin): 2 tiles, so a 2-wide room can join end on
         public const int Milestone = 5;          // an offer every this many waves
         public const int MinSide = 200;          // a drawn room's shortest side (any shape between these: no hallways, just rooms)
         public const int MaxSide = 2400, MaxArea = 1440000;  // and its limits: 24 tiles a side, 144 tiles of floor
@@ -240,7 +240,7 @@ namespace Arena
                     if (linked[a] && run > best) { best = run; parent = a; }  // (a floating room nobody has connected can't be the parent)
                 }
             }
-            if (parent < 0) { why = "Must share at least " + MinDoorRun + " px of wall with the connected map"; return false; }
+            if (parent < 0) { why = "Must share at least " + MinDoorRun / Step + " tiles of wall with the connected map"; return false; }
             loops--;  // (the parent's door isn't a loop)
             return true;
         }
@@ -911,7 +911,7 @@ namespace Arena
         /// A room drawn as an outline (Docs/ExpandingArena.md): click corners on the grid, walls running straight across or up, round
         /// back to the first. It is cut into boxes, the first carrying the whole price and the door to the map, each next one a piece
         /// (ExpansionRoom.Leg = PieceBase + n) open full width onto the piece it grew from. Rules: at least MinSide wide everywhere,
-        /// at most MaxArea, OutlineMaxSide each way, no overlap, and 3 tiles of wall shared with the connected map. It costs its new wall
+        /// at most MaxArea, OutlineMaxSide each way, no overlap, and 2 tiles of wall shared with the connected map. It costs its new wall
         /// plus the theme. Null with `why` set if it can't go there.
         public static List<ExpansionRoom> Outline(IList<ExpansionRoom> built, IList<int[]> points, PathId floor, out string why)
         {
