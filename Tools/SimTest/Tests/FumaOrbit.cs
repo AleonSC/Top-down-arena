@@ -45,6 +45,18 @@ static partial class Program
         Check(hp.FumaStance == 1 && orbitHit >= hp.Weapon.Damage * Game.FumaOrbitMult * 2f && clientOrbit && drift < 1f,
             "the weapon-action key sets the Fuma circling you, cutting what it passes, on the same circle on every screen");
 
+        // The circling star slices small enemy bullets out of the air (not big orbs).
+        var shootM = typeof(Game).GetMethod("SpawnBullet", flags);
+        Func<byte, V2, Bullet> shot = (kind, p) => (Bullet)shootM.Invoke(g, new object[] { kind, p, new V2(0f, 0f), 0f, 5f, 5f, 0, false, 0f });
+        var small = shot(Defs.SmallShot, at + new V2(-Game.FumaOrbitR, 0f));
+        var fast = shot(Defs.FastShot, at + new V2(0f, -Game.FumaOrbitR));
+        var big = shot(Defs.BigShot, at + new V2(Game.FumaOrbitR * 0.7f, Game.FumaOrbitR * 0.7f));
+        Run(s, dt, 0.8f, null, () => { hp.Pos = at; foreach (var e in keep) e.FrozenT = 5f; });
+        bool smallCut = !g.Bullets.ContainsKey(small.Id) && !g.Bullets.ContainsKey(fast.Id), bigKept = g.Bullets.ContainsKey(big.Id);
+        Console.WriteLine("  fuma orbit cuts bullets: small and fast gone {0}, big orb kept {1}", smallCut, bigKept);
+        Check(smallCut && bigKept, "the circling Fuma cuts small enemy bullets out of the air, like a sword swing");
+        g.Bullets.Remove(big.Id);
+
         // Fire: a Lash out across your aim, a Lash back, then the Cyclone's wide lap.
         drop();
         var far = dummy(at + new V2(Game.FumaOrbitR + Game.FumaLashReach - 10f, 0f));
