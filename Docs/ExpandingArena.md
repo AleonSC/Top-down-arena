@@ -130,7 +130,7 @@ in that layout with a switch; don't delete code.
   vote on their own. Intermission waits for the vote like it does for paths. Paths are off in this arena.
 - **Prices** (first guesses): 120 + area/4000, x1.3 shop, x1.15 floor, +20% per room bought (Closet ~180, Room ~240,
   Plaza ~320 at the start).
-- **Enemy scale**: `1 + 0.35 x (floor area / hub area - 1)`, up to 2x (`ExpansionScale`).
+- **Enemy scale**: `1 + 0.6 x (floor area / hub area - 1)`, up to 1.4x (`ExpansionScale`; rate picked from a `vecbal` sweep of 0.6 and 0.8 with `VECSCALE`).
 - **Look**: room floors tinted by kind (shop gold, floor = its path's colour), the grid inside rooms only, the minimap
   scales to the map, doors as in Wings. Preview: `EXPANDVOTE=<rooms bought>` (mode hud) and `EXPANDMAP=<rooms>`
   with `ZOOM=0.5`.
