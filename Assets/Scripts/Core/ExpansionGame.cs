@@ -293,7 +293,7 @@ namespace Arena
         int floatCycle = -1;
 
         /// Host, as a regular wave starts: a new boss cycle gets a Gatekeeper room off the connected map (sealed until a built room touches it)
-        /// and a shop and a vendor node (Docs/Nodes.md). Nothing placed is ever placed again: at most MaxSealed rooms and MaxNodesWaiting nodes wait.
+        /// and a shop, a vendor and a chest node (Docs/Nodes.md). Nothing placed is ever placed again: at most MaxSealed rooms and MaxNodesWaiting nodes wait.
         void PlaceFloatingRooms()
         {
             if (!IsHost || !ExpandingOn || Practice != null || Hunt != null)
@@ -313,7 +313,7 @@ namespace Arena
                     DoLog("a floating Gatekeeper room appears at " + f.Value.X + "," + f.Value.Y);
                 }
             }
-            foreach (var kind in new[] { NodeKind.Shop, NodeKind.Vendor })
+            foreach (var kind in new[] { NodeKind.Shop, NodeKind.Vendor, NodeKind.Chest })
             {
                 if (Expansion.UnclaimedCount(Expanded, Nodes) >= Expansion.MaxNodesWaiting)
                     break;
@@ -327,6 +327,37 @@ namespace Arena
             if (added)
             {
                 expWorld = null;
+                BroadcastExpansion();
+            }
+        }
+
+        public const int ChestGold = 40, ChestGoldPerCycle = 10, ChestVectors = 6;  // what a chest node gives each player, once
+
+        /// Host, every tick of a wave: a player who walks up to a claimed chest node opens it. Everyone gets gold and a few vectors; it stays spent.
+        void TickNodes()
+        {
+            if (!IsHost || !ExpandingOn || Nodes.Count == 0)
+                return;
+            for (int i = 0; i < Nodes.Count; i++)
+            {
+                var nd = Nodes[i];
+                if (nd.Kind != NodeKind.Chest || nd.Spent || !Expansion.NodeClaimed(Expanded, nd))
+                    continue;
+                bool near = false;
+                foreach (var p in Players.Values)
+                    near |= !p.Downed && p.Pos.DistanceTo(nd.Pos) < p.Def.BodyR + 45f;
+                if (!near)
+                    continue;
+                nd.Spent = true;
+                Nodes[i] = nd;
+                int gold = ChestGold + ChestGoldPerCycle * ((Wave - 1) / Expansion.Milestone);
+                foreach (var p in Players.Values)
+                {
+                    p.Gold += gold;
+                    AddVectors(p, ChestVectors);
+                }
+                BroadcastFx(FxKind.Ring, nd.Pos, new Rgba(1f, 0.82f, 0.3f), 110f, 0.7f, Sfx.Pick);
+                DoLog("a chest opens: " + gold + " gold and " + ChestVectors + " vectors each");
                 BroadcastExpansion();
             }
         }
@@ -915,7 +946,7 @@ namespace Arena
             BroadcastExpansion();
         }
 
-        /// A bot draws the cheapest box that claims an unclaimed shop or vendor node (a straight hallway out to it), else opens the Gatekeeper's
+        /// A bot draws the cheapest box that claims an unclaimed node (a straight hallway out to it, then a room round it), else opens the Gatekeeper's
         /// floating room, if it can afford it. True if it proposed one.
         bool BotBuildsToFloater()
         {
@@ -925,8 +956,8 @@ namespace Arena
             {
                 if (Expansion.NodeClaimed(Expanded, nd))
                     continue;
-                int rank = nd.Kind == NodeKind.Shop ? 0 : 1;
-                var hall = Expansion.NodeHall(Expanded, nd);
+                int rank = nd.Kind == NodeKind.Shop ? 0 : nd.Kind == NodeKind.Vendor ? 1 : 2;
+                var hall = Expansion.NodeStep(Expanded, nd);
                 if (hall.HasValue && rank < bestRank)
                 {
                     pick = hall;
@@ -1165,7 +1196,7 @@ namespace Arena
             w.Write((byte)Nodes.Count);
             foreach (var nd in Nodes)
             {
-                w.Write(nd.X); w.Write(nd.Y); w.Write((byte)nd.Kind);
+                w.Write(nd.X); w.Write(nd.Y); w.Write((byte)nd.Kind); w.Write(nd.Spent);
             }
             w.Write(ExpandOpen);
             if (ExpandOpen)
@@ -1233,7 +1264,7 @@ namespace Arena
             int nn = r.ReadByte();
             var nodes = new List<MapNode>(nn);
             for (int i = 0; i < nn; i++)
-                nodes.Add(new MapNode { X = r.ReadInt16(), Y = r.ReadInt16(), Kind = (NodeKind)r.ReadByte() });
+                nodes.Add(new MapNode { X = r.ReadInt16(), Y = r.ReadInt16(), Kind = (NodeKind)r.ReadByte(), Spent = r.ReadBoolean() });
             bool nodesChanged = nodes.Count != Nodes.Count;
             for (int i = 0; !nodesChanged && i < nodes.Count; i++)
                 nodesChanged |= !nodes[i].Equals(Nodes[i]);

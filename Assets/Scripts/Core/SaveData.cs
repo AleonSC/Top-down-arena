@@ -114,7 +114,7 @@ namespace Arena
                 foreach (var k in Kits)
                     Line(sb, "kit", k.Kind + " " + k.Floor);
                 foreach (var nd in Nodes)
-                    Line(sb, "node", nd.Kind + " " + nd.X + " " + nd.Y);
+                    Line(sb, "node", nd.Kind + " " + nd.X + " " + nd.Y + " " + (nd.Spent ? 1 : 0));
             }
             foreach (var s in Seats)
             {
@@ -208,7 +208,7 @@ namespace Arena
                         case "node":
                         {
                             var p = val.Split(' ');
-                            save.Nodes.Add(new MapNode { Kind = Enum<NodeKind>(p[0]), X = (short)I(p[1]), Y = (short)I(p[2]) });
+                            save.Nodes.Add(new MapNode { Kind = Enum<NodeKind>(p[0]), X = (short)I(p[1]), Y = (short)I(p[2]), Spent = p.Length > 3 && I(p[3]) != 0 });
                             break;
                         }
                         case "cut":

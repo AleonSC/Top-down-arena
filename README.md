@@ -840,11 +840,13 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   tied options), and the winning drawer pays; nobody else does. One room is built a round, with a door to every room it
   shares a door's width of wall with (loops). Paths are off in this arena.
   **Solo players skip the vote**: your proposal is built the moment you make it.
-- **Nodes and the floating Gatekeeper room**: every boss cycle the game places a **shop node** and a **vendor node**: points 10 to 16 tiles
-  straight out from the map (at least 8 tiles from each other), marked on the arena floor, the minimap and the draw screen. A node is locked until you
-  build a room or hallway that **encloses** it; that room then becomes the shop or vendor room. Nodes never respawn: a claimed one stays, and new ones
-  appear around the current map. At most 4 wait at once. A **Gatekeeper** room is still placed each cycle as a sealed box 4 to 8 tiles off the map: share
-  3 tiles of wall with it and its door opens (it doesn't count towards the 24-room cap and adds no enemies; at most 6 wait). Bots build hallways to nodes.
+- **Nodes and the floating Gatekeeper room**: every boss cycle the game places a **shop node**, a **vendor node** and a **chest node**: points 10 to 16
+  tiles straight out from the map (at least 8 tiles from each other), marked on the arena floor, the minimap and the draw screen. A node is locked until you
+  build a **room** that encloses it (a hallway doesn't count: build a hallway out, then a room round the node); that room then becomes the shop or vendor
+  room, and a chest node's room stays a normal combat room with enemies. Walk up to a claimed **chest** to open it once: every player gets gold
+  (40, +10 a boss cycle) and 6 vectors. No cover stands on a node. Nodes never respawn: a claimed one stays, and new ones appear around the current map.
+  At most 6 wait at once. A **Gatekeeper** room is still placed each cycle as a sealed box 4 to 8 tiles off the map: share 3 tiles of wall with it and its
+  door opens (it doesn't count towards the 24-room cap and adds no enemies; at most 6 wait). Bots build a hallway and a room to nodes (not to chests' loot: they don't walk to them).
   (The Gatekeeper has its own room, below.)
 - **Open a wall**: on the draw screen, switch to **Open wall** and click both ends of a stretch of a wall two rooms share (the cyan stretches; the outer wall can't be
   opened, nor a sealed floating room's). It goes to the vote like a room. If it wins, that stretch of wall comes down (a short stretch is a door, a long

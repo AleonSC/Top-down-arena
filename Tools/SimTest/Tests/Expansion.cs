@@ -378,10 +378,10 @@ static partial class Program
         var added = g.Expanded.Skip(allNow).ToList();
         Check(added.Count == 1 && added[0].Floating && added[0].Kind == RoomKind.Gatekeeper && cg.Expanded.Skip(allNow).All(r => r.Floating) && Expansion.BoughtCount(g.Expanded) == boughtNow,
             "a new boss cycle places a floating Gatekeeper room, the same on the client, and it isn't counted as bought");
-        Check(g.Nodes.Count == nodesNow + 2 && g.Nodes.Skip(nodesNow).Any(n => n.Kind == NodeKind.Shop) && g.Nodes.Skip(nodesNow).Any(n => n.Kind == NodeKind.Vendor) && cg.Nodes.SequenceEqual(g.Nodes),
-            "and a shop node and a vendor node, the same on the client");
+        Check(g.Nodes.Count == nodesNow + 3 && g.Nodes.Skip(nodesNow).Any(n => n.Kind == NodeKind.Shop) && g.Nodes.Skip(nodesNow).Any(n => n.Kind == NodeKind.Vendor) && g.Nodes.Skip(nodesNow).Any(n => n.Kind == NodeKind.Chest) && cg.Nodes.SequenceEqual(g.Nodes),
+            "and a shop, a vendor and a chest node, the same on the client");
         placeFloating.Invoke(g, null);
-        Check(g.Expanded.Count == allNow + 1 && g.Nodes.Count == nodesNow + 2, "the same cycle places them only once");
+        Check(g.Expanded.Count == allNow + 1 && g.Nodes.Count == nodesNow + 3, "the same cycle places them only once");
         pickRooms.Invoke(g, null);
         var floatWorld = g.ExpansionWorld;
         Check(floatWorld.Areas.Skip(allNow + 1).All(a => a.Floating && a.Sealed) && Math.Abs(g.ExpansionScale - scale0) < 0.001f && !g.HasShopRoom, "the room stays sealed, adds no crowd and an unclaimed shop node isn't a shop room");
@@ -395,6 +395,37 @@ static partial class Program
         Check(inSealed == 0, "no enemy comes in to a floating room");
         g.Wave = waveHere;
 
+        // A chest node inside a built room opens when a player walks up to it: gold and vectors for everyone, once.
+        {
+            ExpansionRoom? extra = null;
+            for (int cy = -500; cy <= 900 && !extra.HasValue; cy += 100)
+                for (int cx = 1600; cx <= 1700 && !extra.HasValue; cx += 100)
+                    extra = Expansion.Custom(g.Expanded, cx, cy, 500, 500, out string whyNot);
+            int ri = -1;
+            if (extra.HasValue) { g.Expanded.Add(extra.Value); ri = g.Expanded.Count - 1; }
+            Check(ri >= 0, "a 5 x 5 room fits beside the hub for the chest test");
+            if (ri >= 0)
+            {
+                var rm = g.Expanded[ri];
+                var chest = new MapNode { X = (short)(rm.X + rm.W / 2 / 100 * 100 + 50), Y = (short)(rm.Y + rm.H / 2 / 100 * 100 + 50), Kind = NodeKind.Chest };
+                g.Nodes.Add(chest);
+                int ci = g.Nodes.Count - 1;
+                var tickNodes = typeof(Game).GetMethod("TickNodes", flags);
+                var pl = g.Players.Values.First();
+                float gold0 = pl.Gold;
+                pl.Pos = chest.Pos + new V2(400f, 0f);
+                tickNodes.Invoke(g, null);
+                Check(!g.Nodes[ci].Spent && pl.Gold == gold0, "a chest stays shut while nobody is next to it");
+                pl.Pos = chest.Pos;
+                tickNodes.Invoke(g, null);
+                float gold1 = pl.Gold;
+                tickNodes.Invoke(g, null);
+                Check(g.Nodes[ci].Spent && gold1 > gold0 && pl.Gold == gold1, "walking up to it opens it once: gold for the player and no second payout");
+                g.Nodes.RemoveAt(ci);
+                g.Expanded.RemoveAt(ri);
+            }
+        }
+
         // Nodes (Docs/Nodes.md): 10+ tiles out, deterministic, 8+ tiles apart, claimed by a room built round them, which takes on their job.
         {
             var nodeMap = new List<ExpansionRoom>();
@@ -403,7 +434,7 @@ static partial class Program
             for (int seed = 1; seed <= 40; seed++)
             {
                 var list = new List<MapNode>();
-                foreach (var nk in new[] { NodeKind.Shop, NodeKind.Vendor })
+                foreach (var nk in new[] { NodeKind.Shop, NodeKind.Vendor, NodeKind.Chest })
                 {
                     var nd = Expansion.NodeFor(seed, seed % 5, nodeMap, list, nk);
                     if (!nd.HasValue) { placedOk = false; continue; }
@@ -413,24 +444,28 @@ static partial class Program
                     sameOk &= again.HasValue && again.Value.Equals(n);
                     farOk &= n.X <= -1000 || n.X >= Game.Width + 1000 || n.Y <= -1000 || n.Y >= Game.Height + 1000;
                     foreach (var o in list) farOk &= new V2(o.X - n.X, o.Y - n.Y).Length >= Expansion.NodeApart;
-                    var hall = Expansion.NodeHall(nodeMap, n);
-                    hallOk &= hall.HasValue && !Expansion.NodeClaimed(nodeMap, n);
-                    if (hall.HasValue)
+                    var step = Expansion.NodeStep(nodeMap, n);
+                    hallOk &= step.HasValue && step.Value.Kind == RoomKind.Combat && Math.Min(step.Value.W, step.Value.H) == Expansion.MinSide && !Expansion.NodeClaimed(nodeMap, n) && Expansion.NodeReachable(nodeMap, n);
+                    var built = new List<ExpansionRoom>(nodeMap);
+                    if (step.HasValue) built.Add(step.Value);
+                    var step2 = step.HasValue ? Expansion.NodeStep(built, n) : null;
+                    if (step2.HasValue)
                     {
-                        var built = new List<ExpansionRoom>(nodeMap) { hall.Value };
+                        built.Add(step2.Value);
+                        var kind = nk == NodeKind.Shop ? RoomKind.Shop : nk == NodeKind.Vendor ? RoomKind.Vendor : RoomKind.Combat;
                         var with = Expansion.Build(built, null, null, new List<MapNode> { n });
-                        var kind = nk == NodeKind.Shop ? RoomKind.Shop : RoomKind.Vendor;
-                        claimOk &= Expansion.NodeClaimed(built, n) && with.Areas[1].Kind == kind && Expansion.Build(built).Areas[1].Kind == RoomKind.Combat;
+                        claimOk &= Expansion.NodeClaimed(built, n) && with.Areas[2].Kind == kind && with.Areas[1].Kind == RoomKind.Combat && Expansion.Build(built).Areas[2].Kind == RoomKind.Combat;
                     }
+                    else claimOk = false;
                     list.Add(n);
                 }
             }
-            Check(placedOk && placedN == 80 && sameOk, "a node is found for every seed, the same each time (" + placedN + " placed)");
+            Check(placedOk && placedN == 120 && sameOk, "a node is found for every seed, the same each time (" + placedN + " placed)");
             Check(farOk, "nodes sit 10 or more tiles off the start room and 8 or more tiles apart");
-            Check(hallOk && claimOk, "a straight hallway can be built to each, and the room round it takes on the node's job (only with the node in the map)");
+            Check(hallOk && claimOk, "a hallway then a room can be built to each: a hallway alone claims nothing, and the room takes on the node's job (only with the node in the map)");
             var saved = new RunSave { Wave = 6, HasExpansion = true };
             saved.Nodes.Add(new MapNode { X = -1250, Y = 450, Kind = NodeKind.Vendor });
-            saved.Nodes.Add(new MapNode { X = 850, Y = 2150, Kind = NodeKind.Shop });
+            saved.Nodes.Add(new MapNode { X = 850, Y = 2150, Kind = NodeKind.Chest, Spent = true });
             saved.Seats.Add(new SeatSave());
             var back = RunSave.Parse(saved.ToText());
             Check(back != null && back.Nodes.Count == 2 && back.Nodes[0].Equals(saved.Nodes[0]) && back.Nodes[1].Equals(saved.Nodes[1]), "nodes survive a saved run");

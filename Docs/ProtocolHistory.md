@@ -4,7 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 282: `Msg.ExpandState` carries the map nodes (shop and vendor points, claimed by building a room round them, Docs/Nodes.md) after the room kits; saved runs get `node` lines. The floating shop and vendor rooms are gone (the Gatekeeper room stays)
+- 282: `Msg.ExpandState` carries the map nodes (shop, vendor and chest points, claimed by building a room round them; each has a Spent flag, Docs/Nodes.md) after the room kits; saved runs get `node` lines. The floating shop and vendor rooms are gone (the Gatekeeper room stays)
 - 281: vector pickups: each coin in the snapshot carries a vector flag (`Coin.Vec`; the rare enemy drop that adds vectors)
 - 280: records count the Campaign's waves: the Boss and End records carry the record wave (`Game.RecordWave`) at their ends
 - 279: checkpoints and lives: `Game.LivesUsed`, `RetryReady` and `RetryWave` in the snapshot, a deathless flag at the end of the End record

@@ -25,14 +25,15 @@ namespace Arena
     }
 
     /// What a map node is (Docs/Nodes.md). A node is a point in empty space; a built room that encloses it takes on its job.
-    public enum NodeKind : byte { Shop, Vendor, Chest }  // (Chest: defined, not placed yet; its contents are open in Docs/Nodes.md)
+    public enum NodeKind : byte { Shop, Vendor, Chest }  // (a chest gives gold and vectors once, Docs/Nodes.md)
 
     /// A point on the Expanding map, at the centre of a 100 px tile: locked until a built room encloses it, then a fixture of that room.
     public struct MapNode : IEquatable<MapNode>
     {
         public short X, Y;
         public NodeKind Kind;
-        public bool Equals(MapNode o) => X == o.X && Y == o.Y && Kind == o.Kind;
+        public bool Spent;   // a chest that has been opened
+        public bool Equals(MapNode o) => X == o.X && Y == o.Y && Kind == o.Kind && Spent == o.Spent;
         public V2 Pos => new V2(X, Y);
     }
 
@@ -319,16 +320,21 @@ namespace Arena
         // --- Map nodes (Docs/Nodes.md): shop and vendor points out in empty space, claimed by building a room around them ---
 
         public const int NodeMin = 1000, NodeMax = 1600;  // a node sits this far (10 to 16 tiles) from the room it was placed off
+        public const int NodeClear = 90;                  // cover keeps this far off a node
         public const int NodeApart = 800;                 // and at least this far from every other node
-        public const int MaxNodesWaiting = 4;             // unclaimed nodes on the map at once
+        public const int MaxNodesWaiting = 6;             // unclaimed nodes on the map at once
 
         public static bool NodeInside(MapNode n, int x0, int y0, int x1, int y1) => n.X > x0 && n.X < x1 && n.Y > y0 && n.Y < y1;
 
-        /// A built (non-floating) room encloses this node.
+        /// Can this built room claim a node round it: a real room, not a hallway (a drawn outline's pieces count; a bent hallway's legs don't)?
+        public static bool NodeEncloses(ExpansionRoom r, MapNode n)
+            => !r.Floating && (Math.Min(r.W, r.H) > MinSide || r.Leg >= PieceBase) && NodeInside(n, r.X, r.Y, r.X1, r.Y1);
+
+        /// A built room encloses this node.
         public static bool NodeClaimed(IList<ExpansionRoom> built, MapNode n)
         {
             foreach (var r in built)
-                if (!r.Floating && NodeInside(n, r.X, r.Y, r.X1, r.Y1))
+                if (NodeEncloses(r, n))
                     return true;
             return false;
         }
@@ -342,43 +348,63 @@ namespace Arena
             return n;
         }
 
-        /// The straight hallway (MinSide wide) from connected area `a` out to the tile holding the node, on the side the node lies on; false if the
-        /// node isn't straight out from that room's wall.
-        static bool NodeHallFrom(IList<ExpansionRoom> built, int a, MapNode n, out int x, out int y, out int w, out int h)
-        {
-            x = y = w = h = 0;
-            BoxOf(built, a, out int bx0, out int by0, out int bx1, out int by1);
-            bool alongX = n.X - 150 >= bx0 && n.X + 150 <= bx1, alongY = n.Y - 150 >= by0 && n.Y + 150 <= by1;
-            if (alongX && n.Y + 50 <= by0) { x = n.X - 150; y = n.Y - 50; w = 300; h = by0 - y; return true; }
-            if (alongX && n.Y - 50 >= by1) { x = n.X - 150; y = by1; w = 300; h = n.Y + 50 - by1; return true; }
-            if (alongY && n.X + 50 <= bx0) { x = n.X - 50; y = n.Y - 150; w = bx0 - x; h = 300; return true; }
-            if (alongY && n.X - 50 >= bx1) { x = bx1; y = n.Y - 150; w = n.X + 50 - bx1; h = 300; return true; }
-            return false;
-        }
-
-        /// The cheapest straight hallway from the connected map that encloses the node (it is what a bot builds to claim it). Null if none fits.
-        public static ExpansionRoom? NodeHall(IList<ExpansionRoom> built, MapNode n)
+        /// The next box on the way to claiming a node (a bot builds it): a 5 x 5 tile room round the node reaching back to a connected room's wall
+        /// if it can, else the straight hallway out from that wall to where that room would start. Null if neither fits. Price is filled in.
+        public static ExpansionRoom? NodeStep(IList<ExpansionRoom> built, MapNode n)
         {
             var linked = ConnectedAreas(built);
             ExpansionRoom? best = null;
-            int bestCost = int.MaxValue;
+            int bestKey = int.MaxValue;
             for (int a = 0; a <= built.Count; a++)
             {
-                if (!linked[a] || !NodeHallFrom(built, a, n, out int x, out int y, out int w, out int h) || Math.Max(w, h) > HallMax)
+                if (!linked[a])
                     continue;
-                if (!Placement(built, x, y, w, h, out _, out _, out _))
-                    continue;
-                int c = Cost(built, x, y, w, h);
-                if (c < bestCost)
+                BoxOf(built, a, out int bx0, out int by0, out int bx1, out int by1);
+                for (int side = 0; side < 4; side++)
                 {
-                    bestCost = c;
-                    best = new ExpansionRoom { Parent = 0, X = x, Y = y, W = w, H = h, Kind = RoomKind.Combat, Price = c };
+                    int rx, ry, rw, rh, hx, hy, hw, hh;
+                    switch (side)
+                    {
+                        case 0: if (n.Y + 250 > by0) continue; rx = n.X - 250; ry = n.Y - 250; rw = 500; rh = by0 - ry; hx = n.X - 150; hy = n.Y + 250; hw = 300; hh = by0 - hy; break;
+                        case 1: if (n.Y - 250 < by1) continue; rx = n.X - 250; ry = by1; rw = 500; rh = n.Y + 250 - by1; hx = n.X - 150; hy = by1; hw = 300; hh = n.Y - 250 - by1; break;
+                        case 2: if (n.X + 250 > bx0) continue; rx = n.X - 250; ry = n.Y - 250; rw = bx0 - rx; rh = 500; hx = n.X + 250; hy = n.Y - 150; hw = bx0 - hx; hh = 300; break;
+                        default: if (n.X - 250 < bx1) continue; rx = bx1; ry = n.Y - 250; rw = n.X + 250 - bx1; rh = 500; hx = bx1; hy = n.Y - 150; hw = n.X - 250 - bx1; hh = 300; break;
+                    }
+                    var room = Custom(built, rx, ry, rw, rh, out _);
+                    if (room.HasValue && NodeEncloses(room.Value, n) && room.Value.Price < bestKey)
+                    {
+                        bestKey = room.Value.Price;
+                        best = room;
+                        continue;
+                    }
+                    var hall = hw > 0 && hh > 0 && Math.Min(hw, hh) >= MinSide ? Custom(built, hx, hy, hw, hh, out _) : null;
+                    if (hall.HasValue && 100000 + hall.Value.Price < bestKey)
+                    {
+                        bestKey = 100000 + hall.Value.Price;
+                        best = hall;
+                    }
                 }
             }
             return best;
         }
 
-        /// A new node for this boss cycle: 10 to 16 tiles straight out from a room on the connected map (so a hallway can reach it), clear of every
+        /// Could the team claim this node by building NodeStep after NodeStep (at most four boxes)?
+        public static bool NodeReachable(IList<ExpansionRoom> built, MapNode n)
+        {
+            var plan = new List<ExpansionRoom>(built);
+            for (int i = 0; i < 4; i++)
+            {
+                if (NodeClaimed(plan, n))
+                    return true;
+                var step = NodeStep(plan, n);
+                if (!step.HasValue)
+                    return false;
+                plan.Add(step.Value);
+            }
+            return NodeClaimed(plan, n);
+        }
+
+        /// A new node for this boss cycle: 10 to 16 tiles straight out from a room on the connected map (so a hallway and a room can reach it), clear of every
         /// room and at least 8 tiles from every other node, inside the size cap. The same on every machine for the same seed, cycle and map.
         /// Null if nothing fits.
         public static MapNode? NodeFor(int seed, int cycle, IList<ExpansionRoom> built, IList<MapNode> nodes, NodeKind kind)
@@ -411,8 +437,8 @@ namespace Arena
                     BoxOf(built, i, out int cx0, out int cy0, out int cx1, out int cy1);
                     ok = !Overlaps(x - 250, y - 250, x + 250, y + 250, cx0, cy0, cx1, cy1);  // (two tiles clear of every room)
                 }
-                if (ok && NodeHallFrom(built, a, n, out int hx, out int hy, out int hw, out int hh) && Placement(built, hx, hy, hw, hh, out _, out _, out _))
-                    return n;  // (it can be built to: the straight hallway from its room fits)
+                if (ok && NodeReachable(built, n))
+                    return n;  // (it can be built to: a hallway out and a room round it fit)
             }
             return null;
         }
@@ -1500,7 +1526,7 @@ namespace Arena
                     if (job == RoomKind.Combat)
                         continue;
                     for (int a = 1; a < n; a++)
-                        if (!areas[a].Floating && areas[a].Kind == RoomKind.Combat && NodeInside(nd, rooms[a - 1].X, rooms[a - 1].Y, rooms[a - 1].X1, rooms[a - 1].Y1))
+                        if (areas[a].Kind == RoomKind.Combat && NodeEncloses(rooms[a - 1], nd))
                         {
                             for (int b = 1; b < n; b++)
                                 if (b == a || areas[a].Group != 0 && areas[b].Group == areas[a].Group && areas[b].Kind == RoomKind.Combat)
@@ -1523,6 +1549,14 @@ namespace Arena
                     continue;  // (a sliver of a drawn outline: no cover in it)
                 AddCover(cover, cr, doorSpots);
             }
+            if (nodes != null && nodes.Count > 0)  // no cover on a node: it is a fixture of its room
+                cover.RemoveAll(c =>
+                {
+                    foreach (var nd in nodes)
+                        if (Math.Abs(c.Pos.X - nd.X) < c.HW + c.R + NodeClear && Math.Abs(c.Pos.Y - nd.Y) < c.HH + c.R + NodeClear)
+                            return true;
+                    return false;
+                });
             var portals = new WorldPortal[links == null ? 0 : links.Count];  // bought portal pairs (Docs/RoomBuilding2.md step 2)
             for (int i = 0; i < portals.Length; i++)
                 portals[i] = PortalOf(areas, links[i]);
