@@ -429,13 +429,14 @@ static partial class Program
             if (friend.Shelf[i] >= 0 && Array.IndexOf(friend.Shelf, friend.Shelf[i]) != i) dupes++;
         }
         Check(fresh >= 1 && dupes == 0 && cme.Restocks == 1 && cme.Shelf[Game.ShelfSize] == friend.Shelf[Game.ShelfSize] && cme.ShelfSold == friend.ShelfSold, "the new cards are real, not repeats, and the client sees the longer shelf (" + fresh + " new)");
-        friend.Gold = 1000;
-        for (int k = 0; k < Game.StockMax + 1; k++)
+        friend.Gold = 100000;
+        for (int k = 0; k < 20; k++)
         {
             client.Game.Shop(ShopAction.Restock);
             Run(s, dt, 0.3f, null, NoPicks);
         }
-        Check(friend.Restocks == Game.StockMax && Game.ShelfCount(friend) == Game.MaxShelf, "Add stock stops at " + Game.StockMax + " (" + Game.MaxShelf + " cards)");
+        Check(friend.Restocks == 21 && Game.ShelfCount(friend) == Game.MaxShelf && friend.ShelfSold == 0 && Game.ShelfCount(cme) == Game.MaxShelf && Game.RestockPrice(friend) == 25 + 25 * 21,
+            "Add stock has no limit: past " + Game.MaxShelf + " cards the bought one drops off first (" + friend.Restocks + " adds, " + Game.ShelfCount(friend) + " cards)");
         friend.Gold = before - 25;
 
         // Giving gold, and giving to someone who's done reopens their shop.

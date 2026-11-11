@@ -231,7 +231,7 @@ namespace Arena
         {
             switch (k)
             {
-                case 0: used = me.Restocks >= Game.StockMax; return Game.RestockPrice(me);
+                case 0: used = false; return Game.RestockPrice(me);
                 case 1: used = me.Taken.Count == 0; return Game.RemovePrice;
                 case 2: used = me.Hp >= me.MaxHp || me.Downed; return Game.HealPrice;
                 case 4: used = game.RoomTokens.Count >= Expansion.MaxTokens; return Game.RoomKitPrice;
@@ -300,8 +300,8 @@ namespace Arena
             switch (k)
             {
                 case 0:
-                    desc = used ? "The shelf is full" : "Two more items join the shelf. Each add costs more.";
-                    parts = used ? null : new List<string> { "Cards  " + Game.ShelfCount(me) + " → " + (Game.ShelfCount(me) + Game.StockSize), "Next add  " + price + " → " + (price + 25) };
+                    desc = Game.ShelfCount(me) + Game.StockSize > Game.MaxShelf ? "Two more items join the shelf; the oldest bought ones make room." : "Two more items join the shelf. Each add costs more.";
+                    parts = used ? null : new List<string> { "Cards  " + Game.ShelfCount(me) + " → " + Mathf.Min(Game.MaxShelf, Game.ShelfCount(me) + Game.StockSize), "Next add  " + price + " → " + (price + 25) };
                     break;
                 case 1:
                     desc = me.Taken.Count == 0 ? "You have nothing to remove" : "Drop one you regret. Abilities it gave you go too.";

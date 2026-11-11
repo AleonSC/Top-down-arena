@@ -22,8 +22,7 @@ namespace Arena
     {
         public const int ShelfSize = 3;                 // the first stock: two upgrades, then a legendary or a weapon mod
         public const int StockSize = 2;                 // each Add stock: an upgrade and a legendary or weapon mod (turn about)
-        public const int StockMax = 6;                  // Add stock can be bought this many times a visit
-        public const int MaxShelf = ShelfSize + StockSize * StockMax;
+        public const int MaxShelf = 31;                 // the most cards a shelf holds (a bit each in ShelfSold); Add stock has no limit: past this, old cards drop off
         public const float GoldPerXp = 0.3f;            // gold dropped per point of XP a kill gives
         public const float GoldToXp = 1f;               // XP per leftover gold when the shop closes
         public const float ShopHostCloseAfter = 60f;    // the host can close the shop for everyone after this long
@@ -50,10 +49,24 @@ namespace Arena
         }
 
         /// Add stock: the price of the next one (25, then +25 each time).
-        public static int RestockPrice(Player p) => 25 + 25 * p.Restocks;
+        public static int RestockPrice(Player p) => 25 + 25 * Math.Min(p.Restocks, 255);
 
-        /// How many cards are on a player's shelf now: the first stock, plus StockSize per Add stock.
-        public static int ShelfCount(Player p) => ShelfSize + StockSize * Math.Min(StockMax, p.Restocks);
+        /// How many cards are on a player's shelf now: the first stock, plus StockSize per Add stock (MaxShelf at most).
+        public static int ShelfCount(Player p) => Math.Max(0, Math.Min(MaxShelf, p.ShelfLen));
+
+        /// Add stock on a full shelf: drop a card to make room, a bought one first, else the oldest.
+        static void DropShelfCard(Player p)
+        {
+            int n = ShelfCount(p), at = 0;
+            for (int i = 0; i < n; i++)
+                if (Sold(p, i)) { at = i; break; }
+            for (int i = at; i < n - 1; i++)
+                p.Shelf[i] = p.Shelf[i + 1];
+            p.Shelf[n - 1] = -1;
+            int low = p.ShelfSold & ((1 << at) - 1);
+            p.ShelfSold = low | ((p.ShelfSold >> (at + 1)) << at);
+            p.ShelfLen = n - 1;
+        }
 
         public static bool Sold(Player p, int slot) => (p.ShelfSold & (1 << slot)) != 0;
 
@@ -96,6 +109,7 @@ namespace Arena
                 p.Shelf[i] = -1;
             p.ShelfSold = 0;
             RollStock(p, 0, ShelfSize - 1, true);
+            p.ShelfLen = ShelfSize;
         }
 
         /// One stock into the shelf from slot `at` on: `upgrades` class upgrades, then one legendary or weapon mod
@@ -186,11 +200,14 @@ namespace Arena
                     break;
                 }
                 case ShopAction.Restock:
-                    if (!shopping || p.Restocks >= StockMax || p.Gold < RestockPrice(p))
+                    if (!shopping || p.Gold < RestockPrice(p))
                         return;
                     p.Gold -= RestockPrice(p);
+                    while (ShelfCount(p) + StockSize > MaxShelf)
+                        DropShelfCard(p);
                     RollStock(p, ShelfCount(p), StockSize - 1, p.Restocks % 2 == 1);  // Add stock: two more cards after the ones already there
-                    p.Restocks++;
+                    p.ShelfLen = ShelfCount(p) + StockSize;
+                    p.Restocks = Math.Min(255, p.Restocks + 1);
                     break;
                 case ShopAction.Remove:
                     if (!shopping || p.Gold < RemovePrice || !p.Taken.Contains(arg))
@@ -289,6 +306,7 @@ namespace Arena
                         p.Shelf[i] = -1;
                     p.ShelfSold = 0;
                     p.Restocks = 0;
+                    p.ShelfLen = 0;
                 }
                 if (p.Offer == null)
                     NextOffer(p);  // a level-up from the XP
@@ -376,8 +394,9 @@ namespace Arena
             s.Bool(ref p.ReviveToken);
             s.Bool(ref p.SecondWind);  // Modifiers.cs
             s.Byte(ref p.Restocks);
+            s.Byte(ref p.ShelfLen);
             s.Int(ref p.ShelfSold);
-            int count = ShelfCount(p);  // (Restocks came first: only the cards on the shelf are sent)
+            int count = ShelfCount(p);  // (ShelfLen came first: only the cards on the shelf are sent)
             for (int i = 0; i < count; i++)
                 s.Short(ref p.Shelf[i]);
         }
