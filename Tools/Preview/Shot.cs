@@ -417,6 +417,9 @@ static partial class Shot {
       eg.StateTimer = 8f; eg.ExpandOpen = true;  // the round is open: each player's proposal, the first one backed
       var propPool = Expansion.Offers(5, 5 + 5 * bought, eg.Expanded); int pk = 0;
       foreach (var pl in eg.Players.Values) { pl.Vectors = 30 + 8 * pk; if (pk < propPool.Count) { var pr = propPool[pk]; pr.Owner = pl.Id; eg.ExpandProposals.Add(pr); } pk++; }
+      if (Environment.GetEnvironmentVariable("EXPANDGATECARD") != null && eg.ExpandProposals.Count > 0) {  // EXPANDGATECARD=1: the first proposal is a shutter gate
+        var gp = Gates.Proposal(Gates.Of(eg.ExpansionWorld.Doors[eg.ExpansionWorld.Doors.Length - 1])); gp.Owner = eg.ExpandProposals[0].Owner; eg.ExpandProposals[0] = gp;
+      }
       if (Environment.GetEnvironmentVariable("EXPANDLINKCARD") != null && eg.ExpandProposals.Count > 0) {  // EXPANDLINKCARD=1: the first proposal is a portal pair
         string lw; var bl = Expansion.BestLink(eg.ExpansionWorld, 0);
         if (bl.HasValue) { var lp = Expansion.LinkProposal(bl.Value, Expansion.LinkPrice(eg.ExpansionWorld, 0, bl.Value, out lw)); lp.Owner = eg.ExpandProposals[0].Owner; eg.ExpandProposals[0] = lp; }
@@ -438,6 +441,10 @@ static partial class Shot {
         if (themeName != null) typeof(ArenaApp).GetField("expTheme", bf).SetValue(app, (PathId)Enum.Parse(typeof(PathId), themeName));
         typeof(ArenaApp).GetField("expA", bf).SetValue(app, new V2(dx0, dy0));
         typeof(ArenaApp).GetField("expB", bf).SetValue(app, new V2(dx0 + dw0, dy0 + dh0));
+        if (Environment.GetEnvironmentVariable("EXPANDGATEMODE") != null) {  // EXPANDGATEMODE=1: the draw screen in Gate mode (one gate already fitted); MOUSE over a door to point at it
+          typeof(ArenaApp).GetField("expGateMode", bf).SetValue(app, true);
+          eg.GateFits.Add(Gates.Of(eg.ExpansionWorld.Doors[0]));
+        }
         if (Environment.GetEnvironmentVariable("EXPANDLINK") != null) {  // EXPANDLINK=1: the draw screen in Portal mode with the best pair placed (and one pair already built)
           typeof(ArenaApp).GetField("expLinkMode", bf).SetValue(app, true);
           var first = Expansion.BestLink(eg.ExpansionWorld, 0);

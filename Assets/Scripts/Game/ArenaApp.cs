@@ -463,6 +463,10 @@ namespace Arena
                 else if (Keybinds.Down(KeyAction.DiscardItem))
                     game.ResolveLoot(false);
             }
+            // By a shutter gate (the Expanding arena): G shuts it (Gates.cs).
+            else if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && game.Me != null && game.GateNear(game.Me.Pos) >= 0
+                     && Keybinds.Down(KeyAction.TakeItem))
+                game.UseGate();
             // The F1 kill-all key (X), when it's on: every enemy on the field dies as your kill. Not while you're standing
             // on a chest item (X throws that away), and only the host can (DevTools.cs).
             else if (devKillAllKey && session.IsHost && session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0

@@ -307,6 +307,7 @@ namespace Arena
             Expanded.Clear();
             Openings.Clear();
             Links.Clear();
+            ResetGates();
             ExpandOpen = false;
             ExpandProposals.Clear();
             ExpandVotes.Clear();
@@ -487,6 +488,52 @@ namespace Arena
             FinishOrBroadcast();
         }
 
+        /// This game's player proposes a shutter gate on the door at `at` (Docs/RoomBuilding2.md step 3).
+        public void ProposeExpandGate(V2 at)
+        {
+            if (!ExpandOpen || Me == null)
+                return;
+            if (IsHost)
+            {
+                HostExpandGate(MyId, at);
+                return;
+            }
+            var pw = Proto.Begin(Msg.ExpandGate);
+            pw.Write((short)Math.Round(at.X)); pw.Write((short)Math.Round(at.Y));
+            session.SendToHost(Proto.End(pw));
+        }
+
+        public void OnExpandGate(int peer, BinaryReader r) => HostExpandGate(peer, new V2(r.ReadInt16(), r.ReadInt16()));
+
+        /// Host: a gate becomes its proposer's proposal (replacing theirs, and the votes it had), if the door can take one and they can pay.
+        void HostExpandGate(int id, V2 at)
+        {
+            Player p;
+            if (!IsHost || !ExpandOpen || !Players.TryGetValue(id, out p))
+                return;
+            string why;
+            if (!Gates.CanFit(ExpansionWorld, GateFits, at, out why) || Gates.Price > p.Vectors)
+            {
+                DoLog("gate refused (" + (why ?? "needs " + Gates.Price + " vectors, has " + p.Vectors) + ")");
+                return;
+            }
+            var prop = Gates.Proposal(Gates.Of(ExpansionWorld.Doors[Gates.DoorAt(ExpansionWorld, at)]));
+            prop.Owner = id;
+            int old = ExpandProposals.FindIndex(q => q.Owner == id);
+            if (old >= 0)
+            {
+                ExpandProposals[old] = prop;
+                foreach (int voter in new List<int>(ExpandVotes.Keys))
+                    if (ExpandVotes[voter] == id)
+                        ExpandVotes.Remove(voter);
+            }
+            else
+                ExpandProposals.Add(prop);
+            ExpandVotes.Remove(id);
+            DoLog(p.Name + " proposes a gate for " + Gates.Price + " vectors");
+            FinishOrBroadcast();
+        }
+
         /// This game's player proposes a portal pair between two rooms (it costs vectors, by the walking it saves).
         public void ProposeExpandLink(PortalLink l)
         {
@@ -623,7 +670,13 @@ namespace Arena
                 if (pick != 0)
                 {
                     var room = standing.Find(q => q.Owner == pick);
-                    if (room.Kind == Arena.RoomKind.Link)
+                    if (room.Kind == Arena.RoomKind.Gate)
+                    {
+                        GateFits.Add(Gates.FromProposal(room));
+                        Players[pick].Vectors -= room.Price;
+                        DoLog("gate fitted by " + Players[pick].Name + " for " + room.Price + " vectors");
+                    }
+                    else if (room.Kind == Arena.RoomKind.Link)
                     {
                         Links.Add(Expansion.LinkOf(room));
                         Players[pick].Vectors -= room.Price;
@@ -868,6 +921,11 @@ namespace Arena
             {
                 w.Write(l.AX); w.Write(l.AY); w.Write(l.BX); w.Write(l.BY);
             }
+            w.Write((byte)GateFits.Count);
+            foreach (var g in GateFits)
+            {
+                w.Write(g.X); w.Write(g.Y); w.Write(g.Vertical);
+            }
             w.Write((byte)RoomTokens.Count);
             foreach (var t in RoomTokens)
             {
@@ -928,6 +986,10 @@ namespace Arena
                 expWorld = null;
                 LayoutAge = 0f;
             }
+            int ng = r.ReadByte();
+            GateFits.Clear();
+            for (int i = 0; i < ng; i++)
+                GateFits.Add(new GateFit { X = r.ReadInt16(), Y = r.ReadInt16(), Vertical = r.ReadBoolean() });
             RoomTokens.Clear();
             int nt = r.ReadByte();
             for (int i = 0; i < nt; i++)

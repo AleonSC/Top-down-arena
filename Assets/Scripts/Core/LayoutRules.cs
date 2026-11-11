@@ -160,7 +160,7 @@ namespace Arena
                 float m = Math.Min(Math.Min(l, rr), Math.Min(t, b));
                 pos = m == l ? new V2(pos.X - l, pos.Y) : m == rr ? new V2(pos.X + rr, pos.Y) : m == t ? new V2(pos.X, pos.Y - t) : new V2(pos.X, pos.Y + b);
             }
-            return pos;
+            return GateFits.Count > 0 ? PushOutOfGates(pos, r) : pos;  // a shut shutter gate (Gates.cs)
         }
 
         /// Walls and pillars stop every shot, yours and theirs (Combat.cs, in Collide).
@@ -467,7 +467,7 @@ namespace Arena
         /// key names its steering memory, now is its own clock, r how fat it is.
         V2 SteerDir(int key, V2 pos, float now, float r, V2 tpos, V2 dir)
         {
-            var d = ActiveLayout;
+            var d = SteerLayout;  // (with any shut gate as a wall, so the route goes round it: Gates.cs)
             if (d == null || d.Waypoints.Length == 0)
                 return dir;
             if (!SegBlocked(d, pos, tpos, r))

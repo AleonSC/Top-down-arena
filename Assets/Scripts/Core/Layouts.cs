@@ -51,6 +51,17 @@ namespace Arena
         public bool HasHold;             // the Bunker's hold point
         public V2 HoldPos;
         public float HoldR;
+
+        /// This plan with more solids added (the same corners and portal links): for steering round a shut gate (Gates.cs).
+        public LayoutDef WithSolids(Solid[] extra)
+        {
+            var d = (LayoutDef)MemberwiseClone();
+            var all = new Solid[Solids.Length + extra.Length];
+            Solids.CopyTo(all, 0);
+            extra.CopyTo(all, Solids.Length);
+            d.Solids = all;
+            return d;
+        }
     }
 
     public static class Layouts
