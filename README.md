@@ -1661,7 +1661,9 @@ chart**, and **Settings → Gameplay → Lag chart** sets the same thing (saved 
 
 ## Wave Lab (web wave tester)
 
-Double-click `Tools/WaveLab/WaveLab.command` (Mac/Linux) or `WaveLab.bat` (Windows), or run `Tools/WaveLab/run.sh [port]`: it installs mono if
+**No install (Windows):** download `WaveLab.zip` from the repo's [wave-lab release](https://github.com/AleonSC/Top-down-arena/releases/tag/wave-lab), unzip, double-click `Start-Windows.bat`
+(Mac/Linux need mono; `Tools/WaveLab/package.sh` builds the zip, and `.github/workflows/wavelab-release.yml` publishes it on every change).
+From the repo: double-click `Tools/WaveLab/WaveLab.command` (Mac/Linux) or `WaveLab.bat` (Windows), or run `Tools/WaveLab/run.sh [port]`: it installs mono if
 needed (apt/brew), builds, opens the browser and prints the phone address. It serves a browser page that runs the **real game simulation** on the host machine.
 Open `http://localhost:8080`, or the machine's LAN address on a phone. Build a wave set (enemy palette, squads, spawn
 points A-E you can drag, timing, level) or load a built-in set / `.waves` file, pick a class and weapon, then **Play**.
