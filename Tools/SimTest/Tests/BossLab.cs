@@ -24,42 +24,49 @@ static partial class Program
         return k != null ? k.Id : Kit.Soldier;
     }
 
+    /// One Boss Lab fight to the end (seats as on the lab's command line). The caller reads the lab, then calls Stop.
+    static BossLab LabFight(int wave, BotSkill skill, string[] seats, int seed)
+    {
+        float dt = 1f / 60f;
+        var lab = new BossLab { Wave = wave, Skill = skill, PlayerCount = seats.Length, Seed = seed };
+        for (int i = 0; i < seats.Length; i++)
+        {
+            var parts = seats[i].Split('/');
+            lab.Seats[i].Role = parts[0] == "T" ? Role.Tank : parts[0] == "H" ? Role.Healer : Role.Dps;
+            lab.Seats[i].Kit = parts.Length > 1 ? LabKit(parts[1]) : Kit.Soldier;
+            lab.Seats[i].Weapon = parts.Length > 2 ? int.Parse(parts[2]) : 0;
+        }
+        var host = new Session();
+        lab.Start(host, nextPort++);
+        for (int i = 0; i < 300 && !(host.Game.Running && host.Game.Players.Count >= seats.Length); i++)
+        {
+            Step(host, dt); lab.StepClients(dt); lab.UpdateClients(dt);
+            Thread.Sleep(2);
+        }
+        int frames = 0;
+        if (Environment.GetEnvironmentVariable("LABLOG") != null)  // LABLOG=1: the host's log, timed in seconds from the fight's start
+            host.Game.Log = m => Console.WriteLine("     {0,6:0.0}s  {1}", frames / 60f, m);
+        while (lab.Outcome == LabOutcome.Running && frames < (BossLab.TimeLimit + 30f) * 60)
+        {
+            Step(host, dt); lab.StepClients(dt); lab.UpdateClients(dt); lab.Watch(dt);
+            frames++;
+        }
+        if (Environment.GetEnvironmentVariable("LABLOG") != null)
+            Console.WriteLine("     {0,6:0.0}s  fight over: {1}", frames / 60f, lab.Outcome);
+        return lab;
+    }
+
     // Boss Lab from the command line: run.sh 1 1 lab <wave> <skill 1-3> <runs> <seat> [seat] [seat]
     // A seat is role/class/weapon, e.g. T/S/0 (Tank Soldier, first weapon), H/M/1, D/U/2 (U = summoner; a class name works too: D/Hemo/0).
     public static List<LabOutcome> LabRun(int wave, BotSkill skill, int runs, string[] seats, bool quiet = false)
     {
-        float dt = 1f / 60f;
         var outcomes = new List<LabOutcome>();
         float timeSum = 0f, hpSum = 0f;
         int downs = 0;
         var sources = new Dictionary<string, float>();
         for (int run = 0; run < runs; run++)
         {
-            var lab = new BossLab { Wave = wave, Skill = skill, PlayerCount = seats.Length, Seed = 1000 + run };
-            for (int i = 0; i < seats.Length; i++)
-            {
-                var parts = seats[i].Split('/');
-                lab.Seats[i].Role = parts[0] == "T" ? Role.Tank : parts[0] == "H" ? Role.Healer : Role.Dps;
-                lab.Seats[i].Kit = parts.Length > 1 ? LabKit(parts[1]) : Kit.Soldier;
-                lab.Seats[i].Weapon = parts.Length > 2 ? int.Parse(parts[2]) : 0;
-            }
-            var host = new Session();
-            lab.Start(host, nextPort++);
-            for (int i = 0; i < 300 && !(host.Game.Running && host.Game.Players.Count >= seats.Length); i++)
-            {
-                Step(host, dt); lab.StepClients(dt); lab.UpdateClients(dt);
-                Thread.Sleep(2);
-            }
-            int frames = 0;
-            if (Environment.GetEnvironmentVariable("LABLOG") != null)  // LABLOG=1: the host's log, timed in seconds from the fight's start
-                host.Game.Log = m => Console.WriteLine("     {0,6:0.0}s  {1}", frames / 60f, m);
-            while (lab.Outcome == LabOutcome.Running && frames < (BossLab.TimeLimit + 30f) * 60)
-            {
-                Step(host, dt); lab.StepClients(dt); lab.UpdateClients(dt); lab.Watch(dt);
-                frames++;
-            }
-            if (Environment.GetEnvironmentVariable("LABLOG") != null)
-                Console.WriteLine("     {0,6:0.0}s  fight over: {1}", frames / 60f, lab.Outcome);
+            var lab = LabFight(wave, skill, seats, 1000 + run);
             outcomes.Add(lab.Outcome);
             timeSum += lab.FightTime;
             hpSum += lab.BossHpFrac;

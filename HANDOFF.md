@@ -221,6 +221,20 @@ The lobby fits about 8 class cards in a row before they get too small.
   several players differ a little from run to run (real network timing); they're marked `NOISY=1` in the list and
   reported apart, to check by eye. Use it for UI redesigns: `-r HEAD` before committing a refactor that should look the
   same. About 80 s for all, about 3 min with `-r`.
+- **Variant sheet:** `Tools/Preview/variants.sh <name> <mode> [wave secs players] VAR=a,b,c [VAR2=x,y]` renders every
+  combination of the listed env-flag values (or `WAVE`/`SECS`/`PLAYERS`) in parallel and lays them out as a labelled
+  grid, `Tools/Preview/out/<name>.png`. Values split on `|` when they hold commas (`MOUSE=100,200|300,400`). `CROP=x,y,w,h`
+  zooms on a part of the screen, `SCALE`, `COLS`. Use it to offer the owner looks to choose from.
+- **GIF clips:** `Tools/Preview/clip.sh <name> <mode> [wave secs players]` keeps the match running after the shot
+  (`CLIP=<frames>` in `ShotClip.cs`; `FRAMES=30`, `CLIPSTEP=3` fixed steps a frame = 20 fps, `CLIPHURT=1`), or with
+  `VAR=from:to:step` draws one frame per value of a scene's time flag (`CASTT`, `THRUST`, `KDT`, ...). Writes
+  `out/<name>.gif` and `out/<name>-strip.png` (six frames). About 3 s a frame on 4 cores; `CROP` keeps GIFs small.
+- **Balance grid:** `Tools/BalanceGrid/grid.sh [waves=10,20,30] [runs=2] [roles=DTH] [skill=2] [classes]` runs the
+  `grid` report (`Tests/BalanceGrid.cs`: each role, class and weapon fights each listed boss in the Boss Lab, through
+  `LabFight`) on every core (`GRIDSHARD`, `PORTBASE`), writes `out/grid.csv` and draws `out/grid.png`: win rate, fight time
+  and the seat's boss DPS per cell, coloured by `METRIC=wins|dps|time` (dps and time against the role's median), plus
+  the biggest DPS outliers. `GRIDTEAM=auto` (default) gives every row the same two partners (Soldier Tank / Soldier
+  DPS / Elementalist Healer for the other roles); `GRIDTEAM=` fights alone. 330 fights (three bosses, two runs) take ~3 min.
 - **Screenshots without Unity:** `Tools/Preview/shot.sh <name> <mode>` → `Tools/Preview/out/<name>.png`. The arena's
   triangles are drawn like the GPU (`Tools/Preview/raster.py`: colour blended across each triangle, alpha blending, the
   glow pass adding light, 2x supersampled; about 7 s); `FAST=1` gives the old quick look (each triangle flat in its
