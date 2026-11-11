@@ -892,10 +892,15 @@ static partial class Program
         foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); g.Diff.Set(DiffKnob.BuildVote, 1f); gg.Diff.Set(DiffKnob.BuildVote, 1f); gg.Expanded.Clear(); gg.Expanded.Add(east); }
         var first = new Dictionary<int, V2>();
         float earliest = float.MaxValue;
-        Run(s, dt, 30f, () => g.State == MatchState.Fighting && g.BreachAge > 6f, () =>
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        int startUnits = -1;
+        bool warned = false, clientWarned = false;
+        Run(s, dt, 30f, () => g.State == MatchState.Fighting && g.BreachAge > 9f, () =>
         {
             foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; }
             if (g.State != MatchState.Fighting) return;
+            if (startUnits < 0) startUnits = (int)typeof(Game).GetMethod("QueuedUnits", flags).Invoke(g, null) + g.Enemies.Count;
+            warned |= g.BreachWarnOn; clientWarned |= cg.BreachWarnOn;
             foreach (var e in g.Enemies.Values)
                 if (!e.Def.IsBoss && !first.ContainsKey(e.Id)) { first[e.Id] = e.Pos; earliest = Math.Min(earliest, g.BreachAge); }
         });
@@ -906,6 +911,12 @@ static partial class Program
         Check(first.Count > 0 && byBreach >= first.Count * 0.8f, "enemies come in through them (" + byBreach + " of " + first.Count + " by a breach)");
         Check(first.Values.All(p => g.CurrentWorld.Areas.Any(a => a.Contains(p))), "every one of them comes in inside a room");
         Check(earliest >= Breaches.Telegraph - 0.2f, "not before the barriers are up (first at " + earliest.ToString("0.00") + " s)");
+        float warn = Breaches.WarnTime(hb.Length);
+        Check(warned && clientWarned && earliest >= warn - 0.2f, "the breach warning plays on both screens and nothing comes in until it's over (" + warn.ToString("0.0") + " s, first at " + earliest.ToString("0.00") + " s)");
+        Check(!g.BreachWarnOn && !cg.BreachWarnOn, "and it ends");
+        typeof(Game).GetMethod("BuildWave", flags).Invoke(g, new object[] { g.Wave });
+        int plain = (int)typeof(Game).GetMethod("QueuedUnits", flags).Invoke(g, null);
+        Check(startUnits >= plain * (Breaches.Flood - 0.5f), "a breach wave brings " + Breaches.Flood + "x the enemies (" + startUnits + " vs " + plain + " for the plain wave)");
     }
 
     // Shutter gates (Docs/RoomBuilding2.md step 3): a gate on a door, voted, synced; G shuts it for everyone for 8 s, then it recharges.
