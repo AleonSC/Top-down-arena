@@ -15,9 +15,9 @@ Related: [`Checkpoints.md`](Checkpoints.md) (lives), [`Campaign.md`](Campaign.md
 **The loop:** Campaign → beat a boss → its Hunt opens → win the Hunt → its perk → take the perk into the Campaign →
 reach the next boss.
 
-**Fewer choices, not more:** no 50/100 toggle (Hunts are the short mode). The arena styles (Classic, Rooms, Expanding)
-stop being lobby choices: they become what the Campaign's cycles look like (below). The lobby's mode carousel shows
-Campaign, Boss Hunt and Practice.
+**Fewer choices, not more:** no 50/100 toggle (Hunts are the short mode). The lobby's mode carousel shows Campaign,
+Boss Hunt and Practice. **The Campaign is the Expanding arena** (owner, Nov 2026: building rooms is unique to the genre
+and a selling point); the arena switches leave the Difficulty tab (see below).
 
 ## The owner's problem with today's run
 
@@ -45,14 +45,17 @@ ramps through what you have to know, not only through health and damage.
   most of this; the other nine bosses need factions anyway for their Hunts, so it's the same work.
 - A Boss Hunt is the **hard version of the same cycle** (more types, tougher squads), as `Campaign.md` plans.
 
-## Arena style per cycle
+## The arena (owner's decision, replaces "arena style per cycle")
 
-Each cycle has a fixed arena style that fits its boss, so a Campaign shows every style without the player picking one:
-e.g. the Warden's cycle in **Rooms** (cell blocks), a later one in **Expanding**, others in **Classic** with its layouts.
-Which style goes with which boss is open. The switches stay in the Difficulty tab's Custom, for players who want one
-style the whole run. **Boss Hunts stay a single arena (Classic).**
+- **The Campaign is always the Expanding arena**: the team builds rooms between waves for the whole run.
+- **Simple Arena** becomes a **run modifier** (the Modifiers tab, tier **Risky**): today's Classic arena (with its
+  floor plans) all run, no building. With Boss Hunts it's the quicker, simpler way to play.
+- The Difficulty tab loses its arena switches (Arena layouts, Classic/Rooms, Expanding).
+- The Rooms arena (Wings) has no switch left; whether it stays reachable (Custom, dev) or goes is open.
+- **Boss Hunts stay a single arena (Classic).**
+- Later (owner): a game mode that generates rooms automatically.
 
-Saving works in every style (step 1, built).
+Saving works in every arena (step 1, built).
 
 ## Balance for 100 waves
 
@@ -88,13 +91,14 @@ damage about 4x.
    wave 10). The mid-boss: a Lockdown Drill Data Gate was built and then **removed by the owner**; the stretch
    keeps its usual random Data Gate. Wave 5 is a recap. Suite
    `wardencycle`.
-4. Arena style per cycle; lobby shows Campaign / Boss Hunt / Practice; switches moved to Custom.
+4. The Campaign is the Expanding arena; Simple Arena becomes a Risky modifier; the Difficulty tab loses its arena
+   switches; the lobby shows Campaign / Boss Hunt / Practice (Gauntlet renamed).
 5. Checkpoints and lives (`Checkpoints.md`).
 6. A teaching cycle for each later boss, together with its Hunt.
 
 ## Open
 
 - The wave-5 mid-boss: an elite with one boss move, a small copy of the boss, or a scripted squad event?
-- Which arena style goes with which boss?
+- Does the Rooms arena (Wings) stay reachable anywhere?
 - Rename Gauntlet to Campaign in the lobby and the README?
 - A reward for the furthest boss reached on a lost run?
