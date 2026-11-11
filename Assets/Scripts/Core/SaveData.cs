@@ -43,6 +43,7 @@ namespace Arena
         public int Wave;              // waves cleared: resuming starts wave Wave + 1 (or the boss after it, unless BossSlot)
         public bool BossSlot;
         public bool LongRun;          // a 100-wave Campaign (Hunts.cs); saves from before it are the old 50 waves
+        public int LivesUsed;         // lives used so far (Checkpoints.cs)
         public int Leg = 1;           // a Campaign: the leg of Wave that was cleared (0 first, 1 second)         // the boss after wave Wave was beaten (Hunts.cs); saves from before the boss slot: a multiple of 5 means yes
         public int Score;
         public RunMod Mods;
@@ -65,7 +66,17 @@ namespace Arena
 
         /// "Wave 14 · 2 players · 23 min" for lists.
         public string Summary => (Wave > 0 && Wave % 5 == 0 && !BossSlot && Leg == 1 ? "Boss " + ShownWave : "Wave " + (ShownWave + 1)) + (Endless ? " (endless)" : "") + " · " + Seats.Count + (Seats.Count == 1 ? " player" : " players")
-                                 + " · " + (int)(RunTime / 60f) + " min";
+                                 + " · " + (int)(RunTime / 60f) + " min" + LivesText;
+
+        /// " · 2 lives" (the lives left, by the run's difficulty), or nothing for a run with none.
+        string LivesText
+        {
+            get
+            {
+                int left = Math.Max(0, (int)Math.Round(Diff[DiffKnob.Lives]) - LivesUsed);
+                return (int)Math.Round(Diff[DiffKnob.Lives]) <= 0 ? "" : " · " + left + (left == 1 ? " life" : " lives");
+            }
+        }
 
         /// The last wave cleared as the player saw it (1-100 in a Campaign).
         public int ShownWave => LongRun && Wave > 0 ? Wave * 2 - 1 + Leg : Wave;
@@ -80,6 +91,7 @@ namespace Arena
             Line(sb, "wave", Wave);
             Line(sb, "slot", BossSlot ? 1 : 0);
             if (LongRun) Line(sb, "campaign", Leg);
+            if (LivesUsed > 0) Line(sb, "lives", LivesUsed);
             Line(sb, "score", Score);
             Line(sb, "mods", (int)Mods);
             Line(sb, "difficulty", Diff.ToText());
@@ -154,6 +166,7 @@ namespace Arena
                         case "saved": save.SavedAt = DateTime.Parse(val, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind); break;
                         case "wave": save.Wave = I(val); if (!sawSlot) save.BossSlot = save.Wave > 0 && save.Wave % 5 == 0; break;
                         case "slot": save.BossSlot = I(val) != 0; sawSlot = true; break;
+                        case "lives": save.LivesUsed = Math.Max(0, I(val)); break;
                         case "campaign": save.LongRun = true; save.Leg = I(val) != 0 ? 1 : 0; break;
                         case "score": save.Score = I(val); break;
                         case "mods": save.Mods = (RunMod)I(val); break;
@@ -312,6 +325,32 @@ namespace Arena
         public static string Folder;  // null: saving is off
 
         static string PathOf(string id) => Path.Combine(Folder, id + ".run");
+        static string CheckpointOf(string id) => Path.Combine(Folder, id + ".checkpoint");
+
+        /// The run's checkpoint (Checkpoints.cs): the save as it was after the last boss. Only the newest is kept.
+        public static bool WriteCheckpoint(RunSave save)
+        {
+            if (Folder == null || string.IsNullOrEmpty(save.Id))
+                return false;
+            try
+            {
+                Directory.CreateDirectory(Folder);
+                SafeWrite(CheckpointOf(save.Id), save.ToText());
+                return true;
+            }
+            catch (IOException) { return false; }
+            catch (UnauthorizedAccessException) { return false; }
+        }
+
+        /// The run's checkpoint, or null if it has none.
+        public static RunSave ReadCheckpoint(string id)
+        {
+            if (Folder == null || string.IsNullOrEmpty(id) || !File.Exists(CheckpointOf(id)))
+                return null;
+            try { return RunSave.Parse(File.ReadAllText(CheckpointOf(id)), id); }
+            catch (IOException) { return null; }
+            catch (UnauthorizedAccessException) { return null; }
+        }
 
         /// Every saved run, newest first (files that don't read as saves are left alone and not listed).
         public static List<RunSave> List()
@@ -390,6 +429,8 @@ namespace Arena
             {
                 if (File.Exists(PathOf(id)))
                     File.Delete(PathOf(id));
+                if (File.Exists(CheckpointOf(id)))
+                    File.Delete(CheckpointOf(id));  // (its checkpoint goes with it)
             }
             catch (IOException) { }
             catch (UnauthorizedAccessException) { }

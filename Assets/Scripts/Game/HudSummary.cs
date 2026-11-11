@@ -55,6 +55,10 @@ namespace Arena
                 : won ? "YOU BEAT ALL " + game.ShownLastWave + " WAVES AND THE ECLIPSE" : "YOU MADE IT TO WAVE " + game.ShownWave;
             if (!won && game.Practice == null && game.BossNow)
                 sub += "  ·  " + Defs.Get(game.BossAt(game.Wave)).Name.ToUpperInvariant();
+            if (won && game.Deathless)
+                sub += "  ·  DEATHLESS";  // won without using a life (Checkpoints.cs)
+            else if (!won && game.RetryReady)
+                sub = "DOWN ON WAVE " + game.ShownWave + "  ·  RETRY FROM " + game.RetryWave + "  ·  " + game.LivesLeft + (game.LivesLeft == 1 ? " LIFE LEFT" : " LIVES LEFT");
 
             // The title tube. Before the title has glided up it is just the stamp in the middle of the screen.
             var titleBox = new Rect(RackL, 24f, RackLW, 140f);
@@ -172,7 +176,8 @@ namespace Arena
             {
                 float by = H - 82f, bh = 58f, gap = 22f;
                 bool ranked = game.RunStatsReady && game.LastGain != null, host = session.IsHost;
-                int count = 1 + (ranked ? 1 : 0) + (host ? (endless ? 3 : 2) : 0);
+                bool retry = host && !won && game.RetryReady;  // a life left: retry from the last boss's checkpoint (Checkpoints.cs)
+                int count = 1 + (ranked ? 1 : 0) + (host ? (endless ? 3 : 2) : 0) + (retry ? 1 : 0);
                 float kw = (RackFull - gap * (count - 1)) / count;
                 if (!host)
                     kw = Mathf.Min(kw, 260f);
@@ -203,14 +208,20 @@ namespace Arena
                             game.ContinueEndless();
                         x += kw + gap;
                     }
-                    if (KeyUi.Key(new Rect(x, by, kw, bh), "Play again  [R]", PixelArt.Get("ui_play"), 22, true))
+                    if (retry)
+                    {
+                        if (KeyUi.Key(new Rect(x, by, kw, bh), "Retry  [Y]", PixelArt.Get("ui_play"), 22, true))
+                            session.RetryRun();
+                        x += kw + gap;
+                    }
+                    if (KeyUi.Key(new Rect(x, by, kw, bh), "Play again  [R]", PixelArt.Get("ui_play"), 22, !retry))
                         session.StartMatch();
                     x += kw + gap;
                     if (KeyUi.Key(new Rect(x, by, kw, bh), "Back to lobby  [L]", PixelArt.Get("ui_back"), 22))
                         RecallToLobby();  // everyone beams out first (Recall.cs)
                 }
                 else
-                    Ui.Label(new Rect(x, by, RackL + RackFull - x, bh), "Waiting for the host…", 16, Ui.Muted, TextAnchor.MiddleRight, true);
+                    Ui.Label(new Rect(x, by, RackL + RackFull - x, bh), !won && game.RetryReady ? "The host can retry from wave " + game.RetryWave + "…" : "Waiting for the host…", 16, Ui.Muted, TextAnchor.MiddleRight, true);
             });
             if (game.Recorder != null)
                 Ui.Label(new Rect(RackL, H - 16f, RackFull, 14f), "Session recorded: " + game.Recorder.Path, 10, new Color(1f, 1f, 1f, 0.35f), TextAnchor.MiddleLeft);

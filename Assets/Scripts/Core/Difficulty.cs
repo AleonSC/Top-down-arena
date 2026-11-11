@@ -35,9 +35,10 @@ namespace Arena
         ArenaRooms,     // on/off: the Arena setting, Rooms (on: side rooms and hallways on regular waves, Rooms.cs) or Classic (off)
         ArenaExpanding, // on/off: the Arena setting, Expanding (on: starts as the Classic box and grows by rooms the team buys, ExpansionGame.cs); wins over Rooms
         Campaign,       // on/off: every wave is themed enemies, the last boss's fading out and the next one's building up (Approaches.cs, Docs/Campaign.md); off = the Boss approach setting
+        Lives,          // count: retries from the last boss's checkpoint when everyone goes down (Checkpoints.cs)
     }
 
-    public enum KnobUnit { Times, Percent, PercentPerWave, Seconds, HpPerSecond, OnOff }
+    public enum KnobUnit { Times, Percent, PercentPerWave, Seconds, HpPerSecond, OnOff, Count }
 
     public class KnobDef
     {
@@ -61,6 +62,7 @@ namespace Arena
                 case KnobUnit.PercentPerWave: return "+" + (v * 100f).ToString("0.0", CultureInfo.InvariantCulture) + "% / wave";
                 case KnobUnit.Seconds: return v.ToString("0.##", CultureInfo.InvariantCulture) + " s";
                 case KnobUnit.OnOff: return v >= 0.5f ? "On" : "Off";
+                case KnobUnit.Count: return Math.Round(v).ToString(CultureInfo.InvariantCulture);
                 default: return v.ToString("0.##", CultureInfo.InvariantCulture) + " HP/s";
             }
         }
@@ -70,6 +72,8 @@ namespace Arena
         {
             if (Unit == KnobUnit.OnOff)
                 return v >= 0.5f ? "on" : "off";
+            if (Unit == KnobUnit.Count)
+                return Math.Round(v).ToString(CultureInfo.InvariantCulture);
             bool pct = Unit == KnobUnit.Percent || Unit == KnobUnit.PercentPerWave;
             return (pct ? v * 100f : v).ToString(Unit == KnobUnit.PercentPerWave ? "0.0" : "0.##", CultureInfo.InvariantCulture);
         }
@@ -297,6 +301,10 @@ namespace Arena
             new KnobDef { Knob = DiffKnob.Campaign, Name = "Campaign buildup", Flavour = true,
                 Desc = "On: every wave is made of boss-themed enemies: the last boss's phase out while the next boss's build up. Off: the usual random waves with the Boss approach share.",
                 Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 1f, 1f, 1f, 1f } },
+            // Lives (Checkpoints.cs, Docs/Checkpoints.md): retries from the last boss's checkpoint when everyone goes down.
+            new KnobDef { Knob = DiffKnob.Lives, Name = "Lives", HarderUp = false,
+                Desc = "Retries from the last boss's checkpoint when everyone goes down: the run comes back as it was there, and its score drops by a quarter each time.",
+                Unit = KnobUnit.Count, Min = 0f, Max = 5f, Step = 1f, Presets = new[] { 3f, 2f, 1f, 0f } },
         };
     }
 

@@ -39,6 +39,8 @@ static partial class Shot {
     {
       // The end of a run (VICTORY=1 or mode victory: a win): sample numbers for each player.
       var gg = host.Game; gg.State = mode == "victory" ? MatchState.Victory : MatchState.GameOver; gg.RunStatsReady = true; gg.RunTime = 286f; gg.Score = 546;
+      // RETRY=1: a life left, the host can retry from the checkpoint (Checkpoints.cs).
+      if (Environment.GetEnvironmentVariable("RETRY") != null) { gg.RetryReady = true; gg.RetryWave = 11; gg.LivesUsed = 0; }
       int k = 0;
       foreach (var pl in gg.Players.Values)
       {

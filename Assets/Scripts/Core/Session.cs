@@ -117,7 +117,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 277;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 278;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -777,6 +777,34 @@ namespace Arena
             return true;
         }
 
+        /// Host, on the game over screen: retry the run from its checkpoint (Checkpoints.cs), each player back in their seat
+        /// (by name, else the first free one), straight into the match like Play again.
+        public void RetryRun()
+        {
+            if (!IsHost)
+                return;
+            var save = Game.TakeRetry();
+            if (save == null)
+                return;
+            Resume = save;
+            Modifiers = save.Mods;
+            Diff = save.Diff.Copy();
+            PracticeMode = false;
+            HuntMode = false;
+            foreach (var e in Lobby.Values)
+                e.Seat = -1;
+            foreach (var e in Lobby.Values)
+            {
+                int seat = Game.SeatFor(save, e.Name);
+                if (seat < 0 || SeatTaken(seat))
+                    seat = FirstFreeSeat();
+                if (seat >= 0)
+                    TakeSeat(e, seat);
+            }
+            BroadcastLobby();
+            StartMatch();
+        }
+
         bool SeatTaken(int seat)
         {
             foreach (var e in Lobby.Values)
@@ -1256,6 +1284,7 @@ namespace Arena
                 Status = "That Boss Hunt is locked: beat the boss in a run first";
                 return;
             }
+            Game.SettleRetry();  // a retry left untaken ends the old run now, before the new one's start goes out (Checkpoints.cs)
             foreach (var e in Lobby.Values)
                 e.Ready = false;  // ready up again next time you're back in the lobby
             Game.Practice = PracticeMode ? Plan.Copy() : null;  // a copy, so edits don't change a run in progress
