@@ -145,6 +145,18 @@ static class Lab
                     try { wn = Defs.Weapon((Role)r, (Kit)k, w).Name; } catch { wn = "Weapon " + (w + 1); }
                     sb.Append(w > 0 ? "," : "").Append(S(wn));
                 }
+                sb.Append("],\"abilities\":[");
+                for (int a = 0; a < Upgrades.RoleAbilityChoices; a++)
+                    sb.Append(a > 0 ? "," : "").Append(S(Upgrades.Ability(Upgrades.RoleAbility((Role)r, (Kit)k, a)).Name));
+                sb.Append("],\"ults\":[");
+                bool fu = true;
+                for (int u = 0; u < Upgrades.UltKeys; u++)
+                {
+                    var id = Upgrades.Ultimate((Role)r, (Kit)k, u);
+                    if (u > 0 && Upgrades.AltUltimate((Role)r, (Kit)k, u) == AbilityId.None) continue;
+                    sb.Append(fu ? "" : ",").Append("{\"key\":").Append(u).Append(",\"name\":").Append(S(Upgrades.Ability(id).Name)).Append('}');
+                    fu = false;
+                }
                 sb.Append("]}");
             }
             sb.Append("]}");
@@ -195,7 +207,7 @@ static class Lab
         var role = (Role)(int)D(m, "role", 2);
         var kit = (Kit)(int)D(m, "kit", 0);
         int weapon = (int)D(m, "weapon", 0);
-        if (!sess.Host(nextGamePort++, "You", role, weapon, 0, kit))
+        if (!sess.Host(nextGamePort++, "You", role, weapon, (int)D(m, "ability", 0), kit, 0, (int)D(m, "ult", 0)))
             return "Couldn't start the match: " + sess.Status;
         old?.Leave("");
         sess.Diff.Set(DiffKnob.Campaign, 0f);
@@ -207,6 +219,8 @@ static class Lab
         g.PracticeIndex = Math.Max(-1, (int)D(m, "wave", 1) - 2);  // the index of the wave just cleared: the next one is the start wave
         g.SetMyAutoReady(true);
         god = B(m, "god");
+        repSet = set;
+        rep = new List<Row>(); cur = null; wasFighting = false; repSent = false; repWho = role + " " + kit + ", " + Defs.Weapon(role, kit, weapon).Name;
         botSkill = BotFrom(Str(m, "bot", "off"));
         inp = new PlayerInput { AimAt = new V2(800, 450) };
         return null;
@@ -233,10 +247,69 @@ static class Lab
             else if (t == "start") { string err = StartMatch(m); c.Send("{\"t\":\"started\",\"err\":" + (err == null ? "null" : S(err)) + "}"); }
             else if (t == "bot") botSkill = BotFrom(Str(m, "level", "off"));
             else if (t == "god") god = B(m, "on");
+            else if (t == "report" && sess != null && rep != null) c.Send(ReportJson(sess.Game));
             else if (t == "stop" && sess != null) { sess.Game.Running = false; sess.Leave(""); sess = null; }
             else if (t == "parse") c.Send("{\"t\":\"parsed\",\"set\":" + ParseWaves(Str(m, "text")) + "}");
             else if (t == "wave" && sess != null) sess.Game.PracticeIndex = Math.Max(-1, (int)D(m, "n", 1) - 2);
         }
+    }
+
+    // ---- Run report: one row per wave fought (what a bot run or your own run did), sent when the run ends or on request ----
+    class Row { public int Wave, Level, Enemies, Kills, Downs; public float K0, D0, T0, H0; public float StartT, Clear, MinHp = 1f, Dealt, Taken, Healing; public bool Cleared; }
+    static List<Row> rep;
+    static Row cur;
+    static WaveSet repSet;
+    static bool wasFighting, repSent, wasDown;
+    static string repWho = "";
+
+    static void Track(Game g, Player me)
+    {
+        if (rep == null || me == null) return;
+        bool fighting = g.State == MatchState.Fighting;
+        if (fighting && !wasFighting)
+        {
+            int i = g.PracticeIndex;
+            var w = repSet != null && i >= 0 && i < repSet.Waves.Count ? repSet.Waves[i] : null;
+            cur = new Row { Wave = i + 1, Level = w != null ? w.Level : 0, Enemies = w != null ? w.EnemyCount : 0, StartT = g.RunTime, K0 = me.Run.Kills, D0 = me.Run.DamageDealt, T0 = me.Run.DamageTaken, H0 = me.Run.HealingDone };
+            wasDown = false;
+        }
+        if (fighting && cur != null)
+        {
+            cur.MinHp = Math.Min(cur.MinHp, me.MaxHp > 0 ? Math.Max(0f, me.Hp) / me.MaxHp : 1f);
+            if (me.Downed && !wasDown) cur.Downs++;
+            wasDown = me.Downed;
+        }
+        if (wasFighting && !fighting && cur != null)
+        {
+            cur.Clear = g.RunTime - cur.StartT;
+            cur.Cleared = g.State == MatchState.Intermission || g.State == MatchState.Victory;
+            cur.Kills = (int)(me.Run.Kills - cur.K0); cur.Dealt = me.Run.DamageDealt - cur.D0; cur.Taken = me.Run.DamageTaken - cur.T0; cur.Healing = me.Run.HealingDone - cur.H0;
+            rep.Add(cur); cur = null;
+        }
+        wasFighting = fighting;
+        if ((g.State == MatchState.Victory || g.State == MatchState.GameOver) && !repSent)
+        {
+            repSent = true;
+            string r = ReportJson(g);
+            foreach (var c in clients.ToArray()) c.Send(r);
+        }
+    }
+
+    static string ReportJson(Game g)
+    {
+        var rows = new List<Row>(rep ?? new List<Row>());
+        if (cur != null) rows.Add(new Row { Wave = cur.Wave, Level = cur.Level, Enemies = cur.Enemies, StartT = cur.StartT, Clear = g.RunTime - cur.StartT, MinHp = cur.MinHp, Downs = cur.Downs });
+        string result = g.State == MatchState.Victory ? "victory" : g.State == MatchState.GameOver ? "wiped" : "stopped";
+        var sb = new StringBuilder("{\"t\":\"report\",\"set\":" + S(repSet != null ? repSet.Name : "") + ",\"who\":" + S(repWho) + ",\"bot\":" + S(botSkill.ToString().ToLowerInvariant())
+            + ",\"god\":" + (god ? "true" : "false") + ",\"result\":" + S(result) + ",\"time\":" + N(g.RunTime) + ",\"rows\":[");
+        for (int i = 0; i < rows.Count; i++)
+        {
+            var r = rows[i];
+            sb.Append(i > 0 ? "," : "").Append("{\"wave\":").Append(r.Wave).Append(",\"level\":").Append(r.Level).Append(",\"enemies\":").Append(r.Enemies).Append(",\"cleared\":").Append(r.Cleared ? "true" : "false")
+              .Append(",\"clear\":").Append(N(r.Clear)).Append(",\"kills\":").Append(r.Kills).Append(",\"dealt\":").Append(N(r.Dealt)).Append(",\"taken\":").Append(N(r.Taken))
+              .Append(",\"healing\":").Append(N(r.Healing)).Append(",\"minHp\":").Append(N(r.MinHp * 100)).Append(",\"downs\":").Append(r.Downs).Append('}');
+        }
+        return sb.Append("]}").ToString();
     }
 
     // One simulation step at 60 Hz; a snapshot goes out every second step.
@@ -326,6 +399,7 @@ static class Lab
                     g.FixedStep(dt, inp);
                     g.Update(dt);
                     g.Sounds.Clear();
+                    Track(g, me);
                     if (++tick % 2 == 0 && clients.Count > 0)
                     {
                         string snap = Snapshot();
