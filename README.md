@@ -1217,7 +1217,7 @@ names its boss), the **road to the next boss**, the **Ready** key (Y), the **Aut
 status and the countdown bar. Y walks the steps (Results, Build, Ready) before it readies you, and Auto-ready only counts once you reach Ready. The next wave only starts once **everyone is ready**, **3 seconds** after the last Ready, and there is no
 timer while anyone is still waiting. **Auto-ready** is remembered between runs: you count as ready as soon as your upgrade
 picks are done, and when everyone has it on the countdown is the usual 4 seconds, so solo play with it on moves at the
-old pace (it is off by default). A small box beside each player shows who is ready (a tick, an A for auto-ready, dashed while they aren't).
+old pace (it is off by default). A small box beside each player shows who is ready (a tick, an A for auto-ready, dashed while they aren't). **Minimize** (top right of the box) folds it into a slim strip at the top so you can walk to a shop or a chest; the strip keeps the next wave, the status, Ready and **Open** (Y there readies you at once). It opens again at the next break.
 The first countdown of a run, the Practice Range and the dev tools' wave jump don't use ready-up. Mockup:
 `Docs/Mockups/wave-cleared-ready.html` (option 1).
 
