@@ -86,7 +86,10 @@ namespace Arena
 
             if (ascOpen >= 0 && Event.current.type == EventType.MouseDown)
             {
-                ascOpen = -1;  // the ascension window closes on any click (and the click goes no further)
+                if (ascBuyRect.Contains(Event.current.mousePosition))
+                    Profile.Current.BuyVariant(ascWeapon);  // the Buy button keeps the window open
+                else
+                    ascOpen = -1;  // the variants window closes on any other click (and the click goes no further)
                 Event.current.Use();
             }
 
@@ -613,7 +616,9 @@ namespace Arena
 
         static readonly string[] RoleIcons = { "role_tank", "role_healer", "role_dps", "role_dps" };  // (Wildcard borrows the DPS icon for now)  // PixelArt.cs
 
-        int ascOpen = -1;   // the weapon slot whose ascension window is open (-1 = closed; any click closes it)
+        int ascOpen = -1;
+        Rect ascBuyRect;   // the variants window's Buy button this frame (empty when none)
+        string ascWeapon;  // the weapon whose variants window is open   // the weapon slot whose ascension window is open (-1 = closed; any click closes it)
         int detailSel;      // what the detail box shows: 0 = weapon, 1 = ability, 2 = ultimate (whichever was clicked last)
 
         /// The ability the detail box and the preview show: a Wildcard's second when that was clicked last, else the first.
@@ -776,7 +781,7 @@ namespace Arena
                             weaponChoice = i;
                         detailSel = 0;
                     }
-                    if (AscensionKey(new Rect(main.xMax - 2f, b.y, b.xMax - (main.xMax - 2f), b.height), me.Weapon == i, calm))
+                    if (AscensionKey(new Rect(main.xMax - 2f, b.y, b.xMax - (main.xMax - 2f), b.height), Defs.Weapon(me.Role, me.Kit, i).Name, me.Weapon == i, calm))
                         ascOpen = i;
                 }
                 int abilitySlots = Mathf.Max(AbilitySlots, Upgrades.RoleAbilityChoices);
@@ -862,7 +867,7 @@ namespace Arena
         }
 
         /// The ascension button on the right quarter of a weapon key: a rank mark over "0/3". True on a click (it opens the ascension window).
-        bool AscensionKey(Rect r, bool on, bool calm)
+        bool AscensionKey(Rect r, string weapon, bool on, bool calm)
         {
             bool hover = GUI.enabled && r.Contains(Event.current.mousePosition);
             var c = CrtUi.Ink;
@@ -876,43 +881,66 @@ namespace Arena
                     Ui.Fill(new Rect(cx - 2f * (k + 1), py, 2f, 2f), ic);
                     Ui.Fill(new Rect(cx + 2f * k, py, 2f, 2f), ic);
                 }
-            Ui.Label(new Rect(r.x, r.y + 18f, r.width, r.height - 20f), "0/" + AscensionsPerWeapon, 10, ic, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(r.x, r.y + 18f, r.width, r.height - 20f), Profile.Current.VariantTier(weapon) + "/" + AscensionsPerWeapon, 10, ic, TextAnchor.MiddleCenter, true);
             if (hover)
             {
                 lockedTip = r;
                 lockedTipOn = true;
-                lockedTipText = "Ascensions  0/" + AscensionsPerWeapon;
+                lockedTipText = "Variants  " + Profile.Current.VariantTier(weapon) + "/" + AscensionsPerWeapon;
             }
             return Ui.HitArea(r);
         }
 
-        /// The ascension window over the loadout panel: the weapon's name and three locked ascensions. Any click closes it (DrawLobby).
+        /// The variants window over the loadout panel: the weapon's name, its two variant tiers (bought or locked) and a Buy button for the
+        /// next one, paid in Cores. Any other click closes it (DrawLobby).
         void DrawAscensionWindow(Rect r, string weapon, bool calm)
         {
+            var prof = Profile.Current;
+            int owned = prof.VariantTier(weapon), cost = Variants.Cost(owned);
+            ascWeapon = weapon;
             Ui.Fill(r, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.86f));
-            float ww = r.width * 0.78f, wh = 250f;
+            float ww = r.width * 0.78f, wh = 280f;
             var win = new Rect(r.center.x - ww / 2f, r.center.y - wh / 2f, ww, wh);
             Ui.Fill(win, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 1f));
             Ui.Fill(win, LobbyKit.Ink(0.05f));
             CrtKit.Frame(win, 2f, CrtUi.Ink);
             float px = win.x + 18f;
-            Ui.Label(new Rect(px, win.y + 10f, 300f, 16f), "WEAPON ASCENSIONS", 11, LobbyKit.Gold, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(px, win.y + 10f, 300f, 16f), "WEAPON VARIANTS", 11, LobbyKit.Gold, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(win.xMax - 218f, win.y + 10f, 200f, 16f), "CORES  " + prof.Cores, 11, LobbyKit.Gold, TextAnchor.MiddleRight, true);
             LobbyKit.Fit(new Rect(px, win.y + 26f, win.width - 36f, 40f), weapon.ToUpperInvariant(), 32, 16, Color.white, TextAnchor.MiddleLeft, calm);
-            Ui.Label(new Rect(px, win.y + 68f, 300f, 18f), "ASCENSIONS 0 / " + AscensionsPerWeapon + " UNLOCKED", 12, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(px, win.y + 68f, 300f, 18f), "VARIANTS " + owned + " / " + AscensionsPerWeapon + " UNLOCKED", 12, CrtUi.Dim, TextAnchor.MiddleLeft, true);
             float tw = (win.width - 36f - 10f * (AscensionsPerWeapon - 1)) / AscensionsPerWeapon;
             var dim = CrtUi.Dim;
             for (int i = 0; i < AscensionsPerWeapon; i++)
             {
+                bool got = i < owned;
+                var col = got ? LobbyKit.Gold : dim;
                 var c = new Rect(px + i * (tw + 10f), win.y + 96f, tw, 112f);
-                Ui.Fill(c, new Color(dim.r, dim.g, dim.b, 0.03f));
-                CrtKit.Dashed(c, 2f, new Color(dim.r, dim.g, dim.b, 0.7f));
-                Ui.Label(new Rect(c.x + 10f, c.y + 6f, c.width - 20f, 34f), Numerals[i], 28, dim, TextAnchor.MiddleLeft, true);
-                float lw2 = Ui.TextWidth("LOCKED", 11, true) - 6f;
-                Ui.Icon(new Rect(c.x + 10f, c.y + 44f, 12f, 12f), PixelArt.Get("ui_lock"), new Color(1f, 1f, 1f, 0.5f));
-                Ui.Label(new Rect(c.x + 26f, c.y + 42f, lw2 + 14f, 16f), "LOCKED", 11, dim, TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(c.x + 10f, c.y + 62f, c.width - 20f, 44f), "Coming soon", 12, dim, TextAnchor.UpperLeft, false, true);
+                Ui.Fill(c, new Color(col.r, col.g, col.b, 0.03f));
+                if (got) CrtKit.Frame(c, 2f, col); else CrtKit.Dashed(c, 2f, new Color(dim.r, dim.g, dim.b, 0.7f));
+                Ui.Label(new Rect(c.x + 10f, c.y + 6f, c.width - 20f, 34f), Numerals[i], 28, col, TextAnchor.MiddleLeft, true);
+                if (got)
+                    Ui.Label(new Rect(c.x + 10f, c.y + 44f, c.width - 20f, 16f), "UNLOCKED", 11, col, TextAnchor.MiddleLeft, true);
+                else
+                {
+                    float lw2 = Ui.TextWidth("LOCKED", 11, true) - 6f;
+                    Ui.Icon(new Rect(c.x + 10f, c.y + 44f, 12f, 12f), PixelArt.Get("ui_lock"), new Color(1f, 1f, 1f, 0.5f));
+                    Ui.Label(new Rect(c.x + 26f, c.y + 42f, lw2 + 14f, 16f), "LOCKED", 11, dim, TextAnchor.MiddleLeft, true);
+                }
+                Ui.Label(new Rect(c.x + 10f, c.y + 62f, c.width - 20f, 44f), "Effect coming soon", 12, dim, TextAnchor.UpperLeft, false, true);
             }
-            Ui.Label(new Rect(win.x, win.yMax - 26f, win.width, 18f), "CLICK ANYWHERE TO CLOSE", 10, CrtUi.Dim, TextAnchor.MiddleCenter, true);
+            ascBuyRect = default;
+            if (cost >= 0)
+            {
+                bool afford = prof.Cores >= cost;
+                var buy = new Rect(win.center.x - 90f, win.yMax - 58f, 180f, 24f);
+                var bc = afford ? LobbyKit.Gold : dim;
+                bool hover = buy.Contains(Event.current.mousePosition);
+                CrtKit.SoftBox(buy, bc, afford, hover && afford, false);
+                Ui.Label(buy, "UNLOCK " + Numerals[owned] + "  -  " + cost + " CORES", 11, afford ? CrtKit.SoftText(bc, hover) : dim, TextAnchor.MiddleCenter, true);
+                if (afford) ascBuyRect = buy;
+            }
+            Ui.Label(new Rect(win.x, win.yMax - 26f, win.width, 18f), "CLICK ANYWHERE ELSE TO CLOSE", 10, CrtUi.Dim, TextAnchor.MiddleCenter, true);
         }
 
         /// One detail box for whichever weapon, ability or ultimate was clicked last: the kind and name on the left, the number tiles on
@@ -1249,7 +1277,7 @@ namespace Arena
             }
         }
 
-        const int AscensionsPerWeapon = 3;
+        const int AscensionsPerWeapon = Variants.Tiers;
         static readonly string[] Numerals = { "I", "II", "III", "IV", "V" };
 
         /// The "Coming soon" tooltip over the hovered locked slot (call after everything else is drawn).

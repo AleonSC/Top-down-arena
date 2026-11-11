@@ -126,6 +126,16 @@ namespace Arena
                     V2 d = V2.FromAngle(MathX.Tau * k / 3f + 0.5f);
                     Line(pos + d * r, pos + d * (r + 12f), 2f, SentryCyan.WithAlpha(0.6f));
                 }
+            if (Game.HasTrait(e, EliteTrait.CoreCarrier))  // a Core Carrier: a pulsing gold halo with a few sparks (Docs/Variants.md)
+            {
+                Circle(pos, r + 11f + 2.5f * Mathf.Sin(t * 6f + e.Id), new Rgba(1f, 0.82f, 0.25f, 0.3f), 20);
+                Arc(pos, r + 7f, 2.5f, new Rgba(1f, 0.9f, 0.4f, 0.95f), 24);
+                for (int k = 0; k < 3; k++)
+                {
+                    float f = MathX.Fmod(t * 0.9f + k / 3f + e.Id * 0.13f, 1f);
+                    Circle(pos + V2.FromAngle(MathX.Tau * k / 3f + t) * (r + 4f) + new V2(0f, -f * 14f), 1.6f * (1f - f) + 0.5f, new Rgba(1f, 0.9f, 0.4f, 0.9f * (1f - f)), 6);
+                }
+            }
             if (e.Traits == 0)
                 return;
             // Hasted: streaks behind it.
