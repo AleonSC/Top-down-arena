@@ -586,8 +586,10 @@ namespace Arena
                     var ink = a.Hub ? new Rgba(0.4f, 0.64f, 1f) : KindInk(a.Kind, a.Floor);
                     float ghost = a.Sealed ? 0.55f + 0.25f * Mathf.Sin(Time.unscaledTime * 2.5f) : 1f;  // a sealed floating room breathes
                     RoomMapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, ink.WithAlpha((a.Hub ? 0.16f : 0.1f) * ghost));
-                    RimFrame(wd, ai, M, a.Floating ? 1.5f : 1f, ink.WithAlpha(0.8f * ghost));
+                    DrawHoloGrid(a, M, k, ink.WithAlpha(ghost));
+                    RimFrame(wd, ai, M, a.Floating ? 1.5f : 1f, ink.WithAlpha(0.45f * ghost));
                 }
+                DrawHoloSolids(wd, M, k, map);  // walls, fins and cover over the floors (BuildMapLook.cs)
                 foreach (var nd in game.Nodes)  // the nodes still waiting for a room built round them (claimed ones are part of their room)
                     if (!Expansion.NodeClaimed(game.Expanded, nd))
                     {

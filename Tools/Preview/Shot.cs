@@ -442,6 +442,8 @@ static partial class Shot {
         if (themeName != null) typeof(ArenaApp).GetField("expTheme", bf).SetValue(app, (PathId)Enum.Parse(typeof(PathId), themeName));
         typeof(ArenaApp).GetField("expA", bf).SetValue(app, new V2(dx0, dy0));
         typeof(ArenaApp).GetField("expB", bf).SetValue(app, new V2(dx0 + dw0, dy0 + dh0));
+        string dz = Environment.GetEnvironmentVariable("EXPANDZOOM");  // EXPANDZOOM=z,x,y: the draw map zoomed z times on that world point
+        if (dz != null) { var zq = Array.ConvertAll(dz.Split(','), v => float.Parse(v, ci)); typeof(ArenaApp).GetField("expZoom", bf).SetValue(app, zq[0]); typeof(ArenaApp).GetField("expViewC", bf).SetValue(app, new V2(zq[1], zq[2])); }
         if (Environment.GetEnvironmentVariable("EXPANDGATEMODE") != null) {  // EXPANDGATEMODE=1: the draw screen in Gate mode (one gate already fitted); MOUSE over a door to point at it
           typeof(ArenaApp).GetField("expGateMode", bf).SetValue(app, true);
           eg.GateFits.Add(Gates.Of(eg.ExpansionWorld.Doors[0]));
