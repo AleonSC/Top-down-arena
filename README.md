@@ -825,7 +825,8 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   any obstacle in their way is left out. They block shots and movement like any wall.
 - **The draw screen's layout**: the tools down the left (**Room**, **Open wall**, **Portal**, **Gate**; keys **1-4**) with a
   key to what the map's colours mean under them; the map in the middle (scroll to zoom, middle drag to pan) drawn as the real floor: each room's
-  tile grid, the walls and side walls with their door gaps, and the cover (crates, barriers, pillars, the hub's floor plan); on the right your vectors with a
+  tile grid, the walls and side walls with their door gaps, and the cover (crates, barriers, pillars, the hub's floor plan), this wave's
+  breaches (red, chevrons pointing in), gates (an orange laser grid, faint while open) and portals (rings joined by a dotted line); on the right your vectors with a
   bar showing what the drawing would spend, the tool's three steps (the one you're on lit gold), what's wrong or what it costs, the room
   types (Plain plus the unlocked floors, two to a row; the picked one says what it does), and **Build**/**Undo** and **Done**.
 - **Room kits**: a one-use modifier the team holds (up to 6; the build chip counts them). Spend one in a building round
