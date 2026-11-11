@@ -5,7 +5,7 @@ namespace Arena
 {
     /// The Security Guard (Core/SecurityGuard.cs) and its tracer round (Defs.TracerRound), drawn as in
     /// `Docs/Mockups/security-guard.html` (look B, the white tracer), in world pixels so the game matches it:
-    ///   Under it: the locked shot's red lane and shrinking reticle (Enemy.Winding), and the cream reload ring.
+    ///   Under it: the shared shooting line while it locks on (Enemy.Winding, ShooterAimLook.cs), and the cream reload ring.
     ///   The body: a slate uniform with a hi-vis vest, a belt pouch behind, a blinking shoulder radio, epaulettes, a peaked cap,
     ///   and a two-handed pistol whose slide kicks back. Reloading it lowers the pistol, drops the magazine, seats a new one
     ///   and racks the slide. A brass casing flies out of each shot. Above it: the rounds left, as little brass rounds.
@@ -25,7 +25,7 @@ namespace Arena
         static float SecEase(float u) { u = Mathf.Clamp01(u); return u * u * (3f - 2f * u); }
         static float SecLerp(float a, float b, float u) => a + (b - a) * u;
 
-        static readonly Rgba SecLaneRed = new Rgba(1f, 0.43f, 0.31f), SecCream = new Rgba(0.914f, 0.886f, 0.784f);
+        static readonly Rgba SecCream = new Rgba(0.914f, 0.886f, 0.784f);
 
         readonly Dictionary<int, float> secWindSince = new Dictionary<int, float>();
 
@@ -86,35 +86,9 @@ namespace Arena
                         secWindSince.Clear();
                     since = secWindSince[e.Id] = t;
                 }
-                float k = SecEase((t - since) / Game.SecurityWindUp);
-                V2 u = V2.FromAngle(e.Facing), n = new V2(-u.Y, u.X), m = pos + u * (30f * r / 15f);
-                float len = SecLaneLength(e, m, u), reach = len + 24f;
-                Quad(m + n * 3.5f, m + u * reach + n * 3.5f, m + u * reach - n * 3.5f, m - n * 3.5f, new Rgba(1f, 0.69f, 0.18f, 0.14f));
-                const int steps = 10;
-                float fill = reach * k;
-                for (int i = 0; i < steps; i++)  // the red filling toward the lead point, stronger at the far end
-                {
-                    float a0 = (float)i / steps, a1 = (float)(i + 1) / steps;
-                    if (fill * a0 >= fill)
-                        break;
-                    Quad(m + u * (fill * a0) + n * 3.5f, m + u * (fill * a1) + n * 3.5f, m + u * (fill * a1) - n * 3.5f, m + u * (fill * a0) - n * 3.5f,
-                        new Rgba(1f, 0.27f, 0.2f, 0.1f + 0.6f * a1));
-                }
-                Rgba edge = new Rgba(1f, 0.43f, 0.31f, 0.95f);
-                Line(m + n * 3.5f, m + u * reach + n * 3.5f, 5f, edge.WithAlpha(0.22f));  // the glow
-                Line(m - n * 3.5f, m + u * reach - n * 3.5f, 5f, edge.WithAlpha(0.22f));
-                Line(m + n * 3.5f, m + u * reach + n * 3.5f, 1.8f, edge);
-                Line(m - n * 3.5f, m + u * reach - n * 3.5f, 1.8f, edge);
-                Line(m + u * reach + n * 3.5f, m + u * reach - n * 3.5f, 1.8f, edge);
-                V2 lead = m + u * len;  // the reticle, closing to the size of a round
-                float rr = SecLerp(26f, 11f, k);
-                Rgba rc = SecLaneRed.WithAlpha(0.5f + 0.45f * k);
-                Arc(lead, rr, 2.2f, rc, 28);
-                for (int i = 0; i < 4; i++)
-                {
-                    V2 d = V2.FromAngle(i * MathX.Pi / 2f + MathX.Pi / 4f);
-                    Line(lead + d * (rr - 3f), lead + d * (rr + 4f), 2.2f, rc);
-                }
+                float k = Mathf.Clamp01((t - since) / Game.SecurityWindUp);
+                V2 u = V2.FromAngle(e.Facing), m = pos + u * (30f * r / 15f);
+                DrawAimLane(m, u, SecLaneLength(e, m, u) + 24f, k, AimTint(e), 1f);  // the shared shooting line (ShooterAimLook.cs)
             }
             else
                 secWindSince.Remove(e.Id);
