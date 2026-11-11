@@ -827,6 +827,11 @@ The third **Arena** choice on the lobby's Difficulty tab (Classic, Rooms, **Expa
   of walking it saves** (at most 30) and must save at least 6 tiles. Each end sits inside a connected room, 90 px off its walls, clear of
   obstacles, 150 px from a door and 250 px from another portal. At most **3 pairs**, not counted as rooms. Bots sometimes link the two
   rooms farthest apart.
+- **Shutter gates**: on the draw screen, switch to **Gate** and click a door (the gold squares): a gate goes to the vote like a room,
+  for **8 vectors**. Once fitted, stand within 150 px of it and press **G** (the Take item key) to shut it: a red laser grid fills the doorway
+  for **8 s**, a wall to everyone (players and enemies); shots still pass. Then it needs **30 s** to recharge (an arc fills round its
+  posts). Anyone on the team can work it. Plain doors only (not an opened wall), one gate a door, at most **6** on the map. A red bar marks
+  each on the minimap, bright while shut.
 - **Themed rooms**: pick a theme under the map when you draw a room: a path's ground and rules (Swarm Fields, Sniper Ridge, Elite Gauntlet, Burning
   Grounds, Sanctuary, Frozen Lake, Blood Moon) inside that room only, with its kill bonus. A theme costs extra vectors (+3 / +6 / +10 for
   danger 1 / 2 / 3) and unlocks with bosses: danger 2 after the first boss, danger 3 after the second.

@@ -267,6 +267,11 @@ namespace Arena
                     V2 q0 = M(new V2(q.X, q.Y)), q1 = M(new V2(q.X + q.W, q.Y + q.H));
                     var qi = OwnerInk(q.Owner);
                     float pulse = 0.55f + 0.45f * Mathf.Sin(Time.unscaledTime * 3f);
+                    if (q.Kind == RoomKind.Gate)
+                    {
+                        MapRect(q0.X - 3f, q0.Y - 3f, 6f, 6f, qi.WithAlpha(0.95f * pulse));
+                        continue;
+                    }
                     if (q.Kind == RoomKind.Link)  // a portal pair: two dots
                     {
                         MapRect(q0.X - 3f, q0.Y - 3f, 6f, 6f, qi.WithAlpha(0.95f * pulse));
@@ -298,6 +303,18 @@ namespace Arena
                     V2 c = M(pp);
                     if (InMap(c)) Arc(c, 4f, 2f, PortalColours[i % PortalColours.Length], 12);
                 }
+            for (int gi = 0; gi < game.GateFits.Count; gi++)  // shutter gates: a red bar, bright while shut (GateLook.cs)
+            {
+                if (!game.GateLive(gi))
+                    continue;
+                var gf = game.GateFits[gi];
+                V2 c = M(gf.Pos);
+                if (!InMap(c))
+                    continue;
+                var gcol = new Rgba(1f, 0.3f, 0.32f, game.GateShut(gi) > 0f ? 1f : 0.45f);
+                if (gf.Vertical) MapRect(c.X - 2f, c.Y - 6f, 4f, 12f, gcol);
+                else MapRect(c.X - 6f, c.Y - 2f, 12f, 4f, gcol);
+            }
             foreach (var b in game.ActiveBreaches)  // the wave's breaches: a red dash on the wall (BreachLook.cs)
             {
                 V2 c = M(b.Pos);

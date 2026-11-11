@@ -141,6 +141,9 @@ namespace Arena
                 case Msg.ExpandState:
                     ReadExpandState(r);
                     break;
+                case Msg.GateState:
+                    ReadGateState(r);
+                    break;
                 case Msg.Record:
                     ReadRecord(r);  // RunSaves.cs
                     break;

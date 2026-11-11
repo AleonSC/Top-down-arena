@@ -204,6 +204,7 @@ namespace Arena
             foreach (var h in game.Hazards.Values)
                 DrawHazard(h, t);
             DrawLayout(t);  // the floor plan's walls, pillars and edge gates (LayoutLook.cs)
+            DrawGates();     // the Expanding arena's shutter gates: a red laser grid when shut (GateLook.cs)
             DrawBreaches();  // the Expanding arena's breaches: a red hologram barrier in each (BreachLook.cs)
             DrawProps(t);  // crates, pots, barrels and the chest (PropsLook.cs)
             DrawKnightDpsUnder(t);  // the Gauntlet's rings and dust, Misericorde's candles, the Drawbridge's slam (KnightDpsLook.cs)

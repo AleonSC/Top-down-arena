@@ -160,7 +160,7 @@ namespace Arena
                 float m = Math.Min(Math.Min(l, rr), Math.Min(t, b));
                 pos = m == l ? new V2(pos.X - l, pos.Y) : m == rr ? new V2(pos.X + rr, pos.Y) : m == t ? new V2(pos.X, pos.Y - t) : new V2(pos.X, pos.Y + b);
             }
-            return pos;
+            return GateFits.Count > 0 ? PushOutOfGates(pos, r) : pos;  // a shut shutter gate (Gates.cs)
         }
 
         /// Walls and pillars stop every shot, yours and theirs (Combat.cs, in Collide).

@@ -778,6 +778,55 @@ static partial class Program
         Check(earliest >= Breaches.Telegraph - 0.2f, "not before the barriers are up (first at " + earliest.ToString("0.00") + " s)");
     }
 
+    // Shutter gates (Docs/RoomBuilding2.md step 3): a gate on a door, voted, synced; G shuts it for everyone for 8 s, then it recharges.
+    static void ExpandingGatesTest(float dt)
+    {
+        string why;
+        var list = new List<ExpansionRoom>();
+        var east = Expansion.Custom(list, 1600, 100, 800, 600, out why).Value; list.Add(east);
+        var w = Expansion.Build(list);
+        var door = w.Doors[0];
+        Check(Gates.CanFit(w, new List<GateFit>(), door.Pos, out why), "a plain door takes a gate" + (why != null ? " (" + why + ")" : ""));
+        Check(!Gates.CanFit(w, new List<GateFit>(), door.Pos + new V2(0f, 200f), out why) && why != null, "a spot that isn't a door doesn't (" + why + ")");
+        Check(!Gates.CanFit(w, new List<GateFit> { Gates.Of(door) }, door.Pos, out why) && why != null, "nor a door that has one (" + why + ")");
+        var cutW = Expansion.Build(list, new List<WallCut> { new WallCut { Vertical = true, At = 1600, From = 100, Till = 700 } });
+        Check(Gates.DoorAt(cutW, door.Pos) < 0, "an opened wall isn't a door");
+
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Expanded.AddRange(list); gg.RoomsUp = true; gg.ExpandOpen = true; }
+        g.Players[2].Vectors = Gates.Price + 2;
+        cg.ProposeExpandGate(door.Pos);
+        Run(s, dt, 0.5f, () => cg.ExpandProposals.Count == 1);
+        Check(g.ExpandProposals.Count == 1 && g.ExpandProposals[0].Kind == RoomKind.Gate && cg.ExpandProposals.Count == 1, "a friend's gate goes to the vote on both screens");
+        g.CastExpandVote(2);
+        typeof(Game).GetMethod("ResolveBuildRound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(g, null);
+        Run(s, dt, 0.5f, () => cg.GateFits.Count == 1);
+        Check(g.GateFits.Count == 1 && cg.GateFits.Count == 1 && g.Players[2].Vectors == 2, "the winning gate is fitted on both screens and its proposer pays");
+        foreach (var gg in new[] { g, cg }) gg.RoomsUp = true;
+        Check(g.GateLive(0) && g.GateShut(0) == 0f && g.PushOutOfSolids(door.Pos, 14f).DistanceTo(door.Pos) < 0.5f, "open, the doorway is free");
+        foreach (var gg in new[] { g, cg }) foreach (var p in gg.Players.Values) if (p.Id == 2) p.Pos = p.Disp = door.Pos + new V2(-80f, 0f);
+        Run(s, dt, 0.3f);  // (the host hears where the friend now stands)
+        cg.UseGate();
+        Run(s, dt, 0.5f, () => cg.GateShut(0) > 0f);
+        Check(g.GateShut(0) > 7f && cg.GateShut(0) > 7f, "a friend by it shuts it: shut on both screens (" + g.GateShut(0).ToString("0.0") + " s)");
+        V2 pushed = g.PushOutOfSolids(door.Pos + new V2(-3f, 0f), 14f);
+        Check(pushed.DistanceTo(door.Pos) > 20f && pushed.X < door.Pos.X, "shut, it's a wall: someone in the doorway is put back out the side they came from");
+        cg.UseGate();
+        Run(s, dt, 0.3f);
+        Check(g.GateShut(0) < Gates.CloseTime - 0.2f, "shutting it again does nothing while it's shut");
+        Run(s, dt, Gates.CloseTime + 0.5f);
+        Check(g.GateShut(0) == 0f && g.GateCool(0) > 0f && g.PushOutOfSolids(door.Pos, 14f).DistanceTo(door.Pos) < 0.5f, "after 8 s it opens and recharges");
+        g.UseGate();
+        Run(s, dt, 0.3f);
+        Check(g.GateShut(0) == 0f, "it can't be shut again until it has recharged");
+    }
+
     // Portal links (Docs/RoomBuilding2.md step 2): a portal pair between two rooms, priced by the walking it saves, voted, synced.
     static void ExpandingLinksTest(float dt)
     {
