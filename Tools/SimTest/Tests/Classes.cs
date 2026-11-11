@@ -36,9 +36,9 @@ static partial class Program
             need(!string.IsNullOrEmpty(k.Icon) && pixelArt.Contains("\"" + k.Icon + "\""), who + ": its icon \"" + k.Icon + "\" in PixelArt.cs");
             need(k.HpMult > 0.5f && k.HpMult < 1.6f && k.SpeedMult > 0.7f && k.SpeedMult < 1.4f, who + ": a sensible HpMult and SpeedMult");
 
-            // Weapons: three per role, all its own.
+            // Weapons: three per role (four where it has a fourth), all its own.
             foreach (var role in roles)
-                for (int c = 0; c < Defs.WeaponsPerRole; c++)
+                for (int c = 0; c < Defs.WeaponCount(role, k.Id); c++)
                 {
                     var w = Defs.Weapon(role, k.Id, c);
                     string wn = who + " " + role + " weapon " + c + " (" + w.Name + ")";

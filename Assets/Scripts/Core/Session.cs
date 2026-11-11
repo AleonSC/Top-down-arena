@@ -113,7 +113,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 270;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 271;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -837,11 +837,11 @@ namespace Arena
         }
 
         // (A Wildcard's weapon and ability picks run 0-17: its kit * 3 + choice. Those are checked against the role, ClampLoadout.)
-        static int ClampWeapon(int weapon) => weapon >= 0 && weapon < Defs.WildcardChoices ? weapon : 0;
+        static int ClampWeapon(int weapon) => weapon >= 0 && weapon < Defs.WildcardWeaponChoices ? weapon : 0;  // (a Wildcard's weapons run past 17: the DPS fourth weapons)
         static int ClampAbility(int ability) => ability >= 0 && ability < Defs.WildcardChoices ? ability : 0;
         static int ClampUltByte(int ult) => ult >= 0 && ult < Defs.KitCount * Upgrades.UltKeys ? ult : 0;  // (a Wildcard's runs to 23; checked against the role and class by ClampLoadout)
 
-        /// Puts an entry's picks in range for its role: three weapons and abilities for a normal role, eighteen for a Wildcard
+        /// Puts an entry's picks in range for its role: three weapons (four where the class has a fourth) and abilities for a normal role, eighteen for a Wildcard
         /// (plus a second ability that differs from the first, on a key from 1 to 3).
         static void ClampLoadout(LobbyEntry e)
         {
@@ -856,8 +856,8 @@ namespace Arena
             }
             else
             {
-                if (e.Weapon >= Defs.WeaponsPerRole)
-                    e.Weapon = 0;
+                if (e.Weapon >= Defs.WeaponCount(e.Role, e.Kit))
+                    e.Weapon = 0;  // (three weapons, or four where the class has a fourth)
                 if (e.Ability >= Upgrades.RoleAbilityChoices)
                     e.Ability = 0;
                 e.Wild = 0;

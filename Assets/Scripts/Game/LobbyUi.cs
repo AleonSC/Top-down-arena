@@ -759,11 +759,11 @@ namespace Arena
                 float ax = x + w - col, cell = (col - gap) / 2f;
                 LobbyKit.Heading(x, y, col, "Weapon", null, calm, 15);
                 LobbyKit.Heading(ax, y, col, "Ability", null, calm, 15);
-                int weaponSlots = Mathf.Max(WeaponSlots, Defs.WeaponsPerRole);
+                int weaponCount = Defs.WeaponCount(me.Role, me.Kit), weaponSlots = Mathf.Max(WeaponSlots, weaponCount);
                 for (int i = 0; i < weaponSlots; i++)
                 {
                     var b = new Rect(x + (i % 2) * (cell + gap), y + 32f + (i / 2) * 40f, cell, 34f);
-                    if (i >= Defs.WeaponsPerRole)
+                    if (i >= weaponCount)  // (the 4th key is a weapon where the class has a fourth: the Knight DPS's Arc Knuckles)
                     {
                         LockedSlot(b, null, true);
                         continue;
@@ -1003,7 +1003,7 @@ namespace Arena
             if (wildBrowseFor != me.Id)
             {
                 wildBrowseFor = me.Id;
-                wildBrowse = me.Weapon / per;
+                wildBrowse = (int)Defs.WildWeaponKit(me.Weapon);
                 wildBrowsePos = wildBrowse;
                 wildTab = 0;
             }
@@ -1071,7 +1071,7 @@ namespace Arena
             for (int k = 0; k < Defs.KitCount; k++)
             {
                 var dr = new Rect(dx0 + k * (dot + dotGap), dyy, dot, dot);
-                bool used = me.Weapon / per == k || me.Ability / per == k || second / per == k || ultKit == k;
+                bool used = (int)Defs.WildWeaponKit(me.Weapon) == k || me.Ability / per == k || second / per == k || ultKit == k;
                 bool on = k == bk;
                 Color dc = on ? CrtUi.Ink : used ? wild : CrtUi.Dim;
                 Ui.Fill(dr, new Color(dc.r, dc.g, dc.b, on ? 1f : used ? 0.55f : 0.12f));
@@ -1091,10 +1091,12 @@ namespace Arena
             float px = wr.xMax + 12f, pw = x + w - px;
             float cw = (pw - 8f) / 3f;
             LobbyKit.Lab(new Rect(px, y - 2f, pw, 16f), "Weapon", 11, calm);
-            for (int c = 0; c < per; c++)
+            int wn = Defs.WeaponCount(Role.Dps, (Kit)bk);  // three, or four with a class's fourth (the Knight's Arc Knuckles)
+            float ww = (pw - 4f * (wn - 1)) / wn;
+            for (int c = 0; c < wn; c++)
             {
-                int idx = bk * per + c;
-                var b = new Rect(px + c * (cw + 4f), y + 15f, cw, 32f);
+                int idx = Defs.WildWeaponPick((Kit)bk, c);
+                var b = new Rect(px + c * (ww + 4f), y + 15f, ww, 32f);
                 if (LobbyKit.Key(b, Defs.Weapon(Role.Wildcard, Kit.Soldier, idx).Name.ToUpperInvariant(), me.Weapon == idx, calm, size: 13, minSize: 8))
                 {
                     if (me.Weapon != idx)
@@ -1170,7 +1172,7 @@ namespace Arena
             for (int i = 0; i < 4; i++)
             {
                 var b = new Rect(x + i * (chipW + 6f), ly, chipW, lh);
-                int from = i == 0 ? me.Weapon / per : i == 1 ? me.Ability / per : i == 2 ? second / per : ultKit;
+                int from = i == 0 ? (int)Defs.WildWeaponKit(me.Weapon) : i == 1 ? me.Ability / per : i == 2 ? second / per : ultKit;
                 string name = ChipName(me, i, second);
                 string sub = i == 0 ? "WEAPON" : i == 1 ? "1ST · " + Keybinds.KeyName(Keybinds.Get(KeyAction.Ability)).ToUpperInvariant() : i == 2 ? "2ND · " + keyNames[key - 1] : "ULTIMATE · " + Keybinds.KeyName(Keybinds.Get(KeyAction.Ultimate)).ToUpperInvariant();
                 bool editing = (i == 1 && wildTab == 0) || (i == 2 && wildTab == 1);
