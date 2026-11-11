@@ -106,10 +106,20 @@ One bump: the `Surprise` flag in the room list (snapshot/`ExpandState`) and the 
 
 1. (built) Shapes + `Surprise` + tests (each shape legal, 3-tile minimum, deterministic, never overlaps, closes loops when it can).
 2. (built) Boss trigger + sync + gold look + banner; previews for all five shapes.
-3. (built) Breach event trigger and reveal. Balance pass: see the notes below.
+3. (built) Breach event trigger and reveal. Balance pass: see "Balance notes" below.
 
 ## Open questions (defaults in bold)
 
 - Sizes: **one size per shape**, or S and L picked by how many rooms exist?
 - Should a surprise room be able to carry a **path floor** sometimes? Default **no**, plain combat.
 - Breach event frequency: **~1 in 8 waves** from wave 10; tune after the balance pass.
+
+## Balance notes (Nov 11)
+
+- `run.sh 1 1 vecbal 45 1 1` (Expanding only; the last 1 skips the Classic leg) is the report to use. **Don't run two SimTest processes at once**: they share ports and the second game never starts ("Idle at wave 0").
+- **The bots stall on any build, `main` included.** A wave never ends: eleven foes (mortars, brutes, a medic, a sniper) sit spread across a big map while both bots are alive and shooting nothing.
+  The same seed stalls at wave 7 on `main` without surprise rooms (4910 s on one wave), and at wave 7 or 13 on this branch, so it is **not caused by surprise rooms** (it began with
+  the timed-waves change landing on `main`; not proven). `PlayArena` now ends a run when a regular wave passes 600 s (`StallSeconds`) and prints "STALLED at wave N", so the report finishes in minutes.
+- So there is **no measurement yet** of whether surprise rooms or breach events lift the wave where bots die: the bots stop at the stall first. The 1-in-8 breach event rate and the boss gift stay as designed.
+  Next step: find why the bots (or the foes) stop closing (`ARENADBG=1` dumps the stuck wave), then compare furthest wave reached over several seeds with and without the gift.
+
