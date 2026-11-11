@@ -23,6 +23,11 @@ namespace Arena
         public const float Apart = 400f;      // breaches of one wave at least this far apart
         public const float DeadEnd = 1.5f;    // extra weight for a dead-end room's wall
 
+        /// A breach wave is a rare event (they reveal rooms, so often would clutter the map): wave 3, then every 4th
+        /// after it. Every other regular wave enemies come in at a random spot at least Rooms.SpawnClear from every player.
+        public const int FirstWave = 3, Every = 4;
+        public static bool IsBreachWave(int wave) => wave >= FirstWave && (wave - FirstWave) % Every == 0;
+
         /// How many open each wave: 2, one more per 3 rooms built, at most 6.
         public static int CountFor(int rooms) => Math.Max(2, Math.Min(6, 2 + rooms / 3));
 
@@ -118,9 +123,9 @@ namespace Arena
         World breachWorld;
         int breachWave = -1;
 
-        /// Are enemies coming in through breaches now? The grown Expanding arena on a regular wave (not the room-by-room
-        /// version, which uses its nests).
-        public bool BreachesOn => ExpandingOn && RoomsOn && !Rooms.RoomByRoom && !BossNow && State == MatchState.Fighting;
+        /// Are enemies coming in through breaches now? The grown Expanding arena on a breach wave (Breaches.IsBreachWave: a
+        /// rare event, not the room-by-room version, which uses its nests, and never a boss wave).
+        public bool BreachesOn => ExpandingOn && RoomsOn && !Rooms.RoomByRoom && !BossNow && State == MatchState.Fighting && Breaches.IsBreachWave(Wave);
 
         /// This wave's breaches (empty while they're off).
         public Breach[] ActiveBreaches

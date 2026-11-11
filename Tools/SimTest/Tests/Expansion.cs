@@ -775,7 +775,7 @@ static partial class Program
         }
 
         int port = nextPort++;
-        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 7 }, port, false, "Host", Role.Tank);
         var client = JoinAs(port, false, "Friend", Role.Dps);
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
@@ -790,6 +790,7 @@ static partial class Program
             foreach (var e in g.Enemies.Values)
                 if (!e.Def.IsBoss && !first.ContainsKey(e.Id)) { first[e.Id] = e.Pos; earliest = Math.Min(earliest, g.BreachAge); }
         });
+        Check(Breaches.IsBreachWave(g.Wave) && !Breaches.IsBreachWave(1) && !Breaches.IsBreachWave(5) && Breaches.IsBreachWave(7) && Breaches.IsBreachWave(11), "breaches are a rare event: wave 3, then every 4th (this is wave " + g.Wave + ")");
         var hb = g.ActiveBreaches; var cb = cg.ActiveBreaches;
         Check(g.BreachesOn && hb.Length > 0 && hb.Select(b => b.Pos).SequenceEqual(cb.Select(b => b.Pos)), "in a wave the host and a friend see the same breaches (" + hb.Length + " / " + cb.Length + ")");
         int byBreach = first.Values.Count(p => hb.Any(b => b.Pos.DistanceTo(p) < 260f));
