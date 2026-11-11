@@ -1205,9 +1205,12 @@ the top middle, and the "Hold TAB" hint is in the top-right corner.
 CRT colour (Settings > Visual effects), its title gold after a boss. It shows the wave's **clear time** and **score**, a row per player with **kills, damage
 dealt and damage taken** for that wave, and **awards**: **Untouched** (took no damage), **Reviver** (stood a teammate up),
 and in a party **Most damage**, **Most kills** and **Most healing** (only for a single leader with something to show).
-A **Squad** row adds them up. On the right: the enemy types the next wave draws from (new ones marked NEW; a boss wave
-names its boss) and the **road to the next boss**. Along the bottom: the **Ready** key (Y), the **Auto-ready** switch, the
-status and the countdown bar. The next wave only starts once **everyone is ready**, **3 seconds** after the last Ready, and there is no
+A **Squad** row adds them up. The box has **three steps** (tabs along its top: **Results**, **Build**, **Ready**), in order:
+**Results** (the numbers above, plus your vectors and rooms when a building round is open), then **Build** (**Continue · Build**
+opens the Expanding arena's build window; its **Done** leads on to Ready; the tab is left out when there is no round: Practice, hunts, the last wave,
+a full map, other arenas), then **Ready**: the enemy types the next wave draws from (new ones marked NEW; a boss wave
+names its boss), the **road to the next boss**, the **Ready** key (Y), the **Auto-ready** switch, the
+status and the countdown bar. Y walks the steps (Results, Build, Ready) before it readies you, and Auto-ready only counts once you reach Ready. The next wave only starts once **everyone is ready**, **3 seconds** after the last Ready, and there is no
 timer while anyone is still waiting. **Auto-ready** is remembered between runs: you count as ready as soon as your upgrade
 picks are done, and when everyone has it on the countdown is the usual 4 seconds, so solo play with it on moves at the
 old pace (it is off by default). A small box beside each player shows who is ready (a tick, an A for auto-ready, dashed while they aren't).

@@ -10,7 +10,9 @@ namespace Arena
     /// the frame from RoundWindows.cs. Core side: Core/WaveReady.cs.
     public partial class ArenaApp
     {
-        const float WcW = 940f, WcH = 410f, WcY = 110f;
+        const float WcW = 940f, WcH = 454f, WcY = 96f;
+        int wcStep;                   // 0 Results, 1 Build, 2 Ready: the break runs in that order (the tabs along the tube's top)
+        bool wcSawWindow;             // the build window was open last frame (closing it with Done moves on to Ready)
         int autoReadySent = -1;       // the Auto-ready choice the host was last told (-1: not yet this run)
         float wcBorn = -1f;           // unscaled time the box appeared (for its drop-in)
         int wcWave = -1;
@@ -29,16 +31,61 @@ namespace Arena
                 autoReadySent = -1;
                 return;
             }
-            int pref = AutoReadyPref ? 1 : 0;
+            TickWcSteps();
+            int pref = AutoReadyPref && !WcHoldsAuto(me) ? 1 : 0;  // Auto-ready only counts once you reach the Ready step
             if (autoReadySent != pref)
             {
                 autoReadySent = pref;
                 game.SetMyAutoReady(pref == 1);
             }
             if (WaveBoxUp(me) && GUIUtility.keyboardControl == 0 && Keybinds.Down(KeyAction.ReadyUp))
-                PressReady(me);
+            {
+                if (WcStepNow() == 2)
+                    PressReady(me);
+                else
+                    WcAdvance();  // the Ready key walks Results -> Build -> Ready first
+            }
         }
 
+        // --- The three steps: Results, then Build (when a building round is open), then Ready ----------------------
+
+        bool WcBuildAvail => game.ExpandOpen && game.Me != null;
+
+        /// The step shown: Build is skipped when there is no building round (Practice, hunts, the last wave, a full map, other arenas).
+        int WcStepNow() => wcStep == 1 && !WcBuildAvail ? 2 : wcStep;
+
+        /// Auto-ready is held back while you are still on Results or Build (the countdown starts when you reach Ready).
+        bool WcHoldsAuto(Player me) => game.State == MatchState.Intermission && (WaveBoxUp(me) || ExpandWindowUp) && WcStepNow() < 2;
+
+        void TickWcSteps()
+        {
+            if (game.State != MatchState.Intermission)
+            {
+                wcStep = 0;
+                wcSawWindow = false;
+                return;
+            }
+            if (expOpen)
+                wcSawWindow = true;
+            else if (wcSawWindow)
+            {
+                wcSawWindow = false;
+                if (wcStep == 1)
+                    wcStep = 2;  // Done (or Decide later) in the build window leads to Ready
+            }
+        }
+
+        /// Results -> Build (opens the build window) -> Ready.
+        void WcAdvance()
+        {
+            if (WcStepNow() == 0 && WcBuildAvail)
+            {
+                wcStep = 1;
+                expOpen = true;
+            }
+            else
+                wcStep = 2;
+        }
         void PressReady(Player me)
         {
             if (me.AutoReady)
@@ -76,28 +123,83 @@ namespace Arena
             return true;
         }
 
-        // Inside the tube: the tally takes the left 596 px, the next wave the right 278, the keys the bottom 72.
-        const float WcPad = 22f, WcTallyW = 596f, WcRowH = 52f, WcRowStep = 58f, WcSquadH = 38f;
+        // Inside the tube: the tabs along the top, then the step: the tally takes the left 596 px, a panel the right 278, the keys the bottom 72.
+        const float WcPad = 22f, WcTallyW = 596f, WcRowH = 52f, WcRowStep = 58f, WcSquadH = 38f, WcTabH = 40f;
 
         /// The box itself, at `r`.
         void DrawWaveClearedBox(Player me, Rect r, WaveSummary rep, string waiting, bool calm)
         {
-            float x = r.x, y = r.y;
+            int step = WcStepNow();
+            DrawWcTabs(r, step, calm);
+            float x = r.x, y = r.y + WcTabH + 4f;
             Color ink = CrtUi.Ink, dim = CrtUi.Dim;
-
-            // Head: WAVE n CLEARED (gold after a boss) with the blinking cursor, and the wave's two numbers.
             bool boss = game.BossNow;
-            string title = boss && game.Practice == null ? "BOSS CLEARED" : (game.Practice != null ? "PRACTICE WAVE " : "WAVE ") + game.ShownWave + " CLEARED";
-            Color tc = boss ? CrtStyle.Gold : ink;
+            if (step == 0)
+            {
+                // Head: WAVE n CLEARED (gold after a boss) with the blinking cursor, and the wave's two numbers.
+                string title = boss && game.Practice == null ? "BOSS CLEARED" : (game.Practice != null ? "PRACTICE WAVE " : "WAVE ") + game.ShownWave + " CLEARED";
+                Color tc = boss ? CrtStyle.Gold : ink;
+                DrawWcHead(x, y, title, tc, calm);
+                if (boss && game.LivesMax > 0)  // the boss is down: the run's checkpoint is here now (Core/Checkpoints.cs)
+                    HudCrt(new Rect(x + WcPad + 2f, y + 62f, 400f, 18f), "CHECKPOINT SAVED  ·  " + (game.LivesLeft == 1 ? "1 LIFE" : game.LivesLeft + " LIVES") + " LEFT", 16, CrtStyle.Gold);
+                WcTile(new Rect(x + 646f, y + 16f, 130f, 50f), FormatClear(rep.ClearTime), "CLEAR TIME", calm);
+                WcTile(new Rect(x + 786f, y + 16f, 132f, 50f), "+" + rep.ScoreGain, "SCORE", calm);
+                DrawWcTally(x, y, rep, calm, false);
+                if (WcBuildAvail)
+                    DrawWcBuildPanel(me, new Rect(x + 640f, y + 84f, 278f, 236f), calm);
+                else
+                    DrawNextPanel(new Rect(x + 640f, y + 84f, 278f, 236f));
+                var bar = new Rect(x + WcPad, y + 338f, WcW - 2f * WcPad, 58f);
+                HudCrt(new Rect(bar.x, bar.y, 460f, 48f), WcBuildAvail ? "NEXT: BUILD YOUR ARENA" : "NEXT: GET READY", 22, dim);
+                if (LobbyKit.Key(new Rect(bar.xMax - 330f, bar.y, 330f, 48f), WcBuildAvail ? "CONTINUE · BUILD" : "CONTINUE · READY", false, calm, size: 24, minSize: 14))
+                    WcAdvance();
+            }
+            else if (step == 1)
+            {
+                DrawWcHead(x, y, "BUILD THE ARENA", CrtStyle.Gold, calm);
+                DrawWcBuildPanel(me, new Rect(x + WcPad, y + 84f, WcW - 2f * WcPad, 236f), calm);
+                var bar = new Rect(x + WcPad, y + 338f, WcW - 2f * WcPad, 58f);
+                if (LobbyKit.Key(new Rect(bar.x, bar.y, 330f, 48f), "OPEN THE BUILD WINDOW", false, calm, size: 22, minSize: 14))
+                    expOpen = true;
+                if (LobbyKit.Key(new Rect(bar.xMax - 330f, bar.y, 330f, 48f), "DONE · READY", false, calm, size: 24, minSize: 14))
+                    wcStep = 2;
+            }
+            else
+            {
+                DrawWcHead(x, y, boss ? "NEXT: THE BOSS" : "NEXT: WAVE " + (game.Hunt != null ? game.Wave + 1 : game.ShownWave + 1), ink, calm);
+                DrawWcTally(x, y, rep, calm, true);
+                DrawNextPanel(new Rect(x + 640f, y + 84f, 278f, 236f));
+                DrawReadyBar(me, new Rect(x + WcPad, y + 338f, WcW - 2f * WcPad, 58f), waiting, calm);
+            }
+        }
+
+        void DrawWcHead(float x, float y, string title, Color tc, bool calm)
+        {
             CrtUi.Title(new Rect(x + WcPad, y + 12f, 600f, 56f), title, 52, tc, TextAnchor.MiddleLeft, calm);
             if (calm || Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0)
                 Ui.Fill(new Rect(x + WcPad + CrtUi.TitleWidth(title, 52) + 6f, y + 27f, 14f, 28f), tc);
-            if (boss && game.LivesMax > 0)  // the boss is down: the run's checkpoint is here now (Core/Checkpoints.cs)
-                HudCrt(new Rect(x + WcPad + 2f, y + 62f, 400f, 18f), "CHECKPOINT SAVED  ·  " + (game.LivesLeft == 1 ? "1 LIFE" : game.LivesLeft + " LIVES") + " LEFT", 16, CrtStyle.Gold);
-            WcTile(new Rect(x + 646f, y + 16f, 130f, 50f), FormatClear(rep.ClearTime), "CLEAR TIME", calm);
-            WcTile(new Rect(x + 786f, y + 16f, 132f, 50f), "+" + rep.ScoreGain, "SCORE", calm);
+        }
 
-            // The tally.
+        /// RESULTS / BUILD / READY along the top of the tube: the step you are on is lit, finished ones carry a tick. Build is left out when there is no round.
+        void DrawWcTabs(Rect r, int step, bool calm)
+        {
+            var names = WcBuildAvail ? new[] { "RESULTS", "BUILD", "READY" } : new[] { "RESULTS", "READY" };
+            var ids = WcBuildAvail ? new[] { 0, 1, 2 } : new[] { 0, 2 };
+            float tw = 200f, gap = 10f, x = r.x + WcPad;
+            for (int i = 0; i < names.Length; i++)
+            {
+                int id = ids[i];
+                string label = names[i];
+                if (CrtUi.SoftKey(new Rect(x + i * (tw + gap), r.y + 10f, tw, 34f), label, null, 22, calm, lit: id == step) && id != step)
+                    wcStep = id;
+            }
+            Ui.Fill(new Rect(r.x + WcPad, r.y + WcTabH + 6f, r.width - 2f * WcPad, 1f), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.3f));
+        }
+
+        /// The squad's tally (Results) or the same rows with the ready marks (Ready); a Squad total row for more than one player.
+        void DrawWcTally(float x, float y, WaveSummary rep, bool calm, bool ready)
+        {
+            Color ink = CrtUi.Ink, dim = CrtUi.Dim;
             float rx = x + WcPad, ry = y + 84f;
             DrawTallyHeader(rx, ry);
             ry += 20f;
@@ -109,7 +211,7 @@ namespace Arena
             {
                 var p = game.Players[id];
                 var line = rep.For(id) ?? new WaveLine { Id = id };
-                DrawTallyRow(new Rect(rx, ry, WcTallyW, WcRowH), p, line, calm);
+                DrawTallyRow(new Rect(rx, ry, WcTallyW, WcRowH), p, line, calm, ready);
                 kills += line.Kills; dmg += line.Damage; taken += line.Taken;
                 ry += WcRowStep;
             }
@@ -120,11 +222,35 @@ namespace Arena
                 HudCrt(new Rect(sq.x + 10f + WcColName, sq.y, 100f, sq.height), "SQUAD", 26, dim);
                 DrawNums(sq, kills, dmg, taken, ink, ink);
             }
+        }
 
-            DrawNextPanel(new Rect(x + 640f, y + 84f, 278f, 236f));
-
-            // The bottom: Ready, Auto-ready, the status, and the countdown along the foot.
-            DrawReadyBar(me, new Rect(x + WcPad, y + 338f, WcW - 2f * WcPad, 58f), waiting, calm);
+        /// Your vectors, the rooms built so far and the kits you hold, in a dashed frame (the Build step; a panel on Results).
+        void DrawWcBuildPanel(Player me, Rect r, bool calm)
+        {
+            var ink = CrtUi.Ink;
+            CrtKit.Dashed(r, 1f, new Color(ink.r, ink.g, ink.b, 0.45f));
+            float x = r.x + 14f, y = r.y + 12f, w = r.width - 28f;
+            HudCrt(new Rect(x, y, w, 18f), "BUILD THE ARENA", 18, CrtUi.Dim);
+            y += 26f;
+            int vec = game.TeamPurse ? game.SpendableVectors(me) : me.Vectors;
+            CrtUi.Title(new Rect(x, y, 90f, 44f), vec.ToString(), 40, CrtStyle.Gold, TextAnchor.MiddleLeft, calm);
+            HudCrt(new Rect(x + 96f, y + 10f, w - 96f, 22f), (game.TeamPurse ? "TEAM PURSE" : "VECTORS") + " / " + me.VectorCap, 20, CrtUi.Dim);
+            y += 52f;
+            float pw = Mathf.Min(w, 25f * 14f);
+            int cap = Mathf.Max(1, me.VectorCap);
+            for (int i = 0; i < cap; i++)
+            {
+                float sw = Mathf.Min(11f, (pw - (cap - 1) * 3f) / cap);
+                Ui.Fill(new Rect(x + i * (sw + 3f), y, sw, 16f), i < vec ? CrtStyle.Gold : new Color(1f, 1f, 1f, 0.1f));
+            }
+            y += 30f;
+            HudCrt(new Rect(x, y, w, 20f), "ROOMS BUILT  " + game.Expanded.Count, 20, Color.white);
+            y += 24f;
+            int kits = game.RoomTokens.Count;
+            HudCrt(new Rect(x, y, w, 20f), "ROOM KITS  " + kits, 20, kits > 0 ? CrtStyle.Gold : CrtUi.Dim);
+            y += 28f;
+            string hint = game.FreeBuild ? "Built the moment you place it." : "Draw a room, the team votes.";
+            Ui.Label(new Rect(x, y, w, 20f), hint, 12, Ui.Muted, TextAnchor.UpperLeft, true);
         }
 
         static string FormatClear(float s) => Mathf.FloorToInt(s / 60f) + ":" + Mathf.FloorToInt(s % 60f).ToString("00");
@@ -161,7 +287,7 @@ namespace Arena
             HudCrt(new Rect(x + WcColTaken, row.y, 62f, row.height), Mathf.RoundToInt(taken).ToString("N0"), 26, takenColor, TextAnchor.MiddleRight);
         }
 
-        void DrawTallyRow(Rect row, Player p, WaveLine line, bool calm)
+        void DrawTallyRow(Rect row, Player p, WaveLine line, bool calm, bool showReady)
         {
             bool mine = p.Id == game.MyId;
             CrtKit.SoftBox(row, CrtUi.Ink, mine, false, false);  // yours lit, like a selected key
@@ -189,7 +315,9 @@ namespace Arena
                 ax += w + 4f;
             }
 
-            // Ready mark: A for auto-ready, a green tick when ready, a dashed empty box while they are not.
+            // Ready mark (Ready step only): A for auto-ready, a green tick when ready, a dashed empty box while they are not.
+            if (!showReady)
+                return;
             var dot = new Rect(x + WcColTick + 8f, cy - 13f, 26f, 26f);
             if (p.AutoReady)
             {

@@ -1,0 +1,267 @@
+<title>Between-Waves Flow</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Layout: option switch + step switch above one 1280x720 game stage scaled to fit; three flows, each Results -> Build -> Ready. Single dark CRT look, same as the game's lobby tubes. */
+:root { --bg: #070a14; --fg: #dfe8ff; --muted: #8190b6; --line: #243055; --accent: #5b8cff;
+  --ink: #66a3ff; --dim: #4068b8; --sbg: #030814; --glow: rgba(102,163,255,.55); --gold: #f2c14e; --good: #4dff9a; --hot: #ff6b7a;
+  --f-crt: "VT323", "Courier New", monospace; --f-ui: "Rajdhani", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); margin: 0; padding-block: 32px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1160px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+h1 { font-size: 28px; margin: 0 0 6px; text-wrap: balance; }
+header p, .desc { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 74ch; }
+.desc b { color: var(--fg); }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: center; }
+.grp { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.grp > span { font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.seg { font: 700 14px var(--f-ui); color: var(--fg); background: #1a2242; border: 1px solid var(--line); border-radius: 8px; padding: 7px 13px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--accent); color: #05102c; border-color: var(--accent); }
+.seg:focus-visible, .k:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.view { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border: 1px solid var(--line); background: #0b0e1c; }
+.stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden; }
+.note { font: 500 12px/1.5 var(--f-mono); color: var(--muted); letter-spacing: .04em; margin: 0; }
+.legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.legend > div { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: #0c1122; min-width: 0; }
+.legend b { font: 700 16px var(--f-ui); display: block; margin-bottom: 4px; }
+.legend p { margin: 0; color: var(--muted); font: 500 14px/1.45 var(--f-ui); }
+
+/* arena + console behind */
+.arena { position: absolute; inset: 0; background: #0d1020; background-image: linear-gradient(rgba(120,140,200,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(120,140,200,.06) 1px, transparent 1px); background-size: 40px 40px; }
+.wall { position: absolute; background: #5d6a86; box-shadow: inset 0 -3px 0 #3a4560; }
+.newroom { position: absolute; border: 3px dashed var(--gold); background: rgba(242,193,78,.12); box-shadow: 0 0 22px rgba(242,193,78,.35); }
+.you { position: absolute; width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(circle, #9ab8ff 0 35%, #3554c9 36% 70%, transparent 71%); box-shadow: 0 0 18px #4d74ff; }
+.layer { position: absolute; inset: 0; background: rgba(3,4,10,.7); }
+.console { position: absolute; left: 10px; top: 632px; width: 1260px; height: 80px; background: var(--sbg); border: 1px solid rgba(102,163,255,.35); box-shadow: 0 0 0 3px #0c1224; color: var(--ink); font-family: var(--f-crt); }
+.console .plate { position: absolute; left: 14px; top: 8px; font-size: 18px; color: var(--dim); } .console .plate b { font: 54px/1 var(--f-crt); color: var(--ink); font-weight: 400; vertical-align: -10px; margin: 0 6px 0 8px; }
+.console .key { position: absolute; top: 11px; width: 150px; height: 58px; border: 2px solid var(--ink); background: rgba(102,163,255,.09); padding: 4px 8px; font-size: 22px; }
+.console .key kbd { font: 15px var(--f-crt); background: var(--ink); color: var(--sbg); padding: 0 5px; margin-right: 6px; }
+
+/* CRT tube */
+.box { position: absolute; color: var(--ink); font-family: var(--f-crt); text-shadow: 0 0 6px var(--glow); overflow: hidden; isolation: isolate; background: var(--sbg); box-shadow: 0 0 0 3px #0c1224, inset 0 0 0 1px rgba(102,163,255,.35); }
+.box > .in { position: absolute; inset: 0; z-index: 1; }
+.box::before { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.24) 0 1px, transparent 1px 3px); }
+.box::after { content: ""; position: absolute; inset: 0; z-index: 7; pointer-events: none; background: radial-gradient(130% 150% at 50% 45%, transparent 62%, rgba(0,0,0,.5) 100%); }
+.at { position: absolute; }
+.lab { font: 18px/1 var(--f-crt); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); text-shadow: none; }
+.head { font: 54px/1 var(--f-crt); letter-spacing: .04em; color: var(--ink); white-space: nowrap; }
+.head.gold { color: var(--gold); text-shadow: 0 0 10px rgba(242,193,78,.55); }
+.rule { position: absolute; height: 1px; background: rgba(102,163,255,.3); }
+/* stepper */
+.steps { display: flex; gap: 0; font: 22px/1 var(--f-crt); letter-spacing: .08em; }
+.steps button { all: unset; cursor: pointer; padding: 6px 14px 3px; color: var(--dim); border: 1px solid rgba(102,163,255,.3); margin-right: -1px; text-shadow: none; }
+.steps button.on { background: var(--ink); color: var(--sbg); }
+.steps button.done { color: var(--good); }
+.steps button i { font-style: normal; margin-right: 8px; opacity: .8; }
+/* tally */
+.tal { display: grid; grid-template-columns: 26px 1fr 58px 76px 62px 1.7fr; align-items: center; column-gap: 8px; }
+.tal.hd { font: 15px/1 var(--f-crt); letter-spacing: .12em; color: var(--dim); text-shadow: none; }
+.tal.hd > :nth-child(n+3):nth-child(-n+5) { text-align: right; }
+.row { height: 52px; border: 1px solid rgba(102,163,255,.4); background: rgba(102,163,255,.06); padding: 0 10px; font: 26px/1 var(--f-crt); }
+.row.me { border: 2px solid var(--ink); background: rgba(102,163,255,.16); }
+.row .n { color: #fff; text-shadow: none; font: 700 17px var(--f-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .n small { display: block; font: 500 11px var(--f-ui); color: var(--dim); letter-spacing: .06em; }
+.row .v { text-align: right; color: #fff; text-shadow: none; font-variant-numeric: tabular-nums; }
+.row .v.zero { color: var(--good); }
+.dot { width: 18px; height: 18px; border-radius: 50%; box-shadow: 0 0 8px currentColor; }
+.aw { display: flex; gap: 4px; overflow: hidden; }
+.tag { font: 15px/1 var(--f-crt); letter-spacing: .06em; padding: 3px 5px 1px; background: var(--gold); color: #1d1300; text-shadow: none; white-space: nowrap; }
+.tag.b { background: var(--ink); color: var(--sbg); }
+/* keys */
+.k { --c: var(--ink); font: 26px/1 var(--f-crt); letter-spacing: .05em; color: var(--c); background: color-mix(in srgb, var(--c) 8%, transparent); border: 2px solid var(--c);
+  padding: 3px 10px 0; display: flex; align-items: center; justify-content: center; gap: 10px; text-shadow: 0 0 6px color-mix(in srgb, var(--c) 55%, transparent); white-space: nowrap; cursor: pointer; }
+.k:hover { background: color-mix(in srgb, var(--c) 18%, transparent); }
+.k.on { --c: var(--good); background: color-mix(in srgb, var(--c) 20%, transparent); box-shadow: 0 0 14px color-mix(in srgb, var(--c) 35%, transparent); }
+.k.pri { font-size: 32px; box-shadow: 0 0 14px color-mix(in srgb, var(--c) 30%, transparent); }
+.k.gold { --c: var(--gold); }
+.k.sel { background: color-mix(in srgb, var(--c) 24%, transparent); box-shadow: 0 0 12px color-mix(in srgb, var(--c) 40%, transparent); }
+.k kbd { font: 20px var(--f-crt); border: 1px solid currentColor; padding: 1px 6px 0; opacity: .85; }
+.k.l { justify-content: flex-start; padding-left: 14px; font-size: 24px; }
+.k.l small { margin-left: auto; font: 18px var(--f-crt); opacity: .8; padding-right: 2px; }
+.status { font: 24px/1 var(--f-crt); color: var(--dim); white-space: nowrap; } .status b { color: var(--ink); font-weight: 400; }
+.cd { height: 10px; background: rgba(255,255,255,.08); position: relative; overflow: hidden; }
+.cd s { position: absolute; inset: 0 auto 0 0; background: repeating-linear-gradient(90deg, var(--ink) 0 6px, transparent 6px 8px); }
+.sw { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.sw .k { width: 86px; height: 34px; font-size: 22px; padding-top: 2px; }
+.sw .tx { font: 700 15px/1.2 var(--f-ui); color: #e6edff; text-shadow: none; } .sw .tx small { display: block; font: 500 12px var(--f-ui); color: var(--dim); }
+.nx .t { display: flex; align-items: center; gap: 10px; color: #fff; text-shadow: none; font: 600 17px/1.6 var(--f-ui); }
+.nx .t i { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+.nx .t em { font: 15px var(--f-crt); font-style: normal; background: var(--gold); color: #1d1300; padding: 2px 5px 0; margin-left: auto; }
+.road { display: flex; gap: 4px; } .road s { flex: 1; height: 8px; background: rgba(255,255,255,.1); } .road s.on { background: var(--ink); box-shadow: 0 0 6px var(--glow); } .road s.boss { background: var(--gold); }
+.rd { width: 26px; height: 26px; border: 2px dashed var(--dim); display: flex; align-items: center; justify-content: center; font-size: 22px; text-shadow: none; justify-self: end; }
+.rd.ok { border: 2px solid var(--good); color: var(--good); background: rgba(77,255,154,.12); }
+/* build map */
+.map { position: absolute; background: #050c1e; border: 1px solid rgba(102,163,255,.45); overflow: hidden; background-image: linear-gradient(rgba(102,163,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(102,163,255,.08) 1px, transparent 1px); background-size: 24px 24px; }
+.map i { position: absolute; border: 2px solid; background: rgba(102,163,255,.08); }
+.map i.hall { border-width: 0; background: rgba(102,163,255,.22); }
+.map i.ghost { border: 2px dashed var(--gold); background: rgba(242,193,78,.14); animation: pulse 1.4s ease-in-out infinite; }
+.map u { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: #9ab8ff; box-shadow: 0 0 8px #4d74ff; }
+.map em { position: absolute; font: 18px var(--f-crt); font-style: normal; color: var(--gold); text-shadow: none; }
+@keyframes pulse { 50% { opacity: .45; } }
+.vec { font: 400 44px/1 var(--f-crt); color: var(--gold); text-shadow: 0 0 8px rgba(242,193,78,.6); }
+.pips { display: flex; gap: 3px; } .pips s { width: 11px; height: 16px; background: rgba(255,255,255,.1); } .pips s.on { background: var(--gold); box-shadow: 0 0 5px rgba(242,193,78,.5); }
+@media (prefers-reduced-motion: reduce) { .map i.ghost { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Between waves: Results, then Build, then Ready</h1>
+    <p>Today the build window is a chip you open on the side while the Ready box is already counting. Here the break runs in order. Results first, then Build, then Ready, so the countdown only starts once building is done. Pick a look, then step through it (or click the on-screen keys).</p>
+  </header>
+  <div class="bar">
+    <div class="grp" role="group" aria-label="Look"><span>Look</span>
+      <button class="seg" data-opt="A" aria-pressed="true">A · Three tubes</button>
+      <button class="seg" data-opt="B" aria-pressed="false">B · Tabbed tube</button>
+      <button class="seg" data-opt="C" aria-pressed="false">C · Full-screen build</button></div>
+    <div class="grp" role="group" aria-label="Step"><span>Step</span>
+      <button class="seg" data-step="0" aria-pressed="true">1 · Results</button>
+      <button class="seg" data-step="1" aria-pressed="false">2 · Build</button>
+      <button class="seg" data-step="2" aria-pressed="false">3 · Ready</button></div>
+  </div>
+  <div class="view" id="view"><div class="stage" id="stage"></div></div>
+  <p class="note" id="cap"></p>
+  <div class="legend">
+    <div><b>A · Three tubes</b><p>Each step is its own tube in the same place. A step bar across the top shows where you are. Closest to today's Wave cleared box; Build gets the whole tube instead of a side window.</p></div>
+    <div><b>B · Tabbed tube</b><p>One tube with RESULTS / BUILD / READY tabs. Next and Back keys walk the order, but you can jump back to Build while waiting for a slow teammate. Fewest screens to learn.</p></div>
+    <div><b>C · Full-screen build</b><p>Results is a rack, Build takes the whole arena map with a tool column, Ready drops to a low strip so you see the rooms you just built behind it.</p></div>
+  </div>
+  <p class="desc"><b>Skipped when it doesn't apply:</b> Practice Range, Boss Hunts, the last wave, a full map and non-Expanding arenas go straight from Results to Ready (the step bar shows only two steps). <b>Players:</b> with Free building, each player builds on their own and presses Done; a teammate who is still building shows as "BUILDING" on the Ready tally. Auto-ready waits for Done.</p>
+</div>
+
+<script>
+const S = { opt: "A", step: 0, ready: false, auto: false, tool: 0 };
+const $ = id => document.getElementById(id);
+const P = [
+  { n: "Anthony", c: "Knight Tank", col: "#5b8cff", k: 18, d: 2140, t: 0, aw: [["UNTOUCHED", 0]] },
+  { n: "Aleon", c: "Elementalist DPS", col: "#ff8a3d", k: 21, d: 2880, t: 96, aw: [["MOST DAMAGE", 0], ["MOST KILLS", 0]] },
+  { n: "Sam", c: "Summoner Healer", col: "#4dff9a", k: 13, d: 1310, t: 22, aw: [["MOST HEALING", 1]] },
+];
+const NEXT = [["Spinner", "#c86bff", true], ["Swarmer", "#ff5a6a"], ["Sniper", "#ffd24d"], ["Grunt", "#ff7a3d"]];
+const TOOLS = [["ROOM", "R", "6"], ["HALLWAY", "H", "2"], ["OPEN WALL", "W", "+1"], ["PORTAL", "P", "4"], ["ROOM KITS", "K", "2"]];
+const fmt = v => v.toLocaleString("en-US");
+const at = (x, y, w, h, html, cls = "") => `<div class="at ${cls}" style="left:${x}px;top:${y}px;${w ? "width:" + w + "px;" : ""}${h ? "height:" + h + "px;" : ""}">${html}</div>`;
+const key = (x, y, w, h, html, cls, go) => `<button class="at k ${cls || ""}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px" ${go !== undefined ? `data-go="${go}"` : ""}>${html}</button>`;
+const box = (x, y, w, h, inner) => `<div class="box" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px"><div class="in">${inner}</div></div>`;
+
+function steps(x, y) {
+  const names = ["RESULTS", "BUILD", "READY"];
+  return `<div class="at steps" style="left:${x}px;top:${y}px">${names.map((n, i) => `<button class="${i === S.step ? "on" : i < S.step ? "done" : ""}" data-go="${i}"><i>${i < S.step ? "✓" : i + 1}</i>${n}</button>`).join("")}</div>`;
+}
+function tally(compact) {
+  let h = `<div class="tal hd"><i></i><span>SQUAD</span><span>KILLS</span><span>DAMAGE</span><span>TAKEN</span><span>AWARDS</span></div>`;
+  P.forEach((p, i) => {
+    h += `<div class="tal row${i === 0 ? " me" : ""}" style="${compact ? "height:38px;margin-top:5px" : "margin-top:8px"}"><i class="dot" style="background:${p.col};color:${p.col}"></i>
+      <div class="n">${p.n}${compact ? "" : `<small>${p.c.toUpperCase()}</small>`}</div><div class="v">${p.k}</div><div class="v">${fmt(p.d)}</div><div class="v${p.t === 0 ? " zero" : ""}">${p.t}</div>
+      <div class="aw">${p.aw.map(a => `<span class="tag${a[1] ? " b" : ""}">${a[0]}</span>`).join("")}</div></div>`;
+  });
+  return h;
+}
+function map(x, y, w, h, big) {
+  const R = (l, t, ww, hh, c, cls = "") => `<i class="${cls}" style="left:${l}%;top:${t}%;width:${ww}%;height:${hh}%;${c ? `border-color:${c}` : ""}"></i>`;
+  return `<div class="map" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">
+    ${R(34, 36, 30, 30, "#5b8cff")}${R(64, 46, 10, 10, "", "hall")}${R(74, 30, 20, 38, "#ff8a3d")}${R(34, 66, 30, 8, "", "hall")}${R(34, 74, 30, 22, "#4dff9a")}${R(10, 44, 24, 14, "", "hall")}
+    ${R(4, 24, 8, 62, "#5b8cff")}${R(34, 8, 30, 28, "", "ghost")}<u style="left:46%;top:48%"></u><u style="left:80%;top:44%;background:#ff8a3d"></u><u style="left:48%;top:84%;background:#4dff9a"></u>
+    <em style="left:${big ? "37" : "36"}%;top:12%">NEW ROOM · 6 ◆</em></div>`;
+}
+function pips(n, cap, x, y) { let s = ""; for (let i = 0; i < cap; i++) s += `<s class="${i < n ? "on" : ""}"></s>`; return at(x, y, 0, 0, `<div class="pips">${s}</div>`); }
+
+/* ---- screen bodies (x,y,w,h = tube rect) ---- */
+function results(x, y, w, h, nextKey) {
+  return at(x + 28, y + 56, 0, 0, `<span class="lab">// WAVE 6 OF 50 //</span>`) + at(x + 28, y + 80, 0, 0, `<span class="head gold">WAVE 6 CLEARED</span>`)
+    + at(x + 28, y + 160, w - 56, 0, tally(), "")
+    + at(x + 28, y + h - 84, w - 56, 0, `<span class="status">VECTORS EARNED <b>+2</b> · TOTAL <b>14</b> / 25 · NEXT: BUILD YOUR ARENA</span>`)
+    + nextKey;
+}
+function build(x, y, w, h, mapW, kv) {
+  const tl = TOOLS.map((t, i) => key(x + 28 + (kv ? 0 : 0), y + 150 + i * 52, 230, 44, `<kbd>${t[1]}</kbd>${t[0]}<small>${t[2]} ◆</small>`, "l" + (i === S.tool ? " sel" : ""), undefined).replace("<button", `<button data-tool="${i}"`)).join("");
+  return at(x + 28, y + 56, 0, 0, `<span class="lab">// BUILD THE ARENA //</span>`)
+    + at(x + 28, y + 76, 0, 0, `<span class="vec">14</span><span class="lab" style="margin-left:8px">/ 25 VECTORS</span>`) + pips(14, 25, x + 28, y + 128)
+    + tl + map(x + 280, y + 118, mapW, h - 190, true)
+    + at(x + 280, y + h - 62, mapW, 0, `<span class="status">GHOST ROOM COSTS <b style="color:var(--gold)">6</b> · YOU WILL HAVE <b>8</b> LEFT</span>`);
+}
+function ready(x, y, w, h) {
+  let rows = P.map((p, i) => { const ok = i === 0 ? (S.ready || S.auto) : i === 1; const building = i === 2;
+    return `<div class="tal row${i === 0 ? " me" : ""}" style="grid-template-columns:26px 1fr 120px 30px;height:42px;margin-top:6px"><i class="dot" style="background:${p.col};color:${p.col}"></i><div class="n">${p.n}</div>
+      <div class="v" style="font-size:18px;color:${building ? "var(--gold)" : "var(--dim)"}">${building ? "BUILDING" : ok ? "DONE" : "DONE"}</div><div class="rd ${ok ? "ok" : ""}">${ok ? "✓" : ""}</div></div>`; }).join("");
+  const nx = NEXT.map(n => `<div class="t"><i style="background:${n[1]}"></i>${n[0]}${n[2] ? "<em>NEW</em>" : ""}</div>`).join("");
+  const lw = Math.round(w * .5);
+  const me = S.auto || S.ready;
+  return at(x + 28, y + 56, 0, 0, `<span class="lab">// NEXT UP //</span>`) + at(x + 28, y + 80, 0, 0, `<span class="head">WAVE 7</span>`)
+    + at(x + 28, y + 160, lw, 0, rows) + at(x + lw + 60, y + 100, w - lw - 90, 0, `<div class="nx">${nx}</div>`)
+    + at(x + lw + 60, y + 100 + 4 * 28 + 18, w - lw - 90, 0, `<div class="road"><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s></s><s></s><s class="boss"></s></div><span class="lab" style="display:block;margin-top:8px">BOSS IN 3 WAVES</span>`)
+    + at(x + 28, y + h - 150, w - 56, 0, `<div class="cd"><s style="width:${me ? 62 : 0}%"></s></div>`)
+    + at(x + 28, y + h - 128, 0, 0, `<span class="status">${me ? "WAITING FOR SAM TO FINISH BUILDING · <b>4</b>" : "PRESS READY WHEN YOU ARE DONE · NO TIMER YET"}</span>`)
+    + key(x + 28, y + h - 82, 120, 54, `<kbd>ESC</kbd>BACK`, "", 1)
+    + key(x + 164, y + h - 82, 330, 54, `<kbd>Y</kbd>${S.ready ? "READY ✓" : "READY"}`, "pri" + (S.ready ? " on" : ""), "ready")
+    + at(x + w - 330, y + h - 80, 0, 0, `<div class="sw" data-go="auto"><button class="k ${S.auto ? "on" : ""}" style="width:86px;height:34px">${S.auto ? "ON" : "OFF"}</button><div class="tx">Auto-ready<small>Starts when building is done</small></div></div>`);
+}
+
+/* ---- the three looks ---- */
+function lookA() {
+  const x = 170, y = 80, w = 940, h = 500;
+  const nk = [key(x + w - 378, y + h - 82, 350, 54, `<kbd>ENTER</kbd>CONTINUE · BUILD`, "pri", 1), key(x + w - 378, y + h - 82, 350, 54, `<kbd>ENTER</kbd>DONE · READY`, "pri gold", 2)];
+  const inner = steps(x + 28, y + 14) + [results(x, y, w, h, nk[0]) + at(x + w - 228, y + 18, 0, 0, `<span class="lab">SKIP BUILD: [S]</span>`), build(x, y, w, h, w - 310) + nk[1] + key(x + 28, y + h - 82, 230, 54, `<kbd>ESC</kbd>BACK`, "", 0), ready(x, y, w, h)][S.step];
+  return box(x, y, w, h, inner.replace(/data-go="1" aria-/, "data-go=\"1\" aria-"));
+}
+function lookB() {
+  const x = 140, y = 70, w = 1000, h = 520;
+  const tabs = ["RESULTS", "BUILD · 14 ◆", "READY"].map((n, i) => `<button class="at k${i === S.step ? " sel pri" : ""}" style="left:${x + 28 + i * 220}px;top:${y + 16}px;width:208px;height:44px;font-size:24px" data-go="${i}">${n}</button>`).join("");
+  const nav = (S.step < 2 ? key(x + w - 258, y + h - 82, 230, 54, `<kbd>→</kbd>NEXT`, "pri", S.step + 1) : "") + (S.step > 0 ? key(x + w - 258 - (S.step < 2 ? 130 : -100), y + h - 82, 112, 54, `<kbd>←</kbd>BACK`, "", S.step - 1) : "");
+  const body = [results(x, y + 20, w, h, ""), build(x, y + 20, w, h, w - 320), ready(x, y + 20, w, h)][S.step];
+  let inner = tabs + `<div class="rule" style="left:${x + 28}px;top:${y + 68}px;width:${w - 56}px"></div>` + body;
+  if (S.step < 2) inner = inner.replace(/<span class="status">VECTORS EARNED/, `<span class="status">VECTORS EARNED`);
+  return box(x, y, w, h, inner + (S.step < 2 ? nav : nav));
+}
+function lookC() {
+  if (S.step === 0) { // rack
+    const x = 150, y = 60;
+    return box(x, y, 980, 90, at(x + 28, y + 14, 0, 0, `<span class="lab">// WAVE 6 OF 50 //</span>`) + at(x + 28, y + 34, 0, 0, `<span class="head gold" style="font-size:44px">WAVE 6 CLEARED</span>`) + steps(x + 560, y + 28))
+      + box(x, y + 106, 980, 280, at(x + 28, y + 126, 924, 0, tally()))
+      + box(x, y + 402, 980, 100, at(x + 28, y + 424, 0, 0, `<span class="status">VECTORS EARNED <b>+2</b> · TOTAL <b>14</b> / 25</span>`) + key(x + 620, y + 424, 332, 56, `<kbd>ENTER</kbd>CONTINUE · BUILD`, "pri", 1));
+  }
+  if (S.step === 1) { // full-screen build
+    const tl = TOOLS.map((t, i) => key(30, 130 + i * 56, 230, 46, `<kbd>${t[1]}</kbd>${t[0]}<small>${t[2]} ◆</small>`, "l" + (i === S.tool ? " sel" : "")).replace("<button", `<button data-tool="${i}"`)).join("");
+    return `<div class="at" style="left:0;top:0;width:1280px;height:720px;background:#050c1e;z-index:0"></div>`
+      + box(10, 10, 1260, 70, at(28, 24, 0, 0, `<span class="head" style="font-size:44px">BUILD THE ARENA</span>`) + steps(520, 28) + at(1030, 22, 0, 0, `<span class="vec" style="font-size:38px">14</span><span class="lab" style="margin-left:6px">/ 25 ◆</span>`))
+      + box(10, 90, 280, 530, at(0, 0, 0, 0, tl) + at(30, 420, 230, 0, `<span class="status" style="white-space:normal;font-size:20px">PLACE THE GHOST ROOM WITH A CLICK. IT IS BUILT AT ONCE AND COSTS 6.</span>`))
+      + map(300, 90, 970, 530, true)
+      + box(10, 630, 1260, 80, key(28, 646, 150, 48, `<kbd>ESC</kbd>BACK`, "", 0) + at(210, 658, 0, 0, `<span class="status">YOU WILL HAVE <b>8</b> LEFT · SAM IS STILL BUILDING</span>`) + key(960, 642, 290, 54, `<kbd>ENTER</kbd>DONE · READY`, "pri gold", 2));
+  }
+  const x = 10, y = 480; // low strip
+  return `<div class="at" style="left:0;top:0;width:1280px;height:620px;background:linear-gradient(transparent 60%, rgba(3,4,10,.6))"></div>`
+    + box(x, y, 1260, 140, steps(x + 28, y + 12) + at(x + 700, y + 14, 0, 0, `<span class="lab">NEXT: WAVE 7 · SPINNER, SWARMER, SNIPER, GRUNT</span>`)
+      + at(x + 28, y + 56, 560, 0, P.map((p, i) => { const ok = i === 0 ? (S.ready || S.auto) : i === 1; return `<span class="status" style="margin-right:22px;font-size:22px"><span style="color:${p.col}">●</span> ${p.n.toUpperCase()} <b style="color:${i === 2 ? "var(--gold)" : ok ? "var(--good)" : "var(--dim)"}">${i === 2 ? "BUILDING" : ok ? "✓" : "…"}</b></span>`; }).join(""))
+      + key(x + 720, y + 62, 100, 54, `<kbd>ESC</kbd>BACK`, "", 1) + key(x + 836, y + 62, 230, 54, `<kbd>Y</kbd>${S.ready ? "READY ✓" : "READY"}`, "pri" + (S.ready ? " on" : ""), "ready")
+      + at(x + 1086, y + 66, 0, 0, `<div class="sw" data-go="auto"><button class="k ${S.auto ? "on" : ""}" style="width:70px;height:34px;font-size:20px">${S.auto ? "ON" : "OFF"}</button><div class="tx" style="font-size:13px">Auto-ready</div></div>`));
+}
+
+const CAP = {
+  A: ["Results ends with one big key that leads to Build. Build ends with Done, which leads to Ready.", "Build: tools down the left, your arena on the right with the ghost room, vectors and cost along the bottom.", "Ready: the countdown only starts here. A teammate who is still building shows as BUILDING."],
+  B: ["Tabs along the top show all three steps. NEXT walks the order.", "You can open Build from any tab and come back, so a slow builder never blocks the tally.", "The last tab holds Ready and Auto-ready."],
+  C: ["Results is a rack of tubes over the dark layer, with a step bar in the header.", "Build takes the whole screen: tool column, a big map, and a bottom bar with Back and Done.", "Ready drops to a low strip so you see the rooms you just built while you wait."],
+};
+function arenaBack() {
+  const lit = S.opt === "C" && S.step === 1 ? "" : `<div class="arena"><div class="wall" style="left:64px;top:260px;width:340px;height:18px"></div><div class="wall" style="left:880px;top:260px;width:340px;height:18px"></div><div class="wall" style="left:630px;top:20px;width:18px;height:200px"></div><div class="wall" style="left:630px;top:330px;width:18px;height:240px"></div><div class="you" style="left:300px;top:390px"></div>${S.step === 2 ? '<div class="newroom" style="left:430px;top:30px;width:190px;height:170px"></div>' : ""}</div><div class="layer" style="background:rgba(3,4,10,${S.opt === "C" && S.step === 2 ? .25 : .7})"></div>`;
+  const con = `<div class="console"><div class="plate">WAVE<b>6</b>/ 50</div><div class="key" style="left:239px"><kbd>SPACE</kbd>Shield Wall</div><div class="key" style="left:397px"><kbd>Q</kbd>Leap Slam</div><div class="key" style="left:555px"><kbd>E</kbd>Empty</div><div class="key" style="left:713px"><kbd>SHIFT</kbd>Empty</div></div>`;
+  return lit + (S.opt === "C" && S.step === 1 ? "" : con);
+}
+function render() {
+  const st = $("stage");
+  st.innerHTML = arenaBack() + { A: lookA, B: lookB, C: lookC }[S.opt]();
+  $("cap").textContent = CAP[S.opt][S.step];
+  document.querySelectorAll("[data-opt]").forEach(b => b.setAttribute("aria-pressed", b.dataset.opt === S.opt));
+  document.querySelectorAll("[data-step]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.step === S.step));
+}
+document.addEventListener("click", e => {
+  const o = e.target.closest("[data-opt]"); if (o) { S.opt = o.dataset.opt; return render(); }
+  const s = e.target.closest("[data-step]"); if (s) { S.step = +s.dataset.step; return render(); }
+  const t = e.target.closest("[data-tool]"); if (t) { S.tool = +t.dataset.tool; return render(); }
+  const g = e.target.closest("[data-go]"); if (!g) return;
+  const v = g.dataset.go;
+  if (v === "ready") S.ready = !S.ready; else if (v === "auto") S.auto = !S.auto; else S.step = +v;
+  render();
+});
+function fit() { const w = $("view").clientWidth; $("stage").style.transform = `scale(${w / 1280})`; }
+addEventListener("resize", fit); fit(); render();
+</script>
