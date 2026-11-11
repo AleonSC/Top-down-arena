@@ -1,6 +1,6 @@
 # Surprise rooms: free, well-shaped rooms the map gets after a boss or a breach event
 
-Status: **steps 1-2 built** (shapes and placement; the boss trigger, `Surprise` flag on the wire (protocol 283), gold look and chip). The breach event (step 3) is not built. Decided with the owner on Nov 11, 2026. Builds on [`VectorBuilding.md`](VectorBuilding.md)
+Status: **all three steps built** (shapes and placement; the boss trigger, `Surprise` flag on the wire (protocol 283), gold look and chip; the breach event, protocol 284). Decided with the owner on Nov 11, 2026. Builds on [`VectorBuilding.md`](VectorBuilding.md)
 and [`RoomBuilding2.md`](RoomBuilding2.md) (breaches). Expanding arena only.
 
 ## Decisions (owner)
@@ -88,14 +88,28 @@ One bump: the `Surprise` flag in the room list (snapshot/`ExpandState`) and the 
   gold on the minimap while fresh, and the chip (SURPRISE ROOM, the shape's name, FREE) for 4.5 s. Cover is not added: every box is a 3-wide lane, so none qualified already.
 - Preview: `EXPANDMAP=3 EXPANDSURPRISE=ring|cross|l|t|chamfer [SURPRISEAGE=<s>] ZOOM=0.4 Tools/Preview/shot.sh x hud`. Tests: `ExpandingSurpriseTest`, `ExpandingSurpriseGameTest`.
 
+## Step 3 (built, protocol 284): the breach event
+
+- `BreachEvent.IsEventWave(seed, wave)` (`Core/BreachEvent.cs`): from wave 10, a seeded 1 in 8 (`BreachEvent.Chance`), never the wave after a boss (wave % 5 == 1), never two waves in a row.
+  Host only (the seed isn't synced). Skipped in Practice and Boss Hunts, and within 2 rooms of `MaxRooms`.
+- `Game.EventPlan()` (host, once the wave's breaches are up): the wave's breaches are shuffled by seed and the first one that has a legal surprise room **behind its wall** is
+  the event's (`Expansion.Surprise(..., through)`: only spots with floor on the point 30 px behind the wall; the shape comes round as for a boss). No fit, no event. The gold
+  breach goes out as `Game.EventMark` in `Msg.ExpandState` (a flag and its position).
+- The room opens at `BreachEvent.Delay` (20 s into the wave) or when the wave is cleared, whichever is first (`RevealBreachEvent`): the planned boxes are built free, the
+  gold clears, `NoteSurprise` starts the same build-in and chip as a boss's. Clients see the rooms arrive while `EventMark` was set.
+- The wave's other breaches stay put: `PinBreaches` keeps the cached set (minus any the new room stands behind) instead of re-rolling it for the new map.
+- Look: `DrawBreach(..., gold)` is the same drawing in gold (`BreachLook.cs`); preview `EXPANDMAP=6 BREACHAGE=5 BREACHAT=1 BREACHEVENT=1`.
+- **Dropped**: the "one extra spawn from that breach" in the first design: the breach is torn down when the room opens, so the room opening is the whole event.
+- Test: `ExpandingBreachEventTest` (which waves, the room behind the wall, host plan, friend's gold breach, the reveal, the other breaches kept, one event a wave).
+
 ## Build steps
 
 1. (built) Shapes + `Surprise` + tests (each shape legal, 3-tile minimum, deterministic, never overlaps, closes loops when it can).
 2. (built) Boss trigger + sync + gold look + banner; previews for all five shapes.
-3. Breach event trigger and reveal; balance pass with `vecbal` bots (does it lift the wave where bots die?).
+3. (built) Breach event trigger and reveal. Balance pass: see the notes below.
 
 ## Open questions (defaults in bold)
 
 - Sizes: **one size per shape**, or S and L picked by how many rooms exist?
-- Should a surprise room be able to carry a **path floor** (Burning Grounds, ...) sometimes? Default **no**, plain combat.
+- Should a surprise room be able to carry a **path floor** sometimes? Default **no**, plain combat.
 - Breach event frequency: **~1 in 8 waves** from wave 10; tune after the balance pass.

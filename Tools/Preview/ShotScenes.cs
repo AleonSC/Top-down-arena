@@ -1318,6 +1318,7 @@ static partial class Shot {
         xg.BreachAge = float.Parse(bage, System.Globalization.CultureInfo.InvariantCulture);
         var bb = xg.ActiveBreaches;
         Console.Error.WriteLine("breaches: " + bb.Length + (bb.Length > 0 ? " first at " + bb[0].Pos.X + "," + bb[0].Pos.Y : "") + " state " + xg.State + " wave " + xg.Wave);
+        if (bb.Length > 0 && Environment.GetEnvironmentVariable("BREACHEVENT") != null) xg.EventMark = bb[0].Pos;  // BREACHEVENT=1: the first breach is the breach event's (gold)
         if (bb.Length > 0 && Environment.GetEnvironmentVariable("BREACHAT") != null) { int bi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = bb[0].Pos + bb[0].In * (90f + 40f * bi) + bb[0].Along * (bi * 60f - 30f); bi++; } }
       }
       string fp = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: where you stand (default the hub)

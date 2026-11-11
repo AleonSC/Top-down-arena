@@ -117,3 +117,69 @@ static partial class Program
         Check(g.Expanded.Count == before, "a map within two rooms of full gets none");
     }
 }
+
+// The breach event (Docs/SurpriseRooms.md step 3): a gold breach on some regular waves, and the wall behind it opens onto a surprise room.
+static partial class Program
+{
+    static void ExpandingBreachEventTest(float dt)
+    {
+        // Which waves: never before wave 10, never the wave after a boss, never two in a row, about one in eight.
+        int total = 0, hits = 0; bool rules = true;
+        for (int seed = 1; seed <= 300; seed++)
+            for (int wave = 1; wave <= 100; wave++)
+            {
+                bool ev = BreachEvent.IsEventWave(seed, wave);
+                total++; hits += ev ? 1 : 0;
+                if (ev) rules &= wave >= BreachEvent.FromWave && wave % Expansion.Milestone != 1 && !BreachEvent.IsEventWave(seed, wave - 1);
+            }
+        double rate = hits / (double)(300 * 91);  // (waves 10 to 100)
+        Check(rules, "an event wave is 10 or later, not the wave after a boss, not right after another");
+        Check(rate > 0.07 && rate < 0.13, "about one regular wave in eight has one (" + rate.ToString("0.000") + ")");
+
+        // A room behind a breach: every spot has floor on the point just behind the wall, and a plain map still gets a plan.
+        string why;
+        var list = new List<ExpansionRoom>();
+        list.Add(Expansion.Custom(list, 1600, 100, 800, 600, out why).Value);
+        var w = Expansion.Build(list);
+        var bs = Breaches.For(w, 12);
+        bool any = false, behind = true;
+        foreach (var b in bs)
+        {
+            V2 pt = b.Pos - b.In * BreachEvent.Behind;
+            var opts = Expansion.SurpriseOptions(list, SurpriseShape.LHall, pt);
+            any |= opts.Count > 0;
+            foreach (var o in opts) behind &= o.Rooms.Any(q => pt.X >= q.X && pt.X < q.X1 && pt.Y >= q.Y && pt.Y < q.Y1);
+        }
+        Check(any && behind, "a room planned behind a breach has floor right behind its wall (" + bs.Length + " breaches)");
+
+        // In a run: the host plans it, the friend sees the gold breach, the wall opens at the delay.
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        foreach (var gg in new[] { g, cg }) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Expanded.Add(list[0]); }
+        int seedPick = Enumerable.Range(1, 100000).First(sd => BreachEvent.IsEventWave(sd, 12));
+        typeof(Game).GetField("expandSeed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(g, seedPick);
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.BreachAge > 0.2f, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
+        g.Wave = 12; cg.Wave = 12;
+        g.BreachAge = 2f; cg.BreachAge = 2f;
+        Run(s, dt, 3f, () => cg.EventMark.HasValue);
+        Check(g.EventMark.HasValue && cg.EventMark.HasValue && g.EventMark.Value.DistanceTo(cg.EventMark.Value) < 2f, "the host plans an event and the friend sees its gold breach");
+        var before = g.ActiveBreaches.Select(b => b.Pos).ToList();
+        Check(g.ActiveBreaches.Any(b => b.Pos.DistanceTo(g.EventMark.Value) < 3f) && cg.ActiveBreaches.Any(b => b.Pos.DistanceTo(cg.EventMark.Value) < 3f), "it is one of the wave's breaches on both screens");
+        int rooms0 = g.Expanded.Count;
+        g.BreachAge = BreachEvent.Delay + 0.1f;
+        Run(s, dt, 3f, () => cg.Expanded.Count > rooms0 && !cg.EventMark.HasValue);
+        var sur = g.Expanded.Where(r => r.Surprise > 0).ToList();
+        Check(sur.Count > 0 && sur.All(r => r.Price == 0) && Game.SurpriseCount(g.Expanded) == 1 && !g.EventMark.HasValue, "at the delay the wall opens onto a free surprise room (" + sur.Count + " boxes) and the gold clears");
+        Check(cg.Expanded.Count == g.Expanded.Count && !cg.EventMark.HasValue && cg.SurpriseKind == sur[0].Surprise && cg.SurpriseAge < 3f, "the friend gets it too, with the build-in and the chip");
+        var after = g.ActiveBreaches.Select(b => b.Pos).ToList();
+        Check(after.All(p => before.Any(q => q.DistanceTo(p) < 1f)) && after.Count >= before.Count - 1 && cg.ActiveBreaches.Select(b => b.Pos).SequenceEqual(after), "the wave's other breaches stay where they were, the same on both screens");
+        int count = g.Expanded.Count;
+        g.BreachAge = 40f;
+        Run(s, dt, 1f, () => false);
+        Check(g.Expanded.Count == count, "one event a wave");
+    }
+}

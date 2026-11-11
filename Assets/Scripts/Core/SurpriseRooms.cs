@@ -95,8 +95,9 @@ namespace Arena
 
         /// Every spot this shape can go, best first. A spot is a turn and mirror of the shape set against a wall of a room on the map,
         /// legal by the outline rules (no overlap, 3 tiles of one wall shared, the size cap). Score: +3 for each loop it closes, +2 if it
-        /// touches a dead end (a room with one door), -1 for each tile the map's outline (width + height) grows. No random numbers.
-        public static List<SurpriseOption> SurpriseOptions(IList<ExpansionRoom> built, SurpriseShape shape)
+        /// touches a dead end (a room with one door), -1 for each tile the map's outline (width + height) grows. No random numbers. With `through`,
+        /// only spots that have floor on that point (a breach event's room behind the cracked wall).
+        public static List<SurpriseOption> SurpriseOptions(IList<ExpansionRoom> built, SurpriseShape shape, V2? through = null)
         {
             var found = new List<SurpriseOption>();
             if (BoughtCount(built) >= MaxRooms)
@@ -134,8 +135,12 @@ namespace Arena
                                 int y = across ? (side == 0 ? by0 - h : by1) : at;
                                 if (!seenSpot.Add(MaskKey(mask) + "@" + x + "," + y))
                                     continue;
+                                if (through.HasValue && !(through.Value.X >= x && through.Value.X < x + w && through.Value.Y >= y && through.Value.Y < y + h))
+                                    continue;
                                 var made = FromTiles(built, mask, x, y, PathId.None, out string why);
                                 if (made == null)
+                                    continue;
+                                if (through.HasValue && !made.Exists(q => through.Value.X >= q.X && through.Value.X < q.X1 && through.Value.Y >= q.Y && through.Value.Y < q.Y1))
                                     continue;
                                 var opt = new SurpriseOption { Rooms = made, Shape = shape };
                                 for (int p = 0; p < made.Count; p++)
@@ -179,7 +184,7 @@ namespace Arena
 
         /// The surprise room for this wave: the shape asked for if it fits, else the next (smaller) ones; one of the SurpriseTop best
         /// spots, picked from the seed, so every machine gets the same room. Null with `why` set if nothing fits (a full map).
-        public static SurpriseOption? Surprise(int seed, int wave, IList<ExpansionRoom> built, SurpriseShape wanted, out string why)
+        public static SurpriseOption? Surprise(int seed, int wave, IList<ExpansionRoom> built, SurpriseShape wanted, out string why, V2? through = null)
         {
             why = null;
             var tries = new List<SurpriseShape> { wanted };
@@ -190,7 +195,7 @@ namespace Arena
             var rng = new DetRandom(seed * 7919 + wave * 104729 + built.Count + 13);
             foreach (var shape in tries)
             {
-                var options = SurpriseOptions(built, shape);
+                var options = SurpriseOptions(built, shape, through);
                 if (options.Count == 0)
                     continue;
                 return options[rng.Int(Math.Min(SurpriseTop, options.Count))];
