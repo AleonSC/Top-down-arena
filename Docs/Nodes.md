@@ -1,6 +1,6 @@
 # Nodes: map points you build a room around
 
-Status: **steps 1-2 built (protocol 282)**, steps 3-4 open. Decided with the owner on Nov 11, 2026. Replaces the floating shop and vendor rooms of
+Status: **steps 1-3 built (protocol 282)**, step 4 open. Decided with the owner on Nov 11, 2026. Replaces the floating shop and vendor rooms of
 [`FloatingRooms.md`](FloatingRooms.md); the Gatekeeper (mini-boss) stays a sealed room.
 
 ## The idea
@@ -51,6 +51,12 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
   once (`MapNode.Spent`, synced and saved); spent chests draw dim. Bots don't walk to chests. Max waiting nodes 6.
 - No cover within 90 px of a node (`Expansion.NodeClear`). Spawn rules need no change: a Shop or Vendor room spawns nothing, a chest's room is a Combat room.
 - Tests (suite `expand`): hallway first then room, claims only with the node in the map, chest opens once.
+
+## Step 3 (built, no protocol change)
+
+- `Game/NodeLook.cs`: an unclaimed node is a breathing ring and mark; a claimed one is a fixture of its room: a shop's stall (awning, counter, coin), a vendor's pedestal (plus, turning dashes),
+  a chest (glow and a walk-up ring; opened: lid up, dim). Chest ink is violet on the map, minimap and draw screen too.
+- Previews: `EXPANDMAP=0 EXPANDROOMS="1600,200,700,500" EXPANDNODE="shop:1950,450;chest:1750,450:spent" EXPANDAT=1850,500` (mode hud).
 
 ## Open
 

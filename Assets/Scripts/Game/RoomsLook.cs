@@ -43,30 +43,6 @@ namespace Arena
             }
         }
 
-        static Rgba NodeInk(NodeKind k) => k == NodeKind.Shop ? ShopInk : k == NodeKind.Vendor ? VendorInk : CombatInk;
-
-        /// A map node (Docs/Nodes.md): a ring and a mark of what it is. Breathing in empty space until a room is built round it, then steady.
-        void DrawNodeMark(MapNode n, bool claimed)
-        {
-            var col = NodeInk(n.Kind).WithAlpha(n.Spent ? 0.25f : claimed ? 0.85f : 0.5f + 0.25f * Mathf.Sin(game.AnimT * 2.5f));
-            V2 c = n.Pos;
-            Arc(c, 36f, 3f, col, 28);
-            switch (n.Kind)
-            {
-                case NodeKind.Shop: Arc(c, 14f, 3f, col, 16); break;
-                case NodeKind.Vendor:
-                    Line(c - new V2(16f, 0f), c + new V2(16f, 0f), 4f, col);
-                    Line(c - new V2(0f, 16f), c + new V2(0f, 16f), 4f, col);
-                    break;
-                default:  // a chest: a square
-                    Line(c + new V2(-14f, -14f), c + new V2(14f, -14f), 3f, col);
-                    Line(c + new V2(14f, -14f), c + new V2(14f, 14f), 3f, col);
-                    Line(c + new V2(14f, 14f), c + new V2(-14f, 14f), 3f, col);
-                    Line(c + new V2(-14f, 14f), c + new V2(-14f, -14f), 3f, col);
-                    break;
-            }
-        }
-
         /// Widens a map view's bounds to hold the nodes still waiting for a room.
         void IncludeNodes(ref V2 lo, ref V2 hi)
         {
