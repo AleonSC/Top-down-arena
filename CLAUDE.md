@@ -54,7 +54,10 @@ no Unity in the cloud container: check changes with the tools below.
 - They play-test in Unity and send **screenshots** and **session JSON uploads** (`Tools/SessionReport/report.py`
   summarises them). Analyses give concrete numbers and a short list of proposed fixes, then ask which to do.
 - They want things to look **polished** ("make it really nice"), with live previews over names.
-- For visual choices, offer **mockups to choose from** (`Docs/Mockups/`, published as artifacts).
+- For visual choices, offer options to choose from as **`Tools/Preview` renders of the real draw code** (`shot.sh`, sent
+  with `SendUserFile`), not hand-built HTML mockups: those use browser effects (blur, glow, fonts, free layout) that
+  `Ui.cs`/`DevKit.cs` can't reproduce, so the result in Unity looks different. Use an HTML mockup only for layout
+  ideas with no existing widget, and say that it's approximate.
 - For big features, **plan first** in a design doc with their decisions (e.g. `Docs/Paths.md`), then build one step
   at a time when they say "start on step N": code, tests, previews, README and doc status, push, short report.
 
