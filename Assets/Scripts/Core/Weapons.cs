@@ -121,7 +121,6 @@ namespace Arena
                 V2 away = (e.Pos - p.Pos).Normalized();
                 KnockEnemy(e, (away.IsZero ? b.Vel.Normalized() : away) * ScatterShove);  // slides (Knock.cs)
             }
-            ScatterLoad(b);  // loads Double Barrel's shells (TankAlts.cs)
             return ScatterPointBlank;
         }
 

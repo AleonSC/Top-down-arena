@@ -54,6 +54,8 @@ namespace Arena
             var parts = new List<string>();
             foreach (var l in g.Award.Lines)
                 parts.Add(l.Label.Split(' ')[0] + " " + l.Xp);
+            if (g.Cores > 0)
+                parts.Add("Cores +" + g.Cores);
             string how = string.Join("  ·  ", parts.ToArray());
             float mult = g.Award.ModMult * g.Award.DiffMult;
             if (Mathf.Abs(mult - 1f) > 0.001f)

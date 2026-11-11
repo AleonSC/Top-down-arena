@@ -204,7 +204,7 @@ namespace Arena
                 for (int pn = r.ReadByte(); pn > 0; pn--)
                     perkBytes.Add(r.ReadByte());
                 var def = Defs.Get(role);
-                var p = new Player { Id = id, Role = role, Def = def, Name = name, Hp = def.Hp, MaxHp = def.Hp, Aim = -MathX.Pi / 2f };
+                var p = new Player { Id = id, Role = role, Def = def, Name = name, Hp = def.Hp, MaxHp = def.Hp, Aim = -MathX.Pi / 2f, ScatShells = ScatShellMax };
                 p.Kit = kit;
                 p.Weapon = Defs.Weapon(role, kit, weapon < Defs.WeaponCount(role, kit) ? weapon : 0);
                 p.RoleAbility = Upgrades.RoleAbility(role, kit, ability);

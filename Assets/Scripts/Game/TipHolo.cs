@@ -12,16 +12,16 @@ namespace Arena
         bool holoUp = true;       // the slab sits above its button (the beam runs down to it); false: below it
         bool holoSide;            // no room above or below: beside the button, no beam
 
-        static readonly Color HoloCyan = new Color(0.18f, 0.86f, 1f);
+        static readonly Color HoloCyan = new Color(0.26f, 0.68f, 0.84f);
 
         float HoloT => holoClock >= 0f ? holoClock : Time.unscaledTime;
 
         /// Where the hologram slab goes: centred over the button with a gap for the beam.
-        Rect HoloPlace(Rect anchor, float pw, float h, float gap = 26f)
+        Rect HoloPlace(Rect anchor, float pw, float h, float gap = 16f)
         {
             holoSide = false;
             float x = Mathf.Clamp(anchor.center.x - pw / 2f, 8f, W - 8f - pw);
-            if (anchor.y - gap - h >= 8f)
+            if (anchor.y - gap - h >= 4f)
             {
                 holoUp = true;
                 return new Rect(x, anchor.y - gap - h, pw, h);
@@ -44,7 +44,7 @@ namespace Arena
             float t = HoloT;
             var c = HoloTint(accent);
             float flick = Mathf.Repeat(t, 2.3f) > 2.2f ? 0.5f : 1f;
-            float k = (0.93f + 0.07f * Mathf.Sin(t * 5.3f)) * flick;
+            float k = (0.93f + 0.07f * Mathf.Sin(t * 5.3f)) * flick * 0.55f;  // (0.55: the chrome is kept dim)
 
             if (!holoSide)
             {
@@ -86,7 +86,7 @@ namespace Arena
             float band = Mathf.Repeat(t * 0.5f, 1f);  // a bright band sweeping down
             float by = pop.y + band * (pop.height - 10f);
             Ui.Fill(new Rect(pop.x, by, pop.width, 10f), new Color(c.r, c.g, c.b, 0.2f));
-            Ui.Fill(new Rect(pop.x, by + 4f, pop.width, 1f), new Color(1f, 1f, 1f, 0.3f));
+            Ui.Fill(new Rect(pop.x, by + 4f, pop.width, 1f), new Color(1f, 1f, 1f, 0.2f));
             // a strip that slips sideways and back, now and then
             {
                 float ph = Mathf.Repeat(t * 1.7f, 4f);
@@ -94,7 +94,7 @@ namespace Arena
                 {
                     float sy = pop.y + Mathf.Repeat(t * 37f, pop.height - 12f), off = (ph < 0.12f ? 6f : -4f);
                     Ui.Fill(new Rect(pop.x + off, sy, pop.width, 8f), new Color(c.r, c.g, c.b, 0.22f));
-                    Ui.Fill(new Rect(pop.x + off, sy, pop.width, 1f), new Color(1f, 1f, 1f, 0.4f));
+                    Ui.Fill(new Rect(pop.x + off, sy, pop.width, 1f), new Color(1f, 1f, 1f, 0.25f));
                 }
             }
             CrtKit.Frame(pop, 1f, new Color(c.r, c.g, c.b, 0.95f * k));
@@ -123,16 +123,16 @@ namespace Arena
         {
             var c = HoloTint(accent);
             float j = Mathf.Repeat(HoloT, 2.3f) > 2.2f ? 3.5f : 1.5f;
-            Ui.Label(new Rect(r.x - j, r.y, r.width, r.height), s, size, new Color(1f, 0.2f, 0.7f, 0.6f), align, true);
-            Ui.Label(new Rect(r.x + j, r.y, r.width, r.height), s, size, new Color(0.2f, 0.95f, 1f, 0.6f), align, true);
-            Ui.Label(r, s, size, Color.Lerp(c, Color.white, 0.65f), align, true);
+            Ui.Label(new Rect(r.x - j, r.y, r.width, r.height), s, size, new Color(1f, 0.2f, 0.7f, 0.35f), align, true);
+            Ui.Label(new Rect(r.x + j, r.y, r.width, r.height), s, size, new Color(0.2f, 0.95f, 1f, 0.35f), align, true);
+            Ui.Label(r, s, size, Color.Lerp(c, Color.white, 0.5f), align, true);
         }
 
         /// A small one-line chip ("Coming soon") over a hovered locked slot, in the same hologram look.
         void DrawHoloChip(Rect anchor, string text)
         {
             float w = Ui.TextWidth(text, 14, true) + 28f, h = 30f;
-            var pop = HoloPlace(anchor, w, h, 16f);
+            var pop = HoloPlace(anchor, w, h, 12f);
             DrawHoloBack(pop, anchor, CrtUi.Ink);
             DrawHoloText(pop, text.ToUpperInvariant(), 14, TextAnchor.MiddleCenter, CrtUi.Ink);
         }
