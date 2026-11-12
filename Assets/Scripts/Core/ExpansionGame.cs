@@ -420,6 +420,24 @@ namespace Arena
             }
         }
 
+        /// Host: the moment a node's chest opens, the node is spent (the opened chest is removed soon after, maybe between waves when TickNodes doesn't run).
+        void SpendNodeOfChest(Prop c)
+        {
+            if (!IsHost)
+                return;
+            foreach (var kv in nodeChests)
+                if (kv.Value == c.Id)
+                {
+                    var nd = Nodes[kv.Key];
+                    nd.Spent = true;
+                    Nodes[kv.Key] = nd;
+                    nodeChests.Remove(kv.Key);
+                    DoLog("a chest node's chest was opened");
+                    BroadcastExpansion();
+                    return;
+                }
+        }
+
         /// Host: is this prop the chest of a chest node (it never holds the wave)?
         bool IsNodeChest(Prop p)
         {
