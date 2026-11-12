@@ -1173,6 +1173,7 @@ namespace Arena
                 w.Write(r.Floating);
                 w.Write(r.Leg);
                 w.Write(r.Surprise);
+                w.Write(r.Claimed);
             }
         }
 
@@ -1190,6 +1191,7 @@ namespace Arena
                 room.Floating = r.ReadBoolean();
                 room.Leg = r.ReadByte();
                 room.Surprise = r.ReadByte();
+                room.Claimed = r.ReadBoolean();
                 list.Add(room);
             }
             return list;
@@ -1249,10 +1251,20 @@ namespace Arena
         void ReadExpandState(BinaryReader r)
         {
             var rooms = ReadRooms(r);
-            bool changed = rooms.Count != Expanded.Count;
+            bool changed = rooms.Count != Expanded.Count, claimsOnly = false;
             for (int i = 0; !changed && i < rooms.Count; i++)
-                changed |= !rooms[i].Equals(Expanded[i]);
-            if (changed)
+            {
+                var same = rooms[i]; same.Claimed = Expanded[i].Claimed;
+                changed |= !same.Equals(Expanded[i]);
+            }
+            if (!changed)  // (only a Stash's cache taken: no rebuild, no build-in)
+                for (int i = 0; i < rooms.Count; i++)
+                    if (rooms[i].Claimed != Expanded[i].Claimed)
+                    {
+                        Expanded[i] = rooms[i];
+                        claimsOnly = true;
+                    }
+            if (changed && !claimsOnly)
             {
                 int before = SurpriseCount(Expanded), oldCount = Expanded.Count;
                 bool eventOn = EventMark.HasValue;  // (the gold breach was up when the room came)

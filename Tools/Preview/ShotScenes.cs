@@ -20,7 +20,7 @@ static partial class Shot {
     if (made.Count > 0) {  // STASHAGE=<s>: the build-in that old; you stand in the first Stash
       xg.SurpriseKind = made[0].Surprise; xg.SurpriseWave = xg.Wave;
       xg.SurpriseAge = float.Parse(Environment.GetEnvironmentVariable("STASHAGE") ?? "0.5", System.Globalization.CultureInfo.InvariantCulture);
-      if (Environment.GetEnvironmentVariable("STASHAT") != null) { int pi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = new V2((made[0].X + made[0].X1) / 2f + 50f * pi, (made[0].Y + made[0].Y1) / 2f); pi++; } }
+      if (Environment.GetEnvironmentVariable("STASHAT") != null) { int pi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = new V2(made[0].X + 90f + 50f * pi, (made[0].Y + made[0].Y1) / 2f); pi++; } }
     }
     Console.Error.WriteLine("breach rooms: " + ok + " of " + bs2.Length + " on=" + xg.BreachesOn + " exp=" + xg.ExpandingOn + " rooms=" + xg.RoomsOn + " boss=" + xg.BossNow + " st=" + xg.State + " w=" + xg.Wave);
   }

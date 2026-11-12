@@ -357,6 +357,7 @@ namespace Arena
                 return;
             TickDuelRooms();  // the Expanding arena's Gatekeeper rooms (GatekeeperRoom.cs)
             TickNodes();      // chest nodes (ExpansionGame.cs)
+            TickStashClaims();  // a breach Stash's vector cache (BreachEvent.cs)
             TickBreachEvent();  // the gold breach and its surprise room (BreachEvent.cs)
             int players = Players.Count;
             foreach (var rs in RoomStates)

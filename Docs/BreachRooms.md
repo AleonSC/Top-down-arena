@@ -1,6 +1,6 @@
 # Breach rooms: a small free room behind every breach
 
-Status: **steps 1 and 2 built** (protocol 300 for both): 20 s into a breach wave (or at its end) a Stash opens behind each breach left (`Game.RevealBreachRooms`, `BreachEvent.cs`). Decided with the owner on Nov 12, 2026.
+Status: **steps 1-3 built** (protocols 300, 301): 20 s into a breach wave (or at its end) a Stash opens behind each breach left (`Game.RevealBreachRooms`, `BreachEvent.cs`). Decided with the owner on Nov 12, 2026.
 Builds on [`SurpriseRooms.md`](SurpriseRooms.md) (placement, free rooms) and [`RoomBuilding2.md`](RoomBuilding2.md) (breaches). Expanding arena only.
 
 ## Decisions (owner)
@@ -24,12 +24,18 @@ Builds on [`SurpriseRooms.md`](SurpriseRooms.md) (placement, free rooms) and [`R
 ## Step 2 (built, decided Nov 12)
 
 - **Timing**: 20 s into the wave (`BreachEvent.Delay`, from `TickBreachEvent`), once a wave; the wave-end call stays as a fallback. A breach with a Stash behind it is torn down (`PinBreaches`), so that breach stops spawning; with none left, enemies come in at random spots.
-- **Contents**: vectors. Each Stash gives every player `Game.StashVectors` (6) on opening (`AddVectors`, so the cap holds); no pickup, nothing on the wire. A walk-in claim would need a synced flag.
+- **Contents**: vectors (step 2 paid the whole team 6 on opening; replaced by the walk-in claim in step 3).
 - **Look**: teal instead of gold (`SurpriseInk` in `SurpriseLook.cs`, rim, flash, minimap, a `STASH  +6 VECTORS` chip). Preview: `BREACHROOMS=1 BREACHAGE=25 STASHAGE=0.5 STASHAT=1 EXPANDMAP=6` (mode hud, wave 7).
 - Friends pin the breaches and play the build-in when a Stash arrives (`ExpansionGame.cs`, the room list read); a joiner's first list is quiet.
 
+## Step 3 (built, protocol 301): walk-in vector claim
+
+- Each Stash holds a cache. The first player to stand in the box takes `Game.StashVectors` (10, `AddVectors` so the cap holds); once. `TickStashClaims` (host, `BreachEvent.cs`, from `TickRoomsWave`).
+- Wire: `ExpansionRoom.Claimed` (a bool after `Surprise` in the `Msg.ExpandState` room list; saves get a trailing token). A claim-only change makes a friend's game swap the list quietly (no rebuild, no build-in).
+- Look: a breathing teal diamond in the middle until claimed (`DrawSurpriseRoom`); the chip reads `WALK IN FOR +10 VECTORS`. An unclaimed cache stays for later waves.
+- Test: `ExpandingBreachEventTest` (no pay on opening, the walker takes it, the friend sees it, once only).
+
 ## Open
 
-- A walk-in vector claim (first player in, or a synced "claimed" flag) instead of the instant team payout.
 - Cover or a fight inside the Stash; whether a Stash should keep its breach open (enemies still come out of it).
 - The next breach wave's breaches are re-rolled for the bigger map (the Stashes are permanent).

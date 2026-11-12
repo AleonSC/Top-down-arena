@@ -878,7 +878,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   **Breach events**: on about half of the breach waves from wave 7 on (so waves like 7, 15, 19, 23, ...; never the wave after a boss) one of the breaches flashes **gold** instead of red. 20 seconds into the
   wave, or when it ends if that comes first, the wall behind that breach opens onto a free surprise room. The wave's other breaches stay where they were.
   **Breach rooms**: 20 seconds into a breach wave (or when it ends, if that comes first) every breach left (not the gold one) opens onto a small free **Stash** (5 x 3 tiles) behind its wall. Each Stash
-  gives every player **+6 vectors**. It builds in with a teal flash and scan line and a **STASH** chip. Permanent, no vote; it stops within 2 rooms of the map's size cap, and a breach with no
+  holds a **vector cache** (a teal diamond): the first player to walk in takes **+10 vectors** (up to their cap), once. It builds in with a teal flash and scan line and a **STASH** chip (WALK IN FOR +10 VECTORS). Permanent, no vote; it stops within 2 rooms of the map's size cap, and a breach with no
   space behind it gets none. A breach that opens a Stash stops letting enemies in for the rest of the wave.
 - **Open a wall**: on the draw screen, switch to **Open wall** and click both ends of a stretch of a wall two rooms share (the cyan stretches; the outer wall can't be
   opened, nor a sealed floating room's). It goes to the vote like a room. If it wins, that stretch of wall comes down (a short stretch is a door, a long
