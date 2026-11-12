@@ -19,6 +19,7 @@ the **guided tutorial**.
 | Waves between bosses | The **coming boss's faction** (as Boss Hunt: `Hunts.Step`, set piece on the 5th and 10th wave of each ten). Bosses without a faction yet (all but the Warden) fall back to the normal run's mixed waves |
 | Building | The Expanding arena's **vector room drawing**, as in the Campaign (build round after each cleared wave) |
 | Rewards | Full XP, rank and boss-beaten unlocks; its own records (plays, best wave, bosses beaten); **not saved** to continue |
+| Boss mechanics | **The same in every mode**: no per-mode or per-wave attack tuning; only health and damage follow the wave (as now). Any boss can roll after wave 10 |
 | Tutorial | Guided steps on the profile's first Quick Play, skippable, never again after (a profile flag) |
 
 ## Tutorial lessons
@@ -37,16 +38,12 @@ Per seat and local only (each player's own profile decides): no network message.
 1. **Mode and waves**: `Session.QuickMode`, `Game.Quick` (Core), the carousel's first mode and default; a boss slot after every
    10th wave (as the Campaign's shown waves); the boss bag (Warden first); faction waves with the mixed fallback; win screen End / Continue endless; records;
    sim suite `quick`. Protocol bump (start message, `Msg` for the endless choice).
-2. **Early bosses**: an early tier per boss, used when it's met before its home wave (slower patterns, longer
-   warnings, fewer bullets per volley, no last stand below a threshold), a tuning table plus checks in each boss's
-   attack code; a sim test that a typical wave-10 build beats every boss.
-3. **Building**: Quick Play on the Expanding arena; check vector income fits a 10-wave run (first build round after wave 1).
-4. **Tutorial**: `Core/Tutorial.cs` (step machine, what counts as done), `Game/TutorialUi.cs` (prompts), profile flag,
+2. **Building**: Quick Play on the Expanding arena; check vector income fits a 10-wave run (first build round after wave 1).
+3. **Tutorial**: `Core/Tutorial.cs` (step machine, what counts as done), `Game/TutorialUi.cs` (prompts), profile flag,
    skip; `Tools/Preview` shots of each prompt.
-5. **Polish**: README section, lobby dossier for Quick Play (the boss bag shown as "???" until met), preview shots.
+4. **Polish**: README section, lobby dossier for Quick Play (the boss bag shown as "???" until met), preview shots.
 
 ## Open
 
-- Late bosses after wave 10: health/damage already scale by wave; step 2's early tier tones down their mechanics, so all
-  10 can roll from the start.
+- Late bosses after wave 10 are simply hard: only health/damage scale by wave, by choice (bosses stay recognizable).
 - Factions for the other nine bosses (`Docs/Approaches.md`) would make every ten feel like its boss.
