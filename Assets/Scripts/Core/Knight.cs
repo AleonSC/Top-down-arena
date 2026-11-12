@@ -281,22 +281,13 @@ namespace Arena
                     steelWalls.RemoveAt(i);
                     continue;
                 }
-                foreach (var b in Bullets.Values)
-                {
-                    if (!Defs.IsEnemyShot(b.Kind) || Defs.Unblockable(b.Kind))
-                        continue;
-                    float d = b.Pos.DistanceTo(c.Center);
-                    if (Math.Abs(d - c.Reach) > SteelWallBand + b.Radius || AngleTo(c.Center, b.Pos, c.Aim) > c.HalfArc)
-                        continue;
-                    stopped.Add(b.Id);
-                }
+                CollectShotsInArc(c.Center, c.Aim, c.Reach, SteelWallBand, c.HalfArc, stopped);
             }
             foreach (int id in stopped)
                 if (Bullets.ContainsKey(id))
                 {
                     AddFx(FxKind.Spark, Bullets[id].Pos, Defs.BulletColor(Defs.KnightSlash), 8f, 0.2f);
-                    Bullets.Remove(id);
-                    pendingRemoved.Add(id);
+                    KillBullet(id);
                 }
         }
 
@@ -321,6 +312,24 @@ namespace Arena
         }
 
         static float Dot(V2 a, V2 b) => a.X * b.X + a.Y * b.Y;
+
+        /// How much wider a cone reaches for a body of radius r at distance d (its edge counts, not just its centre);
+        /// right on top of it (d up to 1 px), any direction does.
+        static float BodySlack(float d, float r) => d > 1f ? (float)Math.Asin(Math.Min(1f, r / d)) : MathX.Pi;
+
+        /// The enemy shots (blockable ones) on an arc: within band of radius from center (plus the shot's size), and
+        /// within halfArc of aim. Added to into (not cleared first), for a wall or guard to stop them.
+        void CollectShotsInArc(V2 center, float aim, float radius, float band, float halfArc, List<int> into)
+        {
+            foreach (var b in Bullets.Values)
+            {
+                if (!Defs.IsEnemyShot(b.Kind) || Defs.Unblockable(b.Kind))
+                    continue;
+                if (Math.Abs(b.Pos.DistanceTo(center) - radius) > band + b.Radius || AngleTo(center, b.Pos, aim) > halfArc)
+                    continue;
+                into.Add(b.Id);
+            }
+        }
 
         static float AngleTo(V2 from, V2 to, float aim) => Math.Abs(MathX.Fmod((to - from).Angle - aim + MathX.Pi, MathX.Tau) - MathX.Pi);
 
@@ -406,7 +415,7 @@ namespace Arena
                 }
                 if (d - e.Radius > s.Reach)
                     continue;
-                float slack = d > 1f ? (float)Math.Asin(Math.Min(1f, e.Radius / d)) : MathX.Pi;
+                float slack = BodySlack(d, e.Radius);
                 if (!full && AngleTo(origin, e.Pos, s.Aim) > s.HalfArc + slack && d > e.Radius + p.Def.BodyR)
                     continue;
                 if (BlocksShot(e, origin))
@@ -430,7 +439,7 @@ namespace Arena
                 float d = q.DistanceTo(origin);
                 if (d - lr > s.Reach)
                     return false;
-                float slack = d > 1f ? (float)Math.Asin(Math.Min(1f, lr / d)) : MathX.Pi;
+                float slack = BodySlack(d, lr);
                 return full || AngleTo(origin, q, s.Aim) <= s.HalfArc + slack || d <= lr + p.Def.BodyR;
             });
             if (s.Sweep > 0)
@@ -476,7 +485,7 @@ namespace Arena
                 dmg *= NinjaHitMult(p.Id, Defs.KnightSlash, e);  // Vanish's ambush (Ninja.cs)
                 HurtEnemy(e, dmg, p.Id);
                 Daze(e);  // a melee hit: it can't hit back for a split second (Daze.cs)
-                OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash, SlowAmt = s.Slow }, e);
+                ModHit(e, p.Id, dmg, Defs.KnightSlash, dir, s.Slow);
                 if (s.Bleed > 0f)
                     ApplyBleed(e, dmg * s.Bleed, p.Id, true);  // KitWeapons.cs
                 if (s.Stun > 0f && !e.Def.IsBoss)
@@ -572,8 +581,7 @@ namespace Arena
             }
             foreach (var b in hit)
             {
-                Bullets.Remove(b.Id);
-                pendingRemoved.Add(b.Id);
+                KillBullet(b.Id);
                 V2 away = (b.Pos - origin).Normalized();
                 if (away.IsZero)
                     away = V2.FromAngle(aim);
@@ -602,8 +610,7 @@ namespace Arena
             }
             foreach (int id in cut)
             {
-                Bullets.Remove(id);
-                pendingRemoved.Add(id);
+                KillBullet(id);
             }
         }
 
@@ -636,8 +643,7 @@ namespace Arena
             }
             foreach (int id in cut)
             {
-                Bullets.Remove(id);
-                pendingRemoved.Add(id);
+                KillBullet(id);
             }
             return cut.Count;
         }

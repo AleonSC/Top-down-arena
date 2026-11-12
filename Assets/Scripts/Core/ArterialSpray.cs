@@ -90,8 +90,7 @@ namespace Arena
                         erase.Add(b.Id);
                 foreach (int bid in erase)
                 {
-                    Bullets.Remove(bid);
-                    pendingRemoved.Add(bid);
+                    KillBullet(bid);
                 }
             }
         }

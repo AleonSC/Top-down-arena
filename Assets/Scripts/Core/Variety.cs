@@ -399,14 +399,9 @@ namespace Arena
                 if (volatileT[i] > 0f)
                     continue;
                 V2 at = volatilePos[i];
-                float off = Rand(0f, MathX.Tau);
                 int n = Math.Abs(volatileN[i]);
                 bool throes = volatileN[i] < 0;  // (a Death Throes burst is stored negative)
-                for (int k = 0; k < n; k++)
-                {
-                    V2 dir = V2.FromAngle(off + MathX.Tau * k / n);
-                    SpawnBullet(Defs.SmallShot, at + dir * 12f, dir * (throes ? Modifiers.ThroesSpeed : 125f), 0f, 8f, Defs.BulletDamage(Defs.SmallShot), 0).Source = volatileType[i];
-                }
+                SpawnRing(Defs.SmallShot, at, n, throes ? Modifiers.ThroesSpeed : 125f, 8f, Defs.BulletDamage(Defs.SmallShot), 0, 12f, volatileType[i]);
                 BroadcastFx(FxKind.Boom, at, throes ? new Rgba(0.75f, 0.3f, 0.35f) : new Rgba(1f, 0.55f, 0.23f), throes ? 34f : 60f, 0.3f, throes ? Sfx.None : Sfx.Explode);
                 volatileN.RemoveAt(i);
                 volatileT.RemoveAt(i);

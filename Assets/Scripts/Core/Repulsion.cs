@@ -51,7 +51,7 @@ namespace Arena
                 float d = rel.Length;
                 if (d - e.Radius > reach + p.Def.BodyR)
                     continue;
-                float slack = d > 1f ? (float)Math.Asin(Math.Min(1f, e.Radius / d)) : MathX.Pi;
+                float slack = BodySlack(d, e.Radius);
                 float off = Math.Abs(MathX.Fmod(rel.Angle - aim + MathX.Pi, MathX.Tau) - MathX.Pi);
                 if (off > half + slack)
                     continue;
@@ -62,7 +62,7 @@ namespace Arena
                 }
                 hits++;
                 HurtEnemy(e, hit, p.Id);
-                OnBulletHit(new Bullet { Pos = e.Pos, Vel = V2.FromAngle(aim), Owner = p.Id, Dmg = hit, Kind = Defs.HolyShot }, e);  // weapon mods ride the blast
+                ModHit(e, p.Id, hit, Defs.HolyShot, V2.FromAngle(aim));  // weapon mods ride the blast
                 if (!Heavy(e))
                 {
                     V2 away = d > 1f ? rel / d : V2.FromAngle(aim);

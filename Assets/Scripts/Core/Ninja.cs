@@ -247,7 +247,7 @@ namespace Arena
                     p.OrbitCut[e.Id] = p.OrbitClock;
                     float dmg = FanDamage * p.Stats.DmgMult * NinjaHitMult(p.Id, Defs.KunaiShot, e);
                     HurtEnemy(e, dmg, p.Id);
-                    OnBulletHit(new Bullet { Pos = e.Pos, Vel = (e.Pos - p.Pos).Normalized(), Owner = p.Id, Dmg = dmg, Kind = Defs.KunaiShot }, e);
+                    ModHit(e, p.Id, dmg, Defs.KunaiShot, (e.Pos - p.Pos).Normalized());
                 }
             }
         }
@@ -465,7 +465,7 @@ namespace Arena
                     {
                         float dmg = StepDamage * s.DmgMult * s.StepDmgMult * NinjaHitMult(p.Id, Defs.KnightSlash, best);
                         HurtEnemy(best, dmg, p.Id);
-                        OnBulletHit(new Bullet { Pos = best.Pos, Vel = (best.Pos - target).Normalized(), Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, best);
+                        ModHit(best, p.Id, dmg, Defs.KnightSlash, (best.Pos - target).Normalized());
                         BroadcastFx(FxKind.Slash, target, best.Pos + (best.Pos - target).Normalized() * best.Radius, new Rgba(0.75f, 0.6f, 1f), 0.12f, 0.2f, Sfx.NinjaStepStrike);
                     }
                     // The smoke look (Game/ShadowStepLook.cs) starts where they stood; the plain ring and slash above stay for Visual effects off.
@@ -523,7 +523,7 @@ namespace Arena
                         var e = marks[i];
                         float dmg = LotusDamage * s.DmgMult;
                         HurtEnemy(e, dmg, p.Id);
-                        OnBulletHit(new Bullet { Pos = e.Pos, Vel = (e.Pos - p.Pos).Normalized(), Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
+                        ModHit(e, p.Id, dmg, Defs.KnightSlash, (e.Pos - p.Pos).Normalized());
                         BroadcastFx(FxKind.DeathLotus, e.Pos, new V2(i * gap, p.Id), LotusCrimson, e.Radius, i * gap + LotusStain, Sfx.None);
                     }
                     p.InvulnT = Math.Max(p.InvulnT, 1f);
@@ -673,7 +673,7 @@ namespace Arena
                 if (!Targetable(e) || Heavy(e))
                     continue;
                 float d = e.Pos.DistanceTo(p.Pos);
-                if (d - e.Radius > reach || AngleTo(p.Pos, e.Pos, aim) > FanCone + (d > 1f ? (float)Math.Asin(Math.Min(1f, e.Radius / d)) : MathX.Pi))
+                if (d - e.Radius > reach || AngleTo(p.Pos, e.Pos, aim) > FanCone + (BodySlack(d, e.Radius)))
                     continue;
                 V2 away = d > 1f ? (e.Pos - p.Pos) / d : V2.FromAngle(aim);
                 float to = Math.Max(e.Radius + p.Def.BodyR + 6f, d + shove);
@@ -716,7 +716,7 @@ namespace Arena
                 if (Targetable(e) && e.Pos.DistanceTo(z.Pos) < r + e.Radius)
                 {
                     HurtEnemy(e, dmg, z.Owner);
-                    OnBulletHit(new Bullet { Pos = e.Pos, Owner = z.Owner, Dmg = dmg, Kind = Defs.OfudaShot }, e);  // weapon mods ride the burst
+                    ModHit(e, z.Owner, dmg, Defs.OfudaShot, default(V2));  // weapon mods ride the burst
                 }
             foreach (var q in Players.Values)
                 if (!q.Downed && q.Pos.DistanceTo(z.Pos) < WardHealReach)
@@ -803,7 +803,7 @@ namespace Arena
         void ReturnStar(StuckStar st, Enemy e, Player p)
         {
             HurtEnemy(e, st.Dmg, p.Id);
-            OnBulletHit(new Bullet { Pos = e.Pos, Owner = p.Id, Dmg = st.Dmg, Kind = Defs.StarShot }, e);
+            ModHit(e, p.Id, st.Dmg, Defs.StarShot, default(V2));
             V2 to = p.Pos - e.Pos;
             float dist = Math.Max(1f, to.Length);
             var b = SpawnBullet(Defs.StarShot, e.Pos, to / dist * RecallSpeed / p.Stats.ShotSpeedMult, 0f, dist / RecallSpeed, st.Dmg * RecallBack, p.Id);

@@ -104,14 +104,7 @@ namespace Arena
         void RapierStanceReflect(Player p)
         {
             guardStopped.Clear();
-            foreach (var b in Bullets.Values)
-            {
-                if (!Defs.IsEnemyShot(b.Kind) || Defs.Unblockable(b.Kind))
-                    continue;
-                if (Math.Abs(b.Pos.DistanceTo(p.Pos) - RapierStanceRadius) > RapierStanceBand + b.Radius || AngleTo(p.Pos, b.Pos, p.Aim) > RapierStanceHalfArc)
-                    continue;
-                guardStopped.Add(b.Id);
-            }
+            CollectShotsInArc(p.Pos, p.Aim, RapierStanceRadius, RapierStanceBand, RapierStanceHalfArc, guardStopped);
             foreach (int id in guardStopped)
             {
                 Bullet b;
@@ -119,8 +112,7 @@ namespace Arena
                     continue;
                 AddFx(FxKind.Spark, b.Pos, new Rgba(0.8f, 0.72f, 1f), 8f, 0.2f);
                 V2 back = b.Vel.IsZero ? V2.FromAngle(p.Aim) : -b.Vel.Normalized();
-                Bullets.Remove(id);
-                pendingRemoved.Add(id);
+                KillBullet(id);
                 SpawnBullet(Defs.ArcaneShot, b.Pos, back * 520f, 0f, 1f, 12f * p.Stats.DmgMult, p.Id);
                 p.RapierChargeF = Math.Min(1f, p.RapierChargeF + RapierChargePerBullet);
             }

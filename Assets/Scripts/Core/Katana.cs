@@ -257,7 +257,7 @@ namespace Arena
                 float dmg = w * KatanaBurstMult * NinjaHitMult(p.Id, Defs.KnightSlash, e);
                 HurtEnemy(e, dmg, p.Id);
                 Daze(e);  // Daze.cs
-                OnBulletHit(new Bullet { Pos = e.Pos, Vel = away, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
+                ModHit(e, p.Id, dmg, Defs.KnightSlash, away);
                 KatanaCutFx(e, away.Orthogonal(), e.Hp <= 0f, KatanaSteel);
                 hit++;
             }

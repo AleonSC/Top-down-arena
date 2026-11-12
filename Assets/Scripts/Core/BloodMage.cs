@@ -514,7 +514,7 @@ namespace Arena
                     continue;
                 HurtEnemy(e, c.Dmg, c.Owner);
                 ApplyBleed(e, c.Dmg * SanguineBleed, c.Owner);  // KitWeapons.cs: each coat is another stack
-                OnBulletHit(new Bullet { Pos = e.Pos, Owner = c.Owner, Dmg = c.Dmg, Kind = Defs.SanguineShot }, e);
+                ModHit(e, c.Owner, c.Dmg, Defs.SanguineShot, default(V2));
                 if (Players.TryGetValue(c.Owner, out p))
                     p.BloodReserve = Math.Min(ReserveMax, p.BloodReserve + ReserveGain);
             }
@@ -878,7 +878,7 @@ namespace Arena
                 {
                     Player ally = null;
                     foreach (var q in Players.Values)
-                        if (q != p && !q.Downed && (ally == null || q.Hp / q.MaxHp < ally.Hp / ally.MaxHp))
+                        if (q != p && !q.Downed && MoreHurt(q, ally))
                             ally = q;
                     float gift = castPaid * GiftMult * s.GiftMult;
                     if (ally == null)
@@ -912,7 +912,7 @@ namespace Arena
                             continue;
                         if (q.Downed && (down == null || q.Pos.DistanceSq(target) < down.Pos.DistanceSq(target)))
                             down = q;
-                        if (!q.Downed && (hurt == null || q.Hp / q.MaxHp < hurt.Hp / hurt.MaxHp))
+                        if (!q.Downed && MoreHurt(q, hurt))
                             hurt = q;
                     }
                     if (down != null)

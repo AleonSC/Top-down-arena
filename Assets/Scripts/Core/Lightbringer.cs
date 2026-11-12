@@ -187,7 +187,7 @@ namespace Arena
                 if (along < 0f || along > len || across > SunlanceHalfWidth + e.Radius)
                     continue;
                 HurtEnemy(e, dmg, p.Id);
-                OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
+                ModHit(e, p.Id, dmg, Defs.KnightSlash, dir);
             }
         }
 

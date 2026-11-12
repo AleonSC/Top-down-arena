@@ -90,8 +90,7 @@ namespace Arena
                 {
                     Bullet b = Bullets[id];
                     AddFx(FxKind.Spark, b.Pos, Defs.BulletColor(Defs.HolyShot), b.Radius + 5f, 0.25f);
-                    Bullets.Remove(id);
-                    pendingRemoved.Add(id);
+                    KillBullet(id);
                 }
             }
             if (z.Freezes)

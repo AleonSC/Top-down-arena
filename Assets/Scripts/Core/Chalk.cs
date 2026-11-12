@@ -304,8 +304,7 @@ namespace Arena
             }
             foreach (int id in gone)
             {
-                Bullets.Remove(id);
-                pendingRemoved.Add(id);
+                KillBullet(id);
             }
         }
 

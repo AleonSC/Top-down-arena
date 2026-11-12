@@ -153,8 +153,7 @@ namespace Arena
             {
                 var o = Bullets[id];
                 AddFx(FxKind.Spark, o.Pos, Defs.BulletColor(o.Kind), 8f, 0.25f);
-                Bullets.Remove(id);
-                pendingRemoved.Add(id);
+                KillBullet(id);
             }
             float offset = Rand(0f, MathX.Tau);
             for (int i = 0; i < b.Frags; i++)  // extra projectiles: bomblets scattering round the burst, popping where they land

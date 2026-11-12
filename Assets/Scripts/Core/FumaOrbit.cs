@@ -127,8 +127,7 @@ namespace Arena
                         gone.Add(b.Id);
                 foreach (int id in gone)
                 {
-                    Bullets.Remove(id);
-                    pendingRemoved.Add(id);
+                    KillBullet(id);
                 }
                 EnterFumaOrbit(p, Math.Min(rel.Length, FumaReach), rel.IsZero ? p.Aim : rel.Angle);
                 BroadcastFx(FxKind.Ring, caught.Pos, FumaHot, 30f, 0.25f, Sfx.SwingLight);
@@ -225,7 +224,7 @@ namespace Arena
             p.Run.ShotsHit++;
             HurtEnemy(e, dmg, p.Id);
             V2 rel = e.Pos - p.Pos;
-            OnBulletHit(new Bullet { Pos = e.Pos, Vel = rel.IsZero ? V2.FromAngle(p.Aim) : rel.Normalized(), Owner = p.Id, Dmg = dmg, Kind = Defs.FumaStar }, e);
+            ModHit(e, p.Id, dmg, Defs.FumaStar, rel.IsZero ? V2.FromAngle(p.Aim) : rel.Normalized());
             BroadcastFx(FxKind.Spark, e.Pos - rel.Normalized() * e.Radius, new Rgba(1f, 1f, 1f), 8f, 0.15f, Sfx.None);
         }
 
