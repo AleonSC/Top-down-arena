@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// The well-shaped rooms the game gives the Expanding arena for free (Docs/SurpriseRooms.md, step 1).
-    public enum SurpriseShape : byte { Ring, Cross, LHall, THall, Chamfer }
+    public enum SurpriseShape : byte { Ring, Cross, LHall, THall, Chamfer, Stash }
 
     /// A spot for a surprise room: its boxes (Price 0), how many loops it closes and its score.
     public struct SurpriseOption
@@ -28,6 +28,7 @@ namespace Arena
                 case SurpriseShape.Cross: return "Cross";
                 case SurpriseShape.LHall: return "L hall";
                 case SurpriseShape.THall: return "T hall";
+                case SurpriseShape.Stash: return "Stash";
                 default: return "Chamfer";
             }
         }
@@ -48,6 +49,8 @@ namespace Arena
                     cols = 12; rows = 9; f = (c, r) => r <= 2 || c <= 2; break;
                 case SurpriseShape.THall:  // a 15 tile bar with a 9 tile stem down the middle
                     cols = 15; rows = 9; f = (c, r) => r <= 2 || (c >= 6 && c <= 8); break;
+                case SurpriseShape.Stash:  // 5 x 3: a small pocket behind a breach (Docs/BreachRooms.md)
+                    cols = 5; rows = 3; f = (c, r) => true; break;
                 default:  // 9 x 7 with 2 x 2 corners notched out
                     cols = 9; rows = 7; f = (c, r) => !((c < 2 || c > 6) && (r < 2 || r > 4)); break;
             }
