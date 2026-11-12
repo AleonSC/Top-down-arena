@@ -167,7 +167,7 @@ namespace Arena
                 V2 away = (e.Pos - p.Pos).Normalized();
                 if (!Heavy(e))
                     KnockEnemy(e, (away.IsZero ? fwd : away) * AmmoMotion.Knock[m]);
-                BroadcastFx(FxKind.Spark, e.Pos - away * e.Radius, clap ? new Rgba(1f, 0.76f, 0.24f) : new Rgba(0.8f, 0.85f, 0.9f), clap ? 30f : 14f, 0.25f, clap ? Sfx.Hit : Sfx.Clang);
+                BroadcastFx(FxKind.Spark, e.Pos - away * e.Radius, clap ? new Rgba(1f, 0.76f, 0.24f) : new Rgba(0.8f, 0.85f, 0.9f), clap ? 16f : 14f, 0.25f, clap ? Sfx.Hit : Sfx.Clang);
             }
             if (clap)
                 BroadcastFx(FxKind.Ring, p.Pos + fwd * 50f, new Rgba(0.25f, 0.88f, 0.91f), AmmoClapRadius, 0.45f, Sfx.Shockwave);
