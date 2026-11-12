@@ -12,6 +12,9 @@ namespace Arena
         public const float TaperStart = 0.6f; // share of the window where the taper begins
         public const int AliveBase = 14, AlivePerWave = 3, AliveMax = 60;  // most foes alive at once before spawns wait
 
+        /// The spawn window: shorter in the first waves, so the opening isn't a wait for the last few enemies (24 s on wave 1, the full 45 s by wave 6).
+        public static float WindowFor(int wave) => Math.Min(Window, 24f + 4f * Math.Max(0, wave - 1));
+
         public static int AliveCap(int wave) => Math.Min(AliveMax, AliveBase + AlivePerWave * wave);
 
         /// Share (0..1) of the wave that should have arrived x (0..1) of the way through the window: the area under a
@@ -62,7 +65,7 @@ namespace Arena
             if (left > timedTotal)
                 timedTotal = left;  // (something added to the queue mid-wave)
             int spawned = timedTotal - left;
-            if (spawned < (int)Math.Ceiling(TimedWaves.Share(timedClock / TimedWaves.Window) * timedTotal) && Foes() < (BreachesOn ? (int)(TimedWaves.AliveCap(Wave) * Breaches.AliveScale) : TimedWaves.AliveCap(Wave)))
+            if (spawned < (int)Math.Ceiling(TimedWaves.Share(timedClock / TimedWaves.WindowFor(Wave)) * timedTotal) && Foes() < (BreachesOn ? (int)(TimedWaves.AliveCap(Wave) * Breaches.AliveScale) : TimedWaves.AliveCap(Wave)))
             {
                 if (!SpawnNextSquad())
                 {

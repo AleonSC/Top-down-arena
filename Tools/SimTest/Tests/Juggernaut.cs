@@ -101,6 +101,8 @@ static partial class Program
         Action reset = () =>
         {
             mine.Clear(); g.Enemies.Clear(); g.Bullets.Clear(); g.Effects.Clear();
+            var sq = (System.Collections.Generic.List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(g);
+            while (sq.Count < 400) sq.Add(EnemyType.Grunt);  // (the wave must outlast the test: wave 1 drains faster now; step() removes what spawns)
             me.Hp = me.MaxHp; me.Downed = false; me.InvulnT = 0f; me.UltT = 0f; me.JuggT = 0f; me.JuggArmor = 0f; me.JuggShards = 0; me.TauntT = 0f;
             me.Slots[Upgrades.UltSlot].Charges = 1; me.Slots[Upgrades.UltSlot].Timer = 0f; me.Pos = mePos; masteredField.SetValue(g, false);
             g.State = MatchState.Fighting;

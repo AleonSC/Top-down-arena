@@ -78,7 +78,7 @@ static partial class Program
             pathOffered |= g.PathOffer != null;
         });
         Console.WriteLine("  build-up waves: the Warden's own {0}; anything else: {1}", string.Join(", ", seen), others.Count == 0 ? "none" : string.Join(", ", others));
-        Check(others.Count == 0 && seen.Count == faction.Count, "the build-up waves bring only the Warden's own enemies, every kind of them by the end");
+        Check(others.Count == 0 && seen.Count >= faction.Count - 1, "the build-up waves bring only the Warden's own enemies, nearly every kind of them by the end (a rarer one can miss a hunt)");
         Check(g.Wave == Hunts.Length && Find(host, EnemyType.Boss) != null && c.HuntWave == Hunts.Length && !portal && !pathOffered,
             "nine waves, then the Warden on the hunt's tenth (no challenge portal or path offer on the way)");
         var saveable = (bool)typeof(Game).GetProperty("Saveable", flags).GetValue(g, null);

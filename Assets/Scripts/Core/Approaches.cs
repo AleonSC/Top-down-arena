@@ -9,6 +9,7 @@ namespace Arena
         public EnemyType Type;
         public float Weight = 1f;
         public int From = 1;
+        public int Fade = 3;  // after its boss: the last of the 3 fade waves it is still in (0: gone at the boss, 1-3), Long Campaign only
     }
 
     /// A boss's world: the enemies of its approach, and squads of them (which count toward the themed share).
@@ -31,6 +32,7 @@ namespace Arena
         public bool Finale;                    // the faction's set piece comes in
         public float SquadChance = 0.5f;       // how often a fitting squad is picked over a single
         public EnemyType? Star;  // the enemy the wave is about: always at least StarPicks of it (null: none)
+        public bool Trickle;  // the star comes in as stragglers through the wave's second half, not mixed in anywhere (Docs/Approaches.md)
         public const int StarPicks = 2;
     }
 
@@ -50,12 +52,12 @@ namespace Arena
                 {
                     new FactionMember { Type = EnemyType.Rioter, Weight = 3f },
                     new FactionMember { Type = EnemyType.Guard, Weight = 2f },
-                    new FactionMember { Type = EnemyType.RiotShield, Weight = 2f, From = 2 },
-                    new FactionMember { Type = EnemyType.GasGrenadier, Weight = 1.5f, From = 2 },
-                    new FactionMember { Type = EnemyType.TaserGuard, Weight = 1.5f, From = 3 },  // the faction's shooter that stuns (WardenFaction.cs)
-                    new FactionMember { Type = EnemyType.SecurityGuard, Weight = 2f, From = 2 },
-                    new FactionMember { Type = EnemyType.Thug, Weight = 1.5f, From = 2 },  // the prisoners' brute: a Brute with a ball and chain (PrisonKin.cs)
-                    new FactionMember { Type = EnemyType.Shiv, Weight = 1f, From = 3 },  // the prisoners' lunger: a taped shank (PrisonKin.cs)  // its pistol guard: leading tracer rounds, a magazine of seven (SecurityGuard.cs)
+                    new FactionMember { Type = EnemyType.RiotShield, Fade = 0, Weight = 2f, From = 2 },
+                    new FactionMember { Type = EnemyType.GasGrenadier, Fade = 0, Weight = 1.5f, From = 2 },
+                    new FactionMember { Type = EnemyType.TaserGuard, Fade = 0, Weight = 1.5f, From = 3 },  // the faction's shooter that stuns (WardenFaction.cs)
+                    new FactionMember { Type = EnemyType.SecurityGuard, Fade = 1, Weight = 2f, From = 2 },
+                    new FactionMember { Type = EnemyType.Thug, Fade = 2, Weight = 1.5f, From = 2 },  // the prisoners' brute: a Brute with a ball and chain (PrisonKin.cs)
+                    new FactionMember { Type = EnemyType.Shiv, Fade = 2, Weight = 1f, From = 3 },  // the prisoners' lunger: a taped shank (PrisonKin.cs)  // its pistol guard: leading tracer rounds, a magazine of seven (SecurityGuard.cs)
                 },
                 Squads = new[]
                 {
@@ -72,11 +74,11 @@ namespace Arena
                 Lessons = new[]
                 {
                     new WaveLesson { Teaches = "Rioters swarm (the riot stage's crowds)", Members = new[] { M(EnemyType.Rioter, 1f) } },
-                    new WaveLesson { Teaches = "Security Guards' aimed tracers (its aimed fans)", Star = EnemyType.SecurityGuard, Members = new[] { M(EnemyType.Rioter, 2f), M(EnemyType.SecurityGuard, 2f) }, Squads = new[] { "Patrol" } },
-                    new WaveLesson { Teaches = "Riot Shields: flank them (its riot shield)", Star = EnemyType.RiotShield, Members = new[] { M(EnemyType.RiotShield, 2f), M(EnemyType.Rioter, 2f), M(EnemyType.SecurityGuard, 1f) }, Squads = new[] { "Cell block" } },
-                    new WaveLesson { Teaches = "Tear gas, and shields shoving you into it", Star = EnemyType.GasGrenadier, Members = new[] { M(EnemyType.GasGrenadier, 2f), M(EnemyType.RiotShield, 2f), M(EnemyType.Rioter, 1f) } },
+                    new WaveLesson { Teaches = "Security Guards' aimed tracers (its aimed fans)", Trickle = true, Star = EnemyType.SecurityGuard, Members = new[] { M(EnemyType.Rioter, 2f), M(EnemyType.SecurityGuard, 2f) }, Squads = new[] { "Patrol" } },
+                    new WaveLesson { Teaches = "Riot Shields: flank them (its riot shield)", Trickle = true, Star = EnemyType.RiotShield, Members = new[] { M(EnemyType.RiotShield, 2f), M(EnemyType.Rioter, 2f), M(EnemyType.SecurityGuard, 1f) }, Squads = new[] { "Cell block" } },
+                    new WaveLesson { Teaches = "Tear gas, and shields shoving you into it", Trickle = true, Star = EnemyType.GasGrenadier, Members = new[] { M(EnemyType.GasGrenadier, 2f), M(EnemyType.RiotShield, 2f), M(EnemyType.Rioter, 1f) } },
                     new WaveLesson { Teaches = "A recap of everything so far", Members = new[] { M(EnemyType.Rioter, 2f), M(EnemyType.Guard, 2f), M(EnemyType.SecurityGuard, 1f), M(EnemyType.RiotShield, 1f), M(EnemyType.GasGrenadier, 1f) }, Squads = new[] { "Breakout" } },
-                    new WaveLesson { Teaches = "Taser Guards: stuns, and parrying the Fork Bolt back", Star = EnemyType.TaserGuard, Members = new[] { M(EnemyType.TaserGuard, 2.5f), M(EnemyType.Rioter, 2f), M(EnemyType.Guard, 1f) } },
+                    new WaveLesson { Teaches = "Taser Guards: stuns, and parrying the Fork Bolt back", Trickle = true, Star = EnemyType.TaserGuard, Members = new[] { M(EnemyType.TaserGuard, 2.5f), M(EnemyType.Rioter, 2f), M(EnemyType.Guard, 1f) } },
                     new WaveLesson { Teaches = "Tasers, shields and gas together (the searchlight turn)", Star = EnemyType.TaserGuard, Members = new[] { M(EnemyType.TaserGuard, 1.5f), M(EnemyType.RiotShield, 1.5f), M(EnemyType.GasGrenadier, 1.5f), M(EnemyType.Rioter, 1f) }, Squads = new[] { "Cell block" } },
                     new WaveLesson { Teaches = "Squads: Breakout, Patrol, Cell block", Members = new[] { M(EnemyType.Rioter, 1f), M(EnemyType.Guard, 1f) }, Squads = null, SquadChance = 0.9f },
                     new WaveLesson { Teaches = "Everything, tighter", Members = null, Squads = null, SquadChance = 0.75f },
@@ -113,6 +115,19 @@ namespace Arena
 
         /// The fading boss's share of the five waves of a cycle (Docs/Campaign.md), and the older pool's from wave 11 on.
         public static readonly float[] FadeShare = { 0.35f, 0.25f, 0.15f, 0.05f, 0f };
+        public static readonly float[] LongFade = { 0.40f, 0.20f, 0.08f };  // the Long Campaign's fade, by shown wave after a boss: gone after three (FactionMember.Fade says who stays)
+
+        /// The fading faction's share of track wave `n`; `shown` is the Long Campaign's wave number (0: the plain track).
+        public static float FadeAt(int n, int shown)
+        {
+            int cycle = (n - 1) / 5, p = (n - 1) % 5;
+            if (cycle < 1)
+                return 0f;
+            if (shown <= 0)
+                return FadeShare[p];
+            int i = (shown - 1) % 10;
+            return i < LongFade.Length ? LongFade[i] : 0f;
+        }
         public const float PoolShare = 0.10f;
 
         /// One faction's slice of a campaign wave.
@@ -127,13 +142,13 @@ namespace Arena
         /// The campaign's split of regular wave `n` between factions (Docs/Campaign.md): the last boss's faction fading
         /// out, the older bosses' as a pool, the next boss's taking the rest. Only factions that are built appear, so
         /// the shares may add up to less than 1 (the rest is the usual random mix). Depends on the wave alone.
-        public static List<Slice> Campaign(int n)
+        public static List<Slice> Campaign(int n, int shown = 0)
         {
             var list = new List<Slice>();
             if (n < 1)
                 return list;
             int cycle = (n - 1) / 5, p = (n - 1) % 5;
-            float fade = cycle >= 1 ? FadeShare[p] : 0f;
+            float fade = FadeAt(n, shown);
             float pool = cycle >= 2 ? PoolShare : 0f;
             Action<EnemyType, float, bool, float> add = (boss, share, cur, poolPart) =>
             {
@@ -211,7 +226,7 @@ namespace Arena
             if (Hunt != null || Quick)
                 return 1f;  // a Boss Hunt's (and Quick Play's) build-up waves are only the boss's own enemies (Hunts.cs, QuickPlay.cs)
             if (CampaignOn)
-                return Approaches.Campaign(wave).Find(x => x.Current).Share;  // the next boss's slice (0 if it has no faction)
+                return Approaches.Campaign(wave, wave == Wave && LongLegs ? ShownWave : 0).Find(x => x.Current).Share;  // the next boss's slice (0 if it has no faction)
             if (share <= 0f)
                 return 0f;
             return D(DiffKnob.ApproachRamp) >= 0.5f ? share * RampSteps[step - 1] : share;
@@ -225,6 +240,7 @@ namespace Arena
 
         readonly List<EnemyType> approachSingles = new List<EnemyType>();
         readonly List<SquadDef> approachSquads = new List<SquadDef>();
+        readonly List<EnemyType> approachTrickle = new List<EnemyType>();  // a lesson's star: spread over the wave's second half
 
         /// Host, BuildWave: takes the themed share off `count` and picks the faction's enemies for it (squads where they
         /// fit, singles for the rest). They're mixed into the wave by MixApproach once the rest is built. Uses no random
@@ -233,6 +249,7 @@ namespace Arena
         {
             approachSingles.Clear();
             approachSquads.Clear();
+            approachTrickle.Clear();
             int of = OnPath && CurrentPath == PathId.EliteGauntlet ? count / 2 : count;  // Elite Gauntlet halves the whole wave
             if (CampaignOn)
             {
@@ -241,11 +258,20 @@ namespace Arena
                 int step = ApproachStepAt(n);
                 FactionDef cbFrom;
                 var cb = Approaches.Comeback(n, out cbFrom);  // (a comeback squad takes the older pool's slice this wave)
-                foreach (var sl in Approaches.Campaign(n))  // (every faction's enemies, each by its slice; the rest stays the usual mix)
+                int shown = LongLegs ? ShownWave : 0;
+                foreach (var sl in Approaches.Campaign(n, shown))  // (every faction's enemies, each by its slice; the rest stays the usual mix)
                 {
                     int themed = Math.Min(count, (int)Math.Round(of * (cb != null ? sl.Share - sl.Pool : sl.Share)));
                     if (themed > 0 && sl.Current && LessonNow(sl.Faction) != null)
                         PickLesson(sl.Faction, LessonNow(sl.Faction), ref count, themed);  // a Campaign's teaching cycle: this wave's lesson
+                    else if (themed > 0 && shown > 0 && !sl.Current && sl.Pool <= 0f)
+                    {
+                        // The last boss's faction fading out (Long Campaign): singles only, the tricky ones first to go (FactionMember.Fade).
+                        int stay = (shown - 1) % 10 + 1;
+                        var left = Array.FindAll(sl.Faction.Members, m => m.Fade >= stay);
+                        if (left.Length > 0)
+                            PickFrom(left, new SquadDef[0], null, 0f, ref count, themed);
+                    }
                     else if (themed > 0)
                         PickFaction(sl.Faction, sl.Current ? step : 99, sl.Current && Bosses.FinaleWave(n), ref count, themed);  // (older factions are in full; only the next boss's builds up)
                 }
@@ -295,7 +321,7 @@ namespace Arena
             int stars = 0;
             if (l.Star.HasValue)
                 for (; stars < WaveLesson.StarPicks && stars < themed; stars++)
-                    approachSingles.Add(l.Star.Value);  // the wave's lesson always shows up
+                    (l.Trickle ? approachTrickle : approachSingles).Add(l.Star.Value);  // the wave's lesson always shows up (a Trickle one only late in the wave)
             count -= stars;
             PickFrom(members, squads, l.Finale ? f.Finale : null, l.SquadChance, ref count, themed - stars);
         }
@@ -353,8 +379,13 @@ namespace Arena
                 spawnQueue.Insert(rng.Next(spawnQueue.Count + 1), t);
             foreach (var s in approachSquads)
                 squadQueue.Insert(rng.Next(squadQueue.Count + 1), s);
+            // The trickle: evenly through the second half of the queue, so the new enemy arrives alone, late, one at a time.
+            int half = spawnQueue.Count / 2, tail = spawnQueue.Count - half, m = approachTrickle.Count;
+            for (int k = m - 1; k >= 0; k--)
+                spawnQueue.Insert(half + (int)((k + 0.5f) * tail / m) , approachTrickle[k]);
             approachSingles.Clear();
             approachSquads.Clear();
+            approachTrickle.Clear();
         }
     }
 }
