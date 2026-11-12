@@ -1187,7 +1187,7 @@ static partial class Shot {
     }
     if (Environment.GetEnvironmentVariable("POSSESS") != null) {
       // The Dev Arena (DevArena.cs): you playing as POSSESS=<EnemyType> (brackets, name, controls strip), your hero parked, two grunts.
-      // Mode hud for the play view; mode dev with DEVSHEET=5 for the dock's Spawn / Play as row.
+      // Mode hud for the play view; mode dev with DEVSHEET=5 for the dock's Spawn / Play as row; DUMMIES=1 adds two hero dummies.
       var spe = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
       var pg = host.Game; pg.Enemies.Clear(); pg.Bullets.Clear(); pg.Bot = false;
       pg.DevArena = true;
@@ -1196,6 +1196,12 @@ static partial class Shot {
       var you = (Enemy)spe.Invoke(pg, new object[] { t, new V2(900f, 430f), 0f, 0, false });
       you.SpawnT = 0f; you.Disp = you.Pos; you.Facing = (me.Pos - you.Pos).Angle;
       pg.PossessId = you.Id;
+      // Two hero dummies, one just hit (DUMMIES=1).
+      if (Environment.GetEnvironmentVariable("DUMMIES") != null) {
+        pg.DevAddHeroDummy(new V2(700f, 300f)); pg.DevAddHeroDummy(new V2(700f, 580f));
+        var hd = pg.HeroDummies[0]; hd.Hits = 7; hd.Taken = 98f; hd.Last = 14f; hd.Flash = 0.12f;
+        hd.Recent.Add(new System.Collections.Generic.KeyValuePair<float, float>(pg.DevClock, 42f));
+      }
       foreach (var at in new[] { new V2(1200f, 300f), new V2(1250f, 640f) }) {
         var o = (Enemy)spe.Invoke(pg, new object[] { EnemyType.Grunt, at, 0f, 0, false }); o.SpawnT = 0f; o.Disp = o.Pos;
       }

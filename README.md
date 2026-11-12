@@ -1780,8 +1780,14 @@ its fields the game's keys are off. Outside a match only VIEW and LABS show.
   it, the **mouse** is what it goes for (its own AI aims, lunges, charges and keeps its range at the cursor), hold **Fire** to attack on its
   real cadence (it moves on its own while it attacks unless you steer), **Parry** attacks at once (skips the cooldown), **Space** (role
   ability) lets go. Its shots and touches hurt players as usual, so aim at your parked hero (or a bot) to see them land. While you don't
-  attack, its AI waits (a boss's stages pause too). Some boss attacks still go for a player rather than the cursor. A dead enemy lets go by
-  itself. Marks the run as a dev run.
+  attack, its AI waits (a boss's stages pause too). Some boss attacks still go for a player rather than the cursor. **Played enemy can't
+  die** (a switch, on by default): its health refills and a killing blow leaves it standing; off, a dead enemy lets go by itself. Marks
+  the run as a dev run.
+  **Hero dummies** (up to 6): stand-in heroes for enemies to hit. **ADD HERO DUMMY** puts one in front of you; while playing an enemy,
+  **Q** drops one at the cursor and **E** takes away the one nearest it; **CLEAR DUMMIES** removes them all (Clear arena keeps them).
+  Enemy shots and body touches land on them (counted at what an unbuffed hero would take); each shows its last hit, then DPS (last 3 s),
+  hits and total. **Enemies aim at dummies** (on by default): every other enemy goes for the nearest dummy instead of the players.
+  Blasts, beams, zones and other area attacks still only hit players. Only the host sees the dummies.
 - **PARTY > SPAWN AN UPGRADE… (host, in a match):** a sheet listing every upgrade (filter by name or text, or by rarity, including weapon mods and milestone
   cards; pick whose build it is for with several players). Click one and it drops a few steps in front of that player exactly as a treasure
   chest's item does: only they see it, walk onto it, then **G** takes it and **X** throws it away (the wave waits for it, like a chest's). Only

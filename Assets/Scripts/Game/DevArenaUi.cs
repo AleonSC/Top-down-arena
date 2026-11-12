@@ -8,7 +8,7 @@ namespace Arena
     {
         bool devArenaPending;   // asked for from outside a match: switched on once the match is running
         bool devPlayAs = true;  // the Spawn-an-enemy sheet in the Dev Arena: a click plays as the enemy (else just spawns it)
-        bool possessAbilityWas, possessParryWas;
+        bool possessAbilityWas, possessParryWas, possessQWas, possessEWas;
 
         /// LABS > DEV ARENA: on or off in a match; from the menu or the lobby, host a Practice Range match and turn it on there.
         void ToggleDevArena()
@@ -54,9 +54,15 @@ namespace Arena
             }
             if (!session.IsHost || !game.DevArena || game.Possessed == null)
             {
-                possessAbilityWas = possessParryWas = false;
+                possessAbilityWas = possessParryWas = possessQWas = possessEWas = false;
                 return input;
             }
+            if (input.AbilityQ && !possessQWas)
+                game.DevAddHeroDummy(input.AimAt);  // a hero dummy at the cursor
+            if (input.AbilityE && !possessEWas)
+                game.DevRemoveHeroDummy(input.AimAt);
+            possessQWas = input.AbilityQ;
+            possessEWas = input.AbilityE;
             bool letGo = input.Ability && !possessAbilityWas;
             bool now = input.Parry && !possessParryWas;
             possessAbilityWas = input.Ability;
@@ -82,6 +88,7 @@ namespace Arena
         {
             if (!session.IsHost || !game.DevArena)
                 return;
+            DrawHeroDummyTags();
             var e = game.Possessed;
             if (e == null)
             {
@@ -107,13 +114,15 @@ namespace Arena
                 return;  // (the dock is over the top of the screen)
             string fire = Keybinds.KeyName(Keybinds.Get(KeyAction.Fire)), parry = Keybinds.KeyName(Keybinds.Get(KeyAction.Parry));
             string ability = Keybinds.KeyName(Keybinds.Get(KeyAction.Ability));
+            string q = Keybinds.KeyName(Keybinds.Get(KeyAction.AbilityQ)), ek = Keybinds.KeyName(Keybinds.Get(KeyAction.AbilityE));
             string move = Keybinds.KeyName(Keybinds.Get(KeyAction.MoveUp)) + Keybinds.KeyName(Keybinds.Get(KeyAction.MoveLeft))
                 + Keybinds.KeyName(Keybinds.Get(KeyAction.MoveDown)) + Keybinds.KeyName(Keybinds.Get(KeyAction.MoveRight));
-            var strip = new Rect(W / 2f - 380f, 72f, 760f, 34f);
+            var strip = new Rect(W / 2f - 470f, 72f, 940f, 34f);
             DkSub(strip);
             Ui.Label(new Rect(strip.x + 14f, strip.y, 200f, strip.height), "PLAYING AS " + e.Def.Name.ToUpperInvariant(), 13, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(strip.x + 214f, strip.y, strip.width - 228f, strip.height),
-                move + "  move   ·   MOUSE  its target   ·   " + fire + "  attack   ·   " + parry + "  attack now   ·   " + ability + "  let go",
+                move + "  move  ·  MOUSE  its target  ·  " + fire + "  attack  ·  " + parry + "  attack now  ·  " + q + " / " + ek + "  dummy here / away  ·  " + ability + "  let go"
+                + (game.PossessUnkillable ? "  ·  CAN'T DIE" : ""),
                 11, CrtStyle.Body, TextAnchor.MiddleRight, true);
         }
 
@@ -140,6 +149,72 @@ namespace Arena
             }
             GUI.enabled = was;
             return row.height;
+        }
+
+        /// The sheet's second Dev Arena row: hero dummies and the enemy you play not dying.
+        void DrawDevArenaDummyRow(Rect row)
+        {
+            bool was = GUI.enabled;
+            GUI.enabled = was && session.IsHost && game.HeroDummies.Count < Game.MaxHeroDummies;
+            float sw = (row.width - 170f - 140f - 18f) / 2f;
+            var cells = new[]
+            {
+                new Rect(row.x, row.y, 170f, row.height), new Rect(row.x + 176f, row.y, 140f, row.height),
+                new Rect(row.x + 328f, row.y, sw, row.height), new Rect(row.x + 334f + sw, row.y, sw, row.height),
+            };
+            var me = game.Me;
+            if (DkKey(cells[0], "ADD HERO DUMMY (" + game.HeroDummies.Count + "/" + Game.MaxHeroDummies + ")", CrtStyle.Gold, false, 11) && me != null)
+                game.DevAddHeroDummy(me.Pos + V2.FromAngle(me.Aim) * 220f);
+            GUI.enabled = was && session.IsHost && game.HeroDummies.Count > 0;
+            if (DkKey(cells[1], "CLEAR DUMMIES", Ui.Danger, false, 11))
+                game.DevRemoveHeroDummy(V2.Zero, true);
+            GUI.enabled = was && session.IsHost;
+            game.DummiesDrawAim = DkSwitch(cells[2], game.DummiesDrawAim, "Enemies aim at dummies");
+            game.PossessUnkillable = DkSwitch(cells[3], game.PossessUnkillable, "Played enemy can't die");
+            GUI.enabled = was;
+        }
+
+        static readonly Rgba DummyGold = new Rgba(1f, 0.84f, 0.42f);
+
+        /// In the world (WorldRenderer.cs): each hero dummy as a hollow hero on a stand, flashing white when hit.
+        void DrawHeroDummies(float t)
+        {
+            if (!session.IsHost || !game.DevArena)
+                return;
+            foreach (var d in game.HeroDummies)
+            {
+                float f = Mathf.Clamp01(d.Flash / 0.18f);
+                V2 at = d.Pos;
+                V2 jolt = f > 0f ? new V2(Mathf.Sin(t * 90f) * 2.5f * f, 0f) : V2.Zero;
+                Arc(at, Game.HeroDummyR + 10f, 2f, new Rgba(DummyGold.R, DummyGold.G, DummyGold.B, 0.35f), 32);  // the stand
+                for (int k = 0; k < 4; k++)  // tick marks round the stand
+                {
+                    V2 dir = V2.FromAngle(MathX.Tau * k / 4f + t * 0.6f);
+                    Line(at + dir * (Game.HeroDummyR + 6f), at + dir * (Game.HeroDummyR + 15f), 2f, new Rgba(DummyGold.R, DummyGold.G, DummyGold.B, 0.6f));
+                }
+                Circle(at + jolt, Game.HeroDummyR, new Rgba(0.12f + 0.8f * f, 0.11f + 0.8f * f, 0.09f + 0.8f * f, 0.92f), 28);
+                Arc(at + jolt, Game.HeroDummyR - 1.5f, 3f, DummyGold.Mix(new Rgba(1f, 1f, 1f), f), 28);
+                Circle(at + jolt, 5f, new Rgba(1f, 0.45f, 0.35f).Mix(new Rgba(1f, 1f, 1f), f), 14);  // the bullseye
+                Arc(at + jolt, 10f, 1.5f, new Rgba(1f, 0.45f, 0.35f, 0.8f), 20);
+            }
+        }
+
+        /// Over each hero dummy (HUD): the last hit popping up, then its DPS, hits and total.
+        void DrawHeroDummyTags()
+        {
+            foreach (var d in game.HeroDummies)
+            {
+                V2 at = ToUi(d.Pos);
+                float r = (Game.HeroDummyR + 14f) * UiWorldScale;
+                float f = Mathf.Clamp01(d.Flash / 0.18f);
+                if (d.Hits > 0)
+                {
+                    var pop = Color.Lerp(new Color(1f, 0.55f, 0.45f), Color.white, f);
+                    Ui.Shadowed(new Rect(at.X - 80f, at.Y - r - 26f - 6f * f, 160f, 22f), Mathf.RoundToInt(d.Last).ToString(), 16 + Mathf.RoundToInt(4f * f), pop);
+                }
+                string line = d.Hits == 0 ? "HERO DUMMY" : Mathf.RoundToInt(game.HeroDummyDps(d)) + " DPS  ·  " + d.Hits + " HITS  ·  " + Mathf.RoundToInt(d.Taken) + " TOTAL";
+                Ui.Shadowed(new Rect(at.X - 140f, at.Y + r + 2f, 280f, 18f), line, 11, new Color(DummyGold.R, DummyGold.G, DummyGold.B, 0.85f));
+            }
         }
     }
 }
