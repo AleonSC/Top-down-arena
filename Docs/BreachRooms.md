@@ -53,6 +53,10 @@ Stashes now open **right away** (`BreachAge >= Breaches.Telegraph`, 1.5 s) inste
 - The gold breach is skipped, and a Stash may not overlap the room the event has planned (`TouchesPlannedEventRoom`).
 - A friend works out the wave's breaches on the old map before new rooms arrive (`ExpansionGame.cs`), so an early Stash cannot re-roll them.
 
+## Breaches only where a Stash fits (Nov 12, no wire change)
+
+A breach used to open on any outer wall, and a few had no room behind them, so no Stash came. `Breaches.For` now takes an `accept` test (`Game.StashAccept`, `Breaches.cs`): each rolled spot is tried against the map plus the Stashes already given to the breaches picked before it, and dropped if none fits (another is rolled; the random numbers stay the same on every machine). So every breach has its Stash. Near the size cap (no Stashes) any wall goes. The gold breach is exempt from the Stash but its room is planned behind it as before.
+
 ## Open
 
 - Enemies coming out of the Stash itself (see above).

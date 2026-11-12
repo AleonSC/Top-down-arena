@@ -807,6 +807,8 @@ wave, everyone gets a shop before the boss:
 instead; Boss Hunts, the Practice Range and runs saved before the Campaign use the open arena). Design:
 [`Docs/ExpandingArena.md`](Docs/ExpandingArena.md). It starts as the plain Classic box and grows as you play:
 
+**Crowds on a big map.** Enemies come in within 1500 px of a player (never a straggler across the map), in the emptiest room there, so rooms you built get their share. Waves 1-10 add up to 2x enemies on a big map (0.9 per extra hub of floor); later waves up to 1.4x.
+
 - **Gold coins:** every kill drops its gold as coins (5-gold and 1-gold). They never despawn, spin and glint on the floor, and drift to the nearest living player within 90 px, who gets the gold.
 - **Vector pickups:** a rare drop that adds vectors (a cyan square that draws its own outline; big ones have an amber ring). A normal kill drops one 1 time in 60 (+6), an elite 1 time in 8 (+12), a boss always (+12). Like coins they never despawn and drift to the nearest living player within 90 px, but only one whose stock isn't full: it waits for you to spend some. The vectors go to whoever collects it, never past their cap.
 - **Vectors**: every player holds a drawing budget (chip under the wave plate, "Vectors 50 / 70"): 1 vector = 1 tile of wall.
@@ -880,7 +882,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   wave, or when it ends if that comes first, the wall behind that breach opens onto a free surprise room. The wave's other breaches stay where they were.
   **Breach rooms**: as soon as a breach wave's breaches come up (a second and a half in) every breach left (not the gold one) opens onto a small free **Stash** (5 x 3 tiles) behind its wall. Each Stash
   holds a **vector cache** (a teal diamond marked **+10**): the first player to walk in takes **+10 vectors** (up to their cap), once. It has a block and a pillar for cover, builds in with a teal flash and
-  scan line and a **STASH** chip, and stays for good (no vote, no cost; it stops within 2 rooms of the map's size cap, and a breach with no space behind it gets none). The breach itself **never closes**:
+  scan line and a **STASH** chip, and stays for good (no vote, no cost; it stops within 2 rooms of the map's size cap, and a breach only opens on a wall with space behind it for a Stash). The breach itself **never closes**:
   each breach lets its share of the wave in (the wave's enemies split evenly over its breaches), then nothing more comes through it; if every breach has had its share the rest come in at the usual spots. When zoomed out, a teal edge arrow points to a cache nobody has taken.
 - **Open a wall**: on the draw screen, switch to **Open wall** and click both ends of a stretch of a wall two rooms share (the cyan stretches; the outer wall can't be
   opened, nor a sealed floating room's). It goes to the vote like a room. If it wins, that stretch of wall comes down (a short stretch is a door, a long

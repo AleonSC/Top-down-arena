@@ -11,7 +11,9 @@ namespace Arena
     public partial class Game
     {
         /// How much more a bigger map adds to a wave's enemies: 1 + this x (floor area / hub area - 1), up to MaxExpandScale.
-        public static float ExpandScaleRate = 0.6f, MaxExpandScale = 1.4f;  // (static, not const: the balance report tries others)
+        public static float ExpandScaleRate = 0.6f, MaxExpandScale = 1.4f;
+        public static float ExpandScaleRateEarly = 0.9f, MaxExpandScaleEarly = 2.0f;
+        public const int EarlyWaves = 10;  // (static, not const: the balance report tries others)
 
         /// The rooms built so far, in order (area 1, 2, ...).
         public readonly List<ExpansionRoom> Expanded = new List<ExpansionRoom>();
@@ -122,7 +124,10 @@ namespace Arena
                 foreach (var a in ExpansionWorld.Areas)
                     if (!a.Sealed)
                         area += a.Size.X * a.Size.Y;  // (a sealed floating room adds no crowd)
-                return Math.Min(MaxExpandScale, 1f + ExpandScaleRate * (area / (Width * Height) - 1f));
+                float ratio = area / (Width * Height) - 1f;
+                if (Wave <= EarlyWaves)  // the first ten waves: the crowd was thin on a big map, rooms stayed empty
+                    return Math.Min(MaxExpandScaleEarly, 1f + ExpandScaleRateEarly * ratio);
+                return Math.Min(MaxExpandScale, 1f + ExpandScaleRate * ratio);
             }
         }
 

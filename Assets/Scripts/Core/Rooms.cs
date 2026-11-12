@@ -155,7 +155,7 @@ namespace Arena
         public static bool RoomByRoom = false;
 
         /// Open map: no enemy comes in closer than this to a player.
-        public const float SpawnClear = 350f;
+        public const float SpawnClear = 350f, SpawnReach = 1500f;  // (enemies come in at least SpawnClear and, where there is a choice, at most SpawnReach from a player)
 
         /// Open map: room rounds start at this zoom, with a prompt to zoom out (CameraZoom.cs).
         public const float StartZoom = 1.5f;
@@ -484,10 +484,11 @@ namespace Arena
         /// size, never the vault), clear of walls and at least SpawnClear from every player.
         V2 RoomsRandomSpot(float radius)
         {
-            V2 at = new V2(Width / 2f, Height / 2f), best = at;
-            float bestD = float.MaxValue;
-            int found = 0;
-            for (int tries = 0; tries < 60 && found < 4; tries++)
+            V2 at = new V2(Width / 2f, Height / 2f), best = at, nearBest = at;
+            float bestScore = float.MaxValue, nearD = float.MaxValue;
+            int found = 0, foundFar = 0;
+            int[] crowd = null;
+            for (int tries = 0; tries < 60 && found < 6; tries++)
             {
                 at = RandomInRooms(radius + 30f, radius + 30f);
                 if (NearSolid(at, radius + 8f))
@@ -498,10 +499,35 @@ namespace Arena
                         nearest = Math.Min(nearest, p.Pos.DistanceTo(at));
                 if (nearest < Rooms.SpawnClear)
                     continue;
-                found++;  // (of four valid spots, the one nearest a player: big maps don't feel empty)
-                if (nearest < bestD) { bestD = nearest; best = at; }
+                found++;
+                if (nearest < nearD) { nearD = nearest; nearBest = at; }  // (the fallback: the nearest valid spot)
+                if (nearest > Rooms.SpawnReach)
+                    continue;  // too far to run: no stragglers on the other side of a big map
+                if (crowd == null)
+                    crowd = AreaCrowd();
+                // Within reach, the emptiest room wins (a built room nobody stands in still gets its share), nearer breaks ties.
+                int ai = ExpandingOn ? CurrentWorld.AreaAt(at) : -1;
+                float density = ai >= 0 && ai < crowd.Length ? crowd[ai] * 100000f / Math.Max(1f, CurrentWorld.Areas[ai].Size.X * CurrentWorld.Areas[ai].Size.Y) : 0f;
+                float score = density * 100f + Rand(0f, 300f);  // (a little luck so ties don't always pick the nearest)
+                foundFar++;
+                if (score < bestScore) { bestScore = score; best = at; }
             }
-            return found > 0 ? best : at;
+            return foundFar > 0 ? best : found > 0 ? nearBest : at;
+        }
+
+        /// How many enemies are alive in each area (a new spawn goes where it is emptiest).
+        int[] AreaCrowd()
+        {
+            var counts = new int[CurrentWorld.Areas.Length];
+            foreach (var e in Enemies.Values)
+            {
+                if (e.Hp <= 0f || e.Type == EnemyType.Nest)
+                    continue;
+                int ai = CurrentWorld.AreaAt(e.Pos);
+                if (ai >= 0 && ai < counts.Length)
+                    counts[ai]++;
+            }
+            return counts;
         }
 
         /// Where the next of the wave's enemies comes in: by the nest of the room with the most room to spare.
