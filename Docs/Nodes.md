@@ -47,7 +47,7 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
 
 - **Rooms only**: `Expansion.NodeEncloses`; `Build(..., nodes)` and `NodeClaimed` use it. `NodeStep` is the next box toward a node: a 5 x 5 tile room round it if it reaches back to a connected
   room, else the straight hallway out to where that room would start; `NodeReachable` checks (at most 4 boxes) that a node can be claimed. Bots follow `NodeStep`.
-- **Chests**: one chest node per boss cycle (owner: one, enemies spawn). A claimed one holds a real treasure chest prop (`TickNodes`, host: `AddProp(Chest)` at the node, put back each wave
+- **Chests**: one chest node per boss cycle (owner: one, enemies spawn). A claimed one holds a real treasure chest prop (`TickNodes`, host: `AddProp(Chest)` at the node the moment its room is built and every wave tick, put back each wave
   until opened; `Props.cs` gives each player their own item). Opening it spends the node (`MapNode.Spent`, synced and saved); spent chests draw dim. The wave never waits on it. Max waiting nodes 6.
 - No cover within 90 px of a node (`Expansion.NodeClear`). Spawn rules need no change: a Shop or Vendor room spawns nothing, a chest's room is a Combat room.
 - Tests (suite `expand`): hallway first then room, claims only with the node in the map, chest opens once.

@@ -13,6 +13,8 @@ static partial class Program
     {
         string sc = Environment.GetEnvironmentVariable("VECSCALE");  // VECSCALE=<rate>: try another crowd scale rate
         if (sc != null) Game.ExpandScaleRate = float.Parse(sc, System.Globalization.CultureInfo.InvariantCulture);
+        string mx = Environment.GetEnvironmentVariable("VECMAX");  // VECMAX=<x>: try another crowd scale ceiling
+        if (mx != null) Game.MaxExpandScale = float.Parse(mx, System.Globalization.CultureInfo.InvariantCulture);
         string endC = "(skipped)", endE;
         var classic = skipClassic ? new Dictionary<int, ArenaWave>() : PlayArena(dt, false, lastWave, seed, out endC);
         var expanding = PlayArena(dt, false, lastWave, seed, out endE, true);
