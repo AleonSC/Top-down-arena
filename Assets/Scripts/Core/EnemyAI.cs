@@ -317,9 +317,19 @@ namespace Arena
             {
                 // A party far above a typical build meets a tougher boss (BuildPower.cs). Late bosses already get more
                 // health for the same reason (LateBossScaling), so the bigger of the two counts, not both together.
-                float late = LateBossBoost(Wave);
-                e.PowerScale = Math.Max(late, BossPowerScale());
-                e.MaxHp *= e.PowerScale / late;
+                if (Quick)
+                {
+                    // Quick Play: about a two-minute fight at any wave (QuickPlay.cs), plus the strong-build boost.
+                    e.MaxHp = QuickBossHp(type, Wave);
+                    e.PowerScale = BossPowerScale();
+                    e.MaxHp *= e.PowerScale;
+                }
+                else
+                {
+                    float late = LateBossBoost(Wave);
+                    e.PowerScale = Math.Max(late, BossPowerScale());
+                    e.MaxHp *= e.PowerScale / late;
+                }
             }
             e.Hp = e.MaxHp;
             if (elite)

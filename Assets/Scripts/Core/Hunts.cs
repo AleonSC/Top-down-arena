@@ -48,7 +48,7 @@ namespace Arena
         public int HuntWave => Hunt == null ? 0 : Math.Max(0, Wave);
 
         /// The run's last wave: 50 (before endless), or a hunt's tenth.
-        public int LastWave => Hunt != null ? Hunts.Length : MaxWave;
+        public int LastWave => Hunt != null ? Hunts.Length : Quick ? QuickPlay.Length : MaxWave;
 
         /// The Campaign's 100 waves (Docs/RunLength.md step 2): each wave of the 50-wave track is fought twice, as two
         /// "legs", so the player sees waves 1-100 with a boss after every tenth, while everything that scales or unlocks by
@@ -59,7 +59,7 @@ namespace Arena
         public bool LongRun;                          // this run is a 100-wave Campaign (set by the start message; saved)
         public static bool LongRunDefault = true;     // a new run from the lobby is (the sim tests turn it off for the older suites)
         public int Leg;                               // 0: the first of the wave's two legs, 1: the second (replicated; saved)
-        public bool LongLegs => LongRun && Hunt == null && Practice == null && !ShowcaseMode && !Unrecorded;
+        public bool LongLegs => LongRun && Hunt == null && !Quick && Practice == null && !ShowcaseMode && !Unrecorded;
         bool LegDone => !LongLegs || Leg == 1;
         bool FirstLeg => !LongLegs || Leg == 0;       // once-a-wave things happen on a Campaign wave's first leg only        // the track's wave is done with this fight (the boss or the next wave is next)
 

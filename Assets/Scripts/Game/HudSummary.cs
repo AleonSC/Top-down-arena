@@ -49,9 +49,10 @@ namespace Arena
             // middle and gliding up, then the totals, the tubes and the keys.
             RoundBackdrop(ResultsDark * EndBg);  // (RoundWindows.cs)
             Color theme = won ? Ui.Gold : new Color(1f, 0.36f, 0.38f);
-            string title = game.Practice != null ? (won ? "PRACTICE COMPLETE" : "PRACTICE OVER") : game.Hunt != null ? (won ? "HUNT COMPLETE!" : "HUNT FAILED") : won ? "VICTORY!" : "GAME OVER";
+            string title = game.Practice != null ? (won ? "PRACTICE COMPLETE" : "PRACTICE OVER") : game.Hunt != null ? (won ? "HUNT COMPLETE!" : "HUNT FAILED") : won && game.Quick ? "QUICK PLAY CLEAR!" : won ? "VICTORY!" : "GAME OVER";
             string sub = game.Practice != null ? (won ? "YOU CLEARED ALL " + game.Practice.Waves.Count + " PRACTICE WAVES" : "YOU MADE IT TO PRACTICE WAVE " + Math.Max(1, game.PracticeIndex + 1) + " OF " + game.Practice.Waves.Count)
                 : game.Hunt != null ? (won ? "YOU HUNTED DOWN " + BossName(game.Hunt.Boss).ToUpperInvariant() : "YOU MADE IT TO HUNT WAVE " + Math.Max(1, game.HuntWave) + " OF " + Hunts.Length)
+                : won && game.Quick ? "YOU BEAT " + QuickPlay.Length + " WAVES AND " + BossName(game.BossAt(game.Wave)).ToUpperInvariant()
                 : won ? "YOU BEAT ALL " + game.ShownLastWave + " WAVES AND THE ECLIPSE" : "YOU MADE IT TO WAVE " + game.ShownWave;
             if (!won && game.Practice == null && game.BossNow)
                 sub += "  ·  " + Defs.Get(game.BossAt(game.Wave)).Name.ToUpperInvariant();

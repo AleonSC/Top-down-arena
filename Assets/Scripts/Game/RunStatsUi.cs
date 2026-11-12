@@ -101,6 +101,8 @@ namespace Arena
                 }
                 else if (game.Hunt != null)
                     where = wave == 0 ? "Getting ready" : game.Hunt.Name + " · " + BossName(game.Hunt.Boss) + "'s own enemies";
+                else if (game.Quick)
+                    where = wave == 0 ? "Getting ready" : "Quick Play";
                 else
                     where = wave == 0 ? "Getting ready" : "Plain arena";
                 where += " · " + (game.State == MatchState.Fighting ? game.Remaining + " enemies left" : "between waves");
@@ -189,16 +191,17 @@ namespace Arena
                 });
                 return rows;
             }
+            int every = game.Quick ? QuickPlay.Length : 5;  // regular waves between bosses (Quick Play: ten)
             for (int k = 0; k < 40; k++)
             {
-                int from = k * 5 + 1, to = k * 5 + 5, bossWave = k * 5 + 5;
+                int from = k * every + 1, to = k * every + every, bossWave = k * every + every;
                 if (from <= cur)
                 {
                     var id = k == 0 || k - 1 >= game.Route.Count ? PathId.None : game.Route[k - 1];
                     int st = cur > to || cur == to && game.BossSlot ? 0 : 1;
                     rows.Add(new RouteRow
                     {
-                        Name = k == 0 ? "Standard" : Game.PathName(id),
+                        Name = game.Quick ? "Quick Play" : k == 0 ? "Standard" : Game.PathName(id),
                         Waves = "waves " + game.ShownStart(from) + "–" + game.ShownEnd(to),
                         Note = st == 0 ? "cleared" : "now · " + (shownCur - game.ShownStart(from) + 1) + " of " + (game.ShownEnd(to) - game.ShownStart(from) + 1),
                         Color = id == PathId.None ? plain : ToColor(Paths.Get(id).Accent),
@@ -233,7 +236,7 @@ namespace Arena
             foreach (var r in rows)
                 if (r.Boss && r.State == 0)
                     beaten++;
-            LobbyKit.Heading(x, card.y + 8f, w, "Route", game.Hunt != null ? (beaten > 0 ? "hunt won" : "the hunt") : beaten + " of " + Game.MaxWave / 5 + " bosses beaten", calm);
+            LobbyKit.Heading(x, card.y + 8f, w, "Route", game.Hunt != null ? (beaten > 0 ? "hunt won" : "the hunt") : game.Quick ? beaten + (beaten == 1 ? " boss" : " bosses") + " beaten" : beaten + " of " + Game.MaxWave / 5 + " bosses beaten", calm);
             // Keep the newest rows when the run outgrows the panel.
             float top = card.y + 46f, avail = card.yMax - 12f - top;
             int fit = Mathf.Max(1, Mathf.FloorToInt(avail / 24f));

@@ -22,6 +22,8 @@ namespace Arena
         bool devTouched;                  // host: a dev tool changed this run (its save says so; nobody's profile counts it)
         bool botTouched;                  // this game's bot played at some point (this player's profile doesn't count it)
         bool runRecorded;                 // this game has added the run's end to the profile
+        int quickCreditedWaves, quickCreditedBosses;  // Quick Play: what the profile already got (its win, before an endless stretch)
+        float quickCreditedTime;
 
         /// The rank XP this player's profile just earned from the run or hunt that ended (null until then; the results screen shows it).
         public RankGain LastGain;
@@ -33,7 +35,7 @@ namespace Arena
 
         enum RecordKind : byte { Boss, End, Resume, Room }
 
-        bool Saveable => IsHost && Practice == null && Hunt == null && !ShowcaseMode && !Unrecorded && RunId != null;
+        bool Saveable => IsHost && Practice == null && Hunt == null && !Quick && !ShowcaseMode && !Unrecorded && RunId != null;
 
         /// Counts towards records at all (a real run, not practice, the lobby preview or the Boss Lab).
         bool RecordsRuns => Practice == null && !ShowcaseMode && !Unrecorded;
@@ -176,6 +178,8 @@ namespace Arena
             Resumed = resumed;
             botTouched = Bot;
             runRecorded = false;
+            quickCreditedWaves = quickCreditedBosses = 0;
+            quickCreditedTime = 0f;
             ResetTimeline();  // RunTimeline.cs
             LastGain = null;
             runLastBossWave = 0;
@@ -184,7 +188,7 @@ namespace Arena
                 devTouched = false;
                 RunId = !RecordsRuns ? null : resumed && ResumeFrom != null ? ResumeFrom.Id : RunSave.NewId();
             }
-            if (!resumed && RecordsRuns && Me != null && Hunt == null)  // (a Boss Hunt isn't a run: its own records at the end)
+            if (!resumed && RecordsRuns && Me != null && Hunt == null && !Quick)  // (a Boss Hunt or a Quick Play isn't a run: its own records at the end)
             {
                 Profile.RunStarted();
                 SaveProfile();
@@ -227,7 +231,7 @@ namespace Arena
         /// Only your own profile, and only if a curve was started (so not the lobby or a match that never began).
         void LogQuitRun()
         {
-            if (runRecorded || RetryReady || retrying || timeline == null || Me == null || !TimelineOn || Hunt != null)  // (a quit Boss Hunt isn't logged)
+            if (runRecorded || RetryReady || retrying || timeline == null || Me == null || !TimelineOn || Hunt != null || Quick)  // (a quit Boss Hunt or Quick Play isn't logged)
                 return;
             runRecorded = true;
             var logged = Profile.AddQuitLog(RecordWave, Rank.Award(false, 0, 0, 0, Mods, Diff.Level).Mods);  // (no XP: only the modifier names are used)
@@ -317,7 +321,9 @@ namespace Arena
                     int recorded = r.ReadInt32();
                     if (me == null || dev || botTouched)
                         return;
-                    Profile.BossBeaten(boss, recorded);
+                    Profile.BossBeaten(boss, Quick ? 0 : recorded);  // (Quick Play keeps its own best wave: QuickEnded)
+                    if (Quick)
+                        QuickBossesBeaten++;
                     runLastBossWave = Math.Max(runLastBossWave, wave);
                     AddUnlockToasts(Profile.CheckUnlocks());
                     SaveProfile();
@@ -342,6 +348,13 @@ namespace Arena
                     bool deathless = r.ReadBoolean();
                     int recorded = r.ReadInt32();  // (best wave, Recent runs and the curve; Rank XP keeps counting the track's waves)
                     int found = Math.Max(0, r.ReadInt32());
+                    if (Quick)
+                    {
+                        if (me == null || dev || botTouched)
+                            return;
+                        QuickRecord(me, won, wave, time, found);
+                        return;
+                    }
                     if (me == null || dev || botTouched || runRecorded)
                         return;
                     runRecorded = true;
@@ -376,6 +389,34 @@ namespace Arena
                     return;
                 }
             }
+        }
+
+        /// A Quick Play's end on this player's profile (QuickPlay.cs). It is recorded when its first boss falls (won) or the
+        /// party does, and again if an endless stretch after the win ends: that one adds only the waves, bosses and time since.
+        void QuickRecord(Player me, bool won, int wave, float time, int found)
+        {
+            bool first = !runRecorded;
+            int cleared = won || runLastBossWave >= wave ? wave : Math.Max(0, wave - 1);
+            int newWaves = cleared - quickCreditedWaves, newBosses = QuickBossesBeaten - quickCreditedBosses;
+            if (!first && newWaves <= 0 && newBosses <= 0)
+                return;
+            runRecorded = true;
+            bool beatFirst = QuickBossesBeaten > 0;
+            AddUnlockToasts(Profile.QuickEnded(first, beatFirst, wave, newBosses, time - quickCreditedTime));
+            LastGain = Profile.AwardXp(Rank.Award(first && won, Math.Max(0, newWaves), Math.Max(0, newBosses), first ? me.Run.Revives : 0, Mods, Diff.Level), wave, beatFirst ? 1 : 0);
+            PayCores(Variants.RunCores(first && won, Math.Max(0, newBosses), false), first ? found : 0);
+            var logged = Profile.Recent[0];
+            logged.Class = Arena.Profile.ClassKey(me.Role, me.Kit);
+            logged.Mode = Endless ? "Quick Play · Endless" : "Quick Play";
+            logged.Seconds = time;
+            logged.Dealt = me.Run.DamageDealt; logged.Taken = me.Run.DamageTaken; logged.Heal = me.Run.HealingDone;
+            logged.Players = Players.Count;
+            if (first)
+                logged.File = FinishTimeline(won, wave, Endless, time, logged.Class, logged.Mods, "Quick Play");  // RunTimeline.cs
+            quickCreditedWaves = Math.Max(quickCreditedWaves, cleared);
+            quickCreditedBosses = QuickBossesBeaten;
+            quickCreditedTime = time;
+            SaveProfile();
         }
 
         /// Adds a finished run's Cores (its payout plus the drops found) to your profile and notes them on the results (LastGain).

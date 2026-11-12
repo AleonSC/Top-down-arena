@@ -175,8 +175,8 @@ namespace Arena
                         }
                         else if (Hunt != null && Wave >= Hunts.Length)
                             Win();  // a Boss Hunt ends with its boss (Hunts.cs)
-                        else if (Wave >= MaxWave && BossSlot && !Endless)
-                            Win();  // the last boss is beaten (the last regular wave only leads up to it)
+                        else if (Wave >= LastWave && BossSlot && !Endless)
+                            Win();  // the last boss is beaten (Quick Play: the first, after wave 10) (the last regular wave only leads up to it)
                         else
                             WaveCleared();
                     }
@@ -216,7 +216,7 @@ namespace Arena
                 if (p.Offer == null)
                     NextOffer(p);
             }
-            if (BossSlot && Hunt == null)
+            if (BossSlot && Hunt == null && !Quick)  // (Quick Play: no paths)
             {
                 if (!ExpandingOn)
                     OfferPaths();  // after a boss: two paths for the next stretch (the Expanding arena has no paths)

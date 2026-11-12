@@ -354,7 +354,7 @@ namespace Arena
                 parts.Add(p.Name + " (" + (p.Kit != Kit.Soldier ? p.Kit.ToString() + " " : "") + p.Role + ")");
             file.Players = parts.Count;
             file.Party = string.Join(", ", parts.ToArray());
-            file.Mode = game.Practice != null ? "Practice" : game.Hunt != null ? "Boss Hunt" : "Standard";
+            file.Mode = game.Practice != null ? "Practice" : game.Hunt != null ? "Boss Hunt" : game.Quick ? "Quick Play" : "Standard";
         }
 
         /// Writes the file; returns its path, or null if there was nothing worth keeping (under a second) or it failed.

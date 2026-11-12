@@ -458,8 +458,8 @@ namespace Arena
         void DrawBossRoad(Rect r)
         {
             int next = game.NextBossWave(game.Wave, false);  // a run: the wave the boss follows; a hunt: its last wave
-            int prev = game.Hunt != null ? 0 : next - 5;
-            int steps = game.Hunt != null ? Mathf.Clamp(next - prev, 1, 10) : game.ShownEnd(next) - game.ShownEnd(prev) + 1;  // a run: the cycle's five (a Campaign's ten) waves and the boss
+            int prev = game.Hunt != null ? 0 : game.Bosses.LastBossWave(next - 1);
+            int steps = game.Hunt != null ? Mathf.Clamp(next - prev, 1, 10) : game.ShownEnd(next) - game.ShownEnd(prev) + 1;  // a run: the cycle's five (a Campaign's or a Quick Play's ten) waves and the boss
             int done = Mathf.Clamp(game.Hunt != null ? game.Wave - prev : game.ShownWave - game.ShownEnd(prev), 0, game.Hunt != null ? steps : steps - 1);
             string boss = Defs.Get(game.BossAt(next)).Name;
             HudCrt(new Rect(r.x, r.y, r.width, 18f), "ROAD TO " + boss.ToUpperInvariant(), 18, CrtUi.Dim);

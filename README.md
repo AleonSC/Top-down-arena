@@ -1069,9 +1069,29 @@ Easy is close to how the game played before difficulties (without the per-wave d
 multiplies with Enemy damage: Nightmare at wave 11 hits 1.5 × 1.5 = 2.25x as hard as a listed shot. Modifiers stack
 on top (Tough Crowd, Frenzy, Swift Foes, Glass Cannon...).
 
+## Quick Play
+
+**The lobby's first mode, and where a new profile starts.** In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt** or
+**Practice** on the mode carousel; the lobby opens next time on the mode the host last picked (a new profile: Quick Play).
+
+- **Ten waves, then a random boss** as its own fight after wave 10 (like the Campaign's boss after a wave: it doesn't use up a
+  wave number). The HUD counts the waves n / 10. **Your first Quick Play always ends on the Warden**; after that the boss is
+  random: every boss comes up once before any repeats, and never the same one twice in a row.
+- **The waves before a boss are its own enemies** (its faction, as in a Boss Hunt: tougher members joining as they go, its set
+  piece on the fifth and tenth wave). Bosses without a faction yet (all but the Warden) get the usual mixed waves.
+- **Bosses play exactly as anywhere else.** Only their health changes: about a **two-minute fight** for a typical build at
+  whatever wave they come (a late boss after wave 10 has much less health than at its own Campaign wave; an early one in
+  endless has more). The boost for strong builds still applies on top.
+- **Win, then end or keep going.** Beating the boss is **QUICK PLAY CLEAR!**; the host can **Keep going [C]** into endless: ten
+  more waves and a new random boss, after wave 20, 30, ... for as long as the party lasts.
+- **No paths, Data Gates, lives or saving** (the open arena; room building comes in a later step).
+- **Records:** full rank XP and Cores, bosses count as beaten (unlocks and Boss Hunts), and Quick Play keeps its own plays,
+  wins, best wave and bosses beaten (not counted as runs). Falling in endless adds the stretch after the win.
+  Plan: `Docs/QuickPlay.md`.
+
 ## Boss Hunt
 
-In the lobby the host picks **Campaign**, **Boss Hunt** or **Practice** on the mode carousel at the top (arrows, the mouse wheel or a click on a side mode turn it). The tabs over the big screen (Loadout, Perks, Difficulty, ...) are a carousel too: the open tab in the middle, the rest wrapping round either side. A Boss Hunt is a short run that ends
+In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt** or **Practice** on the mode carousel at the top (arrows, the mouse wheel or a click on a side mode turn it). The tabs over the big screen (Loadout, Perks, Difficulty, ...) are a carousel too: the open tab in the middle, the rest wrapping round either side. A Boss Hunt is a short run that ends
 with one boss: **ten waves**. Waves 1-9 bring only the boss's own enemies (its faction: for the Warden, Rioters and
 Guards, then Riot Shields, Gas Grenadiers, Security Guards and Taser Guards, its Breakout, Patrol and Cell block squads, and its Riot line on waves 5 and
 9); wave 10 is the boss, at wave-10 strength. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no
