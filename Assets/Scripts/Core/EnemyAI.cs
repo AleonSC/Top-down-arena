@@ -209,25 +209,13 @@ namespace Arena
         void SpawnEnemy(EnemyType type)
         {
             var d = Defs.Get(type);
-            float m = d.Radius + 30f;
-            V2 lo = ArenaMin + new V2(m, m), hi = ArenaMax - new V2(m, m);  // along the edges (Narrow Pass: its walls)
             V2 pos;
             int home = -1;
             V2? breach = d.IsBoss ? null : BreachSpot(d.Radius);  // the Expanding arena: through one of the wave's breaches (Breaches.cs)
             if (breach.HasValue)
                 pos = breach.Value;
-            else if (RoomsOn && !d.IsBoss)
-                pos = Rooms.RoomByRoom ? RoomSpawnSpot(d.Radius, out home) : RoomsRandomSpot(d.Radius);  // anywhere on the map, away from you (or by a room's nest: Rooms.cs)
-            else if (LayoutOn && !d.IsBoss)
-                pos = LayoutSpawn(m);  // through an enemy gate, or an edge the layout allows (LayoutRules.cs)
             else
-                switch (rng.Next(4))
-                {
-                    case 0: pos = new V2(Rand(lo.X, hi.X), lo.Y); break;
-                    case 1: pos = new V2(Rand(lo.X, hi.X), hi.Y); break;
-                    case 2: pos = new V2(lo.X, Rand(lo.Y, hi.Y)); break;
-                    default: pos = new V2(hi.X, Rand(lo.Y, hi.Y)); break;
-                }
+                pos = SpawnSpot(d.Radius, !d.IsBoss, out home);
             // Bosses appear in the middle of the arena (the Twin Reapers on either side of it, where their circle starts).
             if (type == EnemyType.TwinA)
                 pos = new V2(Width / 2f - Width * 0.26f, Height / 2f);
@@ -243,6 +231,26 @@ namespace Arena
             spawnHome = home;
             SpawnEnemyAt(type, pos, d.IsBoss ? 1.5f : 0.9f, 0, elite);  // bosses take longer to appear, so you can step out of the middle
             spawnHome = -1;
+        }
+
+        /// Where a regular enemy (or a spawn portal: SpawnPortals.cs) comes in: anywhere on the Rooms map away from you (or by a
+        /// room's nest), through a layout's enemy gate, or a random spot along an edge of the open arena.
+        V2 SpawnSpot(float radius, bool mapRules, out int home)
+        {
+            home = -1;
+            float m = radius + 30f;
+            V2 lo = ArenaMin + new V2(m, m), hi = ArenaMax - new V2(m, m);  // along the edges (Narrow Pass: its walls)
+            if (RoomsOn && mapRules)
+                return Rooms.RoomByRoom ? RoomSpawnSpot(radius, out home) : RoomsRandomSpot(radius);  // anywhere on the map, away from you (or by a room's nest: Rooms.cs)
+            if (LayoutOn && mapRules)
+                return LayoutSpawn(m);  // through an enemy gate, or an edge the layout allows (LayoutRules.cs)
+            switch (rng.Next(4))
+            {
+                case 0: return new V2(Rand(lo.X, hi.X), lo.Y);
+                case 1: return new V2(Rand(lo.X, hi.X), hi.Y);
+                case 2: return new V2(lo.X, Rand(lo.Y, hi.Y));
+                default: return new V2(hi.X, Rand(lo.Y, hi.Y));
+            }
         }
 
         /// An enemy's health when it spawns on a wave, for this party and the run's modifiers (before paths and elites).
@@ -486,6 +494,8 @@ namespace Arena
                 }
                 if (e.CageT > 0f)  // caged by Bone Guard darts (Minions.cs): no moving or shooting
                     continue;
+                if (e.Type == EnemyType.Portal)
+                    continue;  // a spawn portal stands still and never hurts (TickPortals: SpawnPortals.cs)
                 e.RetargetT -= dt;
                 Player target;
                 Players.TryGetValue(e.TargetId, out target);
@@ -596,6 +606,7 @@ namespace Arena
             TickReapers(dt);  // the Twin Reapers' stages, turns and tether (Reapers.cs)
             TickSingularityHazards(dt);
             TickHerald(dt);  // the Storm Herald's ball lightning and spokes (Herald.cs)
+            TickPortals(dt);  // spawn portals opening, letting their bursts out and closing (SpawnPortals.cs)
             TickVariety(dt);  // embers, Volatile bursts, Mirrored shots, bubbles growing back (Variety.cs)
 
             // A fallen Twin Reaper comes back unless its twin dies before the timer runs out.

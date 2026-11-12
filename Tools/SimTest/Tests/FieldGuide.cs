@@ -17,7 +17,7 @@ static partial class Program
                 continue;  // shares the Twin Reapers' entry
             if (t == EnemyType.Buzzsaw || t == EnemyType.SpikeBlock || t == EnemyType.Spiker
                 || t == EnemyType.FuseRunner || t == EnemyType.Hookman || t == EnemyType.Sapper || t == EnemyType.SapperMine
-                || t == EnemyType.Swordsman || t == EnemyType.ShieldSwordsman)
+                || t == EnemyType.Swordsman || t == EnemyType.ShieldSwordsman || t == EnemyType.Portal)
                 continue;  // TODO: no Bestiary entry yet; the old Swarmer entry is still filed under the new Swarmer (remove this once it has one)
             int n = all.Count(e => e.Type == t);
             if (n == 0) missing.Add(t.ToString());
