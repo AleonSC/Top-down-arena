@@ -6,7 +6,7 @@ using Arena;
 // The Twin Rifle's second variant, Out of Ammo (OutOfAmmo.cs).
 static partial class Program
 {
-    /// Nothing is shot; the chain runs on its own on a close enemy in order (left bash, cross cut, right bash, reverse cut, rifle clap); each rifle
+    /// Nothing is shot; the rifle arms bash a close enemy on their own (left, right, left, rifle clap); holding fire runs the knife's three-hit chain; each rifle
     /// swats one bullet and recovers (two at once, the third leaks); Alt spins (cuts, swats everything, then a cooldown); the other screen sees it.
     static void OutOfAmmoTest(float dt)
     {
@@ -34,33 +34,52 @@ static partial class Program
             return d;
         };
         var moves = new List<int>();
-        int lastSeq = me.AmmoSeq;
+        var knife = new List<int>();
+        int lastSeq = me.AmmoSeq, lastKnife = me.KnifeSeq;
+        bool holdFire = false;
         Action<float, bool, V2?> Step = (secs, alt, pin) =>
         {
             for (int f = 0; f < secs / dt; f++)
             {
                 me.Pos = from; queue.Clear();
                 if (pin != null) foreach (var e in g.Enemies.Values) e.Pos = pin.Value;
-                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == host ? new PlayerInput { AimAt = aimAt, Fire = false, WeaponAction = alt && f < 3 } : new PlayerInput()); }
+                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == host ? new PlayerInput { AimAt = aimAt, Fire = holdFire, WeaponAction = alt && f < 3 } : new PlayerInput()); }
                 if (me.AmmoSeq != lastSeq) { lastSeq = me.AmmoSeq; moves.Add(me.AmmoMove); }
+                if (me.KnifeSeq != lastKnife) { lastKnife = me.KnifeSeq; knife.Add(me.KnifeMove); }
             }
         };
         queue.Clear(); g.Enemies.Clear(); g.Bullets.Clear();
         var dummy = Dummy(new V2(from.X + 60f, from.Y));
 
-        // The chain, with no trigger pulled.
+        // The rifle arms, with no trigger pulled: left, right, left, then the clap.
         Step(3.2f, false, dummy.Pos);
         Check(!g.Bullets.Values.Any(b => b.Owner == 1), "nothing is shot");
-        Check(moves.Count >= 5 && moves.Take(5).SequenceEqual(new[] { 1, 2, 3, 4, 5 }), "the chain runs left bash, cross cut, right bash, reverse cut, rifle clap (" + string.Join(",", moves) + ")");
+        Check(knife.Count == 0, "the knife stays put until you fire");
+        Check(moves.Count >= 4 && moves.Take(4).SequenceEqual(new[] { 1, 2, 3, 4 }), "the rifle arms bash left, right, left, then clap (" + string.Join(",", moves) + ")");
         float dealt = dummy.MaxHp - dummy.Hp;
-        Check(dealt >= 79f * 0.99f, "the five hits dealt " + dealt.ToString("0") + " (10 + 12 + 10 + 12 + 35)");
+        Check(dealt >= 64f, "the four hits dealt " + dealt.ToString("0") + " (10 + 10 + 10 + 35)");
         Check(client.Game.Players[1].AmmoSeq == me.AmmoSeq, "the other screen sees the moves (" + client.Game.Players[1].AmmoSeq + " of " + me.AmmoSeq + ")");
 
+        // The knife, by hand: cross cut, reverse cut, lunging stab, for extra damage.
+        g.Enemies.Clear(); moves.Clear(); knife.Clear();
+        var target = Dummy(new V2(from.X + 60f, from.Y));
+        me.AmmoMove = 0; me.AmmoCombo = 0; me.AmmoIdle = 0f; me.KnifeCombo = 0;
+        holdFire = true;
+        Step(0.18f, false, target.Pos);
+        holdFire = false;
+        Step(2.2f, false, target.Pos);
+        Check(knife.Count == 1 && knife[0] == 1, "one click is one cross cut (" + string.Join(",", knife) + ")");
+        knife.Clear(); holdFire = true;
+        Step(1.8f, false, target.Pos);
+        holdFire = false;
+        Check(knife.Count >= 3 && knife.Take(3).SequenceEqual(new[] { 1, 2, 3 }), "holding fire runs cross cut, reverse cut, lunging stab (" + string.Join(",", knife) + ")");
+        Check(client.Game.Players[1].KnifeSeq == me.KnifeSeq, "the other screen sees the knife moves");
+
         // Nothing close: it stands down. An enemy behind you is not in the cone.
-        g.Enemies.Clear(); moves.Clear();
+        g.Enemies.Clear(); moves.Clear(); knife.Clear(); me.AmmoCombo = 0;
         var behind = Dummy(new V2(from.X - 50f, from.Y));
         Step(1f, false, behind.Pos);
-        Check(moves.Count == 0 && behind.Hp == behind.MaxHp, "an enemy behind you is left alone");
+        Check(moves.Count == 0 && knife.Count == 0 && behind.Hp == behind.MaxHp, "an enemy behind you is left alone");
 
         // Swats: three bullets at once, one per rifle, the third leaks until a rifle has recovered.
         g.Enemies.Clear(); g.Bullets.Clear(); me.AmmoSwatCdL = me.AmmoSwatCdR = 0f;
