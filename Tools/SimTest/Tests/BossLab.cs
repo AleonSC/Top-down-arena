@@ -25,10 +25,11 @@ static partial class Program
     }
 
     /// One Boss Lab fight to the end (seats as on the lab's command line). The caller reads the lab, then calls Stop.
-    static BossLab LabFight(int wave, BotSkill skill, string[] seats, int seed)
+    /// quickBoss: a Quick Play fight against that boss after wave `wave` (QuickPlay.cs), with Quick Play's boss health.
+    static BossLab LabFight(int wave, BotSkill skill, string[] seats, int seed, EnemyType? quickBoss = null)
     {
         float dt = 1f / 60f;
-        var lab = new BossLab { Wave = wave, Skill = skill, PlayerCount = seats.Length, Seed = seed };
+        var lab = new BossLab { Wave = wave, Skill = skill, PlayerCount = seats.Length, Seed = seed, Quick = quickBoss.HasValue, QuickBoss = quickBoss ?? EnemyType.Boss };
         for (int i = 0; i < seats.Length; i++)
         {
             var parts = seats[i].Split('/');
@@ -166,5 +167,36 @@ static partial class Program
         for (int f = 0; f < 60 * 15 && !(opened && g.State == MatchState.Fighting); f++) { Step(host, dt); opened |= g.ShopOpen; }
         Check(opened && g.State == MatchState.Fighting && !g.ShopOpen && me.Taken.Count > taken, "the F1 smart bot shops in the Bazaar, finishes, and the run carries on");
         host.Leave("");
+    }
+
+    // Quick Play's boss fights, measured (Docs/QuickPlay.md): every boss after waves 10, 20 and 30 against bots with a
+    // typical build for that wave, with Quick Play's boss health (aimed at about two minutes).
+    // run.sh 1 1 quickfights [runs] [waves, e.g. 10,20,30] [skill 1-3] [seat] [seat] [seat]   (default: 2 runs, 10,20,30, Good, T/S/0 D/S/0)
+    static void QuickFightsReport(string[] args)
+    {
+        int runs = args.Length > 3 ? int.Parse(args[3]) : 2;
+        var waves = (args.Length > 4 ? args[4] : "10,20,30").Split(',').Select(int.Parse).ToArray();
+        var skill = args.Length > 5 ? (BotSkill)int.Parse(args[5]) : BotSkill.Good;
+        var seats = args.Length > 6 ? args.Skip(6).ToArray() : new[] { "T/S/0", "D/S/0" };
+        Console.WriteLine("  Quick Play boss fights: {0} [{1}], {2} run(s) each; target ~{3:0} s", skill, string.Join(" ", seats), runs, QuickPlay.FightSeconds);
+        Console.WriteLine("  {0,-16} {1,5} {2,9} {3,9} {4,8} {5,8} {6,7}", "boss", "after", "won/runs", "avg fight", "HP left", "downs", "HP");
+        foreach (var boss in new[] { EnemyType.Boss, EnemyType.HiveQueen, EnemyType.TwinA, EnemyType.Singularity, EnemyType.Colossus,
+                                     EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse })
+            foreach (int wave in waves)
+            {
+                int won = 0, downs = 0;
+                float time = 0f, left = 0f, hp = 0f;
+                for (int run = 0; run < runs; run++)
+                {
+                    var lab = LabFight(wave, skill, seats, 2000 + run * 7 + wave, boss);
+                    if (lab.Outcome == LabOutcome.Won) won++;
+                    time += lab.FightTime;
+                    left += lab.BossHpFrac;
+                    foreach (var st in lab.Stats.Values) downs += st.Downs;
+                    hp = Math.Max(hp, lab.BossMaxHp);
+                    lab.Stop();
+                }
+                Console.WriteLine("  {0,-16} {1,5} {2,9} {3,8:0}s {4,7:0}% {5,8:0.0} {6,7:0}", Defs.Get(boss).Name, wave, won + "/" + runs, time / runs, left / runs * 100f, (float)downs / runs, hp);
+            }
     }
 }

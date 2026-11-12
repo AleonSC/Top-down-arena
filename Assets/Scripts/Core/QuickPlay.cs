@@ -14,7 +14,8 @@ namespace Arena
         public const int Length = 10;          // regular waves before the first boss (and between bosses in endless)
         public const int OrderLength = 100;    // bosses drawn at the start (wave 1000 before the order repeats)
         public const float FightSeconds = 120f;  // the boss fight it aims for with a typical build
-        public const float HomeFightSeconds = 90f;  // what a boss's fight lasts at its own Campaign wave (Balance.cs: 60-120 s)
+        public const float HomeFightSeconds = 90f;
+        public static EnemyType[] OrderOverride;  // the Boss Lab and tests: the boss order the next Quick Play plays (null: drawn)  // what a boss's fight lasts at its own Campaign wave (Balance.cs: 60-120 s)
 
         /// The run's bosses, in order: shuffled bags of all ten (none twice until every one has come up, never the same boss
         /// twice in a row), the Warden first on a profile's first Quick Play.

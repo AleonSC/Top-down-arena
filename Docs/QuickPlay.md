@@ -72,6 +72,28 @@ recorded (`Profile.TutorialDone`). Not for bots, replays, the Boss Lab or the lo
   records the stretch since (`RunSaves.QuickRecord`).
 - Fight lengths are the formula's (it assumes a boss's Campaign fight lasts ~90 s); the bots haven't measured them yet.
 
+## Measured boss fights (Nov 12)
+
+`run.sh 1 1 quickfights [runs] [waves] [skill] [seats]` (the Boss Lab with `Quick`: the boss after wave n, Quick Play's health,
+a typical build for the wave). Good bots, Tank + DPS Soldiers, 2 runs each, after waves 10 / 20 / 30. Kill time: the fight's
+length when won; when lost, its length / (1 - health dealt), an estimate.
+
+| Boss | Won (of 6) | Kill time, about |
+|---|---|---|
+| The Warden | 6 | 130 s |
+| Hive Queen | 5 | 140 s |
+| Reaper of Dusk | 4 | 110 s |
+| The Singularity | 4 | 150 s |
+| The Colossus | 6 | 180 s |
+| The Devourer | 6 | 175 s |
+| Storm Herald | 1 | 220 s |
+| The Duelist | 0 | 340 s |
+| The Lich | 0 | 460 s |
+| The Eclipse | 1 | 440 s |
+
+Early bosses land near the two minutes (a little long); the late ones run far over and the bots usually lose. **Owner's call:
+leave it** (a late boss after wave 10 is meant to be hard). A per-boss correction from this report is the fix if that changes.
+
 ## Open
 
 - Late bosses after wave 10 stay hard by design: same attacks, health set for a ~2 min fight at whatever wave they come. The tutorial run is always the Warden.
