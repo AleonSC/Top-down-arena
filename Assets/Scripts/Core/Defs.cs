@@ -49,6 +49,8 @@ namespace Arena
         TaserGuard,
         // the Warden's faction: a guard with a service pistol, seven tracer rounds a magazine (SecurityGuard.cs, Game/SecurityLook.cs)
         SecurityGuard,
+        // the Warden's faction, prisoners: a Brute and a Lunger in prison gear (PrisonKin.cs, Game/PrisonLook.cs)
+        Thug, Shiv,
     }
 
     public class RoleDef
@@ -296,6 +298,10 @@ namespace Arena
                 Picker = PickerGroup.Ranged, Blurb = "Keeps its distance, charges its taser and fires a white Fork Bolt that stuns you. Dodge the bolt, or parry it." },
             new EnemyDef { Name = "Security Guard", Hp = 45f, Radius = 15f, Speed = 70f, Score = 9, Xp = 9, Sides = 24, Color = new Rgba(0.42f, 0.61f, 0.7f),
                 Picker = PickerGroup.Ranged, Blurb = "Locks on where you're heading, then fires one tracer round at a time: seven shots, then a long reload. Change direction in the red lane, or rush it while it reloads." },
+            new EnemyDef { Name = "Thug", Hp = 140f, Radius = 19f, Speed = 62f, Score = 10, Xp = 10, Sides = 7, Color = new Rgba(0.6f, 0.62f, 0.66f), Melee = true, Contact = 20f,
+                Picker = PickerGroup.Melee, Blurb = "A prisoner brute dragging a ball and chain. Slow and tough, hits hard when it reaches you." },
+            new EnemyDef { Name = "Shiv", Hp = 45f, Radius = 12f, Speed = 95f, Score = 9, Xp = 9, Sides = 4, Color = new Rgba(0.85f, 0.85f, 0.8f), Melee = true, Contact = 18f,
+                Picker = PickerGroup.Melee, Blurb = "A prisoner with a taped shank. Circles in close, flashes a line, then lunges along it." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount

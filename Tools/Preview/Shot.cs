@@ -337,6 +337,13 @@ static partial class Shot {
       typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
       ag.AnimT += float.Parse(Environment.GetEnvironmentVariable("AIM"), System.Globalization.CultureInfo.InvariantCulture) * 0.3f;
     }
+    if (Environment.GetEnvironmentVariable("RESKIN") != null) {  // RESKIN=1: the Rioter, Thug, Shiv and the Brute and Lunger they reskin (PrisonLook.cs)
+      var rg = host.Game; rg.Enemies.Clear(); rg.Bullets.Clear();
+      var rsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      me.Pos = me.Disp = new V2(1200f, 900f);
+      var kinds = new[] { EnemyType.Rioter, EnemyType.Thug, EnemyType.Brute, EnemyType.Shiv, EnemyType.Lunger };
+      for (int k = 0; k < kinds.Length; k++) { var e = (Enemy)rsp.Invoke(rg, new object[] { kinds[k], new V2(300f + 120f * k, 300f), 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Facing = 0f; }
+    }
     if (Environment.GetEnvironmentVariable("LUNGE") != null) {  // LUNGE=<0-1>: the four lungers part-way through their wind-up (LungeLaneLook.cs); the lane fills with the client's clock, so draw once, then move it on
       var lg = host.Game; lg.Enemies.Clear(); lg.Bullets.Clear();
       var lsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

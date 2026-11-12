@@ -53,11 +53,14 @@ namespace Arena
                     new FactionMember { Type = EnemyType.RiotShield, Weight = 2f, From = 2 },
                     new FactionMember { Type = EnemyType.GasGrenadier, Weight = 1.5f, From = 2 },
                     new FactionMember { Type = EnemyType.TaserGuard, Weight = 1.5f, From = 3 },  // the faction's shooter that stuns (WardenFaction.cs)
-                    new FactionMember { Type = EnemyType.SecurityGuard, Weight = 2f, From = 2 },  // its pistol guard: leading tracer rounds, a magazine of seven (SecurityGuard.cs)
+                    new FactionMember { Type = EnemyType.SecurityGuard, Weight = 2f, From = 2 },
+                    new FactionMember { Type = EnemyType.Thug, Weight = 1.5f, From = 2 },  // the prisoners' brute: a Brute with a ball and chain (PrisonKin.cs)
+                    new FactionMember { Type = EnemyType.Shiv, Weight = 1f, From = 3 },  // the prisoners' lunger: a taped shank (PrisonKin.cs)  // its pistol guard: leading tracer rounds, a magazine of seven (SecurityGuard.cs)
                 },
                 Squads = new[]
                 {
                     new SquadDef { Name = "Breakout", From = 1, Members = new[] { EnemyType.Guard, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter } },
+                    new SquadDef { Name = "Yard", From = 3, Members = new[] { EnemyType.Thug, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Shiv } },
                     new SquadDef { Name = "Patrol", From = 2, Members = new[] { EnemyType.SecurityGuard, EnemyType.SecurityGuard, EnemyType.SecurityGuard, EnemyType.Rioter, EnemyType.Rioter } },
                     new SquadDef { Name = "Cell block", From = 3, Members = new[] { EnemyType.RiotShield, EnemyType.RiotShield, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter } },
                 },

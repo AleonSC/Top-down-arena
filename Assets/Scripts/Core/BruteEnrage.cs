@@ -9,7 +9,7 @@ namespace Arena
         /// 0 at full health up to 1 as it nears death (Brutes only).
         public static float BruteRage(Enemy e)
         {
-            if (e.Type != EnemyType.Brute || e.MaxHp <= 0f) return 0f;
+            if (!Game.IsBrute(e.Type) || e.MaxHp <= 0f) return 0f;
             return MathX.Clamp01(1f - e.Hp / e.MaxHp);
         }
 

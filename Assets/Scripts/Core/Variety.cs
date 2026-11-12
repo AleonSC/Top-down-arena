@@ -565,7 +565,7 @@ namespace Arena
                 return false;
             bool brutes = false;
             foreach (var o in mates)
-                if (o.Type == EnemyType.Brute)
+                if (IsBrute(o.Type))
                 {
                     brutes = true;
                     if (o.Pos.DistanceTo(tpos) < 90f)
@@ -1059,7 +1059,7 @@ namespace Arena
             }
             if (HasTrait(e, EliteTrait.Splitting))
             {
-                int n = e.Type == EnemyType.Juggernaut || e.Type == EnemyType.Nest || e.Type == EnemyType.Brute ? 4 : 2;
+                int n = e.Type == EnemyType.Juggernaut || e.Type == EnemyType.Nest || IsBrute(e.Type) ? 4 : 2;
                 for (int i = 0; i < n; i++)
                     SpawnEnemyAt(EnemyType.Shard, e.Pos + V2.FromAngle(MathX.Tau * i / n) * 20f, 0.15f, 0);
             }

@@ -5,6 +5,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
 - 296: Quick Play: the lobby message carries `QuickMode` (bool, after `HuntBoss`); `Msg.Start` carries, after the start wave, a Quick Play flag and (when set) its boss order (count byte + one `EnemyType` byte each).
+- 296: new `EnemyType.Thug` and `EnemyType.Shiv` (the Warden's prisoner reskins of the Brute and Lunger; at the end of the enum).
 - 295: Gas Grenadier overhand lob: new `FxKind.GasLob` (at the end of the enum; Pos = landing spot, Pos2 = (grenadier id, flight s), Pos2.Y = -1 for the release cue); the grenadier's `Winding` now covers its 1.07 s wind-up.
 - 294: Out of Ammo (`WeaponId.OutOfAmmo`, the Twin Rifle's second variant, pick 4): the player snapshot carries `AmmoMove`, `AmmoSeq`, `SwatSeqL`, `SwatSeqR` (bytes), `SwatAngL`, `SwatAngR`, `AmmoSpin` (floats) after `TwinLock`; `Msg.WeaponDash` kind `DashSpin` (27)
 - 293: Twin Rifle Auto (`WeaponId.TwinRifleAuto`, Soldier DPS 4th weapon): the player snapshot carries `Player.TwinAimL`, `TwinAimR` (floats) and `TwinLock` (int) after `TwinCharge`; `Msg.WeaponDash` kind `DashLock` (26)

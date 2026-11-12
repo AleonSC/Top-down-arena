@@ -154,8 +154,8 @@ namespace Arena
                 case EnemyType.Charger: return new ThrallAtk { Melee = true, Dmg = 30f, Interval = 1f };
                 case EnemyType.Splitter: return new ThrallAtk { Melee = true, Dmg = 18f, Interval = 0.7f };
                 case EnemyType.Spiker: return new ThrallAtk { Melee = true, Dmg = 10f, Interval = 0.45f };
-                case EnemyType.Brute: return new ThrallAtk { Melee = true, Dmg = 24f, Interval = 0.7f };
-                case EnemyType.Lunger: return new ThrallAtk { Melee = true, Dmg = 18f, Interval = 0.6f };
+                case EnemyType.Brute: case EnemyType.Thug: return new ThrallAtk { Melee = true, Dmg = 24f, Interval = 0.7f };
+                case EnemyType.Lunger: case EnemyType.Shiv: return new ThrallAtk { Melee = true, Dmg = 18f, Interval = 0.6f };
             }
             var d = Defs.Get(t);
             return d.Melee ? new ThrallAtk { Melee = true, Dmg = Math.Max(10f, d.Contact), Interval = 0.7f }
