@@ -27,9 +27,10 @@ namespace Arena
             {
                 took = p.Hp - floor;
                 p.Hp = floor;
+                Recorder?.HealthSpent(p, took, "Blood Debt");
             }
             else
-                took = PayHealth(p, p.MaxHp * DebtMinCost);
+                took = PayHealth(p, p.MaxHp * DebtMinCost, "Blood Debt");
             p.DebtT = DebtTime + p.Stats.DebtBonusTime;
             p.Debt = p.DebtOwed = took;
             p.DebtRepay = (mastered ? DebtMastered : 1f) * (1f + p.Stats.DebtRepay) * power;

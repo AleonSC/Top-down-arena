@@ -208,6 +208,16 @@ def main():
     table(["source", "damage", "share"], [[s, v, f"{100 * v / total:.1f}%"] for s, v in sorted(taken.items(), key=lambda kv: -kv[1])[:20]],
           "Where damage to players comes from (top 20)")
 
+    spent = defaultdict(float)  # format 5: health paid for blood weapons and abilities, kept out of damage taken
+    for r in runs:
+        for w in r["waves"]:
+            for p in w["players"].values():
+                for src, v in p.get("healthSpentOn", {}).items():
+                    spent[src] += v
+    if spent:
+        table(["source", "health", "share"], [[s, v, f"{100 * v / (sum(spent.values()) or 1):.1f}%"] for s, v in sorted(spent.items(), key=lambda kv: -kv[1])],
+              "Health spent on blood costs (not in damage taken)")
+
     healed = defaultdict(float)
     for r in runs:
         for w in r["waves"]:

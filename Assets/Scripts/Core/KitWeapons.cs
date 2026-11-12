@@ -33,7 +33,7 @@ namespace Arena
                 s.ClawSide = side;
                 s.Bleed = BearBleed * (1f + 0.25f * extra);
                 s.NoCut = true;  // claws, not a blade: they don't cut bullets
-                pendingSwings.Add(s);
+                QueueSwing(s);
             }
         }
 
@@ -93,7 +93,7 @@ namespace Arena
                     ice.Ice = 1;
                     ice.Slow = IcicleSlow;
                     ice.NoCut = true;
-                    pendingSwings.Add(ice);
+                    QueueSwing(ice);
                     var shards = NewSwing(p, aim, MeleeReach(p, w.Reach + w.Grow * extra), 0f, w.Damage * SplinterMult * dmg);
                     shards.HalfWidth = (SplinterReach + SplinterGrow * extra) * AreaMult(p);
                     shards.Hollow = IcicleHalfWidth;
@@ -101,7 +101,7 @@ namespace Arena
                     shards.Ice = 2;
                     shards.Slow = IcicleSlow;
                     shards.NoCut = true;
-                    pendingSwings.Add(shards);
+                    QueueSwing(shards);
                     break;
                 }
                 case WeaponId.StormHammer:  // most of its damage is the smash; the electrified enemy's arcs are a little extra
@@ -178,7 +178,7 @@ namespace Arena
                     root.Root = true;
                     root.RootHeal = RootHeal;
                     root.NoCut = true;
-                    pendingSwings.Add(root);
+                    QueueSwing(root);
                     break;
                 }
                 case WeaponId.WispLantern:
@@ -527,7 +527,7 @@ namespace Arena
             if (hit != null)
             {
                 float dmg = owner.Weapon.Damage * owner.Stats.DmgMult * m.Power * HomingCost(owner);  // Homing Rounds trade damage for forgiveness
-                HurtEnemy(hit, dmg, owner.Id);
+                WeaponHurt(hit, dmg, owner.Id);
                 OnBulletHit(new Bullet { Pos = hit.Pos, Vel = to.Normalized(), Owner = owner.Id, Dmg = dmg, Kind = Defs.ArcaneShot }, hit);
                 BroadcastFx(FxKind.Spark, hit.Pos, d.Color, hit.Radius + 10f, 0.25f, Sfx.None);
                 owner.Run.ShotsHit++;
@@ -613,7 +613,7 @@ namespace Arena
                     V2 rel = e.Pos - tr.From;
                     float along = Dot(rel, tr.Dir), across = Math.Abs(Dot(rel, tr.Dir.Orthogonal()));
                     if (along >= tail - e.Radius && along <= head + e.Radius && across <= IonTrailWidth + e.Radius)
-                        HurtEnemy(e, tr.Dps * dt, tr.Owner);
+                        WeaponHurt(e, tr.Dps * dt, tr.Owner);
                 }
             }
         }
@@ -665,7 +665,7 @@ namespace Arena
                     wolves++;
             if (bit.Count < Math.Max(2, wolves))
                 return;
-            HurtEnemy(e, PackTakedown * wolves * owner.Stats.DmgMult, owner.Id);
+            WeaponHurt(e, PackTakedown * wolves * owner.Stats.DmgMult, owner.Id);
             if (!e.Def.IsBoss)
                 e.FrozenT = Math.Max(e.FrozenT, PackStun);
             BroadcastFx(FxKind.Claw, e.Pos - new V2(30f, 0f), e.Pos + new V2(30f, 0f), new Rgba(0.85f, 0.85f, 0.95f), 0.9f, 0.3f, Sfx.SwingHeavy);

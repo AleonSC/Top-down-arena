@@ -56,7 +56,7 @@ namespace Arena
                         b.Knock = ClotBurstKnock;
                         b.Taunt = LashTaunt;
                         b.Heavy = true;
-                        pendingSwings.Add(b);
+                        QueueSwing(b);
                         p.Clot = 0;
                         p.ClotT = 0f;
                         BroadcastFx(FxKind.Ring, p.Pos, LashRed, b.Reach, 0.35f, Sfx.SpellArcane);
@@ -66,7 +66,7 @@ namespace Arena
                     s.NoCut = true;  // a whip of blood, not a blade
                     s.Tip = s.Reach * LashTipFrom;
                     s.Clots = true;
-                    pendingSwings.Add(s);
+                    QueueSwing(s);
                     break;
                 }
                 case WeaponId.ClotBolt:
@@ -76,7 +76,7 @@ namespace Arena
                     float c = BowCharge(p, p.BowShotDraw), flight = ClotFlight(c);
                     if (!casting)  // the clot is your own blood: a shot costs health (extra clots come free)
                     {
-                        float paid = PayHealth(p, p.MaxHp * ClotCost);
+                        float paid = PayHealth(p, p.MaxHp * ClotCost, p.Weapon.Name);
                         if (paid >= 1f)
                             BroadcastFx(FxKind.Bleed, p.Pos, new V2(p.Id, 0f), new Rgba(0.85f, 0.12f, 0.2f), paid, 0.55f, Sfx.None);
                     }
@@ -139,7 +139,7 @@ namespace Arena
                 }
                 case WeaponId.BoneSpear:
                 {
-                    PayHealth(p, BoneSpearCost);
+                    PayHealth(p, BoneSpearCost, p.Weapon.Name);
                     int n = 1 + extra;
                     for (int i = 0; i < n; i++)
                     {
@@ -446,7 +446,11 @@ namespace Arena
                 }
                 case Defs.BloodShot:
                     if (p.Weapon.Id == WeaponId.BloodBolts)
+                    {
+                        string was = CreditTo(BulletSrc(b));
                         Hemorrhage(p, e, b.Dmg);
+                        dmgSrc = was;
+                    }
                     break;
             }
         }
@@ -507,7 +511,7 @@ namespace Arena
                 Player p;
                 if (!Enemies.TryGetValue(c.Enemy, out e) || e.Hp <= 0f)
                     continue;
-                HurtEnemy(e, c.Dmg, c.Owner);
+                WeaponHurt(e, c.Dmg, c.Owner);
                 ApplyBleed(e, c.Dmg * SanguineBleed, c.Owner);  // KitWeapons.cs: each coat is another stack
                 OnBulletHit(new Bullet { Pos = e.Pos, Owner = c.Owner, Dmg = c.Dmg, Kind = Defs.SanguineShot }, e);
                 if (Players.TryGetValue(c.Owner, out p))
@@ -614,18 +618,20 @@ namespace Arena
         {
             Player p;
             if (b.Kind == Defs.TransfuseShot && Players.TryGetValue(b.Owner, out p))
-                PayHealth(p, TransfuseCost);
+                PayHealth(p, TransfuseCost, p.Weapon.Name);
         }
 
         // --- Health as a resource ---------------------------------------------------------
 
-        /// Spend health, never below 1 (or nothing while down). Returns how much was actually paid.
-        float PayHealth(Player p, float cost)
+        /// Spend health, never below 1 (or nothing while down). Returns how much was actually paid; the session
+        /// recording counts it as health spent on `what`, not damage taken.
+        float PayHealth(Player p, float cost, string what)
         {
             if (p.Downed || cost <= 0f)
                 return 0f;
             float paid = Math.Max(0f, Math.Min(cost, p.Hp - 1f));
             p.Hp -= paid;
+            Recorder?.HealthSpent(p, paid, what);
             return paid;
         }
 
@@ -639,7 +645,7 @@ namespace Arena
                 return;
             var d = Upgrades.Ability(id);
             if (d.HealthCost > 0f)
-                castPaid = PayHealth(p, (d.CostsCurrent ? p.Hp : p.MaxHp) * d.HealthCost);
+                castPaid = PayHealth(p, (d.CostsCurrent ? p.Hp : p.MaxHp) * d.HealthCost, d.Name);
             if (castPaid >= 1f)  // blood spurts off you: you can see what it cost
                 BroadcastFx(FxKind.Bleed, p.Pos, new V2(p.Id, 0f), new Rgba(0.85f, 0.12f, 0.2f), castPaid, 0.55f, Sfx.None);
         }
