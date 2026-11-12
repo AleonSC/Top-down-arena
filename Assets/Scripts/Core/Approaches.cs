@@ -208,8 +208,8 @@ namespace Arena
             float share = D(DiffKnob.ApproachShare);
             if (step == 0 || Approaches.For(ApproachBossAt(wave)) == null || Practice != null)
                 return 0f;
-            if (Hunt != null)
-                return 1f;  // a Boss Hunt's build-up waves are only its boss's own enemies (Hunts.cs)
+            if (Hunt != null || Quick)
+                return 1f;  // a Boss Hunt's (and Quick Play's) build-up waves are only the boss's own enemies (Hunts.cs, QuickPlay.cs)
             if (CampaignOn)
                 return Approaches.Campaign(wave).Find(x => x.Current).Share;  // the next boss's slice (0 if it has no faction)
             if (share <= 0f)
@@ -218,7 +218,7 @@ namespace Arena
         }
 
         /// Is the campaign buildup on (every wave themed, Approaches.Campaign)? Not in a hunt or the Practice Range.
-        public bool CampaignOn => Hunt == null && Practice == null && D(DiffKnob.Campaign) >= 0.5f;
+        public bool CampaignOn => Hunt == null && !Quick && Practice == null && D(DiffKnob.Campaign) >= 0.5f;
 
         /// With the ramp on, each approach wave's share of the full share: from 40% up to all of it.
         static readonly float[] RampSteps = { 0.4f, 0.6f, 0.8f, 1f };

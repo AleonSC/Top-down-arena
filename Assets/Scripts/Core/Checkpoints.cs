@@ -25,7 +25,7 @@ namespace Arena
         bool retrying;  // host: the retry is starting (the old match stops without being recorded)
 
         /// The run's lives (the difficulty's number; none outside saved runs).
-        public int LivesMax => Hunt != null || Practice != null || ShowcaseMode || Unrecorded ? 0 : (int)Math.Round(D(DiffKnob.Lives));
+        public int LivesMax => Hunt != null || Quick || Practice != null || ShowcaseMode || Unrecorded ? 0 : (int)Math.Round(D(DiffKnob.Lives));
         public int LivesLeft => Math.Max(0, LivesMax - LivesUsed);
 
         /// Won without using a life (and with lives to use).

@@ -370,7 +370,7 @@ namespace Arena
         /// through the five from a seeded start. Nothing on a full map or without a spot.
         void GiveSurpriseRoom()
         {
-            if (!IsHost || !ExpandingOn || Practice != null || Hunt != null || (Wave >= MaxWave && !Endless) || Expansion.BoughtCount(Expanded) > Expansion.MaxRooms - 2)
+            if (!IsHost || !ExpandingOn || Practice != null || Hunt != null || (Wave >= LastWave && !Endless) || Expansion.BoughtCount(Expanded) > Expansion.MaxRooms - 2)
                 return;
             string why;
             var pick = Expansion.Surprise(expandSeed, Wave, Expanded, NextSurpriseShape(), out why);
@@ -527,7 +527,7 @@ namespace Arena
         /// Host, when a wave is cleared: a building round opens (not in the Practice Range, a Boss Hunt, after the last wave or on a full map).
         void OpenBuildRound()
         {
-            if (!IsHost || !ExpandingOn || Practice != null || Hunt != null || (Wave >= MaxWave && !Endless) || Expansion.BoughtCount(Expanded) >= Expansion.MaxRooms)
+            if (!IsHost || !ExpandingOn || Practice != null || Hunt != null || (Wave >= LastWave && !Endless) || Expansion.BoughtCount(Expanded) >= Expansion.MaxRooms)
                 return;
             ExpandOpen = true;
             roundBuilt = 0;

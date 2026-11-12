@@ -118,7 +118,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 296;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 297;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -140,6 +140,8 @@ namespace Arena
         public PracticePlan Plan = PracticePlan.Default();
         public bool OthersCanEdit;
         public bool HuntMode;                       // a Boss Hunt instead (Hunts.cs): HuntBoss's
+        public bool QuickMode;                      // Quick Play (QuickPlay.cs): the lobby's first mode, a new player's default
+        public static bool QuickDefault = true;     // a new host starts on Quick Play unless its profile last picked another mode (the sim tests turn it off)
         public WaveSet DesignTest;                  // host: designed waves to play in the Practice Range (the F1 wave editor's Test)
         public EnemyType HuntBoss = EnemyType.Boss;
         public string PlanEditor = "";  // who made the last change
@@ -208,7 +210,19 @@ namespace Arena
             SyncOwnCosmetics();  // your rank, frame and trail show from the start (not only after the first lobby broadcast, e.g. pressing ready)
             SyncAvatars();       // (and your Hangout character stands in the room from the start too)
             Screen = AppScreen.Lobby;
+            LastModeFromProfile();
             return true;
+        }
+
+        /// A new host's lobby opens on the mode its profile last picked (Quick Play for a new profile; Profile.LastMode).
+        void LastModeFromProfile()
+        {
+            if (!QuickDefault)
+                return;
+            string m = Game.Profile != null ? Game.Profile.LastMode : "";
+            PracticeMode = m == "practice";
+            HuntMode = m == "hunt";
+            QuickMode = m == "" || m == "quick";
         }
 
         /// role: preferred role, or null to take the first one nobody has.
@@ -243,8 +257,10 @@ namespace Arena
             Game.Stop();
             Game.Practice = null;
             Game.Hunt = null;
+            Game.Quick = false;
             PracticeMode = false;
             HuntMode = false;
+            QuickMode = false;
             DesignTest = null;
             Game.Design = null;
             OthersCanEdit = false;
@@ -772,6 +788,7 @@ namespace Arena
             Diff = save.Diff.Copy();
             PracticeMode = false;
             HuntMode = false;
+            QuickMode = false;
             int seat = Game.SeatFor(save, Lobby[1].Name);
             TakeSeat(Lobby[1], seat < 0 ? 0 : seat);
             BroadcastLobby();
@@ -792,6 +809,7 @@ namespace Arena
             Diff = save.Diff.Copy();
             PracticeMode = false;
             HuntMode = false;
+            QuickMode = false;
             foreach (var e in Lobby.Values)
                 e.Seat = -1;
             foreach (var e in Lobby.Values)
@@ -1112,6 +1130,7 @@ namespace Arena
             Diff.Write(w);
             w.Write(HuntMode);
             w.Write((byte)HuntBoss);
+            w.Write(QuickMode);
             // Continuing a saved run: its seats, so everyone's lobby can show them.
             w.Write(Resume != null);
             if (Resume != null)
@@ -1140,7 +1159,7 @@ namespace Arena
         public void SetPracticeMode(bool on) => SetMode(on, false);
 
         /// Host: the lobby's mode: a normal run, a Boss Hunt (Hunts.cs) or the Practice Range.
-        public void SetMode(bool practice, bool hunt)
+        public void SetMode(bool practice, bool hunt, bool quick = false)
         {
             if (!IsHost || Game.Running)
                 return;
@@ -1148,6 +1167,12 @@ namespace Arena
                 DesignTest = null;
             PracticeMode = practice;
             HuntMode = hunt && !practice;
+            QuickMode = quick && !practice && !hunt;
+            if (Game.Profile != null && Resume == null && QuickDefault)
+            {
+                Game.Profile.LastMode = PracticeMode ? "practice" : HuntMode ? "hunt" : QuickMode ? "quick" : "campaign";
+                Game.Profile.Save();
+            }
             foreach (var e in Lobby.Values)
                 e.Ready = false;  // what you're readying up for changed
             BroadcastLobby();
@@ -1334,6 +1359,7 @@ namespace Arena
             Game.Stop();
             Game.Practice = null;
             Game.Hunt = null;
+            Game.Quick = false;
             Screen = AppScreen.Lobby;
             foreach (var e in Lobby.Values)
                 e.Ready = false;
@@ -1526,6 +1552,7 @@ namespace Arena
                     Diff = Difficulty.Read(r);
                     HuntMode = r.ReadBoolean();
                     HuntBoss = (EnemyType)r.ReadByte();
+                    QuickMode = r.ReadBoolean();
                     Resume = null;
                     if (r.ReadBoolean())
                     {
@@ -1574,6 +1601,8 @@ namespace Arena
                     Game.Stop();
                     Game.Practice = null;
                     Game.Hunt = null;
+                    Game.Quick = false;
+            Game.Quick = false;
                     Screen = AppScreen.Lobby;
                     ShareCosmetics();  // the run may have raised the rank
                     break;

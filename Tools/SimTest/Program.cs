@@ -209,6 +209,7 @@ static partial class Program
         Game.LayoutsByDefault = false;  // floor plans too (the layouts test)
         Game.ChallengesByDefault = false;  // challenge rooms too (the challenges test)
         Game.LongRunDefault = false;  // the 50-wave track (the longrun suite turns the 100-wave Campaign on)
+        Session.QuickDefault = false;  // hosts open on the Campaign (Quick Play has its own suite, quick)
         test();
     }
 
@@ -383,6 +384,7 @@ static partial class Program
         Test("wings", "the Rooms arena (phase 1): the Arena setting, the Wings rooms and hallways, doors, walls, spawns, steering, boss waves in the hub", () => RoomsArenaTest(Dt)),
         Test("expand", "the Expanding arena: seeded room offers, no overlaps, connected maps, open doors, the size cap", () => ExpansionTest(), () => ExpandingOutlineTest(Dt), () => ExpandingGameTest(Dt), () => ExpandingEconomyTest(Dt), () => ExpandingFeaturesTest(Dt), () => ExpandingVectorsTest(Dt), () => ExpandingGatekeeperTest(Dt), () => ExpandingKitsTest(Dt), () => ExpandingThemesTest(Dt), () => ExpandingWallsTest(Dt), () => ExpandingFreeBuildTest(Dt), () => ExpandingPurseTest(Dt), () => ExpandingBreachesTest(Dt), () => ExpandingLinksTest(Dt), () => ExpandingGatesTest(Dt), () => ExpandingRoomSizesTest(Dt), () => ExpandingFloatCostTest(), () => ExpandingSurpriseTest(), () => ExpandingSurpriseGameTest(Dt), () => ExpandingBreachEventTest(Dt)),
         Test("challenges", "challenge rooms: a portal every five waves, the five challenges, the altar's prize, failing safely", () => ChallengesTest(Dt)),
+        Test("quick", "Quick Play (QuickPlay.cs): the default mode, ten faction waves, a random boss after wave 10, its records, endless", () => QuickPlayTest(Dt), () => QuickBossHpReport()),
         Test("bossschedule", "boss schedules (BossSchedule.cs): the Campaign's and a hunt's match the old formulas", () => BossScheduleTest()),
         Test("hunts", "Boss Hunts: locked until the boss is beaten, the hunt's waves, winning it, its records", () => HuntTest(Dt)),
         Test("perks", "perks: unlock rules, slots, equipping (one per boss), the profile line; Riot Gear: block, grace, 30 s recharge, burns go through; Contraband: the cycle chest and rare-or-better items", () => PerksTest(Dt), () => RiotGearTest(Dt), () => ContrabandTest(Dt)),

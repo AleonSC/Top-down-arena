@@ -200,24 +200,25 @@ namespace Arena
             return session.Lobby.TryGetValue(1, out host) ? host.Name : "the host";
         }
 
-        // The mode carousel's turn: modeTurn is the mode on top (unwrapped, mode = modeTurn mod 3), modeTurnPos eases toward it.
+        // The mode carousel's turn: modeTurn is the mode on top (unwrapped, mode = modeTurn mod 4), modeTurnPos eases toward it.
+        // Modes: 0 Quick Play (QuickPlay.cs), 1 Campaign, 2 Boss Hunt, 3 Practice.
         int modeTurn;
         float modeTurnPos;
         bool modeTurnSet;
 
-        static string ModeTitle(int i) => i == 0 ? "CAMPAIGN" : i == 1 ? "BOSS HUNT" : "PRACTICE";
-        static string ModeSub(int i) => i == 0 ? "100 waves, build as you go" : i == 1 ? "10 waves to one boss" : "Build your own waves, or train a mechanic";
-        static Color? ModeAccent(int i) => i == 1 ? new Color(1f, 0.62f, 0.58f) : i == 2 ? new Color(0.37f, 0.94f, 1f) : (Color?)null;
+        static string ModeTitle(int i) => i == 0 ? "QUICK PLAY" : i == 1 ? "CAMPAIGN" : i == 2 ? "BOSS HUNT" : "PRACTICE";
+        static string ModeSub(int i) => i == 0 ? "10 waves, then a random boss" : i == 1 ? "100 waves, build as you go" : i == 2 ? "10 waves to one boss" : "Build your own waves, or train a mechanic";
+        static Color? ModeAccent(int i) => i == 0 ? new Color(1f, 0.82f, 0.4f) : i == 2 ? new Color(1f, 0.62f, 0.58f) : i == 3 ? new Color(0.37f, 0.94f, 1f) : (Color?)null;
 
         /// The mode carousel (like the Wildcard's class wheel): the mode in play big in the middle with its line under it, the other
         /// two smaller and faded either side, and arrows at the ends. Arrows, the mouse wheel or a click on a side mode turn it;
         /// only the host can.
         void DrawModeSwitch(Rect r, float t)
         {
-            const int n = 3;
+            const int n = 4;
             bool calm = fxReduced, host = session.IsHost;
             var ev = Event.current;
-            int mode = session.PracticeMode ? 2 : session.HuntMode ? 1 : 0;
+            int mode = session.PracticeMode ? 3 : session.HuntMode ? 2 : session.QuickMode ? 0 : 1;
             int d0 = ((mode - modeTurn) % n + n) % n;  // follow the session the short way round (the host's turn, or someone else's)
             if (!modeTurnSet)
             {
@@ -297,7 +298,7 @@ namespace Arena
                 int m = ((turnTo % n) + n) % n;
                 modeTurn = turnTo;
                 if (m != mode)
-                    session.SetMode(m == 2, m == 1);
+                    session.SetMode(m == 3, m == 2, m == 0);
             }
         }
 
