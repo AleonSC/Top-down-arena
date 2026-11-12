@@ -11,7 +11,9 @@ namespace Arena
     public partial class Game
     {
         /// How much more a bigger map adds to a wave's enemies: 1 + this x (floor area / hub area - 1), up to MaxExpandScale.
-        public static float ExpandScaleRate = 0.6f, MaxExpandScale = 1.4f;  // (static, not const: the balance report tries others)
+        public static float ExpandScaleRate = 0.6f, MaxExpandScale = 1.4f;
+        public static float ExpandScaleRateEarly = 1.1f, MaxExpandScaleEarly = 2.4f;
+        public const int EarlyWaves = 10;  // (static, not const: the balance report tries others)
 
         /// The rooms built so far, in order (area 1, 2, ...).
         public readonly List<ExpansionRoom> Expanded = new List<ExpansionRoom>();
@@ -76,13 +78,15 @@ namespace Arena
         /// Free building: anyone builds with their own vectors the moment they draw, any number of rooms a round.
         public bool FreeBuild => ExpandingOn && !BuildVoting;
 
-        /// Free building, between waves but outside a building round (the map is full): only openings. Never mid-wave.
+        /// Free building, between waves but outside a building round (the map is full): only openings. Never mid-wave,
+        /// nor in the opening countdown (no wave cleared yet: WaveReport is the last cleared wave's, WaveReady.cs).
         /// Not while a Gatekeeper duel has its room locked.
         public bool DoorsOpen
         {
             get
             {
-                if (!FreeBuild || ExpandOpen || Practice != null || Hunt != null || State != MatchState.Intermission)
+                if (!FreeBuild || ExpandOpen || Practice != null || Hunt != null || State != MatchState.Intermission
+                    || WaveReport == null || WaveReport.Wave != Wave)
                     return false;
                 for (int a = 1; a < ExpansionWorld.Areas.Length; a++)
                     if (AreaLocked(a))
@@ -122,7 +126,10 @@ namespace Arena
                 foreach (var a in ExpansionWorld.Areas)
                     if (!a.Sealed)
                         area += a.Size.X * a.Size.Y;  // (a sealed floating room adds no crowd)
-                return Math.Min(MaxExpandScale, 1f + ExpandScaleRate * (area / (Width * Height) - 1f));
+                float ratio = area / (Width * Height) - 1f;
+                if (Wave <= EarlyWaves)  // the first ten waves: the crowd was thin on a big map, rooms stayed empty
+                    return Math.Min(MaxExpandScaleEarly, 1f + ExpandScaleRateEarly * ratio);
+                return Math.Min(MaxExpandScale, 1f + ExpandScaleRate * ratio);
             }
         }
 
@@ -347,7 +354,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var r in rooms)
-                if (r.Surprise > 0 && r.Leg == 0)
+                if (r.Surprise > 0 && r.Surprise != 1 + (int)SurpriseShape.Stash && r.Leg == 0)  // (the breach Stashes aren't gifts: they don't turn the rotation)
                     n++;
             return n;
         }
@@ -355,7 +362,7 @@ namespace Arena
         /// The shape the next surprise room tries first: the five come round in turn from a seeded start.
         SurpriseShape NextSurpriseShape()
         {
-            int shapes = Enum.GetValues(typeof(SurpriseShape)).Length;
+            int shapes = (int)SurpriseShape.Stash;  // the five gifts (the Stash is only for breaches)
             return (SurpriseShape)(int)(((uint)expandSeed % (uint)shapes + (uint)SurpriseCount(Expanded)) % (uint)shapes);
         }
 
@@ -418,6 +425,24 @@ namespace Arena
                 }
                 nodeChests[i] = AddProp(PropKind.Chest, nd.Pos).Id;
             }
+        }
+
+        /// Host: the moment a node's chest opens, the node is spent (the opened chest is removed soon after, maybe between waves when TickNodes doesn't run).
+        void SpendNodeOfChest(Prop c)
+        {
+            if (!IsHost)
+                return;
+            foreach (var kv in nodeChests)
+                if (kv.Value == c.Id)
+                {
+                    var nd = Nodes[kv.Key];
+                    nd.Spent = true;
+                    Nodes[kv.Key] = nd;
+                    nodeChests.Remove(kv.Key);
+                    DoLog("a chest node's chest was opened");
+                    BroadcastExpansion();
+                    return;
+                }
         }
 
         /// Host: is this prop the chest of a chest node (it never holds the wave)?
@@ -920,6 +945,7 @@ namespace Arena
             expWorld = null;
             LayoutAge = 0f;  // the new walls rise
             RaiseRoomsNow();  // (the first room: the world goes up now, Rooms.cs)
+            TickNodes();  // a chest node this room encloses gets its chest now, not at the next wave's first tick
             Sounds.Add(Sfx.Pick);
         }
 
@@ -1172,6 +1198,7 @@ namespace Arena
                 w.Write(r.Floating);
                 w.Write(r.Leg);
                 w.Write(r.Surprise);
+                w.Write(r.Claimed);
             }
         }
 
@@ -1189,6 +1216,7 @@ namespace Arena
                 room.Floating = r.ReadBoolean();
                 room.Leg = r.ReadByte();
                 room.Surprise = r.ReadByte();
+                room.Claimed = r.ReadBoolean();
                 list.Add(room);
             }
             return list;
@@ -1248,18 +1276,32 @@ namespace Arena
         void ReadExpandState(BinaryReader r)
         {
             var rooms = ReadRooms(r);
-            bool changed = rooms.Count != Expanded.Count;
+            bool changed = rooms.Count != Expanded.Count, claimsOnly = false;
             for (int i = 0; !changed && i < rooms.Count; i++)
-                changed |= !rooms[i].Equals(Expanded[i]);
-            if (changed)
+            {
+                var same = rooms[i]; same.Claimed = Expanded[i].Claimed;
+                changed |= !same.Equals(Expanded[i]);
+            }
+            if (!changed)  // (only a Stash's cache taken: no rebuild, no build-in)
+                for (int i = 0; i < rooms.Count; i++)
+                    if (rooms[i].Claimed != Expanded[i].Claimed)
+                    {
+                        Expanded[i] = rooms[i];
+                        claimsOnly = true;
+                    }
+            if (changed && !claimsOnly)
             {
                 int before = SurpriseCount(Expanded), oldCount = Expanded.Count;
                 bool eventOn = EventMark.HasValue;  // (the gold breach was up when the room came)
+                if (BreachesOn)
+                    _ = ActiveBreaches;  // (this wave's breaches, worked out on the old map first: new rooms must not re-roll them)
                 Expanded.Clear();
                 Expanded.AddRange(rooms);
                 expWorld = null;
                 LayoutAge = 0f;
-                if (SurpriseCount(Expanded) > before && Expanded.Count > oldCount && ((BossNow && State == MatchState.Intermission) || eventOn))
+                var fresh = Expanded.Count > oldCount ? Expanded.GetRange(oldCount, Expanded.Count - oldCount) : new List<ExpansionRoom>();
+                bool stashNew = oldCount > 0 && fresh.Exists(q => q.Surprise == 1 + (int)SurpriseShape.Stash);  // (breach Stashes: Docs/BreachRooms.md; a joiner's first list is quiet)
+                if ((SurpriseCount(Expanded) > before && Expanded.Count > oldCount && ((BossNow && State == MatchState.Intermission) || eventOn)) || stashNew)
                 {
                     PinBreaches(Expanded.GetRange(oldCount, Expanded.Count - oldCount));  // (Breaches.cs: the wave's other breaches stay put)
                     NoteSurprise(Expanded[Expanded.Count - 1].Surprise);  // (the host's gift, after a boss or from a breach event: the build-in and the chip; a joiner mid-run gets the rooms quietly)

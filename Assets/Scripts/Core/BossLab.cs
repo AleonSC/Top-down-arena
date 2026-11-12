@@ -40,6 +40,8 @@ namespace Arena
         public int Picks = -1;          // upgrade picks each player gets; -1 = typical for the wave
         public bool Legendaries = true; // a legendary and a weapon mod for every boss already beaten
         public int Seed;
+        public bool Quick;              // a Quick Play fight (QuickPlay.cs): QuickBoss after wave Wave, with Quick Play's boss health
+        public EnemyType QuickBoss = EnemyType.Boss;
 
         // Live
         public Session Host;
@@ -47,13 +49,14 @@ namespace Arena
         public LabOutcome Outcome = LabOutcome.Running;
         public float FightTime;          // seconds since the boss appeared
         public float BossHpFrac = 1f;    // all bosses' health left (0-1)
+        public float BossMaxHp;          // the most boss health seen at once (all bosses)
         public string BossName = "";
         public readonly Dictionary<int, LabPlayerStats> Stats = new Dictionary<int, LabPlayerStats>();
         public int PeakBullets;
         bool prepared, bossSeen;
         Random rng;
 
-        public EnemyType Boss => BossSchedule.Campaign.BossAt(Wave);
+        public EnemyType Boss => Quick ? QuickBoss : BossSchedule.Campaign.BossAt(Wave);
 
         /// Level-up picks a player typically has when this boss arrives (measured from full runs played by Good bots).
         public static int TypicalPicks(int wave) => Math.Max(0, (int)Math.Round(wave * 1.15f - 1.5f));  // level picks only; legendaries and mods are extra
@@ -69,14 +72,24 @@ namespace Arena
             Outcome = LabOutcome.Running;
             FightTime = 0f;
             BossHpFrac = 1f;
+            BossMaxHp = 0f;
             PeakBullets = 0;
             prepared = bossSeen = false;
             Stats.Clear();
             host.AutoStart = PlayerCount;
             host.StartWave = -Wave;  // (negative: the boss after that wave, Game.ReadStart)
             var s0 = Seats[0];
+            if (Quick)
+            {
+                var order = new EnemyType[QuickPlay.OrderLength];
+                for (int i = 0; i < order.Length; i++)
+                    order[i] = QuickBoss;
+                QuickPlay.OrderOverride = order;  // (the host's start message plays this boss after every tenth wave)
+            }
             if (!host.Host(port, s0.Human ? "You" : "Bot 1", s0.Role, s0.Weapon, s0.Ability, s0.Kit))
                 return false;
+            host.QuickMode = Quick;
+            host.PracticeMode = host.HuntMode = false;
             host.Game.Unrecorded = true;  // lab fights aren't saved or counted in records
             host.Game.ScaleBosses = false;  // the lab compares bosses as they are, not as a strong build would meet them
             host.Game.Bot = !s0.Human;
@@ -104,6 +117,8 @@ namespace Arena
             foreach (var c in Clients)
                 c.Leave("");
             Clients.Clear();
+            if (Quick)
+                QuickPlay.OrderOverride = null;
             if (Host != null)
             {
                 Host.Game.DamageEvent = null;
@@ -170,6 +185,7 @@ namespace Arena
                 FightTime += dt;
                 if (max > 0f)
                     BossHpFrac = hp / max;
+                BossMaxHp = Math.Max(BossMaxHp, max);
                 int shots = 0;
                 foreach (var b in g.Bullets.Values)
                     if (Defs.IsEnemyShot(b.Kind))
@@ -219,7 +235,7 @@ namespace Arena
                     g.GrantUpgrade(p.Id, offer[rng.Next(offer.Length)]);
             }
             if (Legendaries)
-                for (int w = 5; w < Wave; w += 5)
+                for (int w = Quick ? QuickPlay.Length : 5; w < Wave; w += Quick ? QuickPlay.Length : 5)  // (Quick Play: a boss every tenth wave)
                 {
                     g.GrantUpgrade(p.Id, Upgrades.LegendaryOffer(rng, BossSchedule.Campaign.BossAt(w), p.Role, p.RoleAbility, p.Taken)[rng.Next(3)]);
                     var mods = Upgrades.ModOffer(p.Role, p.RoleAbility, p.Taken);

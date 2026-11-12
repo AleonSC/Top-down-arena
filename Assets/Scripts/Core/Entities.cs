@@ -328,6 +328,8 @@ namespace Arena
         public float EchoT, EchoGap;
         public int AmmoUsed;                   // Revolver: rounds fired since the last reload (replicated)
         public float ReloadT, ReloadIdle;      // Revolver: reload time left (replicated); how long since you last fired
+        public int DbUsed, DbBarrel, DbShot;   // Double Barrel: shells spent, the barrel that fires next, volleys fired (replicated; DoubleBarrel.cs)
+        public float DbReload;                 // Double Barrel: reload time left (replicated)
         public bool WasFiring, TapQueued, Fanning;  // Revolver (host): tap vs hold; a click that came too early; fanning the hammer
         public float HeldT;                    // Revolver (host): how long the trigger has been held
         public float DrawT;                    // Mender's Bow: how long the current draw has been held (replicated; your own is local)
@@ -548,6 +550,7 @@ namespace Arena
         public int Shooter;       // host only: the enemy that fired it, when known (0: not known); the Juggernaut Suit's flak goes back at it
         public bool FromWeapon;   // host only: fired by the player's gun (for accuracy)
         public float Splash;      // host only: explosion radius on impact
+        public V2 FallOrigin;     // host only: a Double Barrel pellet: where it left the gun, for its damage falling off with distance (DoubleBarrel.cs)
         public bool PointBlank;   // host only: a Scattergun pellet (double damage and a shove up close)
         public ShotLook Look;     // its shape: a dart (aimed), a crescent (curving) or round (sent with its spawn; Readability.cs)
         public Bullet Sent;       // host only: its entry in the spawn message still to go out (so its Look can be set after)

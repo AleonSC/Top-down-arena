@@ -104,7 +104,7 @@ namespace Arena
         /// The box shows between waves once this wave's numbers have arrived and nothing else (a path, the shop, a portal, your own picks) has the screen.
         bool WaveBoxUp(Player me) =>
             me != null && game.State == MatchState.Intermission && game.Wave > 0 && game.WaveReport != null && game.WaveReport.Wave == game.Wave
-            && me.Offer == null && game.PathOffer == null && !ExpandWindowUp && !game.ShopBlocksWave && game.Room != RoomPhase.Portal && game.Practice == null;  // (the Practice Range has no ready-up)
+            && me.Offer == null && game.PathOffer == null && !ExpandWindowUp && !game.ShopBlocksWave && game.Room != RoomPhase.Portal && game.Practice == null && !BeamShowing;  // (the Practice Range has no ready-up; the boss beam-in: BossBeamLook.cs)
 
         /// The full box is on screen (not minimized): it takes the mouse, and the build chip waits behind it.
         bool WaveBoxShown(Player me) => WaveBoxUp(me) && !wcMin;

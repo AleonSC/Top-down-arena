@@ -78,6 +78,7 @@ namespace Arena
             }
 
             DrawJuiceFloor();  // scorch marks and shot trails (Juice.cs)
+            DrawHeroDummies(t);  // the Dev Arena's stand-in heroes (DevArenaUi.cs)
             DrawArenaContents(t, true);
             DrawJuiceParts();  // shards, rings and sparks
             GlowPass();        // the additive glow
@@ -284,6 +285,7 @@ namespace Arena
                 DrawRodSparks(p, t);  // Lightning Rod's arcs on the body (LightningRodLook.cs)
                 DrawHeldStunGun(p, t);
             }
+            DrawFlankArrows(t);  // a flank spawn portal behind you (SpawnPortalLook.cs)
             foreach (var b in game.Bullets.Values)
                 if (b.Kind >= Defs.SmallShot && !(enemyShotsLater && Defs.IsEnemyShot(b.Kind)))
                     DrawSmallShot(b, t);

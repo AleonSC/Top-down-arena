@@ -40,6 +40,7 @@ namespace Arena
             DrawChallengeHud(me);  // a challenge room's portal, title, objective and result (ChallengeLook.cs)
             DrawMiniBossBars(introHidHud ? 0f : 1f - hudT);  // (not while a boss's entrance card has the HUD off: they'd sit on the card's bars)  // the HUD hidden (H): a slim bar per boss stays at the top (HealthBars.cs)
             DrawWardenTags();   // "EXPOSED" / "STUNNED" over the Warden (WardenLook.cs)
+            DrawPossessHud();   // the Dev Arena: the enemy you play and its controls (DevArenaUi.cs)
             DrawUnlockToasts(W / 2f, HudUnlockToastY);  // SavesUi.cs
             if (aimDebug && me != null)
                 DrawAimDebug(me);
@@ -180,6 +181,8 @@ namespace Arena
             }
             if (!tabHeld)
                 DrawSurpriseBanner();  // SurpriseLook.cs
+            if (!tabHeld && game.Running)
+                DrawStashLabels();  // the +10 over a Stash's cache (SurpriseLook.cs)
             if (tabHeld)
                 DrawRunStatsScreen(me, false);  // RunStatsUi.cs
             else if (me != null && game.State != MatchState.GameOver && game.State != MatchState.Victory)

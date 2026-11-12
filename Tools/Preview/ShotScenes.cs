@@ -17,6 +17,11 @@ static partial class Shot {
     }
     typeof(Game).GetMethod("PinBreaches", bfl2).Invoke(xg, new object[] { made });
     typeof(Game).GetField("expWorld", bfl2).SetValue(xg, null);
+    if (made.Count > 0) {  // STASHAGE=<s>: the build-in that old; you stand in the first Stash
+      xg.SurpriseKind = made[0].Surprise; xg.SurpriseWave = xg.Wave;
+      xg.SurpriseAge = float.Parse(Environment.GetEnvironmentVariable("STASHAGE") ?? "0.5", System.Globalization.CultureInfo.InvariantCulture);
+      if (Environment.GetEnvironmentVariable("STASHAT") != null) { int pi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = new V2(made[0].X + 90f + 50f * pi, (made[0].Y + made[0].Y1) / 2f); pi++; } }
+    }
     Console.Error.WriteLine("breach rooms: " + ok + " of " + bs2.Length + " on=" + xg.BreachesOn + " exp=" + xg.ExpandingOn + " rooms=" + xg.RoomsOn + " boss=" + xg.BossNow + " st=" + xg.State + " w=" + xg.Wave);
   }
 
@@ -283,7 +288,7 @@ static partial class Shot {
       gm.Effects.Add(new Effect { Kind = FxKind.ShadowStep, Pos = from, Pos2 = land, Color = new Rgba(0.72f, 0.58f, 1f), Radius = me.Id * 1000f + er, Dur = Game.ShadowStepFxTime, T = float.Parse(Environment.GetEnvironmentVariable("SHADOWSTEP")) });
     }
     if (Environment.GetEnvironmentVariable("BEAMIN") != null) {
-      // The boss wave beam-in (BossBeamLook.cs): BEAMIN=<seconds since it began, 0 to 1.9>. Two players; use with mode hud, 2 players. The beam is from the left to the middle of the arena.
+      // The boss wave beam-in (BossBeamLook.cs): BEAMIN=<seconds since it began, 0 to 1.9>. Two players; use with mode hud, 2 players (WAVECLEARED=boss: with the between-waves box, which steps aside). The beam is from the left to the middle of the arena.
       var gm = host.Game; gm.Bot = false;
       foreach (var e in gm.Enemies.Values) e.Hp = 0f;
       gm.Bullets.Clear(); gm.Effects.Clear();
@@ -293,6 +298,7 @@ static partial class Shot {
         V2 from = new V2(380f, 330f + bi * 230f), to = new V2(820f, 300f + bi * 260f);
         float lag = bi * 0.18f;
         q.Pos = q.Disp = bt - lag >= Game.BeamMoveAt ? to : from;
+        q.WarpT = System.Math.Max(0f, Game.BeamTotal - System.Math.Max(0f, bt - lag));  // (locked while it runs, as in the game: the between-waves box steps aside)
         gm.Effects.Add(new Effect { Kind = FxKind.BossBeam, Pos = from, Pos2 = to, Color = q.Def.Color, Radius = q.Id, Dur = Game.BeamTotal, T = System.Math.Max(0f, bt - lag) });
         bi++;
       }
@@ -605,7 +611,7 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("TWINAUTO") != null) {
       var ci = System.Globalization.CultureInfo.InvariantCulture;
       var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
-      me.Role = Role.Dps; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      me.Role = Role.Dps; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 4); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
       V2 home = new V2(450f, 330f); me.Pos = me.Disp = home; me.Aim = 0f;
       var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
       var foes = new System.Collections.Generic.List<Enemy>();
@@ -624,12 +630,34 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // DOUBLEBARREL=<s>: the Soldier DPS's Double Barrel (Core/DoubleBarrel.cs, Game/DoubleBarrelLook.cs) that long into a fight: three dummies in a line,
+    // fire held (DBBOTH=1: Alt pressed 0.3 s in, both barrels at once; DBIDLE=1: not firing, the model at rest).
+    if (Environment.GetEnvironmentVariable("DOUBLEBARREL") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Dps; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, int.Parse(Environment.GetEnvironmentVariable("DBWEAPON") ?? "3")); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      V2 home = new V2(450f, 330f); me.Pos = me.Disp = home; me.Aim = 0f;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      foreach (var dx in new[] { 90f, 150f, 240f }) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + new V2(dx, 0f), 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      bool both = Environment.GetEnvironmentVariable("DBBOTH") != null, idle = Environment.GetEnvironmentVariable("DBIDLE") != null;
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(6, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("DOUBLEBARREL"), ci) * 60f));
+      for (int f = 0; f < frames; f++) {
+        me.Pos = me.Disp = home; me.Aim = 0f; foreach (var e in foes) e.Pos = e.Disp = new V2(e.Pos.X, home.Y); Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = home + new V2(300f, 0f), Fire = !idle && !both, WeaponAction = both && f >= 18 && f < 21 });
+        me.Disp = me.Pos = home; me.Aim = 0f; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // OUTAMMO=<s>: the Soldier DPS's Out of Ammo (Core/OutOfAmmo.cs, Game/OutOfAmmoLook.cs) that long into a fight, a dummy close in front of you
     // (the rifle arms bash by themselves); KNIFE=1: fire held (the knife chain); OUTSPIN=1: Alt pressed 0.3 s in (the spin).
     if (Environment.GetEnvironmentVariable("OUTAMMO") != null) {
       var ci = System.Globalization.CultureInfo.InvariantCulture;
       var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
-      me.Role = Role.Dps; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 4); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      me.Role = Role.Dps; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 5); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
       V2 home = new V2(450f, 330f); me.Pos = me.Disp = home; me.Aim = 0f;
       var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
       var dummy = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Brute, home + new V2(62f, 0f), 0f, 0, false }); dummy.Speed = 0f; dummy.FireT = 99f; dummy.SpawnT = 0f; dummy.MaxHp = dummy.Hp = 1e6f; dummy.Disp = dummy.Pos;
@@ -1156,6 +1184,27 @@ static partial class Shot {
       sb.SeenT = 0.05f + float.Parse(Environment.GetEnvironmentVariable("SECURITY"), System.Globalization.CultureInfo.InvariantCulture);
       sc.SeenT = 1.2f;
       sg.AnimT += float.Parse(Environment.GetEnvironmentVariable("SECURITY"), System.Globalization.CultureInfo.InvariantCulture);
+    }
+    if (Environment.GetEnvironmentVariable("POSSESS") != null) {
+      // The Dev Arena (DevArena.cs): you playing as POSSESS=<EnemyType> (brackets, name, controls strip), your hero parked, two grunts.
+      // Mode hud for the play view; mode dev with DEVSHEET=5 for the dock's Spawn / Play as row; DUMMIES=1 adds two hero dummies.
+      var spe = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var pg = host.Game; pg.Enemies.Clear(); pg.Bullets.Clear(); pg.Bot = false;
+      pg.DevArena = true;
+      me.Pos = me.Disp = new V2(520f, 470f);
+      var t = (EnemyType)Enum.Parse(typeof(EnemyType), Environment.GetEnvironmentVariable("POSSESS"));
+      var you = (Enemy)spe.Invoke(pg, new object[] { t, new V2(900f, 430f), 0f, 0, false });
+      you.SpawnT = 0f; you.Disp = you.Pos; you.Facing = (me.Pos - you.Pos).Angle;
+      pg.PossessId = you.Id;
+      // Two hero dummies, one just hit (DUMMIES=1).
+      if (Environment.GetEnvironmentVariable("DUMMIES") != null) {
+        pg.DevAddHeroDummy(new V2(700f, 300f)); pg.DevAddHeroDummy(new V2(700f, 580f));
+        var hd = pg.HeroDummies[0]; hd.Hits = 7; hd.Taken = 98f; hd.Last = 14f; hd.Flash = 0.12f;
+        hd.Recent.Add(new System.Collections.Generic.KeyValuePair<float, float>(pg.DevClock, 42f));
+      }
+      foreach (var at in new[] { new V2(1200f, 300f), new V2(1250f, 640f) }) {
+        var o = (Enemy)spe.Invoke(pg, new object[] { EnemyType.Grunt, at, 0f, 0, false }); o.SpawnT = 0f; o.Disp = o.Pos;
+      }
     }
     if (Environment.GetEnvironmentVariable("FLANKERS") != null) {
       // The Hive Queen's Swarm bombers: two swooping out to your sides (gold) and two diving in (red-hot).

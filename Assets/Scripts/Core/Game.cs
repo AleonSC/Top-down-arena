@@ -150,7 +150,7 @@ namespace Arena
             w.Write(quick);
             if (quick)
             {
-                var order = QuickPlay.MakeOrder(new Random(), Profile == null || Profile.QuickPlays == 0);
+                var order = QuickPlay.OrderOverride ?? QuickPlay.MakeOrder(new Random(), Profile == null || Profile.QuickPlays == 0);
                 w.Write((byte)order.Length);
                 foreach (var b in order)
                     w.Write((byte)b);
@@ -340,6 +340,9 @@ namespace Arena
             spawnQueue.Clear();
             squadQueue.Clear();
             DevFreeze = false;  // (DevTools.cs)
+            DevArena = false;   // (DevArena.cs)
+            HeroDummies.Clear();
+            PossessId = -1;
             ClearRisers();
             designQueue.Clear();
             pendingSpawns.Clear();
@@ -1403,6 +1406,8 @@ namespace Arena
                     TickRevolver(p, dt);
                     RevolverTrigger(p, dt);
                 }
+                else if (p.Weapon.Id == WeaponId.DoubleBarrel)
+                    TickDoubleBarrel(p, dt);  // two shells, a break-open reload (DoubleBarrel.cs)
                 else if (ChargeWeapon(p.Weapon.Id))
                     TickBow(p);  // the bow and the Warhammer fire when you let go
                 else if (p.Weapon.Id == WeaponId.Katana || p.Weapon.Id == WeaponId.BoStaff)

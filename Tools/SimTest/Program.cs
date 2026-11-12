@@ -113,6 +113,7 @@ static partial class Program
         host.Game.BotRerolls = false;
         host.Host(port, "Host", Role.Tank, 0);
         host.Diff.Set(DiffKnob.Campaign, 0f);  // (the usual random waves; CampaignTest turns it on itself)
+        host.Diff.Set(DiffKnob.EnemySpeed, 1f);  // (the fights are time-limited; keep their pace independent of the default speed preset)
         var client = new Session();
         client.Game.Bot = true;
         client.Game.BotRerolls = false;
@@ -230,7 +231,7 @@ static partial class Program
         () => WardenTest(Dt), () => QueenTest(Dt), () => ReapersTest(Dt), () => BossSoundTest(Dt), () => WeaponExtraTest(Dt), () => RepulsionTest(Dt), () => QuarterstaffTest(Dt), () => TankKnightTest(Dt), () => KeybindTest(Dt), () => RevolverReloadTest(Dt), () => BowTest(Dt),
         () => PracticeTest(Dt), () => MoreModifiersTest(Dt), () => DuelistTest(Dt), () => HealerSoloTest(Dt), () => WeaponRangeTest(Dt), () => FrostLanceTest(Dt), () => WeaponSoundsTest(Dt), () => ShowcaseTest(Dt), () => ClassAbilityTest(Dt), () => NinjaTest(Dt),
         () => BloodMageTest(Dt), TextOverridesTest, () => VeinBeamTest(Dt), () => WardenLootTest(Dt), () => LeechGraspTest(Dt), () => F1BotTest(Dt), () => FlamethrowerTest(Dt), () => HealerKitTest(Dt), () => RadiantOrbTest(Dt), () => StormHammerTest(Dt), () => GolemStaffTest(Dt), () => BoneGuardTest(Dt), () => LightConeTest(Dt), () => SanguineOrbTest(Dt), () => FireballArcTest(Dt), () => ScatterFlakBloodTest(Dt), () => TwinSmgTest(Dt), () => PrismWolfRailTest(Dt), () => MissilesRiotBladesTest(Dt), () => FiveMoreTest(Dt), () => FourMoreTest(Dt), () => LightbringerTest(Dt), () => LanceTest(Dt), () => HealerFiveTest(Dt), () => LastFourTest(Dt), () => HealerWardsTest(Dt), () => HeraldTest(Dt), () => DevourerTest(Dt), () => EclipseTest(Dt), () => VarietyTest(Dt), () => SavesTest(Dt), () => ProfileTest(Dt), () => UpgradeFixesTest(Dt), () => QueenLootTest(Dt), () => ReaperLootTest(Dt), () => BossPowerTest(Dt), () => FieldGuideTest(Dt), () => DifficultyTest(Dt), () => PatternsTest(Dt), () => RuleModifiersTest(Dt), () => ReadabilityTest(Dt), () => RunStatsLiveTest(Dt), () => WaveReadyTest(Dt), () => PropsTest(Dt), () => ChallengesTest(Dt), ClassCompletenessTest, () => ApproachesTest(Dt), CampaignTest, () => HuntTest(Dt), () => PerksTest(Dt), () => RiotGearTest(Dt), () => ContrabandTest(Dt), () => ZombieTest(Dt), () => ClearGhostsTest(Dt), () => WaveDesignTest(Dt), WaveGenTest, () => DpsToolsTest(Dt), () => BalanceTestRun(Dt), () => HealingRainTest(Dt), () => LumenWardTest(Dt), () => FireflyRootTest(Dt), () => NimbusChalkTest(Dt), () => TsunamiTest(Dt), () => HolyCrossTest(Dt), () => CavalryTest(Dt), () => TwinGrenadeTest(Dt), () => AirstrikeTest(Dt), MusicLibraryTest, CustomMusicTest, ProjectClipsTest, () => DomeTest(Dt), () => AlphaCallTest(Dt), () => AegisTest(Dt), () => GolemWallTest(Dt), () => SanctumTest(Dt), () => ReplayTest(Dt), () => HydraTest(Dt), () => BurrowerTest(Dt), () => WorldTreeTest(Dt), () => { PartyBotsTest(Dt); PartyBotShelterTest(Dt); }, () => BotTeamplayTest(Dt), () => DodgeTest(Dt), () => HarvestTest(Dt), () => TitanTest(Dt), () => RainTest(Dt), () => TitheTest(Dt), () => RodTest(Dt), () => BloodbathTest(Dt), () => JuggernautTest(Dt), () => BloodFreezeTest(Dt), () => ForcePactTest(Dt), () => QuarterstaffStacksTest(Dt), () => StormHammerSlamTest(Dt), () => MomentumTest(Dt),
-        () => PhalanxTest(Dt), () => PoisonDartTest(Dt), () => LagChartTest(Dt), () => PracticeRespawnTest(Dt), () => BossSlotTest(Dt), () => TankAltTest(Dt),  // (new tests go last: each test's seed comes from its place, so inserting one reseeds every test after it)
+        () => PhalanxTest(Dt), () => PoisonDartTest(Dt), () => LagChartTest(Dt), () => PracticeRespawnTest(Dt), () => BossSlotTest(Dt), () => TankAltTest(Dt), () => DevArenaTest(Dt),  // (new tests go last: each test's seed comes from its place, so inserting one reseeds every test after it)
     };
 
     static void RunFeatures()
@@ -310,6 +311,7 @@ static partial class Program
         Test("ninja", "the Ninja", () => NinjaTest(Dt)),
         Test("blood", "the Blood Mage", () => VeinBeamTest(Dt), () => LeechGraspTest(Dt), () => BloodMageTest(Dt)),
         Test("melee", "early melee rushers", () => MeleeTest(Dt)),
+        Test("devarena", "the F1 Dev Arena: no waves, god mode, playing as an enemy (move, attack, attack now, let go)", () => DevArenaTest(Dt)),
         Test("brute", "Brute enrage", () => BruteEnrageTest()),
         Test("trickle", "Campaign handover: fade and trickle", () => TrickleTest()),
         Test("meleesounds", "melee rushers' sounds: quieter with distance, Buzzsaw contact whirr, distinct deaths that merge", () => MeleeSoundsTest(Dt)),
@@ -362,6 +364,7 @@ static partial class Program
         Test("rain", "Sanguine Rain: a 1.8 s siphon costing 12%, rings that heal every ally 3% a tick for 10 s, the healer's 3% drain, cancel by pressing again, the 15% floor", () => RainTest(Dt)),
         Test("tankalts", "the Tank Soldier's Alt fires: Double Barrel (shells from point-blank hits, both at once, the kick), Proximity Shell (lies at the cursor, bursts under an enemy), Tear Gas (suppresses to the cap and slows)", () => TankAltTest(Dt)),
         Test("twinnades", "the Twin Rifle's grenade tubes: hits load two, Alt fires left then right, the order holds through a refill", () => TwinGrenadeTest(Dt)),
+        Test("doublebarrel", "the Double Barrel: left then right barrel, 9 pellets each that pierce, two shells then a break-open reload, Alt fires both, damage falls off with range, the other screen sees the reload", () => DoubleBarrelTest(Dt)),
         Test("twinauto", "the Twin Rifle Auto: each gun picks the nearest enemy on its side and fires untouched, Alt locks both on the enemy by the cursor (crossfire) until it dies or Alt is pressed again", () => TwinAutoTest(Dt)),
         Test("outofammo", "Out of Ammo: no shots, the five-move knife chain on a close enemy, one swat per rifle, Alt's spin cuts and swats everything then cools down", () => OutOfAmmoTest(Dt)),
         Test("poisondart", "Poison Dart: the dart at the enemy nearest the cursor, the poison, the spread on death and the chain, mastered, Virulence", () => PoisonDartTest(Dt)),
@@ -381,6 +384,7 @@ static partial class Program
         Test("bazaar", "the Bazaar", () => BazaarTest(Dt)),
         Test("props", "the arena's props: crates as cover, pots, barrels, the treasure chest and its items", () => PropsTest(Dt)),
         Test("timed", "timed waves: enemies arrive over a window (ramp, plateau, taper) and the wave clears when all are dead", () => TimedWavesTest(Dt)),
+        Test("portals", "spawn portals and surges: bursts through portals, sealing one cancels the rest, flanks behind the party, the surge rhythm", () => SpawnPortalsTest(Dt)),
         Test("layouts", "arena layouts: the six floor plans, walls and pillars, edge gates, enemy gates, steering round walls", () => LayoutsTest(Dt)),
         Test("wings", "the Rooms arena (phase 1): the Arena setting, the Wings rooms and hallways, doors, walls, spawns, steering, boss waves in the hub", () => RoomsArenaTest(Dt)),
         Test("expand", "the Expanding arena: seeded room offers, no overlaps, connected maps, open doors, the size cap", () => ExpansionTest(), () => ExpandingOutlineTest(Dt), () => ExpandingGameTest(Dt), () => ExpandingEconomyTest(Dt), () => ExpandingFeaturesTest(Dt), () => ExpandingVectorsTest(Dt), () => ExpandingGatekeeperTest(Dt), () => ExpandingKitsTest(Dt), () => ExpandingThemesTest(Dt), () => ExpandingWallsTest(Dt), () => ExpandingFreeBuildTest(Dt), () => ExpandingPurseTest(Dt), () => ExpandingBreachesTest(Dt), () => ExpandingLinksTest(Dt), () => ExpandingGatesTest(Dt), () => ExpandingRoomSizesTest(Dt), () => ExpandingFloatCostTest(), () => ExpandingSurpriseTest(), () => ExpandingSurpriseGameTest(Dt), () => ExpandingBreachEventTest(Dt)),
@@ -422,6 +426,7 @@ static partial class Program
         Report("ttk", "boss time-to-kill over a full run (run.sh 1 1 ttk [last wave])", args => BossTtk(Dt, Arg(args, 3, 50))),
         Report("lab", "Boss Lab batch (run.sh 1 1 lab <wave> <skill 1-3> <runs> <seat> [seat] [seat])",
             args => LabRun(int.Parse(args[3]), (BotSkill)int.Parse(args[4]), int.Parse(args[5]), args.Skip(6).ToArray())),
+        Report("quickfights", "Quick Play boss fights with bots: every boss after waves 10/20/30, its fight length (run.sh 1 1 quickfights [runs] [waves] [skill] [seats])", args => QuickFightsReport(args)),
         Report("levels", "the level a team of Good bots has at each boss", args => LevelReport(Dt)),
         Report("arenabal", "the Rooms arena vs Classic: a duo of Good bots, each regular wave's length, damage taken, threats in view (run.sh 1 1 arenabal [last wave] [seed] [Rooms damage x])", args => ArenaBalanceReport(Dt, Arg(args, 3, 20), Arg(args, 4, 1), args.Length > 5 ? float.Parse(args[5], System.Globalization.CultureInfo.InvariantCulture) : 0f)),
         Report("vecbal", "the Expanding arena's vector economy: a duo of Good bots on Classic vs Expanding, each round's vectors, proposals and rooms built (run.sh 1 1 vecbal [last wave] [seed])", args => VectorBalanceReport(Dt, Arg(args, 3, 25), Arg(args, 4, 1), Arg(args, 5, 0) == 1)),

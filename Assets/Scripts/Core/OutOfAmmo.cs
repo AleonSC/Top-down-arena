@@ -164,10 +164,11 @@ namespace Arena
                 if (!inside)
                     continue;
                 HurtEnemy(e, dmg, p.Id);
+                Daze(e);  // a close-in hit: it can't attack for a moment (Daze.cs)
                 V2 away = (e.Pos - p.Pos).Normalized();
                 if (!Heavy(e))
                     KnockEnemy(e, (away.IsZero ? fwd : away) * AmmoMotion.Knock[m]);
-                BroadcastFx(FxKind.Spark, e.Pos - away * e.Radius, clap ? new Rgba(1f, 0.76f, 0.24f) : new Rgba(0.8f, 0.85f, 0.9f), clap ? 30f : 14f, 0.25f, clap ? Sfx.Hit : Sfx.Clang);
+                BroadcastFx(FxKind.Spark, e.Pos - away * e.Radius, clap ? new Rgba(1f, 0.76f, 0.24f) : new Rgba(0.8f, 0.85f, 0.9f), clap ? 16f : 14f, 0.25f, clap ? Sfx.Hit : Sfx.Clang);
             }
             if (clap)
                 BroadcastFx(FxKind.Ring, p.Pos + fwd * 50f, new Rgba(0.25f, 0.88f, 0.91f), AmmoClapRadius, 0.45f, Sfx.Shockwave);
@@ -185,6 +186,7 @@ namespace Arena
                     continue;
                 hitAny = true;
                 HurtEnemy(e, dmg, p.Id);
+                Daze(e);  // a close-in hit: it can't attack for a moment (Daze.cs)
                 V2 away = (e.Pos - p.Pos).Normalized();
                 if (!Heavy(e) && k == 2)
                     KnockEnemy(e, (away.IsZero ? fwd : away) * 18f);
@@ -264,6 +266,7 @@ namespace Arena
                 if (!Targetable(e) || e.Pos.DistanceTo(p.Pos) - e.Radius > AmmoSpinRadius)
                     continue;
                 HurtEnemy(e, dmg, p.Id);
+                Daze(e);  // a close-in hit: it can't attack for a moment (Daze.cs)
                 V2 away = (e.Pos - p.Pos).Normalized();
                 if (!Heavy(e) && !away.IsZero)
                     KnockEnemy(e, away * AmmoSpinKnock);

@@ -171,6 +171,7 @@ your weapon. Per extra projectile:
 | DPS · Soldier | **Twin Rifle** | Twin streams (4 per barrel) from two rifles held out wide, each stream starting at its rifle's muzzle (34 px ahead of your middle; pressed against a wall, at your edge), the barrels sharing a 60 px width (extra barrels fill it in, they don't widen it; Barrage's copies fire from a narrow 20 px cluster), angled in to cross at your cursor's distance (120 px to full range, about 575 px); hits within 45 px of the crossing are crossfire, for 1.5×. Up close the streams are still apart, so they can pass either side of a small enemy: aim at the crossing. Your aim line marks it with an X. **Grenade tubes** (Alt): a launcher under each rifle. Every 60 hits loads a grenade (a crossfire hit counts twice), two at most; they show as olive tubes on the guns and two diamonds behind you (the next one to load ringed by its progress, the next to fire lit). Alt fires one grenade a press (0.25 s apart), and the tubes take turns: with two loaded it fires the left, then the right, and that order holds even if you reload the left in between. The grenade flies down its rifle's stream to the crossing and bursts for 60 in 110 px with 8 shards. The tubes empty if you change weapons | +1 barrel |
 | | **Railgun** | Slow shots (45) that pierce 3; the path stays charged for 1 s behind the round, hurting anything in it (25 a second) | Throws 2 shrapnel shards sideways at every enemy it pierces |
 | | **Burst SMG** | Very fast spray (5) that spins up as you keep firing: over 2 s the spray tightens from 9° to 2° either side and damage climbs to +60%; it winds down in 0.6 s when you stop | +1 bullet per shot (half damage) and a wider spray |
+| | **Double Barrel** (the 4th weapon key) | A side-by-side shotgun. Each click fires one barrel (left, then right, 0.32 s apart): 9 pellets of 7 in a tight cone from your barrel, each passing through 2 enemies. Damage is full out to 140 px and falls to 35% at 400 px, so it is a close-range weapon, and the tracers dim as they fall off. **Two shells, then a break-open reload** (0.86 s, sped up by fire rate): the barrels tip open, the hulls flip out, two new shells go in and it snaps shut; it can't fire while open. **Alt** fires both barrels at once when both are loaded: 18 pellets in a wider cone, then the reload. Each shot kicks the gun back and the barrel that fired glows and smokes for about 2 s | +4 pellets a barrel |
 | | **Twin Rifle Auto** (the Twin Rifle's variant: open its Variants window in the lobby and Equip it) | The Twin Rifle with the trigger taken away. Both rifles are held out to your sides and turn on their own: each aims at the nearest enemy on its side of you (left of your facing, right of your facing; a side with nobody on it borrows the other gun's target) and fires at it (4 a round, every 0.125 s) with a clear line, out to about 380 px (the Twin Rifle reaches about 530). A thin laser from each muzzle shows its range and what it is on: it ends in a cap where the range ends and a dot on the first enemy in its way. You can't shoot, and there are no grenades. **Alt** locks both rifles onto the enemy nearest your cursor (within 260 px of it) until it dies or you press Alt again: both streams then meet on it, so every round is crossfire (1.5×). A red reticle turns round the locked enemy and a thin tether runs from each muzzle. Same guns, shots, brass and heat as the Twin Rifle. Unlocked for testing | +1 round per gun, fanned a little |
 | | **Out of Ammo** (the Twin Rifle's second variant: open its Variants window in the lobby and Equip it) | Two sets of arms. The **rifle arms** out at your sides work on their own and don't shoot: each swats the nearest enemy bullet within 72 px out of the air (one each, then a half-second recovery, so two at a time; the red unblockable shots still hit), and with an enemy within 78 px in front of you (about 57° either side of your facing) they bash in turn: left (10), right (10), left (10), then a **rifle clap** (35 to everything in front, a shockwave and a hard shove), and round again. **Your own arms** hold a **knife**, by hand: hold fire for a three-hit chain, cross cut (12), reverse cut (12), lunging stab (20, a step in and a small shove), as extra damage on top of the rifles. **Alt: spin** for 1.2 s: you cut everything within 88 px every 0.2 s for 14 and shove it out, and every enemy bullet that touches the spin is swatted with no limit; 6 s cooldown. Hits throw sparks and a flash, the blade and the rifles leave ribbons, the stab leaves afterimages and the clap cracks the floor. Unlocked for testing | +50% damage on every strike and spin tick |
 | DPS · Elementalist | **Fireball** | A big, slow fireball that rolls through every enemy in its path (32 each), setting them burning (8 a second for 3 s) | +1 fireball, fanned out |
@@ -422,7 +423,9 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 
 ## Rules
 
-- **Timed waves:** a regular wave's enemies arrive over about 45 s instead of in one burst: a ramp-up (first 15%), a steady stream, then a taper as the wave dies down, and the wave ends when the last one is dead (the clear-up brings it to about a minute). Spawning waits while 14 + 3 per wave (at most 60) foes are alive. Boss, Practice, designed, Zombie Infection and room-by-room waves keep their own pacing. Enemies pick the nearest breach (or the nearest valid spot on the open Rooms map, of four) to a player that is at least 350 px away, so big maps don't feel empty.
+- **Timed waves:** a regular wave's enemies arrive over about 45 s instead of in one burst: a ramp-up (first 15%), three **surges** (at 20%, 48% and 76% of the window, about 7 s each) with quieter lulls between them (40% of the surge rate), then a taper as the wave dies down, and the wave ends when the last one is dead (the clear-up brings it to about a minute). Spawning waits while 14 + 3 per wave (at most 60) foes are alive. Boss, Practice, designed, Zombie Infection and room-by-room waves keep their own pacing. Enemies pick the nearest breach (or the nearest valid spot on the open Rooms map, of four) to a player that is at least 350 px away, so big maps don't feel empty.
+- **Spawn portals:** on a timed wave the single enemies come in **bursts** (3 on wave 1, one more every 4 waves, up to 8) through a **spawn portal**: a violet vortex that opens for 1 s where the burst comes in (an edge, a layout's enemy gate, a spot on the Rooms map, never within 160 px of a player), then lets one enemy out every 0.35 s, with chevrons pointing the way they'll come. Shoot it closed (200 health, scaling like an enemy's) before it empties and **the rest of its burst is cancelled**: +5 score each, plus 2 gold each as coins in the Expanding arena. An empty portal shrinks shut with no reward. Up to 2 portals are open at once (3 in a surge); with none open for 4 s a smaller burst comes anyway. Squads, Nests and breach waves keep their own way in.
+- **Flank portals:** from wave 3, one burst in 4 (never a wave's first) opens **behind the party**, opposite the way the players are aiming: a red portal that takes 1.6 s to open, and a red arrow round your player points at it.
 - The arena is 1600x900 and **wraps around for players**: walk off any edge and you come in on the opposite side.
 - **Wall slams:** an enemy knocked back into the arena edge stops there and takes damage: 6 plus 0.12 per px of push the wall cut short, up to 40 (pushes that lose under 8 px do nothing). Bosses and shielded enemies still use their normal damage rules.
   Enemies and bullets don't wrap, so the edges make a good escape route.
@@ -806,6 +809,8 @@ wave, everyone gets a shop before the boss:
 instead; Boss Hunts, the Practice Range and runs saved before the Campaign use the open arena). Design:
 [`Docs/ExpandingArena.md`](Docs/ExpandingArena.md). It starts as the plain Classic box and grows as you play:
 
+**Crowds on a big map.** Enemies come in within 1500 px of a player (never a straggler across the map), in the emptiest room there, so rooms you built get their share. Waves 1-10 add up to 2.4x enemies on a big map (1.1 per extra hub of floor); later waves up to 1.4x.
+
 - **Gold coins:** every kill drops its gold as coins (5-gold and 1-gold). They never despawn, spin and glint on the floor, and drift to the nearest living player within 90 px, who gets the gold.
 - **Vector pickups:** a rare drop that adds vectors (a cyan square that draws its own outline; big ones have an amber ring). A normal kill drops one 1 time in 60 (+6), an elite 1 time in 8 (+12), a boss always (+12). Like coins they never despawn and drift to the nearest living player within 90 px, but only one whose stock isn't full: it waits for you to spend some. The vectors go to whoever collects it, never past their cap.
 - **Vectors**: every player holds a drawing budget (chip under the wave plate, "Vectors 50 / 70"): 1 vector = 1 tile of wall.
@@ -877,6 +882,10 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   none is given within 2 rooms of it. ([`Docs/SurpriseRooms.md`](Docs/SurpriseRooms.md))
   **Breach events**: on about half of the breach waves from wave 7 on (so waves like 7, 15, 19, 23, ...; never the wave after a boss) one of the breaches flashes **gold** instead of red. 20 seconds into the
   wave, or when it ends if that comes first, the wall behind that breach opens onto a free surprise room. The wave's other breaches stay where they were.
+  **Breach rooms**: as soon as a breach wave's breaches come up (a second and a half in) every breach left (not the gold one) opens onto a small free **Stash** (5 x 3 tiles) behind its wall. Each Stash
+  holds a **vector cache** (a teal diamond marked **+10**): the first player to walk in takes **+10 vectors** (up to their cap), once. It has a block and a pillar for cover, builds in with a teal flash and
+  scan line and a **STASH** chip, and stays for good (no vote, no cost; it stops within 2 rooms of the map's size cap, and a breach only opens on a wall with space behind it for a Stash). The breach itself **never closes**:
+  each breach lets its share of the wave in (the wave's enemies split evenly over its breaches), then nothing more comes through it; if every breach has had its share the rest come in at the usual spots. When zoomed out, a teal edge arrow points to a cache nobody has taken.
 - **Open a wall**: on the draw screen, switch to **Open wall** and click both ends of a stretch of a wall two rooms share (the cyan stretches; the outer wall can't be
   opened, nor a sealed floating room's). It goes to the vote like a room. If it wins, that stretch of wall comes down (a short stretch is a door, a long
   one joins the rooms) and its proposer gets **1 vector back for every tile that was wall** (up to their cap). At least 2 tiles, up to 40 openings.
@@ -935,7 +944,8 @@ prototype** in the F1 dev dock (Labs, in the lobby); otherwise the Campaign is t
 - **Boss waves** are the hub alone (bosses are built for it). Before a boss wave, anyone out in a room or
   hallway is **beamed into the hub**: a pillar of light in their colour takes them up where they stand, a second one
   sets them down on a ring that shows in the hub from the start (about 2 s; they can't move or shoot meanwhile, and the
-  boss wave waits for them). The props out there are cleared away when it starts.
+  boss wave waits for them; the between-waves box, the shop screen and the build window step aside so everyone sees it).
+  The props out there are cleared away when it starts.
 - **No wrapping**: the world has walls all round. The hub keeps the boss cycle's arena layout (walls, pillars and
   crates; its edge gates make way for the doors), and the rooms and hallways have a few pillars and short walls of
   their own. Walls stop walking and every shot, as in the layouts.
@@ -1049,7 +1059,7 @@ and green when it's easier. Hover a number for what it does.
 | Damage growth per wave | +1.5% | **+3%** | +4% | +5% | 0-10% |
 | Enemy count (regular waves) | 0.85x | **1x** | 1.15x | 1.3x | 0.5-2.5x |
 | Enemy fire rate | 0.9x | **1x** | 1.1x | 1.2x | 0.5-2x |
-| Enemy speed | 1x | **1x** | 1.1x | 1.2x | 0.5-2x |
+| Enemy speed | 1.1x | **1.1x** | 1.21x | 1.32x | 0.5-2x |
 | Elites (chance, from wave 12) | 0.5x | **1x** (up to 35%) | 1.5x | 2x | 0-3x (at most 90%) |
 | Bullet budget | 0.85x | **1x** | 1.15x | 1.3x | 0.5-2x |
 | Adds' fire in boss fights (share of the budget) | 40% | **60%** | 75% | 90% | 0-100% |
@@ -1764,6 +1774,22 @@ its fields the game's keys are off. Outside a match only VIEW and LABS show.
 - **WAVE > SPAWN AN ENEMY… (host, while a wave is under way):** a sheet with every enemy (and a **BOSSES** tab) shown as its live model; filter by
   name, pick a **count** (1, 3, 5, 10) and **Elite**, then click one to put them in a row in front of you. A boss comes in the middle of the
   arena as on its wave (the Twin Reapers bring both twins). They count toward the wave like any enemy. Marks the run as a dev run.
+- **LABS > DEV ARENA (PLAY AS ENEMIES) (host):** a sandbox for trying enemies' attacks. From the menu or the lobby it starts a Practice
+  Range match and turns it on; in a match it turns on there. The field is cleared, everyone goes into god mode, no enemies arrive and the
+  wave never clears. The Spawn-an-enemy sheet opens with a row on top: **CLICK: SPAWN** puts enemies in front of you as usual, **CLICK:
+  PLAY AS** spawns one and hands it to you, **LET GO**, **CLEAR ARENA** and **LEAVE DEV ARENA** (the wave then clears as usual). Playing as
+  an enemy: your hero stands still and the camera follows the enemy (gold brackets, "YOU", and a controls strip at the top). **WASD** moves
+  it, the **mouse** is what it goes for (its own AI aims, lunges, charges and keeps its range at the cursor), hold **Fire** to attack on its
+  real cadence (it moves on its own while it attacks unless you steer), **Parry** attacks at once (skips the cooldown), **Space** (role
+  ability) lets go. Its shots and touches hurt players as usual, so aim at your parked hero (or a bot) to see them land. While you don't
+  attack, its AI waits (a boss's stages pause too). Some boss attacks still go for a player rather than the cursor. **Played enemy can't
+  die** (a switch, on by default): its health refills and a killing blow leaves it standing; off, a dead enemy lets go by itself. Marks
+  the run as a dev run.
+  **Hero dummies** (up to 6): stand-in heroes for enemies to hit. **ADD HERO DUMMY** puts one in front of you; while playing an enemy,
+  **Q** drops one at the cursor and **E** takes away the one nearest it; **CLEAR DUMMIES** removes them all (Clear arena keeps them).
+  Enemy shots and body touches land on them (counted at what an unbuffed hero would take); each shows its last hit, then DPS (last 3 s),
+  hits and total. **Enemies aim at dummies** (on by default): every other enemy goes for the nearest dummy instead of the players.
+  Blasts, beams, zones and other area attacks still only hit players. Only the host sees the dummies.
 - **PARTY > SPAWN AN UPGRADE… (host, in a match):** a sheet listing every upgrade (filter by name or text, or by rarity, including weapon mods and milestone
   cards; pick whose build it is for with several players). Click one and it drops a few steps in front of that player exactly as a treasure
   chest's item does: only they see it, walk onto it, then **G** takes it and **X** throws it away (the wave waits for it, like a chest's). Only

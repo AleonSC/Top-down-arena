@@ -51,6 +51,8 @@ namespace Arena
         SecurityGuard,
         // the Warden's faction, prisoners: a Brute and a Lunger in prison gear (PrisonKin.cs, Game/PrisonLook.cs)
         Thug, Shiv,
+        // a spawn portal: a burst of the wave comes through it; shoot it closed to cancel the rest (SpawnPortals.cs, Game/SpawnPortalLook.cs)
+        Portal,
     }
 
     public class RoleDef
@@ -79,8 +81,8 @@ namespace Arena
         Kusarigama, BoStaff, FumaShuriken, MedicineDarts, SpiritFan, Ofuda, Shuriken, Katana, Kunai,
         // Blood Mage (BloodMage.cs): blood spells that drain and heal
         BloodLash, ClotBolt, LeechBeam, TransfusionDarts, SanguineOrb, VeinTether, BloodBolts, Implosion, BoneSpear,
-        // Fourth weapons (Choice 3), where a class has one: the Knight DPS's Arc Knuckles (ArcKnuckles.cs), the Soldier DPS's Twin Rifle Auto (TwinAuto.cs)
-        ArcKnuckles, TwinRifleAuto, OutOfAmmo,
+        // Fourth weapons (Choice 3), where a class has one: the Knight DPS's Arc Knuckles (ArcKnuckles.cs), the Soldier DPS's Double Barrel (DoubleBarrel.cs); the Twin Rifle's variants (Twin Rifle Auto, Out of Ammo) are Choice 4 and 5
+        ArcKnuckles, TwinRifleAuto, OutOfAmmo, DoubleBarrel,
     }
 
     public class WeaponDef
@@ -302,10 +304,12 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "A prisoner brute dragging a ball and chain. Slow and tough, hits hard when it reaches you." },
             new EnemyDef { Name = "Shiv", Hp = 45f, Radius = 12f, Speed = 95f, Score = 9, Xp = 9, Sides = 4, Color = new Rgba(0.85f, 0.85f, 0.8f), Melee = true, Contact = 18f,
                 Picker = PickerGroup.Melee, Blurb = "A prisoner with a taped shank. Circles in close, flashes a line, then lunges along it." },
+            new EnemyDef { Name = "Spawn Portal", Hp = 200f, Radius = 30f, Speed = 0f, Score = 30, Xp = 20, Sides = 24, Color = new Rgba(0.78f, 0.35f, 1f), Melee = true, Heavy = true,
+                Picker = PickerGroup.Hidden, Blurb = "A burst of the wave comes through it. Shoot it closed before it empties to cancel the rest; it drops coins for each one it held." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount
-        public const int MaxWeapons = 5;  // (the fifth is a second variant weapon: the Twin Rifle's Out of Ammo, Choice 4)
+        public const int MaxWeapons = 6;  // (the fifth and sixth are the Twin Rifle's variant weapons, Choice 4 and 5: the Auto and Out of Ammo; the Soldier DPS's fourth is the Double Barrel)
 
         public const int KitCount = 6;
 
@@ -315,7 +319,8 @@ namespace Arena
         public static readonly WeaponDef[] Weapons = WeaponRegistry(Game.SoldierWeapons, Game.ElementalistWeapons, Game.SummonerWeapons,
             Game.KnightWeapons, Game.NinjaWeapons, Game.HemomancerWeapons);
 
-        static WeaponDef[] fifth;   // a role and class's fifth weapon (Choice 4, a second variant), or null
+        static WeaponDef[] fifth;   // a role and class's fifth weapon (Choice 4, a variant), or null
+        static WeaponDef[] sixth;   // a role and class's sixth weapon (Choice 5, a second variant), or null
         static WeaponDef[] fourth;  // a role and class's fourth weapon (Choice 3), or null: [role * KitCount + kit]
 
         /// How many weapons a role and class has in the lobby: three, or four where it has a fourth (the Knight DPS's Arc
@@ -326,7 +331,7 @@ namespace Arena
         /// The highest weapon pick a role and class accepts, plus one: WeaponCount, and one more where its fourth weapon is a variant
         /// (Variants.cs: picked in the Variants window, so the lobby shows no key for it).
         public static int WeaponLimit(Role role, Kit kit) =>
-            role == Role.Wildcard ? WildcardWeaponChoices : WeaponsPerRole + (Fourth(role, kit) != null ? 1 : 0) + (Fifth(role, kit) != null ? 1 : 0);
+            role == Role.Wildcard ? WildcardWeaponChoices : WeaponsPerRole + (Fourth(role, kit) != null ? 1 : 0) + (Fifth(role, kit) != null ? 1 : 0) + (Sixth(role, kit) != null ? 1 : 0);
 
         /// How many weapons a Wildcard can pick from: every class's three DPS ones (kit * 3 + choice, as its abilities are
         /// numbered), then the DPS fourth weapons after them, in class order (WildcardChoices + n: the Arc Knuckles are 18).
@@ -373,6 +378,22 @@ namespace Arena
             return fifth[(int)role * KitCount + (int)kit];
         }
 
+        /// The weapon pick (index for Weapon) of `id` for a role and class, or 0 if it isn't one of theirs.
+        public static int PickOf(Role role, Kit kit, WeaponId id)
+        {
+            for (int i = 0; i < WeaponLimit(role, kit); i++)
+                if (Weapon(role, kit, i).Id == id)
+                    return i;
+            return 0;
+        }
+
+        static WeaponDef Sixth(Role role, Kit kit)
+        {
+            if (Weapons == null || (int)role >= 3 || (int)kit >= KitCount)
+                return null;
+            return sixth[(int)role * KitCount + (int)kit];
+        }
+
         static WeaponDef Fourth(Role role, Kit kit)
         {
             if (Weapons == null || (int)role >= 3 || (int)kit >= KitCount)
@@ -405,6 +426,8 @@ namespace Arena
                 return Fourth(role, kit);
             if (index == WeaponsPerRole + 1 && Fifth(role, kit) != null)
                 return Fifth(role, kit);
+            if (index == WeaponsPerRole + 2 && Sixth(role, kit) != null)
+                return Sixth(role, kit);
             if (index < 0 || index >= WeaponsPerRole)
                 index = 0;
             return Weapons[((int)role * KitCount + (int)kit) * WeaponsPerRole + index];
@@ -416,10 +439,20 @@ namespace Arena
             var all = new WeaponDef[3 * KitCount * WeaponsPerRole];
             var four = new WeaponDef[3 * KitCount];
             var five = new WeaponDef[3 * KitCount];
+            var six = new WeaponDef[3 * KitCount];
             var seen = new bool[Enum.GetValues(typeof(WeaponId)).Length];
             foreach (var list in lists)
                 foreach (var w in list)
                 {
+                    if (w.Choice == WeaponsPerRole + 2 && (int)w.Kit < KitCount && w.Role != Role.Wildcard)
+                    {
+                        int f6 = (int)w.Role * KitCount + (int)w.Kit;
+                        if (six[f6] != null || seen[(int)w.Id])
+                            throw new InvalidOperationException(w.Id + ": two sixth weapons for one place, or two WeaponDefs");
+                        six[f6] = w;
+                        seen[(int)w.Id] = true;
+                        continue;
+                    }
                     if (w.Choice == WeaponsPerRole + 1 && (int)w.Kit < KitCount && w.Role != Role.Wildcard)
                     {
                         int f5 = (int)w.Role * KitCount + (int)w.Kit;
@@ -457,11 +490,15 @@ namespace Arena
                     throw new InvalidOperationException("No WeaponDef for " + (WeaponId)i);
             fourth = four;
             fifth = five;
+            sixth = six;
             var withFourth = new List<WeaponDef>(all);
             foreach (var w in four)
                 if (w != null)
                     withFourth.Add(w);
             foreach (var w in five)
+                if (w != null)
+                    withFourth.Add(w);
+            foreach (var w in six)
                 if (w != null)
                     withFourth.Add(w);
             return withFourth.ToArray();

@@ -623,6 +623,10 @@ namespace Arena
             s.Bool(ref p.RadiantOn);
             s.Vec(ref p.RadiantPos);
             s.Float(ref p.ReloadT);
+            s.Byte(ref p.DbUsed);
+            s.Byte(ref p.DbBarrel);
+            s.Byte(ref p.DbShot);
+            s.Float(ref p.DbReload);
             float drawT = p.DrawT;
             s.Float(ref drawT);
             s.Short(ref p.Level);

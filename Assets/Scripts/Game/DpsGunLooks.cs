@@ -31,6 +31,9 @@ namespace Arena
             // the Twin Rifle's two muzzles as last drawn (smoke after a burst), and where its streams cross as seen from its rounds
             public readonly V2[] Muzzle = new V2[2];
             public float Cross = 300f;
+            // the Double Barrel (DoubleBarrelLook.cs): when each barrel last fired, and the reload time last seen
+            public readonly float[] Bar = { -99f, -99f };
+            public float RelT = -1f;
         }
 
         const float TwinKick = 0.07f, RailKick = 0.2f, RailFlash = 0.1f, RailVent = 0.45f, RailCharge = 0.62f, SmgKick = 0.05f, TwinHeatUp = 0.045f, TwinHeatDown = 0.28f;
@@ -48,7 +51,7 @@ namespace Arena
 
         void ClearDpsGunLooks() { dpsSeen.Clear(); nadeSeen.Clear(); }
 
-        static bool IsDpsGun(WeaponId id) => Game.IsTwinRifle(id) || id == WeaponId.Railgun || id == WeaponId.BurstSmg;
+        static bool IsDpsGun(WeaponId id) => Game.IsTwinRifle(id) || id == WeaponId.Railgun || id == WeaponId.BurstSmg || id == WeaponId.DoubleBarrel;
 
         DpsSeen DpsOf(int id)
         {
@@ -127,6 +130,7 @@ namespace Arena
         void UpdateDpsGunLooks(float dt)
         {
             UpdateNadeTrails(dt);  // TwinNadeLook.cs: the rockets' smoke
+            UpdateDoubleBarrelLooks(dt);  // DoubleBarrelLook.cs: the hulls, the snap, the wisps
             foreach (var p in game.Players.Values)
             {
                 if (!IsDpsGun(p.Weapon.Id))
@@ -194,6 +198,9 @@ namespace Arena
                     mDHeat = Mathf.Max(0f, s.Heat - TwinHeatDown * age);
                     NadeKick(juiceClock - s.Launch[0], out mNadeKick0, out mNadeClimb0);  // a grenade launch kicks its own gun (TwinNadeLook.cs)
                     NadeKick(juiceClock - s.Launch[1], out mNadeKick1, out mNadeClimb1);
+                    break;
+                case WeaponId.DoubleBarrel:
+                    DbPose(p, s, out kick);  // DoubleBarrelLook.cs
                     break;
                 case WeaponId.Railgun:
                     if (age < RailKick)

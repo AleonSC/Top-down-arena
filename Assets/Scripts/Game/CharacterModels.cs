@@ -437,6 +437,7 @@ namespace Arena
                 case WeaponId.FlakCannon: case WeaponId.Halberd: case WeaponId.BoStaff: case WeaponId.BoneSpear: hold = 1; offX = 10f; break;
                 case WeaponId.LightBolt: case WeaponId.BurstSmg: case WeaponId.HolyMace: hold = 1; offX = 8f; break;
                 case WeaponId.MendersBow: case WeaponId.Railgun: hold = 1; offX = 18f; break;
+                case WeaponId.DoubleBarrel: hold = 1; offX = 15f; break;
                 case WeaponId.Flamethrower: case WeaponId.Warhammer: hold = 1; offX = 12f; break;
                 case WeaponId.Lance: hold = 1; offX = -4f; break;
                 case WeaponId.Greatsword: hold = 1; offX = -8f; break;
@@ -507,6 +508,9 @@ namespace Arena
                     if (mDpsOn) { DrawTwinRifleFx(); break; }  // DpsGunLooks.cs
                     MRect(-6f, -2f, 8f, 4f, MWood); MRect(0f, -2.6f, 14f, 5.2f, MDark); MLine(12f, 0f, 26f, 0f, 2.4f, MSteel); MRect(5f, -5f, 8f, 2.6f, Hx(0x7bd0ff));
                     DrawTwinTube();
+                    break;
+                case WeaponId.DoubleBarrel:
+                    if (mDpsOn) DrawDoubleBarrelFx(); else DrawDoubleBarrelPlain();  // DoubleBarrelLook.cs
                     break;
                 case WeaponId.Railgun:
                     if (mDpsOn) { DrawRailgunFx(); break; }  // DpsGunLooks.cs

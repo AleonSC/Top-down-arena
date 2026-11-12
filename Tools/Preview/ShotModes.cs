@@ -146,6 +146,8 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("AFRAME") != null) host.Lobby[2].Frame = Rank.FrameIndex(Environment.GetEnvironmentVariable("AFRAME"));
       // TANKGUN=0|1|2: your card is a Soldier Tank with that weapon (0 Scattergun, 1 Flak Cannon, 2 Riot Repeater).
       if (Environment.GetEnvironmentVariable("TANKGUN") != null) { host.Lobby[1].Role = Role.Tank; host.Lobby[1].Kit = Kit.Soldier; host.Lobby[1].Weapon = byte.Parse(Environment.GetEnvironmentVariable("TANKGUN")); host.Lobby[1].Ability = 0; }
+      // DPSGUN=0..5: your card is a Soldier DPS with that weapon pick (3 the Double Barrel on the 4th key, 4 the Twin Rifle Auto, 5 Out of Ammo).
+      if (Environment.GetEnvironmentVariable("DPSGUN") != null) { host.Lobby[1].Role = Role.Dps; host.Lobby[1].Kit = Kit.Soldier; host.Lobby[1].Weapon = byte.Parse(Environment.GetEnvironmentVariable("DPSGUN")); host.Lobby[1].Ability = 0; }
       // LOBBYULT=0|1: your card is an Elementalist Tank with that ultimate picked (1 Lightning Rod), its detail box open (DETAIL=2 is implied).
       if (Environment.GetEnvironmentVariable("LOBBYULT") != null) { host.Lobby[1].Role = Role.Tank; host.Lobby[1].Kit = Kit.Elementalist; host.Lobby[1].Weapon = 0; host.Lobby[1].Ability = 0; host.Lobby[1].Ult = byte.Parse(Environment.GetEnvironmentVariable("LOBBYULT")); set("detailSel", 2); }
       if (Environment.GetEnvironmentVariable("WILDCARD") != null) { host.Lobby[1].Role = Role.Wildcard; host.Lobby[1].Kit = Kit.Soldier; host.Lobby[1].Weapon = (byte)int.Parse(Environment.GetEnvironmentVariable("WILDWEAPON") ?? "9");  // WILDWEAPON=<pick>: 18 the Arc Knuckles

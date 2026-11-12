@@ -209,25 +209,13 @@ namespace Arena
         void SpawnEnemy(EnemyType type)
         {
             var d = Defs.Get(type);
-            float m = d.Radius + 30f;
-            V2 lo = ArenaMin + new V2(m, m), hi = ArenaMax - new V2(m, m);  // along the edges (Narrow Pass: its walls)
             V2 pos;
             int home = -1;
             V2? breach = d.IsBoss ? null : BreachSpot(d.Radius);  // the Expanding arena: through one of the wave's breaches (Breaches.cs)
             if (breach.HasValue)
                 pos = breach.Value;
-            else if (RoomsOn && !d.IsBoss)
-                pos = Rooms.RoomByRoom ? RoomSpawnSpot(d.Radius, out home) : RoomsRandomSpot(d.Radius);  // anywhere on the map, away from you (or by a room's nest: Rooms.cs)
-            else if (LayoutOn && !d.IsBoss)
-                pos = LayoutSpawn(m);  // through an enemy gate, or an edge the layout allows (LayoutRules.cs)
             else
-                switch (rng.Next(4))
-                {
-                    case 0: pos = new V2(Rand(lo.X, hi.X), lo.Y); break;
-                    case 1: pos = new V2(Rand(lo.X, hi.X), hi.Y); break;
-                    case 2: pos = new V2(lo.X, Rand(lo.Y, hi.Y)); break;
-                    default: pos = new V2(hi.X, Rand(lo.Y, hi.Y)); break;
-                }
+                pos = SpawnSpot(d.Radius, !d.IsBoss, out home);
             // Bosses appear in the middle of the arena (the Twin Reapers on either side of it, where their circle starts).
             if (type == EnemyType.TwinA)
                 pos = new V2(Width / 2f - Width * 0.26f, Height / 2f);
@@ -243,6 +231,26 @@ namespace Arena
             spawnHome = home;
             SpawnEnemyAt(type, pos, d.IsBoss ? 1.5f : 0.9f, 0, elite);  // bosses take longer to appear, so you can step out of the middle
             spawnHome = -1;
+        }
+
+        /// Where a regular enemy (or a spawn portal: SpawnPortals.cs) comes in: anywhere on the Rooms map away from you (or by a
+        /// room's nest), through a layout's enemy gate, or a random spot along an edge of the open arena.
+        V2 SpawnSpot(float radius, bool mapRules, out int home)
+        {
+            home = -1;
+            float m = radius + 30f;
+            V2 lo = ArenaMin + new V2(m, m), hi = ArenaMax - new V2(m, m);  // along the edges (Narrow Pass: its walls)
+            if (RoomsOn && mapRules)
+                return Rooms.RoomByRoom ? RoomSpawnSpot(radius, out home) : RoomsRandomSpot(radius);  // anywhere on the map, away from you (or by a room's nest: Rooms.cs)
+            if (LayoutOn && mapRules)
+                return LayoutSpawn(m);  // through an enemy gate, or an edge the layout allows (LayoutRules.cs)
+            switch (rng.Next(4))
+            {
+                case 0: return new V2(Rand(lo.X, hi.X), lo.Y);
+                case 1: return new V2(Rand(lo.X, hi.X), hi.Y);
+                case 2: return new V2(lo.X, Rand(lo.Y, hi.Y));
+                default: return new V2(hi.X, Rand(lo.Y, hi.Y));
+            }
         }
 
         /// An enemy's health when it spawns on a wave, for this party and the run's modifiers (before paths and elites).
@@ -431,6 +439,7 @@ namespace Arena
         {
             float rate = WaveFireRate(Wave) * D(DiffKnob.FireRate);
             PullStrength = 0f;
+            TickDevArena(dt);  // the Dev Arena's hero dummies, and the enemy you play healed up (DevArena.cs)
             CountEnemyShots();
             PrepareVariety();  // squads and Commanders (Variety.cs)
             AssignShooterTurns(dt);  // only so many regular shooters at once (Readability.cs)
@@ -486,6 +495,8 @@ namespace Arena
                 }
                 if (e.CageT > 0f)  // caged by Bone Guard darts (Minions.cs): no moving or shooting
                     continue;
+                if (e.Type == EnemyType.Portal)
+                    continue;  // a spawn portal stands still and never hurts (TickPortals: SpawnPortals.cs)
                 e.RetargetT -= dt;
                 Player target;
                 Players.TryGetValue(e.TargetId, out target);
@@ -499,9 +510,20 @@ namespace Arena
                 tpos = NinjaTarget(e, target, tpos);  // Shadow Clones draw them off; Vanish loses them (Ninja.cs)
                 tpos = RoomTarget(e, tpos);  // a challenge room: the crystal, or the zone (Challenges.cs)
                 bool held = RoomsLeash(e, ref tpos);  // the Rooms arena: guarding its nest, or the vault (Rooms.cs)
+                bool mine = IsPossessed(e);  // the Dev Arena's enemy being played: it goes for the cursor (DevArena.cs)
+                if (mine)
+                {
+                    tpos = possessAim;
+                    held = false;
+                }
+                else if (HeroDummyAim(e, ref tpos))
+                    held = false;  // the Dev Arena's hero dummies draw its aim (DevArena.cs)
                 if (e.Type != EnemyType.Singularity && e.Type != EnemyType.Devourer && !(e.Type == EnemyType.Gatekeeper && e.Phase != 0))  // (the Gatekeeper's charge keeps its line)  // their Facing is the lasers' sweep, or the Devourer's mouth (Devourer.cs)
                     Face(e, tpos, dt);
-                MoveEnemy(e, tpos, dt);
+                if (mine)
+                    PossessMoveEnemy(e, tpos, dt);  // your keys, or its own moves while it attacks (DevArena.cs)
+                else
+                    MoveEnemy(e, tpos, dt);
                 if (RoomsOn && !e.Def.IsBoss && e.Home != Rooms.Vault)
                 {
                     V2 was = e.Pos;
@@ -517,8 +539,12 @@ namespace Arena
                     e.Winding = false;
                     e.GasLocked = false;
                 }
+                else if (mine && State == MatchState.Fighting && !PossessAttacking)
+                    e.Winding = false;  // the enemy being played waits for you to attack (DevArena.cs)
                 else if (State == MatchState.Fighting)
                 {
+                    if (mine)
+                        PossessFireNow(e);
                     Special(e, tpos, dt);
                     if (e.Def.IsBoss)
                         BossCues(e);  // BossSounds.cs
@@ -530,16 +556,16 @@ namespace Arena
                         e.FireT -= dt * mult * (1f - e.Suppress);  // the Riot Repeater's suppression (Weapons.cs)
                     // A regular shooter glows just before it fires (Readability.cs).
                     float rateNow = mult * (1f - e.Suppress);
-                    e.Winding = (e.Type == EnemyType.SecurityGuard ? e.Phase > 0 : TakesTurns(e) && HasTurn(e)) && rateNow > 0f && e.FireT / rateNow <= WindUpOf(e.Type) && e.FireT > -0.5f;
+                    e.Winding = (e.Type == EnemyType.SecurityGuard ? e.Phase > 0 : TakesTurns(e) && (HasTurn(e) || mine)) && rateNow > 0f && e.FireT / rateNow <= WindUpOf(e.Type) && e.FireT > -0.5f;
                     if (e.Type == EnemyType.GasGrenadier)
                         GrenadierWind(e, tpos, rateNow);  // locks its lob when the wind-up starts (WardenFaction.cs)
                     if (held && e.FireT <= 0f)
                         e.FireT = Rand(0.2f, 0.4f);  // nobody in its room: nothing to shoot at
                     if (e.FireT <= 0f)
                     {
-                        if (!HasTurn(e))
+                        if (!HasTurn(e) && !mine)
                             e.FireT = Rand(0.2f, 0.4f);  // not its turn: hold fire and reposition (Readability.cs)
-                        else if (!e.Def.IsBoss && !Challenges.Own(e.Type) && !Zombies.Is(e.Type) && enemyShots >= RegularShotBudget())
+                        else if (!mine && !e.Def.IsBoss && !Challenges.Own(e.Type) && !Zombies.Is(e.Type) && enemyShots >= RegularShotBudget())
                             e.FireT = Rand(0.2f, 0.4f);  // the screen is full: hold this volley and try again shortly
                         else
                             EnemyFire(e, tpos);
@@ -555,6 +581,8 @@ namespace Arena
                     : e.Type == EnemyType.SpikeBlock && e.Phase == 2 ? SpikeLungeDamage
                     : e.Def.Contact > 0f ? e.Def.Contact * BruteDamageMult(e) : ContactDamage;
                 GuardContact(e, contact);  // Warden's Guards in the way get hurt too (Stun.cs)
+                if (!mine || PossessAttacking)
+                    HeroDummyContact(e, contact);  // the Dev Arena's hero dummies (DevArena.cs)
                 foreach (var p in Players.Values)
                 {
                     if (p.Downed || p.InvulnT > 0f || p.SwallowT > 0f || p.MeleeGraceT > 0f)
@@ -583,6 +611,7 @@ namespace Arena
             TickReapers(dt);  // the Twin Reapers' stages, turns and tether (Reapers.cs)
             TickSingularityHazards(dt);
             TickHerald(dt);  // the Storm Herald's ball lightning and spokes (Herald.cs)
+            TickPortals(dt);  // spawn portals opening, letting their bursts out and closing (SpawnPortals.cs)
             TickVariety(dt);  // embers, Volatile bursts, Mirrored shots, bubbles growing back (Variety.cs)
 
             // A fallen Twin Reaper comes back unless its twin dies before the timer runs out.

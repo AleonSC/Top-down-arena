@@ -545,7 +545,9 @@ namespace Arena
                     else if (fromGun && (owner.Weapon.Id == WeaponId.Scattergun && b.Kind == Defs.TankShot || owner.Weapon.Id == WeaponId.RiotRepeater && b.Kind == Defs.TankShot || owner.Weapon.Id == WeaponId.FlakCannon && b.Kind == Defs.FlakShell))
                         OnTankGunShot(owner, b);  // the Tank guns' flash, smoke and brass (TankGunLooks.cs)
                     else if (fromGun && (Game.IsTwinRifle(owner.Weapon.Id) && b.Kind == Defs.DpsShot || owner.Weapon.Id == WeaponId.BurstSmg && b.Kind == Defs.DpsShot || owner.Weapon.Id == WeaponId.Railgun && b.Kind == Defs.RailShot))
-                        OnDpsGunShot(owner, b);  // the Soldier DPS guns' flash, brass and steam (DpsGunLooks.cs)
+                        OnDpsGunShot(owner, b);
+                    else if (fromGun && owner.Weapon.Id == WeaponId.DoubleBarrel && b.Kind == Defs.DpsShot)
+                        OnDoubleBarrelShot(owner, b);  // the Double Barrel's flash and smoke (DoubleBarrelLook.cs)  // the Soldier DPS guns' flash, brass and steam (DpsGunLooks.cs)
                     else if (fromGun && owner.Weapon.Id == WeaponId.TwinRifle && b.Kind == Defs.GrenadeShot)
                         OnTwinNadeShot(owner, b);  // the grenade tube's Rocket assist launch (TwinNadeLook.cs)
                     if (fromGun && (!muzzleT.TryGetValue(b.Owner, out cool) || cool <= juiceClock))

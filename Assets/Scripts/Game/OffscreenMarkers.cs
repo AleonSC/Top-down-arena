@@ -19,6 +19,7 @@ namespace Arena
         static readonly Rect MarkArea = new Rect(20f, 80f, W - 40f, 590f - 80f);  // (below the boss bars and the top hints, above the console)
         static readonly Rgba MarkEnemy = new Rgba(1f, 0.32f, 0.3f), MarkElite = new Rgba(1f, 0.62f, 0.25f), MarkBoss = new Rgba(0.95f, 0.15f, 0.22f);
         static readonly Rgba MarkChest = new Rgba(1f, 0.82f, 0.3f);
+        static readonly Rgba MarkCache = new Rgba(0.25f, 0.9f, 0.7f);  // an unclaimed Stash's vector cache (Docs/BreachRooms.md)
         static readonly Rgba MarkRim= new Rgba(0.02f, 0.03f, 0.06f, 0.85f);
 
         readonly List<Enemy> markEnemies = new List<Enemy>();
@@ -79,6 +80,19 @@ namespace Arena
                     float pulse = 0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 5f);
                     MarkArrow(tip, dir, 12f, MarkChest.WithAlpha(fade * pulse));
                     Arc(tip - dir * 5f, 16f, 2f, MarkChest.WithAlpha(fade * 0.55f * pulse), 24);
+                }
+                byte stashKind = (byte)(1 + (int)SurpriseShape.Stash);
+                foreach (var r in game.Expanded)  // an unclaimed Stash cache: a teal arrow with a ring
+                {
+                    if (r.Surprise != stashKind || r.Claimed)
+                        continue;
+                    V2 at = ToUi(new V2((r.X + r.X1) / 2f, (r.Y + r.Y1) / 2f));
+                    if (OffBy(at, 30f * UiWorldScale) <= 0f)
+                        continue;
+                    V2 dir = (at - mid).Normalized(), tip = EdgePoint(mid, at);
+                    float pulse = 0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 5f);
+                    MarkArrow(tip, dir, 11f, MarkCache.WithAlpha(fade * pulse));
+                    Arc(tip - dir * 5f, 15f, 2f, MarkCache.WithAlpha(fade * 0.55f * pulse), 24);
                 }
                 foreach (var p in game.Players.Values)
                 {

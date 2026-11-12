@@ -21,7 +21,7 @@ namespace Arena
         bool HasJobMarker(Enemy e)
         {
             return !e.Def.IsBoss && !game.IsSpawning(e) && e.Hp > 0f && !Zombies.Is(e.Type)
-                && e.Type != EnemyType.SapperMine && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.HiveBomber
+                && e.Type != EnemyType.SapperMine && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.HiveBomber && e.Type != EnemyType.Portal
                 && e.Type != EnemyType.Gatekeeper && e.Type != EnemyType.Shadow && e.Type != EnemyType.ReaperPillar;
         }
 

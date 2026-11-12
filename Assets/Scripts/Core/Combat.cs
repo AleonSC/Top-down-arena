@@ -505,7 +505,7 @@ namespace Arena
                             }
                             if (b.StunBack && e.Type == EnemyType.Boss)
                                 StunWarden(e);  // its own stun shot, parried back (Warden.cs)
-                            float hit = b.Dmg * NinjaHitMult(b.Owner, b.Kind, e) * PointBlankMult(b, e) * CrossfireMult(b, e);  // Kunai and ambush bonuses (Ninja.cs); the Scattergun up close and the Twin Rifle's crossfire (Weapons.cs)
+                            float hit = b.Dmg * NinjaHitMult(b.Owner, b.Kind, e) * PointBlankMult(b, e) * CrossfireMult(b, e) * RangeMult(b);  // Kunai and ambush bonuses (Ninja.cs); the Scattergun up close and the Twin Rifle's crossfire (Weapons.cs)
                             dmgSrc = b.FromWeapon ? "weapon" : "shot";  // (what the balance test log credits the hit to)
                             HurtEnemy(e, hit, b.Owner);
                             dmgSrc = null;
@@ -558,6 +558,11 @@ namespace Arena
                     if (WallStops(b))
                     {
                         scratchIds.Add(b.Id);  // a Blood Wall: everything stops there, red aimed shots too (BloodWall.cs)
+                        continue;
+                    }
+                    if (HeroDummyShot(b))
+                    {
+                        scratchIds.Add(b.Id);  // the Dev Arena's hero dummies (DevArena.cs)
                         continue;
                     }
                     foreach (var p in Players.Values)
@@ -782,6 +787,7 @@ namespace Arena
                     dead.Add(e);
             foreach (var e in dead)
             {
+                PortalSealed(e);  // a spawn portal shot closed: the rest of its burst is cancelled (SpawnPortals.cs)
                 DecoyShatter(e);  // a Duelist's masquerade decoy shot down bursts into a ring (Duelist.cs)
                 NonShooterDeath(e);  // a Fuse Runner killed during its fuse, a Tripwire Pod (NonShooters.cs)
                 Recorder?.EnemyKilled(e);
@@ -946,6 +952,7 @@ namespace Arena
                 return;  // the Warden's last-stand armor took it all (Warden.cs)
             }
             e.Hp -= dmg;
+            PossessSurvives(e);  // the Dev Arena: the enemy you play can't die (DevArena.cs)
             e.Flash = 0.06f;
             if (p != null && p.Stats.ReapBelow > 0f)
                 FinalReap(p, e);  // a phantom scythe finishes it off (ReaperLoot.cs)

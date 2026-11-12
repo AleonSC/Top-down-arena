@@ -37,6 +37,9 @@ namespace Arena
         public const int FirstWave = 3, Every = 4;
         public static bool IsBreachWave(int wave) => wave >= FirstWave && (wave - FirstWave) % Every == 0;
 
+        /// How many enemies one breach lets in: the wave's total shared out evenly (0: unknown, no limit).
+        public static int Quota(int total, int breaches) => total <= 0 || breaches <= 0 ? 0 : (total + breaches - 1) / breaches;
+
         /// How many open each wave: 2, one more per 3 rooms built, at most 6.
         public static int CountFor(int rooms) => Math.Max(2, Math.Min(6, 2 + rooms / 3));
 
@@ -90,7 +93,8 @@ namespace Arena
         }
 
         /// This wave's breaches on this map (empty for a map with no outer wall to break).
-        public static Breach[] For(World w, int wave)
+        /// With `accept`, a spot it turns down is dropped and another rolled (the random numbers are still the same on every machine).
+        public static Breach[] For(World w, int wave, Func<Breach, bool> accept = null)
         {
             var cand = Candidates(w);
             int seed = wave * 7919 + w.Areas.Length * 131;
@@ -116,6 +120,11 @@ namespace Arena
                     if (pick <= 0f) { at = i; break; }
                 }
                 var b = cand[at].Key;
+                if (accept != null && !accept(b))
+                {
+                    cand.RemoveAt(at);  // (no room behind this wall: it is not a spot)
+                    continue;
+                }
                 picked.Add(b);
                 cand.RemoveAll(c => c.Key.Pos.DistanceTo(b.Pos) < Apart);
             }
@@ -131,6 +140,8 @@ namespace Arena
         Breach[] breachCache;
         World breachWorld;
         int breachWave = -1;
+        int[] breachUsed = Array.Empty<int>();  // host: enemies that have come in through each of this wave's breaches
+        int breachTotal;  // host: how many enemies and squads this breach wave brings (FloodBreachWave), shared out over its breaches
         bool breachPinned;  // a surprise room opened mid-wave: keep this wave's other breaches where they are
 
         /// Are enemies coming in through breaches now? The grown Expanding arena on a breach wave (Breaches.IsBreachWave: a
@@ -144,6 +155,8 @@ namespace Arena
         void FloodBreachWave()
         {
             int n = spawnQueue.Count;
+            int sq = squadQueue.Count;
+            breachTotal = (n + sq) * Breaches.Flood;
             for (int k = 1; k < Breaches.Flood; k++)
                 for (int i = 0; i < n; i++)
                     if (!Defs.Get(spawnQueue[i]).IsBoss)
@@ -160,16 +173,39 @@ namespace Arena
             if (breachCache == null || breachWave != Wave)
                 return;
             var keep = new List<Breach>();
-            foreach (var b in breachCache)
+            var used = new List<int>();
+            for (int bi = 0; bi < breachCache.Length; bi++)
             {
+                var b = breachCache[bi];
                 bool covered = false;
                 foreach (var r in added)
-                    covered |= b.Pos.X > r.X - 40f && b.Pos.X < r.X1 + 40f && b.Pos.Y > r.Y - 40f && b.Pos.Y < r.Y1 + 40f;
+                    covered |= r.Surprise != 1 + (int)SurpriseShape.Stash && b.Pos.X > r.X - 40f && b.Pos.X < r.X1 + 40f && b.Pos.Y > r.Y - 40f && b.Pos.Y < r.Y1 + 40f;
                 if (!covered)
+                {
                     keep.Add(b);
+                    used.Add(bi < breachUsed.Length ? breachUsed[bi] : 0);
+                }
             }
             breachCache = keep.ToArray();
+            breachUsed = used.ToArray();
             breachPinned = true;
+        }
+
+        /// A breach may only open where a Stash fits behind its wall (Docs/BreachRooms.md): each spot is tried against the map plus the Stashes
+        /// already given to the breaches picked before it, so they all fit together. Anything goes on a map near its size cap (no Stashes there).
+        Func<Breach, bool> StashAccept()
+        {
+            if (Expansion.BoughtCount(Expanded) > Expansion.MaxRooms - 2)
+                return null;
+            var built = new List<ExpansionRoom>(Expanded);
+            return b =>
+            {
+                var opts = Expansion.SurpriseOptions(built, SurpriseShape.Stash, b.Pos - b.In * BreachEvent.Behind);
+                if (opts.Count == 0)
+                    return false;
+                built.AddRange(opts[0].Rooms);
+                return true;
+            };
         }
 
         /// This wave's breaches (empty while they're off).
@@ -183,7 +219,8 @@ namespace Arena
                 if (breachCache == null || breachWave != Wave || (!breachPinned && breachWorld != w))
                 {
                     breachPinned = false;
-                    breachCache = Breaches.For(w, Wave);
+                    breachCache = Breaches.For(w, Wave, StashAccept());
+                    breachUsed = new int[breachCache.Length];
                     breachWorld = w;
                     breachWave = Wave;
                 }
@@ -201,12 +238,18 @@ namespace Arena
             inward = V2.Zero;
             if (bs.Length == 0)
                 return null;
+            // Each breach lets its share of the wave in (Breaches.Quota); once they are all spent the rest come in the usual way.
+            int quota = Breaches.Quota(breachTotal, bs.Length);
             var clear = new List<int>();
             var dist = new float[bs.Length];
-            int far = 0;
+            int far = -1;
             float farD = -1f;
             for (int i = 0; i < bs.Length; i++)
             {
+                if (breachUsed.Length != bs.Length)
+                    breachUsed = new int[bs.Length];
+                if (quota > 0 && breachUsed[i] >= quota)
+                    continue;  // (this breach has had its share: it stays open, nothing more comes through)
                 float near = float.MaxValue;
                 foreach (var p in Players.Values)
                     if (!p.Downed)
@@ -216,6 +259,8 @@ namespace Arena
                     clear.Add(i);
                 if (near > farD) { farD = near; far = i; }
             }
+            if (far < 0)
+                return null;
             int pick = far;
             if (clear.Count > 0)
             {
@@ -232,6 +277,7 @@ namespace Arena
                 }
             }
             var b = bs[pick];
+            breachUsed[pick]++;
             inward = b.In;
             for (int tries = 0; tries < 8; tries++)
             {
