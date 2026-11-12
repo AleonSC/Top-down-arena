@@ -3,6 +3,23 @@ using System; using System.IO; using System.Reflection; using System.Threading; 
 // FLAME, the boss legendaries, CAST, ...) before the ArenaApp exists; ArenaScenes poses the arena with it (AIMLINE,
 // ROOM, APPROACH, PATTERNS, PATCHES, MODS, PATHON, ...).
 static partial class Shot {
+  // BREACHROOMS=1: a small free Stash room behind every breach (mockup, Docs/BreachRooms.md)
+  static void MockBreachRooms(Game xg) {
+    string brs = Environment.GetEnvironmentVariable("BREACHROOMS");
+    if (brs == null) return;
+    var shp = SurpriseShape.Stash;
+    var bfl2 = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+    var bs2 = xg.ActiveBreaches; var made = new System.Collections.Generic.List<ExpansionRoom>(); int ok = 0;
+    foreach (var b in bs2) {
+      var opts = Expansion.SurpriseOptions(xg.Expanded, shp, b.Pos - b.In * BreachEvent.Behind);
+      if (opts.Count == 0) continue;
+      xg.Expanded.AddRange(opts[0].Rooms); made.AddRange(opts[0].Rooms); ok++;
+    }
+    typeof(Game).GetMethod("PinBreaches", bfl2).Invoke(xg, new object[] { made });
+    typeof(Game).GetField("expWorld", bfl2).SetValue(xg, null);
+    Console.Error.WriteLine("breach rooms: " + ok + " of " + bs2.Length + " on=" + xg.BreachesOn + " exp=" + xg.ExpandingOn + " rooms=" + xg.RoomsOn + " boss=" + xg.BossNow + " st=" + xg.State + " w=" + xg.Wave);
+  }
+
   static void PlayerScenes() {
     BloodWallScene();  // BLOODWALL=<s> BWCLOCK=<s> (ShotBloodWall.cs)
     PoisonDartScene();  // DART=<s into the scene> [DARTCAP=1] [FXOFF=1] (ShotPoisonDart.cs)
@@ -1408,6 +1425,7 @@ static partial class Shot {
         if (bb.Length > 0 && Environment.GetEnvironmentVariable("BREACHEVENT") != null) xg.EventMark = bb[0].Pos;  // BREACHEVENT=1: the first breach is the breach event's (gold)
         if (bb.Length > 0 && Environment.GetEnvironmentVariable("BREACHAT") != null) { int bi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = bb[0].Pos + bb[0].In * (90f + 40f * bi) + bb[0].Along * (bi * 60f - 30f); bi++; } }
       }
+      MockBreachRooms(xg);
       string fp = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: where you stand (default the hub)
       if (fp != null) { var q = fp.Split(','); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(float.Parse(q[0], System.Globalization.CultureInfo.InvariantCulture), float.Parse(q[1], System.Globalization.CultureInfo.InvariantCulture)); }
     }
