@@ -2,7 +2,7 @@ using System;
 
 namespace Arena
 {
-    /// Daze: a close-in hit (Bulldoze, Knight and Lance swings, the Katana's burst, the Bo Staff, the Kusarigama's whirl)
+    /// Daze: a close-in hit (Bulldoze, Knight and Lance swings, the Katana's burst, the Bo Staff, the Kusarigama's whirl, Out of Ammo's bashes, knife and spin)
     /// stops the enemy attacking for a split second, so charging into a pack isn't a guaranteed hit back. A dazed enemy
     /// still moves, but doesn't shoot, run its special attacks or hurt by touch, and a wind-up it was in starts over
     /// (its full glow plays again before it fires). Bosses are dazed for half as long. After a daze an enemy can't be
