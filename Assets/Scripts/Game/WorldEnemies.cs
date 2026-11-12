@@ -463,6 +463,7 @@ namespace Arena
                 DrawZombieUnder(e, pos, r, t);  // its spore haze, frenzy streaks and the Crawler's hold (ZombieLook.cs)
             DrawEnemyShadow(e, pos, r);  // EnemyPresenceLook.cs
             col = DrawEnemyUnderlay(e, pos, r, col, spawning, t);
+            col = ReskinColor(e, col);
             if (pac)
                 col = PacRoleColor(e);
             if (e.Type == EnemyType.SecurityGuard && !spawning)
@@ -903,7 +904,10 @@ namespace Arena
                     DrawColossusDetails(e, pos, r, t);  // ColossusLook.cs
                     break;
                 case EnemyType.Brute:
-                    DrawBruteFace(e, pos, r, col);
+                    if (!DrawReskin(e, pos, r, col)) DrawBruteFace(e, pos, r, col);
+                    break;
+                case EnemyType.Lunger:
+                    DrawReskin(e, pos, r, col);
                     break;
                 case EnemyType.Rioter:
                     DrawRioterDetails(e, pos, r, col);  // WardenLook.cs
