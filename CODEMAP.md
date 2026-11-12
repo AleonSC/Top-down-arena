@@ -355,7 +355,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 | Tune damage, health, wave numbers | `Balance.cs` (index of where every system's numbers live), `Difficulty.cs`, `Docs/UpgradeBalance.md` |
 | Add or change an enemy | `Defs.cs` (`EnemyType`, def), `EnemyAI.cs` or `Variety.cs`, look in `WorldEnemies.cs`/`VarietyLook.cs`, Bestiary entry in `BestiaryData.Entries.cs` |
 | Edit a boss fight | the boss's Core file plus its `*Look.cs`; bars in `HudBossBars.cs`; snapshot sync in the boss file |
-| Upgrade cards and picker | `Upgrades.cs` (cards), `Game.cs` (`HostPick`, `NextOffer`), `HudPicker.cs`, `CardArt.cs`, `PickIntro.cs` |
+| Upgrade cards and picker | `Upgrades.cs` (cards), `Game.cs` (`HostPick`, `NextOffer`), `HudPicker.cs`, `CardArt.cs`, `PickIntro.cs`; class/weapon pools planned in Docs/UpgradePools.md |
 | Milestone upgrades (every 10 levels, the Milestone Compass) | `Upgrades.cs` (`WithMilestones`, `MilestoneOffer`), `Game.cs` (`GrantXpTo`, `NextOffer`, `HostPick`), `Tools/SimTest/Tests/Milestones.cs` |
 | Damage numbers, hit effects, shake | `Juice.cs` (`HitFlashMix`, `ImpactCrowd`), `WorldEffects.cs`, `Combat.cs` (`HurtEnemy`, `Damage`, `SplashFxNearby`); `Enemy.FlashHeat`; test `hitfx` |
 | Late-game pressure (fire rate, budget, melee share, enemy jobs) | `WaveRecipe.cs`, `NonShooters.cs`, `Docs/EnemyRoles.md`, `Docs/LateGamePressure.md`, report `wavemix`, `EnemyAI.cs` (`WaveFireRate`, `ShotBudget`, `MeleeShare`), `Readability.cs`, `Variety.cs` |
