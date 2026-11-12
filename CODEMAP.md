@@ -215,7 +215,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `NimbusLook.cs`, `ChalkLook.cs`: the Nimbus's cloud, rain and lightning; Spirit Chalk's ink, sealed loops and the ring on penned enemies
 - `ShotLooks.cs`, `Juice.cs`, `Ambience.cs`: weapon shot looks, screen shake/particles/glow, weather and trails
 - `CameraZoom.cs`: scroll-wheel zoom (1x to 2x on you, focus held inside the arena; Settings → Gameplay), `ZoomPoint`/`UnzoomPoint` used by `Px`, `ToUi` and `MouseArena`, `UiWorldScale` for HUD sizes around world things
-- `OffscreenMarkers.cs`: while zoomed, edge arrows to off-screen teammates (colour + name, red when downed) and enemies (nearest 40, bosses always) and unopened treasure chests (gold), drawn in `DrawHud`
+- `OffscreenMarkers.cs`: while zoomed, edge arrows to off-screen teammates (colour + name, red when downed) and enemies (nearest 40, bosses always) and unopened treasure chests (gold) and unclaimed Stash caches (teal, Docs/BreachRooms.md), drawn in `DrawHud`
 - `CameraLean.cs`: the camera lean (view eases toward your aim and movement, 50% of 5% of the arena; Settings → Gameplay), `ToUi` for labels placed from a world position
 - `MeleeLooks.cs`: melee attacks with Visual effects on: the weapon model swinging through a glowing arc (style E); the held poses (`MeleeRest`; the Kusarigama and Blood Lash held with arms, `DrawMeleeHeldIdle`), each swing's return into them (`DrawSwingModel`) and the hand-over (`MeleeSwingShowing`)
 - `BearLooks.cs`: the Bear Totem: a claw on each hand, claw trails, the Bear companion, claw scars on bleeding enemies

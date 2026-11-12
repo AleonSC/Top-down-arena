@@ -29,7 +29,7 @@ namespace Arena
             bool cache = a.Surprise == 1 + (int)SurpriseShape.Stash && i - 1 < game.Expanded.Count && !game.Expanded[i - 1].Claimed;
             if (cache)  // the vector cache: a breathing diamond to walk into until someone takes it
             {
-                float br = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 3.2f), r = 15f + 4f * br;
+                float br = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 3.2f), r = 26f + 5f * br;
                 V2 c = a.Mid, up = c + new V2(0f, -r), rt = c + new V2(r, 0f), dn = c + new V2(0f, r), lf = c + new V2(-r, 0f);
                 FillRect(c.X - r * 0.5f, c.Y - r * 0.5f, r, r, ink.WithAlpha(0.18f + 0.12f * br));
                 Line(up, rt, 2.5f, ink); Line(rt, dn, 2.5f, ink); Line(dn, lf, 2.5f, ink); Line(lf, up, 2.5f, ink);
@@ -39,6 +39,23 @@ namespace Arena
             var rim = ink.WithAlpha(fresh ? 0.5f + 0.5f * flash : 0.2f);
             foreach (var seg in wd.Rim(i, 14f))  // (round the whole room, not across its boxes' seams)
                 Line(seg[0], seg[1], 2.5f, rim);
+        }
+
+        /// DrawHud: "+10" over each Stash's vector cache that nobody has taken yet (the diamond itself is drawn in DrawSurpriseRoom).
+        void DrawStashLabels()
+        {
+            byte kind = (byte)(1 + (int)SurpriseShape.Stash);
+            float pulse = 0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 3.2f);
+            for (int i = 0; i < game.Expanded.Count; i++)
+            {
+                var r = game.Expanded[i];
+                if (r.Surprise != kind || r.Claimed)
+                    continue;
+                V2 c = ToUi(new V2((r.X + r.X1) / 2f, (r.Y + r.Y1) / 2f - 52f));
+                if (c.X < -60f || c.X > W + 60f || c.Y < -30f || c.Y > H + 30f)
+                    continue;
+                Ui.Label(new Rect(c.X - 60f, c.Y - 14f, 120f, 28f), "+" + Game.StashVectors, 22, new Color(0.25f, 0.9f, 0.7f, pulse), TextAnchor.MiddleCenter, true);
+            }
         }
 
         /// DrawHud: the SURPRISE ROOM chip, top middle, for a few seconds after one appears.

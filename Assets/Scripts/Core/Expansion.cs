@@ -1327,10 +1327,29 @@ namespace Arena
             }
         }
 
+        /// A breach Stash's cover (Docs/BreachRooms.md): a block and a pillar either side of the middle (where the vector cache sits), on a diagonal so a door anywhere on its walls stays clear.
+        static void AddStashCover(List<Solid> to, ExpansionRoom r, List<V2> doors)
+        {
+            bool wide = r.W >= r.H;
+            float cx = r.X + r.W / 2f, cy = r.Y + r.H / 2f, len = Math.Max(r.W, r.H);
+            for (int k = -1; k <= 1; k += 2)
+            {
+                float along = k * len * 0.28f, side = k * 55f;
+                var at = wide ? new V2(cx + along, cy + side) : new V2(cx + side, cy + along);
+                int x = (int)at.X, y = (int)at.Y;
+                to.Add(k < 0 ? World.Box(x - 25, y - 25, x + 25, y + 25) : World.Pillar(x, y, 28));
+            }
+        }
+
         static void AddCover(List<Solid> to, ExpansionRoom r, List<V2> doors)
         {
             if (r.Floating)
                 return;  // (the floating rooms stay clear)
+            if (r.Surprise == 1 + (int)SurpriseShape.Stash)
+            {
+                AddStashCover(to, r, doors);
+                return;
+            }
             if (Math.Min(r.W, r.H) <= StripMax)
             {
                 AddStripCover(to, r, doors);
@@ -1667,12 +1686,12 @@ namespace Arena
                     if (d.Joins(a))
                         doorSpots.Add(d.Pos);
                 var cr = rooms[a - 1];
-                if (outline[group[a]] && Math.Min(cr.W, cr.H) < OutlineCoverMin)
+                if (outline[group[a]] && Math.Min(cr.W, cr.H) < OutlineCoverMin && cr.Surprise != 1 + (int)SurpriseShape.Stash)
                     continue;  // (a sliver of a drawn outline: no cover in it)
                 AddCover(cover, cr, doorSpots);
             }
             for (int a = 1; a < n; a++)  // a built room's side walls: out from its outer walls, a design rolled per room
-                if (FinStyle >= 0 && !rooms[a - 1].Floating)
+                if (FinStyle >= 0 && !rooms[a - 1].Floating && rooms[a - 1].Surprise != 1 + (int)SurpriseShape.Stash)  // (a Stash is too small for fins: its cover stays)
                     AddFins(spans, cover, rooms, group, a, doors, nodes);
             if (nodes != null && nodes.Count > 0)  // no cover on a node: it is a fixture of its room
                 cover.RemoveAll(c =>
