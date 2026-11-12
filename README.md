@@ -1114,7 +1114,7 @@ you've beaten it anywhere, a **???** until then (on your first Quick Play the Wa
 
 ## Boss Hunt
 
-In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt** or **Practice** on the mode carousel at the top (arrows, the mouse wheel or a click on a side mode turn it). The tabs over the big screen (Loadout, Perks, Difficulty, ...) are a carousel too: the open tab in the middle, the rest wrapping round either side. A Boss Hunt is a short run that ends
+In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt** or **Practice** on the mode carousel at the top (arrows, the mouse wheel or a click on a side mode turn it). Over the big screen, a fixed **Loadout** key sits on the left, and the other tabs (the mode's own, Difficulty, Modifiers) are a carousel beside it: the open tab in the middle, the rest wrapping round either side. **Perks** open from the **Perks** key right of your class name on the loadout (it shows your equipped perk and slots used, e.g. 1/2); "< Loadout" or the Loadout key takes you back. A Boss Hunt is a short run that ends
 with one boss: **ten waves**. Waves 1-9 bring only the boss's own enemies (its faction: for the Warden, Rioters and
 Guards, then Riot Shields, Gas Grenadiers, Security Guards and Taser Guards, its Breakout, Patrol and Cell block squads, and its Riot line on waves 5 and
 9); wave 10 is the boss, at wave-10 strength. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no
@@ -1130,11 +1130,11 @@ Warden has one yet), and later bosses will need the party handed a build that fi
 ## Perks
 
 A perk is a rule you bring into a run, one per boss, unlocked by winning that boss's **Boss Hunt**. Pick them on the lobby's
-**Perks** tab: your **slots** on the left (one to start, a second after you win a full run, a third after you win five different
+**Perks** view (the loadout's Perks key): your **slots** on the left (one to start, a second after you win a full run, a third after you win five different
 hunts), and a card for each perk on the right. Click an unlocked card to equip it, click an equipped card (or the slot's
 *remove*) to take it off, and hover a card for the rules. A second perk from the same boss takes the first one's slot. Everyone
 brings their own perks in co-op, and each seat shows its perk icons on its party card. Perks are off in the Practice Range, the
-Boss Lab and the lobby preview. A saved run keeps each seat's perks, and when you continue it the tab is read-only and shows
+Boss Lab and the lobby preview. A saved run keeps each seat's perks, and when you continue it the view is read-only and shows
 what the seat was saved with. Equipped perks are saved with your profile.
 
 | Perk | Boss | Unlocked by | Effect |
@@ -1146,7 +1146,7 @@ The plate hovers at your side and swings toward the nearest incoming enemy shot 
 recharges a ghost plate fills along its length, and it pops back when ready. A block flashes the plate white, throws sparks off
 the impact and breaks the plate into three pieces that fly off (with visual effects reduced or off, only the flash). A small
 **Riot Gear** chip above the ability bar's XP strip fills from the bottom and shows the seconds left, then READY. Teammates' plates
-show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear's place. Other bosses' perks come later: the tab shows them as locked placeholders. Runs don't yet note which perks were used (a
+show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear's place. Other bosses' perks come later: the view shows them as locked placeholders. Runs don't yet note which perks were used (a
 "no perks" record variant is planned). Plan and build notes: `Docs/RiotGear.md`, `Docs/BossHuntsAndPerks.md`.
 
 ## Practice Range
