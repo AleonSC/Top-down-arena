@@ -361,6 +361,7 @@ static partial class Program
         Test("tankalts", "the Tank Soldier's Alt fires: Double Barrel (shells from point-blank hits, both at once, the kick), Proximity Shell (lies at the cursor, bursts under an enemy), Tear Gas (suppresses to the cap and slows)", () => TankAltTest(Dt)),
         Test("twinnades", "the Twin Rifle's grenade tubes: hits load two, Alt fires left then right, the order holds through a refill", () => TwinGrenadeTest(Dt)),
         Test("twinauto", "the Twin Rifle Auto: each gun picks the nearest enemy on its side and fires untouched, Alt locks both on the enemy by the cursor (crossfire) until it dies or Alt is pressed again", () => TwinAutoTest(Dt)),
+        Test("outofammo", "Out of Ammo: no shots, the five-move knife chain on a close enemy, one swat per rifle, Alt's spin cuts and swats everything then cools down", () => OutOfAmmoTest(Dt)),
         Test("poisondart", "Poison Dart: the dart at the enemy nearest the cursor, the poison, the spread on death and the chain, mastered, Virulence", () => PoisonDartTest(Dt)),
         Test("airstrike", "Airstrike: a carpet of bombs across the aim, wall to wall, the burning lane, the mastered second wall, Bigger Boom", () => AirstrikeTest(Dt)),
         Test("cavalry", "Cavalry Call: two lancers (four mastered) ride the aim, hit each enemy once, shove, slow and hurt, Heavy ones barely move, the 20% guard", () => CavalryTest(Dt)),

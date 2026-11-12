@@ -78,7 +78,7 @@ namespace Arena
         // Blood Mage (BloodMage.cs): blood spells that drain and heal
         BloodLash, ClotBolt, LeechBeam, TransfusionDarts, SanguineOrb, VeinTether, BloodBolts, Implosion, BoneSpear,
         // Fourth weapons (Choice 3), where a class has one: the Knight DPS's Arc Knuckles (ArcKnuckles.cs), the Soldier DPS's Twin Rifle Auto (TwinAuto.cs)
-        ArcKnuckles, TwinRifleAuto,
+        ArcKnuckles, TwinRifleAuto, OutOfAmmo,
     }
 
     public class WeaponDef
@@ -299,7 +299,7 @@ namespace Arena
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount
-        public const int MaxWeapons = 4;
+        public const int MaxWeapons = 5;  // (the fifth is a second variant weapon: the Twin Rifle's Out of Ammo, Choice 4)
 
         public const int KitCount = 6;
 
@@ -309,6 +309,7 @@ namespace Arena
         public static readonly WeaponDef[] Weapons = WeaponRegistry(Game.SoldierWeapons, Game.ElementalistWeapons, Game.SummonerWeapons,
             Game.KnightWeapons, Game.NinjaWeapons, Game.HemomancerWeapons);
 
+        static WeaponDef[] fifth;   // a role and class's fifth weapon (Choice 4, a second variant), or null
         static WeaponDef[] fourth;  // a role and class's fourth weapon (Choice 3), or null: [role * KitCount + kit]
 
         /// How many weapons a role and class has in the lobby: three, or four where it has a fourth (the Knight DPS's Arc
@@ -319,7 +320,7 @@ namespace Arena
         /// The highest weapon pick a role and class accepts, plus one: WeaponCount, and one more where its fourth weapon is a variant
         /// (Variants.cs: picked in the Variants window, so the lobby shows no key for it).
         public static int WeaponLimit(Role role, Kit kit) =>
-            role == Role.Wildcard ? WildcardWeaponChoices : WeaponsPerRole + (Fourth(role, kit) != null ? 1 : 0);
+            role == Role.Wildcard ? WildcardWeaponChoices : WeaponsPerRole + (Fourth(role, kit) != null ? 1 : 0) + (Fifth(role, kit) != null ? 1 : 0);
 
         /// How many weapons a Wildcard can pick from: every class's three DPS ones (kit * 3 + choice, as its abilities are
         /// numbered), then the DPS fourth weapons after them, in class order (WildcardChoices + n: the Arc Knuckles are 18).
@@ -359,6 +360,13 @@ namespace Arena
             return i >= 0 ? WildcardChoices + i : (int)kit * WeaponsPerRole;
         }
 
+        static WeaponDef Fifth(Role role, Kit kit)
+        {
+            if (Weapons == null || (int)role >= 3 || (int)kit >= KitCount)
+                return null;
+            return fifth[(int)role * KitCount + (int)kit];
+        }
+
         static WeaponDef Fourth(Role role, Kit kit)
         {
             if (Weapons == null || (int)role >= 3 || (int)kit >= KitCount)
@@ -389,6 +397,8 @@ namespace Arena
             }
             if (index == WeaponsPerRole && Fourth(role, kit) != null)
                 return Fourth(role, kit);
+            if (index == WeaponsPerRole + 1 && Fifth(role, kit) != null)
+                return Fifth(role, kit);
             if (index < 0 || index >= WeaponsPerRole)
                 index = 0;
             return Weapons[((int)role * KitCount + (int)kit) * WeaponsPerRole + index];
@@ -399,10 +409,20 @@ namespace Arena
         {
             var all = new WeaponDef[3 * KitCount * WeaponsPerRole];
             var four = new WeaponDef[3 * KitCount];
+            var five = new WeaponDef[3 * KitCount];
             var seen = new bool[Enum.GetValues(typeof(WeaponId)).Length];
             foreach (var list in lists)
                 foreach (var w in list)
                 {
+                    if (w.Choice == WeaponsPerRole + 1 && (int)w.Kit < KitCount && w.Role != Role.Wildcard)
+                    {
+                        int f5 = (int)w.Role * KitCount + (int)w.Kit;
+                        if (five[f5] != null || seen[(int)w.Id])
+                            throw new InvalidOperationException(w.Id + ": two fifth weapons for one place, or two WeaponDefs");
+                        five[f5] = w;
+                        seen[(int)w.Id] = true;
+                        continue;
+                    }
                     if (w.Choice == WeaponsPerRole && (int)w.Kit < KitCount && w.Role != Role.Wildcard)
                     {
                         int f = (int)w.Role * KitCount + (int)w.Kit;
@@ -430,8 +450,12 @@ namespace Arena
                 if (!seen[i])
                     throw new InvalidOperationException("No WeaponDef for " + (WeaponId)i);
             fourth = four;
+            fifth = five;
             var withFourth = new List<WeaponDef>(all);
             foreach (var w in four)
+                if (w != null)
+                    withFourth.Add(w);
+            foreach (var w in five)
                 if (w != null)
                     withFourth.Add(w);
             return withFourth.ToArray();

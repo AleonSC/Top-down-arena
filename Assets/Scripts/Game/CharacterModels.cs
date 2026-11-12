@@ -120,6 +120,8 @@ namespace Arena
             Rgba RC = p.Def.Color;
             float[] sh = ModelBuild[role];
             mO = p.Disp; mAim = p.Aim; mDir = V2.FromAngle(p.Aim); mSide = new V2(-mDir.Y, mDir.X); mU = r / 18f; mT = t;
+            if (p.Weapon.Id == WeaponId.OutOfAmmo)
+                AmmoBody(p);  // the body turns and leans with the move (OutOfAmmoLook.cs)
             mO -= mDir * TwinJolt(p);  // the Twin Rifle's recoil jolts the whole body back (TwinRifleFx.cs)
             mAlpha = col.A; mWhite = p.Flash > 0f ? 0.85f : 0f;
             MFrame(0f, 0f, 0f, 1f, false);
@@ -133,6 +135,13 @@ namespace Arena
             if (p.Weapon.Id == WeaponId.BearTotem)  // a claw on each hand and the totem on the back, not a held weapon (BearLooks.cs)
             {
                 DrawBearModel(p, K, ry);
+                ModelHead(p, kit, role, K, RC, r, sh, t);
+                return;
+            }
+
+            if (p.Weapon.Id == WeaponId.OutOfAmmo)  // lashed rifles and a knife: its own arms (OutOfAmmoLook.cs)
+            {
+                DrawAmmoModel(p, K);
                 ModelHead(p, kit, role, K, RC, r, sh, t);
                 return;
             }
