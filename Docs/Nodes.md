@@ -40,6 +40,7 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
 - Claiming: `Expansion.Build(..., nodes)` makes a Combat room that encloses a shop or vendor node a Shop or Vendor room (all boxes of a multi-box room), so spawns, gold and the shop screens work unchanged.
 - Bots build the cheapest straight hallway to the nearest unclaimed node (`BotBuildsToFloater`).
 - Look: breathing ring and mark on the arena floor, a square on the minimap and the draw screen with its name (`RoomsLook.cs`, `ExpansionUi.cs`). Preview: `EXPANDFLOAT=1` with `EXPANDVOTE=0 EXPANDDRAW=0,-1200,300,1200`.
+- Nov 12 (owner): nodes placed off the start room sit `Expansion.StartExtra` (6 tiles) farther out.
 - Not yet: a fixture drawn inside the claimed room (step 3).
 - Old saves with floating shop or vendor rooms still load and work as before.
 
