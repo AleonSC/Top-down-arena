@@ -7,6 +7,9 @@ namespace Arena
     /// is open (beaten in a run), locked, or still to come; the picked one's details and this player's hunt records.
     public partial class ArenaApp
     {
+        /// A boss the Boss Hunt list names: beaten at least once (or its hunt opened), else a "???" row like the Quick Play tab's pool.
+        static bool HuntKnown(EnemyType boss, bool open, Profile profile) => open || (profile != null && profile.Beaten(boss) > 0);
+
         static readonly Color HuntColor = new Color(0.95f, 0.42f, 0.32f);
 
         // The boss drum: an endless vertical loop with the picked boss on top. huntTarget counts rows without end (its boss is
@@ -99,6 +102,7 @@ namespace Arena
             var topBoss = bosses[ti];
             var topHunt = Hunts.Get(topBoss);
             bool can = Hunts.Available(topHunt, profile);
+            bool topKnown = HuntKnown(topBoss, can, profile);
             if (host && can && session.HuntBoss != topBoss)
                 session.SetHuntBoss(topBoss);
             huntLastBoss = session.HuntBoss;
@@ -122,6 +126,7 @@ namespace Arena
                 var boss = bosses[i];
                 var hunt = Hunts.Get(boss);
                 bool open = Hunts.Available(hunt, profile);
+                bool known = HuntKnown(boss, open, profile);
                 bool top = Mathf.Abs(wv) < 0.5f;
                 bool hover = host && c.Contains(ev.mousePosition) && ev.mousePosition.y > bodyY && ev.mousePosition.y < bodyY + viewH;
                 Ui.Alpha = oldAlpha * a;
@@ -137,7 +142,9 @@ namespace Arena
                 }
                 Color tc = open || top ? CrtKit.SoftText(acc, hover || top) : new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.6f);
                 Ui.Label(new Rect(c.x + 8f, c.y, 20f, c.height), (i + 1).ToString("00"), 10, new Color(tc.r, tc.g, tc.b, 0.6f), TextAnchor.MiddleLeft);
-                CrtUi.Text(new Rect(c.x + 70f, c.y, c.width - 70f - 78f, c.height), BossName(boss), 14, tc, TextAnchor.MiddleLeft, true, false);
+                CrtUi.Text(new Rect(c.x + 70f, c.y, c.width - 70f - 78f, c.height), known ? BossName(boss) : "???", 14, tc, TextAnchor.MiddleLeft, true, false);
+                if (!known)  // a boss never beaten: a "?" where its portrait goes, as on the Quick Play tab
+                    CrtUi.Text(new Rect(c.x + 30f, c.y, 36f, c.height), "?", 26, new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, top ? 0.9f : 0.6f), TextAnchor.MiddleCenter, true, CabCalm);
                 string chip = hunt == null ? "SOON" : !open ? "LOCKED" : profile.HuntWon(boss) > 0 ? "WON x" + profile.HuntWon(boss) : "OPEN";
                 Color cc = hunt == null ? FadedBlue(0.55f) : !open ? HuntColor : profile.HuntWon(boss) > 0 ? Ui.Gold : new Color(0.5f, 0.88f, 0.69f);
                 HuntChip(c.xMax - 8f, c.center.y, chip, cc);
@@ -156,7 +163,7 @@ namespace Arena
 
             // Right: the top boss's dossier.
             float x2 = x + listW + 14f, w2 = w - listW - 14f, y2 = bodyY;
-            string name = BossName(topBoss);
+            string name = topKnown ? BossName(topBoss) : "this boss";
             var scope = new Rect(x2, y2, w2, Mathf.Min(220f, bodyH * 0.38f));
             Ui.Fill(scope, new Color(0.012f, 0.067f, 0.04f, 1f));  // phosphor green screen (the mockup's #03110a)
             Ui.Fill(new Rect(scope.x + scope.width * 0.15f, scope.y + scope.height * 0.15f, scope.width * 0.7f, scope.height * 0.7f), new Color(0.04f, 0.16f, 0.1f, 0.55f));
@@ -176,9 +183,11 @@ namespace Arena
             var dim = new Color(ink.r, ink.g, ink.b, 0.7f);
             LobbyKit.Spaced(new Rect(scope.x + 10f, scope.y + 6f, 160f, 16f), "TARGET LOCK", 11, PhosGreen, TextAnchor.MiddleLeft, 2f);
             LobbyKit.Spaced(new Rect(scope.xMax - 170f, scope.y + 6f, 160f, 16f), (ti + 1).ToString("00") + " / 10", 11, Ui.Gold, TextAnchor.MiddleRight, 2f);
-            Ui.Glitch(new Rect(x2, y2, w2, 28f), (topHunt != null ? topHunt.Name : name).ToUpperInvariant(), 20, Color.white, TextAnchor.MiddleLeft);
+            if (!topKnown)
+                CrtUi.Text(scope, "?", 72, new Color(PhosGreen.r, PhosGreen.g, PhosGreen.b, 0.7f), TextAnchor.MiddleCenter, true, CabCalm);
+            Ui.Glitch(new Rect(x2, y2, w2, 28f), !topKnown ? "???" : (topHunt != null ? topHunt.Name : name).ToUpperInvariant(), 20, Color.white, TextAnchor.MiddleLeft);
             y2 += 32f;
-            string copy = topHunt == null ? name + " has no hunt yet."
+            string copy = topHunt == null ? (topKnown ? name + " has no hunt yet." : "Unknown boss: meet it in a run to learn more.")
                 : !can ? (host ? "Locked: beat " + name + " in a run to open this hunt." : "Locked for the host.")
                 : "Waves 1-" + (Hunts.Length - 1) + ": only " + name + "'s own enemies, tougher ones joining as you go. Wave " + Hunts.Length + ": " + name + ". Beat it and the hunt is won.";
             Ui.Label(new Rect(x2, y2, w2, 42f), copy, 13, can ? Ui.Text : topHunt == null ? Ui.Muted : Ui.Warn, TextAnchor.UpperLeft, false, true);
@@ -227,7 +236,7 @@ namespace Arena
                 float oldGl = glAlpha;
                 for (int i = 0; i < count; i++)
                 {
-                    if (rowAlpha[i] <= 0.01f)
+                    if (rowAlpha[i] <= 0.01f || !HuntKnown(bosses[i], Hunts.Available(Hunts.Get(bosses[i]), profile), profile))
                         continue;
                     var c = rowRects[i];
                     glAlpha = rowAlpha[i];
@@ -236,7 +245,8 @@ namespace Arena
                 }
                 glAlpha = oldGl;
                 UiClip(new Rect(scope.x + 2f, scope.y + 22f, scope.width - 4f, scope.height - 44f));
-                DrawEnemyPreview(topBoss == EnemyType.TwinB ? EnemyType.TwinA : topBoss, new V2(scope.center.x, scope.center.y), scope.height - 56f, t, true);
+                if (topKnown)
+                    DrawEnemyPreview(topBoss == EnemyType.TwinB ? EnemyType.TwinA : topBoss, new V2(scope.center.x, scope.center.y), scope.height - 56f, t, true);
                 EndUiGl();
             }
             // CRT finish over the scope (and the model): scan lines, then a vignette toward the edges.
