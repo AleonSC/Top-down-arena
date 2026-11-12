@@ -3,6 +3,10 @@
 Status: **step 1 built** (the framework and the Warden's faction, November 2026); the **Lich's faction is built too, out of order, as zombies** (below); the rest planned. Decisions below were made with the owner; numbers are first
 guesses to tune in play-testing and the Boss Lab.
 
+> **Campaign update:** the Campaign is now 100 waves with a boss after every **10th** (Docs/RunLength.md), so an approach
+> is **ten waves**, not four. "Waves 1-4" and the share/ramp numbers below describe the old 50-wave track; the Campaign
+> uses the rolling introduction in "Campaign: ten waves per boss" (proposed, replaces the share/ramp there).
+
 ## The idea
 
 The bosses always come in the same order (Warden after wave 5, Hive Queen after 10, ... Eclipse after 50, each its own fight between waves). The five regular waves
@@ -161,6 +165,42 @@ and legendaries, so a chapter would start you at the level, picks and legendarie
 - Should the ramp be on by default, or the whole stretch even? (Decide after playing step 1.)
 - Waves 1-4 now have a theme: does that settle `Docs/Paths.md`'s question about a path choice for them?
 - Do faction enemies stay out of regular waves entirely, or show up rarely elsewhere once you've met them?
+
+## Campaign: ten waves per boss (proposed, owner's idea)
+
+Instead of a themed share that ramps up, each faction enemy is **introduced one at a time**: it first **trickles in
+as stragglers in the second half** of its intro wave (alone, so you learn it), then **joins the squads** the next
+wave while the next new enemy trickles in. The rest of each wave stays the usual random mix. Ten waves leave room
+for the Warden's whole roster, then a few waves of everything together.
+
+| Wave | Squads (from earlier waves) | Stragglers, second half (new) |
+|---|---|---|
+| 1 | none | **Rioter** (+ Guard as plain chasers) |
+| 2 | Rioters | **Security Guard** |
+| 3 | Rioters + Security Guards | **Riot Shield** |
+| 4 | + Riot Shields | **Gas Grenadier** |
+| 5 | recap: all four in squads (breather) | none |
+| 6 | all four | **Taser Guard** |
+| 7 | all five together (tasers, shields and gas) | none |
+| 8 | the named squads: Breakout, Patrol, Cell block | Tasers (the newest) |
+| 9 | everything, tighter | none |
+| 10 | the exam: the Riot Line (`Finale`) | none |
+
+This is the current `Lessons` list with the straggler timing added; waves 1-4 and 6 keep their star enemy.
+
+**Other bosses (rule):** with N faction enemies, introduce one at waves 1, 3, 5... spread over waves 1-6 (one per
+wave when N is 5-6, every second wave when N is 3-4); wave 7 is all of them in squads, 8 the named squads, 9 everything tighter, 10 the
+`Finale`. Rosters under 3 (Twin Reapers) borrow a regular enemy, as in the faction table; the Lich keeps its zombie
+kinds; the Eclipse's Echoes introduce one earlier faction per wave.
+
+**Engineering:** `WaveLesson` gains `Trickle` (the `Star`'s spawns are held to the wave's second half instead of
+queued up front) and `SquadsFrom` (which earlier members squads may use). The share/ramp knobs stay for the old 50-wave
+track and are ignored in the Campaign. Waves are built on the host, so no wire change and no protocol bump unless
+a new enemy is added. Tests (`approaches`): each intro enemy appears only after its wave's halfway point and only
+as its intro wave's star; squads use only already-introduced members; wave 10 is unchanged.
+
+**Open:** the order for the Warden (Taser last, as the trickiest, vs. shields earlier); whether wave 5 should stay a
+pure recap.
 
 ## The Riot Line (built, November 2026)
 
