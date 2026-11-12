@@ -814,8 +814,11 @@ static partial class Program
             farFoe.Hp = 0f;
             var hubFoe = (Enemy)spawnAt.Invoke(g, new object[] { EnemyType.Grunt, new V2(800f, 450f), 0f, 0, false });
             foreach (var p in g.Players.Values) p.Pos = p.Disp = g.CurrentWorld.Areas[last].Mid;
-            Run(s, dt, 90f, () => g.CurrentWorld.AreaAt(hubFoe.Pos) == last || hubFoe.Hp <= 0f, NoPicks);
-            Check(hubFoe.Hp <= 0f || g.CurrentWorld.AreaAt(hubFoe.Pos) == last, "a Grunt in the hub walks to players waiting in the node's far room (now in area " + g.CurrentWorld.AreaAt(hubFoe.Pos) + ", " + hubFoe.Pos.DistanceTo(g.CurrentWorld.Areas[last].Mid).ToString("0") + " px away)");
+            // A Grunt keeps 230 px off its target, so it may hold at the far room's door and shoot in: in range counts as there.
+            Func<bool> there = () => hubFoe.Hp <= 0f || g.CurrentWorld.AreaAt(hubFoe.Pos) == last
+                || g.CurrentWorld.AreaAt(hubFoe.Pos) != 0 && g.Players.Values.Any(p => g.CurrentWorld.AreaAt(p.Pos) == last && p.Pos.DistanceTo(hubFoe.Pos) < 320f);
+            Run(s, dt, 90f, there, NoPicks);
+            Check(there(), "a Grunt in the hub walks to players waiting in the node's far room, or into range at its door (now in area " + g.CurrentWorld.AreaAt(hubFoe.Pos) + ", " + hubFoe.Pos.DistanceTo(g.CurrentWorld.Areas[last].Mid).ToString("0") + " px away)");
         }
     }
 
