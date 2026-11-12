@@ -150,7 +150,7 @@ namespace Arena
             w.Write(quick);
             if (quick)
             {
-                var order = QuickPlay.MakeOrder(new Random(), Profile == null || Profile.QuickPlays == 0);
+                var order = QuickPlay.OrderOverride ?? QuickPlay.MakeOrder(new Random(), Profile == null || Profile.QuickPlays == 0);
                 w.Write((byte)order.Length);
                 foreach (var b in order)
                     w.Write((byte)b);
