@@ -439,8 +439,7 @@ namespace Arena
         /// A mini-boss duel is won (the Wings vault or an Expanding Gatekeeper room): a prize pick for everyone, sometimes a legendary.
         void GrantVaultPrize(V2 at)
         {
-            int next = (Wave + 4) / 5 * 5;  // the boss this cycle leads up to
-            var bossType = BossForWave(Math.Min(MaxWave, Math.Max(5, next)));
+            var bossType = BossAt(Math.Min(MaxWave, Bosses.NextBossWaveFrom(Wave)));  // the boss this cycle leads up to
             var key = IsReaper(bossType) ? EnemyType.TwinA : bossType;
             foreach (var p in Players.Values)
             {

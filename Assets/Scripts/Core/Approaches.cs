@@ -143,13 +143,14 @@ namespace Arena
                 else
                     list.Add(new Slice { Faction = f, Share = share, Current = cur, Pool = poolPart });
             };
-            add(Game.BossForWave(5 * (cycle + 1)), 1f - fade - pool, true, 0f);
+            var order = BossSchedule.Campaign;  // (the Campaign's own faction mix)
+            add(order.BossAt(5 * (cycle + 1)), 1f - fade - pool, true, 0f);
             if (cycle >= 1)
-                add(Game.BossForWave(5 * cycle), fade, false, 0f);
+                add(order.BossAt(5 * cycle), fade, false, 0f);
             var older = new List<EnemyType>();
             for (int j = 1; j < cycle; j++)
-                if (For(Game.BossForWave(5 * j)) != null)
-                    older.Add(Game.BossForWave(5 * j));
+                if (For(order.BossAt(5 * j)) != null)
+                    older.Add(order.BossAt(5 * j));
             foreach (var b in older)
                 add(b, pool / older.Count, false, pool / older.Count);
             return list;
@@ -195,13 +196,6 @@ namespace Arena
             return e.Def.Xp;
         }
 
-        /// The boss this wave leads up to (the next boss wave's), whether or not it has a faction.
-        public static EnemyType ApproachBoss(int wave) => BossForWave((wave + 4) / 5 * 5);
-
-        /// Which of the four approach steps this regular wave is: 1 (furthest from the boss) to 4 (the fourth and fifth waves
-        /// of a cycle are both 4, the fifth brings the set piece); 0 before wave 1.
-        public static int ApproachStep(int wave) => wave <= 0 ? 0 : Math.Min(4, (wave - 1) % 5 + 1);
-
         /// The themed share of this wave (0 to 1): 0 on boss waves, for bosses without a faction, or when it's turned off.
         public float ApproachShare(int wave)
         {
@@ -241,7 +235,7 @@ namespace Arena
             {
                 if (ApproachStepAt(n) == 0)
                     return;
-                int step = ApproachStep(n);
+                int step = ApproachStepAt(n);
                 FactionDef cbFrom;
                 var cb = Approaches.Comeback(n, out cbFrom);  // (a comeback squad takes the older pool's slice this wave)
                 foreach (var sl in Approaches.Campaign(n))  // (every faction's enemies, each by its slice; the rest stays the usual mix)
@@ -250,7 +244,7 @@ namespace Arena
                     if (themed > 0 && sl.Current && LessonNow(sl.Faction) != null)
                         PickLesson(sl.Faction, LessonNow(sl.Faction), ref count, themed);  // a Campaign's teaching cycle: this wave's lesson
                     else if (themed > 0)
-                        PickFaction(sl.Faction, sl.Current ? step : 99, sl.Current && (n - 1) % 5 == 4, ref count, themed);  // (older factions are in full; only the next boss's builds up)
+                        PickFaction(sl.Faction, sl.Current ? step : 99, sl.Current && Bosses.FinaleWave(n), ref count, themed);  // (older factions are in full; only the next boss's builds up)
                 }
                 if (cb != null)
                 {
@@ -266,13 +260,13 @@ namespace Arena
             int themed1 = Math.Min(count, (int)Math.Round(of * share));
             if (themed1 <= 0)
                 return;
-            int reach = Hunt != null ? Hunts.Step(n) : ApproachStep(n);  // (a hunt's nine waves reach through the faction as a run's four do)
+            int reach = ApproachStepAt(n);  // (a hunt's nine waves reach through the faction as a run's four do)
             if (LessonNow(f) != null)
             {
                 PickLesson(f, LessonNow(f), ref count, themed1);
                 return;
             }
-            PickFaction(f, reach, Hunt != null ? Hunts.FinaleWave(n) : (n - 1) % 5 == 4, ref count, themed1);
+            PickFaction(f, reach, Bosses.FinaleWave(n), ref count, themed1);
         }
 
         /// Takes `themed` enemies off `count` and picks them from a faction: squads where they fit, singles for the rest.

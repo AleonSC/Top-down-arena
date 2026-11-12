@@ -62,7 +62,7 @@ namespace Arena
             var ev = Event.current;
             var bosses = new EnemyType[count];
             for (int i = 0; i < count; i++)
-                bosses[i] = Game.BossForWave((i + 1) * 5);
+                bosses[i] = BossSchedule.Campaign.BossAt((i + 1) * 5);
             int hi = Mathf.Max(0, Array.IndexOf(bosses, session.HuntBoss));
             if (!huntInit)
             {

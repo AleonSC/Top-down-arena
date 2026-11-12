@@ -7,7 +7,7 @@ namespace Arena
     public partial class Game
     {
         // A different boss every 5 waves up to the final one at 50; endless mode then cycles through them.
-        static readonly EnemyType[] BossCycle =
+        internal static readonly EnemyType[] BossCycle =  // the Campaign's order (BossSchedule.cs)
         {
             EnemyType.Boss, EnemyType.HiveQueen, EnemyType.TwinA, EnemyType.Singularity, EnemyType.Colossus,
             EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse,
@@ -26,8 +26,6 @@ namespace Arena
         const float SpinnerCycle = 3.3f, SpinnerBurst = 1.3f;  // Spinner: spray for 1.3 s out of every 3.3 s
         const float CrossPlant = 3f, CrossDash = 1f;  // the Warden's cross: each plant, dash 1 s to a new spot, then fire for 2 s
 
-        /// The boss that appears on a boss wave (every 5th).
-        public static EnemyType BossForWave(int wave) => BossCycle[(Math.Max(5, wave) / 5 - 1) % BossCycle.Length];
 
         // Replicated to clients in the snapshot.
         public V2 PullCenter;      // The Singularity's gravity well
@@ -113,7 +111,7 @@ namespace Arena
             spawnQueue.Clear();
             squadQueue.Clear();
             bossRewarded = false;
-            if (Hunt != null ? IsBossWave(n) : BossSlot)
+            if (Bosses.Slotted ? BossSlot : IsBossWave(n))
             {
                 switch (BossAt(n))  // (a hunt's boss on its last wave; Hunts.cs)
                 {

@@ -21,8 +21,8 @@ namespace Arena
                 }
                 else
                 {
-                    head = "APPROACH  ·  " + Defs.Get(Game.ApproachBoss(game.Wave)).Name.ToUpperInvariant();
-                    count = Game.ApproachStep(game.Wave) + "/4";
+                    head = "APPROACH  ·  " + Defs.Get(game.ApproachBossAt(game.Wave)).Name.ToUpperInvariant();
+                    count = game.ApproachStepAt(game.Wave) + "/4";
                 }
             }
             string tag = game.LayoutOn && game.ActiveLayout != null ? game.ActiveLayout.Name.ToUpperInvariant() : null;

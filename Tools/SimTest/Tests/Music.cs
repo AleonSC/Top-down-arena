@@ -16,7 +16,7 @@ static partial class Program
         recipes.Add(new KeyValuePair<string, Func<float[]>>("battle", () => GameMusic.Render(GameMusic.Battle)));
         var bosses = new HashSet<EnemyType>();
         for (int wave = 5; wave <= Game.MaxWave; wave += 5)
-            bosses.Add(Game.BossForWave(wave));
+            bosses.Add(BossSchedule.Campaign.BossAt(wave));
         foreach (var boss in bosses)
         {
             var b = boss;
