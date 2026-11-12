@@ -42,6 +42,13 @@ static partial class Program
                 }
                 int floor = o.Rooms.Sum(r => r.W * r.H / 10000);
                 Check(ok && floor == tiles[(int)s], Expansion.SurpriseName(s) + " spot " + i + ": free, one room, connected, no overlap, " + floor + " tiles");
+                if (s == SurpriseShape.Stash)  // the cache sits in the middle: no cover on it (and the room still gets some)
+                {
+                    var rm = o.Rooms[0]; V2 mid = new V2((rm.X + rm.X1) / 2f, (rm.Y + rm.Y1) / 2f);
+                    bool clearMid = w.Cover.All(c => c.Round ? c.Pos.DistanceTo(mid) > c.R + 40f : Math.Abs(c.Pos.X - mid.X) > c.HW + 40f || Math.Abs(c.Pos.Y - mid.Y) > c.HH + 40f);
+                    int inside = w.Cover.Count(c => c.Pos.X > rm.X && c.Pos.X < rm.X1 && c.Pos.Y > rm.Y && c.Pos.Y < rm.Y1);
+                    Check(clearMid && inside > 0, "Stash spot " + i + ": cover in the room (" + inside + "), none on the cache");
+                }
             }
         }
         // The ring is a loop: its lane joins all the way round (every piece has two neighbours or more).
@@ -193,6 +200,16 @@ static partial class Program
         Run(s, dt, 1.5f, () => cg.Expanded[si].Claimed);
         Check(g.Expanded[si].Claimed && cg.Expanded[si].Claimed && gp.Vectors == 10 + Game.StashVectors, "the player who walks in takes the cache (+" + Game.StashVectors + ") and the friend sees it taken (" + gp.Vectors + ")");
         Check(g.Expanded.Count == count && g.Expanded.Where(r => r.Surprise == stashKind && !r.Claimed).Count() == stashes.Count - 1, "only that Stash's cache is taken");
+        // Step 4: a Stash does not close its breach; each breach lets its share in, then stops (the rest come the usual way).
+        var nb = g.ActiveBreaches.Length;
+        Check(nb == before.Count - 1, "the breaches with a Stash behind them stay open (" + nb + " of " + before.Count + ")");
+        var bfl = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        typeof(Game).GetField("breachTotal", bfl).SetValue(g, 6);
+        typeof(Game).GetField("breachUsed", bfl).SetValue(g, new int[nb]);
+        var spot = typeof(Game).GetMethod("BreachSpot", bfl, null, new[] { typeof(float) }, null);
+        int quota = Breaches.Quota(6, nb), got = 0;
+        for (int k = 0; k < nb * quota; k++) got += spot.Invoke(g, new object[] { 20f }) != null ? 1 : 0;
+        Check(nb > 0 && got == nb * quota && spot.Invoke(g, new object[] { 20f }) == null, "each breach lets its " + quota + " in, then none (" + got + " came through " + nb + " breaches)");
         int vecNow = gp.Vectors;
         gp.Pos = gp.Disp = new V2(st0.X - 400, st0.Y - 400);
         Run(s, dt, 0.5f, () => false);
