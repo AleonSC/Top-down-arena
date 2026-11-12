@@ -94,7 +94,7 @@ namespace Arena
         V2 WardenFactionMove(Enemy e, V2 tpos, V2 dir, float dist, ref float speed)
         {
             if (e.Type == EnemyType.GasGrenadier)
-                return KeepDistance(dir, dist, GrenadierRange) + dir.Orthogonal() * e.Strafe * 0.5f;
+                return e.Winding ? V2.Zero : KeepDistance(dir, dist, GrenadierRange) + dir.Orthogonal() * e.Strafe * 0.5f;  // plants its feet for the lob
             if (e.Type == EnemyType.SecurityGuard)
                 return SecurityMove(e, dir, dist);  // SecurityGuard.cs
             if (e.Type == EnemyType.TaserGuard)
@@ -368,12 +368,40 @@ namespace Arena
 
         // --- Gas Grenadier ---------------------------------------------------------------------------------------------
 
+        // An overhand lob (Docs/Mockups/gas-grenadier-throw.html option A, Game/GasLobLook.cs): when the wind-up starts it picks the spot near you and shows
+        // the ring (FxKind.GasLob: the arm goes back, the canister rises, the ring fills); GrenadierSwing before the throw is the
+        // swing; the cloud lands GasFlight later on that spot, so you can walk out of it. It plants its feet meanwhile.
+        public const float GrenadierWindUp = 0.85f, GrenadierSwing = 0.22f;
+        static readonly Rgba GasLobColor = new Rgba(0.6f, 0.95f, 0.4f);
+
+        /// Host, once a tick while it's firing normally: locks the landing spot as the wind-up begins (Winding is true for the last
+        /// GrenadierWindUp + GrenadierSwing s before the throw) and tells everyone how long is left.
+        void GrenadierWind(Enemy e, V2 tpos, float rateNow)
+        {
+            if (!e.Winding)
+            {
+                e.GasLocked = false;
+                return;
+            }
+            if (e.GasLocked)
+                return;
+            e.GasLocked = true;
+            e.GasAt = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 50f), 60f);
+            float left = Math.Max(0f, e.FireT / Math.Max(0.01f, rateNow));
+            BroadcastFx(FxKind.GasLob, e.GasAt, new V2(e.Id, GasFlight), GasLobColor, GrenadierGasRadius, left + GasFlight, Sfx.None);
+        }
+
         void GrenadierFire(Enemy e, V2 tpos)
         {
             e.FireT = GrenadierEvery;
-            V2 at = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 50f), 60f);
-            SpawnPatchAt(PatchKind.Gas, at, GasFlight, GasFlight + GrenadierGasLife, GrenadierGasRadius, GrenadierGasRadius);
-            BroadcastFx(FxKind.Target, at, new Rgba(0.6f, 0.95f, 0.4f), GrenadierGasRadius, GasFlight, Sfx.Throw);
+            if (!e.GasLocked)  // no wind-up seen (it fired the moment it spawned): an instant lob
+            {
+                e.GasAt = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 50f), 60f);
+                BroadcastFx(FxKind.GasLob, e.GasAt, new V2(e.Id, GasFlight), GasLobColor, GrenadierGasRadius, GasFlight, Sfx.None);
+            }
+            e.GasLocked = false;
+            SpawnPatchAt(PatchKind.Gas, e.GasAt, GasFlight, GasFlight + GrenadierGasLife, GrenadierGasRadius, GrenadierGasRadius);
+            BroadcastFx(FxKind.GasLob, e.Pos, new V2(e.Id, -1f), GasLobColor, GrenadierGasRadius, 0.3f, Sfx.Throw);  // the release cue
         }
 
         // --- Taser Guard ---------------------------------------------------------------------------------------------

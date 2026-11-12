@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 295: Gas Grenadier overhand lob: new `FxKind.GasLob` (at the end of the enum; Pos = landing spot, Pos2 = (grenadier id, flight s), Pos2.Y = -1 for the release cue); the grenadier's `Winding` now covers its 1.07 s wind-up.
 - 294: Out of Ammo (`WeaponId.OutOfAmmo`, the Twin Rifle's second variant, pick 4): the player snapshot carries `AmmoMove`, `AmmoSeq`, `SwatSeqL`, `SwatSeqR` (bytes), `SwatAngL`, `SwatAngR`, `AmmoSpin` (floats) after `TwinLock`; `Msg.WeaponDash` kind `DashSpin` (27)
 - 293: Twin Rifle Auto (`WeaponId.TwinRifleAuto`, Soldier DPS 4th weapon): the player snapshot carries `Player.TwinAimL`, `TwinAimR` (floats) and `TwinLock` (int) after `TwinCharge`; `Msg.WeaponDash` kind `DashLock` (26)
 - 292: built rooms of every size grow side walls (small rooms and narrow strips too; derived from the map, so both ends must build the same walls).

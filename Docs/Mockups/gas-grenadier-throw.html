@@ -1,0 +1,395 @@
+<title>Gas Grenadier Throw</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one live arena up top (move the cursor, the grenadier tracks you), a timeline under it, key frames, then the three throws side by side.
+   Single dark look on purpose: it mirrors the game's CRT field-manual mockups. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2;
+  --gas: #9eeb6b; --amber: #ffb547; --player: #9fdcff;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1160px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(28px, 5vw, 44px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--gas); }
+h2 { font-size: 20px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 70ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header, section { display: grid; gap: 12px; min-width: 0; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+.status { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; padding: 10px 16px; border-bottom: 1px solid var(--line); font: 500 12px var(--font-data); color: var(--muted); }
+.status b { color: var(--fg); font-weight: 500; }
+.status .ph { color: var(--amber); }
+canvas { display: block; width: 100%; max-width: 100%; height: auto; background: #070910; }
+#arena { aspect-ratio: 960 / 525; cursor: crosshair; touch-action: none; }
+.bar { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--line); }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.tabs button, .ctl button { font: 600 13px var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--soft); background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 7px 12px; cursor: pointer; }
+.tabs button[aria-checked="true"] { color: #0a0d10; background: var(--gas); border-color: var(--gas); }
+.tabs button:hover:not([aria-checked="true"]), .ctl button:hover { border-color: var(--edge); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--player); outline-offset: 2px; }
+.ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-left: auto; font: 500 12px var(--font-data); color: var(--muted); }
+.tl { position: relative; display: flex; height: 38px; margin: 0 16px 14px; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; cursor: pointer; background: var(--panel-2); touch-action: none; }
+.tl div.seg { display: grid; place-items: center; font: 600 10px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--bg); overflow: hidden; white-space: nowrap; border-right: 1px solid var(--bg); }
+.tl #head { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; box-shadow: 0 0 6px #fff; pointer-events: none; }
+
+.frames { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.frame { display: grid; gap: 6px; min-width: 0; }
+.frame canvas { aspect-ratio: 960 / 525; border: 1px solid var(--line); border-radius: 6px; }
+.frame .cap { display: flex; justify-content: space-between; gap: 8px; font: 500 12px var(--font-data); color: var(--muted); }
+.frame .cap b { font: 700 12px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--gas); }
+
+.cmp { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.opt { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.opt[data-on="1"] { border-color: var(--gas); }
+.opt .tag { font: 700 12px var(--font-display); letter-spacing: 0.14em; color: var(--gas); }
+.opt p { font-size: 15px; color: var(--soft); }
+.opt dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; font: 500 12px var(--font-data); color: var(--muted); }
+.opt dd { margin: 0; color: var(--fg); text-align: right; font-variant-numeric: tabular-nums; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 90ch; color: var(--soft); }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Gas Grenadier · redesign mockup</div>
+    <h1>Gas Grenadier <span>Throw</span></h1>
+    <p class="lead">Today the grenadier has no wind-up: the target ring appears the moment the canister leaves its hand. These three throws add a readable tell, an arm that actually swings, and a canister that flies in an arc. Move the cursor over the arena; the grenadier marks a spot near you and throws.</p>
+    <p class="lead" style="font-size:14px;color:var(--muted)">Approximate: drawn in a browser canvas with the same body, mask and gas colours, not by the game's draw code.</p>
+  </header>
+
+  <section>
+    <div class="stage">
+      <div class="status"><span>Throw <b id="sName">Overhand Lob</b></span><span>Phase <b class="ph" id="sPhase">rest</b></span><span><b id="sTime">0.00</b> s of <b id="sTotal">0.0</b> s</span></div>
+      <canvas id="arena" width="960" height="525" aria-label="Gas grenadier arena preview"></canvas>
+      <div class="bar">
+        <div class="tabs" role="radiogroup" aria-label="Throw style" id="tabs"></div>
+        <div class="ctl">
+          <button id="play" type="button">Pause</button>
+          <button id="spd" type="button">Speed 1×</button>
+        </div>
+      </div>
+      <div class="tl" id="tl" role="slider" aria-label="Timeline scrubber" tabindex="0"><div id="head"></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Key frames</h2>
+    <div class="frames" id="frames"></div>
+  </section>
+
+  <section>
+    <h2>The three throws</h2>
+    <div class="cmp" id="cmp"></div>
+  </section>
+
+  <section class="notes">
+    <h2>To build the chosen one</h2>
+    <ul>
+      <li><b>Lock the spot when the wind-up starts</b>, not at the throw. The ring marks where the canister will land, so you can leave it.</li>
+      <li><code>GrenadierFire</code> in <code>WardenFaction.cs</code> splits into wind-up, throw and recovery; the gas patch spawns at the throw. The target ring (<code>FxKind.Target</code>) is shown from the wind-up instead of from the throw.</li>
+      <li><code>DrawGrenadier</code> in <code>WardenLook.cs</code> reads a wind-up state to pose the arm, glow the lenses and show the canister in the air.</li>
+      <li>A new enemy state is synced to guests, so the protocol version goes up.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(function () {
+  var K = 1.8, R = 70 * K, ER = 14 * K, W = 960, H = 525;
+  var E = { x: 190, y: 262 };
+  var GAS = [158, 235, 107], AMB = [255, 181, 71];
+  // hold = hand at the end of the tell, back = mid-throw cocked, ext = release; u = forward, v = sideways (in body radii).
+  var SPECS = [
+    { id: 'lob', tag: 'A', name: 'Overhand Lob', rest: 0.5, tell: 0.85, thr: 0.22, fl: 0.85, cloud: 2.2, arc: 150, lift: 16,
+      hold: [-0.9, 1.15], back: [-0.9, 1.15], ext: [1.9, 0.5], lean: 3, arcPreview: true, fill: 'sweep',
+      blurb: 'The arm goes back and the canister rises over its head while the ring fills. A dotted arc shows the lob. Then a fast overhand swing and a high, slow throw.' },
+    { id: 'pin', tag: 'B', name: 'Pin and Hold', rest: 0.5, tell: 1.3, thr: 0.2, fl: 0.7, cloud: 2.2, arc: 110, lift: 8,
+      hold: [0.55, 0.15], back: [-0.7, 1.05], ext: [2.0, 0.4], lean: 2, arcPreview: true, fill: 'ticks',
+      blurb: 'It pulls the pin with a visible flick, holds the canister at its chest and flashes faster as the ring ticks around. Longest warning, then a wind-up and throw.' },
+    { id: 'under', tag: 'C', name: 'Quick Underhand', rest: 0.5, tell: 0.5, thr: 0.16, fl: 0.6, cloud: 2.2, arc: 60, lift: 0,
+      hold: [0.1, 0.9], back: [-0.2, 0.9], ext: [1.6, 0.3], lean: 1, arcPreview: false, fill: 'flash',
+      blurb: 'A short crouch and a low underhand toss. Shorter tell and a flatter arc for groups of grenadiers, where three long tells would crowd the screen.' }
+  ];
+  SPECS.forEach(function (s) { s.total = s.rest + s.tell + s.thr + s.fl + s.cloud; });
+
+  function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
+  function ease(x) { x = clamp(x, 0, 1); return x * x * (3 - 2 * x); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function mix(a, b, t) { return [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)]; }
+  function rgba(c, a) { return 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + clamp(a, 0, 1).toFixed(3) + ')'; }
+
+  function phase(s, T) {
+    var a = 0, L = [['rest', s.rest], ['tell', s.tell], ['throw', s.thr], ['flight', s.fl], ['cloud', s.cloud]];
+    for (var i = 0; i < L.length; i++) { if (T < a + L[i][1]) return { n: L[i][0], p: (T - a) / L[i][1], t0: a, d: L[i][1] }; a += L[i][1]; }
+    return { n: 'cloud', p: 1, t0: a, d: s.cloud };
+  }
+
+  // Hand in local (u,v) body radii, canister height z, and whether it still holds the canister.
+  function handLocal(s, ph) {
+    var rest = [0.3, 0.95], u, v, z = 0, has = true, p = ph.p;
+    if (ph.n === 'rest') { u = rest[0]; v = rest[1]; }
+    else if (ph.n === 'tell') {
+      var e = ease(p);
+      u = lerp(rest[0], s.hold[0], e); v = lerp(rest[1], s.hold[1], e); z = s.lift * e;
+      if (s.id === 'pin') { var sh = Math.sin(p * p * 90) * 0.05 * p; u += sh; v += sh; }
+    } else if (ph.n === 'throw') {
+      z = s.lift * (1 - ease((p - 0.35) / 0.65));
+      if (p < 0.35) { var e1 = ease(p / 0.35); u = lerp(s.hold[0], s.back[0], e1); v = lerp(s.hold[1], s.back[1], e1); }
+      else { var e2 = clamp((p - 0.35) / 0.65, 0, 1); e2 *= e2; u = lerp(s.back[0], s.ext[0], e2); v = lerp(s.back[1], s.ext[1], e2); }
+    } else if (ph.n === 'flight') {
+      var e3 = ease(ph.p * 2.2); u = lerp(s.ext[0], rest[0], e3); v = lerp(s.ext[1], rest[1], e3); has = false;
+    } else { u = rest[0]; v = rest[1]; has = ph.p > 0.55; z = 0; }
+    return { u: u, v: v, z: z, has: has };
+  }
+  function toWorld(f, u, v) { var sd = { x: -f.y, y: f.x }; return { x: E.x + f.x * u * ER + sd.x * v * ER, y: E.y + f.y * u * ER + sd.y * v * ER }; }
+
+  function ring(c, x, y, r, col, lw, dash) {
+    c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.strokeStyle = col; c.lineWidth = lw;
+    c.setLineDash(dash || []); c.stroke(); c.setLineDash([]);
+  }
+
+  function draw(c, s, T, lock, P, small) {
+    var ph = phase(s, T), p = ph.p;
+    c.clearRect(0, 0, W, H);
+    // floor + grid
+    c.fillStyle = '#080b10'; c.fillRect(0, 0, W, H);
+    c.strokeStyle = 'rgba(120,150,180,0.07)'; c.lineWidth = 1;
+    for (var gx = 0; gx <= W; gx += 60) { c.beginPath(); c.moveTo(gx, 0); c.lineTo(gx, H); c.stroke(); }
+    for (var gy = 0; gy <= H; gy += 60) { c.beginPath(); c.moveTo(0, gy); c.lineTo(W, gy); c.stroke(); }
+    c.strokeStyle = 'rgba(120,150,180,0.25)'; c.lineWidth = 3; c.strokeRect(2, 2, W - 4, H - 4);
+
+    // facing
+    var toP = Math.atan2(P.y - E.y, P.x - E.x), toL = Math.atan2(lock.y - E.y, lock.x - E.x), ang = toP;
+    if (ph.n === 'tell') ang = toP + (toL - toP) * ease(p * 4);
+    else if (ph.n === 'throw' || ph.n === 'flight') ang = toL;
+    var f = { x: Math.cos(ang), y: Math.sin(ang) }, sd = { x: -f.y, y: f.x };
+    var hl = handLocal(s, ph);
+    var RP = toWorld(f, s.ext[0], s.ext[1]);
+
+    // ---- target marker (the telegraph)
+    var showRing = ph.n === 'tell' || ph.n === 'throw' || ph.n === 'flight';
+    if (showRing) {
+      var a = ph.n === 'tell' ? ease(p / 0.2) : 1;
+      var danger = ph.n === 'tell' ? p : 1;
+      var col = mix(GAS, AMB, ease(danger * 1.2));
+      c.fillStyle = rgba(col, 0.05 + 0.05 * a); c.beginPath(); c.arc(lock.x, lock.y, R, 0, Math.PI * 2); c.fill();
+      if (s.fill === 'sweep') {
+        var rr = R * (ph.n === 'tell' ? ease(p) : 1);
+        c.fillStyle = rgba(col, 0.22 * a); c.beginPath(); c.arc(lock.x, lock.y, rr, 0, Math.PI * 2); c.fill();
+      } else if (s.fill === 'ticks') {
+        var n = 16, lit = ph.n === 'tell' ? Math.floor(p * n) : n;
+        for (var i = 0; i < n; i++) {
+          var aa = -Math.PI / 2 + i * Math.PI * 2 / n, on = i < lit;
+          c.strokeStyle = on ? rgba(col, 0.95) : rgba(GAS, 0.25); c.lineWidth = on ? 4 : 2;
+          c.beginPath(); c.moveTo(lock.x + Math.cos(aa) * (R - 12), lock.y + Math.sin(aa) * (R - 12));
+          c.lineTo(lock.x + Math.cos(aa) * (R + 2), lock.y + Math.sin(aa) * (R + 2)); c.stroke();
+        }
+        var pulse = 0.5 + 0.5 * Math.sin(T * (8 + 24 * danger));
+        c.fillStyle = rgba(col, (0.06 + 0.16 * pulse) * a); c.beginPath(); c.arc(lock.x, lock.y, R, 0, Math.PI * 2); c.fill();
+      } else {
+        var fl = ph.n === 'tell' ? (Math.sin(p * 30) > 0 ? 0.2 : 0.05) : 0.22;
+        c.fillStyle = rgba(col, fl * a); c.beginPath(); c.arc(lock.x, lock.y, R, 0, Math.PI * 2); c.fill();
+      }
+      ring(c, lock.x, lock.y, R, rgba(col, 0.9 * a), 2.5, ph.n === 'tell' ? [10, 7] : []);
+      // landing cross
+      c.strokeStyle = rgba(col, 0.9 * a); c.lineWidth = 2;
+      c.beginPath(); c.moveTo(lock.x - 9, lock.y); c.lineTo(lock.x + 9, lock.y); c.moveTo(lock.x, lock.y - 9); c.lineTo(lock.x, lock.y + 9); c.stroke();
+      // dotted arc preview
+      if (s.arcPreview && (ph.n === 'tell' || (ph.n === 'throw' && p < 0.5))) {
+        var drawn = ph.n === 'tell' ? ease(p * 1.3) : 1, fade = ph.n === 'throw' ? 1 - p * 2 : a;
+        for (var u = 0.04; u < drawn; u += 0.045) {
+          var px = lerp(RP.x, lock.x, u), py = lerp(RP.y, lock.y, u) - s.arc * 4 * u * (1 - u) * 0.9;
+          c.fillStyle = rgba(AMB, 0.8 * fade); c.beginPath(); c.arc(px, py, 2.2, 0, Math.PI * 2); c.fill();
+        }
+      }
+    }
+
+    // ---- gas cloud + burst
+    if (ph.n === 'cloud') {
+      var age = p * s.cloud, settle = clamp(age / 1.0, 0, 1), fade2 = age > s.cloud - 0.6 ? 1 - (age - (s.cloud - 0.6)) / 0.6 : 1;
+      var cr = R * Math.sqrt(settle);
+      var g = c.createRadialGradient(lock.x, lock.y, 0, lock.x, lock.y, Math.max(cr, 1));
+      g.addColorStop(0, rgba(GAS, 0.42 * fade2)); g.addColorStop(0.7, rgba(GAS, 0.28 * fade2)); g.addColorStop(1, rgba(GAS, 0.05 * fade2));
+      c.fillStyle = g; c.beginPath(); c.arc(lock.x, lock.y, cr, 0, Math.PI * 2); c.fill();
+      for (var k = 0; k < 14; k++) {
+        var ak = k * 2.399 + age * (0.35 + (k % 3) * 0.1), dk = cr * (0.25 + 0.55 * ((k * 37) % 10) / 10);
+        c.fillStyle = rgba(GAS, 0.13 * fade2); c.beginPath(); c.arc(lock.x + Math.cos(ak) * dk, lock.y + Math.sin(ak) * dk, R * 0.3 * Math.sqrt(settle), 0, Math.PI * 2); c.fill();
+      }
+      ring(c, lock.x, lock.y, cr, rgba(GAS, 0.55 * fade2), 2);
+      if (age < 0.4) {
+        var b = age / 0.4;
+        c.fillStyle = 'rgba(255,255,255,' + (0.5 * (1 - b)).toFixed(3) + ')'; c.beginPath(); c.arc(lock.x, lock.y, 18 + 30 * b, 0, Math.PI * 2); c.fill();
+        ring(c, lock.x, lock.y, R * (0.3 + 0.9 * b), rgba([220, 255, 190], 1 - b), 4);
+      }
+    }
+
+    // ---- the grenadier
+    var lean = 0;
+    if (ph.n === 'tell') lean = -s.lean * ease(p);
+    else if (ph.n === 'throw') lean = lerp(-s.lean, s.lean * 1.6, ease(p));
+    else if (ph.n === 'flight') lean = lerp(s.lean * 1.6, 0, ease(p * 2));
+    var bx = E.x + f.x * lean, by = E.y + f.y * lean;
+    // shadow-less body: pentagon, same colour as Defs
+    c.save(); c.translate(bx, by); c.rotate(ang);
+    c.beginPath();
+    for (var q = 0; q < 5; q++) { var qa = q * Math.PI * 2 / 5; c.lineTo(Math.cos(qa) * ER, Math.sin(qa) * ER); }
+    c.closePath(); c.fillStyle = rgba(GAS, 0.95); c.fill(); c.strokeStyle = 'rgba(10,20,8,0.9)'; c.lineWidth = 2; c.stroke();
+    c.restore();
+    // lens glow = the tell on the body
+    var glow = 0;
+    if (ph.n === 'tell') glow = s.id === 'pin' ? (Math.sin(p * p * 60) > 0 ? 1 : 0.15) : (s.id === 'under' ? (Math.sin(p * 24) > 0 ? 1 : 0.2) : ease(p));
+    else if (ph.n === 'throw') glow = 1;
+    var lens = rgba(mix([38, 51, 31], AMB, glow), 0.98);
+    c.fillStyle = lens;
+    var l1 = { x: bx + f.x * ER * 0.25 - sd.x * ER * 0.32, y: by + f.y * ER * 0.25 - sd.y * ER * 0.32 };
+    var l2 = { x: bx + f.x * ER * 0.25 + sd.x * ER * 0.32, y: by + f.y * ER * 0.25 + sd.y * ER * 0.32 };
+    [l1, l2].forEach(function (l) { c.beginPath(); c.arc(l.x, l.y, ER * 0.22, 0, Math.PI * 2); c.fill(); });
+    if (glow > 0.3) { [l1, l2].forEach(function (l) { c.fillStyle = rgba(AMB, 0.25 * glow); c.beginPath(); c.arc(l.x, l.y, ER * 0.5, 0, Math.PI * 2); c.fill(); }); }
+    c.fillStyle = 'rgb(89,102,76)'; c.beginPath(); c.arc(bx + f.x * ER * 0.62, by + f.y * ER * 0.62, ER * 0.2, 0, Math.PI * 2); c.fill();
+
+    // arm: shoulder -> hand
+    var sh = { x: bx + sd.x * ER * 0.8, y: by + sd.y * ER * 0.8 };
+    var hw = toWorld(f, hl.u, hl.v); hw.x += f.x * 0 + (bx - E.x); hw.y += (by - E.y);
+    var hand = { x: hw.x, y: hw.y - hl.z };
+    c.strokeStyle = 'rgb(88,140,60)'; c.lineWidth = 6; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(sh.x, sh.y); c.lineTo(hand.x, hand.y); c.stroke();
+    c.strokeStyle = 'rgba(10,20,8,0.8)'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(sh.x, sh.y); c.lineTo(hand.x, hand.y); c.stroke();
+    c.fillStyle = 'rgb(120,180,90)'; c.beginPath(); c.arc(hand.x, hand.y, 5, 0, Math.PI * 2); c.fill();
+
+    // canister in hand
+    if (hl.has && !(ph.n === 'flight')) {
+      var cs = 1 + hl.z / 90, cg = s.id === 'pin' && ph.n === 'tell' ? (Math.sin(p * p * 60) > 0 ? 1 : 0.2) : (ph.n === 'tell' ? ease(p) * 0.6 : 0);
+      if (hl.z > 1) { c.fillStyle = 'rgba(0,0,0,0.3)'; c.beginPath(); c.ellipse(hw.x, hw.y + 3, 6 * cs, 3, 0, 0, Math.PI * 2); c.fill(); }
+      c.fillStyle = rgba(mix([180, 242, 115], AMB, cg), 1); c.beginPath(); c.arc(hand.x, hand.y - 2, 6.5 * cs, 0, Math.PI * 2); c.fill();
+      c.strokeStyle = 'rgba(20,30,12,0.9)'; c.lineWidth = 1.5; c.stroke();
+      c.fillStyle = 'rgba(30,40,20,0.9)'; c.fillRect(hand.x - 2 * cs, hand.y - 2 - 8 * cs, 4 * cs, 3);
+    }
+    // pin flick (B)
+    if (s.id === 'pin' && ph.n === 'tell' && p > 0.1 && p < 0.35) {
+      var pp = (p - 0.1) / 0.25, pn = { x: hand.x - sd.x * 6 + (-f.x) * pp * 22, y: hand.y - sd.y * 6 - pp * 18 + pp * pp * 26 };
+      ring(c, pn.x, pn.y, 4, rgba(AMB, 1 - pp), 2);
+    }
+    // wind lines on the swing
+    if (ph.n === 'throw' && p > 0.4) {
+      for (var w = 1; w <= 3; w++) {
+        var ww = (p - 0.4) / 0.6, back = toWorld(f, lerp(s.back[0], s.ext[0], Math.pow(ww, 2)) - w * 0.35, lerp(s.back[1], s.ext[1], Math.pow(ww, 2)) - w * 0.05);
+        c.strokeStyle = rgba([220, 255, 190], 0.28 / w); c.lineWidth = 3; c.beginPath(); c.moveTo(back.x, back.y - hl.z); c.lineTo(hand.x, hand.y); c.stroke();
+      }
+    }
+
+    // ---- canister in flight
+    if (ph.n === 'flight') {
+      var u2 = p, zf = lerp(s.lift, 0, u2) + s.arc * 4 * u2 * (1 - u2);
+      var gx2 = lerp(RP.x, lock.x, u2), gy2 = lerp(RP.y, lock.y, u2);
+      for (var t2 = 5; t2 >= 1; t2--) {
+        var ut = Math.max(0, u2 - t2 * 0.04), zt = lerp(s.lift, 0, ut) + s.arc * 4 * ut * (1 - ut);
+        c.fillStyle = rgba(GAS, 0.22 * (1 - t2 / 6)); c.beginPath(); c.arc(lerp(RP.x, lock.x, ut), lerp(RP.y, lock.y, ut) - zt, 4 + t2 * 0.8, 0, Math.PI * 2); c.fill();
+      }
+      var sc = 1 + zf / 90;
+      c.fillStyle = 'rgba(0,0,0,' + (0.35 - zf / 600).toFixed(3) + ')'; c.beginPath(); c.ellipse(gx2, gy2 + 2, 6.5 * (1 - zf / 400), 3.2, 0, 0, Math.PI * 2); c.fill();
+      c.save(); c.translate(gx2, gy2 - zf); c.rotate(u2 * 14);
+      c.fillStyle = 'rgb(180,242,115)'; c.beginPath(); c.arc(0, 0, 6.5 * sc, 0, Math.PI * 2); c.fill();
+      c.strokeStyle = 'rgba(20,30,12,0.9)'; c.lineWidth = 1.5; c.stroke();
+      c.fillStyle = 'rgba(30,40,20,0.9)'; c.fillRect(-2 * sc, -6.5 * sc - 1, 4 * sc, 4);
+      c.restore();
+    }
+
+    // ---- player
+    var inGas = ph.n === 'cloud' && (ph.p * s.cloud) > 0.5 && Math.hypot(P.x - lock.x, P.y - lock.y) < R;
+    c.fillStyle = inGas ? 'rgb(255,120,100)' : 'rgb(159,220,255)'; c.beginPath(); c.arc(P.x, P.y, 12, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = 'rgba(0,0,0,0.6)'; c.lineWidth = 2; c.stroke();
+    if (!small) {
+      c.font = '600 12px "IBM Plex Mono", monospace'; c.fillStyle = 'rgba(159,220,255,0.8)'; c.textAlign = 'center';
+      c.fillText(inGas ? 'gas  -8/s' : 'you', P.x, P.y - 20);
+      c.fillStyle = 'rgba(146,161,173,0.9)'; c.textAlign = 'left';
+      c.fillText('GAS GRENADIER', E.x - 52, E.y + ER + 24);
+    }
+  }
+
+  // ---- wiring
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  function setup(cv, w, h) { cv.width = w * dpr; cv.height = h * dpr; var c = cv.getContext('2d'); c.setTransform(cv.width / W, 0, 0, cv.height / H, 0, 0); return c; }
+  var arena = document.getElementById('arena'), actx = setup(arena, W, H);
+  var P = { x: 740, y: 300 }, lock = { x: 720, y: 320 }, cur = 0, tm = 0, playing = true, speed = 1, lastIdx = -1;
+  var speeds = [1, 0.5, 0.25];
+
+  arena.addEventListener('pointermove', function (ev) {
+    var r = arena.getBoundingClientRect();
+    P.x = clamp((ev.clientX - r.left) / r.width * W, 40, W - 40); P.y = clamp((ev.clientY - r.top) / r.height * H, 40, H - 40);
+  });
+
+  var tabs = document.getElementById('tabs'), cmp = document.getElementById('cmp'), tl = document.getElementById('tl'), head = document.getElementById('head');
+  var framesEl = document.getElementById('frames');
+  var FR = [['Mark', function (s) { return s.rest + s.tell * 0.15; }], ['Wound up', function (s) { return s.rest + s.tell * 0.95; }],
+            ['Release', function (s) { return s.rest + s.tell + s.thr * 0.95; }], ['In flight', function (s) { return s.rest + s.tell + s.thr + s.fl * 0.5; }],
+            ['Cloud', function (s) { return s.rest + s.tell + s.thr + s.fl + 1.0; }]];
+  var frameCtx = FR.map(function (fr) {
+    var d = document.createElement('div'); d.className = 'frame';
+    d.innerHTML = '<canvas width="300" height="164"></canvas><div class="cap"><b>' + fr[0] + '</b><span></span></div>';
+    framesEl.appendChild(d); return { c: setup(d.querySelector('canvas'), 300, 164), t: d.querySelector('span') };
+  });
+
+  SPECS.forEach(function (s, i) {
+    var b = document.createElement('button'); b.type = 'button'; b.setAttribute('role', 'radio'); b.textContent = s.tag + ' · ' + s.name;
+    b.addEventListener('click', function () { choose(i); }); tabs.appendChild(b);
+    var o = document.createElement('div'); o.className = 'opt';
+    o.innerHTML = '<div class="tag">OPTION ' + s.tag + '</div><h3>' + s.name + '</h3><p>' + s.blurb + '</p><dl><dt>Warning before throw</dt><dd>' + s.tell.toFixed(2) + ' s</dd><dt>Swing</dt><dd>' + s.thr.toFixed(2) + ' s</dd><dt>Canister in the air</dt><dd>' + s.fl.toFixed(2) + ' s</dd><dt>Time to leave the ring</dt><dd>' + (s.tell + s.thr + s.fl).toFixed(2) + ' s</dd></dl>';
+    cmp.appendChild(o);
+  });
+  var colors = { rest: '#36424e', tell: '#ffb547', 'throw': '#ff8a5c', flight: '#9fdcff', cloud: '#9eeb6b' };
+  function choose(i) {
+    cur = i; tm = 0; lastIdx = -1; var s = SPECS[i];
+    Array.prototype.forEach.call(tabs.children, function (b, k) { b.setAttribute('aria-checked', k === i ? 'true' : 'false'); });
+    Array.prototype.forEach.call(cmp.children, function (o, k) { o.setAttribute('data-on', k === i ? '1' : '0'); });
+    Array.prototype.slice.call(tl.querySelectorAll('.seg')).forEach(function (n) { n.remove(); });
+    [['rest', s.rest], ['tell', s.tell], ['throw', s.thr], ['flight', s.fl], ['cloud', s.cloud]].forEach(function (x) {
+      var d = document.createElement('div'); d.className = 'seg'; d.style.flex = x[1] + ' 1 0'; d.style.background = colors[x[0]];
+      d.textContent = x[0] === 'rest' ? '' : (x[0] === 'throw' ? 'swing' : x[0] === 'tell' ? 'tell' : x[0]); tl.insertBefore(d, head);
+    });
+    document.getElementById('sName').textContent = s.name; document.getElementById('sTotal').textContent = s.total.toFixed(1);
+  }
+
+  var scrubbing = false;
+  function scrub(ev) { var r = tl.getBoundingClientRect(); tm = clamp((ev.clientX - r.left) / r.width, 0, 0.999) * SPECS[cur].total; lastIdx = Math.floor(tm / SPECS[cur].total) ; }
+  tl.addEventListener('pointerdown', function (ev) { scrubbing = true; tl.setPointerCapture(ev.pointerId); scrub(ev); });
+  tl.addEventListener('pointermove', function (ev) { if (scrubbing) scrub(ev); });
+  tl.addEventListener('pointerup', function () { scrubbing = false; });
+  tl.addEventListener('keydown', function (ev) { if (ev.key === 'ArrowRight') tm = (tm + 0.1) % SPECS[cur].total; if (ev.key === 'ArrowLeft') tm = (tm + SPECS[cur].total - 0.1) % SPECS[cur].total; });
+  var playBtn = document.getElementById('play'), spdBtn = document.getElementById('spd');
+  playBtn.addEventListener('click', function () { playing = !playing; playBtn.textContent = playing ? 'Pause' : 'Play'; });
+  spdBtn.addEventListener('click', function () { speed = speeds[(speeds.indexOf(speed) + 1) % speeds.length]; spdBtn.textContent = 'Speed ' + speed + '×'; });
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) { playing = false; playBtn.textContent = 'Play'; tm = 0; }
+
+  var prev = performance.now(), sPhase = document.getElementById('sPhase'), sTime = document.getElementById('sTime');
+  function frame(now) {
+    var dt = Math.min(0.05, (now - prev) / 1000); prev = now;
+    var s = SPECS[cur];
+    if (playing && !scrubbing) tm += dt * speed;
+    if (tm >= s.total) tm -= s.total;
+    var ph = phase(s, tm);
+    if (ph.n === 'rest') {   // until the wind-up starts it keeps picking a spot near you; then it is locked
+      var seed = Math.floor(performance.now() / 1000) % 7;
+      lock.x = clamp(P.x + (((seed * 53) % 60) - 30) * 0.9, 130, W - 130); lock.y = clamp(P.y + (((seed * 31) % 50) - 25) * 0.9, 130, H - 130);
+    }
+    draw(actx, s, tm, lock, P, false);
+    head.style.left = (tm / s.total * 100) + '%';
+    sPhase.textContent = ph.n === 'throw' ? 'swing' : ph.n; sTime.textContent = tm.toFixed(2);
+    frameCtx.forEach(function (fc, k) { var t = FR[k][1](s); draw(fc.c, s, t, lock, P, true); fc.t.textContent = t.toFixed(2) + ' s'; });
+    requestAnimationFrame(frame);
+  }
+  choose(0);
+  requestAnimationFrame(frame);
+})();
+</script>

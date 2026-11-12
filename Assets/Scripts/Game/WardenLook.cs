@@ -438,6 +438,8 @@ namespace Arena
         /// A Gas Grenadier: a gas mask (two round lenses and a filter) and a canister in hand.
         void DrawGrenadier(Enemy e, V2 pos, float r, float t)
         {
+            if (DrawGrenadierLob(e, pos, r, t))
+                return;  // winding up or throwing: GasLobLook.cs
             V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
             var lens = new Rgba(0.15f, 0.2f, 0.12f, 0.95f);
             Circle(pos + f * (r * 0.25f) - side * (r * 0.32f), r * 0.22f, lens, 10);

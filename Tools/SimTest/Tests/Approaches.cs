@@ -239,6 +239,38 @@ static partial class Program
         Run(s2, dt, 2.5f, null, () => { hold(); g2.Me.Pos = spot; gren.FireT = 99f; });
         Console.WriteLine("  grenadier: {0} gas cloud(s); standing in it for 1.5 s took {1:0.#}", gas, hpg - hostMe.Hp);
         Check(gas == 1 && hostMe.Hp < hpg && c2.Patches.Values.Any(pt => pt.Kind == PatchKind.Gas), "a Gas Grenadier lobs tear gas near you, and it hurts with no Warden about (the friend sees it too)");
+        // --- The Gas Grenadier's overhand lob: it winds up first, the ring shows the spot, the cloud lands there --------------
+        var lobber = (Enemy)spawn.Invoke(g2, new object[] { EnemyType.GasGrenadier, new V2(900f, 450f), 0f, -7, false });
+        lobber.FireT = 2f;
+        lobber.TargetId = 1;
+        lobber.RetargetT = 99f;
+        int patchesBefore = g2.Patches.Count;
+        float windAt = -1f, patchAt = -1f, lt = 0f, ringDur = 0f;
+        V2 ringAt = V2.Zero, patchPos = V2.Zero, plantedFrom = V2.Zero;
+        bool clientRing = false, movedWinding = false;
+        Run(s2, dt, 3.5f, null, () =>
+        {
+            hold(); g2.Me.Pos = spot; lobber.TargetId = 1; lobber.RetargetT = 99f;
+            lt += dt;
+            if (lobber.Winding && windAt < 0f) { windAt = lt; plantedFrom = lobber.Pos; }
+            if (lobber.Winding && windAt >= 0f && lobber.Pos.DistanceTo(plantedFrom) > 1f) movedWinding = true;
+            if (ringDur == 0f)
+                foreach (var fx in g2.Effects)
+                    if (fx.Kind == FxKind.GasLob && fx.Pos2.Y > 0f) { ringDur = fx.Dur; ringAt = fx.Pos; }
+            clientRing |= c2.Effects.Any(fx => fx.Kind == FxKind.GasLob);
+            if (patchAt < 0f && g2.Patches.Count > patchesBefore)
+            {
+                patchAt = lt;
+                patchPos = g2.Patches.Values.Last().Pos;
+                lobber.FireT = 99f;  // one lob is enough
+            }
+        });
+        Console.WriteLine("  grenadier lob: wind-up at {0:0.00} s, ring {1:0.00} s long, cloud queued at {2:0.00} s, ring/cloud {3:0.#} px apart", windAt, ringDur, patchAt, ringAt.DistanceTo(patchPos));
+        Check(windAt >= 0f && patchAt - windAt > 0.8f && patchAt - windAt < 1.4f, "a Gas Grenadier winds up for about 1 s before the throw (Enemy.Winding)");
+        Check(ringDur > 1.5f && ringAt.DistanceTo(patchPos) < 1f, "the ring is shown from the start of the wind-up and the cloud lands on that spot");
+        Check(clientRing, "the friend's game gets the lob effect too");
+        Check(!movedWinding, "it plants its feet while it winds up");
+        lobber.Hp = 0f;
         gren.Hp = 0f;
 
         // --- The Taser Guard: it charges (Winding), then a Fork Bolt that stuns you; the friend's game sees the bolt -------
