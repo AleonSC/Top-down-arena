@@ -14,6 +14,7 @@
 # RIOT=ready|wait,17|block,0.1 (Riot Gear: the plate, the recharge, a block that long ago; use with mode hud).
 # MOMENTUM=<0-5> (the DPS passive's stack pips round you; mode hud, 2 players).
 # NONSHOOT=1 (the Fuse Runner, Hookman and Sapper caught mid-move, with Tripwire Pods).
+# PORTALS=1 (spawn portals: opening, letting a burst out, a flank behind you with its arrow, closing; SpawnPortalLook.cs).
 # SWORD=1 (the Swordsman and Shield Swordsman in each phase: closing in, wind-up, cut, recovery; SWORDBLOCK=1 flashes the shield).
 # LUNGE=0.5 (the Lunger, Spike Block, Charger and Riot Shield part-way through their wind-up: the shared lane).
 # TASER=0.3 (the Taser Guard charging, a Fork Bolt in flight over a field of bullets, and the hit on you 0.3 s ago; TASER=-1 for no hit; mode hud).

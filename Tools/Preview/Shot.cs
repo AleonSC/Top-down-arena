@@ -319,6 +319,24 @@ static partial class Shot {
       put(EnemyType.SapperMine, new V2(700f, 180f), 2, 0.15f, 3f, 0f);                      // beeping
       foreach (var e in ng.Enemies.Values) if (e.Type == EnemyType.SapperMine) { e.Hp = e.MaxHp = 1f; }
     }
+    if (Environment.GetEnvironmentVariable("PORTALS") != null) {  // PORTALS=1: spawn portals opening, letting a burst out, a flank behind you (with its arrow) and one closing (SpawnPortalLook.cs)
+      var pg = host.Game; pg.Enemies.Clear(); pg.Bullets.Clear();
+      var psp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      var page = typeof(ArenaApp).GetMethod("PortalAge", f2);
+      me.Pos = me.Disp = new V2(820f, 470f); me.Aim = 0f;
+      foreach (var o in pg.Players.Values) if (o != me) { o.Pos = o.Disp = me.Pos + new V2(-40f, 90f); o.Aim = 0.3f; }
+      Func<EnemyType, V2, Enemy> pput = (t, at) => { var e = (Enemy)psp.Invoke(pg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Facing = (me.Pos - at).Angle; return e; };
+      Action<Enemy, byte, float> phase = (e, ph, age) => { e.Phase = ph; Time.time = 100f - age; page.Invoke(app, new object[] { e }); };
+      var a = pput(EnemyType.Portal, new V2(1300f, 140f)); phase(a, SpawnPortals.Opening, 0.5f);
+      var b = pput(EnemyType.Portal, new V2(1420f, 640f)); phase(b, SpawnPortals.Emitting, 1f); b.Hp = b.MaxHp * 0.55f;
+      var c = pput(EnemyType.Portal, new V2(170f, 520f)); phase(c, SpawnPortals.FlankOpening, 0.9f);
+      var d = pput(EnemyType.Portal, new V2(560f, 820f)); phase(d, SpawnPortals.Closing, 0.2f);
+      V2 fwd = V2.FromAngle(b.Facing);
+      pput(EnemyType.Grunt, b.Pos + fwd * 55f + fwd.Orthogonal() * 18f).Facing = b.Facing;
+      pput(EnemyType.Swarmer, b.Pos + fwd * 110f - fwd.Orthogonal() * 20f).Facing = b.Facing;
+      pput(EnemyType.Grunt, b.Pos + fwd * 170f + fwd.Orthogonal() * 6f).Facing = b.Facing;
+      Time.time = 100f;
+    }
     if (Environment.GetEnvironmentVariable("TAGS") != null) {  // TAGS=1: a set of enemies on first sight, each with its name tag (EnemyTagLook.cs); a fresh profile, so nothing is saved to yours
       var tg = host.Game; tg.Enemies.Clear(); tg.Bullets.Clear();
       tg.ProfileOverride = new Profile();
