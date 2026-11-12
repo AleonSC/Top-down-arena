@@ -53,7 +53,7 @@ namespace Arena
         bool prepared, bossSeen;
         Random rng;
 
-        public EnemyType Boss => Game.BossForWave(Wave);
+        public EnemyType Boss => BossSchedule.Campaign.BossAt(Wave);
 
         /// Level-up picks a player typically has when this boss arrives (measured from full runs played by Good bots).
         public static int TypicalPicks(int wave) => Math.Max(0, (int)Math.Round(wave * 1.15f - 1.5f));  // level picks only; legendaries and mods are extra
@@ -221,7 +221,7 @@ namespace Arena
             if (Legendaries)
                 for (int w = 5; w < Wave; w += 5)
                 {
-                    g.GrantUpgrade(p.Id, Upgrades.LegendaryOffer(rng, Game.BossForWave(w), p.Role, p.RoleAbility, p.Taken)[rng.Next(3)]);
+                    g.GrantUpgrade(p.Id, Upgrades.LegendaryOffer(rng, BossSchedule.Campaign.BossAt(w), p.Role, p.RoleAbility, p.Taken)[rng.Next(3)]);
                     var mods = Upgrades.ModOffer(p.Role, p.RoleAbility, p.Taken);
                     if (mods != null)
                         g.GrantUpgrade(p.Id, mods[rng.Next(mods.Length)]);

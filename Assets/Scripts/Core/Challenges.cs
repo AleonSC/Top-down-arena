@@ -580,8 +580,7 @@ namespace Arena
         /// Someone touched the altar (or it waited long enough): everyone gets a prize pick, and some a legendary.
         void ClaimPrize()
         {
-            int next = (Wave + 4) / 5 * 5;  // the boss this cycle leads up to
-            var boss = BossForWave(Math.Min(MaxWave, Math.Max(5, next)));
+            var boss = BossAt(Math.Min(MaxWave, Bosses.NextBossWaveFrom(Wave)));  // the boss this cycle leads up to
             var key = IsReaper(boss) ? EnemyType.TwinA : boss;
             foreach (var p in Players.Values)
             {

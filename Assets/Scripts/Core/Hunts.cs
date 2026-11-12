@@ -6,7 +6,7 @@ namespace Arena
     /// its hunt. A hunt is ten waves: nine built only from the boss's own enemies (its faction, Approaches.cs), tougher
     /// ones joining as they go and its set piece on waves 5 and 9, then the boss on wave 10. Beating it ends the run.
     /// Hunts don't save, don't open challenge portals or offer paths, and keep their own records (Profile.HuntEnded).
-    /// "A boss every five waves" doesn't hold in a hunt: code that asks which waves have bosses uses IsBossWave / BossAt.
+    /// "A boss every five waves" doesn't hold in a hunt: code that asks which waves have bosses uses the run's BossSchedule (Game.Bosses).
     /// See Docs/BossHuntsAndPerks.md.
     public class HuntDef
     {
@@ -83,33 +83,33 @@ namespace Arena
         /// Per-wave rewards: half in a Campaign, which has twice the waves.
         public float Pace => LongLegs ? 0.5f : 1f;
 
-        /// Does a boss belong to this wave? In a run the boss comes after every fifth regular wave, as its own fight that
-        /// doesn't use up a wave number (BossSlot); only the last wave of a hunt is a boss. For "is the boss being fought
-        /// (or just beaten)" ask BossNow, for "is the boss next" BossNext.
-        public bool IsBossWave(int wave) => Hunt != null ? wave >= Hunts.Length : wave > 0 && wave % 5 == 0;
+        /// Does a boss belong to this wave? Asks the run's boss schedule (BossSchedule.cs): in a run the boss comes after
+        /// every fifth regular wave, as its own fight that doesn't use up a wave number (BossSlot); in a hunt the last wave
+        /// is the boss. For "is the boss being fought (or just beaten)" ask BossNow, for "is the boss next" BossNext.
+        public bool IsBossWave(int wave) => Bosses.IsBossWave(wave);
 
         /// Run: the boss after regular wave `Wave` is being fought, or was beaten and the wave box is up. The wave counter
         /// doesn't move for it (the next regular wave is Wave + 1). Replicated; saved (RunSaves.cs).
         public bool BossSlot;
 
         /// The wave being fought now (or just cleared) is a boss fight.
-        public bool BossNow => Hunt != null ? IsBossWave(Wave) : BossSlot;
+        public bool BossNow => Bosses.Slotted ? BossSlot : IsBossWave(Wave);
 
         /// The next fight to start is a boss (the wave box between waves shows it).
-        public bool BossNext => Hunt != null ? IsBossWave(Wave + 1) : !BossSlot && IsBossWave(Wave) && LegDone;
+        public bool BossNext => Bosses.Slotted ? !BossSlot && IsBossWave(Wave) && LegDone : IsBossWave(Wave + 1);
 
         /// Host: the fight that starts next is the boss after wave `Wave` (and not wave `Wave + 1`).
-        bool BossStartsNext => Hunt == null && Practice == null && !BossSlot && IsBossWave(Wave) && LegDone;
+        bool BossStartsNext => Bosses.Slotted && Practice == null && !BossSlot && IsBossWave(Wave) && LegDone;
 
         /// The boss of this wave, or of the next boss wave after it.
-        public EnemyType BossAt(int wave) => Hunt != null ? Hunt.Boss : BossForWave(wave);
+        public EnemyType BossAt(int wave) => Bosses.BossAt(wave);
 
         /// The boss wave being fought now (fighting on a boss wave) or coming next.
         public int NextBossWave(int wave, bool fighting) =>
-            Hunt != null ? Hunts.Length : BossSlot ? (fighting ? wave : (wave / 5 + 1) * 5) : Math.Max(5, (wave + 4) / 5 * 5);
+            !Bosses.Slotted ? Bosses.NextBossWaveFrom(wave) : BossSlot ? (fighting ? wave : Bosses.NextBossWaveFrom(wave + 1)) : Bosses.NextBossWaveFrom(wave);
 
         /// The approach's boss and its step (1-4; 0 on a boss wave), for a run or a hunt (Approaches.cs, ApproachUi.cs).
-        public EnemyType ApproachBossAt(int wave) => Hunt != null ? Hunt.Boss : ApproachBoss(wave);
-        public int ApproachStepAt(int wave) => Hunt != null ? (IsBossWave(wave) ? 0 : Hunts.Step(wave)) : ApproachStep(wave);
+        public EnemyType ApproachBossAt(int wave) => Bosses.BossAt(Bosses.NextBossWaveFrom(wave));
+        public int ApproachStepAt(int wave) => Bosses.ApproachStep(wave);
     }
 }

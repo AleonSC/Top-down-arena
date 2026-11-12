@@ -204,8 +204,8 @@ namespace Arena
             }
             if (DkKey(col.Next(38f), "GO TO WAVE " + devWave, Ui.GoldButton, false, 14))
                 game.DevJumpToWave(devWave);
-            int bossWave = (devWave + 4) / 5 * 5;
-            var boss = Game.BossForWave(bossWave);
+            int bossWave = game.Bosses.NextBossWaveFrom(devWave);
+            var boss = game.BossAt(bossWave);
             Ui.Label(col.Next(18f), "Next boss (after wave " + bossWave + "): " + PracticePlan.NameOf(boss == EnemyType.TwinB ? EnemyType.TwinA : boss),
                 12, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
             if (DkKey(col.Next(30f), "GO TO THE BOSS AFTER WAVE " + bossWave, Ui.Neutral, false, 12))

@@ -613,7 +613,7 @@ namespace Arena
             if (rng.NextDouble() < ChestLegendaryChance)
             {
                 int cycles = Math.Max(1, (Wave - 1) / 5 + 1);  // the bosses beaten, and the next
-                var boss = BossForWave(5 * (1 + rng.Next(cycles)));
+                var boss = BossSchedule.Campaign.BossAt(5 * (1 + rng.Next(cycles)));  // (the Campaign's order; Quick Play gives it the run's bosses)
                 if (IsReaper(boss))
                     boss = EnemyType.TwinA;
                 var offer = Upgrades.LegendaryOffer(rng, boss, p.Role, p.RoleAbility, p.Taken);
