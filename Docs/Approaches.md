@@ -173,34 +173,84 @@ as stragglers in the second half** of its intro wave (alone, so you learn it), t
 wave while the next new enemy trickles in. The rest of each wave stays the usual random mix. Ten waves leave room
 for the Warden's whole roster, then a few waves of everything together.
 
-| Wave | Squads (from earlier waves) | Stragglers, second half (new) |
-|---|---|---|
-| 1 | none | **Rioter** (+ Guard as plain chasers) |
-| 2 | Rioters | **Security Guard** |
-| 3 | Rioters + Security Guards | **Riot Shield** |
-| 4 | + Riot Shields | **Gas Grenadier** |
-| 5 | recap: all four in squads (breather) | none |
-| 6 | all four | **Taser Guard** |
-| 7 | all five together (tasers, shields and gas) | none |
-| 8 | the named squads: Breakout, Patrol, Cell block | Tasers (the newest) |
-| 9 | everything, tighter | none |
-| 10 | the exam: the Riot Line (`Finale`) | none |
+**Squads stay one side.** Prisoner squads are Rioters, Thugs and Shivs; guard squads are Guards, Security Guards and
+Shields. The two sides only share a wave through the random mix or by one squad each.
 
-This is the current `Lessons` list with the straggler timing added; waves 1-4 and 6 keep their star enemy.
+### The Warden (waves 1-10)
+
+| Wave | Squads (from earlier waves) | New: stragglers in the second half |
+|---|---|---|
+| 1 | none | **Rioter** |
+| 2 | Rioter pack | **Guard** |
+| 3 | Rioter pack, Guard pair | **Thug** |
+| 4 | Yard (Rioters + Thugs), Guard pair | **Security Guard** |
+| 5 | Yard, Patrol (Security Guards + Guards); recap | none |
+| 6 | Yard, Patrol | **Riot Shield** |
+| 7 | Yard, Cell block (Shields + Guards) | **Gas Grenadier** |
+| 8 | Yard, Cell block | **Taser Guard** |
+| 9 | every Warden squad, tighter | none |
+| 10 | the exam: Riot Line (guards) + a big Breakout (prisoners) | none |
+
+(The Shiv, a lunger reskin, is in the pool and the Yard squad but has no intro wave yet: wave 6 or 7 is the slot.)
 
 **Other bosses (rule):** with N faction enemies, introduce one at waves 1, 3, 5... spread over waves 1-6 (one per
-wave when N is 5-6, every second wave when N is 3-4); wave 7 is all of them in squads, 8 the named squads, 9 everything tighter, 10 the
-`Finale`. Rosters under 3 (Twin Reapers) borrow a regular enemy, as in the faction table; the Lich keeps its zombie
-kinds; the Eclipse's Echoes introduce one earlier faction per wave.
+wave when N is 5-6, every second wave when N is 3-4); wave 7 is all of them in squads, 8 the named squads, 9 everything
+tighter, 10 the `Finale`. Rosters under 3 (Twin Reapers) borrow a regular enemy, as in the faction table; the Lich keeps
+its zombie kinds; the Eclipse's Echoes introduce one earlier faction per wave.
 
-**Engineering:** `WaveLesson` gains `Trickle` (the `Star`'s spawns are held to the wave's second half instead of
-queued up front) and `SquadsFrom` (which earlier members squads may use). The share/ramp knobs stay for the old 50-wave
-track and are ignored in the Campaign. Waves are built on the host, so no wire change and no protocol bump unless
-a new enemy is added. Tests (`approaches`): each intro enemy appears only after its wave's halfway point and only
-as its intro wave's star; squads use only already-introduced members; wave 10 is unchanged.
+### The handover between factions (waves 11-14, the Warden to the Hive Queen)
 
-**Open:** the order for the Warden (Taser last, as the trickiest, vs. shields earlier); whether wave 5 should stay a
-pure recap.
+The old faction **trickles out over about three waves** after its boss while the new faction starts **at once**. B1-B5
+are placeholders for the Hive Queen's enemies.
+
+| Wave | Hive squads | Hive stragglers | Warden leftovers (singles, no squads) |
+|---|---|---|---|
+| 10 | none | none | the full roster, Riot Line + Breakout |
+| **Warden fight** | | | boss |
+| 11 | none | **B1**, from the start of the wave | about 40% of the wave: Rioter, Guard, Thug, Security Guard |
+| 12 | B1 pack | **B2** | about 20%: Rioter, Guard, Thug |
+| 13 | B1 + B2 | **B3** | about 8%: Rioter, Guard |
+| 14 | B1, B2, B3 | **B4** | none |
+| 15 | recap | none | none |
+| 16 | all Hive squads | **B5** | none |
+| 17 | all Hive squads | none | none |
+| 18 | named Hive squads | none | none |
+| 19 | everything, tighter | none | none |
+| 20 | Hive exam (set piece) | none | none |
+
+- The old faction's **tricky enemies leave first** (Shield, Gas, Taser), so wave 11 isn't new and hard at once; the
+  basics (Rioter, Guard) linger longest. Old squads stop at the boss, so a Rioter pack doesn't look like the approach
+  restarting. The leftover share counts toward the wave's size, like the old themed share.
+- The new faction's banner ("The Hive Queen is near") shows at wave 11.
+
+### Callback squads (later waves)
+
+Once a faction's boss is beaten, its **named squads can come back as random events** in later waves, bigger than in
+their own approach: say a Breakout of 14 Rioters on wave 43. They fight on top of the current faction's waves, so a
+late run keeps meeting old friends.
+
+- **When:** from three waves after the boss on, any non-boss wave rolls about 20% for one callback (never two in a
+  wave, never in the 10th wave of a cycle, which is the exam). The roll is seeded by the wave, so every player in a
+  party sees the same one.
+- **Which:** one of the beaten bosses' squads (or its `Finale`), picked by weight; the latest factions are slightly
+  more likely.
+- **How big:** the squad's members repeated about 2x, plus one tougher member (a Thug or Shield) as an anchor, scaled
+  by wave and party size like the rest of the wave. It takes its size off the wave's count, so waves don't grow.
+- **Tell:** a short banner line ("Breakout!") as it spawns, so it reads as an event.
+
+### Engineering
+
+`WaveLesson` gains `Trickle` (the `Star`'s spawns are held to the wave's second half instead of queued up front) and
+`SquadsFrom` (which earlier members squads may use). The faction handover needs `FactionDef.Fade` (the share and the
+order its members leave) read from the previous boss's faction in `Approaches.Campaign(n)`; callbacks are a new
+`BuildCallback(n, ref count)` next to `BuildApproach`. The share/ramp knobs stay for the old 50-wave track and are
+ignored in the Campaign. Waves are built on the host, so no wire change; a banner line is a new string only. Tests
+(`approaches`): each intro enemy appears only after its wave's halfway point and only as its intro wave's star; squads
+use only already-introduced members; the leftover share is 40/20/8% on waves 11-13 and 0 after; callbacks only come
+from beaten bosses, never on boss or exam waves, at most one a wave, and the same on every game; wave 10 is unchanged.
+
+**Open:** the Warden's order (Taser last, as the trickiest, vs. shields earlier); whether wave 5 stays a pure recap;
+the Shiv's intro wave; the callback chance (20%) and size (2x).
 
 ## The Riot Line (built, November 2026)
 
