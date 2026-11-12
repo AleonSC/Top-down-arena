@@ -71,7 +71,7 @@ A 1-skull path whose prize is a shop. Decided with the owner (October 2026), fro
 | Currency | **Gold, only on the Bazaar.** Each kill on its waves gives every player the same gold (`GoldPerXp` = 0.3 of the kill's XP), so it's split equally. |
 | Leftover gold | **Becomes XP for each player** when the shop closes (1 gold = 1 XP). |
 | Shelf | **Per player**, rolled for your class: four upgrades, a legendary, a weapon mod. Common 40, uncommon 60, rare 100, very rare 160, mod 200, legendary 280. |
-| Services | Restock (25, +25 each time), remove an upgrade (75), full heal (40), revive token (120, **one at a time**). |
+| Services | Restock (25, +25 each time), sell an upgrade (pays 50% of its shelf price), full heal (40), revive token (120, **one at a time**). |
 | Giving gold | Give 10 / 50 / 100 / all to a teammate. **Giving to someone who's done reopens their shop** so they can choose. |
 | Timing | **No timer.** Closes when everyone has clicked Done shopping; **the host can close it after 60 s** for a stalled player. |
 | Layout | Like the upgrade picker (layout A of the mockup): your stats on the left, six cards, services, then who's done, the Done button and teammates' gold. |

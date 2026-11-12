@@ -560,6 +560,28 @@ namespace Arena
             }
         }
 
+        /// Called by the front end when the local player takes gold instead of a card.
+        public void TakeGoldInstead()
+        {
+            var me = Me;
+            if (!CanGoldInstead(me) || RerollPending)
+                return;
+            Sounds.Add(Sfx.Pick);
+            if (IsHost)
+            {
+                HostPick(MyId, GoldInsteadIndex);
+            }
+            else
+            {
+                var w = Proto.Begin(Msg.Pick);
+                w.Write((byte)GoldInsteadIndex);
+                w.Write((byte)0);
+                session.SendToHost(Proto.End(w));
+                me.Offer = null;
+                awaitingPick = true;
+            }
+        }
+
         /// Called by the front end when the local player rerolls their cards.
         public void RerollOffer()
         {
@@ -600,7 +622,21 @@ namespace Arena
         void HostPick(int id, int index, int key = 0)
         {
             Player p;
-            if (!Players.TryGetValue(id, out p) || p.Offer == null || index < 0 || index >= p.Offer.Length || State != MatchState.Intermission)
+            if (!Players.TryGetValue(id, out p) || p.Offer == null || State != MatchState.Intermission)
+                return;
+            if (index == GoldInsteadIndex)  // gold instead of a card: the pick is used up, nothing is granted
+            {
+                if (!CanGoldInstead(p))
+                    return;
+                int gold = GoldInsteadAmount(Wave);
+                p.Gold += gold;
+                p.PendingPicks = Math.Max(0, p.PendingPicks - 1);
+                NextOffer(p);
+                DoLog(p.Role + " took " + gold + " gold instead of a card");
+                SendSnapshot();
+                return;
+            }
+            if (index < 0 || index >= p.Offer.Length)
                 return;
             int upgrade = p.Offer[index];
             Recorder?.Picked(this, p, p.Offer, upgrade, p.OfferLegendary ? "legendary" : p.OfferMod ? "mod" : p.OfferMilestone ? "milestone" : p.OfferPrize ? "prize" : "level");

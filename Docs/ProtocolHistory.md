@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 299: gold instead of a card: `Msg.Pick` with index 255 takes gold instead of an offered card (level-up offers only); `ShopAction.Remove` (value 2) is now `Sell` (pays half the shelf price instead of costing 75).
 - 298: Out of Ammo reworked: the player snapshot carries `Player.KnifeMove` and `KnifeSeq` (bytes, after `AmmoSeq`); `AmmoMove` is now the rifle arms' move 1-4
 - 297: Quick Play: the lobby message carries `QuickMode` (bool, after `HuntBoss`); `Msg.Start` carries, after the start wave, a Quick Play flag and (when set) its boss order (count byte + one `EnemyType` byte each).
 - 296: new `EnemyType.Thug` and `EnemyType.Shiv` (the Warden's prisoner reskins of the Brute and Lunger; at the end of the enum).
