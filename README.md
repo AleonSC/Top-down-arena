@@ -942,7 +942,8 @@ prototype** in the F1 dev dock (Labs, in the lobby); otherwise the Campaign is t
 - **Boss waves** are the hub alone (bosses are built for it). Before a boss wave, anyone out in a room or
   hallway is **beamed into the hub**: a pillar of light in their colour takes them up where they stand, a second one
   sets them down on a ring that shows in the hub from the start (about 2 s; they can't move or shoot meanwhile, and the
-  boss wave waits for them). The props out there are cleared away when it starts.
+  boss wave waits for them; the between-waves box, the shop screen and the build window step aside so everyone sees it).
+  The props out there are cleared away when it starts.
 - **No wrapping**: the world has walls all round. The hub keeps the boss cycle's arena layout (walls, pillars and
   crates; its edge gates make way for the doors), and the rooms and hallways have a few pillars and short walls of
   their own. Walls stop walking and every shot, as in the layouts.
