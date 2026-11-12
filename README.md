@@ -363,7 +363,7 @@ Upgrades with a stack cap show squares that fill with how many you hold (the nex
 ability and its key) shows on the card itself. Hold **Tab** for all your stats. Boss rewards say **BOSS REWARD!** (legendaries)
 or **WEAPON MOD** (a grid of every mod you can take). Don't like the cards? **Reroll** (or R) for a fresh set: the first click
 (or press) arms it (the button turns orange and reads CLICK AGAIN TO REROLL for 3 seconds), the second rerolls. You
-start with 2 rerolls and everyone gets 2 more for each boss killed. The next wave waits until everyone have chosen.
+start with 2 rerolls and everyone gets 2 more for each boss killed. Where a shop will take gold (the Bazaar, Gold Rush, the Expanding arena), a normal level-up also has a **GOLD INSTEAD** key under the buttons: skip the cards for 20 gold plus 2 per wave. Boss rewards, weapon mods, milestones and challenge prizes can't be swapped. The next wave waits until everyone have chosen.
 
 **Repeat copies give less.** The plain stat cards you can take any number of times (Sharpened Rounds, Quick Trigger,
 Light Boots, Vitality, Mending, Focus, Hollow Points, Hair Trigger, Sprinter, Fortitude, Regeneration, Clarity) are
@@ -791,7 +791,7 @@ wave, everyone gets a shop before the boss:
   40, uncommon 60, rare 100, very rare 160, weapon mod 200, legendary 280.
 - **Services:** add stock (two more cards on the shelf, none you already see: an upgrade, then a weapon mod and a
   legendary in turn; 25, then +25 each time, no limit: past 31 cards the oldest bought ones drop off to make room),
-  remove an upgrade (75; one stack, and abilities it gave go too), full heal (40), and a revive token (120; one at a
+  sell an upgrade (pays half its shelf price; one stack, and abilities it gave go too), full heal (40), and a revive token (120; one at a
   time: when you go down you get back up 2 s later at half health, and it isn't game over while it's waiting).
 - **Give** sends a teammate 10, 50, 100 or all of your gold. Giving to someone who's already done reopens their
   shop so they can choose what to do with it.

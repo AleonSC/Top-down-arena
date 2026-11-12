@@ -64,7 +64,7 @@ you have to build to). It builds on [`ExpandingArena.md`](ExpandingArena.md) and
 
 - With a connected shop or vendor room (`Game.ServiceRooms`) kills drop gold and the shop opens in **every** intermission, without holding the
   countdown (`ShopBlocksWave`); it closes as the wave starts. The shelf is rolled once a boss cycle; gold and shelf are kept between waves.
-- Upgrades and restocks are bought only in the **shop room**; heals, revives and removals only at the **vendor** (checked on the host,
+- Upgrades and restocks are bought only in the **shop room**; heals, revives and sales only at the **vendor** (checked on the host,
   greyed out on the client). Done, Give and Close work anywhere. Bots don't walk to them (they mark Done).
 - HUD chip "SHOP OPEN · walk into the room"; the shop screen opens when you stand in either room.
 
