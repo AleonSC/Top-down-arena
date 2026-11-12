@@ -48,6 +48,7 @@ static partial class Program
         };
         Action reset = () => { foreach (var e in keep) e.Hp = 0f; keep.Clear(); pins.Clear(); g.Bullets.Clear(); me.Light = 0; me.Combo = 0; me.ComboT = 0f; ally.ShieldHp = 0f; ally.ShieldT = 0f; ally.MercyT = 0f; };
         play(0.3f, new PlayerInput());
+        typeof(Game).GetField("spawnTimer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(g, 1e6f);  // (no wave arrivals mid-test: which enemies came changed the heals it measures)
 
         // The chain: held fire runs Dawn, Mercy, Noon and starts over; each enemy a cut hits adds a pip, the ring two.
         dummy(from + new V2(45f, 0f));

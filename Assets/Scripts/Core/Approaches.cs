@@ -9,6 +9,7 @@ namespace Arena
         public EnemyType Type;
         public float Weight = 1f;
         public int From = 1;
+        public bool NotFirst;  // not in the first round of a run (Rioters open the Warden's approach alone)
         public int Fade = 3;  // after its boss: the last of the 3 fade waves it is still in (0: gone at the boss, 1-3), Long Campaign only
     }
 
@@ -51,13 +52,13 @@ namespace Arena
                 Members = new[]
                 {
                     new FactionMember { Type = EnemyType.Rioter, Weight = 3f },
-                    new FactionMember { Type = EnemyType.Guard, Weight = 2f },
+                    new FactionMember { Type = EnemyType.Guard, NotFirst = true, Weight = 2f },
                     new FactionMember { Type = EnemyType.RiotShield, Fade = 0, Weight = 2f, From = 2 },
                     new FactionMember { Type = EnemyType.GasGrenadier, Fade = 0, Weight = 1.5f, From = 2 },
                     new FactionMember { Type = EnemyType.TaserGuard, Fade = 0, Weight = 1.5f, From = 3 },  // the faction's shooter that stuns (WardenFaction.cs)
-                    new FactionMember { Type = EnemyType.SecurityGuard, Fade = 1, Weight = 2f, From = 2 },
+                    new FactionMember { Type = EnemyType.SecurityGuard, Fade = 1, Weight = 2f, From = 2 },  // its pistol guard: leading tracer rounds, a magazine of seven (SecurityGuard.cs)
                     new FactionMember { Type = EnemyType.Thug, Fade = 2, Weight = 1.5f, From = 2 },  // the prisoners' brute: a Brute with a ball and chain (PrisonKin.cs)
-                    new FactionMember { Type = EnemyType.Shiv, Fade = 2, Weight = 1f, From = 3 },  // the prisoners' lunger: a taped shank (PrisonKin.cs)  // its pistol guard: leading tracer rounds, a magazine of seven (SecurityGuard.cs)
+                    new FactionMember { Type = EnemyType.Shiv, Fade = 2, Weight = 1f, From = 3 },  // the prisoners' lunger: a taped shank (PrisonKin.cs)
                 },
                 Squads = new[]
                 {
@@ -316,9 +317,14 @@ namespace Arena
         /// Takes `themed` enemies off `count` and picks them from a faction: squads where they fit, singles for the rest.
         /// `reach` is how far into the faction's members and squads the wave goes (their From); the finale comes in when
         /// asked for, whatever the share.
-        void PickFaction(FactionDef f, int reach, bool withFinale, ref int count, int themed) =>
-            PickFrom(Array.FindAll(f.Members, m => m.From <= reach), Array.FindAll(f.Squads, s => s.From <= reach),
+        void PickFaction(FactionDef f, int reach, bool withFinale, ref int count, int themed)
+        {
+            bool first = Wave <= 1;  // the first round: no NotFirst members, nor squads holding one
+            var members = Array.FindAll(f.Members, m => m.From <= reach && !(first && m.NotFirst));
+            var squads = Array.FindAll(f.Squads, s => s.From <= reach && !(first && Array.Exists(s.Members, t => Array.Exists(f.Members, m => m.NotFirst && m.Type == t))));
+            PickFrom(members, squads,
                 withFinale && f.Finale != null && f.Finale.From <= reach ? f.Finale : null, 0.5f, ref count, themed);
+        }
 
         /// The lesson of the wave being built, in a Campaign wave that leads to this faction's boss (null: none).
         public WaveLesson LessonNow(FactionDef f)
