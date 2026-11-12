@@ -20,7 +20,7 @@ the **guided tutorial**.
 | Building | The Expanding arena's **vector room drawing**, as in the Campaign (build round after each cleared wave) |
 | Rewards | Full XP, rank and boss-beaten unlocks; its own records (plays, best wave, bosses beaten); **not saved** to continue |
 | Boss mechanics | **The same in every mode**: no per-mode or per-wave attack tuning; only health and damage follow the wave (as now). Any boss can roll after wave 10 |
-| Boss HP | Quick Play sets each boss's health so a typical wave-10 build kills it in **about 2 minutes** (one number per boss from the `bosspower` sim, not hand-tuned); endless bosses keep the normal wave scaling |
+| Boss HP | **About a 2-minute fight at any wave**: one formula, health = what a typical build at that wave deals in ~2 min (the typical build the `bosspower` sim already scores). The same rule after wave 10, 20, 30..., so endless keeps climbing as builds grow; the strong-build boost still applies on top. Nothing fixed to wave 10, nothing tuned per boss |
 | Tutorial | Guided steps on the profile's first Quick Play, skippable, never again after (a profile flag) |
 
 ## Tutorial lessons
@@ -37,7 +37,7 @@ Per seat and local only (each player's own profile decides): no network message.
 ## Steps
 
 1. **Mode and waves**: `Session.QuickMode`, `Game.Quick` (Core), the carousel's first mode and default; a boss slot after every
-   10th wave (as the Campaign's shown waves); the boss bag (Warden first); faction waves with the mixed fallback; boss HP for a ~2 min fight (sim prints each boss's fight length); win screen End / Continue endless; records;
+   10th wave (as the Campaign's shown waves); the boss bag (Warden first); faction waves with the mixed fallback; boss HP for a ~2 min fight at any wave (sim prints each boss's fight length after waves 10, 20, 30); win screen End / Continue endless; records;
    sim suite `quick`. Protocol bump (start message, `Msg` for the endless choice).
 2. **Building**: Quick Play on the Expanding arena; check vector income fits a 10-wave run (first build round after wave 1).
 3. **Tutorial**: `Core/Tutorial.cs` (step machine, what counts as done), `Game/TutorialUi.cs` (prompts), profile flag,
@@ -46,5 +46,5 @@ Per seat and local only (each player's own profile decides): no network message.
 
 ## Open
 
-- Late bosses after wave 10 stay hard by design: same attacks, health set for a ~2 min fight. The tutorial run is always the Warden.
+- Late bosses after wave 10 stay hard by design: same attacks, health set for a ~2 min fight at whatever wave they come. The tutorial run is always the Warden.
 - Factions for the other nine bosses (`Docs/Approaches.md`) would make every ten feel like its boss.
