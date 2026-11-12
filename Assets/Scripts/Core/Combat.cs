@@ -505,7 +505,7 @@ namespace Arena
                             }
                             if (b.StunBack && e.Type == EnemyType.Boss)
                                 StunWarden(e);  // its own stun shot, parried back (Warden.cs)
-                            float hit = b.Dmg * NinjaHitMult(b.Owner, b.Kind, e) * PointBlankMult(b, e) * CrossfireMult(b, e);  // Kunai and ambush bonuses (Ninja.cs); the Scattergun up close and the Twin Rifle's crossfire (Weapons.cs)
+                            float hit = b.Dmg * NinjaHitMult(b.Owner, b.Kind, e) * PointBlankMult(b, e) * CrossfireMult(b, e) * RangeMult(b);  // Kunai and ambush bonuses (Ninja.cs); the Scattergun up close and the Twin Rifle's crossfire (Weapons.cs)
                             dmgSrc = b.FromWeapon ? "weapon" : "shot";  // (what the balance test log credits the hit to)
                             HurtEnemy(e, hit, b.Owner);
                             dmgSrc = null;

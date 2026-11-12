@@ -1403,6 +1403,8 @@ namespace Arena
                     TickRevolver(p, dt);
                     RevolverTrigger(p, dt);
                 }
+                else if (p.Weapon.Id == WeaponId.DoubleBarrel)
+                    TickDoubleBarrel(p, dt);  // two shells, a break-open reload (DoubleBarrel.cs)
                 else if (ChargeWeapon(p.Weapon.Id))
                     TickBow(p);  // the bow and the Warhammer fire when you let go
                 else if (p.Weapon.Id == WeaponId.Katana || p.Weapon.Id == WeaponId.BoStaff)

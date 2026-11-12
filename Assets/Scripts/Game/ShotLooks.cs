@@ -28,7 +28,7 @@ namespace Arena
             var w = p.Weapon.Id;
             switch (kind)
             {
-                case Defs.DpsShot: return w == WeaponId.TwinRifleAuto ? WeaponId.TwinRifle : w == WeaponId.TwinRifle || w == WeaponId.BurstSmg ? w : (WeaponId?)null;  // (the Twin Rifle Auto's rounds look like the Twin Rifle's)
+                case Defs.DpsShot: return w == WeaponId.TwinRifleAuto ? WeaponId.TwinRifle : w == WeaponId.TwinRifle || w == WeaponId.BurstSmg || w == WeaponId.DoubleBarrel ? w : (WeaponId?)null;  // (the Twin Rifle Auto's rounds look like the Twin Rifle's)
                 case Defs.RailShot: return w == WeaponId.Railgun ? w : (WeaponId?)null;
                 case Defs.HealerShot: return w == WeaponId.Pistol ? w : (WeaponId?)null;
                 case Defs.TankShot: return w == WeaponId.Scattergun || w == WeaponId.RiotRepeater ? w : (WeaponId?)null;
@@ -102,6 +102,9 @@ namespace Arena
                 case WeaponId.BurstSmg:
                     GlowDisc(b.Pos, 14f, c, 0.8f);  // the mockup's tracer
                     return;
+                case WeaponId.DoubleBarrel:
+                    GlowDisc(b.Pos, 9f, c, 0.55f * DbPelletFade(b));  // (dims as the pellet's damage falls off)
+                    return;
                 case WeaponId.Scattergun:
                     GlowDisc(b.Pos, 7f, c, 0.6f);  // flechettes: a pin of light each, not a blob
                     return;
@@ -142,6 +145,14 @@ namespace Arena
                     // head; its glow (TracerGlow) is drawn in the glow pass.
                     TaperTrail(b, 10, 3f, c, 0.8f);
                     Circle(b.Pos, 3f, Rgba.White, 10);
+                    return true;
+                }
+                case WeaponId.DoubleBarrel:
+                {
+                    // A shotgun pellet: a short hot streak that thins and dims as its damage falls off with range (the mockup's tracer).
+                    float f = DbPelletFade(b);
+                    TaperTrail(b, 6, 2.4f, c, 0.8f * f);
+                    Circle(b.Pos, 1.8f, Rgba.White.WithAlpha(0.5f + 0.5f * f), 8);
                     return true;
                 }
                 case WeaponId.Railgun:

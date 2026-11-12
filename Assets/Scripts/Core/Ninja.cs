@@ -658,7 +658,7 @@ namespace Arena
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashRocket = 25, DashLock = 26, DashSpin = 27;
+        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashRocket = 25, DashLock = 26, DashSpin = 27, DashBoth = 28;
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -1090,6 +1090,19 @@ namespace Arena
                 }
                 return;
             }
+            if (me.Weapon.Id == WeaponId.DoubleBarrel && pressed && me.DbUsed == 0 && me.DbReload <= 0f)
+            {
+                if (IsHost)
+                    HostWeaponDash(MyId, DashBoth, aimAt);  // Alt: both barrels at once (the host checks the rest; DoubleBarrel.cs)
+                else
+                {
+                    var bw = Proto.Begin(Msg.WeaponDash);
+                    bw.Write(DashBoth);
+                    bw.Write(aimAt);
+                    session.SendToHost(Proto.End(bw));
+                }
+                return;
+            }
             if (me.Weapon.Id == WeaponId.OutOfAmmo && pressed && twinNadeLocalCd <= 0f)
             {
                 twinNadeLocalCd = AutoLockCd;  // Alt: the spin (the host checks its cooldown; OutOfAmmo.cs)
@@ -1200,6 +1213,11 @@ namespace Arena
                 if (kind == DashDouble) HostDoubleBarrel(p, target);  // the Tank Soldier's Alt fires (TankAlts.cs)
                 else if (kind == DashMine) HostFlakMine(p, target);
                 else HostTearGas(p, target);
+                return;
+            }
+            if (kind == DashBoth)
+            {
+                HostBothBarrels(p, target);  // the Double Barrel's Alt (DoubleBarrel.cs)
                 return;
             }
             if (kind == DashSpin)
