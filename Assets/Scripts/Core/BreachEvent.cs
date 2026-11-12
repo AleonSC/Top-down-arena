@@ -29,6 +29,10 @@ namespace Arena
         /// Every game, for the look: the gold breach's position while an event is running (synced in Msg.ExpandState).
         public V2? EventMark;
 
+        /// Vectors every player gets from each Stash that opens (Docs/BreachRooms.md).
+        public const int StashVectors = 6;
+        int breachRoomsWave = -1;
+
         BreachEventPlan? eventPlan;
         int eventPlanWave = -1;
 
@@ -79,6 +83,8 @@ namespace Arena
             var plan = EventPlan();
             if (plan.HasValue && EventMark.HasValue && BreachAge >= BreachEvent.Delay)
                 RevealBreachEvent();
+            if (BreachAge >= BreachEvent.Delay)
+                RevealBreachRooms();  // the Stashes open 20 s in too (or when the wave is cleared, if that comes first)
         }
 
         /// Host: the wall opens. The planned room is built (free), the breach goes, the gold clears. Also run as the wave ends.
@@ -99,12 +105,15 @@ namespace Arena
             BroadcastExpansion();
         }
 
-        /// Host, as a breach wave is cleared: each of its breaches (the gold one already went) opens onto a free Stash behind its wall
+        /// Host, 20 s into a breach wave (or as it is cleared, if that comes first): each of its breaches (the gold one already went) opens onto a free Stash behind its wall
         /// (Docs/BreachRooms.md). Skips a breach with no legal spot, and stops within 2 rooms of the cap.
         void RevealBreachRooms()
         {
-            if (!IsHost || !ExpandingOn || Practice != null || Hunt != null || breachCache == null || breachWave != Wave || !Breaches.IsBreachWave(Wave))
+            if (BreachesOn)
+                _ = ActiveBreaches;  // (make sure this wave's breaches are cached)
+            if (!IsHost || !ExpandingOn || Practice != null || Hunt != null || breachCache == null || breachWave != Wave || !Breaches.IsBreachWave(Wave) || breachRoomsWave == Wave)
                 return;
+            breachRoomsWave = Wave;  // once a wave
             var made = new List<ExpansionRoom>();
             foreach (var b in breachCache)
             {
@@ -119,6 +128,8 @@ namespace Arena
             if (made.Count == 0)
                 return;
             PinBreaches(made);
+            foreach (var p in Players.Values)
+                AddVectors(p, StashVectors * made.Count);  // each Stash holds vectors for the whole team
             expWorld = null;
             LayoutAge = 0f;
             NoteSurprise(made[0].Surprise);

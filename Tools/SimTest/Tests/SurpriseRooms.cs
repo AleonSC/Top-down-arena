@@ -103,7 +103,8 @@ static partial class Program
         var give = typeof(Game).GetMethod("GiveSurpriseRoom", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         give.Invoke(g, null);
         Run(s, dt, 1f, () => cg.Expanded.Count == g.Expanded.Count && g.Expanded.Count > 0);
-        var sur = g.Expanded.Where(r => r.Surprise > 0).ToList();
+        var stashKind = (byte)(1 + (int)SurpriseShape.Stash);
+        var sur = g.Expanded.Where(r => r.Surprise > 0 && r.Surprise != stashKind).ToList();
         Check(sur.Count > 0 && sur.All(r => r.Price == 0) && Game.SurpriseCount(g.Expanded) == 1, "the host gives one free surprise room (" + sur.Count + " boxes)");
         Check(cg.Expanded.Count == g.Expanded.Count && cg.Expanded.Where(r => r.Surprise > 0).Count() == sur.Count, "it reaches the client with its flag");
         Check(g.Players[1].Vectors == vec && g.SurpriseKind == sur[0].Surprise && cg.SurpriseKind == g.SurpriseKind && cg.SurpriseAge < 2f, "nobody pays, and both screens start the build-in and the chip (vec " + g.Players[1].Vectors + "/" + vec + ", kind " + g.SurpriseKind + "/" + cg.SurpriseKind + ", age " + cg.SurpriseAge + ")");
@@ -171,24 +172,26 @@ static partial class Program
         var before = g.ActiveBreaches.Select(b => b.Pos).ToList();
         Check(g.ActiveBreaches.Any(b => b.Pos.DistanceTo(g.EventMark.Value) < 3f) && cg.ActiveBreaches.Any(b => b.Pos.DistanceTo(cg.EventMark.Value) < 3f), "it is one of the wave's breaches on both screens");
         int rooms0 = g.Expanded.Count;
+        var gp = g.Players.Values.First(); gp.Vectors = 10; gp.VectorCap = 70;
         g.BreachAge = BreachEvent.Delay + 0.1f;
         Run(s, dt, 3f, () => cg.Expanded.Count > rooms0 && !cg.EventMark.HasValue);
-        var sur = g.Expanded.Where(r => r.Surprise > 0).ToList();
+        var stashKind = (byte)(1 + (int)SurpriseShape.Stash);
+        var sur = g.Expanded.Where(r => r.Surprise > 0 && r.Surprise != stashKind).ToList();
         Check(sur.Count > 0 && sur.All(r => r.Price == 0) && Game.SurpriseCount(g.Expanded) == 1 && !g.EventMark.HasValue, "at the delay the wall opens onto a free surprise room (" + sur.Count + " boxes) and the gold clears");
-        Check(cg.Expanded.Count == g.Expanded.Count && !cg.EventMark.HasValue && cg.SurpriseKind == sur[0].Surprise && cg.SurpriseAge < 3f, "the friend gets it too, with the build-in and the chip");
+        Check(cg.Expanded.Count == g.Expanded.Count && !cg.EventMark.HasValue && cg.SurpriseKind > 0 && cg.SurpriseAge < 3f, "the friend gets it too, with the build-in and the chip");
         var after = g.ActiveBreaches.Select(b => b.Pos).ToList();
-        Check(after.All(p => before.Any(q => q.DistanceTo(p) < 1f)) && after.Count >= before.Count - 1 && cg.ActiveBreaches.Select(b => b.Pos).SequenceEqual(after), "the wave's other breaches stay where they were, the same on both screens");
-        int count = g.Expanded.Count;
+        Check(after.All(p => before.Any(q => q.DistanceTo(p) < 1f)) &&  cg.ActiveBreaches.Select(b => b.Pos).SequenceEqual(after), "the wave's other breaches stay where they were, the same on both screens");
+        // Breach rooms (Docs/BreachRooms.md): at the same 20 s every breach left opens onto a free 5 x 3 Stash worth vectors; not a gift, so the rotation stays.
+        var stashes = g.Expanded.Where(r => r.Surprise == stashKind).ToList();
+        int left = before.Count;
+        Check(stashes.Count > 0 && stashes.Count <= left && stashes.All(r => r.Price == 0 && (r.X1 - r.X) * (r.Y1 - r.Y) == 150000), "20 s in, the breaches open onto free Stashes (" + stashes.Count + " of " + left + ")");
+        Check(cg.Expanded.Count == g.Expanded.Count && Game.SurpriseCount(g.Expanded) == 1, "the friend gets them too, and they are not counted as gifts");
+        Check(gp.Vectors == 10 + Game.StashVectors * stashes.Count, "each Stash holds " + Game.StashVectors + " vectors for every player (" + gp.Vectors + ")");
+        int count = g.Expanded.Count, vecNow = gp.Vectors;
         g.BreachAge = 40f;
         Run(s, dt, 1f, () => false);
-        Check(g.Expanded.Count == count, "one event a wave");
-
-        // Breach rooms (Docs/BreachRooms.md): the cleared wave opens a free 5 x 3 Stash behind each breach that is left; not a gift, so the rotation stays.
-        int gifts = Game.SurpriseCount(g.Expanded), left = g.ActiveBreaches.Length;
+        Check(g.Expanded.Count == count && gp.Vectors == vecNow, "one event and one set of Stashes a wave (no second payout)");
         typeof(Game).GetMethod("RevealBreachRooms", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(g, null);
-        Run(s, dt, 3f, () => cg.Expanded.Count == g.Expanded.Count);
-        var st = g.Expanded.Where(r => r.Surprise == 1 + (int)SurpriseShape.Stash).ToList();
-        Check(st.Count > 0 && st.Count <= left && st.All(r => r.Price == 0 && (r.X1 - r.X) * (r.Y1 - r.Y) == 150000), "a cleared breach wave adds a free Stash behind its breaches (" + st.Count + " of " + left + ")");
-        Check(cg.Expanded.Count == g.Expanded.Count && Game.SurpriseCount(g.Expanded) == gifts, "the friend gets them too, and they are not counted as gifts");
+        Check(g.Expanded.Count == count, "the wave's end does not open them again");
     }
 }
