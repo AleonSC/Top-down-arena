@@ -414,7 +414,7 @@ namespace Arena
                 if (!linked[a])
                     continue;
                 BoxOf(built, a, out int bx0, out int by0, out int bx1, out int by1);
-                int side = rng.Int(4), gap = NodeMin + rng.Int((NodeMax - NodeMin) / Step + 1) * Step, x, y;
+                int side = rng.Int(4), gap = NodeMin + rng.Int((NodeMax - NodeMin) / Step + 1) * Step + (a == 0 ? StartExtra : 0), x, y;
                 if (side == 0 || side == 2)
                 {
                     x = bx0 + 150 + rng.Int((bx1 - bx0 - 300) / Step + 1) * Step;
@@ -440,6 +440,7 @@ namespace Arena
             return null;
         }
 
+        public const int StartExtra = 600;  // nodes placed off the start room sit this much farther out (owner Nov 12)
         public const int MaxSealed = 6;
         public const int ShopRoomSide = 400;  // a floating shop or vendor room is this square (4 x 4 tiles, owner Nov 11)  // floating rooms waiting to be connected at once
 

@@ -976,7 +976,7 @@ namespace Arena
                     CrtKit.SoftBox(eq, ec, variantOn, hv, false);
                     Ui.Label(eq, variantOn ? "USE " + baseDef.Name.ToUpperInvariant() : "EQUIP", 11, CrtKit.SoftText(ec, hv), TextAnchor.MiddleCenter, true);
                     ascEquipRects[i] = eq;
-                    ascEquipTo[i] = variantOn ? 0 : Defs.WeaponsPerRole + i;  // (the variants sit at picks 3 and 4)
+                    ascEquipTo[i] = variantOn ? 0 : Defs.PickOf(me.Role, me.Kit, vid.Value);  // (the variants sit after the fourth weapon: picks 4 and 5 for the Soldier DPS)
                     continue;
                 }
                 if (got)

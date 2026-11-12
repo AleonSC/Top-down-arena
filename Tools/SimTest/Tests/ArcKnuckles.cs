@@ -11,7 +11,7 @@ static partial class Program
         // The lobby: the Knight DPS has a fourth weapon; everyone else keeps three.
         Check(Defs.WeaponCount(Role.Dps, Kit.Knight) == 4 && Defs.Weapon(Role.Dps, Kit.Knight, 3).Id == WeaponId.ArcKnuckles,
             "the Knight DPS's fourth weapon key is the Arc Knuckles");
-        Check(Defs.WeaponCount(Role.Tank, Kit.Knight) == 3 && Defs.WeaponCount(Role.Dps, Kit.Soldier) == 3 && Defs.Weapon(Role.Dps, Kit.Soldier, 3) == Defs.Weapon(Role.Dps, Kit.Soldier, 0),
+        Check(Defs.WeaponCount(Role.Tank, Kit.Knight) == 3 && Defs.WeaponCount(Role.Tank, Kit.Soldier) == 3 && Defs.Weapon(Role.Tank, Kit.Soldier, 3) == Defs.Weapon(Role.Tank, Kit.Soldier, 0),
             "other roles and classes keep three (a fourth pick they don't have is their first weapon)");
         Check(Defs.WeaponOf(WeaponId.ArcKnuckles).Name == "Arc Knuckles", "the Arc Knuckles have their definition");
 

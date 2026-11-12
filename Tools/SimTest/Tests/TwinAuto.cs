@@ -13,7 +13,7 @@ static partial class Program
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
         int port = nextPort++;
-        var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Gunner", Role.Dps, 3, 0, Kit.Soldier);
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Gunner", Role.Dps, 4, 0, Kit.Soldier);
         var client = JoinAs(port, false, "Friend", Role.Tank, 0, 0, Kit.Soldier);
         var s = new[] { host, client };
         WaitForGame(host, client, dt);

@@ -610,7 +610,7 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("TWINAUTO") != null) {
       var ci = System.Globalization.CultureInfo.InvariantCulture;
       var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
-      me.Role = Role.Dps; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      me.Role = Role.Dps; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 4); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
       V2 home = new V2(450f, 330f); me.Pos = me.Disp = home; me.Aim = 0f;
       var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
       var foes = new System.Collections.Generic.List<Enemy>();
@@ -629,12 +629,34 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // DOUBLEBARREL=<s>: the Soldier DPS's Double Barrel (Core/DoubleBarrel.cs, Game/DoubleBarrelLook.cs) that long into a fight: three dummies in a line,
+    // fire held (DBBOTH=1: Alt pressed 0.3 s in, both barrels at once; DBIDLE=1: not firing, the model at rest).
+    if (Environment.GetEnvironmentVariable("DOUBLEBARREL") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Dps; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, int.Parse(Environment.GetEnvironmentVariable("DBWEAPON") ?? "3")); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      V2 home = new V2(450f, 330f); me.Pos = me.Disp = home; me.Aim = 0f;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      foreach (var dx in new[] { 90f, 150f, 240f }) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + new V2(dx, 0f), 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      bool both = Environment.GetEnvironmentVariable("DBBOTH") != null, idle = Environment.GetEnvironmentVariable("DBIDLE") != null;
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(6, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("DOUBLEBARREL"), ci) * 60f));
+      for (int f = 0; f < frames; f++) {
+        me.Pos = me.Disp = home; me.Aim = 0f; foreach (var e in foes) e.Pos = e.Disp = new V2(e.Pos.X, home.Y); Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = home + new V2(300f, 0f), Fire = !idle && !both, WeaponAction = both && f >= 18 && f < 21 });
+        me.Disp = me.Pos = home; me.Aim = 0f; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // OUTAMMO=<s>: the Soldier DPS's Out of Ammo (Core/OutOfAmmo.cs, Game/OutOfAmmoLook.cs) that long into a fight, a dummy close in front of you
     // (the rifle arms bash by themselves); KNIFE=1: fire held (the knife chain); OUTSPIN=1: Alt pressed 0.3 s in (the spin).
     if (Environment.GetEnvironmentVariable("OUTAMMO") != null) {
       var ci = System.Globalization.CultureInfo.InvariantCulture;
       var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
-      me.Role = Role.Dps; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 4); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      me.Role = Role.Dps; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 5); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
       V2 home = new V2(450f, 330f); me.Pos = me.Disp = home; me.Aim = 0f;
       var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
       var dummy = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Brute, home + new V2(62f, 0f), 0f, 0, false }); dummy.Speed = 0f; dummy.FireT = 99f; dummy.SpawnT = 0f; dummy.MaxHp = dummy.Hp = 1e6f; dummy.Disp = dummy.Pos;

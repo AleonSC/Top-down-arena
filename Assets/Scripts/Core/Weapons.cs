@@ -45,10 +45,13 @@ namespace Arena
             new WeaponDef { Id = WeaponId.BurstSmg, Kit = Kit.Soldier, Role = Role.Dps, Choice = 2, Speed = 760f, Life = 0.8f, Damage = 5f, BotRange = 280f, ExtraDesc = "+1 bullet per shot, with a wider spray", Name = "Burst SMG", FireInterval = 0.055f,
                 Desc = "Sprays very fast shots. Keep firing to spin it up: the spray tightens and damage climbs. It winds down fast when you stop.",
                 Sound = Sfx.ShotSmg },
-            new WeaponDef { Id = WeaponId.TwinRifleAuto, Kit = Kit.Soldier, Role = Role.Dps, Choice = 3, Speed = 820f, Life = 0.5f, Damage = 4f, ExtraDesc = "+1 round per gun, fanned a little", Name = "Twin Rifle Auto", Variant = true, FireInterval = 0.125f,
+            new WeaponDef { Id = WeaponId.DoubleBarrel, Kit = Kit.Soldier, Role = Role.Dps, Choice = 3, Speed = 900f, Life = 0.5f, Damage = 7f, BotRange = 200f, ExtraDesc = "+4 pellets a barrel", Name = "Double Barrel", FireInterval = 0.32f,
+                Desc = "A side-by-side shotgun: 9 pellets a barrel, strongest up close, each pellet passing through 2 enemies. Two shells, then a break-open reload. Alt fires both barrels at once.",
+                Sound = Sfx.ShotShotgun },
+            new WeaponDef { Id = WeaponId.TwinRifleAuto, Kit = Kit.Soldier, Role = Role.Dps, Choice = 4, Speed = 820f, Life = 0.5f, Damage = 4f, ExtraDesc = "+1 round per gun, fanned a little", Name = "Twin Rifle Auto", Variant = true, FireInterval = 0.125f,
                 Desc = "Two rifles held out to your sides, each aiming and firing on its own at the nearest enemy on its side. You can't shoot. Alt locks both onto the enemy nearest your cursor until it dies: their streams meet on it for crossfire (1.5×).",
                 Sound = Sfx.ShotAssault },
-            new WeaponDef { Id = WeaponId.OutOfAmmo, Kit = Kit.Soldier, Role = Role.Dps, Choice = 4, Damage = 12f, Reach = 80f, Name = "Out of Ammo", Variant = true, FireInterval = 0.5f, ExtraDesc = "+50% damage on every strike and spin tick",
+            new WeaponDef { Id = WeaponId.OutOfAmmo, Kit = Kit.Soldier, Role = Role.Dps, Choice = 5, Damage = 12f, Reach = 80f, Name = "Out of Ammo", Variant = true, FireInterval = 0.5f, ExtraDesc = "+50% damage on every strike and spin tick",
                 Desc = "The rifles are out of rounds, so they swat. Each rifle knocks the nearest enemy bullet out of the air (one each, then a half-second recovery). Enemies close in front of you get a five-move chain: left bash, cross cut, right bash, reverse cut, then a rifle clap with a shockwave. Alt spins you for 1.2 s: it cuts everything round you and swats every bullet.",
                 Sound = Sfx.SwingLight },
         };
@@ -457,6 +460,9 @@ namespace Arena
                 case WeaponId.TwinRifleAuto:  // (it fires itself, TickTwinAuto; this is for anything that fires the weapon by hand, like the range test)
                     for (int gun = 0; gun < 2; gun++)
                         AutoShoot(p, gun, null, false, extra);
+                    break;
+                case WeaponId.DoubleBarrel:
+                    FireDoubleBarrel(p, aim, dmg, extra, false);  // DoubleBarrel.cs
                     break;
                 case WeaponId.Railgun:
                 {
