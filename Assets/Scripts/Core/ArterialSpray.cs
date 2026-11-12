@@ -55,7 +55,7 @@ namespace Arena
                 return;
             }
             p.SprayT += dt;
-            PayHealth(p, p.MaxHp * SprayDrain * dt);
+            PayHealth(p, p.MaxHp * SprayDrain * dt, "Arterial Spray");
             if (p.Hp <= p.MaxHp * SprayFloor + 0.01f)
             {
                 CloseSpray(p, true);

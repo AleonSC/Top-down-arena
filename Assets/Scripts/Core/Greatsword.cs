@@ -63,7 +63,7 @@ namespace Arena
             s.Rend = true;
             s.Power = (float)n / GreatTemperMax;
             s.Heavy = true;
-            pendingSwings.Add(s);
+            QueueSwing(s);
             p.SwingCount++;
         }
 

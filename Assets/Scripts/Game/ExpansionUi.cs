@@ -89,7 +89,7 @@ namespace Arena
         // --- The shop room ------------------------------------------------------------------------------------
 
         /// The shop covers your screen: in the Expanding arena, only while you stand in a shop room (and haven't clicked Done).
-        bool ShopScreenUp(Player me) => game.ShopOpen && me != null && (!game.ServiceRooms || game.InServiceRoom(me) && !me.ShopDone);
+        bool ShopScreenUp(Player me) => game.ShopOpen && me != null && (!game.ServiceRooms || game.InServiceRoom(me) && !me.ShopDone) && !BeamShowing;  // (not over the boss beam-in: BossBeamLook.cs)
 
         /// The shop is open but you're not in a shop room: a banner and a way to skip it.
         void DrawShopRoomHint(Player me)
@@ -116,7 +116,7 @@ namespace Arena
         int expKit;  // the kit picked in the modify screen  // expOpen: the round's window is open (otherwise just its chip shows)
 
         /// The room window covers the screen (you opened it from the chip).
-        bool ExpandWindowUp => game.CanCut && expOpen;
+        bool ExpandWindowUp => game.CanCut && expOpen && !BeamShowing;  // (not over the boss beam-in: BossBeamLook.cs)
         V2 expA, expB;  // the drawing's two corners, world px (snapped to the 100 px grid when read)
 
         void DrawExpansionChoice(float t)

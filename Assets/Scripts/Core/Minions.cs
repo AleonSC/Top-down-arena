@@ -415,6 +415,17 @@ namespace Arena
 
         void ExplodeMinion(Minion m, float dmg, float radius)
         {
+            Player owner;
+            string was = CreditTo(Players.TryGetValue(m.Owner, out owner) && WeaponCompanion(m, owner) ? "weapon" : dmgSrc);
+            ExplodeMinionHits(m, dmg, radius);
+            dmgSrc = was;
+        }
+
+        /// A companion the player's summoner weapon keeps (or the Radiant Orb's light orb), not one an ability or a legendary brought.
+        bool WeaponCompanion(Minion m, Player owner) => m.Companion && m.Kind == CompanionKind(owner);
+
+        void ExplodeMinionHits(Minion m, float dmg, float radius)
+        {
             bool shot = m.Sent && m.Kind == MinionKind.Imp;  // an Imp Caller imp is the weapon's shot: weapon mods ride its blast
             foreach (var e in Enemies.Values)
                 if (e.SpawnT <= 0f && e.Pos.DistanceTo(m.Pos) < radius + e.Radius)
@@ -483,6 +494,7 @@ namespace Arena
             var exploding = scratchMinionsExploding;
             expired.Clear();
             exploding.Clear();
+            string minionSrc = dmgSrc;
             foreach (var m in Minions.Values)
             {
                 Player owner;
@@ -491,6 +503,7 @@ namespace Arena
                     expired.Add(m);
                     continue;
                 }
+                dmgSrc = WeaponCompanion(m, owner) ? "weapon" : null;  // a summoner weapon's companions are the weapon (its bites, blasts and shots)
                 if (m.T >= 0f)
                 {
                     m.T -= dt;
@@ -763,6 +776,7 @@ namespace Arena
                             break;
                         }
             }
+            dmgSrc = minionSrc;
             foreach (var m in exploding)
                 if (Minions.ContainsKey(m.Id))
                     ExplodeMinion(m, m.Def.Damage * OwnerDmg(m) * m.Power * SentCost(m), m.Def.Range * m.Scale);  // a merged imp blasts wider

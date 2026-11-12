@@ -222,7 +222,7 @@ namespace Arena
             }
             dmg *= NinjaHitMult(p.Id, Defs.FumaStar, e);
             p.Run.ShotsHit++;
-            HurtEnemy(e, dmg, p.Id);
+            WeaponHurt(e, dmg, p.Id);
             V2 rel = e.Pos - p.Pos;
             ModHit(e, p.Id, dmg, Defs.FumaStar, rel.IsZero ? V2.FromAngle(p.Aim) : rel.Normalized());
             BroadcastFx(FxKind.Spark, e.Pos - rel.Normalized() * e.Radius, new Rgba(1f, 1f, 1f), 8f, 0.15f, Sfx.None);

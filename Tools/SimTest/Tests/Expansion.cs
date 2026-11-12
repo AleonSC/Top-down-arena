@@ -299,6 +299,24 @@ static partial class Program
         foreach (var kv in savedAt) g.Players[kv.Key].Pos = g.Players[kv.Key].Disp = kv.Value;
         Check(inRooms && inNew, "enemies come in inside a room, never in the gaps between them, and the new room gets some (" + inRooms + "/" + inNew + ")");
         int w0 = g.Wave;
+
+        // Before the boss, anyone out in a built room is beamed into the hub (BossBeam.cs), not snapped there.
+        {
+            Quiet(); g.Enemies.Clear(); NoPicks();
+            var room = g.CurrentWorld.Areas[1];
+            var hubA = g.CurrentWorld.Areas[0];
+            g.Players[2].Pos = g.Players[2].Disp = cg.Players[2].Pos = cg.Players[2].Disp = room.Mid;
+            int leg0 = g.Leg; g.Wave = 5; g.BossSlot = false; g.Leg = 1;
+            g.State = MatchState.Intermission; g.StateTimer = 30f;
+            Run(s, dt, 0.3f, null, () => { NoPicks(); cg.Players[2].Pos = cg.Players[2].Disp = room.Mid; });
+            g.StateTimer = 0f;
+            Run(s, dt, 0.4f, null, NoPicks);
+            Check(g.State == MatchState.Intermission && g.Players[2].WarpT > 0f && g.Effects.Any(e => e.Kind == FxKind.BossBeam) && cg.Effects.Any(e => e.Kind == FxKind.BossBeam) && g.Players[2].Pos.DistanceTo(room.Mid) < 8f,
+                "Expanding: the boss wave waits while the player out in a room is beamed (state " + g.State + ", warp " + g.Players[2].WarpT + ", rooms " + g.RoomsOn + ", next " + g.BossNext + ")");
+            Run(s, dt, 2f, () => g.State == MatchState.Fighting, NoPicks);
+            Check(g.State == MatchState.Fighting && g.BossNow && hubA.Contains(g.Players[2].Pos, -40f) && hubA.Contains(cg.Players[2].Pos, -40f), "Expanding: then the boss wave starts with them in the hub");
+            Quiet(); g.Enemies.Clear(); g.Leg = leg0;
+        }
         g.Wave = 10; g.BossSlot = true;
         pickRooms.Invoke(g, null);
         Check(g.BossNow && !g.RoomsUp, "a boss wave is fought in the hub alone");
@@ -796,8 +814,11 @@ static partial class Program
             farFoe.Hp = 0f;
             var hubFoe = (Enemy)spawnAt.Invoke(g, new object[] { EnemyType.Grunt, new V2(800f, 450f), 0f, 0, false });
             foreach (var p in g.Players.Values) p.Pos = p.Disp = g.CurrentWorld.Areas[last].Mid;
-            Run(s, dt, 90f, () => g.CurrentWorld.AreaAt(hubFoe.Pos) == last || hubFoe.Hp <= 0f, NoPicks);
-            Check(hubFoe.Hp <= 0f || g.CurrentWorld.AreaAt(hubFoe.Pos) == last, "a Grunt in the hub walks to players waiting in the node's far room (now in area " + g.CurrentWorld.AreaAt(hubFoe.Pos) + ", " + hubFoe.Pos.DistanceTo(g.CurrentWorld.Areas[last].Mid).ToString("0") + " px away)");
+            // A Grunt keeps 230 px off its target, so it may hold at the far room's door and shoot in: in range counts as there.
+            Func<bool> there = () => hubFoe.Hp <= 0f || g.CurrentWorld.AreaAt(hubFoe.Pos) == last
+                || g.CurrentWorld.AreaAt(hubFoe.Pos) != 0 && g.Players.Values.Any(p => g.CurrentWorld.AreaAt(p.Pos) == last && p.Pos.DistanceTo(hubFoe.Pos) < 320f);
+            Run(s, dt, 90f, there, NoPicks);
+            Check(there(), "a Grunt in the hub walks to players waiting in the node's far room, or into range at its door (now in area " + g.CurrentWorld.AreaAt(hubFoe.Pos) + ", " + hubFoe.Pos.DistanceTo(g.CurrentWorld.Areas[last].Mid).ToString("0") + " px away)");
         }
     }
 
@@ -1425,6 +1446,9 @@ static partial class Program
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
+        foreach (var gg in new[] { g, cg }) gg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+        Check(g.State == MatchState.Intermission && cg.State == MatchState.Intermission && !g.DoorsOpen && !cg.DoorsOpen && !g.CanCut, "no doors in the opening countdown");
+        foreach (var gg in new[] { g, cg }) gg.Diff.Set(DiffKnob.ArenaExpanding, 0f);
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
         var list = new List<ExpansionRoom>();
         var east = Expansion.Custom(list, 1600, 100, 800, 600, out why).Value;

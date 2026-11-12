@@ -88,7 +88,7 @@ namespace Arena
                         s.Heavy = true;
                         s.Knock = BoSpinKnock;
                     }
-                    pendingSwings.Add(s);
+                    QueueSwing(s);
                     break;
                 }
                 case WeaponId.FumaShuriken:
@@ -715,7 +715,7 @@ namespace Arena
             foreach (var e in Enemies.Values)
                 if (Targetable(e) && e.Pos.DistanceTo(z.Pos) < r + e.Radius)
                 {
-                    HurtEnemy(e, dmg, z.Owner);
+                    WeaponHurt(e, dmg, z.Owner);
                     ModHit(e, z.Owner, dmg, Defs.OfudaShot, default(V2));  // weapon mods ride the burst
                 }
             foreach (var q in Players.Values)
@@ -802,7 +802,7 @@ namespace Arena
         /// A stuck star rips out of its enemy (another full hit) and flies back to its thrower, cutting what it passes.
         void ReturnStar(StuckStar st, Enemy e, Player p)
         {
-            HurtEnemy(e, st.Dmg, p.Id);
+            WeaponHurt(e, st.Dmg, p.Id);
             ModHit(e, p.Id, st.Dmg, Defs.StarShot, default(V2));
             V2 to = p.Pos - e.Pos;
             float dist = Math.Max(1f, to.Length);

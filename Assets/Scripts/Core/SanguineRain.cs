@@ -65,12 +65,12 @@ namespace Arena
                 p.RainClock += dt;
                 if (p.RainClock < RainCast)
                 {
-                    PayHealth(p, p.MaxHp * RainUpfront * dt / RainCast);
+                    PayHealth(p, p.MaxHp * RainUpfront * dt / RainCast, "Sanguine Rain");
                     continue;
                 }
                 if (!RainRaining(p))
                     continue;
-                PayHealth(p, p.MaxHp * RainDrain * dt);
+                PayHealth(p, p.MaxHp * RainDrain * dt, "Sanguine Rain");
                 p.RainAcc += dt;
                 float frac = Mastered(p, AbilityId.SanguineRain) ? RainHealMastered : RainHeal;
                 while (p.RainAcc >= RainTick)

@@ -73,7 +73,7 @@ namespace Arena
             s.NoFx = true;  // the step's own effect draws it
             s.LightKind = (byte)step;
             s.LightRadiant = radiant;
-            pendingSwings.Add(s);
+            QueueSwing(s);
             // The whole move, drawn from its age: Radius carries who and which step (4: a Radiant Noon); Pos2 is out along the
             // aim at the cut's reach, or at the ring's radius for Noon.
             BroadcastFx(FxKind.LightStep, p.Pos, p.Pos + V2.FromAngle(aim) * reach, LightGold, p.Id * 10 + (radiant ? 4 : step),

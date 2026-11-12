@@ -193,7 +193,7 @@ namespace Arena
 
         /// A breach may only open where a Stash fits behind its wall (Docs/BreachRooms.md): each spot is tried against the map plus the Stashes
         /// already given to the breaches picked before it, so they all fit together. Anything goes on a map near its size cap (no Stashes there).
-        Func<Breach, bool> StashAccept()
+        Func<Breach, bool> StashAccept(World w)
         {
             if (Expansion.BoughtCount(Expanded) > Expansion.MaxRooms - 2)
                 return null;
@@ -201,6 +201,7 @@ namespace Arena
             return b =>
             {
                 var opts = Expansion.SurpriseOptions(built, SurpriseShape.Stash, b.Pos - b.In * BreachEvent.Behind);
+                CentreOnBreach(opts, b, w);
                 if (opts.Count == 0)
                     return false;
                 built.AddRange(opts[0].Rooms);
@@ -219,7 +220,7 @@ namespace Arena
                 if (breachCache == null || breachWave != Wave || (!breachPinned && breachWorld != w))
                 {
                     breachPinned = false;
-                    breachCache = Breaches.For(w, Wave, StashAccept());
+                    breachCache = Breaches.For(w, Wave, StashAccept(w));
                     breachUsed = new int[breachCache.Length];
                     breachWorld = w;
                     breachWave = Wave;

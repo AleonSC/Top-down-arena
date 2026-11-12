@@ -15,6 +15,7 @@ namespace Arena
         public int HealHits;          // most enemies a swing's healing counts (Holy Mace)
         public float HealSpin;        // heals allies near you once per swing (Censer)
         public bool Rapier, Heavy, Silent;
+        public bool FromWeapon;       // queued by the player's weapon (QueueSwing): the session recording credits its hits to the weapon
         public bool Rend;             // the Greatsword's Rend (Greatsword.cs): a long box drawn as a lance of light, Power = Temper / GreatTemperMax
         public int Waves;             // sword waves launched as it lands (the Greatsword's overhead rend with extra projectiles)
         public float WaveDmg;
@@ -125,7 +126,7 @@ namespace Arena
                         s.Heavy = true;
                         s.Thrust = true;
                         s.Delay = 0.2f * k;
-                        pendingSwings.Add(s);
+                        QueueSwing(s);
                     }
                     // The blast's old ring (drawn when the screen's melee look is off; with it on, the slam draws its own impact).
                     BroadcastFx(FxKind.Boom, p.Pos + V2.FromAngle(aim) * HammerCentre(MeleeReach(p, w.Reach)), HammerBoomColor, HammerRadius * reachMult * (0.5f + 0.5f * c), 0.35f, c > 0.95f ? Sfx.BigExplode : Sfx.Explode);
@@ -155,7 +156,7 @@ namespace Arena
                             h.Delay = HalberdMotion.StepTime(pass + 1, i, HalberdSteps);
                             h.Silent = i > 0;  // one whoosh a sweep, as the first step lands
                             h.NoFx = true;     // the click's effect draws it all
-                            pendingSwings.Add(h);
+                            QueueSwing(h);
                         }
                     }
                     break;
@@ -171,7 +172,7 @@ namespace Arena
                     s.HealPerHit = 2f;  // each enemy hit heals you and allies near you (as the Holy Mace did)
                     s.HealRange = 220f;
                     s.HealHits = 4;
-                    pendingSwings.Add(s);
+                    QueueSwing(s);
                     break;
                 }
                 case WeaponId.Lightbringer:
@@ -202,7 +203,7 @@ namespace Arena
                         s.Waves = extra;
                         s.WaveDmg = GreatWaveDmg * dmg;
                     }
-                    pendingSwings.Add(s);
+                    QueueSwing(s);
                     SteelWall(p, aim, s.Reach, s.HalfArc, GreatWall[step - 1], s.Delay);  // the sweep's edge lingers, stopping bullets
                     break;
                 }
@@ -217,7 +218,7 @@ namespace Arena
                     s.Rapier = true;
                     s.Thrust = true;
                     s.MaxTargets = 1 + extra;
-                    pendingSwings.Add(s);
+                    QueueSwing(s);
                     break;
                 }
             }
@@ -295,6 +296,13 @@ namespace Arena
         public const int LightMax = 12;
         public const float LightRadiant = 3f;
 
+        /// Queue a swing to land after its Delay; one the weapon throws (as it fires, or in a Katana step) is marked as the weapon's.
+        void QueueSwing(Swing s)
+        {
+            s.FromWeapon = (firingWeapon || dmgSrc == "weapon") && !casting;
+            pendingSwings.Add(s);
+        }
+
         /// Called from Collide (after it clears its queues): land every swing that's due.
         void ResolveSwings()
         {
@@ -307,7 +315,11 @@ namespace Arena
                 pendingSwings.RemoveAt(i);
                 Player p;
                 if (Players.TryGetValue(s.Owner, out p) && !p.Downed)
+                {
+                    string was = CreditTo(s.FromWeapon ? "weapon" : null);
                     LandSwing(p, s);
+                    dmgSrc = was;
+                }
             }
         }
 

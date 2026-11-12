@@ -90,7 +90,7 @@ namespace Arena
             s.NoFx = true;  // the step's own effect draws it
             s.LanceKind = (byte)step;
             s.Sound = sound;
-            pendingSwings.Add(s);
+            QueueSwing(s);
             return s;
         }
 
@@ -166,7 +166,7 @@ namespace Arena
         void LandHook(Player p, Enemy e, V2 dir)
         {
             float dmg = p.Weapon.Damage * p.Stats.DmgMult * HookMult;
-            HurtEnemy(e, dmg, p.Id);
+            WeaponHurt(e, dmg, p.Id);
             ModHit(e, p.Id, dmg, Defs.KnightSlash, dir * -1f);
             if (!e.Def.IsBoss)
             {
@@ -253,9 +253,9 @@ namespace Arena
                 }
                 e.KnockLeft = left * (1f - ImpactCarry);
                 e.KnockSpeed *= 1f - ImpactCarry;
-                HurtEnemy(e, dmg, e.ImpactBy - 1);
+                WeaponHurt(e, dmg, e.ImpactBy - 1);
                 if (!heavy)
-                    HurtEnemy(g, dmg, e.ImpactBy - 1);
+                    WeaponHurt(g, dmg, e.ImpactBy - 1);
                 BroadcastFx(FxKind.LanceImpact, (e.Pos + g.Pos) * 0.5f, new V2(e.Id, heavy ? -2 : g.Id), LanceImpactCol, dmg, ImpactFxTime, Sfx.LanceImpactSfx);
                 return;
             }
@@ -272,7 +272,7 @@ namespace Arena
             e.KnockSpeed = 0f;
             e.FrozenT = Math.Max(e.FrozenT, WallImpactStun);
             e.SlowT = Math.Max(e.SlowT, WallImpactStun);
-            HurtEnemy(e, dmg, e.ImpactBy - 1);
+            WeaponHurt(e, dmg, e.ImpactBy - 1);
             BroadcastFx(FxKind.LanceImpact, at, new V2(e.Id, -1), LanceImpactCol, dmg, ImpactFxTime, Sfx.LanceWall);
             e.ImpactBy = 0;
             e.ImpactLast = -1;

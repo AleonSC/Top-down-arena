@@ -51,6 +51,8 @@ namespace Arena
         SecurityGuard,
         // the Warden's faction, prisoners: a Brute and a Lunger in prison gear (PrisonKin.cs, Game/PrisonLook.cs)
         Thug, Shiv,
+        // a spawn portal: a burst of the wave comes through it; shoot it closed to cancel the rest (SpawnPortals.cs, Game/SpawnPortalLook.cs)
+        Portal,
     }
 
     public class RoleDef
@@ -302,6 +304,8 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "A prisoner brute dragging a ball and chain. Slow and tough, hits hard when it reaches you." },
             new EnemyDef { Name = "Shiv", Hp = 45f, Radius = 12f, Speed = 95f, Score = 9, Xp = 9, Sides = 4, Color = new Rgba(0.85f, 0.85f, 0.8f), Melee = true, Contact = 18f,
                 Picker = PickerGroup.Melee, Blurb = "A prisoner with a taped shank. Circles in close, flashes a line, then lunges along it." },
+            new EnemyDef { Name = "Spawn Portal", Hp = 200f, Radius = 30f, Speed = 0f, Score = 30, Xp = 20, Sides = 24, Color = new Rgba(0.78f, 0.35f, 1f), Melee = true, Heavy = true,
+                Picker = PickerGroup.Hidden, Blurb = "A burst of the wave comes through it. Shoot it closed before it empties to cancel the rest; it drops coins for each one it held." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount

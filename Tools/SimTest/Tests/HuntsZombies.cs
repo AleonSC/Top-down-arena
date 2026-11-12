@@ -68,16 +68,21 @@ static partial class Program
         var faction = new HashSet<EnemyType>(Approaches.For(EnemyType.Boss).Members.Select(m => m.Type));
         var seen = new HashSet<EnemyType>();
         var others = new HashSet<EnemyType>();
+        bool guardFirst = false;
         Run(s, dt, 400f, () => g.Wave == Hunts.Length && Find(host, EnemyType.Boss) != null && !g.IsSpawning(Find(host, EnemyType.Boss)), () =>
         {
             keep();
             portal |= g.Room != RoomPhase.None;
             if (g.Wave < Hunts.Length)
                 foreach (var e in g.Enemies.Values)
-                    (faction.Contains(e.Type) ? seen : others).Add(e.Type);
+            {
+                (faction.Contains(e.Type) ? seen : others).Add(e.Type);
+                guardFirst |= g.Wave == 1 && e.Type == EnemyType.Guard;
+            }
             pathOffered |= g.PathOffer != null;
         });
         Console.WriteLine("  build-up waves: the Warden's own {0}; anything else: {1}", string.Join(", ", seen), others.Count == 0 ? "none" : string.Join(", ", others));
+        Check(!guardFirst, "the Warden's first build-up wave has Rioters only, no Guards");
         Check(others.Count == 0 && seen.Count >= faction.Count - 1, "the build-up waves bring only the Warden's own enemies, nearly every kind of them by the end (a rarer one can miss a hunt)");
         Check(g.Wave == Hunts.Length && Find(host, EnemyType.Boss) != null && c.HuntWave == Hunts.Length && !portal && !pathOffered,
             "nine waves, then the Warden on the hunt's tenth (no challenge portal or path offer on the way)");

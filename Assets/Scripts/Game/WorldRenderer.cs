@@ -285,6 +285,7 @@ namespace Arena
                 DrawRodSparks(p, t);  // Lightning Rod's arcs on the body (LightningRodLook.cs)
                 DrawHeldStunGun(p, t);
             }
+            DrawFlankArrows(t);  // a flank spawn portal behind you (SpawnPortalLook.cs)
             foreach (var b in game.Bullets.Values)
                 if (b.Kind >= Defs.SmallShot && !(enemyShotsLater && Defs.IsEnemyShot(b.Kind)))
                     DrawSmallShot(b, t);

@@ -78,13 +78,15 @@ namespace Arena
         /// Free building: anyone builds with their own vectors the moment they draw, any number of rooms a round.
         public bool FreeBuild => ExpandingOn && !BuildVoting;
 
-        /// Free building, between waves but outside a building round (the map is full): only openings. Never mid-wave.
+        /// Free building, between waves but outside a building round (the map is full): only openings. Never mid-wave,
+        /// nor in the opening countdown (no wave cleared yet: WaveReport is the last cleared wave's, WaveReady.cs).
         /// Not while a Gatekeeper duel has its room locked.
         public bool DoorsOpen
         {
             get
             {
-                if (!FreeBuild || ExpandOpen || Practice != null || Hunt != null || State != MatchState.Intermission)
+                if (!FreeBuild || ExpandOpen || Practice != null || Hunt != null || State != MatchState.Intermission
+                    || WaveReport == null || WaveReport.Wave != Wave)
                     return false;
                 for (int a = 1; a < ExpansionWorld.Areas.Length; a++)
                     if (AreaLocked(a))
