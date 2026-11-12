@@ -439,6 +439,7 @@ namespace Arena
         {
             float rate = WaveFireRate(Wave) * D(DiffKnob.FireRate);
             PullStrength = 0f;
+            TickDevArena(dt);  // the Dev Arena's hero dummies, and the enemy you play healed up (DevArena.cs)
             CountEnemyShots();
             PrepareVariety();  // squads and Commanders (Variety.cs)
             AssignShooterTurns(dt);  // only so many regular shooters at once (Readability.cs)
@@ -515,6 +516,8 @@ namespace Arena
                     tpos = possessAim;
                     held = false;
                 }
+                else if (HeroDummyAim(e, ref tpos))
+                    held = false;  // the Dev Arena's hero dummies draw its aim (DevArena.cs)
                 if (e.Type != EnemyType.Singularity && e.Type != EnemyType.Devourer && !(e.Type == EnemyType.Gatekeeper && e.Phase != 0))  // (the Gatekeeper's charge keeps its line)  // their Facing is the lasers' sweep, or the Devourer's mouth (Devourer.cs)
                     Face(e, tpos, dt);
                 if (mine)
@@ -578,6 +581,8 @@ namespace Arena
                     : e.Type == EnemyType.SpikeBlock && e.Phase == 2 ? SpikeLungeDamage
                     : e.Def.Contact > 0f ? e.Def.Contact * BruteDamageMult(e) : ContactDamage;
                 GuardContact(e, contact);  // Warden's Guards in the way get hurt too (Stun.cs)
+                if (!mine || PossessAttacking)
+                    HeroDummyContact(e, contact);  // the Dev Arena's hero dummies (DevArena.cs)
                 foreach (var p in Players.Values)
                 {
                     if (p.Downed || p.InvulnT > 0f || p.SwallowT > 0f || p.MeleeGraceT > 0f)

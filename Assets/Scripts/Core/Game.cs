@@ -341,6 +341,7 @@ namespace Arena
             squadQueue.Clear();
             DevFreeze = false;  // (DevTools.cs)
             DevArena = false;   // (DevArena.cs)
+            HeroDummies.Clear();
             PossessId = -1;
             ClearRisers();
             designQueue.Clear();

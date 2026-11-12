@@ -52,6 +52,45 @@ static partial class Program
         Run(s, dt, 1.5f, () => leapt, () => { calm(); g.SetPossessInput(V2.Zero, l.Pos + new V2(150f, 0f), true, first); first = false; leapt |= l.Phase == 2; });
         Check(leapt, "a Lunger played: attack now, then held, makes it lunge at the cursor");
 
+        // Hero dummies: enemy shots and touches land on them, and other enemies aim at them.
+        g.DevRelease();
+        g.DevClearArena();
+        V2 mid = new V2(Game.Width / 2f, Game.Height / 2f);
+        me.Pos = mid + new V2(0f, 380f);
+        Check(g.DevAddHeroDummy(mid) && g.HeroDummies.Count == 1, "a hero dummy goes down");
+        var dummy = g.HeroDummies[0];
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var gr = (Enemy)spawnAt.Invoke(g, new object[] { EnemyType.Grunt, mid + new V2(-260f, 0f), 0f, 0, false });
+        gr.SpawnT = 0f; gr.Speed = 0f;
+        Run(s, dt, 5f, () => dummy.Hits > 0, calm);
+        Check(dummy.Hits > 0 && dummy.Taken > 0f && me.Run.DamageTaken == 0f, "an ordinary Grunt shoots the dummy instead of you (" + dummy.Hits + " hits, " + dummy.Taken.ToString("0") + " damage)");
+        Check(g.HeroDummyDps(dummy) > 0f, "the dummy shows its DPS");
+        g.DevClearArena();
+        Check(g.HeroDummies.Count == 1, "Clear arena keeps the dummies");
+        Check(g.DevPossess(1, EnemyType.Brute), "play as a Brute");
+        var br = g.Possessed;
+        br.Pos = mid + new V2(-110f, 0f);
+        int hits0 = dummy.Hits;
+        Run(s, dt, 3f, () => dummy.Hits > hits0, () => { calm(); g.SetPossessInput((dummy.Pos - br.Pos).Normalized(), dummy.Pos, true, false); });
+        Check(dummy.Hits > hits0, "walked into the dummy while attacking: its touch lands");
+        var hurt = typeof(Game).GetMethod("HurtEnemy", flags);
+        g.PossessUnkillable = true;
+        hurt.Invoke(g, new object[] { br, br.MaxHp * 5f, 1 });
+        Run(s, dt, 0.3f, null, calm);
+        Check(g.Possessed == br && br.Hp == br.MaxHp, "can't die: a killing blow leaves it standing, healed up");
+        g.PossessUnkillable = false;
+        hurt.Invoke(g, new object[] { br, br.MaxHp * 5f, 1 });
+        Run(s, dt, 0.3f, null, calm);
+        Check(g.Possessed == null, "with can't die off it dies, and lets go");
+        g.PossessUnkillable = true;
+        for (int k = 0; k < 8; k++) g.DevAddHeroDummy(mid + new V2(k * 50f - 200f, -200f));
+        Check(g.HeroDummies.Count == Game.MaxHeroDummies, "at most " + Game.MaxHeroDummies + " hero dummies");
+        g.DevRemoveHeroDummy(mid + new V2(-200f, -200f));
+        Check(g.HeroDummies.Count == Game.MaxHeroDummies - 1, "remove the dummy nearest a point");
+        g.DevRemoveHeroDummy(V2.Zero, true);
+        Check(g.HeroDummies.Count == 0, "clear the dummies");
+
         g.DevRelease();
         Check(g.Possessed == null && g.PossessId < 0, "let go");
         Check(g.DevPossess(1, EnemyType.Brute), "play as a Brute");

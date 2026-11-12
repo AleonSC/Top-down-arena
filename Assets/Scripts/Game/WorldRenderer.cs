@@ -78,6 +78,7 @@ namespace Arena
             }
 
             DrawJuiceFloor();  // scorch marks and shot trails (Juice.cs)
+            DrawHeroDummies(t);  // the Dev Arena's stand-in heroes (DevArenaUi.cs)
             DrawArenaContents(t, true);
             DrawJuiceParts();  // shards, rings and sparks
             GlowPass();        // the additive glow
