@@ -920,6 +920,7 @@ namespace Arena
             expWorld = null;
             LayoutAge = 0f;  // the new walls rise
             RaiseRoomsNow();  // (the first room: the world goes up now, Rooms.cs)
+            TickNodes();  // a chest node this room encloses gets its chest now, not at the next wave's first tick
             Sounds.Add(Sfx.Pick);
         }
 
