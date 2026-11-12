@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 300: breach rooms: a breach wave adds a free Stash (`ExpansionRoom.Surprise` 6 = `SurpriseShape.Stash`) behind each remaining breach; no new fields (Docs/BreachRooms.md)
 - 300: breach rooms: a cleared breach wave adds a free Stash (`ExpansionRoom.Surprise` 6 = `SurpriseShape.Stash`) behind each remaining breach; no new fields (Docs/BreachRooms.md)
 
 - 299: gold instead of a card: `Msg.Pick` with index 255 takes gold instead of an offered card (level-up offers only); `ShopAction.Remove` (value 2) is now `Sell` (pays half the shelf price instead of costing 75).

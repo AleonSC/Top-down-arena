@@ -1,6 +1,6 @@
 # Breach rooms: a small free room behind every breach
 
-Status: **step 1 built** (protocol 300): a cleared breach wave adds a Stash behind each breach left (`Game.RevealBreachRooms`, `BreachEvent.cs`). Decided with the owner on Nov 12, 2026.
+Status: **steps 1 and 2 built** (protocol 300 for both): 20 s into a breach wave (or at its end) a Stash opens behind each breach left (`Game.RevealBreachRooms`, `BreachEvent.cs`). Decided with the owner on Nov 12, 2026.
 Builds on [`SurpriseRooms.md`](SurpriseRooms.md) (placement, free rooms) and [`RoomBuilding2.md`](RoomBuilding2.md) (breaches). Expanding arena only.
 
 ## Decisions (owner)
@@ -21,10 +21,15 @@ Builds on [`SurpriseRooms.md`](SurpriseRooms.md) (placement, free rooms) and [`R
 - Opens **as the wave is cleared** (called in `Waves.cs` before the gold event's reveal), so no breach is torn down mid-fight; empty (no cover or pickup yet); stops within 2 rooms of `MaxRooms`.
 - The Stash is not a gift: `NextSurpriseShape`/`SurpriseCount` ignore it, so the boss and event rotation is unchanged. Test: `ExpandingBreachEventTest`.
 
-## Open (still to settle)
+## Step 2 (built, decided Nov 12)
 
-- When the room opens: at the wave's start with the breach, or after the breach has been held (like the gold event's 20 s)?
-- What is in it: empty, cover, or a pickup.
-- Cap: `MaxRooms` allows only so many; extra breach rooms must not crowd out the team's own rooms (skip when within 2 of the cap, as the event does).
-- The new rooms are permanent map; the next breach wave's breaches are re-rolled for the bigger map.
-- Wire: needs `Surprise` to carry the Stash and the breach set (protocol bump when built).
+- **Timing**: 20 s into the wave (`BreachEvent.Delay`, from `TickBreachEvent`), once a wave; the wave-end call stays as a fallback. A breach with a Stash behind it is torn down (`PinBreaches`), so that breach stops spawning; with none left, enemies come in at random spots.
+- **Contents**: vectors. Each Stash gives every player `Game.StashVectors` (6) on opening (`AddVectors`, so the cap holds); no pickup, nothing on the wire. A walk-in claim would need a synced flag.
+- **Look**: teal instead of gold (`SurpriseInk` in `SurpriseLook.cs`, rim, flash, minimap, a `STASH  +6 VECTORS` chip). Preview: `BREACHROOMS=1 BREACHAGE=25 STASHAGE=0.5 STASHAT=1 EXPANDMAP=6` (mode hud, wave 7).
+- Friends pin the breaches and play the build-in when a Stash arrives (`ExpansionGame.cs`, the room list read); a joiner's first list is quiet.
+
+## Open
+
+- A walk-in vector claim (first player in, or a synced "claimed" flag) instead of the instant team payout.
+- Cover or a fight inside the Stash; whether a Stash should keep its breach open (enemies still come out of it).
+- The next breach wave's breaches are re-rolled for the bigger map (the Stashes are permanent).
