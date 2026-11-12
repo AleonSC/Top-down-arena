@@ -528,9 +528,9 @@ namespace Arena
             }
             else
             {
-                int k = game.Hunt != null ? 0 : Mathf.Max(1, game.Wave) % 5;  // (no Data Gates in a Boss Hunt)
+                int k = game.Hunt != null || game.Quick ? 0 : Mathf.Max(1, game.Wave) % 5;  // (no Data Gates in a Boss Hunt)
                 DkTitle(new Rect(x + 78f, y + 18f, 320f, 28f), "Not yet", 19, new Color(0.75f, 0.68f, 1f), TextAnchor.MiddleLeft);
-                Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), game.Hunt != null ? "No Data Gates on a Boss Hunt" : k >= 1 && k <= 3 && game.Practice == null ? "A Data Gate opens after one of the next few waves" : nextPortal, 12, Ui.Muted);
+                Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), game.Hunt != null ? "No Data Gates on a Boss Hunt" : game.Quick ? "No Data Gates in Quick Play" : k >= 1 && k <= 3 && game.Practice == null ? "A Data Gate opens after one of the next few waves" : nextPortal, 12, Ui.Muted);
             }
             if (gl && BeginUiGl())
             {

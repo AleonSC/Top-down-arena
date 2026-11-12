@@ -68,11 +68,13 @@ namespace Arena
     {
         HuntBosses huntBosses;
 
-        /// This run's boss schedule: the hunt's in a Boss Hunt, the Campaign's otherwise.
+        /// This run's boss schedule: the hunt's in a Boss Hunt, Quick Play's (QuickPlay.cs), the Campaign's otherwise.
         public BossSchedule Bosses
         {
             get
             {
+                if (Quick && QuickOrder != null && Hunt == null)
+                    return QuickSchedule();
                 if (Hunt == null)
                     return BossSchedule.Campaign;
                 if (huntBosses == null || huntBosses.Hunt != Hunt)

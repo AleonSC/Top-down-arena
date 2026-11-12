@@ -137,7 +137,7 @@ namespace Arena
         /// (each equally likely; the first stretch skips wave 1).
         void MaybeOpenPortal()
         {
-            if (!IsHost || !ChallengesOn || Practice != null || Hunt != null || ShowcaseMode || Room != RoomPhase.None || Wave >= MaxWave && !Endless)
+            if (!IsHost || !ChallengesOn || Practice != null || Hunt != null || Quick || ShowcaseMode || Room != RoomPhase.None || Wave >= MaxWave && !Endless)
                 return;
             int k = Wave % 5, block = (Wave - 1) / 5;
             if (k < 1 || k > 3 || block == portalBlock)

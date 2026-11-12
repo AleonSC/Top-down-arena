@@ -145,6 +145,16 @@ namespace Arena
         {
             var w = Proto.Begin(Msg.Start);
             w.Write(session.StartWave);
+            // Quick Play (QuickPlay.cs): its boss order, drawn here so every machine plays the same bosses.
+            bool quick = session.QuickMode && !session.PracticeMode && session.LobbyHunt == null && ResumeFrom == null;
+            w.Write(quick);
+            if (quick)
+            {
+                var order = QuickPlay.MakeOrder(new Random(), Profile == null || Profile.QuickPlays == 0);
+                w.Write((byte)order.Length);
+                foreach (var b in order)
+                    w.Write((byte)b);
+            }
             w.Write((byte)session.Lobby.Count);
             foreach (var e in session.Lobby.Values)
             {
@@ -162,7 +172,7 @@ namespace Arena
                     w.Write((byte)id);
             }
             w.Write(ResumeFrom != null);  // continuing a saved run (RunSaves.cs)
-            w.Write(ResumeFrom != null ? ResumeFrom.LongRun : LongRunDefault);  // a 100-wave Campaign (Hunts.cs); a saved run keeps its length
+            w.Write(ResumeFrom != null ? ResumeFrom.LongRun : LongRunDefault && !quick);  // a 100-wave Campaign (Hunts.cs); a saved run keeps its length
             var msg = Proto.End(w);
             session.Broadcast(msg);
             var r = new BinaryReader(new MemoryStream(msg));
@@ -188,6 +198,16 @@ namespace Arena
             ResetExpansion();  // ExpansionGame.cs
             ResetRoom();  // Challenges.cs
             int startWave = r.ReadInt32();
+            Quick = r.ReadBoolean();
+            QuickOrder = null;
+            QuickBossesBeaten = 0;
+            if (Quick)
+            {
+                var order = new EnemyType[r.ReadByte()];
+                for (int i = 0; i < order.Length; i++)
+                    order[i] = (EnemyType)r.ReadByte();
+                QuickOrder = order.Length > 0 ? order : new[] { EnemyType.Boss };
+            }
             int n = r.ReadByte();
             var entries = new List<Player>();
             for (int i = 0; i < n; i++)
@@ -256,7 +276,7 @@ namespace Arena
             else
             {
                 Wave = Math.Max(0, startWave - 1);
-                BossSlot = Wave > 0 && Wave % 5 == 0;  // starting after a boss: its wave is done (a saved run says so itself: ApplyResume)
+                BossSlot = IsBossWave(Wave);  // starting after a boss: its wave is done (a saved run says so itself: ApplyResume)
             }
             retrying = false;  // (Stop above has let the retried run go without recording it: Checkpoints.cs)
             LivesUsed = 0;  // (a continued run gets its own back: ApplyResume)

@@ -1,6 +1,6 @@
 # Quick Play (and the first-run tutorial)
 
-Status: **step 0 built** (the boss schedule); steps 1-4 planned (owner's decisions, Nov 12, 2026). Build one step at a time on "start on step N".
+Status: **steps 0-1 built** (the boss schedule; the mode, waves, bosses, records and endless, protocol 297); steps 2-4 planned (owner's decisions, Nov 12, 2026). Build one step at a time on "start on step N".
 
 ## What it is
 
@@ -39,13 +39,23 @@ Per seat and local only (each player's own profile decides): no network message.
 0. **Boss schedule** (built, Nov 12): `Core/BossSchedule.cs`. One object per mode answers which waves have a boss and
    which boss (`Game.Bosses`): the Campaign's rotation and a hunt's last-wave boss today, Quick Play's random bag in step 1.
    Every caller asks it instead of the every-fifth-wave formula; no gameplay, save or protocol change (sim suites identical).
-1. **Mode and waves**: `Session.QuickMode`, `Game.Quick` (Core), the carousel's first mode and default; a boss slot after every
+1. **Mode and waves** (built, Nov 12; protocol 297): `Session.QuickMode`, `Game.Quick` (Core), the carousel's first mode and default; a boss slot after every
    10th wave (as the Campaign's shown waves); the boss bag (Warden first); faction waves with the mixed fallback; boss HP for a ~2 min fight at any wave (sim prints each boss's fight length after waves 10, 20, 30); win screen End / Continue endless; records;
    sim suite `quick`. Protocol bump (start message, `Msg` for the endless choice).
 2. **Building**: Quick Play on the Expanding arena; check vector income fits a 10-wave run (first build round after wave 1).
 3. **Tutorial**: `Core/Tutorial.cs` (step machine, what counts as done), `Game/TutorialUi.cs` (prompts), profile flag,
    skip; `Tools/Preview` shots of each prompt.
 4. **Polish**: README section, lobby dossier for Quick Play (the boss bag shown as "???" until met), preview shots.
+
+## Built in step 1
+
+- `Core/QuickPlay.cs`: the boss order (bags of ten, the Warden first while the host's profile has no Quick Play), `QuickBosses`,
+  `QuickBossHp` = the boss's Campaign health at its own wave x (a typical build's power now / then) x 120/90 s. Its health after
+  waves 10/20/30 against its home health: `run.sh 1 1 quick` prints the table (the Warden x2.1 after wave 10, the Eclipse x0.08).
+- The lobby carousel's first mode; `Profile.LastMode` reopens the host's last pick. No paths, Data Gates, Contraband's
+  after-the-boss chest moves to wave 11, 21, ...; no lives or saves. The win is recorded at the first boss; falling in endless
+  records the stretch since (`RunSaves.QuickRecord`).
+- Fight lengths are the formula's (it assumes a boss's Campaign fight lasts ~90 s); the bots haven't measured them yet.
 
 ## Open
 
