@@ -260,6 +260,8 @@ namespace Arena
             }
             if (DrawVectorChip(SideL, y))  // ExpansionUi.cs
                 y -= HudChipLine;
+            if (DrawRelicChip(SideL, y))  // NodeLook.cs
+                y -= HudChipLine;
             if (DrawServiceChip(SideL, y))  // ExpansionUi.cs
                 y -= HudChipLine;
             if (DrawGoldChip(SideL, y))  // ShopUi.cs

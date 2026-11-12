@@ -25,7 +25,7 @@ namespace Arena
     }
 
     /// What a map node is (Docs/Nodes.md). A node is a point in empty space; a built room that encloses it takes on its job.
-    public enum NodeKind : byte { Shop, Vendor, Chest }  // (a chest gives gold and vectors once, Docs/Nodes.md)
+    public enum NodeKind : byte { Shop, Vendor, Chest, Relic }  // (a chest gives gold and vectors once; a relic fills everyone's relic slot, Relics.cs)
 
     /// A point on the Expanding map, at the centre of a 100 px tile: locked until a built room encloses it, then a fixture of that room.
     public struct MapNode : IEquatable<MapNode>

@@ -18,6 +18,7 @@ namespace Arena
         public readonly string[] BonusKeys = { "", "", "" };        // abilities on Q, E, Shift (by name)
         public readonly List<string> Perks = new List<string>();  // the perks they brought (by name; a continued run can't change them)
         public int Level = 1, Rerolls, Gold;
+        public RelicId Relic = RelicId.None;  // the relic slot (Relics.cs)
         public float Xp, HpFrac = 1f;
         public bool ReviveToken;
         public readonly Dictionary<string, float> Mastery = new Dictionary<string, float>();  // ability name -> XP
@@ -129,6 +130,7 @@ namespace Arena
                 Line(sb, "xp", s.Xp);
                 Line(sb, "rerolls", s.Rerolls);
                 Line(sb, "gold", s.Gold);
+                if (s.Relic != RelicId.None) Line(sb, "relic", s.Relic);
                 Line(sb, "token", s.ReviveToken ? 1 : 0);
                 Line(sb, "hp", s.HpFrac);
                 Line(sb, "keys", string.Join(",", s.BonusKeys));
@@ -281,6 +283,7 @@ namespace Arena
                 case "xp": s.Xp = Fl(val); break;
                 case "rerolls": s.Rerolls = Math.Max(0, I(val)); break;
                 case "gold": s.Gold = Math.Max(0, I(val)); break;
+                case "relic": s.Relic = Enum<RelicId>(val); break;
                 case "token": s.ReviveToken = I(val) != 0; break;
                 case "perks": foreach (var n in val.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)) s.Perks.Add(n.Trim()); break;
                 case "hp": s.HpFrac = Math.Max(0.05f, Math.Min(1f, Fl(val))); break;

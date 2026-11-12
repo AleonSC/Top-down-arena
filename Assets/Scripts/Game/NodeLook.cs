@@ -8,7 +8,9 @@ namespace Arena
     {
         static readonly Rgba ChestInk = new Rgba(0.82f, 0.5f, 1f);
 
-        static Rgba NodeInk(NodeKind k) => k == NodeKind.Shop ? ShopInk : k == NodeKind.Vendor ? VendorInk : ChestInk;
+        static readonly Rgba RelicInk = new Rgba(1f, 0.78f, 0.28f);
+
+        static Rgba NodeInk(NodeKind k) => k == NodeKind.Shop ? ShopInk : k == NodeKind.Vendor ? VendorInk : k == NodeKind.Relic ? RelicInk : ChestInk;
 
         /// A map node on the arena floor: the ghost marker while nobody has built a room round it, its fixture once one has.
         void DrawNodeMark(MapNode n, bool claimed)
@@ -28,6 +30,7 @@ namespace Arena
                     Line(c - new V2(16f, 0f), c + new V2(16f, 0f), 4f, col);
                     Line(c - new V2(0f, 16f), c + new V2(0f, 16f), 4f, col);
                     break;
+                case NodeKind.Relic: RelicGem(c, 0.75f, col); break;
                 default: ChestBox(c, 0.7f, col, false); break;
             }
         }
@@ -61,6 +64,24 @@ namespace Arena
                         Arc(c, 46f, 3f, ink.WithAlpha(0.55f), 8, t * 0.8f + k * MathX.Tau / 4f, 0.9f);
                     break;
                 }
+                case NodeKind.Relic:
+                {
+                    if (spent)
+                    {
+                        Arc(c, 30f, 3f, ink.WithAlpha(0.3f), 24);  // the empty plinth
+                        break;
+                    }
+                    Circle(c, 66f, ink.WithAlpha(0.05f + 0.05f * pulse), 28);
+                    Arc(c, 30f, 4f, ink.WithAlpha(0.6f), 24);  // the plinth
+                    Arc(c, Relics.TakeReach + 18f + 4f * pulse, 2f, ink.WithAlpha(0.35f + 0.25f * pulse), 28);  // walk up to it
+                    RelicGem(c + new V2(0f, Mathf.Sin(t * 2.6f) * 3f - 4f), 1f, ink.WithAlpha(0.95f));
+                    for (int k = 0; k < 3; k++)  // motes turning round it
+                    {
+                        float a = t * 1.4f + k * MathX.Tau / 3f;
+                        Circle(c + new V2(Mathf.Cos(a) * 40f, Mathf.Sin(a) * 40f * 0.6f), 2.5f, ink.WithAlpha(0.7f), 8);
+                    }
+                    break;
+                }
                 default:
                     if (!spent)
                     {
@@ -71,6 +92,34 @@ namespace Arena
                         ChestBox(c, 1f, ink.WithAlpha(spent ? 0.3f : 0.95f), spent);
                     break;
             }
+        }
+
+        /// The HUD chip for your relic slot (Relics.cs), with the wave panel's other chips.
+        bool DrawRelicChip(float x, float y)
+        {
+            var me = game.Me;
+            if (me == null || me.Relic == RelicId.None)
+                return false;
+            string text = "RELIC  " + Relics.Name(me.Relic).ToUpperInvariant();
+            float w = 30f + text.Length * 6.4f;
+            var chip = new Rect(x, y, w, 20f);
+            var ink = ToColor(RelicInk);
+            Ui.Pill(chip, new Color(0f, 0f, 0f, 0.55f));
+            Ui.Fill(new Rect(chip.x + 3f, chip.y + 4f, 3f, chip.height - 8f), ink);
+            Ui.Label(new Rect(chip.x + 12f, chip.y, w, chip.height), text, 10, ink, TextAnchor.MiddleLeft, true);
+            return true;
+        }
+
+        /// A relic: a cut diamond, scaled.
+        void RelicGem(V2 c, float k, Rgba col)
+        {
+            V2 top = c + new V2(0f, -20f * k), right = c + new V2(15f * k, -6f * k), bottom = c + new V2(0f, 20f * k), left = c + new V2(-15f * k, -6f * k);
+            Line(top, right, 3f * k, col);
+            Line(right, bottom, 3f * k, col);
+            Line(bottom, left, 3f * k, col);
+            Line(left, top, 3f * k, col);
+            Line(left, right, 2f * k, col.WithAlpha(col.A * 0.7f));  // the girdle
+            Line(top, bottom, 1.5f * k, col.WithAlpha(col.A * 0.45f));
         }
 
         /// A chest: body and lid (the lid swung up when open), scaled.

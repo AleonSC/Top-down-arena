@@ -322,7 +322,7 @@ namespace Arena
                 added = true;
                 DoLog("a floating " + rk + " room appears at " + f.Value.X + "," + f.Value.Y);
             }
-            foreach (var kind in new[] { NodeKind.Chest })  // (old saves may still hold shop and vendor nodes: they work as before)
+            foreach (var kind in cycle % 2 == 0 ? new[] { NodeKind.Chest, NodeKind.Relic } : new[] { NodeKind.Chest })  // (a relic node every other cycle; old saves may still hold shop and vendor nodes)
             {
                 if (Expansion.UnclaimedCount(Expanded, Nodes) >= Expansion.MaxNodesWaiting)
                     break;
@@ -405,6 +405,7 @@ namespace Arena
         {
             if (!IsHost || !ExpandingOn || Nodes.Count == 0)
                 return;
+            TickRelicNodes();  // Relics.cs
             for (int i = 0; i < Nodes.Count; i++)
             {
                 var nd = Nodes[i];

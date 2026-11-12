@@ -59,21 +59,28 @@ namespace Arena
         /// Host: the exact position and course of every homing (or gravity-bent) bullet.
         void SendSteer()
         {
-            int n = 0;
+            steerScratch.Clear();
             foreach (var b in Bullets.Values)
                 if (b.Homing > 0f || b.Pulled)
-                    n++;
-            if (n == 0)
+                    steerScratch.Add(b);
+            SendSteerOf(steerScratch);
+        }
+
+        readonly List<Bullet> steerScratch = new List<Bullet>();
+
+        /// Host: these bullets' exact position and course (Msg.Steer), e.g. a shot that just bounced off a wall (Relics.cs).
+        void SendSteerOf(List<Bullet> list)
+        {
+            if (list.Count == 0)
                 return;
             var w = Proto.Begin(Msg.Steer);
-            w.Write(n);
-            foreach (var b in Bullets.Values)
-                if (b.Homing > 0f || b.Pulled)
-                {
-                    w.Write(b.Id);
-                    w.Write(b.Pos);
-                    w.Write(b.Vel);
-                }
+            w.Write(list.Count);
+            foreach (var b in list)
+            {
+                w.Write(b.Id);
+                w.Write(b.Pos);
+                w.Write(b.Vel);
+            }
             session.Broadcast(Proto.End(w));
         }
 
@@ -575,6 +582,9 @@ namespace Arena
             s.Byte(ref p.KatanaDashes);
             s.Byte(ref p.BoStep);
             s.Byte(ref p.StaffStacks);  // the Quarterstaff's Jab stacks (Quarterstaff.cs)
+            byte relic = (byte)p.Relic;
+            s.Byte(ref relic);          // the relic slot (Relics.cs)
+            p.Relic = (RelicId)relic;
             s.Byte(ref p.TwinNades);    // the Twin Rifle's grenade tubes (TwinGrenades.cs)
             s.Byte(ref p.TwinNext);
             s.Byte(ref p.TwinCharge);
