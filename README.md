@@ -877,7 +877,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   none is given within 2 rooms of it. ([`Docs/SurpriseRooms.md`](Docs/SurpriseRooms.md))
   **Breach events**: on about half of the breach waves from wave 7 on (so waves like 7, 15, 19, 23, ...; never the wave after a boss) one of the breaches flashes **gold** instead of red. 20 seconds into the
   wave, or when it ends if that comes first, the wall behind that breach opens onto a free surprise room. The wave's other breaches stay where they were.
-  **Breach rooms**: 20 seconds into a breach wave (or when it ends, if that comes first) every breach left (not the gold one) opens onto a small free **Stash** (5 x 3 tiles) behind its wall. Each Stash
+  **Breach rooms**: as soon as a breach wave's breaches come up (a second and a half in) every breach left (not the gold one) opens onto a small free **Stash** (5 x 3 tiles) behind its wall. Each Stash
   holds a **vector cache** (a teal diamond marked **+10**): the first player to walk in takes **+10 vectors** (up to their cap), once. It has a block and a pillar for cover, builds in with a teal flash and
   scan line and a **STASH** chip, and stays for good (no vote, no cost; it stops within 2 rooms of the map's size cap, and a breach with no space behind it gets none). The breach itself **never closes**:
   each breach lets its share of the wave in (the wave's enemies split evenly over its breaches), then nothing more comes through it; if every breach has had its share the rest come in at the usual spots. When zoomed out, a teal edge arrow points to a cache nobody has taken.
