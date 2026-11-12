@@ -142,6 +142,35 @@ namespace Arena
             return false;
         }
 
+        /// Puts first the Stash spots whose doorway (the middle of the wall it shares with the breach's room) is nearest the
+        /// breach, so the door lines up with it; otherwise the order is kept. The same on every machine.
+        internal static void CentreOnBreach(List<SurpriseOption> opts, Breach b, World w)
+        {
+            if (opts.Count < 2 || b.Area < 0 || b.Area >= w.Areas.Length)
+                return;
+            var a = w.Areas[b.Area];
+            float u = b.Vertical ? b.Pos.Y : b.Pos.X, alo = b.Vertical ? a.Min.Y : a.Min.X, ahi = b.Vertical ? a.Max.Y : a.Max.X;
+            var off = new float[opts.Count];
+            var order = new int[opts.Count];
+            for (int i = 0; i < opts.Count; i++)
+            {
+                order[i] = i;
+                off[i] = float.MaxValue;
+                foreach (var q in opts[i].Rooms)
+                {
+                    float lo = Math.Max(alo, b.Vertical ? q.Y : q.X), hi = Math.Min(ahi, b.Vertical ? q.Y1 : q.X1);
+                    if (hi > lo)
+                        off[i] = Math.Min(off[i], Math.Abs((lo + hi) / 2f - u));
+                }
+            }
+            Array.Sort(order, (x, y) => off[x] != off[y] ? off[x].CompareTo(off[y]) : x.CompareTo(y));
+            var sorted = new List<SurpriseOption>(opts.Count);
+            foreach (int i in order)
+                sorted.Add(opts[i]);
+            opts.Clear();
+            opts.AddRange(sorted);
+        }
+
         /// Host, as a breach wave's breaches come up (or as it is cleared, if that was missed): each of its breaches (the gold one already went) opens onto a free Stash behind its wall
         /// (Docs/BreachRooms.md). Skips a breach with no legal spot, and stops within 2 rooms of the cap.
         void RevealBreachRooms()
@@ -160,6 +189,7 @@ namespace Arena
                     continue;  // (the gold breach's room opens there later)
                 var opts = Expansion.SurpriseOptions(Expanded, SurpriseShape.Stash, b.Pos - b.In * BreachEvent.Behind);
                 opts.RemoveAll(o => TouchesPlannedEventRoom(o.Rooms));
+                CentreOnBreach(opts, b, CurrentWorld);
                 if (opts.Count == 0)
                     continue;
                 Expanded.AddRange(opts[0].Rooms);
