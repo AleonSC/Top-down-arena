@@ -1184,6 +1184,21 @@ static partial class Shot {
       sc.SeenT = 1.2f;
       sg.AnimT += float.Parse(Environment.GetEnvironmentVariable("SECURITY"), System.Globalization.CultureInfo.InvariantCulture);
     }
+    if (Environment.GetEnvironmentVariable("POSSESS") != null) {
+      // The Dev Arena (DevArena.cs): you playing as POSSESS=<EnemyType> (brackets, name, controls strip), your hero parked, two grunts.
+      // Mode hud for the play view; mode dev with DEVSHEET=5 for the dock's Spawn / Play as row.
+      var spe = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var pg = host.Game; pg.Enemies.Clear(); pg.Bullets.Clear(); pg.Bot = false;
+      pg.DevArena = true;
+      me.Pos = me.Disp = new V2(520f, 470f);
+      var t = (EnemyType)Enum.Parse(typeof(EnemyType), Environment.GetEnvironmentVariable("POSSESS"));
+      var you = (Enemy)spe.Invoke(pg, new object[] { t, new V2(900f, 430f), 0f, 0, false });
+      you.SpawnT = 0f; you.Disp = you.Pos; you.Facing = (me.Pos - you.Pos).Angle;
+      pg.PossessId = you.Id;
+      foreach (var at in new[] { new V2(1200f, 300f), new V2(1250f, 640f) }) {
+        var o = (Enemy)spe.Invoke(pg, new object[] { EnemyType.Grunt, at, 0f, 0, false }); o.SpawnT = 0f; o.Disp = o.Pos;
+      }
+    }
     if (Environment.GetEnvironmentVariable("FLANKERS") != null) {
       // The Hive Queen's Swarm bombers: two swooping out to your sides (gold) and two diving in (red-hot).
       var sef = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);

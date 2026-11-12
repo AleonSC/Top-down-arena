@@ -340,6 +340,8 @@ namespace Arena
             spawnQueue.Clear();
             squadQueue.Clear();
             DevFreeze = false;  // (DevTools.cs)
+            DevArena = false;   // (DevArena.cs)
+            PossessId = -1;
             ClearRisers();
             designQueue.Clear();
             pendingSpawns.Clear();

@@ -1769,6 +1769,16 @@ its fields the game's keys are off. Outside a match only VIEW and LABS show.
 - **WAVE > SPAWN AN ENEMY… (host, while a wave is under way):** a sheet with every enemy (and a **BOSSES** tab) shown as its live model; filter by
   name, pick a **count** (1, 3, 5, 10) and **Elite**, then click one to put them in a row in front of you. A boss comes in the middle of the
   arena as on its wave (the Twin Reapers bring both twins). They count toward the wave like any enemy. Marks the run as a dev run.
+- **LABS > DEV ARENA (PLAY AS ENEMIES) (host):** a sandbox for trying enemies' attacks. From the menu or the lobby it starts a Practice
+  Range match and turns it on; in a match it turns on there. The field is cleared, everyone goes into god mode, no enemies arrive and the
+  wave never clears. The Spawn-an-enemy sheet opens with a row on top: **CLICK: SPAWN** puts enemies in front of you as usual, **CLICK:
+  PLAY AS** spawns one and hands it to you, **LET GO**, **CLEAR ARENA** and **LEAVE DEV ARENA** (the wave then clears as usual). Playing as
+  an enemy: your hero stands still and the camera follows the enemy (gold brackets, "YOU", and a controls strip at the top). **WASD** moves
+  it, the **mouse** is what it goes for (its own AI aims, lunges, charges and keeps its range at the cursor), hold **Fire** to attack on its
+  real cadence (it moves on its own while it attacks unless you steer), **Parry** attacks at once (skips the cooldown), **Space** (role
+  ability) lets go. Its shots and touches hurt players as usual, so aim at your parked hero (or a bot) to see them land. While you don't
+  attack, its AI waits (a boss's stages pause too). Some boss attacks still go for a player rather than the cursor. A dead enemy lets go by
+  itself. Marks the run as a dev run.
 - **PARTY > SPAWN AN UPGRADE… (host, in a match):** a sheet listing every upgrade (filter by name or text, or by rarity, including weapon mods and milestone
   cards; pick whose build it is for with several players). Click one and it drops a few steps in front of that player exactly as a treasure
   chest's item does: only they see it, walk onto it, then **G** takes it and **X** throws it away (the wave waits for it, like a chest's). Only
