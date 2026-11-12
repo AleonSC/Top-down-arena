@@ -368,6 +368,7 @@ namespace Arena
 
         public int Level = 1, PendingPicks, Rerolls = Game.StartingRerolls;
         public int Gold;                       // the Bazaar's gold (Shop.cs, replicated)
+        public RelicId Relic = RelicId.None;   // the relic slot (Relics.cs, replicated)
         public readonly byte[] Stash = new byte[Market.Count];  // Black Market buys not yet placed, by BuildKind (Market.cs, replicated)
         public int Vectors = Game.VectorStart, VectorCap = Game.VectorCapBase;  // the Expanding arena's drawing budget and the most you hold (ExpansionGame.cs, replicated)
         public readonly int[] Shelf = NewShelf();  // this player's shop: upgrade ids, the first Game.ShelfLen of them are live (replicated)
@@ -579,6 +580,7 @@ namespace Arena
         public bool FromBoss;     // fired by a boss (only these wear blockers down; drawn with a dark core)
         public float Homing;      // Homing Rounds: turn rate toward the nearest enemy (host corrects clients)
         public int Bounces;       // host only: Ricochet bounces left
+        public byte WallHops;     // host only: times it has bounced off a wall (the Wall Bounce relic, Relics.cs)
         public int Frags;         // host only: on hit, throws this many fragments (Frost Lance, Railgun, Flak, Fireball)
         public byte FragKind;
         public float FragDmg, FragSpeed, FragLife, FragSplash;

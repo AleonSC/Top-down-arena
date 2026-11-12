@@ -67,7 +67,7 @@ namespace Arena
                 var seat = new SeatSave
                 {
                     Name = p.Name, Role = p.Role, Kit = p.Kit, Weapon = e != null ? e.Weapon : 0, Ability = e != null ? e.Ability : 0, Wild = e != null ? e.Wild : 0, Ult = p.UltPick,
-                    Level = p.Level, Xp = p.Xp, Rerolls = p.Rerolls, Gold = p.Gold, ReviveToken = p.ReviveToken,
+                    Level = p.Level, Xp = p.Xp, Rerolls = p.Rerolls, Gold = p.Gold, Relic = p.Relic, ReviveToken = p.ReviveToken,
                     HpFrac = p.Downed || p.MaxHp <= 0f ? 0.4f : p.Hp / p.MaxHp, Run = p.Run,
                 };
                 foreach (var pk in p.Perks)
@@ -129,6 +129,7 @@ namespace Arena
                 p.Xp = s.Xp;
                 p.Rerolls = s.Rerolls;
                 p.Gold = s.Gold;
+                p.Relic = s.Relic;
                 p.ReviveToken = s.ReviveToken;
                 p.Run = s.Run;
                 p.PendingPicks = 0;
