@@ -68,7 +68,7 @@ namespace Arena
             s.Sound = fin ? Sfx.CenserWhirl : step == 1 ? Sfx.CenserSweep1 : Sfx.CenserSweep2;  // CenserSoundBank.cs
             s.HealSpin = CenserHeal[step - 1] + extra;
             s.HealRange = CenserHealR[step - 1];
-            pendingSwings.Add(s);
+            QueueSwing(s);
             // The whole move, drawn from its age: Radius carries who and which step.
             BroadcastFx(FxKind.CenserStep, p.Pos, p.Pos + V2.FromAngle(aim) * s.Reach, CenserGold, p.Id * 10 + step, d.Dur + CenserMotion.Recover, Sfx.None);
         }

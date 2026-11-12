@@ -32,7 +32,7 @@ static partial class Program
         Check(rep.AsText().Contains("Waves") && rep.AsText().Length > 200, "the summary copies out as text");
 
         string json = File.ReadAllText(t.Path);
-        Check(json.Contains("\"balance-test\"") && json.Contains("\"damageBySource\"") && json.Contains("\"format\": 4"), "the file is format 4 and marked as a balance test");
+        Check(json.Contains("\"balance-test\"") && json.Contains("\"damageBySource\"") && json.Contains("\"format\": 5"), "the file is format 5 and marked as a balance test");
         int open = json.Count(c => c == '{') - json.Count(c => c == '}'), openL = json.Count(c => c == '[') - json.Count(c => c == ']');
         Check(open == 0 && openL == 0, "the file's brackets balance");
         Check(json.Contains("\"end\"") && json.Contains("balance test cleared"), "the file says the test was cleared");

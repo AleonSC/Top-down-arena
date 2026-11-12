@@ -1815,9 +1815,10 @@ its fields the game's keys are off. Outside a match only VIEW and LABS show.
   own hit, burn/bleed/poison, ability and summon shots, and the rest), **Ability use**, **Enemies** (health, time alive, damage
   to you), **Damage taken** and **Picks**, and a list of automatic **findings** (a source with most of the damage, an enemy
   that hurts far more than it appears, a long-lived enemy, low accuracy). **Copy summary** puts it on the clipboard and
-  **Open logs folder** opens the `balance` folder, which holds one JSON file per test (session format 4, summarised by
-  `Tools/SessionReport`). Tests never count in Records, XP or ranks. Damage from zones, minions and other lasting effects
-  can't be traced to the cast that made it and shows as "Other". Design and fields: `Docs/BalanceTest.md`.
+  **Open logs folder** opens the `balance` folder, which holds one JSON file per test (session format 5, summarised by
+  `Tools/SessionReport`). Tests never count in Records, XP or ranks. Every weapon hit (swings, beams, companions included) counts
+  as the weapon; damage from ability zones, minions and other lasting effects can't be traced to the cast that made it and
+  shows as "Other". Health paid for blood costs is listed as health spent, not damage taken. Design and fields: `Docs/BalanceTest.md`.
 
 ### Replays (F1)
 

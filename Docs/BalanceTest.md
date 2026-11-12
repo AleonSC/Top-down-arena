@@ -18,8 +18,15 @@ From a normal run you host, F1 > Balance > **Launch test** ends the current reco
 - Per enemy type: `avgMaxHp` (scaled health at spawn), plus the existing spawned, killed, lifetime and damage to players.
 - Samples every second when "sample every second" is on (health, enemies, bullets, nearest enemy).
 
+## Format 5
+- `Weapon: <name>` covers every hit of the weapon, not only its bullets: melee swings (`Swing.FromWeapon`), beams and
+  grasps, lobbed shots, orbits, lance shoves, summoner companions (`WeaponCompanion`) and shots a weapon launches later
+  (`Bullet.WeaponDmg`). `Tools/SimTest/run.sh 1 1 weaponsrc` lists each weapon's share; suite `sessionsrc` checks a few.
+- Per player and wave: `healthSpent` and `healthSpentOn` (Vein Tithe, Blood Wall, Clot Cannon, ability health costs, ...).
+  Health paid on purpose is no longer in `damageTaken`, so the difficulty numbers only count what enemies did.
+
 ## Known limits
-- Zones, minions, turrets and delayed ability hits are not tied to a cast and land in "Other". Reading that row as the
+- Ability zones, ability minions, turrets and delayed ability hits are not tied to a cast and land in "Other". Reading that row as the
   lasting abilities' share is the best the log can do without tagging every damage call.
 - The test starts from the current level and upgrades; start at wave 1 of a fresh run for a clean build.
 

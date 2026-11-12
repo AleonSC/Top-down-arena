@@ -119,7 +119,7 @@ namespace Arena
             s.Delay = delay;
             s.NoFx = true;  // the step's own effect draws it (and the press played its sound; a slam has its own as it lands)
             s.Knuckle = (byte)step;
-            pendingSwings.Add(s);
+            QueueSwing(s);
             return s;
         }
 
@@ -223,7 +223,7 @@ namespace Arena
             hit.NoFx = true;
             hit.Knuckle = 7;
             hit.Delay = time * KnuckleDashLandAt;
-            pendingSwings.Add(hit);
+            QueueSwing(hit);
             BroadcastFx(FxKind.KnuckleDash, from, to, ArcBlue, p.Id, time + KnuckleDashFxAfter, Sfx.KnuckleRocket);
         }
 

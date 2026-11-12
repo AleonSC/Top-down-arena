@@ -223,7 +223,7 @@ namespace Arena
             }
             dmg *= NinjaHitMult(p.Id, Defs.FumaStar, e);
             p.Run.ShotsHit++;
-            HurtEnemy(e, dmg, p.Id);
+            WeaponHurt(e, dmg, p.Id);
             V2 rel = e.Pos - p.Pos;
             OnBulletHit(new Bullet { Pos = e.Pos, Vel = rel.IsZero ? V2.FromAngle(p.Aim) : rel.Normalized(), Owner = p.Id, Dmg = dmg, Kind = Defs.FumaStar }, e);
             BroadcastFx(FxKind.Spark, e.Pos - rel.Normalized() * e.Radius, new Rgba(1f, 1f, 1f), 8f, 0.15f, Sfx.None);
