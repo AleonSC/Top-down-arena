@@ -113,7 +113,7 @@ namespace Arena
                 return;
             }
             if (!p.DevGod)
-                PayHealth(p, p.MaxHp * BathDrain * dt);  // the channel's price (never below 1 HP)
+                PayHealth(p, p.MaxHp * BathDrain * dt, "Bloodbath");  // the channel's price (never below 1 HP)
             if (p.Hp <= p.MaxHp * BathFloor)
             {
                 EndBath(z);

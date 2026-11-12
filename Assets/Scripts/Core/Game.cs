@@ -1265,6 +1265,7 @@ namespace Arena
             TickShocks(dt);   // KitWeapons.cs: the Storm Hammer's electrified enemies
             TickIonTrails(dt);  // KitWeapons.cs: the Railgun's charged paths
             TickPack(dt);     // KitWeapons.cs: the Wolf Whistle's prey
+            string tickSrc = CreditTo("weapon");  // (these are the weapons' own systems: the session recording credits them)
             TickOrbiters(dt);  // KitWeapons.cs: Ice Shards (WeaponId.ArcaneMissiles) launching
             TickTwinBlades(dt);  // TwinBlades.cs: the chain forgetting its place, Twin Fang's sabres flying
             TickLightbringer(dt);  // Lightbringer.cs: Mercy's wards fading, Sunlances flying
@@ -1275,6 +1276,7 @@ namespace Arena
             TickHammerSlams(dt);    // StormHammer.cs: slams landing and their shockwaves
             TickBoShoves(dt);   // BoStaff.cs: the Bo Staff's shoves landing
             TickStaff(dt);      // Quarterstaff.cs: the jab's cooldown, stacks dropped with the staff
+            dmgSrc = tickSrc;
             TickRepulsion(dt);  // Repulsion.cs: the Undertow pulling and draining its meter
             TickTwinRifle(dt);  // TwinGrenades.cs: the grenade tubes' cooldown, emptied with the rifle
             TickTankAlts(dt);   // TankAlts.cs: Double Barrel, Proximity Shells, Tear Gas
@@ -1397,7 +1399,11 @@ namespace Arena
                 TickSpinUp(p, dt);  // the Burst SMG (Weapons.cs)
                 TickRapier(p, dt);  // the Rapier's Tempo and Flourish (Rapier.cs)
                 if (p.Weapon.Id == WeaponId.RadiantOrb)
+                {
+                    string orbSrc = CreditTo("weapon");
                     TickRadiantOrb(p, dt);  // held, not fired (RadiantOrb.cs); it lets go when you're down
+                    dmgSrc = orbSrc;
+                }
                 if (p.Downed || p.SwallowT > 0f || p.WarpT > 0f)
                     continue;  // (nothing to shoot from inside the Devourer, or mid beam-in)
                 if (p.StunShots > 0)

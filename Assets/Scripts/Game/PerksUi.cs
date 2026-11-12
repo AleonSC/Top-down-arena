@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The lobby's Perks tab (Docs/RiotGear.md, look A of Docs/Mockups/riot-gear-perk-menu.html): your slots on the left, the perks
+    /// The lobby's Perks view, opened from the loadout's Perks key (Docs/RiotGear.md, look A of Docs/Mockups/riot-gear-perk-menu.html): your slots on the left, the perks
     /// as cards on the right. Click an unlocked card to equip it, an equipped card or a slot's "remove" to take it off; hover for the
     /// rules. Bosses whose perks aren't built yet are locked placeholders. Equipping saves the profile and tells the lobby
     /// (Session.ShareCosmetics), so everyone sees your perks on your seat.
@@ -17,6 +17,17 @@ namespace Arena
 
         string perkNote = "";
         float perkNoteUntil;
+
+        /// The loadout's Perks key: "PERKS n/m" with the equipped perks' icons; a click opens the Perks view (lobbyTab = PerkTab).
+        void DrawPerksKey(Rect title, bool calm)
+        {
+            var prof = session.Game.Profile;
+            var equipped = Perks.Equipped(prof);
+            string label = "PERKS  " + equipped.Count + "/" + Perks.Slots(prof);
+            var kr = new Rect(title.xMax - 124f, title.y + 18f, 124f, 32f);  // right of the class name, under the preview
+            if (LobbyKit.Key(kr, label, false, calm, equipped.Count > 0 ? PerkIcon(equipped[0]) : null, colorIcon: true, size: 13, minSize: 10))
+                lobbyTab = PerkTab;
+        }
 
         static Texture2D PerkIcon(PerkId id) => PixelArt.Get(id == PerkId.RiotGear ? "perk_riot" : id == PerkId.Contraband ? "perk_bag" : "ui_lock");
 
@@ -34,6 +45,8 @@ namespace Arena
                 slots = Mathf.Max(1, equipped.Count);
             }
             LobbyKit.Panel(r);  // the lobby screen (LobbyKit.cs)
+            if (LobbyKit.Key(new Rect(r.xMax - 128f, r.y + 8f, 110f, 26f), "< LOADOUT", false, fxReduced, size: 13, minSize: 10))
+                lobbyTab = 0;  // back to the loadout (the Perks view opens from its Perks key)
 
             // --- Left: the slots
             float lx = r.x + 18f, lw = 236f;
@@ -53,8 +66,10 @@ namespace Arena
                 ? "Perks bend the rules for a run: one per boss, a few slots. Win a Boss Hunt to unlock that boss's perks."
                 : "You're continuing a saved run, so everyone keeps the perks they had when it was saved.";
             Ui.Label(new Rect(lx, ny, lw, 70f), blurb, 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
+            if (session.PracticeMode && canEdit)  // you can set them up here, but the Practice Range plays without them
+                Ui.Label(new Rect(lx, ny + 48f, lw, 36f), "Perks are off in the Practice Range: they apply to your next real run.", 12, Ui.Gold, TextAnchor.UpperLeft, true, true);
             if (Time.unscaledTime < perkNoteUntil)
-                Ui.Label(new Rect(lx, ny + 72f, lw, 36f), perkNote, 12, Ui.Gold, TextAnchor.UpperLeft, true, true);
+                Ui.Label(new Rect(lx, ny + (session.PracticeMode ? 96f : 72f), lw, 36f), perkNote, 12, Ui.Gold, TextAnchor.UpperLeft, true, true);
 
             // --- Right: the perks
             float x = r.x + 274f, w = r.xMax - 18f - x;

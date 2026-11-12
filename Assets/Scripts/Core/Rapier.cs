@@ -141,7 +141,7 @@ namespace Arena
                 if (e.Pos.DistanceTo(p.RapierLungeFrom + p.RapierLungeDir * along) > e.Radius + RapierLungeWidth)
                     continue;
                 p.RapierLungeHit.Add(e.Id);
-                HurtEnemy(e, p.RapierLungeDmg, p.Id);
+                WeaponHurt(e, p.RapierLungeDmg, p.Id);
                 RapierGainTempo(p, 1);
                 BroadcastFx(FxKind.GauntletBowl, e.Pos, new V2(-p.RapierLungeDir.Y, p.RapierLungeDir.X), new Rgba(0.8f, 0.72f, 1f), e.Radius, 0.5f, Sfx.Hit);
             }

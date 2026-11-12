@@ -450,7 +450,7 @@ Rarer cards show up a bit more often as you level. All the numbers live in
   like wave 19 of the old run, and the wave numbers in this README are track waves (double them, roughly, for the
   Campaign's). XP, kill gold, chests and the Expanding arena's vectors per wave are halved to match, so you reach each
   boss about as strong as before. Runs saved before this stay 50 waves; Boss Hunts stay ten.
-- **A new enemy trickles in, and the last boss's fades out.** In a lesson that introduces an enemy (the Warden's waves 2, 3, 4, 5, 6 and 7: Security Guards, Riot Shields, Gas Grenadiers, Thugs, Taser Guards, Shivs), it arrives alone as stragglers through the second half of the wave. After a boss, his faction fades over the next three waves (40%, 20%, 8% of the wave, singles only, no squads) with the tricky ones going first (Riot Shields, Gas Grenadiers and Taser Guards at once, the Security Guard after a wave, Thugs and Shivs after two, Rioters and Guards last), while the next faction's enemies come in at once. Later on, the **comeback squad** (one wave in five from wave 11) is big: an old boss's squad twice over, plus that faction's toughest enemy as an anchor, so a late Breakout is a crowd of Rioters. Wave 1 has more enemies (12) and spawns faster, over a shorter window (24 s, the full 45 s by wave 6), so there's less waiting for the last few.
+- **A new enemy trickles in, and the last boss's fades out.** In a lesson that introduces an enemy (the Warden's waves 2, 3, 4, 5, 6 and 7: Security Guards, Riot Shields, Gas Grenadiers, Thugs, Taser Guards, Shivs), it arrives alone as stragglers through the second half of the wave. After a boss, his faction fades over the next three waves (40%, 20%, 8% of the wave, singles only, no squads) with the tricky ones going first (Riot Shields, Gas Grenadiers and Taser Guards at once, the Security Guard after a wave, Thugs and Shivs after two, Rioters and Guards last), while the next faction's enemies come in at once. Later on, the **comeback squad** (one wave in five from wave 11) is big: an old boss's squad twice over, plus that faction's toughest enemy as an anchor, so a late Breakout is a crowd of Rioters. The Warden's first round is Rioters only (no Guards, so no Breakout either). Wave 1 has more enemies (12) and spawns faster, over a shorter window (24 s, the full 45 s by wave 6), so there's less waiting for the last few.
 - **Each boss's ten Campaign waves teach its fight.** The Warden's (waves 1-10): 1 Rioters only; 2 Security Guards'
   aimed tracers; 3 Riot Shields (flank them); 4 Gas Grenadiers with shields shoving you into the gas; 5 a recap; 6 Taser Guards (stuns; parry the Fork Bolt back); 7 tasers, shields and
   gas together; 8 mostly squads (Breakout, Patrol, Cell block); 9 everything, tighter; 10 the exam, the Riot line with
@@ -1091,7 +1091,7 @@ on top (Tough Crowd, Frenzy, Swift Foes, Glass Cannon...).
 
 **The lobby's first mode, and where a new profile starts.** In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt** or
 **Practice** on the mode carousel; the lobby opens next time on the mode the host last picked (a new profile: Quick Play).
-Picking it opens the lobby's **Quick Play** tab: the run's shape (ten waves, the boss, endless), its rules, your Quick Play
+Picking it turns the tab carousel to the lobby's **Quick Play** tab: the run's shape (ten waves, the boss, endless), its rules, your Quick Play
 records (played, won, best wave, bosses), and **the boss pool**: a tile for each of the ten bosses, with its model and name once
 you've beaten it anywhere, a **???** until then (on your first Quick Play the Warden shows, marked FIRST).
 
@@ -1122,14 +1122,14 @@ you've beaten it anywhere, a **???** until then (on your first Quick Play the Wa
 
 ## Boss Hunt
 
-In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt** or **Practice** on the mode carousel at the top (arrows, the mouse wheel or a click on a side mode turn it). The tabs over the big screen (Loadout, Perks, Difficulty, ...) are a carousel too: the open tab in the middle, the rest wrapping round either side. A Boss Hunt is a short run that ends
+In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt** or **Practice** on the mode carousel at the top (arrows, the mouse wheel or a click on a side mode turn it). Over the big screen, a fixed **Loadout** key sits on the left, and the other tabs (the mode's own, Difficulty, Modifiers) are a carousel beside it: the open tab in the middle, the rest wrapping round either side. **Perks** open from the **Perks** key right of your class name on the loadout (it shows your equipped perk and slots used, e.g. 1/2); "< Loadout" or the Loadout key takes you back (in the Practice Range too, where you can set them up but the range plays without them). The lobby opens on the Loadout, and picking a mode keeps it there; the carousel turns to that mode's own tab (Quick Play, Boss hunt, Practice) for a click. A Boss Hunt is a short run that ends
 with one boss: **ten waves**. Waves 1-9 bring only the boss's own enemies (its faction: for the Warden, Rioters and
 Guards, then Riot Shields, Gas Grenadiers, Security Guards and Taser Guards, its Breakout, Patrol and Cell block squads, and its Riot line on waves 5 and
 9); wave 10 is the boss, at wave-10 strength. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no
 path offer, no Data Gate, and a hunt isn't saved to continue. Modifiers and the difficulty apply as in a run,
 and so does the boss's health boost for strong builds. The HUD and the Tab screen count the hunt's waves (n / 10).
 
-The **Boss hunt** tab is a dossier: a looping drum of the ten bosses (status tag: SOON, LOCKED, OPEN or WON xN; mouse wheel, PREV / NEXT or a click rolls one to the top, and the list never ends). The boss on top is the picked one: the host can scroll onto a locked or coming-soon boss to look at it, but START stays off until the top boss's hunt is open. For the top boss it shows a green-edged target scope with its live model, the wave ladder, your hunts won, best time and the hunt's rules. A boss's hunt **opens once you've beaten it in a
+The **Boss hunt** tab is a dossier: a looping drum of the ten bosses (status tag: SOON, LOCKED, OPEN or WON xN; mouse wheel, PREV / NEXT or a click rolls one to the top, and the list never ends). A boss you've never beaten is a **???** row with a "?" for its portrait (and a "?" in the scope), as in the Quick Play tab's boss pool. The boss on top is the picked one: the host can scroll onto a locked or coming-soon boss to look at it, but START stays off until the top boss's hunt is open. For the top boss it shows a green-edged target scope with its live model, the wave ladder, your hunts won, best time and the hunt's rules. A boss's hunt **opens once you've beaten it in a
 run** (the host's records decide, in co-op); the others say Locked or Coming soon, and the match won't start on a
 locked one. **Only the Warden has a hunt so far**: a hunt's build-up waves need the boss's faction (only the
 Warden has one yet), and later bosses will need the party handed a build that fits their strength. Records keep each hunt's plays, wins and best time per player
@@ -1138,11 +1138,11 @@ Warden has one yet), and later bosses will need the party handed a build that fi
 ## Perks
 
 A perk is a rule you bring into a run, one per boss, unlocked by winning that boss's **Boss Hunt**. Pick them on the lobby's
-**Perks** tab: your **slots** on the left (one to start, a second after you win a full run, a third after you win five different
+**Perks** view (the loadout's Perks key): your **slots** on the left (one to start, a second after you win a full run, a third after you win five different
 hunts), and a card for each perk on the right. Click an unlocked card to equip it, click an equipped card (or the slot's
 *remove*) to take it off, and hover a card for the rules. A second perk from the same boss takes the first one's slot. Everyone
 brings their own perks in co-op, and each seat shows its perk icons on its party card. Perks are off in the Practice Range, the
-Boss Lab and the lobby preview. A saved run keeps each seat's perks, and when you continue it the tab is read-only and shows
+Boss Lab and the lobby preview. A saved run keeps each seat's perks, and when you continue it the view is read-only and shows
 what the seat was saved with. Equipped perks are saved with your profile.
 
 | Perk | Boss | Unlocked by | Effect |
@@ -1154,7 +1154,7 @@ The plate hovers at your side and swings toward the nearest incoming enemy shot 
 recharges a ghost plate fills along its length, and it pops back when ready. A block flashes the plate white, throws sparks off
 the impact and breaks the plate into three pieces that fly off (with visual effects reduced or off, only the flash). A small
 **Riot Gear** chip above the ability bar's XP strip fills from the bottom and shows the seconds left, then READY. Teammates' plates
-show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear's place. Other bosses' perks come later: the tab shows them as locked placeholders. Runs don't yet note which perks were used (a
+show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear's place. Other bosses' perks come later: the view shows them as locked placeholders. Runs don't yet note which perks were used (a
 "no perks" record variant is planned). Plan and build notes: `Docs/RiotGear.md`, `Docs/BossHuntsAndPerks.md`.
 
 ## Practice Range
@@ -1820,9 +1820,10 @@ its fields the game's keys are off. Outside a match only VIEW and LABS show.
   own hit, burn/bleed/poison, ability and summon shots, and the rest), **Ability use**, **Enemies** (health, time alive, damage
   to you), **Damage taken** and **Picks**, and a list of automatic **findings** (a source with most of the damage, an enemy
   that hurts far more than it appears, a long-lived enemy, low accuracy). **Copy summary** puts it on the clipboard and
-  **Open logs folder** opens the `balance` folder, which holds one JSON file per test (session format 4, summarised by
-  `Tools/SessionReport`). Tests never count in Records, XP or ranks. Damage from zones, minions and other lasting effects
-  can't be traced to the cast that made it and shows as "Other". Design and fields: `Docs/BalanceTest.md`.
+  **Open logs folder** opens the `balance` folder, which holds one JSON file per test (session format 5, summarised by
+  `Tools/SessionReport`). Tests never count in Records, XP or ranks. Every weapon hit (swings, beams, companions included) counts
+  as the weapon; damage from ability zones, minions and other lasting effects can't be traced to the cast that made it and
+  shows as "Other". Health paid for blood costs is listed as health spent, not damage taken. Design and fields: `Docs/BalanceTest.md`.
 
 ### Replays (F1)
 

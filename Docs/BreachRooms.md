@@ -37,6 +37,7 @@ Builds on [`SurpriseRooms.md`](SurpriseRooms.md) (placement, free rooms) and [`R
 
 ## Step 4 (built, no wire change)
 
+- **The door lines up with the breach**: of the legal Stash spots, the one whose doorway (middle of the shared wall) is nearest the breach is taken (`Game.CentreOnBreach`, both in `StashAccept` and `RevealBreachRooms`).
 - **The breach never closes**: `PinBreaches` ignores Stash rooms when dropping breaches (the gold event's room still drops its breach), so a Stash's breach stays open and drawn.
 - **A share each**: `Breaches.Quota(total, breaches)`: the wave's `breachTotal` (set in `FloodBreachWave`: enemies + squads, times the flood) is split evenly; `BreachSpot` counts what each breach has let in (`breachUsed`, host only) and skips a spent one. When all are spent it returns null and the enemy comes in the usual way.
 - **Cover**: `AddStashCover` (`Expansion.cs`): a block and a pillar on a diagonal either side of the cache; fins are skipped for a Stash and the outline-sliver rule does not apply to it. Test: every Stash spot has cover and none on the cache.

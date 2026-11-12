@@ -163,7 +163,7 @@ namespace Arena
                 bool inside = clap ? AmmoInCone(p, e, AmmoClapCone, AmmoClapRadius) : AmmoInCone(p, e, AmmoCone, AmmoReach);
                 if (!inside)
                     continue;
-                HurtEnemy(e, dmg, p.Id);
+                WeaponHurt(e, dmg, p.Id);
                 Daze(e);  // a close-in hit: it can't attack for a moment (Daze.cs)
                 V2 away = (e.Pos - p.Pos).Normalized();
                 if (!Heavy(e))
@@ -185,7 +185,7 @@ namespace Arena
                 if (!Targetable(e) || !AmmoInCone(p, e, AmmoMotion.KCone[k], AmmoMotion.KReach[k]))
                     continue;
                 hitAny = true;
-                HurtEnemy(e, dmg, p.Id);
+                WeaponHurt(e, dmg, p.Id);
                 Daze(e);  // a close-in hit: it can't attack for a moment (Daze.cs)
                 V2 away = (e.Pos - p.Pos).Normalized();
                 if (!Heavy(e) && k == 2)
@@ -265,7 +265,7 @@ namespace Arena
             {
                 if (!Targetable(e) || e.Pos.DistanceTo(p.Pos) - e.Radius > AmmoSpinRadius)
                     continue;
-                HurtEnemy(e, dmg, p.Id);
+                WeaponHurt(e, dmg, p.Id);
                 Daze(e);  // a close-in hit: it can't attack for a moment (Daze.cs)
                 V2 away = (e.Pos - p.Pos).Normalized();
                 if (!Heavy(e) && !away.IsZero)

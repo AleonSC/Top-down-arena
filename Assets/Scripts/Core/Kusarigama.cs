@@ -52,7 +52,7 @@ namespace Arena
                 s.Knock = KusariCutKnock;
                 s.Stun = KusariCutStun;
                 s.NoCut = true;  // a chain, not a blade: it doesn't cut bullets
-                pendingSwings.Add(s);
+                QueueSwing(s);
                 return;
             }
             p.KusariStep = 2;
@@ -134,7 +134,7 @@ namespace Arena
             s.Heavy = true;
             s.NoCut = true;
             s.NoFx = true;  // drawn here, not as a slash
-            pendingSwings.Add(s);
+            QueueSwing(s);
             BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 1f, 1f), KusariSnapRadius, 0.3f, Sfx.None);
             BroadcastFx(FxKind.Ring, p.Pos, KusariColor, KusariSnapRadius * 0.8f, 0.4f, Sfx.None);
         }
@@ -211,7 +211,7 @@ namespace Arena
             p.Run.ShotsHit++;
             p.KusariHit = true;
             p.KusariD0 = e.Pos.DistanceTo(p.Pos);
-            HurtEnemy(e, dmg, p.Id);
+            WeaponHurt(e, dmg, p.Id);
             OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
             if (e.Hp > 0f && !e.Def.IsBoss)
             {
@@ -271,7 +271,7 @@ namespace Arena
                 }
                 float dmg = p.Weapon.Damage * p.Stats.DmgMult * (1f + KusariExtraDmg * ExtraShots(p)) * KusariWhirlDmg * NinjaHitMult(p.Id, Defs.KnightSlash, e);
                 hitAny = true;
-                HurtEnemy(e, dmg, p.Id);
+                WeaponHurt(e, dmg, p.Id);
                 Daze(e);  // Daze.cs
                 OnBulletHit(new Bullet { Pos = e.Pos, Vel = rel / d, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
                 BroadcastFx(FxKind.Spark, p.Pos + rel / d * Math.Min(d, orbit), new Rgba(1f, 1f, 1f), 8f, 0.15f, Sfx.None);

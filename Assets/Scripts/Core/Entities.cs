@@ -550,6 +550,7 @@ namespace Arena
         public int Owner, Pierce, LastHit;
         public int Shooter;       // host only: the enemy that fired it, when known (0: not known); the Juggernaut Suit's flak goes back at it
         public bool FromWeapon;   // host only: fired by the player's gun (for accuracy)
+        public bool WeaponDmg;    // host only: its hits are the weapon's in the session recording (FromWeapon, or launched later by it: Ice Shards, hammer throws)
         public float Splash;      // host only: explosion radius on impact
         public V2 FallOrigin;     // host only: a Double Barrel pellet: where it left the gun, for its damage falling off with distance (DoubleBarrel.cs)
         public bool PointBlank;   // host only: a Scattergun pellet (double damage and a shove up close)
