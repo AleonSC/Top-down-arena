@@ -263,7 +263,7 @@ namespace Arena
             new KnobDef { Knob = DiffKnob.FireRate, Name = "Enemy fire rate", Desc = "How fast enemies and bosses shoot.",
                 Unit = KnobUnit.Times, Min = 0.5f, Max = 2f, Step = 0.05f, Presets = new[] { 0.9f, 1f, 1.1f, 1.2f } },
             new KnobDef { Knob = DiffKnob.EnemySpeed, Name = "Enemy speed", Desc = "How fast enemies move.",
-                Unit = KnobUnit.Times, Min = 0.5f, Max = 2f, Step = 0.05f, Presets = new[] { 1f, 1f, 1.1f, 1.2f } },
+                Unit = KnobUnit.Times, Min = 0.5f, Max = 2f, Step = 0.05f, Presets = new[] { 1.1f, 1.1f, 1.21f, 1.32f } },
             new KnobDef { Knob = DiffKnob.EliteChance, Name = "Elites", Desc = "How often enemies come as elites (from wave 12; Normal: up to 35%).",
                 Unit = KnobUnit.Times, Min = 0f, Max = 3f, Step = 0.1f, Presets = new[] { 0.5f, 1f, 1.5f, 2f } },
             new KnobDef { Knob = DiffKnob.BulletBudget, Name = "Bullet budget", Desc = "The cap on regular enemies' bullets on screen.",

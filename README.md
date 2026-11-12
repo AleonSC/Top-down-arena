@@ -807,7 +807,7 @@ wave, everyone gets a shop before the boss:
 instead; Boss Hunts, the Practice Range and runs saved before the Campaign use the open arena). Design:
 [`Docs/ExpandingArena.md`](Docs/ExpandingArena.md). It starts as the plain Classic box and grows as you play:
 
-**Crowds on a big map.** Enemies come in within 1500 px of a player (never a straggler across the map), in the emptiest room there, so rooms you built get their share. Waves 1-10 add up to 2x enemies on a big map (0.9 per extra hub of floor); later waves up to 1.4x.
+**Crowds on a big map.** Enemies come in within 1500 px of a player (never a straggler across the map), in the emptiest room there, so rooms you built get their share. Waves 1-10 add up to 2.4x enemies on a big map (1.1 per extra hub of floor); later waves up to 1.4x.
 
 - **Gold coins:** every kill drops its gold as coins (5-gold and 1-gold). They never despawn, spin and glint on the floor, and drift to the nearest living player within 90 px, who gets the gold.
 - **Vector pickups:** a rare drop that adds vectors (a cyan square that draws its own outline; big ones have an amber ring). A normal kill drops one 1 time in 60 (+6), an elite 1 time in 8 (+12), a boss always (+12). Like coins they never despawn and drift to the nearest living player within 90 px, but only one whose stock isn't full: it waits for you to spend some. The vectors go to whoever collects it, never past their cap.
@@ -1056,7 +1056,7 @@ and green when it's easier. Hover a number for what it does.
 | Damage growth per wave | +1.5% | **+3%** | +4% | +5% | 0-10% |
 | Enemy count (regular waves) | 0.85x | **1x** | 1.15x | 1.3x | 0.5-2.5x |
 | Enemy fire rate | 0.9x | **1x** | 1.1x | 1.2x | 0.5-2x |
-| Enemy speed | 1x | **1x** | 1.1x | 1.2x | 0.5-2x |
+| Enemy speed | 1.1x | **1.1x** | 1.21x | 1.32x | 0.5-2x |
 | Elites (chance, from wave 12) | 0.5x | **1x** (up to 35%) | 1.5x | 2x | 0-3x (at most 90%) |
 | Bullet budget | 0.85x | **1x** | 1.15x | 1.3x | 0.5-2x |
 | Adds' fire in boss fights (share of the budget) | 40% | **60%** | 75% | 90% | 0-100% |

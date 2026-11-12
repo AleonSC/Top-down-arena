@@ -236,7 +236,7 @@ static partial class Program
         Console.WriteLine("  frozen lake: first 0.15 s {0:0} px (plain {1:0}); after letting go {2:0} px more (plain {3:0})", iceStart, plainStart, iceCoast, plainCoast);
         Check(iceStart < plainStart * 0.7f && iceCoast > 20f && Math.Abs(plainCoast) < 1f, "Frozen Lake: speed builds up, and you slide on after letting go");
         var chilled = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(900f, 300f), 0f, 0, false });
-        Check(Math.Abs(chilled.Speed - Defs.Get(EnemyType.Grunt).Speed * Paths.IceEnemySpeed) < 0.01f, "Frozen Lake: enemies are 10% slower");
+        Check(Math.Abs(chilled.Speed - Defs.Get(EnemyType.Grunt).Speed * g.D(DiffKnob.EnemySpeed) * Paths.IceEnemySpeed) < 0.01f, "Frozen Lake: enemies are 10% slower");
         chilled.Hp = 0f; Step(host, dt);
 
         // Blood Moon: no regeneration, no orbs, kills heal.
