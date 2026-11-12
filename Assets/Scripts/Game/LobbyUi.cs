@@ -48,28 +48,27 @@ namespace Arena
             LobbyEntry me;
             session.Lobby.TryGetValue(session.MyId, out me);
             bool practice = session.PracticeMode;
+            // A mode change keeps the open tab (the Loadout stays up); the carousel turns to the new mode's own tab, first in its order.
             if (practice != lobbyWasPractice)
             {
-                lobbyTab = practice ? 1 : 0;  // jump to the waves when the host turns practice on
                 lobbyWasPractice = practice;
+                tabRest = 0;
             }
             if (!practice && (lobbyTab == 1 || lobbyTab == TrainingTab))
                 lobbyTab = 0;
             bool hunt = session.HuntMode && !practice && session.Resume == null;
             if (hunt != lobbyWasHunt)
             {
-                if (hunt)
-                    lobbyTab = 4;  // to the boss picker when the host picks Boss Hunt (HuntUi.cs)
                 lobbyWasHunt = hunt;
+                tabRest = 0;
             }
             if (!hunt && lobbyTab == 4)
                 lobbyTab = 0;
             bool quick = session.QuickMode && !practice && !hunt && session.Resume == null;
             if (quick != lobbyWasQuick)
             {
-                if (quick)
-                    lobbyTab = QuickTab;  // to the Quick Play tab when the host picks it (QuickPlayUi.cs)
                 lobbyWasQuick = quick;
+                tabRest = 0;
             }
             if (!quick && lobbyTab == QuickTab)
                 lobbyTab = 0;

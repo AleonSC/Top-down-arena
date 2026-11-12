@@ -1086,7 +1086,7 @@ on top (Tough Crowd, Frenzy, Swift Foes, Glass Cannon...).
 
 **The lobby's first mode, and where a new profile starts.** In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt** or
 **Practice** on the mode carousel; the lobby opens next time on the mode the host last picked (a new profile: Quick Play).
-Picking it opens the lobby's **Quick Play** tab: the run's shape (ten waves, the boss, endless), its rules, your Quick Play
+Picking it turns the tab carousel to the lobby's **Quick Play** tab: the run's shape (ten waves, the boss, endless), its rules, your Quick Play
 records (played, won, best wave, bosses), and **the boss pool**: a tile for each of the ten bosses, with its model and name once
 you've beaten it anywhere, a **???** until then (on your first Quick Play the Warden shows, marked FIRST).
 
@@ -1117,7 +1117,7 @@ you've beaten it anywhere, a **???** until then (on your first Quick Play the Wa
 
 ## Boss Hunt
 
-In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt** or **Practice** on the mode carousel at the top (arrows, the mouse wheel or a click on a side mode turn it). Over the big screen, a fixed **Loadout** key sits on the left, and the other tabs (the mode's own, Difficulty, Modifiers) are a carousel beside it: the open tab in the middle, the rest wrapping round either side. **Perks** open from the **Perks** key right of your class name on the loadout (it shows your equipped perk and slots used, e.g. 1/2); "< Loadout" or the Loadout key takes you back. A Boss Hunt is a short run that ends
+In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt** or **Practice** on the mode carousel at the top (arrows, the mouse wheel or a click on a side mode turn it). Over the big screen, a fixed **Loadout** key sits on the left, and the other tabs (the mode's own, Difficulty, Modifiers) are a carousel beside it: the open tab in the middle, the rest wrapping round either side. **Perks** open from the **Perks** key right of your class name on the loadout (it shows your equipped perk and slots used, e.g. 1/2); "< Loadout" or the Loadout key takes you back. The lobby opens on the Loadout, and picking a mode keeps it there; the carousel turns to that mode's own tab (Quick Play, Boss hunt, Practice) for a click. A Boss Hunt is a short run that ends
 with one boss: **ten waves**. Waves 1-9 bring only the boss's own enemies (its faction: for the Warden, Rioters and
 Guards, then Riot Shields, Gas Grenadiers, Security Guards and Taser Guards, its Breakout, Patrol and Cell block squads, and its Riot line on waves 5 and
 9); wave 10 is the boss, at wave-10 strength. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no
