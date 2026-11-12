@@ -1056,7 +1056,7 @@ and green when it's easier. Hover a number for what it does.
 | Damage growth per wave | +1.5% | **+3%** | +4% | +5% | 0-10% |
 | Enemy count (regular waves) | 0.85x | **1x** | 1.15x | 1.3x | 0.5-2.5x |
 | Enemy fire rate | 0.9x | **1x** | 1.1x | 1.2x | 0.5-2x |
-| Enemy speed | 1x | **1x** | 1.1x | 1.2x | 0.5-2x |
+| Enemy speed | 1.1x | **1.1x** | 1.21x | 1.32x | 0.5-2x |
 | Elites (chance, from wave 12) | 0.5x | **1x** (up to 35%) | 1.5x | 2x | 0-3x (at most 90%) |
 | Bullet budget | 0.85x | **1x** | 1.15x | 1.3x | 0.5-2x |
 | Adds' fire in boss fights (share of the budget) | 40% | **60%** | 75% | 90% | 0-100% |

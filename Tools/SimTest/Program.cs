@@ -113,6 +113,7 @@ static partial class Program
         host.Game.BotRerolls = false;
         host.Host(port, "Host", Role.Tank, 0);
         host.Diff.Set(DiffKnob.Campaign, 0f);  // (the usual random waves; CampaignTest turns it on itself)
+        host.Diff.Set(DiffKnob.EnemySpeed, 1f);  // (the fights are time-limited; keep their pace independent of the default speed preset)
         var client = new Session();
         client.Game.Bot = true;
         client.Game.BotRerolls = false;
