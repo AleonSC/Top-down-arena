@@ -91,7 +91,6 @@ namespace Arena
         void DrawGolemRubble(GolemRubble r, float since)
         {
             float R = 38f, fade = since < 1.4f ? 1f : Mathf.Clamp01(1f - (since - 1.4f) / (GwRubbleLife - 1.4f));
-            V2 fwd = V2.FromAngle(r.Aim), side = fwd.Orthogonal();
             float k = GwEase(since / 0.35f);
             if (since < 0.9f)
                 Circle(r.Pos, R * (0.7f + since), GwDust.WithAlpha(0.3f * (1f - since / 0.9f)), 20);

@@ -34,7 +34,7 @@ namespace Arena
         bool pauseMenuOpen, settingsOpen, wasPaused;
         bool tabPaused;  // solo: holding Tab paused the match (released, it resumes)
         int tabScroll; // Tab screen: rows scrolled in the upgrade list
-        bool fireOnMenu, parryOnMenu, fireBlocked, parryBlocked, mouseBlocked;  // a mouse press that belongs to a menu, not the game
+        bool fireOnMenu, parryOnMenu, fireBlocked, parryBlocked;  // a mouse press that belongs to a menu, not the game
         bool recordSessions;             // dev: record each match for balancing (Settings or --record)
         bool aimDebug;                   // F3: lines for where you're aiming and where your last shot went
         bool devKillAllKey;              // F1 dev tool: X kills every enemy on the field (host only; saved)
@@ -354,7 +354,6 @@ namespace Arena
                 parryOnMenu = false;
             fireBlocked = overlay || fireOnMenu || emoteBarOpen || pingWheelOpen;
             parryBlocked = overlay || parryOnMenu;
-            mouseBlocked = fireBlocked || parryBlocked;
             bool inMenus = session.Screen != AppScreen.Game;
             bool overlayPointer = choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab() || MouseOnDock() || WaveBoxShown(me) || MouseOnWcStrip(me) || PracticeDownedUp(me) || BalanceReportUp()
                 || game.State == MatchState.GameOver || game.State == MatchState.Victory;  // the end screen and rank report need the pointer

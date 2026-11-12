@@ -315,7 +315,7 @@ namespace Arena
                 e.Use();
             }
             replayScroll = Mathf.Clamp(replayScroll, 0f, maxScroll);
-            ReplayFile open = null, rename = null, delete = null;
+            ReplayFile open = null, delete = null;
             string commit = null;
             GUI.BeginGroup(list);
             for (int i = 0; i < replayList.Count; i++)

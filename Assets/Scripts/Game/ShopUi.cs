@@ -264,7 +264,7 @@ namespace Arena
             Ui.Glow(r, rc, selected ? 0.5f + 0.1f * Mathf.Sin(t * 4f) : 0.14f * dim);
             DkBox(r, rc, selected ? 0.9f : 0.4f);
             Ui.Fill(r, new Color(0.01f, 0.07f, 0.07f, 0.55f));
-            CrtEdge(r, selected ? 2f : 1f, selected ? Color.Lerp(rc, Color.white, 0.5f) : new Color(rc.r, rc.g, rc.b, 0.45f));
+            CrtKit.Frame(r, selected ? 2f : 1f, selected ? Color.Lerp(rc, Color.white, 0.5f) : new Color(rc.r, rc.g, rc.b, 0.45f));
             var ribbon = new Rect(r.center.x - 40f, r.y + 12f, 80f, 20f);
             Ui.Pill(ribbon, new Color(rc.r, rc.g, rc.b, 0.85f * dim));
             Ui.Label(ribbon, kind == 0 ? "Teleport" : "Trap", 10, new Color(0.06f, 0.06f, 0.1f), TextAnchor.MiddleCenter, true);
@@ -332,7 +332,7 @@ namespace Arena
             DrawHolo(r, rc, t);
             if (dim < 1f)  // sold or too dear: the screen dims
                 Ui.Fill(r, new Color(0.01f, 0.012f, 0.03f, 0.5f));
-            CrtEdge(r, selected ? 2f : 1f, selected ? Color.Lerp(rc, Color.white, 0.55f) : new Color(rc.r, rc.g, rc.b, 0.5f * dim + 0.1f));
+            CrtKit.Frame(r, selected ? 2f : 1f, selected ? Color.Lerp(rc, Color.white, 0.55f) : new Color(rc.r, rc.g, rc.b, 0.5f * dim + 0.1f));
             string rarity = Upgrades.RarityName(u.Rarity);
             float rw = 24f + rarity.Length * 7.5f;
             var ribbon = new Rect(r.center.x - rw / 2f, r.y + 12f, rw, 20f);
@@ -412,7 +412,7 @@ namespace Arena
             Ui.Glow(r, rc, selected ? 0.5f + 0.1f * Mathf.Sin(t * 4f) : 0.14f * dim);
             DkBox(r, rc, selected ? 0.9f : 0.4f);
             Ui.Fill(r, new Color(0.1f, 0.08f, 0.02f, 0.55f));
-            CrtEdge(r, selected ? 2f : 1f, selected ? Color.Lerp(rc, Color.white, 0.5f) : new Color(rc.r, rc.g, rc.b, 0.45f));
+            CrtKit.Frame(r, selected ? 2f : 1f, selected ? Color.Lerp(rc, Color.white, 0.5f) : new Color(rc.r, rc.g, rc.b, 0.45f));
             var ribbon = new Rect(r.center.x - 40f, r.y + 12f, 80f, 20f);
             Ui.Pill(ribbon, new Color(rc.r, rc.g, rc.b, 0.85f * dim));
             Ui.Label(ribbon, "Service", 10, new Color(0.06f, 0.06f, 0.1f), TextAnchor.MiddleCenter, true);

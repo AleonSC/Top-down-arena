@@ -22,11 +22,10 @@ namespace Arena
         public static readonly Color Danger = new Color(0.78f, 0.3f, 0.34f);
         public static readonly Color GoldButton = new Color(0.85f, 0.62f, 0.18f);
 
-        static GUIStyle panel, button, field, bareField, label, track, thumb, hudRim, pill, rim;
+        static GUIStyle panel, button, field, bareField, label, track, thumb, hudRim, pill;
         static GUIStyle card, cardTint, cardRim;  // choice cards
         static GUIStyle capsule, capsuleRim;      // fully rounded pills (the menu's tip chip)
         static Texture2D chip;
-        static readonly Dictionary<int, GUIStyle> gradStyles = new Dictionary<int, GUIStyle>();  // GlowPanel's boxes, by colour
         static GUIStyle glowStyle;               // a soft glow that falls off over GlowSpread px (Glow)
         static Texture2D dotFill, dotRing;       // true circles (Dot): the 9-sliced capsule collapses when it's small
         public const float GlowSpread = 34f;
@@ -96,7 +95,6 @@ namespace Arena
 
             hudRim = Style(Rounded(9, new Color(1f, 1f, 1f, 0f), new Color(1f, 1f, 1f, 0f), Color.white, 2.5f), 9);
             pill = Style(Rounded(4, Color.white, new Color(0.86f, 0.86f, 0.9f), new Color(1f, 1f, 1f, 0f), 0f), 4);
-            rim = Style(Rounded(12, new Color(1f, 1f, 1f, 0f), new Color(1f, 1f, 1f, 0f), Color.white, 2.5f), 12);
 
             // Buttons: a strong top-to-bottom shade (tinted by the button's colour) under a soft light rim.
             button = Style(Rounded(10, new Color(1f, 1f, 1f), new Color(0.7f, 0.72f, 0.78f), new Color(1f, 1f, 1f, 0.38f), 1.5f), 10);
@@ -847,32 +845,6 @@ namespace Arena
                     px[y * size + x] = c;
                 }
             }
-            tex.SetPixels(px);
-            tex.Apply();
-            return tex;
-        }
-
-        /// A tall 9-sliceable box: a vertical gradient from the accent's wash at the top to near-black at the bottom, rounded corners.
-        static Texture2D GradientBox(Color accent)
-        {
-            const int w = 32, h = 128;
-            const float radius = 10f;
-            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.HideAndDontSave };
-            var px = new Color[w * h];
-            var bottom = new Color(0.055f, 0.065f, 0.1f, 0.97f);
-            var top = new Color(0.1f + accent.r * 0.22f, 0.11f + accent.g * 0.22f, 0.16f + accent.b * 0.22f, 0.97f);
-            for (int y = 0; y < h; y++)
-                for (int x = 0; x < w; x++)
-                {
-                    float v = 1f - (y + 0.5f) / h;  // 0 at the top
-                    float t = Mathf.Clamp01(v / 0.95f);
-                    t = t * t * (3f - 2f * t);
-                    var c = Color.Lerp(top, bottom, t);
-                    float qx = Mathf.Abs(x + 0.5f - w / 2f) - (w / 2f - radius), qy = Mathf.Abs(y + 0.5f - h / 2f) - (h / 2f - radius);
-                    float d = Mathf.Sqrt(Mathf.Max(qx, 0f) * Mathf.Max(qx, 0f) + Mathf.Max(qy, 0f) * Mathf.Max(qy, 0f)) + Mathf.Min(Mathf.Max(qx, qy), 0f) - radius;
-                    c.a *= Mathf.Clamp01(0.5f - d);
-                    px[y * w + x] = c;
-                }
             tex.SetPixels(px);
             tex.Apply();
             return tex;

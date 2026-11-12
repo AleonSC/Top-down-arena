@@ -120,7 +120,6 @@ namespace Arena
         /// A knight's buffs and abilities over the model (the body and weapon are in CharacterModels.cs).
         void DrawKnight(Player p, float r, float t)
         {
-            V2 dir = V2.FromAngle(p.Aim), side = dir.Orthogonal();
             // Abilities
             DrawShieldWall(p, r, t);  // ShieldWallLook.cs (also runs when it's down, to notice it going up)
             if (p.UnbreakT > 0f)  // Cavalry Call's guard: a golden octagon of plates, its edges bright
@@ -134,7 +133,6 @@ namespace Arena
         }
 
         static readonly Rgba NinjaCloth = new Rgba(0.1f, 0.1f, 0.14f);
-        static readonly Rgba Wood = new Rgba(0.6f, 0.45f, 0.3f);
 
         /// A ninja's buffs and abilities over the model (the body, scarf and weapon are in CharacterModels.cs).
         void DrawNinja(Player p, float r, float t, Rgba col)

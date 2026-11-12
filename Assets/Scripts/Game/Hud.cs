@@ -543,7 +543,6 @@ namespace Arena
             bool ready = slot.Charges > 0;
             float cd = game.Cooldown(me, i);
             float fill = slot.Charges >= slot.MaxCharges ? 1f : 1f - slot.Timer / Mathf.Max(0.01f, cd);
-            Color accent = ultimate ? Ui.Gold : ToColor(me.Def.Color);
             float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 4f);
             Color keyCol = ultimate ? Ui.Gold : ready ? KeyGreen : CrtUi.Ink;  // gold ult, green when ready, blue while it recharges
             CrtKeyBox(r, new Color(keyCol.r, keyCol.g, keyCol.b, ready ? (ultimate ? 0.65f + 0.35f * pulse : 1f) : 0.7f), false);
@@ -562,7 +561,7 @@ namespace Arena
             Ui.Label(new Rect(r.x + 8f, r.y + 22f, r.width - 16f, 22f), Upgrades.Ability(slot.Id).Name, Upgrades.Ability(slot.Id).Name.Length > 12 ? 18 : 22, ready ? keyCol : new Color(0.62f, 0.7f, 0.9f), TextAnchor.MiddleLeft, false);
             if (ready)
             {
-                Color hi = ultimate ? new Color(1f, 0.95f, 0.7f) : new Color(0.8f, 1f, 0.85f), lo = ultimate ? Ui.Gold : Ui.Good;
+                Color lo = ultimate ? Ui.Gold : Ui.Good;
                 float rin = look.ReadyIn;  // sliding in from the right as the tile pops
                 if (rin > 0f)
                     DkTitle(new Rect(r.x + 8f + 14f * (1f - rin), r.y + 5f, r.width - 16f, 20f), ultimate ? "READY!" : "READY", 15, Fade(lo, rin), TextAnchor.MiddleRight);
