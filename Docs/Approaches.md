@@ -223,13 +223,16 @@ are placeholders for the Hive Queen's enemies.
   restarting. The leftover share counts toward the wave's size, like the old themed share.
 - The new faction's banner ("The Hive Queen is near") shows at wave 11.
 
-### Callback squads (later waves)
+### Callback squads (later waves) (built as the existing comeback squad, made big)
 
 Once a faction's boss is beaten, its **named squads can come back as random events** in later waves, bigger than in
 their own approach: say a Breakout of 14 Rioters on wave 43. They fight on top of the current faction's waves, so a
 late run keeps meeting old friends.
 
-- **When:** from three waves after the boss on, any non-boss wave rolls about 20% for one callback (never two in a
+- **Built:** `Approaches.Comeback` (Docs/Campaign.md) already picks one squad from an earlier faction on one wave in five
+  from wave 11, seeded by the wave; `Approaches.Callback` now makes that squad big (members x2 plus the faction's
+  toughest as an anchor). Not built: the banner line, and the chance beyond one wave in five.
+- **When (original idea):** from three waves after the boss on, any non-boss wave rolls about 20% for one callback (never two in a
   wave, never in the 10th wave of a cycle, which is the exam). The roll is seeded by the wave, so every player in a
   party sees the same one.
 - **Which:** one of the beaten bosses' squads (or its `Finale`), picked by weight; the latest factions are slightly
