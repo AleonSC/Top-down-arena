@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Arena
 {
@@ -42,6 +43,7 @@ namespace Arena
                 return;
             DevArena = on;
             DevUsed("dev arena " + (on ? "on" : "off"));
+            HeroDummies.Clear();
             if (!on)
             {
                 PossessId = -1;
@@ -113,6 +115,151 @@ namespace Arena
             possessAim = aimAt;
             possessAttack = attack;
             possessNow |= now;
+        }
+
+        // --- Hero dummies and Can't die -------------------------------------------------------------------------
+
+        /// Dev Arena: the enemy you play can't die (its health refills; a killing blow leaves it at 1). On by default.
+        public bool PossessUnkillable = true;
+
+        /// Dev Arena: hero dummies draw every other enemy's aim (else enemies go for the players as usual).
+        public bool DummiesDrawAim = true;
+
+        public const int MaxHeroDummies = 6;
+        public const float HeroDummyR = 18f;         // its body, about a hero's hit size
+        const float HeroDummyContactEvery = 0.5f;    // one touch per enemy body this often, like a hero's hit grace
+        const float HeroDummyDpsWindow = 3f;
+
+        /// A stand-in hero for the Dev Arena (host only, not sent: only the host sees them). Enemy shots and touches land on it
+        /// and are counted at what an unbuffed hero would take; other enemies aim at the nearest one.
+        public class HeroDummy
+        {
+            public V2 Pos;
+            public float Taken, Last, Flash, ContactT;
+            public int Hits;
+            public readonly List<KeyValuePair<float, float>> Recent = new List<KeyValuePair<float, float>>();  // (clock, damage)
+        }
+
+        public readonly List<HeroDummy> HeroDummies = new List<HeroDummy>();
+        public float DevClock;
+
+        /// Damage per second over the last few seconds.
+        public float HeroDummyDps(HeroDummy d)
+        {
+            float sum = 0f;
+            foreach (var kv in d.Recent)
+                sum += kv.Value;
+            return sum / HeroDummyDpsWindow;
+        }
+
+        public bool DevAddHeroDummy(V2 at)
+        {
+            if (!IsHost || !DevArena || HeroDummies.Count >= MaxHeroDummies)
+                return false;
+            HeroDummies.Add(new HeroDummy { Pos = ClampToArena(at, HeroDummyR + 10f) });
+            AddFx(FxKind.Ring, HeroDummies[HeroDummies.Count - 1].Pos, new Rgba(1f, 0.85f, 0.4f), 40f, 0.35f);
+            return true;
+        }
+
+        /// Takes away the dummy nearest `at` (within reach), or every dummy when `all`.
+        public void DevRemoveHeroDummy(V2 at, bool all = false)
+        {
+            if (all)
+            {
+                HeroDummies.Clear();
+                return;
+            }
+            int best = -1;
+            float bestD = 120f * 120f;
+            for (int i = 0; i < HeroDummies.Count; i++)
+            {
+                float d = HeroDummies[i].Pos.DistanceSq(at);
+                if (d < bestD)
+                {
+                    bestD = d;
+                    best = i;
+                }
+            }
+            if (best >= 0)
+                HeroDummies.RemoveAt(best);
+        }
+
+        /// The start of TickEnemies, in the Dev Arena: the clock, the dummies' flashes and DPS windows, and the enemy you play
+        /// healed up when it can't die.
+        void TickDevArena(float dt)
+        {
+            if (!DevArena)
+                return;
+            DevClock += dt;
+            foreach (var d in HeroDummies)
+            {
+                d.Flash = Math.Max(0f, d.Flash - dt);
+                d.ContactT = Math.Max(0f, d.ContactT - dt);
+                d.Recent.RemoveAll(kv => kv.Key < DevClock - HeroDummyDpsWindow);
+            }
+            var e = Possessed;
+            if (e != null && PossessUnkillable)
+                e.Hp = e.MaxHp;
+        }
+
+        void HeroDummyHit(HeroDummy d, float dmg)
+        {
+            float amount = dmg * EnemyDamageScale(Math.Max(1, Wave)) * RoomsDamageMult;  // what an unbuffed hero would take (Damage in Combat.cs)
+            d.Taken += amount;
+            d.Last = amount;
+            d.Hits++;
+            d.Flash = 0.18f;
+            d.Recent.Add(new KeyValuePair<float, float>(DevClock, amount));
+        }
+
+        /// MoveBullets: an enemy shot reaching a hero dummy lands on it (and is used up). True when it hit one.
+        bool HeroDummyShot(Bullet b)
+        {
+            if (!DevArena || HeroDummies.Count == 0)
+                return false;
+            foreach (var d in HeroDummies)
+            {
+                float r = HeroDummyR + b.Radius;
+                if (b.Pos.DistanceSq(d.Pos) < r * r)
+                {
+                    HeroDummyHit(d, b.Dmg);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// TickEnemies: an enemy's body touching a hero dummy hurts it, at most once per HeroDummyContactEvery.
+        void HeroDummyContact(Enemy e, float contact)
+        {
+            if (!DevArena || HeroDummies.Count == 0 || contact <= 0f)
+                return;
+            foreach (var d in HeroDummies)
+                if (d.ContactT <= 0f && d.Pos.DistanceTo(e.Pos) < e.Radius + HeroDummyR)
+                {
+                    d.ContactT = HeroDummyContactEvery;
+                    HeroDummyHit(d, contact);
+                }
+        }
+
+        /// TickEnemies: where an enemy (not the one you play) aims when hero dummies draw its aim.
+        bool HeroDummyAim(Enemy e, ref V2 tpos)
+        {
+            if (!DevArena || !DummiesDrawAim || HeroDummies.Count == 0)
+                return false;
+            HeroDummy best = null;
+            foreach (var d in HeroDummies)
+                if (best == null || d.Pos.DistanceSq(e.Pos) < best.Pos.DistanceSq(e.Pos))
+                    best = d;
+            tpos = best.Pos;
+            return true;
+        }
+
+        /// HurtEnemy: a killing blow on the enemy you play leaves it at 1 when it can't die.
+        void PossessSurvives(Enemy e)
+        {
+            if (e.Hp <= 0f && PossessUnkillable && DevArena && e.Id == PossessId)
+                e.Hp = 1f;
         }
 
         /// TickEnemies: is this the enemy being played?
