@@ -1259,7 +1259,9 @@ namespace Arena
                 Expanded.AddRange(rooms);
                 expWorld = null;
                 LayoutAge = 0f;
-                if (SurpriseCount(Expanded) > before && Expanded.Count > oldCount && ((BossNow && State == MatchState.Intermission) || eventOn))
+                var fresh = Expanded.Count > oldCount ? Expanded.GetRange(oldCount, Expanded.Count - oldCount) : new List<ExpansionRoom>();
+                bool stashNew = oldCount > 0 && fresh.Exists(q => q.Surprise == 1 + (int)SurpriseShape.Stash);  // (breach Stashes: Docs/BreachRooms.md; a joiner's first list is quiet)
+                if ((SurpriseCount(Expanded) > before && Expanded.Count > oldCount && ((BossNow && State == MatchState.Intermission) || eventOn)) || stashNew)
                 {
                     PinBreaches(Expanded.GetRange(oldCount, Expanded.Count - oldCount));  // (Breaches.cs: the wave's other breaches stay put)
                     NoteSurprise(Expanded[Expanded.Count - 1].Surprise);  // (the host's gift, after a boss or from a breach event: the build-in and the chip; a joiner mid-run gets the rooms quietly)
