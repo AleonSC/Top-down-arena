@@ -547,7 +547,10 @@ namespace Arena
                 if (f.Length == 0 || PracticePlan.NameOf(t).IndexOf(f, StringComparison.OrdinalIgnoreCase) >= 0)
                     list.Add(t);
             if (game.DevArena)
+            {
                 DrawDevArenaRow(col.Next(32f));  // Spawn / Play as, Let go, Clear, Leave (DevArenaUi.cs)
+                DrawDevArenaDummyRow(col.Next(30f));  // hero dummies, Can't die
+            }
             var area = col.Rest();
             area.height -= 26f;
             DkSub(area);
