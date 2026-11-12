@@ -1,6 +1,6 @@
 # Breach rooms: a small free room behind every breach
 
-Status: **steps 1-3 built** (protocols 300, 301): 20 s into a breach wave (or at its end) a Stash opens behind each breach left (`Game.RevealBreachRooms`, `BreachEvent.cs`). Decided with the owner on Nov 12, 2026.
+Status: **steps 1-4 built** (protocols 300, 301): 20 s into a breach wave (or at its end) a Stash opens behind each breach left (`Game.RevealBreachRooms`, `BreachEvent.cs`). Decided with the owner on Nov 12, 2026.
 Builds on [`SurpriseRooms.md`](SurpriseRooms.md) (placement, free rooms) and [`RoomBuilding2.md`](RoomBuilding2.md) (breaches). Expanding arena only.
 
 ## Decisions (owner)
@@ -35,7 +35,15 @@ Builds on [`SurpriseRooms.md`](SurpriseRooms.md) (placement, free rooms) and [`R
 - Look: a breathing teal diamond in the middle until claimed (`DrawSurpriseRoom`); the chip reads `WALK IN FOR +10 VECTORS`. An unclaimed cache stays for later waves.
 - Test: `ExpandingBreachEventTest` (no pay on opening, the walker takes it, the friend sees it, once only).
 
+## Step 4 (built, no wire change)
+
+- **The breach never closes**: `PinBreaches` ignores Stash rooms when dropping breaches (the gold event's room still drops its breach), so a Stash's breach stays open and drawn.
+- **A share each**: `Breaches.Quota(total, breaches)`: the wave's `breachTotal` (set in `FloodBreachWave`: enemies + squads, times the flood) is split evenly; `BreachSpot` counts what each breach has let in (`breachUsed`, host only) and skips a spent one. When all are spent it returns null and the enemy comes in the usual way.
+- **Cover**: `AddStashCover` (`Expansion.cs`): a block and a pillar on a diagonal either side of the cache; fins are skipped for a Stash and the outline-sliver rule does not apply to it. Test: every Stash spot has cover and none on the cache.
+- **Marker**: the diamond is bigger (26-31 px) with a `+10` label over it (`DrawStashLabels`, `SurpriseLook.cs`, from `Hud.cs`).
+
 ## Open
 
-- Cover or a fight inside the Stash; whether a Stash should keep its breach open (enemies still come out of it).
+- Enemies coming out of the Stash itself (the breach spawns in front of the wall, not from the room).
+- A cache marker off-screen (like the chest markers in `OffscreenMarkers.cs`).
 - The next breach wave's breaches are re-rolled for the bigger map (the Stashes are permanent).

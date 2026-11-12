@@ -180,6 +180,8 @@ namespace Arena
             }
             if (!tabHeld)
                 DrawSurpriseBanner();  // SurpriseLook.cs
+            if (!tabHeld && game.Running)
+                DrawStashLabels();  // the +10 over a Stash's cache (SurpriseLook.cs)
             if (tabHeld)
                 DrawRunStatsScreen(me, false);  // RunStatsUi.cs
             else if (me != null && game.State != MatchState.GameOver && game.State != MatchState.Victory)
