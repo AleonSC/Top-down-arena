@@ -541,7 +541,7 @@ namespace Arena
                 // Bosses and heavies hurt to stand in (the difficulty's per-wave damage growth scales all of these).
                 float contact = e.Def.IsBoss ? 25f
                     : e.Type == EnemyType.Charger && e.Phase == 2 || e.Type == EnemyType.Juggernaut ? 25f
-                    : e.Type == EnemyType.Lunger && e.Phase == 2 ? 26f
+                    : IsLunger(e.Type) && e.Phase == 2 ? 26f
                     : e.Type == EnemyType.SpikeBlock && e.Phase == 2 ? SpikeLungeDamage
                     : e.Def.Contact > 0f ? e.Def.Contact * BruteDamageMult(e) : ContactDamage;
                 GuardContact(e, contact);  // Warden's Guards in the way get hurt too (Stun.cs)
@@ -629,7 +629,7 @@ namespace Arena
                 return;  // locked in while winding up and dashing
             if (NonShooterFaceLocked(e))
                 return;  // a planted Fuse Runner, a Hookman's aim and throw (NonShooters.cs)
-            if (e.Type == EnemyType.Lunger && e.Phase >= 2 || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.SpikeBlock && e.Phase >= 1)
+            if (IsLunger(e.Type) && e.Phase >= 2 || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.SpikeBlock && e.Phase >= 1)
                 return;  // committed to the leap / flight line (a Spike Block locks its line when it winds up)
             if (e.Type == EnemyType.BeamSentry && e.Phase >= 2 || e.Type == EnemyType.Reaver && e.Phase != 0 || e.Type == EnemyType.Leader && e.Phase == 1)
                 return;  // the beam's aim and sweep, the rake's cone, the Leader's aim line (Variety.cs)
@@ -841,10 +841,12 @@ namespace Arena
                     }
                     break;
                 case EnemyType.Brute:
+                case EnemyType.Thug:
                 case EnemyType.Swarmer:  // no tricks: straight at you
                     v = dir;
                     break;
                 case EnemyType.Lunger:
+                case EnemyType.Shiv:
                     if (e.Phase == 0)
                         v = dist > 170f ? dir : dir.Orthogonal() * e.Strafe * 0.6f;  // close in, then circle while it winds up
                     else if (e.Phase == 2)
@@ -965,6 +967,7 @@ namespace Arena
                     break;
                 }
                 case EnemyType.Lunger:
+                case EnemyType.Shiv:
                 {
                     // Phase 0: approach; 1: wind up (telegraph line); 2: leap; 3: recover.
                     float dist = tpos.DistanceTo(e.Pos);

@@ -81,7 +81,7 @@ namespace Arena
 
         static bool IsMeleeVoice(EnemyType t)
         {
-            return t == EnemyType.Swarmer || t == EnemyType.Spiker || t == EnemyType.Brute || t == EnemyType.Lunger
+            return t == EnemyType.Swarmer || t == EnemyType.Spiker || IsBrute(t) || IsLunger(t)
                 || t == EnemyType.Buzzsaw || t == EnemyType.SpikeBlock;
         }
 
@@ -92,8 +92,8 @@ namespace Arena
             {
                 case EnemyType.Swarmer: every = 0.28f; return Sfx.SwarmerPatter;
                 case EnemyType.Spiker: every = 0.16f; return Sfx.SpikerSkitter;
-                case EnemyType.Brute: every = 0.3f; return Sfx.BruteStep;
-                case EnemyType.Lunger: every = 0.3f; return Sfx.LungerPad;
+                case EnemyType.Brute: case EnemyType.Thug: every = 0.3f; return Sfx.BruteStep;
+                case EnemyType.Lunger: case EnemyType.Shiv: every = 0.3f; return Sfx.LungerPad;
                 case EnemyType.SpikeBlock: every = 0.5f; return Sfx.SpikeBlockRock;
                 default: every = 0f; return Sfx.None;
             }
@@ -119,8 +119,8 @@ namespace Arena
             {
                 case EnemyType.Swarmer: return Sfx.SwarmerDie;
                 case EnemyType.Spiker: return Sfx.SpikerDie;
-                case EnemyType.Brute: return Sfx.BruteDie;
-                case EnemyType.Lunger: return Sfx.LungerDie;
+                case EnemyType.Brute: case EnemyType.Thug: return Sfx.BruteDie;
+                case EnemyType.Lunger: case EnemyType.Shiv: return Sfx.LungerDie;
                 case EnemyType.Buzzsaw: return Sfx.SawDie;
                 default: return Sfx.SpikeBlockDie;
             }
@@ -172,7 +172,7 @@ namespace Arena
                         if (bite)
                             MeleeCue(Sfx.SpikerStab, q);
                         break;
-                    case EnemyType.Brute:
+                    case EnemyType.Brute: case EnemyType.Thug:
                         if (!fresh && !m.Alerted && q <= 0.2f)
                         {
                             m.Alerted = true;  // one bark when it first comes within earshot
@@ -181,7 +181,7 @@ namespace Arena
                         if (bite)
                             MeleeCue(Sfx.BruteBash, q);
                         break;
-                    case EnemyType.Lunger:  // Phase 1 is the pink line, 2 the leap, 3 the recovery
+                    case EnemyType.Lunger: case EnemyType.Shiv:  // Phase 1 is the pink line, 2 the leap, 3 the recovery
                         if (changed && e.Phase == 1)
                             MeleeCue(Sfx.LungerTell, q);
                         else if (changed && e.Phase == 2)
