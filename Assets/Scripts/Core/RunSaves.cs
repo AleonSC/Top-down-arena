@@ -396,6 +396,8 @@ namespace Arena
         void QuickRecord(Player me, bool won, int wave, float time, int found)
         {
             bool first = !runRecorded;
+            Tutorial.Active = false;
+            FinishTutorial();  // (a first Quick Play recorded: the tutorial is over too)
             int cleared = won || runLastBossWave >= wave ? wave : Math.Max(0, wave - 1);
             int newWaves = cleared - quickCreditedWaves, newBosses = QuickBossesBeaten - quickCreditedBosses;
             if (!first && newWaves <= 0 && newBosses <= 0)

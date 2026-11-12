@@ -115,6 +115,7 @@ static partial class Program
             Check(hp.QuickPlays == 1 && hp.QuickWins == 1 && hp.QuickBestWave == 10 && hp.QuickBosses == 1 && cp.QuickWins == 1 && hp.RunsWon == 0 && hp.BestWave == 0
                 && hp.Beaten(EnemyType.Boss) == 1 && hp.Recent.Count > 0 && hp.Recent[0].Mode == "Quick Play" && hp.Recent[0].Xp > 0,
                 "every profile records it as a Quick Play (XP, the boss beaten), not as a run");
+            Check(hp.TutorialDone && cp.TutorialDone && !g.Tutorial.Active, "a first Quick Play recorded ends the tutorial for good");
             var back = Profile.Parse(hp.ToText());
             Check(back.QuickPlays == 1 && back.QuickWins == 1 && back.QuickBestWave == 10 && back.QuickBosses == 1, "Quick Play records read back from the profile's text");
 
@@ -193,6 +194,68 @@ static partial class Program
         Check(firstRound && rounds >= 8, "a build round opens after wave 1 and after every wave on the way to the boss");
         Check(built >= 3, "two bots build several rooms in a Quick Play's ten waves (vectors keep up)");
         host.Leave(""); client.Leave("");
+    }
+
+    /// The first-run tutorial (Core/Tutorial.cs, step 3): on for a profile's first Quick Play, steps tick off from your own
+    /// input and the game, skipping turns it off for good.
+    static void TutorialTest(float dt)
+    {
+        string wasFolder = Profile.Folder, dir = Path.Combine(Path.GetTempPath(), "arena-tut-" + Guid.NewGuid().ToString("N"));
+        Profile.Folder = dir;
+        try
+        {
+            Func<Profile, bool, Session> start = (prof, quick) =>
+            {
+                var h = new Session { AutoStart = 2 };
+                h.Game.ProfileOverride = prof;
+                h.Host(nextPort++, "Host", Role.Tank);
+                h.Diff.Set(DiffKnob.Campaign, 0f);
+                h.SetMode(false, false, quick);
+                h.StartMatch();
+                for (int i = 0; i < 400 && h.Game.State != MatchState.Fighting; i++) Step(h, dt);
+                return h;
+            };
+            var pf = new Profile();
+            var host = start(pf, true);
+            var g = host.Game;
+            var tut = g.Tutorial;
+            Check(g.Quick && tut.Active && tut.Current == 0, "a profile's first Quick Play turns the tutorial on, at THE BASICS");
+            Action<PlayerInput, int> play = (input, frames) =>
+            {
+                for (int f = 0; f < frames; f++)
+                {
+                    foreach (var p in g.Players.Values) p.InvulnT = 1f;
+                    input.AimAt = new V2(640f + 200f * (float)Math.Sin(f * 0.1f), 360f);
+                    host.Poll();
+                    g.FixedStep(dt, input);
+                    g.Update(dt);
+                }
+            };
+            play(new PlayerInput { Move = new V2(1f, 0f) }, 30);
+            bool notYet = !tut.Done(TutorialStep.Move);
+            play(new PlayerInput { Move = new V2(1f, 0f), Fire = true }, 60);
+            play(new PlayerInput { Dodge = true }, 1);
+            Check(notYet && tut.Done(TutorialStep.Move) && tut.Done(TutorialStep.Aim) && tut.Done(TutorialStep.Shoot) && tut.Done(TutorialStep.Dodge) && tut.Current == 1,
+                "moving (for a moment), aiming, shooting and dodging tick off THE BASICS; the prompt moves on to LEVEL UP");
+            play(new PlayerInput { Ability = true }, 2);
+            play(new PlayerInput { Parry = true }, 30);
+            Check(tut.Done(TutorialStep.Ability) && tut.Done(TutorialStep.Parry) && tut.Current == 1, "the ability and the parry tick off too (YOUR KIT), but LEVEL UP stays on the prompt until a card is picked");
+            tut.Note(TutorialStep.OpenBuild);
+            tut.Skip(g);
+            Check(!tut.Active && pf.TutorialDone && Profile.Parse(pf.ToText()).TutorialDone, "SKIP turns it off, and the profile remembers");
+            host.Leave("");
+            host = start(pf, true);
+            Check(!host.Game.Tutorial.Active, "a profile that has done it doesn't see it again");
+            host.Leave("");
+            host = start(new Profile(), false);
+            Check(!host.Game.Tutorial.Active, "the Campaign never shows it");
+            host.Leave("");
+        }
+        finally
+        {
+            Profile.Folder = wasFolder;
+            try { Directory.Delete(dir, true); } catch (IOException) { }
+        }
     }
 
     /// Each boss's Quick Play health after waves 10, 20 and 30 (a Tank and a DPS), against its Campaign health at its own wave.
