@@ -14,7 +14,7 @@ static partial class Program
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", bf);
         var shoot = typeof(Game).GetMethod("SpawnBullet", bf);
         int port = nextPort++;
-        var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Gunner", Role.Dps, 4, 0, Kit.Soldier);
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Gunner", Role.Dps, 5, 0, Kit.Soldier);
         var client = JoinAs(port, false, "Friend", Role.Tank, 0, 0, Kit.Soldier);
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
@@ -24,7 +24,7 @@ static partial class Program
         var me = g.Players[1];
         g.DevSetGod(1, true); g.DevSetGod(2, true);
         Check(me.Weapon.Id == WeaponId.OutOfAmmo, "the Soldier DPS's fifth pick is Out of Ammo (" + me.Weapon.Id + ")");
-        Check(Defs.WeaponCount(Role.Dps, Kit.Soldier) == 3, "it has no lobby key of its own (the Twin Rifle's Variants window offers it)");
+        Check(Defs.WeaponCount(Role.Dps, Kit.Soldier) == 4 && Defs.Weapon(Role.Dps, Kit.Soldier, 3).Id == WeaponId.DoubleBarrel, "it has no lobby key of its own (the Twin Rifle's Variants window offers it)");
         var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", bf).GetValue(g);
         V2 from = new V2(400f, 450f), aimAt = new V2(700f, 450f);
         Func<V2, Enemy> Dummy = at =>
