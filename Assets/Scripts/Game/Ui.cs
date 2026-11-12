@@ -42,6 +42,8 @@ namespace Arena
         /// True for a moment while handwriting is drawn (the names on the profile disks): Permanent Marker, at the size asked for.
         public static bool HandFont;
         const float MenuFontScale = 1.08f;
+        /// Which font text measures in right now (for caches of measured text, such as LobbyKit.Truncate).
+        public static int FontKey => (HandFont ? 4 : 0) | (CrtFont ? 2 : 0) | (MenuFont ? 1 : 0);
         static Font fontMedium, fontBold, fontCrt, fontHand;
         static bool fontsLoaded;
 
@@ -165,12 +167,15 @@ namespace Arena
         /// The label style's left padding (a Label's text starts this far in from its rect).
         public static float LabelPadLeft => label.padding != null ? label.padding.left : 0f;
 
+        static readonly GUIContent measure = new GUIContent();  // reused by TextWidth/TextHeight (called many times a frame)
+
         /// How wide a label of this text would be.
         public static float TextWidth(string text, int size, bool bold = false)
         {
             UseFont(label, size, bold);
             label.wordWrap = false;
-            return label.CalcSize(new GUIContent(text)).x;
+            measure.text = text;
+            return label.CalcSize(measure).x;
         }
 
         /// How tall a word-wrapped label of this text would be at this width.
@@ -178,7 +183,8 @@ namespace Arena
         {
             UseFont(label, size, bold);
             label.wordWrap = true;
-            return label.CalcHeight(new GUIContent(text), width);
+            measure.text = text;
+            return label.CalcHeight(measure, width);
         }
 
         /// Big text with a soft drop shadow.

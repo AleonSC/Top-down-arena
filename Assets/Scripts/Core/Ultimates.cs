@@ -148,7 +148,7 @@ namespace Arena
                         else
                         {
                             HurtEnemy(e, 40f * dmg, p.Id);
-                            e.FrozenT = cap ? 6f : 4f;
+                            e.FrozenT = Math.Max(e.FrozenT, cap ? 6f : 4f);
                             e.SlowT = Math.Max(e.SlowT, e.FrozenT);
                         }
                     }

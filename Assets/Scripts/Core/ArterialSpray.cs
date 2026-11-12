@@ -74,8 +74,7 @@ namespace Arena
                     continue;
                 HurtEnemy(e, dmg, p.Id);
                 ApplyBleed(e, SprayBleed * p.SprayPower, p.Id);
-                e.SlowT = Math.Max(e.SlowT, 0.3f);
-                e.SlowMult = Math.Min(e.SlowMult, 1f - SpraySlow);
+                Slow(e, 0.3f, 1f - SpraySlow);
                 if (!Heavy(e))
                 {
                     V2 away = (e.Pos - from).Normalized();

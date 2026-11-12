@@ -93,8 +93,7 @@ namespace Arena
                         continue;
                     c.HitEnemies.Add(e.Id);
                     bool heavy = Heavy(e);
-                    e.SlowT = Math.Max(e.SlowT, HolySlowTime);
-                    e.SlowMult = Math.Min(e.SlowMult, 1f - (heavy ? HolySlowHeavy : HolySlow));
+                    Slow(e, HolySlowTime, 1f - (heavy ? HolySlowHeavy : HolySlow));
                     if (!heavy)
                     {
                         V2 away = e.Pos - centre;

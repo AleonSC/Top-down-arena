@@ -888,7 +888,7 @@ namespace Arena
                     float pad = GateBulletR + p.Def.HitR;
                     if (p.Pos.Y < lo - pad || p.Pos.Y > hi + pad || InGateGap(g, p.Pos.X))
                         continue;
-                    if (g.Hit.Add(p.Id))
+                    if (g.Hit.Add(p.Id) && p.InvulnT <= 0f)  // invulnerable (revive, Lifeline, Leap Slam): it rolls over you
                         Damage(p, GateDamage, "The Warden (gate)");  // once a gate (pinned at the edge, it rolls over you without hurting again)
                 }
             }

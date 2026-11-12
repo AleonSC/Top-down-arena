@@ -98,7 +98,7 @@ namespace Arena
         readonly List<V2> volatilePos = new List<V2>();
         readonly List<float> volatileT = new List<float>();
         readonly List<EnemyType> volatileType = new List<EnemyType>();
-        readonly List<int> volatileN = new List<int>();  // shots in each burst (Volatile 16, Death Throes 8)
+        readonly List<int> volatileN = new List<int>();  // shots in each burst (Volatile 12; a Death Throes burst stored as minus its 6)
         readonly List<V2> mirrorFrom = new List<V2>();
         readonly List<int> mirrorAt = new List<int>();
         readonly List<EnemyType> mirrorType = new List<EnemyType>();
@@ -400,8 +400,8 @@ namespace Arena
                     continue;
                 V2 at = volatilePos[i];
                 float off = Rand(0f, MathX.Tau);
-                int n = volatileN[i];
-                bool throes = n != VolatileShots;
+                int n = Math.Abs(volatileN[i]);
+                bool throes = volatileN[i] < 0;  // (a Death Throes burst is stored negative)
                 for (int k = 0; k < n; k++)
                 {
                     V2 dir = V2.FromAngle(off + MathX.Tau * k / n);
@@ -1054,7 +1054,7 @@ namespace Arena
                 volatilePos.Add(e.Pos);
                 volatileT.Add(Modifiers.ThroesFuse);
                 volatileType.Add(e.Type);
-                volatileN.Add(Modifiers.ThroesShots);
+                volatileN.Add(-Modifiers.ThroesShots);  // negative: a Death Throes burst
                 BroadcastFx(FxKind.Target, e.Pos, new Rgba(0.75f, 0.3f, 0.35f), 34f, Modifiers.ThroesFuse, Sfx.None);
             }
             if (HasTrait(e, EliteTrait.Splitting))

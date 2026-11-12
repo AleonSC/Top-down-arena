@@ -442,9 +442,7 @@ namespace Arena
                 e.T += dt;
                 TickKnock(e, dt);  // a push sliding (Knock.cs)
                 e.MarkT = Math.Max(0f, e.MarkT - dt);
-                e.SlowT = Math.Max(0f, e.SlowT - dt);
-                if (e.SlowT <= 0f)
-                    e.SlowMult = 1f;
+                TickSlow(e, dt);
                 if ((e.WadeT = Math.Max(0f, e.WadeT - dt)) <= 0f)
                     e.WadeMult = 1f;
                 TickWet(e, dt);  // Tsunami.cs: soaked enemies are slowed

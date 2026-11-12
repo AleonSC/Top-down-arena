@@ -262,8 +262,7 @@ namespace Arena
                         if (e.SpawnT > 0f || e.Pos.DistanceTo(p.Pos) > 220f + e.Radius)
                             continue;
                         HurtEnemy(e, 40f * dmg, p.Id);
-                        e.SlowT = 3f;
-                        e.SlowMult = 0.1f;  // nearly frozen
+                        Slow(e, 3f, 0.1f);  // nearly frozen
                     }
                     if (cap)
                         EraseEnemyBullets(p.Pos, 220f);
@@ -915,8 +914,7 @@ namespace Arena
                         float slow = Math.Max(d.Slow, z.ExtraSlow);
                         if (slow > 0f)
                         {
-                            e.SlowT = Math.Max(e.SlowT, 0.3f);
-                            e.SlowMult = Math.Min(e.SlowMult, 1f - slow);
+                            Slow(e, 0.3f, 1f - slow);
                         }
                     }
             }

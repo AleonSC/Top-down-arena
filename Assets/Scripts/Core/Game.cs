@@ -364,6 +364,7 @@ namespace Arena
             Cages.Clear();
             ResetProps();  // Props.cs
             ResetLayout();  // LayoutRules.cs
+            ResetRunLists();  // RunReset.cs
             awaitingPick = false;
             rerollsAtRequest = -1;
             tick = 0;

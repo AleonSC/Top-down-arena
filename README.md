@@ -415,6 +415,11 @@ sent wisps and imps). On a Knight, the elemental mods apply to every melee hit (
 (melee, the Flamethrower, Frost Lance, Fuma Shuriken, Repulsion Cannon, Radiant Orb, Chain Light, Spirit Fan, Ofuda,
 Arc Lightning, Wisp Lantern, Imp Caller, and the Fireball, which already rolls through everything) reach 15% farther
 per stack instead.
+A piercing shot can't hit the same enemy twice in a row, even inside two overlapping enemies.
+
+**Slows** don't add up: an enemy moves at its strongest slow until that one ends, then at the next-strongest one
+still running. A freeze (Frost Nova, Cryo's frozen solid) ends on time even while a weaker slow (Wet, ink, a slow
+zone) keeps being renewed.
 
 **Virulence** (rare, two stacks, with Poison Dart; it took Phase Step's place with the old Dash): the venom deals 30% more and spreads 60 px further.
 
@@ -807,7 +812,7 @@ wave, everyone gets a shop before the boss:
 instead; Boss Hunts, the Practice Range and runs saved before the Campaign use the open arena). Design:
 [`Docs/ExpandingArena.md`](Docs/ExpandingArena.md). It starts as the plain Classic box and grows as you play:
 
-- **Gold coins:** every kill drops its gold as coins (5-gold and 1-gold). They never despawn, spin and glint on the floor, and drift to the nearest living player within 90 px, who gets the gold.
+- **Gold coins:** every kill drops its gold as coins (5-gold and 1-gold, at most 6; a boss's or an elite's last coin carries the rest). They never despawn, spin and glint on the floor, and drift to the nearest living player within 90 px, who gets the gold.
 - **Vector pickups:** a rare drop that adds vectors (a cyan square that draws its own outline; big ones have an amber ring). A normal kill drops one 1 time in 60 (+6), an elite 1 time in 8 (+12), a boss always (+12). Like coins they never despawn and drift to the nearest living player within 90 px, but only one whose stock isn't full: it waits for you to spend some. The vectors go to whoever collects it, never past their cap.
 - **Vectors**: every player holds a drawing budget (chip under the wave plate, "Vectors 50 / 70"): 1 vector = 1 tile of wall.
   You start with 50 and can hold 70; each cleared wave gives 8, every 8 kills gives 1, and a cleared boss wave refills

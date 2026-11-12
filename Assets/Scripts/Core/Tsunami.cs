@@ -76,8 +76,7 @@ namespace Arena
             if (e.WetT <= 0f)
                 return;
             e.WetT = Math.Max(0f, e.WetT - dt);
-            e.SlowT = Math.Max(e.SlowT, 0.2f);
-            e.SlowMult = Math.Min(e.SlowMult, 1f - (Heavy(e) ? WetSlowHeavy : WetSlow));
+            Slow(e, 0.2f, 1f - (Heavy(e) ? WetSlowHeavy : WetSlow));
         }
 
         /// A lightning hit on struck (at where it landed): a bolt jumps from there to every other wet enemy on the map.

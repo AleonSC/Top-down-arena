@@ -112,8 +112,7 @@ namespace Arena
                 KnockEnemy(e, (away.IsZero ? V2.FromAngle(Rand(0f, MathX.Tau)) : away) * push);  // slides (Knock.cs)
                 if (slowTime > 0f)
                 {
-                    e.SlowT = Math.Max(e.SlowT, slowTime);
-                    e.SlowMult = Math.Min(e.SlowMult, 0.5f);
+                    Slow(e, slowTime, 0.5f);
                 }
             }
         }

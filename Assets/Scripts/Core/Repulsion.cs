@@ -176,8 +176,7 @@ namespace Arena
                     float stop = e.Radius + p.Def.BodyR + RepelPullStop;
                     if (d > stop)
                         e.Pos = ClampToArena(e.Pos - rel / d * Math.Min(d - stop, speed * dt), e.Radius);
-                    e.SlowT = Math.Max(e.SlowT, 0.2f);
-                    e.SlowMult = Math.Min(e.SlowMult, RepelPullSlow);
+                    Slow(e, 0.2f, RepelPullSlow);
                 }
                 if (!sting)
                     continue;

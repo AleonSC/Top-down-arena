@@ -1289,7 +1289,7 @@ namespace Arena
             float c1 = (float)Math.Cos(a1), sn1 = k * (float)Math.Sin(a1);
             b.Vel = v0 * c1 + v0.Orthogonal() * (s * sn1);
             if (a0 < MathX.Pi && a1 >= MathX.Pi)
-                b.LastHit = 0;  // at the far end: it can cut the same enemy again on the way back
+                b.LastHit = b.PrevHit = 0;  // at the far end: it can cut the same enemy again on the way back
         }
 
         /// Ofuda charms heal allies near where they burst.

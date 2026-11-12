@@ -909,8 +909,8 @@ namespace Arena
                     continue;
                 slams.RemoveAt(i);
                 Player p;
-                if (!Players.TryGetValue(sl.Owner, out p))
-                    continue;
+                if (!Players.TryGetValue(sl.Owner, out p) || p.Downed)
+                    continue;  // (downed mid-leap: no landing)
                 foreach (var e in Enemies.Values)
                 {
                     if (e.SpawnT > 0f || e.Pos.DistanceTo(sl.Pos) > sl.Radius + e.Radius)

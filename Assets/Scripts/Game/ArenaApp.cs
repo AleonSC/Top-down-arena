@@ -112,6 +112,7 @@ namespace Arena
         void Awake()
         {
             Game.StartDelay = LaunchFightAt;  // a longer GET READY than the sim default (LaunchIntro.cs)
+            useGUILayout = false;  // nothing uses GUILayout or GUI.Window: skip the Layout pass, which ran all of OnGUI a second time per frame
             Application.runInBackground = true;  // keep hosting while alt-tabbed
             Application.targetFrameRate = 144;
             if (QualitySettings.antiAliasing < 4)

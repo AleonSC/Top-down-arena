@@ -95,8 +95,7 @@ namespace Arena
                 Heal(p, e.ReelHeal, p);
                 if (e.ReelCap && !e.Def.IsBoss)
                 {
-                    e.SlowT = Math.Max(e.SlowT, 2f);
-                    e.SlowMult = Math.Min(e.SlowMult, 0.5f);
+                    Slow(e, 2f, 0.5f);
                 }
                 int n;
                 reelLanded.TryGetValue(p.Id, out n);

@@ -471,7 +471,7 @@ namespace Arena
                     }
                     foreach (var e in Enemies.Values)
                     {
-                        if (!Targetable(e) || e.Id == b.LastHit || DevourUnder(e))
+                        if (!Targetable(e) || e.Id == b.LastHit || e.Id == b.PrevHit || DevourUnder(e))
                             continue;  // (the Devourer underground: shots pass over it)
                         float r = e.Radius + b.Radius;
                         if (b.Pos.DistanceSq(e.Pos) < r * r)
@@ -514,6 +514,7 @@ namespace Arena
                             foreach (var onHit in Classes.HitHooks)  // each class's KitDef.OnShotHit (BloodShotHit: Blood Mage shots drain, pool and drop orbs)
                                 onHit(this, b, e, hit);
                             OnBulletHit(b, e);
+                            b.PrevHit = b.LastHit;
                             b.LastHit = e.Id;
                             if (b.Frags > 0)
                                 frags.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = b.Owner, LastHit = e.Id, Frags = b.Frags, FragKind = b.FragKind,
@@ -929,8 +930,7 @@ namespace Arena
                 }
                 if (s.SlowOnHit > 0f)
                 {
-                    e.SlowT = Math.Max(e.SlowT, 2f);
-                    e.SlowMult = Math.Min(e.SlowMult, 1f - s.SlowOnHit);
+                    Slow(e, 2f, 1f - s.SlowOnHit);
                 }
                 e.LastHitBy = attacker;
                 p.Run.DamageDealt += Math.Min(dmg, Math.Max(0f, e.Hp));
@@ -1010,8 +1010,7 @@ namespace Arena
             }
             if (b.SlowAmt > 0f && !e.Def.IsBoss)
             {
-                e.SlowT = Math.Max(e.SlowT, 1.5f);
-                e.SlowMult = Math.Min(e.SlowMult, 1f - b.SlowAmt);
+                Slow(e, 1.5f, 1f - b.SlowAmt);
             }
             Player p;
             if (!Players.TryGetValue(b.Owner, out p))
@@ -1038,12 +1037,10 @@ namespace Arena
             }
             if (s.CryoSlow > 0f && !Heavy(e))
             {
-                e.SlowT = Math.Max(e.SlowT, 2f);
-                e.SlowMult = Math.Min(e.SlowMult, 1f - s.CryoSlow);
+                Slow(e, 2f, 1f - s.CryoSlow);
                 if (!e.Def.IsBoss && rng.NextDouble() < s.FreezeChance)
                 {
-                    e.SlowT = Math.Max(e.SlowT, 1f);
-                    e.SlowMult = 0.1f;  // frozen solid
+                    Slow(e, 1f, 0.1f);  // frozen solid
                     BroadcastFx(FxKind.Spark, e.Pos, Defs.BulletColor(Defs.FrostShot), e.Radius + 12f, 0.35f, Sfx.None);
                 }
             }

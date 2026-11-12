@@ -366,8 +366,7 @@ namespace Arena
                         continue;
                     if (!e.Def.IsBoss)
                     {
-                        e.SlowT = Math.Max(e.SlowT, 0.3f);
-                        e.SlowMult = Math.Min(e.SlowMult, 1f - VineSlow);
+                        Slow(e, 0.3f, 1f - VineSlow);
                     }
                     DotDamage(e, VineDps * p.Stats.DmgMult * dt, p.Id);
                 }

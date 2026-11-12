@@ -255,8 +255,7 @@ namespace Arena
                     DotDamage(e, ChalkBurn * owner.Stats.DmgMult * dt, owner.Id);
                     if (!Heavy(e))
                     {
-                        e.SlowT = Math.Max(e.SlowT, 0.3f);
-                        e.SlowMult = Math.Min(e.SlowMult, 1f - ChalkSlow);
+                        Slow(e, 0.3f, 1f - ChalkSlow);
                     }
                     break;  // once a tick, however many dots it's on
                 }

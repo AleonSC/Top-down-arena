@@ -5,7 +5,7 @@ namespace UnityEngine {
   public enum HideFlags { None=0, HideAndDontSave=61 }
   public class Component : Object { public GameObject gameObject; public string tag; }
   public class Behaviour : Component {}
-  public class MonoBehaviour : Behaviour {}
+  public class MonoBehaviour : Behaviour { public bool useGUILayout = true; }
   public class GameObject : Object { public GameObject(string n){} public string tag; public T AddComponent<T>() where T: Component { return null; } }
   public enum CameraClearFlags { Skybox=1, SolidColor=2 }
   public class Camera : Behaviour { public static Camera main; public CameraClearFlags clearFlags; public Color backgroundColor; public bool orthographic; }

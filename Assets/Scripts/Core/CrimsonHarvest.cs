@@ -145,8 +145,7 @@ namespace Arena
                     continue;
                 float f = d <= R * 0.5f ? 1f : Math.Max(0.5f, 1f - 0.5f * (d - R * 0.5f) / (R * 0.5f));
                 bool heavy = Heavy(e);
-                e.SlowT = Math.Max(e.SlowT, HarvestSlowTime);
-                e.SlowMult = Math.Min(e.SlowMult, HarvestSlowMult);
+                Slow(e, HarvestSlowTime, HarvestSlowMult);
                 if (!e.Def.IsBoss)
                 {
                     V2 away = e.Pos - h.To;

@@ -294,12 +294,43 @@ namespace Arena
             return ChangeParts(me, me.Offer[index], pickKey, pickKey >= 1 && index == selectedCard);
         }
 
+        /// Your stat sheet (StatSheet.Describe), with one more upgrade taken when extra >= 0. The picker, the shop and the
+        /// Tab screen ask for the same sheets every frame (twice per card), so they are kept for a quarter second.
+        /// The lists are shared: read them, don't change them.
+        List<StatLine> Stats(Player me, int extra, int key)
+        {
+            float t = Time.unscaledTime;
+            if (t - statsAt > 0.25f)
+            {
+                statsCache.Clear();
+                statsAt = t;
+            }
+            long k = (((long)me.Id * 4096 + me.Taken.Count) * 4096 + (extra + 1)) * 64 + key;
+            List<StatLine> lines;
+            if (statsCache.TryGetValue(k, out lines))
+                return lines;
+            List<int> taken = me.Taken;
+            if (extra >= 0)
+            {
+                statsTaken.Clear();
+                statsTaken.AddRange(me.Taken);
+                statsTaken.Add(extra);
+                taken = statsTaken;
+            }
+            lines = StatSheet.Describe(me, taken, key, game.PassiveRegen);
+            statsCache[k] = lines;
+            return lines;
+        }
+        readonly Dictionary<long, List<StatLine>> statsCache = new Dictionary<long, List<StatLine>>();
+        readonly List<int> statsTaken = new List<int>();
+        float statsAt = float.NegativeInfinity;
+
         /// The same for any upgrade (the Bazaar's shelf cards use it too).
         List<string> ChangeParts(Player me, int upgrade, int key, bool showKey)
         {
             var u = Upgrades.All[upgrade];
-            var now = StatSheet.Describe(me, me.Taken, 0, game.PassiveRegen);
-            var after = StatSheet.Describe(me, new List<int>(me.Taken) { upgrade }, key, game.PassiveRegen);
+            var now = Stats(me, -1, 0);
+            var after = Stats(me, upgrade, key);
             var parts = new List<string>();
             string grant = u.Grants != AbilityId.None ? Upgrades.Ability(u.Grants).Name : null;
             foreach (var line in after)
@@ -727,15 +758,12 @@ namespace Arena
         /// shopPreview: an upgrade from the Bazaar's shelf to preview instead of the picker's selection.
         void DrawStatPanel(Player me, Rect r, int shopPreview = -1)
         {
-            var now = StatSheet.Describe(me, me.Taken, 0, game.PassiveRegen);
+            var now = Stats(me, -1, 0);
             List<StatLine> after = null;
             if (shopPreview >= 0)
-                after = StatSheet.Describe(me, new List<int>(me.Taken) { shopPreview }, 0, game.PassiveRegen);
+                after = Stats(me, shopPreview, 0);
             else if (selectedCard >= 0 && me.Offer != null && selectedCard < me.Offer.Length)
-            {
-                var preview = new List<int>(me.Taken) { me.Offer[selectedCard] };
-                after = StatSheet.Describe(me, preview, pickKey, game.PassiveRegen);
-            }
+                after = Stats(me, me.Offer[selectedCard], pickKey);
             var lines = after ?? now;
             var green = new Color(0.45f, 1f, 0.5f);
             float y = r.y;
