@@ -166,7 +166,7 @@ and legendaries, so a chapter would start you at the level, picks and legendarie
 - Waves 1-4 now have a theme: does that settle `Docs/Paths.md`'s question about a path choice for them?
 - Do faction enemies stay out of regular waves entirely, or show up rarely elsewhere once you've met them?
 
-## Campaign: ten waves per boss (proposed, owner's idea)
+## Campaign: ten waves per boss (owner's idea; Trickle and the fade are built, callbacks and the rest of the schedule are not)
 
 Instead of a themed share that ramps up, each faction enemy is **introduced one at a time**: it first **trickles in
 as stragglers in the second half** of its intro wave (alone, so you learn it), then **joins the squads** the next

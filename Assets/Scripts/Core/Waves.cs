@@ -148,7 +148,7 @@ namespace Arena
                     else if (spawnQueue.Count > 0 || squadQueue.Count > 0)
                     {
                         spawnTimer -= dt;
-                        float next = Math.Max(0.3f, 1.1f - Wave * 0.05f);
+                        float next = Math.Max(0.3f, (Wave <= 1 ? 0.7f : 1.1f) - Wave * 0.05f);
                         if (spawnTimer <= 0f && ZombieSpawnReady(ref next))  // (a horde comes faster, up to its cap)
                         {
                             spawnTimer = next;
