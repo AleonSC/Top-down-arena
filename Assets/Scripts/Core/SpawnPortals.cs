@@ -70,7 +70,8 @@ namespace Arena
             portalCargo.Clear();
             portalsThisWave = 0;
             lastBurstAt = -SpawnPortals.Quiet;  // (the first burst opens as the wave starts)
-            nextBurst = RollBurst();
+            if (PortalsOn)
+                nextBurst = RollBurst();  // (only then: other waves keep the rng's sequence as it was)
         }
 
         int RollBurst() => Math.Max(2, SpawnPortals.BurstSize(Wave) + rng.Next(3) - 1);
