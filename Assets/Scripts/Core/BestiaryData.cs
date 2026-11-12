@@ -42,6 +42,20 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Thug, Name = "Thug", Group = "Melee", Wave = 2,
+                Appears = "The Warden's approach (Yard squads and on its own)",
+                Lead = "A prisoner brute dragging a ball and chain. Slow, tough, and it hits hard. Moves like a Brute.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "20", Notes = "Walks straight at its target" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Shiv, Name = "Shiv", Group = "Melee", Wave = 3,
+                Appears = "The Warden's approach (Yard squads and on its own)",
+                Lead = "A prisoner with a taped shank. Circles in close, flashes a lane, then lunges along it. Moves like a Lunger.",
+                Attacks = new[] { new BestiaryAttack { Name = "Lunge", Pattern = "Wind-up 0.6 s (shows a lane) then a leap, same as the Lunger", Damage = "26", Notes = "18 contact" } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.Guard, Name = "Guard", Group = "Summons", Wave = 1,
                 Appears = "The Warden's approach (waves 1-4), and his Riot stage when rioters are still loose after 10 s",
                 Lead = "Blue riot guards with batons. In the Riot they beat down the rioters left over, then come for the players; on the approach they come straight for you.",

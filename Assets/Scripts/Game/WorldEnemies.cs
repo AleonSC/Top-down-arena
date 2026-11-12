@@ -431,7 +431,7 @@ namespace Arena
         void DrawEnemy(Enemy e, float t)
         {
             Rgba col = e.Def.Color;
-            if (e.Type == EnemyType.Brute)
+            if (Game.IsBrute(e.Type))
                 col = col.Mix(new Rgba(1f, 0.15f, 0.1f), 0.7f * Game.BruteRage(e));  // enrage: redder as it is shot (BruteEnrage.cs)
             V2 pos = e.Disp;
             float r = (e.Type == EnemyType.Singularity ? e.Def.Radius : e.Radius) * JuiceScale(e);  // its Radius grows with the event horizon (SingularityLook.cs); JuiceScale: a hit's bulge (Juice.cs)
@@ -463,7 +463,6 @@ namespace Arena
                 DrawZombieUnder(e, pos, r, t);  // its spore haze, frenzy streaks and the Crawler's hold (ZombieLook.cs)
             DrawEnemyShadow(e, pos, r);  // EnemyPresenceLook.cs
             col = DrawEnemyUnderlay(e, pos, r, col, spawning, t);
-            col = ReskinColor(e, col);
             if (pac)
                 col = PacRoleColor(e);
             if (e.Type == EnemyType.SecurityGuard && !spawning)
@@ -587,7 +586,7 @@ namespace Arena
                 DrawFaceSpikes(e, pos, r, col);  // MeleeGrunts: a spike on each face
                 return;
             }
-            int spikes = e.Type == EnemyType.Brute ? 10 : 8;
+            int spikes = Game.IsBrute(e.Type) ? 10 : 8;
             float spin = e.Type == EnemyType.Buzzsaw ? t * 7f + e.Id : t * 0.6f;  // a Buzzsaw's turn about once a second
             for (int k = 0; k < spikes; k++)
             {
@@ -640,6 +639,7 @@ namespace Arena
                     DrawWardenUnderlay(e, pos, r, t);  // WardenLook.cs
                     break;
                 case EnemyType.Lunger:
+                case EnemyType.Shiv:
                     DrawLungerTell(e, pos, r, col, t);
                     break;
                 case EnemyType.SpikeBlock:
@@ -833,7 +833,9 @@ namespace Arena
                 case EnemyType.Swarmer:
                 case EnemyType.Charger:
                 case EnemyType.Lunger:
+                case EnemyType.Shiv:
                 case EnemyType.Brute:
+                case EnemyType.Thug:
                 case EnemyType.Shard:
                 case EnemyType.Mortar:
                 case EnemyType.Shielder:
@@ -904,10 +906,13 @@ namespace Arena
                     DrawColossusDetails(e, pos, r, t);  // ColossusLook.cs
                     break;
                 case EnemyType.Brute:
-                    if (!DrawReskin(e, pos, r, col)) DrawBruteFace(e, pos, r, col);
+                    DrawBruteFace(e, pos, r, col);
                     break;
-                case EnemyType.Lunger:
-                    DrawReskin(e, pos, r, col);
+                case EnemyType.Thug:
+                    DrawThugDetails(e, pos, r, col);  // PrisonLook.cs
+                    break;
+                case EnemyType.Shiv:
+                    DrawShivDetails(e, pos, r, col);  // PrisonLook.cs
                     break;
                 case EnemyType.Rioter:
                     DrawRioterDetails(e, pos, r, col);  // WardenLook.cs

@@ -39,9 +39,9 @@ namespace Arena
                 case EnemyType.Sniper: return "One fast aimed shot. Watch its aim line, then move.";
                 case EnemyType.SecurityGuard: return "Locks on, then fires tracers. Change direction in the red lane, rush it as it reloads.";
                 case EnemyType.TaserGuard: return "Charges, then fires a white bolt that stuns. Strafe or parry it.";
-                case EnemyType.Brute: return "A slow, heavy rusher. Back off and keep firing.";
+                case EnemyType.Brute: case EnemyType.Thug: return "A slow, heavy rusher. Back off and keep firing.";
                 case EnemyType.Spinner: return "Sprays spirals in bursts. Wait out each burst.";
-                case EnemyType.Lunger: return "Winds up, then leaps in a line. Sidestep it.";
+                case EnemyType.Lunger: case EnemyType.Shiv: return "Winds up, then leaps in a line. Sidestep it.";
                 case EnemyType.Buzzsaw: return "A spinning saw that hurts to touch. Keep your distance.";
                 case EnemyType.SpikeBlock: return "Lunges along a lane after a wind-up. Dodge, then hit it.";
                 case EnemyType.Charger: return "Winds up, dashes, then bursts in a ring. Leave the lane.";
