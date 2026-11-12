@@ -1425,6 +1425,9 @@ static partial class Program
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
         var g = host.Game; var cg = client.Game;
+        foreach (var gg in new[] { g, cg }) gg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+        Check(g.State == MatchState.Intermission && cg.State == MatchState.Intermission && !g.DoorsOpen && !cg.DoorsOpen && !g.CanCut, "no doors in the opening countdown");
+        foreach (var gg in new[] { g, cg }) gg.Diff.Set(DiffKnob.ArenaExpanding, 0f);
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 6, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
         var list = new List<ExpansionRoom>();
         var east = Expansion.Custom(list, 1600, 100, 800, 600, out why).Value;
