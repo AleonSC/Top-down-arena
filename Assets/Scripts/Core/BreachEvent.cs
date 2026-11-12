@@ -98,5 +98,33 @@ namespace Arena
             DoLog("breach event: the wall opens onto a " + Expansion.SurpriseName((SurpriseShape)(rooms[0].Surprise - 1)));
             BroadcastExpansion();
         }
+
+        /// Host, as a breach wave is cleared: each of its breaches (the gold one already went) opens onto a free Stash behind its wall
+        /// (Docs/BreachRooms.md). Skips a breach with no legal spot, and stops within 2 rooms of the cap.
+        void RevealBreachRooms()
+        {
+            if (!IsHost || !ExpandingOn || Practice != null || Hunt != null || breachCache == null || breachWave != Wave || !Breaches.IsBreachWave(Wave))
+                return;
+            var made = new List<ExpansionRoom>();
+            foreach (var b in breachCache)
+            {
+                if (Expansion.BoughtCount(Expanded) > Expansion.MaxRooms - 2)
+                    break;
+                var opts = Expansion.SurpriseOptions(Expanded, SurpriseShape.Stash, b.Pos - b.In * BreachEvent.Behind);
+                if (opts.Count == 0)
+                    continue;
+                Expanded.AddRange(opts[0].Rooms);
+                made.AddRange(opts[0].Rooms);
+            }
+            if (made.Count == 0)
+                return;
+            PinBreaches(made);
+            expWorld = null;
+            LayoutAge = 0f;
+            NoteSurprise(made[0].Surprise);
+            Sounds.Add(Sfx.Pick);
+            DoLog("breach rooms: " + made.Count + " Stash(es) behind the wave's breaches");
+            BroadcastExpansion();
+        }
     }
 }

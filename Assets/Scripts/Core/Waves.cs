@@ -228,6 +228,7 @@ namespace Arena
             }
             else if (ServiceRooms && RoomsOn && !ShopOpen && Practice == null && Hunt == null)
                 OpenShopRoom(Wave % Expansion.Milestone == 1 && FirstLeg);  // a connected shop or vendor room: open each intermission (walk in); the shelf is new once a boss cycle
+            RevealBreachRooms();  // every breach that is left opens onto a small room (BreachEvent.cs, Docs/BreachRooms.md)
             RevealBreachEvent();  // a breach event the wave ended before it opened: the room opens now (BreachEvent.cs)
             GrantVectorsForWave();  // vectors for everyone (ExpansionGame.cs)
             OpenBuildRound();  // a cleared wave opens a round of room proposals and a vote (ExpansionGame.cs)
