@@ -459,7 +459,7 @@ namespace Arena
                     continue;
                 int bx0, by0, bx1, by1;
                 BoxOf(built, a, out bx0, out by0, out bx1, out by1);
-                int side = rng.Int(4), gap = 400 + rng.Int(5) * 100, x, y;
+                int side = rng.Int(4), gap = 400 + rng.Int(5) * 100 + (a == 0 && kind != RoomKind.Gatekeeper ? StartExtra : 0), x, y;
                 if (side == 0 || side == 2)
                 {
                     int lo = bx0 - w / 2, hi = bx1 - w / 2;
@@ -504,7 +504,7 @@ namespace Arena
             string why;
             for (int side = 0; side < 4; side++)
                 for (int along = 300; along <= 600; along += Step)      // the box's width along the floating room's wall
-                    for (int reach = 300; reach <= 900; reach += Step)       // ...and how far it reaches out from it
+                    for (int reach = 300; reach <= 900 + StartExtra; reach += Step)       // ...and how far it reaches out from it
                     {
                         bool horizontalWall = side < 2;                  // 0 north, 1 south: the box sits above or below
                         int w = horizontalWall ? along : reach, h = horizontalWall ? reach : along;
