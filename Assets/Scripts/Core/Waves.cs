@@ -134,6 +134,12 @@ namespace Arena
                     }
                     break;
                 case MatchState.Fighting:
+                    if (DevArena)
+                    {
+                        spawnQueue.Clear();  // the Dev Arena: only what you spawn by hand, and the wave never clears (DevArena.cs)
+                        squadQueue.Clear();
+                        break;
+                    }
                     if (DevFreeze)
                         break;  // F1 dev tool: nothing new spawns and the wave doesn't clear (DevTools.cs)
                     TickRisers(dt);  // Zombie Infection's dead getting back up (Zombies.cs)
