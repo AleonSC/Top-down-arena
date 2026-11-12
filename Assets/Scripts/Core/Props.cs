@@ -590,6 +590,7 @@ namespace Arena
         {
             c.Open = true;
             c.OpenT = 0f;
+            SpendNodeOfChest(c);
             BroadcastFx(FxKind.Ring, c.Pos, new Rgba(1f, 0.85f, 0.35f), 70f, 0.6f, Sfx.LevelUp);
             int n = Players.Count, i = 0;
             foreach (var pl in Players.Values)
