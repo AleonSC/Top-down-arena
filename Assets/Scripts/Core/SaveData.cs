@@ -108,7 +108,7 @@ namespace Arena
             {
                 Line(sb, "expand", ExpandSeed + " " + FloatCycle);
                 foreach (var r in Rooms)
-                    Line(sb, "room", string.Join(" ", new object[] { r.Parent, r.X, r.Y, r.W, r.H, r.Kind, r.Floor, r.Price, r.Owner, r.Floating ? 1 : 0, r.Leg, r.Surprise }));
+                    Line(sb, "room", string.Join(" ", new object[] { r.Parent, r.X, r.Y, r.W, r.H, r.Kind, r.Floor, r.Price, r.Owner, r.Floating ? 1 : 0, r.Leg, r.Surprise, r.Claimed ? 1 : 0 }));
                 foreach (var c in Cuts)
                     Line(sb, "cut", (c.Vertical ? 1 : 0) + " " + c.At + " " + c.From + " " + c.Till);
                 foreach (var l in Portals)
@@ -207,7 +207,7 @@ namespace Arena
                         {
                             var p = val.Split(' ');
                             save.Rooms.Add(new ExpansionRoom { Parent = I(p[0]), X = I(p[1]), Y = I(p[2]), W = I(p[3]), H = I(p[4]), Kind = Enum<RoomKind>(p[5]), Floor = Enum<PathId>(p[6]),
-                                Price = I(p[7]), Owner = I(p[8]), Floating = I(p[9]) != 0, Leg = (byte)I(p[10]), Surprise = p.Length > 11 ? (byte)I(p[11]) : (byte)0 });
+                                Price = I(p[7]), Owner = I(p[8]), Floating = I(p[9]) != 0, Leg = (byte)I(p[10]), Surprise = p.Length > 11 ? (byte)I(p[11]) : (byte)0, Claimed = p.Length > 12 && I(p[12]) != 0 });
                             break;
                         }
                         case "node":

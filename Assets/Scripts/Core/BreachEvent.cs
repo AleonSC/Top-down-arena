@@ -29,8 +29,8 @@ namespace Arena
         /// Every game, for the look: the gold breach's position while an event is running (synced in Msg.ExpandState).
         public V2? EventMark;
 
-        /// Vectors every player gets from each Stash that opens (Docs/BreachRooms.md).
-        public const int StashVectors = 6;
+        /// Vectors the player who walks into a Stash first gets from it (Docs/BreachRooms.md).
+        public const int StashVectors = 10;
         int breachRoomsWave = -1;
 
         BreachEventPlan? eventPlan;
@@ -73,6 +73,32 @@ namespace Arena
                 BroadcastExpansion();
             }
             return eventPlan;
+        }
+
+        /// Host, every tick of a wave: the first player to walk into a Stash takes its vector cache (once; Claimed goes out with the rooms).
+        void TickStashClaims()
+        {
+            if (!IsHost || !ExpandingOn)
+                return;
+            byte kind = (byte)(1 + (int)SurpriseShape.Stash);
+            for (int i = 0; i < Expanded.Count; i++)
+            {
+                var r = Expanded[i];
+                if (r.Surprise != kind || r.Claimed)
+                    continue;
+                foreach (var p in Players.Values)
+                {
+                    if (p.Downed || p.Pos.X < r.X || p.Pos.X > r.X1 || p.Pos.Y < r.Y || p.Pos.Y > r.Y1)
+                        continue;
+                    r.Claimed = true;
+                    Expanded[i] = r;
+                    AddVectors(p, StashVectors);
+                    Sounds.Add(Sfx.Pick);
+                    DoLog("a Stash's vector cache was taken: +" + StashVectors + " for " + p.Name);
+                    BroadcastExpansion();
+                    break;
+                }
+            }
         }
 
         /// Host, every tick of a wave: plans the event once the breaches are up, and reveals the room when the delay is up.
@@ -128,8 +154,6 @@ namespace Arena
             if (made.Count == 0)
                 return;
             PinBreaches(made);
-            foreach (var p in Players.Values)
-                AddVectors(p, StashVectors * made.Count);  // each Stash holds vectors for the whole team
             expWorld = null;
             LayoutAge = 0f;
             NoteSurprise(made[0].Surprise);

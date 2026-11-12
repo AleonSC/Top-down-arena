@@ -186,11 +186,20 @@ static partial class Program
         int left = before.Count;
         Check(stashes.Count > 0 && stashes.Count <= left && stashes.All(r => r.Price == 0 && (r.X1 - r.X) * (r.Y1 - r.Y) == 150000), "20 s in, the breaches open onto free Stashes (" + stashes.Count + " of " + left + ")");
         Check(cg.Expanded.Count == g.Expanded.Count && Game.SurpriseCount(g.Expanded) == 1, "the friend gets them too, and they are not counted as gifts");
-        Check(gp.Vectors == 10 + Game.StashVectors * stashes.Count, "each Stash holds " + Game.StashVectors + " vectors for every player (" + gp.Vectors + ")");
-        int count = g.Expanded.Count, vecNow = gp.Vectors;
+        Check(gp.Vectors == 10 && stashes.All(r => !r.Claimed), "opening a Stash pays nobody: its vector cache waits to be walked into");
+        int count = g.Expanded.Count;
+        var st0 = stashes[0]; int si = g.Expanded.FindIndex(r => r.Surprise == stashKind);
+        gp.Pos = gp.Disp = new V2((st0.X + st0.X1) / 2f, (st0.Y + st0.Y1) / 2f);
+        Run(s, dt, 1.5f, () => cg.Expanded[si].Claimed);
+        Check(g.Expanded[si].Claimed && cg.Expanded[si].Claimed && gp.Vectors == 10 + Game.StashVectors, "the player who walks in takes the cache (+" + Game.StashVectors + ") and the friend sees it taken (" + gp.Vectors + ")");
+        Check(g.Expanded.Count == count && g.Expanded.Where(r => r.Surprise == stashKind && !r.Claimed).Count() == stashes.Count - 1, "only that Stash's cache is taken");
+        int vecNow = gp.Vectors;
+        gp.Pos = gp.Disp = new V2(st0.X - 400, st0.Y - 400);
+        Run(s, dt, 0.5f, () => false);
+        gp.Pos = gp.Disp = new V2((st0.X + st0.X1) / 2f, (st0.Y + st0.Y1) / 2f);
         g.BreachAge = 40f;
         Run(s, dt, 1f, () => false);
-        Check(g.Expanded.Count == count && gp.Vectors == vecNow, "one event and one set of Stashes a wave (no second payout)");
+        Check(g.Expanded.Count == count && gp.Vectors == vecNow, "one event and one set of Stashes a wave; a cache pays once");
         typeof(Game).GetMethod("RevealBreachRooms", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(g, null);
         Check(g.Expanded.Count == count, "the wave's end does not open them again");
     }
