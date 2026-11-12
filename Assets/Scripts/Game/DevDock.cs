@@ -167,7 +167,7 @@ namespace Arena
                     case 1: DrawDockWave(new Rect(Mathf.Min(kr.x, edge - 400f), 70f, 400f, 340f), host); break;
                     case 2: DrawDockParty(new Rect(Mathf.Min(kr.x, edge - 380f), 70f, 380f, 282f), host); break;
                     case 3: DrawDockView(new Rect(Mathf.Min(kr.x, edge - 400f), 70f, 400f, 270f), inMatch); break;
-                    default: DrawDockLabs(new Rect(Mathf.Min(kr.x, edge - 340f), 70f, 340f, 300f), inMatch); break;
+                    default: DrawDockLabs(new Rect(Mathf.Min(kr.x, edge - 340f), 70f, 340f, 342f), inMatch); break;
                 }
             }
             if (devSide && inMatch)
@@ -323,6 +323,11 @@ namespace Arena
             }
             if (DkKey(col.Next(36f), "WAVE EDITOR", EdColor, false, 14))
                 OpenWaveEditor();
+            bool wasArena = GUI.enabled;
+            GUI.enabled = wasArena && (session.IsHost || session.Screen == AppScreen.Menu);
+            if (DkKey(col.Next(36f), game.DevArena ? "LEAVE DEV ARENA" : "DEV ARENA (PLAY AS ENEMIES)", CrtStyle.Gold, game.DevArena, 13))
+                ToggleDevArena();  // DevArenaUi.cs
+            GUI.enabled = wasArena;
             bool was = GUI.enabled;
             GUI.enabled = was && inMatch;
             if (DkKey(col.Next(36f), "BALANCE TEST…", CrtStyle.Head, false, 14))
@@ -370,7 +375,7 @@ namespace Arena
 
         void DrawDockSheet(Rect r, bool inMatch)
         {
-            string title = devSheet == 1 ? "DPS meter and target dummies" : devSheet == 2 ? "Replays" : devSheet == 4 ? "Spawn an upgrade" : devSheet == 5 ? "Spawn an enemy" : "Balance test";
+            string title = devSheet == 1 ? "DPS meter and target dummies" : devSheet == 2 ? "Replays" : devSheet == 4 ? "Spawn an upgrade" : devSheet == 5 ? (game.DevArena ? "Dev Arena: spawn or play as an enemy" : "Spawn an enemy") : "Balance test";
             var inner = DockBox(r, title);
             if (DkKey(new Rect(r.xMax - 40f, r.y + 6f, 30f, 22f), "x", Ui.Neutral, false, 11))
                 devSheet = 0;
@@ -541,6 +546,11 @@ namespace Arena
             foreach (var t in all)
                 if (f.Length == 0 || PracticePlan.NameOf(t).IndexOf(f, StringComparison.OrdinalIgnoreCase) >= 0)
                     list.Add(t);
+            if (game.DevArena)
+            {
+                DrawDevArenaRow(col.Next(32f));  // Spawn / Play as, Let go, Clear, Leave (DevArenaUi.cs)
+                DrawDevArenaDummyRow(col.Next(30f));  // hero dummies, Can't die
+            }
             var area = col.Rest();
             area.height -= 26f;
             DkSub(area);
@@ -569,7 +579,15 @@ namespace Arena
                 CrtKit.Frame(cell, 1f, new Color(tint.r, tint.g, tint.b, hover ? 0.8f : 0.25f));
                 Ui.Label(new Rect(cell.x, cell.yMax - 15f, cell.width, 13f), PracticePlan.NameOf(list[i]), 9, canSpawn ? CrtStyle.Body : CrtStyle.Desc, TextAnchor.MiddleCenter);
                 cells.Add(new KeyValuePair<EnemyType, Rect>(list[i], cell));
-                if (canSpawn && Ui.HitArea(cell))
+                bool hitCell = canSpawn && Ui.HitArea(cell);
+                if (hitCell && game.DevArena && devPlayAs)
+                {
+                    if (game.DevPossess(game.MyId, list[i]))
+                        devMenuOpen = false;  // out of the way: you're it now (DevArenaUi.cs)
+                    else
+                        devEnemyNote = "Couldn't play as it.";
+                }
+                else if (hitCell)
                 {
                     int n = game.DevSpawnEnemy(game.MyId, list[i], boss ? 1 : devEnemyCount, devEnemyElite && !boss);
                     devEnemyNote = n > 0 ? "Spawned " + (n > 1 ? n + " " : "") + PracticeEnemyName(list[i]) + " in front of you." : "Couldn't spawn it.";
@@ -586,7 +604,7 @@ namespace Arena
             }
             if (rowsAll > rowsVisible)
                 Ui.Label(new Rect(area.xMax - 110f, area.yMax + 6f, 104f, 16f), "scroll " + ((int)devEnemyScroll + 1) + "/" + (rowsAll - rowsVisible + 1), 10, CrtStyle.Desc, TextAnchor.MiddleRight);
-            string idle = !host ? "Only the host can spawn enemies." : !fighting ? "Start a wave first: enemies can only be spawned while one is under way." : list.Count + " " + (devEnemyTab == 1 ? "bosses" : "enemies") + "  ·  click one to put it in front of you (marks the run as a dev run)";
+            string idle = !host ? "Only the host can spawn enemies." : !fighting ? "Start a wave first: enemies can only be spawned while one is under way." : list.Count + " " + (devEnemyTab == 1 ? "bosses" : "enemies") + (game.DevArena && devPlayAs ? "  ·  click one to play as it" : "  ·  click one to put it in front of you (marks the run as a dev run)");
             Ui.Label(new Rect(r.x, r.yMax - 20f, r.width - 120f, 18f), devEnemyNote.Length > 0 && canSpawn ? devEnemyNote : idle, 11, devEnemyNote.Length > 0 && canSpawn ? CrtStyle.Gold : CrtStyle.Desc);
         }
 

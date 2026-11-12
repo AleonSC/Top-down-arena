@@ -606,6 +606,7 @@ namespace Arena
                 wantAbility[i] = false;
             if (pauseMenuOpen || game.Paused)
                 input = new PlayerInput { AimAt = input.AimAt };  // no moving or shooting behind the menu
+            input = PossessStep(input);  // the Dev Arena: your keys drive the enemy you're playing instead (DevArenaUi.cs)
             game.FixedStep(Time.fixedDeltaTime * EndSpeed, input);
             LabFixedStep(Time.fixedDeltaTime);
             if (lab.Active)

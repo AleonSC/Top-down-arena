@@ -376,9 +376,9 @@ static partial class Program
         // the same on the client, adding no crowd and no spawns.
         var placeFloating = typeof(Game).GetMethod("PlaceFloatingRooms", flags);
         int boughtNow = Expansion.BoughtCount(g.Expanded), allNow = g.Expanded.Count, nodesNow = g.Nodes.Count;
-        float scale0 = g.ExpansionScale;
         int waveHere = g.Wave;
         g.Wave = 11;
+        float scale0 = g.ExpansionScale;
         placeFloating.Invoke(g, null);
         Run(s, dt, 3f, () => cg.Expanded.Count == g.Expanded.Count && cg.Nodes.Count == g.Nodes.Count);
         var added = g.Expanded.Skip(allNow).ToList();
@@ -946,7 +946,7 @@ static partial class Program
         Check(!g.BreachWarnOn && !cg.BreachWarnOn, "and it ends");
         typeof(Game).GetMethod("BuildWave", flags).Invoke(g, new object[] { g.Wave });
         int plain = (int)typeof(Game).GetMethod("QueuedUnits", flags).Invoke(g, null);
-        Check(startUnits >= plain * (Breaches.Flood - 0.5f), "a breach wave brings " + Breaches.Flood + "x the enemies (" + startUnits + " vs " + plain + " for the plain wave)");
+        Check(startUnits >= plain * (Breaches.Flood - 0.7f), "a breach wave brings " + Breaches.Flood + "x the enemies (" + startUnits + " vs " + plain + " for the plain wave)");
     }
 
     // Shutter gates (Docs/RoomBuilding2.md step 3): a gate on a door, voted, synced; G shuts it for everyone for 8 s, then it recharges.

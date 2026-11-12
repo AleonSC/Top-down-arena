@@ -74,9 +74,10 @@ namespace Arena
             if (camZoom < 1f)
                 camZoom = 1f;
 
-            V2 to = me.Disp - camFocusRaw;
+            V2 subject = CamSubject(me);  // you, or the enemy you play in the Dev Arena (DevArenaUi.cs)
+            V2 to = subject - camFocusRaw;
             if (!CamZoomed || to.Length > 200f)
-                camFocusRaw = me.Disp;  // (zoomed out it already follows you; a wrap or a teleport is a cut, not a pan)
+                camFocusRaw = subject;  // (zoomed out it already follows you; a wrap or a teleport is a cut, not a pan)
             else
                 camFocusRaw += to * Mathf.Min(1f, dt * FocusEase);
             if (game.RoomsOn)
@@ -90,7 +91,7 @@ namespace Arena
                 }
                 if (zoomHintT > 0f)
                     zoomHintT = zoomWant <= 1.02f ? 0f : zoomHintT - dt;
-                V2 want2 = RoomsFocus(me.Disp, camZoom);
+                V2 want2 = RoomsFocus(subject, camZoom);
                 if (fresh || (want2 - camFocus).Length > 1600f)
                     camFocus = want2;  // (the rooms just came up, or a teleport: a cut)
                 else
@@ -103,7 +104,7 @@ namespace Arena
             if (camFollow)
             {
                 camFollow = false;  // the rooms went (a boss wave): back to the hub view at once
-                camFocusRaw = me.Disp;
+                camFocusRaw = subject;
             }
             if (!CamZoomed)
             {

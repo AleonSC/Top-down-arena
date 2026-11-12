@@ -561,6 +561,11 @@ namespace Arena
                         scratchIds.Add(b.Id);  // a Blood Wall: everything stops there, red aimed shots too (BloodWall.cs)
                         continue;
                     }
+                    if (HeroDummyShot(b))
+                    {
+                        scratchIds.Add(b.Id);  // the Dev Arena's hero dummies (DevArena.cs)
+                        continue;
+                    }
                     foreach (var p in Players.Values)
                     {
                         if (p.Downed || p.SwallowT > 0f)
@@ -946,6 +951,7 @@ namespace Arena
                 return;  // the Warden's last-stand armor took it all (Warden.cs)
             }
             e.Hp -= dmg;
+            PossessSurvives(e);  // the Dev Arena: the enemy you play can't die (DevArena.cs)
             e.Flash = 0.06f;
             if (p != null && p.Stats.ReapBelow > 0f)
                 FinalReap(p, e);  // a phantom scythe finishes it off (ReaperLoot.cs)

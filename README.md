@@ -812,6 +812,8 @@ wave, everyone gets a shop before the boss:
 instead; Boss Hunts, the Practice Range and runs saved before the Campaign use the open arena). Design:
 [`Docs/ExpandingArena.md`](Docs/ExpandingArena.md). It starts as the plain Classic box and grows as you play:
 
+**Crowds on a big map.** Enemies come in within 1500 px of a player (never a straggler across the map), in the emptiest room there, so rooms you built get their share. Waves 1-10 add up to 2.4x enemies on a big map (1.1 per extra hub of floor); later waves up to 1.4x.
+
 - **Gold coins:** every kill drops its gold as coins (5-gold and 1-gold, at most 6; a boss's or an elite's last coin carries the rest). They never despawn, spin and glint on the floor, and drift to the nearest living player within 90 px, who gets the gold.
 - **Vector pickups:** a rare drop that adds vectors (a cyan square that draws its own outline; big ones have an amber ring). A normal kill drops one 1 time in 60 (+6), an elite 1 time in 8 (+12), a boss always (+12). Like coins they never despawn and drift to the nearest living player within 90 px, but only one whose stock isn't full: it waits for you to spend some. The vectors go to whoever collects it, never past their cap.
 - **Vectors**: every player holds a drawing budget (chip under the wave plate, "Vectors 50 / 70"): 1 vector = 1 tile of wall.
@@ -1059,7 +1061,7 @@ and green when it's easier. Hover a number for what it does.
 | Damage growth per wave | +1.5% | **+3%** | +4% | +5% | 0-10% |
 | Enemy count (regular waves) | 0.85x | **1x** | 1.15x | 1.3x | 0.5-2.5x |
 | Enemy fire rate | 0.9x | **1x** | 1.1x | 1.2x | 0.5-2x |
-| Enemy speed | 1x | **1x** | 1.1x | 1.2x | 0.5-2x |
+| Enemy speed | 1.1x | **1.1x** | 1.21x | 1.32x | 0.5-2x |
 | Elites (chance, from wave 12) | 0.5x | **1x** (up to 35%) | 1.5x | 2x | 0-3x (at most 90%) |
 | Bullet budget | 0.85x | **1x** | 1.15x | 1.3x | 0.5-2x |
 | Adds' fire in boss fights (share of the budget) | 40% | **60%** | 75% | 90% | 0-100% |
@@ -1774,6 +1776,22 @@ its fields the game's keys are off. Outside a match only VIEW and LABS show.
 - **WAVE > SPAWN AN ENEMY… (host, while a wave is under way):** a sheet with every enemy (and a **BOSSES** tab) shown as its live model; filter by
   name, pick a **count** (1, 3, 5, 10) and **Elite**, then click one to put them in a row in front of you. A boss comes in the middle of the
   arena as on its wave (the Twin Reapers bring both twins). They count toward the wave like any enemy. Marks the run as a dev run.
+- **LABS > DEV ARENA (PLAY AS ENEMIES) (host):** a sandbox for trying enemies' attacks. From the menu or the lobby it starts a Practice
+  Range match and turns it on; in a match it turns on there. The field is cleared, everyone goes into god mode, no enemies arrive and the
+  wave never clears. The Spawn-an-enemy sheet opens with a row on top: **CLICK: SPAWN** puts enemies in front of you as usual, **CLICK:
+  PLAY AS** spawns one and hands it to you, **LET GO**, **CLEAR ARENA** and **LEAVE DEV ARENA** (the wave then clears as usual). Playing as
+  an enemy: your hero stands still and the camera follows the enemy (gold brackets, "YOU", and a controls strip at the top). **WASD** moves
+  it, the **mouse** is what it goes for (its own AI aims, lunges, charges and keeps its range at the cursor), hold **Fire** to attack on its
+  real cadence (it moves on its own while it attacks unless you steer), **Parry** attacks at once (skips the cooldown), **Space** (role
+  ability) lets go. Its shots and touches hurt players as usual, so aim at your parked hero (or a bot) to see them land. While you don't
+  attack, its AI waits (a boss's stages pause too). Some boss attacks still go for a player rather than the cursor. **Played enemy can't
+  die** (a switch, on by default): its health refills and a killing blow leaves it standing; off, a dead enemy lets go by itself. Marks
+  the run as a dev run.
+  **Hero dummies** (up to 6): stand-in heroes for enemies to hit. **ADD HERO DUMMY** puts one in front of you; while playing an enemy,
+  **Q** drops one at the cursor and **E** takes away the one nearest it; **CLEAR DUMMIES** removes them all (Clear arena keeps them).
+  Enemy shots and body touches land on them (counted at what an unbuffed hero would take); each shows its last hit, then DPS (last 3 s),
+  hits and total. **Enemies aim at dummies** (on by default): every other enemy goes for the nearest dummy instead of the players.
+  Blasts, beams, zones and other area attacks still only hit players. Only the host sees the dummies.
 - **PARTY > SPAWN AN UPGRADE… (host, in a match):** a sheet listing every upgrade (filter by name or text, or by rarity, including weapon mods and milestone
   cards; pick whose build it is for with several players). Click one and it drops a few steps in front of that player exactly as a treasure
   chest's item does: only they see it, walk onto it, then **G** takes it and **X** throws it away (the wave waits for it, like a chest's). Only

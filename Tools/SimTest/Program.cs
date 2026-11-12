@@ -113,6 +113,7 @@ static partial class Program
         host.Game.BotRerolls = false;
         host.Host(port, "Host", Role.Tank, 0);
         host.Diff.Set(DiffKnob.Campaign, 0f);  // (the usual random waves; CampaignTest turns it on itself)
+        host.Diff.Set(DiffKnob.EnemySpeed, 1f);  // (the fights are time-limited; keep their pace independent of the default speed preset)
         var client = new Session();
         client.Game.Bot = true;
         client.Game.BotRerolls = false;
@@ -230,7 +231,7 @@ static partial class Program
         () => WardenTest(Dt), () => QueenTest(Dt), () => ReapersTest(Dt), () => BossSoundTest(Dt), () => WeaponExtraTest(Dt), () => RepulsionTest(Dt), () => QuarterstaffTest(Dt), () => TankKnightTest(Dt), () => KeybindTest(Dt), () => RevolverReloadTest(Dt), () => BowTest(Dt),
         () => PracticeTest(Dt), () => MoreModifiersTest(Dt), () => DuelistTest(Dt), () => HealerSoloTest(Dt), () => WeaponRangeTest(Dt), () => FrostLanceTest(Dt), () => WeaponSoundsTest(Dt), () => ShowcaseTest(Dt), () => ClassAbilityTest(Dt), () => NinjaTest(Dt),
         () => BloodMageTest(Dt), TextOverridesTest, () => VeinBeamTest(Dt), () => WardenLootTest(Dt), () => LeechGraspTest(Dt), () => F1BotTest(Dt), () => FlamethrowerTest(Dt), () => HealerKitTest(Dt), () => RadiantOrbTest(Dt), () => StormHammerTest(Dt), () => GolemStaffTest(Dt), () => BoneGuardTest(Dt), () => LightConeTest(Dt), () => SanguineOrbTest(Dt), () => FireballArcTest(Dt), () => ScatterFlakBloodTest(Dt), () => TwinSmgTest(Dt), () => PrismWolfRailTest(Dt), () => MissilesRiotBladesTest(Dt), () => FiveMoreTest(Dt), () => FourMoreTest(Dt), () => LightbringerTest(Dt), () => LanceTest(Dt), () => HealerFiveTest(Dt), () => LastFourTest(Dt), () => HealerWardsTest(Dt), () => HeraldTest(Dt), () => DevourerTest(Dt), () => EclipseTest(Dt), () => VarietyTest(Dt), () => SavesTest(Dt), () => ProfileTest(Dt), () => UpgradeFixesTest(Dt), () => QueenLootTest(Dt), () => ReaperLootTest(Dt), () => BossPowerTest(Dt), () => FieldGuideTest(Dt), () => DifficultyTest(Dt), () => PatternsTest(Dt), () => RuleModifiersTest(Dt), () => ReadabilityTest(Dt), () => RunStatsLiveTest(Dt), () => WaveReadyTest(Dt), () => PropsTest(Dt), () => ChallengesTest(Dt), ClassCompletenessTest, () => ApproachesTest(Dt), CampaignTest, () => HuntTest(Dt), () => PerksTest(Dt), () => RiotGearTest(Dt), () => ContrabandTest(Dt), () => ZombieTest(Dt), () => ClearGhostsTest(Dt), () => WaveDesignTest(Dt), WaveGenTest, () => DpsToolsTest(Dt), () => BalanceTestRun(Dt), () => HealingRainTest(Dt), () => LumenWardTest(Dt), () => FireflyRootTest(Dt), () => NimbusChalkTest(Dt), () => TsunamiTest(Dt), () => HolyCrossTest(Dt), () => CavalryTest(Dt), () => TwinGrenadeTest(Dt), () => AirstrikeTest(Dt), MusicLibraryTest, CustomMusicTest, ProjectClipsTest, () => DomeTest(Dt), () => AlphaCallTest(Dt), () => AegisTest(Dt), () => GolemWallTest(Dt), () => SanctumTest(Dt), () => ReplayTest(Dt), () => HydraTest(Dt), () => BurrowerTest(Dt), () => WorldTreeTest(Dt), () => { PartyBotsTest(Dt); PartyBotShelterTest(Dt); }, () => BotTeamplayTest(Dt), () => DodgeTest(Dt), () => HarvestTest(Dt), () => TitanTest(Dt), () => RainTest(Dt), () => TitheTest(Dt), () => RodTest(Dt), () => BloodbathTest(Dt), () => JuggernautTest(Dt), () => BloodFreezeTest(Dt), () => ForcePactTest(Dt), () => QuarterstaffStacksTest(Dt), () => StormHammerSlamTest(Dt), () => MomentumTest(Dt),
-        () => PhalanxTest(Dt), () => PoisonDartTest(Dt), () => LagChartTest(Dt), () => PracticeRespawnTest(Dt), () => BossSlotTest(Dt), () => TankAltTest(Dt), () => AuditFixesTest(Dt),  // (new tests go last: each test's seed comes from its place, so inserting one reseeds every test after it)
+        () => PhalanxTest(Dt), () => PoisonDartTest(Dt), () => LagChartTest(Dt), () => PracticeRespawnTest(Dt), () => BossSlotTest(Dt), () => TankAltTest(Dt), () => DevArenaTest(Dt), () => AuditFixesTest(Dt),  // (new tests go last: each test's seed comes from its place, so inserting one reseeds every test after it)
     };
 
     static void RunFeatures()
@@ -311,6 +312,7 @@ static partial class Program
         Test("ninja", "the Ninja", () => NinjaTest(Dt)),
         Test("blood", "the Blood Mage", () => VeinBeamTest(Dt), () => LeechGraspTest(Dt), () => BloodMageTest(Dt)),
         Test("melee", "early melee rushers", () => MeleeTest(Dt)),
+        Test("devarena", "the F1 Dev Arena: no waves, god mode, playing as an enemy (move, attack, attack now, let go)", () => DevArenaTest(Dt)),
         Test("brute", "Brute enrage", () => BruteEnrageTest()),
         Test("trickle", "Campaign handover: fade and trickle", () => TrickleTest()),
         Test("meleesounds", "melee rushers' sounds: quieter with distance, Buzzsaw contact whirr, distinct deaths that merge", () => MeleeSoundsTest(Dt)),
