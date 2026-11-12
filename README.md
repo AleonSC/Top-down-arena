@@ -924,7 +924,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   bigger it is (up to 1.4 times); the map stops at 24 rooms. Boss waves are fought in the hub alone, as always.
 - Runs in this arena are saved like any other: Continue brings back the map (rooms, opened walls, portals, floating
   rooms), the team's room kits and each seat's vectors and shop shelf. A room someone drew keeps their colour for
-  whoever takes their seat.
+  whoever takes their seat. When zoomed out, a teal edge arrow points to a cache nobody has taken.
 
 ## Rooms arena
 

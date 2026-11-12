@@ -42,8 +42,12 @@ Builds on [`SurpriseRooms.md`](SurpriseRooms.md) (placement, free rooms) and [`R
 - **Cover**: `AddStashCover` (`Expansion.cs`): a block and a pillar on a diagonal either side of the cache; fins are skipped for a Stash and the outline-sliver rule does not apply to it. Test: every Stash spot has cover and none on the cache.
 - **Marker**: the diamond is bigger (26-31 px) with a `+10` label over it (`DrawStashLabels`, `SurpriseLook.cs`, from `Hud.cs`).
 
+## Step 5 (built, no wire change)
+
+- An off-screen **cache marker**: a teal edge arrow with a ring for each unclaimed Stash, while zoomed out (`OffscreenMarkers.cs`, like the chest arrows).
+- **Not built**: enemies coming out of the Stash. The breach spawns in front of the wall and the Stash joins the room by an ordinary door elsewhere, so spawning inside would have enemies walking round to the door; it needs pathing or a wall opening first. Owner had no preference, so it stays open.
+
 ## Open
 
-- Enemies coming out of the Stash itself (the breach spawns in front of the wall, not from the room).
-- A cache marker off-screen (like the chest markers in `OffscreenMarkers.cs`).
+- Enemies coming out of the Stash itself (see above).
 - The next breach wave's breaches are re-rolled for the bigger map (the Stashes are permanent).
