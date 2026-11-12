@@ -30,8 +30,13 @@ lights as you do it, with your own key beside it, and **SKIP**. Steps tick in an
 
 1. **The basics** (wave 1): move (0.8 s), aim (the cursor travels 400 px), shoot (0.5 s held), dodge.
 2. **Level up**: pick an upgrade card.
-3. **Your kit** (wave 2): use an ability; raise the parry shield (0.25 s).
-4. **Build a room**: open Build rooms, draw a room (a proposal of yours), vote it in (a vote, or a room built after).
+3. **Build a room** (the first build round, right after the first card): open Build rooms, draw a room (a proposal of
+   yours), vote it in (a vote, or a room built after).
+4. **Your kit** (the next wave): use an ability; raise the parry shield (0.25 s).
+
+The prompt shows the first unfinished lesson that can be done **now** (`Tutorial.CurrentFor`): building only while a build round
+is open, the kit only in a fight; otherwise the first unfinished one. (Fix, Nov 12: the build round opened after the first card
+while the prompt still asked for the kit.)
 5. **Gold and the shop**: collect gold; walk into a shop or vendor room. Moved last (the plan had gold and the vendor between
    waves 1-3): in the Expanding arena gold only drops and the shop only opens once a built room connects one.
 

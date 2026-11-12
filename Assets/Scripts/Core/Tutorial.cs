@@ -25,10 +25,10 @@ namespace Arena
                 Steps = new[] { TutorialStep.Move, TutorialStep.Aim, TutorialStep.Shoot, TutorialStep.Dodge } },
             new TutorialLesson { Title = "LEVEL UP", When = "Between waves", Hint = "Kills give XP. Every level offers three upgrade cards.",
                 Steps = new[] { TutorialStep.PickCard } },
-            new TutorialLesson { Title = "YOUR KIT", When = "Wave 2", Hint = "Your ability recharges. The parry shield blocks shots.",
-                Steps = new[] { TutorialStep.Ability, TutorialStep.Parry } },
-            new TutorialLesson { Title = "BUILD A ROOM", When = "Between waves", Hint = "Walls cost vectors. Build toward the sealed shop and vendor rooms.",
+            new TutorialLesson { Title = "BUILD A ROOM", When = "Between waves: a build round is open", Hint = "Walls cost vectors. Build toward the sealed shop and vendor rooms.",
                 Steps = new[] { TutorialStep.OpenBuild, TutorialStep.DrawRoom, TutorialStep.Vote } },
+            new TutorialLesson { Title = "YOUR KIT", When = "During a wave", Hint = "Your ability recharges. The parry shield blocks shots.",
+                Steps = new[] { TutorialStep.Ability, TutorialStep.Parry } },
             new TutorialLesson { Title = "GOLD AND THE SHOP", When = "Once a shop room is connected", Hint = "Kills drop gold once a shop or vendor room joins the map.",
                 Steps = new[] { TutorialStep.Gold, TutorialStep.Shop } },
         };
@@ -46,17 +46,40 @@ namespace Arena
         public int StepsDone => done.Count;
         public static int StepCount { get { int n = 0; foreach (var l in Lessons) n += l.Steps.Length; return n; } }
 
-        /// The lesson on the prompt: the first with a step left (-1: all done).
+        /// The first lesson with a step left (-1: all done).
         public int Current
         {
             get
             {
                 for (int i = 0; i < Lessons.Length; i++)
-                    foreach (var s in Lessons[i].Steps)
-                        if (!done.Contains(s))
-                            return i;
+                    if (!LessonDone(i))
+                        return i;
                 return -1;
             }
+        }
+
+        public bool LessonDone(int i)
+        {
+            foreach (var s in Lessons[i].Steps)
+                if (!done.Contains(s))
+                    return false;
+            return true;
+        }
+
+        public const int BuildLesson = 2, KitLesson = 3;
+
+        /// Can this lesson be done right now? Building only while a build round is open, the kit only in a fight.
+        public static bool LessonNow(int i, Game g) =>
+            i == BuildLesson ? g.ExpandOpen && g.State == MatchState.Intermission : i == KitLesson ? g.State == MatchState.Fighting : true;
+
+        /// The lesson on the prompt: the first with a step left that can be done now (a build round right after the first
+        /// upgrade pick shows BUILD A ROOM; the next wave shows YOUR KIT), else the first with a step left (-1: all done).
+        public int CurrentFor(Game g)
+        {
+            for (int i = 0; i < Lessons.Length; i++)
+                if (!LessonDone(i) && LessonNow(i, g))
+                    return i;
+            return Current;
         }
 
         /// Every game, as a match starts: on for a profile's first Quick Play (not for a bot, a replay or the lobby preview).

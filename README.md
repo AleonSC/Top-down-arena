@@ -447,7 +447,7 @@ Rarer cards show up a bit more often as you level. All the numbers live in
   like wave 19 of the old run, and the wave numbers in this README are track waves (double them, roughly, for the
   Campaign's). XP, kill gold, chests and the Expanding arena's vectors per wave are halved to match, so you reach each
   boss about as strong as before. Runs saved before this stay 50 waves; Boss Hunts stay ten.
-- **A new enemy trickles in, and the last boss's fades out.** In a lesson that introduces an enemy (the Warden's waves 2, 3, 4 and 6), it arrives alone as stragglers through the second half of the wave. After a boss, his faction fades over the next three waves (40%, 20%, 8% of the wave, singles only, no squads) with the tricky ones going first (Riot Shields, Gas Grenadiers and Taser Guards at once, the Security Guard after a wave, Thugs and Shivs after two, Rioters and Guards last), while the next faction's enemies come in at once. Wave 1 has more enemies (12) and spawns faster, over a shorter window (24 s, the full 45 s by wave 6), so there's less waiting for the last few.
+- **A new enemy trickles in, and the last boss's fades out.** In a lesson that introduces an enemy (the Warden's waves 2, 3, 4, 5, 6 and 7: Security Guards, Riot Shields, Gas Grenadiers, Thugs, Taser Guards, Shivs), it arrives alone as stragglers through the second half of the wave. After a boss, his faction fades over the next three waves (40%, 20%, 8% of the wave, singles only, no squads) with the tricky ones going first (Riot Shields, Gas Grenadiers and Taser Guards at once, the Security Guard after a wave, Thugs and Shivs after two, Rioters and Guards last), while the next faction's enemies come in at once. Later on, the **comeback squad** (one wave in five from wave 11) is big: an old boss's squad twice over, plus that faction's toughest enemy as an anchor, so a late Breakout is a crowd of Rioters. Wave 1 has more enemies (12) and spawns faster, over a shorter window (24 s, the full 45 s by wave 6), so there's less waiting for the last few.
 - **Each boss's ten Campaign waves teach its fight.** The Warden's (waves 1-10): 1 Rioters only; 2 Security Guards'
   aimed tracers; 3 Riot Shields (flank them); 4 Gas Grenadiers with shields shoving you into the gas; 5 a recap; 6 Taser Guards (stuns; parry the Fork Bolt back); 7 tasers, shields and
   gas together; 8 mostly squads (Breakout, Patrol, Cell block); 9 everything, tighter; 10 the exam, the Riot line with
@@ -1094,8 +1094,9 @@ you've beaten it anywhere, a **???** until then (on your first Quick Play the Wa
   every wave from wave 1, the vote, and a free surprise room after each boss. Vectors come in at the full rate (+8 a wave, not
   the Campaign's half), so a party builds about one room a wave. The **Simple Arena** modifier keeps the open arena.
 - **The tutorial:** a profile's first Quick Play shows a prompt at the top left that ticks off as you go, in five lessons:
-  **The basics** (move, aim, shoot, dodge), **Level up** (pick a card), **Your kit** (your ability, the parry shield),
-  **Build a room** (open Build rooms, draw a room, vote it in) and **Gold and the shop** (collect gold, walk into a shop or
+  **The basics** (move, aim, shoot, dodge), **Level up** (pick a card), **Build a room** (click BUILD, draw a room,
+  vote it in: shown as soon as the first build round opens), **Your kit** (your ability, the parry shield: shown in the next
+  wave) and **Gold and the shop** (collect gold, walk into a shop or
   vendor room once one is connected). Steps count in any order; each shows your own key. **SKIP** ends it. It's only on your
   own screen (a friend's first run shows theirs), never holds the wave, and never comes back once done, skipped, or once your
   first Quick Play is over.
