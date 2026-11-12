@@ -26,7 +26,7 @@ namespace Arena
                 case TutorialStep.PickCard: return "Pick an upgrade card";
                 case TutorialStep.Ability: key = KeyLabel(KeyAction.Ability); return "Use your ability";
                 case TutorialStep.Parry: key = KeyLabel(KeyAction.Parry); return "Raise your parry shield";
-                case TutorialStep.OpenBuild: return "Open BUILD ROOMS";
+                case TutorialStep.OpenBuild: return "Click BUILD at the top";
                 case TutorialStep.DrawRoom: return "Draw a room (click its corners)";
                 case TutorialStep.Vote: return "Vote it in";
                 case TutorialStep.Gold: return "Collect gold";
@@ -48,7 +48,7 @@ namespace Arena
                 tut.Note(TutorialStep.OpenBuild);
             if (!tut.Active || game.State == MatchState.Victory || game.State == MatchState.GameOver)
                 return;
-            int li = tut.Current;
+            int li = tut.CurrentFor(game);
             if (li < 0)
                 return;
             if (li != tutorialShownLesson)

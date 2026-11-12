@@ -210,9 +210,10 @@ static partial class Shot {
       gm.Bullets.Clear();
     }
     if (Environment.GetEnvironmentVariable("TUTORIAL") != null) {
-      // The first-run tutorial's prompt (TutorialUi.cs): TUTORIAL=<lesson 0-4>,<steps of it done>.
+      // The first-run tutorial's prompt (TutorialUi.cs): TUTORIAL=<lesson 0-4>,<steps of it done>[,open] (open: between waves with a build round open).
       var tp = Environment.GetEnvironmentVariable("TUTORIAL").Split(',');
       host.Game.Tutorial.ShowAt(int.Parse(tp[0]), tp.Length > 1 ? int.Parse(tp[1]) : 0);
+      if (tp.Length > 2 && tp[2] == "open") { host.Game.State = MatchState.Intermission; host.Game.ExpandOpen = true; }  // a build round open (the BUILD A ROOM lesson)
     }
     if (Environment.GetEnvironmentVariable("RIOT") != null) {
       // Riot Gear (RiotGearLook.cs): RIOT=ready | wait,<seconds left> | block,<seconds after the block>. You and your friend have it; an enemy shot comes in from the right.
