@@ -507,6 +507,7 @@ namespace Arena
                     float rateDazed = rate * TraitFireMult(e) * (IsTwin(e.Type) && e.Phase == 1 ? 1.7f : 1f) * (Has(RunMod.Frenzy) ? Modifiers.FrenzyFire : 1f) * (1f - e.Suppress);
                     e.FireT = Math.Max(e.FireT, WindUpOf(e.Type) * rateDazed + 0.05f);
                     e.Winding = false;
+                    e.GasLocked = false;
                 }
                 else if (State == MatchState.Fighting)
                 {
@@ -522,6 +523,8 @@ namespace Arena
                     // A regular shooter glows just before it fires (Readability.cs).
                     float rateNow = mult * (1f - e.Suppress);
                     e.Winding = (e.Type == EnemyType.SecurityGuard ? e.Phase > 0 : TakesTurns(e) && HasTurn(e)) && rateNow > 0f && e.FireT / rateNow <= WindUpOf(e.Type) && e.FireT > -0.5f;
+                    if (e.Type == EnemyType.GasGrenadier)
+                        GrenadierWind(e, tpos, rateNow);  // locks its lob when the wind-up starts (WardenFaction.cs)
                     if (held && e.FireT <= 0f)
                         e.FireT = Rand(0.2f, 0.4f);  // nobody in its room: nothing to shoot at
                     if (e.FireT <= 0f)

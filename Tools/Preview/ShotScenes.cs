@@ -1068,6 +1068,18 @@ static partial class Shot {
       host.Game.Coins[9100] = new Coin { Id = 9100, Value = 5, Pos = new V2(1000f, 470f), Disp = new V2(1000f, 470f) };
       host.Game.Coins[9101] = new Coin { Id = 9101, Value = 1, Pos = new V2(1030f, 450f), Disp = new V2(1030f, 450f) };
     }
+    if (Environment.GetEnvironmentVariable("GASLOB") != null) {
+      // The Gas Grenadier's overhand lob (GASLOB=<s into the wind-up>; 0.85 is wound up, 1.07 the throw, 2.07 the landing): the ring and its dotted arc,
+      // the arm reaching back, the canister in the air. Docs/Mockups/gas-grenadier-throw.html option A ("Overhand Lob"). Mode hud.
+      var sg2 = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); host.Game.Patches.Clear(); host.Game.Bot = false;
+      me.Pos = me.Disp = new V2(1100f, 560f);
+      var gl = (Enemy)sg2.Invoke(host.Game, new object[] { EnemyType.GasGrenadier, new V2(520f, 470f), 0f, 0, false });
+      gl.SpawnT = 0f; gl.Disp = gl.Pos; gl.Facing = 0.12f;
+      float glAge = float.Parse(Environment.GetEnvironmentVariable("GASLOB"));
+      float glDur = Game.GrenadierWindUp + Game.GrenadierSwing + 1f;
+      host.Game.Effects.Add(new Effect { Kind = FxKind.GasLob, Pos = new V2(1060f, 540f), Pos2 = new V2(gl.Id, 1f), Color = new Rgba(0.6f, 0.95f, 0.4f), Radius = 70f, Dur = glDur, T = glAge });
+    }
     if (Environment.GetEnvironmentVariable("TASER") != null) {
       // The Taser Guard (TASER=<s since a Fork Bolt hit you>): one charging at you (visor, taser, crackling prongs, aim line), another's
       // Fork Bolt flying in across a field of bullets, and the hit on you. Set beside Docs/Mockups/taser-guard-stun.html, option B. Mode hud.
