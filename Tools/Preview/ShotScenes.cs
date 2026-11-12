@@ -288,7 +288,7 @@ static partial class Shot {
       gm.Effects.Add(new Effect { Kind = FxKind.ShadowStep, Pos = from, Pos2 = land, Color = new Rgba(0.72f, 0.58f, 1f), Radius = me.Id * 1000f + er, Dur = Game.ShadowStepFxTime, T = float.Parse(Environment.GetEnvironmentVariable("SHADOWSTEP")) });
     }
     if (Environment.GetEnvironmentVariable("BEAMIN") != null) {
-      // The boss wave beam-in (BossBeamLook.cs): BEAMIN=<seconds since it began, 0 to 1.9>. Two players; use with mode hud, 2 players. The beam is from the left to the middle of the arena.
+      // The boss wave beam-in (BossBeamLook.cs): BEAMIN=<seconds since it began, 0 to 1.9>. Two players; use with mode hud, 2 players (WAVECLEARED=boss: with the between-waves box, which steps aside). The beam is from the left to the middle of the arena.
       var gm = host.Game; gm.Bot = false;
       foreach (var e in gm.Enemies.Values) e.Hp = 0f;
       gm.Bullets.Clear(); gm.Effects.Clear();
@@ -298,6 +298,7 @@ static partial class Shot {
         V2 from = new V2(380f, 330f + bi * 230f), to = new V2(820f, 300f + bi * 260f);
         float lag = bi * 0.18f;
         q.Pos = q.Disp = bt - lag >= Game.BeamMoveAt ? to : from;
+        q.WarpT = System.Math.Max(0f, Game.BeamTotal - System.Math.Max(0f, bt - lag));  // (locked while it runs, as in the game: the between-waves box steps aside)
         gm.Effects.Add(new Effect { Kind = FxKind.BossBeam, Pos = from, Pos2 = to, Color = q.Def.Color, Radius = q.Id, Dur = Game.BeamTotal, T = System.Math.Max(0f, bt - lag) });
         bi++;
       }

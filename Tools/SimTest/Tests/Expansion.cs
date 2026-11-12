@@ -299,6 +299,24 @@ static partial class Program
         foreach (var kv in savedAt) g.Players[kv.Key].Pos = g.Players[kv.Key].Disp = kv.Value;
         Check(inRooms && inNew, "enemies come in inside a room, never in the gaps between them, and the new room gets some (" + inRooms + "/" + inNew + ")");
         int w0 = g.Wave;
+
+        // Before the boss, anyone out in a built room is beamed into the hub (BossBeam.cs), not snapped there.
+        {
+            Quiet(); g.Enemies.Clear(); NoPicks();
+            var room = g.CurrentWorld.Areas[1];
+            var hubA = g.CurrentWorld.Areas[0];
+            g.Players[2].Pos = g.Players[2].Disp = cg.Players[2].Pos = cg.Players[2].Disp = room.Mid;
+            int leg0 = g.Leg; g.Wave = 5; g.BossSlot = false; g.Leg = 1;
+            g.State = MatchState.Intermission; g.StateTimer = 30f;
+            Run(s, dt, 0.3f, null, () => { NoPicks(); cg.Players[2].Pos = cg.Players[2].Disp = room.Mid; });
+            g.StateTimer = 0f;
+            Run(s, dt, 0.4f, null, NoPicks);
+            Check(g.State == MatchState.Intermission && g.Players[2].WarpT > 0f && g.Effects.Any(e => e.Kind == FxKind.BossBeam) && cg.Effects.Any(e => e.Kind == FxKind.BossBeam) && g.Players[2].Pos.DistanceTo(room.Mid) < 8f,
+                "Expanding: the boss wave waits while the player out in a room is beamed (state " + g.State + ", warp " + g.Players[2].WarpT + ", rooms " + g.RoomsOn + ", next " + g.BossNext + ")");
+            Run(s, dt, 2f, () => g.State == MatchState.Fighting, NoPicks);
+            Check(g.State == MatchState.Fighting && g.BossNow && hubA.Contains(g.Players[2].Pos, -40f) && hubA.Contains(cg.Players[2].Pos, -40f), "Expanding: then the boss wave starts with them in the hub");
+            Quiet(); g.Enemies.Clear(); g.Leg = leg0;
+        }
         g.Wave = 10; g.BossSlot = true;
         pickRooms.Invoke(g, null);
         Check(g.BossNow && !g.RoomsUp, "a boss wave is fought in the hub alone");
