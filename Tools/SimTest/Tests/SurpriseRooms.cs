@@ -193,6 +193,15 @@ static partial class Program
         var stashes = g.Expanded.Where(r => r.Surprise == stashKind).ToList();
         int left = before.Count;
         Check(stashes.Count > 0 && stashes.Count == left - 1 && stashes.All(r => r.Price == 0 && (r.X1 - r.X) * (r.Y1 - r.Y) == 150000), "the breaches open onto free Stashes right away (" + stashes.Count + " of " + left + ")");
+        var sw = g.CurrentWorld; float worstDoor = 0f;
+        foreach (var b in g.ActiveBreaches)
+        {
+            int ai = sw.Areas.ToList().FindIndex(a => a.Surprise == stashKind && a.Contains(b.Pos - b.In * BreachEvent.Behind));
+            if (ai < 0) continue;
+            var dr = sw.Doors.Where(d => d.Joins(ai) && d.Vertical == b.Vertical).ToList();
+            worstDoor = Math.Max(worstDoor, dr.Count == 0 ? 999f : dr.Min(d => d.Pos.DistanceTo(b.Pos)));
+        }
+        Check(worstDoor <= 60f, "each Stash's doorway lines up with its breach (worst " + worstDoor.ToString("0") + " px off)");
         Check(cg.Expanded.Count == g.Expanded.Count && Game.SurpriseCount(g.Expanded) == 1, "the friend gets them too, and they are not counted as gifts");
         Check(gp.Vectors == 10 && stashes.All(r => !r.Claimed), "opening a Stash pays nobody: its vector cache waits to be walked into");
         int count = g.Expanded.Count;
