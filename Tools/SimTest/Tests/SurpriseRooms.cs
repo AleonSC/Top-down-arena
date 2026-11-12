@@ -176,6 +176,7 @@ static partial class Program
         g.BreachAge = 2f; cg.BreachAge = 2f;
         Run(s, dt, 3f, () => cg.EventMark.HasValue);
         Check(g.EventMark.HasValue && cg.EventMark.HasValue && g.EventMark.Value.DistanceTo(cg.EventMark.Value) < 2f, "the host plans an event and the friend sees its gold breach (on " + g.BreachesOn + " exp " + g.ExpandingOn + " rooms " + g.RoomsOn + " byroom " + Rooms.RoomByRoom + " boss " + g.BossNow + ", " + g.State + ", wave " + g.Wave + ", age " + g.BreachAge + ", breaches " + g.ActiveBreaches.Length + ", event wave " + BreachEvent.IsEventWave(seedPick, 15) + ", rooms " + g.Expanded.Count + ", host mark " + g.EventMark.HasValue + ", client " + cg.EventMark.HasValue + ")");
+        Check(g.Expanded.Any(r => r.Surprise == 1 + (int)SurpriseShape.Stash) && cg.Expanded.Any(r => r.Surprise == 1 + (int)SurpriseShape.Stash), "the Stashes are already open 2 s in, well before the gold room's 20 s");
         var before = g.ActiveBreaches.Select(b => b.Pos).ToList();
         Check(g.ActiveBreaches.Any(b => b.Pos.DistanceTo(g.EventMark.Value) < 3f) && cg.ActiveBreaches.Any(b => b.Pos.DistanceTo(cg.EventMark.Value) < 3f), "it is one of the wave's breaches on both screens");
         int rooms0 = g.Expanded.Count;
@@ -191,7 +192,7 @@ static partial class Program
         // Breach rooms (Docs/BreachRooms.md): at the same 20 s every breach left opens onto a free 5 x 3 Stash worth vectors; not a gift, so the rotation stays.
         var stashes = g.Expanded.Where(r => r.Surprise == stashKind).ToList();
         int left = before.Count;
-        Check(stashes.Count > 0 && stashes.Count <= left && stashes.All(r => r.Price == 0 && (r.X1 - r.X) * (r.Y1 - r.Y) == 150000), "20 s in, the breaches open onto free Stashes (" + stashes.Count + " of " + left + ")");
+        Check(stashes.Count > 0 && stashes.Count <= left && stashes.All(r => r.Price == 0 && (r.X1 - r.X) * (r.Y1 - r.Y) == 150000), "the breaches open onto free Stashes right away (" + stashes.Count + " of " + left + ")");
         Check(cg.Expanded.Count == g.Expanded.Count && Game.SurpriseCount(g.Expanded) == 1, "the friend gets them too, and they are not counted as gifts");
         Check(gp.Vectors == 10 && stashes.All(r => !r.Claimed), "opening a Stash pays nobody: its vector cache waits to be walked into");
         int count = g.Expanded.Count;

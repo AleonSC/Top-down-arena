@@ -1,6 +1,6 @@
 # Breach rooms: a small free room behind every breach
 
-Status: **steps 1-4 built** (protocols 300, 301): 20 s into a breach wave (or at its end) a Stash opens behind each breach left (`Game.RevealBreachRooms`, `BreachEvent.cs`). Decided with the owner on Nov 12, 2026.
+Status: **steps 1-5 built** (protocols 300, 301): as a breach wave's breaches come up a Stash opens behind each breach left (`Game.RevealBreachRooms`, `BreachEvent.cs`). Decided with the owner on Nov 12, 2026.
 Builds on [`SurpriseRooms.md`](SurpriseRooms.md) (placement, free rooms) and [`RoomBuilding2.md`](RoomBuilding2.md) (breaches). Expanding arena only.
 
 ## Decisions (owner)
@@ -46,6 +46,12 @@ Builds on [`SurpriseRooms.md`](SurpriseRooms.md) (placement, free rooms) and [`R
 
 - An off-screen **cache marker**: a teal edge arrow with a ring for each unclaimed Stash, while zoomed out (`OffscreenMarkers.cs`, like the chest arrows).
 - **Not built**: enemies coming out of the Stash. The breach spawns in front of the wall and the Stash joins the room by an ordinary door elsewhere, so spawning inside would have enemies walking round to the door; it needs pathing or a wall opening first. Owner had no preference, so it stays open.
+
+## Timing change (Nov 12, no wire change)
+
+Stashes now open **right away** (`BreachAge >= Breaches.Telegraph`, 1.5 s) instead of 20 s in; the owner found the wait too long. The gold event's room stays at 20 s.
+- The gold breach is skipped, and a Stash may not overlap the room the event has planned (`TouchesPlannedEventRoom`).
+- A friend works out the wave's breaches on the old map before new rooms arrive (`ExpansionGame.cs`), so an early Stash cannot re-roll them.
 
 ## Open
 

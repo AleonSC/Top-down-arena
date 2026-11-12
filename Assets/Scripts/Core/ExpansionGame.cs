@@ -1286,6 +1286,8 @@ namespace Arena
             {
                 int before = SurpriseCount(Expanded), oldCount = Expanded.Count;
                 bool eventOn = EventMark.HasValue;  // (the gold breach was up when the room came)
+                if (BreachesOn)
+                    _ = ActiveBreaches;  // (this wave's breaches, worked out on the old map first: new rooms must not re-roll them)
                 Expanded.Clear();
                 Expanded.AddRange(rooms);
                 expWorld = null;

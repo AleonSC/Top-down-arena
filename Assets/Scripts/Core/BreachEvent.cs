@@ -109,8 +109,7 @@ namespace Arena
             var plan = EventPlan();
             if (plan.HasValue && EventMark.HasValue && BreachAge >= BreachEvent.Delay)
                 RevealBreachEvent();
-            if (BreachAge >= BreachEvent.Delay)
-                RevealBreachRooms();  // the Stashes open 20 s in too (or when the wave is cleared, if that comes first)
+            RevealBreachRooms();  // the Stashes open as soon as the breaches are up (Docs/BreachRooms.md)
         }
 
         /// Host: the wall opens. The planned room is built (free), the breach goes, the gold clears. Also run as the wave ends.
@@ -131,7 +130,19 @@ namespace Arena
             BroadcastExpansion();
         }
 
-        /// Host, 20 s into a breach wave (or as it is cleared, if that comes first): each of its breaches (the gold one already went) opens onto a free Stash behind its wall
+        /// Would these boxes overlap (or crowd) the room the gold breach has planned? Its floor is already promised.
+        bool TouchesPlannedEventRoom(List<ExpansionRoom> boxes)
+        {
+            if (!eventPlan.HasValue || eventPlanWave != Wave)
+                return false;
+            foreach (var q in boxes)
+                foreach (var e in eventPlan.Value.Option.Rooms)
+                    if (q.X < e.X1 && e.X < q.X1 && q.Y < e.Y1 && e.Y < q.Y1)
+                        return true;
+            return false;
+        }
+
+        /// Host, as a breach wave's breaches come up (or as it is cleared, if that was missed): each of its breaches (the gold one already went) opens onto a free Stash behind its wall
         /// (Docs/BreachRooms.md). Skips a breach with no legal spot, and stops within 2 rooms of the cap.
         void RevealBreachRooms()
         {
@@ -145,7 +156,10 @@ namespace Arena
             {
                 if (Expansion.BoughtCount(Expanded) > Expansion.MaxRooms - 2)
                     break;
+                if (EventMark.HasValue && b.Pos.DistanceTo(EventMark.Value) < 3f)
+                    continue;  // (the gold breach's room opens there later)
                 var opts = Expansion.SurpriseOptions(Expanded, SurpriseShape.Stash, b.Pos - b.In * BreachEvent.Behind);
+                opts.RemoveAll(o => TouchesPlannedEventRoom(o.Rooms));
                 if (opts.Count == 0)
                     continue;
                 Expanded.AddRange(opts[0].Rooms);
