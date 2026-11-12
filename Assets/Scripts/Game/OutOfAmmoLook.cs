@@ -3,33 +3,57 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// Out of Ammo (Core/OutOfAmmo.cs): the Twin Rifle's second variant drawn as a fighter. The rifles are lashed to the forearms (two-bone arms, the
-    /// gun along the forearm), the knife is in the right hand. Moves are keyframed in the Gun and Knife mockup's units (a model unit each) and
-    /// played from a clock this look starts when Player.AmmoSeq rises: left bash, cross cut, right bash, reverse cut, rifle clap; a swat swings one
-    /// arm to the bullet's angle (Player.SwatSeqL/R, SwatAngL/R); Alt's spin turns the whole body. Hit sparks and the clap's ring come with Visual
-    /// effects on; the smears behind the blade and rifles are drawn in the world pass (DrawAmmoSmears).
+    /// Out of Ammo (Core/OutOfAmmo.cs): the Twin Rifle's second variant, drawn with two sets of arms. The rifle arms are the Twin Rifle's held out
+    /// at your sides (its guns, brass and heat), turned and thrust by the bashes, the clap and the swats; your own arms come out in front and hold the
+    /// knife. Moves are keyframed in the Gun and Knife mockup's units (a model unit each) and played from a clock this look starts when a Seq rises.
+    /// With Visual effects on: sparks, a flash and a ring where a hit lands, a slash mark, camera kicks, the clap's cracks and shockwave, afterimages
+    /// on the lunge, and ribbons behind the blade and the rifle tips (DrawAmmoSmears).
     public partial class ArenaApp
     {
-        class AmmoSeen { public byte Seq, SwL, SwR; public int Move; public float T0 = -99f, SwT0L = -99f, SwT0R = -99f; public bool Fired; }
-        class AmmoPose { public float Face, Lean, Ak, LX, LY, RX, RY; public bool Glow, LHot, RHot; }
+        class AmmoSeen
+        {
+            public byte Seq, KSeq, SwL, SwR;
+            public int Move, KMove;
+            public float T0 = -99f, KT0 = -99f, SwT0L = -99f, SwT0R = -99f;
+            public bool Fired, KFired;
+        }
+
+        class AmmoPose
+        {
+            public float Face, Lean;
+            public float GX0, GY0, GH0, GX1, GY1, GH1;       // each rifle's grip and heading (0 left, 1 right)
+            public float KRX, KRY, KAk, KLX, KLY;            // the knife hand (and its blade's angle) and the guard hand
+            public bool Glow, Hot0, Hot1;
+        }
 
         readonly Dictionary<int, AmmoSeen> ammoSeen = new Dictionary<int, AmmoSeen>();
         readonly AmmoPose ammoPose = new AmmoPose();
 
-        static readonly float[] AmmoStart = { 0f, .45f, .95f, 1.42f, 2.0f };
-        // keyframes in the mockup's time: [t, x, y(, knife angle)], x forward and y to the right of the body
-        static readonly float[][] AmmoLH = { new[] { 0f, 22, -26 }, new[] { .12f, 4, -33 }, new[] { .2f, 50, -8 }, new[] { .42f, 22, -26 }, new[] { 2.0f, 22, -26 }, new[] { 2.4f, -4, -44 }, new[] { 2.5f, 56, -7 }, new[] { 2.76f, 56, -7 }, new[] { 3.2f, 22, -26 } };
-        static readonly float[][] AmmoRH = {
-            new[] { 0f, 22, 26, .5f }, new[] { .45f, 22, 26, .5f }, new[] { .57f, 12, 42, 1.9f }, new[] { .62f, 38, 8, .15f }, new[] { .68f, 28, -34, -1.5f }, new[] { .9f, 22, 26, .5f },
-            new[] { .95f, 22, 26, .5f }, new[] { 1.07f, 4, 34, 2.5f }, new[] { 1.12f, 50, 8, 2.5f }, new[] { 1.37f, 22, 26, .5f },
-            new[] { 1.42f, 22, 26, .5f }, new[] { 1.54f, 14, -38, -1.9f }, new[] { 1.6f, 38, -8, -.15f }, new[] { 1.66f, 28, 34, 1.5f }, new[] { 1.85f, 22, 26, .5f },
-            new[] { 2.0f, 22, 26, .5f }, new[] { 2.4f, -4, 44, .8f }, new[] { 2.5f, 56, 7, 0f }, new[] { 2.76f, 56, 7, 0f }, new[] { 3.2f, 22, 26, .5f } };
-        static readonly float[][] AmmoFace = { new[] { 0f, 0f }, new[] { .12f, -.22f }, new[] { .2f, .1f }, new[] { .42f, 0f }, new[] { .45f, 0f }, new[] { .57f, .38f }, new[] { .68f, -.4f }, new[] { .9f, 0f },
-            new[] { .95f, 0f }, new[] { 1.07f, .22f }, new[] { 1.12f, -.1f }, new[] { 1.37f, 0f }, new[] { 1.42f, 0f }, new[] { 1.54f, -.36f }, new[] { 1.66f, .4f }, new[] { 1.85f, 0f }, new[] { 2.4f, 0f }, new[] { 3.2f, 0f } };
-        static readonly float[][] AmmoLean = { new[] { 0f, 0f }, new[] { .12f, -3f }, new[] { .2f, 5f }, new[] { .42f, 0f }, new[] { .57f, -2f }, new[] { .68f, 4f }, new[] { .9f, 0f }, new[] { 1.07f, -3f }, new[] { 1.12f, 5f },
-            new[] { 1.37f, 0f }, new[] { 1.54f, -2f }, new[] { 1.66f, 4f }, new[] { 1.85f, 0f }, new[] { 2.0f, 0f }, new[] { 2.4f, -11f }, new[] { 2.5f, 18f }, new[] { 2.76f, 18f }, new[] { 3.2f, 0f } };
+        // the knife's keyframes per move, seconds into the move: [t, x, y, blade angle] for the knife hand, [t, x, y] for the guard hand, [t, v] for the body
+        static readonly float[][][] KnifeR = {
+            new[] { new[] { 0f, 26, 12, -.15f }, new[] { .10f, 14, 34, 1.9f }, new[] { .16f, 38, 8, .15f }, new[] { .22f, 28, -30, -1.5f }, new[] { .38f, 26, 12, -.15f } },
+            new[] { new[] { 0f, 26, 12, -.15f }, new[] { .10f, 14, -26, -1.9f }, new[] { .16f, 38, -4, -.15f }, new[] { .22f, 28, 30, 1.5f }, new[] { .38f, 26, 12, -.15f } },
+            new[] { new[] { 0f, 26, 12, -.15f }, new[] { .14f, 8, 16, .05f }, new[] { .26f, 62, 6, 0f }, new[] { .34f, 62, 6, 0f }, new[] { .55f, 26, 12, -.15f } } };
+        static readonly float[][][] KnifeL = {
+            new[] { new[] { 0f, 24, -14 }, new[] { .10f, 20, -26 }, new[] { .22f, 18, -8 }, new[] { .38f, 24, -14 } },
+            new[] { new[] { 0f, 24, -14 }, new[] { .10f, 20, -4 }, new[] { .22f, 26, -26 }, new[] { .38f, 24, -14 } },
+            new[] { new[] { 0f, 24, -14 }, new[] { .14f, 14, -22 }, new[] { .26f, 36, -12 }, new[] { .55f, 24, -14 } } };
+        static readonly float[][][] KnifeFace = {
+            new[] { new[] { 0f, 0f }, new[] { .10f, .38f }, new[] { .22f, -.4f }, new[] { .38f, 0f } },
+            new[] { new[] { 0f, 0f }, new[] { .10f, -.38f }, new[] { .22f, .4f }, new[] { .38f, 0f } },
+            new[] { new[] { 0f, 0f }, new[] { .14f, .12f }, new[] { .26f, 0f }, new[] { .55f, 0f } } };
+        static readonly float[][][] KnifeLean = {
+            new[] { new[] { 0f, 0f }, new[] { .10f, -2f }, new[] { .22f, 4f }, new[] { .38f, 0f } },
+            new[] { new[] { 0f, 0f }, new[] { .10f, -2f }, new[] { .22f, 4f }, new[] { .38f, 0f } },
+            new[] { new[] { 0f, 0f }, new[] { .14f, -6f }, new[] { .26f, 18f }, new[] { .34f, 18f }, new[] { .55f, 0f } } };
 
-        const float AmmoUpper = 27f, AmmoFore = 27f, AmmoShoulder = 15f, AmmoSwatTime = 0.22f, AmmoSpinRate = 14f;
+        const float AmmoUpper = 22f, AmmoFore = 22f, AmmoKShoulder = 7f, AmmoSwatTime = 0.22f, AmmoSpinRate = 14f, AmmoGunLen = 28f;
+
+        static float AmmoPh(float t, float a, float b)
+        {
+            float p = Mathf.Clamp01((t - a) / Mathf.Max(0.0001f, b - a));
+            return p * p * (3f - 2f * p);
+        }
 
         static float[] AmmoTrack(float[][] k, float t)
         {
@@ -38,8 +62,7 @@ namespace Arena
             for (int i = 1; i < k.Length; i++)
                 if (t <= k[i][0])
                 {
-                    float p = Mathf.Clamp01((t - k[i - 1][0]) / Mathf.Max(0.0001f, k[i][0] - k[i - 1][0]));
-                    p = p * p * (3f - 2f * p);
+                    float p = AmmoPh(t, k[i - 1][0], k[i][0]);
                     var r = new float[k[i].Length];
                     for (int j = 1; j < r.Length; j++)
                         r[j] = Mathf.Lerp(k[i - 1][j], k[i][j], p);
@@ -52,12 +75,10 @@ namespace Arena
         {
             AmmoSeen s;
             if (!ammoSeen.TryGetValue(p.Id, out s))
-                ammoSeen[p.Id] = s = new AmmoSeen { Seq = p.AmmoSeq, SwL = p.SwatSeqL, SwR = p.SwatSeqR };
+                ammoSeen[p.Id] = s = new AmmoSeen { Seq = p.AmmoSeq, KSeq = p.KnifeSeq, SwL = p.SwatSeqL, SwR = p.SwatSeqR };
             float now = Time.unscaledTime;
-            if (p.AmmoSeq != s.Seq)
-            {
-                s.Seq = p.AmmoSeq; s.Move = p.AmmoMove; s.T0 = now; s.Fired = false;
-            }
+            if (p.AmmoSeq != s.Seq) { s.Seq = p.AmmoSeq; s.Move = p.AmmoMove; s.T0 = now; s.Fired = false; }
+            if (p.KnifeSeq != s.KSeq) { s.KSeq = p.KnifeSeq; s.KMove = p.KnifeMove; s.KT0 = now; s.KFired = false; }
             if (p.SwatSeqL != s.SwL) { s.SwL = p.SwatSeqL; s.SwT0L = now; }
             if (p.SwatSeqR != s.SwR) { s.SwR = p.SwatSeqR; s.SwT0R = now; }
             return s;
@@ -67,53 +88,80 @@ namespace Arena
         AmmoPose AmmoCompute(Player p, AmmoSeen s, float back)
         {
             var o = ammoPose;
-            float at = Time.unscaledTime - back;
-            o.Face = 0f; o.Lean = 0f; o.Glow = false; o.LHot = o.RHot = false;
-            o.LX = 22f; o.LY = -26f; o.RX = 22f; o.RY = 26f; o.Ak = .5f;
+            float u = p.Def.BodyR / 18f, gx = Game.AutoForward / u, gy = Game.AutoShoulder / u, at = Time.unscaledTime - back;
+            o.Face = 0f; o.Lean = 0f; o.Glow = o.Hot0 = o.Hot1 = false;
+            o.GX0 = gx; o.GY0 = -gy; o.GH0 = -Game.AutoRestOut; o.GX1 = gx; o.GY1 = gy; o.GH1 = Game.AutoRestOut;
+            o.KRX = 26f; o.KRY = 12f; o.KAk = -.15f; o.KLX = 24f; o.KLY = -14f;
             if (p.AmmoSpin > 0f && back <= 0f)
             {
                 float el = Game.AmmoSpinTime - p.AmmoSpin, ease = Mathf.Clamp01(el / 0.15f);
                 o.Face = el * AmmoSpinRate;
-                o.LX = Mathf.Lerp(22f, 30f, ease); o.LY = Mathf.Lerp(-26f, -46f, ease);
-                o.RX = Mathf.Lerp(22f, 30f, ease); o.RY = Mathf.Lerp(26f, 46f, ease); o.Ak = Mathf.Lerp(.5f, .7f, ease);
-                o.Glow = o.LHot = o.RHot = true;
+                o.GH0 = Mathf.Lerp(-Game.AutoRestOut, -1.05f, ease); o.GH1 = Mathf.Lerp(Game.AutoRestOut, 1.05f, ease);
+                o.GX0 = gx + 14f * ease; o.GX1 = gx + 14f * ease;
+                o.KRX = Mathf.Lerp(26f, 32f, ease); o.KRY = Mathf.Lerp(12f, 40f, ease); o.KAk = Mathf.Lerp(-.15f, .7f, ease);
+                o.KLX = Mathf.Lerp(24f, 30f, ease); o.KLY = Mathf.Lerp(-14f, -38f, ease);
+                o.Glow = o.Hot0 = o.Hot1 = true;
                 return o;
             }
+            // the rifle arms' bash: the arm cocks back and out, thrusts in, and comes home (the clap is both at once)
             float tau = at - s.T0;
+            float lean = 0f;
             if (s.Move > 0 && tau >= 0f && tau < AmmoMotion.Total[s.Move - 1])
             {
-                float tg = AmmoStart[s.Move - 1] + tau;
-                var l = AmmoTrack(AmmoLH, tg); var r = AmmoTrack(AmmoRH, tg);
-                o.LX = l[1]; o.LY = l[2]; o.RX = r[1]; o.RY = r[2]; o.Ak = r[3];
-                o.Face = AmmoTrack(AmmoFace, tg)[1]; o.Lean = AmmoTrack(AmmoLean, tg)[1];
                 int m = s.Move - 1;
-                o.Glow = (m == 1 || m == 3) && tau > AmmoMotion.Wind[m] && tau < AmmoMotion.Strike[m] + .05f || m == 4 && tau > AmmoMotion.Wind[m] - .1f && tau < AmmoMotion.Total[m] - .45f;
-                o.LHot = m == 0 && tau > .1f && tau < .3f || m == 4 && tau > AmmoMotion.Wind[m] && tau < .75f;
-                o.RHot = m == 2 && tau > .1f && tau < .3f || m == 4 && tau > AmmoMotion.Wind[m] && tau < .75f;
+                float w = AmmoMotion.Wind[m], st = AmmoMotion.Strike[m], tot = AmmoMotion.Total[m];
+                bool clap = m == 3;
+                float cock = AmmoPh(tau, 0f, w), thrust = AmmoPh(tau, w, st), home = AmmoPh(tau, clap ? .78f : st + .02f, tot);
+                float pull = cock * (1f - thrust), hit = thrust * (1f - home);
+                for (int g = 0; g < 2; g++)
+                {
+                    bool mine = clap || (m == 1 ? g == 1 : g == 0);
+                    if (!mine)
+                        continue;
+                    float side = g == 0 ? -1f : 1f;
+                    float ext = -9f * pull + (clap ? 52f : 44f) * hit;
+                    float lat = side * (9f * pull * (clap ? 1f : 0f)) - side * (clap ? 38f : 22f) * hit;
+                    float head = side * (Game.AutoRestOut + (clap ? .7f : .45f) * pull) * (1f - hit) + -side * (clap ? .16f : .1f) * hit;
+                    if (g == 0) { o.GX0 = gx + ext; o.GY0 = -gy + lat; o.GH0 = head; o.Hot0 = hit > .3f; }
+                    else { o.GX1 = gx + ext; o.GY1 = gy + lat; o.GH1 = head; o.Hot1 = hit > .3f; }
+                }
+                lean = (clap ? 14f : 3f) * hit - (clap ? 8f : 0f) * pull;
             }
-            for (int g = 0; g < 2; g++)  // a swat swings that arm out to the bullet and back
+            // a swat swings that arm out to the bullet and back
+            for (int g = 0; g < 2; g++)
             {
                 float st = at - (g == 0 ? s.SwT0L : s.SwT0R);
                 if (st < 0f || st > AmmoSwatTime)
                     continue;
-                float ph = st / AmmoSwatTime, sw = Mathf.Sin(ph * Mathf.PI) * .9f * (g == 0 ? -1f : 1f);
-                float world = g == 0 ? p.SwatAngL : p.SwatAngR, a = MathX.Fmod(world - (p.Aim + o.Face) + MathX.Pi, MathX.Tau) - MathX.Pi + sw;
-                float sy = g == 0 ? -AmmoShoulder : AmmoShoulder, reach = 20f + 22f * Mathf.Sin(ph * Mathf.PI);
-                if (g == 0) { o.LX = Mathf.Cos(a) * reach; o.LY = sy + Mathf.Sin(a) * reach; o.LHot = ph > .3f && ph < .7f; }
-                else { o.RX = Mathf.Cos(a) * reach; o.RY = sy + Mathf.Sin(a) * reach; o.Ak = 2.5f; o.RHot = ph > .3f && ph < .7f; }
+                float ph = st / AmmoSwatTime, sw = Mathf.Sin(ph * Mathf.PI), world = g == 0 ? p.SwatAngL : p.SwatAngR;
+                float a = MathX.Fmod(world - (p.Aim + o.Face) + MathX.Pi, MathX.Tau) - MathX.Pi + sw * .9f * (g == 0 ? -1f : 1f);
+                if (g == 0) { o.GH0 = Mathf.Lerp(o.GH0, a, sw); o.GX0 += 14f * sw; o.Hot0 = ph > .3f && ph < .7f; }
+                else { o.GH1 = Mathf.Lerp(o.GH1, a, sw); o.GX1 += 14f * sw; o.Hot1 = ph > .3f && ph < .7f; }
             }
+            // the knife arms
+            float kt = at - s.KT0;
+            if (s.KMove > 0 && kt >= 0f && kt < AmmoMotion.KTotal[s.KMove - 1])
+            {
+                int k = s.KMove - 1;
+                var r = AmmoTrack(KnifeR[k], kt); var l = AmmoTrack(KnifeL[k], kt);
+                o.KRX = r[1]; o.KRY = r[2]; o.KAk = r[3]; o.KLX = l[1]; o.KLY = l[2];
+                o.Face = AmmoTrack(KnifeFace[k], kt)[1];
+                lean += AmmoTrack(KnifeLean[k], kt)[1];
+                o.Glow = kt > AmmoMotion.KWind[k] - .02f && kt < AmmoMotion.KStrike[k] + .06f;
+            }
+            o.Lean = lean;
             return o;
         }
 
-        /// Model-frame elbow for a two-bone arm from the shoulder (0, sy) to the hand target; side -1 left, +1 right. Returns the hand, clamped to reach.
-        static void AmmoArm(float sy, float tx, float ty, float side, out float ex, out float ey, out float hx, out float hy)
+        /// Model-frame elbow for a two-bone arm from the shoulder (0, sy) to the hand target; side -1 left, +1 right.
+        static void AmmoArm(float sx, float sy, float tx, float ty, float side, out float ex, out float ey, out float hx, out float hy)
         {
-            float dx = tx, dy = ty - sy, d = Mathf.Sqrt(dx * dx + dy * dy), dm = AmmoUpper + AmmoFore - .5f;
+            float dx = tx - sx, dy = ty - sy, d = Mathf.Sqrt(dx * dx + dy * dy), dm = AmmoUpper + AmmoFore - .5f;
             if (d > dm) { dx *= dm / d; dy *= dm / d; d = dm; }
             d = Mathf.Max(d, 6f);
-            float a = Mathf.Atan2(dy, dx), c = Mathf.Clamp((AmmoUpper * AmmoUpper + d * d - AmmoFore * AmmoFore) / (2f * AmmoUpper * d), -1f, 1f), s = Mathf.Acos(c) * side;
-            ex = Mathf.Cos(a + s) * AmmoUpper; ey = sy + Mathf.Sin(a + s) * AmmoUpper;
-            hx = dx; hy = sy + dy;
+            float a = Mathf.Atan2(dy, dx), c = Mathf.Clamp((AmmoUpper * AmmoUpper + d * d - AmmoFore * AmmoFore) / (2f * AmmoUpper * d), -1f, 1f), sa = Mathf.Acos(c) * side;
+            ex = sx + Mathf.Cos(a + sa) * AmmoUpper; ey = sy + Mathf.Sin(a + sa) * AmmoUpper;
+            hx = sx + dx; hy = sy + dy;
         }
 
         /// The body's turn and lean for the pose (called by the model before it sets its frame).
@@ -126,102 +174,165 @@ namespace Arena
             mO += mDir * (o.Lean * mU);
         }
 
-        /// The arms, the rifles lashed to the forearms and the knife (called in place of the usual arms and held weapon).
-        void DrawAmmoModel(Player p, ModelPal K)
+        /// The rifle arms' grips and headings, for the model's two Twin Rifles (the same hands the Twin Rifle Auto uses).
+        void AmmoGunPose(Player p, ref float rhx, ref float rhy, ref float lhx, ref float lhy, out float headR, out float headL)
+        {
+            var o = AmmoCompute(p, AmmoOf(p), 0f);
+            lhx = o.GX0 - mTwinKick; lhy = o.GY0; rhx = o.GX1 - mTwinKick; rhy = o.GY1;
+            headR = o.GH1 + mTwinClimb;
+            headL = o.GH0 - mTwinClimb;
+        }
+
+        /// Your own arms out in front, the knife in the right hand and the left hand guarding (drawn after the rifle arms).
+        void DrawAmmoKnifeArms(Player p, ModelPal K)
         {
             var s = AmmoOf(p);
             var o = AmmoCompute(p, s, 0f);
             AmmoFx(p, s);
             for (int g = 0; g < 2; g++)
             {
-                float side = g == 0 ? -1f : 1f, sy = side * AmmoShoulder, ex, ey, hx, hy;
-                AmmoArm(sy, g == 0 ? o.LX : o.RX, g == 0 ? o.LY : o.RY, side, out ex, out ey, out hx, out hy);
-                MLine(0f, sy, ex, ey, 6f, K.Dark); MLine(ex, ey, hx, hy, 6f, K.Dark);
-                MLine(0f, sy, ex, ey, 4.4f, K.Sleeve); MLine(ex, ey, hx, hy, 4.4f, K.Sleeve);
-                MCirc(ex, ey, 2.4f, K.Sleeve, 8);
-                // the rifle: lashed along the forearm, its muzzle past the hand
-                float fl = Mathf.Max(8f, Mathf.Sqrt((hx - ex) * (hx - ex) + (hy - ey) * (hy - ey))), ux = (hx - ex) / fl, uy = (hy - ey) / fl;
-                float bx = ex + ux * fl * .25f, by = ey + uy * fl * .25f, mx = hx + ux * 17f, my = hy + uy * 17f;
-                bool hot = g == 0 ? o.LHot : o.RHot;
-                MLine(bx, by, mx, my, 6.4f, MDark);
-                MLine(bx, by, mx, my, 4f, hot ? MWhite : MSteel.Mix(MDark, .25f));
-                MLine(hx + ux * 8f, hy + uy * 8f, mx, my, 2.4f, Hx(0xcfd8e6));
-                MLine(mx - uy * 2.2f, my + ux * 2.2f, mx + uy * 2.2f, my - ux * 2.2f, 2f, Hx(0x11151b));  // the muzzle brake
-                MLine(ex + ux * fl * .5f - uy * 2f, ey + uy * fl * .5f + ux * 2f, ex + ux * fl * .5f + uy * 2f, ey + uy * fl * .5f - ux * 2f, 2f, Hx(0x5b4a30));  // a strap
+                float side = g == 0 ? -1f : 1f, sy = side * AmmoKShoulder, ex, ey, hx, hy;
+                AmmoArm(3f, sy, g == 0 ? o.KLX : o.KRX, g == 0 ? o.KLY : o.KRY, side, out ex, out ey, out hx, out hy);
+                MLine(3f, sy, ex, ey, 6.2f, K.Dark); MLine(ex, ey, hx, hy, 6.2f, K.Dark);
+                MLine(3f, sy, ex, ey, 4.6f, K.Sleeve); MLine(ex, ey, hx, hy, 4.6f, K.Sleeve);
+                MCirc(ex, ey, 2.6f, K.Sleeve, 8);
                 if (g == 1)
                 {
-                    // the knife: in the right hand
-                    float ca = Mathf.Cos(o.Ak), sa = Mathf.Sin(o.Ak), nx = -sa, ny = ca;
-                    MLine(hx - ca * 4f, hy - sa * 4f, hx, hy, 3.4f, Hx(0x5b4a30));
-                    MLine(hx + nx * 3f, hy + ny * 3f, hx - nx * 3f, hy - ny * 3f, 1.8f, Hx(0x9aa7b3));
+                    float ca = Mathf.Cos(o.KAk), sa = Mathf.Sin(o.KAk), nx = -sa, ny = ca;
+                    MLine(hx - ca * 4f, hy - sa * 4f, hx, hy, 3.6f, Hx(0x5b4a30));
+                    MLine(hx + nx * 3.4f, hy + ny * 3.4f, hx - nx * 3.4f, hy - ny * 3.4f, 1.9f, Hx(0x9aa7b3));
                     var blade = o.Glow ? MGold : MSteel;
-                    MPoly(blade, hx + nx * 1.8f, hy + ny * 1.8f, hx + ca * 15f + nx * 1.6f, hy + sa * 15f + ny * 1.6f, hx + ca * 21f, hy + sa * 21f, hx + ca * 15f - nx * .9f, hy + sa * 15f - ny * .9f, hx - nx * 1.8f, hy - ny * 1.8f);
+                    MPoly(blade, hx + nx * 2f, hy + ny * 2f, hx + ca * 16f + nx * 1.8f, hy + sa * 16f + ny * 1.8f, hx + ca * 24f, hy + sa * 24f, hx + ca * 16f - nx * 1f, hy + sa * 16f - ny * 1f, hx - nx * 2f, hy - ny * 2f);
+                    MLine(hx + ca * 4f, hy + sa * 4f, hx + ca * 19f, hy + sa * 19f, 0.9f, o.Glow ? MWhite : Hx(0xeef3f6));
                 }
-                MCirc(hx, hy, 3.2f, K.Glove);
+                MCirc(hx, hy, 3.6f, K.Glove);
             }
         }
 
-        /// Sparks where a move lands (once, with Visual effects on).
+        /// Sparks, a flash and a ring where a move lands (once, with Visual effects on), a slash mark, and a kick of the camera for yours.
         void AmmoFx(Player p, AmmoSeen s)
         {
-            if (!Juicy || s.Move <= 0 || s.Fired)
+            if (!Juicy)
                 return;
-            int m = s.Move - 1;
-            if (Time.unscaledTime - s.T0 < AmmoMotion.Hit[m])
-                return;
-            s.Fired = true;
-            V2 at = p.Disp + V2.FromAngle(p.Aim) * (p.Def.BodyR + 46f);
-            var col = m == 4 ? new Rgba(1f, 0.76f, 0.24f) : m == 1 || m == 3 ? new Rgba(0.8f, 0.85f, 0.9f) : new Rgba(0.25f, 0.88f, 0.91f);
-            Sparks(at, col, m == 4 ? 22 : 9, m == 4 ? 300f : 190f, 0.25f, 1.6f);
-            Ring(at, m == 4 ? 70f : 22f, m == 4 ? 0.45f : 0.25f, col);
+            float now = Time.unscaledTime;
+            V2 dir = V2.FromAngle(p.Aim);
+            if (s.Move > 0 && !s.Fired && now - s.T0 >= AmmoMotion.Hit[s.Move - 1])
+            {
+                s.Fired = true;
+                int m = s.Move - 1;
+                bool clap = m == 3;
+                V2 at = p.Disp + dir * (p.Def.BodyR + 46f) + dir.Orthogonal() * (m == 0 || m == 2 ? 6f : m == 1 ? -6f : 0f);
+                var col = clap ? new Rgba(1f, 0.76f, 0.24f) : new Rgba(0.25f, 0.88f, 0.91f);
+                Sparks(at, col, clap ? 30 : 12, clap ? 320f : 220f, 0.3f, 1.8f);
+                Ring(at, clap ? 78f : 26f, clap ? 0.5f : 0.26f, col);
+                AddPart(new Part { Kind = PFlash, Pos = at, Life = 0.09f, Max = 0.09f, Size = clap ? 26f : 14f, Col = Rgba.White });
+                if (clap && p.Id == game.MyId)
+                    Shake(0.3f);
+            }
+            if (s.KMove > 0 && !s.KFired && now - s.KT0 >= AmmoMotion.KHit[s.KMove - 1])
+            {
+                s.KFired = true;
+                int k = s.KMove - 1;
+                V2 at = p.Disp + dir * (p.Def.BodyR + (k == 2 ? 56f : 44f));
+                var col = new Rgba(1f, 0.76f, 0.24f);
+                Sparks(at, col, k == 2 ? 20 : 12, k == 2 ? 300f : 230f, 0.28f, 1.7f);
+                Ring(at, k == 2 ? 44f : 24f, 0.24f, col);
+                AddPart(new Part { Kind = PFlash, Pos = at, Life = 0.08f, Max = 0.08f, Size = k == 2 ? 20f : 12f, Col = Rgba.White });
+                if (p.Id == game.MyId)
+                    Shake(k == 2 ? 0.14f : 0.07f);
+            }
         }
 
-        /// World pass: smears behind the blade and the rifle tips while they swing, and the spin's ring.
+        /// A world point from a model-frame point of pose `o` (the body turned and leaned as the model is).
+        V2 AmmoWorld(Player p, AmmoPose o, float x, float y)
+        {
+            float u = p.Def.BodyR / 18f;
+            V2 dir = V2.FromAngle(p.Aim + o.Face), side = new V2(-dir.Y, dir.X);
+            return p.Disp + dir * (o.Lean * u) + (dir * x + side * y) * u;
+        }
+
+        void AmmoRibbon(V2[] tips, V2[] bases, int n, Rgba col, float al)
+        {
+            for (int i = 0; i < n - 1; i++)
+            {
+                float f = (1f - i / (float)n);
+                SetColor(col.WithAlpha(al * f * f));
+                Tri(tips[i], tips[i + 1], bases[i]);
+                Tri(tips[i + 1], bases[i + 1], bases[i]);
+            }
+        }
+
+        /// World pass: ribbons behind the blade and the rifle tips while they swing, afterimages on the lunge, the clap's cracks, the spin's ring.
         void DrawAmmoSmears(Player p, float t)
         {
             if (!fxOn || p.Downed || p.Weapon.Id != WeaponId.OutOfAmmo)
                 return;
-            float u = p.Def.BodyR / 18f;
+            float u = p.Def.BodyR / 18f, now = Time.unscaledTime;
+            V2 dirF = V2.FromAngle(p.Aim);
             if (p.AmmoSpin > 0f)
             {
                 float el = Game.AmmoSpinTime - p.AmmoSpin, a = el * AmmoSpinRate;
-                Arc(p.Disp, 64f, 3.4f, new Rgba(1f, 0.76f, 0.24f, 0.55f), 20, a - 1.3f, 1.3f);
-                Arc(p.Disp, 60f, 3f, new Rgba(0.25f, 0.88f, 0.91f, 0.5f), 20, a + MathX.Pi - 1.1f, 1.1f);
-                Arc(p.Disp, Game.AmmoSpinRadius, 1.2f, new Rgba(1f, 0.76f, 0.24f, 0.18f), 32);
+                Arc(p.Disp, 64f, 4f, new Rgba(1f, 0.76f, 0.24f, 0.6f), 22, a - 1.5f, 1.5f);
+                Arc(p.Disp, 60f, 3.4f, new Rgba(0.25f, 0.88f, 0.91f, 0.55f), 22, a + MathX.Pi - 1.3f, 1.3f);
+                Arc(p.Disp, Game.AmmoSpinRadius, 1.2f, new Rgba(1f, 0.76f, 0.24f, 0.2f), 32);
                 return;
             }
             var s = AmmoOf(p);
-            if (Time.unscaledTime - s.T0 > 1.4f && Time.unscaledTime - s.SwT0L > .4f && Time.unscaledTime - s.SwT0R > .4f)
-                return;
-            const int steps = 8;
-            var tips = new V2[3, steps + 1];
-            for (int i = 0; i <= steps; i++)
+            // the clap's cracks in the floor, for a second after it lands
+            if (s.Move == 4 || now - s.T0 < 1.4f)
             {
-                var o = AmmoCompute(p, s, i * 0.012f);
-                float ang = p.Aim + o.Face;
-                V2 dir = V2.FromAngle(ang), side = new V2(-dir.Y, dir.X), org = p.Disp + dir * (o.Lean * u);
-                for (int g = 0; g < 2; g++)
+                float ct = now - s.T0 - AmmoMotion.Hit[3];
+                if (s.Move == 4 && ct > 0f && ct < 1.0f)
                 {
-                    float sd = g == 0 ? -1f : 1f, sy = sd * AmmoShoulder, ex, ey, hx, hy;
-                    AmmoArm(sy, g == 0 ? o.LX : o.RX, g == 0 ? o.LY : o.RY, sd, out ex, out ey, out hx, out hy);
-                    float fl = Mathf.Max(8f, Mathf.Sqrt((hx - ex) * (hx - ex) + (hy - ey) * (hy - ey))), mx = hx + (hx - ex) / fl * 17f, my = hy + (hy - ey) / fl * 17f;
-                    tips[g, i] = org + (dir * mx + side * my) * u;
-                    if (g == 1)
+                    V2 c0 = p.Disp + dirF * (p.Def.BodyR + 40f);
+                    float grow = Mathf.Clamp01(ct / 0.12f), fade = 1f - Mathf.Clamp01((ct - 0.2f) / 0.8f);
+                    for (int k = 0; k < 9; k++)
                     {
-                        float kx = hx + Mathf.Cos(o.Ak) * 21f, ky = hy + Mathf.Sin(o.Ak) * 21f;
-                        tips[2, i] = org + (dir * kx + side * ky) * u;
+                        float a = k * 0.698f + 0.3f + p.Aim, l = (26f + 54f * ((k * 37) % 10) / 10f) * grow;
+                        Line(c0 + V2.FromAngle(a) * 10f, c0 + V2.FromAngle(a) * (10f + l), 1.8f, new Rgba(1f, 0.76f, 0.24f, 0.65f * fade));
                     }
                 }
             }
-            for (int w = 0; w < 3; w++)
+            bool active = now - s.T0 < 1.3f || now - s.KT0 < 0.7f || now - s.SwT0L < 0.4f || now - s.SwT0R < 0.4f;
+            if (!active)
+                return;
+            const int steps = 12;
+            var tipK = new V2[steps + 1]; var baseK = new V2[steps + 1];
+            var tipL = new V2[steps + 1]; var baseL = new V2[steps + 1];
+            var tipR = new V2[steps + 1]; var baseR = new V2[steps + 1];
+            for (int i = 0; i <= steps; i++)
             {
-                float sp = tips[w, 0].DistanceTo(tips[w, 3]);
-                float al = Mathf.Clamp01((sp - 6f) / 22f);
-                if (al <= 0.02f)
-                    continue;
-                var col = w == 2 ? new Rgba(1f, 0.76f, 0.24f) : new Rgba(0.25f, 0.88f, 0.91f);
-                for (int i = 0; i < steps; i++)
-                    Line(tips[w, i], tips[w, i + 1], 3.2f * (1f - i / (float)steps) + .8f, col.WithAlpha(al * 0.65f * (1f - i / (float)steps)));
+                var o = AmmoCompute(p, s, i * 0.01f);
+                float ca = Mathf.Cos(o.KAk), sa = Mathf.Sin(o.KAk);
+                float sy = AmmoKShoulder, ex, ey, hx, hy;
+                AmmoArm(3f, sy, o.KRX, o.KRY, 1f, out ex, out ey, out hx, out hy);
+                tipK[i] = AmmoWorld(p, o, hx + ca * 24f, hy + sa * 24f); baseK[i] = AmmoWorld(p, o, hx + ca * 4f, hy + sa * 4f);
+                tipL[i] = AmmoWorld(p, o, o.GX0 + Mathf.Cos(o.GH0) * AmmoGunLen, o.GY0 + Mathf.Sin(o.GH0) * AmmoGunLen); baseL[i] = AmmoWorld(p, o, o.GX0 + Mathf.Cos(o.GH0) * 10f, o.GY0 + Mathf.Sin(o.GH0) * 10f);
+                tipR[i] = AmmoWorld(p, o, o.GX1 + Mathf.Cos(o.GH1) * AmmoGunLen, o.GY1 + Mathf.Sin(o.GH1) * AmmoGunLen); baseR[i] = AmmoWorld(p, o, o.GX1 + Mathf.Cos(o.GH1) * 10f, o.GY1 + Mathf.Sin(o.GH1) * 10f);
+            }
+            float sk = tipK[0].DistanceTo(tipK[3]), sl = tipL[0].DistanceTo(tipL[3]), sr = tipR[0].DistanceTo(tipR[3]);
+            if (sk > 4f) AmmoRibbon(tipK, baseK, steps, new Rgba(1f, 0.78f, 0.28f), Mathf.Clamp01((sk - 4f) / 14f) * 0.9f);
+            if (sl > 4f) AmmoRibbon(tipL, baseL, steps, new Rgba(0.35f, 0.9f, 1f), Mathf.Clamp01((sl - 4f) / 16f) * 0.7f);
+            if (sr > 4f) AmmoRibbon(tipR, baseR, steps, new Rgba(0.35f, 0.9f, 1f), Mathf.Clamp01((sr - 4f) / 16f) * 0.7f);
+            // afterimages behind the lunging stab
+            float kt = now - s.KT0;
+            if (s.KMove == 3 && kt > 0.1f && kt < 0.5f)
+            {
+                float a = 1f - Mathf.Clamp01((kt - 0.2f) / 0.3f);
+                for (int g = 1; g <= 3; g++)
+                    Circle(p.Disp - dirF * (g * 6f), p.Def.BodyR * (1f - g * 0.08f), new Rgba(0.55f, 0.5f, 1f, 0.22f * a / g), 14);
+            }
+            // a slash mark across the target as a cut lands
+            if (s.KMove > 0 && s.KMove < 3)
+            {
+                float st = kt - AmmoMotion.KHit[s.KMove - 1];
+                if (st >= 0f && st < 0.14f)
+                {
+                    V2 at = p.Disp + dirF * (p.Def.BodyR + 44f), n = dirF.Orthogonal();
+                    float tilt = s.KMove == 1 ? 0.6f : -0.6f, f = 1f - st / 0.14f;
+                    V2 d = (n * Mathf.Sin(tilt) + dirF * Mathf.Cos(tilt)) * 16f;
+                    Line(at - d, at + d, 3f * f + 1f, new Rgba(1f, 1f, 1f, 0.9f * f));
+                }
             }
         }
     }

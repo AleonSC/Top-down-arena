@@ -383,6 +383,23 @@ static partial class Program
         Check(each > 0 && me.Gold - gold0 == each && friend.Gold - friend0 == each && client.Game.Players[2].Gold == friend.Gold,
             "a kill on the Bazaar gives every player the same gold (" + each + " for a grunt), and clients see it");
 
+        // Gold instead of a card: a level-up offer on the Bazaar can be swapped for gold; boss rewards can't.
+        g.State = MatchState.Intermission;
+        me.Offer = Upgrades.RollOffer(new Random(4), me.Role, me.RoleAbility, me.Taken, me.Level, me.Weapon.Id, false);
+        me.OfferLegendary = false; me.OfferMod = false; me.OfferMilestone = false; me.OfferPrize = false;
+        me.PendingPicks = 1; me.PendingMods = 0; me.PendingMilestones = 0; me.PrizePicks = 0; me.LegendaryQueue.Clear();
+        int goldBefore = me.Gold;
+        g.TakeGoldInstead();
+        Check(me.Gold == goldBefore + Game.GoldInsteadAmount(7) && me.PendingPicks == 0 && me.Offer == null, "gold instead of a card pays the wave's amount and uses the pick up (" + (me.Gold - goldBefore) + " gold at wave 7)");
+        Check(Game.GoldInsteadAmount(20) > Game.GoldInsteadAmount(7), "gold instead grows with the wave");
+        me.Offer = Upgrades.RollOffer(new Random(4), me.Role, me.RoleAbility, me.Taken, me.Level, me.Weapon.Id, false);
+        me.OfferLegendary = true; me.PendingPicks = 1;
+        goldBefore = me.Gold;
+        g.TakeGoldInstead();
+        Check(me.Gold == goldBefore && me.Offer != null, "a boss reward can't be swapped for gold");
+        me.OfferLegendary = false; me.Offer = null; me.PendingPicks = 0;
+        g.State = MatchState.Fighting;
+
         // The shop opens after its last wave, and the next wave waits for it.
         me.Gold = 400; friend.Gold = 1000;
         g.Wave = 9; g.BossSlot = false; g.PathTo = 9;
@@ -397,7 +414,7 @@ static partial class Program
         Run(s, dt, 2f, null, NoPicks);
         Check(g.State == MatchState.Intermission && g.StateTimer >= timer, "the next wave waits while the shop is open (no timer)");
 
-        // Buying, healing, a revive token, removing and restocking (as the client, through the host).
+        // Buying, healing, a revive token, selling and restocking (as the client, through the host).
         int slot = Array.FindIndex(friend.Shelf, u => u >= 0 && Upgrades.All[u].Grants == AbilityId.None);
         int bought = friend.Shelf[slot], price = Game.Price(bought), have = Upgrades.Count(friend.Taken, bought);
         client.Game.Shop(ShopAction.Buy, slot);
@@ -415,9 +432,10 @@ static partial class Program
         client.Game.Shop(ShopAction.Revive);
         Run(s, dt, 0.3f, null, NoPicks);
         Check(friend.Gold == before - Game.HealPrice - Game.RevivePrice, "only one revive token at a time");
-        client.Game.Shop(ShopAction.Remove, bought);
+        int goldPre = friend.Gold;
+        client.Game.Shop(ShopAction.Sell, bought);
         Run(s, dt, 0.3f, null, NoPicks);
-        Check(Upgrades.Count(friend.Taken, bought) == have, "removing an upgrade takes one stack away");
+        Check(Upgrades.Count(friend.Taken, bought) == have && friend.Gold == goldPre + Game.SellPrice(bought) && Game.SellPrice(bought) == price / 2, "selling an upgrade takes one stack away and pays half its shelf price (" + Game.SellPrice(bought) + ")");
         before = friend.Gold;
         client.Game.Shop(ShopAction.Restock);
         Run(s, dt, 0.3f, null, NoPicks);

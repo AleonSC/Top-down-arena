@@ -19,8 +19,8 @@ namespace Arena
         public const float AutoLockCd = 0.25f;       // between Alt presses
         public const float AutoPickRadius = 260f;    // the lock picks the enemy nearest your cursor within this of it
 
-        /// The two weapons that wear the Twin Rifle's look: the Twin Rifle itself and the Twin Rifle Auto.
-        public static bool IsTwinRifle(WeaponId id) => id == WeaponId.TwinRifle || id == WeaponId.TwinRifleAuto;
+        /// The weapons that wear the Twin Rifle's look: the Twin Rifle itself and its variants, the Twin Rifle Auto and Out of Ammo.
+        public static bool IsTwinRifle(WeaponId id) => id == WeaponId.TwinRifle || id == WeaponId.TwinRifleAuto || id == WeaponId.OutOfAmmo;
 
         /// Gun `gun` (0 left, 1 right): its grip in the world.
         public V2 AutoGrip(Player p, V2 pos, int gun)

@@ -297,6 +297,7 @@ namespace Arena
                 Recorder.Begin(this, startWave);
             }
             BeginRunRecord(resumed);  // RunSaves.cs
+            Tutorial.Begin(this);  // a profile's first Quick Play: the guided prompts (Tutorial.cs)
             DoLog("game started with " + Players.Count + " player(s)");
         }
 
@@ -559,6 +560,28 @@ namespace Arena
             }
         }
 
+        /// Called by the front end when the local player takes gold instead of a card.
+        public void TakeGoldInstead()
+        {
+            var me = Me;
+            if (!CanGoldInstead(me) || RerollPending)
+                return;
+            Sounds.Add(Sfx.Pick);
+            if (IsHost)
+            {
+                HostPick(MyId, GoldInsteadIndex);
+            }
+            else
+            {
+                var w = Proto.Begin(Msg.Pick);
+                w.Write((byte)GoldInsteadIndex);
+                w.Write((byte)0);
+                session.SendToHost(Proto.End(w));
+                me.Offer = null;
+                awaitingPick = true;
+            }
+        }
+
         /// Called by the front end when the local player rerolls their cards.
         public void RerollOffer()
         {
@@ -599,7 +622,21 @@ namespace Arena
         void HostPick(int id, int index, int key = 0)
         {
             Player p;
-            if (!Players.TryGetValue(id, out p) || p.Offer == null || index < 0 || index >= p.Offer.Length || State != MatchState.Intermission)
+            if (!Players.TryGetValue(id, out p) || p.Offer == null || State != MatchState.Intermission)
+                return;
+            if (index == GoldInsteadIndex)  // gold instead of a card: the pick is used up, nothing is granted
+            {
+                if (!CanGoldInstead(p))
+                    return;
+                int gold = GoldInsteadAmount(Wave);
+                p.Gold += gold;
+                p.PendingPicks = Math.Max(0, p.PendingPicks - 1);
+                NextOffer(p);
+                DoLog(p.Role + " took " + gold + " gold instead of a card");
+                SendSnapshot();
+                return;
+            }
+            if (index < 0 || index >= p.Offer.Length)
                 return;
             int upgrade = p.Offer[index];
             Recorder?.Picked(this, p, p.Offer, upgrade, p.OfferLegendary ? "legendary" : p.OfferMod ? "mod" : p.OfferMilestone ? "milestone" : p.OfferPrize ? "prize" : "level");
@@ -763,7 +800,10 @@ namespace Arena
             if (BreachWarnOn)
                 input = new PlayerInput { AimAt = input.AimAt };  // the breach warning: everyone stands still while the cameras tour (Breaches.cs)
             if (!Replaying)
+            {
                 LocalControl(dt, input);  // (a replay has nobody at the controls)
+                TickTutorial(dt, input);  // the first-run tutorial's prompts (Tutorial.cs)
+            }
             if (Bot)
                 botTouched = true;  // the bot played: this run doesn't count for your profile (RunSaves.cs)
             if (!IsHost && (pingT -= dt) <= 0f)
@@ -1347,7 +1387,7 @@ namespace Arena
                 if (p.Weapon.Id != WeaponId.TwinRifleAuto)
                     p.TwinLock = 0;  // (TwinAuto.cs)
                 if (p.Weapon.Id != WeaponId.OutOfAmmo)
-                    p.AmmoMove = 0;  // (OutOfAmmo.cs)
+                    p.AmmoMove = p.KnifeMove = 0;  // (OutOfAmmo.cs)
                 if (p.Weapon.Id != WeaponId.OutOfAmmo)
                     p.AmmoSpin = 0f;
                 TickSpinUp(p, dt);  // the Burst SMG (Weapons.cs)

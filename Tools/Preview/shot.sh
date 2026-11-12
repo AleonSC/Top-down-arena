@@ -2,12 +2,15 @@
 # Renders a game screen to a PNG without Unity: Unity is replaced by stubs (Stubs.cs) that record the GL
 # triangles and IMGUI draw calls, and shot.py composites them with Pillow.
 #   Tools/Preview/shot.sh <out-name> <mode> [wave] [seconds] [players]
+# picker: GOLDINSTEAD=1 (on the Bazaar: the "Gold instead" key under the row).
 # Modes (see ShotModes.cs; flags in ShotScenes.cs): hud, dev, bg, lobby, lobbypr, practicehud, labsetup, labpanel, tab, picker, legendary, ...
 # Env flags tweak the scene, e.g. KNIGHT=1 (Knights), POSE=1 (fixed pose), THRUST=0.3 (Lance jab frame),
 # DAZE=1 (three enemies dazed round you; mode hud), BOW=0.9, MASTERY=1, BG=3 (background number for 'bg'), MOUSE=x,y (hover for lobby modes), SOLO=1,
 # menu: PLAY=1 (the Play picker; NOSAVES=1, MORE=1 extra saves, OLDER=1 the older runs, PAGE=n).
 # records: SECTION=4 (Recent runs), RTAB=1 (Trends), RSEL=n (the open run), MOUSE=x,y (hover).
 # DOWNED=down:<s since the hit>|revive:<0-1>|up:<s since standing> (you downed, being revived, getting up; mode hud, 2 players).
+# QUICKMET=<n> (the lobby's Quick Play tab with n bosses beaten; mode lobby).
+# TUTORIAL=<lesson 0-4>,<steps done> (the first-run tutorial prompt; mode hud).
 # RIOT=ready|wait,17|block,0.1 (Riot Gear: the plate, the recharge, a block that long ago; use with mode hud).
 # MOMENTUM=<0-5> (the DPS passive's stack pips round you; mode hud, 2 players).
 # NONSHOOT=1 (the Fuse Runner, Hookman and Sapper caught mid-move, with Tripwire Pods).

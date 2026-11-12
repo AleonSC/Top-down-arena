@@ -68,6 +68,7 @@ namespace Arena
         public int RunsStarted, RunsWon, RunsLost;
         public int BestWave, BestScore, BestEndlessWave;
         public int QuickPlays, QuickWins, QuickBestWave, QuickBosses;  // Quick Play's own records (QuickPlay.cs): plays, first bosses beaten, best wave, bosses beaten in all
+        public bool TutorialDone;  // the first-run tutorial is over (done, skipped, or a Quick Play recorded; Tutorial.cs)
         public string LastMode = "";  // the lobby mode the host last picked ("quick", "campaign", "hunt", "practice"; "" a new profile: Quick Play)
         public float PlayTime;  // seconds, across runs
         public int Kills, BossKills, Downs, Revives;
@@ -329,6 +330,7 @@ namespace Arena
             foreach (var kv in HuntsPlayed) RunSave.Line(sb, "hunt", kv.Key + " " + kv.Value + " " + Get(HuntsWon, kv.Key) + " " + RunSave.F(HuntBest.ContainsKey(kv.Key) ? HuntBest[kv.Key] : 0f) + " " + Get(HuntsWonHard, kv.Key));
             if (QuickPlays > 0) RunSave.Line(sb, "quick", QuickPlays + " " + QuickWins + " " + QuickBestWave + " " + QuickBosses);
             if (LastMode.Length > 0) RunSave.Line(sb, "mode", LastMode);
+            if (TutorialDone) RunSave.Line(sb, "tutorial", 1);
             foreach (var u in Unlocked) RunSave.Line(sb, "unlocked", u);
             if (PerkNames.Count > 0) RunSave.Line(sb, "perks", string.Join(",", PerkNames));
             if (HintLaunches > 0 || ProfileOpened) RunSave.Line(sb, "hint", HintLaunches + " " + (ProfileOpened ? 1 : 0));
@@ -384,6 +386,7 @@ namespace Arena
                             break;
                         case "quick": p.QuickPlays = RunSave.I(f[0]); p.QuickWins = RunSave.I(f[1]); p.QuickBestWave = RunSave.I(f[2]); p.QuickBosses = RunSave.I(f[3]); break;
                         case "mode": p.LastMode = val.Trim(); break;
+                        case "tutorial": p.TutorialDone = RunSave.I(f[0]) != 0; break;
                         case "unlocked": p.Unlocked.Add(val); break;
                         case "perks": foreach (var n in val.Split(',')) if (n.Length > 0) p.PerkNames.Add(n.Trim()); break;
                         case "hint": p.HintLaunches = Math.Max(0, RunSave.I(f[0])); p.ProfileOpened = f.Length > 1 && RunSave.I(f[1]) != 0; break;

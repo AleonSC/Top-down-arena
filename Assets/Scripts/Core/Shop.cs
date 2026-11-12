@@ -6,11 +6,11 @@ namespace Arena
 {
     /// The Bazaar (a 1-skull path, Paths.cs): kills on its waves drop gold, the same amount to every player, and
     /// before the boss everyone gets a shop. Each player has their own shelf (three cards: two upgrades for their
-    /// class and a legendary or weapon mod; each Add stock brings two more) and services (add stock, remove an upgrade, full heal, revive token), and can give
+    /// class and a legendary or weapon mod; each Add stock brings two more) and services (add stock, sell an upgrade for half its price, full heal, revive token), and can give
     /// gold to teammates. There's no timer: the shop closes when everyone has clicked Done (the host can close it
     /// after a minute), and each player's leftover gold becomes their XP. Host-authoritative: clients send
     /// Msg.Shop requests and see the result in the snapshot.
-    public enum ShopAction : byte { Buy, Restock, Remove, Heal, Revive, Done, Give, Close, RoomKit, Vectors, BuyBuild }  // (BuyBuild: the Black Market, arg = BuildKind)
+    public enum ShopAction : byte { Buy, Restock, Sell, Heal, Revive, Done, Give, Close, RoomKit, Vectors, BuyBuild }  // (BuyBuild: the Black Market, arg = BuildKind)
 
     public class ShopNotice
     {
@@ -26,7 +26,7 @@ namespace Arena
         public const float GoldPerXp = 0.3f;            // gold dropped per point of XP a kill gives
         public const float GoldToXp = 1f;               // XP per leftover gold when the shop closes
         public const float ShopHostCloseAfter = 60f;    // the host can close the shop for everyone after this long
-        public const int RemovePrice = 75, HealPrice = 40, RevivePrice = 120, RoomKitPrice = 200;
+        public const int HealPrice = 40, RevivePrice = 120, RoomKitPrice = 200;
         public const int VectorPackPrice = 50, VectorPack = 20;  // the vendor's vector pack (Expanding arena; may go past the cap)
         const float TokenReviveTime = 2f;               // a revive token gets you up this long after you go down
 
@@ -47,6 +47,20 @@ namespace Arena
                 default: return 280;  // legendary
             }
         }
+
+        /// Selling a held upgrade at the shop pays half what the shelf charges for it.
+        public static int SellPrice(int upgrade) => Price(upgrade) / 2;
+
+        /// "Gold instead" on a level-up offer: gold now, scaling with the wave, for taking no card.
+        public const int GoldInsteadBase = 20, GoldInsteadPerWave = 2;
+        public const int GoldInsteadIndex = 255;        // Msg.Pick's index for "gold instead"
+        public static int GoldInsteadAmount(int wave) => GoldInsteadBase + GoldInsteadPerWave * Math.Max(0, wave);
+
+        /// Gold is only worth having where a shop will take it (the same rule as the kill drops).
+        public bool GoldUseful => ExpandingOn || (OnPath && CurrentPath == PathId.Bazaar) || Has(RunMod.GoldRush) || ServiceRooms;
+
+        /// Level-up offers can be swapped for gold; boss rewards, mods, milestones and prizes can't.
+        public bool CanGoldInstead(Player p) => p != null && p.Offer != null && !p.OfferLegendary && !p.OfferMod && !p.OfferMilestone && !p.OfferPrize && GoldUseful;
 
         /// Add stock: the price of the next one (25, then +25 each time).
         public static int RestockPrice(Player p) => 25 + 25 * Math.Min(p.Restocks, 255);
@@ -209,15 +223,15 @@ namespace Arena
                     p.ShelfLen = ShelfCount(p) + StockSize;
                     p.Restocks = Math.Min(255, p.Restocks + 1);
                     break;
-                case ShopAction.Remove:
-                    if (!shopping || p.Gold < RemovePrice || !p.Taken.Contains(arg))
+                case ShopAction.Sell:
+                    if (!shopping || arg < 0 || arg >= Upgrades.All.Length || !p.Taken.Contains(arg))
                         return;
-                    p.Gold -= RemovePrice;
+                    p.Gold += SellPrice(arg);
                     p.Taken.Remove(arg);
                     Recalc(p);
                     p.Hp = Math.Min(p.Hp, p.MaxHp);
                     BroadcastUpgrades(p);
-                    DoLog(p.Role + " removed " + Upgrades.All[arg].Name);
+                    DoLog(p.Role + " sold " + Upgrades.All[arg].Name + " for " + SellPrice(arg));
                     break;
                 case ShopAction.Heal:
                     if (!shopping || p.Gold < HealPrice || p.Downed || p.Hp >= p.MaxHp)

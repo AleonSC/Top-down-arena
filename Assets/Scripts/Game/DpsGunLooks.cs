@@ -177,6 +177,7 @@ namespace Arena
             {
                 case WeaponId.TwinRifle:
                 case WeaponId.TwinRifleAuto:
+                case WeaponId.OutOfAmmo:
                     if (age < TwinKick)  // each gun recoils along its own barrel and climbs outward (TwinSpreadPose), not along the aim
                     {
                         float f = 1f - age / TwinKick;
