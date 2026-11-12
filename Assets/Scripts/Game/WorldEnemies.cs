@@ -450,6 +450,11 @@ namespace Arena
                     DrawShadow(e, pos, r, hit, spawning, t);
                 return;
             }
+            if (e.Type == EnemyType.Portal)
+            {
+                DrawSpawnPortal(e, pos, r, e.Flash > 0f || JuiceFlash(e), spawning, t);  // SpawnPortalLook.cs
+                return;
+            }
             if (e.Type == EnemyType.HiveBomber && e.Phase >= 1)
             {
                 DrawFlankBomber(e, pos, r, e.Flash > 0f || JuiceFlash(e), spawning, t);  // Swarm's flanking bombers (QueenLook.cs)

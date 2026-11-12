@@ -97,7 +97,7 @@ namespace Arena
             float bestD = 1e9f;
             foreach (var e in game.Enemies.Values)
             {
-                if (e.Hp <= 0f || game.IsSpawning(e) || e.Type == EnemyType.SapperMine || tagUntil.ContainsKey(e.Id))
+                if (e.Hp <= 0f || game.IsSpawning(e) || e.Type == EnemyType.SapperMine || e.Type == EnemyType.Portal || tagUntil.ContainsKey(e.Id))
                     continue;
                 float d = e.Disp.DistanceTo(m) - e.Radius;
                 if (d < 10f && d < bestD)
