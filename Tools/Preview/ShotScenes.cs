@@ -1119,6 +1119,21 @@ static partial class Shot {
       host.Game.Coins[9100] = new Coin { Id = 9100, Value = 5, Pos = new V2(1000f, 470f), Disp = new V2(1000f, 470f) };
       host.Game.Coins[9101] = new Coin { Id = 9101, Value = 1, Pos = new V2(1030f, 450f), Disp = new V2(1030f, 450f) };
     }
+    if (Environment.GetEnvironmentVariable("GADGET") != null) {
+      // GADGET=1: the Magnet (Game/GadgetLook.cs): you holding one switched on with coins and a vector pickup flying in, one on the
+      // floor (part used), one thrown mid-air. Mode hud.
+      host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); host.Game.Bot = false;
+      me.Pos = me.Disp = new V2(760f, 470f); me.Aim = 0.3f;
+      me.Gadget = GadgetId.Magnet; me.GadgetOn = true; me.GadgetLeft = 6.4f;
+      int cid = 9200;
+      foreach (var q in new[] { new V2(900f, 420f), new V2(960f, 520f), new V2(1050f, 380f), new V2(640f, 600f), new V2(560f, 360f), new V2(1150f, 560f) }) {
+        ++cid; host.Game.Coins[cid] = new Coin { Id = cid, Value = cid % 2 == 0 ? 5 : 1, Pos = q, Disp = q };
+      }
+      host.Game.Coins[9300] = new Coin { Id = 9300, Vec = true, Value = Game.VectorDropSmall, Pos = new V2(870f, 600f), Disp = new V2(870f, 600f) };
+      var fl = host.Game.SpawnGadget(GadgetId.Magnet, new V2(500f, 640f), 3.5f);
+      var th = host.Game.SpawnGadget(GadgetId.Magnet, new V2(1200f, 300f), Game.MagnetTime);
+      th.From = new V2(1100f, 380f); th.To = new V2(1340f, 260f); th.FlyT = Game.GadgetFlyTime * 0.45f; th.Pos = th.Disp = V2.Lerp(th.From, th.To, 0.45f);
+    }
     if (Environment.GetEnvironmentVariable("GASLOB") != null) {
       // The Gas Grenadier's overhand lob (GASLOB=<s into the wind-up>; 0.85 is wound up, 1.07 the throw, 2.07 the landing): the ring and its dotted arc,
       // the arm reaching back, the canister in the air. Docs/Mockups/gas-grenadier-throw.html option A ("Overhand Lob"). Mode hud.

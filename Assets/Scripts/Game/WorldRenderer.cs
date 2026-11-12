@@ -235,6 +235,7 @@ namespace Arena
                 else
                     DrawCoin(c, t);  // CoinLook.cs
             }
+            DrawGadgets(t);  // the Magnet on the floor or thrown (GadgetLook.cs)
             DrawReaperTether(t);
             DrawSingularityHazards(t);
             DrawHeraldHazards(t);  // rods, arcs, the Conductor and the spokes (HeraldLook.cs)
@@ -257,6 +258,7 @@ namespace Arena
             DrawColossusAir(t);  // what the Colossus threw, in flight (ColossusLook.cs)
             DrawClotAir(t);      // the Clot Cannon's drops falling (ClotCannonLook.cs)
             DrawBulletRainAir(t);  // Bullet Rain's rounds falling, landing rings and sparks (BulletRainLook.cs)
+            DrawGadgetAim(t);  // GadgetLook.cs: the throw's arc while the Gadget key is held
             DrawLoot(t);  // your chest item, spinning in its beam (PropsLook.cs)
             foreach (var p in game.Players.Values)
             {
@@ -265,6 +267,7 @@ namespace Arena
                 if (LaunchHides(p))
                     continue;  // not landed yet, beamed out or mid Shadow Step: the held weapons and their arms go with the body (LaunchIntro.cs, Recall.cs)
                 DrawPlayerWrapped(p, t);
+                DrawHeldGadget(p, t);  // GadgetLook.cs
                 DrawHalberdIdle(p, t);  // the Halberd held at the ready (HalberdLook.cs)
                 DrawRapierIdle(p, t);  // the Rapier held at the ready (MeleeLooks.cs)
                 DrawKatanaIdle(p, t);  // the Katana held at the ready (KatanaLook.cs)

@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 305: `Msg.Gadget` (switch on or throw your gadget); the player snapshot carries the held gadget, its time left and on flag; the snapshot carries gadgets on the floor (Gadgets.cs)
 - 304: relics: `NodeKind.Relic` (at the end; nodes in `Msg.ExpandState`), Player snapshot gains `Relic` (a byte, `RelicId`) after `StaffStacks`; a wall-bounced shot's course goes out at once in `Msg.Steer` (no format change)
 - 303: spawn portals: `EnemyType.Portal` (at the end); a portal's `Phase` (0 opening, 1 emitting, 2/3 the same for a flank, 4 closing) and `Facing` ride the existing enemy snapshot; no new fields (Docs/Spawns.md)
 - 302: Double Barrel (Soldier DPS 4th weapon): `WeaponId.DoubleBarrel`; the Twin Rifle Auto and Out of Ammo move to picks 4 and 5; Player snapshot gains `DbUsed`, `DbBarrel`, `DbShot` (bytes) and `DbReload` (float) after `ReloadT`; `Msg.WeaponDash` kind 28 (`DashBoth`)

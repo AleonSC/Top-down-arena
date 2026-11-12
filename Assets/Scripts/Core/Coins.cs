@@ -40,6 +40,7 @@ namespace Arena
                 Coins[c.Id] = c;
             }
             DropVector(e);
+            DropGadget(e);  // Gadgets.cs: now and then a Magnet
         }
 
         void DropVector(Enemy e)
@@ -63,14 +64,19 @@ namespace Arena
             foreach (var c in Coins.Values)
             {
                 Player nearest = null;
-                foreach (var p in Players.Values)
-                    if (!p.Downed && (!c.Vec || p.Vectors < p.VectorCap) && p.Pos.DistanceTo(c.Pos) < CoinMagnetRange &&
-                        (nearest == null || p.Pos.DistanceSq(c.Pos) < nearest.Pos.DistanceSq(c.Pos)))
+                foreach (var p in Players.Values)  // a switched-on Magnet (Gadgets.cs) pulls it from anywhere, ahead of anyone's reach
+                    if (MagnetOn(p) && (!c.Vec || p.Vectors < p.VectorCap) && (nearest == null || p.Pos.DistanceSq(c.Pos) < nearest.Pos.DistanceSq(c.Pos)))
                         nearest = p;
+                bool pulled = nearest != null;
+                if (!pulled)
+                    foreach (var p in Players.Values)
+                        if (!p.Downed && (!c.Vec || p.Vectors < p.VectorCap) && p.Pos.DistanceTo(c.Pos) < CoinMagnetRange &&
+                            (nearest == null || p.Pos.DistanceSq(c.Pos) < nearest.Pos.DistanceSq(c.Pos)))
+                            nearest = p;
                 if (nearest == null)
                     continue;
                 V2 to = nearest.Pos - c.Pos;
-                c.Pos += to.LimitLength(280f * dt);
+                c.Pos += to.LimitLength((pulled ? MagnetPull : 280f) * dt);
                 if (to.Length < nearest.Def.BodyR + c.Radius)
                 {
                     if (c.Vec)

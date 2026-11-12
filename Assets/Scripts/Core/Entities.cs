@@ -242,6 +242,9 @@ namespace Arena
         public bool WallMastered;                     // host
         public float Debt, DebtOwed;                  // Blood Debt: health still owed, and what the cast took (replicated, to draw the ledger)
         public float DebtRepay = 1f;                  // host: Blood Debt's repayment multiplier (mastery, Usury, power)
+        public GadgetId Gadget = GadgetId.None;       // the gadget in your free hand (replicated; Gadgets.cs)
+        public float GadgetLeft;                      // its seconds of use left (replicated)
+        public bool GadgetOn;                         // switched on: using up GadgetLeft (replicated)
         public bool SprayOn;                          // Arterial Spray is gushing (replicated; ArterialSpray.cs)
         public float SprayT, SprayTick, SprayPower = 1f;  // host: how long it has run, until the next damage tick, mastery power
         public bool SprayMastered;                    // host: a mastered spray washes away enemy bullets
