@@ -259,11 +259,14 @@ namespace Arena
         void SendSteelWall(Crescent c) =>
             BroadcastFx(FxKind.SteelWall, c.Center, c.Center + V2.FromAngle(c.Aim) * c.Reach, Defs.BulletColor(Defs.KnightSlash), c.HalfArc, c.Life, Sfx.None);
 
+        readonly List<int> steelStopped = new List<int>();  // (scratch)
+
         void TickSteelWalls(float dt)
         {
             if (steelWalls.Count == 0)
                 return;
-            var stopped = new List<int>();
+            var stopped = steelStopped;
+            stopped.Clear();
             for (int i = steelWalls.Count - 1; i >= 0; i--)
             {
                 var c = steelWalls[i];

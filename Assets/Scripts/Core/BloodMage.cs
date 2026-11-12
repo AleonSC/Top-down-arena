@@ -200,6 +200,8 @@ namespace Arena
 
         readonly List<Grasp> pendingGrasps = new List<Grasp>();
         readonly List<Enemy> graspNew = new List<Enemy>();
+        V2 graspFrom;  // the holder, for the sort below (one comparer made once, not a closure every tick)
+        Comparison<Enemy> graspByDist;
 
         /// How far Leech Tendrils reach from the player's edge.
         public float GraspReach(Player p) => (p.Weapon.Reach + p.Weapon.Grow * ExtraShots(p)) * p.Stats.ShotSpeedMult;  // Velocity Rounds stretch them
@@ -231,7 +233,9 @@ namespace Arena
                 float reach = p.Def.BodyR + GraspReach(p);
                 int max = GraspTendrils + gr.Extra + p.Stats.Fan;
                 Enemy e;
-                p.Grasp.RemoveAll(id => !Enemies.TryGetValue(id, out e) || IsSpawning(e) || e.Hp <= 0f || e.Pos.DistanceTo(p.Pos) - e.Radius > reach * GraspLetGo);
+                for (int i = p.Grasp.Count - 1; i >= 0; i--)  // (a loop, not RemoveAll: no closure every tick)
+                    if (!Enemies.TryGetValue(p.Grasp[i], out e) || IsSpawning(e) || e.Hp <= 0f || e.Pos.DistanceTo(p.Pos) - e.Radius > reach * GraspLetGo)
+                        p.Grasp.RemoveAt(i);
                 if (p.Grasp.Count > max)
                     p.Grasp.RemoveRange(max, p.Grasp.Count - max);
                 // Free tendrils reach for the nearest enemies in the arc (shields turn them away).
@@ -240,7 +244,8 @@ namespace Arena
                     if (!IsSpawning(o) && o.Hp > 0f && !p.Grasp.Contains(o.Id) && o.Pos.DistanceTo(p.Pos) - o.Radius <= reach
                         && InGraspArc(p.Pos, gr.Aim, o.Pos, o.Radius, GraspArcFor(p)) && !BlocksShot(o, p.Pos))
                         graspNew.Add(o);
-                graspNew.Sort((a, b) => a.Pos.DistanceSq(p.Pos).CompareTo(b.Pos.DistanceSq(p.Pos)));
+                graspFrom = p.Pos;
+                graspNew.Sort(graspByDist ?? (graspByDist = (a, b) => a.Pos.DistanceSq(graspFrom).CompareTo(b.Pos.DistanceSq(graspFrom))));
                 for (int i = 0; i < graspNew.Count && p.Grasp.Count < max; i++)
                     p.Grasp.Add(graspNew[i].Id);
                 p.Run.ShotsFired++;

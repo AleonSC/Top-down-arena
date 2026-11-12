@@ -292,6 +292,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 
 ## Menus and lobby (Game)
 - `ArenaApp.cs`: boot, input, frame loop, layout/scaling, `OnGUI` dispatch
+- `DrawScratch.cs`: reused lists for the draw code's cache pruning (`FreshIds`, `FreshFx`), so a frame allocates nothing for it
 - `FileListCache.cs`: the newest files in a folder for the saved-file lists (Practice setups, wave sets), read from disk at most once a second
 - `Ui.cs`: IMGUI drawing primitives (fills, labels, bars, glows, pills, the CRT slider); the widgets (buttons, panels, switches, fields, cards, titles) are `DevKit.cs`'s `Dk...` and the CRT keys
 - `Menus.cs`, `MenuIntro.cs`, `MenuDrawer.cs`, `WindowAnim.cs`: main menu, pause/lobby/settings/how-to menus (CRT cabinet), slide clocks

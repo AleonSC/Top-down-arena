@@ -7,6 +7,11 @@ namespace Arena
     /// Quick Play records.
     public partial class ArenaApp
     {
+        // (kept between frames: the tab is drawn every frame)
+        static readonly string[] QuickRules = { "ROOM BUILDING", "NO PATHS", "NO DATA GATES", "NO LIVES", "NO SAVING", "MODIFIERS + DIFFICULTY APPLY" };
+        Rect[] quickTiles = new Rect[0];
+        bool[] quickMet = new bool[0];
+
         const int QuickTab = 8;
         static readonly Color QuickColor = new Color(1f, 0.82f, 0.4f);
 
@@ -33,8 +38,13 @@ namespace Arena
             float poolW = tileW * 2f + gap;
             LobbyKit.Spaced(new Rect(x, bodyY, poolW, 16f), "THE BOSS POOL", 11, dim, TextAnchor.MiddleLeft, 2f);
             var bosses = Game.BossCycle;
-            var tiles = new Rect[bosses.Length];
-            var met = new bool[bosses.Length];
+            if (quickTiles.Length != bosses.Length)
+            {
+                quickTiles = new Rect[bosses.Length];
+                quickMet = new bool[bosses.Length];
+            }
+            var tiles = quickTiles;
+            var met = quickMet;
             for (int i = 0; i < bosses.Length; i++)
             {
                 var b = bosses[i];
@@ -83,7 +93,7 @@ namespace Arena
                 "Beat it to win, then keep going: a new boss every ten waves.", 12, Ui.Text, TextAnchor.UpperLeft, false, true);
             y2 += 56f;
             float rx = x2;
-            foreach (var rule in new[] { "ROOM BUILDING", "NO PATHS", "NO DATA GATES", "NO LIVES", "NO SAVING", "MODIFIERS + DIFFICULTY APPLY" })
+            foreach (var rule in QuickRules)
             {
                 float rw = LobbyKit.SpacedWidth(rule, 10, 1f) + 12f;
                 if (rx + rw > x2 + w2) { rx = x2; y2 += 22f; }

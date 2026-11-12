@@ -75,14 +75,18 @@ namespace Arena
                     pen.T = 0f;  // a gap in the ring: they're out
                 Ink.RemoveAt(i);
             }
-            foreach (var pen in new List<InkPen>(pens.Values))
+            scratchPensGone.Clear();
+            foreach (var pen in pens.Values)
             {
                 pen.T -= dt;
-                if (pen.T > 0f)
-                    continue;
-                pens.Remove(pen.Id);
+                if (pen.T <= 0f)
+                    scratchPensGone.Add(pen.Id);
+            }
+            foreach (int id in scratchPensGone)
+            {
+                pens.Remove(id);
                 foreach (var d in Ink)
-                    if (d.Pen == pen.Id)
+                    if (d.Pen == id)
                         d.Pen = 0;
             }
             if (Ink.Count == 0)
@@ -275,6 +279,11 @@ namespace Arena
             }
             var gone = scratchInkShots;
             gone.Clear();
+            bool anyWard = false;
+            foreach (var q in Players.Values)
+                anyWard |= q.Stats.ChalkWard;
+            if (!anyWard)
+                return;  // plain ink lets every bullet through: skip the bullets x dots check
             foreach (var b in Bullets.Values)
             {
                 if (!Defs.IsEnemyShot(b.Kind) || Defs.Unblockable(b.Kind))
@@ -301,6 +310,8 @@ namespace Arena
         }
 
         readonly List<int> scratchInkShots = new List<int>();
+
+        readonly List<int> scratchPensGone = new List<int>();
 
         /// Host, after everything has moved: enemies penned in by a loop can't be outside it. A step that would leave slides along
         /// the ring instead, or stops; a pen that has faded, broken or lost them lets them go.

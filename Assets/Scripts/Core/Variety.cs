@@ -504,7 +504,9 @@ namespace Arena
                 case EnemyType.Stitcher:
                 {
                     // A pair stands side by side facing you, so the orbs they fire together make a fence as wide as the gap.
-                    var other = mates.Find(o => o != e && o.Type == EnemyType.Stitcher);
+                    Enemy other = null;
+                    foreach (var o in mates)  // (a loop, not Find: no closure every tick)
+                        if (o != e && o.Type == EnemyType.Stitcher) { other = o; break; }
                     if (other == null)
                         break;
                     V2 mid = (e.Pos + other.Pos) / 2f;
@@ -756,7 +758,8 @@ namespace Arena
                                 lead = o;
                     Enemy partner = null;
                     if (lead != null && squadMembers.TryGetValue(e.SquadId, out mates))
-                        partner = mates.Find(o => o != lead && o.Type == EnemyType.Stitcher && Targetable(o));
+                        foreach (var o in mates)
+                            if (o != lead && o.Type == EnemyType.Stitcher && Targetable(o)) { partner = o; break; }
                     if (partner != null)
                     {
                         if (lead != e)

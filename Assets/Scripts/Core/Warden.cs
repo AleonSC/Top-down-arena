@@ -695,7 +695,9 @@ namespace Arena
                     break;
                 case WardenLight.Ring:
                     // Dark, and no stun shots, until the ring has closed.
-                    w.Shackle.RemoveAll(id => !Bullets.ContainsKey(id));
+                    for (int i = w.Shackle.Count - 1; i >= 0; i--)  // (a loop, not RemoveAll: no closure every tick)
+                        if (!Bullets.ContainsKey(w.Shackle[i]))
+                            w.Shackle.RemoveAt(i);
                     if (w.Shackle.Count == 0)
                     {
                         w.LightMode = WardenLight.Follow;

@@ -203,7 +203,7 @@ namespace Arena
                 meleeLive.Clear();
                 foreach (var e in game.Effects)
                     meleeLive.Add(e);
-                var gone = new List<Effect>();
+                var gone = DrawScratch.FreshFx();
                 foreach (var k in meleeSeen.Keys)
                     if (!meleeLive.Contains(k))
                         gone.Add(k);

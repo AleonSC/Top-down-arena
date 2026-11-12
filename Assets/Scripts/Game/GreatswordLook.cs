@@ -45,7 +45,7 @@ namespace Arena
             if (greatWallSign.Count > 24)
             {
                 var live = new HashSet<Effect>(game.Effects);
-                var gone = new List<Effect>();
+                var gone = DrawScratch.FreshFx();
                 foreach (var k in greatWallSign.Keys)
                     if (!live.Contains(k))
                         gone.Add(k);

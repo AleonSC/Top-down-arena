@@ -269,10 +269,15 @@ namespace Arena
             DrawActiveModifiers(DrawActiveDifficulty(SideL, y + 2f), y + 2f);  // DifficultyUi.cs, ModifiersUi.cs
         }
 
+        readonly List<int> cornerIds = new List<int>();  // (scratch: DrawPlayerCorner's order, every frame)
+        Comparison<int> cornerOrder;
+
         void DrawPlayerCorner()
         {
-            var ids = new List<int>(game.Players.Keys);
-            ids.Sort((a, b) => a == game.MyId ? -1 : b == game.MyId ? 1 : a.CompareTo(b));
+            var ids = cornerIds;
+            ids.Clear();
+            ids.AddRange(game.Players.Keys);
+            ids.Sort(cornerOrder ?? (cornerOrder = (a, b) => a == game.MyId ? -1 : b == game.MyId ? 1 : a.CompareTo(b)));
             if (ids.Count == 0)
                 return;
             // Yours in full; teammates as slim rows above it. (A spectator-less game always has you first.)

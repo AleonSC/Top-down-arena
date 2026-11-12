@@ -63,7 +63,7 @@ namespace Arena
                 prof.Save();
             if (tagUntil.Count == 0)
                 return;
-            var gone = new List<int>();
+            var gone = DrawScratch.FreshIds();  // (only labels are drawn while it fills)
             foreach (var kv in tagUntil)
             {
                 Enemy e;

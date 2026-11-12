@@ -500,6 +500,8 @@ namespace Arena
             Cages.Clear();
         }
 
+        readonly List<int> cagesBroken = new List<int>();  // (scratch: the cages that broke this tick)
+
         /// Host: lasers and cage walls hurt, cages shrink and spin, and a cage with no wells left breaks.
         void TickSingularityHazards(float dt)
         {
@@ -546,10 +548,16 @@ namespace Arena
                         Damage(p, Defs.BulletDamage(Defs.BigShot), "The Singularity (accretion disk)");
                 }
 
-            var broken = new List<int>();
+            var broken = cagesBroken;
+            broken.Clear();
             foreach (var c in Cages.Values)
             {
-                c.Wells.RemoveAll(id => !Enemies.ContainsKey(id) || Enemies[id].Hp <= 0f);
+                for (int i = c.Wells.Count - 1; i >= 0; i--)  // (a loop, not RemoveAll: no closure every tick)
+                {
+                    Enemy well;
+                    if (!Enemies.TryGetValue(c.Wells[i], out well) || well.Hp <= 0f)
+                        c.Wells.RemoveAt(i);
+                }
                 if (c.Wells.Count == 0)
                 {
                     broken.Add(c.Id);
