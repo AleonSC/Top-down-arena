@@ -30,7 +30,7 @@ namespace Arena
     public class ReplayFile
     {
         public const string Ext = ".replay";
-        public const int FormatVersion = 6;  // 2: the match-start message carries each player's perks and snapshots carry Riot Gear's timer; 3: snapshots carry a Bone Phalanx's walk and skeletons; 4: Soul Link's player fields and the Soul Ghost minion kind are gone; 5: ZoneKind.Lantern is gone, so later zone kinds renumbered; 6: ZoneKind.Haven too (old replays no longer read)
+        public const int FormatVersion = 7;  // 7: the header stores the network protocol, and a replay from another protocol isn't listed (6 still reads, stopping safely if a message misreads); 2: the match-start message carries each player's perks and snapshots carry Riot Gear's timer; 3: snapshots carry a Bone Phalanx's walk and skeletons; 4: Soul Link's player fields and the Soul Ghost minion kind are gone; 5: ZoneKind.Lantern is gone, so later zone kinds renumbered; 6: ZoneKind.Haven too (old replays no longer read)
         static readonly byte[] Magic = { (byte)'A', (byte)'R', (byte)'N', (byte)'R' };
 
         // Header (what the list shows).
@@ -99,6 +99,7 @@ namespace Arena
                 using (var w = new BinaryWriter(gz))
                 {
                     w.Write(FormatVersion);
+                    w.Write(Session.ProtocolVersion);  // (7: a replay only plays on the protocol it was recorded on)
                     w.Write(Created.Ticks);
                     w.Write(Mode);
                     w.Write(Party);
@@ -153,8 +154,11 @@ namespace Arena
                     using (var gz = new GZipStream(fs, CompressionMode.Decompress))
                     using (var r = new BinaryReader(gz))
                     {
-                        if (r.ReadInt32() != FormatVersion)
+                        int format = r.ReadInt32();
+                        if (format != FormatVersion && format != 6)
                             return null;
+                        if (format >= 7 && r.ReadInt32() != Session.ProtocolVersion)
+                            return null;  // recorded on another version of the game: its messages would misread
                         var f = new ReplayFile { Path = path, Bytes = new FileInfo(path).Length };
                         f.Created = new DateTime(r.ReadInt64(), DateTimeKind.Utc);
                         f.Mode = r.ReadString();
@@ -444,11 +448,26 @@ namespace Arena
             msgIdx = 0;
             Frame = 0;
             acc = 0f;
+            Error = null;
         }
+
+        /// Set when a recorded message couldn't be read (a replay from another version of the game): playback stops there.
+        public string Error { get; private set; }
 
         void Apply(ReplayMsg m)
         {
-            Session.ReplayApply(m.Data);
+            if (Error != null)
+                return;
+            try
+            {
+                Session.ReplayApply(m.Data);
+            }
+            catch (Exception e)
+            {
+                Error = "This replay can't be read past here (recorded on another version of the game): " + e.GetType().Name;
+                Paused = true;
+                return;
+            }
             if (m.Type == Msg.Start)
             {
                 int first = 0;

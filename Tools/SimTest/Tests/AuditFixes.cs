@@ -4,7 +4,8 @@ using Arena;
 
 // Fixes from the November 2026 code audit: a strong slow ends on time under a weak one that is topped up every tick
 // (Slows.cs), a piercing shot inside two overlapping enemies hits each once (Combat.cs PrevHit), a kill's coins carry
-// all its gold (Coins.cs), and Stop clears the per-run lists (RunReset.cs).
+// all its gold (Coins.cs), Stop clears the per-run lists (RunReset.cs), the host ignores NaN input and resent dodges
+// (GameNet.cs, Dodge.cs), and a run save cut short is refused (SaveData.cs).
 static partial class Program
 {
     static void AuditFixesTest(float dt)
@@ -61,6 +62,35 @@ static partial class Program
         }
         Console.WriteLine("  audit: pierce damage {0:0} + {1:0}, pierce left {2}", e1.MaxHp - e1.Hp, e2.MaxHp - e2.Hp, shot.Pierce);
         Check(e1.Hp < e1.MaxHp && e2.Hp < e2.MaxHp && shot.Pierce == 3 && g.Bullets.ContainsKey(shot.Id), "a piercing shot inside two overlapping enemies hits each once, not by turns");
+
+        // Network input: NaN or infinity from a client is ignored, not spread through the host's game.
+        Func<V2, float, System.IO.BinaryReader> input = (pos, aim) =>
+        {
+            var ms = new System.IO.MemoryStream();
+            var bw = new System.IO.BinaryWriter(ms);
+            bw.Write(pos); bw.Write(aim); bw.Write(new V2(500f, 500f)); bw.Write(false); bw.Write(false); bw.Write(0f); bw.Write(0f);
+            ms.Position = 0;
+            return new System.IO.BinaryReader(ms);
+        };
+        me.Pos = new V2(300f, 300f);
+        g.OnInput(1, input(new V2(float.NaN, 10f), 0.5f));
+        g.OnInput(1, input(new V2(400f, 400f), float.PositiveInfinity));
+        Check(me.Pos.IsFinite && me.Pos.DistanceTo(new V2(300f, 300f)) < 0.01f && !float.IsInfinity(me.Aim), "input with NaN or infinity is ignored");
+        g.OnInput(1, input(new V2(400f, 400f), 0.5f));
+        Check(me.Pos.DistanceTo(new V2(400f, 400f)) < 0.01f, "...and good input still moves you");
+        // A client's dodges: the host grants the invulnerability at most once per cooldown.
+        Func<System.IO.BinaryReader> dodgeMsg = () => { var ms = new System.IO.MemoryStream(); new System.IO.BinaryWriter(ms).Write(V2.Zero); ms.Position = 0; return new System.IO.BinaryReader(ms); };
+        me.InvulnT = 0f;
+        g.OnDodge(1, dodgeMsg());
+        bool first = me.InvulnT > 0f;
+        me.InvulnT = 0f;
+        g.OnDodge(1, dodgeMsg());
+        Check(first && me.InvulnT == 0f, "a second dodge message inside the cooldown is ignored");
+
+        // Run saves: a save cut short (no end line) isn't loaded; old saves without one still are.
+        var runText = "arena-run 2\nwave 3\nseat\nname Host\n";
+        Check(RunSave.Parse(runText) == null && RunSave.Parse(runText + "end 1\n") != null && RunSave.Parse("arena-run 1\nwave 3\nseat\nname Host\n") != null,
+            "a run save needs its end line (format 2); format 1 saves load without it");
 
         // Coins: a boss kill's coins add up to all its gold (at most 6 coins, the last one carries the rest).
         var drop = typeof(Game).GetMethod("DropCoins", flags);

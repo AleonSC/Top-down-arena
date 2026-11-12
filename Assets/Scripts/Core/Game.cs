@@ -820,6 +820,7 @@ namespace Arena
             }
             if (IsHost)
             {
+                hostClock += dt;  // (every host tick, whatever the state: Dodge.cs times clients' dodges by it)
                 if (State == MatchState.Fighting || State == MatchState.Intermission)
                     RunTime += dt;
                 HostTick(dt);

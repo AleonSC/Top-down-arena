@@ -229,7 +229,9 @@ namespace Arena
         {
             if (Root == null || NameProblem(name, id).Length > 0 || !Directory.Exists(PathOf(id)))
                 return false;
-            var p = id == ActiveId ? Profile.Current : ReadProfile(PathOf(id)) ?? new Profile();
+            var p = id == ActiveId ? Profile.Current : ReadProfile(PathOf(id));
+            if (p == null)
+                return false;  // unreadable (and its backup too): writing a blank profile over it would lose it and its last backup
             if (p.DiskLook.Length == 0)
                 p.DiskLook = DiskLookFor(p.Name);   // the old name's look is kept
             p.Name = Clean(name);

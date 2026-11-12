@@ -12,6 +12,8 @@ namespace Arena
         public const float DodgeDist = 95f, DodgeTime = 0.11f, DodgeInvuln = 0.22f, DodgeCd = 1.1f;
 
         float dodgeCd;
+        float hostClock;  // host: seconds of ticks since the game was made
+        readonly System.Collections.Generic.Dictionary<int, float> hostDodgeAt = new System.Collections.Generic.Dictionary<int, float>();  // host: each client's last dodge (hostClock)
 
         /// Your own game, every tick. `pressed` is a fresh Dodge press this tick.
         void LocalDodge(Player me, V2 move, bool pressed, float dt)
@@ -39,8 +41,13 @@ namespace Arena
         {
             r.ReadV2();
             Player p;
-            if (Players.TryGetValue(peer, out p) && !p.Downed)
-                p.InvulnT = Math.Max(p.InvulnT, DodgeInvuln);
+            if (!Players.TryGetValue(peer, out p) || p.Downed)
+                return;
+            float last;
+            if (hostDodgeAt.TryGetValue(peer, out last) && hostClock - last < DodgeCd * 0.75f)
+                return;  // faster than the cooldown allows (with slack for network jitter): a resent or tampered message
+            hostDodgeAt[peer] = hostClock;
+            p.InvulnT = Math.Max(p.InvulnT, DodgeInvuln);
         }
     }
 }

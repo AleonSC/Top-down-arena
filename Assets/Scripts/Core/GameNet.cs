@@ -8,6 +8,8 @@ namespace Arena
     /// client's handling of host messages.
     public partial class Game
     {
+        static bool Finite(float f) => !float.IsNaN(f) && !float.IsInfinity(f);
+
         public void OnInput(int peer, BinaryReader r)
         {
             V2 pos = r.ReadV2();
@@ -19,6 +21,8 @@ namespace Arena
             Player p;
             if (!Players.TryGetValue(peer, out p))
                 return;
+            if (!pos.IsFinite || !aimAt.IsFinite || !Finite(aim) || !Finite(draw) || !Finite(release))
+                return;  // a broken or tampered message: NaN or infinity would spread through the host's game and every snapshot
             p.DrawT = draw;
             if (release > 0f && ChargeWeapon(p.Weapon.Id))
                 p.BowRelease = Math.Min(10f, release);  // the shooter timed it; one release per message
@@ -34,7 +38,8 @@ namespace Arena
         {
             int kind = r.ReadByte();
             V2 target = r.ReadV2();
-            HostWeaponDash(peer, kind, target);  // Ninja.cs
+            if (target.IsFinite)
+                HostWeaponDash(peer, kind, target);  // Ninja.cs
         }
 
         public void OnAbility(int peer, BinaryReader r)
@@ -42,7 +47,7 @@ namespace Arena
             int slot = r.ReadByte();
             V2 target = r.ReadV2();
             V2 from = r.ReadV2();
-            if (slot < Upgrades.SlotCount)
+            if (slot < Upgrades.SlotCount && target.IsFinite && from.IsFinite)
             {
                 Player p;
                 StepFrom = Players.TryGetValue(peer, out p) ? KeepInArena(from, 0f) : (V2?)null;

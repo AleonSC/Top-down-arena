@@ -21,6 +21,7 @@ namespace Arena
             // enemies and bosses
             dives.Clear(); scytheCuts.Clear(); throwHits.Clear(); botThreads.Clear(); stitchLinks.Clear();
             steerMem.Clear();  // LayoutRules.cs: keyed by enemy id
+            hostDodgeAt.Clear();  // Dodge.cs (keyed by player id)
         }
     }
 }

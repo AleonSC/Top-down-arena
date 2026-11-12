@@ -248,7 +248,7 @@ static partial class Program
         new Suite { Name = "features", What = "every feature test (parry, aim, classes, bosses, practice, paths...); run with core before committing", Run = args => RunFeatures() },
         new Suite { Name = "all", What = "core, then features", Run = args => { RunCore(args); RunFeatures(); } },
         // Single systems.
-        Test("audit", "Nov 2026 audit fixes: slows end on time, piercing shots hit overlapping enemies once, boss coins carry all their gold, Stop clears per-run lists", () => AuditFixesTest(Dt)),
+        Test("audit", "Nov 2026 audit fixes: slows end on time, piercing shots hit overlapping enemies once, boss coins carry all their gold, Stop clears per-run lists, bad client input and resent dodges are ignored, cut-short run saves are refused", () => AuditFixesTest(Dt)),
         Test("classes", "every class is complete: name, blurb, icon, look, weapons that fire, abilities that cast (run first when adding a class)", ClassCompletenessTest),
         Test("approaches", "boss approaches: the themed share, waves built with it, the Riot Shield (bash, knockback, shield), the Gas Grenadier, the Warden's pair", () => ApproachesTest(Dt)),
         Test("campaign", "the campaign buildup: every wave themed, the last boss fading out, an older pool, the next boss building up", CampaignTest),

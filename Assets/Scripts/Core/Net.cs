@@ -28,6 +28,22 @@ namespace Arena
             public byte[] Buf = new byte[1 << 16];
             public int Len;
             public bool Dead;
+            public bool Greeted;       // host: Session accepted its Hello (Greet); until then only small frames, and not for long
+            public DateTime Since = DateTime.UtcNow;
+        }
+
+        /// Host: how long a connection may stay without a Hello the game accepted, and the biggest frame it may send meanwhile.
+        public const double HelloTimeout = 10.0;
+        const int UngreetedMaxFrame = 1 << 16;
+        /// How long a send may block on a peer that stopped reading (a frozen or sleeping machine) before it is dropped.
+        public const int SendTimeoutMs = 2000;
+
+        /// Host: the game accepted this connection's Hello (it is in the lobby): no more join timeout or small-frame limit.
+        public void Greet(int peer)
+        {
+            Conn c;
+            if (conns.TryGetValue(peer, out c))
+                c.Greeted = true;
         }
 
         const float ConnectTimeout = 8f;
@@ -103,7 +119,11 @@ namespace Arena
             }
 
             foreach (var c in conns.Values)
+            {
                 Read(c);
+                if (IsHost && !c.Greeted && (DateTime.UtcNow - c.Since).TotalSeconds > HelloTimeout)
+                    c.Dead = true;  // connected but never joined (a half-open or silent connection would hold a seat)
+            }
             var dead = new List<int>();
             foreach (var c in conns.Values)
                 if (c.Dead)
@@ -120,6 +140,7 @@ namespace Arena
         void AddConn(int id, TcpClient tcp)
         {
             tcp.NoDelay = true;
+            tcp.SendTimeout = SendTimeoutMs;  // a peer that stops reading can't freeze the game inside Send (it times out and is dropped)
             tcp.SendBufferSize = 1 << 18;
             tcp.ReceiveBufferSize = 1 << 18;
             conns[id] = new Conn { Id = id, Tcp = tcp, Stream = tcp.GetStream() };
@@ -162,7 +183,7 @@ namespace Arena
             while (c.Len - offset >= 4)
             {
                 int size = BitConverter.ToInt32(c.Buf, offset);
-                if (size < 0 || size > 1 << 24)
+                if (size < 0 || size > (IsHost && !c.Greeted ? UngreetedMaxFrame : 1 << 24))
                 {
                     c.Dead = true;
                     return;

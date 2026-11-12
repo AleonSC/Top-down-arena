@@ -1185,10 +1185,10 @@ namespace Arena
 
         static void WriteRooms(BinaryWriter w, IList<ExpansionRoom> list)
         {
-            w.Write((byte)list.Count);
+            w.Write((ushort)list.Count);  // (ushort: a big map can pass 255)
             foreach (var r in list)
             {
-                w.Write((byte)r.Parent);
+                w.Write((short)r.Parent);
                 w.Write((short)r.X); w.Write((short)r.Y); w.Write((short)r.W); w.Write((short)r.H);
                 w.Write((byte)r.Kind); w.Write((byte)r.Floor);
                 w.Write((short)r.Price);
@@ -1202,11 +1202,11 @@ namespace Arena
 
         static List<ExpansionRoom> ReadRooms(BinaryReader r)
         {
-            int n = r.ReadByte();
+            int n = r.ReadUInt16();
             var list = new List<ExpansionRoom>(n);
             for (int i = 0; i < n; i++)
             {
-                var room = new ExpansionRoom { Parent = r.ReadByte(), X = r.ReadInt16(), Y = r.ReadInt16(), W = r.ReadInt16(), H = r.ReadInt16() };
+                var room = new ExpansionRoom { Parent = r.ReadInt16(), X = r.ReadInt16(), Y = r.ReadInt16(), W = r.ReadInt16(), H = r.ReadInt16() };
                 room.Kind = (RoomKind)r.ReadByte();
                 room.Floor = (PathId)r.ReadByte();
                 room.Price = r.ReadInt16();
@@ -1225,32 +1225,32 @@ namespace Arena
         {
             var w = Proto.Begin(Msg.ExpandState);
             WriteRooms(w, Expanded);
-            w.Write((byte)Openings.Count);
+            w.Write((ushort)Openings.Count);  // (ushort: a big map can pass 255)
             foreach (var c in Openings)
             {
                 w.Write(c.Vertical); w.Write(c.At); w.Write(c.From); w.Write(c.Till);
             }
-            w.Write((byte)Links.Count);
+            w.Write((ushort)Links.Count);  // (ushort: a big map can pass 255)
             foreach (var l in Links)
             {
                 w.Write(l.AX); w.Write(l.AY); w.Write(l.BX); w.Write(l.BY);
             }
-            w.Write((byte)Placed.Count);
+            w.Write((ushort)Placed.Count);  // (ushort: a big map can pass 255)
             foreach (var b in Placed)
             {
                 w.Write((byte)b.Kind); w.Write(b.X); w.Write(b.Y);
             }
-            w.Write((byte)GateFits.Count);
+            w.Write((ushort)GateFits.Count);  // (ushort: a big map can pass 255)
             foreach (var g in GateFits)
             {
                 w.Write(g.X); w.Write(g.Y); w.Write(g.Vertical);
             }
-            w.Write((byte)RoomTokens.Count);
+            w.Write((ushort)RoomTokens.Count);  // (ushort: a big map can pass 255)
             foreach (var t in RoomTokens)
             {
                 w.Write((byte)t.Kind); w.Write((byte)t.Floor);
             }
-            w.Write((byte)Nodes.Count);
+            w.Write((ushort)Nodes.Count);  // (ushort: a big map can pass 255)
             foreach (var nd in Nodes)
             {
                 w.Write(nd.X); w.Write(nd.Y); w.Write((byte)nd.Kind); w.Write(nd.Spent);
@@ -1305,7 +1305,7 @@ namespace Arena
                     NoteSurprise(Expanded[Expanded.Count - 1].Surprise);  // (the host's gift, after a boss or from a breach event: the build-in and the chip; a joiner mid-run gets the rooms quietly)
                 }
             }
-            int nc = r.ReadByte();
+            int nc = r.ReadUInt16();
             var cuts = new List<WallCut>(nc);
             for (int i = 0; i < nc; i++)
                 cuts.Add(new WallCut { Vertical = r.ReadBoolean(), At = r.ReadInt16(), From = r.ReadInt16(), Till = r.ReadInt16() });
@@ -1319,7 +1319,7 @@ namespace Arena
                 expWorld = null;
                 LayoutAge = 0f;
             }
-            int nl = r.ReadByte();
+            int nl = r.ReadUInt16();
             var links = new List<PortalLink>(nl);
             for (int i = 0; i < nl; i++)
                 links.Add(new PortalLink { AX = r.ReadInt16(), AY = r.ReadInt16(), BX = r.ReadInt16(), BY = r.ReadInt16() });
@@ -1333,19 +1333,19 @@ namespace Arena
                 expWorld = null;
                 LayoutAge = 0f;
             }
-            int npb = r.ReadByte();
+            int npb = r.ReadUInt16();
             Placed.Clear();
             for (int i = 0; i < npb; i++)
                 Placed.Add(new PlacedBuild { Kind = (BuildKind)r.ReadByte(), X = r.ReadInt16(), Y = r.ReadInt16() });
-            int ng = r.ReadByte();
+            int ng = r.ReadUInt16();
             GateFits.Clear();
             for (int i = 0; i < ng; i++)
                 GateFits.Add(new GateFit { X = r.ReadInt16(), Y = r.ReadInt16(), Vertical = r.ReadBoolean() });
             RoomTokens.Clear();
-            int nt = r.ReadByte();
+            int nt = r.ReadUInt16();
             for (int i = 0; i < nt; i++)
                 RoomTokens.Add(new RoomToken { Kind = (RoomKind)r.ReadByte(), Floor = (PathId)r.ReadByte() });
-            int nn = r.ReadByte();
+            int nn = r.ReadUInt16();
             var nodes = new List<MapNode>(nn);
             for (int i = 0; i < nn; i++)
                 nodes.Add(new MapNode { X = r.ReadInt16(), Y = r.ReadInt16(), Kind = (NodeKind)r.ReadByte(), Spent = r.ReadBoolean() });

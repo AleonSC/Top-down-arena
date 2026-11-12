@@ -168,7 +168,7 @@ namespace Arena
             // Badge.
             var name = f.Name;
             DkSub(new Rect(18f, 14f, 270f, 28f), new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.9f));
-            Ui.Label(new Rect(30f, 14f, 160f, 28f), "REPLAY" + (replay.Paused ? "  PAUSED" : ""), 13, replay.Paused ? Ui.Gold : new Color(1f, 0.45f, 0.45f), TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(30f, 14f, 160f, 28f), "REPLAY" + (replay.Error != null ? "  ENDS HERE" : replay.Paused ? "  PAUSED" : ""), 13, replay.Paused ? Ui.Gold : new Color(1f, 0.45f, 0.45f), TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(110f, 14f, 170f, 28f), name, 11, CrtStyle.Desc, TextAnchor.MiddleRight);
 
             // Wave lane: one block per wave (red for a boss); click one to jump to where it starts.

@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 303: `Msg.ExpandState` sends its list counts (rooms, openings, links, builds, gate fits, room tokens, nodes) as ushort and each room's `Parent` as a short (were bytes: a big map could wrap past 255); replays store the protocol in their header (replay format 7)
 - 302: Double Barrel (Soldier DPS 4th weapon): `WeaponId.DoubleBarrel`; the Twin Rifle Auto and Out of Ammo move to picks 4 and 5; Player snapshot gains `DbUsed`, `DbBarrel`, `DbShot` (bytes) and `DbReload` (float) after `ReloadT`; `Msg.WeaponDash` kind 28 (`DashBoth`)
 - 301: breach rooms step 3: `ExpansionRoom.Claimed` (a bool after `Surprise` in each room of `Msg.ExpandState`; also in saves as a trailing token): a Stash's vector cache has been taken
 - 300: breach rooms: a breach wave adds a free Stash (`ExpansionRoom.Surprise` 6 = `SurpriseShape.Stash`) behind each remaining breach; no new fields (Docs/BreachRooms.md)
