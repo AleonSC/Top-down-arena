@@ -1094,8 +1094,9 @@ you've beaten it anywhere, a **???** until then (on your first Quick Play the Wa
   every wave from wave 1, the vote, and a free surprise room after each boss. Vectors come in at the full rate (+8 a wave, not
   the Campaign's half), so a party builds about one room a wave. The **Simple Arena** modifier keeps the open arena.
 - **The tutorial:** a profile's first Quick Play shows a prompt at the top left that ticks off as you go, in five lessons:
-  **The basics** (move, aim, shoot, dodge), **Level up** (pick a card), **Your kit** (your ability, the parry shield),
-  **Build a room** (open Build rooms, draw a room, vote it in) and **Gold and the shop** (collect gold, walk into a shop or
+  **The basics** (move, aim, shoot, dodge), **Level up** (pick a card), **Build a room** (click BUILD, draw a room,
+  vote it in: shown as soon as the first build round opens), **Your kit** (your ability, the parry shield: shown in the next
+  wave) and **Gold and the shop** (collect gold, walk into a shop or
   vendor room once one is connected). Steps count in any order; each shows your own key. **SKIP** ends it. It's only on your
   own screen (a friend's first run shows theirs), never holds the wave, and never comes back once done, skipped, or once your
   first Quick Play is over.

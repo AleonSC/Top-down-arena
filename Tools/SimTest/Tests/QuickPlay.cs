@@ -240,6 +240,14 @@ static partial class Program
             play(new PlayerInput { Ability = true }, 2);
             play(new PlayerInput { Parry = true }, 30);
             Check(tut.Done(TutorialStep.Ability) && tut.Done(TutorialStep.Parry) && tut.Current == 1, "the ability and the parry tick off too (YOUR KIT), but LEVEL UP stays on the prompt until a card is picked");
+            g.State = MatchState.Intermission;
+            g.ExpandOpen = true;
+            tut.ShowAt(2, 0);  // (the basics and LEVEL UP done, a build round open after wave 1)
+            bool buildNow = tut.CurrentFor(g) == Tutorial.BuildLesson;
+            g.ExpandOpen = false;
+            g.State = MatchState.Fighting;
+            bool kitInFight = tut.CurrentFor(g) == Tutorial.KitLesson && tut.Current == Tutorial.BuildLesson;
+            Check(buildNow && kitInFight, "right after the first card the build round shows BUILD A ROOM; in the next wave the prompt shows YOUR KIT (building comes back with the next round)");
             tut.Note(TutorialStep.OpenBuild);
             tut.Skip(g);
             Check(!tut.Active && pf.TutorialDone && Profile.Parse(pf.ToText()).TutorialDone, "SKIP turns it off, and the profile remembers");
