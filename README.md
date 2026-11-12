@@ -801,7 +801,7 @@ wave, everyone gets a shop before the boss:
 
 ## Expanding arena
 
-**The Campaign's arena**: every new Campaign is played here (the **Simple Arena** modifier keeps the open arena
+**The Campaign's and Quick Play's arena**: every new Campaign and Quick Play is played here (the **Simple Arena** modifier keeps the open arena
 instead; Boss Hunts, the Practice Range and runs saved before the Campaign use the open arena). Design:
 [`Docs/ExpandingArena.md`](Docs/ExpandingArena.md). It starts as the plain Classic box and grows as you play:
 
@@ -1086,7 +1086,10 @@ on top (Tough Crowd, Frenzy, Swift Foes, Glass Cannon...).
   endless has more). The boost for strong builds still applies on top.
 - **Win, then end or keep going.** Beating the boss is **QUICK PLAY CLEAR!**; the host can **Keep going [C]** into endless: ten
   more waves and a new random boss, after wave 20, 30, ... for as long as the party lasts.
-- **No paths, Data Gates, lives or saving** (the open arena; room building comes in a later step).
+- **Room building:** Quick Play is played on the **Expanding arena** (below), as the Campaign is: vectors, a build round after
+  every wave from wave 1, the vote, and a free surprise room after each boss. Vectors come in at the full rate (+8 a wave, not
+  the Campaign's half), so a party builds about one room a wave. The **Simple Arena** modifier keeps the open arena.
+- **No paths, Data Gates, lives or saving.**
 - **Records:** full rank XP and Cores, bosses count as beaten (unlocks and Boss Hunts), and Quick Play keeps its own plays,
   wins, best wave and bosses beaten (not counted as runs). Falling in endless adds the stretch after the win.
   Plan: `Docs/QuickPlay.md`.

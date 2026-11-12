@@ -1,6 +1,6 @@
 # Quick Play (and the first-run tutorial)
 
-Status: **steps 0-1 built** (the boss schedule; the mode, waves, bosses, records and endless, protocol 297); steps 2-4 planned (owner's decisions, Nov 12, 2026). Build one step at a time on "start on step N".
+Status: **steps 0-2 built** (the boss schedule; the mode, waves, bosses, records and endless, protocol 297; room building); steps 3-4 planned (owner's decisions, Nov 12, 2026). Build one step at a time on "start on step N".
 
 ## What it is
 
@@ -42,7 +42,10 @@ Per seat and local only (each player's own profile decides): no network message.
 1. **Mode and waves** (built, Nov 12; protocol 297): `Session.QuickMode`, `Game.Quick` (Core), the carousel's first mode and default; a boss slot after every
    10th wave (as the Campaign's shown waves); the boss bag (Warden first); faction waves with the mixed fallback; boss HP for a ~2 min fight at any wave (sim prints each boss's fight length after waves 10, 20, 30); win screen End / Continue endless; records;
    sim suite `quick`. Protocol bump (start message, `Msg` for the endless choice).
-2. **Building**: Quick Play on the Expanding arena; check vector income fits a 10-wave run (first build round after wave 1).
+2. **Building** (built, Nov 12; no protocol change): Quick Play on the Expanding arena (`Game.ArenaKind`), the surprise room
+   after each boss. Vectors at the full rate (+8 a wave, 1 per 8 kills, cap 70; the Campaign halves it for its 100 waves).
+   Measured (`run.sh 1 1 quick`, two bots): a build round after every wave from wave 1, 15 rooms by the boss, each bot's
+   vectors between 12 and 61 (never stuck at the cap), so no tuning.
 3. **Tutorial**: `Core/Tutorial.cs` (step machine, what counts as done), `Game/TutorialUi.cs` (prompts), profile flag,
    skip; `Tools/Preview` shots of each prompt.
 4. **Polish**: README section, lobby dossier for Quick Play (the boss bag shown as "???" until met), preview shots.

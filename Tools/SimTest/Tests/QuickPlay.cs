@@ -149,6 +149,52 @@ static partial class Program
         }
     }
 
+    /// Quick Play's room building (step 2): the Expanding arena, a build round after every wave, and what bots build in ten waves.
+    static void QuickBuildTest(float dt)
+    {
+        int port = nextPort++;
+        var host = HostAs(new Session(), port, true, "Host", Role.Tank);
+        host.Game.ProfileOverride = new Profile();
+        var client = JoinAs(port, true, "Friend", Role.Dps);
+        client.Game.ProfileOverride = new Profile();
+        var s = new[] { host, client };
+        WaitForLobby(host, client);
+        PollBoth(host, client);
+        host.SetMode(false, false, true);
+        PollBoth(host, client);
+        client.RequestReady(true); host.RequestReady(true); PollBoth(host, client);
+        host.StartMatch();
+        WaitForGame(host, client, dt);
+        var g = host.Game;
+        var c = client.Game;
+        Check(g.Quick && g.ExpandingOn && c.ExpandingOn, "Quick Play is played on the Expanding arena (every game knows)");
+        Action keep = () =>
+        {
+            foreach (var p in g.Players.Values) { p.InvulnT = 1f; p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PrizePicks = p.PendingMilestones = 0; p.Offer = null; p.LegendaryQueue.Clear(); }
+            foreach (var e in g.Enemies.Values) if (!e.Def.IsBoss && g.Enemies.Count > 0 && g.State == MatchState.Fighting && e.Hp > 0f && g.RunTime % 3f < 0.02f) e.Hp = 0f;
+        };
+        int lastWave = 0, rounds = 0;
+        bool firstRound = false;
+        var line = new List<string>();
+        Run(s, dt, 900f, () => g.Wave == 10 && g.BossSlot && g.State == MatchState.Fighting, () =>
+        {
+            keep();
+            if (g.State == MatchState.Intermission && g.Wave != lastWave && g.Wave < 10)
+            {
+                lastWave = g.Wave;
+                if (g.ExpandOpen) rounds++;
+                if (g.Wave == 1) firstRound = g.ExpandOpen && c.ExpandOpen;
+                line.Add(g.Wave + ":" + string.Join("/", g.Players.Values.Select(p => p.Vectors)) + " r" + Expansion.BoughtCount(g.Expanded));
+            }
+        });
+        int built = Expansion.BoughtCount(g.Expanded);
+        Console.WriteLine("  vectors (host/friend) and rooms built after each wave: {0}", string.Join("  ", line));
+        Console.WriteLine("  by the boss after wave 10: {0} build rounds, {1} rooms built", rounds, built);
+        Check(firstRound && rounds >= 8, "a build round opens after wave 1 and after every wave on the way to the boss");
+        Check(built >= 3, "two bots build several rooms in a Quick Play's ten waves (vectors keep up)");
+        host.Leave(""); client.Leave("");
+    }
+
     /// Each boss's Quick Play health after waves 10, 20 and 30 (a Tank and a DPS), against its Campaign health at its own wave.
     static void QuickBossHpReport()
     {
