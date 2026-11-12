@@ -15,14 +15,22 @@ namespace Arena
         const int QuickTab = 8;
         static readonly Color QuickColor = new Color(1f, 0.82f, 0.4f);
 
+        /// One of your Quick Play records: a recessed tile, the number glowing, its name under it.
+        void QuickRecord(Rect r, string value, string label)
+        {
+            DkSub(r);
+            DkTitle(new Rect(r.x + 10f, r.y + 2f, r.width - 20f, 26f), value, 18, CrtStyle.Gold);
+            Ui.Label(new Rect(r.x + 10f, r.yMax - 18f, r.width - 20f, 14f), label, 9, CrtStyle.Desc, TextAnchor.MiddleLeft, true);
+        }
+
         void DrawQuickPlayTab(Rect r, float t)
         {
-            LobbyKit.Panel(r);
+            DkPanel(r);
             var profile = game.Profile ?? new Profile();
             var ink = CrtUi.Ink;
             var dim = new Color(ink.r, ink.g, ink.b, 0.7f);
             float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;
-            LobbyKit.Spaced(new Rect(x, y, 200f, 20f), "QUICK PLAY", 14, new Color(ink.r, ink.g, ink.b, 0.9f), TextAnchor.MiddleLeft, 3.6f);
+            DkTitle(new Rect(x, y - 2f, 200f, 24f), "QUICK PLAY", 18);
             Ui.Label(new Rect(x + w - 300f, y, 300f, 20f), "10 WAVES  ·  A RANDOM BOSS  ·  ENDLESS", 11, Ui.Muted, TextAnchor.MiddleRight);
             Ui.Fill(new Rect(x + 150f, y + 10f, w - 470f, 1f), new Color(ink.r, ink.g, ink.b, 0.25f));
             y += 24f;
@@ -36,7 +44,7 @@ namespace Arena
             const float tileW = 150f, gap = 8f;
             float tileH = Mathf.Clamp((bodyH - 22f - 4f * gap) / 5f, 52f, 96f);  // five rows down the panel
             float poolW = tileW * 2f + gap;
-            LobbyKit.Spaced(new Rect(x, bodyY, poolW, 16f), "THE BOSS POOL", 11, dim, TextAnchor.MiddleLeft, 2f);
+            DkTitle(new Rect(x, bodyY - 2f, poolW, 18f), "THE BOSS POOL", 12, dim);
             var bosses = Game.BossCycle;
             if (quickTiles.Length != bosses.Length)
             {
@@ -53,13 +61,9 @@ namespace Arena
                 met[i] = profile.Beaten(b) > 0;
                 bool firstBoss = first && b == EnemyType.Boss;
                 if (met[i] || firstBoss)
-                    CrtKit.SoftBox(c, firstBoss ? QuickColor : ink, firstBoss, false, false);
+                    DkBox(c, firstBoss ? QuickColor : ink, firstBoss ? 1f : 0.45f);  // met (or the first run's Warden): a lit card
                 else
-                {
-                    var d = CrtUi.Dim;
-                    Ui.Fill(c, new Color(d.r, d.g, d.b, 0.015f));
-                    CrtKit.Dashed(c, 1f, new Color(d.r, d.g, d.b, 0.35f));
-                }
+                    DkSub(c);  // not met yet: a dark recess
                 string name = met[i] || firstBoss ? BossName(b) : "???";
                 Color tc = met[i] || firstBoss ? Color.white : new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.8f);
                 Ui.Label(new Rect(c.x + 54f, c.y + 6f, c.width - 60f, c.height - 24f), name, 13, tc, TextAnchor.MiddleLeft, true, true);
@@ -71,7 +75,7 @@ namespace Arena
 
             // Right: the run's shape, the rules and the records.
             float x2 = x + poolW + 22f, w2 = w - poolW - 22f, y2 = bodyY;
-            LobbyKit.Spaced(new Rect(x2, y2, w2, 16f), "THE RUN", 11, dim, TextAnchor.MiddleLeft, 2f);
+            DkTitle(new Rect(x2, y2 - 2f, w2, 18f), "THE RUN", 12, dim);
             y2 += 22f;
             float pip = Mathf.Min(24f, (w2 - 12f * 5f - 46f - 70f) / 10f);
             float px = x2;
@@ -79,13 +83,13 @@ namespace Arena
             {
                 bool boss = i == QuickPlay.Length + 1, endless = i == QuickPlay.Length + 2;
                 var pr = new Rect(px, y2, boss ? 46f : endless ? 70f : pip, 22f);
-                var pc = boss ? QuickColor : endless ? Ui.Gold : ink;
-                Ui.Fill(pr, new Color(pc.r, pc.g, pc.b, boss ? 0.3f : 0.12f));
-                if (endless)
-                    CrtKit.Dashed(pr, 1f, new Color(pc.r, pc.g, pc.b, 0.7f));
+                if (boss || endless)
+                    DkTag(pr, boss ? "BOSS" : "ENDLESS", boss ? QuickColor : Ui.Gold);
                 else
-                    HuntBox(pr, new Color(pc.r, pc.g, pc.b, 0.7f));
-                Ui.Label(pr, boss ? "BOSS" : endless ? "ENDLESS" : i.ToString(), boss || endless ? 10 : 9, boss || endless ? Color.white : Ui.Muted, TextAnchor.MiddleCenter, boss || endless);
+                {
+                    DkSub(pr, new Color(ink.r, ink.g, ink.b, 0.08f));
+                    Ui.Label(pr, i.ToString(), 9, Ui.Muted, TextAnchor.MiddleCenter);
+                }
                 px += pr.width + (i == QuickPlay.Length ? 8f : 4f);
             }
             y2 += 30f;
@@ -97,19 +101,17 @@ namespace Arena
             {
                 float rw = LobbyKit.SpacedWidth(rule, 10, 1f) + 12f;
                 if (rx + rw > x2 + w2) { rx = x2; y2 += 22f; }
-                var rr = new Rect(rx, y2, rw, 18f);
-                HuntBox(rr, new Color(ink.r, ink.g, ink.b, 0.3f));
-                LobbyKit.Spaced(rr, rule, 10, dim, TextAnchor.MiddleCenter, 1f);
+                DkTag(new Rect(rx, y2, rw, 18f), rule, dim);
                 rx += rw + 6f;
             }
             y2 += 32f;
-            LobbyKit.Spaced(new Rect(x2, y2, w2, 16f), "YOUR QUICK PLAYS", 11, dim, TextAnchor.MiddleLeft, 2f);
+            DkTitle(new Rect(x2, y2 - 2f, w2, 18f), "YOUR QUICK PLAYS", 12, dim);
             y2 += 22f;
             float tw = (w2 - 24f) / 4f, th = 46f;
-            LobbyKit.Tile(new Rect(x2, y2, tw, th), profile.QuickPlays.ToString(), "PLAYED", false);
-            LobbyKit.Tile(new Rect(x2 + (tw + 8f), y2, tw, th), profile.QuickWins.ToString(), "WON", false);
-            LobbyKit.Tile(new Rect(x2 + 2f * (tw + 8f), y2, tw, th), profile.QuickBestWave > 0 ? profile.QuickBestWave.ToString() : "-", "BEST WAVE", false);
-            LobbyKit.Tile(new Rect(x2 + 3f * (tw + 8f), y2, tw, th), profile.QuickBosses.ToString(), "BOSSES", false);
+            QuickRecord(new Rect(x2, y2, tw, th), profile.QuickPlays.ToString(), "PLAYED");
+            QuickRecord(new Rect(x2 + (tw + 8f), y2, tw, th), profile.QuickWins.ToString(), "WON");
+            QuickRecord(new Rect(x2 + 2f * (tw + 8f), y2, tw, th), profile.QuickBestWave > 0 ? profile.QuickBestWave.ToString() : "-", "BEST WAVE");
+            QuickRecord(new Rect(x2 + 3f * (tw + 8f), y2, tw, th), profile.QuickBosses.ToString(), "BOSSES");
 
             // The models of the bosses you've met (and the Warden on a first run).
             if (BeginUiGl())
