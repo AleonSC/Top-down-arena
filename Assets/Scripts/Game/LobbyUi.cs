@@ -72,8 +72,6 @@ namespace Arena
             }
             if (!quick && lobbyTab == QuickTab)
                 lobbyTab = 0;
-            if (practice && lobbyTab == PerkTab)
-                lobbyTab = 0;  // perks are off in the Practice Range
             // The big boxes wear the shown role's colour (the bot's while the host is choosing its loadout), easing to a new role over about 0.7 s.
             LobbyEntry washFor = me;
             var washBot = session.IsHost ? partyBots.Find(editBotId) : null;
@@ -164,7 +162,7 @@ namespace Arena
                 DrawModifiers(body, t);
             else if (lobbyTab == 3)
                 DrawDifficulty(body, t);  // DifficultyUi.cs
-            else if (lobbyTab == PerkTab && !practice)
+            else if (lobbyTab == PerkTab)
                 DrawPerks(body, t);  // PerksUi.cs
             else if (lobbyTab == HangoutTab)
                 DrawHangout(body, t);  // LobbyRoom.cs
@@ -689,7 +687,7 @@ namespace Arena
             }  // (LobbyRoom.cs: the Hangout grows out of this window)
             // The role / class title (look B: the role small over the class), then the stats.
             DrawRoleClassTitle(new Rect(lx, view.yMax + 8f, lw, 58f), me, roleColor, calm);
-            if (self && !session.PracticeMode && session.Resume == null)
+            if (self && session.Resume == null)
                 DrawPerksKey(new Rect(lx, view.yMax + 8f, lw, 58f), calm);  // PerksUi.cs: opens the Perks view
             int hp = (int)(Defs.Get(me.Role).Hp * Defs.KitHpMult(me.Kit));
             var wdef = Defs.Weapon(me.Role, me.Kit, me.Weapon);

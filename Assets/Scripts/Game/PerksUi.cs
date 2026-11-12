@@ -66,8 +66,10 @@ namespace Arena
                 ? "Perks bend the rules for a run: one per boss, a few slots. Win a Boss Hunt to unlock that boss's perks."
                 : "You're continuing a saved run, so everyone keeps the perks they had when it was saved.";
             Ui.Label(new Rect(lx, ny, lw, 70f), blurb, 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
+            if (session.PracticeMode && canEdit)  // you can set them up here, but the Practice Range plays without them
+                Ui.Label(new Rect(lx, ny + 48f, lw, 36f), "Perks are off in the Practice Range: they apply to your next real run.", 12, Ui.Gold, TextAnchor.UpperLeft, true, true);
             if (Time.unscaledTime < perkNoteUntil)
-                Ui.Label(new Rect(lx, ny + 72f, lw, 36f), perkNote, 12, Ui.Gold, TextAnchor.UpperLeft, true, true);
+                Ui.Label(new Rect(lx, ny + (session.PracticeMode ? 96f : 72f), lw, 36f), perkNote, 12, Ui.Gold, TextAnchor.UpperLeft, true, true);
 
             // --- Right: the perks
             float x = r.x + 274f, w = r.xMax - 18f - x;
