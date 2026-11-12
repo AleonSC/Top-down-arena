@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1/1]
+        shard: [1/2, 2/2]
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/install-mono
