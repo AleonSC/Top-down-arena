@@ -93,7 +93,8 @@ namespace Arena
         }
 
         /// This wave's breaches on this map (empty for a map with no outer wall to break).
-        public static Breach[] For(World w, int wave)
+        /// With `accept`, a spot it turns down is dropped and another rolled (the random numbers are still the same on every machine).
+        public static Breach[] For(World w, int wave, Func<Breach, bool> accept = null)
         {
             var cand = Candidates(w);
             int seed = wave * 7919 + w.Areas.Length * 131;
@@ -119,6 +120,11 @@ namespace Arena
                     if (pick <= 0f) { at = i; break; }
                 }
                 var b = cand[at].Key;
+                if (accept != null && !accept(b))
+                {
+                    cand.RemoveAt(at);  // (no room behind this wall: it is not a spot)
+                    continue;
+                }
                 picked.Add(b);
                 cand.RemoveAll(c => c.Key.Pos.DistanceTo(b.Pos) < Apart);
             }
@@ -185,6 +191,23 @@ namespace Arena
             breachPinned = true;
         }
 
+        /// A breach may only open where a Stash fits behind its wall (Docs/BreachRooms.md): each spot is tried against the map plus the Stashes
+        /// already given to the breaches picked before it, so they all fit together. Anything goes on a map near its size cap (no Stashes there).
+        Func<Breach, bool> StashAccept()
+        {
+            if (Expansion.BoughtCount(Expanded) > Expansion.MaxRooms - 2)
+                return null;
+            var built = new List<ExpansionRoom>(Expanded);
+            return b =>
+            {
+                var opts = Expansion.SurpriseOptions(built, SurpriseShape.Stash, b.Pos - b.In * BreachEvent.Behind);
+                if (opts.Count == 0)
+                    return false;
+                built.AddRange(opts[0].Rooms);
+                return true;
+            };
+        }
+
         /// This wave's breaches (empty while they're off).
         public Breach[] ActiveBreaches
         {
@@ -196,7 +219,7 @@ namespace Arena
                 if (breachCache == null || breachWave != Wave || (!breachPinned && breachWorld != w))
                 {
                     breachPinned = false;
-                    breachCache = Breaches.For(w, Wave);
+                    breachCache = Breaches.For(w, Wave, StashAccept());
                     breachUsed = new int[breachCache.Length];
                     breachWorld = w;
                     breachWave = Wave;
