@@ -65,7 +65,8 @@ namespace Arena
             if (left > timedTotal)
                 timedTotal = left;  // (something added to the queue mid-wave)
             int spawned = timedTotal - left;
-            if (spawned < (int)Math.Ceiling(TimedWaves.Share(timedClock / TimedWaves.WindowFor(Wave)) * timedTotal) && Foes() < (BreachesOn ? (int)(TimedWaves.AliveCap(Wave) * Breaches.AliveScale) : TimedWaves.AliveCap(Wave)))
+            int cap = (int)Math.Ceiling(TimedWaves.AliveCap(Wave) * ExpansionScale);  // (a bigger Expanding map holds a bigger crowd: ExpansionGame.cs)
+            if (spawned < (int)Math.Ceiling(TimedWaves.Share(timedClock / TimedWaves.WindowFor(Wave)) * timedTotal) && Foes() < (BreachesOn ? (int)(cap * Breaches.AliveScale) : cap))
             {
                 if (!SpawnNextSquad())
                 {
