@@ -77,9 +77,9 @@ namespace Arena
                     new WaveLesson { Teaches = "Security Guards' aimed tracers (its aimed fans)", Trickle = true, Star = EnemyType.SecurityGuard, Members = new[] { M(EnemyType.Rioter, 2f), M(EnemyType.SecurityGuard, 2f) }, Squads = new[] { "Patrol" } },
                     new WaveLesson { Teaches = "Riot Shields: flank them (its riot shield)", Trickle = true, Star = EnemyType.RiotShield, Members = new[] { M(EnemyType.RiotShield, 2f), M(EnemyType.Rioter, 2f), M(EnemyType.SecurityGuard, 1f) }, Squads = new[] { "Cell block" } },
                     new WaveLesson { Teaches = "Tear gas, and shields shoving you into it", Trickle = true, Star = EnemyType.GasGrenadier, Members = new[] { M(EnemyType.GasGrenadier, 2f), M(EnemyType.RiotShield, 2f), M(EnemyType.Rioter, 1f) } },
-                    new WaveLesson { Teaches = "A recap of everything so far", Members = new[] { M(EnemyType.Rioter, 2f), M(EnemyType.Guard, 2f), M(EnemyType.SecurityGuard, 1f), M(EnemyType.RiotShield, 1f), M(EnemyType.GasGrenadier, 1f) }, Squads = new[] { "Breakout" } },
+                    new WaveLesson { Teaches = "A recap of everything so far, and the Thugs join the yard", Trickle = true, Star = EnemyType.Thug, Members = new[] { M(EnemyType.Rioter, 2f), M(EnemyType.Guard, 2f), M(EnemyType.Thug, 1.5f), M(EnemyType.SecurityGuard, 1f), M(EnemyType.RiotShield, 1f), M(EnemyType.GasGrenadier, 1f) }, Squads = new[] { "Breakout", "Yard" } },
                     new WaveLesson { Teaches = "Taser Guards: stuns, and parrying the Fork Bolt back", Trickle = true, Star = EnemyType.TaserGuard, Members = new[] { M(EnemyType.TaserGuard, 2.5f), M(EnemyType.Rioter, 2f), M(EnemyType.Guard, 1f) } },
-                    new WaveLesson { Teaches = "Tasers, shields and gas together (the searchlight turn)", Star = EnemyType.TaserGuard, Members = new[] { M(EnemyType.TaserGuard, 1.5f), M(EnemyType.RiotShield, 1.5f), M(EnemyType.GasGrenadier, 1.5f), M(EnemyType.Rioter, 1f) }, Squads = new[] { "Cell block" } },
+                    new WaveLesson { Teaches = "Tasers, shields and gas together (the searchlight turn), and the Shivs lunge in", Trickle = true, Star = EnemyType.Shiv, Members = new[] { M(EnemyType.TaserGuard, 1.5f), M(EnemyType.RiotShield, 1.5f), M(EnemyType.GasGrenadier, 1.5f), M(EnemyType.Rioter, 1f), M(EnemyType.Thug, 1f), M(EnemyType.Shiv, 1.5f) }, Squads = new[] { "Cell block", "Yard" } },
                     new WaveLesson { Teaches = "Squads: Breakout, Patrol, Cell block", Members = new[] { M(EnemyType.Rioter, 1f), M(EnemyType.Guard, 1f) }, Squads = null, SquadChance = 0.9f },
                     new WaveLesson { Teaches = "Everything, tighter", Members = null, Squads = null, SquadChance = 0.75f },
                     new WaveLesson { Teaches = "The exam: the Riot line with everything", Members = null, Squads = null, Finale = true },
@@ -192,6 +192,20 @@ namespace Arena
             return from.Squads[(int)((h >> 16) % (uint)from.Squads.Length)];
         }
 
+        /// A comeback squad as it turns up in a late wave: its members twice over and the faction's toughest enemy as an anchor,
+        /// so an old squad is a real event (a Breakout of 12 Rioters and a Guard, with a Riot Shield at the back). Docs/Approaches.md.
+        public static SquadDef Callback(SquadDef sq, FactionDef from)
+        {
+            var members = new List<EnemyType>(sq.Members);
+            members.AddRange(sq.Members);
+            EnemyType anchor = sq.Members[0];
+            float hp = 0f;
+            foreach (var m in from.Members)
+                if (Defs.Get(m.Type).Hp > hp) { hp = Defs.Get(m.Type).Hp; anchor = m.Type; }
+            members.Add(anchor);
+            return new SquadDef { Name = sq.Name, From = sq.From, Form = sq.Form, Members = members.ToArray() };
+        }
+
         /// Is this type one of a faction's (for the Bestiary and the Practice Range)?
         public static FactionDef Of(EnemyType t) => Array.Find(All, f => Array.Exists(f.Members, m => m.Type == t));
     }
@@ -277,8 +291,9 @@ namespace Arena
                 }
                 if (cb != null)
                 {
-                    approachSquads.Add(cb);
-                    count -= Math.Min(count, cb.Members.Length);
+                    var big = Approaches.Callback(cb, cbFrom);  // (a callback: the old squad, big)
+                    approachSquads.Add(big);
+                    count -= Math.Min(count, big.Members.Length);
                 }
                 return;
             }
