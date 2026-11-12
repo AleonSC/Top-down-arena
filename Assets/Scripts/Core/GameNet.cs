@@ -578,6 +578,8 @@ namespace Arena
             s.Int(ref p.TwinLock);
             s.Byte(ref p.AmmoMove);     // Out of Ammo's knife chain, swats and spin (OutOfAmmo.cs)
             s.Byte(ref p.AmmoSeq);
+            s.Byte(ref p.KnifeMove);
+            s.Byte(ref p.KnifeSeq);
             s.Byte(ref p.SwatSeqL);
             s.Byte(ref p.SwatSeqR);
             s.Float(ref p.SwatAngL);

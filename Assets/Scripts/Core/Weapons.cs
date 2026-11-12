@@ -450,7 +450,7 @@ namespace Arena
                     }
                     break;
                 }
-                case WeaponId.OutOfAmmo:  // (it works on its own, TickOutOfAmmo; this is for anything that fires the weapon by hand: the next move of the chain)
+                case WeaponId.OutOfAmmo:  // (it works on its own, TickOutOfAmmo; this is for anything that fires the weapon by hand: the next move of the rifle arms)
                     if (p.AmmoMove == 0)
                         AmmoStart(p);
                     break;

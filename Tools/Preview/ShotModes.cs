@@ -182,6 +182,13 @@ static partial class Shot {
         Perks.Equip(pp, PerkId.RiotGear);
         host.Lobby[1].PerkIds = new[] { PerkId.RiotGear }; if (host.Lobby.ContainsKey(2)) host.Lobby[2].PerkIds = new[] { PerkId.RiotGear };
       }
+      if (Environment.GetEnvironmentVariable("QUICKMET") != null) {
+        // The Quick Play tab with a played profile: QUICKMET=<bosses beaten, in the Campaign's order> (QuickPlayUi.cs).
+        var qp = new Profile { QuickPlays = 4, QuickWins = 3, QuickBestWave = 23, QuickBosses = 5, TutorialDone = true };
+        int qn = int.Parse(Environment.GetEnvironmentVariable("QUICKMET"));
+        for (int i = 0; i < qn; i++) qp.BossBeaten(BossSchedule.Campaign.BossAt((i + 1) * 5), 0);
+        host.Game.ProfileOverride = qp;
+      }
       if (Environment.GetEnvironmentVariable("LOBBYTAB") != null) { set("lobbyTab", int.Parse(Environment.GetEnvironmentVariable("LOBBYTAB"))); host.Modifiers = RunMod.GlassCannon | RunMod.Frenzy | RunMod.Lucky | RunMod.Hunted | RunMod.SecondWind; }
       // MODSCROLL=<px>: the Modifiers tab's list scrolled down (e.g. 420 shows the Risky tier, Simple Arena among it).
       if (Environment.GetEnvironmentVariable("MODSCROLL") != null) set("modsScroll", float.Parse(Environment.GetEnvironmentVariable("MODSCROLL")));

@@ -216,10 +216,13 @@ namespace Arena
                 if (p.Offer == null)
                     NextOffer(p);
             }
-            if (BossSlot && Hunt == null && !Quick)  // (Quick Play: no paths)
+            if (BossSlot && Hunt == null)
             {
                 if (!ExpandingOn)
-                    OfferPaths();  // after a boss: two paths for the next stretch (the Expanding arena has no paths)
+                {
+                    if (!Quick)
+                        OfferPaths();  // after a boss: two paths for the next stretch (not in Quick Play; the Expanding arena has none)
+                }
                 else
                     GiveSurpriseRoom();  // ...but a free, well-shaped room that closes a loop (ExpansionGame.cs, Docs/SurpriseRooms.md)
             }

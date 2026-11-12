@@ -172,7 +172,7 @@ your weapon. Per extra projectile:
 | | **Railgun** | Slow shots (45) that pierce 3; the path stays charged for 1 s behind the round, hurting anything in it (25 a second) | Throws 2 shrapnel shards sideways at every enemy it pierces |
 | | **Burst SMG** | Very fast spray (5) that spins up as you keep firing: over 2 s the spray tightens from 9° to 2° either side and damage climbs to +60%; it winds down in 0.6 s when you stop | +1 bullet per shot (half damage) and a wider spray |
 | | **Twin Rifle Auto** (the Twin Rifle's variant: open its Variants window in the lobby and Equip it) | The Twin Rifle with the trigger taken away. Both rifles are held out to your sides and turn on their own: each aims at the nearest enemy on its side of you (left of your facing, right of your facing; a side with nobody on it borrows the other gun's target) and fires at it (4 a round, every 0.125 s) with a clear line, out to about 380 px (the Twin Rifle reaches about 530). A thin laser from each muzzle shows its range and what it is on: it ends in a cap where the range ends and a dot on the first enemy in its way. You can't shoot, and there are no grenades. **Alt** locks both rifles onto the enemy nearest your cursor (within 260 px of it) until it dies or you press Alt again: both streams then meet on it, so every round is crossfire (1.5×). A red reticle turns round the locked enemy and a thin tether runs from each muzzle. Same guns, shots, brass and heat as the Twin Rifle. Unlocked for testing | +1 round per gun, fanned a little |
-| | **Out of Ammo** (the Twin Rifle's second variant: open its Variants window in the lobby and Equip it) | The rifles are lashed to your forearms and don't shoot, and a knife is in your right hand. **Swat:** each rifle knocks the nearest enemy bullet within 72 px out of the air (one each, then a half-second recovery, so two at a time; the red unblockable shots still hit). **Knife chain:** with an enemy within 78 px in front of you (about 57° either side of your facing) a five-move chain runs by itself: left bash (10), cross cut (12), right bash (10), reverse cut (12), then a **rifle clap** (35 to everything in front, a shockwave and a hard shove); it starts again if nothing is close for half a second. **Alt: spin** for 1.2 s: you cut everything within 88 px every 0.2 s for 14 and shove it out, and every enemy bullet that touches the spin is swatted with no limit; 6 s cooldown. Unlocked for testing | +50% damage on every strike and spin tick |
+| | **Out of Ammo** (the Twin Rifle's second variant: open its Variants window in the lobby and Equip it) | Two sets of arms. The **rifle arms** out at your sides work on their own and don't shoot: each swats the nearest enemy bullet within 72 px out of the air (one each, then a half-second recovery, so two at a time; the red unblockable shots still hit), and with an enemy within 78 px in front of you (about 57° either side of your facing) they bash in turn: left (10), right (10), left (10), then a **rifle clap** (35 to everything in front, a shockwave and a hard shove), and round again. **Your own arms** hold a **knife**, by hand: hold fire for a three-hit chain, cross cut (12), reverse cut (12), lunging stab (20, a step in and a small shove), as extra damage on top of the rifles. **Alt: spin** for 1.2 s: you cut everything within 88 px every 0.2 s for 14 and shove it out, and every enemy bullet that touches the spin is swatted with no limit; 6 s cooldown. Hits throw sparks and a flash, the blade and the rifles leave ribbons, the stab leaves afterimages and the clap cracks the floor. Unlocked for testing | +50% damage on every strike and spin tick |
 | DPS · Elementalist | **Fireball** | A big, slow fireball that rolls through every enemy in its path (32 each), setting them burning (8 a second for 3 s) | +1 fireball, fanned out |
 | | **Arc Lightning** | Hold to charge a slight cone of lightning in front of you (36 px wide at your staff, 120 px at its far end), 160 px long for a tap out to half the arena at full; let go and everything in it is shocked (40, 0.4 s stun) | +25% damage |
 | | **Ice Shards** | Each cast puts 3 shards of ice (7) into orbit round you (up to 6); they launch, homing, at enemies within 300 px, one every 0.08 s. With the orbit full, a cast flies at your aim | +1 shard a cast, +2 in orbit, and faster launches |
@@ -801,7 +801,7 @@ wave, everyone gets a shop before the boss:
 
 ## Expanding arena
 
-**The Campaign's arena**: every new Campaign is played here (the **Simple Arena** modifier keeps the open arena
+**The Campaign's and Quick Play's arena**: every new Campaign and Quick Play is played here (the **Simple Arena** modifier keeps the open arena
 instead; Boss Hunts, the Practice Range and runs saved before the Campaign use the open arena). Design:
 [`Docs/ExpandingArena.md`](Docs/ExpandingArena.md). It starts as the plain Classic box and grows as you play:
 
@@ -1075,6 +1075,9 @@ on top (Tough Crowd, Frenzy, Swift Foes, Glass Cannon...).
 
 **The lobby's first mode, and where a new profile starts.** In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt** or
 **Practice** on the mode carousel; the lobby opens next time on the mode the host last picked (a new profile: Quick Play).
+Picking it opens the lobby's **Quick Play** tab: the run's shape (ten waves, the boss, endless), its rules, your Quick Play
+records (played, won, best wave, bosses), and **the boss pool**: a tile for each of the ten bosses, with its model and name once
+you've beaten it anywhere, a **???** until then (on your first Quick Play the Warden shows, marked FIRST).
 
 - **Ten waves, then a random boss** as its own fight after wave 10 (like the Campaign's boss after a wave: it doesn't use up a
   wave number). The HUD counts the waves n / 10. **Your first Quick Play always ends on the Warden**; after that the boss is
@@ -1086,7 +1089,16 @@ on top (Tough Crowd, Frenzy, Swift Foes, Glass Cannon...).
   endless has more). The boost for strong builds still applies on top.
 - **Win, then end or keep going.** Beating the boss is **QUICK PLAY CLEAR!**; the host can **Keep going [C]** into endless: ten
   more waves and a new random boss, after wave 20, 30, ... for as long as the party lasts.
-- **No paths, Data Gates, lives or saving** (the open arena; room building comes in a later step).
+- **Room building:** Quick Play is played on the **Expanding arena** (below), as the Campaign is: vectors, a build round after
+  every wave from wave 1, the vote, and a free surprise room after each boss. Vectors come in at the full rate (+8 a wave, not
+  the Campaign's half), so a party builds about one room a wave. The **Simple Arena** modifier keeps the open arena.
+- **The tutorial:** a profile's first Quick Play shows a prompt at the top left that ticks off as you go, in five lessons:
+  **The basics** (move, aim, shoot, dodge), **Level up** (pick a card), **Your kit** (your ability, the parry shield),
+  **Build a room** (open Build rooms, draw a room, vote it in) and **Gold and the shop** (collect gold, walk into a shop or
+  vendor room once one is connected). Steps count in any order; each shows your own key. **SKIP** ends it. It's only on your
+  own screen (a friend's first run shows theirs), never holds the wave, and never comes back once done, skipped, or once your
+  first Quick Play is over.
+- **No paths, Data Gates, lives or saving.**
 - **Records:** full rank XP and Cores, bosses count as beaten (unlocks and Boss Hunts), and Quick Play keeps its own plays,
   wins, best wave and bosses beaten (not counted as runs). Falling in endless adds the stretch after the win.
   Plan: `Docs/QuickPlay.md`.

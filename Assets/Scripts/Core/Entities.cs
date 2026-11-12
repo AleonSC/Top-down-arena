@@ -277,7 +277,11 @@ namespace Arena
         public float TwinAimL, TwinAimR;  // Twin Rifle Auto: each gun's heading relative to your facing, radians, + toward your right (replicated; TwinAuto.cs)
         public int TwinLock;         // Twin Rifle Auto: the enemy id both guns are locked on, 0 none (replicated)
         public float TwinAutoCd;     // host: Alt can't lock or let go again for this long
-        public byte AmmoMove, AmmoSeq;   // Out of Ammo: the knife chain's move running (1-5, 0 none) and a count that rises with every move started (replicated; OutOfAmmo.cs)
+        public byte AmmoMove, AmmoSeq;   // Out of Ammo: the rifle arms' move running (1-4: left bash, right bash, left bash, rifle clap; 0 none) and a count that rises with every move started (replicated; OutOfAmmo.cs)
+        public byte KnifeMove, KnifeSeq; // Out of Ammo: the knife's move running (1-3: cross cut, reverse cut, lunge stab; 0 none) and its count (replicated)
+        public int KnifeCombo;           // host: the next knife move, 0-2
+        public float KnifeT, KnifeIdle;  // host: seconds into the knife move, and since the last one
+        public bool KnifeHit;            // host: this knife move has landed
         public byte SwatSeqL, SwatSeqR;  // Out of Ammo: counts that rise with each rifle's swat (replicated)
         public float SwatAngL, SwatAngR; // Out of Ammo: the world angle each rifle last swatted at (replicated)
         public float AmmoSpin;           // Out of Ammo: seconds of Alt's spin left, 0 none (replicated)

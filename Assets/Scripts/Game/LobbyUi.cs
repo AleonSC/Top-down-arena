@@ -12,7 +12,7 @@ namespace Arena
         static readonly Color ModColor = new Color(0.85f, 0.45f, 0.95f);
 
         int lobbyTab;              // 0 = your loadout, 1 = practice waves, 2 = modifiers, 3 = difficulty, 4 = boss hunt, 5 = perks, 6 = hangout
-        bool lobbyWasPractice, lobbyWasHunt;
+        bool lobbyWasPractice, lobbyWasHunt, lobbyWasQuick;
         bool connInfoOpen;         // the "!" popup by the title: hosting/port and the invite addresses
         readonly Player previewPlayer = new Player { Id = -100 };
 
@@ -63,6 +63,15 @@ namespace Arena
                 lobbyWasHunt = hunt;
             }
             if (!hunt && lobbyTab == 4)
+                lobbyTab = 0;
+            bool quick = session.QuickMode && !practice && !hunt && session.Resume == null;
+            if (quick != lobbyWasQuick)
+            {
+                if (quick)
+                    lobbyTab = QuickTab;  // to the Quick Play tab when the host picks it (QuickPlayUi.cs)
+                lobbyWasQuick = quick;
+            }
+            if (!quick && lobbyTab == QuickTab)
                 lobbyTab = 0;
             if (practice && lobbyTab == PerkTab)
                 lobbyTab = 0;  // perks are off in the Practice Range
@@ -147,6 +156,8 @@ namespace Arena
                 DrawTraining(body, t);  // TrainingUi.cs
             else if (lobbyTab == 4 && hunt)
                 DrawHuntPicker(body, t);  // HuntUi.cs
+            else if (lobbyTab == QuickTab && session.QuickMode && !practice && session.Resume == null)
+                DrawQuickPlayTab(body, t);  // QuickPlayUi.cs
             else if (lobbyTab == 2)
                 DrawModifiers(body, t);
             else if (lobbyTab == 3)
@@ -307,10 +318,11 @@ namespace Arena
         {
             int mods = Modifiers.Count(session.Modifiers);
             bool hunt = session.HuntMode && !practice && session.Resume == null;
-            // Indexed by tab id (0 loadout, 1 practice, 2 modifiers, 3 difficulty, 4 boss hunt, 5 perks, 6 hangout); null = not shown.
+            // Indexed by tab id (0 loadout, 1 practice, 2 modifiers, 3 difficulty, 4 boss hunt, 5 perks, 6 hangout, 7 training, 8 quick play); null = not shown.
             string[] names = { session.Resume != null ? "Seats" : "Loadout", practice ? "Practice  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers",
-                "Difficulty", hunt ? "Boss hunt" : null, practice ? null : "Perks", null, practice ? "Training" : null };  // Hangout has its own key on the Party line
-            int[] order = { 0, PerkTab, 3, 2, 1, TrainingTab, 4 };
+                "Difficulty", hunt ? "Boss hunt" : null, practice ? null : "Perks", null, practice ? "Training" : null,
+                session.QuickMode && !practice && !hunt && session.Resume == null ? "Quick Play" : null };  // Hangout has its own key on the Party line
+            int[] order = { 0, PerkTab, 3, 2, 1, TrainingTab, 4, QuickTab };
             // A carousel (like the mode carousel above the party): the open tab in the middle, the others in order either side,
             // smaller and fading toward the ends; the arrows, the mouse wheel or a click on a tab slide it.
             var shown = new System.Collections.Generic.List<int>();
