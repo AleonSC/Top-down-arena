@@ -434,6 +434,77 @@ static partial class Program
     // weapon, no upgrades, firing for 10 s at a frozen boss-sized dummy (its companions and burning included). Weapons
     // you charge and release try a few hold times, ranged ones a few distances, and each keeps its best. "weapondps write" also writes
     // Assets/Scripts/Core/WeaponDps.Generated.cs.
+    // Where each weapon's damage lands in the session recording (SessionRecorder.SourceName): every weapon fires at a
+    // frozen dummy for 8 s, no upgrades. A weapon should credit nearly all of it to "Weapon: <name>"; summoner companions
+    // and lasting zones show as "Other". Prints the weapon share and the rest for each, lowest share first.
+    static void WeaponSourceReport(float dt)
+    {
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var rows = new List<KeyValuePair<float, string>>();
+        string folder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "arena-weaponsrc-" + Guid.NewGuid().ToString("N").Substring(0, 6));
+        for (int k = 0; k < Defs.KitCount; k++)
+            for (int r = 0; r < 3; r++)
+                for (int wi = 0; wi < Defs.WeaponLimit((Role)r, (Kit)k); wi++)
+                {
+                    var weapon = Defs.Weapon((Role)r, (Kit)k, wi);
+                    // A few hold times and distances (lobbed and looping weapons can miss a dummy at one range); the first that lands counts.
+                    Dictionary<string, float> src = null;
+                    foreach (float hold in Game.ChargeWeapon(weapon.Id) ? new[] { 0.6f, 0.3f, 1.2f } : new[] { 0f })
+                    foreach (float dist in weapon.Melee ? new[] { 1f } : new[] { 0.55f, 0.3f, 0.8f })
+                    {
+                        if (src != null && src.Count > 0)
+                            break;
+                        src = WeaponSources(dt, spawn, folder, (Role)r, (Kit)k, wi, weapon, hold, dist).DamageBySource(1);
+                    }
+                    float total = src.Values.Sum(), mine = 0f;
+                    src.TryGetValue("Weapon: " + weapon.Name, out mine);
+                    string rest = string.Join(", ", src.Where(kv => kv.Key != "Weapon: " + weapon.Name).OrderByDescending(kv => kv.Value)
+                        .Select(kv => string.Format("{0} {1:0}%", kv.Key, 100f * kv.Value / Math.Max(1f, total))));
+                    float share = total > 0f ? mine / total : 0f;
+                    rows.Add(new KeyValuePair<float, string>(share, string.Format("  {0,4:0}%  {1,-7} {2,-12} {3,-18} {4}", 100f * share, (Role)r, Defs.KitName((Kit)k), weapon.Name, total <= 0f ? "(no damage)" : rest)));
+                }
+        Console.WriteLine("  weapon share of its damage (lowest first), and where the rest went:");
+        foreach (var row in rows.OrderBy(x => x.Key))
+            Console.WriteLine(row.Value);
+        try { System.IO.Directory.Delete(folder, true); } catch { }
+    }
+
+    static SessionRecorder WeaponSources(float dt, System.Reflection.MethodInfo spawn, string folder, Role role, Kit kit, int wi, WeaponDef weapon, float hold, float dist)
+    {
+        var host = new Session { AutoStart = 1, StartWave = 3 };
+        host.Host(nextPort++, "A", role, wi, 0, kit);
+        host.StartMatch();
+        var g = host.Game;
+        for (int i = 0; i < 300 && !g.Running; i++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); }
+        var me = g.Players[1];
+        g.DevSetGod(1, true);
+        foreach (var e in g.Enemies.Values) e.Hp = 0f;
+        for (int f = 0; f < 3; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); }
+        var rec = g.Recorder = new SessionRecorder(folder);
+        rec.Begin(g, g.Wave);
+        rec.WaveStart(g, g.Wave, null);
+        var target = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Juggernaut, new V2(800f, 450f), 0f, 0, false });
+        target.Hp = target.MaxHp = 1e6f;
+        float range = weapon.Melee ? Game.MeleeRange(weapon.Id) * 0.7f + target.Radius : Math.Max(60f, Math.Min(440f, g.WeaponRange(me) * dist));
+        float held = 0f;
+        for (int f = 0; f < 60 * 8; f++)
+        {
+            target.Pos = new V2(800f, 450f); target.FrozenT = 1f;
+            if (!weapon.Melee || f % 30 == 0) me.Pos = new V2(800f - range, 450f);
+            foreach (var b in g.Bullets.Values.Where(b => Defs.IsEnemyShot(b.Kind)).ToList()) g.Bullets.Remove(b.Id);
+            foreach (var e in g.Enemies.Values) if (e != target) e.Hp = 0f;
+            bool fire = true, recall = false;
+            if (hold > 0f) { held += dt; if (held > hold) { fire = false; if (held > hold + 0.05f) held = 0f; } }
+            if (weapon.Id == WeaponId.Shuriken) { int c = f % 72; fire = c < 54; recall = c >= 58 && c < 62; }
+            if (weapon.Id == WeaponId.FumaShuriken) { recall = f == 5; me.Pos = new V2(800f - Game.FumaOrbitR, 450f); }  // the Orbit stance, the dummy on its circle
+            host.Poll();
+            g.FixedStep(dt, new PlayerInput { Fire = fire, WeaponAction = recall, AimAt = weapon.Id == WeaponId.SpiritChalk ? target.Pos + V2.FromAngle(f * 0.1f) * 8f : target.Pos });
+        }
+        g.Recorder = null;
+        host.Leave("");
+        return rec;
+    }
+
     static void MeasuredWeaponDps(float dt, bool write)
     {
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

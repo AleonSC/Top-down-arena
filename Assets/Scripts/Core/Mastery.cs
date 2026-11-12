@@ -52,7 +52,28 @@ namespace Arena
         float castPower = 1f;
         int castHits;
         AbilityId castId;      // the ability being cast right now (the balance test log credits its hits to it)
-        string dmgSrc;         // set around a bullet's hit: "weapon" or "shot" (null: not known; Combat.cs)
+        string dmgSrc;         // set around a hit: "weapon" or "shot" (null: not known; Combat.cs). A weapon's swings, beams,
+                               // lobbed shots and lasting hits that land after it fired are credited with CreditTo.
+
+        /// Credit the hits that follow to `src` ("weapon", "shot" or null); returns the old value, to put back after.
+        string CreditTo(string src)
+        {
+            string was = dmgSrc;
+            dmgSrc = src;
+            return was;
+        }
+
+        /// A weapon's own hit that isn't a bullet's (a thrown star coming back, a lance shove, a Fuma pass, an Ofuda ward):
+        /// the same as HurtEnemy, credited to the weapon in the session recording.
+        void WeaponHurt(Enemy e, float dmg, int attacker)
+        {
+            string was = CreditTo("weapon");
+            HurtEnemy(e, dmg, attacker);
+            dmgSrc = was;
+        }
+
+        /// "weapon" for the player's weapon's bullet, else "shot" (an ability's or summon's).
+        static string BulletSrc(Bullet b) => b.WeaponDmg ? "weapon" : "shot";
 
         void BeginCast(Player p, AbilityId id)
         {

@@ -149,6 +149,7 @@ namespace Arena
                 }
                 b.Pierce = p.Stats.Pierce;
             }
+            b.WeaponDmg = owner != 0 && (b.FromWeapon || dmgSrc == "weapon");
             var sent = new Bullet { Id = b.Id, Kind = kind, Owner = owner, Pos = pos, Vel = vel, AngVel = angVel, Life = life, FromBoss = fromBoss, Homing = homing };
             pendingSpawns.Add(sent);
             b.Sent = sent;  // a shape set after this (EnemyShot) goes out with it
@@ -279,17 +280,23 @@ namespace Arena
                 }
                 if (b.Kind == Defs.BoulderShot)
                 {
+                    string landSrc = CreditTo(BulletSrc(b));
                     LandBoulder(b);  // KitWeapons.cs
+                    dmgSrc = landSrc;
                     continue;
                 }
                 if (b.Kind == Defs.ClotShot)
                 {
+                    string landSrc = CreditTo(BulletSrc(b));
                     LandClot(b);  // BloodMage.cs
+                    dmgSrc = landSrc;
                     continue;
                 }
                 if (b.Kind == Defs.FlakShell)
                 {
+                    string landSrc = CreditTo(BulletSrc(b));
                     FlakAirburst(b);  // Weapons.cs
+                    dmgSrc = landSrc;
                     continue;
                 }
                 if (b.Ward)
@@ -428,9 +435,11 @@ namespace Arena
             ricochets.Clear();
             hops.Clear();
             ResolveSwings();  // Knight melee hits land first, through the same on-hit effects as bullets
+            string was = CreditTo("weapon");  // (the Hemomancer weapons below)
             ResolveBeams();   // then Vein Tether's beam ticks (BloodMage.cs)
             ResolveGrasps();  // Leech Tendrils' holds
             ResolveImplosions();  // and Implosions
+            dmgSrc = was;
             FindColCover();       // the Colossus's plates and pillars (Colossus.cs)
             FindEclipseMoon();    // the Eclipse's moon (Eclipse.cs)
             foreach (var b in Bullets.Values)
@@ -506,7 +515,7 @@ namespace Arena
                             if (b.StunBack && e.Type == EnemyType.Boss)
                                 StunWarden(e);  // its own stun shot, parried back (Warden.cs)
                             float hit = b.Dmg * NinjaHitMult(b.Owner, b.Kind, e) * PointBlankMult(b, e) * CrossfireMult(b, e) * RangeMult(b);  // Kunai and ambush bonuses (Ninja.cs); the Scattergun up close and the Twin Rifle's crossfire (Weapons.cs)
-                            dmgSrc = b.FromWeapon ? "weapon" : "shot";  // (what the balance test log credits the hit to)
+                            dmgSrc = BulletSrc(b);  // (what the balance test log credits the hit to)
                             HurtEnemy(e, hit, b.Owner);
                             dmgSrc = null;
                             if (b.Crossfire)
@@ -945,7 +954,7 @@ namespace Arena
                 p.Run.BiggestHit = Math.Max(p.Run.BiggestHit, dmg);
                 BloodLifesteal(p, e, Math.Min(dmg, Math.Max(0f, e.Hp)));
             }
-            Recorder?.DamageDealt(attacker, e, Math.Min(dmg, Math.Max(0f, e.Hp)), casting ? "ability:" + Upgrades.Ability(castId).Name : dmgSrc);
+            Recorder?.DamageDealt(attacker, e, Math.Min(dmg, Math.Max(0f, e.Hp)), casting ? "ability:" + Upgrades.Ability(castId).Name : dmgSrc ?? (firingWeapon ? "weapon" : null));
             if (WardenArmorTakes(e, ref dmg))
             {
                 e.Flash = 0.06f;

@@ -146,7 +146,7 @@ namespace Arena
             s.Delay = delay;
             s.Silent = silent;
             s.Sound = silent ? Sfx.None : sound;
-            pendingSwings.Add(s);
+            QueueSwing(s);
         }
 
         /// A sweep or spin (`at` null: round where you stand when it lands).
@@ -163,7 +163,7 @@ namespace Arena
             s.KatanaMove = 2;
             s.Delay = delay;
             s.Sound = sound;
-            pendingSwings.Add(s);
+            QueueSwing(s);
         }
 
         /// One of Senbon's slashes: a line across a point in the cone ahead.

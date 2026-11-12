@@ -42,7 +42,7 @@ namespace Arena
             s.HealHits = StaffJabHealHits;
             s.Sound = Sfx.SwingHeavy;
             s.Delay = StaffJabWind;
-            pendingSwings.Add(s);
+            QueueSwing(s);
         }
 
         /// Host, every tick: the jab's cooldown runs down, and stacks go when the staff is put away or the limit drops.

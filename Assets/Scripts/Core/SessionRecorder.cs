@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace Arena
@@ -12,7 +13,7 @@ namespace Arena
     /// the end. Tools/SessionReport/report.py summarizes one or many of them.
     public partial class SessionRecorder
     {
-        public const int FormatVersion = 4;  // 4: balance test runs ("test", damage by source, shots, enemy health); 3: per-player "near" in the samples (Docs/Rooms.md); 2: mode, endless, paths, dev tools, healing received, final loadouts
+        public const int FormatVersion = 5;  // 5: "healthSpent"/"healthSpentOn" (blood costs, out of damage taken), melee and beam weapon hits credited to the weapon; 4: balance test runs ("test", damage by source, shots, enemy health); 3: per-player "near" in the samples (Docs/Rooms.md); 2: mode, endless, paths, dev tools, healing received, final loadouts
         public readonly string Path;
         public bool Ended { get; private set; }
 
@@ -34,6 +35,8 @@ namespace Arena
             public readonly Dictionary<string, float> Src = new Dictionary<string, float>();  // damage to enemies by source (format 4)
             public readonly Dictionary<string, int> SrcHits = new Dictionary<string, int>();
             public int ShotsFired, ShotsHit, InstantHits;
+            public float HealthSpent;  // health paid for your own blood weapons and abilities (format 5; not in DmgTaken)
+            public readonly Dictionary<string, float> SpentOn = new Dictionary<string, float>();
         }
 
         class WaveRec
@@ -441,6 +444,37 @@ namespace Arena
                     b.PlayerDmgTaken += amount;
         }
 
+        /// Health a player paid on purpose (Hemomancer and Blood Mage costs: Vein Tithe, Blood Wall, Clot Cannon, ...).
+        /// Kept apart from damage taken, so the difficulty numbers only count what enemies did.
+        public void HealthSpent(Player p, float amount, string what)
+        {
+            if (amount <= 0f)
+                return;
+            var pw = Pw(p.Id);
+            if (pw == null)
+                return;
+            pw.HealthSpent += amount;
+            Add(pw.SpentOn, what ?? "other", amount);
+        }
+
+        /// Test hook: a player's health spent and damage taken, summed over every recorded wave.
+        public float HealthSpentBy(int playerId) => waves.Sum(w => w.Players.ContainsKey(playerId) ? w.Players[playerId].HealthSpent : 0f);
+        public float DamageTakenBy(int playerId) => waves.Sum(w => w.Players.ContainsKey(playerId) ? w.Players[playerId].DmgTaken : 0f);
+
+        /// Test hook: a player's damage to enemies by source, summed over every recorded wave.
+        public Dictionary<string, float> DamageBySource(int playerId)
+        {
+            var sum = new Dictionary<string, float>();
+            foreach (var w in waves)
+            {
+                PlayerWave pw;
+                if (w.Players.TryGetValue(playerId, out pw))
+                    foreach (var kv in pw.Src)
+                        Add(sum, kv.Key, kv.Value);
+            }
+            return sum;
+        }
+
         public void Downed(Game g, Player p, string source)
         {
             downs.Add(new DownRec { Player = p.Id, Wave = g.Wave, Time = g.RunTime, Source = source });
@@ -627,6 +661,7 @@ namespace Arena
                     j.Key(kv.Key.ToString()); j.Open();
                     j.Field("damageDealt", pw.DmgDealt); j.Field("damageToBosses", pw.DmgToBosses); j.Field("kills", pw.Kills);
                     j.Field("damageTaken", pw.DmgTaken); j.Key("damageTakenFrom"); j.Map(pw.TakenBy);
+                    j.Field("healthSpent", pw.HealthSpent); j.Key("healthSpentOn"); j.Map(pw.SpentOn);
                     j.Field("healingDone", pw.Healing); j.Field("orbs", pw.Orbs); j.Field("orbHealing", pw.OrbHealing);
                     j.Field("healingReceived", pw.HealingReceived); j.Key("healingReceivedFrom"); j.Map(pw.HealedBy);
                     j.Field("downs", pw.Downs); j.Field("revives", pw.Revives); j.Field("lowHpSeconds", pw.LowHpTime);

@@ -90,7 +90,7 @@ namespace Arena
             s.Twin = true;
             s.TwinKind = (byte)step;
             s.Sound = sound;
-            pendingSwings.Add(s);
+            QueueSwing(s);
             return s;
         }
 
@@ -163,7 +163,7 @@ namespace Arena
         void FangHurt(Player p, Enemy e, float dmg, V2 from)
         {
             V2 dir = e.Pos - from;
-            HurtEnemy(e, dmg, p.Id);
+            WeaponHurt(e, dmg, p.Id);
             OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir.IsZero ? new V2(1f, 0f) : dir.Normalized(), Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
         }
 

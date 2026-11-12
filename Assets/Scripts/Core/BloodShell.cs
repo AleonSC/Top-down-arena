@@ -40,7 +40,7 @@ namespace Arena
                 EndShell(p, true);
             else
             {
-                PayHealth(p, ShellDrain * dt);
+                PayHealth(p, ShellDrain * dt, "Blood Shell");
                 if (p.Hp <= p.MaxHp * ShellPopFrac + 0.01f)
                     EndShell(p, true);
             }
@@ -80,7 +80,7 @@ namespace Arena
         {
             float cost = ShellCost * (float)Math.Pow(0.75, p.Stats.ShellBonus);
             float heal = ShellHeal * (1f + 0.5f * p.Stats.ShellBonus) * p.ShellPower;
-            PayHealth(p, cost);
+            PayHealth(p, cost, "Blood Shell");
             foreach (var q in Players.Values)
                 if (q != p && !q.Downed && q.Pos.DistanceTo(p.Pos) < ShellRadius)
                     Heal(q, heal, p);
