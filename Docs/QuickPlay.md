@@ -1,6 +1,6 @@
 # Quick Play (and the first-run tutorial)
 
-Status: **steps 0-3 built** (the boss schedule; the mode, waves, bosses, records and endless, protocol 297; room building; the tutorial); step 4 planned (owner's decisions, Nov 12, 2026). Build one step at a time on "start on step N".
+Status: **all steps built** (Nov 12, 2026): the boss schedule; the mode, waves, bosses, records and endless (protocol 297); room building; the tutorial; the lobby tab (owner's decisions, Nov 12, 2026). Build one step at a time on "start on step N".
 
 ## What it is
 
@@ -53,7 +53,9 @@ recorded (`Profile.TutorialDone`). Not for bots, replays, the Boss Lab or the lo
    vectors between 12 and 61 (never stuck at the cap), so no tuning.
 3. **Tutorial** (built, Nov 12; no protocol change): `Core/Tutorial.cs` (the steps, what counts as done), `Game/TutorialUi.cs`
    (the prompt), `Profile.TutorialDone`, SKIP; preview `TUTORIAL=<lesson>,<steps done> shot.sh <name> hud`.
-4. **Polish**: README section, lobby dossier for Quick Play (the boss bag shown as "???" until met), preview shots.
+4. **Polish** (built, Nov 12; no protocol change): the lobby's **Quick Play** tab (`Game/QuickPlayUi.cs`, tab 8, opens when the
+   host picks the mode): the run's ladder, its rules, your records, and the boss pool (a boss beaten anywhere shows its model and
+   name, the others "???"; the Warden marked FIRST on a first play). Previews: `shot.sh <name> lobby`, `QUICKMET=4` for a played profile.
 
 ## Built in step 1
 
