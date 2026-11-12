@@ -51,6 +51,13 @@ static partial class Program
         queue.Clear(); g.Enemies.Clear(); g.Bullets.Clear();
         var dummy = Dummy(new V2(from.X + 60f, from.Y));
 
+        // A close-in hit dazes: after the first bash lands the enemy can't attack for a moment.
+        Step(0.3f, false, dummy.Pos);
+        Check(dummy.DazeT > 0f || dummy.DazeImmuneT > 0f, "a bash dazes the enemy (" + dummy.DazeT.ToString("0.00") + " s, immune " + dummy.DazeImmuneT.ToString("0.00") + ")");
+        Step(0.1f, false, dummy.Pos);
+        me.AmmoMove = 0; me.AmmoCombo = 0; me.AmmoIdle = 0f; g.Enemies.Clear(); moves.Clear(); knife.Clear();
+        dummy = Dummy(new V2(from.X + 60f, from.Y));
+
         // The rifle arms, with no trigger pulled: left, right, left, then the clap.
         Step(3.2f, false, dummy.Pos);
         Check(!g.Bullets.Values.Any(b => b.Owner == 1), "nothing is shot");

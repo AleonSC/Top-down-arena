@@ -16,6 +16,8 @@ namespace Arena
             public int Move, KMove;
             public float T0 = -99f, KT0 = -99f, SwT0L = -99f, SwT0R = -99f;
             public bool Fired, KFired;
+            public float ClapT = -99f, ClapAim;  // when the last clap landed, and the way you faced (the burst and the cone are drawn from here)
+            public V2 ClapAt;
         }
 
         class AmmoPose
@@ -223,9 +225,14 @@ namespace Arena
                 bool clap = m == 3;
                 V2 at = p.Disp + dir * (p.Def.BodyR + 46f) + dir.Orthogonal() * (m == 0 || m == 2 ? 6f : m == 1 ? -6f : 0f);
                 var col = clap ? new Rgba(1f, 0.76f, 0.24f) : new Rgba(0.25f, 0.88f, 0.91f);
-                Sparks(at, col, clap ? 30 : 12, clap ? 320f : 220f, 0.3f, 1.8f);
-                Ring(at, clap ? 78f : 26f, clap ? 0.5f : 0.26f, col);
-                AddPart(new Part { Kind = PFlash, Pos = at, Life = 0.09f, Max = 0.09f, Size = clap ? 26f : 14f, Col = Rgba.White });
+                Sparks(at, col, clap ? 26 : 12, clap ? 320f : 220f, 0.3f, 1.8f);
+                if (!clap)
+                    Ring(at, 26f, 0.26f, col);
+                else
+                {
+                    s.ClapT = now; s.ClapAim = p.Aim; s.ClapAt = p.Disp + dir * (p.Def.BodyR + 40f);  // (the ring burst and the cone, DrawAmmoClap)
+                }
+                AddPart(new Part { Kind = PFlash, Pos = at, Life = 0.09f, Max = 0.09f, Size = clap ? 15f : 14f, Col = Rgba.White });
                 if (clap && p.Id == game.MyId)
                     Shake(0.3f);
             }
@@ -262,6 +269,80 @@ namespace Arena
             }
         }
 
+        /// The clap's aftermath, drawn from where and when it landed (about a second): a white flash, a dome of force and two thick glowing rings
+        /// (the ring burst), dust boiling outward, and a forward cone of chevron waves with speed streaks and a spark spray.
+        void DrawAmmoClap(AmmoSeen s, float now)
+        {
+            float tt = now - s.ClapT;
+            if (tt < 0f || tt > 1.3f)
+                return;
+            V2 c = s.ClapAt, dir = V2.FromAngle(s.ClapAim), side = dir.Orthogonal();
+            // the floor scorch
+            float sc = Mathf.Clamp01(tt / 0.12f), sf = 1f - Mathf.Clamp01((tt - 0.4f) / 0.9f);
+            Circle(c + dir * 14f, 58f * sc, new Rgba(0.1f, 0.06f, 0.03f, 0.45f * sf), 26);
+            // dust
+            for (int k = 0; k < 14; k++)
+            {
+                float d = Mathf.Clamp01(tt / 0.9f), a = k * 0.449f + (k * 37 % 10) * 0.03f, dist = Mathf.Lerp(8f, 78f + (k * 53 % 10) * 4f, d * (2f - d)), r = Mathf.Lerp(5f, 20f, d) * (1f + (k * 29 % 10) * 0.07f);
+                Circle(c + V2.FromAngle(a) * dist, r, new Rgba(0.68f, 0.64f, 0.6f, 0.3f * (1f - d)), 10);
+            }
+            // the dome
+            float dd = Mathf.Clamp01(tt / 0.4f);
+            if (dd < 1f)
+            {
+                float r = Mathf.Lerp(12f, 90f, dd * (2f - dd));
+                for (int i = 0; i < 4; i++)
+                    Circle(c, r * (1f - i * 0.2f), new Rgba(1f, 0.85f - i * 0.1f, 0.4f, (0.05f + 0.04f * i) * (1f - dd)), 28);
+            }
+            // two thick rings with a thin white core
+            for (int i = 0; i < 2; i++)
+            {
+                float d = Mathf.Clamp01((tt - i * 0.1f) / 0.55f);
+                if (d <= 0f || d >= 1f)
+                    continue;
+                float r = Mathf.Lerp(8f, 96f + i * 24f, d * (2f - d)), a = 1f - d;
+                Arc(c, r, Mathf.Lerp(13f, 2f, d), (i == 0 ? new Rgba(1f, 0.76f, 0.24f) : new Rgba(0.25f, 0.88f, 0.91f)).WithAlpha(0.75f * a), 40);
+                Arc(c, r, Mathf.Lerp(3f, 0.8f, d), new Rgba(1f, 1f, 1f, 0.9f * a), 40);
+            }
+            // the cone: five chevron waves, each a filled wedge with a bright front edge
+            V2 o = c - dir * 12f;
+            for (int i = 0; i < 5; i++)
+            {
+                float d = Mathf.Clamp01((tt - i * 0.05f) / 0.5f);
+                if (d <= 0f || d >= 1f)
+                    continue;
+                float r = Mathf.Lerp(18f, 200f, d * (2f - d)), half = 0.6f, a = 1f - d;
+                var col = i % 2 == 1 ? new Rgba(0.25f, 0.88f, 0.91f) : new Rgba(1f, 0.76f, 0.24f);
+                SetColor(col.WithAlpha(0.22f * a));
+                const int seg = 10;
+                for (int k = 0; k < seg; k++)
+                {
+                    float a0 = s.ClapAim - half + 2f * half * k / seg, a1 = s.ClapAim - half + 2f * half * (k + 1) / seg;
+                    Tri(o, o + V2.FromAngle(a0) * r, o + V2.FromAngle(a1) * r);
+                }
+                Arc(o, r, Mathf.Lerp(5f, 1.2f, d), new Rgba(1f, 1f, 1f, 0.85f * a), 18, s.ClapAim - half, 2f * half);
+                V2 e0 = o + V2.FromAngle(s.ClapAim - half) * r, e1 = o + V2.FromAngle(s.ClapAim + half) * r, tip = o + dir * (r + 9f);
+                Line(e0, tip, Mathf.Lerp(3.5f, 1f, d), col.WithAlpha(0.9f * a));
+                Line(tip, e1, Mathf.Lerp(3.5f, 1f, d), col.WithAlpha(0.9f * a));
+            }
+            // speed streaks and a spray of sparks
+            for (int k = 0; k < 12; k++)
+            {
+                float ang = s.ClapAim + ((k * 17 % 10) / 10f - 0.5f) * 1.0f, d = Mathf.Clamp01((tt - (k * 13 % 10) * 0.01f) / 0.45f);
+                if (d <= 0f || d >= 1f)
+                    continue;
+                float r0 = Mathf.Lerp(18f, 200f, d * (2f - d)), len = 34f + (k * 29 % 10) * 4f;
+                Line(o + V2.FromAngle(ang) * Mathf.Max(0f, r0 - len), o + V2.FromAngle(ang) * r0, 1.4f, new Rgba(1f, 1f, 1f, 0.75f * (1f - d)));
+            }
+            for (int k = 0; k < 22; k++)
+            {
+                float ang = s.ClapAim + ((k * 31 % 10) / 10f - 0.5f) * 1.5f, v = 110f + (k * 47 % 10) * 26f, life = 0.3f + (k * 19 % 10) * 0.04f;
+                if (tt > life)
+                    continue;
+                Circle(o + V2.FromAngle(ang) * (v * tt), 1.6f, new Rgba(1f, 0.82f + (k % 3) * 0.06f, 0.4f, 1f - tt / life), 5);
+            }
+        }
+
         /// World pass: ribbons behind the blade and the rifle tips while they swing, afterimages on the lunge, the clap's cracks, the spin's ring.
         void DrawAmmoSmears(Player p, float t)
         {
@@ -278,21 +359,7 @@ namespace Arena
                 return;
             }
             var s = AmmoOf(p);
-            // the clap's cracks in the floor, for a second after it lands
-            if (s.Move == 4 || now - s.T0 < 1.4f)
-            {
-                float ct = now - s.T0 - AmmoMotion.Hit[3];
-                if (s.Move == 4 && ct > 0f && ct < 1.0f)
-                {
-                    V2 c0 = p.Disp + dirF * (p.Def.BodyR + 40f);
-                    float grow = Mathf.Clamp01(ct / 0.12f), fade = 1f - Mathf.Clamp01((ct - 0.2f) / 0.8f);
-                    for (int k = 0; k < 9; k++)
-                    {
-                        float a = k * 0.698f + 0.3f + p.Aim, l = (26f + 54f * ((k * 37) % 10) / 10f) * grow;
-                        Line(c0 + V2.FromAngle(a) * 10f, c0 + V2.FromAngle(a) * (10f + l), 1.8f, new Rgba(1f, 0.76f, 0.24f, 0.65f * fade));
-                    }
-                }
-            }
+            DrawAmmoClap(s, now);  // the ring burst and the cone
             bool active = now - s.T0 < 1.3f || now - s.KT0 < 0.7f || now - s.SwT0L < 0.4f || now - s.SwT0R < 0.4f;
             if (!active)
                 return;
