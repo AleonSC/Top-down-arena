@@ -12,7 +12,7 @@ static partial class Program
         string why;
         var none = new List<ExpansionRoom>();
         var shapes = (SurpriseShape[])Enum.GetValues(typeof(SurpriseShape));
-        int[] tiles = { 96, 81, 54, 63, 47 };  // floor tiles: ring, cross, L, T, chamfer
+        int[] tiles = { 96, 81, 54, 63, 47, 15 };  // floor tiles: ring, cross, L, T, chamfer, stash
         foreach (var s in shapes)
         {
             var b = Expansion.SurpriseBase(s);
@@ -182,5 +182,13 @@ static partial class Program
         g.BreachAge = 40f;
         Run(s, dt, 1f, () => false);
         Check(g.Expanded.Count == count, "one event a wave");
+
+        // Breach rooms (Docs/BreachRooms.md): the cleared wave opens a free 5 x 3 Stash behind each breach that is left; not a gift, so the rotation stays.
+        int gifts = Game.SurpriseCount(g.Expanded), left = g.ActiveBreaches.Length;
+        typeof(Game).GetMethod("RevealBreachRooms", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(g, null);
+        Run(s, dt, 3f, () => cg.Expanded.Count == g.Expanded.Count);
+        var st = g.Expanded.Where(r => r.Surprise == 1 + (int)SurpriseShape.Stash).ToList();
+        Check(st.Count > 0 && st.Count <= left && st.All(r => r.Price == 0 && (r.X1 - r.X) * (r.Y1 - r.Y) == 150000), "a cleared breach wave adds a free Stash behind its breaches (" + st.Count + " of " + left + ")");
+        Check(cg.Expanded.Count == g.Expanded.Count && Game.SurpriseCount(g.Expanded) == gifts, "the friend gets them too, and they are not counted as gifts");
     }
 }

@@ -347,7 +347,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var r in rooms)
-                if (r.Surprise > 0 && r.Leg == 0)
+                if (r.Surprise > 0 && r.Surprise != 1 + (int)SurpriseShape.Stash && r.Leg == 0)  // (the breach Stashes aren't gifts: they don't turn the rotation)
                     n++;
             return n;
         }
@@ -355,7 +355,7 @@ namespace Arena
         /// The shape the next surprise room tries first: the five come round in turn from a seeded start.
         SurpriseShape NextSurpriseShape()
         {
-            int shapes = Enum.GetValues(typeof(SurpriseShape)).Length;
+            int shapes = (int)SurpriseShape.Stash;  // the five gifts (the Stash is only for breaches)
             return (SurpriseShape)(int)(((uint)expandSeed % (uint)shapes + (uint)SurpriseCount(Expanded)) % (uint)shapes);
         }
 
