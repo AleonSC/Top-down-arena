@@ -423,7 +423,9 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 
 ## Rules
 
-- **Timed waves:** a regular wave's enemies arrive over about 45 s instead of in one burst: a ramp-up (first 15%), a steady stream, then a taper as the wave dies down, and the wave ends when the last one is dead (the clear-up brings it to about a minute). Spawning waits while 14 + 3 per wave (at most 60) foes are alive. Boss, Practice, designed, Zombie Infection and room-by-room waves keep their own pacing. Enemies pick the nearest breach (or the nearest valid spot on the open Rooms map, of four) to a player that is at least 350 px away, so big maps don't feel empty.
+- **Timed waves:** a regular wave's enemies arrive over about 45 s instead of in one burst: a ramp-up (first 15%), three **surges** (at 20%, 48% and 76% of the window, about 7 s each) with quieter lulls between them (40% of the surge rate), then a taper as the wave dies down, and the wave ends when the last one is dead (the clear-up brings it to about a minute). Spawning waits while 14 + 3 per wave (at most 60) foes are alive. Boss, Practice, designed, Zombie Infection and room-by-room waves keep their own pacing. Enemies pick the nearest breach (or the nearest valid spot on the open Rooms map, of four) to a player that is at least 350 px away, so big maps don't feel empty.
+- **Spawn portals:** on a timed wave the single enemies come in **bursts** (3 on wave 1, one more every 4 waves, up to 8) through a **spawn portal**: a violet vortex that opens for 1 s where the burst comes in (an edge, a layout's enemy gate, a spot on the Rooms map, never within 160 px of a player), then lets one enemy out every 0.35 s, with chevrons pointing the way they'll come. Shoot it closed (200 health, scaling like an enemy's) before it empties and **the rest of its burst is cancelled**: +5 score each, plus 2 gold each as coins in the Expanding arena. An empty portal shrinks shut with no reward. Up to 2 portals are open at once (3 in a surge); with none open for 4 s a smaller burst comes anyway. Squads, Nests and breach waves keep their own way in.
+- **Flank portals:** from wave 3, one burst in 4 (never a wave's first) opens **behind the party**, opposite the way the players are aiming: a red portal that takes 1.6 s to open, and a red arrow round your player points at it.
 - The arena is 1600x900 and **wraps around for players**: walk off any edge and you come in on the opposite side.
 - **Wall slams:** an enemy knocked back into the arena edge stops there and takes damage: 6 plus 0.12 per px of push the wall cut short, up to 40 (pushes that lose under 8 px do nothing). Bosses and shielded enemies still use their normal damage rules.
   Enemies and bullets don't wrap, so the edges make a good escape route.
@@ -942,7 +944,8 @@ prototype** in the F1 dev dock (Labs, in the lobby); otherwise the Campaign is t
 - **Boss waves** are the hub alone (bosses are built for it). Before a boss wave, anyone out in a room or
   hallway is **beamed into the hub**: a pillar of light in their colour takes them up where they stand, a second one
   sets them down on a ring that shows in the hub from the start (about 2 s; they can't move or shoot meanwhile, and the
-  boss wave waits for them). The props out there are cleared away when it starts.
+  boss wave waits for them; the between-waves box, the shop screen and the build window step aside so everyone sees it).
+  The props out there are cleared away when it starts.
 - **No wrapping**: the world has walls all round. The hub keeps the boss cycle's arena layout (walls, pillars and
   crates; its edge gates make way for the doors), and the rooms and hallways have a few pillars and short walls of
   their own. Walls stop walking and every shot, as in the layouts.

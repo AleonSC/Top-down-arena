@@ -188,7 +188,7 @@ namespace Arena
                     }
                     break;
             }
-            Remaining = spawnQueue.Count + Foes() + risers.Count + DesignPending;
+            Remaining = spawnQueue.Count + Foes() + risers.Count + DesignPending + PortalCargoCount();
             foreach (var sq in squadQueue)
                 Remaining += sq.Members.Length;
         }

@@ -787,6 +787,7 @@ namespace Arena
                     dead.Add(e);
             foreach (var e in dead)
             {
+                PortalSealed(e);  // a spawn portal shot closed: the rest of its burst is cancelled (SpawnPortals.cs)
                 DecoyShatter(e);  // a Duelist's masquerade decoy shot down bursts into a ring (Duelist.cs)
                 NonShooterDeath(e);  // a Fuse Runner killed during its fuse, a Tripwire Pod (NonShooters.cs)
                 Recorder?.EnemyKilled(e);

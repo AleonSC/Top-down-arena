@@ -13,6 +13,19 @@ namespace Arena
     {
         const float BeamLiftAt = 0.8f, BeamDropAt = 1.1f, BeamLandAt = 1.35f;
 
+        /// Someone is being beamed into the hub right now: the between-waves box, the shop screen and the build window step
+        /// aside so everyone sees it (they cover the middle of the screen, where you stand, and the beam would play unseen).
+        bool BeamShowing
+        {
+            get
+            {
+                foreach (var p in game.Players.Values)
+                    if (p.WarpT > 0f)
+                        return true;
+                return false;
+            }
+        }
+
         /// Gone up the pillar, not landed yet (the real match only).
         bool BeamHides(Player p)
         {
