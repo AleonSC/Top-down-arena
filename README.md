@@ -801,7 +801,7 @@ wave, everyone gets a shop before the boss:
 
 ## Expanding arena
 
-**The Campaign's arena**: every new Campaign is played here (the **Simple Arena** modifier keeps the open arena
+**The Campaign's and Quick Play's arena**: every new Campaign and Quick Play is played here (the **Simple Arena** modifier keeps the open arena
 instead; Boss Hunts, the Practice Range and runs saved before the Campaign use the open arena). Design:
 [`Docs/ExpandingArena.md`](Docs/ExpandingArena.md). It starts as the plain Classic box and grows as you play:
 
@@ -1075,6 +1075,9 @@ on top (Tough Crowd, Frenzy, Swift Foes, Glass Cannon...).
 
 **The lobby's first mode, and where a new profile starts.** In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt** or
 **Practice** on the mode carousel; the lobby opens next time on the mode the host last picked (a new profile: Quick Play).
+Picking it opens the lobby's **Quick Play** tab: the run's shape (ten waves, the boss, endless), its rules, your Quick Play
+records (played, won, best wave, bosses), and **the boss pool**: a tile for each of the ten bosses, with its model and name once
+you've beaten it anywhere, a **???** until then (on your first Quick Play the Warden shows, marked FIRST).
 
 - **Ten waves, then a random boss** as its own fight after wave 10 (like the Campaign's boss after a wave: it doesn't use up a
   wave number). The HUD counts the waves n / 10. **Your first Quick Play always ends on the Warden**; after that the boss is
@@ -1086,7 +1089,16 @@ on top (Tough Crowd, Frenzy, Swift Foes, Glass Cannon...).
   endless has more). The boost for strong builds still applies on top.
 - **Win, then end or keep going.** Beating the boss is **QUICK PLAY CLEAR!**; the host can **Keep going [C]** into endless: ten
   more waves and a new random boss, after wave 20, 30, ... for as long as the party lasts.
-- **No paths, Data Gates, lives or saving** (the open arena; room building comes in a later step).
+- **Room building:** Quick Play is played on the **Expanding arena** (below), as the Campaign is: vectors, a build round after
+  every wave from wave 1, the vote, and a free surprise room after each boss. Vectors come in at the full rate (+8 a wave, not
+  the Campaign's half), so a party builds about one room a wave. The **Simple Arena** modifier keeps the open arena.
+- **The tutorial:** a profile's first Quick Play shows a prompt at the top left that ticks off as you go, in five lessons:
+  **The basics** (move, aim, shoot, dodge), **Level up** (pick a card), **Your kit** (your ability, the parry shield),
+  **Build a room** (open Build rooms, draw a room, vote it in) and **Gold and the shop** (collect gold, walk into a shop or
+  vendor room once one is connected). Steps count in any order; each shows your own key. **SKIP** ends it. It's only on your
+  own screen (a friend's first run shows theirs), never holds the wave, and never comes back once done, skipped, or once your
+  first Quick Play is over.
+- **No paths, Data Gates, lives or saving.**
 - **Records:** full rank XP and Cores, bosses count as beaten (unlocks and Boss Hunts), and Quick Play keeps its own plays,
   wins, best wave and bosses beaten (not counted as runs). Falling in endless adds the stretch after the win.
   Plan: `Docs/QuickPlay.md`.

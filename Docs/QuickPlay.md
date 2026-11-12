@@ -1,6 +1,6 @@
 # Quick Play (and the first-run tutorial)
 
-Status: **steps 0-1 built** (the boss schedule; the mode, waves, bosses, records and endless, protocol 297); steps 2-4 planned (owner's decisions, Nov 12, 2026). Build one step at a time on "start on step N".
+Status: **all steps built** (Nov 12, 2026): the boss schedule; the mode, waves, bosses, records and endless (protocol 297); room building; the tutorial; the lobby tab (owner's decisions, Nov 12, 2026). Build one step at a time on "start on step N".
 
 ## What it is
 
@@ -23,16 +23,21 @@ the **guided tutorial**.
 | Boss HP | **About a 2-minute fight at any wave**: one formula, health = what a typical build at that wave deals in ~2 min (the typical build the `bosspower` sim already scores). The same rule after wave 10, 20, 30..., so endless keeps climbing as builds grow; the strong-build boost still applies on top. Nothing fixed to wave 10, nothing tuned per boss |
 | Tutorial | Guided steps on the profile's first Quick Play, skippable, never again after (a profile flag) |
 
-## Tutorial lessons
+## Tutorial lessons (built, step 3)
 
-Each step is a CRT prompt (DevKit widgets) that ticks off when done; the wave timer waits for the current wave's steps.
+A CRT card at the top left (`Game/TutorialUi.cs`, DevKit widgets) shows the first lesson with a step left; a lamp per step
+lights as you do it, with your own key beside it, and **SKIP**. Steps tick in any order (`Core/Tutorial.cs`):
 
-1. **Wave 1**: move, aim, shoot, dash.
-2. **Wave 2**: use your ability; parry a shot.
-3. **Between waves 1-3**: pick a level-up card; collect gold; visit the vendor.
-4. **After wave 2**: open Build, draw a room, vote it in.
+1. **The basics** (wave 1): move (0.8 s), aim (the cursor travels 400 px), shoot (0.5 s held), dodge.
+2. **Level up**: pick an upgrade card.
+3. **Your kit** (wave 2): use an ability; raise the parry shield (0.25 s).
+4. **Build a room**: open Build rooms, draw a room (a proposal of yours), vote it in (a vote, or a room built after).
+5. **Gold and the shop**: collect gold; walk into a shop or vendor room. Moved last (the plan had gold and the vendor between
+   waves 1-3): in the Expanding arena gold only drops and the shop only opens once a built room connects one.
 
-Per seat and local only (each player's own profile decides): no network message. Skip with a key on the prompt.
+Changed from the plan: it **never holds the wave timer** (between waves the ready-up already waits for you, and a per-seat hold
+would need the network); local only, no protocol change. It ends for good when done, skipped, or once the first Quick Play is
+recorded (`Profile.TutorialDone`). Not for bots, replays, the Boss Lab or the lobby preview.
 
 ## Steps
 
@@ -42,10 +47,15 @@ Per seat and local only (each player's own profile decides): no network message.
 1. **Mode and waves** (built, Nov 12; protocol 297): `Session.QuickMode`, `Game.Quick` (Core), the carousel's first mode and default; a boss slot after every
    10th wave (as the Campaign's shown waves); the boss bag (Warden first); faction waves with the mixed fallback; boss HP for a ~2 min fight at any wave (sim prints each boss's fight length after waves 10, 20, 30); win screen End / Continue endless; records;
    sim suite `quick`. Protocol bump (start message, `Msg` for the endless choice).
-2. **Building**: Quick Play on the Expanding arena; check vector income fits a 10-wave run (first build round after wave 1).
-3. **Tutorial**: `Core/Tutorial.cs` (step machine, what counts as done), `Game/TutorialUi.cs` (prompts), profile flag,
-   skip; `Tools/Preview` shots of each prompt.
-4. **Polish**: README section, lobby dossier for Quick Play (the boss bag shown as "???" until met), preview shots.
+2. **Building** (built, Nov 12; no protocol change): Quick Play on the Expanding arena (`Game.ArenaKind`), the surprise room
+   after each boss. Vectors at the full rate (+8 a wave, 1 per 8 kills, cap 70; the Campaign halves it for its 100 waves).
+   Measured (`run.sh 1 1 quick`, two bots): a build round after every wave from wave 1, 15 rooms by the boss, each bot's
+   vectors between 12 and 61 (never stuck at the cap), so no tuning.
+3. **Tutorial** (built, Nov 12; no protocol change): `Core/Tutorial.cs` (the steps, what counts as done), `Game/TutorialUi.cs`
+   (the prompt), `Profile.TutorialDone`, SKIP; preview `TUTORIAL=<lesson>,<steps done> shot.sh <name> hud`.
+4. **Polish** (built, Nov 12; no protocol change): the lobby's **Quick Play** tab (`Game/QuickPlayUi.cs`, tab 8, opens when the
+   host picks the mode): the run's ladder, its rules, your records, and the boss pool (a boss beaten anywhere shows its model and
+   name, the others "???"; the Warden marked FIRST on a first play). Previews: `shot.sh <name> lobby`, `QUICKMET=4` for a played profile.
 
 ## Built in step 1
 
