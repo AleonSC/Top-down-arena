@@ -12,7 +12,7 @@ namespace Arena
     {
         /// How much more a bigger map adds to a wave's enemies: 1 + this x (floor area / hub area - 1), up to MaxExpandScale.
         public static float ExpandScaleRate = 0.6f, MaxExpandScale = 1.4f;
-        public static float ExpandScaleRateEarly = 0.9f, MaxExpandScaleEarly = 2.0f;
+        public static float ExpandScaleRateEarly = 1.1f, MaxExpandScaleEarly = 2.4f;
         public const int EarlyWaves = 10;  // (static, not const: the balance report tries others)
 
         /// The rooms built so far, in order (area 1, 2, ...).
