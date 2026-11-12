@@ -158,7 +158,8 @@ namespace Arena
 
             // Reroll and choose, the lobby's fancy buttons. Reroll takes a second click to confirm: the first arms it (the
             // button turns orange and a bar drains over RerollArmTime), and the button never changes size, so both stay put.
-            by = Mathf.Min(by, H - 70f);
+            bool goldOffer = game.CanGoldInstead(me);  // level-up offers where a shop will take gold: a slim key under the row
+            by = Mathf.Min(by, H - (goldOffer ? 120f : 70f));
             bool wasEnabled = GUI.enabled;
             bool picked = selectedCard >= 0 && selectedCard < me.Offer.Length;
             bool canReroll = !me.OfferLegendary && !me.OfferMod && !me.OfferMilestone && !me.OfferPrize;  // (nor a challenge room's prize)  // boss rewards can't be rerolled: no button
@@ -193,6 +194,14 @@ namespace Arena
                 var lamp = new Rect(chooseR.x + 12f, chooseR.center.y - 5f, 10f, 10f);
                 Ui.Glow(lamp, new Color(0.24f, 1f, 0.54f), 0.35f);
                 Ui.Fill(lamp, new Color(0.24f, 1f, 0.54f));
+            }
+            if (goldOffer)
+            {
+                GUI.enabled = !game.RerollPending;
+                var goldR = new Rect(mid - takeW / 2f, by + 48f + 10f, takeW, 38f);
+                int amount = Game.GoldInsteadAmount(game.Wave);
+                if (LobbyKit.Key(goldR, "GOLD INSTEAD  +" + amount, false, fxReduced, PixelArt.Get("ui_coin"), size: 17, minSize: 12, accent: Ui.Gold) && !opening)
+                    game.TakeGoldInstead();
             }
             DrawKeySwitch(me, by, canReroll ? mid : chooseX - bgap - keysW / 2f, keysW, rowAlpha, opening);
             SyncSelection(me);  // notes when these cards appeared, for the reroll lock (ArenaApp.cs)

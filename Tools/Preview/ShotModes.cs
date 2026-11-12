@@ -519,7 +519,7 @@ static partial class Shot {
     }
     else if (mode == "shop")
     {
-      // The Bazaar's shop (ShopUi.cs): SHOPSEL=n puts item n (a card, then the services) in the middle, REMOVE=1 opens the remove list, GIVE=1 the Give popup.
+      // The Bazaar's shop (ShopUi.cs): SHOPSEL=n puts item n (a card, then the services) in the middle, SELL=1 opens the sell list, GIVE=1 the Give popup.
       Func<string, int> U = n => Array.FindIndex(Upgrades.All, u => u.Name == n);
       foreach (var n in new[] { "Hollow Points", "Fortitude", "Multishot", "Thick Skin", "Riposte" })
         host.Game.GrantUpgrade(1, U(n));
@@ -549,13 +549,14 @@ static partial class Shot {
       int sel = Environment.GetEnvironmentVariable("SHOPSEL") != null ? int.Parse(Environment.GetEnvironmentVariable("SHOPSEL")) : 0;
       typeof(ArenaApp).GetField("shopSel", f2).SetValue(app, sel);
       typeof(ArenaApp).GetField("shopTurn", f2).SetValue(app, (float)sel);
-      if (Environment.GetEnvironmentVariable("REMOVE") != null) typeof(ArenaApp).GetField("shopRemoveOpen", f2).SetValue(app, true);
+      if (Environment.GetEnvironmentVariable("SELL") != null) typeof(ArenaApp).GetField("shopSellOpen", f2).SetValue(app, true);
       if (Environment.GetEnvironmentVariable("GIVE") != null) foreach (var p in g.Players.Values) if (p.Id != me.Id) typeof(ArenaApp).GetField("shopGiveTo", f2).SetValue(app, p.Id);
       typeof(ArenaApp).GetMethod("DrawShop", f2).Invoke(app, new object[] { me, 1f });
     }
     else
     {
       Func<string, int> U = n => Array.FindIndex(Upgrades.All, u => u.Name == n);
+      if (Environment.GetEnvironmentVariable("GOLDINSTEAD") != null) { var gg = host.Game; gg.CurrentPath = PathId.Bazaar; gg.PathFrom = 11; gg.PathTo = 14; gg.Wave = 12; }  // GOLDINSTEAD=1: on the Bazaar, so the picker shows its gold-instead key
       if (mode == "picker" && Environment.GetEnvironmentVariable("PRIZE") != null) { me.Offer = Upgrades.PrizeOffer(new System.Random(3), me.Role, me.RoleAbility, me.Taken); me.OfferPrize = true; }  // a challenge room's prize
       else if (mode == "picker" && Environment.GetEnvironmentVariable("KEYS") != null) { host.Game.GrantUpgrade(1, U("Overdrive")); me.Offer = new[] { U("Shockwave"), U("Blink"), U("Nova") }; }
       else if (mode == "picker" && Environment.GetEnvironmentVariable("PICKCARDS") != null) me.Offer = Array.ConvertAll(Environment.GetEnvironmentVariable("PICKCARDS").Split(','), n => U(n));

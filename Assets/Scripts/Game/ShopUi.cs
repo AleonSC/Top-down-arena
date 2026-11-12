@@ -13,12 +13,12 @@ namespace Arena
         float shopTurn;            // the carousel's position, easing toward shopSel
         int shopCountSeen;         // how many shelf cards there were last frame (Add stock moves the middle to the new ones)
         int shopGiveTo;            // teammate whose Give popup is open (0 = none)
-        bool shopRemoveOpen;       // choosing an upgrade to remove
+        bool shopSellOpen;       // choosing an upgrade to sell
 
         static readonly string[] ServiceIcons = { "ricochet", "axe", "regen2", "halo", "ricochet", "compass" };
         // Service ids: 0-5 as named below, 6-9 the Black Market's buildables (6 + BuildKind).
         static readonly int[] BazaarServices = { 0, 1, 2, 3 }, AllServices = { 0, 1, 2, 3, 4, 5 }, MarketItems = { 6, 7, 8, 9, 2, 3, 1, 5, 4 };
-        static readonly string[] ServiceNames = { "Add stock", "Remove upgrade", "Full heal", "Revive token", "Floor kit", "Vector pack" };
+        static readonly string[] ServiceNames = { "Add stock", "Sell upgrade", "Full heal", "Revive token", "Floor kit", "Vector pack" };
 
         void DrawShop(Player me, float t)
         {
@@ -26,10 +26,10 @@ namespace Arena
             {
                 shopSel = -1;
                 shopGiveTo = 0;
-                shopRemoveOpen = false;
+                shopSellOpen = false;
                 return;
             }
-            bool popup = shopGiveTo != 0 || shopRemoveOpen;
+            bool popup = shopGiveTo != 0 || shopSellOpen;
             bool shopping = !me.ShopDone;
             RoundBackdrop(ShopDark);  // (RoundWindows.cs)
             const float x0 = 36f, areaW = W - 72f;
@@ -210,8 +210,8 @@ namespace Arena
                 Ui.Label(new Rect(r.x + 32f, r.y, w - 36f, r.height), nt.Text, 14, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, Mathf.Clamp01(nt.Life * 2f)), TextAnchor.MiddleLeft, true);
             }
 
-            if (shopRemoveOpen)
-                DrawRemoveUpgrade(me);
+            if (shopSellOpen)
+                DrawSellUpgrade(me);
         }
 
         /// The middle item was clicked: buy the card, or use the service.
@@ -230,7 +230,7 @@ namespace Arena
             if (k >= 6)
                 game.Shop(ShopAction.BuyBuild, k - 6);
             else if (k == 1)
-                shopRemoveOpen = true;
+                shopSellOpen = true;
             else
                 game.Shop(k == 0 ? ShopAction.Restock : k == 2 ? ShopAction.Heal : k == 4 ? ShopAction.RoomKit : k == 5 ? ShopAction.Vectors : ShopAction.Revive);
         }
@@ -246,7 +246,7 @@ namespace Arena
             switch (k)
             {
                 case 0: used = false; return Game.RestockPrice(me);
-                case 1: used = me.Taken.Count == 0; return Game.RemovePrice;
+                case 1: used = me.Taken.Count == 0; return 0;  // (selling pays you)
                 case 2: used = me.Hp >= me.MaxHp || me.Downed; return Game.HealPrice;
                 case 4: used = game.RoomTokens.Count >= Expansion.MaxTokens; return Game.RoomKitPrice;
                 case 5: used = false; return Game.VectorPackPrice;
@@ -368,7 +368,7 @@ namespace Arena
                 DrawPriceTag(new Rect(r.center.x - 34f, r.yMax - 38f, 68f, 26f), price, afford);
         }
 
-        /// One service in the same frame as the cards, in gold: Add stock, Remove upgrade, Full heal, Revive token, Floor kit, Vector pack.
+        /// One service in the same frame as the cards, in gold: Add stock, Sell upgrade, Full heal, Revive token, Floor kit, Vector pack.
         void DrawShopService(Player me, int k, Rect r, bool selected, float t, bool shopping, bool allowed)
         {
             if (k >= 6)
@@ -389,7 +389,7 @@ namespace Arena
                     parts = used ? null : new List<string> { "Cards  " + Game.ShelfCount(me) + " → " + Mathf.Min(Game.MaxShelf, Game.ShelfCount(me) + Game.StockSize), "Next add  " + price + " → " + (price + 25) };
                     break;
                 case 1:
-                    desc = me.Taken.Count == 0 ? "You have nothing to remove" : "Drop one you regret. Abilities it gave you go too.";
+                    desc = me.Taken.Count == 0 ? "You have nothing to sell" : "Sell one stack for half its shelf price. Abilities it gave you go too.";
                     parts = me.Taken.Count == 0 ? null : new List<string> { "Upgrades  " + me.Taken.Count + " → " + (me.Taken.Count - 1) };
                     break;
                 case 2:
@@ -427,6 +427,8 @@ namespace Arena
                 DrawPickStrip(new Rect(r.x + 10f, r.yMax - 50f, r.width - 20f, 0f), 13, true, parts, -1, false);
             if (used && k >= 2)
                 Ui.Icon(new Rect(r.center.x - 10f, r.yMax - 38f, 20f, 20f), PixelArt.Get("ui_check"), Ui.Good);
+            else if (k == 1)
+                Ui.Label(new Rect(r.x + 8f, r.yMax - 38f, r.width - 16f, 26f), "Sells for 50%", 14, Ui.Gold, TextAnchor.MiddleCenter, true);
             else if (selected)
                 DrawPriceTag(new Rect(r.center.x - 55f, r.yMax - 38f, 110f, 28f), price, me.Gold >= price, afford ? "Buy · " : "");
             else
@@ -519,8 +521,8 @@ namespace Arena
                 shopGiveTo = 0;  // a click elsewhere closes it
         }
 
-        /// Remove an upgrade: everything you've taken, as buttons; one click removes it (75 gold).
-        void DrawRemoveUpgrade(Player me)
+        /// Sell an upgrade: everything you've taken, as buttons; one click sells one stack for half its shelf price.
+        void DrawSellUpgrade(Player me)
         {
             var seen = new List<int>();
             foreach (int u in me.Taken)
@@ -533,8 +535,8 @@ namespace Arena
             var r = new Rect(W / 2f - pw / 2f, Mathf.Max(30f, H / 2f - ph / 2f), pw, ph);
             Ui.Fill(new Rect(0, 0, W, H), new Color(0f, 0f, 0f, 0.5f));
             DkBox(r, Ui.Gold, 0.9f);
-            Ui.Label(new Rect(r.x + 20f, r.y + 14f, r.width - 40f, 24f), "Remove an upgrade  ·  " + Game.RemovePrice + " gold", 17, Color.white, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(r.x + 20f, r.y + 38f, r.width - 40f, 18f), "Takes away one stack. Abilities it gave you go too.", 12, Ui.Muted);
+            Ui.Label(new Rect(r.x + 20f, r.y + 14f, r.width - 40f, 24f), "Sell an upgrade  ·  50% of its shelf price", 17, Color.white, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x + 20f, r.y + 38f, r.width - 40f, 18f), "Sells one stack. Abilities it gave you go too.", 12, Ui.Muted);
             for (int i = 0; i < seen.Count; i++)
             {
                 var u = Upgrades.All[seen[i]];
@@ -544,15 +546,16 @@ namespace Arena
                 bool over = b.Contains(Event.current.mousePosition);
                 DkHud(b, over ? rc : (Color?)null);
                 Ui.Icon(new Rect(b.x + 6f, b.y + 5f, 24f, 24f), PixelArt.ForUpgrade(u.Name));
-                Ui.Label(new Rect(b.x + 36f, b.y, b.width - 40f, b.height), u.Name + (have > 1 ? "  ×" + have : ""), 12, over ? Color.white : Ui.Text, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(b.x + 36f, b.y, b.width - 76f, b.height), u.Name + (have > 1 ? "  ×" + have : ""), 12, over ? Color.white : Ui.Text, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(b.xMax - 44f, b.y, 38f, b.height), "+" + Game.SellPrice(seen[i]), 12, Ui.Gold, TextAnchor.MiddleRight, true);
                 if (Ui.HitArea(b))
                 {
-                    game.Shop(ShopAction.Remove, seen[i]);
-                    shopRemoveOpen = false;
+                    game.Shop(ShopAction.Sell, seen[i]);
+                    shopSellOpen = false;
                 }
             }
             if (DkKey(new Rect(r.xMax - 120f, r.yMax - 40f, 100f, 28f), "Cancel", Ui.Neutral))
-                shopRemoveOpen = false;
+                shopSellOpen = false;
         }
     }
 }
