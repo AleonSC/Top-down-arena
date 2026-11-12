@@ -104,7 +104,7 @@ random offers. Boss kills refill the stock, upgrades raise how much you can hold
 
 ## Step 5 (built, no protocol change): balance
 
-Report: `run.sh 1 1 vecbal [last wave] [seed] [1 = skip the Classic run]` (a duo of Good bots; `VECSCALE=<rate>` tries another crowd rate).
+Report: `run.sh 1 1 vecbal [last wave] [seed] [1 = skip the Classic run]` (a duo of Good bots; `VECSCALE=<rate>` tries another crowd rate, `VECMAX=<x>` another ceiling).
 First numbers (start 25, cap 40, +6 a wave, boss +10, 12 rooms, crowd up to 2x): the duo built **11 rooms in 12 rounds** (the map
 was full by wave 14 of 50), 10 of 24 player-rounds opened at the cap (a lot of income wasted), the crowd reached 2.0x, and the
 bots died at **wave 13** (Classic: wave 26+).
