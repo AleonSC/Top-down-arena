@@ -37,13 +37,16 @@ Per seat and local only (each player's own profile decides): no network message.
 1. **Mode and waves**: `Session.QuickMode`, `Game.Quick` (Core), the carousel's first mode and default; a boss slot after every
    10th wave (as the Campaign's shown waves); the boss bag (Warden first); faction waves with the mixed fallback; win screen End / Continue endless; records;
    sim suite `quick`. Protocol bump (start message, `Msg` for the endless choice).
-2. **Building**: Quick Play on the Expanding arena; check vector income fits a 10-wave run (first build round after wave 1).
-3. **Tutorial**: `Core/Tutorial.cs` (step machine, what counts as done), `Game/TutorialUi.cs` (prompts), profile flag,
+2. **Early bosses**: an early tier per boss, used when it's met before its home wave (slower patterns, longer
+   warnings, fewer bullets per volley, no last stand below a threshold), a tuning table plus checks in each boss's
+   attack code; a sim test that a typical wave-10 build beats every boss.
+3. **Building**: Quick Play on the Expanding arena; check vector income fits a 10-wave run (first build round after wave 1).
+4. **Tutorial**: `Core/Tutorial.cs` (step machine, what counts as done), `Game/TutorialUi.cs` (prompts), profile flag,
    skip; `Tools/Preview` shots of each prompt.
-4. **Polish**: README section, lobby dossier for Quick Play (the boss bag shown as "???" until met), preview shots.
+5. **Polish**: README section, lobby dossier for Quick Play (the boss bag shown as "???" until met), preview shots.
 
 ## Open
 
-- A late boss (home wave 45) met at wave 10 strength: met after wave 10, its health/damage scale by wave, but its mechanics may be too much
-  for a first-time party. Watch the first reports; a cap on which bosses can roll at wave 10 is the fallback.
+- Late bosses after wave 10: health/damage already scale by wave; step 2's early tier tones down their mechanics, so all
+  10 can roll from the start.
 - Factions for the other nine bosses (`Docs/Approaches.md`) would make every ten feel like its boss.
