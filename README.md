@@ -874,6 +874,11 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   player gets their own item. It opens once and never holds the wave up (opened ones lie dim with the lid up). No cover stands on a node. Nothing respawns: new ones
   appear around the current map. Bots build up to the shop room first, then the vendor, then chests, then the Gatekeeper (they don't walk to chests' loot).
   Old saves with shop or vendor nodes still work: a room round one becomes that shop.
+- **Relic nodes**: every other boss cycle (the first, third, ...) also places a **relic node** (an amber diamond). Build a room round it and walk up to
+  it: **every player** gets its relic in their **relic slot** (one each; a new relic replaces the old, and it stays for the run, saves included). Relics are
+  separate from the bosses' weapon mods. The HUD shows yours as a **RELIC** chip above the wave panel. So far there is one:
+  - **Wall Bounce**: your shots bounce off walls and pillars once instead of stopping, keeping 70% of their damage (homing turns off after the bounce).
+    Enemy shots, grenades and other lobbed shots, stuck shuriken and Bone Spears don't bounce.
   (The Gatekeeper has its own room, below.)
 - **Surprise rooms**: every time you clear a **boss**, the map gets a **free** room in one of five shapes the game picks for you: a **ring** (a block in the
   middle with a lane to run round), a **cross**, an **L hall**, a **T hall** or a **chamfer** (a box with notched corners). It goes where it closes the most loops

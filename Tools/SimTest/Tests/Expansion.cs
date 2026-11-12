@@ -404,10 +404,10 @@ static partial class Program
             "a new boss cycle places floating Gatekeeper, shop and vendor rooms, the same on the client, and they aren't counted as bought");
         Check(added.Count(r => r.Kind == RoomKind.Shop && r.W == Expansion.ShopRoomSide && r.H == Expansion.ShopRoomSide) == 1 && added.Count(r => r.Kind == RoomKind.Vendor && r.W == Expansion.ShopRoomSide && r.H == Expansion.ShopRoomSide) == 1,
             "the shop and vendor rooms are tiny 4 x 4 tile squares");
-        Check(g.Nodes.Count == nodesNow + 1 && g.Nodes[g.Nodes.Count - 1].Kind == NodeKind.Chest && cg.Nodes.SequenceEqual(g.Nodes),
-            "and a chest node (no shop or vendor nodes any more), the same on the client");
+        Check(g.Nodes.Count == nodesNow + 2 && g.Nodes[g.Nodes.Count - 2].Kind == NodeKind.Chest && g.Nodes[g.Nodes.Count - 1].Kind == NodeKind.Relic && cg.Nodes.SequenceEqual(g.Nodes),
+            "and a chest node plus, on an even cycle, a relic node (no shop or vendor nodes any more), the same on the client");
         placeFloating.Invoke(g, null);
-        Check(g.Expanded.Count == allNow + 3 && g.Nodes.Count == nodesNow + 1, "the same cycle places them only once");
+        Check(g.Expanded.Count == allNow + 3 && g.Nodes.Count == nodesNow + 2, "the same cycle places them only once");
         pickRooms.Invoke(g, null);
         var floatWorld = g.ExpansionWorld;
         Check(floatWorld.Areas.Skip(allNow + 1).All(a => a.Floating && a.Sealed) && Math.Abs(g.ExpansionScale - scale0) < 0.001f && !g.HasShopRoom, "the rooms stay sealed, add no crowd and a sealed shop room isn't a shop yet");
@@ -465,8 +465,57 @@ static partial class Program
                 Check(chests[0].Open && g.Nodes[ci].Spent && g.Loots.Values.Any(l => l.Owner == pl.Id), "walking onto it opens it: the node is spent and the player gets their own item");
                 Check(g.Props.Values.Count(q => q.Kind == PropKind.Chest && !q.Open) == 0, "a spent node holds no second chest");
                 g.Nodes.RemoveAt(ci);
+
+                // A relic node (Relics.cs): walking up to it fills every player's relic slot, once.
+                var relic = new MapNode { X = chest.X, Y = chest.Y, Kind = NodeKind.Relic };
+                g.Nodes.Add(relic);
+                int rni = g.Nodes.Count - 1;
+                pl.Pos = relic.Pos + new V2(400f, 0f);
+                tickNodes.Invoke(g, null);
+                Check(!g.Nodes[rni].Spent && g.Players.Values.All(q => q.Relic == RelicId.None), "a relic node waits for someone to walk up");
+                pl.Pos = relic.Pos;
+                tickNodes.Invoke(g, null);
+                Check(g.Nodes[rni].Spent && g.Players.Values.All(q => q.Relic == RelicId.WallBounce),
+                    "walking onto it gives everyone Wall Bounce and spends the node");
+                g.Nodes.RemoveAt(rni);
+                foreach (var q in g.Players.Values) q.Relic = RelicId.None;  // (the rest of the suite runs without it)
                 g.Expanded.RemoveAt(ri);
             }
+        }
+
+        // Wall Bounce: a player's shot that reaches a wall bounces off it once, keeping 70% of its damage.
+        {
+            var wallBounce = typeof(Game).GetMethod("WallBounce", flags);
+            var counts = typeof(Game).GetMethod("Counts", flags);
+            var pl = g.Players.Values.First();
+            Solid wall = default(Solid);
+            bool found = false;
+            foreach (var so in g.ActiveLayout.Solids)
+                if (!so.Round && so.HH > so.HW + 20f && (bool)counts.Invoke(g, new object[] { so })) { wall = so; found = true; break; }
+            Check(found, "the map has an upright wall for the bounce test");
+            if (found)
+            {
+                Func<Bullet> shot = () => new Bullet { Id = 999999, Kind = Defs.DpsShot, Owner = pl.Id, Radius = 4f, Dmg = 10f, Life = 1f,
+                    Pos = new V2(wall.Pos.X + wall.HW + 3f, wall.Pos.Y), Vel = new V2(-600f, 100f) };
+                var keep = pl.Relic;
+                pl.Relic = RelicId.None;
+                Check(!(bool)wallBounce.Invoke(g, new object[] { shot() }), "without the relic a wall stops the shot");
+                pl.Relic = RelicId.WallBounce;
+                var b = shot();
+                bool hop = (bool)wallBounce.Invoke(g, new object[] { b });
+                Check(hop && b.Vel.X > 0f && Math.Abs(b.Vel.Y - 100f) < 0.01f && Math.Abs(b.Dmg - 7f) < 0.01f && b.Pos.X > wall.Pos.X + wall.HW + b.Radius,
+                    "with Wall Bounce it mirrors off the face, out of the wall, at 70% damage");
+                b.Pos = new V2(wall.Pos.X + wall.HW + 3f, wall.Pos.Y);
+                Check(!(bool)wallBounce.Invoke(g, new object[] { b }), "it bounces only once");
+                var en = new Bullet { Id = 999998, Kind = Defs.SmallShot, Owner = 0, Radius = 4f, Dmg = 10f, Life = 1f, Pos = b.Pos, Vel = new V2(-600f, 0f) };
+                Check(!(bool)wallBounce.Invoke(g, new object[] { en }), "enemy shots never bounce");
+                pl.Relic = keep;
+                ((List<Bullet>)typeof(Game).GetField("bounced", flags).GetValue(g)).Clear();
+            }
+            var seat = new RunSave { Wave = 6 };
+            seat.Seats.Add(new SeatSave { Relic = RelicId.WallBounce });
+            var back = RunSave.Parse(seat.ToText());
+            Check(back != null && back.Seats[0].Relic == RelicId.WallBounce, "the relic survives a saved run");
         }
 
         // Nodes (Docs/Nodes.md): 10+ tiles out, deterministic, 8+ tiles apart, claimed by a room built round them, which takes on their job.

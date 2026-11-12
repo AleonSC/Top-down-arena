@@ -437,7 +437,7 @@ namespace Arena
             {
                 if (b.Kind == Defs.GrenadeShot || b.Kind == Defs.BoulderShot || b.Kind == Defs.ClotShot || b.Kind == Defs.MedkitShot || b.Kind == Defs.FlakShell || b.Ward || b.Tossed)
                     continue;  // grenades, boulders, Clot Cannon clots, medkits, flak shells and tossed caltrops fly over enemies and land or burst where you aimed
-                if (LayoutOn && SolidStops(b))
+                if (LayoutOn && SolidStops(b) && !WallBounce(b))
                 {
                     scratchIds.Add(b.Id);  // a wall or pillar stops every shot (LayoutRules.cs)
                     continue;
