@@ -164,6 +164,7 @@ namespace Arena
                 if (!inside)
                     continue;
                 HurtEnemy(e, dmg, p.Id);
+                Daze(e);  // a close-in hit: it can't attack for a moment (Daze.cs)
                 V2 away = (e.Pos - p.Pos).Normalized();
                 if (!Heavy(e))
                     KnockEnemy(e, (away.IsZero ? fwd : away) * AmmoMotion.Knock[m]);
@@ -185,6 +186,7 @@ namespace Arena
                     continue;
                 hitAny = true;
                 HurtEnemy(e, dmg, p.Id);
+                Daze(e);  // a close-in hit: it can't attack for a moment (Daze.cs)
                 V2 away = (e.Pos - p.Pos).Normalized();
                 if (!Heavy(e) && k == 2)
                     KnockEnemy(e, (away.IsZero ? fwd : away) * 18f);
@@ -264,6 +266,7 @@ namespace Arena
                 if (!Targetable(e) || e.Pos.DistanceTo(p.Pos) - e.Radius > AmmoSpinRadius)
                     continue;
                 HurtEnemy(e, dmg, p.Id);
+                Daze(e);  // a close-in hit: it can't attack for a moment (Daze.cs)
                 V2 away = (e.Pos - p.Pos).Normalized();
                 if (!Heavy(e) && !away.IsZero)
                     KnockEnemy(e, away * AmmoSpinKnock);
