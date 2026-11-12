@@ -11,16 +11,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - name: Install mono
-        # (the runners' apt mirrors sometimes fail to resolve: retry with short timeouts instead of hanging for minutes)
-        run: |
-          for i in 1 2 3 4; do
-            sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 update \
-              && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 install -y mono-mcs mono-runtime libmono-system-core4.0-cil \
-              && break
-            echo "apt failed (try $i), retrying"; sleep 20
-          done
-          command -v mcs && command -v mono
+      - uses: ./.github/actions/install-mono
       - name: Compile check
         run: Tools/CompileCheck/check.sh
       - name: Core suite
@@ -30,24 +21,28 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - name: Install mono
-        # (the runners' apt mirrors sometimes fail to resolve: retry with short timeouts instead of hanging for minutes)
-        run: |
-          for i in 1 2 3 4; do
-            sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 update \
-              && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 install -y mono-mcs mono-runtime libmono-system-core4.0-cil \
-              && break
-            echo "apt failed (try $i), retrying"; sleep 20
-          done
-          command -v mcs && command -v mono
+      - uses: ./.github/actions/install-mono
       - name: Feature suite
         run: Tools/SimTest/run.sh 1 30 features
-  # The branch ruleset requires a check named `checks`: it passes only when both jobs above do.
+  # The suites neither job above runs (Program.cs CiExtras), split into shards that run beside them.
+  extras:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1/1]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/install-mono
+      - name: Extra suites ${{ matrix.shard }}
+        run: Tools/SimTest/extras.sh ${{ matrix.shard }}
+  # The branch ruleset requires a check named `checks`: it passes only when every job above does.
   checks:
     if: always()
-    needs: [core, features]
+    needs: [core, features, extras]
     runs-on: ubuntu-latest
     steps:
       - name: All suites passed
         run: |
-          [ "${{ needs.core.result }}" = success ] && [ "${{ needs.features.result }}" = success ]
+          [ "${{ needs.core.result }}" = success ] && [ "${{ needs.features.result }}" = success ] && [ "${{ needs.extras.result }}" = success ]

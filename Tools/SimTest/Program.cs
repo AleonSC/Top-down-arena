@@ -211,7 +211,10 @@ static partial class Program
         Game.ChallengesByDefault = false;  // challenge rooms too (the challenges test)
         Game.LongRunDefault = false;  // the 50-wave track (the longrun suite turns the 100-wave Campaign on)
         Session.QuickDefault = false;  // hosts open on the Campaign (Quick Play has its own suite, quick)
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         test();
+        if (Environment.GetEnvironmentVariable("TIMES") == "1")  // TIMES=1 run.sh ...: how long each test took
+            Console.WriteLine("  [time] {0}: {1:0.0} s", name, watch.Elapsed.TotalSeconds);
     }
 
     static Suite Test(string name, string what, params Action[] tests)
@@ -443,8 +446,26 @@ static partial class Program
         Report("laserdebug", "the Singularity's lasers, step by step", args => LaserDebug()),
     };
 
+    /// The pass/fail suites that neither `core` nor `features` runs: CI runs them in its own job (Tools/SimTest/extras.sh),
+    /// alongside the other two. A new suite whose tests aren't in FeatureTests goes here. (`singularity` is here for its cage
+    /// test; its other test is also in features.)
+    static readonly string[] CiExtras =
+    {
+        "swordsman", "nonshooters", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "melee", "brute",
+        "trickle", "meleesounds", "grunts", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops",
+        "exploit", "doublebarrel", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
+        "expand", "quick", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
+        "newenemies", "wildcard", "stacking", "singularity",
+    };
+
     static int Main(string[] args)
     {
+        if (args.Length == 1 && args[0] == "extras-list")
+        {
+            foreach (var n in CiExtras)
+                Console.WriteLine(n);
+            return 0;
+        }
         string name = args.Length > 2 ? args[2] : args.Length == 1 && args[0] == "list" ? "list" : "core";
         if (name == "music")
             name = "features";  // its old name (it began as the music test)
