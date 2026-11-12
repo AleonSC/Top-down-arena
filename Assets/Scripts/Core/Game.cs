@@ -1351,7 +1351,7 @@ namespace Arena
                 if (p.Weapon.Id != WeaponId.TwinRifleAuto)
                     p.TwinLock = 0;  // (TwinAuto.cs)
                 if (p.Weapon.Id != WeaponId.OutOfAmmo)
-                    p.AmmoMove = 0;  // (OutOfAmmo.cs)
+                    p.AmmoMove = p.KnifeMove = 0;  // (OutOfAmmo.cs)
                 if (p.Weapon.Id != WeaponId.OutOfAmmo)
                     p.AmmoSpin = 0f;
                 TickSpinUp(p, dt);  // the Burst SMG (Weapons.cs)

@@ -139,13 +139,6 @@ namespace Arena
                 return;
             }
 
-            if (p.Weapon.Id == WeaponId.OutOfAmmo)  // lashed rifles and a knife: its own arms (OutOfAmmoLook.cs)
-            {
-                DrawAmmoModel(p, K);
-                ModelHead(p, kit, role, K, RC, r, sh, t);
-                return;
-            }
-
             // Arms and the weapon.
             float sway = Mathf.Sin(t * 2.4f) * 1.2f, u = mU, wk = (0.8f + 0.2f * u) / u;
             int hold; float offX;
@@ -170,9 +163,14 @@ namespace Arena
             // The Twin Rifle is held out wide, each muzzle where its stream starts, turned toward the crossing; each gun recoils
             // along its own barrel (DpsGunLooks.cs TwinSpreadPose).
             float twist = 0f, climbR = 0f, climbL = 0f;
-            bool spread = Game.IsTwinRifle(p.Weapon.Id), auto = p.Weapon.Id == WeaponId.TwinRifleAuto;
-            float headR = 0f, headL = 0f;  // each gun's heading in the model's frame (the Auto's guns turn on their own, DpsGunLooks.cs TwinAutoPose)
-            if (auto)
+            bool spread = Game.IsTwinRifle(p.Weapon.Id), ammo = p.Weapon.Id == WeaponId.OutOfAmmo, auto = p.Weapon.Id == WeaponId.TwinRifleAuto || ammo;
+            float headR = 0f, headL = 0f;  // each gun's heading in the model's frame (the Auto's guns turn on their own, DpsGunLooks.cs TwinAutoPose; Out of Ammo's, OutOfAmmoLook.cs)
+            if (ammo)
+            {
+                AmmoGunPose(p, ref rhx, ref rhy, ref lhx, ref lhy, out headR, out headL);
+                twist = -headR; climbR = 0f; climbL = 0f;
+            }
+            else if (auto)
             {
                 TwinAutoPose(p, ref rhx, ref rhy, ref lhx, ref lhy, out headR, out headL);
                 twist = -headR; climbR = 0f; climbL = 0f;
@@ -206,6 +204,8 @@ namespace Arena
             mAlpha = keepA;
             MFrame(0f, 0f, 0f, 1f, false);
             if (!ownArms) { MCirc(rhx, rhy, 3.3f, K.Glove); MCirc(lhx, lhy, 3.3f, K.Glove); }
+            if (ammo)
+                DrawAmmoKnifeArms(p, K);  // your own arms in front, the knife in the right hand (OutOfAmmoLook.cs)
 
             ModelHead(p, kit, role, K, RC, r, sh, t);
         }
@@ -440,7 +440,7 @@ namespace Arena
                 case WeaponId.Flamethrower: case WeaponId.Warhammer: hold = 1; offX = 12f; break;
                 case WeaponId.Lance: hold = 1; offX = -4f; break;
                 case WeaponId.Greatsword: hold = 1; offX = -8f; break;
-                case WeaponId.TwinRifle: case WeaponId.TwinRifleAuto: case WeaponId.TwinBlades: hold = 2; break;
+                case WeaponId.TwinRifle: case WeaponId.TwinRifleAuto: case WeaponId.OutOfAmmo: case WeaponId.TwinBlades: hold = 2; break;
                 case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.ArcaneMissiles: case WeaponId.ClotBolt: case WeaponId.SanguineOrb: case WeaponId.Implosion:
                 case WeaponId.GolemStaff: case WeaponId.SpriteStaff: case WeaponId.Nimbus: case WeaponId.SpiritChalk: hold = 3; break;
             }
@@ -503,6 +503,7 @@ namespace Arena
                 }
                 case WeaponId.TwinRifle:
                 case WeaponId.TwinRifleAuto:
+                case WeaponId.OutOfAmmo:
                     if (mDpsOn) { DrawTwinRifleFx(); break; }  // DpsGunLooks.cs
                     MRect(-6f, -2f, 8f, 4f, MWood); MRect(0f, -2.6f, 14f, 5.2f, MDark); MLine(12f, 0f, 26f, 0f, 2.4f, MSteel); MRect(5f, -5f, 8f, 2.6f, Hx(0x7bd0ff));
                     DrawTwinTube();

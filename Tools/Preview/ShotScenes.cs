@@ -607,7 +607,7 @@ static partial class Shot {
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
     // OUTAMMO=<s>: the Soldier DPS's Out of Ammo (Core/OutOfAmmo.cs, Game/OutOfAmmoLook.cs) that long into a fight, a dummy close in front of you
-    // (the chain runs by itself); OUTSPIN=1: Alt pressed 0.3 s in (the spin, with a ring of enemy bullets coming in).
+    // (the rifle arms bash by themselves); KNIFE=1: fire held (the knife chain); OUTSPIN=1: Alt pressed 0.3 s in (the spin).
     if (Environment.GetEnvironmentVariable("OUTAMMO") != null) {
       var ci = System.Globalization.CultureInfo.InvariantCulture;
       var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
@@ -620,7 +620,7 @@ static partial class Shot {
       int frames = Math.Max(6, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("OUTAMMO"), ci) * 60f));
       for (int f = 0; f < frames; f++) {
         me.Pos = me.Disp = home; me.Aim = 0f; dummy.Pos = dummy.Disp = home + new V2(62f, 0f); Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
-        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = home + new V2(300f, 0f), WeaponAction = spin && f >= 18 && f < 21 });
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = home + new V2(300f, 0f), Fire = Environment.GetEnvironmentVariable("KNIFE") != null, WeaponAction = spin && f >= 18 && f < 21 });
         me.Disp = me.Pos = home; me.Aim = 0f; dummy.Disp = dummy.Pos; draw.Invoke(app, null);
       }
       GL.Tris.Clear(); GUI.Log.Clear();

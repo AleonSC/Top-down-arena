@@ -3,31 +3,41 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// Out of Ammo (the Twin Rifle's second variant, Variants window tier II; Choice 4). The rifles are lashed to the forearms and don't shoot:
-    ///  - Swat: each rifle knocks the nearest enemy bullet within reach out of the air, then recovers for AmmoSwatCd. One bullet each, so two at a time.
-    ///  - Knife chain: with an enemy close in front of you (AmmoReach, within AmmoCone of your facing) a five-move chain runs on its own: left bash,
-    ///    cross cut, right bash, reverse cut, then a rifle clap (an area, with a shockwave). A move lands once, at AmmoMotion.Hit; the next starts when
-    ///    it is over, and the chain starts again if nothing is close for AmmoChainGap.
+    /// Out of Ammo (the Twin Rifle's second variant, Variants window tier II; Choice 4). Two sets of arms:
+    ///  - The rifle arms, out at your sides, work on their own and don't shoot. Swat: each knocks the nearest enemy bullet within reach out of the air
+    ///    (one each, then AmmoSwatCd of recovery, so two at a time). Bash: with an enemy close in front (AmmoReach, within AmmoCone of your facing) they bash
+    ///    in turn: left, right, left, then a rifle clap (an area with a shockwave), and round again. Player.AmmoMove 1-4 is the move running.
+    ///  - Your own arms hold a knife, worked by hand: holding fire runs a three-hit chain (cross cut, reverse cut, lunging stab) whether or not anything
+    ///    is there to hit; it adds a little damage on top of the rifles. Player.KnifeMove 1-3 is the move running.
     ///  - Alt (Msg.WeaponDash, DashSpin): a spin for AmmoSpinTime that cuts everything round you every AmmoSpinTick and swats every enemy bullet that
-    ///    comes in reach (no one-each limit), then AmmoSpinCd.
-    /// Replicated: Player.AmmoMove, AmmoSeq (the look restarts its clock when it rises), SwatSeqL/R and SwatAngL/R, AmmoSpin. Drawn in Game/OutOfAmmoLook.cs
-    /// (the same timings, AmmoMotion). Docs/Mockups: the Gun and Knife animation.
+    ///    comes in reach (no one-each limit), then AmmoSpinCd. Both sets of arms are busy while it runs.
+    /// Replicated: AmmoMove/AmmoSeq, KnifeMove/KnifeSeq (the look restarts its clock when a Seq rises), SwatSeqL/R and SwatAngL/R, AmmoSpin.
+    /// Drawn in Game/OutOfAmmoLook.cs with the same timings (AmmoMotion).
     public static class AmmoMotion
     {
-        // per move: wind-up end, strike end, total, the hit's moment (seconds into the move)
-        public static readonly float[] Wind = { .12f, .12f, .12f, .12f, .40f };
-        public static readonly float[] Strike = { .20f, .23f, .17f, .24f, .52f };
-        public static readonly float[] Total = { .42f, .45f, .42f, .43f, 1.20f };
-        public static readonly float[] Hit = { .20f, .17f, .17f, .18f, .50f };
-        public static readonly float[] Damage = { 10f, 12f, 10f, 12f, 35f };
-        public static readonly float[] Knock = { 12f, 8f, 12f, 8f, 60f };
-        public static readonly string[] Names = { "Left bash", "Cross cut", "Right bash", "Reverse cut", "Rifle clap" };
+        // The rifle arms' moves (left bash, right bash, left bash, rifle clap), seconds into the move: wind-up end, strike end, total, the hit's moment
+        public static readonly float[] Wind = { .12f, .12f, .12f, .40f };
+        public static readonly float[] Strike = { .20f, .17f, .20f, .52f };
+        public static readonly float[] Total = { .42f, .42f, .42f, 1.20f };
+        public static readonly float[] Hit = { .20f, .17f, .20f, .50f };
+        public static readonly float[] Damage = { 10f, 10f, 10f, 35f };
+        public static readonly float[] Knock = { 12f, 12f, 12f, 60f };
+        public static readonly string[] Names = { "Left bash", "Right bash", "Left bash", "Rifle clap" };
+        // The knife's moves (cross cut, reverse cut, lunging stab)
+        public static readonly float[] KWind = { .10f, .10f, .14f };
+        public static readonly float[] KStrike = { .22f, .22f, .30f };
+        public static readonly float[] KTotal = { .38f, .38f, .55f };
+        public static readonly float[] KHit = { .16f, .16f, .26f };
+        public static readonly float[] KDamage = { 12f, 12f, 20f };
+        public static readonly float[] KCone = { 1.0f, 1.0f, 0.55f };
+        public static readonly float[] KReach = { 84f, 84f, 106f };
+        public static readonly string[] KNames = { "Cross cut", "Reverse cut", "Lunge stab" };
     }
 
     public partial class Game
     {
         public const float AmmoReach = 78f, AmmoCone = 1.0f, AmmoClapCone = 1.3f, AmmoClapRadius = 92f;
-        public const float AmmoChainGap = 0.5f, AmmoStartGap = 0.04f;
+        public const float AmmoChainGap = 0.5f, AmmoStartGap = 0.04f, KnifeChainGap = 0.45f;
         public const float AmmoSwatReach = 72f, AmmoSwatCd = 0.5f;
         public const float AmmoSpinTime = 1.2f, AmmoSpinCd = 6f, AmmoSpinTick = 0.2f, AmmoSpinRadius = 88f, AmmoSpinDamage = 14f, AmmoSpinKnock = 22f;
 
@@ -40,6 +50,7 @@ namespace Arena
             if (p.Downed || p.StunT > 0f || State == MatchState.GameOver)
             {
                 p.AmmoMove = 0;
+                p.KnifeMove = 0;
                 p.AmmoSpin = 0f;
                 return;
             }
@@ -50,6 +61,7 @@ namespace Arena
             }
             AmmoSwat(p);
             float rate = FireRate(p);
+            // the rifle arms: bash in turn on whatever is close in front
             if (p.AmmoMove > 0)
             {
                 int m = p.AmmoMove - 1;
@@ -63,24 +75,59 @@ namespace Arena
                 {
                     p.AmmoMove = 0;
                     p.AmmoIdle = 0f;
-                    p.AmmoCombo = m == 4 ? 0 : m + 1;
+                    p.AmmoCombo = m == 3 ? 0 : m + 1;
                 }
-                return;
             }
-            p.AmmoIdle += dt;
-            if (p.AmmoCombo != 0 && p.AmmoIdle > AmmoChainGap)
-                p.AmmoCombo = 0;  // nothing close for a moment: the chain starts again
-            if (p.AmmoIdle >= AmmoStartGap && !p.ParryActive && AmmoCloseEnemy(p, AmmoCone))
-                AmmoStart(p);
+            else
+            {
+                p.AmmoIdle += dt;
+                if (p.AmmoCombo != 0 && p.AmmoIdle > AmmoChainGap)
+                    p.AmmoCombo = 0;  // nothing close for a moment: the bashes start again
+                if (p.AmmoIdle >= AmmoStartGap && !p.ParryActive && AmmoCloseEnemy(p, AmmoCone))
+                    AmmoStart(p);
+            }
+            // your own arms: the knife, while fire is held
+            if (p.KnifeMove > 0)
+            {
+                int k = p.KnifeMove - 1;
+                p.KnifeT += dt * rate;
+                if (!p.KnifeHit && p.KnifeT >= AmmoMotion.KHit[k])
+                {
+                    p.KnifeHit = true;
+                    KnifeLand(p, k);
+                }
+                if (p.KnifeT >= AmmoMotion.KTotal[k])
+                {
+                    p.KnifeMove = 0;
+                    p.KnifeIdle = 0f;
+                    p.KnifeCombo = k == 2 ? 0 : k + 1;
+                }
+            }
+            else
+            {
+                p.KnifeIdle += dt;
+                if (p.KnifeCombo != 0 && p.KnifeIdle > KnifeChainGap)
+                    p.KnifeCombo = 0;  // let go for a moment: the chain starts again
+                if (p.Firing && !p.ParryActive && p.KnifeIdle >= AmmoStartGap)
+                    KnifeStart(p);
+            }
         }
 
-        /// Host: start the chain's next move now (also what firing the weapon by hand does).
+        /// Host: start the rifle arms' next move now (also what firing the weapon by hand does).
         void AmmoStart(Player p)
         {
             p.AmmoMove = (byte)(p.AmmoCombo + 1);
             p.AmmoT = 0f;
             p.AmmoHit = false;
             p.AmmoSeq++;
+        }
+
+        void KnifeStart(Player p)
+        {
+            p.KnifeMove = (byte)(p.KnifeCombo + 1);
+            p.KnifeT = 0f;
+            p.KnifeHit = false;
+            p.KnifeSeq++;
         }
 
         bool AmmoInCone(Player p, Enemy e, float cone, float reach)
@@ -103,10 +150,10 @@ namespace Arena
             return false;
         }
 
-        /// Host: move `m` (0-4) lands: everything in front, within reach, takes the hit; the clap is wider and shoves hard.
+        /// Host: rifle move `m` (0-3) lands: everything in front, within reach, takes the hit; the clap is wider and shoves hard.
         void AmmoLand(Player p, int m)
         {
-            bool clap = m == 4;
+            bool clap = m == 3;
             float dmg = AmmoMotion.Damage[m] * p.Stats.DmgMult * (1f + 0.5f * ExtraShots(p));
             V2 fwd = V2.FromAngle(p.Aim);
             foreach (var e in new List<Enemy>(Enemies.Values))
@@ -124,6 +171,27 @@ namespace Arena
             }
             if (clap)
                 BroadcastFx(FxKind.Ring, p.Pos + fwd * 50f, new Rgba(0.25f, 0.88f, 0.91f), AmmoClapRadius, 0.45f, Sfx.Shockwave);
+        }
+
+        /// Host: knife move `k` (0-2) lands on everything in its cone and reach.
+        void KnifeLand(Player p, int k)
+        {
+            float dmg = AmmoMotion.KDamage[k] * p.Stats.DmgMult * (1f + 0.5f * ExtraShots(p));
+            V2 fwd = V2.FromAngle(p.Aim);
+            bool hitAny = false;
+            foreach (var e in new List<Enemy>(Enemies.Values))
+            {
+                if (!Targetable(e) || !AmmoInCone(p, e, AmmoMotion.KCone[k], AmmoMotion.KReach[k]))
+                    continue;
+                hitAny = true;
+                HurtEnemy(e, dmg, p.Id);
+                V2 away = (e.Pos - p.Pos).Normalized();
+                if (!Heavy(e) && k == 2)
+                    KnockEnemy(e, (away.IsZero ? fwd : away) * 18f);
+                BroadcastFx(FxKind.Spark, e.Pos - away * e.Radius, new Rgba(1f, 0.76f, 0.24f), k == 2 ? 24f : 16f, 0.25f, Sfx.SwingLight);
+            }
+            if (!hitAny)
+                BroadcastFx(FxKind.Ring, p.Pos + fwd * 40f, new Rgba(0.8f, 0.85f, 0.9f), 10f, 0.12f, Sfx.SwingLight);
         }
 
         /// Host: each rifle swats the nearest enemy bullet in reach, if it is ready (one bullet each).
@@ -172,6 +240,7 @@ namespace Arena
             p.AmmoSpin = AmmoSpinTime;
             p.AmmoCd = AmmoSpinCd + AmmoSpinTime;
             p.AmmoMove = 0;
+            p.KnifeMove = 0;
             p.AmmoTick = 0f;
             BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.76f, 0.24f), AmmoSpinRadius, 0.3f, Sfx.SwingHeavy);
         }
