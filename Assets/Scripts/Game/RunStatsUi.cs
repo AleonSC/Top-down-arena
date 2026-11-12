@@ -208,7 +208,7 @@ namespace Arena
                 int bs = cur > bossWave ? 0 : bossFight && cur == bossWave ? 1 : 2;
                 rows.Add(new RouteRow
                 {
-                    Name = BossName(Game.BossForWave(bossWave)), Waves = "after wave " + game.ShownEnd(bossWave), Boss = true, State = bs,
+                    Name = BossName(game.BossAt(bossWave)), Waves = "after wave " + game.ShownEnd(bossWave), Boss = true, State = bs,
                     Note = bs == 0 ? "beaten" : bs == 1 ? "fighting now" : game.ShownEnd(bossWave) - game.ShownWave <= 0 ? "next up" : "after wave " + game.ShownEnd(bossWave),
                     Color = new Color(0.89f, 0.33f, 0.42f),
                 });

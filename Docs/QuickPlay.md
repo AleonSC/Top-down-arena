@@ -1,6 +1,6 @@
 # Quick Play (and the first-run tutorial)
 
-Status: **planned, nothing built** (owner's decisions, Nov 12, 2026). Build one step at a time on "start on step N".
+Status: **step 0 built** (the boss schedule); steps 1-4 planned (owner's decisions, Nov 12, 2026). Build one step at a time on "start on step N".
 
 ## What it is
 
@@ -36,6 +36,9 @@ Per seat and local only (each player's own profile decides): no network message.
 
 ## Steps
 
+0. **Boss schedule** (built, Nov 12): `Core/BossSchedule.cs`. One object per mode answers which waves have a boss and
+   which boss (`Game.Bosses`): the Campaign's rotation and a hunt's last-wave boss today, Quick Play's random bag in step 1.
+   Every caller asks it instead of the every-fifth-wave formula; no gameplay, save or protocol change (sim suites identical).
 1. **Mode and waves**: `Session.QuickMode`, `Game.Quick` (Core), the carousel's first mode and default; a boss slot after every
    10th wave (as the Campaign's shown waves); the boss bag (Warden first); faction waves with the mixed fallback; boss HP for a ~2 min fight at any wave (sim prints each boss's fight length after waves 10, 20, 30); win screen End / Continue endless; records;
    sim suite `quick`. Protocol bump (start message, `Msg` for the endless choice).

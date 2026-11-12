@@ -174,7 +174,7 @@ namespace Arena
 
         static string LabBossName(int wave)
         {
-            var t = Game.BossForWave(wave);
+            var t = BossSchedule.Campaign.BossAt(wave);
             return Game.IsTwin(t) ? "Twin Reapers" : Defs.Get(t).Name;
         }
 

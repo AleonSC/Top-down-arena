@@ -246,7 +246,7 @@ namespace Arena
             var d = Paths.Get(CurrentPath);
             if (d == null)
                 return;
-            var lastBoss = BossForWave(Math.Max(5, PathFrom - 1));
+            var lastBoss = BossAt(Math.Max(Bosses.FirstBossWave, PathFrom - 1));
             var key = IsReaper(lastBoss) ? EnemyType.TwinA : lastBoss;
             if (d.Id == PathId.Bazaar)
                 OpenShop();  // the shop is its prize (Shop.cs)

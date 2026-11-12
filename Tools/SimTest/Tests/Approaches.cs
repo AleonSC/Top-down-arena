@@ -40,7 +40,7 @@ static partial class Program
         g0.Wave = 0; g0.BossSlot = false;
         Console.WriteLine("  Blend (Normal): waves 1-5 = {0}", string.Join(", ", Enumerable.Range(1, 5).Select(w => share(w).ToString("0.00"))));
         Check(normal, "Blend (the default): the Warden's approach builds up 34%, 51%, 68%, 85%, 85%; nothing on his boss");
-        Check(share(6) == 0f && share(9) == 0f && Game.ApproachBoss(9) == EnemyType.HiveQueen && Game.ApproachBoss(51) == EnemyType.Boss,
+        Check(share(6) == 0f && share(9) == 0f && BossSchedule.Campaign.BossAt(BossSchedule.Campaign.NextBossWaveFrom(9)) == EnemyType.HiveQueen && BossSchedule.Campaign.BossAt(BossSchedule.Campaign.NextBossWaveFrom(51)) == EnemyType.Boss,
             "a boss with no faction yet has no approach; the waves after 50 lead to the bosses again");
         g0.Diff.Set(DiffKnob.ApproachShare, 1f);
         g0.Diff.Set(DiffKnob.ApproachRamp, 0f);
@@ -121,7 +121,7 @@ static partial class Program
         Func<int, int> zombies = n => wave(gb, n).Count(Zombies.Is);
         int z31 = zombies(31), z35 = zombies(35);
         Console.WriteLine("  Lich approach at Blend: zombies in waves 30-36 = {0}", string.Join(", ", Enumerable.Range(30, 7).Select(zombies)));
-        Check(Game.ApproachBoss(32) == EnemyType.Lich && zombies(30) == 0 && zombies(36) == 0 && z31 > 0 && z35 > z31,
+        Check(BossSchedule.Campaign.BossAt(BossSchedule.Campaign.NextBossWaveFrom(32)) == EnemyType.Lich && zombies(30) == 0 && zombies(36) == 0 && z31 > 0 && z35 > z31,
             "the Lich's approach (waves 31-35) brings zombies, more each wave; none before it or after his boss");
         var w35 = wave(gb, 35);
         Check(w35.Count(t => t == EnemyType.Mender) >= 2 && w35.Any(t => !Zombies.Is(t)), "wave 35 has the Dead march and still has the usual mix");

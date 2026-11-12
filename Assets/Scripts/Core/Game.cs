@@ -233,7 +233,7 @@ namespace Arena
                     if (IsHost)
                     {
                         p.PendingPicks += Modifiers.HeadStartLevel - 1;
-                        var first = BossForWave(5);
+                        var first = BossAt(Bosses.FirstBossWave);
                         p.LegendaryQueue.Add(IsReaper(first) ? EnemyType.TwinA : first);
                         NextOffer(p);
                     }
