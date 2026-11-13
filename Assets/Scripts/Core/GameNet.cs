@@ -345,6 +345,7 @@ namespace Arena
             s.Bool(ref ShopOpen);
             s.Float(ref ShopT);
             SyncRoom(s);  // a challenge room's portal and room (Challenges.cs)
+            SyncBossGate(s);  // the boss gate (BossGate.cs)
 
             int count = Players.Count;
             s.Byte(ref count);

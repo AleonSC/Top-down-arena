@@ -42,7 +42,12 @@ namespace Arena
             }
             if (WaveBoxUp(me) && GUIUtility.keyboardControl == 0 && Keybinds.Down(KeyAction.ReadyUp))
             {
-                if (wcMin)
+                if (game.GateUp && (wcMin || WcStepNow() == 2))
+                {
+                    wcStep = 2;
+                    wcMin = true;  // before a boss the key folds the box away so you can walk to the boss gate (Core/BossGate.cs)
+                }
+                else if (wcMin)
                 {
                     wcStep = 2;  // minimized: the key readies at once (you saw the results, the build window has its chip)
                     PressReady(me);
@@ -191,8 +196,8 @@ namespace Arena
             }
             else
             {
-                DrawWcHead(x, y, boss ? "NEXT: THE BOSS" : "NEXT: WAVE " + (game.Hunt != null ? game.Wave + 1 : game.ShownWave + 1), ink, calm);
-                DrawWcTally(x, y, rep, calm, true);
+                DrawWcHead(x, y, boss || game.GateUp ? "NEXT: THE BOSS" : "NEXT: WAVE " + (game.Hunt != null ? game.Wave + 1 : game.ShownWave + 1), ink, calm);
+                DrawWcTally(x, y, rep, calm, !game.GateUp);  // (no ready marks before a boss: the gate decides)
                 DrawNextPanel(new Rect(x + 640f, y + 84f, 278f, 236f));
                 DrawReadyBar(me, new Rect(x + WcPad, y + 338f, WcW - 2f * WcPad, 58f), waiting, calm);
             }
@@ -208,7 +213,8 @@ namespace Arena
         /// RESULTS / BUILD / READY along the top of the tube: the step you are on is lit, finished ones carry a tick. Build is left out when there is no round.
         void DrawWcTabs(Rect r, int step, bool calm)
         {
-            var names = WcBuildAvail ? new[] { "RESULTS", "BUILD", "READY" } : new[] { "RESULTS", "READY" };
+            string last = game.GateUp ? "GATE" : "READY";
+            var names = WcBuildAvail ? new[] { "RESULTS", "BUILD", last } : new[] { "RESULTS", last };
             var ids = WcBuildAvail ? new[] { 0, 1, 2 } : new[] { 0, 2 };
             float tw = 200f, gap = 10f, x = r.x + WcPad;
             for (int i = 0; i < names.Length; i++)
@@ -233,10 +239,16 @@ namespace Arena
             RoundTube(r, 1f, false, () =>
             {
                 bool boss = game.BossNow;
-                string next = boss ? "NEXT: THE BOSS" : "NEXT: WAVE " + (game.Hunt != null ? game.Wave + 1 : game.ShownWave + 1);
+                string next = boss || game.GateUp ? "NEXT: THE BOSS" : "NEXT: WAVE " + (game.Hunt != null ? game.Wave + 1 : game.ShownWave + 1);
                 HudCrt(new Rect(r.x + 16f, r.y + 6f, 250f, 26f), next, 24, CrtUi.Ink);
                 string st;
-                if (me.AutoReady || game.AllAutoReady() || game.AllReady())
+                if (game.GateUp)
+                {
+                    int alive, inside;
+                    game.GateCount(out alive, out inside);
+                    st = inside + " / " + alive + " IN THE GATE";
+                }
+                else if (me.AutoReady || game.AllAutoReady() || game.AllReady())
                     st = "STARTS IN " + Mathf.CeilToInt(game.StateTimer);
                 else if (!string.IsNullOrEmpty(waiting) && waiting.StartsWith("Waiting for"))
                     st = waiting.ToUpperInvariant().Replace("…", "...");
@@ -249,7 +261,9 @@ namespace Arena
                 HudCrt(new Rect(r.x + 16f, r.y + 32f, 250f, 20f), st, 16, CrtUi.Dim);
                 var rb = new Rect(r.x + 276f, r.y + 8f, 210f, 44f);
                 string key = Keybinds.KeyName(Keybinds.Get(KeyAction.ReadyUp)).ToUpperInvariant();
-                if (me.AutoReady)
+                if (game.GateUp)
+                    LobbyKit.Key(rb, "STAND IN THE GATE", false, calm, size: 20, minSize: 12, locked: true);
+                else if (me.AutoReady)
                     LobbyKit.Key(rb, "AUTO-READY", false, calm, size: 20, locked: true);
                 else if (LobbyKit.Key(rb, me.Ready ? "READY" : "READY  [" + key + "]", me.Ready, calm, me.Ready ? PixelArt.Get("ui_check") : null, size: 20, minSize: 12,
                              accent: me.Ready ? Ui.Good : (Color?)null))
@@ -473,9 +487,32 @@ namespace Arena
             HudCrt(new Rect(r.x, r.y + 38f, r.width, 18f), game.BossNext && game.Hunt == null ? "BOSS NEXT" : "WAVE " + (game.Hunt != null ? game.Wave : game.ShownWave) + " OF " + (game.Hunt != null ? next : game.ShownEnd(next)), 19, CrtUi.Dim);
         }
 
+        /// Before a boss (Core/BossGate.cs): no Ready, the boss gate instead. A key that folds the box away, who's in, and the fill.
+        void DrawGateBar(Rect r, bool calm)
+        {
+            var ink = CrtUi.Ink;
+            string key = Keybinds.KeyName(Keybinds.Get(KeyAction.ReadyUp)).ToUpperInvariant();
+            if (LobbyKit.Key(new Rect(r.x, r.y, 330f, 48f), "GO TO THE GATE  [" + key + "]", false, calm, size: 24, minSize: 14, accent: CrtStyle.Gold))
+                wcMin = true;
+            int alive, inside;
+            game.GateCount(out alive, out inside);
+            string st = inside >= alive && alive > 0 ? "EVERYONE IS IN · THE BOSS IS COMING" : "STAND IN THE BOSS GATE · " + inside + " / " + alive + " IN";
+            HudCrt(new Rect(r.x + 350f, r.y + 10f, r.width - 350f, 26f), st, 22, inside > 0 ? ink : CrtUi.Dim, TextAnchor.MiddleRight);
+            var bar = new Rect(r.x, r.yMax - 4f, r.width, 10f);
+            Ui.Fill(bar, new Color(1f, 1f, 1f, 0.08f));
+            float fw = bar.width * Mathf.Clamp01(game.GateFill);
+            for (float sx = 0f; sx < fw; sx += 8f)
+                Ui.Fill(new Rect(bar.x + sx, bar.y, Mathf.Min(6f, fw - sx), bar.height), CrtStyle.Gold);
+        }
+
         /// The Ready key, the Auto-ready switch, the status line, and the countdown bar along the bottom.
         void DrawReadyBar(Player me, Rect r, string waiting, bool calm)
         {
+            if (game.GateUp)
+            {
+                DrawGateBar(r, calm);
+                return;
+            }
             var ink = CrtUi.Ink;
             // Ready: a lobby key (green and ticked once you are ready); with Auto-ready on it's a dim dashed key.
             var btn = new Rect(r.x, r.y, 220f, 48f);
