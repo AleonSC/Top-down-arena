@@ -140,6 +140,8 @@ static partial class Program
             Console.WriteLine("  fell in endless: host best wave {0}, plays {1}, XP +{2}, mode '{3}'", hp.QuickBestWave, hp.QuickPlays, hp.Xp - xpBefore, hp.Recent[0].Mode);
             Check(g.State == MatchState.GameOver && hp.QuickPlays == 1 && hp.QuickBestWave >= 19 && hp.Xp > xpBefore && hp.Recent[0].Mode == "Quick Play · Endless",
                 "falling in endless adds the stretch after the win (best wave, XP), not a second play");
+            Check(hp.Recent.Count >= 2 && RunTimelineStore.Load(hp.Recent[1].File) != null && RunTimelineStore.Load(hp.Recent[0].File) != null,
+                "the win and the endless stretch after it each keep a curve for Recent runs");
             host.Leave(""); client.Leave("");
         }
         finally

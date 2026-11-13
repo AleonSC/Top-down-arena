@@ -129,6 +129,29 @@ static partial class Program
             Check(ql != null && ql.Result == 4 && ql.Xp == 0 && qp.Xp == xpBefore && ql.Seconds > 20f && ql.Class.Length > 0, "a run you quit is logged as quit, with no XP");
             Check(ql != null && RunTimelineStore.Load(ql.File) != null, "a run you quit keeps its curve");
             Check(Profile.Parse(qp.ToText()).Recent[0].Result == 4, "a quit run's log line reads back");
+
+            // A Quick Play you quit is logged too, as a Quick Play, with its curve.
+            Session.QuickDefault = true;
+            try
+            {
+                var kh = new Session { AutoStart = 2, StartWave = 1 };
+                kh.Game.ProfileOverride = new Profile();
+                kh.Host(nextPort++, "Host", Role.Tank);
+                var kc = new Session();
+                var kp = kc.Game.ProfileOverride = new Profile();
+                kc.Join("127.0.0.1", kh.Port, "Quitter", Role.Dps);
+                var ks = new[] { kh, kc };
+                WaitForGame(kh, kc, dt);
+                Run(ks, dt, 25f, () => false, () => { foreach (var pl in kh.Game.Players.Values) pl.InvulnT = 1f; });
+                bool wasQuick = kc.Game.Quick;
+                kc.Leave(""); kh.Leave("");
+                var kl = kp.Recent.Count > 0 ? kp.Recent[0] : null;
+                var ktl = kl == null ? null : RunTimelineStore.Load(kl.File);
+                Check(wasQuick && kl != null && kl.Result == 4 && kl.Mode == "Quick Play" && kl.Xp == 0 && kp.QuickPlays == 0 && kl.Seconds > 20f,
+                    "a Quick Play you quit is logged in Recent runs as a quit Quick Play (no XP, not a play)");
+                Check(ktl != null && ktl.Mode == "Quick Play" && ktl.Samples.Count >= 2, "a quit Quick Play keeps its curve");
+            }
+            finally { Session.QuickDefault = false; }
         }
         finally
         {
