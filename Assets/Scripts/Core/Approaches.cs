@@ -253,18 +253,14 @@ namespace Arena
         /// With the ramp on, each approach wave's share of the full share: from 40% up to all of it.
         static readonly float[] RampSteps = { 0.4f, 0.6f, 0.8f, 1f };
 
-        readonly List<EnemyType> approachSingles = new List<EnemyType>();
-        readonly List<SquadDef> approachSquads = new List<SquadDef>();
-        readonly List<EnemyType> approachTrickle = new List<EnemyType>();  // a lesson's star: spread over the wave's second half
-
         /// Host, BuildWave: takes the themed share off `count` and picks the faction's enemies for it (squads where they
         /// fit, singles for the rest). They're mixed into the wave by MixApproach once the rest is built. Uses no random
         /// rolls when the share is 0, so those waves come out exactly as before.
         void BuildApproach(int n, ref int count)
         {
-            approachSingles.Clear();
-            approachSquads.Clear();
-            approachTrickle.Clear();
+            plan.ApproachSingles.Clear();
+            plan.ApproachSquads.Clear();
+            plan.ApproachTrickle.Clear();
             int of = OnPath && CurrentPath == PathId.EliteGauntlet ? count / 2 : count;  // Elite Gauntlet halves the whole wave
             if (CampaignOn)
             {
@@ -293,9 +289,9 @@ namespace Arena
                 if (cb != null)
                 {
                     var big = Approaches.Callback(cb, cbFrom);  // (a callback: the old squad, big)
-                    approachSquads.Add(big);
+                    plan.ApproachSquads.Add(big);
                     foreach (var t in big.Members)
-                        kinds.Add(t);
+                        plan.Kinds.Add(t);
                     count -= Math.Min(count, big.Members.Length);
                 }
                 return;
@@ -344,24 +340,24 @@ namespace Arena
             int stars = 0;
             if (l.Star.HasValue)
                 for (; stars < WaveLesson.StarPicks && stars < themed; stars++)
-                    (l.Trickle ? approachTrickle : approachSingles).Add(l.Star.Value);  // the wave's lesson always shows up (a Trickle one only late in the wave)
+                    (l.Trickle ? plan.ApproachTrickle : plan.ApproachSingles).Add(l.Star.Value);  // the wave's lesson always shows up (a Trickle one only late in the wave)
             if (stars > 0)
-                kinds.Add(l.Star.Value);
+                plan.Kinds.Add(l.Star.Value);
             count -= stars;
             PickFrom(members, squads, l.Finale ? f.Finale : null, l.SquadChance, ref count, themed - stars);
         }
 
         /// A boss faction may bring in this type (already in the wave, or a new type within its share of the type budget).
-        bool ApproachKindOk(EnemyType t) => kinds.Count < approachKindCap || kinds.Contains(t);
+        bool ApproachKindOk(EnemyType t) => plan.Kinds.Count < plan.ApproachKindCap || plan.Kinds.Contains(t);
 
         /// ...and these squad members, all of them.
         bool ApproachKindsFit(EnemyType[] members)
         {
             int extra = 0;
             for (int i = 0; i < members.Length; i++)
-                if (!kinds.Contains(members[i]) && Array.IndexOf(members, members[i]) == i)
+                if (!plan.Kinds.Contains(members[i]) && Array.IndexOf(members, members[i]) == i)
                     extra++;
-            return extra == 0 || kinds.Count + extra <= approachKindCap;
+            return extra == 0 || plan.Kinds.Count + extra <= plan.ApproachKindCap;
         }
 
         /// Takes `themed` enemies off `count`: the finale if given (whatever the share), then squads (about `squadChance`
@@ -372,23 +368,23 @@ namespace Arena
             if (finale != null)
             {
                 themed = Math.Max(themed, Math.Min(count, finale.Members.Length));  // the set piece comes whatever the share
-                approachSquads.Add(finale);
+                plan.ApproachSquads.Add(finale);
                 spent = finale.Members.Length;
                 foreach (var t in finale.Members)
-                    kinds.Add(t);
+                    plan.Kinds.Add(t);
             }
             count -= themed;
             while (spent < themed)
             {
                 // About half of it as squads, if one fits in what's left (and in the wave's type budget).
-                var fits = Array.FindAll(squads, s => s.Members.Length <= themed - spent && approachSquads.FindAll(a => a == s).Count < 2 && ApproachKindsFit(s.Members));  // (none more than twice)
+                var fits = Array.FindAll(squads, s => s.Members.Length <= themed - spent && plan.ApproachSquads.FindAll(a => a == s).Count < 2 && ApproachKindsFit(s.Members));  // (none more than twice)
                 if (fits.Length > 0 && rng.NextDouble() < squadChance)
                 {
                     var s = fits[rng.Next(fits.Length)];
-                    approachSquads.Add(s);
+                    plan.ApproachSquads.Add(s);
                     spent += s.Members.Length;
                     foreach (var t in s.Members)
-                        kinds.Add(t);
+                        plan.Kinds.Add(t);
                     continue;
                 }
                 float total = 0f;
@@ -411,11 +407,11 @@ namespace Arena
                     if (r <= 0f)
                         break;
                 }
-                kinds.Add(pick.Type);
-                approachSingles.Add(pick.Type);
+                plan.Kinds.Add(pick.Type);
+                plan.ApproachSingles.Add(pick.Type);
                 int pack = pick.Type == EnemyType.Rioter ? 2 : pick.Type == EnemyType.Runner ? 3 : 1;  // rioters come in pairs, runners in threes
                 for (int k = 1; k < pack; k++)
-                    approachSingles.Add(pick.Type);
+                    plan.ApproachSingles.Add(pick.Type);
                 spent += pack;
             }
         }
@@ -424,17 +420,17 @@ namespace Arena
         /// squads among the others.
         void MixApproach()
         {
-            foreach (var t in approachSingles)
+            foreach (var t in plan.ApproachSingles)
                 spawnQueue.Insert(rng.Next(spawnQueue.Count + 1), t);
-            foreach (var s in approachSquads)
+            foreach (var s in plan.ApproachSquads)
                 squadQueue.Insert(rng.Next(squadQueue.Count + 1), s);
             // The trickle: evenly through the second half of the queue, so the new enemy arrives alone, late, one at a time.
-            int half = spawnQueue.Count / 2, tail = spawnQueue.Count - half, m = approachTrickle.Count;
+            int half = spawnQueue.Count / 2, tail = spawnQueue.Count - half, m = plan.ApproachTrickle.Count;
             for (int k = m - 1; k >= 0; k--)
-                spawnQueue.Insert(half + (int)((k + 0.5f) * tail / m) , approachTrickle[k]);
-            approachSingles.Clear();
-            approachSquads.Clear();
-            approachTrickle.Clear();
+                spawnQueue.Insert(half + (int)((k + 0.5f) * tail / m) , plan.ApproachTrickle[k]);
+            plan.ApproachSingles.Clear();
+            plan.ApproachSquads.Clear();
+            plan.ApproachTrickle.Clear();
         }
     }
 }
