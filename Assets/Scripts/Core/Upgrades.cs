@@ -155,6 +155,17 @@ namespace Arena
         public float TakedownMult = 1f, TakedownStunBonus;                 // Wolf Whistle: Alpha Pack
         public int WispExtra;                                              // Wisp Lantern: Will-o'-Wisp
         public int ImpExtra; public float ImpRateMult = 1f;                // Imp Caller: Imp Horde
+        // Soldier weapon cards (Docs/UpgradePools.md step 11)
+        public float PointBlankReachMult = 1f, ScatterShoveMult = 1f;      // Scattergun: Point Blank
+        public float FlakBurstMult = 1f, MineCdCut;                        // Flak Cannon: Wide Burst
+        public float SuppressMult = 1f, TearGasMult = 1f;                  // Riot Repeater: Crowd Control
+        public float UndertowGainMult = 1f, ShedHealMult = 1f;             // Repulsion Cannon: Undertow Pump
+        public float RevolverReloadMult = 1f, HeavyRoundBonus;             // Revolver: Hot Lead
+        public float BowDrawMult = 1f; public int BowPierceBonus;          // Mender's Bow: Steady Draw
+        public float CrossZoneMult = 1f, CrossBonus;                       // Twin Rifle: Kill Zone
+        public float RailTrailBonus, RailBurnMult = 1f;                    // Railgun: Supercharge
+        public float SpinTimeMult = 1f, SpinDownMult = 1f;                 // Burst SMG: Spin-Up
+        public float DbReloadMult = 1f, DbFullMult = 1f;                   // Double Barrel: Quick Loader
 
         // Legendary weapon upgrades from bosses.
         public int Guards, Searchlight, SplitShots;  // Warden's Guard companions and Searchlight stacks (Stun.cs)

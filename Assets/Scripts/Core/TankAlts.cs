@@ -54,7 +54,7 @@ namespace Arena
                 case WeaponId.FlakCannon:
                     if (mineLocalCd > 0f)
                         return false;
-                    mineLocalCd = MineCd;
+                    mineLocalCd = MineCd - me.Stats.MineCdCut;  // (Wide Burst: sooner)
                     kind = DashMine;
                     break;
                 case WeaponId.RiotRepeater:
@@ -129,7 +129,7 @@ namespace Arena
             var m = AddZone(ZoneKind.FlakMine, p, at, MineTrigger, MineLife);
             m.Aim = (at - p.Pos).Angle;
             m.Radius = MineBurst * AreaMult(p);  // drawn as the burst's reach; it goes off at MineTrigger
-            p.MineCd = MineCd;
+            p.MineCd = MineCd - p.Stats.MineCdCut;
             BroadcastFx(FxKind.Ring, p.Pos + V2.FromAngle(m.Aim) * p.Def.BodyR, Defs.BulletColor(Defs.FlakShell), 14f, 0.2f, Sfx.TankMineLaunch);
         }
 
@@ -140,7 +140,7 @@ namespace Arena
                 return;
             var w = p.Weapon;
             V2 at = TankAltLanding(p, aimAt, Math.Max(380f, w.Speed * w.Life * p.Stats.ShotSpeedMult));
-            var z = AddZone(ZoneKind.TearGas, p, at, TearGasRadius * AreaMult(p), TearGasFlight + TearGasLife);
+            var z = AddZone(ZoneKind.TearGas, p, at, TearGasRadius * AreaMult(p) * p.Stats.TearGasMult, TearGasFlight + TearGasLife);
             z.Aim = (at - p.Pos).Angle;
             p.GasCd = TearGasCd;
             BroadcastFx(FxKind.Ring, p.Pos + V2.FromAngle(z.Aim) * p.Def.BodyR, TearGasColor, 14f, 0.2f, Sfx.TankGasLaunch);

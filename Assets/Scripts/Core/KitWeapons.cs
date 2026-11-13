@@ -580,7 +580,7 @@ namespace Arena
         {
             public int Owner;
             public V2 From, Dir;
-            public float Speed, Len, Age, Dps;
+            public float Speed, Len, Age, Dps, Time = IonTrailTime;
         }
 
         readonly List<Trail> ionTrails = new List<Trail>();
@@ -590,8 +590,9 @@ namespace Arena
         void IonTrail(Player p, V2 from, V2 dir, float speed, float life, float dmg)
         {
             float len = speed * life;
-            ionTrails.Add(new Trail { Owner = p.Id, From = from, Dir = dir, Speed = speed, Len = len, Dps = IonTrailDps * dmg });
-            BroadcastFx(FxKind.IonTrail, from, from + dir * len, Defs.BulletColor(Defs.RailShot), speed, IonTrailTime + life, Sfx.None);
+            float time = IonTrailTime + p.Stats.RailTrailBonus;  // Supercharge: longer, hotter
+            ionTrails.Add(new Trail { Owner = p.Id, From = from, Dir = dir, Speed = speed, Len = len, Dps = IonTrailDps * dmg * p.Stats.RailBurnMult, Time = time });
+            BroadcastFx(FxKind.IonTrail, from, from + dir * len, Defs.BulletColor(Defs.RailShot), speed, time + life, Sfx.None);
         }
 
         void TickIonTrails(float dt)
@@ -600,7 +601,7 @@ namespace Arena
             {
                 var tr = ionTrails[i];
                 tr.Age += dt;
-                float head = Math.Min(tr.Len, tr.Speed * tr.Age), tail = Math.Max(0f, tr.Speed * (tr.Age - IonTrailTime));  // charged behind the round, for IonTrailTime
+                float head = Math.Min(tr.Len, tr.Speed * tr.Age), tail = Math.Max(0f, tr.Speed * (tr.Age - tr.Time));  // charged behind the round, for IonTrailTime
                 if (tail >= tr.Len)
                 {
                     ionTrails.RemoveAt(i);

@@ -16,9 +16,12 @@ namespace Arena
         public const float DbFull = 140f, DbReach = 400f, DbMinMult = 0.35f, DbCone = 0.13f, DbBothCone = 0.17f, DbInterval = 0.32f, DbReloadTime = 0.86f, DbBarrelGap = 5f;
 
         /// How much of a pellet's damage is left after it has flown `d` px.
-        public static float DbFalloff(float d) => d <= DbFull ? 1f : Math.Max(DbMinMult, 1f - (d - DbFull) / (DbReach - DbFull) * (1f - DbMinMult));
+        public static float DbFalloff(float d, float full = DbFull) => d <= full ? 1f : Math.Max(DbMinMult, 1f - (d - full) / Math.Max(1f, DbReach - full) * (1f - DbMinMult));
 
-        float RangeMult(Bullet b) => b.FallOrigin.IsZero ? 1f : DbFalloff(b.Pos.DistanceTo(b.FallOrigin));
+        /// Where this player's pellets stop doing full damage (Quick Loader pushes it out).
+        public static float DbFullOf(Player p) => DbFull * (p != null ? p.Stats.DbFullMult : 1f);
+
+        float RangeMult(Bullet b) => b.FallOrigin.IsZero ? 1f : DbFalloff(b.Pos.DistanceTo(b.FallOrigin), DbFullOf(PlayerOrNull(b.Owner)));
 
         /// Host, every tick the Double Barrel is out: the reload, and the trigger.
         void TickDoubleBarrel(Player p, float dt)
@@ -37,7 +40,7 @@ namespace Arena
             }
             if (p.DbUsed >= DbShells)
             {
-                p.DbReload = DbReloadTime;
+                p.DbReload = DbReloadTime * p.Stats.DbReloadMult;  // (Quick Loader: faster)
                 return;
             }
             if (p.Firing && !p.ParryActive && !p.GreatGuard && !p.RapierGuard && !p.RepelPull && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver)
@@ -72,7 +75,7 @@ namespace Arena
                 p.DbBarrel = (byte)(1 - p.DbBarrel);
             p.DbShot = (byte)(p.DbShot + 1);  // (the look counts volleys by this)
             if (p.DbUsed >= DbShells)
-                p.DbReload = DbReloadTime;
+                p.DbReload = DbReloadTime * p.Stats.DbReloadMult;  // (Quick Loader: faster)
         }
 
         /// Host: Alt. Both barrels at once, when both are loaded.

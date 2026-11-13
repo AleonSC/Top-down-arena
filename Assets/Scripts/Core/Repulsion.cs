@@ -72,13 +72,13 @@ namespace Arena
                 if (e.T >= e.ShedT && rng.NextDouble() < ShedChance)
                 {
                     e.ShedT = e.T + ShedEvery;
-                    SpawnOrb(e.Pos, false, true);
+                    SpawnOrb(e.Pos, false, true, p.Stats.ShedHealMult);  // (Undertow Pump: they heal more)
                 }
             }
             if (hits > 0)
             {
                 p.Run.ShotsHit++;
-                SetRepelMeter(p, p.RepelMeterF + RepelGain(hits));
+                SetRepelMeter(p, p.RepelMeterF + RepelGain(hits) * p.Stats.UndertowGainMult);  // (Undertow Pump: faster)
             }
         }
 

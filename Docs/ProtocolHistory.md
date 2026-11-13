@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 320: ten Soldier weapon upgrade cards in the Soldier's card list shift later card ids (Docs/UpgradePools.md step 11)
 - 319: the Twin Reapers' faction: eight new `EnemyType` values (Wisp ... Shade), and a Bound Wraith's snapshot carries its partner and a revive (`SyncBound`)
 - 318: the Hive Queen's faction: eight new `EnemyType` values (Worker, Soldier, CombShield, HoneyLobber, Stinger, Needler, Bumble, Hornet) and bullet kind `StingBolt` 63 (Docs/HiveFaction.md)
 - 317: eight Summoner weapon upgrade cards in the Summoner's card list shift later card ids (Docs/UpgradePools.md step 10)

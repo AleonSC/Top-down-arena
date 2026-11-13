@@ -88,7 +88,7 @@ namespace Arena
         void SuppressHit(Bullet b, Enemy e)
         {
             if (b.Suppressive)
-                e.Suppress = Math.Min(e.Def.IsBoss ? SuppressMax * 0.5f : SuppressMax, e.Suppress + SuppressPerHit);
+                e.Suppress = Math.Min(e.Def.IsBoss ? SuppressMax * 0.5f : SuppressMax, e.Suppress + SuppressPerHit * (Players.ContainsKey(b.Owner) ? Players[b.Owner].Stats.SuppressMult : 1f));  // (Crowd Control: faster)
         }
 
         /// Twin Rifle: the streams cross at your cursor's distance (from TwinCrossMin to their full range); a hit within
@@ -101,7 +101,17 @@ namespace Arena
         public const float TwinBarrelGap = 60f, TwinCrossMin = 120f, TwinCrossZone = 45f, TwinCrossMult = 1.5f;
         public float TwinCrossDistance(Player p) => Math.Max(TwinCrossMin, Math.Min(p.Weapon.Speed * p.Weapon.Life * p.Stats.ShotSpeedMult, p.AimAt.DistanceTo(p.Pos)));
 
-        float CrossfireMult(Bullet b, Enemy e) => b.Crossfire && e.Pos.DistanceTo(b.Cross) <= TwinCrossZone + e.Radius ? TwinCrossMult : 1f;
+        float CrossfireMult(Bullet b, Enemy e)
+        {
+            Player p;
+            if (!b.Crossfire)
+                return 1f;
+            Players.TryGetValue(b.Owner, out p);
+            return e.Pos.DistanceTo(b.Cross) <= CrossZone(p) + e.Radius ? TwinCrossMult + (p != null ? p.Stats.CrossBonus : 0f) : 1f;  // (Kill Zone: wider, harder)
+        }
+
+        /// The Twin Rifle's crossfire zone for this player (Kill Zone widens it).
+        public static float CrossZone(Player p) => TwinCrossZone * (p != null ? p.Stats.CrossZoneMult : 1f);
 
         /// Burst SMG: holding fire spins it up to full over SmgSpinTime (the spray tightening from SmgSpray to SmgSprayTight
         /// either side, damage rising to +SmgSpinDamage); letting go spins it down over SmgSpinDown.
@@ -110,7 +120,7 @@ namespace Arena
         void TickSpinUp(Player p, float dt)
         {
             bool spinning = p.Weapon.Id == WeaponId.BurstSmg && p.Firing && !p.ParryActive && !p.Downed;
-            p.SpinUp = spinning ? Math.Min(1f, p.SpinUp + dt / SmgSpinTime) : Math.Max(0f, p.SpinUp - dt / SmgSpinDown);
+            p.SpinUp = spinning ? Math.Min(1f, p.SpinUp + dt / (SmgSpinTime * p.Stats.SpinTimeMult)) : Math.Max(0f, p.SpinUp - dt / (SmgSpinDown * p.Stats.SpinDownMult));  // (Spin-Up)
         }
 
         /// Scattergun: pellets that hit within ScatterClose of you (to the enemy's edge) do double and shove it back.
@@ -123,12 +133,12 @@ namespace Arena
         float PointBlankMult(Bullet b, Enemy e)
         {
             Player p;
-            if (!b.PointBlank || !Players.TryGetValue(b.Owner, out p) || p.Pos.DistanceTo(e.Pos) - e.Radius > ScatterClose)
+            if (!b.PointBlank || !Players.TryGetValue(b.Owner, out p) || p.Pos.DistanceTo(e.Pos) - e.Radius > ScatterClose * p.Stats.PointBlankReachMult)  // (Point Blank: farther, harder)
                 return 1f;
             if (!Heavy(e))
             {
                 V2 away = (e.Pos - p.Pos).Normalized();
-                KnockEnemy(e, (away.IsZero ? b.Vel.Normalized() : away) * ScatterShove);  // slides (Knock.cs)
+                KnockEnemy(e, (away.IsZero ? b.Vel.Normalized() : away) * ScatterShove * p.Stats.ScatterShoveMult);  // slides (Knock.cs)
             }
             return ScatterPointBlank;
         }
@@ -230,7 +240,7 @@ namespace Arena
         public const float BowRecover = 0.25f;   // after a shot, the next draw starts this much later
         public const float BowDrawSlow = 0.85f;  // move speed while drawing
 
-        public float BowFull(Player p) => BowFullDraw / FireRate(p);
+        public float BowFull(Player p) => BowFullDraw / FireRate(p) * (p.Weapon != null && p.Weapon.Id == WeaponId.MendersBow ? p.Stats.BowDrawMult : 1f);  // (Steady Draw: sooner)
 
         /// Weapons you hold to charge and let go to fire: the Mender's Bow, the Warhammer, the Golem Staff's boulder, Arc Lightning, the Imp Caller and the Clot Cannon.
         public static bool ChargeWeapon(WeaponId w) => w == WeaponId.MendersBow || w == WeaponId.Warhammer || w == WeaponId.GolemStaff || w == WeaponId.ArcLightning || w == WeaponId.ImpCaller || w == WeaponId.ClotBolt;
@@ -338,7 +348,7 @@ namespace Arena
             if (p.AmmoUsed >= cap)
             {
                 // Empty: a full reload, which you have to wait out.
-                p.ReloadT = RevolverReload / p.Stats.FireRateMult;
+                p.ReloadT = RevolverReload / p.Stats.FireRateMult * p.Stats.RevolverReloadMult;  // (Hot Lead: faster)
                 p.ReloadIdle = 0f;
                 Sounds.Add(Sfx.Pick);
                 return;
@@ -384,7 +394,7 @@ namespace Arena
                     float fast = w.Speed * p.Stats.ShotSpeedMult;
                     float far = Math.Min(fast * w.Life, Math.Max(FlakMin, p.AimAt.DistanceTo(p.Pos) - p.Def.BodyR));
                     var b = SpawnBullet(Defs.FlakShell, muzzle, dir * w.Speed, 0f, far / fast, w.Damage * dmg, p.Id);
-                    b.Splash = FlakBurst * AreaMult(p);
+                    b.Splash = FlakBurst * AreaMult(p) * p.Stats.FlakBurstMult;  // (Wide Burst: wider)
                     b.Burst = 1;  // marks it as bursting where its flight ends (MoveBullets)
                     if (extra > 0)  // bomblets scatter round the burst and pop where they land
                         SetFrags(b, 2 * extra, Defs.GrenadeShot, 10f * dmg, 260f, 0.3f, 45f * AreaMult(p), false);
@@ -404,7 +414,7 @@ namespace Arena
                     // Revolver: a perfectly accurate round; the last ones in the cylinder are heavy.
                     int left = RevolverCapacity(p) - p.AmmoUsed;  // FirePlayer uses up the round
                     bool heavy = left <= RevolverHeavy(p);
-                    SpawnBullet(Defs.HealerShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * (heavy ? 2f : 1f) * dmg, p.Id).Radius = (heavy ? 6f : 4.5f) * p.Stats.ShotSizeMult;  // Magnum Rounds
+                    SpawnBullet(Defs.HealerShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * (heavy ? 2f + p.Stats.HeavyRoundBonus : 1f) * dmg, p.Id).Radius = (heavy ? 6f : 4.5f) * p.Stats.ShotSizeMult;  // Magnum Rounds
                     break;
                 }
                 case WeaponId.MendersBow:
@@ -423,7 +433,7 @@ namespace Arena
                         float d = baseDmg * (k == 0 ? 1f : 0.5f);
                         var b = SpawnBullet(Defs.ArrowShot, muzzle, V2.FromAngle(a) * speed, 0f, reach / speed, d * dmg, p.Id);
                         b.HealAlly = heal * (k == 0 ? 1f : 0.5f) * 9f / d;  // HealAllyHit scales it by Dmg / 9 (so damage upgrades heal more too)
-                        b.Pierce += c >= 1f ? 2 : c >= 0.5f ? 1 : 0;
+                        b.Pierce += (c >= 1f ? 2 : c >= 0.5f ? 1 : 0) + p.Stats.BowPierceBonus;  // (Steady Draw: one more)
                         b.Bolts = c >= 0.5f;  // a drawn arrow pierces: Ricochet flings bounce bolts off it
                         if (perfect)
                             b.Radius = 6f * p.Stats.ShotSizeMult;  // Magnum Rounds
