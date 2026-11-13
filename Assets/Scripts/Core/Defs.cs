@@ -75,6 +75,8 @@ namespace Arena
         Driller, Geomancer, CinderPriest,
         // faction mini-bosses (FactionMinis.cs): the Warden's, a shield officer (RiotCaptain.cs, Game/RiotCaptainLook.cs)
         RiotCaptain,
+        // the Storm Herald's faction, the Squall (Docs/StormFaction.md, Squall.cs, Game/SquallLook.cs): step 1
+        DustDevil, SquallGunner, Stormcaller,
     }
 
     public class RoleDef
@@ -401,6 +403,12 @@ namespace Arena
                 Picker = PickerGroup.Ranged, Blurb = "Charges a molten core, then fires one magma bolt straight at you. Wherever it stops, it leaves a pool of lava. Strafe across the line, or parry it." },
             new EnemyDef { Name = "Riot Captain", Hp = 3000f, Radius = 30f, Speed = 70f, Score = 150, Xp = 80, Sides = 8, Color = new Rgba(0.5f, 0.66f, 1f), Heavy = true, Contact = 20f, Mini = true,
                 Blurb = "The Warden's mini-boss: a tower shield blocks the front. Bait its shield charge into a wall to daze it; it also fires buckshot, lobs tear gas and whistles for Taser Guards." },
+            new EnemyDef { Name = "Dust Devil", Hp = 22f, Radius = 10f, Speed = 135f, Score = 3, Xp = 6, Sides = 6, Color = new Rgba(0.62f, 0.91f, 0.85f), Melee = true, Contact = 8f,
+                Picker = PickerGroup.Melee, Blurb = "A small whirlwind that weaves in at you. Its touch shoves you hard, into whatever is behind you." },
+            new EnemyDef { Name = "Squall Gunner", Hp = 45f, Radius = 13f, Speed = 85f, Score = 7, Xp = 10, Sides = 5, Color = new Rgba(0.56f, 0.82f, 1f),
+                Picker = PickerGroup.Ranged, Blurb = "Carries its own gust: it aims three shots upwind of you, and they curve back onto you. Dodge against the curve." },
+            new EnemyDef { Name = "Stormcaller", Hp = 50f, Radius = 13f, Speed = 80f, Score = 8, Xp = 11, Sides = 7, Color = new Rgba(1f, 0.82f, 0.4f),
+                Picker = PickerGroup.Ranged, Blurb = "Raises its staff and calls lightning on you: a ring fills under you, then the strike. Step out of the ring." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount

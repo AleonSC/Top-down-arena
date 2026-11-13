@@ -10,7 +10,7 @@ namespace Arena
         public int Id;
         public V2 Pos;
         public float Radius, T, Duration;
-        public byte Kind;  // HazardLightning (the Storm Herald) or HazardHand (the Lich's dead hands)
+        public byte Kind;  // HazardLightning (the Storm Herald), HazardHand (the Lich's dead hands) or HazardCaller (a Stormcaller's, Squall.cs)
     }
 
     /// Waves 16-50: the late-game enemies, the bosses from wave 25 on, and winning at wave 50 (host only).
@@ -278,6 +278,12 @@ namespace Arena
                 if (h.Kind == HazardHand)
                 {
                     HandBursts(h);  // Lich.cs
+                    Hazards.Remove(h.Id);
+                    continue;
+                }
+                if (h.Kind == HazardCaller)
+                {
+                    CallerStrike(h);  // a Stormcaller's (Squall.cs)
                     Hazards.Remove(h.Id);
                     continue;
                 }

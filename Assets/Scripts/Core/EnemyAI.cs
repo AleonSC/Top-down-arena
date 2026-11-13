@@ -641,6 +641,7 @@ namespace Arena
                         }
                         Damage(p, contact, e.Def.Name + " (contact)");
                         RodTouched(p, e);  // a charged Lightning Rod calls a bolt on it (LightningRod.cs)
+                        DevilTouched(p, e);  // a Dust Devil shoves you (Squall.cs)
                         if (e.Type == EnemyType.Buzzsaw && !p.Downed)
                             p.InvulnT = Math.Min(p.InvulnT, SawGrace);  // its touches come fast, not once per hit grace
                     }
@@ -998,6 +999,8 @@ namespace Arena
                 v = VarietyMove(e, tpos, dir, dist, ref speed);  // Variety.cs
             if (IsInfall(e.Type))
                 v = InfallMove(e, tpos, dir, dist, dt, ref speed);  // Infall.cs
+            if (IsSquall(e.Type))
+                v = SquallMove(e, tpos, dir, dist, dt, ref speed);  // Squall.cs
             if (Challenges.Own(e.Type))
                 v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
             if (e.Type == EnemyType.RiotCaptain)
@@ -1017,7 +1020,7 @@ namespace Arena
                 speed *= HasteMult;
             // A sweeping Beam Sentry steers its beam by Strafe, so it keeps the side it telegraphed (the roll still happens, keeping the RNG sequence).
             // A Security Guard keeps its side on its own timer (SecurityGuard.cs); Debris keeps its spiral's side, a Pulsar its sweep's (Infall.cs).
-            if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3) && e.Kin != EnemyType.SecurityGuard && !PulsarLocked(e) && e.Type != EnemyType.Debris)
+            if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3) && e.Kin != EnemyType.SecurityGuard && !PulsarLocked(e) && e.Type != EnemyType.Debris && e.Type != EnemyType.SquallGunner)
                 e.Strafe = -e.Strafe;
             if (StomperPlanted(e))
                 speed = 0f;  // a Stomper stands still while its foot is up (QuarryFaction.cs)
@@ -1225,6 +1228,8 @@ namespace Arena
                 return;  // ReaperFaction.cs
             if (InfallFire(e, tpos, aim))
                 return;  // Infall.cs
+            if (SquallFire(e, tpos, aim))
+                return;  // Squall.cs
             if (e.Kin == EnemyType.GasGrenadier)
             {
                 GrenadierFire(e, tpos);  // WardenFaction.cs

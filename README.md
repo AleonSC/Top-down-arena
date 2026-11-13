@@ -681,6 +681,18 @@ half its slabs are broken, the rest break out. In the Long Campaign its ten wave
 Warden's order: Rubble, Quarrymen, Stompers, Geomancers, a recap with Drillers, Slab Bearers, Rock Hurlers, Cinder
 Priests, every squad, then the exam (the Avalanche and a big Landslip).
 
+The **Storm Herald** has the start of one (waves 36-39): the **Squall**, a storm front walking ahead of it, three of its eight enemies so far.
+Squads: **Squall line** (a Squall Gunner and six Dust Devils) and, from wave 37, **Storm cell** (two Stormcallers and three Dust Devils).
+
+| From | The Storm Herald's faction (the Squall) | Previews | What it does |
+|---|---|---|---|
+| 36 | **Dust Devil** | the Gale's wind | A small whirlwind (22 health) that weaves across your line as it comes in. Its touch does 8 and **shoves you 120 px**, into walls and shots behind you; then it veers off and comes again |
+| 36 | **Squall Gunner** | Crosswind | Carries its own gust (the vane on its back). Keeps 260 px away; every 2.2 s it fires **three shots aimed upwind of you** that **curve back** across where you stood. Its wind always blows the same way: dodge against the curve |
+| 37 | **Stormcaller** | Strikes | A robed caller with a staff. Keeps 300 px away; every 2.8 s an **amber ring** (40 px) fills under you for 1.1 s, then **lightning** strikes it (20). Step out of the ring |
+
+They are drawn as in `Docs/Mockups/storm-herald-faction.html`, in the Herald's colours. Five more, the Storm front set piece and its ten-wave
+cycle come in later steps (`Docs/StormFaction.md`).
+
 | From | The Colossus's faction | Plays like | What it does |
 |---|---|---|---|
 | 1 | **Rubble** | Rioter | A jagged chunk of stone that rolls at you, weaving, in pairs (contact 10) |
@@ -1197,7 +1209,7 @@ you've beaten it anywhere, a **???** until then (on your first Quick Play the Wa
   wave number). The HUD counts the waves n / 10. **Your first Quick Play always ends on the Warden**; after that the boss is
   random: every boss comes up once before any repeats, and never the same one twice in a row.
 - **The waves before a boss are its own enemies** (its faction, as in a Boss Hunt: tougher members joining as they go, its set
-  piece on the fifth and tenth wave). Bosses without a faction yet (the Duelist, Storm Herald, Devourer and Eclipse) get the
+  piece on the fifth and tenth wave). Bosses without a faction yet (the Duelist, Devourer and Eclipse) get the
   **basic faction** the same way (see Enemies).
 - **Bosses play exactly as anywhere else.** Only their health changes: about a **two-minute fight** for a typical build at
   whatever wave they come (a late boss after wave 10 has much less health than at its own Campaign wave; an early one in

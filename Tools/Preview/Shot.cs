@@ -483,6 +483,21 @@ static partial class Shot {
       }
       qg.AnimT += float.Parse(Environment.GetEnvironmentVariable("QUARRY"), System.Globalization.CultureInfo.InvariantCulture);
     }
+    if (Environment.GetEnvironmentVariable("SQUALL") != null) {  // SQUALL=<s into the clock>: the Storm Herald's faction, step 1 (SquallLook.cs): four Dust Devils, a Squall Gunner winding up with a volley in flight, a Stormcaller winding up and its strike's ring filling under you; set beside Docs/Mockups/storm-herald-faction.html
+      var sg = host.Game; sg.Enemies.Clear(); sg.Bullets.Clear(); sg.Hazards.Clear();
+      var ssp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, Enemy> sput = (t, at) => { var e = (Enemy)ssp.Invoke(sg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; return e; };
+      me.Pos = me.Disp = new V2(1000f, 560f);
+      for (int k = 0; k < 4; k++) { float a = 3.4f + k * 0.45f, rr = 280f - 45f * k; var d = sput(EnemyType.DustDevil, me.Pos + new V2((float)Math.Cos(a) * rr, (float)Math.Sin(a) * rr * 0.8f)); d.Facing = a + 3.14f; }
+      var gun = sput(EnemyType.SquallGunner, new V2(700f, 620f)); gun.Facing = -0.2f; gun.Strafe = 1f;
+      typeof(Game).GetMethod("GunnerVolley", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(sg, new object[] { gun, me.Pos, (me.Pos - gun.Pos).Angle });
+      foreach (var b in sg.Bullets.Values) for (int i = 0; i < 40; i++) { b.Vel = b.Vel.Rotated(b.AngVel * 0.02f); b.Pos += b.Vel * 0.02f; }
+      gun.Winding = true;
+      var cal = sput(EnemyType.Stormcaller, new V2(1240f, 380f)); cal.Facing = 2.5f; cal.Winding = true;
+      var hz = (Hazard)typeof(Game).GetMethod("AddHazard", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(sg, new object[] { me.Pos + new V2(30f, -10f), Game.CallerRadius, Game.CallerWarn });
+      hz.Kind = Game.HazardCaller; hz.T = Game.CallerWarn * 0.45f;
+      sg.AnimT += float.Parse(Environment.GetEnvironmentVariable("SQUALL"), System.Globalization.CultureInfo.InvariantCulture);
+    }
     if (Environment.GetEnvironmentVariable("LUNGE") != null) {  // LUNGE=<0-1>: the four lungers part-way through their wind-up (LungeLaneLook.cs); the lane fills with the client's clock, so draw once, then move it on
       var lg = host.Game; lg.Enemies.Clear(); lg.Bullets.Clear();
       var lsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

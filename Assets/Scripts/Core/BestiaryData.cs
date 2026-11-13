@@ -232,6 +232,27 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.DustDevil, Name = "Dust Devil", Group = "Melee", Wave = 36,
+                Appears = "The Storm Herald's approach (waves 36-39, in packs and Squall lines)",
+                Lead = "A small whirlwind that weaves across your line as it comes in. Its touch hurts and shoves you 120 px, into walls and shots behind you, then it veers off and comes again.",
+                Attacks = new[] { new BestiaryAttack { Name = "Gust", Pattern = "Touch, then a 120 px shove", Damage = "8" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.SquallGunner, Name = "Squall Gunner", Group = "Shooters", Wave = 36,
+                Appears = "The Storm Herald's approach (waves 36-39), alone or leading a Squall line",
+                Lead = "Carries its own gust. Keeps 260 px away; every 2.2 s it fires three shots aimed upwind of you that curve back to cross where you stood. Its wind always blows the same way, so dodge against the curve.",
+                Attacks = new[] { new BestiaryAttack { Name = "Crosswind", Pattern = "Three shots that curve onto you from one side", Shot = "Orb", ShotColor = new Rgba(0.56f, 0.82f, 1f), Speed = "220", Damage = "per shot", Every = 2.2f } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Stormcaller, Name = "Stormcaller", Group = "Shooters", Wave = 37,
+                Appears = "The Storm Herald's approach (waves 37-39), alone or two in a Storm cell",
+                Lead = "Keeps 300 px away and raises its staff: an amber ring (40 px) fills under you for 1.1 s, then lightning strikes it. Every 2.8 s. Step out of the ring.",
+                Attacks = new[] { new BestiaryAttack { Name = "Strike", Pattern = "A 40 px ring under you, 1.1 s warning", Damage = "20", Every = 2.8f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.Graviton, Name = "Graviton", Group = "Shooters", Wave = 17,
                 Appears = "The Singularity's approach (waves 17-19), alone or in a Gravity trap squad",
                 Lead = "Keeps 320 px away. Every 6 s it plants its feet for 0.6 s, a ring marks a spot near you, and 0.8 s later a Small Well lands there: for 4 s it drags you toward it (80 px/s at its middle, 240 px out) and bends your shots into it. Get clear, or shoot the well (30 health). A new lob takes its old well away.",

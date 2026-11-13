@@ -269,6 +269,22 @@ namespace Arena
             },
             new FactionDef
             {
+                Boss = EnemyType.StormHerald,  // the Storm Herald: the Squall, a storm front walking ahead of it (Squall.cs, Docs/StormFaction.md); step 1 of 4
+                Members = new[]
+                {
+                    new FactionMember { Type = EnemyType.DustDevil, Weight = 3f },
+                    new FactionMember { Type = EnemyType.SquallGunner, NotFirst = true, Weight = 2f },  // shots that curve back on the wind (Crosswind)
+                    new FactionMember { Type = EnemyType.Stormcaller, Fade = 0, Weight = 1.5f, From = 2 },  // calls strikes under you (Strikes)
+                },
+                Squads = new[]
+                {
+                    new SquadDef { Name = "Squall line", From = 1, Members = new[] { EnemyType.SquallGunner, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil } },
+                    new SquadDef { Name = "Storm cell", From = 2, Members = new[] { EnemyType.Stormcaller, EnemyType.Stormcaller, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil } },
+                },
+                // No set piece or lesson cycle yet (steps 2-4): the Campaign builds its waves by reach, as the Infall's step 1 did.
+            },
+            new FactionDef
+            {
                 Boss = EnemyType.Lich,  // the Lich: the restless dead, the same zombies as Zombie Infection (Zombies.cs); they don't get back up outside that modifier
                 Members = new[]
                 {

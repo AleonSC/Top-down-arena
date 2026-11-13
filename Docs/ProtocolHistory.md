@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 329: the Storm Herald's faction, step 1: new `EnemyType` values DustDevil, SquallGunner, Stormcaller; `Hazard.Kind` 2 (a Stormcaller's strike)
 - 328: faction mini-bosses: new `EnemyType.RiotCaptain` (the Warden's), and `Msg.ExpandState`'s room list gains a byte per room (`ExpansionRoom.Mini`, a mini-boss room's foe)
 - 327: Gun Kata, the Out of Ammo card, in the Soldier's card list shifts later card ids (Docs/UpgradePools.md step 13)
 - 326: nine Elementalist weapon upgrade cards in the Elementalist's card list shift later card ids (Docs/UpgradePools.md step 12)

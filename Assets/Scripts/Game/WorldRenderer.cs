@@ -529,7 +529,7 @@ namespace Arena
                 DrawDeadHand(h, t);
                 return;
             }
-            var hc = new Rgba(0.7f, 0.85f, 1f);
+            var hc = h.Kind == Game.HazardCaller ? SqAmber : new Rgba(0.7f, 0.85f, 1f);  // a Stormcaller's is amber (SquallLook.cs)
             float f = 1f - MathX.Clamp01(h.T / Mathf.Max(0.01f, h.Duration));
             Circle(h.Pos, h.Radius * f, hc.WithAlpha(0.25f), 32);
             Arc(h.Pos, h.Radius, 2.5f, (f > 0.7f && MathX.Fmod(t, 0.1f) < 0.05f ? Rgba.White : hc).WithAlpha(0.85f), 40);

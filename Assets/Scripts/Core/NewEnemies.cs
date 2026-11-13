@@ -42,6 +42,9 @@ namespace Arena
                 case EnemyType.Hornet: return "Circles, shows a red lane, then darts along it. Leave the lane.";
                 case EnemyType.Debris: return "Spirals in at you, hard to line up. Lead your shots into the curve.";
                 case EnemyType.VoidAcolyte: return "Three orbs that bend in to meet on you. Step forward or back, not sideways.";
+                case EnemyType.DustDevil: return "Weaves in and shoves you when it touches. Keep a wall off your back.";
+                case EnemyType.SquallGunner: return "Its shots curve back onto you on its wind. Dodge against the curve.";
+                case EnemyType.Stormcaller: return "Calls a strike under you: step out of the ring before it lands.";
                 case EnemyType.Pulsar: return "Two beams flicker, then sweep a quarter turn. Walk the way they turn.";
                 case EnemyType.Graviton: return "Lobs a small well by you that drags you in. Get clear, or shoot the well.";
                 case EnemyType.Orbiter: return "Circles you, then slings a flaring orb straight at you. Sidestep the flare.";
