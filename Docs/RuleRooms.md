@@ -1,6 +1,6 @@
 # Rule rooms: big nodes that force a bigger room
 
-Status: **design, nothing built.** Owner, Nov 13, 2026: restriction rooms like the old paths (a dark room, ...) as **nodes, but bigger ones that force a
+Status: **design agreed, nothing built.** Owner, Nov 13, 2026: restriction rooms like the old paths (a dark room, ...) as **nodes, but bigger ones that force a
 bigger room**. First pool: all four below. Sits beside [`Nodes.md`](Nodes.md); the rules come from [`Paths.md`](Paths.md).
 
 ## The idea
@@ -26,11 +26,11 @@ Clearing it pays a reward.
 | Claiming | Rooms only, like chests (`NodeEncloses`); a hallway never claims one. |
 | Respawn | None; new ones may appear each boss cycle like other nodes. |
 
-## Open (to ask)
+## Decided (Nov 13)
 
-- Does the rule apply while you stand in the room only, or for the whole wave once the room is built?
-- Reward: fixed per rule, or one shared choice (chest / relic / gold)?
-- How many per boss cycle, and from which cycle on?
+- **Only that room**: the rule applies while you are inside the claimed room, nowhere else.
+- **Fixed reward per rule** for now (table above); no choice screen.
+- **One rule node per boss cycle** (which rule: random from the pool, to settle in step 1).
 
 ## Plan (one step at a time)
 
