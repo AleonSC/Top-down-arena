@@ -23,6 +23,8 @@ lobby-practice    lobbypr   LOBBYTAB=1
 lobby-mods        lobby     LOBBYTAB=2
 lobby-diff        lobby     LOBBYTAB=3
 lobby-hunt        lobby     HUNT=1 LOBBYTAB=4
+huntmap           huntmap   6 12.2 3 NOISY=1
+huntmap-voted     huntmap   6 12.2 3 NOISY=1 HMVOTE=1
 lobby-quick       lobby     LOBBYTAB=8
 lobby-perks       lobby     LOBBYTAB=5 PERKS=1
 lobby-menu        lobby     LOBBYMENU=1
