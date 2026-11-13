@@ -16,9 +16,10 @@ static partial class Program
         {
             { EnemyType.Fencer, EnemyType.Shiv }, { EnemyType.BladeDancer, EnemyType.Guard }, { EnemyType.Parrier, EnemyType.RiotShield },
             { EnemyType.Second, EnemyType.SecurityGuard }, { EnemyType.Marshal, EnemyType.GasGrenadier }, { EnemyType.Gallant, EnemyType.TaserGuard },
+            { EnemyType.Harlequin, EnemyType.Thug }, { EnemyType.Mummer, EnemyType.Shiv },
         };
         Check(kin.All(k => HiveKin.Of(k.Key) == k.Value && CourtKin.Is(k.Key) && !HiveKin.Is(k.Key) && !QuarryKin.Is(k.Key)) && !CourtKin.Is(EnemyType.Shiv),
-            "each Court enemy plays like one Warden enemy (Fencer Shiv, Blade Dancer Guard, Parrier Riot Shield, Second Security Guard, Marshal Gas Grenadier, Gallant Taser Guard)");
+            "each Court enemy plays like one Warden enemy (Fencer Shiv, Blade Dancer Guard, Parrier Riot Shield, Second Security Guard, Marshal Gas Grenadier, Gallant Taser Guard, Harlequin Thug, Mummer Shiv)");
         Check(Game.IsLunger(EnemyType.Fencer) && kin.Keys.All(t => Game.EnemyNote(t).Length > 0 && BestiaryData.For(t) != null), "the Fencer is a lunger; each has a Bestiary entry and a new-enemy note");
 
         // --- Playing them: a solo host, one enemy at a time -------------------------------------------------------------------
@@ -150,12 +151,59 @@ static partial class Program
         Check(parried && Game.DuelOpen(ga) && ga.Pos.DistanceTo(sal) > 100f, "it lunges at you, and a perfect parry as it arrives knocks it off balance");
         Check(hurtM != null && Math.Abs(gb0 - ga.Hp - 100f * Game.DuelOpenMult) < 1f, "while it reels it takes 50% more damage (" + (gb0 - ga.Hp).ToString("0") + " from a 100 hit)");
         g.HoldParry = false;
+
+        // --- Step 3 ---------------------------------------------------------------------------------------------------------
+        // A Harlequin's Crossing: a line through you and a dash, a vault, the crossing line and a dash; blades on both.
+        var hq = put(EnemyType.Harlequin, new V2(700f, 400f));
+        hq.Hp = 1e6f;
+        run(3f, () => hq.Duel != null && hq.Duel.Dash == DuelDash.Cross);
+        Check(hq.Duel != null && hq.Duel.Dash == DuelDash.Cross && hq.Duel.DashWarn > 0f && Game.HarlequinBusy(hq), "a Harlequin in range shows its first line through you");
+        float a1 = hq.Duel.DashAng;
+        V2 crossAt = hq.CrossAt;
+        int maxBlades = 0;
+        float a2 = a1;
+        bool second = false;
+        run(4f, () => { maxBlades = Math.Max(maxBlades, hq.Duel.Blades.Count); if (hq.Duel.Step == 2 && hq.Duel.Dash == DuelDash.Cross) { second = true; a2 = hq.Duel.DashAng; } return second && hq.Duel.Dash == DuelDash.None; });
+        float turn = Math.Abs(MathX.Fmod(a2 - a1 + MathX.Pi, MathX.Tau) - MathX.Pi);
+        var crossShots = g.Bullets.Values.Count(b => b.Source == EnemyType.Harlequin);
+        Check(second && Math.Abs(turn - MathX.Pi / 2f) < 0.35f, "then it vaults and dashes the crossing line, about a right angle to the first (" + turn.ToString("0.00") + " rad)");
+        run(1.5f, null);
+        crossShots = Math.Max(crossShots, g.Bullets.Values.Count(b => b.Source == EnemyType.Harlequin));
+        Check(maxBlades >= 4 && crossShots >= 8 && crossAt.DistanceTo(me.Pos) < 5f, "both arms leave blades that fire out sideways (" + crossShots + " shots), crossing where you stood");
+
+        // A Mummer blinks into three that circle you; only its own shots are solid; its copies give nothing and go with it.
+        var mu = put(EnemyType.Mummer, new V2(650f, 400f));
+        mu.Hp = 1e6f;
+        run(4f, () => Game.MummerMasked(mu));
+        var copies = g.Enemies.Values.Where(c => c.Type == EnemyType.MummerCopy && c.ParentId == mu.Id).ToList();
+        Check(Game.MummerMasked(mu) && copies.Count == 2 && copies.All(c => Math.Abs(c.Pos.DistanceTo(me.Pos) - Game.MummerRing) < 5f) && Math.Abs(mu.Pos.DistanceTo(me.Pos) - Game.MummerRing) < 5f,
+            "a Mummer in range blinks into three, " + Game.MummerRing + " px round you");
+        Check(Defs.Get(EnemyType.MummerCopy).Name == Defs.Get(EnemyType.Mummer).Name && Defs.Get(EnemyType.MummerCopy).Xp == 0 && copies.All(c => c.Hp <= 1f), "its copies look the same by name, have 1 health and give no XP");
+        V2 p0 = mu.Pos;
+        run(2f, null);
+        var solid = g.Bullets.Values.Where(b => b.Kind == Defs.SmallShot && b.Source == EnemyType.Mummer).Count();
+        var hollow = g.Bullets.Values.Where(b => b.Kind == Defs.HollowShot && b.Source == EnemyType.Mummer).Count();
+        Check(mu.Pos.DistanceTo(p0) > 20f && solid >= 1 && hollow >= 2 * solid && Defs.BulletDamage(Defs.HollowShot) == 0f, "they circle you and fire: its shots are solid, the copies' hollow (" + solid + " solid, " + hollow + " hollow)");
+        int xp0 = me.Run.Kills;
+        var oneCopy = g.Enemies.Values.First(c => c.Type == EnemyType.MummerCopy);
+        hurtM.Invoke(g, new object[] { oneCopy, 5f, 1 });
+        run(0.1f, null);
+        Check(!g.Enemies.ContainsKey(oneCopy.Id) && me.Run.Kills == xp0, "a copy shot down just puffs (no kill counted)");
+        mu.Hp = 1f;
+        hurtM.Invoke(g, new object[] { mu, 5f, 1 });
+        run(0.1f, null);
+        Check(!g.Enemies.Values.Any(c => c.Type == EnemyType.MummerCopy || c.Type == EnemyType.Mummer), "kill the real one and its copies vanish");
+        var mu2 = put(EnemyType.Mummer, new V2(650f, 400f));
+        mu2.Hp = 1e6f;
+        run(4f, () => Game.MummerMasked(mu2));
+        run(Game.MummerMask + 0.2f, null);
+        Check(!Game.MummerMasked(mu2) && !g.Enemies.Values.Any(c => c.Type == EnemyType.MummerCopy), "after " + Game.MummerMask + " s its copies vanish and it plays on");
         host.Leave("");
 
         // --- The approach: the Duelist's faction in the waves before it -----------------------------------------------------
         var fac = Approaches.For(EnemyType.Duelist);
-        Check(fac != null && fac.Members.Length == 6 && new[] { "Salon", "Seconds", "Guard line" }.All(n => fac.Squads.Any(s => s.Name == n)),
-            "the Duelist has steps 1 and 2's six in its faction, with the Salon, Seconds and Guard line squads");
+        Check(fac != null && fac.Members.Length == 8 && new[] { "Salon", "Seconds", "Masked ball", "Guard line" }.All(n => fac.Squads.Any(s => s.Name == n)),
+            "the Duelist has all eight in its faction, with the Salon, Seconds, Masked ball and Guard line squads");
         var build = typeof(Game).GetMethod("BuildWave", np);
         var spawnQ = typeof(Game).GetField("spawnQueue", np);
         var squadQ = typeof(Game).GetField("squadQueue", np);
@@ -178,6 +226,6 @@ static partial class Program
                 seen.Add(t);
         }
         Console.WriteLine("  seen before wave " + duelWave + ": " + string.Join(", ", seen));
-        Check(seen.SetEquals(court), "the waves before the Duelist bring all six (no more basic placeholder faction)");
+        Check(seen.SetEquals(court), "the waves before the Duelist bring all eight (no more basic placeholder faction)");
     }
 }

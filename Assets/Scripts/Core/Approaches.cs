@@ -269,7 +269,7 @@ namespace Arena
             },
             new FactionDef
             {
-                Boss = EnemyType.Duelist,  // the Duelist: the Masked Court, masked fencers (CourtFaction.cs, Docs/Mockups/duelist-faction.html); step 2 of 4
+                Boss = EnemyType.Duelist,  // the Duelist: the Masked Court, masked fencers (CourtFaction.cs, Docs/Mockups/duelist-faction.html); step 3 of 4
                 Members = new[]
                 {
                     new FactionMember { Type = EnemyType.Fencer, Weight = 3f },
@@ -278,11 +278,14 @@ namespace Arena
                     new FactionMember { Type = EnemyType.Second, Fade = 1, Weight = 2f, From = 2 },    // a Security Guard that throws dagger fans
                     new FactionMember { Type = EnemyType.Marshal, Fade = 0, Weight = 1.5f, From = 2 }, // a Gas Grenadier that draws a dueling circle round you
                     new FactionMember { Type = EnemyType.Gallant, Fade = 0, Weight = 1.5f, From = 3 }, // a Taser Guard that salutes and lunges: parry it
+                    new FactionMember { Type = EnemyType.Harlequin, Fade = 2, Weight = 1.5f, From = 2 }, // a Thug that dashes an X of blades
+                    new FactionMember { Type = EnemyType.Mummer, Fade = 2, Weight = 1f, From = 3 },      // a Shiv that splits into three
                 },
                 Squads = new[]
                 {
                     new SquadDef { Name = "Salon", From = 1, Members = new[] { EnemyType.BladeDancer, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer } },
                     new SquadDef { Name = "Seconds", From = 2, Members = new[] { EnemyType.Second, EnemyType.Second, EnemyType.Second, EnemyType.Fencer, EnemyType.Fencer } },
+                    new SquadDef { Name = "Masked ball", From = 3, Members = new[] { EnemyType.Harlequin, EnemyType.Mummer, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer } },
                     new SquadDef { Name = "Guard line", From = 3, Members = new[] { EnemyType.Parrier, EnemyType.Parrier, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer } },
                 },
             },

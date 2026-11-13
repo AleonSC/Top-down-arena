@@ -16,6 +16,10 @@ namespace Arena
     ///     ring that counts down.
     ///   Gallant (Taser Guard): a steel cape and a long rapier; saluting, the sword goes straight up with a gold glint and a
     ///     shrinking ring; parried, it reels with a crimson rim and gold stars over its head (open to more damage).
+    ///   Harlequin (Thug): a big body in crimson diamonds under a black mask, a sword out of each side; showing its line it
+    ///     crouches with both swords forward; its lines, trail and blades are the Duelist's (DrawDuelFloor).
+    ///   Mummer and Mummer Copy (Shiv; drawn the same, on purpose): a violet cape and rim, a pale mask with a painted tear,
+    ///     a short blade.
     public partial class ArenaApp
     {
         static readonly Rgba CourtInk = new Rgba(0.04f, 0.045f, 0.07f, 0.95f), CourtBody = new Rgba(0.1f, 0.11f, 0.16f),
@@ -32,6 +36,9 @@ namespace Arena
                 case EnemyType.Second: DrawSecond(e, pos, r, col, t); break;
                 case EnemyType.Marshal: DrawMarshal(e, pos, r, col, t); break;
                 case EnemyType.Gallant: DrawGallant(e, pos, r, col, t); break;
+                case EnemyType.Harlequin: DrawHarlequin(e, pos, r, col, t); break;
+                case EnemyType.Mummer:
+                case EnemyType.MummerCopy: DrawMummer(e, pos, r, t); break;
             }
         }
 
@@ -188,6 +195,61 @@ namespace Arena
                     Circle(pos + new V2(Mathf.Cos(a) * 18f, -(r + 10f) + Mathf.Sin(a) * 5f), 3f, CourtGold, 8);
                 }
             }
+        }
+
+        void DrawHarlequin(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            var d = e.Duel;
+            bool aim = d != null && d.Dash != DuelDash.None && d.DashWarn > 0f;
+            float face = e.Facing;
+            V2 f = V2.FromAngle(face), s = f.Orthogonal();
+            // Two swords: out to each side, or both forward while it shows its line.
+            float spread = aim ? 0.35f : 1.4f;
+            CourtBlade(pos, r, face + spread, r * 1.3f, 3f);
+            CourtBlade(pos, r, face - spread, r * 1.3f, 3f);
+            Circle(pos, r + 2f, CourtInk, 24);
+            Circle(pos, r, CourtCrimson, 24);
+            Circle(pos, r - 2f, CourtBody, 24);
+            // Diamonds: a lattice of crimson lozenges turned with the body.
+            SetColor(CourtCrimson.WithAlpha(0.75f));
+            float q = r * 0.3f;
+            for (int i = -2; i <= 2; i++)
+                for (int j = -2; j <= 2; j++)
+                {
+                    if (((i + j) & 1) != 0)
+                        continue;
+                    V2 c = pos + f * (i * q) + s * (j * q);
+                    if (c.DistanceTo(pos) > r - q * 0.9f)
+                        continue;
+                    V2 a1 = c + f * (q * 0.5f), a2 = c + s * (q * 0.5f), a3 = c - f * (q * 0.5f), a4 = c - s * (q * 0.5f);
+                    Tri(a1, a2, a3);
+                    Tri(a1, a3, a4);
+                }
+            // A black half-mask with gold eye rims.
+            V2 mc = pos + f * (r * 0.25f);
+            SetColor(CourtInk);
+            const int n = 7;
+            for (int i = 0; i < n; i++)
+            {
+                float a0 = -MathX.Pi / 2f + MathX.Pi * i / n, a1 = -MathX.Pi / 2f + MathX.Pi * (i + 1) / n;
+                Tri(mc, mc + f * (Mathf.Cos(a0) * r * 0.5f) + s * (Mathf.Sin(a0) * r * 0.62f), mc + f * (Mathf.Cos(a1) * r * 0.5f) + s * (Mathf.Sin(a1) * r * 0.62f));
+            }
+            for (int k = -1; k <= 1; k += 2)
+                Circle(mc + f * (r * 0.28f) + s * (k * r * 0.26f), 2.2f, CourtGold, 8);
+            if (aim)
+                Circle(pos, r + 6f + 2f * Mathf.Sin(t * 30f), CourtCrimson.WithAlpha(0.25f), 24);
+        }
+
+        void DrawMummer(Enemy e, V2 pos, float r, float t)
+        {
+            float face = e.Facing;
+            V2 f = V2.FromAngle(face), s = f.Orthogonal();
+            var violet = Game.MummerViolet;
+            SetColor(violet.WithAlpha(0.5f));
+            Tri(pos + s * r * 0.9f - f * r * 0.2f, pos - s * r * 0.9f - f * r * 0.2f, pos - V2.FromAngle(face + Mathf.Sin(t * 6f + e.Id) * 0.15f) * (r * 2f));
+            CourtBlade(pos, r, face + (e.Phase == 1 ? 0.6f : 0.25f), r * 1.4f, 2f);
+            CourtFigure(pos, r, face, violet);
+            Line(pos + f * (r * 0.45f) + s * (r * 0.27f), pos + f * (r * 0.2f) + s * (r * 0.3f), 1.5f, violet);  // a painted tear
         }
 
         /// A Second's dagger: a steel blade along its flight with a gold hilt, wobbling a little.

@@ -693,10 +693,11 @@ Priests, every squad, then the exam (the Avalanche and a big Landslip).
 | 3 | **Cinder Priest** | Taser Guard | A dark-robed priest cupping a molten core: charges for 0.7 s along a shooting line, then fires one **magma bolt** straight at you (240 px/s, 9, no lead). Wherever it stops, a hit, cover or the end of its 300 px, it leaves a **lava pool** for 2.5 s (20 a second). A **perfect parry** sends it back and leaves no lava. Every 3.2 s |
 
 The **Duelist's faction**, the Masked Court, leads up to its fight (waves 26-29): masked fencers, each showing you one of
-the Duelist's moves (mockup: `Docs/Mockups/duelist-faction.html`). **Steps 1 and 2 of 4 are in:** six of its eight
-enemies, which replace the basic faction the Duelist had before. Squads: **Salon** (a Blade Dancer and six Fencers),
-from wave 27 **Seconds** (three Seconds and two Fencers) and from wave 28 **Guard line** (two Parriers and four Fencers).
-XP: Fencer 7, Blade Dancer 14, Parrier 10, Second 9, Marshal 9, Gallant 12.
+the Duelist's moves (mockup: `Docs/Mockups/duelist-faction.html`). **Steps 1-3 of 4 are in:** all eight enemies, which
+replace the basic faction the Duelist had before (the Ring of Honour and the Long Campaign's lessons are step 4).
+Squads: **Salon** (a Blade Dancer and six Fencers), from wave 27 **Seconds** (three Seconds and two Fencers) and from
+wave 28 **Guard line** (two Parriers and four Fencers) and **Masked ball** (a Harlequin, a Mummer and three Fencers).
+XP: Fencer 7, Blade Dancer 14, Parrier 10, Second 9, Marshal 9, Gallant 12, Harlequin 22, Mummer 10.
 
 | From | The Duelist's faction | Plays like | What it does |
 |---|---|---|---|
@@ -706,6 +707,8 @@ XP: Fencer 7, Blade Dancer 14, Parrier 10, Second 9, Marshal 9, Gallant 12.
 | 2 | **Second** | Security Guard | The duelist's second (45 health): keeps its distance and locks on like a Security Guard, its hand going back and five faint lanes showing, then throws an **aimed fan of five daggers** (230 px/s, 10 each, 0.16 rad apart). Every 2.2 s; it never reloads. Slip between them |
 | 2 | **Marshal** | Gas Grenadier | The duel's referee (55 health): keeps its distance and raises its baton, then draws a **gold circle 140 px round where you stand**. It draws itself round over 0.6 s (step out now); then for 4 s you **can't leave it**, and leaning on the edge hurts (8, at most every 0.6 s). Anyone outside can walk in. Every 7 s |
 | 3 | **Gallant** | Taser Guard | A champion in a steel cape (80 health, contact 20) that never shoots. Within 340 px it **salutes** for 0.8 s (sword straight up, a gold glint, a shrinking ring), then **lunges through you** (up to 400 px). A **perfect parry** as it arrives knocks it **off balance for 2.5 s**, taking **50% more** damage; dodge it and it **rakes** the spot with five shots. Every 4.5 s |
+| 2 | **Harlequin** | Thug | A heavy two-sworded jester in crimson diamonds (240 health, contact 20) that walks at you. Within 260 px, the **Crossing**: it shows a line through you for 0.7 s and dashes it, 170 px past you, then **vaults to the other arm of the X**, shows the crossing line for 0.45 s and dashes that. Both leave blades every 70 px that fire **out sideways** after 0.8 s: stand in a gap of the X. Every 6 s |
+| 3 | **Mummer** | Shiv | A fast masked player in a violet cape (40 health) that circles in and lunges like a Shiv. Within 260 px it **blinks and becomes three**: they circle you 150 px out for 5 s, each firing every 0.9 s, but only the **real one's shots are solid**; the copies' are **hollow rings** that pass through you. The copies look the same, have 1 health and give nothing; kill the real one and they vanish. Every 9 s |
 
 **Bubbles (Shielded elites and the Warder's wards):** a bubble is twelve cells round the rim, each holding a twelfth of the shield. A hit wears down the cell facing whoever shot it (flashing, then breaking into shards) and spills over to its neighbours once that cell is gone, so the side you shoot from is the side that opens. Burning and bleeding keep chewing the weakest cell. A honeycomb inside only shows where its cell is still up, and a thin shield bar sits above the health bar. Blue is a Shielded elite, violet is the Warder's.
 

@@ -813,6 +813,7 @@ namespace Arena
             {
                 PortalSealed(e);  // a spawn portal shot closed: the rest of its burst is cancelled (SpawnPortals.cs)
                 DecoyShatter(e);  // a Duelist's masquerade decoy shot down bursts into a ring (Duelist.cs)
+                MummerDied(e);    // a Mummer's copies vanish with it; a copy shot down just puffs (CourtFaction.cs)
                 NonShooterDeath(e);  // a Fuse Runner killed during its fuse, a Tripwire Pod (NonShooters.cs)
                 Recorder?.EnemyKilled(e);
                 SeededKill(e);  // a Sprite Staff seed in it frees a sprite (KitWeapons.cs)

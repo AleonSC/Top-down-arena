@@ -628,7 +628,7 @@ namespace Arena
             if (IsHost)
                 return;
             foreach (var e in Enemies.Values)
-                if ((e.Type == EnemyType.Duelist || e.Type == EnemyType.BladeDancer || e.Type == EnemyType.Gallant) && e.Duel != null)
+                if ((e.Type == EnemyType.Duelist || e.Type == EnemyType.BladeDancer || e.Type == EnemyType.Gallant || e.Type == EnemyType.Harlequin) && e.Duel != null)
                 {
                     var s = e.Duel;
                     s.TurnT += dt;

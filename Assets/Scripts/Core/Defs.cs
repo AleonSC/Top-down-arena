@@ -81,6 +81,9 @@ namespace Arena
         // step 2: a Second plays like a Security Guard that throws dagger fans, a Marshal like a Gas Grenadier that draws a
         // dueling circle round you, a Gallant like a Taser Guard that salutes and lunges (a perfect parry leaves it open)
         Second, Marshal, Gallant,
+        // step 3: a Harlequin plays like a Thug that dashes an X of blades through you, a Mummer like a Shiv that splits into
+        // three; a Mummer Copy is one of its two copies (no XP, its shots are hollow; it looks just like the Mummer)
+        Harlequin, Mummer, MummerCopy,
     }
 
     public class RoleDef
@@ -420,6 +423,12 @@ namespace Arena
                 Picker = PickerGroup.Ranged, Blurb = "The duel's referee: raises its baton and draws a gold circle round you. For 4 s you can't leave it, and leaning on the edge hurts: fight in the middle." },
             new EnemyDef { Name = "Gallant", Hp = 80f, Radius = 14f, Speed = 90f, Score = 10, Xp = 12, Sides = 6, Color = new Rgba(0.81f, 0.84f, 1f), Contact = 20f,
                 Picker = PickerGroup.Ranged, Blurb = "Salutes with its sword raised, then lunges at you. Parry it perfectly as it arrives and it reels, open to 50% more damage; dodge it and it rakes the spot." },
+            new EnemyDef { Name = "Harlequin", Hp = 240f, Radius = 20f, Speed = 60f, Score = 14, Xp = 22, Sides = 8, Color = new Rgba(1f, 0.3f, 0.42f), Melee = true, Contact = 20f,
+                Picker = PickerGroup.Melee, Blurb = "A heavy two-sworded jester. It marks a line through you and dashes it, vaults to the other arm and dashes across: an X of blades that fire out sideways. Stand in a gap of the X." },
+            new EnemyDef { Name = "Mummer", Hp = 40f, Radius = 11f, Speed = 150f, Score = 9, Xp = 10, Sides = 4, Color = new Rgba(0.71f, 0.61f, 1f), Melee = true, Contact = 14f,
+                Picker = PickerGroup.Melee, Blurb = "A masked player that blinks and becomes three. They circle you and all fire, but only the real one's shots are solid; the copies' are hollow rings. Find the real one." },
+            new EnemyDef { Name = "Mummer", Hp = 1f, Radius = 11f, Speed = 0f, Score = 0, Xp = 0, Sides = 4, Color = new Rgba(0.71f, 0.61f, 1f), Melee = true, Contact = 0f,
+                Picker = PickerGroup.Hidden, Blurb = "One of a Mummer's two copies: its shots are hollow rings that pass through you. It vanishes when its time is up." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount

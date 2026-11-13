@@ -38,6 +38,8 @@ namespace Arena
             t[(int)EnemyType.Second] = EnemyType.SecurityGuard;
             t[(int)EnemyType.Marshal] = EnemyType.GasGrenadier;
             t[(int)EnemyType.Gallant] = EnemyType.TaserGuard;
+            t[(int)EnemyType.Harlequin] = EnemyType.Thug;
+            t[(int)EnemyType.Mummer] = EnemyType.Shiv;
             return t;
         }
 

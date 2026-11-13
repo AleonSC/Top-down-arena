@@ -516,6 +516,26 @@ static partial class Shot {
         var g2 = cput(EnemyType.Gallant, new V2(470f, 640f), 0f); g2.Duel = new DuelState { SaluteT = 0.35f };
         var g3 = cput(EnemyType.Gallant, new V2(690f, 640f), 0f); g3.Duel = new DuelState { StaggerT = 1.5f };
       }
+      if (Environment.GetEnvironmentVariable("COURT3") != null) {  // COURT3=1 with COURT: step 3 instead: a Harlequin walking, one showing its first line through you and one dashing the crossing arm with blades hanging on both; a Mummer walking, and one masked with its two copies round you firing (solid and hollow shots)
+        cg.Enemies.Clear(); cg.Patches.Clear(); cg.Bullets.Clear();
+        var spawnB3 = typeof(Game).GetMethod("SpawnBullet", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        cput(EnemyType.Harlequin, new V2(300f, 330f), 0f);
+        var h2 = cput(EnemyType.Harlequin, new V2(330f, 520f), 0f);
+        h2.Duel = new DuelState { Dash = DuelDash.Cross, DashWarn = 0.4f, DashFrom = h2.Pos, DashAng = 0f, DashLen = 410f };
+        var h3 = cput(EnemyType.Harlequin, new V2(900f, 600f), -MathX.Pi / 2f);
+        h3.Duel = new DuelState { Dash = DuelDash.Cross, DashWarn = 0f, DashFrom = new V2(900f, 720f), DashAng = -MathX.Pi / 2f, DashLen = 340f };
+        for (int k = 1; k <= 4; k++) { h3.Duel.Blades.Add(new DuelBlade { Pos = new V2(780f + k * 70f, 600f), Ang = 0f, T = 0.2f, Speed = 200f }); }
+        h3.Duel.Blades.Add(new DuelBlade { Pos = new V2(900f, 670f), Ang = -MathX.Pi / 2f, T = 0.6f, Speed = 200f });
+        cput(EnemyType.Mummer, new V2(470f, 330f), 0f);
+        V2 mc = new V2(760f, 360f);
+        for (int k = 0; k < 3; k++)
+        {
+          V2 at = mc + V2.FromAngle(0.6f + MathX.Tau * k / 3f) * 95f;
+          var m = cput(k == 0 ? EnemyType.Mummer : EnemyType.MummerCopy, at, (mc - at).Angle);
+          V2 dir = (mc - at).Normalized();
+          spawnB3.Invoke(cg, new object[] { k == 0 ? Defs.SmallShot : Defs.HollowShot, at + dir * 40f, dir * 260f, 0f, 3f, k == 0 ? 10f : 0f, 0, true, 0f });
+        }
+      }
       cg.AnimT += float.Parse(Environment.GetEnvironmentVariable("COURT"), System.Globalization.CultureInfo.InvariantCulture);
     }
     if (Environment.GetEnvironmentVariable("LUNGE") != null) {  // LUNGE=<0-1>: the four lungers part-way through their wind-up (LungeLaneLook.cs); the lane fills with the client's clock, so draw once, then move it on

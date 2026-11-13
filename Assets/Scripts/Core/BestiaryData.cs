@@ -403,6 +403,20 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Harlequin, Name = "Harlequin", Group = "Melee", Wave = 27,
+                Appears = "The Duelist's approach (Masked ball squads and on its own)",
+                Lead = "A heavy two-sworded jester (240 health) that walks at you like a Thug. Within 260 px it shows a line through you for 0.7 s and dashes it, 170 px past you, then vaults to the other arm of the X, shows the crossing line for 0.45 s and dashes that. Both leave blades that fire out sideways: stand in a gap of the X.",
+                Attacks = new[] { new BestiaryAttack { Name = "Crossing", Pattern = "Two crossed dashes, blades every 70 px", Damage = "small shots", Every = 6f, Fixed = true }, new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "20" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Mummer, Name = "Mummer", Group = "Melee", Wave = 28,
+                Appears = "The Duelist's approach (Masked ball squads and on its own)",
+                Lead = "A fast masked player that circles in like a Shiv. Within 260 px it blinks and becomes three, circling you 150 px out for 5 s, each firing every 0.9 s; only the real one's shots are solid, the copies' are hollow rings that pass through you. The copies have 1 health and give nothing; kill the real one and they vanish.",
+                Attacks = new[] { new BestiaryAttack { Name = "Masquerade", Pattern = "Three of it round you, one shot each every 0.9 s", Damage = "small shot (the real one's)", Every = 9f, Fixed = true }, new BestiaryAttack { Name = "Lunge", Pattern = "As a Shiv", Damage = "26", Notes = "14 contact" } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.HiveEgg, Name = "Hive Egg", Group = "Summons", Wave = 10,
                 Appears = "Laid by the Hive Queen in her Honeycomb stage",
                 Lead = "Doesn't move or attack. Break it before it hatches into drones.",

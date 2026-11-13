@@ -613,7 +613,7 @@ namespace Arena
                 }
                 if (e.Hp <= 0f || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.HiveEgg || e.Type == EnemyType.ReaperPillar || QueenAirborne(e)
                     || e.Type == EnemyType.Morsel || e.Type == EnemyType.SapperMine || DevourUnder(e) || e.Dummy || e.DazeT > 0f
-                    || e.Type == EnemyType.MiniWell || e.Type == EnemyType.Implosion)
+                    || e.Type == EnemyType.MiniWell || e.Type == EnemyType.Implosion || e.Type == EnemyType.MummerCopy)
                     continue;  // blew up this tick, explodes instead of bumping, an egg, the Hive Queen up in a dive, a morsel, the Devourer underground, dazed (Daze.cs)
                 // Bosses and heavies hurt to stand in (the difficulty's per-wave damage growth scales all of these).
                 float contact = e.Def.IsBoss ? 25f
@@ -1021,8 +1021,8 @@ namespace Arena
                 e.Strafe = -e.Strafe;
             if (StomperPlanted(e))
                 speed = 0f;  // a Stomper stands still while its foot is up (QuarryFaction.cs)
-            if (DancerBusy(e) || GallantBusy(e))
-                speed = 0f;  // a Blade Dancer's lunge moves it itself (CourtFaction.cs)
+            if (DancerBusy(e) || GallantBusy(e) || HarlequinBusy(e) || MummerMasked(e) || e.Type == EnemyType.MummerCopy)
+                speed = 0f;  // (a Mummer and its copies are carried round you while masked)  // a Blade Dancer's lunge moves it itself (CourtFaction.cs)
             if (e.SlowT > 0f && !Heavy(e))
                 speed *= e.SlowMult;
             else if (e.WadeT > 0f)
@@ -1067,6 +1067,10 @@ namespace Arena
                 BladeDancerSpecial(e, tpos, dt);  // its lunge and blades (CourtFaction.cs)
             if (e.Type == EnemyType.Gallant)
                 GallantSpecial(e, tpos, dt);  // its salute and lunge (CourtFaction.cs)
+            if (e.Type == EnemyType.Harlequin)
+                HarlequinSpecial(e, tpos, dt);  // its crossing (CourtFaction.cs)
+            if (e.Type == EnemyType.Mummer && MummerSpecial(e, tpos, dt))
+                return;  // masked: it circles you with its copies and fires; no lunge (CourtFaction.cs)
             if (e.Type == EnemyType.Stomper)
                 StomperSpecial(e, tpos, dt);  // its stomp ring (QuarryFaction.cs)
             switch (e.Kin)

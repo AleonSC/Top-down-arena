@@ -55,6 +55,8 @@ namespace Arena
                 case EnemyType.Parrier: return "Parries your shots back from the front. Get behind it.";
                 case EnemyType.Second: return "Glints, then throws a fan of five daggers. Slip between them.";
                 case EnemyType.Marshal: return "Draws a gold circle round you. Fight in the middle, not on the edge.";
+                case EnemyType.Harlequin: return "Dashes an X of blades through you. Stand in a gap of the X.";
+                case EnemyType.Mummer: return "Splits into three. Only the real one's shots are solid.";
                 case EnemyType.Gallant: return "Salutes, then lunges. Parry as it arrives to leave it open.";
                 case EnemyType.Stomper: return "Lifts a foot, then stomps out a push ring. Step into the green gap.";
                 case EnemyType.SlabBearer: return "Its slab stops shots and bashes you back. Flank it, or break the slab.";
