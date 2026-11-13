@@ -389,6 +389,8 @@ namespace Arena
                     note = ReaperNote(e, game.Reapers, ref noteColor);
                 else if (e.Type == EnemyType.Gatekeeper)
                     note = GatekeeperNote(e, ref noteColor);  // ChallengeLook.cs
+                else if (e.Type == EnemyType.RiotCaptain)
+                    note = CaptainNote(e, ref noteColor);  // RiotCaptainLook.cs
                 // The Warden's last-stand armor: a blue bar above its health, as long as it, that wears down first.
                 bool armored = e.Type == EnemyType.Boss && e.Warden != null && e.Warden.Armor > 0f && e.Warden.ArmorMax > 0f;
                 float armorH = armored ? 9f : 0f;
