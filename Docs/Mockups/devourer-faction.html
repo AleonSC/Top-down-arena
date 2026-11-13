@@ -1,0 +1,361 @@
+<title>The Devourer's Brood</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the Devourer's approach faction (waves 41-44) as a field sheet in the Quarry mockup's look: eight looping
+   arena vignettes in a two-column grid, then squads and the last-wave Feast. Single dark look by choice: it mirrors
+   the arena. Approximate: canvas sketches, not the game's draw code. */
+:root {
+  --bg: #0d0a0b; --panel: #171214; --line: #31262a; --fg: #f1e8e6; --muted: #a8979a;
+  --maw: #ff5a7a; --bile: #c7e059; --enamel: #f5e6d1; --dirt: #d9a359; --good: #6be38a; --gut: #ff8aa0; --brood: #c7e059;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.5 var(--font-body); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--maw); }
+h2 { font-size: 22px; font-weight: 700; letter-spacing: .04em; }
+h3 { font-size: 19px; font-weight: 700; letter-spacing: .03em; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--gut); }
+header { display: grid; gap: 10px; }
+.lead { color: #e2d3d0; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font: 500 13px var(--font-data); color: var(--muted); }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 500px), 1fr)); gap: 18px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; min-width: 0; }
+canvas { display: block; width: 100%; max-width: 100%; height: auto; background: #120d0f; aspect-ratio: 360 / 200; }
+.body { padding: 14px 16px 16px; display: grid; gap: 8px; align-content: start; }
+.title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+.side { font: 600 10.5px var(--font-display); letter-spacing: .14em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; border: 1px solid currentColor; }
+.side.brood { color: var(--brood); }
+.side.gut { color: var(--gut); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 500 12px var(--font-data); color: #e2d3d0; background: #221a1d; border: 1px solid var(--line); padding: 2px 8px; border-radius: 4px; }
+.chip.m { color: var(--maw); border-color: #4a2030; }
+.body p { color: #e2d3d0; font-size: 15px; }
+.mirror { font: 500 12.5px var(--font-data); color: var(--muted); }
+.mirror b { color: var(--fg); font-weight: 500; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; min-width: 0; }
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 15px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 11px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+td:first-child { font-family: var(--font-display); font-weight: 700; white-space: nowrap; }
+td.mono { color: var(--muted); white-space: nowrap; font-family: var(--font-data); }
+ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 80ch; color: #e2d3d0; }
+@media (prefers-reduced-motion: reduce) { canvas { animation: none; } }
+</style>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Waves 41-44 · approach faction · mockup</div>
+  <h1>The Devourer's <span>Brood</span></h1>
+  <p class="lead">Eight enemies, one per Warden enemy, so the lessons carry over. <b>Brood</b> are the living things it feeds on and spawns. <b>Gut</b> are pieces of the beast itself. Numbers are first guesses at wave 41. The sketches are approximate canvas drawings, not the game's draw code.</p>
+  <div class="legend">
+    <span><i class="dot" style="background:var(--maw)"></i>maw red: danger / telegraph</span>
+    <span><i class="dot" style="background:var(--bile)"></i>bile green: acid, pools</span>
+    <span><i class="dot" style="background:var(--enamel)"></i>enamel: teeth, shields</span>
+    <span><i class="dot" style="background:#6fb6ff"></i>you</span>
+  </div>
+</header>
+
+<div class="grid" id="grid"></div>
+
+<section class="panel">
+  <h2>Squads</h2>
+  <div class="tbl"><table>
+    <tr><th>Squad</th><th>Mirrors</th><th>Mix</th></tr>
+    <tr><td>Feeding frenzy</td><td class="mono">Breakout</td><td>Six Maggots, a Gnasher</td></tr>
+    <tr><td>Spit line</td><td class="mono">Patrol</td><td>Two Bile Spitters behind two Gnashers</td></tr>
+    <tr><td>Nest</td><td class="mono">Yard</td><td>A Gorger, three Maggots, a Burrower</td></tr>
+    <tr><td>Tooth wall</td><td class="mono">Cell block</td><td>Two Molars, Maggots pouring past</td></tr>
+    <tr><td>Needle field</td><td class="mono">new</td><td>Three Ticks spread wide so their lanes cross</td></tr>
+  </table></div>
+  <p><b>Last wave: Feast</b> (mirrors the Riot Line): four Molars as a wall, two Gorgers behind, two Bile Spitters lobbing over. Within ~190 px of the wall, or with half the plates broken, the Gorgers break out and inhale.</p>
+</section>
+
+<section class="panel">
+  <h2>Notes</h2>
+  <ul>
+    <li>Bile Spitter and Burrower come straight from the Approaches table. Morsels stay boss-only.</li>
+    <li>Lasher is a Taser Guard mirror: charge, then one shot, here a tongue that drags you instead of stunning. Parryable.</li>
+    <li>Tick mirrors the Security Guard (aimed single shot, strafe, reload). Gorger's mini inhale teaches the boss's Inhale.</li>
+    <li>Molar's shattered plate drops as 3 s of cover, like the Quarry's slab.</li>
+  </ul>
+</section>
+</div>
+
+<script>
+const E = { maw: '#ff5a7a', bile: '#c7e059', enamel: '#f5e6d1', dirt: '#d9a359', you: '#6fb6ff', ground: '#120d0f' };
+const W = 360, H = 200, PX = 52, PY = 100;
+const TAU = Math.PI * 2;
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const seg = (s, a, b) => clamp((s - a) / (b - a));
+const lerp = (a, b, k) => a + (b - a) * k;
+
+function dot(c, x, y, r, fill, stroke, lw = 1.5) {
+  c.beginPath(); c.arc(x, y, r, 0, TAU);
+  if (fill) { c.fillStyle = fill; c.fill(); }
+  if (stroke) { c.strokeStyle = stroke; c.lineWidth = lw; c.stroke(); }
+}
+function ln(c, x1, y1, x2, y2, col, lw = 1.5, dash) {
+  c.beginPath(); c.setLineDash(dash || []); c.moveTo(x1, y1); c.lineTo(x2, y2);
+  c.strokeStyle = col; c.lineWidth = lw; c.stroke(); c.setLineDash([]);
+}
+function alpha(c, a, fn) { c.save(); c.globalAlpha = clamp(a); fn(); c.restore(); }
+function floor(c) {
+  c.fillStyle = E.ground; c.fillRect(0, 0, W, H);
+  c.strokeStyle = 'rgba(255,255,255,.035)'; c.lineWidth = 1;
+  for (let x = 0; x <= W; x += 30) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, H); c.stroke(); }
+  for (let y = 0; y <= H; y += 30) { c.beginPath(); c.moveTo(0, y); c.lineTo(W, y); c.stroke(); }
+}
+function you(c, x = PX, y = PY, a = 1) {
+  alpha(c, a, () => { dot(c, x, y, 9, '#2c5d8f', E.you, 2); ln(c, x, y, x + 13, y, E.you, 2.5); });
+}
+function head(c, x, y, ang, r, col) {
+  dot(c, x, y, r, col, 'rgba(0,0,0,.35)');
+  dot(c, x + Math.cos(ang) * r * .45, y + Math.sin(ang) * r * .45 - r * .25, r * .16, '#1a0c10');
+  dot(c, x + Math.cos(ang) * r * .45, y + Math.sin(ang) * r * .45 + r * .25, r * .16, '#1a0c10');
+}
+function jaw(c, x, y, r, open, bodyCol) {
+  // top-down: head disc with a mouth wedge facing left; teeth on both lips
+  dot(c, x, y, r, bodyCol, 'rgba(0,0,0,.4)');
+  const a = .32 + open * .8;
+  c.save(); c.translate(x, y);
+  c.beginPath(); c.moveTo(0, 0); c.arc(0, 0, r * .92, Math.PI - a, Math.PI + a); c.closePath();
+  c.fillStyle = '#5a0f22'; c.fill();
+  for (const sgn of [-1, 1]) for (let i = 0; i < 4; i++) {
+    const ang = Math.PI + sgn * (a - 0.03 - i * a * .2);
+    const px = Math.cos(ang) * r * .9, py = Math.sin(ang) * r * .9;
+    c.beginPath(); c.moveTo(px, py);
+    c.lineTo(Math.cos(ang + sgn * .12) * r * .55, Math.sin(ang + sgn * .12) * r * .55);
+    c.lineTo(Math.cos(ang - sgn * .14) * r * .55, Math.sin(ang - sgn * .14) * r * .55);
+    c.closePath(); c.fillStyle = E.enamel; c.fill();
+  }
+  c.restore();
+}
+function shot(c, x, y, col = E.maw, r = 3.2) { dot(c, x, y, r, col); dot(c, x, y, r + 3, null, col + '55', 1); }
+
+const cards = [];
+function add(o) { cards.push(o); }
+
+add({
+  name: 'Maggot', side: 'brood', from: 41, mirrors: 'Rioter',
+  chips: ['health 20', 'contact 8', 'speed fast', 'XP 6'],
+  text: 'Pale grubs that arrive in threes, wriggling side to side as they chase. Weak alone, a wall in packs. Teaches the swarm lane before the boss floods the screen.',
+  draw(c, s) {
+    const u = (s / 4);
+    for (let k = 0; k < 3; k++) {
+      const lead = clamp(u * 1.1 - k * .04);
+      const bx = lerp(340, PX + 18, lead), by = PY + (k - 1) * 34 * (1 - lead * .6) + Math.sin(s * 5 + k * 2) * 12;
+      for (let j = 4; j >= 0; j--) {
+        const tx = bx + j * 8, ty = by + Math.sin(s * 9 + j * .9 + k) * 4;
+        dot(c, tx, ty, 6 - j * .6, j ? E.enamel : '#e9d6ba', 'rgba(60,30,20,.55)');
+      }
+      head(c, bx - 2, by, Math.PI, 5.5, '#d9bfa0');
+    }
+    you(c);
+  }
+});
+
+add({
+  name: 'Gnasher', side: 'brood', from: 41, mirrors: 'Guard',
+  chips: ['health 45', 'contact 14', 'speed fast', 'XP 14'],
+  text: 'A snapping jaw on legs. Runs straight at you and chomps when close. A plain fast chaser, the Guard\'s job: it eats your attention while the others set up.',
+  draw(c, s) {
+    const u = seg(s, 0, 2.4), x = lerp(330, PX + 36, u);
+    const near = u > .9, open = near ? (Math.sin(s * 22) * .5 + .5) : .25 + Math.sin(s * 6) * .12;
+    for (let i = 1; i < 6; i++) alpha(c, .12 * (1 - i / 6), () => dot(c, x + i * 12, PY, 15, E.maw));
+    jaw(c, x, PY, 16, open, '#8d4056');
+    if (near) alpha(c, 1 - seg(s, 2.4, 3.2), () => dot(c, PX + 14, PY, 18 + (s - 2.4) * 30, null, E.maw, 2));
+    you(c);
+  }
+});
+
+add({
+  name: 'Gorger', side: 'gut', from: 42, mirrors: 'Thug',
+  chips: ['health 180', 'contact 20', 'inhale 5 s', 'pull 90 px/s', 'XP 40'],
+  text: 'A bloated sack with a rim of teeth. Every 5 s it inhales: a short cone drags you towards it for 0.8 s, then it settles. Step out sideways, the same lesson as the boss\'s Inhale.',
+  draw(c, s) {
+    const wind = seg(s, 1.0, 1.6), pull = seg(s, 1.6, 2.6), end = seg(s, 2.6, 3.2);
+    const x = 270, pulse = 1 + Math.sin(s * 3) * .03 + wind * .06;
+    const py = PY, px = PX + 80 + pull * 56 * (1 - end);
+    if (wind > 0 && end < 1) alpha(c, (wind * .45) * (1 - end), () => {
+      c.beginPath(); c.moveTo(x, py); c.arc(x, py, 150, Math.PI - .42, Math.PI + .42); c.closePath();
+      c.fillStyle = E.maw; c.fill();
+    });
+    if (pull > 0 && pull < 1) for (let i = 0; i < 5; i++) {
+      const k = ((s * 1.4 + i / 5) % 1); alpha(c, .5 * (1 - end), () => ln(c, x - 40 - (1 - k) * 100, py + (i - 2) * 11, x - 40 - (1 - k) * 100 + 18, py + (i - 2) * 11, E.enamel, 1.5));
+    }
+    dot(c, x, py, 30 * pulse, '#a85a6a', '#4a1a28', 3);
+    for (let i = 0; i < 7; i++) { const a = i * TAU / 7 + .2; ln(c, x + Math.cos(a) * 8, py + Math.sin(a) * 8, x + Math.cos(a) * 24, py + Math.sin(a) * 24, 'rgba(120,20,50,.55)', 2); }
+    dot(c, x, py, 12, '#4a0d1e');
+    for (let i = 0; i < 12; i++) { const a = i * TAU / 12; dot(c, x + Math.cos(a) * 28 * pulse, py + Math.sin(a) * 28 * pulse, 2.6, E.enamel); }
+    you(c, px, py);
+  }
+});
+
+add({
+  name: 'Burrower', side: 'brood', from: 43, mirrors: 'Shiv',
+  chips: ['health 70', 'dive 1.0 s', 'ripple chase 1.5 s', 'erupt 24 + ring of 8', 'XP 22'],
+  text: 'Walks up, dives, then you only see the ripple chasing you. It stops, marks 100 px, and erupts with a bite and a small ring. Keep moving, then leave the mark.',
+  draw(c, s) {
+    const surf = s < 1, dive = seg(s, 1, 1.25), chase = seg(s, 1.25, 2.6), mark = seg(s, 2.6, 3.2), burst = seg(s, 3.2, 3.9);
+    let bx = lerp(300, 240, seg(s, 0, 1));
+    if (s >= 1.25) bx = lerp(240, PX + 74, chase);
+    if (surf) { jaw(c, bx, PY, 14, .3 + Math.sin(s * 10) * .2, '#7a4a30'); }
+    else if (s < 2.6) {
+      for (let i = 0; i < 4; i++) alpha(c, .5 - i * .1, () => dot(c, bx + i * 9, PY + 1, 5 + i * 4 * (dive < 1 ? dive : 1), null, E.dirt, 2));
+      for (let i = 0; i < 8; i++) alpha(c, .6, () => dot(c, bx + (i * 13 % 40) - 20, PY + ((i * 7) % 18) - 9, 1.5, E.dirt));
+    }
+    if (s >= 2.6 && s < 3.9) alpha(c, 1, () => {
+      c.save(); c.setLineDash([5, 5]); dot(c, bx, PY, 50, `rgba(255,90,122,${.12 + mark * .2})`, E.maw, 2); c.restore();
+      dot(c, bx, PY, 50 * mark, null, E.maw, 2);
+    });
+    if (burst > 0) {
+      jaw(c, bx, PY - 4 * Math.sin(burst * Math.PI), 16, .9, '#7a4a30');
+      for (let i = 0; i < 8; i++) { const a = i * TAU / 8 + .2, d = burst * 70; alpha(c, 1 - burst * .7, () => shot(c, bx + Math.cos(a) * d, PY + Math.sin(a) * d)); }
+      alpha(c, 1 - burst, () => dot(c, bx, PY, 18 + burst * 50, null, E.dirt, 3));
+    }
+    you(c, PX + (s > 3.1 ? -6 * seg(s, 3.1, 3.5) : 0));
+  }
+});
+
+add({
+  name: 'Molar', side: 'gut', from: 42, mirrors: 'Riot Shield',
+  chips: ['plate 4x health', 'bash 10', 'knockback 160 px', 'drops cover 3 s', 'XP 30'],
+  text: 'A guard behind a slab of enamel. Blocks from the front, cracks in four stages as you shoot it, and shatters into cover that blocks both sides. The Molar staggers and takes +50% when it breaks.',
+  draw(c, s) {
+    const stage = Math.min(4, Math.floor(s / .8)), brk = s > 3.2;
+    const mx = 250 - seg(s, 0, 3.2) * 60;
+    const stag = brk ? 1 : 0;
+    dot(c, mx + 20, PY, 15, '#7a3045', 'rgba(0,0,0,.4)');
+    for (let i = 0; i < 2; i++) ln(c, mx + 20, PY - 5 + i * 10, mx + 4, PY - 20 + i * 40, '#7a3045', 4);
+    if (!brk) {
+      c.save(); c.translate(mx, PY);
+      c.beginPath(); c.roundRect(-9, -38, 18, 76, 8); c.fillStyle = E.enamel; c.fill(); c.strokeStyle = '#a99a85'; c.lineWidth = 3; c.stroke();
+      c.strokeStyle = 'rgba(80,30,40,.8)'; c.lineWidth = 1.5;
+      for (let i = 0; i < stage; i++) { c.beginPath(); c.moveTo(-9, -30 + i * 18); c.lineTo(0, -22 + i * 18); c.lineTo(-4, -14 + i * 18); c.lineTo(9, -6 + i * 18); c.stroke(); }
+      c.restore();
+    } else {
+      const k = seg(s, 3.2, 3.9);
+      for (let i = 0; i < 6; i++) alpha(c, 1, () => { const a = (i - 2.5) * .5; c.save(); c.translate(mx - k * 22 + 4, PY + (i - 2.5) * 12 + Math.sin(a) * k * 10); c.rotate(a * k); c.fillStyle = E.enamel; c.fillRect(-4, -6, 8, 12); c.restore(); });
+      alpha(c, k, () => { c.save(); c.setLineDash([4, 4]); c.strokeStyle = E.enamel; c.strokeRect(mx - 34, PY - 36, 22, 72); c.restore(); });
+      ln(c, mx - 34, PY - 40, mx - 12, PY - 40, E.good || '#6be38a', 2);
+    }
+    for (let i = 0; i < 4; i++) { const k = ((s * 1.6 + i * .25) % 1); if (!brk) alpha(c, 1 - k * .3, () => dot(c, lerp(PX + 14, mx - 12, k), PY + (i - 1.5) * 6, 2.2, '#ffe28a')); }
+    if (!brk && Math.sin(s * 1.6 * TAU) > .99) alpha(c, 1, () => dot(c, mx - 11, PY, 8, null, '#fff', 2));
+    you(c);
+  }
+});
+
+add({
+  name: 'Bile Spitter', side: 'gut', from: 42, mirrors: 'Gas Grenadier',
+  chips: ['health 60', 'lob every 3.6 s', 'hit 14', 'pool 90 px, 6 s, 12/s', 'XP 26'],
+  text: 'A swollen gullet that lobs a glob of bile at where you will be. A ring fills over the wind-up. It leaves an acid pool, the same pool the Devourer\'s Bile turn spits. Step out of it.',
+  draw(c, s) {
+    const sx = 292, sy = 60, tx = 110, ty = 128;
+    const wind = seg(s, 0, 1.3), fly = seg(s, 1.3, 2.1), pool = seg(s, 2.1, 2.6), fade = seg(s, 3.4, 4);
+    const sw = 1 + Math.sin(s * 5) * .04 + wind * .12;
+    dot(c, sx, sy, 18 * sw, '#7c8f3a', '#2b3a12', 3); dot(c, sx - 6, sy, 8 * (1 + wind * .5), '#2b3a12');
+    for (let i = 0; i < 5; i++) alpha(c, .6, () => dot(c, sx + 4 + (i % 3) * 5, sy - 8 + i * 4, 2.5, E.bile));
+    if (s < 2.1) {
+      dot(c, tx, ty, 26, null, 'rgba(255,90,122,.45)', 1.5);
+      c.beginPath(); c.arc(tx, ty, 26, -Math.PI / 2, -Math.PI / 2 + TAU * wind); c.strokeStyle = E.maw; c.lineWidth = 3; c.stroke();
+    }
+    if (fly > 0 && fly < 1) {
+      for (let i = 0; i < 10; i++) { const k = i / 10; if (k < fly) { const x = lerp(sx, tx, k), y = lerp(sy, ty, k) - Math.sin(k * Math.PI) * 38; alpha(c, .5, () => dot(c, x, y, 1.6, E.bile)); } }
+      const x = lerp(sx, tx, fly), y = lerp(sy, ty, fly) - Math.sin(fly * Math.PI) * 38;
+      dot(c, x, ty * fly + sy * (1 - fly) + 6, 5 * (1 - Math.sin(fly * Math.PI) * .4), 'rgba(0,0,0,.35)');
+      dot(c, x, y, 6, E.bile, '#2b3a12', 1.5);
+    }
+    if (pool > 0) alpha(c, 1 - fade, () => {
+      dot(c, tx, ty, 38 * pool, 'rgba(160,200,60,.28)', E.bile, 2);
+      for (let i = 0; i < 6; i++) { const k = (s * .8 + i / 6) % 1; dot(c, tx + Math.cos(i * 2.1) * 20 * pool, ty + Math.sin(i * 2.1) * 12 * pool, 2 + k * 3, null, E.bile, 1); }
+    });
+    you(c, PX + 10, 120 - (s > 2.2 ? 0 : 0));
+  }
+});
+
+add({
+  name: 'Lasher', side: 'gut', from: 43, mirrors: 'Taser Guard',
+  chips: ['health 55', 'charge 0.7 s', 'tongue 380 px', 'drag 130 px', 'parryable', 'XP 28'],
+  text: 'Holds its distance, charges on a shooting line, then lashes one tongue. A hit drags you towards its teeth instead of stunning. Parry it and the tongue snaps back for free damage.',
+  draw(c, s) {
+    const ex = 290, ey = PY, charge = seg(s, .2, .9), shoot = seg(s, .9, 1.15), drag = seg(s, 1.15, 2.4), back = seg(s, 2.4, 3);
+    const px = PX + drag * 90 * (1 - back);
+    if (charge < 1 && s < .95) { ln(c, ex - 10, ey, px, ey, `rgba(255,90,122,${.15 + charge * .5})`, 1.5 + charge * 2, [6, 5]); }
+    jaw(c, ex, ey, 17, .35 + charge * .4, '#8d4056');
+    alpha(c, charge * (s < .95 ? 1 : 0), () => dot(c, ex - 4, ey, 22 * charge, null, E.maw, 2));
+    const reach = s < .9 ? 0 : s < 1.15 ? shoot : 1 - back;
+    if (reach > 0) {
+      const tip = lerp(ex - 14, px + 10, s < 1.15 ? shoot : 1);
+      const endX = s >= 2.4 ? lerp(tip, ex - 14, back) : tip;
+      c.beginPath(); c.moveTo(ex - 14, ey);
+      for (let i = 1; i <= 16; i++) { const x = lerp(ex - 14, endX, i / 16); c.lineTo(x, ey + Math.sin(i * .9 + s * 6) * 2.5 * (1 - back)); }
+      c.strokeStyle = '#d4607a'; c.lineWidth = 6; c.lineCap = 'round'; c.stroke(); c.lineCap = 'butt';
+      dot(c, endX, ey, 5, '#ff8aa0');
+    }
+    you(c, px);
+  }
+});
+
+add({
+  name: 'Tick', side: 'brood', from: 44, mirrors: 'Security Guard',
+  chips: ['health 40', 'needle 11', '7 per magazine', 'reload 2.2 s', 'one shot per 1.5 s', 'XP 24'],
+  text: 'A blood-swollen mite that strafes and fires a straight needle with no lead. Seven shots, then it reloads, swollen and slow. The pips on its back show how many are left.',
+  draw(c, s) {
+    const ex = 270, ey = PY + Math.sin(s * 1.6) * 40;
+    const cycle = (s % 1.5) / 1.5, lock = seg(cycle, 0, .55);
+    const reload = s > 3 ? seg(s, 3, 3.9) : 0;
+    if (!reload && lock < 1) ln(c, ex - 14, ey, PX + 10, PY, `rgba(255,90,122,${.1 + lock * .5})`, 1 + lock * 2, [5, 5]);
+    const fired = Math.floor(s / 1.5);
+    if (!reload && cycle > .55 && cycle < .95) {
+      const k = seg(cycle, .55, .95), ox = ex - 14, oy = lerp(ey, PY, .0);
+      const x = lerp(ox, PX + 10, k), y = lerp(ey, PY, k);
+      ln(c, x, y, x + 12, y + (ey - PY) * .04, E.enamel, 2.5); dot(c, x, y, 2, E.maw);
+    }
+    dot(c, ex, ey, 14 + reload * 2, '#b0485f', '#2a0a14', 2.5);
+    for (let i = 0; i < 6; i++) { const a = i * TAU / 6, lx = ex + Math.cos(a) * 14, ly = ey + Math.sin(a) * 14; ln(c, lx, ly, ex + Math.cos(a) * 24, ey + Math.sin(a) * 22, '#4a1a28', 2); }
+    dot(c, ex - 10, ey, 4, '#1a0c10');
+    const left = reload ? Math.floor(reload * 7) : 7 - (fired % 8);
+    for (let i = 0; i < 7; i++) dot(c, ex - 6 + i * 3, ey - 20, 1.3, i < left ? E.maw : 'rgba(255,255,255,.2)');
+    if (reload > 0 && reload < 1) { c.beginPath(); c.arc(ex, ey, 22, -Math.PI / 2, -Math.PI / 2 + TAU * reload); c.strokeStyle = E.bile; c.lineWidth = 2; c.stroke(); }
+    you(c);
+  }
+});
+
+const grid = document.getElementById('grid');
+const drawers = [];
+cards.forEach(card => {
+  const el = document.createElement('article'); el.className = 'card';
+  const cv = document.createElement('canvas'); cv.width = W * 2; cv.height = H * 2;
+  el.appendChild(cv);
+  const b = document.createElement('div'); b.className = 'body';
+  const t = document.createElement('div'); t.className = 'title';
+  t.innerHTML = '<h3></h3><span class="side ' + card.side + '"></span>';
+  t.querySelector('h3').textContent = card.name;
+  t.querySelector('.side').textContent = card.side + ' · from wave ' + card.from;
+  const ch = document.createElement('div'); ch.className = 'chips';
+  card.chips.forEach((x, i) => { const s = document.createElement('span'); s.className = 'chip' + (i === 0 ? '' : ''); s.textContent = x; ch.appendChild(s); });
+  const p = document.createElement('p'); p.textContent = card.text;
+  const m = document.createElement('div'); m.className = 'mirror'; m.innerHTML = 'mirrors <b></b>'; m.querySelector('b').textContent = card.mirrors;
+  b.append(t, m, ch, p); el.appendChild(b); grid.appendChild(el);
+  drawers.push([cv.getContext('2d'), card]);
+});
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function frame(ms) {
+  const T = 4, s = REDUCED ? 1.9 : (ms / 1000) % T;
+  drawers.forEach(([c, card]) => {
+    c.setTransform(2, 0, 0, 2, 0, 0); c.clearRect(0, 0, W, H);
+    floor(c); card.draw(c, window.__still != null ? window.__still : s);
+  });
+  if (!REDUCED) requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
