@@ -31,6 +31,7 @@ namespace Arena
                     break;
                 case EnemyType.Swordsman:
                 case EnemyType.ShieldSwordsman:
+                case EnemyType.Acolyte:
                     DrawSwordsmanUnder(e, pos, r, t);  // the cone it cuts (SwordsmanLook.cs)
                     break;
                 case EnemyType.SapperMine:
@@ -133,6 +134,7 @@ namespace Arena
                 }
                 case EnemyType.Swordsman:
                 case EnemyType.ShieldSwordsman:
+                case EnemyType.Acolyte:
                     DrawSwordsmanBody(e, pos, r, col, t);  // SwordsmanLook.cs
                     break;
                 case EnemyType.Sapper:
