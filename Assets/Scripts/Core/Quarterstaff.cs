@@ -19,7 +19,7 @@ namespace Arena
         public const float StaffJabWind = 0.06f, StaffJabHold = 0.28f, StaffJabCd = 0.32f;  // pull-back before it lands, how long it holds the next swipe off, how soon the key works again
 
         /// How many stacks the staff can store: three, and one more for each extra projectile.
-        public int StaffCap(Player p) => StaffBaseStacks + ExtraShots(p);
+        public int StaffCap(Player p) => StaffBaseStacks + ExtraShots(p) + p.Stats.StaffExtraStacks;  // (Pilgrim's Staff: one more)
 
         /// Host: a player pressed the weapon-action key with the Quarterstaff, aiming at `aimAt`.
         void HostStaffJab(Player p, V2 aimAt)

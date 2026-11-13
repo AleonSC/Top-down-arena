@@ -1,6 +1,6 @@
 # Upgrade pools: class and weapon cards
 
-**Status: steps 1-6 built (Nov 2026, protocol 313).** Next: weapon cards, class by class. Owner decisions are below; build one step at a time ("start on step N").
+**Status: steps 1-7 built (Nov 2026, protocol 314).** Next: weapon cards for the other classes, one class at a time. Owner decisions are below; build one step at a time ("start on step N").
 
 ## Why
 
@@ -156,7 +156,7 @@ Built (owner approved all six): each sits in its class's list with `Kit` set. `S
 `GhostCut` / `GhostTime` (`Player.GhostT`, set on a dodge in `Dodge.cs`, read in `Damage`), `HealthCostMult`
 (`PayHealth`) plus `KillHeal`. Test: suite `abilitycards`, its class card checks.
 
-### Step 7: Knight weapon cards (proposed, owner picks)
+### Step 7: Knight weapon cards (built, protocol 314)
 
 One Rare card per Knight weapon (`Weapons = { that weapon }`, `MaxStacks = 2`), offered only while you hold it. Each
 sharpens what the weapon already does and doesn't repeat a general card (damage, swing speed, reach via Piercing).
@@ -173,3 +173,11 @@ sharpens what the weapon already does and doesn't repeat a general card (damage,
 | Greatsword | Tempered Blade | Rend hits 30% harder, and guarding builds Temper 25% faster |
 | Rapier | Duelist's Edge | Each thrust skewers 1 more bullet, and Tempo holds 0.5 s longer |
 | Arc Knuckles | Live Wire | The Rocket Dash reaches 25% farther, and the Twin Hammer stuns 0.3 s longer |
+
+Built (owner approved all ten): in `Game.KnightCards`, each with `Weapons = { its weapon }`. Hooks: `Game.HammerR`
+(the slam and its charge outline, `WorldShots.cs`), the Breaching Thrust's `Knock` and `LanceBump` / `LanceWallImpact`,
+the Halberd's reach and `sweep`, the Quarterstaff's `HealPerHit` and `StaffCap`, `LightLanded` (`Player.LightCarry`
+keeps the fraction) and `LandSunlance`, `AddZone` for every `ZoneKind.Incense` cloud, `HostTwinFang` and `FangHurt`,
+the guard's Rend and `GreatGuardBlock` (`Player.TemperCarry`), `TickRapier`'s grace and the Rapier's skewer cap,
+`KnuckleLockTarget` / `HostRocketDash` (and the reticle in `ArcKnucklesLook.cs`) and the Twin Hammer's stun.
+Test: suite `abilitycards`, its Knight weapon checks.

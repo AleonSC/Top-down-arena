@@ -137,7 +137,7 @@ namespace Arena
                         continue;
                     if (!r.Hit.Add(e.Id * 4 + blade * 2 + leg))
                         continue;
-                    FangHurt(p, e, dmg * FangMult, at);
+                    FangHurt(p, e, dmg * FangMult * p.Stats.FangDmgMult, at);  // (Whirling Sabres: harder)
                     cut++;
                 }
                 CutShotsNear(at, FangHitR);
@@ -151,7 +151,7 @@ namespace Arena
                 foreach (var e in Enemies.Values)
                     if (Targetable(e) && e.Pos.DistanceTo(r.To) <= e.Radius + FangBurstR)
                     {
-                        FangHurt(p, e, dmg * FangBurstMult, r.To);
+                        FangHurt(p, e, dmg * FangBurstMult * p.Stats.FangDmgMult, r.To);
                         burst++;
                     }
                 BroadcastFx(FxKind.Ring, r.To, TwinMoon, FangBurstR, 0.3f, Sfx.TwinCross);
@@ -191,7 +191,7 @@ namespace Arena
             V2 to = aimAt - p.Pos;
             float len = to.Length;
             V2 dir = len > 1f ? to / len : V2.FromAngle(p.Aim);
-            V2 target = ClampToArena(p.Pos + dir * Math.Min(FangReach, Math.Max(60f, len)), 10f);
+            V2 target = ClampToArena(p.Pos + dir * Math.Min(FangReach * p.Stats.FangReachMult, Math.Max(60f, len)), 10f);
             p.FangCd = FangCooldown;
             p.FireCd = Math.Max(p.FireCd, TwinBladesMotion.FangTotal);  // no swings until the sabres are caught
             p.Combo &= ~7;

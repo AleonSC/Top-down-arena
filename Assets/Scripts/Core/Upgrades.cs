@@ -115,6 +115,17 @@ namespace Arena
         public float CutReachMult = 1f;                                    // Knight: Plate Armour (how far out swings cut bullets)
         public float GhostCut, GhostTime;                                  // Ninja: Ghost Step (less damage for GhostTime after a dodge)
         public float HealthCostMult = 1f;                                  // Blood Mage: Bloodthirst (health paid for abilities)
+        // Knight weapon cards (Weapons; Docs/UpgradePools.md step 7)
+        public float HammerAreaMult = 1f, HammerStunBonus;                 // Warhammer: Quake Hammer
+        public float BreachKnockMult = 1f, ImpactMult = 1f;                // Lance: Breacher
+        public float HalberdReachMult = 1f, HalberdSweepBonus;             // Halberd: Long Haft (sweep bonus in radians, each side)
+        public float StaffHealBonus; public int StaffExtraStacks;          // Quarterstaff: Pilgrim's Staff
+        public float LightGainMult = 1f, SunlanceHealMult = 1f;            // Lightbringer: Daybreak
+        public float IncenseSizeMult = 1f, IncenseBonusTime;               // Censer: Thick Incense
+        public float FangReachMult = 1f, FangDmgMult = 1f;                 // Twin Blades: Whirling Sabres
+        public float GreatRendMult = 1f, TemperGainMult = 1f;              // Greatsword: Tempered Blade
+        public int SkewerBonus; public float TempoHoldBonus;               // Rapier: Duelist's Edge
+        public float KnuckleDashMult = 1f, KnuckleStunBonus;               // Arc Knuckles: Live Wire
 
         // Legendary weapon upgrades from bosses.
         public int Guards, Searchlight, SplitShots;  // Warden's Guard companions and Searchlight stacks (Stun.cs)

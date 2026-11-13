@@ -294,6 +294,139 @@ static partial class Program
         me.Hp = me.MaxHp; float paid1 = (float)pay.Invoke(g, new object[] { me, 50f, "test" });
         Check(near(paid0, 50f, 0.01f) && near(paid1, 40f, 0.01f) && near(me.Stats.KillHeal, 2f, 0.001f), "Bloodthirst: abilities cost 20% less health and kills heal 2");
 
+        // --- Knight weapon cards (Weapons; Docs/UpgradePools.md step 7) ---
+        var fireKnight = typeof(Game).GetMethod("FireKnightWeapon", flags);
+        var swingsF = typeof(Game).GetField("pendingSwings", flags);
+        Func<List<Swing>> swings = () => (List<Swing>)swingsF.GetValue(g);
+        Action<WeaponId, string, int> arm = (wid, card, n) =>
+        {
+            prep(AbilityId.Meteor, card, n);
+            me.Weapon = Defs.WeaponOf(wid);
+            recalc.Invoke(g, new object[] { me });
+            me.Weapon = Defs.WeaponOf(wid);
+            swings().Clear();
+            me.FireCd = 0f; me.Combo = 0; me.ComboT = 0f;
+        };
+        Func<WeaponId, string, int, List<Swing>> swing = (wid, card, n) =>
+        {
+            arm(wid, card, n);
+            fireKnight.Invoke(g, new object[] { me, 0f, 1f, 0 });
+            var got = swings().ToList();
+            swings().Clear();
+            return got;
+        };
+        Check(new[] { "Quake Hammer", "Breacher", "Long Haft", "Pilgrim's Staff", "Daybreak", "Thick Incense", "Whirling Sabres", "Tempered Blade", "Duelist's Edge", "Live Wire" }
+            .All(n => U(n) >= 0 && Upgrades.All[U(n)].Weapons != null && Upgrades.All[U(n)].Weapons.Length == 1 && Defs.WeaponOf(Upgrades.All[U(n)].Weapons[0]).Kit == Kit.Knight),
+            "all ten Knight weapon cards exist, each for one Knight weapon");
+
+        arm(WeaponId.Warhammer, "Quake Hammer", 0); float hr0 = Game.HammerR(me);
+        var hs0 = swing(WeaponId.Warhammer, "Quake Hammer", 0);
+        arm(WeaponId.Warhammer, "Quake Hammer", 2); float hr2 = Game.HammerR(me);
+        var hs2 = swing(WeaponId.Warhammer, "Quake Hammer", 2);
+        Check(near(hr2 / hr0, 1.4f, 0.001f) && near(hs2[0].Circle / hs0[0].Circle, 1.4f, 0.001f) && near(hs2[0].Stun - hs0[0].Stun, 0.6f, 0.001f),
+            "Quake Hammer: the slam is 20% wider per card (outline too) and stuns 0.3 s longer");
+
+        Func<int, float> breach = n => { arm(WeaponId.Lance, "Breacher", n); me.LancePrimed = true; fireKnight.Invoke(g, new object[] { me, 0f, 1f, 0 }); float k = swings().Max(x => x.Knock); swings().Clear(); return k; };
+        var wallHit = typeof(Game).GetMethod("LanceWallImpact", flags);
+        Func<int, float> impact = n =>
+        {
+            arm(WeaponId.Lance, "Breacher", n);
+            var e = enemyAt(new V2(900f, 450f));
+            e.ImpactBy = me.Id + 1;
+            float hp0 = e.Hp;
+            wallHit.Invoke(g, new object[] { e, e.Pos });
+            return hp0 - e.Hp;
+        };
+        float bk0 = breach(0), bk1 = breach(1), im0 = impact(0), im1 = impact(1);
+        Check(near(bk1 / bk0, 1.3f, 0.001f) && im0 > 0f && near(im1 / im0, 1.5f, 0.01f), "Breacher: Breaching Thrust shoves 30% farther and Impact hits 50% harder (" + im0 + " -> " + im1 + ")");
+
+        var hb0 = swing(WeaponId.Halberd, "Long Haft", 0); var hb2 = swing(WeaponId.Halberd, "Long Haft", 2);
+        float sw0 = hb0.Max(x => Math.Abs(x.Aim)), sw2 = hb2.Max(x => Math.Abs(x.Aim));
+        Check(near(hb2.Max(x => x.Reach) / hb0.Max(x => x.Reach), 1.3f, 0.01f) && near(sw2 - sw0, 20f * MathX.Pi / 180f, 0.001f),
+            "Long Haft: the Halberd reaches 15% farther and sweeps 10° more each way per card");
+
+        var qs0 = swing(WeaponId.HolyMace, "Pilgrim's Staff", 0); int cap0 = g.StaffCap(me);
+        var qs1 = swing(WeaponId.HolyMace, "Pilgrim's Staff", 1); int cap1 = g.StaffCap(me);
+        Check(near(qs1[0].HealPerHit - qs0[0].HealPerHit, 1f, 0.001f) && cap1 == cap0 + 1, "Pilgrim's Staff: each hit heals 1 more and one more Jab stack fits");
+
+        var lightLanded = typeof(Game).GetMethod("LightLanded", flags);
+        var sunlance = typeof(Game).GetMethod("LandSunlance", flags);
+        Func<int, float[]> dawn = n =>
+        {
+            arm(WeaponId.Lightbringer, "Daybreak", n);
+            me.Light = 0; me.LightCarry = 0f;
+            lightLanded.Invoke(g, new object[] { me, new Swing { LightKind = 1 }, me.Pos, me.Pos, 6 });  // (the gauge holds 12)
+            int light = me.Light;
+            g.DevSetGod(2, false);
+            friend.Hp = friend.MaxHp * 0.3f; float fh = friend.Hp;
+            sunlance.Invoke(g, new object[] { me, friend, 5 });
+            g.DevSetGod(2, true);
+            return new[] { light, friend.Hp - fh };
+        };
+        var db0 = dawn(0); var db1 = dawn(1);
+        Check(db0[0] == 6 && db1[0] == 7 && me.LightCarry > 0.79f && near(db1[1] / db0[1], 1.3f, 0.01f), "Daybreak: the light gauge fills 30% faster and the Sunlance heals 30% more (" + db0[0] + "/" + db1[0] + " light, " + db0[1] + "/" + db1[1] + " HP)");
+
+        var addZone = typeof(Game).GetMethod("AddZone", flags);
+        Func<int, Zone> incense = n => { arm(WeaponId.Censer, "Thick Incense", n); return (Zone)addZone.Invoke(g, new object[] { ZoneKind.Incense, me, there, 42f, 2.5f }); };
+        var in0 = incense(0); var in2 = incense(2);
+        Check(near(in2.Radius / in0.Radius, 1.6f, 0.001f) && near(in2.Duration - in0.Duration, 4f, 0.001f), "Thick Incense: incense clouds are 30% bigger and last 2 s longer per card");
+
+        var fang = typeof(Game).GetMethod("HostTwinFang", flags);
+        var runsF = typeof(Game).GetField("fangRuns", flags);
+        Func<int, float> sabres = n =>
+        {
+            arm(WeaponId.TwinBlades, "Whirling Sabres", n);
+            me.FangCd = 0f;
+            ((IList)runsF.GetValue(g)).Clear();
+            fang.Invoke(g, new object[] { me, me.Pos + new V2(1000f, 0f) });
+            var run = ((IList)runsF.GetValue(g))[0];
+            return ((V2)run.GetType().GetField("To").GetValue(run)).DistanceTo(me.Pos);
+        };
+        float fr0 = sabres(0), fr1 = sabres(1);
+        ((IList)runsF.GetValue(g)).Clear();
+        Check(near(fr1 / fr0, 1.25f, 0.01f) && near(me.Stats.FangDmgMult, 1.3f, 0.001f), "Whirling Sabres: the thrown sabres fly 25% farther (" + fr0 + " -> " + fr1 + " px) and hit 30% harder");
+
+        var guard = typeof(Game).GetMethod("HostGreatGuard", flags);
+        var block = typeof(Game).GetMethod("GreatGuardBlock", flags);
+        Func<int, float[]> great = n =>
+        {
+            arm(WeaponId.Greatsword, "Tempered Blade", n);
+            me.GreatLock = 0f; me.GreatGuard = false; me.TemperCarry = 0f;
+            guard.Invoke(g, new object[] { me, true, there });
+            g.Bullets.Clear();
+            for (int i = 0; i < 4; i++)
+                g.Bullets[90000 + i] = new Bullet { Id = 90000 + i, Kind = Defs.SmallShot, Pos = me.Pos + V2.FromAngle(me.Aim + (i - 1.5f) * 0.2f) * Game.GreatGuardRadius, Radius = 4f, Life = 5f };
+            block.Invoke(g, new object[] { me });
+            float temper = me.GreatTemper;
+            me.GreatTemper = 6;
+            swings().Clear();
+            guard.Invoke(g, new object[] { me, false, there });
+            float rend = swings().Where(x => x.Rend).Select(x => x.Dmg).DefaultIfEmpty(0f).Max();
+            swings().Clear();
+            return new[] { temper, rend };
+        };
+        var gt0 = great(0); var gt1 = great(1);
+        Check(gt0[0] == 4f && gt1[0] == 5f && gt0[1] > 0f && near(gt1[1] / gt0[1], 1.3f, 0.01f), "Tempered Blade: guarding builds Temper 25% faster (4 -> 5 for four bullets) and the Rend hits 30% harder");
+
+        var tickRapier = typeof(Game).GetMethod("TickRapier", flags);
+        Func<int, int> tempo = n =>
+        {
+            arm(WeaponId.Rapier, "Duelist's Edge", n);
+            me.RapierTempo = 10; me.RapierTempoF = 10f; me.RapierHitAgo = 1.4f;  // past the plain 1.2 s hold, inside 1.7
+            tickRapier.Invoke(g, new object[] { me, 0.1f });
+            return me.RapierTempo;
+        };
+        int tp0 = tempo(0), tp1 = tempo(1);
+        Check(tp0 < 10 && tp1 == 10 && me.Stats.SkewerBonus == 1, "Duelist's Edge: Tempo holds 0.5 s longer (" + tp0 + " vs " + tp1 + " stacks after 1.5 s) and skewers one more bullet");
+
+        arm(WeaponId.ArcKnuckles, "Live Wire", 0);
+        var far3 = enemyAt(me.Pos + new V2(340f, 0f));  // past the 300 px lock-on, inside 375
+        bool noLock = g.KnuckleLockTarget(me.Pos, far3.Pos, me.Stats.KnuckleDashMult) == null;
+        arm(WeaponId.ArcKnuckles, "Live Wire", 1);
+        var far4 = enemyAt(me.Pos + new V2(340f, 0f));
+        Check(noLock && g.KnuckleLockTarget(me.Pos, far4.Pos, me.Stats.KnuckleDashMult) == far4 && near(me.Stats.KnuckleStunBonus, 0.3f, 0.001f),
+            "Live Wire: the Rocket Dash locks on 25% farther out and the Twin Hammer stuns 0.3 s longer");
+
         host.Leave(""); client.Leave("");
     }
 }
