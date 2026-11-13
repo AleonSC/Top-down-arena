@@ -115,7 +115,7 @@ namespace Arena
         }
 
         /// The bee: wings, legs, abdomen and stripes, thorax, fuzz, head, jaws and lance. `a` fades it in as it spawns.
-        void DrawHiveInsect(HiveSpec o, V2 pos, float ang, float r, float t, float a, float hit, float mand, float glowAmt, float scaleBy = 1f)
+        void DrawHiveInsect(HiveSpec o, V2 pos, float ang, float r, float t, float a, float hit, float mand, float glowAmt, bool plated = false, float scaleBy = 1f)
         {
             float w = o.W(r) * scaleBy;
             var f = new HiveFrame { O = pos, F = V2.FromAngle(ang), S = V2.FromAngle(ang).Orthogonal(), K = w * o.S };
@@ -150,7 +150,16 @@ namespace Arena
             // thorax, armour
             HiveEllipse(f, 0f, 0f, tr, tr, 0f, col, 0.3f, lw, gl, 16);
             if (o.Armor)
-                HiveHexRing(f, 0f, 0f, tr + 2.6f, 0f, col, 0f, Mathf.Max(1.1f, 1.4f * f.K), f.K * 5f);
+            {
+                if (plated)  // charging: the plates close up, filled and doubled (the armour that halves the damage)
+                {
+                    var steel = col.Mix(Rgba.White, 0.55f).WithAlpha(a);
+                    HiveHexRing(f, 0f, 0f, tr + 2.6f, 0f, steel, 0.4f, Mathf.Max(1.4f, 1.8f * f.K), f.K * 7f);
+                    HiveHexRing(f, 0f, 0f, tr + 5f, MathX.Pi / 6f, steel, 0.1f, Mathf.Max(1.1f, 1.3f * f.K), f.K * 5f);
+                }
+                else
+                    HiveHexRing(f, 0f, 0f, tr + 2.6f, 0f, col, 0f, Mathf.Max(1.1f, 1.4f * f.K), f.K * 5f);
+            }
             if (o.Fuzz > 0)
             {
                 for (int k = 0; k < o.Fuzz; k++)
@@ -220,7 +229,7 @@ namespace Arena
             }
             if (e.Type == EnemyType.HoneyLobber && GasLobOf(e, out float age, out float throwAt, out float flight))
                 glow = age < throwAt ? 0.2f + 0.6f * Mathf.Clamp01(age / Mathf.Max(0.01f, throwAt)) : Mathf.Max(0f, 0.8f - (age - throwAt) / Mathf.Max(0.01f, flight) * 2f);
-            DrawHiveInsect(o, pos, e.Facing, r, t, a, hit, mand, glow);
+            DrawHiveInsect(o, pos, e.Facing, r, t, a, hit, mand, glow, Game.SoldierCharging(e));
             if (e.Type == EnemyType.CombShield)
                 DrawCombPlate(e, o, pos, r, t, a, hit);
         }
