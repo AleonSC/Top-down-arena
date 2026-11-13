@@ -70,7 +70,7 @@ existing regular enemy that fits the theme (a higher weight during the approach)
 | **Duelist** (26-29) | **Blade Dancer** (new) · **Decoy** (rework) · Shielder, Reaver (regular) | Blade Dancer: telegraphed lunges that leave a hanging blade firing sideways; when hit it can blink away and leave a Decoy. The Decoy with no Duelist is a timed bomb today; it needs to give credit and look like a Blade Dancer, not the boss. Shielders (front guard) and Reavers (cone then rake) already duel. |
 | **Lich** (31-34) | **BUILT, as zombies** (owner's call, Nov 2026): the Zombie Infection kinds, Shamblers first, then Runners (packs of three) and Spitters (wave 32), Crawlers (33), Menders (34); squads Graveyard shift and Grave rush; wave 34 always brings the Dead march. No rising outside the modifier; the Lich fight is untouched (the owner will redesign it). *Original plan, now dropped:* **Skeleton** (new, from the Grunt) · **Grave Priest** (new) · **Wailing Spirit** (new) | Today the Lich's dead are plain Grunts; a Skeleton type looks the part and climbs out of a grave. Grave Priest: raises Skeletons from graves (at most 4 alive per priest; kill the priest and the graves close), a Nest with a theme. Wailing Spirit: drifts in, wails, then dives at you (the Lich's spirits). Phylacteries mean nothing without the Lich: left out. |
 | **Storm Herald** (36-39) | **Ball Lightning** (fix) · **Lightning Rod** (new, in pairs) · **Stormcaller** (new) | Ball Lightning works with no Herald; fix that slows and freezes don't touch it and that its pop shots are marked as boss shots. Lightning Rods: two posts with an arc between them, like the Stitcher's thread. Stormcaller: telegraphs strikes under you. |
-| **Devourer** (41-44) | **Bile Spitter** (new) · **Burrower** (new) · Swarmer (regular) | Bile Spitter: lobs bile that leaves a pool (the Devourer's `BileShot`). Burrower: digs under, chases you, erupts in a ring. Morsels only matter to the Devourer: left out. |
+| **Devourer** (41-44) | **The Larder, PLANNED** (owner's call, Nov 2026; section below, mockup `Docs/Mockups/devourer-faction.html`): eight enemies, one per Warden enemy: Gnawling, Butcher, Gulper, Gutworm, Carcass Bearer, Bile Spitter, Hook Thrower, Maw Priest | Brood (its spawn) and Larder (the butchers who feed it). Each teaches a turn of the fight: morsels, Snap, Inhale, Burrow, Bile, the Maw. Replaces the earlier Bile Spitter / Burrower / Swarmer plan. |
 | **Eclipse** (46-49) | **Echoes**: one or two members from each earlier faction · Phantom, Hexer (regular) | The Eclipse's own Echoes stage borrows earlier bosses' turns, so its approach does the same with their factions: the run's greatest hits. It already summons Phantoms and Hexers. No new enemies. |
 
 In all: **5 existing enemies** to use or fix, **3 to rework** and **16 new ones**, spread over the build order below so
@@ -128,6 +128,37 @@ roll off each stomp (at most six up).
 **Build order:** (1) ✅ Rubble, Quarryman (kin in `HiveKin.cs`'s table), Stomper (`QuarryFaction.cs`; a stand-in **Rockfall** squad, a Stomper and three Rubble, until the Driller makes it Quarry); (2) ✅ Slab Bearer (Riot Shield kin; its slab drops as a `PatchKind.Slab`),
 Rock Hurler (Gas Grenadier kin, every 3.6 s; the pile is a `PatchKind.Rubble`); (3) ✅ Driller (Shiv kin), Geomancer and Cinder Priest (Taser Guard kin: the Geomancer was planned as a Security Guard mirror, but the Taser Guard's charge-then-one-shot fits a crack; the Cinder Priest comes from wave 23, `From = 3` like every faction's last members); the Quarry and Fault line squads replace the stand-in Rockfall; (4) ✅ the Avalanche (the Riot line formation now takes any Riot Shield kin as its wall) and the Long Campaign's
 ten lessons (waves 41-50, the Warden's order; the Driller is starred in the recap wave). New `EnemyType`s at the end, protocol bump per step.
+
+## The Larder: the Devourer's faction (planned, not built)
+
+Mockup: `Docs/Mockups/devourer-faction.html` (https://claude.ai/artifact/UDdBdEF8Pfp4rsrVQAbPTw). Eight enemies, each
+mirroring a Warden enemy's job like the Quarry. **Brood** (the Devourer's spawn: mouths, no eyes; squads with the
+brood) and **Larder** (hooded butchers who keep it fed; squads with the butchers). Each teaches a Devourer turn.
+Numbers are first guesses at wave 41. **Gutworm**, not Burrower: that name is the Earthquake minion (`Burrower.cs`).
+
+| Enemy | Side | From | Mirrors | What it does | Teaches |
+|---|---|---|---|---|---|
+| **Gnawling** | brood | 41 | Rioter | 24 HP; weaves at you in pairs (contact 10, XP 7); runs for any morsel on the floor and grows when it eats one (+50% health) | Hungry's morsels |
+| **Butcher** | larder | 41 | Guard | 60 HP; straight at you; within 70 px chops a 110 px half-circle in front after a 0.4 s wind-up (14, XP 15) | Snap's bite |
+| **Gulper** | brood | 42 | Thug | 180 HP, contact 20; every 4 s its cheeks swell 0.6 s, then it inhales a 70° cone 200 px long for 1 s (pull 120 px/s, bite 20 at the mouth) | Inhale |
+| **Gutworm** | brood | 43 | Shiv | 70 HP; dives (can't be hurt), a ripple chases you 1.8 s at 110 px/s, stops, marks 50 px for 0.6 s, erupts (16) with a ring of 8 | Burrow |
+| **Carcass Bearer** | larder | 42 | Riot Shield | Riot Shield logic with a carcass slab (4x health, bash 10); a broken slab drops a morsel (60 HP) the brood eats to grow; the bearer staggers and takes +50% | Hungry's morsels |
+| **Bile Spitter** | brood | 42 | Gas Grenadier | 50 HP; holds 300 px out, every 3 s lobs a glob at your lead (spot marked in flight); a 70 px acid pool for 4 s, 10/s (the Devourer's `BileShot`, small) | Bile |
+| **Hook Thrower** | larder | 43 | Taser Guard | 55 HP; shows a line for 0.7 s, throws a hook down it (500 px/s); a hit does 8 and reels you 90 px toward it | Snap / Frenzy lunge lines |
+| **Maw Priest** | larder | 43 | Taser Guard (moves) | 90 HP; a 90° maw in front: shots into it heal it for half, ×1.25 from behind; turns at 30°/s; a fan of 3 every 2 s | the Maw (Ravenous) |
+
+**Squads:** Feeding Frenzy (six Gnawlings and a Butcher; mirrors Breakout), Meat Hooks (two Hook Throwers behind two
+Butchers; Patrol), Gullet (a Gulper, three Gnawlings, a Gutworm; Yard), Larder Wall (two Carcass Bearers, Gnawlings
+pouring past; Cell block), Bile Rain (three Bile Spitters spread wide so their pools overlap; new). **Last wave: the
+Feast** (mirrors the Riot Line): four Carcass Bearers as a wall, two Gulpers behind, two Bile Spitters lobbing over;
+within ~190 px or half the slabs broken, the Gulpers push through the gaps and inhale.
+
+**In the Devourer fight (proposal, not decided):** Hungry: two Gnawlings crawl out with the morsels and race it to
+them; Inhale: Gnawlings in the cone are pulled in too and heal it 1% each; Ravenous: a Maw Priest at each side door.
+
+**Build order (proposed):** (1) Gnawling, Butcher, Gulper; (2) Carcass Bearer (Riot Shield kin; the slab drops a
+morsel), Bile Spitter (Gas Grenadier kin, a bile `PatchKind`); (3) Gutworm, Hook Thrower, Maw Priest, and the squads;
+(4) the Feast and the Long Campaign's lessons. New `EnemyType`s at the end, protocol bump per step.
 
 ## With paths
 
