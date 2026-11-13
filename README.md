@@ -599,7 +599,7 @@ its world on the way to it (design: [`Docs/Approaches.md`](Docs/Approaches.md)).
 **Fully themed** makes all four waves the boss's own enemies; 0% turns it off. The rest of each wave is the usual mix,
 paths still apply (an enemy-mix path builds from what's left; Elite Gauntlet makes the faction elite too), and the
 boss fight itself is the same. A chip above the wave panel says "Approach · The Warden · 3/4", and the banner before
-the first and last waves says you're on the road to the boss, then that it's near. So far the **Warden** has a faction (waves 1-4), and the last wave before him always brings the **Riot Line**: four Riot Shields marching at you as a wall, five Guards close behind it, who break out and rush you once the wall gets within about 190 px or half its shields are down. The **Hive Queen** has one too (waves 6-9): eight bees, one for each of the Warden's roles (below), with the **Royal guard** (four Comb Shields, five Soldiers) on the last wave. The **Lich** has one too (waves 31-34): the same zombies as Zombie Infection, Shamblers first, then
+the first and last waves says you're on the road to the boss, then that it's near. So far the **Warden** has a faction (waves 1-4), and the last wave before him always brings the **Riot Line**: four Riot Shields marching at you as a wall, five Guards close behind it, who break out and rush you once the wall gets within about 190 px or half its shields are down. The **Hive Queen** has one too (waves 6-9): eight bees, one for each of the Warden's roles (below), with the **Royal guard** (four Comb Shields, five Soldiers) on the last wave. The **Singularity** has the start of one (waves 16-19): the **Infall**, three of its eight enemies so far (below). The **Lich** has one too (waves 31-34): the same zombies as Zombie Infection, Shamblers first, then
 Runners (in packs of three) and Spitters from wave 32, Crawlers from 33 and Menders from 34, with two squads (Graveyard
 shift, Grave rush) and a last-wave **Dead march** (six Shamblers, two Menders, three Runners). They don't get back up
 outside the modifier. His fight itself is unchanged. The other bosses' factions come next.
@@ -631,6 +631,14 @@ his own riot, on the boss wave, still give 2 and 4.
 | 8 | **Hornet** | Shiv | Circles in close, shows the red **lunge lane**, then darts along it like a Lunger (contact 18, 26 on the lunge) |
 
 They are drawn as in `Docs/Mockups/hive-faction.html`: vector bees with wings, striped abdomen, thorax and head. The Hive faction pays XP like its counterparts, and after the Queen it fades the same way the Warden's does.
+
+| From | The Singularity's faction (the Infall) | Previews | What it does |
+|---|---|---|---|
+| 16 | **Debris** | the Pull | Tumbling rubble (22 health, contact 9) that falls at you on an **inward spiral**: it comes in from the side when far and straight at you within 90 px, so it's hard to line up. Squad: Infall (an Acolyte and six Debris) |
+| 16 | **Acolyte** | bent shots | A hooded void cultist holding a tiny black hole. Keeps 280 px away and strafes; every 2.4 s it fires **three slow orbs** (150 px/s, 14 each): one straight and two that leave wide and **bend back in to meet it where you stood**. Step forward or back, not sideways |
+| 17 | **Pulsar** | Lasers | A spinning neutron star. Within 300 px it plants, and its **two beams** (one each way) **flicker for 1 s** a little behind you, then switch on and **sweep a quarter turn** through you over 4 s (16 a touch). It rests 2.5 s and goes again. Walk the way the beams turn. At most 3 a wave (extra ones come as Acolytes). Squad: Binary (two Pulsars) |
+
+They are drawn as in `Docs/Mockups/singularity-faction.html`, in the Singularity's colours. Five more (Lens, Graviton, Orbiter, Collapsar, White Dwarf), the Accretion ring set piece and its ten-wave cycle come in later steps (`Docs/SingularityFaction.md`).
 
 **Bubbles (Shielded elites and the Warder's wards):** a bubble is twelve cells round the rim, each holding a twelfth of the shield. A hit wears down the cell facing whoever shot it (flashing, then breaking into shards) and spills over to its neighbours once that cell is gone, so the side you shoot from is the side that opens. Burning and bleeding keep chewing the weakest cell. A honeycomb inside only shows where its cell is still up, and a thin shield bar sits above the health bar. Blue is a Shielded elite, violet is the Warder's.
 

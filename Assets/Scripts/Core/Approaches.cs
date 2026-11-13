@@ -141,6 +141,22 @@ namespace Arena
             },
             new FactionDef
             {
+                Boss = EnemyType.Singularity,  // the Singularity: the Infall, matter falling into the black hole (Infall.cs, Docs/SingularityFaction.md); step 1 of 4
+                Members = new[]
+                {
+                    new FactionMember { Type = EnemyType.Debris, Weight = 3f },
+                    new FactionMember { Type = EnemyType.Acolyte, NotFirst = true, Weight = 2f },
+                    new FactionMember { Type = EnemyType.Pulsar, Fade = 1, Weight = 1.5f, From = 2 },  // its sweeping beams (the boss's Lasers)
+                },
+                Squads = new[]
+                {
+                    new SquadDef { Name = "Infall", From = 1, Members = new[] { EnemyType.Acolyte, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris } },
+                    new SquadDef { Name = "Binary", From = 2, Members = new[] { EnemyType.Pulsar, EnemyType.Pulsar } },
+                },
+                // No set piece or lesson cycle yet (steps 2-4): the Campaign builds its waves by reach, as for the Lich.
+            },
+            new FactionDef
+            {
                 Boss = EnemyType.Lich,  // the Lich: the restless dead, the same zombies as Zombie Infection (Zombies.cs); they don't get back up outside that modifier
                 Members = new[]
                 {

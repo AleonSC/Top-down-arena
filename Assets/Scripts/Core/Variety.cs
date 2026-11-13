@@ -109,6 +109,7 @@ namespace Arena
 
         float SentryDamage => 16f;  // the difficulty's per-wave damage growth scales it (27 at wave 23 on Normal; it was 45)
         public const int MaxSentries = 3;  // at most this many Beam Sentries in a wave (CapSentries)
+        public const int MaxPulsars = 3;   // ...and Pulsars (Infall.cs)
 
         // --- Waves -----------------------------------------------------------------------------------------------
 
@@ -332,29 +333,35 @@ namespace Arena
 
         /// At most MaxSentries Beam Sentries a wave (recorded runs had 5-7, and their beams did more damage than any
         /// other regular enemy): squads that would bring more come apart into single enemies, and spare Sentries become
-        /// Snipers or Grunts.
+        /// Snipers or Grunts. The same for the Singularity's Pulsars (Infall.cs): spare ones become Acolytes.
         void CapSentries()
         {
-            int sentries = 0;
+            CapBeams(EnemyType.BeamSentry, MaxSentries, () => rng.NextDouble() < 0.5 ? EnemyType.Sniper : EnemyType.Grunt);
+            CapBeams(EnemyType.Pulsar, MaxPulsars, () => EnemyType.Acolyte);
+        }
+
+        void CapBeams(EnemyType beam, int max, Func<EnemyType> instead)
+        {
+            int count = 0;
             for (int i = 0; i < squadQueue.Count; i++)
             {
                 int here = 0;
                 foreach (var t in squadQueue[i].Members)
-                    if (t == EnemyType.BeamSentry)
+                    if (t == beam)
                         here++;
-                if (sentries + here <= MaxSentries)
+                if (count + here <= max)
                 {
-                    sentries += here;
+                    count += here;
                     continue;
                 }
                 foreach (var t in squadQueue[i].Members)
-                    if (t != EnemyType.BeamSentry)
+                    if (t != beam)
                         spawnQueue.Add(t);
                 squadQueue.RemoveAt(i--);
             }
             for (int i = 0; i < spawnQueue.Count; i++)
-                if (spawnQueue[i] == EnemyType.BeamSentry && ++sentries > MaxSentries)
-                    spawnQueue[i] = rng.NextDouble() < 0.5 ? EnemyType.Sniper : EnemyType.Grunt;
+                if (spawnQueue[i] == beam && ++count > max)
+                    spawnQueue[i] = instead();
         }
 
         /// How much faster it fires: Hasted, and near a living Commander.

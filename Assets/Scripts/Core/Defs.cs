@@ -55,6 +55,8 @@ namespace Arena
         Portal,
         // the Hive Queen's faction (Docs/HiveFaction.md, HiveKin.cs): each plays like one of the Warden's, in the same order
         Worker, Soldier, CombShield, HoneyLobber, Stinger, Needler, Bumble, Hornet,
+        // the Singularity's faction, the Infall (Docs/SingularityFaction.md, Infall.cs, Game/InfallLook.cs): step 1
+        Debris, Acolyte, Pulsar,
     }
 
     public class RoleDef
@@ -325,6 +327,12 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "A huge, furry bumblebee. Slow and tough, hits hard when it reaches you." },
             new EnemyDef { Name = "Hornet", Hp = 45f, Radius = 12f, Speed = 95f, Score = 9, Xp = 9, Sides = 4, Color = new Rgba(1f, 0.29f, 0.157f), Melee = true, Contact = 18f,
                 Picker = PickerGroup.Melee, Blurb = "Circles in close, flashes a red lane, then darts along it." },
+            new EnemyDef { Name = "Debris", Hp = 22f, Radius = 10f, Speed = 125f, Score = 3, Xp = 6, Sides = 7, Color = new Rgba(0.85f, 0.35f, 1f), Melee = true, Contact = 9f,
+                Picker = PickerGroup.Melee, Blurb = "Tumbling rubble that falls at you on a curving inward spiral, so it's hard to line up." },
+            new EnemyDef { Name = "Acolyte", Hp = 45f, Radius = 13f, Speed = 85f, Score = 7, Xp = 10, Sides = 6, Color = new Rgba(1f, 0.47f, 0.86f),
+                Picker = PickerGroup.Ranged, Blurb = "A void cultist. Fires three slow orbs: the outer two bend in and meet where you stand. Step forward or back, not sideways." },
+            new EnemyDef { Name = "Pulsar", Hp = 70f, Radius = 13f, Speed = 75f, Score = 9, Xp = 12, Sides = 12, Color = new Rgba(0.5f, 0.84f, 1f),
+                Picker = PickerGroup.Ranged, Blurb = "A spinning neutron star. Its two beams flicker for a second, then switch on and sweep a quarter turn. Walk with the sweep." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount

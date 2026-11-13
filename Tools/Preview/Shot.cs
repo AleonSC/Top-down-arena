@@ -383,6 +383,20 @@ static partial class Shot {
       }
       hg.AnimT += float.Parse(Environment.GetEnvironmentVariable("HIVE"), System.Globalization.CultureInfo.InvariantCulture);
     }
+    if (Environment.GetEnvironmentVariable("INFALL") != null) {  // INFALL=<s into the clock>: the Singularity's faction, step 1 (InfallLook.cs): four Debris, an Acolyte winding up with a volley in flight, a Pulsar flickering and one sweeping; set beside Docs/Mockups/singularity-faction.html
+      var ig = host.Game; ig.Enemies.Clear(); ig.Bullets.Clear();
+      var isp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, Enemy> iput = (t, at) => { var e = (Enemy)isp.Invoke(ig, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; return e; };
+      me.Pos = me.Disp = new V2(1000f, 560f);
+      for (int k = 0; k < 4; k++) { float a = 3.6f + k * 0.5f, rr = 300f - 50f * k; iput(EnemyType.Debris, me.Pos + new V2((float)Math.Cos(a) * rr, (float)Math.Sin(a) * rr * 0.8f)); }
+      var aco = iput(EnemyType.Acolyte, new V2(700f, 600f)); aco.Facing = 0f;
+      typeof(Game).GetMethod("AcolyteVolley", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(ig, new object[] { aco, me.Pos, 0f });
+      foreach (var b in ig.Bullets.Values) for (int i = 0; i < 45; i++) { b.Vel = b.Vel.Rotated(b.AngVel * 0.02f); b.Pos += b.Vel * 0.02f; }
+      aco.Winding = true;
+      var warn = iput(EnemyType.Pulsar, new V2(1250f, 400f)); warn.Phase = 1; warn.SeenT = 0.6f; warn.Facing = 2.0f;
+      var on = iput(EnemyType.Pulsar, new V2(1200f, 690f)); on.Phase = 2; on.Facing = 3.75f;
+      ig.AnimT += float.Parse(Environment.GetEnvironmentVariable("INFALL"), System.Globalization.CultureInfo.InvariantCulture);
+    }
     if (Environment.GetEnvironmentVariable("LUNGE") != null) {  // LUNGE=<0-1>: the four lungers part-way through their wind-up (LungeLaneLook.cs); the lane fills with the client's clock, so draw once, then move it on
       var lg = host.Game; lg.Enemies.Clear(); lg.Bullets.Clear();
       var lsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

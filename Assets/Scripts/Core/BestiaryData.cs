@@ -155,6 +155,27 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Debris, Name = "Debris", Group = "Melee", Wave = 16,
+                Appears = "The Singularity's approach (waves 16-19, in clumps and Infall squads)",
+                Lead = "Tumbling rubble that falls at you on an inward spiral: it comes in from the side when far and straight at you within 90 px, so it's hard to line up.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "9" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Acolyte, Name = "Acolyte", Group = "Shooters", Wave = 16,
+                Appears = "The Singularity's approach (waves 16-19), alone or leading an Infall squad",
+                Lead = "A void cultist holding a tiny black hole. Keeps 280 px away and fires three slow orbs: one straight, and two that leave wide and bend back in to meet it where you stood. Step forward or back, not sideways.",
+                Attacks = new[] { new BestiaryAttack { Name = "Bent orbs", Pattern = "Three orbs that meet on you", Shot = "Orb", ShotColor = new Rgba(1f, 0.47f, 0.86f), Speed = "150", Damage = "14 each", Every = 2.4f } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Pulsar, Name = "Pulsar", Group = "Shooters", Wave = 17,
+                Appears = "The Singularity's approach (waves 17-19), alone or two in a Binary squad",
+                Lead = "A spinning neutron star. Within 300 px it plants, and its two beams (one each way) flicker for 1 s a little behind you, then switch on and sweep a quarter turn through you over 4 s. It rests 2.5 s and goes again. Walk the way the beams turn.",
+                Attacks = new[] { new BestiaryAttack { Name = "Beams", Pattern = "Two opposite beams, 1 s flicker, then a 90° sweep over 4 s", Damage = "16 a touch", Every = 7.5f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.HiveEgg, Name = "Hive Egg", Group = "Summons", Wave = 10,
                 Appears = "Laid by the Hive Queen in her Honeycomb stage",
                 Lead = "Doesn't move or attack. Break it before it hatches into drones.",
