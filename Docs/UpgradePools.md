@@ -155,3 +155,21 @@ Built (owner approved all six): each sits in its class's list with `Kit` set. `S
 `Power` and `BlockHp`, a staggered minion's recovery, thralls' health), `CutReachMult` (`Knight.cs` bullet cutting),
 `GhostCut` / `GhostTime` (`Player.GhostT`, set on a dodge in `Dodge.cs`, read in `Damage`), `HealthCostMult`
 (`PayHealth`) plus `KillHeal`. Test: suite `abilitycards`, its class card checks.
+
+### Step 7: Knight weapon cards (proposed, owner picks)
+
+One Rare card per Knight weapon (`Weapons = { that weapon }`, `MaxStacks = 2`), offered only while you hold it. Each
+sharpens what the weapon already does and doesn't repeat a general card (damage, swing speed, reach via Piercing).
+
+| Weapon | Card | Effect (per stack) |
+|---|---|---|
+| Warhammer | Quake Hammer | The slam circle is 20% wider and stuns 0.3 s longer |
+| Lance | Breacher | Breaching Thrust shoves 30% farther, and Impact damage is 50% higher |
+| Halberd | Long Haft | The blade reaches 15% farther and sweeps 20° wider |
+| Quarterstaff | Pilgrim's Staff | Each hit heals 1 more, and you can store 1 more Jab stack |
+| Lightbringer | Daybreak | The light gauge fills 30% faster and the Sunlance heals 30% more |
+| Censer | Thick Incense | Incense clouds are 30% bigger and last 2 s longer |
+| Twin Blades | Whirling Sabres | The thrown sabres fly 25% farther and hit 30% harder |
+| Greatsword | Tempered Blade | Rend hits 30% harder, and guarding builds Temper 25% faster |
+| Rapier | Duelist's Edge | Each thrust skewers 1 more bullet, and Tempo holds 0.5 s longer |
+| Arc Knuckles | Live Wire | The Rocket Dash reaches 25% farther, and the Twin Hammer stuns 0.3 s longer |
