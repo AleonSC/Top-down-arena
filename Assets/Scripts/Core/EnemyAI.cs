@@ -334,6 +334,7 @@ namespace Arena
             Enemies[e.Id] = e;
             if (type == EnemyType.BoundWraith)
                 PairBound(e, spawnT, parent, elite);  // they come in pairs (ReaperFaction.cs)
+            PairPylon(e, spawnT, parent, elite);  // so do Pylons (Squall.cs)
             return e;
         }
 
@@ -721,6 +722,13 @@ namespace Arena
                 return;  // its beams' line (Infall.cs)
             if (LarderFaceLocked(e))
                 return;  // a Butcher's chop, a Gulper's cone (LarderFaction.cs)
+            if (e.Type == EnemyType.Grounder)
+            {
+                GrounderFace(e, want, dt);  // turns slowly, so you can get round its shield (Squall.cs)
+                return;
+            }
+            if (e.Type == EnemyType.Pylon)
+                return;  // (a post: it has no front)
             if (e.Type == EnemyType.Lens)
             {
                 LensFace(e, want, dt);  // turns slowly, so you can get round its face (Infall.cs)
@@ -820,6 +828,8 @@ namespace Arena
                 return true;  // its phylacteries stand, it's blinking between graves, or it's changing stage (Lich.cs)
             if (LensFaces(e, from))
                 return true;  // a Lens's face (Infall.cs)
+            if (GrounderFaces(e, from))
+                return true;  // a Grounder's shield (Squall.cs)
             if (e.Kin == EnemyType.RiotShield)
                 return RiotShieldBlocks(e, from);  // WardenFaction.cs
             if (e.Type == EnemyType.RiotCaptain)
@@ -1214,6 +1224,10 @@ namespace Arena
                 case EnemyType.Warder:
                 case EnemyType.Leader:
                     VarietySpecial(e, tpos, dt);  // Variety.cs
+                    break;
+                case EnemyType.Pylon:
+                case EnemyType.Lineman:
+                    SquallSpecial(e, tpos, dt);  // Squall.cs
                     break;
                 case EnemyType.Pulsar:
                 case EnemyType.MiniWell:

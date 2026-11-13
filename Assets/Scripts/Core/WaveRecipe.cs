@@ -66,8 +66,10 @@ namespace Arena
                 if (r.Type == t)
                     return r.Job;
             var d = Defs.Get(t);
-            if (t == EnemyType.HiveEgg || t == EnemyType.SapperMine || t == EnemyType.Pulsar || t == EnemyType.Graviton || t == EnemyType.Stormcaller || t == EnemyType.MiniWell)
+            if (t == EnemyType.HiveEgg || t == EnemyType.SapperMine || t == EnemyType.Pulsar || t == EnemyType.Graviton || t == EnemyType.Stormcaller || t == EnemyType.Pylon || t == EnemyType.MiniWell)
                 return EnemyJob.Zoner;
+            if (t == EnemyType.Grounder)
+                return EnemyJob.Anchor;  // the Storm Herald's shield (Squall.cs)
             if (t == EnemyType.WhiteDwarf)
                 return EnemyJob.Disruptor;  // the Singularity's White Dwarf (Infall.cs)
             return d.Melee ? EnemyJob.Hunter : EnemyJob.Pressure;  // the rest (boss adds, factions, zombies) by whether they shoot

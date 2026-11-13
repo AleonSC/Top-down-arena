@@ -532,6 +532,22 @@ static partial class Shot {
       hz.Kind = Game.HazardCaller; hz.T = Game.CallerWarn * 0.45f;
       sg.AnimT += float.Parse(Environment.GetEnvironmentVariable("SQUALL"), System.Globalization.CultureInfo.InvariantCulture);
     }
+    if (Environment.GetEnvironmentVariable("SQUALL2") != null) {  // SQUALL2=<s into the clock>: the Storm Herald's faction, step 2 (SquallLook.cs): a Grounder half charged with a clap in flight, a Pylon pair firing either side of you, a Lineman with its mark ring on you
+      var sg = host.Game; sg.Enemies.Clear(); sg.Bullets.Clear(); sg.Hazards.Clear();
+      var np2 = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+      var ssp = typeof(Game).GetMethod("SpawnEnemyAt", np2);
+      Func<EnemyType, V2, Enemy> sput = (t, at) => { var e = (Enemy)ssp.Invoke(sg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; return e; };
+      me.Pos = me.Disp = new V2(1000f, 560f);
+      var gr = sput(EnemyType.Grounder, new V2(760f, 520f)); gr.Facing = (me.Pos - gr.Pos).Angle;
+      typeof(Game).GetMethod("Thunderclap", np2).Invoke(sg, new object[] { gr });
+      foreach (var b in sg.Bullets.Values) b.Pos += b.Vel * 0.35f;
+      gr.Phase = 7;
+      var pa = sput(EnemyType.Pylon, new V2(1130f, 380f));
+      foreach (var e in sg.Enemies.Values) if (e.Type == EnemyType.Pylon && e != pa) { e.Pos = e.Disp = new V2(880f, 720f); e.Phase = Game.PylonFiring; }
+      pa.Phase = Game.PylonFiring;
+      var ln = sput(EnemyType.Lineman, new V2(1230f, 640f)); ln.Facing = (me.Pos - ln.Pos).Angle; ln.Phase = 1; ln.LinkId = me.Id; ln.SeenPhase = 1; ln.SeenT = 1.1f;
+      sg.AnimT += float.Parse(Environment.GetEnvironmentVariable("SQUALL2"), System.Globalization.CultureInfo.InvariantCulture);
+    }
     if (Environment.GetEnvironmentVariable("COURT") != null) {  // COURT=<s into the clock>: the Duelist's step-1 faction (CourtLook.cs): Fencers (walking, line showing, hopping), a Blade Dancer showing its line and one with blades hanging, Parriers (whole, flashing, cracked, broken); set beside Docs/Mockups/duelist-faction.html
       var cg = host.Game; cg.Enemies.Clear(); cg.Bullets.Clear(); cg.Patches.Clear(); cg.Effects.Clear();
       var csp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

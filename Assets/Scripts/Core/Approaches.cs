@@ -269,19 +269,24 @@ namespace Arena
             },
             new FactionDef
             {
-                Boss = EnemyType.StormHerald,  // the Storm Herald: the Squall, a storm front walking ahead of it (Squall.cs, Docs/StormFaction.md); step 1 of 4
+                Boss = EnemyType.StormHerald,  // the Storm Herald: the Squall, a storm front walking ahead of it (Squall.cs, Docs/StormFaction.md); steps 1-2 of 4
                 Members = new[]
                 {
                     new FactionMember { Type = EnemyType.DustDevil, Weight = 3f },
                     new FactionMember { Type = EnemyType.SquallGunner, NotFirst = true, Weight = 2f },  // shots that curve back on the wind (Crosswind)
+                    new FactionMember { Type = EnemyType.Grounder, Fade = 0, Weight = 2f, From = 2 },  // grounds your shots and claps them back (Thunderclap)
                     new FactionMember { Type = EnemyType.Stormcaller, Fade = 0, Weight = 1.5f, From = 2 },  // calls strikes under you (Strikes)
+                    new FactionMember { Type = EnemyType.Lineman, Fade = 0, Weight = 1.5f, From = 3 },  // marks a player, the charge jumps to allies (the Conductor)
+                    new FactionMember { Type = EnemyType.Pylon, Fade = 1, Weight = 1.5f, From = 2 },  // a pair, an arc between them (Lightning rods)
                 },
                 Squads = new[]
                 {
                     new SquadDef { Name = "Squall line", From = 1, Members = new[] { EnemyType.SquallGunner, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil } },
                     new SquadDef { Name = "Storm cell", From = 2, Members = new[] { EnemyType.Stormcaller, EnemyType.Stormcaller, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil } },
+                    new SquadDef { Name = "Power line", From = 2, Members = new[] { EnemyType.Pylon, EnemyType.Pylon } },  // (two pairs)
+                    new SquadDef { Name = "Grounding wall", From = 3, Members = new[] { EnemyType.Grounder, EnemyType.Grounder, EnemyType.Stormcaller, EnemyType.Stormcaller, EnemyType.Stormcaller } },
                 },
-                // No set piece or lesson cycle yet (steps 2-4): the Campaign builds its waves by reach, as the Infall's step 1 did.
+                // No set piece or lesson cycle yet (steps 3-4): the Campaign builds its waves by reach, as the Infall's step 1 did.
             },
             new FactionDef
             {

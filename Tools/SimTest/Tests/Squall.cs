@@ -4,9 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Arena;
 
-// The Storm Herald's faction, step 1 (Core/Squall.cs, Docs/StormFaction.md): a Dust Devil shoves you on touch and veers
+// The Storm Herald's faction, steps 1-2 (Core/Squall.cs, Docs/StormFaction.md): a Dust Devil shoves you on touch and veers
 // off, a Squall Gunner's three shots leave upwind of you and curve back to where you stood, a Stormcaller calls an amber
-// strike under you that hurts if you stay; and the three come in the waves before the Storm Herald.
+// strike under you that hurts if you stay; a Grounder grounds shots and claps them back, a Pylon pair's arc, a Lineman's
+// mark; and the six come in the waves before the Storm Herald.
 static partial class Program
 {
     static void SquallTest(float dt)
@@ -115,12 +116,74 @@ static partial class Program
         hp0 = me.Hp;
         for (int f = 0; f < 60 * 1.3f; f++) { Quiet(); me.Pos = me.Disp = home + new V2(0f, 120f); Step(host, dt); }
         Check(strike != null && me.Hp == hp0, "stepping out of the ring dodges it");
+
+        // --- Step 2 ---------------------------------------------------------------------------------------------------
+        // Grounder: shots on its face are grounded and charge it; full, it claps a ring with two gaps.
+        g.DevSetGod(1, true);
+        var gr = put(EnemyType.Grounder, new V2(700f, 400f));
+        for (int f = 0; f < 60 * 3; f++) { Quiet(); me.Pos = me.Disp = home; Step(host, dt); }
+        Check(Game.GrounderFaces(gr, me.Pos) && !Game.GrounderFaces(gr, gr.Pos * 2f - me.Pos), "a Grounder turns its shield to you; its back is open");
+        var spawnB = typeof(Game).GetMethod("SpawnBullet", np);
+        float grHp = gr.Hp;
+        for (int k = 0; k < 3; k++)
+            spawnB.Invoke(g, new object[] { Defs.DpsShot, gr.Pos + (me.Pos - gr.Pos).Normalized() * 60f, (gr.Pos - me.Pos).Normalized() * 600f, 0f, 1f, 10f, 1, false, 0f });
+        for (int f = 0; f < 20; f++) { Quiet(); me.Pos = me.Disp = home; Step(host, dt); }
+        Console.WriteLine("  Grounder: 3 shots on its face, charge {0}, lost {1:0} hp", gr.Phase, grHp - gr.Hp);
+        Check(gr.Phase == 3 && gr.Hp == grHp, "shots on its face are grounded: no damage, each charges it");
+        g.Bullets.Clear();
+        var ground = typeof(Game).GetMethod("GroundShot", np);
+        for (int k = 3; k < Game.GrounderFull; k++) ground.Invoke(g, new object[] { gr });
+        var clap = g.Bullets.Values.Where(b => b.Shooter == gr.Id).ToList();
+        int gaps = 0;
+        var angs = clap.Select(b => b.Vel.Angle).OrderBy(a => a).ToList();
+        for (int i = 0; i < angs.Count; i++) { float next = i + 1 < angs.Count ? angs[i + 1] : angs[0] + MathX.Tau; if (next - angs[i] > MathX.Tau / Game.ClapShots * 1.5f) gaps++; }
+        Console.WriteLine("  Grounder: clap of {0} shots, {1} gaps", clap.Count, gaps);
+        Check(gr.Phase == 0 && clap.Count == Game.ClapShots - 2 * Game.ClapGap && gaps == 2, "full, it claps a ring back with two gaps, and its charge empties");
+
+        // Pylon: comes as a pair; plants either side of you, flickers, fires along the line; kill one and the line is gone.
+        g.DevSetGod(1, false);
+        me.Hp = me.MaxHp = 1e6f;
+        put(EnemyType.Pylon, new V2(600f, 300f));
+        var pylons = g.Enemies.Values.Where(e => e.Type == EnemyType.Pylon).ToList();
+        Check(pylons.Count == 2 && pylons[0].LinkId == pylons[1].Id && pylons[1].LinkId == pylons[0].Id, "a Pylon comes with its partner");
+        bool flick = false, fired = false, hurtLine = false, straddle = false, synced = true;
+        float pyHp = me.Hp;
+        for (int f = 0; f < 60 * 12 && !fired; f++)
+        {
+            Quiet(); me.Pos = me.Disp = home; Step(host, dt);
+            flick |= pylons[0].Phase == Game.PylonFlicker;
+            synced &= pylons[0].Phase == pylons[1].Phase;
+            if (pylons[0].Phase == Game.PylonFiring) { fired = true; hurtLine = me.Hp < pyHp; straddle = (pylons[0].Pos - home).Normalized().Dot((pylons[1].Pos - home).Normalized()) < -0.5f; }
+        }
+        Console.WriteLine("  Pylons: flickered {0}, fired {1}, either side of you {2}, hurt you {3}", flick, fired, straddle, hurtLine);
+        Check(flick && fired && synced, "the pair plants, flickers, then fires, in step");
+        Check(straddle && hurtLine, "they plant either side of you, and the arc hurts on the line");
+        typeof(Game).GetMethod("HurtEnemy", np).Invoke(g, new object[] { pylons[1], 1e6f, 1 });
+        for (int f = 0; f < 10; f++) { Quiet(); me.Pos = me.Disp = home; Step(host, dt); }
+        var lone = g.Enemies.Values.FirstOrDefault(e => e.Type == EnemyType.Pylon);
+        Check(lone != null && g.PylonPartner(lone) == null && Game.PylonLineDistance(lone, null, home) > 1e8f, "kill one and the line is gone");
+
+        // Lineman: marks you; alone, the mark only bursts into shots (no chain, no damage).
+        g.DevSetGod(1, true);
+        var ln = put(EnemyType.Lineman, new V2(640f, 400f));
+        bool marked = false;
+        for (int f = 0; f < 60 * 8 && !marked; f++) { Quiet(); me.Pos = me.Disp = home; Step(host, dt); marked = ln.Phase == 1 && ln.LinkId == me.Id; }
+        Check(marked, "a Lineman marks you");
+        g.Bullets.Clear();
+        int burst = 0;
+        for (int f = 0; f < 60 * (Game.LineMark + 0.3f) && burst == 0; f++)
+        {
+            Quiet(); me.Pos = me.Disp = home; Step(host, dt);
+            burst = g.Bullets.Values.Count(b => b.Shooter == ln.Id && b.Pos.DistanceTo(home) < 60f);
+        }
+        Console.WriteLine("  Lineman: the mark burst into {0} shots round you", burst);
+        Check(ln.Phase == 0 && burst == Game.LineBurst, "when it runs out, shots burst out round the marked player");
         host.Leave("");
 
         // The faction: the three come in the waves before the Storm Herald (50-wave track: 36-39).
         var f0 = Approaches.For(EnemyType.StormHerald);
-        Check(f0 != null && f0.Members.Select(m => m.Type).SequenceEqual(new[] { EnemyType.DustDevil, EnemyType.SquallGunner, EnemyType.Stormcaller }) && f0.Squads.Length == 2,
-            "the Storm Herald's faction: Dust Devil, Squall Gunner, Stormcaller; squads Squall line and Storm cell");
+        Check(f0 != null && f0.Members.Length == 6 && f0.Members.All(m => Game.IsSquall(m.Type)) && f0.Squads.Length == 4,
+            "the Storm Herald's faction: six members so far; squads Squall line, Storm cell, Power line, Grounding wall");
         var build = typeof(Game).GetMethod("BuildWave", np);
         var spawnQ = typeof(Game).GetField("spawnQueue", np);
         var squadQ = typeof(Game).GetField("squadQueue", np);
@@ -146,7 +209,7 @@ static partial class Program
                 early.Add(t);
         }
         Console.WriteLine("  waves 36-39 bring: " + string.Join(", ", seen));
-        Check(seen.Count == 3, "waves 36-39 bring all three");
+        Check(seen.Count == 6, "waves 36-39 bring all six");
         Check(early.Count == 0, "none come before the Storm Herald's approach");
     }
 }

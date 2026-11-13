@@ -3,7 +3,6 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
-- 335: the Storm Herald's faction, step 1: new `EnemyType` values DustDevil, SquallGunner, Stormcaller; `Hazard.Kind` 2 (a Stormcaller's strike)
 - 334: FxKind.PortalSeal (a spawn portal shot closed); a portal's Winding now means a surge is on
 - 333: the Devourer's faction, steps 1-2: new `EnemyType` values Gnawling, Butcher, Gulper, CarcassBearer, BileSpitter (after GraveCaller); a Gnawling's, Butcher's or Gulper's snapshot gains its stage (and time) (`SyncLarder`)
 - 332: the Lich's Grave Caller: new `EnemyType.GraveCaller` and `PatchKind.Grave`; a Caller's Shamblers carry `Zombies.PhCalled` in their phase byte

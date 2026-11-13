@@ -45,6 +45,9 @@ namespace Arena
                 case EnemyType.DustDevil: return "Weaves in and shoves you when it touches. Keep a wall off your back.";
                 case EnemyType.SquallGunner: return "Its shots curve back onto you on its wind. Dodge against the curve.";
                 case EnemyType.Stormcaller: return "Calls a strike under you: step out of the ring before it lands.";
+                case EnemyType.Grounder: return "Its shield grounds your shots and claps them back. Flank it, or find the gap.";
+                case EnemyType.Pylon: return "A pair plants either side of you; the arc flickers, then fires. Step off the line.";
+                case EnemyType.Lineman: return "Marks a player. The marked one walks away from the team before it jumps.";
                 case EnemyType.Pulsar: return "Two beams flicker, then sweep a quarter turn. Walk the way they turn.";
                 case EnemyType.Graviton: return "Lobs a small well by you that drags you in. Get clear, or shoot the well.";
                 case EnemyType.Orbiter: return "Circles you, then slings a flaring orb straight at you. Sidestep the flare.";

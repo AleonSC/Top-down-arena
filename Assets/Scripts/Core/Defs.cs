@@ -93,6 +93,9 @@ namespace Arena
         CarcassBearer, BileSpitter,
         // the Storm Herald's faction, the Squall (Docs/StormFaction.md, Squall.cs, Game/SquallLook.cs): step 1
         DustDevil, SquallGunner, Stormcaller,
+        // step 2: a Grounder grounds shots on its copper shield and claps them back, Pylons come in pairs and arc between
+        // them, a Lineman marks a player and the charge jumps to allies near them
+        Grounder, Pylon, Lineman,
     }
 
     public class RoleDef
@@ -457,6 +460,12 @@ namespace Arena
                 Picker = PickerGroup.Ranged, Blurb = "Carries its own gust: it aims three shots upwind of you, and they curve back onto you. Dodge against the curve." },
             new EnemyDef { Name = "Stormcaller", Hp = 50f, Radius = 13f, Speed = 80f, Score = 8, Xp = 11, Sides = 7, Color = new Rgba(1f, 0.82f, 0.4f),
                 Picker = PickerGroup.Ranged, Blurb = "Raises its staff and calls lightning on you: a ring fills under you, then the strike. Step out of the ring." },
+            new EnemyDef { Name = "Grounder", Hp = 90f, Radius = 15f, Speed = 70f, Score = 9, Xp = 12, Sides = 6, Color = new Rgba(0.82f, 0.54f, 0.29f),
+                Picker = PickerGroup.Ranged, Blurb = "A copper shield grounds your shots. Twelve charge it, and it claps a ring back with two gaps. Flank it." },
+            new EnemyDef { Name = "Pylon", Hp = 55f, Radius = 12f, Speed = 110f, Score = 5, Xp = 7, Sides = 4, Color = new Rgba(0.56f, 0.82f, 1f),
+                Picker = PickerGroup.Ranged, Blurb = "Comes in pairs that plant either side of you. The arc between them flickers, then fires. Step off the line, or kill one." },
+            new EnemyDef { Name = "Lineman", Hp = 60f, Radius = 13f, Speed = 85f, Score = 8, Xp = 11, Sides = 5, Color = new Rgba(0.56f, 0.82f, 1f),
+                Picker = PickerGroup.Ranged, Blurb = "Hooks a player with a charge. When it runs out it jumps to every ally nearby. The marked player walks away from the team." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount

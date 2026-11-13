@@ -253,6 +253,27 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Grounder, Name = "Grounder", Group = "Shooters", Wave = 37,
+                Appears = "The Storm Herald's approach (waves 37-39), alone or two in a Grounding wall",
+                Lead = "Walks in behind a curved copper shield that turns slowly toward you. Shots on its face are grounded: no damage, and each charges it. Twelve and it claps a ring of 14 shots back, with two gaps either side of its front. Flank it so it never fills.",
+                Attacks = new[] { new BestiaryAttack { Name = "Thunderclap", Pattern = "A ring of 14, two gaps, after 12 grounded shots", Shot = "Orb", Speed = "170", Damage = "per shot" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Pylon, Name = "Pylon", Group = "Shooters", Wave = 37,
+                Appears = "The Storm Herald's approach (waves 37-39), always a pair; two pairs in a Power line",
+                Lead = "Two posts that walk to either side of you and plant. Three times: quiet 0.9 s, the arc between them flickers 0.6 s, then fires along the line. Then they walk again. Kill either post and the line is gone. At most two pairs a wave.",
+                Attacks = new[] { new BestiaryAttack { Name = "Arc", Pattern = "Along the line between the pair, 0.6 s flicker", Damage = "18", Every = 1.85f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Lineman, Name = "Lineman", Group = "Shooters", Wave = 38,
+                Appears = "The Storm Herald's approach (waves 38-39)",
+                Lead = "Keeps 260 px away. Every 5.5 s it hooks the nearest player: an amber ring (120 px) and a countdown show round them for 2.6 s. Then the charge jumps to every other player in the ring, hurting all of them, and 8 shots burst out from each. Alone, it only bursts. The marked player walks away from the team.",
+                Attacks = new[] { new BestiaryAttack { Name = "Conductor", Pattern = "A mark, then a chain to allies within 120 px", Damage = "16 each", Every = 5.5f } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.Graviton, Name = "Graviton", Group = "Shooters", Wave = 17,
                 Appears = "The Singularity's approach (waves 17-19), alone or in a Gravity trap squad",
                 Lead = "Keeps 320 px away. Every 6 s it plants its feet for 0.6 s, a ring marks a spot near you, and 0.8 s later a Small Well lands there: for 4 s it drags you toward it (80 px/s at its middle, 240 px out) and bends your shots into it. Get clear, or shoot the well (30 health). A new lob takes its old well away.",
