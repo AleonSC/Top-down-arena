@@ -727,7 +727,7 @@ static partial class Program
 
         // In a regular wave, a Barrier holds for its whole duration no matter how much it blocks.
         {
-            var s = StartBuffed(dt, 14, 0);  // all shooters (early waves are melee)
+            var s = StartBuffed(dt, 18, 0);  // all shooters (early waves are melee; 11-14 are the Twin Reapers' mostly melee cult)
             Run(s, dt, 10, () => s[0].Game.Enemies.Count >= 4);
             var tank = s[0].Game.Players[1];
             tank.BarrierT = 6f;

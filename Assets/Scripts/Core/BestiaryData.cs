@@ -56,6 +56,62 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Wisp, Name = "Wisp", Group = "Melee", Wave = 1,
+                Appears = "The Twin Reapers' approach (in threes, Vigil and Harvest squads)",
+                Lead = "A soul flame sworn to Dusk or Dawn. Drifts straight at you and burns on touch. Moves like a Swarmer.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "6" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Acolyte, Name = "Acolyte", Group = "Melee", Wave = 1,
+                Appears = "The Twin Reapers' approach (Vigil and Procession squads)",
+                Lead = "A hooded cultist with a sickle. Stops short, raises it over a pale cone, then one wide swing.",
+                Attacks = new[] { new BestiaryAttack { Name = "Sickle", Pattern = "Wind-up 0.5 s over a 120 degree cone, 96 px", Damage = "12", Notes = "Like a Swordsman, shorter and wider" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.BoundWraith, Name = "Bound Wraith", Group = "Melee", Wave = 2,
+                Appears = "The Twin Reapers' approach (always a pair; Twin graves squads)",
+                Lead = "Two wraiths circling near you, joined by a tether that hurts. Kill one and the other channels it back in 3 s at 60% health, unless you kill it too.",
+                Attacks = new[] { new BestiaryAttack { Name = "Tether", Pattern = "Sweeps as the pair circles 75 px out", Damage = "10" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.ScytheWraith, Name = "Scythe Wraith", Group = "Melee", Wave = 3,
+                Appears = "The Twin Reapers' approach (Harvest squads)",
+                Lead = "Marks a long line through you, locks it, then dashes along it and reaps both sides of its path.",
+                Attacks = new[] { new BestiaryAttack { Name = "Reap", Pattern = "Mark 0.8 s (locks after 0.25 s), then a 270 px dash", Damage = "22", Notes = "Hits 26 px either side" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Lamplighter, Name = "Lamplighter", Group = "Shooters", Wave = 2,
+                Appears = "The Twin Reapers' approach (Procession squads)",
+                Lead = "Keeps its distance and plants its feet as its lantern flares; gold lines show the volley.",
+                Attacks = new[] { new BestiaryAttack { Name = "Lines / Cross", Pattern = "Three lines at you, then a four-way cross, streaks of 4", Damage = "Small shots", Notes = "Every 3.2 s" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Mourner, Name = "Mourner", Group = "Shooters", Wave = 3,
+                Appears = "The Twin Reapers' approach (the Dusk and Dawn finale)",
+                Lead = "Stands still and weeps a twin spiral, one arm each way, for 2.5 s, then rests for 3 s.",
+                Attacks = new[] { new BestiaryAttack { Name = "Twin spiral", Pattern = "Two arms turning opposite ways", Damage = "Small shots" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Gravedigger, Name = "Gravedigger", Group = "Melee", Wave = 2,
+                Appears = "The Twin Reapers' approach (Twin graves squads)",
+                Lead = "A cultist brute with a shovel. Slow, tough, and it hits hard. Moves like a Brute.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "20", Notes = "Walks straight at its target" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Shade, Name = "Shade", Group = "Shooters", Wave = 3,
+                Appears = "The Twin Reapers' approach (Harvest squads)",
+                Lead = "A shrouded Phantom: shows a ring where it will land, blinks there and fires. Moves like a Phantom.",
+                Attacks = new[] { new BestiaryAttack { Name = "Blink and fire", Pattern = "Same as the Phantom", Damage = "Small shots" } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.Guard, Name = "Guard", Group = "Summons", Wave = 1,
                 Appears = "The Warden's approach (waves 1-4), and his Riot stage when rioters are still loose after 10 s",
                 Lead = "Blue riot guards with batons. In the Riot they beat down the rioters left over, then come for the players; on the approach they come straight for you.",

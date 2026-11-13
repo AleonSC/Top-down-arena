@@ -1,0 +1,298 @@
+<title>Reaper Faction</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus+SC&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header with the Dusk/Dawn switch, 8 member cards (live canvas + numbers + what it teaches) in two columns,
+   one squad stage with a switch for the 4 squads and the finale, then the 10-wave lesson cycle and the build list.
+   Colour: the bosses' own Dusk pink and Dawn blue, the Dual Reaper's gold for marks. Canvases are always the dark arena.
+   Type: Marcellus SC display (engraved, funerary), Barlow body, Plex Mono for numbers. */
+:root{
+  --bg:#efedf3; --fg:#1b1724; --muted:#5f5970; --panel:#f8f7fb; --line:#d3cfdd;
+  --chip:#e2dfea; --chip-on:#1b1724; --chip-on-fg:#f4f2f8;
+  --dusk:#c22a69; --dawn:#3c55d6; --gold:#9a6a10; --arena:#0b0a12;
+  --display:'Marcellus SC','Trajan Pro',Georgia,serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f0d15; --fg:#ebe7f3; --muted:#9c95ad; --panel:#17141f; --line:#2b2637;
+  --chip:#221e2c; --chip-on:#ebe7f3; --chip-on-fg:#0f0d15;
+  --dusk:#ff5a99; --dawn:#7f95ff; --gold:#ffcc73; --arena:#0b0a12; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f0d15; --fg:#ebe7f3; --muted:#9c95ad; --panel:#17141f; --line:#2b2637;
+  --chip:#221e2c; --chip-on:#ebe7f3; --chip-on-fg:#0f0d15;
+  --dusk:#ff5a99; --dawn:#7f95ff; --gold:#ffcc73; --arena:#0b0a12; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1060px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+h1{font:400 clamp(38px,7vw,64px)/1 var(--display);margin:0 0 12px;text-wrap:balance;letter-spacing:.02em}
+h1 .du{color:var(--dusk)} h1 .da{color:var(--dawn)}
+h2{font:400 28px/1.1 var(--display);margin:0 0 6px;letter-spacing:.03em}
+h3{font:400 22px/1.1 var(--display);margin:0;letter-spacing:.03em}
+p{margin:0}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.lede{max-width:66ch;color:var(--muted)}
+header{display:flex;flex-direction:column;gap:18px}
+.bar{height:3px;border-radius:2px;background:linear-gradient(90deg,var(--dusk),var(--gold),var(--dawn));max-width:260px}
+.seg{display:inline-flex;align-self:flex-start;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--chip)}
+.seg button{border:0;padding:8px 16px;background:transparent;color:var(--fg);font:400 16px var(--display);letter-spacing:.04em;cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed=true]{background:var(--chip-on);color:var(--chip-on-fg)}
+.seg button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+@media (max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.card canvas{display:block;width:100%;aspect-ratio:360/200;background:var(--arena)}
+.cbody{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
+.ctop{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.tag{font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:4px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.tag.new{color:var(--gold);border-color:currentColor}
+.stats{display:flex;flex-wrap:wrap;gap:4px 16px;font:400 12.5px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.stats b{color:var(--fg);font-weight:500}
+.teach{font-size:14.5px;color:var(--muted)} .teach b{color:var(--fg);font-weight:600}
+.frame{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--arena)}
+#squad{display:block;width:100%;aspect-ratio:760/340}
+.squadinfo{display:flex;flex-direction:column;gap:6px;margin-top:12px;max-width:72ch}
+.squadinfo .roster{font:400 13px var(--mono);color:var(--muted)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:14.5px}
+th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 11px var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+td.n{font:500 13px var(--mono);color:var(--muted);white-space:nowrap}
+td.star{white-space:nowrap;font-weight:600}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+@media (max-width:760px){.cols{grid-template-columns:minmax(0,1fr)}}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.box ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:15px}
+.note{font-size:13.5px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.bar{background:var(--gold)}}
+</style>
+
+<main>
+<header>
+  <div>
+    <div class="eyebrow">Faction mockup · Twin Reapers · approach waves 11–14 · Campaign cycle of 10</div>
+    <h1>The <span class="du">Dusk</span> &amp; <span class="da">Dawn</span> Cult</h1>
+    <div class="bar"></div>
+  </div>
+  <p class="lede">Eight members, four squads and a finale, the same shape as the Warden's faction. Each member previews one Reaper
+  mechanic: soul shots, the tether sweep, the Soul Bond, lines and the cross, the twin spiral and the marked reaps. Every member is
+  sworn to Dusk (pink) or Dawn (blue) so a pack reads as the bosses' before they arrive.</p>
+  <div class="seg" role="group" aria-label="Sworn colour">
+    <button id="t-mixed" aria-pressed="true">Mixed</button><button id="t-dusk" aria-pressed="false">All Dusk</button><button id="t-dawn" aria-pressed="false">All Dawn</button>
+  </div>
+</header>
+
+<section>
+  <h2>Members</h2>
+  <p class="lede" style="margin-bottom:16px">Live loops, drawn as the game draws enemies: a lit polygon with a dark core. The white ring is you. Numbers sit beside the Warden's (Rioter 40 HP, Guard 90, Thug 140).</p>
+  <div class="grid" id="cards"></div>
+</section>
+
+<section>
+  <h2>Squads</h2>
+  <div class="seg" role="group" aria-label="Squad" id="squadSeg" style="margin:10px 0 14px"></div>
+  <div class="frame"><canvas id="squad" width="760" height="340"></canvas></div>
+  <div class="squadinfo"><h3 id="sqName"></h3><p id="sqText" class="teach"></p><p id="sqRoster" class="roster"></p></div>
+</section>
+
+<section>
+  <h2>Campaign cycle</h2>
+  <p class="lede" style="margin-bottom:14px">One lesson a wave, like the Warden's ten. The star trickles in over the wave's second half.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Wave</th><th>Star</th><th>Teaches</th><th>Mix · squads</th></tr></thead>
+    <tbody id="lessons"></tbody>
+  </table></div>
+</section>
+
+<section class="cols">
+  <div class="box">
+    <h3>To build</h3>
+    <ul>
+      <li><b>5 new types:</b> Acolyte, Bound Wraiths (one type, spawned as a pair), Scythe Wraith, Lamplighter, Mourner</li>
+      <li><b>3 reskins</b> (behaviour shared, like Thug and Shiv): Wisp ← Swarmer, Gravedigger ← Brute, Shade ← Phantom</li>
+      <li>8 new <code>EnemyType</code> values at the end, so a protocol bump</li>
+      <li>Reuses the Reapers' code where it can: tether hit test, mark line, spiral emitter</li>
+    </ul>
+  </div>
+  <div class="box">
+    <h3>Faction table</h3>
+    <ul style="font:400 13.5px var(--mono);list-style:none;padding:0">
+      <li>Wisp · weight 3 · wave 1</li>
+      <li>Acolyte · 2 · wave 1, not first</li>
+      <li>Lamplighter · 2 · wave 2 · fade 1</li>
+      <li>Bound Wraiths · 1.5 · wave 2 · fade 0</li>
+      <li>Gravedigger · 1.5 · wave 2 · fade 2</li>
+      <li>Mourner · 1.5 · wave 3 · fade 0</li>
+      <li>Scythe Wraith · 1.5 · wave 3 · fade 0</li>
+      <li>Shade · 1 · wave 3 · fade 2</li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<script>
+const C={dusk:'#ff5a99',dawn:'#7f95ff',gold:'#ffcc73'};
+let mode='mixed';
+const T=i=>mode==='dusk'?C.dusk:mode==='dawn'?C.dawn:(i%2?C.dawn:C.dusk);
+const TAU=Math.PI*2, cl=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,k)=>a+(b-a)*k, ease=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+function rgb(h){const n=parseInt(h.slice(1),16);return[n>>16,n>>8&255,n&255]}
+function rgba(h,a){const[r,g,b]=rgb(h);return`rgba(${r},${g},${b},${a})`}
+function dark(h,k){const[r,g,b]=rgb(h);return`rgb(${r*k|0},${g*k|0},${b*k|0})`}
+function poly(c,x,y,r,n,rot){c.beginPath();for(let i=0;i<n;i++){const a=rot+i*TAU/n;i?c.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r):c.moveTo(x+Math.cos(a)*r,y+Math.sin(a)*r)}c.closePath()}
+function body(c,x,y,r,n,rot,col,alpha=1){c.save();c.globalAlpha=alpha;c.shadowColor=col;c.shadowBlur=14;poly(c,x,y,r,n,rot);c.fillStyle=dark(col,.38);c.fill();c.shadowBlur=0;c.lineWidth=2;c.strokeStyle=col;c.stroke();poly(c,x,y,r*.42,n,rot);c.fillStyle=col;c.fill();c.restore()}
+function player(c,x,y,hit){c.save();c.beginPath();c.arc(x,y,11,0,TAU);c.fillStyle=hit?'rgba(255,80,80,.5)':'rgba(240,240,250,.12)';c.fill();c.lineWidth=2.5;c.strokeStyle=hit?'#ff5050':'#f0eefa';c.stroke();c.restore()}
+function shot(c,x,y,col,r=4.5){c.save();c.shadowColor=col;c.shadowBlur=8;c.beginPath();c.arc(x,y,r,0,TAU);c.fillStyle=col;c.fill();c.shadowBlur=0;c.beginPath();c.arc(x,y,r*.5,0,TAU);c.fillStyle='#120d18';c.fill();c.restore()}
+function floor(c,w,h,split){c.fillStyle='#0b0a12';c.fillRect(0,0,w,h);if(split){const g=c.createLinearGradient(0,0,w,0);g.addColorStop(0,rgba(C.dusk,.09));g.addColorStop(.5,'rgba(0,0,0,0)');g.addColorStop(1,rgba(C.dawn,.09));c.fillStyle=g;c.fillRect(0,0,w,h)}
+  c.strokeStyle='rgba(255,255,255,.035)';c.lineWidth=1;c.beginPath();for(let x=0;x<w;x+=24){c.moveTo(x+.5,0);c.lineTo(x+.5,h)}for(let y=0;y<h;y+=24){c.moveTo(0,y+.5);c.lineTo(w,y+.5)}c.stroke()}
+function label(c,txt,x,y,col='rgba(235,231,243,.75)'){c.font='500 11px "IBM Plex Mono",monospace';c.fillStyle=col;c.textAlign='center';c.fillText(txt,x,y)}
+function arc(c,x,y,r,a0,a1,col,wd,alpha=1){c.save();c.globalAlpha=alpha;c.strokeStyle=col;c.lineWidth=wd;c.lineCap='round';c.shadowColor=col;c.shadowBlur=10;c.beginPath();c.arc(x,y,r,a0,a1);c.stroke();c.restore()}
+
+/* ---- member bodies (shared by the cards and the squad stage) ---- */
+const icon={
+  wisp(c,x,y,f,col,t){c.save();c.globalAlpha=.35;for(let k=1;k<4;k++){c.beginPath();c.arc(x-Math.cos(f)*k*6,y-Math.sin(f)*k*6,6-k*1.4,0,TAU);c.fillStyle=col;c.fill()}c.restore();body(c,x,y,8,3,f,col)},
+  acolyte(c,x,y,f,col,t,raise=0){body(c,x,y,13,6,f,col);const a=f+.9-raise*1.6;arc(c,x+Math.cos(a)*16,y+Math.sin(a)*16,9,a-.6,a+1.9,'#e9e2f3',2.5)},
+  bound(c,x,y,f,col,t){body(c,x,y,12,5,t*2,col);c.save();c.globalAlpha=.4;c.beginPath();c.arc(x,y,17,0,TAU);c.strokeStyle=col;c.setLineDash([3,4]);c.stroke();c.restore()},
+  scythe(c,x,y,f,col,t,alpha=1){body(c,x,y,14,5,f+Math.PI/5,col,alpha);c.save();c.globalAlpha=alpha;arc(c,x+Math.cos(f)*4,y+Math.sin(f)*4,24,f-1.3,f+1.3,'#e9e2f3',2.5);c.restore()},
+  lamp(c,x,y,f,col,t,glow=.3){body(c,x,y,13,4,Math.PI/4,col);const lx=x+Math.cos(f)*17,ly=y+Math.sin(f)*17;c.save();const g=c.createRadialGradient(lx,ly,0,lx,ly,28+glow*30);g.addColorStop(0,rgba(C.gold,.45*glow+.15));g.addColorStop(1,rgba(C.gold,0));c.fillStyle=g;c.beginPath();c.arc(lx,ly,58,0,TAU);c.fill();c.fillStyle=C.gold;c.fillRect(lx-3.5,ly-3.5,7,7);c.restore()},
+  mourner(c,x,y,f,col,t,veil=1){body(c,x,y,15,7,t*.4,col);c.save();c.globalAlpha=.55;c.lineWidth=2;for(let k=0;k<2;k++){c.strokeStyle=k?C.dawn:C.dusk;c.beginPath();c.arc(x,y,20+veil*8,t*(k?-1.5:1.5),t*(k?-1.5:1.5)+2.2);c.stroke()}c.restore()},
+  digger(c,x,y,f,col,t,raise=0){body(c,x,y,19,8,f,col);const a=f-raise*2.4;c.save();c.strokeStyle='#cfc6b4';c.lineWidth=4;c.lineCap='round';c.beginPath();c.moveTo(x+Math.cos(a)*12,y+Math.sin(a)*12);c.lineTo(x+Math.cos(a)*34,y+Math.sin(a)*34);c.stroke();c.fillStyle='#cfc6b4';c.save();c.translate(x+Math.cos(a)*38,y+Math.sin(a)*38);c.rotate(a);c.fillRect(-4,-7,10,14);c.restore();c.restore()},
+  shade(c,x,y,f,col,t,alpha=1){const fl=.75+.25*Math.sin(t*13);c.save();c.globalAlpha=alpha*.3;c.beginPath();c.arc(x,y,20,0,TAU);c.fillStyle=col;c.fill();c.restore();body(c,x,y,13,3,f,col,alpha*fl)}
+};
+
+/* ---- member scenes: (ctx, t seconds, w, h) on a 360×200 floor ---- */
+const scenes={
+  wisp(c,t,w,h){const P={x:w*.64,y:h*.5};let hit=false;
+    for(let i=0;i<6;i++){const cyc=2.8,ph=((t+i*cyc/6)%cyc)/cyc,ang=i*1.05+.5,d=175*(1-ph)+16,wob=Math.sin(t*7+i)*12*(1-ph);
+      const x=P.x+Math.cos(ang)*d-Math.sin(ang)*wob,y=P.y+Math.sin(ang)*d*.62+Math.cos(ang)*wob;if(ph>.93)hit=true;
+      c.save();c.globalAlpha=cl(ph*8,0,1)*cl((1-ph)*14,0,1);icon.wisp(c,x,y,Math.atan2(P.y-y,P.x-x),T(i),t);c.restore()}
+    player(c,P.x,P.y,hit)},
+  acolyte(c,t,w,h){const s=t%3,P={x:w*.7,y:h*.52},S={x:w*.14,y:h*.48},stop={x:P.x-44,y:P.y-2};
+    const k=ease(cl(s/1.8,0,1)),x=lerp(S.x,stop.x,k),y=lerp(S.y,stop.y,k)+(s<1.8?Math.sin(s*12)*2:0),f=Math.atan2(P.y-y,P.x-x);
+    const raise=s>1.8&&s<2.3?(s-1.8)/.5:s>=2.3&&s<2.55?1-(s-2.3)/.25:0;
+    if(s>1.8&&s<2.3){c.save();c.globalAlpha=(s-1.8)*1.4;c.beginPath();c.arc(x,y,48,f-1.2,f+1.2);c.lineTo(x,y);c.closePath();c.fillStyle=rgba(T(0),.16);c.fill();c.restore()}
+    if(s>=2.3&&s<2.8){const k2=cl((s-2.3)/.2,0,1);arc(c,x,y,44,f-1.2,f-1.2+2.4*k2,'#f4eefc',5,1-cl((s-2.5)/.3,0,1))}
+    icon.acolyte(c,x,y,f,T(0),t,raise);player(c,P.x,P.y,s>2.32&&s<2.6)},
+  bound(c,t,w,h){const cx=w*.5,cy=h*.5,R=78,ry=58,s=t%8,sp=1.25,a=t*sp,P={x:cx+26,y:cy+4};
+    const dead=s>3&&s<6,ad=(t-s+3)*sp,A=dead?{x:cx+Math.cos(ad)*R,y:cy+Math.sin(ad)*ry}:{x:cx+Math.cos(a)*R,y:cy+Math.sin(a)*ry},B={x:cx-Math.cos(a)*R,y:cy-Math.sin(a)*ry};
+    let hit=false;
+    if(!dead){const g=c.createLinearGradient(A.x,A.y,B.x,B.y);g.addColorStop(0,C.dusk);g.addColorStop(1,C.dawn);c.save();c.shadowColor='#c9a0ff';c.shadowBlur=12;c.strokeStyle=g;c.lineWidth=4;c.beginPath();c.moveTo(A.x,A.y);
+      for(let k=1;k<10;k++){const q=k/10,n=Math.sin(t*40+k*2)*3;c.lineTo(lerp(A.x,B.x,q)-Math.sin(a)*n,lerp(A.y,B.y,q)+Math.cos(a)*n)}c.lineTo(B.x,B.y);c.stroke();c.restore();
+      const vx=B.x-A.x,vy=B.y-A.y,cr=((P.x-A.x)*vy-(P.y-A.y)*vx)/Math.hypot(vx,vy);hit=Math.abs(cr)<12}
+    else{const k=(s-3)/3;c.save();c.setLineDash([4,5]);c.strokeStyle=rgba(C.dusk,.6);c.lineWidth=2;c.beginPath();c.arc(A.x,A.y,14,0,TAU);c.stroke();c.restore();
+      arc(c,A.x,A.y,20,-Math.PI/2,-Math.PI/2+TAU*k,C.dawn,3);c.save();c.globalAlpha=.35+.25*Math.sin(t*12);c.strokeStyle=C.dawn;c.lineWidth=1.5;c.setLineDash([2,6]);c.beginPath();c.moveTo(B.x,B.y);c.lineTo(A.x,A.y);c.stroke();c.restore();
+      label(c,(3-k*3).toFixed(1)+' s',A.x,A.y-28,C.dawn)}
+    if(s>6&&s<6.4){c.save();c.globalAlpha=1-(s-6)/.4;c.beginPath();c.arc(A.x,A.y,16+(s-6)*90,0,TAU);c.strokeStyle='#fff';c.lineWidth=2;c.stroke();c.restore()}
+    if(!dead)icon.bound(c,A.x,A.y,0,C.dusk,t);icon.bound(c,B.x,B.y,0,C.dawn,t+1);player(c,P.x,P.y,hit)},
+  scythe(c,t,w,h){const cyc=3.2,s=t%cyc,k=Math.floor(t/cyc),fl=k%2,P={x:w*.5,y:h*.6},S={x:fl?w*.86:w*.14,y:fl?h*.26:h*.3};
+    const dx=P.x-S.x,dy=P.y-S.y,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,E={x:P.x+ux*85,y:P.y+uy*85},f=Math.atan2(uy,ux),col=T(fl);
+    let x=S.x,y=S.y+Math.sin(t*3)*3,al=1;
+    if(s>1&&s<1.8){const m=(s-1)/.8;c.save();c.globalAlpha=.3+.6*m;c.strokeStyle=col;c.lineWidth=2+m*8;c.setLineDash([10,7]);c.lineDashOffset=-t*60;c.beginPath();c.moveTo(S.x,S.y);c.lineTo(E.x,E.y);c.stroke();c.restore()}
+    if(s>=1.8){const m=ease(cl((s-1.8)/.3,0,1));x=lerp(S.x,E.x,m);y=lerp(S.y,E.y,m);
+      if(s<2.1)for(let g=1;g<5;g++){const mg=ease(cl((s-1.8-g*.025)/.3,0,1));icon.scythe(c,lerp(S.x,E.x,mg),lerp(S.y,E.y,mg),f,col,t,.18)}
+      for(let q=1;q<4;q++){const pass=1.8+.3*q/4;if(s>pass&&s<pass+.6){const ax=lerp(S.x,E.x,q/4),ay=lerp(S.y,E.y,q/4);arc(c,ax,ay,26,f+Math.PI/2-1,f+Math.PI/2+1,'#f4eefc',3,1-(s-pass)/.6);arc(c,ax,ay,26,f-Math.PI/2-1,f-Math.PI/2+1,'#f4eefc',3,1-(s-pass)/.6)}}
+      if(s>2.8)al=1-(s-2.8)/.4}
+    if(s<.3)al=s/.3;icon.scythe(c,x,y,f,col,t,al);player(c,P.x,P.y,s>1.92&&s<2.2)},
+  lamp(c,t,w,h){const cyc=3.4,s=t%cyc,k=Math.floor(t/cyc),cross=k%2===1,P={x:w*.74,y:h*.5+Math.sin(t*.8)*26};
+    const x=lerp(w*.16,w*.28,ease(cl(s/1.2,0,1))),y=h*.5,aim=Math.atan2(h*.5-y,w*.74-x);
+    const dirs=cross?[0,1,2,3].map(i=>aim+i*Math.PI/2):[aim-.2,aim,aim+.2];
+    if(s>1.2&&s<1.8){c.save();c.globalAlpha=(s-1.2)*.7;c.strokeStyle=C.gold;c.lineWidth=1;c.setLineDash([3,6]);for(const d of dirs){c.beginPath();c.moveTo(x,y);c.lineTo(x+Math.cos(d)*400,y+Math.sin(d)*400);c.stroke()}c.restore()}
+    let hit=false;
+    if(s>=1.8)for(const d of dirs)for(let j=0;j<5;j++){const dist=230*(s-1.8)-j*15+20;if(dist<20)continue;const bx=x+Math.cos(d)*dist,by=y+Math.sin(d)*dist;shot(c,bx,by,T(k),4);if(Math.hypot(bx-P.x,by-P.y)<14)hit=true}
+    icon.lamp(c,x,y,aim,T(k),t,s>1.2&&s<2?1:.25);label(c,cross?'the cross':'lines',x,y+34,C.gold);player(c,P.x,P.y,hit)},
+  mourner(c,t,w,h){const cyc=5,s=t%cyc,M={x:w*.42,y:h*.5},P={x:w*.84,y:h*.3+Math.sin(t)*18};let hit=false;
+    for(let e=0;e<=Math.min(s,2.5);e+=.09){const age=s-e;if(age>2.4)continue;for(let k=0;k<2;k++){const a=k?-e*2.4+Math.PI:e*2.4,d=16+age*95,bx=M.x+Math.cos(a)*d,by=M.y+Math.sin(a)*d;shot(c,bx,by,k?C.dawn:C.dusk,4);if(Math.hypot(bx-P.x,by-P.y)<14)hit=true}}
+    const veil=s<2.5?0:cl((s-2.5)/2,0,1);icon.mourner(c,M.x,M.y,0,T(0),t,1-veil);if(s>2.5)label(c,'resting',M.x,M.y+44);player(c,P.x,P.y,hit)},
+  digger(c,t,w,h){const cyc=3.6,s=t%cyc,P={x:w*.66+(s>2.15?Math.min(1,(s-2.15)/.3)*34:0),y:h*.52};
+    const x=lerp(w*.12,w*.5,ease(cl(s/1.8,0,1))),y=h*.52+(s<1.8?Math.abs(Math.sin(s*7))*-3:0),f=0;
+    const raise=s>1.8&&s<2.5?(s-1.8)/.7:s>=2.5&&s<2.62?1-(s-2.5)/.12:0;
+    if(s>1.8&&s<2.5){c.save();c.globalAlpha=(s-1.8)*.6;c.beginPath();c.arc(x,y,74,f-Math.PI/2,f+Math.PI/2);c.closePath();c.fillStyle=rgba('#cfc6b4',.18);c.fill();c.restore()}
+    if(s>=2.5&&s<3.4){const k=(s-2.5)/.9;c.save();c.globalAlpha=1-k;c.beginPath();c.arc(x,y,74,f-Math.PI/2,f+Math.PI/2);c.closePath();c.fillStyle=rgba('#cfc6b4',.35);c.fill();
+      c.strokeStyle='#cfc6b4';c.lineWidth=2;c.beginPath();c.arc(x+40,y,10+k*60,0,TAU);c.stroke();for(let i=0;i<5;i++){const a=-1+i*.5,d=40+k*90;c.fillStyle='#8a7a62';c.fillRect(x+40+Math.cos(a)*d-3,y+Math.sin(a)*d-3,6,6)}c.restore()}
+    icon.digger(c,x,y,f,T(1),t,raise);player(c,P.x,P.y,false)},
+  shade(c,t,w,h){const cyc=3,s=t%cyc,k=Math.floor(t/cyc),P={x:w*.5,y:h*.52},pos=n=>({x:P.x+Math.cos(n*2.3+.4)*120,y:P.y+Math.sin(n*2.3+.4)*68}),A=pos(k),B=pos(k+1);
+    let x=A.x,y=A.y,al=1;
+    if(s>.9&&s<1.3)al=1-(s-.9)/.4;if(s>=1.3&&s<1.6)al=0;if(s>=1.6){x=B.x;y=B.y;al=s<1.9?(s-1.6)/.3:1}
+    if(s>.9&&s<1.6){c.save();for(let i=0;i<6;i++){const q=(s-.9)/.7;c.globalAlpha=.4*(1-q);c.beginPath();c.arc(A.x+Math.cos(i)*q*30,A.y-q*20+Math.sin(i*2)*8,4,0,TAU);c.fillStyle=T(k);c.fill()}c.restore();
+      c.save();c.globalAlpha=.5;c.strokeStyle=T(k);c.beginPath();c.arc(B.x,B.y,24-(s-.9)*20,0,TAU);c.stroke();c.restore()}
+    const f=Math.atan2(P.y-y,P.x-x);let hit=false;
+    if(s>=1.9)for(let j=-1;j<=1;j++){const a=f+j*.22,d=200*(s-1.9)+14,bx=x+Math.cos(a)*d,by=y+Math.sin(a)*d;shot(c,bx,by,T(k),4);if(Math.hypot(bx-P.x,by-P.y)<14)hit=true}
+    icon.shade(c,x,y,f,T(k),t,al);player(c,P.x,P.y,hit)}
+};
+
+const members=[
+  {key:'wisp',name:'Wisp',src:'reskin · Swarmer',hp:14,r:9,sp:115,from:1,text:'Soul flames in loose packs that drift straight in and burst on touch.',teach:'the Reapers’ soul shots: thin them before they reach you'},
+  {key:'acolyte',name:'Acolyte',src:'new',hp:90,r:13,sp:120,from:1,text:'Hooded chaser. Stops just short, raises the sickle (a 0.5 s pale cone), then one wide swing.',teach:'step back out of a raised swing, the Dual Reaper’s chase'},
+  {key:'bound',name:'Bound Wraiths',src:'new · always a pair',hp:'60 ×2',r:12,sp:95,from:2,text:'Two wraiths circling a point near you, joined by a tether that hurts. Kill one and the other revives it in 3 s unless both die.',teach:'the tether sweep and the Soul Bond: finish the pair'},
+  {key:'scythe',name:'Scythe Wraith',src:'new',hp:75,r:14,sp:85,from:3,text:'Marks a line through you for 0.8 s, then dashes along it and reaps both sides of its path.',teach:'the Sundered marked reaps: leave the line sideways'},
+  {key:'lamp',name:'Lamplighter',src:'new',hp:55,r:13,sp:70,from:2,text:'Walks, plants, lantern flares (gold guide lines), then fires. Alternates three lines at you and a four-way cross.',teach:'Twilight’s lines and cross, fired holding still'},
+  {key:'mourner',name:'Mourner',src:'new',hp:80,r:15,sp:60,from:3,text:'Stands still and weeps a twin spiral, one Dusk arm clockwise and one Dawn arm the other way, for 2.5 s, then rests.',teach:'the twin spiral: rest windows are when to push in'},
+  {key:'digger',name:'Gravedigger',src:'reskin · Brute',hp:140,r:19,sp:62,from:2,text:'A Brute with a shovel: heavy walk, raised shovel, a slam in a half-circle that kicks up dirt.',teach:'the cult’s heavy: back off the slam (the Pillars’ holes)'},
+  {key:'shade',name:'Shade',src:'reskin · Phantom',hp:90,r:13,sp:90,from:3,text:'A Phantom under a shroud: fades to smoke, shows a ring where it will be, appears and fires a fan of three.',teach:'the Reapers’ teleports: watch for the ring'}
+];
+
+const squads=[
+  {name:'Vigil',from:1,text:'An Acolyte leads a loose crowd of Wisps.',list:[['acolyte',0,0],['wisp',-55,-60],['wisp',-60,0],['wisp',-55,60],['wisp',-110,-30],['wisp',-110,30],['wisp',-150,0]]},
+  {name:'Procession',from:2,text:'Two Lamplighters at the back light the way for four Acolytes. Kill the lamps first or the lines never stop.',list:[['acolyte',40,-75],['acolyte',40,-25],['acolyte',40,25],['acolyte',40,75],['lamp',-60,-50],['lamp',-60,50]]},
+  {name:'Twin graves',from:2,text:'Two Bound pairs sweeping side by side, a Gravedigger walking between them.',list:[['pair',-30,-75],['pair',-30,75],['digger',40,0]]},
+  {name:'Harvest',from:3,text:'Two Scythe Wraiths mark from the flanks while Shades blink in behind you.',list:[['scythe',0,-90],['scythe',0,90],['shade',-80,-30],['shade',-80,30],['wisp',60,0],['wisp',70,-30],['wisp',70,30]]},
+  {name:'Dusk and Dawn',from:4,finale:true,text:'Wave 4 and the exam. The arena splits: a Dusk Mourner on the left, a Dawn Mourner on the right, a Bound pair circling each, Scythe Wraiths and Lamplighters on both sides. Their spirals cross in the middle, where you are.',list:[]}
+];
+
+const lessons=[
+  ['Wisp','Soul flames drift in (the Reapers’ soul shots)','Wisps'],
+  ['Acolyte','Acolytes: a raised sickle means step back','Acolytes, Wisps · Vigil'],
+  ['Lamplighter','Lines and the cross, fired standing still (Twilight)','Lamplighters, Acolytes · Procession'],
+  ['Bound Wraiths','The tether sweep, and killing both (Soul Bond)','Bound, Wisps · Twin graves'],
+  ['Gravedigger','A recap so far, and the Gravediggers join','everything above · Vigil, Twin graves'],
+  ['Mourner','The twin spiral, and pushing in on its rest','Mourners, Acolytes, Wisps'],
+  ['Scythe Wraith','Marked reaps (Sundered), and the Shades blink in','Scythe, Shade, Lamplighters · Harvest'],
+  ['—','Squads: Vigil, Procession, Twin graves, Harvest','squad chance 0.9'],
+  ['—','Everything, tighter','squad chance 0.75'],
+  ['Finale','The exam: Dusk and Dawn','finale + everything']
+];
+
+/* ---- build the page ---- */
+const cards=document.getElementById('cards'),canvases=[];
+members.forEach(m=>{const el=document.createElement('article');el.className='card';
+  el.innerHTML=`<canvas width="360" height="200" aria-label="${m.name} loop"></canvas><div class="cbody"><div class="ctop"><h3>${m.name}</h3><span class="tag${m.src.startsWith('new')?' new':''}">${m.src}</span></div>
+  <div class="stats"><span>HP <b>${m.hp}</b></span><span>size <b>${m.r}</b></span><span>speed <b>${m.sp}</b></span><span>from wave <b>${m.from}</b></span></div>
+  <p>${m.text}</p><p class="teach"><b>Teaches</b> ${m.teach}</p></div>`;cards.appendChild(el);canvases.push({cv:el.querySelector('canvas'),key:m.key})});
+document.getElementById('lessons').innerHTML=lessons.map((l,i)=>`<tr><td class="n">${i+1}</td><td class="star">${l[0]}</td><td>${l[1]}</td><td class="n">${l[2]}</td></tr>`).join('');
+
+let sq=0;const seg=document.getElementById('squadSeg');
+squads.forEach((s,i)=>{const b=document.createElement('button');b.textContent=s.name;b.setAttribute('aria-pressed',i===0);b.onclick=()=>{sq=i;[...seg.children].forEach((x,j)=>x.setAttribute('aria-pressed',j===i));info()};seg.appendChild(b)});
+function info(){const s=squads[sq];document.getElementById('sqName').textContent=`${s.name}${s.finale?' · finale':''} · from wave ${s.from}`;document.getElementById('sqText').textContent=s.text;
+  const counts={};const names={wisp:'Wisp',acolyte:'Acolyte',pair:'Bound pair',scythe:'Scythe Wraith',lamp:'Lamplighter',digger:'Gravedigger',shade:'Shade'};
+  if(s.finale){document.getElementById('sqRoster').textContent='2 Mourner · 2 Bound pair · 2 Scythe Wraith · 2 Lamplighter · 4 Acolyte';return}
+  s.list.forEach(([k])=>counts[k]=(counts[k]||0)+1);document.getElementById('sqRoster').textContent=Object.entries(counts).map(([k,n])=>`${n} ${names[k]}`).join(' · ')}
+info();
+[['mixed'],['dusk'],['dawn']].forEach(([m])=>{document.getElementById('t-'+m).onclick=()=>{mode=m;['mixed','dusk','dawn'].forEach(x=>document.getElementById('t-'+x).setAttribute('aria-pressed',x===m))}});
+
+function pairAt(c,x,y,t,phase,colA=C.dusk,colB=C.dawn,R=34){const a=t*1.3+phase,A={x:x+Math.cos(a)*R,y:y+Math.sin(a)*R*.8},B={x:x-Math.cos(a)*R,y:y-Math.sin(a)*R*.8};
+  const g=c.createLinearGradient(A.x,A.y,B.x,B.y);g.addColorStop(0,colA);g.addColorStop(1,colB);c.save();c.strokeStyle=g;c.lineWidth=3;c.shadowColor='#c9a0ff';c.shadowBlur=10;c.beginPath();c.moveTo(A.x,A.y);c.lineTo(B.x,B.y);c.stroke();c.restore();
+  icon.bound(c,A.x,A.y,0,colA,t);icon.bound(c,B.x,B.y,0,colB,t)}
+function drawSquad(c,t){const w=760,h=340,s=squads[sq];floor(c,w,h,s.finale);const P={x:120,y:h/2};
+  if(s.finale){const L={x:200,y:h/2},R={x:560,y:h/2},P2={x:380,y:h/2+Math.sin(t)*20};
+    for(const [M,dir,col] of [[L,1,C.dusk],[R,-1,C.dawn]]){const sp=(t*.9)%4;if(sp<2.6)for(let e=0;e<=sp;e+=.12){const age=sp-e;if(age>2.2)continue;for(const off of [0,Math.PI]){const a=dir*e*2.2+off,d=20+age*110;shot(c,M.x+Math.cos(a)*d,M.y+Math.sin(a)*d,col,4)}}
+      pairAt(c,M.x,M.y,t*dir,0,col,col,62);icon.mourner(c,M.x,M.y,0,col,t,1)}
+    for(const [x,y,col] of [[290,60,C.dusk],[470,280,C.dawn]])icon.scythe(c,x,y,Math.atan2(P2.y-y,P2.x-x),col,t);
+    for(const [x,y,col] of [[80,80,C.dusk],[80,260,C.dusk],[680,80,C.dawn],[680,260,C.dawn]])icon.lamp(c,x,y,Math.atan2(P2.y-y,P2.x-x),col,t,.4);
+    for(const [x,y,col] of [[300,170,C.dusk],[300,230,C.dusk],[460,110,C.dawn],[460,170,C.dawn]])icon.acolyte(c,x+Math.sin(t*2+y)*3,y,Math.atan2(P2.y-y,P2.x-x),col,t);
+    player(c,P2.x,P2.y,false);label(c,'DUSK',40,24,C.dusk);label(c,'DAWN',w-40,24,C.dawn);return}
+  const ox=480-((t*14)%60),oy=h/2;player(c,P.x,P.y,false);
+  c.save();c.strokeStyle='rgba(255,255,255,.08)';c.setLineDash([2,8]);c.beginPath();c.moveTo(P.x+20,P.y);c.lineTo(ox-180,oy);c.stroke();c.restore();
+  s.list.forEach(([k,dx,dy],i)=>{const x=ox+dx,y=oy+dy+Math.sin(t*2+i)*3,f=Math.atan2(P.y-y,P.x-x),col=T(i);
+    if(k==='pair')pairAt(c,x,y,t,i);else if(k==='lamp')icon.lamp(c,x,y,f,col,t,.35+.3*Math.sin(t*2+i));else icon[k](c,x,y,f,col,t)})}
+
+/* ---- loop ---- */
+const dpr=Math.min(2,window.devicePixelRatio||1);
+function prep(cv,w,h){cv.width=w*dpr;cv.height=h*dpr;const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);return c}
+canvases.forEach(o=>o.c=prep(o.cv,360,200));const sqc=prep(document.getElementById('squad'),760,340);
+const still=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+const t0=performance.now();
+function frame(now){const t=still?2.2:(now-t0)/1000;
+  canvases.forEach(o=>{floor(o.c,360,200);scenes[o.key](o.c,t,360,200)});drawSquad(sqc,t);if(!still)requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+if(still)document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>requestAnimationFrame(frame)));
+</script>
