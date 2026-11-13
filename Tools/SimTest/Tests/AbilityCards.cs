@@ -662,6 +662,87 @@ static partial class Program
         arm(WeaponId.ImpCaller, "Imp Horde", 1); int ic1 = g.CompanionCount(me);
         Check(wc1 == wc0 + 1 && ic1 == ic0 + 1 && near(me.Stats.ImpRateMult, 1.2f, 0.001f), "Will-o'-Wisp: one more wisp; Imp Horde: one more imp, coming 20% faster");
 
+        // --- Soldier weapon cards (Docs/UpgradePools.md step 11) ---
+        Check(new[] { "Point Blank", "Wide Burst", "Crowd Control", "Undertow Pump", "Hot Lead", "Steady Draw", "Kill Zone", "Supercharge", "Spin-Up", "Quick Loader" }
+            .All(n => U(n) >= 0 && Upgrades.All[U(n)].Weapons != null && Upgrades.All[U(n)].Weapons.All(w => Defs.WeaponOf(w).Kit == Kit.Soldier)),
+            "all ten Soldier weapon cards exist, each for Soldier weapons");
+        Check(Upgrades.All[U("Kill Zone")].Weapons.Contains(WeaponId.TwinRifleAuto), "Kill Zone also goes to the Twin Rifle Auto");
+        var volley = typeof(Game).GetMethod("FireVolley", flags);
+        Func<WeaponId, string, int, List<Bullet>> fireV = (wid, card, n) => { arm(wid, card, n); g.Bullets.Clear(); volley.Invoke(g, new object[] { me, 0f, 0 }); var got = g.Bullets.Values.OrderBy(x => x.Id).ToList(); g.Bullets.Clear(); return got; };
+
+        var pointBlank = typeof(Game).GetMethod("PointBlankMult", flags);
+        Func<int, float> pb = n => { arm(WeaponId.Scattergun, "Point Blank", n); var e = enemyAt(me.Pos + new V2(140f, 0f)); return (float)pointBlank.Invoke(g, new object[] { new Bullet { PointBlank = true, Owner = me.Id, Vel = new V2(1f, 0f) }, e }); };
+        float pk0 = pb(0), pk1 = pb(1);
+        Check(pk0 == 1f && pk1 == Game.ScatterPointBlank && near(me.Stats.ScatterShoveMult, 1.3f, 0.001f), "Point Blank: double damage reaches an enemy 140 px out (past 120) and shoves 30% harder");
+
+        var fl0 = fireV(WeaponId.FlakCannon, "Wide Burst", 0); var fl1 = fireV(WeaponId.FlakCannon, "Wide Burst", 1);
+        Check(near(fl1[0].Splash / fl0[0].Splash, 1.25f, 0.001f) && near(me.Stats.MineCdCut, 1f, 0.001f), "Wide Burst: airbursts are 25% wider and the Proximity Shell is back 1 s sooner");
+
+        var suppress = typeof(Game).GetMethod("SuppressHit", flags);
+        Func<int, float> sup = n => { arm(WeaponId.RiotRepeater, "Crowd Control", n); var e = enemyAt(there); suppress.Invoke(g, new object[] { new Bullet { Suppressive = true, Owner = me.Id }, e }); return e.Suppress; };
+        float su0 = sup(0), su1 = sup(1);
+        Check(near(su1 / su0, 1.5f, 0.001f) && near(me.Stats.TearGasMult, 1.25f, 0.001f), "Crowd Control: suppression builds 50% faster and Tear Gas is 25% bigger");
+
+        arm(WeaponId.LightBolt, "Undertow Pump", 1);
+        var orb = new Orb { Tiny = true, Boost = me.Stats.ShedHealMult };
+        Check(near(me.Stats.UndertowGainMult, 1.3f, 0.001f) && near(orb.Heal / Game.TinyOrbHeal, 1.3f, 0.001f), "Undertow Pump: the Undertow fills 30% faster and its orbs heal 30% more");
+
+        Func<int, float> heavyShot = n => { arm(WeaponId.Pistol, "Hot Lead", n); me.AmmoUsed = g.RevolverCapacity(me); me.ReloadT = 0f; var b = fireV(WeaponId.Pistol, "Hot Lead", n); return b.Count > 0 ? b[0].Dmg : 0f; };
+        Func<int, float> plainShot = n => { arm(WeaponId.Pistol, "Hot Lead", n); me.AmmoUsed = 0; var b = fireV(WeaponId.Pistol, "Hot Lead", n); return b.Count > 0 ? b[0].Dmg : 0f; };
+        float hl0 = heavyShot(0) / plainShot(0), hl1 = heavyShot(1) / plainShot(1);
+        Check(near(hl0, 2f, 0.01f) && near(hl1, 3f, 0.01f) && near(me.Stats.RevolverReloadMult, 0.75f, 0.001f), "Hot Lead: the heavy round deals triple (was double), and the reload is 25% faster (" + hl0 + " -> " + hl1 + ")");
+
+        arm(WeaponId.MendersBow, "Steady Draw", 0); float bf0 = g.BowFull(me);
+        me.BowShotDraw = 5f; var ar0 = fireV(WeaponId.MendersBow, "Steady Draw", 0);
+        arm(WeaponId.MendersBow, "Steady Draw", 1); float bf1 = g.BowFull(me);
+        me.BowShotDraw = 5f; var ar1 = fireV(WeaponId.MendersBow, "Steady Draw", 1);
+        Check(near(bf1 / bf0, 0.8f, 0.001f) && ar1[0].Pierce - ar0[0].Pierce == 1, "Steady Draw: a full draw comes 20% sooner and arrows pierce one more");
+
+        var crossMult = typeof(Game).GetMethod("CrossfireMult", flags);
+        Func<int, float[]> kz = n =>
+        {
+            arm(WeaponId.TwinRifle, "Kill Zone", n);
+            var e = enemyAt(there);
+            float m = (float)crossMult.Invoke(g, new object[] { new Bullet { Crossfire = true, Cross = e.Pos, Owner = me.Id }, e });
+            return new[] { Game.CrossZone(me), m };
+        };
+        var kz0 = kz(0); var kz1 = kz(1);
+        Check(near(kz1[0] / kz0[0], 1.4f, 0.001f) && near(kz0[1], 1.5f, 0.001f) && near(kz1[1], 1.75f, 0.001f), "Kill Zone: the crossfire zone is 40% wider and crossfire hits for 1.75x");
+
+        var trailsF = typeof(Game).GetField("ionTrails", flags);
+        Func<int, float[]> rail = n =>
+        {
+            arm(WeaponId.Railgun, "Supercharge", n);
+            ((IList)trailsF.GetValue(g)).Clear();
+            fireV(WeaponId.Railgun, "Supercharge", n);
+            var tr = ((IList)trailsF.GetValue(g))[0];
+            var ret2 = new[] { (float)tr.GetType().GetField("Time").GetValue(tr), (float)tr.GetType().GetField("Dps").GetValue(tr) };
+            ((IList)trailsF.GetValue(g)).Clear();
+            return ret2;
+        };
+        var rl0 = rail(0); var rl1 = rail(1);
+        Check(near(rl1[0] - rl0[0], 0.5f, 0.001f) && near(rl1[1] / rl0[1], 1.4f, 0.001f), "Supercharge: the Railgun's charged path lasts 0.5 s longer and burns 40% harder");
+
+        var spin = typeof(Game).GetMethod("TickSpinUp", flags);
+        Func<int, float[]> smg = n =>
+        {
+            arm(WeaponId.BurstSmg, "Spin-Up", n);
+            me.SpinUp = 0f; me.Firing = true;
+            spin.Invoke(g, new object[] { me, 0.5f });
+            float up = me.SpinUp;
+            me.SpinUp = 1f; me.Firing = false;
+            spin.Invoke(g, new object[] { me, 0.3f });
+            return new[] { up, me.SpinUp };
+        };
+        var sm0 = smg(0); var sm1 = smg(1);
+        Check(near(sm1[0] / sm0[0], 1f / 0.7f, 0.01f) && sm1[1] > sm0[1], "Spin-Up: the SMG spins up 30% sooner and winds down slower (" + sm0[1] + " -> " + sm1[1] + " left after 0.3 s)");
+
+        arm(WeaponId.DoubleBarrel, "Quick Loader", 0); float df0 = Game.DbFullOf(me);
+        arm(WeaponId.DoubleBarrel, "Quick Loader", 1); float df1 = Game.DbFullOf(me);
+        Check(near(df1 / df0, 1.3f, 0.001f) && near(Game.DbFalloff(170f, df1), 1f, 0.001f) && Game.DbFalloff(170f, df0) < 1f && near(me.Stats.DbReloadMult, 0.75f, 0.001f),
+            "Quick Loader: pellets keep full damage 30% farther and the reload is 25% faster");
+        me.Firing = false;
+
         host.Leave(""); client.Leave("");
     }
 }

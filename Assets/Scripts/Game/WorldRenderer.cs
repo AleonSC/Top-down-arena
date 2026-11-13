@@ -896,7 +896,7 @@ namespace Arena
                 V2 x = me.Disp + dir * game.TwinCrossDistance(me), s0 = V2.FromAngle(me.Aim + MathX.Pi / 4f) * 7f, s1 = V2.FromAngle(me.Aim - MathX.Pi / 4f) * 7f;
                 Line(x - s0, x + s0, 2f, c.WithAlpha(0.7f));
                 Line(x - s1, x + s1, 2f, c.WithAlpha(0.7f));
-                Arc(x, Game.TwinCrossZone, 1.2f, c.WithAlpha(0.18f), 28);
+                Arc(x, Game.CrossZone(me), 1.2f, c.WithAlpha(0.18f), 28);  // (Kill Zone widens it)
             }
         }
     }
