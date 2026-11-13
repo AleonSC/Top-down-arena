@@ -536,6 +536,81 @@ static partial class Program
         var kn0 = kunai(0); var kn1 = kunai(1);
         Check(near(kn1[0] - kn0[0], 2f, 0.001f) && near(kn1[1] / kn0[1], 1.4f, 0.001f) && kn1[2] == 1f, "Shadow Mark: marks last 2 s longer and the hit after a blink deals 40% more (once)");
 
+        // --- Blood Mage weapon cards (Docs/UpgradePools.md step 9) ---
+        Check(new[] { "Crimson Whip", "Deep Pool", "Hungry Tendrils", "Generous Blood", "Rich Blood", "Lifeline", "Hemophilia", "Event Horizon", "Marrow" }
+            .All(n => U(n) >= 0 && Upgrades.All[U(n)].Weapons != null && Defs.WeaponOf(Upgrades.All[U(n)].Weapons[0]).Kit == Kit.Hemomancer),
+            "all nine Blood Mage weapon cards exist, each for one Blood Mage weapon");
+        var fireBlood = typeof(Game).GetMethod("FireBloodWeapon", flags);
+        Action fireB = () => fireBlood.Invoke(g, new object[] { me, 0f, new V2(1f, 0f), me.Pos + new V2(20f, 0f), 1f, 0 });
+        Func<WeaponId, string, int, Bullet> shot = (wid, card, n) => { arm(wid, card, n); g.Bullets.Clear(); fireB(); var b = g.Bullets.Values.OrderBy(x => x.Id).First(); g.Bullets.Clear(); return b; };
+
+        Func<int, float[]> lash = n => { arm(WeaponId.BloodLash, "Crimson Whip", n); me.Clot = 5; float cut = Game.ClotCut(me); me.Clot = 0; fireB(); float r = swings().Max(x => x.Reach); swings().Clear(); return new[] { r, cut }; };
+        var la0 = lash(0); var la2 = lash(2);
+        Check(near(la2[0] / la0[0], 1.4f, 0.001f) && near(la0[1], 0.2f, 0.001f) && near(la2[1], 0.3f, 0.001f), "Crimson Whip: the lash reaches 20% farther and each Clot stack cuts 1% more, per card");
+
+        var pl0 = shot(WeaponId.ClotBolt, "Deep Pool", 0); var pl2 = shot(WeaponId.ClotBolt, "Deep Pool", 2);
+        Check(near(pl2.Pool / pl0.Pool, 1.6f, 0.001f) && near(pl2.PoolTime - pl0.PoolTime, 4f, 0.001f), "Deep Pool: the clot's pool is 30% bigger and lasts 2 s longer per card");
+
+        var graspsF = typeof(Game).GetField("pendingGrasps", flags);
+        var bloodHit = typeof(Game).GetMethod("BloodShotHit", flags);
+        Func<int, float[]> leech = n =>
+        {
+            arm(WeaponId.LeechBeam, "Hungry Tendrils", n);
+            ((IList)graspsF.GetValue(g)).Clear();
+            fireB();
+            var gr = ((IList)graspsF.GetValue(g))[0];
+            float d = (float)gr.GetType().GetField("Dmg").GetValue(gr);
+            ((IList)graspsF.GetValue(g)).Clear();
+            me.Hp = me.MaxHp * 0.5f; float hp0 = me.Hp;
+            bloodHit.Invoke(g, new object[] { new Bullet { Kind = Defs.LeechShot, Owner = me.Id }, enemyAt(there), 10f });
+            return new[] { d, me.Hp - hp0 };
+        };
+        var le0 = leech(0); var le1 = leech(1);
+        Check(near(le1[0] / le0[0], 1.3f, 0.001f) && near(le0[1], 2.5f, 0.01f) && near(le1[1], 4f, 0.01f), "Hungry Tendrils: the tendrils drain 30% faster and 40% of the drain heals you (from 25%)");
+
+        var tr0 = shot(WeaponId.TransfusionDarts, "Generous Blood", 0); var tr1 = shot(WeaponId.TransfusionDarts, "Generous Blood", 1);
+        Check(near(tr1.HealAlly / tr0.HealAlly, 1.3f, 0.001f), "Generous Blood: each dart gives an ally 30% more health");
+
+        arm(WeaponId.SanguineOrb, "Rich Blood", 1);
+        Check(near(me.Stats.ReserveGainMult, 1.3f, 0.001f) && near(me.Stats.CoatHealMult, 1.3f, 0.001f), "Rich Blood: the heal reserve fills 30% faster and the coat heals 30% more");
+
+        Func<int, float> vein = n =>
+        {
+            arm(WeaponId.VeinTether, "Lifeline", n);
+            friend.Pos = friend.Disp = me.Pos + new V2(900f, 0f);  // (no ally near: it all heals you)
+            me.Hp = me.MaxHp * 0.5f; float hp0 = me.Hp;
+            bloodHit.Invoke(g, new object[] { new Bullet { Kind = Defs.VeinShot, Owner = me.Id }, enemyAt(there), 10f });
+            return me.Hp - hp0;
+        };
+        float vn0 = vein(0), vn1 = vein(1);
+        Check(near(vn0, 4f, 0.01f) && near(vn1, 5.5f, 0.01f), "Lifeline: 55% of the tether's damage heals (from 40%)");
+
+        var hemo = typeof(Game).GetMethod("Hemorrhage", flags);
+        Func<int, int> bolts = n =>
+        {
+            arm(WeaponId.BloodBolts, "Hemophilia", n);
+            var e = enemyAt(there);
+            for (int k = 0; k < 4; k++) hemo.Invoke(g, new object[] { me, e, 9f });
+            return e.Hemorrhage;
+        };
+        int hm0 = bolts(0), hm1 = bolts(1);
+        Check(hm0 == 4 && hm1 == 0 && near(me.Stats.HemoRadiusMult, 1.3f, 0.001f), "Hemophilia: the fourth bolt bursts (not the fifth), 30% wider");
+
+        var collapse = typeof(Game).GetMethod("Collapse", flags);
+        Func<int, float> crush = n =>
+        {
+            arm(WeaponId.Implosion, "Event Horizon", n);
+            var e = enemyAt(there);
+            float hp0 = e.Hp;
+            collapse.Invoke(g, new object[] { me, e, 1f, false, new Rgba(1f, 0f, 0f) });
+            return hp0 - e.Hp;
+        };
+        float cr0 = crush(0), cr1 = crush(1);
+        Check(cr0 > 0f && near(cr1 / cr0, 1.4f, 0.01f) && near(me.Stats.ImplodeReachMult, 1.3f, 0.001f), "Event Horizon: the crush hits 40% harder and pulls from 30% farther");
+
+        var bs0 = shot(WeaponId.BoneSpear, "Marrow", 0); var bs1 = shot(WeaponId.BoneSpear, "Marrow", 1);
+        Check(bs1.Pierce - bs0.Pierce == 1 && near(me.Stats.SpearPickupBonus, 3f, 0.001f), "Marrow: the spear pierces one more enemy and gives 3 more health back");
+
         host.Leave(""); client.Leave("");
     }
 }

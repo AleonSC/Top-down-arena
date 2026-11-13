@@ -1,6 +1,6 @@
 # Upgrade pools: class and weapon cards
 
-**Status: steps 1-8 built (Nov 2026, protocol 315).** Next: weapon cards for the other classes, one class at a time. Owner decisions are below; build one step at a time ("start on step N").
+**Status: steps 1-9 built (Nov 2026, protocol 316).** Next: weapon cards for the other classes, one class at a time. Owner decisions are below; build one step at a time ("start on step N").
 
 ## Why
 
@@ -205,7 +205,7 @@ the Bo Staff's shove push (`BoStaff.cs`) and full spin, the Fuma throw's startin
 `ReturnStar`, the Momentum Burst's push and the tossed caltrops' life, `ShadowKunaiLanded` and `NinjaHitMult`
 (`Player.BlinkBoost`, set by the blink and spent with the ambush). Test: suite `abilitycards`, its Ninja checks.
 
-### Step 9: Blood Mage weapon cards (proposed, owner picks)
+### Step 9: Blood Mage weapon cards (built, protocol 316)
 
 One Rare card per Blood Mage weapon (`Weapons = { that weapon }`, `MaxStacks = 2`), offered only while you hold it.
 
@@ -220,3 +220,8 @@ One Rare card per Blood Mage weapon (`Weapons = { that weapon }`, `MaxStacks = 2
 | Blood Bolts | Hemophilia | Hemorrhage takes one bolt fewer (5 → 4), and its burst is 30% wider |
 | Implosion | Event Horizon | Pulls enemies in from 30% farther, and the crush hits 40% harder |
 | Bone Spear | Marrow | The spear pierces 1 more enemy, and picking it up gives 3 more health |
+
+Built (owner approved all nine): in `Game.HemomancerCards`. Hooks (all in `BloodMage.cs`): the lash's reach and
+`ClotCut`, the clot's `Pool` / `PoolTime`, the grasp's `Dmg` and `LeechSteal`, the dart's `HealAlly`, `ReserveGain`
+and the coat's healing, `VeinSteal`, `Hemorrhage` (hits needed, radius), `Collapse` (the crush and its pull radius),
+the spear's `Pierce` and `TickSpearPickups`. Test: suite `abilitycards`, its Blood Mage checks.
