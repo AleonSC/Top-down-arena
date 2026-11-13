@@ -128,7 +128,7 @@ static partial class Program
         foreach (var t in seen)
             names.Add(t.ToString());
         Console.WriteLine("  reached wave {0}; client saw: {1}; elite seen: {2}", s[0].Game.Wave, string.Join(", ", names), eliteSeen);
-        foreach (var t in new[] { EnemyType.Charger, EnemyType.Splitter, EnemyType.Shard, EnemyType.Mortar, EnemyType.Shielder, EnemyType.Medic })
+        foreach (var t in new[] { EnemyType.Sniper, EnemyType.Spinner, EnemyType.Mortar, EnemyType.Shielder })  // (the basic faction's shooters: BasicFaction.cs)
             Check(seen.Contains(t), "new enemy shows up on the client: " + t);
         Check(eliteSeen, "elite enemies appear from wave 12");
         Check(ghosts == 0, "late-game waves stay in sync (mortar bursts, splits)");

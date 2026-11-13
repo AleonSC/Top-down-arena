@@ -103,6 +103,7 @@ namespace Arena
             if (n >= 28) pool.Add(EnemyType.Reaver);
             if (n >= 31) pool.Add(EnemyType.Nest);
             if (n >= 36) pool.Add(EnemyType.Warder);
+            pool.RemoveAll(IsRetired);  // only the basic faction's are left (BasicFaction.cs)
             return pool;
         }
 
@@ -170,6 +171,7 @@ namespace Arena
             if (n >= 5) { melee.Add(EnemyType.Buzzsaw); melee.Add(EnemyType.SpikeBlock); }  // the melee grunts (MeleeGrunts.cs)
             if (n >= SwordsmanFrom) melee.Add(EnemyType.Swordsman);  // the swordsmen (Swordsman.cs)
             if (n >= ShieldSwordsmanFrom) melee.Add(EnemyType.ShieldSwordsman);
+            melee.RemoveAll(IsRetired);  // (BasicFaction.cs)
             // A recipe wave shows at most KindCap(n) distinct types, the boss factions' enemies included (WaveRecipe.cs): the
             // factions may bring in all but the headliners' places, then the recipe fills up to the cap.
             plan.KindCap = n >= RecipeFrom ? KindCap(n) : 99;

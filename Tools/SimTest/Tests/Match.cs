@@ -730,6 +730,9 @@ static partial class Program
             var s = StartBuffed(dt, 18, 0);  // all shooters (early waves are melee; 11-14 are the Twin Reapers' mostly melee cult)
             Run(s, dt, 10, () => s[0].Game.Enemies.Count >= 4);
             var tank = s[0].Game.Players[1];
+            var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            for (int i = 0; i < 3; i++)  // (Grunts on the tank, whatever the wave's roll brought: Mortars and the Infall don't fire straight at it)
+                spawnAt.Invoke(s[0].Game, new object[] { EnemyType.Grunt, tank.Pos + V2.FromAngle(i * 2.1f) * 300f, 0f, 0, false });
             tank.BarrierT = 6f;
             tank.BarrierMax = tank.BarrierHp = 360f;
             int nearby = 0;

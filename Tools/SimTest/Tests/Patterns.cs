@@ -30,7 +30,7 @@ static partial class Program
             foreach (var t in (List<EnemyType>)queueField.GetValue(g)) seen.Add(t);
             foreach (var q in (List<SquadDef>)squadField.GetValue(g)) foreach (var t in q.Members) seen.Add(t);
         }
-        Check(seen.Contains(EnemyType.Pauser) && seen.Contains(EnemyType.Leader) && seen.Contains(EnemyType.Stitcher), "the Pauser, Leader and Stitcher show up by wave 22");
+        Check(!seen.Contains(EnemyType.Pauser) && !seen.Contains(EnemyType.Leader) && !seen.Contains(EnemyType.Stitcher), "the Pauser, Leader and Stitcher are retired: none by wave 22 (BasicFaction.cs)");
         g.Wave = 13; g.BossSlot = false;
         bool early = false;
         for (int k = 0; k < 12; k++)

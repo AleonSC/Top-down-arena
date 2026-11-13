@@ -485,6 +485,15 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 
 ## Enemies
 
+**The basic faction.** Outside the boss factions, the waves use eight plain enemies, one per role: **Swarmer** (rusher, in
+fours), **Brute** (tank), **Lunger** (charger), **Grunt** (gunner), **Sniper**, **Spinner** (spray), **Mortar** (artillery)
+and **Shielder** (guard). They fill the Campaign's mix around the factions, and in Quick Play and Boss Hunt they stand in as
+the faction of any boss that has no faction yet (squads Rush, Firing line, Brute pack, Shield wall and Barrage, and the
+**Last stand** set piece before the boss). The other plain enemies (Spiker, Buzzsaw, Spike Block, Swordsman, Shield Swordsman,
+Burster, Charger, Splitter, Medic, Pauser, Fuse Runner, Hookman, Sapper, Phantom, Beam Sentry, Leader, Hexer, Stitcher,
+Scorcher, Juggernaut, Reaver, Nest, Warder) are **retired** from the waves until future faction packs bring them back; bosses
+that summon some (the Eclipse's Phantoms and Hexers) and the Rooms map's nests still do, and the Wave editor can still place them.
+
 **Job markers.** A small bar and shape under each regular enemy shows its job: orange dot = Pressure (shoots), red chevron = Hunter (runs at you), yellow ring = Zoner (takes ground), violet diamond = Disruptor (breaks your position), cyan square = Anchor (kill it first). Bosses get none.
 
 The Lunger, Spike Block, Charger and Riot Shield all warn of a lunge the same way: a red strip on the floor that fills up over the wind-up and flashes white just before they go.
@@ -1181,7 +1190,8 @@ you've beaten it anywhere, a **???** until then (on your first Quick Play the Wa
   wave number). The HUD counts the waves n / 10. **Your first Quick Play always ends on the Warden**; after that the boss is
   random: every boss comes up once before any repeats, and never the same one twice in a row.
 - **The waves before a boss are its own enemies** (its faction, as in a Boss Hunt: tougher members joining as they go, its set
-  piece on the fifth and tenth wave). Bosses without a faction yet (all but the Warden) get the usual mixed waves.
+  piece on the fifth and tenth wave). Bosses without a faction yet (the Duelist, Storm Herald, Devourer and Eclipse) get the
+  **basic faction** the same way (see Enemies).
 - **Bosses play exactly as anywhere else.** Only their health changes: about a **two-minute fight** for a typical build at
   whatever wave they come (a late boss after wave 10 has much less health than at its own Campaign wave; an early one in
   endless has more). The boost for strong builds still applies on top.

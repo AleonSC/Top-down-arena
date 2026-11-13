@@ -22,7 +22,7 @@ namespace Arena
                 if (!before.Contains(t))
                     res.Add(t);
             foreach (var m in MeleeUnlocks)
-                if (m.From == n)
+                if (m.From == n && !IsRetired(m.Type))
                     res.Add(m.Type);
             return res;
         }
