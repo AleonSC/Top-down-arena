@@ -36,6 +36,7 @@ namespace Arena
                 case PathId.Sanctuary: rule = "Healing pools open in this room."; break;
                 case PathId.FrozenLake: rule = "Ice: you slide, foes are chilled."; break;
                 case PathId.BloodMoon: rule = "No regeneration or orbs here: kills heal you."; break;
+                case PathId.Fogbound: rule = "Dark: you only see about 350 px round you in here."; break;
                 default: rule = d.Name + " ground."; break;
             }
             int pct = (int)Mathf.Round((Paths.Bonus(d.Danger) - 1f) * 100f);

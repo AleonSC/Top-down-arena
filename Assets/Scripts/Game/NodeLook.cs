@@ -19,6 +19,14 @@ namespace Arena
         {
             if (claimed)
             {
+                if (n.Kind == NodeKind.Rule)  // a rule room's prize shows once it is cleared (a chest, or a relic to walk up to); Frozen pays at once
+                {
+                    if (n.Cleared && Expansion.RuleHoldsRelic(n))
+                        DrawNodeFixture(n.Pos, NodeKind.Relic, n.Spent);
+                    else if (n.Cleared && Expansion.RuleHoldsChest(n))
+                        DrawNodeFixture(n.Pos, NodeKind.Chest, n.Spent);
+                    return;
+                }
                 DrawNodeFixture(n.Pos, n.Kind, n.Spent);
                 return;
             }

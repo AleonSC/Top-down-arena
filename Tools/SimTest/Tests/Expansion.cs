@@ -866,6 +866,47 @@ static partial class Program
             }
         }
 
+        // A claimed rule room takes the rule's ground, and its prize comes out when a wave is cleared.
+        {
+            var plan = new List<ExpansionRoom>();
+            var rn = Expansion.NodeFor(5, 0, plan, new List<MapNode>(), NodeKind.Rule);
+            Check(rn.HasValue, "a rule node for the room test");
+            if (rn.HasValue)
+            {
+                var saveRooms = g.Expanded.ToList(); var saveNodes = g.Nodes.ToList();
+                for (int i = 0; i < 4 && !Expansion.NodeClaimed(plan, rn.Value); i++) { var st = Expansion.NodeStep(plan, rn.Value); if (st.HasValue) plan.Add(st.Value); }
+                foreach (NodeRule rule in System.Enum.GetValues(typeof(NodeRule)))
+                {
+                    var nd = rn.Value; nd.Rule = (byte)rule;
+                    var wld = Expansion.Build(plan, null, null, new List<MapNode> { nd });
+                    var rule1 = wld.Areas.Skip(1).Where(a => a.Kind == RoomKind.Floor && a.Floor == Expansion.RuleFloor(nd.Rule)).ToList();
+                    Check(rule1.Count >= 1, "a room round a " + rule + " node has " + Expansion.RuleFloor(nd.Rule) + " ground");
+                }
+                var wUn = Expansion.Build(plan.Take(plan.Count - 1).ToList(), null, null, new List<MapNode> { rn.Value });
+                Check(wUn.Areas.All(a => a.Kind != RoomKind.Floor), "the hallway on the way to it is no rule room");
+                var clearRules = typeof(Game).GetMethod("ClearRuleRooms", flags);
+                var tickNodes2 = typeof(Game).GetMethod("TickNodes", flags);
+                foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Expanded.AddRange(plan); gg.Nodes.Clear(); typeof(Game).GetField("expWorld", flags).SetValue(gg, null); }
+                var frozen = rn.Value; frozen.Rule = (byte)NodeRule.Frozen;
+                var dark = rn.Value; dark.Rule = (byte)NodeRule.Dark;
+                g.Nodes.Add(frozen);
+                int gold0 = g.Players.Values.Sum(p => p.Gold);
+                clearRules.Invoke(g, null);
+                Check(g.Nodes[0].Cleared && g.Nodes[0].Spent && g.Players.Values.Sum(p => p.Gold) > gold0, "clearing a Frozen rule room pays gold at once and spends the node");
+                int gold1 = g.Players.Values.Sum(p => p.Gold);
+                clearRules.Invoke(g, null);
+                Check(g.Players.Values.Sum(p => p.Gold) == gold1, "and only once");
+                g.Nodes.Clear(); g.Nodes.Add(dark);
+                tickNodes2.Invoke(g, null);
+                Check(!g.Props.Values.Any(q => q.Kind == PropKind.Chest && q.Pos.DistanceTo(dark.Pos) < 1f), "a Dark rule room holds no chest before it is cleared");
+                clearRules.Invoke(g, null);
+                tickNodes2.Invoke(g, null);
+                Check(g.Nodes[0].Cleared && !g.Nodes[0].Spent && g.Props.Values.Count(q => q.Kind == PropKind.Chest && q.Pos.DistanceTo(dark.Pos) < 1f) == 1, "and one chest at the node once it is");
+                foreach (var q in g.Props.Values.Where(q => q.Kind == PropKind.Chest && q.Pos.DistanceTo(dark.Pos) < 1f).ToList()) g.Props.Remove(q.Id);
+                foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Expanded.AddRange(saveRooms); gg.Nodes.Clear(); gg.Nodes.AddRange(saveNodes); typeof(Game).GetField("expWorld", flags).SetValue(gg, null); }
+            }
+        }
+
         // A node's far room (a long hallway, then a room round it): an enemy there still walks all the way back to the players in the hub.
         {
             var far = new List<ExpansionRoom>();

@@ -1,6 +1,6 @@
 # Rule rooms: big nodes that force a bigger room
 
-Status: **design agreed, step 1 built (protocol 306).** Owner, Nov 13, 2026: restriction rooms like the old paths (a dark room, ...) as **nodes, but bigger ones that force a
+Status: **design agreed, steps 1-2 built (protocol 307).** Owner, Nov 13, 2026: restriction rooms like the old paths (a dark room, ...) as **nodes, but bigger ones that force a
 bigger room**. First pool: all four below. Sits beside [`Nodes.md`](Nodes.md); the rules come from [`Paths.md`](Paths.md).
 
 ## The idea
@@ -47,3 +47,13 @@ Clearing it pays a reward.
   `RuleFor(seed, cycle)` picks its rule, the same on every machine. `NodeReach` (550 for a rule node, 250 otherwise) is the half side of the room the bots build round it (11 x 11) and the clear space kept round it.
 - Look (first pass): an orange square outline of the whole area on the arena floor, minimap and draw screen ink; the real look is step 3. The rule does nothing yet (step 2).
 - Tests (suite `expand`): placed, a 9 x 9 room claims it and smaller ones don't, `NodeStep` reaches it.
+
+## Step 2 (built, protocol 307)
+
+- A room that claims a rule node becomes a **Floor room** with the rule's ground (`Expansion.RuleFloor`: Dark = Fogbound, Frozen = Frozen Lake, Blood Moon, Burning = Burning Grounds, Swarm = Swarm Fields, Elite = Elite Gauntlet), a multi-box room all of it.
+  The rules are the old paths' own room-scoped ones, so they hold in that room only: ice sliding and chill, no regeneration or orbs and kill heals, fire patches, a doubled crowd (melee at 60% health) or doubled all-elite crowd, and kills there pay the path's XP and score bonus.
+- **Dark** is new as a room rule: the Fogbound mist (350 px sight round each player) comes on for the local player while they stand in a Fogbound room (`InDarkRoom`, `TickArenaRules`) and rolls off when they leave.
+- **Prize**: `MapNode.Cleared` (synced and saved) is set when a wave is cleared with the room claimed (`ClearRuleRooms`, from `WaveCleared`; not on boss waves). Dark, Burning, Swarm and Elite put a treasure chest at the node (the chest-node logic, `TickNodes`);
+  Blood Moon a relic to walk up to (`TickRelicNodes`); Frozen pays gold (40 + 4 a wave) and 8 vectors to everyone at once and spends the node. First guesses, tune with `vecbal`.
+- Look: nothing drawn in a claimed rule room until it is cleared, then the chest or relic fixture. The floors keep their path looks; a rule room's own look is step 3.
+- Tests (suite `expand`): each rule gives its ground, the way there is no rule room, Frozen pays once, a Dark room's chest only after clearing.

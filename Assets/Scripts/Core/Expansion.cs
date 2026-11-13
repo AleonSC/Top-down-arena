@@ -37,7 +37,8 @@ namespace Arena
         public NodeKind Kind;
         public bool Spent;   // a chest that has been opened
         public byte Rule;    // a rule node: its NodeRule
-        public bool Equals(MapNode o) => X == o.X && Y == o.Y && Kind == o.Kind && Spent == o.Spent && Rule == o.Rule;
+        public bool Cleared; // a rule node whose claimed room has been through a wave: its prize is out (Docs/RuleRooms.md)
+        public bool Equals(MapNode o) => X == o.X && Y == o.Y && Kind == o.Kind && Spent == o.Spent && Rule == o.Rule && Cleared == o.Cleared;
         public V2 Pos => new V2(X, Y);
     }
 
@@ -326,6 +327,24 @@ namespace Arena
         public const int MaxNodesWaiting = 6;             // unclaimed nodes on the map at once
 
         public const int RuleHalf = 400;  // a rule node covers 8 x 8 tiles round its point; the claiming room must enclose all of it
+
+/// The ground a rule node's room takes on: the old path whose rule it carries (Dark is Fogbound).
+        public static PathId RuleFloor(byte rule)
+        {
+            switch ((NodeRule)rule)
+            {
+                case NodeRule.Dark: return PathId.Fogbound;
+                case NodeRule.Frozen: return PathId.FrozenLake;
+                case NodeRule.BloodMoon: return PathId.BloodMoon;
+                case NodeRule.Burning: return PathId.BurningGrounds;
+                case NodeRule.Swarm: return PathId.SwarmFields;
+                default: return PathId.EliteGauntlet;
+            }
+        }
+
+        /// A cleared rule room's prize: a chest (Dark, Burning, Swarm, Elite), a relic (Blood Moon) or gold and vectors paid at once (Frozen).
+        public static bool RuleHoldsChest(MapNode n) => n.Kind == NodeKind.Rule && (NodeRule)n.Rule != NodeRule.Frozen && (NodeRule)n.Rule != NodeRule.BloodMoon;
+        public static bool RuleHoldsRelic(MapNode n) => n.Kind == NodeKind.Rule && (NodeRule)n.Rule == NodeRule.BloodMoon;
 
         public static int NodeHalf(MapNode n) => n.Kind == NodeKind.Rule ? RuleHalf : 0;
 
@@ -1702,6 +1721,23 @@ namespace Arena
                                 {
                                     areas[b].Kind = job;
                                     areas[b].Name += job == RoomKind.Shop ? " (shop)" : " (vendor)";
+                                }
+                            break;
+                        }
+                }
+            if (nodes != null)  // a built room that encloses a rule node takes that rule's ground (Docs/RuleRooms.md); a multi-box room all of it
+                foreach (var nd in nodes)
+                {
+                    if (nd.Kind != NodeKind.Rule)
+                        continue;
+                    for (int a = 1; a < n; a++)
+                        if (areas[a].Kind == RoomKind.Combat && NodeEncloses(rooms[a - 1], nd))
+                        {
+                            for (int b = 1; b < n; b++)
+                                if (b == a || areas[a].Group != 0 && areas[b].Group == areas[a].Group && areas[b].Kind == RoomKind.Combat)
+                                {
+                                    areas[b].Kind = RoomKind.Floor;
+                                    areas[b].Floor = RuleFloor(nd.Rule);
                                 }
                             break;
                         }
