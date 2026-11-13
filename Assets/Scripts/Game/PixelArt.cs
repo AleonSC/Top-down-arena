@@ -607,6 +607,21 @@ namespace Arena
                 "....kyyk....",
                 ".....kk.....",
             },
+            ["floorkit"] = new[]  // the Floor kit service (ShopUi.cs): red spikes up from a tiled floor with a hazard edge
+            {
+                ".k...k...k..",
+                "kwk.kwk.kwk.",
+                "krk.krk.krk.",
+                "krRkkrRkkrRk",
+                "krRkkrRkkrRk",
+                "kkkkkkkkkkkk",
+                "kgGgGgGgGgGk",
+                "kGgGgGgGgGgk",
+                "kgGgGgGgGgGk",
+                "kGgGgGgGgGgk",
+                "kykykykykykk",
+                "kkkkkkkkkkkk",
+            },
             ["ui_star"] = new[]
             {
                 "............",
