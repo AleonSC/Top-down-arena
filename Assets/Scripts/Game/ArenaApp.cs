@@ -526,8 +526,13 @@ namespace Arena
                 }
                 else if (session.IsHost && (game.State == MatchState.GameOver || game.State == MatchState.Victory) && !menuUp)
                 {
-                    if (Input.GetKeyDown(KeyCode.Y) && game.RetryReady && game.State == MatchState.GameOver)
-                        session.RetryRun();  // a life left: back to the last boss's checkpoint (Checkpoints.cs)
+                    if (game.RetryReady && game.State == MatchState.GameOver)
+                    {
+                        if (Input.GetKeyDown(KeyCode.Y))
+                            session.RetryRun();  // a life left: respawn at the wave's start (Checkpoints.cs, LivesUi.cs)
+                        else if (Input.GetKeyDown(KeyCode.N))
+                            game.GiveUpRetry();  // the run ends: the results come up
+                    }
                     else if (Input.GetKeyDown(KeyCode.R))
                         session.StartMatch();
                     else if (Input.GetKeyDown(KeyCode.L))

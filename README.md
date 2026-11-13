@@ -1217,7 +1217,7 @@ and green when it's easier. Hover a number for what it does.
 | Health orb drops (small) | 18% | **12%** | 9% | 6% | 0-50% |
 | Revive time | 3 s | **4 s** | 5 s | 6 s | 1-10 s |
 | Hit grace (after a hit) | 0.35 s | **0.25 s** | 0.2 s | 0.15 s | 0.05-1 s |
-| Lives (retries from the last boss's checkpoint) | 3 | **2** | 1 | 0 | 0-5 |
+| Lives (respawns at the start of the wave you went down on) | 3 | **2** | 1 | 0 | 0-5 |
 | Boss approach (the themed share of the wave before a boss) | 85% | **85%** | 85% | 85% | 0-100% |
 | Approach ramp (build up over the four waves) | On | **On** | On | On | On / Off |
 
@@ -1470,14 +1470,14 @@ about one message a second per player. Mockup: `Docs/Mockups/chat-box.html`.
 
 ## End of a run
 
-**Checkpoints and lives.** Every boss you beat leaves a **checkpoint** (the wave box after it says **CHECKPOINT SAVED**
-and the lives left). If everyone goes down and the run has a **life** left (the difficulty's Lives: Easy 3, Normal 2,
-Hard 1, Nightmare 0; a hearts chip over the wave panel shows them), the GAME OVER screen says where you'd restart and the
-host gets **Retry [Y]**: the run comes back exactly as it was at the checkpoint (everyone's upgrades, levels, gold, the
-map), a life used and **the score cut by a quarter**. Play again, Back to lobby or Leave instead ends the run for good.
-Closing the game keeps it at the checkpoint, so **Continue** retries it later (the saved-runs list shows the lives left).
-Out of lives, or before the first boss, it's a plain game over. A run won without using a life is **Deathless** (on the
-results screen and in Recent runs). Not in Boss Hunts or the Practice Range.
+**Lives.** If everyone goes down (solo: you) and the run has a **life** left (the difficulty's Lives: Easy 3, Normal 2,
+Hard 1, Nightmare 0; a hearts chip over the wave panel shows them), the ending holds before the results and a box asks
+**Respawn [Y]** or **Game over [N]** (the host chooses). Respawn replays the wave you went down on, the run exactly as it
+was when that wave started (everyone's upgrades, levels, gold, the map), a life used; the score is kept. Game over ends
+the run and shows the results. Closing the game keeps it at the wave's start, so **Continue** respawns it later (the
+saved-runs list shows the lives left). Out of lives it's a plain game over. A run won without using a life is
+**Deathless** (on the results screen and in Recent runs). Every boss beaten also leaves a **checkpoint** (CHECKPOINT
+SAVED in the wave box), the fallback if the wave's save is missing. Not in Boss Hunts, Quick Play or the Practice Range.
 
 When a run ends a results screen in the level-up picker's style says **GAME OVER** (red, with the boss that
 stopped you) or **VICTORY!** (gold), with the wave reached, time, score and total kills as tiles, then a card per
