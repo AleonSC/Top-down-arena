@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Arena;
 
@@ -135,5 +136,106 @@ static partial class Program
         var back = HuntMap.Restore(99, half.Path);
         Check(back != null && back.Step == 4 && back.Clues == half.Clues && Sig(back) == Sig(half) && back.Choices().SequenceEqual(half.Choices()), "the seed and the cleared path restore the map and the progress");
         Check(HuntMap.Restore(99, new[] { 0, 5 }) == null, "a path that doesn't fit the map is refused");
+    }
+    // A hunt played as a map over the network: the lobby switch, the map on both screens, the vote (a tie goes to the host, the timer picks
+    // for a party that doesn't), the picked node's wave (an Elite is tougher), the node cleared with the wave, the boss at the end.
+    static void HuntMapNetTest(float dt)
+    {
+        int port = nextPort++;
+        string wasFolder = Profile.Folder, dir = Path.Combine(Path.GetTempPath(), "arena-huntmap-" + Guid.NewGuid().ToString("N"));
+        Profile.Folder = dir;
+        var host = new Session();
+        var hp = host.Game.ProfileOverride = new Profile();
+        hp.BossBeaten(EnemyType.Boss, 5);
+        host.Host(port, "Host", Role.Tank);
+        var client = new Session();
+        client.Game.ProfileOverride = new Profile();
+        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        Action Sync = () => PollBoth(host, client);
+        WaitForLobby(host, client);
+        Sync();
+        host.SetMode(false, true);
+        Sync();
+        Check(!host.HuntMapMode && !client.HuntMapMode, "the hunt map switch is off by default: a Boss Hunt is the ten waves it always was");
+        client.SetHuntMapMode(true); Sync();
+        Check(!host.HuntMapMode, "only the host can turn the hunt map on");
+        host.SetHuntMapMode(true); Sync();
+        Check(host.HuntMapMode && client.HuntMapMode, "the host's switch shows in the friend's lobby");
+        client.RequestReady(true); host.RequestReady(true); Sync();
+        host.StartMatch();
+        WaitForGame(host, client, dt);
+        var g = host.Game; var c = client.Game;
+        Check(g.HuntMapOn && c.HuntMapOn && g.Hunt != null && c.Hunt != null, "both games play the hunt as a map");
+        Action keep = () =>
+        {
+            foreach (var p in g.Players.Values) { p.InvulnT = 1f; p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PrizePicks = 0; p.Offer = null; p.LegendaryQueue.Clear(); }
+            foreach (var e in g.Enemies.Values) if (!e.Def.IsBoss && g.Enemies.Count > 0) e.Hp = 0f;
+        };
+        Run(s, dt, 20f, () => g.HuntRoute != null && c.HuntRoute != null && c.HuntRoute.Seed == g.HuntRoute.Seed, keep);
+        Check(g.HuntRoute != null && c.HuntRoute != null && c.HuntRoute.Seed == g.HuntRoute.Seed, "the host rolls the map and the friend gets the same one");
+        Run(s, dt, 30f, () => g.Wave == 1 && g.State == MatchState.Fighting, keep);
+        Check(g.HuntRoute.Current != null && g.HuntRoute.Current.Step == 0 && g.HuntNodeAt(1) == HuntNodeType.Skirmish, "the first wave is the map's first node, picked with no vote");
+
+        var picked = new List<HuntNodeType> { HuntNodeType.Skirmish };
+        int votes = 0, timerPicks = 0, blocked = 0, eliteChecks = 0;
+        for (int w = 2; w <= Hunts.Length - 1; w++)
+        {
+            int want = w;
+            Run(s, dt, 200f, () => g.State == MatchState.Intermission && g.HuntRoute.Step == want - 1 && (g.HuntMapVoting || g.HuntRoute.Current != null), keep);
+            if (g.HuntMapVoting)
+            {
+                var choices = g.HuntRoute.Choices();
+                Run(s, dt, 1f, () => c.HuntMapVoting && c.HuntRoute.Step == want - 1, keep);
+                Run(s, dt, 2f, null, keep);
+                if (g.State == MatchState.Intermission && g.Wave == want - 1 && g.HuntMapVoting) blocked++;  // the countdown waits for the vote
+                Check(c.HuntMapVoting && c.HuntRoute.Choices().SequenceEqual(choices), "the vote is open on both screens with the same choices (wave " + w + ")");
+                int expect;
+                if (w == 5)
+                {
+                    g.HuntMapSeconds = 0.05f;  // nobody votes: the timer picks
+                    timerPicks++;
+                    expect = -1;
+                }
+                else if (w % 2 == 0)
+                {
+                    c.SendHuntVote(0, true); host.Poll(); Sync();
+                    g.SendHuntVote(1, true);  // a tie: the host's vote wins
+                    expect = choices[1];
+                }
+                else
+                {
+                    c.SendHuntVote(1, true); Sync();
+                    g.SendHuntVote(1, true);
+                    expect = choices[1];
+                }
+                votes++;
+                Run(s, dt, 3f, () => !g.HuntMapVoting && g.HuntRoute.Current != null && c.HuntRoute.Current != null, keep);
+                Check(g.HuntRoute.Current != null && (expect < 0 || g.HuntRoute.Current.Index == expect), "the vote picks the node (wave " + w + (expect < 0 ? ", the timer's pick" : "") + ")");
+            }
+            Check(g.HuntRoute.Current != null && Array.IndexOf(g.HuntRoute.Choices(), g.HuntRoute.Current.Index) >= 0, "the picked node is one of the cleared node's links (wave " + w + ")");
+            var type = g.HuntRoute.Current.Type;
+            Run(s, dt, 200f, () => g.Wave == w && g.State == MatchState.Fighting && c.HuntRoute != null && c.HuntRoute.Current != null && c.HuntRoute.Current.Index == g.HuntRoute.Current.Index, keep);
+            Check(g.Wave == w && g.HuntNodeAt(w) == type && c.HuntNodeAt(w) == type, "wave " + w + " is the picked node's: " + HuntMap.Name(type) + ", on both screens");
+            if (type == HuntNodeType.Elite)
+            {
+                eliteChecks++;
+                Check(g.ApproachStepAt(w) == Math.Min(4, Hunts.Step(w) + 1) && g.Bosses.FinaleWave(w), "an Elite wave is a step tougher and has the faction's set piece");
+            }
+            else
+                Check(g.ApproachStepAt(w) == Hunts.Step(w), "a Skirmish wave keeps the hunt's own strength");
+            picked.Add(type);
+        }
+        Console.WriteLine("  hunt map route: {0} ({1} votes, {2} by the timer, {3} Elites)", string.Join(" > ", picked.Select(t => HuntMap.Name(t))), votes, timerPicks, eliteChecks);
+        Check(blocked >= 1 || votes == 0, "the break's countdown waits for the vote");
+        Run(s, dt, 200f, () => g.Wave == Hunts.Length && Find(host, EnemyType.Boss) != null && !g.IsSpawning(Find(host, EnemyType.Boss)), keep);
+        Check(g.Wave == Hunts.Length && g.HuntNodeAt(Hunts.Length) == HuntNodeType.Boss && g.HuntRoute.Step == HuntMap.Steps - 1, "the last node is the boss, on wave 10");
+        Check(g.HuntRoute.Clues == Math.Min(HuntMap.MaxClues, picked.Count(t => t == HuntNodeType.Elite)), "the Elites cleared count as boss clues");
+        Find(host, EnemyType.Boss).Hp = 0f;
+        Run(s, dt, 8f, () => c.State == MatchState.Victory, keep);
+        Check(g.State == MatchState.Victory && c.State == MatchState.Victory, "beating the boss wins the hunt");
+        host.Leave(""); client.Leave("");
+        Profile.Folder = wasFolder;
+        try { Directory.Delete(dir, true); } catch (IOException) { }
     }
 }

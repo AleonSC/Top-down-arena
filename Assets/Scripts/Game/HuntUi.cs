@@ -228,6 +228,17 @@ namespace Arena
                         LobbyKit.Spaced(rr, rule, 10, dim, TextAnchor.MiddleCenter, 1f);
                         rx += rw + 6f;
                     }
+                    // The hunt map (Docs/HuntMap.md): off, the hunt is the ten waves in order.
+                    y2 += 30f;
+                    bool wasOn = GUI.enabled;
+                    GUI.enabled = wasOn && host;
+                    bool mapOn = DkSwitch(new Rect(x2, y2, w2, 26f), session.HuntMapMode, "Hunt map: vote on your route between waves");
+                    GUI.enabled = wasOn;
+                    if (host && mapOn != session.HuntMapMode)
+                        session.SetHuntMapMode(mapOn);
+                    Ui.Label(new Rect(x2 + 24f, y2 + 24f, w2 - 24f, 34f), session.HuntMapMode
+                        ? "Ten steps on a map. Each step the party votes on the next node: an Elite is a tougher wave and gives a boss clue. Wave " + Hunts.Length + " is still " + name + "."
+                        : "Off: the ten waves in order.", 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
                 }
             }
 
