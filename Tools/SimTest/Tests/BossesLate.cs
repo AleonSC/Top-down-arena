@@ -845,6 +845,7 @@ static partial class Program
         Action<float> Hold = secs => Run(s, dt, secs, null, quiet);
         // Caught: standing just outside a ring that's about to pass (it moves out at 150 px/s).
         me.Pos = center + new V2(0f, -200f);
+        me.InvulnT = 0f;  // (rings pass over an invulnerable player without hurting: start this without the earlier hit grace)
         var r1 = Ring(180f, 0f);  // gap to the right, the player is above
         float took = me.Run.DamageTaken;
         Hold(0.3f);

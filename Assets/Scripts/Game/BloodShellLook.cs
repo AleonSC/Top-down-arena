@@ -10,6 +10,8 @@ namespace Arena
     /// Drawing only: it reads the replicated ShellOn, health and the effects this screen has.
     public partial class ArenaApp
     {
+        readonly List<Vector2> shellDents = new List<Vector2>();  // (the shell's dents, refilled each draw)
+
         /// How much health the shell has left to spend before it bursts, 0..1.
         static float ShellReserve(Player p) => p.MaxHp > 0f ? Mathf.Clamp01((p.Hp - p.MaxHp * Game.ShellPopFrac) / (p.MaxHp * (1f - Game.ShellPopFrac))) : 0f;
 
@@ -33,7 +35,8 @@ namespace Arena
             float beat = Mathf.Pow(Mathf.Max(0f, Mathf.Sin(t * bpm / 60f * MathX.Pi)), 6f);
 
             // dents where bullets have just hit
-            var dents = new List<Vector2>();  // x = angle, y = strength
+            var dents = shellDents;  // x = angle, y = strength (one list, refilled each draw)
+            dents.Clear();
             foreach (var fx in game.Effects)
                 if (fx.Kind == FxKind.ShellHit && fx.Pos2.DistanceTo(p.Pos) < 40f)
                 {

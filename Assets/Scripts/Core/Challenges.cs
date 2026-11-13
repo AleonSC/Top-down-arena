@@ -467,8 +467,7 @@ namespace Arena
                 }
             foreach (int id in scratchIds)
             {
-                Bullets.Remove(id);
-                pendingRemoved.Add(id);
+                KillBullet(id);
             }
             if (scratchIds.Count > 0)
                 AddFx(FxKind.Spark, CrystalPos, Challenges.Accent(ChallengeKind.Defend), Challenges.CrystalR + 10f, 0.25f);

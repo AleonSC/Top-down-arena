@@ -349,7 +349,7 @@ namespace Arena
 
         void ModelHead(Player p, int kit, int role, ModelPal K, Rgba RC, float bodyR, float[] sh, float t)
         {
-            float x = sh[3], r = sh[2], w = Mathf.Sin(t * 3f) * 1.4f, ry = sh[1];
+            float x = sh[3], r = sh[2], w = Mathf.Sin(t * 3f) * 1.4f;
             if (role == 1) MArc(x, 0f, r + 3.4f, 0f, MathX.Tau, 1.3f, new Rgba(0.35f, 1f, 0.55f, 0.75f));  // the healer's halo
             switch ((Kit)kit)
             {

@@ -1,0 +1,15 @@
+name: Install mono
+description: mono-mcs and mono-runtime for the compile check and the sim suites
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      # (the runners' apt mirrors sometimes fail to resolve: retry with short timeouts instead of hanging for minutes)
+      run: |
+        for i in 1 2 3 4; do
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 update \
+            && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 install -y mono-mcs mono-runtime libmono-system-core4.0-cil \
+            && break
+          echo "apt failed (try $i), retrying"; sleep 20
+        done
+        command -v mcs && command -v mono

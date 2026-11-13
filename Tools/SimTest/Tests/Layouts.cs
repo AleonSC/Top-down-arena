@@ -128,9 +128,14 @@ static partial class Program
         Func<int> queued = () => ((IList)typeof(Game).GetField("spawnQueue", flags).GetValue(g)).Count
             + ((IList)typeof(Game).GetField("squadQueue", flags).GetValue(g)).Cast<object>().Sum(q => ((SquadDef)q).Members.Length);
         g.Wave = 3; g.BossSlot = false;
-        g.DevSetLayout(LayoutId.Open); buildWave.Invoke(g, new object[] { 3 }); int openCount = queued();
-        g.DevSetLayout(LayoutId.Cross); buildWave.Invoke(g, new object[] { 3 }); int laidCount = queued();
-        Console.WriteLine("  wave 3 enemies: {0} open, {1} on a floor plan", openCount, laidCount);
+        // (averaged over many builds: one roll is too coarse since a five-strong squad can make up half of wave 3)
+        int openCount = 0, laidCount = 0;
+        for (int k = 0; k < 40; k++)
+        {
+            g.DevSetLayout(LayoutId.Open); buildWave.Invoke(g, new object[] { 3 }); openCount += queued();
+            g.DevSetLayout(LayoutId.Cross); buildWave.Invoke(g, new object[] { 3 }); laidCount += queued();
+        }
+        Console.WriteLine("  wave 3 enemies over 40 builds: {0} open, {1} on a floor plan (x{2:0.00})", openCount, laidCount, laidCount / (float)openCount);
         Check(laidCount >= openCount * 1.2f && laidCount <= openCount * 1.45f, "a floor plan brings about " + (int)((Game.LayoutEnemyMult - 1f) * 100f) + "% more enemies");
         Quiet();
         g.Wave = 6; g.BossSlot = false;

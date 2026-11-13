@@ -459,13 +459,21 @@ namespace Arena
             }
         }
 
+        /// A small repeatable random number in [0, 1) from seed (xorshift), advancing it. The effects that crackle the same
+        /// way each frame use it (no closure allocated per effect per frame).
+        static float XorRand(ref uint seed)
+        {
+            seed ^= seed << 13;
+            seed ^= seed >> 17;
+            seed ^= seed << 5;
+            return (seed & 0xFFFFFF) / 16777216f;
+        }
         void DrawShatterFx(Effect fx, float f)
         {
             V2 c = fx.Pos, mid = fx.Pos2 - fx.Pos;
             float aim = mid.Angle, rr = mid.Length, half = fx.Radius, from = aim - half, span = half * 2f;
             float r0 = rr - 7f, r1 = rr + 9f;
             uint seed = (uint)((int)fx.Pos.X * 73856093 ^ (int)fx.Pos.Y * 19349663) | 1u;
-            Func<float> rnd = () => { seed ^= seed << 13; seed ^= seed >> 17; seed ^= seed << 5; return (seed & 0xFFFFFF) / 16777216f; };
             const float crackEnd = 0.18f;
             if (f < crackEnd)  // the shield whitens and cracks run across it
             {
@@ -474,12 +482,12 @@ namespace Arena
                 Arc(c, rr + 7f, 4f, Rgba.White.WithAlpha(0.95f), 20, from, span);
                 for (int n = 0; n < 5; n++)
                 {
-                    float a = from + span * (0.1f + 0.8f * rnd()), rad = r1 + 1f;
+                    float a = from + span * (0.1f + 0.8f * XorRand(ref seed)), rad = r1 + 1f;
                     V2 prev = c + V2.FromAngle(a) * rad;
                     for (int s = 1; s <= 3; s++)
                     {
                         rad = r1 + 1f - (r1 - r0 + 2f) * s / 3f * Mathf.Min(1f, k * 1.4f);
-                        a += (rnd() - 0.5f) * 0.25f;
+                        a += (XorRand(ref seed) - 0.5f) * 0.25f;
                         V2 next = c + V2.FromAngle(a) * rad;
                         Line(prev, next, 1.6f, Rgba.White.WithAlpha(0.6f + 0.4f * k));
                         prev = next;
@@ -493,21 +501,21 @@ namespace Arena
             var bright = fx.Color.Mix(Rgba.White, 0.7f).WithAlpha(fade);
             for (int n = 0; n < 10; n++)  // sparks
             {
-                V2 d = V2.FromAngle(aim + (rnd() - 0.5f) * span * 1.3f);
-                V2 tip = c + d * (rr + (40f + 50f * rnd()) * e);
+                V2 d = V2.FromAngle(aim + (XorRand(ref seed) - 0.5f) * span * 1.3f);
+                V2 tip = c + d * (rr + (40f + 50f * XorRand(ref seed)) * e);
                 Line(tip - d * 7f * (1f - g), tip, 2f, bright);
             }
             const int pieces = 9;
             var edges = new float[pieces + 1];
             for (int i = 1; i < pieces; i++)
-                edges[i] = (i + (rnd() - 0.5f) * 0.6f) / pieces;
+                edges[i] = (i + (XorRand(ref seed) - 0.5f) * 0.6f) / pieces;
             edges[pieces] = 1f;
             for (int i = 0; i < pieces; i++)
             {
                 float a0 = from + span * edges[i] + 0.02f, a1 = from + span * edges[i + 1] - 0.02f;
-                float speed = 40f + 25f * rnd(), spin = (rnd() - 0.5f) * 5f;
-                V2 off = V2.FromAngle((a0 + a1) / 2f + (rnd() - 0.5f) * 0.4f) * (speed * e);
-                DrawShieldPiece(c, a0, a1, r0 + 2f * rnd(), r1 - 2f * rnd(), off, spin * e, (a1 - a0) * 0.25f, fx.Color.WithAlpha(0.55f * fade), bright);
+                float speed = 40f + 25f * XorRand(ref seed), spin = (XorRand(ref seed) - 0.5f) * 5f;
+                V2 off = V2.FromAngle((a0 + a1) / 2f + (XorRand(ref seed) - 0.5f) * 0.4f) * (speed * e);
+                DrawShieldPiece(c, a0, a1, r0 + 2f * XorRand(ref seed), r1 - 2f * XorRand(ref seed), off, spin * e, (a1 - a0) * 0.25f, fx.Color.WithAlpha(0.55f * fade), bright);
             }
         }
 
@@ -718,14 +726,13 @@ namespace Arena
             Line(a0, e0, 2f, fx.Color.WithAlpha(0.7f * fade));
             Line(a1, e1, 2f, fx.Color.WithAlpha(0.7f * fade));
             uint seed = (uint)((int)fx.Pos.X * 73856093 ^ (int)fx.Pos.Y * 19349663 ^ (int)(f * 8f) * 83492791) | 1u;  // re-rolls a few times as it fades
-            Func<float> rnd = () => { seed ^= seed << 13; seed ^= seed >> 17; seed ^= seed << 5; return (seed & 0xFFFFFF) / 16777216f; };
             for (int k = 0; k < 3; k++)  // bolts running its length
             {
-                V2 prev = fx.Pos + side * ((rnd() - 0.5f) * w * Game.ArcNear);
+                V2 prev = fx.Pos + side * ((XorRand(ref seed) - 0.5f) * w * Game.ArcNear);
                 int n = Math.Max(4, (int)(len / 40f));
                 for (int i = 1; i <= n; i++)
                 {
-                    V2 next = fx.Pos + dir * (len * i / n) + side * ((rnd() - 0.5f) * w * 1.6f * Game.ArcTaper(len * i / n, len));
+                    V2 next = fx.Pos + dir * (len * i / n) + side * ((XorRand(ref seed) - 0.5f) * w * 1.6f * Game.ArcTaper(len * i / n, len));
                     Line(prev, next, k == 0 ? 3f : 1.5f, (k == 0 ? Rgba.White : fx.Color).WithAlpha(fade));
                     prev = next;
                 }
@@ -848,7 +855,6 @@ namespace Arena
                 return;
             V2 dir = to / reach, side = dir.Orthogonal();
             uint seed = (uint)((int)fx.Pos.X * 73856093 ^ (int)fx.Pos.Y * 19349663 ^ (int)fx.Pos2.X * 83492791) | 1u;
-            Func<float> rnd = () => { seed ^= seed << 13; seed ^= seed >> 17; seed ^= seed << 5; return (seed & 0xFFFFFF) / 16777216f; };
             float e = 1f - (1f - f) * (1f - f);  // fast out, slowing
             float fade = 1f - f;
             var ice = new Rgba(0.78f, 0.94f, 1f);
@@ -860,10 +866,10 @@ namespace Arena
             for (int i = 0; i < n; i++)
                 for (int sgn = -1; sgn <= 1; sgn += 2)
                 {
-                    float along = reach * (i + 0.3f + 0.4f * rnd()) / n;
-                    float tilt = (rnd() - 0.5f) * 0.8f, len = 7f + 6f * rnd();
+                    float along = reach * (i + 0.3f + 0.4f * XorRand(ref seed)) / n;
+                    float tilt = (XorRand(ref seed) - 0.5f) * 0.8f, len = 7f + 6f * XorRand(ref seed);
                     V2 heading = (side * sgn + dir * tilt).Normalized();
-                    V2 at = fx.Pos + dir * along + heading * (spread * e * (0.6f + 0.4f * rnd()));
+                    V2 at = fx.Pos + dir * along + heading * (spread * e * (0.6f + 0.4f * XorRand(ref seed)));
                     V2 back = at - heading * len, across = heading.Orthogonal() * 2.2f;
                     SetColor(ice.WithAlpha(0.95f * fade));
                     Tri(at + heading * 3f, back + across, back - across);

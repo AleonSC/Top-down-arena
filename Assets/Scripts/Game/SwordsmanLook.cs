@@ -79,7 +79,7 @@ namespace Arena
         /// The body, in place of the usual polygon. col is already tinted by status and the hit flash.
         void DrawSwordsmanBody(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            float f = e.Facing, s = r / 15f, R = Game.SwordReach, I = Game.SwordInner, H = Game.SwordHalf;
+            float f = e.Facing, s = r / 15f, R = Game.SwordReach, I = Game.SwordInner;
             V2 fwd = V2.FromAngle(f), side = fwd.Orthogonal();
 
             // the cloak trailing behind

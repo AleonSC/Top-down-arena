@@ -101,15 +101,7 @@ namespace Arena
         void GreatGuardBlock(Player p)
         {
             guardStopped.Clear();
-            foreach (var b in Bullets.Values)
-            {
-                if (!Defs.IsEnemyShot(b.Kind) || Defs.Unblockable(b.Kind))
-                    continue;
-                float d = b.Pos.DistanceTo(p.Pos);
-                if (Math.Abs(d - GreatGuardRadius) > GreatGuardBand + b.Radius || AngleTo(p.Pos, b.Pos, p.Aim) > GreatGuardHalfArc)
-                    continue;
-                guardStopped.Add(b.Id);
-            }
+            CollectShotsInArc(p.Pos, p.Aim, GreatGuardRadius, GreatGuardBand, GreatGuardHalfArc, guardStopped);
             bool full = false;
             foreach (int id in guardStopped)
             {
@@ -117,8 +109,7 @@ namespace Arena
                 if (!Bullets.TryGetValue(id, out b))
                     continue;
                 AddFx(FxKind.Spark, b.Pos, Defs.BulletColor(Defs.KnightSlash), 8f, 0.2f);
-                Bullets.Remove(id);
-                pendingRemoved.Add(id);
+                KillBullet(id);
                 if (p.GreatTemper < GreatTemperMax && ++p.GreatTemper == GreatTemperMax)
                     full = true;
             }

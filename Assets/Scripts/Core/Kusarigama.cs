@@ -212,7 +212,7 @@ namespace Arena
             p.KusariHit = true;
             p.KusariD0 = e.Pos.DistanceTo(p.Pos);
             WeaponHurt(e, dmg, p.Id);
-            OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
+            ModHit(e, p.Id, dmg, Defs.KnightSlash, dir);
             if (e.Hp > 0f && !e.Def.IsBoss)
             {
                 e.FrozenT = Math.Max(e.FrozenT, KusariThrowStun);
@@ -273,7 +273,7 @@ namespace Arena
                 hitAny = true;
                 WeaponHurt(e, dmg, p.Id);
                 Daze(e);  // Daze.cs
-                OnBulletHit(new Bullet { Pos = e.Pos, Vel = rel / d, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
+                ModHit(e, p.Id, dmg, Defs.KnightSlash, rel / d);
                 BroadcastFx(FxKind.Spark, p.Pos + rel / d * Math.Min(d, orbit), new Rgba(1f, 1f, 1f), 8f, 0.15f, Sfx.None);
             }
             if (hitAny)

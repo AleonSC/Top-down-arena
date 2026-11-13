@@ -158,6 +158,23 @@ namespace Arena
 
         /// Weapon mods apply to players' shots, but not to grenades (they land where you aim)
         /// or to Swarm Rounds' splinters.
+        /// n shots in an even ring at a random turn, flying out from at (starting spawnOff out), each stamped with the
+        /// enemy that fired it (source) and the enemy it mustn't hit first (lastHit).
+        void SpawnRing(byte kind, V2 at, int n, float speed, float life, float dmg, int owner, float spawnOff = 0f, EnemyType? source = null, int lastHit = 0)
+        {
+            float offset = Rand(0f, MathX.Tau);
+            for (int i = 0; i < n; i++)
+            {
+                V2 d = V2.FromAngle(offset + MathX.Tau * i / n);
+                var s = SpawnBullet(kind, at + d * spawnOff, d * speed, 0f, life, dmg, owner);
+                s.Source = source;
+                s.LastHit = lastHit;
+            }
+        }
+
+        /// Shots thrown in an arc (grenades, boulders, Clot Cannon clots, medkits): they fly over what's below and land.
+        static bool Lobbed(byte kind) => kind == Defs.GrenadeShot || kind == Defs.BoulderShot || kind == Defs.ClotShot || kind == Defs.MedkitShot;
+
         static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed && kind != Defs.SteelShard && kind != Defs.Caltrop;
 
         Bullet MakeBullet(int id, byte kind, int owner, V2 pos, V2 vel, float angVel, float life, bool fromBoss = false, float homing = 0f)
@@ -201,12 +218,7 @@ namespace Arena
             foreach (var e in Enemies.Values)
                 if (e.SpawnT <= 0f && e.Pos.DistanceTo(b.Pos) < b.Splash + e.Radius)
                     HurtEnemy(e, b.Dmg, b.Owner);
-            float offset = Rand(0f, MathX.Tau);
-            for (int i = 0; i < b.Burst; i++)
-            {
-                V2 dir = V2.FromAngle(offset + MathX.Tau * i / b.Burst);
-                SpawnBullet(Defs.DpsShot, b.Pos, dir * 520f, 0f, 0.45f, b.Dmg * 0.12f, b.Owner);
-            }
+            SpawnRing(Defs.DpsShot, b.Pos, b.Burst, 520f, 0.45f, b.Dmg * 0.12f, b.Owner);
             BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.GrenadeShot), b.Splash, 0.35f, Sfx.Explode);
             PropBlast(b.Pos, b.Splash, b.Owner);  // sets barrels off (Props.cs)
             GateLockBlast(b.Pos, b.Splash, b.Owner);  // and cracks a Warden gate's lock (Warden.cs)
@@ -235,14 +247,14 @@ namespace Arena
                     b.Vel = b.Vel.Rotated(b.AngVel * dt);
                 if (b.Homing > 0f)
                     Steer(b, dt);
-                if (wellsUp && b.Owner != 0 && b.Kind != Defs.GrenadeShot && b.Kind != Defs.BoulderShot && b.Kind != Defs.ClotShot && b.Kind != Defs.MedkitShot)
+                if (wellsUp && b.Owner != 0 && !Lobbed(b.Kind))
                     PullIntoWells(b, dt);
                 float lumen = LumenSpeed(b, dt);  // 1 normally; falls to 0 as a Lumen Ward holds it still (LumenWard.cs)
                 if (b.Kind == Defs.PauseShot)
                     b.Pos += b.Vel * (dt * PauseSpeedNow(b) * SmokeSpeed(b) * lumen);  // slows to a stop, then hangs (Variety.cs)
                 else
                     b.Pos += b.Vel * (dt * SmokeSpeed(b) * lumen);
-                if (!wind.IsZero && b.Kind != Defs.GrenadeShot && b.Kind != Defs.BoulderShot && b.Kind != Defs.ClotShot && b.Kind != Defs.MedkitShot)
+                if (!wind.IsZero && !Lobbed(b.Kind))
                     b.Pos += wind * dt;
                 b.Life -= dt * lumen;  // a held bullet doesn't run out of range
                 if (domesUp && Defs.IsEnemyShot(b.Kind) && InDome(b.Pos))
@@ -319,12 +331,7 @@ namespace Arena
                     ExplodeGrenade(b);
                     continue;
                 }
-                float offset = Rand(0f, MathX.Tau);
-                for (int i = 0; i < b.Burst; i++)
-                {
-                    V2 dir = V2.FromAngle(offset + MathX.Tau * i / b.Burst);
-                    SpawnBullet(Defs.SmallShot, b.Pos, dir * 125f, 0f, 8f, Defs.BulletDamage(Defs.SmallShot), 0).Source = b.Source;  // a mortar bomb's ring (was 150)
-                }
+                SpawnRing(Defs.SmallShot, b.Pos, b.Burst, 125f, 8f, Defs.BulletDamage(Defs.SmallShot), 0, source: b.Source);  // a mortar bomb's ring (was 150)
                 BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.MineShot), 30f, 0.3f, Sfx.Hit);
             }
         }
@@ -444,9 +451,9 @@ namespace Arena
             FindEclipseMoon();    // the Eclipse's moon (Eclipse.cs)
             foreach (var b in Bullets.Values)
             {
-                if (b.Kind == Defs.GrenadeShot || b.Kind == Defs.BoulderShot || b.Kind == Defs.ClotShot || b.Kind == Defs.MedkitShot || b.Kind == Defs.FlakShell || b.Ward || b.Tossed)
+                if (Lobbed(b.Kind) || b.Kind == Defs.FlakShell || b.Ward || b.Tossed)
                     continue;  // grenades, boulders, Clot Cannon clots, medkits, flak shells and tossed caltrops fly over enemies and land or burst where you aimed
-                if (LayoutOn && SolidStops(b))
+                if (LayoutOn && SolidStops(b) && !WallBounce(b))
                 {
                     scratchIds.Add(b.Id);  // a wall or pillar stops every shot (LayoutRules.cs)
                     continue;
@@ -480,7 +487,7 @@ namespace Arena
                     }
                     foreach (var e in Enemies.Values)
                     {
-                        if (!Targetable(e) || e.Id == b.LastHit || DevourUnder(e))
+                        if (!Targetable(e) || e.Id == b.LastHit || e.Id == b.PrevHit || DevourUnder(e))
                             continue;  // (the Devourer underground: shots pass over it)
                         float r = e.Radius + b.Radius;
                         if (b.Pos.DistanceSq(e.Pos) < r * r)
@@ -523,6 +530,7 @@ namespace Arena
                             foreach (var onHit in Classes.HitHooks)  // each class's KitDef.OnShotHit (BloodShotHit: Blood Mage shots drain, pool and drop orbs)
                                 onHit(this, b, e, hit);
                             OnBulletHit(b, e);
+                            b.PrevHit = b.LastHit;
                             b.LastHit = e.Id;
                             if (b.Frags > 0)
                                 frags.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = b.Owner, LastHit = e.Id, Frags = b.Frags, FragKind = b.FragKind,
@@ -677,8 +685,7 @@ namespace Arena
                 if (!Bullets.TryGetValue(id, out b))
                     continue;
                 RemovedFx(b);
-                Bullets.Remove(id);
-                pendingRemoved.Add(id);
+                KillBullet(id);
             }
 
             foreach (var rb in reflects)
@@ -763,12 +770,7 @@ namespace Arena
                     HurtEnemy(hit, sp.Dmg * sp.Pierce * SwarmAloneShare, sp.Owner);  // alone (a boss): the splinters bite the enemy hit
                     continue;
                 }
-                float offset = Rand(0f, MathX.Tau);
-                for (int i = 0; i < sp.Pierce; i++)
-                {
-                    V2 d = V2.FromAngle(offset + MathX.Tau * i / sp.Pierce);
-                    SpawnBullet(Defs.SwarmShot, sp.Pos + d * 6f, d * 520f, 0f, 0.35f, sp.Dmg, sp.Owner).LastHit = sp.LastHit;
-                }
+                SpawnRing(Defs.SwarmShot, sp.Pos, sp.Pierce, 520f, 0.35f, sp.Dmg, sp.Owner, 6f, lastHit: sp.LastHit);
             }
 
             // Flak shells (and Collapse Rounds) hurt everything near the impact, at 60% damage.
@@ -944,8 +946,7 @@ namespace Arena
                 }
                 if (s.SlowOnHit > 0f)
                 {
-                    e.SlowT = Math.Max(e.SlowT, 2f);
-                    e.SlowMult = Math.Min(e.SlowMult, 1f - s.SlowOnHit);
+                    Slow(e, 2f, 1f - s.SlowOnHit);
                 }
                 e.LastHitBy = attacker;
                 p.Run.DamageDealt += Math.Min(dmg, Math.Max(0f, e.Hp));
@@ -996,6 +997,19 @@ namespace Arena
         readonly List<Bullet> ricochets = new List<Bullet>();
         readonly List<Bullet> hops = new List<Bullet>();  // Sprite Staff fireflies that landed and may hop on (KitWeapons.cs)
 
+        /// Host: a bullet is gone (stopped, cut, popped): off the field here, and the clients are told.
+        void KillBullet(int id)
+        {
+            Bullets.Remove(id);
+            pendingRemoved.Add(id);
+        }
+
+        /// A hit that isn't a bullet (a swing, a burst, a beam, a minion's bite) going through OnBulletHit as if it were one,
+        /// so weapon mods and legendaries apply: a stand-in shot of this kind, at the enemy, flying along vel. (The damage
+        /// itself is dealt by the caller, with HurtEnemy.)
+        void ModHit(Enemy e, int owner, float dmg, byte kind, V2 vel, float slow = 0f) =>
+            OnBulletHit(new Bullet { Pos = e.Pos, Vel = vel, Owner = owner, Dmg = dmg, Kind = kind, SlowAmt = slow }, e);
+
         /// Legendary on-hit effects that spawn things (run after the collision loop).
         void OnBulletHit(Bullet b, Enemy e)
         {
@@ -1026,8 +1040,7 @@ namespace Arena
             }
             if (b.SlowAmt > 0f && !e.Def.IsBoss)
             {
-                e.SlowT = Math.Max(e.SlowT, 1.5f);
-                e.SlowMult = Math.Min(e.SlowMult, 1f - b.SlowAmt);
+                Slow(e, 1.5f, 1f - b.SlowAmt);
             }
             Player p;
             if (!Players.TryGetValue(b.Owner, out p))
@@ -1054,12 +1067,10 @@ namespace Arena
             }
             if (s.CryoSlow > 0f && !Heavy(e))
             {
-                e.SlowT = Math.Max(e.SlowT, 2f);
-                e.SlowMult = Math.Min(e.SlowMult, 1f - s.CryoSlow);
+                Slow(e, 2f, 1f - s.CryoSlow);
                 if (!e.Def.IsBoss && rng.NextDouble() < s.FreezeChance)
                 {
-                    e.SlowT = Math.Max(e.SlowT, 1f);
-                    e.SlowMult = 0.1f;  // frozen solid
+                    Slow(e, 1f, 0.1f);  // frozen solid
                     BroadcastFx(FxKind.Spark, e.Pos, Defs.BulletColor(Defs.FrostShot), e.Radius + 12f, 0.35f, Sfx.None);
                 }
             }

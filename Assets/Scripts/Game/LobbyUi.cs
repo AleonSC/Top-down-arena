@@ -11,7 +11,7 @@ namespace Arena
         
         static readonly Color ModColor = new Color(0.85f, 0.45f, 0.95f);
 
-        int lobbyTab;              // 0 = your loadout, 1 = practice waves, 2 = modifiers, 3 = difficulty, 4 = boss hunt, 5 = perks, 6 = hangout
+        int lobbyTab;              // 0 = your loadout (its own key), 1 = practice waves, 2 = modifiers, 3 = difficulty, 4 = boss hunt, 5 = perks (from the loadout), 6 = hangout
         bool lobbyWasPractice, lobbyWasHunt, lobbyWasQuick;
         bool connInfoOpen;         // the "!" popup by the title: hosting/port and the invite addresses
         readonly Player previewPlayer = new Player { Id = -100 };
@@ -48,33 +48,30 @@ namespace Arena
             LobbyEntry me;
             session.Lobby.TryGetValue(session.MyId, out me);
             bool practice = session.PracticeMode;
+            // A mode change keeps the open tab (the Loadout stays up); the carousel turns to the new mode's own tab, first in its order.
             if (practice != lobbyWasPractice)
             {
-                lobbyTab = practice ? 1 : 0;  // jump to the waves when the host turns practice on
                 lobbyWasPractice = practice;
+                tabRest = 0;
             }
             if (!practice && (lobbyTab == 1 || lobbyTab == TrainingTab))
                 lobbyTab = 0;
             bool hunt = session.HuntMode && !practice && session.Resume == null;
             if (hunt != lobbyWasHunt)
             {
-                if (hunt)
-                    lobbyTab = 4;  // to the boss picker when the host picks Boss Hunt (HuntUi.cs)
                 lobbyWasHunt = hunt;
+                tabRest = 0;
             }
             if (!hunt && lobbyTab == 4)
                 lobbyTab = 0;
             bool quick = session.QuickMode && !practice && !hunt && session.Resume == null;
             if (quick != lobbyWasQuick)
             {
-                if (quick)
-                    lobbyTab = QuickTab;  // to the Quick Play tab when the host picks it (QuickPlayUi.cs)
                 lobbyWasQuick = quick;
+                tabRest = 0;
             }
             if (!quick && lobbyTab == QuickTab)
                 lobbyTab = 0;
-            if (practice && lobbyTab == PerkTab)
-                lobbyTab = 0;  // perks are off in the Practice Range
             // The big boxes wear the shown role's colour (the bot's while the host is choosing its loadout), easing to a new role over about 0.7 s.
             LobbyEntry washFor = me;
             var washBot = session.IsHost ? partyBots.Find(editBotId) : null;
@@ -145,7 +142,10 @@ namespace Arena
                 Ui.Label(new Rect(lx, y - 4f, lw, LobbyNoteY - (y - 4f)), session.Status, 12, Ui.Warn, TextAnchor.LowerLeft, false, true);
 
             // --- Right: the tab keys, then your loadout or the practice waves.
-            DrawLobbyTabs(LobbyTabsRect, practice);  // centred over the loadout box (LobbyLayout.cs)
+            bool onLoadout = lobbyTab == 0 || lobbyTab == PerkTab;
+            if (LobbyKit.Key(LobbyLoadoutKey, session.Resume != null ? "SEATS" : "LOADOUT", onLoadout, calm, size: 16, minSize: 11) && lobbyTab != 0)
+                lobbyTab = 0;  // the fixed Loadout key (LobbyLayout.cs); Perks opens from a key on the loadout
+            DrawLobbyTabs(LobbyTabsRect, practice);  // beside the Loadout key (LobbyLayout.cs)
             var body = LobbyBodyRect;
             TickHangoutAnim();  // LobbyRoom.cs
             if (hangoutAnim > 0f && hangoutAnim < 1f && me != null && session.Resume == null)
@@ -162,7 +162,7 @@ namespace Arena
                 DrawModifiers(body, t);
             else if (lobbyTab == 3)
                 DrawDifficulty(body, t);  // DifficultyUi.cs
-            else if (lobbyTab == PerkTab && !practice)
+            else if (lobbyTab == PerkTab)
                 DrawPerks(body, t);  // PerksUi.cs
             else if (lobbyTab == HangoutTab)
                 DrawHangout(body, t);  // LobbyRoom.cs
@@ -313,23 +313,26 @@ namespace Arena
             }
         }
 
-        /// The tab keys across the top of the big screen: the same order in every mode (the shared tabs, then the mode's own at the end).
+        /// The tab carousel right of the Loadout key: the mode's own tabs, then Difficulty and Modifiers (Loadout and Perks have their own keys).
         void DrawLobbyTabs(Rect r, bool practice)
         {
             int mods = Modifiers.Count(session.Modifiers);
             bool hunt = session.HuntMode && !practice && session.Resume == null;
-            // Indexed by tab id (0 loadout, 1 practice, 2 modifiers, 3 difficulty, 4 boss hunt, 5 perks, 6 hangout, 7 training, 8 quick play); null = not shown.
-            string[] names = { session.Resume != null ? "Seats" : "Loadout", practice ? "Practice  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers",
-                "Difficulty", hunt ? "Boss hunt" : null, practice ? null : "Perks", null, practice ? "Training" : null,
+            // Indexed by tab id (0 loadout and 5 perks: not in the carousel; 1 practice, 2 modifiers, 3 difficulty, 4 boss hunt, 5 perks, 6 hangout, 7 training, 8 quick play); null = not shown.
+            string[] names = { null, practice ? "Practice  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers",
+                "Difficulty", hunt ? "Boss hunt" : null, null, null, practice ? "Training" : null,
                 session.QuickMode && !practice && !hunt && session.Resume == null ? "Quick Play" : null };  // Hangout has its own key on the Party line
-            int[] order = { 0, PerkTab, 3, 2, 1, TrainingTab, 4, QuickTab };
+            int[] order = { 4, QuickTab, 1, TrainingTab, 3, 2 };  // the mode's own first, then Difficulty and Modifiers (Loadout and Perks have keys)
             // A carousel (like the mode carousel above the party): the open tab in the middle, the others in order either side,
             // smaller and fading toward the ends; the arrows, the mouse wheel or a click on a tab slide it.
             var shown = new System.Collections.Generic.List<int>();
             foreach (int i in order)
                 if (names[i] != null)
                     shown.Add(i);
-            int n = shown.Count, cur = Mathf.Max(0, shown.IndexOf(lobbyTab));
+            int n = shown.Count, open = shown.IndexOf(lobbyTab);
+            if (open >= 0)
+                tabRest = open;  // on the Loadout (not in the carousel) it rests where it was
+            int cur = Mathf.Clamp(tabRest, 0, n - 1);
             var ev = Event.current;
             // tabTurnPos is unwrapped (cur = pos mod n): turn the short way round to the open tab.
             float diff = ((cur - tabTurnPos) % n + n) % n;
@@ -349,12 +352,13 @@ namespace Arena
                     tabTurnPos = Mathf.Round(tabTurnPos);
             }
             int want = cur;
+            bool wantOpen = false;
             if (ev.type == EventType.ScrollWheel && GUI.enabled && r.Contains(ev.mousePosition))
             {
                 want = cur + (ev.delta.y > 0f ? 1 : -1);
                 ev.Use();
             }
-            const float arrowW = 22f, gap = 6f, bigW = 168f, smallW = 128f, step = 152f;
+            const float arrowW = 22f, gap = 6f, bigW = 160f, smallW = 116f, step = 140f, farStep = 104f;  // (fits the carousel beside the Loadout key)
             float cx = r.center.x, half = r.width / 2f - arrowW - gap;
             float oldAlpha = Ui.Alpha;
             for (int k = 0; k < n; k++)
@@ -365,8 +369,8 @@ namespace Arena
                     d -= n;  // the open tab at 0, the rest either side
                 float ad = Mathf.Abs(d);
                 float w = Mathf.Lerp(bigW, smallW, Mathf.Clamp01(ad));
-                float x = cx + Mathf.Sign(d) * (step * Mathf.Min(ad, 1f) + 124f * Mathf.Max(0f, ad - 1f));  // the far ones closer in
-                float edge = Mathf.Clamp01((half - (Mathf.Abs(x - cx) + w / 2f)) / 50f + 1f);  // fades out at the arrows
+                float x = cx + Mathf.Sign(d) * (step * Mathf.Min(ad, 1f) + farStep * Mathf.Max(0f, ad - 1f));  // the far ones closer in
+                float edge = Mathf.Clamp01((half - (Mathf.Abs(x - cx) + w / 2f)) / 30f + 1f);  // fades out at the arrows
                 float a = (1f - 0.25f * Mathf.Clamp01(ad)) * Mathf.Clamp01((2.4f - ad) / 0.9f) * edge;
                 if (a <= 0.02f)
                     continue;
@@ -379,7 +383,10 @@ namespace Arena
                 bool click = LobbyKit.QuietTab(tr, names[i].ToUpperInvariant(), on, a > 0.4f);
                 Ui.Alpha = oldAlpha;
                 if (click && !on)
+                {
                     want = k;
+                    wantOpen = true;
+                }
             }
             for (int side = -1; side <= 1; side += 2)
             {
@@ -390,12 +397,13 @@ namespace Arena
                     want = cur + side;
             }
             want = ((want % n) + n) % n;
-            if (want != cur)
+            if (want != cur || (open < 0 && wantOpen))
                 lobbyTab = shown[want];
         }
 
         // The tab carousel's turn (unwrapped: the open tab is tabTurnPos mod the tab count), easing toward the open tab.
         float tabTurnPos;
+        int tabRest;  // the carousel's middle tab while the Loadout is open
         bool tabTurnSet;
         int tabTurnCount;
 
@@ -679,6 +687,8 @@ namespace Arena
             }  // (LobbyRoom.cs: the Hangout grows out of this window)
             // The role / class title (look B: the role small over the class), then the stats.
             DrawRoleClassTitle(new Rect(lx, view.yMax + 8f, lw, 58f), me, roleColor, calm);
+            if (self && session.Resume == null)
+                DrawPerksKey(new Rect(lx, view.yMax + 8f, lw, 58f), calm);  // PerksUi.cs: opens the Perks view
             int hp = (int)(Defs.Get(me.Role).Hp * Defs.KitHpMult(me.Kit));
             var wdef = Defs.Weapon(me.Role, me.Kit, me.Weapon);
             previewPlayer.Role = me.Role;  // (set here too: the party cards' live models set it, but they can be paused)

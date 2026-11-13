@@ -322,7 +322,7 @@ namespace Arena
                 added = true;
                 DoLog("a floating " + rk + " room appears at " + f.Value.X + "," + f.Value.Y);
             }
-            foreach (var kind in new[] { NodeKind.Chest })  // (old saves may still hold shop and vendor nodes: they work as before)
+            foreach (var kind in cycle % 2 == 0 ? new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.Rule } : new[] { NodeKind.Chest, NodeKind.Rule })  // (a relic node every other cycle, a rule node every cycle; old saves may still hold shop and vendor nodes)
             {
                 if (Expansion.UnclaimedCount(Expanded, Nodes) >= Expansion.MaxNodesWaiting)
                     break;
@@ -405,11 +405,12 @@ namespace Arena
         {
             if (!IsHost || !ExpandingOn || Nodes.Count == 0)
                 return;
+            TickRelicNodes();  // Relics.cs
             for (int i = 0; i < Nodes.Count; i++)
             {
                 var nd = Nodes[i];
-                if (nd.Kind != NodeKind.Chest || nd.Spent || !Expansion.NodeClaimed(Expanded, nd))
-                    continue;
+                if (nd.Kind != NodeKind.Chest && !(Expansion.RuleHoldsChest(nd) && nd.Cleared) || nd.Spent || !Expansion.NodeClaimed(Expanded, nd))
+                    continue;  // (a rule room's chest comes out once the room is cleared)
                 int id;
                 Prop pr;
                 if (nodeChests.TryGetValue(i, out id) && Props.TryGetValue(id, out pr))
@@ -426,6 +427,39 @@ namespace Arena
                 nodeChests[i] = AddProp(PropKind.Chest, nd.Pos).Id;
             }
         }
+
+        /// Host, as a wave is cleared: every claimed rule room has been through that wave, so its prize comes out (Docs/RuleRooms.md): a chest at the
+        /// node, a relic to walk up to, or for Frozen gold and vectors for everyone at once (which spends the node).
+        void ClearRuleRooms()
+        {
+            if (!IsHost || !ExpandingOn || BossNow || Practice != null)
+                return;
+            bool changed = false;
+            for (int i = 0; i < Nodes.Count; i++)
+            {
+                var nd = Nodes[i];
+                if (nd.Kind != NodeKind.Rule || nd.Cleared || !Expansion.NodeClaimed(Expanded, nd))
+                    continue;
+                nd.Cleared = true;
+                if (!Expansion.RuleHoldsChest(nd) && !Expansion.RuleHoldsRelic(nd))
+                {
+                    nd.Spent = true;
+                    foreach (var p in Players.Values)
+                    {
+                        p.Gold += RuleGold + RuleGoldPerWave * Wave;
+                        AddVectors(p, RuleVectors);
+                    }
+                }
+                Nodes[i] = nd;
+                changed = true;
+                BroadcastFx(FxKind.Ring, nd.Pos, new Rgba(1f, 0.6f, 0.3f), 140f, 0.6f, Sfx.Pick);
+                DoLog("a rule room is cleared: " + (NodeRule)nd.Rule);
+            }
+            if (changed)
+                BroadcastExpansion();
+        }
+
+        const int RuleGold = 40, RuleGoldPerWave = 4, RuleVectors = 8;  // (a cleared Frozen room's prize; first guesses, tune with vecbal)
 
         /// Host: the moment a node's chest opens, the node is spent (the opened chest is removed soon after, maybe between waves when TickNodes doesn't run).
         void SpendNodeOfChest(Prop c)
@@ -1187,10 +1221,10 @@ namespace Arena
 
         static void WriteRooms(BinaryWriter w, IList<ExpansionRoom> list)
         {
-            w.Write((byte)list.Count);
+            w.Write((ushort)list.Count);  // (ushort: a big map can pass 255)
             foreach (var r in list)
             {
-                w.Write((byte)r.Parent);
+                w.Write((short)r.Parent);
                 w.Write((short)r.X); w.Write((short)r.Y); w.Write((short)r.W); w.Write((short)r.H);
                 w.Write((byte)r.Kind); w.Write((byte)r.Floor);
                 w.Write((short)r.Price);
@@ -1204,11 +1238,11 @@ namespace Arena
 
         static List<ExpansionRoom> ReadRooms(BinaryReader r)
         {
-            int n = r.ReadByte();
+            int n = r.ReadUInt16();
             var list = new List<ExpansionRoom>(n);
             for (int i = 0; i < n; i++)
             {
-                var room = new ExpansionRoom { Parent = r.ReadByte(), X = r.ReadInt16(), Y = r.ReadInt16(), W = r.ReadInt16(), H = r.ReadInt16() };
+                var room = new ExpansionRoom { Parent = r.ReadInt16(), X = r.ReadInt16(), Y = r.ReadInt16(), W = r.ReadInt16(), H = r.ReadInt16() };
                 room.Kind = (RoomKind)r.ReadByte();
                 room.Floor = (PathId)r.ReadByte();
                 room.Price = r.ReadInt16();
@@ -1227,35 +1261,35 @@ namespace Arena
         {
             var w = Proto.Begin(Msg.ExpandState);
             WriteRooms(w, Expanded);
-            w.Write((byte)Openings.Count);
+            w.Write((ushort)Openings.Count);  // (ushort: a big map can pass 255)
             foreach (var c in Openings)
             {
                 w.Write(c.Vertical); w.Write(c.At); w.Write(c.From); w.Write(c.Till);
             }
-            w.Write((byte)Links.Count);
+            w.Write((ushort)Links.Count);  // (ushort: a big map can pass 255)
             foreach (var l in Links)
             {
                 w.Write(l.AX); w.Write(l.AY); w.Write(l.BX); w.Write(l.BY);
             }
-            w.Write((byte)Placed.Count);
+            w.Write((ushort)Placed.Count);  // (ushort: a big map can pass 255)
             foreach (var b in Placed)
             {
                 w.Write((byte)b.Kind); w.Write(b.X); w.Write(b.Y);
             }
-            w.Write((byte)GateFits.Count);
+            w.Write((ushort)GateFits.Count);  // (ushort: a big map can pass 255)
             foreach (var g in GateFits)
             {
                 w.Write(g.X); w.Write(g.Y); w.Write(g.Vertical);
             }
-            w.Write((byte)RoomTokens.Count);
+            w.Write((ushort)RoomTokens.Count);  // (ushort: a big map can pass 255)
             foreach (var t in RoomTokens)
             {
                 w.Write((byte)t.Kind); w.Write((byte)t.Floor);
             }
-            w.Write((byte)Nodes.Count);
+            w.Write((ushort)Nodes.Count);  // (ushort: a big map can pass 255)
             foreach (var nd in Nodes)
             {
-                w.Write(nd.X); w.Write(nd.Y); w.Write((byte)nd.Kind); w.Write(nd.Spent);
+                w.Write(nd.X); w.Write(nd.Y); w.Write((byte)nd.Kind); w.Write(nd.Spent); w.Write(nd.Rule); w.Write(nd.Cleared);
             }
             w.Write(EventMark.HasValue);  // the breach event's gold breach (BreachEvent.cs)
             w.Write((short)(EventMark.HasValue ? EventMark.Value.X : 0f)); w.Write((short)(EventMark.HasValue ? EventMark.Value.Y : 0f));
@@ -1307,7 +1341,7 @@ namespace Arena
                     NoteSurprise(Expanded[Expanded.Count - 1].Surprise);  // (the host's gift, after a boss or from a breach event: the build-in and the chip; a joiner mid-run gets the rooms quietly)
                 }
             }
-            int nc = r.ReadByte();
+            int nc = r.ReadUInt16();
             var cuts = new List<WallCut>(nc);
             for (int i = 0; i < nc; i++)
                 cuts.Add(new WallCut { Vertical = r.ReadBoolean(), At = r.ReadInt16(), From = r.ReadInt16(), Till = r.ReadInt16() });
@@ -1321,7 +1355,7 @@ namespace Arena
                 expWorld = null;
                 LayoutAge = 0f;
             }
-            int nl = r.ReadByte();
+            int nl = r.ReadUInt16();
             var links = new List<PortalLink>(nl);
             for (int i = 0; i < nl; i++)
                 links.Add(new PortalLink { AX = r.ReadInt16(), AY = r.ReadInt16(), BX = r.ReadInt16(), BY = r.ReadInt16() });
@@ -1335,22 +1369,22 @@ namespace Arena
                 expWorld = null;
                 LayoutAge = 0f;
             }
-            int npb = r.ReadByte();
+            int npb = r.ReadUInt16();
             Placed.Clear();
             for (int i = 0; i < npb; i++)
                 Placed.Add(new PlacedBuild { Kind = (BuildKind)r.ReadByte(), X = r.ReadInt16(), Y = r.ReadInt16() });
-            int ng = r.ReadByte();
+            int ng = r.ReadUInt16();
             GateFits.Clear();
             for (int i = 0; i < ng; i++)
                 GateFits.Add(new GateFit { X = r.ReadInt16(), Y = r.ReadInt16(), Vertical = r.ReadBoolean() });
             RoomTokens.Clear();
-            int nt = r.ReadByte();
+            int nt = r.ReadUInt16();
             for (int i = 0; i < nt; i++)
                 RoomTokens.Add(new RoomToken { Kind = (RoomKind)r.ReadByte(), Floor = (PathId)r.ReadByte() });
-            int nn = r.ReadByte();
+            int nn = r.ReadUInt16();
             var nodes = new List<MapNode>(nn);
             for (int i = 0; i < nn; i++)
-                nodes.Add(new MapNode { X = r.ReadInt16(), Y = r.ReadInt16(), Kind = (NodeKind)r.ReadByte(), Spent = r.ReadBoolean() });
+                nodes.Add(new MapNode { X = r.ReadInt16(), Y = r.ReadInt16(), Kind = (NodeKind)r.ReadByte(), Spent = r.ReadBoolean(), Rule = r.ReadByte(), Cleared = r.ReadBoolean() });
             bool nodesChanged = nodes.Count != Nodes.Count;
             for (int i = 0; !nodesChanged && i < nodes.Count; i++)
                 nodesChanged |= !nodes[i].Equals(Nodes[i]);

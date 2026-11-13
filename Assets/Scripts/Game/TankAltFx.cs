@@ -13,7 +13,7 @@ namespace Arena
     public partial class ArenaApp
     {
         class AltSeen { public float DumpT = -99f, LoadT = -99f; public int Shells; }
-        class AltZone { public ZoneKind Kind; public V2 Pos; public float T, Duration, Aim, Radius; public bool Landed; public int Owner; public float NextPuff; }
+        class AltZone { public ZoneKind Kind; public V2 Pos; public float T, Duration, Aim, Radius; public bool Landed; public int Owner; }
 
         readonly Dictionary<int, AltSeen> altSeen = new Dictionary<int, AltSeen>();
         readonly Dictionary<int, AltZone> altZones = new Dictionary<int, AltZone>();

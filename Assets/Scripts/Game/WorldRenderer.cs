@@ -199,6 +199,7 @@ namespace Arena
             DrawLaunchWorld(t);      // a run launching: the ripple's ring, the players' pillars of light (LaunchIntro.cs)
             DrawRecallWorld(t);      // back to the lobby: everyone beamed out (Recall.cs)
             DrawChallengeWorld(t);   // a challenge room's portal, crystal, zones and altar (ChallengeLook.cs)
+            DrawBossGate(t);         // the boss gate in the hub before a boss (BossGateLook.cs)
             DrawTombFloor(t);        // the Glacial Tomb's frost lattice and mandala (GlacialTombLook.cs)
             DrawBloodFreezeFloor(t); // Blood Freeze's frost, cracks, rune circle and wave (BloodFreezeLook.cs)
             DrawTitanFloor();        // the Titan golem's slam cracks and rubble (TitanLook.cs)
@@ -594,15 +595,10 @@ namespace Arena
             float edge = p.Def.BodyR + 12f;
             float dx = real.X < edge ? AW : real.X > AW - edge ? -AW : 0f;
             float dy = real.Y < edge ? AH : real.Y > AH - edge ? -AH : 0f;
-            var ghosts = new List<V2>();
-            if (dx != 0f) ghosts.Add(new V2(dx, 0f));
-            if (dy != 0f) ghosts.Add(new V2(0f, dy));
-            if (dx != 0f && dy != 0f) ghosts.Add(new V2(dx, dy));  // corners
-            foreach (var off in ghosts)
-            {
-                p.Disp = real + off;
-                DrawPlayer(p, t);
-            }
+            // The copies on the far sides (no list: this runs per player per frame).
+            if (dx != 0f) { p.Disp = real + new V2(dx, 0f); DrawPlayer(p, t); }
+            if (dy != 0f) { p.Disp = real + new V2(0f, dy); DrawPlayer(p, t); }
+            if (dx != 0f && dy != 0f) { p.Disp = real + new V2(dx, dy); DrawPlayer(p, t); }  // corners
             p.Disp = real;
         }
 

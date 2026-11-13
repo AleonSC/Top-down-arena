@@ -179,8 +179,7 @@ namespace Arena
                 HurtEnemy(e, WallContactDps * WallContactTick * touched.DmgMult * (mastered ? 2f : 1f), touched.Owner);
                 if (mastered)
                 {
-                    e.SlowT = Math.Max(e.SlowT, 0.5f);
-                    e.SlowMult = Math.Min(e.SlowMult, 1f - touched.ExtraSlow);
+                    Slow(e, 0.5f, 1f - touched.ExtraSlow);
                 }
             }
         }

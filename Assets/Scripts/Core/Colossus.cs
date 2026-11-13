@@ -537,7 +537,7 @@ namespace Arena
                     else if (r.Outside.Contains(p.Id) && d > RingBack(r) - pad - 40f)
                     {
                         r.Outside.Remove(p.Id);
-                        if (!InRingGap(r, p.Pos, pad) && r.Hit.Add(p.Id))
+                        if (!InRingGap(r, p.Pos, pad) && r.Hit.Add(p.Id) && p.InvulnT <= 0f)  // invulnerable (revive, Lifeline, Leap Slam): it passes over you
                             Damage(p, StompDamage, "The Colossus (stomp)");
                     }
                 }

@@ -69,13 +69,17 @@ namespace Arena
                         ChoosePath(rng.Next(2));  // a bot host picks for itself
                     TickShop(dt);  // the Bazaar's shop closes when everyone is done (Shop.cs)
                     if (!AnyonePicking() && PathOffer == null && !ShopBlocksWave && Room == RoomPhase.None)  // (and while a portal is open)
-                        TickReadyTimer(ref StateTimer, dt);  // ...and until everyone is ready (WaveReady.cs)
+                    {
+                        if (!TickBossGate(ref StateTimer, dt))  // before a boss: everyone in the boss gate instead (BossGate.cs)
+                            TickReadyTimer(ref StateTimer, dt);  // ...and until everyone is ready (WaveReady.cs)
+                    }
                     if (StateTimer <= 0f && BossBeamHold(dt))
                         break;  // everyone outside the hub is beamed into it before the boss wave (BossBeam.cs)
                     if (StateTimer <= 0f)
                     {
                         if (ShopOpen && ServiceRooms)
                             CloseShop();  // the room shops close as the wave starts (gold and shelf are kept)
+                        CloseBossGate();  // BossGate.cs
                         ResolveBuildRound();  // the building round closes as the wave starts: the winning room is built (ExpansionGame.cs)
                         SaveRun();  // everyone has picked: the save slot holds the run from here (RunSaves.cs)
                         State = MatchState.Fighting;
@@ -195,6 +199,7 @@ namespace Arena
 
         void WaveCleared()
         {
+            ClearRuleRooms();  // a claimed rule room has been through the wave: its prize (ExpansionGame.cs)
             EndRoomsWave();  // the vault closes with the wave (Rooms.cs)
             Recorder?.WaveEnd(this);
             TestWaveCleared();  // BalanceTest.cs

@@ -276,7 +276,7 @@ namespace Arena
             float tt = now - s.ClapT;
             if (tt < 0f || tt > 1.3f)
                 return;
-            V2 c = s.ClapAt, dir = V2.FromAngle(s.ClapAim), side = dir.Orthogonal();
+            V2 c = s.ClapAt, dir = V2.FromAngle(s.ClapAim);
             // the floor scorch
             float sc = Mathf.Clamp01(tt / 0.12f), sf = 1f - Mathf.Clamp01((tt - 0.4f) / 0.9f);
             Circle(c + dir * 14f, 58f * sc, new Rgba(0.1f, 0.06f, 0.03f, 0.45f * sf), 26);
@@ -348,7 +348,7 @@ namespace Arena
         {
             if (!fxOn || p.Downed || p.Weapon.Id != WeaponId.OutOfAmmo)
                 return;
-            float u = p.Def.BodyR / 18f, now = Time.unscaledTime;
+            float now = Time.unscaledTime;
             V2 dirF = V2.FromAngle(p.Aim);
             if (p.AmmoSpin > 0f)
             {
