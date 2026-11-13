@@ -199,6 +199,7 @@ namespace Arena
 
         void WaveCleared()
         {
+            ClearRuleRooms();  // a claimed rule room has been through the wave: its prize (ExpansionGame.cs)
             EndRoomsWave();  // the vault closes with the wave (Rooms.cs)
             Recorder?.WaveEnd(this);
             TestWaveCleared();  // BalanceTest.cs

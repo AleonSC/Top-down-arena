@@ -3,7 +3,9 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
-- 306: the boss gate: the snapshot gains `GateUp` (bool) after the challenge room block, then `GatePos` and `GateFill` while it is up (Core/BossGate.cs)
+- 308: the boss gate: the snapshot gains `GateUp` (bool) after the challenge room block, then `GatePos` and `GateFill` while it is up (Core/BossGate.cs)
+- 307: `Msg.ExpandState` sends each map node's `Cleared` flag after `Rule` (a claimed rule room that has been through a wave: its prize is out, Docs/RuleRooms.md); the save's `node` line gains a sixth field
+- 306: `Msg.ExpandState` sends each map node's `Rule` byte after `Spent` (new `NodeKind.Rule`, a big rule node: Docs/RuleRooms.md); the save's `node` line gains a fifth field
 - 305: `Msg.ExpandState` sends its list counts (rooms, openings, links, builds, gate fits, room tokens, nodes) as ushort and each room's `Parent` as a short (were bytes: a big map could wrap past 255); replays store the protocol in their header (replay format 7)
 - 304: relics: `NodeKind.Relic` (at the end; nodes in `Msg.ExpandState`), Player snapshot gains `Relic` (a byte, `RelicId`) after `StaffStacks`; a wall-bounced shot's course goes out at once in `Msg.Steer` (no format change)
 - 303: spawn portals: `EnemyType.Portal` (at the end); a portal's `Phase` (0 opening, 1 emitting, 2/3 the same for a flank, 4 closing) and `Facing` ride the existing enemy snapshot; no new fields (Docs/Spawns.md)
