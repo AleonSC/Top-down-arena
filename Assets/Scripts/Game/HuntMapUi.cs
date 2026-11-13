@@ -7,14 +7,9 @@ namespace Arena
     /// boss at the bottom, with square nodes joined by right-angle lines (Core/HuntMapLayout.cs), and the information beside it:
     /// the hunt, the party's votes, the next sectors as keys, the picked one's detail and the lock-in key. Look of the
     /// lobby: bracket boxes, spaced headings, phosphor keys. Preview: `Tools/Preview/shot.sh huntmap huntmap`.
-    /// Not wired into the match yet (step 3 of the doc brings the vote and the network); the votes below are screen state until then.
+    /// Shown between waves of a hunt played as a map (Core/HuntMapGame.cs): the votes and the timer are the game's, sent over the network.
     public partial class ArenaApp
     {
-        // The party's votes (player id -> the choice's index in the row) and who has locked in: screen state until the network step.
-        readonly Dictionary<int, int> huntMapVotes = new Dictionary<int, int>();
-        readonly HashSet<int> huntMapLocked = new HashSet<int>();
-        float huntMapSecondsLeft = 20f;
-
         static readonly Color HmElite = new Color(1f, 0.42f, 0.42f), HmAmbush = new Color(1f, 0.6f, 0.3f), HmContra = new Color(0.72f, 0.5f, 1f),
             HmRest = new Color(0.36f, 0.85f, 0.54f), HmGamble = new Color(0.62f, 0.69f, 0.82f);
 
@@ -50,14 +45,14 @@ namespace Arena
             // Title bar: the key to leave isn't here (the map is part of the match), the timer is.
             LobbyKit.Spaced(new Rect(28f, 16f, 280f, 28f), "HUNT MAP", 16, new Color(ink.r, ink.g, ink.b, 0.95f), TextAnchor.MiddleLeft, 5f);
             Ui.Fill(new Rect(190f, 30f, W - 190f - 220f, 1f), LobbyKit.Ink(0.25f));
-            LobbyKit.Spaced(new Rect(W - 230f, 16f, 202f, 28f), "VOTE ENDS  " + Mathf.CeilToInt(huntMapSecondsLeft) + " S", 11, CrtUi.Dim, TextAnchor.MiddleRight, 2.4f);
+            LobbyKit.Spaced(new Rect(W - 230f, 16f, 202f, 28f), "VOTE ENDS  " + Mathf.CeilToInt(game.HuntMapSeconds) + " S", 11, CrtUi.Dim, TextAnchor.MiddleRight, 2.4f);
 
             int step = map.Step;
             var path = map.Path;
             var choices = map.Choices();
             int me = game.Me != null ? game.Me.Id : 0;
             int myVote;
-            if (!huntMapVotes.TryGetValue(me, out myVote) || myVote < 0 || myVote >= choices.Length)
+            if (!game.MapVotes.TryGetValue(me, out myVote) || myVote < 0 || myVote >= choices.Length)
                 myVote = -1;
             int detail = myVote >= 0 ? myVote : 0;
 
@@ -125,7 +120,7 @@ namespace Arena
                         if (who.Length > 0)
                             Ui.Label(new Rect(r.xMax + 12f, r.y, 80f, r.height), who, 11, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
                         if (Ui.HitArea(new Rect(r.x - 6f, r.y - 6f, r.width + 12f, r.height + 12f)))
-                            HuntMapVote(me, ci);
+                            game.SendHuntVote(ci, false);
                     }
                     else if (isCleared || n.Type == HuntNodeType.Boss)
                         Ui.Label(new Rect(r.xMax + 10f, r.y, 130f, r.height), HuntMap.Name(n.Type).ToUpperInvariant(), 10, n.Type == HuntNodeType.Boss ? HmElite : CrtUi.Ink, TextAnchor.MiddleLeft, true);
@@ -159,11 +154,11 @@ namespace Arena
                     break;
                 var sr = new Rect(x + seat * (sw + 10f), y, sw, 58f);
                 int v;
-                bool voted = huntMapVotes.TryGetValue(p.Id, out v) && v >= 0 && v < choices.Length;
+                bool voted = game.MapVotes.TryGetValue(p.Id, out v) && v >= 0 && v < choices.Length;
                 DkSub(sr);
                 CrtKit.Frame(sr, 1f, p.Id == me ? ink : LobbyKit.Ink(0.35f));
                 Ui.Label(new Rect(sr.x + 10f, sr.y + 4f, sr.width - 80f, 20f), p.Name, 13, Color.white, TextAnchor.MiddleLeft, true);
-                if (huntMapLocked.Contains(p.Id))
+                if (game.MapLocked.Contains(p.Id))
                     DkTag(new Rect(sr.xMax - 68f, sr.y + 6f, 60f, 16f), "LOCKED", PhosGreen);
                 Ui.Label(new Rect(sr.x + 10f, sr.y + 22f, sr.width - 20f, 16f), Defs.KitName(p.Kit) + " " + p.Def.Name, 11, CrtStyle.Desc, TextAnchor.MiddleLeft, true);
                 Ui.Label(new Rect(sr.x + 10f, sr.y + 38f, sr.width - 20f, 16f), voted ? "Vote: " + HuntMap.Name(map.Rows[step][choices[v]].Type) : "Choosing...", 11, voted ? CrtStyle.Gold : Ui.Muted, TextAnchor.MiddleLeft);
@@ -193,7 +188,7 @@ namespace Arena
                     Ui.Label(new Rect(kr.xMax - 130f, kr.y + 5f, 70f, 22f), who, 12, CrtStyle.Gold, TextAnchor.MiddleRight, true);
                 DkTag(new Rect(kr.xMax - 40f, kr.y + 17f, 26f, 16f), (k + 1).ToString(), CrtUi.Dim);
                 if (Ui.HitArea(kr))
-                    HuntMapVote(me, k);
+                    game.SendHuntVote(k, false);
             }
             y += 3 * 56f + 4f;
 
@@ -212,12 +207,12 @@ namespace Arena
                 y += 108f;
             }
 
-            bool locked = huntMapLocked.Contains(me);
+            bool locked = game.MapLocked.Contains(me);
             var lr = new Rect(x, H - 24f - 46f - 22f, w, 40f);
             GUI.enabled = myVote >= 0;
             if (LobbyKit.Key(lr, locked ? "LOCKED  ·  TAP TO CHANGE" : "LOCK IN VOTE", locked, calm, accent: PhosGreen, size: 15))
             {
-                if (locked) huntMapLocked.Remove(me); else huntMapLocked.Add(me);
+                game.SendHuntVote(myVote, !locked);
             }
             GUI.enabled = true;
             Ui.Label(new Rect(x, lr.yMax + 4f, w, 18f), myVote < 0 ? "Pick a sector first (1-3)" : locked ? "Waiting for the others" : "The next fight starts when everyone has locked in, or the timer ends", 11, Ui.Muted, TextAnchor.MiddleCenter);
@@ -230,19 +225,8 @@ namespace Arena
             {
                 int k = ev.keyCode - KeyCode.Alpha1;
                 if (k < choices.Length)
-                    HuntMapVote(me, k);
+                    game.SendHuntVote(k, false);
             }
-        }
-
-        /// Records a vote for a choice (the same one again takes it back); a changed vote unlocks.
-        void HuntMapVote(int player, int choice)
-        {
-            int cur;
-            if (huntMapVotes.TryGetValue(player, out cur) && cur == choice)
-                huntMapVotes.Remove(player);
-            else
-                huntMapVotes[player] = choice;
-            huntMapLocked.Remove(player);
         }
 
         /// Who voted for a choice, as "P1 P3".
@@ -253,7 +237,7 @@ namespace Arena
             foreach (var p in game.Players.Values)
             {
                 int v;
-                if (huntMapVotes.TryGetValue(p.Id, out v) && v == choice)
+                if (game.MapVotes.TryGetValue(p.Id, out v) && v == choice)
                     s += (s.Length > 0 ? " " : "") + "P" + seat;
                 seat++;
             }

@@ -57,6 +57,8 @@ namespace Arena
         ExpandOutline, // client -> host: a room this player drew as an outline (theme, fill?, corners, then x, y each; fill: an open run of walls that fences in a space) (ExpansionGame.cs)
         PlaceBuild,   // client -> host: put a trap from this player's stash on the map (kind, x, y) (Market.cs)
         Gadget,       // client -> host: (0 switch your gadget on or off / 1 throw it, where to) (Gadgets.cs)
+        HuntMapState, // host -> all: the hunt map: its seed, the nodes cleared, the one being fought, and the vote on the next so far (HuntMapGame.cs)
+        HuntMapVote,  // client -> host: this player's vote on the next node (its index in the row, -1 for none) and whether they have locked it in (HuntMapGame.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -119,7 +121,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 334;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 336;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -141,6 +143,7 @@ namespace Arena
         public PracticePlan Plan = PracticePlan.Default();
         public bool OthersCanEdit;
         public bool HuntMode;                       // a Boss Hunt instead (Hunts.cs): HuntBoss's
+        public bool HuntMapMode;                    // the Boss Hunt is played as a hunt map (Docs/HuntMap.md): a route of nodes you vote on instead of ten fixed waves
         public bool QuickMode;                      // Quick Play (QuickPlay.cs): the lobby's first mode, a new player's default
         public static bool QuickDefault = true;     // a new host starts on Quick Play unless its profile last picked another mode (the sim tests turn it off)
         public WaveSet DesignTest;                  // host: designed waves to play in the Practice Range (the F1 wave editor's Test)
@@ -609,6 +612,9 @@ namespace Arena
                     break;
                 case Msg.WaveReady:
                     Game.OnWaveReady(peer, r);
+                    break;
+                case Msg.HuntMapVote:
+                    Game.OnHuntMapVote(peer, r);
                     break;
                 case Msg.SetKey:
                     Game.OnSetKey(peer, r);
@@ -1161,6 +1167,7 @@ namespace Arena
             w.Write(HuntMode);
             w.Write((byte)HuntBoss);
             w.Write(QuickMode);
+            w.Write(HuntMapMode);
             // Continuing a saved run: its seats, so everyone's lobby can show them.
             w.Write(Resume != null);
             if (Resume != null)
@@ -1216,6 +1223,17 @@ namespace Arena
             if (!IsHost || Game.Running || h == null || !Hunts.Available(h, Game.Profile) || HuntBoss == boss)
                 return;
             HuntBoss = boss;
+            foreach (var e in Lobby.Values)
+                e.Ready = false;
+            BroadcastLobby();
+        }
+
+        /// Host: play the Boss Hunt as a hunt map (a route you vote on) or as the ten fixed waves.
+        public void SetHuntMapMode(bool on)
+        {
+            if (!IsHost || Game.Running || HuntMapMode == on)
+                return;
+            HuntMapMode = on;
             foreach (var e in Lobby.Values)
                 e.Ready = false;
             BroadcastLobby();
@@ -1345,6 +1363,7 @@ namespace Arena
                 e.Ready = false;  // ready up again next time you're back in the lobby
             Game.Practice = PracticeMode ? Plan.Copy() : null;  // a copy, so edits don't change a run in progress
             Game.Hunt = PracticeMode ? null : LobbyHunt;  // Hunts.cs
+            Game.HuntMapOn = Game.Hunt != null && HuntMapMode;  // HuntMapGame.cs
             Game.Design = PracticeMode ? DesignTest : null;  // the F1 wave editor's waves being tested (WaveDesign.cs)
             Game.Mods = Modifiers;
             Game.Diff = Diff.Copy();
@@ -1583,6 +1602,7 @@ namespace Arena
                     HuntMode = r.ReadBoolean();
                     HuntBoss = (EnemyType)r.ReadByte();
                     QuickMode = r.ReadBoolean();
+                    HuntMapMode = r.ReadBoolean();
                     Resume = null;
                     if (r.ReadBoolean())
                     {
@@ -1650,6 +1670,7 @@ namespace Arena
                 case Msg.Start:
                     Game.Practice = PracticeMode ? Plan.Copy() : null;  // for the HUD: which waves this practice has
                     Game.Hunt = HuntMode && !PracticeMode && Resume == null ? Hunts.Get(HuntBoss) : null;
+                    Game.HuntMapOn = Game.Hunt != null && HuntMapMode;  // HuntMapGame.cs
                     Game.Mods = Modifiers;
                     Game.Diff = Diff.Copy();
                     Game.OnHostMessage(type, r);
