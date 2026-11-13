@@ -294,6 +294,7 @@ namespace Arena
         void DrawHiveDetails(Enemy e, V2 pos, float r, float t)
         {
             var o = HiveSpecOf(e.Type);
+            hiveCrowd = game.Enemies.Count > HiveCrowd;
             if (e.Type == EnemyType.Stinger && e.Winding)
             {
                 V2 tip = HiveLanceTip(o, pos, e.Facing, r);
@@ -315,13 +316,15 @@ namespace Arena
                     V2 c = at + new V2(i * 5.4f * W, 0f);
                     float rr = Mathf.Max(1.6f, 1.8f * W);
                     var pale = Hex(0xffec9a);
+                    int pipSegs = hiveCrowd ? 4 : 6;  // (pips are about 2 px: a crowd draws them as diamonds, without the halo)
                     if (i < e.Phase)
                     {
-                        Circle(c, rr + 1.5f, pale.WithAlpha(0.25f), 8);
-                        Circle(c, rr, pale, 8);
+                        if (!hiveCrowd)
+                            Circle(c, rr + 1.5f, pale.WithAlpha(0.25f), pipSegs);
+                        Circle(c, rr, pale, pipSegs);
                     }
                     else
-                        Arc(c, rr, 1f, pale.WithAlpha(0.8f), 8);
+                        Arc(c, rr, 1f, pale.WithAlpha(0.8f), pipSegs);
                 }
             }
         }
