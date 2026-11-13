@@ -219,7 +219,8 @@ namespace Arena
 
         public bool InServiceRoom(Player p) => InShopRoom(p) || InVendorRoom(p);
 
-        /// In a room shop, upgrades and Add stock are bought in the shop room and heals, revives and sales at the vendor.
+        /// In a room shop, upgrades and Add stock are bought in the shop room, buildables at the vendor (the Black Market),
+        /// and the services (heal, revive, sell, Floor kit, vectors) in either.
         bool ServiceAllowed(Player p, ShopAction action)
         {
             if (!ServiceRooms)
@@ -234,6 +235,7 @@ namespace Arena
                 case ShopAction.Sell:
                 case ShopAction.RoomKit:
                 case ShopAction.Vectors:
+                    return InServiceRoom(p);
                 case ShopAction.BuyBuild:
                     return InVendorRoom(p);
                 default:

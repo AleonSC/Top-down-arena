@@ -574,6 +574,10 @@ static partial class Shot {
       int sel = Environment.GetEnvironmentVariable("SHOPSEL") != null ? int.Parse(Environment.GetEnvironmentVariable("SHOPSEL")) : 0;
       typeof(ArenaApp).GetField("shopSel", f2).SetValue(app, sel);
       typeof(ArenaApp).GetField("shopTurn", f2).SetValue(app, (float)sel);
+      // SHOPCAT=-1 the two category panels (the default without SHOPSEL), 0 the upgrades' carousel, 1 the services'; with only SHOPSEL, the category it's in
+      var catEnv = Environment.GetEnvironmentVariable("SHOPCAT");
+      int cat = catEnv != null ? int.Parse(catEnv) : Environment.GetEnvironmentVariable("SHOPSEL") == null ? -1 : Environment.GetEnvironmentVariable("MARKET") != null ? (sel < Market.Count ? 0 : 1) : sel < Game.ShelfCount(me) ? 0 : 1;
+      typeof(ArenaApp).GetField("shopCat", f2).SetValue(app, cat);
       if (Environment.GetEnvironmentVariable("SELL") != null) typeof(ArenaApp).GetField("shopSellOpen", f2).SetValue(app, true);
       if (Environment.GetEnvironmentVariable("GIVE") != null) foreach (var p in g.Players.Values) if (p.Id != me.Id) typeof(ArenaApp).GetField("shopGiveTo", f2).SetValue(app, p.Id);
       typeof(ArenaApp).GetMethod("DrawShop", f2).Invoke(app, new object[] { me, 1f });
