@@ -109,7 +109,7 @@ in that layout with a switch; don't delete code.
   parents, shapes not bought yet are 3x as likely, a shop is offered while the map is short of them (never first), a
   floor prefers a path floor not used yet.
 - **Rules**: rooms never overlap and touch only through their own door (so the map is a tree: no duplicate walls),
-  max 12 bought rooms, max 6400 x 4000 overall. Price = 40 + area/12000, x1.3 shop, x1.15 floor, +20% per room
+  max 12 bought rooms, max 8000 x 5000 overall (was 6400 x 4000 until Nov 13). Price = 40 + area/12000, x1.3 shop, x1.15 floor, +20% per room
   already bought (first guesses).
 - `Expansion.Build(rooms)` returns the `World` (walls per room, one door per child). With nothing bought it is the
   hub alone, walled in; step 3 decides when the Expanding layout counts as unwalled Single.

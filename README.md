@@ -1003,7 +1003,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   **Solo players skip the vote**: your proposal is built the moment you make it.
 - **Shop and vendor rooms, chest nodes and the mini-boss room**: every boss cycle the game places a **shop room** and a **vendor room** (tiny
   4 x 4 tile squares) and a **mini-boss** room (8 x 6) as sealed boxes 4 to 8 tiles off the map, plus a **chest node**: a point 10 to 16 tiles straight
-  out (at least 8 tiles from other nodes). Build a room or hallway that shares 2 tiles of wall with a sealed room and its door opens: walk in to shop
+  out (at least 8 tiles from other nodes). All of them keep well away from the start room: 10 tiles farther out when placed off it, and never within 10 tiles of it. Build a room or hallway that shares 2 tiles of wall with a sealed room and its door opens: walk in to shop
   (the shop's stall or the vendor's pedestal stands in the middle). Sealed rooms don't count towards the 24-room cap and add no enemies; at most 6 wait.
   A chest node is locked until you build a **room** that encloses it (a normal combat room with enemies); a claimed chest node holds a real treasure chest (the same as the rare wave chests): touch it and every
   player gets their own item. It opens once and never holds the wave up (opened ones lie dim with the lid up). No cover stands on a node. Nothing respawns: new ones

@@ -41,6 +41,7 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
 - Bots build the cheapest straight hallway to the nearest unclaimed node (`BotBuildsToFloater`).
 - Look: breathing ring and mark on the arena floor, a square on the minimap and the draw screen with its name (`RoomsLook.cs`, `ExpansionUi.cs`). Preview: `EXPANDFLOAT=1` with `EXPANDVOTE=0 EXPANDDRAW=0,-1200,300,1200`.
 - Nov 12 (owner): nodes and shop/vendor rooms placed off the start room sit `Expansion.StartExtra` (6 tiles) farther out (`ConnectorFor` reaches that much farther).
+- Nov 13 (owner): `StartExtra` 10 tiles, the Gatekeeper too; nothing (node or floating room) is placed within `Expansion.StartClear` (10 tiles) of the start room, whichever room it was placed off; the map cap went from 6400 x 4000 to 8000 x 5000 so they still fit.
 - Not yet: a fixture drawn inside the claimed room (step 3).
 - Old saves with floating shop or vendor rooms still load and work as before.
 
