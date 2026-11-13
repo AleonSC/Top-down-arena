@@ -821,7 +821,7 @@ static partial class Program
         var stray = (Enemy)spawnAt.Invoke(g, new object[] { EnemyType.Grunt, new V2(2500f, 30f), 0f, 0, false });
         Check(g.CurrentWorld.Areas.Any(a => !a.Sealed && a.Contains(stray.Pos)) && stray.Pos.Y > 100f, "an enemy placed outside every room is moved into the nearest one (" + stray.Pos.X + "," + stray.Pos.Y + ")");
         stray.Hp = 0f;
-        Func<Game, int> keepers = gm => gm.Enemies.Values.Count(e => e.Type == EnemyType.Gatekeeper && e.Hp > 0f);
+        Func<Game, int> keepers = gm => gm.Enemies.Values.Count(e => FactionMinis.Duels(e.Type) && e.Hp > 0f);
         Func<Game, int> area1 = gm => gm.CurrentWorld.AreaAt(gm.Players[1].Pos);
         var me = g.Players[1];
         me.Pos = me.Disp = new V2(800f, 450f);
@@ -829,7 +829,8 @@ static partial class Program
         Check(keepers(g) == 0 && !g.AreaLocked(2), "nobody inside: the Gatekeeper sleeps and the room is open");
         me.Pos = me.Disp = g.CurrentWorld.Areas[2].Mid + new V2(0f, 100f);
         Run(s, dt, 0.8f, null, NoPicks);
-        Check(keepers(g) == 1 && keepers(cg) == 1, "walking in wakes the Gatekeeper, for both screens");
+        Check(keepers(g) == 1 && keepers(cg) == 1, "walking in wakes the mini-boss, for both screens");
+        Check(g.Enemies.Values.Any(e => e.Type == EnemyType.RiotCaptain) && !g.Enemies.Values.Any(e => e.Type == EnemyType.Gatekeeper), "the room's mini-boss is its faction's (the Warden's Riot Captain), never the Data Gates' Gatekeeper");
         Check(g.AreaLocked(2) && cg.AreaLocked(2), "the room locks while the duel is on, for both screens");
         var inside = g.CurrentWorld.Areas[2].Mid;
         V2 held = (V2)roomsHold.Invoke(g, new object[] { inside, new V2(1800f, 450f), 20f });
@@ -850,7 +851,7 @@ static partial class Program
         Run(s, dt, 0.8f, null, NoPicks);
         Check(keepers(g) == 1, "walking in again wakes it again");
         int picks0 = g.Players.Values.Sum(p => p.PrizePicks);
-        foreach (var e in g.Enemies.Values.Where(e => e.Type == EnemyType.Gatekeeper)) e.Hp = 0f;
+        foreach (var e in g.Enemies.Values.Where(e => FactionMinis.Duels(e.Type))) e.Hp = 0f;
         Run(s, dt, 0.8f, null, NoPicks);
         Check(g.Players.Values.Sum(p => p.PrizePicks) == picks0 + g.Players.Count, "beating it gives everyone a prize pick");
         Check(g.CurrentWorld.Areas[2].Kind == RoomKind.Combat && cg.CurrentWorld.Areas[2].Kind == RoomKind.Combat && !g.AreaLocked(2), "the room is an ordinary combat room now, on both screens");

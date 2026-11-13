@@ -20,7 +20,7 @@ namespace Arena
             return owner != 0 && game.Players.TryGetValue(owner, out p) ? p.Def.Color : new Rgba(0.4f, 0.64f, 1f);
         }
 
-        static string KindName(ExpansionRoom r) => r.Kind == RoomKind.Shop ? "Shop" : r.Kind == RoomKind.Vendor ? "Black Market" : r.Kind == RoomKind.Gatekeeper ? "Gatekeeper" : r.Kind == RoomKind.Floor ? Paths.Get(r.Floor).Name : "Combat";
+        static string KindName(ExpansionRoom r) => r.Kind == RoomKind.Shop ? "Shop" : r.Kind == RoomKind.Vendor ? "Black Market" : r.Kind == RoomKind.Gatekeeper ? FactionMinis.Name((EnemyType)r.Mini) : r.Kind == RoomKind.Floor ? Paths.Get(r.Floor).Name : "Combat";
 
         /// What a rule node's room will do, and what it pays once a wave is cleared there.
         static string RuleBlurb(byte rule)

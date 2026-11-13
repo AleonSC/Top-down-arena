@@ -3,8 +3,9 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The Gatekeeper room of the Expanding arena (Docs/FloatingRooms.md step 3): a floating room that opens once a built room touches it.
-    /// While a regular wave is on, the first player to walk in starts the duel: The Gatekeeper wakes in the middle and the room locks
+    /// The mini-boss room of the Expanding arena (Docs/FloatingRooms.md step 3; RoomKind.Gatekeeper, kept for saves): a floating room that opens once a built room
+    /// touches it. Its foe is its faction's mini-boss (ExpansionRoom.Mini, FactionMinis.cs; the Gatekeeper is the Data Gates' only).
+    /// While a regular wave is on, the first player to walk in starts the duel: the mini-boss wakes in the middle and the room locks
     /// behind whoever is inside (you can't leave until it falls). Beating it gives everyone the vault's prize pick and the room becomes
     /// an ordinary combat room. An unbeaten duel ends with the wave: the Gatekeeper goes, anyone inside is let out, and it waits for the
     /// next wave. The duel needs no extra sync: the Gatekeeper is an enemy everyone already sees, and the room's lock is read from it.
@@ -26,13 +27,32 @@ namespace Arena
                 return null;
             var a = CurrentWorld.Areas[area];
             foreach (var e in Enemies.Values)
-                if (e.Type == EnemyType.Gatekeeper && e.Hp > 0f && a.Contains(e.Disp, 40f))
+                if (FactionMinis.Duels(e.Type) && e.Hp > 0f && a.Contains(e.Disp, 40f))
                     return e;
             return null;
         }
 
         /// A foe that belongs to a duel (the wave ends without it, as it does without the Wings vault's).
-        bool IsDuelFoe(Enemy e) => ExpandingOn && e.Type == EnemyType.Gatekeeper && IsDuelRoom(CurrentWorld.AreaAt(e.Disp));
+        bool IsDuelFoe(Enemy e) => ExpandingOn && (FactionMinis.Duels(e.Type) || IsDuelAdd(e)) && IsDuelRoom(CurrentWorld.AreaAt(e.Disp));
+
+        /// One a duel's mini-boss called in (the Riot Captain's Taser Guards): it fights in the locked room with it.
+        bool IsDuelAdd(Enemy e)
+        {
+            if (e.ParentId == 0)
+                return false;
+            foreach (var id in duelBoss.Values)
+                if (id == e.ParentId)
+                    return true;
+            return false;
+        }
+
+        /// The mini-boss a room of the Expanding map holds: its own, or (an old save's room) the next boss's faction's.
+        EnemyType DuelFoeOf(int area)
+        {
+            int i = area - 1;
+            var t = i >= 0 && i < Expanded.Count ? (EnemyType)Expanded[i].Mini : default(EnemyType);
+            return FactionMinis.Is(t) ? t : MiniBossNow();
+        }
 
         /// Host, every frame of a regular wave: wake the Gatekeeper when someone walks in, and settle a duel that was won.
         void TickDuelRooms()
@@ -55,21 +75,24 @@ namespace Arena
                 foreach (var p in Players.Values)
                     if (!p.Downed && a.Contains(p.Pos, -p.Def.BodyR - 30f))
                     {
-                        var boss = SpawnEnemyAt(EnemyType.Gatekeeper, a.Mid, 1.2f, 0);
+                        var boss = SpawnEnemyAt(DuelFoeOf(i), a.Mid, 1.2f, 0);
                         boss.Home = i;
                         boss.T2 = 2.5f;
                         duelBoss[i] = boss.Id;
-                        DoLog("the Gatekeeper wakes: " + p.Name + " walked into " + a.Name);
+                        DoLog(boss.Def.Name + " wakes: " + p.Name + " walked into " + a.Name);
                         break;
                     }
             }
         }
 
-        readonly Dictionary<int, int> duelBoss = new Dictionary<int, int>();  // host: area -> its Gatekeeper's id
+        readonly Dictionary<int, int> duelBoss = new Dictionary<int, int>();  // host: area -> its mini-boss's id
 
-        /// The Gatekeeper is down: the prize pick for everyone, and the room is an ordinary one from now on.
+        /// The mini-boss is down: the prize pick for everyone, and the room is an ordinary one from now on.
         void WinDuel(int area)
         {
+            int was;
+            if (duelBoss.TryGetValue(area, out was))
+                ClearCaptainAdds(was);  // its men go with it (RiotCaptain.cs)
             duelBoss.Remove(area);
             GrantVaultPrize(CurrentWorld.Areas[area].Mid);
             int i = area - 1;  // (area 0 is the hub; the rooms follow in order)
@@ -81,7 +104,7 @@ namespace Arena
                 expWorld = null;
                 BroadcastExpansion();
             }
-            DoLog("the Gatekeeper room is cleared");
+            DoLog("the mini-boss room is cleared");
         }
 
         /// A spot just past the room's door, in the room beyond.
@@ -101,7 +124,7 @@ namespace Arena
         /// Host, every enemy move: while a duel has its room locked, no other foe may be in it (you can't leave, so they'd trap you with them).
         void KeepOutOfDuel(Enemy e)
         {
-            if (duelBoss.Count == 0 || e.Type == EnemyType.Gatekeeper || !IsHost)
+            if (duelBoss.Count == 0 || FactionMinis.Duels(e.Type) || !IsHost || IsDuelAdd(e))
                 return;
             foreach (var area in duelBoss.Keys)
                 if (CurrentWorld.Areas[area].Contains(e.Pos))
@@ -111,19 +134,21 @@ namespace Arena
                 }
         }
 
-        /// Host, as a wave is cleared: an unbeaten Gatekeeper goes, anyone still in its room is put out of the door.
+        /// Host, as a wave is cleared: an unbeaten mini-boss (and its men) goes, anyone still in its room is put out of the door.
         void EndDuels()
         {
             if (duelBoss.Count == 0)
                 return;
             var ids = new List<int>(duelBoss.Keys);
+            foreach (var id in duelBoss.Values)
+                ClearCaptainAdds(id);
             duelBoss.Clear();
             var areas = CurrentWorld.Areas;
             foreach (var area in ids)
             {
                 var a = areas[area];
                 foreach (var e in new List<Enemy>(Enemies.Values))
-                    if (e.Type == EnemyType.Gatekeeper && a.Contains(e.Disp, 40f))
+                    if (FactionMinis.Duels(e.Type) && a.Contains(e.Disp, 40f))
                         Enemies.Remove(e.Id);
                 V2 outside = DuelDoorOutside(area);
                 foreach (var p in Players.Values)
