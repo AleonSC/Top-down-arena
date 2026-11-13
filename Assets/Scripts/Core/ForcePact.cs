@@ -22,6 +22,9 @@ namespace Arena
         /// How big a thrall is: its enemy type's size (a Brute is a big thrall).
         static float MinionRadius(Minion m) => m.Kind == MinionKind.Thrall && m.Pact != 255 ? Defs.Get((EnemyType)m.Pact).Radius : m.Def.Radius;
 
+        /// How long a fallen thrall takes to come back (Kindred Bond brings it sooner).
+        static float PactRespawn(Player p) => Math.Max(3f, GuardRespawn - p.Stats.PactReturnCut);
+
         static float ThrallMaxHp(EnemyType t, int wave) => Defs.Get(t).Hp * ThrallHpPerHp + 15f * wave;
 
         Minion ThrallIn(Player p, int slot)
@@ -110,7 +113,7 @@ namespace Arena
                     continue;
                 p.PactCd[s] -= dt;
                 if (!p.PactBinding[s])
-                    rez = Math.Max(rez, 1f - Math.Max(0f, p.PactCd[s]) / GuardRespawn);
+                    rez = Math.Max(rez, 1f - Math.Max(0f, p.PactCd[s]) / PactRespawn(p));
                 if (p.PactCd[s] > 0f)
                     continue;
                 V2 home = p.Pos + V2.FromAngle(p.Aim + MathX.Pi * 0.75f + s * 1.6f) * 45f;
@@ -119,7 +122,7 @@ namespace Arena
                 t.Pact = (byte)p.PactType[s];
                 t.PactSlot = s;
                 t.Ang = s * 1.6f;
-                t.MaxHp = t.Hp = ThrallMaxHp(p.PactType[s], Wave);
+                t.MaxHp = t.Hp = ThrallMaxHp(p.PactType[s], Wave) * p.Stats.PactHpMult * p.Stats.MinionToughMult;  // Kindred Bond, Pack Bond
                 if (p.PactBinding[s])
                     BroadcastFx(FxKind.Ring, t.Pos, new Rgba(0.75f, 0.55f, 1f), 90f, 0.6f, Sfx.None);
                 else
@@ -132,7 +135,7 @@ namespace Arena
         /// A thrall fell (HurtGuard): its chain snaps, and the slot's timer starts.
         void ThrallFallen(Minion m, Player owner)
         {
-            owner.PactCd[m.PactSlot] = GuardRespawn;
+            owner.PactCd[m.PactSlot] = PactRespawn(owner);
             owner.PactBinding[m.PactSlot] = false;
             BroadcastFx(FxKind.PactSnap, m.Pos, owner.Pos, new Rgba(0.75f, 0.55f, 1f), (float)m.Pact, 1f, Sfx.Hit);
         }

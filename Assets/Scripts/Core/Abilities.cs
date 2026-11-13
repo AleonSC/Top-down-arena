@@ -85,6 +85,30 @@ namespace Arena
 
         public const float CalloutTime = 1.1f;
 
+        /// The Soldier's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
+        /// (Weapons) or the whole class (Kit). Upgrades.All gathers every class's list (Docs/UpgradePools.md).
+        internal static readonly UpgradeDef[] SoldierCards =
+        {
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Barrier, MaxStacks = 2, Name = "Bastion", Desc = "Barrier is 40% bigger, lasts 1.5 s longer and soaks 50% more",
+                Apply = s => { s.BarrierRadiusMult += 0.4f; s.BarrierBonusTime += 1.5f; s.BarrierCapacityMult += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Roar, MaxStacks = 2, Name = "Bellow", Desc = "Roar lasts 2 s longer and blocks 15% more damage",
+                Apply = s => { s.RoarBonusTime += 2f; s.RoarExtraReduction += 0.15f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Bulldoze, MaxStacks = 2, Name = "Juggernaut", Desc = "Bulldoze deals double damage", Apply = s => s.BulldozeMult += 1f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.MendPulse, MaxStacks = 2, Name = "Greater Mending", Desc = "Mend Pulse heals 60% more and reaches 25% farther",
+                Apply = s => { s.PulseHealMult += 0.6f; s.PulseRangeMult += 0.25f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Adrenaline, MaxStacks = 2, Name = "Long Dose", Desc = "Adrenaline Shot lasts 3 s longer",
+                Apply = s => s.AdrenalineBonusTime += 3f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.PoisonDart, MaxStacks = 2, Name = "Virulence", Desc = "Poison Dart's venom deals 30% more damage and spreads 60 px further",
+                Apply = s => { s.VenomMult *= 1.3f; s.VenomReachBonus += 60f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Airstrike, MaxStacks = 2, Name = "Bigger Boom", Desc = "Airstrike's bombs blast 50% wider",
+                Apply = s => s.GrenadeRadiusMult += 0.5f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Mark, MaxStacks = 2, Name = "Exploit Weakness", Desc = "Marked enemies take an extra 50% damage", Apply = s => s.MarkBonus += 0.5f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Medkit, MaxStacks = 2, Name = "Field Surgeon", Desc = "Medkit bursts into 3 more orbs, and each heals 5 more",
+                Apply = s => { s.MedkitExtraOrbs += 3; s.MedkitHealBonus += 5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Soldier, MaxStacks = 2, Name = "Quartermaster", Desc = "Health and medkit orbs you pick up heal 30% more, and your Q, E and Shift abilities recharge 10% faster",
+                Apply = s => { s.OrbHealMult += 0.3f; s.BonusCdMult *= 0.9f; } },
+        };
+
         /// The Soldier's abilities, and the ones only very rare cards give (Shockwave, Overdrive, Blink, Nova, Turret). (Upgrades.Abilities gathers every class's list.)
         internal static readonly AbilityDef[] SoldierAbilities =
         {
@@ -186,9 +210,13 @@ namespace Arena
 
         /// The ability's effect. Runs inside BeginCast/EndCast, so damage and healing it does directly
         /// (and the zones, minions and shots it makes) are scaled by its mastery. castMastered = its capstone.
+        public const float SurgeTime = 3f;  // Arcane Surge (the Elementalist's class card): faster firing after a Space cast
+
         void CastAbility(Player p, int slot, V2 target)
         {
             var s = p.Stats;
+            if (slot == 0 && s.SurgeRate > 0f)
+                p.SurgeT = SurgeTime;
             bool cap = castMastered;
             float pw = castPower;
             switch (p.Slots[slot].Id)

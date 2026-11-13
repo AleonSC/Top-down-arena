@@ -91,6 +91,8 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("DEVSIDE") != null) set("devSide", true);
       if (Environment.GetEnvironmentVariable("DEVSHEET") != null) set("devSheet", int.Parse(Environment.GetEnvironmentVariable("DEVSHEET")));
       if (Environment.GetEnvironmentVariable("FILTER") != null) set("devFilter", Environment.GetEnvironmentVariable("FILTER"));
+      if (Environment.GetEnvironmentVariable("UPRARITY") != null) set("devUpRarity", int.Parse(Environment.GetEnvironmentVariable("UPRARITY")));  // the Spawn-an-upgrade sheet (DEVSHEET=4): 0 common ... 6 milestone, UPSCROLL=px
+      if (Environment.GetEnvironmentVariable("UPSCROLL") != null) set("devUpScroll", float.Parse(Environment.GetEnvironmentVariable("UPSCROLL")));
       Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true;
       typeof(ArenaApp).GetMethod("DrawDevMenu", f2).Invoke(app, null);
       GL.ToUi = false;

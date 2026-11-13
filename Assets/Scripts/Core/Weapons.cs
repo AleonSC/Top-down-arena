@@ -58,7 +58,7 @@ namespace Arena
 
         /// Everything that speeds up firing: upgrades, Overdrive (Adrenaline Shot doesn't stack with it: the bigger wins), Artillery Assault, Counterstance.
         float FireRate(Player p) => p.Stats.FireRateMult * MomentumMult(p) * Math.Max(p.OverdriveT > 0f ? 2f : 1f, p.AdrenalineT > 0f ? AdrenalineFire : 1f) * (Storming(p) ? 3f : 1f)
-            * (p.CounterT > 0f ? 1f + p.Stats.CounterFireRate : 1f);
+            * (p.CounterT > 0f ? 1f + p.Stats.CounterFireRate : 1f) * (p.SurgeT > 0f ? 1f + p.Stats.SurgeRate : 1f);  // Arcane Surge
 
         /// spread: each shot lands somewhere within this many radians of your aim (fanning the hammer).
         void FirePlayer(Player p, float spread = 0f)

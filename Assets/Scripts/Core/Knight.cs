@@ -570,9 +570,9 @@ namespace Arena
                     BroadcastFx(FxKind.Spark, origin + dir * (s.Reach * 0.6f), new Rgba(1f, 1f, 1f), 14f, 0.2f, Sfx.None);
             }
             else if (!s.NoCut && circle)
-                CutBulletsInCircle(circleAt, s.Circle, s.CutAll);  // the slam clears small bullets over its whole circle
+                CutBulletsInCircle(circleAt, s.Circle * p.Stats.CutReachMult, s.CutAll);  // the slam clears small bullets over its whole circle (Plate Armour: wider)
             else if (!s.NoCut)
-                CutBullets(origin, s.Aim, s.Reach + p.Def.BodyR * 0.5f, full ? MathX.Pi : s.HalfArc, s.CutAll, s.HalfWidth);
+                CutBullets(origin, s.Aim, (s.Reach + p.Def.BodyR * 0.5f) * p.Stats.CutReachMult, full ? MathX.Pi : s.HalfArc, s.CutAll, s.HalfWidth);  // Plate Armour: farther out
         }
 
         const float StaffKnock = 70f, DeflectSpeed = 520f, DeflectDamage = 12f;
@@ -700,6 +700,30 @@ namespace Arena
                 Desc = "Precise thrusts at the nearest enemy in front, and they skewer enemy bullets along their line. The first thrust is slow, but every enemy you hit adds Tempo, and Tempo makes the thrusts quicker. Stop hitting and it holds a moment, then drains. The weapon-action key spends it on a Flourish: the blade whips back and forth, each swing throwing a crescent wave." },
             new WeaponDef { Id = WeaponId.ArcKnuckles, Kit = Kit.Knight, Role = Role.Dps, Choice = 3, Damage = 22f, Reach = 70f, Melee = true, ExtraDesc = "+1 aftershock: the Twin Hammer slams again 0.2 s later, 40 px further out (60% damage)", Name = "Arc Knuckles", FireInterval = 0.24f,
                 Desc = "Coiled blue fists in a five-punch chain: jab, cross, a hook that sweeps a crowd, an uppercut that launches, and the Twin Hammer, a ground slam whose shockwave stuns. Raising the parry cancels a punch and starts the chain over; a perfect parry arms the gold Counter Hammer for your next press. The weapon-action key is a Rocket Dash; land it and press Fire as each move lands to chain a Flurry, a Grab & Throw and a Rocket Punch." },
+        };
+
+        /// The Knight's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
+        /// (Weapons) or the whole class (Kit). Upgrades.All gathers every class's list (Docs/UpgradePools.md).
+        internal static readonly UpgradeDef[] KnightCards =
+        {
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ShieldWall, MaxStacks = 2, Name = "Tower Shield", Desc = "Shield Wall covers 160° and its plates take 50% more before they break",
+                Apply = s => { s.WallArcMult += 0.33f; s.WallCapMult += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.LeapSlam, MaxStacks = 2, Name = "Earthshaker", Desc = "Leap Slam hits 40% wider and stuns for 1 s longer",
+                Apply = s => { s.SlamRadiusMult += 0.4f; s.SlamStunBonus += 1f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CavalryCall, MaxStacks = 2, Name = "Iron Will", Desc = "Cavalry Call blocks 10% more damage while the lancers ride and every lance hits for 10 more",
+                Apply = s => { s.UnbreakBonus += 0.1f; s.CavalryDmgBonus += 10f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Consecrate, MaxStacks = 2, Name = "Sacred Ground", Desc = "Consecrate flies 40% farther and its Swiftness lasts 2 s longer",
+                Apply = s => { s.HolyRangeMult += 0.4f; s.HolySwiftBonus += 2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.GuardiansOath, MaxStacks = 2, Name = "Bulwark", Desc = "Guardian's Oath ward cuts 15% more damage", Apply = s => s.OathCut += 0.15f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.LayOnHands, MaxStacks = 2, Name = "Miracle", Desc = "Lay on Hands heals 60% more and reaches 30% further", Apply = s => s.LayMult += 0.6f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Whirlwind, MaxStacks = 2, Name = "Coup de Grace", Desc = "Misericorde executes enemies under 30% health (+5%) and leaps 40 px further",
+                Apply = s => { s.MercyBelow += 0.05f; s.MercyReach += 40f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Lunge, MaxStacks = 2, Name = "Iron Grip", Desc = "The Gauntlet flies 40% further and its charge hits 50% harder",
+                Apply = s => { s.GauntletRange += 0.4f; s.GauntletDamage += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BattleFury, MaxStacks = 2, Name = "Forged Edge", Desc = "Caught Steel's shards hit 8 harder, and it catches bullets passing 6 px further out",
+                Apply = s => { s.SteelDamage += 8f; s.SteelReach += 6f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Knight, MaxStacks = 2, Name = "Plate Armour", Desc = "Take 8% less damage, and your swings cut bullets out of the air 20% farther out",
+                Apply = s => { s.DamageTaken *= 0.92f; s.CutReachMult += 0.2f; } },
         };
 
         /// The Knight's abilities and ultimates. (Upgrades.Abilities gathers every class's list.)

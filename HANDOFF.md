@@ -149,6 +149,8 @@ A class is mostly two new files plus a line in each registry. Templates: `Docs/C
    fields (timers, buffs) go on `Player` in `Game.cs`, and in `SyncPlayer` (`GameNet.cs`) if clients draw them.
 5. **Icons** in `PixelArt.cs`: the class card (`class_<name>`, named by `KitDef.Icon`) and one per Space ability
    (`ByUpgrade` maps the ability's name to it). Ultimates have none.
+   **Upgrade cards** for the class (its Space abilities' Rare cards, weapon or class cards) go in `Game.<Class>Cards`
+   beside its abilities, added to `Upgrades.All`'s `Gather` (Docs/UpgradePools.md).
 6. **Check:** `Tools/SimTest/run.sh 1 1 classes` lists every missing piece (weapon cases, ability casts, icons, blurb,
    look). Then a sim test file for the class (`Tests/<Class>.cs`, see `Tests/Ninja.cs`), `run.sh 1 1 extra` and `aim`
    (every weapon's extra projectiles and range), a Boss Lab run (`run.sh 1 1 lab 5 2 3 D/<Name>/0`), previews
@@ -185,7 +187,7 @@ The lobby fits about 8 class cards in a row before they get too small.
     each in its own process, built once; `k/n` runs one shard. CI runs it as two shards beside `core` and `features`.
     **A new suite whose tests aren't in `FeatureTests` goes in `CiExtras`.** `TIMES=1 run.sh ...` prints each test's time.
   - Single systems: `parry`, `aim`, `extra`, `knight`, `ninja`, `blood`, `paths`, `bazaar`, `practice`, `bosses`,
-    `warden`, `singularity`, `mastery`, `longrun` (the 100-wave Campaign), `bossschedule` (the boss schedules match the old formulas), `quickfights` (Quick Play boss fights with bots: each boss's fight length after waves 10/20/30), `quick` (Quick Play: its waves, boss, records, endless, room building with two bots, the tutorial; prints each boss's health after waves 10/20/30), `bossgate` (the boss gate before a boss: holds the wave until everyone is in, bots walk in; the only suite with `Game.GatesOn`), `wardencycle` (its Warden wave lessons), `checkpoints` (lives and retries), `classcards`, `showcase`, `ults`, `mods`, `cardids` (card ids over the network as 2 bytes), `offers` (every card offer reads the weapon), `hitfx` (hit flash and blast thinning), `nonshooters` (Fuse Runner, Hookman, Sapper), ... Reports (numbers, no pass/fail):
+    `warden`, `singularity`, `mastery`, `longrun` (the 100-wave Campaign), `bossschedule` (the boss schedules match the old formulas), `quickfights` (Quick Play boss fights with bots: each boss's fight length after waves 10/20/30), `quick` (Quick Play: its waves, boss, records, endless, room building with two bots, the tutorial; prints each boss's health after waves 10/20/30), `bossgate` (the boss gate before a boss: holds the wave until everyone is in, bots walk in; the only suite with `Game.GatesOn`), `wardencycle` (its Warden wave lessons), `checkpoints` (lives and retries), `classcards`, `showcase`, `ults`, `mods`, `cardids` (card ids over the network as 2 bytes), `offers` (every card offer reads the weapon), `cardfilters` (class and weapon-list cards), `classcardlists` (each class's card list), `hitfx` (hit flash and blast thinning), `nonshooters` (Fuse Runner, Hookman, Sapper), ... Reports (numbers, no pass/fail):
     `ttk`, `lab`, `levels`, `bulletcount`, `wavemix` (each wave's share of shooters, melee and support), `dps`, `ultdps`, `balance` (each damage upgrade's worth per pick and full
     stack in a boss, pack and spread fight; see `Docs/UpgradeBalance.md`), `upgradecov` (which weapon upgrades each
     weapon ignores, and each upgrade's damage gain), `laserdebug`. A new test: add it to its system's file, then to

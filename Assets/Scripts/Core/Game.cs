@@ -471,7 +471,7 @@ namespace Arena
                 return 1f;
             if (slot == Upgrades.UltSlot)
                 return Upgrades.Ability(id).Cooldown * MasteryCooldown(p, id) * (p.Role == Role.Wildcard ? WildcardCdMult : 1f);  // ultimates ignore cooldown upgrades
-            float cd = Upgrades.Ability(id).Cooldown * p.Stats.CdMult * MasteryCooldown(p, id);
+            float cd = Upgrades.Ability(id).Cooldown * p.Stats.CdMult * MasteryCooldown(p, id) * (slot >= 1 && slot <= Upgrades.BonusSlots ? p.Stats.BonusCdMult : 1f);  // Quartermaster: Q, E, Shift
             return cd;
         }
 
@@ -1378,6 +1378,8 @@ namespace Arena
                 TickRiot(p, dt);
                 p.OverdriveT = Math.Max(0f, p.OverdriveT - dt);
                 p.AdrenalineT = Math.Max(0f, p.AdrenalineT - dt);
+                p.SurgeT = Math.Max(0f, p.SurgeT - dt);  // Arcane Surge
+                p.GhostT = Math.Max(0f, p.GhostT - dt);  // Ghost Step
                 TickMomentum(p, dt);  // Momentum.cs
                 p.SwiftT = Math.Max(0f, p.SwiftT - dt);
                 p.DashT = Math.Max(0f, p.DashT - dt);
