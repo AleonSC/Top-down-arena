@@ -500,7 +500,7 @@ A Charger shows a ring where its dash will end, which is also where its ring of 
 
 Shooters that fire straight at you (Sniper, Shard, Medic, Splitter, Phantom, Grunt, Taser Guard, Security Guard) share one **shooting line**: for the instant before they fire, a slim lane in their colour fills from the muzzle along the shot, brighter at its head, and caps off when the shot is due; the Grunt shows all three of its shots. The Leader and Beam Sentry keep their own blinking lines.
 
-From wave 13, a regular wave shows at most 6 different enemy types (8 from wave 25), so each kind is easier to learn. Boss waves, paths with their own mix and Zombie Infection hordes are unchanged.
+From wave 13, a regular wave shows at most 6 different enemy types (8 from wave 25), so each kind is easier to learn; in the Campaign the boss factions' enemies count too (they keep room for the wave's headliners). Boss waves, paths with their own mix and Zombie Infection hordes are unchanged.
 
 The first waves are **melee rushers** (spiky, they never shoot, they hurt on contact). Shooters take over a
 little more each wave: wave 1 is all melee, wave 7 about half.

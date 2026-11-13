@@ -30,7 +30,7 @@ namespace Arena
         /// MaxCoinsPerKill coins, the last one worth what is left).
         void DropCoins(Enemy e)
         {
-            int gold = (int)Math.Round(e.Def.Xp * (e.Elite ? 3 : 1) * GoldPerXp);
+            int gold = (int)Math.Round(e.Def.Xp * (e.Elite ? 3 : 1) * GoldPerXp);  // (not scaled by Pace, unlike the Bazaar's GrantGold: the owner's choice, Nov 2026; this rate felt right in play)
             int n = 0;
             while (gold > 0)
             {

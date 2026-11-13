@@ -169,6 +169,11 @@ namespace Arena
             if (n >= 5) { melee.Add(EnemyType.Buzzsaw); melee.Add(EnemyType.SpikeBlock); }  // the melee grunts (MeleeGrunts.cs)
             if (n >= SwordsmanFrom) melee.Add(EnemyType.Swordsman);  // the swordsmen (Swordsman.cs)
             if (n >= ShieldSwordsmanFrom) melee.Add(EnemyType.ShieldSwordsman);
+            // A recipe wave shows at most KindCap(n) distinct types, the boss factions' enemies included (WaveRecipe.cs): the
+            // factions may bring in all but the headliners' places, then the recipe fills up to the cap.
+            kinds.Clear();
+            kindCap = n >= RecipeFrom ? KindCap(n) : 99;
+            approachKindCap = n >= RecipeFrom ? kindCap - HeadlinerCount(n) : 99;
             BuildApproach(n, ref count);  // the boss's faction takes its share first (Approaches.cs)
             if (BuildPathWave(n, ref count, pool, melee))  // a path's own mix (Paths.cs)
             {
