@@ -96,6 +96,51 @@ namespace Arena
             },
             new FactionDef
             {
+                Boss = EnemyType.HiveQueen,  // the Hive Queen: bees, one for each of the Warden's roles (HiveKin.cs, Docs/HiveFaction.md)
+                Members = new[]
+                {
+                    new FactionMember { Type = EnemyType.Worker, Weight = 3f },
+                    new FactionMember { Type = EnemyType.Soldier, NotFirst = true, Weight = 2f },
+                    new FactionMember { Type = EnemyType.CombShield, Fade = 0, Weight = 2f, From = 2 },
+                    new FactionMember { Type = EnemyType.HoneyLobber, Fade = 0, Weight = 1.5f, From = 2 },
+                    new FactionMember { Type = EnemyType.Stinger, Fade = 0, Weight = 1.5f, From = 3 },
+                    new FactionMember { Type = EnemyType.Needler, Fade = 1, Weight = 2f, From = 2 },
+                    new FactionMember { Type = EnemyType.Bumble, Fade = 2, Weight = 1.5f, From = 2 },
+                    new FactionMember { Type = EnemyType.Hornet, Fade = 2, Weight = 1f, From = 3 },
+                },
+                Squads = new[]
+                {
+                    new SquadDef { Name = "Swarm", From = 1, Members = new[] { EnemyType.Soldier, EnemyType.Worker, EnemyType.Worker, EnemyType.Worker, EnemyType.Worker, EnemyType.Worker, EnemyType.Worker } },
+                    new SquadDef { Name = "Nursery", From = 3, Members = new[] { EnemyType.Bumble, EnemyType.Worker, EnemyType.Worker, EnemyType.Worker, EnemyType.Hornet } },
+                    new SquadDef { Name = "Picket", From = 2, Members = new[] { EnemyType.Needler, EnemyType.Needler, EnemyType.Needler, EnemyType.Worker, EnemyType.Worker } },
+                    new SquadDef { Name = "Honeycomb", From = 3, Members = new[] { EnemyType.CombShield, EnemyType.CombShield, EnemyType.Worker, EnemyType.Worker, EnemyType.Worker, EnemyType.Worker } },
+                },
+                LessonSquads = new[]
+                {
+                    new SquadDef { Name = "Worker pack", From = 1, Members = new[] { EnemyType.Worker, EnemyType.Worker, EnemyType.Worker, EnemyType.Worker, EnemyType.Worker } },
+                    new SquadDef { Name = "Soldier pair", From = 1, Members = new[] { EnemyType.Soldier, EnemyType.Soldier } },
+                },
+                // Wave 4: a wall of four Comb Shields with five Soldiers close behind.
+                Finale = new SquadDef { Name = "Royal guard", From = 4, Members = new[] {
+                    EnemyType.CombShield, EnemyType.CombShield, EnemyType.CombShield, EnemyType.CombShield,
+                    EnemyType.Soldier, EnemyType.Soldier, EnemyType.Soldier, EnemyType.Soldier, EnemyType.Soldier } },
+                // The Campaign's Hive cycle: the same ten lessons as the Warden's, in the same order (Docs/Approaches.md's chart).
+                Lessons = new[]
+                {
+                    new WaveLesson { Teaches = "Workers swarm (the Swarm stage's drone crowds)", Members = new[] { M(EnemyType.Worker, 1f) } },
+                    new WaveLesson { Teaches = "Soldiers join (the first one trickles in late)", Trickle = true, Star = EnemyType.Soldier, Members = new[] { M(EnemyType.Worker, 1f) }, Squads = new[] { "Worker pack" } },
+                    new WaveLesson { Teaches = "Bumbles: the heavy ones", Trickle = true, Star = EnemyType.Bumble, Members = new[] { M(EnemyType.Worker, 2f), M(EnemyType.Soldier, 1.5f) }, Squads = new[] { "Worker pack", "Soldier pair" } },
+                    new WaveLesson { Teaches = "Needlers' aimed shots (the bomber barrage)", Trickle = true, Star = EnemyType.Needler, Members = new[] { M(EnemyType.Worker, 2f), M(EnemyType.Soldier, 2f), M(EnemyType.Bumble, 1.5f) }, Squads = new[] { "Nursery", "Soldier pair" } },
+                    new WaveLesson { Teaches = "A recap of everything so far", Members = new[] { M(EnemyType.Worker, 2f), M(EnemyType.Soldier, 2f), M(EnemyType.Bumble, 1.5f), M(EnemyType.Needler, 2f) }, Squads = new[] { "Nursery", "Picket" } },
+                    new WaveLesson { Teaches = "Comb Shields: break the cell facing you (the honeycomb floor)", Trickle = true, Star = EnemyType.CombShield, Members = new[] { M(EnemyType.Worker, 2f), M(EnemyType.Soldier, 2f), M(EnemyType.Bumble, 1.5f), M(EnemyType.Needler, 2f) }, Squads = new[] { "Nursery", "Picket" } },
+                    new WaveLesson { Teaches = "Honey: leave the ring, the puddle slows you (the nectar spray)", Trickle = true, Star = EnemyType.HoneyLobber, Members = new[] { M(EnemyType.CombShield, 2f), M(EnemyType.Worker, 2f), M(EnemyType.Soldier, 1f), M(EnemyType.Needler, 1f) }, Squads = new[] { "Nursery", "Honeycomb" } },
+                    new WaveLesson { Teaches = "Stingers: a stunning dart, strafe across the line (the aimed fans)", Trickle = true, Star = EnemyType.Stinger, Members = new[] { M(EnemyType.HoneyLobber, 1.5f), M(EnemyType.CombShield, 2f), M(EnemyType.Worker, 2f), M(EnemyType.Soldier, 1f) }, Squads = new[] { "Nursery", "Honeycomb" } },
+                    new WaveLesson { Teaches = "Every squad, tighter", Members = null, Squads = null, SquadChance = 0.75f },
+                    new WaveLesson { Teaches = "The exam: the Royal guard and a big Swarm, with everything", Members = null, Squads = new string[0], Finale = true, Also = "Swarm" },
+                },
+            },
+            new FactionDef
+            {
                 Boss = EnemyType.Lich,  // the Lich: the restless dead, the same zombies as Zombie Infection (Zombies.cs); they don't get back up outside that modifier
                 Members = new[]
                 {
@@ -278,6 +323,14 @@ namespace Arena
                 FactionDef cbFrom;
                 var cb = Approaches.Comeback(n, out cbFrom);  // (a comeback squad takes the older pool's slice this wave)
                 int shown = LongLegs ? ShownWave : 0;
+                if (cb != null)  // (first, so its types count against the wave's budget of distinct types before the factions pick theirs)
+                {
+                    var big = Approaches.Callback(cb, cbFrom);  // (a callback: the old squad, big)
+                    plan.ApproachSquads.Add(big);
+                    foreach (var t in big.Members)
+                        plan.Kinds.Add(t);
+                    count -= Math.Min(count, big.Members.Length);
+                }
                 foreach (var sl in Approaches.Campaign(n, shown))  // (every faction's enemies, each by its slice; the rest stays the usual mix)
                 {
                     int themed = Math.Min(count, (int)Math.Round(of * (cb != null ? sl.Share - sl.Pool : sl.Share)));
@@ -293,14 +346,6 @@ namespace Arena
                     }
                     else if (themed > 0)
                         PickFaction(sl.Faction, sl.Current ? step : 99, sl.Current && Bosses.FinaleWave(n), ref count, themed);  // (older factions are in full; only the next boss's builds up)
-                }
-                if (cb != null)
-                {
-                    var big = Approaches.Callback(cb, cbFrom);  // (a callback: the old squad, big)
-                    plan.ApproachSquads.Add(big);
-                    foreach (var t in big.Members)
-                        plan.Kinds.Add(t);
-                    count -= Math.Min(count, big.Members.Length);
                 }
                 return;
             }

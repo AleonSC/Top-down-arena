@@ -168,7 +168,7 @@ namespace Arena
         /// A perfect parry in the Orbit stance keeps the shot as a small star (instead of a needle). False: send it back as usual.
         bool FumaSteal(Player p, Bullet b)
         {
-            if (p.Weapon.Id != WeaponId.FumaShuriken || p.FumaStance != 1 || p.FumaMinis >= FumaStealCap || b.Kind == Defs.StunShot || b.Kind == Defs.TaserBolt)
+            if (p.Weapon.Id != WeaponId.FumaShuriken || p.FumaStance != 1 || p.FumaMinis >= FumaStealCap || b.Kind == Defs.StunShot || b.Kind == Defs.TaserBolt || b.Kind == Defs.StingBolt)
                 return false;
             p.FumaMiniFrom.Add(b.Shooter);
             p.FumaMinis = (byte)p.FumaMiniFrom.Count;

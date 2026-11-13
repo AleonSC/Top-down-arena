@@ -357,7 +357,7 @@ namespace Arena
                 RollCoreCarrier(e);  // CoreDrops.cs
             if (type == EnemyType.Shielder)
                 e.ShieldHp = e.ShieldMax = e.MaxHp * ShieldShare;
-            if (type == EnemyType.RiotShield)
+            if (HiveKin.Of(type) == EnemyType.RiotShield)
                 e.ShieldHp = e.ShieldMax = e.MaxHp * RiotShieldShare;  // WardenFaction.cs
             return e;
         }
@@ -398,7 +398,7 @@ namespace Arena
             e.SpawnT = spawnT;
             e.FireT = Rand(0.3f, 1.2f);
             e.PhaseT = Rand(1f, 3f);
-            if (e.Type == EnemyType.SecurityGuard)
+            if (e.Kin == EnemyType.SecurityGuard)
                 e.Phase = SecurityMag;  // a full magazine (SecurityGuard.cs)
             e.Strafe = rng.NextDouble() < 0.5 ? 1f : -1f;
             e.Ang = Rand(0f, MathX.Tau);
@@ -584,15 +584,15 @@ namespace Arena
                     if (e.Def.IsBoss)
                         BossCues(e);  // BossSounds.cs
                     float mult = rate * TraitFireMult(e) * (IsTwin(e.Type) && e.Phase == 1 ? 1.7f : 1f) * (Has(RunMod.Frenzy) ? Modifiers.FrenzyFire : 1f);
-                    bool guardFar = e.Type == EnemyType.SecurityGuard && e.Phase > 0 && e.Pos.DistanceTo(tpos) > SecurityEngage;  // too far to shoot: no countdown (SecurityGuard.cs)
+                    bool guardFar = e.Kin == EnemyType.SecurityGuard && e.Phase > 0 && e.Pos.DistanceTo(tpos) > SecurityEngage;  // too far to shoot: no countdown (SecurityGuard.cs)
                     if (guardFar)
                         e.FireT = Math.Max(e.FireT, SecurityEvery);  // it opens fire a full gap after it gets close, not at once
                     else
                         e.FireT -= dt * mult * (1f - e.Suppress);  // the Riot Repeater's suppression (Weapons.cs)
                     // A regular shooter glows just before it fires (Readability.cs).
                     float rateNow = mult * (1f - e.Suppress);
-                    e.Winding = (e.Type == EnemyType.SecurityGuard ? e.Phase > 0 : TakesTurns(e) && (HasTurn(e) || mine)) && rateNow > 0f && e.FireT / rateNow <= WindUpOf(e.Type) && e.FireT > -0.5f;
-                    if (e.Type == EnemyType.GasGrenadier)
+                    e.Winding = (e.Kin == EnemyType.SecurityGuard ? e.Phase > 0 : TakesTurns(e) && (HasTurn(e) || mine)) && rateNow > 0f && e.FireT / rateNow <= WindUpOf(e.Type) && e.FireT > -0.5f;
+                    if (e.Kin == EnemyType.GasGrenadier)
                         GrenadierWind(e, tpos, rateNow);  // locks its lob when the wind-up starts (WardenFaction.cs)
                     if (held && e.FireT <= 0f)
                         e.FireT = Rand(0.2f, 0.4f);  // nobody in its room: nothing to shoot at
@@ -707,7 +707,7 @@ namespace Arena
                 return;  // committed to the leap / flight line (a Spike Block locks its line when it winds up)
             if (e.Type == EnemyType.BeamSentry && e.Phase >= 2 || e.Type == EnemyType.Reaver && e.Phase != 0 || e.Type == EnemyType.Leader && e.Phase == 1)
                 return;  // the beam's aim and sweep, the rake's cone, the Leader's aim line (Variety.cs)
-            if (e.Type == EnemyType.RiotShield)
+            if (e.Kin == EnemyType.RiotShield)
             {
                 RiotShieldFace(e, want, dt);  // WardenFaction.cs
                 return;
@@ -717,7 +717,7 @@ namespace Arena
                 SwordsmanTurn(e, want, dt);  // Swordsman.cs
                 return;
             }
-            if (e.Type == EnemyType.SecurityGuard)
+            if (e.Kin == EnemyType.SecurityGuard)
             {
                 SecurityFace(e, tpos, dt);  // SecurityGuard.cs
                 return;
@@ -735,7 +735,7 @@ namespace Arena
         /// A hit the shield stopped (or time) wears it down; it cracks in three steps, then shatters.
         void WearShield(Enemy e, float amount)
         {
-            if (e.Type == EnemyType.RiotShield)
+            if (e.Kin == EnemyType.RiotShield)
             {
                 WearRiotShield(e, amount);  // WardenFaction.cs
                 return;
@@ -789,7 +789,7 @@ namespace Arena
                 return true;  // the more-hurt Twin Reaper, until the other catches up
             if (LichImmune(e))
                 return true;  // its phylacteries stand, it's blinking between graves, or it's changing stage (Lich.cs)
-            if (e.Type == EnemyType.RiotShield)
+            if (e.Kin == EnemyType.RiotShield)
                 return RiotShieldBlocks(e, from);  // WardenFaction.cs
             if (e.Type == EnemyType.ShieldSwordsman)
                 return SwordShieldBlocks(e, from);  // Swordsman.cs
@@ -852,7 +852,7 @@ namespace Arena
                 dir = PropDir(e, dir);  // round crates and barrels if there's a way; shove them if not (Props.cs)
             V2 v = V2.Zero;
             float speed = e.Speed * BruteSpeedMult(e);  // Brutes enrage as they are shot (BruteEnrage.cs)
-            switch (e.Type)
+            switch (e.Kin)
             {
                 case EnemyType.Grunt:
                     v = KeepDistance(dir, dist, 230f) + dir.Orthogonal() * e.Strafe * 0.6f;
@@ -966,7 +966,7 @@ namespace Arena
                 v = VarietyMove(e, tpos, dir, dist, ref speed);  // Variety.cs
             if (Challenges.Own(e.Type))
                 v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
-            if (e.Type == EnemyType.RiotShield || e.Type == EnemyType.GasGrenadier || e.Type == EnemyType.TaserGuard || e.Type == EnemyType.SecurityGuard)
+            if (e.Kin == EnemyType.RiotShield || e.Kin == EnemyType.GasGrenadier || e.Kin == EnemyType.TaserGuard || e.Kin == EnemyType.SecurityGuard)
                 v = WardenFactionMove(e, tpos, dir, dist, dt, ref speed);  // WardenFaction.cs
             if (Zombies.Is(e.Type))
                 v = ZombieMove(e, tpos, dir, dist, ref speed);  // Zombies.cs
@@ -979,7 +979,7 @@ namespace Arena
                 speed *= HasteMult;
             // A sweeping Beam Sentry steers its beam by Strafe, so it keeps the side it telegraphed (the roll still happens, keeping the RNG sequence).
             // A Security Guard keeps its side on its own timer (SecurityGuard.cs).
-            if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3) && e.Type != EnemyType.SecurityGuard)
+            if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3) && e.Kin != EnemyType.SecurityGuard)
                 e.Strafe = -e.Strafe;
             if (e.SlowT > 0f && !Heavy(e))
                 speed *= e.SlowMult;
@@ -1016,7 +1016,7 @@ namespace Arena
                 ZombieSpecial(e, tpos, dt);  // Zombies.cs
                 return;
             }
-            switch (e.Type)
+            switch (e.Kin)
             {
                 case EnemyType.Shielder:
                     WearShield(e, e.ShieldMax * ShieldDecay * dt);
@@ -1155,17 +1155,17 @@ namespace Arena
             }
             if (VarietyFire(e, aim))
                 return;  // Variety.cs
-            if (e.Type == EnemyType.GasGrenadier)
+            if (e.Kin == EnemyType.GasGrenadier)
             {
                 GrenadierFire(e, tpos);  // WardenFaction.cs
                 return;
             }
-            if (e.Type == EnemyType.TaserGuard)
+            if (e.Kin == EnemyType.TaserGuard)
             {
                 TaserFire(e, aim);  // WardenFaction.cs
                 return;
             }
-            if (e.Type == EnemyType.SecurityGuard)
+            if (e.Kin == EnemyType.SecurityGuard)
             {
                 SecurityFire(e);  // SecurityGuard.cs
                 return;

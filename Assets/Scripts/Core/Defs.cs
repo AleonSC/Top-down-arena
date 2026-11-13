@@ -53,6 +53,8 @@ namespace Arena
         Thug, Shiv,
         // a spawn portal: a burst of the wave comes through it; shoot it closed to cancel the rest (SpawnPortals.cs, Game/SpawnPortalLook.cs)
         Portal,
+        // the Hive Queen's faction (Docs/HiveFaction.md, HiveKin.cs): each plays like one of the Warden's, in the same order
+        Worker, Soldier, CombShield, HoneyLobber, Stinger, Needler, Bumble, Hornet,
     }
 
     public class RoleDef
@@ -306,6 +308,23 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "A prisoner with a taped shank. Circles in close, flashes a line, then lunges along it." },
             new EnemyDef { Name = "Spawn Portal", Hp = 200f, Radius = 30f, Speed = 0f, Score = 30, Xp = 20, Sides = 24, Color = new Rgba(0.78f, 0.35f, 1f), Melee = true, Heavy = true,
                 Picker = PickerGroup.Hidden, Blurb = "A burst of the wave comes through it. Shoot it closed before it empties to cancel the rest; it drops coins for each one it held." },
+            // the Hive Queen's faction (HiveKin.cs): the numbers are their Warden counterpart's
+            new EnemyDef { Name = "Worker", Hp = 40f, Radius = 12f, Speed = 110f, Score = 3, Xp = 7, Sides = 8, Color = new Rgba(1f, 0.773f, 0.2f), Melee = true, Contact = 10f,
+                Picker = PickerGroup.Melee, Blurb = "A small, quick worker bee that weaves at you, in loose pairs." },
+            new EnemyDef { Name = "Soldier", Hp = 90f, Radius = 13f, Speed = 125f, Score = 6, Xp = 15, Sides = 8, Color = new Rgba(1f, 0.478f, 0.122f), Melee = true, Contact = 14f,
+                Picker = PickerGroup.Melee, Blurb = "An armoured bee that rushes straight at you, jaws snapping." },
+            new EnemyDef { Name = "Comb Shield", Hp = 60f, Radius = 16f, Speed = 120f, Score = 10, Xp = 10, Sides = 6, Color = new Rgba(0.953f, 0.894f, 0.702f), Melee = true, Contact = 8f,
+                Picker = PickerGroup.Melee, Blurb = "A bee behind a plate of wax cells that stops shots and bashes you back. Break the cells, or go round it." },
+            new EnemyDef { Name = "Honey Lobber", Hp = 50f, Radius = 14f, Speed = 75f, Score = 8, Xp = 9, Sides = 5, Color = new Rgba(1f, 0.635f, 0.102f),
+                Picker = PickerGroup.Ranged, Blurb = "Lobs honey at you. A ring marks the spot; the puddle slows whoever stands in it." },
+            new EnemyDef { Name = "Stinger", Hp = 70f, Radius = 13f, Speed = 80f, Score = 9, Xp = 11, Sides = 8, Color = new Rgba(0.784f, 1f, 0.239f),
+                Picker = PickerGroup.Ranged, Blurb = "Keeps its distance, charges a venom lance and fires one barbed dart that stuns you. Strafe across the line, or parry it." },
+            new EnemyDef { Name = "Needler", Hp = 45f, Radius = 15f, Speed = 70f, Score = 9, Xp = 9, Sides = 24, Color = new Rgba(1f, 0.925f, 0.604f),
+                Picker = PickerGroup.Ranged, Blurb = "Hovers and strafes, locks on, then fires one white needle at a time: seven shots, then a long reload." },
+            new EnemyDef { Name = "Bumble", Hp = 140f, Radius = 19f, Speed = 62f, Score = 10, Xp = 10, Sides = 7, Color = new Rgba(0.91f, 0.573f, 0.047f), Melee = true, Contact = 20f,
+                Picker = PickerGroup.Melee, Blurb = "A huge, furry bumblebee. Slow and tough, hits hard when it reaches you." },
+            new EnemyDef { Name = "Hornet", Hp = 45f, Radius = 12f, Speed = 95f, Score = 9, Xp = 9, Sides = 4, Color = new Rgba(1f, 0.29f, 0.157f), Melee = true, Contact = 18f,
+                Picker = PickerGroup.Melee, Blurb = "Circles in close, flashes a red lane, then darts along it." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount
@@ -559,9 +578,10 @@ namespace Arena
             ParryNeedle = 59,  // a perfectly parried shot, sent straight back as a fast white needle (Parry.cs, Game/ParryLook.cs)
             Caltrop = 60,      // a Katana caltrop: thrown, lying (it hurts and slows what steps on it), flung or seeking (Katana.cs, Game/KatanaLook.cs)
             TaserBolt = 61,    // the Taser Guard's Fork Bolt: a white lightning glyph that stuns you for a second (WardenFaction.cs, Game/TaserLook.cs)
-            TracerRound = 62;  // the Security Guard's pistol round: a hot-white tracer with a long tail (SecurityGuard.cs, Game/SecurityLook.cs)
+            TracerRound = 62,  // the Security Guard's pistol round: a hot-white tracer with a long tail (SecurityGuard.cs, Game/SecurityLook.cs)
+            StingBolt = 63;    // the Stinger's venom dart: a lime barbed dart that stuns like the Fork Bolt (WardenFaction.cs, Game/HiveLook.cs)
 
-        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot || kind == TaserBolt || kind == TracerRound;
+        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt;
 
         /// Bosses' aimed attacks: barriers, walls and other blockers can't stop these.
         public static bool Unblockable(byte kind) => kind == PierceShot;
@@ -627,6 +647,7 @@ namespace Arena
                 case PauseShot: return 6.5f;
                 case StitchShot: return 8f;
                 case TaserBolt: return 7f;
+                case StingBolt: return 7f;
                 case TracerRound: return 5f;
                 case BileShot: return 6f;
                 case ToothShot: return 10f;
@@ -649,6 +670,7 @@ namespace Arena
                 case FastShot: return 15f;
                 case StunShot: return 8f;  // the Warden's searchlight turn: it stuns you for 1 s
                 case TaserBolt: return 8f;  // a Taser Guard's Fork Bolt: the same stun
+                case StingBolt: return 8f;  // a Stinger's dart: the same
                 case TracerRound: return 6.1f;  // a Security Guard's round: 7 once the enemy bullet multiplier is on
                 case HoneyShot: return 14f;  // the Hive Queen's nectar spray
                 case ToothShot: return 20f;  // the Devourer's Jaws
@@ -721,6 +743,7 @@ namespace Arena
                 case PauseShot: return new Rgba(0.45f, 0.95f, 0.85f);  // the Pauser's teal
                 case StitchShot: return new Rgba(1f, 0.82f, 0.45f);    // the Stitcher's gold
                 case TaserBolt: return new Rgba(0.75f, 0.91f, 1f);     // the Fork Bolt's ice white
+                case StingBolt: return new Rgba(0.784f, 1f, 0.239f);   // the Stinger's venom lime
                 case TracerRound: return new Rgba(0.94f, 0.97f, 1f);   // the Security Guard's hot-white tracer
                 case BileShot: return new Rgba(0.75f, 0.9f, 0.31f);  // the Devourer's vomit
                 case ToothShot: return new Rgba(0.96f, 0.9f, 0.82f);  // the Devourer's Jaws

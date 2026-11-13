@@ -83,7 +83,7 @@ namespace Arena
         /// Over an enemy's body: a bubble, the Reaver's opening, a planted Beam Sentry's legs, and trait markers.
         void DrawVarietyOnEnemy(Enemy e, V2 pos, float r, float t)
         {
-            if (e.Winding && e.Type != EnemyType.SecurityGuard && e.Type != EnemyType.GasGrenadier)  // about to fire: a white-hot core and a ring closing in on it (Readability.cs; the Security Guard shows its red lane instead)
+            if (e.Winding && e.Kin != EnemyType.SecurityGuard && e.Kin != EnemyType.GasGrenadier)  // about to fire: a white-hot core and a ring closing in on it (Readability.cs; the Security Guard shows its red lane instead)
             {
                 float k = 0.5f + 0.5f * Mathf.Sin(t * 30f);
                 Circle(pos, r * 0.55f, new Rgba(1f, 1f, 1f, 0.55f + 0.3f * k), 14);
