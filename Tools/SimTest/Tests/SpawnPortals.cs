@@ -48,7 +48,9 @@ static partial class Program
         Check(maxOpen <= SpawnPortals.SurgeOpenMax, "no more than " + SpawnPortals.SurgeOpenMax + " portals open at once");
         Check(clientSaw, "the client sees the portals (the enemy snapshot)");
 
-        // A portal lets its whole burst out, then shuts with no reward.
+        // A portal lets its whole burst out, then shuts with no reward. (Mid-wave: in an intermission the next wave's
+        // ResetPortals would wipe the test portal's cargo.)
+        Run(s, dt, 30, () => g.State == MatchState.Fighting);
         g.Enemies.Clear();
         ((List<EnemyType>)queueField.GetValue(g)).Clear();
         int scoreBefore = g.Score;
