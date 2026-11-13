@@ -95,6 +95,66 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Worker, Name = "Worker", Group = "Melee", Wave = 6,
+                Appears = "The Hive Queen's approach (waves 6-9, in pairs and Swarm squads)",
+                Lead = "A small, quick worker bee. Weaves at you, in loose pairs. Moves like a Rioter.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "10" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Soldier, Name = "Soldier", Group = "Melee", Wave = 6,
+                Appears = "The Hive Queen's approach (waves 6-9)",
+                Lead = "An armoured bee that rushes straight at you with its jaws snapping. Moves like a Guard.",
+                Attacks = new[] { new BestiaryAttack { Name = "Mandibles", Pattern = "Touch", Damage = "14" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.CombShield, Name = "Comb Shield", Group = "Melee", Wave = 7,
+                Appears = "The Hive Queen's approach (waves 7-9, alone or two in a Honeycomb squad)",
+                Lead = "A bee behind a plate of seven wax cells that stops shots and swings from the front. Up close the plate flashes, then it lunges and bashes you 160 px back. The cells break as it wears; broken, the bee staggers. Plays like a Riot Shield.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Shield bash", Pattern = "0.4 s flash, then a short lunge", Damage = "10, and knocked back 160 px" },
+                    new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "8" },
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.HoneyLobber, Name = "Honey Lobber", Group = "Shooters", Wave = 7,
+                Appears = "The Hive Queen's approach (waves 7-9)",
+                Lead = "Keeps its distance, plants its feet and swells, then lobs a glob of honey at a ring marked near you, every 3.6 s. The puddle (55 px) lasts 4.5 s and slows whoever stands in it: step out of it.",
+                Attacks = new[] { new BestiaryAttack { Name = "Honey glob", Pattern = "A glob lobbed at a marked ring", Damage = "none: a slowing puddle", Every = 3.6f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Stinger, Name = "Stinger", Group = "Shooters", Wave = 8,
+                Appears = "The Hive Queen's approach (waves 8-9)",
+                Lead = "Keeps its distance, plants its feet and charges a venom lance for 0.7 s (a lime aim line), then fires one barbed dart that stuns you for 1 s. It doesn't lead you: strafe across the line, or parry the dart. Plays like a Taser Guard.",
+                Attacks = new[] { new BestiaryAttack { Name = "Venom dart", Pattern = "One aimed dart after a 0.7 s charge", Shot = "Venom dart", ShotColor = new Rgba(0.784f, 1f, 0.239f), Speed = "260", Damage = "8, and stuns for 1 s", Every = 3.2f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Needler, Name = "Needler", Group = "Shooters", Wave = 7,
+                Appears = "The Hive Queen's approach (waves 7-9), alone or in a Picket",
+                Lead = "Hovers and strafes, then locks on for 0.25 s (a red lane) and fires one white needle straight at you. It fires seven, one every 1.5 s, then reloads for 2.2 s: rush it then. Plays like a Security Guard.",
+                Attacks = new[] { new BestiaryAttack { Name = "Needle", Pattern = "One needle aimed straight at you, seven to a magazine", Shot = "Needle", ShotColor = new Rgba(0.94f, 0.97f, 1f), Speed = "340", Damage = "7", Every = 0.8f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Bumble, Name = "Bumble", Group = "Melee", Wave = 7,
+                Appears = "The Hive Queen's approach (Nursery squads and on its own)",
+                Lead = "A huge, furry bumblebee. Slow, tough, and it hits hard. Moves like a Brute.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "20", Notes = "Walks straight at its target" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Hornet, Name = "Hornet", Group = "Melee", Wave = 8,
+                Appears = "The Hive Queen's approach (Nursery squads and on its own)",
+                Lead = "Circles in close, flashes a red lane, then darts along it. Moves like a Lunger.",
+                Attacks = new[] { new BestiaryAttack { Name = "Lunge", Pattern = "Wind-up 0.6 s (shows a lane) then a leap, same as the Lunger", Damage = "26", Notes = "18 contact" } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.HiveEgg, Name = "Hive Egg", Group = "Summons", Wave = 10,
                 Appears = "Laid by the Hive Queen in her Honeycomb stage",
                 Lead = "Doesn't move or attack. Break it before it hatches into drones.",

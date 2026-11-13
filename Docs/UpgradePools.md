@@ -1,6 +1,6 @@
 # Upgrade pools: class and weapon cards
 
-**Status: steps 1-8 built (Nov 2026, protocol 315).** Next: weapon cards for the other classes, one class at a time. Owner decisions are below; build one step at a time ("start on step N").
+**Status: steps 1-10 built (Nov 2026, protocol 317).** Next: weapon cards for the other classes, one class at a time. Owner decisions are below; build one step at a time ("start on step N").
 
 ## Why
 
@@ -204,3 +204,46 @@ the Bo Staff's shove push (`BoStaff.cs`) and full spin, the Fuma throw's startin
 (`DoseMultOf`), the Spirit Fan's reach and `HealAlly`, `BurstWard` (radius, heal reach, heal), `StarStuck` /
 `ReturnStar`, the Momentum Burst's push and the tossed caltrops' life, `ShadowKunaiLanded` and `NinjaHitMult`
 (`Player.BlinkBoost`, set by the blink and spent with the ambush). Test: suite `abilitycards`, its Ninja checks.
+
+### Step 9: Blood Mage weapon cards (built, protocol 316)
+
+One Rare card per Blood Mage weapon (`Weapons = { that weapon }`, `MaxStacks = 2`), offered only while you hold it.
+
+| Weapon | Card | Effect (per stack) |
+|---|---|---|
+| Blood Lash | Crimson Whip | The whip reaches 20% farther, and each Clot stack cuts 1% more damage |
+| Clot Cannon | Deep Pool | The pool it leaves is 30% bigger and lasts 2 s longer |
+| Leech Tendrils | Hungry Tendrils | The tendrils drain 30% faster, and 15% more of the drain heals you (25% → 40%) |
+| Transfusion Darts | Generous Blood | Each dart gives an ally 30% more health for the same cost |
+| Sanguine Orb | Rich Blood | The heal reserve fills 30% faster, and the healing coat heals 30% more |
+| Vein Tether | Lifeline | 15% more of the beam's damage heals (40% → 55%) |
+| Blood Bolts | Hemophilia | Hemorrhage takes one bolt fewer (5 → 4), and its burst is 30% wider |
+| Implosion | Event Horizon | Pulls enemies in from 30% farther, and the crush hits 40% harder |
+| Bone Spear | Marrow | The spear pierces 1 more enemy, and picking it up gives 3 more health |
+
+Built (owner approved all nine): in `Game.HemomancerCards`. Hooks (all in `BloodMage.cs`): the lash's reach and
+`ClotCut`, the clot's `Pool` / `PoolTime`, the grasp's `Dmg` and `LeechSteal`, the dart's `HealAlly`, `ReserveGain`
+and the coat's healing, `VeinSteal`, `Hemorrhage` (hits needed, radius), `Collapse` (the crush and its pull radius),
+the spear's `Pierce` and `TickSpearPickups`. Test: suite `abilitycards`, its Blood Mage checks.
+
+### Step 10: Summoner weapon cards (built, protocol 317)
+
+One Rare card per Summoner weapon (`Weapons = { that weapon }`, `MaxStacks = 2`), offered only while you hold it.
+Spirit Chalk already has its card (Warding Ink), so it gets none here.
+
+| Weapon | Card | Effect (per stack) |
+|---|---|---|
+| Golem Staff | Granite Golem | The staff's Golem takes 40% more before it breaks, and the boulder crushes 20% wider |
+| Bone Guard | Ossuary | Cages hold 0.5 s longer, and the skeletons shoot 30% faster |
+| Bear Totem | Deep Claws | The claws reach 15% farther, and their bleed is 30% stronger |
+| Sprite Staff | Wildfire Seeds | The firefly hops to 1 more enemy, and the sprites heal 20% more |
+| Treant Rod | Deep Roots | The root whip reaches 20% farther and heals allies it touches 30% more |
+| Wolf Whistle | Alpha Pack | Takedowns hit 30% harder and stun 0.3 s longer |
+| Wisp Lantern | Will-o'-Wisp | One more wisp orbits you |
+| Imp Caller | Imp Horde | Hold 1 more imp, and they come 20% faster |
+
+Built (owner approved all eight): in `Game.SummonerCards`. Hooks: `MinionTough` (Pack Bond and Granite Golem, used at
+spawn and when a staggered minion recovers), the boulder's `Splash`, `BoneDartHit`'s cage time, the minion attack rate
+for Bone Guard's skeletons, `FireBearClaws` (reach, bleed), the firefly's `Hops` and the staff sprites' `HealRate`
+(`SpawnMinion`, not cast ones), the Treant Rod's root reach and `RootHeal`, the Wolf Whistle takedown,
+`CompanionCount` (wisps and imps) and the imps' `CompanionCd`. Test: suite `abilitycards`, its Summoner checks.

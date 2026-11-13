@@ -62,7 +62,7 @@ namespace Arena
                         BroadcastFx(FxKind.Ring, p.Pos, LashRed, b.Reach, 0.35f, Sfx.SpellArcane);
                         break;
                     }
-                    var s = NewSwing(p, aim, w.Reach + w.Grow * extra, 110f, w.Damage * dmg);
+                    var s = NewSwing(p, aim, (w.Reach + w.Grow * extra) * p.Stats.LashReachMult, 110f, w.Damage * dmg);  // (Crimson Whip: farther)
                     s.NoCut = true;  // a whip of blood, not a blade
                     s.Tip = s.Reach * LashTipFrom;
                     s.Clots = true;
@@ -86,15 +86,15 @@ namespace Arena
                         V2 vel = V2.FromAngle(Fanned(aim, i, n, ClotFan)) * (ClotDistance(c) / flight);  // SpawnBullet adds Velocity Rounds, which send it farther
                         var b = SpawnBullet(Defs.ClotShot, p.Pos, vel, 0f, flight, w.Damage * dmg, p.Id);
                         b.Splash = ClotSplash * AreaMult(p);
-                        b.Pool = ClotPoolRadius * AreaMult(p);
-                        b.PoolTime = ClotPoolTime;
+                        b.Pool = ClotPoolRadius * AreaMult(p) * p.Stats.PoolSizeMult;  // (Deep Pool: bigger, longer)
+                        b.PoolTime = ClotPoolTime + p.Stats.PoolBonusTime;
                         b.Burst = 1;  // marks it as landing (MoveBullets)
                     }
                     break;
                 }
                 case WeaponId.LeechBeam:
                     // Leech Tendrils: no projectile; each tick the tendrils hold on, reach for more and drain (Collide).
-                    pendingGrasps.Add(new Grasp { Owner = p.Id, Aim = aim, Extra = extra, Dmg = w.Damage * dmg });
+                    pendingGrasps.Add(new Grasp { Owner = p.Id, Aim = aim, Extra = extra, Dmg = w.Damage * dmg * p.Stats.LeechDrainMult });  // (Hungry Tendrils: faster)
                     break;
                 case WeaponId.VeinTether:
                 {
@@ -111,7 +111,7 @@ namespace Arena
                     for (int i = 0; i < n; i++)
                     {
                         var b = SpawnBullet(Defs.TransfuseShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.08f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                        b.HealAlly = TransfuseHeal * 9f / w.Damage;  // HealAllyHit scales it by Dmg / 9; the dart costs you TransfuseCost when it heals
+                        b.HealAlly = TransfuseHeal * 9f / w.Damage * p.Stats.TransfuseMult;  // (Generous Blood: more)  // HealAllyHit scales it by Dmg / 9; the dart costs you TransfuseCost when it heals
                     }
                     break;
                 }
@@ -144,7 +144,7 @@ namespace Arena
                     for (int i = 0; i < n; i++)
                     {
                         var b = SpawnBullet(Defs.BoneSpearShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.12f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                        b.Pierce += 3;
+                        b.Pierce += 3 + p.Stats.SpearPierceBonus;  // (Marrow: one more)
                         b.Bolts = true;  // it pierces: Ricochet flings bounce bolts off it
                         b.DropsSpear = i == 0;  // stays stuck where it stops: walk over it for its health back
                     }
@@ -347,8 +347,8 @@ namespace Arena
         void Collapse(Player p, Enemy e, float mult, bool splash, Rgba blood)
         {
             imploded.Add(e);
-            HitImplode(p, e, p.Weapon.Damage * mult);
-            float r = e.Radius + ImplodeSplash * AreaMult(p);  // Homing Rounds widen it
+            HitImplode(p, e, p.Weapon.Damage * mult * p.Stats.ImplodeDmgMult);  // (Event Horizon: harder, and from farther)
+            float r = e.Radius + ImplodeSplash * AreaMult(p) * p.Stats.ImplodeReachMult;  // Homing Rounds widen it
             if (splash)
                 foreach (var o in Enemies.Values)
                 {
@@ -427,7 +427,7 @@ namespace Arena
             switch (b.Kind)
             {
                 case Defs.LeechShot:
-                    Heal(p, dmg * LeechSteal, p);
+                    Heal(p, dmg * (LeechSteal + p.Stats.LeechStealBonus), p);
                     break;
                 case Defs.TransfuseShot:
                     Heal(p, TransfuseSteal, p);  // a sliver of the enemy's blood (it's for giving, not for soloing)
@@ -439,7 +439,7 @@ namespace Arena
                     foreach (var q in Players.Values)
                         if (q != p && !q.Downed && q.Pos.DistanceTo(p.Pos) < VeinRange && (ally == null || q.Pos.DistanceSq(p.Pos) < ally.Pos.DistanceSq(p.Pos)))
                             ally = q;
-                    float heal = dmg * VeinSteal;
+                    float heal = dmg * (VeinSteal + p.Stats.VeinStealBonus);  // (Lifeline: more)
                     if (ally == null)
                         Heal(p, heal, p);
                     else
@@ -520,7 +520,7 @@ namespace Arena
                 ApplyBleed(e, c.Dmg * SanguineBleed, c.Owner);  // KitWeapons.cs: each coat is another stack
                 ModHit(e, c.Owner, c.Dmg, Defs.SanguineShot, default(V2));
                 if (Players.TryGetValue(c.Owner, out p))
-                    p.BloodReserve = Math.Min(ReserveMax, p.BloodReserve + ReserveGain);
+                    p.BloodReserve = Math.Min(ReserveMax, p.BloodReserve + ReserveGain * p.Stats.ReserveGainMult);  // (Rich Blood: faster)
             }
             foreach (var q in Players.Values)
             {
@@ -528,7 +528,10 @@ namespace Arena
                     continue;
                 q.CoatT = q.Downed ? 0f : Math.Max(0f, q.CoatT - dt);
                 if (q.CoatT > 0f)
-                    Heal(q, AllyCoatHeal / AllyCoatTime * dt, PlayerOrNull(q.CoatBy));
+                {
+                    var coater = PlayerOrNull(q.CoatBy);
+                    Heal(q, AllyCoatHeal / AllyCoatTime * dt * (coater != null ? coater.Stats.CoatHealMult : 1f), coater);  // (Rich Blood: more)
+                }
             }
         }
 
@@ -542,10 +545,10 @@ namespace Arena
         void Hemorrhage(Player p, Enemy e, float boltDmg)
         {
             e.HemorrhageT = HemorrhageHold;
-            if (++e.Hemorrhage < HemorrhageHits)
+            if (++e.Hemorrhage < HemorrhageHits - p.Stats.HemoHitCut)  // (Hemophilia: fewer)
                 return;
             e.Hemorrhage = 0;
-            float dmg = boltDmg * HemorrhageMult, r = HemorrhageRadius * AreaMult(p);
+            float dmg = boltDmg * HemorrhageMult, r = HemorrhageRadius * AreaMult(p) * p.Stats.HemoRadiusMult;
             foreach (var o in Enemies.Values)
                 if (Targetable(o) && o.Pos.DistanceTo(e.Pos) < r + o.Radius)
                     HurtEnemy(o, dmg, p.Id);
@@ -579,7 +582,7 @@ namespace Arena
                 Player p;
                 if (z.Kind != ZoneKind.BoneSpear || !Players.TryGetValue(z.Owner, out p) || p.Downed || p.Pos.DistanceTo(z.Pos) > z.Radius + p.Def.BodyR)
                     continue;
-                Heal(p, BoneSpearCost, p);
+                Heal(p, BoneSpearCost + p.Stats.SpearPickupBonus, p);  // (Marrow: more back)
                 AddFx(FxKind.Spark, z.Pos, z.Def.Color, 16f, 0.25f);
                 (taken = taken ?? new List<int>()).Add(z.Id);
             }
@@ -684,7 +687,7 @@ namespace Arena
         }
 
         /// Blood Lash's Clot: each stack takes 4% off the damage you take.
-        public static float ClotCut(Player p) => Math.Min(0.5f, ClotCutEach * p.Clot);
+        public static float ClotCut(Player p) => Math.Min(0.5f, (ClotCutEach + p.Stats.ClotCutBonus) * p.Clot);  // (Crimson Whip: more a stack)
 
         void AddClot(Player p, int n)
         {
@@ -790,6 +793,24 @@ namespace Arena
                 Apply = s => { s.RushReach += 0.25f; s.RushRefund += 0.01f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Hemomancer, MaxStacks = 2, Name = "Bloodthirst", Desc = "Your abilities cost 20% less health, and each kill heals you 2",
                 Apply = s => { s.HealthCostMult *= 0.8f; s.KillHeal += 2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BloodLash }, MaxStacks = 2, Name = "Crimson Whip", Desc = "The Blood Lash reaches 20% farther, and each Clot stack cuts 1% more damage",
+                Apply = s => { s.LashReachMult += 0.2f; s.ClotCutBonus += 0.01f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.ClotBolt }, MaxStacks = 2, Name = "Deep Pool", Desc = "The Clot Cannon's pool is 30% bigger and lasts 2 s longer",
+                Apply = s => { s.PoolSizeMult += 0.3f; s.PoolBonusTime += 2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.LeechBeam }, MaxStacks = 2, Name = "Hungry Tendrils", Desc = "Leech Tendrils drain 30% faster, and 15% more of the drain heals you",
+                Apply = s => { s.LeechDrainMult += 0.3f; s.LeechStealBonus += 0.15f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.TransfusionDarts }, MaxStacks = 2, Name = "Generous Blood", Desc = "Each Transfusion Dart gives an ally 30% more health for the same cost",
+                Apply = s => { s.TransfuseMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.SanguineOrb }, MaxStacks = 2, Name = "Rich Blood", Desc = "The Sanguine Orb's heal reserve fills 30% faster, and its healing coat heals 30% more",
+                Apply = s => { s.ReserveGainMult += 0.3f; s.CoatHealMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.VeinTether }, MaxStacks = 2, Name = "Lifeline", Desc = "15% more of the Vein Tether's damage heals",
+                Apply = s => { s.VeinStealBonus += 0.15f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BloodBolts }, MaxStacks = 2, Name = "Hemophilia", Desc = "Hemorrhage takes one Blood Bolt fewer, and its burst is 30% wider",
+                Apply = s => { s.HemoHitCut += 1; s.HemoRadiusMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Implosion }, MaxStacks = 2, Name = "Event Horizon", Desc = "Implosion pulls enemies in from 30% farther, and the crush hits 40% harder",
+                Apply = s => { s.ImplodeReachMult += 0.3f; s.ImplodeDmgMult += 0.4f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BoneSpear }, MaxStacks = 2, Name = "Marrow", Desc = "The Bone Spear pierces 1 more enemy, and picking it up gives 3 more health",
+                Apply = s => { s.SpearPierceBonus += 1; s.SpearPickupBonus += 3f; } },
         };
 
         /// The Blood Mage's abilities and ultimates: every Space ability costs health. (Upgrades.Abilities gathers every class's list.)

@@ -27,6 +27,7 @@ namespace Arena
         const float RiotWardenSpeed = 1.25f;         // the Warden's own pair (searchlight turn) move faster
         const int RiotWardenPair = 2;
         const float GrenadierRange = 330f, GrenadierEvery = 3.6f, GrenadierGasRadius = 70f, GrenadierGasLife = 4f;
+        public const float HoneyLobRadius = 55f, HoneyLobLife = 4.5f;  // a Hive Honey Lobber's puddle
         public const float KnockSpeed = 900f;        // px/s a knockback moves you at (160 px in about 0.18 s)
 
         // A Riot Shield's Phase: the low three bits are the shield's cracks (0-3, RiotCracked = broken), the rest its state.
@@ -41,7 +42,7 @@ namespace Arena
             e.PhaseT = time;
         }
 
-        public static bool RiotShieldBroken(Enemy e) => e.Type == EnemyType.RiotShield && RiotCrack(e) >= RiotCracked;
+        public static bool RiotShieldBroken(Enemy e) => e.Kin == EnemyType.RiotShield && RiotCrack(e) >= RiotCracked;
 
         /// Shots and swings from the front stop on an unbroken shield, unless it's held low after a bash.
         bool RiotShieldBlocks(Enemy e, V2 from)
@@ -93,11 +94,11 @@ namespace Arena
 
         V2 WardenFactionMove(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
         {
-            if (e.Type == EnemyType.GasGrenadier)
+            if (e.Kin == EnemyType.GasGrenadier)
                 return e.Winding ? V2.Zero : KeepDistance(dir, dist, GrenadierRange) + dir.Orthogonal() * e.Strafe * 0.5f;  // plants its feet for the lob
-            if (e.Type == EnemyType.SecurityGuard)
+            if (e.Kin == EnemyType.SecurityGuard)
                 return SecurityMove(e, dir, dist, dt);  // SecurityGuard.cs
-            if (e.Type == EnemyType.TaserGuard)
+            if (e.Kin == EnemyType.TaserGuard)
                 return e.Winding ? V2.Zero : KeepDistance(dir, dist, TaserRange) + dir.Orthogonal() * e.Strafe * 0.5f;  // plants its feet while it charges
             switch (RiotState(e))
             {
@@ -376,6 +377,10 @@ namespace Arena
 
         /// Host, once a tick while it's firing normally: locks the landing spot as the wind-up begins (Winding is true for the last
         /// GrenadierWindUp + GrenadierSwing s before the throw) and tells everyone how long is left.
+        static readonly Rgba HoneyLobColor = new Rgba(1f, 0.77f, 0.2f);
+        static float LobRadius(Enemy e) => e.Type == EnemyType.HoneyLobber ? HoneyLobRadius : GrenadierGasRadius;
+        static Rgba LobColor(Enemy e) => e.Type == EnemyType.HoneyLobber ? HoneyLobColor : GasLobColor;
+
         void GrenadierWind(Enemy e, V2 tpos, float rateNow)
         {
             if (!e.Winding)
@@ -388,7 +393,7 @@ namespace Arena
             e.GasLocked = true;
             e.GasAt = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 50f), 60f);
             float left = Math.Max(0f, e.FireT / Math.Max(0.01f, rateNow));
-            BroadcastFx(FxKind.GasLob, e.GasAt, new V2(e.Id, GasFlight), GasLobColor, GrenadierGasRadius, left + GasFlight, Sfx.None);
+            BroadcastFx(FxKind.GasLob, e.GasAt, new V2(e.Id, GasFlight), LobColor(e), LobRadius(e), left + GasFlight, Sfx.None);
         }
 
         void GrenadierFire(Enemy e, V2 tpos)
@@ -397,11 +402,14 @@ namespace Arena
             if (!e.GasLocked)  // no wind-up seen (it fired the moment it spawned): an instant lob
             {
                 e.GasAt = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 50f), 60f);
-                BroadcastFx(FxKind.GasLob, e.GasAt, new V2(e.Id, GasFlight), GasLobColor, GrenadierGasRadius, GasFlight, Sfx.None);
+                BroadcastFx(FxKind.GasLob, e.GasAt, new V2(e.Id, GasFlight), LobColor(e), LobRadius(e), GasFlight, Sfx.None);
             }
             e.GasLocked = false;
-            SpawnPatchAt(PatchKind.Gas, e.GasAt, GasFlight, GasFlight + GrenadierGasLife, GrenadierGasRadius, GrenadierGasRadius);
-            BroadcastFx(FxKind.GasLob, e.Pos, new V2(e.Id, -1f), GasLobColor, GrenadierGasRadius, 0.3f, Sfx.Throw);  // the release cue
+            if (e.Type == EnemyType.HoneyLobber)
+                SpawnPatchAt(PatchKind.Honey, e.GasAt, GasFlight, GasFlight + HoneyLobLife, HoneyLobRadius, HoneyLobRadius);  // honey slows instead of hurting (Queen.cs HoneySlowAt)
+            else
+                SpawnPatchAt(PatchKind.Gas, e.GasAt, GasFlight, GasFlight + GrenadierGasLife, GrenadierGasRadius, GrenadierGasRadius);
+            BroadcastFx(FxKind.GasLob, e.Pos, new V2(e.Id, -1f), LobColor(e), LobRadius(e), 0.3f, Sfx.Throw);  // the release cue
         }
 
         // --- Taser Guard ---------------------------------------------------------------------------------------------
@@ -413,8 +421,9 @@ namespace Arena
         void TaserFire(Enemy e, float aim)
         {
             e.FireT = TaserEvery;
-            EnemyShot(e, aim, TaserBoltSpeed, Defs.TaserBolt);
-            BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(aim) * (e.Radius + 12f), Defs.BulletColor(Defs.TaserBolt), 22f, 0.2f, Sfx.SpellZap);
+            byte bolt = e.Type == EnemyType.Stinger ? Defs.StingBolt : Defs.TaserBolt;  // (a Stinger's dart is the Hive's own look)
+            EnemyShot(e, aim, TaserBoltSpeed, bolt);
+            BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(aim) * (e.Radius + 12f), Defs.BulletColor(bolt), 22f, 0.2f, Sfx.SpellZap);
         }
 
         float looseGasT;
