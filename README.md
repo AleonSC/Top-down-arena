@@ -724,10 +724,11 @@ with Mummers, Parriers, Marshals, Gallants, every squad, then the exam (the Ring
 
 The **Devourer's faction**, The Larder, leads up to its fight: its brood (mouths with no eyes, the Devourer in miniature)
 and the hooded butchers who keep it fed (design: `Docs/Approaches.md`, "The Larder"; mockup:
-`Docs/Mockups/devourer-faction.html`). Steps 1-2 of 4 are built: five of its eight, each teaching a turn of the fight.
+`Docs/Mockups/devourer-faction.html`). Steps 1-3 of 4 are built: all eight, each teaching a turn of the fight.
 Squads: **Feeding Frenzy** (a Butcher and six Gnawlings) and, from wave 3 of the approach, **Larder Wall** (two Carcass
-Bearers with four Gnawlings) and **Gullet** (a Gulper and three Gnawlings). They pay XP like their counterparts
-(Gnawling 7, Butcher 15, Gulper 25, Carcass Bearer 10, Bile Spitter 9). **Morsels** (the Devourer's, 60 health) also
+Bearers with four Gnawlings), **Meat Hooks** (two Hook Throwers behind two Butchers), **Gullet** (a Gulper, three
+Gnawlings and a Gutworm) and **Bile Rain** (three Bile Spitters, so their pools overlap). XP: Gnawling 7, Butcher 15,
+Gulper 25, Carcass Bearer 10, Bile Spitter 9, Gutworm 12, Hook Thrower 10, Maw Priest 12. **Morsels** (the Devourer's, 60 health) also
 fall from broken Carcass Bearers: shoot one or walk over it, or a hungry Gnawling within 320 px runs for it, eats it and
 grows (50% more health, drawn bigger), as the Devourer heals from them in its Hungry turn.
 
@@ -738,6 +739,9 @@ grows (50% more health, drawn bigger), as the Devourer heals from them in its Hu
 | 2 | **Gulper** | Thug | A swollen gut (180 health, contact 20) that walks at you like a Brute. Within 220 px it **stops and its cheeks swell for 0.6 s** while its **cone** shows, then it **breathes in** for 1 s: the 70° cone, 200 px long, pulls you toward its mouth at 120 px/s. Reach the mouth and it **bites** (20) and the breath ends. Step out of the cone sideways, as from the Devourer's Inhale. Every 4 s |
 | 2 | **Carcass Bearer** | Riot Shield | A hooded butcher behind a side of meat that stops shots and bashes you back (10, 160 px). The meat tears as it wears; broken, it drops in front as a **morsel** and the bearer staggers and takes 50% more |
 | 2 | **Bile Spitter** | Gas Grenadier | A lump of brood with a green bile sac: keeps its distance and, every 3.6 s, its sac swells while a **green ring** fills **where you're heading**, then it lobs a glob. It lands 1 s later as a 70 px **pool of acid** for 4 s (10 a second), the Devourer's Bile in small. Change direction out of the ring |
+| 3 | **Gutworm** | Shiv | A burrowing worm of brood (70 health, contact 12) that walks at you, then **dives**: a ripple chases you underground for 1.8 s (110 px/s; it can't be hurt or touched), stops and **marks** 50 px for 0.6 s, then **erupts**: a bite (16) and a ring of 8 shots, then 3 s on the surface. Get out of the mark. The Devourer's Burrow in small |
+| 3 | **Hook Thrower** | Hookman | A hooded butcher swinging a meat hook. Keeps about 260 px off, shows its **line** for 0.7 s, then throws the hook down it (600 px/s, 320 px). A hit does 8 and **reels you 90 px** toward it. Sidestep, parry it, or shoot across the chain to cut it; a miss leaves it open (+50%) |
+| 3 | **Maw Priest** | Taser Guard | A priest wearing the Devourer's jaw (90 health): a **90° maw** in front. Shots into it **heal it for half**; shots in its back do **25% more**. It turns at 30° a second, keeps its distance and, after a 0.7 s charge, fires a **fan of three** from its maw. Circle round it: the Devourer's Ravenous Maw in small |
 
 **Bubbles (Shielded elites and the Warder's wards):** a bubble is twelve cells round the rim, each holding a twelfth of the shield. A hit wears down the cell facing whoever shot it (flashing, then breaking into shards) and spills over to its neighbours once that cell is gone, so the side you shoot from is the side that opens. Burning and bleeding keep chewing the weakest cell. A honeycomb inside only shows where its cell is still up, and a thin shield bar sits above the health bar. Blue is a Shielded elite, violet is the Warder's.
 
