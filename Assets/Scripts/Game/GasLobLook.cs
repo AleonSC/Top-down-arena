@@ -93,6 +93,11 @@ namespace Arena
                 DrawHurlerLobFx(e, fx, age, throwAt, flight, land, R, t);  // a boulder (QuarryLook.cs)
                 return;
             }
+            if (e != null && e.Type == EnemyType.BileSpitter)
+            {
+                DrawBileLobFx(e, fx, age, throwAt, flight, land, R);  // a glob of bile (LarderLook.cs)
+                return;
+            }
             if (e != null && e.Type == EnemyType.HoneyLobber)
             {
                 DrawHoneyLobFx(e, fx, age, throwAt, flight, land, R);  // the mockup's red ring and honey glob (HiveLook.cs)

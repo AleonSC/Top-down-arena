@@ -377,6 +377,24 @@ namespace Arena
                     new WaveLesson { Teaches = "The exam: the Dead march with everything", Members = null, Squads = new string[0], Finale = true, Also = "Graveyard shift" },
                 },
             },
+            new FactionDef
+            {
+                Boss = EnemyType.Devourer,  // the Devourer: The Larder, its brood and the butchers who feed it (LarderFaction.cs, Docs/Approaches.md "The Larder"); step 2 of 4
+                Members = new[]
+                {
+                    new FactionMember { Type = EnemyType.Gnawling, Weight = 3f },
+                    new FactionMember { Type = EnemyType.Butcher, NotFirst = true, Weight = 2f },  // a Guard that chops a half-circle
+                    new FactionMember { Type = EnemyType.Gulper, Fade = 2, Weight = 1.5f, From = 2 },  // a Thug that breathes you in
+                    new FactionMember { Type = EnemyType.CarcassBearer, Fade = 0, Weight = 2f, From = 2 },  // a Riot Shield whose broken slab is a morsel
+                    new FactionMember { Type = EnemyType.BileSpitter, Fade = 0, Weight = 1.5f, From = 2 },  // a Gas Grenadier that lobs bile
+                },
+                Squads = new[]
+                {
+                    new SquadDef { Name = "Feeding Frenzy", From = 1, Members = new[] { EnemyType.Butcher, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling } },
+                    new SquadDef { Name = "Larder Wall", From = 3, Members = new[] { EnemyType.CarcassBearer, EnemyType.CarcassBearer, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling } },
+                    new SquadDef { Name = "Gullet", From = 3, Members = new[] { EnemyType.Gulper, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling } },  // the Gutworm joins it in step 3
+                },
+            },
         };
 
         static FactionMember M(EnemyType t, float weight) => new FactionMember { Type = t, Weight = weight };

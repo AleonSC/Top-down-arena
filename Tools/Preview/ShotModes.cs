@@ -70,6 +70,30 @@ static partial class Shot {
       typeof(ArenaApp).GetMethod("DrawReplayBar", f2).Invoke(app, null);
       GL.ToUi = false;
     }
+    else if (mode == "huntmap")
+    {
+      // The hunt map screen (HuntMapUi.cs): HMSEED=<n> the map (default 5), HMSTEP=<n> rows cleared (default 4), HMVOTE=1 you have voted for
+      // the first choice (P2 voted for the second, P3 for the first), HMLOCK=1 you have locked in. Use with 3 players: huntmap huntmap 6 12.2 3.
+      var hmSeed = int.Parse(Environment.GetEnvironmentVariable("HMSEED") ?? "5");
+      var hm = HuntMap.Generate(hmSeed);
+      int hmSteps = int.Parse(Environment.GetEnvironmentVariable("HMSTEP") ?? "4");
+      for (int k = 0; k < hmSteps && !hm.Complete; k++) { var ch = hm.Choices(); hm.Pick(ch[(hmSeed + k) % ch.Length]); hm.Clear(); }
+      var hmVotes = (System.Collections.Generic.Dictionary<int, int>)typeof(ArenaApp).GetField("huntMapVotes", f2).GetValue(app);
+      var hmLocked = (System.Collections.Generic.HashSet<int>)typeof(ArenaApp).GetField("huntMapLocked", f2).GetValue(app);
+      int hmSeat = 0;
+      foreach (var hp in host.Game.Players.Values)
+      {
+        if (hmSeat == 0 && Environment.GetEnvironmentVariable("HMVOTE") != null) hmVotes[hp.Id] = 0;
+        if (hmSeat == 1) { hmVotes[hp.Id] = 1; hmLocked.Add(hp.Id); }
+        if (hmSeat == 2) { hmVotes[hp.Id] = 0; hmLocked.Add(hp.Id); }
+        if (hmSeat == 0 && Environment.GetEnvironmentVariable("HMLOCK") != null) hmLocked.Add(hp.Id);
+        hmSeat++;
+      }
+      set("huntMapSecondsLeft", 17f);
+      Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true;
+      typeof(ArenaApp).GetMethod("DrawHuntMap", f2).Invoke(app, new object[] { hm, Hunts.All[0], 0f });
+      GL.ToUi = false;
+    }
     else if (mode == "dev")
     {
       typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
