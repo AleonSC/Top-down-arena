@@ -269,6 +269,11 @@ namespace Arena
                 DrawGasPatch(pt, r, fade, t);
                 return;
             }
+            if (pt.Kind == PatchKind.Rubble || pt.Kind == PatchKind.Slab)
+            {
+                DrawQuarryPatch(pt, t);  // a Rock Hurler's pile, a Slab Bearer's slab (QuarryLook.cs)
+                return;
+            }
             if (pt.Kind == PatchKind.Embers)
             {
                 DrawEmbers(pt, r, t);  // a Scorcher's trail (VarietyLook.cs)

@@ -1,0 +1,662 @@
+<title>The Quarry</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the Colossus's approach faction (waves 21-24) as a field sheet in the Colossus mockup's look: eight
+   looping arena vignettes in a two-column grid, then the squads and the last-wave Avalanche. Single dark look by
+   choice: it mirrors the arena. Approximate: canvas sketches, not the game's draw code. */
+:root {
+  --bg: #0c0b0a; --panel: #171513; --line: #2e2924; --fg: #efe9e2; --muted: #a39686;
+  --stone: #c79e73; --magma: #ff7a3a; --gold: #ffcc59; --good: #6be38a; --crew: #e2a83a;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.5 var(--font-body); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 32px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--magma); }
+h2 { font-size: 22px; font-weight: 700; letter-spacing: .04em; }
+h3 { font-size: 19px; font-weight: 700; letter-spacing: .03em; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--stone); }
+header { display: grid; gap: 10px; }
+.lead { color: #d8cfc4; }
+.mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font: 500 13px var(--font-data); color: var(--muted); }
+.legend b { font-weight: 500; }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 500px), 1fr)); gap: 18px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; }
+canvas { display: block; width: 100%; max-width: 100%; height: auto; background: #12100e; }
+.card canvas { aspect-ratio: 360 / 200; }
+.body { padding: 14px 16px 16px; display: grid; gap: 8px; align-content: start; }
+.title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+.side { font: 600 10.5px var(--font-display); letter-spacing: .14em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; border: 1px solid currentColor; }
+.side.crew { color: var(--crew); }
+.side.stone { color: var(--stone); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 500 12px var(--font-data); color: #d8cfc4; background: #221e1a; border: 1px solid var(--line); padding: 2px 8px; border-radius: 4px; }
+.chip.m { color: var(--magma); border-color: #4a2a1a; }
+.body p { color: #d8cfc4; font-size: 15px; }
+.mirror { font: 500 12.5px var(--font-data); color: var(--muted); }
+.mirror b { color: var(--fg); font-weight: 500; }
+
+.wide { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.wide canvas { aspect-ratio: 720 / 270; }
+.wide .body { padding: 14px 16px 16px; }
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 15px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 11px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+td:first-child { font-family: var(--font-display); font-weight: 700; white-space: nowrap; }
+td.mono { color: var(--muted); white-space: nowrap; }
+.notes { display: grid; gap: 8px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 80ch; color: #d8cfc4; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Colossus approach · waves 21–24 · mockup</div>
+    <h1>The <span>Quarry</span></h1>
+    <p class="lead">Eight enemies, like the Warden's eight: the quarry crew who woke the Colossus, and the stoneborn chunks that broke off it. Each mirrors a Warden enemy's job, so the lessons carry over with a new twist: push rings, rubble cover and lava.</p>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--crew)"></i><b>Crew</b> · 5 (like the guards)</span>
+      <span><i class="dot" style="background:var(--stone)"></i><b>Stoneborn</b> · 3 (like the prisoners)</span>
+      <span><i class="dot" style="background:var(--good)"></i>gap / safe</span>
+      <span><i class="dot" style="background:#7fd4ff"></i>you</span>
+    </div>
+  </header>
+
+  <section class="grid" id="cards"></section>
+
+  <section class="wide">
+    <canvas id="avalanche" width="720" height="270" aria-label="The Avalanche: a wall of four Slab Bearers marching with Stompers behind and Rock Hurlers lobbing over"></canvas>
+    <div class="body">
+      <div class="title"><h3>Avalanche</h3><span class="side stone">last wave · 24</span></div>
+      <p>Four Slab Bearers march at you as a wall, two Stompers close behind, two Rock Hurlers lobbing over it. Within about 190 px, or once half the slabs break, the Stompers break out and stomp.</p>
+      <div class="mirror">Mirrors <b>Riot Line</b></div>
+    </div>
+  </section>
+
+  <section class="notes">
+    <h2>Squads</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Squad</th><th>From</th><th>Who</th><th>Mirrors</th></tr></thead>
+      <tbody>
+        <tr><td>Landslip</td><td class="mono">21</td><td>Six Rubble and a Quarryman</td><td class="mono">Breakout</td></tr>
+        <tr><td>Dig crew</td><td class="mono">22</td><td>Two Rock Hurlers behind two Quarrymen</td><td class="mono">Patrol</td></tr>
+        <tr><td>Quarry</td><td class="mono">22</td><td>A Stomper, three Rubble and a Driller</td><td class="mono">Yard</td></tr>
+        <tr><td>Wall-in</td><td class="mono">23</td><td>Two Slab Bearers with Rubble pouring past</td><td class="mono">Cell block</td></tr>
+        <tr><td>Fault line</td><td class="mono">23</td><td>Three Geomancers spread wide, so their cracks cross</td><td class="mono">new</td></tr>
+        <tr><td>Avalanche</td><td class="mono">24</td><td>Always the last wave (above)</td><td class="mono">Riot Line</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="notes">
+    <h2>In the Colossus fight (proposal)</h2>
+    <ul>
+      <li><b>Crumbling:</b> each Charge turn sends two Slab Bearers; a broken slab adds a fifth cover plate, so its Charge has more to break.</li>
+      <li><b>Molten Core:</b> Cave-in sends two Cinder Priests through the side doors; their misses add lava pools.</li>
+      <li><b>Last stand:</b> Rubble roll off it each time it stomps (two per stomp, at most six up).</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(function () {
+var TAU = Math.PI * 2, W = 360, H = 200;
+var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+function ease(t) { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); }
+function seg(t, a, b) { return clamp((t - a) / (b - a), 0, 1); }
+function rng(s) { return function () { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
+function shape(seed, n) { var r = rng(seed), a = []; for (var i = 0; i < n; i++) a.push(.8 + r() * .28); return a; }
+function rockPath(c, sh, R) {
+  c.beginPath();
+  for (var i = 0; i < sh.length; i++) { var a = i / sh.length * TAU, x = Math.cos(a) * R * sh[i], y = Math.sin(a) * R * sh[i]; i ? c.lineTo(x, y) : c.moveTo(x, y); }
+  c.closePath();
+}
+var SPECK = (function () { var r = rng(7), a = []; for (var i = 0; i < 90; i++) a.push([r(), r(), r()]); return a; })();
+function floor(c, w, h) {
+  var g = c.createRadialGradient(w / 2, h / 2, 20, w / 2, h / 2, Math.max(w, h) * .75);
+  g.addColorStop(0, '#221d19'); g.addColorStop(1, '#0d0b0a');
+  c.fillStyle = g; c.fillRect(0, 0, w, h);
+  c.strokeStyle = 'rgba(255,220,180,.04)'; c.lineWidth = 1;
+  for (var x = 0; x <= w; x += 30) { c.beginPath(); c.moveTo(x + .5, 0); c.lineTo(x + .5, h); c.stroke(); }
+  for (var y = 0; y <= h; y += 30) { c.beginPath(); c.moveTo(0, y + .5); c.lineTo(w, y + .5); c.stroke(); }
+  c.fillStyle = 'rgba(199,158,115,.09)';
+  SPECK.forEach(function (s) { c.fillRect(s[0] * w, s[1] * h, 1 + s[2] * 2, 1 + s[2] * 1.5); });
+}
+function shadow(c, x, y, r) { c.beginPath(); c.ellipse(x + 2, y + 4, r, r * .8, 0, 0, TAU); c.fillStyle = 'rgba(0,0,0,.42)'; c.fill(); }
+function tag(c, txt, col) {
+  c.font = '500 10.5px "IBM Plex Mono", monospace';
+  var w = c.measureText(txt).width + 12;
+  c.fillStyle = 'rgba(12,11,10,.75)'; c.fillRect(8, H - 24, w, 17);
+  c.fillStyle = col || '#a39686'; c.fillText(txt, 14, H - 12);
+}
+function player(c, x, y, hurt) {
+  shadow(c, x, y, 10);
+  var g = c.createRadialGradient(x - 3, y - 3, 1, x, y, 11);
+  g.addColorStop(0, '#c9f0ff'); g.addColorStop(1, '#3d9fcf');
+  c.beginPath(); c.arc(x, y, 10, 0, TAU); c.fillStyle = g; c.fill();
+  c.lineWidth = 2; c.strokeStyle = '#0c2a3a'; c.stroke();
+  if (hurt > 0) { c.beginPath(); c.arc(x, y, 13 + (1 - hurt) * 8, 0, TAU); c.strokeStyle = 'rgba(255,80,60,' + hurt + ')'; c.lineWidth = 3; c.stroke(); }
+}
+function bullet(c, x, y) { c.beginPath(); c.arc(x, y, 3, 0, TAU); c.fillStyle = '#fff1a8'; c.fill(); }
+function spark(c, x, y, k) {
+  c.strokeStyle = 'rgba(255,220,150,' + (1 - k) + ')'; c.lineWidth = 1.5;
+  for (var i = 0; i < 5; i++) { var a = Math.PI + (i - 2) * .45, r0 = 3 + k * 4, r1 = 6 + k * 10; c.beginPath(); c.moveTo(x + Math.cos(a) * r0, y + Math.sin(a) * r0); c.lineTo(x + Math.cos(a) * r1, y + Math.sin(a) * r1); c.stroke(); }
+}
+// the warning strip shared with the Lunger / Riot Shield
+function lane(c, x0, y0, x1, y1, w, fill, rgb) {
+  var a = Math.atan2(y1 - y0, x1 - x0), L = Math.hypot(x1 - x0, y1 - y0);
+  c.save(); c.translate(x0, y0); c.rotate(a);
+  c.fillStyle = 'rgba(' + rgb + ',.12)'; c.fillRect(0, -w / 2, L, w);
+  c.fillStyle = fill > .9 ? 'rgba(255,255,255,.75)' : 'rgba(' + rgb + ',.5)'; c.fillRect(0, -w / 2, L * fill, w);
+  c.fillStyle = 'rgba(' + rgb + ',.9)'; c.fillRect(L * fill - 3, -w / 2, 3, w);
+  c.restore();
+}
+function block(c, x, y, a, al) {
+  c.save(); c.translate(x, y); c.rotate(a); c.globalAlpha *= al;
+  c.fillStyle = '#7a6552'; c.fillRect(-6, -6, 12, 12);
+  c.fillStyle = '#c9ab85'; c.fillRect(-6, -6, 12, 3);
+  c.lineWidth = 1.5; c.strokeStyle = '#2a211a'; c.strokeRect(-6, -6, 12, 12);
+  c.restore();
+}
+// push-block ring with one gap of ~100 px (the Colossus's stomp, small)
+function ring(c, x, y, r, gapA, al) {
+  var n = Math.max(8, Math.floor(TAU * r / 15)), half = Math.min(1.4, 52 / r);
+  for (var i = 0; i < n; i++) {
+    var a = i / n * TAU, d = Math.abs(((a - gapA + Math.PI * 3) % TAU) - Math.PI);
+    if (d < half) continue;
+    block(c, x + Math.cos(a) * r, y + Math.sin(a) * r, a, al);
+  }
+}
+function gapWedge(c, x, y, r0, r1, gapA, al) {
+  var half = Math.min(1.4, 52 / ((r0 + r1) / 2));
+  c.beginPath(); c.arc(x, y, r1, gapA - half, gapA + half); c.arc(x, y, r0, gapA + half, gapA - half, true); c.closePath();
+  c.fillStyle = 'rgba(107,227,138,' + (.22 * al) + ')'; c.fill();
+  c.strokeStyle = 'rgba(107,227,138,' + (.7 * al) + ')'; c.lineWidth = 1.5; c.stroke();
+}
+
+/* ---------- bodies ---------- */
+var RSH = [shape(11, 9), shape(29, 9), shape(53, 9), shape(71, 9)];
+var BIG = shape(97, 11), MID = shape(131, 10), BOULDER = shape(151, 9);
+function stoneFill(c, R, lit, dark) {
+  var g = c.createRadialGradient(-R * .3, -R * .3, 1, 0, 0, R * 1.1);
+  g.addColorStop(0, lit || '#a8927a'); g.addColorStop(1, dark || '#4a3d33'); return g;
+}
+function vein(c, pts, al) {
+  c.strokeStyle = 'rgba(255,122,58,' + al + ')'; c.lineWidth = 1.4; c.beginPath();
+  pts.forEach(function (p, i) { i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]); }); c.stroke();
+}
+function drawRubble(c, x, y, f, rot, k, al) {
+  c.save(); c.globalAlpha = al;
+  shadow(c, x, y, 9);
+  c.save(); c.translate(x, y); c.rotate(rot);
+  rockPath(c, RSH[k % 4], 10); c.fillStyle = stoneFill(c, 10); c.fill();
+  c.lineWidth = 2; c.strokeStyle = '#1e1813'; c.stroke();
+  vein(c, [[-5, 3], [-1, -1], [3, 3]], .8);
+  c.restore();
+  c.fillStyle = '#ffcc59';
+  for (var s = -1; s <= 1; s += 2) { c.beginPath(); c.arc(x + Math.cos(f + s * .5) * 5, y + Math.sin(f + s * .5) * 5, 1.4, 0, TAU); c.fill(); }
+  c.restore();
+}
+// crew: dusty overalls, hi-vis straps, ochre hard hat with a headlamp
+function crewBody(c, robe) {
+  var g = c.createRadialGradient(-4, -4, 2, 0, 0, 16);
+  if (robe) { g.addColorStop(0, robe[0]); g.addColorStop(1, robe[1]); } else { g.addColorStop(0, '#7f7466'); g.addColorStop(1, '#383129'); }
+  c.beginPath(); c.ellipse(0, 0, 12, 15, 0, 0, TAU); c.fillStyle = g; c.fill();
+  if (!robe) {
+    c.save(); c.clip();
+    c.fillStyle = '#f08a2c'; c.fillRect(-6, -16, 3, 32); c.fillRect(1, -16, 3, 32);
+    c.fillStyle = 'rgba(255,255,255,.55)'; c.fillRect(-5.2, -16, .8, 32); c.fillRect(1.8, -16, .8, 32);
+    c.restore();
+  }
+  c.beginPath(); c.ellipse(0, 0, 12, 15, 0, 0, TAU); c.lineWidth = 2.2; c.strokeStyle = '#17120e'; c.stroke();
+}
+function hardHat(c, lamp) {
+  var g = c.createRadialGradient(-1, -2, 1, 1, 0, 9);
+  g.addColorStop(0, '#ffd27a'); g.addColorStop(1, '#b77a1c');
+  c.beginPath(); c.arc(1, 0, 8.5, 0, TAU); c.fillStyle = g; c.fill();
+  c.lineWidth = 1.6; c.strokeStyle = '#4a3108'; c.stroke();
+  c.strokeStyle = 'rgba(74,49,8,.6)'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(-6, 0); c.lineTo(8, 0); c.stroke();
+  if (lamp) { c.fillStyle = '#2a2a2a'; c.fillRect(7, -2.5, 4, 5); c.beginPath(); c.arc(11, 0, 2, 0, TAU); c.fillStyle = '#fff6c8'; c.fill(); }
+}
+function hood(c, col, rim) {
+  c.beginPath(); c.arc(0, 0, 8, 0, TAU); c.fillStyle = col; c.fill();
+  c.lineWidth = 1.6; c.strokeStyle = rim; c.stroke();
+  c.beginPath(); c.arc(3, 0, 4.5, -1.3, 1.3); c.fillStyle = '#0a0807'; c.fill();
+}
+function lampCone(c, x, y, f, len) {
+  c.save(); c.translate(x, y); c.rotate(f);
+  var g = c.createLinearGradient(10, 0, len, 0); g.addColorStop(0, 'rgba(255,240,170,.22)'); g.addColorStop(1, 'rgba(255,240,170,0)');
+  c.beginPath(); c.moveTo(10, 0); c.lineTo(len, -len * .32); c.lineTo(len, len * .32); c.closePath(); c.fillStyle = g; c.fill();
+  c.restore();
+}
+function drawQuarryman(c, x, y, f, swing) {
+  shadow(c, x, y, 14);
+  c.save(); c.translate(x, y); c.rotate(f);
+  // pickaxe: haft over the shoulder, swings across the front
+  c.save(); c.translate(3, 9); c.rotate(lerp(.15, -1.9, swing));
+  c.strokeStyle = '#6b4a2b'; c.lineWidth = 3; c.beginPath(); c.moveTo(0, 0); c.lineTo(19, 0); c.stroke();
+  c.strokeStyle = '#b9c0c4'; c.lineWidth = 3; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(16, -8); c.quadraticCurveTo(22, 0, 16, 8); c.stroke(); c.lineCap = 'butt';
+  c.restore();
+  crewBody(c); hardHat(c, true);
+  c.restore();
+}
+function drawDriller(c, x, y, f, spin, t) {
+  shadow(c, x, y, 14);
+  c.save(); c.translate(x, y); c.rotate(f);
+  c.fillStyle = '#3c3f42'; c.fillRect(9, -5, 15, 10); c.lineWidth = 1.5; c.strokeStyle = '#141516'; c.strokeRect(9, -5, 15, 10);
+  c.fillStyle = '#e2a83a'; c.fillRect(12, -5, 3, 10);
+  c.strokeStyle = '#141516'; c.lineWidth = 3; c.beginPath(); c.moveTo(11, -8); c.lineTo(11, 8); c.stroke();
+  c.beginPath(); c.moveTo(24, -4); c.lineTo(33, 0); c.lineTo(24, 4); c.closePath(); c.fillStyle = '#c3cbd0'; c.fill();
+  c.strokeStyle = '#5a646a'; c.lineWidth = 1;
+  for (var i = 0; i < 3; i++) { var u = ((t * spin * 6 + i / 3) % 1); c.beginPath(); c.moveTo(24 + u * 8, -4 + u * 3.5); c.lineTo(24 + u * 8, 4 - u * 3.5); c.stroke(); }
+  crewBody(c); hardHat(c, false);
+  // goggles
+  c.fillStyle = '#9fe6ff'; c.beginPath(); c.arc(7, -3, 1.6, 0, TAU); c.arc(7, 3, 1.6, 0, TAU); c.fill();
+  c.restore();
+}
+function drawStomper(c, x, y, f, lift, t) {
+  shadow(c, x, y, 21 * (1 - lift * .15));
+  c.save(); c.translate(x, y - lift * 7); c.rotate(f);
+  // feet, the front one raised
+  c.fillStyle = '#4a3d33';
+  c.beginPath(); c.ellipse(4, 13, 8, 6, 0, 0, TAU); c.fill();
+  c.save(); c.translate(6 + lift * 5, -13); c.scale(1 + lift * .25, 1 + lift * .25);
+  c.beginPath(); c.ellipse(0, 0, 8, 6, 0, 0, TAU); c.fill(); c.restore();
+  rockPath(c, BIG, 19); c.fillStyle = stoneFill(c, 19, '#b19a80', '#43372e'); c.fill();
+  c.lineWidth = 2.5; c.strokeStyle = '#1b1510'; c.stroke();
+  // shoulder slabs
+  c.fillStyle = '#8b7662'; c.fillRect(-8, -21, 14, 7); c.fillRect(-8, 14, 14, 7);
+  c.strokeStyle = '#1b1510'; c.lineWidth = 1.5; c.strokeRect(-8, -21, 14, 7); c.strokeRect(-8, 14, 14, 7);
+  vein(c, [[-10, -5], [-3, 0], [-8, 7]], .5 + lift * .5); vein(c, [[2, -9], [6, -2]], .5 + lift * .5);
+  // head knob with an ember slit
+  c.beginPath(); c.arc(10, 0, 6.5, 0, TAU); c.fillStyle = '#6a5747'; c.fill(); c.lineWidth = 1.5; c.stroke();
+  c.fillStyle = '#ffb347'; c.fillRect(13, -3, 2, 6);
+  c.restore();
+}
+function slab(c, cracks, flash, lying) {
+  var g = c.createLinearGradient(14, 0, 22, 0); g.addColorStop(0, '#6f5d4e'); g.addColorStop(1, '#a88f76');
+  c.fillStyle = g; c.fillRect(14, -21, 8, 42);
+  c.lineWidth = 2; c.strokeStyle = '#1e1813'; c.strokeRect(14, -21, 8, 42);
+  c.fillStyle = 'rgba(255,255,255,.12)'; c.fillRect(20, -20, 1.5, 40);
+  var C = [[[15, -12], [19, -8], [17, -3]], [[21, 6], [17, 10], [19, 16]], [[15, 0], [20, 3], [18, -6]]];
+  c.strokeStyle = '#1e1813'; c.lineWidth = 1.2;
+  for (var i = 0; i < cracks && i < 3; i++) { c.beginPath(); C[i].forEach(function (p, j) { j ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]); }); c.stroke(); }
+  if (flash > 0) { c.fillStyle = 'rgba(255,255,255,' + flash * .8 + ')'; c.fillRect(14, -21, 8, 42); }
+}
+function drawBearer(c, x, y, f, cracks, flash, broken, wob) {
+  shadow(c, x, y, 15);
+  c.save(); c.translate(x, y); c.rotate(f + wob);
+  if (!broken) {
+    c.strokeStyle = '#2f2822'; c.lineWidth = 3;
+    c.beginPath(); c.moveTo(6, -9); c.lineTo(15, -12); c.moveTo(6, 9); c.lineTo(15, 12); c.stroke();
+  }
+  crewBody(c); hardHat(c, false);
+  if (!broken) slab(c, cracks, flash);
+  c.restore();
+}
+function coverSlab(c, x, y, al) {
+  c.save(); c.translate(x, y); c.globalAlpha = al;
+  shadow(c, 0, 0, 12);
+  c.rotate(.12);
+  c.fillStyle = '#8a7462'; c.fillRect(-6, -24, 13, 48); c.lineWidth = 2; c.strokeStyle = '#1e1813'; c.strokeRect(-6, -24, 13, 48);
+  c.strokeStyle = 'rgba(30,24,19,.9)'; c.lineWidth = 1.3; c.beginPath(); c.moveTo(-6, -4); c.lineTo(0, -1); c.lineTo(7, -6); c.moveTo(-2, 10); c.lineTo(4, 14); c.stroke();
+  c.restore();
+}
+function drawHurler(c, x, y, f, back, hold) {
+  shadow(c, x, y, 15);
+  c.save(); c.translate(x, y); c.rotate(f);
+  rockPath(c, MID, 14); c.fillStyle = stoneFill(c, 14); c.fill(); c.lineWidth = 2.2; c.strokeStyle = '#1b1510'; c.stroke();
+  vein(c, [[-6, -4], [0, 2], [-4, 7]], .7);
+  c.fillStyle = '#ffcc59'; c.fillRect(8, -4, 2, 2); c.fillRect(8, 2, 2, 2);
+  if (hold) {
+    var bx = lerp(4, -16, back), by = lerp(-14, -4, back);
+    c.strokeStyle = '#4a3d33'; c.lineWidth = 4; c.beginPath(); c.moveTo(0, -9); c.lineTo(bx, by); c.stroke();
+    c.save(); c.translate(bx, by); rockPath(c, BOULDER, 8.5); c.fillStyle = stoneFill(c, 8.5, '#9a846d', '#3e332a'); c.fill(); c.lineWidth = 1.6; c.stroke(); c.restore();
+  }
+  c.restore();
+}
+function drawGeomancer(c, x, y, f, glow, t) {
+  shadow(c, x, y, 14);
+  if (glow > 0) {
+    c.save(); c.translate(x, y); c.strokeStyle = 'rgba(255,190,90,' + glow * .7 + ')'; c.lineWidth = 1.2;
+    c.setLineDash([3, 4]); c.lineDashOffset = -t * 20; c.beginPath(); c.arc(0, 0, 22, 0, TAU); c.stroke(); c.setLineDash([]); c.restore();
+  }
+  c.save(); c.translate(x, y); c.rotate(f);
+  crewBody(c, ['#7a6650', '#33291f']);
+  // staff with a crystal
+  c.strokeStyle = '#5b4126'; c.lineWidth = 2.6; c.beginPath(); c.moveTo(2, 11); c.lineTo(18, 11); c.stroke();
+  c.save(); c.translate(19, 11);
+  c.beginPath(); c.moveTo(0, -4); c.lineTo(4, 0); c.lineTo(0, 4); c.lineTo(-3, 0); c.closePath();
+  c.fillStyle = glow > 0 ? '#ffe1a0' : '#d39a4a'; c.fill();
+  if (glow > 0) { c.beginPath(); c.arc(0, 0, 6 + glow * 5, 0, TAU); c.fillStyle = 'rgba(255,190,90,' + glow * .3 + ')'; c.fill(); }
+  c.restore();
+  hood(c, '#5c4b3a', '#1d1610');
+  c.restore();
+}
+function drawPriest(c, x, y, f, charge, has) {
+  shadow(c, x, y, 14);
+  c.save(); c.translate(x, y); c.rotate(f);
+  crewBody(c, ['#3d3330', '#141010']);
+  c.strokeStyle = '#ff7a3a'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(0, 0, 11, 14, 0, -1.2, 1.2); c.stroke();
+  // cupped hands and the molten core
+  c.fillStyle = '#2a201c'; c.beginPath(); c.arc(12, -5, 3, 0, TAU); c.arc(12, 5, 3, 0, TAU); c.fill();
+  if (has) {
+    var r = 4 + charge * 3;
+    var g = c.createRadialGradient(15, 0, 0, 15, 0, r * 2.6); g.addColorStop(0, 'rgba(255,200,120,' + (.4 + charge * .5) + ')'); g.addColorStop(1, 'rgba(255,90,30,0)');
+    c.fillStyle = g; c.beginPath(); c.arc(15, 0, r * 2.6, 0, TAU); c.fill();
+    c.beginPath(); c.arc(15, 0, r, 0, TAU); c.fillStyle = charge > .85 ? '#fff3cf' : '#ff9b4a'; c.fill();
+  }
+  hood(c, '#2b2220', '#ff7a3a');
+  c.restore();
+}
+function lavaPool(c, x, y, r, t, al) {
+  c.save(); c.globalAlpha = al;
+  var g = c.createRadialGradient(x, y, 1, x, y, r); g.addColorStop(0, '#ffd27a'); g.addColorStop(.55, '#ff7a3a'); g.addColorStop(1, 'rgba(160,40,10,.15)');
+  c.beginPath(); c.ellipse(x, y, r, r * .85, 0, 0, TAU); c.fillStyle = g; c.fill();
+  c.strokeStyle = 'rgba(40,15,5,.8)'; c.lineWidth = 1.5; c.stroke();
+  for (var i = 0; i < 3; i++) { var u = (t * .9 + i / 3) % 1; c.beginPath(); c.arc(x + Math.cos(i * 2.1) * r * .4, y + Math.sin(i * 2.1) * r * .35, u * 3.5, 0, TAU); c.strokeStyle = 'rgba(255,240,200,' + (1 - u) + ')'; c.lineWidth = 1; c.stroke(); }
+  c.restore();
+}
+function rubblePile(c, x, y, al) {
+  c.save(); c.globalAlpha = al;
+  [[0, 0, 9, 0], [-9, 5, 6, 1], [8, 6, 6, 2], [3, -8, 5, 3]].forEach(function (p) {
+    c.save(); c.translate(x + p[0], y + p[1]); rockPath(c, RSH[p[3]], p[2]); c.fillStyle = stoneFill(c, p[2], '#958069', '#3e332a'); c.fill();
+    c.lineWidth = 1.5; c.strokeStyle = '#1b1510'; c.stroke(); c.restore();
+  });
+  c.restore();
+}
+function spikes(c, pts, k) {
+  // stone shards rising along a line
+  var s = Math.sin(clamp(k, 0, 1) * Math.PI);
+  pts.forEach(function (p, i) {
+    var h = (7 + (i % 3) * 3) * s; if (h < .5) return;
+    c.beginPath(); c.moveTo(p[0] - 5, p[1] + 3); c.lineTo(p[0] + ((i % 2) ? 2 : -2), p[1] - h); c.lineTo(p[0] + 5, p[1] + 3); c.closePath();
+    c.fillStyle = '#a38b72'; c.fill(); c.lineWidth = 1.2; c.strokeStyle = '#1b1510'; c.stroke();
+  });
+}
+function crackLine(c, pts, upto, glow) {
+  upto = Math.min(upto, pts.length);
+  if (upto < 2) return;
+  c.lineCap = 'round';
+  if (glow > 0) { c.strokeStyle = 'rgba(255,122,58,' + glow * .45 + ')'; c.lineWidth = 7; c.beginPath(); for (var i = 0; i < upto; i++) i ? c.lineTo(pts[i][0], pts[i][1]) : c.moveTo(pts[i][0], pts[i][1]); c.stroke(); }
+  c.strokeStyle = '#090706'; c.lineWidth = 3; c.beginPath(); for (var j = 0; j < upto; j++) j ? c.lineTo(pts[j][0], pts[j][1]) : c.moveTo(pts[j][0], pts[j][1]); c.stroke();
+  c.strokeStyle = 'rgba(255,170,90,' + (.35 + glow * .6) + ')'; c.lineWidth = 1; c.stroke();
+  c.lineCap = 'butt';
+}
+function jagged(x0, y0, x1, y1, step, amp, seed) {
+  var r = rng(seed), L = Math.hypot(x1 - x0, y1 - y0), n = Math.max(2, Math.round(L / step)), nx = -(y1 - y0) / L, ny = (x1 - x0) / L, out = [];
+  for (var i = 0; i <= n; i++) { var u = i / n, o = (i && i < n) ? (r() - .5) * amp * 2 : 0; out.push([lerp(x0, x1, u) + nx * o, lerp(y0, y1, u) + ny * o]); }
+  return out;
+}
+function fadeIO(c, tt, P, w, h) {
+  var a = Math.max(1 - seg(tt, 0, .25), seg(tt, P - .35, P));
+  if (a > 0) { c.fillStyle = 'rgba(13,11,10,' + a + ')'; c.fillRect(0, 0, w, h); }
+}
+
+/* ---------- scenes (360 x 200) ---------- */
+var S = [];
+S.push({ id: 'rubble', P: 4.4, still: 2.2, name: 'Rubble', side: 'stone', from: 21,
+  chips: ['contact 10', 'XP 7', 'in pairs'],
+  text: 'Fist-sized chunks of the Colossus. They roll at you in pairs, weaving across each other. Squad: Landslip.',
+  mirror: 'Rioter',
+  draw: function (c, tt) {
+    var py = 100 + Math.sin(tt * 1.2) * 10, p = seg(tt, 0, 3.4);
+    for (var k = 0; k < 2; k++) {
+      var x = 30 + p * 252, y = lerp(100 + (k ? -1 : 1) * 30, py, p * p) + Math.sin(tt * 4.2 + k * Math.PI) * 24 * (1 - p);
+      for (var d = 1; d <= 4; d++) { var q = seg(tt - d * .07, 0, 3.4); c.beginPath(); c.arc(30 + q * 252 - 4, lerp(100 + (k ? -1 : 1) * 30, py, q * q) + Math.sin((tt - d * .07) * 4.2 + k * Math.PI) * 24 * (1 - q), 4 - d * .6, 0, TAU); c.fillStyle = 'rgba(199,158,115,' + (.18 - d * .03) + ')'; c.fill(); }
+      drawRubble(c, x, y, 0, tt * 7 + k, k, 1 - seg(tt, 3.45, 3.8));
+    }
+    var hit = tt > 3.4 ? 1 - seg(tt, 3.4, 4) : 0;
+    player(c, 300, py, hit);
+    tag(c, tt < 3.4 ? 'weave · pair' : 'contact 10', hit ? '#ff7a3a' : null);
+  } });
+S.push({ id: 'quarryman', P: 3.6, still: 2.66, name: 'Quarryman', side: 'crew', from: 21,
+  chips: ['contact 14', 'XP 15'],
+  text: 'Hard hat, headlamp, pickaxe. Walks straight at you; its lamp beam shows where it is heading.',
+  mirror: 'Guard',
+  draw: function (c, tt) {
+    var p = seg(tt, 0, 2.4), x = lerp(30, 262, p), y = 104 + Math.sin(tt * 9) * 1.2;
+    var sw = tt < 2.4 ? 0 : (tt < 2.72 ? ease(seg(tt, 2.4, 2.72)) : 1 - ease(seg(tt, 2.9, 3.3)));
+    lampCone(c, x, y, 0, 120);
+    if (tt > 2.62 && tt < 2.85) { c.beginPath(); c.arc(x, y, 30, -1.2, 1.2); c.strokeStyle = 'rgba(255,255,255,.55)'; c.lineWidth = 3; c.stroke(); }
+    player(c, 300, 104, tt > 2.7 ? 1 - seg(tt, 2.7, 3.3) : 0);
+    drawQuarryman(c, x, y, 0, sw);
+    tag(c, tt < 2.4 ? 'straight at you' : 'pickaxe · 14', tt > 2.6 ? '#ff7a3a' : null);
+  } });
+var ST = { cx: 125, cy: 108, px: 252, py: 108 };
+ST.gap = Math.atan2(-48, ST.px - ST.cx);
+S.push({ id: 'stomper', P: 4.8, still: 2.75, name: 'Stomper', side: 'stone', from: 22,
+  chips: ['180 health', 'contact 20', 'XP 20'],
+  text: 'A slab-shouldered brute. Every 4 s it lifts a foot (0.8 s) and stomps out a small ring of push blocks with one green gap beside you. Step in the gap; caught, the ring shoves you through. Squad: Quarry.',
+  mirror: 'Thug',
+  draw: function (c, tt) {
+    var cx = lerp(100, ST.cx, seg(tt, 0, 1.2)), cy = ST.cy;
+    var lift = tt < 1.2 ? 0 : tt < 2 ? ease(seg(tt, 1.2, 1.9)) : 1 - seg(tt, 2, 2.08);
+    var tel = seg(tt, 1.2, 1.4) * (1 - seg(tt, 2.1, 2.3));
+    if (tel > 0) {
+      c.setLineDash([4, 6]); c.strokeStyle = 'rgba(199,158,115,' + tel * .5 + ')'; c.lineWidth = 1.5;
+      c.beginPath(); c.arc(cx, cy, 128, 0, TAU); c.stroke(); c.setLineDash([]);
+      gapWedge(c, cx, cy, 110, 146, ST.gap, tel);
+    }
+    var mv = ease(seg(tt, 1.45, 2.2));
+    var gx = cx + Math.cos(ST.gap) * 128, gy = cy + Math.sin(ST.gap) * 128;
+    var px = lerp(ST.px, gx, mv), py = lerp(ST.py, gy, mv);
+    if (tt > 2 && tt < 2.6) { var k = seg(tt, 2, 2.6); c.beginPath(); c.arc(cx, cy, 20 + k * 30, 0, TAU); c.strokeStyle = 'rgba(199,158,115,' + (1 - k) * .6 + ')'; c.lineWidth = 4; c.stroke(); }
+    if (tt > 2.05) {
+      var r = lerp(24, 200, seg(tt, 2.05, 3.7)), al = 1 - seg(tt, 3.5, 3.9);
+      gapWedge(c, cx, cy, Math.max(0, r - 16), r + 16, ST.gap, al * .6);
+      ring(c, cx, cy, r, ST.gap, al);
+    }
+    player(c, px, py, 0);
+    drawStomper(c, cx, cy, Math.atan2(ST.py - cy, ST.px - cx), lift, tt);
+    tag(c, tt < 1.2 ? 'walks at you' : tt < 2.05 ? 'foot up · gap shows' : 'ring passes the gap', tt >= 1.2 && tt < 2.05 ? '#6be38a' : null);
+  } });
+var DR = { px: 240, py: 108, R: 110 };
+DR.a1 = Math.PI - .05; DR.sx = DR.px + Math.cos(DR.a1) * DR.R; DR.sy = DR.py + Math.sin(DR.a1) * DR.R;
+DR.ex = DR.sx + 190; DR.ey = DR.sy + (DR.py - DR.sy) * 190 / DR.R;
+DR.crack = jagged(DR.sx, DR.sy, DR.ex, DR.ey, 11, 3, 5);
+S.push({ id: 'driller', P: 4, still: 2.0, name: 'Driller', side: 'crew', from: 23,
+  chips: ['contact 18', 'drill 26', 'crack 12', 'XP 14'],
+  text: 'Circles close with a jackhammer, shows the lunge lane, then drills through 200 px. The crack it leaves erupts 0.4 s later, so dodge across its line, not along it.',
+  mirror: 'Shiv',
+  draw: function (c, tt) {
+    var a = lerp(Math.PI + .7, DR.a1, ease(seg(tt, 0, 1.3)));
+    var x = DR.px + Math.cos(a) * DR.R, y = DR.py + Math.sin(a) * DR.R, f = Math.atan2(DR.py - y, DR.px - x);
+    var d = ease(seg(tt, 2.1, 2.34));
+    if (tt >= 2.1) { x = lerp(DR.sx, DR.ex, d); y = lerp(DR.sy, DR.ey, d); f = Math.atan2(DR.ey - DR.sy, DR.ex - DR.sx); }
+    if (tt > 1.3 && tt < 2.15) lane(c, DR.sx, DR.sy, DR.ex, DR.ey, 22, seg(tt, 1.3, 2.05), '255,90,120');
+    if (tt > 2.1) {
+      var upto = Math.floor(DR.crack.length * d) + 1, gl = tt > 2.4 && tt < 2.8 ? .5 + .5 * Math.sin(tt * 40) : (tt < 2.4 ? .3 : 0);
+      crackLine(c, DR.crack, upto, gl * (1 - seg(tt, 3.2, 3.6)));
+      if (tt > 2.75) spikes(c, DR.crack.filter(function (_, i) { return i % 2; }), seg(tt, 2.75, 3.25));
+    }
+    var py = lerp(DR.py, 58, ease(seg(tt, 1.85, 2.2)));
+    player(c, DR.px, py, 0);
+    drawDriller(c, x, y, f, tt > 1.3 && tt < 2.4 ? 3 : 1, tt);
+    tag(c, tt < 1.3 ? 'circles in' : tt < 2.1 ? 'lane fills' : tt < 2.75 ? 'drill · crack glows' : 'crack erupts · 12', tt > 2.7 && tt < 3.3 ? '#ff7a3a' : null);
+  } });
+function bearerX(tt) { return tt < 1.8 ? lerp(30, 165, seg(tt, 0, 1.8)) : tt < 2.2 ? 165 : lerp(165, 190, ease(seg(tt, 2.2, 2.35))); }
+function bPlayerX(tt) { return lerp(232, 330, ease(seg(tt, 2.3, 2.65))); }
+S.push({ id: 'bearer', P: 6, still: 4.6, name: 'Slab Bearer', side: 'crew', from: 22,
+  chips: ['slab 4× health', 'bash 10', 'knockback 160 px', 'XP 10'],
+  text: 'Carries a quarried slab that stops shots and swings from the front. Up close it flashes, lunges and bashes you 160 px back. Break the slab and it drops it as 3 s of cover that blocks both sides; the bearer staggers and takes +50%. Squad: Wall-in.',
+  mirror: 'Riot Shield',
+  draw: function (c, tt) {
+    var bx = bearerX(tt), by = 104, broke = tt > 4.3, sx = (broke ? bearerX(4.3) + 26 : bx + 18);
+    if (broke) coverSlab(c, sx, by, 1);
+    for (var ti = .1; ti < tt; ti += .2) {
+      if (ti > 2.15 && ti < 3) continue;
+      var x0 = bPlayerX(ti) - 12, x = x0 - 520 * (tt - ti), wall = (ti < 4.3 && tt < 4.3) ? bearerX(tt) + 22 : sx + 7;
+      if (x > wall) bullet(c, x, by + (((ti * 10) | 0) % 3 - 1) * 4);
+      else if (wall - x < 520 * .09) spark(c, wall, by + (((ti * 10) | 0) % 3 - 1) * 4, (wall - x) / (520 * .09));
+    }
+    var px = bPlayerX(tt);
+    if (tt > 2.3 && tt < 2.7) { c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 2; for (var i = -1; i <= 1; i++) { c.beginPath(); c.moveTo(px - 18, by + i * 6); c.lineTo(px - 40, by + i * 6); c.stroke(); } }
+    var flash = tt > 1.8 && tt < 2.2 ? (Math.sin(tt * 50) > 0 ? 1 : .3) : 0;
+    var cracks = Math.min(3, Math.floor(seg(tt, .6, 4.3) * 3.99));
+    var wob = broke && tt < 5.3 ? Math.sin(tt * 30) * .18 * (1 - seg(tt, 4.3, 5.3)) : 0;
+    player(c, px, by, tt > 2.3 && tt < 2.9 ? 1 - seg(tt, 2.3, 2.9) : 0);
+    drawBearer(c, bx, by, 0, cracks, flash, broke, wob);
+    if (broke) { c.font = '700 13px Oxanium, sans-serif'; c.fillStyle = '#ff7a3a'; c.fillText('+50%', bx - 16, by - 24 - seg(tt, 4.3, 4.8) * 4); }
+    tag(c, tt < 1.8 ? 'slab stops shots' : tt < 2.3 ? 'flash · bash' : tt < 4.3 ? 'slab cracks' : 'dropped as cover', tt > 1.8 && tt < 2.7 ? '#ff7a3a' : null);
+  } });
+var RH = { hx: 70, hy: 110, p0: [215, 170], v: [42, -52] };
+RH.tx = RH.p0[0] + RH.v[0] * 2; RH.ty = RH.p0[1] + RH.v[1] * 2;
+function rhPlayer(tt) { if (tt < 1.2) return [RH.p0[0] + RH.v[0] * tt, RH.p0[1] + RH.v[1] * tt]; var b = [RH.p0[0] + RH.v[0] * 1.2, RH.p0[1] + RH.v[1] * 1.2], u = tt - 1.2; return [b[0] + 48 * u, b[1] + 26 * u]; }
+var SH = (function () { var a = []; for (var i = 0; i < 6; i++) a.push(i / 6 * TAU + .3); return a; })();
+S.push({ id: 'hurler', P: 4.4, still: 1.55, name: 'Rock Hurler', side: 'stone', from: 22,
+  chips: ['boulder 18', '6 shards', 'XP 9'],
+  text: 'Hangs back and lobs a boulder where you are heading every 3.8 s; a ring marks the spot as it winds up. It lands for 18, bursts into six shards and leaves a rubble pile for 2 s that stops shots.',
+  mirror: 'Gas Grenadier',
+  draw: function (c, tt) {
+    var fill = seg(tt, 0, 2), al = 1 - seg(tt, 2.05, 2.25);
+    if (tt < 2.25) {
+      c.beginPath(); c.arc(RH.tx, RH.ty, 26, 0, TAU); c.fillStyle = 'rgba(255,122,58,' + .08 * al + ')'; c.fill();
+      c.strokeStyle = 'rgba(255,122,58,' + .7 * al + ')'; c.lineWidth = 1.5; c.stroke();
+      c.beginPath(); c.moveTo(RH.tx, RH.ty); c.arc(RH.tx, RH.ty, 26, -Math.PI / 2, -Math.PI / 2 + fill * TAU); c.closePath(); c.fillStyle = 'rgba(255,122,58,' + .22 * al + ')'; c.fill();
+    }
+    if (tt > 2) rubblePile(c, RH.tx, RH.ty, 1 - seg(tt, 3.8, 4.1));
+    if (tt > 2 && tt < 2.7) { var k = seg(tt, 2, 2.7); SH.forEach(function (a) { var r = 14 + k * 130; c.save(); c.translate(RH.tx + Math.cos(a) * r, RH.ty + Math.sin(a) * r); c.rotate(a); c.fillStyle = 'rgba(214,190,160,' + (1 - k) + ')'; c.beginPath(); c.moveTo(5, 0); c.lineTo(-3, -3); c.lineTo(-3, 3); c.fill(); c.restore(); }); }
+    if (tt > 2 && tt < 2.3) { var q = seg(tt, 2, 2.3); c.beginPath(); c.arc(RH.tx, RH.ty, 10 + q * 26, 0, TAU); c.strokeStyle = 'rgba(255,230,200,' + (1 - q) + ')'; c.lineWidth = 3; c.stroke(); }
+    var pp = rhPlayer(tt); player(c, pp[0], pp[1], 0);
+    var f = Math.atan2(RH.ty - RH.hy, RH.tx - RH.hx);
+    drawHurler(c, RH.hx, RH.hy, f, ease(seg(tt, 0, 1)), tt < 1 || tt > 3.6);
+    if (tt > 1 && tt < 2) {
+      var u = seg(tt, 1, 2), gx = lerp(RH.hx + 10, RH.tx, u), gy = lerp(RH.hy, RH.ty, u), h = Math.sin(u * Math.PI) * 70;
+      c.beginPath(); c.ellipse(gx, gy + 3, 7, 5, 0, 0, TAU); c.fillStyle = 'rgba(0,0,0,.35)'; c.fill();
+      c.save(); c.translate(gx, gy - h); c.rotate(u * 8); var s = 1 + Math.sin(u * Math.PI) * .35; c.scale(s, s);
+      rockPath(c, BOULDER, 8.5); c.fillStyle = stoneFill(c, 8.5, '#9a846d', '#3e332a'); c.fill(); c.lineWidth = 1.6; c.strokeStyle = '#1b1510'; c.stroke(); c.restore();
+    }
+    tag(c, tt < 1 ? 'winds up · ring on your lead' : tt < 2 ? 'in flight · walk out' : tt < 2.7 ? 'lands 18 · 6 shards' : 'rubble blocks shots', tt > 2 && tt < 2.7 ? '#ff7a3a' : null);
+  } });
+var GE = { gx: 62, gy: 108, px: 282, py: 108 };
+GE.crack = jagged(GE.gx + 22, GE.gy, GE.px + 24, GE.py, 12, 4, 9);
+S.push({ id: 'geomancer', P: 3.9, still: 1.9, name: 'Geomancer', side: 'crew', from: 23,
+  chips: ['crack 12', 'range 320 px', 'XP 11'],
+  text: 'A Colossus cultist with a crystal staff. Holds 320 px out, plants the staff (0.6 s) and sends a crack racing at where you stood; it glows, then erupts along its length. Step off the line. Squad: Fault line.',
+  mirror: 'Security Guard',
+  draw: function (c, tt) {
+    var race = seg(tt, .6, 1.35), upto = Math.floor(GE.crack.length * race) + 1;
+    var glow = tt < 1.35 ? .3 : tt < 1.75 ? .5 + .5 * Math.sin(tt * 36) : 0;
+    if (tt > .6) {
+      crackLine(c, GE.crack, upto, glow * (1 - seg(tt, 2.6, 3.2)));
+      if (tt < 1.35) { var tip = GE.crack[Math.min(upto, GE.crack.length - 1)]; c.beginPath(); c.arc(tip[0], tip[1], 5, 0, TAU); c.fillStyle = 'rgba(255,200,120,.8)'; c.fill(); }
+      if (tt > 1.75) spikes(c, GE.crack.filter(function (_, i) { return i > 1; }), seg(tt, 1.75, 2.35));
+    }
+    player(c, GE.px, lerp(GE.py, 152, ease(seg(tt, .95, 1.45))), 0);
+    drawGeomancer(c, GE.gx, GE.gy, 0, tt < .6 ? seg(tt, 0, .3) : tt < 1.35 ? 1 : 1 - seg(tt, 1.35, 1.7), tt);
+    tag(c, tt < .6 ? 'plants staff' : tt < 1.35 ? 'crack races at you' : tt < 1.75 ? 'glows' : 'erupts · 12', tt > 1.75 && tt < 2.4 ? '#ff7a3a' : null);
+  } });
+var CP = { x: 72, y: 108, px: 292, py: 108, range: 236, sp: 240 };
+S.push({ id: 'priest', P: 4, still: .82, name: 'Cinder Priest', side: 'crew', from: 24,
+  chips: ['bolt 9', 'burn 4/s · 3 s', 'XP 11'],
+  text: 'Cups a molten core and charges for 0.8 s along a shooting line, then fires one magma bolt straight at you (240 px/s). A hit sets you burning; a miss cools into a lava pool for 2.5 s where the bolt stops. A perfect parry sends it back.',
+  mirror: 'Taser Guard',
+  draw: function (c, tt) {
+    var ch = seg(tt, 0, .8), stopT = .8 + CP.range / CP.sp;
+    if (tt > stopT) lavaPool(c, CP.x + 18 + CP.range, CP.y, 6 + 12 * ease(seg(tt, stopT, stopT + .4)), tt, 1 - seg(tt, 3.5, 3.8));
+    if (tt < .82) lane(c, CP.x + 18, CP.y, CP.x + 18 + CP.range, CP.y, 8, ch, '255,122,58');
+    if (tt > .8 && tt < stopT) {
+      var bx = CP.x + 18 + (tt - .8) * CP.sp;
+      for (var i = 1; i < 6; i++) { c.beginPath(); c.arc(bx - i * 7, CP.y + Math.sin(tt * 30 + i) * 2, 4 - i * .6, 0, TAU); c.fillStyle = 'rgba(255,' + (140 - i * 15) + ',60,' + (.7 - i * .11) + ')'; c.fill(); }
+      var g = c.createRadialGradient(bx, CP.y, 0, bx, CP.y, 12); g.addColorStop(0, '#fff3cf'); g.addColorStop(.4, '#ff9b4a'); g.addColorStop(1, 'rgba(255,90,30,0)');
+      c.fillStyle = g; c.beginPath(); c.arc(bx, CP.y, 12, 0, TAU); c.fill();
+    }
+    player(c, CP.px, lerp(CP.py, 66, ease(seg(tt, .7, 1.05))), 0);
+    drawPriest(c, CP.x, CP.y, 0, ch, tt < .8 || tt > 2.8);
+    tag(c, tt < .8 ? 'charges · line fills' : tt < stopT ? 'magma bolt · strafe' : 'miss: lava pool 2.5 s', tt > stopT ? '#ff7a3a' : null);
+  } });
+
+/* ---------- cards ---------- */
+var host = document.getElementById('cards'), live = [];
+S.forEach(function (s) {
+  var art = document.createElement('article'); art.className = 'card';
+  art.innerHTML = '<canvas width="360" height="200" aria-label="' + s.name + ' in action"></canvas>' +
+    '<div class="body"><div class="title"><h3>' + s.name + '</h3><span class="side ' + (s.side === 'crew' ? 'crew">Crew' : 'stone">Stoneborn') + '</span>' +
+    '<span class="chip">from ' + s.from + '</span></div>' +
+    '<div class="chips">' + s.chips.map(function (x, i) { return '<span class="chip' + (i === 0 ? ' m' : '') + '">' + x + '</span>'; }).join('') + '</div>' +
+    '<p>' + s.text + '</p><div class="mirror">Mirrors <b>' + s.mirror + '</b></div></div>';
+  host.appendChild(art);
+  live.push({ s: s, cv: art.querySelector('canvas'), on: true, w: W, h: H });
+});
+
+/* ---------- Avalanche (720 x 270) ---------- */
+var AV = { W: 720, H: 270, P: 9, pyy: 135, px: 620 };
+function avWallX(tt) { return Math.min(130 + 58 * tt, 430); }
+var avScene = { P: AV.P, still: 3.2, draw: function (c, tt) {
+  var wx = avWallX(tt), brk = tt > 5.2, rows = [75, 115, 155, 195];
+  // hurler lobs
+  [[0, 72, 1.0], [1, 198, 3.0]].forEach(function (h) {
+    var t0 = h[2], tx = AV.px - 40 + h[0] * 30, ty = AV.pyy + (h[0] ? 35 : -35);
+    var u = seg(tt, t0, t0 + 1);
+    if (tt > t0 - 1 && tt < t0 + 1.1) {
+      var al = 1 - seg(tt, t0 + 1, t0 + 1.1);
+      c.beginPath(); c.arc(tx, ty, 24, 0, TAU); c.strokeStyle = 'rgba(255,122,58,' + .6 * al + ')'; c.lineWidth = 1.5; c.stroke();
+      c.beginPath(); c.moveTo(tx, ty); c.arc(tx, ty, 24, -Math.PI / 2, -Math.PI / 2 + seg(tt, t0 - 1, t0 + 1) * TAU); c.closePath(); c.fillStyle = 'rgba(255,122,58,' + .2 * al + ')'; c.fill();
+    }
+    if (tt > t0 + 1) rubblePile(c, tx, ty, 1 - seg(tt, t0 + 3, t0 + 3.3));
+    if (u > 0 && u < 1) {
+      var gx = lerp(60, tx, u), gy = lerp(h[1], ty, u), hh = Math.sin(u * Math.PI) * 90;
+      c.beginPath(); c.ellipse(gx, gy + 3, 7, 5, 0, 0, TAU); c.fillStyle = 'rgba(0,0,0,.35)'; c.fill();
+      c.save(); c.translate(gx, gy - hh); c.rotate(u * 8); rockPath(c, BOULDER, 9); c.fillStyle = stoneFill(c, 9, '#9a846d', '#3e332a'); c.fill(); c.lineWidth = 1.6; c.strokeStyle = '#1b1510'; c.stroke(); c.restore();
+    }
+    drawHurler(c, 60, h[1], 0, ease(seg(tt, t0 - 1, t0)), !(tt > t0 && tt < t0 + 1.6));
+  });
+  // player's shots into the wall
+  for (var ti = .1; ti < tt; ti += .16) {
+    var row = rows[((ti * 6.25) | 0) % 4], x = AV.px - 14 - 560 * (tt - ti), wall = avWallX(tt) + 22;
+    if (x > wall) bullet(c, x, row); else if (wall - x < 50) spark(c, wall, row, (wall - x) / 50);
+  }
+  // stompers: behind the wall, then break out and stomp
+  var sr = [95, 175], gap = Math.atan2(-50, 1);
+  sr.forEach(function (y, i) {
+    var sx = brk ? lerp(wx - 55, 470 + i * 10, ease(seg(tt, 5.2, 6.3))) : wx - 55;
+    var sy = brk ? lerp(y, AV.pyy + (i ? 30 : -30), ease(seg(tt, 5.2, 6.3))) : y;
+    var lift = tt > 6.3 && tt < 7 ? ease(seg(tt, 6.3, 6.9)) : 0;
+    if (tt > 7) {
+      var r = lerp(24, 220, seg(tt, 7, 8.4)), al = 1 - seg(tt, 8.2, 8.6), ga = Math.atan2(AV.pyy - 55 - sy, AV.px - sx);
+      if (i === 0) { gapWedge(c, sx, sy, Math.max(0, r - 16), r + 16, ga, al * .6); ring(c, sx, sy, r, ga, al); }
+    }
+    drawStomper(c, sx, sy, Math.atan2(AV.pyy - sy, AV.px - sx), lift, tt);
+  });
+  rows.forEach(function (y, i) { drawBearer(c, wx, y, 0, Math.min(3, Math.floor(seg(tt, .5 + i * .4, 6) * 3.99)), 0, false, 0); });
+  if (tt > 5.2 && tt < 6) { c.strokeStyle = 'rgba(255,90,120,' + (1 - seg(tt, 5.2, 6)) * .7 + ')'; c.setLineDash([6, 6]); c.lineWidth = 1.5; c.beginPath(); c.moveTo(AV.px - 190, 20); c.lineTo(AV.px - 190, AV.H - 20); c.stroke(); c.setLineDash([]); }
+  player(c, AV.px, lerp(AV.pyy, AV.pyy - 55, ease(seg(tt, 6.6, 7.2))), 0);
+  var t = tt < 5.2 ? 'wall marches · hurlers lob over' : tt < 7 ? '190 px: Stompers break out' : 'stomp ring · take the gap';
+  c.font = '500 11px "IBM Plex Mono", monospace'; var w = c.measureText(t).width + 12;
+  c.fillStyle = 'rgba(12,11,10,.75)'; c.fillRect(10, AV.H - 26, w, 18); c.fillStyle = tt > 5.2 ? '#ff7a3a' : '#a39686'; c.fillText(t, 16, AV.H - 13);
+} };
+live.push({ s: avScene, cv: document.getElementById('avalanche'), on: true, w: AV.W, h: AV.H });
+
+/* ---------- loop ---------- */
+live.forEach(function (L) {
+  var dpr = Math.min(2, window.devicePixelRatio || 1);
+  L.cv.width = L.w * dpr; L.cv.height = L.h * dpr; L.ctx = L.cv.getContext('2d'); L.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  L.off = Math.random() * L.s.P;
+});
+function frame(L, t) {
+  var c = L.ctx, tt = reduce ? L.s.still : (t + L.off) % L.s.P;
+  floor(c, L.w, L.h); L.s.draw(c, tt); if (!reduce) fadeIO(c, tt, L.s.P, L.w, L.h);
+}
+if ('IntersectionObserver' in window) {
+  var io = new IntersectionObserver(function (es) { es.forEach(function (e) { live.forEach(function (L) { if (L.cv === e.target) L.on = e.isIntersecting; }); }); });
+  live.forEach(function (L) { io.observe(L.cv); });
+}
+var t0 = performance.now();
+live.forEach(function (L) { frame(L, 0); });
+if (!reduce) (function tick(now) { var t = (now - t0) / 1000; live.forEach(function (L) { if (L.on) frame(L, t); }); requestAnimationFrame(tick); })(t0);
+})();
+</script>

@@ -68,6 +68,8 @@ namespace Arena
             {
                 SetRiot(e, RiotStaggered, RiotCracked);
                 e.PhaseT = RiotStagger;
+                if (e.Type == EnemyType.SlabBearer)
+                    DropSlab(e);  // the slab falls in front of it as cover (QuarryFaction.cs)
                 BroadcastFx(FxKind.Shatter, e.Pos, front, new Rgba(0.7f, 0.82f, 1f), RiotShieldArc, 0.6f, Sfx.Clang);
             }
             else
@@ -129,12 +131,15 @@ namespace Arena
         readonly Dictionary<int, int> riotLines = new Dictionary<int, int>();   // host: a marching Riot Line's squad id -> its shields at the start
         readonly HashSet<int> riotLineBroke = new HashSet<int>();                // host: lines whose guards have broken out
 
+        /// The wall of a line: Riot Shields and their kin (a Comb Shield, a Slab Bearer); everyone else walks behind it.
+        static bool IsWallKin(EnemyType t) => HiveKin.Of(t) == EnemyType.RiotShield;
+
         /// Each member's place in its own row (shields counted among shields, guards among guards).
         static int RiotLineSlot(SquadDef s, int i)
         {
             int k = 0;
             for (int j = 0; j < i; j++)
-                if ((s.Members[j] == EnemyType.RiotShield) == (s.Members[i] == EnemyType.RiotShield))
+                if (IsWallKin(s.Members[j]) == IsWallKin(s.Members[i]))
                     k++;
             return k;
         }
@@ -143,7 +148,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var t in s.Members)
-                if ((t == EnemyType.RiotShield) == (type == EnemyType.RiotShield))
+                if (IsWallKin(t) == IsWallKin(type))
                     n++;
             return n;
         }
@@ -158,7 +163,7 @@ namespace Arena
                 return v;
             var shields = new List<Enemy>();
             foreach (var m in mates)
-                if (m.Type == EnemyType.RiotShield && RiotCrack(m) < RiotCracked)
+                if (IsWallKin(m.Type) && RiotCrack(m) < RiotCracked)
                     shields.Add(m);
             shields.Sort((a, b) => a.SquadSlot.CompareTo(b.SquadSlot));
             V2 c = V2.Zero;
@@ -174,7 +179,7 @@ namespace Arena
                 return v;
             }
             V2 fwd = (tpos - c).Normalized(), across = fwd.Orthogonal();
-            if (e.Type == EnemyType.RiotShield)
+            if (IsWallKin(e.Type))
             {
                 if (RiotState(e) != RiotWalk || RiotCrack(e) >= RiotCracked)
                     return v;
@@ -182,7 +187,7 @@ namespace Arena
                 V2 goal = c + fwd * 40f + across * ((k - (shields.Count - 1) / 2f) * RiotLineGap);
                 return RouteVel(e, goal, ((goal - e.Pos) / 40f).LimitLength(RiotLineSpeed));  // round walls and crates
             }
-            var guards = mates.FindAll(m => m.Type != EnemyType.RiotShield);
+            var guards = mates.FindAll(m => !IsWallKin(m.Type));
             guards.Sort((a, b) => a.SquadSlot.CompareTo(b.SquadSlot));
             int g = guards.IndexOf(e);
             V2 spot = c - fwd * RiotGuardBehind + across * ((g - (guards.Count - 1) / 2f) * RiotGuardGap);
@@ -378,8 +383,10 @@ namespace Arena
         /// Host, once a tick while it's firing normally: locks the landing spot as the wind-up begins (Winding is true for the last
         /// GrenadierWindUp + GrenadierSwing s before the throw) and tells everyone how long is left.
         static readonly Rgba HoneyLobColor = new Rgba(1f, 0.77f, 0.2f);
-        static float LobRadius(Enemy e) => e.Type == EnemyType.HoneyLobber ? HoneyLobRadius : GrenadierGasRadius;
-        static Rgba LobColor(Enemy e) => e.Type == EnemyType.HoneyLobber ? HoneyLobColor : GasLobColor;
+        static float LobRadius(Enemy e) => e.Type == EnemyType.HoneyLobber ? HoneyLobRadius : e.Type == EnemyType.RockHurler ? HurlerLandR : GrenadierGasRadius;
+        static Rgba LobColor(Enemy e) => e.Type == EnemyType.HoneyLobber ? HoneyLobColor : e.Type == EnemyType.RockHurler ? HurlerColor : GasLobColor;
+        V2 LobSpot(Enemy e, V2 tpos) => e.Type == EnemyType.RockHurler ? HurlerLead(tpos)  // a Rock Hurler aims where you're heading (QuarryFaction.cs)
+            : ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 50f), 60f);
 
         void GrenadierWind(Enemy e, V2 tpos, float rateNow)
         {
@@ -391,7 +398,7 @@ namespace Arena
             if (e.GasLocked)
                 return;
             e.GasLocked = true;
-            e.GasAt = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 50f), 60f);
+            e.GasAt = LobSpot(e, tpos);
             float left = Math.Max(0f, e.FireT / Math.Max(0.01f, rateNow));
             BroadcastFx(FxKind.GasLob, e.GasAt, new V2(e.Id, GasFlight), LobColor(e), LobRadius(e), left + GasFlight, Sfx.None);
         }
@@ -401,11 +408,13 @@ namespace Arena
             e.FireT = GrenadierEvery;
             if (!e.GasLocked)  // no wind-up seen (it fired the moment it spawned): an instant lob
             {
-                e.GasAt = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 50f), 60f);
+                e.GasAt = LobSpot(e, tpos);
                 BroadcastFx(FxKind.GasLob, e.GasAt, new V2(e.Id, GasFlight), LobColor(e), LobRadius(e), GasFlight, Sfx.None);
             }
             e.GasLocked = false;
-            if (e.Type == EnemyType.HoneyLobber)
+            if (e.Type == EnemyType.RockHurler)
+                SpawnPatchAt(PatchKind.Rubble, e.GasAt, GasFlight, GasFlight + RubbleLife, RubbleR, RubbleR);  // the boulder lands, then lies as a pile (QuarryFaction.cs)
+            else if (e.Type == EnemyType.HoneyLobber)
                 SpawnPatchAt(PatchKind.Honey, e.GasAt, GasFlight, GasFlight + HoneyLobLife, HoneyLobRadius, HoneyLobRadius);  // honey slows instead of hurting (Queen.cs HoneySlowAt)
             else
                 SpawnPatchAt(PatchKind.Gas, e.GasAt, GasFlight, GasFlight + GrenadierGasLife, GrenadierGasRadius, GrenadierGasRadius);
