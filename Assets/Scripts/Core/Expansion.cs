@@ -371,11 +371,41 @@ namespace Arena
         public static bool NodeEncloses(ExpansionRoom r, MapNode n)
             => !r.Floating && NodeInside(n, r.X, r.Y, r.X1, r.Y1);
 
-        /// A built room encloses this node.
+        /// The whole room this entry belongs to (all of a drawn outline's boxes, whose inner seams are open) encloses this node.
+        public static bool NodeEnclosedBy(IList<ExpansionRoom> rooms, int index, MapNode n)
+        {
+            var r = rooms[index];
+            if (r.Floating)
+                return false;
+            if (NodeEncloses(r, n))
+                return true;
+            int h = NodeHalf(n);
+            if (h == 0 || n.X + h <= r.X || n.X - h >= r.X1 || n.Y + h <= r.Y || n.Y - h >= r.Y1)
+                return false;
+            var group = GroupOf(rooms, index);
+            if (group.Count < 2)
+                return false;
+            // Every tile centre of the area (nodes sit on tile centres, walls on the grid) lies inside one of the room's boxes.
+            for (int y = n.Y - h; y <= n.Y + h; y += Step)
+                for (int x = n.X - h; x <= n.X + h; x += Step)
+                {
+                    bool inBox = false;
+                    foreach (int i in group)
+                    {
+                        var b = rooms[i];
+                        if (!b.Floating && x > b.X && x < b.X1 && y > b.Y && y < b.Y1) { inBox = true; break; }
+                    }
+                    if (!inBox)
+                        return false;
+                }
+            return true;
+        }
+
+        /// A built room (a drawn outline as a whole) encloses this node.
         public static bool NodeClaimed(IList<ExpansionRoom> built, MapNode n)
         {
-            foreach (var r in built)
-                if (NodeEncloses(r, n))
+            for (int i = 0; i < built.Count; i++)
+                if (NodeEnclosedBy(built, i, n))
                     return true;
             return false;
         }
@@ -1714,7 +1744,7 @@ namespace Arena
                     if (job == RoomKind.Combat)
                         continue;
                     for (int a = 1; a < n; a++)
-                        if (areas[a].Kind == RoomKind.Combat && NodeEncloses(rooms[a - 1], nd))
+                        if (areas[a].Kind == RoomKind.Combat && NodeEnclosedBy(rooms, a - 1, nd))
                         {
                             for (int b = 1; b < n; b++)
                                 if (b == a || areas[a].Group != 0 && areas[b].Group == areas[a].Group && areas[b].Kind == RoomKind.Combat)
@@ -1731,7 +1761,7 @@ namespace Arena
                     if (nd.Kind != NodeKind.Rule)
                         continue;
                     for (int a = 1; a < n; a++)
-                        if (areas[a].Kind == RoomKind.Combat && NodeEncloses(rooms[a - 1], nd))
+                        if (areas[a].Kind == RoomKind.Combat && NodeEnclosedBy(rooms, a - 1, nd))
                         {
                             for (int b = 1; b < n; b++)
                                 if (b == a || areas[a].Group != 0 && areas[b].Group == areas[a].Group && areas[b].Kind == RoomKind.Combat)

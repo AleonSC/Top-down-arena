@@ -103,8 +103,9 @@ namespace Arena
         {
             if (duelBoss.Count == 0 || e.Type == EnemyType.Gatekeeper || !IsHost)
                 return;
+            var areas = CurrentWorld.Areas;
             foreach (var area in duelBoss.Keys)
-                if (CurrentWorld.Areas[area].Contains(e.Pos))
+                if (area < areas.Length && areas[area].Contains(e.Pos))
                 {
                     e.Pos = DuelDoorOutside(area);
                     return;
@@ -121,6 +122,8 @@ namespace Arena
             var areas = CurrentWorld.Areas;
             foreach (var area in ids)
             {
+                if (area >= areas.Length)
+                    continue;  // (the map changed under the duel)
                 var a = areas[area];
                 foreach (var e in new List<Enemy>(Enemies.Values))
                     if (e.Type == EnemyType.Gatekeeper && a.Contains(e.Disp, 40f))

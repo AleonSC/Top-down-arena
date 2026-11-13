@@ -6,45 +6,40 @@ namespace Arena
     /// line in the between-waves banner as you set off and when the boss is near.
     public partial class ArenaApp
     {
-        /// The objective as one quiet CRT line at the top centre: "THE WARDEN'S OWN  1/9  ·  [FUNNELS]" (a hunt), or
-        /// "APPROACH  ·  THE WARDEN  3/4" on the road to a boss, with the arena layout's name as a small tag after it.
-        /// Replaces the chips that used to stack above the wave panel (Docs/Mockups/crt-hud-a-variants.html, A1).
+        /// The objective as one quiet CRT line at the top centre, in the wave panel's thin CRT font: the coming boss's name, then
+        /// how far off it is ("THE WARDEN  IN 3 WAVES", "... NEXT WAVE"), and the arena layout's name as a small tag after it.
+        /// Every piece is measured in the font it's drawn in (CrtUi.Title), so the pieces never overlap.
         void DrawObjectiveLine()
         {
             string head = null, count = null;
             if (game.State == MatchState.Fighting && game.ApproachShare(game.Wave) > 0f)
             {
-                if (game.Hunt != null)
-                {
-                    head = Defs.Get(game.Hunt.Boss).Name.ToUpperInvariant() + "'S OWN";
-                    count = game.HuntWave + "/" + (Hunts.Length - 1);
-                }
-                else
-                {
-                    head = "APPROACH  ·  " + Defs.Get(game.ApproachBossAt(game.Wave)).Name.ToUpperInvariant();
-                    count = game.ApproachStepAt(game.Wave) + "/4";
-                }
+                var boss = game.Hunt != null ? game.Hunt.Boss : game.ApproachBossAt(game.Wave);
+                head = Defs.Get(boss).Name.ToUpperInvariant();
+                int left = game.Bosses.NextBossWaveFrom(game.Wave) - game.Wave;
+                count = left <= 1 ? "NEXT WAVE" : "IN " + left + " WAVES";
             }
             string tag = game.LayoutOn && game.ActiveLayout != null ? game.ActiveLayout.Name.ToUpperInvariant() : null;
             if (head == null && tag == null)
                 return;
             bool calm = CabCalm;
-            const int size = 15;
-            float hw = head != null ? CrtUi.TitleWidth(head, size) + 8f : 0f, cw = count != null ? CrtUi.TitleWidth(count, size) + 14f : 0f;
-            float tw = tag != null ? CrtUi.TitleWidth(tag, 12) + 16f : 0f, gap = head != null && tag != null ? 10f : 0f;
-            float x = W / 2f - (hw + cw + gap + tw) / 2f, y = BossUp() ? HudObjectiveUnderBossY : HudObjectiveY;  // (HudLayout.cs)
+            const int size = 17, tagSize = 11;
+            float hw = head != null ? CrtUi.TitleWidth(head, size) : 0f, cg = head != null ? 10f : 0f;
+            float cw = count != null ? CrtUi.TitleWidth(count, size) : 0f;
+            float tw = tag != null ? CrtUi.TitleWidth(tag, tagSize) + 14f : 0f, gap = head != null && tag != null ? 14f : 0f;
+            float x = W / 2f - (hw + cg + cw + gap + tw) / 2f, y = BossUp() ? HudObjectiveUnderBossY : HudObjectiveY;  // (HudLayout.cs)
             if (head != null)
             {
-                CrtUi.Text(new Rect(x, y, hw, 20f), head, size, Ui.Gold, TextAnchor.MiddleLeft, true, calm);
-                CrtUi.Text(new Rect(x + hw, y, cw, 20f), count, size, CrtUi.Dim, TextAnchor.MiddleLeft, true, true);
-                x += hw + cw + gap;
+                CrtUi.Title(new Rect(x, y, hw + 4f, 22f), head, size, CrtUi.Ink, TextAnchor.MiddleLeft, calm);
+                CrtUi.Title(new Rect(x + hw + cg, y, cw + 4f, 22f), count, size, CrtUi.Dim, TextAnchor.MiddleLeft, true);
+                x += hw + cg + cw + gap;
             }
             if (tag != null)
             {
-                var r = new Rect(x, y + 2f, tw, 17f);
+                var r = new Rect(x, y + 3f, tw, 16f);
                 Ui.Fill(r, new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.12f));
                 Ui.Rim(r, CrtUi.Dim, 0.8f);
-                CrtUi.Text(r, tag, 12, CrtUi.Dim, TextAnchor.MiddleCenter, true, true);
+                CrtUi.Title(r, tag, tagSize, CrtUi.Dim, TextAnchor.MiddleCenter, true);
             }
         }
 

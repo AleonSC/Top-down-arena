@@ -3,8 +3,8 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The Bazaar's shop on screen (Shop.cs): one sideways carousel (like the lobby's tab carousel) holds the shelf cards, then the
-    /// services; the one in the middle is big and shows what it changes as the picker's green readout on the card (Docs/Mockups/shop-carousel.html,
+    /// The Bazaar's shop on screen (Shop.cs): first two category panels (Upgrades and Services; the Black Market's Buildables and
+    /// Services), each opening a sideways carousel (like the lobby's tab carousel) of just that category; the one in the middle is big and shows what it changes as the picker's green readout on the card (Docs/Mockups/shop-carousel.html,
     /// layout A). Below it: who's done, the Done button and giving gold to teammates. Click a side card (or use the arrows, the wheel
     /// or the arrow keys) to bring it to the middle, click the one in the middle to buy it.
     public partial class ArenaApp
@@ -14,8 +14,10 @@ namespace Arena
         int shopCountSeen;         // how many shelf cards there were last frame (Add stock moves the middle to the new ones)
         int shopGiveTo;            // teammate whose Give popup is open (0 = none)
         bool shopSellOpen;       // choosing an upgrade to sell
+        int shopCat = -1;          // the open category: -1 the two category panels, 0 upgrades (or buildables), 1 services
+        int shopCatHover;          // the category panel the arrow keys point at
 
-        static readonly string[] ServiceIcons = { "ricochet", "axe", "regen2", "halo", "ricochet", "compass" };
+        static readonly string[] ServiceIcons = { "ricochet", "axe", "regen2", "halo", "floorkit", "compass" };
         // Service ids: 0-5 as named below, 6-9 the Black Market's buildables (6 + BuildKind).
         static readonly int[] BazaarServices = { 0, 1, 2, 3 }, AllServices = { 0, 1, 2, 3, 4, 5 }, MarketItems = { 6, 7, 8, 9, 2, 3, 1, 5, 4 };
         static readonly string[] ServiceNames = { "Add stock", "Sell upgrade", "Full heal", "Revive token", "Floor kit", "Vector pack" };
@@ -25,6 +27,7 @@ namespace Arena
             if (!game.ShopOpen)
             {
                 shopSel = -1;
+                shopCat = -1;
                 shopGiveTo = 0;
                 shopSellOpen = false;
                 return;
@@ -34,13 +37,13 @@ namespace Arena
             RoundBackdrop(ShopDark);  // (RoundWindows.cs)
             const float x0 = 36f, areaW = W - 72f;
 
-            // The room shops: upgrades are bought in the shop room, heals, revives and removals at the vendor.
+            // The room shops: upgrades in the shop room, buildables at the vendor, services in either (SvcAllowed).
             bool atShop = !game.ServiceRooms || game.InShopRoom(me), atVendor = !game.ServiceRooms || game.InVendorRoom(me);
             bool market = game.ServiceRooms && !atShop;  // the vendor's room is the Black Market (Docs/BlackMarket.md)
             var mk = ToColor(VendorInk);
 
             // Heading and wallet.
-            string tag = game.ServiceRooms ? (atShop ? "SHOP ROOM  ·  UPGRADES AND STOCK" : "BLACK MARKET  ·  BUILDABLES AND SERVICES") : "BAZAAR  ·  BEFORE THE WAVE " + (game.Wave + 1) + " BOSS";
+            string tag = game.ServiceRooms ? (atShop ? "SHOP ROOM  ·  UPGRADES AND SERVICES" : "BLACK MARKET  ·  BUILDABLES AND SERVICES") : "BAZAAR  ·  BEFORE THE WAVE " + (game.Wave + 1) + " BOSS";
             float tagW = 30f + tag.Length * 7.5f;
             var tagRect = new Rect(W / 2f - tagW / 2f, 24f, tagW, 22f);
             Ui.Pill(tagRect, new Color(1f, 0.8f, 0.35f, 0.22f));
@@ -62,10 +65,16 @@ namespace Arena
                 shopSel = 0;
                 shopTurn = 0f;
             }
-            if (count > shopCountSeen && shopCountSeen > 0)
-                shopSel = shopCountSeen;  // Add stock: the middle moves to the first new card
+            if (count > shopCountSeen && shopCountSeen > 0 && !market)
+            {
+                shopCat = 0;  // Add stock: back to the upgrades, the middle on the first new card
+                shopSel = shopCountSeen;
+            }
             shopCountSeen = count;
-            shopSel = Mathf.Clamp(shopSel, 0, n - 1);
+            if (shopCat == 0 && split == 0)
+                shopCat = -1;  // (nothing on the shelf)
+            int lo = shopCat == 1 ? split : 0, hi = shopCat == 1 ? n : split;  // the open category's items
+            shopSel = Mathf.Clamp(shopSel, lo, Mathf.Max(lo, hi - 1));
             var ev = Event.current;
             if (ev.type == EventType.Repaint)
             {
@@ -74,103 +83,117 @@ namespace Arena
                     shopTurn = shopSel;
             }
 
-            // Tabs: jump to the shelf or to the services.
             const float railY = 158f, cardW = 250f, cardH = 372f;
             float tabY = 118f;
-            bool onShelf = shopSel < split;
-            string firstTab = market ? "BUILDABLES  (" + Market.Count + ")" : "SHELF  (" + count + ")", secondTab = "SERVICES  (" + nSecond + ")";
-            if (!popup)
-            {
-                if (LobbyKit.QuietTab(new Rect(W / 2f - 150f, tabY, 148f, 26f), firstTab, onShelf))
-                    shopSel = 0;
-                if (LobbyKit.QuietTab(new Rect(W / 2f + 2f, tabY, 148f, 26f), secondTab, !onShelf))
-                    shopSel = split;
-            }
+            string firstTab = market ? "BUILDABLES  (" + Market.Count + ")" : "UPGRADES  (" + count + ")", secondTab = "SERVICES  (" + nSecond + ")";
+            if (shopCat < 0)
+                DrawShopCategories(me, svc, count, split, market, railY, popup, t);
             else
             {
-                LobbyKit.QuietTab(new Rect(W / 2f - 150f, tabY, 148f, 26f), firstTab, onShelf, false);
-                LobbyKit.QuietTab(new Rect(W / 2f + 2f, tabY, 148f, 26f), secondTab, !onShelf, false);
-            }
-
-            // The wheel: far cards first, so the middle one is on top. Each is drawn at full size, scaled about its own centre.
-            var order = new List<int>();
-            for (int i = 0; i < n; i++)
-                order.Add(i);
-            order.Sort((a, b) => Mathf.Abs(b - shopTurn).CompareTo(Mathf.Abs(a - shopTurn)));
-            float oldAlpha = Ui.Alpha;
-            int click = -1;
-            foreach (int i in order)
-            {
-                float d = i - shopTurn, ad = Mathf.Abs(d);
-                float s = 1f - 0.2f * Mathf.Min(ad, 1f) - 0.05f * Mathf.Max(0f, Mathf.Min(ad, 2f) - 1f);
-                float cx = W / 2f + Mathf.Sign(d) * (ad <= 1f ? 232f * ad : 232f + 150f * (ad - 1f));
-                float a = Mathf.Clamp01((3.2f - ad) / 1.4f) * (1f - 0.25f * Mathf.Min(ad, 1f));
-                if (a <= 0.02f)
-                    continue;
-                var r = new Rect(cx - cardW / 2f, railY, cardW, cardH);
-                bool mid = i == shopSel;
-                var oldM = GUI.matrix;
-                Ui.Alpha = oldAlpha * a;
-                GUIUtility.ScaleAroundPivot(new Vector2(s, s), r.center);
-                if (i < count)
+                // Tabs: back to the categories, or switch to the other one.
+                if (DkKey(new Rect(W / 2f - 250f, tabY, 92f, 26f), "< BACK", false, 12) && !popup)
+                    shopCat = -1;
+                bool onFirst = shopCat == 0;
+                if (LobbyKit.QuietTab(new Rect(W / 2f - 150f, tabY, 148f, 26f), firstTab, onFirst, !popup && split > 0) && !onFirst)
                 {
-                    int u = me.Shelf[i];
-                    if (u < 0)
+                    shopCat = 0;
+                    shopSel = 0;
+                    shopTurn = 0f;
+                }
+                if (LobbyKit.QuietTab(new Rect(W / 2f + 2f, tabY, 148f, 26f), secondTab, !onFirst, !popup) && onFirst)
+                {
+                    shopCat = 1;
+                    shopSel = split;
+                    shopTurn = split;
+                }
+                if (!popup && Event.current.type == EventType.KeyDown && (Event.current.keyCode == KeyCode.Escape || Event.current.keyCode == KeyCode.Backspace))
+                {
+                    shopCat = -1;
+                    Event.current.Use();
+                }
+            }
+            if (shopCat >= 0)
+            {
+                // The wheel: far cards first, so the middle one is on top. Each is drawn at full size, scaled about its own centre.
+                var order = new List<int>();
+                for (int i = lo; i < hi; i++)
+                    order.Add(i);
+                order.Sort((a, b) => Mathf.Abs(b - shopTurn).CompareTo(Mathf.Abs(a - shopTurn)));
+                float oldAlpha = Ui.Alpha;
+                int click = -1;
+                foreach (int i in order)
+                {
+                    float d = i - shopTurn, ad = Mathf.Abs(d);
+                    float s = 1f - 0.2f * Mathf.Min(ad, 1f) - 0.05f * Mathf.Max(0f, Mathf.Min(ad, 2f) - 1f);
+                    float cx = W / 2f + Mathf.Sign(d) * (ad <= 1f ? 232f * ad : 232f + 150f * (ad - 1f));
+                    float a = Mathf.Clamp01((3.2f - ad) / 1.4f) * (1f - 0.25f * Mathf.Min(ad, 1f));
+                    if (a <= 0.02f)
+                        continue;
+                    var r = new Rect(cx - cardW / 2f, railY, cardW, cardH);
+                    bool mid = i == shopSel;
+                    var oldM = GUI.matrix;
+                    Ui.Alpha = oldAlpha * a;
+                    GUIUtility.ScaleAroundPivot(new Vector2(s, s), r.center);
+                    if (i < count)
                     {
-                        DkBox(r, new Color(1f, 1f, 1f, 0.2f), 0.2f);
-                        Ui.Label(r, "Sold out", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
+                        int u = me.Shelf[i];
+                        if (u < 0)
+                        {
+                            DkBox(r, new Color(1f, 1f, 1f, 0.2f), 0.2f);
+                            Ui.Label(r, "Sold out", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
+                        }
+                        else
+                            DrawShopCard(me, i, Upgrades.All[u], r, Game.Sold(me, i), mid, t, shopping && atShop);
                     }
                     else
-                        DrawShopCard(me, i, Upgrades.All[u], r, Game.Sold(me, i), mid, t, shopping && atShop);
+                        DrawShopService(me, svc[i - count], r, mid, t, shopping, SvcAllowed(svc[i - count], atShop, atVendor));
+                    GUI.matrix = oldM;
+                    Ui.Alpha = oldAlpha;
+                    var hit = new Rect(r.center.x - r.width * s / 2f, r.center.y - r.height * s / 2f, r.width * s, r.height * s);
+                    if (!popup && a > 0.3f && Ui.HitArea(hit))
+                        click = i;
                 }
-                else
-                    DrawShopService(me, svc[i - count], r, mid, t, shopping, svc[i - count] == 0 ? atShop : atVendor);
-                GUI.matrix = oldM;
-                Ui.Alpha = oldAlpha;
-                var hit = new Rect(r.center.x - r.width * s / 2f, r.center.y - r.height * s / 2f, r.width * s, r.height * s);
-                if (!popup && a > 0.3f && Ui.HitArea(hit))
-                    click = i;
-            }
-            if (click >= 0)
-            {
-                if (click != shopSel)
-                    shopSel = click;
-                else if (shopping)
-                    ShopUse(me, click, count, svc, atShop, atVendor);
-            }
+                if (click >= 0)
+                {
+                    if (click != shopSel)
+                        shopSel = click;
+                    else if (shopping)
+                        ShopUse(me, click, count, svc, atShop, atVendor);
+                }
 
-            // Arrows, the mouse wheel and the arrow keys turn it.
-            if (!popup)
-            {
-                for (int side = -1; side <= 1; side += 2)
+                // Arrows, the mouse wheel and the arrow keys turn it.
+                if (!popup)
                 {
-                    var ab = new Rect(side < 0 ? 18f : W - 58f, railY, 40f, cardH);
-                    bool dis = shopSel + side < 0 || shopSel + side >= n;
-                    if (LobbyKit.Key(ab, "", false, fxReduced) && !dis)
-                        shopSel += side;
-                    Chevron(ab.center, side, CrtKit.SoftText(CrtUi.Ink, !dis && ab.Contains(ev.mousePosition)));
+                    for (int side = -1; side <= 1; side += 2)
+                    {
+                        var ab = new Rect(side < 0 ? 18f : W - 58f, railY, 40f, cardH);
+                        bool dis = shopSel + side < lo || shopSel + side >= hi;
+                        if (LobbyKit.Key(ab, "", false, fxReduced) && !dis)
+                            shopSel += side;
+                        Chevron(ab.center, side, CrtKit.SoftText(CrtUi.Ink, !dis && ab.Contains(ev.mousePosition)));
+                    }
+                    if (ev.type == EventType.ScrollWheel && ev.mousePosition.y > railY - 20f && ev.mousePosition.y < railY + cardH + 20f)
+                    {
+                        shopSel = Mathf.Clamp(shopSel + (ev.delta.y > 0f ? 1 : -1), lo, hi - 1);
+                        ev.Use();
+                    }
+                    else if (ev.type == EventType.KeyDown && (ev.keyCode == KeyCode.LeftArrow || ev.keyCode == KeyCode.RightArrow))
+                    {
+                        shopSel = Mathf.Clamp(shopSel + (ev.keyCode == KeyCode.LeftArrow ? -1 : 1), lo, hi - 1);
+                        ev.Use();
+                    }
                 }
-                if (ev.type == EventType.ScrollWheel && ev.mousePosition.y > railY - 20f && ev.mousePosition.y < railY + cardH + 20f)
-                {
-                    shopSel = Mathf.Clamp(shopSel + (ev.delta.y > 0f ? 1 : -1), 0, n - 1);
-                    ev.Use();
-                }
-                else if (ev.type == EventType.KeyDown && (ev.keyCode == KeyCode.LeftArrow || ev.keyCode == KeyCode.RightArrow))
-                {
-                    shopSel = Mathf.Clamp(shopSel + (ev.keyCode == KeyCode.LeftArrow ? -1 : 1), 0, n - 1);
-                    ev.Use();
-                }
-            }
 
-            // Where you are in the list: a pip each, the services in gold after a gap.
-            float px = W / 2f - (n * 24f + 12f) / 2f;
-            for (int i = 0; i < n; i++)
-            {
-                var pr = new Rect(px + i * 24f + (i >= split ? 12f : 0f), railY + cardH + 14f, 18f, 4f);
-                bool second = i >= split;
-                Ui.Fill(pr, i == shopSel ? (second ? Ui.Gold : Color.white) : (second ? new Color(1f, 0.8f, 0.35f, 0.3f) : new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.3f)));
-                if (!popup && Ui.HitArea(new Rect(pr.x - 3f, pr.y - 6f, pr.width + 6f, pr.height + 12f)))
-                    shopSel = i;
+                // Where you are in the list: a pip each, the services in gold.
+                float px = W / 2f - ((hi - lo) * 24f) / 2f;
+                for (int i = lo; i < hi; i++)
+                {
+                    var pr = new Rect(px + (i - lo) * 24f, railY + cardH + 14f, 18f, 4f);
+                    bool second = i >= split;
+                    Ui.Fill(pr, i == shopSel ? (second ? Ui.Gold : Color.white) : (second ? new Color(1f, 0.8f, 0.35f, 0.3f) : new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.3f)));
+                    if (!popup && Ui.HitArea(new Rect(pr.x - 3f, pr.y - 6f, pr.width + 6f, pr.height + 12f)))
+                        shopSel = i;
+                }
             }
 
             // Who's done, the Done button and your teammates.
@@ -225,7 +248,7 @@ namespace Arena
             }
             int k = svc[item - count];
             int price = ServicePrice(me, k, out bool used);
-            if (used || me.Gold < price || !(k == 0 ? atShop : atVendor))
+            if (used || me.Gold < price || !SvcAllowed(k, atShop, atVendor))
                 return;
             if (k >= 6)
                 game.Shop(ShopAction.BuyBuild, k - 6);
@@ -233,6 +256,130 @@ namespace Arena
                 shopSellOpen = true;
             else
                 game.Shop(k == 0 ? ShopAction.Restock : k == 2 ? ShopAction.Heal : k == 4 ? ShopAction.RoomKit : k == 5 ? ShopAction.Vectors : ShopAction.Revive);
+        }
+
+        /// Where a service is sold in the room shops (Game.ServiceAllowed): Add stock in the shop room, buildables at the vendor, the rest in either.
+        static bool SvcAllowed(int k, bool atShop, bool atVendor) => k == 0 ? atShop : k >= 6 ? atVendor : atShop || atVendor;
+
+        /// The two category panels the shop opens on: the upgrades (the Black Market's buildables) and the services, each with a peek
+        /// at what's inside. Clicking one (or Enter on the one the arrow keys point at) opens its carousel.
+        void DrawShopCategories(Player me, int[] svc, int count, int split, bool market, float railY, bool popup, float t)
+        {
+            const float pw = 380f, ph = 330f, gap = 44f;
+            var ev = Event.current;
+            if (!popup && ev.type == EventType.KeyDown)
+            {
+                if (ev.keyCode == KeyCode.LeftArrow || ev.keyCode == KeyCode.RightArrow)
+                {
+                    shopCatHover = ev.keyCode == KeyCode.LeftArrow ? 0 : 1;
+                    ev.Use();
+                }
+                else if (ev.keyCode == KeyCode.Return || ev.keyCode == KeyCode.KeypadEnter || ev.keyCode == KeyCode.Space)
+                {
+                    OpenShopCat(shopCatHover, split);
+                    ev.Use();
+                }
+            }
+            for (int c = 0; c < 2; c++)
+            {
+                var r = new Rect(W / 2f + (c == 0 ? -gap / 2f - pw : gap / 2f), railY + 14f, pw, ph);
+                bool empty = c == 0 && split == 0;
+                bool hover = !popup && !empty && r.Contains(ev.mousePosition);
+                if (hover)
+                    shopCatHover = c;
+                bool on = !empty && shopCatHover == c;
+                Color ac = c == 1 ? Ui.Gold : market ? ToColor(VendorInk) : new Color(0.45f, 0.75f, 1f);
+                float lift = on && !fxReduced ? 3f * Mathf.Sin(t * 3f) : 0f;
+                Ui.Glow(r, ac, on ? 0.5f + 0.1f * Mathf.Sin(t * 4f) : 0.16f);
+                DrawHolo(r, ac, t);
+                if (!on)
+                    Ui.Fill(r, new Color(0.01f, 0.012f, 0.03f, 0.35f));
+                CrtKit.Frame(r, on ? 2f : 1f, on ? Color.Lerp(ac, Color.white, 0.5f) : new Color(ac.r, ac.g, ac.b, 0.5f));
+
+                // The heading: a ribbon, the name, what's inside.
+                var ribbon = new Rect(r.center.x - 44f, r.y + 16f, 88f, 20f);
+                Ui.Pill(ribbon, new Color(ac.r, ac.g, ac.b, 0.85f));
+                Ui.Label(ribbon, "Category", 10, new Color(0.06f, 0.06f, 0.1f), TextAnchor.MiddleCenter, true);
+                string name = c == 1 ? "SERVICES" : market ? "BUILDABLES" : "UPGRADES";
+                DkTitle(new Rect(r.x, r.y + 44f + lift, r.width, 44f), name, 32, ac, TextAnchor.MiddleCenter);
+                int bought = 0;
+                for (int i = 0; i < count; i++)
+                    if (Game.Sold(me, i))
+                        bought++;
+                string sub = c == 1 ? (market ? "Heals, revives, sales and floor kits." : "Restock, sell, heal, revive" + (svc.Length > 4 ? ", build" : "") + ".")
+                    : market ? "Teleporters and traps for your stash." : count + " cards on your shelf" + (bought > 0 ? "  ·  " + bought + " bought" : "");
+                Ui.Label(new Rect(r.x + 16f, r.y + 90f, r.width - 32f, 20f), sub, 13, Ui.Text, TextAnchor.MiddleCenter, true);
+                Ui.Fill(new Rect(r.x + 50f, r.y + 120f, r.width - 100f, 1f), new Color(ac.r, ac.g, ac.b, 0.4f));
+
+                // A peek: up to five tiles of what's inside.
+                var peek = new List<int>();
+                int from = c == 0 ? 0 : split, to = c == 0 ? split : count + svc.Length;
+                for (int i = from; i < to && peek.Count < 5; i++)
+                    peek.Add(i);
+                const float tw = 56f, tg = 10f;
+                float tx = r.center.x - (peek.Count * tw + (peek.Count - 1) * tg) / 2f, ty = r.y + 140f;
+                int cheapest = int.MaxValue;
+                for (int i = from; i < to; i++)
+                {
+                    int price = i < count ? (me.Shelf[i] >= 0 && !Game.Sold(me, i) ? Game.Price(me.Shelf[i]) : int.MaxValue) : ServicePrice(me, svc[i - count], out bool used);
+                    if (price > 0 && price < cheapest)
+                        cheapest = price;
+                }
+                for (int j = 0; j < peek.Count; j++)
+                {
+                    int i = peek[j];
+                    var tile = new Rect(tx + j * (tw + tg), ty + (on && !fxReduced ? 2f * Mathf.Sin(t * 3f + j * 0.7f) : 0f), tw, tw);
+                    Color tc = ac;
+                    int k = i < count ? -1 : svc[i - count];
+                    if (i < count && me.Shelf[i] >= 0)
+                        tc = ToColor(Upgrades.RarityColor(Upgrades.All[me.Shelf[i]].Rarity));
+                    else if (k >= 6)
+                        tc = ToColor(VendorInk);
+                    float da = i < count && Game.Sold(me, i) ? 0.4f : 1f;
+                    Ui.Pill(new Rect(tile.x - 2f, tile.y - 2f, tile.width + 4f, tile.height + 4f), new Color(tc.r, tc.g, tc.b, 0.3f * da));
+                    Ui.Pill(tile, new Color(tc.r * 0.22f, tc.g * 0.22f, tc.b * 0.22f, 1f));
+                    var icon = new Rect(tile.x + 8f, tile.y + 8f, tw - 16f, tw - 16f);
+                    if (i < count)
+                    {
+                        if (me.Shelf[i] >= 0)
+                            Ui.Icon(icon, PixelArt.ForUpgrade(Upgrades.All[me.Shelf[i]].Name), da);
+                    }
+                    else if (k >= 6)
+                    {
+                        var m = GUI.matrix;
+                        GUIUtility.ScaleAroundPivot(new Vector2(0.62f, 0.62f), tile.center);
+                        DrawBuildGlyph((BuildKind)(k - 6), new Rect(tile.center.x - 40f, tile.center.y - 40f, 80f, 80f), 1f);
+                        GUI.matrix = m;
+                    }
+                    else
+                        Ui.Icon(icon, PixelArt.Get(ServiceIcons[k]), 1f);
+                }
+                if (to - from > peek.Count)
+                    Ui.Label(new Rect(r.x, ty + tw + 8f, r.width, 18f), "+" + (to - from - peek.Count) + " more", 12, Ui.Muted, TextAnchor.MiddleCenter, true);
+
+                // The cheapest thing inside, and the open key.
+                if (cheapest < int.MaxValue)
+                    DrawPriceTag(new Rect(r.center.x - 70f, r.y + 226f, 140f, 26f), cheapest, me.Gold >= cheapest, "From ");
+                else if (empty || c == 0)
+                    Ui.Label(new Rect(r.x, r.y + 226f, r.width, 26f), empty ? "Nothing on the shelf" : "All bought", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
+                var key = new Rect(r.center.x - 90f, r.yMax - 52f, 180f, 36f);
+                Ui.Pill(key, new Color(ac.r, ac.g, ac.b, on ? 0.9f : 0.25f));
+                Color kc = on ? new Color(0.06f, 0.06f, 0.1f) : ac;
+                Ui.Label(new Rect(key.x, key.y, key.width - 18f, key.height), "Open", 15, kc, TextAnchor.MiddleCenter, true);
+                Chevron(new Vector2(key.center.x + 30f, key.center.y), 1, kc);
+                if (!popup && !empty && Ui.HitArea(r))
+                    OpenShopCat(c, split);
+            }
+            Ui.Label(new Rect(0f, railY + ph + 26f, W, 18f), "Pick a category  ·  arrow keys and Enter work too", 12, Ui.Muted, TextAnchor.MiddleCenter, true);
+        }
+
+        void OpenShopCat(int c, int split)
+        {
+            if (c == 0 && split == 0)
+                return;
+            shopCat = c;
+            shopSel = c == 0 ? 0 : split;
+            shopTurn = shopSel;
         }
 
         /// A service's price, and whether it can't be used right now.
