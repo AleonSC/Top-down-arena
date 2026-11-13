@@ -44,6 +44,16 @@ namespace Arena
             return true;
         }
 
+        /// Renames a saved loadout (the same cleaning as a new one: an empty name becomes the class and role). False: no such slot.
+        public static bool Rename(Profile p, int index, string name)
+        {
+            if (p == null || index < 0 || index >= p.Favorites.Count)
+                return false;
+            var f = p.Favorites[index];
+            f.Name = CleanName(name, new LobbyEntry { Role = f.Role, Kit = f.Kit });
+            return true;
+        }
+
         /// The default name for a new favourite: "Knight Tank" (a Wildcard: "Wildcard").
         public static string DefaultName(LobbyEntry e) => e.Role == Role.Wildcard ? Defs.Get(e.Role).Name : Defs.KitName(e.Kit) + " " + Defs.Get(e.Role).Name;
 
