@@ -150,13 +150,13 @@ namespace Arena
             if (sum <= 0f)
                 return;
             var taken = new Dictionary<EnemyType, int>();
-            // (kinds already holds the boss factions' types: BuildWave started it)
+            // (plan.Kinds already holds the boss factions' types: BuildWave started it)
             foreach (var h in Headliners)
-                kinds.Add(h);  // headliners are always on the bill, so they count first
+                plan.Kinds.Add(h);  // headliners are always on the bill, so they count first
             foreach (var sq in squadQueue)
                 foreach (var t in sq.Members)
-                    kinds.Add(t);
-            kindCap = KindCap(n);
+                    plan.Kinds.Add(t);
+            plan.KindCap = KindCap(n);
             for (int j = 0; j < shares.Length; j++)
             {
                 int quota = (int)Math.Round(need[j] / sum * left);
@@ -166,7 +166,7 @@ namespace Arena
                     if (pick == null)
                         break;
                     var t = pick.Value;
-                    kinds.Add(t);
+                    plan.Kinds.Add(t);
                     int pack = PackOf(t);
                     for (int k = 0; k < pack; k++)
                         spawnQueue.Add(t);
@@ -176,11 +176,9 @@ namespace Arena
             }
         }
 
-        // The distinct types this recipe wave has so far (the boss factions' included); once kindCap is reached only these
-        // can be drawn again. The factions, picked first, stop at approachKindCap, so the headliners always have room.
-        readonly HashSet<EnemyType> kinds = new HashSet<EnemyType>();
-        int kindCap = 99, approachKindCap = 99;
-        bool KindOk(EnemyType t) => kinds.Count < kindCap || kinds.Contains(t);
+        // (The wave's distinct types are `plan.Kinds`; once `plan.KindCap` is reached only these
+        // can be drawn again; the factions, picked first, stop at `plan.ApproachKindCap`: WavePlan.cs.)
+        bool KindOk(EnemyType t) => plan.Kinds.Count < plan.KindCap || plan.Kinds.Contains(t);
 
         EnemyType? DrawRecipeType(EnemyJob job, int n, Dictionary<EnemyType, int> taken)
         {

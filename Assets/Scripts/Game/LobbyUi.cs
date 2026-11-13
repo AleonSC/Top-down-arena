@@ -709,9 +709,16 @@ namespace Arena
 
             // Right column: role, class, weapon and ability, the ultimate, then one detail box.
             float x = r.x + 334f, w = 454f, y = r.y + 16f;
+            if (self && favOpen && session.Resume == null)
+            {
+                DrawFavorites(me, new Rect(x - 12f, r.y + 6f, w + 24f, r.height - 12f), calm);  // the Saved loadouts drawer (FavoritesUi.cs)
+                return;
+            }
             const float gap = 6f;
             float quarter = (w - gap * 3f) / 4f;  // roles, classes and ultimates: 4 per row
             LobbyKit.Heading(x, y, w, "Role", null, calm, 15);
+            if (self && session.Resume == null)
+                DrawFavoritesKey(new Rect(x + w - 104f, y + 2f, 104f, 24f), calm);  // opens the Saved loadouts drawer (FavoritesUi.cs)
             // Every row shows a few locked slots for content still to come (hover one: "Coming soon").
             int roleSlots = Mathf.Max(RoleSlots, Defs.Roles.Length);
             for (int i = 0; i < roleSlots; i++)

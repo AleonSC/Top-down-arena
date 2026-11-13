@@ -256,6 +256,18 @@ static partial class Shot {
         set("practiceSel", 1);
         if (Environment.GetEnvironmentVariable("LOBBYTAB") != null) set("lobbyWasPractice", true);  // (so LOBBYTAB=7 stays on the Training tab)
       }
+      // FAVS=1: the Saved loadouts drawer open with four favourites (FavoritesUi.cs); FAVS=name: naming a fifth; FAVS=sure: deleting the second; FAVS=key: closed, the SAVED key showing.
+      var favs = Environment.GetEnvironmentVariable("FAVS");
+      if (favs != null) {
+        var fp = host.Game.ProfileOverride ?? (host.Game.ProfileOverride = new Profile());
+        var seats = new[] { new LobbyEntry { Role = Role.Tank, Kit = Kit.Knight, Weapon = 1, Ability = 2 }, new LobbyEntry { Role = Role.Dps, Kit = Kit.Elementalist, Weapon = 0, Ability = 1 },
+          new LobbyEntry { Role = Role.Healer, Kit = Kit.Hemomancer, Weapon = 0, Ability = 0 }, new LobbyEntry { Role = Role.Dps, Kit = Kit.Soldier, Weapon = 3, Ability = 0 } };
+        var names = new[] { "Lance Wall", "Storm Caller", "Blood Medic", "Double Tap" };
+        for (int i = 0; i < seats.Length; i++) Favorites.Save(fp, names[i], seats[i]);
+        if (favs != "key") set("favOpen", true);
+        if (favs == "name") { set("favNaming", true); set("favNameText", "Knight Tank"); }
+        if (favs == "sure") set("favSure", 1);
+      }
       var hv = Environment.GetEnvironmentVariable("MOUSE");
       if (hv != null) { var xy = hv.Split(','); Event.current.mousePosition = new Vector2(float.Parse(xy[0]), float.Parse(xy[1])); }
       Event.current.type = EventType.Repaint;
@@ -368,6 +380,18 @@ static partial class Shot {
       GL.Tris.Clear();
       set("drawScale", 1f);
       typeof(ArenaApp).GetMethod("DrawMenuBackground", f2).Invoke(app, new object[] { 7.3f });
+      // FAVS=1: the Saved loadouts drawer open with four favourites (FavoritesUi.cs); FAVS=name: naming a fifth; FAVS=sure: deleting the second; FAVS=key: closed, the SAVED key showing.
+      var favs = Environment.GetEnvironmentVariable("FAVS");
+      if (favs != null) {
+        var fp = host.Game.ProfileOverride ?? (host.Game.ProfileOverride = new Profile());
+        var seats = new[] { new LobbyEntry { Role = Role.Tank, Kit = Kit.Knight, Weapon = 1, Ability = 2 }, new LobbyEntry { Role = Role.Dps, Kit = Kit.Elementalist, Weapon = 0, Ability = 1 },
+          new LobbyEntry { Role = Role.Healer, Kit = Kit.Hemomancer, Weapon = 0, Ability = 0 }, new LobbyEntry { Role = Role.Dps, Kit = Kit.Soldier, Weapon = 3, Ability = 0 } };
+        var names = new[] { "Lance Wall", "Storm Caller", "Blood Medic", "Double Tap" };
+        for (int i = 0; i < seats.Length; i++) Favorites.Save(fp, names[i], seats[i]);
+        if (favs != "key") set("favOpen", true);
+        if (favs == "name") { set("favNaming", true); set("favNameText", "Knight Tank"); }
+        if (favs == "sure") set("favSure", 1);
+      }
       var hv = Environment.GetEnvironmentVariable("MOUSE");
       if (hv != null) { var xy = hv.Split(','); Event.current.mousePosition = new Vector2(float.Parse(xy[0]), float.Parse(xy[1])); }
       Event.current.type = EventType.Repaint;
