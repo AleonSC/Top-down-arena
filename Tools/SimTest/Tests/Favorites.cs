@@ -24,6 +24,10 @@ static partial class Program
         Check(back.Valid && back.Favorites.Count == Favorites.Slots && back.Favorites.Select(Favorites.ToLine).SequenceEqual(p.Favorites.Select(Favorites.ToLine))
             && back.Favorites[3].Perks.SequenceEqual(new[] { "RiotGear" }) && back.Favorites[3].Name == "Wild one", "the fav lines read back the same (names with spaces, perks, a Wildcard)");
         Check(Profile.Parse("arena-profile 7\nfav 9 0 0 0 0 0 -|Bad\nfav 0 3 1 2 0 0 -|Ok\nend 1\n").Favorites.Count == 1, "a damaged fav line is skipped; an older file loads");
+        Check(Favorites.Rename(p, 1, " Tank|Day ") && p.Favorites[1].Name == "TankDay" && Favorites.Rename(p, 1, "") && p.Favorites[1].Name == "Knight Tank"
+            && Favorites.Rename(p, 3, new string('y', 30)) && p.Favorites[3].Name.Length == Favorites.NameMax && !Favorites.Rename(p, 99, "x"), "a favourite renames with the same cleaning (empty: class and role; cut to the limit; no such slot: false)");
+        Check(Profile.Parse(p.ToText()).Favorites[3].Name == p.Favorites[3].Name && p.Favorites[3].Matches(wild), "a new name saves and keeps the picks");
+        Favorites.Rename(p, 1, "Knight Tank");
         Check(Favorites.Delete(p, 0) && p.Favorites.Count == Favorites.Slots - 1 && p.Favorites[0].Name == "Knight Tank" && !Favorites.Delete(p, 99), "a favourite deletes; the rest move up");
 
         // A guest loads a saved Wildcard, then a Knight: the host ends up with exactly those picks.
