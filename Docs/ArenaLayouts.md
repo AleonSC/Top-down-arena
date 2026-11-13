@@ -5,7 +5,7 @@ Player reference: README "Arena layouts". Code: `Layouts.cs`, `LayoutRules.cs`, 
 
 ## Decisions (from the owner)
 
-1. **Enemy gates.** Holographic red parts of the edge wall; enemies come in through them. Player gates (teal) are the only
+1. **Enemy gates.** Parts of the edge wall (drawn as plain wall since the spawn portals; red is the breaches'); enemies come in through them. Player gates (teal) are the only
    gaps you can wrap through.
 2. Gates pairing with a different spot (portal style): not yet.
 3. Walls and pillars block your shots too. Crates stay one-way cover.
