@@ -26,7 +26,8 @@ namespace Arena
         public const int SealGold = 2;             // gold per enemy still inside when it is shot closed (Expanding arena coins)
         public const int SealScore = 5;            // score per enemy still inside
         public const float SealFx = 0.6f;          // the sealed flash's length (SpawnPortalLook.cs)
-        public const float Quiet = 4f;             // with nothing open this long, a part burst comes anyway (no dead air in a lull)
+        public const float Quiet = 4f;
+        public const float Clearance = 60f;        // a portal's spot keeps this far from walls, pillars, props and the arena edge (its ring is ~46 px across)             // with nothing open this long, a part burst comes anyway (no dead air in a lull)
 
         // Enemy.Phase of a portal (sent in the snapshot).
         public const byte Opening = 0, Emitting = 1, FlankOpening = 2, FlankEmitting = 3, Closing = 4;
@@ -156,10 +157,37 @@ namespace Arena
         V2 PortalSpot(float r)
         {
             int home;
-            V2 pos = SpawnSpot(r, true, out home);
-            for (int k = 0; k < 3 && !ClearOfPlayers(pos); k++)
-                pos = SpawnSpot(r, true, out home);
-            return pos;
+            float c = Math.Max(r, SpawnPortals.Clearance);
+            V2 fallback = V2.Zero;
+            bool haveFit = false;
+            for (int k = 0; k < 16; k++)
+            {
+                V2 pos = ClearOfWalls(SpawnSpot(c, true, out home));
+                if (k == 0)
+                    fallback = pos;
+                if (!PortalFits(pos))
+                    continue;  // (a gap too narrow for its ring: try another spot)
+                if (ClearOfPlayers(pos))
+                    return pos;
+                if (!haveFit)
+                {
+                    fallback = pos;
+                    haveFit = true;
+                }
+            }
+            return fallback;
+        }
+
+        /// No wall or pillar inside a portal's ring here.
+        bool PortalFits(V2 pos) => !NearSolid(pos, SpawnPortals.Clearance - 1f);
+
+        /// A portal's spot moved out of walls, pillars and props far enough that its whole ring shows (Clearance).
+        V2 ClearOfWalls(V2 pos)
+        {
+            float c = SpawnPortals.Clearance;
+            for (int k = 0; k < 3; k++)
+                pos = PushOutOfProps(PushOutOfSolids(pos, c), c);
+            return RoomsOn ? pos : ClampToArena(pos, c);
         }
 
         /// A spot behind the party: of a few candidate spawn spots, the one most opposite the way the players are aiming.
@@ -174,11 +202,11 @@ namespace Arena
             V2 back = -aim.Normalized();
             V2 best = V2.Zero;
             float bestScore = float.MinValue;
-            for (int k = 0; k < 8; k++)
+            for (int k = 0; k < 12; k++)
             {
                 int home;
-                V2 s = SpawnSpot(r, true, out home);
-                float score = (s - mid).Normalized().Dot(back) - (ClearOfPlayers(s) ? 0f : 2f);
+                V2 s = ClearOfWalls(SpawnSpot(Math.Max(r, SpawnPortals.Clearance), true, out home));
+                float score = (s - mid).Normalized().Dot(back) - (ClearOfPlayers(s) ? 0f : 2f) - (PortalFits(s) ? 0f : 5f);
                 if (score > bestScore)
                 {
                     bestScore = score;
