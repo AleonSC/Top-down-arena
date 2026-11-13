@@ -169,6 +169,11 @@ namespace Arena
             if (n >= 5) { melee.Add(EnemyType.Buzzsaw); melee.Add(EnemyType.SpikeBlock); }  // the melee grunts (MeleeGrunts.cs)
             if (n >= SwordsmanFrom) melee.Add(EnemyType.Swordsman);  // the swordsmen (Swordsman.cs)
             if (n >= ShieldSwordsmanFrom) melee.Add(EnemyType.ShieldSwordsman);
+            // A recipe wave shows at most KindCap(n) distinct types, the boss factions' enemies included (WaveRecipe.cs): the
+            // factions may bring in all but the headliners' places, then the recipe fills up to the cap.
+            kinds.Clear();
+            kindCap = n >= RecipeFrom ? KindCap(n) : 99;
+            approachKindCap = n >= RecipeFrom ? kindCap - HeadlinerCount(n) : 99;
             BuildApproach(n, ref count);  // the boss's faction takes its share first (Approaches.cs)
             if (BuildPathWave(n, ref count, pool, melee))  // a path's own mix (Paths.cs)
             {
@@ -371,10 +376,14 @@ namespace Arena
             return e;
         }
 
+        readonly List<int> pickAlive = new List<int>(), pickTanks = new List<int>();  // (PickTarget runs per enemy, every tick when everyone is down)
+
         int PickTarget()
         {
-            var alive = new List<int>();
-            var tanks = new List<int>();
+            var alive = pickAlive;
+            var tanks = pickTanks;
+            alive.Clear();
+            tanks.Clear();
             foreach (var p in Players.Values)
                 if (!p.Downed && (p.TauntT > 0f || JuggOn(p) || p.RodT > 0f))
                     return p.Id;  // Roar (or the Juggernaut Suit, or a Lightning Rod's charge): everyone goes for the tank
@@ -451,9 +460,7 @@ namespace Arena
                 e.T += dt;
                 TickKnock(e, dt);  // a push sliding (Knock.cs)
                 e.MarkT = Math.Max(0f, e.MarkT - dt);
-                e.SlowT = Math.Max(0f, e.SlowT - dt);
-                if (e.SlowT <= 0f)
-                    e.SlowMult = 1f;
+                TickSlow(e, dt);
                 if ((e.WadeT = Math.Max(0f, e.WadeT - dt)) <= 0f)
                     e.WadeMult = 1f;
                 TickWet(e, dt);  // Tsunami.cs: soaked enemies are slowed
@@ -932,7 +939,7 @@ namespace Arena
             if (Challenges.Own(e.Type))
                 v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
             if (e.Type == EnemyType.RiotShield || e.Type == EnemyType.GasGrenadier || e.Type == EnemyType.TaserGuard || e.Type == EnemyType.SecurityGuard)
-                v = WardenFactionMove(e, tpos, dir, dist, ref speed);  // WardenFaction.cs
+                v = WardenFactionMove(e, tpos, dir, dist, dt, ref speed);  // WardenFaction.cs
             if (Zombies.Is(e.Type))
                 v = ZombieMove(e, tpos, dir, dist, ref speed);  // Zombies.cs
             if (IsNonShooter(e.Type))
@@ -943,7 +950,8 @@ namespace Arena
             if (HasTrait(e, EliteTrait.Hasted))
                 speed *= HasteMult;
             // A sweeping Beam Sentry steers its beam by Strafe, so it keeps the side it telegraphed (the roll still happens, keeping the RNG sequence).
-            if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3))
+            // A Security Guard keeps its side on its own timer (SecurityGuard.cs).
+            if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3) && e.Type != EnemyType.SecurityGuard)
                 e.Strafe = -e.Strafe;
             if (e.SlowT > 0f && !Heavy(e))
                 speed *= e.SlowMult;

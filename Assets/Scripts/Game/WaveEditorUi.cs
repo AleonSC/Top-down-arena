@@ -983,6 +983,7 @@ namespace Arena
                 string path = Path.Combine(WavesFolder, clean + ".waves");
                 bool existed = File.Exists(path);
                 File.WriteAllText(path, edSet.ToText());
+                FileListCache.Forget();
                 edStatus = (existed ? "Updated " : "Saved ") + clean + ".waves in the waves folder";
             }
             catch (Exception ex)
@@ -1040,15 +1041,7 @@ namespace Arena
             // Your saved files (this computer's waves folder).
             Ui.Label(new Rect(r.x + 12f, y, r.width - 24f, 14f), "YOUR SAVED FILES", 9, CrtStyle.Desc, TextAnchor.MiddleLeft, true);
             y += 16f;
-            string[] files;
-            try
-            {
-                files = Directory.Exists(WavesFolder) ? Directory.GetFiles(WavesFolder, "*.waves").OrderByDescending(File.GetLastWriteTime).Take(16).ToArray() : new string[0];
-            }
-            catch (Exception)
-            {
-                files = new string[0];
-            }
+            string[] files = FileListCache.Newest(WavesFolder, "*.waves", 16);  // (read from disk at most once a second)
             if (files.Length == 0)
                 Ui.Label(new Rect(r.x + 12f, y, r.width - 24f, 40f), "Nothing saved yet. Name your set at the top and press SAVE.", 12, CrtStyle.Desc, TextAnchor.UpperLeft, false, true);
             for (int i = 0; i < files.Length; i++)
@@ -1073,6 +1066,7 @@ namespace Arena
                 string path = Path.Combine(ProjectWavesFolder, clean + ".waves");
                 bool existed = File.Exists(path);
                 File.WriteAllText(path, edSet.ToText());
+                FileListCache.Forget();
                 edStatus = (existed ? "Updated" : "Saved") + " Data/Waves/" + clean + ".waves: run Tools/WaveGen/build.sh to build it into the game";
             }
             catch (Exception ex)

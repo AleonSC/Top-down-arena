@@ -68,7 +68,7 @@ namespace Arena
             float on = w.LightMode == WardenLight.Follow && w.LightT < 0.35f && ((int)(w.LightT * 20f) & 1) == 1 ? 0.35f : 1f;
             var c = locked ? LockCol : LightCol;
             V2 pool = w.LightDisp, from = Tower, d = pool - from;
-            float dist = Mathf.Max(1f, d.Length), r = Game.LightRadius;
+            float r = Game.LightRadius;
             V2 side = d.Normalized().Orthogonal();
             // The beam: widening from the lamp to the pool, a soft outer layer and a brighter core.
             SetColor(c.WithAlpha(0.07f * on));

@@ -37,6 +37,11 @@ namespace Arena
             if (s >= SkipStaticLen)
             {
                 skipStaticT = -1f;
+                if (skipGrab != null)
+                {
+                    Object.Destroy(skipGrab);  // a full-screen copy (tens of MB at 4K): free it until the next flip
+                    skipGrab = null;
+                }
                 return;
             }
             skipStaticT += Mathf.Min(Time.unscaledDeltaTime, SkipStaticMaxStep);
@@ -46,7 +51,7 @@ namespace Arena
             if (skipGrab == null || skipGrab.width != sw || skipGrab.height != sh)
             {
                 if (skipGrab != null) Object.Destroy(skipGrab);
-                skipGrab = new Texture2D(sw, sh, TextureFormat.RGB24, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
+                skipGrab = new Texture2D(sw, sh, TextureFormat.RGB24, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.HideAndDontSave };
                 skipGrabbed = false;
             }
             if (!skipGrabbed)
@@ -107,7 +112,7 @@ namespace Arena
         {
             if (skipSnow == null)
             {
-                skipSnow = new Texture2D(SkipSnowW, SkipSnowH, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
+                skipSnow = new Texture2D(SkipSnowW, SkipSnowH, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.HideAndDontSave };
                 skipSnowPx = new Color32[SkipSnowW * SkipSnowH];
             }
             for (int y = 0; y < SkipSnowH; y++)
@@ -137,7 +142,7 @@ namespace Arena
                     float a = Mathf.Clamp01((d - 0.35f) / 0.6f) * 0.5f;
                     px[y * w + x] = new Color32(0, 0, 0, (byte)(a * 255f));
                 }
-            skipVignette = new Texture2D(w, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
+            skipVignette = new Texture2D(w, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.HideAndDontSave };
             skipVignette.SetPixels32(px);
             skipVignette.Apply(false);
             return skipVignette;

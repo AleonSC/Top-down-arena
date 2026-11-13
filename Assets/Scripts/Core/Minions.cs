@@ -262,8 +262,7 @@ namespace Arena
                         if (e.SpawnT > 0f || e.Pos.DistanceTo(p.Pos) > 220f + e.Radius)
                             continue;
                         HurtEnemy(e, 40f * dmg, p.Id);
-                        e.SlowT = 3f;
-                        e.SlowMult = 0.1f;  // nearly frozen
+                        Slow(e, 3f, 0.1f);  // nearly frozen
                     }
                     if (cap)
                         EraseEnemyBullets(p.Pos, 220f);
@@ -433,7 +432,7 @@ namespace Arena
                 {
                     HurtEnemy(e, dmg, m.Owner);
                     if (shot)
-                        OnBulletHit(new Bullet { Pos = e.Pos, Owner = m.Owner, Dmg = dmg, Kind = Defs.FireShot }, e);
+                        ModHit(e, m.Owner, dmg, Defs.FireShot, default(V2));
                 }
             BroadcastFx(FxKind.Boom, m.Pos, m.Def.Color, radius, 0.35f, Sfx.Explode);
             Minions.Remove(m.Id);
@@ -651,7 +650,7 @@ namespace Arena
                         // Go to whoever has the lowest health fraction; otherwise stay by the owner.
                         Player who = null;
                         foreach (var q in Players.Values)
-                            if (!q.Downed && q.Hp < q.MaxHp && (who == null || q.Hp / q.MaxHp < who.Hp / who.MaxHp))
+                            if (!q.Downed && q.Hp < q.MaxHp && MoreHurt(q, who))
                                 who = q;
                         V2 goal = (who ?? owner).Pos + V2.FromAngle(m.Ang + AnimT) * 25f;
                         m.Pos += (goal - m.Pos).LimitLength(speed * dt);
@@ -929,8 +928,7 @@ namespace Arena
                         float slow = Math.Max(d.Slow, z.ExtraSlow);
                         if (slow > 0f)
                         {
-                            e.SlowT = Math.Max(e.SlowT, 0.3f);
-                            e.SlowMult = Math.Min(e.SlowMult, 1f - slow);
+                            Slow(e, 0.3f, 1f - slow);
                         }
                     }
             }

@@ -268,10 +268,13 @@ namespace Arena
 
         /// Half an enemy polygon (the game's Polygon: darkened fill, a 2.5 px outline), cut along `cutAng` through its middle,
         /// the side `s` keeps, with the cut edge white.
+        readonly List<V2> katanaPolyPts = new List<V2>();  // (KatanaHalfPoly's scratch)
+
         void KatanaHalfPoly(V2 c, float r, int sides, float cutAng, int s, Rgba col, float alpha)
         {
             V2 d = V2.FromAngle(cutAng), nrm = d.Orthogonal() * s;
-            var pts = new List<V2>();
+            var pts = katanaPolyPts;
+            pts.Clear();
             var poly = new V2[sides];
             for (int i = 0; i < sides; i++)
                 poly[i] = c + V2.FromAngle(cutAng * 0.5f + MathX.Tau * i / sides) * r;

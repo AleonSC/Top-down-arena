@@ -43,7 +43,7 @@ namespace Arena
                     anyHit = true;
                     HurtEnemy(e, dmg, p.Id);
                     WetArcs(e.Pos, e, dmg, p.Id);  // Tsunami.cs
-                    OnBulletHit(new Bullet { Pos = e.Pos, Vel = new V2(1f, 0f), Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);  // so weapon mods and legendaries apply, as for a swing
+                    ModHit(e, p.Id, dmg, Defs.KnightSlash, new V2(1f, 0f));  // so weapon mods and legendaries apply, as for a swing
                 }
             }
             p.Run.ShotsFired++;

@@ -50,7 +50,7 @@ namespace Arena
                     continue;
                 hit = touched = true;
                 HurtEnemy(e, dmg, p.Id);
-                OnBulletHit(new Bullet { Pos = e.Pos, Vel = (e.Pos - p.RadiantPos).Normalized(), Owner = p.Id, Dmg = dmg, Kind = Defs.HolyShot }, e);  // weapon mods ride it
+                ModHit(e, p.Id, dmg, Defs.HolyShot, (e.Pos - p.RadiantPos).Normalized());  // weapon mods ride it
             }
             foreach (var q in Players.Values)
                 if (q != p && !q.Downed && q.Pos.DistanceTo(p.RadiantPos) <= r + q.Def.BodyR)

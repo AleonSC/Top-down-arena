@@ -111,7 +111,7 @@ namespace Arena
                 burrowTrails[m.Id] = trail;
                 if (burrowTrails.Count > 8)  // forget the minions that are gone
                 {
-                    var gone = new List<int>();
+                    var gone = DrawScratch.FreshIds();
                     foreach (int id in burrowTrails.Keys)
                         if (!game.Minions.ContainsKey(id))
                             gone.Add(id);

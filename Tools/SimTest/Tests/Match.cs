@@ -532,7 +532,7 @@ static partial class Program
         Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
         foreach (int id in new[] { 1, 2 })
         {
-            for (int k = 0; k < 40; k++) host.Game.GrantUpgrade(id, U("Fortitude"));
+            for (int k = 0; k < 60; k++) host.Game.GrantUpgrade(id, U("Fortitude"));  // (enough to outlive the Warden: this test is about the recording)
             for (int k = 0; k < 25; k++) host.Game.GrantUpgrade(id, U("Hollow Points"));
         }
         Run(s, dt, 600, () => host.Game.Wave >= 6 && host.Game.State == MatchState.Fighting || host.Game.State == MatchState.GameOver);  // (wave 5, then its boss)

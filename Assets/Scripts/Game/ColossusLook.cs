@@ -7,7 +7,7 @@ namespace Arena
     /// and its body breaking down stage by stage.
     public partial class ArenaApp
     {
-        static readonly Rgba Stone = new Rgba(0.78f, 0.62f, 0.45f), StoneDark = new Rgba(0.37f, 0.3f, 0.24f), Magma = new Rgba(1f, 0.48f, 0.23f);
+        static readonly Rgba Stone = new Rgba(0.78f, 0.62f, 0.45f), Magma = new Rgba(1f, 0.48f, 0.23f);
 
         static ColossusState ColossusOf(Game g, out Enemy boss)
         {

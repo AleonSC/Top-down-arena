@@ -83,8 +83,8 @@ namespace Arena
             {
                 Type = EnemyType.SecurityGuard, Name = "Security Guard", Group = "Shooters", Wave = 2,
                 Appears = "The Warden's approach (waves 2-4), alone or in a Patrol",
-                Lead = "Holds its distance, plants its feet and locks on for 0.25 s (a red lane on the floor), then fires one tracer round at where you're heading. It fires seven, one every 0.8 s, then reloads for 2.2 s: rush it then.",
-                Attacks = new[] { new BestiaryAttack { Name = "Tracer round", Pattern = "One aimed round that leads you, seven to a magazine", Shot = "Tracer", ShotColor = new Rgba(0.94f, 0.97f, 1f), Speed = "340", Damage = "7", Every = 0.8f, Fixed = true } },
+                Lead = "Holds its distance and strafes, then locks on for 0.25 s while still walking (a red lane on the floor) and fires one tracer round straight at you. It fires seven, one every 1.5 s, then reloads for 2.2 s: rush it then.",
+                Attacks = new[] { new BestiaryAttack { Name = "Tracer round", Pattern = "One round aimed straight at you, seven to a magazine", Shot = "Tracer", ShotColor = new Rgba(0.94f, 0.97f, 1f), Speed = "340", Damage = "7", Every = 0.8f, Fixed = true } },
             },
             new BestiaryEntry
             {

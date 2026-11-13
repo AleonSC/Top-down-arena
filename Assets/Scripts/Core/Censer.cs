@@ -144,7 +144,7 @@ namespace Arena
                     continue;
                 V2 dir = e.Pos - r.To;
                 HurtEnemy(e, dmg, p.Id);
-                OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir.IsZero ? new V2(1f, 0f) : dir.Normalized(), Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
+                ModHit(e, p.Id, dmg, Defs.KnightSlash, dir.IsZero ? new V2(1f, 0f) : dir.Normalized());
                 if (!Heavy(e))
                     KnockEnemy(e, (dir.IsZero ? new V2(1f, 0f) : dir.Normalized()) * 16f);
             }

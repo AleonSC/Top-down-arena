@@ -366,8 +366,7 @@ namespace Arena
                         continue;
                     if (!e.Def.IsBoss)
                     {
-                        e.SlowT = Math.Max(e.SlowT, 0.3f);
-                        e.SlowMult = Math.Min(e.SlowMult, 1f - VineSlow);
+                        Slow(e, 0.3f, 1f - VineSlow);
                     }
                     DotDamage(e, VineDps * p.Stats.DmgMult * dt, p.Id);
                 }
@@ -528,7 +527,7 @@ namespace Arena
             {
                 float dmg = owner.Weapon.Damage * owner.Stats.DmgMult * m.Power * HomingCost(owner);  // Homing Rounds trade damage for forgiveness
                 WeaponHurt(hit, dmg, owner.Id);
-                OnBulletHit(new Bullet { Pos = hit.Pos, Vel = to.Normalized(), Owner = owner.Id, Dmg = dmg, Kind = Defs.ArcaneShot }, hit);
+                ModHit(hit, owner.Id, dmg, Defs.ArcaneShot, to.Normalized());
                 BroadcastFx(FxKind.Spark, hit.Pos, d.Color, hit.Radius + 10f, 0.25f, Sfx.None);
                 owner.Run.ShotsHit++;
                 m.Returning = true;
@@ -745,7 +744,7 @@ namespace Arena
                 }
                 any = true;
                 HurtEnemy(e, dmg, p.Id);
-                OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.BoltShot }, e);
+                ModHit(e, p.Id, dmg, Defs.BoltShot, dir);
                 WetArcs(e.Pos, e, dmg, p.Id);  // Tsunami.cs
                 if (!e.Def.IsBoss)
                     e.FrozenT = Math.Max(e.FrozenT, ArcStun);
@@ -792,7 +791,7 @@ namespace Arena
                 float d = e.Pos.DistanceTo(p.Pos);
                 if (d - e.Radius > reach)
                     continue;
-                float slack = d > 1f ? (float)Math.Asin(Math.Min(1f, e.Radius / d)) : MathX.Pi;
+                float slack = BodySlack(d, e.Radius);
                 int best = -1;
                 float bestOff = float.MaxValue;
                 for (int v = 0; v < n; v++)
@@ -825,7 +824,7 @@ namespace Arena
                 foreach (var e in hits[v])
                 {
                     HurtEnemy(e, share, p.Id);
-                    OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = share, Kind = Defs.HolyShot }, e);  // weapon mods apply to each share
+                    ModHit(e, p.Id, share, Defs.HolyShot, dir);  // weapon mods apply to each share
                     WetArcs(e.Pos, e, share, p.Id);  // Tsunami.cs
                     BroadcastFx(FxKind.Bolt, from, e.Pos, light, 0f, 0.2f, firstArc ? Sfx.SpellChainArc : Sfx.None);
                     firstArc = false;

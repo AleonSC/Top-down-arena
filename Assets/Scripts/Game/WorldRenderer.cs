@@ -597,15 +597,10 @@ namespace Arena
             float edge = p.Def.BodyR + 12f;
             float dx = real.X < edge ? AW : real.X > AW - edge ? -AW : 0f;
             float dy = real.Y < edge ? AH : real.Y > AH - edge ? -AH : 0f;
-            var ghosts = new List<V2>();
-            if (dx != 0f) ghosts.Add(new V2(dx, 0f));
-            if (dy != 0f) ghosts.Add(new V2(0f, dy));
-            if (dx != 0f && dy != 0f) ghosts.Add(new V2(dx, dy));  // corners
-            foreach (var off in ghosts)
-            {
-                p.Disp = real + off;
-                DrawPlayer(p, t);
-            }
+            // The copies on the far sides (no list: this runs per player per frame).
+            if (dx != 0f) { p.Disp = real + new V2(dx, 0f); DrawPlayer(p, t); }
+            if (dy != 0f) { p.Disp = real + new V2(0f, dy); DrawPlayer(p, t); }
+            if (dx != 0f && dy != 0f) { p.Disp = real + new V2(dx, dy); DrawPlayer(p, t); }  // corners
             p.Disp = real;
         }
 

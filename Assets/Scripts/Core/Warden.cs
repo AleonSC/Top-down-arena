@@ -695,7 +695,9 @@ namespace Arena
                     break;
                 case WardenLight.Ring:
                     // Dark, and no stun shots, until the ring has closed.
-                    w.Shackle.RemoveAll(id => !Bullets.ContainsKey(id));
+                    for (int i = w.Shackle.Count - 1; i >= 0; i--)  // (a loop, not RemoveAll: no closure every tick)
+                        if (!Bullets.ContainsKey(w.Shackle[i]))
+                            w.Shackle.RemoveAt(i);
                     if (w.Shackle.Count == 0)
                     {
                         w.LightMode = WardenLight.Follow;
@@ -888,7 +890,7 @@ namespace Arena
                     float pad = GateBulletR + p.Def.HitR;
                     if (p.Pos.Y < lo - pad || p.Pos.Y > hi + pad || InGateGap(g, p.Pos.X))
                         continue;
-                    if (g.Hit.Add(p.Id))
+                    if (g.Hit.Add(p.Id) && p.InvulnT <= 0f)  // invulnerable (revive, Lifeline, Leap Slam): it rolls over you
                         Damage(p, GateDamage, "The Warden (gate)");  // once a gate (pinned at the edge, it rolls over you without hurting again)
                 }
             }

@@ -901,7 +901,7 @@ namespace Arena
 
         // --- How to play --------------------------------------------------------------------------------------------------
 
-        /// A How to play topic: its tips, each the old drawn glyph (HowToTips index, DrawTipGlyph) or a pixel icon.
+        /// A How to play topic: its tips, each the old drawn glyph (DrawTipGlyph) or a pixel icon.
         class HowTo
         {
             public string Name, Icon, Intro;

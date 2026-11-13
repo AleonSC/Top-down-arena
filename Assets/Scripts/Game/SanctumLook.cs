@@ -21,7 +21,7 @@ namespace Arena
         /// A bright, soft hue (gold through green to cyan) for the shell's shimmer.
         static Rgba SanctumShimmer(float deg, float alpha)
         {
-            float h = MathX.Fmod(deg, 360f) / 60f, f = h - (float)System.Math.Floor(h), l = 0.7f, s = 0.9f;
+            float h = MathX.Fmod(deg, 360f) / 60f, l = 0.7f, s = 0.9f;
             float ch = (1f - Mathf.Abs(2f * l - 1f)) * s, x = ch * (1f - Mathf.Abs(MathX.Fmod(h, 2f) - 1f)), m = l - ch / 2f;
             float r, g, b;
             switch ((int)h)
