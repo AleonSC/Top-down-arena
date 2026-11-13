@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 321: the Colossus's faction, step 2: two new `EnemyType` values (SlabBearer, RockHurler) and two `PatchKind` values (Rubble, Slab; a Slab patch's R1 is its facing)
 - 320: the Colossus's faction, step 1: three new `EnemyType` values (Rubble, Quarryman, Stomper); a Stomper's enemy snapshot ends with its stomp ring (a flag, then centre, radius, wind-up and gap; QuarryFaction.cs)
 - 319: the Twin Reapers' faction: eight new `EnemyType` values (Wisp ... Shade), and a Bound Wraith's snapshot carries its partner and a revive (`SyncBound`)
 - 318: the Hive Queen's faction: eight new `EnemyType` values (Worker, Soldier, CombShield, HoneyLobber, Stinger, Needler, Bumble, Hornet) and bullet kind `StingBolt` 63 (Docs/HiveFaction.md)

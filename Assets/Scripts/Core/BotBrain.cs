@@ -680,7 +680,7 @@ namespace Arena
                         if (h.T < t + 0.2f && h.Pos.DistanceTo(p) < h.Radius + hitR + 8f)
                             d += w * 3f;
                     foreach (var pt in Patches.Values)  // a path's fire, the Colossus's lava the Devourer's bile, a Scorcher's embers or tear gas: burning now or about to (Paths.cs)
-                        if ((pt.Kind == PatchKind.Fire || pt.Kind == PatchKind.Lava || pt.Kind == PatchKind.Bile || pt.Kind == PatchKind.Embers || pt.Kind == PatchKind.Gas || pt.Kind == PatchKind.Acid) && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.DistanceTo(p) < pt.Radius + hitR + 8f)
+                        if ((pt.Kind == PatchKind.Fire || pt.Kind == PatchKind.Lava || pt.Kind == PatchKind.Bile || pt.Kind == PatchKind.Embers || pt.Kind == PatchKind.Gas || pt.Kind == PatchKind.Acid || pt.Kind == PatchKind.Rubble && !pt.Active) && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.DistanceTo(p) < pt.Radius + hitR + 8f)
                             d += w * 3f;
                     foreach (var th in botThreads)
                         if (SegmentDistance(p, th.A, th.B) < StitchWidth / 2f + hitR + sk.Margin + 4f)

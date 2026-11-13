@@ -236,6 +236,24 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.SlabBearer, Name = "Slab Bearer", Group = "Melee", Wave = 22,
+                Appears = "The Colossus's approach (alone, or two in a Wall-in squad)",
+                Lead = "Carries a quarried slab that stops shots and swings from the front. Up close the slab flashes (0.4 s), then it lunges and bashes you 160 px back. The slab cracks as it wears; broken, it drops in front of the bearer as cover for 3 s that stops shots from both sides, and the bearer staggers and takes 50% more. Plays like a Riot Shield.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Slab bash", Pattern = "0.4 s flash, then a short lunge", Damage = "10, and knocked back 160 px" },
+                    new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "8" },
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.RockHurler, Name = "Rock Hurler", Group = "Shooters", Wave = 22,
+                Appears = "The Colossus's approach (alone, or two behind Quarrymen in a Dig crew)",
+                Lead = "Keeps its distance and hauls a boulder back while an orange ring fills where you're heading (picked as the wind-up starts), then lobs it every 3.6 s. It lands 1 s later for 18, bursts into six shards and lies as a rubble pile for 2 s that stops shots from both sides. Plays like a Gas Grenadier.",
+                Attacks = new[] { new BestiaryAttack { Name = "Boulder", Pattern = "Lobbed at a ring on your lead, then six shards", Damage = "18, then six small shots", Every = 3.6f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.HiveEgg, Name = "Hive Egg", Group = "Summons", Wave = 10,
                 Appears = "Laid by the Hive Queen in her Honeycomb stage",
                 Lead = "Doesn't move or attack. Break it before it hatches into drones.",

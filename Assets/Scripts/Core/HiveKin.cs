@@ -22,10 +22,12 @@ namespace Arena
             t[(int)EnemyType.Needler] = EnemyType.SecurityGuard;
             t[(int)EnemyType.Bumble] = EnemyType.Thug;
             t[(int)EnemyType.Hornet] = EnemyType.Shiv;
-            // the Colossus's faction (QuarryFaction.cs) shares the table: its step-1 enemies play like these
+            // the Colossus's faction (QuarryFaction.cs) shares the table: its enemies play like these
             t[(int)EnemyType.Rubble] = EnemyType.Rioter;
             t[(int)EnemyType.Quarryman] = EnemyType.Guard;
             t[(int)EnemyType.Stomper] = EnemyType.Thug;
+            t[(int)EnemyType.SlabBearer] = EnemyType.RiotShield;
+            t[(int)EnemyType.RockHurler] = EnemyType.GasGrenadier;
             return t;
         }
 

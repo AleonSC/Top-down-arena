@@ -62,6 +62,8 @@ namespace Arena
         // the Colossus's faction, The Quarry (QuarryFaction.cs, Game/QuarryLook.cs): Rubble plays like a Rioter, a Quarryman
         // like a Guard, a Stomper like a Thug that stomps out a small ring of push blocks
         Rubble, Quarryman, Stomper,
+        // step 2: a Slab Bearer plays like a Riot Shield (its broken slab drops as cover), a Rock Hurler like a Gas Grenadier (a boulder)
+        SlabBearer, RockHurler,
     }
 
     public class RoleDef
@@ -356,6 +358,10 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "A quarry worker with a hard hat, a headlamp and a pickaxe. Walks straight at you." },
             new EnemyDef { Name = "Stomper", Hp = 180f, Radius = 21f, Speed = 58f, Score = 12, Xp = 20, Sides = 7, Color = new Rgba(0.69f, 0.6f, 0.5f), Melee = true, Contact = 20f,
                 Picker = PickerGroup.Melee, Blurb = "A slab-shouldered stone brute. Every few seconds it lifts a foot and stomps out a small ring of push blocks with one green gap: step into the gap." },
+            new EnemyDef { Name = "Slab Bearer", Hp = 60f, Radius = 16f, Speed = 120f, Score = 10, Xp = 10, Sides = 6, Color = new Rgba(0.62f, 0.53f, 0.4f), Melee = true, Contact = 8f,
+                Picker = PickerGroup.Melee, Blurb = "Carries a quarried slab that stops shots and bashes you back. Break the slab and it drops it as cover for a few seconds; then the bearer falls fast." },
+            new EnemyDef { Name = "Rock Hurler", Hp = 50f, Radius = 14f, Speed = 75f, Score = 8, Xp = 9, Sides = 5, Color = new Rgba(0.7f, 0.6f, 0.49f),
+                Picker = PickerGroup.Ranged, Blurb = "Lobs a boulder where you're heading. Walk out of the ring: it lands hard, bursts into shards and leaves a rubble pile that stops shots." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount

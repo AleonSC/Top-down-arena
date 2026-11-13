@@ -450,6 +450,7 @@ namespace Arena
             ResolveImplosions();  // and Implosions
             dmgSrc = was;
             FindColCover();       // the Colossus's plates and pillars (Colossus.cs)
+            FindQuarryCover();    // rubble piles and dropped slabs (QuarryFaction.cs)
             FindEclipseMoon();    // the Eclipse's moon (Eclipse.cs)
             foreach (var b in Bullets.Values)
             {
@@ -463,6 +464,11 @@ namespace Arena
                 if (Props.Count > 0 && PropStops(b))
                 {
                     scratchIds.Add(b.Id);  // a crate takes an enemy shot; a barrel any shot (Props.cs)
+                    continue;
+                }
+                if (quarryCover && QuarryCoverStops(b))
+                {
+                    scratchIds.Add(b.Id);  // a rubble pile or a dropped slab stops shots both ways (QuarryFaction.cs)
                     continue;
                 }
                 if (colCover != null && ColossusCoverStops(b))

@@ -6,6 +6,7 @@ using Arena;
 
 // The Colossus's faction, The Quarry, step 1 (Core/QuarryFaction.cs, Docs/Approaches.md "The Quarry"): Rubble plays like a
 // Rioter, the Quarryman like a Guard, the Stomper like a Thug that stomps out a small ring of push blocks with one gap.
+// Step 2: the Slab Bearer (a Riot Shield whose broken slab is cover) and the Rock Hurler (a Gas Grenadier with a boulder).
 static partial class Program
 {
     static void QuarryTest(float dt)
@@ -14,11 +15,12 @@ static partial class Program
         var kin = new Dictionary<EnemyType, EnemyType>
         {
             { EnemyType.Rubble, EnemyType.Rioter }, { EnemyType.Quarryman, EnemyType.Guard }, { EnemyType.Stomper, EnemyType.Thug },
+            { EnemyType.SlabBearer, EnemyType.RiotShield }, { EnemyType.RockHurler, EnemyType.GasGrenadier },
         };
         Check(kin.All(k => HiveKin.Of(k.Key) == k.Value && QuarryKin.Is(k.Key) && !HiveKin.Is(k.Key)) && !QuarryKin.Is(EnemyType.Thug),
-            "each Quarry enemy plays like one Warden enemy (Rubble Rioter, Quarryman Guard, Stomper Thug)");
-        Check(new[] { EnemyType.Rubble, EnemyType.Quarryman }.All(t => { var a = Defs.Get(t); var b = Defs.Get(kin[t]); return a.Hp == b.Hp && a.Speed == b.Speed && a.Contact == b.Contact && a.Xp == b.Xp; }),
-            "Rubble and the Quarryman have their counterpart's health, speed, contact damage and XP");
+            "each Quarry enemy plays like one Warden enemy (Rubble Rioter, Quarryman Guard, Stomper Thug, Slab Bearer Riot Shield, Rock Hurler Gas Grenadier)");
+        Check(new[] { EnemyType.Rubble, EnemyType.Quarryman, EnemyType.SlabBearer, EnemyType.RockHurler }.All(t => { var a = Defs.Get(t); var b = Defs.Get(kin[t]); return a.Hp == b.Hp && a.Speed == b.Speed && a.Contact == b.Contact && a.Xp == b.Xp; }),
+            "Rubble, the Quarryman, Slab Bearer and Rock Hurler have their counterpart's health, speed, contact damage and XP");
         Check(Defs.Get(EnemyType.Stomper).Hp > Defs.Get(EnemyType.Thug).Hp && Game.IsBrute(EnemyType.Stomper), "the Stomper is a tougher Brute (180 health)");
         Check(kin.Keys.All(t => Game.EnemyNote(t).Length > 0 && BestiaryData.For(t) != null), "each has a Bestiary entry and a new-enemy note");
 
@@ -93,13 +95,44 @@ static partial class Program
         var ring2 = sg.Stomp;
         run(2f, () => sg.Stomp == null);
         Check(!ring2.Hit.Contains(me.Id), "standing in the gap, the ring passes you by");
+
+        // The Slab Bearer: its shield is a Riot Shield's; broken, the slab drops in front as cover that stops shots both ways.
+        g.DevSetGod(1, true);
+        me.Pos = me.Disp = new V2(900f, 400f);
+        var sb = put(EnemyType.SlabBearer, new V2(500f, 400f));
+        Check(Math.Abs(sb.ShieldMax - sb.MaxHp * Game.RiotShieldShare) < 0.01f, "a Slab Bearer's slab holds 4x its health");
+        sb.Facing = 0f;
+        typeof(Game).GetMethod("WearRiotShield", np).Invoke(g, new object[] { sb, sb.ShieldMax + 1f });
+        var slab = g.Patches.Values.FirstOrDefault(p => p.Kind == PatchKind.Slab);
+        Check(Game.RiotShieldBroken(sb) && slab != null && slab.Pos.X > sb.Pos.X, "broken, the slab drops in front of it (a Slab patch)");
+        var spawnB = typeof(Game).GetMethod("SpawnBullet", np);
+        var mine = (Bullet)spawnB.Invoke(g, new object[] { Defs.TankShot, slab.Pos + new V2(60f, 0f), new V2(-600f, 0f), 0f, 2f, 5f, me.Id, false, 0f });
+        var theirs = (Bullet)spawnB.Invoke(g, new object[] { Defs.SmallShot, slab.Pos - new V2(60f, 0f), new V2(600f, 0f), 0f, 2f, 5f, 0, false, 0f });
+        float hp1 = sb.Hp;
+        run(0.2f, null);
+        Check(!g.Bullets.ContainsKey(mine.Id) && !g.Bullets.ContainsKey(theirs.Id) && sb.Hp == hp1, "the dropped slab stops your shots and theirs");
+        run(Game.SlabCoverLife + 0.3f, null);
+        Check(!g.Patches.Values.Any(p => p.Kind == PatchKind.Slab), "the slab is gone after " + Game.SlabCoverLife + " s");
+
+        // The Rock Hurler: a boulder lands where you stand, hurts, bursts into shards and leaves a pile.
+        g.DevSetGod(1, false);
+        me.Pos = me.Disp = new V2(800f, 400f);
+        var rh = put(EnemyType.RockHurler, new V2(520f, 400f));
+        rh.Hp = 1e6f;
+        PathPatch pile = null;
+        bool shards = false;
+        float hp2 = me.Hp;
+        run(9f, () => { pile = pile ?? g.Patches.Values.FirstOrDefault(p => p.Kind == PatchKind.Rubble && p.Active); foreach (var b in g.Bullets.Values) shards |= b.Source == EnemyType.RockHurler; return pile != null && shards; });
+        Check(pile != null && pile.Pos.DistanceTo(me.Pos) < 80f, "a Rock Hurler's boulder lands on you (standing still) as a rubble pile");
+        Check(shards && me.Hp < hp2, "it hurts and bursts into shards");
+        g.DevSetGod(1, true);
         g.DevSetGod(1, true);
         host.Leave("");
 
         // --- The approach: the Colossus's faction in the waves before it -----------------------------------------------------
         var fac = Approaches.For(EnemyType.Colossus);
-        Check(fac != null && fac.Members.Select(m => m.Type).SequenceEqual(new[] { EnemyType.Rubble, EnemyType.Quarryman, EnemyType.Stomper })
-            && fac.Squads.Any(s => s.Name == "Landslip"), "the Colossus has a faction: Rubble, Quarryman, Stomper, with the Landslip squad");
+        Check(fac != null && fac.Members.Select(m => m.Type).SequenceEqual(new[] { EnemyType.Rubble, EnemyType.Quarryman, EnemyType.Stomper, EnemyType.SlabBearer, EnemyType.RockHurler })
+            && new[] { "Landslip", "Dig crew", "Wall-in" }.All(n => fac.Squads.Any(s => s.Name == n)), "the Colossus has a faction: Rubble, Quarryman, Stomper, Slab Bearer, Rock Hurler, with Landslip, Dig crew and Wall-in");
         var build = typeof(Game).GetMethod("BuildWave", np);
         var spawnQ = typeof(Game).GetField("spawnQueue", np);
         var squadQ = typeof(Game).GetField("squadQueue", np);
@@ -121,6 +154,6 @@ static partial class Program
                 seen.Add(t);
         }
         Console.WriteLine("  seen before wave " + colWave + ": " + string.Join(", ", seen));
-        Check(seen.SetEquals(quarry), "the waves before the Colossus bring Rubble, Quarrymen and Stompers");
+        Check(seen.SetEquals(quarry), "the waves before the Colossus bring all five");
     }
 }

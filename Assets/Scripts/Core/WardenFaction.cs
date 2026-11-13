@@ -68,6 +68,8 @@ namespace Arena
             {
                 SetRiot(e, RiotStaggered, RiotCracked);
                 e.PhaseT = RiotStagger;
+                if (e.Type == EnemyType.SlabBearer)
+                    DropSlab(e);  // the slab falls in front of it as cover (QuarryFaction.cs)
                 BroadcastFx(FxKind.Shatter, e.Pos, front, new Rgba(0.7f, 0.82f, 1f), RiotShieldArc, 0.6f, Sfx.Clang);
             }
             else
@@ -378,8 +380,10 @@ namespace Arena
         /// Host, once a tick while it's firing normally: locks the landing spot as the wind-up begins (Winding is true for the last
         /// GrenadierWindUp + GrenadierSwing s before the throw) and tells everyone how long is left.
         static readonly Rgba HoneyLobColor = new Rgba(1f, 0.77f, 0.2f);
-        static float LobRadius(Enemy e) => e.Type == EnemyType.HoneyLobber ? HoneyLobRadius : GrenadierGasRadius;
-        static Rgba LobColor(Enemy e) => e.Type == EnemyType.HoneyLobber ? HoneyLobColor : GasLobColor;
+        static float LobRadius(Enemy e) => e.Type == EnemyType.HoneyLobber ? HoneyLobRadius : e.Type == EnemyType.RockHurler ? HurlerLandR : GrenadierGasRadius;
+        static Rgba LobColor(Enemy e) => e.Type == EnemyType.HoneyLobber ? HoneyLobColor : e.Type == EnemyType.RockHurler ? HurlerColor : GasLobColor;
+        V2 LobSpot(Enemy e, V2 tpos) => e.Type == EnemyType.RockHurler ? HurlerLead(tpos)  // a Rock Hurler aims where you're heading (QuarryFaction.cs)
+            : ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 50f), 60f);
 
         void GrenadierWind(Enemy e, V2 tpos, float rateNow)
         {
@@ -391,7 +395,7 @@ namespace Arena
             if (e.GasLocked)
                 return;
             e.GasLocked = true;
-            e.GasAt = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 50f), 60f);
+            e.GasAt = LobSpot(e, tpos);
             float left = Math.Max(0f, e.FireT / Math.Max(0.01f, rateNow));
             BroadcastFx(FxKind.GasLob, e.GasAt, new V2(e.Id, GasFlight), LobColor(e), LobRadius(e), left + GasFlight, Sfx.None);
         }
@@ -401,11 +405,13 @@ namespace Arena
             e.FireT = GrenadierEvery;
             if (!e.GasLocked)  // no wind-up seen (it fired the moment it spawned): an instant lob
             {
-                e.GasAt = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 50f), 60f);
+                e.GasAt = LobSpot(e, tpos);
                 BroadcastFx(FxKind.GasLob, e.GasAt, new V2(e.Id, GasFlight), LobColor(e), LobRadius(e), GasFlight, Sfx.None);
             }
             e.GasLocked = false;
-            if (e.Type == EnemyType.HoneyLobber)
+            if (e.Type == EnemyType.RockHurler)
+                SpawnPatchAt(PatchKind.Rubble, e.GasAt, GasFlight, GasFlight + RubbleLife, RubbleR, RubbleR);  // the boulder lands, then lies as a pile (QuarryFaction.cs)
+            else if (e.Type == EnemyType.HoneyLobber)
                 SpawnPatchAt(PatchKind.Honey, e.GasAt, GasFlight, GasFlight + HoneyLobLife, HoneyLobRadius, HoneyLobRadius);  // honey slows instead of hurting (Queen.cs HoneySlowAt)
             else
                 SpawnPatchAt(PatchKind.Gas, e.GasAt, GasFlight, GasFlight + GrenadierGasLife, GrenadierGasRadius, GrenadierGasRadius);

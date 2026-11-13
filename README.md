@@ -650,15 +650,18 @@ wave brings **Dusk and Dawn**: split to opposite edges, a Mourner on each side w
 | 3 | **Shade** | A shrouded Phantom: shows a ring where it will land, blinks there and fires |
 
 The **Colossus's faction**, The Quarry, leads up to its fight (waves 21-24): the quarry crew who woke it and the stone
-that broke off it (design: `Docs/Approaches.md`, "The Quarry"; mockup: `Docs/Mockups/colossus-faction.html`). Step 1 of
-4 is built: three of its eight. Squads: **Landslip** (a Quarryman and six Rubble) and, from wave 23, **Rockfall** (a
-Stomper and three Rubble). They pay XP like their counterparts (Rubble 7, Quarryman 15, Stomper 20).
+that broke off it (design: `Docs/Approaches.md`, "The Quarry"; mockup: `Docs/Mockups/colossus-faction.html`). Steps 1-2 of
+4 are built: five of its eight. Squads: **Landslip** (a Quarryman and six Rubble), **Dig crew** (two Quarrymen with two
+Rock Hurlers behind) and, from wave 23, **Rockfall** (a Stomper and three Rubble) and **Wall-in** (two Slab Bearers with
+four Rubble). They pay XP like their counterparts (Rubble 7, Quarryman 15, Stomper 20, Slab Bearer 10, Rock Hurler 9).
 
 | From | The Colossus's faction | Plays like | What it does |
 |---|---|---|---|
 | 1 | **Rubble** | Rioter | A jagged chunk of stone that rolls at you, weaving, in pairs (contact 10) |
 | 1 | **Quarryman** | Guard | A quarry worker in a hard hat, its headlamp beam ahead of it and a pickaxe that swings when it's close: straight at you (contact 14) |
 | 2 | **Stomper** | Thug | A slab-shouldered stone brute (180 health, contact 20) that walks at you like a Brute. Within 260 px it **stops and lifts a foot for 0.8 s** (it rises, its veins glow) while a **green gap** shows a short step to one side of you, then **stomps** out a small ring of push blocks, the Colossus's own (150 px/s, gone at 220 px). Step into the gap and it passes you by; caught, it passes over you once (12) and you end up behind it. Every 4 s |
+| 2 | **Slab Bearer** | Riot Shield | A quarry worker behind a stone slab that stops shots and swings from the front. Up close the slab flashes (0.4 s), then it lunges and **bashes** you: 10 damage, knocked **160 px** back. It cracks as it wears; broken, the slab **drops in front of it as cover for 3 s** that stops shots from **both** sides (yours too), and the bearer staggers and takes 50% more |
+| 2 | **Rock Hurler** | Gas Grenadier | A chunk of stone that keeps its distance and hauls a boulder back while an **orange ring** fills on **where you're heading** (picked as the wind-up starts: change direction), then lobs it (every 3.6 s). It lands 1 s later for **18**, bursts into **six shards** and lies as a **rubble pile** for 2 s that stops shots from both sides |
 
 **Bubbles (Shielded elites and the Warder's wards):** a bubble is twelve cells round the rim, each holding a twelfth of the shield. A hit wears down the cell facing whoever shot it (flashing, then breaking into shards) and spills over to its neighbours once that cell is gone, so the side you shoot from is the side that opens. Burning and bleeding keep chewing the weakest cell. A honeycomb inside only shows where its cell is still up, and a thin shield bar sits above the health bar. Blue is a Shielded elite, violet is the Warder's.
 
