@@ -11,6 +11,9 @@ namespace Arena
 
         public V2(float x, float y) { X = x; Y = y; }
 
+        /// Neither part is NaN or infinite (check numbers that came over the network before using them).
+        public bool IsFinite => !float.IsNaN(X) && !float.IsNaN(Y) && !float.IsInfinity(X) && !float.IsInfinity(Y);
+
         public static readonly V2 Zero = new V2(0f, 0f);
 
         public static V2 operator +(V2 a, V2 b) => new V2(a.X + b.X, a.Y + b.Y);

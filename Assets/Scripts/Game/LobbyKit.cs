@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Arena
@@ -18,13 +20,43 @@ namespace Arena
         /// The text cut short with "…" so it fits `width` at this size.
         public static string Truncate(string text, int size, float width, bool bold = true)
         {
-            if (Ui.TextWidth(text, size, bold) <= width)
+            if (text == null || Ui.TextWidth(text, size, bold) <= width)
                 return text;
-            int n = text.Length;
-            while (n > 1 && Ui.TextWidth(text.Substring(0, n).TrimEnd() + "…", size, bold) > width)
-                n--;
-            return text.Substring(0, n).TrimEnd() + "…";
+            if (text.Length <= 1)
+                return text.TrimEnd() + "…";
+            var key = new TruncKey { Text = text, Size = size, Width = width, Bold = bold, Font = Ui.FontKey };
+            string cut;
+            if (truncCache.TryGetValue(key, out cut))
+                return cut;
+            // The longest start that fits with "…" (binary search: wider text never measures narrower).
+            int lo = 1, hi = text.Length - 1;
+            while (lo < hi)
+            {
+                int mid = (lo + hi + 1) / 2;
+                if (Ui.TextWidth(text.Substring(0, mid).TrimEnd() + "…", size, bold) <= width)
+                    lo = mid;
+                else
+                    hi = mid - 1;
+            }
+            cut = text.Substring(0, Math.Max(1, lo)).TrimEnd() + "…";
+            if (truncCache.Count > 512)
+                truncCache.Clear();  // (names and labels change rarely: a small cache is plenty)
+            truncCache[key] = cut;
+            return cut;
         }
+
+        struct TruncKey : IEquatable<TruncKey>
+        {
+            public string Text;
+            public int Size;
+            public float Width;
+            public bool Bold;
+            public int Font;
+            public bool Equals(TruncKey o) => Size == o.Size && Width == o.Width && Bold == o.Bold && Font == o.Font && Text == o.Text;
+            public override bool Equals(object o) => o is TruncKey k && Equals(k);
+            public override int GetHashCode() => ((Text.GetHashCode() * 31 + Size) * 31 + Width.GetHashCode()) * 16 + Font * 2 + (Bold ? 1 : 0);
+        }
+        static readonly Dictionary<TruncKey, string> truncCache = new Dictionary<TruncKey, string>();
 
         /// The biggest size (down to min) at which the text is one line of `width`.
         public static int FitSize(string text, int size, int min, float width, bool bold = true)

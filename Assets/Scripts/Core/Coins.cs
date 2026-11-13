@@ -19,20 +19,22 @@ namespace Arena
         public readonly Dictionary<int, Coin> Coins = new Dictionary<int, Coin>();
         int nextCoinId = 1;
         const float CoinMagnetRange = 90f;
+        public const int MaxCoinsPerKill = 6;
         /// Vector pickups (Docs/VectorBuilding.md): a rare drop that adds vectors to whoever collects it. A normal kill drops one
         /// 1 time in VectorDropChance, an elite 1 in 8 (a big one), a boss always (a big one). It never despawns and waits while
         /// your stock is full.
         public const int VectorDropSmall = 6, VectorDropBig = 12, VectorDropChance = 60;
         readonly List<int> scratchCoinsGone = new List<int>();
 
-        /// Host: a kill in the Expanding arena drops its gold as coins (a coin per 5 gold, then the rest in ones).
+        /// Host: a kill in the Expanding arena drops its gold as coins (a coin per 5 gold, then the rest in ones; at most
+        /// MaxCoinsPerKill coins, the last one worth what is left).
         void DropCoins(Enemy e)
         {
             int gold = (int)Math.Round(e.Def.Xp * (e.Elite ? 3 : 1) * GoldPerXp);
             int n = 0;
-            while (gold > 0 && n++ < 6)
+            while (gold > 0)
             {
-                int v = gold >= 5 ? 5 : 1;
+                int v = ++n >= MaxCoinsPerKill ? gold : gold >= 5 ? 5 : 1;  // the last coin carries the rest (a boss's or an elite's gold)
                 gold -= v;
                 var c = new Coin { Id = nextCoinId++, Value = v };
                 c.Pos = ClampToArena(e.Pos + V2.FromAngle((float)rng.NextDouble() * MathX.Tau) * (8f + 14f * (float)rng.NextDouble()), 12f);

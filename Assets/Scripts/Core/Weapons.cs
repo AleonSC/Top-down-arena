@@ -133,6 +133,8 @@ namespace Arena
             return ScatterPointBlank;
         }
 
+        readonly List<int> flakScratch = new List<int>();  // (FlakAirburst: the enemy shots it pops)
+
         /// A Flak Cannon shell reached the end of its flight: the airburst.
         void FlakAirburst(Bullet b)
         {
@@ -142,15 +144,16 @@ namespace Arena
                     HurtEnemy(e, b.Dmg, b.Owner);
                     OnBulletHit(b, e);
                 }
-            var shot = new List<int>();
+            var shot = flakScratch;
+            shot.Clear();
             foreach (var o in Bullets.Values)
                 if (Defs.IsEnemyShot(o.Kind) && !Defs.Unblockable(o.Kind) && o.Pos.DistanceTo(b.Pos) < b.Splash + o.Radius)
                     shot.Add(o.Id);
             foreach (int id in shot)
             {
-                AddFx(FxKind.Spark, Bullets[id].Pos, Defs.BulletColor(Bullets[id].Kind), 8f, 0.25f);
-                Bullets.Remove(id);
-                pendingRemoved.Add(id);
+                var o = Bullets[id];
+                AddFx(FxKind.Spark, o.Pos, Defs.BulletColor(o.Kind), 8f, 0.25f);
+                KillBullet(id);
             }
             float offset = Rand(0f, MathX.Tau);
             for (int i = 0; i < b.Frags; i++)  // extra projectiles: bomblets scattering round the burst, popping where they land

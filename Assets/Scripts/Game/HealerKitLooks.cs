@@ -20,7 +20,7 @@ namespace Arena
             {
                 // The link: a ghostly ribbon that undulates, with a green mote carrying each heal across.
                 V2 a = m.Disp, b = linked.Disp, n = (b - a).Normalized().Orthogonal();
-                V2 prev = a, prev2 = a;
+                V2 prev = a;
                 for (int k = 1; k <= 18; k++)
                 {
                     float f = k / 18f;

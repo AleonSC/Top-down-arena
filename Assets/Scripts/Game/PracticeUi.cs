@@ -408,17 +408,7 @@ namespace Arena
         void DrawPracticeFiles(Rect g, bool calm)
         {
             LobbyKit.Heading(g.x, g.y - 6f, g.width, "Saved setups", "click one to load it", calm, 16);
-            string[] files;
-            try
-            {
-                files = Directory.Exists(PracticeFolder)
-                    ? Directory.GetFiles(PracticeFolder, "*.txt").OrderByDescending(File.GetLastWriteTime).Take(20).ToArray()
-                    : new string[0];
-            }
-            catch (Exception)
-            {
-                files = new string[0];
-            }
+            string[] files = FileListCache.Newest(PracticeFolder, "*.txt", 20);  // (read from disk at most once a second)
             if (files.Length == 0)
             {
                 Ui.Label(new Rect(g.x, g.y + 40f, g.width, 40f), "Nothing saved yet. Name your setup and press Save: it goes in the practice folder as a text file you can share or edit.", 12, CrtStyle.Desc, TextAnchor.UpperLeft, false, true);
@@ -445,6 +435,7 @@ namespace Arena
                 string path = Path.Combine(PracticeFolder, clean + ".txt");
                 bool existed = File.Exists(path);
                 File.WriteAllText(path, session.Plan.ToText(clean));
+                FileListCache.Forget();
                 practiceStatus = (existed ? "Updated " : "Saved ") + clean + ".txt";
             }
             catch (Exception e)

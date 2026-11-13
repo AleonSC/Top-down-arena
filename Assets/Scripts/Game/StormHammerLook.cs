@@ -199,7 +199,7 @@ namespace Arena
         /// FxKind.HammerSlam's solid layer: the crater, the cracks that cool from white to dark, flying chips.
         void DrawHammerSlamFx(Effect fx)
         {
-            float a = fx.T, R = fx.Radius, cool = Mathf.Clamp01(a / 2.2f), life = 1f - Mathf.Clamp01((a - 1.9f) / 0.5f);
+            float a = fx.T, cool = Mathf.Clamp01(a / 2.2f), life = 1f - Mathf.Clamp01((a - 1.9f) / 0.5f);
             V2 c = fx.Pos;
             Circle(c, 38f, new Rgba(0.03f, 0.04f, 0.07f, (0.65f - 0.3f * cool) * life), 24);
             int n = 12;

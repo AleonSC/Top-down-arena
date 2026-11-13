@@ -19,16 +19,18 @@ namespace Arena
         public static float TombFxTime(bool mastered) => (mastered ? 6f : 4f) + TombFxTail;
 
         /// Returns how many it erased; during a cast, every 5 count as a hit for mastery.
+        readonly List<int> eraseScratch = new List<int>();  // (EraseEnemyBullets runs every tick during Blade Fan and Blossom Storm)
+
         int EraseEnemyBullets(V2 center, float range)
         {
-            var erase = new List<int>();
+            var erase = eraseScratch;
+            erase.Clear();
             foreach (var b in Bullets.Values)
                 if (Defs.IsEnemyShot(b.Kind) && b.Pos.DistanceTo(center) < range)
                     erase.Add(b.Id);
             foreach (int bid in erase)
             {
-                Bullets.Remove(bid);
-                pendingRemoved.Add(bid);
+                KillBullet(bid);
             }
             if (casting)
                 castHits += (erase.Count + 4) / 5;
@@ -148,7 +150,7 @@ namespace Arena
                         else
                         {
                             HurtEnemy(e, 40f * dmg, p.Id);
-                            e.FrozenT = cap ? 6f : 4f;
+                            e.FrozenT = Math.Max(e.FrozenT, cap ? 6f : 4f);
                             e.SlowT = Math.Max(e.SlowT, e.FrozenT);
                         }
                     }

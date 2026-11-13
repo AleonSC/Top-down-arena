@@ -148,7 +148,7 @@ namespace Arena
             var list = new List<Slice>();
             if (n < 1)
                 return list;
-            int cycle = (n - 1) / 5, p = (n - 1) % 5;
+            int cycle = (n - 1) / 5;
             float fade = FadeAt(n, shown);
             float pool = cycle >= 2 ? PoolShare : 0f;
             Action<EnemyType, float, bool, float> add = (boss, share, cur, poolPart) =>

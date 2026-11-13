@@ -191,7 +191,7 @@ namespace Arena
 
         void PruneTrails(int frame)
         {
-            var dead = new List<int>();
+            var dead = DrawScratch.FreshIds();
             foreach (var kv in flyTrailFrame)
                 if (frame - kv.Value > 120)
                     dead.Add(kv.Key);

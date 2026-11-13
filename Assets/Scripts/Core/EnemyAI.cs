@@ -371,10 +371,14 @@ namespace Arena
             return e;
         }
 
+        readonly List<int> pickAlive = new List<int>(), pickTanks = new List<int>();  // (PickTarget runs per enemy, every tick when everyone is down)
+
         int PickTarget()
         {
-            var alive = new List<int>();
-            var tanks = new List<int>();
+            var alive = pickAlive;
+            var tanks = pickTanks;
+            alive.Clear();
+            tanks.Clear();
             foreach (var p in Players.Values)
                 if (!p.Downed && (p.TauntT > 0f || JuggOn(p) || p.RodT > 0f))
                     return p.Id;  // Roar (or the Juggernaut Suit, or a Lightning Rod's charge): everyone goes for the tank
@@ -451,9 +455,7 @@ namespace Arena
                 e.T += dt;
                 TickKnock(e, dt);  // a push sliding (Knock.cs)
                 e.MarkT = Math.Max(0f, e.MarkT - dt);
-                e.SlowT = Math.Max(0f, e.SlowT - dt);
-                if (e.SlowT <= 0f)
-                    e.SlowMult = 1f;
+                TickSlow(e, dt);
                 if ((e.WadeT = Math.Max(0f, e.WadeT - dt)) <= 0f)
                     e.WadeMult = 1f;
                 TickWet(e, dt);  // Tsunami.cs: soaked enemies are slowed

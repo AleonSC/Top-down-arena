@@ -38,7 +38,7 @@ namespace Arena
     /// keeps working when the game's lists grow or get reordered (anything no longer in the game is skipped).
     public class RunSave
     {
-        public const int FormatVersion = 1;
+        public const int FormatVersion = 2;  // 2: an "end" line closes the file (a save without it, cut short, isn't loaded)
 
         public string Id = "";        // its file name (without .run); a run keeps it from start to finish
         public DateTime SavedAt = DateTime.UtcNow;
@@ -152,6 +152,7 @@ namespace Arena
                     r.Downs.ToString(CultureInfo.InvariantCulture), r.Revives.ToString(CultureInfo.InvariantCulture), r.ShotsFired.ToString(CultureInfo.InvariantCulture),
                     r.ShotsHit.ToString(CultureInfo.InvariantCulture), r.AbilitiesUsed.ToString(CultureInfo.InvariantCulture) }));
             }
+            Line(sb, "end", 1);  // the last line: a save cut short (not all written when the power went) has none and isn't loaded
             return sb.ToString();
         }
 
@@ -160,7 +161,8 @@ namespace Arena
         {
             var save = new RunSave { Id = id };
             SeatSave seat = null;
-            bool header = false, sawSlot = false;
+            bool header = false, sawSlot = false, sawEnd = false;
+            int version = 0;
             foreach (var raw in (text ?? "").Split('\n'))
             {
                 string line = raw.Trim();
@@ -172,7 +174,8 @@ namespace Arena
                 {
                     switch (key)
                     {
-                        case "arena-run": header = true; break;
+                        case "arena-run": header = true; version = I(val); break;
+                        case "end": sawEnd = true; break;
                         case "saved": save.SavedAt = DateTime.Parse(val, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind); break;
                         case "wave": save.Wave = I(val); if (!sawSlot) save.BossSlot = save.Wave > 0 && save.Wave % 5 == 0; break;
                         case "slot": save.BossSlot = I(val) != 0; sawSlot = true; break;
@@ -254,6 +257,8 @@ namespace Arena
                     // a damaged line: skip it
                 }
             }
+            if (version >= 2 && !sawEnd)
+                return null;  // cut short (saves from format 1 have no end line)
             return header && save.Seats.Count > 0 ? save : null;
         }
 
@@ -423,7 +428,12 @@ namespace Arena
         public static void SafeWrite(string path, string text, string backupPath = null)
         {
             string tmp = path + ".tmp";
-            File.WriteAllText(tmp, text);
+            var bytes = new System.Text.UTF8Encoding(false).GetBytes(text);
+            using (var fs = new FileStream(tmp, FileMode.Create, FileAccess.Write))
+            {
+                fs.Write(bytes, 0, bytes.Length);
+                fs.Flush(true);  // on the disk before the swap: a power cut then can't leave a renamed but empty file
+            }
             if (File.Exists(path))
                 File.Replace(tmp, path, backupPath);
             else

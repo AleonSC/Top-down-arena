@@ -98,7 +98,7 @@ namespace Arena
         readonly List<V2> volatilePos = new List<V2>();
         readonly List<float> volatileT = new List<float>();
         readonly List<EnemyType> volatileType = new List<EnemyType>();
-        readonly List<int> volatileN = new List<int>();  // shots in each burst (Volatile 16, Death Throes 8)
+        readonly List<int> volatileN = new List<int>();  // shots in each burst (Volatile 12; a Death Throes burst stored as minus its 6)
         readonly List<V2> mirrorFrom = new List<V2>();
         readonly List<int> mirrorAt = new List<int>();
         readonly List<EnemyType> mirrorType = new List<EnemyType>();
@@ -399,14 +399,9 @@ namespace Arena
                 if (volatileT[i] > 0f)
                     continue;
                 V2 at = volatilePos[i];
-                float off = Rand(0f, MathX.Tau);
-                int n = volatileN[i];
-                bool throes = n != VolatileShots;
-                for (int k = 0; k < n; k++)
-                {
-                    V2 dir = V2.FromAngle(off + MathX.Tau * k / n);
-                    SpawnBullet(Defs.SmallShot, at + dir * 12f, dir * (throes ? Modifiers.ThroesSpeed : 125f), 0f, 8f, Defs.BulletDamage(Defs.SmallShot), 0).Source = volatileType[i];
-                }
+                int n = Math.Abs(volatileN[i]);
+                bool throes = volatileN[i] < 0;  // (a Death Throes burst is stored negative)
+                SpawnRing(Defs.SmallShot, at, n, throes ? Modifiers.ThroesSpeed : 125f, 8f, Defs.BulletDamage(Defs.SmallShot), 0, 12f, volatileType[i]);
                 BroadcastFx(FxKind.Boom, at, throes ? new Rgba(0.75f, 0.3f, 0.35f) : new Rgba(1f, 0.55f, 0.23f), throes ? 34f : 60f, 0.3f, throes ? Sfx.None : Sfx.Explode);
                 volatileN.RemoveAt(i);
                 volatileT.RemoveAt(i);
@@ -504,7 +499,9 @@ namespace Arena
                 case EnemyType.Stitcher:
                 {
                     // A pair stands side by side facing you, so the orbs they fire together make a fence as wide as the gap.
-                    var other = mates.Find(o => o != e && o.Type == EnemyType.Stitcher);
+                    Enemy other = null;
+                    foreach (var o in mates)  // (a loop, not Find: no closure every tick)
+                        if (o != e && o.Type == EnemyType.Stitcher) { other = o; break; }
                     if (other == null)
                         break;
                     V2 mid = (e.Pos + other.Pos) / 2f;
@@ -756,7 +753,8 @@ namespace Arena
                                 lead = o;
                     Enemy partner = null;
                     if (lead != null && squadMembers.TryGetValue(e.SquadId, out mates))
-                        partner = mates.Find(o => o != lead && o.Type == EnemyType.Stitcher && Targetable(o));
+                        foreach (var o in mates)
+                            if (o != lead && o.Type == EnemyType.Stitcher && Targetable(o)) { partner = o; break; }
                     if (partner != null)
                     {
                         if (lead != e)
@@ -1054,7 +1052,7 @@ namespace Arena
                 volatilePos.Add(e.Pos);
                 volatileT.Add(Modifiers.ThroesFuse);
                 volatileType.Add(e.Type);
-                volatileN.Add(Modifiers.ThroesShots);
+                volatileN.Add(-Modifiers.ThroesShots);  // negative: a Death Throes burst
                 BroadcastFx(FxKind.Target, e.Pos, new Rgba(0.75f, 0.3f, 0.35f), 34f, Modifiers.ThroesFuse, Sfx.None);
             }
             if (HasTrait(e, EliteTrait.Splitting))

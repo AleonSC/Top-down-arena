@@ -367,6 +367,7 @@ namespace Arena
             Cages.Clear();
             ResetProps();  // Props.cs
             ResetLayout();  // LayoutRules.cs
+            ResetRunLists();  // RunReset.cs
             awaitingPick = false;
             rerollsAtRequest = -1;
             tick = 0;
@@ -819,6 +820,7 @@ namespace Arena
             }
             if (IsHost)
             {
+                hostClock += dt;  // (every host tick, whatever the state: Dodge.cs times clients' dodges by it)
                 if (State == MatchState.Fighting || State == MatchState.Intermission)
                     RunTime += dt;
                 HostTick(dt);
@@ -827,7 +829,7 @@ namespace Arena
             {
                 MoveBullets(dt * WorldRate);  // (a perfect parry slows every shot on every screen: Parry.cs)
                 tick++;
-                if (tick % 120 == 0)
+                if (tick % 120 == 0 && Log != null)  // (no formatting when nothing reads it)
                     DoLog(string.Format("wave {0} state {1} enemies {2} bullets {3} hp {4}", Wave, State, Enemies.Count, Bullets.Count, HpSummary()));
             }
             WorldSlowT = Math.Max(0f, WorldSlowT - dt);  // Parry.cs
@@ -950,6 +952,8 @@ namespace Arena
             }
         }
 
+        readonly bool[] heldScratch = new bool[5];  // LocalControl's ability keys this tick
+
         /// Set by the front end each frame: your controls are held (a run launching: you can't move, dash, shoot, parry or
         /// use abilities until the fight starts; LaunchIntro.cs). Your own game only.
         public bool HoldControls;
@@ -967,7 +971,8 @@ namespace Arena
             me.Aim = (aimAt - me.Pos).Angle;
             me.Parrying = (input.Parry || HoldParry) && !me.Downed;
             bool firing = input.Fire && !me.Downed && !me.ParryActive;  // can't shoot behind the shield
-            bool[] held = { input.Ability, input.AbilityQ, input.AbilityE, input.AbilityShift, input.Ultimate };
+            var held = heldScratch;  // (one array, filled each tick)
+            held[0] = input.Ability; held[1] = input.AbilityQ; held[2] = input.AbilityE; held[3] = input.AbilityShift; held[4] = input.Ultimate;
 
             if (Bot && BotLevel != BotSkill.Off)
             {
@@ -1348,7 +1353,7 @@ namespace Arena
                 SendSnapshot();
                 SendSteer();
             }
-            if (tick % 120 == 0)
+            if (tick % 120 == 0 && Log != null)  // (no formatting when nothing reads it)
                 DoLog(string.Format("wave {0} state {1} enemies {2} bullets {3} score {4} hp {5}", Wave, State, Enemies.Count, Bullets.Count, Score, HpSummary()));
         }
 

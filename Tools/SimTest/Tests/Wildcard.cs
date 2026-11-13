@@ -71,10 +71,13 @@ static partial class Program
         int knuckles = Defs.WildWeaponPick(Kit.Knight, 3);
         lobby.RequestWildcard(knuckles, 2, 5, 1);
         e = lobby.Lobby[1];
-        Check(knuckles == Defs.WildcardChoices && e.Weapon == knuckles && Defs.Weapon(Role.Wildcard, Kit.Soldier, e.Weapon).Id == WeaponId.ArcKnuckles,
-            "a Wildcard can pick the Knight DPS's fourth weapon, the Arc Knuckles (pick " + knuckles + ", after every class's three)");
-        Check(Defs.WildWeaponKit(knuckles) == Kit.Knight && Defs.WeaponCount(Role.Wildcard, Kit.Soldier) == Defs.WildcardChoices + 1,
-            "its class on the wheel is the Knight, and the Wildcard has 19 weapons to pick from");
+        int barrel = Defs.WildWeaponPick(Kit.Soldier, 3);
+        Check(barrel == Defs.WildcardChoices && Defs.Weapon(Role.Wildcard, Kit.Soldier, barrel).Id == WeaponId.DoubleBarrel,
+            "the fourth weapons come after every class's three, in class order: the Soldier's Double Barrel first (pick " + barrel + ")");
+        Check(knuckles == Defs.WildcardChoices + 1 && e.Weapon == knuckles && Defs.Weapon(Role.Wildcard, Kit.Soldier, e.Weapon).Id == WeaponId.ArcKnuckles,
+            "a Wildcard can pick the Knight DPS's fourth weapon, the Arc Knuckles (pick " + knuckles + ", after the Double Barrel)");
+        Check(Defs.WildWeaponKit(knuckles) == Kit.Knight && Defs.WeaponCount(Role.Wildcard, Kit.Soldier) == Defs.WildcardChoices + 2,
+            "its class on the wheel is the Knight, and the Wildcard has " + Defs.WeaponCount(Role.Wildcard, Kit.Soldier) + " weapons to pick from (20)");
         lobby.RequestUlt(Upgrades.WildUlt(Kit.Hemomancer, 0));
         e = lobby.Lobby[1];
         Check(e.Ult == Upgrades.WildUlt(Kit.Hemomancer, 0) && e.UltKit == Kit.Hemomancer && e.UltId == AbilityId.CrimsonApotheosis, "a Wildcard picks any class's DPS ultimate");
