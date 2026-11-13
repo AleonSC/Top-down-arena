@@ -873,9 +873,11 @@ On the Bazaar's waves every kill gives **every player the same gold** (0.3 per p
 325 each over waves 6-10, rising to about 1000 by wave 40); your gold shows above the wave panel. After its last
 wave, everyone gets a shop before the boss:
 
-- **One sideways carousel** holds everything: your shelf, then the services. The item in the middle is big and shows what it
+- **Two categories** open first: **Upgrades** (your shelf) and **Services**, each panel showing a peek of what's inside and the
+  cheapest price. Click one (or arrow keys and Enter) to open its **sideways carousel**. The item in the middle is big and shows what it
   changes as the green readout on the card (old ▸▸ new). Click a side card, use the arrows, the mouse wheel or the arrow
-  keys to bring one to the middle, and click the middle one to buy it. The SHELF and SERVICES tabs jump to each part.
+  keys to bring one to the middle, and click the middle one to buy it. **< Back** (or Esc) returns to the categories; the
+  two tabs switch between them. Add stock jumps to the new cards.
 - **Your shelf** (rolled for your class): three cards, two upgrades and a legendary (a weapon mod if no legendary is left). Prices by rarity: common
   40, uncommon 60, rare 100, very rare 160, weapon mod 200, legendary 280.
 - **Services:** add stock (two more cards on the shelf, none you already see: an upgrade, then a weapon mod and a
@@ -1005,7 +1007,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   Beating it gives everyone a prize pick (sometimes a legendary) and the room becomes an ordinary one. It's optional: if the wave ends first, the
   Gatekeeper goes, you're let out, and walking in later starts a fresh duel.
 - **Shop and vendor rooms**: with one connected, kills drop gold and the shop opens every intermission without holding the countdown. Buy
-  upgrades and add stock in the **shop room**; heal, revive and remove upgrades, and buy buildables, at the **Black Market** (the vendor room: a Buildables tab and a Services tab). Gold and your shelf carry over between waves
+  upgrades and add stock in the **shop room**, buildables at the **Black Market** (the vendor room: Buildables and Services categories); the services (heal, revive, sell, Floor kit, Vector pack) work in either room. Gold and your shelf carry over between waves
   (the shelf is new each boss cycle).
 - **Breaches**: a rare event: on wave 3 and every 4th wave after it (7, 11, 15, ...), once the first room is built, enemies come in through **breaches** in the outer wall: a stretch of wall cracks open
   and a **red holographic barrier** stands in the gap (you can't go out through it; red chevrons on the floor point where they come
