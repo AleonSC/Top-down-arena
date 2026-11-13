@@ -195,6 +195,7 @@ namespace Arena
             Stop();
             PracticeIndex = -1;
             ResetPaths();
+            ResetHuntMap();  // HuntMapGame.cs
             ResetExpansion();  // ExpansionGame.cs
             ResetRoom();  // Challenges.cs
             int startWave = r.ReadInt32();
@@ -864,6 +865,7 @@ namespace Arena
             AnimT += dt;
             TickShopNotices(dt);
             TickExpansion(dt);     // a bot player's vote (ExpansionGame.cs)
+            TickHuntMapView(dt);   // the hunt map's vote timer on a client, a bot's vote (HuntMapGame.cs)
             TickGates(dt);         // the shutter gates' clocks (Gates.cs)
             UpdatePropView(dt);    // crates, barrels, chests and their items (Props.cs)
             UpdateInkView(dt);     // Chalk.cs: the chalk's tip easing, a client's ink ageing
