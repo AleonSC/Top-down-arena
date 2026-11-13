@@ -312,6 +312,7 @@ static partial class Program
         Test("showcase", "the lobby's loadout preview", () => ShowcaseTest(Dt)),
         Test("knight", "the Knight", () => KnightTest(Dt)),
         Test("knightdps", "the DPS Knight's Caught Steel, Gauntlet, Misericorde and Drawbridge", () => KnightDpsTest(Dt)),
+        Test("wavedump", "the refactor safety net: every mode's waves built on fixed seeds, compared with Golden/wavedump.txt (WAVEDUMP=update rewrites it)", () => WaveDumpTest()),
         Test("bossslot", "the boss between waves: it follows every fifth regular wave and keeps its number; paths, saves and the Lab start", () => BossSlotTest(Dt)),
         Test("phalanx", "Bone Phalanx (the Tank Summoner's second ultimate) and the lobby's Ultimate pick", () => PhalanxTest(Dt)),
         Test("ninja", "the Ninja", () => NinjaTest(Dt)),
@@ -460,7 +461,7 @@ static partial class Program
         "trickle", "meleesounds", "grunts", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops",
         "exploit", "doublebarrel", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
         "expand", "quick", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "landmarks",
-        "newenemies", "wildcard", "stacking", "singularity", "security",
+        "newenemies", "wildcard", "stacking", "singularity", "security", "wavedump",
     };
 
     static int Main(string[] args)

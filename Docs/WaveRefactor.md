@@ -1,6 +1,6 @@
 # Wave & spawn refactor
 
-**Status: planned** (audit done, owner picked "refactor first"; no code changed). Start with step 0 when asked.
+**Status: step 0 done** (suite `wavedump`); steps 1-5 planned. Owner picked "refactor first".
 
 ## Why
 
@@ -38,7 +38,7 @@ One wave is built by six overlapping systems and spawned by four drivers, so eac
 
 ## Steps (one at a time, "start on step N")
 
-0. **Safety net**: a `wavedump` sim suite that prints every wave's queue (types, squads, counts) for waves 1-60 on fixed seeds across modes (normal, path, zombie, Quick Play, Boss Hunt, Campaign legs with boss slots, Expanding arena with breaches, Rooms arena, practice). Every step also keeps the `bossschedule`, `bossslot`, `longrun` and `portals` suites passing. Saved as a golden file. Every later step must keep it identical, unless the owner asks for a change.
+0. **Safety net (done)**: a `wavedump` sim suite that prints every wave's queue (types, squads, counts) for waves 1-60 on fixed seeds across modes (normal, path, zombie, Quick Play, Boss Hunt, Campaign legs with boss slots, Expanding arena with breaches, Rooms arena, practice). Every step also keeps the `bossschedule`, `bossslot`, `longrun` and `portals` suites passing. Saved as a golden file. Every later step must keep it identical, unless the owner asks for a change.
 1. Pull the count math and magic numbers into one `WaveNumbers` (still `Balance.cs`-indexed); delete dead `WavePool` entries and the double Practice reset. No behavior change.
 2. Introduce `WavePlan`; make each builder a stage that fills it; `BuildWave` becomes the stage list.
 3. `Spawner` with pacing strategies; delete the three copies of the dispatch; one `Remaining`.
