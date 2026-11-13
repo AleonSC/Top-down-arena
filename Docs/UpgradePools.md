@@ -1,6 +1,6 @@
 # Upgrade pools: class and weapon cards
 
-**Status: steps 1-5 built (Nov 2026, protocol 311).** Next: one card per class (`Kit`), then weapon cards class by class. Owner decisions are below; build one step at a time ("start on step N").
+**Status: steps 1-5 built (Nov 2026, protocol 311); step 6 (class cards) proposed.** Then weapon cards class by class. Owner decisions are below; build one step at a time ("start on step N").
 
 ## Why
 
@@ -134,3 +134,17 @@ Built: the cards sit in `Game.ElementalistCards`, `Game.SummonerCards` and `Game
 Test: suite `abilitycards` (`Tools/SimTest/Tests/AbilityCards.cs`).
 
 After this batch: one card per class (`Kit`), then weapon cards class by class.
+
+### Step 6: one card per class (proposed, owner picks)
+
+One `Kit` card per class, offered to every player of that class (a Wildcard: the classes its gear comes from). Rare,
+`MaxStacks = 2`. Each leans on what the class already is (its lobby blurb) and doesn't repeat a mastery or a general card.
+
+| Class | Card | Effect (per stack) | Why |
+|---|---|---|---|
+| Soldier | Quartermaster | Health orbs and medkit orbs you pick up heal 30% more, and your Q/E/Shift abilities recharge 10% faster | Guns and gear: the class that lives off pickups and kit |
+| Elementalist | Arcane Surge | Casting your Space ability makes your weapon fire 25% faster for 3 s | Spells feed the staff |
+| Summoner | Pack Bond | Every minion of yours (weapon and ability) has 25% more health and hits 15% harder | The class is its minions |
+| Knight | Plate Armour | Take 8% less damage, and your swings cut bullets out of the air 20% wider | Armoured melee that cuts bullets |
+| Ninja | Ghost Step | +6% move speed, and for 1 s after you dash you take 30% less damage | Fast, slippery |
+| Blood Mage | Bloodthirst | Abilities cost 20% less health, and each kill heals you 2 | Health is its resource |
