@@ -436,6 +436,7 @@ static partial class Program
         new Suite { Name = "session", What = "session recording (run.sh 1 30 session [copy-to])", Run = args =>
             Seeded("session", () => { var path = SessionTest(Dt); if (args.Length > 3 && path != null) File.Copy(path, args[3], true); }) },
         // Reports and debug tools (no pass/fail).
+        Report("chartcheck", "the Campaign's shown waves 1-20 next to the chart in Docs/Approaches.md", args => ChartCheckReport()),
         Report("ttk", "boss time-to-kill over a full run (run.sh 1 1 ttk [last wave])", args => BossTtk(Dt, Arg(args, 3, 50))),
         Report("lab", "Boss Lab batch (run.sh 1 1 lab <wave> <skill 1-3> <runs> <seat> [seat] [seat])",
             args => LabRun(int.Parse(args[3]), (BotSkill)int.Parse(args[4]), int.Parse(args[5]), args.Skip(6).ToArray())),
