@@ -1,6 +1,7 @@
 # Hunt map: path selection for Boss Hunts (design)
 
-Status: **step 1 built** (`Core/HuntMap.cs`, suite `huntmap`: the map, its links, Skirmish and Elite nodes, progress, restore; not in the game yet). Numbers are first guesses. Open questions at the bottom need the owner's call.
+Status: **steps 1 and 2 built** (the screen is `Game/HuntMapUi.cs`, drawn with the lobby's widgets; preview `huntmap`; not wired into the match yet).
+Earlier: step 1 (`Core/HuntMap.cs`, suite `huntmap`: the map, its links, Skirmish and Elite nodes, progress, restore; not in the game yet). Numbers are first guesses. Open questions at the bottom need the owner's call.
 
 ## The idea
 
@@ -105,7 +106,7 @@ The map isn't only a menu: what you pick shapes the boss fight.
 
 1. ~~`HuntMap.cs` + tests, with only Skirmish and Elite nodes.~~ Done. Still to do from this step: playing it (a node picks the wave's strength: an Elite is a finale-style wave one approach step tougher; the host auto-picks until the vote exists). That touches `HuntBosses` (`ApproachStep`, `FinaleWave`) and the hunt's start, so it goes with step 3.
    - Measured over 3000 seeds: 51% of nodes have two ways on, 14% of rows give no choice at all (a 3-by-3 row gap can't give every node two links without crossing). Tune in step 6, or allow a few crossings.
-2. Map screen + preview screenshots (before/after PNGs for you to pick the look).
+2. ~~Map screen + preview screenshots.~~ Done: `HuntMapUi.cs`, `HuntMapLayout.cs` (the lines), preview mode `huntmap`.
 3. Net: the vote, snapshot, protocol bump.
 4. Rest, Shop, Ambush, Contraband and Gamble nodes, one at a time.
 5. Boss clues.
