@@ -24,8 +24,7 @@ namespace Arena
                 if (e.SpawnT > 0f || e.Pos.DistanceTo(p.Pos) >= QuakeSlamRadius + e.Radius)
                     continue;
                 HurtEnemy(e, QuakeSlamDamage * dmg, p.Id);
-                e.SlowT = Math.Max(e.SlowT, QuakeSlamSlow);
-                e.SlowMult = Math.Min(e.SlowMult, 0.5f);
+                Slow(e, QuakeSlamSlow, 0.5f);
             }
             BroadcastFx(FxKind.Boom, p.Pos, new Rgba(0.7f, 0.6f, 0.45f), QuakeSlamRadius, 0.4f, Sfx.Explode);
 

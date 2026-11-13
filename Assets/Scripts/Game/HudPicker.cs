@@ -85,13 +85,11 @@ namespace Arena
             {
                 // Weapon mods: every one you can take, in a grid of smaller cards.
                 const int perRow = 4;
-                float areaW = cardW * 3 + gap * 2, gw = 18f, cw = (areaW - gw * (perRow - 1)) / perRow, ch = 150f, top = 140f;
+                float gw = 18f, ch = 150f, top = 140f;
                 int rows = (me.Offer.Length + perRow - 1) / perRow;
                 for (int i = 0; i < me.Offer.Length; i++)
                 {
                     var u = Upgrades.All[me.Offer[i]];
-                    int row = i / perRow, col = i % perRow, inRow = Math.Min(perRow, me.Offer.Length - row * perRow);
-                    float rowX = mid - (inRow * cw + (inRow - 1) * gw) / 2f;
                     var slot = slots[i];
                     pickCardRects[i] = slot;
                     bool hover = !opening && slot.Contains(Event.current.mousePosition), selected = selectedCard == i;
@@ -109,7 +107,6 @@ namespace Arena
             else
             {
                 const float top = 150f;
-                float x0 = mid - (me.Offer.Length * cardW + (me.Offer.Length - 1) * gap) / 2f;
                 for (int i = 0; i < me.Offer.Length; i++)
                 {
                     var u = Upgrades.All[me.Offer[i]];
@@ -294,12 +291,43 @@ namespace Arena
             return ChangeParts(me, me.Offer[index], pickKey, pickKey >= 1 && index == selectedCard);
         }
 
+        /// Your stat sheet (StatSheet.Describe), with one more upgrade taken when extra >= 0. The picker, the shop and the
+        /// Tab screen ask for the same sheets every frame (twice per card), so they are kept for a quarter second.
+        /// The lists are shared: read them, don't change them.
+        List<StatLine> Stats(Player me, int extra, int key)
+        {
+            float t = Time.unscaledTime;
+            if (t - statsAt > 0.25f)
+            {
+                statsCache.Clear();
+                statsAt = t;
+            }
+            long k = (((long)me.Id * 4096 + me.Taken.Count) * 4096 + (extra + 1)) * 64 + key;
+            List<StatLine> lines;
+            if (statsCache.TryGetValue(k, out lines))
+                return lines;
+            List<int> taken = me.Taken;
+            if (extra >= 0)
+            {
+                statsTaken.Clear();
+                statsTaken.AddRange(me.Taken);
+                statsTaken.Add(extra);
+                taken = statsTaken;
+            }
+            lines = StatSheet.Describe(me, taken, key, game.PassiveRegen);
+            statsCache[k] = lines;
+            return lines;
+        }
+        readonly Dictionary<long, List<StatLine>> statsCache = new Dictionary<long, List<StatLine>>();
+        readonly List<int> statsTaken = new List<int>();
+        float statsAt = float.NegativeInfinity;
+
         /// The same for any upgrade (the Bazaar's shelf cards use it too).
         List<string> ChangeParts(Player me, int upgrade, int key, bool showKey)
         {
             var u = Upgrades.All[upgrade];
-            var now = StatSheet.Describe(me, me.Taken, 0, game.PassiveRegen);
-            var after = StatSheet.Describe(me, new List<int>(me.Taken) { upgrade }, key, game.PassiveRegen);
+            var now = Stats(me, -1, 0);
+            var after = Stats(me, upgrade, key);
             var parts = new List<string>();
             string grant = u.Grants != AbilityId.None ? Upgrades.Ability(u.Grants).Name : null;
             foreach (var line in after)
@@ -324,15 +352,6 @@ namespace Arena
         /// The colour a card is drawn in: its rarity colour (Common is gray and never takes the CRT colour setting).
         static Color CrtCol(UpgradeDef u) => ToColor(Upgrades.RarityColor(u.Rarity));
 
-        /// A thin outline, w px thick.
-        static void CrtEdge(Rect r, float w, Color c)
-        {
-            Ui.Fill(new Rect(r.x, r.y, r.width, w), c);
-            Ui.Fill(new Rect(r.x, r.yMax - w, r.width, w), c);
-            Ui.Fill(new Rect(r.x, r.y, w, r.height), c);
-            Ui.Fill(new Rect(r.xMax - w, r.y, w, r.height), c);
-        }
-
         /// An upgrade card in the lobby's digital CRT look (Docs/Mockups/crt-level-up-blue.html): a holographic screen in the
         /// card's rarity colour (DrawHolo), a thin outline (brighter picked or hovered), blue corner brackets and a soft glow that grows on
         /// the picked card.
@@ -344,7 +363,7 @@ namespace Arena
                 Ui.Glow(r, c, 0.3f);
             DrawHolo(r, c, now);
             var edge = selected ? Color.Lerp(c, Color.white, 0.55f) : new Color(c.r, c.g, c.b, hover ? 0.9f : 0.5f);
-            CrtEdge(r, selected ? 2f : 1f, edge);
+            CrtKit.Frame(r, selected ? 2f : 1f, edge);
             const float arm = 18f, th = 3f;
             var b = new Color(c.r, c.g, c.b, behind ? 0.35f : 1f);
             Ui.Fill(new Rect(r.x, r.y, arm, th), b); Ui.Fill(new Rect(r.x, r.y, th, arm), b);
@@ -383,7 +402,7 @@ namespace Arena
         void DrawCrtChip(Rect r, string text, Color c, bool inverse)
         {
             Ui.Fill(r, inverse ? c : new Color(c.r, c.g, c.b, 0.08f));
-            CrtEdge(r, 1f, c);
+            CrtKit.Frame(r, 1f, c);
             if (inverse)
                 Ui.Label(r, text, 10, CrtUi.Bg, TextAnchor.MiddleCenter, true);
             else
@@ -397,7 +416,7 @@ namespace Arena
                 Ui.Glow(r, c, 0.4f);
             Ui.Fill(r, new Color(0.01f, 0.02f, 0.05f, 1f));
             Ui.Fill(r, new Color(c.r, c.g, c.b, 0.07f));
-            CrtEdge(r, 2f, new Color(c.r, c.g, c.b, selected ? 1f : 0.6f));
+            CrtKit.Frame(r, 2f, new Color(c.r, c.g, c.b, selected ? 1f : 0.6f));
         }
 
         /// Gold corner brackets round a card (the picked milestone).
@@ -448,8 +467,8 @@ namespace Arena
             var go = PickGo;
             Ui.Fill(r, new Color(2f / 255f, 10f / 255f, 8f / 255f, 0.82f));
             for (int k = 0; k < 4; k++)  // the faint inner glow
-                CrtEdge(new Rect(r.x + k * 3f, r.y + k * 3f, r.width - k * 6f, r.height - k * 6f), 3f, new Color(go.r, go.g, go.b, 0.045f - k * 0.011f));
-            CrtEdge(r, 1f, new Color(go.r, go.g, go.b, 0.55f));
+                CrtKit.Frame(new Rect(r.x + k * 3f, r.y + k * 3f, r.width - k * 6f, r.height - k * 6f), 3f, new Color(go.r, go.g, go.b, 0.045f - k * 0.011f));
+            CrtKit.Frame(r, 1f, new Color(go.r, go.g, go.b, 0.55f));
             const float arm = 6.4f;  // brackets: top left and bottom right
             Ui.Fill(new Rect(r.x, r.y, arm, 2f), go); Ui.Fill(new Rect(r.x, r.y, 2f, arm), go);
             Ui.Fill(new Rect(r.xMax - arm, r.yMax - 2f, arm, 2f), go); Ui.Fill(new Rect(r.xMax - 2f, r.yMax - arm, 2f, arm), go);
@@ -611,12 +630,12 @@ namespace Arena
                     else if ((selected || ms) && k == have)
                     {
                         Ui.Fill(c, new Color(rc.r, rc.g, rc.b, 0.22f + 0.14f * Mathf.Sin(now * 5f)));
-                        CrtEdge(c, 2f, rc);
+                        CrtKit.Frame(c, 2f, rc);
                     }
                     else
                     {
                         Ui.Fill(c, new Color(0.01f, 0.02f, 0.05f, 1f));
-                        CrtEdge(c, 1f, new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.9f));
+                        CrtKit.Frame(c, 1f, new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.9f));
                     }
                 }
                 if (showParts && !grants)
@@ -727,15 +746,12 @@ namespace Arena
         /// shopPreview: an upgrade from the Bazaar's shelf to preview instead of the picker's selection.
         void DrawStatPanel(Player me, Rect r, int shopPreview = -1)
         {
-            var now = StatSheet.Describe(me, me.Taken, 0, game.PassiveRegen);
+            var now = Stats(me, -1, 0);
             List<StatLine> after = null;
             if (shopPreview >= 0)
-                after = StatSheet.Describe(me, new List<int>(me.Taken) { shopPreview }, 0, game.PassiveRegen);
+                after = Stats(me, shopPreview, 0);
             else if (selectedCard >= 0 && me.Offer != null && selectedCard < me.Offer.Length)
-            {
-                var preview = new List<int>(me.Taken) { me.Offer[selectedCard] };
-                after = StatSheet.Describe(me, preview, pickKey, game.PassiveRegen);
-            }
+                after = Stats(me, me.Offer[selectedCard], pickKey);
             var lines = after ?? now;
             var green = new Color(0.45f, 1f, 0.5f);
             float y = r.y;

@@ -11,7 +11,7 @@ namespace Arena
     {
         const float DbKickTime = 0.17f, DbHeatTime = 2f, DbEject = 0.12f, DbLoadFrom = 0.30f, DbLoadTo = 0.52f, DbCloseFrom = 0.56f, DbCloseTo = 0.72f;
 
-        static readonly Rgba DbWood = Hx(0x8a5a34), DbWoodD = Hx(0x6f4527), DbBrass = Hx(0xd9a441), DbShellCol = Hx(0xc93b2b), DbHull = Hx(0x8d2a20), DbFlash = Hx(0xffd9a0);
+        static readonly Rgba DbWood = Hx(0x8a5a34), DbWoodD = Hx(0x6f4527), DbBrass = Hx(0xd9a441), DbShellCol = Hx(0xc93b2b), DbHull = Hx(0x8d2a20);
 
         // the pose the model reads while it draws (DbPose)
         float mDbK0, mDbK1, mDbH0, mDbH1, mDbOpen, mDbIns;
@@ -48,7 +48,7 @@ namespace Arena
         void OnDoubleBarrelShot(Player owner, Bullet b)
         {
             var s = DpsOf(owner.Id);
-            V2 dir = V2.FromAngle(owner.Aim), side = dir.Orthogonal(), bd = b.Vel.IsZero ? dir : b.Vel.Normalized();
+            V2 dir = V2.FromAngle(owner.Aim), side = dir.Orthogonal();
             int bar = (b.Pos - owner.Pos).Dot(side) < 0f ? 0 : 1;  // (side is your right: the left barrel is 0)
             if (juiceClock - s.Bar[bar] < 0.05f)
                 return;  // a barrel's pellets all appear together

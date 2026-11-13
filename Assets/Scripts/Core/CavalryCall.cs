@@ -83,8 +83,7 @@ namespace Arena
                         continue;
                     c.Hit.Add(e.Id);
                     bool heavy = Heavy(e);
-                    e.SlowT = Math.Max(e.SlowT, CavSlowTime);
-                    e.SlowMult = Math.Min(e.SlowMult, 1f - (heavy ? CavSlowHeavy : CavSlow));
+                    Slow(e, CavSlowTime, 1f - (heavy ? CavSlowHeavy : CavSlow));
                     if (!e.Def.IsBoss)
                     {
                         V2 out_ = (side * (Math.Abs(v) < 1f ? (e.Id % 2 == 0 ? 1f : -1f) : Math.Sign(v)) * 0.8f + c.Dir * 0.55f).Normalized();

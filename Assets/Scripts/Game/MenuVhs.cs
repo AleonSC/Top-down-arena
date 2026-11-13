@@ -93,7 +93,6 @@ namespace Arena
         static void Overlay(Rect r, string tag, float now, float seed, bool calm)
         {
             GUI.BeginGroup(r);
-            var local = new Rect(0f, 0f, r.width, r.height);
             for (float y = 0f; y < r.height; y += 3f)
                 Ui.Fill(new Rect(0f, y, r.width, 1f), new Color(0f, 0f, 0f, 0.34f));
             if (!calm)

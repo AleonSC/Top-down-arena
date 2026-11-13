@@ -417,7 +417,6 @@ namespace Arena
             if (o <= 0f)
                 return;
             bool flash = up - ReviveBandFrom - BandInTime < 0.35f && inT >= 1f;
-            float a2 = up - ReviveBandFrom - BandInTime;
             string hp = "HP " + Mathf.RoundToInt(100f * me.Hp / Mathf.Max(1f, me.MaxHp)) + "%";
             Player rp, q2 = game.Players.TryGetValue(s.Rescuer, out rp) && now - s.RescuerAt < 1.5f ? rp : null;
             string sub2 = q2 != null && q2 != me ? "REVIVED BY " + q2.Name.ToUpperInvariant() + " · BACK ONLINE" : "BACK ONLINE";

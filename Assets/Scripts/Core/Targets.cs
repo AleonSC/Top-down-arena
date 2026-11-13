@@ -7,6 +7,9 @@ namespace Arena
     /// of each writing its own loop.
     public partial class Game
     {
+        /// For picking the most hurt ally: q has a lower health fraction than than (or there's no pick yet).
+        static bool MoreHurt(Player q, Player than) => than == null || q.Hp / q.MaxHp < than.Hp / than.MaxHp;
+
         /// The first player still up (in join order), or null when everyone is down.
         Player FirstAlive()
         {

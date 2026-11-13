@@ -64,6 +64,8 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 ## Combat (Core)
 - `Combat.cs`: bullets, collisions, damage to players/enemies, on-hit/on-kill, burn, orbs
 - `Weapons.cs`: fire rate, firing, volleys, range, Revolver, Mender's Bow
+- `Slows.cs`: enemy slows (`Slow`: every slow source; the strongest slow plus a backup that takes over, `TickSlow`)
+- `RunReset.cs`: `ResetRunLists`, called by `Stop`: clears the per-run lists keyed by enemy id (swings, stuck stars, shocks, ink, steering)
 - `Abilities.cs`, `Ultimates.cs`, `Mastery.cs`: Soldier abilities, the 12 ultimates (second ultimates: `LightningRod.cs`), ability XP/levels
 - `Sanctum.cs`: the Healer Elementalist's Sanctum ultimate: seven healing pulses from the dome's centre, each ally healed as the ring reaches them (`SanctumPulse`, called from `TickZones`; `SanctumLook.cs` draws the bubble)
 - `HallowedBlade.cs`: the Healer Knight's Hallowed Blade ultimate once it lands: a planted `ZoneKind.HallowedBlade` zone (ring heals allies and burns enemies) plus an arena-wide pulse every 2 s at a third of the ring's strength (`HallowedPulse`, called from `TickZones`; `HallowedBladeLook.cs` draws the sword, beam and ripples, and the falling sword)
@@ -292,6 +294,8 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 
 ## Menus and lobby (Game)
 - `ArenaApp.cs`: boot, input, frame loop, layout/scaling, `OnGUI` dispatch
+- `DrawScratch.cs`: reused lists for the draw code's cache pruning (`FreshIds`, `FreshFx`), so a frame allocates nothing for it
+- `FileListCache.cs`: the newest files in a folder for the saved-file lists (Practice setups, wave sets), read from disk at most once a second
 - `Ui.cs`: IMGUI drawing primitives (fills, labels, bars, glows, pills, the CRT slider); the widgets (buttons, panels, switches, fields, cards, titles) are `DevKit.cs`'s `Dk...` and the CRT keys
 - `Menus.cs`, `MenuIntro.cs`, `MenuDrawer.cs`, `WindowAnim.cs`: main menu, pause/lobby/settings/how-to menus (CRT cabinet), slide clocks
 - `CrtWindows.cs`: the menu box (the lobby loadout's look, `CrtKit.LoadoutBox`) and its side window (opening, typed text, BeginDrawer/DrawerRow, WinKey/SwitchRow/WinSlider)
@@ -343,6 +347,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 
 ## Tools and docs (repo root)
 - `Tools/CompileCheck`, `Tools/SimTest` (tests in `Tools/SimTest/Tests`), `Tools/RenderCheck`, `Tools/Preview`, `Tools/SoundCheck`, `Tools/SessionReport`, `Tools/TextEdits`, `Tools/WaveGen` (builds `Data/Waves` into code), `Tools/WaveLab/standalone` (`app.html` the no-install wave tester page with a simplified JS sim, `build.py` -> `wavelab.html`, `meta.json` enemy data), `Tools/WaveLab` (the faithful version: `Server.cs` runs the real Core sim and streams it over a WebSocket; `web/index.html` is the wave editor (spawn points, props) + play page, touch, bot and run report; `run.sh [port]`, `WaveLab.command`/`WaveLab.bat` double-click launchers, `package.sh` builds the single-file `WaveLab.exe` app (own window, quits on close) that `.github/workflows/wavelab-release.yml` publishes): see `HANDOFF.md` §3
+- `Tools/SimTest/extras.sh`, `.github/workflows/checks.yml`, `.github/actions/install-mono`: CI runs `core`, `features` and the other pass/fail suites (`CiExtras`, two shards) side by side; one shared mono install
 - `Tools/Preview/variants.sh`, `Tools/Preview/clip.sh`, `Tools/Preview/sweep.py`, `Tools/Preview/ShotClip.cs`: the variant sheet (one scene with different env flags, a labelled grid) and GIF clips (the live match running on from the shot, `CLIP=<frames>` in `ShotClip.cs`, or a sweep of a scene's time flag)
 - `Tools/SimTest/Tests/SessionSources.cs`: suite `sessionsrc` (weapon hits credited to the weapon, blood costs as health spent); the per-weapon report `weaponsrc` is in `Tests/Reports.cs`
 - `Tools/BalanceGrid/grid.sh`, `Tools/BalanceGrid/heatmap.py`, `Tools/SimTest/Tests/BalanceGrid.cs`: the balance grid (report `grid`: every role, class and weapon vs each listed boss in the Boss Lab, `LabFight` in `BossLab.cs`; run in parallel, drawn as a heatmap with outliers)

@@ -197,7 +197,7 @@ namespace Arena
 
         void PruneMarks(float t)
         {
-            var gone = new List<int>();
+            var gone = DrawScratch.FreshIds();
             foreach (var kv in markSeen)
                 if (t - kv.Value.Last > 0.5f)
                     gone.Add(kv.Key);

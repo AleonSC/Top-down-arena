@@ -164,7 +164,7 @@ namespace Arena
         {
             V2 dir = e.Pos - from;
             WeaponHurt(e, dmg, p.Id);
-            OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir.IsZero ? new V2(1f, 0f) : dir.Normalized(), Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
+            ModHit(e, p.Id, dmg, Defs.KnightSlash, dir.IsZero ? new V2(1f, 0f) : dir.Normalized());
         }
 
         readonly List<int> fangCut = new List<int>();
@@ -179,8 +179,7 @@ namespace Arena
             foreach (int id in fangCut)
             {
                 AddFx(FxKind.Spark, Bullets[id].Pos, TwinMoon, 8f, 0.2f);
-                Bullets.Remove(id);
-                pendingRemoved.Add(id);
+                KillBullet(id);
             }
         }
 

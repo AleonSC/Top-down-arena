@@ -119,8 +119,7 @@ namespace Arena
                     scytheCut.Add(b.Id);
             foreach (int id in scytheCut)
             {
-                Bullets.Remove(id);
-                pendingRemoved.Add(id);  // and gone on every game
+                KillBullet(id);  // and gone on every game
             }
         }
 

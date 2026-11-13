@@ -64,8 +64,7 @@ namespace Arena
                 return;
             if (e.Def.IsBoss)
             {
-                e.SlowT = Math.Max(e.SlowT, StunGunStun);
-                e.SlowMult = Math.Min(e.SlowMult, 1f - StunBossSlow);
+                Slow(e, StunGunStun, 1f - StunBossSlow);
             }
             else
             {
@@ -230,8 +229,7 @@ namespace Arena
                 e.LitT = -SearchRest;
                 if (e.Def.IsBoss)
                 {
-                    e.SlowT = Math.Max(e.SlowT, SearchStun);
-                    e.SlowMult = Math.Min(e.SlowMult, 1f - SearchBossSlow);
+                    Slow(e, SearchStun, 1f - SearchBossSlow);
                 }
                 else
                 {

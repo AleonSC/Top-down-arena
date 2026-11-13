@@ -181,12 +181,15 @@ The lobby fits about 8 class cards in a row before they get too small.
   - `run.sh 1 30` (or `core`) = the **core** match tests (~165 checks).
   - `run.sh 1 30 features` = the **feature** suite (~247 checks). `music` still works: it was its old name.
     **Run both before committing.** `run.sh 1 30 all` runs the two back to back.
+  - `Tools/SimTest/extras.sh [k/n]` = every pass/fail suite the two above skip (`CiExtras` in `Program.cs`, ~6 min here),
+    each in its own process, built once; `k/n` runs one shard. CI runs it as two shards beside `core` and `features`.
+    **A new suite whose tests aren't in `FeatureTests` goes in `CiExtras`.** `TIMES=1 run.sh ...` prints each test's time.
   - Single systems: `parry`, `aim`, `extra`, `knight`, `ninja`, `blood`, `paths`, `bazaar`, `practice`, `bosses`,
     `warden`, `singularity`, `mastery`, `longrun` (the 100-wave Campaign), `bossschedule` (the boss schedules match the old formulas), `quickfights` (Quick Play boss fights with bots: each boss's fight length after waves 10/20/30), `quick` (Quick Play: its waves, boss, records, endless, room building with two bots, the tutorial; prints each boss's health after waves 10/20/30), `wardencycle` (its Warden wave lessons), `checkpoints` (lives and retries), `classcards`, `showcase`, `ults`, `mods`, `hitfx` (hit flash and blast thinning), `nonshooters` (Fuse Runner, Hookman, Sapper), ... Reports (numbers, no pass/fail):
     `ttk`, `lab`, `levels`, `bulletcount`, `wavemix` (each wave's share of shooters, melee and support), `dps`, `ultdps`, `balance` (each damage upgrade's worth per pick and full
     stack in a boss, pack and spread fight; see `Docs/UpgradeBalance.md`), `upgradecov` (which weapon upgrades each
     weapon ignores, and each upgrade's damage gain), `laserdebug`. A new test: add it to its system's file, then to
-    the `Suites` table (and to `FeatureTests` if it belongs in the feature suite).
+    the `Suites` table (and to `FeatureTests` if it belongs in the feature suite, otherwise to `CiExtras`).
   - **Repeatable random rolls:** every test runs with its own seed (from the suite's name and the test's place in
     it) through `Game.SeedForTests`, so the game's random choices (enemy mixes, spawns, drops, bot decisions)
     come out the same each run. `SEED=random` gives fresh rolls; `SEED=<n>` tries another fixed set. Timing

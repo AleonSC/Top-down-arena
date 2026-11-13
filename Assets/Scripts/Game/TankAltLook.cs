@@ -30,7 +30,6 @@ namespace Arena
             if (p.Weapon.Id != WeaponId.Scattergun || p.ScatShells >= Game.ScatShellMax && p.Id != game.MyId)
                 return;
             float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 6f);
-            V2 back = V2.FromAngle(p.Aim + MathX.Pi), side = back.Orthogonal();
             float popAge = fxOn ? ShellLoadAge(p) : 99f;
             for (int i = 0; i < Game.ScatShellMax; i++)
             {

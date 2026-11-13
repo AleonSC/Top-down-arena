@@ -230,8 +230,7 @@ namespace Arena
         void SwatPop(Bullet b)
         {
             BroadcastFx(FxKind.Spark, b.Pos, new Rgba(0.25f, 0.88f, 0.91f), 14f, 0.25f, Sfx.Clang);
-            Bullets.Remove(b.Id);
-            pendingRemoved.Add(b.Id);
+            KillBullet(b.Id);
         }
 
         /// Host: Alt with Out of Ammo: the spin, if it is ready.

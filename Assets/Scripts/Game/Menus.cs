@@ -457,23 +457,6 @@ namespace Arena
             { "After a run (host)", "R: play again · L: back to lobby · C: keep going" },
             { "Developer tools", "and the Boss Lab" },
         };
-        static readonly string[,] HowToTips =
-        {
-            { "Hitbox", "Your hitbox is the small ring in the middle of your character, with a coloured dot at its centre. Only the ring's inside can be hit, not the whole body." },
-            { "Wrap around", "Walk off an edge to come in on the other side. Enemies and bullets can't follow." },
-            { "Status icons", "Snowflake = frozen, arrows = slowed, flame = burning, drop = bleeding, crosshair = marked." },
-            { "Downed", "At 0 HP you're downed: stand by a downed ally for 3 s to revive them. Clearing a wave brings everyone back." },
-            { "Upgrades", "Levels give upgrade picks at the end of each wave; bosses give legendary ones." },
-            { "Boss shots", "Dark-cored shots are a boss's: violet ones wear blockers down, red ones can't be blocked." },
-            { "Co-op", "1 to 3 players: one hosts, the others join (Tailscale makes this easy)." },
-            { "Perfect parry", "Raise your parry just as a shot arrives: blocked bullets fly back at enemies and cost nothing." },
-            { "Roles", "Enemies prefer to target the Tank. A Healer's aura heals allies nearby. DPS hits hardest." },
-            { "Health orbs", "Kills sometimes drop green orbs that heal you. They drift toward you when you're close." },
-            { "Ability mastery", "Abilities level up from 1 to 5 as you use them in fights. Level 5 unlocks a capstone." },
-            { "Paths", "After each boss the host picks a path. More skulls: harder waves, better prize. The Bazaar has a shop." },
-            { "Boss bodies", "Touching a boss hurts and shoves you back. Parry up close to get past its fire." },
-            { "Practice Range", "Pick it in the lobby to play waves and bosses you set up yourself." },
-        };
 
         /// How to play, as the side drawer (MenuDrawer.cs).
 

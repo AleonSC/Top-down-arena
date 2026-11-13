@@ -780,7 +780,6 @@ namespace Arena
             if (p == null)
                 return;
             V2 d = (to - (link > 0 ? from : fx.Pos)).Normalized();
-            V2 start = link > 0 ? p.Disp : fx.Pos;
             V2 land = to - d * Game.MercyLandShort;
             if (a < LD)  // afterimages along the arc
                 for (int k = 1; k <= 3; k++)

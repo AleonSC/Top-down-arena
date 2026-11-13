@@ -130,8 +130,7 @@ namespace Arena
                 }
                 else  // the usual slow, so what cares about slowed enemies (Graviton Rounds) counts it
                 {
-                    e.SlowT = Math.Max(e.SlowT, 0.2f);
-                    e.SlowMult = Math.Min(e.SlowMult, 1f - BathSlowFor(e));
+                    Slow(e, 0.2f, 1f - BathSlowFor(e));
                 }
             }
             z.TickT += dt;

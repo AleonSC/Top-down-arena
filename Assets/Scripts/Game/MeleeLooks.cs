@@ -23,7 +23,7 @@ namespace Arena
         const float MeleeBright = 0.6f;       // the energy band at its brightest (added light; the mockup's 0.45 plus its blur)
 
         static readonly Rgba MeleeSteel = new Rgba(0.9f, 0.93f, 0.99f), MeleeHandle = new Rgba(0.42f, 0.34f, 0.25f),
-            MeleeGuard = new Rgba(0.85f, 0.75f, 0.48f), HammerHead = new Rgba(0.78f, 0.81f, 0.85f), HammerGlow = new Rgba(1f, 0.64f, 0.42f);
+            MeleeGuard = new Rgba(0.85f, 0.75f, 0.48f);
 
         /// What a melee effect belongs to, noted the first time it's drawn (the swinger moves on, the effect stays).
         class MeleeSeen
@@ -203,7 +203,7 @@ namespace Arena
                 meleeLive.Clear();
                 foreach (var e in game.Effects)
                     meleeLive.Add(e);
-                var gone = new List<Effect>();
+                var gone = DrawScratch.FreshFx();
                 foreach (var k in meleeSeen.Keys)
                     if (!meleeLive.Contains(k))
                         gone.Add(k);

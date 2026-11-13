@@ -148,8 +148,7 @@ namespace Arena
             if (cut != null)
                 foreach (int id in cut)
                 {
-                    Bullets.Remove(id);
-                    pendingRemoved.Add(id);
+                    KillBullet(id);
                 }
         }
 

@@ -834,15 +834,7 @@ namespace Arena
                 DrawThemeGrid(new Rect(bx, py, bw, actY - 46f - py), calm);
             if (roomMode && expPts.Count > 0)
             {
-                bool laidFill = expPts.Count >= 2 && Expansion.OnWall(game.Expanded, expPts[expPts.Count - 1]);
-                var closedLaid = laidFill ? new List<int[]>(expPts) : Closed(new List<int[]>(expPts));
-                var laidRoom = laidFill ? Expansion.Fill(game.Expanded, closedLaid, expTheme, out string fw0) : null;
-                if (laidRoom == null)
-                {
-                    laidFill = false;
-                    closedLaid = Closed(new List<int[]>(expPts));
-                    laidRoom = closedLaid.Count >= 4 ? Expansion.Outline(game.Expanded, closedLaid, expTheme, out string fw1) : null;
-                }
+                var laidRoom = LaidRoom(out var closedLaid, out bool laidFill);
                 bool can = laidRoom != null && laidRoom[0].Price <= myVectors;
                 float hw = (bw - 6f) / 2f;
                 if (CrtUi.SoftKey(new Rect(bx, actY, hw + 30f, 36f), can ? (free ? "BUILD  ·  " : "PROPOSE  ·  ") + laidRoom[0].Price : free ? "BUILD" : "PROPOSE", null, 15, calm, lit: can) && can)
@@ -892,6 +884,44 @@ namespace Arena
         }
 
         /// The corners with the walls back to the first one added.
+        // The side panel's room from the corners laid so far (no cursor), kept while the corners, the theme and the map
+        // stay the same: Fill and Outline rasterise the whole map, and OnGUI asks every frame. (Kept at most a quarter
+        // second, since a room can change type in place without the map's count changing.)
+        int laidKey;
+        float laidAt = float.NegativeInfinity;
+        List<int[]> laidClosed;
+        bool laidWasFill;
+        List<ExpansionRoom> laidResult;
+
+        List<ExpansionRoom> LaidRoom(out List<int[]> closedLaid, out bool laidFill)
+        {
+            int key = 17;
+            unchecked
+            {
+                foreach (var p in expPts)
+                    key = (key * 31 + p[0]) * 31 + p[1];
+                key = (key * 31 + (int)expTheme) * 31 + game.Expanded.Count;
+            }
+            float now = Time.unscaledTime;
+            if (key != laidKey || now - laidAt > 0.25f || laidClosed == null)
+            {
+                laidKey = key;
+                laidAt = now;
+                laidWasFill = expPts.Count >= 2 && Expansion.OnWall(game.Expanded, expPts[expPts.Count - 1]);
+                laidClosed = laidWasFill ? new List<int[]>(expPts) : Closed(new List<int[]>(expPts));
+                laidResult = laidWasFill ? Expansion.Fill(game.Expanded, laidClosed, expTheme, out string fw0) : null;
+                if (laidResult == null)
+                {
+                    laidWasFill = false;
+                    laidClosed = Closed(new List<int[]>(expPts));
+                    laidResult = laidClosed.Count >= 4 ? Expansion.Outline(game.Expanded, laidClosed, expTheme, out string fw1) : null;
+                }
+            }
+            closedLaid = laidClosed;
+            laidFill = laidWasFill;
+            return laidResult;
+        }
+
         static List<int[]> Closed(List<int[]> pts)
         {
             var c = new List<int[]>(pts);

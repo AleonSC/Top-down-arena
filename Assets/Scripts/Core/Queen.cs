@@ -526,11 +526,14 @@ namespace Arena
         }
 
         /// Drones that make it back into her heal her.
+        readonly List<int> dronesHome = new List<int>();  // (scratch)
+
         void TickHomingDrones(Enemy e, QueenState q)
         {
             if (q.Homing.Count == 0)
                 return;
-            var done = new List<int>();
+            var done = dronesHome;
+            done.Clear();
             foreach (int id in q.Homing)
             {
                 Enemy d;
