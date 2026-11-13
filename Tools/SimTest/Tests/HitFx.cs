@@ -122,7 +122,7 @@ static partial class Program
                 var kinds = new HashSet<EnemyType>((List<EnemyType>)queueF.GetValue(g));
                 foreach (var sq in (List<SquadDef>)squadF.GetValue(g)) foreach (var m in sq.Members) kinds.Add(m);
                 if (kinds.Any(k => Zombies.Is(k))) continue;  // a Zombie Infection horde is its own mode, not the recipe
-                if (kinds.Count > most) most = kinds.Count;
+                if (kinds.Count > most) { most = kinds.Count; if (most > cap) Console.WriteLine("    over the cap: " + string.Join(", ", kinds)); }
             }
             Console.WriteLine("  wave {0}: at most {1} distinct types (cap {2})", n, most, cap);
             Check(most <= cap, "wave " + n + " shows " + most + " types against a cap of " + cap);

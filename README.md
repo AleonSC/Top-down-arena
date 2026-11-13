@@ -625,8 +625,7 @@ The **Twin Reapers' faction**, the Dusk and Dawn cult, leads up to their fight (
 ten-wave lesson cycle, one Reaper mechanic a wave). Every member is sworn to **Dusk (pink) or Dawn (blue)** and drawn in
 that colour. Squads: **Vigil** (an Acolyte and six Wisps), **Procession** (four Acolytes, two Lamplighters behind),
 **Twin graves** (a Gravedigger and two Bound pairs), **Harvest** (two Scythe Wraiths, two Shades, three Wisps); the last
-wave brings **Dusk and Dawn**: split to opposite edges, two Mourners, two Bound pairs, two Scythe Wraiths, two
-Lamplighters and four Acolytes. (Mockup: `Docs/Mockups/reaper-faction.html`.)
+wave brings **Dusk and Dawn**: split to opposite edges, a Mourner on each side with a Bound pair and three Acolytes. (Mockup: `Docs/Mockups/reaper-faction.html`.)
 
 | From | The Twin Reapers' faction | What it does |
 |---|---|---|

@@ -107,11 +107,11 @@ namespace Arena
                     new SquadDef { Name = "Twin graves", From = 2, Members = new[] { EnemyType.Gravedigger, EnemyType.BoundWraith, EnemyType.BoundWraith } },  // (two pairs)
                     new SquadDef { Name = "Harvest", From = 3, Members = new[] { EnemyType.ScytheWraith, EnemyType.ScytheWraith, EnemyType.Shade, EnemyType.Shade, EnemyType.Wisp, EnemyType.Wisp, EnemyType.Wisp } },
                 },
-                // Wave 4: split to opposite edges, a Mourner on each side with a Bound pair, Scythe Wraiths, Lamplighters and Acolytes.
+                // Wave 4: split to opposite edges, a Mourner on each side with a Bound pair and three Acolytes (three types, so the
+                // wave stays under its type cap: Docs/EnemyReadability.md).
                 Finale = new SquadDef { Name = "Dusk and Dawn", From = 4, Form = SquadForm.Pincer, Members = new[] {
                     EnemyType.Mourner, EnemyType.Mourner, EnemyType.BoundWraith, EnemyType.BoundWraith,
-                    EnemyType.ScytheWraith, EnemyType.ScytheWraith, EnemyType.Lamplighter, EnemyType.Lamplighter,
-                    EnemyType.Acolyte, EnemyType.Acolyte, EnemyType.Acolyte, EnemyType.Acolyte } },
+                    EnemyType.Acolyte, EnemyType.Acolyte, EnemyType.Acolyte, EnemyType.Acolyte, EnemyType.Acolyte, EnemyType.Acolyte } },
                 // The Campaign's Twin Reapers cycle: each wave previews one part of their fight (Docs/RunLength.md).
                 Lessons = new[]
                 {
@@ -311,6 +311,14 @@ namespace Arena
                 FactionDef cbFrom;
                 var cb = Approaches.Comeback(n, out cbFrom);  // (a comeback squad takes the older pool's slice this wave)
                 int shown = LongLegs ? ShownWave : 0;
+                SquadDef big = null;
+                if (cb != null)
+                {
+                    // The comeback first, so its types count against the faction picks' type budget (ApproachKindCap).
+                    big = Approaches.Callback(cb, cbFrom);  // (a callback: the old squad, big)
+                    foreach (var t in big.Members)
+                        plan.Kinds.Add(t);
+                }
                 foreach (var sl in Approaches.Campaign(n, shown))  // (every faction's enemies, each by its slice; the rest stays the usual mix)
                 {
                     int themed = Math.Min(count, (int)Math.Round(of * (cb != null ? sl.Share - sl.Pool : sl.Share)));
@@ -327,12 +335,9 @@ namespace Arena
                     else if (themed > 0)
                         PickFaction(sl.Faction, sl.Current ? step : 99, sl.Current && Bosses.FinaleWave(n), ref count, themed);  // (older factions are in full; only the next boss's builds up)
                 }
-                if (cb != null)
+                if (big != null)
                 {
-                    var big = Approaches.Callback(cb, cbFrom);  // (a callback: the old squad, big)
                     plan.ApproachSquads.Add(big);
-                    foreach (var t in big.Members)
-                        plan.Kinds.Add(t);
                     count -= Math.Min(count, big.Members.Length);
                 }
                 return;

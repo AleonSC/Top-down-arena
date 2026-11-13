@@ -21,9 +21,9 @@ static partial class Program
         Check(w6.ContainsKey(EnemyType.Boss) && Math.Abs(w6[EnemyType.Boss] - 0.35f) < 1e-4f && w6.Count == 1, "wave 6: the Warden's faction fades (35%); the Hive Queen's isn't built, so the rest is the usual mix");
         var fade = Enumerable.Range(6, 5).Select(n => slices(n).ContainsKey(EnemyType.Boss) ? slices(n)[EnemyType.Boss] : 0f).ToArray();
         Check(fade.SequenceEqual(new[] { 0.35f, 0.25f, 0.15f, 0.05f, 0f }), "the fading slice goes 35, 25, 15, 5, 0% over the next five waves");
-        // The Lich (31-35): current builds, fading Duelist unbuilt, pool of built earlier factions (the Warden's).
+        // The Lich (31-35): current builds, fading Duelist unbuilt, pool of built earlier factions (the Warden's and the Twin Reapers').
         var w31 = slices(31);
-        Check(Math.Abs(w31[EnemyType.Lich] - 0.55f) < 1e-4f && Math.Abs(w31[EnemyType.Boss] - 0.10f) < 1e-4f && w31.Count == 2, "wave 31: the Lich's faction 55% (65% minus the 10% pool), the Warden's 10% in the older pool");
+        Check(Math.Abs(w31[EnemyType.Lich] - 0.55f) < 1e-4f && Math.Abs(w31[EnemyType.Boss] + w31[EnemyType.TwinA] - 0.10f) < 1e-4f && Math.Abs(w31[EnemyType.Boss] - w31[EnemyType.TwinA]) < 1e-4f && w31.Count == 3, "wave 31: the Lich's faction 55% (65% minus the 10% pool), the Warden's and the Reapers' sharing the 10% older pool");
         var w35 = slices(35);
         Check(Math.Abs(w35[EnemyType.Lich] - 0.90f) < 1e-4f, "wave 35: the Lich's faction is 90%");
         var w36 = slices(36);
@@ -48,6 +48,7 @@ static partial class Program
         };
         var warden = new HashSet<EnemyType>(Approaches.For(EnemyType.Boss).Members.Select(m => m.Type));
         var zombie = new HashSet<EnemyType>(Approaches.For(EnemyType.Lich).Members.Select(m => m.Type));
+        var older = new HashSet<EnemyType>(warden.Concat(Approaches.For(EnemyType.TwinA).Members.Select(m => m.Type)));  // the factions before the Lich's
         var a1 = wave(1, true);
         Check(a1.Count > 0 && a1.All(warden.Contains), "campaign wave 1 is all Warden's faction (" + a1.Count + " enemies)");
         Check(wave(1, true).SequenceEqual(a1), "the same seed builds the same campaign wave");
@@ -57,11 +58,11 @@ static partial class Program
         var a10 = wave(10, true);
         Check(!a10.Any(warden.Contains), "wave 10: the Warden's is gone from the mix (Hive Queen has none yet)");
         var a33 = wave(33, true);
-        int z33 = a33.Count(zombie.Contains), p33 = a33.Count(warden.Contains);
-        Console.WriteLine("  wave 33 campaign: {0} enemies, {1} zombies, {2} Warden's (older pool)", a33.Count, z33, p33);
-        Check(z33 >= a33.Count * 0.55f && p33 > 0 && p33 <= a33.Count * 0.25f, "wave 33: mostly the Lich's zombies, with a few of the Warden's from the older pool");
+        int z33 = a33.Count(zombie.Contains), p33 = a33.Count(older.Contains);
+        Console.WriteLine("  wave 33 campaign: {0} enemies, {1} zombies, {2} Warden's and Reapers' (older pool)", a33.Count, z33, p33);
+        Check(z33 >= a33.Count * 0.55f && p33 > 0 && p33 <= a33.Count * 0.25f, "wave 33: mostly the Lich's zombies, with a few of the older factions' from the pool");
         var a41 = wave(41, true);
-        Check(a41.Count(zombie.Contains) > 0 && a41.Count(zombie.Contains) <= a41.Count * 0.2f && a41.Count(warden.Contains) <= a41.Count * 0.25f, "wave 41: the Lich's has faded to the pool");
+        Check(a41.Count(zombie.Contains) > 0 && a41.Count(zombie.Contains) <= a41.Count * 0.2f && a41.Count(older.Contains) <= a41.Count * 0.25f, "wave 41: the Lich's has faded to the pool");
         // --- Comeback squads (step 2) -------------------------------------------------------------------------------------
         FactionDef cf;
         var cbWaves = Enumerable.Range(1, 120).Where(n => Approaches.Comeback(n, out cf) != null).ToList();
