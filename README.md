@@ -827,6 +827,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
 
 - **Gold coins:** every kill drops its gold as coins (5-gold and 1-gold, at most 6; a boss's or an elite's last coin carries the rest). They never despawn, spin and glint on the floor, and drift to the nearest living player within 90 px, who gets the gold.
 - **Vector pickups:** a rare drop that adds vectors (a cyan square that draws its own outline; big ones have an amber ring). A normal kill drops one 1 time in 60 (+6), an elite 1 time in 8 (+12), a boss always (+12). Like coins they never despawn and drift to the nearest living player within 90 px, but only one whose stock isn't full: it waits for you to spend some. The vectors go to whoever collects it, never past their cap.
+- **Gadgets (the Magnet):** a rare drop you carry in your free hand and can **give to a teammate**. A normal kill drops a Magnet 1 time in 90, an elite 1 in 10 (never a boss), while there are fewer than one per player. Walk over it with empty hands to pick it up. **Tap B** to switch it on: every coin and vector pickup on the map flies to you (ahead of anyone else's reach); tap again to switch it off and save the rest. It has **10 s of pull** in all, then it's gone. **Hold B and let go** to throw it where you aim (up to 340 px, a dotted arc shows the landing): a teammate can catch it mid-air or pick it up, with the time it has left. Going down drops it at your feet. A pill under you shows its time and keys.
 - **Vectors**: every player holds a drawing budget (chip under the wave plate, "Vectors 50 / 70"): 1 vector = 1 tile of wall.
   You start with 50 and can hold 70; each cleared wave gives 8, every 8 kills gives 1, and a cleared boss wave refills
   everyone to the cap and adds 20 on top. Two cards raise the cap, in the Expanding arena only: **Deep Inkwell** (uncommon, +20,
@@ -1241,6 +1242,7 @@ The file is a Practice setup with a few extra lines first, and is documented in 
 | Weapon secondary (Kunai blink, Twin Fang, Sunlance, Hook & Haul, Shuriken recall, Bo Staff shove, Kusarigama whirl) | Left Alt |
 | Ultimate | F |
 | Take / discard your chest item (standing on it) | G / X |
+| Gadget: tap to switch on / off, hold and let go to throw it where you aim | B |
 | Bonus abilities | Q, E and Shift (once unlocked). When a card gives you one, choose its key on the card screen; move them between keys any time in the Tab menu (cooldowns move with them) |
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R (twice: the first arms it) |
