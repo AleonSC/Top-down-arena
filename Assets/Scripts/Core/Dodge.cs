@@ -27,6 +27,8 @@ namespace Arena
             DashT = DodgeTime;
             dodgeCd = DodgeCd;
             me.InvulnT = Math.Max(me.InvulnT, DodgeInvuln);
+            if (IsHost)
+                me.GhostT = me.Stats.GhostTime;  // Ghost Step (the host resolves damage; a client's comes in OnDodge)
             AddFx(FxKind.Ring, me.Pos, new Rgba(0.75f, 0.85f, 1f), 22f, 0.25f);
             Sounds.Add(Sfx.DodgeSwish);  // your own screen only
             if (IsHost)
@@ -48,6 +50,7 @@ namespace Arena
                 return;  // faster than the cooldown allows (with slack for network jitter): a resent or tampered message
             hostDodgeAt[peer] = hostClock;
             p.InvulnT = Math.Max(p.InvulnT, DodgeInvuln);
+            p.GhostT = p.Stats.GhostTime;  // Ghost Step
         }
     }
 }

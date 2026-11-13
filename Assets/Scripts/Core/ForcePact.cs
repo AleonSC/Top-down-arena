@@ -122,7 +122,7 @@ namespace Arena
                 t.Pact = (byte)p.PactType[s];
                 t.PactSlot = s;
                 t.Ang = s * 1.6f;
-                t.MaxHp = t.Hp = ThrallMaxHp(p.PactType[s], Wave) * p.Stats.PactHpMult;  // Kindred Bond
+                t.MaxHp = t.Hp = ThrallMaxHp(p.PactType[s], Wave) * p.Stats.PactHpMult * p.Stats.MinionToughMult;  // Kindred Bond, Pack Bond
                 if (p.PactBinding[s])
                     BroadcastFx(FxKind.Ring, t.Pos, new Rgba(0.75f, 0.55f, 1f), 90f, 0.6f, Sfx.None);
                 else

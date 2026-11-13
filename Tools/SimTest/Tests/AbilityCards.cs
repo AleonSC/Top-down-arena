@@ -206,6 +206,94 @@ static partial class Program
         var k2 = medkit(2);
         Check(k2.Burst - o0 == 6 && near(k2.Dmg - h0, 10f, 0.01f), "Field Surgeon: the Medkit bursts into 3 more orbs, each healing 5 more, per card (" + o0 + " x " + h0 + " -> " + k2.Burst + " x " + k2.Dmg + ")");
 
+        // --- Class cards (Kit; Docs/UpgradePools.md step 6) ---
+        var damage = typeof(Game).GetMethod("Damage", flags);
+        var fireRate = typeof(Game).GetMethod("FireRate", flags);
+        var localDodge = typeof(Game).GetMethod("LocalDodge", flags);
+        var pay = typeof(Game).GetMethod("PayHealth", flags);
+        Func<float> hurt = () =>
+        {
+            g.DevSetGod(1, false);
+            me.InvulnT = 0f; me.Hp = me.MaxHp;
+            me.ShieldHp = 0f; me.ShieldT = 0f; me.EnergyOn = false; me.BarrierT = 0f; me.BarrierHp = 0f;  // (earlier casts' wards and shields would soak it)
+            g.Zones.Clear();
+            float hp0 = me.Hp;
+            damage.Invoke(g, new object[] { me, 100f, "test" });
+            g.DevSetGod(1, true);
+            return hp0 - me.Hp;
+        };
+        Check(new[] { "Quartermaster", "Arcane Surge", "Pack Bond", "Plate Armour", "Ghost Step", "Bloodthirst" }
+            .All(n => U(n) >= 0 && Upgrades.All[U(n)].Kit.HasValue && Upgrades.All[U(n)].Rarity == Rarity.Rare), "all six class cards exist, each for one class");
+
+        // Quartermaster: orbs heal 30% more; Q/E/Shift recharge 10% faster (Space doesn't).
+        Func<int, float[]> quarter = n =>
+        {
+            prep(AbilityId.Meteor, "Quartermaster", n);
+            me.Slots[1].Id = AbilityId.Blink;
+            float q = g.Cooldown(me, 1), sp = g.Cooldown(me, 0);
+            g.DevSetGod(1, false);
+            me.Hp = me.MaxHp - 50f;
+            float hp0 = me.Hp;
+            g.Orbs.Clear();
+            g.Orbs[9999] = new Orb { Id = 9999, Med = true, MedHeal = 10f, Pos = me.Pos, Disp = me.Pos, Life = 5f };
+            Run(s, dt, 0.5f, () => !g.Orbs.ContainsKey(9999), () => { me.Pos = new V2(500f, 450f); });
+            g.DevSetGod(1, true);
+            return new[] { q, sp, me.Hp - hp0 };
+        };
+        var qm0 = quarter(0); var qm1 = quarter(1);
+        Check(near(qm1[0] / qm0[0], 0.9f, 0.001f) && near(qm1[1], qm0[1], 0.001f) && near(qm0[2], 10f, 0.6f) && near(qm1[2], 13f, 0.6f),
+            "Quartermaster: Q/E/Shift recharge 10% faster (Space doesn't) and orbs heal 30% more (" + qm0[2] + " -> " + qm1[2] + ")");
+
+        // Arcane Surge: a Space cast fires the weapon 25% faster for 3 s, and the client sees it.
+        castWith(AbilityId.Meteor, "Arcane Surge", 0, there);
+        float rate0 = (float)fireRate.Invoke(g, new object[] { me });
+        bool none = me.SurgeT == 0f;
+        castWith(AbilityId.Meteor, "Arcane Surge", 1, there);
+        float rate1 = (float)fireRate.Invoke(g, new object[] { me });
+        Run(s, dt, 0.3f);
+        Check(none && near(rate1 / rate0, 1.25f, 0.001f) && me.SurgeT > 2f && client.Game.Players[1].SurgeT > 2f,
+            "Arcane Surge: a Space cast fires the weapon 25% faster for 3 s, on both screens");
+
+        // Pack Bond: minions take 25% more before breaking and hit 15% harder.
+        castWith(AbilityId.GolemWall, "Pack Bond", 0, there);
+        float pg0 = mine(MinionKind.Wall)[0].BlockHp;
+        castWith(AbilityId.BatSwarm, "Pack Bond", 0, there);
+        float pb0 = mine(MinionKind.Bat)[0].Power;
+        castWith(AbilityId.GolemWall, "Pack Bond", 1, there);
+        float pg1 = mine(MinionKind.Wall)[0].BlockHp;
+        castWith(AbilityId.BatSwarm, "Pack Bond", 1, there);
+        float pb1 = mine(MinionKind.Bat)[0].Power;
+        Check(near(pg1 / pg0, 1.25f, 0.001f) && near(pb1 / pb0, 1.15f, 0.001f), "Pack Bond: minions take 25% more before they break and hit 15% harder");
+
+        // Plate Armour: 8% less damage, bullets cut 20% farther out.
+        prep(AbilityId.Meteor, "Plate Armour", 0); float pa0 = hurt();
+        prep(AbilityId.Meteor, "Plate Armour", 1); float pa1 = hurt();
+        Check(near(pa1 / pa0, 0.92f, 0.002f) && near(me.Stats.CutReachMult, 1.2f, 0.001f), "Plate Armour: 8% less damage taken (" + pa0 + " -> " + pa1 + "), swings cut 20% farther out");
+
+        // Ghost Step: +6% speed, 30% less damage for 1 s after a dodge (2 s with two).
+        Func<int, float[]> ghost = n =>
+        {
+            prep(AbilityId.Meteor, "Ghost Step", n);
+            float speed = me.Speed;
+            float plain = hurt();
+            localDodge.Invoke(g, new object[] { me, new V2(1f, 0f), true, 0f });
+            float t = me.GhostT;
+            float after = hurt();
+            Run(s, dt, 1.3f);  // (lets the dodge's dash and cooldown finish)
+            me.GhostT = 0f;
+            return new[] { speed, plain, after, t };
+        };
+        var gs0 = ghost(0); var gs2 = ghost(2);
+        Check(near(gs2[0] / gs0[0], 1.12f, 0.002f) && near(gs0[2], gs0[1], 0.01f) && near(gs2[2] / gs2[1], 0.7f, 0.002f) && near(gs2[3], 2f, 0.001f),
+            "Ghost Step: faster, and 30% less damage for 1 s per card after a dodge (" + gs2[1] + " -> " + gs2[2] + ")");
+
+        // Bloodthirst: abilities cost 20% less health; kills heal 2.
+        prep(AbilityId.Meteor, "Bloodthirst", 0);
+        me.Hp = me.MaxHp; float paid0 = (float)pay.Invoke(g, new object[] { me, 50f, "test" });
+        prep(AbilityId.Meteor, "Bloodthirst", 1);
+        me.Hp = me.MaxHp; float paid1 = (float)pay.Invoke(g, new object[] { me, 50f, "test" });
+        Check(near(paid0, 50f, 0.01f) && near(paid1, 40f, 0.01f) && near(me.Stats.KillHeal, 2f, 0.001f), "Bloodthirst: abilities cost 20% less health and kills heal 2");
+
         host.Leave(""); client.Leave("");
     }
 }

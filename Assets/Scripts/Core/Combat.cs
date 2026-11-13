@@ -26,6 +26,8 @@ namespace Arena
                 amount *= Math.Max(0.2f, 1f - RoarReduction - p.Stats.RoarExtraReduction);
             amount *= RodMult(p);  // Lightning Rod's charge (LightningRod.cs)
             amount *= p.Stats.DamageTaken;
+            if (p.GhostT > 0f)
+                amount *= 1f - p.Stats.GhostCut;  // Ghost Step: just after a dodge
             if (Has(RunMod.GlassCannon))
                 amount *= Modifiers.GlassCannonTaken;
             float cut = 0f;
@@ -1258,8 +1260,9 @@ namespace Arena
                 o.Pos += to.LimitLength(300f * dt);
                 if (to.Length < nearest.Def.BodyR + o.Radius)
                 {
-                    Recorder?.Orb(nearest, Math.Max(0f, Math.Min(o.Heal, nearest.HealCap - nearest.Hp)));
-                    nearest.Hp = Math.Max(nearest.Hp, Math.Min(nearest.HealCap, nearest.Hp + o.Heal));
+                    float orbHeal = o.Heal * nearest.Stats.OrbHealMult;  // Quartermaster
+                    Recorder?.Orb(nearest, Math.Max(0f, Math.Min(orbHeal, nearest.HealCap - nearest.Hp)));
+                    nearest.Hp = Math.Max(nearest.Hp, Math.Min(nearest.HealCap, nearest.Hp + orbHeal));
                     BroadcastFx(FxKind.Ring, o.Pos, new Rgba(0.4f, 1f, 0.5f), o.Big ? 50f : 25f, 0.35f, o.Big ? Sfx.PickupBig : Sfx.Pickup);
                     gone.Add(o.Id);
                 }

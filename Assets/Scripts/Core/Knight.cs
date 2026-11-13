@@ -570,9 +570,9 @@ namespace Arena
                     BroadcastFx(FxKind.Spark, origin + dir * (s.Reach * 0.6f), new Rgba(1f, 1f, 1f), 14f, 0.2f, Sfx.None);
             }
             else if (!s.NoCut && circle)
-                CutBulletsInCircle(circleAt, s.Circle, s.CutAll);  // the slam clears small bullets over its whole circle
+                CutBulletsInCircle(circleAt, s.Circle * p.Stats.CutReachMult, s.CutAll);  // the slam clears small bullets over its whole circle (Plate Armour: wider)
             else if (!s.NoCut)
-                CutBullets(origin, s.Aim, s.Reach + p.Def.BodyR * 0.5f, full ? MathX.Pi : s.HalfArc, s.CutAll, s.HalfWidth);
+                CutBullets(origin, s.Aim, (s.Reach + p.Def.BodyR * 0.5f) * p.Stats.CutReachMult, full ? MathX.Pi : s.HalfArc, s.CutAll, s.HalfWidth);  // Plate Armour: farther out
         }
 
         const float StaffKnock = 70f, DeflectSpeed = 520f, DeflectDamage = 12f;
@@ -722,6 +722,8 @@ namespace Arena
                 Apply = s => { s.GauntletRange += 0.4f; s.GauntletDamage += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BattleFury, MaxStacks = 2, Name = "Forged Edge", Desc = "Caught Steel's shards hit 8 harder, and it catches bullets passing 6 px further out",
                 Apply = s => { s.SteelDamage += 8f; s.SteelReach += 6f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Knight, MaxStacks = 2, Name = "Plate Armour", Desc = "Take 8% less damage, and your swings cut bullets out of the air 20% farther out",
+                Apply = s => { s.DamageTaken *= 0.92f; s.CutReachMult += 0.2f; } },
         };
 
         /// The Knight's abilities and ultimates. (Upgrades.Abilities gathers every class's list.)

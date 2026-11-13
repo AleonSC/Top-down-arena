@@ -108,6 +108,13 @@ namespace Arena
         public float HydraSlow, HydraBonusTime;                            // Hydra: Venom Glands
         public float ScentBonusTime; public int ScentStartBonus;           // Alpha Call: Pack Leader
         public int MedkitExtraOrbs; public float MedkitHealBonus;          // Medkit: Field Surgeon (Soldier)
+        // Class cards (Kit; Docs/UpgradePools.md step 6)
+        public float OrbHealMult = 1f, BonusCdMult = 1f;                   // Soldier: Quartermaster (orbs you pick up; Q/E/Shift cooldowns)
+        public float SurgeRate;                                            // Elementalist: Arcane Surge (fire rate for SurgeTime after a Space cast)
+        public float MinionDmgMult = 1f, MinionToughMult = 1f;             // Summoner: Pack Bond
+        public float CutReachMult = 1f;                                    // Knight: Plate Armour (how far out swings cut bullets)
+        public float GhostCut, GhostTime;                                  // Ninja: Ghost Step (less damage for GhostTime after a dodge)
+        public float HealthCostMult = 1f;                                  // Blood Mage: Bloodthirst (health paid for abilities)
 
         // Legendary weapon upgrades from bosses.
         public int Guards, Searchlight, SplitShots;  // Warden's Guard companions and Searchlight stacks (Stun.cs)

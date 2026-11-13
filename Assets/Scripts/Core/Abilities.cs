@@ -105,6 +105,8 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Mark, MaxStacks = 2, Name = "Exploit Weakness", Desc = "Marked enemies take an extra 50% damage", Apply = s => s.MarkBonus += 0.5f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Medkit, MaxStacks = 2, Name = "Field Surgeon", Desc = "Medkit bursts into 3 more orbs, and each heals 5 more",
                 Apply = s => { s.MedkitExtraOrbs += 3; s.MedkitHealBonus += 5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Soldier, MaxStacks = 2, Name = "Quartermaster", Desc = "Health and medkit orbs you pick up heal 30% more, and your Q, E and Shift abilities recharge 10% faster",
+                Apply = s => { s.OrbHealMult += 0.3f; s.BonusCdMult *= 0.9f; } },
         };
 
         /// The Soldier's abilities, and the ones only very rare cards give (Shockwave, Overdrive, Blink, Nova, Turret). (Upgrades.Abilities gathers every class's list.)
@@ -208,9 +210,13 @@ namespace Arena
 
         /// The ability's effect. Runs inside BeginCast/EndCast, so damage and healing it does directly
         /// (and the zones, minions and shots it makes) are scaled by its mastery. castMastered = its capstone.
+        public const float SurgeTime = 3f;  // Arcane Surge (the Elementalist's class card): faster firing after a Space cast
+
         void CastAbility(Player p, int slot, V2 target)
         {
             var s = p.Stats;
+            if (slot == 0 && s.SurgeRate > 0f)
+                p.SurgeT = SurgeTime;
             bool cap = castMastered;
             float pw = castPower;
             switch (p.Slots[slot].Id)

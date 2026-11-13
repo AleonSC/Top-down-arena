@@ -632,6 +632,7 @@ namespace Arena
         /// recording counts it as health spent on `what`, not damage taken.
         float PayHealth(Player p, float cost, string what)
         {
+            cost *= p.Stats.HealthCostMult;  // Bloodthirst (the Blood Mage's class card)
             if (p.Downed || cost <= 0f)
                 return 0f;
             float paid = Math.Max(0f, Math.Min(cost, p.Hp - 1f));
@@ -787,6 +788,8 @@ namespace Arena
                 Apply = s => { s.DebtRepay += 0.25f; s.DebtBonusTime += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.HemoNova, MaxStacks = 2, Name = "Crimson Tide", Desc = "Vein Rush goes 25% farther, and each enemy it cuts gives back 1% more health",
                 Apply = s => { s.RushReach += 0.25f; s.RushRefund += 0.01f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Hemomancer, MaxStacks = 2, Name = "Bloodthirst", Desc = "Your abilities cost 20% less health, and each kill heals you 2",
+                Apply = s => { s.HealthCostMult *= 0.8f; s.KillHeal += 2f; } },
         };
 
         /// The Blood Mage's abilities and ultimates: every Space ability costs health. (Upgrades.Abilities gathers every class's list.)

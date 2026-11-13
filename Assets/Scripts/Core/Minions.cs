@@ -77,6 +77,8 @@ namespace Arena
                 Apply = s => { s.BlizzardRadiusMult += 0.4f; s.BlizzardBonusTime += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Tsunami, MaxStacks = 2, Name = "Riptide", Desc = "Tsunami's wave is 40% wider and enemies stay wet 4 s longer",
                 Apply = s => { s.TsunamiWidthMult += 0.4f; s.WetBonusTime += 4f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Elementalist, MaxStacks = 2, Name = "Arcane Surge", Desc = "Casting your Space ability makes your weapon fire 25% faster for 3 s",
+                Apply = s => { s.SurgeRate += 0.25f; } },
         };
 
         /// The Mage's Space abilities (its ultimates are in Ultimates.cs). (Upgrades.Abilities gathers every class's list.)
@@ -213,6 +215,8 @@ namespace Arena
                 Apply = s => { s.HydraSlow = Math.Min(0.6f, s.HydraSlow + 0.3f); s.HydraBonusTime += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.AlphaCall, MaxStacks = 2, Name = "Pack Leader", Desc = "Alpha Call's Blood Scent lasts 3 s longer and your minions start it with 1 more stack",
                 Apply = s => { s.ScentBonusTime += 3f; s.ScentStartBonus += 1; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Summoner, MaxStacks = 2, Name = "Pack Bond", Desc = "Every minion of yours (weapon and ability) hits 15% harder and takes 25% more before it breaks or falls",
+                Apply = s => { s.MinionDmgMult += 0.15f; s.MinionToughMult += 0.25f; } },
         };
 
         /// The Summoner's Space abilities (its ultimates are in Ultimates.cs). (Upgrades.Abilities gathers every class's list.)
@@ -463,10 +467,11 @@ namespace Arena
             };
             m.Disp = m.Pos;
             m.HealRate = m.Def.HealRate;
-            m.BlockHp = m.Def.BlockCapacity;
+            m.BlockHp = m.Def.BlockCapacity * owner.Stats.MinionToughMult;  // Pack Bond (the Summoner's class card): tougher, harder-hitting minions
+            m.Power = owner.Stats.MinionDmgMult;
             if (casting)
             {
-                m.Power = castPower;
+                m.Power = castPower * owner.Stats.MinionDmgMult;
                 m.Mastered = castMastered;
                 m.HealRate *= castPower;
                 m.BlockHp *= castPower;
@@ -593,7 +598,7 @@ namespace Arena
                 {
                     m.StaggerT -= dt;
                     if (m.StaggerT <= 0f)
-                        m.BlockHp = d.BlockCapacity * m.Scale;  // back on its feet
+                        m.BlockHp = d.BlockCapacity * m.Scale * owner.Stats.MinionToughMult;  // back on its feet
                 }
                 bool frenzy = owner.FrenzyT > 0f && !m.NoFrenzy;
                 bool scent = owner.ScentT > 0f && !m.NoFrenzy;  // Alpha Call: the frenzy builds with each bite

@@ -336,6 +336,8 @@ namespace Arena
                 Apply = s => { s.VanishBonusTime += 1.5f; s.AmbushMult += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BladeFan, MaxStacks = 2, Name = "Storm of Steel", Desc = "Blade Fan throws 6 more kunai",
                 Apply = s => s.FanExtraKunai += 6 },
+            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Ninja, MaxStacks = 2, Name = "Ghost Step", Desc = "+6% move speed, and you take 30% less damage for 1 s after you dodge (1 s longer per extra copy)",
+                Apply = s => { s.SpeedMult += 0.06f; s.GhostCut = 0.3f; s.GhostTime += 1f; } },
         };
 
         /// The Ninja's abilities and ultimates. (Upgrades.Abilities gathers every class's list.)

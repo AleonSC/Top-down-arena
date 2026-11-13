@@ -470,6 +470,7 @@ namespace Arena
             s.Float(ref p.InvulnT);
             s.Float(ref p.OverdriveT);
             s.Float(ref p.AdrenalineT);
+            s.Float(ref p.SurgeT);  // Arcane Surge (your own firing reads it)
             s.Int(ref p.MomentumStacks);  // Momentum.cs
             s.Float(ref p.MomentumT);
             s.Float(ref p.SwiftT);  // Consecrate's Swiftness (HolyCross.cs)
@@ -868,7 +869,7 @@ namespace Arena
                 duration = m.Duration;
                 m.GuardFrac = m.Kind == MinionKind.CloneWall || (m.Kind == MinionKind.Wall && m.MaxHp > 0f) ? MathX.Clamp01(m.BlockHp / Math.Max(1f, m.MaxHp))  // a wall clone: what is left of its health
                     : HasHealth(m) ? m.Hp / Math.Max(1f, m.MaxHp)  // a Warden's Guard or Force Pact thrall: its health
-                    : m.Def.BlockCapacity > 0f && m.StaggerT <= 0f ? m.BlockHp / (m.Def.BlockCapacity * m.Scale) : 0f;
+                    : m.Def.BlockCapacity > 0f && m.StaggerT <= 0f ? MathX.Clamp01(m.BlockHp / (m.Def.BlockCapacity * m.Scale)) : 0f;
                 guard = m.GuardFrac;
                 scale = m.Scale;
                 link = m.LinkTo;
