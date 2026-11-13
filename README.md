@@ -741,9 +741,9 @@ grows (50% more health, drawn bigger), as the Devourer heals from them in its Hu
 
 The **Eclipse's faction**, the Penumbral Court, leads up to the final fight (waves 46-49): sun-cultists and scraps of
 flare, each previewing one of the Eclipse's stages (design: `Docs/EclipseFaction.md`; mockup: `Docs/Mockups/eclipse-faction.html`).
-Steps 1-2 of 4 are in: six enemies and squads **Dawn** (a Corona Priest and six Embers) and, from wave 47, **Mirror pair**
-(two Heliographs); from wave 48, **Night watch** (a Dusk Lobber, a Gnomon and three Embers). At most three Heliographs a
-wave. No set piece or Campaign lessons yet: its waves are built by reach.
+Steps 1-3 of 4 are in: all eight enemies and squads **Dawn** (a Corona Priest and six Embers) and, from wave 47, **Mirror
+pair** (two Heliographs); from wave 48, **Moon court** (two Moonwards and two Sickles) and **Night watch** (a Dusk Lobber,
+a Gnomon and three Embers). At most three Heliographs a wave. No set piece or Campaign lessons yet: its waves are built by reach.
 
 | From | The Eclipse's faction (the Penumbral Court) | Previews | What it does |
 |---|---|---|---|
@@ -753,6 +753,8 @@ wave. No set piece or Campaign lessons yet: its waves are built by reach.
 | 47 | **Moonward** | the Penumbra's moon | A pale knight (100 health, contact 12) that walks at you with a small **moon circling it** 30 px out, once every 2.4 s. The moon **swallows any shot** it touches: fire when it swings round the back |
 | 47 | **Gnomon** | Eclipse flash | A walking sundial (240 health, contact 20, can't be shoved): a stone slab with a **sun lantern** at its back. Within 360 px it plants with its slab turned a little to **one side of you**, its **shadow** shows on the floor and the lantern swells for 1.5 s; then it **flashes** everyone within 520 px who isn't in the shadow (30). Every 6 s. Step sideways into the shadow, toward it |
 | 47 | **Dusk Lobber** | the Umbra | Plays like a Gas Grenadier, but lobs a **ball of night** that bursts into a **pool of dark** (90 px, 4 s): inside you see only 40 px round you, and it **drains 6 a second**. Stay in the light |
+| 48 | **Sickle** | Crescents | A grey-robed cultist that keeps 240 px away and strafes. Every 2.4 s its blade glows (0.6 s), then it throws a **crescent** that leaves to one side, **loops through where you stand and comes back** round to it (300 px/s, 21). Dodge it twice |
+| 48 | **Nova** | Totality | A small unstable star (40 health, 230 px/s, contact 10) that darts in zigzagging. Within 140 px it **lights a 3 s fuse** (a ring runs down round it, a faint ring shows its reach) and hangs about you, slowly; while lit it **takes 50% more damage**. Then it **goes nova**: 30 to everyone within 110 px, and it's gone. Burst it or back off |
 
 **Bubbles (Shielded elites and the Warder's wards):** a bubble is twelve cells round the rim, each holding a twelfth of the shield. A hit wears down the cell facing whoever shot it (flashing, then breaking into shards) and spills over to its neighbours once that cell is gone, so the side you shoot from is the side that opens. Burning and bleeding keep chewing the weakest cell. A honeycomb inside only shows where its cell is still up, and a thin shield bar sits above the health bar. Blue is a Shielded elite, violet is the Warder's.
 
