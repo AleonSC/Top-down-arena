@@ -748,7 +748,7 @@ static partial class Program
         Check(g.State == MatchState.Intermission && g.ShopOpen && cg.ShopOpen, "the wave after a boss ends with the shop open, on both screens");
         Check(g.Players.Values.All(p => p.Shelf.Any(u => u >= 0)), "everyone has a shelf");
         Check(g.Players.Values.All(p => p.Vectors >= Game.VectorStart + Game.VectorWaveGain) && cg.Players[1].Vectors == g.Players[1].Vectors, "a cleared wave gives everyone " + Game.VectorWaveGain + " vectors, and the client sees them (" + g.Players[1].Vectors + ")");
-        // The room shops: upgrades and restocks only in the shop room, heals, revives and removals only at the vendor.
+        // The room shops: upgrades and restocks only in the shop room, services (heals, revives, sales) in either room, nothing in the hub.
         Check(g.ServiceRooms && !g.ShopBlocksWave, "with a shop and a vendor room the shop never holds the countdown");
         V2 vendorAt = g.CurrentWorld.Areas[6].Mid;
         var pm = g.Players[1];
@@ -766,6 +766,12 @@ static partial class Program
         int gold1 = pm.Gold;
         g.Shop(ShopAction.Buy, slot);
         Check(pm.Gold < gold1, "the shop room sells upgrades");
+        pm.Hp = pm.MaxHp * 0.5f;
+        int gold2 = pm.Gold;
+        g.Shop(ShopAction.Heal);
+        Check(pm.Gold == gold2 - Game.HealPrice && pm.Hp >= pm.MaxHp, "the shop room's services work too: it heals");
+        g.Shop(ShopAction.BuyBuild, 0);
+        Check(pm.Gold == gold2 - Game.HealPrice && pm.Stash[0] == 0, "buildables are only sold at the vendor");
         g.Shop(ShopAction.Done, 1);
         client.Game.Shop(ShopAction.Done, 1);
         Run(s, dt, 0.5f);
@@ -845,6 +851,17 @@ static partial class Program
         var intruder = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", flags).Invoke(g, new object[] { EnemyType.Grunt, g.CurrentWorld.Areas[2].Mid + new V2(200f, 0f), 1f, 0, false });
         Run(s, dt, 0.5f, null, NoPicks);
         Check(!g.Enemies.ContainsKey(intruder.Id) || !g.CurrentWorld.Areas[2].Contains(intruder.Pos), "other foes are kept out of a locked duel room");
+
+        // A duel left over from an earlier, bigger map (a restart after a game over) must not break the enemy tick.
+        var duels = (Dictionary<int, int>)typeof(Game).GetField("duelBoss", flags).GetValue(g);
+        duels[99] = -1;
+        var mover = (Enemy)spawnAt.Invoke(g, new object[] { EnemyType.Grunt, new V2(800f, 300f), 0f, 0, false });
+        V2 from = mover.Pos;
+        Exception stale = null;
+        try { Run(s, dt, 0.5f, null, NoPicks); } catch (Exception ex) { stale = ex; }
+        Check(stale == null && (mover.Pos - from).Length > 1f, "a stale duel area past the map's end is skipped, and enemies still move (" + (stale == null ? "ok" : stale.GetType().Name) + ")");
+        duels.Remove(99);
+        mover.Hp = 0f;
 
         // An unbeaten duel ends with the wave: the Gatekeeper goes and you are let out.
         endDuels.Invoke(g, null);

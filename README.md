@@ -873,9 +873,11 @@ On the Bazaar's waves every kill gives **every player the same gold** (0.3 per p
 325 each over waves 6-10, rising to about 1000 by wave 40); your gold shows above the wave panel. After its last
 wave, everyone gets a shop before the boss:
 
-- **One sideways carousel** holds everything: your shelf, then the services. The item in the middle is big and shows what it
+- **Two categories** open first: **Upgrades** (your shelf) and **Services**, each panel showing a peek of what's inside and the
+  cheapest price. Click one (or arrow keys and Enter) to open its **sideways carousel**. The item in the middle is big and shows what it
   changes as the green readout on the card (old ▸▸ new). Click a side card, use the arrows, the mouse wheel or the arrow
-  keys to bring one to the middle, and click the middle one to buy it. The SHELF and SERVICES tabs jump to each part.
+  keys to bring one to the middle, and click the middle one to buy it. **< Back** (or Esc) returns to the categories; the
+  two tabs switch between them. Add stock jumps to the new cards.
 - **Your shelf** (rolled for your class): three cards, two upgrades and a legendary (a weapon mod if no legendary is left). Prices by rarity: common
   40, uncommon 60, rare 100, very rare 160, weapon mod 200, legendary 280.
 - **Services:** add stock (two more cards on the shelf, none you already see: an upgrade, then a weapon mod and a
@@ -899,8 +901,8 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
 - **Gold coins:** every kill drops its gold as coins (5-gold and 1-gold, at most 6; a boss's or an elite's last coin carries the rest). They never despawn, spin and glint on the floor, and drift to the nearest living player within 90 px, who gets the gold.
 - **Vector pickups:** a rare drop that adds vectors (a cyan square that draws its own outline; big ones have an amber ring). A normal kill drops one 1 time in 60 (+6), an elite 1 time in 8 (+12), a boss always (+12). Like coins they never despawn and drift to the nearest living player within 90 px, but only one whose stock isn't full: it waits for you to spend some. The vectors go to whoever collects it, never past their cap.
 - **Gadgets (the Magnet):** a rare drop you carry in your free hand and can **give to a teammate**. A normal kill drops a Magnet 1 time in 90, an elite 1 in 10 (never a boss), while there are fewer than one per player. Walk over it with empty hands to pick it up. **Tap B** to switch it on: every coin and vector pickup on the map flies to you (ahead of anyone else's reach); tap again to switch it off and save the rest. It has **10 s of pull** in all, then it's gone. **Hold B and let go** to throw it where you aim (up to 340 px, a dotted arc shows the landing): a teammate can catch it mid-air or pick it up, with the time it has left. Going down drops it at your feet. A pill under you shows its time and keys.
-- **Vectors**: every player holds a drawing budget (chip under the wave plate, "Vectors 50 / 70"): 1 vector = 1 tile of wall.
-  You start with 50 and can hold 70; each cleared wave gives 8, every 8 kills gives 1, and a cleared boss wave refills
+- **Vectors**: every player holds a drawing budget (chip under the wave plate, "Vectors 40 / 70"): 1 vector = 1 tile of wall.
+  You start with 40 and can hold 70; each cleared wave gives 8, every 8 kills gives 1, and a cleared boss wave refills
   everyone to the cap and adds 20 on top. Two cards raise the cap, in the Expanding arena only: **Deep Inkwell** (uncommon, +20,
   stacks to 4) and the milestone card **Architect** (+40 and 20 vectors now, stacks to 3). The **vendor** also sells a **Vector pack**: +20 vectors for 50 gold, as
   many as you can afford, and it can take you past the cap.
@@ -1005,7 +1007,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   Beating it gives everyone a prize pick (sometimes a legendary) and the room becomes an ordinary one. It's optional: if the wave ends first, the
   Gatekeeper goes, you're let out, and walking in later starts a fresh duel.
 - **Shop and vendor rooms**: with one connected, kills drop gold and the shop opens every intermission without holding the countdown. Buy
-  upgrades and add stock in the **shop room**; heal, revive and remove upgrades, and buy buildables, at the **Black Market** (the vendor room: a Buildables tab and a Services tab). Gold and your shelf carry over between waves
+  upgrades and add stock in the **shop room**, buildables at the **Black Market** (the vendor room: Buildables and Services categories); the services (heal, revive, sell, Floor kit, Vector pack) work in either room. Gold and your shelf carry over between waves
   (the shelf is new each boss cycle).
 - **Breaches**: a rare event: on wave 3 and every 4th wave after it (7, 11, 15, ...), once the first room is built, enemies come in through **breaches** in the outer wall: a stretch of wall cracks open
   and a **red holographic barrier** stands in the gap (you can't go out through it; red chevrons on the floor point where they come
@@ -1211,7 +1213,7 @@ you've beaten it anywhere, a **???** until then (on your first Quick Play the Wa
 - **Records:** full rank XP and Cores, bosses count as beaten (unlocks and Boss Hunts), and Quick Play keeps its own plays,
   wins, best wave and bosses beaten (not counted as runs). Falling in endless adds the stretch after the win.
   Every Quick Play shows in **Records > Recent runs** with its graphs: the win or the fall, a Quick Play you quit (no XP),
-  and an endless stretch after the win as its own card ("Quick Play · Endless", its curve from the win on).
+  and an endless stretch after the win as its own card ("Quick Play · Endless", its curve from the win on), fallen or quit.
   Plan: `Docs/QuickPlay.md`.
 
 ## Boss Hunt

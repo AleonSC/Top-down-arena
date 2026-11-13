@@ -285,7 +285,9 @@ The October 2026 audit and its work plan are done; the full notes (and the Novem
 - **Collision is all-pairs** (player bullets x enemies, enemy bullets x players). Cheap with the bullet budget; a
   uniform grid only matters if counts grow a lot (endless mode, more players).
 - **Rendering** is GL immediate mode with many small circles (8-48 segments). Fine on desktop; if frame time ever
-  matters, lower segment counts for small bullets and batch the menu backgrounds. Bandwidth is fine for 3 players
+  matters, lower segment counts for small bullets and batch the menu backgrounds. The faction looks are the heaviest
+  enemies (a Hive bee was 4-5x a Warden enemy's triangles): `HiveLook.cs` sizes its ellipses by screen size and drops
+  the glow strokes past `HiveCrowd` enemies; do the same for another faction look if a flood of it lags. Bandwidth is fine for 3 players
   (full state at 20 Hz, no bullets); delta compression only if player counts grow.
 - `Kits.Zones` and `Kits.Minions` are read by kind number, so removing a kind means removing its entry too (the `core`
   suite checks the counts) and bumping the protocol. The **simple test bot** in

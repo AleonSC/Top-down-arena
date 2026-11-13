@@ -138,7 +138,7 @@ namespace Arena
         /// Each player's drawing budget: 1 vector = 1 tile of new wall (Expansion.Cost). Start with VectorStart, hold up to VectorCap
         /// (VectorCapBase for now), +VectorWaveGain for each cleared wave, +1 every VectorKillEvery kills, and a cleared boss wave
         /// refills everyone to the cap and VectorBossBonus on top.
-        public const int VectorStart = 50, VectorCapBase = 70, VectorWaveGain = 8, VectorBossBonus = 20, VectorKillEvery = 8;
+        public const int VectorStart = 40, VectorCapBase = 70, VectorWaveGain = 8, VectorBossBonus = 20, VectorKillEvery = 8;
 
         /// Host: gains stop at the cap (a stock already above it, from a boss, is left alone).
         void AddVectors(Player p, int n)
@@ -219,7 +219,8 @@ namespace Arena
 
         public bool InServiceRoom(Player p) => InShopRoom(p) || InVendorRoom(p);
 
-        /// In a room shop, upgrades and Add stock are bought in the shop room and heals, revives and sales at the vendor.
+        /// In a room shop, upgrades and Add stock are bought in the shop room, buildables at the vendor (the Black Market),
+        /// and the services (heal, revive, sell, Floor kit, vectors) in either.
         bool ServiceAllowed(Player p, ShopAction action)
         {
             if (!ServiceRooms)
@@ -234,6 +235,7 @@ namespace Arena
                 case ShopAction.Sell:
                 case ShopAction.RoomKit:
                 case ShopAction.Vectors:
+                    return InServiceRoom(p);
                 case ShopAction.BuyBuild:
                     return InVendorRoom(p);
                 default:
@@ -533,6 +535,7 @@ namespace Arena
         void ResetExpansion()
         {
             RoomTokens.Clear();
+            duelBoss.Clear();  // (GatekeeperRoom.cs: a duel from the last run's map must not outlive it)
             floatCycle = -1;
             Expanded.Clear();
             Nodes.Clear();
@@ -1186,6 +1189,7 @@ namespace Arena
                 playerOf[kv.Value] = kv.Key;
             expandSeed = save.ExpandSeed;
             floatCycle = save.FloatCycle;
+            duelBoss.Clear();
             Expanded.Clear();
             foreach (var r in save.Rooms)
             {
