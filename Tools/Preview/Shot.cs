@@ -397,6 +397,19 @@ static partial class Shot {
       var on = iput(EnemyType.Pulsar, new V2(1200f, 690f)); on.Phase = 2; on.Facing = 3.75f;
       ig.AnimT += float.Parse(Environment.GetEnvironmentVariable("INFALL"), System.Globalization.CultureInfo.InvariantCulture);
     }
+    if (Environment.GetEnvironmentVariable("INFALL2") != null) {  // INFALL2=<s into the clock>: the Singularity's faction, step 2 (InfallLook.cs): a Graviton winding up beside its landed Small Well, an Orbiter flaring with a slung orb in flight, a hurt Collapsar and an Implosion half-way
+      var ig = host.Game; ig.Enemies.Clear(); ig.Bullets.Clear();
+      var isp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, Enemy> iput = (t, at) => { var e = (Enemy)isp.Invoke(ig, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; return e; };
+      me.Pos = me.Disp = new V2(1000f, 560f);
+      var gv = iput(EnemyType.Graviton, new V2(700f, 380f)); gv.Facing = 0.6f; gv.Winding = true;
+      iput(EnemyType.MiniWell, new V2(880f, 470f));
+      var ob = iput(EnemyType.Orbiter, new V2(1280f, 380f)); ob.Facing = (me.Pos - ob.Pos).Angle; ob.Winding = true; ob.Phase = 1; ob.SeenT = 0.4f;
+      ig.Bullets[9101] = new Bullet { Id = 9101, Kind = Defs.FastShot, Pos = new V2(1140f, 470f), Vel = (me.Pos - new V2(1140f, 470f)).Normalized() * 330f, Radius = 5f, Dmg = 17f, Look = ShotLook.Round };
+      var co = iput(EnemyType.Collapsar, new V2(760f, 720f)); co.Hp = co.MaxHp * 0.4f;
+      var im = iput(EnemyType.Implosion, new V2(1240f, 720f)); im.SeenT = 0.4f;
+      ig.AnimT += float.Parse(Environment.GetEnvironmentVariable("INFALL2"), System.Globalization.CultureInfo.InvariantCulture);
+    }
     if (Environment.GetEnvironmentVariable("LUNGE") != null) {  // LUNGE=<0-1>: the four lungers part-way through their wind-up (LungeLaneLook.cs); the lane fills with the client's clock, so draw once, then move it on
       var lg = host.Game; lg.Enemies.Clear(); lg.Bullets.Clear();
       var lsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

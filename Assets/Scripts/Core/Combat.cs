@@ -232,8 +232,8 @@ namespace Arena
             landed.Clear();
             wells.Clear();
             foreach (var e in Enemies.Values)
-                if (e.Type == EnemyType.GravityWell && !IsSpawning(e))
-                    wells.Add(e);
+                if ((e.Type == EnemyType.GravityWell || e.Type == EnemyType.MiniWell) && !IsSpawning(e))
+                    wells.Add(e);  // the Singularity's corner wells and a Graviton's Small Wells (Infall.cs)
             bool wellsUp = wells.Count > 0;
             V2 wind = HeraldWind(WindDrift);  // the Storm Herald's Gale bends every bullet (Herald.cs)
             PrepareNinjaBullets(dt);  // Smoke Bombs and Fuma Shuriken loops (Ninja.cs)
@@ -397,12 +397,12 @@ namespace Arena
         {
             foreach (var w in wells)
             {
-                float d = b.Pos.DistanceTo(w.Pos);
-                if (d > WellPullRange)
+                float d = b.Pos.DistanceTo(w.Pos), range = w.Type == EnemyType.MiniWell ? MiniWellBendRange : WellPullRange;
+                if (d > range)
                     continue;
                 float want = (w.Pos - b.Pos).Angle, have = b.Vel.Angle;
                 float diff = MathX.Fmod(want - have + MathX.Pi, MathX.Tau) - MathX.Pi;
-                float rate = (2.5f + 12f * (1f - d / WellPullRange)) * dt;  // hard: a shot near a corner is lost
+                float rate = (2.5f + 12f * (1f - d / range)) * dt;  // hard: a shot near a corner is lost
                 b.Vel = b.Vel.Rotated(Math.Max(-rate, Math.Min(rate, diff)));
                 b.Pulled = true;
                 return;  // one well at a time

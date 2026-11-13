@@ -176,6 +176,45 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Graviton, Name = "Graviton", Group = "Shooters", Wave = 17,
+                Appears = "The Singularity's approach (waves 17-19), alone or in a Gravity trap squad",
+                Lead = "Keeps 320 px away. Every 6 s it plants its feet for 0.6 s, a ring marks a spot near you, and 0.8 s later a Small Well lands there: for 4 s it drags you toward it (80 px/s at its middle, 240 px out) and bends your shots into it. Get clear, or shoot the well (30 health). A new lob takes its old well away.",
+                Attacks = new[] { new BestiaryAttack { Name = "Small Well", Pattern = "A well lobbed near you", Damage = "none: a pull, and it swallows shots", Every = 6f } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Orbiter, Name = "Orbiter", Group = "Shooters", Wave = 18,
+                Appears = "The Singularity's approach (waves 18-19)",
+                Lead = "Circles you 260 px out with three orbs turning round it. The orb facing you flares for 0.55 s, then it slings it straight at you, fast. Sidestep as it flares.",
+                Attacks = new[] { new BestiaryAttack { Name = "Slung orb", Pattern = "One fast orb after a 0.55 s flare", Shot = "Orb", ShotColor = new Rgba(0.85f, 0.35f, 1f), Speed = "330", Damage = "17", Every = 1.8f } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Collapsar, Name = "Collapsar", Group = "Melee", Wave = 17,
+                Appears = "The Singularity's approach (waves 17-19), alone or in a Gravity trap squad",
+                Lead = "A slow, dense star that walks at you and shrinks as it's shot. Killed, it collapses: for 0.8 s it pulls everyone near in (100 px/s at the middle, 260 px out), then bursts into a ring of 12 shots. Kill it at range.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "20" },
+                    new BestiaryAttack { Name = "Collapse", Pattern = "When killed: a 0.8 s pull, then a ring of 12", Speed = "150", Damage = "14 each" },
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.MiniWell, Name = "Small Well", Group = "Summons", Wave = 17,
+                Appears = "Lobbed by a Graviton",
+                Lead = "A small gravity well that lasts 4 s: it drags you toward it and bends your shots into it. Shoot it (30 health) or get clear.",
+                Attacks = new BestiaryAttack[0],
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Implosion, Name = "Implosion", Group = "Summons", Wave = 17,
+                Appears = "Left by a Collapsar when it dies",
+                Lead = "Where a Collapsar fell: it pulls everyone near in for 0.8 s, then bursts into a ring of 12 shots. It can't be hurt; get away from it.",
+                Attacks = new[] { new BestiaryAttack { Name = "Burst", Pattern = "A ring of 12 after 0.8 s", Speed = "150", Damage = "14 each" } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.HiveEgg, Name = "Hive Egg", Group = "Summons", Wave = 10,
                 Appears = "Laid by the Hive Queen in her Honeycomb stage",
                 Lead = "Doesn't move or attack. Break it before it hatches into drones.",

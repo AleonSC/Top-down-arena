@@ -607,7 +607,8 @@ namespace Arena
                     }
                 }
                 if (e.Hp <= 0f || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.HiveEgg || e.Type == EnemyType.ReaperPillar || QueenAirborne(e)
-                    || e.Type == EnemyType.Morsel || e.Type == EnemyType.SapperMine || DevourUnder(e) || e.Dummy || e.DazeT > 0f)
+                    || e.Type == EnemyType.Morsel || e.Type == EnemyType.SapperMine || DevourUnder(e) || e.Dummy || e.DazeT > 0f
+                    || e.Type == EnemyType.MiniWell || e.Type == EnemyType.Implosion)
                     continue;  // blew up this tick, explodes instead of bumping, an egg, the Hive Queen up in a dive, a morsel, the Devourer underground, dazed (Daze.cs)
                 // Bosses and heavies hurt to stand in (the difficulty's per-wave damage growth scales all of these).
                 float contact = e.Def.IsBoss ? 25f
@@ -1138,6 +1139,8 @@ namespace Arena
                     VarietySpecial(e, tpos, dt);  // Variety.cs
                     break;
                 case EnemyType.Pulsar:
+                case EnemyType.MiniWell:
+                case EnemyType.Implosion:
                     InfallSpecial(e, tpos, dt);  // Infall.cs
                     break;
             }
@@ -1300,6 +1303,8 @@ namespace Arena
             }
             if (e.Type == EnemyType.HiveQueen)
                 ClearQueenAdds(e);
+            if (e.Type == EnemyType.Collapsar)
+                Collapse(e);  // a short pull, then a ring (Infall.cs)
             if (e.Type == EnemyType.ReaperPillar)
                 PillarFell(e);  // leaves a hole (Reapers.cs)
             if (e.Type == EnemyType.DualReaper)

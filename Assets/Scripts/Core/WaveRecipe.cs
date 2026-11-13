@@ -66,7 +66,7 @@ namespace Arena
                 if (r.Type == t)
                     return r.Job;
             var d = Defs.Get(t);
-            if (t == EnemyType.HiveEgg || t == EnemyType.SapperMine || t == EnemyType.Pulsar)
+            if (t == EnemyType.HiveEgg || t == EnemyType.SapperMine || t == EnemyType.Pulsar || t == EnemyType.Graviton || t == EnemyType.MiniWell)
                 return EnemyJob.Zoner;
             return d.Melee ? EnemyJob.Hunter : EnemyJob.Pressure;  // the rest (boss adds, factions, zombies) by whether they shoot
         }

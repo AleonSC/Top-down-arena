@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Arena;
 
-// The Singularity's faction, step 1 (Core/Infall.cs, Docs/SingularityFaction.md): Debris spirals in, an Acolyte's three
-// orbs meet where you stood, a Pulsar plants, flickers, sweeps its two beams a quarter turn and rests; and the three
-// come in the waves before the Singularity.
+// The Singularity's faction, steps 1-2 (Core/Infall.cs, Docs/SingularityFaction.md): Debris spirals in, an Acolyte's three
+// orbs meet where you stood, a Pulsar plants, flickers, sweeps its two beams a quarter turn and rests, a Graviton's
+// Small Well drags you, an Orbiter slings its orbs, a Collapsar implodes; and they come in the waves before the Singularity.
 static partial class Program
 {
     static void InfallTest(float dt)
@@ -97,12 +97,54 @@ static partial class Program
         Check(hurt, "the sweep passes through you and hurts");
         Check(Game.PulsarBeamDistance(pu, pu.Pos + V2.FromAngle(pu.Facing) * 300f) < 1f && Game.PulsarBeamDistance(pu, pu.Pos - V2.FromAngle(pu.Facing) * 300f) < 1f,
             "it has two beams, one each way");
+        // Graviton: lobs a Small Well near you; once landed it drags you and bends shots; it's gone after MiniWellLife.
+        g.DevSetGod(1, true);
+        var gv = put(EnemyType.Graviton, new V2(560f, 400f));
+        Enemy well = null;
+        run(9f, () => { if (well == null) well = g.Enemies.Values.FirstOrDefault(o => o.Type == EnemyType.MiniWell); });
+        Check(well != null && well.ParentId == gv.Id && well.Pos.DistanceTo(new V2(900f, 400f)) <= Game.GravitonScatter + 1f, "a Graviton lobs a Small Well near you");
+        if (well != null)
+        {
+            var drift = (V2)typeof(Game).GetMethod("WellDriftAt", np).Invoke(g, new object[] { well.Pos + new V2(120f, 0f) });
+            Check(drift.X < -10f, "a landed well drags a player toward it");
+            Check(Game.JobOf(EnemyType.Graviton) == EnemyJob.Zoner && Defs.Get(EnemyType.MiniWell).Picker == PickerGroup.Hidden, "the Graviton is a Zoner; its well only comes from it");
+            int id = well.Id;
+            bool gone = false;
+            run(Game.MiniWellLife + 0.5f, () => gone |= !g.Enemies.ContainsKey(id));
+            Check(gone, "the well closes after " + Game.MiniWellLife + " s");
+        }
+
+        // Orbiter: slings fast orbs at you, counting its throws in Phase.
+        var ob = put(EnemyType.Orbiter, new V2(640f, 400f));
+        int fast = 0;
+        var seenShots = new HashSet<int>();
+        run(6f, () => { foreach (var b in g.Bullets.Values) if (b.Shooter == ob.Id && b.Kind == Defs.FastShot && seenShots.Add(b.Id)) fast++; });
+        Console.WriteLine("  Orbiter: {0} orbs in 6 s", fast);
+        Check(fast >= 2 && fast <= 4, "an Orbiter slings an orb about every " + Game.OrbiterEvery + " s");
+
+        // Collapsar: killed, an Implosion pulls, bursts into a ring of 12 and goes; shots pass through it.
+        var co = put(EnemyType.Collapsar, new V2(700f, 400f));
+        V2 coAt = co.Pos;
+        co.Hp = 0f;
+        Enemy imp = null;
+        run(0.05f, () => { if (imp == null) imp = g.Enemies.Values.FirstOrDefault(o => o.Type == EnemyType.Implosion); });
+        Check(imp != null && imp.Pos.DistanceTo(coAt) < 60f && imp.Def.Xp == 0, "a killed Collapsar leaves an Implosion (no XP, so shots pass through it)");
+        if (imp != null)
+        {
+            var pull = (V2)typeof(Game).GetMethod("WellDriftAt", np).Invoke(g, new object[] { imp.Pos + new V2(150f, 0f) });
+            Check(pull.X < -20f, "the Implosion pulls players in");
+            int iid = imp.Id, ring = 0;
+            var ringIds = new HashSet<int>();
+            run(Game.ImplosionTime + 0.3f, () => { foreach (var b in g.Bullets.Values) if (b.Shooter == iid && ringIds.Add(b.Id)) ring++; });
+            Check(!g.Enemies.ContainsKey(iid) && ring == Game.ImplosionShots, "after " + Game.ImplosionTime + " s it bursts into a ring of " + Game.ImplosionShots + " and is gone (" + ring + ")");
+        }
         host.Leave("");
 
         // The faction: the three come in the waves before the Singularity (50-wave track: 16-19).
         var f0 = Approaches.For(EnemyType.Singularity);
-        Check(f0 != null && f0.Members.Select(m => m.Type).SequenceEqual(new[] { EnemyType.Debris, EnemyType.Acolyte, EnemyType.Pulsar }) && f0.Squads.Length == 2,
-            "the Singularity's faction: Debris, Acolyte, Pulsar; squads Infall and Binary");
+        Check(f0 != null && f0.Members.Select(m => m.Type).SequenceEqual(new[] { EnemyType.Debris, EnemyType.Acolyte, EnemyType.Graviton, EnemyType.Orbiter, EnemyType.Pulsar, EnemyType.Collapsar })
+            && f0.Squads.Select(q => q.Name).SequenceEqual(new[] { "Infall", "Binary", "Gravity trap" }),
+            "the Singularity's faction so far: Debris, Acolyte, Graviton, Orbiter, Pulsar, Collapsar; squads Infall, Binary, Gravity trap");
         var build = typeof(Game).GetMethod("BuildWave", np);
         var spawnQ = typeof(Game).GetField("spawnQueue", np);
         var squadQ = typeof(Game).GetField("squadQueue", np);
@@ -129,7 +171,7 @@ static partial class Program
                 early.Add(t);
         }
         Console.WriteLine("  waves 16-19 bring: " + string.Join(", ", seen));
-        Check(seen.Count == 3, "waves 16-19 bring all three");
+        Check(f0.Members.All(m => seen.Contains(m.Type)), "waves 16-19 bring all of them");
         Check(early.Count == 0, "none come before the Singularity's approach");
     }
 

@@ -43,6 +43,9 @@ namespace Arena
                 case EnemyType.Debris: return "Spirals in at you, hard to line up. Lead your shots into the curve.";
                 case EnemyType.Acolyte: return "Three orbs that bend in to meet on you. Step forward or back, not sideways.";
                 case EnemyType.Pulsar: return "Two beams flicker, then sweep a quarter turn. Walk the way they turn.";
+                case EnemyType.Graviton: return "Lobs a small well by you that drags you in. Get clear, or shoot the well.";
+                case EnemyType.Orbiter: return "Circles you, then slings a flaring orb straight at you. Sidestep the flare.";
+                case EnemyType.Collapsar: return "Implodes when killed: a pull, then a ring of shots. Kill it at range.";
                 case EnemyType.Grunt: return "Shoots a three-shot fan. Weave between the shots.";
                 case EnemyType.Swarmer: return "Runs at you in packs and bites. Don't get surrounded.";
                 case EnemyType.Burster: return "Fires a ring of shots. Find the gap and step through.";

@@ -57,6 +57,8 @@ namespace Arena
         Worker, Soldier, CombShield, HoneyLobber, Stinger, Needler, Bumble, Hornet,
         // the Singularity's faction, the Infall (Docs/SingularityFaction.md, Infall.cs, Game/InfallLook.cs): step 1
         Debris, Acolyte, Pulsar,
+        // ...step 2, with the Graviton's small well and the Collapsar's implosion (both only come from them)
+        Graviton, Orbiter, Collapsar, MiniWell, Implosion,
     }
 
     public class RoleDef
@@ -333,6 +335,16 @@ namespace Arena
                 Picker = PickerGroup.Ranged, Blurb = "A void cultist. Fires three slow orbs: the outer two bend in and meet where you stand. Step forward or back, not sideways." },
             new EnemyDef { Name = "Pulsar", Hp = 70f, Radius = 13f, Speed = 75f, Score = 9, Xp = 12, Sides = 12, Color = new Rgba(0.5f, 0.84f, 1f),
                 Picker = PickerGroup.Ranged, Blurb = "A spinning neutron star. Its two beams flicker for a second, then switch on and sweep a quarter turn. Walk with the sweep." },
+            new EnemyDef { Name = "Graviton", Hp = 50f, Radius = 14f, Speed = 80f, Score = 8, Xp = 10, Sides = 6, Color = new Rgba(0.75f, 0.5f, 1f),
+                Picker = PickerGroup.Ranged, Blurb = "Lobs a small gravity well by you every 6 s. For 4 s it drags you in and swallows shots near it. Get clear, or shoot the well." },
+            new EnemyDef { Name = "Orbiter", Hp = 60f, Radius = 12f, Speed = 95f, Score = 8, Xp = 11, Sides = 10, Color = new Rgba(0.85f, 0.35f, 1f),
+                Picker = PickerGroup.Ranged, Blurb = "Circles you with three orbs turning round it. One flares, then it slings that orb straight at you, fast." },
+            new EnemyDef { Name = "Collapsar", Hp = 220f, Radius = 22f, Speed = 58f, Score = 12, Xp = 16, Sides = 14, Color = new Rgba(1f, 0.47f, 0.86f), Melee = true, Contact = 20f,
+                Picker = PickerGroup.Melee, Blurb = "A slow, dense star that shrinks as it's shot. Killed, it collapses: a short pull, then a ring of 12 shots. Kill it at range." },
+            new EnemyDef { Name = "Small Well", Hp = 30f, Radius = 11f, Speed = 0f, Score = 1, Xp = 3, Sides = 6, Color = new Rgba(0.85f, 0.35f, 1f), Melee = true,
+                Picker = PickerGroup.Hidden },
+            new EnemyDef { Name = "Implosion", Hp = 1e6f, Radius = 10f, Speed = 0f, Score = 0, Xp = 0, Sides = 6, Color = new Rgba(1f, 0.47f, 0.86f), Melee = true,
+                Picker = PickerGroup.Hidden },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount

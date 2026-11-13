@@ -318,7 +318,7 @@ static partial class Program
         Test("knight", "the Knight", () => KnightTest(Dt)),
         Test("knightdps", "the DPS Knight's Caught Steel, Gauntlet, Misericorde and Drawbridge", () => KnightDpsTest(Dt)),
         Test("hive", "the Hive Queen's faction: eight enemies that play like the Warden's, honey instead of gas, the venom dart, and the chart in waves 11-20", () => HiveTest(Dt)),
-        Test("infall", "the Singularity's faction, step 1: Debris spirals in, the Acolyte's bent orbs meet on you, the Pulsar's two sweeping beams, waves 16-19", () => InfallTest(Dt)),
+        Test("infall", "the Singularity's faction, steps 1-2: Debris, Acolyte, Pulsar, Graviton's well, Orbiter, Collapsar's implosion, waves 16-19", () => InfallTest(Dt)),
         Test("spawndump", "the spawner refactor's safety net: the first waves of a few modes played headless, every arrival compared with Golden/spawndump.txt (WAVEDUMP=update rewrites it)", () => SpawnDumpTest()),
         Test("wavedump", "the refactor safety net: every mode's waves built on fixed seeds, compared with Golden/wavedump.txt (WAVEDUMP=update rewrites it)", () => WaveDumpTest()),
         Test("bossslot", "the boss between waves: it follows every fifth regular wave and keeps its number; paths, saves and the Lab start", () => BossSlotTest(Dt)),
