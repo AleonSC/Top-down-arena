@@ -897,6 +897,8 @@ namespace Arena
                 dmg *= HookOpenMult;  // a Hookman that just missed (NonShooters.cs)
             if (RiotShieldBroken(e))
                 dmg *= RiotBrokenMult;  // its shield's gone (WardenFaction.cs)
+            if (e.Type == EnemyType.RiotCaptain && e.Phase == CapDazed)
+                dmg *= CaptainDazedMult;  // ran into a wall (RiotCaptain.cs)
             if (WardenExposed(e))
                 dmg *= ExposedMult;  // blinded by its own searchlight (Warden.cs)
             if (WardenShieldBroken(e))

@@ -309,9 +309,9 @@ namespace Arena
             }
             if (VaultUp)
             {
-                // The vault's mini-boss (Docs/Rooms.md decision 7): The Gatekeeper for now, moved here from the Data Gates.
+                // The vault's mini-boss (Docs/Rooms.md decision 7): the next boss's faction's (FactionMinis.cs; the Gatekeeper is back in the Data Gates).
                 var v = Rooms.Areas[Rooms.Vault];
-                var boss = SpawnEnemyAt(EnemyType.Gatekeeper, v.Mid - new V2(0f, 40f), 1.2f, 0);
+                var boss = SpawnEnemyAt(MiniBossNow(), v.Mid - new V2(0f, 40f), 1.2f, 0);
                 boss.Home = Rooms.Vault;
                 boss.T2 = 2.5f;
                 vaultBossId = boss.Id;
@@ -433,6 +433,7 @@ namespace Arena
         void WinVault()
         {
             VaultCleared = true;
+            ClearCaptainAdds(vaultBossId);  // its men go with it (RiotCaptain.cs)
             GrantVaultPrize(Rooms.Areas[Rooms.Vault].Mid);
             DoLog("vault cleared");
         }
@@ -582,7 +583,7 @@ namespace Arena
                 }
                 return false;
             }
-            bool vault = e.Home == Rooms.Vault || ExpandingOn && e.Type == EnemyType.Gatekeeper;
+            bool vault = e.Home == Rooms.Vault || ExpandingOn && FactionMinis.Duels(e.Type);
             var rs = vault ? null : StateOf(e.Home);
             if (!vault && (rs == null || !rs.NestAlive))
                 return false;  // the nest is down: what's left comes for you
@@ -647,6 +648,7 @@ namespace Arena
             if (!VaultUp)
                 return;
             Enemy boss;
+            ClearCaptainAdds(vaultBossId);
             if (Enemies.TryGetValue(vaultBossId, out boss))
                 Enemies.Remove(vaultBossId);
             var v = Rooms.Areas[Rooms.Vault];

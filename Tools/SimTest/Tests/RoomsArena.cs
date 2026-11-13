@@ -443,7 +443,7 @@ static partial class Program
             bool onePer = Enumerable.Range(0, 5).All(st => vaultWaves.Count(w => (w - 1) / 10 == st) == 1) && vaultWaves[0] >= Rooms.FirstVault && bossVaults == 0;
             Check(onePer, "one regular wave in each stretch of ten has the vault, never a boss fight (" + string.Join(", ", vaultWaves) + "; " + bossVaults + " on a boss)");
 
-            // A vault wave: the world reaches up to it, its mini-boss is the Gatekeeper, and he stays in it.
+            // A vault wave: the world reaches up to it, its mini-boss is the next boss's faction's (FactionMinis.cs), and it stays in it.
             Quiet();
             foreach (var p in g.Players.Values) movePlayer.Invoke(g, new object[] { p, new V2(Game.Width / 2f, Game.Height / 2f) });
             g.Wave = 7; g.BossSlot = false; fStretch.SetValue(g, 0); fWave.SetValue(g, 7);
@@ -451,21 +451,21 @@ static partial class Program
             startRooms.Invoke(g, null);
             Run(s, dt, 0.4f);
             var vault = Rooms.Areas[Rooms.Vault];
-            var keeper = g.Enemies.Values.FirstOrDefault(e => e.Type == EnemyType.Gatekeeper);
+            var keeper = g.Enemies.Values.FirstOrDefault(e => FactionMinis.Is(e.Type));
             Check(g.VaultOn && cg.VaultOn && g.ArenaMin.Y < -Rooms.HallH - Rooms.VaultH + 1f && cg.ArenaMin.DistanceTo(g.ArenaMin) < 0.01f && g.ActiveLayout.Waypoints.Any(w => vault.Contains(w)),
                 "a vault wave opens the vault off the top hallway (on both screens)");
-            Check(keeper != null && keeper.Home == Rooms.Vault && vault.Contains(keeper.Pos), "the Gatekeeper waits in the vault");
+            Check(keeper != null && keeper.Home == Rooms.Vault && vault.Contains(keeper.Pos), "the faction mini-boss (" + (keeper != null ? keeper.Def.Name : "none") + ") waits in the vault");
             Run(s, dt, 5f, null, () => { foreach (var r in g.RoomStates) r.SpillT = 999f; });
             Check(keeper != null && vault.Contains(keeper.Pos, 10f), "...and stays there while nobody comes in");
             Check(g.AreaLocked(Rooms.Vault), "the vault locks behind you while he lives");
 
             // The vault is optional: clear the rooms and the wave ends without him (he goes with it).
-            foreach (var e in g.Enemies.Values) if (e.Type != EnemyType.Gatekeeper) e.Hp = 0f;
+            foreach (var e in g.Enemies.Values) if (!FactionMinis.Is(e.Type)) e.Hp = 0f;
             spawnQueue.Clear();
             ((IList)typeof(Game).GetField("squadQueue", flags).GetValue(g)).Clear();
             g.State = MatchState.Fighting;
             Run(s, dt, 3f, () => g.State == MatchState.Intermission, () => { foreach (var r in g.RoomStates) r.SpillT = 999f; });
-            Check(g.State == MatchState.Intermission && !g.Enemies.Values.Any(e => e.Type == EnemyType.Gatekeeper), "the wave ends without the vault, and its mini-boss goes with the wave");
+            Check(g.State == MatchState.Intermission && !g.Enemies.Values.Any(e => FactionMinis.Is(e.Type)), "the wave ends without the vault, and its mini-boss goes with the wave");
 
             // Beat him: everyone gets a prize pick (rare or better), as from his old Data Gate.
             g.State = MatchState.Fighting;
@@ -476,16 +476,16 @@ static partial class Program
             keepWave.Hp = keepWave.MaxHp = 99999f;
             var picks0 = g.Players.Values.Select(p => p.PrizePicks).ToList();
             Run(s, dt, 0.3f);
-            foreach (var e in g.Enemies.Values) if (e.Type == EnemyType.Gatekeeper) e.Hp = 0f;
+            foreach (var e in g.Enemies.Values) if (FactionMinis.Is(e.Type)) e.Hp = 0f;
             Run(s, dt, 0.4f, null, () => { foreach (var p in g.Players.Values) { p.Offer = null; } });
             Check(g.VaultCleared && cg.VaultCleared && g.Players.Values.Select(p => p.PrizePicks).Zip(picks0, (a2, b2) => a2 >= b2 + 1).All(x => x) || g.VaultCleared && g.Players.Values.All(p => p.OfferPrize),
-                "beating the vault's Gatekeeper gives everyone a prize pick");
+                "beating the vault's mini-boss gives everyone a prize pick");
             Quiet();
             Run(s, dt, 0.3f);
             foreach (var p in g.Players.Values) { p.PrizePicks = 0; p.Offer = null; p.LegendaryQueue.Clear(); }
         }
 
-        // The Gatekeeper's Data Gate: gone from the Rooms arena (he's in the vault), still there in Classic.
+        // The Gatekeeper's Data Gate: in every arena (the vault holds a faction mini-boss instead).
         {
             var maybe = typeof(Game).GetMethod("MaybeOpenPortal", flags);
             var fBlock = typeof(Game).GetField("portalBlock", flags);
@@ -506,8 +506,8 @@ static partial class Program
             }
             g.Room = RoomPhase.None; g.RoomKind = ChallengeKind.None; g.ChallengesOn = chOn;
             g.Diff.Set(DiffKnob.ArenaRooms, 1f);
-            Check(!kinds[true].Contains(ChallengeKind.MiniBoss) && kinds[true].Count == 4 && kinds[false].Contains(ChallengeKind.MiniBoss),
-                "the Rooms arena's Data Gates never hold the Gatekeeper (" + string.Join(", ", kinds[true]) + "); Classic's still do");
+            Check(kinds[true].Contains(ChallengeKind.MiniBoss) && kinds[false].Contains(ChallengeKind.MiniBoss),
+                "the Gatekeeper's Data Gate comes up in the Rooms arena (" + string.Join(", ", kinds[true]) + ") and in Classic");
         }
 
         // A whole regular wave with the rooms up: the enemies come for you through the doors and the wave ends.

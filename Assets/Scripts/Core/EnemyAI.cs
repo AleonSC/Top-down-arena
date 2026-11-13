@@ -276,8 +276,8 @@ namespace Arena
         public float SpawnHp(EnemyType type, int wave)
         {
             var d = Defs.Get(type);
-            if (type == EnemyType.Gatekeeper || type == EnemyType.Shadow)  // a challenge room's: a share of a boss's (Challenges.cs)
-                return BossEquivalentHp(wave) * (type == EnemyType.Gatekeeper ? Challenges.MiniBossShare : Challenges.ShadowShare);
+            if (type == EnemyType.Gatekeeper || type == EnemyType.Shadow || FactionMinis.Is(type))  // a challenge or mini-boss room's: a share of a boss's (Challenges.cs)
+                return BossEquivalentHp(wave) * (type == EnemyType.Shadow ? Challenges.ShadowShare : Challenges.MiniBossShare);
             float hp = d.Hp * (1f + 0.15f * (wave - 1)) * PartyHpScale(d.IsBoss);
             if (d.IsBoss)
                 hp *= BossHpMult(type) * BossHpBonus;  // Balance.cs
@@ -727,6 +727,11 @@ namespace Arena
                 RiotShieldFace(e, want, dt);  // WardenFaction.cs
                 return;
             }
+            if (e.Type == EnemyType.RiotCaptain)
+            {
+                CaptainFace(e, want, dt);  // RiotCaptain.cs
+                return;
+            }
             if (IsSwordsman(e.Type))
             {
                 SwordsmanTurn(e, want, dt);  // Swordsman.cs
@@ -753,6 +758,11 @@ namespace Arena
             if (e.Kin == EnemyType.RiotShield)
             {
                 WearRiotShield(e, amount);  // WardenFaction.cs
+                return;
+            }
+            if (e.Type == EnemyType.RiotCaptain)
+            {
+                CaptainShieldStruck(e);  // it never breaks (RiotCaptain.cs)
                 return;
             }
             if (e.Type == EnemyType.ShieldSwordsman)
@@ -808,6 +818,8 @@ namespace Arena
                 return true;  // a Lens's face (Infall.cs)
             if (e.Kin == EnemyType.RiotShield)
                 return RiotShieldBlocks(e, from);  // WardenFaction.cs
+            if (e.Type == EnemyType.RiotCaptain)
+                return CaptainShieldBlocks(e, from);  // RiotCaptain.cs
             if (e.Type == EnemyType.ShieldSwordsman)
                 return SwordShieldBlocks(e, from);  // Swordsman.cs
             if (e.Type != EnemyType.Shielder || e.Phase >= ShieldBroken)
@@ -988,6 +1000,8 @@ namespace Arena
                 v = InfallMove(e, tpos, dir, dist, dt, ref speed);  // Infall.cs
             if (Challenges.Own(e.Type))
                 v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
+            if (e.Type == EnemyType.RiotCaptain)
+                v = CaptainMove(e, dir, dist, ref speed);  // RiotCaptain.cs
             if (e.Kin == EnemyType.RiotShield || e.Kin == EnemyType.GasGrenadier || e.Kin == EnemyType.TaserGuard || e.Kin == EnemyType.SecurityGuard)
                 v = WardenFactionMove(e, tpos, dir, dist, dt, ref speed);  // WardenFaction.cs
             if (e.Type == EnemyType.BoundWraith || e.Type == EnemyType.Lamplighter || e.Type == EnemyType.Mourner)
@@ -1027,6 +1041,11 @@ namespace Arena
             if (Challenges.Own(e.Type))
             {
                 RoomSpecial(e, tpos, dt);  // Challenges.cs
+                return;
+            }
+            if (e.Type == EnemyType.RiotCaptain)
+            {
+                CaptainSpecial(e, tpos, dt);  // RiotCaptain.cs
                 return;
             }
             if (IsNonShooter(e.Type))
@@ -1190,6 +1209,11 @@ namespace Arena
             float aim = (tpos - e.Pos).Angle;
             if (Challenges.Own(e.Type) && RoomFire(e, tpos, aim))
                 return;  // Challenges.cs
+            if (e.Type == EnemyType.RiotCaptain)
+            {
+                e.FireT = 99f;  // its attacks are its Special (RiotCaptain.cs)
+                return;
+            }
             if (IsLateGame(e.Type))
             {
                 LateFire(e, tpos, aim);

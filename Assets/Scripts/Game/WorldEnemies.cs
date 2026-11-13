@@ -450,6 +450,11 @@ namespace Arena
                     DrawShadow(e, pos, r, hit, spawning, t);
                 return;
             }
+            if (e.Type == EnemyType.RiotCaptain)
+            {
+                DrawRiotCaptain(e, pos, r, e.Flash > 0f || JuiceFlash(e), spawning, t);  // RiotCaptainLook.cs
+                return;
+            }
             if (e.Type == EnemyType.Portal)
             {
                 DrawSpawnPortal(e, pos, r, e.Flash > 0f || JuiceFlash(e), spawning, t);  // SpawnPortalLook.cs

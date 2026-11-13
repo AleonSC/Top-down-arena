@@ -68,10 +68,10 @@ namespace Arena
             if (e.Phase == 0)
             {
                 float rk = Mathf.Clamp01(e.SeenT / Game.SecurityReload);
-                for (int i = 0; i < 24; i++)  // the dashed ring, then the cream sweep
-                    Arc(pos, 38f * r / 15f, 1.5f, SecCream.WithAlpha(0.3f), 3, i * MathX.Tau / 24f, MathX.Tau / 48f);
-                Circle(pos, 38f * r / 15f, SecCream.WithAlpha(0.04f + 0.06f * (1f - rk)), 32);
-                Arc(pos, 38f * r / 15f, 3f, SecCream.WithAlpha(0.9f), Mathf.Max(3, (int)(40 * rk)), -MathX.Pi / 2f, MathX.Tau * rk);
+                for (int i = 0; i < 24; i++)  // the dashed ring (a dash is 7.5 degrees: one quad), then the cream sweep
+                    Arc(pos, 38f * r / 15f, 1.5f, SecCream.WithAlpha(0.3f), 1, i * MathX.Tau / 24f, MathX.Tau / 48f);
+                Circle(pos, 38f * r / 15f, SecCream.WithAlpha(0.04f + 0.06f * (1f - rk)), 20);
+                Arc(pos, 38f * r / 15f, 3f, SecCream.WithAlpha(0.9f), Mathf.Max(3, (int)(24 * rk)), -MathX.Pi / 2f, MathX.Tau * rk);
             }
         }
 
