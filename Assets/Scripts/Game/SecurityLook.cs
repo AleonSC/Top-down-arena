@@ -137,7 +137,8 @@ namespace Arena
                 gx = SecLerp(15f, 11f, w);
                 gy = SecLerp(0f, 9f, w);
                 gr = SecLerp(0f, 0.5f, w);
-                lh = SecKf(rk, SecHand);
+                float mu = SecEase(Mathf.Clamp01((rk - 0.5f) / 0.26f));  // the fresh magazine slides from the body into the grip
+                lh = new V2(SecLerp(2f, gx + 1f, mu), SecLerp(14f, gy + 2f, mu));
                 magInHand = rk > 0.5f && rk < 0.76f;
                 slideBack = rk > 0.9f ? Mathf.Sin((rk - 0.9f) / 0.1f * MathX.Pi) * 5f : 0f;
             }
