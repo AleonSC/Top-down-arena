@@ -294,6 +294,11 @@ namespace Arena
                 DrawAcidPatch(pt, t);  // a Spitter's acid (ZombieLook.cs)
                 return;
             }
+            if (pt.Kind == PatchKind.Grave)
+            {
+                DrawGravePatch(pt, t);  // a Grave Caller's grave (ZombieLook.cs)
+                return;
+            }
             if (pt.Kind == PatchKind.Spores)
             {
                 DrawSporePatch(pt, t);  // a Bloater's spores (ZombieLook.cs)

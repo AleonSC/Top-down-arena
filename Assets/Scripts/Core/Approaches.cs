@@ -316,24 +316,50 @@ namespace Arena
             },
             new FactionDef
             {
-                Boss = EnemyType.Lich,  // the Lich: the restless dead, the same zombies as Zombie Infection (Zombies.cs); they don't get back up outside that modifier
+                Boss = EnemyType.Lich,  // the Lich: the restless dead, Zombie Infection's seven and his own Grave Caller (Zombies.cs, Docs/Mockups/lich-faction.html); they don't get back up outside that modifier, only out of a Caller's graves
                 Members = new[]
                 {
                     new FactionMember { Type = EnemyType.Shambler, Weight = 4f },
                     new FactionMember { Type = EnemyType.Runner, Weight = 1.5f, From = 2 },  // (a pick is a pack of three)
                     new FactionMember { Type = EnemyType.Spitter, Weight = 1.5f, From = 2 },
                     new FactionMember { Type = EnemyType.Crawler, Weight = 1f, From = 3 },
+                    new FactionMember { Type = EnemyType.Bloater, Weight = 1f, From = 3 },  // bursts into spores (the soul storm: don't fight inside it)
+                    new FactionMember { Type = EnemyType.Shrieker, Fade = 1, Weight = 0.5f, From = 3 },  // its scream frenzies the horde (the wailing spirits)
                     new FactionMember { Type = EnemyType.Mender, Weight = 0.7f, From = 4 },
+                    new FactionMember { Type = EnemyType.GraveCaller, Fade = 0, Weight = 0.6f, From = 4 },  // graves round you, the dead climbing out (grave rings, the dead rising)
                 },
                 Squads = new[]
                 {
                     new SquadDef { Name = "Graveyard shift", From = 1, Members = new[] { EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler } },
                     new SquadDef { Name = "Grave rush", From = 2, Members = new[] { EnemyType.Runner, EnemyType.Runner, EnemyType.Runner, EnemyType.Runner, EnemyType.Runner, EnemyType.Shambler, EnemyType.Shambler } },
+                    new SquadDef { Name = "Gravediggers", From = 3, Members = new[] { EnemyType.Crawler, EnemyType.Crawler, EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler } },
+                    new SquadDef { Name = "Plague cart", From = 3, Members = new[] { EnemyType.Bloater, EnemyType.Shambler, EnemyType.Shambler, EnemyType.Spitter, EnemyType.Spitter } },
+                    new SquadDef { Name = "Wake", From = 3, Members = new[] { EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler, EnemyType.Runner, EnemyType.Runner, EnemyType.Runner, EnemyType.Shrieker } },
+                    new SquadDef { Name = "Wake the dead", From = 4, Members = new[] { EnemyType.Shambler, EnemyType.Shambler, EnemyType.Spitter, EnemyType.Spitter, EnemyType.GraveCaller } },
                 },
-                // Wave 4: a shambling wall with Menders to keep it standing, Runners on its flanks.
+                LessonSquads = new[]
+                {
+                    new SquadDef { Name = "Shambling pair", From = 1, Members = new[] { EnemyType.Shambler, EnemyType.Shambler } },
+                },
+                // Wave 4: a shambling wall with Menders to keep it standing, Runners on its flanks, a Shrieker and two Grave Callers at the back.
                 Finale = new SquadDef { Name = "Dead march", From = 4, Members = new[] {
                     EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler,
-                    EnemyType.Mender, EnemyType.Mender, EnemyType.Runner, EnemyType.Runner, EnemyType.Runner } },
+                    EnemyType.Mender, EnemyType.Mender, EnemyType.Runner, EnemyType.Runner, EnemyType.Runner,
+                    EnemyType.Shrieker, EnemyType.GraveCaller, EnemyType.GraveCaller } },
+                // The Campaign's Lich cycle: one zombie a wave, the same shape as the others' (Docs/Mockups/lich-faction.html).
+                Lessons = new[]
+                {
+                    new WaveLesson { Teaches = "Shamblers: a slow wall, don't get cornered (the Crypt's dead)", Members = new[] { M(EnemyType.Shambler, 1f) }, Squads = new[] { "Graveyard shift" } },
+                    new WaveLesson { Teaches = "Runners: turn and shoot, kiting doesn't work", Trickle = true, Star = EnemyType.Runner, Members = new[] { M(EnemyType.Shambler, 2f) }, Squads = new[] { "Graveyard shift", "Grave rush" } },
+                    new WaveLesson { Teaches = "Spitters: keep moving out of the acid (its soul fans' floor)", Trickle = true, Star = EnemyType.Spitter, Members = new[] { M(EnemyType.Shambler, 2f), M(EnemyType.Runner, 1f) }, Squads = new[] { "Grave rush" } },
+                    new WaveLesson { Teaches = "Crawlers: shoot it off you (dead hands)", Trickle = true, Star = EnemyType.Crawler, Members = new[] { M(EnemyType.Shambler, 2f), M(EnemyType.Runner, 1f), M(EnemyType.Spitter, 1f) }, Squads = new[] { "Grave rush", "Gravediggers" } },
+                    new WaveLesson { Teaches = "Bloaters: pop it at range, never fight in the spores (the soul storm)", Trickle = true, Star = EnemyType.Bloater, Members = new[] { M(EnemyType.Shambler, 2f), M(EnemyType.Runner, 1f), M(EnemyType.Spitter, 1f) }, Squads = new[] { "Plague cart", "Shambling pair" } },
+                    new WaveLesson { Teaches = "A recap, and Shriekers join (the wailing spirits)", Trickle = true, Star = EnemyType.Shrieker, Members = new[] { M(EnemyType.Shambler, 2f), M(EnemyType.Runner, 1f), M(EnemyType.Crawler, 1f), M(EnemyType.Bloater, 1f) }, Squads = new[] { "Wake", "Plague cart" } },
+                    new WaveLesson { Teaches = "Menders: kill it first (the Lich's phylactery keeps him standing)", Trickle = true, Star = EnemyType.Mender, Members = new[] { M(EnemyType.Shambler, 2f), M(EnemyType.Spitter, 1f), M(EnemyType.Bloater, 1f), M(EnemyType.Shrieker, 0.5f) }, Squads = new[] { "Wake", "Gravediggers" } },
+                    new WaveLesson { Teaches = "Grave Callers: step out of the ring, then kill it (grave rings, the dead rising)", Trickle = true, Star = EnemyType.GraveCaller, Members = new[] { M(EnemyType.Shambler, 2f), M(EnemyType.Runner, 1f), M(EnemyType.Spitter, 1f), M(EnemyType.Mender, 0.7f) }, Squads = new[] { "Wake the dead", "Wake" } },
+                    new WaveLesson { Teaches = "Every squad, tighter", Members = null, Squads = null, SquadChance = 0.75f },
+                    new WaveLesson { Teaches = "The exam: the Dead march with everything", Members = null, Squads = new string[0], Finale = true, Also = "Graveyard shift" },
+                },
             },
         };
 
