@@ -256,7 +256,7 @@ static partial class Shot {
         set("practiceSel", 1);
         if (Environment.GetEnvironmentVariable("LOBBYTAB") != null) set("lobbyWasPractice", true);  // (so LOBBYTAB=7 stays on the Training tab)
       }
-      // FAVS=1: the Saved loadouts drawer open with four favourites (FavoritesUi.cs); FAVS=name: naming a fifth; FAVS=sure: deleting the second; FAVS=key: closed, the SAVED key showing.
+      // FAVS=1: the Saved loadouts drawer open with four favourites (FavoritesUi.cs); FAVS=name: naming a fifth; FAVS=sure: deleting the second; FAVS=rename: renaming the second; FAVS=key: closed, the SAVED key showing.
       var favs = Environment.GetEnvironmentVariable("FAVS");
       if (favs != null) {
         var fp = host.Game.ProfileOverride ?? (host.Game.ProfileOverride = new Profile());
@@ -267,6 +267,7 @@ static partial class Shot {
         if (favs != "key") set("favOpen", true);
         if (favs == "name") { set("favNaming", true); set("favNameText", "Knight Tank"); }
         if (favs == "sure") set("favSure", 1);
+        if (favs == "rename") { set("favRenaming", 1); set("favRenameText", "Storm Caller"); }
       }
       var hv = Environment.GetEnvironmentVariable("MOUSE");
       if (hv != null) { var xy = hv.Split(','); Event.current.mousePosition = new Vector2(float.Parse(xy[0]), float.Parse(xy[1])); }
@@ -380,18 +381,6 @@ static partial class Shot {
       GL.Tris.Clear();
       set("drawScale", 1f);
       typeof(ArenaApp).GetMethod("DrawMenuBackground", f2).Invoke(app, new object[] { 7.3f });
-      // FAVS=1: the Saved loadouts drawer open with four favourites (FavoritesUi.cs); FAVS=name: naming a fifth; FAVS=sure: deleting the second; FAVS=key: closed, the SAVED key showing.
-      var favs = Environment.GetEnvironmentVariable("FAVS");
-      if (favs != null) {
-        var fp = host.Game.ProfileOverride ?? (host.Game.ProfileOverride = new Profile());
-        var seats = new[] { new LobbyEntry { Role = Role.Tank, Kit = Kit.Knight, Weapon = 1, Ability = 2 }, new LobbyEntry { Role = Role.Dps, Kit = Kit.Elementalist, Weapon = 0, Ability = 1 },
-          new LobbyEntry { Role = Role.Healer, Kit = Kit.Hemomancer, Weapon = 0, Ability = 0 }, new LobbyEntry { Role = Role.Dps, Kit = Kit.Soldier, Weapon = 3, Ability = 0 } };
-        var names = new[] { "Lance Wall", "Storm Caller", "Blood Medic", "Double Tap" };
-        for (int i = 0; i < seats.Length; i++) Favorites.Save(fp, names[i], seats[i]);
-        if (favs != "key") set("favOpen", true);
-        if (favs == "name") { set("favNaming", true); set("favNameText", "Knight Tank"); }
-        if (favs == "sure") set("favSure", 1);
-      }
       var hv = Environment.GetEnvironmentVariable("MOUSE");
       if (hv != null) { var xy = hv.Split(','); Event.current.mousePosition = new Vector2(float.Parse(xy[0]), float.Parse(xy[1])); }
       Event.current.type = EventType.Repaint;
@@ -591,13 +580,13 @@ static partial class Shot {
     {
       Func<string, int> U = n => Array.FindIndex(Upgrades.All, u => u.Name == n);
       if (Environment.GetEnvironmentVariable("GOLDINSTEAD") != null) { var gg = host.Game; gg.CurrentPath = PathId.Bazaar; gg.PathFrom = 11; gg.PathTo = 14; gg.Wave = 12; }  // GOLDINSTEAD=1: on the Bazaar, so the picker shows its gold-instead key
-      if (mode == "picker" && Environment.GetEnvironmentVariable("PRIZE") != null) { me.Offer = Upgrades.PrizeOffer(new System.Random(3), me.Role, me.RoleAbility, me.Taken); me.OfferPrize = true; }  // a challenge room's prize
+      if (mode == "picker" && Environment.GetEnvironmentVariable("PRIZE") != null) { me.Offer = Upgrades.PrizeOffer(new System.Random(3), OfferCtx.Of(me, false)); me.OfferPrize = true; }  // a challenge room's prize
       else if (mode == "picker" && Environment.GetEnvironmentVariable("KEYS") != null) { host.Game.GrantUpgrade(1, U("Overdrive")); me.Offer = new[] { U("Shockwave"), U("Blink"), U("Nova") }; }
       else if (mode == "picker" && Environment.GetEnvironmentVariable("PICKCARDS") != null) me.Offer = Array.ConvertAll(Environment.GetEnvironmentVariable("PICKCARDS").Split(','), n => U(n));
       else if (mode == "picker" && Environment.GetEnvironmentVariable("MILESTONE") != null) { host.Game.GrantUpgrade(1, U("Scholar")); host.Game.GrantUpgrade(1, U("Scholar")); host.Game.GrantUpgrade(1, U("Second Helping")); me.Offer = new[] { U("Scholar"), U("Second Helping"), U("Wide Choice") }; me.OfferMilestone = true; }  // MILESTONE=1: a milestone pick
       else if (mode == "picker") me.Offer = Environment.GetEnvironmentVariable("REVOLVER") != null ? new[] { U("Multishot"), U("Hollow Points"), U("Barrage") } : Environment.GetEnvironmentVariable("PARRYCARDS") != null ? new[] { U("Reinforced Guard"), U("Counterstance"), U("Wide Guard") } : new[] { U("Hollow Points"), U("Multishot"), U("Blink") };
       else if (mode == "legendary") { me.Offer = new[] { U("Warden's Guard"), U("Stun Gun"), U("Searchlight") }; me.OfferLegendary = true; }
-      else { me.Offer = Upgrades.ModOffer(me.Role, me.RoleAbility, me.Taken); me.OfferMod = true; }
+      else { me.Offer = Upgrades.ModOffer(OfferCtx.Of(me, false)); me.OfferMod = true; }
       me.PendingPicks = 2;
       typeof(ArenaApp).GetField("selectedCard", f2).SetValue(app, 1);
       typeof(ArenaApp).GetField("shownOffer", f2).SetValue(app, string.Join(",", Array.ConvertAll(me.Offer, x => x.ToString())) + "/" + me.Taken.Count);

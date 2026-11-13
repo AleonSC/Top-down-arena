@@ -688,7 +688,7 @@ the other players), so it always matches how weapons and abilities really behave
 
 The **SAVED** key at the right of the loadout's Role heading opens **Saved loadouts** over the right column (the
 preview and stats stay beside it). Up to **6** favourites, each a card with its name, class and role, weapon, ability
-and ultimate; the one you're wearing says **EQUIPPED**. **LOAD** puts on every pick at once (and the perks it was saved
+and ultimate; the one you're wearing says **EQUIPPED**. The pencil after a name renames it (Enter or the tick keeps it, Esc cancels). **LOAD** puts on every pick at once (and the perks it was saved
 with, if they're still unlocked); **X** then **SURE?** deletes one. **SAVE CURRENT LOADOUT** asks for a name (up to 20
 letters, the class and role by default; Enter saves, Esc cancels). Favourites are kept on your profile. Hidden while
 continuing a saved run (its seats are fixed); **< LOADOUT** or Esc closes the drawer.

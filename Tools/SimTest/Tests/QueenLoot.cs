@@ -21,7 +21,7 @@ static partial class Program
         var rng = new Random(5);
         for (int k = 0; k < 300; k++)
         {
-            var offer = Upgrades.LegendaryOffer(rng, (EnemyType)rng.Next(0, 60), Role.Dps, AbilityId.PoisonDart, new List<int>());
+            var offer = Upgrades.LegendaryOffer(rng, (EnemyType)rng.Next(0, 60), new OfferCtx(Role.Dps, AbilityId.PoisonDart, new List<int>()));
             neverOffered &= !offer.Any(i => Upgrades.All[i].Name == "Swarm Rounds" || Upgrades.All[i].Name == "Royal Jelly" || Upgrades.All[i].Name == "Brood Mother");
         }
         Console.WriteLine("  the Queen's legendaries: {0}; the old ones never offered in 300 boss offers: {1}", string.Join(", ", own), neverOffered);

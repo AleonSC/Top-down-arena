@@ -385,14 +385,14 @@ static partial class Program
 
         // Gold instead of a card: a level-up offer on the Bazaar can be swapped for gold; boss rewards can't.
         g.State = MatchState.Intermission;
-        me.Offer = Upgrades.RollOffer(new Random(4), me.Role, me.RoleAbility, me.Taken, me.Level, me.Weapon.Id, false);
+        me.Offer = Upgrades.RollOffer(new Random(4), OfferCtx.Of(me, false), me.Level);
         me.OfferLegendary = false; me.OfferMod = false; me.OfferMilestone = false; me.OfferPrize = false;
         me.PendingPicks = 1; me.PendingMods = 0; me.PendingMilestones = 0; me.PrizePicks = 0; me.LegendaryQueue.Clear();
         int goldBefore = me.Gold;
         g.TakeGoldInstead();
         Check(me.Gold == goldBefore + Game.GoldInsteadAmount(7) && me.PendingPicks == 0 && me.Offer == null, "gold instead of a card pays the wave's amount and uses the pick up (" + (me.Gold - goldBefore) + " gold at wave 7)");
         Check(Game.GoldInsteadAmount(20) > Game.GoldInsteadAmount(7), "gold instead grows with the wave");
-        me.Offer = Upgrades.RollOffer(new Random(4), me.Role, me.RoleAbility, me.Taken, me.Level, me.Weapon.Id, false);
+        me.Offer = Upgrades.RollOffer(new Random(4), OfferCtx.Of(me, false), me.Level);
         me.OfferLegendary = true; me.PendingPicks = 1;
         goldBefore = me.Gold;
         g.TakeGoldInstead();

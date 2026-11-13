@@ -4,7 +4,7 @@ namespace Arena
 {
     /// The lobby's Saved loadouts drawer (Core/Favorites.cs): the SAVED key at the right of the loadout's Role heading
     /// opens it over the right column (the preview and stats stay beside it, so a load shows at once). One card per
-    /// saved loadout with LOAD and delete (click X, then SURE?), SAVE CURRENT LOADOUT (type a name, Enter saves), and
+    /// saved loadout with LOAD, a pencil to rename it, and delete (click X, then SURE?), SAVE CURRENT LOADOUT (type a name, Enter saves), and
     /// dashed empty slots up to Favorites.Slots.
     public partial class ArenaApp
     {
@@ -12,6 +12,8 @@ namespace Arena
         bool favNaming;        // typing a name for the current loadout
         string favNameText = "";
         int favSure = -1;      // the card whose X was clicked once (a second click deletes)
+        int favRenaming = -1;  // the card whose name is being typed over (its pencil key)
+        string favRenameText = "";
         string favNote = "";
         float favNoteUntil;
 
@@ -24,6 +26,7 @@ namespace Arena
             {
                 favOpen = true;
                 favNaming = false;
+                favRenaming = -1;
                 favSure = -1;
             }
         }
@@ -36,9 +39,10 @@ namespace Arena
             int count = prof != null ? prof.Favorites.Count : 0;
             LobbyKit.Heading(r.x + 16f, r.y + 10f, r.width - 150f, "Saved loadouts", count + " of " + Favorites.Slots, calm);
             if (LobbyKit.Key(new Rect(r.xMax - 126f, r.y + 14f, 110f, 26f), "< LOADOUT", false, calm, size: 13, minSize: 10)
-                || (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape && !favNaming && favOpen))
+                || (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape && !favNaming && favRenaming < 0 && favOpen))
             {
                 favOpen = false;
+                favRenaming = -1;
                 favSure = -1;
                 if (Event.current.type == EventType.KeyDown) Event.current.Use();
                 return;
@@ -75,7 +79,7 @@ namespace Arena
             Ui.Icon(new Rect(c.x + 14f, c.center.y - isz / 2f, isz, isz), PixelArt.Get(f.Role == Role.Wildcard ? "role_dps" : Classes.Get(f.Kit).Icon), Color.white);
             float tx = c.x + 66f, tw = c.width - 66f - 116f;
             float line = c.height / 3.4f;
-            Ui.Label(new Rect(tx, c.y + 4f, tw, line + 4f), LobbyKit.Truncate(f.Name, 18, tw), 18, Color.white, TextAnchor.MiddleLeft, true);
+            FavNameLine(new Rect(tx, c.y + 4f, tw, line + 4f), f, index, calm);
             Ui.Label(new Rect(tx, c.y + 4f + line, tw, line), FavKitText(f), 13, Color.Lerp(col, Color.white, 0.15f), TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(tx, c.y + 4f + line * 2f, tw, line), LobbyKit.Truncate(FavGearText(f), 11, tw, false), 11, new Color(0.78f, 0.82f, 0.94f), TextAnchor.MiddleLeft);
             var kr = new Rect(c.xMax - 104f, c.center.y - 17f, 92f, 34f);
@@ -90,6 +94,7 @@ namespace Arena
                 {
                     favSure = -1;
                     var prof = session.Game.Profile;
+                    favRenaming = -1;
                     if (Favorites.Delete(prof, index))
                         prof.Save();
                     return true;
@@ -103,6 +108,56 @@ namespace Arena
             return false;
         }
 
+        /// The card's name with a pencil key after it; renaming, a text box in its place (Enter or the tick keeps it, Esc cancels).
+        void FavNameLine(Rect r, FavLoadout f, int index, bool calm)
+        {
+            if (favRenaming != index)
+            {
+                string shown = LobbyKit.Truncate(f.Name, 18, r.width - 30f);
+                Ui.Label(r, shown, 18, Color.white, TextAnchor.MiddleLeft, true);
+                float nw = Mathf.Min(Ui.TextWidth(shown, 18, true), r.width - 30f);
+                if (FavIconKey(new Rect(r.x + nw + 8f, r.center.y - 11f, 22f, 22f), "ui_pencil", Color.white, calm))
+                {
+                    favRenaming = index;
+                    favRenameText = f.Name;
+                    favNaming = false;
+                    favSure = -1;
+                }
+                return;
+            }
+            var box = new Rect(r.x - 4f, r.y, r.width - 26f, r.height);
+            Ui.Fill(box, new Color(1f, 1f, 1f, 0.08f));
+            GUI.SetNextControlName("fav_rename");
+            favRenameText = Ui.BareField(new Rect(box.x + 4f, box.y, box.width - 8f, box.height), favRenameText, Favorites.NameMax, 17);
+            if (GUI.GetNameOfFocusedControl() != "fav_rename" && Event.current.type == EventType.Repaint)
+                GUI.FocusControl("fav_rename");
+            bool enter = Event.current.type == EventType.KeyDown && (Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter);
+            bool esc = Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape;
+            if (FavIconKey(new Rect(box.xMax + 4f, r.center.y - 11f, 22f, 22f), "ui_check", Ui.Good, calm) || enter)
+            {
+                var prof = session.Game.Profile;
+                if (Favorites.Rename(prof, index, favRenameText))
+                    prof.Save();
+                favRenaming = -1;
+                GUI.FocusControl(null);
+                if (enter) Event.current.Use();
+            }
+            else if (esc)
+            {
+                favRenaming = -1;
+                GUI.FocusControl(null);
+                Event.current.Use();
+            }
+        }
+
+        /// A small square key with just an icon, centred.
+        static bool FavIconKey(Rect k, string icon, Color tint, bool calm)
+        {
+            bool hit = LobbyKit.Key(k, "", false, calm, size: 11);
+            Ui.Icon(new Rect(k.center.x - 7f, k.center.y - 7f, 14f, 14f), PixelArt.Get(icon), new Color(tint.r, tint.g, tint.b, k.Contains(Event.current.mousePosition) ? 1f : 0.75f));
+            return hit;
+        }
+
         void FavSaveSlot(Rect c, LobbyEntry me, Profile prof, bool calm)
         {
             if (!favNaming)
@@ -112,6 +167,7 @@ namespace Arena
                     favNaming = true;
                     favNameText = Favorites.DefaultName(me);
                     favSure = -1;
+                    favRenaming = -1;
                 }
                 return;
             }

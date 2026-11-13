@@ -259,13 +259,13 @@ namespace Arena
                 case Msg.Upgrades:
                 {
                     int id = r.ReadInt32();
-                    int n = r.ReadByte();
+                    int n = r.ReadInt16();
                     Player p;
                     if (!Players.TryGetValue(id, out p))
                         break;
                     p.Taken.Clear();
                     for (int i = 0; i < n; i++)
-                        p.Taken.Add(r.ReadByte());
+                        p.Taken.Add(r.ReadInt16());
                     for (int k = 0; k < p.BonusKeys.Length; k++)
                         p.BonusKeys[k] = (AbilityId)r.ReadByte();
                     Recalc(p);
@@ -662,7 +662,7 @@ namespace Arena
             s.Byte(ref offers);
             var offer = s.Reading ? (offers > 0 ? new int[offers] : null) : p.Offer;
             for (int k = 0; k < offers; k++)
-                s.Byte(ref offer[k]);
+                s.Short(ref offer[k]);  // card ids are 2 bytes; -1 (no card) survives the trip
             for (int k = 0; k < Upgrades.SlotCount; k++)
             {
                 snapCharges[k] = p.Slots[k].Charges;

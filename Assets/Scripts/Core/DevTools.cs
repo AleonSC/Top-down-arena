@@ -119,7 +119,7 @@ namespace Arena
             Player p;
             if (!IsHost || State == MatchState.Idle || upgrade < 0 || upgrade >= Upgrades.All.Length || !Players.TryGetValue(id, out p))
                 return false;
-            if (!Upgrades.Available(upgrade, p.Role, p.RoleAbility, p.Taken, p.Weapon.Id))
+            if (!Upgrades.Available(upgrade, OfferFor(p)))
                 return false;
             int n = 0;
             foreach (var l in Loots.Values)

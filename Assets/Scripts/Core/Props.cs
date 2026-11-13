@@ -617,16 +617,16 @@ namespace Arena
                 var boss = BossSchedule.Campaign.BossAt(5 * (1 + rng.Next(cycles)));  // (the Campaign's order; Quick Play gives it the run's bosses)
                 if (IsReaper(boss))
                     boss = EnemyType.TwinA;
-                var offer = Upgrades.LegendaryOffer(rng, boss, p.Role, p.RoleAbility, p.Taken);
+                var offer = Upgrades.LegendaryOffer(rng, boss, OfferFor(p));
                 int u = offer[rng.Next(offer.Length)];
-                if (Upgrades.Available(u, p.Role, p.RoleAbility, p.Taken) && Upgrades.All[u].Rarity == Rarity.Legendary)
+                if (Upgrades.Available(u, OfferFor(p)) && Upgrades.All[u].Rarity == Rarity.Legendary)
                     return u;
             }
             double roll = rng.NextDouble();
             var want = roll < 0.2 ? Rarity.Uncommon : roll < 0.65 ? Rarity.Rare : Rarity.VeryRare;
             if (want == Rarity.Uncommon && HasPerk(p, PerkId.Contraband))
                 want = Rarity.Rare;  // Contraband: rare or better
-            return Upgrades.RandomOfRarity(rng, want, p.Role, p.RoleAbility, p.Taken, p.Weapon.Id, ExpandingOn);
+            return Upgrades.RandomOfRarity(rng, want, OfferFor(p));
         }
 
         /// Host: does the wave have to wait (an unopened chest, or an item nobody has dealt with)?
@@ -714,7 +714,7 @@ namespace Arena
                 return;  // (a little slack for the client's position arriving late)
             Loots.Remove(lootId);
             var u = Upgrades.All[l.Upgrade];
-            if (take && Upgrades.Available(l.Upgrade, p.Role, p.RoleAbility, p.Taken, p.Weapon.Id, ExpandingOn))
+            if (take && Upgrades.Available(l.Upgrade, OfferFor(p)))
             {
                 Recorder?.Picked(this, p, new[] { l.Upgrade }, l.Upgrade, "chest");
                 GrantUpgrade(playerId, l.Upgrade);

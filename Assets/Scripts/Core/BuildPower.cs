@@ -45,18 +45,19 @@ namespace Arena
             for (int run = 0; run < 200; run++)
             {
                 var taken = new List<int>();
+                var ctx = new OfferCtx(role, roleAbility, taken);  // (no weapon: a typical build of any weapon, so no weapon-only cards)
                 int levels = TypicalLevel(wave) - 1;
                 for (int l = 0; l < levels; l++)
                 {
-                    var offer = Upgrades.RollOffer(rng, role, roleAbility, taken, l + 2);
+                    var offer = Upgrades.RollOffer(rng, ctx, l + 2);
                     if (offer != null && offer.Length > 0)
                         taken.Add(offer[rng.Next(offer.Length)]);
                 }
                 for (int b = 5; b < wave; b += 5)  // the bosses before this one: a legendary and a mod each
                 {
-                    var leg = Upgrades.LegendaryOffer(rng, BossOfWave(b), role, roleAbility, taken);
+                    var leg = Upgrades.LegendaryOffer(rng, BossOfWave(b), ctx);
                     taken.Add(leg[rng.Next(leg.Length)]);
-                    var mod = Upgrades.ModOffer(role, roleAbility, taken);
+                    var mod = Upgrades.ModOffer(ctx);
                     if (mod != null && mod.Length > 0)
                         taken.Add(mod[rng.Next(mod.Length)]);
                 }

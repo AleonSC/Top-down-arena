@@ -230,15 +230,15 @@ namespace Arena
         {
             for (int i = 0; i < PicksFor; i++)
             {
-                var offer = Upgrades.RollOffer(rng, p.Role, p.RoleAbility, p.Taken, 1 + i, p.Weapon.Id);
+                var offer = Upgrades.RollOffer(rng, g.OfferFor(p), 1 + i);
                 if (offer != null && offer.Length > 0)
                     g.GrantUpgrade(p.Id, offer[rng.Next(offer.Length)]);
             }
             if (Legendaries)
                 for (int w = Quick ? QuickPlay.Length : 5; w < Wave; w += Quick ? QuickPlay.Length : 5)  // (Quick Play: a boss every tenth wave)
                 {
-                    g.GrantUpgrade(p.Id, Upgrades.LegendaryOffer(rng, BossSchedule.Campaign.BossAt(w), p.Role, p.RoleAbility, p.Taken)[rng.Next(3)]);
-                    var mods = Upgrades.ModOffer(p.Role, p.RoleAbility, p.Taken);
+                    g.GrantUpgrade(p.Id, Upgrades.LegendaryOffer(rng, BossSchedule.Campaign.BossAt(w), g.OfferFor(p))[rng.Next(3)]);
+                    var mods = Upgrades.ModOffer(g.OfferFor(p));
                     if (mods != null)
                         g.GrantUpgrade(p.Id, mods[rng.Next(mods.Length)]);
                 }
