@@ -17,7 +17,7 @@ namespace Arena
     }
 
     /// How a squad arrives: in a line across its edge, split to opposite edges, or blinking in around a player.
-    public enum SquadForm : byte { Line, Pincer, Around, RiotLine, Accretion }  // RiotLine: a wall of Riot Shields (or their kin) marching at you, the rest close behind (WardenFaction.cs); Accretion: a ring round you that turns and closes (Infall.cs)
+    public enum SquadForm : byte { Line, Pincer, Around, RiotLine, Accretion, Honour }  // RiotLine: a wall of Riot Shields (or their kin) marching at you, the rest close behind (WardenFaction.cs); Accretion: a ring round you that turns and closes (Infall.cs); Honour: the Ring of Honour, fencers round you that lunge in by pairs (CourtFaction.cs)
 
     /// More variety between the bosses (built from Docs/Mockups/enemy-variety.html):
     ///   Four new enemies: the Beam Sentry (wave 18: plants itself, aims a line, sweeps a beam), the Scorcher (24:
@@ -238,6 +238,8 @@ namespace Arena
                         - fwd * (IsWallKin(type) ? 0f : RiotGuardBehind), 40f);  // the wall in front, the guards behind
                 else if (s.Form == SquadForm.Accretion && target != null && !RoomsOn)
                     pos = AccretionSpawn(id, i, target);  // in a ring round a player (Infall.cs)
+                else if (s.Form == SquadForm.Honour && target != null && !RoomsOn)
+                    pos = HonourSpawn(id, i, target);  // in a ring round a player (CourtFaction.cs)
                 else if (s.Form == SquadForm.Pincer && i < 2 && !breach.HasValue)  // (through a breach: they come in together)
                     pos = ClampToArena(new V2(i == 0 ? lo.X : hi.X, LayoutOn ? LayoutSideY(i == 0 ? 2 : 3, 150f) : Rand(lo.Y + 150f, hi.Y - 150f)), 40f);
                 else
@@ -327,6 +329,8 @@ namespace Arena
             riotLines.Clear();
             riotLineBroke.Clear();
             accretionRings.Clear();  // Infall.cs
+            honourRings.Clear();     // CourtFaction.cs
+            honourTurn.Clear();
             if (newRun)
             {
                 nextSquadId = 1;
@@ -336,11 +340,14 @@ namespace Arena
 
         /// At most MaxSentries Beam Sentries a wave (recorded runs had 5-7, and their beams did more damage than any
         /// other regular enemy): squads that would bring more come apart into single enemies, and spare Sentries become
-        /// Snipers or Grunts. The same for the Singularity's Pulsars (Infall.cs): spare ones become Void Acolytes.
+        /// Snipers or Grunts. The same for the Singularity's Pulsars (Infall.cs): spare ones become Void Acolytes; and the
+        /// Lich's Grave Callers and Shriekers (Zombies.cs): spare ones become Shamblers.
         void CapSentries()
         {
             CapBeams(EnemyType.BeamSentry, MaxSentries, () => rng.NextDouble() < 0.5 ? EnemyType.Sniper : EnemyType.Grunt);
             CapBeams(EnemyType.Pulsar, MaxPulsars, () => EnemyType.VoidAcolyte);
+            CapBeams(EnemyType.GraveCaller, Zombies.MaxCallers, () => EnemyType.Shambler);  // the Lich's: two Callers raise eight
+            CapBeams(EnemyType.Shrieker, Zombies.MaxShriekers, () => EnemyType.Shambler);
             CapBeams(EnemyType.Heliograph, MaxHeliographs, () => EnemyType.CoronaPriest);  // (Penumbral.cs)
         }
 
@@ -493,6 +500,8 @@ namespace Arena
                 return RiotLineMove(e, mates, tpos, v);  // WardenFaction.cs
             if (form == SquadForm.Accretion && accretionRings.ContainsKey(e.SquadId))
                 return AccretionMove(e, mates, v);  // Infall.cs
+            if (form == SquadForm.Honour && honourRings.ContainsKey(e.SquadId))
+                return HonourMove(e, mates, v);  // CourtFaction.cs
             if (e.T < SquadFormTime + 0.9f && !e.Def.Melee && e.Type != EnemyType.Phantom && e.Type != EnemyType.Shade && e.Type != EnemyType.Nest)
                 return dir * 0.6f;  // marching in together
             switch (e.Type)
@@ -570,6 +579,8 @@ namespace Arena
         /// A Lunger in a squad with Brutes waits for one of them to reach its target before it leaps.
         bool LungerWaits(Enemy e, V2 tpos)
         {
+            if (HonourHolds(e))
+                return true;  // in the Ring of Honour it lunges only on its turn (CourtFaction.cs)
             List<Enemy> mates;
             if (e.SquadId == 0 || !squadMembers.TryGetValue(e.SquadId, out mates))
                 return false;

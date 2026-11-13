@@ -1,6 +1,6 @@
 # The Eclipse's faction: the Penumbral Court
 
-**Status: step 1 built** (protocol 329): Ember, Corona Priest, Heliograph, squads Dawn and Mirror pair. Code: `Core/Penumbral.cs`, `Core/Approaches.cs`
+**Status: step 1 built** (protocol 333): Ember, Corona Priest, Heliograph, squads Dawn and Mirror pair. Code: `Core/Penumbral.cs`, `Core/Approaches.cs`
 (the Eclipse `FactionDef`), `Core/Defs.cs` (bullet kind `EmberSpark`), `Core/Variety.cs` (`CapBeams`: at most 3 Heliographs a wave), `Game/PenumbralLook.cs`;
 mockup `Docs/Mockups/eclipse-faction.html`; test suite `penumbral`; preview `PENUMBRAL=0.4 Tools/Preview/shot.sh x hud 1`. Replaces the Echoes plan in `Docs/Approaches.md`
 (Echoes stays as one squad).
@@ -22,7 +22,7 @@ previews one thing the Eclipse's stages test, so its cycle (waves 91-99 of the C
 ## Steps
 
 1. **Ember, Corona Priest, Heliograph** (built): the faction (`Approaches.All`, boss `Eclipse`) with these three, squads **Dawn** (a Corona Priest and six
-   Embers) and **Mirror pair** (two Heliographs). Ember sparks are a new bullet kind (`Defs.EmberSpark`, 65); the Heliograph's line is its Phase and Facing (no extra snapshot fields).
+   Embers) and **Mirror pair** (two Heliographs). Ember sparks are a new bullet kind (`Defs.EmberSpark`, 66); the Heliograph's line is its Phase and Facing (no extra snapshot fields).
    The Campaign builds waves by reach until step 4.
 2. **Moonward, Gnomon, Dusk Lobber**: a moon that blocks shots (`BlocksShot`, like the Lens's face), the Gnomon's shadow cone (players outside it
    take the flash), and the Dusk Lobber's pool (the Umbra's sight and drain, local). Squad **Night watch** (Dusk Lobber, Gnomon, three Embers).

@@ -11,7 +11,7 @@ namespace Arena
     public partial class ArenaApp
     {
         static readonly Rgba PenGold = new Rgba(1f, 0.82f, 0.4f), PenOrange = new Rgba(1f, 0.54f, 0.24f), PenSun = new Rgba(1f, 0.95f, 0.8f),
-            PenRed = new Rgba(1f, 0.31f, 0.23f), PenRobe = new Rgba(0.15f, 0.11f, 0.07f), PenTrim = new Rgba(0.55f, 0.42f, 0.24f);
+            PenRed = new Rgba(1f, 0.31f, 0.23f), PenCloth = new Rgba(0.15f, 0.11f, 0.07f), PenTrim = new Rgba(0.55f, 0.42f, 0.24f);
 
         /// On the floor, under the enemies: a Heliograph's line.
         void DrawPenumbralFloor(Enemy e, V2 pos, float t)
@@ -109,7 +109,7 @@ namespace Arena
         {
             V2 nose = pos + f * (r * 1.1f), back = pos - f * (r * 0.95f);
             V2 l = pos - f * (r * 0.55f) + s * (r * 0.9f), rgt = pos - f * (r * 0.55f) - s * (r * 0.9f);
-            SetColor(PenRobe);
+            SetColor(PenCloth);
             Tri(nose, l, back);
             Tri(nose, back, rgt);
             var trim = col.Mix(PenTrim, 0.5f);

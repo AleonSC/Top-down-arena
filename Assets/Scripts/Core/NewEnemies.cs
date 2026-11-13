@@ -32,9 +32,9 @@ namespace Arena
         {
             switch (t)
             {
-                case EnemyType.Worker: return "Small and quick, weaving at you in pairs. Don't get surrounded.";
-                case EnemyType.Soldier: return "Armoured and straight: no weaving. Sidestep the rush.";
-                case EnemyType.CombShield: return "Wax-cell shield stops shots. Break its cells, or flank it.";
+                case EnemyType.Worker: return "Small and quick, and faster in a crowd. Don't get surrounded.";
+                case EnemyType.Soldier: return "Armoured while it charges: wait out the rush, then hit it.";
+                case EnemyType.CombShield: return "Wax-cell shield stops most shots. Break its cells, or flank it.";
                 case EnemyType.HoneyLobber: return "Lobs honey at the red ring. Leave the spot; the puddle slows you.";
                 case EnemyType.Stinger: return "Charges a venom lance, then fires one dart that stuns. Strafe across the line.";
                 case EnemyType.Needler: return "Locks on, then fires needles straight at you. Keep moving, rush it as it reloads.";
@@ -53,11 +53,20 @@ namespace Arena
                 case EnemyType.WhiteDwarf: return "Flashes, then shoves you and turns your shots round. Hold fire on the flash.";
                 case EnemyType.Rubble: return "Rolls at you in weaving pairs. Don't get surrounded.";
                 case EnemyType.Quarryman: return "Walks straight at you, its lamp lighting the way. Sidestep it.";
+                case EnemyType.Fencer: return "Shows a short red line, then hops down it. Step off the line.";
+                case EnemyType.BladeDancer: return "Lunges down its line and leaves blades that fire sideways. Never stand beside the line.";
+                case EnemyType.Parrier: return "Parries your shots back from the front. Get behind it.";
+                case EnemyType.Second: return "Glints, then throws a fan of five daggers. Slip between them.";
+                case EnemyType.Marshal: return "Draws a gold circle round you. Fight in the middle, not on the edge.";
+                case EnemyType.Harlequin: return "Dashes an X of blades through you. Stand in a gap of the X.";
+                case EnemyType.Mummer: return "Splits into three. Only the real one's shots are solid.";
+                case EnemyType.Gallant: return "Salutes, then lunges. Parry as it arrives to leave it open.";
                 case EnemyType.Stomper: return "Lifts a foot, then stomps out a push ring. Step into the green gap.";
                 case EnemyType.SlabBearer: return "Its slab stops shots and bashes you back. Flank it, or break the slab.";
                 case EnemyType.RockHurler: return "Lobs a boulder where you're heading. Change direction out of the ring.";
                 case EnemyType.Driller: return "Drills along a lane; the crack it leaves erupts. Cross the line, don't follow it.";
                 case EnemyType.Geomancer: return "Sends a crack racing at you. It glows, then erupts: step off the line.";
+                case EnemyType.GraveCaller: return "Cracks graves open round you; Shamblers climb out. Step out, then kill it.";
                 case EnemyType.CinderPriest: return "Fires a magma bolt that leaves lava where it stops. Strafe, or parry it.";
                 case EnemyType.Grunt: return "Shoots a three-shot fan. Weave between the shots.";
                 case EnemyType.Swarmer: return "Runs at you in packs and bites. Don't get surrounded.";
