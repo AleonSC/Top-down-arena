@@ -1210,8 +1210,10 @@ static partial class Shot {
       int set = int.Parse(Environment.GetEnvironmentVariable("CAPTAIN"));
       Func<V2, byte, Enemy> cap = (at, ph) => { var en = (Enemy)cse.Invoke(cg, new object[] { EnemyType.RiotCaptain, at, 0f, 0, false }); en.SpawnT = 0f; en.Disp = en.Pos; en.Facing = (me.Pos - at).Angle; en.Phase = ph; en.PhaseT = 0.5f; return en; };
       byte[] phases = set == 0 ? new[] { Game.CapWalk, Game.CapWinding, Game.CapCharging, Game.CapDazed } : new[] { Game.CapLow, Game.CapGas, Game.CapFans, Game.CapWhistle };
-      V2[] spots = { new V2(560f, 490f), new V2(720f, 490f), new V2(880f, 490f), new V2(1040f, 490f) };
-      for (int k = 0; k < 4; k++) { var c = cap(spots[k], phases[k]); if (set == 1 && k == 3) c.Hp = c.MaxHp * 0.3f; }
+      V2[] spots = { new V2(560f, 420f), new V2(720f, 420f), new V2(880f, 420f), new V2(1040f, 420f) };
+      var solo = Environment.GetEnvironmentVariable("CAPPHASE");  // CAPPHASE=<k 0-3>: only that one, 200 px left of you (close-ups)
+      if (solo != null) { int k = int.Parse(solo); var c = cap(me.Pos + new V2(-200f, 0f), phases[k]); if (set == 1 && k == 3) c.Hp = c.MaxHp * 0.3f; }
+      else for (int k = 0; k < 4; k++) { var c = cap(spots[k], phases[k]); if (set == 1 && k == 3) c.Hp = c.MaxHp * 0.3f; }
     }
     if (Environment.GetEnvironmentVariable("POSSESS") != null) {
       // The Dev Arena (DevArena.cs): you playing as POSSESS=<EnemyType> (brackets, name, controls strip), your hero parked, two grunts.
