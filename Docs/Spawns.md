@@ -21,10 +21,11 @@ surges are **felt only** (no banner or sound); flanks get **a red arrow round yo
   bosses skip portals. Not on breach waves (the breaches are the way in) or any wave that isn't timed.
 - A portal (`EnemyType.Portal`) is an enemy with no AI: it appears (0.3 s), opens (1 s / 1.6 s flank), lets one enemy
   out every 0.35 s, then closes (0.45 s) and is removed with no reward. Frozen, caged or held, it pauses.
-- Spots come from `SpawnSpot` (the same rules regular spawns use), at least 160 px from players. A flank takes the
+- Spots come from `SpawnSpot` (the same rules regular spawns use), at least 160 px from players, and `SpawnPortals.Clearance` (60 px) clear of walls, pillars, props and the edge (`ClearOfWalls`, `PortalFits`: a gap too narrow is skipped). A flank takes the
   most-behind of 8 candidate spots, opposite the party's average aim.
 - The surge curve: the old ramp/plateau/taper times a pulse that is 1 at each surge (20%, 48%, 76% of the window,
   ±8%) and 0.4 between them. More portals may be open during a surge (3 vs 2).
+- Look (`SpawnPortalLook.cs`): a digital "loading" gate; in a surge its `Winding` is on (set in `TickPortals`) and the ring chases faster; shot closed it sends `FxKind.PortalSeal` (a white flash, the ring blown apart; protocol 334).
 - Wire: no new fields. `Phase` (0 opening, 1 emitting, 2/3 flank, 4 closing) and `Facing` ride the enemy snapshot;
   clients time the opening and closing from when they saw the phase change.
 

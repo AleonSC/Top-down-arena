@@ -281,7 +281,7 @@ namespace Arena
         static readonly HashSet<Msg> Kept = new HashSet<Msg>
         {
             Msg.Start, Msg.Spawn, Msg.Remove, Msg.ClearEnemyBullets, Msg.Fx, Msg.Snapshot, Msg.Upgrades, Msg.BulletSync, Msg.RunStats,
-            Msg.RunStatsLive, Msg.DevStats, Msg.Sound, Msg.PracticeWave, Msg.PathOffer, Msg.PathChosen, Msg.PathPatch, Msg.ExpandState, Msg.GateState, Msg.ShopGift,
+            Msg.RunStatsLive, Msg.DevStats, Msg.Sound, Msg.PracticeWave, Msg.PathOffer, Msg.PathChosen, Msg.PathPatch, Msg.HuntMapState, Msg.ExpandState, Msg.GateState, Msg.ShopGift,
             Msg.ReverseEnemyBullets, Msg.WaveReady, Msg.WaveSummary, Msg.Steer,
         };
 

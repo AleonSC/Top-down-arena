@@ -123,6 +123,12 @@ namespace Arena
                             DrawPathChoice(Time.unscaledTime);  // PathsUi.cs
                         break;
                     }
+                    if (game.HuntMapVoting && game.HuntRoute != null && !tabHeld)
+                    {
+                        if (!pauseUp)
+                            DrawHuntMap(game.HuntRoute, game.Hunt, Time.unscaledTime);  // HuntMapUi.cs
+                        break;
+                    }
                     if (ExpandChipUp && !pauseUp && !WaveBoxShown(me))
                         DrawExpandChip(me);  // an optional room offer: a chip, the wave doesn't wait (ExpansionUi.cs)
                     if (ExpandWindowUp && !tabHeld)

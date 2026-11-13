@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// What a node of a hunt map is (Docs/HuntMap.md). Only Skirmish and Elite are built so far: the others are listed
-    /// so the numbers don't change later; the generator makes only Skirmish, Elite and the Boss until the rest are built.
+    /// so the numbers don't change later; the generator makes Skirmish, Elite, Rest, Shop and the Boss so far (Ambush, Contraband and Gamble come later).
     public enum HuntNodeType { Skirmish, Elite, Ambush, Contraband, Rest, Shop, Gamble, Boss, None }
 
     /// One node of the map: a square on one of three lanes, in one row (step).
@@ -149,16 +149,31 @@ namespace Arena
             return false;
         }
 
-        /// What each node is. The first row is a Skirmish, the boss row the boss, the row before the boss a safe one (a
-        /// Skirmish until the Rest and Shop nodes exist), the middle row at least one Elite, and no row is all Elites.
+        /// What each node is. The first row is a Skirmish, the boss row the boss, the row before the boss a Rest or a Shop (a
+        /// breather before the boss), the middle row at least one Elite, no row is all Elites, and every other row has a
+        /// Skirmish. A Rest or Shop can come in the rows from the third to the seventh (not the middle row, which has an Elite) (never first, never straight before the
+        /// breather row, so a route never has two no-fight steps in a row).
         static void AssignTypes(HuntMap m, Rng rng)
         {
+            bool prevBreather = false;   // (a Rest or Shop never sits in the row right after another, so no route has two in a row)
             for (int step = 0; step < Steps; step++)
             {
                 var row = m.Rows[step];
                 if (step == Steps - 1) { row[0].Type = HuntNodeType.Boss; continue; }
+                if (step == Steps - 2)
+                {
+                    foreach (var n in row) n.Type = rng.Next(2) == 0 ? HuntNodeType.Rest : HuntNodeType.Shop;
+                    continue;
+                }
+                bool breather = step >= 2 && step <= Steps - 4 && step != Steps / 2 - 1 && !prevBreather;
                 for (int i = 0; i < row.Length; i++)
-                    row[i].Type = step == 0 || step == Steps - 2 || rng.Next(100) >= 30 ? HuntNodeType.Skirmish : HuntNodeType.Elite;
+                {
+                    int roll = step == 0 ? 99 : rng.Next(100);
+                    row[i].Type = roll < 22 ? HuntNodeType.Elite
+                        : breather && roll < 30 ? HuntNodeType.Rest
+                        : breather && roll < 38 ? HuntNodeType.Shop
+                        : HuntNodeType.Skirmish;
+                }
                 if (step == Steps / 2 - 1)
                 {
                     bool any = false;
@@ -168,6 +183,8 @@ namespace Arena
                 bool skirmish = false;
                 foreach (var n in row) skirmish |= n.Type == HuntNodeType.Skirmish;
                 if (!skirmish) row[rng.Next(row.Length)].Type = HuntNodeType.Skirmish;
+                prevBreather = false;
+                foreach (var n in row) prevBreather |= !n.Fight;
             }
         }
 
@@ -265,8 +282,8 @@ namespace Arena
                 case HuntNodeType.Elite: return "A tougher squad with the faction's set piece.";
                 case HuntNodeType.Ambush: return "A short wave from every side, fast.";
                 case HuntNodeType.Contraband: return "A dark arena with spawn portals.";
-                case HuntNodeType.Rest: return "No fight. Heal to full or take a reroll.";
-                case HuntNodeType.Shop: return "The Bazaar. Spend your gold.";
+                case HuntNodeType.Rest: return "No fight. Everyone heals to full and gets a reroll.";
+                case HuntNodeType.Shop: return "The Bazaar. Spend the gold you have earned this hunt.";
                 case HuntNodeType.Gamble: return "Unknown: a fight, a gift or a curse.";
                 case HuntNodeType.Boss: return "The boss, at its full strength.";
                 default: return "";
@@ -282,7 +299,7 @@ namespace Arena
                 case HuntNodeType.Elite: return "Legendary + clue";
                 case HuntNodeType.Ambush: return "XP + chest";
                 case HuntNodeType.Contraband: return "Rare+ card";
-                case HuntNodeType.Rest: return "Recovery";
+                case HuntNodeType.Rest: return "Full heal + reroll";
                 case HuntNodeType.Shop: return "Upgrades";
                 case HuntNodeType.Gamble: return "Varies";
                 case HuntNodeType.Boss: return "Hunt complete";
