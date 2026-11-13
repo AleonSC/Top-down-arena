@@ -227,5 +227,71 @@ static partial class Program
         }
         Console.WriteLine("  seen before wave " + duelWave + ": " + string.Join(", ", seen));
         Check(seen.SetEquals(court), "the waves before the Duelist bring all eight (no more basic placeholder faction)");
+
+        Check(fac.Finale != null && fac.Finale.Name == "Ring of Honour" && fac.Finale.Form == SquadForm.Honour
+            && fac.Finale.Members.Count(t => t == EnemyType.Fencer) == 10 && fac.Finale.Members.Count(t => t == EnemyType.Gallant) == 2,
+            "the last wave brings the Ring of Honour: ten Fencers and two Gallants");
+
+        // --- The Ring of Honour: a ring round you that closes; opposite pairs of Fencers lunge in, in turn --------------------
+        Game.SeedForTests(4331);
+        var rh = new Session { AutoStart = 1, StartWave = 1 };
+        rh.Host(nextPort++, "Host", Role.Tank);
+        rh.Diff.Set(DiffKnob.Campaign, 0f);
+        rh.StartMatch();
+        var rg = rh.Game;
+        for (int f = 0; f < 60 * 20 && rg.State != MatchState.Fighting; f++)
+            Step(rh, dt);
+        var rq = new[] { (IList)typeof(Game).GetField("spawnQueue", np).GetValue(rg), (IList)typeof(Game).GetField("squadQueue", np).GetValue(rg) };
+        foreach (var q in rq) q.Clear();
+        rg.Enemies.Clear();
+        rg.DevSetGod(1, true);
+        var rm = rg.Players[1];
+        V2 rmid = new V2(800f, 450f);
+        rm.Pos = rm.Disp = rmid;
+        typeof(Game).GetMethod("SpawnSquad", np, null, new[] { typeof(SquadDef) }, null)?.Invoke(rg, new object[] { fac.Finale });
+        var ring = rg.Enemies.Values.Where(e => e.Type == EnemyType.Fencer || e.Type == EnemyType.Gallant).ToList();
+        foreach (var e in ring) e.Hp = 1e6f;
+        float r0 = ring.Count > 0 ? ring.Average(e => e.Pos.DistanceTo(rmid)) : 0f;
+        Check(ring.Count == 12 && ring.All(e => Math.Abs(e.Pos.DistanceTo(rmid) - Game.HonourStart) < 40f), "it forms up in a ring " + Game.HonourStart + " px round you (" + ring.Count + ", " + r0.ToString("0") + " px)");
+        int maxAtOnce = 0, lungeStarts = 0;
+        var wasIdle = ring.ToDictionary(e => e.Id, e => true);
+        for (int f = 0; f < 60 * 8; f++)
+        {
+            foreach (var q in rq) q.Clear();
+            rm.Pos = rm.Disp = rmid;
+            Step(rh, dt);
+            var fen = ring.Where(e => e.Type == EnemyType.Fencer && rg.Enemies.ContainsKey(e.Id)).ToList();
+            maxAtOnce = Math.Max(maxAtOnce, fen.Count(e => e.Phase == 1 || e.Phase == 2));
+            foreach (var e in fen) { if (e.Phase == 1 && wasIdle[e.Id]) lungeStarts++; wasIdle[e.Id] = e.Phase == 0; }
+        }
+        var fencersNow = ring.Where(e => e.Type == EnemyType.Fencer && e.Phase == 0).ToList();
+        float r8 = fencersNow.Count > 0 ? fencersNow.Average(e => e.Pos.DistanceTo(rmid)) : 0f;
+        Console.WriteLine("  ring of honour: {0} lunges in 8 s, at most {1} at once, ring now {2:0} px", lungeStarts, maxAtOnce, r8);
+        Check(lungeStarts >= 6 && maxAtOnce <= 4 && r8 < r0 - 40f, "it closes in, and Fencers lunge in by opposite pairs, not all at once");
+        rh.Leave("");
+
+        // --- The ten-wave chart in the Long Campaign (the same order as the Warden's) --------------------------------------
+        var firstC = new Dictionary<EnemyType, int>();
+        var squadNamesC = new Dictionary<int, HashSet<string>>();
+        const int lo = 51;  // (the Long Campaign: the Colossus's cycle is waves 41-50, the Duelist's 51-60)
+        for (int sw = lo; sw < lo + 10; sw++)
+        {
+            Game.SeedForTests(8100 + sw);
+            var cg = new Session().Game;
+            cg.LongRun = true; cg.Wave = (sw + 1) / 2; cg.Leg = (sw - 1) % 2; cg.BossSlot = false;
+            build.Invoke(cg, new object[] { cg.Wave });
+            var q = (List<EnemyType>)spawnQ.GetValue(cg);
+            var sq = (List<SquadDef>)squadQ.GetValue(cg);
+            foreach (var t in q.Concat(sq.SelectMany(x => x.Members)).Where(court.Contains))
+                if (!firstC.ContainsKey(t)) firstC[t] = sw - lo + 1;
+            squadNamesC[sw - lo + 1] = new HashSet<string>(sq.Select(x => x.Name));
+        }
+        Console.WriteLine("  long campaign waves " + lo + "-" + (lo + 9) + ", first lessons: " + string.Join(", ", firstC.OrderBy(k => k.Value).Select(k => k.Key + " " + k.Value)));
+        Func<EnemyType, int, bool> firstAtC = (t, w) => firstC.ContainsKey(t) && firstC[t] == w;
+        Check(firstAtC(EnemyType.Fencer, 1) && firstAtC(EnemyType.BladeDancer, 2) && firstAtC(EnemyType.Harlequin, 3) && firstAtC(EnemyType.Second, 4)
+            && firstAtC(EnemyType.Parrier, 6) && firstAtC(EnemyType.Marshal, 7) && firstAtC(EnemyType.Gallant, 8) && firstC.ContainsKey(EnemyType.Mummer) && firstC[EnemyType.Mummer] <= 5,
+            "the Duelist's ten lessons: Fencer, Blade Dancer, Harlequin, Second, Mummer (by 5), Parrier, Marshal, Gallant (the chart's order)");
+        Check(squadNamesC[10].Contains("Ring of Honour") && squadNamesC[10].Contains("Salon") && Enumerable.Range(1, 9).All(w => !squadNamesC[w].Contains("Ring of Honour")),
+            "the tenth is the exam: the Ring of Honour and a big Salon, only there");
     }
 }

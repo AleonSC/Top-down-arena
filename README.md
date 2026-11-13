@@ -693,11 +693,15 @@ Priests, every squad, then the exam (the Avalanche and a big Landslip).
 | 3 | **Cinder Priest** | Taser Guard | A dark-robed priest cupping a molten core: charges for 0.7 s along a shooting line, then fires one **magma bolt** straight at you (240 px/s, 9, no lead). Wherever it stops, a hit, cover or the end of its 300 px, it leaves a **lava pool** for 2.5 s (20 a second). A **perfect parry** sends it back and leaves no lava. Every 3.2 s |
 
 The **Duelist's faction**, the Masked Court, leads up to its fight (waves 26-29): masked fencers, each showing you one of
-the Duelist's moves (mockup: `Docs/Mockups/duelist-faction.html`). **Steps 1-3 of 4 are in:** all eight enemies, which
-replace the basic faction the Duelist had before (the Ring of Honour and the Long Campaign's lessons are step 4).
+the Duelist's moves (mockup: `Docs/Mockups/duelist-faction.html`). It replaces the basic faction the Duelist had before.
 Squads: **Salon** (a Blade Dancer and six Fencers), from wave 27 **Seconds** (three Seconds and two Fencers) and from
 wave 28 **Guard line** (two Parriers and four Fencers) and **Masked ball** (a Harlequin, a Mummer and three Fencers).
-XP: Fencer 7, Blade Dancer 14, Parrier 10, Second 9, Marshal 9, Gallant 12, Harlequin 22, Mummer 10.
+XP: Fencer 7, Blade Dancer 14, Parrier 10, Second 9, Marshal 9, Gallant 12, Harlequin 22, Mummer 10. The last wave
+before it always brings the **Ring of Honour**: ten Fencers and two Gallants in a ring 300 px round you, facing in,
+turning slowly and closing to 150 px; every 1.4 s an opposite pair of Fencers shows its lines and lunges in, and the
+Gallants salute before theirs (parry them). It breaks up after 14 s or once half of it is down. In the Long Campaign
+its ten waves (51-60) teach one enemy each, in the Warden's order: Fencers, Blade Dancers, Harlequins, Seconds, a recap
+with Mummers, Parriers, Marshals, Gallants, every squad, then the exam (the Ring of Honour and a big Salon).
 
 | From | The Duelist's faction | Plays like | What it does |
 |---|---|---|---|

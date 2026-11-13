@@ -536,6 +536,16 @@ static partial class Shot {
           spawnB3.Invoke(cg, new object[] { k == 0 ? Defs.SmallShot : Defs.HollowShot, at + dir * 40f, dir * 260f, 0f, 3f, k == 0 ? 10f : 0f, 0, true, 0f });
         }
       }
+      if (Environment.GetEnvironmentVariable("COURT4") != null) {  // COURT4=1 with COURT: step 4 instead: the Ring of Honour round you (ten Fencers, two Gallants), an opposite pair of Fencers showing their lines in, one Gallant saluting
+        cg.Enemies.Clear(); cg.Patches.Clear(); cg.Bullets.Clear();
+        for (int k = 0; k < Game.HonourSlots; k++)
+        {
+          V2 at = me.Pos + V2.FromAngle(0.2f + MathX.Tau * k / Game.HonourSlots) * 230f;
+          var e = cput(k == 2 || k == 8 ? EnemyType.Gallant : EnemyType.Fencer, at, (me.Pos - at).Angle);
+          if (k == 0 || k == 6) { e.Phase = 1; e.PhaseT = 0.2f; }
+          if (k == 2) e.Duel = new DuelState { SaluteT = 0.4f };
+        }
+      }
       cg.AnimT += float.Parse(Environment.GetEnvironmentVariable("COURT"), System.Globalization.CultureInfo.InvariantCulture);
     }
     if (Environment.GetEnvironmentVariable("LUNGE") != null) {  // LUNGE=<0-1>: the four lungers part-way through their wind-up (LungeLaneLook.cs); the lane fills with the client's clock, so draw once, then move it on

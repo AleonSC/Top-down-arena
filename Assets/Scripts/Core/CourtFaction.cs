@@ -316,6 +316,74 @@ namespace Arena
                 BroadcastFx(FxKind.Ring, e.Pos, MummerViolet, 30f, 0.3f, Sfx.Hit);
         }
 
+        // --- The Ring of Honour (step 4, the set piece) ----------------------------------------------------------------
+
+        public const float HonourStart = 300f, HonourEnd = 150f, HonourClose = 14f, HonourSpin = 0.15f, HonourLife = 14f, HonourEvery = 1.4f, HonourFirst = 2f;
+        public const int HonourSlots = 12;
+
+        sealed class HonourRing { public V2 Center; public float Spin0; public int Size; public bool Broken; }
+        readonly Dictionary<int, HonourRing> honourRings = new Dictionary<int, HonourRing>();  // host: by squad id
+        readonly Dictionary<int, int> honourTurn = new Dictionary<int, int>();                 // host: enemy id -> the last pair turn it lunged on
+
+        static V2 HonourPoint(V2 center, float spin, int slot, float radius) => center + V2.FromAngle(spin + MathX.Tau * slot / HonourSlots) * radius;
+
+        /// Where the ring's i-th member comes in: round the player (the ring's middle kept far enough from the walls).
+        V2 HonourSpawn(int squad, int i, Player target)
+        {
+            if (!honourRings.TryGetValue(squad, out var ring))
+            {
+                V2 lo = ArenaMin + new V2(170f, 170f), hi = ArenaMax - new V2(170f, 170f);
+                V2 c = new V2(Math.Max(lo.X, Math.Min(hi.X, target.Pos.X)), Math.Max(lo.Y, Math.Min(hi.Y, target.Pos.Y)));
+                honourRings[squad] = ring = new HonourRing { Center = c, Spin0 = Rand(0f, MathX.Tau) };
+            }
+            ring.Size++;
+            return ClampToArena(HonourPoint(ring.Center, ring.Spin0, i % HonourSlots, HonourStart), 30f);
+        }
+
+        HonourRing HonourOf(Enemy e, List<Enemy> mates)
+        {
+            if (e.SquadId == 0 || !honourRings.TryGetValue(e.SquadId, out var ring) || ring.Broken)
+                return null;
+            if (e.T > HonourLife || mates != null && mates.Count * 2 < ring.Size)
+            {
+                ring.Broken = true;  // broken up: everyone its own way
+                return null;
+            }
+            return ring;
+        }
+
+        /// Its place in the turning, closing ring, facing in. Every HonourEvery s the next opposite pair of Fencers lunges in
+        /// (the Lunger's own line and hop); the Gallants salute on their own clock. Lunging or saluting, it goes its own way.
+        V2 HonourMove(Enemy e, List<Enemy> mates, V2 v)
+        {
+            var ring = HonourOf(e, mates);
+            if (ring == null)
+                return v;
+            float t = Math.Max(0f, e.T - 0.9f);  // (from when it has spawned in)
+            if (e.Phase != 0 || GallantBusy(e))
+                return v;  // lunging, or its salute
+            float radius = Math.Max(HonourEnd, HonourStart - HonourClose * t);
+            int slot = e.SquadSlot % HonourSlots;
+            V2 at = ClampToArena(HonourPoint(ring.Center, ring.Spin0 + HonourSpin * t, slot, radius), 30f);
+            e.Facing = (ring.Center - e.Pos).Angle;
+            if (e.Type == EnemyType.Fencer && t >= HonourFirst)
+            {
+                int turn = (int)((t - HonourFirst) / HonourEvery);
+                honourTurn.TryGetValue(e.Id, out int last);
+                if (turn % (HonourSlots / 2) == slot % (HonourSlots / 2) && last != turn + 1)
+                {
+                    honourTurn[e.Id] = turn + 1;
+                    e.Phase = 1;  // its turn: the line, then the hop (EnemyAI.cs, the Lunger's case)
+                    e.PhaseT = FencerWarn;
+                    return V2.Zero;
+                }
+            }
+            return GoalVel(e, at);
+        }
+
+        /// A Fencer still in the ring waits for its turn to lunge (Variety.cs LungerWaits).
+        bool HonourHolds(Enemy e) => e.Type == EnemyType.Fencer && squadMembers.TryGetValue(e.SquadId, out var mates) && HonourOf(e, mates) != null;
+
         /// Your own game: a Marshal's circle you're inside holds you (from your move, `before` the step).
         V2 KeepInMarshalCircles(V2 before, V2 pos, float r)
         {

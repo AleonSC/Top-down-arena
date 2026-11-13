@@ -253,7 +253,7 @@ const S=[
   draw(g,t){const px=250,py=105;for(let i=0;i<3;i++){const a=t*0.8+i*TAU/3;const x=px+Math.cos(a)*85,y=py+Math.sin(a)*65;D.fencer(g,x,y,a+Math.PI/2);}
     for(let i=0;i<3;i++){const a=-t*0.6+i*TAU/3+0.5;D.mummer(g,px+Math.cos(a)*55,py+Math.sin(a)*45,a+Math.PI,1);}
     D.harlequin(g,60+Math.sin(t*0.5)*10,105,0,{});player(g,px,py,Math.PI);}},
- {name:'Ring of Honour',from:4,list:'10 Fencers + 2 Gallants (set piece)',slot:'Riot line',wide:true,does:'The exam. Twelve fencers form a ring round the players, facing in and closing slowly. Opposite pairs lunge across the ring in turn; the two Gallants salute before theirs. Parry them for the opening, and leave through the gap a downed pair opens.',
+ {name:'Ring of Honour',from:4,list:'10 Fencers + 2 Gallants (set piece)',slot:'Riot line',wide:true,does:'The exam. Ten Fencers and two Gallants form a ring round the players, facing in and closing slowly. Opposite pairs lunge in, in turn; the two Gallants salute before theirs. Parry them for the opening. It breaks up after 14 s or once half of it is down.',
   draw(g,t,W2,H2){const cx=W2/2,cy=H2/2;const n=12;const R=lerp(220,130,(t%12)/12);const turn=Math.floor(t/1.4)%6, c=t%1.4;
     circ(g,cx,cy,R,null,hexA(C.gold,0.12),18);
     for(let i=0;i<n;i++){const a=i*TAU/n;let x=cx+Math.cos(a)*R,y=cy+Math.sin(a)*R*0.62;const face=Math.atan2(cy-y,cx-x);const pair=(i%6)===turn;const gal=i===2||i===8;
@@ -266,16 +266,16 @@ const S=[
 ];
 
 const L=[
- ['Fencers hop-lunge (the Lunge\'s warning line)','Fencer'],
- ['Blade Dancers\' hanging blades','Fencer, Blade Dancer · Salon'],
- ['Parriers: get behind them (the Guard)','Parrier, Fencer, Blade Dancer · Guard line'],
- ['Seconds\' dagger fans (Volleys)','Second, Fencer, Parrier · Seconds'],
- ['Marshals\' dueling circles','Marshal, Fencer, Second'],
- ['Recap, and Harlequins join (the Crossing)','Everything so far, Harlequin'],
- ['Gallants salute: parry them (the Salute)','Gallant, Fencer, Parrier, Marshal'],
- ['Mummers split into three (the Masquerade)','Mummer, Gallant, Second, Harlequin · Masked ball'],
- ['Squads: Salon, Seconds, Guard line, Masked ball','All squads, 75% squad chance'],
- ['The exam: the Ring of Honour with everything','Everything + Ring of Honour, a Salon'],
+ ['Fencers hop in (the Lunge\'s warning line)','Fencer'],
+ ['Blade Dancers\' hanging blades','Fencer, Blade Dancer · Fencer pack'],
+ ['Harlequins: stand in a gap of the X (the Crossing)','Fencer, Blade Dancer, Harlequin · Dancer pair'],
+ ['Seconds\' dagger fans (Volleys)','Fencer, Blade Dancer, Harlequin, Second · Salon'],
+ ['A recap, and Mummers join (the Masquerade)','Everything so far, Mummer · Salon, Seconds'],
+ ['Parriers: get behind them (the Guard)','Parrier, Fencer, Blade Dancer, Harlequin, Second · Salon, Seconds'],
+ ['Marshals\' dueling circles','Marshal, Parrier, Fencer, Second · Salon, Guard line'],
+ ['Gallants salute: parry them (the Salute)','Gallant, Marshal, Parrier, Fencer · Masked ball, Guard line'],
+ ['Every squad, tighter','All squads, 75% squad chance'],
+ ['The exam: the Ring of Honour with everything','Everything + Ring of Honour, a big Salon'],
 ];
 
 /* ---------- build page ---------- */

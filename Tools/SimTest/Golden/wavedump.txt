@@ -32,7 +32,7 @@ campaign w26: Sniper Fencer BladeDancer*2 Sniper*2 BladeDancer Fencer Swarmer*4 
 campaign w27: Shielder Spinner Mortar Shielder*2 Parrier Spinner Harlequin Spinner*2 Parrier Mortar*2 Second Spinner Mortar | BladeDancer Fencer*6 | Second*3 Fencer*2 | BladeDancer Fencer*6 # Shielder Spinner Mortar
 campaign w28: Mortar*2 Grunt Mortar BladeDancer Mortar*3 Mummer Second Mortar Grunt | BladeDancer Fencer*6 | BladeDancer Fencer*6 | Second*3 Fencer*2 | Harlequin Mummer Fencer*3 # Grunt Mortar Shielder
 campaign w29: Fencer Spinner Fencer*2 Spinner Mummer Fencer BladeDancer Mummer BladeDancer Shielder Lunger*2 | Harlequin Mummer Fencer*3 | Harlequin Mummer Fencer*3 | Parrier*2 Fencer*4 | BladeDancer Fencer*6 # Shielder Lunger Spinner
-campaign w30: Sniper*2 Harlequin Shielder Swarmer Parrier Swarmer*2 Harlequin Swarmer | BladeDancer Fencer*6 | Harlequin Mummer Fencer*3 | Harlequin Mummer Fencer*3 | BladeDancer Fencer*6 | Parrier*2 Fencer*4 # Sniper Shielder Swarmer
+campaign w30: Mortar Sniper Harlequin Mortar*2 | BladeDancer Fencer*6 | BladeDancer Fencer*6 | Fencer*2 Gallant Fencer*5 Gallant Fencer*3 | Parrier*2 Fencer*4 # Sniper Mortar Spinner
 campaign w30 boss: Duelist
 campaign w31: Mummer Shambler Grunt Shambler*2 Grunt Spinner Shambler*2 Fencer Swarmer Shambler*2 Swarmer Shambler Swarmer*2 | Shambler*6 | Shambler*6 | Parrier*2 Fencer*4 | Second*3 Fencer*2 # Swarmer Spinner Grunt
 campaign w32: Shielder BladeDancer Shielder Runner*2 Swarmer Fencer Shambler Fencer Spitter Swarmer Spitter Shambler Runner Swarmer*2 | Runner*5 Shambler*2 | Runner*5 Shambler*2 | Shambler*6 | BladeDancer Fencer*6 # Shielder Mortar Swarmer
@@ -137,11 +137,11 @@ campaign100 w23: Stomper Rubble Quarryman Stomper Spinner Stomper Shielder Quarr
 campaign100 w24: Rubble*5 Mortar Rubble*4 Mortar Rubble*6 Lunger Rubble*4 RockHurler*2 | Stomper Rubble*3 Driller | Stomper Rubble*3 Driller # Lunger Mortar
 campaign100 w25: Rubble Shielder Quarryman Shielder Swarmer SlabBearer Swarmer Rubble Swarmer*2 | SlabBearer*2 Rubble*4 | Geomancer*3 | Quarryman*2 RockHurler*2 | Quarryman Rubble*6 | Geomancer*3 | Quarryman*2 RockHurler*2 # Swarmer Lunger Shielder
 campaign100 w25 boss: Colossus Grunt*5
-campaign100 w26: Mortar*2 Fencer*2 Mortar BladeDancer*2 | BladeDancer Fencer*6 | Needler*3 Worker*2 Needler*3 Worker*2 Bumble | Brute*2 Lunger | BladeDancer Fencer*6 # Mortar Brute Lunger
-campaign100 w27: Shielder*2 Marshal Shielder*2 Fencer Harlequin Swarmer*2 Marshal*2 Swarmer*2 | Second*3 Fencer*2 | BladeDancer Fencer*6 | BladeDancer Fencer*6 | Second*3 Fencer*2 # Brute Swarmer Shielder
-campaign100 w28: Grunt*2 BladeDancer Grunt Marshal BladeDancer Mummer Swarmer Marshal Swarmer Marshal Swarmer*2 Marshal BladeDancer | Harlequin Mummer Fencer*3 | BladeDancer Fencer*6 | BladeDancer Fencer*6 | Harlequin Mummer Fencer*3 # Swarmer Grunt Brute
-campaign100 w29: Marshal Sniper Parrier Fencer Mortar Marshal Harlequin Marshal*2 Fencer Mummer Sniper Fencer Brute | Parrier*2 Fencer*4 | Parrier*2 Fencer*4 | Harlequin Mummer Fencer*3 | Harlequin Mummer Fencer*3 # Sniper Mortar Brute
-campaign100 w30: Fencer BladeDancer Shielder BladeDancer Shielder BladeDancer Second Harlequin Shielder BladeDancer Second Fencer*2 Harlequin Fencer Brute Second | Harlequin Mummer Fencer*3 | Second*3 Fencer*2 | Second*3 Fencer*2 | Harlequin Mummer Fencer*3 # Brute Lunger Shielder
+campaign100 w26: Driller Fencer*6 Driller Fencer*8 Driller Fencer Driller Fencer*2 Driller*2 Fencer | Needler*3 Worker*2 Needler*3 Worker*2 Bumble # Brute Mortar Grunt
+campaign100 w27: Shielder BladeDancer*2 Rubble BladeDancer Shielder Quarryman Swarmer BladeDancer Swarmer Fencer*2 Swarmer BladeDancer Fencer Swarmer Fencer BladeDancer*4 Rubble Harlequin*2 | Fencer*5 | BladeDancer*2 | BladeDancer*2 | Fencer*5 # Shielder Swarmer Brute
+campaign100 w28: Harlequin Mortar Shielder Harlequin Shielder BladeDancer Harlequin BladeDancer Lunger BladeDancer Mummer*2 | Second*3 Fencer*2 | Second*3 Fencer*2 | BladeDancer Fencer*6 | BladeDancer Fencer*6 # Lunger Shielder Mortar
+campaign100 w29: Fencer Grunt BladeDancer Rioter Shielder Fencer BladeDancer Rioter Lunger Marshal*2 | Parrier*2 Fencer*4 | BladeDancer Fencer*6 | BladeDancer Fencer*6 | Parrier*2 Fencer*4 # Shielder Grunt Lunger
+campaign100 w30: Spinner*2 Second Fencer Parrier Second Shielder Brute Mummer Fencer*2 | Second*3 Fencer*2 | Parrier*2 Fencer*4 | Harlequin Mummer Fencer*3 | Harlequin Mummer Fencer*3 | Second*3 Fencer*2 # Shielder Brute Spinner
 campaign100 w30 boss: Duelist
 campaign100 w31: Mummer Shambler*2 Grunt*2 Fencer Second Fencer*2 Spinner Swarmer*4 Second*2 Mummer Shambler Mummer Harlequin Second Shambler*2 Mummer Fencer Harlequin Second Shambler | Shambler*6 | Shambler*6 # Swarmer Grunt Spinner
 campaign100 w32: Sniper Shambler Spitter BladeDancer Shambler Runner Sniper Fencer Sniper Spitter Runner Spitter Runner Shambler Spitter Brute Runner*2 Fencer Runner | Runner*5 Shambler*2 | Runner*5 Shambler*2 | Shambler*6 # Swarmer Sniper Brute
@@ -197,11 +197,11 @@ campaign100leg2 w23: Stomper*2 Rubble Spinner Rubble*3 Geomancer Stomper Geomanc
 campaign100leg2 w24: Rubble*2 Mortar*2 Rubble*5 Brute Rubble*12 CinderPriest*2 | Stomper Rubble*3 Driller | Stomper Rubble*3 Driller # Brute Mortar
 campaign100leg2 w25: Quarryman*2 SlabBearer Rubble Stomper RockHurler*2 SlabBearer Quarryman SlabBearer RockHurler SlabBearer Stomper RockHurler SlabBearer*2 Quarryman RockHurler*2 Rubble Quarryman SlabBearer Rubble | SlabBearer*4 Stomper RockHurler*2 Stomper | Quarryman Rubble*6 Quarryman Rubble*6 Stomper # Swarmer Brute Lunger
 campaign100leg2 w25 boss: Colossus Grunt*5
-campaign100leg2 w26: BladeDancer Fencer BladeDancer Fencer*3 BladeDancer Fencer BladeDancer Fencer | Needler*3 Worker*2 Needler*3 Worker*2 Bumble | BladeDancer Fencer*6 | BladeDancer Fencer*6 # Shielder Brute Spinner
-campaign100leg2 w27: Fencer Harlequin Second*2 Harlequin Grunt Second Fencer BladeDancer Spinner Lunger BladeDancer Second*2 Fencer BladeDancer Fencer Marshal | Second*3 Fencer*2 | Second*3 Fencer*2 | BladeDancer Fencer*6 # Lunger Spinner Grunt
-campaign100leg2 w28: Mortar Sniper Marshal Fencer Mummer Marshal BladeDancer*2 Mummer BladeDancer Fencer Second Fencer BladeDancer Sniper Mummer*2 Fencer Shielder | BladeDancer Fencer*6 | Second*3 Fencer*2 | Second*3 Fencer*2 # Sniper Shielder Mortar
-campaign100leg2 w29: BladeDancer Grunt*3 Parrier Marshal*3 Brute Second Marshal*2 | BladeDancer Fencer*6 | Second*3 Fencer*2 | Second*3 Fencer*2 | BladeDancer Fencer*6 # Lunger Brute Grunt
-campaign100leg2 w30: Gallant Grunt Fencer Shielder*3 Gallant*3 Fencer Second*2 | Second*3 Fencer*2 | BladeDancer Fencer*6 | Parrier*2 Fencer*4 | BladeDancer Fencer*6 # Shielder Grunt Sniper
+campaign100leg2 w26: Fencer*12 BladeDancer*2 | Needler*3 Worker*2 Needler*3 Worker*2 Bumble | Fencer*5 | Fencer*5 # Mortar Spinner Grunt
+campaign100leg2 w27: Harlequin Fencer BladeDancer Fencer Grunt Fencer BladeDancer RiotShield BladeDancer*2 Lunger Fencer*3 Harlequin*2 BladeDancer Second*2 | BladeDancer Fencer*6 | BladeDancer*2 | BladeDancer Fencer*6 # Lunger Spinner Grunt
+campaign100leg2 w28: Fencer Second Harlequin Fencer Second*3 BladeDancer*2 Spinner Fencer Spinner BladeDancer Spinner Fencer*2 Lunger Parrier*2 | BladeDancer Fencer*6 | Second*3 Fencer*2 | Second*3 Fencer*2 # Lunger Spinner Brute
+campaign100leg2 w29: Parrier Grunt*3 Parrier Fencer*3 Brute Parrier Fencer*2 Gallant*2 | Parrier*2 Fencer*4 | Harlequin Mummer Fencer*3 | Parrier*2 Fencer*4 | Harlequin Mummer Fencer*3 # Lunger Brute Grunt
+campaign100leg2 w30: Fencer Harlequin BladeDancer Marshal Fencer BladeDancer Harlequin Gallant Marshal Fencer Harlequin Marshal BladeDancer Gallant Harlequin Fencer Harlequin BladeDancer Marshal*2 Fencer | Fencer*2 Gallant Fencer*5 Gallant Fencer*3 | BladeDancer Fencer*6 BladeDancer Fencer*6 Harlequin # Grunt Sniper Swarmer
 campaign100leg2 w30 boss: Duelist
 zombie w1: Shambler*18
 zombie w2: Shambler*16
@@ -273,7 +273,7 @@ hard w26: Mortar*2 Fencer BladeDancer Fencer*2 Mortar Swarmer*2 BladeDancer Swar
 hard w27: Mortar*3 BladeDancer Mortar*2 Sniper Mortar Sniper Parrier Marshal Lunger*3 BladeDancer Lunger | Second*3 Fencer*2 | BladeDancer Fencer*6 | BladeDancer Fencer*6 # Sniper Lunger Mortar
 hard w28: BladeDancer Sniper Second Parrier Fencer Shielder Fencer*2 Sniper Brute Parrier Brute*2 BladeDancer Harlequin Fencer*2 | Parrier*2 Fencer*4 | Second*3 Fencer*2 | Shielder Sniper*2 | Second*3 Fencer*2 # Brute Shielder Sniper
 hard w29: Fencer Marshal*2 Sniper Fencer Second Fencer Sniper Fencer Sniper Fencer Swarmer*2 Marshal Second Swarmer Second Swarmer | Harlequin Mummer Fencer*3 | Second*3 Fencer*2 | Second*3 Fencer*2 | Harlequin Mummer Fencer*3 # Sniper Swarmer Mortar
-hard w30: Mummer Harlequin*2 Marshal Harlequin Second Fencer Harlequin Fencer Sniper Grunt Marshal*2 Mummer Shielder Second Shielder | Second*3 Fencer*2 | Second*3 Fencer*2 | Harlequin Mummer Fencer*3 | Harlequin Mummer Fencer*3 # Sniper Shielder Grunt
+hard w30: Fencer Harlequin Spinner Harlequin Marshal Fencer Mortar Marshal*2 Mortar Fencer Brute Harlequin*2 Gallant | Harlequin Mummer Fencer*3 | Harlequin Mummer Fencer*3 | Fencer*2 Gallant Fencer*5 Gallant Fencer*3 # Mortar Spinner Brute
 hard w30 boss: Duelist
 hard w31: Shambler*6 Shielder Shambler Spinner Second Shielder Shambler*5 Guard Shambler Fencer BladeDancer Shambler | Shambler*6 | Second*3 Fencer*2 | Second*3 Fencer*2 # Mortar Spinner Shielder
 hard w32: Gallant Mortar Second Runner Spitter Runner Second Gallant Shambler Gallant*2 Second Mortar Second Runner Second Gallant Brute Spitter | Shambler*6 | Runner*5 Shambler*2 | Shambler*6 # Brute Mortar Swarmer
