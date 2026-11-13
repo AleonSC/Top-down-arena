@@ -137,7 +137,7 @@ namespace Arena
                     continue;
                 var v = FumaViewOf(p, 0f);  // (the clock moves on in DrawFumaWorld)
                 int n = Mathf.Max(1, (int)p.FumaStars);
-                float r = Game.FumaOrbitR * Mathf.Clamp01(v.Clock / Game.FumaOutTime);
+                float r = Game.FumaR(p) * Mathf.Clamp01(v.Clock / Game.FumaOutTime);
                 Arc(p.Disp, r, 2f, Game.FumaInk.WithAlpha(0.07f), 48);  // the circle it keeps
                 for (int i = 0; i < n; i++)
                 {

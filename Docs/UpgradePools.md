@@ -1,6 +1,6 @@
 # Upgrade pools: class and weapon cards
 
-**Status: steps 1-7 built (Nov 2026, protocol 314).** Next: weapon cards for the other classes, one class at a time. Owner decisions are below; build one step at a time ("start on step N").
+**Status: steps 1-8 built (Nov 2026, protocol 315).** Next: weapon cards for the other classes, one class at a time. Owner decisions are below; build one step at a time ("start on step N").
 
 ## Why
 
@@ -182,7 +182,7 @@ the guard's Rend and `GreatGuardBlock` (`Player.TemperCarry`), `TickRapier`'s gr
 `KnuckleLockTarget` / `HostRocketDash` (and the reticle in `ArcKnucklesLook.cs`) and the Twin Hammer's stun.
 Test: suite `abilitycards`, its Knight weapon checks.
 
-### Step 8: Ninja weapon cards (proposed, owner picks)
+### Step 8: Ninja weapon cards (built, protocol 315)
 
 One Rare card per Ninja weapon (`Weapons = { that weapon }`, `MaxStacks = 2`), offered only while you hold it.
 
@@ -197,3 +197,10 @@ One Rare card per Ninja weapon (`Weapons = { that weapon }`, `MaxStacks = 2`), o
 | Shuriken | Barbed Stars | Stuck stars come back 1.5 s sooner, and their return hit is 40% harder |
 | Katana | Honed Edge | The Momentum Burst shoves 30% farther, and caltrops last 2 s longer |
 | Kunai | Shadow Mark | The blink's hit deals 40% more, and marks last 2 s longer |
+
+Built (owner approved all nine): in `Game.NinjaCards`. Hooks: `StartKusariThrow` (reach) and `KusariImpact` (stun),
+the Bo Staff's shove push (`BoStaff.cs`) and full spin, the Fuma throw's starting speed (the oval scales with it) and
+`Game.FumaR` (the Orbit circle, Reversal ring and its look in `FumaLook.cs`), `DoseAlly` / `PoisonHit`
+(`DoseMultOf`), the Spirit Fan's reach and `HealAlly`, `BurstWard` (radius, heal reach, heal), `StarStuck` /
+`ReturnStar`, the Momentum Burst's push and the tossed caltrops' life, `ShadowKunaiLanded` and `NinjaHitMult`
+(`Player.BlinkBoost`, set by the blink and spent with the ambush). Test: suite `abilitycards`, its Ninja checks.

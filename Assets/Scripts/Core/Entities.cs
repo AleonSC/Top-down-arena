@@ -302,6 +302,7 @@ namespace Arena
         public float RepelTickT;     // host: till the pull's next sting
         public float RepelHumT;      // host: till the pull's hum plays again
         public byte GreatStep;       // Greatsword: which cut of the chain landed last, 0 to 3 (replicated, drawn as pips behind you)
+        public float BlinkBoost = 1f; // host: Shadow Mark's extra on the hit after a Kunai blink
         public float TemperCarry;    // host: Greatsword Temper toward the next pip (Tempered Blade builds it in fractions)
         public float LightCarry;     // host: Lightbringer light toward the next pip (Daybreak fills it in fractions)
         public byte GreatTemper;     // Greatsword: Temper stored while guarding, 0 to 6 (replicated, drawn as pips and on the blade)

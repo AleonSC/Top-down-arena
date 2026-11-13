@@ -126,6 +126,16 @@ namespace Arena
         public float GreatRendMult = 1f, TemperGainMult = 1f;              // Greatsword: Tempered Blade
         public int SkewerBonus; public float TempoHoldBonus;               // Rapier: Duelist's Edge
         public float KnuckleDashMult = 1f, KnuckleStunBonus;               // Arc Knuckles: Live Wire
+        // Ninja weapon cards (Docs/UpgradePools.md step 8)
+        public float KusariReachMult = 1f, KusariStunBonus;                // Kusarigama: Heavy Weight
+        public float BoKnockMult = 1f, BoSpinDmgMult = 1f;                 // Bo Staff: Iron Bo
+        public float FumaLoopMult = 1f, FumaOrbitMult = 1f;                // Fuma Shuriken: Long Loop
+        public float DoseMult = 1f;                                        // Medicine Darts: Potent Dose (poison and healing)
+        public float FanReachMult = 1f, FanHealMult = 1f;                  // Spirit Fan: Gale Fan
+        public float CharmBurstMult = 1f, CharmHealMult = 1f;              // Ofuda: Blessed Paper
+        public float StarStickCut, StarReturnMult = 1f;                    // Shuriken: Barbed Stars
+        public float BurstPushMult = 1f, CaltropBonusTime;                 // Katana: Honed Edge
+        public float KunaiBlinkMult = 1f, KunaiMarkBonus;                  // Kunai: Shadow Mark
 
         // Legendary weapon upgrades from bosses.
         public int Guards, Searchlight, SplitShots;  // Warden's Guard companions and Searchlight stacks (Stun.cs)

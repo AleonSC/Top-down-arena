@@ -427,6 +427,115 @@ static partial class Program
         Check(noLock && g.KnuckleLockTarget(me.Pos, far4.Pos, me.Stats.KnuckleDashMult) == far4 && near(me.Stats.KnuckleStunBonus, 0.3f, 0.001f),
             "Live Wire: the Rocket Dash locks on 25% farther out and the Twin Hammer stuns 0.3 s longer");
 
+        // --- Ninja weapon cards (Docs/UpgradePools.md step 8) ---
+        Check(new[] { "Heavy Weight", "Iron Bo", "Long Loop", "Potent Dose", "Gale Fan", "Blessed Paper", "Barbed Stars", "Honed Edge", "Shadow Mark" }
+            .All(n => U(n) >= 0 && Upgrades.All[U(n)].Weapons != null && Defs.WeaponOf(Upgrades.All[U(n)].Weapons[0]).Kit == Kit.Ninja),
+            "all nine Ninja weapon cards exist, each for one Ninja weapon");
+        var fireNinja = typeof(Game).GetMethod("FireNinjaWeapon", flags);
+        Action fireN = () => fireNinja.Invoke(g, new object[] { me, 0f, new V2(1f, 0f), me.Pos + new V2(20f, 0f), 1f, 0 });
+
+        var throwK = typeof(Game).GetMethod("StartKusariThrow", flags);
+        var impactK = typeof(Game).GetMethod("KusariImpact", flags);
+        Func<int, float[]> kusari = n =>
+        {
+            arm(WeaponId.Kusarigama, "Heavy Weight", n);
+            var e = enemyAt(me.Pos + new V2(320f, 0f));  // past the 280 px throw, inside 350
+            throwK.Invoke(g, new object[] { me, 0f, 280f, 10f });
+            bool reached = me.HookId == e.Id;
+            var close = enemyAt(me.Pos + new V2(60f, 0f));
+            me.HookId = close.Id; me.KusariAim = 0f; me.KusariDmg = 10f;
+            impactK.Invoke(g, new object[] { me });
+            me.HookId = 0;
+            return new[] { reached ? 1f : 0f, close.FrozenT };
+        };
+        var ku0 = kusari(0); var ku1 = kusari(1);
+        Check(ku0[0] == 0f && ku1[0] == 1f && near(ku1[1] - ku0[1], 0.4f, 0.01f), "Heavy Weight: the weight reaches an enemy 320 px out and stuns 0.4 s longer (" + ku0[1] + " -> " + ku1[1] + ")");
+
+        Func<int, float> bospin = n => { arm(WeaponId.BoStaff, "Iron Bo", n); me.BoStep = 2; fireN(); float d = swings().Max(x => x.Dmg); swings().Clear(); return d; };
+        float bo0 = bospin(0), bo1 = bospin(1);
+        Check(near(bo1 / bo0, 1.3f, 0.01f) && near(me.Stats.BoKnockMult, 1.4f, 0.001f), "Iron Bo: the full spin hits 30% harder and the shove knocks 40% farther");
+
+        Func<int, float> fuma = n => { arm(WeaponId.FumaShuriken, "Long Loop", n); me.FumaStance = 0; g.Bullets.Clear(); fireN(); var b = g.Bullets.Values.First(x => x.Kind == Defs.FumaStar); return b.Vel.Length; };
+        float fu0 = fuma(0), fu1 = fuma(1);
+        float or1 = Game.FumaR(me);
+        Check(near(fu1 / fu0, 1.2f, 0.001f) && near(or1 / Game.FumaOrbitR, 1.2f, 0.001f), "Long Loop: the thrown loop is 20% bigger and the Orbit circle 20% wider");
+        g.Bullets.Clear();
+
+        var poison = typeof(Game).GetMethod("PoisonHit", flags);
+        Func<int, float> dose = n =>
+        {
+            arm(WeaponId.MedicineDarts, "Potent Dose", n);
+            var e = enemyAt(there);
+            poison.Invoke(g, new object[] { new Bullet { Medicine = true, Owner = me.Id, Dmg = Defs.WeaponOf(WeaponId.MedicineDarts).Damage }, e });
+            return e.PoisonDps;
+        };
+        float ds0 = dose(0), ds1 = dose(1);
+        Check(ds0 > 0f && near(ds1 / ds0, 1.3f, 0.001f), "Potent Dose: each dart's poison (and healing) stack is 30% stronger");
+
+        Func<int, float[]> fan = n => { arm(WeaponId.SpiritFan, "Gale Fan", n); me.SwingCount = 1; g.Bullets.Clear(); fireN(); var b = g.Bullets.Values.First(x => x.Kind == Defs.GustShot); return new[] { b.HealAlly, b.Life }; };
+        var fa0 = fan(0); var fa1 = fan(1);
+        g.Bullets.Clear();
+        Check(near(fa1[0] / fa0[0], 1.3f, 0.001f) && near(fa1[1] / fa0[1], 1.25f, 0.001f), "Gale Fan: the gust reaches 25% farther and heals 30% more");
+
+        var burst = typeof(Game).GetMethod("BurstWard", flags);
+        Func<int, float[]> ofuda = n =>
+        {
+            arm(WeaponId.Ofuda, "Blessed Paper", n);
+            var z = (Zone)addZone.Invoke(g, new object[] { ZoneKind.OfudaWard, me, there, 26f, 10f });
+            z.DmgMult = 1f;
+            g.DevSetGod(2, false);
+            friend.Pos = friend.Disp = there + new V2(125f, 0f);  // past the 110 px heal reach, inside 137
+            friend.Hp = friend.MaxHp * 0.5f; float far0 = friend.Hp;
+            burst.Invoke(g, new object[] { z });
+            float farHeal = friend.Hp - far0;
+            friend.Pos = friend.Disp = there + new V2(40f, 0f);
+            friend.Hp = friend.MaxHp * 0.5f; float near0 = friend.Hp;
+            burst.Invoke(g, new object[] { z });
+            g.DevSetGod(2, true);
+            return new[] { farHeal, friend.Hp - near0 };
+        };
+        var wd0 = ofuda(0); var wd1 = ofuda(1);
+        Check(wd0[0] == 0f && wd1[0] > 0f && near(wd1[1] / wd0[1], 1.3f, 0.01f), "Blessed Paper: Ofuda wards burst 25% wider and heal 30% more (" + wd0[1] + " -> " + wd1[1] + ")");
+
+        var stick = typeof(Game).GetMethod("StarStuck", flags);
+        var stuckF = typeof(Game).GetField("stuckStars", flags);
+        var ret = typeof(Game).GetMethod("ReturnStar", flags);
+        Func<int, float[]> stars = n =>
+        {
+            arm(WeaponId.Shuriken, "Barbed Stars", n);
+            ((IList)stuckF.GetValue(g)).Clear();
+            var e = enemyAt(there);
+            stick.Invoke(g, new object[] { new Bullet { Sticks = true, Owner = me.Id, Dmg = 10f }, e });
+            var st = ((IList)stuckF.GetValue(g))[0];
+            float t = (float)st.GetType().GetField("T").GetValue(st);
+            float hp0 = e.Hp;
+            ((IList)stuckF.GetValue(g)).Clear();
+            ret.Invoke(g, new object[] { st, e, me });
+            g.Bullets.Clear();
+            return new[] { t, hp0 - e.Hp };
+        };
+        var sr0 = stars(0); var sr1 = stars(1);
+        Check(near(sr0[0] - sr1[0], 1.5f, 0.001f) && near(sr1[1] / sr0[1], 1.4f, 0.01f), "Barbed Stars: stuck stars come back 1.5 s sooner and their return hit is 40% harder");
+
+        arm(WeaponId.Katana, "Honed Edge", 1);
+        Check(near(me.Stats.BurstPushMult, 1.3f, 0.001f) && near(me.Stats.CaltropBonusTime, 2f, 0.001f), "Honed Edge: the Momentum Burst shoves 30% farther and caltrops last 2 s longer");
+
+        var landed = typeof(Game).GetMethod("ShadowKunaiLanded", flags);
+        var hitMult = typeof(Game).GetMethod("NinjaHitMult", flags);
+        Func<int, float[]> kunai = n =>
+        {
+            arm(WeaponId.Kunai, "Shadow Mark", n);
+            landed.Invoke(g, new object[] { new Bullet { ShadowKunai = true, Owner = me.Id }, there });
+            float markT = me.KunaiMarkT;
+            var e = enemyAt(there);
+            e.TargetId = me.Id;
+            me.AmbushT = 1f; me.BlinkBoost = me.Stats.KunaiBlinkMult;  // (what a blink sets)
+            float m = (float)hitMult.Invoke(g, new object[] { me.Id, Defs.KunaiShot, e });
+            return new[] { markT, m, me.BlinkBoost };
+        };
+        var kn0 = kunai(0); var kn1 = kunai(1);
+        Check(near(kn1[0] - kn0[0], 2f, 0.001f) && near(kn1[1] / kn0[1], 1.4f, 0.001f) && kn1[2] == 1f, "Shadow Mark: marks last 2 s longer and the hit after a blink deals 40% more (once)");
+
         host.Leave(""); client.Leave("");
     }
 }

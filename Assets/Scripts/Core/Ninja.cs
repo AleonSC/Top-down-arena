@@ -84,7 +84,7 @@ namespace Arena
                     }
                     else
                     {
-                        s = NewSwing(p, aim, BoSpinReach + grow, 360f, w.Damage * BoSpinMult * dmg);  // the full spin
+                        s = NewSwing(p, aim, BoSpinReach + grow, 360f, w.Damage * BoSpinMult * dmg * p.Stats.BoSpinDmgMult);  // the full spin (Iron Bo: harder)
                         s.Heavy = true;
                         s.Knock = BoSpinKnock;
                     }
@@ -104,7 +104,7 @@ namespace Arena
                     for (int i = 0; i <= extra; i++)
                     {
                         float s = i % 2 == 0 ? 1f : -1f, size = FumaSize(i);
-                        V2 vel = front.Orthogonal() * (-s * FumaWidth * size * PierceReach(p) * MathX.Tau / w.Life);  // it sets off sideways (FumaTurn); Piercing Rounds widen the loop
+                        V2 vel = front.Orthogonal() * (-s * FumaWidth * size * PierceReach(p) * p.Stats.FumaLoopMult * MathX.Tau / w.Life);  // (Long Loop: a bigger oval)  // it sets off sideways (FumaTurn); Piercing Rounds widen the loop
                         SpawnBullet(Defs.FumaStar, p.Pos, vel, s, w.Life, w.Damage * dmg, p.Id).Pierce += 99;
                     }
                     break;
@@ -124,7 +124,7 @@ namespace Arena
                 {
                     // A gust: five short-lived puffs that heal allies they pass, and small enemy bullets in front blown back.
                     // Shots alternate: a gust out that blows enemies away, then a draw in that pulls them to you.
-                    float reach = (1f + w.Grow * extra) * PierceReach(p);  // Piercing Rounds: the gust reaches farther
+                    float reach = (1f + w.Grow * extra) * PierceReach(p) * p.Stats.FanReachMult;  // Piercing Rounds and Gale Fan: the gust reaches farther
                     bool draw = p.SwingCount % 2 == 0;
                     float len = w.Speed * w.Life * reach * p.Stats.ShotSpeedMult;
                     for (int i = 0; i < 5; i++)
@@ -132,7 +132,7 @@ namespace Arena
                         V2 d = V2.FromAngle(aim + (i / 4f - 0.5f) * 0.7f);
                         var b = SpawnBullet(Defs.GustShot, draw ? p.Pos + d * (p.Def.BodyR + len) : muzzle, (draw ? -d : d) * w.Speed, 0f, w.Life * reach, w.Damage * dmg, p.Id);  // a draw's puffs fly in
                         b.Pierce += 99;
-                        b.HealAlly = (3f + extra) * 9f / 6f;
+                        b.HealAlly = (3f + extra) * 9f / 6f * p.Stats.FanHealMult;  // (Gale Fan: more)
                     }
                     FanEnemies(p, aim, p.Def.BodyR + len + FanReachSlack, draw ? -FanShove : FanShove);
                     float push = 130f * reach;
@@ -199,8 +199,9 @@ namespace Arena
                 m *= 1f + KunaiBonus;
             if (p.AmbushT > 0f)
             {
-                m *= p.Stats.AmbushMult;
+                m *= p.Stats.AmbushMult * p.BlinkBoost;
                 p.AmbushT = 0f;
+                p.BlinkBoost = 1f;
                 BroadcastFx(FxKind.Spark, e.Pos, new Rgba(0.75f, 0.6f, 1f), 30f, 0.3f, Sfx.SwingHeavy);
             }
             return m;
@@ -338,6 +339,24 @@ namespace Arena
                 Apply = s => s.FanExtraKunai += 6 },
             new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Ninja, MaxStacks = 2, Name = "Ghost Step", Desc = "+6% move speed, and you take 30% less damage for 1 s after you dodge (1 s longer per extra copy)",
                 Apply = s => { s.SpeedMult += 0.06f; s.GhostCut = 0.3f; s.GhostTime += 1f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Kusarigama }, MaxStacks = 2, Name = "Heavy Weight", Desc = "The Kusarigama's thrown weight flies 25% farther and stuns 0.4 s longer",
+                Apply = s => { s.KusariReachMult += 0.25f; s.KusariStunBonus += 0.4f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BoStaff }, MaxStacks = 2, Name = "Iron Bo", Desc = "The Bo Staff's shove knocks 40% farther, and its full spin hits 30% harder",
+                Apply = s => { s.BoKnockMult += 0.4f; s.BoSpinDmgMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.FumaShuriken }, MaxStacks = 2, Name = "Long Loop", Desc = "The Fuma Shuriken's thrown loop reaches 20% farther, and its Orbit circle is 20% wider",
+                Apply = s => { s.FumaLoopMult += 0.2f; s.FumaOrbitMult += 0.2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.MedicineDarts }, MaxStacks = 2, Name = "Potent Dose", Desc = "Each Medicine Dart's poison and healing stack is 30% stronger",
+                Apply = s => { s.DoseMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.SpiritFan }, MaxStacks = 2, Name = "Gale Fan", Desc = "The Spirit Fan's gust reaches 25% farther and heals 30% more",
+                Apply = s => { s.FanReachMult += 0.25f; s.FanHealMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Ofuda }, MaxStacks = 2, Name = "Blessed Paper", Desc = "Ofuda wards burst 25% wider and heal 30% more",
+                Apply = s => { s.CharmBurstMult += 0.25f; s.CharmHealMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Shuriken }, MaxStacks = 2, Name = "Barbed Stars", Desc = "Stuck stars come back 1.5 s sooner, and their return hit is 40% harder",
+                Apply = s => { s.StarStickCut += 1.5f; s.StarReturnMult += 0.4f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Katana }, MaxStacks = 2, Name = "Honed Edge", Desc = "The Momentum Burst shoves 30% farther, and caltrops last 2 s longer",
+                Apply = s => { s.BurstPushMult += 0.3f; s.CaltropBonusTime += 2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Kunai }, MaxStacks = 2, Name = "Shadow Mark", Desc = "The hit after a Kunai blink deals 40% more, and marks last 2 s longer",
+                Apply = s => { s.KunaiBlinkMult += 0.4f; s.KunaiMarkBonus += 2f; } },
         };
 
         /// The Ninja's abilities and ultimates. (Upgrades.Abilities gathers every class's list.)
@@ -736,7 +755,8 @@ namespace Arena
         /// A ward an enemy stepped on bursts: damage round it, and healing for allies near it.
         void BurstWard(Zone z)
         {
-            float r = WardBurst * (Players.ContainsKey(z.Owner) ? AreaMult(Players[z.Owner]) : 1f);
+            var wardOwner = PlayerOrNull(z.Owner);
+            float r = WardBurst * (wardOwner != null ? AreaMult(wardOwner) * wardOwner.Stats.CharmBurstMult : 1f);  // (Blessed Paper: wider)
             float dmg = Defs.WeaponOf(WeaponId.Ofuda).Damage * z.DmgMult;
             foreach (var e in Enemies.Values)
                 if (Targetable(e) && e.Pos.DistanceTo(z.Pos) < r + e.Radius)
@@ -745,8 +765,8 @@ namespace Arena
                     ModHit(e, z.Owner, dmg, Defs.OfudaShot, default(V2));  // weapon mods ride the burst
                 }
             foreach (var q in Players.Values)
-                if (!q.Downed && q.Pos.DistanceTo(z.Pos) < WardHealReach)
-                    Heal(q, WardHeal, PlayerOrNull(z.Owner));
+                if (!q.Downed && q.Pos.DistanceTo(z.Pos) < WardHealReach * (wardOwner != null ? wardOwner.Stats.CharmBurstMult : 1f))
+                    Heal(q, WardHeal * (wardOwner != null ? wardOwner.Stats.CharmHealMult : 1f), wardOwner);
             BroadcastFx(FxKind.Boom, z.Pos, z.Def.Color, r, 0.35f, Sfx.SpellHoly);
         }
 
@@ -775,7 +795,8 @@ namespace Arena
                     mine++;
             if (mine >= StarCap)
                 return;
-            stuckStars.Add(new StuckStar { Enemy = e.Id, Owner = b.Owner, Dmg = b.Dmg, T = StarStick });
+            var thrower = PlayerOrNull(b.Owner);
+            stuckStars.Add(new StuckStar { Enemy = e.Id, Owner = b.Owner, Dmg = b.Dmg, T = StarStick - (thrower != null ? thrower.Stats.StarStickCut : 0f) });  // (Barbed Stars: back sooner)
         }
 
         void TickStuckStars(float dt)
@@ -828,11 +849,12 @@ namespace Arena
         /// A stuck star rips out of its enemy (another full hit) and flies back to its thrower, cutting what it passes.
         void ReturnStar(StuckStar st, Enemy e, Player p)
         {
-            WeaponHurt(e, st.Dmg, p.Id);
-            ModHit(e, p.Id, st.Dmg, Defs.StarShot, default(V2));
+            float rip = st.Dmg * p.Stats.StarReturnMult;  // Barbed Stars: the return hits harder
+            WeaponHurt(e, rip, p.Id);
+            ModHit(e, p.Id, rip, Defs.StarShot, default(V2));
             V2 to = p.Pos - e.Pos;
             float dist = Math.Max(1f, to.Length);
-            var b = SpawnBullet(Defs.StarShot, e.Pos, to / dist * RecallSpeed / p.Stats.ShotSpeedMult, 0f, dist / RecallSpeed, st.Dmg * RecallBack, p.Id);
+            var b = SpawnBullet(Defs.StarShot, e.Pos, to / dist * RecallSpeed / p.Stats.ShotSpeedMult, 0f, dist / RecallSpeed, rip * RecallBack, p.Id);
             b.Pierce += 99;
             b.LastHit = e.Id;
         }
@@ -849,7 +871,7 @@ namespace Arena
                 float r = q.Def.BodyR + b.Radius;
                 if (q.Id == b.Owner || q.Downed || q.Hp >= q.MaxHp || b.Pos.DistanceSq(q.Pos) >= r * r)
                     continue;
-                float each = DoseHeal * b.Dmg / Defs.WeaponOf(WeaponId.MedicineDarts).Damage;  // damage upgrades dose harder too
+                float each = DoseHeal * b.Dmg / Defs.WeaponOf(WeaponId.MedicineDarts).Damage * DoseMultOf(b.Owner);  // damage upgrades dose harder too (Potent Dose)
                 q.DoseHps = Math.Min(q.DoseHps + each, each * DoseStacks);
                 q.DoseT = DoseTime;
                 q.DoseBy = b.Owner;
@@ -858,12 +880,14 @@ namespace Arena
             return false;
         }
 
+        float DoseMultOf(int owner) => Players.ContainsKey(owner) ? Players[owner].Stats.DoseMult : 1f;
+
         /// A Medicine Dart in an enemy: another dose of poison.
         void PoisonHit(Bullet b, Enemy e)
         {
             if (!b.Medicine)
                 return;
-            float each = PoisonDps * b.Dmg / Defs.WeaponOf(WeaponId.MedicineDarts).Damage;
+            float each = PoisonDps * b.Dmg / Defs.WeaponOf(WeaponId.MedicineDarts).Damage * DoseMultOf(b.Owner);
             e.PoisonDps = Math.Min(e.PoisonDps + each, each * DoseStacks);
             e.PoisonT = PoisonTime;
             e.PoisonBy = b.Owner;
@@ -892,7 +916,7 @@ namespace Arena
             if (!b.ShadowKunai || !Players.TryGetValue(b.Owner, out p))
                 return;
             p.KunaiMark = ClampToArena(at, p.Def.BodyR);
-            p.KunaiMarkT = KunaiMarkTime;
+            p.KunaiMarkT = KunaiMarkTime + p.Stats.KunaiMarkBonus;  // (Shadow Mark: longer)
         }
 
 
@@ -1283,6 +1307,7 @@ namespace Arena
                     return;
                 p.KunaiMarkT = 0f;
                 p.AmbushT = Math.Max(p.AmbushT, KunaiAmbush);  // the next hit lands double (NinjaHitMult)
+                p.BlinkBoost = p.Stats.KunaiBlinkMult;      // Shadow Mark: and harder
                 p.InvulnT = Math.Max(p.InvulnT, 0.2f);
                 BroadcastFx(FxKind.Ring, target, new Rgba(0.45f, 0.4f, 0.65f), 30f, 0.3f, Sfx.NinjaBlink);
                 return;
