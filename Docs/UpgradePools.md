@@ -225,3 +225,19 @@ Built (owner approved all nine): in `Game.HemomancerCards`. Hooks (all in `Blood
 `ClotCut`, the clot's `Pool` / `PoolTime`, the grasp's `Dmg` and `LeechSteal`, the dart's `HealAlly`, `ReserveGain`
 and the coat's healing, `VeinSteal`, `Hemorrhage` (hits needed, radius), `Collapse` (the crush and its pull radius),
 the spear's `Pierce` and `TickSpearPickups`. Test: suite `abilitycards`, its Blood Mage checks.
+
+### Step 10: Summoner weapon cards (proposed, owner picks)
+
+One Rare card per Summoner weapon (`Weapons = { that weapon }`, `MaxStacks = 2`), offered only while you hold it.
+Spirit Chalk already has its card (Warding Ink), so it gets none here.
+
+| Weapon | Card | Effect (per stack) |
+|---|---|---|
+| Golem Staff | Granite Golem | The staff's Golem takes 40% more before it breaks, and the boulder crushes 20% wider |
+| Bone Guard | Ossuary | Cages hold 0.5 s longer, and the skeletons shoot 30% faster |
+| Bear Totem | Deep Claws | The claws reach 15% farther, and their bleed is 30% stronger |
+| Sprite Staff | Wildfire Seeds | The firefly hops to 1 more enemy, and the sprites heal 20% more |
+| Treant Rod | Deep Roots | The root whip reaches 20% farther and heals allies it touches 30% more |
+| Wolf Whistle | Alpha Pack | Takedowns hit 30% harder and stun 0.3 s longer |
+| Wisp Lantern | Will-o'-Wisp | One more wisp orbits you |
+| Imp Caller | Imp Horde | Hold 1 more imp, and they come 20% faster |
