@@ -1,6 +1,6 @@
 # Rule rooms: big nodes that force a bigger room
 
-Status: **design agreed, steps 1-3 built (protocol 307).** Owner, Nov 13, 2026: restriction rooms like the old paths (a dark room, ...) as **nodes, but bigger ones that force a
+Status: **built, steps 1-4 (protocol 307).** Owner, Nov 13, 2026: restriction rooms like the old paths (a dark room, ...) as **nodes, but bigger ones that force a
 bigger room**. First pool: all four below. Sits beside [`Nodes.md`](Nodes.md); the rules come from [`Paths.md`](Paths.md).
 
 ## The idea
@@ -64,3 +64,11 @@ Clearing it pays a reward.
   (an eye for Dark, a snowflake, a blood-drop moon, a flame, a crowd of dots, a diamond for Elite).
 - The build screen's map (`ExpansionUi.cs`): the node's area as a tinted, framed square on the holo map and the minimap; hovering anywhere on it names the rule, what it does and what it pays (`RuleBlurb`); the legend lists "DARK RULE" etc.
 - A claimed rule room keeps the path's own floor and weather; its prize shows once it is cleared (step 2). Preview: `EXPANDMAP=0 EXPANDNODE="rule.dark:2400,450" EXPANDAT=1900,450` (mode hud; `rule.frozen|bloodmoon|burning|swarm|elite`, a third part `cleared` or `spent`).
+
+## Step 4 (built, no protocol change)
+
+- **Drawn rooms**: a drawn outline of any shape claims a rule node it encloses as a whole (`Expansion.NodeEnclosedBy`); before, each of its boxes was checked alone, so an L round a node never claimed it.
+- **Bots** (`ExpansionGame.cs`): they build toward a sealed shop, then vendor, then a **rule node's room**, then chest and relic nodes, then the Gatekeeper (`BotFloaterPick`), and **vote** for a
+  proposal that builds toward that pick when one is up (`BotVote`); before, a duo voted at random, split its votes about half the time and left the vendor sealed all run, so no node was ever tried.
+- **vecbal** prints chest, relic and rule nodes claimed/placed and spent, and each rule node's rule with `+claimed` / `+cleared`.
+- Prizes are unchanged (Frozen: 40 + 4 a wave gold and 8 vectors); bots still don't walk to a chest or relic, so a bot run never collects them.
