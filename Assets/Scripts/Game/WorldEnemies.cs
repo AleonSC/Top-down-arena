@@ -463,6 +463,7 @@ namespace Arena
             bool pac = PacSkin && !spawning && PacGhostable(e);  // the Pac-Man skin: a ghost in its role's colour (PacmanLook.cs)
             // Melee enemies are spiky, so you can tell rushers from shooters at a glance.
             if (e.Def.Melee && !pac && !spawning && e.Type != EnemyType.Swarmer && !Game.IsReaperCult(e.Type) && !HiveKin.Is(e.Type) && !Game.IsInfall(e.Type) && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type) && !Game.IsNonShooter(e.Type))
+            if (e.Def.Melee && !pac && !spawning && !HiveKin.Is(e.Type) && !QuarryKin.Is(e.Type) && !Game.IsReaperCult(e.Type) && e.Type != EnemyType.Swarmer && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type) && !Game.IsNonShooter(e.Type))
                 DrawMeleeSpikes(e, pos, r, col, t);
             if (Zombies.Is(e.Type))
                 DrawZombieUnder(e, pos, r, t);  // its spore haze, frenzy streaks and the Crawler's hold (ZombieLook.cs)
@@ -495,6 +496,8 @@ namespace Arena
                 DrawWispBody(e, pos, r, col, t);  // ReaperCultLook.cs
             else if (Game.IsInfall(e.Type))
                 DrawInfallBody(e, pos, r, col, t);  // InfallLook.cs: the Singularity's faction
+            else if (QuarryKin.Is(e.Type))
+                DrawQuarryBody(e, pos, r, col, t);  // QuarryLook.cs: the Colossus's faction
             else if (e.Type == EnemyType.SecurityGuard)
                 DrawSecurityBody(e, pos, r, col, t);  // SecurityLook.cs
             else if (Game.IsNonShooter(e.Type))

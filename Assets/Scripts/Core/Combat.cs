@@ -453,6 +453,7 @@ namespace Arena
             ResolveImplosions();  // and Implosions
             dmgSrc = was;
             FindColCover();       // the Colossus's plates and pillars (Colossus.cs)
+            FindQuarryCover();    // rubble piles and dropped slabs (QuarryFaction.cs)
             FindEclipseMoon();    // the Eclipse's moon (Eclipse.cs)
             foreach (var b in Bullets.Values)
             {
@@ -466,6 +467,11 @@ namespace Arena
                 if (Props.Count > 0 && PropStops(b))
                 {
                     scratchIds.Add(b.Id);  // a crate takes an enemy shot; a barrel any shot (Props.cs)
+                    continue;
+                }
+                if (quarryCover && QuarryCoverStops(b))
+                {
+                    scratchIds.Add(b.Id);  // a rubble pile or a dropped slab stops shots both ways (QuarryFaction.cs)
                     continue;
                 }
                 if (colCover != null && ColossusCoverStops(b))
@@ -596,6 +602,7 @@ namespace Arena
                         {
                             // The parry stops anything in front of it, even shots barriers can't.
                             scratchIds.Add(b.Id);
+                            MagmaParried(b);  // (no lava at your feet: QuarryFaction.cs)
                             bool perfect = PerfectNow(p);
                             if (ParryHit(p, b.Dmg, b.Pos) && !(perfect && FumaSteal(p, b)))  // perfect parry (a needle) or Mirror Guard (an arcane bolt): sent back; the Fuma's Orbit stance keeps it (FumaOrbit.cs)
                                 reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.Stats.ReflectMult, StunBack = b.Kind == Defs.StunShot || b.Kind == Defs.TaserBolt || b.Kind == Defs.StingBolt, Kind = perfect ? Defs.ParryNeedle : Defs.ArcaneShot });

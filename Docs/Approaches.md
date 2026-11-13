@@ -66,7 +66,7 @@ existing regular enemy that fits the theme (a higher weight during the approach)
 | **Hive Queen** (6-9) | **Hive Bomber** (fix) · **Hive Egg** (rework) · **Nectar Spitter** (new) · Shard (regular) | Bombers need a target: launch them at a player's position when they spawn (`LaunchBomber` takes any launcher), or they blow up where they appear. Eggs hatch into two Shards on their own timer (5 s), so break them first. Nectar Spitter sprays honey that leaves slowing patches (the Queen's `PatchKind.Honey`). Her "drones" are Shards already. |
 | **Twin Reapers** (11-14) | **Bound Wraiths** (new, always a pair) · **Scythe Wraith** (new) · **BUILT** (Nov 2026) as 8: also Wisp (Swarmer), Acolyte (Swordsman with a sickle), Lamplighter, Mourner (new), Gravedigger (Brute), Shade (Phantom); squads Vigil, Procession, Twin graves, Harvest; finale Dusk and Dawn (`ReaperFaction.cs`, `Docs/Mockups/reaper-faction.html`) | Bound Wraiths: two wraiths joined by a harmful tether that sweeps as they circle; kill one and the other revives it after 3 s unless both are dead (the Soul Bond, small). Scythe Wraith: marks a player, then dashes and swings along the mark (the Sundered reaps). Reaper Pillars don't work without the fusion: left out. |
 | **Singularity** (16-19) | **Gravity Well** (ready) · **Cage Well** (rework) · **Slingshot** (new) | Gravity Wells already bend shots and drift players with no boss; at most one per wave (they're 260 health). Cage Wells: a trio that rings a player in a shrinking cage (move the cage tick out of the boss-only `TickSingularityHazards`). Slingshot: fires orbs that curve round it and fling out. **Not** the Singularity Shard: it can't be killed without its core, so the wave would never end. |
-| **Colossus** (21-24) | **Stomper** (new) · **Rock Hurler** (new) · Juggernaut (regular) | Stomper: heavy melee whose stomp sends out a small ring of push blocks with one gap (the Colossus's rings, small). Rock Hurler: lobs boulders where you're heading (the Leader's lead aim) that leave rubble for a moment. |
+| **Colossus** (21-24) | **The Quarry, BUILT** (all eight, squads, the Avalanche, the Long Campaign's ten lessons; owner's call, Nov 2026; section below, mockup `Docs/Mockups/colossus-faction.html`): eight enemies, one per Warden enemy: Rubble, Quarryman, Stomper, Driller, Slab Bearer, Rock Hurler, Geomancer, Cinder Priest | Crew (like the guards) and stoneborn (like the prisoners). Teaches push-ring gaps, cracks, rubble cover and lava before the fight. |
 | **Duelist** (26-29) | **Mockup** (Nov 2026, `Docs/Mockups/duelist-faction.html`): the Masked Court, 8 members (Fencer, Blade Dancer, Parrier, Marshal, Gallant, Second, Harlequin, Mummer), squads Salon, Seconds, Guard line, Masked ball, set piece Ring of Honour. *Earlier plan:* **Blade Dancer** (new) · **Decoy** (rework) · Shielder, Reaver (regular) | Blade Dancer: telegraphed lunges that leave a hanging blade firing sideways; when hit it can blink away and leave a Decoy. The Decoy with no Duelist is a timed bomb today; it needs to give credit and look like a Blade Dancer, not the boss. Shielders (front guard) and Reavers (cone then rake) already duel. |
 | **Lich** (31-34) | **BUILT, as zombies** (owner's call, Nov 2026): the Zombie Infection kinds, Shamblers first, then Runners (packs of three) and Spitters (wave 32), Crawlers (33), Menders (34); squads Graveyard shift and Grave rush; wave 34 always brings the Dead march. No rising outside the modifier; the Lich fight is untouched (the owner will redesign it). *Original plan, now dropped:* **Skeleton** (new, from the Grunt) · **Grave Priest** (new) · **Wailing Spirit** (new) | Today the Lich's dead are plain Grunts; a Skeleton type looks the part and climbs out of a grave. Grave Priest: raises Skeletons from graves (at most 4 alive per priest; kill the priest and the graves close), a Nest with a theme. Wailing Spirit: drifts in, wails, then dives at you (the Lich's spirits). Phylacteries mean nothing without the Lich: left out. |
 | **Storm Herald** (36-39) | **Ball Lightning** (fix) · **Lightning Rod** (new, in pairs) · **Stormcaller** (new) | Ball Lightning works with no Herald; fix that slows and freezes don't touch it and that its pop shots are marked as boss shots. Lightning Rods: two posts with an arc between them, like the Stitcher's thread. Stormcaller: telegraphs strikes under you. |
@@ -97,6 +97,37 @@ A guard behind a tall riot shield who **bashes you around**. In the approach wav
   (`shoveDir`/`shoveT` in `LocalControl`) and the Warden's gates (`WardenGatePush`): each game sees the guard's bash
   (its phase and facing are already in the snapshot) and shoves its own player; the host deals the damage. Bots get a
   rule: keep out of the front of a winding-up shield.
+
+## The Quarry: the Colossus's faction (built; the fight hooks below are still a proposal)
+
+Mockup: `Docs/Mockups/colossus-faction.html`. Eight enemies, each mirroring a Warden enemy's job so the lessons carry
+over. **Crew** (quarry workers and cultists who woke it; squads with the crew) and **stoneborn** (chunks of the
+Colossus; squads with the stone). Numbers are first guesses at wave 21, growing like any enemy.
+
+| Enemy | Side | From | Mirrors | What it does |
+|---|---|---|---|---|
+| **Rubble** | stone | 21 | Rioter | Rolls at you in pairs, weaving (contact 10, XP 7) |
+| **Quarryman** | crew | 21 | Guard | Hard hat, headlamp beam ahead, pickaxe; straight at you (contact 14, XP 15) |
+| **Stomper** | stone | 22 | Thug | 180 health, contact 20. Every 4 s lifts a foot (0.8 s) and stomps a small push-block ring (the Colossus's ring code, small) with one green ~100 px gap beside you |
+| **Driller** | crew | 23 | Shiv | Circles close, shows the lunge lane, drills 200 px (26); the crack it leaves erupts 0.4 s later (12) |
+| **Slab Bearer** | crew | 22 | Riot Shield | Riot Shield logic with a stone slab (4x health, bash 10, 160 px knockback); a broken slab drops as 3 s of cover that blocks both sides; the bearer staggers and takes +50% |
+| **Rock Hurler** | stone | 22 | Gas Grenadier | Lobs a boulder at your lead every 3.6 s (ring fills over the wind-up); lands for 18, 6 shards, rubble pile for 2 s that stops shots |
+| **Geomancer** | crew | 23 | Taser Guard (moves) | Holds 320 px out, plants its staff 0.6 s, sends a crack at where you stood; glows, then erupts (12) (the Colossus's Fissure, small) |
+| **Cinder Priest** | crew | 23 | Taser Guard | Charges 0.7 s on a shooting line, one magma bolt (240 px/s, 9, parryable); wherever it stops (hit or miss) it leaves a 2.5 s lava pool (20/s) instead of the planned burn |
+
+**Squads:** Landslip (six Rubble, a Quarryman; mirrors Breakout), Dig crew (two Rock Hurlers behind two Quarrymen;
+Patrol), Quarry (a Stomper, three Rubble, a Driller; Yard), Wall-in (two Slab Bearers, Rubble pouring past; Cell
+block), Fault line (three Geomancers spread wide so their cracks cross; new). **Last wave: Avalanche** (mirrors the
+Riot Line): four Slab Bearers as a wall, two Stompers behind, two Rock Hurlers lobbing over; within ~190 px or half
+the slabs broken, the Stompers break out and stomp.
+
+**In the Colossus fight (proposal, not decided):** Crumbling's Charge turn sends two Slab Bearers (a broken slab is a
+fifth cover plate); Molten Core's Cave-in sends two Cinder Priests through the side doors; in the last stand two Rubble
+roll off each stomp (at most six up).
+
+**Build order:** (1) ✅ Rubble, Quarryman (kin in `HiveKin.cs`'s table), Stomper (`QuarryFaction.cs`; a stand-in **Rockfall** squad, a Stomper and three Rubble, until the Driller makes it Quarry); (2) ✅ Slab Bearer (Riot Shield kin; its slab drops as a `PatchKind.Slab`),
+Rock Hurler (Gas Grenadier kin, every 3.6 s; the pile is a `PatchKind.Rubble`); (3) ✅ Driller (Shiv kin), Geomancer and Cinder Priest (Taser Guard kin: the Geomancer was planned as a Security Guard mirror, but the Taser Guard's charge-then-one-shot fits a crack; the Cinder Priest comes from wave 23, `From = 3` like every faction's last members); the Quarry and Fault line squads replace the stand-in Rockfall; (4) ✅ the Avalanche (the Riot line formation now takes any Riot Shield kin as its wall) and the Long Campaign's
+ten lessons (waves 41-50, the Warden's order; the Driller is starred in the recap wave). New `EnemyType`s at the end, protocol bump per step.
 
 ## With paths
 

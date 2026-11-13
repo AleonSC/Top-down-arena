@@ -661,6 +661,27 @@ wave brings **Dusk and Dawn**: split to opposite edges, a Mourner on each side w
 | 18 | **White Dwarf** | White hole | A small, hot star (40 health, 230 px/s) that darts in zigzagging. Within 120 px it stops and **flashes white** for 0.5 s (a ring shows how far the pulse will reach), then **pulses**: everyone within 170 px is **shoved 150 px back**, and up to 10 of **your shots** within 150 px **turn round** and fly back at you (14 each). Then it backs off and comes again. Hold fire when it flashes |
 
 They are drawn as in `Docs/Mockups/singularity-faction.html`, in the Singularity's colours. Design notes: `Docs/SingularityFaction.md`.
+The **Colossus's faction**, The Quarry, leads up to its fight (waves 21-24): the quarry crew who woke it and the stone
+that broke off it (design: `Docs/Approaches.md`, "The Quarry"; mockup: `Docs/Mockups/colossus-faction.html`). Squads: **Landslip** (a Quarryman and six Rubble), **Dig crew** (two
+Quarrymen with two Rock Hurlers behind) and, from wave 23, **Quarry** (a Stomper, three Rubble and a Driller),
+**Wall-in** (two Slab Bearers with four Rubble) and **Fault line** (three Geomancers, so their cracks cross). They pay XP
+like their counterparts (Rubble 7, Quarryman 15, Stomper 20, Slab Bearer 10, Rock Hurler 9, Driller 9, Geomancer and
+Cinder Priest 11). The last wave before it always brings the **Avalanche**: four Slab Bearers marching at you as a wall, two
+Stompers and two Rock Hurlers close behind it (the hurlers lob over the wall); once the wall gets within about 190 px or
+half its slabs are broken, the rest break out. In the Long Campaign its ten waves (41-50) teach one enemy each, in the
+Warden's order: Rubble, Quarrymen, Stompers, Geomancers, a recap with Drillers, Slab Bearers, Rock Hurlers, Cinder
+Priests, every squad, then the exam (the Avalanche and a big Landslip).
+
+| From | The Colossus's faction | Plays like | What it does |
+|---|---|---|---|
+| 1 | **Rubble** | Rioter | A jagged chunk of stone that rolls at you, weaving, in pairs (contact 10) |
+| 1 | **Quarryman** | Guard | A quarry worker in a hard hat, its headlamp beam ahead of it and a pickaxe that swings when it's close: straight at you (contact 14) |
+| 2 | **Stomper** | Thug | A slab-shouldered stone brute (180 health, contact 20) that walks at you like a Brute. Within 260 px it **stops and lifts a foot for 0.8 s** (it rises, its veins glow) while a **green gap** shows a short step to one side of you, then **stomps** out a small ring of push blocks, the Colossus's own (150 px/s, gone at 220 px). Step into the gap and it passes you by; caught, it passes over you once (12) and you end up behind it. Every 4 s |
+| 2 | **Slab Bearer** | Riot Shield | A quarry worker behind a stone slab that stops shots and swings from the front. Up close the slab flashes (0.4 s), then it lunges and **bashes** you: 10 damage, knocked **160 px** back. It cracks as it wears; broken, the slab **drops in front of it as cover for 3 s** that stops shots from **both** sides (yours too), and the bearer staggers and takes 50% more |
+| 2 | **Rock Hurler** | Gas Grenadier | A chunk of stone that keeps its distance and hauls a boulder back while an **orange ring** fills on **where you're heading** (picked as the wind-up starts: change direction), then lobs it (every 3.6 s). It lands 1 s later for **18**, bursts into **six shards** and lies as a **rubble pile** for 2 s that stops shots from both sides |
+| 3 | **Driller** | Shiv | A quarry worker with goggles and a jackhammer: circles in close, shows the lunge lane, then **drills** along it (contact 18, 26 on the drill). The **crack** it leaves along its path glows and **erupts 0.4 s** after it stops (12 to whoever stands on it): dodge across the line, not along it |
+| 3 | **Geomancer** | Taser Guard | A hooded cultist with a crystal staff: keeps its distance, plants the staff and charges for 0.7 s (the shooting line, the crystal glowing), then sends a **crack racing** at where you stood (600 px/s, up to 460 px). It glows for 0.5 s, then **erupts** along its length (12): step off the line. Every 3.2 s |
+| 3 | **Cinder Priest** | Taser Guard | A dark-robed priest cupping a molten core: charges for 0.7 s along a shooting line, then fires one **magma bolt** straight at you (240 px/s, 9, no lead). Wherever it stops, a hit, cover or the end of its 300 px, it leaves a **lava pool** for 2.5 s (20 a second). A **perfect parry** sends it back and leaves no lava. Every 3.2 s |
 
 **Bubbles (Shielded elites and the Warder's wards):** a bubble is twelve cells round the rim, each holding a twelfth of the shield. A hit wears down the cell facing whoever shot it (flashing, then breaking into shards) and spills over to its neighbours once that cell is gone, so the side you shoot from is the side that opens. Burning and bleeding keep chewing the weakest cell. A honeycomb inside only shows where its cell is still up, and a thin shield bar sits above the health bar. Blue is a Shielded elite, violet is the Warder's.
 

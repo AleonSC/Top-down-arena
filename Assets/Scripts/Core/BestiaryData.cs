@@ -289,6 +289,74 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Rubble, Name = "Rubble", Group = "Melee", Wave = 21,
+                Appears = "The Colossus's approach (in pairs, Landslip and Rockfall squads)",
+                Lead = "A fist-sized chunk of the Colossus that rolls at you, weaving, in loose pairs. Moves like a Rioter.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "10" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Quarryman, Name = "Quarryman", Group = "Melee", Wave = 21,
+                Appears = "The Colossus's approach (leading Landslip squads, and on its own)",
+                Lead = "A quarry worker with a hard hat, a headlamp and a pickaxe. Walks straight at you; its lamp shows where it's heading. Moves like a Guard.",
+                Attacks = new[] { new BestiaryAttack { Name = "Pickaxe", Pattern = "Touch", Damage = "14" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Stomper, Name = "Stomper", Group = "Melee", Wave = 22,
+                Appears = "The Colossus's approach (Rockfall squads and on its own)",
+                Lead = "A slab-shouldered stone brute that walks at you like a Thug. Within 260 px it stops and lifts a foot for 0.8 s, showing a green gap beside you, then stomps out a small ring of push blocks (gone at 220 px). Step into the gap; caught, it passes over you once and leaves you behind it.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Stomp ring", Pattern = "0.8 s wind-up, then a ring of push blocks with one gap", Damage = "12", Every = 4f, Fixed = true },
+                    new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "20" },
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.SlabBearer, Name = "Slab Bearer", Group = "Melee", Wave = 22,
+                Appears = "The Colossus's approach (alone, or two in a Wall-in squad)",
+                Lead = "Carries a quarried slab that stops shots and swings from the front. Up close the slab flashes (0.4 s), then it lunges and bashes you 160 px back. The slab cracks as it wears; broken, it drops in front of the bearer as cover for 3 s that stops shots from both sides, and the bearer staggers and takes 50% more. Plays like a Riot Shield.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Slab bash", Pattern = "0.4 s flash, then a short lunge", Damage = "10, and knocked back 160 px" },
+                    new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "8" },
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.RockHurler, Name = "Rock Hurler", Group = "Shooters", Wave = 22,
+                Appears = "The Colossus's approach (alone, or two behind Quarrymen in a Dig crew)",
+                Lead = "Keeps its distance and hauls a boulder back while an orange ring fills where you're heading (picked as the wind-up starts), then lobs it every 3.6 s. It lands 1 s later for 18, bursts into six shards and lies as a rubble pile for 2 s that stops shots from both sides. Plays like a Gas Grenadier.",
+                Attacks = new[] { new BestiaryAttack { Name = "Boulder", Pattern = "Lobbed at a ring on your lead, then six shards", Damage = "18, then six small shots", Every = 3.6f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Driller, Name = "Driller", Group = "Melee", Wave = 23,
+                Appears = "The Colossus's approach (in Quarry squads and on its own)",
+                Lead = "Circles in close with a jackhammer, shows the lunge lane, then drills along it. The crack it leaves glows and erupts 0.4 s after it stops: dodge across the line, not along it. Moves like a Shiv.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Drill", Pattern = "Wind-up 0.6 s (shows a lane) then a leap, same as the Shiv", Damage = "26", Notes = "18 contact" },
+                    new BestiaryAttack { Name = "Crack", Pattern = "Along the drill's path, 0.4 s after it stops", Damage = "12" },
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Geomancer, Name = "Geomancer", Group = "Shooters", Wave = 23,
+                Appears = "The Colossus's approach (alone, or three spread wide in a Fault line)",
+                Lead = "A Colossus cultist with a crystal staff. Keeps its distance, plants the staff and charges for 0.7 s (the aim line), then sends a crack racing at where you stood. It glows for 0.5 s, then erupts along its length: step off the line.",
+                Attacks = new[] { new BestiaryAttack { Name = "Crack", Pattern = "Races 600 px/s toward you, up to 460 px; erupts 0.5 s after it stops", Damage = "12", Every = 3.2f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.CinderPriest, Name = "Cinder Priest", Group = "Shooters", Wave = 23,
+                Appears = "The Colossus's approach (waves 23-24)",
+                Lead = "Cups a molten core and charges for 0.7 s along a shooting line, then fires one magma bolt straight at you (240 px/s, no lead). Wherever it stops, a hit, cover or the end of its 300 px, it leaves a lava pool for 2.5 s (20 a second). A perfect parry sends it back, and leaves no lava. Plays like a Taser Guard.",
+                Attacks = new[] { new BestiaryAttack { Name = "Magma bolt", Pattern = "One aimed bolt after a 0.7 s charge, then a lava pool", Shot = "Magma bolt", ShotColor = new Rgba(1f, 0.48f, 0.23f), Speed = "240", Damage = "9, then lava 20/s", Every = 3.2f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.HiveEgg, Name = "Hive Egg", Group = "Summons", Wave = 10,
                 Appears = "Laid by the Hive Queen in her Honeycomb stage",
                 Lead = "Doesn't move or attack. Break it before it hatches into drones.",

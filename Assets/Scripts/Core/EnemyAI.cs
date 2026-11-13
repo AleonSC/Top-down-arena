@@ -1003,6 +1003,8 @@ namespace Arena
             // A Security Guard keeps its side on its own timer (SecurityGuard.cs); Debris keeps its spiral's side, a Pulsar its sweep's (Infall.cs).
             if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3) && e.Kin != EnemyType.SecurityGuard && !PulsarLocked(e) && e.Type != EnemyType.Debris)
                 e.Strafe = -e.Strafe;
+            if (StomperPlanted(e))
+                speed = 0f;  // a Stomper stands still while its foot is up (QuarryFaction.cs)
             if (e.SlowT > 0f && !Heavy(e))
                 speed *= e.SlowMult;
             else if (e.WadeT > 0f)
@@ -1038,6 +1040,8 @@ namespace Arena
                 ZombieSpecial(e, tpos, dt);  // Zombies.cs
                 return;
             }
+            if (e.Type == EnemyType.Stomper)
+                StomperSpecial(e, tpos, dt);  // its stomp ring (QuarryFaction.cs)
             switch (e.Kin)
             {
                 case EnemyType.Shielder:
@@ -1200,6 +1204,8 @@ namespace Arena
                 GrenadierFire(e, tpos);  // WardenFaction.cs
                 return;
             }
+            if (QuarryFire(e, tpos, aim))
+                return;  // the Geomancer's crack, the Cinder Priest's magma bolt (QuarryFaction.cs)
             if (e.Kin == EnemyType.TaserGuard)
             {
                 TaserFire(e, aim);  // WardenFaction.cs

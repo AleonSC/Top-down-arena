@@ -442,6 +442,47 @@ static partial class Shot {
       ig.AccretionBands.Add(new Game.AccretionBand { Center = me.Pos, Radius = radius, Spin = spin + Game.AccretionSpin * at });
       ig.AnimT += at;
     }
+    if (Environment.GetEnvironmentVariable("QUARRY") != null) {  // QUARRY=<s into the clock>: the Colossus's step-1 faction (QuarryLook.cs): two Rubble, a Quarryman swinging at you, a Stomper walking, one lifting its foot (gap showing) and one whose ring is out; set beside Docs/Mockups/colossus-faction.html
+      var qg = host.Game; qg.Enemies.Clear(); qg.Bullets.Clear();
+      var qsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, float, Enemy> qput = (t, at, face) => { var e = (Enemy)qsp.Invoke(qg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Facing = face; e.Elite = false; e.Traits = 0; return e; };
+      me.Pos = me.Disp = new V2(1450f, 820f);
+      qput(EnemyType.Rubble, new V2(260f, 250f), 0f); qput(EnemyType.Rubble, new V2(300f, 330f), 0f);
+      qput(EnemyType.Quarryman, new V2(560f, 330f), 0f);
+      qput(EnemyType.Stomper, new V2(900f, 300f), MathX.Pi);
+      var sw = qput(EnemyType.Stomper, new V2(420f, 640f), 0f);
+      sw.Stomp = new StompRing { Center = sw.Pos, Radius = sw.Radius + 6f, Warn = 0.3f, Gap1 = -0.5f };
+      var so = qput(EnemyType.Stomper, new V2(980f, 660f), MathX.Pi);
+      so.Stomp = new StompRing { Center = so.Pos, Radius = 150f, Warn = 0f, Gap1 = MathX.Pi - 0.4f };
+      if (Environment.GetEnvironmentVariable("QUARRY2") != null) {  // QUARRY2=1 with QUARRY: step 2 instead: Slab Bearers (whole, flashing, cracked, broken with its slab down) and Rock Hurlers (winding up, boulder in flight, a landed pile)
+        qg.Enemies.Clear(); qg.Patches.Clear(); qg.Effects.Clear();
+        var setRiot = typeof(Game).GetMethod("SetRiotState", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        var sb1 = qput(EnemyType.SlabBearer, new V2(250f, 250f), 0f);
+        var sb2 = qput(EnemyType.SlabBearer, new V2(450f, 250f), 0f); setRiot.Invoke(null, new object[] { sb2, Game.RiotWinding, 0.3f });
+        var sb3 = qput(EnemyType.SlabBearer, new V2(650f, 250f), 0f); sb3.Phase = (byte)(Game.RiotWalk << 3 | 3);
+        var sb4 = qput(EnemyType.SlabBearer, new V2(850f, 250f), 0f); sb4.Phase = (byte)(Game.RiotFlail << 3 | Game.RiotCracked);
+        qg.Patches[701] = new PathPatch { Id = 701, Kind = PatchKind.Slab, Pos = new V2(885f, 250f), Warn = 0f, Life = 3f, Age = 1f, R0 = Game.SlabCoverHalfL, R1 = 0f };
+        var rh1 = qput(EnemyType.RockHurler, new V2(250f, 600f), 0f);
+        qg.Effects.Add(new Effect { Kind = FxKind.GasLob, Pos = new V2(470f, 560f), Pos2 = new V2(rh1.Id, 1f), Color = Game.HurlerColor, Radius = Game.HurlerLandR, Dur = 2.07f, T = 0.7f });
+        var rh2 = qput(EnemyType.RockHurler, new V2(700f, 600f), 0f);
+        qg.Effects.Add(new Effect { Kind = FxKind.GasLob, Pos = new V2(950f, 600f), Pos2 = new V2(rh2.Id, 1f), Color = Game.HurlerColor, Radius = Game.HurlerLandR, Dur = 2.07f, T = 1.55f });
+        qg.Patches[702] = new PathPatch { Id = 702, Kind = PatchKind.Rubble, Pos = new V2(1150f, 600f), Warn = 0f, Life = 2f, Age = 0.6f, R0 = Game.RubbleR, R1 = Game.RubbleR };
+      }
+      if (Environment.GetEnvironmentVariable("QUARRY3") != null) {  // QUARRY3=1 with QUARRY: step 3 instead: a Driller winding up and one whose crack is about to erupt, a Geomancer charging and one whose crack races, a Cinder Priest charging with a magma bolt out and a lava pool
+        qg.Enemies.Clear(); qg.Patches.Clear(); qg.Effects.Clear(); qg.Bullets.Clear();
+        var d1 = qput(EnemyType.Driller, new V2(250f, 250f), 0f); d1.Phase = 1; d1.PhaseT = 0.3f;
+        var d2 = qput(EnemyType.Driller, new V2(700f, 250f), 0f); d2.Phase = 3;
+        d2.Crack = new ColCrack { From = new V2(460f, 250f), Ang = 0f, Len = 220f, Max = 220f, Wait = 0.2f, Seed = 5 };
+        var g1 = qput(EnemyType.Geomancer, new V2(250f, 600f), 0f); g1.Winding = true;
+        var g2 = qput(EnemyType.Geomancer, new V2(550f, 470f), 0f);
+        g2.Crack = new ColCrack { From = new V2(570f, 470f), Ang = 0f, Len = 200f, Max = 380f, Seed = 9 };
+        var c1 = qput(EnemyType.CinderPriest, new V2(820f, 640f), MathX.Pi); c1.Winding = true;
+        var c2 = qput(EnemyType.CinderPriest, new V2(1150f, 450f), MathX.Pi);
+        qg.Bullets[9101] = new Bullet { Id = 9101, Kind = Defs.MagmaBolt, Pos = new V2(1040f, 450f), Vel = new V2(-240f, 0f), Radius = 8f, Dmg = 9f };
+        qg.Patches[703] = new PathPatch { Id = 703, Kind = PatchKind.Lava, Pos = new V2(1150f, 680f), Warn = 0.2f, Life = 2.7f, Age = 1f, R0 = Game.MagmaPoolR, R1 = Game.MagmaPoolR };
+      }
+      qg.AnimT += float.Parse(Environment.GetEnvironmentVariable("QUARRY"), System.Globalization.CultureInfo.InvariantCulture);
+    }
     if (Environment.GetEnvironmentVariable("LUNGE") != null) {  // LUNGE=<0-1>: the four lungers part-way through their wind-up (LungeLaneLook.cs); the lane fills with the client's clock, so draw once, then move it on
       var lg = host.Game; lg.Enemies.Clear(); lg.Bullets.Clear();
       var lsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

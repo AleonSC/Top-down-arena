@@ -65,6 +65,14 @@ namespace Arena
         Graviton, Orbiter, Collapsar, MiniWell, Implosion,
         // ...step 3
         Lens, WhiteDwarf,
+        // the Colossus's faction, The Quarry (QuarryFaction.cs, Game/QuarryLook.cs): Rubble plays like a Rioter, a Quarryman
+        // like a Guard, a Stomper like a Thug that stomps out a small ring of push blocks
+        Rubble, Quarryman, Stomper,
+        // step 2: a Slab Bearer plays like a Riot Shield (its broken slab drops as cover), a Rock Hurler like a Gas Grenadier (a boulder)
+        SlabBearer, RockHurler,
+        // step 3: a Driller plays like a Shiv (its drill leaves a crack that erupts), a Geomancer and a Cinder Priest like Taser
+        // Guards (a crack sent at you; a magma bolt that leaves lava)
+        Driller, Geomancer, CinderPriest,
     }
 
     public class RoleDef
@@ -372,6 +380,23 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "Carries a gravity lens in front of it. Shots into its face curve round it and away; it turns slowly, so hit it from the side." },
             new EnemyDef { Name = "White Dwarf", Hp = 40f, Radius = 9f, Speed = 230f, Score = 8, Xp = 10, Sides = 4, Color = new Rgba(1f, 0.96f, 0.9f), Melee = true, Contact = 10f,
                 Picker = PickerGroup.Melee, Blurb = "A small hot star that darts in, flashes white, then shoves you back and turns your shots near it round at you. Stop shooting when it flashes." },
+            // the Colossus's faction (QuarryFaction.cs): Rubble and the Quarryman have their Warden counterpart's numbers
+            new EnemyDef { Name = "Rubble", Hp = 40f, Radius = 12f, Speed = 110f, Score = 3, Xp = 7, Sides = 7, Color = new Rgba(0.78f, 0.62f, 0.45f), Melee = true, Contact = 10f,
+                Picker = PickerGroup.Melee, Blurb = "A fist-sized chunk of the Colossus that rolls at you, weaving, in pairs." },
+            new EnemyDef { Name = "Quarryman", Hp = 90f, Radius = 13f, Speed = 125f, Score = 6, Xp = 15, Sides = 8, Color = new Rgba(0.62f, 0.53f, 0.4f), Melee = true, Contact = 14f,
+                Picker = PickerGroup.Melee, Blurb = "A quarry worker with a hard hat, a headlamp and a pickaxe. Walks straight at you." },
+            new EnemyDef { Name = "Stomper", Hp = 180f, Radius = 21f, Speed = 58f, Score = 12, Xp = 20, Sides = 7, Color = new Rgba(0.69f, 0.6f, 0.5f), Melee = true, Contact = 20f,
+                Picker = PickerGroup.Melee, Blurb = "A slab-shouldered stone brute. Every few seconds it lifts a foot and stomps out a small ring of push blocks with one green gap: step into the gap." },
+            new EnemyDef { Name = "Slab Bearer", Hp = 60f, Radius = 16f, Speed = 120f, Score = 10, Xp = 10, Sides = 6, Color = new Rgba(0.62f, 0.53f, 0.4f), Melee = true, Contact = 8f,
+                Picker = PickerGroup.Melee, Blurb = "Carries a quarried slab that stops shots and bashes you back. Break the slab and it drops it as cover for a few seconds; then the bearer falls fast." },
+            new EnemyDef { Name = "Rock Hurler", Hp = 50f, Radius = 14f, Speed = 75f, Score = 8, Xp = 9, Sides = 5, Color = new Rgba(0.7f, 0.6f, 0.49f),
+                Picker = PickerGroup.Ranged, Blurb = "Lobs a boulder where you're heading. Walk out of the ring: it lands hard, bursts into shards and leaves a rubble pile that stops shots." },
+            new EnemyDef { Name = "Driller", Hp = 45f, Radius = 12f, Speed = 95f, Score = 9, Xp = 9, Sides = 4, Color = new Rgba(0.62f, 0.53f, 0.4f), Melee = true, Contact = 18f,
+                Picker = PickerGroup.Melee, Blurb = "Circles in close with a jackhammer, shows a lane, then drills along it. The crack it leaves erupts a moment later: get off the line." },
+            new EnemyDef { Name = "Geomancer", Hp = 70f, Radius = 13f, Speed = 80f, Score = 9, Xp = 11, Sides = 8, Color = new Rgba(0.48f, 0.4f, 0.31f),
+                Picker = PickerGroup.Ranged, Blurb = "Keeps its distance, plants its crystal staff and sends a crack racing at you. It glows, then erupts: step off the line." },
+            new EnemyDef { Name = "Cinder Priest", Hp = 70f, Radius = 13f, Speed = 80f, Score = 9, Xp = 11, Sides = 8, Color = new Rgba(0.24f, 0.2f, 0.19f),
+                Picker = PickerGroup.Ranged, Blurb = "Charges a molten core, then fires one magma bolt straight at you. Wherever it stops, it leaves a pool of lava. Strafe across the line, or parry it." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount
@@ -626,9 +651,10 @@ namespace Arena
             Caltrop = 60,      // a Katana caltrop: thrown, lying (it hurts and slows what steps on it), flung or seeking (Katana.cs, Game/KatanaLook.cs)
             TaserBolt = 61,    // the Taser Guard's Fork Bolt: a white lightning glyph that stuns you for a second (WardenFaction.cs, Game/TaserLook.cs)
             TracerRound = 62,  // the Security Guard's pistol round: a hot-white tracer with a long tail (SecurityGuard.cs, Game/SecurityLook.cs)
-            StingBolt = 63;    // the Stinger's venom dart: a lime barbed dart that stuns like the Fork Bolt (WardenFaction.cs, Game/HiveLook.cs)
+            StingBolt = 63,    // the Stinger's venom dart: a lime barbed dart that stuns like the Fork Bolt (WardenFaction.cs, Game/HiveLook.cs)
+            MagmaBolt = 64;    // the Cinder Priest's magma bolt: it leaves a lava pool wherever it stops (QuarryFaction.cs, Game/QuarryLook.cs)
 
-        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt;
+        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt;
 
         /// Bosses' aimed attacks: barriers, walls and other blockers can't stop these.
         public static bool Unblockable(byte kind) => kind == PierceShot;
@@ -695,6 +721,7 @@ namespace Arena
                 case StitchShot: return 8f;
                 case TaserBolt: return 7f;
                 case StingBolt: return 7f;
+                case MagmaBolt: return 8f;
                 case TracerRound: return 5f;
                 case BileShot: return 6f;
                 case ToothShot: return 10f;
@@ -718,6 +745,7 @@ namespace Arena
                 case StunShot: return 8f;  // the Warden's searchlight turn: it stuns you for 1 s
                 case TaserBolt: return 8f;  // a Taser Guard's Fork Bolt: the same stun
                 case StingBolt: return 8f;  // a Stinger's dart: the same
+                case MagmaBolt: return 9f;  // a Cinder Priest's bolt (and its lava)
                 case TracerRound: return 6.1f;  // a Security Guard's round: 7 once the enemy bullet multiplier is on
                 case HoneyShot: return 14f;  // the Hive Queen's nectar spray
                 case ToothShot: return 20f;  // the Devourer's Jaws
@@ -791,6 +819,7 @@ namespace Arena
                 case StitchShot: return new Rgba(1f, 0.82f, 0.45f);    // the Stitcher's gold
                 case TaserBolt: return new Rgba(0.75f, 0.91f, 1f);     // the Fork Bolt's ice white
                 case StingBolt: return new Rgba(0.784f, 1f, 0.239f);   // the Stinger's venom lime
+                case MagmaBolt: return new Rgba(1f, 0.48f, 0.23f);     // the Cinder Priest's magma
                 case TracerRound: return new Rgba(0.94f, 0.97f, 1f);   // the Security Guard's hot-white tracer
                 case BileShot: return new Rgba(0.75f, 0.9f, 0.31f);  // the Devourer's vomit
                 case ToothShot: return new Rgba(0.96f, 0.9f, 0.82f);  // the Devourer's Jaws

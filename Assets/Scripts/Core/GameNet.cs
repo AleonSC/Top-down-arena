@@ -853,6 +853,10 @@ namespace Arena
                 SyncColossus(s, e);  // Colossus.cs
             else if (kind == EnemyType.BoundWraith)
                 SyncBound(s, e);   // ReaperFaction.cs: its partner, a revive
+            else if (kind == EnemyType.Stomper)
+                SyncStomper(s, e);   // QuarryFaction.cs
+            else if (kind == EnemyType.Driller || kind == EnemyType.Geomancer)
+                SyncCrack(s, e);     // QuarryFaction.cs
             else if (IsNonShooter(kind))
                 SyncNonShooter(s, e);  // NonShooters.cs: the fuse, the aim, the harpoon, a pod's arming
             if (s.Reading)
