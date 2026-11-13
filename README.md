@@ -954,13 +954,13 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   tied options), and the winning drawer pays; nobody else does. One room is built a round, with a door to every room it
   shares a door's width of wall with (loops). Paths are off in this arena.
   **Solo players skip the vote**: your proposal is built the moment you make it.
-- **Shop and vendor rooms, chest nodes and the Gatekeeper room**: every boss cycle the game places a **shop room** and a **vendor room** (tiny
-  4 x 4 tile squares) and a **Gatekeeper** room (8 x 6) as sealed boxes 4 to 8 tiles off the map, plus a **chest node**: a point 10 to 16 tiles straight
+- **Shop and vendor rooms, chest nodes and the mini-boss room**: every boss cycle the game places a **shop room** and a **vendor room** (tiny
+  4 x 4 tile squares) and a **mini-boss** room (8 x 6) as sealed boxes 4 to 8 tiles off the map, plus a **chest node**: a point 10 to 16 tiles straight
   out (at least 8 tiles from other nodes). Build a room or hallway that shares 2 tiles of wall with a sealed room and its door opens: walk in to shop
   (the shop's stall or the vendor's pedestal stands in the middle). Sealed rooms don't count towards the 24-room cap and add no enemies; at most 6 wait.
   A chest node is locked until you build a **room** that encloses it (a normal combat room with enemies); a claimed chest node holds a real treasure chest (the same as the rare wave chests): touch it and every
   player gets their own item. It opens once and never holds the wave up (opened ones lie dim with the lid up). No cover stands on a node. Nothing respawns: new ones
-  appear around the current map. Bots build up to the shop room first, then the vendor, then chests, then the Gatekeeper (they don't walk to chests' loot).
+  appear around the current map. Bots build up to the shop room first, then the vendor, then a rule node's room, then chest and relic nodes, then the mini-boss room (they don't walk to chests' loot); they vote for a proposal that builds toward these when someone has drawn one.
   Old saves with shop or vendor nodes still work: a room round one becomes that shop.
 - **Relic nodes**: every other boss cycle (the first, third, ...) also places a **relic node** (an amber diamond). Build a room round it and walk up to
   it: **every player** gets its relic in their **relic slot** (one each; a new relic replaces the old, and it stays for the run, saves included). Relics are
@@ -1003,9 +1003,14 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
 - **Themed rooms**: pick a theme under the map when you draw a room: a path's ground and rules (Swarm Fields, Sniper Ridge, Elite Gauntlet, Burning
   Grounds, Sanctuary, Frozen Lake, Blood Moon) inside that room only, with its kill bonus. A theme costs extra vectors (+3 / +6 / +10 for
   danger 1 / 2 / 3) and unlocks with bosses: danger 2 after the first boss, danger 3 after the second.
-- **Gatekeeper room**: once a built room opens it, walking in during a wave wakes **The Gatekeeper** and the room locks behind you until it falls.
-  Beating it gives everyone a prize pick (sometimes a legendary) and the room becomes an ordinary one. It's optional: if the wave ends first, the
-  Gatekeeper goes, you're let out, and walking in later starts a fresh duel.
+- **Mini-boss room**: once a built room opens it, walking in during a wave wakes the **faction mini-boss** of the boss cycle it was placed in (the
+  next boss's faction: the Warden's is the **Riot Captain**; factions without their own yet bring him too; the map shows its name), and the room
+  locks behind you until it falls. Beating it gives everyone a prize pick (sometimes a legendary) and the room becomes an ordinary one. It's optional:
+  if the wave ends first, it goes (with any men it called), you're let out, and walking in later starts a fresh duel.
+- **Riot Captain** (the Warden's mini-boss, 65% of the Warden's health): a tower shield blocks the front and never breaks; it turns slowly, so get
+  round it. In turn: a **shield charge** along a red lane (18 damage, knocked 220 px; **into a wall it's dazed 2.2 s**: no shield, +50% damage;
+  otherwise it holds the shield low 1.2 s), **buckshot** (3 fans of 7), **tear gas** (3 canisters round you) and a **whistle** (2 Taser Guards at
+  the room's far corners, at most 2 up). Below half health: a quarter faster, it charges twice, 4 fans, 4 canisters.
 - **Shop and vendor rooms**: with one connected, kills drop gold and the shop opens every intermission without holding the countdown. Buy
   upgrades and add stock in the **shop room**, buildables at the **Black Market** (the vendor room: Buildables and Services categories); the services (heal, revive, sell, Floor kit, Vector pack) work in either room. Gold and your shelf carry over between waves
   (the shelf is new each boss cycle).
@@ -1061,11 +1066,11 @@ prototype** in the F1 dev dock (Labs, in the lobby); otherwise the Campaign is t
   way to you through the doors.
 - **Rooms waves hit harder**: while the rooms are up, everything that hurts you hits **1.3x** as hard (fewer
   threats at once, so each one counts). Boss waves and the Classic arena are unchanged.
-- **The vault**: one regular wave in each stretch of ten (never before the first boss: waves 6-10, 12-20, 22-30, ...) opens a small gold room off the top hallway with **The
-  Gatekeeper** in it (his Data Gate duel moved here: in the Rooms arena he's never in a Data Gate). He stays in the
-  vault, and the vault locks behind you until he falls. Beat him and everyone gets a **prize pick** (rare or better,
-  sometimes a legendary), as from his old Data Gate. It's optional: the wave ends without him (he goes with it), and
-  the wave carries on outside while you're in there. His boss bar shows once you're at the vault.
+- **The vault**: one regular wave in each stretch of ten (never before the first boss: waves 6-10, 12-20, 22-30, ...) opens a small gold room off the top hallway with **the
+  next boss's faction's mini-boss** in it (the Warden's **Riot Captain**: see the Expanding arena's mini-boss room). It stays in the
+  vault, and the vault locks behind you until it falls. Beat it and everyone gets a **prize pick** (rare or better,
+  sometimes a legendary), as from the Gatekeeper's Data Gate. It's optional: the wave ends without it (it goes with it), and
+  the wave carries on outside while you're in there. Its boss bar shows once you're at the vault.
 - **The minimap** (top right): the hub, rooms, hallways and the vault (gold), the doors, enemies (the vault's
   Gatekeeper big and orange), the players, and the box your screen shows.
 - (The room-by-room version from before, with nests that kept each room stocked, Runner spills, doors that locked
@@ -1095,7 +1100,7 @@ with an objective plate at the top of the screen:
 | Challenge | Goal |
 |---|---|
 | **Defend the Crystal** | Keep the crystal in the middle alive for 40 s. Its enemies are mostly melee (Swarmers, Spikers, Lungers, Brutes; about 1 in 7 is a Grunt or Sniper), so it's about cutting off the bodies rushing it: two in three go for it (their hits and shots wear it down); its health shows as a ring round it. 600 health, +30% for each extra player. |
-| **The Gatekeeper** (Classic arena only; in the Rooms arena he's in the vault) | Beat a mini-boss with its own boss bar: a ring of big orbs with a gap, three aimed fans, and a charge along a red line that ends in a burst. Below half health it attacks a third faster and rings twice. It has 65% of the Warden's health at your wave. |
+| **The Gatekeeper** (the Data Gates' mini-boss, in every arena) | Beat a mini-boss with its own boss bar: a ring of big orbs with a gap, three aimed fans, and a charge along a red line that ends in a burst. Below half health it attacks a third faster and rings twice. It has 65% of the Warden's health at your wave. |
 | **Kill Rush** | Kill 40 enemies in 40 s (+14 for each extra player). Weak enemies (half health) pour in from every side. |
 | **Hold the Zones** | Stand in each of three zones in turn until it fills (8 s; half as fast with an enemy in it, and it drains slowly if you leave) within 60 s. Half the enemies crowd the zone. |
 | **Mirror Match** | A shadow of each player: their class and weapon in dark violet. Each hunts its own player, keeps the distance their weapon wants, sidesteps every few seconds and fires their way (a fan as wide as their extra shots, or a slash up close). Each has 20% of the health a Warden would have against one player alone, however many of you are playing (each of you fights your own). |
@@ -1613,7 +1618,7 @@ with upgrades and abilities by name, so they keep working as the game changes.
 
 **Profile** (the old Records and Your look pages, merged; opened by clicking your player card on the main menu or in the lobby; the pause and lobby menus have no Profile row): the same loadout box as the pause menu's (same opening, windows and Back key): a title, a profile card (your rank badge, name with a pencil key, title and rank, XP bar), four quiet tab keys (small faded letters, the open one a small lit pill) and the open tab's options as keys; each option opens in a CRT window to the right that slides out the first time and only retypes after that (its X key, Back and Esc close it first, then the profile). **Look** is the cosmetics above. **Rank** is Progress (rank, title, XP, the next unlocks), the Reward ladder, Tiers (the five titles with their rank ranges) and XP sources. **Records** is Overview, Bosses, Classes, Challenge rooms and **Recent runs** (below). **Unlocks** has a window per kind (Frame, Trail, Background, Card background, Name effect, Aim line, Cursor, Emotes) with a check or a padlock on each cosmetic, and the run-feat unlocks. The Records tab keeps this computer's player's runs started, won and lost, best wave, best endless wave,
 
-**Records > Recent runs** (Docs/RecentRuns.md): a strip of your last 20 runs (newest first, four at a time with arrows; each card says the mode, class, wave and won, died or quit; a run you leave before it ends counts too, with no XP), six tiles for the open run (result, time, wave, damage, damage taken, XP) and two tabs. **Overview** has three graphs: **damage per second** over the run (your line in gold with a blue team line when you played in a party, alternating bands for the waves, a red tint on boss waves, a red dot where you went down), **health** over time for everyone in the party, and **accuracy per wave**. Hover a time graph for a readout of that moment. **Trends** shows the wave reached and the damage dealt run by run (green won, red died); click a run on it to open it. Each finished run keeps a sample of everyone's totals and health every 10 seconds, in a small file in your profile's `runs` folder (the newest 20 are kept); Quick Play is tracked like a run (a quit one too); runs from before this, Challenge rooms and Practice have no graphs (Boss Hunts and rooms keep their own records). Co-op: every player's profile keeps its own copy with the whole party's lines. Runs with dev tools or the bot are not kept, like the rest of Records.
+**Records > Recent runs** (Docs/RecentRuns.md): a strip of your last 20 runs (newest first, four at a time with arrows; each card says the mode, class, wave and won, died or quit; a run you leave before it ends counts too, with no XP), six tiles for the open run (result, time, wave, damage, damage taken, XP) and two tabs. **Overview** has three graphs: **damage per second** over the run (your line in gold with a blue team line when you played in a party, alternating bands for the waves, a red tint on boss waves, a red dot where you went down), **health** over time for everyone in the party, and **accuracy per wave**. Hover a time graph for a readout of that moment. **Trends** shows the wave reached and the damage dealt run by run (green won, red died); click a run on it to open it. Each finished run keeps a sample of everyone's totals and health every 10 seconds, in a small file in your profile's `runs` folder (the newest 20 are kept); Quick Play is tracked like a run (a quit one too); after a win, the endless stretch gets its own **Endless** card (Quick Play's or the Campaign's, fallen or quit: a fall adds its best endless wave and XP for the waves and bosses since the win, a quit no XP); runs from before this, Challenge rooms and Practice have no graphs (Boss Hunts and rooms keep their own records). Co-op: every player's profile keeps its own copy with the whole party's lines. Runs with dev tools or the bot are not kept, like the rest of Records.
 best score, time played, totals (kills, damage, healing, downs, revives), each boss beaten, and runs and wins per
 class. The host tells every player's game when a boss falls and when a run ends, so in co-op everyone's records
 grow. Practice Range matches, Boss Lab fights, and runs where dev tools (F1) or the bot were used don't count.

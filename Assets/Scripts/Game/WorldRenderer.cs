@@ -860,9 +860,13 @@ namespace Arena
             }
         }
 
+        V2[] polyPts = new V2[32];  // Polygon's corners, reused (no array a call)
+
         void Polygon(V2 center, float r, int sides, float rot, Rgba c)
         {
-            var pts = new V2[sides];
+            if (polyPts.Length < sides)
+                polyPts = new V2[sides];
+            var pts = polyPts;
             for (int i = 0; i < sides; i++)
                 pts[i] = center + V2.FromAngle(rot + MathX.Tau * i / sides) * r;
             SetColor(c.Darkened(0.45f));

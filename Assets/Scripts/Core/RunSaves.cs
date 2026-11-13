@@ -24,6 +24,9 @@ namespace Arena
         bool runRecorded;                 // this game has added the run's end to the profile
         int quickCreditedWaves, quickCreditedBosses;  // Quick Play: what the profile already got (its win, before an endless stretch)
         float quickCreditedTime;
+        int endlessFromWave, endlessFromCores;      // the Campaign: the waves cleared and Cores found when its win was recorded (an endless fall adds only what came after)
+        float endlessFromTime;
+        bool endlessRecorded;                       // the Campaign's endless stretch after the win is on the profile (fallen or quit)
 
         /// The rank XP this player's profile just earned from the run or hunt that ended (null until then; the results screen shows it).
         public RankGain LastGain;
@@ -181,6 +184,9 @@ namespace Arena
             runRecorded = false;
             quickCreditedWaves = quickCreditedBosses = 0;
             quickCreditedTime = 0f;
+            endlessFromWave = endlessFromCores = 0;
+            endlessFromTime = 0f;
+            endlessRecorded = false;
             ResetTimeline();  // RunTimeline.cs
             LastGain = null;
             runLastBossWave = 0;
@@ -232,10 +238,11 @@ namespace Arena
         /// Only your own profile, and only if a curve was started (so not the lobby or a match that never began).
         void LogQuitRun()
         {
-            bool quickEndless = Quick && Endless && runRecorded;  // quitting a Quick Play's endless stretch: the win is logged, the stretch since gets its own card
-            if ((runRecorded && !quickEndless) || RetryReady || retrying || timeline == null || Me == null || !TimelineOn || Hunt != null)  // (a quit Boss Hunt isn't logged)
+            bool endlessStretch = Endless && runRecorded && !endlessRecorded;  // quitting the endless stretch after a win (Quick Play or Campaign): the win is logged, the stretch since gets its own card
+            if ((runRecorded && !endlessStretch) || RetryReady || retrying || timeline == null || Me == null || !TimelineOn || Hunt != null)  // (a quit Boss Hunt isn't logged)
                 return;
             runRecorded = true;
+            endlessRecorded = Endless;
             var logged = Profile.AddQuitLog(RecordWave, Rank.Award(false, 0, 0, 0, Mods, Diff.Level).Mods);  // (no XP: only the modifier names are used)
             logged.Class = Arena.Profile.ClassKey(Me.Role, Me.Kit);
             logged.Mode = Quick ? (Endless ? "Quick Play · Endless" : "Quick Play") : Endless ? "Endless" : "Campaign";  // (a Quick Play quit before its first record, or in its endless stretch: QuickRecord)
@@ -357,8 +364,14 @@ namespace Arena
                         QuickRecord(me, won, wave, time, found);
                         return;
                     }
-                    if (me == null || dev || botTouched || runRecorded)
+                    if (me == null || dev || botTouched)
                         return;
+                    if (runRecorded)
+                    {
+                        if (!won && Endless && Hunt == null)
+                            EndlessRecord(me, wave, recorded, time, found);  // the Campaign's endless stretch after its win, fallen
+                        return;
+                    }
                     runRecorded = true;
                     if (Hunt != null)
                     {
@@ -387,10 +400,39 @@ namespace Arena
                     logged.Dealt = me.Run.DamageDealt; logged.Taken = me.Run.DamageTaken; logged.Heal = me.Run.HealingDone;
                     logged.Players = Players.Count;
                     logged.File = FinishTimeline(won, recorded, Endless, time, logged.Class, logged.Mods);  // RunTimeline.cs
+                    endlessFromWave = wavesCleared;
+                    endlessFromTime = time;
+                    endlessFromCores = found;
                     SaveProfile();
                     return;
                 }
             }
+        }
+
+        /// The Campaign's endless stretch after its win ended with the party down: the best endless wave, XP for the waves and
+        /// bosses since the win, the Cores found since, and its own Recent runs card with the stretch's curve.
+        void EndlessRecord(Player me, int wave, int recorded, float time, int found)
+        {
+            if (endlessRecorded)
+                return;
+            endlessRecorded = true;
+            Profile.BestEndlessWave = Math.Max(Profile.BestEndlessWave, recorded);
+            Profile.BestWave = Math.Max(Profile.BestWave, recorded);
+            Profile.PlayTime += Math.Max(0f, time - endlessFromTime);
+            int cleared = runLastBossWave >= wave ? wave : Math.Max(0, wave - 1);
+            int newWaves = Math.Max(0, cleared - endlessFromWave);
+            int newBosses = Math.Max(0, Rank.BossesIn(cleared) - Rank.BossesIn(endlessFromWave));
+            LastGain = Profile.AwardXp(Rank.Award(false, newWaves, newBosses, 0, Mods, Diff.Level), recorded, 0);
+            PayCores(Variants.RunCores(false, newBosses, true), Math.Max(0, found - endlessFromCores));
+            var logged = Profile.Recent[0];
+            logged.Class = Arena.Profile.ClassKey(me.Role, me.Kit);
+            logged.Mode = "Endless";
+            logged.Seconds = time;
+            logged.Dealt = me.Run.DamageDealt; logged.Taken = me.Run.DamageTaken; logged.Heal = me.Run.HealingDone;
+            logged.Players = Players.Count;
+            logged.File = FinishTimeline(false, recorded, true, time, logged.Class, logged.Mods);  // RunTimeline.cs (the stretch since the win)
+            AddUnlockToasts(Profile.CheckUnlocks());
+            SaveProfile();
         }
 
         /// A Quick Play's end on this player's profile (QuickPlay.cs). It is recorded when its first boss falls (won) or the

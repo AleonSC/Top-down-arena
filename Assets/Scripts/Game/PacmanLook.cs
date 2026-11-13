@@ -17,7 +17,7 @@ namespace Arena
         static bool PacGhostable(Enemy e)
         {
             return !e.Def.IsBoss && !Zombies.Is(e.Type) && e.Type != EnemyType.SapperMine && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.HiveBomber
-                && e.Type != EnemyType.Gatekeeper && e.Type != EnemyType.Shadow && e.Type != EnemyType.ReaperPillar && e.Type != EnemyType.Singularity;
+                && e.Type != EnemyType.Gatekeeper && !FactionMinis.Is(e.Type) && e.Type != EnemyType.Shadow && e.Type != EnemyType.ReaperPillar && e.Type != EnemyType.Singularity;
         }
 
         /// The ghost's role: support enemies are Healers, Pressure and Hunters are DPS, Anchors and the plated types are Tanks, the rest Wildcards.

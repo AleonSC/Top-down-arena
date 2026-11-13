@@ -130,6 +130,43 @@ static partial class Program
             Check(ql != null && RunTimelineStore.Load(ql.File) != null, "a run you quit keeps its curve");
             Check(Profile.Parse(qp.ToText()).Recent[0].Result == 4, "a quit run's log line reads back");
 
+            // The Campaign's endless stretch after its win (the win already logged): a fall and a quit each get an "Endless" card.
+            var recordedF = typeof(Game).GetField("runRecorded", flags);
+            for (int quit = 0; quit < 2; quit++)
+            {
+                var nh = new Session { AutoStart = 2, StartWave = 1 };
+                var nhp = nh.Game.ProfileOverride = new Profile();
+                nh.Host(nextPort++, "Host", Role.Tank);
+                var nc = new Session();
+                var ncp = nc.Game.ProfileOverride = new Profile();
+                nc.Join("127.0.0.1", nh.Port, "Friend", Role.Dps);
+                var ns = new[] { nh, nc };
+                WaitForGame(nh, nc, dt);
+                foreach (var ss in ns) { recordedF.SetValue(ss.Game, true); ss.Game.Endless = true; }  // (as after the win's End record and Continue)
+                Run(ns, dt, 26f, () => false, () => { foreach (var pl in nh.Game.Players.Values) pl.InvulnT = 1f; });
+                int n0 = ncp.Recent.Count;
+                float xp0 = ncp.Xp;
+                if (quit == 0)
+                {
+                    foreach (var pl in nh.Game.Players.Values) { pl.Downed = true; pl.ReviveToken = false; }
+                    typeof(Game).GetMethod("CheckGameOver", flags).Invoke(nh.Game, null);
+                    Run(ns, dt, 2f, () => ncp.Recent.Count > n0 && nhp.Recent.Count > 0);
+                    var fl = ncp.Recent.Count > n0 ? ncp.Recent[0] : null;
+                    Console.WriteLine("  endless fall: card '{0}', wave {1}, XP +{2}, best endless wave {3}", fl?.Mode, fl?.Wave, ncp.Xp - xp0, ncp.BestEndlessWave);
+                    Check(fl != null && fl.Mode == "Endless" && fl.Result == 0 && RunTimelineStore.Load(fl.File) != null && ncp.BestEndlessWave >= 1 && ncp.RunsLost == 0 && fl.Xp == ncp.Xp - xp0,
+                        "falling in the Campaign's endless stretch is recorded: an Endless card with its curve, best endless wave and XP for the waves since the win (not a second run lost)");
+                    nc.Leave(""); nh.Leave("");
+                    Check(ncp.Recent.Count == n0 + 1, "leaving after the fall doesn't log a quit as well");
+                }
+                else
+                {
+                    nc.Leave(""); nh.Leave("");
+                    var ql2 = ncp.Recent.Count > n0 ? ncp.Recent[0] : null;
+                    Check(ql2 != null && ql2.Result == 4 && ql2.Mode == "Endless" && ql2.Xp == 0 && RunTimelineStore.Load(ql2.File) != null && ncp.Recent.Count == n0 + 1,
+                        "quitting the Campaign's endless stretch logs one quit Endless card with its curve, no XP");
+                }
+            }
+
             // A Quick Play you quit is logged too, as a Quick Play, with its curve.
             Session.QuickDefault = true;
             try

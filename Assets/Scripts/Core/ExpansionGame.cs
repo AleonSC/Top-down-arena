@@ -302,7 +302,7 @@ namespace Arena
 
         int floatCycle = -1;
 
-        /// Host, as a regular wave starts: a new boss cycle gets a Gatekeeper, a shop and a vendor room off the connected map (sealed until a built
+        /// Host, as a regular wave starts: a new boss cycle gets a mini-boss room (its faction's, FactionMinis.cs), a shop and a vendor room off the connected map (sealed until a built
         /// room touches it; shop and vendor are tiny 4 x 4 tile rooms) and a chest node (Docs/Nodes.md). Nothing placed is ever placed again: at most MaxSealed rooms and MaxNodesWaiting nodes wait.
         void PlaceFloatingRooms()
         {
@@ -320,7 +320,10 @@ namespace Arena
                 var f = Expansion.FloatingFor(expandSeed, cycle, Expanded, rk);
                 if (!f.HasValue)
                     continue;
-                Expanded.Add(f.Value);
+                var room = f.Value;
+                if (rk == Arena.RoomKind.Gatekeeper)
+                    room.Mini = (byte)MiniBossNow();  // this cycle's faction's mini-boss (FactionMinis.cs)
+                Expanded.Add(room);
                 added = true;
                 DoLog("a floating " + rk + " room appears at " + f.Value.X + "," + f.Value.Y);
             }
@@ -1040,9 +1043,19 @@ namespace Arena
             BroadcastExpansion();
         }
 
-        /// A bot builds toward what matters most: a sealed shop room (or an old save's shop node), then a vendor, then a chest node (a 3-tile strip
-        /// out to it, then a room round it), then the Gatekeeper's room, if it can afford the box. True if it proposed one.
+        /// A bot builds toward what matters most: a sealed shop room (or an old save's shop node), then a vendor, then a rule node, then a chest or relic node
+        /// (a 3-tile strip out to it, then a room round it), then the Gatekeeper's room, if it can afford the box. True if it proposed one.
         bool BotBuildsToFloater()
+        {
+            var pick = BotFloaterPick();
+            if (!pick.HasValue || pick.Value.Price > SpendableVectors(Me))
+                return false;
+            ProposeExpandRoom(pick.Value.X, pick.Value.Y, pick.Value.W, pick.Value.H);
+            return true;
+        }
+
+        /// The next box toward what matters most (BotBuildsToFloater), or null. The same for every bot: they all see the same map.
+        ExpansionRoom? BotFloaterPick()
         {
             ExpansionRoom? pick = null;
             int bestRank = 99;
@@ -1050,7 +1063,7 @@ namespace Arena
             {
                 if (Expansion.NodeClaimed(Expanded, nd))
                     continue;
-                int rank = nd.Kind == NodeKind.Shop ? 0 : nd.Kind == NodeKind.Vendor ? 1 : 2;
+                int rank = nd.Kind == NodeKind.Shop ? 0 : nd.Kind == NodeKind.Vendor ? 1 : nd.Kind == NodeKind.Rule ? 2 : 3;  // (a rule room first: it is the big one, and pays a chest or relic too)
                 if (rank >= bestRank)
                     continue;
                 var hall = Expansion.NodeStep(Expanded, nd);
@@ -1064,7 +1077,7 @@ namespace Arena
             {
                 if (!Expanded[i].Floating || !ExpansionWorld.Areas[i + 1].Sealed)
                     continue;
-                int rank = Expanded[i].Kind == Arena.RoomKind.Shop ? 0 : Expanded[i].Kind == Arena.RoomKind.Vendor ? 1 : 3;
+                int rank = Expanded[i].Kind == Arena.RoomKind.Shop ? 0 : Expanded[i].Kind == Arena.RoomKind.Vendor ? 1 : 4;
                 if (rank >= bestRank)
                     continue;
                 var c = Expansion.ConnectorFor(Expanded, i);
@@ -1074,10 +1087,18 @@ namespace Arena
                     bestRank = rank;
                 }
             }
-            if (!pick.HasValue || pick.Value.Price > SpendableVectors(Me))
-                return false;
-            ProposeExpandRoom(pick.Value.X, pick.Value.Y, pick.Value.W, pick.Value.H);
-            return true;
+            return pick;
+        }
+
+        /// A bot's vote: the proposal that builds toward a shop, vendor or node when one is up (so a duo doesn't split its votes and build nothing), else a random one.
+        int BotVote()
+        {
+            var want = BotFloaterPick();
+            if (want.HasValue)
+                foreach (var q in ExpandProposals)
+                    if (q.Leg == 0 && q.X == want.Value.X && q.Y == want.Value.Y && q.W == want.Value.W && q.H == want.Value.H)
+                        return q.Owner;
+            return rng.Next(10) < 2 ? 0 : ExpandProposals[rng.Next(ExpandProposals.Count)].Owner;
         }
 
         /// Every frame, every game: a bot player draws a room it can afford a moment after the round opens, then votes.
@@ -1120,7 +1141,7 @@ namespace Arena
                 }
             }
             if (botVoteT >= 3f && !ExpandVotes.ContainsKey(MyId) && ExpandProposals.Count > 0)
-                CastExpandVote(rng.Next(10) < 2 ? 0 : ExpandProposals[rng.Next(ExpandProposals.Count)].Owner);
+                CastExpandVote(BotVote());
         }
 
         // --- Saved runs (RunSaves.cs, SaveData.cs) ------------------------------------------------------------------
@@ -1237,6 +1258,7 @@ namespace Arena
                 w.Write(r.Leg);
                 w.Write(r.Surprise);
                 w.Write(r.Claimed);
+                w.Write(r.Mini);
             }
         }
 
@@ -1255,6 +1277,7 @@ namespace Arena
                 room.Leg = r.ReadByte();
                 room.Surprise = r.ReadByte();
                 room.Claimed = r.ReadBoolean();
+                room.Mini = r.ReadByte();
                 list.Add(room);
             }
             return list;
