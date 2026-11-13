@@ -294,6 +294,8 @@ namespace Arena
                 {
                     var big = Approaches.Callback(cb, cbFrom);  // (a callback: the old squad, big)
                     approachSquads.Add(big);
+                    foreach (var t in big.Members)
+                        kinds.Add(t);
                     count -= Math.Min(count, big.Members.Length);
                 }
                 return;
@@ -343,8 +345,23 @@ namespace Arena
             if (l.Star.HasValue)
                 for (; stars < WaveLesson.StarPicks && stars < themed; stars++)
                     (l.Trickle ? approachTrickle : approachSingles).Add(l.Star.Value);  // the wave's lesson always shows up (a Trickle one only late in the wave)
+            if (stars > 0)
+                kinds.Add(l.Star.Value);
             count -= stars;
             PickFrom(members, squads, l.Finale ? f.Finale : null, l.SquadChance, ref count, themed - stars);
+        }
+
+        /// A boss faction may bring in this type (already in the wave, or a new type within its share of the type budget).
+        bool ApproachKindOk(EnemyType t) => kinds.Count < approachKindCap || kinds.Contains(t);
+
+        /// ...and these squad members, all of them.
+        bool ApproachKindsFit(EnemyType[] members)
+        {
+            int extra = 0;
+            for (int i = 0; i < members.Length; i++)
+                if (!kinds.Contains(members[i]) && Array.IndexOf(members, members[i]) == i)
+                    extra++;
+            return extra == 0 || kinds.Count + extra <= approachKindCap;
         }
 
         /// Takes `themed` enemies off `count`: the finale if given (whatever the share), then squads (about `squadChance`
@@ -357,33 +374,44 @@ namespace Arena
                 themed = Math.Max(themed, Math.Min(count, finale.Members.Length));  // the set piece comes whatever the share
                 approachSquads.Add(finale);
                 spent = finale.Members.Length;
+                foreach (var t in finale.Members)
+                    kinds.Add(t);
             }
             count -= themed;
-            float total = 0f;
-            foreach (var m in members)
-                total += m.Weight;
             while (spent < themed)
             {
-                // About half of it as squads, if one fits in what's left.
-                var fits = Array.FindAll(squads, s => s.Members.Length <= themed - spent && approachSquads.FindAll(a => a == s).Count < 2);  // (none more than twice)
+                // About half of it as squads, if one fits in what's left (and in the wave's type budget).
+                var fits = Array.FindAll(squads, s => s.Members.Length <= themed - spent && approachSquads.FindAll(a => a == s).Count < 2 && ApproachKindsFit(s.Members));  // (none more than twice)
                 if (fits.Length > 0 && rng.NextDouble() < squadChance)
                 {
                     var s = fits[rng.Next(fits.Length)];
                     approachSquads.Add(s);
                     spent += s.Members.Length;
+                    foreach (var t in s.Members)
+                        kinds.Add(t);
                     continue;
                 }
+                float total = 0f;
+                foreach (var m in members)
+                    if (ApproachKindOk(m.Type))
+                        total += m.Weight;
+                if (total <= 0f)
+                {
+                    count += themed - spent;  // the type budget is spent: the rest of the share goes back to the usual mix
+                    break;
+                }
                 float r = (float)rng.NextDouble() * total;
-                var pick = members[members.Length - 1];
+                FactionMember pick = null;
                 foreach (var m in members)
                 {
+                    if (!ApproachKindOk(m.Type))
+                        continue;
+                    pick = m;
                     r -= m.Weight;
                     if (r <= 0f)
-                    {
-                        pick = m;
                         break;
-                    }
                 }
+                kinds.Add(pick.Type);
                 approachSingles.Add(pick.Type);
                 int pack = pick.Type == EnemyType.Rioter ? 2 : pick.Type == EnemyType.Runner ? 3 : 1;  // rioters come in pairs, runners in threes
                 for (int k = 1; k < pack; k++)
