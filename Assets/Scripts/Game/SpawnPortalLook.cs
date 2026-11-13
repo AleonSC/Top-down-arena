@@ -49,6 +49,7 @@ namespace Arena
 
             var hot = col.Mix(Rgba.White, 0.55f);
             var edge = flash ? Rgba.White : col;
+            bool surge = e.Winding;  // a surge is on (TickPortals): the ring chases faster and more bits pour in
 
             // LOADING: a segmented ring that fills like a progress bar while it opens, then cycles; bits fly in
             // along the ring's spokes; a materialise grid on the floor.
@@ -66,16 +67,17 @@ namespace Arena
             for (int i = 0; i < S; i++)
             {
                 float a0 = -MathX.Tau / 4f + MathX.Tau * i / S, f = i / (float)S;
-                bool lit = opening ? f < open : ((i - (int)(t * 18f)) % S + S) % S < 8;
-                float al = opening ? 1f : 1f - (((i - (int)(t * 18f)) % S + S) % S) / 8f;
+                int chase = (int)(t * (surge ? 32f : 18f));
+                bool lit = opening ? f < open : ((i - chase) % S + S) % S < 8;
+                float al = opening ? 1f : 1f - (((i - chase) % S + S) % S) / 8f;
                 Arc(pos, B, lit ? 5f : 3f, (lit ? edge : col).WithAlpha(lit ? 0.35f + 0.65f * al : 0.18f), 3, a0 + 0.03f, MathX.Tau / S - 0.07f);
             }
             Arc(pos, B + 8f, 1f, col.WithAlpha(0.5f), 48);
             Arc(pos, B - 7f, 1f, col.WithAlpha(0.35f), 48, -t, MathX.Tau * 0.75f);
             // bits streaming in
-            for (int k = 0; k < 12; k++)
+            for (int k = 0, bits = surge ? 22 : 12; k < bits; k++)
             {
-                float ph = (t * 1.2f + PHash(e.Id, k)) % 1f;
+                float ph = (t * (surge ? 2.4f : 1.2f) + PHash(e.Id, k)) % 1f;
                 float a = MathX.Tau * Mathf.Floor(PHash(e.Id, k + 50) * 8f) / 8f;
                 V2 p = pos + V2.FromAngle(a) * Mathf.Lerp(B * 1.6f, R * 0.25f, ph);
                 Box(p, 2f, hot.WithAlpha(Mathf.Sin(ph * Mathf.PI) * 0.9f));
@@ -85,7 +87,9 @@ namespace Arena
             Box(pos, core, PortalCore.WithAlpha(0.92f));
             BoxEdge(pos, core, 2f, edge);
             if (opening) Quad(pos + new V2(-core, core), pos + new V2(core, core), pos + new V2(core, core - 2f * core * open), pos + new V2(-core, core - 2f * core * open), col.WithAlpha(0.6f));
-            else if ((int)(t * 4f) % 2 == 0) Box(pos, core * 0.45f, hot);
+            else if ((int)(t * (surge ? 8f : 4f)) % 2 == 0) Box(pos, core * 0.45f, hot);
+            if (surge)
+                Arc(pos, B + 8f, 2f, hot.WithAlpha(0.35f + 0.35f * pulse), 48);  // the outer ring burns brighter
 
             // Chevrons out the front: the way the burst comes in.
             if (e.Phase != SpawnPortals.Closing)
@@ -103,6 +107,34 @@ namespace Arena
                 float w = Mathf.Max(30f, r * 2f);
                 GhostBar(pos + new V2(-w / 2f, -r - 18f), w, 4f, e.Hp / e.MaxHp, new Rgba(1f, 0.3f, 0.3f), EnemyKey(e.Id));  // HealthBars.cs
             }
+        }
+
+        /// FxKind.PortalSeal: a portal shot closed. A white flash, the ring's 24 segments blown outward and spinning
+        /// off, the core square split into four shards, and a thin white ring racing out.
+        void DrawPortalSeal(Effect fx, float f)
+        {
+            V2 pos = fx.Pos;
+            float R = fx.Radius, B = R * 1.25f, fade = 1f - f, ease = 1f - fade * fade;
+            var col = fx.Color;
+            var hot = col.Mix(Rgba.White, 0.55f);
+            if (f < 0.35f)
+                GlowDisc(pos, R * (2f + 2f * f), Rgba.White, 0.55f * (1f - f / 0.35f));
+            Circle(pos, R * 0.6f * (1f - f), Rgba.White.WithAlpha(0.9f * fade * fade), 20);
+            const int S = 24;
+            for (int i = 0; i < S; i++)
+            {
+                float a0 = -MathX.Tau / 4f + MathX.Tau * i / S, out_ = B + ease * R * (1.2f + 0.9f * PHash((int)(fx.Pos.X * 7f + fx.Pos.Y), i));
+                float spin = (PHash(i, 3) - 0.5f) * 2.4f * ease;
+                Arc(pos, out_, 4f * fade + 1f, (i % 3 == 0 ? Rgba.White : hot).WithAlpha(fade), 3, a0 + 0.03f + spin * 0.15f, (MathX.Tau / S - 0.07f) * (1f - 0.5f * f));
+            }
+            float core = R * 0.45f, h = core * 0.5f * (1f - 0.6f * f);
+            for (int k = 0; k < 4; k++)
+            {
+                V2 d = V2.FromAngle(MathX.Tau / 8f + MathX.Tau * k / 4f);
+                Box(pos + d * (core * 0.7f + ease * R * 1.1f), h, col.WithAlpha(0.8f * fade));
+                BoxEdge(pos + d * (core * 0.7f + ease * R * 1.1f), h, 1.5f, Rgba.White.WithAlpha(fade));
+            }
+            Arc(pos, B + ease * R * 2.4f, 2f * fade + 0.5f, Rgba.White.WithAlpha(0.8f * fade), 48);
         }
 
         static float PHash(int id, int k) { uint h = (uint)(id * 73856093 ^ k * 19349663); h ^= h >> 13; h *= 0x5bd1e995; h ^= h >> 15; return (h & 0xffff) / 65535f; }

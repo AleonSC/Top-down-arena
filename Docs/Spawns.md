@@ -25,6 +25,7 @@ surges are **felt only** (no banner or sound); flanks get **a red arrow round yo
   most-behind of 8 candidate spots, opposite the party's average aim.
 - The surge curve: the old ramp/plateau/taper times a pulse that is 1 at each surge (20%, 48%, 76% of the window,
   ±8%) and 0.4 between them. More portals may be open during a surge (3 vs 2).
+- Look (`SpawnPortalLook.cs`): a digital "loading" gate; in a surge its `Winding` is on (set in `TickPortals`) and the ring chases faster; shot closed it sends `FxKind.PortalSeal` (a white flash, the ring blown apart; protocol 329).
 - Wire: no new fields. `Phase` (0 opening, 1 emitting, 2/3 flank, 4 closing) and `Facing` ride the enemy snapshot;
   clients time the opening and closing from when they saw the phase change.
 
