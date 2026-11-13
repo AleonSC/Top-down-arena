@@ -349,10 +349,13 @@ namespace Arena
         /// until its last wave is cleared.
         bool ArenaRule(PathId id) => CurrentPath == id && (OnPath || Wave + 1 == PathFrom) && Practice == null;
 
+        /// The local player stands in a dark rule room (a Fogbound Floor room, Docs/RuleRooms.md): the mist is on for them there only.
+        bool InDarkRoom => ExpandingOn && Expanded.Count > 0 && Me != null && !BossNow && State != MatchState.Idle && FloorAt(Me.Disp) == PathId.Fogbound;
+
         void TickArenaRules(float dt)
         {
             NarrowF = MathX.MoveTowards(NarrowF, ArenaRule(PathId.NarrowPass) ? 1f : 0f, dt / Paths.NarrowClose);
-            FogF = MathX.MoveTowards(FogF, ArenaRule(PathId.Fogbound) ? 1f : 0f, dt / Paths.FogIn);
+            FogF = MathX.MoveTowards(FogF, ArenaRule(PathId.Fogbound) || InDarkRoom ? 1f : 0f, dt / Paths.FogIn);
             V2 tiny = TinyTarget();
             TinyMoving = TinyInset.DistanceTo(tiny) > 0.01f;
             TinyInset = new V2(MathX.MoveTowards(TinyInset.X, tiny.X, dt * TinySpeed), MathX.MoveTowards(TinyInset.Y, tiny.Y, dt * TinySpeed * Height / Width));
