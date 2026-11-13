@@ -1315,8 +1315,9 @@ red summoning circle with a skull in the middle, opens in the middle of the hub,
 player still standing is in it** for 1.2 s (downed players don't count). Take your time to shop, build and pick first: there's no
 countdown, and Auto-ready doesn't start it. A socket under the gate lights for each player inside, a thread runs to them,
 and its inner ring burns round as the team's fill rises. Its red leans toward the coming boss's colour (pink for the Warden, amber
-for the Hive Queen, violet for the Singularity...). A chime plays on your screen as each player steps in, and a deep gong as it
-takes you. It shows as a ring on the minimap and, when you're zoomed in, as an arrow at the edge of the view. The box's last tab reads **Gate**: **Go to the gate** (Y) folds the box
+for the Hive Queen, violet for the Singularity...). A soft low pulse hums every few seconds while it waits, a chime plays on your screen as each player steps in, and a deep gong as it
+takes you. When it opens and the box isn't on your screen (shopping, building, or folded away), a toast at the top says
+**THE BOSS GATE IS OPEN**, with the boss's name and how many are in, for 4 seconds. It shows as a ring on the minimap and, when you're zoomed in, as an arrow at the edge of the view. The box's last tab reads **Gate**: **Go to the gate** (Y) folds the box
 away, and the status shows how many are in. Bots walk in on their own.
 The first countdown of a run, the Practice Range and the dev tools' wave jump don't use ready-up. Mockup:
 `Docs/Mockups/wave-cleared-ready.html` (option 1).

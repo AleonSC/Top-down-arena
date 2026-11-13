@@ -15,6 +15,8 @@ namespace Arena
         float gateSeenAt = -1f;  // Time.time when this screen saw the gate open (-1: it's shut)
         internal float gateAgeOverride = -1f;  // Tools/Preview: a fixed age
         int gateInsideWas;       // players in it last frame (the chime as one more steps in)
+        float gateHumAt;         // Time.unscaledTime of the next low pulse while it's open (the hum)
+        public const float GateToastTime = 4f;  // seconds the "boss gate is open" toast stays up
         Rgba gateRed = BgRed, gateHot = BgHot;  // this frame's colours (BossGateInk)
 
         /// The coming boss's colour, leaned on the gate's red so it still reads as the boss gate.
@@ -48,6 +50,11 @@ namespace Arena
             if (inside > gateInsideWas && gateAgeOverride < 0f)
                 sounds.Play(Sfx.BossChime, 0.4f + 0.2f * inside / Mathf.Max(1, alive), Time.unscaledTime);  // one more in
             gateInsideWas = inside;
+            if (gateAgeOverride < 0f && fill < 1f && Time.unscaledTime >= gateHumAt)  // the hum: a soft low pulse every 2.4 s while it waits
+            {
+                gateHumAt = Time.unscaledTime + 2.4f;
+                sounds.Play(Sfx.BossRumble, 0.14f, Time.unscaledTime);
+            }
             DrawGateSockets(game.GatePos, alive, inside, e, t);
         }
 
@@ -120,6 +127,32 @@ namespace Arena
             foreach (var p in game.Players.Values)
                 if (!p.Downed && p.Disp.DistanceTo(c) < Game.GateR)
                     Line(c, p.Disp, 2f, gateHot.WithAlpha(0.45f + 0.2f * Mathf.Sin(t * 6f)));
+        }
+
+        /// The HUD (Hud.cs): for GateToastTime after the gate opens, a toast at the top saying so, unless the wave box is
+        /// open on screen (its Gate tab already says it). Fades out over its last second.
+        void DrawGateToast(Player me)
+        {
+            if (!game.GateUp || gateSeenAt < 0f || WaveBoxShown(me))
+                return;
+            float age = gateAgeOverride >= 0f ? gateAgeOverride : Time.time - gateSeenAt;
+            if (age > GateToastTime)
+                return;
+            float a = Mathf.Clamp01((GateToastTime - age) / 1f) * Mathf.Clamp01(age / 0.25f);
+            var ink = BossGateInk();
+            var col = new Color(ink.R, ink.G, ink.B, a);
+            float y = ExpandChipUp ? 160f : DoorChipUp ? 144f : 110f;  // (under the minimized strip)
+            var r = new Rect(W / 2f - 260f, y, 520f, 54f);
+            var was = GUI.color;
+            GUI.color = new Color(1f, 1f, 1f, a);
+            DkHud(r, col);
+            GUI.color = was;
+            string boss = Defs.Get(game.BossAt(game.Hunt != null ? game.Wave + 1 : game.Wave)).Name.ToUpperInvariant();
+            HudCrt(new Rect(r.x, r.y + 5f, r.width, 24f), "THE BOSS GATE IS OPEN", 22, col, TextAnchor.MiddleCenter);
+            int alive, inside;
+            game.GateCount(out alive, out inside);
+            HudCrt(new Rect(r.x, r.y + 29f, r.width, 18f), "STAND IN IT TOGETHER TO FACE " + boss + "  ·  " + inside + " / " + alive + " IN", 14,
+                new Color(1f, 1f, 1f, 0.8f * a), TextAnchor.MiddleCenter);
         }
 
         /// The minimap (RoomsLook.cs): a small ring in the gate's colour where it stands, pulsing.
