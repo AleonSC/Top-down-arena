@@ -181,3 +181,19 @@ keeps the fraction) and `LandSunlance`, `AddZone` for every `ZoneKind.Incense` c
 the guard's Rend and `GreatGuardBlock` (`Player.TemperCarry`), `TickRapier`'s grace and the Rapier's skewer cap,
 `KnuckleLockTarget` / `HostRocketDash` (and the reticle in `ArcKnucklesLook.cs`) and the Twin Hammer's stun.
 Test: suite `abilitycards`, its Knight weapon checks.
+
+### Step 8: Ninja weapon cards (proposed, owner picks)
+
+One Rare card per Ninja weapon (`Weapons = { that weapon }`, `MaxStacks = 2`), offered only while you hold it.
+
+| Weapon | Card | Effect (per stack) |
+|---|---|---|
+| Kusarigama | Heavy Weight | The thrown weight flies 25% farther and stuns 0.4 s longer |
+| Bo Staff | Iron Bo | The staff shove knocks 40% farther, and the full spin hits 30% harder |
+| Fuma Shuriken | Long Loop | The thrown loop reaches 20% farther, and the Orbit circle is 20% wider |
+| Medicine Darts | Potent Dose | Each dart's poison and healing stack is 30% stronger |
+| Spirit Fan | Gale Fan | The gust reaches 25% farther and heals 30% more |
+| Ofuda | Blessed Paper | Charm bursts are 25% wider and heal 30% more |
+| Shuriken | Barbed Stars | Stuck stars come back 1.5 s sooner, and their return hit is 40% harder |
+| Katana | Honed Edge | The Momentum Burst shoves 30% farther, and caltrops last 2 s longer |
+| Kunai | Shadow Mark | The blink's hit deals 40% more, and marks last 2 s longer |
