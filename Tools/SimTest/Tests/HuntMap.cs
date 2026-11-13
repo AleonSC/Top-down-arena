@@ -60,6 +60,38 @@ static partial class Program
         Check(badTypes == 0 && rule == 0, "the first row and the row before the boss are Skirmishes, the boss is last, the middle row has an Elite, no row is all Elites, every row has a Skirmish");
         Console.WriteLine("  info: {0:P0} of nodes have 2+ ways on, {1:P0} are Elites, {2} rows with no choice at all", multi / (double)nodes, elites / (double)nodes, noChoiceRows);
 
+        // The lines of the screen (HuntMapLayout.cs): right angles only, between the nodes, and none runs over another.
+        float[] lx = { 100f, 230f, 360f }, ry = new float[HuntMap.Steps];
+        for (int k = 0; k < ry.Length; k++) ry[k] = 60f + k * 60f;
+        int diag = 0, outside = 0, overlap = 0, linkCount = 0, wrongEnds = 0, crossings = 0;
+        for (int seed = 1; seed <= 600; seed++)
+        {
+            var m = HuntMap.Generate(seed);
+            var links = HuntMapLayout.Links(m, lx, ry, 15f, 20f);
+            linkCount += links.Count;
+            if (links.Count != m.Rows.Take(HuntMap.Steps - 1).SelectMany(r => r).Sum(n => n.Next.Length)) wrongEnds++;
+            foreach (var l in links)
+            {
+                var p = l.Pts;
+                for (int k = 0; k < 6; k += 2) if (p[k] != p[k + 2] && p[k + 1] != p[k + 3]) diag++;
+                var a = m.Rows[l.Step][l.From]; var b = m.Rows[l.Step + 1][l.To];
+                float ha = a.Type == HuntNodeType.Boss ? 20f : 15f, hb = b.Type == HuntNodeType.Boss ? 20f : 15f;
+                if (Math.Abs(p[0] - lx[a.Lane]) > ha || Math.Abs(p[6] - lx[b.Lane]) > hb || p[1] != ry[l.Step] + ha || p[7] != ry[l.Step + 1] - hb) wrongEnds++;
+                if (p[3] <= p[1] || p[3] >= p[7]) outside++;
+            }
+            for (int a = 0; a < links.Count; a++)
+                for (int b = a + 1; b < links.Count; b++)
+                {
+                    if (links[a].Step != links[b].Step) continue;
+                    var A = links[a].Pts; var B = links[b].Pts;
+                    int c = HuntMapLayout.Cost(A[0], A[6], A[1], A[7], A[3], B[0], B[6], B[3]);
+                    if (c >= 6) overlap++; else crossings += c;
+                }
+        }
+        Check(diag == 0 && wrongEnds == 0 && outside == 0, "every drawn link is right angles only, leaves its node's bottom edge and enters the next one's top edge (600 maps)");
+        Check(overlap == 0, "no two drawn links run on top of each other");
+        Console.WriteLine("  info: {0} links drawn, {1} places where two cross at a right angle", linkCount, crossings);
+
         // The same seed gives the same map, other seeds other maps.
         Func<HuntMap, string> Sig = m => string.Join("|", m.Rows.Select(r => string.Join(",", r.Select(n => (int)n.Type + "@" + n.Lane + ">" + string.Join("", n.Next)))));
         Check(Sig(HuntMap.Generate(42)) == Sig(HuntMap.Generate(42)), "the same seed makes the same map");

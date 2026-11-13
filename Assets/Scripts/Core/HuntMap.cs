@@ -256,6 +256,40 @@ namespace Arena
             }
         }
 
+        /// One line on what a node is, for the map screen.
+        public static string Blurb(HuntNodeType t)
+        {
+            switch (t)
+            {
+                case HuntNodeType.Skirmish: return "The boss's own troops at this step's strength.";
+                case HuntNodeType.Elite: return "A tougher squad with the faction's set piece.";
+                case HuntNodeType.Ambush: return "A short wave from every side, fast.";
+                case HuntNodeType.Contraband: return "A dark arena with spawn portals.";
+                case HuntNodeType.Rest: return "No fight. Heal to full or take a reroll.";
+                case HuntNodeType.Shop: return "The Bazaar. Spend your gold.";
+                case HuntNodeType.Gamble: return "Unknown: a fight, a gift or a curse.";
+                case HuntNodeType.Boss: return "The boss, at its full strength.";
+                default: return "";
+            }
+        }
+
+        /// What clearing a node pays, short enough for a tile.
+        public static string Reward(HuntNodeType t)
+        {
+            switch (t)
+            {
+                case HuntNodeType.Skirmish: return "Gold + XP";
+                case HuntNodeType.Elite: return "Legendary + clue";
+                case HuntNodeType.Ambush: return "XP + chest";
+                case HuntNodeType.Contraband: return "Rare+ card";
+                case HuntNodeType.Rest: return "Recovery";
+                case HuntNodeType.Shop: return "Upgrades";
+                case HuntNodeType.Gamble: return "Varies";
+                case HuntNodeType.Boss: return "Hunt complete";
+                default: return "";
+            }
+        }
+
         /// A small deterministic generator (the same map on every machine, whatever the runtime's Random does).
         sealed class Rng
         {

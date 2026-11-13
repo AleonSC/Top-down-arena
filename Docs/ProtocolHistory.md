@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 - 333: FxKind.PortalSeal (a spawn portal shot closed); a portal's Winding now means a surge is on
+- 333: the Devourer's faction, steps 1-2: new `EnemyType` values Gnawling, Butcher, Gulper, CarcassBearer, BileSpitter (after GraveCaller); a Gnawling's, Butcher's or Gulper's snapshot gains its stage (and time) (`SyncLarder`)
 - 332: the Lich's Grave Caller: new `EnemyType.GraveCaller` and `PatchKind.Grave`; a Caller's Shamblers carry `Zombies.PhCalled` in their phase byte
 - 331: the Duelist's faction, step 3: three new `EnemyType` values (Harlequin, Mummer, MummerCopy), and a Harlequin's enemy snapshot ends with the Duelist's state (SyncDuel: its crossing lines and blades)
 - 330: the Duelist's faction, step 2: three new `EnemyType` values (Second, Marshal, Gallant), bullet kind `ThrownDagger` 65, `PatchKind.DuelCircle`, and a Gallant's enemy snapshot ends with the Duelist's state (SyncDuel: its salute, lunge and stagger)
