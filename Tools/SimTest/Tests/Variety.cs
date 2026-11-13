@@ -52,7 +52,7 @@ static partial class Program
                 mostSentries = Math.Max(mostSentries, n);
             }
         Console.WriteLine("  beam sentries: at most {0} in a wave (waves 18-45, 3 rolls each)", mostSentries);
-        Check(mostSentries <= Game.MaxSentries && mostSentries > 0, "at most 3 Beam Sentries in a wave");
+        Check(mostSentries == 0, "Beam Sentries are retired: none in a wave (BasicFaction.cs)");
         g.Wave = 22; g.BossSlot = false;
 
         // Clear the field; a frozen Grunt in a corner keeps the wave going while we test.

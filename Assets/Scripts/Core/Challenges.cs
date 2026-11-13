@@ -417,27 +417,25 @@ namespace Arena
             EnemyType type;
             if (RoomKind == ChallengeKind.KillRush)
             {
-                var weak = new[] { EnemyType.Swarmer, EnemyType.Swarmer, EnemyType.Spiker, EnemyType.Grunt, EnemyType.Lunger, EnemyType.Sniper };
+                var weak = new[] { EnemyType.Swarmer, EnemyType.Swarmer, EnemyType.Swarmer, EnemyType.Grunt, EnemyType.Lunger, EnemyType.Sniper };
                 type = weak[rng.Next(weak.Length)];
             }
             else if (RoomKind == ChallengeKind.Defend)
             {
                 // Bodies rushing the crystal, for the party to cut off: melee enemies, with a gun only now and then
                 // (DefendRanged), so the crystal isn't simply shot down from across the room.
-                var melee = new[] { EnemyType.Swarmer, EnemyType.Spiker, EnemyType.Lunger, EnemyType.Brute };
+                var melee = new[] { EnemyType.Swarmer, EnemyType.Swarmer, EnemyType.Lunger, EnemyType.Brute };
                 type = rng.NextDouble() < Challenges.DefendRanged ? (Wave >= 3 && rng.Next(2) == 0 ? EnemyType.Sniper : EnemyType.Grunt)
                     : melee[rng.Next(melee.Length)];
             }
             else
             {
                 var pool = new List<EnemyType> { EnemyType.Grunt, EnemyType.Swarmer };
-                if (Wave >= 2) pool.Add(EnemyType.Spiker);
                 if (Wave >= 3) pool.Add(EnemyType.Sniper);
                 if (Wave >= 4) pool.Add(EnemyType.Brute);
-                if (Wave >= 6) pool.Add(EnemyType.Charger);
+                if (Wave >= 5) pool.Add(EnemyType.Lunger);
                 if (Wave >= 8) pool.Add(EnemyType.Mortar);
-                if (Wave >= 16) pool.Add(EnemyType.Phantom);
-                if (Wave >= 19) pool.Add(EnemyType.Leader);
+                if (Wave >= 9) pool.Add(EnemyType.Shielder);  // (the basic faction's: BasicFaction.cs)
                 type = pool[rng.Next(pool.Count)];
             }
             var d = Defs.Get(type);

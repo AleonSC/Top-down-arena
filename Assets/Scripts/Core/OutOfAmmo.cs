@@ -205,14 +205,15 @@ namespace Arena
                     continue;
                 V2 left = V2.FromAngle(p.Aim).Orthogonal();
                 Bullet best = null;
-                float bd = AmmoSwatReach;
+                float reach = AmmoSwatReach * p.Stats.SwatReachMult;  // (Gun Kata: farther, and back sooner)
+                float bd = reach;
                 foreach (var b in Bullets.Values)
                 {
                     if (!Defs.IsEnemyShot(b.Kind) || Defs.Unblockable(b.Kind))
                         continue;
                     float d = b.Pos.DistanceTo(p.Pos);
                     bool onLeft = (b.Pos - p.Pos).Dot(left) >= 0f;
-                    if (d < bd && (onLeft == (g == 0) || d < AmmoSwatReach * 0.45f))
+                    if (d < bd && (onLeft == (g == 0) || d < reach * 0.45f))
                     {
                         bd = d;
                         best = b;
@@ -221,8 +222,9 @@ namespace Arena
                 if (best == null)
                     continue;
                 float ang = (best.Pos - p.Pos).Angle;
-                if (g == 0) { p.AmmoSwatCdL = AmmoSwatCd; p.SwatAngL = ang; p.SwatSeqL++; }
-                else { p.AmmoSwatCdR = AmmoSwatCd; p.SwatAngR = ang; p.SwatSeqR++; }
+                float cd = AmmoSwatCd * p.Stats.SwatCdMult;
+                if (g == 0) { p.AmmoSwatCdL = cd; p.SwatAngL = ang; p.SwatSeqL++; }
+                else { p.AmmoSwatCdR = cd; p.SwatAngR = ang; p.SwatSeqR++; }
                 SwatPop(best);
             }
         }

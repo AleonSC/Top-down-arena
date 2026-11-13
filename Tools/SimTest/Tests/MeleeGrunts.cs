@@ -25,7 +25,7 @@ static partial class Program
             var early = seen(3).Concat(seen(4)).ToList();
             var late = seen(5).Concat(seen(6)).Concat(seen(7)).ToList();
             Check(!early.Contains(EnemyType.Buzzsaw) && !early.Contains(EnemyType.SpikeBlock), "no Buzzsaw or Spike Block before wave 5");
-            Check(late.Contains(EnemyType.Buzzsaw) && late.Contains(EnemyType.SpikeBlock), "waves 5 to 7 bring Buzzsaws and Spike Blocks");
+            Check(!late.Contains(EnemyType.Buzzsaw) && !late.Contains(EnemyType.SpikeBlock), "waves 5 to 7 don't bring them either: retired (BasicFaction.cs)");
             queue.Clear();
             s[0].Leave(""); s[1].Leave("");
         }

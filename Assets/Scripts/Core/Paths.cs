@@ -57,42 +57,42 @@ namespace Arena
                 Blurb = "A proving ground for the strongest.",
                 Rules = new[] { "Half as many enemies", "Every one of them is elite (2.5x health, faster fire)" },
                 Floor = new Rgba(0.3f, 0.24f, 0.08f), Accent = new Rgba(1f, 0.85f, 0.3f),
-                Showcase = new[] { EnemyType.Charger, EnemyType.Spinner, EnemyType.Shielder } },
+                Showcase = new[] { EnemyType.Lunger, EnemyType.Spinner, EnemyType.Shielder } },
             new PathDef { Id = PathId.BurningGrounds, Name = "Burning Grounds", Kind = "Hazard floor", Danger = 3,
                 Blurb = "Scorched earth that keeps catching fire.",
                 Rules = new[] { "Fire patches flash a warning, then ignite and spread", "They burn you and the enemies alike" },
                 Floor = new Rgba(0.2f, 0.09f, 0.05f), Accent = new Rgba(1f, 0.5f, 0.2f),
-                Showcase = new[] { EnemyType.Grunt, EnemyType.Burster, EnemyType.Spinner } },
+                Showcase = new[] { EnemyType.Grunt, EnemyType.Mortar, EnemyType.Spinner } },
             new PathDef { Id = PathId.Sanctuary, Name = "Sanctuary", Kind = "Hazard floor", Danger = 1,
                 Blurb = "Quiet ground with springs of healing light.",
                 Rules = new[] { "Healing pools appear around the arena", "20% fewer enemies" },
                 Floor = new Rgba(0.08f, 0.16f, 0.26f), Accent = new Rgba(0.5f, 0.9f, 1f),
-                Showcase = new[] { EnemyType.Grunt, EnemyType.Sniper, EnemyType.Medic } },
+                Showcase = new[] { EnemyType.Grunt, EnemyType.Sniper, EnemyType.Shielder } },
             new PathDef { Id = PathId.FrozenLake, Name = "Frozen Lake", Kind = "Twist", Danger = 2,
                 Blurb = "A sheet of cracked ice. Mind your footing.",
                 Rules = new[] { "You slide: speed builds up and carries on", "Enemies are chilled: 10% slower" },
                 Floor = new Rgba(0.16f, 0.27f, 0.36f), Accent = new Rgba(0.65f, 0.92f, 1f),
-                Showcase = new[] { EnemyType.Charger, EnemyType.Lunger, EnemyType.Spinner } },
+                Showcase = new[] { EnemyType.Brute, EnemyType.Lunger, EnemyType.Spinner } },
             new PathDef { Id = PathId.BloodMoon, Name = "Blood Moon", Kind = "Twist", Danger = 3,
                 Blurb = "Under a red moon, only the hunt keeps you alive.",
                 Rules = new[] { "No health orbs and no regeneration", "Every kill heals its killer a little" },
                 Floor = new Rgba(0.24f, 0.05f, 0.07f), Accent = new Rgba(1f, 0.35f, 0.4f),
-                Showcase = new[] { EnemyType.Brute, EnemyType.Burster, EnemyType.Sniper } },
+                Showcase = new[] { EnemyType.Brute, EnemyType.Mortar, EnemyType.Sniper } },
             new PathDef { Id = PathId.Fogbound, Name = "Fogbound", Kind = "Arena rule", Danger = 2,
                 Blurb = "A thick mist rolls in. Stay close together.",
                 Rules = new[] { "You only see a short way around each player", "Enemies and bullets beyond fade into the mist" },
                 Floor = new Rgba(0.17f, 0.18f, 0.21f), Accent = new Rgba(0.8f, 0.86f, 0.95f),
-                Showcase = new[] { EnemyType.Lunger, EnemyType.Sniper, EnemyType.Spiker } },
+                Showcase = new[] { EnemyType.Lunger, EnemyType.Sniper, EnemyType.Swarmer } },
             new PathDef { Id = PathId.NarrowPass, Name = "Narrow Pass", Kind = "Arena rule", Danger = 2,
                 Blurb = "A canyon pass hemmed in by glowing walls.",
                 Rules = new[] { "The arena closes in to a narrow pass", "Walls on every side: no wrapping round the edges" },
                 Floor = new Rgba(0.27f, 0.19f, 0.14f), Accent = new Rgba(1f, 0.7f, 0.45f),
-                Showcase = new[] { EnemyType.Brute, EnemyType.Charger, EnemyType.Grunt } },
+                Showcase = new[] { EnemyType.Brute, EnemyType.Lunger, EnemyType.Grunt } },
             new PathDef { Id = PathId.Bazaar, Name = "Bazaar", Kind = "Market", Danger = 1,
                 Blurb = "A trading town on the road.",
                 Rules = new[] { "The usual enemies, but every kill drops gold", "Everyone gets the same gold, and can give it away", "Gold you don't spend becomes XP" },
                 Floor = new Rgba(0.3f, 0.2f, 0.1f), Accent = new Rgba(1f, 0.8f, 0.35f), Prize = "A shop",
-                Showcase = new[] { EnemyType.Grunt, EnemyType.Burster, EnemyType.Sniper } },
+                Showcase = new[] { EnemyType.Grunt, EnemyType.Mortar, EnemyType.Sniper } },
         };
 
         // Fogbound and Narrow Pass.
@@ -282,8 +282,7 @@ namespace Arena
                     return false;
                 case PathId.SwarmFields:
                 {
-                    var rushers = new List<EnemyType> { EnemyType.Swarmer, EnemyType.Spiker, EnemyType.Brute, EnemyType.Lunger };
-                    if (n >= 5) { rushers.Add(EnemyType.Buzzsaw); rushers.Add(EnemyType.SpikeBlock); }  // MeleeGrunts.cs
+                    var rushers = new List<EnemyType> { EnemyType.Swarmer, EnemyType.Brute, EnemyType.Lunger };  // the basic faction's (BasicFaction.cs)
                     for (int i = 0; i < count; i++)
                     {
                         if (rng.NextDouble() < 0.8)

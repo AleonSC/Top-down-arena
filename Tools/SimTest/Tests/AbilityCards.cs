@@ -743,6 +743,75 @@ static partial class Program
             "Quick Loader: pellets keep full damage 30% farther and the reload is 25% faster");
         me.Firing = false;
 
+        // --- Elementalist weapon cards (Docs/UpgradePools.md step 12) ---
+        Check(new[] { "Napalm", "Glacier", "Stormcaller", "Sunstone", "Prism", "Cloudburst", "Wildfire", "Static Field", "Frozen Halo" }
+            .All(n => U(n) >= 0 && Upgrades.All[U(n)].Weapons != null && Defs.WeaponOf(Upgrades.All[U(n)].Weapons[0]).Kit == Kit.Elementalist),
+            "all nine Elementalist weapon cards exist, each for one Elementalist weapon");
+        Func<WeaponId, string, int, List<Bullet>> fireE = (wid, card, n) => { arm(wid, card, n); g.Bullets.Clear(); fireS(); var got = g.Bullets.Values.OrderBy(x => x.Id).ToList(); g.Bullets.Clear(); return got; };
+
+        var fm0 = fireE(WeaponId.Flamethrower, "Napalm", 0)[0]; var fm1 = fireE(WeaponId.Flamethrower, "Napalm", 1)[0];
+        Check(near(fm1.Life / fm0.Life, 1.15f, 0.001f) && near(fm1.Ignite / fm0.Ignite, 1.4f, 0.001f), "Napalm: the stream reaches 15% farther and burns 40% hotter");
+
+        var fl0e = kitSwing(WeaponId.FrostLance, "Glacier", 0); var fl1e = kitSwing(WeaponId.FrostLance, "Glacier", 1);
+        Check(near(fl1e[0].Reach / fl0e[0].Reach, 1.2f, 0.01f) && near(fl1e[0].Slow - fl0e[0].Slow, 0.15f, 0.001f) && near(fl1e[1].Slow - fl0e[1].Slow, 0.15f, 0.001f),
+            "Glacier: the icicle is 20% longer and both it and its splinters slow 15% more");
+
+        var electrify = typeof(Game).GetMethod("Electrify", flags);
+        var shocksF = typeof(Game).GetField("shocks", flags);
+        Func<int, float[]> storm = n =>
+        {
+            arm(WeaponId.StormHammer, "Stormcaller", n);
+            ((IList)shocksF.GetValue(g)).Clear();
+            var e = enemyAt(there);
+            electrify.Invoke(g, new object[] { e, 40f, 3, me.Id });
+            var sh = ((IList)shocksF.GetValue(g))[0];
+            var r2 = new[] { (float)(int)sh.GetType().GetField("Jumps").GetValue(sh), (float)sh.GetType().GetField("Dmg").GetValue(sh) };
+            ((IList)shocksF.GetValue(g)).Clear();
+            return r2;
+        };
+        var elStorm0 = storm(0); var elStorm1 = storm(1);
+        Check(elStorm1[0] - elStorm0[0] == 1f && near(elStorm1[1] / elStorm0[1], 1.4f, 0.001f), "Stormcaller: the hammer's lightning arcs to one more enemy, 40% harder");
+
+        arm(WeaponId.RadiantOrb, "Sunstone", 0); float ro0 = Game.RadiantSize(me);
+        arm(WeaponId.RadiantOrb, "Sunstone", 1); float ro1 = Game.RadiantSize(me);
+        Check(near(ro1 / ro0, 1.3f, 0.001f) && near(me.Stats.OrbHealMult2, 1.3f, 0.001f), "Sunstone: the Radiant Orb is 30% bigger and heals 30% more");
+
+        arm(WeaponId.ChainLight, "Prism", 0); float elPrism0 = Game.LightConeLength(me, 0), ch0 = Game.LightConeHalfFor(me, 1);
+        arm(WeaponId.ChainLight, "Prism", 1); float elPrism1 = Game.LightConeLength(me, 0), ch1 = Game.LightConeHalfFor(me, 1);
+        Check(near(elPrism1 / elPrism0, 1.2f, 0.001f) && near(ch1 - ch0, 10f * MathX.Pi / 180f, 0.001f), "Prism: Chain Light's cone reaches 20% farther and is 20° wider");
+
+        arm(WeaponId.Nimbus, "Cloudburst", 1);
+        Check(near(me.Stats.RainSizeMult, 1.3f, 0.001f) && near(me.Stats.RainHealMult2, 1.3f, 0.001f), "Cloudburst: the Nimbus's rain is 30% wider and heals 30% more");
+
+        var fb0 = fireE(WeaponId.Fireball, "Wildfire", 0)[0]; var fb1 = fireE(WeaponId.Fireball, "Wildfire", 1)[0];
+        Check(near(fb1.Ignite / fb0.Ignite, 1.5f, 0.001f) && near(fb1.IgniteBonus - fb0.IgniteBonus, 1f, 0.001f), "Wildfire: the Fireball burns 50% hotter and 1 s longer");
+
+        arm(WeaponId.ArcLightning, "Static Field", 0); float ac0 = g.BowFull(me);
+        arm(WeaponId.ArcLightning, "Static Field", 1); float ac1 = g.BowFull(me);
+        Check(near(ac1 / ac0, 0.75f, 0.001f) && near(me.Stats.ArcStunBonus, 0.2f, 0.001f), "Static Field: Arc Lightning's full charge comes 25% sooner and stuns 0.2 s longer");
+
+        arm(WeaponId.ArcaneMissiles, "Frozen Halo", 0); int oc0 = Game.OrbitCap(0, me);
+        arm(WeaponId.ArcaneMissiles, "Frozen Halo", 1); int oc1 = Game.OrbitCap(0, me);
+        Check(oc1 - oc0 == 2 && near(me.Stats.LaunchRangeMult, 1.25f, 0.001f), "Frozen Halo: the orbit holds 2 more shards, and they launch 25% farther out");
+
+        // --- Out of Ammo: Gun Kata (Docs/UpgradePools.md step 13) ---
+        var swat = typeof(Game).GetMethod("AmmoSwat", flags);
+        Func<int, float[]> kata = n =>
+        {
+            arm(WeaponId.OutOfAmmo, "Gun Kata", n);
+            me.AmmoSwatCdL = me.AmmoSwatCdR = 0f; me.Aim = 0f;
+            g.Bullets.Clear();
+            g.Bullets[95000] = new Bullet { Id = 95000, Kind = Defs.SmallShot, Pos = me.Pos + new V2(0f, -85f), Radius = 4f, Life = 5f, Vel = new V2(0f, 100f) };  // 85 px out: past 72, inside 90
+            swat.Invoke(g, new object[] { me });
+            bool swatted = !g.Bullets.ContainsKey(95000) || g.Bullets[95000].Life <= 0f;
+            float cd = Math.Max(me.AmmoSwatCdL, me.AmmoSwatCdR);
+            g.Bullets.Clear();
+            return new[] { swatted ? 1f : 0f, cd };
+        };
+        var gk0 = kata(0); var gk1 = kata(1);
+        Check(U("Gun Kata") >= 0 && gk0[0] == 0f && gk1[0] == 1f && near(gk1[1], Game.AmmoSwatCd * 0.7f, 0.001f),
+            "Gun Kata: Out of Ammo's rifles swat a bullet 85 px out (past 72) and recover 30% faster");
+
         host.Leave(""); client.Leave("");
     }
 }

@@ -8,6 +8,8 @@ what happened during it (damage over time, what hurt you, health, accuracy, team
 
 > Nov 2026: a **Boss Hunt** now keeps its curve too (`RunTimeline.cs` samples it, `RunSaves.cs` fills the log line with class, `Mode = "Hunt"`, length and the file), because the results screen graphs the run it just ended (`HudSummary.cs`, `SummaryTimeline`). A hunt you quit is still not logged. Practice isn't graphed.
 
+> Nov 2026: **Quick Play** is fully tracked: a Quick Play you quit is logged as a quit Quick Play with its curve (`LogQuitRun`), and an endless stretch after the win gets its own card and curve too, whether the party falls (`QuickRecord`) or you quit (`LogQuitRun`; mode "Quick Play · Endless").
+
 ## What exists today
 
 | Piece | Where | Limit for this feature |

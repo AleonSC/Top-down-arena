@@ -1046,7 +1046,7 @@ namespace Arena
                     b.Pierced = true;
                     b.Dmg *= FlamePierced;
                 }
-                e.BurnT = Math.Max(e.BurnT, FlameBurnTime);
+                e.BurnT = Math.Max(e.BurnT, FlameBurnTime + b.IgniteBonus);
                 e.BurnDps = Math.Max(e.BurnDps, b.Ignite);
                 e.BurnBy = b.Owner;
             }

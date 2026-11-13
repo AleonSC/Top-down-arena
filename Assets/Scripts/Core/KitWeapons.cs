@@ -73,12 +73,12 @@ namespace Arena
                 {
                     // A steady stream: two flames a burst (+1 and 25% more reach per extra projectile) that pass
                     // through enemies and set them burning.
-                    float reach = w.Life * (1f + w.Grow * extra) * PierceReach(p);  // the flames fly longer: Piercing Rounds reach farther
+                    float reach = w.Life * (1f + w.Grow * extra) * PierceReach(p) * p.Stats.FlameReachMult;  // the flames fly longer: Piercing Rounds and Napalm reach farther
                     for (int i = 0; i < 2 + extra; i++)
                     {
                         var b = SpawnBullet(Defs.FlameShot, muzzle, V2.FromAngle(aim + Rand(-0.2f, 0.2f)) * (i == 0 ? w.Speed : Rand(0.8f * w.Speed, w.Speed)), 0f, reach, w.Damage * dmg, p.Id);  // the lead flame goes the whole way
                         b.Pierce += 99;
-                        b.Ignite = FlameBurn * dmg;
+                        b.Ignite = FlameBurn * dmg * p.Stats.FlameBurnMult;  // (Napalm: hotter)
                     }
                     break;
                 }
@@ -88,18 +88,19 @@ namespace Arena
                     // whatever stands beside it. Both slow.
                     dmg *= HomingCost(p);  // Homing Rounds widen the splinters instead (AreaMult)
                     dmg *= 1f + FrostLanceGrow * extra;  // extra projectiles: a bigger, harder icicle
-                    var ice = NewSwing(p, aim, MeleeReach(p, w.Reach + w.Grow * extra), 0f, w.Damage * dmg);  // Piercing Rounds lengthen it
+                    float iceReach = MeleeReach(p, w.Reach + w.Grow * extra) * p.Stats.IceReachMult;  // Piercing Rounds lengthen it (and Glacier)
+                    var ice = NewSwing(p, aim, iceReach, 0f, w.Damage * dmg);
                     ice.HalfWidth = IcicleHalfWidth;
                     ice.Ice = 1;
-                    ice.Slow = IcicleSlow;
+                    ice.Slow = IcicleSlow + p.Stats.IceSlowBonus;
                     ice.NoCut = true;
                     QueueSwing(ice);
-                    var shards = NewSwing(p, aim, MeleeReach(p, w.Reach + w.Grow * extra), 0f, w.Damage * SplinterMult * dmg);
+                    var shards = NewSwing(p, aim, iceReach, 0f, w.Damage * SplinterMult * dmg);
                     shards.HalfWidth = (SplinterReach + SplinterGrow * extra) * AreaMult(p);
                     shards.Hollow = IcicleHalfWidth;
                     shards.Delay = SplinterDelay;
                     shards.Ice = 2;
-                    shards.Slow = IcicleSlow;
+                    shards.Slow = IcicleSlow + p.Stats.IceSlowBonus;
                     shards.NoCut = true;
                     QueueSwing(shards);
                     break;
@@ -123,7 +124,8 @@ namespace Arena
                     {
                         var b = SpawnBullet(Defs.FireballShot, muzzle, V2.FromAngle(Fanned(aim, i, extra + 1, 0.22f)) * w.Speed, 0f, w.Life * PierceReach(p), w.Damage * dmg, p.Id);
                         b.Pierce += 99;
-                        b.Ignite = FireballBurn * dmg;
+                        b.Ignite = FireballBurn * dmg * p.Stats.FireballBurnMult;  // (Wildfire: hotter, longer)
+                        b.IgniteBonus = p.Stats.FireballBurnBonus;
                     }
                     break;
                 }
@@ -135,9 +137,9 @@ namespace Arena
                     // Conjured into orbit round you (TickOrbiters launches them at enemies that come near). With the
                     // orbit full, the cast flies at your aim instead: fanned out, homing.
                     int n = 3 + extra;
-                    if (p.Orbiters < OrbitCap(extra))
+                    if (p.Orbiters < OrbitCap(extra, p))
                     {
-                        p.Orbiters = Math.Min(OrbitCap(extra), p.Orbiters + n);
+                        p.Orbiters = Math.Min(OrbitCap(extra, p), p.Orbiters + n);
                         break;
                     }
                     for (int i = 0; i < n; i++)
@@ -541,7 +543,7 @@ namespace Arena
         // --- Arcane Missiles: the stockpile -------------------------------------------------------
 
         public const float OrbitRadius = 34f, LaunchRange = 300f, LaunchEvery = 0.08f, MissileTurn = 6f;  // launching outpaces casting, so more missiles a cast is more damage
-        public static int OrbitCap(int extra) => 6 + 2 * extra;
+        public static int OrbitCap(int extra, Player p = null) => 6 + 2 * extra + (p != null ? p.Stats.OrbitExtra : 0);  // (Frozen Halo: more)
 
         /// Where the i-th of n orbiting missiles is now (the same formula draws them).
         public static V2 OrbiterPos(V2 center, int i, int n, float t) => center + V2.FromAngle(t * 3f + MathX.Tau * i / Math.Max(1, n)) * OrbitRadius;
@@ -561,7 +563,7 @@ namespace Arena
                 }
                 if (p.LaunchCd > 0f || State == MatchState.GameOver)
                     continue;
-                var e = NearestEnemy(p.Pos, LaunchRange);
+                var e = NearestEnemy(p.Pos, LaunchRange * p.Stats.LaunchRangeMult);  // (Frozen Halo: farther)
                 if (e == null)
                     continue;
                 V2 from = OrbiterPos(p.Pos, p.Orbiters - 1, p.Orbiters, AnimT);
@@ -749,7 +751,7 @@ namespace Arena
                 ModHit(e, p.Id, dmg, Defs.BoltShot, dir);
                 WetArcs(e.Pos, e, dmg, p.Id);  // Tsunami.cs
                 if (!e.Def.IsBoss)
-                    e.FrozenT = Math.Max(e.FrozenT, ArcStun);
+                    e.FrozenT = Math.Max(e.FrozenT, ArcStun + p.Stats.ArcStunBonus);  // (Static Field: longer)
                 BroadcastFx(FxKind.Bolt, p.Pos + side * (shifts[strip] * tf) + dir * Math.Max(0f, Math.Min(len, along)), e.Pos, bolt, 0f, 0.2f, Sfx.None);  // from its strip's middle line
             }
             if (any)
@@ -763,14 +765,14 @@ namespace Arena
         // Barrage's cones together cover at most 200 degrees (they narrow to fit). Barrage's extra cones deal
         // BarrageCopyDamage (60%) like every other weapon's copies. (A run had three 150-degree cones: a full ring.)
         public const float LightConeMaxHalf = 0.87f, LightConeMaxSpread = 3.5f;  // reach from your centre; half its angle (about 70 degrees across); +damage per extra projectile
-        public static float LightConeLength(Player p, int extra) => LightConeReach * (1f + 0.15f * extra) * PierceReach(p);  // Piercing Rounds reach farther
+        public static float LightConeLength(Player p, int extra) => LightConeReach * (1f + 0.15f * extra) * PierceReach(p) * p.Stats.ConeReachMult;  // (Prism: farther)  // Piercing Rounds reach farther
 
         /// Barrage adds cones edge to edge beside the first, alternating sides, all within LightConeMaxSpread. Each
         /// enemy belongs to one cone only, the one it's nearest the middle of, and each cone shares its own damage out
         /// (the extra cones at BarrageCopyDamage), so Barrage reaches more enemies but a lone one takes one cone's worth.
         /// Half of one cone's angle with n cones: widened by Homing and Magnum Rounds up to LightConeMaxHalf, then
         /// narrowed so all n fit in LightConeMaxSpread.
-        public static float LightConeHalfFor(Player p, int n) => Math.Min(Math.Min(LightConeHalf * AreaMult(p), LightConeMaxHalf), LightConeMaxSpread / (2f * n));
+        public static float LightConeHalfFor(Player p, int n) => Math.Min(Math.Min(LightConeHalf * AreaMult(p), LightConeMaxHalf) + p.Stats.ConeWidenBonus, LightConeMaxSpread / (2f * n));  // (Prism: wider)
 
         void LightCone(Player p, float aim, float total, int extra)
         {
@@ -918,7 +920,8 @@ namespace Arena
             shocks.RemoveAll(s => s.Enemy == e.Id);
             Player p;
             float reach = ChainReach * (Players.TryGetValue(owner, out p) ? AreaMult(p) : 1f);  // Homing Rounds: the arcs reach further
-            var sh = new Shock { Enemy = e.Id, Owner = owner, Jumps = jumps, Pulses = ShockPulses, Dmg = hammerDmg * HammerArcMult, Reach = reach };
+            var sh = new Shock { Enemy = e.Id, Owner = owner, Jumps = jumps + (p != null ? p.Stats.ShockJumpBonus : 0), Pulses = ShockPulses,
+                Dmg = hammerDmg * HammerArcMult * (p != null ? p.Stats.ShockArcMult : 1f), Reach = reach };  // (Stormcaller: one more, harder)
             shocks.Add(sh);
             ShockPulse(sh, e);
             sh.T = ShockEvery;
