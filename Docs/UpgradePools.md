@@ -1,6 +1,6 @@
 # Upgrade pools: class and weapon cards
 
-**Status: steps 1-4 built (Nov 2026, protocol 310); step 5 (the first class and weapon cards) next.** Owner decisions are below; build one step at a time ("start on step N").
+**Status: steps 1-5 built (Nov 2026, protocol 311).** Next: one card per class (`Kit`), then weapon cards class by class. Owner decisions are below; build one step at a time ("start on step N").
 
 ## Why
 
@@ -80,7 +80,7 @@ The Nov 2026 audit of `Core/Upgrades.cs` found:
 - Test: suite `classcardlists` (`ClassCardListsTest`: each list holds only its class's cards, nothing class-specific is
   left in the general list, names are unique). `Tests/Expansion.cs` no longer needs the vector cards last.
 
-### Step 5: fill the ability gaps (proposed, owner picks)
+### Step 5: fill the ability gaps (built, protocol 311)
 
 Owner decision: the first batch gives a Rare card to every Space ability that has none, so each class has one per
 Space ability like the Knight, Ninja and Blood Mage do (9 each). Style matches the existing ones (Bastion, Earthshaker):
@@ -95,7 +95,7 @@ and a sim check that the number changes. They go in the class's own list (`Game.
 | Frost Nova | Permafrost | Freezes 1 s longer and reaches 30% farther |
 | Flame Wall | Inferno | The wall stands 2 s longer and burns 50% hotter |
 | Healing Rain | Monsoon | The rain is 40% wider and heals 40% more |
-| Energy Ward | Overcharged Ward | The bubble soaks 50% more, and gives back 75% of it as healing (from 50%) |
+| Energy Ward | Overcharged Ward | The bubble soaks 50% more, and gives back 25% more of what it soaked as healing (50% → 75%) |
 | Lumen Ward | Dawnlight | The cone lasts 2 s longer and heals 30% more |
 | Meteor | Cataclysm | Hits 50% harder and 30% wider |
 | Blizzard | Whiteout | The storm is 40% bigger and lasts 2 s longer |
@@ -108,11 +108,11 @@ and a sim check that the number changes. They go in the class's own list (`Game.
 | Golem Wall | Basalt Hide | Golems have 50% more health |
 | Earthquake | Deep Tremor | The Burrower tunnels 1.5 s longer and hits 50% harder |
 | Force Pact | Kindred Bond | Your pact enemy has 50% more health and comes back 5 s sooner |
-| Spirit Swarm | Sprite Choir | 3 more sprites, and they last 2 s longer |
+| Spirit Swarm | Sprite Choir | Sprites heal 40% more and last 2 s longer |
 | Phoenix | Rebirth Flame | The phoenix stays 4 s longer, and the people it revives get 25% more health |
-| Bat Swarm | Night Colony | 4 more bats, and they hunt 2 s longer |
-| Hydra | Fourth Head | The hydra grows a fourth head and stays 2 s longer |
-| Alpha Call | Pack Leader | Blood Scent lasts 3 s longer and your minions start at 3 stacks |
+| Bat Swarm | Blood Bats | Bats bite 40% harder and hunt 2 s longer |
+| Hydra | Venom Glands | The hydra's venom slows its target 30% for 1.5 s (60% with two), and the hydra stays 2 s longer |
+| Alpha Call | Pack Leader | Blood Scent lasts 3 s longer and your minions start it 1 stack higher (up to one below a lunge) |
 
 **Soldier** (8 today → 9)
 
@@ -122,5 +122,15 @@ and a sim check that the number changes. They go in the class's own list (`Game.
 
 Effect of the batch on the pool: an Elementalist's Rare pool goes from 8 general cards to 9 (8 + its own one); a card
 for your Space ability is then about 1 in 9 of your Rare cards, the same as for the other classes.
+
+Owner change (Nov 2026): Fourth Head, and the extra sprites and bats, repeated what mastering those abilities already
+gives (a fourth head, 8 sprites, 14 bats), so they became Venom Glands, healing sprites and harder-biting bats.
+
+Built: the cards sit in `Game.ElementalistCards`, `Game.SummonerCards` and `Game.SoldierCards`; their numbers are
+`Stats` fields (`Upgrades.cs`, "Elementalist abilities" / "Summoner abilities") read where each ability is cast
+(`Minions.cs` `KitAbility`, `LumenWard.cs`, `Tsunami.cs` (each wave carries its `HalfWidth`), `Burrower.cs`,
+`ForcePact.cs` (`PactRespawn`), `Hydra.cs` (venom bolts carry `SlowAmt`), `Medkit.cs`, `EnergyPayback`,
+`ScentStartFor`). A golem's health bar now reads against its own `MaxHp`, so Basalt Hide's extra health shows.
+Test: suite `abilitycards` (`Tools/SimTest/Tests/AbilityCards.cs`).
 
 After this batch: one card per class (`Kit`), then weapon cards class by class.

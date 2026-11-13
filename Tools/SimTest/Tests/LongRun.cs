@@ -83,6 +83,12 @@ static partial class Program
             // Clear the first leg of wave 6 and quit between waves: the save says leg 0, and continuing plays its second leg.
             Run(s, dt, 60f, () => g.State == MatchState.Intermission && g.Wave == 6 && g.Leg == 0, Clear);
             NoPicks();
+            if (g.ShopOpen)  // a path's Bazaar can open on this break (it depends on the random path and card draws): a run saves only once it's shut
+            {
+                g.Shop(ShopAction.Done, 1);
+                cg.Shop(ShopAction.Done, 1);
+                Run(s, dt, 0.5f, () => !g.ShopOpen);
+            }
             string folder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "arena-longrun-" + Guid.NewGuid().ToString("N").Substring(0, 6));
             SaveStore.Folder = folder;
             try

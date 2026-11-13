@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 311: 18 new upgrade cards in the Elementalist, Summoner and Soldier card lists shift later card ids (Docs/UpgradePools.md step 5)
 - 310: upgrade card ids renumbered: the Rare ability cards moved from the general list to each class's list, gathered after the vector cards (`Upgrades.All`; Docs/UpgradePools.md step 4)
 - 309: card ids go as 2 bytes (Int16): `Msg.Upgrades` sends the taken count and each id as Int16, the snapshot sends each `Offer` card as Int16 (an empty slot stays -1); Docs/UpgradePools.md step 1
 - 308: the boss gate: the snapshot gains `GateUp` (bool) after the challenge room block, then `GatePos` and `GateFill` while it is up (Core/BossGate.cs)

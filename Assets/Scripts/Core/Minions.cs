@@ -59,7 +59,24 @@ namespace Arena
         /// (Weapons) or the whole class (Kit). Upgrades.All gathers every class's list (Docs/UpgradePools.md).
         internal static readonly UpgradeDef[] ElementalistCards =
         {
-            // (none yet: add this class's cards here)
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ArcaneAegis, MaxStacks = 2, Name = "Eye of the Storm", Desc = "Aeroaegis's vortex lasts 1.5 s longer and the bullets it reflects hit 50% harder",
+                Apply = s => { s.AegisBonusTime += 1.5f; s.AegisReflectBonus += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.FrostNova, MaxStacks = 2, Name = "Permafrost", Desc = "Frost Nova freezes 1 s longer and reaches 30% farther",
+                Apply = s => { s.NovaFreezeBonus += 1f; s.NovaRangeMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.FlameWall, MaxStacks = 2, Name = "Inferno", Desc = "Flame Wall stands 2 s longer and burns 50% hotter",
+                Apply = s => { s.FlameWallBonusTime += 2f; s.FlameWallBurnMult += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.HealingRain, MaxStacks = 2, Name = "Monsoon", Desc = "Healing Rain is 40% wider and heals 40% more",
+                Apply = s => { s.RainRadiusMult += 0.4f; s.RainHealMult += 0.4f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.EnergyWard, MaxStacks = 2, Name = "Overcharged Ward", Desc = "Energy Ward soaks 50% more, and gives back 25% more of it as healing",
+                Apply = s => { s.EnergySoakMult += 0.5f; s.EnergyRepayBonus += 0.25f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Sanctify, MaxStacks = 2, Name = "Dawnlight", Desc = "Lumen Ward shines 2 s longer and heals 30% more",
+                Apply = s => { s.LumenBonusTime += 2f; s.LumenHealMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Meteor, MaxStacks = 2, Name = "Cataclysm", Desc = "Meteor hits 50% harder and 30% wider",
+                Apply = s => { s.MeteorDmgMult += 0.5f; s.MeteorRadiusMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Blizzard, MaxStacks = 2, Name = "Whiteout", Desc = "Blizzard is 40% bigger and lasts 2 s longer",
+                Apply = s => { s.BlizzardRadiusMult += 0.4f; s.BlizzardBonusTime += 2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Tsunami, MaxStacks = 2, Name = "Riptide", Desc = "Tsunami's wave is 40% wider and enemies stay wet 4 s longer",
+                Apply = s => { s.TsunamiWidthMult += 0.4f; s.WetBonusTime += 4f; } },
         };
 
         /// The Mage's Space abilities (its ultimates are in Ultimates.cs). (Upgrades.Abilities gathers every class's list.)
@@ -180,6 +197,22 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.SpiritChalk }, MaxStacks = 1, Name = "Warding Ink", Desc = "Spirit Chalk blocks enemy bullets, but every bullet it stops wears the ink away fast",
                 Apply = s => s.ChalkWard = true },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SoulLantern, MaxStacks = 2, Name = "Kindred Spirits", Desc = "Soul Lantern heals twice as fast", Apply = s => s.LinkHealMult += 1f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.GolemWall, MaxStacks = 2, Name = "Basalt Hide", Desc = "Golem Wall's golems have 50% more health",
+                Apply = s => { s.GolemHpMult += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Earthquake, MaxStacks = 2, Name = "Deep Tremor", Desc = "Earthquake's Burrower tunnels 1.5 s longer and hits 50% harder",
+                Apply = s => { s.QuakeBonusTime += 1.5f; s.QuakeDmgMult += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.GuardianSpirit, MaxStacks = 2, Name = "Kindred Bond", Desc = "Force Pact's ally has 50% more health and comes back 5 s sooner",
+                Apply = s => { s.PactHpMult += 0.5f; s.PactReturnCut += 5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SpiritSwarm, MaxStacks = 2, Name = "Sprite Choir", Desc = "Spirit Swarm's sprites heal 40% more and last 2 s longer",
+                Apply = s => { s.SpriteHealMult += 0.4f; s.SpriteBonusTime += 2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Phoenix, MaxStacks = 2, Name = "Rebirth Flame", Desc = "The phoenix stays 4 s longer, and whoever it revives gets 25% more health",
+                Apply = s => { s.PhoenixBonusTime += 4f; s.PhoenixReviveBonus += 0.25f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BatSwarm, MaxStacks = 2, Name = "Blood Bats", Desc = "Bat Swarm's bats bite 40% harder and hunt 2 s longer",
+                Apply = s => { s.BatDmgMult += 0.4f; s.BatBonusTime += 2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Hydra, MaxStacks = 2, Name = "Venom Glands", Desc = "The hydra's venom slows its target 30% for 1.5 s, and the hydra stays 2 s longer",
+                Apply = s => { s.HydraSlow = Math.Min(0.6f, s.HydraSlow + 0.3f); s.HydraBonusTime += 2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.AlphaCall, MaxStacks = 2, Name = "Pack Leader", Desc = "Alpha Call's Blood Scent lasts 3 s longer and your minions start it with 1 more stack",
+                Apply = s => { s.ScentBonusTime += 3f; s.ScentStartBonus += 1; } },
         };
 
         /// The Summoner's Space abilities (its ultimates are in Ultimates.cs). (Upgrades.Abilities gathers every class's list.)
@@ -253,6 +286,9 @@ namespace Arena
         public const int ScentStart = 2, ScentMax = 5;
         public const float ScentSpeedPer = 0.16f, ScentRatePer = 0.5f, ScentLunge = 3f;
 
+        /// Where Blood Scent's stacks start for this owner (Pack Leader adds to it), below a lunge.
+        static int ScentStartFor(Player owner) => Math.Min(ScentMax - 1, ScentStart + owner.Stats.ScentStartBonus);
+
         void KitAbility(Player p, AbilityId id, V2 target)
         {
             var s = p.Stats;
@@ -265,40 +301,51 @@ namespace Arena
                 case AbilityId.ArcaneAegis:  // Aeroaegis (Aegis.cs): the vortex goes to whoever your cursor is nearest
                 {
                     var ward = AegisTarget(p, target);
-                    ward.AegisT = cap ? 4.5f : 3f;
+                    ward.AegisT = (cap ? 4.5f : 3f) + s.AegisBonusTime;  // Eye of the Storm
                     ward.AegisHp = AegisCapacity * pw;
-                    ward.AegisReflectMult = pw * (cap ? 2f : 1f);
+                    ward.AegisReflectMult = pw * (cap ? 2f : 1f) * (1f + s.AegisReflectBonus);
                     KeepOutOfAegis(0f);  // enemies already inside are put out at the rim
                     BroadcastFx(FxKind.Ring, ward.Pos, new Rgba(0.84f, 1f, 0.97f), AegisRadius + 70f, 0.5f, Sfx.Ability);
                     break;
                 }
                 case AbilityId.FrostNova:
+                {
+                    float reach = 220f * s.NovaRangeMult;  // Permafrost: farther, and a longer freeze
                     foreach (var e in Enemies.Values)
                     {
-                        if (e.SpawnT > 0f || e.Pos.DistanceTo(p.Pos) > 220f + e.Radius)
+                        if (e.SpawnT > 0f || e.Pos.DistanceTo(p.Pos) > reach + e.Radius)
                             continue;
                         HurtEnemy(e, 40f * dmg, p.Id);
-                        Slow(e, 3f, 0.1f);  // nearly frozen
+                        Slow(e, 3f + s.NovaFreezeBonus, 0.1f);  // nearly frozen
                     }
                     if (cap)
-                        EraseEnemyBullets(p.Pos, 220f);
-                    BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.FrostShot), 220f, FrostNovaFxTime, Sfx.Freeze);  // lasts as long as the freeze: the frost stays on the ground (Game/FrostNovaLook.cs)
+                        EraseEnemyBullets(p.Pos, reach);
+                    BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.FrostShot), reach, FrostNovaFxTime + s.NovaFreezeBonus, Sfx.Freeze);  // lasts as long as the freeze: the frost stays on the ground (Game/FrostNovaLook.cs)
                     break;
+                }
                 case AbilityId.FlameWall:
-                    AddZone(ZoneKind.FlameWall, p, target, 90f, 5f).ExtraSlow = cap ? 0.4f : 0f;
+                {
+                    var wall = AddZone(ZoneKind.FlameWall, p, target, 90f, 5f + s.FlameWallBonusTime);  // Inferno: longer, hotter
+                    wall.ExtraSlow = cap ? 0.4f : 0f;
+                    wall.DmgMult *= s.FlameWallBurnMult;
                     BroadcastFx(FxKind.Ring, target, Kits.Get(ZoneKind.FlameWall).Color, 90f, 0.4f, Sfx.SpellFire);
                     break;
+                }
                 case AbilityId.HealingRain:
-                    AddZone(ZoneKind.HealingRain, p, target, 130f, cap ? 10f : 6f).ExtraRevive = cap ? 1f : 0f;
-                    BroadcastFx(FxKind.Ring, target, Kits.Get(ZoneKind.HealingRain).Color, 130f, 0.4f, Sfx.SpellHoly);
+                {
+                    var rain = AddZone(ZoneKind.HealingRain, p, target, 130f * s.RainRadiusMult, cap ? 10f : 6f);  // Monsoon: wider, heals more
+                    rain.ExtraRevive = cap ? 1f : 0f;
+                    rain.HealMult *= s.RainHealMult;
+                    BroadcastFx(FxKind.Ring, target, Kits.Get(ZoneKind.HealingRain).Color, rain.Radius, 0.4f, Sfx.SpellHoly);
                     break;
+                }
                 case AbilityId.EnergyWard:
                     foreach (var q in Players.Values)
                         if (!q.Downed && q.Pos.DistanceTo(p.Pos) < 300f)
                         {
                             if (q.EnergyOn)
                                 EnergyPayback(q);  // a fresh ward pays out the old one first
-                            q.ShieldHp = q.EnergyMax = (cap ? 120f : 60f) * pw;
+                            q.ShieldHp = q.EnergyMax = (cap ? 120f : 60f) * pw * s.EnergySoakMult;  // Overcharged Ward
                             q.ShieldT = 8f;
                             q.EnergyOn = true;
                             q.EnergyStore = 0f;
@@ -313,12 +360,16 @@ namespace Arena
                     CastLumenWard(p, target, cap);
                     break;
                 case AbilityId.Meteor:
-                    AddZone(ZoneKind.Meteor, p, target, 120f, 0.9f).Embers = cap;  // the zone is the warning; it hits when it expires
+                {
+                    var met = AddZone(ZoneKind.Meteor, p, target, 120f * s.MeteorRadiusMult, 0.9f);  // the zone is the warning; it hits when it expires
+                    met.Embers = cap;
+                    met.DmgMult *= s.MeteorDmgMult;  // Cataclysm
                     Sounds.Add(Sfx.SpellFire);
                     break;
+                }
                 case AbilityId.Blizzard:
-                    AddZone(ZoneKind.Blizzard, p, target, 130f, cap ? 10f : 5f);
-                    BroadcastFx(FxKind.Ring, target, Kits.Get(ZoneKind.Blizzard).Color, 130f, 0.4f, Sfx.Freeze);
+                    AddZone(ZoneKind.Blizzard, p, target, 130f * s.BlizzardRadiusMult, (cap ? 10f : 5f) + s.BlizzardBonusTime);  // Whiteout
+                    BroadcastFx(FxKind.Ring, target, Kits.Get(ZoneKind.Blizzard).Color, 130f * s.BlizzardRadiusMult, 0.4f, Sfx.Freeze);
                     break;
                 case AbilityId.Tsunami:
                     CastTsunami(p, cap, pw);
@@ -335,7 +386,11 @@ namespace Arena
                     foreach (int oldId in old)
                         Minions.Remove(oldId);
                     for (int i = -half; i <= half; i++)
-                        SpawnMinion(MinionKind.Wall, p, p.Pos + fwd * GolemWallAhead + side * (i * GolemWallGap), -1f);  // -1: no timer, it stands until broken
+                    {
+                        var g = SpawnMinion(MinionKind.Wall, p, p.Pos + fwd * GolemWallAhead + side * (i * GolemWallGap), -1f);  // -1: no timer, it stands until broken
+                        g.BlockHp *= s.GolemHpMult;  // Basalt Hide
+                        g.MaxHp = g.BlockHp;         // (its health bar reads against this)
+                    }
                     Sounds.Add(Sfx.Summon);
                     break;
                 }
@@ -349,12 +404,12 @@ namespace Arena
                 {
                     int sprites = cap ? 8 : 5;
                     for (int i = 0; i < sprites; i++)
-                        SpawnMinion(MinionKind.Sprite, p, p.Pos + V2.FromAngle(MathX.Tau * i / sprites) * 20f, 6f).HealRate = 10f * pw;
+                        SpawnMinion(MinionKind.Sprite, p, p.Pos + V2.FromAngle(MathX.Tau * i / sprites) * 20f, 6f + s.SpriteBonusTime).HealRate = 10f * pw * s.SpriteHealMult;  // Sprite Choir
                     Sounds.Add(Sfx.Summon);
                     break;
                 }
                 case AbilityId.Phoenix:
-                    SpawnMinion(MinionKind.Phoenix, p, p.Pos, 10f);
+                    SpawnMinion(MinionKind.Phoenix, p, p.Pos, 10f + s.PhoenixBonusTime);  // Rebirth Flame
                     Sounds.Add(Sfx.Summon);
                     break;
                 case AbilityId.SoulLantern:
@@ -365,7 +420,8 @@ namespace Arena
                     int bats = cap ? 14 : 8;
                     for (int i = 0; i < bats; i++)
                     {
-                        var bat = SpawnMinion(MinionKind.Bat, p, p.Pos + V2.FromAngle(MathX.Tau * i / bats) * 15f, 6f);
+                        var bat = SpawnMinion(MinionKind.Bat, p, p.Pos + V2.FromAngle(MathX.Tau * i / bats) * 15f, 6f + s.BatBonusTime);
+                        bat.Power *= s.BatDmgMult;  // Blood Bats
                         bat.Ang = MathX.Tau * i / bats;
                         bat.Launch = BatGuardTime + i * (BatPeelSpan / bats);  // they circle you first, then peel off one by one
                     }
@@ -376,8 +432,8 @@ namespace Arena
                     CastHydra(p, target, pw);  // Hydra.cs (mastered: a fourth head)
                     break;
                 case AbilityId.AlphaCall:
-                    p.FrenzyT = 6f * pw;
-                    p.ScentT = 6f * pw;  // Blood Scent: the minions' stacks build while it runs (ScentStart..ScentMax)
+                    p.FrenzyT = 6f * pw + s.ScentBonusTime;  // Pack Leader: longer
+                    p.ScentT = 6f * pw + s.ScentBonusTime;  // Blood Scent: the minions' stacks build while it runs (ScentStart..ScentMax)
                     if (cap)
                         for (int i = 0; i < 3; i++)
                             SpawnMinion(MinionKind.Wolf, p, p.Pos + V2.FromAngle(MathX.Tau * i / 3f) * 30f, 6f);
@@ -541,8 +597,8 @@ namespace Arena
                 }
                 bool frenzy = owner.FrenzyT > 0f && !m.NoFrenzy;
                 bool scent = owner.ScentT > 0f && !m.NoFrenzy;  // Alpha Call: the frenzy builds with each bite
-                if (scent && m.Stacks < ScentStart)
-                    m.Stacks = ScentStart;
+                if (scent && m.Stacks < ScentStartFor(owner))
+                    m.Stacks = ScentStartFor(owner);
                 else if (!scent && m.Stacks != 0)
                     m.Stacks = 0;
                 float speed = d.Speed * (scent ? 1f + ScentSpeedPer * m.Stacks : frenzy ? 1.6f : 1f) * (m.NoFrenzy && owner.LegionT > 0f ? LegionSpeed : 1f);
@@ -732,7 +788,7 @@ namespace Arena
                                 if (m.Stacks >= ScentMax)  // a full stack lunges: triple damage in all, then back to 2
                                 {
                                     HurtEnemy(e, dmg * (ScentLunge - 1f), m.Owner);
-                                    m.Stacks = ScentStart;
+                                    m.Stacks = ScentStartFor(owner);
                                     BroadcastFx(FxKind.Ring, e.Pos, new Rgba(0.95f, 0.15f, 0.2f), 48f, 0.35f, Sfx.None);
                                 }
                                 else
@@ -785,7 +841,7 @@ namespace Arena
                     foreach (var q in Players.Values)
                         if (q.Downed)
                         {
-                            RevivePlayer(q, m.Mastered ? 1f : 0.5f, owner);
+                            RevivePlayer(q, Math.Min(1f, (m.Mastered ? 1f : 0.5f) + owner.Stats.PhoenixReviveBonus), owner);  // Rebirth Flame
                             BroadcastFx(FxKind.Ring, q.Pos, d.Color, 90f, 0.6f, Sfx.Revive);
                             if (!m.Mastered)
                                 expired.Add(m);
@@ -867,7 +923,8 @@ namespace Arena
         {
             p.EnergyOn = false;
             p.EnergyMax = 0f;
-            float heal = p.EnergyStore * EnergyRepay;
+            var by = PlayerOrNull(p.EnergyBy);
+            float heal = p.EnergyStore * (EnergyRepay + (by != null ? by.Stats.EnergyRepayBonus : 0f));  // Overcharged Ward gives back more
             p.EnergyStore = 0f;
             if (heal <= 0f || p.Downed)
                 return;

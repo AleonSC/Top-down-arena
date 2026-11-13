@@ -103,6 +103,8 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Airstrike, MaxStacks = 2, Name = "Bigger Boom", Desc = "Airstrike's bombs blast 50% wider",
                 Apply = s => s.GrenadeRadiusMult += 0.5f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Mark, MaxStacks = 2, Name = "Exploit Weakness", Desc = "Marked enemies take an extra 50% damage", Apply = s => s.MarkBonus += 0.5f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Medkit, MaxStacks = 2, Name = "Field Surgeon", Desc = "Medkit bursts into 3 more orbs, and each heals 5 more",
+                Apply = s => { s.MedkitExtraOrbs += 3; s.MedkitHealBonus += 5f; } },
         };
 
         /// The Soldier's abilities, and the ones only very rare cards give (Shockwave, Overdrive, Blink, Nova, Turret). (Upgrades.Abilities gathers every class's list.)

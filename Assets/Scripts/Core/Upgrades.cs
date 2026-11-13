@@ -88,6 +88,26 @@ namespace Arena
         public float DebtRepay, DebtBonusTime;                 // Blood Debt: Usury
         public float RushReach = 1f, RushRefund;               // Vein Rush: Crimson Tide
         public bool ChalkWard;             // Warding Ink: Spirit Chalk blocks enemy bullets (at the cost of wearing the ink away)
+        // Elementalist abilities (Docs/UpgradePools.md step 5)
+        public float AegisBonusTime, AegisReflectBonus;                    // Aeroaegis: Eye of the Storm
+        public float NovaFreezeBonus, NovaRangeMult = 1f;                  // Frost Nova: Permafrost
+        public float FlameWallBonusTime, FlameWallBurnMult = 1f;           // Flame Wall: Inferno
+        public float RainRadiusMult = 1f, RainHealMult = 1f;               // Healing Rain: Monsoon
+        public float EnergySoakMult = 1f, EnergyRepayBonus;                // Energy Ward: Overcharged Ward
+        public float LumenBonusTime, LumenHealMult = 1f;                   // Lumen Ward: Dawnlight
+        public float MeteorDmgMult = 1f, MeteorRadiusMult = 1f;            // Meteor: Cataclysm
+        public float BlizzardRadiusMult = 1f, BlizzardBonusTime;           // Blizzard: Whiteout
+        public float TsunamiWidthMult = 1f, WetBonusTime;                  // Tsunami: Riptide
+        // Summoner abilities
+        public float GolemHpMult = 1f;                                     // Golem Wall: Basalt Hide
+        public float QuakeBonusTime, QuakeDmgMult = 1f;                    // Earthquake: Deep Tremor
+        public float PactHpMult = 1f, PactReturnCut;                       // Force Pact: Kindred Bond
+        public float SpriteHealMult = 1f, SpriteBonusTime;                 // Spirit Swarm: Sprite Choir
+        public float PhoenixBonusTime, PhoenixReviveBonus;                 // Phoenix: Rebirth Flame
+        public float BatDmgMult = 1f, BatBonusTime;                        // Bat Swarm: Blood Bats
+        public float HydraSlow, HydraBonusTime;                            // Hydra: Venom Glands
+        public float ScentBonusTime; public int ScentStartBonus;           // Alpha Call: Pack Leader
+        public int MedkitExtraOrbs; public float MedkitHealBonus;          // Medkit: Field Surgeon (Soldier)
 
         // Legendary weapon upgrades from bosses.
         public int Guards, Searchlight, SplitShots;  // Warden's Guard companions and Searchlight stacks (Stun.cs)

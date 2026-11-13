@@ -34,7 +34,8 @@ namespace Arena
             V2 to = target - p.Pos;
             if (to.Length > BurrowerReach)
                 target = p.Pos + to.Normalized() * BurrowerReach;
-            var m = SpawnMinion(MinionKind.Burrower, p, target, BurrowerTime);
+            var m = SpawnMinion(MinionKind.Burrower, p, target, BurrowerTime + p.Stats.QuakeBonusTime);  // Deep Tremor: a longer run, harder bites
+            m.Power *= p.Stats.QuakeDmgMult;
             m.Aim = to.Length > 40f ? to.Angle : p.Aim;
             m.Capstone = cap;
             m.Burrowed = new HashSet<int>();

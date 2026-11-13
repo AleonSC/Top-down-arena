@@ -311,6 +311,7 @@ static partial class Program
         Test("offers", "every card offer reads the weapon: weapon-only mods, legendaries and milestone cards", () => OfferWeaponTest(Dt)),
         Test("cardfilters", "class (Kit) and weapon-list cards: who is offered them, the Wildcard's classes", () => CardFilterTest()),
         Test("classcardlists", "each class's own upgrade card list: only its cards, all offered, unique names", () => ClassCardListsTest()),
+        Test("abilitycards", "the Rare cards for the Elementalist and Summoner Space abilities and the Medkit (Docs/UpgradePools.md step 5)", () => AbilityCardsTest(Dt)),
         Test("cardids", "card ids over the network: 2 bytes, ids past 255 and empty offer slots", () => CardIdWireTest(Dt)),
         Test("ults", "every ultimate over the network", () => UltimateSweep(Dt)),
         Test("showcase", "the lobby's loadout preview", () => ShowcaseTest(Dt)),

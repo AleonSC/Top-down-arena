@@ -16,8 +16,8 @@ namespace Arena
             if (to.Length > MedkitReach)
                 to = to.Normalized() * MedkitReach;
             var b = SpawnBullet(Defs.MedkitShot, p.Pos, to / MedkitFlight, 0f, MedkitFlight, 0f, p.Id);
-            b.Burst = mastered ? MedkitOrbsMastered : MedkitOrbs;  // host-only: marks it to land (MoveBullets) and says how many orbs
-            b.Dmg = (mastered ? MedkitOrbHealMastered : MedkitOrbHeal) * power;  // reused as the heal each orb carries
+            b.Burst = (mastered ? MedkitOrbsMastered : MedkitOrbs) + p.Stats.MedkitExtraOrbs;  // host-only: marks it to land (MoveBullets) and says how many orbs (Field Surgeon: more)
+            b.Dmg = ((mastered ? MedkitOrbHealMastered : MedkitOrbHeal) + p.Stats.MedkitHealBonus) * power;  // reused as the heal each orb carries
         }
 
         /// The medkit landed: the orbs scatter in a ring around it.
