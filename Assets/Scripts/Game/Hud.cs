@@ -271,6 +271,8 @@ namespace Arena
                 DrawPathChip(SideL, y);  // PathsUi.cs
                 y -= HudChipLine;
             }
+            if (DrawHuntNodeChip(SideL, y))  // HuntMapUi.cs
+                y -= HudChipLine;
             if (DrawVectorChip(SideL, y))  // ExpansionUi.cs
                 y -= HudChipLine;
             if (DrawRelicChip(SideL, y))  // NodeLook.cs

@@ -229,6 +229,25 @@ namespace Arena
             }
         }
 
+        /// Under the wave plate in a map hunt: the node being fought (a Gamble shows what it turned out to be). True if drawn.
+        bool DrawHuntNodeChip(float x, float y)
+        {
+            if (!game.HuntMapOn || game.HuntRoute == null || game.HuntRoute.Current == null || game.Hunt == null)
+                return false;
+            var node = game.HuntRoute.Current;
+            var now = game.HuntNodeNow;
+            string name = node.Type == HuntNodeType.Gamble && now != HuntNodeType.Gamble && now != HuntNodeType.None
+                ? HuntMap.Name(HuntNodeType.Gamble) + ": " + HuntMap.Name(now) : HuntMap.Name(node.Type);
+            string text = "SECTOR " + (game.HuntRoute.Step + 1) + "/" + HuntMap.Steps + "  ·  " + name.ToUpperInvariant();
+            float w = 30f + text.Length * 6.4f;
+            var chip = new Rect(x, y, w, 20f);
+            Color accent = HuntNodeColor(now == HuntNodeType.None ? node.Type : now);
+            Ui.Pill(chip, new Color(0f, 0f, 0f, 0.55f));
+            Ui.Fill(new Rect(chip.x + 3f, chip.y + 4f, 3f, chip.height - 8f), accent);
+            Ui.Label(new Rect(chip.x + 12f, chip.y, w, chip.height), text, 10, accent, TextAnchor.MiddleLeft, true);
+            return true;
+        }
+
         /// Who voted for a choice, as "P1 P3".
         string HuntVoters(int choice, HuntMap map)
         {
