@@ -1,0 +1,340 @@
+<title>Hive Roster</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a title and one line, then eight animated cards (one per Warden member, same role), then the eight side by side at game scale.
+   Colour: the Queen's own: amber and honey on warm black, wax cream for eggs and shields, red for warnings, lime venom for the one stunner.
+   Type: Barlow Condensed names, Barlow body, Plex Mono for the small labels. Same family as the Security Guard and Swordsman mockups.
+   Dark only: the game's arena is dark and the draw style is phosphor vector. */
+:root{
+  --bg:#0d0b07; --panel:#16120a; --arena:#0a0805; --line:#2f2713; --fg:#f4ead0; --muted:#a09578;
+  --amber:#ffc533; --honey:#ffa21a; --wax:#f3e4b3; --red:#ff5a3c; --venom:#c8ff3d;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+h1{font:700 clamp(44px,9vw,76px)/.92 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;color:var(--amber);text-wrap:balance}
+h2{font:700 24px/1 var(--display);text-transform:uppercase;letter-spacing:.04em;margin:0 0 12px}
+p{margin:0}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.lede{max-width:60ch;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:20px}
+.card{display:flex;flex-direction:column;gap:10px;min-width:0}
+.frame{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;height:auto}
+.card canvas{aspect-ratio:320/200}
+.head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.head h3{font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0}
+.like{font:500 12px var(--mono);color:var(--muted);letter-spacing:.02em}
+.like b{color:var(--amber);font-weight:500}
+.card p{font-size:15px;color:var(--fg)}
+.teach{font:500 12px var(--mono);color:var(--muted)}
+.teach::before{content:"teaches ";color:var(--honey)}
+.line{display:flex;flex-wrap:wrap;gap:12px 6px;align-items:flex-end;justify-content:space-between;padding:18px 14px;border:1px solid var(--line);border-radius:8px;background:var(--arena)}
+.line figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:4px;flex:1 1 96px;min-width:0}
+.line canvas{width:100%;max-width:130px;aspect-ratio:130/90}
+.line figcaption{font:600 17px var(--display);text-transform:uppercase;letter-spacing:.04em}
+.note{font-size:14px;color:var(--muted);max-width:70ch}
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">Hive Queen faction · mockup · eight, like the Warden's</div>
+    <h1>Hive Roster</h1>
+    <p class="lede">Each Hive enemy plays the part of one Warden enemy, so the ten-wave cycle can teach in the same order. Everything is drawn as the game draws: vector lines on the dark arena. The loops show what each does; sizes and timings are proposals.</p>
+  </header>
+
+  <section class="grid" id="cards"></section>
+
+  <section>
+    <h2>Side by side</h2>
+    <div class="line" id="line"></div>
+    <p class="note" style="margin-top:12px">The Queen keeps her own Drones, Bombers and Eggs (they come from her fight, not from waves). Colour does the first job of telling these apart: amber workers, orange soldiers, cream shields, gold lobbers, lime stingers, pale needlers, deep-amber bumbles, red hornets.</p>
+  </section>
+</main>
+
+<script>
+(function(){
+var TAU=Math.PI*2;
+var C={amber:'#ffc533',honey:'#ffa21a',wax:'#f3e4b3',red:'#ff5a3c',venom:'#c8ff3d',white:'#fff7e0',orange:'#ff7a1f',hornet:'#ff4a28',pale:'#ffec9a',bumble:'#e8920c',brown:'#2a1d08',player:'#9fe8ff',floor:'#2a2210'};
+function clamp(v,a,b){a=a==null?0:a;b=b==null?1:b;return Math.max(a,Math.min(b,v));}
+function lerp(a,b,t){return a+(b-a)*t;}
+function ease(t){return t*t*(3-2*t);}
+function prog(t,a,b){return clamp((t-a)/(b-a));}
+function rnd(n){var x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x);}
+
+/* ---------- drawing helpers (vector, glow) ---------- */
+function stroke(c,col,w,blur){c.strokeStyle=col;c.lineWidth=w;c.shadowColor=col;c.shadowBlur=blur==null?8:blur;c.lineJoin='round';c.lineCap='round';c.stroke();}
+function shape(c,col,fillA,w,blur){c.save();c.globalAlpha*=fillA;c.fillStyle=col;c.shadowBlur=0;c.fill();c.restore();stroke(c,col,w,blur);}
+function pathPts(c,pts,close){c.beginPath();for(var i=0;i<pts.length;i++){if(i)c.lineTo(pts[i][0],pts[i][1]);else c.moveTo(pts[i][0],pts[i][1]);}if(close)c.closePath();}
+function poly(c,x,y,r,n,rot){var p=[];for(var i=0;i<n;i++){var a=rot+i*TAU/n;p.push([x+Math.cos(a)*r,y+Math.sin(a)*r]);}pathPts(c,p,true);}
+function ell(c,x,y,rx,ry,rot){c.beginPath();c.ellipse(x,y,rx,ry,rot||0,0,TAU);}
+function line(c,x1,y1,x2,y2,col,w,blur){c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);stroke(c,col,w,blur);}
+function ring(c,x,y,r,col,w,a0,a1){c.beginPath();c.arc(x,y,r,a0==null?0:a0,a1==null?TAU:a1);stroke(c,col,w,6);}
+function ping(c,x,y,p,col){if(p<=0||p>=1)return;c.save();c.globalAlpha*=1-p;ring(c,x,y,6+p*26,col,2);c.restore();}
+function withAlpha(c,a,fn){c.save();c.globalAlpha*=clamp(a);fn();c.restore();}
+
+function floor(c,W,H,t){
+  c.fillStyle='#0a0805';c.fillRect(0,0,W,H);
+  c.save();c.shadowBlur=0;c.strokeStyle=C.floor;c.lineWidth=1;c.globalAlpha=.55;
+  var R=22,dx=R*1.5,dy=Math.sqrt(3)*R;
+  for(var gx=-1;gx*dx<W+R;gx++)for(var gy=-1;gy*dy<H+dy;gy++){
+    var cx=gx*dx,cy=gy*dy+(gx&1?dy/2:0);poly(c,cx,cy,R-1,6,0);c.stroke();}
+  c.restore();
+}
+function player(c,x,y,a,t){
+  c.save();c.translate(x,y);c.rotate(a);
+  pathPts(c,[[9,0],[-6,-6],[-3,0],[-6,6]],true);shape(c,C.player,.25,1.6,8);c.restore();
+}
+
+/* ---------- the insect: one body plan, parameters make each type ---------- */
+function insect(c,o){
+  var s=o.s||1,t=o.t||0,col=o.col,ar=o.abd||[8,5.5],tr=o.th||4.5,hr=o.head||3.4,wl=o.wing||[10,3.4];
+  c.save();c.translate(o.x,o.y);c.rotate(o.ang||0);c.scale(s,s);
+  var ax=-(ar[0]+tr*.55),hx=tr*.95+hr*.5,fl=Math.sin(t*(o.flap||50));
+  var sw=(o.shadow==null?9:o.shadow);
+  /* wings */
+  [-1,1].forEach(function(sd){
+    ell(c,-wl[0]*.3,sd*(tr+wl[1]*.55),wl[0],wl[1]*(.55+.45*Math.abs(fl)),sd*.45);
+    c.save();c.globalAlpha*=.5;shape(c,C.white,.12,1,3);c.restore();});
+  /* legs */
+  if(o.legs){[-1,1].forEach(function(sd){for(var k=0;k<3;k++){var lx=lerp(-tr*.7,tr*.9,k/2);
+    line(c,lx,sd*tr*.6,lx+(k-1)*3,sd*(tr+o.legs),col,1.1,3);}});}
+  /* abdomen, stripes */
+  ell(c,ax,0,ar[0],ar[1]);shape(c,col,.22,1.8,sw);
+  var n=o.stripes==null?2:o.stripes;
+  for(var i=0;i<n;i++){var xx=ax-ar[0]*.55+(i+.5)*ar[0]*1.1/n;var h=ar[1]*Math.sqrt(Math.max(0,1-Math.pow((xx-ax)/ar[0],2)))*.92;
+    line(c,xx,-h,xx,h,o.stripe||col,1.5,3);}
+  if(o.glow){ell(c,ax,0,ar[0]*.6,ar[1]*.6);c.save();c.globalAlpha*=o.glow;shape(c,o.glowCol||C.white,.7,1,14);c.restore();}
+  /* thorax, armour */
+  c.beginPath();c.arc(0,0,tr,0,TAU);shape(c,col,.3,1.8,sw);
+  if(o.armor){poly(c,0,0,tr+2.6,6,0);stroke(c,col,1.4,6);}
+  if(o.fuzz){for(var k=0;k<o.fuzz;k++){var a=k*TAU/o.fuzz,j=1+.25*Math.sin(t*9+k*1.7),rr=(k%2?tr+3.5:tr+5)*j;
+    line(c,Math.cos(a)*tr*.9,Math.sin(a)*tr*.9,Math.cos(a)*rr,Math.sin(a)*rr,col,1.1,2);}
+    for(var k2=0;k2<o.fuzz;k2++){var a2=k2*TAU/o.fuzz+.1,j2=1+.25*Math.sin(t*8+k2*2.1),r2=ar[1]+3.5*j2;
+      line(c,ax+Math.cos(a2)*ar[0]*.9,Math.sin(a2)*ar[1]*.9,ax+Math.cos(a2)*(ar[0]+2.5*j2),Math.sin(a2)*r2,col,1,2);}}
+  /* head, eyes, mandibles, lance */
+  c.beginPath();c.arc(hx,0,hr,0,TAU);shape(c,col,.35,1.8,sw);
+  c.fillStyle=C.white;c.shadowBlur=0;c.fillRect(hx+hr*.2,-hr*.6,1.3,1.3);c.fillRect(hx+hr*.2,hr*.6-1.3,1.3,1.3);
+  if(o.mand!=null){var m=o.mand;[-1,1].forEach(function(sd){
+    c.beginPath();c.moveTo(hx+hr*.8,sd*hr*.35);c.quadraticCurveTo(hx+hr+5,sd*(hr*.9+m*4.5),hx+hr+7,sd*(1.2+m*3.2));stroke(c,col,1.8,6);});}
+  if(o.lance){var lc=o.lanceCol||col;line(c,hx+hr,0,hx+hr+o.lance,0,lc,1.6,8);
+    c.beginPath();c.arc(hx+hr+o.lance,0,1.6,0,TAU);c.fillStyle=o.tip||lc;c.shadowColor=o.tip||lc;c.shadowBlur=10;c.fill();}
+  c.restore();
+}
+function tipOf(o){ /* where the lance ends in world space */
+  var s=o.s||1,tr=o.th||4.5,hr=o.head||3.4,hx=tr*.95+hr*.5,d=(hx+hr+(o.lance||0))*s,a=o.ang||0;
+  return [o.x+Math.cos(a)*d,o.y+Math.sin(a)*d];
+}
+
+/* ---------- the eight ---------- */
+var K={};
+K.worker=function(c,x,y,a,t,o){o=o||{};insect(c,{x:x,y:y,ang:a,t:t,s:(o.s||1)*1.15,col:C.amber,abd:[6,4.2],th:3.5,head:2.7,stripes:2,wing:[8,3],flap:62});};
+K.soldier=function(c,x,y,a,t,o){o=o||{};insect(c,{x:x,y:y,ang:a,t:t,s:1.45,col:C.orange,abd:[9,6.5],th:5.4,head:4.2,stripes:3,wing:[10,3.4],flap:34,armor:true,mand:o.mand==null?.25:o.mand});};
+K.comb=function(c,x,y,t,o){o=o||{};
+  insect(c,{x:x,y:y,ang:0,t:t,s:1.2,col:C.amber,abd:[7,5],th:4.4,head:3.2,stripes:2,wing:[9,3],flap:40});
+  var sx=x+30+(o.push||0),R=8,dmg=o.dmg||[],fl=o.flash||0;
+  var cells=[[0,0]];for(var k=0;k<6;k++){var a=Math.PI/6+k*Math.PI/3;cells.push([Math.cos(a)*R*1.74,Math.sin(a)*R*1.74]);}
+  cells.forEach(function(p,i){
+    var d=dmg[i]||0;if(d>=3)return;
+    c.save();c.globalAlpha*=d===2?.65:1;poly(c,sx+p[0],sy(p[1]),R-.6,6,0);
+    shape(c,fl>0&&Math.floor(t*14)%2?C.white:C.wax,.18+.1*fl,1.7,fl?12:7);
+    if(d>=1){line(c,sx+p[0]-3,sy(p[1])-2,sx+p[0]+1,sy(p[1])+1,C.wax,1,0);line(c,sx+p[0]+1,sy(p[1])+1,sx+p[0]+4,sy(p[1])+4,C.wax,1,0);}
+    c.restore();});
+  function sy(v){return y+v;}
+};
+K.lobber=function(c,x,y,a,t,o){o=o||{};insect(c,{x:x,y:y,ang:a,t:t,s:1.25,col:C.honey,abd:[11,8.5],th:4,head:3,stripes:3,wing:[7,2.6],flap:20,legs:4.5,glow:o.glow||0,glowCol:C.amber,shadow:o.glow?14:9});};
+K.stinger=function(c,x,y,a,t,o){o=o||{};insect(c,{x:x,y:y,ang:a,t:t,s:1.2,col:C.pale,abd:[8,3.6],th:3.6,head:2.8,stripes:3,stripe:C.venom,wing:[11,2.8],flap:55,lance:15,lanceCol:C.venom,tip:C.venom});};
+K.needler=function(c,x,y,a,t,o){o=o||{};insect(c,{x:x,y:y,ang:a,t:t,s:1.15,col:C.pale,abd:[9,3.2],th:3.4,head:2.6,stripes:2,wing:[12,2.6],flap:58,lance:20,lanceCol:C.white,tip:C.white});};
+K.bumble=function(c,x,y,a,t,o){o=o||{};insect(c,{x:x,y:y,ang:a,t:t,s:o.s||1.9,col:C.bumble,abd:[8.5,7],th:6.2,head:3.8,stripes:3,wing:[7,2.8],flap:26,fuzz:16,shadow:8});};
+K.hornet=function(c,x,y,a,t,o){o=o||{};insect(c,{x:x,y:y,ang:a,t:t,s:1.3,col:C.hornet,abd:[8,4.4],th:4.4,head:3.4,stripes:2,wing:[11,3],flap:52,lance:12,lanceCol:C.white,tip:C.white});};
+
+/* ---------- scenes: (ctx, t seconds) ---------- */
+var PX=252,PY=100;
+var S={};
+
+S.worker=function(c,t){
+  var T=3.2,p=(t%T)/T;
+  floor(c,320,200);
+  var q=prog(p,.05,.8),fade=prog(p,0,.05)*(1-prog(p,.9,1));
+  function pos(k,i){var e=ease(clamp(k)),amp=(i?-1:1)*26*(1-e*.55);return [lerp(28,PX-16,e),PY+amp*Math.sin(clamp(k)*15+(i?2.4:0))+(i?10:-10)*(1-e)];}
+  for(var i=0;i<2;i++){var a=pos(q,i),b=pos(q+.01,i),ang=Math.atan2(b[1]-a[1],b[0]-a[0]);
+    withAlpha(c,fade,function(){K.worker(c,a[0],a[1],ang,t);});}
+  player(c,PX,PY,Math.PI,t);ping(c,PX,PY,prog(p,.8,.95),C.red);
+};
+
+S.soldier=function(c,t){
+  var T=3.4,p=(t%T)/T;
+  floor(c,320,200);
+  var q=prog(p,.2,.68),x=lerp(36,PX-30,q*q),fade=prog(p,0,.06)*(1-prog(p,.9,1));
+  c.save();c.setLineDash([4,6]);c.globalAlpha*=.35*fade;line(c,x+14,PY,PX,PY,C.orange,1,0);c.restore();
+  var snap=q>=1?.5+.5*Math.sin(t*28):.2+.5*q;
+  withAlpha(c,fade,function(){K.soldier(c,x,PY,0,t,{mand:snap});});
+  player(c,PX,PY,Math.PI,t);ping(c,PX,PY,prog(p,.68,.86),C.red);
+};
+
+S.comb=function(c,t){
+  var T=4.2,u=t%T;
+  floor(c,320,200);
+  var hits=[.55,1.05,1.55],imp=[1,1,1]; /* the cell facing you takes three shots, then breaks */
+  var dmg=[0,0,0,0,0,0,0];
+  hits.forEach(function(h){if(u>=h+.32)dmg[1]++;});
+  var bash=ease(prog(u,2.5,2.75))-ease(prog(u,3.2,3.9)),push=bash*46;
+  var flash=u>2&&u<2.5?1:0,ex=84;
+  K.comb(c,ex,PY,t,{dmg:dmg,flash:flash,push:push});
+  /* shots from you */
+  hits.forEach(function(h){var q=prog(u,h,h+.32);if(q>0&&q<1){var tx=ex+30+13,x=lerp(PX-10,tx,q);line(c,x,PY-7,x+9,PY-7,C.amber,2,8);}});
+  var kb=bash>0?bash*34:0;
+  player(c,PX+kb,PY,Math.PI,t);
+  if(u>2.72&&u<3.1)ping(c,PX+kb,PY,prog(u,2.72,3.1),C.red);
+  if(dmg[1]>=3&&u<2.2){var q2=prog(u,1.87,2.3);for(var k=0;k<5;k++){var a=k*1.3+.4;line(c,ex+43+Math.cos(a)*q2*16,PY-14+Math.sin(a)*q2*16,ex+43+Math.cos(a)*(q2*16+3),PY-14+Math.sin(a)*(q2*16+3),C.wax,1.2,0);}}
+};
+
+S.lobber=function(c,t){
+  var T=4.4,u=t%T,ex=70,ey=108,mx=216,my=114;
+  floor(c,320,200);
+  var charge=prog(u,0,1.3),fly=prog(u,1.3,2.2),pud=prog(u,2.2,2.5)*(1-prog(u,4,4.4));
+  /* the spot, picked as the wind-up starts */
+  if(u<2.2){withAlpha(c,1,function(){ring(c,mx,my,22,C.red,1.4);ring(c,mx,my,22,C.red,3,-Math.PI/2,-Math.PI/2+TAU*charge);});}
+  /* the puddle */
+  if(pud>0){withAlpha(c,pud,function(){var r=26*ease(Math.min(1,prog(u,2.2,2.6))),pts=[];
+    for(var i=0;i<10;i++){var a=i*TAU/10,rr=r*(.8+.25*rnd(i+3));pts.push([mx+Math.cos(a)*rr,my+Math.sin(a)*rr*.86]);}
+    pathPts(c,pts,true);shape(c,C.honey,.28,1.8,10);
+    poly(c,mx,my,r*.45,6,0);stroke(c,C.amber,1,3);
+    for(var k=0;k<5;k++){var a2=k*1.26+.3;line(c,mx+Math.cos(a2)*r*.5,my+Math.sin(a2)*r*.45,mx+Math.cos(a2)*r*.95,my+Math.sin(a2)*r*.8,C.amber,.8,0);}});}
+  K.lobber(c,ex,ey,0,t,{glow:charge<1?.2+.6*charge:Math.max(0,.8-fly*2)});
+  if(fly>0&&fly<1){var gx=lerp(ex+22,mx,fly),gy=lerp(ey,my,fly)-46*Math.sin(Math.PI*fly);
+    for(var k=1;k<5;k++){var f2=Math.max(0,fly-k*.04);withAlpha(c,.4-k*.08,function(){c.beginPath();c.arc(lerp(ex+22,mx,f2),lerp(ey,my,f2)-46*Math.sin(Math.PI*f2),3.5-k*.5,0,TAU);c.fillStyle=C.honey;c.shadowBlur=0;c.fill();});}
+    c.beginPath();c.arc(gx,gy,4.5,0,TAU);shape(c,C.amber,.7,1.6,12);}
+  player(c,PX+14,PY-6,Math.PI,t);
+};
+
+S.stinger=function(c,t){
+  var T=3.8,u=t%T,ex=82,ey=100;
+  floor(c,320,200);
+  var o={x:ex,y:ey,ang:0,s:1.2,th:3.6,head:2.8,lance:15};
+  var tip=tipOf(o),ch=prog(u,.3,1.5),shot=prog(u,1.6,2.05),stun=prog(u,2.05,3.3);
+  /* the shooting line fills from the muzzle while it charges */
+  if(u>.3&&u<1.6){c.save();c.globalAlpha*=.25;line(c,tip[0],tip[1],PX-8,PY,C.venom,3,0);c.restore();
+    line(c,tip[0],tip[1],lerp(tip[0],PX-8,ch),lerp(tip[1],PY,ch),C.venom,3,8);
+    for(var k=0;k<3;k++){var n=Math.floor(t*18)+k*7;line(c,tip[0]+2,tip[1],tip[0]+4+rnd(n)*8,tip[1]+(rnd(n+9)-.5)*14,C.white,1.1,6);}}
+  K.stinger(c,ex,ey,0,t);
+  /* the bolt: a dart with barbs, flickering */
+  if(shot>0&&shot<1){var bx=lerp(tip[0]+4,PX-6,shot),fz=Math.floor(t*16)%2?1:-1;
+    pathPts(c,[[bx-14,ey],[bx-9,ey+4*fz],[bx-4,ey-4*fz],[bx+1,ey+3*fz],[bx+8,ey]],false);stroke(c,C.venom,2,10);
+    line(c,bx+8,ey,bx+3,ey-5,C.white,1.4,6);line(c,bx+8,ey,bx+3,ey+5,C.white,1.4,6);}
+  player(c,PX,PY,Math.PI,t);
+  if(stun>0&&stun<1){withAlpha(c,1-prog(stun,.8,1),function(){
+    for(var k=0;k<4;k++){var a=t*7+k*TAU/4;c.beginPath();c.arc(PX,PY,13,a,a+.9);stroke(c,C.venom,1.8,8);}
+    for(var k2=0;k2<3;k2++){var n2=Math.floor(t*14)+k2*5,a3=rnd(n2)*TAU;line(c,PX+Math.cos(a3)*8,PY+Math.sin(a3)*8,PX+Math.cos(a3)*17,PY+Math.sin(a3)*17,C.white,1.2,4);}});}
+};
+
+S.needler=function(c,t){
+  var T=4.5,u=t%T,shots=[.95,2.15,3.35];
+  floor(c,320,200);
+  var ey=98+Math.sin(t*1.4)*30,ex=92,ang=Math.atan2(PY-ey,PX-ex);
+  var o={x:ex,y:ey,ang:ang,s:1.15,th:3.4,head:2.6,lance:20},tip=tipOf(o);
+  var fired=0;shots.forEach(function(s){if(u>=s)fired++;});
+  shots.forEach(function(s){
+    var wu=prog(u,s-.7,s-.25),lock=prog(u,s-.25,s);
+    if(u>s-.7&&u<s){withAlpha(c,.35+.65*wu,function(){line(c,tip[0],tip[1],PX,PY,lock>0?C.red:C.amber,lock>0?2.4:1.4,lock>0?10:5);});}
+    var q=prog(u,s,s+.45);if(q>0&&q<1){
+      var d=Math.hypot(PX-tip[0],PY-tip[1]),ux=(PX-tip[0])/d,uy=(PY-tip[1])/d,h=d*q,tail=Math.min(h,52);
+      var g=c.createLinearGradient(tip[0]+ux*(h-tail),tip[1]+uy*(h-tail),tip[0]+ux*h,tip[1]+uy*h);
+      g.addColorStop(0,'rgba(255,236,154,0)');g.addColorStop(1,'rgba(255,255,255,1)');
+      c.beginPath();c.moveTo(tip[0]+ux*(h-tail),tip[1]+uy*(h-tail));c.lineTo(tip[0]+ux*h,tip[1]+uy*h);
+      c.strokeStyle=g;c.lineWidth=2.4;c.shadowColor=C.white;c.shadowBlur=10;c.lineCap='round';c.stroke();}
+    ping(c,PX,PY,prog(u,s+.45,s+.75),C.white);
+  });
+  K.needler(c,ex,ey,ang,t);
+  /* a magazine of seven */
+  for(var i=0;i<7;i++){c.beginPath();c.arc(ex-16+i*5.4,ey-26,1.8,0,TAU);
+    if(i<7-fired){c.fillStyle=C.pale;c.shadowColor=C.pale;c.shadowBlur=5;c.fill();}else{stroke(c,C.pale,1,0);}}
+  player(c,PX,PY,Math.PI,t);
+};
+
+S.bumble=function(c,t){
+  var T=4.2,u=t%T,p=u/T;
+  floor(c,320,200);
+  var q=ease(prog(p,.05,.68)),x=lerp(58,PX-52,q),y=PY+Math.sin(t*5)*3,fade=prog(p,0,.05)*(1-prog(p,.92,1));
+  for(var k=1;k<6;k++){var tq=Math.max(0,q-k*.05);withAlpha(c,fade*(.28-k*.045),function(){c.beginPath();c.arc(lerp(58,PX-52,tq)-8,PY+8+k*1.5,3.2-k*.4,0,TAU);c.fillStyle=C.amber;c.shadowBlur=0;c.fill();});}
+  withAlpha(c,fade,function(){K.bumble(c,x,y,0,t);
+    line(c,x-22,y-34,x+22,y-34,'#4a3a14',3,0);line(c,x-22,y-34,x-22+44*.92,y-34,C.bumble,3,4);});
+  player(c,PX,PY,Math.PI,t);
+  var st=prog(p,.68,.92);
+  if(st>0){for(var r=0;r<2;r++){var pr=clamp(st-r*.18);if(pr>0&&pr<1)withAlpha(c,1-pr,function(){poly(c,x,y,22+pr*70,6,0);stroke(c,C.red,2.2,8);});}}
+};
+
+S.hornet=function(c,t){
+  var T=3.8,u=t%T;
+  floor(c,320,200);
+  var cx=PX-4,cy=PY;
+  function circ(tt){var r=lerp(86,66,prog(tt,0,1.8)),a=tt*2.3+3.1;return [cx+Math.cos(a)*r,cy+Math.sin(a)*r*.8];}
+  var pos,ang;
+  var fz=circ(1.8),dx=cx-fz[0],dy=cy-fz[1],d=Math.hypot(dx,dy),ux=dx/d,uy=dy/d,L=d+46;
+  if(u<1.8){pos=circ(u);var n=circ(u+.02);ang=Math.atan2(cy-pos[1],cx-pos[0]);}
+  else if(u<2.45){pos=fz;ang=Math.atan2(uy,ux);}
+  else if(u<2.62){var q=ease(prog(u,2.45,2.62));pos=[fz[0]+ux*L*q,fz[1]+uy*L*q];ang=Math.atan2(uy,ux);}
+  else if(u<3.2){pos=[fz[0]+ux*L,fz[1]+uy*L];ang=Math.atan2(uy,ux);}
+  else{var q2=ease(prog(u,3.2,3.8)),b=circ(0);pos=[lerp(fz[0]+ux*L,b[0],q2),lerp(fz[1]+uy*L,b[1],q2)];ang=Math.atan2(cy-pos[1],cx-pos[0]);}
+  /* the lunge lane: a band from it to you, filling while it shows */
+  if(u>1.8&&u<2.62){var fill=prog(u,1.8,2.45),w=9;
+    c.save();c.translate(fz[0],fz[1]);c.rotate(Math.atan2(uy,ux));
+    c.beginPath();c.rect(0,-w/2,L,w);c.globalAlpha*=.22;c.fillStyle=C.red;c.shadowBlur=0;c.fill();c.globalAlpha=1;
+    c.beginPath();c.rect(0,-w/2,L*fill,w);c.globalAlpha=.5;c.fill();c.restore();
+  }
+  K.hornet(c,pos[0],pos[1],ang,t);
+  player(c,cx,cy,Math.PI+ang*0,t);
+  ping(c,cx,cy,prog(u,2.55,2.9),C.red);
+};
+
+/* ---------- the page ---------- */
+var CARDS=[
+  {id:'worker', name:'Worker', like:'Rioter', how:'Small and quick; weaves at you in loose pairs, never in a line. Each is one hit of nothing, a crowd is the problem.', teach:'the drone crowds of the Swarm stage'},
+  {id:'soldier', name:'Soldier', like:'Guard', how:'Armoured and straight: no weaving. Speeds up as it comes and snaps its jaws on arrival.', teach:'royal dives: sidestep a straight rush'},
+  {id:'comb', name:'Comb Shield', like:'Riot Shield', how:'Carries a plate of seven wax cells. Shots break the cell they hit, then the rest crumble; it flashes, then bashes you back.', teach:'the honeycomb floor: hit the cell facing you'},
+  {id:'lobber', name:'Honey Lobber', like:'Gas Grenadier', how:'Plants its feet and swells. A ring marks the spot before it lobs a glob; the puddle slows whoever stands in it.', teach:'nectar spray and honey puddles'},
+  {id:'stinger', name:'Stinger', like:'Taser Guard', how:'Keeps its distance, charges a venom lance, then fires one barbed dart straight at you. A hit stuns. Strafe across the line.', teach:'aimed fans, and the stun'},
+  {id:'needler', name:'Needler', like:'Security Guard', how:'Hovers and strafes, aims straight at you, locks on, then one white needle. Seven to a magazine, no lead.', teach:'the bomber barrage: read the line'},
+  {id:'bumble', name:'Bumble', like:'Thug', how:'Huge, slow and furry. Soaks shots, and its landing sends a ring of dust that hurts.', teach:'the swarm cloud: keep moving'},
+  {id:'hornet', name:'Hornet', like:'Shiv', how:'Circles in close, shows the red lunge lane, then darts straight through you.', teach:'bomber swoops: leave the lane'}
+];
+var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var STILL={worker:2.05,soldier:2.3,comb:1.3,lobber:2.9,stinger:1.45,needler:1.1,bumble:2.9,hornet:2.2};
+var host=document.getElementById('cards'),live=[];
+CARDS.forEach(function(k){
+  var d=document.createElement('article');d.className='card';
+  d.innerHTML='<div class="frame"><canvas width="640" height="400" aria-label="'+k.name+' animation"></canvas></div>'
+   +'<div class="head"><h3>'+k.name+'</h3><span class="like">plays like the Warden\'s <b>'+k.like+'</b></span></div>'
+   +'<p>'+k.how+'</p><div class="teach">'+k.teach+'</div>';
+  host.appendChild(d);
+  var cv=d.querySelector('canvas'),cx=cv.getContext('2d');
+  live.push({id:k.id,cv:cv,cx:cx,vis:true});
+});
+var lineHost=document.getElementById('line'),lineCv=[];
+CARDS.forEach(function(k){
+  var f=document.createElement('figure');f.innerHTML='<canvas width="260" height="180"></canvas><figcaption>'+k.name+'</figcaption>';
+  lineHost.appendChild(f);lineCv.push({id:k.id,cx:f.querySelector('canvas').getContext('2d')});
+});
+function drawCard(o,t){var c=o.cx,Z=1.25;c.setTransform(2*Z,0,0,2*Z,(1-Z)*320,(1-Z)*200);c.clearRect(-80,-50,480,300);S[o.id](c,t);}
+function drawLine(o,t){var c=o.cx,Z=1.5;c.setTransform(2*Z,0,0,2*Z,(1-Z)*130,(1-Z)*90);c.clearRect(-40,-30,210,150);
+  c.fillStyle='#0a0805';c.fillRect(-40,-30,210,150);
+  var id=o.id,x=id==='comb'?44:65,y=47;
+  if(id==='comb')K.comb(c,x,y,t,{});else K[id](c,x,y,0,t,id==='bumble'?{s:1.55}:{});
+  if(id==='lobber'||id==='worker'){}}
+function frame(ms){
+  var t=ms/1000;
+  live.forEach(function(o){if(o.vis)drawCard(o,t);});
+  lineCv.forEach(function(o){drawLine(o,t);});
+  if(!reduce)requestAnimationFrame(frame);
+}
+if('IntersectionObserver' in window){
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){live.forEach(function(o){if(o.cv===e.target)o.vis=e.isIntersecting;});});});
+  live.forEach(function(o){io.observe(o.cv);});
+}
+if(reduce){live.forEach(function(o){drawCard(o,STILL[o.id]);});lineCv.forEach(function(o){drawLine(o,1);});}
+else requestAnimationFrame(frame);
+})();
+</script>
