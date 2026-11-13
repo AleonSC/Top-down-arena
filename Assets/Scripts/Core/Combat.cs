@@ -595,7 +595,7 @@ namespace Arena
                             scratchIds.Add(b.Id);
                             bool perfect = PerfectNow(p);
                             if (ParryHit(p, b.Dmg, b.Pos) && !(perfect && FumaSteal(p, b)))  // perfect parry (a needle) or Mirror Guard (an arcane bolt): sent back; the Fuma's Orbit stance keeps it (FumaOrbit.cs)
-                                reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.Stats.ReflectMult, StunBack = b.Kind == Defs.StunShot || b.Kind == Defs.TaserBolt, Kind = perfect ? Defs.ParryNeedle : Defs.ArcaneShot });
+                                reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.Stats.ReflectMult, StunBack = b.Kind == Defs.StunShot || b.Kind == Defs.TaserBolt || b.Kind == Defs.StingBolt, Kind = perfect ? Defs.ParryNeedle : Defs.ArcaneShot });
                             break;
                         }
                         if (p.WallUp && WallCovers(p, b.Pos, b.Radius, out int plate))
@@ -670,10 +670,10 @@ namespace Arena
                                     p.StunT = StunTime;  // the Warden's stun shot: stuck for 1 s (Warden.cs)
                                     BroadcastFx(FxKind.Spark, p.Pos, Defs.BulletColor(Defs.StunShot), 30f, 0.35f, Sfx.SpellZap);
                                 }
-                                else if (b.Kind == Defs.TaserBolt && !p.Downed)
+                                else if ((b.Kind == Defs.TaserBolt || b.Kind == Defs.StingBolt) && !p.Downed)
                                 {
-                                    p.StunT = StunTime;  // a Taser Guard's Fork Bolt: the same stun (WardenFaction.cs)
-                                    BroadcastFx(FxKind.TaserHit, p.Pos, p.Pos + b.Vel.Normalized(), Defs.BulletColor(Defs.TaserBolt), 1f, 0.7f, Sfx.SpellZap);
+                                    p.StunT = StunTime;  // a Taser Guard's Fork Bolt, a Stinger's dart: the same stun (WardenFaction.cs)
+                                    BroadcastFx(FxKind.TaserHit, p.Pos, p.Pos + b.Vel.Normalized(), Defs.BulletColor(b.Kind), 1f, 0.7f, Sfx.SpellZap);
                                 }
                             }
                             break;

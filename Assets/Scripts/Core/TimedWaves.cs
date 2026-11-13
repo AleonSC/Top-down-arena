@@ -107,11 +107,9 @@ namespace Arena
             ResetPortals();  // SpawnPortals.cs
         }
 
-        /// Host: one tick of a timed wave's spawning; true when it handled the queue this tick.
-        bool TickTimedSpawn(float dt)
+        /// Host: one tick of a timed wave's spawning (pacing Timed: Spawner.cs).
+        void TickTimedSpawn(float dt)
         {
-            if (!timedWave)
-                return false;
             timedClock += dt;
             int left = QueuedUnits();
             if (left > timedTotal)
@@ -125,18 +123,10 @@ namespace Arena
             if (PortalsOn)
             {
                 TickPortalSpawn(due - spawned, cap - Foes() - PortalCargoCount(), x);  // in bursts, through portals (SpawnPortals.cs)
-                return true;
+                return;
             }
             if (spawned < due && Foes() < cap)
-            {
-                if (!SpawnNextSquad())
-                {
-                    SpawnEnemy(spawnQueue[0]);
-                    spawnQueue.RemoveAt(0);
-                    singlesSinceSquad++;
-                }
-            }
-            return true;
+                SpawnNextEntry();
         }
     }
 }

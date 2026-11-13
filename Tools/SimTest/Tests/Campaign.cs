@@ -16,14 +16,14 @@ static partial class Program
         Check(w1.Count == 1 && Math.Abs(w1[EnemyType.Boss] - 1f) < 1e-4f, "waves 1-5: all Warden's faction (nothing before it to fade)");
         var all50 = Enumerable.Range(1, 60).Select(n => Approaches.Campaign(n).Sum(s => s.Share)).ToList();
         Check(all50.All(t => t <= 1.0001f), "no wave's slices add up to more than 100%");
-        // Hive Queen (6-10) has no faction yet: only the Warden's fading slice is built.
+        // The Hive Queen (6-10): her faction builds the rest while the Warden's fades.
         var w6 = slices(6);
-        Check(w6.ContainsKey(EnemyType.Boss) && Math.Abs(w6[EnemyType.Boss] - 0.35f) < 1e-4f && w6.Count == 1, "wave 6: the Warden's faction fades (35%); the Hive Queen's isn't built, so the rest is the usual mix");
+        Check(w6.ContainsKey(EnemyType.Boss) && Math.Abs(w6[EnemyType.Boss] - 0.35f) < 1e-4f && w6.ContainsKey(EnemyType.HiveQueen) && Math.Abs(w6[EnemyType.HiveQueen] - 0.65f) < 1e-4f && w6.Count == 2, "wave 6: the Warden's faction fades (35%) and the Hive Queen's builds the rest (65%)");
         var fade = Enumerable.Range(6, 5).Select(n => slices(n).ContainsKey(EnemyType.Boss) ? slices(n)[EnemyType.Boss] : 0f).ToArray();
         Check(fade.SequenceEqual(new[] { 0.35f, 0.25f, 0.15f, 0.05f, 0f }), "the fading slice goes 35, 25, 15, 5, 0% over the next five waves");
         // The Lich (31-35): current builds, fading Duelist unbuilt, pool of built earlier factions (the Warden's).
         var w31 = slices(31);
-        Check(Math.Abs(w31[EnemyType.Lich] - 0.55f) < 1e-4f && Math.Abs(w31[EnemyType.Boss] - 0.10f) < 1e-4f && w31.Count == 2, "wave 31: the Lich's faction 55% (65% minus the 10% pool), the Warden's 10% in the older pool");
+        Check(Math.Abs(w31[EnemyType.Lich] - 0.55f) < 1e-4f && Math.Abs(w31[EnemyType.Boss] - 0.05f) < 1e-4f && Math.Abs(w31[EnemyType.HiveQueen] - 0.05f) < 1e-4f && w31.Count == 3, "wave 31: the Lich's faction 55% (65% minus the 10% pool), the Warden's and the Hive Queen's 5% each in the older pool");
         var w35 = slices(35);
         Check(Math.Abs(w35[EnemyType.Lich] - 0.90f) < 1e-4f, "wave 35: the Lich's faction is 90%");
         var w36 = slices(36);
@@ -79,9 +79,9 @@ static partial class Program
         Check(csq.Members.GroupBy(t => t).All(gr => cwave.Count(t => t == gr.Key) >= gr.Count()), "wave " + cw + " has the " + csq.Name + " squad's members");
         var g0 = new Session().Game;
         g0.Diff.Set(DiffKnob.Campaign, 0f);
-        Check(g0.ApproachShare(6) == 0f && g0.ApproachShare(1) > 0f, "off: the old approach share applies (none before the Hive Queen's)");
+        Check(g0.ApproachShare(6) > 0f && g0.ApproachShare(1) > 0f && g0.ApproachShare(11) == 0f, "off: the old approach share applies (the Hive Queen's on waves 6-9, none before the Reapers)");
         var gOn = new Session().Game;
-        Check(gOn.CampaignOn && Math.Abs(gOn.ApproachShare(1) - 1f) < 1e-4f && gOn.ApproachShare(6) == 0f && Math.Abs(gOn.ApproachShare(31) - 0.55f) < 1e-4f, "on (the default): the wave panel's approach share is the next boss's slice");
+        Check(gOn.CampaignOn && Math.Abs(gOn.ApproachShare(1) - 1f) < 1e-4f && Math.Abs(gOn.ApproachShare(6) - 0.65f) < 1e-4f && Math.Abs(gOn.ApproachShare(31) - 0.55f) < 1e-4f, "on (the default): the wave panel's approach share is the next boss's slice");
     }
 
     class SliceCmp : IEqualityComparer<Approaches.Slice>

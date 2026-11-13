@@ -89,6 +89,7 @@ namespace Arena
         /// Host: squads still to arrive this wave (they come in turn with the single enemies of spawnQueue).
         readonly List<SquadDef> squadQueue = new List<SquadDef>();
         int nextSquadId = 1, singlesSinceSquad;
+        int stragglers;  // the last singles in spawnQueue are a lesson's new enemy: the squads come out first (Approaches.cs MixApproach)
         int spawnHome = -1;  // host: the Rooms arena's room the enemies being spawned now belong to (Rooms.cs; -1: none)
         /// Host, rebuilt each tick: each squad's living members, and the living Commanders.
         readonly Dictionary<int, List<Enemy>> squadMembers = new Dictionary<int, List<Enemy>>();
@@ -187,7 +188,7 @@ namespace Arena
         /// Host, while a wave spawns: a squad comes after every three single enemies (or once the singles run out).
         bool SpawnNextSquad()
         {
-            if (squadQueue.Count == 0 || (singlesSinceSquad < 3 && spawnQueue.Count > 0))
+            if (squadQueue.Count == 0 || (singlesSinceSquad < 3 && spawnQueue.Count > stragglers))
                 return false;
             var s = squadQueue[0];
             squadQueue.RemoveAt(0);

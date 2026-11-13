@@ -431,7 +431,7 @@ namespace Arena
         public float AuraRange => Game.AuraRange * Stats.AuraRangeMult;
     }
 
-    public class Enemy
+    public partial class Enemy
     {
         public int Id;
         public V2 KnockLeft;    // host only: a push still to travel, and how fast (Knock.cs)

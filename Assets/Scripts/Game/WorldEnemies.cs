@@ -462,7 +462,7 @@ namespace Arena
             }
             bool pac = PacSkin && !spawning && PacGhostable(e);  // the Pac-Man skin: a ghost in its role's colour (PacmanLook.cs)
             // Melee enemies are spiky, so you can tell rushers from shooters at a glance.
-            if (e.Def.Melee && !pac && !spawning && e.Type != EnemyType.Swarmer && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type) && !Game.IsNonShooter(e.Type))
+            if (e.Def.Melee && !pac && !spawning && !HiveKin.Is(e.Type) && e.Type != EnemyType.Swarmer && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type) && !Game.IsNonShooter(e.Type))
                 DrawMeleeSpikes(e, pos, r, col, t);
             if (Zombies.Is(e.Type))
                 DrawZombieUnder(e, pos, r, t);  // its spore haze, frenzy streaks and the Crawler's hold (ZombieLook.cs)
@@ -470,7 +470,7 @@ namespace Arena
             col = DrawEnemyUnderlay(e, pos, r, col, spawning, t);
             if (pac)
                 col = PacRoleColor(e);
-            if (e.Type == EnemyType.SecurityGuard && !spawning)
+            if (e.Kin == EnemyType.SecurityGuard && !spawning)
                 DrawSecurityUnder(e, pos, r, t);  // its locked shot and its reload ring (SecurityLook.cs)
             if (Game.IsNonShooter(e.Type) && !spawning)
                 DrawNonShooterUnder(e, pos, r, t);  // the fuse, the aim line and harpoon, a pod's lasers (NonShooterLooks.cs)
@@ -487,6 +487,8 @@ namespace Arena
                 DrawWarderBody(e, pos, r, col, t);  // WarderLook.cs
             else if (e.Type == EnemyType.Swarmer)
                 DrawChomper(e, pos, r, col, t);
+            else if (HiveKin.Is(e.Type))
+                DrawHiveBody(e, pos, r, col, t);  // HiveLook.cs: the Hive Queen's faction
             else if (e.Type == EnemyType.SecurityGuard)
                 DrawSecurityBody(e, pos, r, col, t);  // SecurityLook.cs
             else if (Game.IsNonShooter(e.Type))
@@ -634,7 +636,7 @@ namespace Arena
         /// Each type's effects behind its body. Returns the body colour (a Phantom flickers).
         Rgba DrawEnemyUnderlay(Enemy e, V2 pos, float r, Rgba col, bool spawning, float t)
         {
-            switch (e.Type)
+            switch (e.Kin)
             {
                 case EnemyType.Spinner:
                     if (e.Phase == 1 && !spawning)  // bursting: a hot glow
@@ -903,6 +905,10 @@ namespace Arena
         {
             switch (e.Type)
             {
+                case EnemyType.Worker: case EnemyType.Soldier: case EnemyType.CombShield: case EnemyType.HoneyLobber:
+                case EnemyType.Stinger: case EnemyType.Needler: case EnemyType.Bumble: case EnemyType.Hornet:
+                    DrawHiveDetails(e, pos, r, t);  // HiveLook.cs
+                    break;
                 case EnemyType.Duelist:
                 case EnemyType.Decoy:
                     DrawDuelistBlade(e, pos, r, t);  // DuelistLook.cs

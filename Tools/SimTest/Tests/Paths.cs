@@ -22,6 +22,7 @@ static partial class Program
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
         var g = host.Game;
+        g.Diff.Set(DiffKnob.ApproachShare, 0f);  // (the Hive Queen's approach would theme waves 6-9; these test the paths alone)
         g.DevSetGod(1, true); g.DevSetGod(2, true);
         Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
         // Beat the wave-5 boss.
@@ -125,6 +126,7 @@ static partial class Program
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
         var g = host.Game;
+        g.Diff.Set(DiffKnob.ApproachShare, 0f);  // (the Hive Queen's approach would theme waves 6-9; these test the paths alone)
         Run(s, dt, 20f, () => g.State == MatchState.Fighting);
         foreach (var e in g.Enemies.Values) e.Hp = 0f;
         Run(s, dt, 0.5f);

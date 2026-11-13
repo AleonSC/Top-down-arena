@@ -159,6 +159,11 @@ namespace Arena
                 DrawTaserBolt(b, t);  // TaserLook.cs
                 return;
             }
+            if (b.Kind == Defs.StingBolt)
+            {
+                DrawStingBolt(b, t);  // HiveLook.cs
+                return;
+            }
             if (b.Kind == Defs.TracerRound)
             {
                 DrawTracerRound(b, t);  // SecurityLook.cs
