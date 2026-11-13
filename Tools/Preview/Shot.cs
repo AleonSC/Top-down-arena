@@ -335,6 +335,9 @@ static partial class Shot {
       pput(EnemyType.Grunt, b.Pos + fwd * 55f + fwd.Orthogonal() * 18f).Facing = b.Facing;
       pput(EnemyType.Swarmer, b.Pos + fwd * 110f - fwd.Orthogonal() * 20f).Facing = b.Facing;
       pput(EnemyType.Grunt, b.Pos + fwd * 170f + fwd.Orthogonal() * 6f).Facing = b.Facing;
+      if (Environment.GetEnvironmentVariable("PORTALSURGE") != null) foreach (var o in new[] { a, b, c }) o.Winding = true;  // PORTALSURGE=1: a surge is on (faster chase, more bits)
+      var sealAt = Environment.GetEnvironmentVariable("PORTALSEAL");  // PORTALSEAL=<0-1>: a portal shot closed that far through its flash, by the opening one
+      if (sealAt != null) pg.Effects.Add(new Effect { Kind = FxKind.PortalSeal, Pos = new V2(1050f, 330f), Color = new Rgba(0.78f, 0.35f, 1f), Radius = d.Radius, Dur = SpawnPortals.SealFx, T = SpawnPortals.SealFx * float.Parse(sealAt, System.Globalization.CultureInfo.InvariantCulture) });
       Time.time = 100f;
     }
     if (Environment.GetEnvironmentVariable("TAGS") != null) {  // TAGS=1: a set of enemies on first sight, each with its name tag (EnemyTagLook.cs); a fresh profile, so nothing is saved to yours
@@ -442,6 +445,36 @@ static partial class Shot {
       }
       ig.AccretionBands.Add(new Game.AccretionBand { Center = me.Pos, Radius = radius, Spin = spin + Game.AccretionSpin * at });
       ig.AnimT += at;
+    }
+    if (Environment.GetEnvironmentVariable("LARDER") != null) {  // LARDER=<s into the clock>: the Devourer's step-1 faction (LarderLook.cs): two Gnawlings, a Butcher winding up and one chopping, a Gulper swelling and one breathing in; set beside Docs/Mockups/devourer-faction.html
+      var lg = host.Game; lg.Enemies.Clear(); lg.Bullets.Clear();
+      var lsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, float, Enemy> lput = (t, at, face) => { var e = (Enemy)lsp.Invoke(lg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Facing = face; e.Elite = false; e.Traits = 0; return e; };
+      me.Pos = me.Disp = new V2(1450f, 820f);
+      lput(EnemyType.Gnawling, new V2(260f, 250f), 0.3f); lput(EnemyType.Gnawling, new V2(300f, 330f), 0.1f);
+      var bw = lput(EnemyType.Butcher, new V2(560f, 300f), 0.2f); bw.LarderStage = Game.LarderWinding; bw.LarderT = Game.ChopWind * 0.35f;
+      var bc = lput(EnemyType.Butcher, new V2(860f, 260f), 0.5f); bc.LarderStage = Game.LarderActing; bc.LarderT = Game.ChopFlash * 0.5f;
+      lput(EnemyType.Butcher, new V2(700f, 470f), 2.6f);
+      var gw = lput(EnemyType.Gulper, new V2(380f, 640f), 0.1f); gw.LarderStage = Game.LarderWinding; gw.LarderT = Game.GulpWind * 0.3f;
+      var gi = lput(EnemyType.Gulper, new V2(1050f, 640f), 0.4f); gi.LarderStage = Game.LarderActing; gi.LarderT = Game.GulpTime * 0.5f;
+      lput(EnemyType.Gulper, new V2(1150f, 330f), MathX.Pi);
+      if (Environment.GetEnvironmentVariable("LARDER2") != null) {  // LARDER2=1 with LARDER: step 2 instead: Carcass Bearers (whole, flashing, torn, broken with its morsel down and a fed Gnawling eating), Bile Spitters (winding up, glob in flight) and a bile pool
+        lg.Enemies.Clear(); lg.Patches.Clear(); lg.Effects.Clear();
+        var setRiot = typeof(Game).GetMethod("SetRiotState", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        lput(EnemyType.CarcassBearer, new V2(250f, 250f), 0f);
+        var cb2 = lput(EnemyType.CarcassBearer, new V2(450f, 250f), 0f); setRiot.Invoke(null, new object[] { cb2, Game.RiotWinding, 0.3f });
+        var cb3 = lput(EnemyType.CarcassBearer, new V2(650f, 250f), 0f); cb3.Phase = (byte)(Game.RiotWalk << 3 | 3);
+        var cb4 = lput(EnemyType.CarcassBearer, new V2(850f, 250f), 0f); cb4.Phase = (byte)(Game.RiotFlail << 3 | Game.RiotCracked);
+        lput(EnemyType.Morsel, new V2(895f, 260f), 0f);
+        var fed = lput(EnemyType.Gnawling, new V2(1050f, 230f), MathX.Pi); fed.LarderStage = Game.GnawFed;
+        lput(EnemyType.Gnawling, new V2(1100f, 300f), MathX.Pi);
+        var bs1 = lput(EnemyType.BileSpitter, new V2(250f, 600f), 0f);
+        lg.Effects.Add(new Effect { Kind = FxKind.GasLob, Pos = new V2(470f, 560f), Pos2 = new V2(bs1.Id, 1f), Color = Game.BileColor, Radius = Game.SpitPoolR, Dur = 2.07f, T = 0.7f });
+        var bs2 = lput(EnemyType.BileSpitter, new V2(700f, 600f), 0f);
+        lg.Effects.Add(new Effect { Kind = FxKind.GasLob, Pos = new V2(950f, 600f), Pos2 = new V2(bs2.Id, 1f), Color = Game.BileColor, Radius = Game.SpitPoolR, Dur = 2.07f, T = 1.55f });
+        lg.Patches[702] = new PathPatch { Id = 702, Kind = PatchKind.Bile, Pos = new V2(1150f, 600f), Warn = 0f, Life = 4f, Age = 1.2f, R0 = Game.SpitPoolR, R1 = Game.SpitPoolR };
+      }
+      lg.AnimT += float.Parse(Environment.GetEnvironmentVariable("LARDER"), System.Globalization.CultureInfo.InvariantCulture);
     }
     if (Environment.GetEnvironmentVariable("QUARRY") != null) {  // QUARRY=<s into the clock>: the Colossus's step-1 faction (QuarryLook.cs): two Rubble, a Quarryman swinging at you, a Stomper walking, one lifting its foot (gap showing) and one whose ring is out; set beside Docs/Mockups/colossus-faction.html
       var qg = host.Game; qg.Enemies.Clear(); qg.Bullets.Clear();

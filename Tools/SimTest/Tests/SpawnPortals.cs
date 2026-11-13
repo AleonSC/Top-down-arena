@@ -66,9 +66,25 @@ static partial class Program
         p.Hp = 0f;
         Run(s, dt, 0.1f);
         Check(!g.Enemies.ContainsKey(p.Id), "a portal shot to 0 health dies");
+        Check(g.Effects.Any(f => f.Kind == FxKind.PortalSeal), "sealing a portal sends its flash");
+        Check(s[1].Game.Effects.Any(f => f.Kind == FxKind.PortalSeal), "the client sees the sealed flash");
         Run(s, dt, 2f);
         Check(g.Enemies.Values.Count(e => e.Type == EnemyType.Grunt) == 0 && g.PortalCargoCount() == 0, "the burst inside a sealed portal is cancelled");
         Check(g.Score - scoreBefore >= 5 * SpawnPortals.SealScore, "sealing it pays out for each enemy it held");
+
+        // In a surge a portal's Winding is on (its look speeds up), and the client sees it.
+        g.Enemies.Clear();
+        var clock = typeof(Game).GetField("timedClock", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        Action at = null;
+        Action<float> holdAt = x => { at = () => clock.SetValue(g, x * TimedWaves.WindowFor(g.Wave)); at(); };
+        p = g.OpenPortal(new List<EnemyType> { EnemyType.Grunt, EnemyType.Grunt, EnemyType.Grunt, EnemyType.Grunt, EnemyType.Grunt }, false, new V2(200f, 200f));
+        holdAt(TimedWaves.Surges[1]);
+        Run(s, dt, 0.2f, null, () => at());
+        Enemy cp;
+        Check(p.Winding && s[1].Game.Enemies.TryGetValue(p.Id, out cp) && cp.Winding, "a portal in a surge is marked busy, host and client");
+        holdAt(0.43f);
+        Run(s, dt, 0.1f, null, () => at());
+        Check(!p.Winding, "out of a surge it calms down");
 
         // A flank opens behind the way the party is aiming.
         g.Enemies.Clear();

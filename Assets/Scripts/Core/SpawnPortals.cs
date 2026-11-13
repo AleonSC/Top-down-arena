@@ -25,6 +25,7 @@ namespace Arena
         public const float ClearOfPlayers = 160f;  // a portal never opens this close to a player
         public const int SealGold = 2;             // gold per enemy still inside when it is shot closed (Expanding arena coins)
         public const int SealScore = 5;            // score per enemy still inside
+        public const float SealFx = 0.6f;          // the sealed flash's length (SpawnPortalLook.cs)
         public const float Quiet = 4f;             // with nothing open this long, a part burst comes anyway (no dead air in a lull)
 
         // Enemy.Phase of a portal (sent in the snapshot).
@@ -188,6 +189,8 @@ namespace Arena
         }
 
         /// Host, each tick (TickEnemies): portals open, let their cargo out and close. A frozen or caged portal holds.
+        bool portalSurge;  // TickTimedSpawn: the wave is in a surge right now
+
         void TickPortals(float dt)
         {
             var list = scratchPortals;
@@ -197,6 +200,7 @@ namespace Arena
                     list.Add(e);
             foreach (var e in list)
             {
+                e.Winding = portalSurge && e.Phase != SpawnPortals.Closing;  // a portal's Winding = a surge is on (replicated; its look speeds up)
                 if (e.Hp <= 0f || e.SpawnT > 0f || e.FrozenT > 0f || e.CageT > 0f || e.GraspT > 0f)
                     continue;
                 List<EnemyType> cargo;
@@ -263,6 +267,7 @@ namespace Arena
             List<EnemyType> cargo;
             int n = portalCargo.TryGetValue(e.Id, out cargo) ? cargo.Count : 0;
             portalCargo.Remove(e.Id);
+            BroadcastFx(FxKind.PortalSeal, e.Pos, SpawnPortals.IsFlank(e.Phase) ? new Rgba(1f, 0.25f, 0.3f) : new Rgba(0.78f, 0.35f, 1f), e.Radius, SpawnPortals.SealFx, Sfx.None);
             if (n <= 0)
                 return;
             Score += n * SpawnPortals.SealScore;

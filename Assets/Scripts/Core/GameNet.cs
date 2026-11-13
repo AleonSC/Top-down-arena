@@ -860,6 +860,8 @@ namespace Arena
                 SyncStomper(s, e);   // QuarryFaction.cs
             else if (kind == EnemyType.Driller || kind == EnemyType.Geomancer)
                 SyncCrack(s, e);     // QuarryFaction.cs
+            else if (kind == EnemyType.Butcher || kind == EnemyType.Gulper || kind == EnemyType.Gnawling)
+                SyncLarder(s, e);    // LarderFaction.cs
             else if (IsNonShooter(kind))
                 SyncNonShooter(s, e);  // NonShooters.cs: the fuse, the aim, the harpoon, a pod's arming
             if (s.Reading)
