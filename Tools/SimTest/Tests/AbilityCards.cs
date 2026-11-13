@@ -794,6 +794,24 @@ static partial class Program
         arm(WeaponId.ArcaneMissiles, "Frozen Halo", 1); int oc1 = Game.OrbitCap(0, me);
         Check(oc1 - oc0 == 2 && near(me.Stats.LaunchRangeMult, 1.25f, 0.001f), "Frozen Halo: the orbit holds 2 more shards, and they launch 25% farther out");
 
+        // --- Out of Ammo: Gun Kata (Docs/UpgradePools.md step 13) ---
+        var swat = typeof(Game).GetMethod("AmmoSwat", flags);
+        Func<int, float[]> kata = n =>
+        {
+            arm(WeaponId.OutOfAmmo, "Gun Kata", n);
+            me.AmmoSwatCdL = me.AmmoSwatCdR = 0f; me.Aim = 0f;
+            g.Bullets.Clear();
+            g.Bullets[95000] = new Bullet { Id = 95000, Kind = Defs.SmallShot, Pos = me.Pos + new V2(0f, -85f), Radius = 4f, Life = 5f, Vel = new V2(0f, 100f) };  // 85 px out: past 72, inside 90
+            swat.Invoke(g, new object[] { me });
+            bool swatted = !g.Bullets.ContainsKey(95000) || g.Bullets[95000].Life <= 0f;
+            float cd = Math.Max(me.AmmoSwatCdL, me.AmmoSwatCdR);
+            g.Bullets.Clear();
+            return new[] { swatted ? 1f : 0f, cd };
+        };
+        var gk0 = kata(0); var gk1 = kata(1);
+        Check(U("Gun Kata") >= 0 && gk0[0] == 0f && gk1[0] == 1f && near(gk1[1], Game.AmmoSwatCd * 0.7f, 0.001f),
+            "Gun Kata: Out of Ammo's rifles swat a bullet 85 px out (past 72) and recover 30% faster");
+
         host.Leave(""); client.Leave("");
     }
 }

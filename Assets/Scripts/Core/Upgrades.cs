@@ -176,6 +176,7 @@ namespace Arena
         public float FireballBurnMult = 1f, FireballBurnBonus;             // Fireball: Wildfire
         public float ArcChargeMult = 1f, ArcStunBonus;                     // Arc Lightning: Static Field
         public int OrbitExtra; public float LaunchRangeMult = 1f;          // Ice Shards: Frozen Halo
+        public float SwatReachMult = 1f, SwatCdMult = 1f;                  // Out of Ammo: Gun Kata (Docs/UpgradePools.md step 13)
 
         // Legendary weapon upgrades from bosses.
         public int Guards, Searchlight, SplitShots;  // Warden's Guard companions and Searchlight stacks (Stun.cs)
