@@ -548,7 +548,8 @@ namespace Arena
                 }
                 V2 tpos = target != null ? target.Pos : new V2(Width / 2f, Height / 2f);
                 tpos = NinjaTarget(e, target, tpos);  // Shadow Clones draw them off; Vanish loses them (Ninja.cs)
-                tpos = RoomTarget(e, tpos);  // a challenge room: the crystal, or the zone (Challenges.cs)
+                tpos = RoomTarget(e, tpos);
+                tpos = GnawlingTarget(e, tpos);  // a Gnawling smells a morsel (LarderFaction.cs)  // a challenge room: the crystal, or the zone (Challenges.cs)
                 bool held = RoomsLeash(e, ref tpos);  // the Rooms arena: guarding its nest, or the vault (Rooms.cs)
                 bool mine = IsPossessed(e);  // the Dev Arena's enemy being played: it goes for the cursor (DevArena.cs)
                 if (mine)
@@ -1073,6 +1074,8 @@ namespace Arena
                 StomperSpecial(e, tpos, dt);  // its stomp ring (QuarryFaction.cs)
             if (LarderAttacks(e.Type))
                 LarderSpecial(e, tpos, dt);  // the Butcher's chop, the Gulper's breath (LarderFaction.cs)
+            else if (e.Type == EnemyType.Gnawling)
+                GnawlingEat(e);  // a morsel in reach (LarderFaction.cs)
             switch (e.Kin)
             {
                 case EnemyType.Shielder:

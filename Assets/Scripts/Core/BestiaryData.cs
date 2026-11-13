@@ -386,6 +386,24 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.CarcassBearer, Name = "Carcass Bearer", Group = "Melee", Wave = 42,
+                Appears = "The Devourer's approach (alone, or two in a Larder Wall squad)",
+                Lead = "A hooded butcher behind a side of meat that stops shots and swings from the front. Up close the meat flashes (0.4 s), then it lunges and bashes you back. Break it and it drops in front as a morsel (60 health): shoot it or walk over it, or a Gnawling eats it and grows. The bearer staggers and takes 50% more. Plays like a Riot Shield.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Carcass bash", Pattern = "0.4 s flash, then a short lunge", Damage = "10, and knocked back 160 px" },
+                    new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "8" },
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.BileSpitter, Name = "Bile Spitter", Group = "Shooters", Wave = 42,
+                Appears = "The Devourer's approach (on its own)",
+                Lead = "A lump of brood with a bile sac on its back. Keeps its distance; its sac swells while a green ring fills where you're heading, then it lobs a glob every 3.6 s. It lands 1 s later as a 70 px pool of acid for 4 s, the Devourer's Bile turn in small. Plays like a Gas Grenadier.",
+                Attacks = new[] { new BestiaryAttack { Name = "Bile", Pattern = "Lobbed at a ring on your lead, a pool for 4 s", Damage = "10 a second", Every = 3.6f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.HiveEgg, Name = "Hive Egg", Group = "Summons", Wave = 10,
                 Appears = "Laid by the Hive Queen in her Honeycomb stage",
                 Lead = "Doesn't move or attack. Break it before it hatches into drones.",

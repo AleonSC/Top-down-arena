@@ -5,7 +5,8 @@ using System.Linq;
 using Arena;
 
 // The Devourer's faction, The Larder, step 1 (Core/LarderFaction.cs, Docs/Approaches.md "The Larder"): the Gnawling plays
-// like a Rioter, the Butcher like a Guard that chops a half-circle, the Gulper like a Thug that breathes you in.
+// like a Rioter, the Butcher like a Guard that chops a half-circle, the Gulper like a Thug that breathes you in; step 2:
+// the Carcass Bearer (a Riot Shield whose broken meat is a morsel a Gnawling eats) and the Bile Spitter (a Gas Grenadier's bile).
 static partial class Program
 {
     static void LarderTest(float dt)
@@ -14,11 +15,12 @@ static partial class Program
         var kin = new Dictionary<EnemyType, EnemyType>
         {
             { EnemyType.Gnawling, EnemyType.Rioter }, { EnemyType.Butcher, EnemyType.Guard }, { EnemyType.Gulper, EnemyType.Thug },
+            { EnemyType.CarcassBearer, EnemyType.RiotShield }, { EnemyType.BileSpitter, EnemyType.GasGrenadier },
         };
         Check(kin.All(k => HiveKin.Of(k.Key) == k.Value && LarderKin.Is(k.Key) && !HiveKin.Is(k.Key) && !QuarryKin.Is(k.Key)) && !LarderKin.Is(EnemyType.Thug),
-            "each Larder enemy plays like one Warden enemy (Gnawling Rioter, Butcher Guard, Gulper Thug)");
-        Check(new[] { EnemyType.Gnawling, EnemyType.Butcher }.All(t => { var a = Defs.Get(t); var b = Defs.Get(kin[t]); return a.Hp == b.Hp && a.Speed == b.Speed && a.Contact == b.Contact && a.Xp == b.Xp; }),
-            "the Gnawling and the Butcher have their counterpart's health, speed, contact damage and XP");
+            "each Larder enemy plays like one Warden enemy (Gnawling Rioter, Butcher Guard, Gulper Thug, Carcass Bearer Riot Shield, Bile Spitter Gas Grenadier)");
+        Check(new[] { EnemyType.Gnawling, EnemyType.Butcher, EnemyType.CarcassBearer, EnemyType.BileSpitter }.All(t => { var a = Defs.Get(t); var b = Defs.Get(kin[t]); return a.Hp == b.Hp && a.Speed == b.Speed && a.Contact == b.Contact && a.Xp == b.Xp; }),
+            "the Gnawling, Butcher, Carcass Bearer and Bile Spitter have their counterpart's health, speed, contact damage and XP");
         Check(Defs.Get(EnemyType.Gulper).Hp > Defs.Get(EnemyType.Thug).Hp && Game.IsBrute(EnemyType.Gulper), "the Gulper is a tougher Brute (180 health)");
         Check(kin.Keys.All(t => Game.EnemyNote(t).Length > 0 && BestiaryData.For(t) != null), "each has a Bestiary entry and a new-enemy note");
 
@@ -104,12 +106,51 @@ static partial class Program
         run(0.1f, () => gm.LarderStage == Game.LarderIdle);
         Check(me.Hp < hp0 && gm.LarderStage == Game.LarderIdle, "at its mouth it bites, and the breath ends");
         g.DevSetGod(1, true);
+
+        // --- Step 2 ------------------------------------------------------------------------------------------------------------
+        // The Carcass Bearer: broken, its meat drops in front as a morsel; a Gnawling nearby goes for it, eats it and grows.
+        me.Pos = me.Disp = new V2(1100f, 400f);
+        var cb = put(EnemyType.CarcassBearer, new V2(500f, 400f));
+        Check(Math.Abs(cb.ShieldMax - cb.MaxHp * Game.RiotShieldShare) < 0.01f, "a Carcass Bearer's meat holds 4x its health");
+        cb.Facing = 0f;
+        typeof(Game).GetMethod("WearRiotShield", np).Invoke(g, new object[] { cb, cb.ShieldMax + 1f });
+        var morsel = g.Enemies.Values.FirstOrDefault(x => x.Type == EnemyType.Morsel);
+        Check(Game.RiotShieldBroken(cb) && morsel != null && morsel.Pos.X > cb.Pos.X, "broken, its meat drops in front of it as a morsel");
+        var gnaw = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Gnawling, new V2(500f, 640f), 0f, 0, false });
+        gnaw.SpawnT = 0f; gnaw.Spawning = false; gnaw.Elite = false; gnaw.Traits = 0;
+        float gMax = gnaw.MaxHp;
+        run(4f, () => gnaw.LarderStage == Game.GnawFed);
+        Check(!g.Enemies.ContainsKey(morsel.Id) && gnaw.LarderStage == Game.GnawFed, "a Gnawling nearby goes for the morsel and eats it");
+        Check(Math.Abs(gnaw.MaxHp - gMax * Game.GnawFeed) < 0.01f, "fed, it has 50% more health (" + gMax + " to " + gnaw.MaxHp + ")");
+        // With nobody to eat it, you squash a morsel by walking over it.
+        var cb2 = put(EnemyType.CarcassBearer, new V2(500f, 400f));
+        cb2.Facing = 0f;
+        typeof(Game).GetMethod("WearRiotShield", np).Invoke(g, new object[] { cb2, cb2.ShieldMax + 1f });
+        var m2 = g.Enemies.Values.First(x => x.Type == EnemyType.Morsel);
+        run(0.5f, null);
+        me.Pos = me.Disp = m2.Pos;
+        run(0.3f, () => !g.Enemies.ContainsKey(m2.Id));
+        Check(!g.Enemies.ContainsKey(m2.Id) || m2.Hp <= 0f, "walking over a morsel squashes it");
+
+        // The Bile Spitter: a glob lands where you stand as a bile pool that burns.
+        g.DevSetGod(1, false);
+        me.Pos = me.Disp = new V2(800f, 400f);
+        var bs = put(EnemyType.BileSpitter, new V2(520f, 400f));
+        PathPatch pool = null;
+        float hpB = me.Hp;
+        run(9f, () => { pool = pool ?? g.Patches.Values.FirstOrDefault(p => p.Kind == PatchKind.Bile && p.Active); return pool != null && me.Hp < hpB; });
+        Check(pool != null && pool.Pos.DistanceTo(me.Pos) < 60f && Math.Abs(pool.Radius - Game.SpitPoolR) < 0.01f, "a Bile Spitter's glob lands on you (standing still) as a " + (Game.SpitPoolR * 2f) + " px pool");
+        Check(me.Hp < hpB, "the pool burns you (" + (hpB - me.Hp).ToString("0.0") + ")");
+        g.Enemies.Clear();
+        run(Game.SpitPoolLife + 1.5f, null);
+        Check(!g.Patches.Values.Any(p => p.Kind == PatchKind.Bile), "the pool dries up after " + Game.SpitPoolLife + " s");
+        g.DevSetGod(1, true);
         host.Leave("");
 
         // --- The approach: the Devourer's faction in the waves before it -----------------------------------------------------
         var fac = Approaches.For(EnemyType.Devourer);
-        Check(fac != null && fac.Members.Select(m => m.Type).SequenceEqual(new[] { EnemyType.Gnawling, EnemyType.Butcher, EnemyType.Gulper })
-            && fac.Squads.Any(s => s.Name == "Feeding Frenzy"), "the Devourer has a faction: Gnawling, Butcher, Gulper, with the Feeding Frenzy squad");
+        Check(fac != null && fac.Members.Select(m => m.Type).SequenceEqual(new[] { EnemyType.Gnawling, EnemyType.Butcher, EnemyType.Gulper, EnemyType.CarcassBearer, EnemyType.BileSpitter })
+            && fac.Squads.Any(s => s.Name == "Feeding Frenzy") && fac.Squads.Any(s => s.Name == "Larder Wall"), "the Devourer has a faction: Gnawling, Butcher, Gulper, Carcass Bearer, Bile Spitter, with the Feeding Frenzy and Larder Wall squads");
         var build = typeof(Game).GetMethod("BuildWave", np);
         var spawnQ = typeof(Game).GetField("spawnQueue", np);
         var squadQ = typeof(Game).GetField("squadQueue", np);
@@ -120,8 +161,9 @@ static partial class Program
             devWave = BossSchedule.Campaign.NextBossWaveFrom(devWave + 1);
         Check(BossSchedule.Campaign.BossAt(devWave) == EnemyType.Devourer, "the Campaign has a Devourer wave (" + devWave + ")");
         for (int n = devWave - 4; n < devWave; n++)
+        for (int seed = 0; seed < 3; seed++)
         {
-            Game.SeedForTests(9300 + n);
+            Game.SeedForTests(9300 + n * 7 + seed);
             var cg = new Session().Game;
             cg.Wave = n;
             build.Invoke(cg, new object[] { n });
@@ -131,6 +173,6 @@ static partial class Program
                 seen.Add(t);
         }
         Console.WriteLine("  seen before wave " + devWave + ": " + string.Join(", ", seen));
-        Check(seen.SetEquals(larder), "the waves before the Devourer bring Gnawlings, Butchers and Gulpers");
+        Check(seen.SetEquals(larder), "the waves before the Devourer bring all five");
     }
 }

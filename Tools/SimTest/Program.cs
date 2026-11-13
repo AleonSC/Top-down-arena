@@ -321,7 +321,7 @@ static partial class Program
         Test("knightdps", "the DPS Knight's Caught Steel, Gauntlet, Misericorde and Drawbridge", () => KnightDpsTest(Dt)),
         Test("basicfaction", "the basic faction: the eight plain enemies left, Quick Play's build-up for a boss with no faction, nothing retired in any wave", BasicFactionTest),
         Test("quarry", "the Colossus's faction, step 1: Rubble, the Quarryman and the Stomper's push ring", () => QuarryTest(Dt)),
-        Test("larder", "the Devourer's faction, step 1: the Gnawling, the Butcher's chop and the Gulper's breath", () => LarderTest(Dt)),
+        Test("larder", "the Devourer's faction, steps 1-2: the Gnawling, the Butcher's chop, the Gulper's breath, the Carcass Bearer's morsel, the Bile Spitter's pool", () => LarderTest(Dt)),
         Test("hive", "the Hive Queen's faction: eight enemies that play like the Warden's, honey instead of gas, the venom dart, and the chart in waves 11-20", () => HiveTest(Dt)),
         Test("infall", "the Singularity's faction, steps 1-3: all eight enemies (the Graviton's well, the Collapsar's implosion, the Lens's face, the White Dwarf's pulse), waves 16-19", () => InfallTest(Dt)),
         Test("spawndump", "the spawner refactor's safety net: the first waves of a few modes played headless, every arrival compared with Golden/spawndump.txt (WAVEDUMP=update rewrites it)", () => SpawnDumpTest()),

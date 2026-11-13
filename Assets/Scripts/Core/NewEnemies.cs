@@ -54,6 +54,8 @@ namespace Arena
                 case EnemyType.Gnawling: return "Mouths on legs, weaving at you in pairs. Don't get surrounded.";
                 case EnemyType.Butcher: return "Raises its cleaver, then chops in front. Step back out of the half-circle.";
                 case EnemyType.Gulper: return "Swells, then breathes you in. Step out of the cone sideways.";
+                case EnemyType.CarcassBearer: return "Break its meat and it drops a morsel. Squash it before a Gnawling eats it.";
+                case EnemyType.BileSpitter: return "Lobs bile where you're heading. Change direction out of the green ring.";
                 case EnemyType.SlabBearer: return "Its slab stops shots and bashes you back. Flank it, or break the slab.";
                 case EnemyType.RockHurler: return "Lobs a boulder where you're heading. Change direction out of the ring.";
                 case EnemyType.Driller: return "Drills along a lane; the crack it leaves erupts. Cross the line, don't follow it.";

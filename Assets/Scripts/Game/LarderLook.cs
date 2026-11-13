@@ -8,6 +8,11 @@ namespace Arena
     ///     gapes while it breathes in.
     ///   Butcher: a hooded robe, a stained apron on its front, a bone mask, a cleaver that rises over the wind-up and
     ///     sweeps across the front in the chop.
+    ///   Carcass Bearer (a Riot Shield): the Butcher's robe behind a side of meat (fat marbling, a bone at each end) that
+    ///     cracks as it wears and flashes before the bash; broken, it's gone (a morsel lies in front: DrawMorsel).
+    ///   Bile Spitter (a Gas Grenadier): a brood body with a green bile sac on its back that swells over the wind-up;
+    ///     its lob (DrawBileLobFx, from GasLobLook.cs) is a green ring that fills and a glob on an arc.
+    ///   A fed Gnawling (it ate a morsel) is drawn a third bigger and darker.
     /// DrawLarderFloor draws the tells under everyone: the Butcher's half-circle filling, the Gulper's cone and its breath.
     public partial class ArenaApp
     {
@@ -20,7 +25,10 @@ namespace Arena
             switch (e.Type)
             {
                 case EnemyType.Gnawling:
-                    DrawBrood(pos, r, e.Facing, 0.5f + 0.5f * Mathf.Sin(t * 16f + e.Id), col, e.Id, 1f);
+                    if (e.LarderStage == Game.GnawFed)
+                        DrawBrood(pos, r * 1.35f, e.Facing, 0.5f + 0.5f * Mathf.Sin(t * 12f + e.Id), col.Mix(LarderBlood, 0.3f), e.Id, 1.15f);
+                    else
+                        DrawBrood(pos, r, e.Facing, 0.5f + 0.5f * Mathf.Sin(t * 16f + e.Id), col, e.Id, 1f);
                     break;
                 case EnemyType.Gulper:
                 {
@@ -31,6 +39,8 @@ namespace Arena
                     break;
                 }
                 case EnemyType.Butcher: DrawButcher(e, pos, r, col, t); break;
+                case EnemyType.CarcassBearer: DrawCarcassBearer(e, pos, r, col, t); break;
+                case EnemyType.BileSpitter: DrawBileSpitter(e, pos, r, col, t); break;
             }
         }
 
@@ -71,19 +81,26 @@ namespace Arena
         }
 
         /// The Butcher (a Guard): a hooded robe, its apron, a bone mask, the cleaver up over the wind-up and across in the chop.
+        /// A Larder body facing `face`: a hooded robe, a stained apron on its front, a bone mask.
+        void LarderRobe(V2 pos, float r, float face, Rgba col)
+        {
+            V2 f = V2.FromAngle(face), s = f.Orthogonal();
+            Ellipse(pos, r * 1.05f + 1.8f, r * 1.15f + 1.8f, face, LarderInk, 16);
+            Ellipse(pos, r * 1.05f, r * 1.15f, face, col, 16);
+            Quad(pos + f * r * 0.15f - s * r * 0.55f, pos + f * r * 1.0f - s * r * 0.5f, pos + f * r * 1.0f + s * r * 0.5f, pos + f * r * 0.15f + s * r * 0.55f, LarderApron);
+            Ellipse(pos + f * r * 0.7f + s * r * 0.18f, r * 0.3f, r * 0.2f, face + 0.5f, LarderBlood.WithAlpha(0.8f), 10);
+            Circle(pos, r * 0.62f + 1.5f, LarderInk, 14);
+            Circle(pos, r * 0.62f, LarderHood, 14);
+            Ellipse(pos + f * r * 0.34f, r * 0.26f, r * 0.38f, face, LarderBone, 12);
+            for (int k = -1; k <= 1; k += 2)
+                Circle(pos + f * r * 0.42f + s * k * r * 0.14f, r * 0.08f, LarderMaw, 6);
+        }
+
         void DrawButcher(Enemy e, V2 pos, float r, Rgba col, float t)
         {
             V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
             float wind = Game.LarderWind(e), chop = e.LarderStage == Game.LarderActing ? 1f - Mathf.Clamp01(e.LarderT / Game.ChopFlash) : -1f;
-            Ellipse(pos, r * 1.05f + 1.8f, r * 1.15f + 1.8f, e.Facing, LarderInk, 16);
-            Ellipse(pos, r * 1.05f, r * 1.15f, e.Facing, col, 16);
-            Quad(pos + f * r * 0.15f - s * r * 0.55f, pos + f * r * 1.0f - s * r * 0.5f, pos + f * r * 1.0f + s * r * 0.5f, pos + f * r * 0.15f + s * r * 0.55f, LarderApron);
-            Ellipse(pos + f * r * 0.7f + s * r * 0.18f, r * 0.3f, r * 0.2f, e.Facing + 0.5f, LarderBlood.WithAlpha(0.8f), 10);
-            Circle(pos, r * 0.62f + 1.5f, LarderInk, 14);
-            Circle(pos, r * 0.62f, LarderHood, 14);
-            Ellipse(pos + f * r * 0.34f, r * 0.26f, r * 0.38f, e.Facing, LarderBone, 12);
-            for (int k = -1; k <= 1; k += 2)
-                Circle(pos + f * r * 0.42f + s * k * r * 0.14f, r * 0.08f, LarderMaw, 6);
+            LarderRobe(pos, r, e.Facing, col);
             // the cleaver in its right hand: held forward, raised back over the wind-up, swept across in the chop
             float ca = chop >= 0f ? e.Facing + 1.4f - chop * 2.8f : e.Facing + 1.1f + wind * 0.9f;
             V2 hand = pos + V2.FromAngle(ca) * r * 0.95f, cf = V2.FromAngle(ca), cs = cf.Orthogonal();
@@ -95,6 +112,92 @@ namespace Arena
             Quad(b1 - cs * r * 0.12f - cf * r * 0.3f, b1 - cs * r * 0.12f, b1 + cs * r * 0.1f, b1 + cs * r * 0.1f - cf * r * 0.3f, LarderBlood.WithAlpha(0.85f));
             if (wind > 0.6f && Mathf.Sin(t * 50f) > 0f)
                 Circle(b1, 3f, Rgba.White.WithAlpha(0.8f), 8);  // a glint just before it falls
+        }
+
+        /// A side of meat standing across `f` at `c`: ink edge, red flesh with fat marbling, a bone knuckle at each end,
+        /// `cracks` dark tears (0-3), a white flash.
+        void CarcassSlab(V2 c, V2 f, float halfW, float halfL, int cracks, float flash, float a)
+        {
+            V2 s = f.Orthogonal();
+            Quad(c - f * (halfW + 1.8f) - s * (halfL + 1.8f), c + f * (halfW + 1.8f) - s * (halfL + 1.8f), c + f * (halfW + 1.8f) + s * (halfL + 1.8f), c - f * (halfW + 1.8f) + s * (halfL + 1.8f), LarderInk.WithAlpha(0.95f * a));
+            Quad(c - f * halfW - s * halfL, c + f * halfW - s * halfL, c + f * halfW + s * halfL, c - f * halfW + s * halfL, new Rgba(0.74f, 0.26f, 0.33f, a));
+            Quad(c + f * halfW * 0.2f - s * halfL, c + f * halfW - s * halfL, c + f * halfW + s * halfL, c + f * halfW * 0.2f + s * halfL, new Rgba(0.85f, 0.38f, 0.43f, a));  // the lit face
+            var fat = new Rgba(1f, 0.92f, 0.86f, 0.6f * a);
+            Line(c - s * halfL * 0.7f - f * halfW * 0.3f, c - s * halfL * 0.2f + f * halfW * 0.4f, 1.6f, fat);
+            Line(c + s * halfL * 0.15f - f * halfW * 0.4f, c + s * halfL * 0.6f + f * halfW * 0.3f, 1.6f, fat);
+            for (int k = -1; k <= 1; k += 2)
+            {
+                V2 end = c + s * k * (halfL + 2f);
+                Circle(end, halfW * 0.7f + 1.2f, LarderInk.WithAlpha(a), 10);
+                Circle(end, halfW * 0.7f, LarderBone.WithAlpha(a), 10);
+            }
+            var tear = LarderMaw.WithAlpha(0.9f * a);
+            if (cracks >= 1) Line(c - s * halfL * 0.55f - f * halfW, c - s * halfL * 0.35f + f * halfW * 0.5f, 1.8f, tear);
+            if (cracks >= 2) Line(c + s * halfL * 0.5f + f * halfW, c + s * halfL * 0.3f - f * halfW * 0.4f, 1.8f, tear);
+            if (cracks >= 3) Line(c - f * halfW * 0.8f + s * halfL * 0.05f, c + f * halfW * 0.7f - s * halfL * 0.1f, 1.8f, tear);
+            if (flash > 0f)
+                Quad(c - f * halfW - s * halfL, c + f * halfW - s * halfL, c + f * halfW + s * halfL, c - f * halfW + s * halfL, new Rgba(1f, 1f, 1f, 0.8f * flash * a));
+        }
+
+        /// The Carcass Bearer (a Riot Shield): arms out to a side of meat held in front; it flashes before the bash and drops
+        /// low after it. Broken, the meat is gone (it lies as a morsel) and the bearer wobbles while it staggers.
+        void DrawCarcassBearer(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            int crack = Game.RiotCrack(e);
+            byte st = Game.RiotState(e);
+            bool broken = crack >= Game.RiotCracked;
+            float face = e.Facing + (broken && st == Game.RiotStaggered ? Mathf.Sin(t * 30f) * 0.18f : 0f);
+            V2 f = V2.FromAngle(face), s = f.Orthogonal();
+            if (!broken)
+                for (int k = -1; k <= 1; k += 2)
+                    Line(pos + f * r * 0.35f + s * k * r * 0.6f, pos + f * r * 0.95f + s * k * r * 0.75f, 3f, LarderHood);
+            LarderRobe(pos, r * 0.9f, face, col);
+            if (broken)
+                return;
+            float low = st == Game.RiotLow ? 0.7f : 1f;
+            float flash = st == Game.RiotWinding ? (Mathf.Sin(t * 50f) > 0f ? 1f : 0.3f) : 0f;
+            CarcassSlab(pos + f * (r * 1.15f), f, r * 0.3f, r * 1.25f * low, crack, flash, low < 1f ? 0.75f : 1f);
+        }
+
+        /// The Bile Spitter (a Gas Grenadier): a brood body with a green sac on its back that swells as it winds up and
+        /// empties as it throws.
+        void DrawBileSpitter(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            float swell = 0f;
+            if (GasLobOf(e, out float age, out float throwAt, out float flight))
+                swell = age < throwAt ? Mathf.Clamp01(age / Mathf.Max(0.01f, throwAt)) : Mathf.Clamp01(1f - (age - throwAt) / 0.25f);
+            V2 f = V2.FromAngle(e.Facing);
+            V2 sc = pos - f * r * 0.8f;
+            float sr = r * (0.75f + 0.25f * swell);
+            Circle(sc, sr + 1.6f, new Rgba(0.11f, 0.16f, 0.03f), 16);
+            Circle(sc, sr, Game.BileColor.Mix(new Rgba(0.36f, 0.5f, 0.11f), 0.35f), 16);
+            Circle(sc + new V2(-sr * 0.3f, -sr * 0.3f), sr * 0.35f, new Rgba(0.91f, 1f, 0.6f, 0.6f), 10);
+            DrawBrood(pos, r, e.Facing, 0.15f + 0.6f * swell, col, e.Id, 1f + swell * 0.4f);
+        }
+
+        /// A Bile Spitter's lob (GasLobLook.cs): a green ring on where you were heading that fills over the wind-up, then the
+        /// glob on an arc with its shadow under it.
+        void DrawBileLobFx(Enemy e, Effect fx, float age, float throwAt, float flight, V2 land, float R)
+        {
+            var green = Game.BileColor;
+            float tellP = throwAt > 0f ? Mathf.Clamp01(age / Mathf.Max(0.01f, throwAt)) : 1f;
+            if (age < throwAt + flight)
+            {
+                Circle(land, R, green.WithAlpha(0.07f), 32);
+                Circle(land, R * tellP, green.WithAlpha(0.14f), 32);
+                Arc(land, R, 2f, green.WithAlpha(0.85f), 32);
+            }
+            if (age >= throwAt && age < throwAt + flight)
+            {
+                float u = (age - throwAt) / flight;
+                V2 from = e.Disp + V2.FromAngle(e.Facing) * e.Radius;
+                V2 ground = V2.Lerp(from, land, u);
+                float h = 80f * Mathf.Sin(Mathf.PI * u);
+                Ellipse(ground + new V2(0f, 3f), 6f + 3f * u, 4f + 2f * u, 0f, new Rgba(0f, 0f, 0f, 0.35f), 12);
+                Circle(ground - new V2(0f, h), 7.5f, new Rgba(0.24f, 0.33f, 0.07f), 14);
+                Circle(ground - new V2(0f, h), 6f, new Rgba(0.78f, 0.94f, 0.38f), 14);
+                Circle(ground - new V2(1.5f, h + 1.5f), 2.2f, new Rgba(0.95f, 1f, 0.75f), 8);
+            }
         }
 
         /// Under everyone: the Butcher's half-circle filling over its wind-up and its chop's white sweep; the Gulper's cone

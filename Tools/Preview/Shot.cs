@@ -455,6 +455,22 @@ static partial class Shot {
       var gw = lput(EnemyType.Gulper, new V2(380f, 640f), 0.1f); gw.LarderStage = Game.LarderWinding; gw.LarderT = Game.GulpWind * 0.3f;
       var gi = lput(EnemyType.Gulper, new V2(1050f, 640f), 0.4f); gi.LarderStage = Game.LarderActing; gi.LarderT = Game.GulpTime * 0.5f;
       lput(EnemyType.Gulper, new V2(1150f, 330f), MathX.Pi);
+      if (Environment.GetEnvironmentVariable("LARDER2") != null) {  // LARDER2=1 with LARDER: step 2 instead: Carcass Bearers (whole, flashing, torn, broken with its morsel down and a fed Gnawling eating), Bile Spitters (winding up, glob in flight) and a bile pool
+        lg.Enemies.Clear(); lg.Patches.Clear(); lg.Effects.Clear();
+        var setRiot = typeof(Game).GetMethod("SetRiotState", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        lput(EnemyType.CarcassBearer, new V2(250f, 250f), 0f);
+        var cb2 = lput(EnemyType.CarcassBearer, new V2(450f, 250f), 0f); setRiot.Invoke(null, new object[] { cb2, Game.RiotWinding, 0.3f });
+        var cb3 = lput(EnemyType.CarcassBearer, new V2(650f, 250f), 0f); cb3.Phase = (byte)(Game.RiotWalk << 3 | 3);
+        var cb4 = lput(EnemyType.CarcassBearer, new V2(850f, 250f), 0f); cb4.Phase = (byte)(Game.RiotFlail << 3 | Game.RiotCracked);
+        lput(EnemyType.Morsel, new V2(895f, 260f), 0f);
+        var fed = lput(EnemyType.Gnawling, new V2(1050f, 230f), MathX.Pi); fed.LarderStage = Game.GnawFed;
+        lput(EnemyType.Gnawling, new V2(1100f, 300f), MathX.Pi);
+        var bs1 = lput(EnemyType.BileSpitter, new V2(250f, 600f), 0f);
+        lg.Effects.Add(new Effect { Kind = FxKind.GasLob, Pos = new V2(470f, 560f), Pos2 = new V2(bs1.Id, 1f), Color = Game.BileColor, Radius = Game.SpitPoolR, Dur = 2.07f, T = 0.7f });
+        var bs2 = lput(EnemyType.BileSpitter, new V2(700f, 600f), 0f);
+        lg.Effects.Add(new Effect { Kind = FxKind.GasLob, Pos = new V2(950f, 600f), Pos2 = new V2(bs2.Id, 1f), Color = Game.BileColor, Radius = Game.SpitPoolR, Dur = 2.07f, T = 1.55f });
+        lg.Patches[702] = new PathPatch { Id = 702, Kind = PatchKind.Bile, Pos = new V2(1150f, 600f), Warn = 0f, Life = 4f, Age = 1.2f, R0 = Game.SpitPoolR, R1 = Game.SpitPoolR };
+      }
       lg.AnimT += float.Parse(Environment.GetEnvironmentVariable("LARDER"), System.Globalization.CultureInfo.InvariantCulture);
     }
     if (Environment.GetEnvironmentVariable("QUARRY") != null) {  // QUARRY=<s into the clock>: the Colossus's step-1 faction (QuarryLook.cs): two Rubble, a Quarryman swinging at you, a Stomper walking, one lifting its foot (gap showing) and one whose ring is out; set beside Docs/Mockups/colossus-faction.html

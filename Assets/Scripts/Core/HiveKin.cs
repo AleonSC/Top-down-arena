@@ -35,6 +35,8 @@ namespace Arena
             t[(int)EnemyType.Gnawling] = EnemyType.Rioter;
             t[(int)EnemyType.Butcher] = EnemyType.Guard;
             t[(int)EnemyType.Gulper] = EnemyType.Thug;
+            t[(int)EnemyType.CarcassBearer] = EnemyType.RiotShield;
+            t[(int)EnemyType.BileSpitter] = EnemyType.GasGrenadier;
             return t;
         }
 

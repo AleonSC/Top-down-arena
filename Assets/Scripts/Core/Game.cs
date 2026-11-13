@@ -1305,6 +1305,7 @@ namespace Arena
             TickHealerKit(dt);   // KitWeapons.cs: Ofuda wards, seeded enemies
             TickNimbus(dt);      // Nimbus.cs: rain under each cloud heals allies in it
             TickChalk(dt);       // Chalk.cs: drawing, and what the ink does
+            TickLarderHost(dt);     // LarderFaction.cs: loose bile pools, morsels stepped on with no Devourer about
             TickWardenFaction(dt);  // WardenFaction.cs: tear gas with no Warden about, the Riot Shields' bash grace
             TickReaperFaction(dt);  // ReaperFaction.cs: the Bound Wraiths' tethers, the Scythe Wraiths' reaps
             TickWaves(dt);

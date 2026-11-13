@@ -78,6 +78,8 @@ namespace Arena
         // the Devourer's faction, The Larder (LarderFaction.cs, Game/LarderLook.cs): a Gnawling plays like a Rioter, a Butcher
         // like a Guard that chops a half-circle, a Gulper like a Thug that breathes you in
         Gnawling, Butcher, Gulper,
+        // step 2: a Carcass Bearer plays like a Riot Shield (its broken slab drops as a morsel), a Bile Spitter like a Gas Grenadier (an acid pool)
+        CarcassBearer, BileSpitter,
     }
 
     public class RoleDef
@@ -411,6 +413,10 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "A hooded butcher with a bone mask. Close in, it raises its cleaver and chops a half-circle in front: step out of it." },
             new EnemyDef { Name = "Gulper", Hp = 180f, Radius = 22f, Speed = 58f, Score = 12, Xp = 25, Sides = 9, Color = new Rgba(0.86f, 0.5f, 0.56f), Melee = true, Contact = 20f,
                 Picker = PickerGroup.Melee, Blurb = "A swollen gut. Its cheeks swell, then it breathes in and pulls you toward its mouth: step out of the cone sideways." },
+            new EnemyDef { Name = "Carcass Bearer", Hp = 60f, Radius = 16f, Speed = 120f, Score = 10, Xp = 10, Sides = 6, Color = new Rgba(0.37f, 0.29f, 0.25f), Melee = true, Contact = 8f,
+                Picker = PickerGroup.Melee, Blurb = "Carries a side of meat that stops shots and bashes you back. Break it and it drops as a morsel: shoot it or walk over it before a Gnawling eats it." },
+            new EnemyDef { Name = "Bile Spitter", Hp = 50f, Radius = 14f, Speed = 75f, Score = 8, Xp = 9, Sides = 5, Color = new Rgba(0.84f, 0.55f, 0.55f),
+                Picker = PickerGroup.Ranged, Blurb = "Lobs a glob of bile where you're heading. Walk out of the ring: it leaves a pool of acid for a few seconds." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount

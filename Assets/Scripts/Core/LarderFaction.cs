@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Arena
 {
@@ -11,11 +12,19 @@ namespace Arena
     ///   Gulper (its Inhale): within GulpRange it stops, its cheeks swell for GulpWind, then it breathes in for GulpTime: a
     ///     cone (GulpHalf either side, GulpReach long) pulls you toward its mouth at GulpPull (DevourPull, on your own game).
     ///     Reach the mouth and it bites (GulpBite) and the breath ends. Step out of the cone sideways.
+    ///
+    /// Step 2: the Carcass Bearer plays like a Riot Shield; when its slab (a side of meat) breaks, it drops in front as a
+    /// morsel (the Devourer's EnemyType.Morsel, 60 HP): shoot it or walk over it. A Gnawling within GnawSniff of a morsel
+    /// goes for it (GnawlingTarget) and eats it (GnawlingEat): +50% health, and it's drawn bigger (LarderStage 1 on a
+    /// Gnawling: fed). The Bile Spitter plays like a Gas Grenadier but leads you like a Rock Hurler and lobs bile: a
+    /// PatchKind.Bile pool (SpitPoolR, SpitPoolLife) that burns SpitDps (TickLarderHost; the Devourer's fight ticks its own).
+    /// With no Devourer about, players also squash morsels by walking over them (StepOnMorsels, Devourer.cs).
+    ///
     /// The state is Enemy.LarderStage (0 idle, 1 winding up, 2 acting) and LarderT (seconds left in it), replicated by
     /// SyncLarder; the facing is locked while it's busy (LarderFaceLocked), so the cone and the chop show where they hit.
     public static class LarderKin
     {
-        public static bool Is(EnemyType t) => t >= EnemyType.Gnawling && t <= EnemyType.Gulper;
+        public static bool Is(EnemyType t) => t >= EnemyType.Gnawling && t <= EnemyType.BileSpitter;
     }
 
     public partial class Enemy
@@ -29,7 +38,9 @@ namespace Arena
     {
         public const float ChopTrigger = 70f, ChopReach = 110f, ChopWind = 0.4f, ChopFlash = 0.15f, ChopEvery = 1.6f, ChopDamage = 14f;
         public const float GulpRange = 220f, GulpWind = 0.6f, GulpTime = 1f, GulpEvery = 4f, GulpReach = 200f, GulpHalf = 0.61f, GulpPull = 120f, GulpBite = 20f;
-        public const byte LarderIdle = 0, LarderWinding = 1, LarderActing = 2;
+        public const byte LarderIdle = 0, LarderWinding = 1, LarderActing = 2, GnawFed = 1;
+        public const float SpitPoolR = 35f, SpitPoolLife = 4f, SpitDps = 10f, GnawSniff = 320f, GnawFeed = 1.5f;
+        public static readonly Rgba BileColor = new Rgba(0.72f, 0.88f, 0.29f);
 
         static bool LarderAttacks(EnemyType t) => t == EnemyType.Butcher || t == EnemyType.Gulper;
 
@@ -132,10 +143,84 @@ namespace Arena
             return V2.Zero;
         }
 
+        /// Host: a broken carcass slab falls in front of its bearer as a morsel.
+        void DropCarcass(Enemy e)
+        {
+            V2 at = ClampToArena(e.Pos + V2.FromAngle(e.Facing) * (e.Radius + 16f), 30f);
+            var m = SpawnEnemyAt(EnemyType.Morsel, at, 0.15f, e.Id);
+            m.FireT = 99f;
+        }
+
+        /// Host: the nearest morsel within `reach` of `from` (null for none).
+        Enemy MorselNear(V2 from, float reach)
+        {
+            Enemy best = null;
+            foreach (var m in Enemies.Values)
+                if (m.Type == EnemyType.Morsel && m.Hp > 0f && !IsSpawning(m) && m.Pos.DistanceTo(from) < reach && (best == null || m.Pos.DistanceSq(from) < best.Pos.DistanceSq(from)))
+                    best = m;
+            return best;
+        }
+
+        /// Host, in TickEnemies: a hungry Gnawling goes for a morsel near it instead of you.
+        V2 GnawlingTarget(Enemy e, V2 tpos)
+        {
+            if (e.Type != EnemyType.Gnawling || e.LarderStage == GnawFed || !anyMorsel)
+                return tpos;
+            var m = MorselNear(e.Pos, GnawSniff);
+            return m != null ? m.Pos : tpos;
+        }
+
+        /// Host, in Special: a hungry Gnawling that reaches a morsel eats it and grows.
+        void GnawlingEat(Enemy e)
+        {
+            if (e.LarderStage == GnawFed || !anyMorsel)
+                return;
+            var m = MorselNear(e.Pos, e.Radius + 18f);
+            if (m == null)
+                return;
+            Enemies.Remove(m.Id);  // eaten (no kill, no reward)
+            float add = e.MaxHp * (GnawFeed - 1f);
+            e.MaxHp += add;
+            e.Hp += add;
+            e.LarderStage = GnawFed;
+            BroadcastFx(FxKind.Ring, m.Pos, new Rgba(1f, 0.69f, 0.44f), 34f, 0.35f, Sfx.BossChomp);
+        }
+
+        bool anyMorsel;
+        float larderBileT;
+
+        /// Host, every tick: whether any morsel is out; with no Devourer about, bile pools burn and you squash morsels by
+        /// walking over them (the Devourer's fight does both itself).
+        void TickLarderHost(float dt)
+        {
+            anyMorsel = false;
+            bool anyBile = false;
+            foreach (var e in Enemies.Values)
+                anyMorsel |= e.Type == EnemyType.Morsel;
+            foreach (var pt in Patches.Values)
+                anyBile |= pt.Kind == PatchKind.Bile;
+            if (!anyMorsel && !anyBile || FindDevourer() != null)
+                return;
+            if (anyMorsel)
+                StepOnMorsels();
+            larderBileT -= dt;
+            if (!anyBile || larderBileT > 0f)
+                return;
+            larderBileT = 0.25f;
+            foreach (var pt in Patches.Values)
+            {
+                if (pt.Kind != PatchKind.Bile || !pt.Active)
+                    continue;
+                foreach (var p in Players.Values)
+                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(pt.Pos) < pt.Radius + p.Def.HitR)
+                        DamageOverTime(p, SpitDps * 0.25f, "Bile Spitter (bile)");
+            }
+        }
+
         void SyncLarder(NetSync s, Enemy e)
         {
             s.Byte(ref e.LarderStage);
-            if (e.LarderStage != LarderIdle)
+            if (e.LarderStage != LarderIdle && e.Type != EnemyType.Gnawling)
                 s.Float(ref e.LarderT);
         }
     }
