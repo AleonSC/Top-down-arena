@@ -308,6 +308,7 @@ static partial class Program
         Test("classcards", "class ability cards", () => ClassAbilityTest(Dt)),
         Test("milestone", "milestone upgrades: the pool, every 10 levels, the Milestone Compass", () => MilestoneTest(Dt)),
         Test("mods", "weapon mods and boss rerolls", () => WeaponModTest(Dt), () => BossRerollScenario(Dt)),
+        Test("cardids", "card ids over the network: 2 bytes, ids past 255 and empty offer slots", () => CardIdWireTest(Dt)),
         Test("ults", "every ultimate over the network", () => UltimateSweep(Dt)),
         Test("showcase", "the lobby's loadout preview", () => ShowcaseTest(Dt)),
         Test("knight", "the Knight", () => KnightTest(Dt)),

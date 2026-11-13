@@ -1,6 +1,6 @@
 # Upgrade pools: class and weapon cards
 
-**Status: planned (Nov 2026). No step built yet.** Owner decisions are below; build one step at a time ("start on step N").
+**Status: step 1 built (Nov 2026, protocol 309); steps 2-5 planned.** Owner decisions are below; build one step at a time ("start on step N").
 
 ## Why
 
@@ -33,14 +33,15 @@ The Nov 2026 audit of `Core/Upgrades.cs` found:
 
 ## Steps
 
-### Step 1: 2-byte card ids
+### Step 1: 2-byte card ids (built, protocol 309)
 
-- Every place a card id crosses the wire goes from `byte` to `ushort`: `BroadcastUpgrades` / its reader in
-  `GameNet.cs`, the snapshot's `Offer`, the shop shelf, chest loot, `Msg.Pick` payloads, dev spawn. Find them with
-  `grep -rn 'Upgrades.All\[' Assets/Scripts/Core` plus the `(byte)` writes in `Game.cs` / `GameNet.cs`.
-- An empty offer slot (`-1`) gets an explicit "none" value instead of wrapping to 255.
-- Bump `Session.ProtocolVersion` and `Replay.FormatVersion`; line in `Docs/ProtocolHistory.md`.
-- Test: a sim-test check that `Upgrades.All.Length < ushort.MaxValue` and a snapshot round trip with a card id > 255.
+- Card ids cross the wire as `Int16` everywhere: `Msg.Upgrades` (`Game.BroadcastUpgrades`, read in `GameNet.cs`: the
+  taken count and each id) and the snapshot's `Offer` (`GameNet.cs`) moved from one byte; the shop shelf
+  (`Shop.SyncShop`) and chest loot (`Props.SyncLoot`) already used `Short`. `Msg.Pick` sends an offer index, the shop
+  and dev spawn send `Int32`: unchanged. Limit: 32,767 cards.
+- An empty offer slot (`-1`) now arrives as `-1` (one byte wrapped it to 255).
+- Replays need no format bump: since `Replay.FormatVersion` 7 a replay from another protocol isn't listed.
+- Test: suite `cardids` (`CardIdWireTest`, `Tools/SimTest/Tests/Upgrades.cs`).
 
 ### Step 2: one offer context, weapon-aware offers
 

@@ -717,9 +717,9 @@ namespace Arena
         {
             var w = Proto.Begin(Msg.Upgrades);
             w.Write(p.Id);
-            w.Write((byte)p.Taken.Count);
+            w.Write((short)p.Taken.Count);
             foreach (int t in p.Taken)
-                w.Write((byte)t);
+                w.Write((short)t);  // card ids are 2 bytes (Docs/UpgradePools.md step 1)
             foreach (var k in p.BonusKeys)
                 w.Write((byte)k);
             session.Broadcast(Proto.End(w));

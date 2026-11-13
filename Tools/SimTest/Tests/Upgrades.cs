@@ -190,6 +190,28 @@ static partial class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
+    // Card ids cross the wire as 2 bytes (Docs/UpgradePools.md step 1): an offer with ids past 255 and an empty
+    // slot (-1) reaches the client as sent, and so does the taken list.
+    static void CardIdWireTest(float dt)
+    {
+        Check(Upgrades.All.Length < short.MaxValue, "every card id fits in 2 bytes (" + Upgrades.All.Length + " cards)");
+        var s = StartBuffed(dt, 6, 0);
+        var host = s[0].Game;
+        var sent = new[] { 300, -1, 4000 };  // (ids past the 1-byte cap; the client only stores them)
+        s[1].Game.Bot = false;  // (its bot would pick from the offer, and these cards don't exist)
+        host.Players[2].Offer = sent;
+        bool offer = false;
+        Run(s, dt, 1f, () => offer = s[1].Game.Players[2].Offer != null && s[1].Game.Players[2].Offer.SequenceEqual(sent));
+        Check(offer, "an offer with card ids past 255 and an empty slot reaches the client as sent");
+        host.Players[2].Offer = null;
+        int last = Upgrades.All.Length - 1;
+        host.GrantUpgrade(2, last);
+        bool taken = false;
+        Run(s, dt, 1f, () => taken = s[1].Game.Players[2].Taken.SequenceEqual(host.Players[2].Taken));
+        Check(taken && s[1].Game.Players[2].Taken.Contains(last), "the taken list reaches the client, the last card id included");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     // Every weapon mod at full stacks: homing shots curve and stay in sync, ricochets
     // happen, and burning / chilled enemies show up on the client.
     static void WeaponModTest(float dt)
