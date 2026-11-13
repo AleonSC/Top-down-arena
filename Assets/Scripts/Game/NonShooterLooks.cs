@@ -27,6 +27,7 @@ namespace Arena
                     }
                     break;
                 case EnemyType.Hookman:
+                case EnemyType.HookThrower:
                     DrawHookUnder(e, pos, r, t);
                     break;
                 case EnemyType.Swordsman:
@@ -59,7 +60,7 @@ namespace Arena
             if (e.Phase == 1)
             {
                 // The aim: a thin line to the harpoon's reach, blinking faster as the throw nears, with a chevron at the end.
-                float f = 1f - Mathf.Clamp01(e.PhaseT / Game.HookAim), rate = 6f + f * 22f;
+                float f = 1f - Mathf.Clamp01(e.PhaseT / (e.Type == EnemyType.HookThrower ? Game.HookThrowAim : Game.HookAim)), rate = 6f + f * 22f;
                 bool on = Mathf.Sin(t * rate) > -0.2f;
                 var c = e.Def.Color.WithAlpha(on ? 0.9f : 0.25f);
                 V2 end = pos + dir * Game.HookReach;

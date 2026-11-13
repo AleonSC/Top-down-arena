@@ -458,6 +458,17 @@ static partial class Shot {
       var gw = lput(EnemyType.Gulper, new V2(380f, 640f), 0.1f); gw.LarderStage = Game.LarderWinding; gw.LarderT = Game.GulpWind * 0.3f;
       var gi = lput(EnemyType.Gulper, new V2(1050f, 640f), 0.4f); gi.LarderStage = Game.LarderActing; gi.LarderT = Game.GulpTime * 0.5f;
       lput(EnemyType.Gulper, new V2(1150f, 330f), MathX.Pi);
+      if (Environment.GetEnvironmentVariable("LARDER3") != null) {  // LARDER3=1 with LARDER: step 3 instead: Gutworms (on the surface, a ripple underground, a mark about to erupt), Hook Throwers (swinging, its line showing, the hook out) and Maw Priests (turned toward you, one charging)
+        lg.Enemies.Clear(); lg.Patches.Clear(); lg.Effects.Clear();
+        lput(EnemyType.Gutworm, new V2(250f, 250f), 0.3f);
+        var gw1 = lput(EnemyType.Gutworm, new V2(470f, 250f), 0f); gw1.LarderStage = Game.LarderWinding; gw1.LarderT = 1f;
+        var gw2 = lput(EnemyType.Gutworm, new V2(700f, 250f), 0f); gw2.LarderStage = Game.LarderActing; gw2.LarderT = Game.GutMark * 0.4f;
+        lput(EnemyType.HookThrower, new V2(250f, 600f), 0f).PhaseT = 2f;
+        var ht2 = lput(EnemyType.HookThrower, new V2(450f, 520f), 0.2f); ht2.Phase = 1; ht2.PhaseT = Game.HookThrowAim * 0.4f;
+        var ht3 = lput(EnemyType.HookThrower, new V2(450f, 680f), -0.1f); ht3.Phase = 2; ht3.T2 = 180f;
+        lput(EnemyType.MawPriest, new V2(950f, 300f), 2.4f);
+        var mp2 = lput(EnemyType.MawPriest, new V2(1000f, 600f), 0.5f); mp2.Winding = true;
+      }
       if (Environment.GetEnvironmentVariable("LARDER2") != null) {  // LARDER2=1 with LARDER: step 2 instead: Carcass Bearers (whole, flashing, torn, broken with its morsel down and a fed Gnawling eating), Bile Spitters (winding up, glob in flight) and a bile pool
         lg.Enemies.Clear(); lg.Patches.Clear(); lg.Effects.Clear();
         var setRiot = typeof(Game).GetMethod("SetRiotState", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);

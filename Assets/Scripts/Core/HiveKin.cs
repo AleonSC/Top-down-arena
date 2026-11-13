@@ -46,6 +46,7 @@ namespace Arena
             t[(int)EnemyType.Gulper] = EnemyType.Thug;
             t[(int)EnemyType.CarcassBearer] = EnemyType.RiotShield;
             t[(int)EnemyType.BileSpitter] = EnemyType.GasGrenadier;
+            t[(int)EnemyType.MawPriest] = EnemyType.TaserGuard;  // (the Gutworm and Hook Thrower have their own moves)
             return t;
         }
 
