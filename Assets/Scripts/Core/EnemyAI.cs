@@ -716,7 +716,7 @@ namespace Arena
                 return;  // committed to the leap / flight line (a Spike Block locks its line when it winds up)
             if (e.Type == EnemyType.BeamSentry && e.Phase >= 2 || e.Type == EnemyType.Reaver && e.Phase != 0 || e.Type == EnemyType.Leader && e.Phase == 1)
                 return;  // the beam's aim and sweep, the rake's cone, the Leader's aim line (Variety.cs)
-            if (PulsarLocked(e))
+            if (PulsarLocked(e) || HelioLocked(e) || GnomonLocked(e) || e.Type == EnemyType.Moonward)
                 return;  // its beams' line (Infall.cs)
             if (LarderFaceLocked(e))
                 return;  // a Butcher's chop, a Gulper's cone (LarderFaction.cs)
@@ -1003,6 +1003,8 @@ namespace Arena
                 v = VarietyMove(e, tpos, dir, dist, ref speed);  // Variety.cs
             if (IsInfall(e.Type))
                 v = InfallMove(e, tpos, dir, dist, dt, ref speed);  // Infall.cs
+            if (IsPenumbral(e.Type))
+                v = PenumbralMove(e, tpos, dir, dist, dt, ref speed);  // Penumbral.cs
             if (Challenges.Own(e.Type))
                 v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
             if (e.Type == EnemyType.RiotCaptain)
@@ -1024,7 +1026,7 @@ namespace Arena
                 speed *= HasteMult;
             // A sweeping Beam Sentry steers its beam by Strafe, so it keeps the side it telegraphed (the roll still happens, keeping the RNG sequence).
             // A Security Guard keeps its side on its own timer (SecurityGuard.cs); Debris keeps its spiral's side, a Pulsar its sweep's (Infall.cs).
-            if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3) && e.Kin != EnemyType.SecurityGuard && !PulsarLocked(e) && e.Type != EnemyType.Debris)
+            if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3) && e.Kin != EnemyType.SecurityGuard && !PulsarLocked(e) && !HelioLocked(e) && e.Type != EnemyType.Debris)
                 e.Strafe = -e.Strafe;
             if (StomperPlanted(e))
                 speed = 0f;  // a Stomper stands still while its foot is up (QuarryFaction.cs)
@@ -1218,6 +1220,13 @@ namespace Arena
                 case EnemyType.WhiteDwarf:
                     InfallSpecial(e, tpos, dt);  // Infall.cs
                     break;
+                case EnemyType.Ember:
+                case EnemyType.Heliograph:
+                case EnemyType.Moonward:
+                case EnemyType.Gnomon:
+                case EnemyType.Nova:
+                    PenumbralSpecial(e, tpos, dt);  // Penumbral.cs
+                    break;
             }
         }
 
@@ -1251,6 +1260,8 @@ namespace Arena
                 return;  // Infall.cs
             if (CourtFire(e, tpos, aim))
                 return;  // the Second's daggers, the Marshal's circle; a Gallant doesn't shoot (CourtFaction.cs)
+            if (PenumbralFire(e, tpos, aim))
+                return;  // Penumbral.cs
             if (e.Kin == EnemyType.GasGrenadier)
             {
                 GrenadierFire(e, tpos);  // WardenFaction.cs

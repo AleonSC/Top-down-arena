@@ -325,6 +325,7 @@ static partial class Program
         Test("larder", "the Devourer's faction, steps 1-2: the Gnawling, the Butcher's chop, the Gulper's breath, the Carcass Bearer's morsel, the Bile Spitter's pool", () => LarderTest(Dt)),
         Test("hive", "the Hive Queen's faction: eight enemies that play like the Warden's, honey instead of gas, the venom dart, and the chart in waves 11-20", () => HiveTest(Dt)),
         Test("infall", "the Singularity's faction, steps 1-3: all eight enemies (the Graviton's well, the Collapsar's implosion, the Lens's face, the White Dwarf's pulse), waves 16-19", () => InfallTest(Dt)),
+        Test("penumbral", "the Eclipse's faction, steps 1-3: Ember sparks, the Corona Priest's gap, the Heliograph's lane, the Moonward's moon, the Gnomon's shadow, the Dusk Lobber's pool, the Sickle's crescent, the Nova's fuse, waves 46-49", () => PenumbralTest(Dt)),
         Test("spawndump", "the spawner refactor's safety net: the first waves of a few modes played headless, every arrival compared with Golden/spawndump.txt (WAVEDUMP=update rewrites it)", () => SpawnDumpTest()),
         Test("wavedump", "the refactor safety net: every mode's waves built on fixed seeds, compared with Golden/wavedump.txt (WAVEDUMP=update rewrites it)", () => WaveDumpTest()),
         Test("bossslot", "the boss between waves: it follows every fifth regular wave and keeps its number; paths, saves and the Lab start", () => BossSlotTest(Dt)),
@@ -479,7 +480,7 @@ static partial class Program
         "trickle", "meleesounds", "grunts", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops",
         "exploit", "doublebarrel", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
         "expand", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
-        "newenemies", "wildcard", "stacking", "singularity", "security", "captain", "wavedump", "spawndump", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction",
+        "newenemies", "wildcard", "stacking", "singularity", "security", "captain", "wavedump", "spawndump", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral",
     };
 
     static int Main(string[] args)

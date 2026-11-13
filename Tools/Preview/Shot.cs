@@ -401,6 +401,56 @@ static partial class Shot {
       var on = iput(EnemyType.Pulsar, new V2(1200f, 690f)); on.Phase = 2; on.Facing = 3.75f;
       ig.AnimT += float.Parse(Environment.GetEnvironmentVariable("INFALL"), System.Globalization.CultureInfo.InvariantCulture);
     }
+    if (Environment.GetEnvironmentVariable("PENUMBRAL") != null) {  // PENUMBRAL=<s into the clock>: the Eclipse's faction, step 1 (PenumbralLook.cs): three Embers weaving in with their sparks hanging behind, a Corona Priest winding up with a ring in flight, a Heliograph aiming and one burning; set beside Docs/Mockups/eclipse-faction.html
+      var cg = host.Game; cg.Enemies.Clear(); cg.Bullets.Clear();
+      var csp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, Enemy> cput = (t, at) => { var e = (Enemy)csp.Invoke(cg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; return e; };
+      me.Pos = me.Disp = new V2(1000f, 560f);
+      int cid = 9200;
+      for (int k = 0; k < 3; k++) {
+        V2 at = me.Pos + new V2(-200f - 40f * k, -120f + 120f * k);
+        var em = cput(EnemyType.Ember, at); em.Facing = (me.Pos - at).Angle;
+        for (int j = 1; j <= 7; j++) {  // its trail: older sparks further back along its weave
+          float back = j * 27f, life = Game.EmberSparkLife - j * 0.2f;
+          V2 sp = at - V2.FromAngle(em.Facing) * back + V2.FromAngle(em.Facing).Orthogonal() * (float)Math.Sin(j * 0.9f + k) * 16f;
+          cg.Bullets[cid] = new Bullet { Id = cid, Kind = Defs.EmberSpark, Pos = sp, Vel = V2.Zero, Radius = Defs.BulletRadius(Defs.EmberSpark), Dmg = 6f, Life = life, Life0 = Game.EmberSparkLife }; cid++;
+        }
+      }
+      var pr = cput(EnemyType.CoronaPriest, new V2(1330f, 330f)); pr.Facing = (me.Pos - pr.Pos).Angle;
+      typeof(Game).GetMethod("CoronaRing", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(cg, new object[] { pr, pr.Facing });
+      foreach (var b in cg.Bullets.Values) if (b.Kind != Defs.EmberSpark) b.Pos += b.Vel * 0.9f;
+      pr.Winding = true;
+      var aim = cput(EnemyType.Heliograph, new V2(1340f, 780f)); aim.Phase = 1; aim.SeenT = 0.6f; aim.Facing = (me.Pos + new V2(0f, 40f) - aim.Pos).Angle;
+      var burn = cput(EnemyType.Heliograph, new V2(640f, 860f)); burn.Phase = 2; burn.SeenT = 0.12f; burn.Facing = -0.25f;
+      cg.AnimT += float.Parse(Environment.GetEnvironmentVariable("PENUMBRAL"), System.Globalization.CultureInfo.InvariantCulture);
+    }
+    if (Environment.GetEnvironmentVariable("PENUMBRAL2") != null) {  // PENUMBRAL2=<s into the clock>: the Eclipse's faction, step 2 (PenumbralLook.cs): a Moonward, a Gnomon planted with its lantern swelling and its shadow on the floor, a Dusk Lobber winding up, and a Dusk pool you stand at the edge of
+      var dg = host.Game; dg.Enemies.Clear(); dg.Bullets.Clear(); dg.Patches.Clear();
+      var dsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, Enemy> dput = (t, at) => { var e = (Enemy)dsp.Invoke(dg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; return e; };
+      me.Pos = me.Disp = new V2(1000f, 560f);
+      var mw = dput(EnemyType.Moonward, new V2(1180f, 760f)); mw.Facing = 0.5f;
+      var gn = dput(EnemyType.Gnomon, new V2(1260f, 380f)); gn.Phase = 1; gn.SeenT = float.Parse(Environment.GetEnvironmentVariable("GNOMON") ?? "1.0", System.Globalization.CultureInfo.InvariantCulture); gn.Facing = (me.Pos - gn.Pos).Angle + Game.GnomonOffset;
+      if (gn.SeenT > Game.GnomonSwell) { gn.Phase = 2; gn.SeenT -= Game.GnomonSwell; }
+      var dl = dput(EnemyType.DuskLobber, new V2(560f, 700f)); dl.Facing = (me.Pos - dl.Pos).Angle; dl.Winding = true;
+      dg.Patches[801] = new PathPatch { Id = 801, Kind = PatchKind.Dusk, Pos = me.Pos + new V2(-70f, 60f), Warn = 0.8f, Life = 0.8f + Game.DuskLife, Age = 2f, R0 = Game.DuskPoolR, R1 = Game.DuskPoolR };
+      dput(EnemyType.Ember, me.Pos + new V2(-110f, 80f)).Facing = -0.6f;  // an Ember inside the pool: hidden in the dark
+      dg.AnimT += float.Parse(Environment.GetEnvironmentVariable("PENUMBRAL2"), System.Globalization.CultureInfo.InvariantCulture);
+    }
+    if (Environment.GetEnvironmentVariable("PENUMBRAL3") != null) {  // PENUMBRAL3=<s into the clock>: the Eclipse's faction, step 3 (PenumbralLook.cs): a Sickle winding up with a crescent on its loop, a Moon court's Moonward, a Nova with its fuse two-thirds gone and one darting in
+      var ng = host.Game; ng.Enemies.Clear(); ng.Bullets.Clear(); ng.Patches.Clear();
+      var nsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, Enemy> nput = (t, at) => { var e = (Enemy)nsp.Invoke(ng, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; return e; };
+      me.Pos = me.Disp = new V2(1000f, 560f);
+      var sk = nput(EnemyType.Sickle, new V2(760f, 380f)); sk.Facing = (me.Pos - sk.Pos).Angle;
+      typeof(Game).GetMethod("SickleThrow", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(ng, new object[] { sk, me.Pos, 1 });
+      foreach (var b in ng.Bullets.Values) for (int i = 0; i < 40; i++) { b.Vel = b.Vel.Rotated(b.AngVel * 0.02f); b.Pos += b.Vel * 0.02f; }
+      sk.Winding = true;
+      var mw3 = nput(EnemyType.Moonward, new V2(700f, 470f)); mw3.Facing = 2.4f;
+      var lit = nput(EnemyType.Nova, me.Pos + new V2(85f, 40f)); lit.Phase = 1; lit.SeenT = float.Parse(Environment.GetEnvironmentVariable("NOVAT") ?? "2.0", System.Globalization.CultureInfo.InvariantCulture);
+      nput(EnemyType.Nova, new V2(1330f, 330f));
+      ng.AnimT += float.Parse(Environment.GetEnvironmentVariable("PENUMBRAL3"), System.Globalization.CultureInfo.InvariantCulture);
+    }
     if (Environment.GetEnvironmentVariable("INFALL2") != null) {  // INFALL2=<s into the clock>: the Singularity's faction, step 2 (InfallLook.cs): a Graviton winding up beside its landed Small Well, an Orbiter flaring with a slung orb in flight, a hurt Collapsar and an Implosion half-way
       var ig = host.Game; ig.Enemies.Clear(); ig.Bullets.Clear();
       var isp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

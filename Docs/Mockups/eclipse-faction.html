@@ -1,0 +1,229 @@
+<title>Eclipse Faction</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* The Eclipse's faction ("the Penumbral Court"), sized like the Warden's: 8 members, one per Warden slot.
+   Each enemy previews one Eclipse stage mechanic. Approximate: canvas mockups, not the Ui.cs draw code.
+   Colours follow EclipseLook.cs: sun gold, flare orange, moon silver, umbra violet. */
+:root{
+  --bg:#f1eee8; --fg:#1b1712; --muted:#675f55; --panel:#faf8f4; --line:#d9d2c6; --chip:#e8e2d8;
+  --gold:#a8730a; --violet:#5b3fc4; --arena:#07060b;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d0b09; --fg:#efe9df; --muted:#a39886; --panel:#17140f; --line:#2e2920; --chip:#241f18;
+  --gold:#ffd166; --violet:#b9a0ff; --arena:#050408; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d0b09; --fg:#efe9df; --muted:#a39886; --panel:#17140f; --line:#2e2920; --chip:#241f18;
+  --gold:#ffd166; --violet:#b9a0ff; --arena:#050408; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+h1{font:700 clamp(40px,8vw,68px)/.95 var(--display);text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 6px}
+h3{font:700 22px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0}
+p{margin:0}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.lede{max-width:66ch;color:var(--muted)}
+.sub{color:var(--muted);margin-bottom:16px;max-width:70ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.card .body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.card .top{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.num{font:500 12px var(--mono);color:var(--muted)}
+canvas{display:block;width:100%;max-width:100%;height:auto;background:var(--arena)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:4px;background:var(--chip);color:var(--muted)}
+.chip.job{color:var(--fg)}
+.chip.stage{color:var(--gold)}
+.teach{font-size:14px;border-left:3px solid var(--gold);padding-left:8px;color:var(--muted)}
+.teach b{color:var(--fg);font-weight:600}
+.stats{font:400 12px var(--mono);color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+td.n{font:500 13px var(--mono);color:var(--muted);width:3em;font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+ul.notes{margin:0;padding-left:20px;color:var(--muted)}
+ul.notes li+li{margin-top:4px}
+code{font-family:var(--mono);font-size:.9em}
+</style>
+<main>
+<header>
+  <div class="eyebrow">Wave 100 boss faction · mockup (approximate, not the game's draw code)</div>
+  <h1>The Penumbral Court</h1>
+  <p class="lede">The Eclipse's faction, one enemy per Warden slot. Each previews one thing the Eclipse's five stages test, so its last ten waves rehearse the final fight in stage order: Corona, Penumbra, Umbra, Last Light, Totality.</p>
+</header>
+
+<section>
+  <h2>Members</h2>
+  <p class="sub">The Warden's slot each one fills is in brackets; the gold chip is the Eclipse stage it previews.</p>
+  <div class="grid" id="members"></div>
+</section>
+
+<section>
+  <h2>Campaign cycle</h2>
+  <p class="sub">Waves 91–99, one lesson per wave, then the Eclipse at wave 100.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>#</th><th>Teaches</th><th>Mix</th></tr></thead>
+    <tbody id="lessons"></tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>Notes</h2>
+  <ul class="notes">
+    <li>This replaces the Echoes plan in <code>Docs/Approaches.md</code> (one or two members from each earlier faction). Echoes could stay as a squad: "Greatest hits", one member from each earlier faction.</li>
+    <li>New rules the code would need: lingering spark shots (Ember), a moving shot-soaking body (Moonward), a local dark pool (Dusk Lobber; the Umbra's dark already exists), a shadow cone safe zone (Gnomon), and a timed self-burst (Nova).</li>
+    <li>New <code>EnemyType</code> values would go at the end, before <code>None</code>, with a protocol bump.</li>
+  </ul>
+</section>
+</main>
+
+<script>
+const C={gold:'#ffd166',sun:'#fff2cc',orange:'#ff8a3d',red:'#ff4f3a',moon:'#c9d1e3',violet:'#9c7aff',player:'#4fe3c1',dark:'#030207',bullet:'#ffe27a',stone:'#3a3430',green:'#7dff9a'};
+const TAU=Math.PI*2;
+const lerp=(a,b,f)=>a+(b-a)*f, clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), ease=f=>f*f*(3-2*f);
+function hexA(h,a){const n=parseInt(h.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}
+function glow(g,x,y,r,col,a){const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,hexA(col,a));gr.addColorStop(1,hexA(col,0));g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();}
+function circ(g,x,y,r,fill,stroke,w){g.beginPath();g.arc(x,y,Math.max(0,r),0,TAU);if(fill){g.fillStyle=fill;g.fill();}if(stroke){g.strokeStyle=stroke;g.lineWidth=w||2;g.stroke();}}
+function line(g,x1,y1,x2,y2,col,w,dash){g.save();g.strokeStyle=col;g.lineWidth=w;if(dash)g.setLineDash(dash);g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();g.restore();}
+function floor(g,W,H){g.fillStyle='#07060b';g.fillRect(0,0,W,H);g.strokeStyle='rgba(255,210,140,0.05)';g.lineWidth=1;for(let x=0;x<W;x+=30){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke();}for(let y=0;y<H;y+=30){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}}
+function player(g,x,y,ang){glow(g,x,y,26,C.player,0.25);circ(g,x,y,10,'#0f2d28',C.player,2.5);line(g,x,y,x+Math.cos(ang)*17,y+Math.sin(ang)*17,C.player,4);}
+function shot(g,x,y,col,r){glow(g,x,y,(r||3)*3,col,0.45);circ(g,x,y,r||3,col);}
+function label(g,x,y,txt,col){g.font='500 10px "IBM Plex Mono",monospace';g.fillStyle=col||'rgba(240,230,215,0.75)';g.textAlign='center';g.fillText(txt,x,y);}
+function robe(g,ang,len,wid,fill,edge){g.rotate(ang);g.beginPath();g.moveTo(len,0);g.lineTo(-len*0.7,-wid);g.quadraticCurveTo(-len,0,-len*0.7,wid);g.closePath();g.fillStyle=fill;g.fill();g.strokeStyle=edge;g.lineWidth=1.5;g.stroke();}
+
+/* ---------- enemy bodies ---------- */
+const D={
+  ember(g,x,y,t,ang,seed=0){const fl=1+0.15*Math.sin(t*20+seed*3);glow(g,x,y,18,C.orange,0.4);g.save();g.translate(x,y);g.rotate(ang);
+    g.beginPath();g.moveTo(10*fl,0);g.quadraticCurveTo(0,-8,-9,0);g.quadraticCurveTo(0,8,10*fl,0);g.fillStyle=C.orange;g.fill();
+    g.beginPath();g.moveTo(6,0);g.quadraticCurveTo(0,-4,-4,0);g.quadraticCurveTo(0,4,6,0);g.fillStyle=C.sun;g.fill();g.restore();},
+  priest(g,x,y,t,ang,charge=0){glow(g,x,y,34,C.gold,0.15+0.25*charge);g.save();g.translate(x,y);
+    g.save();g.rotate(t*0.8);for(let k=0;k<12;k++){g.rotate(TAU/12);line(g,15,0,19+charge*5+(k%2)*3,0,hexA(C.gold,0.8),2);}g.restore();
+    circ(g,0,0,15,null,hexA(C.gold,0.7),1.5);robe(g,ang,14,11,'#2a2016','#8a6a3a');circ(g,-2,0,5,'#0b0805','#6a5030',1.2);g.restore();},
+  helio(g,x,y,t,ang,heat=0){glow(g,x,y,26,C.gold,0.15);g.save();g.translate(x,y);robe(g,ang,13,10,'#241c14','#7d6440');
+    g.beginPath();g.ellipse(14,0,4,13,0,0,TAU);g.fillStyle=hexA(C.gold,0.35+0.5*heat);g.fill();g.strokeStyle=C.gold;g.lineWidth=2;g.stroke();
+    g.beginPath();g.ellipse(14,0,1.5,8,0,0,TAU);g.fillStyle=hexA('#ffffff',0.5+0.5*heat);g.fill();g.restore();if(heat>0)glow(g,x+Math.cos(ang)*14,y+Math.sin(ang)*14,18*heat+6,C.sun,0.6*heat);},
+  moonward(g,x,y,t,ang,ma,soak=0){circ(g,x,y,30,null,hexA(C.moon,0.15),1);glow(g,x,y,26,C.violet,0.15);g.save();g.translate(x,y);robe(g,ang,14,12,'#1c1a24','#7a7f96');circ(g,-2,0,6,'#0a0910','#5a5f72',1.2);g.restore();
+    const mx=x+Math.cos(ma)*30,my=y+Math.sin(ma)*30;glow(g,mx,my,16+10*soak,C.moon,0.3+0.5*soak);circ(g,mx,my,8,'#d7dcea','#ffffff',1);circ(g,mx-2,my-2,2,'#aab2c6');circ(g,mx+3,my+2,1.5,'#aab2c6');},
+  dusk(g,x,y,t,ang,lift=0){glow(g,x,y,26,C.violet,0.18);g.save();g.translate(x,y);robe(g,ang,13,11,'#1a1424','#6d5aa0');g.restore();
+    const ox=x+Math.cos(ang)*8,oy=y+Math.sin(ang)*8-lift*10;duskOrb(g,ox,oy,t,5);},
+  sickle(g,x,y,t,ang,armed=true){glow(g,x,y,24,C.moon,0.12);g.save();g.translate(x,y);robe(g,ang,13,10,'#1d1b22','#80869a');g.restore();
+    if(armed)crescent(g,x+Math.cos(ang+0.9)*12,y+Math.sin(ang+0.9)*12,t*0.5,8);},
+  gnomon(g,x,y,t,ang,swell=0){g.save();g.translate(x,y);g.rotate(ang);
+    const lx=-20,ly=0;glow(g,lx,ly,22+40*swell,C.sun,0.35+0.5*swell);circ(g,lx,ly,6+4*swell,C.sun,C.gold,1.5);line(g,lx+4,0,-6,0,'#6a5a48',3);
+    g.fillStyle=C.stone;g.strokeStyle='#8a7a66';g.lineWidth=2;g.beginPath();g.moveTo(-6,-22);g.lineTo(10,-18);g.lineTo(10,18);g.lineTo(-6,22);g.closePath();g.fill();g.stroke();
+    for(let k=-1;k<=1;k++)line(g,-2,k*10,6,k*9,'rgba(255,220,160,0.18)',1.5);g.restore();},
+  nova(g,x,y,t,left,flash=0){const unstable=1-left;const r=7+unstable*5+Math.sin(t*30)*unstable*1.5;glow(g,x,y,r*3+flash*20,unstable>0.7?C.red:C.orange,0.45+0.3*unstable);
+    circ(g,x,y,r,C.sun,C.orange,1.5);g.strokeStyle=unstable>0.7?C.red:C.gold;g.lineWidth=2.5;g.beginPath();g.arc(x,y,r+7,-Math.PI/2,-Math.PI/2+TAU*left);g.stroke();},
+};
+function duskOrb(g,x,y,t,r){glow(g,x,y,r*3,C.violet,0.4);circ(g,x,y,r,C.dark,C.violet,1.5);g.strokeStyle=hexA(C.moon,0.7);g.lineWidth=1;g.beginPath();g.arc(x,y,r*0.6,t*3,t*3+2);g.stroke();}
+function crescent(g,x,y,a,r){g.save();g.translate(x,y);g.rotate(a);glow(g,0,0,r*2.2,C.moon,0.35);g.beginPath();g.arc(0,0,r,-1.9,1.9);g.arc(r*0.45,0,r*0.82,1.75,-1.75,true);g.closePath();g.fillStyle='#e6ebf6';g.fill();g.restore();}
+
+/* ---------- member scenes: stateless, drawn from time ---------- */
+const W=360,H=210;
+const M=[
+ {key:'ember',name:'Ember',slot:'Rioter',job:'Hunter',stage:'Penumbra · Lunar wake',from:1,w:3,stats:'16 HP · 135 px/s · 8 touch · sparks 6 each, last 1.5 s',
+  does:'A scrap of flare that rushes you on a weaving line and drops slow sparks behind it. The sparks hang in the air, so crossing its path hurts.',
+  teach:'<b>Lunar wake</b>: don\'t cut through the trail.',
+  pos(i,tt){const p=((tt*0.22+i/3)%1);return {p,x:lerp(-10,300,p),y:105+(i-1)*48+Math.sin(p*9+i)*22};},
+  draw(g,t){const px=310,py=105;
+    for(let i=0;i<3;i++){for(let k=1;k<16;k++){const q=this.pos(i,t-k*0.1);const now=this.pos(i,t);if(q.p>now.p)continue;const a=1-k/16;circ(g,q.x,q.y,2.5,hexA(C.orange,0.75*a));}
+      const a=this.pos(i,t),b=this.pos(i,t+0.02);g.globalAlpha=a.p>0.94?(1-a.p)/0.06:1;D.ember(g,a.x,a.y,t,Math.atan2(b.y-a.y,b.x-a.x),i);g.globalAlpha=1;}
+    player(g,px,py,Math.PI);}},
+ {key:'priest',name:'Corona Priest',slot:'Guard',job:'Pressure',stage:'Corona · rings',from:1,w:2,stats:'45 HP · 85 px/s · ring of 12 (one gap), 12 each, every 2.4 s',
+  does:'A sun-cultist with a halo of spikes. The halo brightens, then bursts into a ring of slow shots with one gap, aimed a little off you.',
+  teach:'<b>Corona rings</b>: step into the gap.',
+  draw(g,t){const ax=70,ay=110;const c=t%2.4, charge=c<0.7?c/0.7:0;const gapA=-0.3;
+    const tgtY=ay+Math.tan(gapA)*220;const py=lerp(150,tgtY,ease(clamp((c-0.6)/1.0,0,1)));const px=290;
+    if(c>=0.7){const f=(c-0.7)/1.7, R=12+f*300;for(let k=0;k<14;k++){const a=gapA+(k+1)*TAU/15;if(Math.abs(((a-gapA+Math.PI)%TAU+TAU)%TAU-Math.PI)<0.32)continue;shot(g,ax+Math.cos(a)*R,ay+Math.sin(a)*R,C.gold,4);}
+      line(g,ax,ay,ax+Math.cos(gapA)*360,ay+Math.sin(gapA)*360,hexA(C.green,0.18),1,[4,6]);}
+    D.priest(g,ax,ay,t,Math.atan2(py-ay,px-ax),charge);player(g,px,py,Math.atan2(ay-py,ax-px));if(c>0.9)label(g,px,py-22,'gap',hexA(C.green,0.9));}},
+ {key:'helio',name:'Heliograph',slot:'Security Guard',job:'Zoner',stage:'Corona · flares',from:2,w:2,stats:'70 HP · stands still to fire · 1 s warning line, then a 40 px lane of fire for 0.5 s (20)',
+  does:'Carries a sun mirror. It tilts the mirror at you, a thin line flickers for a second, then the line becomes a lane of fire across the arena.',
+  teach:'<b>Solar flares</b>: step off the line, not back along it.',
+  draw(g,t){const hx=60,hy=105;const c=t%3.2;const aimY=125;const ang=Math.atan2(aimY-hy,300-hx);
+    const py=c<0.4?aimY:c<1.0?lerp(aimY,175,ease((c-0.4)/0.6)):c<2.4?175:lerp(175,aimY,ease((c-2.4)/0.8));
+    const ex=hx+Math.cos(ang)*420,ey=hy+Math.sin(ang)*420;
+    if(c<1){if(Math.sin(t*40)>-0.2)line(g,hx,hy,ex,ey,hexA(C.red,0.6),1.5,[8,6]);}
+    else if(c<1.5){const f=(c-1)/0.5;line(g,hx,hy,ex,ey,hexA(C.orange,0.25*(1-f*0.5)),40);line(g,hx,hy,ex,ey,hexA(C.gold,0.85*(1-f*0.6)),14);line(g,hx,hy,ex,ey,hexA('#ffffff',0.9*(1-f)),3);}
+    D.helio(g,hx,hy,t,ang,c<1?c:0);player(g,300,py,Math.atan2(hy-py,hx-300));}},
+ {key:'moonward',name:'Moonward',slot:'Riot Shield',job:'Anchor',stage:'Penumbra · the moon',from:2,w:2,stats:'100 HP · 70 px/s · moon orbits 30 px, once every 2.4 s, soaks every shot',
+  does:'A pale knight with a small moon circling it. The moon swallows any shot it touches, so fire when it swings round the back.',
+  teach:'The <b>moon soaks shots</b>: time your fire.',
+  draw(g,t){const bx=110,by=105,px=300,py=105;const ma=t*TAU/2.4;let soak=0;
+    for(let i=0;i<8;i++){const f=((t*1.4+i/8)%1);const x=lerp(px-16,bx+8,f);const tt=t; const mx=bx+Math.cos(ma)*30,my=by+Math.sin(ma)*30;
+      const front=Math.cos(ma)>0.55;if(front&&x<mx+10){soak=Math.max(soak,1-(mx+10-x)/40);continue;}if(f<0.96)shot(g,x,py+(i%2?2:-2),C.bullet,2.5);else glow(g,bx+8,by,12,C.bullet,0.8);}
+    D.moonward(g,bx,by,t,0,ma,clamp(soak,0,1));player(g,px,py,Math.PI);
+    label(g,bx,40,Math.cos(ma)>0.55?'moon in front: soaked':'moon behind: hits',Math.cos(ma)>0.55?hexA(C.moon,0.9):hexA(C.bullet,0.9));}},
+ {key:'dusk',name:'Dusk Lobber',slot:'Gas Grenadier',job:'Zoner',stage:'Umbra · the dark',from:2,w:1.5,stats:'50 HP · lobs every 6 s · pool 90 px, 4 s: you see 40 px, drains 6/s',
+  does:'Lobs a ball of night that bursts into a pool of the Umbra\'s dark. Inside you can barely see shots, and the dark drains your health.',
+  teach:'The <b>Umbra</b>: stay in the light.',
+  draw(g,t){const gx=55,gy=150,wx=215,wy=95;const c=t%6;let px=230,py=105;
+    if(c>1.3)px=lerp(230,320,ease(clamp((c-1.3)/0.9,0,1)));if(c>5.3)px=lerp(320,230,ease((c-5.3)/0.7));
+    if(c<0.6)D.dusk(g,gx,gy,t,-0.5,c/0.6);else D.dusk(g,gx,gy,t,-0.5,0);
+    if(c>=0.6&&c<1.3){const f=(c-0.6)/0.7;const x=lerp(gx,wx,f),y=lerp(gy,wy,f)-Math.sin(f*Math.PI)*70;circ(g,lerp(gx,wx,f),lerp(gy,wy,f)+4,4,'rgba(0,0,0,0.5)');duskOrb(g,x,y,t,5);circ(g,wx,wy,90,null,hexA(C.violet,0.35*f),1.5);}
+    player(g,px,py,Math.PI);
+    if(c>=1.3&&c<5.3){const life=1-(c-1.3)/4, grow=ease(clamp((c-1.3)/0.3,0,1));const R=90*grow;
+      const gr=g.createRadialGradient(wx,wy,0,wx,wy,R);gr.addColorStop(0,'rgba(2,1,6,0.93)');gr.addColorStop(0.8,'rgba(6,3,14,0.88)');gr.addColorStop(1,'rgba(10,6,24,0)');g.fillStyle=gr;g.beginPath();g.arc(wx,wy,R,0,TAU);g.fill();
+      circ(g,wx,wy,R*0.98,null,hexA(C.violet,0.5),1.5);g.strokeStyle=hexA(C.violet,0.8);g.lineWidth=2;g.beginPath();g.arc(wx,wy,R+5,-Math.PI/2,-Math.PI/2+TAU*life);g.stroke();
+      label(g,wx,wy+4,'−6/s · 40 px sight',hexA(C.violet,0.85));}}},
+ {key:'sickle',name:'Sickle',slot:'Taser Guard',job:'Pressure',stage:'Umbra · crescents',from:3,w:1.5,stats:'60 HP · keeps 240 px · throws a crescent every 2.4 s (16, out and back)',
+  does:'Throws a crescent blade that flies out past you, turns, and comes back on a wider curve. Dodge it twice.',
+  teach:'<b>Crescents</b>: they come back.',
+  draw(g,t){const sx=70,sy=105;const c=t%2.4;let bx,by,armed=false;const px0=260;let py=105;
+    if(c<1.0){const f=ease(c/1.0);bx=lerp(sx+12,345,f);by=sy-Math.sin(f*Math.PI)*22;}
+    else if(c<2.1){const f=ease((c-1.0)/1.1);bx=lerp(345,sx+12,f);by=sy+Math.sin(f*Math.PI)*55;}else{armed=true;}
+    if(c>0.25&&c<0.75)py=lerp(105,60,ease((c-0.25)/0.3));else if(c>=0.75&&c<1.3)py=60;else if(c>=1.3&&c<1.8)py=lerp(60,105,ease((c-1.3)/0.5));
+    if(!armed){for(let k=1;k<6;k++){const cc=c-k*0.04;if(cc<0)break;let x,y;if(cc<1.0){const f=ease(cc/1.0);x=lerp(sx+12,345,f);y=sy-Math.sin(f*Math.PI)*22;}else{const f=ease((cc-1.0)/1.1);x=lerp(345,sx+12,f);y=sy+Math.sin(f*Math.PI)*55;}circ(g,x,y,3-k*0.4,hexA(C.moon,0.4-k*0.06));}
+      crescent(g,bx,by,t*14,9);if(c>1.0&&c<1.4)label(g,330,by-18,'turns',hexA(C.moon,0.9));}
+    D.sickle(g,sx,sy,t,Math.atan2(py-sy,px0-sx),armed||c<0.1);player(g,px0,py,Math.atan2(sy-py,sx-px0));}},
+ {key:'gnomon',name:'Gnomon',slot:'Thug',job:'Hunter',stage:'Penumbra · Eclipse flash',from:2,w:1.5,stats:'240 HP · 55 px/s · lantern swells 1.5 s, flash 30 to anyone not in its shadow',
+  does:'A walking sundial: a stone slab with a sun lantern at its back. The lantern swells, then flashes; the only safe place is the slab\'s shadow, right in front of it.',
+  teach:'<b>Eclipse flash</b>: hide in the shadow, even if it\'s close.',
+  draw(g,t){const c=t%5;const gx=lerp(110,135,clamp(c/5,0,1)),gy=105;const swell=c>1&&c<2.5?(c-1)/1.5:0;const flash=c>=2.5&&c<2.9?1-(c-2.5)/0.4:0;
+    const inShadow=c>1.3&&c<3.4;const px=inShadow?lerp(300,205,ease(clamp((c-1.3)/0.8,0,1))):c>=3.4?lerp(205,300,ease(clamp((c-3.4)/1,0,1))):300;const py=inShadow?lerp(150,108,ease(clamp((c-1.3)/0.8,0,1))):c>=3.4?lerp(108,150,ease(clamp((c-3.4)/1,0,1))):150;
+    if(swell>0||flash>0){g.save();g.fillStyle=hexA('#000000',0.0);g.beginPath();g.moveTo(gx+8,gy-20);g.lineTo(gx+330,gy-75);g.lineTo(gx+330,gy+75);g.lineTo(gx+8,gy+20);g.closePath();g.fillStyle='rgba(20,12,40,0.55)';g.fill();g.restore();
+      if(swell>0)label(g,gx+120,gy-40,'shadow: safe',hexA(C.violet,0.9));}
+    player(g,px,py,Math.PI);D.gnomon(g,gx,gy,t,0,swell);
+    if(flash>0){g.save();g.beginPath();g.rect(0,0,W,H);g.moveTo(gx+8,gy-20);g.lineTo(gx+8,gy+20);g.lineTo(gx+330,gy+75);g.lineTo(gx+330,gy-75);g.closePath();g.fillStyle=hexA(C.sun,0.7*flash);g.fill('evenodd');g.restore();}}},
+ {key:'nova',name:'Nova',slot:'Shiv',job:'Disruptor',stage:'Totality · the nova',from:3,w:1,stats:'40 HP · 230 px/s · 3 s fuse, nova 110 px (30) · +50% damage taken while lit',
+  does:'A small unstable star that darts in and lights a 3 s fuse ring. When the ring runs out it goes nova. While lit it takes 50% more damage: burst it or back off.',
+  teach:'<b>Totality</b>: race the timer.',
+  draw(g,t){const c=t%5;const px=lerp(300,320,clamp((c-1)/2,0,1));const py=105;let nx,ny,left=1,flash=0;
+    if(c<1){nx=lerp(40,215,ease(c));ny=105+Math.sin(c*9)*25;}else if(c<4){nx=215+Math.sin(t*5)*4;ny=105+Math.cos(t*6)*4;left=1-(c-1)/3;}else{nx=215;ny=105;left=0;}
+    if(c<4){D.nova(g,nx,ny,t,left);if(c>1){circ(g,nx,ny,110,null,hexA(C.red,0.12+0.25*(1-left)),1.5);label(g,nx,ny-28,(left*3).toFixed(1)+' s',hexA(C.gold,0.95));
+      for(let i=0;i<5;i++){const f=(t*1.6+i/5)%1;const x=lerp(px-16,nx+10,f);if(f<0.95)shot(g,x,py+(i%2?3:-3),C.bullet,2.5);}}}
+    else{const f=(c-4)/1;circ(g,nx,ny,110*ease(clamp(f*3,0,1)),hexA(C.sun,0.35*(1-f)),hexA(C.orange,0.9*(1-f)),4);}
+    player(g,px,py,Math.PI);}},
+];
+
+const L=[
+ ['Embers rush in, sparks hang behind (Lunar wake)','Ember'],
+ ['Corona Priests\' rings: find the gap','Ember, Corona Priest'],
+ ['Heliographs\' flares: step off the line','Heliograph, Corona Priest, Ember'],
+ ['Moonwards: fire when the moon is round the back','Moonward, Ember'],
+ ['Recap; Gnomons join (Eclipse flash)','Everything so far, Gnomon'],
+ ['Dusk Lobbers\' pools (the Umbra)','Dusk Lobber, Moonward, Ember'],
+ ['Sickles\' crescents come back','Sickle, Dusk Lobber, Corona Priest'],
+ ['Novas: burst them before the fuse runs out (Totality)','Nova, Sickle, Gnomon, Heliograph'],
+ ['The exam: everything, with Gnomons and Novas together','Everything'],
+];
+
+/* ---------- build page ---------- */
+const scenes=[];
+function addCanvas(parent,w,h,draw){const cv=document.createElement('canvas');const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=w*dpr;cv.height=h*dpr;cv.style.aspectRatio=`${w}/${h}`;parent.appendChild(cv);const g=cv.getContext('2d');g.scale(dpr,dpr);scenes.push({cv,g,w,h,draw,vis:true});return cv;}
+const mEl=document.getElementById('members');
+M.forEach((m,i)=>{const card=document.createElement('article');card.className='card';mEl.appendChild(card);addCanvas(card,W,H,(g,t)=>m.draw(g,t));
+  const b=document.createElement('div');b.className='body';b.innerHTML=`<div class="top"><h3>${m.name}</h3><span class="num">${i+1}/8 · [${m.slot}]</span></div>
+  <div class="chips"><span class="chip job">${m.job}</span><span class="chip stage">${m.stage}</span><span class="chip">from round ${m.from}</span><span class="chip">weight ${m.w}</span></div>
+  <p>${m.does}</p><p class="teach">Teaches ${m.teach}</p><p class="stats">${m.stats}</p>`;card.appendChild(b);});
+const lEl=document.getElementById('lessons');L.forEach((l,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td class="n">${91+i}</td><td>${l[0]}</td><td>${l[1]}</td>`;lEl.appendChild(tr);});
+
+const io=new IntersectionObserver(es=>es.forEach(e=>{const s=scenes.find(s=>s.cv===e.target);if(s)s.vis=e.isIntersecting;}));scenes.forEach(s=>io.observe(s.cv));
+const still=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function frame(ms){const t=still?2.2:ms/1000;for(const s of scenes){if(!s.vis&&!still)continue;s.g.save();floor(s.g,s.w,s.h);s.draw(s.g,t);s.g.restore();}if(!still)requestAnimationFrame(frame);}
+requestAnimationFrame(frame);
+</script>

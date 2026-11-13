@@ -739,6 +739,23 @@ grows (50% more health, drawn bigger), as the Devourer heals from them in its Hu
 | 2 | **Carcass Bearer** | Riot Shield | A hooded butcher behind a side of meat that stops shots and bashes you back (10, 160 px). The meat tears as it wears; broken, it drops in front as a **morsel** and the bearer staggers and takes 50% more |
 | 2 | **Bile Spitter** | Gas Grenadier | A lump of brood with a green bile sac: keeps its distance and, every 3.6 s, its sac swells while a **green ring** fills **where you're heading**, then it lobs a glob. It lands 1 s later as a 70 px **pool of acid** for 4 s (10 a second), the Devourer's Bile in small. Change direction out of the ring |
 
+The **Eclipse's faction**, the Penumbral Court, leads up to the final fight (waves 46-49): sun-cultists and scraps of
+flare, each previewing one of the Eclipse's stages (design: `Docs/EclipseFaction.md`; mockup: `Docs/Mockups/eclipse-faction.html`).
+Steps 1-3 of 4 are in: all eight enemies and squads **Dawn** (a Corona Priest and six Embers) and, from wave 47, **Mirror
+pair** (two Heliographs); from wave 48, **Moon court** (two Moonwards and two Sickles) and **Night watch** (a Dusk Lobber,
+a Gnomon and three Embers). At most three Heliographs a wave. No set piece or Campaign lessons yet: its waves are built by reach.
+
+| From | The Eclipse's faction (the Penumbral Court) | Previews | What it does |
+|---|---|---|---|
+| 46 | **Ember** | Lunar wake | A scrap of solar flare (16 health, 135 px/s, contact 8) that **weaves** in at you. Every 0.2 s it drops a **spark** (6) that drifts back slowly (25 px/s) and **hangs for 1.5 s**, so crossing its trail hurts |
+| 46 | **Corona Priest** | Corona rings | A sun-cultist inside a halo of spikes. Keeps 260 px away and strafes; its halo **flares for 0.7 s**, then bursts into a **ring of 13 slow shots** (130 px/s, 14 each): one straight at you and a **gap one slot beside it**. Step into the gap |
+| 47 | **Heliograph** | Solar flares | Carries a sun mirror. Within 340 px it plants and aims at you: a **line flickers for 1 s**, then it becomes a **40 px lane of fire** for 0.5 s (20). It rests 2.5 s and goes again. Step off the line, not back along it |
+| 47 | **Moonward** | the Penumbra's moon | A pale knight (100 health, contact 12) that walks at you with a small **moon circling it** 30 px out, once every 2.4 s. The moon **swallows any shot** it touches: fire when it swings round the back |
+| 47 | **Gnomon** | Eclipse flash | A walking sundial (240 health, contact 20, can't be shoved): a stone slab with a **sun lantern** at its back. Within 360 px it plants with its slab turned a little to **one side of you**, its **shadow** shows on the floor and the lantern swells for 1.5 s; then it **flashes** everyone within 520 px who isn't in the shadow (30). Every 6 s. Step sideways into the shadow, toward it |
+| 47 | **Dusk Lobber** | the Umbra | Plays like a Gas Grenadier, but lobs a **ball of night** that bursts into a **pool of dark** (90 px, 4 s): inside you see only 40 px round you, and it **drains 6 a second**. Stay in the light |
+| 48 | **Sickle** | Crescents | A grey-robed cultist that keeps 240 px away and strafes. Every 2.4 s its blade glows (0.6 s), then it throws a **crescent** that leaves to one side, **loops through where you stand and comes back** round to it (300 px/s, 21). Dodge it twice |
+| 48 | **Nova** | Totality | A small unstable star (40 health, 230 px/s, contact 10) that darts in zigzagging. Within 140 px it **lights a 3 s fuse** (a ring runs down round it, a faint ring shows its reach) and hangs about you, slowly; while lit it **takes 50% more damage**. Then it **goes nova**: 30 to everyone within 110 px, and it's gone. Burst it or back off |
+
 **Bubbles (Shielded elites and the Warder's wards):** a bubble is twelve cells round the rim, each holding a twelfth of the shield. A hit wears down the cell facing whoever shot it (flashing, then breaking into shards) and spills over to its neighbours once that cell is gone, so the side you shoot from is the side that opens. Burning and bleeding keep chewing the weakest cell. A honeycomb inside only shows where its cell is still up, and a thin shield bar sits above the health bar. Blue is a Shielded elite, violet is the Warder's.
 
 ## Bosses
