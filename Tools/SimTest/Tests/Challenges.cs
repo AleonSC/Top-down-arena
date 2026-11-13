@@ -123,7 +123,7 @@ static partial class Program
         var rng = new Random(5);
         foreach (Role r in new[] { Role.Tank, Role.Dps, Role.Healer })
             for (int i = 0; i < 30; i++)
-                prizeOnly &= Upgrades.PrizeOffer(rng, r, AbilityId.None, new List<int>()).All(u => u >= 0 && Upgrades.All[u].Rarity >= Rarity.Rare && Upgrades.All[u].Rarity <= Rarity.VeryRare);
+                prizeOnly &= Upgrades.PrizeOffer(rng, new OfferCtx(r, AbilityId.None, new List<int>())).All(u => u >= 0 && Upgrades.All[u].Rarity >= Rarity.Rare && Upgrades.All[u].Rarity <= Rarity.VeryRare);
         Check(prizeOnly, "a prize offer only has rare and very rare cards");
         // Nobody picks for a while: the break waits for the prize (it used to run out after 4 s, start the next wave
         // with the cards still up, and then refuse the pick, leaving the player unable to fire), and the pick still works.

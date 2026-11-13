@@ -174,7 +174,7 @@ static partial class Program
             Action<int, string> Give = (id, name) =>
             {
                 var p = host.Game.Players[id];
-                if (Upgrades.Available(U(name), p.Role, p.RoleAbility, p.Taken))
+                if (Upgrades.Available(U(name), OfferCtx.Of(p, false)))
                     host.Game.GrantUpgrade(id, U(name));
             };
             for (int k = 0; k < 20; k++)  // keep the bots alive long enough to use everything

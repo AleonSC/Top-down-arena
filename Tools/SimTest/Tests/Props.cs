@@ -153,7 +153,7 @@ static partial class Program
         int okId = -1, badId = -1;
         for (int i = 0; i < Upgrades.All.Length; i++)
         {
-            bool av = Upgrades.Available(i, me.Role, me.RoleAbility, me.Taken, me.Weapon.Id);
+            bool av = Upgrades.Available(i, OfferCtx.Of(me, false));
             if (av && okId < 0 && !Upgrades.All[i].Unoffered) okId = i;
             if (!av && badId < 0 && !Upgrades.All[i].Unoffered) badId = i;
         }

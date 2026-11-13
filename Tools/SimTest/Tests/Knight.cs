@@ -24,7 +24,7 @@ static partial class Program
             && Upgrades.RoleAbility(Role.Dps, Kit.Summoner, 2) == AbilityId.AlphaCall && Upgrades.Ultimate(Role.Healer, Kit.Knight) == AbilityId.HallowedBlade
             && Upgrades.Ultimate(Role.Dps, Kit.Elementalist) == AbilityId.BulletRain, "Knight abilities and ultimates map to the right role and class");
         int wall = U("Tower Shield");
-        Check(Upgrades.Available(wall, Role.Tank, AbilityId.ShieldWall, new List<int>()) && !Upgrades.Available(wall, Role.Tank, AbilityId.Barrier, new List<int>()),
+        Check(Upgrades.Available(wall, new OfferCtx(Role.Tank, AbilityId.ShieldWall, new List<int>())) && !Upgrades.Available(wall, new OfferCtx(Role.Tank, AbilityId.Barrier, new List<int>())),
             "Knight ability upgrades are only offered with their ability");
 
         int port = nextPort++;

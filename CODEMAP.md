@@ -72,7 +72,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `ForcePact.cs`, `Game/ForcePactLook.cs`: Force Pact (Tank Summoner ability, `AbilityId.GuardianSpirit`): binds the enemy nearest the cursor, the thrall (`MinionKind.Thrall`: type, health, fights near you, respawns via `Player.PactCd`), the pact slots; the Soul Chains look and the `FxKind.Pact*` effects
 - `Daze.cs`: close-in hits daze enemies (`Daze`, `TickDaze`, `Enemy.DazeT`/`DazeImmuneT`, replicated `Enemy.Dazed`): no shooting, specials or contact for a split second; the stars are `DrawDazeStars` (Game/WorldEnemies.cs)
 - `Parry.cs`, `Stun.cs`, `Knock.cs`, `Repulsion.cs` (the Repulsion Cannon's blast and its Alt Undertow: `RepelGain`, `HostRepelPull` over `Msg.WeaponDash` `DashPullOn`/`DashPullOff`, `TickRepulsion`, replicated `Player.RepelMeter`/`RepelPull`): parry shield (a perfect parry's needle, flash and the world slowing: `WorldSlowT`, `Game/ParryLook.cs`, `Game/ParrySoundBank.cs`), stun, knockback slides, repulsion cannon
-- `Upgrades.cs`, `StatSheet.cs`, `BuildPower.cs`: upgrade cards and ability registry (the milestone pool is added last, `WithMilestones`), stat panel numbers, boss health scaling
+- `Upgrades.cs`, `StatSheet.cs`, `BuildPower.cs`: upgrade cards (every offer takes an `OfferCtx`; `Game.OfferFor(p)` in a match) and ability registry (the milestone pool is added last, `WithMilestones`), stat panel numbers, boss health scaling
 
 ## Classes (Core)
 - `Classes.cs`, `Kits.cs`, `Defs.cs`: class registry and hooks, minion/zone defs, weapon/enemy/bullet defs
@@ -355,7 +355,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 | Tune damage, health, wave numbers | `Balance.cs` (index of where every system's numbers live), `Difficulty.cs`, `Docs/UpgradeBalance.md` |
 | Add or change an enemy | `Defs.cs` (`EnemyType`, def), `EnemyAI.cs` or `Variety.cs`, look in `WorldEnemies.cs`/`VarietyLook.cs`, Bestiary entry in `BestiaryData.Entries.cs` |
 | Edit a boss fight | the boss's Core file plus its `*Look.cs`; bars in `HudBossBars.cs`; snapshot sync in the boss file |
-| Upgrade cards and picker | `Upgrades.cs` (cards), `Game.cs` (`HostPick`, `NextOffer`), `HudPicker.cs`, `CardArt.cs`, `PickIntro.cs` |
+| Upgrade cards and picker | `Upgrades.cs` (cards), `Game.cs` (`HostPick`, `NextOffer`), `HudPicker.cs`, `CardArt.cs`, `PickIntro.cs`; class/weapon pools planned in Docs/UpgradePools.md |
 | Milestone upgrades (every 10 levels, the Milestone Compass) | `Upgrades.cs` (`WithMilestones`, `MilestoneOffer`), `Game.cs` (`GrantXpTo`, `NextOffer`, `HostPick`), `Tools/SimTest/Tests/Milestones.cs` |
 | Damage numbers, hit effects, shake | `Juice.cs` (`HitFlashMix`, `ImpactCrowd`), `WorldEffects.cs`, `Combat.cs` (`HurtEnemy`, `Damage`, `SplashFxNearby`); `Enemy.FlashHeat`; test `hitfx` |
 | Late-game pressure (fire rate, budget, melee share, enemy jobs) | `WaveRecipe.cs`, `NonShooters.cs`, `Docs/EnemyRoles.md`, `Docs/LateGamePressure.md`, report `wavemix`, `EnemyAI.cs` (`WaveFireRate`, `ShotBudget`, `MeleeShare`), `Readability.cs`, `Variety.cs` |
