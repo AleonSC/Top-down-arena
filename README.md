@@ -1283,6 +1283,8 @@ locked one. **Only the Warden has a hunt so far**: a hunt's build-up waves need 
 Warden has one yet), and later bosses will need the party handed a build that fits their strength. Records keep each hunt's plays, wins and best time per player
 (not counted as runs). Winning a hunt unlocks that boss's perk (below). Plan: `Docs/BossHuntsAndPerks.md`.
 
+**Hunt map.** The Boss Hunt tab has a **Hunt map** switch (host only, off by default: off, a hunt is the ten waves in order). On, the hunt is a map of ten steps on three lanes, starting at the top and ending with the boss at the bottom; the screen between waves shows it, with the party, the next nodes, the picked node's detail and a **Lock in vote** key. Everyone votes for the next node (keys 1-3 or a click) and locks in; the node with the most votes wins, a tie goes to the host's vote, and after 20 s (counted once nobody is picking upgrades) the map picks for the party. A node with a single way on is taken at once. The wave that follows is that node's. Nodes so far: **Skirmish** (the boss's own troops at the step's strength), **Elite squad** (one step further into the faction and the set piece of a finale wave; each Elite cleared is a **boss clue**, up to 3), **Rest** (no fight: everyone heals to full and gets a reroll) and **Shop** (no fight: the Bazaar opens; gold is earned all hunt long and leftovers turn into XP when it closes). A Rest or Shop never comes right after another, and the row before the boss is always one of them. Ambush, Contraband and Gamble nodes and the clues' effect on the boss are planned. Design: `Docs/HuntMap.md`.
+
 ## Perks
 
 A perk is a rule you bring into a run, one per boss, unlocked by winning that boss's **Boss Hunt**. Pick them on the lobby's
