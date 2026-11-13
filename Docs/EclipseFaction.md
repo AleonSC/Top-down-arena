@@ -1,6 +1,6 @@
 # The Eclipse's faction: the Penumbral Court
 
-**Status: steps 1-3 built** (protocol 337): all eight enemies, squads Dawn, Mirror pair, Moon court and Night watch. Code: `Core/Penumbral.cs`, `Core/Approaches.cs`
+**Status: steps 1-3 built** (protocol 338): all eight enemies, squads Dawn, Mirror pair, Moon court and Night watch. Code: `Core/Penumbral.cs`, `Core/Approaches.cs`
 (the Eclipse `FactionDef`), `Core/Defs.cs` (bullet kind `EmberSpark`), `Core/Variety.cs` (`CapBeams`: at most 3 Heliographs a wave), `Game/PenumbralLook.cs`;
 mockup `Docs/Mockups/eclipse-faction.html`; test suite `penumbral`; previews `PENUMBRAL=0.4 Tools/Preview/shot.sh x hud 1` (step 1), `PENUMBRAL2=0.4 [GNOMON=1.6] ...` (step 2; GNOMON: seconds into its
 swell, past 1.5 the flash), `PENUMBRAL3=0.4 [NOVAT=2] ...` (step 3; NOVAT: seconds into the lit Nova's fuse). Replaces the Echoes plan in `Docs/Approaches.md`
