@@ -204,3 +204,19 @@ the Bo Staff's shove push (`BoStaff.cs`) and full spin, the Fuma throw's startin
 (`DoseMultOf`), the Spirit Fan's reach and `HealAlly`, `BurstWard` (radius, heal reach, heal), `StarStuck` /
 `ReturnStar`, the Momentum Burst's push and the tossed caltrops' life, `ShadowKunaiLanded` and `NinjaHitMult`
 (`Player.BlinkBoost`, set by the blink and spent with the ambush). Test: suite `abilitycards`, its Ninja checks.
+
+### Step 9: Blood Mage weapon cards (proposed, owner picks)
+
+One Rare card per Blood Mage weapon (`Weapons = { that weapon }`, `MaxStacks = 2`), offered only while you hold it.
+
+| Weapon | Card | Effect (per stack) |
+|---|---|---|
+| Blood Lash | Crimson Whip | The whip reaches 20% farther, and each Clot stack cuts 1% more damage |
+| Clot Cannon | Deep Pool | The pool it leaves is 30% bigger and lasts 2 s longer |
+| Leech Tendrils | Hungry Tendrils | The tendrils drain 30% faster, and 15% more of the drain heals you (25% → 40%) |
+| Transfusion Darts | Generous Blood | Each dart gives an ally 30% more health for the same cost |
+| Sanguine Orb | Rich Blood | The heal reserve fills 30% faster, and the healing coat heals 30% more |
+| Vein Tether | Lifeline | 15% more of the beam's damage heals (40% → 55%) |
+| Blood Bolts | Hemophilia | Hemorrhage takes one bolt fewer (5 → 4), and its burst is 30% wider |
+| Implosion | Event Horizon | Pulls enemies in from 30% farther, and the crush hits 40% harder |
+| Bone Spear | Marrow | The spear pierces 1 more enemy, and picking it up gives 3 more health |
