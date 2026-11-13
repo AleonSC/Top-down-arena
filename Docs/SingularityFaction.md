@@ -1,8 +1,8 @@
 # The Singularity's faction: the Infall
 
-**Status: steps 1-3 built** (protocol 319): all eight enemies and four squads; step 4 (the set piece and the cycle) to do. Code: `Core/Infall.cs`, `Core/Approaches.cs` (the Singularity `FactionDef`),
+**Status: built** (protocol 319): all eight enemies, four squads, the Accretion ring and the ten-wave cycle. Code: `Core/Infall.cs`, `Core/Approaches.cs` (the Singularity `FactionDef`),
 `Core/Defs.cs`, `Core/Variety.cs` (`CapBeams`: at most 3 Pulsars a wave), `Game/InfallLook.cs`; mockup `Docs/Mockups/singularity-faction.html`;
-test suite `infall`; previews `INFALL=0.4 ZOOM=1.7 Tools/Preview/shot.sh x hud 1` (step 1) `INFALL2=0.4 ZOOM=1.7 ...` (step 2) and `INFALL3=0.4 ZOOM=1.7 ...` (step 3).
+test suite `infall`; previews `INFALL=0.4 ZOOM=1.7 Tools/Preview/shot.sh x hud 1` (step 1) `INFALL2=0.4 ZOOM=1.7 ...` (step 2) `INFALL3=0.4 ZOOM=1.7 ...` (step 3) and `ACCRETION=3 Tools/Preview/shot.sh x hud 1` (the ring 3 s in).
 
 Matter falling into the black hole, the same size as the Warden's faction: eight enemies, four squads, a set piece and a ten-wave cycle. Unlike the
 Hive's bees, these have their own behaviour: each one previews one thing the Singularity tests.
@@ -28,8 +28,10 @@ Hive's bees, these have their own behaviour: each one previews one thing the Sin
 3. **Lens, White Dwarf** (built): players' shots near a Lens's face turn away from it on every game (`BendRoundLenses` in `MoveBullets`) and a
    hit on its face is blocked (`LensFaces` in `BlocksShot`); a White Dwarf's pulse shoves players (`KnockPlayer`) and swaps their nearby shots
    for its own going back (`WhitePulse`). Squad **Lens array** (two Lenses, three Acolytes).
-4. **The set piece and the cycle**: the **Accretion ring** (eight Debris and four Orbiters in a ring round the players, turning and closing, two gaps)
-   on the last wave, and the ten lessons in the mockup's order.
+4. **The set piece and the cycle** (built): the **Accretion ring** (`SquadForm.Accretion`: eight Debris and four Orbiters in 14 slots round a player,
+   slots 3 and 10 left open; it turns 0.25 rad/s and closes from 320 to 110 px at 22 px/s; it breaks up after 12 s or once half is down) on the last
+   wave, and ten lessons: Debris; Acolytes; Lenses; Gravitons; Pulsars; a recap with Collapsars; Orbiters; White Dwarfs; every squad; the exam.
+   The Campaign's waves 31-40.
 
 ## Numbers (step 1)
 

@@ -141,7 +141,7 @@ namespace Arena
             },
             new FactionDef
             {
-                Boss = EnemyType.Singularity,  // the Singularity: the Infall, matter falling into the black hole (Infall.cs, Docs/SingularityFaction.md); steps 1-3 of 4
+                Boss = EnemyType.Singularity,  // the Singularity: the Infall, matter falling into the black hole (Infall.cs, Docs/SingularityFaction.md)
                 Members = new[]
                 {
                     new FactionMember { Type = EnemyType.Debris, Weight = 3f },
@@ -160,7 +160,24 @@ namespace Arena
                     new SquadDef { Name = "Gravity trap", From = 3, Members = new[] { EnemyType.Graviton, EnemyType.Collapsar, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris } },
                     new SquadDef { Name = "Lens array", From = 3, Members = new[] { EnemyType.Lens, EnemyType.Lens, EnemyType.Acolyte, EnemyType.Acolyte, EnemyType.Acolyte } },
                 },
-                // No set piece or lesson cycle yet (step 4): the Campaign builds its waves by reach, as for the Lich.
+                // Wave 4: the Accretion ring, eight Debris and four Orbiters in a ring round you that turns and closes, two gaps open (Infall.cs).
+                Finale = new SquadDef { Name = "Accretion ring", From = 4, Form = SquadForm.Accretion, Members = new[] {
+                    EnemyType.Orbiter, EnemyType.Debris, EnemyType.Debris, EnemyType.Orbiter, EnemyType.Debris, EnemyType.Debris,
+                    EnemyType.Orbiter, EnemyType.Debris, EnemyType.Debris, EnemyType.Orbiter, EnemyType.Debris, EnemyType.Debris } },
+                // The Campaign's Singularity cycle: each wave previews one thing its fight tests (Docs/SingularityFaction.md).
+                Lessons = new[]
+                {
+                    new WaveLesson { Teaches = "Debris falls in on a spiral (the Pull)", Members = new[] { M(EnemyType.Debris, 1f) } },
+                    new WaveLesson { Teaches = "Acolytes' orbs bend in to meet on you (bent shots)", Trickle = true, Star = EnemyType.Acolyte, Members = new[] { M(EnemyType.Debris, 2f) }, Squads = new[] { "Infall" } },
+                    new WaveLesson { Teaches = "Lenses: flank them (its Gravity Wells bend your shots)", Trickle = true, Star = EnemyType.Lens, Members = new[] { M(EnemyType.Debris, 2f), M(EnemyType.Acolyte, 1.5f) }, Squads = new[] { "Lens array" } },
+                    new WaveLesson { Teaches = "Gravitons' Small Wells: get clear or pop them (the Pull, Gravity Wells)", Trickle = true, Star = EnemyType.Graviton, Members = new[] { M(EnemyType.Lens, 1.5f), M(EnemyType.Debris, 2f), M(EnemyType.Acolyte, 1.5f) } },
+                    new WaveLesson { Teaches = "Pulsars' flickering beams (its Lasers)", Trickle = true, Star = EnemyType.Pulsar, Members = new[] { M(EnemyType.Debris, 2f), M(EnemyType.Acolyte, 1.5f) }, Squads = new[] { "Binary" } },
+                    new WaveLesson { Teaches = "A recap of everything so far, and Collapsars join (Collapse, Hawking)", Trickle = true, Star = EnemyType.Collapsar, Members = new[] { M(EnemyType.Debris, 2f), M(EnemyType.Acolyte, 1.5f), M(EnemyType.Lens, 1f), M(EnemyType.Graviton, 1f), M(EnemyType.Pulsar, 1f) }, Squads = new[] { "Gravity trap", "Infall" } },
+                    new WaveLesson { Teaches = "Orbiters sling their orbs (the disk, Slingshot)", Trickle = true, Star = EnemyType.Orbiter, Members = new[] { M(EnemyType.Orbiter, 2f), M(EnemyType.Debris, 2f), M(EnemyType.Acolyte, 1f) } },
+                    new WaveLesson { Teaches = "White Dwarfs turn your shots round (White hole)", Trickle = true, Star = EnemyType.WhiteDwarf, Members = new[] { M(EnemyType.Orbiter, 1.5f), M(EnemyType.Pulsar, 1f), M(EnemyType.Collapsar, 1.5f), M(EnemyType.Debris, 1.5f) } },
+                    new WaveLesson { Teaches = "Squads: Infall, Binary, Gravity trap, Lens array", Members = new[] { M(EnemyType.Debris, 1f), M(EnemyType.Acolyte, 1f) }, Squads = null, SquadChance = 0.9f },
+                    new WaveLesson { Teaches = "The exam: the Accretion ring with everything", Members = null, Squads = null, Finale = true },
+                },
             },
             new FactionDef
             {

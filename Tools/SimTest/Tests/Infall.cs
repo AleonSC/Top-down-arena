@@ -7,7 +7,7 @@ using Arena;
 // The Singularity's faction, steps 1-3 (Core/Infall.cs, Docs/SingularityFaction.md): Debris spirals in, an Acolyte's three
 // orbs meet where you stood, a Pulsar plants, flickers, sweeps its two beams a quarter turn and rests, a Graviton's
 // Small Well drags you, an Orbiter slings its orbs, a Collapsar implodes, a Lens bends shots off its face, a White Dwarf
-// turns your shots round; and they come in the waves before the Singularity.
+// turns your shots round; the Accretion ring closes in and the ten lessons; and they come in the waves before the Singularity.
 static partial class Program
 {
     static void InfallTest(float dt)
@@ -177,7 +177,32 @@ static partial class Program
         Check(flashed && pulsed, "a White Dwarf darts in, flashes, then pulses");
         Check(turnedBack == 2, "the pulse turns your shots near it round as its own");
         Check(knocked > 50f, "and shoves you back");
+        // The Accretion ring: twelve in a ring round you with two gaps, turning and closing.
+        Quiet(); g.Enemies.Clear(); g.Bullets.Clear();
+        var fin = Approaches.For(EnemyType.Singularity).Finale;
+        typeof(Game).GetMethod("SpawnSquadAt", np).Invoke(g, new object[] { fin, null });
+        var ringE = g.Enemies.Values.Where(o => o.SquadId != 0).ToList();
+        foreach (var o in ringE) o.Hp = o.MaxHp = 1e6f;
+        Func<float> meanR = () => ringE.Average(o => o.Pos.DistanceTo(me.Pos));
+        float r0 = meanR();
+        var angles = ringE.Select(o => (o.Pos - me.Pos).Angle).OrderBy(a => a).ToList();
+        float widest = 0f;
+        for (int i = 0; i < angles.Count; i++) widest = Math.Max(widest, (i + 1 < angles.Count ? angles[i + 1] : angles[0] + MathX.Tau) - angles[i]);
+        float slot = MathX.Tau / Game.AccretionSlots;
+        run(6f, null);
+        float r1 = meanR();
+        Console.WriteLine("  Accretion ring: {0} members, {1:0} px out at first, {2:0} px after 6 s; widest gap {3:0.0} slots", ringE.Count, r0, r1, widest / slot);
+        Check(ringE.Count == 12 && ringE.Count(o => o.Type == EnemyType.Orbiter) == 4 && Math.Abs(r0 - Game.AccretionStart) < 40f, "the Accretion ring: eight Debris and four Orbiters in a ring round you");
+        Check(Math.Abs(widest / slot - 2f) < 0.3f, "with a gap (two slots wide) where a slot is left open");
+        Check(r1 < r0 - 70f && r1 > Game.AccretionEnd - 30f, "and it closes in");
         host.Leave("");
+
+        // The cycle: ten lessons, the exam brings the ring.
+        var ls = Approaches.For(EnemyType.Singularity).Lessons;
+        Check(ls != null && ls.Length == 10 && ls[9].Finale && ls.Take(9).All(l => !l.Finale), "ten lessons; the tenth is the exam, with the Accretion ring");
+        var stars = ls.Where(l => l.Star.HasValue).Select(l => l.Star.Value).ToList();
+        Check(stars.SequenceEqual(new[] { EnemyType.Acolyte, EnemyType.Lens, EnemyType.Graviton, EnemyType.Pulsar, EnemyType.Collapsar, EnemyType.Orbiter, EnemyType.WhiteDwarf }),
+            "the new enemies come one a wave: Acolyte, Lens, Graviton, Pulsar, Collapsar, Orbiter, White Dwarf");
 
         // The faction: the three come in the waves before the Singularity (50-wave track: 16-19).
         var f0 = Approaches.For(EnemyType.Singularity);

@@ -17,7 +17,7 @@ namespace Arena
     }
 
     /// How a squad arrives: in a line across its edge, split to opposite edges, or blinking in around a player.
-    public enum SquadForm : byte { Line, Pincer, Around, RiotLine }  // RiotLine: a wall of Riot Shields marching at you, Guards close behind (WardenFaction.cs)
+    public enum SquadForm : byte { Line, Pincer, Around, RiotLine, Accretion }  // RiotLine: a wall of Riot Shields marching at you, Guards close behind (WardenFaction.cs); Accretion: a ring round you that turns and closes (Infall.cs)
 
     /// More variety between the bosses (built from Docs/Mockups/enemy-variety.html):
     ///   Four new enemies: the Beam Sentry (wave 18: plants itself, aims a line, sweeps a beam), the Scorcher (24:
@@ -236,6 +236,8 @@ namespace Arena
                 else if (s.Form == SquadForm.RiotLine)
                     pos = ClampToArena(basePos + across * ((RiotLineSlot(s, i) - (RiotLineCount(s, type) - 1) / 2f) * (type == EnemyType.RiotShield ? RiotLineGap : RiotGuardGap))
                         - fwd * (type == EnemyType.RiotShield ? 0f : RiotGuardBehind), 40f);  // the wall in front, the guards behind
+                else if (s.Form == SquadForm.Accretion && target != null && !RoomsOn)
+                    pos = AccretionSpawn(id, i, target);  // in a ring round a player (Infall.cs)
                 else if (s.Form == SquadForm.Pincer && i < 2 && !breach.HasValue)  // (through a breach: they come in together)
                     pos = ClampToArena(new V2(i == 0 ? lo.X : hi.X, LayoutOn ? LayoutSideY(i == 0 ? 2 : 3, 150f) : Rand(lo.Y + 150f, hi.Y - 150f)), 40f);
                 else
@@ -324,6 +326,7 @@ namespace Arena
             squadForms.Clear();
             riotLines.Clear();
             riotLineBroke.Clear();
+            accretionRings.Clear();  // Infall.cs
             if (newRun)
             {
                 nextSquadId = 1;
@@ -487,6 +490,8 @@ namespace Arena
             SquadForm form;
             if (squadForms.TryGetValue(e.SquadId, out form) && form == SquadForm.RiotLine)
                 return RiotLineMove(e, mates, tpos, v);  // WardenFaction.cs
+            if (form == SquadForm.Accretion && accretionRings.ContainsKey(e.SquadId))
+                return AccretionMove(e, mates, v);  // Infall.cs
             if (e.T < SquadFormTime + 0.9f && !e.Def.Melee && e.Type != EnemyType.Phantom && e.Type != EnemyType.Nest)
                 return dir * 0.6f;  // marching in together
             switch (e.Type)

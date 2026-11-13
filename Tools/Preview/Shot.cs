@@ -427,6 +427,20 @@ static partial class Shot {
       iput(EnemyType.WhiteDwarf, new V2(1260f, 720f));
       ig.AnimT += float.Parse(Environment.GetEnvironmentVariable("INFALL3"), System.Globalization.CultureInfo.InvariantCulture);
     }
+    if (Environment.GetEnvironmentVariable("ACCRETION") != null) {  // ACCRETION=<s into the ring>: the Singularity's set piece (Infall.cs): eight Debris and four Orbiters in a ring round you, turning and closing, two gaps open
+      var ig = host.Game; ig.Enemies.Clear(); ig.Bullets.Clear();
+      me.Pos = me.Disp = new V2(1000f, 560f);
+      float at = float.Parse(Environment.GetEnvironmentVariable("ACCRETION"), System.Globalization.CultureInfo.InvariantCulture);
+      float spin = 0.7f, radius = Math.Max(Game.AccretionEnd, Game.AccretionStart - Game.AccretionClose * at);
+      var fin = Approaches.For(EnemyType.Singularity).Finale;
+      var isp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      for (int i = 0; i < fin.Members.Length; i++) {
+        V2 p = me.Pos + V2.FromAngle(spin + Game.AccretionSpin * at + MathX.Tau * Game.AccretionSlot(i) / Game.AccretionSlots) * radius;
+        var e = (Enemy)isp.Invoke(ig, new object[] { fin.Members[i], p, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Facing = (me.Pos - p).Angle;
+        if (i == 3) e.Winding = true;
+      }
+      ig.AnimT += at;
+    }
     if (Environment.GetEnvironmentVariable("LUNGE") != null) {  // LUNGE=<0-1>: the four lungers part-way through their wind-up (LungeLaneLook.cs); the lane fills with the client's clock, so draw once, then move it on
       var lg = host.Game; lg.Enemies.Clear(); lg.Bullets.Clear();
       var lsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

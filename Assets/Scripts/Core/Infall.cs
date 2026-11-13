@@ -32,6 +32,10 @@ namespace Arena
     ///     then pulses: players within WhitePushRange are knocked WhiteKnock px back (KnockPlayer) and your shots within
     ///     WhiteTurnRange turn round as its own (WhiteSpeed, at most WhiteMaxTurned); then (2) it backs off for
     ///     WhiteRetreat s and comes again.
+    /// Step 4, the set piece: the Accretion ring (SquadForm.Accretion), eight Debris and four Orbiters in a ring of
+    ///   AccretionSlots slots round a player, two of them left open (AccretionGaps). It turns at AccretionSpin rad/s and
+    ///   closes from AccretionStart to AccretionEnd px at AccretionClose px/s; touching a member hurts as usual and the
+    ///   Orbiters sling their orbs in. Walk out through a gap. It breaks up after AccretionLife s, or once half of it is down.
     public partial class Game
     {
         public const float DebrisSpiral = 1.05f, DebrisStraight = 90f, DebrisFar = 420f;
@@ -50,6 +54,52 @@ namespace Arena
         public const float WhiteReach = 120f, WhiteFlash = 0.5f, WhiteRetreat = 1.5f, WhitePushRange = 170f, WhiteKnock = 150f, WhiteTurnRange = 150f,
             WhiteSpeed = 260f, WhiteZig = 7f;
         public const int WhiteMaxTurned = 10;
+
+        public const float AccretionStart = 320f, AccretionEnd = 110f, AccretionClose = 22f, AccretionSpin = 0.25f, AccretionLife = 12f;
+        public const int AccretionSlots = 14;
+        public static readonly int[] AccretionGaps = { 3, 10 };
+
+        sealed class AccretionRing { public V2 Center; public float Spin0; public int Size; }
+        readonly System.Collections.Generic.Dictionary<int, AccretionRing> accretionRings = new System.Collections.Generic.Dictionary<int, AccretionRing>();  // host: by squad id
+
+        /// The ring slot of a squad's i-th member: the slots in order, skipping the gaps.
+        public static int AccretionSlot(int i)
+        {
+            for (int slot = 0, n = 0; slot < AccretionSlots; slot++)
+            {
+                if (Array.IndexOf(AccretionGaps, slot) >= 0)
+                    continue;
+                if (n++ == i)
+                    return slot;
+            }
+            return i;
+        }
+
+        static V2 AccretionPoint(V2 center, float spin, int slot, float radius) => center + V2.FromAngle(spin + MathX.Tau * slot / AccretionSlots) * radius;
+
+        /// Where the ring's i-th member comes in: round the player (the ring's middle kept far enough from the walls).
+        V2 AccretionSpawn(int squad, int i, Player target)
+        {
+            if (!accretionRings.TryGetValue(squad, out var ring))
+            {
+                V2 lo = ArenaMin + new V2(180f, 180f), hi = ArenaMax - new V2(180f, 180f);
+                V2 c = new V2(Math.Max(lo.X, Math.Min(hi.X, target.Pos.X)), Math.Max(lo.Y, Math.Min(hi.Y, target.Pos.Y)));
+                accretionRings[squad] = ring = new AccretionRing { Center = c, Spin0 = Rand(0f, MathX.Tau) };
+            }
+            ring.Size++;
+            return ClampToArena(AccretionPoint(ring.Center, ring.Spin0, AccretionSlot(i), AccretionStart), 30f);
+        }
+
+        /// Its place in the turning, closing ring; once the ring breaks up, its own way.
+        V2 AccretionMove(Enemy e, System.Collections.Generic.List<Enemy> mates, V2 v)
+        {
+            var ring = accretionRings[e.SquadId];
+            if (e.T > AccretionLife || mates.Count * 2 < ring.Size)
+                return v;
+            float t = Math.Max(0f, e.T - 0.9f);  // (from when it has spawned in)
+            float radius = Math.Max(AccretionEnd, AccretionStart - AccretionClose * t);
+            return GoalVel(e, ClampToArena(AccretionPoint(ring.Center, ring.Spin0 + AccretionSpin * t, AccretionSlot(e.SquadSlot), radius), 30f));
+        }
 
         public static bool IsInfall(EnemyType t) => t >= EnemyType.Debris && t <= EnemyType.WhiteDwarf;
 

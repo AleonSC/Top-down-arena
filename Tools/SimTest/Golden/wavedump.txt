@@ -20,7 +20,7 @@ campaign w16: Splitter*3 Acolyte RiotShield Splitter Acolyte*2 Splitter*3 Brute*
 campaign w17: SpikeBlock*4 Acolyte Collapsar SpikeBlock*2 Collapsar SpikeBlock*3 Hookman SpikeBlock | Acolyte Debris*6 | Pulsar*2 | Pulsar*2 | Acolyte Debris*6 # SpikeBlock Hookman
 campaign w18: Collapsar*21 | SecurityGuard*3 Rioter*2 SecurityGuard*3 Rioter*2 Thug # FuseRunner BeamSentry
 campaign w19: Charger Pulsar*2 Charger*2 Sapper Pulsar Debris Lens Debris | Acolyte Debris*6 | Pulsar*2 | Lens*2 Acolyte*3 | Lens*2 Acolyte*3 | Pulsar*2 # Sapper Charger
-campaign w20: Phantom Debris Collapsar*2 Phantom Collapsar Graviton Debris Graviton Pulsar Graviton Pulsar Debris*2 Pulsar Collapsar Pulsar | Graviton Collapsar Debris*3 | Pulsar*2 | Pulsar*2 | Graviton Collapsar Debris*3 # Sapper Phantom
+campaign w20: Leader Graviton Leader Debris*2 Collapsar Debris*2 Graviton | Graviton Collapsar Debris*3 | Graviton Collapsar Debris*3 | Orbiter Debris*2 Orbiter Debris*2 Orbiter Debris*2 Orbiter Debris*2 # Leader BeamSentry
 campaign w20 boss: Singularity Grunt Sniper Grunt
 campaign w21: Grunt*7 Guard Grunt*3 Collapsar Guard Grunt*4 BeamSentry*2 Grunt*4 | Graviton Collapsar Debris*3 | Graviton Collapsar Debris*3 # Grunt BeamSentry
 campaign w22: Pulsar Hexer Pulsar Hexer Phantom Pulsar*2 Phantom Hexer | Pulsar*2 | Phantom*3 | Phantom*3 | Soldier Worker*6 Soldier Worker*6 Bumble | Pulsar*2 # Hexer Phantom
@@ -125,11 +125,11 @@ campaign100 w13: Burster*5 SecurityGuard Burster*8 SecurityGuard Burster*2 Spike
 campaign100 w14: Pauser*2 Grunt Pauser*2 Grunt Pauser Swarmer*4 Pauser*2 | Guard Rioter*6 Guard Rioter*6 Thug | Pauser Grunt*2 | Swarmer*5 # Swarmer Pauser
 campaign100 w15: Shielder*2 Sniper TaserGuard Shielder*8 FuseRunner*7 GasGrenadier FuseRunner*3 Shielder Sniper Shielder Thug | Shielder Sniper*2 | Shielder Sniper*2 # Shielder FuseRunner
 campaign100 w15 boss: TwinA TwinB
-campaign100 w16: Pauser*8 Spiker RiotShield Spiker*2 Debris Spiker*3 Acolyte Pauser Guard | Acolyte Debris*6 | Acolyte Debris*6 # Pauser Spiker
-campaign100 w17: Debris Pulsar*2 Debris Spinner Acolyte Pulsar Spinner Lens Spinner Pulsar | Acolyte Debris*6 | Pulsar*2 | Phantom*3 | Pulsar*2 | Acolyte Debris*6 # Phantom Spinner
-campaign100 w18: Pulsar*17 | Pulsar*2 | Pulsar*2 | SecurityGuard*3 Rioter*2 SecurityGuard*3 Rioter*2 Thug # Shielder Phantom
-campaign100 w19: Orbiter Acolyte*2 Orbiter*2 Collapsar Acolyte*2 Collapsar Leader Collapsar Pulsar Collapsar Acolyte Orbiter Leader Pulsar Collapsar Orbiter Collapsar Acolyte*3 Collapsar Pulsar Collapsar*2 | Pulsar*2 | Pulsar*2 # Hookman Leader
-campaign100 w20: Debris*3 Shielder Debris Collapsar Phantom Acolyte Collapsar Acolyte Debris*2 Collapsar Acolyte | Graviton Collapsar Debris*3 | Graviton Collapsar Debris*3 | Acolyte Debris*6 # Phantom Shielder
+campaign100 w16: Debris Shielder Rioter Debris*2 Shielder Debris*2 Shielder Debris Shielder*3 Debris*2 TaserGuard Debris Shielder Debris Bumble Debris*3 Bumble FuseRunner*2 Debris FuseRunner Debris FuseRunner Rioter Shielder Debris # FuseRunner Shielder
+campaign100 w17: Acolyte*2 Sniper Rioter Debris*2 Rioter Acolyte Debris Acolyte Debris*3 Sniper Debris Charger Debris Acolyte*2 Lens*2 | Lens*2 Acolyte*3 | Lens*2 Acolyte*3 # Charger Sniper
+campaign100 w18: Phantom*2 Charger*4 Phantom*5 Pulsar*2 | Phantom*3 | SecurityGuard*3 Rioter*2 SecurityGuard*3 Rioter*2 Thug | Pulsar*2 | Phantom*3 # Charger Phantom
+campaign100 w19: Rioter Acolyte Debris Rioter Debris*2 Acolyte*2 Orbiter Acolyte Orbiter*2 Debris Orbiter*3 Debris Acolyte*2 Debris Orbiter Debris Acolyte*2 Orbiter Acolyte Debris Orbiter Acolyte Orbiter*2 # Sniper Hookman
+campaign100 w20: Phantom Debris Phantom | Acolyte Debris*6 | Acolyte Debris*6 | Lens*2 Acolyte*3 | Pulsar*2 | Pulsar*2 | Lens*2 Acolyte*3 # Sapper Phantom
 campaign100 w20 boss: Singularity Grunt Sniper Grunt
 campaign100 w21: Debris FuseRunner*4 Debris FuseRunner*6 Pulsar FuseRunner*4 Acolyte Debris WhiteDwarf FuseRunner*2 Acolyte Pulsar Sapper*2 FuseRunner Acolyte Pulsar FuseRunner*2 Pulsar Debris FuseRunner Debris # Sapper FuseRunner
 campaign100 w22: Splitter Debris*2 Pauser*4 Splitter Pauser Splitter*2 Debris Splitter*2 Pauser*2 Splitter Pauser Splitter | Soldier Worker*6 Soldier Worker*6 Bumble # Splitter Pauser
@@ -185,11 +185,11 @@ campaign100leg2 w13: Grunt*3 Thug Grunt Splitter Guard Splitter Grunt Splitter G
 campaign100leg2 w14: Shielder Spinner Shielder Spinner Shielder Spinner Sniper Shielder*4 Spinner | Shielder Sniper*2 | Shielder Sniper*2 | Guard Rioter*6 Guard Rioter*6 Thug # Shielder Spinner
 campaign100leg2 w15: Grunt Mortar Grunt Mortar Grunt*2 Mortar Grunt Rioter Mortar Grunt*2 FuseRunner*4 Mortar RiotShield Mortar Rioter Grunt | Charger Mortar*2 | FuseRunner*2 Grunt | FuseRunner*2 Grunt | Charger Mortar*2 # FuseRunner Grunt
 campaign100leg2 w15 boss: TwinA TwinB
-campaign100leg2 w16: Grunt*3 Debris*2 GasGrenadier Phantom*2 SecurityGuard Debris*5 Acolyte Phantom | Acolyte Debris*6 | Acolyte Debris*6 | Phantom*3 # Phantom Grunt
-campaign100leg2 w17: Collapsar Debris*2 Pulsar Phantom*2 Debris Acolyte*3 Debris Charger Pulsar Collapsar | Acolyte Debris*6 | Pulsar*2 | Pulsar*2 | Acolyte Debris*6 # Charger Phantom
-campaign100leg2 w18: Collapsar*21 | SecurityGuard*3 Rioter*2 SecurityGuard*3 Rioter*2 Thug # Phantom Sapper
-campaign100leg2 w19: Collapsar Lens Graviton Lens Lunger Collapsar Debris Lens Debris*3 Graviton Lens Debris Collapsar Lens Graviton Lens Lunger Collapsar Debris | Graviton Collapsar Debris*3 | Graviton Collapsar Debris*3 # Sapper Lunger
-campaign100leg2 w20: Pulsar Debris*2 Graviton Collapsar Graviton Charger Collapsar*2 Debris Charger Pulsar*3 Collapsar Debris Collapsar | Pulsar*2 | Graviton Collapsar Debris*3 | Graviton Collapsar Debris*3 | Pulsar*2 # Charger Hookman
+campaign100leg2 w16: Debris Phantom*2 Debris RiotShield SpikeBlock Debris*2 SpikeBlock Debris*2 GasGrenadier SpikeBlock Phantom Acolyte*2 | Phantom*3 | Acolyte Debris*6 | Acolyte Debris*6 # Phantom SpikeBlock
+campaign100leg2 w17: Debris Acolyte*3 Debris Lens Debris Acolyte Lens Debris Lunger Lens Lunger Debris Acolyte*2 Debris Lens Debris Lens*3 Debris*2 Acolyte Lunger Debris Acolyte Debris Lens Graviton*2 # Swarmer Lunger
+campaign100leg2 w18: Sapper*2 Hookman*2 Collapsar*2 | SecurityGuard*3 Rioter*2 SecurityGuard*3 Rioter*2 Thug # Hookman Sapper
+campaign100leg2 w19: Debris*4 Pulsar Collapsar Debris Leader Collapsar*8 Pulsar*2 Collapsar Debris*4 Collapsar Leader Pulsar Collapsar Debris Collapsar WhiteDwarf*2 # Sapper Leader
+campaign100leg2 w20: Pulsar Collapsar Buzzsaw Collapsar Buzzsaw Pulsar Debris Orbiter Collapsar Debris Orbiter*2 Pulsar Debris*2 | Pulsar*2 | Pulsar*2 | Orbiter Debris*2 Orbiter Debris*2 Orbiter Debris*2 Orbiter Debris*2 # Hookman Buzzsaw
 campaign100leg2 w20 boss: Singularity Grunt Sniper Grunt
 campaign100leg2 w21: SpikeBlock*4 WhiteDwarf SpikeBlock*4 Debris Collapsar SpikeBlock*5 Debris SpikeBlock*4 Acolyte SpikeBlock BeamSentry Acolyte BeamSentry*2 SpikeBlock*5 # SpikeBlock BeamSentry
 campaign100leg2 w22: Hexer*2 FuseRunner*2 Hexer*5 | Hexer*2 Grunt*2 | Soldier Worker*6 Soldier Worker*6 Bumble | FuseRunner*2 Grunt | FuseRunner*2 Grunt # Hexer FuseRunner
@@ -261,7 +261,7 @@ hard w16: Pauser Acolyte Debris Pauser Acolyte Pauser Acolyte Shielder*2 Acolyte
 hard w17: Debris Spinner*4 SecurityGuard GasGrenadier Acolyte Spinner Acolyte FuseRunner*2 Debris*2 Spinner Debris*2 Spinner | Acolyte Debris*6 | Acolyte Debris*6 # Spinner FuseRunner
 hard w18: WhiteDwarf*21 | SecurityGuard*3 Rioter*2 SecurityGuard*3 Rioter*2 Thug # BeamSentry Hookman
 hard w19: Pulsar Lens Sniper Acolyte Pulsar Sniper*2 Pulsar Sniper Lens | Acolyte Debris*6 | Pulsar*2 | Acolyte Debris*6 | Lens*2 Acolyte*3 # Sniper Hookman
-hard w20: Buzzsaw Pulsar Buzzsaw Debris Acolyte Pulsar Lens Debris Acolyte*2 | Lens*2 Acolyte*3 | Acolyte Debris*6 | Pulsar*2 | Pulsar*2 | Lens*2 Acolyte*3 # Buzzsaw Sapper
+hard w20: Shielder Debris*2 Shielder Debris Lens*2 | Lens*2 Acolyte*3 | Orbiter Debris*2 Orbiter Debris*2 Orbiter Debris*2 Orbiter Debris*2 | Acolyte Debris*6 # Shielder Sapper
 hard w20 boss: Singularity Grunt Sniper Grunt
 hard w21: Leader Graviton Leader*2 Acolyte Leader*10 Acolyte Leader Acolyte Leader*3 Hookman*2 Leader*2 | Pulsar*2 | Lens*2 Acolyte*3 # Leader Hookman
 hard w22: Orbiter Hexer*2 Orbiter*2 Hexer*2 Orbiter Hexer*2 Orbiter Hexer Orbiter*3 Hookman Hexer | Soldier Worker*6 Soldier Worker*6 Bumble # Hexer Hookman
