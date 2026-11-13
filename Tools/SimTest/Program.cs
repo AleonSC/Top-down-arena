@@ -322,6 +322,7 @@ static partial class Program
         Test("basicfaction", "the basic faction: the eight plain enemies left, Quick Play's build-up for a boss with no faction, nothing retired in any wave", BasicFactionTest),
         Test("court", "the Duelist's faction (all four steps): the Fencer's hop, the Blade Dancer's blades, the Parrier's parries, the Second's daggers, the Marshal's circle, the Gallant's salute, the Harlequin's crossing, the Mummer's copies, the Ring of Honour, the ten lessons", () => CourtTest(Dt)),
         Test("quarry", "the Colossus's faction, step 1: Rubble, the Quarryman and the Stomper's push ring", () => QuarryTest(Dt)),
+        Test("larder", "the Devourer's faction, steps 1-2: the Gnawling, the Butcher's chop, the Gulper's breath, the Carcass Bearer's morsel, the Bile Spitter's pool", () => LarderTest(Dt)),
         Test("hive", "the Hive Queen's faction: eight enemies that play like the Warden's, honey instead of gas, the venom dart, and the chart in waves 11-20", () => HiveTest(Dt)),
         Test("infall", "the Singularity's faction, steps 1-3: all eight enemies (the Graviton's well, the Collapsar's implosion, the Lens's face, the White Dwarf's pulse), waves 16-19", () => InfallTest(Dt)),
         Test("penumbral", "the Eclipse's faction, steps 1-2: Ember sparks, the Corona Priest's gap, the Heliograph's lane, the Moonward's moon, the Gnomon's shadow, the Dusk Lobber's pool, waves 46-49", () => PenumbralTest(Dt)),
@@ -414,6 +415,7 @@ static partial class Program
         Test("bossgate", "the boss gate (BossGate.cs): opens before the boss, holds the wave until everyone stands in it, bots walk in", () => BossGateTest(Dt)),
         Test("quick", "Quick Play (QuickPlay.cs): the default mode, ten faction waves, a random boss after wave 10, its records, endless", () => QuickPlayTest(Dt), () => QuickBuildTest(Dt), () => TutorialTest(Dt), () => QuickBossHpReport()),
         Test("bossschedule", "boss schedules (BossSchedule.cs): the Campaign's and a hunt's match the old formulas", () => BossScheduleTest()),
+        Test("huntmap", "the hunt map (HuntMap.cs): rows and lanes, links that never cross, node types, walking and restoring it; played over the network: the lobby switch, the vote, Elite waves", () => HuntMapTest(), () => HuntMapNetTest(Dt)),
         Test("hunts", "Boss Hunts: locked until the boss is beaten, the hunt's waves, winning it, its records", () => HuntTest(Dt)),
         Test("perks", "perks: unlock rules, slots, equipping (one per boss), the profile line; Riot Gear: block, grace, 30 s recharge, burns go through; Contraband: the cycle chest and rare-or-better items", () => PerksTest(Dt), () => RiotGearTest(Dt), () => ContrabandTest(Dt)),
         Test("rank", "the account rank: the curve, XP for a run, modifier multiplier, profile, lobby sharing, a run ending", () => RankTest(Dt)),
@@ -478,7 +480,7 @@ static partial class Program
         "trickle", "meleesounds", "grunts", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops",
         "exploit", "doublebarrel", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
         "expand", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
-        "newenemies", "wildcard", "stacking", "singularity", "security", "captain", "wavedump", "spawndump", "hive", "reapercult", "infall", "quarry", "court", "basicfaction", "penumbral",
+        "newenemies", "wildcard", "stacking", "singularity", "security", "captain", "wavedump", "spawndump", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral",
     };
 
     static int Main(string[] args)

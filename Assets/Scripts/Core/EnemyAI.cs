@@ -548,7 +548,8 @@ namespace Arena
                 }
                 V2 tpos = target != null ? target.Pos : new V2(Width / 2f, Height / 2f);
                 tpos = NinjaTarget(e, target, tpos);  // Shadow Clones draw them off; Vanish loses them (Ninja.cs)
-                tpos = RoomTarget(e, tpos);  // a challenge room: the crystal, or the zone (Challenges.cs)
+                tpos = RoomTarget(e, tpos);
+                tpos = GnawlingTarget(e, tpos);  // a Gnawling smells a morsel (LarderFaction.cs)  // a challenge room: the crystal, or the zone (Challenges.cs)
                 bool held = RoomsLeash(e, ref tpos);  // the Rooms arena: guarding its nest, or the vault (Rooms.cs)
                 bool mine = IsPossessed(e);  // the Dev Arena's enemy being played: it goes for the cursor (DevArena.cs)
                 if (mine)
@@ -717,6 +718,8 @@ namespace Arena
                 return;  // the beam's aim and sweep, the rake's cone, the Leader's aim line (Variety.cs)
             if (PulsarLocked(e) || HelioLocked(e) || GnomonLocked(e) || e.Type == EnemyType.Moonward)
                 return;  // its beams' line (Infall.cs)
+            if (LarderFaceLocked(e))
+                return;  // a Butcher's chop, a Gulper's cone (LarderFaction.cs)
             if (e.Type == EnemyType.Lens)
             {
                 LensFace(e, want, dt);  // turns slowly, so you can get round its face (Infall.cs)
@@ -1029,6 +1032,8 @@ namespace Arena
                 speed = 0f;  // a Stomper stands still while its foot is up (QuarryFaction.cs)
             if (DancerBusy(e) || GallantBusy(e) || HarlequinBusy(e) || MummerMasked(e) || e.Type == EnemyType.MummerCopy)
                 speed = 0f;  // (a Mummer and its copies are carried round you while masked)  // a Blade Dancer's lunge moves it itself (CourtFaction.cs)
+            if (LarderPlanted(e))
+                speed = 0f;  // a Butcher chopping, a Gulper breathing in (LarderFaction.cs)
             if (e.SlowT > 0f && !Heavy(e))
                 speed *= e.SlowMult;
             else if (e.WadeT > 0f)
@@ -1079,6 +1084,10 @@ namespace Arena
                 return;  // masked: it circles you with its copies and fires; no lunge (CourtFaction.cs)
             if (e.Type == EnemyType.Stomper)
                 StomperSpecial(e, tpos, dt);  // its stomp ring (QuarryFaction.cs)
+            if (LarderAttacks(e.Type))
+                LarderSpecial(e, tpos, dt);  // the Butcher's chop, the Gulper's breath (LarderFaction.cs)
+            else if (e.Type == EnemyType.Gnawling)
+                GnawlingEat(e);  // a morsel in reach (LarderFaction.cs)
             switch (e.Kin)
             {
                 case EnemyType.Shielder:

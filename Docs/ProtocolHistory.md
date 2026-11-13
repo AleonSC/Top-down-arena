@@ -3,7 +3,10 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
-- 333: the Eclipse's faction, step 1: three new `EnemyType` values (Ember, CoronaPriest, Heliograph) and bullet kind `EmberSpark` 66
+- 336: the Eclipse's faction, steps 1-2: six new `EnemyType` values (Ember, CoronaPriest, Heliograph, Moonward, Gnomon, DuskLobber), bullet kind `EmberSpark` 66, `PatchKind.Dusk` (a Dusk Lobber's pool)
+- 335: the hunt map (Docs/HuntMap.md): `Msg.HuntMapState` (host -> all: seed, cleared path, node being fought, the vote so far) and `Msg.HuntMapVote` (client -> host); the lobby message ends with `HuntMapMode` after `QuickMode`
+- 334: FxKind.PortalSeal (a spawn portal shot closed); a portal's Winding now means a surge is on
+- 333: the Devourer's faction, steps 1-2: new `EnemyType` values Gnawling, Butcher, Gulper, CarcassBearer, BileSpitter (after GraveCaller); a Gnawling's, Butcher's or Gulper's snapshot gains its stage (and time) (`SyncLarder`)
 - 332: the Lich's Grave Caller: new `EnemyType.GraveCaller` and `PatchKind.Grave`; a Caller's Shamblers carry `Zombies.PhCalled` in their phase byte
 - 331: the Duelist's faction, step 3: three new `EnemyType` values (Harlequin, Mummer, MummerCopy), and a Harlequin's enemy snapshot ends with the Duelist's state (SyncDuel: its crossing lines and blades)
 - 330: the Duelist's faction, step 2: three new `EnemyType` values (Second, Marshal, Gallant), bullet kind `ThrownDagger` 65, `PatchKind.DuelCircle`, and a Gallant's enemy snapshot ends with the Duelist's state (SyncDuel: its salute, lunge and stagger)

@@ -401,6 +401,53 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Gnawling, Name = "Gnawling", Group = "Melee", Wave = 41,
+                Appears = "The Devourer's approach (in pairs, Feeding Frenzy and Gullet squads)",
+                Lead = "A mouth on legs, the Devourer in miniature: no eyes, a ring of teeth. Weaves at you in loose pairs. Moves like a Rioter.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "10" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Butcher, Name = "Butcher", Group = "Melee", Wave = 41,
+                Appears = "The Devourer's approach (leading Feeding Frenzy squads, and on its own)",
+                Lead = "A hooded butcher with a bone mask and a stained apron. Walks straight at you like a Guard; within 70 px it stops, raises its cleaver for 0.4 s and chops a 110 px half-circle in front, the shape of the Devourer's Snap bite. Step back or round it.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Chop", Pattern = "0.4 s wind-up, then a 110 px half-circle in front", Damage = "14", Every = 1.6f, Fixed = true },
+                    new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "14" },
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Gulper, Name = "Gulper", Group = "Melee", Wave = 42,
+                Appears = "The Devourer's approach (Gullet squads and on its own)",
+                Lead = "A swollen gut that walks at you like a Thug. Within 220 px it stops, its cheeks swell for 0.6 s, then it breathes in for 1 s: a 70° cone 200 px long pulls you toward its mouth at 120 px/s. Reach the mouth and it bites. Step out of the cone sideways, as from the Devourer's Inhale.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Inhale", Pattern = "0.6 s swell, then a 70° cone that pulls you in for 1 s", Damage = "20 (bite at the mouth)", Every = 4f, Fixed = true },
+                    new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "20" },
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.CarcassBearer, Name = "Carcass Bearer", Group = "Melee", Wave = 42,
+                Appears = "The Devourer's approach (alone, or two in a Larder Wall squad)",
+                Lead = "A hooded butcher behind a side of meat that stops shots and swings from the front. Up close the meat flashes (0.4 s), then it lunges and bashes you back. Break it and it drops in front as a morsel (60 health): shoot it or walk over it, or a Gnawling eats it and grows. The bearer staggers and takes 50% more. Plays like a Riot Shield.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Carcass bash", Pattern = "0.4 s flash, then a short lunge", Damage = "10, and knocked back 160 px" },
+                    new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "8" },
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.BileSpitter, Name = "Bile Spitter", Group = "Shooters", Wave = 42,
+                Appears = "The Devourer's approach (on its own)",
+                Lead = "A lump of brood with a bile sac on its back. Keeps its distance; its sac swells while a green ring fills where you're heading, then it lobs a glob every 3.6 s. It lands 1 s later as a 70 px pool of acid for 4 s, the Devourer's Bile turn in small. Plays like a Gas Grenadier.",
+                Attacks = new[] { new BestiaryAttack { Name = "Bile", Pattern = "Lobbed at a ring on your lead, a pool for 4 s", Damage = "10 a second", Every = 3.6f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.Fencer, Name = "Fencer", Group = "Melee", Wave = 26,
                 Appears = "The Duelist's approach (in crowds, Salon and Guard line squads)",
                 Lead = "A masked foil-fencer that runs in crowds. Within 160 px it shows a short red line for 0.4 s, then hops about 100 px down it. Moves like a Shiv.",

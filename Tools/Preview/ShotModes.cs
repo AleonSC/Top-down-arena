@@ -70,6 +70,28 @@ static partial class Shot {
       typeof(ArenaApp).GetMethod("DrawReplayBar", f2).Invoke(app, null);
       GL.ToUi = false;
     }
+    else if (mode == "huntmap")
+    {
+      // The hunt map screen (HuntMapUi.cs): HMSEED=<n> the map (default 5), HMSTEP=<n> rows cleared (default 4), HMVOTE=1 you have voted for
+      // the first choice (P2 voted for the second, P3 for the first), HMLOCK=1 you have locked in. Use with 3 players: huntmap huntmap 6 12.2 3.
+      var hmSeed = int.Parse(Environment.GetEnvironmentVariable("HMSEED") ?? "5");
+      var hm = HuntMap.Generate(hmSeed);
+      int hmSteps = int.Parse(Environment.GetEnvironmentVariable("HMSTEP") ?? "4");
+      for (int k = 0; k < hmSteps && !hm.Complete; k++) { var ch = hm.Choices(); hm.Pick(ch[(hmSeed + k) % ch.Length]); hm.Clear(); }
+      var hg = host.Game; hg.Hunt = Hunts.All[0]; hg.HuntMapOn = true; hg.HuntRoute = hm; hg.HuntMapVoting = true; hg.HuntMapSeconds = 17f;
+      int hmSeat = 0;
+      foreach (var hp in hg.Players.Values)
+      {
+        if (hmSeat == 0 && Environment.GetEnvironmentVariable("HMVOTE") != null) hg.MapVotes[hp.Id] = 0;
+        if (hmSeat == 1) { hg.MapVotes[hp.Id] = 1; hg.MapLocked.Add(hp.Id); }
+        if (hmSeat == 2) { hg.MapVotes[hp.Id] = 0; hg.MapLocked.Add(hp.Id); }
+        if (hmSeat == 0 && Environment.GetEnvironmentVariable("HMLOCK") != null) hg.MapLocked.Add(hp.Id);
+        hmSeat++;
+      }
+      Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true;
+      typeof(ArenaApp).GetMethod("DrawHuntMap", f2).Invoke(app, new object[] { hm, Hunts.All[0], 0f });
+      GL.ToUi = false;
+    }
     else if (mode == "dev")
     {
       typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
@@ -246,7 +268,8 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("DIFF") != null) { var dl = (DifficultyLevel)Enum.Parse(typeof(DifficultyLevel), Environment.GetEnvironmentVariable("DIFF")); host.Diff = Difficulty.Of(dl == DifficultyLevel.Custom ? DifficultyLevel.Hard : dl); if (dl == DifficultyLevel.Custom) { host.Diff.Set(DiffKnob.EnemyDamage, 1.8f); host.Diff.Set(DiffKnob.Regen, 0.5f); host.Diff.Set(DiffKnob.ReviveTime, 2.5f); } }
       // HUNT=<n>: Boss Hunt mode, its tab (the Warden's hunt open, won once), the nth boss on top (n > 1: a never-met "???" boss).
       if (Environment.GetEnvironmentVariable("HUNT") != null) { host.HuntMode = true; var hpr = host.Game.ProfileOverride = new Profile(); hpr.BossBeaten(EnemyType.Boss, 5); hpr.HuntEnded(EnemyType.Boss, true, 312f); hpr.HuntEnded(EnemyType.Boss, false, 200f);
-        int hn; if (int.TryParse(Environment.GetEnvironmentVariable("HUNT"), out hn) && hn > 1) host.HuntBoss = BossSchedule.Campaign.BossAt(Math.Min(hn, 10) * 5); }
+        int hn; if (int.TryParse(Environment.GetEnvironmentVariable("HUNT"), out hn) && hn > 1) host.HuntBoss = BossSchedule.Campaign.BossAt(Math.Min(hn, 10) * 5);
+        if (Environment.GetEnvironmentVariable("HUNTMAP") != null) host.HuntMapMode = true; }  // HUNTMAP=1: the Boss Hunt tab with the hunt map switch on
       if (Environment.GetEnvironmentVariable("CLIENT") != null) host.MyId = 2;
       if (Environment.GetEnvironmentVariable("LOBBYSETTINGS") != null) { set("settingsOpen", true); set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank))); }
       if (mode == "lobbypr") {

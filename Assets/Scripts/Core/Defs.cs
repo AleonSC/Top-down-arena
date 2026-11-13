@@ -86,6 +86,11 @@ namespace Arena
         Harlequin, Mummer, MummerCopy,
         // the Lich's faction: a zombie in his soul cyan that cracks graves open round you (Zombies.cs, Game/ZombieLook.cs)
         GraveCaller,
+        // the Devourer's faction, The Larder (LarderFaction.cs, Game/LarderLook.cs): a Gnawling plays like a Rioter, a Butcher
+        // like a Guard that chops a half-circle, a Gulper like a Thug that breathes you in
+        Gnawling, Butcher, Gulper,
+        // step 2: a Carcass Bearer plays like a Riot Shield (its broken slab drops as a morsel), a Bile Spitter like a Gas Grenadier (an acid pool)
+        CarcassBearer, BileSpitter,
         // the Eclipse's faction, the Penumbral Court (Docs/EclipseFaction.md, Penumbral.cs, Game/PenumbralLook.cs): step 1
         Ember, CoronaPriest, Heliograph,
         // ...step 2: a Dusk Lobber plays like a Gas Grenadier that lobs a pool of dark (HiveKin.cs)
@@ -437,6 +442,17 @@ namespace Arena
                 Picker = PickerGroup.Hidden, Blurb = "One of a Mummer's two copies: its shots are hollow rings that pass through you. It vanishes when its time is up." },
             new EnemyDef { Name = "Grave Caller", Hp = 60f, Radius = 14f, Speed = 60f, Score = 12, Xp = 16, Sides = 4, Color = new Rgba(0.37f, 0.85f, 1f),
                 Picker = PickerGroup.Ranged, Blurb = "Zombie: hangs back and cracks three graves open round you; a Shambler claws out of each. Step out of the ring, then kill it: its risen crumble." },
+            // the Devourer's faction (LarderFaction.cs): the Gnawling and the Butcher have their Warden counterpart's numbers
+            new EnemyDef { Name = "Gnawling", Hp = 40f, Radius = 11f, Speed = 110f, Score = 3, Xp = 7, Sides = 8, Color = new Rgba(0.91f, 0.53f, 0.6f), Melee = true, Contact = 10f,
+                Picker = PickerGroup.Melee, Blurb = "A mouth on legs, the Devourer in miniature. Weaves at you in pairs." },
+            new EnemyDef { Name = "Butcher", Hp = 90f, Radius = 13f, Speed = 125f, Score = 6, Xp = 15, Sides = 8, Color = new Rgba(0.43f, 0.29f, 0.24f), Melee = true, Contact = 14f,
+                Picker = PickerGroup.Melee, Blurb = "A hooded butcher with a bone mask. Close in, it raises its cleaver and chops a half-circle in front: step out of it." },
+            new EnemyDef { Name = "Gulper", Hp = 180f, Radius = 22f, Speed = 58f, Score = 12, Xp = 25, Sides = 9, Color = new Rgba(0.86f, 0.5f, 0.56f), Melee = true, Contact = 20f,
+                Picker = PickerGroup.Melee, Blurb = "A swollen gut. Its cheeks swell, then it breathes in and pulls you toward its mouth: step out of the cone sideways." },
+            new EnemyDef { Name = "Carcass Bearer", Hp = 60f, Radius = 16f, Speed = 120f, Score = 10, Xp = 10, Sides = 6, Color = new Rgba(0.37f, 0.29f, 0.25f), Melee = true, Contact = 8f,
+                Picker = PickerGroup.Melee, Blurb = "Carries a side of meat that stops shots and bashes you back. Break it and it drops as a morsel: shoot it or walk over it before a Gnawling eats it." },
+            new EnemyDef { Name = "Bile Spitter", Hp = 50f, Radius = 14f, Speed = 75f, Score = 8, Xp = 9, Sides = 5, Color = new Rgba(0.84f, 0.55f, 0.55f),
+                Picker = PickerGroup.Ranged, Blurb = "Lobs a glob of bile where you're heading. Walk out of the ring: it leaves a pool of acid for a few seconds." },
             // the Eclipse's faction, the Penumbral Court (Penumbral.cs)
             new EnemyDef { Name = "Ember", Hp = 16f, Radius = 9f, Speed = 135f, Score = 3, Xp = 6, Sides = 5, Color = new Rgba(1f, 0.54f, 0.24f), Melee = true, Contact = 8f,
                 Picker = PickerGroup.Melee, Blurb = "A scrap of solar flare that weaves in at you, dropping sparks that hang in the air behind it." },

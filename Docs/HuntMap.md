@@ -1,6 +1,7 @@
 # Hunt map: path selection for Boss Hunts (design)
 
-Status: **proposal, nothing built.** Numbers are first guesses. Open questions at the bottom need the owner's call.
+Status: **steps 1, 2 and 3 built** (protocol 333; the map is a switch on the lobby's Boss Hunt tab, off by default, so the ten-wave hunt stays as it was) (the screen is `Game/HuntMapUi.cs`, drawn with the lobby's widgets; preview `huntmap`; not wired into the match yet).
+Earlier: step 1 (`Core/HuntMap.cs`, suite `huntmap`: the map, its links, Skirmish and Elite nodes, progress, restore; not in the game yet). Numbers are first guesses. Open questions at the bottom need the owner's call.
 
 ## The idea
 
@@ -103,9 +104,10 @@ The map isn't only a menu: what you pick shapes the boss fight.
 
 ## Build order
 
-1. `HuntMap.cs` + tests, with only Skirmish and Elite nodes. Playable with a debug picker.
-2. Map screen + preview screenshots (before/after PNGs for you to pick the look).
-3. Net: the vote, snapshot, protocol bump.
+1. ~~`HuntMap.cs` + tests, with only Skirmish and Elite nodes.~~ Done. Still to do from this step: playing it (a node picks the wave's strength: an Elite is a finale-style wave one approach step tougher; the host auto-picks until the vote exists). That touches `HuntBosses` (`ApproachStep`, `FinaleWave`) and the hunt's start, so it goes with step 3.
+   - Measured over 3000 seeds: 51% of nodes have two ways on, 14% of rows give no choice at all (a 3-by-3 row gap can't give every node two links without crossing). Tune in step 6, or allow a few crossings.
+2. ~~Map screen + preview screenshots.~~ Done: `HuntMapUi.cs`, `HuntMapLayout.cs` (the lines), preview mode `huntmap`.
+3. ~~Net: the vote, snapshot, protocol bump.~~ Done (protocol 333): `Session.HuntMapMode` and the lobby switch, `HuntMapGame.cs` (map, vote, timer, node waves), `Msg.HuntMapState` / `Msg.HuntMapVote`; an Elite is one approach step tougher with the finale set piece; Skirmish is the hunt's own strength; Rest, Shop, Ambush, Contraband and Gamble are step 4.
 4. Rest, Shop, Ambush, Contraband and Gamble nodes, one at a time.
 5. Boss clues.
 6. Tune with the Boss Lab and hunt SimTest reports (win rate by route: safe route vs elite route).

@@ -429,7 +429,7 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 ## Rules
 
 - **Timed waves:** a regular wave's enemies arrive over about 45 s instead of in one burst: a ramp-up (first 15%), three **surges** (at 20%, 48% and 76% of the window, about 7 s each) with quieter lulls between them (40% of the surge rate), then a taper as the wave dies down, and the wave ends when the last one is dead (the clear-up brings it to about a minute). Spawning waits while 14 + 3 per wave (at most 60) foes are alive. Boss, Practice, designed, Zombie Infection and room-by-room waves keep their own pacing. Enemies pick the nearest breach (or the nearest valid spot on the open Rooms map, of four) to a player that is at least 350 px away, so big maps don't feel empty.
-- **Spawn portals:** on a timed wave the single enemies come in **bursts** (3 on wave 1, one more every 4 waves, up to 8) through a **spawn portal**: a violet digital gate whose segmented ring fills like a loading bar while it opens (1 s) where the burst comes in (an edge, a layout's enemy gate, a spot on the Rooms map, never within 160 px of a player), then lets one enemy out every 0.35 s, with chevrons pointing the way they'll come. Shoot it closed (200 health, scaling like an enemy's) before it empties and **the rest of its burst is cancelled**: +5 score each, plus 2 gold each as coins in the Expanding arena. An empty portal shrinks shut with no reward. Up to 2 portals are open at once (3 in a surge); with none open for 4 s a smaller burst comes anyway. Squads, Nests and breach waves keep their own way in.
+- **Spawn portals:** on a timed wave the single enemies come in **bursts** (3 on wave 1, one more every 4 waves, up to 8) through a **spawn portal**: a violet digital gate whose segmented ring fills like a loading bar while it opens (1 s) where the burst comes in (an edge, a layout's enemy gate, a spot on the Rooms map, never within 160 px of a player), then lets one enemy out every 0.35 s, with chevrons pointing the way they'll come. Shoot it closed (200 health, scaling like an enemy's) before it empties and it blows apart in a white flash: **the rest of its burst is cancelled**: +5 score each, plus 2 gold each as coins in the Expanding arena. An empty portal shrinks shut with no reward. Up to 2 portals are open at once (3 in a surge, when their rings chase faster and more bits pour in); with none open for 4 s a smaller burst comes anyway. Squads, Nests and breach waves keep their own way in.
 - **Flank portals:** from wave 3, one burst in 4 (never a wave's first) opens **behind the party**, opposite the way the players are aiming: a red portal that takes 1.6 s to open, and a red arrow round your player points at it.
 - The arena is 1600x900 and **wraps around for players**: walk off any edge and you come in on the opposite side.
 - **Wall slams:** an enemy knocked back into the arena edge stops there and takes damage: 6 plus 0.12 per px of push the wall cut short, up to 40 (pushes that lose under 8 px do nothing). Bosses and shielded enemies still use their normal damage rules.
@@ -722,16 +722,37 @@ with Mummers, Parriers, Marshals, Gallants, every squad, then the exam (the Ring
 | 2 | **Harlequin** | Thug | A heavy two-sworded jester in crimson diamonds (240 health, contact 20) that walks at you. Within 260 px, the **Crossing**: it shows a line through you for 0.7 s and dashes it, 170 px past you, then **vaults to the other arm of the X**, shows the crossing line for 0.45 s and dashes that. Both leave blades every 70 px that fire **out sideways** after 0.8 s: stand in a gap of the X. Every 6 s |
 | 3 | **Mummer** | Shiv | A fast masked player in a violet cape (40 health) that circles in and lunges like a Shiv. Within 260 px it **blinks and becomes three**: they circle you 150 px out for 5 s, each firing every 0.9 s, but only the **real one's shots are solid**; the copies' are **hollow rings** that pass through you. The copies look the same, have 1 health and give nothing; kill the real one and they vanish. Every 9 s |
 
+The **Devourer's faction**, The Larder, leads up to its fight: its brood (mouths with no eyes, the Devourer in miniature)
+and the hooded butchers who keep it fed (design: `Docs/Approaches.md`, "The Larder"; mockup:
+`Docs/Mockups/devourer-faction.html`). Steps 1-2 of 4 are built: five of its eight, each teaching a turn of the fight.
+Squads: **Feeding Frenzy** (a Butcher and six Gnawlings) and, from wave 3 of the approach, **Larder Wall** (two Carcass
+Bearers with four Gnawlings) and **Gullet** (a Gulper and three Gnawlings). They pay XP like their counterparts
+(Gnawling 7, Butcher 15, Gulper 25, Carcass Bearer 10, Bile Spitter 9). **Morsels** (the Devourer's, 60 health) also
+fall from broken Carcass Bearers: shoot one or walk over it, or a hungry Gnawling within 320 px runs for it, eats it and
+grows (50% more health, drawn bigger), as the Devourer heals from them in its Hungry turn.
+
+| From | The Devourer's faction | Plays like | What it does |
+|---|---|---|---|
+| 1 | **Gnawling** | Rioter | A lump of pink flesh that is mostly mouth: weaves at you in pairs, chomping (contact 10); eats morsels |
+| 1 | **Butcher** | Guard | A hooded butcher with a bone mask and a cleaver: straight at you (contact 14). Within 70 px it **stops and raises its cleaver for 0.4 s** while a **red half-circle** fills in front, then **chops** it (110 px, 14), the shape of the Devourer's Snap bite, and rests 1.6 s. Step back or round it |
+| 2 | **Gulper** | Thug | A swollen gut (180 health, contact 20) that walks at you like a Brute. Within 220 px it **stops and its cheeks swell for 0.6 s** while its **cone** shows, then it **breathes in** for 1 s: the 70° cone, 200 px long, pulls you toward its mouth at 120 px/s. Reach the mouth and it **bites** (20) and the breath ends. Step out of the cone sideways, as from the Devourer's Inhale. Every 4 s |
+| 2 | **Carcass Bearer** | Riot Shield | A hooded butcher behind a side of meat that stops shots and bashes you back (10, 160 px). The meat tears as it wears; broken, it drops in front as a **morsel** and the bearer staggers and takes 50% more |
+| 2 | **Bile Spitter** | Gas Grenadier | A lump of brood with a green bile sac: keeps its distance and, every 3.6 s, its sac swells while a **green ring** fills **where you're heading**, then it lobs a glob. It lands 1 s later as a 70 px **pool of acid** for 4 s (10 a second), the Devourer's Bile in small. Change direction out of the ring |
+
 The **Eclipse's faction**, the Penumbral Court, leads up to the final fight (waves 46-49): sun-cultists and scraps of
 flare, each previewing one of the Eclipse's stages (design: `Docs/EclipseFaction.md`; mockup: `Docs/Mockups/eclipse-faction.html`).
-Step 1 of 4 is in: three enemies and squads **Dawn** (a Corona Priest and six Embers) and, from wave 47, **Mirror pair**
-(two Heliographs); at most three Heliographs a wave. No set piece or Campaign lessons yet: its waves are built by reach.
+Steps 1-2 of 4 are in: six enemies and squads **Dawn** (a Corona Priest and six Embers) and, from wave 47, **Mirror pair**
+(two Heliographs); from wave 48, **Night watch** (a Dusk Lobber, a Gnomon and three Embers). At most three Heliographs a
+wave. No set piece or Campaign lessons yet: its waves are built by reach.
 
 | From | The Eclipse's faction (the Penumbral Court) | Previews | What it does |
 |---|---|---|---|
 | 46 | **Ember** | Lunar wake | A scrap of solar flare (16 health, 135 px/s, contact 8) that **weaves** in at you. Every 0.2 s it drops a **spark** (6) that drifts back slowly (25 px/s) and **hangs for 1.5 s**, so crossing its trail hurts |
 | 46 | **Corona Priest** | Corona rings | A sun-cultist inside a halo of spikes. Keeps 260 px away and strafes; its halo **flares for 0.7 s**, then bursts into a **ring of 13 slow shots** (130 px/s, 14 each): one straight at you and a **gap one slot beside it**. Step into the gap |
 | 47 | **Heliograph** | Solar flares | Carries a sun mirror. Within 340 px it plants and aims at you: a **line flickers for 1 s**, then it becomes a **40 px lane of fire** for 0.5 s (20). It rests 2.5 s and goes again. Step off the line, not back along it |
+| 47 | **Moonward** | the Penumbra's moon | A pale knight (100 health, contact 12) that walks at you with a small **moon circling it** 30 px out, once every 2.4 s. The moon **swallows any shot** it touches: fire when it swings round the back |
+| 47 | **Gnomon** | Eclipse flash | A walking sundial (240 health, contact 20, can't be shoved): a stone slab with a **sun lantern** at its back. Within 360 px it plants with its slab turned a little to **one side of you**, its **shadow** shows on the floor and the lantern swells for 1.5 s; then it **flashes** everyone within 520 px who isn't in the shadow (30). Every 6 s. Step sideways into the shadow, toward it |
+| 47 | **Dusk Lobber** | the Umbra | Plays like a Gas Grenadier, but lobs a **ball of night** that bursts into a **pool of dark** (90 px, 4 s): inside you see only 40 px round you, and it **drains 6 a second**. Stay in the light |
 
 **Bubbles (Shielded elites and the Warder's wards):** a bubble is twelve cells round the rim, each holding a twelfth of the shield. A hit wears down the cell facing whoever shot it (flashing, then breaking into shards) and spills over to its neighbours once that cell is gone, so the side you shoot from is the side that opens. Burning and bleeding keep chewing the weakest cell. A honeycomb inside only shows where its cell is still up, and a thin shield bar sits above the health bar. Blue is a Shielded elite, violet is the Warder's.
 
@@ -1238,7 +1259,7 @@ you've beaten it anywhere, a **???** until then (on your first Quick Play the Wa
   wave number). The HUD counts the waves n / 10. **Your first Quick Play always ends on the Warden**; after that the boss is
   random: every boss comes up once before any repeats, and never the same one twice in a row.
 - **The waves before a boss are its own enemies** (its faction, as in a Boss Hunt: tougher members joining as they go, its set
-  piece on the fifth and tenth wave). Bosses without a faction yet (the Duelist, Storm Herald, Devourer and Eclipse) get the
+  piece on the fifth and tenth wave). Bosses without a faction yet (the Storm Herald and Eclipse) get the
   **basic faction** the same way (see Enemies).
 - **Bosses play exactly as anywhere else.** Only their health changes: about a **two-minute fight** for a typical build at
   whatever wave they come (a late boss after wave 10 has much less health than at its own Campaign wave; an early one in

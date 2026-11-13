@@ -195,6 +195,7 @@ namespace Arena
             Stop();
             PracticeIndex = -1;
             ResetPaths();
+            ResetHuntMap();  // HuntMapGame.cs
             ResetExpansion();  // ExpansionGame.cs
             ResetRoom();  // Challenges.cs
             int startWave = r.ReadInt32();
@@ -864,6 +865,7 @@ namespace Arena
             AnimT += dt;
             TickShopNotices(dt);
             TickExpansion(dt);     // a bot player's vote (ExpansionGame.cs)
+            TickHuntMapView(dt);   // the hunt map's vote timer on a client, a bot's vote (HuntMapGame.cs)
             TickGates(dt);         // the shutter gates' clocks (Gates.cs)
             UpdatePropView(dt);    // crates, barrels, chests and their items (Props.cs)
             UpdateInkView(dt);     // Chalk.cs: the chalk's tip easing, a client's ink ageing
@@ -1307,6 +1309,7 @@ namespace Arena
             TickHealerKit(dt);   // KitWeapons.cs: Ofuda wards, seeded enemies
             TickNimbus(dt);      // Nimbus.cs: rain under each cloud heals allies in it
             TickChalk(dt);       // Chalk.cs: drawing, and what the ink does
+            TickLarderHost(dt);     // LarderFaction.cs: loose bile pools, morsels stepped on with no Devourer about
             TickWardenFaction(dt);  // WardenFaction.cs: tear gas with no Warden about, the Riot Shields' bash grace
             TickPenumbral(dt);      // Penumbral.cs: Dusk Lobbers' pools drain
             TickReaperFaction(dt);  // ReaperFaction.cs: the Bound Wraiths' tethers, the Scythe Wraiths' reaps

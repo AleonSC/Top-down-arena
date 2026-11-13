@@ -615,7 +615,7 @@ namespace Arena
             return false;
         }
 
-        /// Your own game: the inhale pulls you towards its mouth when you're in the cone.
+        /// Your own game: the inhale pulls you towards its mouth when you're in the cone (a Gulper's too).
         public V2 DevourPull(V2 at)
         {
             foreach (var e in Enemies.Values)
@@ -630,7 +630,7 @@ namespace Arena
                     continue;
                 return to / d * (InhalePullNear - (InhalePullNear - InhalePullFar) * d / InhaleReach);
             }
-            return V2.Zero;
+            return GulpPullAt(at);  // a Gulper breathing in (LarderFaction.cs)
         }
 
         /// Your own game: inside it, you go where it goes.

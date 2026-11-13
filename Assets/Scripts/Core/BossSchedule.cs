@@ -54,14 +54,17 @@ namespace Arena
     public class HuntBosses : BossSchedule
     {
         public readonly HuntDef Hunt;
+        public Func<int, HuntNodeType> NodeAt;   // the hunt map's node type for a wave, when the hunt is played as a map (Game.HuntNodeAt)
         public HuntBosses(HuntDef hunt) { Hunt = hunt; }
         public override bool Slotted => false;
         public override bool IsBossWave(int wave) => wave >= Hunts.Length;
         public override EnemyType BossAt(int wave) => Hunt.Boss;
         public override int NextBossWaveFrom(int wave) => Hunts.Length;
         public override int LastBossWave(int wave) => wave >= Hunts.Length ? Hunts.Length : 0;
-        public override int ApproachStep(int wave) => IsBossWave(wave) ? 0 : Hunts.Step(wave);
-        public override bool FinaleWave(int wave) => Hunts.FinaleWave(wave);
+        // An Elite node of a hunt map is a tougher wave: one step further into the faction, and a finale's set piece.
+        bool Elite(int wave) => NodeAt != null && NodeAt(wave) == HuntNodeType.Elite;
+        public override int ApproachStep(int wave) => IsBossWave(wave) ? 0 : Math.Min(4, Hunts.Step(wave) + (Elite(wave) ? 1 : 0));
+        public override bool FinaleWave(int wave) => Hunts.FinaleWave(wave) || Elite(wave);
     }
 
     public partial class Game
@@ -78,7 +81,7 @@ namespace Arena
                 if (Hunt == null)
                     return BossSchedule.Campaign;
                 if (huntBosses == null || huntBosses.Hunt != Hunt)
-                    huntBosses = new HuntBosses(Hunt);
+                    huntBosses = new HuntBosses(Hunt) { NodeAt = HuntNodeAt };
                 return huntBosses;
             }
         }
