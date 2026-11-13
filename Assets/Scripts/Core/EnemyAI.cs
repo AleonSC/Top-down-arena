@@ -715,7 +715,7 @@ namespace Arena
                 return;  // committed to the leap / flight line (a Spike Block locks its line when it winds up)
             if (e.Type == EnemyType.BeamSentry && e.Phase >= 2 || e.Type == EnemyType.Reaver && e.Phase != 0 || e.Type == EnemyType.Leader && e.Phase == 1)
                 return;  // the beam's aim and sweep, the rake's cone, the Leader's aim line (Variety.cs)
-            if (PulsarLocked(e))
+            if (PulsarLocked(e) || HelioLocked(e))
                 return;  // its beams' line (Infall.cs)
             if (e.Type == EnemyType.Lens)
             {
@@ -998,6 +998,8 @@ namespace Arena
                 v = VarietyMove(e, tpos, dir, dist, ref speed);  // Variety.cs
             if (IsInfall(e.Type))
                 v = InfallMove(e, tpos, dir, dist, dt, ref speed);  // Infall.cs
+            if (IsCourt(e.Type))
+                v = CourtMove(e, tpos, dir, dist, dt, ref speed);  // Court.cs
             if (Challenges.Own(e.Type))
                 v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
             if (e.Type == EnemyType.RiotCaptain)
@@ -1017,7 +1019,7 @@ namespace Arena
                 speed *= HasteMult;
             // A sweeping Beam Sentry steers its beam by Strafe, so it keeps the side it telegraphed (the roll still happens, keeping the RNG sequence).
             // A Security Guard keeps its side on its own timer (SecurityGuard.cs); Debris keeps its spiral's side, a Pulsar its sweep's (Infall.cs).
-            if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3) && e.Kin != EnemyType.SecurityGuard && !PulsarLocked(e) && e.Type != EnemyType.Debris)
+            if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3) && e.Kin != EnemyType.SecurityGuard && !PulsarLocked(e) && !HelioLocked(e) && e.Type != EnemyType.Debris)
                 e.Strafe = -e.Strafe;
             if (StomperPlanted(e))
                 speed = 0f;  // a Stomper stands still while its foot is up (QuarryFaction.cs)
@@ -1194,6 +1196,10 @@ namespace Arena
                 case EnemyType.WhiteDwarf:
                     InfallSpecial(e, tpos, dt);  // Infall.cs
                     break;
+                case EnemyType.Ember:
+                case EnemyType.Heliograph:
+                    CourtSpecial(e, tpos, dt);  // Court.cs
+                    break;
             }
         }
 
@@ -1225,6 +1231,8 @@ namespace Arena
                 return;  // ReaperFaction.cs
             if (InfallFire(e, tpos, aim))
                 return;  // Infall.cs
+            if (CourtFire(e, tpos, aim))
+                return;  // Court.cs
             if (e.Kin == EnemyType.GasGrenadier)
             {
                 GrenadierFire(e, tpos);  // WardenFaction.cs

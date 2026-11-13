@@ -288,6 +288,22 @@ namespace Arena
                     EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler,
                     EnemyType.Mender, EnemyType.Mender, EnemyType.Runner, EnemyType.Runner, EnemyType.Runner } },
             },
+            new FactionDef
+            {
+                Boss = EnemyType.Eclipse,  // the Eclipse: the Penumbral Court, each previewing one of its stages (Court.cs, Docs/EclipseFaction.md); step 1 of 4
+                Members = new[]
+                {
+                    new FactionMember { Type = EnemyType.Ember, Weight = 3f },  // sparks hang behind it (Lunar wake)
+                    new FactionMember { Type = EnemyType.CoronaPriest, NotFirst = true, Weight = 2f },  // a ring with one gap (Corona rings)
+                    new FactionMember { Type = EnemyType.Heliograph, Fade = 1, Weight = 1.5f, From = 2 },  // a line, then a lane of fire (Solar flares)
+                },
+                Squads = new[]
+                {
+                    new SquadDef { Name = "Dawn", From = 1, Members = new[] { EnemyType.CoronaPriest, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember } },
+                    new SquadDef { Name = "Mirror pair", From = 2, Members = new[] { EnemyType.Heliograph, EnemyType.Heliograph } },
+                },
+                // No set piece or lesson cycle yet (steps 2-4): the Campaign builds its waves by reach, as for the Lich.
+            },
         };
 
         static FactionMember M(EnemyType t, float weight) => new FactionMember { Type = t, Weight = weight };

@@ -75,6 +75,8 @@ namespace Arena
         Driller, Geomancer, CinderPriest,
         // faction mini-bosses (FactionMinis.cs): the Warden's, a shield officer (RiotCaptain.cs, Game/RiotCaptainLook.cs)
         RiotCaptain,
+        // the Eclipse's faction, the Penumbral Court (Docs/EclipseFaction.md, Court.cs, Game/CourtLook.cs): step 1
+        Ember, CoronaPriest, Heliograph,
     }
 
     public class RoleDef
@@ -401,6 +403,13 @@ namespace Arena
                 Picker = PickerGroup.Ranged, Blurb = "Charges a molten core, then fires one magma bolt straight at you. Wherever it stops, it leaves a pool of lava. Strafe across the line, or parry it." },
             new EnemyDef { Name = "Riot Captain", Hp = 3000f, Radius = 30f, Speed = 70f, Score = 150, Xp = 80, Sides = 8, Color = new Rgba(0.5f, 0.66f, 1f), Heavy = true, Contact = 20f, Mini = true,
                 Blurb = "The Warden's mini-boss: a tower shield blocks the front. Bait its shield charge into a wall to daze it; it also fires buckshot, lobs tear gas and whistles for Taser Guards." },
+            // the Eclipse's faction, the Penumbral Court (Court.cs)
+            new EnemyDef { Name = "Ember", Hp = 16f, Radius = 9f, Speed = 135f, Score = 3, Xp = 6, Sides = 5, Color = new Rgba(1f, 0.54f, 0.24f), Melee = true, Contact = 8f,
+                Picker = PickerGroup.Melee, Blurb = "A scrap of solar flare that weaves in at you, dropping sparks that hang in the air behind it." },
+            new EnemyDef { Name = "Corona Priest", Hp = 45f, Radius = 13f, Speed = 85f, Score = 7, Xp = 10, Sides = 6, Color = new Rgba(1f, 0.82f, 0.4f),
+                Picker = PickerGroup.Ranged, Blurb = "A sun-cultist. Its halo flares, then bursts into a ring of slow shots: one at you, and a gap beside it." },
+            new EnemyDef { Name = "Heliograph", Hp = 70f, Radius = 13f, Speed = 75f, Score = 9, Xp = 12, Sides = 8, Color = new Rgba(1f, 0.69f, 0.36f),
+                Picker = PickerGroup.Ranged, Blurb = "Tilts a sun mirror at you: a line flickers for a second, then becomes a lane of fire. Step off the line." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount
@@ -656,9 +665,10 @@ namespace Arena
             TaserBolt = 61,    // the Taser Guard's Fork Bolt: a white lightning glyph that stuns you for a second (WardenFaction.cs, Game/TaserLook.cs)
             TracerRound = 62,  // the Security Guard's pistol round: a hot-white tracer with a long tail (SecurityGuard.cs, Game/SecurityLook.cs)
             StingBolt = 63,    // the Stinger's venom dart: a lime barbed dart that stuns like the Fork Bolt (WardenFaction.cs, Game/HiveLook.cs)
-            MagmaBolt = 64;    // the Cinder Priest's magma bolt: it leaves a lava pool wherever it stops (QuarryFaction.cs, Game/QuarryLook.cs)
+            MagmaBolt = 64,    // the Cinder Priest's magma bolt: it leaves a lava pool wherever it stops (QuarryFaction.cs, Game/QuarryLook.cs)
+            EmberSpark = 65;   // an Ember's spark: drifts back slowly and hangs behind it (Court.cs, Game/CourtLook.cs)
 
-        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt;
+        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == EmberSpark;
 
         /// Bosses' aimed attacks: barriers, walls and other blockers can't stop these.
         public static bool Unblockable(byte kind) => kind == PierceShot;
@@ -726,6 +736,7 @@ namespace Arena
                 case TaserBolt: return 7f;
                 case StingBolt: return 7f;
                 case MagmaBolt: return 8f;
+                case EmberSpark: return 5f;
                 case TracerRound: return 5f;
                 case BileShot: return 6f;
                 case ToothShot: return 10f;
@@ -750,6 +761,7 @@ namespace Arena
                 case TaserBolt: return 8f;  // a Taser Guard's Fork Bolt: the same stun
                 case StingBolt: return 8f;  // a Stinger's dart: the same
                 case MagmaBolt: return 9f;  // a Cinder Priest's bolt (and its lava)
+                case EmberSpark: return 5.2f;  // an Ember's spark: 6 once the enemy bullet multiplier is on
                 case TracerRound: return 6.1f;  // a Security Guard's round: 7 once the enemy bullet multiplier is on
                 case HoneyShot: return 14f;  // the Hive Queen's nectar spray
                 case ToothShot: return 20f;  // the Devourer's Jaws
@@ -824,6 +836,7 @@ namespace Arena
                 case TaserBolt: return new Rgba(0.75f, 0.91f, 1f);     // the Fork Bolt's ice white
                 case StingBolt: return new Rgba(0.784f, 1f, 0.239f);   // the Stinger's venom lime
                 case MagmaBolt: return new Rgba(1f, 0.48f, 0.23f);     // the Cinder Priest's magma
+                case EmberSpark: return new Rgba(1f, 0.6f, 0.26f);     // an Ember's spark
                 case TracerRound: return new Rgba(0.94f, 0.97f, 1f);   // the Security Guard's hot-white tracer
                 case BileShot: return new Rgba(0.75f, 0.9f, 0.31f);  // the Devourer's vomit
                 case ToothShot: return new Rgba(0.96f, 0.9f, 0.82f);  // the Devourer's Jaws

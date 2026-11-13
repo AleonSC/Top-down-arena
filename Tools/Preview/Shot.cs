@@ -397,6 +397,29 @@ static partial class Shot {
       var on = iput(EnemyType.Pulsar, new V2(1200f, 690f)); on.Phase = 2; on.Facing = 3.75f;
       ig.AnimT += float.Parse(Environment.GetEnvironmentVariable("INFALL"), System.Globalization.CultureInfo.InvariantCulture);
     }
+    if (Environment.GetEnvironmentVariable("COURT") != null) {  // COURT=<s into the clock>: the Eclipse's faction, step 1 (CourtLook.cs): three Embers weaving in with their sparks hanging behind, a Corona Priest winding up with a ring in flight, a Heliograph aiming and one burning; set beside Docs/Mockups/eclipse-faction.html
+      var cg = host.Game; cg.Enemies.Clear(); cg.Bullets.Clear();
+      var csp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, Enemy> cput = (t, at) => { var e = (Enemy)csp.Invoke(cg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; return e; };
+      me.Pos = me.Disp = new V2(1000f, 560f);
+      int cid = 9200;
+      for (int k = 0; k < 3; k++) {
+        V2 at = me.Pos + new V2(-200f - 40f * k, -120f + 120f * k);
+        var em = cput(EnemyType.Ember, at); em.Facing = (me.Pos - at).Angle;
+        for (int j = 1; j <= 7; j++) {  // its trail: older sparks further back along its weave
+          float back = j * 27f, life = Game.EmberSparkLife - j * 0.2f;
+          V2 sp = at - V2.FromAngle(em.Facing) * back + V2.FromAngle(em.Facing).Orthogonal() * (float)Math.Sin(j * 0.9f + k) * 16f;
+          cg.Bullets[cid] = new Bullet { Id = cid, Kind = Defs.EmberSpark, Pos = sp, Vel = V2.Zero, Radius = Defs.BulletRadius(Defs.EmberSpark), Dmg = 6f, Life = life, Life0 = Game.EmberSparkLife }; cid++;
+        }
+      }
+      var pr = cput(EnemyType.CoronaPriest, new V2(1330f, 330f)); pr.Facing = (me.Pos - pr.Pos).Angle;
+      typeof(Game).GetMethod("CoronaRing", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(cg, new object[] { pr, pr.Facing });
+      foreach (var b in cg.Bullets.Values) if (b.Kind != Defs.EmberSpark) b.Pos += b.Vel * 0.9f;
+      pr.Winding = true;
+      var aim = cput(EnemyType.Heliograph, new V2(1340f, 780f)); aim.Phase = 1; aim.SeenT = 0.6f; aim.Facing = (me.Pos + new V2(0f, 40f) - aim.Pos).Angle;
+      var burn = cput(EnemyType.Heliograph, new V2(640f, 860f)); burn.Phase = 2; burn.SeenT = 0.12f; burn.Facing = -0.25f;
+      cg.AnimT += float.Parse(Environment.GetEnvironmentVariable("COURT"), System.Globalization.CultureInfo.InvariantCulture);
+    }
     if (Environment.GetEnvironmentVariable("INFALL2") != null) {  // INFALL2=<s into the clock>: the Singularity's faction, step 2 (InfallLook.cs): a Graviton winding up beside its landed Small Well, an Orbiter flaring with a slung orb in flight, a hurt Collapsar and an Implosion half-way
       var ig = host.Game; ig.Enemies.Clear(); ig.Bullets.Clear();
       var isp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

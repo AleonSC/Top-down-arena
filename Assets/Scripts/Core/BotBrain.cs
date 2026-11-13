@@ -720,6 +720,8 @@ namespace Arena
                             d += w * 2.5f;  // a Pulsar's beams, flickering or sweeping (Infall.cs)
                         else if (IsInfall(e.Type))
                             d += w * InfallBotDanger(e, p, hitR);  // a White Dwarf's pulse, a Small Well, an Implosion (Infall.cs)
+                        else if (HelioLocked(e))
+                            d += w * CourtBotDanger(e, p, hitR);  // a Heliograph's line (Court.cs)
                         else if (e.Type == EnemyType.RiotCaptain && (e.Phase == CapWinding || e.Phase == CapCharging))
                         {
                             // The Riot Captain's shield charge: get off its line (RiotCaptain.cs).

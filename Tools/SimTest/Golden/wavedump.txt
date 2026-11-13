@@ -52,21 +52,21 @@ campaign w43: Mortar Spinner Mortar Spinner Mortar Shielder Mortar Shielder Mort
 campaign w44: Wisp Spinner*2 Rioter Spinner*2 Rioter Spinner*6 Wisp Spinner*6 Rubble Spinner Graviton Spinner*4 Wisp Spinner Worker Spinner Brute*2 | Swarmer*5 | Swarmer*5 # Brute Spinner Swarmer
 campaign w45: Spinner Wisp Grunt*2 Mortar Wisp Mortar Grunt Mortar Grunt Spinner Mortar Spinner Grunt Spinner*2 Mortar Grunt Mortar Grunt Hornet Wisp Spinner Grunt Thug Mortar Grunt*2 Mortar Grunt*2 Spinner Grunt*2 RockHurler Mortar*2 Collapsar Mortar Grunt*2 Mortar # Grunt Spinner Mortar
 campaign w45 boss: Devourer
-campaign w46: Sniper Grunt*12 Sniper Grunt | Lens*2 VoidAcolyte*3 Lens*2 VoidAcolyte*3 Collapsar | Swarmer*5 | Swarmer*5 | Grunt*3 Sniper # Brute Lunger Grunt
-campaign w47: Grunt*3 TaserGuard Orbiter Grunt Wisp Grunt*12 Bumble Grunt SlabBearer Grunt*5 Wisp Grunt Lunger*2 Wisp | Swarmer*5 | Swarmer*5 # Swarmer Lunger Grunt
-campaign w48: Mortar*3 GasGrenadier Needler Mortar Debris Mortar*4 CinderPriest Wisp Mortar*15 Lunger Swarmer*4 Wisp*2 | Swarmer*5 | Swarmer*5 # Lunger Swarmer Mortar
-campaign w49: Sniper*3 RiotShield Wisp Sniper*3 Lens Sniper*13 Needler Wisp Sniper*2 Wisp Sniper*2 Lunger Swarmer*4 Stomper | Swarmer*5 | Swarmer*5 # Sniper Swarmer Lunger
-campaign w50: Mortar*3 Shielder Geomancer Shielder Spinner Mortar Spinner*3 Guard Wisp Shielder Mortar Shielder Mortar Spinner Mortar Shielder Mortar*2 Shielder Mortar*2 Spinner*2 Shielder*2 Mortar Wisp*2 Mortar Spinner Shielder*2 Spinner Pulsar Shielder Stinger Shielder Spinner # Shielder Mortar Spinner
+campaign w46: CoronaPriest*2 Grunt CoronaPriest*2 Ember*2 Grunt CoronaPriest Grunt Ember Grunt | Brute*2 Lunger | Lens*2 VoidAcolyte*3 Lens*2 VoidAcolyte*3 Collapsar | CoronaPriest Ember*6 | CoronaPriest Ember*6 # Grunt Lunger Brute
+campaign w47: Mortar Heliograph Ember Grunt Ember Sniper Heliograph Grunt Mortar SecurityGuard Heliograph Hornet CoronaPriest Mortar Grunt Heliograph Sniper CoronaPriest | Grunt*3 Sniper | CoronaPriest Ember*6 | Heliograph*2 | Heliograph*2 | CoronaPriest Ember*6 # Grunt Sniper Mortar
+campaign w48: CoronaPriest Mortar*2 CoronaPriest Mortar Guard Mortar*2 CoronaPriest*2 Lunger Swarmer Needler Ember*3 Swarmer Heliograph Swarmer CoronaPriest Heliograph CoronaPriest Heliograph Swarmer | CoronaPriest Ember*6 | Heliograph*2 | Heliograph*2 | CoronaPriest Ember*6 # Mortar Swarmer Lunger
+campaign w49: CoronaPriest Ember Heliograph*2 Ember*3 Grunt HoneyLobber Mortar Ember*3 CoronaPriest Ember Mortar CoronaPriest Brute Heliograph CoronaPriest RiotShield Heliograph | Heliograph*2 | CoronaPriest Ember*6 | CoronaPriest Ember*6 | Heliograph*2 # Brute Grunt Mortar
+campaign w50: CoronaPriest Ember*2 Soldier CoronaPriest Mortar Guard Ember Swarmer Heliograph*2 CoronaPriest*2 Heliograph Ember*2 Swarmer Heliograph Swarmer CoronaPriest Swarmer CoronaPriest Heliograph Ember CoronaPriest | CoronaPriest Ember*6 | Heliograph*2 | CoronaPriest Ember*6 | Heliograph*2 # Grunt Mortar Swarmer
 campaign w50 boss: Eclipse
-campaign w51: Mortar Grunt VoidAcolyte Guard Spinner*3 Mortar Grunt Guard*2 BoundWraith Worker Rioter*3 Mortar Guard Spinner*2 Rioter*2 Spinner Grunt Rioter Grunt Spinner | Guard Rioter*6 | Guard Rioter*6 # Mortar Grunt Spinner
-campaign w52: Grunt Spinner Grunt*2 Rioter*3 Guard Grunt*2 RiotShield*2 Worker Rioter RiotShield Spinner | SecurityGuard*3 Rioter*2 | Guard Rioter*6 | Guard Rioter*6 | Swarmer*5 # Swarmer Grunt Spinner
+campaign w51: Spinner Ember Mortar Guard*2 Swarmer Guard Swarmer Ember Heliograph Rioter*4 Swarmer Guard Swarmer Rioter*2 | Guard Rioter*6 | CoronaPriest Ember*6 | Heliograph*2 | Guard Rioter*6 | Heliograph*2 # Spinner Swarmer Mortar
+campaign w52: Mortar*2 RiotShield Rioter Heliograph Guard Heliograph*3 Rioter Heliograph Lunger RiotShield Heliograph Rioter RiotShield Rioter | Heliograph*2 | Heliograph*2 | Guard Rioter*6 | Guard Rioter*6 | SecurityGuard*3 Rioter*2 # Brute Lunger Mortar
 campaign w53: Shiv Spinner Rioter Spinner Rioter*2 RiotShield Spinner*2 Rioter | RiotShield*2 Rioter*4 | Swarmer*5 | Thug Rioter*3 Shiv | Thug Rioter*3 Shiv | SecurityGuard*3 Rioter*2 | SecurityGuard*3 Rioter*2 # Swarmer Spinner Brute
 campaign w54: TaserGuard*25 | ScytheWraith*2 Shade*2 Wisp*3 ScytheWraith*2 Shade*2 Wisp*3 Gravedigger # Lunger Brute Swarmer
 campaign w55: Mortar RiotShield Mortar Swarmer GasGrenadier Rioter*2 Swarmer Guard Swarmer*2 | SecurityGuard*3 Rioter*2 | RiotShield*2 Rioter*4 | SecurityGuard*3 Rioter*2 | Guard Rioter*6 | RiotShield*4 Guard*5 # Lunger Swarmer Mortar
 campaign w55 boss: Boss Grunt*27
 campaign w56: Worker Soldier*2 Shielder Brute Soldier Worker*5 Guard*3 | Soldier Worker*6 | SecurityGuard*3 Rioter*2 | Guard Rioter*6 | Soldier Worker*6 # Grunt Shielder Brute
 campaign w57: Shielder Guard CombShield Shielder Guard Worker Guard*2 CombShield Guard*7 | Soldier Worker*6 | Soldier Worker*6 | Needler*3 Worker*2 | Needler*3 Worker*2 # Sniper Grunt Shielder
-campaign w58: Soldier Worker Soldier*2 Worker Soldier Worker*3 Soldier*2 Worker*4 | Soldier Worker*6 | Soldier Worker*6 | Thug Rioter*3 Shiv Thug Rioter*3 Shiv Thug # Shielder Sniper Brute
+campaign w58: Soldier Worker*2 Soldier*2 Sniper Worker Soldier Worker Soldier Worker*3 Soldier Worker*2 Soldier | Quarryman*2 RockHurler*2 Quarryman*2 RockHurler*2 Stomper | Soldier Worker*6 | Soldier Worker*6 # Sniper Brute Lunger
 campaign w59: Spinner Bumble*2 Soldier*2 Stinger Worker Shielder Worker*2 Bumble | CombShield*2 Worker*4 | CombShield*2 Worker*4 | Soldier Worker*6 | Shielder Sniper*2 | Soldier Worker*6 # Shielder Sniper Spinner
 campaign w60: CombShield Spinner Hornet Grunt Swarmer*2 Needler Swarmer*2 CombShield | CombShield*4 Soldier*5 | Needler*3 Worker*2 | Soldier Worker*6 | Soldier Worker*6 | Needler*3 Worker*2 # Swarmer Spinner Grunt
 campaign w60 boss: HiveQueen
@@ -161,11 +161,11 @@ campaign100 w43: Stinger Shielder*2 Grunt Shielder Grunt Shielder*2 SlabBearer S
 campaign100 w44: CinderPriest Spinner*5 RiotShield Stinger Spinner*9 ScytheWraith Lens Spinner*9 Lunger Brute Lunger*2 Brute*2 | Brute*2 Lunger | Brute*2 Lunger # Brute Lunger Spinner
 campaign100 w45: Sniper*9 Pulsar Sniper Guard Sniper HoneyLobber Sniper*4 ScytheWraith Sniper*5 Stomper Sniper*3 Brute*2 | Swarmer*5 | Swarmer*5 # Sniper Brute Swarmer
 campaign100 w45 boss: Devourer
-campaign100 w46: Shielder*2 Sniper Shielder*3 Sniper*2 Shielder Sniper*2 Shielder Sniper | Lens*2 VoidAcolyte*3 Lens*2 VoidAcolyte*3 Collapsar | Brute*2 Lunger | Brute*2 Lunger | Swarmer*5 | Swarmer*5 # Sniper Shielder Lunger
-campaign100 w47: Mortar*2 Shielder Mortar*2 Shielder Mortar Shielder Mortar Shielder Mortar Graviton CombShield Shielder Mortar*2 ScytheWraith Shielder*3 Mortar Shielder Mortar Shielder Rioter*2 Shielder Mortar Swarmer*2 Quarryman Swarmer*2 | Swarmer*5 | Swarmer*5 # Swarmer Mortar Shielder
-campaign100 w48: Spinner Grunt*2 Spinner*2 Grunt*3 Soldier Grunt Spinner*2 Grunt*3 Spinner*3 Geomancer Spinner Grunt*2 Spinner*3 Lunger*6 ScytheWraith Lunger Thug Lunger*5 WhiteDwarf # Lunger Spinner Grunt
-campaign100 w49: Sniper Spinner*2 Shielder Sniper Shielder Sniper*3 Shielder VoidAcolyte Spinner Soldier Sniper Spinner Shielder Spinner Shielder*2 ScytheWraith Spinner*2 Sniper Spinner SecurityGuard Sniper*3 Shielder*2 Quarryman Sniper Shielder Sniper | Shielder Sniper*2 | Shielder Sniper*2 # Spinner Sniper Shielder
-campaign100 w50: Grunt*2 Shielder*4 Grunt*2 Shielder Grunt*2 Shielder*2 Grunt*2 Shielder Grunt*4 Shielder Grunt TaserGuard Shielder Orbiter Lunger*2 Worker Lunger*8 ScytheWraith Lunger RockHurler Lunger # Shielder Grunt Lunger
+campaign100 w46: Ember Shielder Ember Shielder CoronaPriest*2 Ember Grunt Ember Shielder | Lens*2 VoidAcolyte*3 Lens*2 VoidAcolyte*3 Collapsar | CoronaPriest Ember*6 | Swarmer*5 | CoronaPriest Ember*6 # Shielder Swarmer Grunt
+campaign100 w47: Heliograph Grunt CoronaPriest Ember Shielder Ember*2 GasGrenadier CoronaPriest Shielder Heliograph HoneyLobber Heliograph CoronaPriest Ember Grunt Ember*2 Heliograph Shielder CoronaPriest*2 | CoronaPriest Ember*6 | Heliograph*2 | CoronaPriest Ember*6 | Heliograph*2 # Spinner Shielder Grunt
+campaign100 w48: Ember*2 Sniper Ember*2 Rioter CoronaPriest Ember Worker Ember*3 CoronaPriest*2 Ember*2 Rioter CoronaPriest Brute Heliograph*2 CoronaPriest*2 | CoronaPriest Ember*6 | CoronaPriest Ember*6 | Heliograph*2 | Heliograph*2 # Brute Shielder Sniper
+campaign100 w49: Stinger Heliograph Ember*7 Rioter*2 Ember Shielder Brute Heliograph*2 CoronaPriest Ember Heliograph CoronaPriest*2 Ember CoronaPriest | Heliograph*2 | Heliograph*2 | CoronaPriest Ember*6 | CoronaPriest Ember*6 # Shielder Brute Grunt
+campaign100 w50: Heliograph Stinger Heliograph CoronaPriest*3 Heliograph*2 Ember Guard Sniper Swarmer*2 CoronaPriest*3 Swarmer*2 CoronaPriest Ember Heliograph CoronaPriest Heliograph CoronaPriest Ember | Heliograph*2 | CoronaPriest Ember*6 | CoronaPriest Ember*6 | Heliograph*2 # Swarmer Shielder Sniper
 campaign100 w50 boss: Eclipse
 campaign100leg2 w1: Rioter*6 Guard*2 | Rioter*5
 campaign100leg2 w2: Rioter*4 SecurityGuard*2 | Thug Rioter*3 Shiv

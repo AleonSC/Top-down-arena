@@ -66,7 +66,7 @@ namespace Arena
                 if (r.Type == t)
                     return r.Job;
             var d = Defs.Get(t);
-            if (t == EnemyType.HiveEgg || t == EnemyType.SapperMine || t == EnemyType.Pulsar || t == EnemyType.Graviton || t == EnemyType.MiniWell)
+            if (t == EnemyType.HiveEgg || t == EnemyType.SapperMine || t == EnemyType.Pulsar || t == EnemyType.Graviton || t == EnemyType.MiniWell || t == EnemyType.Heliograph)
                 return EnemyJob.Zoner;
             if (t == EnemyType.WhiteDwarf)
                 return EnemyJob.Disruptor;  // the Singularity's White Dwarf (Infall.cs)

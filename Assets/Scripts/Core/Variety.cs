@@ -341,6 +341,7 @@ namespace Arena
         {
             CapBeams(EnemyType.BeamSentry, MaxSentries, () => rng.NextDouble() < 0.5 ? EnemyType.Sniper : EnemyType.Grunt);
             CapBeams(EnemyType.Pulsar, MaxPulsars, () => EnemyType.VoidAcolyte);
+            CapBeams(EnemyType.Heliograph, MaxHeliographs, () => EnemyType.CoronaPriest);  // (Court.cs)
         }
 
         void CapBeams(EnemyType beam, int max, Func<EnemyType> instead)

@@ -232,6 +232,28 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Ember, Name = "Ember", Group = "Melee", Wave = 46,
+                Appears = "The Eclipse's approach (waves 46-49, in packs and Dawn squads)",
+                Lead = "A scrap of solar flare that weaves in at you. Every 0.2 s it drops a spark that drifts back slowly and hangs for 1.5 s, so crossing its trail hurts.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "8" },
+                    new BestiaryAttack { Name = "Sparks", Pattern = "Left hanging behind it for 1.5 s", Shot = "Spark", ShotColor = new Rgba(1f, 0.6f, 0.26f), Speed = "25", Damage = "6", Every = 0.2f } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.CoronaPriest, Name = "Corona Priest", Group = "Shooters", Wave = 46,
+                Appears = "The Eclipse's approach (waves 46-49), alone or leading a Dawn squad",
+                Lead = "A sun-cultist with a halo of spikes. Keeps 260 px away; its halo flares for 0.7 s, then bursts into a ring of 13 slow shots: one straight at you and a gap one slot beside it. Step into the gap.",
+                Attacks = new[] { new BestiaryAttack { Name = "Corona ring", Pattern = "13 shots, one gap beside you", Shot = "Small shot", ShotColor = new Rgba(1f, 0.3f, 0.45f), Speed = "130", Damage = "14 each", Every = 2.4f } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Heliograph, Name = "Heliograph", Group = "Shooters", Wave = 47,
+                Appears = "The Eclipse's approach (waves 47-49), alone or two in a Mirror pair",
+                Lead = "Carries a sun mirror. Within 340 px it plants and aims at you; a line flickers for 1 s, then it becomes a 40 px lane of fire for 0.5 s. It rests 2.5 s and goes again. Step off the line, not back along it.",
+                Attacks = new[] { new BestiaryAttack { Name = "Flare", Pattern = "1 s warning line, then a 40 px lane for 0.5 s", Damage = "20", Every = 4f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.Graviton, Name = "Graviton", Group = "Shooters", Wave = 17,
                 Appears = "The Singularity's approach (waves 17-19), alone or in a Gravity trap squad",
                 Lead = "Keeps 320 px away. Every 6 s it plants its feet for 0.6 s, a ring marks a spot near you, and 0.8 s later a Small Well lands there: for 4 s it drags you toward it (80 px/s at its middle, 240 px out) and bends your shots into it. Get clear, or shoot the well (30 health). A new lob takes its old well away.",
