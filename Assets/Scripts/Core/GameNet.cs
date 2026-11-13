@@ -150,6 +150,9 @@ namespace Arena
                 case Msg.PathChosen:
                     ReadPathChosen(r);
                     break;
+                case Msg.HuntMapState:
+                    ReadHuntMapState(r);  // HuntMapGame.cs
+                    break;
                 case Msg.ExpandState:
                     ReadExpandState(r);
                     break;
