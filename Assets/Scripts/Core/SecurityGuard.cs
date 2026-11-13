@@ -3,10 +3,11 @@ using System;
 namespace Arena
 {
     /// The Security Guard (Docs/Mockups/security-guard.html; drawn in Game/SecurityLook.cs): a Warden-faction shooter with a
-    /// service pistol. It keeps SecurityRange away, turns toward where you will be (a straight-line lead from how you are moving,
-    /// like the Leader's), plants its feet for SecurityWindUp s with a red lane on the floor to the lead point, then fires one
-    /// tracer round (Defs.TracerRound) and starts over: semi-auto, one every SecurityEvery s. Seven shots empty the magazine;
-    /// the reload takes SecurityReload s, during which it stands still, doesn't shoot and is easy to rush.
+    /// service pistol. It keeps SecurityRange away and strafes, keeping one side for SecurityStrafeMin..Max s (Enemy.PhaseT
+    /// counts it down), turns its pistol straight at you (no lead), then locks it for SecurityWindUp s with a red lane on the
+    /// floor while it keeps walking at SecurityAimPace, and fires one tracer round (Defs.TracerRound): semi-auto, one every
+    /// SecurityEvery s. Seven shots empty the magazine; the reload takes SecurityReload s, during which it eases to a stop
+    /// (SecurityEase s each way), doesn't shoot and is easy to rush.
     ///   Enemy.Phase is the rounds left (SecurityMag..1) and 0 while it reloads; the host's FireT counts the gap to the next shot
     ///   (or the reload), and Enemy.Winding is the lock-on (replicated). Clients time the recoil, the casing and the reload ring
     ///   from the age of the Phase they see (Enemy.SeenT).
@@ -15,38 +16,35 @@ namespace Arena
     public partial class Game
     {
         public const float SecurityWindUp = 0.25f, SecurityEvery = 1.5f, SecurityReload = 2.2f, SecurityRange = 300f, SecurityEngage = 380f,
-            SecurityTurn = 2.8f, SecurityBulletSpeed = 340f, SecurityAfterReload = 0.75f;
+            SecurityTurn = 4f, SecurityBulletSpeed = 340f, SecurityAfterReload = 0.75f, SecurityAimPace = 0.6f, SecurityEase = 0.3f,
+            SecurityStrafeMin = 2f, SecurityStrafeMax = 4f;
         public const byte SecurityMag = 7;
 
-        /// It stands still while it locks on and while it reloads; otherwise it holds its distance and strafes.
-        V2 SecurityMove(Enemy e, V2 dir, float dist)
+        /// It holds its distance and strafes, slowing to SecurityAimPace while it locks on; it eases to a stop for the reload
+        /// and back up as the new magazine goes in.
+        V2 SecurityMove(Enemy e, V2 dir, float dist, float dt)
         {
-            if (e.Winding || e.Phase == 0)
-                return V2.Zero;
-            return KeepDistance(dir, dist, SecurityRange) + dir.Orthogonal() * e.Strafe * 0.7f;
+            e.PhaseT -= dt;
+            if (e.PhaseT <= 0f)
+            {
+                e.Strafe = -e.Strafe;  // commit to a side for a while instead of the usual random flips
+                e.PhaseT = Rand(SecurityStrafeMin, SecurityStrafeMax);
+            }
+            V2 v = KeepDistance(dir, dist, SecurityRange) + dir.Orthogonal() * e.Strafe * 0.7f;
+            if (e.Phase == 0)
+            {
+                float down = MathX.Clamp01((e.FireT - (SecurityReload - SecurityEase)) / SecurityEase), up = MathX.Clamp01(1f - e.FireT / SecurityEase);
+                return v.LimitLength(1f) * Math.Max(down, up);
+            }
+            return e.Winding ? v.LimitLength(1f) * SecurityAimPace : v;
         }
 
-        /// The angle that meets a player moving as they are now, counting the lock-on time. A decoy (a Shadow Clone, Vanish)
-        /// gets aimed at as it stands.
-        float SecurityLeadAngle(Enemy e, V2 tpos)
-        {
-            Player p;
-            V2 rel = tpos - e.Pos;
-            if (!Players.TryGetValue(e.TargetId, out p) || p.Pos.DistanceTo(tpos) > 1f)
-                return rel.Angle;
-            V2 v = p.Motion;
-            if (v.Length > 450f)
-                v = v.Normalized() * 450f;
-            V2 ahead = rel + v * SecurityWindUp;
-            return (ahead + v * LeadTime(ahead, v, SecurityBulletSpeed)).Angle;
-        }
-
-        /// It turns at SecurityTurn rad/s toward the lead point (toward you, while it reloads); locked while it winds up.
+        /// It turns at SecurityTurn rad/s toward you (no lead); locked while it winds up.
         void SecurityFace(Enemy e, V2 tpos, float dt)
         {
             if (e.Winding)
                 return;
-            float want = e.Phase == 0 ? (tpos - e.Pos).Angle : SecurityLeadAngle(e, tpos);
+            float want = (tpos - e.Pos).Angle;
             float diff = MathX.Fmod(want - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi;
             e.Facing += Math.Max(-SecurityTurn * dt, Math.Min(SecurityTurn * dt, diff));
         }

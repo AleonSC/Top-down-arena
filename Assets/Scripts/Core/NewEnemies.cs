@@ -37,7 +37,7 @@ namespace Arena
                 case EnemyType.Burster: return "Fires a ring of shots. Find the gap and step through.";
                 case EnemyType.Spiker: return "Rushes in spiked pairs. Keep moving, don't stand still.";
                 case EnemyType.Sniper: return "One fast aimed shot. Watch its aim line, then move.";
-                case EnemyType.SecurityGuard: return "Locks on, then fires tracers. Change direction in the red lane, rush it as it reloads.";
+                case EnemyType.SecurityGuard: return "Locks on, then fires tracers straight at you. Keep moving, rush it as it reloads.";
                 case EnemyType.TaserGuard: return "Charges, then fires a white bolt that stuns. Strafe or parry it.";
                 case EnemyType.Brute: case EnemyType.Thug: return "A slow, heavy rusher. Back off and keep firing.";
                 case EnemyType.Spinner: return "Sprays spirals in bursts. Wait out each burst.";

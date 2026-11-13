@@ -56,7 +56,7 @@ namespace Arena
             Circle(b, w / 2f, c, 8);
         }
 
-        /// The player the locked shot is meant for: the one nearest its line (a front end guess at the lead point).
+        /// The player the locked shot is meant for: the one nearest its line (where the lane ends).
         float SecLaneLength(Enemy e, V2 muzzle, V2 dir)
         {
             float best = 1e9f, along = 300f;
@@ -102,7 +102,7 @@ namespace Arena
             }
         }
 
-        /// The body, in place of the usual polygon (the uniform is drawn in the mockup's own colours; a hit flashes it white).
+        /// The body, in place of the usual polygon (a round body, visor and pistol like the other guards; a hit flashes it white).
         void DrawSecurityBody(Enemy e, V2 pos, float r, Rgba col, float t)
         {
             V2 fwd = V2.FromAngle(e.Facing);
@@ -113,44 +113,12 @@ namespace Arena
             float recoil = !reloading && e.Phase < Game.SecurityMag ? Mathf.Clamp01(1f - e.SeenT * 7f) : 0f;
             float aim = e.Winding ? 1f : 0.35f;
 
-            // the belt pouch trailing behind
-            SetColor(Hex(0x14232b));
-            V2 c0 = F.P(-12f, 0f);
-            V2[] pouch = { F.P(-10f, -11f), F.P(-18f, -9.5f), F.P(-22f, -4f), F.P(-22f, 4f), F.P(-18f, 9.5f), F.P(-10f, 11f) };
-            for (int i = 0; i < pouch.Length - 1; i++)
-                Tri(c0, pouch[i], pouch[i + 1]);
-            Tri(c0, pouch[pouch.Length - 1], pouch[0]);
-            for (int i = 0; i < pouch.Length - 1; i++)
-                Line(pouch[i], pouch[i + 1], 1.5f * s, Hex(0x0a141a));
-            Quad(F.P(-20f, -6f), F.P(-14f, -6f), F.P(-14f, -1f), F.P(-20f, -1f), Hex(0x223641));
-            Quad(F.P(-20f, 2f), F.P(-14f, 2f), F.P(-14f, 7f), F.P(-20f, 7f), Hex(0x223641));
-
             // the body: a dark rim and a shaded disc (the mockup's radial gradient, as stacked discs)
-            Circle(pos, r, Hex(0x0f2029), 28);
-            Circle(pos, r - 1.25f * s, Hex(0x2a4856), 28);
-            float[] rad = { 12.5f, 10f, 7.5f, 5f };
-            int[] shade = { 0x35596b, 0x436c81, 0x5584a0, 0x6f9cb2 };
-            for (int i = 0; i < rad.Length; i++)
-                Circle(F.P(-4f * (i + 1) / 4f, -4f * (i + 1) / 4f), rad[i] * s, Hex(shade[i]), 24);
+            Circle(pos, r, Hex(0x14234a), 28);
+            Circle(pos, r - 1.25f * s, Hex(0x5b8ce8), 28);  // flat, in the same blue as the Taser Guard and Guard
 
-            // the hi-vis vest: two bands across the chest, clipped to the body
-            float inner = r - 1.25f * s;
-            System.Func<float, float> H = x => Mathf.Sqrt(Mathf.Max(0f, inner * inner - x * x * s * s)) / s;
-            System.Action<float, float, int, int, float, float> Band = (x0, x1, edgeCol, midCol, hi0, hi1) =>
-            {
-                float h0 = H(x0), h1 = H(x1);
-                Quad(F.P(x0, -h0), F.P(x1, -h1), F.P(x1, h1), F.P(x0, h0), Hex(edgeCol));
-                Quad(F.P(x0, -h0 * 0.55f), F.P(x1, -h1 * 0.55f), F.P(x1, h1 * 0.55f), F.P(x0, h0 * 0.55f), Hex(midCol));
-                Quad(F.P(hi0, -H(hi0)), F.P(hi1, -H(hi1)), F.P(hi1, H(hi1)), F.P(hi0, H(hi0)), new Rgba(1f, 1f, 1f, 0.7f));
-            };
-            Band(-9f, -5.4f, 0xc9d33a, 0xeef55c, -7.9f, -6.9f);
-            Band(-1.5f, 1.1f, 0xc9d33a, 0xeef55c, -0.9f, -0.1f);
-            Arc(pos, r - 1.25f * s, 2.5f * s, Hex(0x0f2029), 28);
-
-            // the shoulder radio, with a blinking light
-            Quad(F.P(-3f, -19f), F.P(5f, -19f), F.P(5f, -14f), F.P(-3f, -14f), Hex(0x4d6370));
-            Quad(F.P(-2.2f, -18.2f), F.P(4.2f, -18.2f), F.P(4.2f, -14.8f), F.P(-2.2f, -14.8f), Hex(0x10181d));
-            Circle(F.P(3f, -16.5f), 1.2f * s, Mathf.FloorToInt(t * 1.5f) % 2 != 0 ? Hex(0x5dff9a) : Hex(0x1a5b37), 8);
+            // the visor, like the Taser Guard's
+            Line(F.P(2f, -6f), F.P(2f, 6f), 3.5f * s, new Rgba(0.04f, 0.08f, 0.16f, 0.95f));
 
             // arms and the pistol
             float gx, gy, gr, slideBack = recoil * 4.2f;
@@ -173,13 +141,6 @@ namespace Arena
                 magInHand = rk > 0.5f && rk < 0.76f;
                 slideBack = rk > 0.9f ? Mathf.Sin((rk - 0.9f) / 0.1f * MathX.Pi) * 5f : 0f;
             }
-            Rgba armCol = Hex(0x2b4a59), armEdge = Hex(0x0f2029);
-            V2 rh = new V2(gx + 1.5f, gy + 2f);
-            SecRound(F.P(0f, 12f), F.P(rh.X, rh.Y), 8f * s, armEdge);
-            SecRound(F.P(0f, -12f), F.P(lh.X, lh.Y), 8f * s, armEdge);
-            SecRound(F.P(0f, 12f), F.P(rh.X, rh.Y), 5.5f * s, armCol);
-            SecRound(F.P(0f, -12f), F.P(lh.X, lh.Y), 5.5f * s, armCol);
-
             float cg = Mathf.Cos(gr), sg = Mathf.Sin(gr);
             System.Func<float, float, V2> G = (x, y) => F.P(gx + x * cg - y * sg, gy + x * sg + y * cg);
             Quad(G(-2f, -2.6f), G(14f, -2.6f), G(14f, 2.6f), G(-2f, 2.6f), Hex(0x262c31));       // the frame under the slide
@@ -221,49 +182,6 @@ namespace Arena
                 Quad(Q(-2.9f, -4.8f), Q(2.9f, -4.8f), Q(2.9f, 4.8f), Q(-2.9f, 4.8f), Hex(0x2c363c, al));
                 Quad(Q(-2.2f, -4f), Q(2.2f, -4f), Q(2.2f, 4f), Q(-2.2f, 4f), magCol.WithAlpha(al));
             }
-
-            // gloves
-            Circle(F.P(rh.X, rh.Y), 3.3f * s, Hex(0x050a0d), 12);
-            Circle(F.P(rh.X, rh.Y), 2.6f * s, Hex(0x161f25), 12);
-            Circle(F.P(lh.X, lh.Y), 3.3f * s, Hex(0x050a0d), 12);
-            Circle(F.P(lh.X, lh.Y), 2.6f * s, Hex(0x161f25), 12);
-
-            // epaulettes
-            for (int sgn = -1; sgn <= 1; sgn += 2)
-            {
-                V2 pc = F.P(0f, 13f * sgn);
-                Circle(pc, 7.4f * s, Hex(0x0a161d), 16);
-                Circle(pc, 6.6f * s, Hex(0x1d3340), 16);
-                Circle(F.P(-1f, 13f * sgn - 1f), 5f * s, Hex(0x37566a), 14);
-                Circle(F.P(-2f, 13f * sgn - 2f), 2.8f * s, Hex(0x5b7e91), 12);
-                Circle(F.P(1f, 13f * sgn), 1.7f * s, Hex(0xd2a84c), 8);
-            }
-
-            // the peaked cap: crown, band, glossy brim, gold badge
-            Circle(pos, 10.6f * s, Hex(0x070e13), 22);
-            Circle(pos, 9.6f * s, Hex(0x14212c), 22);
-            Circle(F.P(-1f, -1f), 7.4f * s, Hex(0x273d50), 20);
-            Circle(F.P(-2.2f, -2.2f), 4.6f * s, Hex(0x46627a), 16);
-            Arc(pos, 6.6f * s, 1.3f * s, new Rgba(0.706f, 0.804f, 0.863f, 0.35f), 20);
-            V2[] brim = { F.P(7f, -6.8f), F.P(11f, -6.2f), F.P(14.5f, -4.5f), F.P(16.5f, 0f), F.P(14.5f, 4.5f), F.P(11f, 6.2f), F.P(7f, 6.8f) };
-            V2 bc = F.P(9f, 0f);
-            SetColor(Hex(0x1a2833));
-            for (int i = 0; i < brim.Length - 1; i++)
-                Tri(bc, brim[i], brim[i + 1]);
-            Tri(bc, brim[brim.Length - 1], brim[0]);
-            SetColor(Hex(0x080f14));  // the far half of the brim is darker (the mockup's gradient)
-            V2 bf = F.P(14f, 0f);
-            Tri(bf, brim[2], brim[3]);
-            Tri(bf, brim[3], brim[4]);
-            Tri(bf, brim[4], brim[5]);
-            Tri(bf, brim[1], brim[2]);
-            for (int i = 0; i < brim.Length - 1; i++)
-                Line(brim[i], brim[i + 1], 1f * s, Hex(0x02060a));
-            Line(brim[brim.Length - 1], brim[0], 1f * s, Hex(0x02060a));
-            Line(F.P(9f, -4.2f), F.P(12.5f, -3.6f), 1.2f * s, new Rgba(1f, 1f, 1f, 0.35f));
-            Line(F.P(12.5f, -3.6f), F.P(15f, -1f), 1.2f * s, new Rgba(1f, 1f, 1f, 0.35f));
-            Circle(F.P(0.5f, 0f), 3f * s, Hex(0x7a5d12), 12);
-            Circle(F.P(0.5f, 0f), 2.4f * s, Hex(0xe6c25e), 12);
 
             // a hit flashes the whole uniform white, softer under steady fire (Juice.cs)
             if (e.Flash > 0f || JuiceFlash(e))
