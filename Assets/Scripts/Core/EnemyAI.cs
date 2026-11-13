@@ -715,7 +715,7 @@ namespace Arena
                 return;  // committed to the leap / flight line (a Spike Block locks its line when it winds up)
             if (e.Type == EnemyType.BeamSentry && e.Phase >= 2 || e.Type == EnemyType.Reaver && e.Phase != 0 || e.Type == EnemyType.Leader && e.Phase == 1)
                 return;  // the beam's aim and sweep, the rake's cone, the Leader's aim line (Variety.cs)
-            if (PulsarLocked(e) || HelioLocked(e))
+            if (PulsarLocked(e) || HelioLocked(e) || GnomonLocked(e) || e.Type == EnemyType.Moonward)
                 return;  // its beams' line (Infall.cs)
             if (e.Type == EnemyType.Lens)
             {
@@ -1213,6 +1213,8 @@ namespace Arena
                     break;
                 case EnemyType.Ember:
                 case EnemyType.Heliograph:
+                case EnemyType.Moonward:
+                case EnemyType.Gnomon:
                     PenumbralSpecial(e, tpos, dt);  // Penumbral.cs
                     break;
             }

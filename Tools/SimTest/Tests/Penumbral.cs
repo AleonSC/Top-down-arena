@@ -4,9 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Arena;
 
-// The Eclipse's faction, step 1 (Core/Penumbral.cs, Docs/EclipseFaction.md): an Ember weaves in and leaves sparks hanging
+// The Eclipse's faction, steps 1-2 (Core/Penumbral.cs, Docs/EclipseFaction.md): an Ember weaves in and leaves sparks hanging
 // behind it, a Corona Priest's ring has one shot at you and a gap beside it, a Heliograph plants, flickers its line,
-// burns a lane and rests; and the three come in the waves before the Eclipse.
+// burns a lane and rests; a Moonward's moon soaks shots, a Gnomon's flash spares its shadow, a Dusk Lobber's pool drains;
+// and they come in the waves before the Eclipse.
 static partial class Program
 {
     static void PenumbralTest(float dt)
@@ -120,12 +121,64 @@ static partial class Program
             if (he2.Phase == 0) me.Pos = me.Disp = new V2(900f, 400f);
         }
         Check(!hurt2, "stepping off the line before it burns is safe");
+
+        // Step 2. Moonward: its moon soaks players' shots; the far side of it doesn't.
+        var mw = put(EnemyType.Moonward, new V2(600f, 400f));
+        float f0 = mw.Facing;
+        run(0.5f, null);
+        Check(Math.Abs(MathX.Fmod(mw.Facing - f0 - MathX.Tau / Game.MoonwardTurn * 0.5f + MathX.Pi, MathX.Tau) - MathX.Pi) < 0.1f, "a Moonward's moon goes round once every " + Game.MoonwardTurn + " s");
+        typeof(Game).GetMethod("FindMoonwards", np).Invoke(g, null);
+        var stops = typeof(Game).GetMethod("MoonwardStops", np);
+        V2 moon = Game.MoonwardMoon(mw, mw.Pos);
+        var onMoon = new Bullet { Kind = Defs.DpsShot, Pos = moon, Radius = 3.5f };
+        var farSide = new Bullet { Kind = Defs.DpsShot, Pos = mw.Pos - (moon - mw.Pos), Radius = 3.5f };
+        var theirs = new Bullet { Kind = Defs.SmallShot, Pos = moon, Radius = 6f };
+        Check((bool)stops.Invoke(g, new object[] { onMoon }) && !(bool)stops.Invoke(g, new object[] { farSide }) && !(bool)stops.Invoke(g, new object[] { theirs }),
+            "the moon soaks a player's shot that touches it, not one on the far side, and not enemy shots");
+
+        // Gnomon: plants with its slab a little to one side of you, swells, flashes; its shadow is safe.
+        Func<bool, bool> flash = hide =>
+        {
+            var gn = put(EnemyType.Gnomon, new V2(640f, 400f));
+            me.Hp = me.MaxHp;
+            bool hit = false, gPlanted = false, offYou = false;
+            byte lastP = 0;
+            V2 at = new V2(900f, 400f);
+            for (int f = 0; f < 10 * 60; f++)
+            {
+                Quiet();
+                me.Pos = me.Disp = at;
+                lastP = gn.Phase;
+                Step(host, dt);
+                if (gn.Phase == 2) { hit = me.Hp < me.MaxHp; break; }
+                if (gn.Phase == 1 && lastP != 1)
+                {
+                    gPlanted = true;
+                    offYou = !Game.InGnomonShadow(gn, at);
+                    if (hide) at = gn.Pos + V2.FromAngle(gn.Facing) * 170f;  // step into the shadow
+                }
+            }
+            Check(gPlanted && offYou, "a Gnomon plants with its shadow a step to the side of you");
+            return hit;
+        };
+        bool hitOut = flash(false), hitIn = flash(true);
+        Console.WriteLine("  Gnomon: flash hurt you outside the shadow {0}, inside {1}", hitOut, hitIn);
+        Check(hitOut && !hitIn, "its flash hurts you outside its shadow, not in it");
+
+        // Dusk Lobber: lobs a pool of dark that drains you.
+        var dl = put(EnemyType.DuskLobber, new V2(560f, 400f));
+        bool pool = false;
+        float before = me.Hp;
+        run(9f, () => pool |= g.Patches.Values.Any(pt => pt.Kind == PatchKind.Dusk && pt.Active && pt.Pos.DistanceTo(me.Pos) < Game.DuskPoolR));
+        Console.WriteLine("  Dusk Lobber: a pool on you {0}, health {1:0} -> {2:0}", pool, before, me.Hp);
+        Check(dl.Kin == EnemyType.GasGrenadier && pool, "a Dusk Lobber plays like a Gas Grenadier and lobs a pool of dark on you");
+        Check(me.Hp < before, "the pool drains you");
         host.Leave("");
 
-        // The faction: the three come in the waves before the Eclipse (50-wave track: 46-49).
-        var f0 = Approaches.For(EnemyType.Eclipse);
-        Check(f0 != null && f0.Members.Select(m => m.Type).SequenceEqual(new[] { EnemyType.Ember, EnemyType.CoronaPriest, EnemyType.Heliograph }) && f0.Squads.Length == 2,
-            "the Eclipse's faction: Ember, Corona Priest, Heliograph; squads Dawn and Mirror pair");
+        // The faction: the six come in the waves before the Eclipse (50-wave track: 46-49).
+                var fe = Approaches.For(EnemyType.Eclipse);
+        Check(fe != null && fe.Members.Length == 6 && fe.Members.All(m => Game.IsPenumbral(m.Type)) && fe.Squads.Select(q => q.Name).SequenceEqual(new[] { "Dawn", "Mirror pair", "Night watch" }),
+            "the Eclipse's faction: six members so far; squads Dawn, Mirror pair and Night watch");
         var build = typeof(Game).GetMethod("BuildWave", np);
         var spawnQ = typeof(Game).GetField("spawnQueue", np);
         var squadQ = typeof(Game).GetField("squadQueue", np);
@@ -155,7 +208,7 @@ static partial class Program
                 early.Add(t);
         }
         Console.WriteLine("  waves 46-49 bring: " + string.Join(", ", seen) + "; at most " + mostHelio + " Heliographs a wave");
-        Check(seen.Count == 3, "waves 46-49 bring all three");
+        Check(seen.Count == 6, "waves 46-49 bring all six");
         Check(mostHelio <= Game.MaxHeliographs, "at most " + Game.MaxHeliographs + " Heliographs a wave");
         Check(early.Count == 0, "none come before the Eclipse's approach");
     }

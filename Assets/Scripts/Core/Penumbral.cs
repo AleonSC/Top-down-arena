@@ -11,6 +11,16 @@ namespace Arena
     ///   Heliograph (Solar flares): Phase 0 walks in to HelioRange; 1 plants and aims its mirror at you, a line flickers
     ///     for HelioWarn s; 2 the line is a lane of fire HelioWidth wide for HelioBurn s; 3 rests HelioRest s. Phase and
     ///     Facing are in the snapshot, so clients draw the line with no extra fields (timed from Enemy.SeenT).
+    /// Step 2 adds three:
+    ///   Moonward (the Penumbra's moon): melee; a moon circles it MoonwardOrbit px out, one turn every MoonwardTurn s, and
+    ///     soaks every player shot it touches (MoonwardStops, from Collide). Its Facing is the moon's angle (in the snapshot).
+    ///   Gnomon (Eclipse flash): a heavy walking sundial. Within GnomonRange, every GnomonEvery s it plants (Phase 1) with its
+    ///     slab facing GnomonOffset rad to one side of you while its lantern swells for GnomonSwell s, then flashes (Phase 2,
+    ///     GnomonRecover s): GnomonDamage to every player within GnomonReach who isn't in the slab's shadow (InGnomonShadow,
+    ///     a widening wedge in front of it). The shadow is a short step to the side: walk into it, toward the Gnomon.
+    ///   Dusk Lobber (the Umbra): plays like a Gas Grenadier (HiveKin.cs), but its lob lands as a pool of dark (PatchKind.Dusk,
+    ///     DuskPoolR, DuskLife s) that drains DuskDps (TickPenumbral) and hides what's in it beyond DuskSight of each player
+    ///     (Game/PenumbralLook.cs).
     public partial class Game
     {
         public const float EmberWeave = 0.55f, EmberSparkEvery = 0.2f, EmberSparkLife = 1.5f, EmberSparkDrift = 25f, EmberSparkRange = 650f;
@@ -20,7 +30,28 @@ namespace Arena
         public const int MaxHeliographs = 3;  // at most this many a wave (CapBeams in Variety.cs)
         float HelioDamage => 20f;  // the difficulty's per-wave damage growth scales it, like the Pulsar's
 
-        public static bool IsPenumbral(EnemyType t) => t >= EnemyType.Ember && t <= EnemyType.Heliograph;
+        public const float MoonwardOrbit = 30f, MoonwardTurn = 2.4f, MoonwardMoonR = 9f;
+        public const float GnomonRange = 360f, GnomonEvery = 6f, GnomonSwell = 1.5f, GnomonRecover = 0.5f, GnomonOffset = 0.6f,
+            GnomonReach = 520f, GnomonShadowLen = 380f, GnomonShadowBase = 24f, GnomonShadowFlare = 0.32f;
+        float GnomonDamage => 30f;
+        public const float DuskPoolR = 90f, DuskLife = 4f, DuskDps = 6f, DuskSight = 40f;
+        static readonly Rgba DuskColor = new Rgba(0.61f, 0.48f, 1f);
+
+        public static bool IsPenumbral(EnemyType t) => t >= EnemyType.Ember && t <= EnemyType.Heliograph || t >= EnemyType.Moonward && t <= EnemyType.DuskLobber;
+
+        /// The Gnomon keeps its slab's line while its lantern swells and flashes.
+        public static bool GnomonLocked(Enemy e) => e.Type == EnemyType.Gnomon && (e.Phase == 1 || e.Phase == 2);
+
+        /// Where a Moonward's moon is (its Facing is the moon's angle).
+        public static V2 MoonwardMoon(Enemy e, V2 pos) => pos + V2.FromAngle(e.Facing) * MoonwardOrbit;
+
+        /// Is this point in a Gnomon's shadow: a wedge in front of its slab, widening as it goes?
+        public static bool InGnomonShadow(Enemy e, V2 p, float pad = 0f)
+        {
+            V2 f = V2.FromAngle(e.Facing), rel = p - e.Pos;
+            float along = rel.Dot(f), across = Math.Abs(rel.Dot(f.Orthogonal()));
+            return along > e.Radius * 0.4f && along < GnomonShadowLen && across + pad < GnomonShadowBase + along * GnomonShadowFlare;
+        }
 
         /// The Heliograph keeps its mirror's line while it flickers and burns.
         public static bool HelioLocked(Enemy e) => e.Type == EnemyType.Heliograph && (e.Phase == 1 || e.Phase == 2);
@@ -41,6 +72,10 @@ namespace Arena
                     if (HelioLocked(e))
                         return V2.Zero;  // planted while its mirror aims and burns
                     return KeepDistance(dir, dist, HelioRange) + dir.Orthogonal() * e.Strafe * 0.3f;
+                case EnemyType.Gnomon:
+                    if (GnomonLocked(e))
+                        return V2.Zero;  // planted while its lantern swells and flashes
+                    break;
             }
             return dir;
         }
@@ -51,6 +86,93 @@ namespace Arena
                 EmberSparks(e, tpos, dt);
             else if (e.Type == EnemyType.Heliograph)
                 HelioStep(e, tpos, dt);
+            else if (e.Type == EnemyType.Moonward)
+                e.Facing = MathX.Fmod(e.Facing + MathX.Tau / MoonwardTurn * dt, MathX.Tau);  // the moon goes round
+            else if (e.Type == EnemyType.Gnomon)
+                GnomonStep(e, tpos, dt);
+        }
+
+        void GnomonStep(Enemy e, V2 tpos, float dt)
+        {
+            e.PhaseT -= dt;
+            switch (e.Phase)
+            {
+                case 0:
+                    if (e.PhaseT <= 0f && e.T > 1.5f && tpos.DistanceTo(e.Pos) < GnomonRange)
+                    {
+                        // Plant: the slab turns a little to one side of you, so its shadow is a step away.
+                        e.Strafe = e.Strafe >= 0f ? 1f : -1f;
+                        e.Facing = (tpos - e.Pos).Angle + e.Strafe * GnomonOffset;
+                        e.Phase = 1;
+                        e.PhaseT = GnomonSwell;
+                        BroadcastSound(Sfx.BossCharge);
+                    }
+                    break;
+                case 1:
+                    if (e.PhaseT <= 0f)
+                    {
+                        foreach (var p in Players.Values)
+                            if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(e.Pos) < GnomonReach && !InGnomonShadow(e, p.Pos))
+                                Damage(p, GnomonDamage, e.Def.Name + " (flash)");
+                        BroadcastFx(FxKind.Ring, e.Pos - V2.FromAngle(e.Facing) * e.Radius, new Rgba(1f, 0.95f, 0.8f), GnomonReach, 0.35f, Sfx.Shockwave);
+                        e.Phase = 2;
+                        e.PhaseT = GnomonRecover;
+                    }
+                    break;
+                case 2:
+                    if (e.PhaseT <= 0f)
+                    {
+                        e.Phase = 0;
+                        e.PhaseT = GnomonEvery / TraitFireMult(e);
+                    }
+                    break;
+            }
+        }
+
+        bool moonwards;
+
+        void FindMoonwards()
+        {
+            moonwards = false;
+            foreach (var e in Enemies.Values)
+                if (e.Type == EnemyType.Moonward && e.Hp > 0f && !IsSpawning(e))
+                {
+                    moonwards = true;
+                    return;
+                }
+        }
+
+        /// Host, in Collide: a Moonward's moon soaks any player shot that touches it.
+        bool MoonwardStops(Bullet b)
+        {
+            if (Defs.IsEnemyShot(b.Kind))
+                return false;
+            foreach (var e in Enemies.Values)
+                if (e.Type == EnemyType.Moonward && e.Hp > 0f && !IsSpawning(e) && b.Pos.DistanceTo(MoonwardMoon(e, e.Pos)) < MoonwardMoonR + b.Radius)
+                {
+                    BroadcastFx(FxKind.Spark, b.Pos, e.Def.Color, 10f, 0.15f, Sfx.None);
+                    return true;
+                }
+            return false;
+        }
+
+        float duskT;
+
+        /// Host, every tick: a Dusk Lobber's pool drains anyone in it.
+        void TickPenumbral(float dt)
+        {
+            duskT -= dt;
+            if (duskT > 0f)
+                return;
+            duskT = 0.25f;
+            foreach (var pt in Patches.Values)
+            {
+                if (pt.Kind != PatchKind.Dusk || !pt.Active)
+                    continue;
+                foreach (var p in Players.Values)
+                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(pt.Pos) < pt.Radius + p.Def.HitR)
+                        DamageOverTime(p, DuskDps * 0.25f, "Dusk");
+            }
         }
 
         /// An Ember's trail: a spark every EmberSparkEvery s while it's near a player, drifting back the way it came (away from you).
@@ -137,7 +259,13 @@ namespace Arena
         }
 
         /// How much a bot should avoid this spot near a Penumbral Court enemy (BotBrain.cs): a Heliograph's line.
-        float PenumbralBotDanger(Enemy e, V2 p, float hitR) =>
-            HelioLocked(e) && HelioLaneDistance(e, p) < HelioWidth / 2f + hitR + 30f ? 2.5f : 0f;
+        float PenumbralBotDanger(Enemy e, V2 p, float hitR)
+        {
+            if (HelioLocked(e))
+                return HelioLaneDistance(e, p) < HelioWidth / 2f + hitR + 30f ? 2.5f : 0f;
+            if (e.Phase == 1 && e.Type == EnemyType.Gnomon)
+                return p.DistanceTo(e.Pos) < GnomonReach && !InGnomonShadow(e, p, hitR) ? 2f : 0f;  // get into its shadow
+            return 0f;
+        }
     }
 }

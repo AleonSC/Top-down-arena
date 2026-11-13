@@ -383,8 +383,8 @@ namespace Arena
         /// Host, once a tick while it's firing normally: locks the landing spot as the wind-up begins (Winding is true for the last
         /// GrenadierWindUp + GrenadierSwing s before the throw) and tells everyone how long is left.
         static readonly Rgba HoneyLobColor = new Rgba(1f, 0.77f, 0.2f);
-        static float LobRadius(Enemy e) => e.Type == EnemyType.HoneyLobber ? HoneyLobRadius : e.Type == EnemyType.RockHurler ? HurlerLandR : GrenadierGasRadius;
-        static Rgba LobColor(Enemy e) => e.Type == EnemyType.HoneyLobber ? HoneyLobColor : e.Type == EnemyType.RockHurler ? HurlerColor : GasLobColor;
+        static float LobRadius(Enemy e) => e.Type == EnemyType.HoneyLobber ? HoneyLobRadius : e.Type == EnemyType.RockHurler ? HurlerLandR : e.Type == EnemyType.DuskLobber ? DuskPoolR : GrenadierGasRadius;
+        static Rgba LobColor(Enemy e) => e.Type == EnemyType.HoneyLobber ? HoneyLobColor : e.Type == EnemyType.RockHurler ? HurlerColor : e.Type == EnemyType.DuskLobber ? DuskColor : GasLobColor;
         V2 LobSpot(Enemy e, V2 tpos) => e.Type == EnemyType.RockHurler ? HurlerLead(tpos)  // a Rock Hurler aims where you're heading (QuarryFaction.cs)
             : ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 50f), 60f);
 
@@ -414,6 +414,8 @@ namespace Arena
             e.GasLocked = false;
             if (e.Type == EnemyType.RockHurler)
                 SpawnPatchAt(PatchKind.Rubble, e.GasAt, GasFlight, GasFlight + RubbleLife, RubbleR, RubbleR);  // the boulder lands, then lies as a pile (QuarryFaction.cs)
+            else if (e.Type == EnemyType.DuskLobber)
+                SpawnPatchAt(PatchKind.Dusk, e.GasAt, GasFlight, GasFlight + DuskLife, DuskPoolR, DuskPoolR);  // a pool of dark (Penumbral.cs)
             else if (e.Type == EnemyType.HoneyLobber)
                 SpawnPatchAt(PatchKind.Honey, e.GasAt, GasFlight, GasFlight + HoneyLobLife, HoneyLobRadius, HoneyLobRadius);  // honey slows instead of hurting (Queen.cs HoneySlowAt)
             else

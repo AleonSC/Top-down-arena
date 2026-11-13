@@ -686,7 +686,7 @@ namespace Arena
                         if (h.T < t + 0.2f && h.Pos.DistanceTo(p) < h.Radius + hitR + 8f)
                             d += w * 3f;
                     foreach (var pt in Patches.Values)  // a path's fire, the Colossus's lava the Devourer's bile, a Scorcher's embers or tear gas: burning now or about to (Paths.cs)
-                        if ((pt.Kind == PatchKind.Fire || pt.Kind == PatchKind.Lava || pt.Kind == PatchKind.Bile || pt.Kind == PatchKind.Embers || pt.Kind == PatchKind.Gas || pt.Kind == PatchKind.Acid || pt.Kind == PatchKind.Rubble && !pt.Active) && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.DistanceTo(p) < pt.Radius + hitR + 8f)
+                        if ((pt.Kind == PatchKind.Fire || pt.Kind == PatchKind.Lava || pt.Kind == PatchKind.Bile || pt.Kind == PatchKind.Embers || pt.Kind == PatchKind.Gas || pt.Kind == PatchKind.Acid || pt.Kind == PatchKind.Dusk || pt.Kind == PatchKind.Rubble && !pt.Active) && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.DistanceTo(p) < pt.Radius + hitR + 8f)
                             d += w * 3f;
                     foreach (var th in botThreads)
                         if (SegmentDistance(p, th.A, th.B) < StitchWidth / 2f + hitR + sk.Margin + 4f)
@@ -720,7 +720,7 @@ namespace Arena
                             d += w * 2.5f;  // a Pulsar's beams, flickering or sweeping (Infall.cs)
                         else if (IsInfall(e.Type))
                             d += w * InfallBotDanger(e, p, hitR);  // a White Dwarf's pulse, a Small Well, an Implosion (Infall.cs)
-                        else if (HelioLocked(e))
+                        else if (HelioLocked(e) || GnomonLocked(e))
                             d += w * PenumbralBotDanger(e, p, hitR);  // a Heliograph's line (Penumbral.cs)
                         else if (e.Type == EnemyType.RiotCaptain && (e.Phase == CapWinding || e.Phase == CapCharging))
                         {

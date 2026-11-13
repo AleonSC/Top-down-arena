@@ -46,6 +46,9 @@ namespace Arena
                 case EnemyType.Ember: return "Weaves in, leaving sparks hanging behind it. Don't cut through its trail.";
                 case EnemyType.CoronaPriest: return "Its halo flares, then a ring with one gap beside you. Step into the gap.";
                 case EnemyType.Heliograph: return "A line flickers, then burns. Step off the line, not back along it.";
+                case EnemyType.Moonward: return "Its moon swallows your shots. Fire when the moon swings round the back.";
+                case EnemyType.Gnomon: return "Its lantern swells, then flashes. Step into the slab's shadow.";
+                case EnemyType.DuskLobber: return "Lobs a pool of dark that drains you. Stay in the light.";
                 case EnemyType.Graviton: return "Lobs a small well by you that drags you in. Get clear, or shoot the well.";
                 case EnemyType.Orbiter: return "Circles you, then slings a flaring orb straight at you. Sidestep the flare.";
                 case EnemyType.Collapsar: return "Implodes when killed: a pull, then a ring of shots. Kill it at range.";

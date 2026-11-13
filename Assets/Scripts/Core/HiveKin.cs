@@ -31,6 +31,8 @@ namespace Arena
             t[(int)EnemyType.Driller] = EnemyType.Shiv;
             t[(int)EnemyType.Geomancer] = EnemyType.TaserGuard;
             t[(int)EnemyType.CinderPriest] = EnemyType.TaserGuard;
+            // the Eclipse's (Penumbral.cs): a Dusk Lobber lobs dark instead of gas
+            t[(int)EnemyType.DuskLobber] = EnemyType.GasGrenadier;
             // the Duelist's faction (CourtFaction.cs)
             t[(int)EnemyType.Fencer] = EnemyType.Shiv;
             t[(int)EnemyType.BladeDancer] = EnemyType.Guard;

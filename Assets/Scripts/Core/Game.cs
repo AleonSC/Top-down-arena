@@ -1308,6 +1308,7 @@ namespace Arena
             TickNimbus(dt);      // Nimbus.cs: rain under each cloud heals allies in it
             TickChalk(dt);       // Chalk.cs: drawing, and what the ink does
             TickWardenFaction(dt);  // WardenFaction.cs: tear gas with no Warden about, the Riot Shields' bash grace
+            TickPenumbral(dt);      // Penumbral.cs: Dusk Lobbers' pools drain
             TickReaperFaction(dt);  // ReaperFaction.cs: the Bound Wraiths' tethers, the Scythe Wraiths' reaps
             TickWaves(dt);
             TickPaths(dt);    // Paths.cs: hazard floors

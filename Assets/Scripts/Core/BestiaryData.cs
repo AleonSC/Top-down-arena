@@ -254,6 +254,28 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Moonward, Name = "Moonward", Group = "Melee", Wave = 47,
+                Appears = "The Eclipse's approach (waves 47-49)",
+                Lead = "A pale knight with a small moon circling it 30 px out, once every 2.4 s. The moon swallows any shot it touches, so fire when it swings round the back.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "12" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Gnomon, Name = "Gnomon", Group = "Melee", Wave = 47,
+                Appears = "The Eclipse's approach (waves 47-49), alone or in a Night watch",
+                Lead = "A walking sundial: a stone slab with a sun lantern at its back. Within 360 px it plants, its slab turned a little to one side of you, and the lantern swells for 1.5 s; then it flashes everyone within 520 px who isn't in the slab's shadow. Step sideways into the shadow, toward it.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "20" },
+                    new BestiaryAttack { Name = "Flash", Pattern = "1.5 s swell, then everyone outside its shadow", Damage = "30", Every = 8f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.DuskLobber, Name = "Dusk Lobber", Group = "Shooters", Wave = 47,
+                Appears = "The Eclipse's approach (waves 47-49), alone or in a Night watch",
+                Lead = "Keeps its distance and lobs a ball of night near you, like a Gas Grenadier. It bursts into a 90 px pool of dark for 4 s: inside you see only 40 px round you, and it drains 6 a second. Stay in the light.",
+                Attacks = new[] { new BestiaryAttack { Name = "Dusk pool", Pattern = "A lobbed pool, 90 px, 4 s", Damage = "6 a second", Every = 3.6f } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.Graviton, Name = "Graviton", Group = "Shooters", Wave = 17,
                 Appears = "The Singularity's approach (waves 17-19), alone or in a Gravity trap squad",
                 Lead = "Keeps 320 px away. Every 6 s it plants its feet for 0.6 s, a ring marks a spot near you, and 0.8 s later a Small Well lands there: for 4 s it drags you toward it (80 px/s at its middle, 240 px out) and bends your shots into it. Get clear, or shoot the well (30 health). A new lob takes its old well away.",

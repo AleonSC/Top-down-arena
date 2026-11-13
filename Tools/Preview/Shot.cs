@@ -421,6 +421,19 @@ static partial class Shot {
       var burn = cput(EnemyType.Heliograph, new V2(640f, 860f)); burn.Phase = 2; burn.SeenT = 0.12f; burn.Facing = -0.25f;
       cg.AnimT += float.Parse(Environment.GetEnvironmentVariable("PENUMBRAL"), System.Globalization.CultureInfo.InvariantCulture);
     }
+    if (Environment.GetEnvironmentVariable("PENUMBRAL2") != null) {  // PENUMBRAL2=<s into the clock>: the Eclipse's faction, step 2 (PenumbralLook.cs): a Moonward, a Gnomon planted with its lantern swelling and its shadow on the floor, a Dusk Lobber winding up, and a Dusk pool you stand at the edge of
+      var dg = host.Game; dg.Enemies.Clear(); dg.Bullets.Clear(); dg.Patches.Clear();
+      var dsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, Enemy> dput = (t, at) => { var e = (Enemy)dsp.Invoke(dg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; return e; };
+      me.Pos = me.Disp = new V2(1000f, 560f);
+      var mw = dput(EnemyType.Moonward, new V2(1180f, 760f)); mw.Facing = 0.5f;
+      var gn = dput(EnemyType.Gnomon, new V2(1260f, 380f)); gn.Phase = 1; gn.SeenT = float.Parse(Environment.GetEnvironmentVariable("GNOMON") ?? "1.0", System.Globalization.CultureInfo.InvariantCulture); gn.Facing = (me.Pos - gn.Pos).Angle + Game.GnomonOffset;
+      if (gn.SeenT > Game.GnomonSwell) { gn.Phase = 2; gn.SeenT -= Game.GnomonSwell; }
+      var dl = dput(EnemyType.DuskLobber, new V2(560f, 700f)); dl.Facing = (me.Pos - dl.Pos).Angle; dl.Winding = true;
+      dg.Patches[801] = new PathPatch { Id = 801, Kind = PatchKind.Dusk, Pos = me.Pos + new V2(-70f, 60f), Warn = 0.8f, Life = 0.8f + Game.DuskLife, Age = 2f, R0 = Game.DuskPoolR, R1 = Game.DuskPoolR };
+      dput(EnemyType.Ember, me.Pos + new V2(-110f, 80f)).Facing = -0.6f;  // an Ember inside the pool: hidden in the dark
+      dg.AnimT += float.Parse(Environment.GetEnvironmentVariable("PENUMBRAL2"), System.Globalization.CultureInfo.InvariantCulture);
+    }
     if (Environment.GetEnvironmentVariable("INFALL2") != null) {  // INFALL2=<s into the clock>: the Singularity's faction, step 2 (InfallLook.cs): a Graviton winding up beside its landed Small Well, an Orbiter flaring with a slung orb in flight, a hurt Collapsar and an Implosion half-way
       var ig = host.Game; ig.Enemies.Clear(); ig.Bullets.Clear();
       var isp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

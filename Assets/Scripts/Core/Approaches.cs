@@ -363,17 +363,21 @@ namespace Arena
             },
             new FactionDef
             {
-                Boss = EnemyType.Eclipse,  // the Eclipse: the Penumbral Court, each previewing one of its stages (Penumbral.cs, Docs/EclipseFaction.md); step 1 of 4
+                Boss = EnemyType.Eclipse,  // the Eclipse: the Penumbral Court, each previewing one of its stages (Penumbral.cs, Docs/EclipseFaction.md); step 2 of 4
                 Members = new[]
                 {
                     new FactionMember { Type = EnemyType.Ember, Weight = 3f },  // sparks hang behind it (Lunar wake)
                     new FactionMember { Type = EnemyType.CoronaPriest, NotFirst = true, Weight = 2f },  // a ring with one gap (Corona rings)
+                    new FactionMember { Type = EnemyType.Moonward, Fade = 0, Weight = 2f, From = 2 },  // its moon soaks your shots (the Penumbra's moon)
+                    new FactionMember { Type = EnemyType.DuskLobber, Fade = 0, Weight = 1.5f, From = 2 },  // a pool of dark (the Umbra)
                     new FactionMember { Type = EnemyType.Heliograph, Fade = 1, Weight = 1.5f, From = 2 },  // a line, then a lane of fire (Solar flares)
+                    new FactionMember { Type = EnemyType.Gnomon, Fade = 2, Weight = 1.5f, From = 2 },  // hide in its shadow (Eclipse flash)
                 },
                 Squads = new[]
                 {
                     new SquadDef { Name = "Dawn", From = 1, Members = new[] { EnemyType.CoronaPriest, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember } },
                     new SquadDef { Name = "Mirror pair", From = 2, Members = new[] { EnemyType.Heliograph, EnemyType.Heliograph } },
+                    new SquadDef { Name = "Night watch", From = 3, Members = new[] { EnemyType.DuskLobber, EnemyType.Gnomon, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember } },
                 },
                 // No set piece or lesson cycle yet (steps 2-4): the Campaign builds its waves by reach, as for the Lich.
             },

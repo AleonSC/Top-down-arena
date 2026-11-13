@@ -88,6 +88,8 @@ namespace Arena
         GraveCaller,
         // the Eclipse's faction, the Penumbral Court (Docs/EclipseFaction.md, Penumbral.cs, Game/PenumbralLook.cs): step 1
         Ember, CoronaPriest, Heliograph,
+        // ...step 2: a Dusk Lobber plays like a Gas Grenadier that lobs a pool of dark (HiveKin.cs)
+        Moonward, Gnomon, DuskLobber,
     }
 
     public class RoleDef
@@ -442,6 +444,12 @@ namespace Arena
                 Picker = PickerGroup.Ranged, Blurb = "A sun-cultist. Its halo flares, then bursts into a ring of slow shots: one at you, and a gap beside it." },
             new EnemyDef { Name = "Heliograph", Hp = 70f, Radius = 13f, Speed = 75f, Score = 9, Xp = 12, Sides = 8, Color = new Rgba(1f, 0.69f, 0.36f),
                 Picker = PickerGroup.Ranged, Blurb = "Tilts a sun mirror at you: a line flickers for a second, then becomes a lane of fire. Step off the line." },
+            new EnemyDef { Name = "Moonward", Hp = 100f, Radius = 14f, Speed = 70f, Score = 9, Xp = 11, Sides = 8, Color = new Rgba(0.79f, 0.82f, 0.89f), Melee = true, Contact = 12f,
+                Picker = PickerGroup.Melee, Blurb = "A pale knight with a small moon circling it. The moon swallows any shot it touches: fire when it swings round the back." },
+            new EnemyDef { Name = "Gnomon", Hp = 240f, Radius = 22f, Speed = 55f, Score = 14, Xp = 20, Sides = 4, Color = new Rgba(0.62f, 0.55f, 0.45f), Melee = true, Contact = 20f, Heavy = true,
+                Picker = PickerGroup.Melee, Blurb = "A walking sundial with a sun lantern at its back. The lantern swells, then flashes: the only safe place is the slab's shadow, just to the side of you." },
+            new EnemyDef { Name = "Dusk Lobber", Hp = 50f, Radius = 13f, Speed = 80f, Score = 8, Xp = 9, Sides = 6, Color = new Rgba(0.61f, 0.48f, 1f),
+                Picker = PickerGroup.Ranged, Blurb = "Lobs a ball of night that bursts into a pool of the Umbra's dark: you can barely see inside, and it drains you. Stay in the light." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount

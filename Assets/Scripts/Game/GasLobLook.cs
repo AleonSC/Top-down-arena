@@ -79,6 +79,8 @@ namespace Arena
                     Arc(e.Disp + fr * e.Radius, 6f + 14f * k, 2.5f, new Rgba(0.78f, 0.62f, 0.45f, 1f - k), 14);  // a puff of grit as the boulder leaves
                 else if (e.Type == EnemyType.HoneyLobber)
                     Arc(e.Disp + fr * (e.Radius * 0.6f), 6f + 14f * k, 2.5f, new Rgba(1f, 0.8f, 0.3f, 1f - k), 14);  // a puff off its swollen abdomen
+                else if (e.Type == EnemyType.DuskLobber)
+                    Arc(e.Disp + fr * (e.Radius * 1.2f), 6f + 14f * k, 2.5f, new Rgba(0.61f, 0.48f, 1f, 1f - k), 14);  // a wisp of dusk
                 else
                     Arc(hp, 6f + 14f * k, 2.5f, new Rgba(0.86f, 1f, 0.75f, 1f - k), 14);
                 return;
@@ -91,6 +93,11 @@ namespace Arena
             if (e != null && e.Type == EnemyType.RockHurler)
             {
                 DrawHurlerLobFx(e, fx, age, throwAt, flight, land, R, t);  // a boulder (QuarryLook.cs)
+                return;
+            }
+            if (e != null && e.Type == EnemyType.DuskLobber)
+            {
+                DrawDuskLobFx(e, age, throwAt, flight, land, R, t);  // a ball of night (PenumbralLook.cs)
                 return;
             }
             if (e != null && e.Type == EnemyType.HoneyLobber)

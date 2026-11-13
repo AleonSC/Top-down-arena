@@ -455,6 +455,7 @@ namespace Arena
             FindColCover();       // the Colossus's plates and pillars (Colossus.cs)
             FindQuarryCover();    // rubble piles and dropped slabs (QuarryFaction.cs)
             FindEclipseMoon();    // the Eclipse's moon (Eclipse.cs)
+            FindMoonwards();      // Moonwards' moons (Penumbral.cs)
             foreach (var b in Bullets.Values)
             {
                 if (Lobbed(b.Kind) || b.Kind == Defs.FlakShell || b.Ward || b.Tossed)
@@ -477,6 +478,11 @@ namespace Arena
                 if (colCover != null && ColossusCoverStops(b))
                 {
                     scratchIds.Add(b.Id);  // cover stops shots both ways
+                    continue;
+                }
+                if (moonwards && MoonwardStops(b))
+                {
+                    scratchIds.Add(b.Id);  // a Moonward's moon soaks players' shots (Penumbral.cs)
                     continue;
                 }
                 if (moonEclipse != null && MoonStops(b))
