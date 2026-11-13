@@ -1,6 +1,6 @@
 # Upgrade pools: class and weapon cards
 
-**Status: steps 1-2 built (Nov 2026, protocol 309); steps 3-5 planned.** Owner decisions are below; build one step at a time ("start on step N").
+**Status: steps 1-3 built (Nov 2026, protocol 309); steps 4-5 planned.** Owner decisions are below; build one step at a time ("start on step N").
 
 ## Why
 
@@ -55,12 +55,17 @@ The Nov 2026 audit of `Core/Upgrades.cs` found:
   weapon, so weapon-only cards never count toward it.
 - Tests use the constructor. Test: suite `offers` (`OfferWeaponTest`, `Tools/SimTest/Tests/Upgrades.cs`).
 
-### Step 3: `Kit` and `Weapons` filters
+### Step 3: `Kit` and `Weapons` filters (built, no wire change)
 
-- `UpgradeDef.Kit` (class only) and `UpgradeDef.Weapons` (any of these; `RequiresWeapon` becomes a one-entry list).
-- **Wildcard:** counts as the class of its weapon and the class of its second ability (both can match).
-- Card text and the picker need nothing new; the Dev dock's spawn sheet shows the filter (e.g. "Knight", "Lance").
-- Test: each filter offers the card only to the right class / weapons, for every role and the Wildcard.
+- `UpgradeDef.Kit`: only offered to that class. `UpgradeDef.Weapons`: only offered if your weapon is on the list
+  (`RequiresWeapon` is gone; Warding Ink is `Weapons = { SpiritChalk }`). Both are checked in `Upgrades.Available`.
+- `OfferCtx.Kits` is a bit per class (`HasKit`). Anyone but a Wildcard has one: their class (the constructor defaults
+  it to the class of the Space ability). **A Wildcard** has no class of its own, so it counts as the class of its
+  Space ability, its weapon and its second ability (`Player.StartBonus`): any of those classes' cards can turn up.
+- The Dev dock's Spawn-an-upgrade sheet tags a filtered card with whose it is (`Upgrades.FilterNote`: "Knight",
+  "Spirit Chalk", "Knight · 2 weapons"), and "... only" when it isn't for the chosen player. Preview:
+  `DEVSHEET=4 UPRARITY=2 UPSCROLL=2000 Tools/Preview/shot.sh <name> dev`.
+- Test: suite `cardfilters` (`CardFilterTest`, `Tools/SimTest/Tests/Upgrades.cs`).
 
 ### Step 4: per-class card files
 

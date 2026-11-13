@@ -493,7 +493,8 @@ namespace Arena
                 float a = ok ? 1f : 0.45f;
                 Ui.Label(new Rect(rr.x + 12f, rr.y, 190f, rr.height), u.Name, 14, new Color(rc.r, rc.g, rc.b, a), TextAnchor.MiddleLeft, true);
                 Ui.Label(new Rect(rr.x + 206f, rr.y, rr.width - 310f, rr.height), u.Desc, 11, new Color(CrtStyle.Desc.r, CrtStyle.Desc.g, CrtStyle.Desc.b, a), TextAnchor.MiddleLeft);
-                string tag = !ok ? (host ? "not for this build" : "host only") : Upgrades.RarityName(u.Rarity);
+                string only = Upgrades.FilterNote(u);  // a class or weapon card says whose it is
+                string tag = !ok ? (!host ? "host only" : only.Length > 0 ? only + " only" : "not for this build") : only.Length > 0 ? only : Upgrades.RarityName(u.Rarity);
                 Ui.Label(new Rect(rr.xMax - 96f, rr.y, 92f, rr.height), tag, 10, new Color(rc.r, rc.g, rc.b, a), TextAnchor.MiddleRight, true);
                 if (ok && Ui.HitArea(rr) && game.DevSpawnLoot(who.Id, id))
                     devUpNote = "Dropped " + u.Name + " in front of " + (who.Id == game.MyId ? "you" : who.Name) + ": walk onto it, G takes it, X throws it away.";

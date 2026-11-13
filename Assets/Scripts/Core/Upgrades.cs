@@ -124,20 +124,40 @@ namespace Arena
     public class OfferCtx
     {
         public readonly Role Role;
-        public readonly Kit Kit;
+        public readonly int Kits;          // the classes whose cards you're offered, one bit per Kit (HasKit)
         public readonly AbilityId RoleAbility;
         public readonly List<int> Taken;
         public readonly WeaponId? Weapon;  // null: no weapon (weapon cards are never offered)
         public readonly bool Expanding;    // the Expanding arena (the vector cards)
 
-        public OfferCtx(Role role, AbilityId roleAbility, List<int> taken, WeaponId? weapon = null, bool expanding = false, Kit kit = Kit.Soldier)
+        /// `kit` defaults to the class of the Space ability. A Wildcard has no class of its own: it counts as the class
+        /// of its Space ability, of its weapon and of its second ability (`second`, on Q/E/Shift), so any of those
+        /// classes' cards can turn up (Docs/UpgradePools.md step 3).
+        public OfferCtx(Role role, AbilityId roleAbility, List<int> taken, WeaponId? weapon = null, bool expanding = false, Kit? kit = null,
+            AbilityId second = AbilityId.None)
         {
-            Role = role; RoleAbility = roleAbility; Taken = taken; Weapon = weapon; Expanding = expanding; Kit = kit;
+            Role = role; RoleAbility = roleAbility; Taken = taken; Weapon = weapon; Expanding = expanding;
+            if (role != Role.Wildcard)
+                Kits = Bit(kit ?? KitOf(roleAbility));
+            else
+            {
+                Kits = Bit(KitOf(roleAbility));
+                if (weapon.HasValue && Defs.WeaponOf(weapon.Value) != null)
+                    Kits |= Bit(Defs.WeaponOf(weapon.Value).Kit);
+                if (second != AbilityId.None)
+                    Kits |= Bit(KitOf(second));
+            }
         }
 
-        /// A player's offers: their role, class, Space ability, picks and weapon.
+        static int Bit(Kit k) => 1 << (int)k;
+        static Kit KitOf(AbilityId a) => a != AbilityId.None ? Upgrades.Ability(a).Kit : Kit.Soldier;
+
+        /// Are this class's cards offered here?
+        public bool HasKit(Kit k) => (Kits & Bit(k)) != 0;
+
+        /// A player's offers: their role, class (a Wildcard: its gear's classes), Space ability, picks and weapon.
         public static OfferCtx Of(Player p, bool expanding) =>
-            new OfferCtx(p.Role, p.RoleAbility, p.Taken, p.Weapon != null ? p.Weapon.Id : (WeaponId?)null, expanding, p.Kit);
+            new OfferCtx(p.Role, p.RoleAbility, p.Taken, p.Weapon != null ? p.Weapon.Id : (WeaponId?)null, expanding, p.Kit, p.StartBonus);
     }
 
     public class UpgradeDef
@@ -152,7 +172,8 @@ namespace Arena
         public AbilityId Grants = AbilityId.None;   // very rare: a new Q/E/Shift ability
         public bool NeedsExtraAbility;              // only offered once you have a bonus ability
         public AbilityId RequiresAbility = AbilityId.None;  // only offered if you have this ability (on any key)
-        public WeaponId? RequiresWeapon;            // only offered if this is your weapon (callers that don't pass a weapon never offer it)
+        public WeaponId[] Weapons;                  // only offered if your weapon is one of these (Docs/UpgradePools.md step 3)
+        public Kit? Kit;                            // only offered to this class (a Wildcard: any class its gear comes from)
         public bool ClassAbility;                   // very rare: one of your class's other Space abilities, for Q/E/Shift
         public int Weight = 1;                      // how many times it counts among the cards of its rarity
         public EnemyType? Boss;                     // legendary: the boss that awards it (TwinA = the Twin Reapers)
@@ -309,7 +330,7 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 1, Name = "Second Charge", Desc = "Your Space ability gets a second charge", Apply = s => s.RoleCharges += 1 },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Barrier, MaxStacks = 2, Name = "Bastion", Desc = "Barrier is 40% bigger, lasts 1.5 s longer and soaks 50% more",
                 Apply = s => { s.BarrierRadiusMult += 0.4f; s.BarrierBonusTime += 1.5f; s.BarrierCapacityMult += 0.5f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresWeapon = WeaponId.SpiritChalk, MaxStacks = 1, Name = "Warding Ink", Desc = "Spirit Chalk blocks enemy bullets, but every bullet it stops wears the ink away fast",
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.SpiritChalk }, MaxStacks = 1, Name = "Warding Ink", Desc = "Spirit Chalk blocks enemy bullets, but every bullet it stops wears the ink away fast",
                 Apply = s => s.ChalkWard = true },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Roar, MaxStacks = 2, Name = "Bellow", Desc = "Roar lasts 2 s longer and blocks 15% more damage",
                 Apply = s => { s.RoarBonusTime += 2f; s.RoarExtraReduction += 0.15f; } },
@@ -542,6 +563,15 @@ namespace Arena
 
         public static string RarityName(Rarity r) => r == Rarity.VeryRare ? "VERY RARE" : r == Rarity.Mod ? "WEAPON MOD" : r.ToString().ToUpperInvariant();
 
+        /// Who a card is limited to, for the dev tools: "Knight", "Spirit Chalk", "Knight · 2 weapons", or "".
+        public static string FilterNote(UpgradeDef u)
+        {
+            string kit = u.Kit.HasValue ? u.Kit.Value.ToString() : "";
+            string weapons = u.Weapons == null ? "" : u.Weapons.Length == 1 && Defs.WeaponOf(u.Weapons[0]) != null
+                ? Defs.WeaponOf(u.Weapons[0]).Name : u.Weapons.Length + " weapons";
+            return kit.Length > 0 && weapons.Length > 0 ? kit + " · " + weapons : kit + weapons;
+        }
+
         public static int Count(List<int> taken, int id)
         {
             int n = 0;
@@ -646,7 +676,9 @@ namespace Arena
                 return false;
             if (u.NeedsExpanding && !c.Expanding)
                 return false;  // the vector cards are for the Expanding arena
-            if (u.RequiresWeapon.HasValue && u.RequiresWeapon.Value != c.Weapon)
+            if (u.Weapons != null && (!c.Weapon.HasValue || Array.IndexOf(u.Weapons, c.Weapon.Value) < 0))
+                return false;
+            if (u.Kit.HasValue && !c.HasKit(u.Kit.Value))
                 return false;
             if (u.Role.HasValue && u.Role.Value != role)
                 return false;

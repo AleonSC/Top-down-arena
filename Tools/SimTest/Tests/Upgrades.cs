@@ -201,7 +201,7 @@ static partial class Program
         var bare = new OfferCtx(Role.Healer, AbilityId.MendPulse, none);
         int mod = U("Ricochet"), leg = U("Searchlight"), mile = U("Scholar");
         foreach (int id in new[] { mod, leg, mile })
-            Upgrades.All[id].RequiresWeapon = WeaponId.SpiritChalk;  // (test only: put back below)
+            Upgrades.All[id].Weapons = new[] { WeaponId.SpiritChalk };  // (test only: put back below)
         try
         {
             Func<OfferCtx, int[]> legs = c => { var all = new List<int>(); var rng = new Random(2); for (int i = 0; i < 40; i++) all.AddRange(Upgrades.LegendaryOffer(rng, EnemyType.Boss, c)); return all.ToArray(); };
@@ -214,14 +214,77 @@ static partial class Program
         finally
         {
             foreach (int id in new[] { mod, leg, mile })
-                Upgrades.All[id].RequiresWeapon = null;
+                Upgrades.All[id].Weapons = null;
         }
         var s = StartBuffed(dt, 6, 0);
         var p = s[0].Game.Players[2];
         var c2 = s[0].Game.OfferFor(p);
-        Check(c2.Role == p.Role && c2.Kit == p.Kit && c2.RoleAbility == p.RoleAbility && c2.Taken == p.Taken && c2.Weapon == p.Weapon.Id
+        Check(c2.Role == p.Role && c2.HasKit(p.Kit) && c2.RoleAbility == p.RoleAbility && c2.Taken == p.Taken && c2.Weapon == p.Weapon.Id
             && c2.Expanding == s[0].Game.ExpandingOn, "Game.OfferFor carries the player's role, class, Space ability, picks, weapon and arena");
         s[0].Leave(""); s[1].Leave("");
+    }
+
+    // Class and weapon-list cards (Docs/UpgradePools.md step 3): a Kit card goes to that class only, for every role
+    // and Space pick; a Wildcard counts as the class of its Space ability, weapon and second ability; a Weapons card
+    // goes to any weapon on its list and no other.
+    static void CardFilterTest()
+    {
+        Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
+        var none = new List<int>();
+        int card = U("Barrage");
+        var u0 = Upgrades.All[card];
+        try
+        {
+            u0.Kit = Kit.Knight;  // (test only: put back below)
+            bool kitOk = true;
+            foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
+                for (int k = 0; k < Defs.KitCount; k++)
+                    for (int c = 0; c < Upgrades.RoleAbilityChoices; c++)
+                    {
+                        var ab = Upgrades.RoleAbility(role, (Kit)k, c);
+                        kitOk &= Upgrades.Available(card, new OfferCtx(role, ab, none)) == ((Kit)k == Kit.Knight);
+                        var pl = new Player { Role = role, Kit = (Kit)k, RoleAbility = ab, Weapon = Defs.Weapon(role, (Kit)k, 0) };
+                        kitOk &= Upgrades.Available(card, OfferCtx.Of(pl, false)) == ((Kit)k == Kit.Knight);
+                    }
+            Check(kitOk, "a Knight card is offered to every Knight (each role and Space pick) and to no other class");
+
+            int seenKnight = 0, seenSoldier = 0;
+            var rng = new Random(5);
+            for (int i = 0; i < 1500; i++)
+            {
+                seenKnight += Upgrades.RollOffer(rng, new OfferCtx(Role.Tank, Upgrades.RoleAbility(Role.Tank, Kit.Knight, 0), none), 20).Count(x => x == card);
+                seenSoldier += Upgrades.RollOffer(rng, new OfferCtx(Role.Tank, Upgrades.RoleAbility(Role.Tank, Kit.Soldier, 0), none), 20).Count(x => x == card);
+            }
+            Check(seenKnight > 0 && seenSoldier == 0, "level-up offers show a Knight card to a Knight (" + seenKnight + "x) and never to a Soldier");
+
+            // A Wildcard with a Ninja Space ability, a Knight weapon and a Blood Mage second ability.
+            var wild = new Player
+            {
+                Role = Role.Wildcard, Kit = Kit.Soldier,
+                RoleAbility = Upgrades.RoleAbility(Role.Wildcard, Kit.Soldier, (int)Kit.Ninja * Upgrades.RoleAbilityChoices),
+                Weapon = Defs.Weapon(Role.Wildcard, Kit.Soldier, Defs.WildWeaponPick(Kit.Knight, 0)),
+                StartBonus = Upgrades.RoleAbility(Role.Wildcard, Kit.Soldier, (int)Kit.Hemomancer * Upgrades.RoleAbilityChoices),
+            };
+            var wc = OfferCtx.Of(wild, false);
+            Check(wc.HasKit(Kit.Ninja) && wc.HasKit(Kit.Knight) && wc.HasKit(Kit.Hemomancer) && !wc.HasKit(Kit.Soldier) && !wc.HasKit(Kit.Elementalist)
+                && Upgrades.Available(card, wc), "a Wildcard counts as the classes of its Space ability, weapon and second ability, and no others");
+            u0.Kit = null;
+
+            u0.Weapons = new[] { WeaponId.Scattergun, WeaponId.Railgun };
+            Check(Upgrades.Available(card, new OfferCtx(Role.Dps, AbilityId.PoisonDart, none, WeaponId.Scattergun))
+                && Upgrades.Available(card, new OfferCtx(Role.Dps, AbilityId.PoisonDart, none, WeaponId.Railgun))
+                && !Upgrades.Available(card, new OfferCtx(Role.Dps, AbilityId.PoisonDart, none, WeaponId.Pistol))
+                && !Upgrades.Available(card, new OfferCtx(Role.Dps, AbilityId.PoisonDart, none)),
+                "a weapon-list card is offered to every weapon on its list and to no other (nor to no weapon)");
+            u0.Kit = Kit.Soldier;
+            Check(Upgrades.FilterNote(u0) == "Soldier · 2 weapons" && Upgrades.FilterNote(Upgrades.All[U("Warding Ink")]) == "Spirit Chalk"
+                && Upgrades.FilterNote(Upgrades.All[U("Hollow Points")]) == "", "the dev tools' filter note names the class and weapons");
+        }
+        finally
+        {
+            u0.Kit = null;
+            u0.Weapons = null;
+        }
     }
 
     // Card ids cross the wire as 2 bytes (Docs/UpgradePools.md step 1): an offer with ids past 255 and an empty
