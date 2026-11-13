@@ -626,7 +626,7 @@ namespace Arena
                 locked = p.KnuckleTarget != 0 && game.Enemies.TryGetValue(p.KnuckleTarget, out e) && e.Hp > 0f;
             }
             else if (game.KnuckleDashCd <= 0f)
-                e = game.KnuckleLockTarget(p.Pos, MouseArena());
+                e = game.KnuckleLockTarget(p.Pos, MouseArena(), p.Stats.KnuckleDashMult);
             if (e == null)
                 return;
             float r = e.Radius + 10f + (locked ? 2f * Mathf.Sin(t * 14f) : 0f), a = locked ? 0.95f : 0.4f, spin = locked ? t * 2.5f : 0f;

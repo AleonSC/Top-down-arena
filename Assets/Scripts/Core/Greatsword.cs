@@ -50,6 +50,7 @@ namespace Arena
             int n = Math.Min(GreatTemperMax, (int)p.GreatTemper);
             p.GreatGuard = false;
             p.GreatTemper = 0;
+            p.TemperCarry = 0f;
             p.GreatLock = GreatGuardLockout;
             if (p.Downed || p.StunT > 0f)
                 return;  // (taken out of the guard: no Rend)
@@ -58,7 +59,7 @@ namespace Arena
                 p.GreatPrimed = true;
             V2 toward = aimAt - p.Pos;
             float aim = toward.Length > 1f ? toward.Angle : p.Aim;
-            var s = NewSwing(p, aim, GreatRendReach, 0f, GreatRendDamage(n) * p.Stats.DmgMult);
+            var s = NewSwing(p, aim, GreatRendReach, 0f, GreatRendDamage(n) * p.Stats.DmgMult * p.Stats.GreatRendMult);  // (Tempered Blade: harder)
             s.HalfWidth = GreatRendWidth + GreatRendWidthPer * n;
             s.Rend = true;
             s.Power = (float)n / GreatTemperMax;
@@ -110,8 +111,13 @@ namespace Arena
                     continue;
                 AddFx(FxKind.Spark, b.Pos, Defs.BulletColor(Defs.KnightSlash), 8f, 0.2f);
                 KillBullet(id);
-                if (p.GreatTemper < GreatTemperMax && ++p.GreatTemper == GreatTemperMax)
-                    full = true;
+                p.TemperCarry += p.Stats.TemperGainMult;  // Tempered Blade: Temper builds faster (the fraction carries over)
+                while (p.TemperCarry >= 1f && p.GreatTemper < GreatTemperMax)
+                {
+                    p.TemperCarry -= 1f;
+                    if (++p.GreatTemper == GreatTemperMax)
+                        full = true;
+                }
             }
             if (full)
             {

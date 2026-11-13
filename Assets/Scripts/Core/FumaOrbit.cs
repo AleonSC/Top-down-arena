@@ -27,6 +27,9 @@ namespace Arena
         static float FumaEase(float k) { k = MathX.Clamp01(k); return 1f - (1f - k) * (1f - k) * (1f - k); }
         static float FumaSmooth(float k) { k = MathX.Clamp01(k); return k * k * (3f - 2f * k); }
 
+        /// The Orbit stance's circle for this player (Long Loop widens it).
+        public static float FumaR(Player p) => FumaOrbitR * p.Stats.FumaOrbitMult;
+
         /// The orbit's base angle at a clock time (star 0, before any move).
         public static float FumaBaseAng(Player p, float clock) => p.FumaAng0 + p.FumaSpin * (clock - p.FumaClk0);
 
@@ -37,7 +40,7 @@ namespace Arena
         public static V2 FumaPose(Player p, float clock, int i, int n)
         {
             float a = FumaBaseAng(p, clock) + (n > 1 ? i * MathX.Tau / n : 0f);
-            float r = p.FumaR0 + (FumaOrbitR - p.FumaR0) * FumaEase(clock / FumaOutTime);
+            float r = p.FumaR0 + (FumaR(p) - p.FumaR0) * FumaEase(clock / FumaOutTime);
             int move = p.FumaMove;
             float u = move != 0 ? (clock - p.FumaMoveAt) / FumaMoveTime(move) : -1f;
             if (u < 0f || u > 1f)
@@ -149,12 +152,12 @@ namespace Arena
                 if (!Targetable(e))
                     continue;
                 float d = e.Pos.DistanceTo(p.Pos);
-                if (d - e.Radius > FumaOrbitR + FumaRevOut || d + e.Radius < FumaOrbitR - FumaRevIn)
+                if (d - e.Radius > FumaR(p) + FumaRevOut || d + e.Radius < FumaR(p) - FumaRevIn)
                     continue;
                 FumaHit(p, e, dmg);
             }
-            BroadcastFx(FxKind.Ring, p.Pos, FumaHot, FumaOrbitR + FumaRevOut, 0.35f, Sfx.SwingHeavy);
-            BroadcastFx(FxKind.Ring, p.Pos, FumaInk, FumaOrbitR, 0.3f, Sfx.None);
+            BroadcastFx(FxKind.Ring, p.Pos, FumaHot, FumaR(p) + FumaRevOut, 0.35f, Sfx.SwingHeavy);
+            BroadcastFx(FxKind.Ring, p.Pos, FumaInk, FumaR(p), 0.3f, Sfx.None);
         }
 
         /// The orbit turns at a new rate from here on, carrying on from where it is now.

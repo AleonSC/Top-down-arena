@@ -171,10 +171,11 @@ namespace Arena
             }
             p.RapierCharge = (byte)(p.RapierGuard ? Math.Min(255f, p.RapierChargeF * 255f) : 0f);
             p.RapierHitAgo += dt;
-            if (p.RapierTempoF > 0f && p.RapierHitAgo > RapierGrace)
+            float grace = RapierGrace + p.Stats.TempoHoldBonus;  // Duelist's Edge: Tempo holds longer
+            if (p.RapierTempoF > 0f && p.RapierHitAgo > grace)
                 p.RapierTempoF = Math.Max(0f, p.RapierTempoF - RapierDrain * dt);
             p.RapierTempo = (int)p.RapierTempoF;
-            p.RapierGraceLeft = p.RapierTempo > 0 && p.RapierHitAgo < RapierGrace ? (byte)(255f * (1f - p.RapierHitAgo / RapierGrace)) : (byte)0;
+            p.RapierGraceLeft = p.RapierTempo > 0 && p.RapierHitAgo < grace ? (byte)(255f * (1f - p.RapierHitAgo / grace)) : (byte)0;
 
             if (p.RapierFlourishLeft <= 0)
                 return;

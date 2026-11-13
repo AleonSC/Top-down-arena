@@ -70,7 +70,7 @@ namespace Arena
                     half = BreachHalfWidth + 12f * extra;
                     var s = LanceSwing(p, aim, reach, 0f, hit, d.Dur * LanceMotion.BreachHit, step, Sfx.None);  // (its sound plays from the click, wind-up and all)
                     s.HalfWidth = half;
-                    s.Knock = BreachKnock + 60f * extra;
+                    s.Knock = (BreachKnock + 60f * extra) * p.Stats.BreachKnockMult;  // Breacher: farther
                     s.Stun = BreachStun;
                     s.Heavy = true;
                     s.Thrust = true;
@@ -241,7 +241,7 @@ namespace Arena
                     continue;
                 Player owner;
                 Players.TryGetValue(e.ImpactBy - 1, out owner);
-                float dmg = ImpactDmg * (owner != null ? owner.Stats.DmgMult : 1f);
+                float dmg = ImpactDmg * (owner != null ? owner.Stats.DmgMult * owner.Stats.ImpactMult : 1f);  // (Breacher: harder)
                 e.ImpactLast = g.Id;
                 g.ImpactLast = e.Id;
                 V2 left = e.KnockLeft;
@@ -267,7 +267,7 @@ namespace Arena
         {
             Player owner;
             Players.TryGetValue(e.ImpactBy - 1, out owner);
-            float dmg = WallImpactDmg * (owner != null ? owner.Stats.DmgMult : 1f);
+            float dmg = WallImpactDmg * (owner != null ? owner.Stats.DmgMult * owner.Stats.ImpactMult : 1f);
             e.KnockLeft = V2.Zero;
             e.KnockSpeed = 0f;
             e.FrozenT = Math.Max(e.FrozenT, WallImpactStun);

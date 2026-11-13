@@ -63,7 +63,7 @@ namespace Arena
         /// The throw leaves: its target is the first enemy in the lane (it can still be blocked or die before the weight lands).
         void StartKusariThrow(Player p, float aim, float reach, float dmg)
         {
-            reach = MeleeReach(p, reach);
+            reach = MeleeReach(p, reach) * p.Stats.KusariReachMult;  // Heavy Weight: farther
             V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
             Enemy first = null;
             float firstAlong = float.MaxValue;
@@ -215,8 +215,9 @@ namespace Arena
             ModHit(e, p.Id, dmg, Defs.KnightSlash, dir);
             if (e.Hp > 0f && !e.Def.IsBoss)
             {
-                e.FrozenT = Math.Max(e.FrozenT, KusariThrowStun);
-                e.SlowT = Math.Max(e.SlowT, KusariThrowStun);
+                float stun = KusariThrowStun + p.Stats.KusariStunBonus;  // (Heavy Weight: longer)
+                e.FrozenT = Math.Max(e.FrozenT, stun);
+                e.SlowT = Math.Max(e.SlowT, stun);
             }
             p.MeleeGraceT = MeleeContactGrace;
             BroadcastFx(FxKind.Ring, e.Pos, KusariColor, e.Radius + 34f, 0.3f, Sfx.SwingHeavy);

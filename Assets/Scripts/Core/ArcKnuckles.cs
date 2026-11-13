@@ -98,7 +98,7 @@ namespace Arena
                         s.Circle = (counter ? KnuckleCounterR : KnuckleHammerR) * reachMult;
                         s.CircleAt = KnuckleHammerAt + KnuckleAftershockOut * k;
                         s.Knock = counter ? KnuckleCounterKnock : KnuckleHammerKnock;
-                        s.Stun = counter ? KnuckleCounterStun : KnuckleHammerStun;
+                        s.Stun = (counter ? KnuckleCounterStun : KnuckleHammerStun) + p.Stats.KnuckleStunBonus;  // (Live Wire: longer)
                         s.Power = counter ? 1f : 0.6f;
                         s.Heavy = true;
                         s.Sound = k == 0 ? (counter ? Sfx.KnuckleCounter : Sfx.KnuckleSlam) : Sfx.KnuckleSlam;
@@ -171,13 +171,13 @@ namespace Arena
 
         /// The enemy a Rocket Dash from `from` locks onto: of those within KnuckleLockRange of you, the one closest to the cursor
         /// (`cursor`), or null (the dash then goes straight along your aim). Your own game asks too, to show the reticle.
-        public Enemy KnuckleLockTarget(V2 from, V2 cursor)
+        public Enemy KnuckleLockTarget(V2 from, V2 cursor, float reachMult = 1f)
         {
             Enemy best = null;
             float bestD = float.MaxValue;
             foreach (var e in Enemies.Values)
             {
-                if (!Targetable(e) || e.Pos.DistanceTo(from) > KnuckleLockRange + e.Radius)
+                if (!Targetable(e) || e.Pos.DistanceTo(from) > KnuckleLockRange * reachMult + e.Radius)
                     continue;
                 float d = e.Pos.DistanceTo(cursor);
                 if (d < bestD)
@@ -197,10 +197,11 @@ namespace Arena
                 || State == MatchState.GameOver)
                 return;
             V2 from = p.Pos, toward = aimAt - from;
-            var lockOn = KnuckleLockTarget(from, aimAt);
+            float far = p.Stats.KnuckleDashMult;  // Live Wire: the dash reaches farther
+            var lockOn = KnuckleLockTarget(from, aimAt, far);
             float aim = lockOn != null ? (lockOn.Pos - from).Angle : toward.Length > 1f ? toward.Angle : p.Aim;
             V2 dir = V2.FromAngle(aim);
-            float len = lockOn != null ? Math.Max(0f, Math.Min(KnuckleDashMax, lockOn.Pos.DistanceTo(from) - lockOn.Radius - p.Def.BodyR - KnuckleDashStop)) : KnuckleDashLen;
+            float len = lockOn != null ? Math.Max(0f, Math.Min(KnuckleDashMax * far, lockOn.Pos.DistanceTo(from) - lockOn.Radius - p.Def.BodyR - KnuckleDashStop)) : KnuckleDashLen * far;
             V2 to = ClampToArena(from + dir * len, p.Def.BodyR);
             float time = Math.Max(KnuckleDashMinTime, to.DistanceTo(from) / KnuckleDashSpeed);
             p.KnuckleDashCd = KnuckleDashCooldown;

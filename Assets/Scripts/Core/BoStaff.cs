@@ -52,7 +52,7 @@ namespace Arena
                     continue;
                 V2 origin = p.Pos, dir = V2.FromAngle(sh.Aim), side = dir.Orthogonal();
                 float reach = BoShoveReachOf(p), dmg = p.Weapon.Damage * BoShoveMult * p.Stats.DmgMult * (1f + BoExtraDmg * ExtraShots(p));
-                float push = BoShoveKnock + p.Weapon.Grow * ExtraShots(p);
+                float push = (BoShoveKnock + p.Weapon.Grow * ExtraShots(p)) * p.Stats.BoKnockMult;  // Iron Bo: farther
                 p.Run.ShotsFired++;
                 bool any = false;
                 foreach (var e in new List<Enemy>(Enemies.Values))

@@ -85,7 +85,12 @@ namespace Arena
         void LightLanded(Player p, Swing s, V2 origin, V2 circleAt, int hits)
         {
             if (!s.LightRadiant)
-                p.Light = Math.Min(LightMax, p.Light + hits * (s.LightKind == 3 ? 2 : 1));
+            {
+                p.LightCarry += hits * (s.LightKind == 3 ? 2 : 1) * p.Stats.LightGainMult;  // Daybreak: fills faster (the fraction carries over)
+                int whole = (int)p.LightCarry;
+                p.LightCarry -= whole;
+                p.Light = Math.Min(LightMax, p.Light + whole);
+            }
             if (s.LightKind < 3)
             {
                 if (hits > 0)
@@ -171,7 +176,7 @@ namespace Arena
             if (q.Downed)
                 q.Revive = Math.Min(1f, q.Revive + LanceRevive);
             else
-                Heal(q, LancePerPip * pips, p);
+                Heal(q, LancePerPip * pips * p.Stats.SunlanceHealMult, p);  // (Daybreak: more)
             V2 a = p.Pos, b = q.Pos, d = b - a;
             float len = d.Length;
             if (len < 1f)
