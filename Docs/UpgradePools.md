@@ -80,7 +80,47 @@ The Nov 2026 audit of `Core/Upgrades.cs` found:
 - Test: suite `classcardlists` (`ClassCardListsTest`: each list holds only its class's cards, nothing class-specific is
   left in the general list, names are unique). `Tests/Expansion.cs` no longer needs the vector cards last.
 
-### Step 5 (later): the first class and weapon cards
+### Step 5: fill the ability gaps (proposed, owner picks)
 
-Proposed per class in a follow-up, after steps 1-4. With odds by count, a weapon with several cards sees its own
-cards more often than a weapon with one. Keep the numbers per weapon close (e.g. 1-2 each) so classes stay even.
+Owner decision: the first batch gives a Rare card to every Space ability that has none, so each class has one per
+Space ability like the Knight, Ninja and Blood Mage do (9 each). Style matches the existing ones (Bastion, Earthshaker):
+Rare, `RequiresAbility`, `MaxStacks = 2`, two numbers per card. Each needs a `Stats` field read by the ability's code
+and a sim check that the number changes. They go in the class's own list (`Game.ElementalistCards`, ...); protocol bump.
+
+**Elementalist** (0 today → 9)
+
+| Ability | Card | Effect (per stack) |
+|---|---|---|
+| Aeroaegis | Eye of the Storm | The vortex lasts 1.5 s longer and reflected bullets hit 50% harder |
+| Frost Nova | Permafrost | Freezes 1 s longer and reaches 30% farther |
+| Flame Wall | Inferno | The wall stands 2 s longer and burns 50% hotter |
+| Healing Rain | Monsoon | The rain is 40% wider and heals 40% more |
+| Energy Ward | Overcharged Ward | The bubble soaks 50% more, and gives back 75% of it as healing (from 50%) |
+| Lumen Ward | Dawnlight | The cone lasts 2 s longer and heals 30% more |
+| Meteor | Cataclysm | Hits 50% harder and 30% wider |
+| Blizzard | Whiteout | The storm is 40% bigger and lasts 2 s longer |
+| Tsunami | Riptide | The wave is 40% wider and enemies stay wet 4 s longer |
+
+**Summoner** (1 today: Soul Lantern → 9)
+
+| Ability | Card | Effect (per stack) |
+|---|---|---|
+| Golem Wall | Basalt Hide | Golems have 50% more health |
+| Earthquake | Deep Tremor | The Burrower tunnels 1.5 s longer and hits 50% harder |
+| Force Pact | Kindred Bond | Your pact enemy has 50% more health and comes back 5 s sooner |
+| Spirit Swarm | Sprite Choir | 3 more sprites, and they last 2 s longer |
+| Phoenix | Rebirth Flame | The phoenix stays 4 s longer, and the people it revives get 25% more health |
+| Bat Swarm | Night Colony | 4 more bats, and they hunt 2 s longer |
+| Hydra | Fourth Head | The hydra grows a fourth head and stays 2 s longer |
+| Alpha Call | Pack Leader | Blood Scent lasts 3 s longer and your minions start at 3 stacks |
+
+**Soldier** (8 today → 9)
+
+| Ability | Card | Effect (per stack) |
+|---|---|---|
+| Medkit | Field Surgeon | 3 more orbs, and each heals 5 more |
+
+Effect of the batch on the pool: an Elementalist's Rare pool goes from 8 general cards to 9 (8 + its own one); a card
+for your Space ability is then about 1 in 9 of your Rare cards, the same as for the other classes.
+
+After this batch: one card per class (`Kit`), then weapon cards class by class.
