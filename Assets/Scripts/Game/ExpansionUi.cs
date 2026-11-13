@@ -22,6 +22,20 @@ namespace Arena
 
         static string KindName(ExpansionRoom r) => r.Kind == RoomKind.Shop ? "Shop" : r.Kind == RoomKind.Vendor ? "Black Market" : r.Kind == RoomKind.Gatekeeper ? "Gatekeeper" : r.Kind == RoomKind.Floor ? Paths.Get(r.Floor).Name : "Combat";
 
+        /// What a rule node's room will do, and what it pays once a wave is cleared there.
+        static string RuleBlurb(byte rule)
+        {
+            switch ((NodeRule)rule)
+            {
+                case NodeRule.Dark: return "Dark: you only see about 350 px round you. Pays a chest.";
+                case NodeRule.Frozen: return "Ice: you slide, foes are chilled. Pays gold and vectors.";
+                case NodeRule.BloodMoon: return "No regeneration or orbs, kills heal you. Pays a relic.";
+                case NodeRule.Burning: return "Fire patches burn. Pays a chest.";
+                case NodeRule.Swarm: return "Twice the crowd, melee foes at 60% health. Pays a chest.";
+                default: return "Twice the crowd, every one elite. Pays a chest.";
+            }
+        }
+
         /// What a Floor room does: that path's rule inside the room only, and its bonus for kills there.
         static string FloorBlurb(PathId f)
         {
@@ -607,7 +621,13 @@ namespace Arena
                     if (!Expansion.NodeClaimed(game.Expanded, nd))
                     {
                         V2 np = M(nd.Pos);
-                        var ni = NodeInk(nd.Kind);
+                        var ni = NodeInkOf(nd);
+                        if (nd.Kind == NodeKind.Rule)  // the whole area a room must enclose
+                        {
+                            V2 r0 = M(nd.Pos - new V2(Expansion.RuleHalf, Expansion.RuleHalf)), r1 = M(nd.Pos + new V2(Expansion.RuleHalf, Expansion.RuleHalf));
+                            RoomMapRect(r0.X, r0.Y, r1.X - r0.X, r1.Y - r0.Y, ni.WithAlpha(0.12f + 0.08f * Mathf.Sin(Time.unscaledTime * 2.5f)));
+                            RoomMapFrame(r0.X, r0.Y, r1.X - r0.X, r1.Y - r0.Y, 1.5f, ni.WithAlpha(0.8f));
+                        }
                         RoomMapRect(np.X - 6f, np.Y - 6f, 12f, 12f, ni.WithAlpha(0.55f + 0.3f * Mathf.Sin(Time.unscaledTime * 2.5f)));
                         RoomMapFrame(np.X - 9f, np.Y - 9f, 18f, 18f, 1.5f, ni);
                     }
@@ -720,10 +740,15 @@ namespace Arena
                 {
                     V2 n0 = M(nd.Pos);
                     var nr = new Rect(n0.X - 12f, n0.Y - 12f, 24f, 24f);
+                    if (nd.Kind == NodeKind.Rule)  // hover anywhere on its area
+                    {
+                        V2 r0 = M(nd.Pos - new V2(Expansion.RuleHalf, Expansion.RuleHalf)), r1 = M(nd.Pos + new V2(Expansion.RuleHalf, Expansion.RuleHalf));
+                        nr = new Rect(r0.X, r0.Y, r1.X - r0.X, r1.Y - r0.Y);
+                    }
                     if (map.Contains(Event.current.mousePosition) && TipHover(nr))
                     {
-                        TipStart(nr, nd.Kind.ToString(), ToColor(NodeInk(nd.Kind)));
-                        TipAdd("Build a room round it to claim it.", 12, Ui.Text);
+                        TipStart(nr, nd.Kind == NodeKind.Rule ? "Rule node: " + RuleName(nd.Rule) : nd.Kind.ToString(), ToColor(NodeInkOf(nd)));
+                        TipAdd(nd.Kind == NodeKind.Rule ? "Build a room round all of it (at least 9 x 9 tiles). " + RuleBlurb(nd.Rule) : "Build a room round it to claim it.", 12, Ui.Text);
                     }
                 }
             foreach (var fa in wd.Areas)  // the floating rooms: named in a hover tip too
@@ -1072,10 +1097,10 @@ namespace Arena
             }
             // The legend: what the colours on the map are.
             var items = new List<KeyValuePair<string, Rgba>> { new KeyValuePair<string, Rgba>("YOUR MAP", new Rgba(0.4f, 0.64f, 1f)), new KeyValuePair<string, Rgba>("DOOR", new Rgba(0.37f, 0.94f, 1f)) };
-            var seen = new HashSet<NodeKind>();
+            var seen = new HashSet<int>();
             foreach (var nd in game.Nodes)
-                if (!Expansion.NodeClaimed(game.Expanded, nd) && seen.Add(nd.Kind))
-                    items.Add(new KeyValuePair<string, Rgba>(nd.Kind.ToString().ToUpperInvariant() + " NODE", NodeInk(nd.Kind)));
+                if (!Expansion.NodeClaimed(game.Expanded, nd) && seen.Add((int)nd.Kind * 256 + (nd.Kind == NodeKind.Rule ? nd.Rule : 0)))
+                    items.Add(new KeyValuePair<string, Rgba>((nd.Kind == NodeKind.Rule ? RuleName(nd.Rule) + " RULE" : nd.Kind.ToString().ToUpperInvariant() + " NODE").ToUpperInvariant(), NodeInkOf(nd)));
             items.Add(new KeyValuePair<string, Rgba>("WALL", HoloWallInk));  // the map's floor (BuildMapLook.cs): walls, cover, and what's on it this wave
             items.Add(new KeyValuePair<string, Rgba>("COVER", HoloCoverInk));
             if (game.ActiveBreaches.Length > 0)
@@ -1302,7 +1327,7 @@ namespace Arena
                 if (!Expansion.NodeClaimed(all, nd))
                 {
                     V2 np = M(nd.Pos);
-                    RoomMapRect(np.X - 3f, np.Y - 3f, 6f, 6f, NodeInk(nd.Kind).WithAlpha(0.6f + 0.3f * Mathf.Sin(t * 3f)));
+                    RoomMapRect(np.X - 3f, np.Y - 3f, 6f, 6f, NodeInkOf(nd).WithAlpha(0.6f + 0.3f * Mathf.Sin(t * 3f)));
                 }
             for (int di = 0; di < wd.Doors.Length; di++)
             {

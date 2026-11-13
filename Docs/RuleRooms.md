@@ -1,6 +1,6 @@
 # Rule rooms: big nodes that force a bigger room
 
-Status: **design agreed, steps 1-2 built (protocol 307).** Owner, Nov 13, 2026: restriction rooms like the old paths (a dark room, ...) as **nodes, but bigger ones that force a
+Status: **design agreed, steps 1-3 built (protocol 307).** Owner, Nov 13, 2026: restriction rooms like the old paths (a dark room, ...) as **nodes, but bigger ones that force a
 bigger room**. First pool: all four below. Sits beside [`Nodes.md`](Nodes.md); the rules come from [`Paths.md`](Paths.md).
 
 ## The idea
@@ -57,3 +57,10 @@ Clearing it pays a reward.
   Blood Moon a relic to walk up to (`TickRelicNodes`); Frozen pays gold (40 + 4 a wave) and 8 vectors to everyone at once and spends the node. First guesses, tune with `vecbal`.
 - Look: nothing drawn in a claimed rule room until it is cleared, then the chest or relic fixture. The floors keep their path looks; a rule room's own look is step 3.
 - Tests (suite `expand`): each rule gives its ground, the way there is no rule room, Frozen pays once, a Dark room's chest only after clearing.
+
+## Step 3 (built, no protocol change)
+
+- A rule node on the arena floor (`NodeLook.cs` `DrawRuleNode`): the whole 8 x 8 tile area in its rule's path colour (`NodeInkOf`): a faint tint, 45 degree hatching, breathing corner brackets, and in the middle a ring with turning dashes and the rule's mark
+  (an eye for Dark, a snowflake, a blood-drop moon, a flame, a crowd of dots, a diamond for Elite).
+- The build screen's map (`ExpansionUi.cs`): the node's area as a tinted, framed square on the holo map and the minimap; hovering anywhere on it names the rule, what it does and what it pays (`RuleBlurb`); the legend lists "DARK RULE" etc.
+- A claimed rule room keeps the path's own floor and weather; its prize shows once it is cleared (step 2). Preview: `EXPANDMAP=0 EXPANDNODE="rule.dark:2400,450" EXPANDAT=1900,450` (mode hud; `rule.frozen|bloodmoon|burning|swarm|elite`, a third part `cleared` or `spent`).
