@@ -72,6 +72,27 @@ static partial class Program
         Check(g.Enemies.Values.Count(e => e.Type == EnemyType.Grunt) == 0 && g.PortalCargoCount() == 0, "the burst inside a sealed portal is cancelled");
         Check(g.Score - scoreBefore >= 5 * SpawnPortals.SealScore, "sealing it pays out for each enemy it held");
 
+        // A portal never opens clipping into a wall, pillar or the arena edge, on every floor plan.
+        int clipped = 0, opened = 0;
+        foreach (LayoutId lid in Enum.GetValues(typeof(LayoutId)))
+        {
+            g.DevSetLayout(lid);
+            var lay = g.ActiveLayout;
+            for (int k = 0; k < 20; k++)
+            {
+                g.Enemies.Clear();
+                var q = g.OpenPortal(new List<EnemyType> { EnemyType.Grunt }, k % 2 == 1);
+                opened++;
+                bool bad = q.Pos.X < SpawnPortals.Clearance - 1f || q.Pos.Y < SpawnPortals.Clearance - 1f || q.Pos.X > Game.Width - SpawnPortals.Clearance + 1f || q.Pos.Y > Game.Height - SpawnPortals.Clearance + 1f;
+                if (lay != null)
+                    bad |= lay.Solids.Any(sd => !(sd.Edge && g.Walled) && Layouts.Inside(sd, q.Pos, SpawnPortals.Clearance - 1f));
+                if (bad) { clipped++; Console.WriteLine("  clipped: " + lid + " at " + q.Pos.X + "," + q.Pos.Y); }
+            }
+        }
+        g.DevSetLayout(LayoutId.Open);
+        g.Enemies.Clear();
+        Check(clipped == 0, "portals open clear of walls on every floor plan (" + clipped + " of " + opened + " clipped)");
+
         // In a surge a portal's Winding is on (its look speeds up), and the client sees it.
         g.Enemies.Clear();
         var clock = typeof(Game).GetField("timedClock", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
