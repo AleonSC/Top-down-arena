@@ -421,6 +421,8 @@ namespace Arena
             e.Strafe = rng.NextDouble() < 0.5 ? 1f : -1f;
             e.Ang = Rand(0f, MathX.Tau);
             Enemies[e.Id] = e;
+            if (type == EnemyType.BoundWraith)
+                PairBound(e, spawnT, parent, elite);  // they come in pairs (ReaperFaction.cs)
             return e;
         }
 
@@ -723,6 +725,8 @@ namespace Arena
                 return;  // locked in while winding up and dashing
             if (NonShooterFaceLocked(e))
                 return;  // a planted Fuse Runner, a Hookman's aim and throw (NonShooters.cs)
+            if (e.Type == EnemyType.ScytheWraith && e.Phase == 1 && e.PhaseT <= ScytheMark - ScytheTrack)
+                return;  // a Scythe Wraith's mark stays put once it's locked (ReaperFaction.cs)
             if (IsLunger(e.Type) && e.Phase >= 2 || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.SpikeBlock && e.Phase >= 1)
                 return;  // committed to the leap / flight line (a Spike Block locks its line when it winds up)
             if (e.Type == EnemyType.BeamSentry && e.Phase >= 2 || e.Type == EnemyType.Reaver && e.Phase != 0 || e.Type == EnemyType.Leader && e.Phase == 1)
@@ -936,17 +940,20 @@ namespace Arena
                     break;
                 case EnemyType.Brute:
                 case EnemyType.Thug:
+                case EnemyType.Gravedigger:
                 case EnemyType.Swarmer:  // no tricks: straight at you
+                case EnemyType.Wisp:
                     v = dir;
                     break;
                 case EnemyType.Lunger:
                 case EnemyType.Shiv:
+                case EnemyType.ScytheWraith:
                     if (e.Phase == 0)
                         v = dist > 170f ? dir : dir.Orthogonal() * e.Strafe * 0.6f;  // close in, then circle while it winds up
                     else if (e.Phase == 2)
                     {
                         v = V2.FromAngle(e.Facing);
-                        speed = 640f;
+                        speed = e.Type == EnemyType.ScytheWraith ? ScytheSpeed : 640f;
                     }
                     else if (e.Phase == 3)
                         speed *= 0.3f;  // recovering after the leap
@@ -988,6 +995,8 @@ namespace Arena
                 v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
             if (e.Type == EnemyType.RiotShield || e.Type == EnemyType.GasGrenadier || e.Type == EnemyType.TaserGuard || e.Type == EnemyType.SecurityGuard)
                 v = WardenFactionMove(e, tpos, dir, dist, dt, ref speed);  // WardenFaction.cs
+            if (e.Type == EnemyType.BoundWraith || e.Type == EnemyType.Lamplighter || e.Type == EnemyType.Mourner)
+                v = ReaperCultMove(e, tpos, dir, dist, dt, ref speed);  // ReaperFaction.cs
             if (Zombies.Is(e.Type))
                 v = ZombieMove(e, tpos, dir, dist, ref speed);  // Zombies.cs
             if (IsNonShooter(e.Type))
@@ -1044,6 +1053,10 @@ namespace Arena
                 case EnemyType.RiotShield:
                     RiotShieldSpecial(e, tpos, dt);  // WardenFaction.cs
                     break;
+                case EnemyType.BoundWraith:
+                case EnemyType.Mourner:
+                    ReaperCultSpecial(e, tpos, dt);  // ReaperFaction.cs: a revive, the spiral's clock
+                    break;
                 case EnemyType.Boss:
                     WardenSpecial(e, tpos, dt);  // Warden.cs: its stages, turns, searchlight, gates and riot
                     break;
@@ -1063,28 +1076,32 @@ namespace Arena
                 }
                 case EnemyType.Lunger:
                 case EnemyType.Shiv:
+                case EnemyType.ScytheWraith:
                 {
                     // Phase 0: approach; 1: wind up (telegraph line); 2: leap; 3: recover.
+                    // A Scythe Wraith marks from further out, holds the mark longer, locks it early and dashes further (ReaperFaction.cs).
+                    bool reaper = e.Type == EnemyType.ScytheWraith;
                     float dist = tpos.DistanceTo(e.Pos);
                     e.PhaseT -= dt;
-                    if (e.Phase == 0 && dist < 220f && e.PhaseT <= 0f && !LungerWaits(e, tpos))  // in a squad, it waits for a Brute (Variety.cs)
+                    if (e.Phase == 0 && dist < (reaper ? ScytheStart : 220f) && e.PhaseT <= 0f && !LungerWaits(e, tpos))  // in a squad, it waits for a Brute (Variety.cs)
                     {
                         e.Phase = 1;
-                        e.PhaseT = 0.6f;
+                        e.PhaseT = reaper ? ScytheMark : 0.6f;
                     }
                     else if (e.Phase == 1)
                     {
-                        e.Facing = (tpos - e.Pos).Angle;  // tracks you while winding up
+                        if (!reaper || e.PhaseT > ScytheMark - ScytheTrack)
+                            e.Facing = (tpos - e.Pos).Angle;  // tracks you while winding up (a Scythe Wraith only at first: the mark then stays put)
                         if (e.PhaseT <= 0f)
                         {
                             e.Phase = 2;
-                            e.PhaseT = 0.32f;
+                            e.PhaseT = reaper ? ScytheDash : 0.32f;
                         }
                     }
                     else if (e.Phase == 2 && e.PhaseT <= 0f)
                     {
                         e.Phase = 3;
-                        e.PhaseT = 0.8f;
+                        e.PhaseT = reaper ? ScytheRecover : 0.8f;
                     }
                     else if (e.Phase == 3 && e.PhaseT <= 0f)
                     {
@@ -1175,6 +1192,8 @@ namespace Arena
             }
             if (VarietyFire(e, aim))
                 return;  // Variety.cs
+            if (ReaperCultFire(e, aim))
+                return;  // ReaperFaction.cs
             if (e.Type == EnemyType.GasGrenadier)
             {
                 GrenadierFire(e, tpos);  // WardenFaction.cs
@@ -1303,6 +1322,7 @@ namespace Arena
             if (InRoom)
                 RoomKilled(e);  // the kill rush's count, a shadow gone (Challenges.cs)
             VarietyKilled(e);  // Volatile, Splitting, a Warder's bubbles (Variety.cs)
+            ReaperCultKilled(e);  // a Bound Wraith's partner channels it back (ReaperFaction.cs)
             if (e.Type == EnemyType.Boss)
             {
                 ClearRioters();  // the riot's over (Warden.cs)

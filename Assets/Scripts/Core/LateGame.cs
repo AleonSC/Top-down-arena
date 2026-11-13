@@ -63,6 +63,7 @@ namespace Arena
             switch (e.Type)
             {
                 case EnemyType.Phantom:
+                case EnemyType.Shade:
                     return KeepDistance(dir, dist, 250f) + dir.Orthogonal() * e.Strafe * 0.7f;
                 case EnemyType.Hexer:
                     return KeepDistance(dir, dist, 300f) + dir.Orthogonal() * e.Strafe * 0.5f;
@@ -106,6 +107,7 @@ namespace Arena
             switch (e.Type)
             {
                 case EnemyType.Phantom:
+                case EnemyType.Shade:
                     // Blink somewhere near the target, then burst. The spot is marked first (a Target ring, PhantomWarn s, the
                     // same "it lands here" ring as the bombs and blasts); Phase 1 is that warning.
                     if (e.Phase == 0 && e.PhaseT <= 0f)
@@ -175,6 +177,7 @@ namespace Arena
             switch (e.Type)
             {
                 case EnemyType.Phantom:
+                case EnemyType.Shade:
                     e.FireT = 1.5f;
                     EnemyShot(e, aim - 0.05f, 200f, Defs.SmallShot);
                     EnemyShot(e, aim + 0.05f, 200f, Defs.SmallShot);

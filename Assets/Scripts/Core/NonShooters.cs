@@ -63,6 +63,7 @@ namespace Arena
                     return V2.Zero;
                 case EnemyType.Swordsman:
                 case EnemyType.ShieldSwordsman:
+                case EnemyType.Acolyte:
                     return SwordsmanMove(e, dir, dist, ref speed);  // Swordsman.cs
             }
             return V2.Zero;
@@ -78,7 +79,8 @@ namespace Arena
                 case EnemyType.Sapper: SapperSpecial(e, dt); break;
                 case EnemyType.SapperMine: PodSpecial(e, dt); break;
                 case EnemyType.Swordsman:
-                case EnemyType.ShieldSwordsman: SwordsmanSpecial(e, tpos, dt); break;
+                case EnemyType.ShieldSwordsman:
+                case EnemyType.Acolyte: SwordsmanSpecial(e, tpos, dt); break;
             }
         }
 

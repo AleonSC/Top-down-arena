@@ -23,7 +23,7 @@ namespace Arena
                 case EnemyType.Shard: reach = 300f; return true;
                 case EnemyType.Medic: reach = 240f; return true;
                 case EnemyType.Splitter: reach = 260f; return true;
-                case EnemyType.Phantom: reach = 300f; return true;
+                case EnemyType.Phantom: case EnemyType.Shade: reach = 300f; return true;
                 case EnemyType.Grunt: reach = 230f; fan = 0.22f; return true;
                 case EnemyType.TaserGuard: reach = 420f; return true;
             }

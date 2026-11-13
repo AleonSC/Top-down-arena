@@ -430,7 +430,7 @@ namespace Arena
         /// status (tint, flames, mark), the body, ice, its type's details on top, then the health bar and icons.
         void DrawEnemy(Enemy e, float t)
         {
-            Rgba col = e.Def.Color;
+            Rgba col = Game.IsReaperCult(e.Type) ? CultTint(e) : e.Def.Color;  // the Reapers' cult: its sworn side (ReaperCultLook.cs)
             if (Game.IsBrute(e.Type))
                 col = col.Mix(new Rgba(1f, 0.15f, 0.1f), 0.7f * Game.BruteRage(e));  // enrage: redder as it is shot (BruteEnrage.cs)
             V2 pos = e.Disp;
@@ -462,12 +462,14 @@ namespace Arena
             }
             bool pac = PacSkin && !spawning && PacGhostable(e);  // the Pac-Man skin: a ghost in its role's colour (PacmanLook.cs)
             // Melee enemies are spiky, so you can tell rushers from shooters at a glance.
-            if (e.Def.Melee && !pac && !spawning && e.Type != EnemyType.Swarmer && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type) && !Game.IsNonShooter(e.Type))
+            if (e.Def.Melee && !pac && !spawning && e.Type != EnemyType.Swarmer && !Game.IsReaperCult(e.Type) && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type) && !Game.IsNonShooter(e.Type))
                 DrawMeleeSpikes(e, pos, r, col, t);
             if (Zombies.Is(e.Type))
                 DrawZombieUnder(e, pos, r, t);  // its spore haze, frenzy streaks and the Crawler's hold (ZombieLook.cs)
             DrawEnemyShadow(e, pos, r);  // EnemyPresenceLook.cs
             col = DrawEnemyUnderlay(e, pos, r, col, spawning, t);
+            if (Game.IsReaperCult(e.Type) && !pac)
+                DrawCultUnder(e, pos, r, col, spawning, t);  // a tether, a revive's ghost, a lantern's lanes (ReaperCultLook.cs)
             if (pac)
                 col = PacRoleColor(e);
             if (e.Type == EnemyType.SecurityGuard && !spawning)
@@ -487,6 +489,8 @@ namespace Arena
                 DrawWarderBody(e, pos, r, col, t);  // WarderLook.cs
             else if (e.Type == EnemyType.Swarmer)
                 DrawChomper(e, pos, r, col, t);
+            else if (e.Type == EnemyType.Wisp)
+                DrawWispBody(e, pos, r, col, t);  // ReaperCultLook.cs
             else if (e.Type == EnemyType.SecurityGuard)
                 DrawSecurityBody(e, pos, r, col, t);  // SecurityLook.cs
             else if (Game.IsNonShooter(e.Type))
@@ -645,6 +649,7 @@ namespace Arena
                     break;
                 case EnemyType.Lunger:
                 case EnemyType.Shiv:
+                case EnemyType.ScytheWraith:
                     DrawLungerTell(e, pos, r, col, t);
                     break;
                 case EnemyType.SpikeBlock:
@@ -690,6 +695,7 @@ namespace Arena
                     DrawSingShardUnderlay(e, pos, r, col, t);
                     break;
                 case EnemyType.Phantom:
+                case EnemyType.Shade:
                     col = col.WithAlpha((menuPreview ? 0.75f : 0.45f) + (menuPreview ? 0.2f : 0.35f) * Mathf.Sin(t * 9f + e.Id));  // flickers in and out
                     break;
                 case EnemyType.Juggernaut:
@@ -841,6 +847,11 @@ namespace Arena
                 case EnemyType.Shiv:
                 case EnemyType.Brute:
                 case EnemyType.Thug:
+                case EnemyType.Wisp:
+                case EnemyType.ScytheWraith:
+                case EnemyType.Gravedigger:
+                case EnemyType.BoundWraith:
+                case EnemyType.Lamplighter:
                 case EnemyType.Shard:
                 case EnemyType.Mortar:
                 case EnemyType.Shielder:
@@ -918,6 +929,14 @@ namespace Arena
                     break;
                 case EnemyType.Shiv:
                     DrawShivDetails(e, pos, r, col);  // PrisonLook.cs
+                    break;
+                case EnemyType.BoundWraith:
+                case EnemyType.ScytheWraith:
+                case EnemyType.Lamplighter:
+                case EnemyType.Mourner:
+                case EnemyType.Gravedigger:
+                case EnemyType.Shade:
+                    DrawCultDetails(e, pos, r, col, t);  // ReaperCultLook.cs
                     break;
                 case EnemyType.Rioter:
                     DrawRioterDetails(e, pos, r, col);  // WardenLook.cs

@@ -53,6 +53,10 @@ namespace Arena
         Thug, Shiv,
         // a spawn portal: a burst of the wave comes through it; shoot it closed to cancel the rest (SpawnPortals.cs, Game/SpawnPortalLook.cs)
         Portal,
+        // the Twin Reapers' faction, the Dusk and Dawn cult (ReaperFaction.cs, Game/ReaperCultLook.cs): Wisp (a Swarmer), Acolyte
+        // (a Swordsman with a sickle), Bound Wraiths (a tethered pair), Scythe Wraith (a Lunger that reaps), Lamplighter (lines and
+        // the cross), Mourner (the twin spiral), Gravedigger (a Brute), Shade (a Phantom)
+        Wisp, Acolyte, BoundWraith, ScytheWraith, Lamplighter, Mourner, Gravedigger, Shade,
     }
 
     public class RoleDef
@@ -306,6 +310,23 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "A prisoner with a taped shank. Circles in close, flashes a line, then lunges along it." },
             new EnemyDef { Name = "Spawn Portal", Hp = 200f, Radius = 30f, Speed = 0f, Score = 30, Xp = 20, Sides = 24, Color = new Rgba(0.78f, 0.35f, 1f), Melee = true, Heavy = true,
                 Picker = PickerGroup.Hidden, Blurb = "A burst of the wave comes through it. Shoot it closed before it empties to cancel the rest; it drops coins for each one it held." },
+            // The Twin Reapers' faction (ReaperFaction.cs). Each is sworn to Dusk (pink) or Dawn (blue): drawn in its side's colour.
+            new EnemyDef { Name = "Wisp", Hp = 14f, Radius = 9f, Speed = 120f, Score = 3, Xp = 3, Sides = 3, Color = new Rgba(1f, 0.35f, 0.6f), Melee = true, Contact = 6f,
+                Picker = PickerGroup.Melee, Blurb = "A soul flame that drifts straight at you in a loose pack and burns on touch. Thin them before they reach you." },
+            new EnemyDef { Name = "Acolyte", Hp = 90f, Radius = 13f, Speed = 120f, Score = 14, Xp = 12, Sides = 6, Color = new Rgba(0.45f, 0.55f, 1f), Melee = true, Contact = 8f,
+                Picker = PickerGroup.Melee, Blurb = "A hooded chaser. Stops just short, raises its sickle over a pale cone, then one wide swing. Step back out of the cone." },
+            new EnemyDef { Name = "Bound Wraith", Hp = 60f, Radius = 12f, Speed = 95f, Score = 10, Xp = 9, Sides = 5, Color = new Rgba(1f, 0.35f, 0.6f), Melee = true, Contact = 8f,
+                Picker = PickerGroup.Melee, Blurb = "Comes as a pair circling near you, joined by a tether that hurts. Kill one and the other brings it back in 3 s, unless you kill both." },
+            new EnemyDef { Name = "Scythe Wraith", Hp = 75f, Radius = 14f, Speed = 85f, Score = 12, Xp = 11, Sides = 5, Color = new Rgba(0.45f, 0.55f, 1f), Melee = true, Contact = 18f,
+                Picker = PickerGroup.Melee, Blurb = "Marks a long line through you, then dashes along it and reaps both sides of its path. Leave the line sideways." },
+            new EnemyDef { Name = "Lamplighter", Hp = 55f, Radius = 13f, Speed = 70f, Score = 10, Xp = 10, Sides = 4, Color = new Rgba(1f, 0.35f, 0.6f),
+                Picker = PickerGroup.Ranged, Blurb = "Plants its feet, its lantern flares and gold lines show the volley: three lines at you, then a four-way cross." },
+            new EnemyDef { Name = "Mourner", Hp = 80f, Radius = 15f, Speed = 60f, Score = 12, Xp = 12, Sides = 7, Color = new Rgba(0.45f, 0.55f, 1f),
+                Picker = PickerGroup.Ranged, Blurb = "Stands still and weeps a twin spiral, one arm each way, then rests. Push in while it rests." },
+            new EnemyDef { Name = "Gravedigger", Hp = 140f, Radius = 19f, Speed = 62f, Score = 10, Xp = 10, Sides = 8, Color = new Rgba(1f, 0.35f, 0.6f), Melee = true, Contact = 20f,
+                Picker = PickerGroup.Melee, Blurb = "A cultist brute with a shovel. Slow and tough, hits hard when it reaches you." },
+            new EnemyDef { Name = "Shade", Hp = 90f, Radius = 13f, Speed = 90f, Score = 25, Xp = 22, Sides = 3, Color = new Rgba(0.45f, 0.55f, 1f),
+                Picker = PickerGroup.Late, Late = true, Blurb = "A shrouded Phantom: fades to smoke, shows a ring where it will land, appears and fires." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount

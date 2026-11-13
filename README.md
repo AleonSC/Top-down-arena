@@ -621,6 +621,24 @@ his own riot, on the boss wave, still give 2 and 4.
 | 2 | **Security Guard** | A guard with a service pistol: slate uniform, hi-vis vest, peaked cap. It holds about 300 px away and strafes, keeping one side for 2-4 s, its pistol trained **straight at you** (no lead), then **locks on for 0.25 s** while still walking, slowed: the shooting line fills along the shot. Then one **tracer round** (340 px/s, 7 damage): a hot-white streak with a long tail. It only starts shooting once within about 380 px of you, then semi-auto, one every 1.5 s, and the aim doesn't follow you once locked, so a sudden turn beats it. Its pips above its head count the **seven rounds** in the magazine; empty, it drops the magazine and **reloads for 2.2 s** (a cream ring fills round it), slowing to a stop and not shooting: rush it. Squad (wave 2): Patrol (three Security Guards with two Rioters) |
 | 3 | **Taser Guard** | A guard with a taser that keeps its distance (320 px), plants its feet and **charges for 0.7 s**: the shooting line and the prongs crackling, brighter as it nears the shot. Then it fires one **Fork Bolt** straight at you (260 px/s, 8 damage; it doesn't lead you, so strafe across the line): a white lightning glyph that flickers its zigzag 16 times a second, with a fork, among rounder bullets. A hit **stuns you for 1 s** (a flash and six bolts web out from you); a perfect parry sends it back like any shot. One bolt every 3.2 s |
 
+The **Twin Reapers' faction**, the Dusk and Dawn cult, leads up to their fight (waves 11-14; in the Long Campaign a
+ten-wave lesson cycle, one Reaper mechanic a wave). Every member is sworn to **Dusk (pink) or Dawn (blue)** and drawn in
+that colour. Squads: **Vigil** (an Acolyte and six Wisps), **Procession** (four Acolytes, two Lamplighters behind),
+**Twin graves** (a Gravedigger and two Bound pairs), **Harvest** (two Scythe Wraiths, two Shades, three Wisps); the last
+wave brings **Dusk and Dawn**: split to opposite edges, two Mourners, two Bound pairs, two Scythe Wraiths, two
+Lamplighters and four Acolytes. (Mockup: `Docs/Mockups/reaper-faction.html`.)
+
+| From | The Twin Reapers' faction | What it does |
+|---|---|---|
+| 1 | **Wisp** | A soul flame, in threes: drifts straight at you like a Swarmer (14 health, contact 6) |
+| 1 | **Acolyte** | A hooded cultist with a sickle: stops short, raises it over a **pale cone** (96 px, 120°, 0.5 s), then one wide swing (12). A Swordsman's moves, shorter and wider |
+| 2 | **Bound Wraiths** | Always a **pair** (60 health each), circling a point that drifts to just beside you, 75 px out, joined by a **tether** that hurts (10) as it sweeps over you. Kill one and the other **stops and channels** it back: a ring fills round the ghost for **3 s**, then it's back at 60% health. Kill the channeller first and neither comes back |
+| 2 | **Lamplighter** | Keeps about 280 px away. It plants its feet, its lantern flares and **gold lines** show the volley (0.6 s), then it fires **three lines** at you, next time a **four-way cross**, streaks of four (every 3.2 s) |
+| 2 | **Gravedigger** | A cultist brute with a shovel: moves and hits like a Brute (140 health, contact 20) |
+| 3 | **Mourner** | Keeps about 260 px away and stands still to weep a **twin spiral**, one arm each way, for 2.5 s, then **rests** 3 s: push in then |
+| 3 | **Scythe Wraith** | A Lunger that reaps: marks a long lane from up to 280 px out (0.8 s; the lane **locks after 0.25 s**), then dashes about 270 px along it and reaps **26 px either side** of its path (22). Leave the lane sideways |
+| 3 | **Shade** | A shrouded Phantom: shows a ring where it will land, blinks there and fires |
+
 **Bubbles (Shielded elites and the Warder's wards):** a bubble is twelve cells round the rim, each holding a twelfth of the shield. A hit wears down the cell facing whoever shot it (flashing, then breaking into shards) and spills over to its neighbours once that cell is gone, so the side you shoot from is the side that opens. Burning and bleeding keep chewing the weakest cell. A honeycomb inside only shows where its cell is still up, and a thin shield bar sits above the health bar. Blue is a Shielded elite, violet is the Warder's.
 
 ## Bosses

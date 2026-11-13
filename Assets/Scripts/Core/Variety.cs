@@ -479,7 +479,7 @@ namespace Arena
             SquadForm form;
             if (squadForms.TryGetValue(e.SquadId, out form) && form == SquadForm.RiotLine)
                 return RiotLineMove(e, mates, tpos, v);  // WardenFaction.cs
-            if (e.T < SquadFormTime + 0.9f && !e.Def.Melee && e.Type != EnemyType.Phantom && e.Type != EnemyType.Nest)
+            if (e.T < SquadFormTime + 0.9f && !e.Def.Melee && e.Type != EnemyType.Phantom && e.Type != EnemyType.Shade && e.Type != EnemyType.Nest)
                 return dir * 0.6f;  // marching in together
             switch (e.Type)
             {

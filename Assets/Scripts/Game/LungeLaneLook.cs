@@ -21,6 +21,7 @@ namespace Arena
             switch (e.Type)
             {
                 case EnemyType.Lunger: case EnemyType.Shiv: windUp = 0.6f; reach = 230f; winding = e.Phase == 1; return true;
+                case EnemyType.ScytheWraith: windUp = Game.ScytheMark; reach = Game.ScytheSpeed * Game.ScytheDash + 20f; winding = e.Phase == 1; return true;  // its mark (ReaperFaction.cs)
                 case EnemyType.SpikeBlock: windUp = Game.SpikeWindUp; reach = 175f; winding = e.Phase == 1; return true;
                 case EnemyType.Charger: windUp = 0.7f; reach = 260f; winding = e.Phase == 1; return true;
                 case EnemyType.RiotShield:
