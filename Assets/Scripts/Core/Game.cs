@@ -1218,6 +1218,7 @@ namespace Arena
             LocalDodge(me, move, input.Dodge, dt);  // the tiny dash with invulnerability (Dodge.cs)
             LocalWeaponDash(me, move, aimAt, input.WeaponAction && !me.ParryActive, dt);  // weapon secondaries on their own key (Ninja.cs)
             me.Pos = KeepInArena(RoomsHold(before, me.Pos, me.Def.BodyR), me.Def.BodyR);  // (a room locks behind you: Rooms.cs)
+            me.Pos = KeepInMarshalCircles(before, me.Pos, me.Def.BodyR);  // a Marshal's circle holds you (CourtFaction.cs)
             me.Pos = RoomsPortal(me.Pos, ref me.PortalT, dt);  // wraparound portals (Rooms.cs)
             if (me.Pos.DistanceTo(before) > 600f)
             {

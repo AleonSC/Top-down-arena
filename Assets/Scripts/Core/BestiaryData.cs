@@ -382,6 +382,27 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Second, Name = "Second", Group = "Shooters", Wave = 27,
+                Appears = "The Duelist's approach (Seconds squads and on its own)",
+                Lead = "The duelist's second: keeps its distance and locks on like a Security Guard, glints gold, then throws an aimed fan of five daggers (230 px/s). It never reloads.",
+                Attacks = new[] { new BestiaryAttack { Name = "Dagger fan", Pattern = "5 daggers, 0.16 rad apart, aimed", Damage = "10 each", Every = 2.2f } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Marshal, Name = "Marshal", Group = "Shooters", Wave = 27,
+                Appears = "The Duelist's approach",
+                Lead = "The duel's referee: keeps its distance like a Gas Grenadier and raises its baton, then draws a gold circle 140 px round where you stand. It forms over 0.6 s (step out now), then for 4 s you can't leave it and leaning on the edge hurts.",
+                Attacks = new[] { new BestiaryAttack { Name = "Dueling circle", Pattern = "0.6 s to form, holds you 4 s", Damage = "8 on the edge", Every = 7f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Gallant, Name = "Gallant", Group = "Shooters", Wave = 28,
+                Appears = "The Duelist's approach",
+                Lead = "A champion who keeps its distance, then salutes (0.8 s, sword up, a gold glint) and lunges through you. A perfect parry as it arrives knocks it off balance for 2.5 s, taking 50% more damage; dodge it and it rakes the spot with five shots.",
+                Attacks = new[] { new BestiaryAttack { Name = "Salute lunge", Pattern = "0.8 s salute, then a lunge up to 400 px", Damage = "20", Every = 4.5f, Fixed = true }, new BestiaryAttack { Name = "Rake", Pattern = "5 shots where it lands, if dodged", Damage = "small shots" } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.HiveEgg, Name = "Hive Egg", Group = "Summons", Wave = 10,
                 Appears = "Laid by the Hive Queen in her Honeycomb stage",
                 Lead = "Doesn't move or attack. Break it before it hatches into drones.",

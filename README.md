@@ -693,16 +693,19 @@ Priests, every squad, then the exam (the Avalanche and a big Landslip).
 | 3 | **Cinder Priest** | Taser Guard | A dark-robed priest cupping a molten core: charges for 0.7 s along a shooting line, then fires one **magma bolt** straight at you (240 px/s, 9, no lead). Wherever it stops, a hit, cover or the end of its 300 px, it leaves a **lava pool** for 2.5 s (20 a second). A **perfect parry** sends it back and leaves no lava. Every 3.2 s |
 
 The **Duelist's faction**, the Masked Court, leads up to its fight (waves 26-29): masked fencers, each showing you one of
-the Duelist's moves (mockup: `Docs/Mockups/duelist-faction.html`). **Step 1 of 4 is in:** three of its eight enemies,
-which replace the basic faction the Duelist had before. Squads: **Salon** (a Blade Dancer and six Fencers) and, from
-wave 28, **Guard line** (two Parriers and four Fencers). They pay XP like their counterparts (Fencer 7, Blade Dancer 14,
-Parrier 10).
+the Duelist's moves (mockup: `Docs/Mockups/duelist-faction.html`). **Steps 1 and 2 of 4 are in:** six of its eight
+enemies, which replace the basic faction the Duelist had before. Squads: **Salon** (a Blade Dancer and six Fencers),
+from wave 27 **Seconds** (three Seconds and two Fencers) and from wave 28 **Guard line** (two Parriers and four Fencers).
+XP: Fencer 7, Blade Dancer 14, Parrier 10, Second 9, Marshal 9, Gallant 12.
 
 | From | The Duelist's faction | Plays like | What it does |
 |---|---|---|---|
 | 1 | **Fencer** | Shiv | A masked foil-fencer (32 health, contact 10) that runs in crowds. It closes to within 160 px, shows a **short red line for 0.4 s**, then **hops about 100 px** down it (16 on the hop) and recovers for 0.55 s: step off the line |
 | 1 | **Blade Dancer** | Guard | A masked fencer in a crimson cape (70 health, contact 14). Within 300 px it stands still and shows the Duelist's **warning line for 0.6 s**, then **lunges up to 230 px** and leaves **three blades** hanging on its path. 0.6 s later each fires **one shot out of each side**, across the line: never stand beside it. Every 3.5 s |
 | 2 | **Parrier** | Riot Shield | A masked fencer on guard behind a gold parrying arc and a main-gauche. A shot on its **front is parried straight back** at whoever fired it (at most one every 0.12 s) and wears its guard; up close it **bashes** you back like a Riot Shield. It turns slowly: **get behind it**. Broken, it staggers and takes 50% more |
+| 2 | **Second** | Security Guard | The duelist's second (45 health): keeps its distance and locks on like a Security Guard, its hand going back and five faint lanes showing, then throws an **aimed fan of five daggers** (230 px/s, 10 each, 0.16 rad apart). Every 2.2 s; it never reloads. Slip between them |
+| 2 | **Marshal** | Gas Grenadier | The duel's referee (55 health): keeps its distance and raises its baton, then draws a **gold circle 140 px round where you stand**. It draws itself round over 0.6 s (step out now); then for 4 s you **can't leave it**, and leaning on the edge hurts (8, at most every 0.6 s). Anyone outside can walk in. Every 7 s |
+| 3 | **Gallant** | Taser Guard | A champion in a steel cape (80 health, contact 20) that never shoots. Within 340 px it **salutes** for 0.8 s (sword straight up, a gold glint, a shrinking ring), then **lunges through you** (up to 400 px). A **perfect parry** as it arrives knocks it **off balance for 2.5 s**, taking **50% more** damage; dodge it and it **rakes** the spot with five shots. Every 4.5 s |
 
 **Bubbles (Shielded elites and the Warder's wards):** a bubble is twelve cells round the rim, each holding a twelfth of the shield. A hit wears down the cell facing whoever shot it (flashing, then breaking into shards) and spills over to its neighbours once that cell is gone, so the side you shoot from is the side that opens. Burning and bleeding keep chewing the weakest cell. A honeycomb inside only shows where its cell is still up, and a thin shield bar sits above the health bar. Blue is a Shielded elite, violet is the Warder's.
 

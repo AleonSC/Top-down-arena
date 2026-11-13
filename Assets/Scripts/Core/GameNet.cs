@@ -845,7 +845,7 @@ namespace Arena
                 SyncEclipse(s, e); // Eclipse.cs
             else if (kind == EnemyType.Devourer)
                 SyncDevour(s, e);  // Devourer.cs
-            else if (kind == EnemyType.Duelist || kind == EnemyType.BladeDancer)
+            else if (kind == EnemyType.Duelist || kind == EnemyType.BladeDancer || kind == EnemyType.Gallant)
                 SyncDuel(s, e);    // Duelist.cs (a Blade Dancer's lunge and blades: CourtFaction.cs)
             else if (kind == EnemyType.Lich)
                 SyncLich(s, e);    // Lich.cs

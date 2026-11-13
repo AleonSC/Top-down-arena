@@ -13,7 +13,7 @@ namespace Arena
         {
             foreach (var e in game.Enemies.Values)
             {
-                if (e.Type != EnemyType.Duelist && e.Type != EnemyType.BladeDancer || e.Duel == null || game.IsSpawning(e))  // (a Blade Dancer's lunge: CourtFaction.cs)
+                if (e.Type != EnemyType.Duelist && e.Type != EnemyType.BladeDancer && e.Type != EnemyType.Gallant || e.Duel == null || game.IsSpawning(e))  // (a Blade Dancer's lunge: CourtFaction.cs)
                     continue;
                 var s = e.Duel;
                 V2 middle = new V2(Game.Width / 2f, Game.Height / 2f);

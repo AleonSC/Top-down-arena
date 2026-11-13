@@ -501,6 +501,21 @@ static partial class Shot {
       var pa2 = cput(EnemyType.Parrier, new V2(450f, 610f), 0f); setRiotC.Invoke(null, new object[] { pa2, Game.RiotWinding, 0.3f });
       var pa3 = cput(EnemyType.Parrier, new V2(690f, 610f), 0f); pa3.Phase = (byte)(Game.RiotWalk << 3 | 2);
       var pa4 = cput(EnemyType.Parrier, new V2(850f, 610f), 0f); pa4.Phase = (byte)(Game.RiotStaggered << 3 | Game.RiotCracked);
+      if (Environment.GetEnvironmentVariable("COURT2") != null) {  // COURT2=1 with COURT: step 2 instead: Seconds (walking, winding up, daggers in flight), Marshals (walking, baton up) and a circle round you (forming beside it, formed round you), Gallants (walking, saluting, reeling after a parry)
+        cg.Enemies.Clear(); cg.Patches.Clear(); cg.Bullets.Clear();
+        cput(EnemyType.Second, new V2(330f, 330f), 0f);
+        var s2 = cput(EnemyType.Second, new V2(470f, 330f), 0.4f); s2.Winding = true;
+        var s3 = cput(EnemyType.Second, new V2(330f, 420f), 0.3f);
+        var spawnB = typeof(Game).GetMethod("SpawnBullet", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        for (int k = 0; k < Game.SecondFan; k++) { float a = 0.3f + (k - 2) * Game.SecondSpread; spawnB.Invoke(cg, new object[] { Defs.ThrownDagger, s3.Pos + V2.FromAngle(a) * 90f, V2.FromAngle(a) * Game.SecondSpeed, 0f, 3f, 10f, 0, false, 0f }); }
+        cput(EnemyType.Marshal, new V2(760f, 330f), MathX.Pi);
+        var m2 = cput(EnemyType.Marshal, new V2(820f, 440f), MathX.Pi); m2.Winding = true;
+        cg.Patches[801] = new PathPatch { Id = 801, Kind = PatchKind.DuelCircle, Pos = me.Pos, Warn = Game.MarshalWarn, Life = Game.MarshalWarn + Game.MarshalHold, Age = 1.8f, R0 = Game.MarshalR, R1 = Game.MarshalR };
+        cg.Patches[802] = new PathPatch { Id = 802, Kind = PatchKind.DuelCircle, Pos = new V2(1000f, 470f), Warn = Game.MarshalWarn, Life = Game.MarshalWarn + Game.MarshalHold, Age = 0.35f, R0 = Game.MarshalR, R1 = Game.MarshalR };
+        cput(EnemyType.Gallant, new V2(300f, 640f), 0f);
+        var g2 = cput(EnemyType.Gallant, new V2(470f, 640f), 0f); g2.Duel = new DuelState { SaluteT = 0.35f };
+        var g3 = cput(EnemyType.Gallant, new V2(690f, 640f), 0f); g3.Duel = new DuelState { StaggerT = 1.5f };
+      }
       cg.AnimT += float.Parse(Environment.GetEnvironmentVariable("COURT"), System.Globalization.CultureInfo.InvariantCulture);
     }
     if (Environment.GetEnvironmentVariable("LUNGE") != null) {  // LUNGE=<0-1>: the four lungers part-way through their wind-up (LungeLaneLook.cs); the lane fills with the client's clock, so draw once, then move it on

@@ -597,7 +597,7 @@ namespace Arena
                     // A regular shooter glows just before it fires (Readability.cs).
                     float rateNow = mult * (1f - e.Suppress);
                     e.Winding = (e.Kin == EnemyType.SecurityGuard ? e.Phase > 0 : TakesTurns(e) && (HasTurn(e) || mine)) && rateNow > 0f && e.FireT / rateNow <= WindUpOf(e.Type) && e.FireT > -0.5f;
-                    if (e.Kin == EnemyType.GasGrenadier)
+                    if (e.Kin == EnemyType.GasGrenadier && e.Type != EnemyType.Marshal)  // (a Marshal draws a circle, no lob: CourtFaction.cs)
                         GrenadierWind(e, tpos, rateNow);  // locks its lob when the wind-up starts (WardenFaction.cs)
                     if (held && e.FireT <= 0f)
                         e.FireT = Rand(0.2f, 0.4f);  // nobody in its room: nothing to shoot at
@@ -1007,7 +1007,7 @@ namespace Arena
                 e.Strafe = -e.Strafe;
             if (StomperPlanted(e))
                 speed = 0f;  // a Stomper stands still while its foot is up (QuarryFaction.cs)
-            if (DancerBusy(e))
+            if (DancerBusy(e) || GallantBusy(e))
                 speed = 0f;  // a Blade Dancer's lunge moves it itself (CourtFaction.cs)
             if (e.SlowT > 0f && !Heavy(e))
                 speed *= e.SlowMult;
@@ -1046,6 +1046,8 @@ namespace Arena
             }
             if (e.Type == EnemyType.BladeDancer)
                 BladeDancerSpecial(e, tpos, dt);  // its lunge and blades (CourtFaction.cs)
+            if (e.Type == EnemyType.Gallant)
+                GallantSpecial(e, tpos, dt);  // its salute and lunge (CourtFaction.cs)
             if (e.Type == EnemyType.Stomper)
                 StomperSpecial(e, tpos, dt);  // its stomp ring (QuarryFaction.cs)
             switch (e.Kin)
@@ -1206,6 +1208,8 @@ namespace Arena
                 return;  // ReaperFaction.cs
             if (InfallFire(e, tpos, aim))
                 return;  // Infall.cs
+            if (CourtFire(e, tpos, aim))
+                return;  // the Second's daggers, the Marshal's circle; a Gallant doesn't shoot (CourtFaction.cs)
             if (e.Kin == EnemyType.GasGrenadier)
             {
                 GrenadierFire(e, tpos);  // WardenFaction.cs

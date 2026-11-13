@@ -9,7 +9,7 @@ namespace Arena
     /// score while you're on it, and a prize when it ends (before the boss, which is always standard).
     public enum PathId : byte { None, SwarmFields, SniperRidge, EliteGauntlet, BurningGrounds, Sanctuary, FrozenLake, BloodMoon, Fogbound, NarrowPass, Bazaar }
 
-    public enum PatchKind : byte { Fire, Heal, Gas, Honey, Lava, Bile, Embers, Acid, Spores, Rubble, Slab }  // Rubble: a Rock Hurler's pile, Slab: a Slab Bearer's dropped slab (R1 is its facing); both stop shots (QuarryFaction.cs)  // Acid: a Spitter's puddle; Spores: a Bloater's cloud (Zombies.cs)  // Gas: the Warden's canisters (Warden.cs); Honey: the Hive Queen's puddles (Queen.cs); Lava: the Colossus's pools (Colossus.cs); Bile: the Devourer's acid (Devourer.cs); Embers: a Scorcher's trail (Variety.cs)
+    public enum PatchKind : byte { Fire, Heal, Gas, Honey, Lava, Bile, Embers, Acid, Spores, Rubble, Slab, DuelCircle }  // DuelCircle: a Marshal's circle round a player (CourtFaction.cs)  // Rubble: a Rock Hurler's pile, Slab: a Slab Bearer's dropped slab (R1 is its facing); both stop shots (QuarryFaction.cs)  // Acid: a Spitter's puddle; Spores: a Bloater's cloud (Zombies.cs)  // Gas: the Warden's canisters (Warden.cs); Honey: the Hive Queen's puddles (Queen.cs); Lava: the Colossus's pools (Colossus.cs); Bile: the Devourer's acid (Devourer.cs); Embers: a Scorcher's trail (Variety.cs)
 
     /// A patch of a hazard floor (Burning Grounds' fire, Sanctuary's healing pools). The host spawns it and tells
     /// everyone once; each game then ages, grows and expires it the same way.

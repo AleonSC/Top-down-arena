@@ -473,7 +473,7 @@ namespace Arena
                 DrawCultUnder(e, pos, r, col, spawning, t);  // a tether, a revive's ghost, a lantern's lanes (ReaperCultLook.cs)
             if (pac)
                 col = PacRoleColor(e);
-            if (e.Kin == EnemyType.SecurityGuard && !spawning)
+            if (e.Kin == EnemyType.SecurityGuard && e.Type != EnemyType.Second && !spawning)  // (a Second fans its daggers: CourtLook.cs)
                 DrawSecurityUnder(e, pos, r, t);  // its locked shot and its reload ring (SecurityLook.cs)
             if (Game.IsNonShooter(e.Type) && !spawning)
                 DrawNonShooterUnder(e, pos, r, t);  // the fuse, the aim line and harpoon, a pod's lasers (NonShooterLooks.cs)

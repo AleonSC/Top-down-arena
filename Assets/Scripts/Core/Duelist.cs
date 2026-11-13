@@ -92,7 +92,7 @@ namespace Arena
         public static bool DuelImmune(Enemy e) => e.Type == EnemyType.Duelist && e.Duel != null && e.Duel.TransT > 0f;
 
         /// Knocked off balance by a parried salute: it takes 50% more damage.
-        public static bool DuelOpen(Enemy e) => e.Type == EnemyType.Duelist && e.Duel != null && e.Duel.StaggerT > 0f;
+        public static bool DuelOpen(Enemy e) => (e.Type == EnemyType.Duelist || e.Type == EnemyType.Gallant) && e.Duel != null && e.Duel.StaggerT > 0f;  // (a Gallant too: CourtFaction.cs)
 
         public static bool DuelGuarding(Enemy e) => e.Type == EnemyType.Duelist && e.Duel != null && e.Duel.Turn == DuelTurn.Guard && e.Duel.StaggerT <= 0f && e.Duel.TransT <= 0f;
 
@@ -368,7 +368,7 @@ namespace Arena
                         s.Connected = true;
                         Recorder?.Parry(p, 0f, true, false);
                         BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.8f, 0.35f), 90f, 0.4f, Sfx.Clang);
-                        DoLog(p.Name + " parried the Duelist's salute");
+                        DoLog(p.Name + " parried the " + (e.Type == EnemyType.Gallant ? "Gallant's" : "Duelist's") + " salute");
                         return;
                     }
                     if (d < e.Radius + p.Def.HitR + 10f)
@@ -381,8 +381,9 @@ namespace Arena
                     // Dodged: it rakes the spot.
                     Player near = NearestPlayer(e.Pos);
                     float aim = near != null ? (near.Pos - e.Pos).Angle : s.DashAng;
-                    for (int i = 0; i < 9; i++)
-                        EnemyShot(e, aim + (i - 4) * 0.16f, 230f, Defs.SmallShot);
+                    int rake = e.Type == EnemyType.Gallant ? GallantRake : 9;  // (a Gallant's rake is smaller: CourtFaction.cs)
+                    for (int i = 0; i < rake; i++)
+                        EnemyShot(e, aim + (i - (rake - 1) / 2f) * 0.16f, 230f, Defs.SmallShot);
                     BroadcastSound(Sfx.SwingHeavy);
                 }
                 s.Dash = DuelDash.None;
@@ -627,7 +628,7 @@ namespace Arena
             if (IsHost)
                 return;
             foreach (var e in Enemies.Values)
-                if ((e.Type == EnemyType.Duelist || e.Type == EnemyType.BladeDancer) && e.Duel != null)
+                if ((e.Type == EnemyType.Duelist || e.Type == EnemyType.BladeDancer || e.Type == EnemyType.Gallant) && e.Duel != null)
                 {
                     var s = e.Duel;
                     s.TurnT += dt;

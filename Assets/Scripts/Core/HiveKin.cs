@@ -35,6 +35,9 @@ namespace Arena
             t[(int)EnemyType.Fencer] = EnemyType.Shiv;
             t[(int)EnemyType.BladeDancer] = EnemyType.Guard;
             t[(int)EnemyType.Parrier] = EnemyType.RiotShield;
+            t[(int)EnemyType.Second] = EnemyType.SecurityGuard;
+            t[(int)EnemyType.Marshal] = EnemyType.GasGrenadier;
+            t[(int)EnemyType.Gallant] = EnemyType.TaserGuard;
             return t;
         }
 
