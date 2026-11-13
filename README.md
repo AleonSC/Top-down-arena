@@ -630,12 +630,12 @@ his own riot, on the boss wave, still give 2 and 4.
 
 | From | The Hive Queen's faction | Plays like | What it does |
 |---|---|---|---|
-| 6 | **Worker** | Warden's Rioter | A small, quick worker bee that weaves at you, in loose pairs (contact 10). Squads: Swarm (a Soldier and six Workers), Worker pack |
-| 6 | **Soldier** | Guard | An armoured bee that rushes straight at you, jaws snapping as it nears (contact 14). Squad: Soldier pair |
-| 7 | **Comb Shield** | Riot Shield | A bee behind a plate of seven wax cells that stops shots from the front. Up close the plate flashes (0.4 s), then it lunges and **bashes** you: 10 damage, knocked **160 px** back. The cells break as it wears (two a step, the facing ones first); broken, the bee staggers and falls fast. Squad: Honeycomb |
+| 6 | **Worker** | Warden's Rioter | A small, quick worker bee that weaves at you, in loose pairs (contact 10). **Faster in a crowd**: +10% speed for each Worker within 110 px, up to +50%. Squads: Swarm (a Soldier and six Workers), Worker pack |
+| 6 | **Soldier** | Guard | An armoured bee that rushes straight at you, jaws snapping as it nears (contact 14). Inside 260 px it **charges**: 30% faster and **armoured** (its plates close, half damage). Squad: Soldier pair |
+| 7 | **Comb Shield** | Riot Shield | A bee behind a plate of seven wax cells that stops shots from the front. Up close the plate flashes (0.4 s), then it lunges and **bashes** you: 10 damage, knocked **160 px** back. The cells break as it wears (two a step, the facing ones first), and **some of each shot gets through** the plate (15%, 15% more for each crack); broken, the bee staggers and falls fast. Squad: Honeycomb |
 | 7 | **Honey Lobber** | Gas Grenadier | Keeps its distance, plants its feet and swells. A red ring marks the spot before it lobs a honey glob; the **honey puddle** (55 px, 4.5 s) slows whoever stands in it (45%) and doesn't hurt |
-| 8 | **Stinger** | Taser Guard | Keeps its distance, plants its feet and **charges a venom lance for 0.7 s** (a lime shooting line, the lance crackling), then fires one **venom dart** (260 px/s, 8 damage, no lead): a lime zigzag with two white barbs. A hit **stuns** you for a second; a perfect parry sends it back |
-| 7 | **Needler** | Security Guard | Hovers and strafes, aims straight at you, **locks on for 0.25 s** (the red lane), then one white **needle** (a tracer round, 7 damage). Seven to a magazine (the pips above it), then a 2.2 s reload. Squad: Picket |
+| 8 | **Stinger** | Taser Guard | Keeps its distance, plants its feet and **charges a venom lance for 0.7 s** (a lime shooting line, the lance crackling), then fires one **venom dart** (260 px/s, 8 damage, no lead; 105 health, half as much again as the Taser Guard): a lime zigzag with two white barbs. A hit **stuns** you for a second; a perfect parry sends it back |
+| 7 | **Needler** | Security Guard | Hovers and **strafes fast** (70 health, half as much again), aims straight at you, **locks on for 0.25 s** (the red lane), then one white **needle** (a tracer round, 7 damage). Seven to a magazine (the pips above it), then a 2.2 s reload. Squad: Picket |
 | 7 | **Bumble** | Thug | A huge, furry bumblebee: moves and hits like a Brute (140 health, contact 20). Squad: Nursery (a Bumble, three Workers and a Hornet) |
 | 8 | **Hornet** | Shiv | Circles in close, shows the red **lunge lane**, then darts along it like a Lunger (contact 18, 26 on the lunge) |
 
@@ -691,6 +691,28 @@ Priests, every squad, then the exam (the Avalanche and a big Landslip).
 | 3 | **Driller** | Shiv | A quarry worker with goggles and a jackhammer: circles in close, shows the lunge lane, then **drills** along it (contact 18, 26 on the drill). The **crack** it leaves along its path glows and **erupts 0.4 s** after it stops (12 to whoever stands on it): dodge across the line, not along it |
 | 3 | **Geomancer** | Taser Guard | A hooded cultist with a crystal staff: keeps its distance, plants the staff and charges for 0.7 s (the shooting line, the crystal glowing), then sends a **crack racing** at where you stood (600 px/s, up to 460 px). It glows for 0.5 s, then **erupts** along its length (12): step off the line. Every 3.2 s |
 | 3 | **Cinder Priest** | Taser Guard | A dark-robed priest cupping a molten core: charges for 0.7 s along a shooting line, then fires one **magma bolt** straight at you (240 px/s, 9, no lead). Wherever it stops, a hit, cover or the end of its 300 px, it leaves a **lava pool** for 2.5 s (20 a second). A **perfect parry** sends it back and leaves no lava. Every 3.2 s |
+
+The **Duelist's faction**, the Masked Court, leads up to its fight (waves 26-29): masked fencers, each showing you one of
+the Duelist's moves (mockup: `Docs/Mockups/duelist-faction.html`). It replaces the basic faction the Duelist had before.
+Squads: **Salon** (a Blade Dancer and six Fencers), from wave 27 **Seconds** (three Seconds and two Fencers) and from
+wave 28 **Guard line** (two Parriers and four Fencers) and **Masked ball** (a Harlequin, a Mummer and three Fencers).
+XP: Fencer 7, Blade Dancer 14, Parrier 10, Second 9, Marshal 9, Gallant 12, Harlequin 22, Mummer 10. The last wave
+before it always brings the **Ring of Honour**: ten Fencers and two Gallants in a ring 300 px round you, facing in,
+turning slowly and closing to 150 px; every 1.4 s an opposite pair of Fencers shows its lines and lunges in, and the
+Gallants salute before theirs (parry them). It breaks up after 14 s or once half of it is down. In the Long Campaign
+its ten waves (51-60) teach one enemy each, in the Warden's order: Fencers, Blade Dancers, Harlequins, Seconds, a recap
+with Mummers, Parriers, Marshals, Gallants, every squad, then the exam (the Ring of Honour and a big Salon).
+
+| From | The Duelist's faction | Plays like | What it does |
+|---|---|---|---|
+| 1 | **Fencer** | Shiv | A masked foil-fencer (32 health, contact 10) that runs in crowds. It closes to within 160 px, shows a **short red line for 0.4 s**, then **hops about 100 px** down it (16 on the hop) and recovers for 0.55 s: step off the line |
+| 1 | **Blade Dancer** | Guard | A masked fencer in a crimson cape (70 health, contact 14). Within 300 px it stands still and shows the Duelist's **warning line for 0.6 s**, then **lunges up to 230 px** and leaves **three blades** hanging on its path. 0.6 s later each fires **one shot out of each side**, across the line: never stand beside it. Every 3.5 s |
+| 2 | **Parrier** | Riot Shield | A masked fencer on guard behind a gold parrying arc and a main-gauche. A shot on its **front is parried straight back** at whoever fired it (at most one every 0.12 s) and wears its guard; up close it **bashes** you back like a Riot Shield. It turns slowly: **get behind it**. Broken, it staggers and takes 50% more |
+| 2 | **Second** | Security Guard | The duelist's second (45 health): keeps its distance and locks on like a Security Guard, its hand going back and five faint lanes showing, then throws an **aimed fan of five daggers** (230 px/s, 10 each, 0.16 rad apart). Every 2.2 s; it never reloads. Slip between them |
+| 2 | **Marshal** | Gas Grenadier | The duel's referee (55 health): keeps its distance and raises its baton, then draws a **gold circle 140 px round where you stand**. It draws itself round over 0.6 s (step out now); then for 4 s you **can't leave it**, and leaning on the edge hurts (8, at most every 0.6 s). Anyone outside can walk in. Every 7 s |
+| 3 | **Gallant** | Taser Guard | A champion in a steel cape (80 health, contact 20) that never shoots. Within 340 px it **salutes** for 0.8 s (sword straight up, a gold glint, a shrinking ring), then **lunges through you** (up to 400 px). A **perfect parry** as it arrives knocks it **off balance for 2.5 s**, taking **50% more** damage; dodge it and it **rakes** the spot with five shots. Every 4.5 s |
+| 2 | **Harlequin** | Thug | A heavy two-sworded jester in crimson diamonds (240 health, contact 20) that walks at you. Within 260 px, the **Crossing**: it shows a line through you for 0.7 s and dashes it, 170 px past you, then **vaults to the other arm of the X**, shows the crossing line for 0.45 s and dashes that. Both leave blades every 70 px that fire **out sideways** after 0.8 s: stand in a gap of the X. Every 6 s |
+| 3 | **Mummer** | Shiv | A fast masked player in a violet cape (40 health) that circles in and lunges like a Shiv. Within 260 px it **blinks and becomes three**: they circle you 150 px out for 5 s, each firing every 0.9 s, but only the **real one's shots are solid**; the copies' are **hollow rings** that pass through you. The copies look the same, have 1 health and give nothing; kill the real one and they vanish. Every 9 s |
 
 **Bubbles (Shielded elites and the Warder's wards):** a bubble is twelve cells round the rim, each holding a twelfth of the shield. A hit wears down the cell facing whoever shot it (flashing, then breaking into shards) and spills over to its neighbours once that cell is gone, so the side you shoot from is the side that opens. Burning and bleeding keep chewing the weakest cell. A honeycomb inside only shows where its cell is still up, and a thin shield bar sits above the health bar. Blue is a Shielded elite, violet is the Warder's.
 

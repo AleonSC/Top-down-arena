@@ -153,21 +153,21 @@ namespace Arena
             {
                 Type = EnemyType.Worker, Name = "Worker", Group = "Melee", Wave = 6,
                 Appears = "The Hive Queen's approach (waves 6-9, in pairs and Swarm squads)",
-                Lead = "A small, quick worker bee. Weaves at you, in loose pairs. Moves like a Rioter.",
+                Lead = "A small, quick worker bee. Weaves at you, in loose pairs, and runs faster for each Worker near it (+10% each, up to +50%). Moves like a Rioter.",
                 Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "10" } },
             },
             new BestiaryEntry
             {
                 Type = EnemyType.Soldier, Name = "Soldier", Group = "Melee", Wave = 6,
                 Appears = "The Hive Queen's approach (waves 6-9)",
-                Lead = "An armoured bee that rushes straight at you with its jaws snapping. Moves like a Guard.",
+                Lead = "An armoured bee that rushes straight at you with its jaws snapping. Inside 260 px it charges: 30% faster, and its plates take half the damage. Moves like a Guard.",
                 Attacks = new[] { new BestiaryAttack { Name = "Mandibles", Pattern = "Touch", Damage = "14" } },
             },
             new BestiaryEntry
             {
                 Type = EnemyType.CombShield, Name = "Comb Shield", Group = "Melee", Wave = 7,
                 Appears = "The Hive Queen's approach (waves 7-9, alone or two in a Honeycomb squad)",
-                Lead = "A bee behind a plate of seven wax cells that stops shots and swings from the front. Up close the plate flashes, then it lunges and bashes you 160 px back. The cells break as it wears; broken, the bee staggers. Plays like a Riot Shield.",
+                Lead = "A bee behind a plate of seven wax cells that stops shots and swings from the front. Up close the plate flashes, then it lunges and bashes you 160 px back. The cells break as it wears, and a share of each shot gets through the plate (15%, 15% more for each crack); broken, the bee staggers. Plays like a Riot Shield.",
                 Attacks = new[]
                 {
                     new BestiaryAttack { Name = "Shield bash", Pattern = "0.4 s flash, then a short lunge", Damage = "10, and knocked back 160 px" },
@@ -192,7 +192,7 @@ namespace Arena
             {
                 Type = EnemyType.Needler, Name = "Needler", Group = "Shooters", Wave = 7,
                 Appears = "The Hive Queen's approach (waves 7-9), alone or in a Picket",
-                Lead = "Hovers and strafes, then locks on for 0.25 s (a red lane) and fires one white needle straight at you. It fires seven, one every 1.5 s, then reloads for 2.2 s: rush it then. Plays like a Security Guard.",
+                Lead = "Hovers and strafes fast, then locks on for 0.25 s (a red lane) and fires one white needle straight at you. It fires seven, one every 1.5 s, then reloads for 2.2 s: rush it then. Half as tough again as a Security Guard.",
                 Attacks = new[] { new BestiaryAttack { Name = "Needle", Pattern = "One needle aimed straight at you, seven to a magazine", Shot = "Needle", ShotColor = new Rgba(0.94f, 0.97f, 1f), Speed = "340", Damage = "7", Every = 0.8f, Fixed = true } },
             },
             new BestiaryEntry
@@ -354,6 +354,73 @@ namespace Arena
                 Appears = "The Colossus's approach (waves 23-24)",
                 Lead = "Cups a molten core and charges for 0.7 s along a shooting line, then fires one magma bolt straight at you (240 px/s, no lead). Wherever it stops, a hit, cover or the end of its 300 px, it leaves a lava pool for 2.5 s (20 a second). A perfect parry sends it back, and leaves no lava. Plays like a Taser Guard.",
                 Attacks = new[] { new BestiaryAttack { Name = "Magma bolt", Pattern = "One aimed bolt after a 0.7 s charge, then a lava pool", Shot = "Magma bolt", ShotColor = new Rgba(1f, 0.48f, 0.23f), Speed = "240", Damage = "9, then lava 20/s", Every = 3.2f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Fencer, Name = "Fencer", Group = "Melee", Wave = 26,
+                Appears = "The Duelist's approach (in crowds, Salon and Guard line squads)",
+                Lead = "A masked foil-fencer that runs in crowds. Within 160 px it shows a short red line for 0.4 s, then hops about 100 px down it. Moves like a Shiv.",
+                Attacks = new[] { new BestiaryAttack { Name = "Hop-lunge", Pattern = "0.4 s line, then a short leap", Damage = "16", Notes = "10 contact" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.BladeDancer, Name = "Blade Dancer", Group = "Melee", Wave = 26,
+                Appears = "The Duelist's approach (leading Salon squads, and on its own)",
+                Lead = "Within 300 px it shows the Duelist's warning line for 0.6 s, then lunges up to 230 px and leaves three blades hanging on the path. After 0.6 s each fires one shot out of each side. Moves like a Guard.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Lunge blades", Pattern = "0.6 s line, a lunge, then 2 shots from each blade", Damage = "small shots", Every = 3.5f, Fixed = true },
+                    new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "14" },
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Parrier, Name = "Parrier", Group = "Melee", Wave = 27,
+                Appears = "The Duelist's approach (Guard line squads and on its own)",
+                Lead = "A Riot Shield with a main-gauche: shots on its front are parried straight back at whoever fired them, and it bashes you away. It turns slowly, so get behind it; break the guard and it falls fast.",
+                Attacks = new[] { new BestiaryAttack { Name = "Parry", Pattern = "A blocked shot comes back at you", Damage = "small shot" }, new BestiaryAttack { Name = "Bash", Pattern = "Shield flash, then a short lunge", Damage = "10" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Second, Name = "Second", Group = "Shooters", Wave = 27,
+                Appears = "The Duelist's approach (Seconds squads and on its own)",
+                Lead = "The duelist's second: keeps its distance and locks on like a Security Guard, glints gold, then throws an aimed fan of five daggers (230 px/s). It never reloads.",
+                Attacks = new[] { new BestiaryAttack { Name = "Dagger fan", Pattern = "5 daggers, 0.16 rad apart, aimed", Damage = "10 each", Every = 2.2f } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Marshal, Name = "Marshal", Group = "Shooters", Wave = 27,
+                Appears = "The Duelist's approach",
+                Lead = "The duel's referee: keeps its distance like a Gas Grenadier and raises its baton, then draws a gold circle 140 px round where you stand. It forms over 0.6 s (step out now), then for 4 s you can't leave it and leaning on the edge hurts.",
+                Attacks = new[] { new BestiaryAttack { Name = "Dueling circle", Pattern = "0.6 s to form, holds you 4 s", Damage = "8 on the edge", Every = 7f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Gallant, Name = "Gallant", Group = "Shooters", Wave = 28,
+                Appears = "The Duelist's approach",
+                Lead = "A champion who keeps its distance, then salutes (0.8 s, sword up, a gold glint) and lunges through you. A perfect parry as it arrives knocks it off balance for 2.5 s, taking 50% more damage; dodge it and it rakes the spot with five shots.",
+                Attacks = new[] { new BestiaryAttack { Name = "Salute lunge", Pattern = "0.8 s salute, then a lunge up to 400 px", Damage = "20", Every = 4.5f, Fixed = true }, new BestiaryAttack { Name = "Rake", Pattern = "5 shots where it lands, if dodged", Damage = "small shots" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Harlequin, Name = "Harlequin", Group = "Melee", Wave = 27,
+                Appears = "The Duelist's approach (Masked ball squads and on its own)",
+                Lead = "A heavy two-sworded jester (240 health) that walks at you like a Thug. Within 260 px it shows a line through you for 0.7 s and dashes it, 170 px past you, then vaults to the other arm of the X, shows the crossing line for 0.45 s and dashes that. Both leave blades that fire out sideways: stand in a gap of the X.",
+                Attacks = new[] { new BestiaryAttack { Name = "Crossing", Pattern = "Two crossed dashes, blades every 70 px", Damage = "small shots", Every = 6f, Fixed = true }, new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "20" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Mummer, Name = "Mummer", Group = "Melee", Wave = 28,
+                Appears = "The Duelist's approach (Masked ball squads and on its own)",
+                Lead = "A fast masked player that circles in like a Shiv. Within 260 px it blinks and becomes three, circling you 150 px out for 5 s, each firing every 0.9 s; only the real one's shots are solid, the copies' are hollow rings that pass through you. The copies have 1 health and give nothing; kill the real one and they vanish.",
+                Attacks = new[] { new BestiaryAttack { Name = "Masquerade", Pattern = "Three of it round you, one shot each every 0.9 s", Damage = "small shot (the real one's)", Every = 9f, Fixed = true }, new BestiaryAttack { Name = "Lunge", Pattern = "As a Shiv", Damage = "26", Notes = "14 contact" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.MummerCopy, Name = "Mummer copy", Group = "Summons", Wave = 28,
+                Appears = "Two at a time, when a Mummer blinks into three",
+                Lead = "One of a Mummer's two copies: it looks just like the Mummer and circles you with it, but its shots are hollow rings that pass through you. 1 health, no XP; it vanishes after 5 s or when the real one dies.",
+                Attacks = new[] { new BestiaryAttack { Name = "Hollow shot", Pattern = "Aimed, every 0.9 s", Damage = "0 (passes through you)" } },
             },
             new BestiaryEntry
             {

@@ -36,6 +36,7 @@ static partial class Program
         };
         Run(s, dt, 8f, () => g.State == MatchState.Fighting);
         Action<Player, V2> stand = (p, at) => { p.Pos = at; p.Hp = p.MaxHp = 5000f; };
+        Action away = () => { friend.Pos = new V2(150f, 820f); friend.VanishT = 1e6f; };  // (the friend can't be picked as a target: the enemies here are after you, whatever the roll)
         quiet();
         Check(g.State == MatchState.Fighting, "the test arena stays in the fight (an anchor enemy holds the wave)");
         g.DevSetGod(2, true);
@@ -44,6 +45,7 @@ static partial class Program
         // --- Fuse Runner ---------------------------------------------------------------------------------------------
         V2 home = new V2(800f, 450f);
         stand(me, home);
+        away();
         var grunt = put(EnemyType.Grunt, home + new V2(-40f, 25f));
         grunt.Hp = grunt.MaxHp = 1e5f; grunt.FireT = 99f;
         var fr = put(EnemyType.FuseRunner, home + new V2(-400f, 0f));
@@ -52,7 +54,7 @@ static partial class Program
         float hp0 = me.Hp, gruntHp0 = grunt.Hp;
         Run(s, dt, 4f, () => !g.Enemies.ContainsKey(frId), () =>
         {
-            me.Pos = home; grunt.Pos = home + new V2(-40f, 25f); grunt.FrozenT = 1f;
+            away(); me.Pos = home; grunt.Pos = home + new V2(-40f, 25f); grunt.FrozenT = 1f;
             planted |= fr.Phase == 1;
             Enemy ce; if (s[1].Game.Enemies.TryGetValue(frId, out ce) && ce.Phase == 1 && ce.PhaseT > 0f && ce.PhaseT < Game.FuseCountdown) clientSawFuse = true;
         });
@@ -81,10 +83,10 @@ static partial class Program
         bool clientSawHarpoon = false;
         Run(s, dt, 1.2f, () => hk.Phase == 3, () =>
         {
-            if (hk.Phase < 2) me.Pos = home;
+            away(); if (hk.Phase < 2) me.Pos = home;
             Enemy ce; if (s[1].Game.Enemies.TryGetValue(hkId, out ce) && ce.Phase == 2 && ce.T2 > 20f) clientSawHarpoon = true;
         });
-        Run(s, dt, 0.6f, null, () => { hk.Pos = home + new V2(280f, 0f); });
+        Run(s, dt, 0.6f, null, () => { away(); hk.Pos = home + new V2(280f, 0f); });
         float pulled = me.Pos.X - home.X;
         Console.WriteLine("  Hookman: hooked {0}, pulled {1:0} px toward it", hk.Phase == 3 || hk.Phase == 0, pulled);
         Check(pulled > 120f, "a Hookman's harpoon yanks you toward it");
@@ -93,7 +95,7 @@ static partial class Program
         // A dodge's invulnerability lets it pass: it misses and is open, taking 50% more.
         stand(me, home);
         hk.Phase = 0; hk.PhaseT = 0.1f; hk.T2 = 0f; hk.Pos = home + new V2(280f, 0f);
-        Run(s, dt, 1.2f, () => hk.Phase >= 3, () => { me.Pos = home; hk.Pos = home + new V2(280f, 0f); if (hk.Phase == 2) me.InvulnT = 0.2f; });
+        Run(s, dt, 1.2f, () => hk.Phase >= 3, () => { away(); me.Pos = home; hk.Pos = home + new V2(280f, 0f); if (hk.Phase == 2) me.InvulnT = 0.2f; });
         bool open = hk.Phase == 4;
         hk.Hp = hk.MaxHp = 1000f;
         hurt.Invoke(g, new object[] { hk, 100f, 0 });
