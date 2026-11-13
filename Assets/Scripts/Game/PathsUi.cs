@@ -274,6 +274,11 @@ namespace Arena
                 DrawQuarryPatch(pt, t);  // a Rock Hurler's pile, a Slab Bearer's slab (QuarryLook.cs)
                 return;
             }
+            if (pt.Kind == PatchKind.DuelCircle)
+            {
+                DrawDuelCirclePatch(pt, t);  // a Marshal's circle (CourtLook.cs)
+                return;
+            }
             if (pt.Kind == PatchKind.Embers)
             {
                 DrawEmbers(pt, r, t);  // a Scorcher's trail (VarietyLook.cs)
@@ -287,6 +292,11 @@ namespace Arena
             if (pt.Kind == PatchKind.Acid)
             {
                 DrawAcidPatch(pt, t);  // a Spitter's acid (ZombieLook.cs)
+                return;
+            }
+            if (pt.Kind == PatchKind.Grave)
+            {
+                DrawGravePatch(pt, t);  // a Grave Caller's grave (ZombieLook.cs)
                 return;
             }
             if (pt.Kind == PatchKind.Spores)

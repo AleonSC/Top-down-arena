@@ -1,0 +1,298 @@
+<title>The Masked Court</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+SC:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* The Duelist's faction ("the Masked Court"), sized like the Warden's: 8 members, 4 squads, a set piece, a 10-wave cycle.
+   Each enemy previews one boss mechanic. Approximate: canvas mockups, not the Ui.cs draw code.
+   Colours follow DuelistLook.cs: steel, crimson, gold; decoys in the Masquerade's violet. */
+:root{
+  --bg:#eeedf2; --fg:#16161d; --muted:#5c5c6c; --panel:#f8f8fb; --line:#d3d2de; --chip:#e3e2ea;
+  --crimson:#c0213f; --gold:#a8740f; --steel:#4a5590; --arena:#0e1017;
+  --display:'Cormorant SC','Times New Roman',serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0c0d12; --fg:#e8e8f0; --muted:#9a9aab; --panel:#15161d; --line:#2a2b36; --chip:#21222c;
+  --crimson:#ff6680; --gold:#ffcc59; --steel:#cfd6ff; --arena:#0a0b10; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c0d12; --fg:#e8e8f0; --muted:#9a9aab; --panel:#15161d; --line:#2a2b36; --chip:#21222c;
+  --crimson:#ff6680; --gold:#ffcc59; --steel:#cfd6ff; --arena:#0a0b10; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+h1{font:700 clamp(40px,8vw,68px)/.95 var(--display);margin:0 0 12px;letter-spacing:.02em;text-wrap:balance}
+h1 span{color:var(--crimson)}
+h2{font:700 28px/1 var(--display);letter-spacing:.03em;margin:0 0 6px}
+h3{font:700 24px/1 var(--display);letter-spacing:.03em;margin:0}
+p{margin:0}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.lede{max-width:66ch;color:var(--muted)}
+.sub{color:var(--muted);margin-bottom:16px;max-width:70ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.card .body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.card .top{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.num{font:500 12px var(--mono);color:var(--muted)}
+canvas{display:block;width:100%;max-width:100%;height:auto;background:var(--arena)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:4px;background:var(--chip);color:var(--muted)}
+.chip.job{color:var(--fg)}
+.teach{font-size:14px;border-left:3px solid var(--crimson);padding-left:8px;color:var(--muted)}
+.teach b{color:var(--fg);font-weight:600}
+.stats{font:400 12px var(--mono);color:var(--muted)}
+.wide{grid-column:1/-1}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+td.n{font:500 13px var(--mono);color:var(--muted);width:3em}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+ul.notes{margin:0;padding-left:20px;color:var(--muted)}
+ul.notes li+li{margin-top:4px}
+code{font:400 .9em var(--mono)}
+</style>
+<main>
+<header>
+  <div class="eyebrow">Wave 30 boss faction · mockup (approximate, not the game's draw code)</div>
+  <h1>The Masked <span>Court</span></h1>
+  <p class="lede">The Duelist's faction, the same size as the Warden's: 8 enemies, 4 squads, a set piece and a 10-wave Campaign cycle. A fencing salon at a masked ball: every enemy wears a mask, carries steel, and previews one move the Duelist uses in its three stages.</p>
+</header>
+
+<section>
+  <h2>Members</h2>
+  <p class="sub">The Warden's slot each one fills is in brackets. Weight and first round copy the Warden's table in <code>Approaches.cs</code>. The Approaches plan's Blade Dancer and the Decoy rework are both here (the Decoy became the Mummer's copies).</p>
+  <div class="grid" id="members"></div>
+</section>
+
+<section>
+  <h2>Squads</h2>
+  <p class="sub">Four squads and the wave-4 set piece, like Breakout / Yard / Patrol / Cell block and the Riot line.</p>
+  <div class="grid" id="squads"></div>
+</section>
+
+<section>
+  <h2>Campaign cycle</h2>
+  <p class="sub">One lesson per wave, building to the Duelist at wave 30.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>#</th><th>Teaches</th><th>Mix</th></tr></thead>
+    <tbody id="lessons"></tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>Notes</h2>
+  <ul class="notes">
+    <li>Fencer, Second, Parrier, Marshal and Gallant fade at the first boss after (Fade 0–1); Harlequin and Mummer stay two waves longer (Fade 2, like Thugs and Shivs).</li>
+    <li>Most rules already exist on the boss: the Lunge's hanging blades, the Guard's bounce-back front, hollow decoy shots (<code>Defs.HollowShot</code>), the dueling circle and the Salute's perfect-parry stagger. The faction would call them on regular enemies, smaller.</li>
+    <li>Shielders and Reavers (the plan's "regular" fits) stay in the normal pool; Parrier and Gallant replace their themed role.</li>
+    <li>New <code>EnemyType</code> values would go at the end, before <code>None</code>, with a protocol bump.</li>
+  </ul>
+</section>
+</main>
+
+<script>
+const C={steel:'#cfd6ff',crimson:'#ff4d6b',gold:'#ffcc59',violet:'#b59cff',player:'#4fe3c1',bullet:'#ffe27a',white:'#ffffff',dark:'#07080c',parry:'#e6f4ff'};
+const TAU=Math.PI*2;
+const lerp=(a,b,f)=>a+(b-a)*f, clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), ease=f=>f*f*(3-2*f);
+function hexA(h,a){const n=parseInt(h.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}
+function glow(g,x,y,r,col,a){const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,hexA(col,a));gr.addColorStop(1,hexA(col,0));g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();}
+function circ(g,x,y,r,fill,stroke,w){g.beginPath();g.arc(x,y,r,0,TAU);if(fill){g.fillStyle=fill;g.fill();}if(stroke){g.strokeStyle=stroke;g.lineWidth=w||2;g.stroke();}}
+function line(g,x1,y1,x2,y2,col,w,dash){g.save();g.strokeStyle=col;g.lineWidth=w;if(dash)g.setLineDash(dash);g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();g.restore();}
+function floor(g,W,H){g.fillStyle='#0e1017';g.fillRect(0,0,W,H);g.strokeStyle='rgba(140,150,200,0.06)';g.lineWidth=1;
+  for(let x=0;x<W;x+=30){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke();}for(let y=0;y<H;y+=30){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}}
+function player(g,x,y,ang){glow(g,x,y,26,C.player,0.25);circ(g,x,y,10,'#0f2d28',C.player,2.5);line(g,x,y,x+Math.cos(ang)*17,y+Math.sin(ang)*17,C.player,4);}
+function shot(g,x,y,col,r){glow(g,x,y,(r||3)*3,col,0.45);circ(g,x,y,r||3,col);}
+function hollow(g,x,y,r){circ(g,x,y,r,null,hexA(C.violet,0.85),1.6);}
+function dagger(g,x,y,ang,col){g.save();g.translate(x,y);g.rotate(ang);glow(g,0,0,9,col,0.35);g.strokeStyle=col;g.lineWidth=2;g.beginPath();g.moveTo(-6,0);g.lineTo(6,0);g.stroke();g.strokeStyle=C.gold;g.beginPath();g.moveTo(-5,-3);g.lineTo(-5,3);g.stroke();g.restore();}
+function label(g,x,y,txt,col){g.font='500 10px "IBM Plex Mono",monospace';g.fillStyle=col||'rgba(230,230,245,0.75)';g.textAlign='center';g.fillText(txt,x,y);}
+function hpBar(g,x,y,f){g.fillStyle='rgba(0,0,0,0.6)';g.fillRect(x-18,y,36,4);g.fillStyle=C.crimson;g.fillRect(x-18,y,36*f,4);}
+
+/* A masked fencer: body, cape, white half-mask facing `ang`, rapier with gold guard. */
+function fig(g,x,y,ang,o={}){const r=o.r||11, rim=o.rim||C.steel, fill=o.fill||'#1a1c27';
+  g.save();g.translate(x,y);g.rotate(ang);
+  if(o.cape){g.beginPath();g.moveTo(-r*0.4,-r);g.quadraticCurveTo(-r*2.1,0,-r*0.4,r);g.closePath();g.fillStyle=o.cape;g.fill();}
+  if(o.diamonds){g.save();g.beginPath();g.arc(0,0,r,0,TAU);g.clip();g.fillStyle=fill;g.fillRect(-r,-r,2*r,2*r);
+    for(let i=-3;i<=3;i++)for(let j=-3;j<=3;j++){if((i+j)%2)continue;const cx=i*r*0.5,cy=j*r*0.5;g.beginPath();g.moveTo(cx,cy-r*0.25);g.lineTo(cx+r*0.25,cy);g.lineTo(cx,cy+r*0.25);g.lineTo(cx-r*0.25,cy);g.closePath();g.fillStyle=hexA(C.crimson,0.75);g.fill();}g.restore();
+    circ(g,0,0,r,null,rim,2);}
+  else circ(g,0,0,r,fill,rim,2);
+  // mask
+  g.beginPath();g.ellipse(r*0.35,0,r*0.38,r*0.62,0,-Math.PI/2,Math.PI/2);g.fillStyle=o.mask||'#f2eee6';g.fill();
+  circ(g,r*0.45,-r*0.24,1.4,C.dark);circ(g,r*0.45,r*0.24,1.4,C.dark);
+  if(o.blade!==false){const bl=o.bladeLen||20, ba=o.bladeAng||0;g.rotate(ba);line(g,r-2,0,r+bl,0,o.bladeCol||C.steel,o.bladeW||2);line(g,r-1,-4,r-1,4,C.gold,2.5);}
+  g.restore();}
+
+const D={
+  fencer(g,x,y,ang,o={}){fig(g,x,y,ang,{r:9,bladeLen:16,...o});},
+  dancer(g,x,y,ang,o={}){fig(g,x,y,ang,{r:11,cape:hexA(C.crimson,0.55),bladeLen:22,...o});},
+  second(g,x,y,ang,raise=0){fig(g,x,y,ang,{r:10,rim:C.gold,blade:false});if(raise>0){g.save();g.translate(x,y);g.rotate(ang-1.2*raise);
+    for(const s of[-1,0,1]){g.save();g.rotate(s*0.25);line(g,12,0,22,0,C.steel,2);g.restore();}g.restore();glow(g,x+Math.cos(ang-1)*16,y+Math.sin(ang-1)*16,12,C.gold,0.6*raise);}},
+  parrier(g,x,y,ang,t){g.save();g.translate(x,y);g.rotate(ang);g.beginPath();g.arc(0,0,28,-1.15,1.15);g.strokeStyle=hexA(C.gold,0.35+0.15*Math.sin(t*6));g.lineWidth=6;g.stroke();
+    g.beginPath();g.arc(0,0,28,-1.15,1.15);g.strokeStyle=C.gold;g.lineWidth=1.5;g.stroke();g.restore();
+    fig(g,x,y,ang,{r:13,fill:'#22242f',bladeLen:12,bladeAng:-0.7});g.save();g.translate(x,y);g.rotate(ang);line(g,10,6,22,10,C.steel,3);g.restore();},
+  marshal(g,x,y,ang,raise=0){fig(g,x,y,ang,{r:11,rim:C.gold,cape:hexA(C.gold,0.35),blade:false});g.save();g.translate(x,y);g.rotate(ang-raise*1.4);
+    line(g,8,0,26,0,'#d9c08a',3);circ(g,26,0,3.5,C.gold);g.restore();},
+  gallant(g,x,y,ang,salute=0,open=0){if(salute>0)glow(g,x,y,40,C.gold,0.35*salute);
+    fig(g,x,y,ang,{r:12,cape:hexA(C.steel,0.35),rim:open>0?C.crimson:C.steel,bladeLen:24,bladeAng:-salute*1.45});
+    if(open>0){for(let k=0;k<3;k++){const a=open*6+k*TAU/3;circ(g,x+Math.cos(a)*16,y-18+Math.sin(a)*4,2.5,C.gold);}}},
+  harlequin(g,x,y,ang,o={}){fig(g,x,y,ang,{r:18,diamonds:true,rim:C.crimson,mask:'#111',bladeLen:24,...o});fig(g,x,y,ang+Math.PI,{r:18,diamonds:true,rim:C.crimson,mask:'#111',bladeLen:20,blade:o.twin!==false});},
+  mummer(g,x,y,ang,a=1,decoy=false){g.globalAlpha=a;fig(g,x,y,ang,{r:10,cape:hexA(C.violet,0.5),rim:C.violet,bladeLen:14});g.globalAlpha=1;},
+};
+/* A hanging blade left by a lunge (DuelistLook's gold-guarded sword), across = perpendicular to the dash. */
+function hangBlade(g,x,y,ang,a){g.save();g.globalAlpha=a;g.translate(x,y);g.rotate(ang);glow(g,0,0,14,C.crimson,0.35);
+  line(g,0,-10,0,10,C.steel,2.5);line(g,-5,-6,5,-6,C.gold,2.5);g.restore();g.globalAlpha=1;}
+
+/* ---------- member scenes: stateless, drawn from time ---------- */
+const W=360,H=210;
+const M=[
+ {name:'Fencer',slot:'Rioter',job:'Hunter',from:1,w:3,stats:'24 HP · 120 px/s · hop-lunge 70 px after a 0.3 s line · 9 a hit',
+  does:'A masked foil-fencer. Runs in, shows a short thin line for 0.3 s, then hops 70 px down it. Comes in crowds.',
+  teach:'<b>The Lunge</b>: read the line, step off it.',
+  draw(g,t){const px=290,py=105;player(g,px,py,Math.PI);
+    for(const [i,yy] of [[0,70],[1,140]]){const c=(t+i*1.0)%2.2;let x;const tx=px-90;const y=lerp(yy,py+(i?14:-14),0.6);
+      if(c<1.2)x=lerp(40,tx,ease(c/1.2));else if(c<1.5)x=tx;else if(c<1.65)x=lerp(tx,tx+70,(c-1.5)/0.15);else x=lerp(tx+70,tx+30,clamp((c-1.65)/0.55,0,1));
+      if(c>=1.2&&c<1.5&&Math.sin(t*40)>-0.3)line(g,tx+10,y,tx+80,y,hexA(C.crimson,0.75),1.5,[5,4]);
+      if(c>=1.5&&c<1.75)line(g,tx,y,x,y,hexA(C.steel,0.4),6);
+      D.fencer(g,x,y,0);}}},
+ {name:'Blade Dancer',slot:'Guard',job:'Pressure',from:'1 (not first)',w:2,stats:'50 HP · 95 px/s · lunge 180 px every 3.5 s · 3 blades, 2 shots each (11)',
+  does:'Telegraphs a long lunge, dashes, and leaves three hanging blades on the path. After 0.6 s each blade fires one shot out each side.',
+  teach:'<b>The Lunge</b>\'s blades: never stand beside the line.',
+  draw(g,t){const c=t%3.5, y=105, x0=50, x1=230, px=300, py=105;let dx=x0;
+    if(c<0.6){if(Math.sin(t*30)>-0.2)line(g,x0,y,x1+18,y,hexA(C.crimson,0.7),2,[8,6]);}
+    else if(c<0.82)dx=lerp(x0,x1,ease((c-0.6)/0.22));else dx=lerp(x1,x1-30,clamp((c-0.82)/1,0,1));
+    if(c>=0.6&&c<0.95)line(g,x0,y,dx,y,hexA(C.steel,0.35),8);
+    const bx=[95,140,185];
+    for(const b of bx){if(c<0.6||dx<b)continue;const age=c-0.6-(b-x0)/(x1-x0)*0.22;
+      if(age<0.6)hangBlade(g,b,y,0,1);else if(age<0.8)hangBlade(g,b,y,0,1-(age-0.6)/0.2);
+      if(age>0.6){const f=age-0.6;for(const s of[-1,1]){const sy=y+s*(12+f*150);if(Math.abs(sy-y)<130)shot(g,b,sy,C.crimson,3.5);}}}
+    D.dancer(g,dx,y,0);player(g,px,py-6,Math.PI);
+    if(c>1.1&&c<2.2)label(g,140,30,'blades fire sideways',hexA(C.crimson,0.85));}},
+ {name:'Parrier',slot:'Riot Shield',job:'Anchor',from:2,w:2,stats:'110 HP · 70 px/s · front 130° sends shots back (320 px/s, 12) · turns 1.2 rad/s',
+  does:'Stands on guard with a main-gauche. Shots into its front are parried straight back at whoever fired them. It turns slowly.',
+  teach:'<b>The Guard</b>: stop shooting its face, get behind it.',
+  draw(g,t){const lx=140,ly=100,px=300,py=100;D.parrier(g,lx,ly,t,0);player(g,px,py,Math.PI);const p2x=90,p2y=190;player(g,p2x,p2y,Math.atan2(ly-p2y,lx-p2x));
+    for(let i=0;i<5;i++){const f=(t*1.1+i/5)%1;let x,col=C.bullet;if(f<0.5)x=lerp(px-16,lx+28,f/0.5);else{x=lerp(lx+28,px-12,(f-0.5)/0.5);col=C.crimson;}
+      if(Math.abs(f-0.5)<0.03)glow(g,lx+28,ly+(i%2?5:-5),14,C.gold,0.9);shot(g,x,ly+(i%2?5:-5),col,col===C.crimson?3.5:2.5);}
+    for(let i=0;i<3;i++){const f=(t*1.3+i/3)%1;if(f<0.9)shot(g,lerp(p2x+8,lx-8,f),lerp(p2y-12,ly+8,f),C.bullet,2.5);else glow(g,lx-6,ly+10,14,C.bullet,0.8);}
+    label(g,225,70,'front: parried back',hexA(C.gold,0.9));label(g,60,150,'behind: hits',hexA(C.bullet,0.85));}},
+ {name:'Marshal',slot:'Gas Grenadier',job:'Zoner',from:2,w:1.5,stats:'55 HP · keeps 320 px · every 7 s, a 140 px circle round you for 4 s · leaning on it: 8',
+  does:'The duel\'s referee. Points its baton and draws a gold circle round you; for 4 s the edge hurts if you push on it, so you fight inside it.',
+  teach:'<b>The dueling circle</b>: fight in the middle, not on the edge.',
+  draw(g,t){const mx=55,my=160,cx=240,cy=95,R=70;const c=t%7;const raise=c<0.6?c/0.6:(c<1?1-(c-0.6)/0.4:0);
+    D.marshal(g,mx,my,Math.atan2(cy-my,cx-mx),raise);
+    let ppx=cx+30*Math.cos(t*0.9), ppy=cy+20*Math.sin(t*1.3);
+    if(c>=0.6&&c<5.1){const draw=clamp((c-0.6)/0.5,0,1), left=1-clamp((c-1.1)/4,0,1);
+      g.beginPath();g.arc(cx,cy,R,-Math.PI/2,-Math.PI/2+TAU*draw);g.strokeStyle=hexA(C.gold,0.25);g.lineWidth=10;g.stroke();g.strokeStyle=C.gold;g.lineWidth=2;g.stroke();
+      for(let k=0;k<8;k++){const a=k*TAU/8+t*0.3;circ(g,cx+Math.cos(a)*R,cy+Math.sin(a)*R,2.5,hexA(C.gold,draw));}
+      if(c>1.1){g.beginPath();g.arc(cx,cy,R+12,-Math.PI/2,-Math.PI/2+TAU*left);g.strokeStyle=hexA(C.gold,0.4);g.lineWidth=2;g.stroke();}
+      const push=(c%2.4)>1.6;if(push){const a=-0.3;ppx=cx+Math.cos(a)*(R-10);ppy=cy+Math.sin(a)*(R-10);glow(g,cx+Math.cos(a)*R,cy+Math.sin(a)*R,18,C.crimson,0.8);label(g,cx+Math.cos(a)*R+24,cy+Math.sin(a)*R-10,'−8',C.crimson);}}
+    player(g,ppx,ppy,Math.atan2(my-ppy,mx-ppx));}},
+ {name:'Gallant',slot:'Taser Guard',job:'Pressure',from:3,w:1.5,stats:'80 HP · 100 px/s · salute 0.8 s, lunge 240 px (20) · parried: open 2.5 s, +50%',
+  does:'A champion who salutes before every lunge. A perfect parry as it arrives knocks it off balance; a dodge gets you raked as it passes.',
+  teach:'<b>The Salute</b>: parry on arrival for the opening.',
+  draw(g,t){const c=t%4.2,px=290,py=105,x0=70;let gx=x0,sal=0,open=0;
+    if(c<0.8)sal=Math.sin(c/0.8*Math.PI);else if(c<1.0)gx=lerp(x0,px-26,ease((c-0.8)/0.2));
+    else if(c<1.4)gx=lerp(px-26,px-90,ease((c-1)/0.4));else if(c<3.6){gx=px-90;open=t;}else gx=lerp(px-90,x0,ease((c-3.6)/0.6));
+    if(c<0.8){line(g,x0+20,py,px-26,py,hexA(C.gold,0.25+0.4*sal),2,[4,6]);label(g,x0,py-34,'salute',hexA(C.gold,0.9));}
+    if(c>=0.8&&c<1.0)line(g,x0,py,gx,py,hexA(C.steel,0.4),8);
+    D.gallant(g,gx,py,0,sal,open?1:0);if(open)open=0;
+    if(c>=0.95&&c<1.25){const f=(c-0.95)/0.3;g.beginPath();g.arc(px,py,22+f*10,Math.PI-1.1,Math.PI+1.1);g.strokeStyle=hexA(C.parry,1-f);g.lineWidth=4;g.stroke();label(g,px,py-34,'parry!',C.parry);}
+    if(c>=1.4&&c<3.6){label(g,gx,py-34,'open +50%',hexA(C.crimson,0.9));for(let i=0;i<4;i++){const f=(t*2+i/4)%1;shot(g,lerp(px-16,gx+12,f),py+(i%2?3:-3),C.bullet,2.5);}}
+    player(g,px,py,Math.PI);}},
+ {name:'Second',slot:'Security Guard',job:'Zoner',from:2,w:2,stats:'45 HP · keeps 300 px · fan of 5 daggers every 2.2 s (220 px/s, 10)',
+  does:'The duelist\'s second hangs back and throws aimed fans of five daggers after a short gold glint.',
+  teach:'<b>Volleys</b>: slip between the daggers.',
+  draw(g,t){const sx=70,sy=105,px=290,py=118;const c=t%2.2;const raise=c<0.45?c/0.45:0;const a=Math.atan2(py-sy,px-sx);
+    D.second(g,sx,sy,a,raise);
+    if(c>=0.45){const f=(c-0.45)*220;for(let k=-2;k<=2;k++){const aa=a+k*0.16;const x=sx+Math.cos(aa)*(16+f),y=sy+Math.sin(aa)*(16+f);if(x<W+10)dagger(g,x,y,aa,C.steel);}}
+    player(g,px,py+Math.sin(t*1.8)*16,Math.PI);}},
+ {name:'Harlequin',slot:'Thug',job:'Hunter',from:2,w:1.5,stats:'240 HP · 60 px/s · a Crossing every 6 s: two crossed dashes, 4 blades each',
+  does:'A heavy two-sworded jester. Marks an X through you, dashes one arm then the other, leaving blades that fire sideways off both lines.',
+  teach:'<b>The Crossing</b>: stand in a gap of the X, not on it.',
+  draw(g,t){const c=t%6,cx=190,cy=105,L=110,px=300,py=150;const d1=[cx-L,cy-L*0.8,cx+L,cy+L*0.8],d2=[cx-L,cy+L*0.8,cx+L,cy-L*0.8];let hx=d1[0],hy=d1[1],ang=Math.atan2(d1[3]-d1[1],d1[2]-d1[0]);
+    if(c<0.8){if(Math.sin(t*30)>-0.2){line(g,...d1,hexA(C.crimson,0.7),2,[8,6]);line(g,...d2,hexA(C.crimson,0.45),2,[8,6]);}hx=lerp(60,d1[0],c/0.8);hy=lerp(60,d1[1],c/0.8);}
+    else if(c<1.1){const f=ease((c-0.8)/0.3);hx=lerp(d1[0],d1[2],f);hy=lerp(d1[1],d1[3],f);}
+    else if(c<1.4){const f=(c-1.1)/0.3;hx=lerp(d1[2],d2[0],f);hy=lerp(d1[3],d2[1],f);ang=Math.PI;}
+    else if(c<1.7){const f=ease((c-1.4)/0.3);hx=lerp(d2[0],d2[2],f);hy=lerp(d2[1],d2[3],f);ang=Math.atan2(d2[3]-d2[1],d2[2]-d2[0]);}
+    else{hx=lerp(d2[2],60+(d2[2]-60),0);hy=d2[3];ang=Math.atan2(py-hy,px-hx);}
+    const lines=[[d1,0.8],[d2,1.4]];
+    for(const[d,st]of lines){if(c<st)continue;const a=Math.atan2(d[3]-d[1],d[2]-d[0]);for(let k=1;k<=4;k++){const f=k/5,bx=lerp(d[0],d[2],f),by=lerp(d[1],d[3],f);const age=c-st-f*0.3;if(age<0)continue;
+      if(age<0.6)hangBlade(g,bx,by,a,1);else if(age<2.5){const ff=(age-0.6)*140;for(const s of[-1,1]){const nx=-Math.sin(a)*s,ny=Math.cos(a)*s;shot(g,bx+nx*(12+ff),by+ny*(12+ff),C.crimson,3.5);}}}}
+    D.harlequin(g,hx,hy,ang);player(g,px,py,Math.atan2(hy-py,hx-px));if(c<0.8)label(g,cx,20,'the X',hexA(C.crimson,0.9));}},
+ {name:'Mummer',slot:'Shiv',job:'Disruptor',from:3,w:1,stats:'40 HP · 210 px/s · blinks into 3 for 5 s · copies: 1 HP, hollow shots',
+  does:'A fast masked player that blinks and becomes three. They circle you and all fire, but only the real one\'s shots are solid; the copies\' are hollow rings that pass through you.',
+  teach:'<b>The Masquerade</b>: find the solid shots, ignore the rings.',
+  draw(g,t){const c=t%5.5,px=250,py=105;
+    if(c<1){const x=lerp(40,px-110,ease(c));D.mummer(g,x,py,0);}
+    else if(c<1.3){const f=(c-1)/0.3;circ(g,px-110,py,30*f,null,hexA(C.violet,1-f),3);glow(g,px-110,py,30,C.violet,0.6*(1-f));}
+    else{const k=c-1.3;const R=100;for(let i=0;i<3;i++){const dead=i===2&&k>2.6;const a=Math.PI+k*0.6+i*TAU/3;const x=px+Math.cos(a)*R,y=py+Math.sin(a)*R*0.85;
+      if(dead){const f=(k-2.6)/0.4;if(f<1)circ(g,x,y,10+20*f,null,hexA(C.violet,1-f),2);continue;}
+      D.mummer(g,x,y,a+Math.PI,1);
+      const sc=(k+i*0.25)%0.9;if(sc<0.7){const f=sc/0.7;const sx=lerp(x,px,f),sy=lerp(y,py,f);if(i===0)shot(g,sx,sy,C.crimson,4);else hollow(g,sx,sy,4.5);}
+      if(i===2&&k>2.2&&k<2.6){const f=(k-2.2)/0.4;shot(g,lerp(px,x,f),lerp(py,y,f),C.bullet,2.5);}}
+      if(k<2.4){label(g,px+Math.cos(Math.PI+k*0.6)*100,py+Math.sin(Math.PI+k*0.6)*85-20,'solid',C.crimson);}}
+    player(g,px,py,Math.PI);}},
+];
+
+/* ---------- squads ---------- */
+const S=[
+ {name:'Salon',from:1,list:'Blade Dancer + 6 Fencers',slot:'Breakout',does:'Fencers rush in a loose wedge; the Blade Dancer lunges through the gap they make.',
+  draw(g,t){const px=300,py=105;player(g,px,py,Math.PI);const adv=(t*40)%200;
+    const pos=[[0,0],[-22,-28],[-22,28],[-44,-56],[-44,56],[-66,-20],[-66,20]];
+    pos.forEach(([ox,oy],i)=>{const x=60+adv*0.6+ox+Math.sin(t*3+i)*3,y=py+oy;if(i===0)D.dancer(g,x-30,y,0);else D.fencer(g,x,y,Math.atan2(py-y,px-x));});
+    if((t%3)<0.6&&Math.sin(t*30)>0)line(g,60+adv*0.6-10,py,px-20,py,hexA(C.crimson,0.6),2,[8,6]);}},
+ {name:'Seconds',from:2,list:'3 Seconds + 2 Fencers',slot:'Patrol',does:'Three Seconds throw their fans in turn, so the gaps keep moving; two Fencers push you into them.',
+  draw(g,t){const px=300,py=110;const sec=[[60,50],[45,105],[60,160]];
+    sec.forEach(([sx,sy],i)=>{const c=(t+i*0.73)%2.2;const a=Math.atan2(py-sy,px-sx);D.second(g,sx,sy,a,c<0.45?c/0.45:0);
+      if(c>=0.45){const f=(c-0.45)*220;for(let k=-2;k<=2;k++){const aa=a+k*0.16;const x=sx+Math.cos(aa)*(16+f),y=sy+Math.sin(aa)*(16+f);if(x<W)dagger(g,x,y,aa,C.steel);}}});
+    for(const yy of[80,140]){const x=200+Math.sin(t*2+yy)*20;D.fencer(g,x,yy,Math.atan2(py-yy,px-x));}player(g,px,py,Math.PI);}},
+ {name:'Guard line',from:3,list:'2 Parriers + 4 Fencers',slot:'Cell block',does:'Two Parriers walk shoulder to shoulder, parrying your shots back; Fencers spill round their sides.',
+  draw(g,t){const px=310,py=105;D.parrier(g,170,70,t,0);D.parrier(g,170,140,t,0);
+    for(let i=0;i<4;i++){const s=i<2?-1:1;const f=((t*0.35+i*0.5)%1);const x=lerp(110,260,f),y=py+s*lerp(95,40,f);D.fencer(g,x,y,Math.atan2(py-y,px-x));}
+    for(let i=0;i<4;i++){const f=(t*1.1+i/4)%1;const yy=i%2?70:140;let x,col=C.bullet;if(f<0.5)x=lerp(px-16,198,f/0.5);else{x=lerp(198,px-12,(f-0.5)/0.5);col=C.crimson;}shot(g,x,yy+(i<2?4:-4),col,col===C.crimson?3.5:2.5);}
+    player(g,px,py,Math.PI);}},
+ {name:'Masked ball',from:3,list:'Harlequin + Mummer + 3 Fencers',slot:'Yard',does:'Fencers waltz round you in a ring while the Harlequin walks in; the Mummer splits into three among them.',
+  draw(g,t){const px=250,py=105;for(let i=0;i<3;i++){const a=t*0.8+i*TAU/3;const x=px+Math.cos(a)*85,y=py+Math.sin(a)*65;D.fencer(g,x,y,a+Math.PI/2);}
+    for(let i=0;i<3;i++){const a=-t*0.6+i*TAU/3+0.5;D.mummer(g,px+Math.cos(a)*55,py+Math.sin(a)*45,a+Math.PI,1);}
+    D.harlequin(g,60+Math.sin(t*0.5)*10,105,0,{});player(g,px,py,Math.PI);}},
+ {name:'Ring of Honour',from:4,list:'10 Fencers + 2 Gallants (set piece)',slot:'Riot line',wide:true,does:'The exam. Ten Fencers and two Gallants form a ring round the players, facing in and closing slowly. Opposite pairs lunge in, in turn; the two Gallants salute before theirs. Parry them for the opening. It breaks up after 14 s or once half of it is down.',
+  draw(g,t,W2,H2){const cx=W2/2,cy=H2/2;const n=12;const R=lerp(220,130,(t%12)/12);const turn=Math.floor(t/1.4)%6, c=t%1.4;
+    circ(g,cx,cy,R,null,hexA(C.gold,0.12),18);
+    for(let i=0;i<n;i++){const a=i*TAU/n;let x=cx+Math.cos(a)*R,y=cy+Math.sin(a)*R*0.62;const face=Math.atan2(cy-y,cx-x);const pair=(i%6)===turn;const gal=i===2||i===8;
+      if(pair){const tx=cx+Math.cos(a)*R*0.3,ty=cy+Math.sin(a)*R*0.62*0.3;
+        if(c<0.6){if(Math.sin(t*30)>-0.2)line(g,x,y,tx,ty,hexA(gal?C.gold:C.crimson,0.7),2,[6,5]);}
+        else if(c<0.8){const f=ease((c-0.6)/0.2);x=lerp(x,tx,f);y=lerp(y,ty,f);}else{const f=ease((c-0.8)/0.6);x=lerp(tx,x,f);y=lerp(ty,y,f);}}
+      if(gal)D.gallant(g,x,y,face,pair&&c<0.6?Math.sin(c/0.6*Math.PI):0,0);else D.fencer(g,x,y,face);}
+    player(g,cx-30,cy+10,0.3);player(g,cx+30,cy-12,2.8);
+    if(turn===2||turn===8%6)label(g,cx,24,'Gallants salute: parry',hexA(C.gold,0.9));}},
+];
+
+const L=[
+ ['Fencers hop in (the Lunge\'s warning line)','Fencer'],
+ ['Blade Dancers\' hanging blades','Fencer, Blade Dancer · Fencer pack'],
+ ['Harlequins: stand in a gap of the X (the Crossing)','Fencer, Blade Dancer, Harlequin · Dancer pair'],
+ ['Seconds\' dagger fans (Volleys)','Fencer, Blade Dancer, Harlequin, Second · Salon'],
+ ['A recap, and Mummers join (the Masquerade)','Everything so far, Mummer · Salon, Seconds'],
+ ['Parriers: get behind them (the Guard)','Parrier, Fencer, Blade Dancer, Harlequin, Second · Salon, Seconds'],
+ ['Marshals\' dueling circles','Marshal, Parrier, Fencer, Second · Salon, Guard line'],
+ ['Gallants salute: parry them (the Salute)','Gallant, Marshal, Parrier, Fencer · Masked ball, Guard line'],
+ ['Every squad, tighter','All squads, 75% squad chance'],
+ ['The exam: the Ring of Honour with everything','Everything + Ring of Honour, a big Salon'],
+];
+
+/* ---------- build page ---------- */
+const scenes=[];
+function addCanvas(parent,w,h,draw){const cv=document.createElement('canvas');const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=w*dpr;cv.height=h*dpr;cv.style.aspectRatio=`${w}/${h}`;parent.appendChild(cv);const g=cv.getContext('2d');g.scale(dpr,dpr);scenes.push({cv,g,w,h,draw,vis:true});return cv;}
+const mEl=document.getElementById('members');
+M.forEach((m,i)=>{const card=document.createElement('article');card.className='card';mEl.appendChild(card);addCanvas(card,W,H,m.draw);
+  const b=document.createElement('div');b.className='body';b.innerHTML=`<div class="top"><h3>${m.name}</h3><span class="num">${i+1}/8 · [${m.slot}]</span></div>
+  <div class="chips"><span class="chip job">${m.job}</span><span class="chip">from round ${m.from}</span><span class="chip">weight ${m.w}</span></div>
+  <p>${m.does}</p><p class="teach">Teaches ${m.teach}</p><p class="stats">${m.stats}</p>`;card.appendChild(b);});
+const sEl=document.getElementById('squads');
+S.forEach(s=>{const card=document.createElement('article');card.className='card'+(s.wide?' wide':'');sEl.appendChild(card);const w=s.wide?720:W,h=s.wide?300:H;addCanvas(card,w,h,(g,t)=>s.draw(g,t,w,h));
+  const b=document.createElement('div');b.className='body';b.innerHTML=`<div class="top"><h3>${s.name}</h3><span class="num">from round ${s.from} · [${s.slot}]</span></div><div class="chips"><span class="chip job">${s.list}</span></div><p>${s.does}</p>`;card.appendChild(b);});
+const lEl=document.getElementById('lessons');L.forEach((l,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td class="n">${i+1}</td><td>${l[0]}</td><td>${l[1]}</td>`;lEl.appendChild(tr);});
+
+const io=new IntersectionObserver(es=>es.forEach(e=>{const s=scenes.find(s=>s.cv===e.target);if(s)s.vis=e.isIntersecting;}));scenes.forEach(s=>io.observe(s.cv));
+const still=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function frame(ms){const t=still?2.2:ms/1000;for(const s of scenes){if(!s.vis&&!still)continue;s.g.save();floor(s.g,s.w,s.h);s.draw(s.g,t);s.g.restore();}if(!still)requestAnimationFrame(frame);}
+requestAnimationFrame(frame);
+</script>

@@ -1,0 +1,470 @@
+<title>The Restless Dead</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sibling of zombie-enemies.html and the other *-faction.html mockups. One live arena of a Lich approach wave,
+   the eight-slot roster, the two Infection zombies that join, four candidates for the eighth slot (each its own
+   close-up), then squads and the ten-wave cycle. Single dark look by choice: it mirrors the arena. Infection greens,
+   with the Lich's soul cyan marking what's new. */
+:root {
+  --bg: #090c0a; --panel: #101511; --panel-2: #151c16; --line: #223024; --edge: #33473a;
+  --fg: #e6efe6; --muted: #8fa292; --green: #8dff6a; --soul: #6effb0; --spirit: #5ed9ff; --bone: #e9e2c8; --bile: #e8e35a;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 34px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--spirit); text-shadow: 0 0 18px rgba(94,217,255,0.35); }
+h2 { font-size: 22px; font-weight: 700; letter-spacing: 0.04em; }
+h3 { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: #cfe0d0; }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--bile); }
+header, section { display: grid; gap: 12px; }
+.mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+canvas { display: block; width: 100%; max-width: 100%; height: auto; background: #0b100c; }
+#arena { aspect-ratio: 16 / 9; }
+.controls { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: flex-end; padding: 12px 14px 14px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.field { display: grid; gap: 5px; justify-items: start; min-width: 0; }
+.field > .lbl { font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.seg button { min-width: 38px; height: 28px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 12.5px var(--font-body); cursor: pointer; }
+.seg button:hover { color: var(--fg); background: #1a241c; }
+.seg button.on { color: #fff; background: #12303a; box-shadow: inset 0 0 0 1px var(--spirit); }
+button:focus-visible { outline: 2px solid var(--spirit); outline-offset: 2px; }
+.readout { margin-left: auto; font: 500 12.5px var(--font-data); color: var(--muted); }
+.readout b { color: var(--fg); font-weight: 500; }
+
+.roster { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px; }
+.slot { background: var(--panel); border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px 10px; display: grid; gap: 2px; min-width: 0; }
+.slot canvas { aspect-ratio: 1; background: transparent; width: 64px; margin: 0 auto 2px; }
+.slot b { font-family: var(--font-display); font-size: 15px; letter-spacing: 0.03em; }
+.slot .w { font: 600 9.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.slot .st { font: 500 11px var(--font-data); }
+.slot.built .st { color: var(--muted); }
+.slot.joins { border-color: #4a5d2a; } .slot.joins .st { color: var(--bile); }
+.slot.new { border-color: #1f5566; border-style: dashed; } .slot.new .st { color: var(--spirit); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; min-width: 0; }
+.card.cand { border-color: #1f4450; }
+.card canvas { aspect-ratio: 4 / 3; border-bottom: 1px solid var(--line); }
+.card .body { padding: 14px 16px 16px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.card .top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.card h2 { font-size: 20px; }
+.tagl { font: 700 11px var(--font-display); letter-spacing: 0.1em; color: #061015; background: var(--spirit); border-radius: 4px; padding: 1px 6px; }
+.shape { font: 600 11px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.stat { background: var(--bg); border: 1px solid var(--line); border-radius: 7px; padding: 6px 8px; min-width: 0; }
+.stat .k { font: 600 9.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.stat .v { font: 500 15px var(--font-data); font-variant-numeric: tabular-nums; }
+.card ul { margin: 0; padding-left: 18px; color: #c8d8ca; font-size: 14.5px; }
+.card li { margin: 2px 0; }
+.prev { font-size: 13.5px; color: #bfe9f5; }
+.prev b, .counter b { font-weight: 600; }
+.prev b { color: var(--spirit); }
+.counter { font-size: 13.5px; color: var(--muted); }
+.counter b { color: var(--bile); }
+
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 14.5px; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); background: var(--panel-2); }
+tr:last-child td { border-bottom: 0; }
+td.n { font-family: var(--font-data); color: var(--muted); width: 3ch; }
+td .nw { color: var(--spirit); font-weight: 600; }
+td .jn { color: var(--bile); font-weight: 600; }
+.notes { color: var(--muted); padding-left: 18px; margin: 0; max-width: 90ch; }
+.notes li { margin: 4px 0; }
+.notes b { color: var(--fg); }
+@media (max-width: 520px) { .stats { grid-template-columns: repeat(2, 1fr); } .readout { margin-left: 0; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Boss approach · the Lich's faction · proposal</span>
+    <h1>The <span>restless</span> dead</h1>
+    <p class="lead">The Lich's faction is the five zombies already built. Every other faction has eight, one per Warden role. This fills the last three: the <b>Bloater</b> and <b>Shrieker</b> come over from Zombie Infection as they are, and one <b>new</b> enemy that previews the Lich fight. Four candidates for that slot below. <b style="color:var(--spirit)">Picked: B, the Grave Caller (built).</b></p>
+  </header>
+
+  <section>
+    <div class="stage">
+      <canvas id="arena" width="1600" height="900" aria-label="A live Lich approach wave with the chosen eighth member"></canvas>
+      <div class="controls">
+        <div class="field"><span class="lbl">Eighth member</span><div class="seg" id="pick"></div></div>
+        <div class="field"><span class="lbl">Approach wave</span><div class="seg" id="wave"></div></div>
+        <div class="readout mono" id="read"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h3>The eight (Warden's role in small type)</h3>
+    <div class="roster" id="roster"></div>
+  </section>
+
+  <section>
+    <h2>Joining from Zombie Infection</h2>
+    <p class="counter">Same numbers and look as the modifier. No new code beyond the faction table, squads and lessons.</p>
+    <div class="grid" id="joins"></div>
+  </section>
+
+  <section>
+    <h2>The eighth: four candidates</h2>
+    <p class="counter">Each previews one thing from the Lich fight. Cyan is the Lich's soul colour, so the new one reads as his, not the horde's.</p>
+    <div class="grid" id="cands"></div>
+  </section>
+
+  <section>
+    <h2>Squads</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Squad</th><th>From</th><th>Members</th><th>Teaches</th></tr></thead>
+      <tbody id="squads"></tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>The ten-wave cycle</h2>
+    <p class="counter">Same shape as the Warden, Hive, Infall and Quarry cycles: one new enemy a wave (trickling in over the second half), a recap, every squad, the exam.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>#</th><th>Star</th><th>Also</th><th>Squads</th></tr></thead>
+      <tbody id="cycle"></tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h3>Notes</h3>
+    <ul class="notes">
+      <li><b>No rising</b> outside the Zombie Infection modifier stays true for the horde; only the Grave Caller (if picked) raises its own dead, and they crumble when it dies.</li>
+      <li><b>Caps</b> carry over: at most 4 Spitters, 3 Crawlers, 2 Shriekers, 2 Menders a wave; the eighth gets a cap of 2.</li>
+      <li><b>The Dead march</b> finale gains a Shrieker at the back and two of the eighth member.</li>
+      <li>Approximate: browser drawing. The real look goes into <span class="mono">ZombieLook.cs</span> and gets <span class="mono">Tools/Preview</span> shots once you pick.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const TAU = Math.PI * 2, rnd = (a, b) => a + Math.random() * (b - a), clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// ---------- the zombies (numbers from Core/Zombies.cs) ----------
+const Z = {
+  Shambler: { col: "#7fd35a", glow: "127,211,90", r: 22, hp: 70, speed: 70, warden: "Rioter" },
+  Runner:   { col: "#c4ff5c", glow: "196,255,92", r: 15, hp: 28, speed: 175, warden: "Guard" },
+  Spitter:  { col: "#4fe0a6", glow: "79,224,166", r: 19, hp: 45, speed: 60, warden: "Gas Grenadier" },
+  Crawler:  { col: "#3faa55", glow: "63,170,85", r: 17, hp: 55, speed: 95, warden: "Shiv" },
+  Mender:   { col: "#2fd57c", glow: "47,213,124", r: 18, hp: 50, speed: 65, warden: "Security Guard" },
+  Bloater:  { col: "#a8c93a", glow: "168,201,58", r: 27, hp: 90, speed: 50, warden: "Thug", dmg: 20, from: "wave 5",
+    shape: "Big circle, swelling", role: "Burst",
+    does: ["Waddles in slowly, swelling as it breathes.", "Killed, it bursts into a spore cloud (110 px, 4 s): slowed 40%, short sight inside.", "Reaching you, it bursts on you for 20 with the same cloud."],
+    prev: "<b>Soul storm:</b> a patch you must not fight inside.", counter: "<b>Pop it at range,</b> while it's still in the crowd." },
+  Shrieker: { col: "#e3ff9c", glow: "227,255,156", r: 17, hp: 40, speed: 80, warden: "Taser Guard", dmg: 0, from: "wave 6",
+    shape: "Diamond", role: "Support: frenzy",
+    does: ["Hangs back about 350 px behind the horde.", "Every 6 s a scream rolls out 320 px: zombies it touches run 30% faster for 4 s.", "At most two a wave."],
+    prev: "<b>Wailing spirits:</b> a ring you read, then the rush it sends.", counter: "<b>Silence it</b> before the next scream." },
+};
+// The four candidates for slot eight: zombie-shaped, but in the Lich's soul cyan.
+const C = {
+  Bearer: { name: "Phylactery Bearer", col: "#5ed9ff", glow: "94,217,255", r: 23, hp: 90, speed: 55, warden: "Riot Shield", dmg: 14, from: "wave 8",
+    shape: "Hexagon with a jar", role: "Front line: ward",
+    does: ["Carries a soul jar in front; shots from the front hit the jar (80), not it.", "Soul threads tie it to up to 5 zombies within 200 px: they take 60% less damage. The threads hurt to cross (8).", "Break the jar: the threads snap, warded zombies stagger 1.5 s, and it's a slow Shambler."],
+    prev: "<b>Phylacteries</b> (break it for a window) and <b>soul beams</b> (don't cross them).", counter: "<b>Flank it or burst the jar,</b> then cash in on the stagger." },
+  Caller: { name: "Grave Caller", col: "#5ed9ff", glow: "94,217,255", r: 19, hp: 60, speed: 60, warden: "Riot Shield", dmg: 0, from: "wave 8",
+    shape: "Tall cross, hooded", role: "Summoner",
+    does: ["Keeps about 320 px back.", "Every 7 s three graves crack open in a ring 120 px round a player (1.2 s warning); a Shambler claws out of each at half health, no XP.", "At most 4 risen per Caller. Kill it and its risen crumble."],
+    prev: "<b>Grave rings</b> and <b>the dead rising.</b>", counter: "<b>Step out of the ring,</b> then dig through to the Caller." },
+  Binder: { name: "Bone Binder", col: "#5ed9ff", glow: "94,217,255", r: 21, hp: 70, speed: 50, warden: "Riot Shield", dmg: 0, from: "wave 8",
+    shape: "Square with a bone crown", role: "Area: cage",
+    does: ["Keeps about 300 px back, hand raised.", "Every 8 s: a dotted ring 150 px round a player for 1 s, then 12 bone spikes rise with one gap, standing 3 s.", "Spikes block you and hurt (12); shots pass. The horde walks in through the gap."],
+    prev: "<b>Bone prisons:</b> find the gap before it closes.", counter: "<b>Leave the ring early</b> or hold the gap." },
+  Spirit: { name: "Wailing Spirit", col: "#5ed9ff", glow: "94,217,255", r: 18, hp: 45, speed: 90, warden: "Riot Shield", dmg: 12, from: "wave 8",
+    shape: "Teardrop, see-through", role: "Flier: wail, dive",
+    does: ["Drifts through the horde (it ignores bodies), half see-through.", "Stops, wails: a 60° cone 260 px for 1 s, slowing whoever's in it by 40% for 2 s.", "Then dives: a 300 px blink-dash at you; shots pass through it mid-dive."],
+    prev: "<b>Wailing spirits</b> and <b>the spectre's blinks.</b>", counter: "<b>Sidestep the cone,</b> shoot it while it's wailing." },
+};
+const CK = Object.keys(C);
+
+function shapePath(c, type, x, y, r, a) {
+  c.beginPath(); const pts = [];
+  if (type === "Shambler") pts.push([1.05, 0], [-0.75, 1.05], [-0.75, -1.05]);
+  else if (type === "Runner") pts.push([1.55, 0], [-0.95, 0.52], [-0.95, -0.52]);
+  else if (type === "Spitter") for (let k = 0; k < 5; k++) { const q = k / 5 * TAU; pts.push([Math.cos(q), Math.sin(q)]); }
+  else if (type === "Bloater") { c.arc(x, y, r, 0, TAU); c.closePath(); return; }
+  else if (type === "Shrieker") pts.push([1.2, 0], [0, 0.72], [-1.0, 0], [0, -0.72]);
+  else if (type === "Mender") { const a2 = 0.36; pts.push([1, -a2], [1, a2], [a2, a2], [a2, 1], [-a2, 1], [-a2, a2], [-1, a2], [-1, -a2], [-a2, -a2], [-a2, -1], [a2, -1], [a2, -a2]); }
+  else if (type === "Bearer") for (let k = 0; k < 6; k++) { const q = k / 6 * TAU + TAU / 12; pts.push([Math.cos(q), Math.sin(q)]); }
+  else if (type === "Caller") { const a2 = 0.28; pts.push([1.25, -a2], [1.25, a2], [a2, a2], [a2, 0.8], [-a2, 0.8], [-a2, a2], [-0.9, a2], [-0.9, -a2], [-a2, -a2], [-a2, -0.8], [a2, -0.8], [a2, -a2]); }
+  else if (type === "Binder") pts.push([0.85, 0.85], [-0.85, 0.85], [-0.85, -0.85], [0.85, -0.85]);
+  else if (type === "Spirit") { for (let k = 0; k <= 12; k++) { const q = -Math.PI / 2 + k / 12 * Math.PI; pts.push([0.15 + Math.cos(q) * 0.85, Math.sin(q) * 0.85]); } pts.push([-0.6, 0.55], [-1.7, 0], [-0.6, -0.55]); }
+  else pts.push([0.75, 0.5], [0.75, -0.5], [-0.8, -1.0], [-0.8, 1.0]);
+  const ca = Math.cos(a), sa = Math.sin(a);
+  pts.forEach(([px, py], i) => { const X = x + (px * ca - py * sa) * r, Y = y + (px * sa + py * ca) * r; i ? c.lineTo(X, Y) : c.moveTo(X, Y); });
+  c.closePath();
+}
+function def(type) { return Z[type] || C[type]; }
+
+function drawZ(c, z, t) {
+  const d = def(z.type);
+  const bob = z.type === "Shambler" ? Math.sin(t * 5 + z.id) * 0.22 : z.type === "Runner" ? Math.sin(t * 16 + z.id) * 0.08 : z.type === "Crawler" ? Math.sin(t * 12 + z.id) * 0.12 : 0;
+  const a = z.face + bob, isNew = !!C[z.type];
+  let r = d.r;
+  if (z.type === "Bloater") r *= 1 + 0.09 * Math.sin(t * 2.6 + z.id);
+  if (z.type === "Shrieker" && z.scream > 0) r *= 1 + 0.3 * Math.sin(Math.min(1, z.scream / 0.6) * Math.PI);
+  const alpha = z.type === "Spirit" ? (z.dive > 0 ? 0.25 : 0.55 + 0.15 * Math.sin(t * 3 + z.id)) : 1;
+  c.save(); c.globalAlpha = alpha;
+  if (isNew) { const g = c.createRadialGradient(z.x, z.y, 0, z.x, z.y, r * 2.2); g.addColorStop(0, `rgba(${d.glow},0.22)`); g.addColorStop(1, `rgba(${d.glow},0)`); c.fillStyle = g; c.beginPath(); c.arc(z.x, z.y, r * 2.2, 0, TAU); c.fill(); }
+  if (z.haste > 0) { c.strokeStyle = "rgba(227,255,156,0.35)"; c.lineWidth = 2; for (let k = 1; k <= 2; k++) { const bx = z.x - Math.cos(z.face) * (d.r + 7 * k), by = z.y - Math.sin(z.face) * (d.r + 7 * k); c.beginPath(); c.moveTo(bx, by); c.lineTo(bx - Math.cos(z.face) * 10, by - Math.sin(z.face) * 10); c.stroke(); } }
+  shapePath(c, z.type, z.x, z.y, r, a);
+  c.fillStyle = d.col + "4d"; c.fill(); c.lineWidth = 3; c.lineJoin = "round"; c.strokeStyle = z.flash > 0 ? "#ffffff" : d.col; c.stroke();
+  shapePath(c, z.type, z.x, z.y, r * 0.48, a); c.fillStyle = isNew ? "rgba(6,24,32,0.6)" : "rgba(10,30,12,0.55)"; c.fill();
+  const ex = Math.cos(a), ey = Math.sin(a), sx = -ey, sy = ex, ef = z.type === "Runner" ? 0.55 : 0.35;
+  for (const s of [-1, 1]) { c.fillStyle = isNew ? "#d6f6ff" : "#eaff9e"; c.beginPath(); c.arc(z.x + ex * r * ef + sx * s * r * 0.24, z.y + ey * r * ef + sy * s * r * 0.24, Math.max(1.8, r * 0.09), 0, TAU); c.fill(); }
+  if (z.type === "Mender") { c.fillStyle = `rgba(220,255,230,${0.5 + 0.4 * Math.sin(t * 4 + z.id)})`; c.beginPath(); c.arc(z.x, z.y, r * 0.22, 0, TAU); c.fill(); }
+  if (z.type === "Bearer" && !z.broken) {  // the jar, held in front
+    const jx = z.x + ex * r * 1.15, jy = z.y + ey * r * 1.15, pulse = 0.6 + 0.4 * Math.sin(t * 4 + z.id);
+    c.fillStyle = `rgba(110,255,176,${0.35 + 0.3 * pulse})`; c.strokeStyle = z.jarFlash > 0 ? "#fff" : "#bdf9ff"; c.lineWidth = 2;
+    c.beginPath(); c.roundRect(jx - 7, jy - 9, 14, 18, 4); c.fill(); c.stroke(); c.fillStyle = "#bdf9ff"; c.fillRect(jx - 5, jy - 12, 10, 3);
+  }
+  if (z.type === "Binder") {  // a crown of bone
+    c.strokeStyle = "#e9e2c8"; c.lineWidth = 2.5;
+    for (let k = 0; k < 5; k++) { const q = a + (k - 2) * 0.45 + Math.PI; c.beginPath(); c.moveTo(z.x + Math.cos(q) * r * 0.9, z.y + Math.sin(q) * r * 0.9); c.lineTo(z.x + Math.cos(q) * r * 1.4, z.y + Math.sin(q) * r * 1.4); c.stroke(); }
+  }
+  if (z.type === "Caller") {  // a hood over the head end
+    c.strokeStyle = "#bdf9ff"; c.lineWidth = 2; c.beginPath(); c.arc(z.x + ex * r * 0.6, z.y + ey * r * 0.6, r * 0.55, a - 1.9, a + 1.9, true); c.stroke();
+  }
+  c.restore();
+  if (z.hp < z.max) { c.fillStyle = "rgba(0,0,0,0.6)"; c.fillRect(z.x - 16, z.y + r + 7, 32, 4); c.fillStyle = d.col; c.fillRect(z.x - 16, z.y + r + 7, 32 * Math.max(0, z.hp / z.max), 4); }
+}
+function drawPlayer(c, p) {
+  c.fillStyle = p.hurt > 0 ? "#ffb0b0" : "#f4f1e0"; c.strokeStyle = "#1a1a1a"; c.lineWidth = 2;
+  c.beginPath(); c.arc(p.x, p.y, 13, 0, TAU); c.fill(); c.stroke();
+  c.strokeStyle = "#f4f1e0"; c.lineWidth = 4; c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(p.x + Math.cos(p.aim) * 22, p.y + Math.sin(p.aim) * 22); c.stroke();
+  if (p.slow > 0) { c.strokeStyle = "rgba(94,217,255,0.7)"; c.setLineDash([3, 4]); c.lineWidth = 2; c.beginPath(); c.arc(p.x, p.y, 20, 0, TAU); c.stroke(); c.setLineDash([]); }
+}
+function floor(c, w, h) {
+  c.fillStyle = "#0b120d"; c.fillRect(0, 0, w, h);
+  c.strokeStyle = "rgba(141,255,106,0.05)"; c.lineWidth = 1;
+  for (let x = 0; x < w; x += 64) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, h); c.stroke(); }
+  for (let y = 0; y < h; y += 64) { c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke(); }
+}
+
+// ---------- effects for the candidates ----------
+function thread(c, a, b, t, al) {
+  c.strokeStyle = `rgba(94,217,255,${al * (0.45 + 0.25 * Math.sin(t * 9 + a.x))})`; c.lineWidth = 3;
+  c.beginPath(); c.moveTo(a.x, a.y); const mx = (a.x + b.x) / 2 + Math.sin(t * 3) * 8, my = (a.y + b.y) / 2 + Math.cos(t * 3) * 8; c.quadraticCurveTo(mx, my, b.x, b.y); c.stroke();
+  c.strokeStyle = `rgba(214,246,255,${al * 0.5})`; c.lineWidth = 1; c.stroke();
+}
+function ward(c, z, t) { c.strokeStyle = `rgba(94,217,255,${0.5 + 0.2 * Math.sin(t * 6 + z.id)})`; c.lineWidth = 2; c.beginPath(); c.arc(z.x, z.y, def(z.type).r + 7, 0, TAU); c.stroke(); }
+function grave(c, g, t) {
+  const k = clamp(g.t / 1.2, 0, 1), pulse = 0.5 + 0.5 * Math.sin(t * (8 + 10 * k));
+  c.fillStyle = `rgba(94,217,255,${0.1 + 0.2 * k * pulse})`; c.beginPath(); c.ellipse(g.x, g.y, 26, 16, 0, 0, TAU); c.fill();
+  c.strokeStyle = `rgba(94,217,255,${0.5 + 0.4 * pulse})`; c.lineWidth = 2;
+  for (let i = 0; i < 5; i++) { const q = i / 5 * TAU + g.seed; c.beginPath(); c.moveTo(g.x, g.y); c.lineTo(g.x + Math.cos(q) * (10 + 14 * k), g.y + Math.sin(q) * (6 + 10 * k)); c.stroke(); }
+  if (g.t > 1.2) { const h = clamp((g.t - 1.2) / 0.4, 0, 1); c.strokeStyle = "#e9e2c8"; c.lineWidth = 3; for (const s of [-1, 1]) { c.beginPath(); c.moveTo(g.x + s * 8, g.y); c.lineTo(g.x + s * 10, g.y - 14 * h); c.lineTo(g.x + s * 14, g.y - 18 * h); c.stroke(); } }
+}
+function prison(c, P, t) {
+  if (P.t < 1) { c.strokeStyle = `rgba(233,226,200,${0.4 + 0.4 * Math.sin(t * 20)})`; c.setLineDash([6, 6]); c.lineWidth = 2; c.beginPath(); c.arc(P.x, P.y, 150, P.gap + 0.3, P.gap + TAU - 0.3); c.stroke(); c.setLineDash([]); }
+  const rise = clamp((P.t - 1) / 0.2, 0, 1), fall = P.t > 3.6 ? clamp((4 - P.t) / 0.4, 0, 1) : 1;
+  if (rise <= 0) return;
+  for (let k = 0; k < 12; k++) {
+    const q = P.gap + 0.52 + k / 12 * (TAU - 1.04) * 12 / 11;
+    if (k === 11) continue;
+    const x = P.x + Math.cos(q) * 150, y = P.y + Math.sin(q) * 150, hgt = 26 * rise * fall;
+    c.fillStyle = "rgba(0,0,0,0.35)"; c.beginPath(); c.ellipse(x + 3, y + 4, 9, 5, 0, 0, TAU); c.fill();
+    c.fillStyle = "#e9e2c8"; c.strokeStyle = "#8f876c"; c.lineWidth = 1.5;
+    c.beginPath(); c.moveTo(x - 7, y); c.lineTo(x, y - hgt); c.lineTo(x + 7, y); c.closePath(); c.fill(); c.stroke();
+  }
+}
+function wailCone(c, z, t) {
+  const k = z.wail; if (k <= 0) return;
+  const g = c.createRadialGradient(z.x, z.y, 0, z.x, z.y, 260);
+  g.addColorStop(0, `rgba(94,217,255,${0.35 * Math.min(1, k * 3)})`); g.addColorStop(1, "rgba(94,217,255,0)");
+  c.fillStyle = g; c.beginPath(); c.moveTo(z.x, z.y); c.arc(z.x, z.y, 260, z.face - 0.52, z.face + 0.52); c.closePath(); c.fill();
+  c.strokeStyle = "rgba(94,217,255,0.5)"; c.lineWidth = 2;
+  for (let i = 0; i < 3; i++) { const rr = ((t * 260 + i * 87) % 260); c.beginPath(); c.arc(z.x, z.y, rr, z.face - 0.5, z.face + 0.5); c.stroke(); }
+}
+function ringFx(c, R) { const q = R.t / R.life; c.strokeStyle = `rgba(${R.col},${0.75 * (1 - q)})`; c.lineWidth = 6 * (1 - q) + 1; c.beginPath(); c.arc(R.x, R.y, R.r * Math.min(1, q * 1.4), 0, TAU); c.stroke(); }
+function cloud(c, k, t) {
+  const a = k.t < 0.3 ? k.t / 0.3 : k.t > 3 ? 4 - k.t : 1;
+  for (let i = 0; i < 7; i++) { const q = i / 7 * TAU + t * 0.4, x = k.x + Math.cos(q) * 40, y = k.y + Math.sin(q) * 30; const g = c.createRadialGradient(x, y, 0, x, y, 70); g.addColorStop(0, `rgba(168,201,58,${0.3 * a})`); g.addColorStop(1, "rgba(168,201,58,0)"); c.fillStyle = g; c.beginPath(); c.arc(x, y, 70, 0, TAU); c.fill(); }
+}
+
+// ---------- the world ----------
+function makeWorld(w, h) { return { w, h, t: 0, zs: [], p: { x: w / 2, y: h / 2, aim: 0, fire: 0, hurt: 0, slow: 0, ang: 0 }, shots: [], nextId: 1, graves: [], prisons: [], rings: [], clouds: [], kills: 0 }; }
+function addZ(W, type, x, y, extra) { const d = def(type); const z = Object.assign({ id: W.nextId++, type, x, y, face: 0, hp: d.hp, max: d.hp, flash: 0, cd: rnd(1, 3), haste: 0, scream: 0, wail: 0, dive: 0, jar: 80, jarFlash: 0, broken: false, stagger: 0, owner: 0 }, extra || {}); W.zs.push(z); return z; }
+
+function stepWorld(W, dt, cfg) {
+  W.t += dt; const p = W.p, t = W.t;
+  // the player circles the middle and shoots the nearest (the jar first, if it can see one)
+  p.ang += dt * (p.slow > 0 ? 0.2 : 0.35); const R = Math.min(W.w, W.h) * (cfg.orbit || 0.28);
+  p.x = W.w / 2 + Math.cos(p.ang) * R * 1.4; p.y = W.h / 2 + Math.sin(p.ang) * R;
+  p.hurt = Math.max(0, p.hurt - dt); p.slow = Math.max(0, p.slow - dt);
+  let tgt = null, best = 1e9;
+  for (const z of W.zs) { if (z.type === "Spirit" && z.dive > 0) continue; const d = dist(z, p) - (C[z.type] ? 140 : 0); if (d < best) { best = d; tgt = z; } }
+  if (tgt) { p.aim = Math.atan2(tgt.y - p.y, tgt.x - p.x); p.fire -= dt; if (p.fire <= 0) { p.fire = cfg.fireEvery || 0.16; W.shots.push({ x: p.x, y: p.y, vx: Math.cos(p.aim) * 900, vy: Math.sin(p.aim) * 900, life: 0.9 }); } }
+  for (const s of W.shots) { s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt;
+    for (const z of W.zs) { if (s.life <= 0) break; if (z.type === "Spirit" && z.dive > 0) continue; const d = def(z.type);
+      if (z.type === "Bearer" && !z.broken) { const jx = z.x + Math.cos(z.face) * d.r * 1.15, jy = z.y + Math.sin(z.face) * d.r * 1.15; if (Math.hypot(s.x - jx, s.y - jy) < 14) { z.jar -= 9; z.jarFlash = 0.08; s.life = 0; if (z.jar <= 0) { z.broken = true; W.rings.push({ x: jx, y: jy, r: 200, t: 0, life: 0.6, col: "94,217,255" }); for (const o of W.zs) if (o.wardBy === z.id) { o.wardBy = 0; o.stagger = 1.5; } } continue; } }
+      if (Math.hypot(s.x - z.x, s.y - z.y) < d.r) { z.hp -= z.wardBy ? 3.6 : 9; z.flash = 0.06; s.life = 0; } } }
+  W.shots = W.shots.filter(s => s.life > 0);
+  for (const z of W.zs) {
+    const d = def(z.type); z.flash -= dt; z.jarFlash -= dt; z.haste = Math.max(0, z.haste - dt); z.stagger = Math.max(0, z.stagger - dt);
+    const keep = { Spitter: 260, Mender: 300, Shrieker: 350, Caller: 320, Binder: 300 }[z.type] || 0;
+    const want = Math.atan2(p.y - z.y, p.x - z.x); z.face += Math.atan2(Math.sin(want - z.face), Math.cos(want - z.face)) * Math.min(1, dt * 6);
+    let sp = d.speed * (z.haste > 0 ? 1.3 : 1) * (z.stagger > 0 ? 0 : 1) * (z.type === "Bearer" && z.broken ? 0.9 : 1);
+    const dd = dist(z, p);
+    if (z.type === "Spirit") {
+      z.cd -= dt;
+      if (z.dive > 0) { z.dive -= dt; z.x += Math.cos(z.diveA) * 1000 * dt; z.y += Math.sin(z.diveA) * 1000 * dt; if (z.dive <= 0) z.cd = rnd(3, 4.5); continue; }
+      if (z.wail > 0) { z.wail -= dt; const da = Math.abs(Math.atan2(Math.sin(want - z.face), Math.cos(want - z.face))); if (dd < 260 && da < 0.52) p.slow = 2; if (z.wail <= 0) { z.dive = 0.3; z.diveA = z.face; } continue; }
+      if (z.cd <= 0 && dd < 280) { z.wail = 1; continue; }
+    }
+    if (keep && dd < keep) sp *= -0.6; else if (keep && dd < keep + 40) sp = 0;
+    z.x += Math.cos(want) * sp * dt; z.y += Math.sin(want) * sp * dt;
+    if (dd < d.r + 14 && !keep) { p.hurt = 0.15; z.x -= Math.cos(want) * 30; z.y -= Math.sin(want) * 30; }
+    if (z.type === "Shrieker") { z.scream = Math.max(0, z.scream - dt); z.cd -= dt; if (z.cd <= 0) { z.cd = 6; z.scream = 0.6; W.rings.push({ x: z.x, y: z.y, r: 320, t: 0, life: 0.9, col: "227,255,156" }); for (const o of W.zs) if (dist(o, z) < 320 && o !== z) o.haste = 4; } }
+    if (z.type === "Mender") { z.cd -= dt; if (z.cd <= 0) { z.cd = 3; W.rings.push({ x: z.x, y: z.y, r: 220, t: 0, life: 0.7, col: "47,213,124" }); for (const o of W.zs) if (dist(o, z) < 220) o.hp = Math.min(o.max, o.hp + o.max * 0.15); } }
+    if (z.type === "Caller") { z.cd -= dt; const mine = W.zs.filter(o => o.owner === z.id).length; if (z.cd <= 0 && mine < 4) { z.cd = 7; const base = rnd(0, TAU); for (let i = 0; i < 3; i++) { const q = base + i / 3 * TAU; W.graves.push({ x: p.x + Math.cos(q) * 120, y: p.y + Math.sin(q) * 120, t: 0, seed: rnd(0, 6), owner: z.id }); } } }
+    if (z.type === "Binder") { z.cd -= dt; if (z.cd <= 0) { z.cd = 8; W.prisons.push({ x: p.x, y: p.y, t: 0, gap: rnd(0, TAU) }); } }
+  }
+  // the Bearer's threads
+  for (const o of W.zs) if (o.wardBy && !W.zs.some(b => b.id === o.wardBy && !b.broken)) o.wardBy = 0;
+  for (const b of W.zs) if (b.type === "Bearer" && !b.broken) {
+    let n = W.zs.filter(o => o.wardBy === b.id).length;
+    for (const o of W.zs) { if (n >= 5) break; if (!o.wardBy && o !== b && !C[o.type] && dist(o, b) < 200) { o.wardBy = b.id; n++; } }
+    for (const o of W.zs) if (o.wardBy === b.id && dist(o, b) > 240) o.wardBy = 0;
+  }
+  for (const g of W.graves) { g.t += dt; if (g.t >= 1.6 && !g.done) { g.done = true; const z = addZ(W, "Shambler", g.x, g.y, { owner: g.owner }); z.hp = z.max * 0.5; } }
+  W.graves = W.graves.filter(g => g.t < 2.2);
+  for (const P of W.prisons) P.t += dt; W.prisons = W.prisons.filter(P => P.t < 4);
+  for (const k of W.rings) k.t += dt; W.rings = W.rings.filter(k => k.t < k.life);
+  for (const k of W.clouds) k.t += dt; W.clouds = W.clouds.filter(k => k.t < 4);
+  for (const z of W.zs) if (z.hp <= 0) {
+    W.kills++;
+    if (z.type === "Bloater") W.clouds.push({ x: z.x, y: z.y, t: 0 });
+    if (z.type === "Caller") for (const o of W.zs) if (o.owner === z.id) o.hp = 0;
+  }
+  const dead = W.zs.filter(z => z.hp <= 0).map(z => z.id);
+  W.zs = W.zs.filter(z => z.hp > 0); for (const o of W.zs) if (dead.includes(o.wardBy)) { o.wardBy = 0; }
+}
+function drawWorld(c, W) {
+  const t = W.t; floor(c, W.w, W.h);
+  for (const g of W.graves) grave(c, g, t);
+  for (const z of W.zs) if (z.type === "Spirit") wailCone(c, z, t);
+  for (const b of W.zs) if (b.type === "Bearer" && !b.broken) for (const o of W.zs) if (o.wardBy === b.id) thread(c, b, o, t, 1);
+  for (const o of W.zs) if (o.wardBy) ward(c, o, t);
+  for (const z of W.zs) drawZ(c, z, t);
+  for (const P of W.prisons) prison(c, P, t);
+  for (const k of W.clouds) cloud(c, k, t);
+  for (const k of W.rings) ringFx(c, k);
+  c.fillStyle = "#fff1a8"; for (const s of W.shots) { c.beginPath(); c.arc(s.x, s.y, 3, 0, TAU); c.fill(); }
+  drawPlayer(c, W.p);
+}
+
+// ---------- the arena ----------
+const S = { pick: "Caller", wave: 8 };
+// What each cycle wave brings (the table below), and the arena's mix at that wave.
+const CYCLE = [
+  { star: "Shambler", also: [], squads: "Graveyard shift" },
+  { star: "Runner", also: ["Shambler"], squads: "Graveyard shift, Grave rush" },
+  { star: "Spitter", also: ["Shambler", "Runner"], squads: "Grave rush" },
+  { star: "Crawler", also: ["Shambler", "Runner", "Spitter"], squads: "Grave rush, Gravediggers" },
+  { star: "Bloater", also: ["Shambler", "Runner", "Spitter"], squads: "Plague cart" },
+  { star: "Shrieker", also: ["Shambler", "Runner", "Crawler", "Bloater"], squads: "Wake, Plague cart", recap: true },
+  { star: "Mender", also: ["Shambler", "Spitter", "Bloater", "Shrieker"], squads: "Wake, Gravediggers" },
+  { star: "NEW", also: ["Shambler", "Runner", "Spitter", "Mender"], squads: "the new one's squad, Wake" },
+  { star: null, also: [], squads: "every squad, tighter" },
+  { star: null, also: [], squads: "the Dead march with everything", finale: true },
+];
+const ALL7 = ["Shambler", "Runner", "Spitter", "Crawler", "Bloater", "Shrieker", "Mender"];
+function mixAt(n) {
+  const L = CYCLE[n - 1], star = L.star === "NEW" ? S.pick : L.star;
+  if (!star) return ALL7.concat([S.pick]);
+  return [star].concat(L.also);
+}
+const arena = document.getElementById("arena"), ac = arena.getContext("2d"); let A;
+function restart() {
+  A = makeWorld(1600, 900); const mix = mixAt(S.wave);
+  const special = mix.filter(t => C[t] || t === "Shrieker" || t === "Mender");
+  for (let i = 0; i < 26; i++) spawn(mix);
+  for (const t of special) { const [x, y] = edge(); addZ(A, t, x, y); if (C[t] || S.wave >= 9) { const [x2, y2] = edge(); addZ(A, t, x2, y2); } }
+}
+function edge() { const s = Math.floor(rnd(0, 4)); return s === 0 ? [rnd(60, 1540), 30] : s === 1 ? [rnd(60, 1540), 870] : s === 2 ? [30, rnd(60, 840)] : [1570, rnd(60, 840)]; }
+function spawn(mix) {
+  let t = mix[Math.floor(rnd(0, mix.length))]; if (C[t] || t === "Shrieker" || t === "Mender") t = "Shambler";
+  if (Math.random() < 0.4 && mix[0] !== "Shambler" && !C[mix[0]] && mix[0] !== "Shrieker" && mix[0] !== "Mender") t = mix[0];
+  const [x, y] = edge(); const n = t === "Runner" ? 3 : 1; for (let i = 0; i < n; i++) addZ(A, t, x + rnd(-20, 20), y + rnd(-20, 20));
+}
+function feed() { const mix = mixAt(S.wave); const plain = A.zs.filter(z => !C[z.type] && z.type !== "Shrieker" && z.type !== "Mender" && !z.owner).length; if (plain < 26) spawn(mix);
+  for (const t of mix) if ((C[t] || t === "Shrieker" || t === "Mender") && !A.zs.some(z => z.type === t)) { if (!A["re" + t]) A["re" + t] = 3; A["re" + t] -= 1 / 60; if (A["re" + t] <= 0) { A["re" + t] = 0; const [x, y] = edge(); addZ(A, t, x, y); } } }
+
+function seg(id, items, key, label) {
+  const el = document.getElementById(id); el.innerHTML = "";
+  for (const v of items) { const b = document.createElement("button"); b.textContent = label(v); b.className = S[key] === v ? "on" : ""; b.setAttribute("aria-pressed", S[key] === v);
+    b.onclick = () => { S[key] = v; seg(id, items, key, label); restart(); render(); }; el.appendChild(b); }
+}
+
+// ---------- the static parts ----------
+const ICON = {};
+function iconCanvas(type) { const cv = document.createElement("canvas"); cv.width = 128; cv.height = 128; const c = cv.getContext("2d"); ICON[type] = c; return cv; }
+function drawIcons(t) { for (const k in ICON) { const c = ICON[k]; c.clearRect(0, 0, 128, 128); c.save(); c.translate(64, 64); c.scale(1.5, 1.5); c.translate(-64, -64); drawZ(c, { id: 3, type: k, x: 64, y: 64, face: -Math.PI / 2 + Math.sin(t) * 0.15, hp: 1, max: 1, flash: 0, scream: 0, dive: 0 }, t); c.restore(); } }
+function render() {
+  const ro = document.getElementById("roster"); ro.innerHTML = ""; for (const k in ICON) delete ICON[k];
+  const slots = [["Shambler", "built"], ["Runner", "built"], ["Spitter", "built"], ["Crawler", "built"], ["Mender", "built"], ["Bloater", "joins"], ["Shrieker", "joins"], [S.pick, "new"]];
+  for (const [type, st] of slots) { const d = def(type), el = document.createElement("div"); el.className = "slot " + st; el.appendChild(iconCanvas(type));
+    el.insertAdjacentHTML("beforeend", `<b style="color:${d.col}">${d.name || type}</b><span class="w">${d.warden}</span><span class="st">${st === "built" ? "built" : st === "joins" ? "joins from Infection" : "new · pick below"}</span>`); ro.appendChild(el); }
+  const sq = document.getElementById("squads");
+  const NEWSQ = { Bearer: ["Reliquary", "Phylactery Bearer, 5 Shamblers in its threads", "break the jar, then cash in"], Caller: ["Wake the dead", "Grave Caller, 2 Shamblers, 2 Spitters", "step out of the grave ring"], Binder: ["Ossuary", "Bone Binder, a Runner pack, 2 Shamblers", "find the gap; the Runners come through it"], Spirit: ["Lament", "2 Wailing Spirits, 4 Shamblers", "sidestep the cone while the horde closes"] }[S.pick];
+  const rows = [["Graveyard shift", 1, "6 Shamblers", "a slow wall (built)"], ["Grave rush", 2, "a Runner pack ×5, 2 Shamblers", "turn and shoot (built)"],
+    ["Gravediggers", 4, "2 Crawlers, 3 Shamblers", "<span class='jn'>new squad:</span> grabs in a crowd"], ["Plague cart", 5, "Bloater, 2 Spitters, 2 Shamblers", "<span class='jn'>new squad:</span> pop it before it's on you"],
+    ["Wake", 6, "Shrieker, a Runner pack, 3 Shamblers", "<span class='jn'>new squad:</span> silence the screamer"], [NEWSQ[0], 8, NEWSQ[1], `<span class='nw'>new squad:</span> ${NEWSQ[2]}`],
+    ["Dead march (finale)", 10, "6 Shamblers, 2 Menders, 3 Runners, <span class='jn'>a Shrieker</span>, <span class='nw'>2 " + (C[S.pick].name) + "s</span>", "the exam (built, grows)"]];
+  sq.innerHTML = rows.map(r => `<tr><td><b>${r[0]}</b></td><td class="mono">${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join("");
+  document.getElementById("cycle").innerHTML = CYCLE.map((L, i) => {
+    const star = L.star === "NEW" ? `<span class="nw">${C[S.pick].name}</span>` : L.star === "Bloater" || L.star === "Shrieker" ? `<span class="jn">${L.star}s</span>` : L.star ? L.star + "s" : L.finale ? "the exam" : "every squad";
+    return `<tr><td class="n">${i + 1}</td><td>${star}${L.recap ? " (and a recap)" : ""}</td><td>${L.also.join(", ") || (L.star ? "" : "everything")}</td><td>${L.squads}</td></tr>`; }).join("");
+  document.getElementById("read").innerHTML = `wave <b>${S.wave}</b> · ${CYCLE[S.wave - 1].star === "NEW" ? C[S.pick].name : CYCLE[S.wave - 1].star || (S.wave === 10 ? "the exam" : "every squad")}`;
+}
+
+// ---------- cards: each its own little world ----------
+const cards = [];
+function card(host, type, isCand) {
+  const d = def(type), el = document.createElement("div"); el.className = "card" + (isCand ? " cand" : "");
+  const cv = document.createElement("canvas"); cv.width = 640; cv.height = 480; el.appendChild(cv);
+  el.insertAdjacentHTML("beforeend", `<div class="body">
+    <div class="top"><h2 style="color:${d.col}">${d.name || type}</h2>${isCand ? `<span class="tagl">${String.fromCharCode(65 + CK.indexOf(type))}</span>` : ""}<span class="shape">${d.shape} · ${d.role}</span></div>
+    <div class="stats"><div class="stat"><div class="k">Health</div><div class="v">${d.hp}</div></div><div class="stat"><div class="k">Speed</div><div class="v">${d.speed}</div></div><div class="stat"><div class="k">Hit</div><div class="v">${d.dmg || "–"}</div></div><div class="stat"><div class="k">Joins</div><div class="v">${d.from.replace("wave ", "w")}</div></div></div>
+    <ul>${d.does.map(s => `<li>${s}</li>`).join("")}</ul>
+    <p class="prev">Previews ${d.prev}</p><p class="counter">${d.counter}</p></div>`);
+  host.appendChild(el);
+  const W = makeWorld(640, 480); const c = cv.getContext("2d");
+  const setup = () => { W.zs = []; W.graves = []; W.prisons = []; W.rings = []; W.clouds = []; W.t = 0;
+    addZ(W, type, 560, 120); const filler = 4; for (let i = 0; i < filler; i++) addZ(W, i === 3 && type === "Binder" ? "Runner" : "Shambler", 600 - i * 30, 80 + i * 90); };
+  setup(); cards.push({ W, c, setup, cfg: { orbit: 0.3, fireEvery: 0.22 } });
+}
+
+seg("pick", CK, "pick", k => String.fromCharCode(65 + CK.indexOf(k)) + " · " + C[k].name);
+seg("wave", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "wave", v => v);
+render(); restart();
+card(document.getElementById("joins"), "Bloater"); card(document.getElementById("joins"), "Shrieker");
+for (const k of CK) card(document.getElementById("cands"), k, true);
+
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (!still) { stepWorld(A, dt, {}); feed();
+    for (const k of cards) { stepWorld(k.W, dt, k.cfg); if (k.W.zs.length < 3 || k.W.t > 16 || !k.W.zs.some(z => C[z.type] || z.type === "Bloater" || z.type === "Shrieker")) { if (!k.W.wait) k.W.wait = 1.2; k.W.wait -= dt; if (k.W.wait <= 0) { k.W.wait = 0; k.setup(); } } } }
+  drawWorld(ac, A); for (const k of cards) drawWorld(k.c, k.W); drawIcons(now / 1000);
+  requestAnimationFrame(frame);
+}
+if (still) { for (let i = 0; i < 180; i++) { stepWorld(A, 1 / 60, {}); feed(); for (const k of cards) stepWorld(k.W, 1 / 60, k.cfg); } }
+requestAnimationFrame(frame);
+</script>

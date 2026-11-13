@@ -21,12 +21,12 @@ static partial class Program
         Check(w6.ContainsKey(EnemyType.Boss) && Math.Abs(w6[EnemyType.Boss] - 0.35f) < 1e-4f && w6.ContainsKey(EnemyType.HiveQueen) && Math.Abs(w6[EnemyType.HiveQueen] - 0.65f) < 1e-4f && w6.Count == 2, "wave 6: the Warden's faction fades (35%) and the Hive Queen's builds the rest (65%)");
         var fade = Enumerable.Range(6, 5).Select(n => slices(n).ContainsKey(EnemyType.Boss) ? slices(n)[EnemyType.Boss] : 0f).ToArray();
         Check(fade.SequenceEqual(new[] { 0.35f, 0.25f, 0.15f, 0.05f, 0f }), "the fading slice goes 35, 25, 15, 5, 0% over the next five waves");
-        // The Lich (31-35): current builds, fading Duelist unbuilt, pool of built earlier factions (the Warden's, the Hive Queen's, the Twin Reapers', the Singularity's, the Colossus's).
+        // The Lich (31-35): current builds, the Duelist's fades (35%), pool of built earlier factions (the Warden's, the Hive Queen's, the Twin Reapers', the Singularity's, the Colossus's).
         var w31 = slices(31);
         float pool31 = w31[EnemyType.Boss] + w31[EnemyType.HiveQueen] + w31[EnemyType.TwinA] + w31[EnemyType.Singularity] + w31[EnemyType.Colossus];
         Check(Math.Abs(w31[EnemyType.Lich] - 0.55f) < 1e-4f && Math.Abs(pool31 - 0.10f) < 1e-4f && Math.Abs(w31[EnemyType.Boss] - w31[EnemyType.TwinA]) < 1e-4f && Math.Abs(w31[EnemyType.Boss] - w31[EnemyType.HiveQueen]) < 1e-4f
-            && Math.Abs(w31[EnemyType.Boss] - w31[EnemyType.Singularity]) < 1e-4f && Math.Abs(w31[EnemyType.Boss] - w31[EnemyType.Colossus]) < 1e-4f && w31.Count == 6,
-            "wave 31: the Lich's faction 55% (65% minus the 10% pool), the Warden's, the Hive Queen's, the Reapers', the Singularity's and the Colossus's sharing the 10% older pool");
+            && Math.Abs(w31[EnemyType.Boss] - w31[EnemyType.Singularity]) < 1e-4f && Math.Abs(w31[EnemyType.Boss] - w31[EnemyType.Colossus]) < 1e-4f && Math.Abs(w31[EnemyType.Duelist] - 0.35f) < 1e-4f && w31.Count == 7,
+            "wave 31: the Lich's faction 55% (65% minus the 10% pool), the Duelist's fading at 35%; the Warden's, the Hive Queen's, the Reapers', the Singularity's and the Colossus's sharing the 10% older pool");
         var w35 = slices(35);
         Check(Math.Abs(w35[EnemyType.Lich] - 0.90f) < 1e-4f, "wave 35: the Lich's faction is 90%");
         var w36 = slices(36);
@@ -51,7 +51,8 @@ static partial class Program
         };
         var warden = new HashSet<EnemyType>(Approaches.For(EnemyType.Boss).Members.Select(m => m.Type));
         var zombie = new HashSet<EnemyType>(Approaches.For(EnemyType.Lich).Members.Select(m => m.Type));
-        var older = new HashSet<EnemyType>(warden.Concat(Approaches.For(EnemyType.HiveQueen).Members.Select(m => m.Type)).Concat(Approaches.For(EnemyType.TwinA).Members.Select(m => m.Type)));  // the factions before the Lich's
+        var older = new HashSet<EnemyType>(warden.Concat(Approaches.For(EnemyType.HiveQueen).Members.Select(m => m.Type)).Concat(Approaches.For(EnemyType.TwinA).Members.Select(m => m.Type))
+            .Concat(Approaches.For(EnemyType.Singularity).Members.Select(m => m.Type)).Concat(Approaches.For(EnemyType.Colossus).Members.Select(m => m.Type)));  // the pool before the Lich's (the Duelist's is fading, not pool)
         var a1 = wave(1, true);
         Check(a1.Count > 0 && a1.All(warden.Contains), "campaign wave 1 is all Warden's faction (" + a1.Count + " enemies)");
         Check(wave(1, true).SequenceEqual(a1), "the same seed builds the same campaign wave");
@@ -63,7 +64,11 @@ static partial class Program
         var a33 = wave(33, true);
         int z33 = a33.Count(zombie.Contains), p33 = a33.Count(older.Contains);
         Console.WriteLine("  wave 33 campaign: {0} enemies, {1} zombies, {2} from the older factions' pool", a33.Count, z33, p33);
-        Check(z33 >= a33.Count * 0.55f && p33 > 0 && p33 <= a33.Count * 0.25f, "wave 33: mostly the Lich's zombies, with a few of the older factions' from the pool");
+        // (with the Duelist's faction fading in waves 31-33 too, the 10% pool is thin: count it over the Lich's four approach waves)
+        int pool = 0, all = 0;
+        foreach (int n in new[] { 31, 32, 33, 34 }) { var an = wave(n, true); pool += an.Count(older.Contains); all += an.Count; }
+        Console.WriteLine("  waves 31-34 campaign: {0} of {1} from the older factions' pool", pool, all);
+        Check(z33 >= a33.Count * 0.55f && pool > 0 && p33 <= a33.Count * 0.25f, "wave 33: mostly the Lich's zombies; a few of the older factions' from the pool over waves 31-34");
         var a41 = wave(41, true);
         Check(a41.Count(zombie.Contains) <= a41.Count * 0.2f && a41.Count(older.Contains) <= a41.Count * 0.25f, "wave 41: the Lich's has faded to the pool (a sixth of its 10%, so maybe none)");
         // --- Comeback squads (step 2) -------------------------------------------------------------------------------------
@@ -83,7 +88,7 @@ static partial class Program
         Check(csq.Members.GroupBy(t => t).All(gr => cwave.Count(t => t == gr.Key) >= gr.Count()), "wave " + cw + " has the " + csq.Name + " squad's members");
         var g0 = new Session().Game;
         g0.Diff.Set(DiffKnob.Campaign, 0f);
-        Check(g0.ApproachShare(6) > 0f && g0.ApproachShare(1) > 0f && g0.ApproachShare(11) > 0f && g0.ApproachShare(16) > 0f && g0.ApproachShare(21) > 0f && g0.ApproachShare(26) == 0f, "off: the old approach share applies (the Hive Queen's on waves 6-9, the Reapers' on 11-14, the Singularity's on 16-19, the Colossus's on 21-24, none before the Duelist)");
+        Check(g0.ApproachShare(6) > 0f && g0.ApproachShare(1) > 0f && g0.ApproachShare(11) > 0f && g0.ApproachShare(16) > 0f && g0.ApproachShare(21) > 0f && g0.ApproachShare(26) > 0f && g0.ApproachShare(36) == 0f, "off: the old approach share applies (the Hive Queen's on waves 6-9, the Reapers' on 11-14, the Singularity's on 16-19, the Colossus's on 21-24, the Duelist's on 26-29, none before the Storm Herald)");
         var gOn = new Session().Game;
         Check(gOn.CampaignOn && Math.Abs(gOn.ApproachShare(1) - 1f) < 1e-4f && Math.Abs(gOn.ApproachShare(6) - 0.65f) < 1e-4f && Math.Abs(gOn.ApproachShare(31) - 0.55f) < 1e-4f, "on (the default): the wave panel's approach share is the next boss's slice");
     }

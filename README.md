@@ -608,10 +608,18 @@ its world on the way to it (design: [`Docs/Approaches.md`](Docs/Approaches.md)).
 **Fully themed** makes all four waves the boss's own enemies; 0% turns it off. The rest of each wave is the usual mix,
 paths still apply (an enemy-mix path builds from what's left; Elite Gauntlet makes the faction elite too), and the
 boss fight itself is the same. A line at the top of the screen says "The Warden  in 2 waves", and the banner before
-the first and last waves says you're on the road to the boss, then that it's near. So far the **Warden** has a faction (waves 1-4), and the last wave before him always brings the **Riot Line**: four Riot Shields marching at you as a wall, five Guards close behind it, who break out and rush you once the wall gets within about 190 px or half its shields are down. The **Hive Queen** has one too (waves 6-9): eight bees, one for each of the Warden's roles (below), with the **Royal guard** (four Comb Shields, five Soldiers) on the last wave. The **Singularity** has one too (waves 16-19): the **Infall**, eight enemies with four squads (below), and on the last wave the **Accretion ring**: eight Debris and four Orbiters in a ring round you, 320 px out, with **two gaps**. It turns slowly and closes in to 110 px over about 10 s while the Orbiters sling their orbs inward: walk out through a gap. A faint violet **band** runs along the ring, with the two gaps left dark, edged in green and marked with chevrons pointing out. Bots walk out through a gap, keep clear of a White Dwarf's flash, Small Wells and Implosions. It breaks up after 12 s or once half of it is down. The **Lich** has one too (waves 31-34): the same zombies as Zombie Infection, Shamblers first, then
-Runners (in packs of three) and Spitters from wave 32, Crawlers from 33 and Menders from 34, with two squads (Graveyard
-shift, Grave rush) and a last-wave **Dead march** (six Shamblers, two Menders, three Runners). They don't get back up
-outside the modifier. His fight itself is unchanged. The other bosses' factions come next.
+the first and last waves says you're on the road to the boss, then that it's near. So far the **Warden** has a faction (waves 1-4), and the last wave before him always brings the **Riot Line**: four Riot Shields marching at you as a wall, five Guards close behind it, who break out and rush you once the wall gets within about 190 px or half its shields are down. The **Hive Queen** has one too (waves 6-9): eight bees, one for each of the Warden's roles (below), with the **Royal guard** (four Comb Shields, five Soldiers) on the last wave. The **Singularity** has one too (waves 16-19): the **Infall**, eight enemies with four squads (below), and on the last wave the **Accretion ring**: eight Debris and four Orbiters in a ring round you, 320 px out, with **two gaps**. It turns slowly and closes in to 110 px over about 10 s while the Orbiters sling their orbs inward: walk out through a gap. A faint violet **band** runs along the ring, with the two gaps left dark, edged in green and marked with chevrons pointing out. Bots walk out through a gap, keep clear of a White Dwarf's flash, Small Wells and Implosions. It breaks up after 12 s or once half of it is down. The **Lich** has one too (waves 31-34): eight, all seven of Zombie Infection's zombies and his own **Grave Caller**.
+Shamblers first, then Runners (in packs of three) and Spitters from wave 32, Crawlers, Bloaters and Shriekers from 33,
+Menders and Grave Callers from 34 (at most two Shriekers and two Grave Callers a wave), with six squads (Graveyard shift,
+Grave rush, Gravediggers: two Crawlers in a crowd, Plague cart: a Bloater with Spitters, Wake: a Shrieker behind a Runner
+pack, Wake the dead: a Grave Caller with Spitters) and a last-wave **Dead march** (six Shamblers, two Menders, three
+Runners, a Shrieker and two Grave Callers). The **Grave Caller** (60 health, a hooded cross in the Lich's soul cyan)
+keeps about 320 px back; every 7 s it raises its hands and **three graves** crack open in a ring 120 px round you, and
+1.6 s later a **Shambler** claws out of each, at half health, worth no XP, its eyes cyan and a faint thread back to its
+Caller. At most four of its Shamblers are up at once; **kill the Caller and they crumble** (graves still opening close).
+Step out of the ring, then dig through to it. In the Campaign the Lich's ten waves teach one zombie each: Shamblers,
+Runners, Spitters, Crawlers, Bloaters, a recap with Shriekers, Menders, Grave Callers, every squad, then the exam with
+the Dead march. Zombies don't get back up outside the modifier, only out of a Caller's graves. His fight itself is unchanged. The other bosses' factions come next.
 
 The Warden's faction pays XP like regular enemies of their health (Rioter 7, Guard 15, Riot Shield 10, Gas Grenadier 9, Taser Guard 11, Security Guard 9),
 so its tougher approach waves don't leave you levels behind at his wave (about level 4 at Blend). The Rioters and Guards of
@@ -692,17 +700,44 @@ Priests, every squad, then the exam (the Avalanche and a big Landslip).
 | 3 | **Geomancer** | Taser Guard | A hooded cultist with a crystal staff: keeps its distance, plants the staff and charges for 0.7 s (the shooting line, the crystal glowing), then sends a **crack racing** at where you stood (600 px/s, up to 460 px). It glows for 0.5 s, then **erupts** along its length (12): step off the line. Every 3.2 s |
 | 3 | **Cinder Priest** | Taser Guard | A dark-robed priest cupping a molten core: charges for 0.7 s along a shooting line, then fires one **magma bolt** straight at you (240 px/s, 9, no lead). Wherever it stops, a hit, cover or the end of its 300 px, it leaves a **lava pool** for 2.5 s (20 a second). A **perfect parry** sends it back and leaves no lava. Every 3.2 s |
 
+The **Duelist's faction**, the Masked Court, leads up to its fight (waves 26-29): masked fencers, each showing you one of
+the Duelist's moves (mockup: `Docs/Mockups/duelist-faction.html`). It replaces the basic faction the Duelist had before.
+Squads: **Salon** (a Blade Dancer and six Fencers), from wave 27 **Seconds** (three Seconds and two Fencers) and from
+wave 28 **Guard line** (two Parriers and four Fencers) and **Masked ball** (a Harlequin, a Mummer and three Fencers).
+XP: Fencer 7, Blade Dancer 14, Parrier 10, Second 9, Marshal 9, Gallant 12, Harlequin 22, Mummer 10. The last wave
+before it always brings the **Ring of Honour**: ten Fencers and two Gallants in a ring 300 px round you, facing in,
+turning slowly and closing to 150 px; every 1.4 s an opposite pair of Fencers shows its lines and lunges in, and the
+Gallants salute before theirs (parry them). It breaks up after 14 s or once half of it is down. In the Long Campaign
+its ten waves (51-60) teach one enemy each, in the Warden's order: Fencers, Blade Dancers, Harlequins, Seconds, a recap
+with Mummers, Parriers, Marshals, Gallants, every squad, then the exam (the Ring of Honour and a big Salon).
+
+| From | The Duelist's faction | Plays like | What it does |
+|---|---|---|---|
+| 1 | **Fencer** | Shiv | A masked foil-fencer (32 health, contact 10) that runs in crowds. It closes to within 160 px, shows a **short red line for 0.4 s**, then **hops about 100 px** down it (16 on the hop) and recovers for 0.55 s: step off the line |
+| 1 | **Blade Dancer** | Guard | A masked fencer in a crimson cape (70 health, contact 14). Within 300 px it stands still and shows the Duelist's **warning line for 0.6 s**, then **lunges up to 230 px** and leaves **three blades** hanging on its path. 0.6 s later each fires **one shot out of each side**, across the line: never stand beside it. Every 3.5 s |
+| 2 | **Parrier** | Riot Shield | A masked fencer on guard behind a gold parrying arc and a main-gauche. A shot on its **front is parried straight back** at whoever fired it (at most one every 0.12 s) and wears its guard; up close it **bashes** you back like a Riot Shield. It turns slowly: **get behind it**. Broken, it staggers and takes 50% more |
+| 2 | **Second** | Security Guard | The duelist's second (45 health): keeps its distance and locks on like a Security Guard, its hand going back and five faint lanes showing, then throws an **aimed fan of five daggers** (230 px/s, 10 each, 0.16 rad apart). Every 2.2 s; it never reloads. Slip between them |
+| 2 | **Marshal** | Gas Grenadier | The duel's referee (55 health): keeps its distance and raises its baton, then draws a **gold circle 140 px round where you stand**. It draws itself round over 0.6 s (step out now); then for 4 s you **can't leave it**, and leaning on the edge hurts (8, at most every 0.6 s). Anyone outside can walk in. Every 7 s |
+| 3 | **Gallant** | Taser Guard | A champion in a steel cape (80 health, contact 20) that never shoots. Within 340 px it **salutes** for 0.8 s (sword straight up, a gold glint, a shrinking ring), then **lunges through you** (up to 400 px). A **perfect parry** as it arrives knocks it **off balance for 2.5 s**, taking **50% more** damage; dodge it and it **rakes** the spot with five shots. Every 4.5 s |
+| 2 | **Harlequin** | Thug | A heavy two-sworded jester in crimson diamonds (240 health, contact 20) that walks at you. Within 260 px, the **Crossing**: it shows a line through you for 0.7 s and dashes it, 170 px past you, then **vaults to the other arm of the X**, shows the crossing line for 0.45 s and dashes that. Both leave blades every 70 px that fire **out sideways** after 0.8 s: stand in a gap of the X. Every 6 s |
+| 3 | **Mummer** | Shiv | A fast masked player in a violet cape (40 health) that circles in and lunges like a Shiv. Within 260 px it **blinks and becomes three**: they circle you 150 px out for 5 s, each firing every 0.9 s, but only the **real one's shots are solid**; the copies' are **hollow rings** that pass through you. The copies look the same, have 1 health and give nothing; kill the real one and they vanish. Every 9 s |
+
 The **Devourer's faction**, The Larder, leads up to its fight: its brood (mouths with no eyes, the Devourer in miniature)
 and the hooded butchers who keep it fed (design: `Docs/Approaches.md`, "The Larder"; mockup:
-`Docs/Mockups/devourer-faction.html`). Step 1 of 4 is built: three of its eight, each teaching a turn of the fight.
-Squads: **Feeding Frenzy** (a Butcher and six Gnawlings) and, from wave 3 of the approach, **Gullet** (a Gulper and three
-Gnawlings). They pay XP like their counterparts (Gnawling 7, Butcher 15, Gulper 25).
+`Docs/Mockups/devourer-faction.html`). Steps 1-2 of 4 are built: five of its eight, each teaching a turn of the fight.
+Squads: **Feeding Frenzy** (a Butcher and six Gnawlings) and, from wave 3 of the approach, **Larder Wall** (two Carcass
+Bearers with four Gnawlings) and **Gullet** (a Gulper and three Gnawlings). They pay XP like their counterparts
+(Gnawling 7, Butcher 15, Gulper 25, Carcass Bearer 10, Bile Spitter 9). **Morsels** (the Devourer's, 60 health) also
+fall from broken Carcass Bearers: shoot one or walk over it, or a hungry Gnawling within 320 px runs for it, eats it and
+grows (50% more health, drawn bigger), as the Devourer heals from them in its Hungry turn.
 
 | From | The Devourer's faction | Plays like | What it does |
 |---|---|---|---|
-| 1 | **Gnawling** | Rioter | A lump of pink flesh that is mostly mouth: weaves at you in pairs, chomping (contact 10) |
+| 1 | **Gnawling** | Rioter | A lump of pink flesh that is mostly mouth: weaves at you in pairs, chomping (contact 10); eats morsels |
 | 1 | **Butcher** | Guard | A hooded butcher with a bone mask and a cleaver: straight at you (contact 14). Within 70 px it **stops and raises its cleaver for 0.4 s** while a **red half-circle** fills in front, then **chops** it (110 px, 14), the shape of the Devourer's Snap bite, and rests 1.6 s. Step back or round it |
 | 2 | **Gulper** | Thug | A swollen gut (180 health, contact 20) that walks at you like a Brute. Within 220 px it **stops and its cheeks swell for 0.6 s** while its **cone** shows, then it **breathes in** for 1 s: the 70° cone, 200 px long, pulls you toward its mouth at 120 px/s. Reach the mouth and it **bites** (20) and the breath ends. Step out of the cone sideways, as from the Devourer's Inhale. Every 4 s |
+| 2 | **Carcass Bearer** | Riot Shield | A hooded butcher behind a side of meat that stops shots and bashes you back (10, 160 px). The meat tears as it wears; broken, it drops in front as a **morsel** and the bearer staggers and takes 50% more |
+| 2 | **Bile Spitter** | Gas Grenadier | A lump of brood with a green bile sac: keeps its distance and, every 3.6 s, its sac swells while a **green ring** fills **where you're heading**, then it lobs a glob. It lands 1 s later as a 70 px **pool of acid** for 4 s (10 a second), the Devourer's Bile in small. Change direction out of the ring |
 
 **Bubbles (Shielded elites and the Warder's wards):** a bubble is twelve cells round the rim, each holding a twelfth of the shield. A hit wears down the cell facing whoever shot it (flashing, then breaking into shards) and spills over to its neighbours once that cell is gone, so the side you shoot from is the side that opens. Burning and bleeding keep chewing the weakest cell. A honeycomb inside only shows where its cell is still up, and a thin shield bar sits above the health bar. Blue is a Shielded elite, violet is the Warder's.
 
@@ -1209,7 +1244,7 @@ you've beaten it anywhere, a **???** until then (on your first Quick Play the Wa
   wave number). The HUD counts the waves n / 10. **Your first Quick Play always ends on the Warden**; after that the boss is
   random: every boss comes up once before any repeats, and never the same one twice in a row.
 - **The waves before a boss are its own enemies** (its faction, as in a Boss Hunt: tougher members joining as they go, its set
-  piece on the fifth and tenth wave). Bosses without a faction yet (the Duelist, Storm Herald and Eclipse) get the
+  piece on the fifth and tenth wave). Bosses without a faction yet (the Storm Herald and Eclipse) get the
   **basic faction** the same way (see Enemies).
 - **Bosses play exactly as anywhere else.** Only their health changes: about a **two-minute fight** for a typical build at
   whatever wave they come (a late boss after wave 10 has much less health than at its own Campaign wave; an early one in
