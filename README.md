@@ -1305,6 +1305,12 @@ status and the countdown bar. Y walks the steps (Results, Build, Ready) before i
 timer while anyone is still waiting. **Auto-ready** is remembered between runs: you count as ready as soon as your upgrade
 picks are done, and when everyone has it on the countdown is the usual 4 seconds, so solo play with it on moves at the
 old pace (it is off by default). A small box beside each player shows who is ready (a tick, an A for auto-ready, dashed while they aren't). **Minimize** (top right of the box) folds it into a slim strip at the top so you can walk to a shop or a chest; the strip keeps the next wave, the status, Ready and **Open** (Y there readies you at once). It opens again at the next break.
+**The boss gate.** In the break before a boss (Quick Play, the Campaign, a Boss Hunt) there's no Ready: a **boss gate**, a
+red summoning circle with a skull in the middle, opens in the middle of the hub, and the fight starts once **every
+player still standing is in it** for 1.2 s (downed players don't count). Take your time to shop, build and pick first: there's no
+countdown, and Auto-ready doesn't start it. A socket under the gate lights for each player inside, a thread runs to them,
+and its inner ring burns round as the team's fill rises. The box's last tab reads **Gate**: **Go to the gate** (Y) folds the box
+away, and the status shows how many are in. Bots walk in on their own.
 The first countdown of a run, the Practice Range and the dev tools' wave jump don't use ready-up. Mockup:
 `Docs/Mockups/wave-cleared-ready.html` (option 1).
 
