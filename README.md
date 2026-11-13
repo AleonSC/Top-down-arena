@@ -607,7 +607,7 @@ its world on the way to it (design: [`Docs/Approaches.md`](Docs/Approaches.md)).
 (Difficulty tab, below): **Blend** (the default) builds up over the four waves, 34%, 51%, 68% then 85% of each wave;
 **Fully themed** makes all four waves the boss's own enemies; 0% turns it off. The rest of each wave is the usual mix,
 paths still apply (an enemy-mix path builds from what's left; Elite Gauntlet makes the faction elite too), and the
-boss fight itself is the same. A chip above the wave panel says "Approach · The Warden · 3/4", and the banner before
+boss fight itself is the same. A line at the top of the screen says "The Warden  in 2 waves", and the banner before
 the first and last waves says you're on the road to the boss, then that it's near. So far the **Warden** has a faction (waves 1-4), and the last wave before him always brings the **Riot Line**: four Riot Shields marching at you as a wall, five Guards close behind it, who break out and rush you once the wall gets within about 190 px or half its shields are down. The **Hive Queen** has one too (waves 6-9): eight bees, one for each of the Warden's roles (below), with the **Royal guard** (four Comb Shields, five Soldiers) on the last wave. The **Singularity** has one too (waves 16-19): the **Infall**, eight enemies with four squads (below), and on the last wave the **Accretion ring**: eight Debris and four Orbiters in a ring round you, 320 px out, with **two gaps**. It turns slowly and closes in to 110 px over about 10 s while the Orbiters sling their orbs inward: walk out through a gap. A faint violet **band** runs along the ring, with the two gaps left dark, edged in green and marked with chevrons pointing out. Bots walk out through a gap, keep clear of a White Dwarf's flash, Small Wells and Implosions. It breaks up after 12 s or once half of it is down. The **Lich** has one too (waves 31-34): the same zombies as Zombie Infection, Shamblers first, then
 Runners (in packs of three) and Spitters from wave 32, Crawlers from 33 and Menders from 34, with two squads (Graveyard
 shift, Grave rush) and a last-wave **Dead march** (six Shamblers, two Menders, three Runners). They don't get back up
@@ -966,7 +966,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   - **Wall Bounce**: your shots bounce off walls and pillars once instead of stopping, keeping 70% of their damage (homing turns off after the bounce).
     Enemy shots, grenades and other lobbed shots, stuck shuriken and Bone Spears don't bounce.
 - **Rule nodes** (in progress, Docs/RuleRooms.md): every boss cycle also places a **rule node** (an orange square, 8 x 8 tiles, off to the left or right of the
-  map). Only a room that **encloses all of it** (at least 9 x 9 tiles) claims it, so it forces a big room. Each carries one rule: Dark, Frozen, Blood Moon,
+  map). Only a room that **encloses all of it** (at least 9 x 9 tiles; a drawn outline of any shape counts as one room) claims it, so it forces a big room. Each carries one rule: Dark, Frozen, Blood Moon,
   Burning, Swarm or Elite. The room you build round it takes that path's ground and rule **in that room only** (Dark: you only see about 350 px round you; Frozen: ice;
   Blood Moon: no regeneration or orbs, kills heal; Burning: fire patches; Swarm: a doubled melee crowd; Elite: a doubled all-elite crowd). Clear a wave there and it pays:
   a **chest** (Dark, Burning, Swarm, Elite), a **relic** to walk up to (Blood Moon) or **gold and vectors** at once (Frozen).
