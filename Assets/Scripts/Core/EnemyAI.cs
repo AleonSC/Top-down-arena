@@ -106,12 +106,32 @@ namespace Arena
             return pool;
         }
 
+        /// A wave is built by stages, each filling the plan and the queues (WavePlan.cs). The order matters: the rolls are drawn in it.
         void BuildWave(int n)
         {
             spawnQueue.Clear();
             squadQueue.Clear();
             bossRewarded = false;
-            if (Bosses.Slotted ? BossSlot : IsBossWave(n))
+            plan = new WavePlan(n);
+            if (StageBoss())
+                return;  // a boss wave: the boss and its escort, nothing else
+            StageSize();
+            if (StageZombies())
+                return;  // Zombie Infection: a horde instead (Zombies.cs)
+            StageApproach();
+            if (!StagePath() && !StageRecipe())
+                StageLegacy();
+            MixApproach();  // the boss faction's enemies go in among the rest
+        }
+
+        WavePlan plan;  // the wave being built (BuildWave)
+
+        /// Stage 1: a boss wave's own queue (true: the wave is done).
+        bool StageBoss()
+        {
+            int n = plan.N;
+            if (!(Bosses.Slotted ? BossSlot : IsBossWave(n)))
+                return false;
             {
                 switch (BossAt(n))  // (a hunt's boss on its last wave; Hunts.cs)
                 {
@@ -146,9 +166,16 @@ namespace Arena
                         spawnQueue.Add(BossAt(n));
                         break;
                 }
-                return;
+                return true;
             }
-            var pool = WavePool(n);  // the types that can join the mix on this wave
+            return false;
+        }
+
+        /// Stage 2: how many picks the wave has and what it picks from.
+        void StageSize()
+        {
+            int n = plan.N;
+            plan.Pool = WavePool(n);  // the types that can join the mix on this wave
             int count = WaveNumbers.Picks(n);  // (the first waves get a little extra so the opening isn't too quiet)
             if (LayoutOn && Layout != LayoutId.Open)  // (the Rooms world alone doesn't count: Rooms.cs)
                 count = (int)Math.Round(count * LayoutEnemyMult);  // a floor plan's walls and gates make the crowd easier to read: more of them (Balance.cs)
@@ -158,11 +185,19 @@ namespace Arena
             count = Math.Max(1, (int)Math.Round(count * D(DiffKnob.EnemyCount)));  // the difficulty's enemy count
             if (Rules.CountMult != 1f)
                 count = Math.Max(1, (int)Math.Round(count * Rules.CountMult));  // the mode's own count (a Boss Hunt's: WaveNumbers.cs)
-            if (BuildZombieWave(n, count))
-                return;  // Zombie Infection: a horde instead (Zombies.cs)
+            plan.Count = count;
+        }
+
+        /// Stage 3: Zombie Infection builds the whole wave itself (true: done).
+        bool StageZombies() => BuildZombieWave(plan.N, plan.Count);
+
+        /// Stage 4: the boss's faction takes its share first (Approaches.cs).
+        void StageApproach()
+        {
+            int n = plan.N;
             // The first waves are melee rushers; shooters take over a little more each wave until
             // the melee are gone by wave 13.
-            var melee = new List<EnemyType> { EnemyType.Swarmer };  // the first waves: packs of plain Swarmers
+            var melee = plan.Melee = new List<EnemyType> { EnemyType.Swarmer };  // the first waves: packs of plain Swarmers
             if (n >= 2) melee.Add(EnemyType.Spiker);
             if (n >= 3) melee.Add(EnemyType.Brute);
             if (n >= 5) melee.Add(EnemyType.Lunger);
@@ -171,30 +206,44 @@ namespace Arena
             if (n >= ShieldSwordsmanFrom) melee.Add(EnemyType.ShieldSwordsman);
             // A recipe wave shows at most KindCap(n) distinct types, the boss factions' enemies included (WaveRecipe.cs): the
             // factions may bring in all but the headliners' places, then the recipe fills up to the cap.
-            kinds.Clear();
-            kindCap = n >= RecipeFrom ? KindCap(n) : 99;
-            approachKindCap = n >= RecipeFrom ? kindCap - HeadlinerCount(n) : 99;
-            BuildApproach(n, ref count);  // the boss's faction takes its share first (Approaches.cs)
-            if (BuildPathWave(n, ref count, pool, melee))  // a path's own mix (Paths.cs)
-            {
-                MixApproach();
-                return;
-            }
-            if (n >= RecipeFrom)
-            {
-                // The late recipe (WaveRecipe.cs): headliners, half the wave as squads, then singles to each job's share.
-                PickHeadliners(n);
-                BuildRecipeSingles(n, count, BuildSquads(n, count));
-                MixApproach();
-                return;
-            }
-            count -= BuildSquads(n, count);  // about 70% of it comes as squads (Variety.cs); the rest as before
+            plan.KindCap = n >= RecipeFrom ? KindCap(n) : 99;
+            plan.ApproachKindCap = n >= RecipeFrom ? plan.KindCap - HeadlinerCount(n) : 99;
+            int count = plan.Count;
+            BuildApproach(n, ref count);
+            plan.Count = count;
+        }
+
+        /// Stage 5a: a path's own mix (Paths.cs; true: done).
+        bool StagePath()
+        {
+            int count = plan.Count;
+            bool done = BuildPathWave(plan.N, ref count, plan.Pool, plan.Melee);
+            plan.Count = count;
+            return done;
+        }
+
+        /// Stage 5b: the late recipe from wave 13 (WaveRecipe.cs): headliners, half the wave as squads, then singles to each job's share.
+        bool StageRecipe()
+        {
+            int n = plan.N;
+            if (n < RecipeFrom)
+                return false;
+            PickHeadliners(n);
+            BuildRecipeSingles(n, plan.Count, BuildSquads(n, plan.Count));
+            return true;
+        }
+
+        /// Stage 5c: waves 1-12: about 70% squads (Variety.cs), the rest singles, melee rushers first and shooters taking over.
+        void StageLegacy()
+        {
+            int n = plan.N, count = plan.Count;
+            count -= BuildSquads(n, count);
             float meleeShare = MeleeShare(n);
             for (int i = 0; i < count; i++)
             {
                 if (rng.NextDouble() < meleeShare)
                 {
-                    var type = melee[rng.Next(melee.Count)];
+                    var type = plan.Melee[rng.Next(plan.Melee.Count)];
                     spawnQueue.Add(type);
                     if (type == EnemyType.Spiker)
                         spawnQueue.Add(type);  // spikers come in pairs
@@ -206,9 +255,8 @@ namespace Arena
                     }
                 }
                 else
-                    spawnQueue.Add(pool[rng.Next(pool.Count)]);
+                    spawnQueue.Add(plan.Pool[rng.Next(plan.Pool.Count)]);
             }
-            MixApproach();
         }
 
         void SpawnEnemy(EnemyType type)

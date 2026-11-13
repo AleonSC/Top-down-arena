@@ -1,6 +1,6 @@
 # Wave & spawn refactor
 
-**Status: steps 0-1 done** (suite `wavedump`; `WaveNumbers.cs`); steps 2-5 planned. Owner picked "refactor first".
+**Status: steps 0-2 done** (suite `wavedump`; `WaveNumbers.cs`, `WavePlan.cs`); steps 3-5 planned. Owner picked "refactor first".
 
 ## Why
 
@@ -40,7 +40,7 @@ One wave is built by six overlapping systems and spawned by four drivers, so eac
 
 0. **Safety net (done)**: a `wavedump` sim suite that prints every wave's queue (types, squads, counts) for waves 1-60 on fixed seeds across modes (normal, path, zombie, Quick Play, Boss Hunt, Campaign legs with boss slots, Expanding arena with breaches, Rooms arena, practice). Every step also keeps the `bossschedule`, `bossslot`, `longrun` and `portals` suites passing. Saved as a golden file. Every later step must keep it identical, unless the owner asks for a change.
 1. **(done)** Pull the count math and magic numbers into one `WaveNumbers` (still `Balance.cs`-indexed); remove the double Practice reset (`WavePool` stays: the chips use it). No behavior change.
-2. Introduce `WavePlan`; make each builder a stage that fills it; `BuildWave` becomes the stage list.
+2. **(done)** Introduce `WavePlan`; make each builder a stage that fills it; `BuildWave` becomes the stage list.
 3. `Spawner` with pacing strategies; delete the three copies of the dispatch; one `Remaining`.
 4. Split `SpawnEnemyAt`; boss positions and composition into data.
 5. Then the owner's new wave behavior goes on top as one stage or one pacing.
