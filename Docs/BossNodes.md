@@ -1,7 +1,9 @@
 # Boss nodes: the Campaign builds toward its bosses (design)
 
-Status: **design only** (Nov 12, 2026). Nothing built. The owner's decisions are in bold; everything else is a first
-guess to confirm before step 1. Builds on [`Nodes.md`](Nodes.md) (map nodes), [`RunLength.md`](RunLength.md) (the
+Status: **shelved** (Nov 13, 2026, owner: keep the Campaign as it is, a boss every 10 waves). Nothing built; kept for
+the record. Review notes: all bosses at once breaks the boss order and balance and makes the map huge, and a boss can't
+roam a built map (bosses are made for one arena). A later try could be one boss node at a time, a reward for an early
+fight, and a portal to the boss at wave 10. The owner's decisions are in bold; everything else is a first guess. Builds on [`Nodes.md`](Nodes.md) (map nodes), [`RunLength.md`](RunLength.md) (the
 100-wave Campaign) and [`Campaign.md`](Campaign.md) (the themed build-up).
 
 ## The idea (owner)
