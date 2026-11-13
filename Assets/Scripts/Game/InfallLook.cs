@@ -18,6 +18,42 @@ namespace Arena
         static readonly Rgba InfViolet = new Rgba(0.85f, 0.35f, 1f), InfPink = new Rgba(1f, 0.47f, 0.86f), InfCyan = new Rgba(0.5f, 0.84f, 1f),
             InfRed = new Rgba(1f, 0.35f, 0.42f), InfVoid = new Rgba(0.02f, 0.01f, 0.04f);
 
+        /// On the floor, under the enemies: each closing Accretion ring's band, a violet track through its slots with the two
+        /// open slots left dark and marked in green, so the way out reads at a glance.
+        void DrawAccretionBands(float t)
+        {
+            var bands = game.AccretionBands;
+            for (int i = 0; i < bands.Count; i++)
+            {
+                var b = bands[i];
+                float slot = MathX.Tau / Game.AccretionSlots, close = 1f - (b.Radius - Game.AccretionEnd) / (Game.AccretionStart - Game.AccretionEnd);
+                float pulse = 0.85f + 0.15f * Mathf.Sin(t * 5f);
+                for (int k = 0; k < Game.AccretionSlots; k++)
+                {
+                    float a0 = b.Spin + slot * (k - 0.5f);
+                    if (System.Array.IndexOf(Game.AccretionGaps, k) >= 0)
+                    {
+                        // A gap: dark, with green edges and a chevron pointing out.
+                        V2 mid = b.Center + V2.FromAngle(b.Spin + slot * k) * b.Radius, u = V2.FromAngle(b.Spin + slot * k), s = u.Orthogonal();
+                        Rgba g = new Rgba(0.49f, 1f, 0.6f, 0.9f * pulse);
+                        Arc(b.Center, b.Radius, 26f, g.WithAlpha(0.07f * pulse), 6, a0, slot);
+                        Line(b.Center + V2.FromAngle(a0) * (b.Radius - 16f), b.Center + V2.FromAngle(a0) * (b.Radius + 16f), 3f, g);
+                        Line(b.Center + V2.FromAngle(a0 + slot) * (b.Radius - 16f), b.Center + V2.FromAngle(a0 + slot) * (b.Radius + 16f), 3f, g);
+                        for (int c = 0; c < 2; c++)  // two chevrons pointing out through it
+                        {
+                            V2 tip = mid + u * (4f + 12f * c + 4f * Mathf.Sin(t * 4f));
+                            Line(tip, tip - u * 10f + s * 10f, 2.5f, g.WithAlpha(g.A * (1f - 0.35f * c)));
+                            Line(tip, tip - u * 10f - s * 10f, 2.5f, g.WithAlpha(g.A * (1f - 0.35f * c)));
+                        }
+                        continue;
+                    }
+                    Arc(b.Center, b.Radius, 26f, InfViolet.WithAlpha((0.08f + 0.08f * close) * pulse), 6, a0, slot);
+                    Arc(b.Center, b.Radius - 13f, 1.2f, InfViolet.WithAlpha(0.35f), 6, a0, slot);
+                    Arc(b.Center, b.Radius + 13f, 1.2f, InfViolet.WithAlpha(0.35f), 6, a0, slot);
+                }
+            }
+        }
+
         /// On the floor, under the enemies: a Pulsar's beams.
         void DrawInfallFloor(Enemy e, V2 pos, float t)
         {
