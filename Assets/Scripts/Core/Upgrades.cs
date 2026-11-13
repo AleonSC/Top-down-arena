@@ -166,6 +166,16 @@ namespace Arena
         public float RailTrailBonus, RailBurnMult = 1f;                    // Railgun: Supercharge
         public float SpinTimeMult = 1f, SpinDownMult = 1f;                 // Burst SMG: Spin-Up
         public float DbReloadMult = 1f, DbFullMult = 1f;                   // Double Barrel: Quick Loader
+        // Elementalist weapon cards (Docs/UpgradePools.md step 12)
+        public float FlameReachMult = 1f, FlameBurnMult = 1f;              // Flamethrower: Napalm
+        public float IceReachMult = 1f, IceSlowBonus;                      // Frost Lance: Glacier
+        public int ShockJumpBonus; public float ShockArcMult = 1f;         // Storm Hammer: Stormcaller
+        public float OrbSizeMult = 1f, OrbHealMult2 = 1f;                  // Radiant Orb: Sunstone
+        public float ConeReachMult = 1f, ConeWidenBonus;                   // Chain Light: Prism (radians each side)
+        public float RainSizeMult = 1f, RainHealMult2 = 1f;                // Nimbus: Cloudburst
+        public float FireballBurnMult = 1f, FireballBurnBonus;             // Fireball: Wildfire
+        public float ArcChargeMult = 1f, ArcStunBonus;                     // Arc Lightning: Static Field
+        public int OrbitExtra; public float LaunchRangeMult = 1f;          // Ice Shards: Frozen Halo
 
         // Legendary weapon upgrades from bosses.
         public int Guards, Searchlight, SplitShots;  // Warden's Guard companions and Searchlight stacks (Stun.cs)

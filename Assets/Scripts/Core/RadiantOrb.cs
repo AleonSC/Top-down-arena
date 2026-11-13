@@ -14,7 +14,7 @@ namespace Arena
         public float RadiantReach(Player p) => p.Weapon.Reach * p.Stats.ShotSpeedMult * PierceReach(p);  // Velocity and Piercing Rounds
 
         /// How big the orb is: Homing Rounds grow it (area).
-        public static float RadiantSize(Player p) => RadiantRadius * AreaMult(p);
+        public static float RadiantSize(Player p) => RadiantRadius * AreaMult(p) * p.Stats.OrbSizeMult;  // (Sunstone: bigger)
 
         /// Where the orb is headed: your cursor, held within its reach of you.
         V2 RadiantGoal(Player p, V2 aimAt) => p.Pos + (aimAt - p.Pos).LimitLength(RadiantReach(p));
@@ -55,7 +55,7 @@ namespace Arena
             foreach (var q in Players.Values)
                 if (q != p && !q.Downed && q.Pos.DistanceTo(p.RadiantPos) <= r + q.Def.BodyR)
                 {
-                    Heal(q, RadiantHeal * p.Stats.DmgMult, p);
+                    Heal(q, RadiantHeal * p.Stats.DmgMult * p.Stats.OrbHealMult2, p);  // (Sunstone: more)
                     touched = true;
                 }
             if (touched)

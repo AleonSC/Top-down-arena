@@ -1,6 +1,6 @@
 # Upgrade pools: class and weapon cards
 
-**Status: steps 1-11 built (Nov 2026, protocol 320).** Next: Elementalist weapon cards (the last class), then Out of Ammo.
+**Status: steps 1-12 built (Nov 2026, protocol 321).** Every class and weapon has its cards; next: a card for Out of Ammo.
 
 ## Why
 
@@ -274,7 +274,7 @@ Built (owner approved all ten): in `Game.SoldierCards`. Hooks: `PointBlankMult` 
 Barrel has no recoil, so Quick Loader's second effect became a longer full-damage range. Test: suite `abilitycards`,
 its Soldier checks.
 
-### Step 12: Elementalist weapon cards (proposed, owner picks)
+### Step 12: Elementalist weapon cards (built, protocol 321)
 
 One Rare card per Elementalist weapon (`Weapons = { that weapon }`, `MaxStacks = 2`), offered only while you hold it.
 
@@ -289,3 +289,9 @@ One Rare card per Elementalist weapon (`Weapons = { that weapon }`, `MaxStacks =
 | Fireball | Wildfire | The burn is 50% hotter and lasts 1 s longer |
 | Arc Lightning | Static Field | A full charge comes 25% sooner, and the stun lasts 0.2 s longer |
 | Ice Shards | Frozen Halo | The orbit holds 2 more shards, and they launch at enemies 25% farther out |
+
+Built (owner approved all nine; Thunderhead was taken, so the Storm Hammer's card is Stormcaller): in
+`Game.ElementalistCards`. Hooks: the flames' reach and `Ignite`, the icicle and splinters' reach and `Slow`,
+`Electrify` (jumps, arc damage), `Game.RadiantSize` and the orb's heal, `Game.LightConeLength` / `LightConeHalfFor`,
+the Nimbus rain (`Nimbus.cs` and its look), the Fireball's `Ignite` and `Bullet.IgniteBonus`, `BowFull` (Arc
+Lightning) and its stun, `Game.OrbitCap` and the shards' launch range. Test: suite `abilitycards`, its Elementalist checks.

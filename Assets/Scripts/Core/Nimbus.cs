@@ -59,10 +59,10 @@ namespace Arena
                 Player p;
                 if (m.Kind != MinionKind.Nimbus || !m.Companion || !Players.TryGetValue(m.Owner, out p) || p.Downed || p.Weapon.Id != WeaponId.Nimbus)
                     continue;
-                float r = NimbusRain * AreaMult(p);
+                float r = NimbusRain * AreaMult(p) * p.Stats.RainSizeMult;  // (Cloudburst: wider, heals more)
                 foreach (var q in Players.Values)
                     if (!q.Downed && q.Pos.DistanceTo(m.Pos) <= r)
-                        Heal(q, NimbusRainHeal * dt, p);
+                        Heal(q, NimbusRainHeal * dt * p.Stats.RainHealMult2, p);
             }
         }
     }
