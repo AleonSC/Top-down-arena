@@ -772,6 +772,26 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.RiotCaptain,
+                Name = "Riot Captain",
+                Group = "Challenge rooms",
+                Wave = 6,
+                Appears = "Mini-boss rooms and the vault while the Warden's faction builds up (Docs/FactionMinis.md)",
+                Lead = "The Warden's faction mini-boss: a navy officer behind a curved tower shield that stops shots and swings from the front and never breaks. It turns slowly (1.5 rad/s), so get round it. It has 65% of the Warden's health at your wave. Below half health it attacks a quarter faster and charges twice.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Shield charge", Pattern = "A red lane shows for 0.9 s, then it rushes 560 px/s for up to 0.7 s; into a wall it is dazed 2.2 s (no shield, +50% damage), otherwise it holds the shield low 1.2 s", Damage = "18, knocked 220 px", Every = 9f },
+                    new BestiaryAttack { Name = "Buckshot", Pattern = "3 fans of 7 over the shield's rim, 8° apart, 0.4 s between (4 below half health)", Shot = "Small shot", ShotColor = new Rgba(1f, 0.3f, 0.45f), Count = "7", Speed = "250 px/s", Every = 9f },
+                    new BestiaryAttack { Name = "Tear gas", Pattern = "3 canisters round you (4 below half health); rings fill for 0.8 s, clouds last 4 s", Every = 18f },
+                    new BestiaryAttack { Name = "Whistle", Pattern = "2 Taser Guards come in at the room's far corners (if fewer are up); they go when it falls", Every = 18f },
+                },
+                Notes = new[]
+                {
+                    "Stand with a wall behind you and sidestep the charge: a dazed Captain is open from every side.",
+                },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.Shadow,
                 Name = "Shadow",
                 Group = "Challenge rooms",

@@ -3,6 +3,8 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 329: the Lich's Grave Caller: new `EnemyType.GraveCaller` and `PatchKind.Grave`; a Caller's Shamblers carry `Zombies.PhCalled` in their phase byte
+- 328: faction mini-bosses: new `EnemyType.RiotCaptain` (the Warden's), and `Msg.ExpandState`'s room list gains a byte per room (`ExpansionRoom.Mini`, a mini-boss room's foe)
 - 327: Gun Kata, the Out of Ammo card, in the Soldier's card list shifts later card ids (Docs/UpgradePools.md step 13)
 - 326: nine Elementalist weapon upgrade cards in the Elementalist's card list shift later card ids (Docs/UpgradePools.md step 12)
 - 325: the Colossus's faction, step 3: three new `EnemyType` values (Driller, Geomancer, CinderPriest), bullet kind `MagmaBolt` 64, and a Driller's or Geomancer's enemy snapshot ends with its crack (a flag, then from, angle, length, max, wait, seed)

@@ -73,6 +73,8 @@ namespace Arena
         // step 3: a Driller plays like a Shiv (its drill leaves a crack that erupts), a Geomancer and a Cinder Priest like Taser
         // Guards (a crack sent at you; a magma bolt that leaves lava)
         Driller, Geomancer, CinderPriest,
+        // faction mini-bosses (FactionMinis.cs): the Warden's, a shield officer (RiotCaptain.cs, Game/RiotCaptainLook.cs)
+        RiotCaptain,
         // the Lich's faction: a zombie in his soul cyan that cracks graves open round you (Zombies.cs, Game/ZombieLook.cs)
         GraveCaller,
     }
@@ -399,6 +401,8 @@ namespace Arena
                 Picker = PickerGroup.Ranged, Blurb = "Keeps its distance, plants its crystal staff and sends a crack racing at you. It glows, then erupts: step off the line." },
             new EnemyDef { Name = "Cinder Priest", Hp = 70f, Radius = 13f, Speed = 80f, Score = 9, Xp = 11, Sides = 8, Color = new Rgba(0.24f, 0.2f, 0.19f),
                 Picker = PickerGroup.Ranged, Blurb = "Charges a molten core, then fires one magma bolt straight at you. Wherever it stops, it leaves a pool of lava. Strafe across the line, or parry it." },
+            new EnemyDef { Name = "Riot Captain", Hp = 3000f, Radius = 30f, Speed = 70f, Score = 150, Xp = 80, Sides = 8, Color = new Rgba(0.5f, 0.66f, 1f), Heavy = true, Contact = 20f, Mini = true,
+                Blurb = "The Warden's mini-boss: a tower shield blocks the front. Bait its shield charge into a wall to daze it; it also fires buckshot, lobs tear gas and whistles for Taser Guards." },
             new EnemyDef { Name = "Grave Caller", Hp = 60f, Radius = 14f, Speed = 60f, Score = 12, Xp = 16, Sides = 4, Color = new Rgba(0.37f, 0.85f, 1f),
                 Picker = PickerGroup.Ranged, Blurb = "Zombie: hangs back and cracks three graves open round you; a Shambler claws out of each. Step out of the ring, then kill it: its risen crumble." },
         };

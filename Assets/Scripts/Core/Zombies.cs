@@ -146,8 +146,8 @@ namespace Arena
                 CallerDied(e);
             if (!ZombiesOn || State != MatchState.Fighting || InRoom || BossNow || e.Risen || e.Def.IsBoss || e.Def.Xp <= 0)
                 return;
-            if (!Zombies.Is(e.Type) || e.Type == EnemyType.Bloater)
-                return;  // (a Bloater burst: nothing left to rise)
+            if (!Zombies.Is(e.Type) || e.Type == EnemyType.Bloater || e.Type == EnemyType.GraveCaller)
+                return;  // (a Bloater burst: nothing left to rise; a Grave Caller stays down, so killing it ends its graves)
             if (e.Burning || e.BurnT > 0f || e.BurnPool > 0f)
                 return;  // burned: it stays down
             if (killer != null && killer.Weapon.Melee)
