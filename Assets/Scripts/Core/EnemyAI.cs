@@ -609,7 +609,8 @@ namespace Arena
                     }
                 }
                 if (e.Hp <= 0f || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.HiveEgg || e.Type == EnemyType.ReaperPillar || QueenAirborne(e)
-                    || e.Type == EnemyType.Morsel || e.Type == EnemyType.SapperMine || DevourUnder(e) || e.Dummy || e.DazeT > 0f)
+                    || e.Type == EnemyType.Morsel || e.Type == EnemyType.SapperMine || DevourUnder(e) || e.Dummy || e.DazeT > 0f
+                    || e.Type == EnemyType.MiniWell || e.Type == EnemyType.Implosion)
                     continue;  // blew up this tick, explodes instead of bumping, an egg, the Hive Queen up in a dive, a morsel, the Devourer underground, dazed (Daze.cs)
                 // Bosses and heavies hurt to stand in (the difficulty's per-wave damage growth scales all of these).
                 float contact = e.Def.IsBoss ? 25f
@@ -711,6 +712,13 @@ namespace Arena
                 return;  // committed to the leap / flight line (a Spike Block locks its line when it winds up)
             if (e.Type == EnemyType.BeamSentry && e.Phase >= 2 || e.Type == EnemyType.Reaver && e.Phase != 0 || e.Type == EnemyType.Leader && e.Phase == 1)
                 return;  // the beam's aim and sweep, the rake's cone, the Leader's aim line (Variety.cs)
+            if (PulsarLocked(e))
+                return;  // its beams' line (Infall.cs)
+            if (e.Type == EnemyType.Lens)
+            {
+                LensFace(e, want, dt);  // turns slowly, so you can get round its face (Infall.cs)
+                return;
+            }
             if (e.Kin == EnemyType.RiotShield)
             {
                 RiotShieldFace(e, want, dt);  // WardenFaction.cs
@@ -793,6 +801,8 @@ namespace Arena
                 return true;  // the more-hurt Twin Reaper, until the other catches up
             if (LichImmune(e))
                 return true;  // its phylacteries stand, it's blinking between graves, or it's changing stage (Lich.cs)
+            if (LensFaces(e, from))
+                return true;  // a Lens's face (Infall.cs)
             if (e.Kin == EnemyType.RiotShield)
                 return RiotShieldBlocks(e, from);  // WardenFaction.cs
             if (e.Type == EnemyType.ShieldSwordsman)
@@ -971,6 +981,8 @@ namespace Arena
                 v = LateMove(e, tpos, dir, dist, dt, ref speed);
             if (e.Type >= EnemyType.BeamSentry && e.Type <= EnemyType.Stitcher)
                 v = VarietyMove(e, tpos, dir, dist, ref speed);  // Variety.cs
+            if (IsInfall(e.Type))
+                v = InfallMove(e, tpos, dir, dist, dt, ref speed);  // Infall.cs
             if (Challenges.Own(e.Type))
                 v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
             if (e.Kin == EnemyType.RiotShield || e.Kin == EnemyType.GasGrenadier || e.Kin == EnemyType.TaserGuard || e.Kin == EnemyType.SecurityGuard)
@@ -987,8 +999,8 @@ namespace Arena
             if (HasTrait(e, EliteTrait.Hasted))
                 speed *= HasteMult;
             // A sweeping Beam Sentry steers its beam by Strafe, so it keeps the side it telegraphed (the roll still happens, keeping the RNG sequence).
-            // A Security Guard keeps its side on its own timer (SecurityGuard.cs).
-            if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3) && e.Kin != EnemyType.SecurityGuard)
+            // A Security Guard keeps its side on its own timer (SecurityGuard.cs); Debris keeps its spiral's side, a Pulsar its sweep's (Infall.cs).
+            if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3) && e.Kin != EnemyType.SecurityGuard && !PulsarLocked(e) && e.Type != EnemyType.Debris)
                 e.Strafe = -e.Strafe;
             if (e.SlowT > 0f && !Heavy(e))
                 speed *= e.SlowMult;
@@ -1150,6 +1162,12 @@ namespace Arena
                 case EnemyType.Leader:
                     VarietySpecial(e, tpos, dt);  // Variety.cs
                     break;
+                case EnemyType.Pulsar:
+                case EnemyType.MiniWell:
+                case EnemyType.Implosion:
+                case EnemyType.WhiteDwarf:
+                    InfallSpecial(e, tpos, dt);  // Infall.cs
+                    break;
             }
         }
 
@@ -1174,6 +1192,8 @@ namespace Arena
                 return;  // Variety.cs
             if (ReaperCultFire(e, aim))
                 return;  // ReaperFaction.cs
+            if (InfallFire(e, tpos, aim))
+                return;  // Infall.cs
             if (e.Kin == EnemyType.GasGrenadier)
             {
                 GrenadierFire(e, tpos);  // WardenFaction.cs
@@ -1311,6 +1331,8 @@ namespace Arena
             }
             if (e.Type == EnemyType.HiveQueen)
                 ClearQueenAdds(e);
+            if (e.Type == EnemyType.Collapsar)
+                CollapsarDied(e);  // a short pull, then a ring (Infall.cs)
             if (e.Type == EnemyType.ReaperPillar)
                 PillarFell(e);  // leaves a hole (Reapers.cs)
             if (e.Type == EnemyType.DualReaper)

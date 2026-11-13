@@ -124,7 +124,7 @@ namespace Arena
                                 FloodBreachWave();  // a breach wave: three times the enemies (Breaches.cs)
                                 spawnTimer = Math.Max(spawnTimer, Practice == null ? Breaches.WarnTime(ActiveBreaches.Length) : Breaches.Telegraph);  // the cameras tour the breaches first (Game/BreachTour.cs)
                             }
-                            CapSentries();  // at most 3 Beam Sentries (Variety.cs)
+                            CapSentries();  // at most 3 Beam Sentries and 3 Pulsars (Variety.cs)
                             WaveProps();  // crates, pots, barrels and now and then a chest (Props.cs)
                             bossName = BossNow ? Defs.Get(BossAt(Wave)).Name : null;
                             BeginTimedWave();  // the wave's enemies arrive over a window (TimedWaves.cs)

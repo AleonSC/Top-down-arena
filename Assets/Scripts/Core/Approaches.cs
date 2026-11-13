@@ -182,6 +182,46 @@ namespace Arena
             },
             new FactionDef
             {
+                Boss = EnemyType.Singularity,  // the Singularity: the Infall, matter falling into the black hole (Infall.cs, Docs/SingularityFaction.md)
+                Members = new[]
+                {
+                    new FactionMember { Type = EnemyType.Debris, Weight = 3f },
+                    new FactionMember { Type = EnemyType.VoidAcolyte, NotFirst = true, Weight = 2f },
+                    new FactionMember { Type = EnemyType.Lens, Fade = 0, Weight = 2f, From = 2 },  // bends your shots round its face (Gravity Wells)
+                    new FactionMember { Type = EnemyType.Graviton, Fade = 0, Weight = 1.5f, From = 2 },  // lobs a Small Well (the Pull, Gravity Wells)
+                    new FactionMember { Type = EnemyType.Orbiter, Fade = 0, Weight = 1.5f, From = 3 },  // slings its orbs (the disk, Slingshot)
+                    new FactionMember { Type = EnemyType.Pulsar, Fade = 1, Weight = 1.5f, From = 2 },  // its sweeping beams (the boss's Lasers)
+                    new FactionMember { Type = EnemyType.Collapsar, Fade = 2, Weight = 1.5f, From = 2 },  // implodes when killed (Collapse, Hawking)
+                    new FactionMember { Type = EnemyType.WhiteDwarf, Fade = 2, Weight = 1f, From = 3 },  // turns your shots round (White hole)
+                },
+                Squads = new[]
+                {
+                    new SquadDef { Name = "Infall", From = 1, Members = new[] { EnemyType.VoidAcolyte, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris } },
+                    new SquadDef { Name = "Binary", From = 2, Members = new[] { EnemyType.Pulsar, EnemyType.Pulsar } },
+                    new SquadDef { Name = "Gravity trap", From = 3, Members = new[] { EnemyType.Graviton, EnemyType.Collapsar, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris } },
+                    new SquadDef { Name = "Lens array", From = 3, Members = new[] { EnemyType.Lens, EnemyType.Lens, EnemyType.VoidAcolyte, EnemyType.VoidAcolyte, EnemyType.VoidAcolyte } },
+                },
+                // Wave 4: the Accretion ring, eight Debris and four Orbiters in a ring round you that turns and closes, two gaps open (Infall.cs).
+                Finale = new SquadDef { Name = "Accretion ring", From = 4, Form = SquadForm.Accretion, Members = new[] {
+                    EnemyType.Orbiter, EnemyType.Debris, EnemyType.Debris, EnemyType.Orbiter, EnemyType.Debris, EnemyType.Debris,
+                    EnemyType.Orbiter, EnemyType.Debris, EnemyType.Debris, EnemyType.Orbiter, EnemyType.Debris, EnemyType.Debris } },
+                // The Campaign's Singularity cycle: each wave previews one thing its fight tests (Docs/SingularityFaction.md).
+                Lessons = new[]
+                {
+                    new WaveLesson { Teaches = "Debris falls in on a spiral (the Pull)", Members = new[] { M(EnemyType.Debris, 1f) } },
+                    new WaveLesson { Teaches = "Void Acolytes' orbs bend in to meet on you (bent shots)", Trickle = true, Star = EnemyType.VoidAcolyte, Members = new[] { M(EnemyType.Debris, 2f) }, Squads = new[] { "Infall" } },
+                    new WaveLesson { Teaches = "Lenses: flank them (its Gravity Wells bend your shots)", Trickle = true, Star = EnemyType.Lens, Members = new[] { M(EnemyType.Debris, 2f), M(EnemyType.VoidAcolyte, 1.5f) }, Squads = new[] { "Lens array" } },
+                    new WaveLesson { Teaches = "Gravitons' Small Wells: get clear or pop them (the Pull, Gravity Wells)", Trickle = true, Star = EnemyType.Graviton, Members = new[] { M(EnemyType.Lens, 1.5f), M(EnemyType.Debris, 2f), M(EnemyType.VoidAcolyte, 1.5f) } },
+                    new WaveLesson { Teaches = "Pulsars' flickering beams (its Lasers)", Trickle = true, Star = EnemyType.Pulsar, Members = new[] { M(EnemyType.Debris, 2f), M(EnemyType.VoidAcolyte, 1.5f) }, Squads = new[] { "Binary" } },
+                    new WaveLesson { Teaches = "A recap of everything so far, and Collapsars join (Collapse, Hawking)", Trickle = true, Star = EnemyType.Collapsar, Members = new[] { M(EnemyType.Debris, 2f), M(EnemyType.VoidAcolyte, 1.5f), M(EnemyType.Lens, 1f), M(EnemyType.Graviton, 1f), M(EnemyType.Pulsar, 1f) }, Squads = new[] { "Gravity trap", "Infall" } },
+                    new WaveLesson { Teaches = "Orbiters sling their orbs (the disk, Slingshot)", Trickle = true, Star = EnemyType.Orbiter, Members = new[] { M(EnemyType.Orbiter, 2f), M(EnemyType.Debris, 2f), M(EnemyType.VoidAcolyte, 1f) } },
+                    new WaveLesson { Teaches = "White Dwarfs turn your shots round (White hole)", Trickle = true, Star = EnemyType.WhiteDwarf, Members = new[] { M(EnemyType.Orbiter, 1.5f), M(EnemyType.Pulsar, 1f), M(EnemyType.Collapsar, 1.5f), M(EnemyType.Debris, 1.5f) } },
+                    new WaveLesson { Teaches = "Squads: Infall, Binary, Gravity trap, Lens array", Members = new[] { M(EnemyType.Debris, 1f), M(EnemyType.VoidAcolyte, 1f) }, Squads = null, SquadChance = 0.9f },
+                    new WaveLesson { Teaches = "The exam: the Accretion ring with everything", Members = null, Squads = null, Finale = true },
+                },
+            },
+            new FactionDef
+            {
                 Boss = EnemyType.Lich,  // the Lich: the restless dead, the same zombies as Zombie Infection (Zombies.cs); they don't get back up outside that modifier
                 Members = new[]
                 {
