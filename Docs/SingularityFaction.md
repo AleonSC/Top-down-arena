@@ -1,6 +1,6 @@
 # The Singularity's faction: the Infall
 
-**Status: built** (protocol 321): all eight enemies, four squads, the Accretion ring and the ten-wave cycle. Code: `Core/Infall.cs`, `Core/Approaches.cs` (the Singularity `FactionDef`),
+**Status: built** (protocol 321; the ring's band 322): all eight enemies, four squads, the Accretion ring and the ten-wave cycle. Code: `Core/Infall.cs`, `Core/Approaches.cs` (the Singularity `FactionDef`),
 `Core/Defs.cs`, `Core/Variety.cs` (`CapBeams`: at most 3 Pulsars a wave), `Game/InfallLook.cs`; mockup `Docs/Mockups/singularity-faction.html`;
 test suite `infall`; previews `INFALL=0.4 ZOOM=1.7 Tools/Preview/shot.sh x hud 1` (step 1) `INFALL2=0.4 ZOOM=1.7 ...` (step 2) `INFALL3=0.4 ZOOM=1.7 ...` (step 3) and `ACCRETION=3 Tools/Preview/shot.sh x hud 1` (the ring 3 s in).
 
@@ -55,3 +55,11 @@ Hive's bees, these have their own behaviour: each one previews one thing the Sin
   16 rad/s at the lens); it turns 1.3 rad/s.
 - White Dwarf: 40 health, 230 px/s, radius 9, contact 10, a Disruptor. Flash 0.5 s within 120 px; the pulse shoves players within 170 px back 150 px
   and turns up to 10 of their shots within 150 px into its own (260 px/s, 14 each); then 1.5 s backing off.
+
+## The ring's band and bots
+
+- The host keeps an `AccretionBand` (middle, radius, turn) for each ring still closing (`PrepareAccretion` clears them each tick, `AccretionMove`
+  adds one per ring); the snapshot sends them (`SyncAccretion`), and every game draws a violet band through the ring's slots with the gaps dark,
+  green-edged and marked with chevrons (`DrawAccretionBands`, under the enemies).
+- Bots (`BotBrain.cs`): `InfallBotDanger` (a White Dwarf flashing within its pulse, a Small Well's pull, an Implosion) and `AccretionBotDanger`
+  (the band away from a gap, and inside a small ring) add to the danger of each move they weigh.

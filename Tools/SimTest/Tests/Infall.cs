@@ -176,9 +176,28 @@ static partial class Program
         Console.WriteLine("  White Dwarf: flashed {0}, pulsed {1}, turned {2} shots, knock {3:0} px", flashed, pulsed, turnedBack, knocked);
         Check(flashed && pulsed, "a White Dwarf darts in, flashes, then pulses");
         Check(turnedBack == 2, "the pulse turns your shots near it round as its own");
+        // Bots: the White Dwarf's flash, a Small Well and an Implosion count as danger; a White Dwarf not flashing doesn't.
+        var wdB = put(EnemyType.WhiteDwarf, new V2(800f, 400f));
+        float calm = g.InfallBotDanger(wdB, new V2(860f, 400f), 8f);
+        wdB.Phase = 1;
+        float flash = g.InfallBotDanger(wdB, new V2(860f, 400f), 8f), far = g.InfallBotDanger(wdB, new V2(800f + Game.WhitePushRange + 80f, 400f), 8f);
+        var mw = put(EnemyType.MiniWell, new V2(600f, 400f));
+        var imB = put(EnemyType.Implosion, new V2(600f, 400f));
+        Check(calm == 0f && flash > 0f && far == 0f && g.InfallBotDanger(mw, new V2(640f, 400f), 8f) > 0f && g.InfallBotDanger(imB, new V2(650f, 400f), 8f) > 0f,
+            "bots see a White Dwarf's flash, a Small Well and an Implosion as danger");
+        // A bot next to a landed Small Well walks away from it.
+        var mw2 = put(EnemyType.MiniWell, new V2(900f, 400f));
+        mw2.PhaseT = 10f;
+        me.Pos = me.Disp = new V2(940f, 400f);
+        g.Bot = true;
+        for (int f = 0; f < 60 * 2; f++) { Quiet(); Step(host, dt); }
+        g.Bot = false;
+        Console.WriteLine("  a bot by a Small Well ends {0:0} px from it", me.Pos.DistanceTo(mw2.Pos));
+        Check(me.Pos.DistanceTo(mw2.Pos) > 120f, "a bot by a Small Well gets clear of it");
         Check(knocked > 50f, "and shoves you back");
         // The Accretion ring: twelve in a ring round you with two gaps, turning and closing.
         Quiet(); g.Enemies.Clear(); g.Bullets.Clear();
+        me.Pos = me.Disp = new V2(900f, 400f);
         var fin = Approaches.For(EnemyType.Singularity).Finale;
         typeof(Game).GetMethod("SpawnSquadAt", np).Invoke(g, new object[] { fin, null });
         var ringE = g.Enemies.Values.Where(o => o.SquadId != 0).ToList();
@@ -195,6 +214,29 @@ static partial class Program
         Check(ringE.Count == 12 && ringE.Count(o => o.Type == EnemyType.Orbiter) == 4 && Math.Abs(r0 - Game.AccretionStart) < 40f, "the Accretion ring: eight Debris and four Orbiters in a ring round you");
         Check(Math.Abs(widest / slot - 2f) < 0.3f, "with a gap (two slots wide) where a slot is left open");
         Check(r1 < r0 - 70f && r1 > Game.AccretionEnd - 30f, "and it closes in");
+        // Its band: the host keeps one while it closes, and the snapshot carries it to clients.
+        Check(g.AccretionBands.Count == 1 && Math.Abs(g.AccretionBands[0].Radius - r1) < 30f && g.AccretionBands[0].Center.DistanceTo(me.Pos) < 1f,
+            "the ring has a band (its middle and radius) while it closes");
+        var ms = new System.IO.MemoryStream();
+        typeof(Game).GetMethod("SyncAccretion", np).Invoke(g, new object[] { new NetSync(new System.IO.BinaryWriter(ms)) });
+        var cgb = new Session().Game;
+        ms.Position = 0;
+        typeof(Game).GetMethod("SyncAccretion", np).Invoke(cgb, new object[] { new NetSync(new System.IO.BinaryReader(ms)) });
+        Check(cgb.AccretionBands.Count == 1 && cgb.AccretionBands[0].Radius == g.AccretionBands[0].Radius && cgb.AccretionBands[0].Spin == g.AccretionBands[0].Spin, "and a client gets the same band");
+        var band = g.AccretionBands[0];
+        float gapAng = band.Spin + MathX.Tau * Game.AccretionGaps[0] / Game.AccretionSlots;
+        Check(Game.InAccretionGap(band, gapAng) && !Game.InAccretionGap(band, gapAng + MathX.Tau / Game.AccretionSlots), "its gaps are where the open slots are");
+        // A bot inside it walks out through a gap.
+        g.Bot = true;
+        for (int f = 0; f < 60 * 5; f++) { Quiet(); Step(host, dt); }
+        g.Bot = false;
+        float outR = me.Pos.DistanceTo(band.Center);
+        Console.WriteLine("  a bot in the ring ends {0:0} px from its middle (the ring is {1:0} px out)", outR, g.AccretionBands.Count > 0 ? g.AccretionBands[0].Radius : 0f);
+        Check(g.AccretionBands.Count == 0 || outR > g.AccretionBands[0].Radius + 20f, "a bot inside the ring gets out through a gap");
+        foreach (var o in ringE) o.Hp = 0f;
+        run(0.1f, null);
+        run(Game.AccretionLife, null);
+        Check(g.AccretionBands.Count == 0, "the band goes when the ring is gone");
         host.Leave("");
 
         // The cycle: ten lessons, the exam brings the ring.

@@ -481,6 +481,7 @@ namespace Arena
             TickDevArena(dt);  // the Dev Arena's hero dummies, and the enemy you play healed up (DevArena.cs)
             CountEnemyShots();
             PrepareVariety();  // squads and Commanders (Variety.cs)
+            PrepareAccretion();  // the Accretion rings' bands (Infall.cs)
             AssignShooterTurns(dt);  // only so many regular shooters at once (Readability.cs)
             tickEnemies.Clear();
             tickEnemies.AddRange(Enemies.Values);

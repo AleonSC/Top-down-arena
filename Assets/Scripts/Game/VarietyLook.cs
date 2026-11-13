@@ -36,6 +36,7 @@ namespace Arena
                     Line(at - side * 4f - u * 3f, at + side * 4f + u * 3f, 1.5f, StitchGold.WithAlpha(0.8f));
                 }
             }
+            DrawAccretionBands(t);  // the Singularity's Accretion rings (InfallLook.cs)
             foreach (var e in game.Enemies.Values)
             {
                 if (game.IsSpawning(e))
