@@ -30,6 +30,12 @@ One wave is built by six overlapping systems and spawned by four drivers, so eac
 4. **`SpawnEnemyAt`** split into `NewEnemy(type)` (stats) + placement; boss positions move into the boss's own def.
 5. Boss waves read their composition from `BossSchedule`, not a switch.
 
+## Mode rules (owner)
+
+- **Quick Play and Campaign build waves the same way.** Only the boss schedule and length differ; no separate wave logic.
+- **Boss Hunt has more enemies per wave** than the others. How many is the owner's call (not decided yet).
+- So the plan carries a per-mode **profile** (`WaveProfile`: count multiplier, alive cap, boss schedule) instead of mode checks inside the builders. Step 1's `WaveNumbers` holds one profile per mode; Quick and Campaign share one.
+
 ## Steps (one at a time, "start on step N")
 
 0. **Safety net**: a `wavedump` sim suite that prints every wave's queue (types, squads, counts) for waves 1-60 on fixed seeds across modes (normal, path, zombie, Quick Play, Boss Hunt, Campaign legs with boss slots, Expanding arena with breaches, Rooms arena, practice). Every step also keeps the `bossschedule`, `bossslot`, `longrun` and `portals` suites passing. Saved as a golden file. Every later step must keep it identical, unless the owner asks for a change.
