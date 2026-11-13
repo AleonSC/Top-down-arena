@@ -1,6 +1,6 @@
 # Upgrade pools: class and weapon cards
 
-**Status: steps 1-9 built (Nov 2026, protocol 316).** Next: weapon cards for the other classes, one class at a time. Owner decisions are below; build one step at a time ("start on step N").
+**Status: steps 1-10 built (Nov 2026, protocol 317).** Next: weapon cards for the other classes, one class at a time. Owner decisions are below; build one step at a time ("start on step N").
 
 ## Why
 
@@ -226,7 +226,7 @@ Built (owner approved all nine): in `Game.HemomancerCards`. Hooks (all in `Blood
 and the coat's healing, `VeinSteal`, `Hemorrhage` (hits needed, radius), `Collapse` (the crush and its pull radius),
 the spear's `Pierce` and `TickSpearPickups`. Test: suite `abilitycards`, its Blood Mage checks.
 
-### Step 10: Summoner weapon cards (proposed, owner picks)
+### Step 10: Summoner weapon cards (built, protocol 317)
 
 One Rare card per Summoner weapon (`Weapons = { that weapon }`, `MaxStacks = 2`), offered only while you hold it.
 Spirit Chalk already has its card (Warding Ink), so it gets none here.
@@ -241,3 +241,9 @@ Spirit Chalk already has its card (Warding Ink), so it gets none here.
 | Wolf Whistle | Alpha Pack | Takedowns hit 30% harder and stun 0.3 s longer |
 | Wisp Lantern | Will-o'-Wisp | One more wisp orbits you |
 | Imp Caller | Imp Horde | Hold 1 more imp, and they come 20% faster |
+
+Built (owner approved all eight): in `Game.SummonerCards`. Hooks: `MinionTough` (Pack Bond and Granite Golem, used at
+spawn and when a staggered minion recovers), the boulder's `Splash`, `BoneDartHit`'s cage time, the minion attack rate
+for Bone Guard's skeletons, `FireBearClaws` (reach, bleed), the firefly's `Hops` and the staff sprites' `HealRate`
+(`SpawnMinion`, not cast ones), the Treant Rod's root reach and `RootHeal`, the Wolf Whistle takedown,
+`CompanionCount` (wisps and imps) and the imps' `CompanionCd`. Test: suite `abilitycards`, its Summoner checks.

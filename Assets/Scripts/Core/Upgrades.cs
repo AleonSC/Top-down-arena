@@ -146,6 +146,15 @@ namespace Arena
         public int HemoHitCut; public float HemoRadiusMult = 1f;           // Blood Bolts: Hemophilia
         public float ImplodeReachMult = 1f, ImplodeDmgMult = 1f;           // Implosion: Event Horizon
         public int SpearPierceBonus; public float SpearPickupBonus;        // Bone Spear: Marrow
+        // Summoner weapon cards (Docs/UpgradePools.md step 10)
+        public float StaffGolemTough = 1f, BoulderSplashMult = 1f;         // Golem Staff: Granite Golem
+        public float CageBonusTime, SkeletonRateMult = 1f;                 // Bone Guard: Ossuary
+        public float ClawReachMult = 1f, ClawBleedMult = 1f;               // Bear Totem: Deep Claws
+        public int FireflyHopBonus; public float StaffSpriteHealMult = 1f; // Sprite Staff: Wildfire Seeds
+        public float RootReachMult = 1f, RootHealMult = 1f;                // Treant Rod: Deep Roots
+        public float TakedownMult = 1f, TakedownStunBonus;                 // Wolf Whistle: Alpha Pack
+        public int WispExtra;                                              // Wisp Lantern: Will-o'-Wisp
+        public int ImpExtra; public float ImpRateMult = 1f;                // Imp Caller: Imp Horde
 
         // Legendary weapon upgrades from bosses.
         public int Guards, Searchlight, SplitShots;  // Warden's Guard companions and Searchlight stacks (Stun.cs)

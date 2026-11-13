@@ -611,6 +611,57 @@ static partial class Program
         var bs0 = shot(WeaponId.BoneSpear, "Marrow", 0); var bs1 = shot(WeaponId.BoneSpear, "Marrow", 1);
         Check(bs1.Pierce - bs0.Pierce == 1 && near(me.Stats.SpearPickupBonus, 3f, 0.001f), "Marrow: the spear pierces one more enemy and gives 3 more health back");
 
+        // --- Summoner weapon cards (Docs/UpgradePools.md step 10) ---
+        Check(new[] { "Granite Golem", "Ossuary", "Deep Claws", "Wildfire Seeds", "Deep Roots", "Alpha Pack", "Will-o'-Wisp", "Imp Horde" }
+            .All(n => U(n) >= 0 && Upgrades.All[U(n)].Weapons != null && Defs.WeaponOf(Upgrades.All[U(n)].Weapons[0]).Kit == Kit.Summoner),
+            "all eight Summoner weapon cards exist, each for one Summoner weapon");
+        var fireKit = typeof(Game).GetMethod("FireKitWeapon", flags);
+        var spawnMinion = typeof(Game).GetMethod("SpawnMinion", flags);
+        Action fireS = () => fireKit.Invoke(g, new object[] { me, 0f, new V2(1f, 0f), me.Pos + new V2(20f, 0f), 1f, 0 });
+        Func<WeaponId, string, int, Bullet> kitShot = (wid, card, n) => { arm(wid, card, n); g.Bullets.Clear(); fireS(); var b = g.Bullets.Values.OrderBy(x => x.Id).First(); g.Bullets.Clear(); return b; };
+        Func<WeaponId, string, int, List<Swing>> kitSwing = (wid, card, n) => { arm(wid, card, n); fireS(); var got = swings().ToList(); swings().Clear(); return got; };
+        Func<MinionKind, Minion> companion = k => { var m = (Minion)spawnMinion.Invoke(g, new object[] { k, me, there, -1f, true }); g.Minions.Remove(m.Id); return m; };
+
+        arm(WeaponId.GolemStaff, "Granite Golem", 0); float gg0 = companion(MinionKind.Golem).BlockHp;
+        var bo0b = kitShot(WeaponId.GolemStaff, "Granite Golem", 0);
+        arm(WeaponId.GolemStaff, "Granite Golem", 1); float gg1 = companion(MinionKind.Golem).BlockHp;
+        var bo1b = kitShot(WeaponId.GolemStaff, "Granite Golem", 1);
+        Check(near(gg1 / gg0, 1.4f, 0.001f) && near(bo1b.Splash / bo0b.Splash, 1.2f, 0.001f), "Granite Golem: the staff's Golem takes 40% more and the boulder crushes 20% wider");
+
+        var boneHit = typeof(Game).GetMethod("BoneDartHit", flags);
+        Func<int, float> cage = n =>
+        {
+            arm(WeaponId.BoneGuard, "Ossuary", n);
+            var e = enemyAt(there);
+            for (int k = 0; k < 3; k++) boneHit.Invoke(g, new object[] { new Bullet { Kind = Defs.BoneShot, Owner = me.Id }, e });
+            return e.CageT;
+        };
+        float cg0 = cage(0), cg1 = cage(1);
+        Check(near(cg1 - cg0, 0.5f, 0.001f) && near(me.Stats.SkeletonRateMult, 1.3f, 0.001f), "Ossuary: cages hold 0.5 s longer and the skeletons shoot 30% faster");
+
+        var bear = typeof(Game).GetMethod("FireBearClaws", flags);
+        Func<int, List<Swing>> claws = n => { arm(WeaponId.BearTotem, "Deep Claws", n); bear.Invoke(g, new object[] { me, 0f, 1f, 0 }); var got = swings().ToList(); swings().Clear(); return got; };
+        var cl0 = claws(0); var cl1 = claws(1);
+        Check(cl0.Count > 0 && near(cl1[0].Reach / cl0[0].Reach, 1.15f, 0.01f) && near(cl1[0].Bleed / cl0[0].Bleed, 1.3f, 0.001f), "Deep Claws: the claws reach 15% farther and bleed 30% more");
+
+        var ff0 = kitShot(WeaponId.SpriteStaff, "Wildfire Seeds", 0);
+        arm(WeaponId.SpriteStaff, "Wildfire Seeds", 0); float sh0 = companion(MinionKind.Sprite).HealRate;
+        var ff1 = kitShot(WeaponId.SpriteStaff, "Wildfire Seeds", 1);
+        arm(WeaponId.SpriteStaff, "Wildfire Seeds", 1); float sh1 = companion(MinionKind.Sprite).HealRate;
+        Check(ff1.Hops - ff0.Hops == 1 && near(sh1 / sh0, 1.2f, 0.001f), "Wildfire Seeds: the firefly hops once more and the staff's sprites heal 20% more");
+
+        var rt0 = kitSwing(WeaponId.TreantRod, "Deep Roots", 0); var rt1 = kitSwing(WeaponId.TreantRod, "Deep Roots", 1);
+        Check(near(rt1[0].Reach / rt0[0].Reach, 1.2f, 0.01f) && near(rt1[0].RootHeal / rt0[0].RootHeal, 1.3f, 0.001f), "Deep Roots: the root whip reaches 20% farther and heals 30% more");
+
+        arm(WeaponId.WolfWhistle, "Alpha Pack", 1);
+        Check(near(me.Stats.TakedownMult, 1.3f, 0.001f) && near(me.Stats.TakedownStunBonus, 0.3f, 0.001f), "Alpha Pack: takedowns hit 30% harder and stun 0.3 s longer");
+
+        arm(WeaponId.WispLantern, "Will-o'-Wisp", 0); int wc0 = g.CompanionCount(me);
+        arm(WeaponId.WispLantern, "Will-o'-Wisp", 1); int wc1 = g.CompanionCount(me);
+        arm(WeaponId.ImpCaller, "Imp Horde", 0); int ic0 = g.CompanionCount(me);
+        arm(WeaponId.ImpCaller, "Imp Horde", 1); int ic1 = g.CompanionCount(me);
+        Check(wc1 == wc0 + 1 && ic1 == ic0 + 1 && near(me.Stats.ImpRateMult, 1.2f, 0.001f), "Will-o'-Wisp: one more wisp; Imp Horde: one more imp, coming 20% faster");
+
         host.Leave(""); client.Leave("");
     }
 }
