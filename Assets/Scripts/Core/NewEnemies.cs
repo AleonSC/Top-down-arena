@@ -40,6 +40,9 @@ namespace Arena
                 case EnemyType.Needler: return "Locks on, then fires needles straight at you. Keep moving, rush it as it reloads.";
                 case EnemyType.Bumble: return "A huge, slow rusher with a heavy landing. Back off and keep firing.";
                 case EnemyType.Hornet: return "Circles, shows a red lane, then darts along it. Leave the lane.";
+                case EnemyType.Rubble: return "Rolls at you in weaving pairs. Don't get surrounded.";
+                case EnemyType.Quarryman: return "Walks straight at you, its lamp lighting the way. Sidestep it.";
+                case EnemyType.Stomper: return "Lifts a foot, then stomps out a push ring. Step into the green gap.";
                 case EnemyType.Grunt: return "Shoots a three-shot fan. Weave between the shots.";
                 case EnemyType.Swarmer: return "Runs at you in packs and bites. Don't get surrounded.";
                 case EnemyType.Wisp: return "Soul flames that drift at you in threes. Thin them early.";

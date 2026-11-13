@@ -211,6 +211,31 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Rubble, Name = "Rubble", Group = "Melee", Wave = 21,
+                Appears = "The Colossus's approach (in pairs, Landslip and Rockfall squads)",
+                Lead = "A fist-sized chunk of the Colossus that rolls at you, weaving, in loose pairs. Moves like a Rioter.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "10" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Quarryman, Name = "Quarryman", Group = "Melee", Wave = 21,
+                Appears = "The Colossus's approach (leading Landslip squads, and on its own)",
+                Lead = "A quarry worker with a hard hat, a headlamp and a pickaxe. Walks straight at you; its lamp shows where it's heading. Moves like a Guard.",
+                Attacks = new[] { new BestiaryAttack { Name = "Pickaxe", Pattern = "Touch", Damage = "14" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Stomper, Name = "Stomper", Group = "Melee", Wave = 22,
+                Appears = "The Colossus's approach (Rockfall squads and on its own)",
+                Lead = "A slab-shouldered stone brute that walks at you like a Thug. Within 260 px it stops and lifts a foot for 0.8 s, showing a green gap beside you, then stomps out a small ring of push blocks (gone at 220 px). Step into the gap; caught, it passes over you once and leaves you behind it.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Stomp ring", Pattern = "0.8 s wind-up, then a ring of push blocks with one gap", Damage = "12", Every = 4f, Fixed = true },
+                    new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "20" },
+                },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.HiveEgg, Name = "Hive Egg", Group = "Summons", Wave = 10,
                 Appears = "Laid by the Hive Queen in her Honeycomb stage",
                 Lead = "Doesn't move or attack. Break it before it hatches into drones.",

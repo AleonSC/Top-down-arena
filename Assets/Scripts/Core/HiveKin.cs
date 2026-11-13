@@ -22,10 +22,14 @@ namespace Arena
             t[(int)EnemyType.Needler] = EnemyType.SecurityGuard;
             t[(int)EnemyType.Bumble] = EnemyType.Thug;
             t[(int)EnemyType.Hornet] = EnemyType.Shiv;
+            // the Colossus's faction (QuarryFaction.cs) shares the table: its step-1 enemies play like these
+            t[(int)EnemyType.Rubble] = EnemyType.Rioter;
+            t[(int)EnemyType.Quarryman] = EnemyType.Guard;
+            t[(int)EnemyType.Stomper] = EnemyType.Thug;
             return t;
         }
 
-        /// The Warden enemy this one plays like (itself, for anything that isn't a Hive enemy).
+        /// The Warden enemy this one plays like (itself, for anything that isn't a Hive or Quarry enemy).
         public static EnemyType Of(EnemyType t) => table[(byte)t];
 
         public static bool Is(EnemyType t) => t >= EnemyType.Worker && t <= EnemyType.Hornet;

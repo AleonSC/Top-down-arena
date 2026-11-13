@@ -470,6 +470,15 @@ namespace Arena
         }
 
         static readonly List<Bullet> botThreats = new List<Bullet>();
+        static readonly List<StompRing> stompRings = new List<StompRing>();
+
+        /// Where a stomp ring's band will be in `t` s covers `p` (outside a gap): the Colossus's and a Stomper's.
+        static bool RingDanger(StompRing r, V2 p, float t, float pad)
+        {
+            float front = r.Radius + RingSpeed * Math.Max(0f, t - r.Warn), back = front - (GateRows - 1) * GateRowGap;
+            float dc = p.DistanceTo(r.Center);
+            return dc > back - pad && dc < front + pad && !InRingGap(r, p, pad);
+        }
 
         /// Tries the 8 WASD directions and standing still, and returns the one with
         /// the least predicted danger plus a small cost for being far from where we'd like to be.
@@ -556,6 +565,10 @@ namespace Arena
             // The Colossus's stomp rings, landings, fissures and charge (Colossus.cs).
             var col = TheColossus()?.Colossus;
             Enemy colossus = col != null ? TheColossus() : null;
+            stompRings.Clear();
+            foreach (var se in Enemies.Values)
+                if (se.Stomp != null && se.Type == EnemyType.Stomper)
+                    stompRings.Add(se.Stomp);  // Stompers' small rings (QuarryFaction.cs), read like the Colossus's
 
             // The Reapers' tether.
             Enemy twinA = null, twinB = null;
@@ -719,15 +732,14 @@ namespace Arena
                                 d += w * 3f;
                         }
                     }
+                    foreach (var r in stompRings)
+                        if (RingDanger(r, p, t, GateBulletR + hitR + sk.Margin + 6f))
+                            d += w * 2.5f;
                     if (col != null)
                     {
                         foreach (var r in col.Rings)  // where each ring's band will be by then, unless you're in a gap
-                        {
-                            float front = r.Radius + RingSpeed * Math.Max(0f, t - r.Warn), back = front - (GateRows - 1) * GateRowGap;
-                            float dc = p.DistanceTo(r.Center), pad = GateBulletR + hitR + sk.Margin + 6f;
-                            if (dc > back - pad && dc < front + pad && !InRingGap(r, p, pad))
+                            if (RingDanger(r, p, t, GateBulletR + hitR + sk.Margin + 6f))
                                 d += w * 2.5f;
-                        }
                         foreach (var dr in col.Drops)
                             if (dr.T + t + 0.2f >= dr.Dur && dr.Pos.DistanceTo(p) < dr.Radius + hitR + 8f)
                                 d += w * 3f;

@@ -1,0 +1,126 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using Arena;
+
+// The Colossus's faction, The Quarry, step 1 (Core/QuarryFaction.cs, Docs/Approaches.md "The Quarry"): Rubble plays like a
+// Rioter, the Quarryman like a Guard, the Stomper like a Thug that stomps out a small ring of push blocks with one gap.
+static partial class Program
+{
+    static void QuarryTest(float dt)
+    {
+        var np = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var kin = new Dictionary<EnemyType, EnemyType>
+        {
+            { EnemyType.Rubble, EnemyType.Rioter }, { EnemyType.Quarryman, EnemyType.Guard }, { EnemyType.Stomper, EnemyType.Thug },
+        };
+        Check(kin.All(k => HiveKin.Of(k.Key) == k.Value && QuarryKin.Is(k.Key) && !HiveKin.Is(k.Key)) && !QuarryKin.Is(EnemyType.Thug),
+            "each Quarry enemy plays like one Warden enemy (Rubble Rioter, Quarryman Guard, Stomper Thug)");
+        Check(new[] { EnemyType.Rubble, EnemyType.Quarryman }.All(t => { var a = Defs.Get(t); var b = Defs.Get(kin[t]); return a.Hp == b.Hp && a.Speed == b.Speed && a.Contact == b.Contact && a.Xp == b.Xp; }),
+            "Rubble and the Quarryman have their counterpart's health, speed, contact damage and XP");
+        Check(Defs.Get(EnemyType.Stomper).Hp > Defs.Get(EnemyType.Thug).Hp && Game.IsBrute(EnemyType.Stomper), "the Stomper is a tougher Brute (180 health)");
+        Check(kin.Keys.All(t => Game.EnemyNote(t).Length > 0 && BestiaryData.For(t) != null), "each has a Bestiary entry and a new-enemy note");
+
+        // --- Playing them: a solo host, one enemy at a time -------------------------------------------------------------------
+        Game.SeedForTests(4322);
+        var host = new Session { AutoStart = 1, StartWave = 1 };
+        host.Host(nextPort++, "Host", Role.Tank);
+        host.Diff.Set(DiffKnob.Campaign, 0f);
+        host.StartMatch();
+        var g = host.Game;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", np);
+        var queues = new[] { (IList)typeof(Game).GetField("spawnQueue", np).GetValue(g), (IList)typeof(Game).GetField("squadQueue", np).GetValue(g) };
+        Action Quiet = () => { foreach (var q in queues) q.Clear(); };
+        for (int f = 0; f < 60 * 20 && g.State != MatchState.Fighting; f++)
+            Step(host, dt);
+        Check(g.State == MatchState.Fighting, "the match started");
+        var me = g.Players[1];
+        Func<EnemyType, V2, Enemy> put = (t, at) =>
+        {
+            Quiet();
+            g.Enemies.Clear(); g.Bullets.Clear(); g.Patches.Clear();
+            me.Hp = me.MaxHp; me.StunT = 0f;
+            var e = (Enemy)spawn.Invoke(g, new object[] { t, at, 0f, 0, false });
+            e.SpawnT = 0f; e.Spawning = false; e.Elite = false; e.Traits = 0;
+            return e;
+        };
+        Action<float, Func<bool>> run = (secs, stop) => { for (int f = 0; f < secs * 60; f++) { Quiet(); Step(host, dt); if (stop != null && stop()) break; } };
+        me.Pos = me.Disp = new V2(900f, 400f);
+        g.DevSetGod(1, true);
+
+        foreach (var t in new[] { EnemyType.Rubble, EnemyType.Quarryman })
+        {
+            var e = put(t, new V2(300f, 400f));
+            float d0 = e.Pos.DistanceTo(me.Pos);
+            run(2f, null);
+            Check(e.Pos.DistanceTo(me.Pos) < d0 - 100f, "a " + Defs.Get(t).Name + " closes in on you");
+        }
+
+        // A Stomper out of range walks at you and doesn't stomp.
+        var far = put(EnemyType.Stomper, new V2(200f, 400f));
+        run(1.5f, null);
+        Check(far.Stomp == null && far.Pos.X > 240f, "a Stomper out of range walks at you without stomping");
+
+        // In range: it plants its feet with the gap showing, then the ring spreads, hurts you once and fades.
+        g.DevSetGod(1, false);
+        var sm = put(EnemyType.Stomper, new V2(720f, 400f));
+        sm.Hp = 1e6f;
+        run(0.5f, () => sm.Stomp != null);
+        Check(sm.Stomp != null && sm.Stomp.Warn > 0f && Game.StomperPlanted(sm), "within range it lifts its foot: the ring winds up");
+        V2 planted = sm.Pos;
+        float gapOff = Math.Abs(MathX.Fmod(sm.Stomp.Gap1 - (me.Pos - sm.Pos).Angle + MathX.Pi, MathX.Tau) - MathX.Pi);
+        Check(gapOff > 0.2f && gapOff < 1f, "its gap is a short step to one side of you (" + gapOff.ToString("0.00") + " rad)");
+        run(0.6f, () => sm.Stomp.Warn <= 0f);
+        Check(sm.Pos.DistanceTo(planted) < 1f, "it stands still while its foot is up");
+        float hp0 = me.Hp;
+        StompRing ring = sm.Stomp;
+        bool hit = false;
+        run(2f, () => { hit |= ring.Hit.Contains(me.Id); return sm.Stomp == null; });
+        Check(hit && me.Hp < hp0, "the ring passes over you outside the gap and hurts you once");
+        Check(sm.Stomp == null && Game.RingBack(ring) > Game.StomperReach, "the ring fades at StomperReach (" + Game.StomperReach + " px)");
+        Check(me.Pos.DistanceTo(planted) < Game.RingBack(ring) + 1f, "you end up behind the ring, not carried along");
+
+        // Standing in the gap, it passes you by.
+        var sg = put(EnemyType.Stomper, new V2(720f, 400f));
+        sg.Hp = 1e6f;
+        me.Pos = me.Disp = new V2(900f, 400f);
+        run(0.5f, () => sg.Stomp != null);
+        Check(sg.Stomp != null, "it stomps again");
+        float dist = me.Pos.DistanceTo(sg.Pos);
+        me.Pos = me.Disp = sg.Pos + V2.FromAngle(sg.Stomp.Gap1) * dist;  // step into the gap
+        hp0 = me.Hp;
+        var ring2 = sg.Stomp;
+        run(2f, () => sg.Stomp == null);
+        Check(!ring2.Hit.Contains(me.Id), "standing in the gap, the ring passes you by");
+        g.DevSetGod(1, true);
+        host.Leave("");
+
+        // --- The approach: the Colossus's faction in the waves before it -----------------------------------------------------
+        var fac = Approaches.For(EnemyType.Colossus);
+        Check(fac != null && fac.Members.Select(m => m.Type).SequenceEqual(new[] { EnemyType.Rubble, EnemyType.Quarryman, EnemyType.Stomper })
+            && fac.Squads.Any(s => s.Name == "Landslip"), "the Colossus has a faction: Rubble, Quarryman, Stomper, with the Landslip squad");
+        var build = typeof(Game).GetMethod("BuildWave", np);
+        var spawnQ = typeof(Game).GetField("spawnQueue", np);
+        var squadQ = typeof(Game).GetField("squadQueue", np);
+        var quarry = new HashSet<EnemyType>(fac.Members.Select(m => m.Type));
+        var seen = new HashSet<EnemyType>();
+        int colWave = BossSchedule.Campaign.NextBossWaveFrom(1);
+        for (int n = 1; n < 200 && BossSchedule.Campaign.BossAt(colWave) != EnemyType.Colossus; n++)
+            colWave = BossSchedule.Campaign.NextBossWaveFrom(colWave + 1);
+        Check(BossSchedule.Campaign.BossAt(colWave) == EnemyType.Colossus, "the Campaign has a Colossus wave (" + colWave + ")");
+        for (int n = colWave - 4; n < colWave; n++)
+        {
+            Game.SeedForTests(9100 + n);
+            var cg = new Session().Game;
+            cg.Wave = n;
+            build.Invoke(cg, new object[] { n });
+            var q = (List<EnemyType>)spawnQ.GetValue(cg);
+            var sq = (List<SquadDef>)squadQ.GetValue(cg);
+            foreach (var t in q.Concat(sq.SelectMany(x => x.Members)).Where(quarry.Contains))
+                seen.Add(t);
+        }
+        Console.WriteLine("  seen before wave " + colWave + ": " + string.Join(", ", seen));
+        Check(seen.SetEquals(quarry), "the waves before the Colossus bring Rubble, Quarrymen and Stompers");
+    }
+}

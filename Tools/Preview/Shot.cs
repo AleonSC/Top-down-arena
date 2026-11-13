@@ -383,6 +383,20 @@ static partial class Shot {
       }
       hg.AnimT += float.Parse(Environment.GetEnvironmentVariable("HIVE"), System.Globalization.CultureInfo.InvariantCulture);
     }
+    if (Environment.GetEnvironmentVariable("QUARRY") != null) {  // QUARRY=<s into the clock>: the Colossus's step-1 faction (QuarryLook.cs): two Rubble, a Quarryman swinging at you, a Stomper walking, one lifting its foot (gap showing) and one whose ring is out; set beside Docs/Mockups/colossus-faction.html
+      var qg = host.Game; qg.Enemies.Clear(); qg.Bullets.Clear();
+      var qsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, float, Enemy> qput = (t, at, face) => { var e = (Enemy)qsp.Invoke(qg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Facing = face; e.Elite = false; e.Traits = 0; return e; };
+      me.Pos = me.Disp = new V2(1450f, 820f);
+      qput(EnemyType.Rubble, new V2(260f, 250f), 0f); qput(EnemyType.Rubble, new V2(300f, 330f), 0f);
+      qput(EnemyType.Quarryman, new V2(560f, 330f), 0f);
+      qput(EnemyType.Stomper, new V2(900f, 300f), MathX.Pi);
+      var sw = qput(EnemyType.Stomper, new V2(420f, 640f), 0f);
+      sw.Stomp = new StompRing { Center = sw.Pos, Radius = sw.Radius + 6f, Warn = 0.3f, Gap1 = -0.5f };
+      var so = qput(EnemyType.Stomper, new V2(980f, 660f), MathX.Pi);
+      so.Stomp = new StompRing { Center = so.Pos, Radius = 150f, Warn = 0f, Gap1 = MathX.Pi - 0.4f };
+      qg.AnimT += float.Parse(Environment.GetEnvironmentVariable("QUARRY"), System.Globalization.CultureInfo.InvariantCulture);
+    }
     if (Environment.GetEnvironmentVariable("LUNGE") != null) {  // LUNGE=<0-1>: the four lungers part-way through their wind-up (LungeLaneLook.cs); the lane fills with the client's clock, so draw once, then move it on
       var lg = host.Game; lg.Enemies.Clear(); lg.Bullets.Clear();
       var lsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

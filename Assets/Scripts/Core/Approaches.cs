@@ -182,6 +182,21 @@ namespace Arena
             },
             new FactionDef
             {
+                Boss = EnemyType.Colossus,  // the Colossus: The Quarry, its crew and the stone that broke off it (QuarryFaction.cs); step 1 of 4 (Docs/Approaches.md)
+                Members = new[]
+                {
+                    new FactionMember { Type = EnemyType.Rubble, Weight = 3f },
+                    new FactionMember { Type = EnemyType.Quarryman, NotFirst = true, Weight = 2f },
+                    new FactionMember { Type = EnemyType.Stomper, Fade = 2, Weight = 1.5f, From = 2 },  // a Thug that stomps out a small push ring
+                },
+                Squads = new[]
+                {
+                    new SquadDef { Name = "Landslip", From = 1, Members = new[] { EnemyType.Quarryman, EnemyType.Rubble, EnemyType.Rubble, EnemyType.Rubble, EnemyType.Rubble, EnemyType.Rubble, EnemyType.Rubble } },
+                    new SquadDef { Name = "Rockfall", From = 3, Members = new[] { EnemyType.Stomper, EnemyType.Rubble, EnemyType.Rubble, EnemyType.Rubble } },  // until the Driller makes it the Quarry squad
+                },
+            },
+            new FactionDef
+            {
                 Boss = EnemyType.Lich,  // the Lich: the restless dead, the same zombies as Zombie Infection (Zombies.cs); they don't get back up outside that modifier
                 Members = new[]
                 {
