@@ -966,7 +966,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   - **Wall Bounce**: your shots bounce off walls and pillars once instead of stopping, keeping 70% of their damage (homing turns off after the bounce).
     Enemy shots, grenades and other lobbed shots, stuck shuriken and Bone Spears don't bounce.
 - **Rule nodes** (in progress, Docs/RuleRooms.md): every boss cycle also places a **rule node** (an orange square, 8 x 8 tiles, off to the left or right of the
-  map). Only a room that **encloses all of it** (at least 9 x 9 tiles) claims it, so it forces a big room. Each carries one rule: Dark, Frozen, Blood Moon,
+  map). Only a room that **encloses all of it** (at least 9 x 9 tiles; a drawn outline of any shape counts as one room) claims it, so it forces a big room. Each carries one rule: Dark, Frozen, Blood Moon,
   Burning, Swarm or Elite. The room you build round it takes that path's ground and rule **in that room only** (Dark: you only see about 350 px round you; Frozen: ice;
   Blood Moon: no regeneration or orbs, kills heal; Burning: fire patches; Swarm: a doubled melee crowd; Elite: a doubled all-elite crowd). Clear a wave there and it pays:
   a **chest** (Dark, Burning, Swarm, Elite), a **relic** to walk up to (Blood Moon) or **gold and vectors** at once (Frozen).
