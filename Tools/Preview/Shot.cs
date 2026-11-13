@@ -335,6 +335,9 @@ static partial class Shot {
       pput(EnemyType.Grunt, b.Pos + fwd * 55f + fwd.Orthogonal() * 18f).Facing = b.Facing;
       pput(EnemyType.Swarmer, b.Pos + fwd * 110f - fwd.Orthogonal() * 20f).Facing = b.Facing;
       pput(EnemyType.Grunt, b.Pos + fwd * 170f + fwd.Orthogonal() * 6f).Facing = b.Facing;
+      if (Environment.GetEnvironmentVariable("PORTALSURGE") != null) foreach (var o in new[] { a, b, c }) o.Winding = true;  // PORTALSURGE=1: a surge is on (faster chase, more bits)
+      var sealAt = Environment.GetEnvironmentVariable("PORTALSEAL");  // PORTALSEAL=<0-1>: a portal shot closed that far through its flash, by the opening one
+      if (sealAt != null) pg.Effects.Add(new Effect { Kind = FxKind.PortalSeal, Pos = new V2(1050f, 330f), Color = new Rgba(0.78f, 0.35f, 1f), Radius = d.Radius, Dur = SpawnPortals.SealFx, T = SpawnPortals.SealFx * float.Parse(sealAt, System.Globalization.CultureInfo.InvariantCulture) });
       Time.time = 100f;
     }
     if (Environment.GetEnvironmentVariable("TAGS") != null) {  // TAGS=1: a set of enemies on first sight, each with its name tag (EnemyTagLook.cs); a fresh profile, so nothing is saved to yours

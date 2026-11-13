@@ -71,6 +71,9 @@ namespace Arena
                     Arc(fx.Pos, fx.Radius, 2f, fx.Color.WithAlpha(0.5f), 32);
                     Arc(fx.Pos, fx.Radius * (1.8f - 0.8f * f), 2f, fx.Color.WithAlpha(0.3f + 0.5f * f), 32);
                     break;
+                case FxKind.PortalSeal:
+                    DrawPortalSeal(fx, f);  // SpawnPortalLook.cs
+                    break;
                 case FxKind.GasLob:
                     DrawGasLobFx(fx, t);  // GasLobLook.cs
                     break;

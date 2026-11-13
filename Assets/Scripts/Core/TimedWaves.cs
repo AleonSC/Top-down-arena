@@ -122,6 +122,7 @@ namespace Arena
             int due = (int)Math.Ceiling(TimedWaves.Share(x) * timedTotal);
             if (PortalsOn)
             {
+                portalSurge = TimedWaves.InSurge(x);  // portals look busier in a surge (TickPortals)
                 TickPortalSpawn(due - spawned, cap - Foes() - PortalCargoCount(), x);  // in bursts, through portals (SpawnPortals.cs)
                 return;
             }
