@@ -273,3 +273,19 @@ Built (owner approved all ten): in `Game.SoldierCards`. Hooks: `PointBlankMult` 
 `TickSpinUp`, `DbReload` and `Game.DbFullOf` (and the pellets' fade in `DoubleBarrelLook.cs`). The 4th-key Double
 Barrel has no recoil, so Quick Loader's second effect became a longer full-damage range. Test: suite `abilitycards`,
 its Soldier checks.
+
+### Step 12: Elementalist weapon cards (proposed, owner picks)
+
+One Rare card per Elementalist weapon (`Weapons = { that weapon }`, `MaxStacks = 2`), offered only while you hold it.
+
+| Weapon | Card | Effect (per stack) |
+|---|---|---|
+| Flamethrower | Napalm | The stream reaches 15% farther, and its burn is 40% hotter |
+| Frost Lance | Glacier | The icicle is 20% longer, and its slow is 15% stronger (30% → 45%) |
+| Storm Hammer | Thunderhead | The hammer's lightning arcs to 1 more enemy, and its arcs hit 40% harder |
+| Radiant Orb | Sunstone | The orb is 30% bigger and heals 30% more |
+| Chain Light | Prism | The cone reaches 20% farther and is 20° wider |
+| Nimbus | Cloudburst | The rain circle is 30% wider and heals 30% more |
+| Fireball | Wildfire | The burn is 50% hotter and lasts 1 s longer |
+| Arc Lightning | Static Field | A full charge comes 25% sooner, and the stun lasts 0.2 s longer |
+| Ice Shards | Frozen Halo | The orbit holds 2 more shards, and they launch at enemies 25% farther out |
