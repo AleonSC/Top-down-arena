@@ -147,28 +147,9 @@ namespace Arena
                     TickRisers(dt);  // Zombie Infection's dead getting back up (Zombies.cs)
                     TickDesign(dt);  // a designed wave's groups arriving on their timers (WaveDesign.cs)
                     TickRoomsWave(dt);  // the Rooms arena's nests, spills and cleared rooms (Rooms.cs)
-                    if ((spawnQueue.Count > 0 || squadQueue.Count > 0) && RoomsOn && Rooms.RoomByRoom && !RoomsSpawnReady())
-                        spawnTimer = Math.Max(spawnTimer, 0.3f);  // every room full (or every nest down: the rest is called off)
-                    else if ((spawnQueue.Count > 0 || squadQueue.Count > 0) && TickTimedSpawn(dt))
+                    if (TickSpawning(dt))
                     {
-                        // (a timed wave: TimedWaves.cs)
-                    }
-                    else if (spawnQueue.Count > 0 || squadQueue.Count > 0)
-                    {
-                        spawnTimer -= dt;
-                        float next = WaveNumbers.SpawnInterval(Wave);
-                        if (spawnTimer <= 0f && ZombieSpawnReady(ref next))  // (a horde comes faster, up to its cap)
-                        {
-                            spawnTimer = next;
-                            if (SpawnNextSquad())  // a squad comes after every few single enemies (Variety.cs)
-                                spawnTimer *= WaveNumbers.SquadPause;
-                            else
-                            {
-                                SpawnEnemy(spawnQueue[0]);
-                                spawnQueue.RemoveAt(0);
-                                singlesSinceSquad++;
-                            }
-                        }
+                        // (the wave's queue is still coming in: Spawner.cs)
                     }
                     else if (FoesOutsideVault() == 0 && PropsHoldWave())
                         HoldForTreasure();  // an unopened chest or an item left: the wave waits for it (Props.cs)
@@ -190,9 +171,7 @@ namespace Arena
                     }
                     break;
             }
-            Remaining = spawnQueue.Count + Foes() + risers.Count + DesignPending + PortalCargoCount();
-            foreach (var sq in squadQueue)
-                Remaining += sq.Members.Length;
+            Remaining = PendingEnemies();
         }
 
         void WaveCleared()

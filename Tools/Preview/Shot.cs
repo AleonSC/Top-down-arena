@@ -362,6 +362,27 @@ static partial class Shot {
       var kinds = new[] { EnemyType.Rioter, EnemyType.Thug, EnemyType.Brute, EnemyType.Shiv, EnemyType.Lunger };
       for (int k = 0; k < kinds.Length; k++) { var e = (Enemy)rsp.Invoke(rg, new object[] { kinds[k], new V2(300f + 120f * k, 300f), 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Facing = 0f; }
     }
+    if (Environment.GetEnvironmentVariable("HIVE") != null) {  // HIVE=<s into the clock>: the eight Hive enemies in two rows (HiveLook.cs): the Stinger charging with a dart in flight, the Needler with a few rounds left, the Hornet winding up; set beside Docs/Mockups/hive-faction.html
+      var hg = host.Game; hg.Enemies.Clear(); hg.Bullets.Clear();
+      var hsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      me.Pos = me.Disp = new V2(1200f, 900f);
+      var hk = new[] { EnemyType.Worker, EnemyType.Soldier, EnemyType.CombShield, EnemyType.HoneyLobber, EnemyType.Stinger, EnemyType.Needler, EnemyType.Bumble, EnemyType.Hornet };
+      for (int k = 0; k < hk.Length; k++) {
+        var e = (Enemy)hsp.Invoke(hg, new object[] { hk[k], new V2(300f + 220f * (k % 4), 260f + 240f * (k / 4)), 0f, 0, false });
+        e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Facing = 0f;
+        if (hk[k] == EnemyType.Stinger) e.Winding = true;
+        if (hk[k] == EnemyType.Needler) e.Phase = 5;
+        if (hk[k] == EnemyType.Hornet) { e.Phase = 1; e.PhaseT = 0.5f; }
+      }
+      hg.Bullets[9001] = new Bullet { Id = 9001, Kind = Defs.StingBolt, Pos = new V2(640f, 500f), Vel = new V2(260f, 0f), Radius = 7f, Dmg = 8f };
+      var lobber = System.Linq.Enumerable.First(hg.Enemies.Values, q => q.Type == EnemyType.HoneyLobber);
+      if (Environment.GetEnvironmentVariable("HIVELOB") != null) {  // HIVELOB=<s into the lob>: the Honey Lobber's ring, then the glob in flight (throw at 1.2 s, lands at 2.1 s); a puddle lands there too
+        float la = float.Parse(Environment.GetEnvironmentVariable("HIVELOB"), System.Globalization.CultureInfo.InvariantCulture);
+        hg.Effects.Add(new Effect { Kind = FxKind.GasLob, Pos = lobber.Pos + new V2(230f, 40f), Pos2 = new V2(lobber.Id, 0.9f), Color = new Rgba(1f, 0.77f, 0.2f), Radius = 55f, Dur = 2.1f, T = la });
+        lobber.Winding = la < 1.2f;
+      }
+      hg.AnimT += float.Parse(Environment.GetEnvironmentVariable("HIVE"), System.Globalization.CultureInfo.InvariantCulture);
+    }
     if (Environment.GetEnvironmentVariable("LUNGE") != null) {  // LUNGE=<0-1>: the four lungers part-way through their wind-up (LungeLaneLook.cs); the lane fills with the client's clock, so draw once, then move it on
       var lg = host.Game; lg.Enemies.Clear(); lg.Bullets.Clear();
       var lsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

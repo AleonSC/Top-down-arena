@@ -89,9 +89,7 @@ namespace Arena
             var first = spawnQueue[0];
             if (first == EnemyType.Nest || Defs.Get(first).IsBoss)
             {
-                SpawnEnemy(first);  // (a Nest picks its own spot in the arena)
-                spawnQueue.RemoveAt(0);
-                singlesSinceSquad++;
+                SpawnNextSingle();  // (a Nest picks its own spot in the arena)
                 return;
             }
             int open = PortalsOpen();

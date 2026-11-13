@@ -18,7 +18,7 @@ namespace Arena
         {
             windUp = reach = 0f;
             winding = false;
-            switch (e.Type)
+            switch (e.Kin)
             {
                 case EnemyType.Lunger: case EnemyType.Shiv: windUp = 0.6f; reach = 230f; winding = e.Phase == 1; return true;
                 case EnemyType.ScytheWraith: windUp = Game.ScytheMark; reach = Game.ScytheSpeed * Game.ScytheDash + 20f; winding = e.Phase == 1; return true;  // its mark (ReaperFaction.cs)

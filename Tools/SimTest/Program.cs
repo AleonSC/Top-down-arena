@@ -318,6 +318,8 @@ static partial class Program
         Test("showcase", "the lobby's loadout preview", () => ShowcaseTest(Dt)),
         Test("knight", "the Knight", () => KnightTest(Dt)),
         Test("knightdps", "the DPS Knight's Caught Steel, Gauntlet, Misericorde and Drawbridge", () => KnightDpsTest(Dt)),
+        Test("hive", "the Hive Queen's faction: eight enemies that play like the Warden's, honey instead of gas, the venom dart, and the chart in waves 11-20", () => HiveTest(Dt)),
+        Test("spawndump", "the spawner refactor's safety net: the first waves of a few modes played headless, every arrival compared with Golden/spawndump.txt (WAVEDUMP=update rewrites it)", () => SpawnDumpTest()),
         Test("wavedump", "the refactor safety net: every mode's waves built on fixed seeds, compared with Golden/wavedump.txt (WAVEDUMP=update rewrites it)", () => WaveDumpTest()),
         Test("bossslot", "the boss between waves: it follows every fifth regular wave and keeps its number; paths, saves and the Lab start", () => BossSlotTest(Dt)),
         Test("phalanx", "Bone Phalanx (the Tank Summoner's second ultimate) and the lobby's Ultimate pick", () => PhalanxTest(Dt)),
@@ -439,6 +441,7 @@ static partial class Program
         new Suite { Name = "session", What = "session recording (run.sh 1 30 session [copy-to])", Run = args =>
             Seeded("session", () => { var path = SessionTest(Dt); if (args.Length > 3 && path != null) File.Copy(path, args[3], true); }) },
         // Reports and debug tools (no pass/fail).
+        Report("chartcheck", "the Campaign's shown waves 1-20 next to the chart in Docs/Approaches.md", args => ChartCheckReport()),
         Report("ttk", "boss time-to-kill over a full run (run.sh 1 1 ttk [last wave])", args => BossTtk(Dt, Arg(args, 3, 50))),
         Report("lab", "Boss Lab batch (run.sh 1 1 lab <wave> <skill 1-3> <runs> <seat> [seat] [seat])",
             args => LabRun(int.Parse(args[3]), (BotSkill)int.Parse(args[4]), int.Parse(args[5]), args.Skip(6).ToArray())),
@@ -469,7 +472,7 @@ static partial class Program
         "trickle", "meleesounds", "grunts", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops",
         "exploit", "doublebarrel", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
         "expand", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
-        "newenemies", "wildcard", "stacking", "singularity", "security", "wavedump", "reapercult",
+        "newenemies", "wildcard", "stacking", "singularity", "security", "wavedump", "spawndump", "hive", "reapercult",
     };
 
     static int Main(string[] args)
