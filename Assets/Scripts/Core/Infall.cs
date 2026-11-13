@@ -59,7 +59,78 @@ namespace Arena
         public const int AccretionSlots = 14;
         public static readonly int[] AccretionGaps = { 3, 10 };
 
-        sealed class AccretionRing { public V2 Center; public float Spin0; public int Size; }
+        sealed class AccretionRing { public V2 Center; public float Spin0; public int Size; public bool Seen, Broken; }
+
+        /// A ring still closing in, for drawing its band and for the bots (the host fills it each tick; clients from the snapshot).
+        public struct AccretionBand { public V2 Center; public float Radius, Spin; }
+        public readonly System.Collections.Generic.List<AccretionBand> AccretionBands = new System.Collections.Generic.List<AccretionBand>();
+
+        /// Host, before the enemies move: the bands are drawn afresh from the rings' members this tick.
+        void PrepareAccretion()
+        {
+            AccretionBands.Clear();
+            foreach (var r in accretionRings.Values)
+                r.Seen = false;
+        }
+
+        /// The snapshot's ring block: each closing ring's middle, radius and turn.
+        void SyncAccretion(NetSync s)
+        {
+            int n = AccretionBands.Count;
+            s.Byte(ref n);
+            if (s.Reading)
+                AccretionBands.Clear();
+            for (int i = 0; i < n; i++)
+            {
+                var b = s.Reading ? new AccretionBand() : AccretionBands[i];
+                s.Vec(ref b.Center);
+                s.Float(ref b.Radius);
+                s.Float(ref b.Spin);
+                if (s.Reading)
+                    AccretionBands.Add(b);
+            }
+        }
+
+        /// Whether an angle round a ring falls in one of its open slots.
+        public static bool InAccretionGap(AccretionBand b, float ang)
+        {
+            float slotF = MathX.Fmod(ang - b.Spin, MathX.Tau) / (MathX.Tau / AccretionSlots);
+            int slot = ((int)Math.Round(slotF)) % AccretionSlots;
+            return Array.IndexOf(AccretionGaps, slot) >= 0;
+        }
+
+        /// Bots (BotBrain.cs): how dangerous standing at p is because of the Infall, beyond its bullets and bodies. A White Dwarf
+        /// about to pulse, a Small Well or an Implosion pulling, and a closing Accretion ring's band (its gaps are safe, and
+        /// inside a small ring is worse than outside it).
+        public float InfallBotDanger(Enemy e, V2 p, float hitR)
+        {
+            float d = p.DistanceTo(e.Pos);
+            switch (e.Type)
+            {
+                case EnemyType.WhiteDwarf:
+                    return e.Phase == 1 && d < WhitePushRange + hitR + 20f ? 2.5f : 0f;
+                case EnemyType.MiniWell:
+                    return d < MiniWellDriftRange * 0.55f ? 1.2f * (1f - d / (MiniWellDriftRange * 0.55f)) + 0.3f : 0f;
+                case EnemyType.Implosion:
+                    return d < ImplosionDriftRange * 0.7f ? 2.5f : 0f;
+            }
+            return 0f;
+        }
+
+        public float AccretionBotDanger(V2 p, float hitR)
+        {
+            float danger = 0f;
+            foreach (var b in AccretionBands)
+            {
+                V2 to = p - b.Center;
+                float dr = to.Length;
+                if (Math.Abs(dr - b.Radius) < 40f + hitR && !InAccretionGap(b, to.Angle))
+                    danger += 2.5f;  // on the band, away from a gap
+                else if (dr < b.Radius - 40f)
+                    danger += 0.8f * (1f - b.Radius / AccretionStart) + 0.2f;  // inside: get out while the gaps are open
+            }
+            return danger;
+        }
         readonly System.Collections.Generic.Dictionary<int, AccretionRing> accretionRings = new System.Collections.Generic.Dictionary<int, AccretionRing>();  // host: by squad id
 
         /// The ring slot of a squad's i-th member: the slots in order, skipping the gaps.
@@ -94,10 +165,18 @@ namespace Arena
         V2 AccretionMove(Enemy e, System.Collections.Generic.List<Enemy> mates, V2 v)
         {
             var ring = accretionRings[e.SquadId];
-            if (e.T > AccretionLife || mates.Count * 2 < ring.Size)
+            if (ring.Broken || e.T > AccretionLife || mates.Count * 2 < ring.Size)
+            {
+                ring.Broken = true;  // broken up: everyone its own way, and no band
                 return v;
+            }
             float t = Math.Max(0f, e.T - 0.9f);  // (from when it has spawned in)
             float radius = Math.Max(AccretionEnd, AccretionStart - AccretionClose * t);
+            if (!ring.Seen)
+            {
+                ring.Seen = true;
+                AccretionBands.Add(new AccretionBand { Center = ring.Center, Radius = radius, Spin = ring.Spin0 + AccretionSpin * t });
+            }
             return GoalVel(e, ClampToArena(AccretionPoint(ring.Center, ring.Spin0 + AccretionSpin * t, AccretionSlot(e.SquadSlot), radius), 30f));
         }
 

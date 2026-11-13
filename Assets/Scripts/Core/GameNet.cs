@@ -405,6 +405,7 @@ namespace Arena
             SyncInk(s);      // Chalk.cs: everyone's spirit ink
             SyncHazards(s);  // LateGame.cs
             SyncCages(s);    // Singularity.cs
+            SyncAccretion(s);  // the Accretion rings' bands (Infall.cs)
 
             count = Orbs.Count;
             s.Short(ref count);

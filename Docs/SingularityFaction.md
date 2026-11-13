@@ -55,3 +55,11 @@ Hive's bees, these have their own behaviour: each one previews one thing the Sin
   16 rad/s at the lens); it turns 1.3 rad/s.
 - White Dwarf: 40 health, 230 px/s, radius 9, contact 10, a Disruptor. Flash 0.5 s within 120 px; the pulse shoves players within 170 px back 150 px
   and turns up to 10 of their shots within 150 px into its own (260 px/s, 14 each); then 1.5 s backing off.
+
+## The ring's band and bots
+
+- The host keeps an `AccretionBand` (middle, radius, turn) for each ring still closing (`PrepareAccretion` clears them each tick, `AccretionMove`
+  adds one per ring); the snapshot sends them (`SyncAccretion`), and every game draws a violet band through the ring's slots with the gaps dark,
+  green-edged and marked with chevrons (`DrawAccretionBands`, under the enemies).
+- Bots (`BotBrain.cs`): `InfallBotDanger` (a White Dwarf flashing within its pulse, a Small Well's pull, an Implosion) and `AccretionBotDanger`
+  (the band away from a gap, and inside a small ring) add to the danger of each move they weigh.

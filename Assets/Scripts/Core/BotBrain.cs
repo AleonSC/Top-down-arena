@@ -672,6 +672,8 @@ namespace Arena
                     foreach (var th in botThreads)
                         if (SegmentDistance(p, th.A, th.B) < StitchWidth / 2f + hitR + sk.Margin + 4f)
                             d += w * 2.5f;
+                    if (AccretionBands.Count > 0)
+                        d += w * AccretionBotDanger(p, hitR);  // a closing Accretion ring: out through a gap (Infall.cs)
                     foreach (var e in Enemies.Values)  // a Beam Sentry's beam, a Reaver's rake (Variety.cs)
                     {
                         // The enemies that don't shoot (NonShooters.cs): a lit fuse's blast, the Hookman's line, pods and their lasers.
@@ -697,6 +699,8 @@ namespace Arena
                         }
                         else if (PulsarLocked(e) && PulsarBeamDistance(e, p) < hitR + 40f)
                             d += w * 2.5f;  // a Pulsar's beams, flickering or sweeping (Infall.cs)
+                        else if (IsInfall(e.Type))
+                            d += w * InfallBotDanger(e, p, hitR);  // a White Dwarf's pulse, a Small Well, an Implosion (Infall.cs)
                         else if (e.Kin == EnemyType.RiotShield && (RiotState(e) == RiotWinding || RiotState(e) == RiotLunging))
                         {
                             // A Riot Shield about to bash: get out from in front of the shield (WardenFaction.cs).
