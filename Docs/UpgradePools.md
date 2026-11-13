@@ -282,7 +282,7 @@ One Rare card per Elementalist weapon (`Weapons = { that weapon }`, `MaxStacks =
 |---|---|---|
 | Flamethrower | Napalm | The stream reaches 15% farther, and its burn is 40% hotter |
 | Frost Lance | Glacier | The icicle is 20% longer, and its slow is 15% stronger (30% → 45%) |
-| Storm Hammer | Thunderhead | The hammer's lightning arcs to 1 more enemy, and its arcs hit 40% harder |
+| Storm Hammer | Stormcaller | The hammer's lightning arcs to 1 more enemy, and its arcs hit 40% harder |
 | Radiant Orb | Sunstone | The orb is 30% bigger and heals 30% more |
 | Chain Light | Prism | The cone reaches 20% farther and is 20° wider |
 | Nimbus | Cloudburst | The rain circle is 30% wider and heals 30% more |
