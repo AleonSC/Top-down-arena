@@ -1224,6 +1224,7 @@ namespace Arena
                 case EnemyType.Heliograph:
                 case EnemyType.Moonward:
                 case EnemyType.Gnomon:
+                case EnemyType.Nova:
                     PenumbralSpecial(e, tpos, dt);  // Penumbral.cs
                     break;
             }

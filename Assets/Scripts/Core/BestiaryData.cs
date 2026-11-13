@@ -276,6 +276,21 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Sickle, Name = "Sickle", Group = "Shooters", Wave = 48,
+                Appears = "The Eclipse's approach (waves 48-49), alone or in a Moon court",
+                Lead = "Keeps 240 px away and strafes. Every 2.4 s it winds up for 0.6 s, then throws a crescent blade that leaves to one side, loops through where you stand and comes back round to it. Dodge it twice.",
+                Attacks = new[] { new BestiaryAttack { Name = "Crescent", Pattern = "A loop through you and back", Shot = "Crescent", ShotColor = new Rgba(0.89f, 0.83f, 1f), Speed = "300", Damage = "21", Every = 2.4f } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Nova, Name = "Nova", Group = "Melee", Wave = 48,
+                Appears = "The Eclipse's approach (waves 48-49)",
+                Lead = "A small unstable star that darts in zigzagging. Within 140 px it lights a 3 s fuse and hangs about you, slowly; while lit it takes 50% more damage. Then it goes nova: 30 to everyone within 110 px. Burst it or back off.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "10" },
+                    new BestiaryAttack { Name = "Nova", Pattern = "3 s fuse, then a 110 px burst", Damage = "30", Fixed = true } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.Graviton, Name = "Graviton", Group = "Shooters", Wave = 17,
                 Appears = "The Singularity's approach (waves 17-19), alone or in a Gravity trap squad",
                 Lead = "Keeps 320 px away. Every 6 s it plants its feet for 0.6 s, a ring marks a spot near you, and 0.8 s later a Small Well lands there: for 4 s it drags you toward it (80 px/s at its middle, 240 px out) and bends your shots into it. Get clear, or shoot the well (30 health). A new lob takes its old well away.",

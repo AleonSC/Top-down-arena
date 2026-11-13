@@ -903,6 +903,8 @@ namespace Arena
                 dmg *= DuelOpenMult;  // a parried salute left the Duelist open (Duelist.cs)
             if (EclipseExposed(e))
                 dmg *= TotalityMult;  // the Eclipse's Totality (Eclipse.cs)
+            if (NovaLit(e))
+                dmg *= NovaLitMult;  // a Nova with its fuse lit (Penumbral.cs)
             if (ReaverIsOpen(e))
                 dmg *= ReaverOpenMult;  // just swiped (Variety.cs)
             if (HookIsOpen(e))

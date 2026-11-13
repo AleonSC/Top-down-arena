@@ -21,6 +21,13 @@ namespace Arena
     ///   Dusk Lobber (the Umbra): plays like a Gas Grenadier (HiveKin.cs), but its lob lands as a pool of dark (PatchKind.Dusk,
     ///     DuskPoolR, DuskLife s) that drains DuskDps (TickPenumbral) and hides what's in it beyond DuskSight of each player
     ///     (Game/PenumbralLook.cs).
+    /// Step 3 adds two:
+    ///   Sickle (Crescents): keeps SickleRange; winds up SickleWindUp s, then throws a crescent blade (Defs.CrescentShot,
+    ///     the Eclipse's) on a loop that leaves to one side, passes through where you stand and comes back round to it
+    ///     (SickleThrow: the boss's ThrowCrescent, smaller and slower).
+    ///   Nova (Totality): melee, darts in weaving; within NovaLight it lights a NovaFuse s fuse (Phase 1: it hovers
+    ///     NovaHover px off you, slowed, and takes NovaLitMult damage), then goes nova: NovaBlastDamage to everyone within
+    ///     NovaBlastR, and it's gone (no kill credit).
     public partial class Game
     {
         public const float EmberWeave = 0.55f, EmberSparkEvery = 0.2f, EmberSparkLife = 1.5f, EmberSparkDrift = 25f, EmberSparkRange = 650f;
@@ -37,7 +44,14 @@ namespace Arena
         public const float DuskPoolR = 90f, DuskLife = 4f, DuskDps = 6f, DuskSight = 40f;
         static readonly Rgba DuskColor = new Rgba(0.61f, 0.48f, 1f);
 
-        public static bool IsPenumbral(EnemyType t) => t >= EnemyType.Ember && t <= EnemyType.Heliograph || t >= EnemyType.Moonward && t <= EnemyType.DuskLobber;
+        public const float SickleRange = 240f, SickleEvery = 2.4f, SickleWindUp = 0.6f, SickleSpeed = 300f, SickleLoopMin = 150f;
+        public const float NovaLight = 140f, NovaFuse = 3f, NovaBlastR = 110f, NovaHover = 60f, NovaLitSpeed = 0.35f, NovaLitMult = 1.5f;
+        float NovaBlastDamage => 30f;
+
+        public static bool IsPenumbral(EnemyType t) => t >= EnemyType.Ember && t <= EnemyType.Heliograph || t >= EnemyType.Moonward && t <= EnemyType.Nova;
+
+        /// A Nova with its fuse lit: it takes NovaLitMult damage (Combat.cs).
+        public static bool NovaLit(Enemy e) => e.Type == EnemyType.Nova && e.Phase == 1;
 
         /// The Gnomon keeps its slab's line while its lantern swells and flashes.
         public static bool GnomonLocked(Enemy e) => e.Type == EnemyType.Gnomon && (e.Phase == 1 || e.Phase == 2);
@@ -76,6 +90,16 @@ namespace Arena
                     if (GnomonLocked(e))
                         return V2.Zero;  // planted while its lantern swells and flashes
                     break;
+                case EnemyType.Sickle:
+                    return KeepDistance(dir, dist, SickleRange) + dir.Orthogonal() * e.Strafe * 0.6f;
+                case EnemyType.Nova:
+                    if (e.Phase == 1)
+                    {
+                        speed *= NovaLitSpeed;  // lit: it hangs about you, slowly, so you can back off
+                        return KeepDistance(dir, dist, NovaHover) + dir.Orthogonal() * e.Strafe * 0.5f;
+                    }
+                    float w = 0.6f * (float)Math.Sin(e.T * 7f + e.Id) * MathX.Clamp01(dist / 160f);
+                    return dir * (float)Math.Cos(w) + dir.Orthogonal() * (float)Math.Sin(w);  // a darting zigzag
             }
             return dir;
         }
@@ -90,6 +114,36 @@ namespace Arena
                 e.Facing = MathX.Fmod(e.Facing + MathX.Tau / MoonwardTurn * dt, MathX.Tau);  // the moon goes round
             else if (e.Type == EnemyType.Gnomon)
                 GnomonStep(e, tpos, dt);
+            else if (e.Type == EnemyType.Nova)
+                NovaStep(e, tpos, dt);
+        }
+
+        void NovaStep(Enemy e, V2 tpos, float dt)
+        {
+            if (e.Phase == 0)
+            {
+                if (tpos.DistanceTo(e.Pos) < NovaLight && e.SpawnT <= 0f && e.T > 0.5f)
+                {
+                    e.Phase = 1;
+                    e.PhaseT = NovaFuse;
+                    BroadcastFx(FxKind.Target, e.Pos, e.Def.Color, NovaBlastR, NovaFuse, Sfx.BossCharge);
+                }
+                return;
+            }
+            e.PhaseT -= dt;
+            if (e.PhaseT > 0f)
+                return;
+            foreach (var p in Players.Values)
+            {
+                if (p.Downed || p.InvulnT > 0f || p.Pos.DistanceTo(e.Pos) > NovaBlastR + p.Def.HitR)
+                    continue;
+                if (p.ParryActive && ParryContact(p, e, NovaBlastDamage))
+                    continue;  // a raised guard facing it takes it
+                Damage(p, NovaBlastDamage, e.Def.Name + " (nova)");
+            }
+            BroadcastFx(FxKind.Boom, e.Pos, e.Def.Color, NovaBlastR, 0.4f, Sfx.Explode);
+            e.LastHitBy = 0;  // no kill credit for going nova
+            e.Hp = 0f;
         }
 
         void GnomonStep(Enemy e, V2 tpos, float dt)
@@ -244,8 +298,26 @@ namespace Arena
                     e.FireT = PriestEvery;
                     CoronaRing(e, aim);
                     return true;
+                case EnemyType.Sickle:
+                    e.FireT = SickleEvery;
+                    SickleThrow(e, tpos, e.Strafe >= 0f ? 1 : -1);
+                    return true;
             }
             return false;
+        }
+
+        /// A crescent blade on a loop that leaves `side` of your line, passes through `at` and comes back round to it
+        /// (the Eclipse's ThrowCrescent, smaller and slower).
+        void SickleThrow(Enemy e, V2 at, int side)
+        {
+            float d = Math.Max(40f, at.DistanceTo(e.Pos)), r = Math.Max(SickleLoopMin, d / 2f + 30f);
+            float th = (float)Math.Asin(Math.Min(1f, d / (2f * r)));
+            float ang = (at - e.Pos).Angle - side * th, spin = side * SickleSpeed / r;
+            V2 dir = V2.FromAngle(ang);
+            var b = SpawnBullet(Defs.CrescentShot, e.Pos + dir * e.Radius, dir * SickleSpeed, spin, MathX.Tau * r / SickleSpeed, Defs.BulletDamage(Defs.CrescentShot), 0, false);
+            b.Source = e.Type;
+            b.Shooter = e.Id;
+            BroadcastFx(FxKind.Spark, e.Pos + dir * (e.Radius + 6f), e.Def.Color, 14f, 0.15f, Sfx.Throw);
         }
 
         /// A ring of PriestSlots slots, one straight at you, with the slot beside it (the Strafe side) left open.
@@ -265,6 +337,8 @@ namespace Arena
                 return HelioLaneDistance(e, p) < HelioWidth / 2f + hitR + 30f ? 2.5f : 0f;
             if (e.Phase == 1 && e.Type == EnemyType.Gnomon)
                 return p.DistanceTo(e.Pos) < GnomonReach && !InGnomonShadow(e, p, hitR) ? 2f : 0f;  // get into its shadow
+            if (NovaLit(e))
+                return p.DistanceTo(e.Pos) < NovaBlastR + hitR + 30f ? 2.5f : 0f;  // back off before it goes
             return 0f;
         }
     }

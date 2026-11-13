@@ -437,6 +437,20 @@ static partial class Shot {
       dput(EnemyType.Ember, me.Pos + new V2(-110f, 80f)).Facing = -0.6f;  // an Ember inside the pool: hidden in the dark
       dg.AnimT += float.Parse(Environment.GetEnvironmentVariable("PENUMBRAL2"), System.Globalization.CultureInfo.InvariantCulture);
     }
+    if (Environment.GetEnvironmentVariable("PENUMBRAL3") != null) {  // PENUMBRAL3=<s into the clock>: the Eclipse's faction, step 3 (PenumbralLook.cs): a Sickle winding up with a crescent on its loop, a Moon court's Moonward, a Nova with its fuse two-thirds gone and one darting in
+      var ng = host.Game; ng.Enemies.Clear(); ng.Bullets.Clear(); ng.Patches.Clear();
+      var nsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, Enemy> nput = (t, at) => { var e = (Enemy)nsp.Invoke(ng, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; return e; };
+      me.Pos = me.Disp = new V2(1000f, 560f);
+      var sk = nput(EnemyType.Sickle, new V2(760f, 380f)); sk.Facing = (me.Pos - sk.Pos).Angle;
+      typeof(Game).GetMethod("SickleThrow", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(ng, new object[] { sk, me.Pos, 1 });
+      foreach (var b in ng.Bullets.Values) for (int i = 0; i < 40; i++) { b.Vel = b.Vel.Rotated(b.AngVel * 0.02f); b.Pos += b.Vel * 0.02f; }
+      sk.Winding = true;
+      var mw3 = nput(EnemyType.Moonward, new V2(700f, 470f)); mw3.Facing = 2.4f;
+      var lit = nput(EnemyType.Nova, me.Pos + new V2(85f, 40f)); lit.Phase = 1; lit.SeenT = float.Parse(Environment.GetEnvironmentVariable("NOVAT") ?? "2.0", System.Globalization.CultureInfo.InvariantCulture);
+      nput(EnemyType.Nova, new V2(1330f, 330f));
+      ng.AnimT += float.Parse(Environment.GetEnvironmentVariable("PENUMBRAL3"), System.Globalization.CultureInfo.InvariantCulture);
+    }
     if (Environment.GetEnvironmentVariable("INFALL2") != null) {  // INFALL2=<s into the clock>: the Singularity's faction, step 2 (InfallLook.cs): a Graviton winding up beside its landed Small Well, an Orbiter flaring with a slung orb in flight, a hurt Collapsar and an Implosion half-way
       var ig = host.Game; ig.Enemies.Clear(); ig.Bullets.Clear();
       var isp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

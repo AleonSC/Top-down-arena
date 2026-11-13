@@ -95,6 +95,8 @@ namespace Arena
         Ember, CoronaPriest, Heliograph,
         // ...step 2: a Dusk Lobber plays like a Gas Grenadier that lobs a pool of dark (HiveKin.cs)
         Moonward, Gnomon, DuskLobber,
+        // ...step 3
+        Sickle, Nova,
     }
 
     public class RoleDef
@@ -466,6 +468,10 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "A walking sundial with a sun lantern at its back. The lantern swells, then flashes: the only safe place is the slab's shadow, just to the side of you." },
             new EnemyDef { Name = "Dusk Lobber", Hp = 50f, Radius = 13f, Speed = 80f, Score = 8, Xp = 9, Sides = 6, Color = new Rgba(0.61f, 0.48f, 1f),
                 Picker = PickerGroup.Ranged, Blurb = "Lobs a ball of night that bursts into a pool of the Umbra's dark: you can barely see inside, and it drains you. Stay in the light." },
+            new EnemyDef { Name = "Sickle", Hp = 60f, Radius = 13f, Speed = 90f, Score = 9, Xp = 11, Sides = 5, Color = new Rgba(0.84f, 0.8f, 1f),
+                Picker = PickerGroup.Ranged, Blurb = "Throws a crescent blade that loops out through you and comes back round to it. Dodge it twice." },
+            new EnemyDef { Name = "Nova", Hp = 40f, Radius = 9f, Speed = 230f, Score = 8, Xp = 10, Sides = 4, Color = new Rgba(1f, 0.6f, 0.26f), Melee = true, Contact = 10f,
+                Picker = PickerGroup.Melee, Blurb = "A small unstable star. Close in it lights a 3 s fuse, then goes nova. While lit it takes 50% more damage: burst it or back off." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount

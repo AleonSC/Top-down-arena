@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Arena;
 
-// The Eclipse's faction, steps 1-2 (Core/Penumbral.cs, Docs/EclipseFaction.md): an Ember weaves in and leaves sparks hanging
+// The Eclipse's faction, steps 1-3 (Core/Penumbral.cs, Docs/EclipseFaction.md): an Ember weaves in and leaves sparks hanging
 // behind it, a Corona Priest's ring has one shot at you and a gap beside it, a Heliograph plants, flickers its line,
 // burns a lane and rests; a Moonward's moon soaks shots, a Gnomon's flash spares its shadow, a Dusk Lobber's pool drains;
-// and they come in the waves before the Eclipse.
+// a Sickle's crescent loops through you and back, a Nova's fuse leaves it open, then it bursts; and they come in the waves before the Eclipse.
 static partial class Program
 {
     static void PenumbralTest(float dt)
@@ -173,12 +173,63 @@ static partial class Program
         Console.WriteLine("  Dusk Lobber: a pool on you {0}, health {1:0} -> {2:0}", pool, before, me.Hp);
         Check(dl.Kin == EnemyType.GasGrenadier && pool, "a Dusk Lobber plays like a Gas Grenadier and lobs a pool of dark on you");
         Check(me.Hp < before, "the pool drains you");
+
+        // Step 3. Sickle: a crescent that leaves to one side, passes through where you stand and comes back.
+        g.DevSetGod(1, true);
+        var sk = put(EnemyType.Sickle, new V2(660f, 400f));
+        Bullet blade = null;
+        V2 thrownFrom = V2.Zero, aimedAt = V2.Zero;
+        run(6f, () => { if (blade == null) { var b0 = g.Bullets.Values.FirstOrDefault(b => b.Shooter == sk.Id && b.Kind == Defs.CrescentShot); if (b0 != null) { blade = new Bullet { Pos = b0.Pos, Vel = b0.Vel, AngVel = b0.AngVel, Life = b0.Life }; thrownFrom = sk.Pos; aimedAt = me.Pos; } } });
+        Check(blade != null && Math.Abs(blade.AngVel) > 0.01f, "a Sickle throws a curving crescent blade");
+        if (blade != null)
+        {
+            V2 bp = blade.Pos, bv = blade.Vel;
+            float nearYou = 1e9f, side = 0f;
+            for (float t = 0f; t < blade.Life; t += 0.005f)
+            {
+                bv = bv.Rotated(blade.AngVel * 0.005f); bp += bv * 0.005f;
+                nearYou = Math.Min(nearYou, bp.DistanceTo(aimedAt));
+                side = Math.Max(side, SegDist(bp, thrownFrom, aimedAt));
+            }
+            float home = bp.DistanceTo(thrownFrom);
+            Console.WriteLine("  Sickle: the blade passes {0:0} px from you, swings {1:0} px off the line, ends {2:0} px from where it was thrown", nearYou, side, home);
+            Check(nearYou < 20f && side > 60f && home < 30f, "the blade loops through where you stood and comes back round to the Sickle");
+        }
+
+        // Nova: lights its fuse close in, takes more damage while lit, then goes nova and is gone.
+        var hurtE = typeof(Game).GetMethod("HurtEnemy", np);
+        var nv = put(EnemyType.Nova, new V2(500f, 400f));
+        nv.Hp = nv.MaxHp = 1000f;
+        hurtE.Invoke(g, new object[] { nv, 10f, 0 });
+        float unlit = 1000f - nv.Hp;
+        bool lit = false;
+        run(3f, () => lit |= Game.NovaLit(nv));
+        Check(lit, "a Nova lights its fuse when it gets close");
+        float hpLit = nv.Hp;
+        hurtE.Invoke(g, new object[] { nv, 10f, 0 });
+        float litDmg = hpLit - nv.Hp;
+        Console.WriteLine("  Nova: 10 damage unlit took {0:0.0}, lit {1:0.0}", unlit, litDmg);
+        Check(Game.NovaLit(nv) && Math.Abs(litDmg - unlit * Game.NovaLitMult) < 0.5f, "while lit it takes " + Game.NovaLitMult + "x damage");
+        g.DevSetGod(1, false);
+        me.Hp = me.MaxHp;
+        bool burst = false;
+        bool novaHurt = false;
+        run(Game.NovaFuse + 0.5f, () => { burst |= !g.Enemies.ContainsKey(nv.Id) || nv.Hp <= 0f; novaHurt |= me.Hp < me.MaxHp; });
+        Console.WriteLine("  Nova: burst {0}, hurt you {1}", burst, novaHurt);
+        Check(burst && novaHurt, "when the fuse runs out it goes nova, hurting you, and is gone");
+        // ...and from beyond its reach the nova misses.
+        var nv2 = put(EnemyType.Nova, new V2(500f, 400f));
+        nv2.Phase = 1; nv2.PhaseT = 0.05f;
+        me.Hp = me.MaxHp;
+        bool farHurt = false;
+        run(0.3f, () => farHurt |= me.Hp < me.MaxHp);
+        Check(!farHurt, "the nova doesn't reach past " + Game.NovaBlastR + " px");
         host.Leave("");
 
-        // The faction: the six come in the waves before the Eclipse (50-wave track: 46-49).
+        // The faction: the eight come in the waves before the Eclipse (50-wave track: 46-49).
                 var fe = Approaches.For(EnemyType.Eclipse);
-        Check(fe != null && fe.Members.Length == 6 && fe.Members.All(m => Game.IsPenumbral(m.Type)) && fe.Squads.Select(q => q.Name).SequenceEqual(new[] { "Dawn", "Mirror pair", "Night watch" }),
-            "the Eclipse's faction: six members so far; squads Dawn, Mirror pair and Night watch");
+        Check(fe != null && fe.Members.Length == 8 && fe.Members.All(m => Game.IsPenumbral(m.Type)) && fe.Squads.Select(q => q.Name).SequenceEqual(new[] { "Dawn", "Mirror pair", "Moon court", "Night watch" }),
+            "the Eclipse's faction: all eight; squads Dawn, Mirror pair, Moon court and Night watch");
         var build = typeof(Game).GetMethod("BuildWave", np);
         var spawnQ = typeof(Game).GetField("spawnQueue", np);
         var squadQ = typeof(Game).GetField("squadQueue", np);
@@ -208,8 +259,14 @@ static partial class Program
                 early.Add(t);
         }
         Console.WriteLine("  waves 46-49 bring: " + string.Join(", ", seen) + "; at most " + mostHelio + " Heliographs a wave");
-        Check(seen.Count == 6, "waves 46-49 bring all six");
+        Check(seen.Count == 8, "waves 46-49 bring all eight");
         Check(mostHelio <= Game.MaxHeliographs, "at most " + Game.MaxHeliographs + " Heliographs a wave");
         Check(early.Count == 0, "none come before the Eclipse's approach");
+    }
+
+    static float SegDist(V2 p, V2 a, V2 b)
+    {
+        V2 ab = b - a; float k = Math.Max(0f, Math.Min(1f, (p - a).Dot(ab) / Math.Max(1e-6f, ab.Dot(ab))));
+        return p.DistanceTo(a + ab * k);
     }
 }

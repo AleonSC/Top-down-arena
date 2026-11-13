@@ -381,7 +381,7 @@ namespace Arena
             },
             new FactionDef
             {
-                Boss = EnemyType.Eclipse,  // the Eclipse: the Penumbral Court, each previewing one of its stages (Penumbral.cs, Docs/EclipseFaction.md); step 2 of 4
+                Boss = EnemyType.Eclipse,  // the Eclipse: the Penumbral Court, each previewing one of its stages (Penumbral.cs, Docs/EclipseFaction.md); step 3 of 4
                 Members = new[]
                 {
                     new FactionMember { Type = EnemyType.Ember, Weight = 3f },  // sparks hang behind it (Lunar wake)
@@ -389,12 +389,15 @@ namespace Arena
                     new FactionMember { Type = EnemyType.Moonward, Fade = 0, Weight = 2f, From = 2 },  // its moon soaks your shots (the Penumbra's moon)
                     new FactionMember { Type = EnemyType.DuskLobber, Fade = 0, Weight = 1.5f, From = 2 },  // a pool of dark (the Umbra)
                     new FactionMember { Type = EnemyType.Heliograph, Fade = 1, Weight = 1.5f, From = 2 },  // a line, then a lane of fire (Solar flares)
+                    new FactionMember { Type = EnemyType.Sickle, Fade = 0, Weight = 1.5f, From = 3 },  // a crescent that comes back (Crescents)
                     new FactionMember { Type = EnemyType.Gnomon, Fade = 2, Weight = 1.5f, From = 2 },  // hide in its shadow (Eclipse flash)
+                    new FactionMember { Type = EnemyType.Nova, Fade = 2, Weight = 1f, From = 3 },  // a fuse, then a nova (Totality)
                 },
                 Squads = new[]
                 {
                     new SquadDef { Name = "Dawn", From = 1, Members = new[] { EnemyType.CoronaPriest, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember } },
                     new SquadDef { Name = "Mirror pair", From = 2, Members = new[] { EnemyType.Heliograph, EnemyType.Heliograph } },
+                    new SquadDef { Name = "Moon court", From = 3, Members = new[] { EnemyType.Moonward, EnemyType.Moonward, EnemyType.Sickle, EnemyType.Sickle } },
                     new SquadDef { Name = "Night watch", From = 3, Members = new[] { EnemyType.DuskLobber, EnemyType.Gnomon, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember } },
                 },
                 // No set piece or lesson cycle yet (steps 2-4): the Campaign builds its waves by reach, as for the Lich.

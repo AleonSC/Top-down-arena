@@ -68,8 +68,8 @@ namespace Arena
             var d = Defs.Get(t);
             if (t == EnemyType.HiveEgg || t == EnemyType.SapperMine || t == EnemyType.Pulsar || t == EnemyType.Graviton || t == EnemyType.MiniWell || t == EnemyType.Heliograph || t == EnemyType.DuskLobber)
                 return EnemyJob.Zoner;
-            if (t == EnemyType.WhiteDwarf)
-                return EnemyJob.Disruptor;  // the Singularity's White Dwarf (Infall.cs)
+            if (t == EnemyType.WhiteDwarf || t == EnemyType.Nova)
+                return EnemyJob.Disruptor;  // (the Eclipse's Nova: Penumbral.cs)  // the Singularity's White Dwarf (Infall.cs)
             return d.Melee ? EnemyJob.Hunter : EnemyJob.Pressure;  // the rest (boss adds, factions, zombies) by whether they shoot
         }
 

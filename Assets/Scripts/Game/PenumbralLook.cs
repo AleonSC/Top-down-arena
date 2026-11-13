@@ -13,6 +13,9 @@ namespace Arena
     ///   front of the slab) shows on the floor and the lantern swells; the flash whites out everything but the wedge.
     ///   Dusk Lobber: a violet-robed cultist with a ball of night; its pool is a violet rim on the floor, and over
     ///   everything a soft grid of dark, cut away DuskSight round each player (DrawDuskPools).
+    ///   Sickle: a grey-robed cultist holding a pale crescent blade at its side, glowing as it winds up.
+    ///   Nova: a small white-hot star with spikes; lit, it swells and reddens, a fuse ring runs down round it and a
+    ///   faint ring shows how far the nova will reach.
     public partial class ArenaApp
     {
         static readonly Rgba PenGold = new Rgba(1f, 0.82f, 0.4f), PenOrange = new Rgba(1f, 0.54f, 0.24f), PenSun = new Rgba(1f, 0.95f, 0.8f),
@@ -96,6 +99,12 @@ namespace Arena
                     break;
                 case EnemyType.DuskLobber:
                     DrawDuskLobber(e, pos, r, col, t);
+                    break;
+                case EnemyType.Sickle:
+                    DrawSickle(e, pos, r, col, t);
+                    break;
+                case EnemyType.Nova:
+                    DrawNova(e, pos, r, col, t);
                     break;
                 case EnemyType.Heliograph:
                 {
@@ -306,6 +315,51 @@ namespace Arena
             foreach (var pl in game.Players.Values)
                 dark = Mathf.Min(dark, Smooth((p.DistanceTo(pl.Disp) - Game.DuskSight) / 16f));
             return 0.93f * dark;
+        }
+
+        void DrawSickle(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            float wind = e.Winding ? 0.5f + 0.5f * Mathf.Sin(t * 18f) : 0f;
+            Circle(pos, r * 1.9f, PenMoon.WithAlpha(0.06f + 0.14f * wind), 16);
+            PenRobe(pos, f, s, r, col.Mix(new Rgba(0.45f, 0.47f, 0.55f), 0.5f));
+            // The blade at its side: a pale crescent, raised and glowing as it winds up.
+            V2 at = pos + f * (r * (0.5f + 0.4f * wind)) + s * (r * 1.1f);
+            float br = r * 0.85f, a = e.Facing + MathX.Pi * 0.5f;
+            Circle(at, br * 1.5f, PenMoon.WithAlpha(0.12f + 0.3f * wind), 12);
+            const int n = 8;
+            V2 prevO = at + V2.FromAngle(a - 1.6f) * br, prevI = prevO;
+            for (int i = 1; i <= n; i++)
+            {
+                float k = i / (float)n, ang = a - 1.6f + 3.2f * k, thick = Mathf.Sin(k * MathX.Pi) * br * 0.5f;
+                V2 o = at + V2.FromAngle(ang) * br, inner = at + V2.FromAngle(ang) * (br - thick);
+                SetColor(new Rgba(0.9f, 0.92f, 0.98f));
+                Tri(prevO, o, inner);
+                Tri(prevO, inner, prevI);
+                prevO = o;
+                prevI = inner;
+            }
+        }
+
+        void DrawNova(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            bool lit = e.Phase == 1;
+            float left = lit ? 1f - Mathf.Clamp01(e.SeenT / Game.NovaFuse) : 1f, hot = 1f - left;
+            float rr = r * (1f + 0.5f * hot) + (lit ? Mathf.Sin(t * 30f) * hot * 1.5f : 0f);
+            var glowCol = hot > 0.7f ? PenRed : PenOrange;
+            if (lit)
+                Arc(pos, Game.NovaBlastR, 1.5f, PenRed.WithAlpha(0.15f + 0.35f * hot), 48);  // how far it will reach
+            Circle(pos, rr * 3f, glowCol.WithAlpha(0.18f + 0.25f * hot), 16);
+            float spin = t * (lit ? 9f : 5f) + e.Id;
+            for (int k = 0; k < 4; k++)
+            {
+                V2 d = V2.FromAngle(spin + k * MathX.Pi / 2f);
+                Line(pos + d * rr, pos + d * (rr + 5f + 4f * hot), 1.6f, PenSun.WithAlpha(0.8f));
+            }
+            Circle(pos, rr, PenSun, 14);
+            Arc(pos, rr, 1.6f, glowCol, 14);
+            if (lit)
+                Arc(pos, rr + 7f, 2.5f, (hot > 0.7f ? PenRed : PenGold).WithAlpha(0.95f), 24, -MathX.Pi / 2f, MathX.Tau * left);  // the fuse
         }
 
         /// A teardrop of flame pointing along f: `len` ahead of `at`, `back` behind it, `wide` across.
