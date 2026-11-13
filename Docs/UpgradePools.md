@@ -1,6 +1,6 @@
 # Upgrade pools: class and weapon cards
 
-**Status: steps 1-11 built (Nov 2026, protocol 319).** Next: Elementalist weapon cards (the last class), then Out of Ammo.
+**Status: steps 1-11 built (Nov 2026, protocol 320).** Next: Elementalist weapon cards (the last class), then Out of Ammo.
 
 ## Why
 
@@ -248,7 +248,7 @@ for Bone Guard's skeletons, `FireBearClaws` (reach, bleed), the firefly's `Hops`
 (`SpawnMinion`, not cast ones), the Treant Rod's root reach and `RootHeal`, the Wolf Whistle takedown,
 `CompanionCount` (wisps and imps) and the imps' `CompanionCd`. Test: suite `abilitycards`, its Summoner checks.
 
-### Step 11: Soldier weapon cards (built, protocol 319)
+### Step 11: Soldier weapon cards (built, protocol 320)
 
 One Rare card per Soldier weapon (`Weapons = { that weapon }`, `MaxStacks = 2`), offered only while you hold it. The
 Twin Rifle's Auto variant shares its card; Out of Ammo plays too differently and gets none in this batch.
