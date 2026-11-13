@@ -10,7 +10,9 @@ namespace Arena
 
         static readonly Rgba RelicInk = new Rgba(1f, 0.78f, 0.28f);
 
-        static Rgba NodeInk(NodeKind k) => k == NodeKind.Shop ? ShopInk : k == NodeKind.Vendor ? VendorInk : k == NodeKind.Relic ? RelicInk : ChestInk;
+        static readonly Rgba RuleInk = new Rgba(1f, 0.5f, 0.3f);
+
+        static Rgba NodeInk(NodeKind k) => k == NodeKind.Shop ? ShopInk : k == NodeKind.Vendor ? VendorInk : k == NodeKind.Relic ? RelicInk : k == NodeKind.Rule ? RuleInk : ChestInk;
 
         /// A map node on the arena floor: the ghost marker while nobody has built a room round it, its fixture once one has.
         void DrawNodeMark(MapNode n, bool claimed)
@@ -22,6 +24,13 @@ namespace Arena
             }
             var col = NodeInk(n.Kind).WithAlpha(0.5f + 0.25f * Mathf.Sin(game.AnimT * 2.5f));
             V2 c = n.Pos;
+            if (n.Kind == NodeKind.Rule)  // a rule node: the whole 8 x 8 tile area a claiming room must enclose (first look; Docs/RuleRooms.md step 3 refines it)
+            {
+                float h = Expansion.RuleHalf;
+                NodeFrame(c.X - h, c.Y - h, 2f * h, 2f * h, 4f, col);
+                Arc(c, 36f, 3f, col, 28);
+                return;
+            }
             Arc(c, 36f, 3f, col, 28);
             switch (n.Kind)
             {

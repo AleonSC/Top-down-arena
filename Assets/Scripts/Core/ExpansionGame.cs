@@ -322,7 +322,7 @@ namespace Arena
                 added = true;
                 DoLog("a floating " + rk + " room appears at " + f.Value.X + "," + f.Value.Y);
             }
-            foreach (var kind in cycle % 2 == 0 ? new[] { NodeKind.Chest, NodeKind.Relic } : new[] { NodeKind.Chest })  // (a relic node every other cycle; old saves may still hold shop and vendor nodes)
+            foreach (var kind in cycle % 2 == 0 ? new[] { NodeKind.Chest, NodeKind.Relic, NodeKind.Rule } : new[] { NodeKind.Chest, NodeKind.Rule })  // (a relic node every other cycle, a rule node every cycle; old saves may still hold shop and vendor nodes)
             {
                 if (Expansion.UnclaimedCount(Expanded, Nodes) >= Expansion.MaxNodesWaiting)
                     break;
@@ -1256,7 +1256,7 @@ namespace Arena
             w.Write((ushort)Nodes.Count);  // (ushort: a big map can pass 255)
             foreach (var nd in Nodes)
             {
-                w.Write(nd.X); w.Write(nd.Y); w.Write((byte)nd.Kind); w.Write(nd.Spent);
+                w.Write(nd.X); w.Write(nd.Y); w.Write((byte)nd.Kind); w.Write(nd.Spent); w.Write(nd.Rule);
             }
             w.Write(EventMark.HasValue);  // the breach event's gold breach (BreachEvent.cs)
             w.Write((short)(EventMark.HasValue ? EventMark.Value.X : 0f)); w.Write((short)(EventMark.HasValue ? EventMark.Value.Y : 0f));
@@ -1351,7 +1351,7 @@ namespace Arena
             int nn = r.ReadUInt16();
             var nodes = new List<MapNode>(nn);
             for (int i = 0; i < nn; i++)
-                nodes.Add(new MapNode { X = r.ReadInt16(), Y = r.ReadInt16(), Kind = (NodeKind)r.ReadByte(), Spent = r.ReadBoolean() });
+                nodes.Add(new MapNode { X = r.ReadInt16(), Y = r.ReadInt16(), Kind = (NodeKind)r.ReadByte(), Spent = r.ReadBoolean(), Rule = r.ReadByte() });
             bool nodesChanged = nodes.Count != Nodes.Count;
             for (int i = 0; !nodesChanged && i < nodes.Count; i++)
                 nodesChanged |= !nodes[i].Equals(Nodes[i]);
