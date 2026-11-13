@@ -1,6 +1,6 @@
 # Upgrade pools: class and weapon cards
 
-**Status: steps 1-6 built (Nov 2026, protocol 313).** Next: weapon cards, class by class. Owner decisions are below; build one step at a time ("start on step N").
+**Status: steps 1-8 built (Nov 2026, protocol 315).** Next: weapon cards for the other classes, one class at a time. Owner decisions are below; build one step at a time ("start on step N").
 
 ## Why
 
@@ -155,3 +155,52 @@ Built (owner approved all six): each sits in its class's list with `Kit` set. `S
 `Power` and `BlockHp`, a staggered minion's recovery, thralls' health), `CutReachMult` (`Knight.cs` bullet cutting),
 `GhostCut` / `GhostTime` (`Player.GhostT`, set on a dodge in `Dodge.cs`, read in `Damage`), `HealthCostMult`
 (`PayHealth`) plus `KillHeal`. Test: suite `abilitycards`, its class card checks.
+
+### Step 7: Knight weapon cards (built, protocol 314)
+
+One Rare card per Knight weapon (`Weapons = { that weapon }`, `MaxStacks = 2`), offered only while you hold it. Each
+sharpens what the weapon already does and doesn't repeat a general card (damage, swing speed, reach via Piercing).
+
+| Weapon | Card | Effect (per stack) |
+|---|---|---|
+| Warhammer | Quake Hammer | The slam circle is 20% wider and stuns 0.3 s longer |
+| Lance | Breacher | Breaching Thrust shoves 30% farther, and Impact damage is 50% higher |
+| Halberd | Long Haft | The blade reaches 15% farther and sweeps 20° wider |
+| Quarterstaff | Pilgrim's Staff | Each hit heals 1 more, and you can store 1 more Jab stack |
+| Lightbringer | Daybreak | The light gauge fills 30% faster and the Sunlance heals 30% more |
+| Censer | Thick Incense | Incense clouds are 30% bigger and last 2 s longer |
+| Twin Blades | Whirling Sabres | The thrown sabres fly 25% farther and hit 30% harder |
+| Greatsword | Tempered Blade | Rend hits 30% harder, and guarding builds Temper 25% faster |
+| Rapier | Duelist's Edge | Each thrust skewers 1 more bullet, and Tempo holds 0.5 s longer |
+| Arc Knuckles | Live Wire | The Rocket Dash reaches 25% farther, and the Twin Hammer stuns 0.3 s longer |
+
+Built (owner approved all ten): in `Game.KnightCards`, each with `Weapons = { its weapon }`. Hooks: `Game.HammerR`
+(the slam and its charge outline, `WorldShots.cs`), the Breaching Thrust's `Knock` and `LanceBump` / `LanceWallImpact`,
+the Halberd's reach and `sweep`, the Quarterstaff's `HealPerHit` and `StaffCap`, `LightLanded` (`Player.LightCarry`
+keeps the fraction) and `LandSunlance`, `AddZone` for every `ZoneKind.Incense` cloud, `HostTwinFang` and `FangHurt`,
+the guard's Rend and `GreatGuardBlock` (`Player.TemperCarry`), `TickRapier`'s grace and the Rapier's skewer cap,
+`KnuckleLockTarget` / `HostRocketDash` (and the reticle in `ArcKnucklesLook.cs`) and the Twin Hammer's stun.
+Test: suite `abilitycards`, its Knight weapon checks.
+
+### Step 8: Ninja weapon cards (built, protocol 315)
+
+One Rare card per Ninja weapon (`Weapons = { that weapon }`, `MaxStacks = 2`), offered only while you hold it.
+
+| Weapon | Card | Effect (per stack) |
+|---|---|---|
+| Kusarigama | Heavy Weight | The thrown weight flies 25% farther and stuns 0.4 s longer |
+| Bo Staff | Iron Bo | The staff shove knocks 40% farther, and the full spin hits 30% harder |
+| Fuma Shuriken | Long Loop | The thrown loop reaches 20% farther, and the Orbit circle is 20% wider |
+| Medicine Darts | Potent Dose | Each dart's poison and healing stack is 30% stronger |
+| Spirit Fan | Gale Fan | The gust reaches 25% farther and heals 30% more |
+| Ofuda | Blessed Paper | Charm bursts are 25% wider and heal 30% more |
+| Shuriken | Barbed Stars | Stuck stars come back 1.5 s sooner, and their return hit is 40% harder |
+| Katana | Honed Edge | The Momentum Burst shoves 30% farther, and caltrops last 2 s longer |
+| Kunai | Shadow Mark | The blink's hit deals 40% more, and marks last 2 s longer |
+
+Built (owner approved all nine): in `Game.NinjaCards`. Hooks: `StartKusariThrow` (reach) and `KusariImpact` (stun),
+the Bo Staff's shove push (`BoStaff.cs`) and full spin, the Fuma throw's starting speed (the oval scales with it) and
+`Game.FumaR` (the Orbit circle, Reversal ring and its look in `FumaLook.cs`), `DoseAlly` / `PoisonHit`
+(`DoseMultOf`), the Spirit Fan's reach and `HealAlly`, `BurstWard` (radius, heal reach, heal), `StarStuck` /
+`ReturnStar`, the Momentum Burst's push and the tossed caltrops' life, `ShadowKunaiLanded` and `NinjaHitMult`
+(`Player.BlinkBoost`, set by the blink and spent with the ambush). Test: suite `abilitycards`, its Ninja checks.

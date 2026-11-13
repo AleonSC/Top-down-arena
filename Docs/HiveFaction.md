@@ -1,6 +1,6 @@
 # The Hive Queen's faction
 
-**Status: built** (protocol 314). Code: `Core/HiveKin.cs`, `Core/Approaches.cs` (the Hive `FactionDef`), `Core/Defs.cs`, `Core/WardenFaction.cs`
+**Status: built** (protocol 316). Code: `Core/HiveKin.cs`, `Core/Approaches.cs` (the Hive `FactionDef`), `Core/Defs.cs`, `Core/WardenFaction.cs`
 (the Lobber's honey, the Stinger's dart), `Game/HiveLook.cs`, `Game/GasLobLook.cs`; mockup `Docs/Mockups/hive-faction.html`; test suite `hive`;
 preview `HIVE=0.4 [HIVELOB=1.8] Tools/Preview/shot.sh x hud 1`.
 

@@ -77,6 +77,9 @@ namespace Arena
         /// The Warhammer's blast colour: it also marks the blast as the hammer's, so the screen's melee look (MeleeLooks.cs),
         /// which draws the whole slam itself, can leave it out.
         public static readonly Rgba HammerBoomColor = new Rgba(0.85f, 0.8f, 0.7f);
+        /// The Warhammer's slam radius for this player: Reach upgrades widen it, and Quake Hammer.
+        public static float HammerR(Player p) => HammerRadius * MeleeReach(p, p.Weapon.Reach) / p.Weapon.Reach * p.Stats.HammerAreaMult;
+
         const float HammerTap = 0.25f, HammerStunMin = 0.25f, HammerStunMax = 0.9f;
         // The Halberd: a thin 18-degree cone swept across 80 degrees in six steps.
         public const int HalberdSteps = 6;
@@ -114,12 +117,12 @@ namespace Arena
                     // Hold to charge, let go to slam a fixed circle in front of you. The charge sets the damage (a quarter
                     // for a tap, all of it at full) and how long what it hits is stunned.
                     float c = BowCharge(p, p.BowShotDraw);
-                    float stun = HammerStunMin + (HammerStunMax - HammerStunMin) * c, power = HammerTap + (1f - HammerTap) * c;
-                    float reachMult = MeleeReach(p, w.Reach) / w.Reach;  // Reach upgrades widen the circle too
+                    float stun = HammerStunMin + (HammerStunMax - HammerStunMin) * c + p.Stats.HammerStunBonus, power = HammerTap + (1f - HammerTap) * c;  // (Quake Hammer: longer)
+                    float radius = HammerR(p);  // Reach upgrades widen the circle too (and Quake Hammer)
                     for (int k = 0; k <= extra; k++)  // each extra projectile: an aftershock slam, further out
                     {
                         var s = NewSwing(p, aim, w.Reach + w.Grow * k, 0f, w.Damage * dmg * power * (k == 0 ? 1f : 0.6f));
-                        s.Circle = HammerRadius * reachMult;
+                        s.Circle = radius;
                         s.CircleAt = HammerCentre(s.Reach);
                         s.Power = c;
                         s.Stun = stun;
@@ -129,7 +132,7 @@ namespace Arena
                         QueueSwing(s);
                     }
                     // The blast's old ring (drawn when the screen's melee look is off; with it on, the slam draws its own impact).
-                    BroadcastFx(FxKind.Boom, p.Pos + V2.FromAngle(aim) * HammerCentre(MeleeReach(p, w.Reach)), HammerBoomColor, HammerRadius * reachMult * (0.5f + 0.5f * c), 0.35f, c > 0.95f ? Sfx.BigExplode : Sfx.Explode);
+                    BroadcastFx(FxKind.Boom, p.Pos + V2.FromAngle(aim) * HammerCentre(MeleeReach(p, w.Reach)), HammerBoomColor, radius * (0.5f + 0.5f * c), 0.35f, c > 0.95f ? Sfx.BigExplode : Sfx.Explode);
                     break;
                 }
                 case WeaponId.Lance:
@@ -141,17 +144,18 @@ namespace Arena
                     // An extra projectile sweeps it back again (60% damage). The swing is one motion timed from the click
                     // (HalberdMotion.cs: a 0.05 s pull back, then the sweep): its effect is sent now and plays the whole
                     // thing, and each step lands when the edge reaches it.
-                    float reach = w.Reach + w.Grow * extra;
+                    float reach = (w.Reach + w.Grow * extra) * p.Stats.HalberdReachMult;  // Long Haft: farther, and wider below
+                    float sweep = HalberdSweep + p.Stats.HalberdSweepBonus;
                     bool back = extra > 0;
                     BroadcastFx(FxKind.Slash, p.Pos, p.Pos + V2.FromAngle(aim) * MeleeReach(p, reach), Defs.BulletColor(Defs.KnightSlash),
-                        HalberdSweep + HalberdConeDeg * MathX.Pi / 360f, HalberdMotion.Total(back), Sfx.None);
+                        sweep + HalberdConeDeg * MathX.Pi / 360f, HalberdMotion.Total(back), Sfx.None);
                     for (int pass = 0; pass <= Math.Min(1, extra); pass++)
                     {
                         int group = ++sweepCount;
                         for (int i = 0; i < HalberdSteps; i++)
                         {
                             float f = (float)i / (HalberdSteps - 1) * 2f - 1f;
-                            var h = NewSwing(p, aim + (pass == 0 ? f : -f) * HalberdSweep, reach, HalberdConeDeg, w.Damage * dmg * (pass == 0 ? 1f : 0.6f));
+                            var h = NewSwing(p, aim + (pass == 0 ? f : -f) * sweep, reach, HalberdConeDeg, w.Damage * dmg * (pass == 0 ? 1f : 0.6f));
                             h.Sweep = group;
                             h.Delay = HalberdMotion.StepTime(pass + 1, i, HalberdSteps);
                             h.Silent = i > 0;  // one whoosh a sweep, as the first step lands
@@ -169,7 +173,7 @@ namespace Arena
                     s.Knock = StaffKnock;
                     s.Deflect = true;
                     s.Staff = true;
-                    s.HealPerHit = 2f;  // each enemy hit heals you and allies near you (as the Holy Mace did)
+                    s.HealPerHit = 2f + p.Stats.StaffHealBonus;  // each enemy hit heals you and allies near you (as the Holy Mace did; Pilgrim's Staff: more)
                     s.HealRange = 220f;
                     s.HealHits = 4;
                     QueueSwing(s);
@@ -565,7 +569,7 @@ namespace Arena
             else if (s.Rapier)
             {
                 // The Rapier skewers enemy bullets along its line (big ones too, never red aimed shots). They add no Tempo.
-                int skewered = CutBullets(origin, s.Aim, s.Reach + p.Def.BodyR * 0.5f, s.HalfArc, true, RapierSkewerWidth, RapierSkewerMax);
+                int skewered = CutBullets(origin, s.Aim, s.Reach + p.Def.BodyR * 0.5f, s.HalfArc, true, RapierSkewerWidth, RapierSkewerMax + p.Stats.SkewerBonus);  // Duelist's Edge: one more
                 if (skewered > 0)
                     BroadcastFx(FxKind.Spark, origin + dir * (s.Reach * 0.6f), new Rgba(1f, 1f, 1f), 14f, 0.2f, Sfx.None);
             }
@@ -724,6 +728,26 @@ namespace Arena
                 Apply = s => { s.SteelDamage += 8f; s.SteelReach += 6f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Knight, MaxStacks = 2, Name = "Plate Armour", Desc = "Take 8% less damage, and your swings cut bullets out of the air 20% farther out",
                 Apply = s => { s.DamageTaken *= 0.92f; s.CutReachMult += 0.2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Warhammer }, MaxStacks = 2, Name = "Quake Hammer", Desc = "The Warhammer's slam is 20% wider and stuns 0.3 s longer",
+                Apply = s => { s.HammerAreaMult += 0.2f; s.HammerStunBonus += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Lance }, MaxStacks = 2, Name = "Breacher", Desc = "Breaching Thrust shoves 30% farther, and Impact damage is 50% higher",
+                Apply = s => { s.BreachKnockMult += 0.3f; s.ImpactMult += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Halberd }, MaxStacks = 2, Name = "Long Haft", Desc = "The Halberd's blade reaches 15% farther and sweeps 20° wider",
+                Apply = s => { s.HalberdReachMult += 0.15f; s.HalberdSweepBonus += 10f * MathX.Pi / 180f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.HolyMace }, MaxStacks = 2, Name = "Pilgrim's Staff", Desc = "Each Quarterstaff hit heals 1 more, and you can store 1 more Jab stack",
+                Apply = s => { s.StaffHealBonus += 1f; s.StaffExtraStacks += 1; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Lightbringer }, MaxStacks = 2, Name = "Daybreak", Desc = "The light gauge fills 30% faster and the Sunlance heals 30% more",
+                Apply = s => { s.LightGainMult += 0.3f; s.SunlanceHealMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Censer }, MaxStacks = 2, Name = "Thick Incense", Desc = "The Censer's incense clouds are 30% bigger and last 2 s longer",
+                Apply = s => { s.IncenseSizeMult += 0.3f; s.IncenseBonusTime += 2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.TwinBlades }, MaxStacks = 2, Name = "Whirling Sabres", Desc = "The thrown sabres fly 25% farther and hit 30% harder",
+                Apply = s => { s.FangReachMult += 0.25f; s.FangDmgMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Greatsword }, MaxStacks = 2, Name = "Tempered Blade", Desc = "The guard's Rend hits 30% harder, and guarding builds Temper 25% faster",
+                Apply = s => { s.GreatRendMult += 0.3f; s.TemperGainMult += 0.25f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Rapier }, MaxStacks = 2, Name = "Duelist's Edge", Desc = "Each thrust skewers 1 more bullet, and Tempo holds 0.5 s longer",
+                Apply = s => { s.SkewerBonus += 1; s.TempoHoldBonus += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.ArcKnuckles }, MaxStacks = 2, Name = "Live Wire", Desc = "The Rocket Dash reaches 25% farther, and the Twin Hammer stuns 0.3 s longer",
+                Apply = s => { s.KnuckleDashMult += 0.25f; s.KnuckleStunBonus += 0.3f; } },
         };
 
         /// The Knight's abilities and ultimates. (Upgrades.Abilities gathers every class's list.)

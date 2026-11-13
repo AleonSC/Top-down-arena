@@ -3,7 +3,9 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
-- 314: the Hive Queen's faction: eight new `EnemyType` values (Worker, Soldier, CombShield, HoneyLobber, Stinger, Needler, Bumble, Hornet) and bullet kind `StingBolt` 63 (Docs/HiveFaction.md)
+- 316: the Hive Queen's faction: eight new `EnemyType` values (Worker, Soldier, CombShield, HoneyLobber, Stinger, Needler, Bumble, Hornet) and bullet kind `StingBolt` 63 (Docs/HiveFaction.md)
+- 315: nine Ninja weapon upgrade cards in the Ninja's card list shift later card ids (Docs/UpgradePools.md step 8)
+- 314: ten Knight weapon upgrade cards in the Knight's card list shift later card ids (Docs/UpgradePools.md step 7)
 - 313: six class upgrade cards (Kit) shift later card ids; the player snapshot sends `SurgeT` (Arcane Surge) after `AdrenalineT` (Docs/UpgradePools.md step 6)
 - 312: 18 new upgrade cards in the Elementalist, Summoner and Soldier card lists shift later card ids (Docs/UpgradePools.md step 5)
 - 311: upgrade card ids renumbered: the Rare ability cards moved from the general list to each class's list, gathered after the vector cards (`Upgrades.All`; Docs/UpgradePools.md step 4)

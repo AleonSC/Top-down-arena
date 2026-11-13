@@ -384,7 +384,7 @@ namespace Arena
             // inner disc from a small core out to the outline, gold and pulsing when it's full.
             float mult = Game.MeleeReach(p, p.Weapon.Reach) / p.Weapon.Reach;
             V2 at = p.Disp + V2.FromAngle(p.Aim) * Game.HammerCentre(Game.MeleeReach(p, p.Weapon.Reach));
-            float R = Game.HammerRadius * mult;
+            float R = Game.HammerR(p);  // (Quake Hammer widens it)
             float a = mine ? 1f : 0.6f;
             Circle(at, R, new Rgba(0.9f, 0.85f, 0.75f, 0.05f * a), 40);
             Arc(at, R, 2f, new Rgba(0.9f, 0.85f, 0.75f, 0.3f * a), 48);

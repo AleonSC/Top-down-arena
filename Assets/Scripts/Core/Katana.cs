@@ -252,7 +252,7 @@ namespace Arena
                     continue;
                 V2 away = dist > 1f ? d / dist : V2.FromAngle(p.Aim);
                 if (!Heavy(e))
-                    KnockEnemy(e, away * KatanaBurstPush);
+                    KnockEnemy(e, away * KatanaBurstPush * p.Stats.BurstPushMult);  // (Honed Edge: farther)
                 e.KatanaShockT = KatanaBurstMark;
                 float dmg = w * KatanaBurstMult * NinjaHitMult(p.Id, Defs.KnightSlash, e);
                 HurtEnemy(e, dmg, p.Id);
@@ -308,7 +308,7 @@ namespace Arena
                 }
                 else
                 {
-                    c.B = SpawnBullet(Defs.Caltrop, p.Pos, (land - p.Pos) / KatanaToss, 0f, KatanaToss + KatanaCaltropLife, w * KatanaCaltropMult, p.Id);
+                    c.B = SpawnBullet(Defs.Caltrop, p.Pos, (land - p.Pos) / KatanaToss, 0f, KatanaToss + KatanaCaltropLife + p.Stats.CaltropBonusTime, w * KatanaCaltropMult, p.Id);  // (Honed Edge: longer)
                     c.B.Tossed = true;
                     c.B.SlowAmt = KatanaCaltropSlow;
                 }

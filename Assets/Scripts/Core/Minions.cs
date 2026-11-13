@@ -910,6 +910,11 @@ namespace Arena
 
         internal Zone AddZone(ZoneKind kind, Player owner, V2 pos, float radius, float duration)
         {
+            if (kind == ZoneKind.Incense)  // Thick Incense (the Censer's card): every cloud it leaves is bigger and lasts longer
+            {
+                radius *= owner.Stats.IncenseSizeMult;
+                duration += owner.Stats.IncenseBonusTime;
+            }
             var z = new Zone { Id = nextZoneId++, Kind = kind, Owner = owner.Id, Pos = pos, Radius = radius, Duration = duration, T = duration, DmgMult = owner.Stats.DmgMult };
             z.BlockHp = z.Def.BlockCapacity;
             if (casting)
