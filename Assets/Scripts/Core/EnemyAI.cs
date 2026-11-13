@@ -982,6 +982,8 @@ namespace Arena
                     break;
                 case EnemyType.Guard:
                     v = GuardMove(e, tpos);  // Warden.cs
+                    if (e.Type == EnemyType.Soldier)
+                        speed *= SoldierCharge(e, dist);  // HiveBees.cs
                     break;
                 case EnemyType.HiveQueen:
                     v = QueenMove(e, tpos, ref speed);  // Queen.cs
@@ -1015,6 +1017,8 @@ namespace Arena
             if (RoomsOn && !e.Def.IsBoss && !e.Def.Melee && e.Home < 0 && dist > 0.01f && SegBlocked(ActiveLayout, e.Pos, tpos, 4f))
                 v = dir;  // the Rooms map: a shooter with a wall between it and you comes round (steered) instead of holding its distance behind the wall
             v = SquadMove(e, tpos, dir, v);  // squads keep together (Variety.cs)
+            if (e.Type == EnemyType.Worker)
+                speed *= WorkerPackSpeed(e);  // a crowd of Workers runs faster (HiveBees.cs)
             if (HasTrait(e, EliteTrait.Hasted))
                 speed *= HasteMult;
             // A sweeping Beam Sentry steers its beam by Strafe, so it keeps the side it telegraphed (the roll still happens, keeping the RNG sequence).

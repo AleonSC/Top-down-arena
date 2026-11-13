@@ -30,13 +30,14 @@ namespace Arena
                 e.Strafe = -e.Strafe;  // commit to a side for a while instead of the usual random flips
                 e.PhaseT = Rand(SecurityStrafeMin, SecurityStrafeMax);
             }
-            V2 v = KeepDistance(dir, dist, SecurityRange) + dir.Orthogonal() * e.Strafe * 0.7f;
+            bool needler = e.Type == EnemyType.Needler;  // a Hive Needler strafes harder (HiveBees.cs)
+            V2 v = KeepDistance(dir, dist, SecurityRange) + dir.Orthogonal() * e.Strafe * (needler ? NeedlerStrafe : 0.7f);
             if (e.Phase == 0)
             {
                 float down = MathX.Clamp01((e.FireT - (SecurityReload - SecurityEase)) / SecurityEase), up = MathX.Clamp01(1f - e.FireT / SecurityEase);
                 return v.LimitLength(1f) * Math.Max(down, up);
             }
-            return e.Winding ? v.LimitLength(1f) * SecurityAimPace : v;
+            return e.Winding ? v.LimitLength(1f) * SecurityAimPace * (needler ? NeedlerAimStrafe : 1f) : v;
         }
 
         /// It turns at SecurityTurn rad/s toward you (no lead); locked while it winds up.

@@ -153,21 +153,21 @@ namespace Arena
             {
                 Type = EnemyType.Worker, Name = "Worker", Group = "Melee", Wave = 6,
                 Appears = "The Hive Queen's approach (waves 6-9, in pairs and Swarm squads)",
-                Lead = "A small, quick worker bee. Weaves at you, in loose pairs. Moves like a Rioter.",
+                Lead = "A small, quick worker bee. Weaves at you, in loose pairs, and runs faster for each Worker near it (+10% each, up to +50%). Moves like a Rioter.",
                 Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "10" } },
             },
             new BestiaryEntry
             {
                 Type = EnemyType.Soldier, Name = "Soldier", Group = "Melee", Wave = 6,
                 Appears = "The Hive Queen's approach (waves 6-9)",
-                Lead = "An armoured bee that rushes straight at you with its jaws snapping. Moves like a Guard.",
+                Lead = "An armoured bee that rushes straight at you with its jaws snapping. Inside 260 px it charges: 30% faster, and its plates take half the damage. Moves like a Guard.",
                 Attacks = new[] { new BestiaryAttack { Name = "Mandibles", Pattern = "Touch", Damage = "14" } },
             },
             new BestiaryEntry
             {
                 Type = EnemyType.CombShield, Name = "Comb Shield", Group = "Melee", Wave = 7,
                 Appears = "The Hive Queen's approach (waves 7-9, alone or two in a Honeycomb squad)",
-                Lead = "A bee behind a plate of seven wax cells that stops shots and swings from the front. Up close the plate flashes, then it lunges and bashes you 160 px back. The cells break as it wears; broken, the bee staggers. Plays like a Riot Shield.",
+                Lead = "A bee behind a plate of seven wax cells that stops shots and swings from the front. Up close the plate flashes, then it lunges and bashes you 160 px back. The cells break as it wears, and a share of each shot gets through the plate (15%, 15% more for each crack); broken, the bee staggers. Plays like a Riot Shield.",
                 Attacks = new[]
                 {
                     new BestiaryAttack { Name = "Shield bash", Pattern = "0.4 s flash, then a short lunge", Damage = "10, and knocked back 160 px" },
@@ -192,7 +192,7 @@ namespace Arena
             {
                 Type = EnemyType.Needler, Name = "Needler", Group = "Shooters", Wave = 7,
                 Appears = "The Hive Queen's approach (waves 7-9), alone or in a Picket",
-                Lead = "Hovers and strafes, then locks on for 0.25 s (a red lane) and fires one white needle straight at you. It fires seven, one every 1.5 s, then reloads for 2.2 s: rush it then. Plays like a Security Guard.",
+                Lead = "Hovers and strafes fast, then locks on for 0.25 s (a red lane) and fires one white needle straight at you. It fires seven, one every 1.5 s, then reloads for 2.2 s: rush it then. Half as tough again as a Security Guard.",
                 Attacks = new[] { new BestiaryAttack { Name = "Needle", Pattern = "One needle aimed straight at you, seven to a magazine", Shot = "Needle", ShotColor = new Rgba(0.94f, 0.97f, 1f), Speed = "340", Damage = "7", Every = 0.8f, Fixed = true } },
             },
             new BestiaryEntry
