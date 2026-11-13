@@ -533,6 +533,7 @@ namespace Arena
         void ResetExpansion()
         {
             RoomTokens.Clear();
+            duelBoss.Clear();  // (GatekeeperRoom.cs: a duel from the last run's map must not outlive it)
             floatCycle = -1;
             Expanded.Clear();
             Nodes.Clear();
@@ -1168,6 +1169,7 @@ namespace Arena
                 playerOf[kv.Value] = kv.Key;
             expandSeed = save.ExpandSeed;
             floatCycle = save.FloatCycle;
+            duelBoss.Clear();
             Expanded.Clear();
             foreach (var r in save.Rooms)
             {
