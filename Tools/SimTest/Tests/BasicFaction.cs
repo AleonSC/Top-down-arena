@@ -30,18 +30,18 @@ static partial class Program
             && Approaches.All.All(f => f != BasicFaction.Def),
             "the basic faction is eight plain enemies, none retired; its squads and set piece use only them; no boss owns it");
 
-        // Quick Play: a boss with no faction (the Duelist) is led up to by the basic faction alone; a faction boss by its own.
+        // Quick Play: a boss with no faction (the Devourer) is led up to by the basic faction alone; a faction boss by its own.
         var gq = new Session().Game;
         gq.Quick = true;
-        gq.QuickOrder = new[] { EnemyType.Duelist, EnemyType.Boss };
+        gq.QuickOrder = new[] { EnemyType.Devourer, EnemyType.Boss };
         var duel = new HashSet<EnemyType>();
         var ward = new HashSet<EnemyType>();
         for (int n = 1; n <= 9; n++) foreach (var t in wave(gq, n)) duel.Add(t);
         for (int n = 11; n <= 19; n++) foreach (var t in wave(gq, n)) ward.Add(t);
         var wardens = new HashSet<EnemyType>(Approaches.For(EnemyType.Boss).Members.Select(m => m.Type));
-        Console.WriteLine("  Quick Play before the Duelist: {0}", string.Join(", ", duel));
-        Check(gq.BossAt(10) == EnemyType.Duelist && Approaches.For(EnemyType.Duelist) == null && gq.ApproachShare(5) == 1f
-            && duel.Count >= 6 && duel.All(basic.Contains), "Quick Play: the waves before a boss with no faction (the Duelist) are all the basic faction");
+        Console.WriteLine("  Quick Play before the Devourer: {0}", string.Join(", ", duel));
+        Check(gq.BossAt(10) == EnemyType.Devourer && Approaches.For(EnemyType.Devourer) == null && gq.ApproachShare(5) == 1f
+            && duel.Count >= 6 && duel.All(basic.Contains), "Quick Play: the waves before a boss with no faction (the Devourer) are all the basic faction");
         Check(gq.BossAt(20) == EnemyType.Boss && ward.All(wardens.Contains), "Quick Play: the waves before the Warden are still all his own");
 
         // The Campaign and plain runs: no retired enemy in any wave, ever (squads, the recipe, paths' pools included).

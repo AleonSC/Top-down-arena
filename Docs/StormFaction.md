@@ -1,6 +1,6 @@
 # The Storm Herald's faction: the Squall
 
-**Status: step 1 built** (protocol 329): Dust Devil, Squall Gunner, Stormcaller, squads Squall line and Storm cell. Code: `Core/Squall.cs`,
+**Status: step 1 built** (protocol 333): Dust Devil, Squall Gunner, Stormcaller, squads Squall line and Storm cell. Code: `Core/Squall.cs`,
 `Core/Approaches.cs` (the Storm Herald `FactionDef`), `Core/Defs.cs`, `Core/LateGame.cs` (`HazardCaller` in `TickHazards`), `Game/SquallLook.cs`;
 mockup `Docs/Mockups/storm-herald-faction.html`; test suite `squall`; preview `SQUALL=0.4 ZOOM=1.7 Tools/Preview/shot.sh x hud 1`.
 

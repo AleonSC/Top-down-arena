@@ -19,8 +19,9 @@ static partial class Program
         };
         Check(kin.All(k => HiveKin.Of(k.Key) == k.Value && HiveKin.Is(k.Key)) && !HiveKin.Is(EnemyType.Rioter) && HiveKin.Of(EnemyType.Grunt) == EnemyType.Grunt,
             "every Hive enemy plays like one Warden enemy (Worker Rioter, Soldier Guard, Comb Shield Riot Shield, Honey Lobber Gas Grenadier, Stinger Taser Guard, Needler Security Guard, Bumble Thug, Hornet Shiv)");
-        Check(kin.All(k => { var a = Defs.Get(k.Key); var b = Defs.Get(k.Value); return a.Hp == b.Hp && a.Speed == b.Speed && a.Radius == b.Radius && a.Melee == b.Melee && a.Contact == b.Contact && a.Xp == b.Xp; }),
-            "each has its counterpart's health, speed, size, contact damage and XP");
+        Check(kin.All(k => { var a = Defs.Get(k.Key); var b = Defs.Get(k.Value); bool tougher = k.Key == EnemyType.Stinger || k.Key == EnemyType.Needler; return (tougher || a.Hp == b.Hp) && a.Speed == b.Speed && a.Radius == b.Radius && a.Melee == b.Melee && a.Contact == b.Contact && a.Xp == b.Xp; }),
+            "each has its counterpart's speed, size, contact damage and XP, and its health bar the Stinger's and Needler's");
+        Check(Defs.Get(EnemyType.Stinger).Hp == Defs.Get(EnemyType.TaserGuard).Hp * 1.5f && Defs.Get(EnemyType.Needler).Hp > Defs.Get(EnemyType.SecurityGuard).Hp * 1.5f, "Stingers and Needlers have half as much health again");
         Check(kin.Keys.All(t => Game.EnemyNote(t).Length > 0 && BestiaryData.For(t) != null), "each has a Bestiary entry and a new-enemy note");
         Check(Game.IsBrute(EnemyType.Bumble) && Game.IsLunger(EnemyType.Hornet) && !Game.IsBrute(EnemyType.Worker), "the Bumble counts as a Brute and the Hornet as a Lunger");
 
@@ -56,6 +57,53 @@ static partial class Program
         float d0 = w.Pos.DistanceTo(me.Pos);
         run(2f, null);
         Check(w.Pos.DistanceTo(me.Pos) < d0 - 100f, "a Worker closes in on you");
+
+        // Workers run faster in a crowd.
+        Func<int, float> workerRun = pack =>
+        {
+            put(EnemyType.Worker, new V2(300f, 400f));
+            for (int i = 1; i <= pack; i++) { var o = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Worker, new V2(300f + 14f * i, 400f + 9f * (i % 2 == 0 ? 1 : -1)), 0f, 0, false }); o.SpawnT = 0f; o.Spawning = false; }
+            var lead = g.Enemies.Values.First();
+            V2 from = lead.Pos;
+            run(0.8f, null);
+            return lead.Pos.DistanceTo(from);
+        };
+        float lone = workerRun(0), crowd = workerRun(5);
+        Console.WriteLine("  a Worker covers {0:0} px alone and {1:0} px in a crowd of six in 0.8 s", lone, crowd);
+        Check(crowd > lone * 1.25f, "a Worker in a crowd runs faster than a lone one");
+
+        // A Soldier is armoured while it charges (inside 260 px), not before.
+        var hurt = typeof(Game).GetMethod("HurtEnemy", np);
+        Func<float, float> soldierTakes = x =>
+        {
+            var so = put(EnemyType.Soldier, new V2(me.Pos.X - x, 400f));
+            run(0.1f, null);
+            float hp0 = so.Hp;
+            hurt.Invoke(g, new object[] { so, 10f, 0 });
+            return hp0 - so.Hp;
+        };
+        float far = soldierTakes(600f), near = soldierTakes(150f);
+        Check(Math.Abs(far - 10f) < 0.01f && Math.Abs(near - 5f) < 0.01f, "a Soldier takes full damage far off and half while it charges (" + far + ", " + near + ")");
+
+        // A Comb Shield's plate lets part of a shot through while it wears down.
+        var cs0 = put(EnemyType.CombShield, new V2(me.Pos.X - 300f, 400f));
+        run(0.2f, null);
+        float csHp = cs0.Hp, csShield = cs0.ShieldHp;
+        typeof(Game).GetMethod("SpawnBullet", np).Invoke(g, new object[] { Defs.DpsShot, cs0.Pos + new V2(60f, 0f), new V2(-400f, 0f), 0f, 3f, 20f, 1, false, 0f });
+        run(0.4f, null);
+        Check(cs0.ShieldHp < csShield && cs0.Hp < csHp, "a shot at a Comb Shield wears its plate and some of it gets through (plate " + csShield + " -> " + cs0.ShieldHp + ", health " + csHp + " -> " + cs0.Hp + ")");
+
+        // A Needler strafes harder than a Security Guard.
+        Func<EnemyType, float> strafePath = t =>
+        {
+            var q = put(t, new V2(me.Pos.X - 280f, 400f));
+            float len = 0f; V2 last = q.Pos;
+            run(2.5f, () => { len += q.Pos.DistanceTo(last); last = q.Pos; });
+            return len;
+        };
+        float needle = strafePath(EnemyType.Needler), guard = strafePath(EnemyType.SecurityGuard);
+        Console.WriteLine("  in 2.5 s a Needler moves {0:0} px, a Security Guard {1:0}", needle, guard);
+        Check(needle > guard * 1.25f, "a Needler moves faster strafing than a Security Guard");
 
         // The Honey Lobber's puddle slows instead of hurting: honey, never gas.
         var lob = put(EnemyType.HoneyLobber, new V2(600f, 400f));

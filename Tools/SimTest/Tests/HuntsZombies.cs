@@ -281,7 +281,69 @@ static partial class Program
         int quick = g.Enemies.Values.Count(e => e.Risen);
         Console.WriteLine("  60 shot down by a Mender: {0} up within {1:0.0} s", quick, Zombies.RiseTime * 0.5f + 0.4f);
         Check(quick >= 18 && quick <= 45, "near a Mender about half the dead rise, twice as fast");
+        Run(s, dt, Zombies.RiseTime + 0.5f, null, calm);  // (any slower risers up too)
+        clearOut();
+
+        // Grave Caller (the Lich's faction): three graves round you, a Shambler out of each; four at most; they crumble with it.
+        var caller = put(EnemyType.GraveCaller, p1.Pos + new V2(300f, 0f));
+        caller.MaxHp = caller.Hp = 1e5f;
+        caller.T = 1f; caller.T2 = 0.1f;
+        caller.TargetId = p1.Id; caller.RetargetT = 60f;
+        Run(s, dt, 0.5f, () => g.Patches.Values.Any(pt => pt.Kind == PatchKind.Grave), calm);
+        var graves = g.Patches.Values.Where(pt => pt.Kind == PatchKind.Grave).ToList();
+        bool ring = graves.Count == Zombies.GravesPerCall && graves.All(pt => Math.Abs(pt.Pos.DistanceTo(p1.Pos) - Zombies.GraveRing) < 40f);
+        Run(s, dt, 0.3f, null, calm);
+        bool seen = c.Patches.Values.Count(pt => pt.Kind == PatchKind.Grave) == Zombies.GravesPerCall;
+        Run(s, dt, Zombies.GraveRise + 0.3f, () => g.Enemies.Values.Count(e => e.Type == EnemyType.Shambler) >= 3, calm);
+        var called = g.Enemies.Values.Where(e => e.Type == EnemyType.Shambler && e.Risen && (e.Phase & Zombies.PhCalled) != 0 && e.LinkId == caller.Id).ToList();
+        Check(ring && seen && called.Count == 3 && called.All(e => Math.Abs(e.Hp - e.MaxHp * Zombies.RiseHp) < 0.5f),
+            "Grave Caller: three graves crack open 120 px round you (every game sees them) and a half-health Shambler climbs out of each (" + called.Count + ")");
+        foreach (var e in called) { e.MaxHp = e.Hp = 1e5f; e.Speed = 0f; }
+        caller.T2 = 0.1f;
+        Run(s, dt, Zombies.GraveRise + 0.5f, null, calm);
+        int up = g.Enemies.Values.Count(e => e.Type == EnemyType.Shambler && (e.Phase & Zombies.PhCalled) != 0);
+        Check(up == Zombies.MaxCalled, "Grave Caller: at most four of its Shamblers up at once (" + up + ")");
+        Enemy cs;
+        bool cyan = c.Enemies.TryGetValue(called[0].Id, out cs) && (cs.Phase & Zombies.PhCalled) != 0;
+        caller.T2 = 30f;
+        caller.LastHitBy = 1; caller.Hp = 0f;
+        Run(s, dt, 0.3f, null, calm);
+        int left = g.Enemies.Values.Count(e => (e.Phase & Zombies.PhCalled) != 0);
+        Check(cyan && left == 0 && !g.ZombiesRising, "Grave Caller: killed, its Shamblers crumble (the friend's game saw them marked)");
         host.Leave(""); client.Leave("");
+
+        // The Lich's faction: the five, the Bloater and Shrieker, and the Grave Caller; all eight in the waves before him,
+        // never more than two Callers or Shriekers in one, and the Dead march brings the Callers.
+        var fac = Approaches.For(EnemyType.Lich);
+        Check(fac.Members.Length == 8 && fac.Members.Any(m => m.Type == EnemyType.GraveCaller) && fac.Lessons != null && fac.Lessons.Length == 10
+            && new[] { "Graveyard shift", "Grave rush", "Gravediggers", "Plague cart", "Wake", "Wake the dead" }.All(n => fac.Squads.Any(q => q.Name == n))
+            && fac.Finale.Members.Count(t => t == EnemyType.GraveCaller) == 2,
+            "the Lich's faction has all eight (the Grave Caller its own), six squads, ten lessons, and two Callers in the Dead march");
+        var build = typeof(Game).GetMethod("BuildWave", flags);
+        var spawnQ = typeof(Game).GetField("spawnQueue", flags);
+        var squadQ = typeof(Game).GetField("squadQueue", flags);
+        var dead = new HashSet<EnemyType>(fac.Members.Select(m => m.Type));
+        var met = new HashSet<EnemyType>();
+        int lichWave = BossSchedule.Campaign.NextBossWaveFrom(1);
+        for (int n = 1; n < 200 && BossSchedule.Campaign.BossAt(lichWave) != EnemyType.Lich; n++)
+            lichWave = BossSchedule.Campaign.NextBossWaveFrom(lichWave + 1);
+        int mostCap = 0;
+        var cap = typeof(Game).GetMethod("CapSentries", flags);
+        for (int n = lichWave - 4; n <= lichWave; n++)  // (the last is the Dead march's: Approaches test, wave 35)
+        for (int seed = 0; seed < 8; seed++)
+        {
+            Game.SeedForTests(7300 + n * 31 + seed);
+            var lg = new Session().Game;
+            lg.Wave = n;
+            build.Invoke(lg, new object[] { n });
+            cap.Invoke(lg, null);
+            var lall = ((List<EnemyType>)spawnQ.GetValue(lg)).Concat(((List<SquadDef>)squadQ.GetValue(lg)).SelectMany(x => x.Members)).ToList();
+            foreach (var t in lall.Where(dead.Contains))
+                met.Add(t);
+            mostCap = Math.Max(mostCap, Math.Max(lall.Count(t => t == EnemyType.GraveCaller), lall.Count(t => t == EnemyType.Shrieker)));
+        }
+        Console.WriteLine("  seen before wave " + lichWave + ": " + string.Join(", ", met) + "; most Callers or Shriekers in a wave: " + mostCap);
+        Check(met.SetEquals(dead) && mostCap <= 2, "the waves before the Lich bring all eight, at most two Grave Callers or Shriekers a wave");
     }
 }
 

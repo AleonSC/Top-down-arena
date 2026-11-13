@@ -9,12 +9,12 @@ Eight enemies, one for each of the Warden's roles, so the Hive's ten-wave cycle 
 
 | Hive | Plays like | Difference |
 |---|---|---|
-| Worker | Rioter | none (drawn as a bee) |
-| Soldier | Guard | jaws snap near you |
-| Comb Shield | Riot Shield | seven wax cells instead of a slab; two break per wear step |
+| Worker | Rioter | +10% speed per Worker within 110 px (max +50%) |
+| Soldier | Guard | inside 260 px it charges: 30% faster, half damage (`Enemy.Phase` 1) |
+| Comb Shield | Riot Shield | seven wax cells instead of a slab; two break per wear step; 15% of a shot gets through, +15% per crack |
 | Honey Lobber | Gas Grenadier | honey puddle (slows 45%, no damage) instead of gas |
-| Stinger | Taser Guard | its own bullet kind (`StingBolt`), a lime barbed dart; same stun and parry |
-| Needler | Security Guard | none (drawn as a bee; pips above it) |
+| Stinger | Taser Guard | 105 health (x1.5); its own bullet kind (`StingBolt`), a lime barbed dart; same stun and parry |
+| Needler | Security Guard | 70 health (x1.5); strafes harder (1.2 vs 0.7 sideways pull, x1.4 while locking on) |
 | Bumble | Thug (Brute) | none |
 | Hornet | Shiv (Lunger) | none |
 

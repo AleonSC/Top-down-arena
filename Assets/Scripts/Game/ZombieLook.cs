@@ -17,6 +17,9 @@ namespace Arena
         static readonly float[] RunnerPts = { 1.55f, 0f, -0.95f, 0.52f, -0.95f, -0.52f };
         static readonly float[] CrawlerPts = { 0.75f, 0.5f, -0.8f, 1f, -0.8f, -1f, 0.75f, -0.5f };
         static readonly float[] ShriekerPts = { 1.2f, 0f, 0f, 0.72f, -1f, 0f, 0f, -0.72f };
+        // The Grave Caller (the Lich's faction): a tall cross, longer to the front, under a hood.
+        static readonly float[] CallerPts = { 1.25f, -0.28f, 1.25f, 0.28f, 0.28f, 0.28f, 0.28f, 0.8f, -0.28f, 0.8f, -0.28f, 0.28f, -0.9f, 0.28f, -0.9f, -0.28f, -0.28f, -0.28f, -0.28f, -0.8f, 0.28f, -0.8f, 0.28f, -0.28f };
+        static readonly Rgba SoulEye = new Rgba(0.84f, 0.96f, 1f), GraveBone = new Rgba(0.91f, 0.89f, 0.78f);
         static readonly float[] MenderPts = { 1f, -0.36f, 1f, 0.36f, 0.36f, 0.36f, 0.36f, 1f, -0.36f, 1f, -0.36f, 0.36f, -1f, 0.36f, -1f, -0.36f, -0.36f, -0.36f, -0.36f, -1f, 0.36f, -1f, 0.36f, -0.36f };
         readonly V2[] zShape = new V2[16];
 
@@ -39,7 +42,7 @@ namespace Arena
                     zShape[i] = pos + V2.FromAngle(a + MathX.Tau * i / 5f) * k;
                 return 5;
             }
-            var pts = e.Type == EnemyType.Shambler ? ShamblerPts : e.Type == EnemyType.Runner ? RunnerPts : e.Type == EnemyType.Crawler ? CrawlerPts : e.Type == EnemyType.Shrieker ? ShriekerPts : MenderPts;
+            var pts = e.Type == EnemyType.Shambler ? ShamblerPts : e.Type == EnemyType.Runner ? RunnerPts : e.Type == EnemyType.Crawler ? CrawlerPts : e.Type == EnemyType.Shrieker ? ShriekerPts : e.Type == EnemyType.GraveCaller ? CallerPts : MenderPts;
             float s = r * (e.Type == EnemyType.Shrieker && acting ? 1.3f : 1f);
             V2 fx = V2.FromAngle(a), fy = fx.Orthogonal();
             int n = pts.Length / 2;
@@ -63,9 +66,18 @@ namespace Arena
             if (e.Type == EnemyType.Mender)
                 Circle(pos, r * ((e.Phase & Zombies.PhAct) != 0 ? 0.34f : 0.22f), new Rgba(0.86f, 1f, 0.9f, 0.55f + 0.35f * Mathf.Sin(t * 4f + e.Id)), 12);
             V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
-            float ef = e.Type == EnemyType.Runner ? 0.55f : 0.35f, er = Mathf.Max(1.8f, r * 0.09f);
+            bool soul = e.Type == EnemyType.GraveCaller || (e.Phase & Zombies.PhCalled) != 0;
+            if (e.Type == EnemyType.GraveCaller)
+            {
+                // its hood over the head end, and while it calls, the soul light gathering in its raised hands
+                Arc(pos + f * (r * 0.6f), r * 0.55f, 2f, SoulEye.WithAlpha(0.85f), 14, e.Facing + 1.9f, MathX.Tau - 3.8f);
+                if ((e.Phase & Zombies.PhAct) != 0)
+                    for (int s = -1; s <= 1; s += 2)
+                        Circle(pos + side * (s * r * 0.95f) + f * (r * 0.2f), r * 0.3f, Game.CallerSoul.WithAlpha(0.45f + 0.35f * Mathf.Sin(t * 14f)), 10);
+            }
+            float ef = e.Type == EnemyType.Runner ? 0.55f : e.Type == EnemyType.GraveCaller ? 0.75f : 0.35f, er = Mathf.Max(1.8f, r * 0.09f);
             for (int s = -1; s <= 1; s += 2)
-                Circle(pos + f * (r * ef) + side * (s * r * 0.24f), er, new Rgba(0.92f, 1f, 0.62f), 8);
+                Circle(pos + f * (r * ef) + side * (s * r * 0.24f), er, soul ? SoulEye : new Rgba(0.92f, 1f, 0.62f), 8);
             if (e.Type == EnemyType.Spitter && (e.Phase & Zombies.PhAct) != 0)
                 Circle(pos + f * r, r * 0.45f, new Rgba(0.72f, 1f, 0.48f, 0.5f), 12);  // the glob leaving its mouth
         }
@@ -82,6 +94,25 @@ namespace Arena
                 float rate = e.Type == EnemyType.Runner ? 22f : 6f;
                 if (!game.IsSpawning(e) && Rnd(0f, 1f) < ViewDt * rate)
                     Sparks(pos - V2.FromAngle(e.Facing) * (r * 0.6f), col, 1, 16f, e.Type == EnemyType.Runner ? 0.5f : 0.9f, e.Type == EnemyType.Runner ? 2.2f : 2f);
+            }
+            if ((e.Phase & Zombies.PhCalled) != 0)
+            {
+                // a Grave Caller's Shambler: a faint soul thread back to the Caller that raised it (kill that and it crumbles)
+                Enemy best = null;
+                float bd = 900f;
+                foreach (var o in game.Enemies.Values)
+                    if (o.Type == EnemyType.GraveCaller && o.Hp > 0f && o.Disp.DistanceTo(pos) < bd)
+                    {
+                        best = o;
+                        bd = o.Disp.DistanceTo(pos);
+                    }
+                if (best != null)
+                {
+                    V2 to = best.Disp, mid = (pos + to) * 0.5f + (to - pos).Normalized().Orthogonal() * (10f * Mathf.Sin(t * 3f + e.Id));
+                    var thread = Game.CallerSoul.WithAlpha(0.16f + 0.06f * Mathf.Sin(t * 9f + e.Id));
+                    Line(pos, mid, 2f, thread);
+                    Line(mid, to, 2f, thread);
+                }
             }
             if ((e.Phase & Zombies.PhFrenzy) != 0)
             {
@@ -150,6 +181,49 @@ namespace Arena
             {
                 float q = t * 1.3f + b * 1.7f + pt.Id;
                 Circle(pt.Pos + new V2(Mathf.Cos(q * 1.3f) * r * 0.5f, Mathf.Sin(q) * r * 0.38f), 2f + (b % 2), new Rgba(0.86f, 1f, 0.63f, 0.5f * a), 8);
+            }
+        }
+
+        /// A Grave Caller's grave: cracks glowing soul cyan and spreading, pulsing faster as it opens; then a dark pit with
+        /// two bony hands reaching out, fading. Gone at once if no Grave Caller is left (its graves close with it).
+        void DrawGravePatch(PathPatch pt, float t)
+        {
+            bool caller = false;
+            foreach (var o in game.Enemies.Values)
+                if (o.Type == EnemyType.GraveCaller && o.Hp > 0f)
+                {
+                    caller = true;
+                    break;
+                }
+            if (!caller && !pt.Active)
+                return;
+            float r = pt.Radius, k = Mathf.Clamp01(pt.Age / Mathf.Max(0.01f, pt.Warn)), pulse = 0.5f + 0.5f * Mathf.Sin(t * (8f + 12f * k));
+            float fade = Mathf.Clamp01((pt.Life - pt.Age) / 0.6f);
+            var soul = Game.CallerSoul;
+            if (!pt.Active)
+            {
+                Circle(pt.Pos, r * (0.7f + 0.5f * k), soul.WithAlpha(0.1f + 0.08f * k), 20);
+                Circle(pt.Pos, r * (0.4f + 0.4f * k), soul.WithAlpha(0.12f + 0.25f * k * pulse), 16);
+                for (int i = 0; i < 6; i++)
+                {
+                    float q = MathX.Tau * i / 6f + pt.Id * 1.7f, len = r * (0.35f + 0.75f * k) * (i % 2 == 0 ? 1f : 0.7f);
+                    V2 dir = new V2(Mathf.Cos(q), Mathf.Sin(q) * 0.65f), kink = pt.Pos + dir * (len * 0.55f) + dir.Orthogonal() * (len * 0.15f);
+                    Line(pt.Pos, kink, 2.5f, soul.WithAlpha(0.55f + 0.45f * pulse));
+                    Line(kink, pt.Pos + dir * len, 1.5f, soul.WithAlpha(0.35f + 0.4f * pulse));
+                }
+                Arc(pt.Pos, r, 1.5f, soul.WithAlpha(0.25f + 0.3f * k), 24);
+                return;
+            }
+            // open: a dark pit, a soul glow at its lip, two hands of bone clawing out
+            float h = Mathf.Clamp01((pt.Age - pt.Warn) / 0.3f);
+            Circle(pt.Pos, r * 0.8f, new Rgba(0.02f, 0.04f, 0.05f, 0.75f * fade), 20);
+            Arc(pt.Pos, r * 0.8f, 2f, soul.WithAlpha(0.5f * fade), 20);
+            for (int s = -1; s <= 1; s += 2)
+            {
+                V2 b = pt.Pos + new V2(s * r * 0.35f, 0f), w = b + new V2(s * 2f, -12f * h), c = w + new V2(s * 4f, -5f * h);
+                Line(b, w, 3f, GraveBone.WithAlpha(fade));
+                Line(w, c, 2f, GraveBone.WithAlpha(fade));
+                Line(w, w + new V2(-s * 3f, -6f * h), 2f, GraveBone.WithAlpha(fade));
             }
         }
 
