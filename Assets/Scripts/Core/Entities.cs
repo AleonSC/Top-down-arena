@@ -469,6 +469,7 @@ namespace Arena
         public float[] CellDieT;      // drawing only: when each cell last broke
         public float BubbleBornT = -99f;  // drawing only: when this peer first saw the bubble go up (-98: seen without one, so the next bubble is new; -99: never seen without, so no growing in)
         public int WardId;            // the Warder holding up its bubble (replicated, for the tether)
+        public int LinkId;            // a Bound Wraith's partner (replicated, for the tether; ReaperFaction.cs)
         public int MirrorCount;       // host: player shots that have hit it (Mirrored bounces every fourth)
         public float WardT;           // host: a Warder's time until it wards again
         public float MarkT, MarkMult = 1f;  // Mark for Death (host); Marked is the replicated flag

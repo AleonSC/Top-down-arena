@@ -708,7 +708,7 @@ namespace Arena
                             // A Swordsman about to cut: stay out of its cone (Swordsman.cs).
                             V2 rel = p - e.Pos;
                             float off = Math.Abs(MathX.Fmod(rel.Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
-                            if (rel.Length < SwordReach + hitR + 10f && off < SwordHalf + 0.25f)
+                            if (rel.Length < SwordReachOf(e.Type) + hitR + 10f && off < SwordHalfOf(e.Type) + 0.25f)
                                 d += w * 3f;
                         }
                         else if (e.Type == EnemyType.Reaver && e.Phase == 1)

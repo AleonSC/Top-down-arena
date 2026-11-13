@@ -17,10 +17,11 @@ namespace Arena
         /// The blade's angle relative to where it faces, in the phase this peer sees.
         static float SwordRel(Enemy e)
         {
-            const float rest = 0.8f, H = Game.SwordHalf;
+            const float rest = 0.8f;
+            float H = Game.SwordHalfOf(e.Type);
             switch (e.Phase)
             {
-                case 1: return Mathf.Lerp(rest, -H, SmoothStep(e.SeenT / Game.SwordWind));
+                case 1: return Mathf.Lerp(rest, -H, SmoothStep(e.SeenT / Game.SwordWindOf(e.Type)));
                 case 2: return Mathf.Lerp(-H, H, Mathf.Clamp01(e.SeenT / Game.SwordCut));
                 case 3: return Mathf.Lerp(H, rest, SmoothStep(e.SeenT / Game.SwordRecoverOf(e.Type)));
             }
@@ -40,7 +41,7 @@ namespace Arena
         /// On the floor under it: the cone.
         void DrawSwordsmanUnder(Enemy e, V2 pos, float r, float t)
         {
-            float R = Game.SwordReach, I = Game.SwordInner, H = Game.SwordHalf, f = e.Facing;
+            float R = Game.SwordReachOf(e.Type), I = Game.SwordInnerOf(e.Type), H = Game.SwordHalfOf(e.Type), f = e.Facing;
             const int rings = 6;
             float step = (R - I) / rings;
             for (int k = 0; k < rings; k++)  // the reach: faint, a little stronger toward the tip
@@ -49,7 +50,7 @@ namespace Arena
             float w = 1.5f;
             if (e.Phase == 1)
             {
-                float fill = SmoothStep(e.SeenT / Game.SwordWind), top = I + (R - I) * fill;
+                float fill = SmoothStep(e.SeenT / Game.SwordWindOf(e.Type)), top = I + (R - I) * fill;
                 for (int k = 0; k < rings; k++)
                     SwordBand(pos, I + step * k, Mathf.Min(I + step * (k + 1), top), f - H, H * 2f, SwordRed.WithAlpha(0.14f + 0.07f * k));
                 edge = SwordRed.WithAlpha(0.95f);
@@ -79,7 +80,12 @@ namespace Arena
         /// The body, in place of the usual polygon. col is already tinted by status and the hit flash.
         void DrawSwordsmanBody(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            float f = e.Facing, s = r / 15f, R = Game.SwordReach, I = Game.SwordInner;
+            if (e.Type == EnemyType.Acolyte)
+            {
+                DrawAcolyteBody(e, pos, r, col, SwordRel(e), t);  // a hooded cultist with a sickle (ReaperCultLook.cs)
+                return;
+            }
+            float f = e.Facing, s = r / 15f, R = Game.SwordReachOf(e.Type), I = Game.SwordInnerOf(e.Type);
             V2 fwd = V2.FromAngle(f), side = fwd.Orthogonal();
 
             // the cloak trailing behind
