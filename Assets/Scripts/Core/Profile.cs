@@ -50,7 +50,8 @@ namespace Arena
         /// 6: adds the "tag" lines (how many times each enemy type has been tagged with its name on sight, EnemyTagLook.cs). Older files load with none.
         /// 7: waves on the Campaign's 100-wave scale (Docs/RunLength.md): an older file's best waves and run log are doubled
         /// (a 50-wave run's wave n is about the Campaign's wave 2n), Boss Hunt lines left as they are.
-        public const int FormatVersion = 7;
+        /// 8: adds the "fav" lines (saved favourite loadouts, Favorites.cs). Older files load with none.
+        public const int FormatVersion = 8;
 
         /// The profile's name (also the lobby name). "" until ProfileStore gives it one.
         public string Name = "";
@@ -86,6 +87,7 @@ namespace Arena
         public readonly HashSet<string> Unlocked = new HashSet<string>();
         /// The perks equipped, by PerkId name, in slot order (Perks.cs). Perks.Clean keeps it to what is unlocked.
         public readonly List<string> PerkNames = new List<string>();
+        public readonly List<FavLoadout> Favorites = new List<FavLoadout>();  // saved favourite loadouts (Favorites.cs), oldest first
 
         // Rank (Rank.cs, Docs/Rank.md): total XP, the cosmetics equipped (ids from Rank.Cosmetics; "" none) and the last few runs' XP.
         public long Xp;
@@ -333,6 +335,7 @@ namespace Arena
             if (TutorialDone) RunSave.Line(sb, "tutorial", 1);
             foreach (var u in Unlocked) RunSave.Line(sb, "unlocked", u);
             if (PerkNames.Count > 0) RunSave.Line(sb, "perks", string.Join(",", PerkNames));
+            foreach (var fav in Favorites) RunSave.Line(sb, "fav", Arena.Favorites.ToLine(fav));
             if (HintLaunches > 0 || ProfileOpened) RunSave.Line(sb, "hint", HintLaunches + " " + (ProfileOpened ? 1 : 0));
             foreach (var kv in TagSeen) RunSave.Line(sb, "tag", kv.Key + " " + kv.Value);
             RunSave.Line(sb, "xp", Xp);
@@ -388,6 +391,7 @@ namespace Arena
                         case "mode": p.LastMode = val.Trim(); break;
                         case "tutorial": p.TutorialDone = RunSave.I(f[0]) != 0; break;
                         case "unlocked": p.Unlocked.Add(val); break;
+                        case "fav": if (p.Favorites.Count < Arena.Favorites.Slots) p.Favorites.Add(Arena.Favorites.FromLine(val)); break;
                         case "perks": foreach (var n in val.Split(',')) if (n.Length > 0) p.PerkNames.Add(n.Trim()); break;
                         case "hint": p.HintLaunches = Math.Max(0, RunSave.I(f[0])); p.ProfileOpened = f.Length > 1 && RunSave.I(f[1]) != 0; break;
                         case "tag": p.TagSeen[f[0]] = Math.Max(0, RunSave.I(f[1])); break;
@@ -424,7 +428,7 @@ namespace Arena
         /// Brings an older file's data up to FormatVersion. Add a step per version when the format changes.
         static void Migrate(Profile p)
         {
-            // 1 -> 2 only added the "end" line, 2 -> 3 the name, 3 -> 4 the perks, 4 -> 5 the hint line, 5 -> 6 the tag lines: nothing to convert.
+            // 1 -> 2 only added the "end" line, 2 -> 3 the name, 3 -> 4 the perks, 4 -> 5 the hint line, 5 -> 6 the tag lines, 7 -> 8 the fav lines: nothing to convert.
             if (p.LoadedVersion < 7)  // 6 -> 7: the 100-wave Campaign counts waves twice as far
             {
                 p.BestWave *= 2;

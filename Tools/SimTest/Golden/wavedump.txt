@@ -1,0 +1,349 @@
+campaign w1: Rioter*12
+campaign w2: Thug*2 Guard | Guard Rioter*6
+campaign w3: Rioter Guard Thug*2 RiotShield Rioter | RiotShield*2 Rioter*4
+campaign w4: SecurityGuard Guard SecurityGuard | Thug Rioter*3 Shiv | Thug Rioter*3 Shiv
+campaign w5: SecurityGuard | SecurityGuard*3 Rioter*2 | RiotShield*4 Guard*5
+campaign w5 boss: Boss Grunt*2
+campaign w6: Spinner*3 Charger SpikeBlock | Swarmer*5 | RiotShield*2 Rioter*4
+campaign w7: Lunger Buzzsaw Rioter Grunt Guard TaserGuard Rioter | Swordsman*3 | Swordsman*3 | Swarmer*5
+campaign w8: GasGrenadier Rioter*2 Charger Spinner Mortar Lunger Spiker*2 | Swordsman*3 | Swordsman*3 | Splitter*2 Grunt | Splitter*2 Grunt
+campaign w9: Buzzsaw Shiv Swordsman Mortar Lunger Buzzsaw | Grunt*3 Sniper | Brute*2 Lunger | Charger Mortar*2 | Charger Mortar*2 | Splitter*2 Grunt
+campaign w10: Burster Shielder SpikeBlock Grunt Lunger Swarmer*4 | Splitter*2 Grunt | Swordsman*3 | Splitter*2 Grunt | Charger Mortar*2 | Brute*2 Lunger | Swordsman*3
+campaign w10 boss: HiveQueen
+campaign w11: Mortar Rioter*2 Buzzsaw Splitter SpikeBlock Burster Grunt Guard TaserGuard | Charger Mortar*2 | Splitter*2 Grunt | Brute*3 Medic | Grunt*3 Sniper | ShieldSwordsman*2 Swordsman
+campaign w12: Splitter Swarmer*4 Mortar Brute Guard Rioter Sniper GasGrenadier Rioter Charger Sniper | Brute*3 Medic | Grunt*3 Sniper | Charger Mortar*2 | Grunt*3 Sniper | Shielder Sniper*2
+campaign w13: Splitter Grunt Rioter Grunt RiotShield Grunt Splitter Grunt Splitter*2 Grunt*2 Splitter Rioter | Swarmer*5 | Splitter*2 Grunt | Splitter*2 Grunt | Swarmer*5 # Grunt Brute
+campaign w14: Sniper*2 Splitter*3 Sniper*2 | Guard Rioter*6 Guard Rioter*6 Thug | Swarmer*5 | Swarmer*5 # Splitter Sniper
+campaign w15: Grunt Rioter Pauser*2 Grunt Pauser Grunt Rioter Pauser*2 Rioter Grunt Pauser Rioter Grunt*3 Pauser | ShieldSwordsman*2 Swordsman | Pauser Grunt*2 | ShieldSwordsman*2 Swordsman | Pauser Grunt*2 | Grunt*3 Sniper # Grunt Pauser
+campaign w15 boss: TwinA TwinB
+campaign w16: Shiv Rioter Phantom*3 Pauser Phantom Charger*7 Rioter Charger*3 Phantom Shiv Pauser Phantom | Phantom*3 | Pauser Grunt*2 | Pauser Grunt*2 | Phantom*3 # Charger Phantom
+campaign w17: Thug Shielder Sniper*3 Rioter Sniper Rioter Sniper*2 Shielder*2 Thug Sniper Shielder*4 | ShieldSwordsman*2 Swordsman | Swordsman*3 | ShieldSwordsman*2 Swordsman | Shielder Sniper*2 | Shielder Sniper*2 # Shielder Sniper
+campaign w18: SpikeBlock*10 Sapper SpikeBlock*4 | Sapper SpikeBlock*2 | SecurityGuard*3 Rioter*2 SecurityGuard*3 Rioter*2 Thug | Sapper SpikeBlock*2 # BeamSentry Sapper
+campaign w19: Phantom Rioter Phantom*5 GasGrenadier Phantom*8 Sapper*3 Hookman*2 SecurityGuard Rioter Phantom*3 | Phantom*3 | Phantom*3 # Hookman Sapper
+campaign w20: Leader*5 Rioter Leader*5 SecurityGuard Leader*3 Buzzsaw Leader*2 RiotShield Leader Rioter Leader*5 | Swordsman*3 | Swordsman*3 # Leader Buzzsaw
+campaign w20 boss: Singularity Grunt Sniper Grunt
+campaign w21: SpikeBlock TaserGuard SpikeBlock*3 Rioter SpikeBlock*12 BeamSentry SpikeBlock Rioter Guard SpikeBlock*4 | Sapper SpikeBlock*2 | Sapper SpikeBlock*2 # BeamSentry Sapper
+campaign w22: Phantom*10 | Guard Rioter*6 Guard Rioter*6 Thug | Swarmer*5 | Swordsman*3 # Phantom Swarmer
+campaign w23: Stitcher*4 Burster Stitcher FuseRunner*4 Stitcher GasGrenadier Rioter Stitcher Rioter Stitcher*4 Burster Stitcher Grunt | Stitcher*2 Grunt | FuseRunner*2 Grunt | Stitcher*2 Grunt | FuseRunner*2 Grunt # Burster Stitcher
+campaign w24: Leader*10 Rioter Leader*2 Thug Leader*2 Spiker*3 Rioter Spiker Leader*4 RiotShield Leader | Scorcher*2 Spiker*2 | Scorcher*2 Spiker*2 # Scorcher Leader
+campaign w25: Stitcher Rioter Stitcher FuseRunner*4 BeamSentry SecurityGuard BeamSentry*3 Rioter Stitcher Hexer*2 Stitcher*2 RiotShield | FuseRunner*2 Grunt | FuseRunner*2 Grunt | Stitcher*2 Grunt | Stitcher*2 Grunt | Hexer*2 Grunt*2 # Hexer BeamSentry Stitcher
+campaign w25 boss: Colossus Grunt*5
+campaign w26: Hexer Grunt Juggernaut Grunt Hexer Grunt Juggernaut Grunt Hexer Juggernaut | Shielder Sniper*2 | SecurityGuard*3 Rioter*2 SecurityGuard*3 Rioter*2 Thug | Hexer*2 Grunt*2 | Hexer*2 Grunt*2 | Shielder Sniper*2 # Juggernaut Hexer Grunt
+campaign w27: Sniper Juggernaut Sniper Juggernaut Pauser Sniper RiotShield Rioter Juggernaut*2 Sniper Juggernaut*3 Hookman Guard Hookman Sniper Juggernaut Sniper Rioter | Pauser Grunt*2 | Pauser Grunt*2 | Grunt*3 Sniper | Grunt*3 Sniper # Sniper Juggernaut Hookman
+campaign w28: Stitcher Juggernaut*2 Rioter Stitcher Guard Rioter*2 Hexer Juggernaut*2 Hexer Juggernaut*2 Rioter Hexer*3 Hookman*2 | Stitcher*2 Grunt | Juggernaut Medic*2 | Juggernaut Medic*2 | Hexer*2 Grunt*2 | Hexer*2 Grunt*2 # Juggernaut Hookman Hexer
+campaign w29: Reaver*4 BeamSentry*2 Rioter BeamSentry Rioter BeamSentry Rioter Grunt*4 Juggernaut*2 Rioter | Pauser Grunt*2 | Reaver*2 Lunger*2 | Hexer*2 Grunt*2 | Hexer*2 Grunt*2 | Pauser Grunt*2 # Grunt BeamSentry Juggernaut
+campaign w30: Leader Phantom Grunt Rioter Grunt Leader Reaver*4 Grunt*3 Leader Rioter*2 Leader Grunt Rioter | Hexer*2 Grunt*2 | Phantom*3 | Scorcher*2 Spiker*2 | Scorcher*2 Spiker*2 | Phantom*3 # Grunt Leader Scorcher
+campaign w30 boss: Duelist
+campaign w31: Shambler GasGrenadier Shambler Stitcher Shambler Stitcher Shambler Juggernaut Rioter Shambler Rioter Juggernaut TaserGuard Shambler*3 Scorcher Stitcher Juggernaut | Swordsman*3 | Swordsman*3 | Shambler*6 | Shambler*6 # Scorcher Stitcher Juggernaut
+campaign w32: Runner Juggernaut*3 Runner Juggernaut Rioter Brute*2 Spitter Scorcher Juggernaut*2 RiotShield Shambler Rioter Spitter Runner Rioter*2 Shambler | Runner*5 Shambler*2 | Shambler*6 | Runner*5 Shambler*2 # Juggernaut Scorcher Brute
+campaign w33: Juggernaut Runner*2 Juggernaut*2 Charger Runner Thug Shambler Charger Spitter Juggernaut Guard Thug Runner*3 Juggernaut Thug | Runner*5 Shambler*2 | Shambler*6 | Runner*5 Shambler*2 # Lunger Charger Juggernaut
+campaign w34: Runner Spitter*2 Shambler*2 Runner Mender Shambler Runner*2 Shambler Runner*2 Shambler Spitter | Runner*5 Shambler*2 | SecurityGuard*3 Rioter*2 SecurityGuard*3 Rioter*2 Thug | Shambler*6 | Runner*5 Shambler*2 # Reaver Lunger Scorcher
+campaign w35: GasGrenadier*2 Shambler GasGrenadier Shambler Spitter Mender Spitter GasGrenadier | Shambler*6 Mender*2 Runner*3 | Runner*5 Shambler*2 | Shambler*6 | Shambler*6 # Reaver Spiker BeamSentry
+campaign w35 boss: Lich
+campaign w36: Runner Juggernaut*6 GasGrenadier Juggernaut RiotShield Juggernaut*2 Thug Juggernaut Reaver Runner Reaver*3 GasGrenadier Reaver*2 Juggernaut*3 Hookman*2 Juggernaut*2 Runner | Shambler*6 | Runner*5 Shambler*2 # Reaver Juggernaut Hookman
+campaign w37: Juggernaut*4 Leader Thug Juggernaut*4 Shambler Juggernaut RiotShield Juggernaut Leader Thug Leader Juggernaut Leader Juggernaut RiotShield Juggernaut Shambler Crawler | Swarmer*5 | Runner*5 Shambler*2 | Swarmer*5 # Leader Swarmer Juggernaut
+campaign w38: Shambler Runner*2 Hexer Stitcher Hexer Stitcher Shambler Stitcher Splitter Runner Stitcher Runner Splitter*2 Runner Splitter Hexer Stitcher Hexer Runner Stitcher Splitter Hexer Splitter Stitcher Splitter Stitcher | Guard Rioter*6 Guard Rioter*6 Thug # Splitter Hexer Stitcher
+campaign w39: Sniper TaserGuard Thug Juggernaut Rioter Juggernaut Sniper Shambler Juggernaut*2 Sniper Juggernaut*2 Sniper Juggernaut*3 Spitter Juggernaut Sniper Reaver*8 Juggernaut*3 Sniper Juggernaut Sniper*4 Juggernaut Rioter # Juggernaut Sniper Reaver
+campaign w40: Juggernaut Mortar Juggernaut*4 Mortar Juggernaut*2 Mortar Juggernaut*2 Reaver*2 Rioter Reaver Guard Reaver*4 Rioter Juggernaut*3 Mortar TaserGuard Hookman*3 Juggernaut Mortar Juggernaut*2 | Charger Mortar*2 | Charger Mortar*2 # Hookman Juggernaut Reaver
+campaign w40 boss: StormHerald Sniper*5
+campaign w41: Grunt*14 Reaver*2 SpikeBlock Reaver SpikeBlock RiotShield Scorcher*2 Shambler Guard Scorcher Shambler Scorcher Grunt*7 | FuseRunner*2 Grunt | FuseRunner*2 Grunt # Reaver Scorcher SpikeBlock
+campaign w42: Phantom Grunt Phantom Mortar Hexer Grunt Hexer*2 Phantom Mortar Grunt | Hexer*2 Grunt*2 | Reaver*2 Lunger*2 | Phantom*3 | Reaver*2 Lunger*2 | Runner*5 Shambler*2 Runner*5 Shambler*3 # Hexer Mortar Grunt
+campaign w43: Shambler Spinner Juggernaut Spinner Mortar Juggernaut Spinner*5 Spiker*2 Charger*5 Juggernaut Spinner Shambler Spinner*4 Rioter Spinner Rioter | Juggernaut Medic*2 | Juggernaut Medic*2 | Charger Mortar*2 | Charger Mortar*2 # Spinner Charger Spiker
+campaign w44: Splitter*2 Rioter Splitter FuseRunner*4 Reaver Shambler Sniper*2 Splitter*7 Shambler Rioter Splitter*2 | FuseRunner*2 Grunt | Grunt*3 Sniper | Splitter*2 Grunt | Grunt*3 Sniper | FuseRunner*2 Grunt # Swarmer Splitter Reaver
+campaign w45: Mortar Crawler Mortar*4 Sniper*5 Shiv Mortar*2 Sniper*4 Thug Lunger*3 Sniper*2 Mortar*7 Shambler Sniper*2 | Brute*2 Lunger | Brute*2 Lunger # Lunger Sniper Mortar
+campaign w45 boss: Devourer
+campaign w46: Juggernaut*2 Grunt*4 Sapper*2 Juggernaut Warder | Runner*5 Shambler*2 Runner*5 Shambler*3 | Swarmer*5 | Swarmer*5 | Warder Juggernaut Grunt*2 # FuseRunner Sapper Grunt
+campaign w47: Spitter Juggernaut*3 Thug Juggernaut*2 Shambler Juggernaut*9 Buzzsaw*2 TaserGuard Buzzsaw*7 Sapper*3 Juggernaut*4 | Juggernaut Medic*2 | Juggernaut Medic*2 # Juggernaut Buzzsaw Sapper
+campaign w48: Phantom*5 SecurityGuard Phantom Shambler Phantom*3 GasGrenadier Shambler Scorcher Sapper Scorcher Phantom*5 | Swarmer*5 | Phantom*3 | Phantom*3 | Sapper SpikeBlock*2 | Swarmer*5 # Scorcher Sapper SpikeBlock
+campaign w49: Mortar*2 Hexer Mortar Splitter Hexer Shambler Mortar*3 Hexer*2 Shambler Mortar Lunger*8 SecurityGuard Lunger Mortar*2 Splitter Hexer RiotShield Hexer*3 Nest*2 | Nest Splitter*2 | Nest Splitter*2 # Hexer Mortar Lunger
+campaign w50: Juggernaut Hexer*3 Juggernaut*2 Hexer Juggernaut*2 Shambler Juggernaut Hexer*2 Juggernaut*2 Reaver*7 Guard Spitter Reaver*2 Juggernaut*2 Hexer*2 TaserGuard Hexer Juggernaut*2 | Juggernaut Medic*2 | Juggernaut Medic*2 # Reaver Juggernaut Hexer
+campaign w50 boss: Eclipse
+campaign w51: Juggernaut*2 Runner Sniper Juggernaut Rioter*3 Runner Rioter*2 Guard Sniper Guard Juggernaut Shambler Guard Juggernaut Rioter Runner Guard Shielder | Shielder BeamSentry*2 | Guard Rioter*6 | Guard Rioter*6 | Shielder BeamSentry*2 # Shielder Juggernaut Sniper
+campaign w52: Rioter*2 RiotShield*2 Shielder Spitter Guard Rioter Reaver Spitter Rioter*3 Shielder | Shielder BeamSentry*2 | Guard Rioter*6 | SecurityGuard*3 Rioter*2 | Guard Rioter*6 | Shielder BeamSentry*2 # Shielder Reaver BeamSentry
+campaign w53: Phantom Lunger Rioter Lunger Rioter*2 Phantom*2 Shiv Phantom RiotShield Rioter | Phantom*3 | Thug Rioter*3 Shiv | Thug Rioter*3 Shiv | SecurityGuard*3 Rioter*2 | SecurityGuard*3 Rioter*2 | RiotShield*2 Rioter*4 # Lunger Phantom FuseRunner
+campaign w54: Rioter Shiv*2 Rioter*3 Shiv Rioter Thug Rioter*2 RiotShield Rioter RiotShield Rioter*2 Shiv TaserGuard | RiotShield*2 Rioter*4 RiotShield*2 Rioter*4 Thug | RiotShield*2 Rioter*4 | Thug Rioter*3 Shiv | Thug Rioter*3 Shiv # Grunt Juggernaut Brute
+campaign w55: Guard SecurityGuard Rioter*2 RiotShield GasGrenadier SpikeBlock | SecurityGuard*3 Rioter*2 | RiotShield*2 Rioter*4 | SecurityGuard*3 Rioter*2 | Guard Rioter*6 | RiotShield*4 Guard*5 # BeamSentry Swarmer SpikeBlock
+campaign w55 boss: Boss Grunt*27
+campaign w56: Phantom*4 FuseRunner Runner Guard GasGrenadier FuseRunner*5 Scorcher BeamSentry*2 Phantom*3 Runner Phantom Runner | Phantom*3 | Guard Rioter*6 | Phantom*3 | Guard Rioter*6 # Scorcher BeamSentry FuseRunner
+campaign w57: Phantom*3 Stitcher*2 Phantom Spiker*2 Mender Spiker*4 Mender Stitcher Phantom*2 Stitcher*5 | Thug Rioter*3 Shiv | Guard Rioter*6 | Phantom*3 | Phantom*3 # Stitcher Phantom Spiker
+campaign w58: Hexer*9 Charger Reaver Rioter Reaver Charger Rioter Charger Hexer*6 | Runner*5 Shambler*2 Runner*5 Shambler*3 | Thug Rioter*3 Shiv # Reaver Hexer Charger
+campaign w59: Shielder Crawler Burster*2 Splitter Shielder*2 Burster Rioter Shiv Burster Shielder Splitter Shielder*2 Splitter Burster Shielder Rioter*2 Splitter Burster*2 Shielder Grunt Shielder Splitter Shambler Shielder Burster*2 Shielder Rioter Burster Splitter | Splitter*2 Grunt | Splitter*2 Grunt # Burster Splitter Shielder
+campaign w60: SecurityGuard Phantom Leader Phantom Leader Phantom Shiv Phantom Leader*3 Runner Phantom Leader*2 Phantom Shambler Runner Phantom Hookman Runner Hookman*2 Leader Phantom*2 | Phantom*3 | Swarmer*5 | Swarmer*5 | Phantom*3 # Phantom Leader Hookman
+campaign w60 boss: HiveQueen
+quick w1: Rioter*12
+quick w2: Rioter*2 Guard Rioter*8
+quick w3: RiotShield*2 Guard RiotShield SecurityGuard | Guard Rioter*6
+quick w4: Thug | SecurityGuard*3 Rioter*2 | Guard Rioter*6
+quick w5: RiotShield Rioter*2 Guard Shiv Guard | Thug Rioter*3 Shiv | Thug Rioter*3 Shiv
+quick w6: TaserGuard SecurityGuard Rioter*2 | Guard Rioter*6 | SecurityGuard*3 Rioter*2
+quick w7: Rioter*4 | Guard Rioter*6 | Guard Rioter*6
+quick w8: SecurityGuard Rioter TaserGuard Guard RiotShield SecurityGuard Guard RiotShield Rioter RiotShield | Thug Rioter*3 Shiv | SecurityGuard*3 Rioter*2
+quick w9: Rioter*2 RiotShield Thug SecurityGuard Shiv | Thug Rioter*3 Shiv | RiotShield*2 Rioter*4 | SecurityGuard*3 Rioter*2
+quick w10: Guard RiotShield Thug RiotShield Thug Rioter RiotShield Rioter GasGrenadier | RiotShield*2 Rioter*4 | RiotShield*4 Guard*5
+quick w10 boss: Boss Grunt*5
+quick w11: Shielder Spinner Charger*2 Sniper Burster | Brute*3 Medic | Shielder Sniper*2 | Splitter*2 Grunt | Brute*3 Medic | Charger Mortar*2 | Shielder Sniper*2
+quick w12: Splitter Spinner Burster Spinner Lunger Mortar Charger | Brute*3 Medic | Brute*3 Medic | Splitter*2 Grunt | Splitter*2 Grunt | Grunt*3 Sniper | Charger Mortar*2
+quick w13: Spinner*2 Splitter Spinner*8 Lunger Spinner*3 | Splitter*2 Grunt | ShieldSwordsman*2 Swordsman | ShieldSwordsman*2 Swordsman | Splitter*2 Grunt | Swordsman*3 # Spinner Lunger
+quick w14: Burster*4 Pauser*4 Burster Grunt Pauser*3 Burster Grunt Pauser | Pauser Grunt*2 | Pauser Grunt*2 | Grunt*3 Sniper | ShieldSwordsman*2 Swordsman | Swordsman*3 # Burster Pauser
+quick w15: Pauser*3 Sniper Pauser*3 FuseRunner*6 Medic*2 | Grunt*3 Sniper | Brute*3 Medic | Pauser Grunt*2 | Pauser Grunt*2 | FuseRunner*2 Grunt # FuseRunner Pauser
+quick w16: Phantom Pauser SpikeBlock*11 Phantom*2 Splitter | Phantom*3 | Phantom*3 | Grunt*3 Sniper | Pauser Grunt*2 | Splitter*2 Grunt # SpikeBlock Phantom
+quick w17: Phantom Pauser Phantom*2 Pauser Phantom*3 SpikeBlock Phantom*3 Pauser*2 Phantom | Pauser Grunt*2 | Pauser Grunt*2 | FuseRunner*2 Grunt | Swarmer*5 | Phantom*3 # SpikeBlock Phantom
+quick w18: Phantom*5 Mortar Phantom*3 Mortar Phantom*4 Medic*2 | Charger Mortar*2 | Brute*3 Medic | Swordsman*3 | Phantom*3 | Charger Mortar*2 # Charger Phantom
+quick w19: Leader*2 Phantom Leader*3 Pauser Leader Pauser Leader*3 Phantom*2 | Pauser Grunt*2 | Phantom*3 | Shielder BeamSentry*2 | Shielder BeamSentry*2 | Phantom*3 | Pauser Grunt*2 # Leader Phantom
+quick w20: Pauser Leader Lunger*4 Phantom*4 Hookman Pauser Phantom Pauser | Leader*2 Sniper | Hookman Lunger*2 | Hookman Lunger*2 | Phantom*3 | Phantom*3 | Leader*2 Sniper # Phantom Pauser
+quick w20 boss: HiveQueen
+quick w21: Shielder Pauser Shielder Hexer Shielder Pauser Shielder Pauser Shielder Pauser Shielder*2 Sniper Hexer Shielder | Hexer*2 Grunt*2 | Leader*2 Sniper | Hexer*2 Grunt*2 | Leader*2 Sniper | Pauser Grunt*2 # Shielder Pauser
+quick w22: Shielder*2 Stitcher Shielder Pauser Stitcher Shielder*2 Pauser Hookman*3 Shielder Stitcher Shielder | Stitcher*2 Grunt | Shielder BeamSentry*2 | Pauser Grunt*2 | Shielder BeamSentry*2 | Pauser Grunt*2 | Stitcher*2 Grunt # Hookman Shielder
+quick w23: Pauser Sniper Spinner*3 Pauser*2 Spinner Shielder Spinner Shielder Pauser*2 Spinner | Shielder Sniper*2 | Pauser Grunt*2 | Grunt*3 Sniper | Pauser Grunt*2 | Shielder BeamSentry*2 | Shielder BeamSentry*2 # BeamSentry Spinner
+quick w24: Pauser*2 Grunt Pauser*2 Grunt Pauser BeamSentry*4 Hookman Pauser*3 | Pauser Grunt*2 | Hookman Lunger*2 | FuseRunner*2 Grunt | Hookman Lunger*2 | FuseRunner*2 Grunt | Pauser Grunt*2 # BeamSentry Hookman
+quick w25: Sniper Leader*3 Sniper Leader Sniper Leader Hookman*3 Leader Grunt Leader | Leader*2 Sniper | Scorcher*2 Spiker*2 | Grunt*3 Sniper | Swarmer*5 | Scorcher*2 Spiker*2 # Brute Scorcher Hookman
+hunt w1: Rioter*12
+hunt w2: Guard*3 | Guard Rioter*6
+hunt w3: SecurityGuard RiotShield GasGrenadier RiotShield Rioter*2 Guard | SecurityGuard*3 Rioter*2
+hunt w4: RiotShield Rioter*2 GasGrenadier | SecurityGuard*3 Rioter*2 | SecurityGuard*3 Rioter*2
+hunt w5: RiotShield Rioter*4 Thug GasGrenadier Rioter SecurityGuard Rioter | RiotShield*2 Rioter*4
+hunt w6: Guard | SecurityGuard*3 Rioter*2 | Thug Rioter*3 Shiv | SecurityGuard*3 Rioter*2
+hunt w7: Thug TaserGuard*2 | SecurityGuard*3 Rioter*2 | SecurityGuard*3 Rioter*2 | Thug Rioter*3 Shiv
+hunt w8: Guard Rioter Shiv Rioter*2 GasGrenadier Rioter | Guard Rioter*6 | RiotShield*2 Rioter*4
+hunt w9: Guard GasGrenadier RiotShield | Thug Rioter*3 Shiv | RiotShield*4 Guard*5 | SecurityGuard*3 Rioter*2
+hunt w10 boss: Boss Grunt*5
+campaign100 w1: Rioter*12
+campaign100 w2: Rioter RiotShield SecurityGuard RiotShield Rioter | RiotShield*2 Rioter*4
+campaign100 w3: RiotShield Thug GasGrenadier Thug*2 | Guard Rioter*6
+campaign100 w4: Shiv*2 TaserGuard | Thug Rioter*3 Shiv | Thug Rioter*3 Shiv
+campaign100 w5: GasGrenadier Guard Shiv GasGrenadier | RiotShield*2 Rioter*4 | SecurityGuard*3 Rioter*2
+campaign100 w5 boss: Boss Grunt*2
+campaign100 w6: Shiv Lunger Thug Charger Shiv Rioter*2 Shiv | Brute*2 Lunger | Swarmer*5
+campaign100 w7: Sniper Guard SpikeBlock*2 Splitter Grunt | Swordsman*3 | Brute*2 Lunger | Brute*2 Lunger | Splitter*2 Grunt
+campaign100 w8: Spiker*2 Swordsman Grunt*2 Spiker*2 | Grunt*3 Sniper | Charger Mortar*2 | Charger Mortar*2 | Swarmer*5
+campaign100 w9: Brute Mortar Grunt Shielder Spiker*2 | Grunt*3 Sniper | Grunt*3 Sniper | Swordsman*3 | Brute*2 Lunger | Charger Mortar*2
+campaign100 w10: Splitter Grunt Lunger Burster Spinner Splitter | ShieldSwordsman*2 Swordsman | Charger Mortar*2 | Splitter*2 Grunt | Shielder Sniper*2 | Shielder Sniper*2 | ShieldSwordsman*2 Swordsman
+campaign100 w10 boss: HiveQueen
+campaign100 w11: Thug Grunt Rioter Grunt Burster Buzzsaw Rioter Sniper Mortar Splitter | Brute*3 Medic | Charger Mortar*2 | Splitter*2 Grunt | Charger Mortar*2 | Brute*2 Lunger
+campaign100 w12: Grunt Charger Thug Splitter Shielder Shiv Medic SecurityGuard | Shielder Sniper*2 | Shielder Sniper*2 | Brute*3 Medic | Brute*3 Medic | Charger Mortar*2 | Splitter*2 Grunt
+campaign100 w13: Burster*5 SecurityGuard Burster*8 SecurityGuard Burster*2 Spiker*4 Thug Medic | Brute*3 Medic | Brute*3 Medic # Spiker Burster
+campaign100 w14: Pauser*2 Grunt Pauser*2 Grunt Pauser Swarmer*4 Pauser*2 | Guard Rioter*6 Guard Rioter*6 Thug | Pauser Grunt*2 | Swarmer*5 # Swarmer Pauser
+campaign100 w15: Shielder*2 Sniper TaserGuard Shielder*8 FuseRunner*7 GasGrenadier FuseRunner*3 Shielder Sniper Shielder Thug | Shielder Sniper*2 | Shielder Sniper*2 # Shielder FuseRunner
+campaign100 w15 boss: TwinA TwinB
+campaign100 w16: Pauser Phantom GasGrenadier Pauser*6 Phantom Pauser*2 Buzzsaw*6 Thug Buzzsaw*4 Pauser*2 RiotShield Pauser | Phantom*3 | Phantom*3 # Buzzsaw Pauser
+campaign100 w17: Splitter*2 Guard Splitter*15 Thug Lunger*3 Splitter RiotShield Splitter*2 | Hookman Lunger*2 | Hookman Lunger*2 # Splitter Hookman
+campaign100 w18: Mortar*3 Lunger*5 Mortar*3 Phantom Mortar*3 | Phantom*3 | SecurityGuard*3 Rioter*2 SecurityGuard*3 Rioter*2 Thug | Phantom*3 # Mortar Lunger
+campaign100 w19: Phantom*3 Shiv Phantom Guard Phantom*10 BeamSentry*3 Thug Hookman*2 Phantom*3 | Phantom*3 | Phantom*3 # Hookman BeamSentry
+campaign100 w20: Phantom Thug Phantom FuseRunner Guard Thug FuseRunner*3 Phantom Pauser*2 Phantom Pauser*4 | FuseRunner*2 Grunt | FuseRunner*2 Grunt | Phantom*3 | Pauser Grunt*2 | Pauser Grunt*2 # Phantom Pauser
+campaign100 w20 boss: Singularity Grunt Sniper Grunt
+campaign100 w21: Phantom Rioter Phantom*3 Grunt FuseRunner*4 Phantom*2 SecurityGuard Phantom Rioter Hookman*2 Phantom*3 | Phantom*3 | FuseRunner*2 Grunt | FuseRunner*2 Grunt | Phantom*3 # Hookman FuseRunner
+campaign100 w22: Pauser Stitcher Pauser Phantom*2 Stitcher*4 Pauser*2 Stitcher | Phantom*3 | Phantom*3 | Guard Rioter*6 Guard Rioter*6 Thug # Stitcher Pauser
+campaign100 w23: RiotShield Hexer*2 Stitcher Hexer*5 Stitcher Rioter Stitcher Hookman*2 Rioter Hexer*3 | Stitcher*2 Grunt | Hexer*2 Grunt*2 | Hexer*2 Grunt*2 | Stitcher*2 Grunt # Hookman Hexer
+campaign100 w24: Thug Burster*4 Shiv Burster*12 Scorcher*4 Burster Guard Burster*4 | Swordsman*3 | Swordsman*3 # Scorcher Burster
+campaign100 w25: Rioter Phantom Rioter Stitcher*2 Thug Stitcher Phantom Stitcher*3 Phantom*2 Stitcher*2 Phantom Stitcher | Hookman Lunger*2 | Scorcher*2 Spiker*2 | Scorcher*2 Spiker*2 | Phantom*3 | Hookman Lunger*2 # Scorcher Phantom Stitcher
+campaign100 w25 boss: Colossus Grunt*5
+campaign100 w26: Stitcher Grunt Stitcher*2 Pauser Sapper*3 Grunt*4 | Stitcher*2 Grunt | Pauser Grunt*2 | Pauser Grunt*2 | SecurityGuard*3 Rioter*2 SecurityGuard*3 Rioter*2 Thug | Stitcher*2 Grunt # Grunt Scorcher Sapper
+campaign100 w27: Thug SecurityGuard Juggernaut Thug Stitcher*2 Juggernaut Stitcher Juggernaut Stitcher Spinner Shiv Spinner Juggernaut*3 Spinner Stitcher Lunger*4 Juggernaut*4 Stitcher*3 | Hookman Lunger*2 | Hookman Lunger*2 # Stitcher Spinner Juggernaut
+campaign100 w28: Juggernaut*5 Stitcher Juggernaut*2 Thug SecurityGuard Stitcher Juggernaut*3 Stitcher Juggernaut Guard Juggernaut*4 SecurityGuard Stitcher Juggernaut | Juggernaut Medic*2 | Juggernaut Medic*2 | Shielder BeamSentry*2 | Shielder BeamSentry*2 # BeamSentry Stitcher Juggernaut
+campaign100 w29: Stitcher*3 Phantom*2 Leader TaserGuard Stitcher Leader Reaver GasGrenadier Reaver*7 Leader Phantom Leader*3 Thug Stitcher*2 Leader SecurityGuard Leader Stitcher | Phantom*3 | Phantom*3 # Stitcher Reaver Leader
+campaign100 w30: GasGrenadier Sniper*6 Rioter Sniper*6 RiotShield Sniper*3 Rioter Scorcher*3 Thug Scorcher Sniper*6 | Reaver*2 Lunger*2 | Reaver*2 Lunger*2 # Reaver Scorcher Sniper
+campaign100 w30 boss: Duelist
+campaign100 w31: Shambler Reaver*2 Spiker Thug SecurityGuard Shambler Spiker Reaver*2 Shambler*2 Spiker*2 Rioter Shambler*2 Rioter | Scorcher*2 Spiker*2 | Scorcher*2 Spiker*2 | Shambler*6 | Shambler*6 # Scorcher Reaver Sapper
+campaign100 w32: Spitter Runner Spitter Shambler Guard Runner Hexer Shambler Reaver Guard Shiv Spitter Runner*2 Spitter Runner Shambler Shiv Runner | Runner*5 Shambler*2 | Shambler*6 | Runner*5 Shambler*2 # Hexer Reaver FuseRunner
+campaign100 w33: Spitter Runner Rioter Runner Spitter Runner Crawler Runner Rioter*2 Shambler*3 Spitter Rioter Runner*2 Shambler*2 | Shambler*6 | Runner*5 Shambler*2 | Shambler*6 # Reaver FuseRunner Charger
+campaign100 w34: Runner*3 Shambler Spitter Runner*2 Spitter Shambler Runner Shambler | Shambler*6 | SecurityGuard*3 Rioter*2 SecurityGuard*3 Rioter*2 Thug | Runner*5 Shambler*2 | Shambler*6 | Runner*5 Shambler*2 # Sniper Splitter Mortar
+campaign100 w35: Guard Runner*5 Shambler Spitter Guard Shambler Guard Runner Shambler Guard Mender Runner Shambler Runner Spitter Runner*4 | Shambler*6 Mender*2 Runner*3 | Runner*5 Shambler*2 # BeamSentry Reaver SpikeBlock
+campaign100 w35 boss: Lich
+campaign100 w36: Runner Guard Runner Guard Shambler Mender Runner Mender SecurityGuard Leader Grunt Shambler Leader*2 Runner*3 Grunt*2 SecurityGuard Grunt*2 Runner Grunt Runner Shambler*2 Reaver Runner Reaver*4 Leader Shambler*2 Leader*3 Grunt Leader # Reaver Grunt Leader
+campaign100 w37: Juggernaut*15 Reaver Mender SecurityGuard Reaver*2 Rioter Thug Reaver Shambler Rioter Reaver Thug Reaver*3 Shambler Scorcher*4 Juggernaut*6 # Juggernaut Scorcher Reaver
+campaign100 w38: Burster Stitcher*2 Burster Stitcher*4 Burster Stitcher*2 | Scorcher*2 Spiker*2 | Swordsman*3 | Scorcher*2 Spiker*2 | Swordsman*3 | Guard Rioter*6 Guard Rioter*6 Thug # Stitcher Burster Scorcher
+campaign100 w39: Shiv Juggernaut*2 Rioter Juggernaut*2 Rioter Juggernaut*8 Reaver Spiker*2 Reaver*3 Spiker*2 Thug Reaver Juggernaut*6 Splitter Nest*2 | Nest Splitter*2 | Nest Splitter*2 # Spiker Reaver Juggernaut
+campaign100 w40: FuseRunner Thug FuseRunner*5 Scorcher*3 Thug Scorcher Stitcher Mortar Rioter Grunt Rioter Mortar*2 Grunt Mortar | Stitcher*2 Grunt | Grunt*3 Sniper | FuseRunner*2 Grunt | Stitcher*2 Grunt | FuseRunner*2 Grunt | Grunt*3 Sniper # Scorcher Mortar FuseRunner
+campaign100 w40 boss: StormHerald Sniper*5
+campaign100 w41: Juggernaut*14 SecurityGuard SpikeBlock*4 Shambler SpikeBlock*2 Thug SpikeBlock Mender SpikeBlock*2 Juggernaut*4 Hookman*3 | Juggernaut Medic*2 | Juggernaut Medic*2 # SpikeBlock Hookman Juggernaut
+campaign100 w42: Splitter Grunt Splitter Grunt Splitter Scorcher*3 Splitter*2 Grunt Splitter | Splitter*2 Grunt | Runner*5 Shambler*2 Runner*5 Shambler*3 | Reaver*2 Lunger*2 | Reaver*2 Lunger*2 | Splitter*2 Grunt # Reaver SpikeBlock Scorcher
+campaign100 w43: Spinner*2 Splitter Spinner*4 Mender Spinner*5 Spiker*2 TaserGuard Spiker*7 Shambler Spiker Splitter Spinner*2 TaserGuard Spinner*3 Splitter Nest*2 | Nest Splitter*2 | Nest Splitter*2 # Spiker Lunger Spinner
+campaign100 w44: Shambler Reaver*11 Swarmer*4 Reaver TaserGuard Scorcher*4 Hookman RiotShield Hookman*2 Reaver*2 Swarmer*2 Mender Swarmer*2 | Swarmer*5 | Swarmer*5 # Hookman Reaver Scorcher
+campaign100 w45: Spinner Stitcher Spinner*2 Stitcher*3 Spinner Stitcher*2 Reaver*3 GasGrenadier Reaver*3 Mender Reaver*3 Stitcher*2 Crawler Guard Grunt Stitcher*2 Spinner Stitcher*2 Spinner Stitcher*2 | Stitcher*2 Grunt | Stitcher*2 Grunt # Stitcher Spinner Reaver
+campaign100 w45 boss: Devourer
+campaign100 w46: Mortar*7 Scorcher*2 Mortar*2 | Hookman Lunger*2 | Reaver*2 Lunger*2 | Runner*5 Shambler*2 Runner*5 Shambler*3 | Reaver*2 Lunger*2 | Hookman Lunger*2 # Mortar Swarmer Scorcher
+campaign100 w47: Grunt Pauser*3 Shambler Pauser*5 Rioter Pauser Rioter SpikeBlock Spiker Mender Spiker Pauser*11 | Swordsman*3 | Pauser Grunt*2 | Swordsman*3 | Pauser Grunt*2 # Spiker Pauser SpikeBlock
+campaign100 w48: Mender Leader*5 Thug Leader*2 Guard Leader*11 Hookman Leader*2 Mender Leader | Reaver*2 Lunger*2 | Reaver*2 Lunger*2 | Hookman Lunger*2 | Hookman Lunger*2 # Charger Hookman Leader
+campaign100 w49: Shielder Pauser*2 Shielder*4 Mender Shielder Mortar Shielder Mortar Pauser Shambler Shielder Mortar*2 Shielder*3 Mortar Pauser Mortar*2 Pauser*3 Guard SecurityGuard Shielder | Swarmer*5 | Swarmer*5 # Mortar Pauser Shielder
+campaign100 w50: Sniper Phantom Sniper*3 TaserGuard Sniper Phantom Mender Phantom Sniper Rioter Sniper Rioter Sniper*4 Spitter Phantom Sniper*5 | Phantom*3 | Swarmer*5 | Phantom*3 | Swarmer*5 # Buzzsaw Swarmer Sniper
+campaign100 w50 boss: Eclipse
+campaign100leg2 w1: Rioter SecurityGuard*2 Rioter SecurityGuard*3 | SecurityGuard*3 Rioter*2
+campaign100leg2 w2: GasGrenadier Rioter*2 GasGrenadier*6 RiotShield
+campaign100leg2 w3: Guard*3 TaserGuard*5 Rioter TaserGuard Rioter TaserGuard
+campaign100leg2 w4: Rioter*6 Guard | RiotShield*2 Rioter*4
+campaign100leg2 w5: RiotShield*2 Rioter Shiv SecurityGuard Rioter | RiotShield*4 Guard*5
+campaign100leg2 w5 boss: Boss Grunt*2
+campaign100leg2 w6: SpikeBlock Guard Shiv Sniper Lunger Thug | Brute*2 Lunger | Grunt*3 Sniper | Brute*2 Lunger
+campaign100leg2 w7: Spinner Burster Grunt Brute | Swordsman*3 | Splitter*2 Grunt | Swarmer*5 | Splitter*2 Grunt
+campaign100leg2 w8: Charger Mortar Brute Spinner Buzzsaw SpikeBlock Grunt | Swordsman*3 | Splitter*2 Grunt | Splitter*2 Grunt | Grunt*3 Sniper
+campaign100leg2 w9: Splitter Brute Spiker*2 Buzzsaw Shielder Splitter Spiker*2 | Brute*2 Lunger | Shielder Sniper*2 | Swordsman*3 | Charger Mortar*2 | Charger Mortar*2
+campaign100leg2 w10: Charger*2 Lunger Mortar Charger Grunt | Swordsman*3 | Grunt*3 Sniper | Shielder Sniper*2 | Swarmer*5 | Shielder Sniper*2
+campaign100leg2 w10 boss: HiveQueen
+campaign100leg2 w11: Burster Medic Thug Spinner Thug RiotShield Shielder Medic Grunt | Grunt*3 Sniper | Grunt*3 Sniper | Splitter*2 Grunt | Charger Mortar*2 | Swordsman*3
+campaign100leg2 w12: Guard Thug Spinner*2 SecurityGuard Spinner Grunt Charger | Shielder Sniper*2 | Brute*3 Medic | Shielder Sniper*2 | Splitter*2 Grunt | Charger Mortar*2 | Grunt*3 Sniper
+campaign100leg2 w13: Grunt*3 Thug Grunt Splitter Guard Splitter Grunt Splitter Grunt TaserGuard Splitter*2 | Splitter*2 Grunt | Swarmer*5 | Swarmer*5 | Splitter*2 Grunt # Splitter Grunt
+campaign100leg2 w14: Shielder Spinner Shielder Spinner Shielder Spinner Sniper Shielder*4 Spinner | Shielder Sniper*2 | Shielder Sniper*2 | Guard Rioter*6 Guard Rioter*6 Thug # Shielder Spinner
+campaign100leg2 w15: Grunt Mortar Grunt Mortar Grunt*2 Mortar Grunt Rioter Mortar Grunt*2 FuseRunner*4 Mortar RiotShield Mortar Rioter Grunt | Charger Mortar*2 | FuseRunner*2 Grunt | FuseRunner*2 Grunt | Charger Mortar*2 # FuseRunner Grunt
+campaign100leg2 w15 boss: TwinA TwinB
+campaign100leg2 w16: Pauser*4 Rioter Pauser*2 Guard Pauser*9 Rioter Pauser*2 | ShieldSwordsman*2 Swordsman | ShieldSwordsman*2 Swordsman | Swordsman*3 | Swordsman*3 # FuseRunner Pauser
+campaign100leg2 w17: Pauser*4 Grunt Rioter Shiv Pauser Grunt Pauser*4 SpikeBlock*5 Rioter SpikeBlock*2 Hookman*2 Pauser*3 | Pauser Grunt*2 | Pauser Grunt*2 # Hookman SpikeBlock
+campaign100leg2 w18: Phantom*8 Sapper*3 Hookman*2 Phantom*2 | Phantom*3 | SecurityGuard*3 Rioter*2 SecurityGuard*3 Rioter*2 Thug | Phantom*3 # Hookman Sapper
+campaign100leg2 w19: Phantom*3 Thug Phantom*3 SecurityGuard Phantom SpikeBlock*3 BeamSentry Phantom*3 Thug Phantom*2 | Sapper SpikeBlock*2 | Phantom*3 | Sapper SpikeBlock*2 | Phantom*3 # SpikeBlock BeamSentry
+campaign100leg2 w20: Pauser*14 Thug TaserGuard Pauser SecurityGuard Pauser*2 Hookman*2 Pauser*3 | Pauser Grunt*2 | Pauser Grunt*2 # Hookman Pauser
+campaign100leg2 w20 boss: Singularity Grunt Sniper Grunt
+campaign100leg2 w21: Leader*6 SecurityGuard Leader*2 Thug Leader*3 FuseRunner*4 Leader*5 GasGrenadier Leader*3 | FuseRunner*2 Grunt | FuseRunner*2 Grunt # Leader FuseRunner
+campaign100leg2 w22: Hexer*2 FuseRunner*2 Hexer*5 | Hexer*2 Grunt*2 | Guard Rioter*6 Guard Rioter*6 Thug | FuseRunner*2 Grunt | FuseRunner*2 Grunt # Hexer FuseRunner
+campaign100leg2 w23: Mortar Stitcher Mortar Stitcher Guard Phantom Stitcher*2 Mortar Stitcher*2 Thug Stitcher Mortar Phantom Stitcher*2 Mortar Phantom GasGrenadier Stitcher Phantom Stitcher*2 Mortar*2 Stitcher*2 | Phantom*3 | Phantom*3 # Mortar Stitcher
+campaign100leg2 w24: Rioter Hexer*5 Stitcher Hexer Stitcher Scorcher Rioter Scorcher*3 Hexer Stitcher Hexer*2 GasGrenadier Stitcher | Stitcher*2 Grunt | Hexer*2 Grunt*2 | Stitcher*2 Grunt | Hexer*2 Grunt*2 # Scorcher Hexer
+campaign100leg2 w25: Hexer*2 RiotShield FuseRunner*4 Scorcher*4 Hexer Shiv Hexer*2 Pauser Thug Pauser | Hexer*2 Grunt*2 | FuseRunner*2 Grunt | Pauser Grunt*2 | FuseRunner*2 Grunt | Pauser Grunt*2 # Scorcher Hexer Pauser
+campaign100leg2 w25 boss: Colossus Grunt*5
+campaign100leg2 w26: Hexer*11 Lunger*2 Scorcher*3 Hexer*2 | SecurityGuard*3 Rioter*2 SecurityGuard*3 Rioter*2 Thug | Hookman Lunger*2 | Hookman Lunger*2 # Scorcher Hexer Sapper
+campaign100leg2 w27: Hexer Guard Hexer*5 Thug Hexer*8 SpikeBlock*2 TaserGuard SpikeBlock*2 BeamSentry*2 Hexer*4 GasGrenadier Hexer | Sapper SpikeBlock*2 | Sapper SpikeBlock*2 # Hexer Sapper BeamSentry
+campaign100leg2 w28: Juggernaut*2 Phantom Juggernaut*5 GasGrenadier Reaver*2 Thug Reaver*2 Shiv Reaver*4 Juggernaut*4 Hookman*3 Juggernaut*3 Guard | Phantom*3 | Phantom*3 # Reaver Hookman Juggernaut
+campaign100leg2 w29: Leader Juggernaut*5 Leader Juggernaut Stitcher Juggernaut Leader Stitcher RiotShield Juggernaut Leader*3 Stitcher Juggernaut*2 Stitcher Rioter*2 Leader Stitcher Juggernaut Thug Stitcher*2 Leader | Shielder BeamSentry*2 | Shielder BeamSentry*2 # Juggernaut Leader Stitcher
+campaign100leg2 w30: Thug Juggernaut*3 Rioter Juggernaut*6 Rioter Juggernaut*6 Guard Hookman Juggernaut*3 | Reaver*2 Lunger*2 | Hookman Lunger*2 | Reaver*2 Lunger*2 | Hookman Lunger*2 # Reaver FuseRunner Juggernaut
+campaign100leg2 w30 boss: Duelist
+zombie w1: Shambler*18
+zombie w2: Shambler*16
+zombie w3: Runner*3 Shambler Runner*3 Shambler*5 Runner*6 Shambler*2
+zombie w4: Shambler*2 Runner*3 Shambler Runner*6 Shambler*11
+zombie w5: Shambler*2 Runner*6 Shambler*7 Runner*3 Shambler*9
+zombie w5 boss: Boss Grunt*2
+zombie w6: Shambler*2 Spitter Shambler Spitter Shambler Spitter Shambler Spitter Shambler*6 Runner*3 Shambler*6 Runner*3 Shambler*3
+zombie w7: Shambler*2 Spitter Shambler*2 Runner*3 Spitter*2 Shambler*3 Spitter Shambler*2 Runner*3 Shambler*6 Runner*11
+zombie w8: Shambler*2 Spitter Bloater Spitter Shambler Runner*3 Shambler*2 Bloater Shambler*3 Runner*3 Bloater Spitter Bloater Spitter Shambler*2 Bloater Shambler Bloater Runner*3 Shambler*10 Runner
+zombie w9: Crawler Shambler Bloater Shambler*3 Runner*3 Spitter Runner*3 Shambler Crawler Bloater Shambler Runner*3 Crawler Spitter Shambler*4 Runner*3 Shambler*2 Spitter Bloater Spitter Shambler Runner*3 Shambler Runner*3 Shambler*5
+zombie w10: Bloater Crawler Bloater Spitter Runner*6 Shambler*3 Spitter Bloater Shambler*3 Bloater Spitter Bloater Shambler*2 Crawler Shambler Spitter Shambler*2 Bloater Shambler Crawler Shambler Bloater Shambler*3 Bloater Shambler*2 Runner*3 Shambler Runner*3 Shambler Runner*3 Shambler*2 Runner
+zombie w10 boss: HiveQueen
+zombie w11: Spitter Crawler Bloater Shambler*2 Bloater Shambler Spitter Bloater Shambler Spitter Bloater Shambler*2 Spitter Bloater Shambler*2 Crawler Bloater Shambler*2 Runner*3 Crawler Bloater Shambler*2 Runner*3 Bloater Shambler*13 Bloater Runner*6 Shambler*5 Bloater Shambler
+zombie w12: Runner*3 Crawler*2 Runner*6 Shambler*4 Runner*3 Spitter Shambler*3 Spitter Bloater Spitter Shambler*2 Crawler Shambler Shrieker Shambler Shrieker Shambler*2 Bloater Spitter Shambler*2 Runner*3 Shambler*7 Bloater Shambler*2 Runner*9 Bloater Shambler*2 Bloater Shambler*2
+zombie w13: Shambler Bloater Crawler*2 Shrieker Shambler Shrieker Runner*3 Shambler Crawler Runner*3 Bloater Shambler Runner*3 Shambler*2 Bloater Shambler*2 Runner*3 Shambler*2 Bloater Spitter Shambler Spitter*2 Shambler Spitter Shambler*9 Runner*6 Shambler Runner*3 Shambler Runner*3 Shambler Runner*6 Shambler*4 Runner*2
+zombie w14: Shambler Spitter Crawler Shambler*2 Spitter Bloater Crawler Spitter Shambler*4 Spitter Runner*3 Crawler Runner*3 Shambler Runner*3 Bloater Shambler*4 Bloater Shambler*3 Bloater Shrieker Shambler*5 Runner*3 Shambler Shrieker Shambler*5 Runner*6 Shambler Runner*3 Shambler*2 Bloater Shambler*5 Bloater Shambler*4 Bloater Shambler Runner*3 Shambler*2
+zombie w15: Shambler Spitter Crawler Spitter Crawler Mender Spitter Shambler*2 Bloater Shambler Spitter Shambler Runner*3 Shambler Crawler Shambler Bloater Shambler*6 Shrieker Shambler*7 Mender Shrieker Runner*6 Shambler Bloater Shambler*5 Runner*3 Shambler*4 Bloater Shambler*6 Runner*3 Shambler*6 Bloater Shambler*3 Runner*7
+zombie w15 boss: TwinA TwinB
+zombie w16: Shambler Spitter Crawler Shambler*3 Runner*3 Bloater Crawler Shambler*6 Shrieker Shambler Spitter*2 Bloater Shambler Spitter Shambler*10 Mender Shambler Bloater Shambler*3 Crawler Shambler Shrieker Shambler*6 Bloater Shambler*6 Runner*3 Shambler*5 Mender Shambler*5 Bloater Runner*3 Shambler Bloater Shambler*3 Bloater Shambler*2 Runner*3 Shambler
+zombie w17: Crawler Runner*3 Crawler Shambler Bloater Runner*3 Shambler*3 Runner*3 Shambler Spitter Shambler*3 Mender Bloater Shambler Bloater Spitter Shambler Bloater Runner*3 Bloater Shambler*2 Crawler Shambler*6 Mender Shambler*2 Runner*3 Shrieker Shambler Spitter Shambler Spitter Bloater*2 Shrieker Bloater Runner*3 Shambler*8 Runner*3 Shambler*5 Bloater Shambler*2 Bloater Shambler*6 Bloater Shambler*2
+zombie w18: Bloater Shambler Crawler Bloater Shambler Crawler Shambler Spitter Shambler Shrieker Shambler*5 Mender Shambler Crawler Spitter*2 Runner*3 Shambler*8 Runner*3 Shambler Shrieker Runner*3 Shambler*4 Spitter Runner*3 Shambler Mender Shambler*4 Runner*3 Shambler*4 Bloater Shambler Bloater Shambler Runner*3 Bloater Shambler*2 Bloater*2 Shambler Runner*3 Shambler*8 Runner*3 Bloater*3 Shambler
+zombie w19: Spitter Shambler Crawler Shambler Spitter Shambler*3 Spitter Shambler Crawler Spitter Shambler Crawler Shambler*2 Runner*3 Mender Shambler*3 Shrieker Shambler*16 Runner*3 Bloater Mender Shambler*8 Shrieker Shambler*3 Runner*3 Shambler*3 Bloater*2 Shambler Bloater Shambler Runner*3 Shambler*3 Bloater Shambler*3 Runner*3 Shambler*2 Runner*3 Shambler Bloater Shambler Bloater Shambler*3
+zombie w20: Shambler*2 Crawler Runner*3 Shambler*2 Shrieker Runner*3 Shambler Bloater*2 Shambler*2 Spitter Shambler*2 Mender Shambler*2 Spitter*2 Shambler Spitter Runner*3 Shambler*7 Bloater Shambler Crawler*2 Runner*3 Shrieker Shambler Runner*9 Shambler*3 Bloater Shambler*2 Bloater Shambler Runner*3 Shambler*5 Bloater Mender Runner*3 Shambler Runner*3 Shambler*3 Runner*3 Shambler Runner*3 Shambler*6
+zombie w20 boss: Singularity Grunt Sniper Grunt
+zombie w21: Shambler*2 Crawler Shrieker Runner*3 Spitter Bloater Crawler*2 Shambler Spitter*2 Shambler Runner*3 Shrieker Shambler*2 Spitter Shambler*6 Bloater Shambler*3 Bloater Shambler Runner*3 Shambler*2 Bloater Shambler*4 Runner*6 Shambler*4 Runner*6 Shambler*2 Bloater*2 Shambler*4 Runner*3 Shambler*4 Mender Runner*3 Shambler Runner*3 Shambler*6 Runner*6 Shambler
+zombie w22: Shambler*2 Crawler Shambler Mender*2 Spitter Shambler*2 Runner*3 Spitter Shambler*3 Crawler Shambler Crawler Shambler*2 Runner*6 Bloater Spitter Shambler*3 Spitter Shambler Runner*3 Shambler Bloater Shambler Runner*6 Shambler*7 Bloater Shambler*4 Runner*6 Shrieker Shambler*3 Runner*3 Shambler*2 Runner*3 Bloater Shambler*2 Runner*3 Shrieker Runner*6 Bloater Shambler*4 Bloater Shambler Runner*3
+zombie w23: Shambler*2 Crawler Spitter Shambler*2 Runner*3 Bloater Shambler Mender Runner*6 Shambler*2 Bloater Shambler*2 Crawler Shambler Runner*3 Shambler Spitter Crawler Shambler Runner*6 Mender Shambler Spitter*2 Shambler*4 Runner*3 Shambler Runner*3 Shambler*2 Shrieker*2 Bloater Shambler*13 Runner*6 Shambler*9 Runner*3 Bloater*2 Shambler*3 Runner*3 Shambler Runner
+zombie w24: Crawler Shambler Crawler Shambler Crawler Runner*3 Shambler*2 Spitter Shambler*5 Spitter Shambler Spitter Runner*3 Shambler Runner*3 Mender Bloater Mender Runner*6 Shambler*2 Bloater Shambler*3 Spitter Runner*6 Shambler*7 Bloater Shambler Runner*3 Shambler Runner*3 Shrieker Bloater Shambler*9 Shrieker Shambler Runner*3 Shambler Runner*3 Shambler*4 Runner*3 Shambler*2 Runner*6 Shambler*3
+zombie w25: Bloater Mender Crawler Shambler*2 Crawler Shambler Spitter Shambler Bloater Shambler Runner*3 Shambler Crawler Spitter Shambler*3 Runner*9 Mender Shrieker Shambler*2 Runner*3 Shambler Spitter Runner*3 Shambler*2 Spitter Runner*6 Shambler*3 Runner*3 Shambler*2 Bloater Shambler*3 Runner*3 Shambler Runner*3 Bloater Shambler Runner*3 Shambler Bloater Runner*3 Shambler*3 Bloater Shambler*2 Shrieker Shambler Runner*3 Shambler*3 Bloater*2 Runner*3 Shambler*2 Bloater Shambler
+zombie w25 boss: Colossus Grunt*5
+zombie w26: Spitter Crawler*3 Bloater Shambler*5 Shrieker Shambler Spitter Runner*3 Shambler Runner*3 Bloater Spitter Shambler*3 Mender Bloater Spitter Runner*3 Shambler Shrieker Runner*3 Shambler*2 Runner*3 Shambler*3 Bloater*2 Shambler Bloater Shambler*2 Mender Runner*3 Shambler*2 Runner*3 Shambler*3 Bloater Shambler*3 Bloater Shambler*12 Runner*3 Shambler*4 Runner*3 Bloater Shambler*7 Bloater Shambler Runner*3 Shambler Runner*2
+zombie w27: Runner*3 Crawler*2 Shambler*3 Crawler Shambler Runner*6 Shambler*3 Runner*3 Shambler*3 Spitter Shambler Spitter Shambler*4 Spitter Shambler*4 Runner*6 Shambler Runner*3 Shambler Spitter Shambler*2 Bloater Shambler Mender Shambler*3 Runner*6 Bloater*2 Shambler*5 Bloater Shambler*2 Runner*3 Shambler*2 Runner*3 Shambler*2 Bloater Runner*3 Shambler Bloater Runner*3 Shambler Runner*3 Shambler Mender Shambler*2 Runner*3 Shambler*2
+zombie w28: Shambler Bloater Crawler Spitter*3 Bloater Crawler Shambler Mender*2 Crawler Shambler*5 Shrieker Bloater Shambler*5 Spitter Runner*3 Bloater Shambler Runner*3 Shambler*2 Runner*3 Shambler*3 Bloater Shambler*4 Bloater Shambler*4 Runner*3 Shambler*7 Bloater*2 Shambler Runner*3 Shambler Bloater Shrieker Runner*6 Shambler*6 Bloater Shambler*2 Bloater Runner*3 Shambler*4 Bloater*2 Shambler*9 Bloater Shambler*2 Bloater
+zombie w29: Shambler Spitter Crawler Mender Shambler Shrieker Spitter Shambler Spitter Shambler Crawler Shambler*5 Bloater Runner*3 Crawler Shambler Bloater Spitter Shambler*2 Bloater Shambler*7 Bloater Shambler*3 Runner*3 Shambler*3 Shrieker Shambler Runner*3 Shambler*4 Runner*3 Bloater Shambler*2 Bloater Runner*6 Shambler*2 Bloater Shambler Mender Bloater Shambler*7 Bloater Shambler Runner*3 Shambler*2 Runner*3 Shambler Runner*3 Shambler*2 Runner*3 Shambler*2 Runner*3 Bloater Shambler*3 Runner
+zombie w30: Shambler Spitter Crawler Shambler Spitter Shambler*2 Bloater Shambler Bloater*2 Crawler Shambler Mender Shambler*4 Shrieker Shambler*2 Bloater Shambler*3 Bloater Spitter Shambler Spitter Shambler Crawler Shambler*2 Runner*3 Shambler*2 Bloater Shambler*2 Runner*3 Shambler*3 Bloater*2 Shambler*4 Bloater Shambler*4 Shrieker Runner*9 Shambler*3 Mender Runner*3 Shambler*12 Bloater Runner*6 Bloater Shambler Runner*3 Shambler*7 Runner*3 Shambler*2
+zombie w30 boss: Duelist
+hard w1: Rioter*12
+hard w2: Thug Guard Rioter Thug Rioter | SecurityGuard*3 Rioter*2
+hard w3: Thug RiotShield SecurityGuard*3 Shiv SecurityGuard | Thug Rioter*3 Shiv
+hard w4: Rioter*2 Thug SecurityGuard GasGrenadier Thug | Guard Rioter*6
+hard w5:  | RiotShield*2 Rioter*4 | RiotShield*4 Guard*5
+hard w5 boss: Boss Grunt*2
+hard w6: Buzzsaw Grunt | Grunt*3 Sniper | RiotShield*2 Rioter*4 | Grunt*3 Sniper
+hard w7: Rioter Spiker*2 Lunger SecurityGuard Grunt Charger Thug Rioter | Swarmer*5 | Swarmer*5
+hard w8: Thug Swarmer*2 Shiv Swarmer*2 Charger TaserGuard Brute Swordsman | Charger Mortar*2 | Charger Mortar*2 | Splitter*2 Grunt | Grunt*3 Sniper
+hard w9: Grunt Charger SpikeBlock SecurityGuard Grunt Sniper Spiker*2 Burster | Shielder Sniper*2 | Swarmer*5 | Shielder Sniper*2 | Splitter*2 Grunt
+hard w10: Spiker*2 Burster Brute*2 Sniper*2 Spinner Charger Splitter | Charger Mortar*2 | Splitter*2 Grunt | Splitter*2 Grunt | Charger Mortar*2 | Swordsman*3
+hard w10 boss: HiveQueen
+hard w11: Brute Buzzsaw RiotShield Burster Spinner Sniper Grunt GasGrenadier Grunt Thug Shielder | Grunt*3 Sniper | Charger Mortar*2 | Shielder Sniper*2 | Swarmer*5
+hard w12: Sniper Medic RiotShield Sniper Medic Spinner Charger RiotShield Thug Charger | Charger Mortar*2 | Splitter*2 Grunt | Splitter*2 Grunt | Brute*3 Medic | Swarmer*5
+hard w13: Shielder*10 Guard Shielder*4 Guard Shielder Lunger Brute Charger Thug Shielder*3 | Brute*2 Lunger | Brute*2 Lunger # Shielder Charger
+hard w14: Sniper*2 Shielder Splitter*2 Sniper Splitter*2 Sniper*4 | Shielder Sniper*2 | Guard Rioter*6 Guard Rioter*6 Thug | Shielder Sniper*2 # Sniper Splitter
+hard w15: Mortar*4 Grunt Mortar Pauser Rioter Mortar*2 FuseRunner*3 Shiv FuseRunner*3 Mortar*2 Pauser Rioter | Pauser Grunt*2 | Pauser Grunt*2 | FuseRunner*2 Grunt | FuseRunner*2 Grunt # FuseRunner Mortar
+hard w15 boss: TwinA TwinB
+hard w16: Grunt*8 SecurityGuard Grunt*6 Rioter Grunt Spiker*2 FuseRunner*2 Spiker*2 Grunt Rioter Grunt*2 | FuseRunner*2 Grunt | FuseRunner*2 Grunt # Charger Spiker
+hard w17: Sniper*6 Mortar Sniper*6 Rioter TaserGuard Charger*2 FuseRunner*4 Sniper*3 Rioter Mortar Sniper | Charger Mortar*2 | Charger Mortar*2 # FuseRunner Sniper
+hard w18: Phantom*3 FuseRunner*6 Phantom*3 Hookman*2 Phantom*2 | SecurityGuard*3 Rioter*2 SecurityGuard*3 Rioter*2 Thug | Phantom*3 | Phantom*3 # FuseRunner Hookman
+hard w19: Sniper Shielder*6 Buzzsaw*2 RiotShield Buzzsaw*5 Sapper Thug*2 Sapper*2 Shielder Sniper*3 Shielder | Shielder Sniper*2 | Shielder Sniper*2 # Sapper Buzzsaw
+hard w20: Spinner Pauser Spinner Pauser Spinner Pauser*2 Guard Spinner Pauser Spinner*4 Pauser*2 Spinner Pauser Thug Spinner*2 SecurityGuard | Swarmer*5 | Swarmer*5 # Pauser Spinner
+hard w20 boss: Singularity Grunt Sniper Grunt
+hard w21: Shielder Hexer*3 Rioter Hexer*8 Shielder Hexer Rioter Hexer*2 SecurityGuard Hexer*7 | Shielder BeamSentry*2 | Shielder BeamSentry*2 # Sapper Hexer
+hard w22: Phantom*2 Lunger*3 Phantom*4 | Phantom*3 | Phantom*3 | Guard Rioter*6 Guard Rioter*6 Thug | Hookman Lunger*2 # Hookman Lunger
+hard w23: Hexer Leader TaserGuard Leader Thug Hexer Leader Hexer Leader Hexer*2 Leader Thug Hexer*2 | Leader*2 Sniper | Leader*2 Sniper | Hexer*2 Grunt*2 | Hexer*2 Grunt*2 | Grunt*3 Sniper # Hexer Leader
+hard w24: Spiker*5 Thug Spiker*2 GasGrenadier Spiker*11 SecurityGuard Spiker*6 | Scorcher*2 Spiker*2 | Scorcher*2 Spiker*2 # Sapper Scorcher
+hard w25: Pauser GasGrenadier Hexer*2 Pauser Hexer Thug Hexer*2 Pauser Hexer Pauser*2 Hexer Pauser*2 FuseRunner*4 Hexer*2 RiotShield Pauser*4 Hexer | Hookman Lunger*2 | Hookman Lunger*2 # Pauser Hexer FuseRunner
+hard w25 boss: Colossus Grunt*5
+hard w26: Juggernaut Stitcher Juggernaut*3 Stitcher*2 Scorcher*2 Juggernaut Stitcher*2 | ShieldSwordsman*2 Swordsman | SecurityGuard*3 Rioter*2 SecurityGuard*3 Rioter*2 Thug | Swordsman*3 | ShieldSwordsman*2 Swordsman | Swordsman*3 # Stitcher Juggernaut Scorcher
+hard w27: Leader Phantom FuseRunner*4 Thug Phantom*2 Guard Thug Leader*2 Hexer Leader Phantom Pauser Phantom Guard | Hexer*2 Grunt*2 | FuseRunner*2 Grunt | FuseRunner*2 Grunt | Phantom*3 | Phantom*3 # Leader Pauser Phantom
+hard w28: Stitcher Hexer Stitcher Hexer Stitcher Hexer Stitcher Rioter Hexer Stitcher Hexer Guard Reaver*4 Thug Reaver Rioter Reaver Stitcher Hexer Stitcher Hexer Stitcher Hexer Stitcher*2 Hexer*2 | Charger Mortar*2 | Charger Mortar*2 # Hexer Reaver Stitcher
+hard w29: Pauser*2 Thug Pauser*5 Shiv Pauser*3 Rioter Pauser*4 Rioter Pauser*4 | Pauser Grunt*2 | Reaver*2 Lunger*2 | Reaver*2 Lunger*2 | Pauser Grunt*2 # Reaver Pauser Buzzsaw
+hard w30: Stitcher Burster*2 Stitcher Thug Stitcher Burster Scorcher Rioter Scorcher*3 Burster Thug Burster Rioter Burster Stitcher Burster | Stitcher*2 Grunt | Swordsman*3 | FuseRunner*2 Grunt | Stitcher*2 Grunt | FuseRunner*2 Grunt | Swordsman*3 # Burster FuseRunner Scorcher
+hard w30 boss: Duelist
+hard w31: Shambler*2 GasGrenadier Shielder Shambler*2 Shielder Burster*2 RiotShield Guard Shambler*2 Burster GasGrenadier Shambler*2 Burster*2 Shambler*4 Burster Shambler*2 | Shambler*6 | Reaver*2 Lunger*2 # Reaver Shielder Burster
+hard w32: Shiv Stitcher GasGrenadier Stitcher*2 Sniper Runner Spitter*2 Runner Reaver Shiv Shambler Reaver Shiv Stitcher Runner Sniper*2 | Shambler*6 | Shambler*6 | Runner*5 Shambler*2 # Stitcher Reaver Sniper
+hard w33: GasGrenadier*2 Spitter Shambler Spitter Stitcher Shambler Stitcher*2 Lunger GasGrenadier Lunger Shambler Thug Spitter Shambler Scorcher Spitter Stitcher | Shambler*6 | Runner*5 Shambler*2 | Runner*5 Shambler*2 # Lunger Stitcher Scorcher
+hard w34: Shambler Runner*4 Spitter Runner Shambler Runner*4 Shambler | Runner*5 Shambler*2 | SecurityGuard*3 Rioter*2 SecurityGuard*3 Rioter*2 Thug | Runner*5 Shambler*2 | Shambler*6 # Sapper Hexer FuseRunner
+hard w35: Runner Crawler*2 Mender Runner RiotShield*2 Runner RiotShield Mender Shambler*3 RiotShield | Shambler*6 Mender*2 Runner*3 | Runner*5 Shambler*2 | Runner*5 Shambler*2 # Leader Reaver Juggernaut
+hard w35 boss: Lich
+hard w36: Juggernaut Shambler Juggernaut*2 SecurityGuard Rioter Juggernaut*4 Rioter Scorcher*2 Juggernaut*3 SecurityGuard GasGrenadier | Runner*5 Shambler*2 | Shambler*6 | Swarmer*5 | Swarmer*5 # Juggernaut Swarmer Scorcher
+hard w37: Juggernaut Hexer RiotShield Thug Juggernaut*3 Hexer*2 Thug Hexer Spitter Hexer*2 Juggernaut*2 Hexer Juggernaut*2 Hexer Juggernaut*2 Crawler Sapper*2 Spitter Thug Sapper Juggernaut*2 Crawler Juggernaut*3 | Shambler*6 # Hexer Sapper Juggernaut
+hard w38: Stitcher Pauser Crawler Stitcher Runner Stitcher Pauser*2 Stitcher Pauser Stitcher Swarmer Runner Swarmer*6 Shambler Swarmer Stitcher*2 Pauser Runner Stitcher Pauser Shambler Pauser | Guard Rioter*6 Guard Rioter*6 Thug # Pauser Swarmer Stitcher
+hard w39: Runner GasGrenadier Stitcher*4 GasGrenadier Stitcher*2 Thug Stitcher*6 Runner RiotShield Runner Stitcher*5 | Reaver*2 Lunger*2 | Reaver*2 Lunger*2 | Swarmer*5 | Swarmer*5 # Swarmer Stitcher Reaver
+hard w40: Mortar*3 RiotShield Thug Mortar*13 Reaver SecurityGuard Reaver RiotShield Reaver Mortar*4 Hookman*3 Medic*2 | Brute*3 Medic | Brute*3 Medic # Hookman Reaver Mortar
+hard w40 boss: StormHerald Sniper*5
+path-SwarmFields w6: Brute*2 SpikeBlock*2 Brute*2 Sniper Grunt Burster Brute*2 Swarmer*2 SpikeBlock*2 Spiker*2 | RiotShield*2 Rioter*4
+path-SwarmFields w7: Grunt Splitter SpikeBlock*2 Lunger*2 Grunt Brute*2 Guard Lunger*2 SpikeBlock SecurityGuard SpikeBlock Brute*2 Charger Buzzsaw SecurityGuard Buzzsaw SecurityGuard SpikeBlock*2 Burster Buzzsaw*2
+path-SwarmFields w8: Spiker*2 Brute*2 Spiker*4 Swarmer*2 Mortar Lunger*2 Spiker Rioter Spiker Buzzsaw*2 Rioter Charger Sniper Buzzsaw*2 Lunger*2 Spiker*2 Splitter Brute*2 SecurityGuard Splitter
+path-SwarmFields w9: Buzzsaw*2 SpikeBlock*2 Lunger*2 Buzzsaw Rioter Buzzsaw Lunger*2 SpikeBlock*4 Swarmer*2 Splitter Brute*2 SpikeBlock*2 Burster Mortar Buzzsaw Rioter Buzzsaw SpikeBlock*2 Grunt Swarmer*2 Buzzsaw*2 Spiker*2 Buzzsaw*4
+path-SwarmFields w10: Charger SpikeBlock*4 Swarmer*6 Charger*2 Brute*2 Mortar Shielder Brute*2 SpikeBlock*4 Brute*2 Grunt Brute*2 Buzzsaw*2 Lunger*2 SpikeBlock*2 Brute*2 Charger Splitter Burster
+path-SwarmFields w10 boss: HiveQueen
+path-SniperRidge w6: Brute Mortar Sniper*2 SecurityGuard Grunt Sniper Charger Sniper Grunt Mortar | SecurityGuard*3 Rioter*2
+path-SniperRidge w7: Charger Sniper*2 Charger SecurityGuard Grunt Sniper Rioter Guard Rioter Sniper Grunt Sniper Charger Sniper SpikeBlock Grunt*2
+path-SniperRidge w8: Sniper Grunt SecurityGuard Mortar Shiv Mortar Spinner Mortar Grunt Sniper*2 Grunt Sniper Grunt Guard Sniper*3 Mortar*2
+path-SniperRidge w9: Sniper Grunt Mortar*2 Grunt Mortar Sniper Mortar Grunt Sniper Brute Sniper*3 Mortar*2 Sniper Grunt Sniper*2 Thug Mortar
+path-SniperRidge w10: Mortar*2 Sniper Grunt Sniper Mortar Grunt Sniper*2 Mortar*2 Charger Swordsman Grunt Sniper*3 Grunt Sniper*2 Grunt Mortar Sniper Shielder
+path-SniperRidge w10 boss: HiveQueen
+path-EliteGauntlet w6: Spinner Rioter Spiker Thug Rioter Buzzsaw Spiker Buzzsaw SpikeBlock
+path-EliteGauntlet w7: Grunt Sniper Spiker Thug Buzzsaw Thug Spiker SpikeBlock Spiker Burster
+path-EliteGauntlet w8: Spinner SpikeBlock Buzzsaw Grunt SecurityGuard Buzzsaw*2 Spiker SpikeBlock Spinner SecurityGuard
+path-EliteGauntlet w9: TaserGuard Splitter*2 Swarmer Brute Burster Brute Burster Buzzsaw Charger Shielder
+path-EliteGauntlet w10: Charger Burster Brute Spinner Mortar Buzzsaw Sniper Brute Swarmer Spinner Burster Charger
+path-EliteGauntlet w10 boss: HiveQueen
+path-BurningGrounds w6: Buzzsaw Lunger RiotShield Charger Guard Thug SpikeBlock Spiker Guard Shiv TaserGuard Spiker | Swarmer*5
+path-BurningGrounds w7: SecurityGuard TaserGuard Splitter RiotShield Buzzsaw Spinner SecurityGuard | Grunt*3 Sniper | Grunt*3 Sniper | Splitter*2 Grunt
+path-BurningGrounds w8: Swarmer*3 Guard Swarmer Mortar Charger TaserGuard Brute Burster Spinner TaserGuard | Swarmer*5 | Splitter*2 Grunt | Splitter*2 Grunt
+path-BurningGrounds w9: Grunt SpikeBlock Grunt Spinner Mortar RiotShield Charger Splitter | Swordsman*3 | Charger Mortar*2 | Splitter*2 Grunt | Swarmer*5
+path-BurningGrounds w10: Sniper Swarmer*4 Splitter Sniper Mortar Shielder | Grunt*3 Sniper | Shielder Sniper*2 | Swarmer*5 | ShieldSwordsman*2 Swordsman | Shielder Sniper*2
+path-BurningGrounds w10 boss: HiveQueen
+path-Sanctuary w6: Shiv Spinner Shiv Rioter Charger Spiker Thug Guard Spiker GasGrenadier Rioter | Swarmer*5
+path-Sanctuary w7: Thug Spinner Sniper GasGrenadier TaserGuard Splitter Charger Brute RiotShield | Splitter*2 Grunt | Splitter*2 Grunt
+path-Sanctuary w8: Mortar SpikeBlock TaserGuard Lunger RiotShield SecurityGuard | Grunt*3 Sniper | Brute*2 Lunger | Splitter*2 Grunt
+path-Sanctuary w9: SpikeBlock Mortar Brute Sniper Guard | Charger Mortar*2 | Swordsman*3 | Charger Mortar*2 | Shielder Sniper*2
+path-Sanctuary w10: Grunt Shielder*2 Charger | ShieldSwordsman*2 Swordsman | Charger Mortar*2 | ShieldSwordsman*2 Swordsman | Shielder Sniper*2 | Charger Mortar*2
+path-Sanctuary w10 boss: HiveQueen
+path-FrozenLake w6: SpikeBlock Sniper*2 Spiker*2 Brute Swarmer TaserGuard Swarmer*3 | Grunt*3 Sniper | SecurityGuard*3 Rioter*2
+path-FrozenLake w7: Guard TaserGuard Brute Burster Spiker RiotShield Rioter Spiker Rioter Grunt | Splitter*2 Grunt | Splitter*2 Grunt | Grunt*3 Sniper
+path-FrozenLake w8: Swordsman Rioter Grunt Rioter Brute Guard Buzzsaw | Splitter*2 Grunt | Swordsman*3 | Grunt*3 Sniper | Swordsman*3
+path-FrozenLake w9: Spinner Grunt Buzzsaw Rioter Brute Sniper Swordsman Splitter Mortar Rioter Mortar | Swordsman*3 | Charger Mortar*2 | Swordsman*3 | Shielder Sniper*2
+path-FrozenLake w10: Mortar*2 Sniper Swordsman Charger Burster*2 | Splitter*2 Grunt | Grunt*3 Sniper | Brute*2 Lunger | Grunt*3 Sniper | Charger Mortar*2
+path-FrozenLake w10 boss: HiveQueen
+path-BloodMoon w6: Lunger Spinner*2 | RiotShield*2 Rioter*4 | Grunt*3 Sniper | Brute*2 Lunger
+path-BloodMoon w7: Buzzsaw Spiker*2 SpikeBlock Rioter GasGrenadier Grunt Swarmer*4 Swordsman Rioter Thug | Splitter*2 Grunt | Swarmer*5
+path-BloodMoon w8: Rioter*2 Charger Thug Swordsman Charger Mortar | Grunt*3 Sniper | Brute*2 Lunger | Splitter*2 Grunt | Splitter*2 Grunt
+path-BloodMoon w9: Spiker Thug Spiker Charger Shielder Sniper Grunt*2 | Charger Mortar*2 | Charger Mortar*2 | Shielder Sniper*2 | Shielder Sniper*2 | Splitter*2 Grunt
+path-BloodMoon w10: SpikeBlock Splitter Burster Shielder Mortar | Charger Mortar*2 | Shielder Sniper*2 | Grunt*3 Sniper | Splitter*2 Grunt | Brute*2 Lunger | Charger Mortar*2
+path-BloodMoon w10 boss: HiveQueen
+path-Fogbound w6: Sniper GasGrenadier Grunt | Grunt*3 Sniper | Grunt*3 Sniper | SecurityGuard*3 Rioter*2
+path-Fogbound w7: Guard Splitter Shiv Splitter Swordsman RiotShield Buzzsaw Brute GasGrenadier Grunt | Splitter*2 Grunt | Swarmer*5
+path-Fogbound w8: Swordsman GasGrenadier SecurityGuard Sniper RiotShield Swordsman Swarmer*4 Brute Spiker*2 | Charger Mortar*2 | Swarmer*5 | Charger Mortar*2
+path-Fogbound w9: Shielder Burster TaserGuard Brute Burster Shielder | Brute*2 Lunger | Brute*2 Lunger | Grunt*3 Sniper | Splitter*2 Grunt | Shielder Sniper*2
+path-Fogbound w10: Spinner Swarmer*4 Spinner Sniper Spinner Burster | Splitter*2 Grunt | Charger Mortar*2 | Shielder Sniper*2 | Splitter*2 Grunt | Brute*2 Lunger | Charger Mortar*2
+path-Fogbound w10 boss: HiveQueen
+path-NarrowPass w6: Brute GasGrenadier Rioter*2 Lunger GasGrenadier Rioter Grunt Rioter | Brute*2 Lunger | Grunt*3 Sniper
+path-NarrowPass w7: Buzzsaw Charger Sniper GasGrenadier Splitter Thug Shiv SecurityGuard | Brute*2 Lunger | Grunt*3 Sniper | Swordsman*3
+path-NarrowPass w8: Buzzsaw Mortar Spiker TaserGuard Spiker Grunt*2 Sniper Thug Splitter GasGrenadier Splitter | Swordsman*3 | Splitter*2 Grunt | Charger Mortar*2
+path-NarrowPass w9: Splitter Mortar Splitter Swarmer*4 Splitter RiotShield Spinner Spiker*2 | Charger Mortar*2 | Splitter*2 Grunt | Brute*2 Lunger | Swarmer*5
+path-NarrowPass w10: Grunt Sniper Spinner SpikeBlock*2 Spiker*2 Mortar | Shielder Sniper*2 | Grunt*3 Sniper | Splitter*2 Grunt | Swordsman*3 | Grunt*3 Sniper
+path-NarrowPass w10 boss: HiveQueen
+path-Bazaar w6: Burster Shiv Spinner Rioter*2 Shiv Thug GasGrenadier | Swarmer*5 | Brute*2 Lunger
+path-Bazaar w7: Buzzsaw Charger GasGrenadier Spiker GasGrenadier RiotShield Spiker Grunt GasGrenadier Brute | Brute*2 Lunger | Splitter*2 Grunt | Splitter*2 Grunt
+path-Bazaar w8: Sniper GasGrenadier Spinner RiotShield Spinner RiotShield Mortar Swordsman | Charger Mortar*2 | Charger Mortar*2 | Splitter*2 Grunt | Brute*2 Lunger
+path-Bazaar w9: Brute Lunger Guard Shielder Grunt Lunger Splitter*2 | Brute*2 Lunger | Brute*2 Lunger | Charger Mortar*2 | Swarmer*5
+path-Bazaar w10: Burster Mortar Shielder Swarmer*4 Swordsman | Brute*2 Lunger | Shielder Sniper*2 | Grunt*3 Sniper | Shielder Sniper*2 | Charger Mortar*2 | Charger Mortar*2
+path-Bazaar w10 boss: HiveQueen

@@ -199,6 +199,7 @@ namespace Arena
             DrawLaunchWorld(t);      // a run launching: the ripple's ring, the players' pillars of light (LaunchIntro.cs)
             DrawRecallWorld(t);      // back to the lobby: everyone beamed out (Recall.cs)
             DrawChallengeWorld(t);   // a challenge room's portal, crystal, zones and altar (ChallengeLook.cs)
+            DrawBossGate(t);         // the boss gate in the hub before a boss (BossGateLook.cs)
             DrawTombFloor(t);        // the Glacial Tomb's frost lattice and mandala (GlacialTombLook.cs)
             DrawBloodFreezeFloor(t); // Blood Freeze's frost, cracks, rune circle and wave (BloodFreezeLook.cs)
             DrawTitanFloor();        // the Titan golem's slam cracks and rubble (TitanLook.cs)

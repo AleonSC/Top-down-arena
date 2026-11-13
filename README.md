@@ -684,6 +684,15 @@ on three target dummies, so you can see how it attacks. A **zoom meter** along t
 that ability every few seconds. It's the real game running privately on your computer (nothing is sent to
 the other players), so it always matches how weapons and abilities really behave.
 
+## Saved loadouts
+
+The **SAVED** key at the right of the loadout's Role heading opens **Saved loadouts** over the right column (the
+preview and stats stay beside it). Up to **6** favourites, each a card with its name, class and role, weapon, ability
+and ultimate; the one you're wearing says **EQUIPPED**. The pencil after a name renames it (Enter or the tick keeps it, Esc cancels). **LOAD** puts on every pick at once (and the perks it was saved
+with, if they're still unlocked); **X** then **SURE?** deletes one. **SAVE CURRENT LOADOUT** asks for a name (up to 20
+letters, the class and role by default; Enter saves, Esc cancels). Favourites are kept on your profile. Hidden while
+continuing a saved run (its seats are fixed); **< LOADOUT** or Esc closes the drawer.
+
 ## Menu backgrounds
 
 **Settings > Visual effects** has a **Menu background** card that switches the animated background behind the menus and
@@ -1312,6 +1321,15 @@ status and the countdown bar. Y walks the steps (Results, Build, Ready) before i
 timer while anyone is still waiting. **Auto-ready** is remembered between runs: you count as ready as soon as your upgrade
 picks are done, and when everyone has it on the countdown is the usual 4 seconds, so solo play with it on moves at the
 old pace (it is off by default). A small box beside each player shows who is ready (a tick, an A for auto-ready, dashed while they aren't). **Minimize** (top right of the box) folds it into a slim strip at the top so you can walk to a shop or a chest; the strip keeps the next wave, the status, Ready and **Open** (Y there readies you at once). It opens again at the next break.
+**The boss gate.** In the break before a boss (Quick Play, the Campaign, a Boss Hunt) there's no Ready: a **boss gate**, a
+red summoning circle with a skull in the middle, opens in the middle of the hub, and the fight starts once **every
+player still standing is in it** for 1.2 s (downed players don't count). Take your time to shop, build and pick first: there's no
+countdown, and Auto-ready doesn't start it. A socket under the gate lights for each player inside, a thread runs to them,
+and its inner ring burns round as the team's fill rises. Its red leans toward the coming boss's colour (pink for the Warden, amber
+for the Hive Queen, violet for the Singularity...). A soft low pulse hums every few seconds while it waits, a chime plays on your screen as each player steps in, and a deep gong as it
+takes you. When it opens and the box isn't on your screen (shopping, building, or folded away), a toast at the top says
+**THE BOSS GATE IS OPEN**, with the boss's name and how many are in, for 4 seconds. It shows as a ring on the minimap and, when you're zoomed in, as an arrow at the edge of the view. The box's last tab reads **Gate**: **Go to the gate** (Y) folds the box
+away, and the status shows how many are in. Bots walk in on their own.
 The first countdown of a run, the Practice Range and the dev tools' wave jump don't use ready-up. Mockup:
 `Docs/Mockups/wave-cleared-ready.html` (option 1).
 

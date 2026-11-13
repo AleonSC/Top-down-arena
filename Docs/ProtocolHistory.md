@@ -3,7 +3,9 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
-- 308: `Msg.Gadget` (switch on or throw your gadget); the player snapshot carries the held gadget, its time left and on flag; the snapshot carries gadgets on the floor (Gadgets.cs)
+- 310: `Msg.Gadget` (switch on or throw your gadget); the player snapshot carries the held gadget, its time left and on flag; the snapshot carries gadgets on the floor (Gadgets.cs)
+- 309: card ids go as 2 bytes (Int16): `Msg.Upgrades` sends the taken count and each id as Int16, the snapshot sends each `Offer` card as Int16 (an empty slot stays -1); Docs/UpgradePools.md step 1
+- 308: the boss gate: the snapshot gains `GateUp` (bool) after the challenge room block, then `GatePos` and `GateFill` while it is up (Core/BossGate.cs)
 - 307: `Msg.ExpandState` sends each map node's `Cleared` flag after `Rule` (a claimed rule room that has been through a wave: its prize is out, Docs/RuleRooms.md); the save's `node` line gains a sixth field
 - 306: `Msg.ExpandState` sends each map node's `Rule` byte after `Spent` (new `NodeKind.Rule`, a big rule node: Docs/RuleRooms.md); the save's `node` line gains a fifth field
 - 305: `Msg.ExpandState` sends its list counts (rooms, openings, links, builds, gate fits, room tokens, nodes) as ushort and each room's `Parent` as a short (were bytes: a big map could wrap past 255); replays store the protocol in their header (replay format 7)

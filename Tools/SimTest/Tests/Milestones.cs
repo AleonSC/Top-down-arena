@@ -15,14 +15,14 @@ static partial class Program
         var pool = Enumerable.Range(0, Upgrades.All.Length).Where(i => Upgrades.All[i].Rarity == Rarity.Milestone).ToList();
         Check(pool.Count == 8, "the milestone pool has 8 cards, Architect (Expanding arena only) among them (" + pool.Count + ")");
         Check(pool.All(i => Upgrades.All[i].MaxStacks <= 5), "every milestone card has a stack limit");
-        var offer = Upgrades.MilestoneOffer(new Random(1), Role.Dps, AbilityId.PoisonDart, none);
+        var offer = Upgrades.MilestoneOffer(new Random(1), new OfferCtx(Role.Dps, AbilityId.PoisonDart, none));
         Check(offer != null && offer.Length == 3 && offer.Distinct().Count() == 3 && offer.All(i => Upgrades.All[i].Rarity == Rarity.Milestone), "a milestone offer is three different milestone cards");
 
         // Normal offers never contain milestone cards (the Compass is a normal very rare card).
         var rng = new Random(5);
         int milestoneRolled = 0, compass = 0, rolls = 0;
         for (int n = 0; n < 3000; n++)
-            foreach (int id in Upgrades.RollOffer(rng, Role.Dps, AbilityId.PoisonDart, none, 20))
+            foreach (int id in Upgrades.RollOffer(rng, new OfferCtx(Role.Dps, AbilityId.PoisonDart, none), 20))
             {
                 rolls++;
                 if (Upgrades.All[id].Rarity == Rarity.Milestone) milestoneRolled++;
@@ -35,9 +35,9 @@ static partial class Program
         // Maxed cards leave the pool; with everything maxed there is no milestone pick.
         var maxed = new List<int>();
         foreach (int id in pool) for (int k = 0; k < Upgrades.All[id].MaxStacks; k++) maxed.Add(id);
-        Check(Upgrades.MilestoneOffer(new Random(1), Role.Dps, AbilityId.PoisonDart, maxed) == null, "with every milestone card maxed out no milestone pick is offered");
+        Check(Upgrades.MilestoneOffer(new Random(1), new OfferCtx(Role.Dps, AbilityId.PoisonDart, maxed)) == null, "with every milestone card maxed out no milestone pick is offered");
         var one = new List<int>(maxed); one.Remove(U("Scholar"));
-        var last = Upgrades.MilestoneOffer(new Random(1), Role.Dps, AbilityId.PoisonDart, one);
+        var last = Upgrades.MilestoneOffer(new Random(1), new OfferCtx(Role.Dps, AbilityId.PoisonDart, one));
         Check(last != null && last.Length == 1 && last[0] == U("Scholar"), "a pool with one card left offers just that card");
 
         // Stack effects.
@@ -47,7 +47,7 @@ static partial class Program
         for (int extra = 0; extra <= 2; extra++)
         {
             var taken = Enumerable.Repeat(U("Wide Choice"), extra).ToList();
-            var cards = Upgrades.RollOffer(new Random(3), Role.Dps, AbilityId.PoisonDart, taken, 8);
+            var cards = Upgrades.RollOffer(new Random(3), new OfferCtx(Role.Dps, AbilityId.PoisonDart, taken), 8);
             Check(cards.Length == 3 + extra && cards.Distinct().Count() == cards.Length && cards.All(i => i >= 0), "Wide Choice x" + extra + " offers " + (3 + extra) + " different cards");
         }
         int rare0 = 0, rare5 = 0;
@@ -55,8 +55,8 @@ static partial class Program
         var luck = Enumerable.Repeat(U("Fortune"), 5).ToList();
         for (int n = 0; n < 4000; n++)
         {
-            foreach (int id in Upgrades.RollOffer(rA, Role.Dps, AbilityId.PoisonDart, none, 6)) if (Upgrades.All[id].Rarity >= Rarity.Rare) rare0++;
-            foreach (int id in Upgrades.RollOffer(rB, Role.Dps, AbilityId.PoisonDart, luck, 6)) if (Upgrades.All[id].Rarity >= Rarity.Rare) rare5++;
+            foreach (int id in Upgrades.RollOffer(rA, new OfferCtx(Role.Dps, AbilityId.PoisonDart, none), 6)) if (Upgrades.All[id].Rarity >= Rarity.Rare) rare0++;
+            foreach (int id in Upgrades.RollOffer(rB, new OfferCtx(Role.Dps, AbilityId.PoisonDart, luck), 6)) if (Upgrades.All[id].Rarity >= Rarity.Rare) rare5++;
         }
         Console.WriteLine("  rare or better cards over 4000 offers: {0} without Fortune, {1} with 5 stacks", rare0, rare5);
         Check(rare5 > rare0 * 1.1, "Fortune makes rare cards turn up more often");

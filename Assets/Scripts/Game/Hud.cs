@@ -85,6 +85,7 @@ namespace Arena
             DrawGateHint();      // by a shutter gate: the key to shut it (GateLook.cs)
             DrawGadgetHint();    // holding a gadget: its time and keys (GadgetLook.cs)
             DrawZoomHint();      // the open Rooms map: "scroll to zoom out" (CameraZoom.cs)
+            DrawGateToast(me);   // the boss gate just opened (BossGateLook.cs)
             DrawEnemyTags();  // an enemy type's name and job for its first few sightings (EnemyTagLook.cs)
             DrawHoverName();  // the name of the enemy under the cursor, if Settings has it on (EnemyTagLook.cs)
 
