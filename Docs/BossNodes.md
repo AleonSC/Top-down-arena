@@ -37,6 +37,14 @@ fight, and a portal to the boss at wave 10. The owner's decisions are in bold; e
 - **Bots**: build toward the nearest boss node when no chest or shop is closer (`BotBuildsToFloater`).
 - **Look**: a boss node is a large skull ring with the boss's colour and name, on the floor, minimap and draw screen.
 
+## Owner's later idea (Nov 13): push your luck
+
+- One boss node at a time. The boss never breaks out; instead **enemies ramp up every wave** past the target until the
+  run can't be won. Teams that push for more upgrades risk backing themselves into a corner.
+- Notes: keep the boss fixed (only the enemies ramp, so extra waves are a real trade); once the node is reached the team
+  can start the fight at any wave (a way out); show the ramp on the HUD (an "Overtime +40%" meter); starting the fight
+  is a team vote, like Ready.
+
 ## Open questions
 
 - Should the Warden still come first on a first play (the teaching cycle)? Proposal: his node is the nearest one.
