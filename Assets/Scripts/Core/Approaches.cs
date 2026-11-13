@@ -288,6 +288,21 @@ namespace Arena
                     EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler, EnemyType.Shambler,
                     EnemyType.Mender, EnemyType.Mender, EnemyType.Runner, EnemyType.Runner, EnemyType.Runner } },
             },
+            new FactionDef
+            {
+                Boss = EnemyType.Devourer,  // the Devourer: The Larder, its brood and the butchers who feed it (LarderFaction.cs, Docs/Approaches.md "The Larder"); step 1 of 4
+                Members = new[]
+                {
+                    new FactionMember { Type = EnemyType.Gnawling, Weight = 3f },
+                    new FactionMember { Type = EnemyType.Butcher, NotFirst = true, Weight = 2f },  // a Guard that chops a half-circle
+                    new FactionMember { Type = EnemyType.Gulper, Fade = 2, Weight = 1.5f, From = 2 },  // a Thug that breathes you in
+                },
+                Squads = new[]
+                {
+                    new SquadDef { Name = "Feeding Frenzy", From = 1, Members = new[] { EnemyType.Butcher, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling } },
+                    new SquadDef { Name = "Gullet", From = 3, Members = new[] { EnemyType.Gulper, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling } },  // the Gutworm joins it in step 3
+                },
+            },
         };
 
         static FactionMember M(EnemyType t, float weight) => new FactionMember { Type = t, Weight = weight };

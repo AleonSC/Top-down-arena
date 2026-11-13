@@ -357,6 +357,35 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Gnawling, Name = "Gnawling", Group = "Melee", Wave = 41,
+                Appears = "The Devourer's approach (in pairs, Feeding Frenzy and Gullet squads)",
+                Lead = "A mouth on legs, the Devourer in miniature: no eyes, a ring of teeth. Weaves at you in loose pairs. Moves like a Rioter.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "10" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Butcher, Name = "Butcher", Group = "Melee", Wave = 41,
+                Appears = "The Devourer's approach (leading Feeding Frenzy squads, and on its own)",
+                Lead = "A hooded butcher with a bone mask and a stained apron. Walks straight at you like a Guard; within 70 px it stops, raises its cleaver for 0.4 s and chops a 110 px half-circle in front, the shape of the Devourer's Snap bite. Step back or round it.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Chop", Pattern = "0.4 s wind-up, then a 110 px half-circle in front", Damage = "14", Every = 1.6f, Fixed = true },
+                    new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "14" },
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Gulper, Name = "Gulper", Group = "Melee", Wave = 42,
+                Appears = "The Devourer's approach (Gullet squads and on its own)",
+                Lead = "A swollen gut that walks at you like a Thug. Within 220 px it stops, its cheeks swell for 0.6 s, then it breathes in for 1 s: a 70° cone 200 px long pulls you toward its mouth at 120 px/s. Reach the mouth and it bites. Step out of the cone sideways, as from the Devourer's Inhale.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Inhale", Pattern = "0.6 s swell, then a 70° cone that pulls you in for 1 s", Damage = "20 (bite at the mouth)", Every = 4f, Fixed = true },
+                    new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "20" },
+                },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.HiveEgg, Name = "Hive Egg", Group = "Summons", Wave = 10,
                 Appears = "Laid by the Hive Queen in her Honeycomb stage",
                 Lead = "Doesn't move or attack. Break it before it hatches into drones.",

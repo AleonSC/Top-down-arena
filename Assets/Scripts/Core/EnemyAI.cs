@@ -717,6 +717,8 @@ namespace Arena
                 return;  // the beam's aim and sweep, the rake's cone, the Leader's aim line (Variety.cs)
             if (PulsarLocked(e))
                 return;  // its beams' line (Infall.cs)
+            if (LarderFaceLocked(e))
+                return;  // a Butcher's chop, a Gulper's cone (LarderFaction.cs)
             if (e.Type == EnemyType.Lens)
             {
                 LensFace(e, want, dt);  // turns slowly, so you can get round its face (Infall.cs)
@@ -1021,6 +1023,8 @@ namespace Arena
                 e.Strafe = -e.Strafe;
             if (StomperPlanted(e))
                 speed = 0f;  // a Stomper stands still while its foot is up (QuarryFaction.cs)
+            if (LarderPlanted(e))
+                speed = 0f;  // a Butcher chopping, a Gulper breathing in (LarderFaction.cs)
             if (e.SlowT > 0f && !Heavy(e))
                 speed *= e.SlowMult;
             else if (e.WadeT > 0f)
@@ -1063,6 +1067,8 @@ namespace Arena
             }
             if (e.Type == EnemyType.Stomper)
                 StomperSpecial(e, tpos, dt);  // its stomp ring (QuarryFaction.cs)
+            if (LarderAttacks(e.Type))
+                LarderSpecial(e, tpos, dt);  // the Butcher's chop, the Gulper's breath (LarderFaction.cs)
             switch (e.Kin)
             {
                 case EnemyType.Shielder:

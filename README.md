@@ -692,6 +692,18 @@ Priests, every squad, then the exam (the Avalanche and a big Landslip).
 | 3 | **Geomancer** | Taser Guard | A hooded cultist with a crystal staff: keeps its distance, plants the staff and charges for 0.7 s (the shooting line, the crystal glowing), then sends a **crack racing** at where you stood (600 px/s, up to 460 px). It glows for 0.5 s, then **erupts** along its length (12): step off the line. Every 3.2 s |
 | 3 | **Cinder Priest** | Taser Guard | A dark-robed priest cupping a molten core: charges for 0.7 s along a shooting line, then fires one **magma bolt** straight at you (240 px/s, 9, no lead). Wherever it stops, a hit, cover or the end of its 300 px, it leaves a **lava pool** for 2.5 s (20 a second). A **perfect parry** sends it back and leaves no lava. Every 3.2 s |
 
+The **Devourer's faction**, The Larder, leads up to its fight: its brood (mouths with no eyes, the Devourer in miniature)
+and the hooded butchers who keep it fed (design: `Docs/Approaches.md`, "The Larder"; mockup:
+`Docs/Mockups/devourer-faction.html`). Step 1 of 4 is built: three of its eight, each teaching a turn of the fight.
+Squads: **Feeding Frenzy** (a Butcher and six Gnawlings) and, from wave 3 of the approach, **Gullet** (a Gulper and three
+Gnawlings). They pay XP like their counterparts (Gnawling 7, Butcher 15, Gulper 25).
+
+| From | The Devourer's faction | Plays like | What it does |
+|---|---|---|---|
+| 1 | **Gnawling** | Rioter | A lump of pink flesh that is mostly mouth: weaves at you in pairs, chomping (contact 10) |
+| 1 | **Butcher** | Guard | A hooded butcher with a bone mask and a cleaver: straight at you (contact 14). Within 70 px it **stops and raises its cleaver for 0.4 s** while a **red half-circle** fills in front, then **chops** it (110 px, 14), the shape of the Devourer's Snap bite, and rests 1.6 s. Step back or round it |
+| 2 | **Gulper** | Thug | A swollen gut (180 health, contact 20) that walks at you like a Brute. Within 220 px it **stops and its cheeks swell for 0.6 s** while its **cone** shows, then it **breathes in** for 1 s: the 70° cone, 200 px long, pulls you toward its mouth at 120 px/s. Reach the mouth and it **bites** (20) and the breath ends. Step out of the cone sideways, as from the Devourer's Inhale. Every 4 s |
+
 **Bubbles (Shielded elites and the Warder's wards):** a bubble is twelve cells round the rim, each holding a twelfth of the shield. A hit wears down the cell facing whoever shot it (flashing, then breaking into shards) and spills over to its neighbours once that cell is gone, so the side you shoot from is the side that opens. Burning and bleeding keep chewing the weakest cell. A honeycomb inside only shows where its cell is still up, and a thin shield bar sits above the health bar. Blue is a Shielded elite, violet is the Warder's.
 
 ## Bosses
@@ -1197,7 +1209,7 @@ you've beaten it anywhere, a **???** until then (on your first Quick Play the Wa
   wave number). The HUD counts the waves n / 10. **Your first Quick Play always ends on the Warden**; after that the boss is
   random: every boss comes up once before any repeats, and never the same one twice in a row.
 - **The waves before a boss are its own enemies** (its faction, as in a Boss Hunt: tougher members joining as they go, its set
-  piece on the fifth and tenth wave). Bosses without a faction yet (the Duelist, Storm Herald, Devourer and Eclipse) get the
+  piece on the fifth and tenth wave). Bosses without a faction yet (the Duelist, Storm Herald and Eclipse) get the
   **basic faction** the same way (see Enemies).
 - **Bosses play exactly as anywhere else.** Only their health changes: about a **two-minute fight** for a typical build at
   whatever wave they come (a late boss after wave 10 has much less health than at its own Campaign wave; an early one in

@@ -442,6 +442,20 @@ static partial class Shot {
       ig.AccretionBands.Add(new Game.AccretionBand { Center = me.Pos, Radius = radius, Spin = spin + Game.AccretionSpin * at });
       ig.AnimT += at;
     }
+    if (Environment.GetEnvironmentVariable("LARDER") != null) {  // LARDER=<s into the clock>: the Devourer's step-1 faction (LarderLook.cs): two Gnawlings, a Butcher winding up and one chopping, a Gulper swelling and one breathing in; set beside Docs/Mockups/devourer-faction.html
+      var lg = host.Game; lg.Enemies.Clear(); lg.Bullets.Clear();
+      var lsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, float, Enemy> lput = (t, at, face) => { var e = (Enemy)lsp.Invoke(lg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Facing = face; e.Elite = false; e.Traits = 0; return e; };
+      me.Pos = me.Disp = new V2(1450f, 820f);
+      lput(EnemyType.Gnawling, new V2(260f, 250f), 0.3f); lput(EnemyType.Gnawling, new V2(300f, 330f), 0.1f);
+      var bw = lput(EnemyType.Butcher, new V2(560f, 300f), 0.2f); bw.LarderStage = Game.LarderWinding; bw.LarderT = Game.ChopWind * 0.35f;
+      var bc = lput(EnemyType.Butcher, new V2(860f, 260f), 0.5f); bc.LarderStage = Game.LarderActing; bc.LarderT = Game.ChopFlash * 0.5f;
+      lput(EnemyType.Butcher, new V2(700f, 470f), 2.6f);
+      var gw = lput(EnemyType.Gulper, new V2(380f, 640f), 0.1f); gw.LarderStage = Game.LarderWinding; gw.LarderT = Game.GulpWind * 0.3f;
+      var gi = lput(EnemyType.Gulper, new V2(1050f, 640f), 0.4f); gi.LarderStage = Game.LarderActing; gi.LarderT = Game.GulpTime * 0.5f;
+      lput(EnemyType.Gulper, new V2(1150f, 330f), MathX.Pi);
+      lg.AnimT += float.Parse(Environment.GetEnvironmentVariable("LARDER"), System.Globalization.CultureInfo.InvariantCulture);
+    }
     if (Environment.GetEnvironmentVariable("QUARRY") != null) {  // QUARRY=<s into the clock>: the Colossus's step-1 faction (QuarryLook.cs): two Rubble, a Quarryman swinging at you, a Stomper walking, one lifting its foot (gap showing) and one whose ring is out; set beside Docs/Mockups/colossus-faction.html
       var qg = host.Game; qg.Enemies.Clear(); qg.Bullets.Clear();
       var qsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

@@ -75,6 +75,9 @@ namespace Arena
         Driller, Geomancer, CinderPriest,
         // faction mini-bosses (FactionMinis.cs): the Warden's, a shield officer (RiotCaptain.cs, Game/RiotCaptainLook.cs)
         RiotCaptain,
+        // the Devourer's faction, The Larder (LarderFaction.cs, Game/LarderLook.cs): a Gnawling plays like a Rioter, a Butcher
+        // like a Guard that chops a half-circle, a Gulper like a Thug that breathes you in
+        Gnawling, Butcher, Gulper,
     }
 
     public class RoleDef
@@ -401,6 +404,13 @@ namespace Arena
                 Picker = PickerGroup.Ranged, Blurb = "Charges a molten core, then fires one magma bolt straight at you. Wherever it stops, it leaves a pool of lava. Strafe across the line, or parry it." },
             new EnemyDef { Name = "Riot Captain", Hp = 3000f, Radius = 30f, Speed = 70f, Score = 150, Xp = 80, Sides = 8, Color = new Rgba(0.5f, 0.66f, 1f), Heavy = true, Contact = 20f, Mini = true,
                 Blurb = "The Warden's mini-boss: a tower shield blocks the front. Bait its shield charge into a wall to daze it; it also fires buckshot, lobs tear gas and whistles for Taser Guards." },
+            // the Devourer's faction (LarderFaction.cs): the Gnawling and the Butcher have their Warden counterpart's numbers
+            new EnemyDef { Name = "Gnawling", Hp = 40f, Radius = 11f, Speed = 110f, Score = 3, Xp = 7, Sides = 8, Color = new Rgba(0.91f, 0.53f, 0.6f), Melee = true, Contact = 10f,
+                Picker = PickerGroup.Melee, Blurb = "A mouth on legs, the Devourer in miniature. Weaves at you in pairs." },
+            new EnemyDef { Name = "Butcher", Hp = 90f, Radius = 13f, Speed = 125f, Score = 6, Xp = 15, Sides = 8, Color = new Rgba(0.43f, 0.29f, 0.24f), Melee = true, Contact = 14f,
+                Picker = PickerGroup.Melee, Blurb = "A hooded butcher with a bone mask. Close in, it raises its cleaver and chops a half-circle in front: step out of it." },
+            new EnemyDef { Name = "Gulper", Hp = 180f, Radius = 22f, Speed = 58f, Score = 12, Xp = 25, Sides = 9, Color = new Rgba(0.86f, 0.5f, 0.56f), Melee = true, Contact = 20f,
+                Picker = PickerGroup.Melee, Blurb = "A swollen gut. Its cheeks swell, then it breathes in and pulls you toward its mouth: step out of the cone sideways." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount

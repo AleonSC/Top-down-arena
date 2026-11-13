@@ -51,6 +51,9 @@ namespace Arena
                 case EnemyType.Rubble: return "Rolls at you in weaving pairs. Don't get surrounded.";
                 case EnemyType.Quarryman: return "Walks straight at you, its lamp lighting the way. Sidestep it.";
                 case EnemyType.Stomper: return "Lifts a foot, then stomps out a push ring. Step into the green gap.";
+                case EnemyType.Gnawling: return "Mouths on legs, weaving at you in pairs. Don't get surrounded.";
+                case EnemyType.Butcher: return "Raises its cleaver, then chops in front. Step back out of the half-circle.";
+                case EnemyType.Gulper: return "Swells, then breathes you in. Step out of the cone sideways.";
                 case EnemyType.SlabBearer: return "Its slab stops shots and bashes you back. Flank it, or break the slab.";
                 case EnemyType.RockHurler: return "Lobs a boulder where you're heading. Change direction out of the ring.";
                 case EnemyType.Driller: return "Drills along a lane; the crack it leaves erupts. Cross the line, don't follow it.";

@@ -31,10 +31,14 @@ namespace Arena
             t[(int)EnemyType.Driller] = EnemyType.Shiv;
             t[(int)EnemyType.Geomancer] = EnemyType.TaserGuard;
             t[(int)EnemyType.CinderPriest] = EnemyType.TaserGuard;
+            // the Devourer's faction (LarderFaction.cs)
+            t[(int)EnemyType.Gnawling] = EnemyType.Rioter;
+            t[(int)EnemyType.Butcher] = EnemyType.Guard;
+            t[(int)EnemyType.Gulper] = EnemyType.Thug;
             return t;
         }
 
-        /// The Warden enemy this one plays like (itself, for anything that isn't a Hive or Quarry enemy).
+        /// The Warden enemy this one plays like (itself, for anything that isn't a Hive, Quarry or Larder enemy).
         public static EnemyType Of(EnemyType t) => table[(byte)t];
 
         public static bool Is(EnemyType t) => t >= EnemyType.Worker && t <= EnemyType.Hornet;
