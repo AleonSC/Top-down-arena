@@ -1,6 +1,6 @@
 # Wave & spawn refactor
 
-**Status: steps 0-3 done** (suites `wavedump`, `spawndump`; `WaveNumbers.cs`, `WavePlan.cs`, `Spawner.cs`); steps 4-5 planned. Owner picked "refactor first".
+**Status: steps 0-4 done** (suites `wavedump`, `spawndump`; `WaveNumbers.cs`, `WavePlan.cs`, `Spawner.cs`, `BossWaves.cs`); step 5 is the owner's new wave behavior. Owner picked "refactor first".
 
 ## Why
 
@@ -42,7 +42,8 @@ One wave is built by six overlapping systems and spawned by four drivers, so eac
 1. **(done)** Pull the count math and magic numbers into one `WaveNumbers` (still `Balance.cs`-indexed); remove the double Practice reset (`WavePool` stays: the chips use it). No behavior change.
 2. **(done)** Introduce `WavePlan`; make each builder a stage that fills it; `BuildWave` becomes the stage list.
 3. **(done)** `Spawner` with pacing strategies; delete the three copies of the dispatch; one `Remaining`. (A designed wave keeps its own queue and timers beside it; the safety net is the `spawndump` suite.)
-4. Split `SpawnEnemyAt`; boss positions and composition into data.
-5. Then the owner's new wave behavior goes on top as one stage or one pacing.
+4. **(done)** Split `SpawnEnemyAt`; boss positions and composition into data.
+5. (Left over: a boss spawn still draws a random edge spot and throws it away, to keep the rolls that follow identical; drop it when a balance pass can take a new sequence.)
+6. Then the owner's new wave behavior goes on top as one stage or one pacing.
 
 No network or snapshot change is planned, so no protocol bump unless a step needs one.

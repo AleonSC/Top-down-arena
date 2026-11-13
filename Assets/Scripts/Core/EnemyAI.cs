@@ -132,43 +132,8 @@ namespace Arena
             int n = plan.N;
             if (!(Bosses.Slotted ? BossSlot : IsBossWave(n)))
                 return false;
-            {
-                switch (BossAt(n))  // (a hunt's boss on its last wave; Hunts.cs)
-                {
-                    case EnemyType.Boss:
-                        spawnQueue.Add(EnemyType.Boss);
-                        for (int i = 0; i < WaveNumbers.EscortCount(EnemyType.Boss, n); i++)
-                            spawnQueue.Add(EnemyType.Grunt);
-                        break;
-                    case EnemyType.HiveQueen:
-                        spawnQueue.Add(EnemyType.HiveQueen);  // she brings her own swarm
-                        break;
-                    case EnemyType.TwinA:
-                        spawnQueue.Add(EnemyType.TwinA);
-                        spawnQueue.Add(EnemyType.TwinB);
-                        break;
-                    case EnemyType.Singularity:
-                        spawnQueue.Add(EnemyType.Singularity);
-                        for (int i = 0; i < WaveNumbers.EscortCount(EnemyType.Singularity, n); i++)
-                            spawnQueue.Add(i % 2 == 0 ? EnemyType.Grunt : EnemyType.Sniper);
-                        break;
-                    case EnemyType.Colossus:
-                        spawnQueue.Add(EnemyType.Colossus);
-                        for (int i = 0; i < WaveNumbers.EscortCount(EnemyType.Colossus, n); i++)
-                            spawnQueue.Add(EnemyType.Grunt);
-                        break;
-                    case EnemyType.StormHerald:
-                        spawnQueue.Add(EnemyType.StormHerald);
-                        for (int i = 0; i < WaveNumbers.EscortCount(EnemyType.StormHerald, n); i++)
-                            spawnQueue.Add(EnemyType.Sniper);
-                        break;
-                    default:  // Duelist, Lich, Devourer and the Eclipse fight alone (or bring their own help)
-                        spawnQueue.Add(BossAt(n));
-                        break;
-                }
-                return true;
-            }
-            return false;
+            spawnQueue.AddRange(BossWaves.Queue(BossAt(n), n));  // (a hunt's boss on its last wave; Hunts.cs)
+            return true;
         }
 
         /// Stage 2: how many picks the wave has and what it picks from.
@@ -269,13 +234,10 @@ namespace Arena
                 pos = breach.Value;
             else
                 pos = SpawnSpot(d.Radius, !d.IsBoss, out home);
-            // Bosses appear in the middle of the arena (the Twin Reapers on either side of it, where their circle starts).
-            if (type == EnemyType.TwinA)
-                pos = new V2(Width / 2f - Width * 0.26f, Height / 2f);
-            else if (type == EnemyType.TwinB)
-                pos = new V2(Width / 2f + Width * 0.26f, Height / 2f);
-            else if (d.IsBoss)
-                pos = new V2(Width / 2f, Height / 2f);
+            // Bosses appear where BossWaves says (the spot drawn above is thrown away, so the rolls that follow stay as they were).
+            var bossAt = BossWaves.SpawnPoint(type, Width, Height);
+            if (bossAt.HasValue)
+                pos = bossAt.Value;
             else if (type == EnemyType.Nest)
                 pos = RandomInArena(Walled ? 80f : 160f, Walled ? 80f : 120f);
 
@@ -358,10 +320,21 @@ namespace Arena
             return PushOutOfSolids(pos.Clamp(areas[best].Min + new V2(mm, mm), areas[best].Max - new V2(mm, mm)), r);
         }
 
+        /// Host: an enemy comes into the arena: its stats (NewEnemy), then its place and first timers (PlaceEnemy).
         Enemy SpawnEnemyAt(EnemyType type, V2 pos, float spawnT, int parent, bool elite = false)
         {
             var d = Defs.Get(type);
             pos = SnapIntoRooms(pos, d.Radius);
+            var e = NewEnemy(type, d, pos, parent, elite);
+            Recorder?.EnemySpawned(e);
+            PlaceEnemy(e, pos, spawnT, parent);
+            Enemies[e.Id] = e;
+            return e;
+        }
+
+        /// An enemy's stats at spawn: health for the wave, party and run, speed, path and elite changes, a boss's strength, traits, shield.
+        Enemy NewEnemy(EnemyType type, EnemyDef d, V2 pos, int parent, bool elite)
+        {
             var e = new Enemy { Id = nextEnemyId++, Type = type, Def = d, Radius = d.Radius, Speed = d.Speed, Score = d.Score, ParentId = parent, Elite = elite };
             e.MaxHp = SpawnHp(type, Wave);
             if (Has(RunMod.SwiftFoes))
@@ -375,23 +348,7 @@ namespace Arena
                 e.Radius *= EliteSize;
             }
             if (d.IsBoss)
-            {
-                // A party far above a typical build meets a tougher boss (BuildPower.cs). Late bosses already get more
-                // health for the same reason (LateBossScaling), so the bigger of the two counts, not both together.
-                if (Quick)
-                {
-                    // Quick Play: about a two-minute fight at any wave (QuickPlay.cs), plus the strong-build boost.
-                    e.MaxHp = QuickBossHp(type, Wave);
-                    e.PowerScale = BossPowerScale();
-                    e.MaxHp *= e.PowerScale;
-                }
-                else
-                {
-                    float late = LateBossBoost(Wave);
-                    e.PowerScale = Math.Max(late, BossPowerScale());
-                    e.MaxHp *= e.PowerScale / late;
-                }
-            }
+                ScaleBoss(e);
             e.Hp = e.MaxHp;
             if (elite)
                 RollTraits(e);  // Variety.cs
@@ -401,7 +358,31 @@ namespace Arena
                 e.ShieldHp = e.ShieldMax = e.MaxHp * ShieldShare;
             if (type == EnemyType.RiotShield)
                 e.ShieldHp = e.ShieldMax = e.MaxHp * RiotShieldShare;  // WardenFaction.cs
-            Recorder?.EnemySpawned(e);
+            return e;
+        }
+
+        /// A boss's health: a party far above a typical build meets a tougher boss (BuildPower.cs). Late bosses already get more
+        /// health for the same reason (LateBossScaling), so the bigger of the two counts, not both together.
+        void ScaleBoss(Enemy e)
+        {
+            if (Quick)
+            {
+                // Quick Play: about a two-minute fight at any wave (QuickPlay.cs), plus the strong-build boost.
+                e.MaxHp = QuickBossHp(e.Type, Wave);
+                e.PowerScale = BossPowerScale();
+                e.MaxHp *= e.PowerScale;
+            }
+            else
+            {
+                float late = LateBossBoost(Wave);
+                e.PowerScale = Math.Max(late, BossPowerScale());
+                e.MaxHp *= e.PowerScale / late;
+            }
+        }
+
+        /// An enemy's place and first timers: its home room, where it stands, when it appears, its first rolls.
+        void PlaceEnemy(Enemy e, V2 pos, float spawnT, int parent)
+        {
             Enemy parentE;
             if (parent != 0 && Enemies.TryGetValue(parent, out parentE))
             {
@@ -416,12 +397,10 @@ namespace Arena
             e.SpawnT = spawnT;
             e.FireT = Rand(0.3f, 1.2f);
             e.PhaseT = Rand(1f, 3f);
-            if (type == EnemyType.SecurityGuard)
+            if (e.Type == EnemyType.SecurityGuard)
                 e.Phase = SecurityMag;  // a full magazine (SecurityGuard.cs)
             e.Strafe = rng.NextDouble() < 0.5 ? 1f : -1f;
             e.Ang = Rand(0f, MathX.Tau);
-            Enemies[e.Id] = e;
-            return e;
         }
 
         readonly List<int> pickAlive = new List<int>(), pickTanks = new List<int>();  // (PickTarget runs per enemy, every tick when everyone is down)

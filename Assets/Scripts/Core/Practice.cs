@@ -162,13 +162,8 @@ namespace Arena
                     continue;
                 for (int i = 0; i < n; i++)
                 {
-                    if (t == EnemyType.TwinA)
-                    {
-                        spawnQueue.Add(EnemyType.TwinA);  // the Reapers come as a pair
-                        spawnQueue.Add(EnemyType.TwinB);
-                    }
-                    else if (Defs.Get(t).IsBoss)
-                        spawnQueue.Add(t);  // bosses first
+                    if (Defs.Get(t).IsBoss)
+                        spawnQueue.AddRange(BossWaves.Own(t));  // bosses first (the Reapers as a pair)
                     else
                         rest.Add(t);
                 }
