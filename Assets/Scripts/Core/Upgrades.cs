@@ -119,6 +119,27 @@ namespace Arena
         public float MilestoneChance;      // Milestone Compass: a level-up may also offer a milestone pick
     }
 
+    /// Who a card offer is for (Docs/UpgradePools.md step 2): every offer and Available take one, so no filter can be
+    /// left out. In a match build it with Game.OfferFor(p); tests and build simulations use the constructor.
+    public class OfferCtx
+    {
+        public readonly Role Role;
+        public readonly Kit Kit;
+        public readonly AbilityId RoleAbility;
+        public readonly List<int> Taken;
+        public readonly WeaponId? Weapon;  // null: no weapon (weapon cards are never offered)
+        public readonly bool Expanding;    // the Expanding arena (the vector cards)
+
+        public OfferCtx(Role role, AbilityId roleAbility, List<int> taken, WeaponId? weapon = null, bool expanding = false, Kit kit = Kit.Soldier)
+        {
+            Role = role; RoleAbility = roleAbility; Taken = taken; Weapon = weapon; Expanding = expanding; Kit = kit;
+        }
+
+        /// A player's offers: their role, class, Space ability, picks and weapon.
+        public static OfferCtx Of(Player p, bool expanding) =>
+            new OfferCtx(p.Role, p.RoleAbility, p.Taken, p.Weapon != null ? p.Weapon.Id : (WeaponId?)null, expanding, p.Kit);
+    }
+
     public class UpgradeDef
     {
         public string Name, Desc;
@@ -441,23 +462,23 @@ namespace Arena
         })));
 
         /// After a boss: every weapon mod you can still take, to choose from.
-        public static int[] ModOffer(Role role, AbilityId roleAbility, List<int> taken)
+        public static int[] ModOffer(OfferCtx c)
         {
             var ids = new List<int>();
             for (int id = 0; id < All.Length; id++)
-                if (All[id].Rarity == Rarity.Mod && Available(id, role, roleAbility, taken))
+                if (All[id].Rarity == Rarity.Mod && Available(id, c))
                     ids.Add(id);
             return ids.Count > 0 ? ids.ToArray() : null;
         }
 
         /// The three legendaries for a boss (topped up from other bosses' if you've maxed some out).
-        public static int[] LegendaryOffer(Random rng, EnemyType boss, Role role, AbilityId roleAbility, List<int> taken)
+        public static int[] LegendaryOffer(Random rng, EnemyType boss, OfferCtx c)
         {
             var own = new List<int>();
             var others = new List<int>();
             for (int id = 0; id < All.Length; id++)
             {
-                if (All[id].Rarity != Rarity.Legendary || !Available(id, role, roleAbility, taken))
+                if (All[id].Rarity != Rarity.Legendary || !Available(id, c))
                     continue;
                 if (All[id].Boss == boss)
                     own.Add(id);
@@ -578,11 +599,11 @@ namespace Arena
         }
 
         /// A milestone pick: up to three cards from the milestone pool (not the ones you've maxed out), or null if none are left.
-        public static int[] MilestoneOffer(Random rng, Role role, AbilityId roleAbility, List<int> taken, bool expanding = false)
+        public static int[] MilestoneOffer(Random rng, OfferCtx c)
         {
             var ids = new List<int>();
             for (int id = 0; id < All.Length; id++)
-                if (All[id].Rarity == Rarity.Milestone && Available(id, role, roleAbility, taken, null, expanding))
+                if (All[id].Rarity == Rarity.Milestone && Available(id, c))
                     ids.Add(id);
             if (ids.Count == 0)
                 return null;
@@ -615,14 +636,17 @@ namespace Arena
         }
 
         /// Can this upgrade be offered to a player with these picks and role?
-        public static bool Available(int id, Role role, AbilityId roleAbility, List<int> taken, WeaponId? weapon = null, bool expanding = false)
+        public static bool Available(int id, OfferCtx c)
         {
+            Role role = c.Role;
+            AbilityId roleAbility = c.RoleAbility;
+            List<int> taken = c.Taken;
             var u = All[id];
             if (u.Unoffered)
                 return false;
-            if (u.NeedsExpanding && !expanding)
+            if (u.NeedsExpanding && !c.Expanding)
                 return false;  // the vector cards are for the Expanding arena
-            if (u.RequiresWeapon.HasValue && u.RequiresWeapon.Value != weapon)
+            if (u.RequiresWeapon.HasValue && u.RequiresWeapon.Value != c.Weapon)
                 return false;
             if (u.Role.HasValue && u.Role.Value != role)
                 return false;
@@ -645,14 +669,14 @@ namespace Arena
         }
 
         /// One upgrade of this rarity this player could take (falling back to lower rarities), or -1. (Chests, Props.cs.)
-        public static int RandomOfRarity(Random rng, Rarity want, Role role, AbilityId roleAbility, List<int> taken, WeaponId? weapon = null, bool expanding = false)
+        public static int RandomOfRarity(Random rng, Rarity want, OfferCtx c)
         {
             var candidates = new List<int>();
             for (int r = (int)want; r >= 0; r--)
             {
                 candidates.Clear();
                 for (int id = 0; id < All.Length; id++)
-                    if ((int)All[id].Rarity == r && Available(id, role, roleAbility, taken, weapon, expanding))
+                    if ((int)All[id].Rarity == r && Available(id, c))
                         for (int k = 0; k < All[id].Weight; k++)
                             candidates.Add(id);
                 if (candidates.Count > 0)
@@ -663,18 +687,18 @@ namespace Arena
 
         /// Roll three different upgrades. Higher levels make rare cards a bit likelier.
         /// A challenge room's prize: three cards, each rare or very rare (Challenges.cs).
-        public static int[] PrizeOffer(Random rng, Role role, AbilityId roleAbility, List<int> taken, WeaponId? weapon = null, bool expanding = false) =>
-            RollWeighted(rng, role, roleAbility, taken, new[] { 0f, 0f, 55f, 45f }, 3, weapon, expanding);
+        public static int[] PrizeOffer(Random rng, OfferCtx c) =>
+            RollWeighted(rng, c, new[] { 0f, 0f, 55f, 45f }, 3);
 
-        public static int[] RollOffer(Random rng, Role role, AbilityId roleAbility, List<int> taken, int level, WeaponId? weapon = null, bool expanding = false)
+        public static int[] RollOffer(Random rng, OfferCtx c, int level)
         {
-            var st = Compute(taken);  // Fortune (rarer cards) and Wide Choice (more cards) are milestone upgrades
+            var st = Compute(c.Taken);  // Fortune (rarer cards) and Wide Choice (more cards) are milestone upgrades
             float veryRare = Math.Min(10f, 3f + level * 0.5f) * (1f + st.RarityLuck);
             float rare = Math.Min(22f, 11f + level * 0.8f) * (1f + st.RarityLuck);
-            return RollWeighted(rng, role, roleAbility, taken, new[] { 55f, 28f * (1f + st.RarityLuck), rare, veryRare }, 3 + Math.Min(2, st.OfferExtra), weapon, expanding);
+            return RollWeighted(rng, c, new[] { 55f, 28f * (1f + st.RarityLuck), rare, veryRare }, 3 + Math.Min(2, st.OfferExtra));
         }
 
-        static int[] RollWeighted(Random rng, Role role, AbilityId roleAbility, List<int> taken, float[] weights, int count = 3, WeaponId? weapon = null, bool expanding = false)
+        static int[] RollWeighted(Random rng, OfferCtx c, float[] weights, int count)
         {
             var offer = new int[count];
             var used = new List<int>();
@@ -694,7 +718,7 @@ namespace Arena
                     int want = r >= 0 ? r : -r;
                     var candidates = new List<int>();
                     for (int id = 0; id < All.Length; id++)
-                        if ((int)All[id].Rarity == want && !used.Contains(id) && Available(id, role, roleAbility, taken, weapon, expanding))
+                        if ((int)All[id].Rarity == want && !used.Contains(id) && Available(id, c))
                             for (int k = 0; k < All[id].Weight; k++)  // class ability cards count triple
                                 candidates.Add(id);
                     if (candidates.Count > 0)

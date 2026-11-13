@@ -611,7 +611,7 @@ namespace Arena
                 return;
             p.Rerolls--;
             Recorder?.Rerolled(p);
-            p.Offer = Upgrades.RollOffer(rng, p.Role, p.RoleAbility, p.Taken, p.Level, p.Weapon.Id, ExpandingOn);
+            p.Offer = Upgrades.RollOffer(rng, OfferFor(p), p.Level);
             DoLog(p.Role + " rerolled (" + p.Rerolls + " left)");
             SendSnapshot();
         }
@@ -663,6 +663,10 @@ namespace Arena
         }
 
         /// Boss rewards come first (legendaries, then weapon mods), then regular level-up picks.
+        /// Who this player's card offers are for (role, class, Space ability, picks, weapon, the Expanding arena):
+        /// every offer and Upgrades.Available take one (Docs/UpgradePools.md step 2).
+        public OfferCtx OfferFor(Player p) => OfferCtx.Of(p, ExpandingOn);
+
         void NextOffer(Player p)
         {
             p.PendingLegendary = p.LegendaryQueue.Count;
@@ -673,12 +677,12 @@ namespace Arena
             int[] mods = null;
             if (!p.OfferLegendary && p.PendingMods > 0)
             {
-                mods = Upgrades.ModOffer(p.Role, p.RoleAbility, p.Taken);
+                mods = Upgrades.ModOffer(OfferFor(p));
                 if (mods == null)
                     p.PendingMods = 0;  // every mod maxed out
             }
             if (p.OfferLegendary)
-                p.Offer = Upgrades.LegendaryOffer(rng, p.LegendaryQueue[0], p.Role, p.RoleAbility, p.Taken);
+                p.Offer = Upgrades.LegendaryOffer(rng, p.LegendaryQueue[0], OfferFor(p));
             else if (mods != null)
             {
                 p.Offer = mods;
@@ -686,15 +690,15 @@ namespace Arena
             }
             else if (p.PrizePicks > 0)
             {
-                p.Offer = Upgrades.PrizeOffer(rng, p.Role, p.RoleAbility, p.Taken, p.Weapon.Id, ExpandingOn);  // a challenge room's prize (Challenges.cs)
+                p.Offer = Upgrades.PrizeOffer(rng, OfferFor(p));  // a challenge room's prize (Challenges.cs)
                 p.OfferPrize = true;
             }
-            else if (p.PendingMilestones > 0 && (p.Offer = Upgrades.MilestoneOffer(rng, p.Role, p.RoleAbility, p.Taken, ExpandingOn)) != null)
+            else if (p.PendingMilestones > 0 && (p.Offer = Upgrades.MilestoneOffer(rng, OfferFor(p))) != null)
                 p.OfferMilestone = true;  // its own pool, before the level's normal pick
             else if (p.PendingPicks > 0)
             {
                 p.PendingMilestones = 0;  // (only reached with the milestone pool used up)
-                p.Offer = Upgrades.RollOffer(rng, p.Role, p.RoleAbility, p.Taken, p.Level, p.Weapon.Id, ExpandingOn);
+                p.Offer = Upgrades.RollOffer(rng, OfferFor(p), p.Level);
             }
             else
                 p.Offer = null;

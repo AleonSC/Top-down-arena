@@ -483,7 +483,7 @@ namespace Arena
                     continue;
                 int id = ids[k];
                 var u = Upgrades.All[id];
-                bool ok = host && Upgrades.Available(id, who.Role, who.RoleAbility, who.Taken, who.Weapon.Id);
+                bool ok = host && Upgrades.Available(id, game.OfferFor(who));
                 Color rc = ToColor(Upgrades.RarityColor(u.Rarity));
                 var rr = new Rect(4f, ry, list.width - 12f, row - 2f);
                 bool hover = ok && rr.Contains(Event.current.mousePosition);

@@ -66,11 +66,11 @@ static partial class Program
             var taken = new List<int>();
             for (int level = 1; level < 60; level++)
             {
-                var offer = Upgrades.RollOffer(rng, role, ab, taken, level);
+                var offer = Upgrades.RollOffer(rng, new OfferCtx(role, ab, taken), level);
                 var seen = new HashSet<int>();
                 foreach (int id in offer)
                 {
-                    ok &= id >= 0 && seen.Add(id) && Upgrades.Available(id, role, ab, taken);
+                    ok &= id >= 0 && seen.Add(id) && Upgrades.Available(id, new OfferCtx(role, ab, taken));
                     ok &= Upgrades.All[id].Rarity != Rarity.Legendary;  // legendaries only come from bosses
                     ok &= Upgrades.All[id].RequiresAbility == AbilityId.None || Upgrades.HasAbility(Upgrades.All[id].RequiresAbility, ab, taken);  // on any key
                     if (id >= 0)
@@ -190,6 +190,40 @@ static partial class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
+    // Every offer reads the player's weapon (Docs/UpgradePools.md step 2): a weapon-only weapon mod, legendary or
+    // milestone card goes to that weapon and no other, and Game.OfferFor carries the player's weapon, class and arena.
+    static void OfferWeaponTest(float dt)
+    {
+        Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
+        var none = new List<int>();
+        var chalk = new OfferCtx(Role.Healer, AbilityId.MendPulse, none, WeaponId.SpiritChalk);
+        var other = new OfferCtx(Role.Healer, AbilityId.MendPulse, none, WeaponId.Pistol);
+        var bare = new OfferCtx(Role.Healer, AbilityId.MendPulse, none);
+        int mod = U("Ricochet"), leg = U("Searchlight"), mile = U("Scholar");
+        foreach (int id in new[] { mod, leg, mile })
+            Upgrades.All[id].RequiresWeapon = WeaponId.SpiritChalk;  // (test only: put back below)
+        try
+        {
+            Func<OfferCtx, int[]> legs = c => { var all = new List<int>(); var rng = new Random(2); for (int i = 0; i < 40; i++) all.AddRange(Upgrades.LegendaryOffer(rng, EnemyType.Boss, c)); return all.ToArray(); };
+            Func<OfferCtx, int[]> miles = c => { var all = new List<int>(); var rng = new Random(2); for (int i = 0; i < 40; i++) all.AddRange(Upgrades.MilestoneOffer(rng, c)); return all.ToArray(); };
+            Check(Upgrades.ModOffer(chalk).Contains(mod) && !Upgrades.ModOffer(other).Contains(mod) && !Upgrades.ModOffer(bare).Contains(mod),
+                "a weapon-only weapon mod is offered to that weapon only");
+            Check(legs(chalk).Contains(leg) && !legs(other).Contains(leg), "a weapon-only legendary is offered to that weapon only");
+            Check(miles(chalk).Contains(mile) && !miles(other).Contains(mile), "a weapon-only milestone card is offered to that weapon only");
+        }
+        finally
+        {
+            foreach (int id in new[] { mod, leg, mile })
+                Upgrades.All[id].RequiresWeapon = null;
+        }
+        var s = StartBuffed(dt, 6, 0);
+        var p = s[0].Game.Players[2];
+        var c2 = s[0].Game.OfferFor(p);
+        Check(c2.Role == p.Role && c2.Kit == p.Kit && c2.RoleAbility == p.RoleAbility && c2.Taken == p.Taken && c2.Weapon == p.Weapon.Id
+            && c2.Expanding == s[0].Game.ExpandingOn, "Game.OfferFor carries the player's role, class, Space ability, picks, weapon and arena");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     // Card ids cross the wire as 2 bytes (Docs/UpgradePools.md step 1): an offer with ids past 255 and an empty
     // slot (-1) reaches the client as sent, and so does the taken list.
     static void CardIdWireTest(float dt)
@@ -217,7 +251,7 @@ static partial class Program
     static void WeaponModTest(float dt)
     {
         var s = StartBuffed(dt, 6, 0);
-        var offer = Upgrades.ModOffer(Role.Dps, Upgrades.RoleAbility(Role.Dps, Kit.Soldier, 0), new List<int>());
+        var offer = Upgrades.ModOffer(new OfferCtx(Role.Dps, Upgrades.RoleAbility(Role.Dps, Kit.Soldier, 0), new List<int>()));
         Check(offer != null && offer.Length == 8, "the weapon mod offer lists all 8 mods");
         foreach (int id in offer)
             for (int k = 0; k < 3; k++)
@@ -225,7 +259,7 @@ static partial class Program
                 s[0].Game.GrantUpgrade(1, id);
                 s[0].Game.GrantUpgrade(2, id);
             }
-        Check(Upgrades.ModOffer(Role.Dps, AbilityId.PoisonDart, s[0].Game.Players[2].Taken) == null, "maxed-out mods are no longer offered");
+        Check(Upgrades.ModOffer(new OfferCtx(Role.Dps, AbilityId.PoisonDart, s[0].Game.Players[2].Taken)) == null, "maxed-out mods are no longer offered");
         var spawnAngle = new Dictionary<int, float>();
         int curved = 0, ricochets = 0, ghosts = 0, frame = 0, compared = 0;
         float worst = 0f;
@@ -287,7 +321,7 @@ static partial class Program
                 for (int c = 0; c < Upgrades.RoleAbilityChoices; c++)
                 {
                     var ab = Upgrades.RoleAbility(role, (Kit)k, c);
-                    var offered = cards.Where(i => Upgrades.Available(i, role, ab, new List<int>())).Select(i => Upgrades.All[i].Grants).OrderBy(x => x).ToList();
+                    var offered = cards.Where(i => Upgrades.Available(i, new OfferCtx(role, ab, new List<int>()))).Select(i => Upgrades.All[i].Grants).OrderBy(x => x).ToList();
                     var expect = Enumerable.Range(0, Upgrades.RoleAbilityChoices).Where(o => o != c).Select(o => Upgrades.RoleAbility(role, (Kit)k, o)).OrderBy(x => x).ToList();
                     combos++;
                     if (offered.SequenceEqual(expect))
@@ -299,7 +333,7 @@ static partial class Program
         var rng = new Random(7);
         int veryRare = 0, cls = 0;
         for (int n = 0; n < 4000; n++)
-            foreach (int id in Upgrades.RollOffer(rng, Role.Tank, AbilityId.Roar, new List<int>(), 20))
+            foreach (int id in Upgrades.RollOffer(rng, new OfferCtx(Role.Tank, AbilityId.Roar, new List<int>()), 20))
                 if (Upgrades.All[id].Rarity == Rarity.VeryRare)
                 {
                     veryRare++;
@@ -311,8 +345,8 @@ static partial class Program
         Check(frac > 0.49f && frac < 0.61f, "class ability cards count triple among very rare cards");
 
         var taken = new List<int> { U("Barrier") };  // a Tank Soldier who picked Roar, then found Barrier
-        Check(!Upgrades.Available(U("Barrier"), Role.Tank, AbilityId.Roar, taken) && Upgrades.Available(U("Bastion"), Role.Tank, AbilityId.Roar, taken)
-            && !Upgrades.Available(U("Bastion"), Role.Tank, AbilityId.Roar, new List<int>()),
+        Check(!Upgrades.Available(U("Barrier"), new OfferCtx(Role.Tank, AbilityId.Roar, taken)) && Upgrades.Available(U("Bastion"), new OfferCtx(Role.Tank, AbilityId.Roar, taken))
+            && !Upgrades.Available(U("Bastion"), new OfferCtx(Role.Tank, AbilityId.Roar, new List<int>())),
             "a class ability card isn't offered twice, and that ability's own upgrades open up");
 
         // In a match: the DPS Soldier (Space: Poison Dart) gets Airstrike on Q, and the bot calls it in.

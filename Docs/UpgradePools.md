@@ -1,6 +1,6 @@
 # Upgrade pools: class and weapon cards
 
-**Status: step 1 built (Nov 2026, protocol 309); steps 2-5 planned.** Owner decisions are below; build one step at a time ("start on step N").
+**Status: steps 1-2 built (Nov 2026, protocol 309); steps 3-5 planned.** Owner decisions are below; build one step at a time ("start on step N").
 
 ## Why
 
@@ -43,14 +43,17 @@ The Nov 2026 audit of `Core/Upgrades.cs` found:
 - Replays need no format bump: since `Replay.FormatVersion` 7 a replay from another protocol isn't listed.
 - Test: suite `cardids` (`CardIdWireTest`, `Tools/SimTest/Tests/Upgrades.cs`).
 
-### Step 2: one offer context, weapon-aware offers
+### Step 2: one offer context, weapon-aware offers (built, no wire change)
 
-- `OfferCtx` (role, kit, Space ability, weapon, expanding, taken) built once from a `Player` (`OfferCtx.Of(p, game)`),
-  replacing the 4-6 loose parameters on `Available`, `RollOffer`, `PrizeOffer`, `RandomOfRarity`, `ModOffer`,
-  `LegendaryOffer`, `MilestoneOffer`. No optional parameters left to forget.
-- Callers: `Game.cs` (`NextOffer`), `Shop.cs`, `Props.cs`, `BossLab.cs`, `BuildPower.cs` (it simulates a build with
-  no `Player`: give it a ctx with the weapon it plays).
-- Test: a weapon-only mod is offered to that weapon and never to another.
+- `OfferCtx` (`Core/Upgrades.cs`: role, class, Space ability, picks, weapon, Expanding arena) is the one argument every
+  offer takes: `Available`, `RollOffer`, `PrizeOffer`, `RandomOfRarity`, `ModOffer`, `LegendaryOffer`,
+  `MilestoneOffer`. The old loose parameters are gone.
+- In a match, `Game.OfferFor(p)` builds it (`OfferCtx.Of(p, ExpandingOn)`): `Game.cs` (`NextOffer`), `Shop.cs`,
+  `Props.cs`, `DevTools.cs`, `BossLab.cs`, `DevDock.cs`. Mod, legendary and milestone offers, a chest's legendary and
+  the dev spawn sheet now also see your weapon and the arena.
+- `BuildPower` (boss health scaling) builds `new OfferCtx(role, ability, taken)` with no weapon: a typical build of any
+  weapon, so weapon-only cards never count toward it.
+- Tests use the constructor. Test: suite `offers` (`OfferWeaponTest`, `Tools/SimTest/Tests/Upgrades.cs`).
 
 ### Step 3: `Kit` and `Weapons` filters
 

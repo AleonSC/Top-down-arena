@@ -133,7 +133,7 @@ namespace Arena
         {
             var shelf = new List<int>();
             for (int tries = 0; tries < 6 && shelf.Count < upgrades; tries++)
-                foreach (int u in Upgrades.RollOffer(rng, p.Role, p.RoleAbility, p.Taken, p.Level, p.Weapon.Id, ExpandingOn))
+                foreach (int u in Upgrades.RollOffer(rng, OfferFor(p), p.Level))
                     if (u >= 0 && shelf.Count < upgrades && !shelf.Contains(u) && Array.IndexOf(p.Shelf, u) < 0)
                         shelf.Add(u);
             while (shelf.Count < upgrades)
@@ -142,10 +142,10 @@ namespace Arena
             if (legendary)
             {
                 var boss = BossAt(Math.Max(Bosses.FirstBossWave, ExpandingOn ? Bosses.LastBossWave(Wave) : PathFrom - 1));  // (the Expanding arena: the last boss beaten)
-                special = PickNew(p, Upgrades.LegendaryOffer(rng, IsReaper(boss) ? EnemyType.TwinA : boss, p.Role, p.RoleAbility, p.Taken));
+                special = PickNew(p, Upgrades.LegendaryOffer(rng, IsReaper(boss) ? EnemyType.TwinA : boss, OfferFor(p)));
             }
             if (special < 0)
-                special = PickNew(p, Upgrades.ModOffer(p.Role, p.RoleAbility, p.Taken));
+                special = PickNew(p, Upgrades.ModOffer(OfferFor(p)));
             shelf.Add(special);
             for (int i = 0; i < shelf.Count; i++)
                 p.Shelf[at + i] = shelf[i];
@@ -204,7 +204,7 @@ namespace Arena
                     if (!shopping || arg < 0 || arg >= ShelfCount(p) || Sold(p, arg) || p.Shelf[arg] < 0)
                         return;
                     int u = p.Shelf[arg], price = Price(u);
-                    if (p.Gold < price || !Upgrades.Available(u, p.Role, p.RoleAbility, p.Taken, p.Weapon.Id, ExpandingOn))
+                    if (p.Gold < price || !Upgrades.Available(u, OfferFor(p)))
                         return;
                     p.Gold -= price;
                     p.ShelfSold |= 1 << arg;
@@ -397,7 +397,7 @@ namespace Arena
             }
             int best = -1;
             for (int i = 0; i < ShelfCount(me); i++)
-                if (me.Shelf[i] >= 0 && !Sold(me, i) && Price(me.Shelf[i]) <= me.Gold && Upgrades.Available(me.Shelf[i], me.Role, me.RoleAbility, me.Taken, me.Weapon.Id, ExpandingOn)
+                if (me.Shelf[i] >= 0 && !Sold(me, i) && Price(me.Shelf[i]) <= me.Gold && Upgrades.Available(me.Shelf[i], OfferFor(me))
                     && (best < 0 || Price(me.Shelf[i]) < Price(me.Shelf[best])))
                     best = i;
             if (best >= 0)

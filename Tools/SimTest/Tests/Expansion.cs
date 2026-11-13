@@ -1471,14 +1471,14 @@ static partial class Program
         // The cap cards (Core/Upgrades.cs): offered only in the Expanding arena, they raise the cap; Architect also gives vectors now.
         int inkwell = Array.FindIndex(Upgrades.All, u => u.Name == "Deep Inkwell"), architect = Array.FindIndex(Upgrades.All, u => u.Name == "Architect");
         Check(inkwell >= 0 && architect > inkwell && architect == Upgrades.All.Length - 1 && Upgrades.All[inkwell].NeedsExpanding && Upgrades.All[architect].NeedsExpanding, "the two vector cards are the last upgrades, so every older one keeps its number");
-        Check(!Upgrades.Available(inkwell, g.Players[1].Role, g.Players[1].RoleAbility, new List<int>()) && Upgrades.Available(inkwell, g.Players[1].Role, g.Players[1].RoleAbility, new List<int>(), null, true), "a vector card is only available in the Expanding arena");
+        Check(!Upgrades.Available(inkwell, new OfferCtx(g.Players[1].Role, g.Players[1].RoleAbility, new List<int>())) && Upgrades.Available(inkwell, new OfferCtx(g.Players[1].Role, g.Players[1].RoleAbility, new List<int>(), null, true)), "a vector card is only available in the Expanding arena");
         var rolls = new Random(5);
         int offeredPlain = 0, offeredExpanding = 0;
         for (int i = 0; i < 400; i++)
         {
-            foreach (int u in Upgrades.RollOffer(rolls, g.Players[1].Role, g.Players[1].RoleAbility, new List<int>(), 1 + i % 20))
+            foreach (int u in Upgrades.RollOffer(rolls, new OfferCtx(g.Players[1].Role, g.Players[1].RoleAbility, new List<int>()), 1 + i % 20))
                 offeredPlain += Upgrades.All[u].NeedsExpanding ? 1 : 0;
-            foreach (int u in Upgrades.RollOffer(rolls, g.Players[1].Role, g.Players[1].RoleAbility, new List<int>(), 1 + i % 20, null, true))
+            foreach (int u in Upgrades.RollOffer(rolls, new OfferCtx(g.Players[1].Role, g.Players[1].RoleAbility, new List<int>(), null, true), 1 + i % 20))
                 offeredExpanding += Upgrades.All[u].NeedsExpanding ? 1 : 0;
         }
         Check(offeredPlain == 0 && offeredExpanding > 0, "level-up offers hold a vector card only in the Expanding arena (" + offeredExpanding + " of 1200 cards)");

@@ -72,7 +72,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `ForcePact.cs`, `Game/ForcePactLook.cs`: Force Pact (Tank Summoner ability, `AbilityId.GuardianSpirit`): binds the enemy nearest the cursor, the thrall (`MinionKind.Thrall`: type, health, fights near you, respawns via `Player.PactCd`), the pact slots; the Soul Chains look and the `FxKind.Pact*` effects
 - `Daze.cs`: close-in hits daze enemies (`Daze`, `TickDaze`, `Enemy.DazeT`/`DazeImmuneT`, replicated `Enemy.Dazed`): no shooting, specials or contact for a split second; the stars are `DrawDazeStars` (Game/WorldEnemies.cs)
 - `Parry.cs`, `Stun.cs`, `Knock.cs`, `Repulsion.cs` (the Repulsion Cannon's blast and its Alt Undertow: `RepelGain`, `HostRepelPull` over `Msg.WeaponDash` `DashPullOn`/`DashPullOff`, `TickRepulsion`, replicated `Player.RepelMeter`/`RepelPull`): parry shield (a perfect parry's needle, flash and the world slowing: `WorldSlowT`, `Game/ParryLook.cs`, `Game/ParrySoundBank.cs`), stun, knockback slides, repulsion cannon
-- `Upgrades.cs`, `StatSheet.cs`, `BuildPower.cs`: upgrade cards and ability registry (the milestone pool is added last, `WithMilestones`), stat panel numbers, boss health scaling
+- `Upgrades.cs`, `StatSheet.cs`, `BuildPower.cs`: upgrade cards (every offer takes an `OfferCtx`; `Game.OfferFor(p)` in a match) and ability registry (the milestone pool is added last, `WithMilestones`), stat panel numbers, boss health scaling
 
 ## Classes (Core)
 - `Classes.cs`, `Kits.cs`, `Defs.cs`: class registry and hooks, minion/zone defs, weapon/enemy/bullet defs
