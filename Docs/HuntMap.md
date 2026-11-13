@@ -22,6 +22,40 @@ stretch of five waves. The hunt map picks one fight at a time.
 - Node details are visible before choosing: type icon, faction, danger pips, and the reward. No hidden info except
   gamble outcomes.
 
+## Screen layout (chosen)
+
+Approximate HTML mockup: [`Mockups/hunt-map.html`](Mockups/hunt-map.html) (layout only; the real screen is drawn with
+the `DevKit.cs` widgets and checked with `Tools/Preview`, so colours, fonts and spacing will differ).
+
+- **Frame:** the lobby's. Back key and a spaced-caps title ("HUNT MAP") on top, a vote timer on the right, the blue
+  phosphor palette on navy, bracket-cornered boxes, spaced-caps section headings with a rule under them.
+- **Two columns:** the map on the left in a `LoadoutBox`, and **all the information in one column beside it** (it stays
+  in view as the map scrolls; on a narrow window it stacks under the map). The column, top to bottom:
+  1. **Hunt:** target, step, gold, boss clues bar.
+  2. **Party:** one seat per player with their role, their vote and a LOCKED tag.
+  3. **Next sector:** a key per choice (glyph, name, danger pips, reward, the 1-3 hotkey).
+  4. **Detail:** the highlighted choice: name, what it is, danger and reward tiles, who voted for it.
+  5. **Lock in vote:** a green key like READY; tap again to change your vote.
+  6. A legend of the node glyphs.
+- **Map direction:** vertical, **start at the top, the boss at the bottom**.
+- **Nodes:** all squares. The type is the small vector glyph inside it (triangle skirmish, diamond elite, chevron
+  ambush, hexagon contraband, plus rest, `$` shop, `?` gamble) in the type's colour; the boss is a larger square.
+  Cleared nodes are filled and ticked, with their name beside them. The next choices have a dashed gold frame and a
+  `[1]`-`[3]` tag, and the vote letters (P1-P3) beside them.
+- **Three lanes** (left, middle, right). A node is on one lane.
+- **Lines are right angles only, no diagonals.** A link leaves a node's bottom, runs down, turns sideways in the gap
+  and comes down into the next node. Cleared route: bright. The next choices: gold. Everything else: dim, thin.
+- **Which links exist** (the generator's rules, so the map stays readable):
+  - every node links straight down its own lane when the next row has a node there;
+  - plus one **shift** per row gap, all the same way in that gap (right on even gaps, left on odd ones), so two
+    links never cross;
+  - any node left without a link in or out gets one to the nearest lane;
+  - the node you stand on links to every neighbouring lane: those are your choices;
+  - rows can have a lane empty (an empty middle lane before the boss).
+  When a node has two or three links in or out, they leave and enter at separate points along its edge (-12, 0, +12 px
+  for three) and each link turns at its own height, so no two lines run over each other.
+- **Hotkeys:** 1-3 choose a sector, Enter locks in.
+
 ## Node types
 
 | Node | What | Reward |
