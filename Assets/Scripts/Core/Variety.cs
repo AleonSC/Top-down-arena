@@ -125,8 +125,7 @@ namespace Arena
             bool recipe = n >= RecipeFrom;  // the late recipe: half the wave, mostly-not-shooting squads as often as those jobs' share (WaveRecipe.cs)
             float melee = recipe ? 1f - JobShares[(int)EnemyJob.Pressure] : MeleeShare(n), share = recipe ? RecipeSquadShare : SquadShare;
             int kindCapHere = recipe ? KindCap(n) : 99;  // the late recipe bounds the wave's distinct types (WaveRecipe.cs)
-            kinds.Clear();
-            if (recipe)
+            if (recipe)  // (kinds already holds the boss factions' types: BuildWave started it)
                 foreach (var h in Headliners)
                     kinds.Add(h);
             Func<SquadDef, bool> fits = q =>

@@ -101,10 +101,12 @@ namespace Arena
         /// Host: the wave's headliners (BuildWave on a recipe wave; kept for the log and tests).
         public readonly List<EnemyType> Headliners = new List<EnemyType>();
 
+        static int HeadlinerCount(int n) => n >= 25 ? 3 : 2;
+
         void PickHeadliners(int n)
         {
             Headliners.Clear();
-            int want = n >= 25 ? 3 : 2;
+            int want = HeadlinerCount(n);
             for (int k = 0; k < want; k++)
             {
                 float total = 0f;
@@ -148,7 +150,7 @@ namespace Arena
             if (sum <= 0f)
                 return;
             var taken = new Dictionary<EnemyType, int>();
-            kinds.Clear();
+            // (kinds already holds the boss factions' types: BuildWave started it)
             foreach (var h in Headliners)
                 kinds.Add(h);  // headliners are always on the bill, so they count first
             foreach (var sq in squadQueue)
@@ -174,9 +176,10 @@ namespace Arena
             }
         }
 
-        // The distinct types this recipe wave has so far; once kindCap is reached only these can be drawn again.
+        // The distinct types this recipe wave has so far (the boss factions' included); once kindCap is reached only these
+        // can be drawn again. The factions, picked first, stop at approachKindCap, so the headliners always have room.
         readonly HashSet<EnemyType> kinds = new HashSet<EnemyType>();
-        int kindCap = 99;
+        int kindCap = 99, approachKindCap = 99;
         bool KindOk(EnemyType t) => kinds.Count < kindCap || kinds.Contains(t);
 
         EnemyType? DrawRecipeType(EnemyJob job, int n, Dictionary<EnemyType, int> taken)
