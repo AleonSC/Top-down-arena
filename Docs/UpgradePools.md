@@ -1,6 +1,6 @@
 # Upgrade pools: class and weapon cards
 
-**Status: steps 1-11 built (Nov 2026, protocol 320).** Next: Elementalist weapon cards (the last class), then Out of Ammo.
+**Status: steps 1-13 built (Nov 2026, protocol 327).** Every class and weapon (Out of Ammo too) has its cards.
 
 ## Why
 
@@ -273,3 +273,31 @@ Built (owner approved all ten): in `Game.SoldierCards`. Hooks: `PointBlankMult` 
 `TickSpinUp`, `DbReload` and `Game.DbFullOf` (and the pellets' fade in `DoubleBarrelLook.cs`). The 4th-key Double
 Barrel has no recoil, so Quick Loader's second effect became a longer full-damage range. Test: suite `abilitycards`,
 its Soldier checks.
+
+### Step 12: Elementalist weapon cards (built, protocol 326)
+
+One Rare card per Elementalist weapon (`Weapons = { that weapon }`, `MaxStacks = 2`), offered only while you hold it.
+
+| Weapon | Card | Effect (per stack) |
+|---|---|---|
+| Flamethrower | Napalm | The stream reaches 15% farther, and its burn is 40% hotter |
+| Frost Lance | Glacier | The icicle is 20% longer, and its slow is 15% stronger (30% → 45%) |
+| Storm Hammer | Stormcaller | The hammer's lightning arcs to 1 more enemy, and its arcs hit 40% harder |
+| Radiant Orb | Sunstone | The orb is 30% bigger and heals 30% more |
+| Chain Light | Prism | The cone reaches 20% farther and is 20° wider |
+| Nimbus | Cloudburst | The rain circle is 30% wider and heals 30% more |
+| Fireball | Wildfire | The burn is 50% hotter and lasts 1 s longer |
+| Arc Lightning | Static Field | A full charge comes 25% sooner, and the stun lasts 0.2 s longer |
+| Ice Shards | Frozen Halo | The orbit holds 2 more shards, and they launch at enemies 25% farther out |
+
+Built (owner approved all nine; Thunderhead was taken, so the Storm Hammer's card is Stormcaller): in
+`Game.ElementalistCards`. Hooks: the flames' reach and `Ignite`, the icicle and splinters' reach and `Slow`,
+`Electrify` (jumps, arc damage), `Game.RadiantSize` and the orb's heal, `Game.LightConeLength` / `LightConeHalfFor`,
+the Nimbus rain (`Nimbus.cs` and its look), the Fireball's `Ignite` and `Bullet.IgniteBonus`, `BowFull` (Arc
+Lightning) and its stun, `Game.OrbitCap` and the shards' launch range. Test: suite `abilitycards`, its Elementalist checks.
+
+### Step 13: Out of Ammo (built, protocol 327)
+
+Owner pick: **Gun Kata** (Rare, `Weapons = { OutOfAmmo }`, `MaxStacks = 2`): the rifle arms swat bullets 25% farther out
+(72 → 90 px) and recover 30% faster (`AmmoSwat`, `Stats.SwatReachMult` / `SwatCdMult`). In `Game.SoldierCards`.
+Test: suite `abilitycards`, the Gun Kata check.
