@@ -397,7 +397,7 @@ static partial class Shot {
       var on = iput(EnemyType.Pulsar, new V2(1200f, 690f)); on.Phase = 2; on.Facing = 3.75f;
       ig.AnimT += float.Parse(Environment.GetEnvironmentVariable("INFALL"), System.Globalization.CultureInfo.InvariantCulture);
     }
-    if (Environment.GetEnvironmentVariable("COURT") != null) {  // COURT=<s into the clock>: the Eclipse's faction, step 1 (CourtLook.cs): three Embers weaving in with their sparks hanging behind, a Corona Priest winding up with a ring in flight, a Heliograph aiming and one burning; set beside Docs/Mockups/eclipse-faction.html
+    if (Environment.GetEnvironmentVariable("PENUMBRAL") != null) {  // PENUMBRAL=<s into the clock>: the Eclipse's faction, step 1 (PenumbralLook.cs): three Embers weaving in with their sparks hanging behind, a Corona Priest winding up with a ring in flight, a Heliograph aiming and one burning; set beside Docs/Mockups/eclipse-faction.html
       var cg = host.Game; cg.Enemies.Clear(); cg.Bullets.Clear();
       var csp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
       Func<EnemyType, V2, Enemy> cput = (t, at) => { var e = (Enemy)csp.Invoke(cg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; return e; };
@@ -418,7 +418,7 @@ static partial class Shot {
       pr.Winding = true;
       var aim = cput(EnemyType.Heliograph, new V2(1340f, 780f)); aim.Phase = 1; aim.SeenT = 0.6f; aim.Facing = (me.Pos + new V2(0f, 40f) - aim.Pos).Angle;
       var burn = cput(EnemyType.Heliograph, new V2(640f, 860f)); burn.Phase = 2; burn.SeenT = 0.12f; burn.Facing = -0.25f;
-      cg.AnimT += float.Parse(Environment.GetEnvironmentVariable("COURT"), System.Globalization.CultureInfo.InvariantCulture);
+      cg.AnimT += float.Parse(Environment.GetEnvironmentVariable("PENUMBRAL"), System.Globalization.CultureInfo.InvariantCulture);
     }
     if (Environment.GetEnvironmentVariable("INFALL2") != null) {  // INFALL2=<s into the clock>: the Singularity's faction, step 2 (InfallLook.cs): a Graviton winding up beside its landed Small Well, an Orbiter flaring with a slung orb in flight, a hurt Collapsar and an Implosion half-way
       var ig = host.Game; ig.Enemies.Clear(); ig.Bullets.Clear();

@@ -4,16 +4,16 @@ using System.Collections.Generic;
 using System.Linq;
 using Arena;
 
-// The Eclipse's faction, step 1 (Core/Court.cs, Docs/EclipseFaction.md): an Ember weaves in and leaves sparks hanging
+// The Eclipse's faction, step 1 (Core/Penumbral.cs, Docs/EclipseFaction.md): an Ember weaves in and leaves sparks hanging
 // behind it, a Corona Priest's ring has one shot at you and a gap beside it, a Heliograph plants, flickers its line,
 // burns a lane and rests; and the three come in the waves before the Eclipse.
 static partial class Program
 {
-    static void CourtTest(float dt)
+    static void PenumbralTest(float dt)
     {
         var np = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
-        Check(Game.IsCourt(EnemyType.Ember) && Game.IsCourt(EnemyType.CoronaPriest) && Game.IsCourt(EnemyType.Heliograph) && !Game.IsCourt(EnemyType.RiotCaptain),
-            "Ember, Corona Priest and Heliograph are the Court");
+        Check(Game.IsPenumbral(EnemyType.Ember) && Game.IsPenumbral(EnemyType.CoronaPriest) && Game.IsPenumbral(EnemyType.Heliograph) && !Game.IsPenumbral(EnemyType.RiotCaptain),
+            "Ember, Corona Priest and Heliograph are the Penumbral Court");
         Check(Defs.Get(EnemyType.Ember).Melee && !Defs.Get(EnemyType.CoronaPriest).Melee && Game.JobOf(EnemyType.Heliograph) == EnemyJob.Zoner,
             "the Ember is melee, the Corona Priest shoots, the Heliograph is a Zoner");
         Check(Defs.IsEnemyShot(Defs.EmberSpark), "an Ember's spark is an enemy shot");
@@ -141,7 +141,7 @@ static partial class Program
                 build.Invoke(cg, new object[] { w });
                 typeof(Game).GetMethod("CapSentries", np).Invoke(cg, null);
                 var q = ((List<EnemyType>)spawnQ.GetValue(cg)).Concat(((List<SquadDef>)squadQ.GetValue(cg)).SelectMany(x => x.Members)).ToList();
-                foreach (var t in q.Where(Game.IsCourt))
+                foreach (var t in q.Where(Game.IsPenumbral))
                     seen.Add(t);
                 mostHelio = Math.Max(mostHelio, q.Count(t => t == EnemyType.Heliograph));
             }
@@ -151,7 +151,7 @@ static partial class Program
             var cg = new Session().Game;
             cg.Wave = w;
             build.Invoke(cg, new object[] { w });
-            foreach (var t in ((List<EnemyType>)spawnQ.GetValue(cg)).Concat(((List<SquadDef>)squadQ.GetValue(cg)).SelectMany(x => x.Members)).Where(Game.IsCourt))
+            foreach (var t in ((List<EnemyType>)spawnQ.GetValue(cg)).Concat(((List<SquadDef>)squadQ.GetValue(cg)).SelectMany(x => x.Members)).Where(Game.IsPenumbral))
                 early.Add(t);
         }
         Console.WriteLine("  waves 46-49 bring: " + string.Join(", ", seen) + "; at most " + mostHelio + " Heliographs a wave");

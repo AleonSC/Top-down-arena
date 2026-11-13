@@ -161,7 +161,7 @@ namespace Arena
             }
             if (b.Kind == Defs.EmberSpark)
             {
-                DrawEmberSpark(b, t);  // CourtLook.cs
+                DrawEmberSpark(b, t);  // PenumbralLook.cs
                 return;
             }
             if (b.Kind == Defs.TaserBolt)

@@ -3,7 +3,7 @@ using System;
 namespace Arena
 {
     /// The Eclipse's faction, the Penumbral Court (Docs/EclipseFaction.md, mockup Docs/Mockups/eclipse-faction.html; drawn
-    /// in Game/CourtLook.cs). Each enemy previews one thing the Eclipse's stages test. Step 1 has three:
+    /// in Game/PenumbralLook.cs). Each enemy previews one thing the Eclipse's stages test. Step 1 has three:
     ///   Ember (Lunar wake): melee, weaves in at you and drops a spark (Defs.EmberSpark) every EmberSparkEvery s that
     ///     drifts back slowly and hangs for EmberSparkLife s, so crossing its trail hurts. Its age (Enemy.T) times the sparks.
     ///   Corona Priest (Corona rings): keeps PriestRange and strafes; winds up PriestWindUp s (its halo flares), then fires
@@ -20,12 +20,12 @@ namespace Arena
         public const int MaxHeliographs = 3;  // at most this many a wave (CapBeams in Variety.cs)
         float HelioDamage => 20f;  // the difficulty's per-wave damage growth scales it, like the Pulsar's
 
-        public static bool IsCourt(EnemyType t) => t >= EnemyType.Ember && t <= EnemyType.Heliograph;
+        public static bool IsPenumbral(EnemyType t) => t >= EnemyType.Ember && t <= EnemyType.Heliograph;
 
         /// The Heliograph keeps its mirror's line while it flickers and burns.
         public static bool HelioLocked(Enemy e) => e.Type == EnemyType.Heliograph && (e.Phase == 1 || e.Phase == 2);
 
-        V2 CourtMove(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        V2 PenumbralMove(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
         {
             switch (e.Type)
             {
@@ -45,7 +45,7 @@ namespace Arena
             return dir;
         }
 
-        void CourtSpecial(Enemy e, V2 tpos, float dt)
+        void PenumbralSpecial(Enemy e, V2 tpos, float dt)
         {
             if (e.Type == EnemyType.Ember)
                 EmberSparks(e, tpos, dt);
@@ -111,7 +111,7 @@ namespace Arena
         public static float HelioLaneDistance(Enemy e, V2 p) => SegmentDistance(p, e.Pos, e.Pos + V2.FromAngle(e.Facing) * HelioLen);
 
         /// Returns true when it handled the shot.
-        bool CourtFire(Enemy e, V2 tpos, float aim)
+        bool PenumbralFire(Enemy e, V2 tpos, float aim)
         {
             switch (e.Type)
             {
@@ -136,8 +136,8 @@ namespace Arena
             BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 34f, 0.25f, Sfx.EnemyShot);
         }
 
-        /// How much a bot should avoid this spot near a Court enemy (BotBrain.cs): a Heliograph's line.
-        float CourtBotDanger(Enemy e, V2 p, float hitR) =>
+        /// How much a bot should avoid this spot near a Penumbral Court enemy (BotBrain.cs): a Heliograph's line.
+        float PenumbralBotDanger(Enemy e, V2 p, float hitR) =>
             HelioLocked(e) && HelioLaneDistance(e, p) < HelioWidth / 2f + hitR + 30f ? 2.5f : 0f;
     }
 }

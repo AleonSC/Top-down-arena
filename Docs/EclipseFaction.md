@@ -1,8 +1,8 @@
 # The Eclipse's faction: the Penumbral Court
 
-**Status: step 1 built** (protocol 329): Ember, Corona Priest, Heliograph, squads Dawn and Mirror pair. Code: `Core/Court.cs`, `Core/Approaches.cs`
-(the Eclipse `FactionDef`), `Core/Defs.cs` (bullet kind `EmberSpark`), `Core/Variety.cs` (`CapBeams`: at most 3 Heliographs a wave), `Game/CourtLook.cs`;
-mockup `Docs/Mockups/eclipse-faction.html`; test suite `court`; preview `COURT=0.4 Tools/Preview/shot.sh x hud 1`. Replaces the Echoes plan in `Docs/Approaches.md`
+**Status: step 1 built** (protocol 329): Ember, Corona Priest, Heliograph, squads Dawn and Mirror pair. Code: `Core/Penumbral.cs`, `Core/Approaches.cs`
+(the Eclipse `FactionDef`), `Core/Defs.cs` (bullet kind `EmberSpark`), `Core/Variety.cs` (`CapBeams`: at most 3 Heliographs a wave), `Game/PenumbralLook.cs`;
+mockup `Docs/Mockups/eclipse-faction.html`; test suite `penumbral`; preview `PENUMBRAL=0.4 Tools/Preview/shot.sh x hud 1`. Replaces the Echoes plan in `Docs/Approaches.md`
 (Echoes stays as one squad).
 
 Eight enemies, one per Warden slot, the same size as the Warden's and the Singularity's factions. Like the Infall, each has its own behaviour and

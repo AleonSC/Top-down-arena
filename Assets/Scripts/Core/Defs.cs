@@ -75,7 +75,7 @@ namespace Arena
         Driller, Geomancer, CinderPriest,
         // faction mini-bosses (FactionMinis.cs): the Warden's, a shield officer (RiotCaptain.cs, Game/RiotCaptainLook.cs)
         RiotCaptain,
-        // the Eclipse's faction, the Penumbral Court (Docs/EclipseFaction.md, Court.cs, Game/CourtLook.cs): step 1
+        // the Eclipse's faction, the Penumbral Court (Docs/EclipseFaction.md, Penumbral.cs, Game/PenumbralLook.cs): step 1
         Ember, CoronaPriest, Heliograph,
     }
 
@@ -403,7 +403,7 @@ namespace Arena
                 Picker = PickerGroup.Ranged, Blurb = "Charges a molten core, then fires one magma bolt straight at you. Wherever it stops, it leaves a pool of lava. Strafe across the line, or parry it." },
             new EnemyDef { Name = "Riot Captain", Hp = 3000f, Radius = 30f, Speed = 70f, Score = 150, Xp = 80, Sides = 8, Color = new Rgba(0.5f, 0.66f, 1f), Heavy = true, Contact = 20f, Mini = true,
                 Blurb = "The Warden's mini-boss: a tower shield blocks the front. Bait its shield charge into a wall to daze it; it also fires buckshot, lobs tear gas and whistles for Taser Guards." },
-            // the Eclipse's faction, the Penumbral Court (Court.cs)
+            // the Eclipse's faction, the Penumbral Court (Penumbral.cs)
             new EnemyDef { Name = "Ember", Hp = 16f, Radius = 9f, Speed = 135f, Score = 3, Xp = 6, Sides = 5, Color = new Rgba(1f, 0.54f, 0.24f), Melee = true, Contact = 8f,
                 Picker = PickerGroup.Melee, Blurb = "A scrap of solar flare that weaves in at you, dropping sparks that hang in the air behind it." },
             new EnemyDef { Name = "Corona Priest", Hp = 45f, Radius = 13f, Speed = 85f, Score = 7, Xp = 10, Sides = 6, Color = new Rgba(1f, 0.82f, 0.4f),
@@ -666,7 +666,7 @@ namespace Arena
             TracerRound = 62,  // the Security Guard's pistol round: a hot-white tracer with a long tail (SecurityGuard.cs, Game/SecurityLook.cs)
             StingBolt = 63,    // the Stinger's venom dart: a lime barbed dart that stuns like the Fork Bolt (WardenFaction.cs, Game/HiveLook.cs)
             MagmaBolt = 64,    // the Cinder Priest's magma bolt: it leaves a lava pool wherever it stops (QuarryFaction.cs, Game/QuarryLook.cs)
-            EmberSpark = 65;   // an Ember's spark: drifts back slowly and hangs behind it (Court.cs, Game/CourtLook.cs)
+            EmberSpark = 65;   // an Ember's spark: drifts back slowly and hangs behind it (Penumbral.cs, Game/PenumbralLook.cs)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == EmberSpark;
 

@@ -998,8 +998,8 @@ namespace Arena
                 v = VarietyMove(e, tpos, dir, dist, ref speed);  // Variety.cs
             if (IsInfall(e.Type))
                 v = InfallMove(e, tpos, dir, dist, dt, ref speed);  // Infall.cs
-            if (IsCourt(e.Type))
-                v = CourtMove(e, tpos, dir, dist, dt, ref speed);  // Court.cs
+            if (IsPenumbral(e.Type))
+                v = PenumbralMove(e, tpos, dir, dist, dt, ref speed);  // Penumbral.cs
             if (Challenges.Own(e.Type))
                 v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
             if (e.Type == EnemyType.RiotCaptain)
@@ -1198,7 +1198,7 @@ namespace Arena
                     break;
                 case EnemyType.Ember:
                 case EnemyType.Heliograph:
-                    CourtSpecial(e, tpos, dt);  // Court.cs
+                    PenumbralSpecial(e, tpos, dt);  // Penumbral.cs
                     break;
             }
         }
@@ -1231,8 +1231,8 @@ namespace Arena
                 return;  // ReaperFaction.cs
             if (InfallFire(e, tpos, aim))
                 return;  // Infall.cs
-            if (CourtFire(e, tpos, aim))
-                return;  // Court.cs
+            if (PenumbralFire(e, tpos, aim))
+                return;  // Penumbral.cs
             if (e.Kin == EnemyType.GasGrenadier)
             {
                 GrenadierFire(e, tpos);  // WardenFaction.cs

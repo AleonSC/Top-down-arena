@@ -290,7 +290,7 @@ namespace Arena
             },
             new FactionDef
             {
-                Boss = EnemyType.Eclipse,  // the Eclipse: the Penumbral Court, each previewing one of its stages (Court.cs, Docs/EclipseFaction.md); step 1 of 4
+                Boss = EnemyType.Eclipse,  // the Eclipse: the Penumbral Court, each previewing one of its stages (Penumbral.cs, Docs/EclipseFaction.md); step 1 of 4
                 Members = new[]
                 {
                     new FactionMember { Type = EnemyType.Ember, Weight = 3f },  // sparks hang behind it (Lunar wake)

@@ -54,7 +54,7 @@ namespace Arena
                     }
                 }
                 DrawInfallFloor(e, pos, t);  // a Pulsar's beams (InfallLook.cs)
-                DrawCourtFloor(e, pos, t);   // a Heliograph's line (CourtLook.cs)
+                DrawPenumbralFloor(e, pos, t);   // a Heliograph's line (PenumbralLook.cs)
                 if (e.Type == EnemyType.Warder)
                     DrawWarderCharge(e, pos);  // WarderLook.cs
                 DrawShooterAim(e, pos, t);  // a regular shooter's aim line while it winds up (ShooterAimLook.cs)
