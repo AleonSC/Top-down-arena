@@ -18,10 +18,12 @@ namespace Arena
         bool mDbSpent0, mDbSpent1;
 
         /// A pellet's brightness: 1 within the full-damage range, down to a dim ember at the end of its reach (its distance flown from its age).
-        static float DbPelletFade(Bullet b)
+        float DbPelletFade(Bullet b)
         {
             float flown = Mathf.Max(0f, b.Life0 - b.Life) * b.Vel.Length;
-            return 0.35f + 0.65f * (Game.DbFalloff(flown) - Game.DbMinMult) / (1f - Game.DbMinMult);
+            Player owner;
+            game.Players.TryGetValue(b.Owner, out owner);
+            return 0.35f + 0.65f * (Game.DbFalloff(flown, Game.DbFullOf(owner)) - Game.DbMinMult) / (1f - Game.DbMinMult);  // (Quick Loader: full farther)
         }
 
         /// Where along its reload the gun is, in seconds (negative: not reloading).

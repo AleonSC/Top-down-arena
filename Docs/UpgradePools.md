@@ -1,6 +1,6 @@
 # Upgrade pools: class and weapon cards
 
-**Status: steps 1-10 built (Nov 2026, protocol 317).** Next: weapon cards for the other classes, one class at a time. Owner decisions are below; build one step at a time ("start on step N").
+**Status: steps 1-11 built (Nov 2026, protocol 319).** Next: Elementalist weapon cards (the last class), then Out of Ammo.
 
 ## Why
 
@@ -248,7 +248,7 @@ for Bone Guard's skeletons, `FireBearClaws` (reach, bleed), the firefly's `Hops`
 (`SpawnMinion`, not cast ones), the Treant Rod's root reach and `RootHeal`, the Wolf Whistle takedown,
 `CompanionCount` (wisps and imps) and the imps' `CompanionCd`. Test: suite `abilitycards`, its Summoner checks.
 
-### Step 11: Soldier weapon cards (proposed, owner picks)
+### Step 11: Soldier weapon cards (built, protocol 319)
 
 One Rare card per Soldier weapon (`Weapons = { that weapon }`, `MaxStacks = 2`), offered only while you hold it. The
 Twin Rifle's Auto variant shares its card; Out of Ammo plays too differently and gets none in this batch.
@@ -264,4 +264,12 @@ Twin Rifle's Auto variant shares its card; Out of Ammo plays too differently and
 | Twin Rifle (and Auto) | Kill Zone | The crossfire zone is 40% wider, and crossfire hits for 1.75× instead of 1.5× |
 | Railgun | Supercharge | The charged path lasts 0.5 s longer and burns 40% harder |
 | Burst SMG | Spin-Up | Reaches full spin 30% sooner, and winds down 50% slower |
-| Double Barrel | Quick Loader | Shells load 25% faster, and the recoil kicks you 30% farther |
+| Double Barrel | Quick Loader | Reloads 25% faster, and its pellets keep full damage 30% farther (the 4th-key Double Barrel has no recoil: the recoil is the Scattergun's Alt) |
+
+Built (owner approved all ten): in `Game.SoldierCards`. Hooks: `PointBlankMult` (reach, shove), the Flak shell's
+`Splash` and `MineCd` (host and your own cooldown), `SuppressHit` and the Tear Gas zone, `RepelGain` and the tiny orbs'
+`Orb.Boost`, the Revolver's reload and heavy rounds, `BowFull` (the Mender's Bow only) and the arrows' `Pierce`,
+`CrossfireMult` / `Game.CrossZone` (and the aim line's crossfire circle), the ion trail's `Time` and `Dps`,
+`TickSpinUp`, `DbReload` and `Game.DbFullOf` (and the pellets' fade in `DoubleBarrelLook.cs`). The 4th-key Double
+Barrel has no recoil, so Quick Loader's second effect became a longer full-damage range. Test: suite `abilitycards`,
+its Soldier checks.

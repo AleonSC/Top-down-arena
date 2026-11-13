@@ -1219,9 +1219,9 @@ namespace Arena
                 SpawnOrb(e.Pos, false);
         }
 
-        void SpawnOrb(V2 pos, bool big, bool tiny = false)
+        void SpawnOrb(V2 pos, bool big, bool tiny = false, float boost = 1f)
         {
-            var o = new Orb { Id = nextOrbId++, Big = big, Tiny = tiny, Pos = ClampToArena(pos, 12f), Life = OrbLifetime };
+            var o = new Orb { Id = nextOrbId++, Big = big, Tiny = tiny, Pos = ClampToArena(pos, 12f), Life = OrbLifetime, Boost = boost };
             o.Disp = o.Pos;
             Orbs[o.Id] = o;
         }

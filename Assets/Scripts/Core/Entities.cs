@@ -615,7 +615,8 @@ namespace Arena
         public float Life;
 
         public float Radius => Big ? 11f : Med ? 8f : Tiny ? 4f : 6f;
-        public float Heal => Med ? MedHeal : Big ? Game.BigOrbHeal : Tiny ? Game.TinyOrbHeal : Game.OrbHeal;
+        public float Boost = 1f; // host: heals this much more (Undertow Pump's tiny orbs)
+        public float Heal => (Med ? MedHeal : Big ? Game.BigOrbHeal : Tiny ? Game.TinyOrbHeal : Game.OrbHeal) * Boost;
     }
 
     /// An area on the ground: Flame Wall, Blizzard, smoke, pools, wards, a meteor's warning and the like (ZoneKind).
