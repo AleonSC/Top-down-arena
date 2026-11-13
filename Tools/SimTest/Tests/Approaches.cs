@@ -88,7 +88,7 @@ static partial class Program
         Console.WriteLine("  wave 4 at Blend: {0} enemies, {1} of the Warden's ({2})", w4.Count, themed4,
             string.Join(" ", w4.Where(faction.Contains).GroupBy(t => t).Select(gr => gr.Key + "x" + gr.Count())));
         Check(off6.SequenceEqual(on6) && !off2.Any(faction.Contains), "with no approach the waves are built as before (same roll, same wave)");
-        Check(themed4 >= w4.Count * 0.45f && themed4 <= w4.Count * 0.75f, "Blend: about 60% of the last wave before the Warden is his faction");
+        Check(themed4 >= w4.Count * 0.4f && themed4 <= w4.Count * 0.75f, "Blend: about 60% of the last wave before the Warden is his faction");  // (40%: the basic mix's Swarmers come in fours)
         gb.Diff.Set(DiffKnob.ApproachShare, 1f);
         gb.Diff.Set(DiffKnob.ApproachRamp, 0f);
         var full1 = wave(gb, 1);

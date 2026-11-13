@@ -121,7 +121,7 @@ namespace Arena
             singlesSinceSquad = 0;
             var ok = new List<SquadDef>();
             foreach (var s in Squads)
-                if (s.From <= n)
+                if (s.From <= n && SquadLive(s))  // (none with a retired enemy: BasicFaction.cs)
                     ok.Add(s);
             int spent = 0;
             bool recipe = n >= RecipeFrom;  // the late recipe: half the wave, mostly-not-shooting squads as often as those jobs' share (WaveRecipe.cs)

@@ -167,9 +167,8 @@ static partial class Program
     {
         Check(Game.NewTypesAt(1).Contains(EnemyType.Grunt) && Game.NewTypesAt(1).Contains(EnemyType.Swarmer), "wave 1 brings the Grunt and the Swarmer");
         Check(Game.NewTypesAt(9).SequenceEqual(new[] { EnemyType.Shielder }), "wave 9 brings the Shielder only");
-        var w18 = Game.NewTypesAt(18);
-        Check(w18.Contains(EnemyType.BeamSentry) && w18.Contains(EnemyType.Sapper), "wave 18 brings the Beam Sentry and the Sapper");
-        Check(Game.NewTypesAt(5).Contains(EnemyType.Lunger) && Game.NewTypesAt(5).Contains(EnemyType.SpikeBlock), "wave 5 brings the melee grunts");
+        Check(Enumerable.Range(1, 40).All(n => !Game.NewTypesAt(n).Any(Game.IsRetired)), "no wave brings a retired enemy as new (BasicFaction.cs)");
+        Check(Game.NewTypesAt(5).Contains(EnemyType.Lunger) && !Game.NewTypesAt(5).Contains(EnemyType.SpikeBlock), "wave 5 brings the Lunger (the melee grunts are retired)");
         var missing = new List<EnemyType>();
         for (int n = 1; n <= 40; n++)
             foreach (var t in Game.NewTypesAt(n))

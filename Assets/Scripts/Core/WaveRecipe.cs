@@ -91,7 +91,7 @@ namespace Arena
             {
                 bool any = false;
                 foreach (var r in RecipeTypes)
-                    any |= (int)r.Job == j && r.From <= n;
+                    any |= (int)r.Job == j && r.From <= n && !IsRetired(r.Type);  // (BasicFaction.cs)
                 if (any)
                     continue;
                 shares[j == (int)EnemyJob.Disruptor ? (int)EnemyJob.Hunter : (int)EnemyJob.Pressure] += shares[j];
@@ -113,12 +113,12 @@ namespace Arena
             {
                 float total = 0f;
                 foreach (var r in RecipeTypes)
-                    if (r.Job != EnemyJob.Anchor && !Headliners.Contains(r.Type))
+                    if (r.Job != EnemyJob.Anchor && !Headliners.Contains(r.Type) && !IsRetired(r.Type))
                         total += RecipeWeight(r.From, n) * (n - r.From < 8 ? 2f : 1f);  // newer ones headline more
                 float roll = (float)rng.NextDouble() * total;
                 foreach (var r in RecipeTypes)
                 {
-                    if (r.Job == EnemyJob.Anchor || Headliners.Contains(r.Type))
+                    if (r.Job == EnemyJob.Anchor || Headliners.Contains(r.Type) || IsRetired(r.Type))
                         continue;
                     float w = RecipeWeight(r.From, n) * (n - r.From < 8 ? 2f : 1f);
                     if (w <= 0f)
@@ -192,14 +192,14 @@ namespace Arena
             }
             float total = 0f;
             foreach (var r in RecipeTypes)
-                if (r.Job == job)
+                if (r.Job == job && !IsRetired(r.Type))
                     total += SingleWeight(r, n, taken);
             if (total <= 0f)
                 return null;
             float roll = (float)rng.NextDouble() * total;
             foreach (var r in RecipeTypes)
             {
-                if (r.Job != job)
+                if (r.Job != job || IsRetired(r.Type))
                     continue;
                 float w = SingleWeight(r, n, taken);
                 if (w <= 0f)
