@@ -27,6 +27,22 @@ namespace Arena
         public float HuntMapSeconds;
 
         /// Each player's vote (an index in the choices) and who has locked it in.
+        /// Host: a seed to use for the next map instead of a random one (the tests).
+        public int HuntMapSeed;
+
+        bool huntShopNode;   // host: the Shop node being visited (cleared when the shop closes)
+        bool huntAmbush;     // host: the wave being fought is an Ambush (it spawns fast: Spawner.cs)
+
+        /// What the Gamble being fought turned out to be (None: no Gamble now). Rolled by the host when the party arrives.
+        public HuntNodeType HuntGamble = HuntNodeType.None;
+
+        /// The node being fought as it really is: a Gamble is what it turned out to be.
+        public HuntNodeType HuntNodeNow => HuntRoute == null || HuntRoute.Current == null ? HuntNodeType.None
+            : HuntRoute.Current.Type == HuntNodeType.Gamble && HuntGamble != HuntNodeType.None ? HuntGamble : HuntRoute.Current.Type;
+
+        /// A Contraband is being fought: the arena is dark (like Nightfall, Paths.cs).
+        public bool HuntDark => HuntMapOn && State == MatchState.Fighting && HuntNodeNow == HuntNodeType.Contraband;
+
         public readonly Dictionary<int, int> MapVotes = new Dictionary<int, int>();
         public readonly HashSet<int> MapLocked = new HashSet<int>();
 
@@ -38,6 +54,9 @@ namespace Arena
             HuntRoute = null;
             HuntMapVoting = false;
             HuntMapSeconds = 0f;
+            huntShopNode = false;
+            huntAmbush = false;
+            HuntGamble = HuntNodeType.None;
             MapVotes.Clear();
             MapLocked.Clear();
         }
@@ -52,7 +71,7 @@ namespace Arena
             if (row < path.Length)
                 return HuntRoute.Rows[row][path[row]].Type;
             if (row == HuntRoute.Step && HuntRoute.Current != null)
-                return HuntRoute.Current.Type;
+                return HuntNodeNow;
             return HuntNodeType.Skirmish;
         }
 
@@ -65,9 +84,14 @@ namespace Arena
                 return;
             if (HuntRoute == null)
             {
-                HuntRoute = HuntMap.Generate(rng.Next(1, 1 << 30));
+                HuntRoute = HuntMap.Generate(HuntMapSeed != 0 ? HuntMapSeed : rng.Next(1, 1 << 30));
                 DoLog("hunt map: seed " + HuntRoute.Seed);
                 BroadcastHuntMap();
+            }
+            if (huntShopNode && !ShopOpen)   // the Shop node's shop has closed: the node is done
+            {
+                huntShopNode = false;
+                ClearHuntNode();
             }
             if (HuntRoute.Complete || HuntRoute.Current != null || AnyonePicking())
                 return;
@@ -76,9 +100,7 @@ namespace Arena
                 return;
             if (choices.Length == 1)   // the first node, or a single way on: nothing to vote on
             {
-                HuntRoute.Pick(choices[0]);
-                HuntMapVoting = false;
-                BroadcastHuntMap();
+                PickHuntNode(choices[0]);
                 return;
             }
             if (!HuntMapVoting)
@@ -119,22 +141,114 @@ namespace Arena
                 pick = hostVote;
             else
                 pick = tied[rng.Next(tied.Count)];
-            HuntRoute.Pick(choices[pick]);
-            HuntMapVoting = false;
             MapVotes.Clear();
             MapLocked.Clear();
-            BroadcastHuntMap();
             Sounds.Add(Sfx.Pick);
-            DoLog("hunt map: " + HuntMap.Name(HuntRoute.Current.Type) + " (step " + (HuntRoute.Step + 1) + ")");
+            PickHuntNode(choices[pick]);
         }
+
+        /// Host: the party goes to this node. A fight is the next wave; a Rest or a Shop is a stop with no wave: the wave number moves on
+        /// (the map's rows are the hunt's waves), a Rest heals everyone and gives a reroll, a Shop opens the Bazaar (the node clears
+        /// when it closes).
+        void PickHuntNode(int index)
+        {
+            HuntRoute.Pick(index);
+            HuntMapVoting = false;
+            var node = HuntRoute.Current;
+            HuntGamble = HuntNodeType.None;
+            if (node.Type == HuntNodeType.Gamble)   // the party finds out what it was
+            {
+                int total = 0, roll;
+                foreach (int wgt in HuntMap.GambleWeights) total += wgt;
+                roll = rng.Next(total);
+                int k = 0;
+                while (roll >= HuntMap.GambleWeights[k]) roll -= HuntMap.GambleWeights[k++];
+                HuntGamble = HuntMap.GambleOutcomes[k];
+                DoLog("hunt map: the Gamble turned out " + HuntMap.Name(HuntGamble));
+            }
+            DoLog("hunt map: " + HuntMap.Name(node.Type) + " (step " + (HuntRoute.Step + 1) + ")");
+            if (node.Fight)
+            {
+                BroadcastHuntMap();
+                return;
+            }
+            Wave = HuntRoute.Step + 1;
+            if (node.Type == HuntNodeType.Rest)
+            {
+                foreach (var p in Players.Values)
+                {
+                    p.Wound = 0f;
+                    if (p.Downed)
+                        RevivePlayer(p, 1f);
+                    p.Hp = p.MaxHp;
+                    p.Rerolls++;
+                    BroadcastFx(FxKind.Spark, p.Pos, new Rgba(0.4f, 1f, 0.6f), 40f, 0.6f, Sfx.None);
+                }
+                ClearHuntNode();
+            }
+            else
+            {
+                huntShopNode = true;
+                OpenShop();
+                BroadcastHuntMap();
+            }
+        }
+
+        void ClearHuntNode()
+        {
+            HuntRoute.Clear(HuntNodeNow);
+            HuntGamble = HuntNodeType.None;
+            huntAmbush = false;
+            BroadcastHuntMap();
+        }
+
+        /// Host, after a wave of the hunt map is cleared: what the node pays. An Ambush: XP for everyone and a chest in the arena; a
+        /// Contraband: a rare-or-better card each. (An Elite's clue is counted by HuntMap.Clear.)
+        void HuntNodeReward()
+        {
+            switch (HuntNodeNow)
+            {
+                case HuntNodeType.Ambush:
+                    foreach (var p in Players.Values)
+                        GrantXpTo(p, HuntAmbushXp(Wave));
+                    TryAdd(PropKind.Chest);
+                    DoLog("hunt map: Ambush reward");
+                    break;
+                case HuntNodeType.Contraband:
+                    foreach (var p in Players.Values)
+                        p.PrizePicks++;
+                    DoLog("hunt map: Contraband reward");
+                    break;
+            }
+        }
+
+        /// The XP an Ambush pays: about a kill's worth for each enemy it threw at you more than a plain wave would (grows with the wave).
+        public static float HuntAmbushXp(int wave) => 30f + 6f * Math.Max(0, wave);
+
+        /// Host, as the wave of a picked node starts: an Ambush is a shorter wave (70% of the enemies) that comes all at once, not on the clock.
+        void HuntNodeWaveStart()
+        {
+            huntAmbush = false;
+            if (!IsHost || !HuntMapOn || HuntNodeNow != HuntNodeType.Ambush)
+                return;
+            huntAmbush = true;
+            timedWave = false;
+            int keep = (int)Math.Ceiling(spawnQueue.Count * 0.7);
+            if (keep < spawnQueue.Count)
+                spawnQueue.RemoveRange(keep, spawnQueue.Count - keep);
+            DoLog("hunt map: an Ambush: " + QueuedUnits() + " enemies, all at once");
+        }
+
+        /// The spawn gap of an Ambush's enemies, as a share of a normal wave's.
+        const float AmbushIntervalScale = 0.35f;
 
         /// Host, when a wave is cleared: its node is cleared.
         void HuntMapNodeCleared()
         {
             if (!IsHost || !HuntMapOn || HuntRoute == null || HuntRoute.Current == null)
                 return;
-            HuntRoute.Clear();
-            BroadcastHuntMap();
+            HuntNodeReward();
+            ClearHuntNode();
         }
 
         /// This player's vote and whether it's locked in (the host's own goes straight in).
@@ -189,6 +303,8 @@ namespace Arena
             w.Write((sbyte)(HuntRoute.Current == null ? -1 : HuntRoute.Current.Index));
             w.Write(HuntMapVoting);
             w.Write(HuntMapSeconds);
+            w.Write((byte)HuntGamble);
+            w.Write((byte)HuntRoute.Clues);
             w.Write((byte)MapVotes.Count);
             foreach (var kv in MapVotes)
             {
@@ -210,6 +326,8 @@ namespace Arena
             int current = r.ReadSByte();
             bool voting = r.ReadBoolean();
             float seconds = r.ReadSingle();
+            var gamble = (HuntNodeType)r.ReadByte();
+            int clues = r.ReadByte();
             int n = r.ReadByte();
             var votes = new Dictionary<int, int>();
             var locked = new HashSet<int>();
@@ -224,7 +342,9 @@ namespace Arena
             var map = HuntMap.Restore(seed, path);
             if (map == null || (current >= 0 && !map.Pick(current)))
                 return;   // (a map that doesn't fit what we were told: wait for the next message)
+            map.SetClues(clues);
             HuntRoute = map;
+            HuntGamble = gamble;
             HuntMapVoting = voting;
             HuntMapSeconds = seconds;
             MapVotes.Clear();

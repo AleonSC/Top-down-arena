@@ -46,7 +46,7 @@ namespace Arena
         void TickIntervalSpawn(float dt)
         {
             spawnTimer -= dt;
-            float next = WaveNumbers.SpawnInterval(Wave);
+            float next = WaveNumbers.SpawnInterval(Wave) * (huntAmbush ? AmbushIntervalScale : 1f);  // (an Ambush's enemies come fast: HuntMapGame.cs)
             if (spawnTimer <= 0f && ZombieSpawnReady(ref next))
             {
                 spawnTimer = next;

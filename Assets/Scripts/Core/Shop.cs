@@ -57,7 +57,7 @@ namespace Arena
         public static int GoldInsteadAmount(int wave) => GoldInsteadBase + GoldInsteadPerWave * Math.Max(0, wave);
 
         /// Gold is only worth having where a shop will take it (the same rule as the kill drops).
-        public bool GoldUseful => ExpandingOn || (OnPath && CurrentPath == PathId.Bazaar) || Has(RunMod.GoldRush) || ServiceRooms;
+        public bool GoldUseful => HuntMapOn || ExpandingOn || (OnPath && CurrentPath == PathId.Bazaar) || Has(RunMod.GoldRush) || ServiceRooms;
 
         /// Level-up offers can be swapped for gold; boss rewards, mods, milestones and prizes can't.
         public bool CanGoldInstead(Player p) => p != null && p.Offer != null && !p.OfferLegendary && !p.OfferMod && !p.OfferMilestone && !p.OfferPrize && GoldUseful;

@@ -75,6 +75,8 @@ namespace Arena
                 return;
             }
             endT += dt;
+            if (game.RetryReady && !endWin)
+                endT = Mathf.Min(endT, LifeHoldAt);  // the respawn choice is up: no title and no results until it's made (LivesUi.cs)
             if (!endStamped && endT >= EndStampAt + EndStampLen)
             {
                 endStamped = true;
@@ -200,6 +202,8 @@ namespace Arena
                     FillRect(0, 0, AW, AH, new Rgba(1f, 0.97f, 0.9f, f));
             }
         }
+
+        const float LifeHoldAt = 1.0f;  // the ending waits here (still slowed, grey) while the respawn choice is up
 
         /// How dark the results' layer is (0 while the ending plays out, then in; 1 with no ending).
         float EndBg => EndingOn ? Seg(endT, EndBgAt, EndBgAt + 0.5f) : 1f;
