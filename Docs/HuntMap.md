@@ -1,6 +1,6 @@
 # Hunt map: path selection for Boss Hunts (design)
 
-Status: **steps 1-3 built, step 4 started (Rest and Shop nodes)** (protocol 333; the map is a switch on the lobby's Boss Hunt tab, off by default, so the ten-wave hunt stays as it was) (the screen is `Game/HuntMapUi.cs`, drawn with the lobby's widgets; preview `huntmap`; not wired into the match yet).
+Status: **steps 1-4 built (every node type)**; step 5 (what the clues do) and 6 (tuning) are left (protocol 333; the map is a switch on the lobby's Boss Hunt tab, off by default, so the ten-wave hunt stays as it was) (the screen is `Game/HuntMapUi.cs`, drawn with the lobby's widgets; preview `huntmap`; not wired into the match yet).
 Earlier: step 1 (`Core/HuntMap.cs`, suite `huntmap`: the map, its links, Skirmish and Elite nodes, progress, restore; not in the game yet). Numbers are first guesses. Open questions at the bottom need the owner's call.
 
 ## The idea
@@ -108,7 +108,7 @@ The map isn't only a menu: what you pick shapes the boss fight.
    - Measured over 3000 seeds: 51% of nodes have two ways on, 14% of rows give no choice at all (a 3-by-3 row gap can't give every node two links without crossing). Tune in step 6, or allow a few crossings.
 2. ~~Map screen + preview screenshots.~~ Done: `HuntMapUi.cs`, `HuntMapLayout.cs` (the lines), preview mode `huntmap`.
 3. ~~Net: the vote, snapshot, protocol bump.~~ Done (protocol 333): `Session.HuntMapMode` and the lobby switch, `HuntMapGame.cs` (map, vote, timer, node waves), `Msg.HuntMapState` / `Msg.HuntMapVote`; an Elite is one approach step tougher with the finale set piece; Skirmish is the hunt's own strength; Rest, Shop, Ambush, Contraband and Gamble are step 4.
-4. Rest, Shop, Ambush, Contraband and Gamble nodes, one at a time. **Rest and Shop done** (no-fight nodes: the wave number moves on without a fight, a Rest heals everyone and gives a reroll, a Shop opens the Bazaar and the node clears when it closes; gold is earned all hunt long in a map hunt; never two in a row, always one before the boss). Ambush, Contraband and Gamble still to do.
+4. Rest, Shop, Ambush, Contraband and Gamble nodes, one at a time. **Rest and Shop done** (no-fight nodes: the wave number moves on without a fight, a Rest heals everyone and gives a reroll, a Shop opens the Bazaar and the node clears when it closes; gold is earned all hunt long in a map hunt; never two in a row, always one before the boss). **Ambush, Contraband and Gamble done** (protocol 337): an Ambush keeps 70% of the wave and spawns it at 0.35x the usual gaps with no portals, then pays XP (30 + 6 per wave) and drops a chest; a Contraband is dark (`HuntDark` feeds Nightfall's `NightF`) and pays each player a prize pick (rare or better); a Gamble is rolled by the host when the party arrives (Skirmish 30, Elite 25, Ambush 20, Contraband 25, so it is always a fight), the outcome goes out with the map state and shows on the HUD chip, and a Gamble that turns out an Elite still gives its clue. Elites pay the clue only for now (the doc's legendary pick is not built).
 5. Boss clues.
 6. Tune with the Boss Lab and hunt SimTest reports (win rate by route: safe route vs elite route).
 
