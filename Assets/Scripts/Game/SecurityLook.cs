@@ -56,7 +56,7 @@ namespace Arena
             Circle(b, w / 2f, c, 8);
         }
 
-        /// The player the locked shot is meant for: the one nearest its line (a front end guess at the lead point).
+        /// The player the locked shot is meant for: the one nearest its line (where the lane ends).
         float SecLaneLength(Enemy e, V2 muzzle, V2 dir)
         {
             float best = 1e9f, along = 300f;

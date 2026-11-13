@@ -91,12 +91,12 @@ namespace Arena
             e.Facing += Math.Max(-RiotTurn * dt, Math.Min(RiotTurn * dt, diff));
         }
 
-        V2 WardenFactionMove(Enemy e, V2 tpos, V2 dir, float dist, ref float speed)
+        V2 WardenFactionMove(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
         {
             if (e.Type == EnemyType.GasGrenadier)
                 return e.Winding ? V2.Zero : KeepDistance(dir, dist, GrenadierRange) + dir.Orthogonal() * e.Strafe * 0.5f;  // plants its feet for the lob
             if (e.Type == EnemyType.SecurityGuard)
-                return SecurityMove(e, dir, dist);  // SecurityGuard.cs
+                return SecurityMove(e, dir, dist, dt);  // SecurityGuard.cs
             if (e.Type == EnemyType.TaserGuard)
                 return e.Winding ? V2.Zero : KeepDistance(dir, dist, TaserRange) + dir.Orthogonal() * e.Strafe * 0.5f;  // plants its feet while it charges
             switch (RiotState(e))

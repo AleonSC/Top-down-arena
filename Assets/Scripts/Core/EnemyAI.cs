@@ -934,7 +934,7 @@ namespace Arena
             if (Challenges.Own(e.Type))
                 v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
             if (e.Type == EnemyType.RiotShield || e.Type == EnemyType.GasGrenadier || e.Type == EnemyType.TaserGuard || e.Type == EnemyType.SecurityGuard)
-                v = WardenFactionMove(e, tpos, dir, dist, ref speed);  // WardenFaction.cs
+                v = WardenFactionMove(e, tpos, dir, dist, dt, ref speed);  // WardenFaction.cs
             if (Zombies.Is(e.Type))
                 v = ZombieMove(e, tpos, dir, dist, ref speed);  // Zombies.cs
             if (IsNonShooter(e.Type))
@@ -945,7 +945,8 @@ namespace Arena
             if (HasTrait(e, EliteTrait.Hasted))
                 speed *= HasteMult;
             // A sweeping Beam Sentry steers its beam by Strafe, so it keeps the side it telegraphed (the roll still happens, keeping the RNG sequence).
-            if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3))
+            // A Security Guard keeps its side on its own timer (SecurityGuard.cs).
+            if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3) && e.Type != EnemyType.SecurityGuard)
                 e.Strafe = -e.Strafe;
             if (e.SlowT > 0f && !Heavy(e))
                 speed *= e.SlowMult;
