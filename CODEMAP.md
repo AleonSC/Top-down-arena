@@ -280,7 +280,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `WaveBand.cs`: the CRT scan band for GET READY / WAVE N CLEARED (`Hud.DrawBanner`) and WAVE N STARTED (`LaunchIntro.DrawLaunchWave`); mockup `Docs/Mockups/crt-wave-banners.html` option B
 - `SkipStatic.cs`: skipping an intro (main menu, New run boot, profile disk in/out) plays a 0.22 s static channel flip over a grab of the finished screen (`Docs/Mockups/intro-skip-static.html`, B)
 - `PickIntro.cs`, `PickOutro.cs`, `RunEnding.cs`, `Recall.cs`, `LaunchIntro.cs`: picker open/close, run end, beam-out, run launch
-- `PathsUi.cs`, `ShopUi.cs`, `RunStatsUi.cs`, `HuntUi.cs`: path cards, shop screen (a sideways carousel of shelf cards then services, no stats sidebar; look: `Docs/Mockups/shop-carousel.html`), run stats screen (the Tab screen, as hologram panels), hunt tab (never-beaten bosses shown as ???; preview flag `HUNT=<n>`: the nth boss on top)
+- `PathsUi.cs`, `ShopUi.cs`, `RunStatsUi.cs`, `HuntUi.cs`: path cards, shop screen (two category panels, Upgrades and Services (Black Market: Buildables and Services), each opening a sideways carousel of that category, no stats sidebar; preview `SHOPCAT=-1|0|1`; look: `Docs/Mockups/shop-carousel.html`), run stats screen (the Tab screen, as hologram panels), hunt tab (never-beaten bosses shown as ???; preview flag `HUNT=<n>`: the nth boss on top)
 - `TabHolo.cs`: the Tab screen's hologram panels (glass, scanlines, band, fringe, flicker, switch-on), the projector beam, and its layout and text helpers
 - `Game/HudModes.cs`: the HUD modes on H (full, corner text, on the player, hidden); the two partial modes in the CRT look of `Docs/Mockups/crt-hud-modes.html`
 

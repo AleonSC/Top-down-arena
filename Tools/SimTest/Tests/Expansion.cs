@@ -736,7 +736,7 @@ static partial class Program
         Check(g.State == MatchState.Intermission && g.ShopOpen && cg.ShopOpen, "the wave after a boss ends with the shop open, on both screens");
         Check(g.Players.Values.All(p => p.Shelf.Any(u => u >= 0)), "everyone has a shelf");
         Check(g.Players.Values.All(p => p.Vectors >= Game.VectorStart + Game.VectorWaveGain) && cg.Players[1].Vectors == g.Players[1].Vectors, "a cleared wave gives everyone " + Game.VectorWaveGain + " vectors, and the client sees them (" + g.Players[1].Vectors + ")");
-        // The room shops: upgrades and restocks only in the shop room, heals, revives and removals only at the vendor.
+        // The room shops: upgrades and restocks only in the shop room, services (heals, revives, sales) in either room, nothing in the hub.
         Check(g.ServiceRooms && !g.ShopBlocksWave, "with a shop and a vendor room the shop never holds the countdown");
         V2 vendorAt = g.CurrentWorld.Areas[6].Mid;
         var pm = g.Players[1];
@@ -754,6 +754,12 @@ static partial class Program
         int gold1 = pm.Gold;
         g.Shop(ShopAction.Buy, slot);
         Check(pm.Gold < gold1, "the shop room sells upgrades");
+        pm.Hp = pm.MaxHp * 0.5f;
+        int gold2 = pm.Gold;
+        g.Shop(ShopAction.Heal);
+        Check(pm.Gold == gold2 - Game.HealPrice && pm.Hp >= pm.MaxHp, "the shop room's services work too: it heals");
+        g.Shop(ShopAction.BuyBuild, 0);
+        Check(pm.Gold == gold2 - Game.HealPrice && pm.Stash[0] == 0, "buildables are only sold at the vendor");
         g.Shop(ShopAction.Done, 1);
         client.Game.Shop(ShopAction.Done, 1);
         Run(s, dt, 0.5f);
