@@ -720,6 +720,14 @@ namespace Arena
                             d += w * 2.5f;  // a Pulsar's beams, flickering or sweeping (Infall.cs)
                         else if (IsInfall(e.Type))
                             d += w * InfallBotDanger(e, p, hitR);  // a White Dwarf's pulse, a Small Well, an Implosion (Infall.cs)
+                        else if (e.Type == EnemyType.RiotCaptain && (e.Phase == CapWinding || e.Phase == CapCharging))
+                        {
+                            // The Riot Captain's shield charge: get off its line (RiotCaptain.cs).
+                            V2 rel = p - e.Pos, fwd = V2.FromAngle(e.Facing);
+                            float along = rel.Dot(fwd), across = Math.Abs(rel.Dot(fwd.Orthogonal()));
+                            if (along > -e.Radius && along < CaptainDash * CaptainDashTime + e.Radius && across < e.Radius + hitR + 30f)
+                                d += w * 3f;
+                        }
                         else if (e.Kin == EnemyType.RiotShield && (RiotState(e) == RiotWinding || RiotState(e) == RiotLunging))
                         {
                             // A Riot Shield about to bash: get out from in front of the shield (WardenFaction.cs).

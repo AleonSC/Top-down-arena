@@ -2,7 +2,7 @@
 
 **Superseded in part (Nov 11): shop and vendor become nodes, see [`Nodes.md`](Nodes.md).**
 
-Status: **all five steps built** (floating shop, vendor and Gatekeeper rooms, themed rooms, balance pass). Decided with the owner on Nov 10, 2026 (one idea from a friend: shops and vendors in "floating rooms"
+Status (Nov 13, 2026): the Gatekeeper room now holds its boss cycle's faction mini-boss, and the Gatekeeper is back in the Data Gates only ([`FactionMinis.md`](FactionMinis.md)). Earlier status: **all five steps built** (floating shop, vendor and Gatekeeper rooms, themed rooms, balance pass). Decided with the owner on Nov 10, 2026 (one idea from a friend: shops and vendors in "floating rooms"
 you have to build to). It builds on [`ExpandingArena.md`](ExpandingArena.md) and [`VectorBuilding.md`](VectorBuilding.md) (all built).
 
 ## Decisions (owner)

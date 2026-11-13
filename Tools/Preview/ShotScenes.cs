@@ -1201,6 +1201,20 @@ static partial class Shot {
       sc.SeenT = 1.2f;
       sg.AnimT += float.Parse(Environment.GetEnvironmentVariable("SECURITY"), System.Globalization.CultureInfo.InvariantCulture);
     }
+    if (Environment.GetEnvironmentVariable("CAPTAIN") != null) {
+      // The Riot Captain (RiotCaptain.cs, RiotCaptainLook.cs): CAPTAIN=<n> picks the set: 0 = walking, winding up a charge (its lane), charging,
+      // dazed; 1 = shield held low, tear gas wind-up, buckshot, whistling (enraged). Mode hud.
+      var cse = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var cg = host.Game; cg.Enemies.Clear(); cg.Bullets.Clear(); cg.Bot = false;
+      me.Pos = me.Disp = new V2(800f, 400f);
+      int set = int.Parse(Environment.GetEnvironmentVariable("CAPTAIN"));
+      Func<V2, byte, Enemy> cap = (at, ph) => { var en = (Enemy)cse.Invoke(cg, new object[] { EnemyType.RiotCaptain, at, 0f, 0, false }); en.SpawnT = 0f; en.Disp = en.Pos; en.Facing = (me.Pos - at).Angle; en.Phase = ph; en.PhaseT = 0.5f; return en; };
+      byte[] phases = set == 0 ? new[] { Game.CapWalk, Game.CapWinding, Game.CapCharging, Game.CapDazed } : new[] { Game.CapLow, Game.CapGas, Game.CapFans, Game.CapWhistle };
+      V2[] spots = { new V2(560f, 420f), new V2(720f, 420f), new V2(880f, 420f), new V2(1040f, 420f) };
+      var solo = Environment.GetEnvironmentVariable("CAPPHASE");  // CAPPHASE=<k 0-3>: only that one, 200 px left of you (close-ups)
+      if (solo != null) { int k = int.Parse(solo); var c = cap(me.Pos + new V2(-200f, 0f), phases[k]); if (set == 1 && k == 3) c.Hp = c.MaxHp * 0.3f; }
+      else for (int k = 0; k < 4; k++) { var c = cap(spots[k], phases[k]); if (set == 1 && k == 3) c.Hp = c.MaxHp * 0.3f; }
+    }
     if (Environment.GetEnvironmentVariable("POSSESS") != null) {
       // The Dev Arena (DevArena.cs): you playing as POSSESS=<EnemyType> (brackets, name, controls strip), your hero parked, two grunts.
       // Mode hud for the play view; mode dev with DEVSHEET=5 for the dock's Spawn / Play as row; DUMMIES=1 adds two hero dummies.

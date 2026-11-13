@@ -903,6 +903,8 @@ namespace Arena
                 dmg *= RiotBrokenMult;  // its shield's gone (WardenFaction.cs)
             if (SoldierCharging(e))
                 dmg *= SoldierArmor;  // a charging Soldier's armour (HiveBees.cs)
+            if (e.Type == EnemyType.RiotCaptain && e.Phase == CapDazed)
+                dmg *= CaptainDazedMult;  // ran into a wall (RiotCaptain.cs)
             if (WardenExposed(e))
                 dmg *= ExposedMult;  // blinded by its own searchlight (Warden.cs)
             if (WardenShieldBroken(e))
