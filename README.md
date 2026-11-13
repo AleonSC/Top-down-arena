@@ -1050,10 +1050,11 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
 - **Themed rooms**: pick a theme under the map when you draw a room: a path's ground and rules (Swarm Fields, Sniper Ridge, Elite Gauntlet, Burning
   Grounds, Sanctuary, Frozen Lake, Blood Moon) inside that room only, with its kill bonus. A theme costs extra vectors (+3 / +6 / +10 for
   danger 1 / 2 / 3) and unlocks with bosses: danger 2 after the first boss, danger 3 after the second.
-- **Mini-boss room**: once a built room opens it, walking in during a wave wakes the **faction mini-boss** of the boss cycle it was placed in (the
+- **Mini-boss room**: once a built room opens it, walking in, during a wave or **between waves**, wakes the **faction mini-boss** of the boss cycle it was placed in (the
   next boss's faction: the Warden's is the **Riot Captain**; factions without their own yet bring him too; the map shows its name), and the room
   locks behind you until it falls. Beating it gives everyone a prize pick (sometimes a legendary) and the room becomes an ordinary one. It's optional:
-  if the wave ends first, it goes (with any men it called), you're let out, and walking in later starts a fresh duel.
+  if the wave ends first, it goes (with any men it called), you're let out, and walking in later (even right after the wave) starts a fresh duel.
+  A duel begun between waves holds the countdown to the next wave until it's settled; it can't be started just before a boss wave.
 - **Riot Captain** (the Warden's mini-boss, 65% of the Warden's health): a tower shield blocks the front and never breaks; it turns slowly, so get
   round it. In turn: a **shield charge** along a red lane (18 damage, knocked 220 px; **into a wall it's dazed 2.2 s**: no shield, +50% damage;
   otherwise it holds the shield low 1.2 s), **buckshot** (3 fans of 7), **tear gas** (3 canisters round you) and a **whistle** (2 Taser Guards at
