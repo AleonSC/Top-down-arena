@@ -25,7 +25,10 @@ namespace Arena
     }
 
     /// What a map node is (Docs/Nodes.md). A node is a point in empty space; a built room that encloses it takes on its job.
-    public enum NodeKind : byte { Shop, Vendor, Chest, Relic }  // (a chest gives gold and vectors once; a relic fills everyone's relic slot, Relics.cs)
+    public enum NodeKind : byte { Shop, Vendor, Chest, Relic, Rule }  // (a chest gives gold and vectors once; a relic fills everyone's relic slot, Relics.cs; a rule node is a big area that forces a big room, Docs/RuleRooms.md)
+
+    /// The rule a rule node puts on the room that claims it (Docs/RuleRooms.md; from the old paths of Docs/Paths.md).
+    public enum NodeRule : byte { Dark, Frozen, BloodMoon, Burning, Swarm, Elite }
 
     /// A point on the Expanding map, at the centre of a 100 px tile: locked until a built room encloses it, then a fixture of that room.
     public struct MapNode : IEquatable<MapNode>
@@ -33,7 +36,9 @@ namespace Arena
         public short X, Y;
         public NodeKind Kind;
         public bool Spent;   // a chest that has been opened
-        public bool Equals(MapNode o) => X == o.X && Y == o.Y && Kind == o.Kind && Spent == o.Spent;
+        public byte Rule;    // a rule node: its NodeRule
+        public bool Cleared; // a rule node whose claimed room has been through a wave: its prize is out (Docs/RuleRooms.md)
+        public bool Equals(MapNode o) => X == o.X && Y == o.Y && Kind == o.Kind && Spent == o.Spent && Rule == o.Rule && Cleared == o.Cleared;
         public V2 Pos => new V2(X, Y);
     }
 
@@ -321,7 +326,46 @@ namespace Arena
         public const int NodeApart = 800;                 // and at least this far from every other node
         public const int MaxNodesWaiting = 6;             // unclaimed nodes on the map at once
 
-        public static bool NodeInside(MapNode n, int x0, int y0, int x1, int y1) => n.X > x0 && n.X < x1 && n.Y > y0 && n.Y < y1;
+        public const int RuleHalf = 400;  // a rule node covers 8 x 8 tiles round its point; the claiming room must enclose all of it
+
+/// The ground a rule node's room takes on: the old path whose rule it carries (Dark is Fogbound).
+        public static PathId RuleFloor(byte rule)
+        {
+            switch ((NodeRule)rule)
+            {
+                case NodeRule.Dark: return PathId.Fogbound;
+                case NodeRule.Frozen: return PathId.FrozenLake;
+                case NodeRule.BloodMoon: return PathId.BloodMoon;
+                case NodeRule.Burning: return PathId.BurningGrounds;
+                case NodeRule.Swarm: return PathId.SwarmFields;
+                default: return PathId.EliteGauntlet;
+            }
+        }
+
+        /// A cleared rule room's prize: a chest (Dark, Burning, Swarm, Elite), a relic (Blood Moon) or gold and vectors paid at once (Frozen).
+        public static bool RuleHoldsChest(MapNode n) => n.Kind == NodeKind.Rule && (NodeRule)n.Rule != NodeRule.Frozen && (NodeRule)n.Rule != NodeRule.BloodMoon;
+        public static bool RuleHoldsRelic(MapNode n) => n.Kind == NodeKind.Rule && (NodeRule)n.Rule == NodeRule.BloodMoon;
+
+        public static int NodeHalf(MapNode n) => n.Kind == NodeKind.Rule ? RuleHalf : 0;
+
+        /// How far from a node's point a room built round it reaches (NodeStep's room, and the clear space NodeFor keeps).
+        public static int NodeReach(MapNode n) => n.Kind == NodeKind.Rule ? RuleHalf + 150 : 250;  // (nodes sit on a tile centre, so the reach is an odd number of half tiles: the room's walls land on the grid)
+
+        /// The rule a rule node of this boss cycle carries: the same on every machine for the same seed and cycle.
+        public static byte RuleFor(int seed, int cycle) => (byte)RuleRoll(seed, cycle);
+
+        static int RuleRoll(int seed, int cycle)
+        {
+            var rng = new DetRandom(seed * 4093 + cycle * 977 + 31);
+            rng.Int(100); rng.Int(100);  // (the first draws of nearby seeds are alike: skip them)
+            return rng.Int(6);
+        }
+
+        public static bool NodeInside(MapNode n, int x0, int y0, int x1, int y1)
+        {
+            int h = NodeHalf(n);
+            return n.X - h > x0 && n.X + h < x1 && n.Y - h > y0 && n.Y + h < y1;
+        }
 
         /// Can this built room claim a node round it (any built room that encloses it)?
         public static bool NodeEncloses(ExpansionRoom r, MapNode n)
@@ -359,13 +403,13 @@ namespace Arena
                 BoxOf(built, a, out int bx0, out int by0, out int bx1, out int by1);
                 for (int side = 0; side < 4; side++)
                 {
-                    int rx, ry, rw, rh, hx, hy, hw, hh;
+                    int rx, ry, rw, rh, hx, hy, hw, hh, h = NodeReach(n);
                     switch (side)
                     {
-                        case 0: if (n.Y + 250 > by0) continue; rx = n.X - 250; ry = n.Y - 250; rw = 500; rh = by0 - ry; hx = n.X - 150; hy = n.Y + 250; hw = 300; hh = by0 - hy; break;
-                        case 1: if (n.Y - 250 < by1) continue; rx = n.X - 250; ry = by1; rw = 500; rh = n.Y + 250 - by1; hx = n.X - 150; hy = by1; hw = 300; hh = n.Y - 250 - by1; break;
-                        case 2: if (n.X + 250 > bx0) continue; rx = n.X - 250; ry = n.Y - 250; rw = bx0 - rx; rh = 500; hx = n.X + 250; hy = n.Y - 150; hw = bx0 - hx; hh = 300; break;
-                        default: if (n.X - 250 < bx1) continue; rx = bx1; ry = n.Y - 250; rw = n.X + 250 - bx1; rh = 500; hx = bx1; hy = n.Y - 150; hw = n.X - 250 - bx1; hh = 300; break;
+                        case 0: if (n.Y + h > by0) continue; rx = n.X - h; ry = n.Y - h; rw = 2 * h; rh = by0 - ry; hx = n.X - 150; hy = n.Y + h; hw = 300; hh = by0 - hy; break;
+                        case 1: if (n.Y - h < by1) continue; rx = n.X - h; ry = by1; rw = 2 * h; rh = n.Y + h - by1; hx = n.X - 150; hy = by1; hw = 300; hh = n.Y - h - by1; break;
+                        case 2: if (n.X + h > bx0) continue; rx = n.X - h; ry = n.Y - h; rw = bx0 - rx; rh = 2 * h; hx = n.X + h; hy = n.Y - 150; hw = bx0 - hx; hh = 300; break;
+                        default: if (n.X - h < bx1) continue; rx = bx1; ry = n.Y - h; rw = n.X + h - bx1; rh = 2 * h; hx = bx1; hy = n.Y - 150; hw = n.X - h - bx1; hh = 300; break;
                     }
                     var room = Custom(built, rx, ry, rw, rh, out _);
                     if (room.HasValue && NodeEncloses(room.Value, n) && room.Value.Price < bestKey)
@@ -408,13 +452,14 @@ namespace Arena
         {
             var rng = new DetRandom(seed * 7919 + cycle * 3571 + (int)kind * 211 + 5);
             var linked = ConnectedAreas(built);
-            for (int attempt = 0; attempt < 160; attempt++)
+            for (int attempt = 0; attempt < (kind == NodeKind.Rule ? 400 : 160); attempt++)
             {
                 int a = rng.Int(built.Count + 1);
                 if (!linked[a])
                     continue;
                 BoxOf(built, a, out int bx0, out int by0, out int bx1, out int by1);
-                int side = rng.Int(4), gap = NodeMin + rng.Int((NodeMax - NodeMin) / Step + 1) * Step + (a == 0 ? StartExtra : 0), x, y;
+                // (a rule node goes out to the side: the map is wider than tall, so its big room fits)
+                int side = kind == NodeKind.Rule ? 1 + 2 * rng.Int(2) : rng.Int(4), gap = NodeMin + rng.Int((NodeMax - NodeMin) / Step + 1) * Step + (a == 0 ? StartExtra : 0), x, y;
                 if (side == 0 || side == 2)
                 {
                     x = bx0 + 150 + rng.Int((bx1 - bx0 - 300) / Step + 1) * Step;
@@ -425,14 +470,15 @@ namespace Arena
                     y = by0 + 150 + rng.Int((by1 - by0 - 300) / Step + 1) * Step;
                     x = side == 1 ? bx1 + gap + 50 : bx0 - gap - 50;
                 }
-                var n = new MapNode { X = (short)x, Y = (short)y, Kind = kind };
+                var n = new MapNode { X = (short)x, Y = (short)y, Kind = kind, Rule = kind == NodeKind.Rule ? RuleFor(seed, cycle) : (byte)0 };
+                int reach = NodeReach(n);
                 bool ok = true;
                 foreach (var o in nodes)
-                    ok &= new V2(o.X - x, o.Y - y).Length >= NodeApart;
+                    ok &= new V2(o.X - x, o.Y - y).Length >= NodeApart + NodeHalf(n) + NodeHalf(o);
                 for (int i = 0; i <= built.Count && ok; i++)
                 {
                     BoxOf(built, i, out int cx0, out int cy0, out int cx1, out int cy1);
-                    ok = !Overlaps(x - 250, y - 250, x + 250, y + 250, cx0, cy0, cx1, cy1);  // (two tiles clear of every room)
+                    ok = !Overlaps(x - reach, y - reach, x + reach, y + reach, cx0, cy0, cx1, cy1);  // (two tiles clear of every room)
                 }
                 if (ok && NodeReachable(built, n))
                     return n;  // (it can be built to: a strip out and a room round it fit)
@@ -1675,6 +1721,23 @@ namespace Arena
                                 {
                                     areas[b].Kind = job;
                                     areas[b].Name += job == RoomKind.Shop ? " (shop)" : " (vendor)";
+                                }
+                            break;
+                        }
+                }
+            if (nodes != null)  // a built room that encloses a rule node takes that rule's ground (Docs/RuleRooms.md); a multi-box room all of it
+                foreach (var nd in nodes)
+                {
+                    if (nd.Kind != NodeKind.Rule)
+                        continue;
+                    for (int a = 1; a < n; a++)
+                        if (areas[a].Kind == RoomKind.Combat && NodeEncloses(rooms[a - 1], nd))
+                        {
+                            for (int b = 1; b < n; b++)
+                                if (b == a || areas[a].Group != 0 && areas[b].Group == areas[a].Group && areas[b].Kind == RoomKind.Combat)
+                                {
+                                    areas[b].Kind = RoomKind.Floor;
+                                    areas[b].Floor = RuleFloor(nd.Rule);
                                 }
                             break;
                         }
