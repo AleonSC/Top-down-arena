@@ -21,10 +21,10 @@ static partial class Program
         Check(w6.ContainsKey(EnemyType.Boss) && Math.Abs(w6[EnemyType.Boss] - 0.35f) < 1e-4f && w6.ContainsKey(EnemyType.HiveQueen) && Math.Abs(w6[EnemyType.HiveQueen] - 0.65f) < 1e-4f && w6.Count == 2, "wave 6: the Warden's faction fades (35%) and the Hive Queen's builds the rest (65%)");
         var fade = Enumerable.Range(6, 5).Select(n => slices(n).ContainsKey(EnemyType.Boss) ? slices(n)[EnemyType.Boss] : 0f).ToArray();
         Check(fade.SequenceEqual(new[] { 0.35f, 0.25f, 0.15f, 0.05f, 0f }), "the fading slice goes 35, 25, 15, 5, 0% over the next five waves");
-        // The Lich (31-35): current builds, fading Duelist unbuilt, pool of built earlier factions (the Warden's and the Twin Reapers').
+        // The Lich (31-35): current builds, fading Duelist unbuilt, pool of built earlier factions (the Warden's, the Hive Queen's, the Twin Reapers' and the Colossus's).
         var w31 = slices(31);
-        float pool31 = w31[EnemyType.Boss] + w31[EnemyType.HiveQueen] + w31[EnemyType.TwinA];
-        Check(Math.Abs(w31[EnemyType.Lich] - 0.55f) < 1e-4f && Math.Abs(pool31 - 0.10f) < 1e-4f && Math.Abs(w31[EnemyType.Boss] - w31[EnemyType.TwinA]) < 1e-4f && Math.Abs(w31[EnemyType.Boss] - w31[EnemyType.HiveQueen]) < 1e-4f && w31.Count == 4, "wave 31: the Lich's faction 55% (65% minus the 10% pool), the Warden's, the Hive Queen's and the Reapers' sharing the 10% older pool");
+        float pool31 = w31[EnemyType.Boss] + w31[EnemyType.HiveQueen] + w31[EnemyType.TwinA] + w31[EnemyType.Colossus];
+        Check(Math.Abs(w31[EnemyType.Lich] - 0.55f) < 1e-4f && Math.Abs(pool31 - 0.10f) < 1e-4f && Math.Abs(w31[EnemyType.Boss] - w31[EnemyType.TwinA]) < 1e-4f && Math.Abs(w31[EnemyType.Boss] - w31[EnemyType.HiveQueen]) < 1e-4f && Math.Abs(w31[EnemyType.Boss] - w31[EnemyType.Colossus]) < 1e-4f && w31.Count == 5, "wave 31: the Lich's faction 55% (65% minus the 10% pool), the Warden's, the Hive Queen's, the Reapers' and the Colossus's sharing the 10% older pool");
         var w35 = slices(35);
         Check(Math.Abs(w35[EnemyType.Lich] - 0.90f) < 1e-4f, "wave 35: the Lich's faction is 90%");
         var w36 = slices(36);
