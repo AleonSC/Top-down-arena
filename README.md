@@ -1211,7 +1211,7 @@ you've beaten it anywhere, a **???** until then (on your first Quick Play the Wa
 - **Records:** full rank XP and Cores, bosses count as beaten (unlocks and Boss Hunts), and Quick Play keeps its own plays,
   wins, best wave and bosses beaten (not counted as runs). Falling in endless adds the stretch after the win.
   Every Quick Play shows in **Records > Recent runs** with its graphs: the win or the fall, a Quick Play you quit (no XP),
-  and an endless stretch after the win as its own card ("Quick Play · Endless", its curve from the win on).
+  and an endless stretch after the win as its own card ("Quick Play · Endless", its curve from the win on), fallen or quit.
   Plan: `Docs/QuickPlay.md`.
 
 ## Boss Hunt
