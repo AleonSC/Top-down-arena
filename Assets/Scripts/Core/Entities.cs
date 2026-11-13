@@ -368,6 +368,7 @@ namespace Arena
 
         public int Level = 1, PendingPicks, Rerolls = Game.StartingRerolls;
         public int Gold;                       // the Bazaar's gold (Shop.cs, replicated)
+        public RelicId Relic = RelicId.None;   // the relic slot (Relics.cs, replicated)
         public readonly byte[] Stash = new byte[Market.Count];  // Black Market buys not yet placed, by BuildKind (Market.cs, replicated)
         public int Vectors = Game.VectorStart, VectorCap = Game.VectorCapBase;  // the Expanding arena's drawing budget and the most you hold (ExpansionGame.cs, replicated)
         public readonly int[] Shelf = NewShelf();  // this player's shop: upgrade ids, the first Game.ShelfLen of them are live (replicated)
@@ -470,7 +471,8 @@ namespace Arena
         public bool Winding;                // about to fire a volley: it glows (replicated; Readability.cs)
         public V2 GasAt;                    // host: where a Gas Grenadier's winding-up lob will land, once locked (WardenFaction.cs)
         public bool GasLocked;              // host: GasAt is set for this wind-up
-        public float SlowT, SlowMult = 1f;  // Graviton Rounds (host)
+        public float SlowT, SlowMult = 1f;  // the strongest slow and its time left (host; set with Game.Slow)
+        public float SlowT2, SlowMult2 = 1f;  // the next-strongest slow, taken over when the strongest ends (Game.Slow)
         public float WadeT, WadeMult = 1f;  // host: wading in a Bloodbath, for Heavy enemies and bosses, which the usual slow skips (Bloodbath.cs)
         public float BurnT, BurnDps;        // the Flamethrower's fire (host)
         public float BurnPool, PoolT;       // Incendiary Rounds: damage still to burn, and the time left to burn it in (host)
@@ -547,6 +549,7 @@ namespace Arena
         public float Stasis;      // 0..1: how far a Lumen Ward has slowed it to a stop (worked out the same on every peer, not sent; LumenWard.cs)
         public float Life0;       // its lifetime when fired (for drawing it aging: the Flamethrower's flames)
         public int Owner, Pierce, LastHit;
+        public int PrevHit;       // host: the enemy hit before LastHit, so a piercing shot inside two overlapping enemies doesn't hit them by turns
         public int Shooter;       // host only: the enemy that fired it, when known (0: not known); the Juggernaut Suit's flak goes back at it
         public bool FromWeapon;   // host only: fired by the player's gun (for accuracy)
         public bool WeaponDmg;    // host only: its hits are the weapon's in the session recording (FromWeapon, or launched later by it: Ice Shards, hammer throws)
@@ -579,6 +582,7 @@ namespace Arena
         public bool FromBoss;     // fired by a boss (only these wear blockers down; drawn with a dark core)
         public float Homing;      // Homing Rounds: turn rate toward the nearest enemy (host corrects clients)
         public int Bounces;       // host only: Ricochet bounces left
+        public byte WallHops;     // host only: times it has bounced off a wall (the Wall Bounce relic, Relics.cs)
         public int Frags;         // host only: on hit, throws this many fragments (Frost Lance, Railgun, Flak, Fireball)
         public byte FragKind;
         public float FragDmg, FragSpeed, FragLife, FragSplash;

@@ -14,7 +14,6 @@ namespace Arena
         int statsTab;          // 0 Run so far, 1 Your build, 2 Team (kept between openings)
         bool runStatsOpen;     // opened from the pause menu
 
-        static readonly Color CardBg = new Color(0.094f, 0.11f, 0.165f, 1f);  // (the old card colour; other screens use it)
 
         int statsShown = -1;   // the page last drawn (a change switches the panels on again)
         int statsLastFrame = -10;  // the frame the screen was last drawn (a gap means it has just opened)

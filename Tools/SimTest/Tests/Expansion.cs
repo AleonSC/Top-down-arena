@@ -404,10 +404,13 @@ static partial class Program
             "a new boss cycle places floating Gatekeeper, shop and vendor rooms, the same on the client, and they aren't counted as bought");
         Check(added.Count(r => r.Kind == RoomKind.Shop && r.W == Expansion.ShopRoomSide && r.H == Expansion.ShopRoomSide) == 1 && added.Count(r => r.Kind == RoomKind.Vendor && r.W == Expansion.ShopRoomSide && r.H == Expansion.ShopRoomSide) == 1,
             "the shop and vendor rooms are tiny 4 x 4 tile squares");
-        Check(g.Nodes.Count == nodesNow + 1 && g.Nodes[g.Nodes.Count - 1].Kind == NodeKind.Chest && cg.Nodes.SequenceEqual(g.Nodes),
-            "and a chest node (no shop or vendor nodes any more), the same on the client");
+        var newNodes = g.Nodes.Skip(nodesNow).ToList();  // (a node is skipped when the grown map has no room left for it, the big rule node most often)
+        int newCount = newNodes.Count;
+        Check(newCount >= 1 && newNodes.All(n => n.Kind == NodeKind.Chest || n.Kind == NodeKind.Relic || n.Kind == NodeKind.Rule) && newNodes.Select(n => n.Kind == NodeKind.Chest ? 0 : n.Kind == NodeKind.Relic ? 1 : 2).SequenceEqual(newNodes.Select(n => n.Kind == NodeKind.Chest ? 0 : n.Kind == NodeKind.Relic ? 1 : 2).OrderBy(k => k))
+              && newNodes.All(n => n.Kind != NodeKind.Rule || n.Rule < 6) && cg.Nodes.SequenceEqual(g.Nodes),
+            "and a chest node, on an even cycle a relic node, and a rule node, as many as fit (no shop or vendor nodes any more), the same on the client");
         placeFloating.Invoke(g, null);
-        Check(g.Expanded.Count == allNow + 3 && g.Nodes.Count == nodesNow + 1, "the same cycle places them only once");
+        Check(g.Expanded.Count == allNow + 3 && g.Nodes.Count == nodesNow + newCount, "the same cycle places them only once");
         pickRooms.Invoke(g, null);
         var floatWorld = g.ExpansionWorld;
         Check(floatWorld.Areas.Skip(allNow + 1).All(a => a.Floating && a.Sealed) && Math.Abs(g.ExpansionScale - scale0) < 0.001f && !g.HasShopRoom, "the rooms stay sealed, add no crowd and a sealed shop room isn't a shop yet");
@@ -439,7 +442,11 @@ static partial class Program
             ExpansionRoom? extra = null;
             for (int cy = -600; cy <= 1000 && !extra.HasValue; cy += 100)
                 for (int cx = -600; cx <= 1700 && !extra.HasValue; cx += 100)  // (anywhere touching the map: the new shop and vendor rooms may sit beside the hub)
-                    extra = Expansion.Custom(g.Expanded, cx, cy, 500, 500, out string whyNot);
+                {
+                    var cand = Expansion.Custom(g.Expanded, cx, cy, 500, 500, out string whyNot);
+                    if (cand.HasValue && !g.Nodes.Any(nd => Expansion.NodeEncloses(cand.Value, nd)))  // (not round a node already out there)
+                        extra = cand;
+                }
             int ri = -1;
             if (extra.HasValue) { g.Expanded.Add(extra.Value); ri = g.Expanded.Count - 1; }
             Check(ri >= 0, "a 5 x 5 room fits on the map for the chest test");
@@ -463,10 +470,59 @@ static partial class Program
                 tickNodes.Invoke(g, null);
                 tickNodes.Invoke(g, null);
                 Check(chests[0].Open && g.Nodes[ci].Spent && g.Loots.Values.Any(l => l.Owner == pl.Id), "walking onto it opens it: the node is spent and the player gets their own item");
-                Check(g.Props.Values.Count(q => q.Kind == PropKind.Chest && !q.Open) == 0, "a spent node holds no second chest");
+                Check(g.Props.Values.Count(q => q.Kind == PropKind.Chest && !q.Open && q.Pos.DistanceTo(chest.Pos) < 1f) == 0, "a spent node holds no second chest");
                 g.Nodes.RemoveAt(ci);
+
+                // A relic node (Relics.cs): walking up to it fills every player's relic slot, once.
+                var relic = new MapNode { X = chest.X, Y = chest.Y, Kind = NodeKind.Relic };
+                g.Nodes.Add(relic);
+                int rni = g.Nodes.Count - 1;
+                pl.Pos = relic.Pos + new V2(400f, 0f);
+                tickNodes.Invoke(g, null);
+                Check(!g.Nodes[rni].Spent && g.Players.Values.All(q => q.Relic == RelicId.None), "a relic node waits for someone to walk up");
+                pl.Pos = relic.Pos;
+                tickNodes.Invoke(g, null);
+                Check(g.Nodes[rni].Spent && g.Players.Values.All(q => q.Relic == RelicId.WallBounce),
+                    "walking onto it gives everyone Wall Bounce and spends the node");
+                g.Nodes.RemoveAt(rni);
+                foreach (var q in g.Players.Values) q.Relic = RelicId.None;  // (the rest of the suite runs without it)
                 g.Expanded.RemoveAt(ri);
             }
+        }
+
+        // Wall Bounce: a player's shot that reaches a wall bounces off it once, keeping 70% of its damage.
+        {
+            var wallBounce = typeof(Game).GetMethod("WallBounce", flags);
+            var counts = typeof(Game).GetMethod("Counts", flags);
+            var pl = g.Players.Values.First();
+            Solid wall = default(Solid);
+            bool found = false;
+            foreach (var so in g.ActiveLayout.Solids)
+                if (!so.Round && so.HH > so.HW + 20f && (bool)counts.Invoke(g, new object[] { so })) { wall = so; found = true; break; }
+            Check(found, "the map has an upright wall for the bounce test");
+            if (found)
+            {
+                Func<Bullet> shot = () => new Bullet { Id = 999999, Kind = Defs.DpsShot, Owner = pl.Id, Radius = 4f, Dmg = 10f, Life = 1f,
+                    Pos = new V2(wall.Pos.X + wall.HW + 3f, wall.Pos.Y), Vel = new V2(-600f, 100f) };
+                var keep = pl.Relic;
+                pl.Relic = RelicId.None;
+                Check(!(bool)wallBounce.Invoke(g, new object[] { shot() }), "without the relic a wall stops the shot");
+                pl.Relic = RelicId.WallBounce;
+                var b = shot();
+                bool hop = (bool)wallBounce.Invoke(g, new object[] { b });
+                Check(hop && b.Vel.X > 0f && Math.Abs(b.Vel.Y - 100f) < 0.01f && Math.Abs(b.Dmg - 7f) < 0.01f && b.Pos.X > wall.Pos.X + wall.HW + b.Radius,
+                    "with Wall Bounce it mirrors off the face, out of the wall, at 70% damage");
+                b.Pos = new V2(wall.Pos.X + wall.HW + 3f, wall.Pos.Y);
+                Check(!(bool)wallBounce.Invoke(g, new object[] { b }), "it bounces only once");
+                var en = new Bullet { Id = 999998, Kind = Defs.SmallShot, Owner = 0, Radius = 4f, Dmg = 10f, Life = 1f, Pos = b.Pos, Vel = new V2(-600f, 0f) };
+                Check(!(bool)wallBounce.Invoke(g, new object[] { en }), "enemy shots never bounce");
+                pl.Relic = keep;
+                ((List<Bullet>)typeof(Game).GetField("bounced", flags).GetValue(g)).Clear();
+            }
+            var seat = new RunSave { Wave = 6 };
+            seat.Seats.Add(new SeatSave { Relic = RelicId.WallBounce });
+            var back = RunSave.Parse(seat.ToText());
+            Check(back != null && back.Seats[0].Relic == RelicId.WallBounce, "the relic survives a saved run");
         }
 
         // Nodes (Docs/Nodes.md): 10+ tiles out, deterministic, 8+ tiles apart, claimed by a room built round them, which takes on their job.
@@ -792,6 +848,64 @@ static partial class Program
         Run(s, dt, 0.8f, null, NoPicks);
         Check(g.Players.Values.Sum(p => p.PrizePicks) == picks0 + g.Players.Count, "beating it gives everyone a prize pick");
         Check(g.CurrentWorld.Areas[2].Kind == RoomKind.Combat && cg.CurrentWorld.Areas[2].Kind == RoomKind.Combat && !g.AreaLocked(2), "the room is an ordinary combat room now, on both screens");
+
+        // A rule node is a big area: only a room that encloses all of it claims it, and the bot steps reach it.
+        {
+            var ruleNode = Expansion.NodeFor(5, 0, new List<ExpansionRoom>(), new List<MapNode>(), NodeKind.Rule);
+            Check(ruleNode.HasValue && ruleNode.Value.Kind == NodeKind.Rule && ruleNode.Value.Rule < 6, "a rule node is placed");
+            if (ruleNode.HasValue)
+            {
+                var rn = ruleNode.Value;
+                Check(!Expansion.NodeEncloses(new ExpansionRoom { X = rn.X - 250, Y = rn.Y - 250, W = 500, H = 500 }, rn) && !Expansion.NodeEncloses(new ExpansionRoom { X = rn.X - 400, Y = rn.Y - 400, W = 800, H = 800 }, rn)
+                    && Expansion.NodeEncloses(new ExpansionRoom { X = rn.X - 450, Y = rn.Y - 450, W = 900, H = 900 }, rn), "a 5 x 5 or 8 x 8 room round a rule node does not claim it, a 9 x 9 room does (the whole area must be inside the walls)");
+                var plan = new List<ExpansionRoom>();
+                for (int i = 0; i < 4 && !Expansion.NodeClaimed(plan, rn); i++) { var st = Expansion.NodeStep(plan, rn); if (st.HasValue) plan.Add(st.Value); }
+                Check(Expansion.NodeClaimed(plan, rn) && Expansion.NodeReachable(new List<ExpansionRoom>(), rn), "NodeStep builds up to a room that claims the rule node (" + plan.Count + " boxes)");
+                var rr = plan.LastOrDefault();
+                Check(plan.Count > 0 && rr.W >= 900 && rr.H >= 900, "and that room is at least 9 x 9 tiles");
+            }
+        }
+
+        // A claimed rule room takes the rule's ground, and its prize comes out when a wave is cleared.
+        {
+            var plan = new List<ExpansionRoom>();
+            var rn = Expansion.NodeFor(5, 0, plan, new List<MapNode>(), NodeKind.Rule);
+            Check(rn.HasValue, "a rule node for the room test");
+            if (rn.HasValue)
+            {
+                var saveRooms = g.Expanded.ToList(); var saveNodes = g.Nodes.ToList();
+                for (int i = 0; i < 4 && !Expansion.NodeClaimed(plan, rn.Value); i++) { var st = Expansion.NodeStep(plan, rn.Value); if (st.HasValue) plan.Add(st.Value); }
+                foreach (NodeRule rule in System.Enum.GetValues(typeof(NodeRule)))
+                {
+                    var nd = rn.Value; nd.Rule = (byte)rule;
+                    var wld = Expansion.Build(plan, null, null, new List<MapNode> { nd });
+                    var rule1 = wld.Areas.Skip(1).Where(a => a.Kind == RoomKind.Floor && a.Floor == Expansion.RuleFloor(nd.Rule)).ToList();
+                    Check(rule1.Count >= 1, "a room round a " + rule + " node has " + Expansion.RuleFloor(nd.Rule) + " ground");
+                }
+                var wUn = Expansion.Build(plan.Take(plan.Count - 1).ToList(), null, null, new List<MapNode> { rn.Value });
+                Check(wUn.Areas.All(a => a.Kind != RoomKind.Floor), "the hallway on the way to it is no rule room");
+                var clearRules = typeof(Game).GetMethod("ClearRuleRooms", flags);
+                var tickNodes2 = typeof(Game).GetMethod("TickNodes", flags);
+                foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Expanded.AddRange(plan); gg.Nodes.Clear(); typeof(Game).GetField("expWorld", flags).SetValue(gg, null); }
+                var frozen = rn.Value; frozen.Rule = (byte)NodeRule.Frozen;
+                var dark = rn.Value; dark.Rule = (byte)NodeRule.Dark;
+                g.Nodes.Add(frozen);
+                int gold0 = g.Players.Values.Sum(p => p.Gold);
+                clearRules.Invoke(g, null);
+                Check(g.Nodes[0].Cleared && g.Nodes[0].Spent && g.Players.Values.Sum(p => p.Gold) > gold0, "clearing a Frozen rule room pays gold at once and spends the node");
+                int gold1 = g.Players.Values.Sum(p => p.Gold);
+                clearRules.Invoke(g, null);
+                Check(g.Players.Values.Sum(p => p.Gold) == gold1, "and only once");
+                g.Nodes.Clear(); g.Nodes.Add(dark);
+                tickNodes2.Invoke(g, null);
+                Check(!g.Props.Values.Any(q => q.Kind == PropKind.Chest && q.Pos.DistanceTo(dark.Pos) < 1f), "a Dark rule room holds no chest before it is cleared");
+                clearRules.Invoke(g, null);
+                tickNodes2.Invoke(g, null);
+                Check(g.Nodes[0].Cleared && !g.Nodes[0].Spent && g.Props.Values.Count(q => q.Kind == PropKind.Chest && q.Pos.DistanceTo(dark.Pos) < 1f) == 1, "and one chest at the node once it is");
+                foreach (var q in g.Props.Values.Where(q => q.Kind == PropKind.Chest && q.Pos.DistanceTo(dark.Pos) < 1f).ToList()) g.Props.Remove(q.Id);
+                foreach (var gg in new[] { g, cg }) { gg.Expanded.Clear(); gg.Expanded.AddRange(saveRooms); gg.Nodes.Clear(); gg.Nodes.AddRange(saveNodes); typeof(Game).GetField("expWorld", flags).SetValue(gg, null); }
+            }
+        }
 
         // A node's far room (a long hallway, then a room round it): an enemy there still walks all the way back to the players in the hub.
         {

@@ -70,3 +70,11 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
 - An opened shop or vendor room draws the node's stall or pedestal in its middle (`DrawFloatingMark` -> `DrawNodeFixture`); the draw screen's legend lists Shop room / Vendor room.
 - Bots: `BotBuildsToFloater` ranks shop, vendor, chest, Gatekeeper across nodes and sealed rooms (`ConnectorFor` for rooms).
 - Old saves with shop or vendor nodes still load and claim as before. Preview: `EXPANDMAP=0 EXPANDFLOAT=3` (hud, you stand in the opened shop) or with `EXPANDVOTE=0 EXPANDDRAW=0,-1200,300,1200` (draw screen).
+
+## Relic nodes (prototype, protocol 304)
+
+- Owner (Nov 12): node-earned **relics**, separate from boss weapon mods: **one relic slot per player**, a new one replaces the old. First relic: **Wall Bounce**.
+- `NodeKind.Relic`: one per **even** boss cycle (0, 2, 4, ...), placed like chests (`PlaceFloatingRooms`). Claimed the same way (a room round it); the first player to walk
+  up to it (`Relics.TakeReach`) gives **everyone** its relic and spends the node (`Relics.cs` `TickRelicNodes`).
+- Wall Bounce: a player's shot that reaches a wall or pillar bounces once (mirrored off the face), keeping 70% damage (`Relics.WallBounces`, `WallBounceDmg`).
+- Open: more relics (Home Turf, Hallway Runner, Gatecrasher, Portal Ward, Spiked Walls were offered), rolling which relic a node holds, a pick-up banner, bots walking to relic nodes.

@@ -21,7 +21,7 @@ namespace Arena
         const int TrendRuns = 12;
 
         static readonly Rgba GGold = new Rgba(1f, 0.8f, 0.35f), GCyan = new Rgba(0.35f, 0.82f, 0.95f), GGreen = new Rgba(0.37f, 0.85f, 0.54f),
-            GRed = new Rgba(1f, 0.36f, 0.42f), GPurple = new Rgba(0.69f, 0.55f, 1f), GBand = new Rgba(1f, 1f, 1f, 0.035f);
+            GRed = new Rgba(1f, 0.36f, 0.42f), GPurple = new Rgba(0.69f, 0.55f, 1f);
         static readonly Rgba[] GPlayers = { GGold, GCyan, GPurple, GGreen };
         static readonly Color GridLine = new Color(1f, 1f, 1f, 0.08f);
 

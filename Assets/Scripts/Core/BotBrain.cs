@@ -189,7 +189,7 @@ namespace Arena
                     continue;
                 if (q.Downed && (downed == null || q.Pos.DistanceSq(me.Pos) < downed.Pos.DistanceSq(me.Pos)))
                     downed = q;
-                if (!q.Downed && (lowest == null || q.Hp / q.MaxHp < lowest.Hp / lowest.MaxHp))
+                if (!q.Downed && MoreHurt(q, lowest))
                     lowest = q;
             }
             float pref = me.Weapon.BotRange - (me.Role == Role.Tank ? 40f : 0f);
@@ -291,7 +291,7 @@ namespace Arena
                 Player healTo = null;
                 foreach (var q in Players.Values)
                     if (q.Id != me.Id && !q.Downed && q.Hp < q.MaxHp * 0.7f && q.Pos.DistanceTo(me.Pos) < 420f
-                        && (healTo == null || q.Hp / q.MaxHp < healTo.Hp / healTo.MaxHp))
+                        && MoreHurt(q, healTo))
                         healTo = q;
                 if (healTo != null)
                 {

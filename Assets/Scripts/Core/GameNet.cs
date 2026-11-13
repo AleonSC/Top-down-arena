@@ -8,6 +8,8 @@ namespace Arena
     /// client's handling of host messages.
     public partial class Game
     {
+        static bool Finite(float f) => !float.IsNaN(f) && !float.IsInfinity(f);
+
         public void OnInput(int peer, BinaryReader r)
         {
             V2 pos = r.ReadV2();
@@ -19,6 +21,8 @@ namespace Arena
             Player p;
             if (!Players.TryGetValue(peer, out p))
                 return;
+            if (!pos.IsFinite || !aimAt.IsFinite || !Finite(aim) || !Finite(draw) || !Finite(release))
+                return;  // a broken or tampered message: NaN or infinity would spread through the host's game and every snapshot
             p.DrawT = draw;
             if (release > 0f && ChargeWeapon(p.Weapon.Id))
                 p.BowRelease = Math.Min(10f, release);  // the shooter timed it; one release per message
@@ -34,7 +38,8 @@ namespace Arena
         {
             int kind = r.ReadByte();
             V2 target = r.ReadV2();
-            HostWeaponDash(peer, kind, target);  // Ninja.cs
+            if (target.IsFinite)
+                HostWeaponDash(peer, kind, target);  // Ninja.cs
         }
 
         public void OnAbility(int peer, BinaryReader r)
@@ -42,7 +47,7 @@ namespace Arena
             int slot = r.ReadByte();
             V2 target = r.ReadV2();
             V2 from = r.ReadV2();
-            if (slot < Upgrades.SlotCount)
+            if (slot < Upgrades.SlotCount && target.IsFinite && from.IsFinite)
             {
                 Player p;
                 StepFrom = Players.TryGetValue(peer, out p) ? KeepInArena(from, 0f) : (V2?)null;
@@ -54,21 +59,28 @@ namespace Arena
         /// Host: the exact position and course of every homing (or gravity-bent) bullet.
         void SendSteer()
         {
-            int n = 0;
+            steerScratch.Clear();
             foreach (var b in Bullets.Values)
                 if (b.Homing > 0f || b.Pulled)
-                    n++;
-            if (n == 0)
+                    steerScratch.Add(b);
+            SendSteerOf(steerScratch);
+        }
+
+        readonly List<Bullet> steerScratch = new List<Bullet>();
+
+        /// Host: these bullets' exact position and course (Msg.Steer), e.g. a shot that just bounced off a wall (Relics.cs).
+        void SendSteerOf(List<Bullet> list)
+        {
+            if (list.Count == 0)
                 return;
             var w = Proto.Begin(Msg.Steer);
-            w.Write(n);
-            foreach (var b in Bullets.Values)
-                if (b.Homing > 0f || b.Pulled)
-                {
-                    w.Write(b.Id);
-                    w.Write(b.Pos);
-                    w.Write(b.Vel);
-                }
+            w.Write(list.Count);
+            foreach (var b in list)
+            {
+                w.Write(b.Id);
+                w.Write(b.Pos);
+                w.Write(b.Vel);
+            }
             session.Broadcast(Proto.End(w));
         }
 
@@ -570,6 +582,9 @@ namespace Arena
             s.Byte(ref p.KatanaDashes);
             s.Byte(ref p.BoStep);
             s.Byte(ref p.StaffStacks);  // the Quarterstaff's Jab stacks (Quarterstaff.cs)
+            byte relic = (byte)p.Relic;
+            s.Byte(ref relic);          // the relic slot (Relics.cs)
+            p.Relic = (RelicId)relic;
             s.Byte(ref p.TwinNades);    // the Twin Rifle's grenade tubes (TwinGrenades.cs)
             s.Byte(ref p.TwinNext);
             s.Byte(ref p.TwinCharge);

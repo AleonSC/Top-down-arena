@@ -203,8 +203,7 @@ namespace Arena
                     if (!Targetable(e) || e.Pos.DistanceTo(z.Pos) > z.Radius + e.Radius)
                         continue;
                     e.Suppress = Math.Max(e.Suppress, e.Def.IsBoss ? SuppressMax * 0.5f : SuppressMax);
-                    e.SlowT = Math.Max(e.SlowT, 0.3f);
-                    e.SlowMult = Math.Min(e.SlowMult, 1f - TearGasSlow);
+                    Slow(e, 0.3f, 1f - TearGasSlow);
                 }
             }
             if (burst != null)

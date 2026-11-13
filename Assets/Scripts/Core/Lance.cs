@@ -167,7 +167,7 @@ namespace Arena
         {
             float dmg = p.Weapon.Damage * p.Stats.DmgMult * HookMult;
             WeaponHurt(e, dmg, p.Id);
-            OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir * -1f, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
+            ModHit(e, p.Id, dmg, Defs.KnightSlash, dir * -1f);
             if (!e.Def.IsBoss)
             {
                 e.FrozenT = Math.Max(e.FrozenT, HookStun);

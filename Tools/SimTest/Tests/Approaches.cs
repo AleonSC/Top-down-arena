@@ -300,7 +300,7 @@ static partial class Program
         Check(Approaches.For(EnemyType.Boss).Members.Any(m => m.Type == EnemyType.TaserGuard && m.From >= 2), "the Warden's faction includes the Taser Guard, from its third wave");
         taser.Hp = 0f;
 
-        // --- The Security Guard: a magazine of seven tracer rounds that lead you, then a reload; the friend sees it all -----------
+        // --- The Security Guard: a magazine of seven tracer rounds aimed straight at you, then a reload; the friend sees it all -----------
         foreach (var e in g2.Enemies.Values) e.Hp = 0f;
         Run(s2, dt, 0.3f, null, () => { hold(); g2.Me.Pos = spot; });
         var sec = (Enemy)spawn.Invoke(g2, new object[] { EnemyType.SecurityGuard, new V2(900f, 300f), 0f, -7, false });
@@ -343,7 +343,7 @@ static partial class Program
         Check(firstWindS > 0f && firstShotS - firstWindS > 0.15f && firstShotS - firstWindS < 0.4f, "a Security Guard locks on (Winding) for about 0.25 s before each round");
         Check(shotsS >= 8 && reloadStart > 0f, "it fires seven rounds, then the magazine runs dry and it reloads");
         Check(reloadEnd - reloadStart > 1.9f && reloadEnd - reloadStart < 2.6f, "the reload takes about 2.2 s");
-        Check(leads, "its rounds are aimed ahead of where you are heading");
+        Check(!leads, "its rounds are aimed straight at you, never ahead of where you are heading (no lead)");
         Check(clientSaw && clientPhase, "the friend's game sees the tracer rounds and the reload (its ammo is Enemy.Phase)");
         Check(damaged, "a tracer round that lands hurts");
         Check(Approaches.For(EnemyType.Boss).Members.Any(m => m.Type == EnemyType.SecurityGuard && m.From <= 2), "the Warden's faction includes the Security Guard, from its second wave");

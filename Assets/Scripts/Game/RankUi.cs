@@ -181,7 +181,6 @@ namespace Arena
                 var row = rows[i];
                 int kind = int.Parse(row[3]);
                 var rr = new Rect(left.x + 20f + 24f * (1f - Ease(a)) * -1f, y + i * 34f, left.width - 40f, 30f);
-                int ri = i;
                 WithAlpha(a, () =>
                 {
                     if (kind == 3)

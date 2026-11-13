@@ -118,7 +118,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 303;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 307;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -280,6 +280,7 @@ namespace Arena
             pingLast.Clear();
             Chat.Clear();
             chatLast.Clear();
+            peerPing.Clear();
             Screen = AppScreen.Menu;
             Status = status;
         }
@@ -298,10 +299,19 @@ namespace Arena
             {
                 if (Net == null)
                     break;
-                if (IsHost)
-                    HandleHostEvent(ev);
-                else
-                    HandleClientEvent(ev);
+                try
+                {
+                    if (IsHost)
+                        HandleHostEvent(ev);
+                    else
+                        HandleClientEvent(ev);
+                }
+                catch (Exception e)
+                {
+                    // A bug in one message's handling (not a garbled message: those are caught inside) must not drop the
+                    // rest of the batch: a Disconnected later in it is never sent again, and would leave a ghost player.
+                    Game.Log?.Invoke("Session: error handling a " + ev.Type + " event from peer " + ev.Peer + ": " + e);
+                }
             }
             StepLobbyCombat();  // (the Hangout's shots, health and respawns: LobbyCombat.cs)
             SendAvatars();
@@ -492,6 +502,7 @@ namespace Arena
                     break;
                 case NetEventType.Disconnected:
                     Lobby.Remove(ev.Peer);
+                    ForgetPeer(ev.Peer);  // (a new connection can get this id again: it mustn't inherit the old one's ping or cooldowns)
                     Game.OnPeerLeft(ev.Peer);
                     BroadcastLobby();
                     break;
@@ -502,6 +513,8 @@ namespace Arena
         {
             var r = new BinaryReader(new MemoryStream(data));
             var type = (Msg)r.ReadByte();
+            if (type != Msg.Hello && type != Msg.Ping && !Lobby.ContainsKey(peer) && !Game.Players.ContainsKey(peer))
+                return;  // not one of ours: no Hello yet, or just turned away (its other messages in this batch still arrive)
             switch (type)
             {
                 case Msg.Hello:
@@ -565,6 +578,7 @@ namespace Arena
                         TakeSeat(joined, seat);
                     }
                     Lobby[peer] = joined;
+                    Net.Greet(peer);  // (NetPeer: no more join timeout)
                     var w = Proto.Begin(Msg.Welcome);
                     w.Write(peer);
                     Net.Send(peer, Proto.End(w));
@@ -635,24 +649,25 @@ namespace Arena
                     Game.OnPause(peer, r);
                     break;
                 case Msg.RoleRequest:
-                    SetRole(peer, r.ReadByte());
+                    { int v = r.ReadByte(); if (!Game.Running) SetRole(peer, v); }  // (a late lobby request mid-run is ignored)
                     break;
                 case Msg.WeaponRequest:
-                    SetWeapon(peer, r.ReadByte());
+                    { int v = r.ReadByte(); if (!Game.Running) SetWeapon(peer, v); }  // (a late lobby request mid-run is ignored)
                     break;
                 case Msg.AbilityRequest:
-                    SetAbility(peer, r.ReadByte());
+                    { int v = r.ReadByte(); if (!Game.Running) SetAbility(peer, v); }  // (a late lobby request mid-run is ignored)
                     break;
                 case Msg.UltRequest:
-                    SetUlt(peer, r.ReadByte());
+                    { int v = r.ReadByte(); if (!Game.Running) SetUlt(peer, v); }  // (a late lobby request mid-run is ignored)
                     break;
                 case Msg.KitRequest:
-                    SetKit(peer, r.ReadByte());
+                    { int v = r.ReadByte(); if (!Game.Running) SetKit(peer, v); }  // (a late lobby request mid-run is ignored)
                     break;
                 case Msg.WildcardRequest:
                 {
                     int ww = r.ReadByte(), wa = r.ReadByte(), ws = r.ReadByte(), wk = r.ReadByte();
-                    SetWildcard(peer, ww, wa, ws, wk);
+                    if (!Game.Running)
+                        SetWildcard(peer, ww, wa, ws, wk);
                     break;
                 }
                 case Msg.ReadyRequest:
@@ -667,13 +682,15 @@ namespace Arena
                 case Msg.LobbyFire:
                 {
                     float fireAim = r.ReadSingle();
-                    HostFire(peer, fireAim, true, r.ReadV2());
+                    V2 fireFrom = r.ReadV2();
+                    HostFire(peer, fireAim, true, fireFrom.IsFinite ? fireFrom : (V2?)null);
                     break;
                 }
                 case Msg.LobbyAbility:
                 {
                     float castAim = r.ReadSingle();
-                    HostAbility(peer, castAim, true, r.ReadV2());
+                    V2 castFrom = r.ReadV2();
+                    HostAbility(peer, castAim, true, castFrom.IsFinite ? castFrom : (V2?)null);
                     break;
                 }
                 case Msg.Emote:
@@ -749,6 +766,15 @@ namespace Arena
         {
             float ms;
             return peerPing.TryGetValue(peer, out ms) ? ms : 0f;
+        }
+
+        /// Host: drops what was kept per connection when it goes.
+        void ForgetPeer(int peer)
+        {
+            peerPing.Remove(peer);
+            emoteLast.Remove(peer);
+            chatLast.Remove(peer);
+            pingLast.Remove(peer);
         }
 
         void Reject(int peer, string reason)

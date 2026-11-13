@@ -294,7 +294,6 @@ namespace Arena
             // The name slides in from the right and settles, the small lines slide in from the left.
             float slide = (1f - Ease(tIn)) * 260f;
             Ui.Label(new Rect(-slide, y + 8f, W, 20f), s.Number == 0 ? "LAST STAND" : "STAGE " + s.Number + " / " + (s.Of > 0 ? s.Of : 3), 13, new Color(1f, 1f, 1f, 0.75f * a), TextAnchor.MiddleCenter, true);
-            var top = ToColor(s.Second.Mix(Rgba.White, 0.5f));
             DkTitle(new Rect(slide, y + 26f, W, 56f), s.Name, 46, new Color(band.r, band.g, band.b, a), TextAnchor.MiddleCenter);
             Ui.Label(new Rect(-slide, y + 82f, W, 20f), s.Line, 14, new Color(0.9f, 0.92f, 1f, 0.85f * a), TextAnchor.MiddleCenter);
         }

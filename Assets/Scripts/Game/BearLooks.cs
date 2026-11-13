@@ -72,7 +72,7 @@ namespace Arena
                 bearLive.Clear();
                 foreach (var e in game.Effects)
                     bearLive.Add(e);
-                var gone = new List<Effect>();
+                var gone = DrawScratch.FreshFx();
                 foreach (var k in bearSeen.Keys)
                     if (!bearLive.Contains(k))
                         gone.Add(k);
@@ -328,7 +328,7 @@ namespace Arena
             {
                 if (bearViews.Count > 16)
                 {
-                    var gone = new List<int>();
+                    var gone = DrawScratch.FreshIds();
                     foreach (var k in bearViews.Keys)
                         if (!game.Minions.ContainsKey(k))
                             gone.Add(k);

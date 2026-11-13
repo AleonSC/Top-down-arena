@@ -415,6 +415,11 @@ sent wisps and imps). On a Knight, the elemental mods apply to every melee hit (
 (melee, the Flamethrower, Frost Lance, Fuma Shuriken, Repulsion Cannon, Radiant Orb, Chain Light, Spirit Fan, Ofuda,
 Arc Lightning, Wisp Lantern, Imp Caller, and the Fireball, which already rolls through everything) reach 15% farther
 per stack instead.
+A piercing shot can't hit the same enemy twice in a row, even inside two overlapping enemies.
+
+**Slows** don't add up: an enemy moves at its strongest slow until that one ends, then at the next-strongest one
+still running. A freeze (Frost Nova, Cryo's frozen solid) ends on time even while a weaker slow (Wet, ink, a slow
+zone) keeps being renewed.
 
 **Virulence** (rare, two stacks, with Poison Dart; it took Phase Step's place with the old Dash): the venom deals 30% more and spreads 60 px further.
 
@@ -495,7 +500,7 @@ A Charger shows a ring where its dash will end, which is also where its ring of 
 
 Shooters that fire straight at you (Sniper, Shard, Medic, Splitter, Phantom, Grunt, Taser Guard, Security Guard) share one **shooting line**: for the instant before they fire, a slim lane in their colour fills from the muzzle along the shot, brighter at its head, and caps off when the shot is due; the Grunt shows all three of its shots. The Leader and Beam Sentry keep their own blinking lines.
 
-From wave 13, a regular wave shows at most 6 different enemy types (8 from wave 25), so each kind is easier to learn. Boss waves, paths with their own mix and Zombie Infection hordes are unchanged.
+From wave 13, a regular wave shows at most 6 different enemy types (8 from wave 25), so each kind is easier to learn; in the Campaign the boss factions' enemies count too (they keep room for the wave's headliners). Boss waves, paths with their own mix and Zombie Infection hordes are unchanged.
 
 The first waves are **melee rushers** (spiky, they never shoot, they hurt on contact). Shooters take over a
 little more each wave: wave 1 is all melee, wave 7 about half.
@@ -613,7 +618,7 @@ his own riot, on the boss wave, still give 2 and 4.
 | 3 | **Shiv** | A prisoner with a taped shank held out front: circles in close, shows the lunge lane, then lunges like a Lunger (contact 18, 26 on the lunge) |
 | 2 | **Riot Shield** | A guard behind a tall shield that stops shots and swings from the front. Up close the shield flashes (0.4 s), then it lunges and **bashes** you: 10 damage and knocked **160 px** back (you can't be bashed again for 0.8 s). It holds the shield low for a second after, when front hits land. The shield holds 4x its health and cracks as it wears; broken, the guard staggers for a second, then flails and takes 50% more damage. Go round it or break it. Squad (wave 3): Cell block (two Riot Shields with Rioters pouring past) |
 | 2 | **Gas Grenadier** | Keeps its distance and lobs a tear-gas canister near you every 3.6 s. It plants its feet for a 1.07 s wind-up: a ring marks the spot (picked as the wind-up starts, so you can walk out of it) and fills while its arm goes back and the lenses glow, then it swings and the canister flies for 1 s. The 70 px cloud settles after 1 s and hurts (8 a second) for 4 s |
-| 2 | **Security Guard** | A guard with a service pistol: slate uniform, hi-vis vest, peaked cap. It holds about 300 px away and strafes, then **plants its feet and locks on for 0.25 s**: the shooting line fills toward where you're heading (it **leads you**, in a straight line from how you're moving). Then one **tracer round** (340 px/s, 7 damage): a hot-white streak with a long tail. It only starts shooting once within about 380 px of you, then semi-auto, one every 1.5 s, and the aim doesn't follow you once locked, so a sudden turn beats it. Its pips above its head count the **seven rounds** in the magazine; empty, it drops the magazine and **reloads for 2.2 s** (a cream ring fills round it), standing still and not shooting: rush it. Squad (wave 2): Patrol (three Security Guards with two Rioters) |
+| 2 | **Security Guard** | A guard with a service pistol: slate uniform, hi-vis vest, peaked cap. It holds about 300 px away and strafes, keeping one side for 2-4 s, its pistol trained **straight at you** (no lead), then **locks on for 0.25 s** while still walking, slowed: the shooting line fills along the shot. Then one **tracer round** (340 px/s, 7 damage): a hot-white streak with a long tail. It only starts shooting once within about 380 px of you, then semi-auto, one every 1.5 s, and the aim doesn't follow you once locked, so a sudden turn beats it. Its pips above its head count the **seven rounds** in the magazine; empty, it drops the magazine and **reloads for 2.2 s** (a cream ring fills round it), slowing to a stop and not shooting: rush it. Squad (wave 2): Patrol (three Security Guards with two Rioters) |
 | 3 | **Taser Guard** | A guard with a taser that keeps its distance (320 px), plants its feet and **charges for 0.7 s**: the shooting line and the prongs crackling, brighter as it nears the shot. Then it fires one **Fork Bolt** straight at you (260 px/s, 8 damage; it doesn't lead you, so strafe across the line): a white lightning glyph that flickers its zigzag 16 times a second, with a fork, among rounder bullets. A hit **stuns you for 1 s** (a flash and six bolts web out from you); a perfect parry sends it back like any shot. One bolt every 3.2 s |
 
 **Bubbles (Shielded elites and the Warder's wards):** a bubble is twelve cells round the rim, each holding a twelfth of the shield. A hit wears down the cell facing whoever shot it (flashing, then breaking into shards) and spills over to its neighbours once that cell is gone, so the side you shoot from is the side that opens. Burning and bleeding keep chewing the weakest cell. A honeycomb inside only shows where its cell is still up, and a thin shield bar sits above the health bar. Blue is a Shielded elite, violet is the Warder's.
@@ -820,7 +825,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
 
 **Crowds on a big map.** Enemies come in within 1500 px of a player (never a straggler across the map), in the emptiest room there, so rooms you built get their share. Waves 1-10 add up to 2.4x enemies on a big map (1.1 per extra hub of floor); later waves up to 1.4x.
 
-- **Gold coins:** every kill drops its gold as coins (5-gold and 1-gold). They never despawn, spin and glint on the floor, and drift to the nearest living player within 90 px, who gets the gold.
+- **Gold coins:** every kill drops its gold as coins (5-gold and 1-gold, at most 6; a boss's or an elite's last coin carries the rest). They never despawn, spin and glint on the floor, and drift to the nearest living player within 90 px, who gets the gold.
 - **Vector pickups:** a rare drop that adds vectors (a cyan square that draws its own outline; big ones have an amber ring). A normal kill drops one 1 time in 60 (+6), an elite 1 time in 8 (+12), a boss always (+12). Like coins they never despawn and drift to the nearest living player within 90 px, but only one whose stock isn't full: it waits for you to spend some. The vectors go to whoever collects it, never past their cap.
 - **Vectors**: every player holds a drawing budget (chip under the wave plate, "Vectors 50 / 70"): 1 vector = 1 tile of wall.
   You start with 50 and can hold 70; each cleared wave gives 8, every 8 kills gives 1, and a cleared boss wave refills
@@ -883,6 +888,16 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   player gets their own item. It opens once and never holds the wave up (opened ones lie dim with the lid up). No cover stands on a node. Nothing respawns: new ones
   appear around the current map. Bots build up to the shop room first, then the vendor, then chests, then the Gatekeeper (they don't walk to chests' loot).
   Old saves with shop or vendor nodes still work: a room round one becomes that shop.
+- **Relic nodes**: every other boss cycle (the first, third, ...) also places a **relic node** (an amber diamond). Build a room round it and walk up to
+  it: **every player** gets its relic in their **relic slot** (one each; a new relic replaces the old, and it stays for the run, saves included). Relics are
+  separate from the bosses' weapon mods. The HUD shows yours as a **RELIC** chip above the wave panel. So far there is one:
+  - **Wall Bounce**: your shots bounce off walls and pillars once instead of stopping, keeping 70% of their damage (homing turns off after the bounce).
+    Enemy shots, grenades and other lobbed shots, stuck shuriken and Bone Spears don't bounce.
+- **Rule nodes** (in progress, Docs/RuleRooms.md): every boss cycle also places a **rule node** (an orange square, 8 x 8 tiles, off to the left or right of the
+  map). Only a room that **encloses all of it** (at least 9 x 9 tiles) claims it, so it forces a big room. Each carries one rule: Dark, Frozen, Blood Moon,
+  Burning, Swarm or Elite. The room you build round it takes that path's ground and rule **in that room only** (Dark: you only see about 350 px round you; Frozen: ice;
+  Blood Moon: no regeneration or orbs, kills heal; Burning: fire patches; Swarm: a doubled melee crowd; Elite: a doubled all-elite crowd). Clear a wave there and it pays:
+  a **chest** (Dark, Burning, Swarm, Elite), a **relic** to walk up to (Blood Moon) or **gold and vectors** at once (Frozen).
   (The Gatekeeper has its own room, below.)
 - **Surprise rooms**: every time you clear a **boss**, the map gets a **free** room in one of five shapes the game picks for you: a **ring** (a block in the
   middle with a lane to run round), a **cross**, an **L hall**, a **T hall** or a **chamfer** (a box with notched corners). It goes where it closes the most loops

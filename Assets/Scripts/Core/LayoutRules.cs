@@ -293,6 +293,21 @@ namespace Arena
         }
 
         readonly Dictionary<int, SteerMem> steerMem = new Dictionary<int, SteerMem>();
+        readonly List<int> steerGone = new List<int>();
+
+        /// Drops the routes of enemies that are gone (keys are enemy ids; a bot's is minus its player id), so the
+        /// living keep theirs instead of every walker re-planning at once.
+        void PruneSteerMem()
+        {
+            steerGone.Clear();
+            foreach (var k in steerMem.Keys)
+                if (k > 0 && !Enemies.ContainsKey(k))
+                    steerGone.Add(k);
+            foreach (var k in steerGone)
+                steerMem.Remove(k);
+            if (steerMem.Count > 300)
+                steerMem.Clear();
+        }
 
         /// Does the straight line from a to b, for something of radius r, run into a wall or pillar (the edge wall aside)?
         bool SegBlocked(LayoutDef d, V2 a, V2 b, float r)
@@ -477,7 +492,7 @@ namespace Arena
             if (!steerMem.TryGetValue(key, out m))
             {
                 if (steerMem.Count > 300)
-                    steerMem.Clear();
+                    PruneSteerMem();
                 steerMem[key] = m = new SteerMem();
             }
             var wps = d.Waypoints;

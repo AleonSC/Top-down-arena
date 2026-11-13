@@ -18,7 +18,7 @@ namespace Arena
 
         class FumaView
         {
-            public float Clock, Seen = -1f, Age, RetT, LastAng;
+            public float Clock, Seen = -1f, Age, RetT;
             public byte Stance, Minis;
             public V2 RetFrom;
             public readonly float[] MiniBorn = new float[Game.FumaStealCap];

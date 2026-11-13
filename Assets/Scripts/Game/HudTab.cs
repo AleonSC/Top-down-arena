@@ -55,7 +55,7 @@ namespace Arena
         void DrawTabStats(Player me, Rect box)
         {
             var lines = new Dictionary<string, string>();
-            foreach (var line in StatSheet.Describe(me, me.Taken, 0, game.PassiveRegen))
+            foreach (var line in Stats(me, -1, 0))
                 if (!line.Header && !lines.ContainsKey(line.Label))
                     lines[line.Label] = line.Value;
             Func<string, string> get = k => lines.ContainsKey(k) ? lines[k] : "";

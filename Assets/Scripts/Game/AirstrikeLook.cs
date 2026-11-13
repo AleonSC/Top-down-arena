@@ -21,7 +21,7 @@ namespace Arena
             if (len < 1f)
                 return;
             V2 dir = lane / len, side = dir.Orthogonal();
-            float age = fx.T, ang = Mathf.Atan2(dir.Y, dir.X);
+            float age = fx.T;
             bool flare = fx.Color.A > 0.75f;
             int owner = Mathf.FloorToInt(fx.Radius / 10000f);
             float flareAlong = fx.Radius - owner * 10000f;

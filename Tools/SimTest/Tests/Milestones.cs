@@ -13,7 +13,7 @@ static partial class Program
         Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
         var none = new List<int>();
         var pool = Enumerable.Range(0, Upgrades.All.Length).Where(i => Upgrades.All[i].Rarity == Rarity.Milestone).ToList();
-        Check(pool.Count == 7, "the milestone pool has 7 cards (" + pool.Count + ")");
+        Check(pool.Count == 8, "the milestone pool has 8 cards, Architect (Expanding arena only) among them (" + pool.Count + ")");
         Check(pool.All(i => Upgrades.All[i].MaxStacks <= 5), "every milestone card has a stack limit");
         var offer = Upgrades.MilestoneOffer(new Random(1), Role.Dps, AbilityId.PoisonDart, none);
         Check(offer != null && offer.Length == 3 && offer.Distinct().Count() == 3 && offer.All(i => Upgrades.All[i].Rarity == Rarity.Milestone), "a milestone offer is three different milestone cards");
