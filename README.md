@@ -607,7 +607,7 @@ its world on the way to it (design: [`Docs/Approaches.md`](Docs/Approaches.md)).
 (Difficulty tab, below): **Blend** (the default) builds up over the four waves, 34%, 51%, 68% then 85% of each wave;
 **Fully themed** makes all four waves the boss's own enemies; 0% turns it off. The rest of each wave is the usual mix,
 paths still apply (an enemy-mix path builds from what's left; Elite Gauntlet makes the faction elite too), and the
-boss fight itself is the same. A chip above the wave panel says "Approach · The Warden · 3/4", and the banner before
+boss fight itself is the same. A line at the top of the screen says "The Warden  in 2 waves", and the banner before
 the first and last waves says you're on the road to the boss, then that it's near. So far the **Warden** has a faction (waves 1-4), and the last wave before him always brings the **Riot Line**: four Riot Shields marching at you as a wall, five Guards close behind it, who break out and rush you once the wall gets within about 190 px or half its shields are down. The **Hive Queen** has one too (waves 6-9): eight bees, one for each of the Warden's roles (below), with the **Royal guard** (four Comb Shields, five Soldiers) on the last wave. The **Singularity** has one too (waves 16-19): the **Infall**, eight enemies with four squads (below), and on the last wave the **Accretion ring**: eight Debris and four Orbiters in a ring round you, 320 px out, with **two gaps**. It turns slowly and closes in to 110 px over about 10 s while the Orbiters sling their orbs inward: walk out through a gap. A faint violet **band** runs along the ring, with the two gaps left dark, edged in green and marked with chevrons pointing out. Bots walk out through a gap, keep clear of a White Dwarf's flash, Small Wells and Implosions. It breaks up after 12 s or once half of it is down. The **Lich** has one too (waves 31-34): the same zombies as Zombie Infection, Shamblers first, then
 Runners (in packs of three) and Spitters from wave 32, Crawlers from 33 and Menders from 34, with two squads (Graveyard
 shift, Grave rush) and a last-wave **Dead march** (six Shamblers, two Menders, three Runners). They don't get back up
@@ -873,9 +873,11 @@ On the Bazaar's waves every kill gives **every player the same gold** (0.3 per p
 325 each over waves 6-10, rising to about 1000 by wave 40); your gold shows above the wave panel. After its last
 wave, everyone gets a shop before the boss:
 
-- **One sideways carousel** holds everything: your shelf, then the services. The item in the middle is big and shows what it
+- **Two categories** open first: **Upgrades** (your shelf) and **Services**, each panel showing a peek of what's inside and the
+  cheapest price. Click one (or arrow keys and Enter) to open its **sideways carousel**. The item in the middle is big and shows what it
   changes as the green readout on the card (old ▸▸ new). Click a side card, use the arrows, the mouse wheel or the arrow
-  keys to bring one to the middle, and click the middle one to buy it. The SHELF and SERVICES tabs jump to each part.
+  keys to bring one to the middle, and click the middle one to buy it. **< Back** (or Esc) returns to the categories; the
+  two tabs switch between them. Add stock jumps to the new cards.
 - **Your shelf** (rolled for your class): three cards, two upgrades and a legendary (a weapon mod if no legendary is left). Prices by rarity: common
   40, uncommon 60, rare 100, very rare 160, weapon mod 200, legendary 280.
 - **Services:** add stock (two more cards on the shelf, none you already see: an upgrade, then a weapon mod and a
@@ -966,7 +968,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   - **Wall Bounce**: your shots bounce off walls and pillars once instead of stopping, keeping 70% of their damage (homing turns off after the bounce).
     Enemy shots, grenades and other lobbed shots, stuck shuriken and Bone Spears don't bounce.
 - **Rule nodes** (in progress, Docs/RuleRooms.md): every boss cycle also places a **rule node** (an orange square, 8 x 8 tiles, off to the left or right of the
-  map). Only a room that **encloses all of it** (at least 9 x 9 tiles) claims it, so it forces a big room. Each carries one rule: Dark, Frozen, Blood Moon,
+  map). Only a room that **encloses all of it** (at least 9 x 9 tiles; a drawn outline of any shape counts as one room) claims it, so it forces a big room. Each carries one rule: Dark, Frozen, Blood Moon,
   Burning, Swarm or Elite. The room you build round it takes that path's ground and rule **in that room only** (Dark: you only see about 350 px round you; Frozen: ice;
   Blood Moon: no regeneration or orbs, kills heal; Burning: fire patches; Swarm: a doubled melee crowd; Elite: a doubled all-elite crowd). Clear a wave there and it pays:
   a **chest** (Dark, Burning, Swarm, Elite), a **relic** to walk up to (Blood Moon) or **gold and vectors** at once (Frozen).
@@ -1005,7 +1007,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   Beating it gives everyone a prize pick (sometimes a legendary) and the room becomes an ordinary one. It's optional: if the wave ends first, the
   Gatekeeper goes, you're let out, and walking in later starts a fresh duel.
 - **Shop and vendor rooms**: with one connected, kills drop gold and the shop opens every intermission without holding the countdown. Buy
-  upgrades and add stock in the **shop room**; heal, revive and remove upgrades, and buy buildables, at the **Black Market** (the vendor room: a Buildables tab and a Services tab). Gold and your shelf carry over between waves
+  upgrades and add stock in the **shop room**, buildables at the **Black Market** (the vendor room: Buildables and Services categories); the services (heal, revive, sell, Floor kit, Vector pack) work in either room. Gold and your shelf carry over between waves
   (the shelf is new each boss cycle).
 - **Breaches**: a rare event: on wave 3 and every 4th wave after it (7, 11, 15, ...), once the first room is built, enemies come in through **breaches** in the outer wall: a stretch of wall cracks open
   and a **red holographic barrier** stands in the gap (you can't go out through it; red chevrons on the floor point where they come
@@ -1210,6 +1212,8 @@ you've beaten it anywhere, a **???** until then (on your first Quick Play the Wa
 - **No paths, Data Gates, lives or saving.**
 - **Records:** full rank XP and Cores, bosses count as beaten (unlocks and Boss Hunts), and Quick Play keeps its own plays,
   wins, best wave and bosses beaten (not counted as runs). Falling in endless adds the stretch after the win.
+  Every Quick Play shows in **Records > Recent runs** with its graphs: the win or the fall, a Quick Play you quit (no XP),
+  and an endless stretch after the win as its own card ("Quick Play · Endless", its curve from the win on).
   Plan: `Docs/QuickPlay.md`.
 
 ## Boss Hunt
@@ -1609,7 +1613,7 @@ with upgrades and abilities by name, so they keep working as the game changes.
 
 **Profile** (the old Records and Your look pages, merged; opened by clicking your player card on the main menu or in the lobby; the pause and lobby menus have no Profile row): the same loadout box as the pause menu's (same opening, windows and Back key): a title, a profile card (your rank badge, name with a pencil key, title and rank, XP bar), four quiet tab keys (small faded letters, the open one a small lit pill) and the open tab's options as keys; each option opens in a CRT window to the right that slides out the first time and only retypes after that (its X key, Back and Esc close it first, then the profile). **Look** is the cosmetics above. **Rank** is Progress (rank, title, XP, the next unlocks), the Reward ladder, Tiers (the five titles with their rank ranges) and XP sources. **Records** is Overview, Bosses, Classes, Challenge rooms and **Recent runs** (below). **Unlocks** has a window per kind (Frame, Trail, Background, Card background, Name effect, Aim line, Cursor, Emotes) with a check or a padlock on each cosmetic, and the run-feat unlocks. The Records tab keeps this computer's player's runs started, won and lost, best wave, best endless wave,
 
-**Records > Recent runs** (Docs/RecentRuns.md): a strip of your last 20 runs (newest first, four at a time with arrows; each card says the mode, class, wave and won, died or quit; a run you leave before it ends counts too, with no XP), six tiles for the open run (result, time, wave, damage, damage taken, XP) and two tabs. **Overview** has three graphs: **damage per second** over the run (your line in gold with a blue team line when you played in a party, alternating bands for the waves, a red tint on boss waves, a red dot where you went down), **health** over time for everyone in the party, and **accuracy per wave**. Hover a time graph for a readout of that moment. **Trends** shows the wave reached and the damage dealt run by run (green won, red died); click a run on it to open it. Each finished run keeps a sample of everyone's totals and health every 10 seconds, in a small file in your profile's `runs` folder (the newest 20 are kept); runs from before this, Boss Hunts, Challenge rooms and Practice have no graphs (Boss Hunts and rooms keep their own records). Co-op: every player's profile keeps its own copy with the whole party's lines. Runs with dev tools or the bot are not kept, like the rest of Records.
+**Records > Recent runs** (Docs/RecentRuns.md): a strip of your last 20 runs (newest first, four at a time with arrows; each card says the mode, class, wave and won, died or quit; a run you leave before it ends counts too, with no XP), six tiles for the open run (result, time, wave, damage, damage taken, XP) and two tabs. **Overview** has three graphs: **damage per second** over the run (your line in gold with a blue team line when you played in a party, alternating bands for the waves, a red tint on boss waves, a red dot where you went down), **health** over time for everyone in the party, and **accuracy per wave**. Hover a time graph for a readout of that moment. **Trends** shows the wave reached and the damage dealt run by run (green won, red died); click a run on it to open it. Each finished run keeps a sample of everyone's totals and health every 10 seconds, in a small file in your profile's `runs` folder (the newest 20 are kept); Quick Play is tracked like a run (a quit one too); runs from before this, Challenge rooms and Practice have no graphs (Boss Hunts and rooms keep their own records). Co-op: every player's profile keeps its own copy with the whole party's lines. Runs with dev tools or the bot are not kept, like the rest of Records.
 best score, time played, totals (kills, damage, healing, downs, revives), each boss beaten, and runs and wins per
 class. The host tells every player's game when a boss falls and when a run ends, so in co-op everyone's records
 grow. Practice Range matches, Boss Lab fights, and runs where dev tools (F1) or the bot were used don't count.

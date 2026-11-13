@@ -53,7 +53,7 @@ namespace Arena
         static readonly Rect HudTopRow = new Rect(W / 2f - 320f, 0f, 640f, 60f);
         const float HudBossBarsY = 12f;
         /// The objective line (ApproachUi.cs): at the top, or under the boss bars while a boss is up.
-        const float HudObjectiveY = 14f, HudObjectiveUnderBossY = 92f;
+        const float HudObjectiveY = 22f, HudObjectiveUnderBossY = 92f;
         /// The "Hold TAB · H" hint pill (top right), and the ● REC tag under it.
         static readonly Rect HudHintPill = new Rect(W - 290f, 10f, 274f, 22f);
         static readonly Rect HudRecTag = new Rect(W - 70f, 34f, 62f, 16f);
