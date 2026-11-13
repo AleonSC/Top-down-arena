@@ -21,6 +21,7 @@ namespace Arena
         public SquadDef[] Squads = new SquadDef[0];
         public SquadDef Finale;  // always in the last wave before the boss (when the approach is on), counting toward its share
         public WaveLesson[] Lessons;  // a Campaign's ten waves before this boss, one lesson each (null: built by reach, as before)
+        public SquadDef[] LessonSquads = new SquadDef[0];  // small squads only the lessons use (by name); reach, comebacks and callbacks never pick them
     }
 
     /// One wave of a boss's teaching cycle in the 100-wave Campaign (Docs/RunLength.md step 3): the faction's enemies and
@@ -31,6 +32,7 @@ namespace Arena
         public FactionMember[] Members;        // null: all the faction's members
         public string[] Squads = new string[0];  // null: all the faction's squads
         public bool Finale;                    // the faction's set piece comes in
+        public string Also;                    // a squad (by name) that comes in big on top of the share, like a callback (the exam's Breakout)
         public float SquadChance = 0.5f;       // how often a fitting squad is picked over a single
         public EnemyType? Star;  // the enemy the wave is about: always at least StarPicks of it (null: none)
         public bool Trickle;  // the star comes in as stragglers through the wave's second half, not mixed in anywhere (Docs/Approaches.md)
@@ -68,22 +70,28 @@ namespace Arena
                     new SquadDef { Name = "Cell block", From = 3, Members = new[] { EnemyType.RiotShield, EnemyType.RiotShield, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter } },
                 },
                 // Wave 4: a wall of four Riot Shields marching at you, five Guards close behind it (WardenFaction.cs).
+                LessonSquads = new[]
+                {
+                    new SquadDef { Name = "Rioter pack", From = 1, Members = new[] { EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter } },
+                    new SquadDef { Name = "Guard pair", From = 1, Members = new[] { EnemyType.Guard, EnemyType.Guard } },
+                },
                 Finale = new SquadDef { Name = "Riot line", From = 4, Form = SquadForm.RiotLine, Members = new[] {
                     EnemyType.RiotShield, EnemyType.RiotShield, EnemyType.RiotShield, EnemyType.RiotShield,
                     EnemyType.Guard, EnemyType.Guard, EnemyType.Guard, EnemyType.Guard, EnemyType.Guard } },
                 // The Campaign's Warden cycle: each wave previews one part of its fight (Docs/RunLength.md).
                 Lessons = new[]
                 {
+                    // Docs/Approaches.md's chart: each wave one new enemy, alone and late; squads only use enemies you have already met.
                     new WaveLesson { Teaches = "Rioters swarm (the riot stage's crowds)", Members = new[] { M(EnemyType.Rioter, 1f) } },
-                    new WaveLesson { Teaches = "Security Guards' aimed tracers (its aimed fans)", Trickle = true, Star = EnemyType.SecurityGuard, Members = new[] { M(EnemyType.Rioter, 2f), M(EnemyType.SecurityGuard, 2f) }, Squads = new[] { "Patrol" } },
-                    new WaveLesson { Teaches = "Riot Shields: flank them (its riot shield)", Trickle = true, Star = EnemyType.RiotShield, Members = new[] { M(EnemyType.RiotShield, 2f), M(EnemyType.Rioter, 2f), M(EnemyType.SecurityGuard, 1f) }, Squads = new[] { "Cell block" } },
-                    new WaveLesson { Teaches = "Tear gas, and shields shoving you into it", Trickle = true, Star = EnemyType.GasGrenadier, Members = new[] { M(EnemyType.GasGrenadier, 2f), M(EnemyType.RiotShield, 2f), M(EnemyType.Rioter, 1f) } },
-                    new WaveLesson { Teaches = "A recap of everything so far, and the Thugs join the yard", Trickle = true, Star = EnemyType.Thug, Members = new[] { M(EnemyType.Rioter, 2f), M(EnemyType.Guard, 2f), M(EnemyType.Thug, 1.5f), M(EnemyType.SecurityGuard, 1f), M(EnemyType.RiotShield, 1f), M(EnemyType.GasGrenadier, 1f) }, Squads = new[] { "Breakout", "Yard" } },
-                    new WaveLesson { Teaches = "Taser Guards: stuns, and parrying the Fork Bolt back", Trickle = true, Star = EnemyType.TaserGuard, Members = new[] { M(EnemyType.TaserGuard, 2.5f), M(EnemyType.Rioter, 2f), M(EnemyType.Guard, 1f) } },
-                    new WaveLesson { Teaches = "Tasers, shields and gas together (the searchlight turn), and the Shivs lunge in", Trickle = true, Star = EnemyType.Shiv, Members = new[] { M(EnemyType.TaserGuard, 1.5f), M(EnemyType.RiotShield, 1.5f), M(EnemyType.GasGrenadier, 1.5f), M(EnemyType.Rioter, 1f), M(EnemyType.Thug, 1f), M(EnemyType.Shiv, 1.5f) }, Squads = new[] { "Cell block", "Yard" } },
-                    new WaveLesson { Teaches = "Squads: Breakout, Patrol, Cell block", Members = new[] { M(EnemyType.Rioter, 1f), M(EnemyType.Guard, 1f) }, Squads = null, SquadChance = 0.9f },
-                    new WaveLesson { Teaches = "Everything, tighter", Members = null, Squads = null, SquadChance = 0.75f },
-                    new WaveLesson { Teaches = "The exam: the Riot line with everything", Members = null, Squads = null, Finale = true },
+                    new WaveLesson { Teaches = "Guards join (the first one trickles in late)", Trickle = true, Star = EnemyType.Guard, Members = new[] { M(EnemyType.Rioter, 1f) }, Squads = new[] { "Rioter pack" } },
+                    new WaveLesson { Teaches = "Thugs: the prisoners' brute", Trickle = true, Star = EnemyType.Thug, Members = new[] { M(EnemyType.Rioter, 2f), M(EnemyType.Guard, 1.5f) }, Squads = new[] { "Rioter pack", "Guard pair" } },
+                    new WaveLesson { Teaches = "Security Guards' aimed tracers (its aimed fans)", Trickle = true, Star = EnemyType.SecurityGuard, Members = new[] { M(EnemyType.Rioter, 2f), M(EnemyType.Guard, 2f), M(EnemyType.Thug, 1.5f) }, Squads = new[] { "Yard", "Guard pair" } },
+                    new WaveLesson { Teaches = "A recap of everything so far", Members = new[] { M(EnemyType.Rioter, 2f), M(EnemyType.Guard, 2f), M(EnemyType.Thug, 1.5f), M(EnemyType.SecurityGuard, 2f) }, Squads = new[] { "Yard", "Patrol" } },
+                    new WaveLesson { Teaches = "Riot Shields: flank them (its riot shield)", Trickle = true, Star = EnemyType.RiotShield, Members = new[] { M(EnemyType.Rioter, 2f), M(EnemyType.Guard, 2f), M(EnemyType.Thug, 1.5f), M(EnemyType.SecurityGuard, 2f) }, Squads = new[] { "Yard", "Patrol" } },
+                    new WaveLesson { Teaches = "Tear gas, and shields shoving you into it", Trickle = true, Star = EnemyType.GasGrenadier, Members = new[] { M(EnemyType.RiotShield, 2f), M(EnemyType.Rioter, 2f), M(EnemyType.Guard, 1f), M(EnemyType.SecurityGuard, 1f) }, Squads = new[] { "Yard", "Cell block" } },
+                    new WaveLesson { Teaches = "Taser Guards: stuns, and parrying the Fork Bolt back", Trickle = true, Star = EnemyType.TaserGuard, Members = new[] { M(EnemyType.GasGrenadier, 1.5f), M(EnemyType.RiotShield, 2f), M(EnemyType.Rioter, 2f), M(EnemyType.Guard, 1f) }, Squads = new[] { "Yard", "Cell block" } },
+                    new WaveLesson { Teaches = "Every squad, tighter", Members = null, Squads = null, SquadChance = 0.75f },
+                    new WaveLesson { Teaches = "The exam: the Riot line and a big Breakout, with everything", Members = null, Squads = new string[0], Finale = true, Also = "Breakout" },
                 },
             },
             new FactionDef
@@ -324,6 +332,14 @@ namespace Arena
                 withFinale && f.Finale != null && f.Finale.From <= reach ? f.Finale : null, 0.5f, ref count, themed);
         }
 
+        static SquadDef[] Concat(SquadDef[] a, SquadDef[] b)
+        {
+            var r = new SquadDef[a.Length + b.Length];
+            a.CopyTo(r, 0);
+            b.CopyTo(r, a.Length);
+            return r;
+        }
+
         /// The lesson of the wave being built, in a Campaign wave that leads to this faction's boss (null: none).
         public WaveLesson LessonNow(FactionDef f)
         {
@@ -337,6 +353,20 @@ namespace Arena
         {
             var members = l.Members ?? f.Members;
             var squads = l.Squads == null ? f.Squads : Array.FindAll(f.Squads, s => Array.IndexOf(l.Squads, s.Name) >= 0);
+            if (l.Squads != null)
+                squads = Concat(squads, Array.FindAll(f.LessonSquads, s => Array.IndexOf(l.Squads, s.Name) >= 0));
+            if (l.Also != null)
+            {
+                var also = Array.Find(f.Squads, s => s.Name == l.Also);
+                if (also != null)
+                {
+                    var big = Approaches.Callback(also, f);
+                    plan.ApproachSquads.Add(big);
+                    foreach (var t in big.Members)
+                        plan.Kinds.Add(t);
+                    count -= Math.Min(count, big.Members.Length);
+                }
+            }
             int stars = 0;
             if (l.Star.HasValue)
                 for (; stars < WaveLesson.StarPicks && stars < themed; stars++)
@@ -424,10 +454,9 @@ namespace Arena
                 spawnQueue.Insert(rng.Next(spawnQueue.Count + 1), t);
             foreach (var s in plan.ApproachSquads)
                 squadQueue.Insert(rng.Next(squadQueue.Count + 1), s);
-            // The trickle: evenly through the second half of the queue, so the new enemy arrives alone, late, one at a time.
-            int half = spawnQueue.Count / 2, tail = spawnQueue.Count - half, m = plan.ApproachTrickle.Count;
-            for (int k = m - 1; k >= 0; k--)
-                spawnQueue.Insert(half + (int)((k + 0.5f) * tail / m) , plan.ApproachTrickle[k]);
+            // The trickle: the new enemy comes last, after the wave's squads (SpawnNextSquad), alone, one at a time.
+            spawnQueue.AddRange(plan.ApproachTrickle);
+            stragglers = plan.ApproachTrickle.Count;
             plan.ApproachSingles.Clear();
             plan.ApproachSquads.Clear();
             plan.ApproachTrickle.Clear();

@@ -111,6 +111,7 @@ namespace Arena
         {
             spawnQueue.Clear();
             squadQueue.Clear();
+            stragglers = 0;
             bossRewarded = false;
             plan = new WavePlan(n);
             if (StageBoss())

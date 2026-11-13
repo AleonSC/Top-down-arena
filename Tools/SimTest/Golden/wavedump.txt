@@ -108,9 +108,9 @@ hunt w8: Guard Rioter Shiv Rioter*2 GasGrenadier Rioter | Guard Rioter*6 | RiotS
 hunt w9: Guard GasGrenadier RiotShield | Thug Rioter*3 Shiv | RiotShield*4 Guard*5 | SecurityGuard*3 Rioter*2
 hunt w10 boss: Boss Grunt*5
 campaign100 w1: Rioter*12
-campaign100 w2: Rioter RiotShield SecurityGuard RiotShield Rioter | RiotShield*2 Rioter*4
-campaign100 w3: RiotShield Thug GasGrenadier Thug*2 | Guard Rioter*6
-campaign100 w4: Shiv*2 TaserGuard | Thug Rioter*3 Shiv | Thug Rioter*3 Shiv
+campaign100 w2: Rioter*4 Thug*2 | Guard*2 | Guard*2
+campaign100 w3: SecurityGuard*2 Rioter*4 Guard | Thug Rioter*3 Shiv
+campaign100 w4: RiotShield GasGrenadier*2 | Thug Rioter*3 Shiv | Thug Rioter*3 Shiv
 campaign100 w5: GasGrenadier Guard Shiv GasGrenadier | RiotShield*2 Rioter*4 | SecurityGuard*3 Rioter*2
 campaign100 w5 boss: Boss Grunt*2
 campaign100 w6: Shiv Lunger Thug Charger Shiv Rioter*2 Shiv | Brute*2 Lunger | Swarmer*5
@@ -167,11 +167,11 @@ campaign100 w48: Mender Leader*5 Thug Leader*2 Guard Leader*11 Hookman Leader*2 
 campaign100 w49: Shielder Pauser*2 Shielder*4 Mender Shielder Mortar Shielder Mortar Pauser Shambler Shielder Mortar*2 Shielder*3 Mortar Pauser Mortar*2 Pauser*3 Guard SecurityGuard Shielder | Swarmer*5 | Swarmer*5 # Mortar Pauser Shielder
 campaign100 w50: Sniper Phantom Sniper*3 TaserGuard Sniper Phantom Mender Phantom Sniper Rioter Sniper Rioter Sniper*4 Spitter Phantom Sniper*5 | Phantom*3 | Swarmer*5 | Phantom*3 | Swarmer*5 # Buzzsaw Swarmer Sniper
 campaign100 w50 boss: Eclipse
-campaign100leg2 w1: Rioter SecurityGuard*2 Rioter SecurityGuard*3 | SecurityGuard*3 Rioter*2
-campaign100leg2 w2: GasGrenadier Rioter*2 GasGrenadier*6 RiotShield
-campaign100leg2 w3: Guard*3 TaserGuard*5 Rioter TaserGuard Rioter TaserGuard
-campaign100leg2 w4: Rioter*6 Guard | RiotShield*2 Rioter*4
-campaign100leg2 w5: RiotShield*2 Rioter Shiv SecurityGuard Rioter | RiotShield*4 Guard*5
+campaign100leg2 w1: Rioter*6 Guard*2 | Rioter*5
+campaign100leg2 w2: Rioter*4 SecurityGuard*2 | Thug Rioter*3 Shiv
+campaign100leg2 w3: Rioter*2 SecurityGuard Thug Guard RiotShield*2 | SecurityGuard*3 Rioter*2
+campaign100leg2 w4: Rioter Guard Rioter GasGrenadier Rioter*2 TaserGuard*2 | Thug Rioter*3 Shiv
+campaign100leg2 w5: RiotShield SecurityGuard Rioter SecurityGuard Thug Rioter | Guard Rioter*6 Guard Rioter*6 Thug | RiotShield*4 Guard*5
 campaign100leg2 w5 boss: Boss Grunt*2
 campaign100leg2 w6: SpikeBlock Guard Shiv Sniper Lunger Thug | Brute*2 Lunger | Grunt*3 Sniper | Brute*2 Lunger
 campaign100leg2 w7: Spinner Burster Grunt Brute | Swordsman*3 | Splitter*2 Grunt | Swarmer*5 | Splitter*2 Grunt

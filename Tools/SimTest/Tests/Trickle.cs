@@ -19,7 +19,8 @@ static partial class Program
         var old = c.FindAll(x => !x.Current);
         Check(old.Count == 1 && old[0].Faction == warden && Math.Abs(old[0].Share - 0.40f) < 0.001f, "wave 11: the Warden's faction holds 40% of the wave (the new faction, once built, takes the rest at once)");
         Check(warden.Lessons.Count(l => l.Trickle) == 6 && warden.Lessons.Where(l => l.Trickle).All(l => l.Star.HasValue), "six of the Warden's lessons trickle their star in (Security Guard, Shield, Gas, Thug, Taser, Shiv)");
-        Check(warden.Lessons[4].Star == EnemyType.Thug && warden.Lessons[6].Star == EnemyType.Shiv, "the Thug joins on wave 5 and the Shiv on wave 7 of the cycle");
+        Check(new[] { 1, 2, 3, 5, 6, 7 }.Select(i => warden.Lessons[i].Star).SequenceEqual(new EnemyType?[] { EnemyType.Guard, EnemyType.Thug, EnemyType.SecurityGuard, EnemyType.RiotShield, EnemyType.GasGrenadier, EnemyType.TaserGuard }) && warden.Lessons[4].Star == null && warden.Lessons[8].Star == null,
+            "the chart's order: Guard, Thug, Security Guard, (recap), Riot Shield, Gas, Taser on waves 2-8 of the cycle, none on 5 and 9");
         var cbSq = warden.Squads.First(q => q.Name == "Breakout");
         var big = Approaches.Callback(cbSq, warden);
         Check(big.Members.Length == cbSq.Members.Length * 2 + 1 && big.Name == cbSq.Name && big.Members.Count(t => t == EnemyType.Rioter) == cbSq.Members.Count(t => t == EnemyType.Rioter) * 2,

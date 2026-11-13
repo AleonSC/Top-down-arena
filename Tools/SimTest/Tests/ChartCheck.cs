@@ -42,7 +42,7 @@ static partial class Program
             {
                 int first = q.IndexOf(t), last = q.LastIndexOf(t);
                 bool inSquad = sq.Any(x => x.Members.Contains(t));
-                where += t + (first >= 0 ? (first >= q.Count / 2 ? " late" : " EARLY") : "") + (inSquad ? " (squad)" : "") + "; ";
+                where += t + (first >= 0 ? "@" + first + "-" + last + "/" + q.Count + " " : "") + (first >= 0 ? (first >= q.Count - WaveLesson.StarPicks ? " last" : " not last") : "") + (inSquad ? " (squad)" : "") + "; ";
             }
             seen.UnionWith(types);
             string sqNames = string.Join(", ", sq.GroupBy(x => x.Name).Select(x => x.Key + (x.Count() > 1 ? "x" + x.Count() : "")));
