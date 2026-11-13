@@ -217,6 +217,22 @@ namespace Arena
                 Apply = s => { s.ScentBonusTime += 3f; s.ScentStartBonus += 1; } },
             new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Summoner, MaxStacks = 2, Name = "Pack Bond", Desc = "Every minion of yours (weapon and ability) hits 15% harder and takes 25% more before it breaks or falls",
                 Apply = s => { s.MinionDmgMult += 0.15f; s.MinionToughMult += 0.25f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.GolemStaff }, MaxStacks = 2, Name = "Granite Golem", Desc = "The Golem Staff's Golem takes 40% more before it breaks, and the boulder crushes 20% wider",
+                Apply = s => { s.StaffGolemTough += 0.4f; s.BoulderSplashMult += 0.2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BoneGuard }, MaxStacks = 2, Name = "Ossuary", Desc = "Bone Guard's cages hold 0.5 s longer, and its skeletons shoot 30% faster",
+                Apply = s => { s.CageBonusTime += 0.5f; s.SkeletonRateMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BearTotem }, MaxStacks = 2, Name = "Deep Claws", Desc = "The Bear Totem's claws reach 15% farther, and their bleed is 30% stronger",
+                Apply = s => { s.ClawReachMult += 0.15f; s.ClawBleedMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.SpriteStaff }, MaxStacks = 2, Name = "Wildfire Seeds", Desc = "The Sprite Staff's firefly hops to 1 more enemy, and its sprites heal 20% more",
+                Apply = s => { s.FireflyHopBonus += 1; s.StaffSpriteHealMult += 0.2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.TreantRod }, MaxStacks = 2, Name = "Deep Roots", Desc = "The Treant Rod's root whip reaches 20% farther and heals allies it touches 30% more",
+                Apply = s => { s.RootReachMult += 0.2f; s.RootHealMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.WolfWhistle }, MaxStacks = 2, Name = "Alpha Pack", Desc = "Wolf Whistle takedowns hit 30% harder and stun 0.3 s longer",
+                Apply = s => { s.TakedownMult += 0.3f; s.TakedownStunBonus += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.WispLantern }, MaxStacks = 2, Name = "Will-o'-Wisp", Desc = "One more wisp orbits you",
+                Apply = s => { s.WispExtra += 1; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.ImpCaller }, MaxStacks = 2, Name = "Imp Horde", Desc = "Hold 1 more imp, and they come 20% faster",
+                Apply = s => { s.ImpExtra += 1; s.ImpRateMult += 0.2f; } },
         };
 
         /// The Summoner's Space abilities (its ultimates are in Ultimates.cs). (Upgrades.Abilities gathers every class's list.)
@@ -458,6 +474,10 @@ namespace Arena
 
         public const float GolemWallAhead = 112f, GolemWallGap = 76f;  // Golem Wall: golems touch (radius 38), their backs clear the caster
 
+        /// How much more a minion takes before it breaks: Pack Bond for every one of yours, Granite Golem for the Golem Staff's Golem.
+        static float MinionTough(Player owner, MinionKind kind, bool companion) =>
+            owner.Stats.MinionToughMult * (companion && kind == MinionKind.Golem && owner.Weapon.Id == WeaponId.GolemStaff ? owner.Stats.StaffGolemTough : 1f);
+
         Minion SpawnMinion(MinionKind kind, Player owner, V2 pos, float life, bool companion = false)
         {
             var m = new Minion
@@ -466,8 +486,8 @@ namespace Arena
                 Companion = companion, Ang = Rand(0f, MathX.Tau), Aim = owner.Aim,
             };
             m.Disp = m.Pos;
-            m.HealRate = m.Def.HealRate;
-            m.BlockHp = m.Def.BlockCapacity * owner.Stats.MinionToughMult;  // Pack Bond (the Summoner's class card): tougher, harder-hitting minions
+            m.HealRate = m.Def.HealRate * (kind == MinionKind.Sprite && !casting && owner.Weapon.Id == WeaponId.SpriteStaff ? owner.Stats.StaffSpriteHealMult : 1f);  // (Wildfire Seeds: the staff's sprites heal more)
+            m.BlockHp = m.Def.BlockCapacity * MinionTough(owner, kind, companion);  // Pack Bond (the Summoner's class card) and Granite Golem: tougher
             m.Power = owner.Stats.MinionDmgMult;
             if (casting)
             {
@@ -562,7 +582,7 @@ namespace Arena
                         var m = SpawnMinion(kind, p, p.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * 30f, kind == MinionKind.Golem ? GolemLife : -1f, true);
                         if (kind == MinionKind.LightOrb)
                             m.Ang = MathX.Tau * have / Math.Max(1, want);
-                        p.CompanionCd = kind == MinionKind.Imp ? w.CompanionRespawn / (1f + 0.5f * extra) : 0.3f;
+                        p.CompanionCd = kind == MinionKind.Imp ? w.CompanionRespawn / (1f + 0.5f * extra) / p.Stats.ImpRateMult : 0.3f;  // (Imp Horde: faster)
                     }
                 }
             }
@@ -598,7 +618,7 @@ namespace Arena
                 {
                     m.StaggerT -= dt;
                     if (m.StaggerT <= 0f)
-                        m.BlockHp = d.BlockCapacity * m.Scale * owner.Stats.MinionToughMult;  // back on its feet
+                        m.BlockHp = d.BlockCapacity * m.Scale * MinionTough(owner, m.Kind, m.Companion);  // back on its feet
                 }
                 bool frenzy = owner.FrenzyT > 0f && !m.NoFrenzy;
                 bool scent = owner.ScentT > 0f && !m.NoFrenzy;  // Alpha Call: the frenzy builds with each bite
@@ -607,7 +627,8 @@ namespace Arena
                 else if (!scent && m.Stacks != 0)
                     m.Stacks = 0;
                 float speed = d.Speed * (scent ? 1f + ScentSpeedPer * m.Stacks : frenzy ? 1.6f : 1f) * (m.NoFrenzy && owner.LegionT > 0f ? LegionSpeed : 1f);
-                float rate = owner.Stats.FireRateMult * (scent ? 1f + ScentRatePer * m.Stacks : frenzy ? 2f : 1f);
+                float rate = owner.Stats.FireRateMult * (scent ? 1f + ScentRatePer * m.Stacks : frenzy ? 2f : 1f)
+                    * (m.Kind == MinionKind.Guard && m.Companion && owner.Weapon.Id == WeaponId.BoneGuard ? owner.Stats.SkeletonRateMult : 1f);  // (Ossuary: Bone Guard's skeletons shoot faster)
                 float dmg = d.Damage * owner.Stats.DmgMult * (frenzy ? 1.3f : 1f) * m.Scale * m.Power;
                 float reach = d.Range * m.Scale;
                 m.Cd -= dt * rate;

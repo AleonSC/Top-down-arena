@@ -62,29 +62,34 @@ static partial class Program
             Func<int, EnemyType[], bool> only = (w, ok) => waves.ContainsKey(w) && waves[w].All(t => ok.Contains(t));
             Check(waves.Count == 10, "all ten Campaign waves of the Warden's cycle were played");
             Check(only(1, new[] { EnemyType.Rioter }) && has(1, EnemyType.Rioter), "wave 1 is Rioters only");
-            Check(has(2, EnemyType.SecurityGuard) && !Enumerable.Range(1, 2).Any(w => has(w, EnemyType.RiotShield)), "wave 2 brings Security Guards, and no Riot Shield comes before wave 3");
-            Check(has(3, EnemyType.RiotShield) && !Enumerable.Range(1, 3).Any(w => has(w, EnemyType.GasGrenadier)), "wave 3 brings Riot Shields, and no Gas Grenadier before wave 4");
-            Check(has(4, EnemyType.GasGrenadier) && has(4, EnemyType.RiotShield), "wave 4 is gas with shields");
-            Check(has(6, EnemyType.TaserGuard) && !Enumerable.Range(1, 5).Any(w => has(w, EnemyType.TaserGuard)), "Taser Guards first come on wave 6");
+            // The chart in Docs/Approaches.md: one new enemy a wave (Guard 2, Thug 3, Security Guard 4, Riot Shield 6, Gas 7, Taser 8), none on 5 and 9.
+            Func<EnemyType, int> first = t => Enumerable.Range(1, 10).FirstOrDefault(w => has(w, t));
+            Check(first(EnemyType.Guard) == 2 && first(EnemyType.Thug) == 3 && first(EnemyType.SecurityGuard) == 4,
+                "the Guard first comes on wave 2, the Thug on 3 and the Security Guard on 4 (first waves: " + first(EnemyType.Guard) + ", " + first(EnemyType.Thug) + ", " + first(EnemyType.SecurityGuard) + ")");
+            Check(first(EnemyType.RiotShield) == 6 && first(EnemyType.GasGrenadier) == 7 && first(EnemyType.TaserGuard) == 8,
+                "the Riot Shield first comes on wave 6, the Gas Grenadier on 7 and the Taser Guard on 8 (first waves: " + first(EnemyType.RiotShield) + ", " + first(EnemyType.GasGrenadier) + ", " + first(EnemyType.TaserGuard) + ")");
+            var before5 = new HashSet<EnemyType>(Enumerable.Range(1, 4).SelectMany(w => waves[w]));
+            Check(waves[5].All(t => before5.Contains(t) || t == EnemyType.Shiv), "wave 5 is a recap: nothing new in it (bar the Shiv, which the Yard squad carries and the chart gives no intro wave)");
+            Check(squads[2].All(n => n == "Rioter pack") && !squads[1].Any() && squads[4].All(n => n == "Yard" || n == "Guard pair"),
+                "squads only hold enemies you have met: a Rioter pack on wave 2, Yard and Guard pair by wave 4");
             Check(squads.ContainsKey(10) && squads[10].Contains("Riot line") && !Enumerable.Range(1, 9).Any(w => squads.ContainsKey(w) && squads[w].Contains("Riot line")), "the Riot line is wave 10's exam, and only there");
-            Check(has(7, EnemyType.TaserGuard) && has(7, EnemyType.RiotShield), "wave 7 puts the Taser Guards with the shields");
 
             // The boss came after wave 10.
             Check(g.ShownWave == 10 && g.BossSlot, "the Warden comes after wave 10");
 
-            // Wave 8 (track wave 4's second leg) is mostly squads: build it a few times and count.
+            // Wave 9 (track wave 5's first leg, "every squad, tighter") is mostly squads: build it a few times and count.
             var build = typeof(Game).GetMethod("BuildWave", flags);
-            int sq8 = 0, all8 = 0;
+            int sq9 = 0, all9 = 0;
             for (int i = 0; i < 6; i++)
             {
-                g.Wave = 4; g.Leg = 1; g.BossSlot = false;
-                build.Invoke(g, new object[] { 4 });
-                sq8 += squadQ.Sum(x => x.Members.Length);
-                all8 += squadQ.Sum(x => x.Members.Length) + spawnQ.Count;
+                g.Wave = 5; g.Leg = 0; g.BossSlot = false;
+                build.Invoke(g, new object[] { 5 });
+                sq9 += squadQ.Sum(x => x.Members.Length);
+                all9 += squadQ.Sum(x => x.Members.Length) + spawnQ.Count;
             }
             spawnQ.Clear(); squadQ.Clear();
-            Console.WriteLine("  wave 8 built six times: {0} of {1} enemies in squads", sq8, all8);
-            Check(all8 > 0 && sq8 * 2 >= all8, "wave 8 is mostly squads");
+            Console.WriteLine("  wave 9 built six times: {0} of {1} enemies in squads", sq9, all9);
+            Check(all9 > 0 && sq9 * 2 >= all9, "wave 9 is mostly squads");
             host.Leave(""); client.Leave("");
 
             // A Boss Hunt and a 50-wave run don't use the lessons.

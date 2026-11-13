@@ -28,10 +28,10 @@ namespace Arena
             for (int k = 0; k < 2; k++)
             {
                 float side = k == 0 ? 1f : -1f;
-                var s = NewSwing(p, aim + side * 0.12f, p.Weapon.Reach + p.Weapon.Grow * extra, BearArc, p.Weapon.Damage * dmg);
+                var s = NewSwing(p, aim + side * 0.12f, (p.Weapon.Reach + p.Weapon.Grow * extra) * p.Stats.ClawReachMult, BearArc, p.Weapon.Damage * dmg);  // (Deep Claws: farther, deeper)
                 s.Delay = BearSwipeGap * k;
                 s.ClawSide = side;
-                s.Bleed = BearBleed * (1f + 0.25f * extra);
+                s.Bleed = BearBleed * (1f + 0.25f * extra) * p.Stats.ClawBleedMult;
                 s.NoCut = true;  // claws, not a blade: they don't cut bullets
                 QueueSwing(s);
             }
@@ -151,7 +151,7 @@ namespace Arena
                     float c = BowCharge(p, p.BowShotDraw), flight = BoulderFlight(c);
                     V2 vel = V2.FromAngle(aim) * (BoulderDistance(c) / flight);  // SpawnBullet adds Velocity Rounds, which throw it farther
                     var b = SpawnBullet(Defs.BoulderShot, p.Pos, vel, 0f, flight, w.Damage * (BoulderTap + (1f - BoulderTap) * c) * dmg, p.Id);
-                    b.Splash = BoulderSplash * AreaMult(p);
+                    b.Splash = BoulderSplash * AreaMult(p) * p.Stats.BoulderSplashMult;  // (Granite Golem: wider)
                     b.Burst = 1;  // marks it as landing (MoveBullets)
                     break;
                 }
@@ -164,7 +164,7 @@ namespace Arena
                     break;
                 case WeaponId.SpriteStaff:
                     // A firefly: seeds the enemy it hits, then hops on to the nearest enemy that isn't seeded (FireflyHop).
-                    SpawnBullet(Defs.FireflyShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Hops = FireflyHops;
+                    SpawnBullet(Defs.FireflyShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Hops = FireflyHops + p.Stats.FireflyHopBonus;  // (Wildfire Seeds: one more)
                     break;
                 case WeaponId.SpiritChalk:
                     break;  // drawn while you hold, not fired (Chalk.cs)
@@ -173,10 +173,10 @@ namespace Arena
                     // A thorny root whips out along your aim, hits everything on the line and mends the allies it touches.
                     // (Extra projectiles grow the Treant instead, below.) Homing Rounds widen it rather than cost damage.
                     dmg *= HomingCost(p);
-                    var root = NewSwing(p, aim, w.Reach, 0f, w.Damage * dmg);
+                    var root = NewSwing(p, aim, w.Reach * p.Stats.RootReachMult, 0f, w.Damage * dmg);  // (Deep Roots: farther, heals more)
                     root.HalfWidth = RootHalfWidth * AreaMult(p);
                     root.Root = true;
-                    root.RootHeal = RootHeal;
+                    root.RootHeal = RootHeal * p.Stats.RootHealMult;
                     root.NoCut = true;
                     QueueSwing(root);
                     break;
@@ -205,7 +205,8 @@ namespace Arena
                 case WeaponId.Nimbus: return w.CompanionCount;  // extra projectiles are extra strikes
                 case WeaponId.BearTotem: return w.CompanionCount;  // the bear cleaves instead
                 case WeaponId.GolemStaff: return Math.Min(3, w.CompanionCount + extra);
-                default: return w.Companion == MinionKind.None ? 0 : w.CompanionCount + extra;
+                default: return w.Companion == MinionKind.None ? 0 : w.CompanionCount + extra
+                    + (w.Id == WeaponId.WispLantern ? p.Stats.WispExtra : w.Id == WeaponId.ImpCaller ? p.Stats.ImpExtra : 0);  // (Will-o'-Wisp, Imp Horde)
             }
         }
 
@@ -664,9 +665,9 @@ namespace Arena
                     wolves++;
             if (bit.Count < Math.Max(2, wolves))
                 return;
-            WeaponHurt(e, PackTakedown * wolves * owner.Stats.DmgMult, owner.Id);
+            WeaponHurt(e, PackTakedown * wolves * owner.Stats.DmgMult * owner.Stats.TakedownMult, owner.Id);  // (Alpha Pack: harder, longer)
             if (!e.Def.IsBoss)
-                e.FrozenT = Math.Max(e.FrozenT, PackStun);
+                e.FrozenT = Math.Max(e.FrozenT, PackStun + owner.Stats.TakedownStunBonus);
             BroadcastFx(FxKind.Claw, e.Pos - new V2(30f, 0f), e.Pos + new V2(30f, 0f), new Rgba(0.85f, 0.85f, 0.95f), 0.9f, 0.3f, Sfx.SwingHeavy);
             bit.Clear();
             owner.PackT = 0f;
@@ -849,7 +850,7 @@ namespace Arena
             if (++e.BoneDarts < BoneCageHits)
                 return;
             e.BoneDarts = 0;
-            e.CageT = BoneCageTime;
+            e.CageT = BoneCageTime + p.Stats.CageBonusTime;  // (Ossuary: longer)
             e.Caged = true;
             BroadcastFx(FxKind.Ring, e.Pos, Defs.BulletColor(Defs.BoneShot), e.Radius + 16f, 0.3f, Sfx.Hit);
         }

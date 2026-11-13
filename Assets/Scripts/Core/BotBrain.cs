@@ -695,7 +695,7 @@ namespace Arena
                             if (p.DistanceTo(e.Pos) < SentryBeamLen && off < (e.Phase == 3 ? 0.35f : 0.6f))
                                 d += w * 2.5f;
                         }
-                        else if (e.Type == EnemyType.RiotShield && (RiotState(e) == RiotWinding || RiotState(e) == RiotLunging))
+                        else if (e.Kin == EnemyType.RiotShield && (RiotState(e) == RiotWinding || RiotState(e) == RiotLunging))
                         {
                             // A Riot Shield about to bash: get out from in front of the shield (WardenFaction.cs).
                             V2 rel = p - e.Pos;

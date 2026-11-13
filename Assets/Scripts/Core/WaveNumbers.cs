@@ -2,8 +2,7 @@ using System;
 
 namespace Arena
 {
-    /// The wave-size numbers in one place (Docs/WaveRefactor.md step 1): how many enemies a regular wave holds, how many
-    /// a boss brings, and how fast the legacy spawner drips them in. `BuildWave` and `TickWaves` read them from here.
+    /// The wave-size numbers in one place (Docs/WaveRefactor.md step 1): how many enemies a regular wave holds and how fast the legacy spawner drips them in. `BuildWave` and `TickWaves` read them from here.
     /// The alive cap and spawn window of timed waves are in `TimedWaves`, a burst's size in `SpawnPortals`.
     public static class WaveNumbers
     {
@@ -28,19 +27,6 @@ namespace Arena
 
         /// The legacy spawner's gap between singles (waves that aren't timed: designed, practice, Zombie Infection).
         public static float SpawnInterval(int wave) => Math.Max(0.3f, (wave <= 1 ? 0.7f : 1.1f) - wave * 0.05f);
-
-        /// The grunts and snipers a boss wave brings along (0 for the bosses that fight alone or bring their own swarm).
-        public static int EscortCount(EnemyType boss, int n)
-        {
-            switch (boss)
-            {
-                case EnemyType.Boss: return n / 2;
-                case EnemyType.Singularity: return n / 6;
-                case EnemyType.Colossus: return n / 5;
-                case EnemyType.StormHerald: return n / 8;
-                default: return 0;
-            }
-        }
     }
 
     /// What differs between the game modes about a wave's size. Quick Play and the Campaign build waves the same way

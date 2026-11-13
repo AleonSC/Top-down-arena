@@ -684,7 +684,7 @@ namespace Arena
                     if (e.Disp.DistanceSq(pos) > reach * reach)
                         continue;
                     bool shield = e.Type == EnemyType.Shielder && e.Phase < Game.ShieldBroken
-                        || e.Type == EnemyType.RiotShield && Game.RiotCrack(e) < Game.RiotCracked && Game.RiotState(e) != Game.RiotLow;
+                        || e.Kin == EnemyType.RiotShield && Game.RiotCrack(e) < Game.RiotCracked && Game.RiotState(e) != Game.RiotLow;
                     if (shield && V2.FromAngle(e.Facing).Dot((pos - e.Disp).Normalized()) > 0.45f)
                         return Ending.Blocked;
                     return Ending.HitEnemy;

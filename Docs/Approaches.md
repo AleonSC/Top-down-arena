@@ -197,7 +197,7 @@ and legendaries, so a chapter would start you at the level, picks and legendarie
 - Waves 1-4 now have a theme: does that settle `Docs/Paths.md`'s question about a path choice for them?
 - Do faction enemies stay out of regular waves entirely, or show up rarely elsewhere once you've met them?
 
-## Campaign: ten waves per boss (owner's idea; Trickle and the fade are built, callbacks and the rest of the schedule are not)
+## Campaign: ten waves per boss (owner's idea; the Warden's table, Trickle and the fade are built, callbacks and the rest of the schedule are not)
 
 Instead of a themed share that ramps up, each faction enemy is **introduced one at a time**: it first **trickles in
 as stragglers in the second half** of its intro wave (alone, so you learn it), then **joins the squads** the next
@@ -208,6 +208,8 @@ for the Warden's whole roster, then a few waves of everything together.
 Shields. The two sides only share a wave through the random mix or by one squad each.
 
 ### The Warden (waves 1-10)
+
+**Built as this table** (November 2026, `Approaches.cs` lessons; `run.sh 1 1 chartcheck` prints the real waves next to it). The table's "Rioter pack" and "Guard pair" are `FactionDef.LessonSquads` (only the lessons use them). Wave 10 is the Riot line plus a big Breakout (`WaveLesson.Also`). A wave's new enemy comes last, after its squads (`stragglers`, `SpawnNextSquad`). One gap: the Yard squad carries a Shiv, which has no intro wave.
 
 | Wave | Squads (from earlier waves) | New: stragglers in the second half |
 |---|---|---|
