@@ -417,6 +417,13 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.MummerCopy, Name = "Mummer copy", Group = "Summons", Wave = 28,
+                Appears = "Two at a time, when a Mummer blinks into three",
+                Lead = "One of a Mummer's two copies: it looks just like the Mummer and circles you with it, but its shots are hollow rings that pass through you. 1 health, no XP; it vanishes after 5 s or when the real one dies.",
+                Attacks = new[] { new BestiaryAttack { Name = "Hollow shot", Pattern = "Aimed, every 0.9 s", Damage = "0 (passes through you)" } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.HiveEgg, Name = "Hive Egg", Group = "Summons", Wave = 10,
                 Appears = "Laid by the Hive Queen in her Honeycomb stage",
                 Lead = "Doesn't move or attack. Break it before it hatches into drones.",
