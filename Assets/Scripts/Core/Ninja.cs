@@ -314,6 +314,30 @@ namespace Arena
                 Desc = "Slow, heavy throwing knives that hit harder against enemies not targeting you. Every throw leaves a mark where it lands: press your weapon-action key to blink there, and your next hit lands double." },
         };
 
+        /// The Ninja's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
+        /// (Weapons) or the whole class (Kit). Upgrades.All gathers every class's list (Docs/UpgradePools.md).
+        internal static readonly UpgradeDef[] NinjaCards =
+        {
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ShadowClone, MaxStacks = 2, Name = "Mirror Image", Desc = "Shadow Clone lasts 2 s longer and its clones have 50% more health",
+                Apply = s => { s.CloneBonusTime += 2f; s.CloneHpMult += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SmokeBomb, MaxStacks = 2, Name = "Thick Smoke", Desc = "Smoke Bomb is 40% bigger and lasts 2 s longer",
+                Apply = s => { s.SmokeRadiusMult += 0.4f; s.SmokeBonusTime += 2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.IronBody, MaxStacks = 2, Name = "Tempered Steel", Desc = "Iron Body lasts 1 s longer and its shockwave hits 50% harder",
+                Apply = s => { s.IronBonusTime += 1f; s.IronWaveMult += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.HealingDash, MaxStacks = 2, Name = "Morning Dew", Desc = "Healing Dash's footprints heal 50% more and are 25% bigger",
+                Apply = s => { s.MistHealMult += 0.5f; s.MistRadiusMult += 0.25f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Substitution, MaxStacks = 2, Name = "Body Double", Desc = "Substitution's shield is 60% stronger and lasts 2 s longer",
+                Apply = s => { s.SubShieldMult += 0.6f; s.SubBonusTime += 2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SpiritWard, MaxStacks = 2, Name = "Sacred Seal", Desc = "Spirit Ward is 40% bigger and lasts 3 s longer",
+                Apply = s => { s.WardRadiusMult += 0.4f; s.WardBonusTime += 3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ShadowStep, MaxStacks = 2, Name = "Assassinate", Desc = "Shadow Step strikes 60% harder and reaches enemies 30% farther",
+                Apply = s => { s.StepDmgMult += 0.6f; s.StepRangeMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Vanish, MaxStacks = 2, Name = "Unseen Blade", Desc = "Vanish lasts 1.5 s longer and your ambush hit deals one more times its damage",
+                Apply = s => { s.VanishBonusTime += 1.5f; s.AmbushMult += 1f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BladeFan, MaxStacks = 2, Name = "Storm of Steel", Desc = "Blade Fan throws 6 more kunai",
+                Apply = s => s.FanExtraKunai += 6 },
+        };
+
         /// The Ninja's abilities and ultimates. (Upgrades.Abilities gathers every class's list.)
         internal static readonly AbilityDef[] NinjaAbilities =
         {

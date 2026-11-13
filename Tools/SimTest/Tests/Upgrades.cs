@@ -287,6 +287,32 @@ static partial class Program
         }
     }
 
+    // Each class keeps its own cards beside its abilities (Docs/UpgradePools.md step 4): every card in a class's list
+    // belongs to that class (by its ability, weapons or Kit), all of them are in Upgrades.All, and card names are unique
+    // (saves find cards by name).
+    static void ClassCardListsTest()
+    {
+        var lists = new[] { Game.SoldierCards, Game.ElementalistCards, Game.SummonerCards, Game.KnightCards, Game.NinjaCards, Game.HemomancerCards };
+        bool own = lists.Length == Defs.KitCount, inAll = true;
+        var bad = new List<string>();
+        for (int k = 0; k < lists.Length; k++)
+            foreach (var u in lists[k])
+            {
+                inAll &= Array.IndexOf(Upgrades.All, u) >= 0;
+                bool mine = (u.RequiresAbility == AbilityId.None || Upgrades.Ability(u.RequiresAbility).Kit == (Kit)k)
+                    && (u.Weapons == null || u.Weapons.All(w => Defs.WeaponOf(w).Kit == (Kit)k))
+                    && (!u.Kit.HasValue || u.Kit.Value == (Kit)k)
+                    && (u.RequiresAbility != AbilityId.None || u.Weapons != null || u.Kit.HasValue);
+                if (!mine)
+                    bad.Add((Kit)k + ": " + u.Name);
+            }
+        Check(own && inAll && bad.Count == 0, "each class's card list holds only its own cards, and all are offered" + (bad.Count > 0 ? " (wrong: " + string.Join(", ", bad) + ")" : ""));
+        var general = Upgrades.All.Where(u => lists.All(l => Array.IndexOf(l, u) < 0)).ToList();
+        Check(general.All(u => u.RequiresAbility == AbilityId.None && u.Weapons == null && !u.Kit.HasValue),
+            "no class card is left in the general list");
+        Check(Upgrades.All.Select(u => u.Name).Distinct().Count() == Upgrades.All.Length, "every card name is unique (" + Upgrades.All.Length + " cards)");
+    }
+
     // Card ids cross the wire as 2 bytes (Docs/UpgradePools.md step 1): an offer with ids past 255 and an empty
     // slot (-1) reaches the client as sent, and so does the taken list.
     static void CardIdWireTest(float dt)

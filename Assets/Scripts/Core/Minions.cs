@@ -55,6 +55,13 @@ namespace Arena
                 Sound = Sfx.SpellArcane },
         };
 
+        /// The Elementalist's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
+        /// (Weapons) or the whole class (Kit). Upgrades.All gathers every class's list (Docs/UpgradePools.md).
+        internal static readonly UpgradeDef[] ElementalistCards =
+        {
+            // (none yet: add this class's cards here)
+        };
+
         /// The Mage's Space abilities (its ultimates are in Ultimates.cs). (Upgrades.Abilities gathers every class's list.)
         internal static readonly AbilityDef[] ElementalistAbilities =
         {
@@ -164,6 +171,15 @@ namespace Arena
                 Desc = "Imps arrive over time and wait by you. Tap fire to send one charging at your cursor to explode; hold to merge them all into one big imp whose blast is bigger than theirs put together.",
                 Companion = MinionKind.Imp, CompanionCount = 5, CompanionRespawn = 1f,
                 HomingDesc = "imps pick an enemy 50% farther from your cursor per stack, and one sent at empty ground turns onto an enemy near it. 5% less damage per stack" },
+        };
+
+        /// The Summoner's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
+        /// (Weapons) or the whole class (Kit). Upgrades.All gathers every class's list (Docs/UpgradePools.md).
+        internal static readonly UpgradeDef[] SummonerCards =
+        {
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.SpiritChalk }, MaxStacks = 1, Name = "Warding Ink", Desc = "Spirit Chalk blocks enemy bullets, but every bullet it stops wears the ink away fast",
+                Apply = s => s.ChalkWard = true },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SoulLantern, MaxStacks = 2, Name = "Kindred Spirits", Desc = "Soul Lantern heals twice as fast", Apply = s => s.LinkHealMult += 1f },
         };
 
         /// The Summoner's Space abilities (its ultimates are in Ultimates.cs). (Upgrades.Abilities gathers every class's list.)

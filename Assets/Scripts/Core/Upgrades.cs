@@ -110,7 +110,7 @@ namespace Arena
         public float ParryCapacityMult = 1f, ParryArcMult = 1f, PerfectBonus, ReflectMult = 1f, CounterFireRate, MirrorChance;
         public bool ParryNoSlow;
 
-        // Milestone upgrades (offered every 10 levels; Upgrades.WithMilestones).
+        // Milestone upgrades (offered every 10 levels; Upgrades.Milestones).
         public float XpMult = 1f;          // Scholar: XP earned
         public float ExtraPickChance;      // Second Helping: a level-up may give an extra pick
         public int OfferExtra;             // Wide Choice: more cards in every level-up offer
@@ -304,7 +304,11 @@ namespace Arena
         }
 
 
-        public static readonly UpgradeDef[] All = WithBuilders(WithMilestones(WithClassAbilities(new[]
+        /// Every upgrade card; a card's id is its place here. The general cards, then the class ability cards, the
+        /// milestone pool and the vector cards, then each class's own cards (Game.SoldierCards ... Game.HemomancerCards,
+        /// beside that class's abilities). Ids are positions, so adding a card anywhere just bumps Session.ProtocolVersion
+        /// (saves name their cards; Docs/UpgradePools.md step 4).
+        public static readonly UpgradeDef[] All = Gather(new[]
         {
             // Common: small stat boosts
             new UpgradeDef { Rarity = Rarity.Common, Name = "Sharpened Rounds", Desc = "+10% damage", Apply = s => s.DmgMult += 0.1f },
@@ -328,78 +332,8 @@ namespace Arena
 
             // Rare: ability upgrades and weapon mods
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 1, Name = "Second Charge", Desc = "Your Space ability gets a second charge", Apply = s => s.RoleCharges += 1 },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Barrier, MaxStacks = 2, Name = "Bastion", Desc = "Barrier is 40% bigger, lasts 1.5 s longer and soaks 50% more",
-                Apply = s => { s.BarrierRadiusMult += 0.4f; s.BarrierBonusTime += 1.5f; s.BarrierCapacityMult += 0.5f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.SpiritChalk }, MaxStacks = 1, Name = "Warding Ink", Desc = "Spirit Chalk blocks enemy bullets, but every bullet it stops wears the ink away fast",
-                Apply = s => s.ChalkWard = true },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Roar, MaxStacks = 2, Name = "Bellow", Desc = "Roar lasts 2 s longer and blocks 15% more damage",
-                Apply = s => { s.RoarBonusTime += 2f; s.RoarExtraReduction += 0.15f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Bulldoze, MaxStacks = 2, Name = "Juggernaut", Desc = "Bulldoze deals double damage", Apply = s => s.BulldozeMult += 1f },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.MendPulse, MaxStacks = 2, Name = "Greater Mending", Desc = "Mend Pulse heals 60% more and reaches 25% farther",
-                Apply = s => { s.PulseHealMult += 0.6f; s.PulseRangeMult += 0.25f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Adrenaline, MaxStacks = 2, Name = "Long Dose", Desc = "Adrenaline Shot lasts 3 s longer",
-                Apply = s => s.AdrenalineBonusTime += 3f },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SoulLantern, MaxStacks = 2, Name = "Kindred Spirits", Desc = "Soul Lantern heals twice as fast", Apply = s => s.LinkHealMult += 1f },
             new UpgradeDef { Rarity = Rarity.Rare, Role = Role.Healer, MaxStacks = 2, Name = "Sanctuary", Desc = "Aura reaches 40% farther and heals allies twice as fast; it heals you +1 HP/s",
                 Apply = s => { s.AuraRangeMult += 0.4f; s.AuraHealMult += 1f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.PoisonDart, MaxStacks = 2, Name = "Virulence", Desc = "Poison Dart's venom deals 30% more damage and spreads 60 px further",
-                Apply = s => { s.VenomMult *= 1.3f; s.VenomReachBonus += 60f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Airstrike, MaxStacks = 2, Name = "Bigger Boom", Desc = "Airstrike's bombs blast 50% wider",
-                Apply = s => s.GrenadeRadiusMult += 0.5f },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Mark, MaxStacks = 2, Name = "Exploit Weakness", Desc = "Marked enemies take an extra 50% damage", Apply = s => s.MarkBonus += 0.5f },
-            // Knight abilities
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ShieldWall, MaxStacks = 2, Name = "Tower Shield", Desc = "Shield Wall covers 160° and its plates take 50% more before they break",
-                Apply = s => { s.WallArcMult += 0.33f; s.WallCapMult += 0.5f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.LeapSlam, MaxStacks = 2, Name = "Earthshaker", Desc = "Leap Slam hits 40% wider and stuns for 1 s longer",
-                Apply = s => { s.SlamRadiusMult += 0.4f; s.SlamStunBonus += 1f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CavalryCall, MaxStacks = 2, Name = "Iron Will", Desc = "Cavalry Call blocks 10% more damage while the lancers ride and every lance hits for 10 more",
-                Apply = s => { s.UnbreakBonus += 0.1f; s.CavalryDmgBonus += 10f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Consecrate, MaxStacks = 2, Name = "Sacred Ground", Desc = "Consecrate flies 40% farther and its Swiftness lasts 2 s longer",
-                Apply = s => { s.HolyRangeMult += 0.4f; s.HolySwiftBonus += 2f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.GuardiansOath, MaxStacks = 2, Name = "Bulwark", Desc = "Guardian's Oath ward cuts 15% more damage", Apply = s => s.OathCut += 0.15f },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.LayOnHands, MaxStacks = 2, Name = "Miracle", Desc = "Lay on Hands heals 60% more and reaches 30% further", Apply = s => s.LayMult += 0.6f },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Whirlwind, MaxStacks = 2, Name = "Coup de Grace", Desc = "Misericorde executes enemies under 30% health (+5%) and leaps 40 px further",
-                Apply = s => { s.MercyBelow += 0.05f; s.MercyReach += 40f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Lunge, MaxStacks = 2, Name = "Iron Grip", Desc = "The Gauntlet flies 40% further and its charge hits 50% harder",
-                Apply = s => { s.GauntletRange += 0.4f; s.GauntletDamage += 0.5f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BattleFury, MaxStacks = 2, Name = "Forged Edge", Desc = "Caught Steel's shards hit 8 harder, and it catches bullets passing 6 px further out",
-                Apply = s => { s.SteelDamage += 8f; s.SteelReach += 6f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ShadowClone, MaxStacks = 2, Name = "Mirror Image", Desc = "Shadow Clone lasts 2 s longer and its clones have 50% more health",
-                Apply = s => { s.CloneBonusTime += 2f; s.CloneHpMult += 0.5f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SmokeBomb, MaxStacks = 2, Name = "Thick Smoke", Desc = "Smoke Bomb is 40% bigger and lasts 2 s longer",
-                Apply = s => { s.SmokeRadiusMult += 0.4f; s.SmokeBonusTime += 2f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.IronBody, MaxStacks = 2, Name = "Tempered Steel", Desc = "Iron Body lasts 1 s longer and its shockwave hits 50% harder",
-                Apply = s => { s.IronBonusTime += 1f; s.IronWaveMult += 0.5f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.HealingDash, MaxStacks = 2, Name = "Morning Dew", Desc = "Healing Dash's footprints heal 50% more and are 25% bigger",
-                Apply = s => { s.MistHealMult += 0.5f; s.MistRadiusMult += 0.25f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Substitution, MaxStacks = 2, Name = "Body Double", Desc = "Substitution's shield is 60% stronger and lasts 2 s longer",
-                Apply = s => { s.SubShieldMult += 0.6f; s.SubBonusTime += 2f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SpiritWard, MaxStacks = 2, Name = "Sacred Seal", Desc = "Spirit Ward is 40% bigger and lasts 3 s longer",
-                Apply = s => { s.WardRadiusMult += 0.4f; s.WardBonusTime += 3f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ShadowStep, MaxStacks = 2, Name = "Assassinate", Desc = "Shadow Step strikes 60% harder and reaches enemies 30% farther",
-                Apply = s => { s.StepDmgMult += 0.6f; s.StepRangeMult += 0.3f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Vanish, MaxStacks = 2, Name = "Unseen Blade", Desc = "Vanish lasts 1.5 s longer and your ambush hit deals one more times its damage",
-                Apply = s => { s.VanishBonusTime += 1.5f; s.AmbushMult += 1f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BladeFan, MaxStacks = 2, Name = "Storm of Steel", Desc = "Blade Fan throws 6 more kunai",
-                Apply = s => s.FanExtraKunai += 6 },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodShell, MaxStacks = 2, Name = "Hardened Blood", Desc = "Blood Shell costs you 25% less health for each bullet it stops, and heals allies inside 50% more",
-                Apply = s => s.ShellBonus += 1f },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CrimsonPact, MaxStacks = 2, Name = "Blood Oath", Desc = "Blood Wall stands 2 s longer and its drain doubles 1 s slower",
-                Apply = s => { s.WallLifeBonus += Game.WallLifeUp; s.WallRampBonus += Game.WallDoubleUp; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Exsanguinate, MaxStacks = 2, Name = "Deep Veins", Desc = "Exsanguinate reaches 30% farther and drains 50% more",
-                Apply = s => { s.DrainRadiusMult += 0.3f; s.DrainMult += 0.5f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodGift, MaxStacks = 2, Name = "Lifeblood", Desc = "Blood Gift gives 50% more",
-                Apply = s => s.GiftMult += 0.5f },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SiphonField, MaxStacks = 2, Name = "Hungry Earth", Desc = "Blood Freeze holds everything 1.5 s longer",
-                Apply = s => { s.FreezeBonusTime += 1.5f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Martyr, MaxStacks = 2, Name = "Saint's Blood", Desc = "Martyr revives with 25% more health and leaves them invulnerable 1 s longer",
-                Apply = s => { s.MartyrBonus += 0.25f; s.MartyrInvuln += 1f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodBoil, MaxStacks = 2, Name = "High Pressure", Desc = "Arterial Spray reaches 25% farther and hits 25% harder",
-                Apply = s => { s.SprayReach += 0.25f; s.SprayMult += 0.25f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.FrenzyPact, MaxStacks = 2, Name = "Usury", Desc = "Blood Debt's kills repay 25% more, and it gives you 1 s longer to pay",
-                Apply = s => { s.DebtRepay += 0.25f; s.DebtBonusTime += 1f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.HemoNova, MaxStacks = 2, Name = "Crimson Tide", Desc = "Vein Rush goes 25% farther, and each enemy it cuts gives back 1% more health",
-                Apply = s => { s.RushReach += 0.25f; s.RushRefund += 0.01f; } },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Multishot", Desc = "+1 projectile: upgrades your weapon in its own way", Apply = s => s.ExtraShots += 1 },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Barrage", Desc = "Every shot also fires a copy fanned out to the side, at 60% damage. Stack it into a wall of bullets",
                 Apply = s => s.Fan += 1 },
@@ -480,7 +414,8 @@ namespace Arena
                 Apply = s => s.MirrorChance = Math.Min(0.75f, s.MirrorChance + 0.25f) },
             new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Velocity Rounds", Desc = "Shots fly 30% faster and farther and deal 25% more damage",
                 Apply = s => { s.ShotSpeedMult += 0.3f; s.DmgMult += 0.25f; } },
-        })));
+        }, ClassAbilityCards(), Milestones(), VectorCards(), Game.SoldierCards, Game.ElementalistCards, Game.SummonerCards,
+            Game.KnightCards, Game.NinjaCards, Game.HemomancerCards);
 
         /// After a boss: every weapon mod you can still take, to choose from.
         public static int[] ModOffer(OfferCtx c)
@@ -581,11 +516,11 @@ namespace Arena
             return n;
         }
 
-        /// The very rare class ability cards, added after the rest: for every role and class, a card for each of
-        /// its Space abilities. A player is offered the two they didn't pick (see Available).
-        static UpgradeDef[] WithClassAbilities(UpgradeDef[] basic)
+        /// The very rare class ability cards: for every role and class, a card for each of its Space abilities. A
+        /// player is offered the two they didn't pick (see Available).
+        static UpgradeDef[] ClassAbilityCards()
         {
-            var all = new List<UpgradeDef>(basic);
+            var all = new List<UpgradeDef>();
             foreach (var id in RoleAbilities)
             {
                 var a = Ability(id);
@@ -597,34 +532,39 @@ namespace Arena
             return all.ToArray();
         }
 
-        /// The Expanding arena's vector cards (Docs/VectorBuilding.md), added after the milestones so every older upgrade keeps its number.
-        static UpgradeDef[] WithBuilders(UpgradeDef[] before)
+        /// The Expanding arena's vector cards (Docs/VectorBuilding.md).
+        static UpgradeDef[] VectorCards() => new[]
         {
-            var all = new List<UpgradeDef>(before);
-            all.AddRange(new[]
-            {
-                new UpgradeDef { Rarity = Rarity.Uncommon, MaxStacks = 4, NeedsExpanding = true, Name = "Deep Inkwell", Desc = "Hold 20 more vectors (the Expanding arena)", Apply = s => s.VectorCap += 20 },
-                new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 3, NeedsExpanding = true, Name = "Architect", Desc = "Hold 40 more vectors, and gain 20 now (the Expanding arena)", VectorsNow = 20, Apply = s => s.VectorCap += 40 },
-            });
-            return all.ToArray();
-        }
+            new UpgradeDef { Rarity = Rarity.Uncommon, MaxStacks = 4, NeedsExpanding = true, Name = "Deep Inkwell", Desc = "Hold 20 more vectors (the Expanding arena)", Apply = s => s.VectorCap += 20 },
+            new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 3, NeedsExpanding = true, Name = "Architect", Desc = "Hold 40 more vectors, and gain 20 now (the Expanding arena)", VectorsNow = 20, Apply = s => s.VectorCap += 40 },
+        };
 
-        /// The milestone pool and the Milestone Compass, added last so every older upgrade keeps its number.
-        static UpgradeDef[] WithMilestones(UpgradeDef[] before)
+        /// The milestone pool and the Milestone Compass.
+        static UpgradeDef[] Milestones() => new[]
         {
-            var all = new List<UpgradeDef>(before);
-            all.AddRange(new[]
-            {
-                new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 5, Name = "Scholar", Desc = "Gain 15% more XP per stack", Apply = s => s.XpMult += 0.15f },
-                new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 5, Name = "Second Helping", Desc = "10% chance a level-up gives an extra pick", Apply = s => s.ExtraPickChance += 0.1f },
-                new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 2, Name = "Wide Choice", Desc = "+1 card in every level-up offer (max 2)", Apply = s => s.OfferExtra += 1 },
-                new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 4, Name = "Reroll Cache", Desc = "Gain 3 rerolls now, and 1 more after every boss", RerollsNow = 3, Apply = s => s.BossRerolls += 1 },
-                new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 5, Name = "Fortune", Desc = "Rarer cards turn up 8% more often", Apply = s => s.RarityLuck += 0.08f },
-                new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 5, Name = "Iron Constitution", Desc = "+25 max HP", Apply = s => s.BonusHp += 25f },
-                new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 5, Name = "Quickening", Desc = "-4% ability cooldowns", Apply = s => s.CdMult *= 0.96f },
-                // A normal very rare card: milestone offers can turn up between the milestone levels.
-                new UpgradeDef { Rarity = Rarity.VeryRare, MaxStacks = 3, Name = "Milestone Compass", Desc = "Each level-up has a 5% chance to also offer a milestone pick", Apply = s => s.MilestoneChance += 0.05f },
-            });
+            new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 5, Name = "Scholar", Desc = "Gain 15% more XP per stack", Apply = s => s.XpMult += 0.15f },
+            new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 5, Name = "Second Helping", Desc = "10% chance a level-up gives an extra pick", Apply = s => s.ExtraPickChance += 0.1f },
+            new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 2, Name = "Wide Choice", Desc = "+1 card in every level-up offer (max 2)", Apply = s => s.OfferExtra += 1 },
+            new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 4, Name = "Reroll Cache", Desc = "Gain 3 rerolls now, and 1 more after every boss", RerollsNow = 3, Apply = s => s.BossRerolls += 1 },
+            new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 5, Name = "Fortune", Desc = "Rarer cards turn up 8% more often", Apply = s => s.RarityLuck += 0.08f },
+            new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 5, Name = "Iron Constitution", Desc = "+25 max HP", Apply = s => s.BonusHp += 25f },
+            new UpgradeDef { Rarity = Rarity.Milestone, MaxStacks = 5, Name = "Quickening", Desc = "-4% ability cooldowns", Apply = s => s.CdMult *= 0.96f },
+            // A normal very rare card: milestone offers can turn up between the milestone levels.
+            new UpgradeDef { Rarity = Rarity.VeryRare, MaxStacks = 3, Name = "Milestone Compass", Desc = "Each level-up has a 5% chance to also offer a milestone pick", Apply = s => s.MilestoneChance += 0.05f },
+        };
+
+        /// Joins the card lists into Upgrades.All. Saves find cards by name, so every name must be unique.
+        static UpgradeDef[] Gather(params UpgradeDef[][] lists)
+        {
+            var all = new List<UpgradeDef>();
+            var names = new HashSet<string>();
+            foreach (var list in lists)
+                foreach (var u in list)
+                {
+                    if (!names.Add(u.Name))
+                        throw new InvalidOperationException("Two upgrade cards are named " + u.Name + ": saves find cards by name");
+                    all.Add(u);
+                }
             return all.ToArray();
         }
 

@@ -765,6 +765,30 @@ namespace Arena
                 Desc = "A heavy spear that pierces enemies. Each throw costs a little health, but the spear stays stuck where it stops, and walking over it gives the health back." },
         };
 
+        /// The Blood Mage's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
+        /// (Weapons) or the whole class (Kit). Upgrades.All gathers every class's list (Docs/UpgradePools.md).
+        internal static readonly UpgradeDef[] HemomancerCards =
+        {
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodShell, MaxStacks = 2, Name = "Hardened Blood", Desc = "Blood Shell costs you 25% less health for each bullet it stops, and heals allies inside 50% more",
+                Apply = s => s.ShellBonus += 1f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CrimsonPact, MaxStacks = 2, Name = "Blood Oath", Desc = "Blood Wall stands 2 s longer and its drain doubles 1 s slower",
+                Apply = s => { s.WallLifeBonus += Game.WallLifeUp; s.WallRampBonus += Game.WallDoubleUp; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Exsanguinate, MaxStacks = 2, Name = "Deep Veins", Desc = "Exsanguinate reaches 30% farther and drains 50% more",
+                Apply = s => { s.DrainRadiusMult += 0.3f; s.DrainMult += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodGift, MaxStacks = 2, Name = "Lifeblood", Desc = "Blood Gift gives 50% more",
+                Apply = s => s.GiftMult += 0.5f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SiphonField, MaxStacks = 2, Name = "Hungry Earth", Desc = "Blood Freeze holds everything 1.5 s longer",
+                Apply = s => { s.FreezeBonusTime += 1.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Martyr, MaxStacks = 2, Name = "Saint's Blood", Desc = "Martyr revives with 25% more health and leaves them invulnerable 1 s longer",
+                Apply = s => { s.MartyrBonus += 0.25f; s.MartyrInvuln += 1f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodBoil, MaxStacks = 2, Name = "High Pressure", Desc = "Arterial Spray reaches 25% farther and hits 25% harder",
+                Apply = s => { s.SprayReach += 0.25f; s.SprayMult += 0.25f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.FrenzyPact, MaxStacks = 2, Name = "Usury", Desc = "Blood Debt's kills repay 25% more, and it gives you 1 s longer to pay",
+                Apply = s => { s.DebtRepay += 0.25f; s.DebtBonusTime += 1f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.HemoNova, MaxStacks = 2, Name = "Crimson Tide", Desc = "Vein Rush goes 25% farther, and each enemy it cuts gives back 1% more health",
+                Apply = s => { s.RushReach += 0.25f; s.RushRefund += 0.01f; } },
+        };
+
         /// The Blood Mage's abilities and ultimates: every Space ability costs health. (Upgrades.Abilities gathers every class's list.)
         internal static readonly AbilityDef[] HemomancerAbilities =
         {

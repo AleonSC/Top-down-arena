@@ -1,6 +1,6 @@
 # Upgrade pools: class and weapon cards
 
-**Status: steps 1-3 built (Nov 2026, protocol 309); steps 4-5 planned.** Owner decisions are below; build one step at a time ("start on step N").
+**Status: steps 1-4 built (Nov 2026, protocol 310); step 5 (the first class and weapon cards) next.** Owner decisions are below; build one step at a time ("start on step N").
 
 ## Why
 
@@ -67,17 +67,18 @@ The Nov 2026 audit of `Core/Upgrades.cs` found:
   `DEVSHEET=4 UPRARITY=2 UPSCROLL=2000 Tools/Preview/shot.sh <name> dev`.
 - Test: suite `cardfilters` (`CardFilterTest`, `Tools/SimTest/Tests/Upgrades.cs`).
 
-### Step 4: per-class card files
+### Step 4: per-class card files (built, protocol 310)
 
-- Each class file gets its cards beside its abilities (`Game.KnightCards`, ...), like `Game.KnightAbilities`.
-  `Upgrades.All` = general cards, legendaries, mods, class-ability cards, milestones, vector cards, then each class's
-  list in `Kit` order. The `With...` chain goes.
-- **Order rule:** ids are positions. Host and client must share a protocol version and saves use names, so a card
-  can go anywhere as long as the change bumps `Session.ProtocolVersion` and `Replay.FormatVersion` (old replays store
-  ids). No more "add it at the very end".
-- Replace the "vector cards are last" check (`Tests/Expansion.cs:1359`) with a check that every card name is unique
-  (saves look cards up by name).
-- `CODEMAP.md`: `Upgrades.cs` line names the per-class lists; `HANDOFF.md` "Adding a class" gets a cards line.
+- Each class keeps its own cards beside its abilities: `Game.SoldierCards` (`Abilities.cs`), `ElementalistCards` and
+  `SummonerCards` (`Minions.cs`), `KnightCards` (`Knight.cs`), `NinjaCards` (`Ninja.cs`), `HemomancerCards`
+  (`BloodMage.cs`). The 37 Rare ability cards (and Warding Ink, a Summoner weapon card) moved there.
+- `Upgrades.All = Gather(general cards, ClassAbilityCards(), Milestones(), VectorCards(), each class's list in Kit
+  order)`. The `With...` chain is gone. `Gather` stops the game at start-up if two cards share a name.
+- **Order rule:** ids are positions. Host and client share a protocol and saves name their cards, so a card can go
+  anywhere: add it to its class's list (or the general list) and bump `Session.ProtocolVersion`.
+- Cards per class today: Soldier 8, Elementalist 0, Summoner 2, Knight 9, Ninja 9, Blood Mage 9.
+- Test: suite `classcardlists` (`ClassCardListsTest`: each list holds only its class's cards, nothing class-specific is
+  left in the general list, names are unique). `Tests/Expansion.cs` no longer needs the vector cards last.
 
 ### Step 5 (later): the first class and weapon cards
 
