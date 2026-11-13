@@ -367,6 +367,7 @@ namespace Arena
                 MapRect(c.X - 4f, c.Y - 4f, 8f, 8f, new Rgba(0.02f, 0.03f, 0.06f, 0.9f));
                 MapRect(c.X - 3f, c.Y - 3f, 6f, 6f, new Rgba(1f, 0.82f, 0.3f));
             }
+            DrawGateOnMap(M);  // the boss gate (BossGateLook.cs)
             foreach (var co in game.Coins.Values)  // gold coins: a small gold dot (5-gold coins a bit bigger); vector pickups stay off
             {
                 if (co.Vec)

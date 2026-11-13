@@ -81,6 +81,7 @@ namespace Arena
                     MarkArrow(tip, dir, 12f, MarkChest.WithAlpha(fade * pulse));
                     Arc(tip - dir * 5f, 16f, 2f, MarkChest.WithAlpha(fade * 0.55f * pulse), 24);
                 }
+                DrawGateMarker(mid, fade);  // the boss gate (BossGateLook.cs)
                 byte stashKind = (byte)(1 + (int)SurpriseShape.Stash);
                 foreach (var r in game.Expanded)  // an unclaimed Stash cache: a teal arrow with a ring
                 {

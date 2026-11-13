@@ -77,7 +77,7 @@ namespace Arena
         {
             if (!GateUp)
                 return;
-            BroadcastFx(FxKind.Implode, GatePos, new Rgba(1f, 0.22f, 0.25f), 140f, 0.5f, Sfx.None);
+            BroadcastFx(FxKind.Implode, GatePos, new Rgba(1f, 0.22f, 0.25f), 140f, 0.5f, Sfx.BossGong);  // a deep gong as it takes them
             GateUp = false;
             GateFill = 0f;
         }
