@@ -232,16 +232,16 @@ namespace Arena
         /// Only your own profile, and only if a curve was started (so not the lobby or a match that never began).
         void LogQuitRun()
         {
-            if (runRecorded || RetryReady || retrying || timeline == null || Me == null || !TimelineOn || Hunt != null || Quick)  // (a quit Boss Hunt or Quick Play isn't logged)
+            if (runRecorded || RetryReady || retrying || timeline == null || Me == null || !TimelineOn || Hunt != null)  // (a quit Boss Hunt isn't logged)
                 return;
             runRecorded = true;
             var logged = Profile.AddQuitLog(RecordWave, Rank.Award(false, 0, 0, 0, Mods, Diff.Level).Mods);  // (no XP: only the modifier names are used)
             logged.Class = Arena.Profile.ClassKey(Me.Role, Me.Kit);
-            logged.Mode = Endless ? "Endless" : "Campaign";
+            logged.Mode = Quick ? "Quick Play" : Endless ? "Endless" : "Campaign";  // (a Quick Play quit before its first record: QuickRecord)
             logged.Seconds = RunTime;
             logged.Dealt = Me.Run.DamageDealt; logged.Taken = Me.Run.DamageTaken; logged.Heal = Me.Run.HealingDone;
             logged.Players = Players.Count;
-            logged.File = FinishTimeline(false, RecordWave, Endless, RunTime, logged.Class, logged.Mods);
+            logged.File = FinishTimeline(false, RecordWave, Endless, RunTime, logged.Class, logged.Mods, Quick ? "Quick Play" : null);
             SaveProfile();
         }
 
@@ -414,8 +414,7 @@ namespace Arena
             logged.Seconds = time;
             logged.Dealt = me.Run.DamageDealt; logged.Taken = me.Run.DamageTaken; logged.Heal = me.Run.HealingDone;
             logged.Players = Players.Count;
-            if (first)
-                logged.File = FinishTimeline(won, wave, Endless, time, logged.Class, logged.Mods, "Quick Play");  // RunTimeline.cs
+            logged.File = FinishTimeline(won, wave, Endless, time, logged.Class, logged.Mods, logged.Mode);  // RunTimeline.cs (an endless stretch's entry: its own curve, since the win)
             quickCreditedWaves = Math.Max(quickCreditedWaves, cleared);
             quickCreditedBosses = QuickBossesBeaten;
             quickCreditedTime = time;
