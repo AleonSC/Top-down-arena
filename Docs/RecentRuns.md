@@ -10,6 +10,8 @@ what happened during it (damage over time, what hurt you, health, accuracy, team
 
 > Nov 2026: **Quick Play** is fully tracked: a Quick Play you quit is logged as a quit Quick Play with its curve (`LogQuitRun`), and an endless stretch after the win gets its own card and curve too, whether the party falls (`QuickRecord`) or you quit (`LogQuitRun`; mode "Quick Play · Endless").
 
+> Nov 2026: the **Campaign's endless stretch** after its win is logged too: a fall records the best endless wave, XP and Cores found since the win and an "Endless" card with the stretch's curve (`EndlessRecord`; before this, the win's record blocked it and best endless wave never moved); a quit adds a quit Endless card (`LogQuitRun`).
+
 ## What exists today
 
 | Piece | Where | Limit for this feature |
