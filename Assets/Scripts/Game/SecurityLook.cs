@@ -29,33 +29,6 @@ namespace Arena
 
         readonly Dictionary<int, float> secWindSince = new Dictionary<int, float>();
 
-        /// Keyframes along the reload (x, y per key), eased between them like the mockup's kf().
-        static V2 SecKf(float k, float[][] pts)
-        {
-            if (k <= pts[0][0])
-                return new V2(pts[0][1], pts[0][2]);
-            for (int i = 1; i < pts.Length; i++)
-                if (k <= pts[i][0])
-                {
-                    float u = SecEase((k - pts[i - 1][0]) / (pts[i][0] - pts[i - 1][0]));
-                    return new V2(SecLerp(pts[i - 1][1], pts[i][1], u), SecLerp(pts[i - 1][2], pts[i][2], u));
-                }
-            var l = pts[pts.Length - 1];
-            return new V2(l[1], l[2]);
-        }
-
-        static readonly float[][] SecHand = {
-            new[] { 0f, 15f, -1.8f }, new[] { 0.14f, 12f, 6f }, new[] { 0.32f, 12f, 6f }, new[] { 0.5f, -3f, -11f },
-            new[] { 0.74f, 11f, 6f }, new[] { 0.88f, 11f, 6f }, new[] { 1f, 15f, -1.8f } };
-
-        /// A line with round ends.
-        void SecRound(V2 a, V2 b, float w, Rgba c)
-        {
-            Line(a, b, w, c);
-            Circle(a, w / 2f, c, 8);
-            Circle(b, w / 2f, c, 8);
-        }
-
         /// The player the locked shot is meant for: the one nearest its line (where the lane ends).
         float SecLaneLength(Enemy e, V2 muzzle, V2 dir)
         {
