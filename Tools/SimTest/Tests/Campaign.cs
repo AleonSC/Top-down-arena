@@ -81,7 +81,7 @@ static partial class Program
         Check(csq.Members.GroupBy(t => t).All(gr => cwave.Count(t => t == gr.Key) >= gr.Count()), "wave " + cw + " has the " + csq.Name + " squad's members");
         var g0 = new Session().Game;
         g0.Diff.Set(DiffKnob.Campaign, 0f);
-        Check(g0.ApproachShare(6) > 0f && g0.ApproachShare(1) > 0f && g0.ApproachShare(11) == 0f, "off: the old approach share applies (the Hive Queen's on waves 6-9, none before the Reapers)");
+        Check(g0.ApproachShare(6) > 0f && g0.ApproachShare(1) > 0f && g0.ApproachShare(11) > 0f && g0.ApproachShare(16) == 0f, "off: the old approach share applies (the Hive Queen's on waves 6-9, the Reapers' on 11-14, none before the Singularity)");
         var gOn = new Session().Game;
         Check(gOn.CampaignOn && Math.Abs(gOn.ApproachShare(1) - 1f) < 1e-4f && Math.Abs(gOn.ApproachShare(6) - 0.65f) < 1e-4f && Math.Abs(gOn.ApproachShare(31) - 0.55f) < 1e-4f, "on (the default): the wave panel's approach share is the next boss's slice");
     }
