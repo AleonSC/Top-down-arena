@@ -8,12 +8,12 @@ namespace Arena
     {
         static readonly Rgba DuelSteel = new Rgba(0.81f, 0.84f, 1f), DuelCrimson = new Rgba(1f, 0.3f, 0.42f), DuelGold = new Rgba(1f, 0.8f, 0.35f);
 
-        /// On the floor: the circle, the warning line or trail of a dash, and the blades left hanging.
+        /// On the floor: the circle, the warning line or trail of a dash, and the blades left hanging (the Duelist's and Blade Dancers').
         void DrawDuelFloor(float t)
         {
             foreach (var e in game.Enemies.Values)
             {
-                if (e.Type != EnemyType.Duelist || e.Duel == null || game.IsSpawning(e))
+                if (e.Type != EnemyType.Duelist && e.Type != EnemyType.BladeDancer || e.Duel == null || game.IsSpawning(e))  // (a Blade Dancer's lunge: CourtFaction.cs)
                     continue;
                 var s = e.Duel;
                 V2 middle = new V2(Game.Width / 2f, Game.Height / 2f);

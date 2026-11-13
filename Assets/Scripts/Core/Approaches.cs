@@ -269,6 +269,21 @@ namespace Arena
             },
             new FactionDef
             {
+                Boss = EnemyType.Duelist,  // the Duelist: the Masked Court, masked fencers (CourtFaction.cs, Docs/Mockups/duelist-faction.html); step 1 of 4
+                Members = new[]
+                {
+                    new FactionMember { Type = EnemyType.Fencer, Weight = 3f },
+                    new FactionMember { Type = EnemyType.BladeDancer, NotFirst = true, Weight = 2f },  // a Guard that lunges and leaves blades
+                    new FactionMember { Type = EnemyType.Parrier, Fade = 0, Weight = 2f, From = 2 },   // a Riot Shield that parries shots back
+                },
+                Squads = new[]
+                {
+                    new SquadDef { Name = "Salon", From = 1, Members = new[] { EnemyType.BladeDancer, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer } },
+                    new SquadDef { Name = "Guard line", From = 3, Members = new[] { EnemyType.Parrier, EnemyType.Parrier, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer } },
+                },
+            },
+            new FactionDef
+            {
                 Boss = EnemyType.Lich,  // the Lich: the restless dead, the same zombies as Zombie Infection (Zombies.cs); they don't get back up outside that modifier
                 Members = new[]
                 {

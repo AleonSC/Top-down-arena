@@ -31,10 +31,14 @@ namespace Arena
             t[(int)EnemyType.Driller] = EnemyType.Shiv;
             t[(int)EnemyType.Geomancer] = EnemyType.TaserGuard;
             t[(int)EnemyType.CinderPriest] = EnemyType.TaserGuard;
+            // the Duelist's faction (CourtFaction.cs)
+            t[(int)EnemyType.Fencer] = EnemyType.Shiv;
+            t[(int)EnemyType.BladeDancer] = EnemyType.Guard;
+            t[(int)EnemyType.Parrier] = EnemyType.RiotShield;
             return t;
         }
 
-        /// The Warden enemy this one plays like (itself, for anything that isn't a Hive or Quarry enemy).
+        /// The Warden enemy this one plays like (itself, for anything that isn't a Hive, Quarry or Court enemy).
         public static EnemyType Of(EnemyType t) => table[(byte)t];
 
         public static bool Is(EnemyType t) => t >= EnemyType.Worker && t <= EnemyType.Hornet;

@@ -878,6 +878,7 @@ namespace Arena
             UpdateLichView(dt);    // Lich.cs
             UpdateColossusView(dt);  // Colossus.cs
             UpdateStompRings(dt);    // Stompers' rings (QuarryFaction.cs)
+            UpdateCourt(dt);         // Parriers' parried shots (CourtFaction.cs)
             UpdateQueenView(dt);   // Queen.cs
             UpdateReaperView(dt);  // Reapers.cs
             StepLightDisplay(dt);  // Searchlights (Stun.cs)

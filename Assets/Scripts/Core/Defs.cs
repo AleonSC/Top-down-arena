@@ -73,6 +73,9 @@ namespace Arena
         // step 3: a Driller plays like a Shiv (its drill leaves a crack that erupts), a Geomancer and a Cinder Priest like Taser
         // Guards (a crack sent at you; a magma bolt that leaves lava)
         Driller, Geomancer, CinderPriest,
+        // the Duelist's faction, the Masked Court (CourtFaction.cs, Game/CourtLook.cs): a Fencer plays like a Shiv with a short
+        // hop, a Blade Dancer like a Guard that lunges and leaves blades, a Parrier like a Riot Shield that parries shots back
+        Fencer, BladeDancer, Parrier,
     }
 
     public class RoleDef
@@ -397,6 +400,13 @@ namespace Arena
                 Picker = PickerGroup.Ranged, Blurb = "Keeps its distance, plants its crystal staff and sends a crack racing at you. It glows, then erupts: step off the line." },
             new EnemyDef { Name = "Cinder Priest", Hp = 70f, Radius = 13f, Speed = 80f, Score = 9, Xp = 11, Sides = 8, Color = new Rgba(0.24f, 0.2f, 0.19f),
                 Picker = PickerGroup.Ranged, Blurb = "Charges a molten core, then fires one magma bolt straight at you. Wherever it stops, it leaves a pool of lava. Strafe across the line, or parry it." },
+            // the Duelist's faction (CourtFaction.cs): masked fencers
+            new EnemyDef { Name = "Fencer", Hp = 32f, Radius = 11f, Speed = 115f, Score = 4, Xp = 7, Sides = 4, Color = new Rgba(0.81f, 0.84f, 1f), Melee = true, Contact = 10f,
+                Picker = PickerGroup.Melee, Blurb = "A masked foil-fencer that runs in crowds. Close up it shows a short red line, then hops down it: step off the line." },
+            new EnemyDef { Name = "Blade Dancer", Hp = 70f, Radius = 13f, Speed = 105f, Score = 8, Xp = 14, Sides = 5, Color = new Rgba(1f, 0.3f, 0.42f), Melee = true, Contact = 14f,
+                Picker = PickerGroup.Melee, Blurb = "Shows a long warning line, then lunges down it and leaves blades hanging on the path. Each fires one shot out of each side: never stand beside the line." },
+            new EnemyDef { Name = "Parrier", Hp = 60f, Radius = 15f, Speed = 110f, Score = 10, Xp = 10, Sides = 6, Color = new Rgba(1f, 0.8f, 0.35f), Melee = true, Contact = 8f,
+                Picker = PickerGroup.Melee, Blurb = "On guard behind a main-gauche: shots into its front are parried straight back at you, and it bashes you away. It turns slowly: get behind it." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount

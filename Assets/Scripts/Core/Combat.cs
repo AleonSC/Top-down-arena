@@ -506,6 +506,7 @@ namespace Arena
                             if (BlocksShot(e, b.Pos))
                             {
                                 DuelGuardBounce(e, b);  // the Duelist's guard sends it back (Duelist.cs)
+                                ParrierBounce(e, b);    // so does a Parrier's main-gauche (CourtFaction.cs)
                                 WearShield(e, b.Dmg);  // the shield takes it, and wears
                                 scratchIds.Add(b.Id);
                                 break;

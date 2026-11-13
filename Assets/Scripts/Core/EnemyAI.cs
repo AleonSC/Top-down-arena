@@ -618,7 +618,7 @@ namespace Arena
                 // Bosses and heavies hurt to stand in (the difficulty's per-wave damage growth scales all of these).
                 float contact = e.Def.IsBoss ? 25f
                     : e.Type == EnemyType.Charger && e.Phase == 2 || e.Type == EnemyType.Juggernaut ? 25f
-                    : IsLunger(e.Type) && e.Phase == 2 ? 26f
+                    : IsLunger(e.Type) && e.Phase == 2 ? (e.Type == EnemyType.Fencer ? FencerHopDamage : 26f)
                     : e.Type == EnemyType.SpikeBlock && e.Phase == 2 ? SpikeLungeDamage
                     : e.Def.Contact > 0f ? e.Def.Contact * BruteDamageMult(e) : ContactDamage;
                 GuardContact(e, contact);  // Warden's Guards in the way get hurt too (Stun.cs)
@@ -942,7 +942,7 @@ namespace Arena
                 case EnemyType.Shiv:
                 case EnemyType.ScytheWraith:
                     if (e.Phase == 0)
-                        v = dist > 170f ? dir : dir.Orthogonal() * e.Strafe * 0.6f;  // close in, then circle while it winds up
+                        v = dist > (e.Type == EnemyType.Fencer ? FencerStart - 30f : 170f) ? dir : dir.Orthogonal() * e.Strafe * 0.6f;  // close in, then circle while it winds up (a Fencer closer: CourtFaction.cs)
                     else if (e.Phase == 2)
                     {
                         v = V2.FromAngle(e.Facing);
@@ -1007,6 +1007,8 @@ namespace Arena
                 e.Strafe = -e.Strafe;
             if (StomperPlanted(e))
                 speed = 0f;  // a Stomper stands still while its foot is up (QuarryFaction.cs)
+            if (DancerBusy(e))
+                speed = 0f;  // a Blade Dancer's lunge moves it itself (CourtFaction.cs)
             if (e.SlowT > 0f && !Heavy(e))
                 speed *= e.SlowMult;
             else if (e.WadeT > 0f)
@@ -1042,6 +1044,8 @@ namespace Arena
                 ZombieSpecial(e, tpos, dt);  // Zombies.cs
                 return;
             }
+            if (e.Type == EnemyType.BladeDancer)
+                BladeDancerSpecial(e, tpos, dt);  // its lunge and blades (CourtFaction.cs)
             if (e.Type == EnemyType.Stomper)
                 StomperSpecial(e, tpos, dt);  // its stomp ring (QuarryFaction.cs)
             switch (e.Kin)
@@ -1079,13 +1083,14 @@ namespace Arena
                 {
                     // Phase 0: approach; 1: wind up (telegraph line); 2: leap; 3: recover.
                     // A Scythe Wraith marks from further out, holds the mark longer, locks it early and dashes further (ReaperFaction.cs).
-                    bool reaper = e.Type == EnemyType.ScytheWraith;
+                    // A Fencer hops: it starts closer, shows a shorter line and leaps a short way (CourtFaction.cs).
+                    bool reaper = e.Type == EnemyType.ScytheWraith, fencer = e.Type == EnemyType.Fencer;
                     float dist = tpos.DistanceTo(e.Pos);
                     e.PhaseT -= dt;
-                    if (e.Phase == 0 && dist < (reaper ? ScytheStart : 220f) && e.PhaseT <= 0f && !LungerWaits(e, tpos))  // in a squad, it waits for a Brute (Variety.cs)
+                    if (e.Phase == 0 && dist < (reaper ? ScytheStart : fencer ? FencerStart : 220f) && e.PhaseT <= 0f && !LungerWaits(e, tpos))  // in a squad, it waits for a Brute (Variety.cs)
                     {
                         e.Phase = 1;
-                        e.PhaseT = reaper ? ScytheMark : 0.6f;
+                        e.PhaseT = reaper ? ScytheMark : fencer ? FencerWarn : 0.6f;
                     }
                     else if (e.Phase == 1)
                     {
@@ -1094,13 +1099,13 @@ namespace Arena
                         if (e.PhaseT <= 0f)
                         {
                             e.Phase = 2;
-                            e.PhaseT = reaper ? ScytheDash : 0.32f;
+                            e.PhaseT = reaper ? ScytheDash : fencer ? FencerHop : 0.32f;
                         }
                     }
                     else if (e.Phase == 2 && e.PhaseT <= 0f)
                     {
                         e.Phase = 3;
-                        e.PhaseT = reaper ? ScytheRecover : 0.8f;
+                        e.PhaseT = reaper ? ScytheRecover : fencer ? FencerRecover : 0.8f;
                     }
                     else if (e.Phase == 3 && e.PhaseT <= 0f)
                     {

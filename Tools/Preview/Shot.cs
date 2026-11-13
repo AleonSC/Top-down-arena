@@ -483,6 +483,26 @@ static partial class Shot {
       }
       qg.AnimT += float.Parse(Environment.GetEnvironmentVariable("QUARRY"), System.Globalization.CultureInfo.InvariantCulture);
     }
+    if (Environment.GetEnvironmentVariable("COURT") != null) {  // COURT=<s into the clock>: the Duelist's step-1 faction (CourtLook.cs): Fencers (walking, line showing, hopping), a Blade Dancer showing its line and one with blades hanging, Parriers (whole, flashing, cracked, broken); set beside Docs/Mockups/duelist-faction.html
+      var cg = host.Game; cg.Enemies.Clear(); cg.Bullets.Clear(); cg.Patches.Clear(); cg.Effects.Clear();
+      var csp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, float, Enemy> cput = (t, at, face) => { var e = (Enemy)csp.Invoke(cg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Facing = face; e.Elite = false; e.Traits = 0; return e; };
+      me.Pos = me.Disp = new V2(570f, 520f);  // (between the rows, so ZOOM frames them)
+      cput(EnemyType.Fencer, new V2(330f, 330f), 0f);
+      var f1 = cput(EnemyType.Fencer, new V2(470f, 330f), 0f); f1.Phase = 1; f1.PhaseT = 0.2f;
+      var f2 = cput(EnemyType.Fencer, new V2(610f, 330f), 0f); f2.Phase = 2;
+      var bd1 = cput(EnemyType.BladeDancer, new V2(260f, 440f), 0f);
+      bd1.Duel = new DuelState { Dash = DuelDash.Dancer, DashWarn = 0.3f, DashFrom = bd1.Pos, DashAng = 0f, DashLen = Game.DancerReach };
+      var bd2 = cput(EnemyType.BladeDancer, new V2(900f, 440f), 0f);
+      bd2.Duel = new DuelState();
+      for (int k = 1; k <= 3; k++) bd2.Duel.Blades.Add(new DuelBlade { Pos = new V2(900f - Game.DancerReach + k * Game.DancerBladeEvery - 20f, 440f), Ang = 0f, T = 0.3f, Speed = Game.DancerBladeSpeed });
+      var setRiotC = typeof(Game).GetMethod("SetRiotState", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+      cput(EnemyType.Parrier, new V2(300f, 610f), 0f);
+      var pa2 = cput(EnemyType.Parrier, new V2(450f, 610f), 0f); setRiotC.Invoke(null, new object[] { pa2, Game.RiotWinding, 0.3f });
+      var pa3 = cput(EnemyType.Parrier, new V2(690f, 610f), 0f); pa3.Phase = (byte)(Game.RiotWalk << 3 | 2);
+      var pa4 = cput(EnemyType.Parrier, new V2(850f, 610f), 0f); pa4.Phase = (byte)(Game.RiotStaggered << 3 | Game.RiotCracked);
+      cg.AnimT += float.Parse(Environment.GetEnvironmentVariable("COURT"), System.Globalization.CultureInfo.InvariantCulture);
+    }
     if (Environment.GetEnvironmentVariable("LUNGE") != null) {  // LUNGE=<0-1>: the four lungers part-way through their wind-up (LungeLaneLook.cs); the lane fills with the client's clock, so draw once, then move it on
       var lg = host.Game; lg.Enemies.Clear(); lg.Bullets.Clear();
       var lsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

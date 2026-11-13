@@ -357,6 +357,31 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Fencer, Name = "Fencer", Group = "Melee", Wave = 26,
+                Appears = "The Duelist's approach (in crowds, Salon and Guard line squads)",
+                Lead = "A masked foil-fencer that runs in crowds. Within 160 px it shows a short red line for 0.4 s, then hops about 100 px down it. Moves like a Shiv.",
+                Attacks = new[] { new BestiaryAttack { Name = "Hop-lunge", Pattern = "0.4 s line, then a short leap", Damage = "16", Notes = "10 contact" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.BladeDancer, Name = "Blade Dancer", Group = "Melee", Wave = 26,
+                Appears = "The Duelist's approach (leading Salon squads, and on its own)",
+                Lead = "Within 300 px it shows the Duelist's warning line for 0.6 s, then lunges up to 230 px and leaves three blades hanging on the path. After 0.6 s each fires one shot out of each side. Moves like a Guard.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Lunge blades", Pattern = "0.6 s line, a lunge, then 2 shots from each blade", Damage = "small shots", Every = 3.5f, Fixed = true },
+                    new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "14" },
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Parrier, Name = "Parrier", Group = "Melee", Wave = 27,
+                Appears = "The Duelist's approach (Guard line squads and on its own)",
+                Lead = "A Riot Shield with a main-gauche: shots on its front are parried straight back at whoever fired them, and it bashes you away. It turns slowly, so get behind it; break the guard and it falls fast.",
+                Attacks = new[] { new BestiaryAttack { Name = "Parry", Pattern = "A blocked shot comes back at you", Damage = "small shot" }, new BestiaryAttack { Name = "Bash", Pattern = "Shield flash, then a short lunge", Damage = "10" } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.HiveEgg, Name = "Hive Egg", Group = "Summons", Wave = 10,
                 Appears = "Laid by the Hive Queen in her Honeycomb stage",
                 Lead = "Doesn't move or attack. Break it before it hatches into drones.",
