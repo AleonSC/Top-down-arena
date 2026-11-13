@@ -19,9 +19,17 @@ namespace Arena
             SwordWind = 0.55f, SwordCut = 0.15f, SwordRecover = 0.8f, ShieldRecover = 1f, SwordDamage = 14f,
             GuardHalf = 1.1f, SwordGuardDrop = 0.06f, SwordGuardRaise = 0.25f, SwordBlockFlash = 0.3f;
 
+        // The Acolyte (the Twin Reapers' cult, ReaperFaction.cs) swings a sickle: shorter and wider, a quicker wind-up.
+        public const float SickleReach = 96f, SickleInner = 14f, SickleHalf = MathX.Pi / 3f, SickleWind = 0.5f, SickleDamage = 12f;
+        public static float SwordReachOf(EnemyType t) => t == EnemyType.Acolyte ? SickleReach : SwordReach;
+        public static float SwordInnerOf(EnemyType t) => t == EnemyType.Acolyte ? SickleInner : SwordInner;
+        public static float SwordHalfOf(EnemyType t) => t == EnemyType.Acolyte ? SickleHalf : SwordHalf;
+        public static float SwordWindOf(EnemyType t) => t == EnemyType.Acolyte ? SickleWind : SwordWind;
+        public static float SwordDamageOf(EnemyType t) => t == EnemyType.Acolyte ? SickleDamage : SwordDamage;
+
         public const int SwordsmanFrom = 7, ShieldSwordsmanFrom = 10;  // the waves they join
 
-        public static bool IsSwordsman(EnemyType t) => t == EnemyType.Swordsman || t == EnemyType.ShieldSwordsman;
+        public static bool IsSwordsman(EnemyType t) => t == EnemyType.Swordsman || t == EnemyType.ShieldSwordsman || t == EnemyType.Acolyte;  // (the Acolyte: a shorter, wider sickle, ReaperFaction.cs)
 
         /// How long its recovery lasts.
         public static float SwordRecoverOf(EnemyType t) => t == EnemyType.ShieldSwordsman ? ShieldRecover : SwordRecover;
@@ -74,11 +82,11 @@ namespace Arena
         {
             V2 rel = ppos - e.Pos;
             float d = rel.Length;
-            if (d > SwordReach + hitR)
+            if (d > SwordReachOf(e.Type) + hitR)
                 return false;
             float off = Math.Abs(MathX.Fmod(rel.Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
             float slack = d > hitR ? (float)Math.Asin(Math.Min(1f, hitR / d)) : MathX.Pi;  // its body counts, not just its centre
-            return off <= SwordHalf + slack;
+            return off <= SwordHalfOf(e.Type) + slack;
         }
 
         /// It closes in until its target is at 70% of the blade's reach, then stands and waits to be in the cone.
@@ -89,7 +97,7 @@ namespace Arena
                 speed = 0f;
                 return V2.Zero;
             }
-            return dist > SwordReach * 0.7f ? dir : V2.Zero;
+            return dist > SwordReachOf(e.Type) * 0.7f ? dir : V2.Zero;
         }
 
         /// It turns toward its target at SwordTurn rad/s (EnemyAI.cs Face); once it winds up the aim is locked (NonShooterFaceLocked).
@@ -111,10 +119,10 @@ namespace Arena
                 {
                     float dist = tpos.DistanceTo(e.Pos);
                     float off = Math.Abs(MathX.Fmod((tpos - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
-                    if (dist <= SwordReach * 0.95f && off <= SwordHalf)
+                    if (dist <= SwordReachOf(e.Type) * 0.95f && off <= SwordHalfOf(e.Type))
                     {
                         e.Phase = 1;
-                        e.PhaseT = SwordWind;
+                        e.PhaseT = SwordWindOf(e.Type);
                     }
                     break;
                 }
@@ -127,12 +135,12 @@ namespace Arena
                         {
                             if (p.Downed || p.InvulnT > 0f || !SwordCovers(e, p.Pos, p.Def.HitR))
                                 continue;
-                            if (p.ParryActive && ParryContact(p, e, SwordDamage))
+                            if (p.ParryActive && ParryContact(p, e, SwordDamageOf(e.Type)))
                                 continue;  // a raised guard takes it
-                            Damage(p, SwordDamage, e.Def.Name + " (sword)");
+                            Damage(p, SwordDamageOf(e.Type), e.Def.Name + " (sword)");
                             RodTouched(p, e);  // LightningRod.cs
                         }
-                        BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(e.Facing) * (SwordReach * 0.6f), new Rgba(1f, 0.93f, 0.8f), 14f, 0.15f, Sfx.SwingHeavy);
+                        BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(e.Facing) * (SwordReachOf(e.Type) * 0.6f), new Rgba(1f, 0.93f, 0.8f), 14f, 0.15f, Sfx.SwingHeavy);
                         e.Phase = 2;
                         e.PhaseT = SwordCut;
                     }

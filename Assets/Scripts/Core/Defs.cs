@@ -55,8 +55,12 @@ namespace Arena
         Portal,
         // the Hive Queen's faction (Docs/HiveFaction.md, HiveKin.cs): each plays like one of the Warden's, in the same order
         Worker, Soldier, CombShield, HoneyLobber, Stinger, Needler, Bumble, Hornet,
+        // the Twin Reapers' faction, the Dusk and Dawn cult (ReaperFaction.cs, Game/ReaperCultLook.cs): Wisp (a Swarmer), Acolyte
+        // (a Swordsman with a sickle), Bound Wraiths (a tethered pair), Scythe Wraith (a Lunger that reaps), Lamplighter (lines and
+        // the cross), Mourner (the twin spiral), Gravedigger (a Brute), Shade (a Phantom)
+        Wisp, Acolyte, BoundWraith, ScytheWraith, Lamplighter, Mourner, Gravedigger, Shade,
         // the Singularity's faction, the Infall (Docs/SingularityFaction.md, Infall.cs, Game/InfallLook.cs): step 1
-        Debris, Acolyte, Pulsar,
+        Debris, VoidAcolyte, Pulsar,
         // ...step 2, with the Graviton's small well and the Collapsar's implosion (both only come from them)
         Graviton, Orbiter, Collapsar, MiniWell, Implosion,
         // ...step 3
@@ -331,9 +335,26 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "A huge, furry bumblebee. Slow and tough, hits hard when it reaches you." },
             new EnemyDef { Name = "Hornet", Hp = 45f, Radius = 12f, Speed = 95f, Score = 9, Xp = 9, Sides = 4, Color = new Rgba(1f, 0.29f, 0.157f), Melee = true, Contact = 18f,
                 Picker = PickerGroup.Melee, Blurb = "Circles in close, flashes a red lane, then darts along it." },
+            // The Twin Reapers' faction (ReaperFaction.cs). Each is sworn to Dusk (pink) or Dawn (blue): drawn in its side's colour.
+            new EnemyDef { Name = "Wisp", Hp = 14f, Radius = 9f, Speed = 120f, Score = 3, Xp = 3, Sides = 3, Color = new Rgba(1f, 0.35f, 0.6f), Melee = true, Contact = 6f,
+                Picker = PickerGroup.Melee, Blurb = "A soul flame that drifts straight at you in a loose pack and burns on touch. Thin them before they reach you." },
+            new EnemyDef { Name = "Acolyte", Hp = 90f, Radius = 13f, Speed = 120f, Score = 14, Xp = 12, Sides = 6, Color = new Rgba(0.45f, 0.55f, 1f), Melee = true, Contact = 8f,
+                Picker = PickerGroup.Melee, Blurb = "A hooded chaser. Stops just short, raises its sickle over a pale cone, then one wide swing. Step back out of the cone." },
+            new EnemyDef { Name = "Bound Wraith", Hp = 60f, Radius = 12f, Speed = 95f, Score = 10, Xp = 9, Sides = 5, Color = new Rgba(1f, 0.35f, 0.6f), Melee = true, Contact = 8f,
+                Picker = PickerGroup.Melee, Blurb = "Comes as a pair circling near you, joined by a tether that hurts. Kill one and the other brings it back in 3 s, unless you kill both." },
+            new EnemyDef { Name = "Scythe Wraith", Hp = 75f, Radius = 14f, Speed = 85f, Score = 12, Xp = 11, Sides = 5, Color = new Rgba(0.45f, 0.55f, 1f), Melee = true, Contact = 18f,
+                Picker = PickerGroup.Melee, Blurb = "Marks a long line through you, then dashes along it and reaps both sides of its path. Leave the line sideways." },
+            new EnemyDef { Name = "Lamplighter", Hp = 55f, Radius = 13f, Speed = 70f, Score = 10, Xp = 10, Sides = 4, Color = new Rgba(1f, 0.35f, 0.6f),
+                Picker = PickerGroup.Ranged, Blurb = "Plants its feet, its lantern flares and gold lines show the volley: three lines at you, then a four-way cross." },
+            new EnemyDef { Name = "Mourner", Hp = 80f, Radius = 15f, Speed = 60f, Score = 12, Xp = 12, Sides = 7, Color = new Rgba(0.45f, 0.55f, 1f),
+                Picker = PickerGroup.Ranged, Blurb = "Stands still and weeps a twin spiral, one arm each way, then rests. Push in while it rests." },
+            new EnemyDef { Name = "Gravedigger", Hp = 140f, Radius = 19f, Speed = 62f, Score = 10, Xp = 10, Sides = 8, Color = new Rgba(1f, 0.35f, 0.6f), Melee = true, Contact = 20f,
+                Picker = PickerGroup.Melee, Blurb = "A cultist brute with a shovel. Slow and tough, hits hard when it reaches you." },
+            new EnemyDef { Name = "Shade", Hp = 90f, Radius = 13f, Speed = 90f, Score = 25, Xp = 22, Sides = 3, Color = new Rgba(0.45f, 0.55f, 1f),
+                Picker = PickerGroup.Late, Late = true, Blurb = "A shrouded Phantom: fades to smoke, shows a ring where it will land, appears and fires." },
             new EnemyDef { Name = "Debris", Hp = 22f, Radius = 10f, Speed = 125f, Score = 3, Xp = 6, Sides = 7, Color = new Rgba(0.85f, 0.35f, 1f), Melee = true, Contact = 9f,
                 Picker = PickerGroup.Melee, Blurb = "Tumbling rubble that falls at you on a curving inward spiral, so it's hard to line up." },
-            new EnemyDef { Name = "Acolyte", Hp = 45f, Radius = 13f, Speed = 85f, Score = 7, Xp = 10, Sides = 6, Color = new Rgba(1f, 0.47f, 0.86f),
+            new EnemyDef { Name = "Void Acolyte", Hp = 45f, Radius = 13f, Speed = 85f, Score = 7, Xp = 10, Sides = 6, Color = new Rgba(1f, 0.47f, 0.86f),
                 Picker = PickerGroup.Ranged, Blurb = "A void cultist. Fires three slow orbs: the outer two bend in and meet where you stand. Step forward or back, not sideways." },
             new EnemyDef { Name = "Pulsar", Hp = 70f, Radius = 13f, Speed = 75f, Score = 9, Xp = 12, Sides = 12, Color = new Rgba(0.5f, 0.84f, 1f),
                 Picker = PickerGroup.Ranged, Blurb = "A spinning neutron star. Its two beams flicker for a second, then switch on and sweep a quarter turn. Walk with the sweep." },

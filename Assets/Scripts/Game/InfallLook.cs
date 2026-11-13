@@ -89,7 +89,7 @@ namespace Arena
                     Line(pos + V2.FromAngle(rot + 0.6f) * r * 0.2f, pos + V2.FromAngle(rot + 2.2f) * r * 0.5f, 1.2f, col.WithAlpha(0.45f));  // a crack
                     break;
                 }
-                case EnemyType.Acolyte:
+                case EnemyType.VoidAcolyte:
                 {
                     Circle(pos, r * 2.1f, InfPink.WithAlpha(0.06f), 18);
                     V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();

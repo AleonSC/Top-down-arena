@@ -336,11 +336,11 @@ namespace Arena
 
         /// At most MaxSentries Beam Sentries a wave (recorded runs had 5-7, and their beams did more damage than any
         /// other regular enemy): squads that would bring more come apart into single enemies, and spare Sentries become
-        /// Snipers or Grunts. The same for the Singularity's Pulsars (Infall.cs): spare ones become Acolytes.
+        /// Snipers or Grunts. The same for the Singularity's Pulsars (Infall.cs): spare ones become Void Acolytes.
         void CapSentries()
         {
             CapBeams(EnemyType.BeamSentry, MaxSentries, () => rng.NextDouble() < 0.5 ? EnemyType.Sniper : EnemyType.Grunt);
-            CapBeams(EnemyType.Pulsar, MaxPulsars, () => EnemyType.Acolyte);
+            CapBeams(EnemyType.Pulsar, MaxPulsars, () => EnemyType.VoidAcolyte);
         }
 
         void CapBeams(EnemyType beam, int max, Func<EnemyType> instead)
@@ -492,7 +492,7 @@ namespace Arena
                 return RiotLineMove(e, mates, tpos, v);  // WardenFaction.cs
             if (form == SquadForm.Accretion && accretionRings.ContainsKey(e.SquadId))
                 return AccretionMove(e, mates, v);  // Infall.cs
-            if (e.T < SquadFormTime + 0.9f && !e.Def.Melee && e.Type != EnemyType.Phantom && e.Type != EnemyType.Nest)
+            if (e.T < SquadFormTime + 0.9f && !e.Def.Melee && e.Type != EnemyType.Phantom && e.Type != EnemyType.Shade && e.Type != EnemyType.Nest)
                 return dir * 0.6f;  // marching in together
             switch (e.Type)
             {

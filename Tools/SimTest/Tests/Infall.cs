@@ -13,9 +13,9 @@ static partial class Program
     static void InfallTest(float dt)
     {
         var np = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
-        Check(Game.IsInfall(EnemyType.Debris) && Game.IsInfall(EnemyType.Acolyte) && Game.IsInfall(EnemyType.Pulsar) && !Game.IsInfall(EnemyType.Hornet),
+        Check(Game.IsInfall(EnemyType.Debris) && Game.IsInfall(EnemyType.VoidAcolyte) && Game.IsInfall(EnemyType.Pulsar) && !Game.IsInfall(EnemyType.Hornet),
             "Debris, Acolyte and Pulsar are the Infall");
-        Check(Defs.Get(EnemyType.Debris).Melee && !Defs.Get(EnemyType.Acolyte).Melee && WaveRecipeJob(EnemyType.Pulsar) == EnemyJob.Zoner,
+        Check(Defs.Get(EnemyType.Debris).Melee && !Defs.Get(EnemyType.VoidAcolyte).Melee && WaveRecipeJob(EnemyType.Pulsar) == EnemyJob.Zoner,
             "Debris is melee, the Acolyte shoots, the Pulsar is a Zoner");
 
         Game.SeedForTests(4322);
@@ -52,7 +52,7 @@ static partial class Program
         Check(db.Pos.DistanceTo(me.Pos) < d0 - 150f && off > 60f, "Debris closes in on a curve, not a straight line");
 
         // Acolyte: three orbs, two curving opposite ways, all meeting where you stood.
-        var ac = put(EnemyType.Acolyte, new V2(620f, 400f));
+        var ac = put(EnemyType.VoidAcolyte, new V2(620f, 400f));
         var volley = new List<Bullet>();
         run(6f, () => { if (volley.Count == 0) { var bs = g.Bullets.Values.Where(b => b.Shooter == ac.Id).ToList(); if (bs.Count >= 3) volley = bs.Select(b => new Bullet { Pos = b.Pos, Vel = b.Vel, AngVel = b.AngVel, Life = b.Life }).ToList(); } });
         Check(volley.Count == 3, "an Acolyte fires a volley of three orbs");
@@ -201,12 +201,12 @@ static partial class Program
         var ls = Approaches.For(EnemyType.Singularity).Lessons;
         Check(ls != null && ls.Length == 10 && ls[9].Finale && ls.Take(9).All(l => !l.Finale), "ten lessons; the tenth is the exam, with the Accretion ring");
         var stars = ls.Where(l => l.Star.HasValue).Select(l => l.Star.Value).ToList();
-        Check(stars.SequenceEqual(new[] { EnemyType.Acolyte, EnemyType.Lens, EnemyType.Graviton, EnemyType.Pulsar, EnemyType.Collapsar, EnemyType.Orbiter, EnemyType.WhiteDwarf }),
+        Check(stars.SequenceEqual(new[] { EnemyType.VoidAcolyte, EnemyType.Lens, EnemyType.Graviton, EnemyType.Pulsar, EnemyType.Collapsar, EnemyType.Orbiter, EnemyType.WhiteDwarf }),
             "the new enemies come one a wave: Acolyte, Lens, Graviton, Pulsar, Collapsar, Orbiter, White Dwarf");
 
         // The faction: the three come in the waves before the Singularity (50-wave track: 16-19).
         var f0 = Approaches.For(EnemyType.Singularity);
-        Check(f0 != null && f0.Members.Select(m => m.Type).SequenceEqual(new[] { EnemyType.Debris, EnemyType.Acolyte, EnemyType.Lens, EnemyType.Graviton, EnemyType.Orbiter, EnemyType.Pulsar, EnemyType.Collapsar, EnemyType.WhiteDwarf })
+        Check(f0 != null && f0.Members.Select(m => m.Type).SequenceEqual(new[] { EnemyType.Debris, EnemyType.VoidAcolyte, EnemyType.Lens, EnemyType.Graviton, EnemyType.Orbiter, EnemyType.Pulsar, EnemyType.Collapsar, EnemyType.WhiteDwarf })
             && f0.Squads.Select(q => q.Name).SequenceEqual(new[] { "Infall", "Binary", "Gravity trap", "Lens array" }),
             "the Singularity's faction: eight enemies like the Warden's (Debris, Acolyte, Lens, Graviton, Orbiter, Pulsar, Collapsar, White Dwarf); four squads");
         var build = typeof(Game).GetMethod("BuildWave", np);

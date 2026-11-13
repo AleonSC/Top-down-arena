@@ -389,7 +389,7 @@ static partial class Shot {
       Func<EnemyType, V2, Enemy> iput = (t, at) => { var e = (Enemy)isp.Invoke(ig, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; return e; };
       me.Pos = me.Disp = new V2(1000f, 560f);
       for (int k = 0; k < 4; k++) { float a = 3.6f + k * 0.5f, rr = 300f - 50f * k; iput(EnemyType.Debris, me.Pos + new V2((float)Math.Cos(a) * rr, (float)Math.Sin(a) * rr * 0.8f)); }
-      var aco = iput(EnemyType.Acolyte, new V2(700f, 600f)); aco.Facing = 0f;
+      var aco = iput(EnemyType.VoidAcolyte, new V2(700f, 600f)); aco.Facing = 0f;
       typeof(Game).GetMethod("AcolyteVolley", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(ig, new object[] { aco, me.Pos, 0f });
       foreach (var b in ig.Bullets.Values) for (int i = 0; i < 45; i++) { b.Vel = b.Vel.Rotated(b.AngVel * 0.02f); b.Pos += b.Vel * 0.02f; }
       aco.Winding = true;
@@ -463,6 +463,29 @@ static partial class Shot {
           if (Environment.GetEnvironmentVariable("SWORDBLOCK") != null) e.T2 = 0.2f;
         }
       typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
+    }
+    if (Environment.GetEnvironmentVariable("CULT") != null) {  // CULT=1: the Twin Reapers' cult caught mid-move (ReaperCultLook.cs): Wisps, an Acolyte raising its sickle, a Gravedigger, a Shade; a Bound pair with its tether and one channelling a revive; a Scythe Wraith marking; Lamplighters' lines and cross; a Mourner weeping
+      var cg = host.Game; cg.Enemies.Clear(); cg.Bullets.Clear();
+      var csp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, float, Enemy> cput = (t, at, face) => { var e = (Enemy)csp.Invoke(cg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos = at; e.Facing = face; return e; };
+      Func<Enemy, Enemy> partner = e => cg.Enemies[e.LinkId];
+      me.Pos = me.Disp = new V2(1480f, 470f);
+      foreach (var o in cg.Players.Values) if (o != me) { o.Pos = o.Disp = new V2(1500f, 820f); }
+      for (int k = 0; k < 3; k++) cput(EnemyType.Wisp, new V2(170f + 34f * k, 180f + 30f * (k % 2)), 0.2f);
+      var aco = cput(EnemyType.Acolyte, new V2(560f, 190f), 0f); aco.Phase = 1; aco.SeenPhase = 1; aco.SeenT = 0.3f;
+      cput(EnemyType.Gravedigger, new V2(700f, 200f), 0.3f);
+      cput(EnemyType.Shade, new V2(1000f, 300f), 0f);
+      var b1 = cput(EnemyType.BoundWraith, new V2(200f, 600f), 0f); var b2 = partner(b1); b2.Pos = b2.Disp = new V2(340f, 540f);  // tethered
+      var c1 = cput(EnemyType.BoundWraith, new V2(560f, 600f), 0f); var c2 = partner(c1); c2.Pos = c2.Disp = new V2(-900f, -900f);   // one fell: the other channels it back
+      c1.Phase = Game.BoundChanneling; c1.PhaseT = 1.2f; c1.Waypoint = new V2(660f, 540f); c1.LinkId = 0;
+      var sw = cput(EnemyType.ScytheWraith, new V2(900f, 560f), 0f); sw.Phase = 1; sw.PhaseT = 0.3f;
+      var l1 = cput(EnemyType.Lamplighter, new V2(200f, 380f), 0.15f); l1.Winding = true; l1.Phase = 0;
+      var l2 = cput(EnemyType.Lamplighter, new V2(600f, 380f), -0.1f); l2.Winding = true; l2.Phase = 1;
+      var mo = cput(EnemyType.Mourner, new V2(1180f, 640f), 0f); mo.Phase = 1;
+      var fire = typeof(Game).GetMethod("ReaperCultFire", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      for (int k = 0; k < 16; k++) { fire.Invoke(cg, new object[] { mo, 0f }); foreach (var bl in cg.Bullets.Values) bl.Pos += bl.Vel * 0.12f; }
+      typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
+      cg.AnimT += 0.3f;
     }
     if (Environment.GetEnvironmentVariable("ZOOM") != null) {  // ZOOM=<1-2>: the scroll-wheel zoom, centred on you and held inside the arena (CameraZoom.cs)
       float z = float.Parse(Environment.GetEnvironmentVariable("ZOOM"), System.Globalization.CultureInfo.InvariantCulture);

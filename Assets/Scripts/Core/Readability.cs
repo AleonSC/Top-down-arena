@@ -22,7 +22,7 @@ namespace Arena
     {
         public const float ShooterTurn = 5f, ShooterRest = 1.5f, WindUp = 0.3f;
         /// How long a type glows and shows its aim before it fires (a Taser Guard charges longer: its bolt stuns).
-        public static float WindUpOf(EnemyType t) => HiveKin.Of(t) == EnemyType.TaserGuard ? TaserWindUp : HiveKin.Of(t) == EnemyType.SecurityGuard ? SecurityWindUp : HiveKin.Of(t) == EnemyType.GasGrenadier ? GrenadierWindUp + GrenadierSwing
+        public static float WindUpOf(EnemyType t) => HiveKin.Of(t) == EnemyType.TaserGuard ? TaserWindUp : HiveKin.Of(t) == EnemyType.SecurityGuard ? SecurityWindUp : HiveKin.Of(t) == EnemyType.GasGrenadier ? GrenadierWindUp + GrenadierSwing : t == EnemyType.Lamplighter ? LampWind : t == EnemyType.Mourner ? MournWind
             : t == EnemyType.Orbiter ? OrbiterWindUp : t == EnemyType.Graviton ? GravitonWindUp : WindUp;
 
         /// How many regular enemies may shoot at once: 4, one more every 6 waves up to 8, a quarter more for each extra

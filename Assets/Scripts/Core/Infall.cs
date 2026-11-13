@@ -161,7 +161,7 @@ namespace Arena
                     float a = DebrisSpiral * k;
                     return dir * (float)Math.Cos(a) + dir.Orthogonal() * e.Strafe * (float)Math.Sin(a);
                 }
-                case EnemyType.Acolyte:
+                case EnemyType.VoidAcolyte:
                     return KeepDistance(dir, dist, AcolyteRange) + dir.Orthogonal() * e.Strafe * 0.6f;
                 case EnemyType.Pulsar:
                     if (e.Phase == 1 || e.Phase == 2)
@@ -331,7 +331,7 @@ namespace Arena
                 case EnemyType.Pulsar:
                     e.FireT = 99f;  // its beams are its attack (InfallSpecial)
                     return true;
-                case EnemyType.Acolyte:
+                case EnemyType.VoidAcolyte:
                     e.FireT = AcolyteEvery;
                     AcolyteVolley(e, tpos, aim);
                     return true;

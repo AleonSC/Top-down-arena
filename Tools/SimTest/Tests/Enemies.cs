@@ -29,7 +29,7 @@ static partial class Program
                     {
                         if (e.Def.Melee) melee++; else ranged++;
                         Enemy he;
-                        if (e.Def.Melee && e.Type != EnemyType.Shard && s[0].Game.Enemies.TryGetValue(e.Id, out he) && he.SquadId == 0) loneMelee++;
+                        if (e.Def.Melee && e.Type != EnemyType.Shard && Approaches.Of(e.Type) == null && s[0].Game.Enemies.TryGetValue(e.Id, out he) && he.SquadId == 0) loneMelee++;  // (a boss faction's approach brings its own singles: Approaches.cs)
                     }
                     leapSeen |= e.Type == EnemyType.Lunger && e.Phase == 2;
                 }

@@ -141,11 +141,52 @@ namespace Arena
             },
             new FactionDef
             {
+                Boss = EnemyType.TwinA,  // the Twin Reapers: the Dusk and Dawn cult (ReaperFaction.cs, Docs/Mockups/reaper-faction.html)
+                Members = new[]
+                {
+                    new FactionMember { Type = EnemyType.Wisp, Weight = 3f },  // (a pick is a pack of three)
+                    new FactionMember { Type = EnemyType.Acolyte, NotFirst = true, Weight = 2f },
+                    new FactionMember { Type = EnemyType.Lamplighter, Fade = 1, Weight = 2f, From = 2 },
+                    new FactionMember { Type = EnemyType.BoundWraith, Fade = 0, Weight = 1.5f, From = 2 },  // (a pick is a pair)
+                    new FactionMember { Type = EnemyType.Gravedigger, Fade = 2, Weight = 1.5f, From = 2 },  // the cult's brute (a Brute with a shovel)
+                    new FactionMember { Type = EnemyType.Mourner, Fade = 0, Weight = 1.5f, From = 3 },
+                    new FactionMember { Type = EnemyType.ScytheWraith, Fade = 0, Weight = 1.5f, From = 3 },
+                    new FactionMember { Type = EnemyType.Shade, Fade = 2, Weight = 1f, From = 3 },  // the cult's Phantom
+                },
+                Squads = new[]
+                {
+                    new SquadDef { Name = "Vigil", From = 1, Members = new[] { EnemyType.Acolyte, EnemyType.Wisp, EnemyType.Wisp, EnemyType.Wisp, EnemyType.Wisp, EnemyType.Wisp, EnemyType.Wisp } },
+                    new SquadDef { Name = "Procession", From = 2, Members = new[] { EnemyType.Acolyte, EnemyType.Acolyte, EnemyType.Acolyte, EnemyType.Acolyte, EnemyType.Lamplighter, EnemyType.Lamplighter } },
+                    new SquadDef { Name = "Twin graves", From = 2, Members = new[] { EnemyType.Gravedigger, EnemyType.BoundWraith, EnemyType.BoundWraith } },  // (two pairs)
+                    new SquadDef { Name = "Harvest", From = 3, Members = new[] { EnemyType.ScytheWraith, EnemyType.ScytheWraith, EnemyType.Shade, EnemyType.Shade, EnemyType.Wisp, EnemyType.Wisp, EnemyType.Wisp } },
+                },
+                // Wave 4: split to opposite edges, a Mourner on each side with a Bound pair and three Acolytes (three types, so the
+                // wave stays under its type cap: Docs/EnemyReadability.md).
+                Finale = new SquadDef { Name = "Dusk and Dawn", From = 4, Form = SquadForm.Pincer, Members = new[] {
+                    EnemyType.Mourner, EnemyType.Mourner, EnemyType.BoundWraith, EnemyType.BoundWraith,
+                    EnemyType.Acolyte, EnemyType.Acolyte, EnemyType.Acolyte, EnemyType.Acolyte, EnemyType.Acolyte, EnemyType.Acolyte } },
+                // The Campaign's Twin Reapers cycle: each wave previews one part of their fight (Docs/RunLength.md).
+                Lessons = new[]
+                {
+                    new WaveLesson { Teaches = "Wisps drift in (the Reapers' soul shots)", Members = new[] { M(EnemyType.Wisp, 1f) } },
+                    new WaveLesson { Teaches = "Acolytes: a raised sickle means step back (the Dual Reaper's chase)", Trickle = true, Star = EnemyType.Acolyte, Members = new[] { M(EnemyType.Wisp, 2f), M(EnemyType.Acolyte, 2f) }, Squads = new[] { "Vigil" } },
+                    new WaveLesson { Teaches = "Lamplighters: lines and the cross, fired standing still (Twilight)", Trickle = true, Star = EnemyType.Lamplighter, Members = new[] { M(EnemyType.Lamplighter, 2f), M(EnemyType.Acolyte, 2f), M(EnemyType.Wisp, 1f) }, Squads = new[] { "Procession" } },
+                    new WaveLesson { Teaches = "Bound Wraiths: the tether sweep, and killing both (Soul Bond)", Trickle = true, Star = EnemyType.BoundWraith, Members = new[] { M(EnemyType.BoundWraith, 2f), M(EnemyType.Wisp, 2f) }, Squads = new[] { "Twin graves" } },
+                    new WaveLesson { Teaches = "A recap of everything so far, and the Gravediggers join", Trickle = true, Star = EnemyType.Gravedigger, Members = new[] { M(EnemyType.Wisp, 2f), M(EnemyType.Acolyte, 2f), M(EnemyType.Gravedigger, 1.5f), M(EnemyType.Lamplighter, 1f), M(EnemyType.BoundWraith, 1f) }, Squads = new[] { "Vigil", "Twin graves" } },
+                    new WaveLesson { Teaches = "Mourners: the twin spiral, and pushing in while they rest", Trickle = true, Star = EnemyType.Mourner, Members = new[] { M(EnemyType.Mourner, 2.5f), M(EnemyType.Acolyte, 2f), M(EnemyType.Wisp, 1f) } },
+                    new WaveLesson { Teaches = "Scythe Wraiths: marked reaps (Sundered), and the Shades blink in", Trickle = true, Star = EnemyType.ScytheWraith, Members = new[] { M(EnemyType.ScytheWraith, 2f), M(EnemyType.Shade, 1.5f), M(EnemyType.Lamplighter, 1.5f), M(EnemyType.Wisp, 1f) }, Squads = new[] { "Harvest" } },
+                    new WaveLesson { Teaches = "Squads: Vigil, Procession, Twin graves, Harvest", Members = new[] { M(EnemyType.Wisp, 1f), M(EnemyType.Acolyte, 1f) }, Squads = null, SquadChance = 0.9f },
+                    new WaveLesson { Teaches = "Everything, tighter", Members = null, Squads = null, SquadChance = 0.75f },
+                    new WaveLesson { Teaches = "The exam: Dusk and Dawn with everything", Members = null, Squads = null, Finale = true },
+                },
+            },
+            new FactionDef
+            {
                 Boss = EnemyType.Singularity,  // the Singularity: the Infall, matter falling into the black hole (Infall.cs, Docs/SingularityFaction.md)
                 Members = new[]
                 {
                     new FactionMember { Type = EnemyType.Debris, Weight = 3f },
-                    new FactionMember { Type = EnemyType.Acolyte, NotFirst = true, Weight = 2f },
+                    new FactionMember { Type = EnemyType.VoidAcolyte, NotFirst = true, Weight = 2f },
                     new FactionMember { Type = EnemyType.Lens, Fade = 0, Weight = 2f, From = 2 },  // bends your shots round its face (Gravity Wells)
                     new FactionMember { Type = EnemyType.Graviton, Fade = 0, Weight = 1.5f, From = 2 },  // lobs a Small Well (the Pull, Gravity Wells)
                     new FactionMember { Type = EnemyType.Orbiter, Fade = 0, Weight = 1.5f, From = 3 },  // slings its orbs (the disk, Slingshot)
@@ -155,10 +196,10 @@ namespace Arena
                 },
                 Squads = new[]
                 {
-                    new SquadDef { Name = "Infall", From = 1, Members = new[] { EnemyType.Acolyte, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris } },
+                    new SquadDef { Name = "Infall", From = 1, Members = new[] { EnemyType.VoidAcolyte, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris } },
                     new SquadDef { Name = "Binary", From = 2, Members = new[] { EnemyType.Pulsar, EnemyType.Pulsar } },
                     new SquadDef { Name = "Gravity trap", From = 3, Members = new[] { EnemyType.Graviton, EnemyType.Collapsar, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris } },
-                    new SquadDef { Name = "Lens array", From = 3, Members = new[] { EnemyType.Lens, EnemyType.Lens, EnemyType.Acolyte, EnemyType.Acolyte, EnemyType.Acolyte } },
+                    new SquadDef { Name = "Lens array", From = 3, Members = new[] { EnemyType.Lens, EnemyType.Lens, EnemyType.VoidAcolyte, EnemyType.VoidAcolyte, EnemyType.VoidAcolyte } },
                 },
                 // Wave 4: the Accretion ring, eight Debris and four Orbiters in a ring round you that turns and closes, two gaps open (Infall.cs).
                 Finale = new SquadDef { Name = "Accretion ring", From = 4, Form = SquadForm.Accretion, Members = new[] {
@@ -168,14 +209,14 @@ namespace Arena
                 Lessons = new[]
                 {
                     new WaveLesson { Teaches = "Debris falls in on a spiral (the Pull)", Members = new[] { M(EnemyType.Debris, 1f) } },
-                    new WaveLesson { Teaches = "Acolytes' orbs bend in to meet on you (bent shots)", Trickle = true, Star = EnemyType.Acolyte, Members = new[] { M(EnemyType.Debris, 2f) }, Squads = new[] { "Infall" } },
-                    new WaveLesson { Teaches = "Lenses: flank them (its Gravity Wells bend your shots)", Trickle = true, Star = EnemyType.Lens, Members = new[] { M(EnemyType.Debris, 2f), M(EnemyType.Acolyte, 1.5f) }, Squads = new[] { "Lens array" } },
-                    new WaveLesson { Teaches = "Gravitons' Small Wells: get clear or pop them (the Pull, Gravity Wells)", Trickle = true, Star = EnemyType.Graviton, Members = new[] { M(EnemyType.Lens, 1.5f), M(EnemyType.Debris, 2f), M(EnemyType.Acolyte, 1.5f) } },
-                    new WaveLesson { Teaches = "Pulsars' flickering beams (its Lasers)", Trickle = true, Star = EnemyType.Pulsar, Members = new[] { M(EnemyType.Debris, 2f), M(EnemyType.Acolyte, 1.5f) }, Squads = new[] { "Binary" } },
-                    new WaveLesson { Teaches = "A recap of everything so far, and Collapsars join (Collapse, Hawking)", Trickle = true, Star = EnemyType.Collapsar, Members = new[] { M(EnemyType.Debris, 2f), M(EnemyType.Acolyte, 1.5f), M(EnemyType.Lens, 1f), M(EnemyType.Graviton, 1f), M(EnemyType.Pulsar, 1f) }, Squads = new[] { "Gravity trap", "Infall" } },
-                    new WaveLesson { Teaches = "Orbiters sling their orbs (the disk, Slingshot)", Trickle = true, Star = EnemyType.Orbiter, Members = new[] { M(EnemyType.Orbiter, 2f), M(EnemyType.Debris, 2f), M(EnemyType.Acolyte, 1f) } },
+                    new WaveLesson { Teaches = "Void Acolytes' orbs bend in to meet on you (bent shots)", Trickle = true, Star = EnemyType.VoidAcolyte, Members = new[] { M(EnemyType.Debris, 2f) }, Squads = new[] { "Infall" } },
+                    new WaveLesson { Teaches = "Lenses: flank them (its Gravity Wells bend your shots)", Trickle = true, Star = EnemyType.Lens, Members = new[] { M(EnemyType.Debris, 2f), M(EnemyType.VoidAcolyte, 1.5f) }, Squads = new[] { "Lens array" } },
+                    new WaveLesson { Teaches = "Gravitons' Small Wells: get clear or pop them (the Pull, Gravity Wells)", Trickle = true, Star = EnemyType.Graviton, Members = new[] { M(EnemyType.Lens, 1.5f), M(EnemyType.Debris, 2f), M(EnemyType.VoidAcolyte, 1.5f) } },
+                    new WaveLesson { Teaches = "Pulsars' flickering beams (its Lasers)", Trickle = true, Star = EnemyType.Pulsar, Members = new[] { M(EnemyType.Debris, 2f), M(EnemyType.VoidAcolyte, 1.5f) }, Squads = new[] { "Binary" } },
+                    new WaveLesson { Teaches = "A recap of everything so far, and Collapsars join (Collapse, Hawking)", Trickle = true, Star = EnemyType.Collapsar, Members = new[] { M(EnemyType.Debris, 2f), M(EnemyType.VoidAcolyte, 1.5f), M(EnemyType.Lens, 1f), M(EnemyType.Graviton, 1f), M(EnemyType.Pulsar, 1f) }, Squads = new[] { "Gravity trap", "Infall" } },
+                    new WaveLesson { Teaches = "Orbiters sling their orbs (the disk, Slingshot)", Trickle = true, Star = EnemyType.Orbiter, Members = new[] { M(EnemyType.Orbiter, 2f), M(EnemyType.Debris, 2f), M(EnemyType.VoidAcolyte, 1f) } },
                     new WaveLesson { Teaches = "White Dwarfs turn your shots round (White hole)", Trickle = true, Star = EnemyType.WhiteDwarf, Members = new[] { M(EnemyType.Orbiter, 1.5f), M(EnemyType.Pulsar, 1f), M(EnemyType.Collapsar, 1.5f), M(EnemyType.Debris, 1.5f) } },
-                    new WaveLesson { Teaches = "Squads: Infall, Binary, Gravity trap, Lens array", Members = new[] { M(EnemyType.Debris, 1f), M(EnemyType.Acolyte, 1f) }, Squads = null, SquadChance = 0.9f },
+                    new WaveLesson { Teaches = "Squads: Infall, Binary, Gravity trap, Lens array", Members = new[] { M(EnemyType.Debris, 1f), M(EnemyType.VoidAcolyte, 1f) }, Squads = null, SquadChance = 0.9f },
                     new WaveLesson { Teaches = "The exam: the Accretion ring with everything", Members = null, Squads = null, Finale = true },
                 },
             },
@@ -524,7 +565,7 @@ namespace Arena
                 }
                 plan.Kinds.Add(pick.Type);
                 plan.ApproachSingles.Add(pick.Type);
-                int pack = pick.Type == EnemyType.Rioter ? 2 : pick.Type == EnemyType.Runner ? 3 : 1;  // rioters come in pairs, runners in threes
+                int pack = pick.Type == EnemyType.Rioter ? 2 : pick.Type == EnemyType.Runner || pick.Type == EnemyType.Wisp ? 3 : 1;  // rioters come in pairs, runners and wisps in threes (a Bound Wraith brings its own partner)
                 for (int k = 1; k < pack; k++)
                     plan.ApproachSingles.Add(pick.Type);
                 spent += pack;
