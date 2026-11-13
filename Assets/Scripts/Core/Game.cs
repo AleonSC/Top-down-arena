@@ -877,6 +877,7 @@ namespace Arena
             UpdateDuelView(dt);    // Duelist.cs
             UpdateLichView(dt);    // Lich.cs
             UpdateColossusView(dt);  // Colossus.cs
+            UpdateStompRings(dt);    // Stompers' rings (QuarryFaction.cs)
             UpdateQueenView(dt);   // Queen.cs
             UpdateReaperView(dt);  // Reapers.cs
             StepLightDisplay(dt);  // Searchlights (Stun.cs)
@@ -893,7 +894,7 @@ namespace Arena
             foreach (var e in Enemies.Values)
             {
                 e.Disp = e.Disp.DistanceTo(e.Pos) > 600f ? e.Pos : V2.Lerp(e.Disp, e.Pos, k);  // (a jump through a Rooms portal: snap, don't slide)
-                if (IsSwordsman(e.Type) || e.Type == EnemyType.Warder || e.Kin == EnemyType.SecurityGuard)  // (the Warder's and the Security Guard's charge look is timed the same way)
+                if (IsSwordsman(e.Type) || e.Type == EnemyType.Warder || e.Kin == EnemyType.SecurityGuard || IsInfall(e.Type))  // (the Warder's, the Security Guard's and the Infall's looks are timed the same way)
                 {
                     if (e.Phase != e.SeenPhase)
                     {
@@ -1082,6 +1083,7 @@ namespace Arena
             }
             WardenGatePush(me, before);  // the Warden's gates shove you back (Warden.cs)
             ColossusPush(me, before);    // the Colossus's stomp rings, plates and pillars (Colossus.cs)
+            StomperPush(me);             // a Stomper's small rings (QuarryFaction.cs)
             if (IsHost && Props.Count > 0 && !me.Downed)
                 ShoveProps(me.Pos, me.Def.HitR + PropPad, PushSpeed(me), dt, 0f, V2.Zero);  // leaning on a crate or barrel slides it (Props.cs)
             if ((Props.Count > 0 || LayoutOn) && !me.Downed)

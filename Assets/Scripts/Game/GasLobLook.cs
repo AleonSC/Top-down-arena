@@ -75,7 +75,9 @@ namespace Arena
                 V2 fr = V2.FromAngle(e.Facing);
                 float k = fx.T / fx.Dur;
                 V2 hp = GasHandAt(e.Disp, fr, e.Radius, 1.9f, 0.5f);
-                if (e.Type == EnemyType.HoneyLobber)
+                if (e.Type == EnemyType.RockHurler)
+                    Arc(e.Disp + fr * e.Radius, 6f + 14f * k, 2.5f, new Rgba(0.78f, 0.62f, 0.45f, 1f - k), 14);  // a puff of grit as the boulder leaves
+                else if (e.Type == EnemyType.HoneyLobber)
                     Arc(e.Disp + fr * (e.Radius * 0.6f), 6f + 14f * k, 2.5f, new Rgba(1f, 0.8f, 0.3f, 1f - k), 14);  // a puff off its swollen abdomen
                 else
                     Arc(hp, 6f + 14f * k, 2.5f, new Rgba(0.86f, 1f, 0.75f, 1f - k), 14);
@@ -86,6 +88,11 @@ namespace Arena
             V2 face = e != null ? V2.FromAngle(e.Facing) : (land - fx.Pos).Normalized();
             float r = e != null ? e.Radius : 14f;
             V2 body = e != null ? e.Disp : land;
+            if (e != null && e.Type == EnemyType.RockHurler)
+            {
+                DrawHurlerLobFx(e, fx, age, throwAt, flight, land, R, t);  // a boulder (QuarryLook.cs)
+                return;
+            }
             if (e != null && e.Type == EnemyType.HoneyLobber)
             {
                 DrawHoneyLobFx(e, fx, age, throwAt, flight, land, R);  // the mockup's red ring and honey glob (HiveLook.cs)

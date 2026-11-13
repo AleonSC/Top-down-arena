@@ -36,6 +36,7 @@ namespace Arena
                     Line(at - side * 4f - u * 3f, at + side * 4f + u * 3f, 1.5f, StitchGold.WithAlpha(0.8f));
                 }
             }
+            DrawAccretionBands(t);  // the Singularity's Accretion rings (InfallLook.cs)
             foreach (var e in game.Enemies.Values)
             {
                 if (game.IsSpawning(e))
@@ -52,6 +53,7 @@ namespace Arena
                         Line(pos, tip, Game.SentryBeamWidth * 0.6f, new Rgba(0.87f, 0.97f, 1f));
                     }
                 }
+                DrawInfallFloor(e, pos, t);  // a Pulsar's beams (InfallLook.cs)
                 if (e.Type == EnemyType.Warder)
                     DrawWarderCharge(e, pos);  // WarderLook.cs
                 DrawShooterAim(e, pos, t);  // a regular shooter's aim line while it winds up (ShooterAimLook.cs)

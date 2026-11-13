@@ -232,9 +232,10 @@ namespace Arena
             landed.Clear();
             wells.Clear();
             foreach (var e in Enemies.Values)
-                if (e.Type == EnemyType.GravityWell && !IsSpawning(e))
-                    wells.Add(e);
+                if ((e.Type == EnemyType.GravityWell || e.Type == EnemyType.MiniWell) && !IsSpawning(e))
+                    wells.Add(e);  // the Singularity's corner wells and a Graviton's Small Wells (Infall.cs)
             bool wellsUp = wells.Count > 0;
+            bool lensUp = PrepareLenses();  // the Singularity's Lenses (Infall.cs)
             V2 wind = HeraldWind(WindDrift);  // the Storm Herald's Gale bends every bullet (Herald.cs)
             PrepareNinjaBullets(dt);  // Smoke Bombs and Fuma Shuriken loops (Ninja.cs)
             PrepareLumen();           // Lumen Wards (LumenWard.cs)
@@ -251,6 +252,8 @@ namespace Arena
                     Steer(b, dt);
                 if (wellsUp && b.Owner != 0 && !Lobbed(b.Kind))
                     PullIntoWells(b, dt);
+                if (lensUp && b.Owner != 0 && !Lobbed(b.Kind) && !Defs.IsEnemyShot(b.Kind))
+                    BendRoundLenses(b, dt);  // round a Lens's face (Infall.cs)
                 float lumen = LumenSpeed(b, dt);  // 1 normally; falls to 0 as a Lumen Ward holds it still (LumenWard.cs)
                 if (b.Kind == Defs.PauseShot)
                     b.Pos += b.Vel * (dt * PauseSpeedNow(b) * SmokeSpeed(b) * lumen);  // slows to a stop, then hangs (Variety.cs)
@@ -397,12 +400,12 @@ namespace Arena
         {
             foreach (var w in wells)
             {
-                float d = b.Pos.DistanceTo(w.Pos);
-                if (d > WellPullRange)
+                float d = b.Pos.DistanceTo(w.Pos), range = w.Type == EnemyType.MiniWell ? MiniWellBendRange : WellPullRange;
+                if (d > range)
                     continue;
                 float want = (w.Pos - b.Pos).Angle, have = b.Vel.Angle;
                 float diff = MathX.Fmod(want - have + MathX.Pi, MathX.Tau) - MathX.Pi;
-                float rate = (2.5f + 12f * (1f - d / WellPullRange)) * dt;  // hard: a shot near a corner is lost
+                float rate = (2.5f + 12f * (1f - d / range)) * dt;  // hard: a shot near a corner is lost
                 b.Vel = b.Vel.Rotated(Math.Max(-rate, Math.Min(rate, diff)));
                 b.Pulled = true;
                 return;  // one well at a time
@@ -450,6 +453,7 @@ namespace Arena
             ResolveImplosions();  // and Implosions
             dmgSrc = was;
             FindColCover();       // the Colossus's plates and pillars (Colossus.cs)
+            FindQuarryCover();    // rubble piles and dropped slabs (QuarryFaction.cs)
             FindEclipseMoon();    // the Eclipse's moon (Eclipse.cs)
             foreach (var b in Bullets.Values)
             {
@@ -463,6 +467,11 @@ namespace Arena
                 if (Props.Count > 0 && PropStops(b))
                 {
                     scratchIds.Add(b.Id);  // a crate takes an enemy shot; a barrel any shot (Props.cs)
+                    continue;
+                }
+                if (quarryCover && QuarryCoverStops(b))
+                {
+                    scratchIds.Add(b.Id);  // a rubble pile or a dropped slab stops shots both ways (QuarryFaction.cs)
                     continue;
                 }
                 if (colCover != null && ColossusCoverStops(b))
@@ -593,6 +602,7 @@ namespace Arena
                         {
                             // The parry stops anything in front of it, even shots barriers can't.
                             scratchIds.Add(b.Id);
+                            MagmaParried(b);  // (no lava at your feet: QuarryFaction.cs)
                             bool perfect = PerfectNow(p);
                             if (ParryHit(p, b.Dmg, b.Pos) && !(perfect && FumaSteal(p, b)))  // perfect parry (a needle) or Mirror Guard (an arcane bolt): sent back; the Fuma's Orbit stance keeps it (FumaOrbit.cs)
                                 reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.Stats.ReflectMult, StunBack = b.Kind == Defs.StunShot || b.Kind == Defs.TaserBolt || b.Kind == Defs.StingBolt, Kind = perfect ? Defs.ParryNeedle : Defs.ArcaneShot });

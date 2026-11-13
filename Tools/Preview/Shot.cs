@@ -383,6 +383,106 @@ static partial class Shot {
       }
       hg.AnimT += float.Parse(Environment.GetEnvironmentVariable("HIVE"), System.Globalization.CultureInfo.InvariantCulture);
     }
+    if (Environment.GetEnvironmentVariable("INFALL") != null) {  // INFALL=<s into the clock>: the Singularity's faction, step 1 (InfallLook.cs): four Debris, an Acolyte winding up with a volley in flight, a Pulsar flickering and one sweeping; set beside Docs/Mockups/singularity-faction.html
+      var ig = host.Game; ig.Enemies.Clear(); ig.Bullets.Clear();
+      var isp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, Enemy> iput = (t, at) => { var e = (Enemy)isp.Invoke(ig, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; return e; };
+      me.Pos = me.Disp = new V2(1000f, 560f);
+      for (int k = 0; k < 4; k++) { float a = 3.6f + k * 0.5f, rr = 300f - 50f * k; iput(EnemyType.Debris, me.Pos + new V2((float)Math.Cos(a) * rr, (float)Math.Sin(a) * rr * 0.8f)); }
+      var aco = iput(EnemyType.VoidAcolyte, new V2(700f, 600f)); aco.Facing = 0f;
+      typeof(Game).GetMethod("AcolyteVolley", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(ig, new object[] { aco, me.Pos, 0f });
+      foreach (var b in ig.Bullets.Values) for (int i = 0; i < 45; i++) { b.Vel = b.Vel.Rotated(b.AngVel * 0.02f); b.Pos += b.Vel * 0.02f; }
+      aco.Winding = true;
+      var warn = iput(EnemyType.Pulsar, new V2(1250f, 400f)); warn.Phase = 1; warn.SeenT = 0.6f; warn.Facing = 2.0f;
+      var on = iput(EnemyType.Pulsar, new V2(1200f, 690f)); on.Phase = 2; on.Facing = 3.75f;
+      ig.AnimT += float.Parse(Environment.GetEnvironmentVariable("INFALL"), System.Globalization.CultureInfo.InvariantCulture);
+    }
+    if (Environment.GetEnvironmentVariable("INFALL2") != null) {  // INFALL2=<s into the clock>: the Singularity's faction, step 2 (InfallLook.cs): a Graviton winding up beside its landed Small Well, an Orbiter flaring with a slung orb in flight, a hurt Collapsar and an Implosion half-way
+      var ig = host.Game; ig.Enemies.Clear(); ig.Bullets.Clear();
+      var isp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, Enemy> iput = (t, at) => { var e = (Enemy)isp.Invoke(ig, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; return e; };
+      me.Pos = me.Disp = new V2(1000f, 560f);
+      var gv = iput(EnemyType.Graviton, new V2(700f, 380f)); gv.Facing = 0.6f; gv.Winding = true;
+      iput(EnemyType.MiniWell, new V2(880f, 470f));
+      var ob = iput(EnemyType.Orbiter, new V2(1280f, 380f)); ob.Facing = (me.Pos - ob.Pos).Angle; ob.Winding = true; ob.Phase = 1; ob.SeenT = 0.4f;
+      ig.Bullets[9101] = new Bullet { Id = 9101, Kind = Defs.FastShot, Pos = new V2(1140f, 470f), Vel = (me.Pos - new V2(1140f, 470f)).Normalized() * 330f, Radius = 5f, Dmg = 17f, Look = ShotLook.Round };
+      var co = iput(EnemyType.Collapsar, new V2(760f, 720f)); co.Hp = co.MaxHp * 0.4f;
+      var im = iput(EnemyType.Implosion, new V2(1240f, 720f)); im.SeenT = 0.4f;
+      ig.AnimT += float.Parse(Environment.GetEnvironmentVariable("INFALL2"), System.Globalization.CultureInfo.InvariantCulture);
+    }
+    if (Environment.GetEnvironmentVariable("INFALL3") != null) {  // INFALL3=<s into the clock>: the Singularity's faction, step 3 (InfallLook.cs): a Lens facing you with your shots bending round its face, a White Dwarf flashing and one darting in
+      var ig = host.Game; ig.Enemies.Clear(); ig.Bullets.Clear();
+      var isp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, Enemy> iput = (t, at) => { var e = (Enemy)isp.Invoke(ig, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; return e; };
+      me.Pos = me.Disp = new V2(1000f, 560f);
+      var ln = iput(EnemyType.Lens, new V2(720f, 560f)); ln.Facing = 0f;
+      var bend = typeof(Game).GetMethod("BendRoundLenses", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      typeof(Game).GetMethod("PrepareLenses", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(ig, null);
+      for (int k = 0; k < 4; k++) {  // four of your shots at different stages of passing its face
+        var b = new Bullet { Id = 9200 + k, Kind = Defs.TankShot, Owner = me.Id, Pos = me.Pos + new V2(-20f, (k % 2 == 0 ? -4f : 4f)), Vel = new V2(-700f, 0f), Radius = 4f, Dmg = 10f };
+        for (int i = 0; i < 30 + k * 9; i++) { bend.Invoke(ig, new object[] { b, 0.01f }); b.Pos += b.Vel * 0.01f; }
+        ig.Bullets[b.Id] = b;
+      }
+      var wd = iput(EnemyType.WhiteDwarf, new V2(1150f, 380f)); wd.Phase = 1; wd.SeenT = 0.35f;
+      iput(EnemyType.WhiteDwarf, new V2(1260f, 720f));
+      ig.AnimT += float.Parse(Environment.GetEnvironmentVariable("INFALL3"), System.Globalization.CultureInfo.InvariantCulture);
+    }
+    if (Environment.GetEnvironmentVariable("ACCRETION") != null) {  // ACCRETION=<s into the ring>: the Singularity's set piece (Infall.cs): eight Debris and four Orbiters in a ring round you, turning and closing, two gaps open
+      var ig = host.Game; ig.Enemies.Clear(); ig.Bullets.Clear();
+      me.Pos = me.Disp = new V2(1000f, 560f);
+      float at = float.Parse(Environment.GetEnvironmentVariable("ACCRETION"), System.Globalization.CultureInfo.InvariantCulture);
+      float spin = 0.7f, radius = Math.Max(Game.AccretionEnd, Game.AccretionStart - Game.AccretionClose * at);
+      var fin = Approaches.For(EnemyType.Singularity).Finale;
+      var isp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      for (int i = 0; i < fin.Members.Length; i++) {
+        V2 p = me.Pos + V2.FromAngle(spin + Game.AccretionSpin * at + MathX.Tau * Game.AccretionSlot(i) / Game.AccretionSlots) * radius;
+        var e = (Enemy)isp.Invoke(ig, new object[] { fin.Members[i], p, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Facing = (me.Pos - p).Angle;
+        if (i == 3) e.Winding = true;
+      }
+      ig.AccretionBands.Add(new Game.AccretionBand { Center = me.Pos, Radius = radius, Spin = spin + Game.AccretionSpin * at });
+      ig.AnimT += at;
+    }
+    if (Environment.GetEnvironmentVariable("QUARRY") != null) {  // QUARRY=<s into the clock>: the Colossus's step-1 faction (QuarryLook.cs): two Rubble, a Quarryman swinging at you, a Stomper walking, one lifting its foot (gap showing) and one whose ring is out; set beside Docs/Mockups/colossus-faction.html
+      var qg = host.Game; qg.Enemies.Clear(); qg.Bullets.Clear();
+      var qsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, float, Enemy> qput = (t, at, face) => { var e = (Enemy)qsp.Invoke(qg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Facing = face; e.Elite = false; e.Traits = 0; return e; };
+      me.Pos = me.Disp = new V2(1450f, 820f);
+      qput(EnemyType.Rubble, new V2(260f, 250f), 0f); qput(EnemyType.Rubble, new V2(300f, 330f), 0f);
+      qput(EnemyType.Quarryman, new V2(560f, 330f), 0f);
+      qput(EnemyType.Stomper, new V2(900f, 300f), MathX.Pi);
+      var sw = qput(EnemyType.Stomper, new V2(420f, 640f), 0f);
+      sw.Stomp = new StompRing { Center = sw.Pos, Radius = sw.Radius + 6f, Warn = 0.3f, Gap1 = -0.5f };
+      var so = qput(EnemyType.Stomper, new V2(980f, 660f), MathX.Pi);
+      so.Stomp = new StompRing { Center = so.Pos, Radius = 150f, Warn = 0f, Gap1 = MathX.Pi - 0.4f };
+      if (Environment.GetEnvironmentVariable("QUARRY2") != null) {  // QUARRY2=1 with QUARRY: step 2 instead: Slab Bearers (whole, flashing, cracked, broken with its slab down) and Rock Hurlers (winding up, boulder in flight, a landed pile)
+        qg.Enemies.Clear(); qg.Patches.Clear(); qg.Effects.Clear();
+        var setRiot = typeof(Game).GetMethod("SetRiotState", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        var sb1 = qput(EnemyType.SlabBearer, new V2(250f, 250f), 0f);
+        var sb2 = qput(EnemyType.SlabBearer, new V2(450f, 250f), 0f); setRiot.Invoke(null, new object[] { sb2, Game.RiotWinding, 0.3f });
+        var sb3 = qput(EnemyType.SlabBearer, new V2(650f, 250f), 0f); sb3.Phase = (byte)(Game.RiotWalk << 3 | 3);
+        var sb4 = qput(EnemyType.SlabBearer, new V2(850f, 250f), 0f); sb4.Phase = (byte)(Game.RiotFlail << 3 | Game.RiotCracked);
+        qg.Patches[701] = new PathPatch { Id = 701, Kind = PatchKind.Slab, Pos = new V2(885f, 250f), Warn = 0f, Life = 3f, Age = 1f, R0 = Game.SlabCoverHalfL, R1 = 0f };
+        var rh1 = qput(EnemyType.RockHurler, new V2(250f, 600f), 0f);
+        qg.Effects.Add(new Effect { Kind = FxKind.GasLob, Pos = new V2(470f, 560f), Pos2 = new V2(rh1.Id, 1f), Color = Game.HurlerColor, Radius = Game.HurlerLandR, Dur = 2.07f, T = 0.7f });
+        var rh2 = qput(EnemyType.RockHurler, new V2(700f, 600f), 0f);
+        qg.Effects.Add(new Effect { Kind = FxKind.GasLob, Pos = new V2(950f, 600f), Pos2 = new V2(rh2.Id, 1f), Color = Game.HurlerColor, Radius = Game.HurlerLandR, Dur = 2.07f, T = 1.55f });
+        qg.Patches[702] = new PathPatch { Id = 702, Kind = PatchKind.Rubble, Pos = new V2(1150f, 600f), Warn = 0f, Life = 2f, Age = 0.6f, R0 = Game.RubbleR, R1 = Game.RubbleR };
+      }
+      if (Environment.GetEnvironmentVariable("QUARRY3") != null) {  // QUARRY3=1 with QUARRY: step 3 instead: a Driller winding up and one whose crack is about to erupt, a Geomancer charging and one whose crack races, a Cinder Priest charging with a magma bolt out and a lava pool
+        qg.Enemies.Clear(); qg.Patches.Clear(); qg.Effects.Clear(); qg.Bullets.Clear();
+        var d1 = qput(EnemyType.Driller, new V2(250f, 250f), 0f); d1.Phase = 1; d1.PhaseT = 0.3f;
+        var d2 = qput(EnemyType.Driller, new V2(700f, 250f), 0f); d2.Phase = 3;
+        d2.Crack = new ColCrack { From = new V2(460f, 250f), Ang = 0f, Len = 220f, Max = 220f, Wait = 0.2f, Seed = 5 };
+        var g1 = qput(EnemyType.Geomancer, new V2(250f, 600f), 0f); g1.Winding = true;
+        var g2 = qput(EnemyType.Geomancer, new V2(550f, 470f), 0f);
+        g2.Crack = new ColCrack { From = new V2(570f, 470f), Ang = 0f, Len = 200f, Max = 380f, Seed = 9 };
+        var c1 = qput(EnemyType.CinderPriest, new V2(820f, 640f), MathX.Pi); c1.Winding = true;
+        var c2 = qput(EnemyType.CinderPriest, new V2(1150f, 450f), MathX.Pi);
+        qg.Bullets[9101] = new Bullet { Id = 9101, Kind = Defs.MagmaBolt, Pos = new V2(1040f, 450f), Vel = new V2(-240f, 0f), Radius = 8f, Dmg = 9f };
+        qg.Patches[703] = new PathPatch { Id = 703, Kind = PatchKind.Lava, Pos = new V2(1150f, 680f), Warn = 0.2f, Life = 2.7f, Age = 1f, R0 = Game.MagmaPoolR, R1 = Game.MagmaPoolR };
+      }
+      qg.AnimT += float.Parse(Environment.GetEnvironmentVariable("QUARRY"), System.Globalization.CultureInfo.InvariantCulture);
+    }
     if (Environment.GetEnvironmentVariable("LUNGE") != null) {  // LUNGE=<0-1>: the four lungers part-way through their wind-up (LungeLaneLook.cs); the lane fills with the client's clock, so draw once, then move it on
       var lg = host.Game; lg.Enemies.Clear(); lg.Bullets.Clear();
       var lsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

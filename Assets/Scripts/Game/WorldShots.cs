@@ -154,6 +154,11 @@ namespace Arena
                 DrawStunShot(b, t);  // WardenLook.cs
                 return;
             }
+            if (b.Kind == Defs.MagmaBolt)
+            {
+                DrawMagmaBolt(b, t);  // QuarryLook.cs
+                return;
+            }
             if (b.Kind == Defs.TaserBolt)
             {
                 DrawTaserBolt(b, t);  // TaserLook.cs

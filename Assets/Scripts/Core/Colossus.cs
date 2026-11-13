@@ -522,26 +522,7 @@ namespace Arena
         {
             AdvanceRings(c, dt);
             foreach (var r in c.Rings)
-            {
-                if (r.Warn > 0f)
-                    continue;
-                foreach (var p in Players.Values)
-                {
-                    if (p.Downed)
-                        continue;
-                    // Hurt once when it passes over you: seen in front of it, now at it or just behind it (your own
-                    // game puts you behind it, so the host may only ever see you there), and not in a gap.
-                    float pad = GateBulletR + p.Def.HitR, d = p.Pos.DistanceTo(r.Center);
-                    if (d > r.Radius + pad)
-                        r.Outside.Add(p.Id);
-                    else if (r.Outside.Contains(p.Id) && d > RingBack(r) - pad - 40f)
-                    {
-                        r.Outside.Remove(p.Id);
-                        if (!InRingGap(r, p.Pos, pad) && r.Hit.Add(p.Id) && p.InvulnT <= 0f)  // invulnerable (revive, Lifeline, Leap Slam): it passes over you
-                            Damage(p, StompDamage, "The Colossus (stomp)");
-                    }
-                }
-            }
+                HurtByRing(r, StompDamage, "The Colossus (stomp)");
             // Landings
             for (int i = c.Drops.Count - 1; i >= 0; i--)
             {
@@ -626,6 +607,29 @@ namespace Arena
             }
         }
 
+        /// Host: a spreading ring hurts each player once as it passes over them: seen in front of it, now at it or just
+        /// behind it (your own game puts you behind it, so the host may only ever see you there), and not in a gap.
+        /// The Colossus's rings and a Stomper's (QuarryFaction.cs).
+        void HurtByRing(StompRing r, float damage, string source)
+        {
+            if (r.Warn > 0f)
+                return;
+            foreach (var p in Players.Values)
+            {
+                if (p.Downed)
+                    continue;
+                float pad = GateBulletR + p.Def.HitR, d = p.Pos.DistanceTo(r.Center);
+                if (d > r.Radius + pad)
+                    r.Outside.Add(p.Id);
+                else if (r.Outside.Contains(p.Id) && d > RingBack(r) - pad - 40f)
+                {
+                    r.Outside.Remove(p.Id);
+                    if (!InRingGap(r, p.Pos, pad) && r.Hit.Add(p.Id) && p.InvulnT <= 0f)  // invulnerable (revive, Lifeline, Leap Slam): it passes over you
+                        Damage(p, damage, source);
+                }
+            }
+        }
+
         /// Moves the rings out (every game: the host, and clients between snapshots); gone once off the arena.
         static void AdvanceRings(ColossusState c, float dt)
         {
@@ -681,6 +685,16 @@ namespace Arena
             return r.Warn <= 0f && d > RingBack(r) - pad && d < r.Radius + pad && !InRingGap(r, p, pad);
         }
 
+        /// A ring that has reached you puts you just behind it (inside it), never carried along.
+        static void PushOutOfRing(StompRing r, Player me)
+        {
+            float pad = GateBulletR + me.Def.HitR;
+            if (!InRing(r, me.Pos, pad))
+                return;
+            V2 dir = (me.Pos - r.Center).Normalized();
+            me.Pos = r.Center + dir * Math.Max(0f, RingBack(r) - pad - 2f);
+        }
+
         /// Your own game: a ring that reaches you passes over you (you end up just behind it; the host hurts you once),
         /// and one you walk into from inside shoves you back. Either way you're behind it, never carried along.
         /// Plates and pillars are solid.
@@ -691,13 +705,7 @@ namespace Arena
                 return;
             var c = e.Colossus;
             foreach (var r in c.Rings)
-            {
-                float pad = GateBulletR + me.Def.HitR;
-                if (!InRing(r, me.Pos, pad))
-                    continue;
-                V2 dir = (me.Pos - r.Center).Normalized();
-                me.Pos = r.Center + dir * Math.Max(0f, RingBack(r) - pad - 2f);
-            }
+                PushOutOfRing(r, me);
             foreach (var s in c.Slabs)
             {
                 float pad = me.Def.HitR;

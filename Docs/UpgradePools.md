@@ -1,6 +1,6 @@
 # Upgrade pools: class and weapon cards
 
-**Status: steps 1-12 built (Nov 2026, protocol 321).** Every class and weapon has its cards; next: a card for Out of Ammo.
+**Status: steps 1-13 built (Nov 2026, protocol 327).** Every class and weapon (Out of Ammo too) has its cards.
 
 ## Why
 
@@ -274,7 +274,7 @@ Built (owner approved all ten): in `Game.SoldierCards`. Hooks: `PointBlankMult` 
 Barrel has no recoil, so Quick Loader's second effect became a longer full-damage range. Test: suite `abilitycards`,
 its Soldier checks.
 
-### Step 12: Elementalist weapon cards (built, protocol 321)
+### Step 12: Elementalist weapon cards (built, protocol 326)
 
 One Rare card per Elementalist weapon (`Weapons = { that weapon }`, `MaxStacks = 2`), offered only while you hold it.
 
@@ -295,3 +295,9 @@ Built (owner approved all nine; Thunderhead was taken, so the Storm Hammer's car
 `Electrify` (jumps, arc damage), `Game.RadiantSize` and the orb's heal, `Game.LightConeLength` / `LightConeHalfFor`,
 the Nimbus rain (`Nimbus.cs` and its look), the Fireball's `Ignite` and `Bullet.IgniteBonus`, `BowFull` (Arc
 Lightning) and its stun, `Game.OrbitCap` and the shards' launch range. Test: suite `abilitycards`, its Elementalist checks.
+
+### Step 13: Out of Ammo (built, protocol 327)
+
+Owner pick: **Gun Kata** (Rare, `Weapons = { OutOfAmmo }`, `MaxStacks = 2`): the rifle arms swat bullets 25% farther out
+(72 → 90 px) and recover 30% faster (`AmmoSwat`, `Stats.SwatReachMult` / `SwatCdMult`). In `Game.SoldierCards`.
+Test: suite `abilitycards`, the Gun Kata check.

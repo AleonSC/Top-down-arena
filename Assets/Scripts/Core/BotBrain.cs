@@ -470,6 +470,16 @@ namespace Arena
         }
 
         static readonly List<Bullet> botThreats = new List<Bullet>();
+        static readonly List<StompRing> stompRings = new List<StompRing>();
+        static readonly List<ColCrack> quarryCracks = new List<ColCrack>();
+
+        /// Where a stomp ring's band will be in `t` s covers `p` (outside a gap): the Colossus's and a Stomper's.
+        static bool RingDanger(StompRing r, V2 p, float t, float pad)
+        {
+            float front = r.Radius + RingSpeed * Math.Max(0f, t - r.Warn), back = front - (GateRows - 1) * GateRowGap;
+            float dc = p.DistanceTo(r.Center);
+            return dc > back - pad && dc < front + pad && !InRingGap(r, p, pad);
+        }
 
         /// Tries the 8 WASD directions and standing still, and returns the one with
         /// the least predicted danger plus a small cost for being far from where we'd like to be.
@@ -556,6 +566,15 @@ namespace Arena
             // The Colossus's stomp rings, landings, fissures and charge (Colossus.cs).
             var col = TheColossus()?.Colossus;
             Enemy colossus = col != null ? TheColossus() : null;
+            stompRings.Clear();
+            quarryCracks.Clear();
+            foreach (var se in Enemies.Values)
+            {
+                if (se.Stomp != null && se.Type == EnemyType.Stomper)
+                    stompRings.Add(se.Stomp);  // Stompers' small rings (QuarryFaction.cs), read like the Colossus's
+                if (se.Crack != null)
+                    quarryCracks.Add(se.Crack);  // Drillers' and Geomancers' cracks, like its fissures
+            }
 
             // The Reapers' tether.
             Enemy twinA = null, twinB = null;
@@ -667,11 +686,13 @@ namespace Arena
                         if (h.T < t + 0.2f && h.Pos.DistanceTo(p) < h.Radius + hitR + 8f)
                             d += w * 3f;
                     foreach (var pt in Patches.Values)  // a path's fire, the Colossus's lava the Devourer's bile, a Scorcher's embers or tear gas: burning now or about to (Paths.cs)
-                        if ((pt.Kind == PatchKind.Fire || pt.Kind == PatchKind.Lava || pt.Kind == PatchKind.Bile || pt.Kind == PatchKind.Embers || pt.Kind == PatchKind.Gas || pt.Kind == PatchKind.Acid) && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.DistanceTo(p) < pt.Radius + hitR + 8f)
+                        if ((pt.Kind == PatchKind.Fire || pt.Kind == PatchKind.Lava || pt.Kind == PatchKind.Bile || pt.Kind == PatchKind.Embers || pt.Kind == PatchKind.Gas || pt.Kind == PatchKind.Acid || pt.Kind == PatchKind.Rubble && !pt.Active) && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.DistanceTo(p) < pt.Radius + hitR + 8f)
                             d += w * 3f;
                     foreach (var th in botThreads)
                         if (SegmentDistance(p, th.A, th.B) < StitchWidth / 2f + hitR + sk.Margin + 4f)
                             d += w * 2.5f;
+                    if (AccretionBands.Count > 0)
+                        d += w * AccretionBotDanger(p, hitR);  // a closing Accretion ring: out through a gap (Infall.cs)
                     foreach (var e in Enemies.Values)  // a Beam Sentry's beam, a Reaver's rake (Variety.cs)
                     {
                         // The enemies that don't shoot (NonShooters.cs): a lit fuse's blast, the Hookman's line, pods and their lasers.
@@ -695,6 +716,10 @@ namespace Arena
                             if (p.DistanceTo(e.Pos) < SentryBeamLen && off < (e.Phase == 3 ? 0.35f : 0.6f))
                                 d += w * 2.5f;
                         }
+                        else if (PulsarLocked(e) && PulsarBeamDistance(e, p) < hitR + 40f)
+                            d += w * 2.5f;  // a Pulsar's beams, flickering or sweeping (Infall.cs)
+                        else if (IsInfall(e.Type))
+                            d += w * InfallBotDanger(e, p, hitR);  // a White Dwarf's pulse, a Small Well, an Implosion (Infall.cs)
                         else if (e.Kin == EnemyType.RiotShield && (RiotState(e) == RiotWinding || RiotState(e) == RiotLunging))
                         {
                             // A Riot Shield about to bash: get out from in front of the shield (WardenFaction.cs).
@@ -719,15 +744,17 @@ namespace Arena
                                 d += w * 3f;
                         }
                     }
+                    foreach (var r in stompRings)
+                        if (RingDanger(r, p, t, GateBulletR + hitR + sk.Margin + 6f))
+                            d += w * 2.5f;
+                    foreach (var ck in quarryCracks)
+                        if (SegmentDistance(p, ck.From, ck.From + V2.FromAngle(ck.Ang) * ck.Max) < hitR + CrackHalfW + 4f)
+                            d += w * 1.5f;
                     if (col != null)
                     {
                         foreach (var r in col.Rings)  // where each ring's band will be by then, unless you're in a gap
-                        {
-                            float front = r.Radius + RingSpeed * Math.Max(0f, t - r.Warn), back = front - (GateRows - 1) * GateRowGap;
-                            float dc = p.DistanceTo(r.Center), pad = GateBulletR + hitR + sk.Margin + 6f;
-                            if (dc > back - pad && dc < front + pad && !InRingGap(r, p, pad))
+                            if (RingDanger(r, p, t, GateBulletR + hitR + sk.Margin + 6f))
                                 d += w * 2.5f;
-                        }
                         foreach (var dr in col.Drops)
                             if (dr.T + t + 0.2f >= dr.Dur && dr.Pos.DistanceTo(p) < dr.Radius + hitR + 8f)
                                 d += w * 3f;

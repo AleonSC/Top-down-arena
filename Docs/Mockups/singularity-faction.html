@@ -1,0 +1,252 @@
+<title>Singularity Faction</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* The Singularity's faction ("the Infall"), sized like the Warden's: 8 members, 4 squads, a set piece, a 10-wave cycle.
+   Each enemy previews one boss mechanic. Approximate: canvas mockups, not the Ui.cs draw code.
+   Colours follow SingularityLook.cs: disk violet, rim cyan, horizon pink. */
+:root{
+  --bg:#ecebf1; --fg:#17151f; --muted:#5d5a6b; --panel:#f7f6fa; --line:#d0cdda; --chip:#e1dfe8;
+  --violet:#8a2bd0; --cyan:#1f7fae; --pink:#c43a96; --arena:#08070d;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0c0b11; --fg:#e8e6f0; --muted:#9a96aa; --panel:#15141c; --line:#2a2835; --chip:#211f2b;
+  --violet:#d38cff; --cyan:#8fdcff; --pink:#ff8fdf; --arena:#060509; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c0b11; --fg:#e8e6f0; --muted:#9a96aa; --panel:#15141c; --line:#2a2835; --chip:#211f2b;
+  --violet:#d38cff; --cyan:#8fdcff; --pink:#ff8fdf; --arena:#060509; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+h1{font:700 clamp(40px,8vw,68px)/.95 var(--display);text-transform:uppercase;margin:0 0 12px}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 6px}
+h3{font:700 22px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0}
+p{margin:0}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.lede{max-width:66ch;color:var(--muted)}
+.sub{color:var(--muted);margin-bottom:16px;max-width:70ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.card .body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.card .top{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.num{font:500 12px var(--mono);color:var(--muted)}
+canvas{display:block;width:100%;height:auto;background:var(--arena)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:4px;background:var(--chip);color:var(--muted)}
+.chip.job{color:var(--fg)}
+.teach{font-size:14px;border-left:3px solid var(--violet);padding-left:8px;color:var(--muted)}
+.teach b{color:var(--fg);font-weight:600}
+.stats{font:400 12px var(--mono);color:var(--muted)}
+.wide{grid-column:1/-1}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+td.n{font:500 13px var(--mono);color:var(--muted);width:3em}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+ul.notes{margin:0;padding-left:20px;color:var(--muted)}
+ul.notes li+li{margin-top:4px}
+</style>
+<main>
+<header>
+  <div class="eyebrow">Wave 20 boss faction · mockup (approximate, not the game's draw code)</div>
+  <h1>The Infall</h1>
+  <p class="lede">The Singularity's faction, the same size as the Warden's: 8 enemies, 4 squads, a set piece and a 10-wave Campaign cycle. Everything here is matter falling into the black hole, and each enemy previews one thing the boss tests.</p>
+</header>
+
+<section>
+  <h2>Members</h2>
+  <p class="sub">The Warden's slot each one fills is in brackets. Weight and first round copy the Warden's table in <code>Approaches.cs</code>.</p>
+  <div class="grid" id="members"></div>
+</section>
+
+<section>
+  <h2>Squads</h2>
+  <p class="sub">Four squads and the wave-4 set piece, like Breakout / Yard / Patrol / Cell block and the Riot line.</p>
+  <div class="grid" id="squads"></div>
+</section>
+
+<section>
+  <h2>Campaign cycle</h2>
+  <p class="sub">One lesson per wave, building to the Singularity at wave 20.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>#</th><th>Teaches</th><th>Mix</th></tr></thead>
+    <tbody id="lessons"></tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>Notes</h2>
+  <ul class="notes">
+    <li>Debris, Acolyte, Lens, Graviton and Pulsar fade at the first boss after (Fade 0–1, like Riot Shields and Security Guards); Collapsar and White Dwarf stay two waves longer (Fade 2, like Thugs and Shivs).</li>
+    <li>Two new rules the code would need: shots bending near a body (Lens, Graviton's well; the boss's Gravity Wells already do this) and an enemy turning bullets round (White Dwarf; the boss's White hole already does this).</li>
+    <li>New <code>EnemyType</code> values would go at the end, before <code>None</code>, with a protocol bump.</li>
+  </ul>
+</section>
+</main>
+
+<script>
+const C={violet:'#d959ff',cyan:'#80d6ff',pink:'#ff78db',red:'#ff5a6a',white:'#fff4e6',player:'#4fe3c1',rock:'#6e6380',dark:'#05030a',bullet:'#ffe27a'};
+const TAU=Math.PI*2;
+const lerp=(a,b,f)=>a+(b-a)*f, clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), ease=f=>f*f*(3-2*f);
+function glow(g,x,y,r,col,a){const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,hexA(col,a));gr.addColorStop(1,hexA(col,0));g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();}
+function hexA(h,a){const n=parseInt(h.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}
+function circ(g,x,y,r,fill,stroke,w){g.beginPath();g.arc(x,y,r,0,TAU);if(fill){g.fillStyle=fill;g.fill();}if(stroke){g.strokeStyle=stroke;g.lineWidth=w||2;g.stroke();}}
+function line(g,x1,y1,x2,y2,col,w,dash){g.save();g.strokeStyle=col;g.lineWidth=w;if(dash)g.setLineDash(dash);g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();g.restore();}
+function floor(g,W,H){g.fillStyle='#08070d';g.fillRect(0,0,W,H);g.strokeStyle='rgba(140,120,200,0.06)';g.lineWidth=1;for(let x=0;x<W;x+=30){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke();}for(let y=0;y<H;y+=30){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}}
+function player(g,x,y,ang){glow(g,x,y,26,C.player,0.25);circ(g,x,y,10,'#0f2d28',C.player,2.5);line(g,x,y,x+Math.cos(ang)*17,y+Math.sin(ang)*17,C.player,4);}
+function shot(g,x,y,col,r){glow(g,x,y,(r||3)*3,col,0.45);circ(g,x,y,r||3,col);}
+function label(g,x,y,txt,col){g.font='500 10px "IBM Plex Mono",monospace';g.fillStyle=col||'rgba(230,225,245,0.7)';g.textAlign='center';g.fillText(txt,x,y);}
+
+/* ---------- enemy bodies (shared by members and squads) ---------- */
+const D={
+  debris(g,x,y,t,s=1,seed=0){const n=7;glow(g,x,y,18*s,C.violet,0.25);g.save();g.translate(x,y);g.rotate(t*2.4+seed);g.beginPath();
+    for(let i=0;i<n;i++){const a=i/n*TAU, r=(8+3*Math.sin(i*2.7+seed*5))*s;g.lineTo(Math.cos(a)*r,Math.sin(a)*r);}g.closePath();
+    g.fillStyle='#2a2333';g.fill();g.strokeStyle=C.violet;g.lineWidth=1.5;g.stroke();g.restore();},
+  acolyte(g,x,y,t,ang,charge=0){glow(g,x,y,30,C.pink,0.18);g.save();g.translate(x,y);g.rotate(ang);
+    g.beginPath();g.moveTo(16,0);g.lineTo(-10,-13);g.quadraticCurveTo(-16,0,-10,13);g.closePath();g.fillStyle='#1d1427';g.fill();g.strokeStyle='#8c6aa8';g.lineWidth=1.5;g.stroke();
+    circ(g,-2,0,6,'#0b0710','#5a4370',1.2);const r=4+charge*4;glow(g,20,0,r*3,C.pink,0.5);circ(g,20,0,r,C.dark,C.pink,1.8);g.restore();},
+  lens(g,x,y,t,ang){glow(g,x,y,70,C.cyan,0.10);circ(g,x,y,70,null,hexA(C.cyan,0.18),1);g.save();g.translate(x,y);g.rotate(ang);
+    circ(g,-6,0,11,'#171a26','#6f7fa0',1.5);g.beginPath();g.ellipse(12,0,6,22,0,0,TAU);g.fillStyle=hexA(C.cyan,0.25);g.fill();g.strokeStyle=C.cyan;g.lineWidth=2;g.stroke();
+    g.beginPath();g.ellipse(12,0,2.5,15+2*Math.sin(t*4),0,0,TAU);g.strokeStyle=hexA('#ffffff',0.6);g.lineWidth=1;g.stroke();g.restore();},
+  graviton(g,x,y,t,ang,lift=0){glow(g,x,y,30,C.violet,0.18);g.save();g.translate(x,y);g.rotate(ang);circ(g,0,0,13,'#1c1528','#9b7cc0',1.8);
+    g.fillStyle='#3a2b50';g.fillRect(-14,-5,10,10);g.restore();const hx=x+Math.cos(ang)*8, hy=y+Math.sin(ang)*8-lift*10;miniWell(g,hx,hy,t,5,0.8);},
+  orbiter(g,x,y,t,hide=-1,flare=-1){circ(g,x,y,34,null,hexA(C.violet,0.18),1);glow(g,x,y,28,C.violet,0.2);circ(g,x,y,11,'#1a1424',C.violet,2);circ(g,x,y,4,C.dark);
+    for(let k=0;k<3;k++){if(k===hide)continue;const a=t*3+k*TAU/3, ox=x+Math.cos(a)*34, oy=y+Math.sin(a)*34;const big=k===flare;glow(g,ox,oy,big?20:12,C.violet,big?0.7:0.4);circ(g,ox,oy,big?7:5,C.violet,big?'#ffffff':null,1.5);}},
+  pulsar(g,x,y,t){glow(g,x,y,30,C.cyan,0.25);circ(g,x,y,12,'#101824',C.cyan,2);g.save();g.translate(x,y);g.rotate(t*9);g.strokeStyle=hexA(C.cyan,0.8);g.lineWidth=2;
+    for(let k=0;k<2;k++){g.beginPath();g.arc(0,0,7,k*Math.PI,k*Math.PI+1.4);g.stroke();}g.restore();circ(g,x,y,3,'#ffffff');},
+  collapsar(g,x,y,t,r=22,hurt=0){glow(g,x,y,r*2.2,C.pink,0.2+0.15*hurt);circ(g,x,y,r,lerp(0,1,hurt)>0.5?'#120812':'#2a1020',C.pink,2.5);
+    g.save();g.translate(x,y);g.rotate(-t*1.5);g.strokeStyle=hexA(C.pink,0.5);g.lineWidth=1.5;for(let k=0;k<3;k++){g.beginPath();g.arc(0,0,r*0.62,k*TAU/3,k*TAU/3+1.2);g.stroke();}g.restore();
+    circ(g,x,y,r*0.35,C.dark,hexA(C.white,0.4+0.4*hurt),1.5);},
+  dwarf(g,x,y,t,flash=0){glow(g,x,y,22+30*flash,C.white,0.45+0.4*flash);circ(g,x,y,7,C.white,C.cyan,1.5);
+    g.save();g.translate(x,y);g.rotate(t*6);for(let k=0;k<4;k++){g.rotate(TAU/4);line(g,9,0,13+flash*6,0,hexA(C.white,0.8),1.5);}g.restore();},
+};
+function miniWell(g,x,y,t,r,a){glow(g,x,y,r*3.2,C.violet,0.45*a);g.save();g.translate(x,y);g.rotate(-t*5);g.strokeStyle=hexA(C.violet,0.9*a);g.lineWidth=1.6;
+  for(let k=0;k<3;k++){g.beginPath();for(let i=0;i<=12;i++){const f=i/12,ang=k*TAU/3+f*2.2,rr=r*0.6+f*r*1.6;g.lineTo(Math.cos(ang)*rr,Math.sin(ang)*rr);}g.stroke();}g.restore();circ(g,x,y,r*0.7,C.dark,C.pink,1.2);}
+function hpBar(g,x,y,f){g.fillStyle='rgba(0,0,0,0.6)';g.fillRect(x-18,y,36,4);g.fillStyle=C.pink;g.fillRect(x-18,y,36*f,4);}
+
+/* ---------- member scenes: stateless, drawn from time ---------- */
+const W=360,H=210;
+const M=[
+ {key:'debris',name:'Debris',slot:'Rioter',job:'Hunter',from:1,w:3,stats:'14 HP · 125 px/s · 10 touch',
+  does:'Tumbling rubble that falls at you on a curving inward spiral, so it is hard to line up. Comes in clumps.',
+  teach:'<b>The Pull</b>: everything falls in.',
+  draw(g,t){const px=290,py=105;player(g,px,py,Math.PI);for(let i=0;i<4;i++){const p=(t*0.28+i/4)%1, r=270*(1-p)+16, a=Math.PI*0.75+p*2.0+i*0.25;
+    const x=px+Math.cos(a)*r, y=py+Math.sin(a)*r*0.75;for(let k=1;k<5;k++){const pp=Math.max(0,p-k*0.02),rr=270*(1-pp)+16,aa=Math.PI*0.75+pp*2+i*0.25;circ(g,px+Math.cos(aa)*rr,py+Math.sin(aa)*rr*0.75,2.5-k*0.4,hexA(C.violet,0.4-k*0.08));}
+    g.globalAlpha=p>0.92?(1-p)/0.08:1;D.debris(g,x,y,t,1,i);g.globalAlpha=1;}}},
+ {key:'acolyte',name:'Acolyte',slot:'Guard',job:'Pressure',from:'1 (not first)',w:2,stats:'45 HP · 85 px/s · 3 orbs, 12 each, every 1.8 s',
+  does:'A void cultist holding a tiny black hole. Fires three slow orbs: the outer two bend inward and meet where you stand.',
+  teach:'<b>Bent shots</b>: step forward or back, not sideways.',
+  draw(g,t){const ax=70,ay=105,px=290,py=105;const c=t%1.8, charge=clamp(c/0.6,0,1);player(g,px,py,Math.PI);D.acolyte(g,ax,ay,t,0,c<0.6?charge:0);
+    if(c>=0.6){const f=clamp((c-0.6)/1.1,0,1);for(const o of[-1,0,1]){const sx=ax+20,sy=ay, cx=(sx+px)/2, cy=ay+o*85;const x=(1-f)*(1-f)*sx+2*(1-f)*f*cx+f*f*px, y=(1-f)*(1-f)*sy+2*(1-f)*f*cy+f*f*py;
+      if(f<0.98){g.save();g.setLineDash([3,5]);g.strokeStyle=hexA(C.pink,0.18);g.lineWidth=1;g.beginPath();g.moveTo(sx,sy);g.quadraticCurveTo(cx,cy,px,py);g.stroke();g.restore();shot(g,x,y,C.pink,5);}}}}},
+ {key:'lens',name:'Lens',slot:'Riot Shield',job:'Anchor',from:2,w:2,stats:'90 HP · 70 px/s · bends shots within 70 px of its face',
+  does:'Carries a gravity lens in front of it. Your shots into its face curve round it and away; shots from the side land.',
+  teach:'<b>Gravity Wells</b> bending your shots: flank it.',
+  draw(g,t){const lx=130,ly=105,px=300,py=105;D.lens(g,lx,ly,t,0);player(g,px,py,Math.PI);const p2x=150,p2y=195;player(g,p2x,p2y,-Math.PI/2.3);
+    for(let i=0;i<6;i++){const f=((t*1.3+i/6)%1);const x=lerp(px-16,-30,f);const near=clamp((lx+90-x)/120,0,1);const side=i%2?1:-1;const y=py+side*(70*ease(near));shot(g,x,y,C.bullet,2.5);}
+    for(let i=0;i<3;i++){const f=((t*1.3+i/3)%1);const x=lerp(p2x,lx-2,f), y=lerp(p2y-14,ly+8,f);if(f<0.92)shot(g,x,y,C.bullet,2.5);else glow(g,lx-4,ly+10,14,C.bullet,0.8);}
+    label(g,70,40,'front: bent away',hexA(C.cyan,0.8));label(g,215,190,'side: hits',hexA(C.bullet,0.8));}},
+ {key:'graviton',name:'Graviton',slot:'Gas Grenadier',job:'Zoner',from:2,w:1.5,stats:'50 HP · lobs a well every 6 s · well 30 HP, 4 s, pulls 50 px/s',
+  does:'Lobs a small gravity well that lands by you. For 4 s it drags you in and swallows shots near it. Shoot the well to pop it.',
+  teach:'<b>Pull</b> and <b>Gravity Wells</b>: get clear, or break it.',
+  draw(g,t){const gx=55,gy=150, wx=220,wy=85;const c=t%6;let px=305,py=120;
+    if(c>1.4&&c<5.4){const f=clamp((c-1.4)/4,0,1);px=lerp(305,265,ease(f));py=lerp(120,100,ease(f));}
+    D.graviton(g,gx,gy,t,-0.5,c<0.6?c/0.6:0);
+    if(c>=0.6&&c<1.4){const f=(c-0.6)/0.8;const x=lerp(gx,wx,f), y=lerp(gy,wy,f)-Math.sin(f*Math.PI)*70;circ(g,lerp(gx,wx,f),lerp(gy,wy,f)+4,4,'rgba(0,0,0,0.5)');miniWell(g,x,y,t,5,0.9);circ(g,wx,wy,22,null,hexA(C.violet,0.4*f),1.5);}
+    if(c>=1.4&&c<5.4){const life=1-(c-1.4)/4;for(let k=0;k<3;k++){const rr=((t*0.9+k/3)%1);circ(g,wx,wy,70*(1-rr)+10,null,hexA(C.violet,0.35*rr),1.2);}miniWell(g,wx,wy,t,11,1);
+      g.strokeStyle=hexA(C.violet,0.5);g.lineWidth=2;g.beginPath();g.arc(wx,wy,18,-Math.PI/2,-Math.PI/2+TAU*life);g.stroke();
+      for(let i=0;i<5;i++){const f=((t*1.6+i/5)%1);const sx=px-14,sy=py+4;const ex=wx,ey=wy;const cx=lerp(sx,gx,0.5),cy=lerp(sy,gy,0.5);const x=(1-f)*(1-f)*sx+2*(1-f)*f*cx+f*f*ex,y=(1-f)*(1-f)*sy+2*(1-f)*f*cy+f*f*ey;if(f<0.95)shot(g,x,y,C.bullet,2.5);}}
+    player(g,px,py,Math.atan2(gy-py,gx-px));
+    if(c>1.4&&c<5.4)line(g,px-16,py-4,px-30,py-9,hexA(C.violet,0.7),2,[3,3]);}},
+ {key:'orbiter',name:'Orbiter',slot:'Taser Guard',job:'Pressure',from:3,w:1.5,stats:'60 HP · keeps 260 px · slings an orb every 1.8 s (16, fast)',
+  does:'Circles you with three orbs turning round it. One flares and a line shows, then it slings that orb straight at you.',
+  teach:'<b>Accretion disk</b> and <b>Slingshot</b>: read the flare.',
+  draw(g,t){const ox=100+Math.cos(t*0.6)*20,oy=105+Math.sin(t*0.6)*30,px=290,py=110;const cyc=Math.floor(t/1.8), c=t%1.8, k=cyc%3;
+    const a=t*3+k*TAU/3, rx=ox+Math.cos(a)*34, ry=oy+Math.sin(a)*34;
+    if(c<0.55){line(g,rx,ry,px,py,hexA(C.violet,0.25+0.4*(c/0.55)),2,[6,5]);D.orbiter(g,ox,oy,t,-1,k);}
+    else{D.orbiter(g,ox,oy,t,c<1.4?k:-1,-1);if(c<1.05){const ta=Math.floor(t/1.8)*1.8+0.55;const sa=ta*3+k*TAU/3;const sx=ox+Math.cos(sa)*34,sy=oy+Math.sin(sa)*34;const f=(c-0.55)/0.5;shot(g,lerp(sx,px,f),lerp(sy,py,f),C.violet,6);}}
+    player(g,px,py,Math.atan2(oy-py,ox-px));}},
+ {key:'pulsar',name:'Pulsar',slot:'Security Guard',job:'Zoner',from:2,w:2,stats:'70 HP · two beams, 1 s flicker, then sweep 90° over 4 s · 18 a touch',
+  does:'A spinning neutron star. Its two beams flicker as a warning, then switch on and sweep slowly round. It stands still while they fire.',
+  teach:'<b>Lasers</b>: watch the flicker, walk with the sweep.',
+  draw(g,t){const sx=140,sy=105,px=290,py=135;const c=t%6.5;const a0=Math.atan2(py-sy,px-sx)-0.5;let a=a0;
+    if(c>=1&&c<5)a=a0+(c-1)/4*(Math.PI/2);else if(c>=5)a=a0+Math.PI/2;
+    for(const s of[0,Math.PI]){const ex=sx+Math.cos(a+s)*420,ey=sy+Math.sin(a+s)*420;
+      if(c<1){if(Math.sin(t*40)>0)line(g,sx,sy,ex,ey,hexA(C.red,0.55),2,[8,6]);}
+      else if(c<5){line(g,sx,sy,ex,ey,hexA(C.red,0.25),14);line(g,sx,sy,ex,ey,hexA(C.red,0.9),4);line(g,sx,sy,ex,ey,'#ffffff',1.5);}}
+    D.pulsar(g,sx,sy,t);player(g,px,py,Math.atan2(sy-py,sx-px));}},
+ {key:'collapsar',name:'Collapsar',slot:'Thug',job:'Hunter',from:2,w:1.5,stats:'220 HP · 60 px/s · death: 0.8 s pull (90 px/s), ring of 12 (14 each)',
+  does:'A slow dense star that walks at you, shrinking as it is shot. Killed, it collapses: a short pull, then a ring of 12 bursts out.',
+  teach:'<b>Collapse</b> and <b>Hawking</b> rings: kill it at range.',
+  draw(g,t){const c=t%6.5;const px=300,py=105;const x0=70,cx=lerp(x0,190,clamp(c/3.6,0,1));const hp=clamp(1-c/3.6,0,1);
+    if(c<3.6){D.collapsar(g,cx,py,t,lerp(13,24,hp),1-hp);hpBar(g,cx,py-34,hp);for(let i=0;i<4;i++){const f=(t*2+i/4)%1;shot(g,lerp(px-16,cx+20,f),py+(i%2?4:-4),C.bullet,2.5);}player(g,px,py,Math.PI);}
+    else if(c<4.4){const f=(c-3.6)/0.8;circ(g,190,py,lerp(13,3,f),C.dark,C.white,2);for(let k=0;k<3;k++){const rr=((f*2+k/3)%1);circ(g,190,py,90*(1-rr),null,hexA(C.pink,0.6*rr),1.5);}player(g,lerp(300,285,f),py,Math.PI);line(g,284,py,268,py,hexA(C.pink,0.7),2,[3,3]);}
+    else if(c<6){const f=(c-4.4)/1.6;circ(g,190,py,40*f,null,hexA(C.white,0.5*(1-f)),3);for(let k=0;k<12;k++){const a=k*TAU/12;shot(g,190+Math.cos(a)*(10+170*f),py+Math.sin(a)*(10+170*f),C.pink,5);}player(g,285,py,Math.PI);}
+    else player(g,285,py,Math.PI);}},
+ {key:'dwarf',name:'White Dwarf',slot:'Shiv',job:'Disruptor',from:3,w:1,stats:'40 HP · 230 px/s · flash 0.5 s, then push 220 px/s and turn shots within 120 px',
+  does:'A small hot star that darts in close, flashes white, then shoves you back and turns your shots near it round at you.',
+  teach:'<b>White hole</b>: stop shooting when it flashes.',
+  draw(g,t){const c=t%4;const px=300,py=105;let dx,flash=0;if(c<1){dx=lerp(40,190,ease(c));}else if(c<2.2){dx=190;flash=c<1.5?(c-1)/0.5:0;}else{dx=lerp(190,40,ease((c-2.2)/1.8));}
+    const dy=py+Math.sin(t*7)*(c<1||c>2.2?22:2);
+    let ppx=px;if(c>=1.5&&c<2.2)ppx=lerp(px,330,ease((c-1.5)/0.7));else if(c>=2.2)ppx=lerp(330,px,ease(clamp((c-2.2)/1.5,0,1)));
+    if(c>=1.5&&c<2.2){const f=(c-1.5)/0.7;circ(g,dx,dy,120*f,null,hexA(C.white,0.7*(1-f)),3);circ(g,dx,dy,120,null,hexA(C.white,0.15),1);}
+    for(let i=0;i<6;i++){const f=(t*1.4+i/6)%1;let x=lerp(ppx-16,dx,f);let col=C.bullet;
+      if(c>=1.5&&c<2.4&&Math.abs(x-dx)<120){const back=clamp((c-1.5)/0.9,0,1);x=x+(ppx-x)*back*0.9;col=C.pink;}
+      if(Math.abs(x-dx)>10)shot(g,x,dy+(i%2?3:-3),col,col===C.pink?3.5:2.5);}
+    if(flash>0)label(g,dx,dy-38,'flash',hexA(C.white,0.9));
+    D.dwarf(g,dx,dy,t,flash);player(g,ppx,py,Math.PI);}},
+];
+
+/* ---------- squads ---------- */
+const S=[
+ {name:'Infall',from:1,list:'Acolyte + 6 Debris',slot:'Breakout',does:'The Acolyte hangs back; its Debris clump spirals in first.',
+  draw(g,t){const px=300,py=105;player(g,px,py,Math.PI);D.acolyte(g,50,105,t,0,0.3);for(let i=0;i<6;i++){const p=(t*0.15+i/6)%1,r=230*(1-p)+30,a=Math.PI+p*2.4+i*0.4;g.globalAlpha=p>0.9?(1-p)/0.1:1;D.debris(g,px+Math.cos(a)*r,py+Math.sin(a)*r*0.7,t,1,i);g.globalAlpha=1;}}},
+ {name:'Binary',from:2,list:'2 Pulsars',slot:'Patrol',does:'Two Pulsars side by side, spinning opposite ways: their beams scissor across the lane.',
+  draw(g,t){const px=300,py=105;const a=(t*0.5)%TAU;for(const[sx,sy,dir]of[[120,60,1],[120,150,-1]]){const aa=dir*a;for(const s of[0,Math.PI]){const ex=sx+Math.cos(aa+s)*420,ey=sy+Math.sin(aa+s)*420;line(g,sx,sy,ex,ey,hexA(C.red,0.22),12);line(g,sx,sy,ex,ey,hexA(C.red,0.85),3);}D.pulsar(g,sx,sy,t*dir);}player(g,px,py,Math.PI);}},
+ {name:'Lens array',from:3,list:'2 Lenses + 3 Acolytes',slot:'Cell block',does:'Two Lenses walk in front; Acolytes shoot from behind them. Go round the side.',
+  draw(g,t){const px=310,py=105;D.lens(g,175,70,t,0);D.lens(g,175,140,t,0);for(const y of[55,105,155])D.acolyte(g,90,y,t,0,(t+y)%1.8<0.6?0.6:0);player(g,px,py,Math.PI);
+    for(let i=0;i<4;i++){const f=(t*1.2+i/4)%1;const x=lerp(px-16,-20,f);const near=clamp((245-x)/100,0,1);shot(g,x,py+(i%2?1:-1)*(38*ease(near))+(i%2?6:-6),C.bullet,2.5);}}},
+ {name:'Gravity trap',from:3,list:'Graviton + Collapsar + 3 Debris',slot:'Yard',does:'The Graviton drops a well, the Collapsar walks you into it, Debris fall in after.',
+  draw(g,t){const px=280,py=80;miniWell(g,220,110,t,11,1);for(let k=0;k<3;k++){const rr=((t*0.9+k/3)%1);circ(g,220,110,60*(1-rr)+10,null,hexA(C.violet,0.3*rr),1.2);}
+    D.graviton(g,60,170,t,-0.6);D.collapsar(g,120+Math.sin(t*0.6)*10,90,t,22,0);for(let i=0;i<3;i++){const p=(t*0.25+i/3)%1;const a=i*2+p*3;D.debris(g,220+Math.cos(a)*(100*(1-p)+15),110+Math.sin(a)*(70*(1-p)+10),t,1,i);}player(g,px,py,Math.PI);}},
+ {name:'Accretion ring',from:4,list:'8 Debris + 4 Orbiters (set piece)',slot:'Riot line',wide:true,does:'The exam. Twelve bodies form a ring round the players, turning and closing in with two gaps. The Orbiters sling orbs inward as it turns; walk out through a gap before it closes.',
+  draw(g,t,W2,H2){const cx=W2/2,cy=H2/2;const c=t%9;const R=lerp(215,100,clamp(c/8,0,1));const spin=t*0.35;const n=14;
+    circ(g,cx,cy,R,null,hexA(C.violet,0.12),18);
+    for(let i=0;i<n;i++){if(i===3||i===10)continue;const a=spin+i*TAU/n;const x=cx+Math.cos(a)*R,y=cy+Math.sin(a)*R*0.62;if(i%3===0){const fl=(Math.floor(t/1.2)+i)%4===0&&(t%1.2)<0.5;D.orbiter(g,x,y,t+i,-1,fl?0:-1);if(fl)line(g,x,y,cx,cy,hexA(C.violet,0.35),2,[6,5]);}else D.debris(g,x,y,t,1.1,i);}
+    for(const i of[3,10]){const a=spin+i*TAU/n;const x=cx+Math.cos(a)*R,y=cy+Math.sin(a)*R*0.62;circ(g,x,y,16,null,hexA('#7dff9a',0.6),2);label(g,x,y-22,'gap','#7dff9a');}
+    player(g,cx-20,cy+8,0.4);player(g,cx+26,cy-12,2.5);}},
+];
+
+const L=[
+ ['Debris fall in (the Pull)','Debris'],
+ ['Acolytes\' bent orbs','Debris, Acolyte · Infall squads'],
+ ['Lenses: flank them (its Gravity Wells)','Lens, Acolyte, Debris · Lens array'],
+ ['Gravitons\' wells: get clear or pop them','Graviton, Lens, Debris'],
+ ['Pulsars\' flickering beams (its Lasers)','Pulsar, Debris · Binary'],
+ ['Recap, and Collapsars join (Collapse, Hawking)','Everything so far, Collapsar · Gravity trap'],
+ ['Orbiters sling orbs (the disk, Slingshot)','Orbiter, Debris, Acolyte'],
+ ['White Dwarfs turn your shots (White hole)','White Dwarf, Orbiter, Pulsar, Collapsar'],
+ ['Squads: Infall, Binary, Lens array, Gravity trap','All squads, 90% squad chance'],
+ ['The exam: the Accretion ring with everything','Everything + Accretion ring'],
+];
+
+/* ---------- build page ---------- */
+const scenes=[];
+function addCanvas(parent,w,h,draw){const cv=document.createElement('canvas');const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=w*dpr;cv.height=h*dpr;cv.style.aspectRatio=`${w}/${h}`;parent.appendChild(cv);const g=cv.getContext('2d');g.scale(dpr,dpr);scenes.push({cv,g,w,h,draw,vis:true});return cv;}
+const mEl=document.getElementById('members');
+M.forEach((m,i)=>{const card=document.createElement('article');card.className='card';mEl.appendChild(card);addCanvas(card,W,H,m.draw);
+  const b=document.createElement('div');b.className='body';b.innerHTML=`<div class="top"><h3>${m.name}</h3><span class="num">${i+1}/8 · [${m.slot}]</span></div>
+  <div class="chips"><span class="chip job">${m.job}</span><span class="chip">from round ${m.from}</span><span class="chip">weight ${m.w}</span></div>
+  <p>${m.does}</p><p class="teach">Teaches ${m.teach}</p><p class="stats">${m.stats}</p>`;card.appendChild(b);});
+const sEl=document.getElementById('squads');
+S.forEach(s=>{const card=document.createElement('article');card.className='card'+(s.wide?' wide':'');sEl.appendChild(card);const w=s.wide?720:W,h=s.wide?300:H;addCanvas(card,w,h,(g,t)=>s.draw(g,t,w,h));
+  const b=document.createElement('div');b.className='body';b.innerHTML=`<div class="top"><h3>${s.name}</h3><span class="num">from round ${s.from} · [${s.slot}]</span></div><div class="chips"><span class="chip job">${s.list}</span></div><p>${s.does}</p>`;card.appendChild(b);});
+const lEl=document.getElementById('lessons');L.forEach((l,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td class="n">${i+1}</td><td>${l[0]}</td><td>${l[1]}</td>`;lEl.appendChild(tr);});
+
+const io=new IntersectionObserver(es=>es.forEach(e=>{const s=scenes.find(s=>s.cv===e.target);if(s)s.vis=e.isIntersecting;}));scenes.forEach(s=>io.observe(s.cv));
+const still=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function frame(ms){const t=still?2.2:ms/1000;for(const s of scenes){if(!s.vis&&!still)continue;s.g.save();floor(s.g,s.w,s.h);s.draw(s.g,t);s.g.restore();}if(!still)requestAnimationFrame(frame);}
+requestAnimationFrame(frame);
+</script>

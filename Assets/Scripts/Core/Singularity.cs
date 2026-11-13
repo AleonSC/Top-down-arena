@@ -590,17 +590,18 @@ namespace Arena
             return Math.Abs(to.X * dir.Y - to.Y * dir.X) < reach;
         }
 
-        /// The corner wells drift players slowly toward them (applied on each player's own game).
+        /// The corner wells drift players slowly toward them (applied on each player's own game); so do the Infall's Small Wells and Implosions (Infall.cs).
         V2 WellDriftAt(V2 pos)
         {
             V2 drift = V2.Zero;
             foreach (var e in Enemies.Values)
             {
-                if (e.Type != EnemyType.GravityWell || IsSpawning(e))
+                if (!Pulls(e.Type) || IsSpawning(e) && e.Type != EnemyType.Implosion)
                     continue;
+                DriftOf(e.Type, out float range, out float pull);  // the corner wells, a Graviton's Small Well, an Implosion (Infall.cs)
                 float d = e.Pos.DistanceTo(pos);
-                if (d < WellDriftRange && d > 1f)
-                    drift += (e.Pos - pos) / d * WellDrift * (1f - d / WellDriftRange);
+                if (d < range && d > 1f)
+                    drift += (e.Pos - pos) / d * pull * (1f - d / range);
             }
             return drift;
         }
