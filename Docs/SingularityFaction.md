@@ -1,6 +1,6 @@
 # The Singularity's faction: the Infall
 
-**Status: built** (protocol 321): all eight enemies, four squads, the Accretion ring and the ten-wave cycle. Code: `Core/Infall.cs`, `Core/Approaches.cs` (the Singularity `FactionDef`),
+**Status: built** (protocol 321; the ring's band 322): all eight enemies, four squads, the Accretion ring and the ten-wave cycle. Code: `Core/Infall.cs`, `Core/Approaches.cs` (the Singularity `FactionDef`),
 `Core/Defs.cs`, `Core/Variety.cs` (`CapBeams`: at most 3 Pulsars a wave), `Game/InfallLook.cs`; mockup `Docs/Mockups/singularity-faction.html`;
 test suite `infall`; previews `INFALL=0.4 ZOOM=1.7 Tools/Preview/shot.sh x hud 1` (step 1) `INFALL2=0.4 ZOOM=1.7 ...` (step 2) `INFALL3=0.4 ZOOM=1.7 ...` (step 3) and `ACCRETION=3 Tools/Preview/shot.sh x hud 1` (the ring 3 s in).
 
