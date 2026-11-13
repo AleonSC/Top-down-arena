@@ -201,6 +201,24 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Lens, Name = "Lens", Group = "Melee", Wave = 17,
+                Appears = "The Singularity's approach (waves 17-19), alone or two in front of a Lens array squad",
+                Lead = "Walks at you holding a gravity lens out front. Your shots that come within 90 px of its face curve round it and away, and any that reach the lens do nothing. It turns slowly (1.3 rad a second): get to its side and shoot it there.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "12" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.WhiteDwarf, Name = "White Dwarf", Group = "Melee", Wave = 18,
+                Appears = "The Singularity's approach (waves 18-19)",
+                Lead = "A small, hot star that darts in zigzagging. Within 120 px it stops and flashes white for 0.5 s, then pulses: everyone within 170 px is shoved 150 px back, and up to 10 of your shots within 150 px turn round and fly back at you as its own. Then it backs off and comes again. Stop shooting when it flashes.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Pulse", Pattern = "0.5 s flash, then a shove and your shots turned round", Speed = "260", Damage = "14 each turned shot" },
+                    new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "10" },
+                },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.MiniWell, Name = "Small Well", Group = "Summons", Wave = 17,
                 Appears = "Lobbed by a Graviton",
                 Lead = "A small gravity well that lasts 4 s: it drags you toward it and bends your shots into it. Shoot it (30 health) or get clear.",

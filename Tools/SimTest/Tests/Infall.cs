@@ -4,9 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Arena;
 
-// The Singularity's faction, steps 1-2 (Core/Infall.cs, Docs/SingularityFaction.md): Debris spirals in, an Acolyte's three
+// The Singularity's faction, steps 1-3 (Core/Infall.cs, Docs/SingularityFaction.md): Debris spirals in, an Acolyte's three
 // orbs meet where you stood, a Pulsar plants, flickers, sweeps its two beams a quarter turn and rests, a Graviton's
-// Small Well drags you, an Orbiter slings its orbs, a Collapsar implodes; and they come in the waves before the Singularity.
+// Small Well drags you, an Orbiter slings its orbs, a Collapsar implodes, a Lens bends shots off its face, a White Dwarf
+// turns your shots round; and they come in the waves before the Singularity.
 static partial class Program
 {
     static void InfallTest(float dt)
@@ -138,20 +139,58 @@ static partial class Program
             run(Game.ImplosionTime + 0.3f, () => { foreach (var b in g.Bullets.Values) if (b.Shooter == iid && ringIds.Add(b.Id)) ring++; });
             Check(!g.Enemies.ContainsKey(iid) && ring == Game.ImplosionShots, "after " + Game.ImplosionTime + " s it bursts into a ring of " + Game.ImplosionShots + " and is gone (" + ring + ")");
         }
+        // Lens: a shot at its face bends away and does nothing; a shot from the side lands.
+        var ln = put(EnemyType.Lens, new V2(600f, 400f));
+        ln.Speed = 0f;
+        run(3f, null);  // it turns to face you (at 900, 400)
+        Check(Math.Abs(MathX.Fmod(ln.Facing + MathX.Pi, MathX.Tau) - MathX.Pi) < 0.1f, "a Lens turns its face to you");
+        var spawnB = typeof(Game).GetMethod("SpawnBullet", np);
+        float hp0 = ln.Hp;
+        var front = (Bullet)spawnB.Invoke(g, new object[] { Defs.TankShot, new V2(820f, 402f), new V2(-700f, 0f), 0f, 1.2f, 10f, me.Id, false, 0f });
+        float closest = 1e9f;
+        run(0.6f, () => { if (g.Bullets.ContainsKey(front.Id)) closest = Math.Min(closest, front.Pos.DistanceTo(ln.Pos)); });
+        Console.WriteLine("  Lens: a shot at its face came within {0:0} px; health {1:0} of {2:0}", closest, ln.Hp, hp0);
+        Check(ln.Hp >= hp0 && closest > ln.Radius, "a shot at a Lens's face bends round it and does nothing");
+        Check(Game.LensFaces(ln, ln.Pos + new V2(100f, 0f)) && !Game.LensFaces(ln, ln.Pos + new V2(0f, 100f)), "its face is the front; its sides are open");
+        var side = (Bullet)spawnB.Invoke(g, new object[] { Defs.TankShot, new V2(600f, 250f), new V2(0f, 700f), 0f, 1.2f, 10f, me.Id, false, 0f });
+        run(0.4f, null);
+        Check(ln.Hp < hp0, "a shot from its side lands");
+
+        // White Dwarf: darts in, flashes, then shoves you and turns your shots round.
+        var wd = put(EnemyType.WhiteDwarf, new V2(500f, 400f));
+        bool flashed = false, pulsed = false;
+        int turnedBack = 0;
+        var mine = new List<int>();
+        var knockField = typeof(Game).GetField("knockLeft", np);
+        float knocked = 0f;
+        run(4f, () =>
+        {
+            if (wd.Phase == 1) flashed = true;
+            if (wd.Phase == 1 && wd.PhaseT < 0.1f && mine.Count == 0)  // a moment before the pulse: two of your shots near it
+                for (int k = 0; k < 2; k++)
+                    mine.Add(((Bullet)spawnB.Invoke(g, new object[] { Defs.TankShot, wd.Pos + new V2(60f, k * 20f), new V2(-50f, 0f), 0f, 2f, 10f, me.Id, false, 0f })).Id);
+            if (wd.Phase == 2) pulsed = true;
+            knocked = Math.Max(knocked, (float)knockField.GetValue(g));
+            foreach (var b in g.Bullets.Values) if (b.Shooter == wd.Id && b.Owner == 0 && !mine.Contains(b.Id)) { mine.Add(b.Id); turnedBack++; }
+        });
+        Console.WriteLine("  White Dwarf: flashed {0}, pulsed {1}, turned {2} shots, knock {3:0} px", flashed, pulsed, turnedBack, knocked);
+        Check(flashed && pulsed, "a White Dwarf darts in, flashes, then pulses");
+        Check(turnedBack == 2, "the pulse turns your shots near it round as its own");
+        Check(knocked > 50f, "and shoves you back");
         host.Leave("");
 
         // The faction: the three come in the waves before the Singularity (50-wave track: 16-19).
         var f0 = Approaches.For(EnemyType.Singularity);
-        Check(f0 != null && f0.Members.Select(m => m.Type).SequenceEqual(new[] { EnemyType.Debris, EnemyType.Acolyte, EnemyType.Graviton, EnemyType.Orbiter, EnemyType.Pulsar, EnemyType.Collapsar })
-            && f0.Squads.Select(q => q.Name).SequenceEqual(new[] { "Infall", "Binary", "Gravity trap" }),
-            "the Singularity's faction so far: Debris, Acolyte, Graviton, Orbiter, Pulsar, Collapsar; squads Infall, Binary, Gravity trap");
+        Check(f0 != null && f0.Members.Select(m => m.Type).SequenceEqual(new[] { EnemyType.Debris, EnemyType.Acolyte, EnemyType.Lens, EnemyType.Graviton, EnemyType.Orbiter, EnemyType.Pulsar, EnemyType.Collapsar, EnemyType.WhiteDwarf })
+            && f0.Squads.Select(q => q.Name).SequenceEqual(new[] { "Infall", "Binary", "Gravity trap", "Lens array" }),
+            "the Singularity's faction: eight enemies like the Warden's (Debris, Acolyte, Lens, Graviton, Orbiter, Pulsar, Collapsar, White Dwarf); four squads");
         var build = typeof(Game).GetMethod("BuildWave", np);
         var spawnQ = typeof(Game).GetField("spawnQueue", np);
         var squadQ = typeof(Game).GetField("squadQueue", np);
         var seen = new HashSet<EnemyType>();
         var early = new HashSet<EnemyType>();
         for (int w = 16; w <= 19; w++)
-            for (int seed = 0; seed < 4; seed++)
+            for (int seed = 0; seed < 12; seed++)
             {
                 Game.SeedForTests(9100 + w * 10 + seed);
                 var cg = new Session().Game;

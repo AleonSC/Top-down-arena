@@ -59,6 +59,8 @@ namespace Arena
         Debris, Acolyte, Pulsar,
         // ...step 2, with the Graviton's small well and the Collapsar's implosion (both only come from them)
         Graviton, Orbiter, Collapsar, MiniWell, Implosion,
+        // ...step 3
+        Lens, WhiteDwarf,
     }
 
     public class RoleDef
@@ -345,6 +347,10 @@ namespace Arena
                 Picker = PickerGroup.Hidden },
             new EnemyDef { Name = "Implosion", Hp = 1e6f, Radius = 10f, Speed = 0f, Score = 0, Xp = 0, Sides = 6, Color = new Rgba(1f, 0.47f, 0.86f), Melee = true,
                 Picker = PickerGroup.Hidden },
+            new EnemyDef { Name = "Lens", Hp = 90f, Radius = 14f, Speed = 70f, Score = 9, Xp = 11, Sides = 8, Color = new Rgba(0.5f, 0.84f, 1f), Melee = true, Contact = 12f,
+                Picker = PickerGroup.Melee, Blurb = "Carries a gravity lens in front of it. Shots into its face curve round it and away; it turns slowly, so hit it from the side." },
+            new EnemyDef { Name = "White Dwarf", Hp = 40f, Radius = 9f, Speed = 230f, Score = 8, Xp = 10, Sides = 4, Color = new Rgba(1f, 0.96f, 0.9f), Melee = true, Contact = 10f,
+                Picker = PickerGroup.Melee, Blurb = "A small hot star that darts in, flashes white, then shoves you back and turns your shots near it round at you. Stop shooting when it flashes." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount

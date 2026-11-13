@@ -46,6 +46,8 @@ namespace Arena
                 case EnemyType.Graviton: return "Lobs a small well by you that drags you in. Get clear, or shoot the well.";
                 case EnemyType.Orbiter: return "Circles you, then slings a flaring orb straight at you. Sidestep the flare.";
                 case EnemyType.Collapsar: return "Implodes when killed: a pull, then a ring of shots. Kill it at range.";
+                case EnemyType.Lens: return "Its lens bends shots round its face. Get to its side; it turns slowly.";
+                case EnemyType.WhiteDwarf: return "Flashes, then shoves you and turns your shots round. Hold fire on the flash.";
                 case EnemyType.Grunt: return "Shoots a three-shot fan. Weave between the shots.";
                 case EnemyType.Swarmer: return "Runs at you in packs and bites. Don't get surrounded.";
                 case EnemyType.Burster: return "Fires a ring of shots. Find the gap and step through.";

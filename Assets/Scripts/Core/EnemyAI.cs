@@ -710,6 +710,11 @@ namespace Arena
                 return;  // the beam's aim and sweep, the rake's cone, the Leader's aim line (Variety.cs)
             if (PulsarLocked(e))
                 return;  // its beams' line (Infall.cs)
+            if (e.Type == EnemyType.Lens)
+            {
+                LensFace(e, want, dt);  // turns slowly, so you can get round its face (Infall.cs)
+                return;
+            }
             if (e.Kin == EnemyType.RiotShield)
             {
                 RiotShieldFace(e, want, dt);  // WardenFaction.cs
@@ -792,6 +797,8 @@ namespace Arena
                 return true;  // the more-hurt Twin Reaper, until the other catches up
             if (LichImmune(e))
                 return true;  // its phylacteries stand, it's blinking between graves, or it's changing stage (Lich.cs)
+            if (LensFaces(e, from))
+                return true;  // a Lens's face (Infall.cs)
             if (e.Kin == EnemyType.RiotShield)
                 return RiotShieldBlocks(e, from);  // WardenFaction.cs
             if (e.Type == EnemyType.ShieldSwordsman)
@@ -1141,6 +1148,7 @@ namespace Arena
                 case EnemyType.Pulsar:
                 case EnemyType.MiniWell:
                 case EnemyType.Implosion:
+                case EnemyType.WhiteDwarf:
                     InfallSpecial(e, tpos, dt);  // Infall.cs
                     break;
             }

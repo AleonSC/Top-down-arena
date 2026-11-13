@@ -11,6 +11,8 @@ namespace Arena
     ///   with three violet spiral arms and rings drawn inward.   Orbiter: a core with three orbs turning round it; the one
     ///   facing you flares as it winds up, and the one it threw is missing until it grows back.   Collapsar: a pink star
     ///   that shrinks and darkens as it's hurt.   Implosion: rings closing in on a shrinking white core.
+    ///   Lens: a dark walker with a tall cyan lens held in front and a faint arc where its face bends shots.   White Dwarf:
+    ///   a small white star with four spikes; it swells and glows as it flashes, then the pulse ring (a broadcast Ring).
     public partial class ArenaApp
     {
         static readonly Rgba InfViolet = new Rgba(0.85f, 0.35f, 1f), InfPink = new Rgba(1f, 0.47f, 0.86f), InfCyan = new Rgba(0.5f, 0.84f, 1f),
@@ -196,6 +198,49 @@ namespace Arena
                         Arc(pos, rr * 0.62f, 1.5f, InfPink.WithAlpha(0.5f), 8, -t * 1.5f + k * MathX.Tau / 3f, 1.2f);
                     Circle(pos, rr * 0.35f, InfVoid, 12);
                     Arc(pos, rr * 0.35f, 1.5f, Rgba.White.WithAlpha(0.4f + 0.4f * hurt), 12);
+                    break;
+                }
+                case EnemyType.Lens:
+                {
+                    V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+                    // Where its face bends shots: a faint arc in front.
+                    Arc(pos, Game.LensRange + r, 1.2f, InfCyan.WithAlpha(0.16f), 24, e.Facing - Game.LensArc, Game.LensArc * 2f);
+                    Circle(pos - f * (r * 0.35f), r * 0.8f, new Rgba(0.09f, 0.1f, 0.15f), 16);
+                    Arc(pos - f * (r * 0.35f), r * 0.8f, 1.6f, col.Mix(new Rgba(0.44f, 0.5f, 0.63f), 0.5f), 16);
+                    // The lens: a tall ellipse across its front, with a white glint that breathes.
+                    V2 c = pos + f * (r * 0.75f);
+                    const int n = 18;
+                    float ax = r * 0.38f, ay = r * 1.45f;
+                    var pts = new V2[n];
+                    for (int i = 0; i < n; i++)
+                    {
+                        float a = MathX.Tau * i / n;
+                        pts[i] = c + f * (Mathf.Cos(a) * ax) + s * (Mathf.Sin(a) * ay);
+                    }
+                    SetColor(InfCyan.WithAlpha(0.25f));
+                    for (int i = 0; i < n; i++)
+                        Tri(c, pts[i], pts[(i + 1) % n]);
+                    for (int i = 0; i < n; i++)
+                        Line(pts[i], pts[(i + 1) % n], 2f, InfCyan.Mix(col, 0.3f));
+                    float g = ay * (0.62f + 0.08f * Mathf.Sin(t * 4f + e.Id));
+                    Line(c + s * g, c - s * g, 1f, Rgba.White.WithAlpha(0.55f));
+                    break;
+                }
+                case EnemyType.WhiteDwarf:
+                {
+                    float flash = e.Phase == 1 ? Mathf.Clamp01(e.SeenT / Game.WhiteFlash) : 0f;
+                    for (int k = 0; k < 3; k++)  // a soft glow: three faint discs
+                        Circle(pos, r * (1.4f + 0.6f * k) * (1f + 0.8f * flash), InfCyan.Mix(Rgba.White, 0.6f).WithAlpha((0.07f + 0.12f * flash) / (k + 1)), 18);
+                    if (flash > 0f)
+                        Arc(pos, Game.WhitePushRange * flash, 1.5f, Rgba.White.WithAlpha(0.25f + 0.4f * flash), 40);  // where the pulse will reach
+                    Circle(pos, r * (0.85f + 0.3f * flash), Rgba.White, 14);
+                    Arc(pos, r * (0.85f + 0.3f * flash), 1.5f, InfCyan, 14);
+                    float rot = t * 6f;
+                    for (int k = 0; k < 4; k++)
+                    {
+                        V2 u = V2.FromAngle(rot + k * MathX.Pi / 2f);
+                        Line(pos + u * (r * 1.05f), pos + u * (r * (1.5f + 0.7f * flash)), 1.6f, Rgba.White.WithAlpha(0.85f));
+                    }
                     break;
                 }
                 case EnemyType.Implosion:

@@ -24,6 +24,14 @@ namespace Arena
     ///   Collapsar (Collapse and Hawking): a slow melee heavy that shrinks as it's shot (drawn). Killed, it leaves an
     ///     Implosion (EnemyType.Implosion: no XP, so shots pass through it) that pulls players in for ImplosionTime s, then
     ///     bursts into a ring of ImplosionShots and is gone.
+    /// Step 3:
+    ///   Lens (Gravity Wells): a melee walker with a gravity lens held in front (Facing, turning at LensTurn rad/s, so you
+    ///     can get round it). Players' shots that come within LensRange of it on its front (LensArc either side of Facing)
+    ///     bend away round it (MoveBullets, on every game), and a hit on that side lands on the lens: no damage (BlocksShot).
+    ///   White Dwarf (White hole): Phase 0 darts in zigzagging; within WhiteReach it stops and flashes (1) for WhiteFlash s,
+    ///     then pulses: players within WhitePushRange are knocked WhiteKnock px back (KnockPlayer) and your shots within
+    ///     WhiteTurnRange turn round as its own (WhiteSpeed, at most WhiteMaxTurned); then (2) it backs off for
+    ///     WhiteRetreat s and comes again.
     public partial class Game
     {
         public const float DebrisSpiral = 1.05f, DebrisStraight = 90f, DebrisFar = 420f;
@@ -38,7 +46,53 @@ namespace Arena
         public const float ImplosionTime = 0.8f, ImplosionDriftRange = 260f, ImplosionDrift = 100f, ImplosionShotSpeed = 150f;
         public const int ImplosionShots = 12;
 
-        public static bool IsInfall(EnemyType t) => t >= EnemyType.Debris && t <= EnemyType.Implosion;
+        public const float LensRange = 90f, LensArc = 1.05f, LensTurn = 1.3f, LensBend = 16f;
+        public const float WhiteReach = 120f, WhiteFlash = 0.5f, WhiteRetreat = 1.5f, WhitePushRange = 170f, WhiteKnock = 150f, WhiteTurnRange = 150f,
+            WhiteSpeed = 260f, WhiteZig = 7f;
+        public const int WhiteMaxTurned = 10;
+
+        public static bool IsInfall(EnemyType t) => t >= EnemyType.Debris && t <= EnemyType.WhiteDwarf;
+
+        /// A Lens's face is toward `from`: shots from there bend away, and a hit from there lands on the lens.
+        public static bool LensFaces(Enemy e, V2 from) =>
+            e.Type == EnemyType.Lens && Math.Abs(MathX.Fmod((from - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi) < LensArc;
+
+        /// Every game, for each player's shot (MoveBullets): near a Lens's face it turns away from the Lens.
+        void BendRoundLenses(Bullet b, float dt)
+        {
+            foreach (var e in lenses)
+            {
+                float d = b.Pos.DistanceTo(e.Pos);
+                if (d > LensRange + e.Radius || !LensFaces(e, b.Pos))
+                    continue;
+                float toLens = (e.Pos - b.Pos).Angle, have = b.Vel.Angle;
+                float diff = MathX.Fmod(toLens - have + MathX.Pi, MathX.Tau) - MathX.Pi;  // heading this far off the Lens's middle
+                if (Math.Abs(diff) > MathX.Pi / 2f)
+                    return;  // already going away
+                float rate = LensBend * (1f - Math.Min(1f, d / (LensRange + e.Radius))) * dt + 2f * dt;
+                b.Vel = b.Vel.Rotated(diff >= 0f ? -rate : rate);  // turn away from its middle, the side it's already on
+                return;
+            }
+        }
+
+        readonly System.Collections.Generic.List<Enemy> lenses = new System.Collections.Generic.List<Enemy>();
+
+        /// MoveBullets, before the bullets move: the Lenses on the field.
+        bool PrepareLenses()
+        {
+            lenses.Clear();
+            foreach (var e in Enemies.Values)
+                if (e.Type == EnemyType.Lens && !IsSpawning(e))
+                    lenses.Add(e);
+            return lenses.Count > 0;
+        }
+
+        /// A Lens turns slowly toward you.
+        void LensFace(Enemy e, float want, float dt)
+        {
+            float diff = MathX.Fmod(want - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi;
+            e.Facing += Math.Max(-LensTurn * dt, Math.Min(LensTurn * dt, diff));
+        }
 
         /// Pulls players toward it (WellDriftAt): the boss's corner wells, a Graviton's Small Well, a Collapsar's Implosion.
         static bool Pulls(EnemyType t) => t == EnemyType.GravityWell || t == EnemyType.MiniWell || t == EnemyType.Implosion;
@@ -72,6 +126,12 @@ namespace Arena
                 case EnemyType.MiniWell:
                 case EnemyType.Implosion:
                     return V2.Zero;
+                case EnemyType.WhiteDwarf:
+                    if (e.Phase == 1)
+                        return V2.Zero;  // flashing
+                    if (e.Phase == 2)
+                        return -dir + dir.Orthogonal() * e.Strafe * 0.5f;  // backing off
+                    return dir + dir.Orthogonal() * (float)Math.Sin(e.T * WhiteZig + e.Id) * 0.7f;  // darting in, zigzagging
             }
             return dir;
         }
@@ -95,6 +155,11 @@ namespace Arena
                     BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 30f, 0.3f, Sfx.None);  // the well closes
                 Enemies.Remove(e.Id);  // gone: no kill, no reward
                 e.Hp = 0f;  // (and nothing else this tick: no touch)
+                return;
+            }
+            if (e.Type == EnemyType.WhiteDwarf)
+            {
+                WhiteDwarfSpecial(e, tpos, dt);
                 return;
             }
             if (e.Type != EnemyType.Pulsar)
@@ -137,6 +202,67 @@ namespace Arena
                         e.PhaseT = PulsarRest / TraitFireMult(e);
                     }
                     break;
+            }
+        }
+
+        void WhiteDwarfSpecial(Enemy e, V2 tpos, float dt)
+        {
+            e.PhaseT -= dt;
+            switch (e.Phase)
+            {
+                case 0:
+                    if (e.T > 0.8f && tpos.DistanceTo(e.Pos) < WhiteReach)
+                    {
+                        e.Phase = 1;
+                        e.PhaseT = WhiteFlash;
+                        BroadcastSound(Sfx.BossCharge);
+                    }
+                    break;
+                case 1:
+                    if (e.PhaseT <= 0f)
+                    {
+                        WhitePulse(e);
+                        e.Phase = 2;
+                        e.PhaseT = WhiteRetreat;
+                    }
+                    break;
+                case 2:
+                    if (e.PhaseT <= 0f)
+                        e.Phase = 0;
+                    break;
+            }
+        }
+
+        /// The pulse: players near it are shoved back, and the players' shots near it turn round as its own.
+        void WhitePulse(Enemy e)
+        {
+            BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, WhitePushRange, 0.35f, Sfx.Shockwave);
+            foreach (var p in Players.Values)
+            {
+                if (p.Downed)
+                    continue;
+                float d = p.Pos.DistanceTo(e.Pos);
+                if (d < WhitePushRange + p.Def.BodyR)
+                    KnockPlayer(p, d > 1f ? (p.Pos - e.Pos) / d : V2.FromAngle(Rand(0f, MathX.Tau)), WhiteKnock);  // WardenFaction.cs
+            }
+            scratchIds.Clear();
+            foreach (var b in Bullets.Values)
+                if (b.Owner != 0 && !Defs.IsEnemyShot(b.Kind) && b.Pos.DistanceTo(e.Pos) < WhiteTurnRange && scratchIds.Count < WhiteMaxTurned)
+                    scratchIds.Add(b.Id);
+            var turned = new System.Collections.Generic.List<V2>();
+            foreach (int id in scratchIds)
+            {
+                var b = Bullets[id];
+                turned.Add(b.Pos);
+                turned.Add(b.Vel.IsZero ? V2.FromAngle(0f) : -b.Vel.Normalized());
+                KillBullet(id);
+            }
+            for (int i = 0; i < turned.Count; i += 2)
+            {
+                var nb = SpawnBullet(Defs.SmallShot, turned[i], turned[i + 1] * WhiteSpeed, 0f, 3f, Defs.BulletDamage(Defs.SmallShot), 0, false);
+                nb.Source = e.Type;
+                nb.Shooter = e.Id;
+                nb.Look = nb.Sent.Look = LookFor(e, turned[i + 1].Angle, 0f);
             }
         }
 

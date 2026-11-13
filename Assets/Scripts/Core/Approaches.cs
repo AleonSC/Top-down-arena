@@ -141,21 +141,24 @@ namespace Arena
             },
             new FactionDef
             {
-                Boss = EnemyType.Singularity,  // the Singularity: the Infall, matter falling into the black hole (Infall.cs, Docs/SingularityFaction.md); steps 1-2 of 4
+                Boss = EnemyType.Singularity,  // the Singularity: the Infall, matter falling into the black hole (Infall.cs, Docs/SingularityFaction.md); steps 1-3 of 4
                 Members = new[]
                 {
                     new FactionMember { Type = EnemyType.Debris, Weight = 3f },
                     new FactionMember { Type = EnemyType.Acolyte, NotFirst = true, Weight = 2f },
+                    new FactionMember { Type = EnemyType.Lens, Fade = 0, Weight = 2f, From = 2 },  // bends your shots round its face (Gravity Wells)
                     new FactionMember { Type = EnemyType.Graviton, Fade = 0, Weight = 1.5f, From = 2 },  // lobs a Small Well (the Pull, Gravity Wells)
                     new FactionMember { Type = EnemyType.Orbiter, Fade = 0, Weight = 1.5f, From = 3 },  // slings its orbs (the disk, Slingshot)
                     new FactionMember { Type = EnemyType.Pulsar, Fade = 1, Weight = 1.5f, From = 2 },  // its sweeping beams (the boss's Lasers)
                     new FactionMember { Type = EnemyType.Collapsar, Fade = 2, Weight = 1.5f, From = 2 },  // implodes when killed (Collapse, Hawking)
+                    new FactionMember { Type = EnemyType.WhiteDwarf, Fade = 2, Weight = 1f, From = 3 },  // turns your shots round (White hole)
                 },
                 Squads = new[]
                 {
                     new SquadDef { Name = "Infall", From = 1, Members = new[] { EnemyType.Acolyte, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris } },
                     new SquadDef { Name = "Binary", From = 2, Members = new[] { EnemyType.Pulsar, EnemyType.Pulsar } },
                     new SquadDef { Name = "Gravity trap", From = 3, Members = new[] { EnemyType.Graviton, EnemyType.Collapsar, EnemyType.Debris, EnemyType.Debris, EnemyType.Debris } },
+                    new SquadDef { Name = "Lens array", From = 3, Members = new[] { EnemyType.Lens, EnemyType.Lens, EnemyType.Acolyte, EnemyType.Acolyte, EnemyType.Acolyte } },
                 },
                 // No set piece or lesson cycle yet (step 4): the Campaign builds its waves by reach, as for the Lich.
             },

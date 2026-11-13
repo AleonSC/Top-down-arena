@@ -235,6 +235,7 @@ namespace Arena
                 if ((e.Type == EnemyType.GravityWell || e.Type == EnemyType.MiniWell) && !IsSpawning(e))
                     wells.Add(e);  // the Singularity's corner wells and a Graviton's Small Wells (Infall.cs)
             bool wellsUp = wells.Count > 0;
+            bool lensUp = PrepareLenses();  // the Singularity's Lenses (Infall.cs)
             V2 wind = HeraldWind(WindDrift);  // the Storm Herald's Gale bends every bullet (Herald.cs)
             PrepareNinjaBullets(dt);  // Smoke Bombs and Fuma Shuriken loops (Ninja.cs)
             PrepareLumen();           // Lumen Wards (LumenWard.cs)
@@ -251,6 +252,8 @@ namespace Arena
                     Steer(b, dt);
                 if (wellsUp && b.Owner != 0 && !Lobbed(b.Kind))
                     PullIntoWells(b, dt);
+                if (lensUp && b.Owner != 0 && !Lobbed(b.Kind) && !Defs.IsEnemyShot(b.Kind))
+                    BendRoundLenses(b, dt);  // round a Lens's face (Infall.cs)
                 float lumen = LumenSpeed(b, dt);  // 1 normally; falls to 0 as a Lumen Ward holds it still (LumenWard.cs)
                 if (b.Kind == Defs.PauseShot)
                     b.Pos += b.Vel * (dt * PauseSpeedNow(b) * SmokeSpeed(b) * lumen);  // slows to a stop, then hangs (Variety.cs)

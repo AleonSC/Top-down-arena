@@ -1,8 +1,8 @@
 # The Singularity's faction: the Infall
 
-**Status: steps 1-2 built** (protocol 319): Debris, Acolyte, Pulsar; Graviton, Orbiter, Collapsar. Code: `Core/Infall.cs`, `Core/Approaches.cs` (the Singularity `FactionDef`),
+**Status: steps 1-3 built** (protocol 319): all eight enemies and four squads; step 4 (the set piece and the cycle) to do. Code: `Core/Infall.cs`, `Core/Approaches.cs` (the Singularity `FactionDef`),
 `Core/Defs.cs`, `Core/Variety.cs` (`CapBeams`: at most 3 Pulsars a wave), `Game/InfallLook.cs`; mockup `Docs/Mockups/singularity-faction.html`;
-test suite `infall`; previews `INFALL=0.4 ZOOM=1.7 Tools/Preview/shot.sh x hud 1` (step 1) and `INFALL2=0.4 ZOOM=1.7 ...` (step 2).
+test suite `infall`; previews `INFALL=0.4 ZOOM=1.7 Tools/Preview/shot.sh x hud 1` (step 1) `INFALL2=0.4 ZOOM=1.7 ...` (step 2) and `INFALL3=0.4 ZOOM=1.7 ...` (step 3).
 
 Matter falling into the black hole, the same size as the Warden's faction: eight enemies, four squads, a set piece and a ten-wave cycle. Unlike the
 Hive's bees, these have their own behaviour: each one previews one thing the Singularity tests.
@@ -15,8 +15,8 @@ Hive's bees, these have their own behaviour: each one previews one thing the Sin
 | Graviton | Gas Grenadier | Pull and Gravity Wells: lobs a small well that drags you and swallows shots | 2 (built) |
 | Orbiter | Taser Guard | the disk and Slingshot: three orbs round it, slung one at a time | 2 (built) |
 | Collapsar | Thug | Collapse and Hawking: a slow heavy star that implodes into a ring when killed | 2 (built) |
-| Lens | Riot Shield | Gravity Wells: bends your shots round its face, so flank it | 3 |
-| White Dwarf | Shiv | White hole: flashes, shoves you and turns your shots round | 3 |
+| Lens | Riot Shield | Gravity Wells: bends your shots round its face, so flank it | 3 (built) |
+| White Dwarf | Shiv | White hole: flashes, shoves you and turns your shots round | 3 (built) |
 
 ## Steps
 
@@ -25,8 +25,9 @@ Hive's bees, these have their own behaviour: each one previews one thing the Sin
 2. **Graviton, Orbiter, Collapsar** (built): the Graviton's Small Well (`EnemyType.MiniWell`) uses the boss's corner-well rules, closer and weaker
    (`WellDriftAt`, `PullIntoWells`); the Orbiter slings its orbs; a killed Collapsar leaves an `Implosion` (no XP, so shots pass through it) that
    pulls, then bursts. Squad **Gravity trap** (Graviton, Collapsar, three Debris).
-3. **Lens, White Dwarf**: the two new rules, shots bending round a body's face and an enemy turning bullets round (the boss's White hole has one).
-   Squad **Lens array** (two Lenses, three Acolytes).
+3. **Lens, White Dwarf** (built): players' shots near a Lens's face turn away from it on every game (`BendRoundLenses` in `MoveBullets`) and a
+   hit on its face is blocked (`LensFaces` in `BlocksShot`); a White Dwarf's pulse shoves players (`KnockPlayer`) and swaps their nearby shots
+   for its own going back (`WhitePulse`). Squad **Lens array** (two Lenses, three Acolytes).
 4. **The set piece and the cycle**: the **Accretion ring** (eight Debris and four Orbiters in a ring round the players, turning and closing, two gaps)
    on the last wave, and the ten lessons in the mockup's order.
 
@@ -45,3 +46,10 @@ Hive's bees, these have their own behaviour: each one previews one thing the Sin
 - Orbiter: 60 health, 95 px/s, circles 260 px out. Every 1.8 s, a 0.55 s flare, then a fast orb (330 px/s, 17).
 - Collapsar: 220 health, 58 px/s, radius 22, contact 20. Its Implosion pulls 100 px/s at the middle (0 at 260 px) for 0.8 s, then a ring of 12
   small shots at 150 px/s.
+
+## Numbers (step 3)
+
+- Lens: 90 health, 70 px/s, contact 12, melee. Its face: 1.05 rad either side of where it faces, shots within 90 px of its edge bend away (up to
+  16 rad/s at the lens); it turns 1.3 rad/s.
+- White Dwarf: 40 health, 230 px/s, radius 9, contact 10, a Disruptor. Flash 0.5 s within 120 px; the pulse shoves players within 170 px back 150 px
+  and turns up to 10 of their shots within 150 px into its own (260 px/s, 14 each); then 1.5 s backing off.

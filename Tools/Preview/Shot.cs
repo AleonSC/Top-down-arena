@@ -410,6 +410,23 @@ static partial class Shot {
       var im = iput(EnemyType.Implosion, new V2(1240f, 720f)); im.SeenT = 0.4f;
       ig.AnimT += float.Parse(Environment.GetEnvironmentVariable("INFALL2"), System.Globalization.CultureInfo.InvariantCulture);
     }
+    if (Environment.GetEnvironmentVariable("INFALL3") != null) {  // INFALL3=<s into the clock>: the Singularity's faction, step 3 (InfallLook.cs): a Lens facing you with your shots bending round its face, a White Dwarf flashing and one darting in
+      var ig = host.Game; ig.Enemies.Clear(); ig.Bullets.Clear();
+      var isp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, Enemy> iput = (t, at) => { var e = (Enemy)isp.Invoke(ig, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; return e; };
+      me.Pos = me.Disp = new V2(1000f, 560f);
+      var ln = iput(EnemyType.Lens, new V2(720f, 560f)); ln.Facing = 0f;
+      var bend = typeof(Game).GetMethod("BendRoundLenses", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      typeof(Game).GetMethod("PrepareLenses", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(ig, null);
+      for (int k = 0; k < 4; k++) {  // four of your shots at different stages of passing its face
+        var b = new Bullet { Id = 9200 + k, Kind = Defs.TankShot, Owner = me.Id, Pos = me.Pos + new V2(-20f, (k % 2 == 0 ? -4f : 4f)), Vel = new V2(-700f, 0f), Radius = 4f, Dmg = 10f };
+        for (int i = 0; i < 30 + k * 9; i++) { bend.Invoke(ig, new object[] { b, 0.01f }); b.Pos += b.Vel * 0.01f; }
+        ig.Bullets[b.Id] = b;
+      }
+      var wd = iput(EnemyType.WhiteDwarf, new V2(1150f, 380f)); wd.Phase = 1; wd.SeenT = 0.35f;
+      iput(EnemyType.WhiteDwarf, new V2(1260f, 720f));
+      ig.AnimT += float.Parse(Environment.GetEnvironmentVariable("INFALL3"), System.Globalization.CultureInfo.InvariantCulture);
+    }
     if (Environment.GetEnvironmentVariable("LUNGE") != null) {  // LUNGE=<0-1>: the four lungers part-way through their wind-up (LungeLaneLook.cs); the lane fills with the client's clock, so draw once, then move it on
       var lg = host.Game; lg.Enemies.Clear(); lg.Bullets.Clear();
       var lsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
