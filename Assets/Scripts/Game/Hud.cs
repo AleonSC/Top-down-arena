@@ -83,6 +83,7 @@ namespace Arena
             DrawOffscreenMarkers();  // zoomed in: arrows to the enemies and teammates off the edge (OffscreenMarkers.cs)
             DrawRoomsMinimap();  // the Rooms arena's minimap, top right (RoomsLook.cs)
             DrawGateHint();      // by a shutter gate: the key to shut it (GateLook.cs)
+            DrawGadgetHint();    // holding a gadget: its time and keys (GadgetLook.cs)
             DrawZoomHint();      // the open Rooms map: "scroll to zoom out" (CameraZoom.cs)
             DrawGateToast(me);   // the boss gate just opened (BossGateLook.cs)
             DrawEnemyTags();  // an enemy type's name and job for its first few sightings (EnemyTagLook.cs)
