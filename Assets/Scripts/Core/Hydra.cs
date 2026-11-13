@@ -17,7 +17,7 @@ namespace Arena
             foreach (var old in Minions.Values)
                 if (old.Owner == p.Id && old.Kind == MinionKind.Hydra)
                     old.T = 0.01f;  // a new hydra replaces the last
-            var m = SpawnMinion(MinionKind.Hydra, p, target, HydraTime * power);
+            var m = SpawnMinion(MinionKind.Hydra, p, target, HydraTime * power + p.Stats.HydraBonusTime);  // Venom Glands: it stays longer
             m.LinkTo = castMastered ? 4 : 3;
             BroadcastFx(FxKind.Ring, m.Pos, m.Def.Color, 90f, 0.5f, Sfx.Summon);
         }
@@ -26,7 +26,7 @@ namespace Arena
         /// so the hydra fires one bolt every 0.6 / heads s, passing from head to head.
         void TickHydra(Minion m, float dmg)
         {
-            if (m.Cd > 0f || State != MatchState.Fighting || m.T < 0f || m.T > HydraTime * m.Power - 0.5f)  // not while it is still rising
+            if (m.Cd > 0f || State != MatchState.Fighting || m.T < 0f || m.T > m.Duration - 0.5f)  // not while it is still rising
                 return;
             var d = m.Def;
             var near = new List<Enemy>();
@@ -42,7 +42,10 @@ namespace Arena
             m.Cd = d.Interval / heads;
             V2 dir = (tg.Pos - m.Pos).Normalized();
             m.Aim = dir.Angle;
-            SpawnBullet(Defs.MinionShot, m.Pos + dir * (d.Radius + 18f), dir * HydraBoltSpeed, 0f, d.Range / HydraBoltSpeed, dmg, m.Owner);
+            var bolt = SpawnBullet(Defs.MinionShot, m.Pos + dir * (d.Radius + 18f), dir * HydraBoltSpeed, 0f, d.Range / HydraBoltSpeed, dmg, m.Owner);
+            Player owner;
+            if (bolt != null && Players.TryGetValue(m.Owner, out owner))
+                bolt.SlowAmt = owner.Stats.HydraSlow;  // Venom Glands: the venom slows what it hits
         }
 
         /// What a client needs to draw the heads: the enemy each head faces, worked out the same way from the snapshot.

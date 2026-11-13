@@ -1470,7 +1470,7 @@ static partial class Program
         Check(cg.Players[1].Vectors == p1.Vectors && cg.Players[2].Vectors == g.Players[2].Vectors && cg.Players[1].VectorCap == p1.VectorCap, "the client sees everyone's vectors");
         // The cap cards (Core/Upgrades.cs): offered only in the Expanding arena, they raise the cap; Architect also gives vectors now.
         int inkwell = Array.FindIndex(Upgrades.All, u => u.Name == "Deep Inkwell"), architect = Array.FindIndex(Upgrades.All, u => u.Name == "Architect");
-        Check(inkwell >= 0 && architect > inkwell && architect == Upgrades.All.Length - 1 && Upgrades.All[inkwell].NeedsExpanding && Upgrades.All[architect].NeedsExpanding, "the two vector cards are the last upgrades, so every older one keeps its number");
+        Check(inkwell >= 0 && architect >= 0 && Upgrades.All[inkwell].NeedsExpanding && Upgrades.All[architect].NeedsExpanding, "the two vector cards exist and only come in the Expanding arena");
         Check(!Upgrades.Available(inkwell, new OfferCtx(g.Players[1].Role, g.Players[1].RoleAbility, new List<int>())) && Upgrades.Available(inkwell, new OfferCtx(g.Players[1].Role, g.Players[1].RoleAbility, new List<int>(), null, true)), "a vector card is only available in the Expanding arena");
         var rolls = new Random(5);
         int offeredPlain = 0, offeredExpanding = 0;

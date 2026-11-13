@@ -21,7 +21,7 @@ namespace Arena
         {
             public int Owner;
             public V2 Origin, Dir;
-            public float Dist, Dmg, WetFor;
+            public float Dist, Dmg, WetFor, HalfWidth = TsunamiHalfWidth;  // Riptide: wider
             public bool ComeBack;  // mastered: roll back from where it ends
             public HashSet<int> Hit = new HashSet<int>();
         }
@@ -30,13 +30,14 @@ namespace Arena
 
         void CastTsunami(Player p, bool mastered, float power)
         {
-            LaunchWave(p.Id, p.Pos, V2.FromAngle(p.Aim), TsunamiDamage * p.Stats.DmgMult * power, (mastered ? WetTimeMastered : WetTime) * power, mastered, Sfx.Freeze);
+            LaunchWave(p.Id, p.Pos, V2.FromAngle(p.Aim), TsunamiDamage * p.Stats.DmgMult * power, (mastered ? WetTimeMastered : WetTime) * power + p.Stats.WetBonusTime,
+                mastered, Sfx.Freeze, TsunamiHalfWidth * p.Stats.TsunamiWidthMult);
         }
 
-        void LaunchWave(int owner, V2 origin, V2 dir, float dmg, float wetFor, bool comeBack, Sfx sound)
+        void LaunchWave(int owner, V2 origin, V2 dir, float dmg, float wetFor, bool comeBack, Sfx sound, float halfWidth)
         {
-            waves.Add(new SeaWave { Owner = owner, Origin = origin, Dir = dir, Dmg = dmg, WetFor = wetFor, ComeBack = comeBack });
-            BroadcastFx(FxKind.Tsunami, origin, origin + dir * TsunamiRange, new Rgba(0.31f, 0.82f, 0.91f), TsunamiHalfWidth, TsunamiRange / TsunamiSpeed + 0.35f, sound);
+            waves.Add(new SeaWave { Owner = owner, Origin = origin, Dir = dir, Dmg = dmg, WetFor = wetFor, ComeBack = comeBack, HalfWidth = halfWidth });
+            BroadcastFx(FxKind.Tsunami, origin, origin + dir * TsunamiRange, new Rgba(0.31f, 0.82f, 0.91f), halfWidth, TsunamiRange / TsunamiSpeed + 0.35f, sound);
         }
 
         /// Host, every tick: move the waves, wet and nick what they cross, and send a mastered one back.
@@ -54,7 +55,7 @@ namespace Arena
                         continue;
                     V2 rel = e.Pos - w.Origin;
                     float along = Dot(rel, w.Dir), across = Dot(rel, side);
-                    if (Math.Abs(across) > TsunamiHalfWidth + e.Radius || along > w.Dist + e.Radius || along < from - TsunamiThick - e.Radius)
+                    if (Math.Abs(across) > w.HalfWidth + e.Radius || along > w.Dist + e.Radius || along < from - TsunamiThick - e.Radius)
                         continue;
                     w.Hit.Add(e.Id);
                     e.WetT = Math.Max(e.WetT, w.WetFor);
@@ -65,7 +66,7 @@ namespace Arena
                     continue;
                 waves.RemoveAt(i);
                 if (w.ComeBack)  // the second pass wets only (no damage) and doesn't come back again
-                    LaunchWave(w.Owner, w.Origin + w.Dir * TsunamiRange, -w.Dir, 0f, w.WetFor, false, Sfx.None);
+                    LaunchWave(w.Owner, w.Origin + w.Dir * TsunamiRange, -w.Dir, 0f, w.WetFor, false, Sfx.None, w.HalfWidth);
             }
         }
 
