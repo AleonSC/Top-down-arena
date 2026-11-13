@@ -1313,6 +1313,18 @@ static partial class Program
         string why;
         var none = new List<ExpansionRoom>();
         System.Func<int[], List<int[]>> P = xy => { var pl = new List<int[]>(); for (int i = 0; i < xy.Length; i += 2) pl.Add(new[] { xy[i], xy[i + 1] }); return pl; };
+        // A rule node inside a drawn L (cut into two boxes, neither enclosing the whole 8 x 8 area): the room as a whole claims it and takes its ground.
+        {
+            var ruleL = Expansion.Outline(none, P(new[] { -900, -1100, 600, -1100, 600, -600, 200, -600, 200, 0, -900, 0 }), PathId.None, out why);
+            var frozen = new MapNode { X = -350, Y = -550, Kind = NodeKind.Rule, Rule = (byte)NodeRule.Frozen };
+            Check(ruleL != null && ruleL.Count >= 2 && !ruleL.Any(r => Expansion.NodeEncloses(r, frozen)), "the L is two boxes, neither enclosing the rule node alone (" + why + ")");
+            if (ruleL != null)
+            {
+                var ew = Expansion.Build(ruleL, null, null, new List<MapNode> { frozen });
+                Check(Expansion.NodeClaimed(ruleL, frozen) && Enumerable.Range(1, ruleL.Count).All(i => ew.Areas[i].Kind == RoomKind.Floor && ew.Areas[i].Floor == PathId.FrozenLake),
+                    "a drawn L round a rule node claims it: every box of the room is Frozen ground");
+            }
+        }
         // A plain box drawn as four corners: one box, priced like the same box drawn the old way.
         var box = Expansion.Outline(none, P(new[] { 0, -600, 800, -600, 800, 0, 0, 0 }), PathId.None, out why);
         Check(box != null && box.Count == 1 && box[0].Parent == 0 && box[0].Price == Expansion.Cost(none, 0, -600, 800, 600), "four corners on the hub's wall make one box at the box's price (" + why + ")");
