@@ -630,12 +630,12 @@ his own riot, on the boss wave, still give 2 and 4.
 
 | From | The Hive Queen's faction | Plays like | What it does |
 |---|---|---|---|
-| 6 | **Worker** | Warden's Rioter | A small, quick worker bee that weaves at you, in loose pairs (contact 10). Squads: Swarm (a Soldier and six Workers), Worker pack |
-| 6 | **Soldier** | Guard | An armoured bee that rushes straight at you, jaws snapping as it nears (contact 14). Squad: Soldier pair |
-| 7 | **Comb Shield** | Riot Shield | A bee behind a plate of seven wax cells that stops shots from the front. Up close the plate flashes (0.4 s), then it lunges and **bashes** you: 10 damage, knocked **160 px** back. The cells break as it wears (two a step, the facing ones first); broken, the bee staggers and falls fast. Squad: Honeycomb |
+| 6 | **Worker** | Warden's Rioter | A small, quick worker bee that weaves at you, in loose pairs (contact 10). **Faster in a crowd**: +10% speed for each Worker within 110 px, up to +50%. Squads: Swarm (a Soldier and six Workers), Worker pack |
+| 6 | **Soldier** | Guard | An armoured bee that rushes straight at you, jaws snapping as it nears (contact 14). Inside 260 px it **charges**: 30% faster and **armoured** (its plates close, half damage). Squad: Soldier pair |
+| 7 | **Comb Shield** | Riot Shield | A bee behind a plate of seven wax cells that stops shots from the front. Up close the plate flashes (0.4 s), then it lunges and **bashes** you: 10 damage, knocked **160 px** back. The cells break as it wears (two a step, the facing ones first), and **some of each shot gets through** the plate (15%, 15% more for each crack); broken, the bee staggers and falls fast. Squad: Honeycomb |
 | 7 | **Honey Lobber** | Gas Grenadier | Keeps its distance, plants its feet and swells. A red ring marks the spot before it lobs a honey glob; the **honey puddle** (55 px, 4.5 s) slows whoever stands in it (45%) and doesn't hurt |
-| 8 | **Stinger** | Taser Guard | Keeps its distance, plants its feet and **charges a venom lance for 0.7 s** (a lime shooting line, the lance crackling), then fires one **venom dart** (260 px/s, 8 damage, no lead): a lime zigzag with two white barbs. A hit **stuns** you for a second; a perfect parry sends it back |
-| 7 | **Needler** | Security Guard | Hovers and strafes, aims straight at you, **locks on for 0.25 s** (the red lane), then one white **needle** (a tracer round, 7 damage). Seven to a magazine (the pips above it), then a 2.2 s reload. Squad: Picket |
+| 8 | **Stinger** | Taser Guard | Keeps its distance, plants its feet and **charges a venom lance for 0.7 s** (a lime shooting line, the lance crackling), then fires one **venom dart** (260 px/s, 8 damage, no lead; 105 health, half as much again as the Taser Guard): a lime zigzag with two white barbs. A hit **stuns** you for a second; a perfect parry sends it back |
+| 7 | **Needler** | Security Guard | Hovers and **strafes fast** (70 health, half as much again), aims straight at you, **locks on for 0.25 s** (the red lane), then one white **needle** (a tracer round, 7 damage). Seven to a magazine (the pips above it), then a 2.2 s reload. Squad: Picket |
 | 7 | **Bumble** | Thug | A huge, furry bumblebee: moves and hits like a Brute (140 health, contact 20). Squad: Nursery (a Bumble, three Workers and a Hornet) |
 | 8 | **Hornet** | Shiv | Circles in close, shows the red **lunge lane**, then darts along it like a Lunger (contact 18, 26 on the lunge) |
 
