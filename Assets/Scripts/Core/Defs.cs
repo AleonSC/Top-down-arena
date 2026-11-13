@@ -337,7 +337,7 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "A prisoner with a taped shank. Circles in close, flashes a line, then lunges along it." },
             new EnemyDef { Name = "Spawn Portal", Hp = 200f, Radius = 30f, Speed = 0f, Score = 30, Xp = 20, Sides = 24, Color = new Rgba(0.78f, 0.35f, 1f), Melee = true, Heavy = true,
                 Picker = PickerGroup.Hidden, Blurb = "A burst of the wave comes through it. Shoot it closed before it empties to cancel the rest; it drops coins for each one it held." },
-            // the Hive Queen's faction (HiveKin.cs): the numbers are their Warden counterpart's
+            // the Hive Queen's faction (HiveKin.cs): the numbers are their Warden counterpart's, bar the Stinger's and Needler's health (half as much again)
             new EnemyDef { Name = "Worker", Hp = 40f, Radius = 12f, Speed = 110f, Score = 3, Xp = 7, Sides = 8, Color = new Rgba(1f, 0.773f, 0.2f), Melee = true, Contact = 10f,
                 Picker = PickerGroup.Melee, Blurb = "A small, quick worker bee that weaves at you, in loose pairs." },
             new EnemyDef { Name = "Soldier", Hp = 90f, Radius = 13f, Speed = 125f, Score = 6, Xp = 15, Sides = 8, Color = new Rgba(1f, 0.478f, 0.122f), Melee = true, Contact = 14f,
@@ -346,9 +346,9 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "A bee behind a plate of wax cells that stops shots and bashes you back. Break the cells, or go round it." },
             new EnemyDef { Name = "Honey Lobber", Hp = 50f, Radius = 14f, Speed = 75f, Score = 8, Xp = 9, Sides = 5, Color = new Rgba(1f, 0.635f, 0.102f),
                 Picker = PickerGroup.Ranged, Blurb = "Lobs honey at you. A ring marks the spot; the puddle slows whoever stands in it." },
-            new EnemyDef { Name = "Stinger", Hp = 70f, Radius = 13f, Speed = 80f, Score = 9, Xp = 11, Sides = 8, Color = new Rgba(0.784f, 1f, 0.239f),
+            new EnemyDef { Name = "Stinger", Hp = 105f, Radius = 13f, Speed = 80f, Score = 9, Xp = 11, Sides = 8, Color = new Rgba(0.784f, 1f, 0.239f),
                 Picker = PickerGroup.Ranged, Blurb = "Keeps its distance, charges a venom lance and fires one barbed dart that stuns you. Strafe across the line, or parry it." },
-            new EnemyDef { Name = "Needler", Hp = 45f, Radius = 15f, Speed = 70f, Score = 9, Xp = 9, Sides = 24, Color = new Rgba(1f, 0.925f, 0.604f),
+            new EnemyDef { Name = "Needler", Hp = 70f, Radius = 15f, Speed = 70f, Score = 9, Xp = 9, Sides = 24, Color = new Rgba(1f, 0.925f, 0.604f),
                 Picker = PickerGroup.Ranged, Blurb = "Hovers and strafes, locks on, then fires one white needle at a time: seven shots, then a long reload." },
             new EnemyDef { Name = "Bumble", Hp = 140f, Radius = 19f, Speed = 62f, Score = 10, Xp = 10, Sides = 7, Color = new Rgba(0.91f, 0.573f, 0.047f), Melee = true, Contact = 20f,
                 Picker = PickerGroup.Melee, Blurb = "A huge, furry bumblebee. Slow and tough, hits hard when it reaches you." },

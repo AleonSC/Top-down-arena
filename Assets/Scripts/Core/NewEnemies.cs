@@ -32,9 +32,9 @@ namespace Arena
         {
             switch (t)
             {
-                case EnemyType.Worker: return "Small and quick, weaving at you in pairs. Don't get surrounded.";
-                case EnemyType.Soldier: return "Armoured and straight: no weaving. Sidestep the rush.";
-                case EnemyType.CombShield: return "Wax-cell shield stops shots. Break its cells, or flank it.";
+                case EnemyType.Worker: return "Small and quick, and faster in a crowd. Don't get surrounded.";
+                case EnemyType.Soldier: return "Armoured while it charges: wait out the rush, then hit it.";
+                case EnemyType.CombShield: return "Wax-cell shield stops most shots. Break its cells, or flank it.";
                 case EnemyType.HoneyLobber: return "Lobs honey at the red ring. Leave the spot; the puddle slows you.";
                 case EnemyType.Stinger: return "Charges a venom lance, then fires one dart that stuns. Strafe across the line.";
                 case EnemyType.Needler: return "Locks on, then fires needles straight at you. Keep moving, rush it as it reloads.";

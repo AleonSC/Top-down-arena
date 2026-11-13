@@ -508,6 +508,11 @@ namespace Arena
                                 DuelGuardBounce(e, b);  // the Duelist's guard sends it back (Duelist.cs)
                                 ParrierBounce(e, b);    // so does a Parrier's main-gauche (CourtFaction.cs)
                                 WearShield(e, b.Dmg);  // the shield takes it, and wears
+                                if (e.Type == EnemyType.CombShield)
+                                {
+                                    HurtEnemy(e, b.Dmg * CombLeak(e), b.Owner);  // a Comb Shield's plate lets some of it through as it breaks (HiveBees.cs)
+                                    if (e.Hp <= 0f) { scratchIds.Add(b.Id); break; }
+                                }
                                 scratchIds.Add(b.Id);
                                 break;
                             }
@@ -898,6 +903,8 @@ namespace Arena
                 dmg *= HookOpenMult;  // a Hookman that just missed (NonShooters.cs)
             if (RiotShieldBroken(e))
                 dmg *= RiotBrokenMult;  // its shield's gone (WardenFaction.cs)
+            if (SoldierCharging(e))
+                dmg *= SoldierArmor;  // a charging Soldier's armour (HiveBees.cs)
             if (e.Type == EnemyType.RiotCaptain && e.Phase == CapDazed)
                 dmg *= CaptainDazedMult;  // ran into a wall (RiotCaptain.cs)
             if (WardenExposed(e))

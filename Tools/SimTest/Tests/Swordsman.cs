@@ -109,8 +109,8 @@ static partial class Program
         sh.Hp = 0f; plain.Hp = 0f; quiet();
 
         // --- waves ---------------------------------------------------------------------------------------------------
-        Check(Game.NewTypesAt(Game.SwordsmanFrom).Contains(EnemyType.Swordsman), "the Swordsman joins on its wave (a new-enemy chip)");
-        Check(Game.NewTypesAt(Game.ShieldSwordsmanFrom).Contains(EnemyType.ShieldSwordsman), "the Shield Swordsman joins on its wave");
+        Check(Game.IsRetired(EnemyType.Swordsman) && !Game.NewTypesAt(Game.SwordsmanFrom).Contains(EnemyType.Swordsman), "the Swordsman is retired from the waves (BasicFaction.cs), so it gets no new-enemy chip");
+        Check(Game.IsRetired(EnemyType.ShieldSwordsman) && !Game.NewTypesAt(Game.ShieldSwordsmanFrom).Contains(EnemyType.ShieldSwordsman), "nor does the Shield Swordsman");
         Check(Game.EnemyNote(EnemyType.Swordsman) != "" && Game.EnemyNote(EnemyType.ShieldSwordsman) != "", "both have a one-line note for the chip");
         friend.Downed = false;
         g.DevSetGod(2, false);

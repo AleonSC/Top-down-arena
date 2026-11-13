@@ -370,6 +370,7 @@ static partial class Shot {
       for (int k = 0; k < hk.Length; k++) {
         var e = (Enemy)hsp.Invoke(hg, new object[] { hk[k], new V2(300f + 220f * (k % 4), 260f + 240f * (k / 4)), 0f, 0, false });
         e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Facing = 0f;
+        if (hk[k] == EnemyType.Soldier && Environment.GetEnvironmentVariable("HIVECHARGE") != null) e.Phase = 1;  // HIVECHARGE=1: the Soldier charging, its armour plates closed
         if (hk[k] == EnemyType.Stinger) e.Winding = true;
         if (hk[k] == EnemyType.Needler) e.Phase = 5;
         if (hk[k] == EnemyType.Hornet) { e.Phase = 1; e.PhaseT = 0.5f; }
