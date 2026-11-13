@@ -958,7 +958,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   (the shop's stall or the vendor's pedestal stands in the middle). Sealed rooms don't count towards the 24-room cap and add no enemies; at most 6 wait.
   A chest node is locked until you build a **room** that encloses it (a normal combat room with enemies); a claimed chest node holds a real treasure chest (the same as the rare wave chests): touch it and every
   player gets their own item. It opens once and never holds the wave up (opened ones lie dim with the lid up). No cover stands on a node. Nothing respawns: new ones
-  appear around the current map. Bots build up to the shop room first, then the vendor, then chests, then the Gatekeeper (they don't walk to chests' loot).
+  appear around the current map. Bots build up to the shop room first, then the vendor, then a rule node's room, then chest and relic nodes, then the Gatekeeper (they don't walk to chests' loot); they vote for a proposal that builds toward these when someone has drawn one.
   Old saves with shop or vendor nodes still work: a room round one becomes that shop.
 - **Relic nodes**: every other boss cycle (the first, third, ...) also places a **relic node** (an amber diamond). Build a room round it and walk up to
   it: **every player** gets its relic in their **relic slot** (one each; a new relic replaces the old, and it stays for the run, saves included). Relics are
