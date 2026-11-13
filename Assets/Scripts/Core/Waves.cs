@@ -79,7 +79,7 @@ namespace Arena
                         ResolveBuildRound();  // the building round closes as the wave starts: the winning room is built (ExpansionGame.cs)
                         SaveRun();  // everyone has picked: the save slot holds the run from here (RunSaves.cs)
                         State = MatchState.Fighting;
-                        spawnTimer = 0.5f;
+                        spawnTimer = WaveNumbers.OpeningDelay;
                         string bossName;
                         if (Practice != null && Practice.Waves.Count > 0)
                         {
@@ -125,8 +125,6 @@ namespace Arena
                             bossName = BossNow ? Defs.Get(BossAt(Wave)).Name : null;
                             BeginTimedWave();  // the wave's enemies arrive over a window (TimedWaves.cs)
                         }
-                        if (Practice != null)
-                            timedWave = false;
                         ModsWaveStart();  // Hunted's quarry, Second Wind back each boss cycle (Modifiers.cs)
                         MarkWaveStart();  // the wave's numbers start from here (WaveReady.cs)
                         Recorder?.WaveStart(this, Wave, bossName);
@@ -154,12 +152,12 @@ namespace Arena
                     else if (spawnQueue.Count > 0 || squadQueue.Count > 0)
                     {
                         spawnTimer -= dt;
-                        float next = Math.Max(0.3f, (Wave <= 1 ? 0.7f : 1.1f) - Wave * 0.05f);
+                        float next = WaveNumbers.SpawnInterval(Wave);
                         if (spawnTimer <= 0f && ZombieSpawnReady(ref next))  // (a horde comes faster, up to its cap)
                         {
                             spawnTimer = next;
                             if (SpawnNextSquad())  // a squad comes after every few single enemies (Variety.cs)
-                                spawnTimer *= 3f;
+                                spawnTimer *= WaveNumbers.SquadPause;
                             else
                             {
                                 SpawnEnemy(spawnQueue[0]);

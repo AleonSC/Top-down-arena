@@ -117,7 +117,7 @@ namespace Arena
                 {
                     case EnemyType.Boss:
                         spawnQueue.Add(EnemyType.Boss);
-                        for (int i = 0; i < n / 2; i++)
+                        for (int i = 0; i < WaveNumbers.EscortCount(EnemyType.Boss, n); i++)
                             spawnQueue.Add(EnemyType.Grunt);
                         break;
                     case EnemyType.HiveQueen:
@@ -129,17 +129,17 @@ namespace Arena
                         break;
                     case EnemyType.Singularity:
                         spawnQueue.Add(EnemyType.Singularity);
-                        for (int i = 0; i < n / 6; i++)
+                        for (int i = 0; i < WaveNumbers.EscortCount(EnemyType.Singularity, n); i++)
                             spawnQueue.Add(i % 2 == 0 ? EnemyType.Grunt : EnemyType.Sniper);
                         break;
                     case EnemyType.Colossus:
                         spawnQueue.Add(EnemyType.Colossus);
-                        for (int i = 0; i < n / 5; i++)
+                        for (int i = 0; i < WaveNumbers.EscortCount(EnemyType.Colossus, n); i++)
                             spawnQueue.Add(EnemyType.Grunt);
                         break;
                     case EnemyType.StormHerald:
                         spawnQueue.Add(EnemyType.StormHerald);
-                        for (int i = 0; i < n / 8; i++)
+                        for (int i = 0; i < WaveNumbers.EscortCount(EnemyType.StormHerald, n); i++)
                             spawnQueue.Add(EnemyType.Sniper);
                         break;
                     default:  // Duelist, Lich, Devourer and the Eclipse fight alone (or bring their own help)
@@ -149,15 +149,15 @@ namespace Arena
                 return;
             }
             var pool = WavePool(n);  // the types that can join the mix on this wave
-            int count = Math.Min(4 + n * 2, n < 20 ? 32 : Math.Min(40, 32 + (n - 20) / 2));
-            if (n <= 5)
-                count += n == 1 ? 6 : (7 - n) / 2;  // the first waves get a little extra (12, 10, 12, 13, 14 picks: wave 1 has the most, as it was too quiet; swarmers and spikers come in packs), so the opening isn't too quiet
+            int count = WaveNumbers.Picks(n);  // (the first waves get a little extra so the opening isn't too quiet)
             if (LayoutOn && Layout != LayoutId.Open)  // (the Rooms world alone doesn't count: Rooms.cs)
                 count = (int)Math.Round(count * LayoutEnemyMult);  // a floor plan's walls and gates make the crowd easier to read: more of them (Balance.cs)
             count = (int)Math.Round(count * ExpansionScale);  // a bigger Expanding map: more of them (ExpansionGame.cs)
             if (Players.Count >= 3)
-                count = (int)(count * 1.25f);  // a third player: a quarter more enemies
+                count = (int)(count * WaveNumbers.ThirdPlayerShare);  // a third player: a quarter more enemies
             count = Math.Max(1, (int)Math.Round(count * D(DiffKnob.EnemyCount)));  // the difficulty's enemy count
+            if (Rules.CountMult != 1f)
+                count = Math.Max(1, (int)Math.Round(count * Rules.CountMult));  // the mode's own count (a Boss Hunt's: WaveNumbers.cs)
             if (BuildZombieWave(n, count))
                 return;  // Zombie Infection: a horde instead (Zombies.cs)
             // The first waves are melee rushers; shooters take over a little more each wave until
