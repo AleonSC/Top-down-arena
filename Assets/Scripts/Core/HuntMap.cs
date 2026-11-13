@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// What a node of a hunt map is (Docs/HuntMap.md). Only Skirmish and Elite are built so far: the others are listed
-    /// so the numbers don't change later; the generator makes Skirmish, Elite, Rest, Shop and the Boss so far (Ambush, Contraband and Gamble come later).
+    /// so the numbers don't change later; the generator makes them all.
     public enum HuntNodeType { Skirmish, Elite, Ambush, Contraband, Rest, Shop, Gamble, Boss, None }
 
     /// One node of the map: a square on one of three lanes, in one row (step).
@@ -16,6 +16,7 @@ namespace Arena
         public HuntNodeType Type;
         public int[] Next = new int[0];   // indexes into the next row: where you can go from here (empty for the boss)
 
+        /// A fight (a Gamble always turns out to be one: see HuntMap.GambleOutcomes).
         public bool Fight => Type != HuntNodeType.Rest && Type != HuntNodeType.Shop;
     }
 
@@ -169,9 +170,12 @@ namespace Arena
                 for (int i = 0; i < row.Length; i++)
                 {
                     int roll = step == 0 ? 99 : rng.Next(100);
-                    row[i].Type = roll < 22 ? HuntNodeType.Elite
-                        : breather && roll < 30 ? HuntNodeType.Rest
-                        : breather && roll < 38 ? HuntNodeType.Shop
+                    row[i].Type = roll < 18 ? HuntNodeType.Elite
+                        : roll < 27 ? HuntNodeType.Ambush
+                        : roll < 34 ? HuntNodeType.Contraband
+                        : roll < 41 ? HuntNodeType.Gamble
+                        : breather && roll < 48 ? HuntNodeType.Rest
+                        : breather && roll < 55 ? HuntNodeType.Shop
                         : HuntNodeType.Skirmish;
                 }
                 if (step == Steps / 2 - 1)
@@ -182,7 +186,18 @@ namespace Arena
                 }
                 bool skirmish = false;
                 foreach (var n in row) skirmish |= n.Type == HuntNodeType.Skirmish;
-                if (!skirmish) row[rng.Next(row.Length)].Type = HuntNodeType.Skirmish;
+                if (!skirmish)
+                {
+                    int at = rng.Next(row.Length);
+                    if (step == Steps / 2 - 1)   // (the middle row keeps an Elite: take a Skirmish's place from a node that isn't the only Elite)
+                    {
+                        int elites = 0;
+                        foreach (var n in row) if (n.Type == HuntNodeType.Elite) elites++;
+                        while (row[at].Type == HuntNodeType.Elite && elites < 2)
+                            at = (at + 1) % row.Length;
+                    }
+                    row[at].Type = HuntNodeType.Skirmish;
+                }
                 prevBreather = false;
                 foreach (var n in row) prevBreather |= !n.Fight;
             }
@@ -197,6 +212,9 @@ namespace Arena
 
         /// Elite nodes cleared, up to MaxClues: each reveals something about the boss (Docs/HuntMap.md).
         public int Clues { get; private set; }
+
+        /// A client takes the host's count (a Gamble that turned out an Elite gave a clue the path alone can't show).
+        public void SetClues(int n) { Clues = Math.Max(0, Math.Min(MaxClues, n)); }
 
         /// The node being fought, or null before a pick.
         public HuntNode Current => current < 0 || Complete ? null : Rows[Step][current];
@@ -218,12 +236,13 @@ namespace Arena
             return true;
         }
 
-        /// The picked node is cleared: move on (an Elite adds a clue).
-        public bool Clear()
+        /// The picked node is cleared: move on (an Elite adds a clue; `turnedOutAs` is what a Gamble turned out to be).
+        public bool Clear(HuntNodeType turnedOutAs = HuntNodeType.None)
         {
             if (current < 0 || Complete)
                 return false;
-            if (Rows[Step][current].Type == HuntNodeType.Elite && Clues < MaxClues)
+            var type = turnedOutAs != HuntNodeType.None ? turnedOutAs : Rows[Step][current].Type;   // (a Gamble that turned out an Elite gives its clue)
+            if (type == HuntNodeType.Elite && Clues < MaxClues)
                 Clues++;
             path.Add(current);
             current = -1;
@@ -242,6 +261,11 @@ namespace Arena
                     return null;
             return m;
         }
+
+        /// What a Gamble can turn out to be, and how likely each is (a fight in every case, so a route never gets two no-fight steps in a row):
+        /// a plain Skirmish, an Elite (the curse), an Ambush, or a Contraband (the gift).
+        public static readonly HuntNodeType[] GambleOutcomes = { HuntNodeType.Skirmish, HuntNodeType.Elite, HuntNodeType.Ambush, HuntNodeType.Contraband };
+        public static readonly int[] GambleWeights = { 30, 25, 20, 25 };
 
         // ---------- what a node type is ----------
 
@@ -280,11 +304,11 @@ namespace Arena
             {
                 case HuntNodeType.Skirmish: return "The boss's own troops at this step's strength.";
                 case HuntNodeType.Elite: return "A tougher squad with the faction's set piece.";
-                case HuntNodeType.Ambush: return "A short wave from every side, fast.";
-                case HuntNodeType.Contraband: return "A dark arena with spawn portals.";
+                case HuntNodeType.Ambush: return "A short, fast wave from every side.";
+                case HuntNodeType.Contraband: return "A fight in the dark. Win it for a rare-or-better card.";
                 case HuntNodeType.Rest: return "No fight. Everyone heals to full and gets a reroll.";
                 case HuntNodeType.Shop: return "The Bazaar. Spend the gold you have earned this hunt.";
-                case HuntNodeType.Gamble: return "Unknown: a fight, a gift or a curse.";
+                case HuntNodeType.Gamble: return "Unknown until you arrive: a Skirmish, an Elite (the curse), an Ambush or a Contraband (the gift).";
                 case HuntNodeType.Boss: return "The boss, at its full strength.";
                 default: return "";
             }
@@ -296,8 +320,8 @@ namespace Arena
             switch (t)
             {
                 case HuntNodeType.Skirmish: return "Gold + XP";
-                case HuntNodeType.Elite: return "Legendary + clue";
-                case HuntNodeType.Ambush: return "XP + chest";
+                case HuntNodeType.Elite: return "Boss clue";
+                case HuntNodeType.Ambush: return "XP + a chest";
                 case HuntNodeType.Contraband: return "Rare+ card";
                 case HuntNodeType.Rest: return "Full heal + reroll";
                 case HuntNodeType.Shop: return "Upgrades";

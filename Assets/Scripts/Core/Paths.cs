@@ -358,7 +358,7 @@ namespace Arena
             V2 tiny = TinyTarget();
             TinyMoving = TinyInset.DistanceTo(tiny) > 0.01f;
             TinyInset = new V2(MathX.MoveTowards(TinyInset.X, tiny.X, dt * TinySpeed), MathX.MoveTowards(TinyInset.Y, tiny.Y, dt * TinySpeed * Height / Width));
-            NightF = MathX.MoveTowards(NightF, Has(RunMod.Nightfall) && State != MatchState.Idle ? 1f : 0f, dt / Paths.FogIn);
+            NightF = MathX.MoveTowards(NightF, (Has(RunMod.Nightfall) || HuntDark) && State != MatchState.Idle ? 1f : 0f, dt / Paths.FogIn);  // (HuntDark: a hunt map's Contraband node)
         }
 
         // --- Tiny Arena and Nightfall (run modifiers) -------------------------------------------
