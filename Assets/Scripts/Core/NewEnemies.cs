@@ -50,6 +50,14 @@ namespace Arena
                 case EnemyType.WhiteDwarf: return "Flashes, then shoves you and turns your shots round. Hold fire on the flash.";
                 case EnemyType.Rubble: return "Rolls at you in weaving pairs. Don't get surrounded.";
                 case EnemyType.Quarryman: return "Walks straight at you, its lamp lighting the way. Sidestep it.";
+                case EnemyType.Fencer: return "Shows a short red line, then hops down it. Step off the line.";
+                case EnemyType.BladeDancer: return "Lunges down its line and leaves blades that fire sideways. Never stand beside the line.";
+                case EnemyType.Parrier: return "Parries your shots back from the front. Get behind it.";
+                case EnemyType.Second: return "Glints, then throws a fan of five daggers. Slip between them.";
+                case EnemyType.Marshal: return "Draws a gold circle round you. Fight in the middle, not on the edge.";
+                case EnemyType.Harlequin: return "Dashes an X of blades through you. Stand in a gap of the X.";
+                case EnemyType.Mummer: return "Splits into three. Only the real one's shots are solid.";
+                case EnemyType.Gallant: return "Salutes, then lunges. Parry as it arrives to leave it open.";
                 case EnemyType.Stomper: return "Lifts a foot, then stomps out a push ring. Step into the green gap.";
                 case EnemyType.SlabBearer: return "Its slab stops shots and bashes you back. Flank it, or break the slab.";
                 case EnemyType.RockHurler: return "Lobs a boulder where you're heading. Change direction out of the ring.";

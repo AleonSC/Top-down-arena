@@ -75,6 +75,15 @@ namespace Arena
         Driller, Geomancer, CinderPriest,
         // faction mini-bosses (FactionMinis.cs): the Warden's, a shield officer (RiotCaptain.cs, Game/RiotCaptainLook.cs)
         RiotCaptain,
+        // the Duelist's faction, the Masked Court (CourtFaction.cs, Game/CourtLook.cs): a Fencer plays like a Shiv with a short
+        // hop, a Blade Dancer like a Guard that lunges and leaves blades, a Parrier like a Riot Shield that parries shots back
+        Fencer, BladeDancer, Parrier,
+        // step 2: a Second plays like a Security Guard that throws dagger fans, a Marshal like a Gas Grenadier that draws a
+        // dueling circle round you, a Gallant like a Taser Guard that salutes and lunges (a perfect parry leaves it open)
+        Second, Marshal, Gallant,
+        // step 3: a Harlequin plays like a Thug that dashes an X of blades through you, a Mummer like a Shiv that splits into
+        // three; a Mummer Copy is one of its two copies (no XP, its shots are hollow; it looks just like the Mummer)
+        Harlequin, Mummer, MummerCopy,
     }
 
     public class RoleDef
@@ -401,6 +410,25 @@ namespace Arena
                 Picker = PickerGroup.Ranged, Blurb = "Charges a molten core, then fires one magma bolt straight at you. Wherever it stops, it leaves a pool of lava. Strafe across the line, or parry it." },
             new EnemyDef { Name = "Riot Captain", Hp = 3000f, Radius = 30f, Speed = 70f, Score = 150, Xp = 80, Sides = 8, Color = new Rgba(0.5f, 0.66f, 1f), Heavy = true, Contact = 20f, Mini = true,
                 Blurb = "The Warden's mini-boss: a tower shield blocks the front. Bait its shield charge into a wall to daze it; it also fires buckshot, lobs tear gas and whistles for Taser Guards." },
+            // the Duelist's faction (CourtFaction.cs): masked fencers
+            new EnemyDef { Name = "Fencer", Hp = 32f, Radius = 11f, Speed = 115f, Score = 4, Xp = 7, Sides = 4, Color = new Rgba(0.81f, 0.84f, 1f), Melee = true, Contact = 10f,
+                Picker = PickerGroup.Melee, Blurb = "A masked foil-fencer that runs in crowds. Close up it shows a short red line, then hops down it: step off the line." },
+            new EnemyDef { Name = "Blade Dancer", Hp = 70f, Radius = 13f, Speed = 105f, Score = 8, Xp = 14, Sides = 5, Color = new Rgba(1f, 0.3f, 0.42f), Melee = true, Contact = 14f,
+                Picker = PickerGroup.Melee, Blurb = "Shows a long warning line, then lunges down it and leaves blades hanging on the path. Each fires one shot out of each side: never stand beside the line." },
+            new EnemyDef { Name = "Parrier", Hp = 60f, Radius = 15f, Speed = 110f, Score = 10, Xp = 10, Sides = 6, Color = new Rgba(1f, 0.8f, 0.35f), Melee = true, Contact = 8f,
+                Picker = PickerGroup.Melee, Blurb = "On guard behind a main-gauche: shots into its front are parried straight back at you, and it bashes you away. It turns slowly: get behind it." },
+            new EnemyDef { Name = "Second", Hp = 45f, Radius = 13f, Speed = 70f, Score = 9, Xp = 9, Sides = 5, Color = new Rgba(1f, 0.8f, 0.35f),
+                Picker = PickerGroup.Ranged, Blurb = "Hangs back, glints gold, then throws an aimed fan of five daggers. Slip between them." },
+            new EnemyDef { Name = "Marshal", Hp = 55f, Radius = 14f, Speed = 75f, Score = 8, Xp = 9, Sides = 6, Color = new Rgba(0.85f, 0.75f, 0.54f),
+                Picker = PickerGroup.Ranged, Blurb = "The duel's referee: raises its baton and draws a gold circle round you. For 4 s you can't leave it, and leaning on the edge hurts: fight in the middle." },
+            new EnemyDef { Name = "Gallant", Hp = 80f, Radius = 14f, Speed = 90f, Score = 10, Xp = 12, Sides = 6, Color = new Rgba(0.81f, 0.84f, 1f), Contact = 20f,
+                Picker = PickerGroup.Ranged, Blurb = "Salutes with its sword raised, then lunges at you. Parry it perfectly as it arrives and it reels, open to 50% more damage; dodge it and it rakes the spot." },
+            new EnemyDef { Name = "Harlequin", Hp = 240f, Radius = 20f, Speed = 60f, Score = 14, Xp = 22, Sides = 8, Color = new Rgba(1f, 0.3f, 0.42f), Melee = true, Contact = 20f,
+                Picker = PickerGroup.Melee, Blurb = "A heavy two-sworded jester. It marks a line through you and dashes it, vaults to the other arm and dashes across: an X of blades that fire out sideways. Stand in a gap of the X." },
+            new EnemyDef { Name = "Mummer", Hp = 40f, Radius = 11f, Speed = 150f, Score = 9, Xp = 10, Sides = 4, Color = new Rgba(0.71f, 0.61f, 1f), Melee = true, Contact = 14f,
+                Picker = PickerGroup.Melee, Blurb = "A masked player that blinks and becomes three. They circle you and all fire, but only the real one's shots are solid; the copies' are hollow rings. Find the real one." },
+            new EnemyDef { Name = "Mummer", Hp = 1f, Radius = 11f, Speed = 0f, Score = 0, Xp = 0, Sides = 4, Color = new Rgba(0.71f, 0.61f, 1f), Melee = true, Contact = 0f,
+                Picker = PickerGroup.Hidden, Blurb = "One of a Mummer's two copies: its shots are hollow rings that pass through you. It vanishes when its time is up." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount
@@ -656,9 +684,10 @@ namespace Arena
             TaserBolt = 61,    // the Taser Guard's Fork Bolt: a white lightning glyph that stuns you for a second (WardenFaction.cs, Game/TaserLook.cs)
             TracerRound = 62,  // the Security Guard's pistol round: a hot-white tracer with a long tail (SecurityGuard.cs, Game/SecurityLook.cs)
             StingBolt = 63,    // the Stinger's venom dart: a lime barbed dart that stuns like the Fork Bolt (WardenFaction.cs, Game/HiveLook.cs)
-            MagmaBolt = 64;    // the Cinder Priest's magma bolt: it leaves a lava pool wherever it stops (QuarryFaction.cs, Game/QuarryLook.cs)
+            MagmaBolt = 64,    // the Cinder Priest's magma bolt: it leaves a lava pool wherever it stops (QuarryFaction.cs, Game/QuarryLook.cs)
+            ThrownDagger = 65; // a Second's thrown dagger: steel with a gold hilt, spinning a little (CourtFaction.cs, Game/CourtLook.cs)
 
-        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt;
+        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == ThrownDagger;
 
         /// Bosses' aimed attacks: barriers, walls and other blockers can't stop these.
         public static bool Unblockable(byte kind) => kind == PierceShot;
@@ -726,6 +755,7 @@ namespace Arena
                 case TaserBolt: return 7f;
                 case StingBolt: return 7f;
                 case MagmaBolt: return 8f;
+                case ThrownDagger: return 5f;
                 case TracerRound: return 5f;
                 case BileShot: return 6f;
                 case ToothShot: return 10f;
@@ -750,6 +780,7 @@ namespace Arena
                 case TaserBolt: return 8f;  // a Taser Guard's Fork Bolt: the same stun
                 case StingBolt: return 8f;  // a Stinger's dart: the same
                 case MagmaBolt: return 9f;  // a Cinder Priest's bolt (and its lava)
+                case ThrownDagger: return 10f;  // a Second's dagger
                 case TracerRound: return 6.1f;  // a Security Guard's round: 7 once the enemy bullet multiplier is on
                 case HoneyShot: return 14f;  // the Hive Queen's nectar spray
                 case ToothShot: return 20f;  // the Devourer's Jaws
@@ -824,6 +855,7 @@ namespace Arena
                 case TaserBolt: return new Rgba(0.75f, 0.91f, 1f);     // the Fork Bolt's ice white
                 case StingBolt: return new Rgba(0.784f, 1f, 0.239f);   // the Stinger's venom lime
                 case MagmaBolt: return new Rgba(1f, 0.48f, 0.23f);     // the Cinder Priest's magma
+                case ThrownDagger: return new Rgba(0.81f, 0.84f, 1f);  // a Second's dagger (steel)
                 case TracerRound: return new Rgba(0.94f, 0.97f, 1f);   // the Security Guard's hot-white tracer
                 case BileShot: return new Rgba(0.75f, 0.9f, 0.31f);  // the Devourer's vomit
                 case ToothShot: return new Rgba(0.96f, 0.9f, 0.82f);  // the Devourer's Jaws

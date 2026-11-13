@@ -3,6 +3,9 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 331: the Duelist's faction, step 3: three new `EnemyType` values (Harlequin, Mummer, MummerCopy), and a Harlequin's enemy snapshot ends with the Duelist's state (SyncDuel: its crossing lines and blades)
+- 330: the Duelist's faction, step 2: three new `EnemyType` values (Second, Marshal, Gallant), bullet kind `ThrownDagger` 65, `PatchKind.DuelCircle`, and a Gallant's enemy snapshot ends with the Duelist's state (SyncDuel: its salute, lunge and stagger)
+- 329: the Duelist's faction, step 1: three new `EnemyType` values (Fencer, BladeDancer, Parrier), `DuelDash.Dancer`, and a Blade Dancer's enemy snapshot ends with the Duelist's dash and blades (SyncDuel)
 - 328: faction mini-bosses: new `EnemyType.RiotCaptain` (the Warden's), and `Msg.ExpandState`'s room list gains a byte per room (`ExpansionRoom.Mini`, a mini-boss room's foe)
 - 327: Gun Kata, the Out of Ammo card, in the Soldier's card list shifts later card ids (Docs/UpgradePools.md step 13)
 - 326: nine Elementalist weapon upgrade cards in the Elementalist's card list shift later card ids (Docs/UpgradePools.md step 12)

@@ -10,7 +10,7 @@ namespace Arena
     public enum DuelTurn : byte { Rest, Volleys, Lunge, Guard, Blink, Masquerade, Crossing, LungeChain, Salute, Flurry, Flourish }
 
     /// A dash in progress: a lunge, a corner-to-corner crossing, or the strike after a salute.
-    public enum DuelDash : byte { None, Lunge, Cross, Salute }
+    public enum DuelDash : byte { None, Lunge, Cross, Salute, Dancer }  // (Dancer: a Blade Dancer's lunge, CourtFaction.cs)
 
     /// A blade left hanging where the Duelist dashed: it fires two small shots out sideways when its time runs out.
     public class DuelBlade
@@ -92,7 +92,7 @@ namespace Arena
         public static bool DuelImmune(Enemy e) => e.Type == EnemyType.Duelist && e.Duel != null && e.Duel.TransT > 0f;
 
         /// Knocked off balance by a parried salute: it takes 50% more damage.
-        public static bool DuelOpen(Enemy e) => e.Type == EnemyType.Duelist && e.Duel != null && e.Duel.StaggerT > 0f;
+        public static bool DuelOpen(Enemy e) => (e.Type == EnemyType.Duelist || e.Type == EnemyType.Gallant) && e.Duel != null && e.Duel.StaggerT > 0f;  // (a Gallant too: CourtFaction.cs)
 
         public static bool DuelGuarding(Enemy e) => e.Type == EnemyType.Duelist && e.Duel != null && e.Duel.Turn == DuelTurn.Guard && e.Duel.StaggerT <= 0f && e.Duel.TransT <= 0f;
 
@@ -334,8 +334,9 @@ namespace Arena
                     BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.3f, 0.42f), 50f, 0.2f, s.Dash == DuelDash.Cross ? Sfx.BossWhoosh : Sfx.BossScythe);
                 return;
             }
-            float speed = s.Dash == DuelDash.Cross ? CrossSpeed : s.Dash == DuelDash.Salute ? SaluteSpeed : DuelLungeSpeed;
-            float every = s.Dash == DuelDash.Cross ? CrossBladeEvery : LungeBladeEvery;
+            bool dancer = s.Dash == DuelDash.Dancer;  // a Blade Dancer's lunge: shorter, fewer blades (CourtFaction.cs)
+            float speed = dancer ? DancerSpeed : s.Dash == DuelDash.Cross ? CrossSpeed : s.Dash == DuelDash.Salute ? SaluteSpeed : DuelLungeSpeed;
+            float every = dancer ? DancerBladeEvery : s.Dash == DuelDash.Cross ? CrossBladeEvery : LungeBladeEvery;
             float before = s.DashDone;
             s.DashDone = Math.Min(s.DashLen, s.DashDone + speed * dt);
             V2 dir = V2.FromAngle(s.DashAng), next = s.DashFrom + dir * s.DashDone;
@@ -350,7 +351,8 @@ namespace Arena
                     s.Blades.Add(new DuelBlade
                     {
                         Pos = s.DashFrom + dir * at, Ang = s.DashAng,
-                        T = s.Dash == DuelDash.Cross ? CrossBladeHang : LungeBladeHang, Speed = s.Dash == DuelDash.Cross ? CrossBladeSpeed : LungeBladeSpeed,
+                        T = dancer ? DancerBladeHang : s.Dash == DuelDash.Cross ? CrossBladeHang : LungeBladeHang,
+                        Speed = dancer ? DancerBladeSpeed : s.Dash == DuelDash.Cross ? CrossBladeSpeed : LungeBladeSpeed,
                     });
             if (s.Dash == DuelDash.Salute)
                 foreach (var p in Players.Values)
@@ -366,7 +368,7 @@ namespace Arena
                         s.Connected = true;
                         Recorder?.Parry(p, 0f, true, false);
                         BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.8f, 0.35f), 90f, 0.4f, Sfx.Clang);
-                        DoLog(p.Name + " parried the Duelist's salute");
+                        DoLog(p.Name + " parried the " + (e.Type == EnemyType.Gallant ? "Gallant's" : "Duelist's") + " salute");
                         return;
                     }
                     if (d < e.Radius + p.Def.HitR + 10f)
@@ -379,8 +381,9 @@ namespace Arena
                     // Dodged: it rakes the spot.
                     Player near = NearestPlayer(e.Pos);
                     float aim = near != null ? (near.Pos - e.Pos).Angle : s.DashAng;
-                    for (int i = 0; i < 9; i++)
-                        EnemyShot(e, aim + (i - 4) * 0.16f, 230f, Defs.SmallShot);
+                    int rake = e.Type == EnemyType.Gallant ? GallantRake : 9;  // (a Gallant's rake is smaller: CourtFaction.cs)
+                    for (int i = 0; i < rake; i++)
+                        EnemyShot(e, aim + (i - (rake - 1) / 2f) * 0.16f, 230f, Defs.SmallShot);
                     BroadcastSound(Sfx.SwingHeavy);
                 }
                 s.Dash = DuelDash.None;
@@ -388,7 +391,7 @@ namespace Arena
         }
 
         /// Blades count down; on the host they fire two small shots out sideways and go (clients just draw them).
-        void TickDuelBlades(DuelState s, float dt, bool host)
+        void TickDuelBlades(DuelState s, float dt, bool host, EnemyType source = EnemyType.Duelist)
         {
             for (int i = s.Blades.Count - 1; i >= 0; i--)
             {
@@ -400,7 +403,7 @@ namespace Arena
                     for (int side = -1; side <= 1; side += 2)
                     {
                         V2 dir = V2.FromAngle(bl.Ang + side * MathX.Pi / 2f);
-                        SpawnBullet(Defs.SmallShot, bl.Pos, dir * bl.Speed, 0f, 8f, Defs.BulletDamage(Defs.SmallShot), 0, true).Source = EnemyType.Duelist;
+                        SpawnBullet(Defs.SmallShot, bl.Pos, dir * bl.Speed, 0f, 8f, Defs.BulletDamage(Defs.SmallShot), 0, true).Source = source;
                     }
                 s.Blades.RemoveAt(i);
             }
@@ -625,7 +628,7 @@ namespace Arena
             if (IsHost)
                 return;
             foreach (var e in Enemies.Values)
-                if (e.Type == EnemyType.Duelist && e.Duel != null)
+                if ((e.Type == EnemyType.Duelist || e.Type == EnemyType.BladeDancer || e.Type == EnemyType.Gallant || e.Type == EnemyType.Harlequin) && e.Duel != null)
                 {
                     var s = e.Duel;
                     s.TurnT += dt;

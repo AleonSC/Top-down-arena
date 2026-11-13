@@ -269,6 +269,53 @@ namespace Arena
             },
             new FactionDef
             {
+                Boss = EnemyType.Duelist,  // the Duelist: the Masked Court, masked fencers (CourtFaction.cs, Docs/Mockups/duelist-faction.html)
+                Members = new[]
+                {
+                    new FactionMember { Type = EnemyType.Fencer, Weight = 3f },
+                    new FactionMember { Type = EnemyType.BladeDancer, NotFirst = true, Weight = 2f },  // a Guard that lunges and leaves blades
+                    new FactionMember { Type = EnemyType.Parrier, Fade = 0, Weight = 2f, From = 2 },   // a Riot Shield that parries shots back
+                    new FactionMember { Type = EnemyType.Second, Fade = 1, Weight = 2f, From = 2 },    // a Security Guard that throws dagger fans
+                    new FactionMember { Type = EnemyType.Marshal, Fade = 0, Weight = 1.5f, From = 2 }, // a Gas Grenadier that draws a dueling circle round you
+                    new FactionMember { Type = EnemyType.Gallant, Fade = 0, Weight = 1.5f, From = 3 }, // a Taser Guard that salutes and lunges: parry it
+                    new FactionMember { Type = EnemyType.Harlequin, Fade = 2, Weight = 1.5f, From = 2 }, // a Thug that dashes an X of blades
+                    new FactionMember { Type = EnemyType.Mummer, Fade = 2, Weight = 1f, From = 3 },      // a Shiv that splits into three
+                },
+                Squads = new[]
+                {
+                    new SquadDef { Name = "Salon", From = 1, Members = new[] { EnemyType.BladeDancer, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer } },
+                    new SquadDef { Name = "Seconds", From = 2, Members = new[] { EnemyType.Second, EnemyType.Second, EnemyType.Second, EnemyType.Fencer, EnemyType.Fencer } },
+                    new SquadDef { Name = "Masked ball", From = 3, Members = new[] { EnemyType.Harlequin, EnemyType.Mummer, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer } },
+                    new SquadDef { Name = "Guard line", From = 3, Members = new[] { EnemyType.Parrier, EnemyType.Parrier, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer } },
+                },
+                LessonSquads = new[]
+                {
+                    new SquadDef { Name = "Fencer pack", From = 1, Members = new[] { EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer } },
+                    new SquadDef { Name = "Dancer pair", From = 1, Members = new[] { EnemyType.BladeDancer, EnemyType.BladeDancer } },
+                },
+                // Wave 4: the Ring of Honour, ten Fencers and two Gallants in a ring round you that turns slowly and closes; every
+                // 1.4 s an opposite pair of Fencers lunges in, and the Gallants salute (parry them); it breaks up after 14 s or
+                // once half is down (CourtFaction.cs).
+                Finale = new SquadDef { Name = "Ring of Honour", From = 4, Form = SquadForm.Honour, Members = new[] {
+                    EnemyType.Fencer, EnemyType.Fencer, EnemyType.Gallant, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer,
+                    EnemyType.Fencer, EnemyType.Fencer, EnemyType.Gallant, EnemyType.Fencer, EnemyType.Fencer, EnemyType.Fencer } },
+                // The Campaign's Duelist cycle: the Warden's ten lessons in the same order, each pointing at one of its moves.
+                Lessons = new[]
+                {
+                    new WaveLesson { Teaches = "Fencers hop in (the Duelist's Lunge line)", Members = new[] { M(EnemyType.Fencer, 1f) } },
+                    new WaveLesson { Teaches = "Blade Dancers: never stand beside the line (its Lunge blades)", Trickle = true, Star = EnemyType.BladeDancer, Members = new[] { M(EnemyType.Fencer, 1f) }, Squads = new[] { "Fencer pack" } },
+                    new WaveLesson { Teaches = "Harlequins: stand in a gap of the X (its Crossing)", Trickle = true, Star = EnemyType.Harlequin, Members = new[] { M(EnemyType.Fencer, 2f), M(EnemyType.BladeDancer, 1.5f) }, Squads = new[] { "Fencer pack", "Dancer pair" } },
+                    new WaveLesson { Teaches = "Seconds: slip between the daggers (its Volleys)", Trickle = true, Star = EnemyType.Second, Members = new[] { M(EnemyType.Fencer, 2f), M(EnemyType.BladeDancer, 2f), M(EnemyType.Harlequin, 1.5f) }, Squads = new[] { "Salon", "Dancer pair" } },
+                    new WaveLesson { Teaches = "A recap, and Mummers join: find the real one (its Masquerade)", Trickle = true, Star = EnemyType.Mummer, Members = new[] { M(EnemyType.Fencer, 2f), M(EnemyType.BladeDancer, 2f), M(EnemyType.Harlequin, 1.5f), M(EnemyType.Second, 2f) }, Squads = new[] { "Salon", "Seconds" } },
+                    new WaveLesson { Teaches = "Parriers: get behind them (its Guard)", Trickle = true, Star = EnemyType.Parrier, Members = new[] { M(EnemyType.Fencer, 2f), M(EnemyType.BladeDancer, 2f), M(EnemyType.Harlequin, 1.5f), M(EnemyType.Second, 2f) }, Squads = new[] { "Salon", "Seconds" } },
+                    new WaveLesson { Teaches = "Marshals: fight in the middle of the circle (its dueling circle)", Trickle = true, Star = EnemyType.Marshal, Members = new[] { M(EnemyType.Parrier, 2f), M(EnemyType.Fencer, 2f), M(EnemyType.BladeDancer, 1f), M(EnemyType.Second, 1f) }, Squads = new[] { "Salon", "Guard line" } },
+                    new WaveLesson { Teaches = "Gallants salute: parry them as they arrive (its Salute)", Trickle = true, Star = EnemyType.Gallant, Members = new[] { M(EnemyType.Marshal, 1.5f), M(EnemyType.Parrier, 2f), M(EnemyType.Fencer, 2f), M(EnemyType.BladeDancer, 1f) }, Squads = new[] { "Masked ball", "Guard line" } },
+                    new WaveLesson { Teaches = "Every squad, tighter", Members = null, Squads = null, SquadChance = 0.75f },
+                    new WaveLesson { Teaches = "The exam: the Ring of Honour and a big Salon, with everything", Members = null, Squads = new string[0], Finale = true, Also = "Salon" },
+                },
+            },
+            new FactionDef
+            {
                 Boss = EnemyType.Lich,  // the Lich: the restless dead, the same zombies as Zombie Infection (Zombies.cs); they don't get back up outside that modifier
                 Members = new[]
                 {

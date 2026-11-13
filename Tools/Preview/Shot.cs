@@ -484,6 +484,71 @@ static partial class Shot {
       }
       qg.AnimT += float.Parse(Environment.GetEnvironmentVariable("QUARRY"), System.Globalization.CultureInfo.InvariantCulture);
     }
+    if (Environment.GetEnvironmentVariable("COURT") != null) {  // COURT=<s into the clock>: the Duelist's step-1 faction (CourtLook.cs): Fencers (walking, line showing, hopping), a Blade Dancer showing its line and one with blades hanging, Parriers (whole, flashing, cracked, broken); set beside Docs/Mockups/duelist-faction.html
+      var cg = host.Game; cg.Enemies.Clear(); cg.Bullets.Clear(); cg.Patches.Clear(); cg.Effects.Clear();
+      var csp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, float, Enemy> cput = (t, at, face) => { var e = (Enemy)csp.Invoke(cg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Facing = face; e.Elite = false; e.Traits = 0; return e; };
+      me.Pos = me.Disp = new V2(570f, 520f);  // (between the rows, so ZOOM frames them)
+      cput(EnemyType.Fencer, new V2(330f, 330f), 0f);
+      var f1 = cput(EnemyType.Fencer, new V2(470f, 330f), 0f); f1.Phase = 1; f1.PhaseT = 0.2f;
+      var f2 = cput(EnemyType.Fencer, new V2(610f, 330f), 0f); f2.Phase = 2;
+      var bd1 = cput(EnemyType.BladeDancer, new V2(260f, 440f), 0f);
+      bd1.Duel = new DuelState { Dash = DuelDash.Dancer, DashWarn = 0.3f, DashFrom = bd1.Pos, DashAng = 0f, DashLen = Game.DancerReach };
+      var bd2 = cput(EnemyType.BladeDancer, new V2(900f, 440f), 0f);
+      bd2.Duel = new DuelState();
+      for (int k = 1; k <= 3; k++) bd2.Duel.Blades.Add(new DuelBlade { Pos = new V2(900f - Game.DancerReach + k * Game.DancerBladeEvery - 20f, 440f), Ang = 0f, T = 0.3f, Speed = Game.DancerBladeSpeed });
+      var setRiotC = typeof(Game).GetMethod("SetRiotState", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+      cput(EnemyType.Parrier, new V2(300f, 610f), 0f);
+      var pa2 = cput(EnemyType.Parrier, new V2(450f, 610f), 0f); setRiotC.Invoke(null, new object[] { pa2, Game.RiotWinding, 0.3f });
+      var pa3 = cput(EnemyType.Parrier, new V2(690f, 610f), 0f); pa3.Phase = (byte)(Game.RiotWalk << 3 | 2);
+      var pa4 = cput(EnemyType.Parrier, new V2(850f, 610f), 0f); pa4.Phase = (byte)(Game.RiotStaggered << 3 | Game.RiotCracked);
+      if (Environment.GetEnvironmentVariable("COURT2") != null) {  // COURT2=1 with COURT: step 2 instead: Seconds (walking, winding up, daggers in flight), Marshals (walking, baton up) and a circle round you (forming beside it, formed round you), Gallants (walking, saluting, reeling after a parry)
+        cg.Enemies.Clear(); cg.Patches.Clear(); cg.Bullets.Clear();
+        cput(EnemyType.Second, new V2(330f, 330f), 0f);
+        var s2 = cput(EnemyType.Second, new V2(470f, 330f), 0.4f); s2.Winding = true;
+        var s3 = cput(EnemyType.Second, new V2(330f, 420f), 0.3f);
+        var spawnB = typeof(Game).GetMethod("SpawnBullet", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        for (int k = 0; k < Game.SecondFan; k++) { float a = 0.3f + (k - 2) * Game.SecondSpread; spawnB.Invoke(cg, new object[] { Defs.ThrownDagger, s3.Pos + V2.FromAngle(a) * 90f, V2.FromAngle(a) * Game.SecondSpeed, 0f, 3f, 10f, 0, false, 0f }); }
+        cput(EnemyType.Marshal, new V2(760f, 330f), MathX.Pi);
+        var m2 = cput(EnemyType.Marshal, new V2(820f, 440f), MathX.Pi); m2.Winding = true;
+        cg.Patches[801] = new PathPatch { Id = 801, Kind = PatchKind.DuelCircle, Pos = me.Pos, Warn = Game.MarshalWarn, Life = Game.MarshalWarn + Game.MarshalHold, Age = 1.8f, R0 = Game.MarshalR, R1 = Game.MarshalR };
+        cg.Patches[802] = new PathPatch { Id = 802, Kind = PatchKind.DuelCircle, Pos = new V2(1000f, 470f), Warn = Game.MarshalWarn, Life = Game.MarshalWarn + Game.MarshalHold, Age = 0.35f, R0 = Game.MarshalR, R1 = Game.MarshalR };
+        cput(EnemyType.Gallant, new V2(300f, 640f), 0f);
+        var g2 = cput(EnemyType.Gallant, new V2(470f, 640f), 0f); g2.Duel = new DuelState { SaluteT = 0.35f };
+        var g3 = cput(EnemyType.Gallant, new V2(690f, 640f), 0f); g3.Duel = new DuelState { StaggerT = 1.5f };
+      }
+      if (Environment.GetEnvironmentVariable("COURT3") != null) {  // COURT3=1 with COURT: step 3 instead: a Harlequin walking, one showing its first line through you and one dashing the crossing arm with blades hanging on both; a Mummer walking, and one masked with its two copies round you firing (solid and hollow shots)
+        cg.Enemies.Clear(); cg.Patches.Clear(); cg.Bullets.Clear();
+        var spawnB3 = typeof(Game).GetMethod("SpawnBullet", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        cput(EnemyType.Harlequin, new V2(300f, 330f), 0f);
+        var h2 = cput(EnemyType.Harlequin, new V2(330f, 520f), 0f);
+        h2.Duel = new DuelState { Dash = DuelDash.Cross, DashWarn = 0.4f, DashFrom = h2.Pos, DashAng = 0f, DashLen = 410f };
+        var h3 = cput(EnemyType.Harlequin, new V2(900f, 600f), -MathX.Pi / 2f);
+        h3.Duel = new DuelState { Dash = DuelDash.Cross, DashWarn = 0f, DashFrom = new V2(900f, 720f), DashAng = -MathX.Pi / 2f, DashLen = 340f };
+        for (int k = 1; k <= 4; k++) { h3.Duel.Blades.Add(new DuelBlade { Pos = new V2(780f + k * 70f, 600f), Ang = 0f, T = 0.2f, Speed = 200f }); }
+        h3.Duel.Blades.Add(new DuelBlade { Pos = new V2(900f, 670f), Ang = -MathX.Pi / 2f, T = 0.6f, Speed = 200f });
+        cput(EnemyType.Mummer, new V2(470f, 330f), 0f);
+        V2 mc = new V2(760f, 360f);
+        for (int k = 0; k < 3; k++)
+        {
+          V2 at = mc + V2.FromAngle(0.6f + MathX.Tau * k / 3f) * 95f;
+          var m = cput(k == 0 ? EnemyType.Mummer : EnemyType.MummerCopy, at, (mc - at).Angle);
+          V2 dir = (mc - at).Normalized();
+          spawnB3.Invoke(cg, new object[] { k == 0 ? Defs.SmallShot : Defs.HollowShot, at + dir * 40f, dir * 260f, 0f, 3f, k == 0 ? 10f : 0f, 0, true, 0f });
+        }
+      }
+      if (Environment.GetEnvironmentVariable("COURT4") != null) {  // COURT4=1 with COURT: step 4 instead: the Ring of Honour round you (ten Fencers, two Gallants), an opposite pair of Fencers showing their lines in, one Gallant saluting
+        cg.Enemies.Clear(); cg.Patches.Clear(); cg.Bullets.Clear();
+        for (int k = 0; k < Game.HonourSlots; k++)
+        {
+          V2 at = me.Pos + V2.FromAngle(0.2f + MathX.Tau * k / Game.HonourSlots) * 230f;
+          var e = cput(k == 2 || k == 8 ? EnemyType.Gallant : EnemyType.Fencer, at, (me.Pos - at).Angle);
+          if (k == 0 || k == 6) { e.Phase = 1; e.PhaseT = 0.2f; }
+          if (k == 2) e.Duel = new DuelState { SaluteT = 0.4f };
+        }
+      }
+      cg.AnimT += float.Parse(Environment.GetEnvironmentVariable("COURT"), System.Globalization.CultureInfo.InvariantCulture);
+    }
     if (Environment.GetEnvironmentVariable("LUNGE") != null) {  // LUNGE=<0-1>: the four lungers part-way through their wind-up (LungeLaneLook.cs); the lane fills with the client's clock, so draw once, then move it on
       var lg = host.Game; lg.Enemies.Clear(); lg.Bullets.Clear();
       var lsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
