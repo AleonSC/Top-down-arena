@@ -1304,7 +1304,7 @@ namespace Arena
             if (e.Type == EnemyType.HiveQueen)
                 ClearQueenAdds(e);
             if (e.Type == EnemyType.Collapsar)
-                Collapse(e);  // a short pull, then a ring (Infall.cs)
+                CollapsarDied(e);  // a short pull, then a ring (Infall.cs)
             if (e.Type == EnemyType.ReaperPillar)
                 PillarFell(e);  // leaves a hole (Reapers.cs)
             if (e.Type == EnemyType.DualReaper)

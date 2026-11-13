@@ -197,7 +197,7 @@ namespace Arena
         }
 
         /// Host: a Collapsar died; it collapses where it stood.
-        void Collapse(Enemy e)
+        void CollapsarDied(Enemy e)
         {
             var im = SpawnEnemyAt(EnemyType.Implosion, e.Pos, 0f, 0);
             im.PhaseT = ImplosionTime;
