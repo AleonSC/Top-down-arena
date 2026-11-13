@@ -650,12 +650,15 @@ wave brings **Dusk and Dawn**: split to opposite edges, a Mourner on each side w
 | 3 | **Shade** | A shrouded Phantom: shows a ring where it will land, blinks there and fires |
 
 The **Colossus's faction**, The Quarry, leads up to its fight (waves 21-24): the quarry crew who woke it and the stone
-that broke off it (design: `Docs/Approaches.md`, "The Quarry"; mockup: `Docs/Mockups/colossus-faction.html`). All eight
-are built (its last-wave Avalanche is next). Squads: **Landslip** (a Quarryman and six Rubble), **Dig crew** (two
+that broke off it (design: `Docs/Approaches.md`, "The Quarry"; mockup: `Docs/Mockups/colossus-faction.html`). Squads: **Landslip** (a Quarryman and six Rubble), **Dig crew** (two
 Quarrymen with two Rock Hurlers behind) and, from wave 23, **Quarry** (a Stomper, three Rubble and a Driller),
 **Wall-in** (two Slab Bearers with four Rubble) and **Fault line** (three Geomancers, so their cracks cross). They pay XP
 like their counterparts (Rubble 7, Quarryman 15, Stomper 20, Slab Bearer 10, Rock Hurler 9, Driller 9, Geomancer and
-Cinder Priest 11).
+Cinder Priest 11). The last wave before it always brings the **Avalanche**: four Slab Bearers marching at you as a wall, two
+Stompers and two Rock Hurlers close behind it (the hurlers lob over the wall); once the wall gets within about 190 px or
+half its slabs are broken, the rest break out. In the Long Campaign its ten waves (41-50) teach one enemy each, in the
+Warden's order: Rubble, Quarrymen, Stompers, Geomancers, a recap with Drillers, Slab Bearers, Rock Hurlers, Cinder
+Priests, every squad, then the exam (the Avalanche and a big Landslip).
 
 | From | The Colossus's faction | Plays like | What it does |
 |---|---|---|---|

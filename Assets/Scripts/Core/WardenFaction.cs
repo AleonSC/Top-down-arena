@@ -131,12 +131,15 @@ namespace Arena
         readonly Dictionary<int, int> riotLines = new Dictionary<int, int>();   // host: a marching Riot Line's squad id -> its shields at the start
         readonly HashSet<int> riotLineBroke = new HashSet<int>();                // host: lines whose guards have broken out
 
+        /// The wall of a line: Riot Shields and their kin (a Comb Shield, a Slab Bearer); everyone else walks behind it.
+        static bool IsWallKin(EnemyType t) => HiveKin.Of(t) == EnemyType.RiotShield;
+
         /// Each member's place in its own row (shields counted among shields, guards among guards).
         static int RiotLineSlot(SquadDef s, int i)
         {
             int k = 0;
             for (int j = 0; j < i; j++)
-                if ((s.Members[j] == EnemyType.RiotShield) == (s.Members[i] == EnemyType.RiotShield))
+                if (IsWallKin(s.Members[j]) == IsWallKin(s.Members[i]))
                     k++;
             return k;
         }
@@ -145,7 +148,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var t in s.Members)
-                if ((t == EnemyType.RiotShield) == (type == EnemyType.RiotShield))
+                if (IsWallKin(t) == IsWallKin(type))
                     n++;
             return n;
         }
@@ -160,7 +163,7 @@ namespace Arena
                 return v;
             var shields = new List<Enemy>();
             foreach (var m in mates)
-                if (m.Type == EnemyType.RiotShield && RiotCrack(m) < RiotCracked)
+                if (IsWallKin(m.Type) && RiotCrack(m) < RiotCracked)
                     shields.Add(m);
             shields.Sort((a, b) => a.SquadSlot.CompareTo(b.SquadSlot));
             V2 c = V2.Zero;
@@ -176,7 +179,7 @@ namespace Arena
                 return v;
             }
             V2 fwd = (tpos - c).Normalized(), across = fwd.Orthogonal();
-            if (e.Type == EnemyType.RiotShield)
+            if (IsWallKin(e.Type))
             {
                 if (RiotState(e) != RiotWalk || RiotCrack(e) >= RiotCracked)
                     return v;
@@ -184,7 +187,7 @@ namespace Arena
                 V2 goal = c + fwd * 40f + across * ((k - (shields.Count - 1) / 2f) * RiotLineGap);
                 return RouteVel(e, goal, ((goal - e.Pos) / 40f).LimitLength(RiotLineSpeed));  // round walls and crates
             }
-            var guards = mates.FindAll(m => m.Type != EnemyType.RiotShield);
+            var guards = mates.FindAll(m => !IsWallKin(m.Type));
             guards.Sort((a, b) => a.SquadSlot.CompareTo(b.SquadSlot));
             int g = guards.IndexOf(e);
             V2 spot = c - fwd * RiotGuardBehind + across * ((g - (guards.Count - 1) / 2f) * RiotGuardGap);

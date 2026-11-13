@@ -182,7 +182,7 @@ namespace Arena
             },
             new FactionDef
             {
-                Boss = EnemyType.Colossus,  // the Colossus: The Quarry, its crew and the stone that broke off it (QuarryFaction.cs); steps 1-3 of 4 (Docs/Approaches.md)
+                Boss = EnemyType.Colossus,  // the Colossus: The Quarry, its crew and the stone that broke off it (QuarryFaction.cs, Docs/Approaches.md "The Quarry") (Docs/Approaches.md)
                 Members = new[]
                 {
                     new FactionMember { Type = EnemyType.Rubble, Weight = 3f },
@@ -201,6 +201,30 @@ namespace Arena
                     new SquadDef { Name = "Wall-in", From = 3, Members = new[] { EnemyType.SlabBearer, EnemyType.SlabBearer, EnemyType.Rubble, EnemyType.Rubble, EnemyType.Rubble, EnemyType.Rubble } },
                     new SquadDef { Name = "Quarry", From = 3, Members = new[] { EnemyType.Stomper, EnemyType.Rubble, EnemyType.Rubble, EnemyType.Rubble, EnemyType.Driller } },
                     new SquadDef { Name = "Fault line", From = 3, Members = new[] { EnemyType.Geomancer, EnemyType.Geomancer, EnemyType.Geomancer } },
+                },
+                LessonSquads = new[]
+                {
+                    new SquadDef { Name = "Rubble pack", From = 1, Members = new[] { EnemyType.Rubble, EnemyType.Rubble, EnemyType.Rubble, EnemyType.Rubble, EnemyType.Rubble } },
+                    new SquadDef { Name = "Quarryman pair", From = 1, Members = new[] { EnemyType.Quarryman, EnemyType.Quarryman } },
+                },
+                // Wave 4: the Avalanche, its Riot line: four Slab Bearers marching at you as a wall, two Stompers and two Rock
+                // Hurlers close behind (the hurlers lob over it); within RiotLineRelease, or with half the slabs broken, they break out.
+                Finale = new SquadDef { Name = "Avalanche", From = 4, Form = SquadForm.RiotLine, Members = new[] {
+                    EnemyType.SlabBearer, EnemyType.SlabBearer, EnemyType.SlabBearer, EnemyType.SlabBearer,
+                    EnemyType.Stomper, EnemyType.RockHurler, EnemyType.RockHurler, EnemyType.Stomper } },
+                // The Campaign's Colossus cycle: the Warden's ten lessons in the same order, each pointing at one of its turns.
+                Lessons = new[]
+                {
+                    new WaveLesson { Teaches = "Rubble rolls in (the Colossus's rock volleys)", Members = new[] { M(EnemyType.Rubble, 1f) } },
+                    new WaveLesson { Teaches = "Quarrymen join (the first one trickles in late)", Trickle = true, Star = EnemyType.Quarryman, Members = new[] { M(EnemyType.Rubble, 1f) }, Squads = new[] { "Rubble pack" } },
+                    new WaveLesson { Teaches = "Stompers: step into the green gap (its Stomps)", Trickle = true, Star = EnemyType.Stomper, Members = new[] { M(EnemyType.Rubble, 2f), M(EnemyType.Quarryman, 1.5f) }, Squads = new[] { "Rubble pack", "Quarryman pair" } },
+                    new WaveLesson { Teaches = "Geomancers: step off the crack (its Fissures)", Trickle = true, Star = EnemyType.Geomancer, Members = new[] { M(EnemyType.Rubble, 2f), M(EnemyType.Quarryman, 2f), M(EnemyType.Stomper, 1.5f) }, Squads = new[] { "Quarry", "Quarryman pair" } },
+                    new WaveLesson { Teaches = "A recap, and Drillers join (a crack behind the lunge)", Trickle = true, Star = EnemyType.Driller, Members = new[] { M(EnemyType.Rubble, 2f), M(EnemyType.Quarryman, 2f), M(EnemyType.Stomper, 1.5f), M(EnemyType.Geomancer, 2f) }, Squads = new[] { "Quarry", "Fault line" } },
+                    new WaveLesson { Teaches = "Slab Bearers: flank them, a broken slab is cover (its fallen armour)", Trickle = true, Star = EnemyType.SlabBearer, Members = new[] { M(EnemyType.Rubble, 2f), M(EnemyType.Quarryman, 2f), M(EnemyType.Stomper, 1.5f), M(EnemyType.Geomancer, 2f) }, Squads = new[] { "Quarry", "Fault line" } },
+                    new WaveLesson { Teaches = "Rock Hurlers: change direction out of the ring (its Boulders)", Trickle = true, Star = EnemyType.RockHurler, Members = new[] { M(EnemyType.SlabBearer, 2f), M(EnemyType.Rubble, 2f), M(EnemyType.Quarryman, 1f), M(EnemyType.Geomancer, 1f) }, Squads = new[] { "Quarry", "Wall-in", "Dig crew" } },
+                    new WaveLesson { Teaches = "Cinder Priests: lava where the bolt stops, parry it back (its Molten Core)", Trickle = true, Star = EnemyType.CinderPriest, Members = new[] { M(EnemyType.RockHurler, 1.5f), M(EnemyType.SlabBearer, 2f), M(EnemyType.Rubble, 2f), M(EnemyType.Quarryman, 1f) }, Squads = new[] { "Quarry", "Wall-in" } },
+                    new WaveLesson { Teaches = "Every squad, tighter", Members = null, Squads = null, SquadChance = 0.75f },
+                    new WaveLesson { Teaches = "The exam: the Avalanche and a big Landslip, with everything", Members = null, Squads = new string[0], Finale = true, Also = "Landslip" },
                 },
             },
             new FactionDef

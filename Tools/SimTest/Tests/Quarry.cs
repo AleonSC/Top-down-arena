@@ -193,5 +193,56 @@ static partial class Program
         }
         Console.WriteLine("  seen before wave " + colWave + ": " + string.Join(", ", seen));
         Check(seen.SetEquals(quarry), "the waves before the Colossus bring all eight");
+
+        Check(fac.Finale != null && fac.Finale.Name == "Avalanche" && fac.Finale.Form == SquadForm.RiotLine
+            && fac.Finale.Members.Count(t => t == EnemyType.SlabBearer) == 4 && fac.Finale.Members.Count(t => t == EnemyType.Stomper) == 2 && fac.Finale.Members.Count(t => t == EnemyType.RockHurler) == 2,
+            "the last wave brings the Avalanche: four Slab Bearers as a wall, two Stompers and two Rock Hurlers behind");
+
+        // --- The Avalanche marches as a wall --------------------------------------------------------------------------------
+        Game.SeedForTests(4323);
+        var ah = new Session { AutoStart = 1, StartWave = 1 };
+        ah.Host(nextPort++, "Host", Role.Tank);
+        ah.Diff.Set(DiffKnob.Campaign, 0f);
+        ah.StartMatch();
+        var ag = ah.Game;
+        for (int f = 0; f < 60 * 20 && ag.State != MatchState.Fighting; f++)
+            Step(ah, dt);
+        foreach (var q in new[] { (IList)typeof(Game).GetField("spawnQueue", np).GetValue(ag), (IList)typeof(Game).GetField("squadQueue", np).GetValue(ag) })
+            q.Clear();
+        ag.Enemies.Clear();
+        ag.DevSetGod(1, true);
+        var am = ag.Players[1];
+        am.Pos = am.Disp = new V2(1300f, 450f);
+        typeof(Game).GetMethod("SpawnSquad", np, null, new[] { typeof(SquadDef) }, null)?.Invoke(ag, new object[] { fac.Finale });
+        var wall = ag.Enemies.Values.Where(e => e.Type == EnemyType.SlabBearer).ToList();
+        var back = ag.Enemies.Values.Where(e => e.Type == EnemyType.Stomper || e.Type == EnemyType.RockHurler).ToList();
+        for (int f = 0; f < 60 * 2; f++) { am.Pos = am.Disp = new V2(1300f, 450f); Step(ah, dt); }
+        bool behind = wall.Count == 4 && back.Count == 4 && back.All(b => wall.Min(w => w.Pos.DistanceTo(am.Pos)) < b.Pos.DistanceTo(am.Pos));
+        Check(behind, "the Avalanche marches as a wall: the Stompers and Rock Hurlers keep behind the slabs (" + wall.Count + " slabs, " + back.Count + " behind)");
+        ah.Leave("");
+
+        // --- The ten-wave chart in waves 41-50 of the Campaign (the same order as the Warden's) --------------------------
+        var quarrySet = new HashSet<EnemyType>(fac.Members.Select(m => m.Type));
+        var first = new Dictionary<EnemyType, int>();
+        var squadNames = new Dictionary<int, HashSet<string>>();
+        for (int sw = 41; sw <= 50; sw++)
+        {
+            Game.SeedForTests(8000 + sw);
+            var cg = new Session().Game;
+            cg.LongRun = true; cg.Wave = (sw + 1) / 2; cg.Leg = (sw - 1) % 2; cg.BossSlot = false;
+            build.Invoke(cg, new object[] { cg.Wave });
+            var q = (List<EnemyType>)spawnQ.GetValue(cg);
+            var sq = (List<SquadDef>)squadQ.GetValue(cg);
+            foreach (var t in q.Concat(sq.SelectMany(x => x.Members)).Where(quarrySet.Contains))
+                if (!first.ContainsKey(t)) first[t] = sw;
+            squadNames[sw] = new HashSet<string>(sq.Select(x => x.Name));
+        }
+        Console.WriteLine("  first waves: " + string.Join(", ", first.OrderBy(k => k.Value).Select(k => k.Key + " " + k.Value)));
+        Func<EnemyType, int, bool> firstAt = (t, w) => first.ContainsKey(t) && first[t] == w;
+        Check(firstAt(EnemyType.Rubble, 41) && firstAt(EnemyType.Quarryman, 42) && firstAt(EnemyType.Stomper, 43) && firstAt(EnemyType.Geomancer, 44)
+            && firstAt(EnemyType.SlabBearer, 46) && firstAt(EnemyType.RockHurler, 47) && firstAt(EnemyType.CinderPriest, 48),
+            "waves 41-50: Rubble on 41, Quarryman 42, Stomper 43, Geomancer 44, Slab Bearer 46, Rock Hurler 47, Cinder Priest 48 (the chart's order)");
+        Check(first.ContainsKey(EnemyType.Driller) && first[EnemyType.Driller] <= 45, "the Driller is out by wave 45");
+        Check(squadNames[50].Contains("Avalanche") && squadNames[50].Contains("Landslip") && Enumerable.Range(41, 9).All(wv => !squadNames[wv].Contains("Avalanche")), "wave 50 is the exam: the Avalanche and a big Landslip, only there");
     }
 }
