@@ -84,6 +84,8 @@ namespace Arena
         // step 3: a Harlequin plays like a Thug that dashes an X of blades through you, a Mummer like a Shiv that splits into
         // three; a Mummer Copy is one of its two copies (no XP, its shots are hollow; it looks just like the Mummer)
         Harlequin, Mummer, MummerCopy,
+        // the Lich's faction: a zombie in his soul cyan that cracks graves open round you (Zombies.cs, Game/ZombieLook.cs)
+        GraveCaller,
     }
 
     public class RoleDef
@@ -429,6 +431,8 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "A masked player that blinks and becomes three. They circle you and all fire, but only the real one's shots are solid; the copies' are hollow rings. Find the real one." },
             new EnemyDef { Name = "Mummer", Hp = 1f, Radius = 11f, Speed = 0f, Score = 0, Xp = 0, Sides = 4, Color = new Rgba(0.71f, 0.61f, 1f), Melee = true, Contact = 0f,
                 Picker = PickerGroup.Hidden, Blurb = "One of a Mummer's two copies: its shots are hollow rings that pass through you. It vanishes when its time is up." },
+            new EnemyDef { Name = "Grave Caller", Hp = 60f, Radius = 14f, Speed = 60f, Score = 12, Xp = 16, Sides = 4, Color = new Rgba(0.37f, 0.85f, 1f),
+                Picker = PickerGroup.Ranged, Blurb = "Zombie: hangs back and cracks three graves open round you; a Shambler claws out of each. Step out of the ring, then kill it: its risen crumble." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount
