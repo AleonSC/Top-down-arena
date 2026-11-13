@@ -302,7 +302,7 @@ namespace Arena
 
         int floatCycle = -1;
 
-        /// Host, as a regular wave starts: a new boss cycle gets a Gatekeeper, a shop and a vendor room off the connected map (sealed until a built
+        /// Host, as a regular wave starts: a new boss cycle gets a mini-boss room (its faction's, FactionMinis.cs), a shop and a vendor room off the connected map (sealed until a built
         /// room touches it; shop and vendor are tiny 4 x 4 tile rooms) and a chest node (Docs/Nodes.md). Nothing placed is ever placed again: at most MaxSealed rooms and MaxNodesWaiting nodes wait.
         void PlaceFloatingRooms()
         {
@@ -320,7 +320,10 @@ namespace Arena
                 var f = Expansion.FloatingFor(expandSeed, cycle, Expanded, rk);
                 if (!f.HasValue)
                     continue;
-                Expanded.Add(f.Value);
+                var room = f.Value;
+                if (rk == Arena.RoomKind.Gatekeeper)
+                    room.Mini = (byte)MiniBossNow();  // this cycle's faction's mini-boss (FactionMinis.cs)
+                Expanded.Add(room);
                 added = true;
                 DoLog("a floating " + rk + " room appears at " + f.Value.X + "," + f.Value.Y);
             }
@@ -1255,6 +1258,7 @@ namespace Arena
                 w.Write(r.Leg);
                 w.Write(r.Surprise);
                 w.Write(r.Claimed);
+                w.Write(r.Mini);
             }
         }
 
@@ -1273,6 +1277,7 @@ namespace Arena
                 room.Leg = r.ReadByte();
                 room.Surprise = r.ReadByte();
                 room.Claimed = r.ReadBoolean();
+                room.Mini = r.ReadByte();
                 list.Add(room);
             }
             return list;
