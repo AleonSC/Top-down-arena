@@ -106,7 +106,9 @@ static partial class Program
             // A run that ends loses its save.
             foreach (var p in g.Players.Values) { p.Downed = true; p.ReviveToken = false; }
             typeof(Game).GetMethod("CheckGameOver", flags).Invoke(g, null);
-            Check(g.State == MatchState.GameOver && SaveStore.List().Count == 0, "a run that's over is no longer saved");
+            bool offered = g.RetryReady;
+            g.GiveUpRetry();  // a life left: Game over instead of Respawn (Checkpoints.cs)
+            Check(g.State == MatchState.GameOver && offered && SaveStore.List().Count == 0, "a run that's over (Game over chosen over a respawn) is no longer saved");
             host.Leave(""); client.Leave("");
 
             // A saved run's seats: names first, then whatever's free; a full run turns more players away.
