@@ -68,39 +68,61 @@ namespace Arena
         /// A stroke with a soft glow under it (the mockup's shadow blur).
         void HiveStroke(V2 a, V2 b, float w, Rgba c, float glow)
         {
-            if (glow > 0f && c.A > 0f)
+            if (glow > 0f && c.A > 0f && !hiveCrowd)
                 Line(a, b, w + glow * 0.9f, c.WithAlpha(c.A * 0.14f));
             Line(a, b, w, c);
+        }
+
+        /// Lighter bees in a crowd (a breach flood): past this many enemies their soft glow strokes are left out, which
+        /// halves the lines each bee draws (a bee is 4-5x a Warden enemy's triangles).
+        const int HiveCrowd = 28;
+        bool hiveCrowd;
+
+        /// Segments for an ellipse that size on screen: about one per 2.5 px of radius, at most `max`, at least 6, so small
+        /// bees (zoomed out, a crowd) draw fewer.
+        int HiveSegs(HiveFrame f, float rx, float ry, int max)
+        {
+            Vector3 a = Px(f.O), b = Px(f.O + f.F * (Mathf.Max(rx, ry) * f.K));
+            float px = Mathf.Sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
+            return Mathf.Clamp(Mathf.CeilToInt(px / 2.5f), 6, max);
+        }
+
+        static V2 HiveEllipsePt(HiveFrame f, float cx, float cy, float rx, float ry, float cr, float sr, float ang)
+        {
+            float x = rx * Mathf.Cos(ang), y = ry * Mathf.Sin(ang);
+            return f.P(cx + x * cr - y * sr, cy + x * sr + y * cr);
         }
 
         /// An ellipse (centre, radii, tilt in the bee's frame): a faint fill, then the outline.
         void HiveEllipse(HiveFrame f, float cx, float cy, float rx, float ry, float rot, Rgba c, float fillA, float w, float glow, int segs = 14)
         {
+            segs = HiveSegs(f, rx, ry, segs);
             float cr = Mathf.Cos(rot), sr = Mathf.Sin(rot);
-            System.Func<float, V2> Pt = a => { float x = rx * Mathf.Cos(a), y = ry * Mathf.Sin(a); return f.P(cx + x * cr - y * sr, cy + x * sr + y * cr); };
             if (fillA > 0f)
             {
                 SetColor(c.WithAlpha(c.A * fillA));
-                V2 mid = f.P(cx, cy), prev = Pt(0f);
+                V2 mid = f.P(cx, cy), prev = HiveEllipsePt(f, cx, cy, rx, ry, cr, sr, 0f);
                 for (int i = 1; i <= segs; i++)
                 {
-                    V2 next = Pt(MathX.Tau * i / segs);
+                    V2 next = HiveEllipsePt(f, cx, cy, rx, ry, cr, sr, MathX.Tau * i / segs);
                     Tri(mid, prev, next);
                     prev = next;
                 }
             }
-            V2 p0 = Pt(0f);
+            V2 p0 = HiveEllipsePt(f, cx, cy, rx, ry, cr, sr, 0f);
             for (int i = 1; i <= segs; i++)
             {
-                V2 next = Pt(MathX.Tau * i / segs);
+                V2 next = HiveEllipsePt(f, cx, cy, rx, ry, cr, sr, MathX.Tau * i / segs);
                 HiveStroke(p0, next, w, c, glow);
                 p0 = next;
             }
         }
 
+        readonly V2[] hiveHex = new V2[6];
+
         void HiveHexRing(HiveFrame f, float cx, float cy, float rad, float rot, Rgba c, float fillA, float w, float glow)
         {
-            var pts = new V2[6];
+            var pts = hiveHex;
             for (int i = 0; i < 6; i++)
                 pts[i] = f.P(cx + Mathf.Cos(rot + i * MathX.Tau / 6f) * rad, cy + Mathf.Sin(rot + i * MathX.Tau / 6f) * rad);
             if (fillA > 0f)
@@ -220,6 +242,7 @@ namespace Arena
         void DrawHiveBody(Enemy e, V2 pos, float r, Rgba col, float t)
         {
             var o = HiveSpecOf(e.Type);
+            hiveCrowd = game.Enemies.Count > HiveCrowd;
             float a = col.A, hit = (e.Flash > 0f || JuiceFlash(e)) ? HitFlashMix(e) : 0f;
             float mand = -1f, glow = 0f;
             if (e.Type == EnemyType.Soldier)

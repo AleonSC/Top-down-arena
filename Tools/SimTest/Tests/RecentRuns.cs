@@ -150,6 +150,28 @@ static partial class Program
                 Check(wasQuick && kl != null && kl.Result == 4 && kl.Mode == "Quick Play" && kl.Xp == 0 && kp.QuickPlays == 0 && kl.Seconds > 20f,
                     "a Quick Play you quit is logged in Recent runs as a quit Quick Play (no XP, not a play)");
                 Check(ktl != null && ktl.Mode == "Quick Play" && ktl.Samples.Count >= 2, "a quit Quick Play keeps its curve");
+
+                // Quitting the endless stretch after a win (its win already logged): a card of its own, with its curve.
+                var eh = new Session { AutoStart = 2, StartWave = 1 };
+                eh.Game.ProfileOverride = new Profile();
+                eh.Host(nextPort++, "Host", Role.Tank);
+                var ec = new Session();
+                var ep = ec.Game.ProfileOverride = new Profile();
+                ec.Join("127.0.0.1", eh.Port, "Quitter", Role.Dps);
+                var es = new[] { eh, ec };
+                WaitForGame(eh, ec, dt);
+                var recorded = typeof(Game).GetField("runRecorded", flags);
+                recorded.SetValue(ec.Game, true);  // (as after the win's QuickRecord)
+                ec.Game.Endless = eh.Game.Endless = true;
+                Run(es, dt, 25f, () => false, () => { foreach (var pl in eh.Game.Players.Values) pl.InvulnT = 1f; });
+                int before = ep.Recent.Count;
+                ec.Leave(""); eh.Leave("");
+                var el = ep.Recent.Count > before ? ep.Recent[0] : null;
+                var etl = el == null ? null : RunTimelineStore.Load(el.File);
+                Check(el != null && el.Result == 4 && el.Mode == "Quick Play · Endless" && el.Xp == 0 && etl != null && etl.Mode == "Quick Play · Endless",
+                    "quitting a Quick Play's endless stretch logs it as its own quit card, with its curve");
+                ec.Game.Stop();
+                Check(ep.Recent.Count == before + 1, "a second stop doesn't log it twice");
             }
             finally { Session.QuickDefault = false; }
         }
