@@ -139,8 +139,8 @@ static partial class Program
     {
         for (int i = 0; i < seconds * 60; i++)
         {
-            Step(s[0], dt);
-            Step(s[1], dt);
+            foreach (var x in s)
+                Step(x, dt);
             if (i % 2 == 0)
                 Thread.Sleep(1);
             if (each != null)
@@ -148,7 +148,7 @@ static partial class Program
             if (stop != null && stop())
                 break;
         }
-        for (int k = 0; k < 5; k++) { Thread.Sleep(2); s[1].Poll(); }
+        for (int k = 0; s.Length > 1 && k < 5; k++) { Thread.Sleep(2); s[1].Poll(); }
     }
 
     static int Ghosts(Session[] s)

@@ -387,6 +387,16 @@ namespace Arena
             catch (UnauthorizedAccessException) { return null; }
         }
 
+        /// The run's save (written as each wave starts), or null if it has none.
+        public static RunSave Read(string id)
+        {
+            if (Folder == null || string.IsNullOrEmpty(id) || !File.Exists(PathOf(id)))
+                return null;
+            try { return RunSave.Parse(File.ReadAllText(PathOf(id)), id); }
+            catch (IOException) { return null; }
+            catch (UnauthorizedAccessException) { return null; }
+        }
+
         /// Every saved run, newest first (files that don't read as saves are left alone and not listed).
         public static List<RunSave> List()
         {

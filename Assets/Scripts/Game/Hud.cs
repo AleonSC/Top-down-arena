@@ -175,7 +175,12 @@ namespace Arena
                 case MatchState.Victory:
                 case MatchState.GameOver:
                     if (!pauseMenuOpen && !tabHeld && !RecallActive)
-                        DrawRunSummary();
+                    {
+                        if (game.State == MatchState.GameOver && game.RetryReady)
+                            DrawLifePrompt();  // a life left: Respawn or Game over first (LivesUi.cs)
+                        else
+                            DrawRunSummary();
+                    }
                     break;
             }
             if (game.State == MatchState.Fighting && !PauseMenuWanted)

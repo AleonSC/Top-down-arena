@@ -429,7 +429,7 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 ## Rules
 
 - **Timed waves:** a regular wave's enemies arrive over about 45 s instead of in one burst: a ramp-up (first 15%), three **surges** (at 20%, 48% and 76% of the window, about 7 s each) with quieter lulls between them (40% of the surge rate), then a taper as the wave dies down, and the wave ends when the last one is dead (the clear-up brings it to about a minute). Spawning waits while 14 + 3 per wave (at most 60) foes are alive. Boss, Practice, designed, Zombie Infection and room-by-room waves keep their own pacing. Enemies pick the nearest breach (or the nearest valid spot on the open Rooms map, of four) to a player that is at least 350 px away, so big maps don't feel empty.
-- **Spawn portals:** on a timed wave the single enemies come in **bursts** (3 on wave 1, one more every 4 waves, up to 8) through a **spawn portal**: a violet digital gate whose segmented ring fills like a loading bar while it opens (1 s) where the burst comes in (an edge, a layout's enemy gate, a spot on the Rooms map, never within 160 px of a player), then lets one enemy out every 0.35 s, with chevrons pointing the way they'll come. Shoot it closed (200 health, scaling like an enemy's) before it empties and it blows apart in a white flash: **the rest of its burst is cancelled**: +5 score each, plus 2 gold each as coins in the Expanding arena. An empty portal shrinks shut with no reward. Up to 2 portals are open at once (3 in a surge, when their rings chase faster and more bits pour in); with none open for 4 s a smaller burst comes anyway. Squads, Nests and breach waves keep their own way in.
+- **Spawn portals:** on a timed wave the single enemies come in **bursts** (3 on wave 1, one more every 4 waves, up to 8) through a **spawn portal**: a violet digital gate whose segmented ring fills like a loading bar while it opens (1 s) where the burst comes in (an edge, a layout's enemy gate, a spot on the Rooms map, never within 160 px of a player, and always with its whole ring clear of walls and pillars), then lets one enemy out every 0.35 s, with chevrons pointing the way they'll come. Shoot it closed (200 health, scaling like an enemy's) before it empties and it blows apart in a white flash: **the rest of its burst is cancelled**: +5 score each, plus 2 gold each as coins in the Expanding arena. An empty portal shrinks shut with no reward. Up to 2 portals are open at once (3 in a surge, when their rings chase faster and more bits pour in); with none open for 4 s a smaller burst comes anyway. Squads, Nests and breach waves keep their own way in.
 - **Flank portals:** from wave 3, one burst in 4 (never a wave's first) opens **behind the party**, opposite the way the players are aiming: a red portal that takes 1.6 s to open, and a red arrow round your player points at it.
 - The arena is 1600x900 and **wraps around for players**: walk off any edge and you come in on the opposite side.
 - **Wall slams:** an enemy knocked back into the arena edge stops there and takes damage: 6 plus 0.12 per px of push the wall cut short, up to 40 (pushes that lose under 8 px do nothing). Bosses and shielded enemies still use their normal damage rules.
@@ -876,8 +876,8 @@ design notes: [`Docs/ArenaLayouts.md`](Docs/ArenaLayouts.md).
   keeping behind its allies, and the wandering Spinner (its random spots stay clear of the walls). A Phantom never
   blinks into a wall.
 - **Edge gates.** Some layouts wall the edges of the arena. **Player gates** (teal chevrons) are the gaps you can wrap
-  through, and each comes out of the matching gap on the opposite edge. **Enemy gates** (flickering red holograms with a dashed rim, part of the
-  wall) are where enemies come in; squads form up in front of one. A layout with open edges lets you wrap anywhere
+  through, and each comes out of the matching gap on the opposite edge. **Enemy gates** (stretches of the edge wall that look like the rest of it: red is
+  kept for breaches) are where enemies come in; squads form up in front of one. A layout with open edges lets you wrap anywhere
   and enemies come in along the edges it allows. Narrow Pass, Tiny Arena and Solid Walls close the arena, so the edge
   gates drop away (the inner walls stay).
 - The host can turn layouts off for a run on the lobby's **Difficulty** tab (**Layouts off**, beside the boss approach picks).
@@ -1065,10 +1065,11 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
 - **Themed rooms**: pick a theme under the map when you draw a room: a path's ground and rules (Swarm Fields, Sniper Ridge, Elite Gauntlet, Burning
   Grounds, Sanctuary, Frozen Lake, Blood Moon) inside that room only, with its kill bonus. A theme costs extra vectors (+3 / +6 / +10 for
   danger 1 / 2 / 3) and unlocks with bosses: danger 2 after the first boss, danger 3 after the second.
-- **Mini-boss room**: once a built room opens it, walking in during a wave wakes the **faction mini-boss** of the boss cycle it was placed in (the
+- **Mini-boss room**: once a built room opens it, walking in, during a wave or **between waves**, wakes the **faction mini-boss** of the boss cycle it was placed in (the
   next boss's faction: the Warden's is the **Riot Captain**; factions without their own yet bring him too; the map shows its name), and the room
   locks behind you until it falls. Beating it gives everyone a prize pick (sometimes a legendary) and the room becomes an ordinary one. It's optional:
-  if the wave ends first, it goes (with any men it called), you're let out, and walking in later starts a fresh duel.
+  if the wave ends first, it goes (with any men it called), you're let out, and walking in later (even right after the wave) starts a fresh duel.
+  A duel begun between waves holds the countdown to the next wave until it's settled; it can't be started just before a boss wave.
 - **Riot Captain** (the Warden's mini-boss, 65% of the Warden's health): a tower shield blocks the front and never breaks; it turns slowly, so get
   round it. In turn: a **shield charge** along a red lane (18 damage, knocked 220 px; **into a wall it's dazed 2.2 s**: no shield, +50% damage;
   otherwise it holds the shield low 1.2 s), **buckshot** (3 fans of 7), **tear gas** (3 canisters round you) and a **whistle** (2 Taser Guards at
@@ -1232,7 +1233,7 @@ and green when it's easier. Hover a number for what it does.
 | Health orb drops (small) | 18% | **12%** | 9% | 6% | 0-50% |
 | Revive time | 3 s | **4 s** | 5 s | 6 s | 1-10 s |
 | Hit grace (after a hit) | 0.35 s | **0.25 s** | 0.2 s | 0.15 s | 0.05-1 s |
-| Lives (retries from the last boss's checkpoint) | 3 | **2** | 1 | 0 | 0-5 |
+| Lives (respawns at the start of the wave you went down on) | 3 | **2** | 1 | 0 | 0-5 |
 | Boss approach (the themed share of the wave before a boss) | 85% | **85%** | 85% | 85% | 0-100% |
 | Approach ramp (build up over the four waves) | On | **On** | On | On | On / Off |
 
@@ -1297,6 +1298,8 @@ run** (the host's records decide, in co-op); the others say Locked or Coming soo
 locked one. **Only the Warden has a hunt so far**: a hunt's build-up waves need the boss's faction (only the
 Warden has one yet), and later bosses will need the party handed a build that fits their strength. Records keep each hunt's plays, wins and best time per player
 (not counted as runs). Winning a hunt unlocks that boss's perk (below). Plan: `Docs/BossHuntsAndPerks.md`.
+
+**Hunt map.** The Boss Hunt tab has a **Hunt map** switch (host only, off by default: off, a hunt is the ten waves in order). On, the hunt is a map of ten steps on three lanes, starting at the top and ending with the boss at the bottom; the screen between waves shows it, with the party, the next nodes, the picked node's detail and a **Lock in vote** key. Everyone votes for the next node (keys 1-3 or a click) and locks in; the node with the most votes wins, a tie goes to the host's vote, and after 20 s (counted once nobody is picking upgrades) the map picks for the party. A node with a single way on is taken at once. The wave that follows is that node's. Nodes so far: **Skirmish** (the boss's own troops at the step's strength), **Elite squad** (one step further into the faction and the set piece of a finale wave; each Elite cleared is a **boss clue**, up to 3), **Rest** (no fight: everyone heals to full and gets a reroll) and **Shop** (no fight: the Bazaar opens; gold is earned all hunt long and leftovers turn into XP when it closes). A Rest or Shop never comes right after another, and the row before the boss is always one of them. Ambush, Contraband and Gamble nodes and the clues' effect on the boss are planned. Design: `Docs/HuntMap.md`.
 
 ## Perks
 
@@ -1485,14 +1488,14 @@ about one message a second per player. Mockup: `Docs/Mockups/chat-box.html`.
 
 ## End of a run
 
-**Checkpoints and lives.** Every boss you beat leaves a **checkpoint** (the wave box after it says **CHECKPOINT SAVED**
-and the lives left). If everyone goes down and the run has a **life** left (the difficulty's Lives: Easy 3, Normal 2,
-Hard 1, Nightmare 0; a hearts chip over the wave panel shows them), the GAME OVER screen says where you'd restart and the
-host gets **Retry [Y]**: the run comes back exactly as it was at the checkpoint (everyone's upgrades, levels, gold, the
-map), a life used and **the score cut by a quarter**. Play again, Back to lobby or Leave instead ends the run for good.
-Closing the game keeps it at the checkpoint, so **Continue** retries it later (the saved-runs list shows the lives left).
-Out of lives, or before the first boss, it's a plain game over. A run won without using a life is **Deathless** (on the
-results screen and in Recent runs). Not in Boss Hunts or the Practice Range.
+**Lives.** If everyone goes down (solo: you) and the run has a **life** left (the difficulty's Lives: Easy 3, Normal 2,
+Hard 1, Nightmare 0; a hearts chip over the wave panel shows them), the ending holds before the results and a box asks
+**Respawn [Y]** or **Game over [N]** (the host chooses). Respawn replays the wave you went down on, the run exactly as it
+was when that wave started (everyone's upgrades, levels, gold, the map), a life used; the score is kept. Game over ends
+the run and shows the results. Closing the game keeps it at the wave's start, so **Continue** respawns it later (the
+saved-runs list shows the lives left). Out of lives it's a plain game over. A run won without using a life is
+**Deathless** (on the results screen and in Recent runs). Every boss beaten also leaves a **checkpoint** (CHECKPOINT
+SAVED in the wave box), the fallback if the wave's save is missing. Not in Boss Hunts, Quick Play or the Practice Range.
 
 When a run ends a results screen in the level-up picker's style says **GAME OVER** (red, with the boss that
 stopped you) or **VICTORY!** (gold), with the wave reached, time, score and total kills as tiles, then a card per

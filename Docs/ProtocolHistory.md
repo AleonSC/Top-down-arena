@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 - 336: the Eclipse's faction, steps 1-2: six new `EnemyType` values (Ember, CoronaPriest, Heliograph, Moonward, Gnomon, DuskLobber), bullet kind `EmberSpark` 66, `PatchKind.Dusk` (a Dusk Lobber's pool)
+- 336: the hunt map generator now makes Rest and Shop nodes (the same seed makes a different map: both sides must run the same generator; Docs/HuntMap.md)
 - 335: the hunt map (Docs/HuntMap.md): `Msg.HuntMapState` (host -> all: seed, cleared path, node being fought, the vote so far) and `Msg.HuntMapVote` (client -> host); the lobby message ends with `HuntMapMode` after `QuickMode`
 - 334: FxKind.PortalSeal (a spawn portal shot closed); a portal's Winding now means a surge is on
 - 333: the Devourer's faction, steps 1-2: new `EnemyType` values Gnawling, Butcher, Gulper, CarcassBearer, BileSpitter (after GraveCaller); a Gnawling's, Butcher's or Gulper's snapshot gains its stage (and time) (`SyncLarder`)

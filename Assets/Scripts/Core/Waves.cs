@@ -69,7 +69,8 @@ namespace Arena
                         ChoosePath(rng.Next(2));  // a bot host picks for itself
                     TickShop(dt);  // the Bazaar's shop closes when everyone is done (Shop.cs)
                     TickHuntMap(dt);  // the hunt map's vote on the next node (HuntMapGame.cs)
-                    if (!AnyonePicking() && PathOffer == null && !ShopBlocksWave && !HuntMapBlocksWave && Room == RoomPhase.None)  // (and while a portal is open)
+                    TickDuelRooms();  // a mini-boss room can be taken on between waves too (GatekeeperRoom.cs)
+                    if (!AnyonePicking() && PathOffer == null && !ShopBlocksWave && !HuntMapBlocksWave && Room == RoomPhase.None && !DuelHoldsWave)  // (and while a portal is open, or a duel is on)
                     {
                         if (!TickBossGate(ref StateTimer, dt))  // before a boss: everyone in the boss gate instead (BossGate.cs)
                             TickReadyTimer(ref StateTimer, dt);  // ...and until everyone is ready (WaveReady.cs)

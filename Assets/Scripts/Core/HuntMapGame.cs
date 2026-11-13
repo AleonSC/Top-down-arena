@@ -27,6 +27,11 @@ namespace Arena
         public float HuntMapSeconds;
 
         /// Each player's vote (an index in the choices) and who has locked it in.
+        /// Host: a seed to use for the next map instead of a random one (the tests).
+        public int HuntMapSeed;
+
+        bool huntShopNode;   // host: the Shop node being visited (cleared when the shop closes)
+
         public readonly Dictionary<int, int> MapVotes = new Dictionary<int, int>();
         public readonly HashSet<int> MapLocked = new HashSet<int>();
 
@@ -38,6 +43,7 @@ namespace Arena
             HuntRoute = null;
             HuntMapVoting = false;
             HuntMapSeconds = 0f;
+            huntShopNode = false;
             MapVotes.Clear();
             MapLocked.Clear();
         }
@@ -65,9 +71,14 @@ namespace Arena
                 return;
             if (HuntRoute == null)
             {
-                HuntRoute = HuntMap.Generate(rng.Next(1, 1 << 30));
+                HuntRoute = HuntMap.Generate(HuntMapSeed != 0 ? HuntMapSeed : rng.Next(1, 1 << 30));
                 DoLog("hunt map: seed " + HuntRoute.Seed);
                 BroadcastHuntMap();
+            }
+            if (huntShopNode && !ShopOpen)   // the Shop node's shop has closed: the node is done
+            {
+                huntShopNode = false;
+                ClearHuntNode();
             }
             if (HuntRoute.Complete || HuntRoute.Current != null || AnyonePicking())
                 return;
@@ -76,9 +87,7 @@ namespace Arena
                 return;
             if (choices.Length == 1)   // the first node, or a single way on: nothing to vote on
             {
-                HuntRoute.Pick(choices[0]);
-                HuntMapVoting = false;
-                BroadcastHuntMap();
+                PickHuntNode(choices[0]);
                 return;
             }
             if (!HuntMapVoting)
@@ -119,13 +128,52 @@ namespace Arena
                 pick = hostVote;
             else
                 pick = tied[rng.Next(tied.Count)];
-            HuntRoute.Pick(choices[pick]);
-            HuntMapVoting = false;
             MapVotes.Clear();
             MapLocked.Clear();
-            BroadcastHuntMap();
             Sounds.Add(Sfx.Pick);
-            DoLog("hunt map: " + HuntMap.Name(HuntRoute.Current.Type) + " (step " + (HuntRoute.Step + 1) + ")");
+            PickHuntNode(choices[pick]);
+        }
+
+        /// Host: the party goes to this node. A fight is the next wave; a Rest or a Shop is a stop with no wave: the wave number moves on
+        /// (the map's rows are the hunt's waves), a Rest heals everyone and gives a reroll, a Shop opens the Bazaar (the node clears
+        /// when it closes).
+        void PickHuntNode(int index)
+        {
+            HuntRoute.Pick(index);
+            HuntMapVoting = false;
+            var node = HuntRoute.Current;
+            DoLog("hunt map: " + HuntMap.Name(node.Type) + " (step " + (HuntRoute.Step + 1) + ")");
+            if (node.Fight)
+            {
+                BroadcastHuntMap();
+                return;
+            }
+            Wave = HuntRoute.Step + 1;
+            if (node.Type == HuntNodeType.Rest)
+            {
+                foreach (var p in Players.Values)
+                {
+                    p.Wound = 0f;
+                    if (p.Downed)
+                        RevivePlayer(p, 1f);
+                    p.Hp = p.MaxHp;
+                    p.Rerolls++;
+                    BroadcastFx(FxKind.Spark, p.Pos, new Rgba(0.4f, 1f, 0.6f), 40f, 0.6f, Sfx.None);
+                }
+                ClearHuntNode();
+            }
+            else
+            {
+                huntShopNode = true;
+                OpenShop();
+                BroadcastHuntMap();
+            }
+        }
+
+        void ClearHuntNode()
+        {
+            HuntRoute.Clear();
+            BroadcastHuntMap();
         }
 
         /// Host, when a wave is cleared: its node is cleared.
@@ -133,8 +181,7 @@ namespace Arena
         {
             if (!IsHost || !HuntMapOn || HuntRoute == null || HuntRoute.Current == null)
                 return;
-            HuntRoute.Clear();
-            BroadcastHuntMap();
+            ClearHuntNode();
         }
 
         /// This player's vote and whether it's locked in (the host's own goes straight in).
