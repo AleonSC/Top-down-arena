@@ -1,0 +1,553 @@
+<title>The Larder</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the Devourer's approach faction as a field sheet in the Quarry mockup's look: eight looping arena vignettes
+   in a two-column grid, then the last-wave Feast, the table and the squads. Single dark look by choice: it mirrors the
+   arena. Approximate: canvas sketches, not the game's draw code. */
+:root {
+  --bg: #0d0a0b; --panel: #171214; --line: #2f2427; --fg: #f1e8e8; --muted: #a8949a; --soft: #dccdd0;
+  --flesh: #e8889a; --bile: #b8e04a; --bone: #f2e6cf; --blood: #ff5a6a; --gold: #ffcc59; --larder: #e0a070;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.5 var(--font-body); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 32px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--flesh); }
+h2 { font-size: 22px; font-weight: 700; letter-spacing: .04em; }
+h3 { font-size: 19px; font-weight: 700; letter-spacing: .03em; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--flesh); }
+header { display: grid; gap: 10px; }
+.lead { color: var(--soft); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font: 500 13px var(--font-data); color: var(--muted); }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 500px), 1fr)); gap: 18px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; min-width: 0; }
+canvas { display: block; width: 100%; max-width: 100%; height: auto; background: #120d0e; }
+.card canvas { aspect-ratio: 360 / 200; }
+.body { padding: 14px 16px 16px; display: grid; gap: 8px; align-content: start; }
+.title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+.side { font: 600 10.5px var(--font-display); letter-spacing: .14em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; border: 1px solid currentColor; }
+.side.brood { color: var(--flesh); }
+.side.larder { color: var(--larder); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 500 12px var(--font-data); color: var(--soft); background: #231a1d; border: 1px solid var(--line); padding: 2px 8px; border-radius: 4px; }
+.chip.t { color: var(--bile); border-color: #34401a; }
+.body p { color: var(--soft); font-size: 15px; }
+.mirror { font: 500 12.5px var(--font-data); color: var(--muted); }
+.mirror b { color: var(--fg); font-weight: 500; }
+.wide { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.wide canvas { aspect-ratio: 720 / 270; }
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 15px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 11px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+td b { font-family: var(--font-display); font-weight: 700; }
+td.n { font-family: var(--font-data); font-variant-numeric: tabular-nums; color: var(--muted); }
+ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; color: var(--soft); max-width: 80ch; }
+.note { font: 500 12.5px var(--font-data); color: var(--muted); }
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Boss approach · The Devourer · proposal</div>
+  <h1>The <span>Larder</span></h1>
+  <p class="lead">Eight enemies for the waves before the Devourer, one per Warden enemy so the lessons carry over. <b>Brood</b> are its spawn: mouths with no eyes, the Devourer in miniature. The <b>Larder</b> are the butchers who keep it fed. Each one teaches a turn of the fight before you meet it.</p>
+  <div class="legend">
+    <span><i class="dot" style="background:var(--flesh)"></i>Brood (squads with the brood)</span>
+    <span><i class="dot" style="background:var(--larder)"></i>Larder (squads with the butchers)</span>
+    <span><i class="dot" style="background:var(--bile)"></i>Teaches (the Devourer turn)</span>
+  </div>
+  <p class="note">Sketches on canvas, approximate: not the game's draw code. Numbers are first guesses at wave 41.</p>
+</header>
+
+<section class="grid" id="cards"></section>
+
+<section class="wide">
+  <canvas id="feast" width="720" height="270"></canvas>
+  <div class="body">
+    <div class="title"><h3>The Feast</h3><span class="side brood">last wave</span></div>
+    <p>Mirrors the Riot Line. Four Carcass Bearers as a wall, two Gulpers behind it, two Bile Spitters lobbing over. Within ~190 px of the wall, or with half the slabs broken, the Gulpers push through the gaps and inhale. Broken slabs drop morsels, so shoot them before the Gnawlings that follow can eat them.</p>
+  </div>
+</section>
+
+<section style="display:grid;gap:12px">
+  <h2>The eight</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Enemy</th><th>Side</th><th>From</th><th>Mirrors</th><th>What it does</th><th>Teaches</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table></div>
+</section>
+
+<section style="display:grid;gap:12px">
+  <h2>Squads</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Squad</th><th>Who</th><th>Mirrors</th></tr></thead>
+    <tbody>
+      <tr><td><b>Feeding Frenzy</b></td><td>Six Gnawlings and a Butcher</td><td>Breakout</td></tr>
+      <tr><td><b>Meat Hooks</b></td><td>Two Hook Throwers behind two Butchers</td><td>Patrol</td></tr>
+      <tr><td><b>Gullet</b></td><td>A Gulper, three Gnawlings and a Gutworm</td><td>Yard</td></tr>
+      <tr><td><b>Larder Wall</b></td><td>Two Carcass Bearers with Gnawlings pouring past</td><td>Cell block</td></tr>
+      <tr><td><b>Bile Rain</b></td><td>Three Bile Spitters spread wide so their pools overlap</td><td>new</td></tr>
+      <tr><td><b>The Feast</b></td><td>Last wave (above)</td><td>Riot Line</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section style="display:grid;gap:12px">
+  <h2>In the Devourer fight (optional)</h2>
+  <ul>
+    <li><b>Hungry:</b> two Gnawlings crawl out with the morsels and race the Devourer to them.</li>
+    <li><b>Inhale:</b> Gnawlings in the cone are pulled in too and heal it 1% each when swallowed.</li>
+    <li><b>Ravenous:</b> a Maw Priest at each side door; shots into either maw heal the Devourer.</li>
+  </ul>
+  <p class="note">Gutworm, not Burrower: that name is already the Earthquake minion (Burrower.cs).</p>
+</section>
+</div>
+
+<script>
+(function () {
+var TAU = Math.PI * 2, W = 360, H = 200;
+var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+function ease(t) { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); }
+function seg(t, a, b) { return clamp((t - a) / (b - a), 0, 1); }
+function rng(s) { return function () { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
+function shape(seed, n) { var r = rng(seed), a = []; for (var i = 0; i < n; i++) a.push(.86 + r() * .2); return a; }
+var LUMP = [shape(11, 11), shape(37, 11), shape(59, 11), shape(83, 11)];
+var VEINS = (function () { var r = rng(5), a = []; for (var i = 0; i < 9; i++) a.push([r(), r(), r() * TAU, 40 + r() * 80]); return a; })();
+var SPECK = (function () { var r = rng(7), a = []; for (var i = 0; i < 70; i++) a.push([r(), r(), r()]); return a; })();
+
+function floor(c, w, h) {
+  var g = c.createRadialGradient(w / 2, h / 2, 20, w / 2, h / 2, Math.max(w, h) * .75);
+  g.addColorStop(0, '#22171a'); g.addColorStop(1, '#0c0809');
+  c.fillStyle = g; c.fillRect(0, 0, w, h);
+  c.strokeStyle = 'rgba(255,200,200,.035)'; c.lineWidth = 1;
+  for (var x = 0; x <= w; x += 30) { c.beginPath(); c.moveTo(x + .5, 0); c.lineTo(x + .5, h); c.stroke(); }
+  for (var y = 0; y <= h; y += 30) { c.beginPath(); c.moveTo(0, y + .5); c.lineTo(w, y + .5); c.stroke(); }
+  c.strokeStyle = 'rgba(160,40,60,.12)'; c.lineWidth = 1.5;
+  VEINS.forEach(function (v) {
+    var x0 = v[0] * w, y0 = v[1] * h; c.beginPath(); c.moveTo(x0, y0);
+    c.quadraticCurveTo(x0 + Math.cos(v[2]) * v[3], y0 + Math.sin(v[2] + 1) * v[3] * .6, x0 + Math.cos(v[2] + .6) * v[3] * 1.4, y0 + Math.sin(v[2]) * v[3]);
+    c.stroke();
+  });
+  c.fillStyle = 'rgba(232,136,154,.07)';
+  SPECK.forEach(function (s) { c.fillRect(s[0] * w, s[1] * h, 1 + s[2] * 2, 1 + s[2] * 1.5); });
+}
+function shadow(c, x, y, r) { c.beginPath(); c.ellipse(x + 2, y + 4, r, r * .8, 0, 0, TAU); c.fillStyle = 'rgba(0,0,0,.45)'; c.fill(); }
+function tag(c, txt, col) {
+  c.font = '500 10.5px "IBM Plex Mono", monospace';
+  var w = c.measureText(txt).width + 12;
+  c.fillStyle = 'rgba(13,10,11,.78)'; c.fillRect(8, H - 24, w, 17);
+  c.fillStyle = col || '#a8949a'; c.fillText(txt, 14, H - 12);
+}
+function player(c, x, y, hurt) {
+  shadow(c, x, y, 10);
+  var g = c.createRadialGradient(x - 3, y - 3, 1, x, y, 11);
+  g.addColorStop(0, '#c9f0ff'); g.addColorStop(1, '#3d9fcf');
+  c.beginPath(); c.arc(x, y, 10, 0, TAU); c.fillStyle = g; c.fill();
+  c.lineWidth = 2; c.strokeStyle = '#0c2a3a'; c.stroke();
+  if (hurt > 0) { c.beginPath(); c.arc(x, y, 13 + (1 - hurt) * 8, 0, TAU); c.strokeStyle = 'rgba(255,80,60,' + hurt + ')'; c.lineWidth = 3; c.stroke(); }
+}
+function bullet(c, x, y, col) { c.beginPath(); c.arc(x, y, 3, 0, TAU); c.fillStyle = col || '#fff1a8'; c.fill(); }
+function eshot(c, x, y, r) {
+  c.beginPath(); c.arc(x, y, r || 5, 0, TAU); c.fillStyle = '#ff5a6a'; c.fill();
+  c.beginPath(); c.arc(x, y, (r || 5) * .45, 0, TAU); c.fillStyle = '#ffe0e4'; c.fill();
+}
+function num(c, x, y, txt, col, k) {
+  if (k < 0 || k > 1) return;
+  c.globalAlpha = 1 - k; c.font = '700 12px "Oxanium", sans-serif'; c.textAlign = 'center';
+  c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,.7)'; c.strokeText(txt, x, y - k * 18);
+  c.fillStyle = col; c.fillText(txt, x, y - k * 18); c.textAlign = 'left'; c.globalAlpha = 1;
+}
+function lane(c, x0, y0, x1, y1, w, fill, rgb) {
+  var a = Math.atan2(y1 - y0, x1 - x0), L = Math.hypot(x1 - x0, y1 - y0);
+  c.save(); c.translate(x0, y0); c.rotate(a);
+  c.fillStyle = 'rgba(' + rgb + ',.12)'; c.fillRect(0, -w / 2, L, w);
+  c.fillStyle = fill > .9 ? 'rgba(255,255,255,.75)' : 'rgba(' + rgb + ',.5)'; c.fillRect(0, -w / 2, L * fill, w);
+  c.restore();
+}
+function pool(c, x, y, r, al, t) {
+  c.save(); c.globalAlpha = al;
+  var g = c.createRadialGradient(x, y, 2, x, y, r);
+  g.addColorStop(0, 'rgba(184,224,74,.55)'); g.addColorStop(.75, 'rgba(120,170,40,.4)'); g.addColorStop(1, 'rgba(120,170,40,0)');
+  c.beginPath(); c.ellipse(x, y, r, r * .82, 0, 0, TAU); c.fillStyle = g; c.fill();
+  c.strokeStyle = 'rgba(200,240,90,.5)'; c.lineWidth = 1.2; c.stroke();
+  for (var i = 0; i < 5; i++) {
+    var a = i * 1.7 + 1, d = r * (.25 + (i % 3) * .2), k = (t * 1.3 + i * .37) % 1;
+    c.beginPath(); c.arc(x + Math.cos(a) * d, y + Math.sin(a) * d * .8, 1.5 + k * 3, 0, TAU);
+    c.strokeStyle = 'rgba(230,255,150,' + (1 - k) * .8 + ')'; c.stroke();
+  }
+  c.restore();
+}
+
+/* ---------- bodies ---------- */
+// brood: a lump of flesh that is mostly mouth, bone teeth round the front, no eyes
+function brood(c, x, y, R, f, open, o) {
+  o = o || {};
+  c.save(); c.globalAlpha *= (o.al == null ? 1 : o.al);
+  shadow(c, x, y, R * .95);
+  c.translate(x, y); c.rotate(f);
+  var sh = LUMP[(o.k || 0) % 4], br = 1 + Math.sin((o.t || 0) * 5) * .03;
+  if (o.sac) { // bile sac on the back
+    var gs = c.createRadialGradient(-R * .9, -2, 1, -R * .8, 0, R * .8);
+    gs.addColorStop(0, '#e9ff9a'); gs.addColorStop(1, '#5d7f1c');
+    c.beginPath(); c.arc(-R * .75, 0, R * .62 * (o.sac), 0, TAU); c.fillStyle = gs; c.fill();
+    c.lineWidth = 1.6; c.strokeStyle = '#1d2a08'; c.stroke();
+  }
+  c.beginPath();
+  for (var i = 0; i < sh.length; i++) { var a = i / sh.length * TAU, rr = R * sh[i] * br; i ? c.lineTo(Math.cos(a) * rr, Math.sin(a) * rr) : c.moveTo(Math.cos(a) * rr, Math.sin(a) * rr); }
+  c.closePath();
+  var g = c.createRadialGradient(-R * .3, -R * .35, 1, 0, 0, R * 1.1);
+  g.addColorStop(0, o.lit || '#f2a2b0'); g.addColorStop(1, o.dark || '#5a1f2c');
+  c.fillStyle = g; c.fill(); c.lineWidth = 2; c.strokeStyle = '#1f0a10'; c.stroke();
+  // pale pustules
+  c.fillStyle = 'rgba(255,225,215,.5)';
+  c.beginPath(); c.arc(-R * .35, -R * .45, R * .1, 0, TAU); c.arc(-R * .5, R * .3, R * .08, 0, TAU); c.fill();
+  // mouth
+  var half = .25 + open * .6, mr = R * .95, mx = -R * .05;
+  c.beginPath(); c.moveTo(mx, 0); c.arc(mx, 0, mr, -half, half); c.closePath();
+  c.fillStyle = '#2a0710'; c.fill();
+  c.fillStyle = '#f2e6cf';
+  for (var s = -1; s <= 1; s += 2) {
+    for (var j = 1; j <= 3; j++) {
+      var d = mr * (.3 + j * .2), ea = s * half, px = mx + Math.cos(ea) * d, py = Math.sin(ea) * d;
+      var nx = -Math.sin(ea) * -s, ny = Math.cos(ea) * -s, tw = R * .07, tl = R * .17;
+      c.beginPath(); c.moveTo(px - Math.cos(ea) * tw, py - Math.sin(ea) * tw); c.lineTo(px + Math.cos(ea) * tw, py + Math.sin(ea) * tw);
+      c.lineTo(px + nx * tl, py + ny * tl); c.closePath(); c.fill();
+    }
+  }
+  c.restore();
+}
+// larder: hooded robe, stained apron, bone mask facing f
+function larder(c, x, y, f, o) {
+  o = o || {};
+  c.save(); shadow(c, x, y, 13);
+  c.translate(x, y); c.rotate(f);
+  var g = c.createRadialGradient(-4, -4, 2, 0, 0, 16);
+  g.addColorStop(0, o.robe ? o.robe[0] : '#6e4a3e'); g.addColorStop(1, o.robe ? o.robe[1] : '#2c1a16');
+  c.beginPath(); c.ellipse(0, 0, 13, 15, 0, 0, TAU); c.fillStyle = g; c.fill();
+  c.save(); c.clip();
+  c.fillStyle = '#d9cbb4'; c.fillRect(2, -9, 14, 18);          // apron, front half
+  c.fillStyle = 'rgba(170,30,45,.75)'; c.beginPath(); c.ellipse(9, 3, 5, 3.5, .5, 0, TAU); c.fill();
+  c.restore();
+  c.beginPath(); c.ellipse(0, 0, 13, 15, 0, 0, TAU); c.lineWidth = 2.2; c.strokeStyle = '#140a08'; c.stroke();
+  // hood + bone mask
+  c.beginPath(); c.arc(0, 0, 8, 0, TAU); c.fillStyle = o.hood || '#3b2420'; c.fill(); c.lineWidth = 1.6; c.strokeStyle = '#140a08'; c.stroke();
+  c.beginPath(); c.ellipse(4.5, 0, 3.4, 5, 0, 0, TAU); c.fillStyle = '#efe2c8'; c.fill();
+  c.fillStyle = '#2a0710'; c.fillRect(5, -2.6, 1.8, 1.6); c.fillRect(5, 1, 1.8, 1.6);
+  if (o.glow) { c.beginPath(); c.arc(4.5, 0, 9, 0, TAU); c.strokeStyle = 'rgba(255,90,106,' + o.glow + ')'; c.lineWidth = 2; c.stroke(); }
+  c.restore();
+}
+function cleaver(c, x, y, a) {
+  c.save(); c.translate(x, y); c.rotate(a);
+  c.fillStyle = '#4a2c1c'; c.fillRect(-1, -2, 8, 4);
+  c.fillStyle = '#cfd6da'; c.fillRect(6, -6, 12, 10); c.fillStyle = 'rgba(170,30,45,.8)'; c.fillRect(13, -6, 5, 4);
+  c.lineWidth = 1.2; c.strokeStyle = '#1b1f22'; c.strokeRect(6, -6, 12, 10);
+  c.restore();
+}
+function slab(c, x, y, a, hp, wob) {
+  c.save(); c.translate(x, y); c.rotate(a + (wob || 0));
+  var g = c.createLinearGradient(-6, -22, 8, 22); g.addColorStop(0, '#d8606e'); g.addColorStop(1, '#7a1e2c');
+  c.beginPath(); c.roundRect(-6, -22, 13, 44, 5); c.fillStyle = g; c.fill();
+  c.strokeStyle = 'rgba(255,235,220,.55)'; c.lineWidth = 2;
+  c.beginPath(); c.moveTo(-3, -16); c.quadraticCurveTo(3, -6, -2, 4); c.moveTo(1, 8); c.quadraticCurveTo(5, 14, 0, 19); c.stroke();
+  c.fillStyle = '#f2e6cf'; c.beginPath(); c.roundRect(-2, -26, 4, 8, 2); c.fill(); c.beginPath(); c.roundRect(-2, 18, 4, 8, 2); c.fill();
+  c.lineWidth = 1.8; c.strokeStyle = '#2a0710'; c.beginPath(); c.roundRect(-6, -22, 13, 44, 5); c.stroke();
+  if (hp != null) { c.fillStyle = 'rgba(0,0,0,.6)'; c.fillRect(-14, -24, 4, 48); c.fillStyle = '#ff5a6a'; c.fillRect(-14, -24 + 48 * (1 - hp), 4, 48 * hp); }
+  c.restore();
+}
+function morsel(c, x, y, s) {
+  if (s <= 0) return;
+  c.save(); c.translate(x, y); c.scale(s, s);
+  c.beginPath(); c.ellipse(0, 0, 9, 7, .3, 0, TAU); c.fillStyle = '#c84a5c'; c.fill();
+  c.lineWidth = 1.6; c.strokeStyle = '#2a0710'; c.stroke();
+  c.fillStyle = '#f2e6cf'; c.fillRect(-11, -1.5, 8, 3); c.beginPath(); c.arc(-11, 0, 2.4, 0, TAU); c.fill();
+  c.restore();
+}
+function cone(c, x, y, f, half, R, al, rgb) {
+  c.beginPath(); c.moveTo(x, y); c.arc(x, y, R, f - half, f + half); c.closePath();
+  c.fillStyle = 'rgba(' + rgb + ',' + al * .22 + ')'; c.fill();
+  c.strokeStyle = 'rgba(' + rgb + ',' + al * .8 + ')'; c.lineWidth = 1.5; c.stroke();
+}
+
+/* ---------- the eight ---------- */
+var E = [
+{ id: 'gnawling', name: 'Gnawling', side: 'brood', from: 41, mirrors: 'Rioter', teach: 'Hungry morsels',
+  chips: ['24 HP', 'contact 10', 'XP 7', 'pairs'],
+  text: 'A mouth on legs. Comes in pairs, weaving at you. It also runs for any morsel on the floor and grows when it eats one (+50% health, bigger bite).',
+  row: 'Weaves at you in pairs (contact 10, XP 7); eats morsels on the floor and grows (+50% health)',
+  loop: 3.2, draw: function (c, t) {
+    var P = { x: 300, y: 100 };
+    for (var k = 0; k < 7; k++) { var bx = 288 - ((t * 420 + k * 48) % 300); bullet(c, bx, 100 + Math.sin(bx * .05) * 6); }
+    var hit = 0;
+    for (var i = 0; i < 2; i++) {
+      var p = seg(t, 0, 3), x = lerp(20, 282, p) - i * 26, y = 100 + Math.sin(p * 13 + i * 3) * 30 * (1 - p * .6) + (i ? 14 : -14) * (1 - p);
+      var f = Math.atan2(P.y - y, P.x - x);
+      brood(c, x, y, 11, f, .5 + .5 * Math.sin(t * 16 + i * 2), { k: i, t: t });
+      if (p >= 1) hit = 1;
+    }
+    player(c, P.x, P.y, hit ? 1 - seg(t, 3, 3.2) : 0);
+    if (hit) num(c, P.x, P.y - 16, '10', '#ff8a8a', seg(t, 3, 3.2));
+    tag(c, 'Gnawling · pairs, weaving · contact 10', '#e8889a');
+  } },
+{ id: 'butcher', name: 'Butcher', side: 'larder', from: 41, mirrors: 'Guard', teach: 'Snap (bite range)',
+  chips: ['60 HP', 'cleaver 14', 'XP 15'],
+  text: 'Walks straight at you, cleaver up. Within 70 px it chops a 110 px half-circle in front (0.4 s wind-up), the same shape as the Devourer\'s Snap bite.',
+  row: 'Straight at you; within 70 px chops a half-circle in front after 0.4 s (14, XP 15)',
+  loop: 3.6, draw: function (c, t) {
+    var P = { x: 296, y: 104 }, p = ease(seg(t, 0, 2.2)), x = lerp(50, 232, p), y = lerp(80, 100, p), f = Math.atan2(P.y - y, P.x - x);
+    var wind = seg(t, 2.2, 2.6), chop = seg(t, 2.6, 2.85);
+    if (wind > 0 && chop < 1) { c.beginPath(); c.moveTo(x, y); c.arc(x, y, 70, f - Math.PI / 2, f - Math.PI / 2 + Math.PI * wind); c.closePath(); c.fillStyle = 'rgba(255,90,106,.16)'; c.fill(); c.strokeStyle = 'rgba(255,90,106,.6)'; c.stroke(); }
+    if (chop > 0 && chop < 1) { c.beginPath(); c.arc(x, y, 62, f - 1.4 + chop * 2.8 - .5, f - 1.4 + chop * 2.8); c.strokeStyle = 'rgba(255,240,240,.9)'; c.lineWidth = 6; c.stroke(); c.lineWidth = 1; }
+    var ca = chop > 0 ? f - 1.4 + chop * 2.8 : f - 1.4 - wind * .5;
+    larder(c, x, y, f);
+    cleaver(c, x + Math.cos(ca) * 10, y + Math.sin(ca) * 10, ca);
+    // player steps back out of reach in time on the left half of the loop
+    var px = P.x + seg(t, 2.3, 2.6) * 40;
+    player(c, px, P.y, 0);
+    tag(c, 'Butcher · 0.4 s wind-up · step out of the half-circle', '#e0a070');
+  } },
+{ id: 'gulper', name: 'Gulper', side: 'brood', from: 42, mirrors: 'Thug', teach: 'Inhale',
+  chips: ['180 HP', 'contact 20', 'inhale 4 s', 'XP 25'],
+  text: 'A swollen gut. Every 4 s its cheeks swell (0.6 s), then it inhales a 70° cone, 200 px long, for 1 s, pulling you at 120 px/s. Reach its mouth and it bites for 20. Step out sideways.',
+  row: '180 HP, contact 20; every 4 s swells 0.6 s, then inhales a 70° cone 200 px long for 1 s (pull 120 px/s, bite 20)',
+  loop: 4.4, draw: function (c, t) {
+    var G = { x: 100, y: 100 }, swell = seg(t, 1.4, 2), inh = t >= 2 && t < 3, rel = seg(t, 3, 3.4);
+    var pull = seg(t, 2, 3), out = seg(t, 2.1, 2.7);
+    var px = lerp(272, 222, pull * (1 - out * .5)), py = lerp(102, 30, ease(out));
+    if (t > 3) { px = 247; py = lerp(30, 102, seg(t, 3.4, 4.4)); }
+    var f = 0;
+    if (swell > 0 && t < 3) cone(c, G.x, G.y, f, .61, 200, inh ? 1 : swell * .6, '232,136,154');
+    if (inh) {
+      for (var i = 0; i < 9; i++) {
+        var k = ((t * 1.8 + i / 9) % 1), a = f + (i / 8 - .5) * 1.1, d = 200 * (1 - k);
+        c.beginPath(); c.moveTo(G.x + Math.cos(a) * d, G.y + Math.sin(a) * d); c.lineTo(G.x + Math.cos(a) * (d + 18), G.y + Math.sin(a) * (d + 18));
+        c.strokeStyle = 'rgba(255,220,225,' + (.2 + k * .6) + ')'; c.lineWidth = 1.5; c.stroke();
+      }
+    }
+    var R = 22 * (1 + swell * .15 * (1 - rel)) * (1 + Math.sin(t * 3) * .02);
+    brood(c, G.x, G.y, R, f, inh ? 1 : rel > 0 ? 1 - rel : .1, { k: 2, t: t, lit: '#f0b0b8', dark: '#6a2232' });
+    player(c, px, py, 0);
+    tag(c, inh ? 'Gulper · inhale: step out of the cone' : 'Gulper · cheeks swell, then it inhales', '#e8889a');
+  } },
+{ id: 'gutworm', name: 'Gutworm', side: 'brood', from: 43, mirrors: 'Shiv', teach: 'Burrow',
+  chips: ['70 HP', 'erupt 16', 'ring of 8', 'XP 20'],
+  text: 'Dives (can\'t be hurt), and a ripple chases you for 1.8 s at 110 px/s. It stops, marks 50 px for 0.6 s, then erupts with a bite and a ring of 8 shots. The Devourer\'s Burrow, small.',
+  row: 'Dives, ripple chases you 1.8 s, stops, marks 50 px for 0.6 s, erupts (16) with a ring of 8; can\'t be hurt underground',
+  loop: 4.2, draw: function (c, t) {
+    var px = 250 + Math.sin(t * 1.1) * 40, py = 100 + Math.cos(t * 1.1) * 45;
+    var start = { x: 80, y: 110 }, sx = start.x, sy = start.y;
+    // the ripple's path: chase toward the player, 110 px/s, from .5 to 2.3
+    var steps = Math.floor(clamp(t - .5, 0, 1.8) * 60);
+    for (var i = 0; i < steps; i++) {
+      var tt = .5 + i / 60, tx = 250 + Math.sin(tt * 1.1) * 40, ty = 100 + Math.cos(tt * 1.1) * 45, d = Math.hypot(tx - sx, ty - sy) || 1;
+      sx += (tx - sx) / d * 110 / 60; sy += (ty - sy) / d * 110 / 60;
+    }
+    var dive = seg(t, 0, .5), mark = seg(t, 2.3, 2.9), er = seg(t, 2.9, 4.2);
+    if (t < .5) brood(c, start.x, start.y, 13 * (1 - dive * .7), 0, .3, { al: 1 - dive, k: 3, t: t, lit: '#d98a8a', dark: '#4a1a22' });
+    if (t >= .4 && t < 2.9) { // dirt ripple
+      for (var j = 0; j < 3; j++) { var a = t * 6 + j * 2.1; c.beginPath(); c.arc(sx + Math.cos(a) * 5, sy + Math.sin(a) * 4, 7 - j, 0, TAU); c.fillStyle = 'rgba(120,70,70,' + (.7 - j * .18) + ')'; c.fill(); }
+      c.beginPath(); c.ellipse(sx, sy, 16, 12, 0, 0, TAU); c.strokeStyle = 'rgba(232,136,154,.35)'; c.lineWidth = 1.5; c.stroke();
+    }
+    if (mark > 0 && er === 0) {
+      c.beginPath(); c.arc(sx, sy, 50, 0, TAU); c.fillStyle = 'rgba(255,90,106,.1)'; c.fill(); c.strokeStyle = 'rgba(255,90,106,.75)'; c.lineWidth = 1.5; c.stroke();
+      c.beginPath(); c.arc(sx, sy, 50 * mark, 0, TAU); c.fillStyle = 'rgba(255,90,106,.18)'; c.fill();
+    }
+    if (er > 0) {
+      for (var b = 0; b < 8; b++) { var ba = b / 8 * TAU + .2, bd = 14 + er * 170; eshot(c, sx + Math.cos(ba) * bd, sy + Math.sin(ba) * bd, 4.5); }
+      var pop = seg(t, 2.9, 3.15);
+      brood(c, sx, sy, 13 * (.6 + pop * .4), Math.atan2(py - sy, px - sx), 1 - seg(t, 3.1, 3.4) * .7, { k: 3, t: t, lit: '#d98a8a', dark: '#4a1a22' });
+    }
+    player(c, px, py, 0);
+    tag(c, er > 0 ? 'Gutworm · erupts: bite and a ring of 8' : mark > 0 ? 'Gutworm · marked: get out' : 'Gutworm · underground, chasing', '#e8889a');
+  } },
+{ id: 'bearer', name: 'Carcass Bearer', side: 'larder', from: 42, mirrors: 'Riot Shield', teach: 'Hungry morsels',
+  chips: ['shield ×4', 'bash 10', 'drops a morsel'],
+  text: 'Riot Shield logic with a side of meat. Break the slab and it drops as a morsel (60 HP): shoot it or walk over it, or the nearest brood eats it and grows. The bearer staggers and takes +50%.',
+  row: 'Riot Shield logic with a carcass slab (×4 health, bash 10); a broken slab drops a morsel the brood eats to grow; bearer staggers, takes +50%',
+  loop: 5, draw: function (c, t) {
+    var B = { x: 120, y: 100 }, P = { x: 300, y: 100 }, brk = 2.6, hp = 1 - seg(t, 0, brk);
+    if (t < brk) {
+      for (var k = 0; k < 6; k++) { var bx = 290 - ((t * 420 + k * 26) % 150); bullet(c, bx, 100 + (k % 3 - 1) * 6); }
+      var sk = (t * 420) % 26 / 26; c.strokeStyle = 'rgba(255,120,130,' + (1 - sk) + ')'; c.lineWidth = 1.5;
+      for (var s = 0; s < 4; s++) { var a = Math.PI + (s - 1.5) * .5; c.beginPath(); c.moveTo(142 + Math.cos(a) * -4, 100 + Math.sin(a) * 6); c.lineTo(142 - Math.cos(a) * -12 * sk, 100 + Math.sin(a) * 14 * sk); c.stroke(); }
+    }
+    var wob = t > brk && t < brk + .6 ? Math.sin((t - brk) * 30) * .15 : 0;
+    larder(c, B.x, B.y, wob, { robe: ['#5e4a40', '#241914'] });
+    if (t < brk) slab(c, B.x + 18, B.y, 0, hp);
+    else if (t < brk + 1.6) num(c, B.x, B.y - 22, '+50% dmg', '#ffcc59', seg(t, brk, brk + 1.6));
+    // morsel and a gnawling running for it
+    var M = { x: 152, y: 112 }, eat = seg(t, 3.7, 4.1);
+    if (t >= brk) morsel(c, M.x, M.y, (1 - eat) * Math.min(1, (t - brk) * 6));
+    var gp = ease(seg(t, brk + .1, 3.7)), gx = lerp(30, M.x - 12, gp), gy = lerp(20, M.y - 8, gp);
+    var fed = seg(t, 3.9, 4.3);
+    brood(c, gx, gy, 10 + fed * 4, Math.atan2(M.y - gy, M.x - gx), .5 + .5 * Math.sin(t * 16), { t: t, k: 1 });
+    if (fed > 0) num(c, gx, gy - 14, '+50% HP', '#b8e04a', seg(t, 3.9, 4.9));
+    player(c, P.x, P.y, 0);
+    tag(c, t < brk ? 'Carcass Bearer · break the slab' : 'Carcass Bearer · the slab is food now', '#e0a070');
+  } },
+{ id: 'spitter', name: 'Bile Spitter', side: 'brood', from: 42, mirrors: 'Gas Grenadier', teach: 'Bile',
+  chips: ['50 HP', 'glob every 3 s', 'pool 70 px', '10/s'],
+  text: 'A bile sac with a mouth. Holds 300 px out and lobs a glob at where you\'ll be every 3 s; the landing spot is marked while it flies. It leaves a 70 px acid pool for 4 s (10 a second). The Devourer\'s Bile turn.',
+  row: 'Holds 300 px out; every 3 s lobs a glob at your lead (marked in flight), a 70 px acid pool for 4 s, 10/s',
+  loop: 3.6, draw: function (c, t) {
+    var S = { x: 70, y: 100 }, py = function (tt) { return 100 + Math.sin(tt * 1.4) * 55; }, P = { x: 280, y: py(t) };
+    var tgt = { x: 276, y: py(1.5) + 6 }, fly = seg(t, .6, 1.5), land = t >= 1.5, gone = seg(t, 3.2, 3.6);
+    if (land) pool(c, tgt.x, tgt.y, 35, 1 - gone, t);
+    if (fly > 0 && !land) {
+      c.beginPath(); c.arc(tgt.x, tgt.y, 35, 0, TAU); c.strokeStyle = 'rgba(184,224,74,.6)'; c.setLineDash([4, 4]); c.lineWidth = 1.5; c.stroke(); c.setLineDash([]);
+      c.beginPath(); c.arc(tgt.x, tgt.y, 35 * fly, 0, TAU); c.fillStyle = 'rgba(184,224,74,.14)'; c.fill();
+    }
+    var swell = seg(t, 0, .6) * (1 - seg(t, .6, .75));
+    brood(c, S.x, S.y, 12 * (1 + swell * .12), Math.atan2(P.y - S.y, P.x - S.x), .2 + swell * .8, { k: 0, t: t, sac: 1 + swell * .35, lit: '#e8a0a0', dark: '#4e2a22' });
+    if (fly > 0 && !land) {
+      var gx = lerp(S.x, tgt.x, fly), gy = lerp(S.y, tgt.y, fly), hgt = Math.sin(fly * Math.PI) * 70;
+      c.beginPath(); c.ellipse(gx, gy, 5, 4, 0, 0, TAU); c.fillStyle = 'rgba(0,0,0,.4)'; c.fill();
+      c.beginPath(); c.arc(gx, gy - hgt, 6, 0, TAU); c.fillStyle = '#c8f060'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = '#3d5512'; c.stroke();
+    }
+    var inPool = land && gone < 1 && Math.hypot(P.x - tgt.x, (P.y - tgt.y) / .82) < 35;
+    player(c, P.x, P.y, inPool ? .6 : 0);
+    tag(c, 'Bile Spitter · leads its shot · 70 px pool, 4 s', '#b8e04a');
+  } },
+{ id: 'hook', name: 'Hook Thrower', side: 'larder', from: 43, mirrors: 'Taser Guard', teach: 'Inhale, Snap lines',
+  chips: ['55 HP', 'hook 8', 'pull 90 px', 'every 4 s'],
+  text: 'Shows its line for 0.7 s, then throws a meat hook down it (500 px/s). A hit does 8 and reels you 90 px toward it, into the butchers. Sidestep the line, as you will the Devourer\'s lunges.',
+  row: 'Shows a line for 0.7 s, throws a hook down it (500 px/s); a hit does 8 and reels you 90 px toward it',
+  loop: 4, draw: function (c, t) {
+    var T = { x: 70, y: 96 }, P0 = { x: 280, y: 112 };
+    var aim = seg(t, .5, 1.2), fly = seg(t, 1.2, 1.6), reel = seg(t, 1.6, 2.3), back = seg(t, 2.3, 3.6);
+    var px = lerp(P0.x, P0.x - 90, ease(reel)), py = P0.y;
+    if (back > 0) px = lerp(P0.x - 90, P0.x, ease(back));
+    var f = Math.atan2(P0.y - T.y, P0.x - T.x);
+    if (aim > 0 && fly === 0) lane(c, T.x, T.y, P0.x + 20, P0.y + 1.5, 6, aim, '255,90,106');
+    var hx = T.x + 14, hy = T.y + 4, out = false;
+    if (fly > 0 && reel < 1) { out = true; if (reel > 0) { hx = px - 8; hy = py; } else { hx = lerp(T.x, P0.x - 8, fly); hy = lerp(T.y, P0.y, fly); } }
+    if (out) { c.beginPath(); c.moveTo(T.x, T.y); c.lineTo(hx, hy); c.strokeStyle = '#9a8f88'; c.lineWidth = 2; c.setLineDash([3, 2]); c.stroke(); c.setLineDash([]); }
+    larder(c, T.x, T.y, f, { robe: ['#5a3c3a', '#21120f'], glow: aim > 0 && fly === 0 ? aim : 0 });
+    // the hook
+    c.save(); c.translate(hx, hy); c.rotate(f); c.strokeStyle = '#d6dadc'; c.lineWidth = 2.6;
+    c.beginPath(); c.moveTo(-6, 0); c.lineTo(2, 0); c.arc(2, 5, 5, -Math.PI / 2, Math.PI * .7); c.stroke(); c.restore();
+    player(c, px, py, reel > 0 ? 1 - reel : 0);
+    if (reel > 0) num(c, px, py - 16, '8', '#ff8a8a', reel);
+    tag(c, aim > 0 && fly === 0 ? 'Hook Thrower · the line: sidestep it' : 'Hook Thrower · a hit reels you 90 px', '#e0a070');
+  } },
+{ id: 'priest', name: 'Maw Priest', side: 'larder', from: 43, mirrors: 'Taser Guard (moves)', teach: 'The Maw',
+  chips: ['90 HP', '90° maw', '×1.25 behind', 'fan of 3'],
+  text: 'Wears the Devourer\'s jaw. Shots into the 90° maw in front heal it for half; shots in its back do ×1.25. It turns at 30°/s and fires a fan of 3 every 2 s. Circle it. The Ravenous stage\'s Maw, small.',
+  row: 'A 90° maw in front: shots into it heal it for half, ×1.25 from behind; turns at 30°/s; fan of 3 every 2 s',
+  loop: 6, draw: function (c, t) {
+    var C = { x: 175, y: 98 }, pa = lerp(0, Math.PI * 1.05, ease(seg(t, .3, 5.4)));
+    var P = { x: C.x + Math.cos(pa) * 125, y: C.y + Math.sin(pa) * 72 };
+    // the priest's facing lags behind at 30°/s
+    var turn = Math.PI / 6, f = 0, steps = Math.floor(t * 30);
+    for (var i = 0; i < steps; i++) { var tt = i / 30, ta = lerp(0, Math.PI * 1.05, ease(seg(tt, .3, 5.4))), want = Math.atan2(Math.sin(ta) * 72, Math.cos(ta) * 125), d = Math.atan2(Math.sin(want - f), Math.cos(want - f)); f += clamp(d, -turn / 30, turn / 30); }
+    // the maw
+    c.beginPath(); c.moveTo(C.x, C.y); c.arc(C.x, C.y, 64, f - Math.PI / 4, f + Math.PI / 4); c.closePath();
+    var g = c.createRadialGradient(C.x, C.y, 10, C.x, C.y, 64); g.addColorStop(0, 'rgba(120,20,40,.55)'); g.addColorStop(1, 'rgba(255,90,106,.12)');
+    c.fillStyle = g; c.fill(); c.strokeStyle = 'rgba(255,90,106,.7)'; c.lineWidth = 1.5; c.stroke();
+    c.fillStyle = '#f2e6cf';
+    for (var s = -1; s <= 1; s += 2) for (var j = 1; j <= 5; j++) {
+      var ea = f + s * Math.PI / 4, d2 = 12 + j * 10, tx = C.x + Math.cos(ea) * d2, ty = C.y + Math.sin(ea) * d2, na = ea - s * Math.PI / 2;
+      c.beginPath(); c.moveTo(tx - Math.cos(ea) * 3, ty - Math.sin(ea) * 3); c.lineTo(tx + Math.cos(ea) * 3, ty + Math.sin(ea) * 3); c.lineTo(tx + Math.cos(na) * 7, ty + Math.sin(na) * 7); c.closePath(); c.fill();
+    }
+    // the player's shots, coloured by where they land
+    var inMaw = function (x, y) { var a = Math.atan2(y - C.y, x - C.x); return Math.abs(Math.atan2(Math.sin(a - f), Math.cos(a - f))) < Math.PI / 4; };
+    var healK = -1, hitK = -1, healIn;
+    for (var k = 0; k < 5; k++) {
+      var q = ((t * 3 + k / 5) % 1), bx = lerp(P.x, C.x, q), by = lerp(P.y, C.y, q);
+      var heal = inMaw(P.x, P.y);
+      if (q < .85) bullet(c, bx, by, heal && q > .5 ? '#b8e04a' : '#fff1a8');
+      if (q > .85) { if (heal) healK = (q - .85) / .15; else hitK = (q - .85) / .15; }
+    }
+    larder(c, C.x, C.y, f, { robe: ['#6a2a34', '#2a0c12'], hood: '#4a1520' });
+    // fan of 3 every 2 s
+    var fan = (t % 2) / 2;
+    if (t > 1) for (var b = -1; b <= 1; b++) { var ba = f + b * .3, bd = 18 + fan * 150; eshot(c, C.x + Math.cos(ba) * bd, C.y + Math.sin(ba) * bd, 4); }
+    if (healK >= 0) num(c, C.x, C.y - 22, '+heal', '#b8e04a', healK);
+    if (hitK >= 0) num(c, C.x, C.y - 22, '×1.25', '#ffcc59', hitK);
+    player(c, P.x, P.y, 0);
+    tag(c, inMaw(P.x, P.y) ? 'Maw Priest · in the maw: shots heal it' : 'Maw Priest · behind it: ×1.25', inMaw(P.x, P.y) ? '#b8e04a' : '#ffcc59');
+  } }
+];
+
+/* ---------- build the cards and the table ---------- */
+var cards = document.getElementById('cards'), rows = document.getElementById('rows'), live = [];
+function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+E.forEach(function (e) {
+  var card = el('article', 'card'), cv = el('canvas'); cv.width = W; cv.height = H; card.appendChild(cv);
+  var b = el('div', 'body');
+  b.appendChild(el('div', 'title', '<h3>' + e.name + '</h3><span class="side ' + e.side + '">' + e.side + '</span>'));
+  var chips = el('div', 'chips'); e.chips.forEach(function (s) { chips.appendChild(el('span', 'chip', s)); });
+  chips.appendChild(el('span', 'chip t', 'teaches: ' + e.teach)); b.appendChild(chips);
+  b.appendChild(el('p', null, e.text));
+  b.appendChild(el('div', 'mirror', 'mirrors <b>' + e.mirrors + '</b> · from wave <b>' + e.from + '</b>'));
+  card.appendChild(b); cards.appendChild(card);
+  live.push({ cv: cv, e: e });
+  rows.appendChild(el('tr', null, '<td><b>' + e.name + '</b></td><td style="color:var(--' + (e.side === 'brood' ? 'flesh' : 'larder') + ')">' + e.side + '</td><td class="n">' + e.from + '</td><td>' + e.mirrors + '</td><td>' + e.row + '</td><td style="color:var(--bile)">' + e.teach + '</td>'));
+});
+function setup(cv, w, h) {
+  var dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = w * dpr; cv.height = h * dpr;
+  var c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); return c;
+}
+live.forEach(function (l) { l.c = setup(l.cv, W, H); });
+
+/* ---------- the Feast ---------- */
+var fc = setup(document.getElementById('feast'), 720, 270);
+function feast(c, t) {
+  floor(c, 720, 270);
+  var P1 = { x: 110, y: 105 }, P2 = { x: 130, y: 185 }, wy = [60, 110, 160, 210], brk = 3.2;
+  var adv = ease(seg(t, 0, 3)) * 60, wx = 440 - adv;
+  [P1, P2].forEach(function (P, pi) {
+    for (var k = 0; k < 5; k++) {
+      var tgtY = wy[pi * 2 + (k % 2)], q = ((t * 2.2 + k / 5 + pi * .1) % 1), bx = lerp(P.x, wx - 16, q), by = lerp(P.y, tgtY, q);
+      if (t < brk || (pi === 0)) bullet(c, bx, by);
+    }
+  });
+  var broken = [t >= brk, false, false, t >= brk];
+  wy.forEach(function (y, i) {
+    larder(c, wx, y, Math.PI, { robe: ['#5e4a40', '#241914'] });
+    if (!broken[i]) slab(c, wx - 18, y, Math.PI, 1 - seg(t, 0, brk) * (i === 0 || i === 3 ? 1 : .45));
+    else morsel(c, wx - 30, y + 8, 1 - seg(t, brk + 2.2, brk + 2.8));
+  });
+  // gulpers push through the gaps
+  var gout = ease(seg(t, brk, brk + 1.2));
+  [[85, 0], [185, 1]].forEach(function (g) {
+    var gy = lerp(g[0], g[1] ? 235 : 40, gout), gx = lerp(530, 380, gout), inh = t > brk + 1.2 && t < brk + 2.6;
+    if (inh) cone(c, gx, gy, Math.PI + (g[1] ? .25 : -.25), .61, 200, 1, '232,136,154');
+    brood(c, gx, gy, 22, Math.PI + (g[1] ? .25 : -.25), inh ? 1 : .15, { k: 2 + g[1], t: t, lit: '#f0b0b8', dark: '#6a2232' });
+  });
+  // spitters lob over the wall
+  [[640, 90, P1], [650, 190, P2]].forEach(function (s, i) {
+    brood(c, s[0], s[1], 12, Math.PI, .3, { k: i, t: t, sac: 1, lit: '#e8a0a0', dark: '#4e2a22' });
+    var ph = (t + i * 1.1) % 2.4, fly = seg(ph, .2, 1.2), tg = { x: s[2].x + 30, y: s[2].y - 10 };
+    if (ph >= 1.2) pool(c, tg.x, tg.y, 35, 1 - seg(ph, 2, 2.4), t);
+    else if (fly > 0) {
+      var gx = lerp(s[0], tg.x, fly), gy = lerp(s[1], tg.y, fly), h = Math.sin(fly * Math.PI) * 110;
+      c.beginPath(); c.arc(tg.x, tg.y, 35 * fly, 0, TAU); c.fillStyle = 'rgba(184,224,74,.12)'; c.fill();
+      c.beginPath(); c.arc(gx, gy - h, 6, 0, TAU); c.fillStyle = '#c8f060'; c.fill(); c.strokeStyle = '#3d5512'; c.lineWidth = 1.5; c.stroke();
+    }
+  });
+  player(c, P1.x, P1.y, 0); player(c, P2.x, P2.y, 0);
+  c.font = '500 11px "IBM Plex Mono", monospace'; c.fillStyle = 'rgba(13,10,11,.78)';
+  var txt = t < brk ? 'The Feast · a wall of carcasses, Gulpers waiting behind' : 'The Feast · half the slabs broken: the Gulpers break out';
+  var w = c.measureText(txt).width + 12; c.fillRect(8, 270 - 24, w, 17); c.fillStyle = '#e8889a'; c.fillText(txt, 14, 270 - 12);
+}
+
+var t0 = performance.now();
+function frame(now) {
+  var s = reduce ? 2.4 : (now - t0) / 1000;
+  live.forEach(function (l) { var c = l.c; floor(c, W, H); l.e.draw(c, s % l.e.loop); });
+  feast(fc, reduce ? 4.5 : s % 6.4);
+  if (!reduce) requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>

@@ -722,6 +722,23 @@ with Mummers, Parriers, Marshals, Gallants, every squad, then the exam (the Ring
 | 2 | **Harlequin** | Thug | A heavy two-sworded jester in crimson diamonds (240 health, contact 20) that walks at you. Within 260 px, the **Crossing**: it shows a line through you for 0.7 s and dashes it, 170 px past you, then **vaults to the other arm of the X**, shows the crossing line for 0.45 s and dashes that. Both leave blades every 70 px that fire **out sideways** after 0.8 s: stand in a gap of the X. Every 6 s |
 | 3 | **Mummer** | Shiv | A fast masked player in a violet cape (40 health) that circles in and lunges like a Shiv. Within 260 px it **blinks and becomes three**: they circle you 150 px out for 5 s, each firing every 0.9 s, but only the **real one's shots are solid**; the copies' are **hollow rings** that pass through you. The copies look the same, have 1 health and give nothing; kill the real one and they vanish. Every 9 s |
 
+The **Devourer's faction**, The Larder, leads up to its fight: its brood (mouths with no eyes, the Devourer in miniature)
+and the hooded butchers who keep it fed (design: `Docs/Approaches.md`, "The Larder"; mockup:
+`Docs/Mockups/devourer-faction.html`). Steps 1-2 of 4 are built: five of its eight, each teaching a turn of the fight.
+Squads: **Feeding Frenzy** (a Butcher and six Gnawlings) and, from wave 3 of the approach, **Larder Wall** (two Carcass
+Bearers with four Gnawlings) and **Gullet** (a Gulper and three Gnawlings). They pay XP like their counterparts
+(Gnawling 7, Butcher 15, Gulper 25, Carcass Bearer 10, Bile Spitter 9). **Morsels** (the Devourer's, 60 health) also
+fall from broken Carcass Bearers: shoot one or walk over it, or a hungry Gnawling within 320 px runs for it, eats it and
+grows (50% more health, drawn bigger), as the Devourer heals from them in its Hungry turn.
+
+| From | The Devourer's faction | Plays like | What it does |
+|---|---|---|---|
+| 1 | **Gnawling** | Rioter | A lump of pink flesh that is mostly mouth: weaves at you in pairs, chomping (contact 10); eats morsels |
+| 1 | **Butcher** | Guard | A hooded butcher with a bone mask and a cleaver: straight at you (contact 14). Within 70 px it **stops and raises its cleaver for 0.4 s** while a **red half-circle** fills in front, then **chops** it (110 px, 14), the shape of the Devourer's Snap bite, and rests 1.6 s. Step back or round it |
+| 2 | **Gulper** | Thug | A swollen gut (180 health, contact 20) that walks at you like a Brute. Within 220 px it **stops and its cheeks swell for 0.6 s** while its **cone** shows, then it **breathes in** for 1 s: the 70° cone, 200 px long, pulls you toward its mouth at 120 px/s. Reach the mouth and it **bites** (20) and the breath ends. Step out of the cone sideways, as from the Devourer's Inhale. Every 4 s |
+| 2 | **Carcass Bearer** | Riot Shield | A hooded butcher behind a side of meat that stops shots and bashes you back (10, 160 px). The meat tears as it wears; broken, it drops in front as a **morsel** and the bearer staggers and takes 50% more |
+| 2 | **Bile Spitter** | Gas Grenadier | A lump of brood with a green bile sac: keeps its distance and, every 3.6 s, its sac swells while a **green ring** fills **where you're heading**, then it lobs a glob. It lands 1 s later as a 70 px **pool of acid** for 4 s (10 a second), the Devourer's Bile in small. Change direction out of the ring |
+
 **Bubbles (Shielded elites and the Warder's wards):** a bubble is twelve cells round the rim, each holding a twelfth of the shield. A hit wears down the cell facing whoever shot it (flashing, then breaking into shards) and spills over to its neighbours once that cell is gone, so the side you shoot from is the side that opens. Burning and bleeding keep chewing the weakest cell. A honeycomb inside only shows where its cell is still up, and a thin shield bar sits above the health bar. Blue is a Shielded elite, violet is the Warder's.
 
 ## Bosses
@@ -1227,7 +1244,7 @@ you've beaten it anywhere, a **???** until then (on your first Quick Play the Wa
   wave number). The HUD counts the waves n / 10. **Your first Quick Play always ends on the Warden**; after that the boss is
   random: every boss comes up once before any repeats, and never the same one twice in a row.
 - **The waves before a boss are its own enemies** (its faction, as in a Boss Hunt: tougher members joining as they go, its set
-  piece on the fifth and tenth wave). Bosses without a faction yet (the Duelist, Storm Herald, Devourer and Eclipse) get the
+  piece on the fifth and tenth wave). Bosses without a faction yet (the Storm Herald and Eclipse) get the
   **basic faction** the same way (see Enemies).
 - **Bosses play exactly as anywhere else.** Only their health changes: about a **two-minute fight** for a typical build at
   whatever wave they come (a late boss after wave 10 has much less health than at its own Campaign wave; an early one in
