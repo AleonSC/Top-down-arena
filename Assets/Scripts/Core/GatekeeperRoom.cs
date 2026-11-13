@@ -5,8 +5,9 @@ namespace Arena
 {
     /// The mini-boss room of the Expanding arena (Docs/FloatingRooms.md step 3; RoomKind.Gatekeeper, kept for saves): a floating room that opens once a built room
     /// touches it. Its foe is its faction's mini-boss (ExpansionRoom.Mini, FactionMinis.cs; the Gatekeeper is the Data Gates' only).
-    /// While a regular wave is on, the first player to walk in starts the duel: the mini-boss wakes in the middle and the room locks
-    /// behind whoever is inside (you can't leave until it falls). Beating it gives everyone the vault's prize pick and the room becomes
+    /// Once it is open, the first player to walk in starts the duel, during a regular wave or between waves (not just before a boss,
+    /// whose beam would pull you out): the mini-boss wakes in the middle and the room locks behind whoever is inside (you can't leave
+    /// until it falls). A duel begun between waves holds the countdown till it is settled. Beating it gives everyone the vault's prize pick and the room becomes
     /// an ordinary combat room. An unbeaten duel ends with the wave: the mini-boss goes, anyone inside is let out, and it waits for the
     /// next wave. The duel needs no extra sync: the mini-boss is an enemy everyone already sees, and the room's lock is read from it.
     public partial class Game
@@ -54,10 +55,16 @@ namespace Arena
             return FactionMinis.Is(t) ? t : MiniBossNow();
         }
 
-        /// Host, every frame of a regular wave: wake the mini-boss when someone walks in, and settle a duel that was won.
+        /// Between waves, may a mini-boss wake now? Not before a boss (everyone is beamed into the hub for it, BossBeam.cs).
+        bool DuelsBetweenWaves => State == MatchState.Intermission && !BossNext && !BossStartsNext && Practice == null && Hunt == null;
+
+        /// A duel begun between waves is on: the countdown to the next wave waits for it (Waves.cs).
+        bool DuelHoldsWave => State == MatchState.Intermission && duelBoss.Count > 0;
+
+        /// Host, every frame of a regular wave and between waves: wake the mini-boss when someone walks in, and settle a duel that was won.
         void TickDuelRooms()
         {
-            if (!ExpandingOn || !RoomsOn || State != MatchState.Fighting)
+            if (!ExpandingOn || !RoomsOn || !(State == MatchState.Fighting || State == MatchState.Intermission))
                 return;
             var areas = CurrentWorld.Areas;
             for (int i = 1; i < areas.Length; i++)
@@ -72,6 +79,8 @@ namespace Arena
                         WinDuel(i);
                     continue;
                 }
+                if (State == MatchState.Intermission && !DuelsBetweenWaves)
+                    continue;
                 foreach (var p in Players.Values)
                     if (!p.Downed && a.Contains(p.Pos, -p.Def.BodyR - 30f))
                     {
