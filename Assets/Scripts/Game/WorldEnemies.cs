@@ -872,6 +872,7 @@ namespace Arena
                 case EnemyType.Bloater:
                 case EnemyType.Shrieker:
                 case EnemyType.Mender:
+                case EnemyType.GraveCaller:
                 case EnemyType.FuseRunner:
                 case EnemyType.Hookman:
                 case EnemyType.Sapper:

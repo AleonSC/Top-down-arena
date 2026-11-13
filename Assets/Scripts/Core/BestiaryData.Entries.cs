@@ -907,6 +907,23 @@ namespace Arena
                     "Kill it first, or the horde in front of it never thins.",
                 },
             },
+            new BestiaryEntry
+            {
+                Type = EnemyType.GraveCaller,
+                Name = "Grave Caller",
+                Group = "Zombies",
+                Wave = 34,
+                Appears = "The Lich's approach only (at most 2 a wave)",
+                Lead = "A hooded cross in the Lich's soul cyan that stays about 320 px back. Every 7 s it raises its hands and three graves crack open in a ring 120 px round you; 1.6 s later a Shambler claws out of each, at half health and worth no XP. At most four of its Shamblers are up at once. Kill it and they crumble.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Grave call", Pattern = "Three graves 120 px round a player; a Shambler from each after 1.6 s", Damage = "—", Every = 7f },
+                },
+                Notes = new[]
+                {
+                    "Step out of the ring before the graves open, then dig through to the Caller.",
+                },
+            },
         };
     }
 }

@@ -2,7 +2,7 @@
 
 Status: **built** (Nov 2026): the hordes, cap, XP split and the dead rising (steps 1-2), and **seven zombie types**
 (step 3, designed in `Docs/Mockups/zombie-enemies.html`): Shambler, Runner, Spitter, Crawler, Bloater, Shrieker,
-Mender (`Core/Zombies.cs`, `Game/ZombieLook.cs`), green with green effects, on a dark green arena. Changes from the
+Mender (`Core/Zombies.cs`, `Game/ZombieLook.cs`), green with green effects, on a dark green arena. The Lich's faction uses all seven plus his own **Grave Caller** (cyan, graves round you; not in the modifier's horde; `Docs/Mockups/lich-faction.html`). Changes from the
 plan below: the types are the mockup's (no "Brute" zombie; the Bloater's puddle became a spore cloud); the Crawler is
 broken free by shooting it (no dash). Still to do: explosions stopping a rise, infected co-op players, a Death Throes
 variant, Bloater vision blocking. A run modifier (one more switch in the lobby's Modifiers tab), tagged

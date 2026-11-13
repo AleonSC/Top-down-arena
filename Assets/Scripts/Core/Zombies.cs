@@ -9,6 +9,9 @@ namespace Arena
     ///   Spitter: hangs back, lobs acid (a patch).     Crawler: grabs you and roots you (your StunT) until you shoot it free.
     ///   Bloater: bursts into a slowing spore cloud.  Shrieker: screams, frenzying the zombies round it.
     ///   Mender: heals the zombies round it, and the dead near it rise twice as often and twice as fast.
+    /// And one in the Lich's soul cyan, only in his faction (Docs/Mockups/lich-faction.html):
+    ///   Grave Caller: hangs back and cracks three graves open round a player; a Shambler claws out of each (half
+    ///   health, no XP, at most four up per Caller). Kill it and its risen crumble, its open graves close.
     /// Bosses, their adds and the challenge rooms are left as they are. See Docs/ZombieInfection.md.
     public static class Zombies
     {
@@ -24,14 +27,17 @@ namespace Arena
         public const float SporeRadius = 110f, SporeLife = 4f, SporeSlow = 0.6f;
         public const float ShriekRange = 320f, ShriekEvery = 6f, FrenzyTime = 4f, FrenzySpeed = 1.3f, ShriekerKeep = 350f;
         public const float MendRange = 220f, MendEvery = 3f, MendHeal = 0.15f, MenderKeep = 300f, MendedRise = 0.5f;
+        public const float CallerKeep = 320f, CallEvery = 7f, GraveRing = 120f, GraveRise = 1.6f, GraveRadius = 26f, GraveLife = 2.4f;
+        public const int GravesPerCall = 3, MaxCalled = 4;  // graves a call opens; Shamblers up at once per Caller
 
         /// Per-kind caps in one wave: the support zombies are few.
-        public const int MaxSpitters = 4, MaxCrawlers = 3, MaxShriekers = 2, MaxMenders = 2;
+        public const int MaxSpitters = 4, MaxCrawlers = 3, MaxShriekers = 2, MaxMenders = 2, MaxCallers = 2;
 
         // Phase bits, sent with every enemy so each game draws them (ZombieLook.cs).
-        public const byte PhFrenzy = 1, PhGrab = 2, PhAct = 4;  // PhAct: spitting, screaming or pulsing just now
+        public const byte PhFrenzy = 1, PhGrab = 2, PhAct = 4;  // PhAct: spitting, screaming, pulsing or calling just now
+        public const byte PhCalled = 8;  // a Shambler a Grave Caller raised (its eyes turn cyan; it crumbles with its Caller)
 
-        public static bool Is(EnemyType t) => t >= EnemyType.Shambler && t <= EnemyType.Mender;
+        public static bool Is(EnemyType t) => t >= EnemyType.Shambler && t <= EnemyType.Mender || t == EnemyType.GraveCaller;
 
         /// How many more enemies a wave has.
         public static float CountMult(int wave) => CountStart + (CountMax - CountStart) * Math.Max(0f, Math.Min(1f, (wave - 1f) / (CountFullWave - 1f)));
@@ -60,12 +66,12 @@ namespace Arena
         }
 
         public static int CapOf(EnemyType t) =>
-            t == EnemyType.Spitter ? MaxSpitters : t == EnemyType.Crawler ? MaxCrawlers : t == EnemyType.Shrieker ? MaxShriekers : t == EnemyType.Mender ? MaxMenders : int.MaxValue;
+            t == EnemyType.Spitter ? MaxSpitters : t == EnemyType.Crawler ? MaxCrawlers : t == EnemyType.Shrieker ? MaxShriekers : t == EnemyType.Mender ? MaxMenders : t == EnemyType.GraveCaller ? MaxCallers : int.MaxValue;
     }
 
     public partial class Game
     {
-        class Riser { public EnemyType Type; public V2 Pos; public float T; public bool Elite; }
+        class Riser { public EnemyType Type; public V2 Pos; public float T; public bool Elite; public int Caller; }  // Caller: the Grave Caller whose grave it is (0: none)
         readonly List<Riser> risers = new List<Riser>();  // host: dead zombies about to get back up
 
         bool ZombiesOn => Has(RunMod.ZombieInfection) && Practice == null;
@@ -113,10 +119,10 @@ namespace Arena
         /// XP for a kill: the horde's share is split so levels keep pace with a normal run; a risen zombie gives none.
         float ZombieXpScale(Enemy e)
         {
+            if (e.Risen)
+                return 0f;  // (a Grave Caller's Shamblers too, with or without the modifier)
             if (!ZombiesOn || e.Def.IsBoss)
                 return 1f;
-            if (e.Risen)
-                return 0f;
             return BossNow ? 1f : 1f / Zombies.CountMult(Wave);
         }
 
@@ -136,6 +142,8 @@ namespace Arena
                 SpawnPatchAt(PatchKind.Spores, ClampToArena(e.Pos, 40f), 0f, Zombies.SporeLife, Zombies.SporeRadius, Zombies.SporeRadius);
             if (e.Type == EnemyType.Crawler)
                 ReleaseGrab(e);
+            if (e.Type == EnemyType.GraveCaller)
+                CallerDied(e);
             if (!ZombiesOn || State != MatchState.Fighting || InRoom || BossNow || e.Risen || e.Def.IsBoss || e.Def.Xp <= 0)
                 return;
             if (!Zombies.Is(e.Type) || e.Type == EnemyType.Bloater)
@@ -162,10 +170,15 @@ namespace Arena
                 if (r.T > 0f)
                     continue;
                 risers.RemoveAt(i);
-                var z = SpawnEnemyAt(r.Type, ClampToArena(r.Pos, Defs.Get(r.Type).Radius), 0.5f, 0, r.Elite);
+                var z = SpawnEnemyAt(r.Type, ClampToArena(r.Pos, Defs.Get(r.Type).Radius), r.Caller != 0 ? 0.2f : 0.5f, 0, r.Elite);
                 z.Hp = z.MaxHp * Zombies.RiseHp;
                 z.Risen = true;
-                BroadcastFx(FxKind.Ring, r.Pos, new Rgba(0.45f, 0.85f, 0.35f), 40f, 0.4f, Sfx.ZombieRise);
+                if (r.Caller != 0)
+                {
+                    z.LinkId = r.Caller;
+                    z.Phase |= Zombies.PhCalled;
+                }
+                BroadcastFx(FxKind.Ring, r.Pos, r.Caller != 0 ? CallerSoul : new Rgba(0.45f, 0.85f, 0.35f), 40f, 0.4f, Sfx.ZombieRise);
             }
             TickAcid(dt);
             TickGroans(dt);
@@ -241,6 +254,10 @@ namespace Arena
                     return KeepDistance(dir, dist, Zombies.ShriekerKeep) + dir.Orthogonal() * e.Strafe * 0.5f;
                 case EnemyType.Mender:
                     return KeepDistance(dir, dist, Zombies.MenderKeep) + dir.Orthogonal() * e.Strafe * 0.6f;
+                case EnemyType.GraveCaller:
+                    if ((e.Phase & Zombies.PhAct) != 0)
+                        return V2.Zero;  // stands still while it calls
+                    return KeepDistance(dir, dist, Zombies.CallerKeep) + dir.Orthogonal() * e.Strafe * 0.5f;
                 default:
                     return dir;  // Runners and Bloaters: straight at you
             }
@@ -251,8 +268,8 @@ namespace Arena
         {
             e.FrenzyT = Math.Max(0f, e.FrenzyT - dt);
             e.PhaseT = Math.Max(0f, e.PhaseT - dt);
-            if (e.T < 0.05f && (e.Type == EnemyType.Shrieker || e.Type == EnemyType.Mender))
-                e.T2 = Rand(1.5f, 3f);  // not the moment it arrives
+            if (e.T < 0.05f && (e.Type == EnemyType.Shrieker || e.Type == EnemyType.Mender || e.Type == EnemyType.GraveCaller))
+                e.T2 = e.Type == EnemyType.GraveCaller ? Rand(2.5f, 4f) : Rand(1.5f, 3f);  // not the moment it arrives
             byte act = e.PhaseT > 0f ? Zombies.PhAct : (byte)0;
             switch (e.Type)
             {
@@ -302,9 +319,20 @@ namespace Arena
                             }
                     }
                     break;
+                case EnemyType.GraveCaller:
+                    e.T2 -= dt;
+                    if (e.T2 <= 0f && CallGraves(e, tpos))
+                    {
+                        e.T2 = Zombies.CallEvery;
+                        e.PhaseT = 0.8f;
+                        act = Zombies.PhAct;
+                    }
+                    else if (e.T2 <= 0f)
+                        e.T2 = 1f;  // its four are up: it tries again in a moment
+                    break;
             }
-            byte grab = (byte)(e.Phase & Zombies.PhGrab);
-            e.Phase = (byte)(grab | (e.FrenzyT > 0f ? Zombies.PhFrenzy : 0) | act);
+            byte keep = (byte)(e.Phase & (Zombies.PhGrab | Zombies.PhCalled));
+            e.Phase = (byte)(keep | (e.FrenzyT > 0f ? Zombies.PhFrenzy : 0) | act);
         }
 
         /// The Crawler: in reach of a player it grabs on and roots them (their StunT: they can still shoot), hurting
@@ -348,6 +376,51 @@ namespace Arena
             e.Phase = (byte)(e.Phase & ~Zombies.PhGrab);
             e.GrabId = 0;
             e.T2 = Zombies.GrabCooldown;
+        }
+
+        public static readonly Rgba CallerSoul = new Rgba(0.37f, 0.85f, 1f);  // the Lich's soul cyan
+
+        /// A Grave Caller's Shamblers: up, and still in their graves.
+        int CalledBy(Enemy caller)
+        {
+            int n = 0;
+            foreach (var o in Enemies.Values)
+                if (o.LinkId == caller.Id && (o.Phase & Zombies.PhCalled) != 0 && o.Hp > 0f)
+                    n++;
+            foreach (var r in risers)
+                if (r.Caller == caller.Id)
+                    n++;
+            return n;
+        }
+
+        /// Host: the Grave Caller cracks graves open in a ring round the player it's after (up to its four); each opens
+        /// GraveRise later and a Shambler climbs out. False when it has its four already.
+        bool CallGraves(Enemy e, V2 tpos)
+        {
+            int room = Math.Min(Zombies.GravesPerCall, Zombies.MaxCalled - CalledBy(e));
+            if (room <= 0 || e.Pos.DistanceTo(tpos) > Zombies.CallerKeep * 2f)
+                return false;
+            float a0 = Rand(0f, MathX.Tau);
+            for (int i = 0; i < room; i++)
+            {
+                V2 at = ClampToArena(tpos + V2.FromAngle(a0 + MathX.Tau * i / Zombies.GravesPerCall) * Zombies.GraveRing, 30f);
+                risers.Add(new Riser { Type = EnemyType.Shambler, Pos = at, T = Zombies.GraveRise, Caller = e.Id });
+                SpawnPatchAt(PatchKind.Grave, at, Zombies.GraveRise, Zombies.GraveLife, Zombies.GraveRadius, Zombies.GraveRadius);
+            }
+            BroadcastFx(FxKind.Ring, e.Pos, CallerSoul, 60f, 0.5f, Sfx.ZombieMend);
+            return true;
+        }
+
+        /// Host, a Grave Caller down: its risen crumble (no XP: they're risen) and its graves still opening close.
+        void CallerDied(Enemy e)
+        {
+            risers.RemoveAll(r => r.Caller == e.Id);
+            foreach (var o in Enemies.Values)
+                if (o.LinkId == e.Id && (o.Phase & Zombies.PhCalled) != 0 && o.Hp > 0f)
+                {
+                    o.Hp = 0f;
+                    BroadcastFx(FxKind.Ring, o.Pos, new Rgba(0.91f, 0.89f, 0.78f), o.Radius + 12f, 0.35f, Sfx.None);
+                }
         }
 
         /// EnemyFire: the Spitter lobs a glob at where you stand (a ring marks it); it lands as an acid patch.

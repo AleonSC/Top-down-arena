@@ -1405,6 +1405,23 @@ static partial class Shot {
         foreach (var en in gm.Enemies.Values) en.Disp = en.Pos = en.Pos.Clamp(gm.ArenaMin + new V2(30f, 30f), gm.ArenaMax - new V2(30f, 30f));
       }
     }
+    // GRAVES=<s>: the Lich's Grave Caller (ZombieLook.cs) calling, its three graves round you <s> into the call (1.6 s: they open),
+    // two of its Shamblers already up with their soul threads, and some of the horde.
+    if (Environment.GetEnvironmentVariable("GRAVES") != null) {
+      var gg = host.Game; float ga = float.Parse(Environment.GetEnvironmentVariable("GRAVES"), System.Globalization.CultureInfo.InvariantCulture);
+      gg.Enemies.Clear();
+      gg.Players[1].Pos = gg.Players[1].Disp = new V2(Game.Width / 2f - 60f, Game.Height / 2f + 20f);
+      var gp0 = gg.Players[1].Pos;
+      System.Func<int, EnemyType, V2, byte, Enemy> addE = (id, t, at, ph) => { var d = Defs.Get(t); var e = new Enemy { Id = id, Type = t, Def = d, Radius = d.Radius, Pos = at, Disp = at, Hp = d.Hp, MaxHp = d.Hp, Phase = ph }; e.Facing = (gp0 - at).Angle; gg.Enemies[id] = e; return e; };
+      var callerAt = gp0 + new V2(330f, -60f);
+      addE(960, EnemyType.GraveCaller, callerAt, ga < 0.8f ? Zombies.PhAct : (byte)0);
+      addE(961, EnemyType.GraveCaller, gp0 + new V2(-360f, 170f), 0);
+      var r1 = addE(962, EnemyType.Shambler, gp0 + new V2(190f, 120f), Zombies.PhCalled); r1.Hp = r1.MaxHp * 0.5f; r1.Risen = true;
+      var r2 = addE(963, EnemyType.Shambler, gp0 + new V2(-210f, 40f), Zombies.PhCalled); r2.Hp = r2.MaxHp * 0.5f; r2.Risen = true;
+      addE(964, EnemyType.Shambler, gp0 + new V2(-120f, -200f), 0); addE(965, EnemyType.Runner, gp0 + new V2(60f, -230f), 0); addE(966, EnemyType.Spitter, gp0 + new V2(-320f, -160f), 0);
+      for (int i = 0; i < 3; i++)
+        gg.Patches[80 + i] = new PathPatch { Id = 80 + i, Kind = PatchKind.Grave, Pos = gp0 + V2.FromAngle(0.4f + MathX.Tau * i / 3f) * Zombies.GraveRing, Warn = Zombies.GraveRise, Life = Zombies.GraveLife, R0 = Zombies.GraveRadius, R1 = Zombies.GraveRadius, Age = ga };
+    }
     if (Environment.GetEnvironmentVariable("PATHON") != null) { host.Game.CurrentPath = (PathId)int.Parse(Environment.GetEnvironmentVariable("PATHON")); host.Game.PathFrom = host.Game.Wave - 1; host.Game.PathTo = host.Game.Wave + 2; host.Game.Mods = RunMod.Frenzy; if (host.Game.CurrentPath == PathId.Fogbound) host.Game.FogF = 1f; if (host.Game.CurrentPath == PathId.NarrowPass) { host.Game.NarrowF = 1f; foreach (var pl in host.Game.Players.Values) pl.Disp = pl.Pos = pl.Pos.Clamp(host.Game.ArenaMin + new V2(30f, 30f), host.Game.ArenaMax - new V2(30f, 30f)); foreach (var en in host.Game.Enemies.Values) en.Disp = en.Pos = en.Pos.Clamp(host.Game.ArenaMin + new V2(30f, 30f), host.Game.ArenaMax - new V2(30f, 30f)); } }
     if (Environment.GetEnvironmentVariable("WOUND") != null) {  // WOUND=0.2: everyone wounded that share of max health and down to 55% (Combat.cs, Docs/PowerStacking.md)
       float wf = float.Parse(Environment.GetEnvironmentVariable("WOUND"), System.Globalization.CultureInfo.InvariantCulture);

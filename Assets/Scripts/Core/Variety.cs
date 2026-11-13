@@ -336,11 +336,14 @@ namespace Arena
 
         /// At most MaxSentries Beam Sentries a wave (recorded runs had 5-7, and their beams did more damage than any
         /// other regular enemy): squads that would bring more come apart into single enemies, and spare Sentries become
-        /// Snipers or Grunts. The same for the Singularity's Pulsars (Infall.cs): spare ones become Void Acolytes.
+        /// Snipers or Grunts. The same for the Singularity's Pulsars (Infall.cs): spare ones become Void Acolytes; and the
+        /// Lich's Grave Callers and Shriekers (Zombies.cs): spare ones become Shamblers.
         void CapSentries()
         {
             CapBeams(EnemyType.BeamSentry, MaxSentries, () => rng.NextDouble() < 0.5 ? EnemyType.Sniper : EnemyType.Grunt);
             CapBeams(EnemyType.Pulsar, MaxPulsars, () => EnemyType.VoidAcolyte);
+            CapBeams(EnemyType.GraveCaller, Zombies.MaxCallers, () => EnemyType.Shambler);  // the Lich's: two Callers raise eight
+            CapBeams(EnemyType.Shrieker, Zombies.MaxShriekers, () => EnemyType.Shambler);
         }
 
         void CapBeams(EnemyType beam, int max, Func<EnemyType> instead)
