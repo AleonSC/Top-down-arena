@@ -430,6 +430,7 @@ namespace Arena
             else
                 foreach (var c in Coins.Values)
                     SyncCoin(s, c);
+            SyncGadgets(s);  // Gadgets.cs
             SyncProps(s);  // crates, pots, barrels, chests and chest items (Props.cs)
             SyncLayout(s);  // the floor plan (LayoutRules.cs)
         }
@@ -488,6 +489,11 @@ namespace Arena
             s.Float(ref p.ParryBroken);
             bool shellOn = p.ShellOn;
             s.Bool(ref shellOn);  // Blood Shell (BloodShell.cs)
+            byte gadget = (byte)p.Gadget;  // Gadgets.cs
+            s.Byte(ref gadget);
+            p.Gadget = (GadgetId)gadget;
+            s.Float(ref p.GadgetLeft);
+            s.Bool(ref p.GadgetOn);
             bool sprayOn = p.SprayOn;
             s.Bool(ref sprayOn);  // Arterial Spray (ArterialSpray.cs)
             bool standOn = p.StandOn;

@@ -56,6 +56,7 @@ namespace Arena
         GateState,    // host -> all: a gate's clocks: index, seconds shut, seconds of cooldown (Gates.cs)
         ExpandOutline, // client -> host: a room this player drew as an outline (theme, fill?, corners, then x, y each; fill: an open run of walls that fences in a space) (ExpansionGame.cs)
         PlaceBuild,   // client -> host: put a trap from this player's stash on the map (kind, x, y) (Market.cs)
+        Gadget,       // client -> host: (0 switch your gadget on or off / 1 throw it, where to) (Gadgets.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -118,7 +119,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 311;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 313;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -602,6 +603,9 @@ namespace Arena
                     break;
                 case Msg.Loot:
                     Game.OnLoot(peer, r);
+                    break;
+                case Msg.Gadget:
+                    Game.OnGadget(peer, r);
                     break;
                 case Msg.WaveReady:
                     Game.OnWaveReady(peer, r);

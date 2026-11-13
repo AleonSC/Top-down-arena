@@ -1,6 +1,6 @@
 # Upgrade pools: class and weapon cards
 
-**Status: steps 1-5 built (Nov 2026, protocol 311); step 6 (class cards) proposed.** Then weapon cards class by class. Owner decisions are below; build one step at a time ("start on step N").
+**Status: steps 1-6 built (Nov 2026, protocol 313).** Next: weapon cards, class by class. Owner decisions are below; build one step at a time ("start on step N").
 
 ## Why
 
@@ -67,7 +67,7 @@ The Nov 2026 audit of `Core/Upgrades.cs` found:
   `DEVSHEET=4 UPRARITY=2 UPSCROLL=2000 Tools/Preview/shot.sh <name> dev`.
 - Test: suite `cardfilters` (`CardFilterTest`, `Tools/SimTest/Tests/Upgrades.cs`).
 
-### Step 4: per-class card files (built, protocol 310)
+### Step 4: per-class card files (built, protocol 311)
 
 - Each class keeps its own cards beside its abilities: `Game.SoldierCards` (`Abilities.cs`), `ElementalistCards` and
   `SummonerCards` (`Minions.cs`), `KnightCards` (`Knight.cs`), `NinjaCards` (`Ninja.cs`), `HemomancerCards`
@@ -80,7 +80,7 @@ The Nov 2026 audit of `Core/Upgrades.cs` found:
 - Test: suite `classcardlists` (`ClassCardListsTest`: each list holds only its class's cards, nothing class-specific is
   left in the general list, names are unique). `Tests/Expansion.cs` no longer needs the vector cards last.
 
-### Step 5: fill the ability gaps (built, protocol 311)
+### Step 5: fill the ability gaps (built, protocol 312)
 
 Owner decision: the first batch gives a Rare card to every Space ability that has none, so each class has one per
 Space ability like the Knight, Ninja and Blood Mage do (9 each). Style matches the existing ones (Bastion, Earthshaker):
@@ -135,7 +135,7 @@ Test: suite `abilitycards` (`Tools/SimTest/Tests/AbilityCards.cs`).
 
 After this batch: one card per class (`Kit`), then weapon cards class by class.
 
-### Step 6: one card per class (proposed, owner picks)
+### Step 6: one card per class (built, protocol 313)
 
 One `Kit` card per class, offered to every player of that class (a Wildcard: the classes its gear comes from). Rare,
 `MaxStacks = 2`. Each leans on what the class already is (its lobby blurb) and doesn't repeat a mastery or a general card.
@@ -144,7 +144,14 @@ One `Kit` card per class, offered to every player of that class (a Wildcard: the
 |---|---|---|---|
 | Soldier | Quartermaster | Health orbs and medkit orbs you pick up heal 30% more, and your Q/E/Shift abilities recharge 10% faster | Guns and gear: the class that lives off pickups and kit |
 | Elementalist | Arcane Surge | Casting your Space ability makes your weapon fire 25% faster for 3 s | Spells feed the staff |
-| Summoner | Pack Bond | Every minion of yours (weapon and ability) has 25% more health and hits 15% harder | The class is its minions |
-| Knight | Plate Armour | Take 8% less damage, and your swings cut bullets out of the air 20% wider | Armoured melee that cuts bullets |
-| Ninja | Ghost Step | +6% move speed, and for 1 s after you dash you take 30% less damage | Fast, slippery |
+| Summoner | Pack Bond | Every minion of yours (weapon and ability) takes 25% more before it breaks or falls, and hits 15% harder | The class is its minions |
+| Knight | Plate Armour | Take 8% less damage, and your swings cut bullets out of the air 20% farther out | Armoured melee that cuts bullets |
+| Ninja | Ghost Step | +6% move speed, and for 1 s after you dodge you take 30% less damage (a second copy: 2 s) | Fast, slippery |
 | Blood Mage | Bloodthirst | Abilities cost 20% less health, and each kill heals you 2 | Health is its resource |
+
+Built (owner approved all six): each sits in its class's list with `Kit` set. `Stats`: `OrbHealMult`, `BonusCdMult`
+(`Game.Cooldown`, slots 1-3), `SurgeRate` (`Player.SurgeT`, set in `CastAbility` on a Space cast, read by
+`FireRate`, sent in the snapshot so your own firing speeds up), `MinionDmgMult` / `MinionToughMult` (`SpawnMinion`:
+`Power` and `BlockHp`, a staggered minion's recovery, thralls' health), `CutReachMult` (`Knight.cs` bullet cutting),
+`GhostCut` / `GhostTime` (`Player.GhostT`, set on a dodge in `Dodge.cs`, read in `Damage`), `HealthCostMult`
+(`PayHealth`) plus `KillHeal`. Test: suite `abilitycards`, its class card checks.

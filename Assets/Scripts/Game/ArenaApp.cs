@@ -473,6 +473,8 @@ namespace Arena
                      && Keybinds.Down(KeyAction.DiscardItem))
                 game.DevKillAll(game.MyId);
 
+            TickGadgetKey(me, session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0);  // GadgetLook.cs
+
             bool escTaken = EscPressed && (pacEscFrame == Time.frameCount || HandleScreenEsc());  // the top tool screen (F1 menu, wave editor, Boss Lab setup) takes Esc first (UiScreens.cs)
             if (session.Screen != AppScreen.Game && EscPressed && !escTaken)
             {
