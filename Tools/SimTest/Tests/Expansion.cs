@@ -840,6 +840,17 @@ static partial class Program
         Run(s, dt, 0.5f, null, NoPicks);
         Check(!g.Enemies.ContainsKey(intruder.Id) || !g.CurrentWorld.Areas[2].Contains(intruder.Pos), "other foes are kept out of a locked duel room");
 
+        // A duel left over from an earlier, bigger map (a restart after a game over) must not break the enemy tick.
+        var duels = (Dictionary<int, int>)typeof(Game).GetField("duelBoss", flags).GetValue(g);
+        duels[99] = -1;
+        var mover = (Enemy)spawnAt.Invoke(g, new object[] { EnemyType.Grunt, new V2(800f, 300f), 0f, 0, false });
+        V2 from = mover.Pos;
+        Exception stale = null;
+        try { Run(s, dt, 0.5f, null, NoPicks); } catch (Exception ex) { stale = ex; }
+        Check(stale == null && (mover.Pos - from).Length > 1f, "a stale duel area past the map's end is skipped, and enemies still move (" + (stale == null ? "ok" : stale.GetType().Name) + ")");
+        duels.Remove(99);
+        mover.Hp = 0f;
+
         // An unbeaten duel ends with the wave: the Gatekeeper goes and you are let out.
         endDuels.Invoke(g, null);
         Run(s, dt, 0.4f, null, NoPicks);
