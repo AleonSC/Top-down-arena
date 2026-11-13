@@ -40,6 +40,14 @@ namespace Arena
                 case EnemyType.Needler: return "Locks on, then fires needles straight at you. Keep moving, rush it as it reloads.";
                 case EnemyType.Bumble: return "A huge, slow rusher with a heavy landing. Back off and keep firing.";
                 case EnemyType.Hornet: return "Circles, shows a red lane, then darts along it. Leave the lane.";
+                case EnemyType.Debris: return "Spirals in at you, hard to line up. Lead your shots into the curve.";
+                case EnemyType.VoidAcolyte: return "Three orbs that bend in to meet on you. Step forward or back, not sideways.";
+                case EnemyType.Pulsar: return "Two beams flicker, then sweep a quarter turn. Walk the way they turn.";
+                case EnemyType.Graviton: return "Lobs a small well by you that drags you in. Get clear, or shoot the well.";
+                case EnemyType.Orbiter: return "Circles you, then slings a flaring orb straight at you. Sidestep the flare.";
+                case EnemyType.Collapsar: return "Implodes when killed: a pull, then a ring of shots. Kill it at range.";
+                case EnemyType.Lens: return "Its lens bends shots round its face. Get to its side; it turns slowly.";
+                case EnemyType.WhiteDwarf: return "Flashes, then shoves you and turns your shots round. Hold fire on the flash.";
                 case EnemyType.Rubble: return "Rolls at you in weaving pairs. Don't get surrounded.";
                 case EnemyType.Quarryman: return "Walks straight at you, its lamp lighting the way. Sidestep it.";
                 case EnemyType.Stomper: return "Lifts a foot, then stomps out a push ring. Step into the green gap.";

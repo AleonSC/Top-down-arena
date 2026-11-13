@@ -714,6 +714,8 @@ namespace Arena
                             if (p.DistanceTo(e.Pos) < SentryBeamLen && off < (e.Phase == 3 ? 0.35f : 0.6f))
                                 d += w * 2.5f;
                         }
+                        else if (PulsarLocked(e) && PulsarBeamDistance(e, p) < hitR + 40f)
+                            d += w * 2.5f;  // a Pulsar's beams, flickering or sweeping (Infall.cs)
                         else if (e.Kin == EnemyType.RiotShield && (RiotState(e) == RiotWinding || RiotState(e) == RiotLunging))
                         {
                             // A Riot Shield about to bash: get out from in front of the shield (WardenFaction.cs).

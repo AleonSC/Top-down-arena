@@ -59,6 +59,12 @@ namespace Arena
         // (a Swordsman with a sickle), Bound Wraiths (a tethered pair), Scythe Wraith (a Lunger that reaps), Lamplighter (lines and
         // the cross), Mourner (the twin spiral), Gravedigger (a Brute), Shade (a Phantom)
         Wisp, Acolyte, BoundWraith, ScytheWraith, Lamplighter, Mourner, Gravedigger, Shade,
+        // the Singularity's faction, the Infall (Docs/SingularityFaction.md, Infall.cs, Game/InfallLook.cs): step 1
+        Debris, VoidAcolyte, Pulsar,
+        // ...step 2, with the Graviton's small well and the Collapsar's implosion (both only come from them)
+        Graviton, Orbiter, Collapsar, MiniWell, Implosion,
+        // ...step 3
+        Lens, WhiteDwarf,
         // the Colossus's faction, The Quarry (QuarryFaction.cs, Game/QuarryLook.cs): Rubble plays like a Rioter, a Quarryman
         // like a Guard, a Stomper like a Thug that stomps out a small ring of push blocks
         Rubble, Quarryman, Stomper,
@@ -354,6 +360,26 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "A cultist brute with a shovel. Slow and tough, hits hard when it reaches you." },
             new EnemyDef { Name = "Shade", Hp = 90f, Radius = 13f, Speed = 90f, Score = 25, Xp = 22, Sides = 3, Color = new Rgba(0.45f, 0.55f, 1f),
                 Picker = PickerGroup.Late, Late = true, Blurb = "A shrouded Phantom: fades to smoke, shows a ring where it will land, appears and fires." },
+            new EnemyDef { Name = "Debris", Hp = 22f, Radius = 10f, Speed = 125f, Score = 3, Xp = 6, Sides = 7, Color = new Rgba(0.85f, 0.35f, 1f), Melee = true, Contact = 9f,
+                Picker = PickerGroup.Melee, Blurb = "Tumbling rubble that falls at you on a curving inward spiral, so it's hard to line up." },
+            new EnemyDef { Name = "Void Acolyte", Hp = 45f, Radius = 13f, Speed = 85f, Score = 7, Xp = 10, Sides = 6, Color = new Rgba(1f, 0.47f, 0.86f),
+                Picker = PickerGroup.Ranged, Blurb = "A void cultist. Fires three slow orbs: the outer two bend in and meet where you stand. Step forward or back, not sideways." },
+            new EnemyDef { Name = "Pulsar", Hp = 70f, Radius = 13f, Speed = 75f, Score = 9, Xp = 12, Sides = 12, Color = new Rgba(0.5f, 0.84f, 1f),
+                Picker = PickerGroup.Ranged, Blurb = "A spinning neutron star. Its two beams flicker for a second, then switch on and sweep a quarter turn. Walk with the sweep." },
+            new EnemyDef { Name = "Graviton", Hp = 50f, Radius = 14f, Speed = 80f, Score = 8, Xp = 10, Sides = 6, Color = new Rgba(0.75f, 0.5f, 1f),
+                Picker = PickerGroup.Ranged, Blurb = "Lobs a small gravity well by you every 6 s. For 4 s it drags you in and swallows shots near it. Get clear, or shoot the well." },
+            new EnemyDef { Name = "Orbiter", Hp = 60f, Radius = 12f, Speed = 95f, Score = 8, Xp = 11, Sides = 10, Color = new Rgba(0.85f, 0.35f, 1f),
+                Picker = PickerGroup.Ranged, Blurb = "Circles you with three orbs turning round it. One flares, then it slings that orb straight at you, fast." },
+            new EnemyDef { Name = "Collapsar", Hp = 220f, Radius = 22f, Speed = 58f, Score = 12, Xp = 16, Sides = 14, Color = new Rgba(1f, 0.47f, 0.86f), Melee = true, Contact = 20f,
+                Picker = PickerGroup.Melee, Blurb = "A slow, dense star that shrinks as it's shot. Killed, it collapses: a short pull, then a ring of 12 shots. Kill it at range." },
+            new EnemyDef { Name = "Small Well", Hp = 30f, Radius = 11f, Speed = 0f, Score = 1, Xp = 3, Sides = 6, Color = new Rgba(0.85f, 0.35f, 1f), Melee = true,
+                Picker = PickerGroup.Hidden },
+            new EnemyDef { Name = "Implosion", Hp = 1e6f, Radius = 10f, Speed = 0f, Score = 0, Xp = 0, Sides = 6, Color = new Rgba(1f, 0.47f, 0.86f), Melee = true,
+                Picker = PickerGroup.Hidden },
+            new EnemyDef { Name = "Lens", Hp = 90f, Radius = 14f, Speed = 70f, Score = 9, Xp = 11, Sides = 8, Color = new Rgba(0.5f, 0.84f, 1f), Melee = true, Contact = 12f,
+                Picker = PickerGroup.Melee, Blurb = "Carries a gravity lens in front of it. Shots into its face curve round it and away; it turns slowly, so hit it from the side." },
+            new EnemyDef { Name = "White Dwarf", Hp = 40f, Radius = 9f, Speed = 230f, Score = 8, Xp = 10, Sides = 4, Color = new Rgba(1f, 0.96f, 0.9f), Melee = true, Contact = 10f,
+                Picker = PickerGroup.Melee, Blurb = "A small hot star that darts in, flashes white, then shoves you back and turns your shots near it round at you. Stop shooting when it flashes." },
             // the Colossus's faction (QuarryFaction.cs): Rubble and the Quarryman have their Warden counterpart's numbers
             new EnemyDef { Name = "Rubble", Hp = 40f, Radius = 12f, Speed = 110f, Score = 3, Xp = 7, Sides = 7, Color = new Rgba(0.78f, 0.62f, 0.45f), Melee = true, Contact = 10f,
                 Picker = PickerGroup.Melee, Blurb = "A fist-sized chunk of the Colossus that rolls at you, weaving, in pairs." },
