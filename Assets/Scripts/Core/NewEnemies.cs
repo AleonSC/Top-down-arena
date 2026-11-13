@@ -45,6 +45,9 @@ namespace Arena
                 case EnemyType.Stomper: return "Lifts a foot, then stomps out a push ring. Step into the green gap.";
                 case EnemyType.SlabBearer: return "Its slab stops shots and bashes you back. Flank it, or break the slab.";
                 case EnemyType.RockHurler: return "Lobs a boulder where you're heading. Change direction out of the ring.";
+                case EnemyType.Driller: return "Drills along a lane; the crack it leaves erupts. Cross the line, don't follow it.";
+                case EnemyType.Geomancer: return "Sends a crack racing at you. It glows, then erupts: step off the line.";
+                case EnemyType.CinderPriest: return "Fires a magma bolt that leaves lava where it stops. Strafe, or parry it.";
                 case EnemyType.Grunt: return "Shoots a three-shot fan. Weave between the shots.";
                 case EnemyType.Swarmer: return "Runs at you in packs and bites. Don't get surrounded.";
                 case EnemyType.Wisp: return "Soul flames that drift at you in threes. Thin them early.";

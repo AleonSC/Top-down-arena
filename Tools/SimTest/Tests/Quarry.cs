@@ -7,6 +7,7 @@ using Arena;
 // The Colossus's faction, The Quarry, step 1 (Core/QuarryFaction.cs, Docs/Approaches.md "The Quarry"): Rubble plays like a
 // Rioter, the Quarryman like a Guard, the Stomper like a Thug that stomps out a small ring of push blocks with one gap.
 // Step 2: the Slab Bearer (a Riot Shield whose broken slab is cover) and the Rock Hurler (a Gas Grenadier with a boulder).
+// Step 3: the Driller (a Shiv whose drill leaves a crack), the Geomancer (sends a crack) and the Cinder Priest (a magma bolt, lava).
 static partial class Program
 {
     static void QuarryTest(float dt)
@@ -16,11 +17,12 @@ static partial class Program
         {
             { EnemyType.Rubble, EnemyType.Rioter }, { EnemyType.Quarryman, EnemyType.Guard }, { EnemyType.Stomper, EnemyType.Thug },
             { EnemyType.SlabBearer, EnemyType.RiotShield }, { EnemyType.RockHurler, EnemyType.GasGrenadier },
+            { EnemyType.Driller, EnemyType.Shiv }, { EnemyType.Geomancer, EnemyType.TaserGuard }, { EnemyType.CinderPriest, EnemyType.TaserGuard },
         };
         Check(kin.All(k => HiveKin.Of(k.Key) == k.Value && QuarryKin.Is(k.Key) && !HiveKin.Is(k.Key)) && !QuarryKin.Is(EnemyType.Thug),
-            "each Quarry enemy plays like one Warden enemy (Rubble Rioter, Quarryman Guard, Stomper Thug, Slab Bearer Riot Shield, Rock Hurler Gas Grenadier)");
-        Check(new[] { EnemyType.Rubble, EnemyType.Quarryman, EnemyType.SlabBearer, EnemyType.RockHurler }.All(t => { var a = Defs.Get(t); var b = Defs.Get(kin[t]); return a.Hp == b.Hp && a.Speed == b.Speed && a.Contact == b.Contact && a.Xp == b.Xp; }),
-            "Rubble, the Quarryman, Slab Bearer and Rock Hurler have their counterpart's health, speed, contact damage and XP");
+            "each Quarry enemy plays like one Warden enemy (Rubble Rioter, Quarryman Guard, Stomper Thug, Slab Bearer Riot Shield, Rock Hurler Gas Grenadier, Driller Shiv, Geomancer and Cinder Priest Taser Guard)");
+        Check(new[] { EnemyType.Rubble, EnemyType.Quarryman, EnemyType.SlabBearer, EnemyType.RockHurler, EnemyType.Driller, EnemyType.Geomancer, EnemyType.CinderPriest }.All(t => { var a = Defs.Get(t); var b = Defs.Get(kin[t]); return a.Hp == b.Hp && a.Speed == b.Speed && a.Contact == b.Contact && a.Xp == b.Xp; }),
+            "all but the Stomper have their counterpart's health, speed, contact damage and XP");
         Check(Defs.Get(EnemyType.Stomper).Hp > Defs.Get(EnemyType.Thug).Hp && Game.IsBrute(EnemyType.Stomper), "the Stomper is a tougher Brute (180 health)");
         Check(kin.Keys.All(t => Game.EnemyNote(t).Length > 0 && BestiaryData.For(t) != null), "each has a Bestiary entry and a new-enemy note");
 
@@ -126,13 +128,48 @@ static partial class Program
         Check(pile != null && pile.Pos.DistanceTo(me.Pos) < 80f, "a Rock Hurler's boulder lands on you (standing still) as a rubble pile");
         Check(shards && me.Hp < hp2, "it hurts and bursts into shards");
         g.DevSetGod(1, true);
+
+        // The Driller: its leap drills a crack along its path, which erupts a moment after it stops.
+        me.Pos = me.Disp = new V2(900f, 400f);
+        var dr = put(EnemyType.Driller, new V2(640f, 400f));
+        dr.Hp = 1e6f;
+        run(6f, () => dr.Crack != null && dr.Phase != 2 && dr.Crack.Len >= dr.Crack.Max);
+        Check(dr.Crack != null && dr.Crack.Len > 60f, "a Driller's leap leaves a crack along its path (" + (dr.Crack != null ? dr.Crack.Len.ToString("0") : "none") + " px)");
+        g.DevSetGod(1, false);
+        if (dr.Crack != null)
+            me.Pos = me.Disp = dr.Crack.From + V2.FromAngle(dr.Crack.Ang) * (dr.Crack.Len * 0.5f);
+        float hp3 = me.Hp;
+        run(1f, () => dr.Crack == null);
+        Check(dr.Crack == null && me.Hp < hp3, "the crack erupts and hurts whoever stands on it");
+        g.DevSetGod(1, true);
+
+        // The Geomancer sends a crack at you; standing on it, it hurts when it erupts.
+        g.DevSetGod(1, false);
+        me.Pos = me.Disp = new V2(860f, 400f);
+        var geo = put(EnemyType.Geomancer, new V2(560f, 400f));
+        geo.Hp = 1e6f;
+        float hp4 = me.Hp;
+        ColCrack gk = null;
+        run(8f, () => { gk = gk ?? geo.Crack; me.Pos = me.Disp = new V2(860f, 400f); return gk != null && geo.Crack == null; });
+        Check(gk != null && Math.Abs(MathX.Fmod(gk.Ang - (me.Pos - geo.Pos).Angle + MathX.Pi, MathX.Tau) - MathX.Pi) < 0.3f, "a Geomancer sends a crack at you");
+        Check(geo.Crack == null && me.Hp < hp4, "it erupts under you");
+        g.DevSetGod(1, true);
+
+        // The Cinder Priest's magma bolt leaves lava where it stops.
+        me.Pos = me.Disp = new V2(860f, 400f);
+        var cp = put(EnemyType.CinderPriest, new V2(600f, 400f));
+        cp.Hp = 1e6f;
+        bool bolt = false;
+        run(8f, () => { foreach (var b in g.Bullets.Values) bolt |= b.Kind == Defs.MagmaBolt; return g.Patches.Values.Any(p => p.Kind == PatchKind.Lava); });
+        Check(bolt && Defs.IsEnemyShot(Defs.MagmaBolt), "a Cinder Priest fires a magma bolt (Defs.MagmaBolt)");
+        Check(g.Patches.Values.Any(p => p.Kind == PatchKind.Lava), "it leaves a lava pool where it stops");
         g.DevSetGod(1, true);
         host.Leave("");
 
         // --- The approach: the Colossus's faction in the waves before it -----------------------------------------------------
         var fac = Approaches.For(EnemyType.Colossus);
-        Check(fac != null && fac.Members.Select(m => m.Type).SequenceEqual(new[] { EnemyType.Rubble, EnemyType.Quarryman, EnemyType.Stomper, EnemyType.SlabBearer, EnemyType.RockHurler })
-            && new[] { "Landslip", "Dig crew", "Wall-in" }.All(n => fac.Squads.Any(s => s.Name == n)), "the Colossus has a faction: Rubble, Quarryman, Stomper, Slab Bearer, Rock Hurler, with Landslip, Dig crew and Wall-in");
+        Check(fac != null && fac.Members.Length == 8 && new[] { "Landslip", "Dig crew", "Quarry", "Wall-in", "Fault line" }.All(n => fac.Squads.Any(s => s.Name == n)),
+            "the Colossus has all eight in its faction, with Landslip, Dig crew, Quarry, Wall-in and Fault line");
         var build = typeof(Game).GetMethod("BuildWave", np);
         var spawnQ = typeof(Game).GetField("spawnQueue", np);
         var squadQ = typeof(Game).GetField("squadQueue", np);
@@ -143,8 +180,9 @@ static partial class Program
             colWave = BossSchedule.Campaign.NextBossWaveFrom(colWave + 1);
         Check(BossSchedule.Campaign.BossAt(colWave) == EnemyType.Colossus, "the Campaign has a Colossus wave (" + colWave + ")");
         for (int n = colWave - 4; n < colWave; n++)
+        for (int seed = 0; seed < 8; seed++)  // (a wave shows at most 6 types: several seeds to meet all eight)
         {
-            Game.SeedForTests(9100 + n);
+            Game.SeedForTests(9100 + n * 31 + seed);
             var cg = new Session().Game;
             cg.Wave = n;
             build.Invoke(cg, new object[] { n });
@@ -154,6 +192,6 @@ static partial class Program
                 seen.Add(t);
         }
         Console.WriteLine("  seen before wave " + colWave + ": " + string.Join(", ", seen));
-        Check(seen.SetEquals(quarry), "the waves before the Colossus bring all five");
+        Check(seen.SetEquals(quarry), "the waves before the Colossus bring all eight");
     }
 }

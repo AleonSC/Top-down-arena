@@ -254,6 +254,31 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Driller, Name = "Driller", Group = "Melee", Wave = 23,
+                Appears = "The Colossus's approach (in Quarry squads and on its own)",
+                Lead = "Circles in close with a jackhammer, shows the lunge lane, then drills along it. The crack it leaves glows and erupts 0.4 s after it stops: dodge across the line, not along it. Moves like a Shiv.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Drill", Pattern = "Wind-up 0.6 s (shows a lane) then a leap, same as the Shiv", Damage = "26", Notes = "18 contact" },
+                    new BestiaryAttack { Name = "Crack", Pattern = "Along the drill's path, 0.4 s after it stops", Damage = "12" },
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Geomancer, Name = "Geomancer", Group = "Shooters", Wave = 23,
+                Appears = "The Colossus's approach (alone, or three spread wide in a Fault line)",
+                Lead = "A Colossus cultist with a crystal staff. Keeps its distance, plants the staff and charges for 0.7 s (the aim line), then sends a crack racing at where you stood. It glows for 0.5 s, then erupts along its length: step off the line.",
+                Attacks = new[] { new BestiaryAttack { Name = "Crack", Pattern = "Races 600 px/s toward you, up to 460 px; erupts 0.5 s after it stops", Damage = "12", Every = 3.2f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.CinderPriest, Name = "Cinder Priest", Group = "Shooters", Wave = 23,
+                Appears = "The Colossus's approach (waves 23-24)",
+                Lead = "Cups a molten core and charges for 0.7 s along a shooting line, then fires one magma bolt straight at you (240 px/s, no lead). Wherever it stops, a hit, cover or the end of its 300 px, it leaves a lava pool for 2.5 s (20 a second). A perfect parry sends it back, and leaves no lava. Plays like a Taser Guard.",
+                Attacks = new[] { new BestiaryAttack { Name = "Magma bolt", Pattern = "One aimed bolt after a 0.7 s charge, then a lava pool", Shot = "Magma bolt", ShotColor = new Rgba(1f, 0.48f, 0.23f), Speed = "240", Damage = "9, then lava 20/s", Every = 3.2f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.HiveEgg, Name = "Hive Egg", Group = "Summons", Wave = 10,
                 Appears = "Laid by the Hive Queen in her Honeycomb stage",
                 Lead = "Doesn't move or attack. Break it before it hatches into drones.",

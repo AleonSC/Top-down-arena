@@ -42,6 +42,9 @@ namespace Arena
                 case EnemyType.Stomper: DrawStomper(e, pos, r, col, t); break;
                 case EnemyType.SlabBearer: DrawSlabBearer(e, pos, r, col, t); break;
                 case EnemyType.RockHurler: DrawRockHurler(e, pos, r, col, t); break;
+                case EnemyType.Driller: DrawDriller(e, pos, r, col, t); break;
+                case EnemyType.Geomancer: DrawGeomancer(e, pos, r, col, t); break;
+                case EnemyType.CinderPriest: DrawCinderPriest(e, pos, r, col, t); break;
             }
         }
 
@@ -228,12 +231,85 @@ namespace Arena
             Line(head + f * r * 0.12f - s * r * 0.15f, head + f * r * 0.12f + s * r * 0.15f, 2.2f, new Rgba(1f, 0.7f, 0.28f).Mix(Rgba.White, lift * 0.4f));
         }
 
-        /// On the floor, under everyone: each Stomper's ring (the Colossus's look, ColossusLook.cs).
+        /// On the floor, under everyone: each Stomper's ring and each crack (the Colossus's looks, ColossusLook.cs).
         void DrawQuarryFloor(float t)
         {
             foreach (var e in game.Enemies.Values)
+            {
                 if (e.Stomp != null && e.Type == EnemyType.Stomper)
                     DrawStompRing(e.Stomp, t);
+                if (e.Crack != null)
+                    DrawCrack(e.Crack, t);
+            }
+        }
+
+        /// The Driller (a Shiv): a crew body with goggles and a jackhammer held out front, its bit chattering while it
+        /// winds up and drills.
+        void DrawDriller(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            bool busy = e.Phase == 1 || e.Phase == 2;
+            float jit = busy ? Mathf.Sin(t * 70f) * 1.2f : 0f;
+            V2 a = pos + f * (r * 0.7f) + s * jit, b = pos + f * (r * 1.9f) + s * jit;
+            Line(a, b, 7f, QuarryInk);
+            Line(a, b, 5f, new Rgba(0.24f, 0.25f, 0.26f));
+            Line(a + f * 3f - s * 4.5f, a + f * 3f + s * 4.5f, 3f, QuarryInk);  // the handles
+            Line(a + f * 5f - s * 2.5f, a + f * 5f + s * 2.5f, 2.5f, QuarryVest);
+            SetColor(QuarrySteel);
+            Tri(b - s * 3f, b + s * 3f, b + f * (r * 0.7f));  // the bit
+            QuarryCrew(pos, r, e.Facing, col, false);
+            for (int k = -1; k <= 1; k += 2)  // goggles
+                Circle(pos + f * r * 0.5f + s * k * r * 0.22f, 1.8f, new Rgba(0.62f, 0.9f, 1f), 6);
+        }
+
+        /// The Geomancer (moves like a Taser Guard): a hooded robe with a crystal staff that glows as it charges.
+        void DrawGeomancer(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            float glow = e.Winding ? 0.6f + 0.4f * Mathf.Sin(t * 18f) : 0f;
+            if (glow > 0f)
+                Arc(pos, r + 9f, 1.4f, new Rgba(1f, 0.75f, 0.35f, 0.6f * glow), 24, t * 2f, MathX.Pi * 1.6f);
+            Ellipse(pos, r * 0.95f + 1.8f, r * 1.15f + 1.8f, e.Facing, QuarryInk, 16);
+            Ellipse(pos, r * 0.95f, r * 1.15f, e.Facing, col, 16);
+            V2 grip = pos + s * r * 0.85f, tip = grip + f * r * 1.3f;
+            Line(grip - f * r * 0.3f, tip, 2.6f, QuarryHaft);
+            var crystal = glow > 0f ? new Rgba(1f, 0.88f, 0.63f) : new Rgba(0.83f, 0.6f, 0.29f);
+            if (glow > 0f)
+                Circle(tip, 6f + 4f * glow, new Rgba(1f, 0.75f, 0.35f, 0.3f * glow), 12);
+            Quad(tip - s * 3.5f, tip + f * 4.5f, tip + s * 3.5f, tip - f * 3f, crystal);
+            Circle(pos, r * 0.62f, new Rgba(0.11f, 0.09f, 0.06f), 14);  // the hood
+            Circle(pos - f * r * 0.08f, r * 0.55f, col.Mix(Rgba.White, 0.08f), 14);
+            Circle(pos + f * r * 0.22f, r * 0.3f, new Rgba(0.04f, 0.03f, 0.03f), 10);  // the dark under it
+        }
+
+        /// The Cinder Priest (a Taser Guard): a dark robe with an ember hem, cupped hands holding a molten core that swells as it charges.
+        void DrawCinderPriest(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            Ellipse(pos, r * 0.95f + 1.8f, r * 1.15f + 1.8f, e.Facing, QuarryInk, 16);
+            Ellipse(pos, r * 0.95f, r * 1.15f, e.Facing, col, 16);
+            Arc(pos, r * 1.05f, 1.6f, QuarryVein.WithAlpha(0.8f), 14, e.Facing - 1.2f, 2.4f);  // the ember hem
+            V2 core = pos + f * r * 1.15f;
+            for (int k = -1; k <= 1; k += 2)
+                Circle(pos + f * r * 0.9f + s * k * r * 0.4f, r * 0.24f, new Rgba(0.16f, 0.13f, 0.11f), 8);
+            float ch = e.Winding ? 0.5f + 0.5f * Mathf.Sin(t * 14f) : 0f;
+            float cr = 3.5f + 3f * ch;
+            Circle(core, cr * 2.4f, new Rgba(1f, 0.45f, 0.15f, 0.18f + 0.25f * ch), 14);
+            Circle(core, cr, ch > 0.85f ? new Rgba(1f, 0.95f, 0.8f) : new Rgba(1f, 0.6f, 0.29f), 12);
+            Circle(pos, r * 0.62f, new Rgba(0.09f, 0.07f, 0.06f), 14);  // the hood, rimmed in ember
+            Arc(pos, r * 0.62f, 1.4f, QuarryVein.WithAlpha(0.9f), 16);
+            Circle(pos + f * r * 0.22f, r * 0.3f, new Rgba(0.03f, 0.02f, 0.02f), 10);
+        }
+
+        /// A Cinder Priest's magma bolt (WorldShots.cs): a molten ball with a glow and a dripping tail.
+        void DrawMagmaBolt(Bullet b, float t)
+        {
+            V2 d = b.Vel.Normalized();
+            for (int i = 1; i < 6; i++)
+                Circle(b.Pos - d * (i * 7f) + d.Orthogonal() * (Mathf.Sin(t * 30f + i) * 2f), 4f - i * 0.6f, new Rgba(1f, 0.55f - i * 0.06f, 0.24f, 0.7f - i * 0.11f), 8);
+            Circle(b.Pos, 12f, new Rgba(1f, 0.35f, 0.12f, 0.25f), 14);
+            Circle(b.Pos, 7f, new Rgba(1f, 0.6f, 0.29f), 12);
+            Circle(b.Pos, 3.5f, new Rgba(1f, 0.95f, 0.8f), 10);
         }
     }
 }

@@ -471,6 +471,7 @@ namespace Arena
 
         static readonly List<Bullet> botThreats = new List<Bullet>();
         static readonly List<StompRing> stompRings = new List<StompRing>();
+        static readonly List<ColCrack> quarryCracks = new List<ColCrack>();
 
         /// Where a stomp ring's band will be in `t` s covers `p` (outside a gap): the Colossus's and a Stomper's.
         static bool RingDanger(StompRing r, V2 p, float t, float pad)
@@ -566,9 +567,14 @@ namespace Arena
             var col = TheColossus()?.Colossus;
             Enemy colossus = col != null ? TheColossus() : null;
             stompRings.Clear();
+            quarryCracks.Clear();
             foreach (var se in Enemies.Values)
+            {
                 if (se.Stomp != null && se.Type == EnemyType.Stomper)
                     stompRings.Add(se.Stomp);  // Stompers' small rings (QuarryFaction.cs), read like the Colossus's
+                if (se.Crack != null)
+                    quarryCracks.Add(se.Crack);  // Drillers' and Geomancers' cracks, like its fissures
+            }
 
             // The Reapers' tether.
             Enemy twinA = null, twinB = null;
@@ -735,6 +741,9 @@ namespace Arena
                     foreach (var r in stompRings)
                         if (RingDanger(r, p, t, GateBulletR + hitR + sk.Margin + 6f))
                             d += w * 2.5f;
+                    foreach (var ck in quarryCracks)
+                        if (SegmentDistance(p, ck.From, ck.From + V2.FromAngle(ck.Ang) * ck.Max) < hitR + CrackHalfW + 4f)
+                            d += w * 1.5f;
                     if (col != null)
                     {
                         foreach (var r in col.Rings)  // where each ring's band will be by then, unless you're in a gap

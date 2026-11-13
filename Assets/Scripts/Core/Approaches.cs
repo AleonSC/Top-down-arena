@@ -182,7 +182,7 @@ namespace Arena
             },
             new FactionDef
             {
-                Boss = EnemyType.Colossus,  // the Colossus: The Quarry, its crew and the stone that broke off it (QuarryFaction.cs); steps 1-2 of 4 (Docs/Approaches.md)
+                Boss = EnemyType.Colossus,  // the Colossus: The Quarry, its crew and the stone that broke off it (QuarryFaction.cs); steps 1-3 of 4 (Docs/Approaches.md)
                 Members = new[]
                 {
                     new FactionMember { Type = EnemyType.Rubble, Weight = 3f },
@@ -190,13 +190,17 @@ namespace Arena
                     new FactionMember { Type = EnemyType.Stomper, Fade = 2, Weight = 1.5f, From = 2 },  // a Thug that stomps out a small push ring
                     new FactionMember { Type = EnemyType.SlabBearer, Fade = 0, Weight = 2f, From = 2 },  // a Riot Shield whose broken slab is cover
                     new FactionMember { Type = EnemyType.RockHurler, Fade = 0, Weight = 1.5f, From = 2 },  // a Gas Grenadier that lobs a boulder
+                    new FactionMember { Type = EnemyType.Driller, Fade = 2, Weight = 1f, From = 3 },  // a Shiv whose lunge leaves a crack that erupts
+                    new FactionMember { Type = EnemyType.Geomancer, Fade = 1, Weight = 2f, From = 3 },  // sends a crack racing at you
+                    new FactionMember { Type = EnemyType.CinderPriest, Fade = 0, Weight = 1.5f, From = 3 },  // a magma bolt that leaves lava
                 },
                 Squads = new[]
                 {
                     new SquadDef { Name = "Landslip", From = 1, Members = new[] { EnemyType.Quarryman, EnemyType.Rubble, EnemyType.Rubble, EnemyType.Rubble, EnemyType.Rubble, EnemyType.Rubble, EnemyType.Rubble } },
                     new SquadDef { Name = "Dig crew", From = 2, Members = new[] { EnemyType.Quarryman, EnemyType.Quarryman, EnemyType.RockHurler, EnemyType.RockHurler } },
                     new SquadDef { Name = "Wall-in", From = 3, Members = new[] { EnemyType.SlabBearer, EnemyType.SlabBearer, EnemyType.Rubble, EnemyType.Rubble, EnemyType.Rubble, EnemyType.Rubble } },
-                    new SquadDef { Name = "Rockfall", From = 3, Members = new[] { EnemyType.Stomper, EnemyType.Rubble, EnemyType.Rubble, EnemyType.Rubble } },  // until the Driller makes it the Quarry squad
+                    new SquadDef { Name = "Quarry", From = 3, Members = new[] { EnemyType.Stomper, EnemyType.Rubble, EnemyType.Rubble, EnemyType.Rubble, EnemyType.Driller } },
+                    new SquadDef { Name = "Fault line", From = 3, Members = new[] { EnemyType.Geomancer, EnemyType.Geomancer, EnemyType.Geomancer } },
                 },
             },
             new FactionDef

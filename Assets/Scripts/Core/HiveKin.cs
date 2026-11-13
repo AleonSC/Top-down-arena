@@ -28,6 +28,9 @@ namespace Arena
             t[(int)EnemyType.Stomper] = EnemyType.Thug;
             t[(int)EnemyType.SlabBearer] = EnemyType.RiotShield;
             t[(int)EnemyType.RockHurler] = EnemyType.GasGrenadier;
+            t[(int)EnemyType.Driller] = EnemyType.Shiv;
+            t[(int)EnemyType.Geomancer] = EnemyType.TaserGuard;
+            t[(int)EnemyType.CinderPriest] = EnemyType.TaserGuard;
             return t;
         }
 

@@ -1183,6 +1183,8 @@ namespace Arena
                 GrenadierFire(e, tpos);  // WardenFaction.cs
                 return;
             }
+            if (QuarryFire(e, tpos, aim))
+                return;  // the Geomancer's crack, the Cinder Priest's magma bolt (QuarryFaction.cs)
             if (e.Kin == EnemyType.TaserGuard)
             {
                 TaserFire(e, aim);  // WardenFaction.cs
