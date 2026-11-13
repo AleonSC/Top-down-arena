@@ -418,6 +418,18 @@ static partial class Program
             int si = g.Expanded.FindIndex(r => r.Floating && r.Kind == RoomKind.Shop);
             var con = si >= 0 ? Expansion.ConnectorFor(g.Expanded, si) : null;
             Check(con.HasValue, "a box can be built up to the shop room");
+            // A bot votes for the box toward the sealed shop when someone proposed it (a duo used to split its votes at random and build nothing).
+            var want = (ExpansionRoom?)typeof(Game).GetMethod("BotFloaterPick", flags).Invoke(g, null);
+            Check(want.HasValue && con.HasValue && want.Value.X == con.Value.X && want.Value.Y == con.Value.Y, "a bot's first pick is the box up to the sealed shop room");
+            if (want.HasValue)
+            {
+                var other = want.Value; other.Owner = 1; other.X -= 1000;
+                var mine = want.Value; mine.Owner = 2;
+                g.ExpandProposals.Add(other); g.ExpandProposals.Add(mine);
+                var botVote = typeof(Game).GetMethod("BotVote", flags);
+                Check(Enumerable.Range(0, 20).All(_ => (int)botVote.Invoke(g, null) == 2), "a bot votes for the proposal that builds toward the shop");
+                g.ExpandProposals.Clear();
+            }
             if (con.HasValue)
             {
                 var open = new List<ExpansionRoom>(g.Expanded) { con.Value };
