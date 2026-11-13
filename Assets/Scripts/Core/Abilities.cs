@@ -127,6 +127,8 @@ namespace Arena
                 Apply = s => { s.SpinTimeMult *= 0.7f; s.SpinDownMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.DoubleBarrel }, MaxStacks = 2, Name = "Quick Loader", Desc = "The Double Barrel reloads 25% faster, and its pellets keep full damage 30% farther",
                 Apply = s => { s.DbReloadMult *= 0.75f; s.DbFullMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.OutOfAmmo }, MaxStacks = 2, Name = "Gun Kata", Desc = "Out of Ammo's rifle arms swat bullets 25% farther out and recover 30% faster",
+                Apply = s => { s.SwatReachMult += 0.25f; s.SwatCdMult *= 0.7f; } },
         };
 
         /// The Soldier's abilities, and the ones only very rare cards give (Shockwave, Overdrive, Blink, Nova, Turret). (Upgrades.Abilities gathers every class's list.)

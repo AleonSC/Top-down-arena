@@ -17,7 +17,7 @@ namespace Arena
         {
             Player owner;
             game.Players.TryGetValue(m.Owner, out owner);
-            float r = Game.NimbusRain * (owner != null ? Game.AreaMult(owner) : 1f);
+            float r = Game.NimbusRain * (owner != null ? Game.AreaMult(owner) * owner.Stats.RainSizeMult : 1f);
             V2 g = m.Disp;
             // A strike in the last instant makes the cloud flash.
             bool hot = false;

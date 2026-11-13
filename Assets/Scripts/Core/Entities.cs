@@ -587,6 +587,7 @@ namespace Arena
         public int Shock;         // host only: electrifies the enemy it hits, which arcs to this many others round it (the Storm Hammer)
         public float SlowAmt;     // host only: frost slows enemies hit
         public float Ignite;      // host only: sets enemies hit burning for this much a second (Flamethrower)
+        public float IgniteBonus; // host only: and this much longer than FlameBurnTime (Wildfire)
         public bool Pierced;      // host only: a Flamethrower flame that has hit its first enemy (it does less after)
         public bool FromBoss;     // fired by a boss (only these wear blockers down; drawn with a dark core)
         public float Homing;      // Homing Rounds: turn rate toward the nearest enemy (host corrects clients)
