@@ -1,0 +1,194 @@
+<title>Storm Herald Faction</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* The Storm Herald's faction ("the Tempest"): 8 members sized like the Warden's, each previewing one thing the boss tests.
+   Approximate: canvas mockups, not the Ui.cs draw code. Colours follow HeraldLook: steel sky, cyan arcs, yellow bolts. */
+:root{
+  --bg:#e9edf3; --fg:#121823; --muted:#566178; --panel:#f6f8fb; --line:#cdd5e2; --chip:#dde3ee;
+  --bolt:#a37c00; --cyan:#1b79a8; --arena:#070a12;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0a0d14; --fg:#e6ebf4; --muted:#93a0b8; --panel:#131824; --line:#263046; --chip:#1d2538;
+  --bolt:#ffe45c; --cyan:#7fd8ff; --arena:#05070c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0a0d14; --fg:#e6ebf4; --muted:#93a0b8; --panel:#131824; --line:#263046; --chip:#1d2538;
+  --bolt:#ffe45c; --cyan:#7fd8ff; --arena:#05070c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+h1{font:700 clamp(40px,8vw,68px)/.95 var(--display);text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 6px}
+h3{font:700 22px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0}
+p{margin:0}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.lede,.sub{max-width:66ch;color:var(--muted)}
+.sub{margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.card .body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.top{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.num{font:500 12px var(--mono);color:var(--muted)}
+canvas{display:block;width:100%;height:auto;background:var(--arena)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:4px;background:var(--chip);color:var(--muted)}
+.chip.job{color:var(--fg)}
+.teach{font-size:14px;border-left:3px solid var(--bolt);padding-left:8px;color:var(--muted)}
+.teach b{color:var(--fg);font-weight:600}
+.stats{font:400 12px var(--mono);color:var(--muted)}
+ul.notes{margin:0;padding-left:20px;color:var(--muted)}
+ul.notes li+li{margin-top:4px}
+code{font:500 13px var(--mono)}
+</style>
+<main>
+<header>
+  <div class="eyebrow">Wave 40 boss faction · mockup (approximate, not the game's draw code)</div>
+  <h1>The Tempest</h1>
+  <p class="lede">The Storm Herald's faction, the same size as the Warden's: 8 enemies. Each one previews a single attack of the boss, so by wave 40 you have already dodged every shape it throws. Shown with the Warden's slot each fills.</p>
+</header>
+<section>
+  <h2>Members</h2>
+  <p class="sub">Numbers are first guesses, copied from the Warden's and Infall's scale. Scenes loop; the teal dot is you.</p>
+  <div class="grid" id="members"></div>
+</section>
+<section>
+  <h2>Notes</h2>
+  <ul class="notes">
+    <li>Squads, the set piece and the 10-wave cycle are left for the next step (as the Infall's were).</li>
+    <li>Reuses boss code where it can: strikes (<code>StrikeRadius</code>, <code>StrikeWarn</code>), rods and arcs, the wind push and drift, ball lightning, the Conductor ring.</li>
+    <li>Wind-affected shots would use the Gale's drift on every enemy in this faction while no Herald is alive, so the lessons work on their own.</li>
+    <li>New <code>EnemyType</code> values go at the end, before <code>None</code>, with a protocol bump.</li>
+  </ul>
+</section>
+</main>
+<script>
+const C={bolt:'#ffe45c',cyan:'#7fd8ff',steel:'#8aa0c0',cloud:'#5f6f8e',red:'#ff5a6a',player:'#4fe3c1',bullet:'#ffe27a',dark:'#070a12',white:'#f2f6ff'};
+const TAU=Math.PI*2,W=360,H=210;
+const lerp=(a,b,f)=>a+(b-a)*f,clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),ease=f=>f*f*(3-2*f);
+function hexA(h,a){const n=parseInt(h.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}
+function circ(g,x,y,r,fill,stroke,lw){g.beginPath();g.arc(x,y,r,0,TAU);if(fill){g.fillStyle=fill;g.fill();}if(stroke){g.strokeStyle=stroke;g.lineWidth=lw||1;g.stroke();}}
+function line(g,x1,y1,x2,y2,col,lw,dash){g.save();g.strokeStyle=col;g.lineWidth=lw||1;g.setLineDash(dash||[]);g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();g.restore();}
+function glow(g,x,y,r,col,a){const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,hexA(col,a));gr.addColorStop(1,hexA(col,0));g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();}
+function shot(g,x,y,col,r){glow(g,x,y,r*2.4,col,0.4);circ(g,x,y,r,col);}
+function label(g,x,y,s,col){g.font='500 10px IBM Plex Mono,monospace';g.textAlign='center';g.fillStyle=col||hexA(C.white,0.8);g.fillText(s,x,y);}
+function hpBar(g,x,y,f){g.fillStyle='rgba(255,255,255,0.15)';g.fillRect(x-16,y,32,3);g.fillStyle=C.red;g.fillRect(x-16,y,32*f,3);}
+function player(g,x,y,a){g.save();g.translate(x,y);g.rotate(a);circ(g,0,0,7,C.player);g.fillStyle=C.white;g.fillRect(2,-1.5,11,3);g.restore();}
+function floor(g,w,h){g.fillStyle=C.dark;g.fillRect(0,0,w,h);g.strokeStyle='rgba(127,216,255,0.05)';g.lineWidth=1;for(let x=0;x<w;x+=30){g.beginPath();g.moveTo(x,0);g.lineTo(x,h);g.stroke();}for(let y=0;y<h;y+=30){g.beginPath();g.moveTo(0,y);g.lineTo(w,y);g.stroke();}}
+function bolt(g,x1,y1,x2,y2,t,col,lw){const n=7;g.save();g.strokeStyle=col;g.lineWidth=lw;g.lineJoin='round';g.shadowColor=col;g.shadowBlur=8;g.beginPath();g.moveTo(x1,y1);const dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy)||1,nx=-dy/L,ny=dx/L;
+  for(let i=1;i<n;i++){const f=i/n,o=Math.sin(i*12.9+Math.floor(t*30)*3.7)*7;g.lineTo(x1+dx*f+nx*o,y1+dy*f+ny*o);}g.lineTo(x2,y2);g.stroke();g.restore();}
+function strike(g,x,y,r,warn,t){ // warn 0..1 telegraph, >=1 hit flash
+  if(warn<1){circ(g,x,y,r,hexA(C.red,0.08+0.22*warn),hexA(C.red,0.7),1.5);circ(g,x,y,r*warn,null,hexA(C.red,0.5),1);}
+  else{const f=clamp(warn-1,0,1);glow(g,x,y,r*1.2,C.white,0.7*(1-f));circ(g,x,y,r,hexA(C.bolt,0.35*(1-f)),hexA(C.bolt,0.9*(1-f)),2);bolt(g,x+4,y-110,x,y,t,hexA(C.white,1-f),2.5);}}
+function windArrows(g,t,y0,dir,col){for(let i=0;i<4;i++){const y=y0+i*34,x=((t*60*dir+i*97)%460+460)%460-50;line(g,x,y,x+dir*26,y,hexA(col||C.cyan,0.18),1.5);}}
+
+/* ---------- bodies ---------- */
+const D={
+ gust(g,x,y,t,i){g.save();g.translate(x,y);for(let k=0;k<3;k++){const a=t*5+k*TAU/3+i;g.strokeStyle=hexA(C.cyan,0.85-k*0.2);g.lineWidth=2.2;g.beginPath();g.arc(0,0,4+k*3.4,a,a+2.1);g.stroke();}circ(g,0,0,2.4,C.white);g.restore();},
+ caller(g,x,y,t,raise){g.save();g.translate(x,y);glow(g,0,-10,26,C.cyan,0.18+0.25*raise);g.fillStyle='#2b3d63';g.beginPath();g.moveTo(-11,12);g.lineTo(0,-14);g.lineTo(11,12);g.closePath();g.fill();g.strokeStyle=C.cyan;g.lineWidth=1.5;g.stroke();circ(g,0,-9,4.5,'#0b1220',C.cyan,1.5);
+  const sy=-18-raise*14;line(g,13,10,13,sy,C.steel,2);circ(g,13,sy,3+raise*2,C.bolt);g.restore();},
+ rodbearer(g,x,y,t,hold){g.save();g.translate(x,y);g.fillStyle='#34415f';g.fillRect(-10,-10,20,22);g.strokeStyle=C.steel;g.lineWidth=1.5;g.strokeRect(-10,-10,20,22);circ(g,0,-14,5,'#0b1220',C.steel,1.5);
+  if(hold){line(g,12,-16,12,14,C.steel,3);circ(g,12,-18,3,C.bolt);}g.restore();},
+ rod(g,x,y,t,live){line(g,x,y-18,x,y+4,C.steel,3);circ(g,x,y-20,4,live?C.bolt:C.cyan);glow(g,x,y-20,14,C.bolt,live?0.6:0.25);circ(g,x,y+4,4,'#1b2438',C.steel,1);},
+ lobber(g,x,y,t,charge){g.save();g.translate(x,y);circ(g,0,0,13,'#2c3a5b',C.steel,1.5);glow(g,0,0,14+charge*10,C.bolt,0.15+0.4*charge);for(let k=0;k<3;k++){const a=t*4+k*2.1;line(g,0,0,Math.cos(a)*9,Math.sin(a)*9,hexA(C.bolt,0.7),1.2);}circ(g,0,0,4+charge*2,C.bolt);g.restore();},
+ orb(g,x,y,t,pop){const r=8+pop*5;glow(g,x,y,r*2.4,C.cyan,0.5);circ(g,x,y,r,hexA(C.white,0.85),C.cyan,2);for(let k=0;k<3;k++){const a=t*7+k*2.1;line(g,x,y,x+Math.cos(a)*r*1.4,y+Math.sin(a)*r*1.4,hexA(C.cyan,0.8),1);}},
+ conduit(g,x,y,t,mark){g.save();g.translate(x,y);circ(g,0,0,11,'#2c3a5b',C.cyan,1.5);for(let k=0;k<3;k++){const a=-Math.PI/2+(k-1)*0.7;line(g,Math.cos(a)*9,Math.sin(a)*9,Math.cos(a)*19,Math.sin(a)*19,C.steel,1.6);circ(g,Math.cos(a)*19,Math.sin(a)*19,2.2,mark?C.bolt:C.cyan);}
+  for(let k=0;k<2;k++){g.strokeStyle=hexA(C.cyan,0.6);g.lineWidth=1.5;g.beginPath();g.arc(0,2,5+k*3,0.3,TAU-0.3);g.stroke();}g.restore();},
+ head(g,x,y,t,charge){g.save();g.translate(x,y);const s=1+charge*0.12;g.scale(s,s);const bl=[[-14,4,13],[0,-6,16],[14,4,13],[-5,10,12],[8,11,12]];for(const[a,b,r]of bl)circ(g,a,b,r,'#4a5877');for(const[a,b,r]of bl)circ(g,a-2,b-2,r*0.7,'#6a7a9c');
+  glow(g,0,4,30,C.bolt,charge*0.45);for(let k=0;k<2;k++){const f=Math.sin(t*9+k*3)>0.4?1:0.2;line(g,-6+k*12,2,-2+k*12,10,hexA(C.bolt,f),2);}g.restore();},
+ shear(g,x,y,t,a){g.save();g.translate(x,y);g.rotate(a);g.strokeStyle=C.steel;g.lineWidth=7;g.lineCap='round';g.beginPath();g.arc(-6,0,22,-0.95,0.95);g.stroke();g.strokeStyle=C.cyan;g.lineWidth=2;g.beginPath();g.arc(-6,0,22,-0.95,0.95);g.stroke();
+  for(let k=-1;k<=1;k++){const aa=k*0.5;line(g,Math.cos(aa)*12-6,Math.sin(aa)*12,Math.cos(aa)*18-6,Math.sin(aa)*18,hexA(C.cyan,0.7),1.5);}circ(g,-8,0,6,'#2c3a5b',C.steel,1.5);g.restore();},
+ streak(g,x,y,t,a,fl){g.save();g.translate(x,y);g.rotate(a);glow(g,0,0,16,C.bolt,0.2+0.5*fl);g.fillStyle=fl>0?C.white:C.bolt;g.beginPath();g.moveTo(11,0);g.lineTo(-7,-6);g.lineTo(-3,0);g.lineTo(-7,6);g.closePath();g.fill();g.restore();},
+};
+
+/* ---------- members ---------- */
+const M=[
+ {name:'Gust',slot:'Rioter',job:'Swarmer',from:1,w:3,stats:'20 HP · 130 px/s · weaves ±40 px across its line · contact 9',
+  does:'A swirl of wind that swerves in at you in a snaking line. Every shot of yours that passes close to it is shoved sideways.',
+  teach:'the <b>Gale</b>: your own shots drift, so lead them or close in.',
+  draw(g,t){const px=310,py=105;windArrows(g,t,34,-1);player(g,px,py,Math.PI);
+    for(let i=0;i<3;i++){const p=((t*0.22+i/3)%1);const x=lerp(20,px-30,p),y=105+Math.sin(p*9+i*2)*(18+i*8)*(1-p*0.5);D.gust(g,x,y,t,i);}
+    for(let i=0;i<5;i++){const f=(t*1.3+i/5)%1;const x=px-16-f*250;const near=clamp(1-Math.abs(x-lerp(20,px-30,((t*0.22)%1)))/45,0,1);shot(g,x,py+(near>0.1?18*ease(near)*(i%2?1:-1):0),near>0.1?C.cyan:C.bullet,2.6);}
+    label(g,90,190,'shots bend near it',hexA(C.cyan,0.8));}},
+ {name:'Stormcaller',slot:'Guard',job:'Zoner',from:1,w:2,stats:'45 HP · 85 px/s · keeps 300 px · a strike every 2.4 s · 1.1 s warning',
+  does:'Raises its staff and marks a ring under you. 1.1 s later lightning lands on it. It never marks where you are going, only where you are.',
+  teach:'<b>Strikes</b>: keep walking.',
+  draw(g,t){const c=t%2.6;const sx=70,sy=110;const px0=250,py0=120;let px=px0,py=py0;if(c>0.5)px=lerp(px0,px0+55,ease(clamp((c-0.5)/0.6,0,1)));if(c>1.8)px=lerp(px0+55,px0,ease(clamp((c-1.8)/0.7,0,1)));
+    const w=c/1.1;strike(g,px0,py0,38,c<1.1?w:1+(c-1.1)/0.6,t);D.caller(g,sx,sy,t,c<1.2?clamp(c/0.5,0,1):0);player(g,px,py,Math.PI);
+    if(c<1.1)label(g,px0,py0-46,(1.1-c).toFixed(1)+' s',hexA(C.red,0.9));}},
+ {name:'Rodbearer',slot:'Security Guard',job:'Zoner',from:2,w:2,stats:'60 HP · 75 px/s · keeps 330 px · carries two rods; arc 0.6 s then 0.25 s · 18 a touch',
+  does:'Stops and plants two rods either side of you, 1 s apart. When both stand, an arc flickers between them, then fires along the line. Step out of the line before it does.',
+  teach:'<b>Lightning rods</b>: read the pair, not the rods.',
+  draw(g,t){const c=t%5.5;const ax=110,ay=60,bx=110,by=150,px0=250,py0=105;let py=py0;if(c>2.7)py=lerp(py0,py0-52,ease(clamp((c-2.7)/0.5,0,1)));if(c>4.3)py=lerp(py0-52,py0,ease(clamp((c-4.3)/0.8,0,1)));
+    D.rodbearer(g,40,105,t,c<1.8);const r1=c>0.3,r2=c>1.3;const lv=c>2.7&&c<2.95;
+    if(r1){const f=clamp((c-0.3)/1,0,1);D.rod(g,ax,lerp(ay-60,ay,f*f),t,lv);}if(r2){const f=clamp((c-1.3)/1,0,1);D.rod(g,bx,lerp(by-60,by,f*f),t,lv);}
+    if(c>2.1&&c<2.7&&Math.sin(t*50)>0)line(g,ax,ay-20,bx,by-20,hexA(C.cyan,0.8),1.5,[4,4]);
+    if(lv){bolt(g,ax,ay-20,bx,by-20,t,C.bolt,3);bolt(g,ax,ay-20,bx,by-20,t+0.01,C.white,1.2);}
+    player(g,px0,py,Math.PI);}},
+ {name:'Spark Lobber',slot:'Gas Grenadier',job:'Zoner',from:2,w:1.5,stats:'55 HP · 80 px/s · keeps 320 px · an orb every 5 s · orb 70 HP, 80 px/s, pops after 6 s into 8 shots',
+  does:'Lobs a slow ball of lightning that drifts toward you. Two orbs within 200 px arc to each other. Left alone, an orb pops into 8 shots; shoot it first.',
+  teach:'<b>Ball lightning</b>: pop it at range.',
+  draw(g,t){const c=t%6;const lx=50,ly=105,px=300,py=105;const o1=lerp(lx+14,200,clamp(c/2.2,0,1)),o1y=lerp(ly,80+Math.sin(c*2)*10,clamp(c/2.2,0,1));
+    const c2=c-1.2,o2x=c2>0?lerp(lx+14,190,clamp(c2/2.2,0,1)):0,o2y=c2>0?lerp(ly,140+Math.sin(c2*2)*8,clamp(c2/2.2,0,1)):0;
+    D.lobber(g,lx,ly,t,(c<0.6||(c>0.6&&c<1.2))?0.8:0);player(g,px,py,Math.PI);
+    if(c<3.9){D.orb(g,o1,o1y,t,0);if(c2>0){D.orb(g,o2x,o2y,t,0);if(Math.hypot(o1-o2x,o1y-o2y)<110)bolt(g,o1,o1y,o2x,o2y,t,C.cyan,1.8);}}
+    if(c>=3.9&&c<5.4){const f=(c-3.9)/1.5;glow(g,o1,o1y,36*(1-f),C.white,0.6);for(let k=0;k<8;k++){const a=k*TAU/8;shot(g,o1+Math.cos(a)*(10+130*f),o1y+Math.sin(a)*(10+130*f),C.cyan,3);}
+      if(c2>0&&c<3.9+0.1)D.orb(g,o2x,o2y,t,0);}
+    if(c>=3.9&&c<5.4)D.orb(g,o2x,o2y,t,0);
+    if(c>1.6&&c<3.8)label(g,(o1+o2x)/2,Math.min(o1y,o2y)-26,'arc',hexA(C.cyan,0.9));}},
+ {name:'Conduit',slot:'Taser Guard',job:'Pressure',from:3,w:1.5,stats:'70 HP · 90 px/s · keeps 280 px · marks one player every 8 s for 3 s · ring 180 px · jump 22, then 10 shots',
+  does:'Marks one player with a ring. When the mark runs out, the charge jumps to every ally inside it, hurting both ends and spraying 10 shots from them. Spread out and it fizzles.',
+  teach:'<b>The Conductor</b>: stay apart from whoever is marked.',
+  draw(g,t){const c=t%5.5;const ex=60,ey=105;const px=250,py=105,ax=c<3.4?(c<3.9?318:318):318,ay=150;const near=c<3.5?1:0;const allyX=c<3.6?lerp(330,300,0):300;
+    D.conduit(g,ex,ey,t,c<3.2);const f=clamp(c/3,0,1);
+    if(c<3.2){const r=90;circ(g,px,py,r,hexA(C.bolt,0.07),hexA(C.bolt,0.7),1.5);g.strokeStyle=C.bolt;g.lineWidth=3;g.beginPath();g.arc(px,py,r,-Math.PI/2,-Math.PI/2+TAU*(1-f));g.stroke();line(g,ex+16,ey,px-10,py,hexA(C.cyan,0.5),1.2,[4,4]);}
+    player(g,px,py,Math.PI);player(g,allyX,py+55,Math.PI);
+    if(c>=3.2&&c<4.6){const k=(c-3.2)/1.4;bolt(g,px,py,allyX,py+55,t,C.bolt,3);glow(g,px,py,40*(1-k),C.white,0.6);glow(g,allyX,py+55,40*(1-k),C.white,0.6);
+      for(let i=0;i<10;i++){const a=i*TAU/10;shot(g,px+Math.cos(a)*(8+75*k),py+Math.sin(a)*(8+75*k),C.bolt,2.6);}}
+    label(g,px,py-94,c<3.2?'marked':'jump',hexA(C.bolt,0.9));}},
+ {name:'Thunderhead',slot:'Thug',job:'Hunter',from:2,w:1.5,stats:'240 HP · 55 px/s · radius 22 · contact 20 · every 4 s a ring of 24 with 2 gaps (14 each), turned 25° each time',
+  does:'A slow, heavy cloud that crackles as it walks. Every 4 s it stops and throws a ring of shots with two gaps, a little turned from the last. Stand in a gap, or outrun the ring.',
+  teach:'<b>Thunderclap</b>: find the gap.',
+  draw(g,t){const c=t%4,n=Math.floor(t/4);const hx=140,hy=105,px=290,py=105;const hx2=hx+Math.sin(t*0.5)*8;
+    const charge=c<1.3?clamp(c/1.3,0,1):0;D.head(g,hx2,hy,t,charge);
+    const turn=n*0.43;const gaps=[0.5+turn,0.5+turn+Math.PI];const k=c>1.3?(c-1.3)/2.7:0;
+    if(c>1.3){for(let i=0;i<24;i++){const a=i*TAU/24;let skip=false;for(const gp of gaps){let d=Math.abs(((a-gp+Math.PI*3)%TAU)-Math.PI);if(d<0.2)skip=true;}if(skip)continue;shot(g,hx2+Math.cos(a)*(26+200*k),hy+Math.sin(a)*(26+200*k)*0.9,C.bolt,3);}
+      for(const gp of gaps)label(g,hx2+Math.cos(gp)*(40+200*k),hy+Math.sin(gp)*(40+200*k)*0.9,'gap',hexA('#7dff9a',0.9));}
+    player(g,px+Math.sin(t*0.9)*0+0,py+Math.sin(0.5+turn)*0,Math.PI);}},
+ {name:'Windshear',slot:'Riot Shield',job:'Blocker',from:3,w:1.5,stats:'95 HP · 65 px/s · contact 12 · its curve faces you; shots within 80 px of it bend away at up to 12 rad/s',
+  does:'A curved vane that walks toward you edge-on to the wind. Shots at its face are turned off sideways. Go round it: the back and the ends take full damage.',
+  teach:'<b>Gale</b> and bent shots: flank it.',
+  draw(g,t){const c=t%6;const px=310,py=105;const wx=lerp(70,200,ease(clamp(c/5,0,1)));const wy=105;windArrows(g,t,26,-1,C.cyan);D.shear(g,wx,wy,t,0);
+    for(let i=0;i<6;i++){const f=(t*1.4+i/6)%1;const x=px-16-f*(px-16-(wx+30));const near=clamp((x-wx)/110,0,1);const dy=(i%2?1:-1)*(1-near)*0;
+      if(x>wx+26){const bend=clamp(1-(x-wx-26)/70,0,1);shot(g,x,py+(i%2?1:-1)*bend*bend*34,bend>0.05?C.cyan:C.bullet,2.6);}}
+    const fx=lerp(px,px-20,0);player(g,fx,py,Math.PI);
+    line(g,px-20,py+34,wx+10,wy+44,hexA('#7dff9a',0.5),1.5,[4,4]);label(g,(px+wx)/2,py+60,'flank',hexA('#7dff9a',0.9));}},
+ {name:'Streak',slot:'Shiv',job:'Disruptor',from:3,w:1,stats:'35 HP · dashes 520 px/s · radius 9 · 0.7 s line warning · the bolt lane lingers 0.4 s · 20',
+  does:'Darts about, then freezes and draws a red line through you. 0.7 s later it dashes down the line, leaving a lane of lightning behind it for a moment. Step sideways.',
+  teach:'<b>Downburst</b> lanes: leave the line.',
+  draw(g,t){const c=t%3.2;const px=290,py0=105;const sx=50,sy=60;const ex=330,ey=150;const ang=Math.atan2(ey-sy,ex-sx);
+    let py=py0;if(c>0.2&&c<1.2)py=py0;
+    // you stand on the line until warn ends, then step off
+    const lineY=(x)=>sy+(ey-sy)*((x-sx)/(ex-sx));const onY=lineY(px);
+    let ply=onY;if(c>0.55)ply=lerp(onY,onY-48,ease(clamp((c-0.55)/0.35,0,1)));if(c>2.3)ply=lerp(onY-48,onY,ease(clamp((c-2.3)/0.7,0,1)));
+    if(c<0.7){if(Math.sin(t*40)>0)line(g,sx,sy,ex,ey,hexA(C.red,0.6),2,[8,6]);D.streak(g,sx,sy,t,ang,0);label(g,100,sy-20,'0.7 s',hexA(C.red,0.9));}
+    else if(c<1.1){const f=(c-0.7)/0.4;const x=lerp(sx,ex,f),y=lerp(sy,ey,f);line(g,sx,sy,x,y,hexA(C.bolt,0.35),12);bolt(g,sx,sy,x,y,t,C.bolt,3);D.streak(g,x,y,t,ang,1);}
+    else if(c<1.6){const f=(c-1.1)/0.5;line(g,sx,sy,ex,ey,hexA(C.bolt,0.3*(1-f)),12*(1-f));bolt(g,sx,sy,ex,ey,t,hexA(C.white,1-f),2);D.streak(g,ex,ey,t,ang+Math.PI,0);}
+    else {D.streak(g,ex-10,ey-4,t,ang+Math.PI,0);}
+    player(g,px,ply,Math.PI);}},
+];
+
+/* ---------- page ---------- */
+const scenes=[];
+function addCanvas(parent,draw){const cv=document.createElement('canvas');const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=W*dpr;cv.height=H*dpr;cv.style.aspectRatio=`${W}/${H}`;parent.appendChild(cv);const g=cv.getContext('2d');g.scale(dpr,dpr);scenes.push({cv,g,draw,vis:true});}
+const mEl=document.getElementById('members');
+M.forEach((m,i)=>{const card=document.createElement('article');card.className='card';mEl.appendChild(card);addCanvas(card,m.draw);
+  const b=document.createElement('div');b.className='body';b.innerHTML=`<div class="top"><h3>${m.name}</h3><span class="num">${i+1}/8 · [${m.slot}]</span></div>
+  <div class="chips"><span class="chip job">${m.job}</span><span class="chip">from round ${m.from}</span><span class="chip">weight ${m.w}</span></div>
+  <p>${m.does}</p><p class="teach">Teaches ${m.teach}</p><p class="stats">${m.stats}</p>`;card.appendChild(b);});
+const io=new IntersectionObserver(es=>es.forEach(e=>{const s=scenes.find(s=>s.cv===e.target);if(s)s.vis=e.isIntersecting;}));scenes.forEach(s=>io.observe(s.cv));
+const still=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function frame(ms){const t=still?1.0:ms/1000;for(const s of scenes){if(!s.vis&&!still)continue;s.g.save();floor(s.g,W,H);try{s.draw(s.g,t);}catch(e){}s.g.restore();}if(!still)requestAnimationFrame(frame);}
+requestAnimationFrame(frame);
+</script>
