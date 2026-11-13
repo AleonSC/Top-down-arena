@@ -17,7 +17,7 @@ namespace Arena
         int shopCat = -1;          // the open category: -1 the two category panels, 0 upgrades (or buildables), 1 services
         int shopCatHover;          // the category panel the arrow keys point at
 
-        static readonly string[] ServiceIcons = { "ricochet", "axe", "regen2", "halo", "ricochet", "compass" };
+        static readonly string[] ServiceIcons = { "ricochet", "axe", "regen2", "halo", "floorkit", "compass" };
         // Service ids: 0-5 as named below, 6-9 the Black Market's buildables (6 + BuildKind).
         static readonly int[] BazaarServices = { 0, 1, 2, 3 }, AllServices = { 0, 1, 2, 3, 4, 5 }, MarketItems = { 6, 7, 8, 9, 2, 3, 1, 5, 4 };
         static readonly string[] ServiceNames = { "Add stock", "Sell upgrade", "Full heal", "Revive token", "Floor kit", "Vector pack" };

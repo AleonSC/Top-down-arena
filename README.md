@@ -901,8 +901,8 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
 - **Gold coins:** every kill drops its gold as coins (5-gold and 1-gold, at most 6; a boss's or an elite's last coin carries the rest). They never despawn, spin and glint on the floor, and drift to the nearest living player within 90 px, who gets the gold.
 - **Vector pickups:** a rare drop that adds vectors (a cyan square that draws its own outline; big ones have an amber ring). A normal kill drops one 1 time in 60 (+6), an elite 1 time in 8 (+12), a boss always (+12). Like coins they never despawn and drift to the nearest living player within 90 px, but only one whose stock isn't full: it waits for you to spend some. The vectors go to whoever collects it, never past their cap.
 - **Gadgets (the Magnet):** a rare drop you carry in your free hand and can **give to a teammate**. A normal kill drops a Magnet 1 time in 90, an elite 1 in 10 (never a boss), while there are fewer than one per player. Walk over it with empty hands to pick it up. **Tap B** to switch it on: every coin and vector pickup on the map flies to you (ahead of anyone else's reach); tap again to switch it off and save the rest. It has **10 s of pull** in all, then it's gone. **Hold B and let go** to throw it where you aim (up to 340 px, a dotted arc shows the landing): a teammate can catch it mid-air or pick it up, with the time it has left. Going down drops it at your feet. A pill under you shows its time and keys.
-- **Vectors**: every player holds a drawing budget (chip under the wave plate, "Vectors 50 / 70"): 1 vector = 1 tile of wall.
-  You start with 50 and can hold 70; each cleared wave gives 8, every 8 kills gives 1, and a cleared boss wave refills
+- **Vectors**: every player holds a drawing budget (chip under the wave plate, "Vectors 40 / 70"): 1 vector = 1 tile of wall.
+  You start with 40 and can hold 70; each cleared wave gives 8, every 8 kills gives 1, and a cleared boss wave refills
   everyone to the cap and adds 20 on top. Two cards raise the cap, in the Expanding arena only: **Deep Inkwell** (uncommon, +20,
   stacks to 4) and the milestone card **Architect** (+40 and 20 vectors now, stacks to 3). The **vendor** also sells a **Vector pack**: +20 vectors for 50 gold, as
   many as you can afford, and it can take you past the cap.
@@ -960,7 +960,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   (the shop's stall or the vendor's pedestal stands in the middle). Sealed rooms don't count towards the 24-room cap and add no enemies; at most 6 wait.
   A chest node is locked until you build a **room** that encloses it (a normal combat room with enemies); a claimed chest node holds a real treasure chest (the same as the rare wave chests): touch it and every
   player gets their own item. It opens once and never holds the wave up (opened ones lie dim with the lid up). No cover stands on a node. Nothing respawns: new ones
-  appear around the current map. Bots build up to the shop room first, then the vendor, then chests, then the mini-boss room (they don't walk to chests' loot).
+  appear around the current map. Bots build up to the shop room first, then the vendor, then a rule node's room, then chest and relic nodes, then the mini-boss room (they don't walk to chests' loot); they vote for a proposal that builds toward these when someone has drawn one.
   Old saves with shop or vendor nodes still work: a room round one becomes that shop.
 - **Relic nodes**: every other boss cycle (the first, third, ...) also places a **relic node** (an amber diamond). Build a room round it and walk up to
   it: **every player** gets its relic in their **relic slot** (one each; a new relic replaces the old, and it stays for the run, saves included). Relics are
@@ -1218,7 +1218,7 @@ you've beaten it anywhere, a **???** until then (on your first Quick Play the Wa
 - **Records:** full rank XP and Cores, bosses count as beaten (unlocks and Boss Hunts), and Quick Play keeps its own plays,
   wins, best wave and bosses beaten (not counted as runs). Falling in endless adds the stretch after the win.
   Every Quick Play shows in **Records > Recent runs** with its graphs: the win or the fall, a Quick Play you quit (no XP),
-  and an endless stretch after the win as its own card ("Quick Play · Endless", its curve from the win on).
+  and an endless stretch after the win as its own card ("Quick Play · Endless", its curve from the win on), fallen or quit.
   Plan: `Docs/QuickPlay.md`.
 
 ## Boss Hunt

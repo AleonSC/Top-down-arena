@@ -7,11 +7,11 @@ namespace Arena
     /// touches it. Its foe is its faction's mini-boss (ExpansionRoom.Mini, FactionMinis.cs; the Gatekeeper is the Data Gates' only).
     /// While a regular wave is on, the first player to walk in starts the duel: the mini-boss wakes in the middle and the room locks
     /// behind whoever is inside (you can't leave until it falls). Beating it gives everyone the vault's prize pick and the room becomes
-    /// an ordinary combat room. An unbeaten duel ends with the wave: the Gatekeeper goes, anyone inside is let out, and it waits for the
-    /// next wave. The duel needs no extra sync: the Gatekeeper is an enemy everyone already sees, and the room's lock is read from it.
+    /// an ordinary combat room. An unbeaten duel ends with the wave: the mini-boss goes, anyone inside is let out, and it waits for the
+    /// next wave. The duel needs no extra sync: the mini-boss is an enemy everyone already sees, and the room's lock is read from it.
     public partial class Game
     {
-        /// An unsealed Gatekeeper room of the Expanding map.
+        /// An unsealed mini-boss room of the Expanding map.
         bool IsDuelRoom(int area)
         {
             if (!ExpandingOn || !RoomsOn)
@@ -20,7 +20,7 @@ namespace Arena
             return area > 0 && area < areas.Length && areas[area].Kind == Arena.RoomKind.Gatekeeper && !areas[area].Sealed;
         }
 
-        /// The Gatekeeper fighting in this room right now (null: no duel).
+        /// The mini-boss fighting in this room right now (null: no duel).
         Enemy DuelBoss(int area)
         {
             if (!IsDuelRoom(area))
@@ -54,7 +54,7 @@ namespace Arena
             return FactionMinis.Is(t) ? t : MiniBossNow();
         }
 
-        /// Host, every frame of a regular wave: wake the Gatekeeper when someone walks in, and settle a duel that was won.
+        /// Host, every frame of a regular wave: wake the mini-boss when someone walks in, and settle a duel that was won.
         void TickDuelRooms()
         {
             if (!ExpandingOn || !RoomsOn || State != MatchState.Fighting)
@@ -126,8 +126,9 @@ namespace Arena
         {
             if (duelBoss.Count == 0 || FactionMinis.Duels(e.Type) || !IsHost || IsDuelAdd(e))
                 return;
+            var areas = CurrentWorld.Areas;
             foreach (var area in duelBoss.Keys)
-                if (CurrentWorld.Areas[area].Contains(e.Pos))
+                if (area < areas.Length && areas[area].Contains(e.Pos))
                 {
                     e.Pos = DuelDoorOutside(area);
                     return;
@@ -146,6 +147,8 @@ namespace Arena
             var areas = CurrentWorld.Areas;
             foreach (var area in ids)
             {
+                if (area >= areas.Length)
+                    continue;  // (the map changed under the duel)
                 var a = areas[area];
                 foreach (var e in new List<Enemy>(Enemies.Values))
                     if (FactionMinis.Duels(e.Type) && a.Contains(e.Disp, 40f))

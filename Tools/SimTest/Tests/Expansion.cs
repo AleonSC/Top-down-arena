@@ -418,6 +418,18 @@ static partial class Program
             int si = g.Expanded.FindIndex(r => r.Floating && r.Kind == RoomKind.Shop);
             var con = si >= 0 ? Expansion.ConnectorFor(g.Expanded, si) : null;
             Check(con.HasValue, "a box can be built up to the shop room");
+            // A bot votes for the box toward the sealed shop when someone proposed it (a duo used to split its votes at random and build nothing).
+            var want = (ExpansionRoom?)typeof(Game).GetMethod("BotFloaterPick", flags).Invoke(g, null);
+            Check(want.HasValue && con.HasValue && want.Value.X == con.Value.X && want.Value.Y == con.Value.Y, "a bot's first pick is the box up to the sealed shop room");
+            if (want.HasValue)
+            {
+                var other = want.Value; other.Owner = 1; other.X -= 1000;
+                var mine = want.Value; mine.Owner = 2;
+                g.ExpandProposals.Add(other); g.ExpandProposals.Add(mine);
+                var botVote = typeof(Game).GetMethod("BotVote", flags);
+                Check(Enumerable.Range(0, 20).All(_ => (int)botVote.Invoke(g, null) == 2), "a bot votes for the proposal that builds toward the shop");
+                g.ExpandProposals.Clear();
+            }
             if (con.HasValue)
             {
                 var open = new List<ExpansionRoom>(g.Expanded) { con.Value };
@@ -840,6 +852,17 @@ static partial class Program
         var intruder = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", flags).Invoke(g, new object[] { EnemyType.Grunt, g.CurrentWorld.Areas[2].Mid + new V2(200f, 0f), 1f, 0, false });
         Run(s, dt, 0.5f, null, NoPicks);
         Check(!g.Enemies.ContainsKey(intruder.Id) || !g.CurrentWorld.Areas[2].Contains(intruder.Pos), "other foes are kept out of a locked duel room");
+
+        // A duel left over from an earlier, bigger map (a restart after a game over) must not break the enemy tick.
+        var duels = (Dictionary<int, int>)typeof(Game).GetField("duelBoss", flags).GetValue(g);
+        duels[99] = -1;
+        var mover = (Enemy)spawnAt.Invoke(g, new object[] { EnemyType.Grunt, new V2(800f, 300f), 0f, 0, false });
+        V2 from = mover.Pos;
+        Exception stale = null;
+        try { Run(s, dt, 0.5f, null, NoPicks); } catch (Exception ex) { stale = ex; }
+        Check(stale == null && (mover.Pos - from).Length > 1f, "a stale duel area past the map's end is skipped, and enemies still move (" + (stale == null ? "ok" : stale.GetType().Name) + ")");
+        duels.Remove(99);
+        mover.Hp = 0f;
 
         // An unbeaten duel ends with the wave: the Gatekeeper goes and you are let out.
         endDuels.Invoke(g, null);

@@ -138,7 +138,7 @@ namespace Arena
         /// Each player's drawing budget: 1 vector = 1 tile of new wall (Expansion.Cost). Start with VectorStart, hold up to VectorCap
         /// (VectorCapBase for now), +VectorWaveGain for each cleared wave, +1 every VectorKillEvery kills, and a cleared boss wave
         /// refills everyone to the cap and VectorBossBonus on top.
-        public const int VectorStart = 50, VectorCapBase = 70, VectorWaveGain = 8, VectorBossBonus = 20, VectorKillEvery = 8;
+        public const int VectorStart = 40, VectorCapBase = 70, VectorWaveGain = 8, VectorBossBonus = 20, VectorKillEvery = 8;
 
         /// Host: gains stop at the cap (a stock already above it, from a boss, is left alone).
         void AddVectors(Player p, int n)
@@ -538,6 +538,7 @@ namespace Arena
         void ResetExpansion()
         {
             RoomTokens.Clear();
+            duelBoss.Clear();  // (GatekeeperRoom.cs: a duel from the last run's map must not outlive it)
             floatCycle = -1;
             Expanded.Clear();
             Nodes.Clear();
@@ -1042,9 +1043,19 @@ namespace Arena
             BroadcastExpansion();
         }
 
-        /// A bot builds toward what matters most: a sealed shop room (or an old save's shop node), then a vendor, then a chest node (a 3-tile strip
-        /// out to it, then a room round it), then the Gatekeeper's room, if it can afford the box. True if it proposed one.
+        /// A bot builds toward what matters most: a sealed shop room (or an old save's shop node), then a vendor, then a rule node, then a chest or relic node
+        /// (a 3-tile strip out to it, then a room round it), then the Gatekeeper's room, if it can afford the box. True if it proposed one.
         bool BotBuildsToFloater()
+        {
+            var pick = BotFloaterPick();
+            if (!pick.HasValue || pick.Value.Price > SpendableVectors(Me))
+                return false;
+            ProposeExpandRoom(pick.Value.X, pick.Value.Y, pick.Value.W, pick.Value.H);
+            return true;
+        }
+
+        /// The next box toward what matters most (BotBuildsToFloater), or null. The same for every bot: they all see the same map.
+        ExpansionRoom? BotFloaterPick()
         {
             ExpansionRoom? pick = null;
             int bestRank = 99;
@@ -1052,7 +1063,7 @@ namespace Arena
             {
                 if (Expansion.NodeClaimed(Expanded, nd))
                     continue;
-                int rank = nd.Kind == NodeKind.Shop ? 0 : nd.Kind == NodeKind.Vendor ? 1 : 2;
+                int rank = nd.Kind == NodeKind.Shop ? 0 : nd.Kind == NodeKind.Vendor ? 1 : nd.Kind == NodeKind.Rule ? 2 : 3;  // (a rule room first: it is the big one, and pays a chest or relic too)
                 if (rank >= bestRank)
                     continue;
                 var hall = Expansion.NodeStep(Expanded, nd);
@@ -1066,7 +1077,7 @@ namespace Arena
             {
                 if (!Expanded[i].Floating || !ExpansionWorld.Areas[i + 1].Sealed)
                     continue;
-                int rank = Expanded[i].Kind == Arena.RoomKind.Shop ? 0 : Expanded[i].Kind == Arena.RoomKind.Vendor ? 1 : 3;
+                int rank = Expanded[i].Kind == Arena.RoomKind.Shop ? 0 : Expanded[i].Kind == Arena.RoomKind.Vendor ? 1 : 4;
                 if (rank >= bestRank)
                     continue;
                 var c = Expansion.ConnectorFor(Expanded, i);
@@ -1076,10 +1087,18 @@ namespace Arena
                     bestRank = rank;
                 }
             }
-            if (!pick.HasValue || pick.Value.Price > SpendableVectors(Me))
-                return false;
-            ProposeExpandRoom(pick.Value.X, pick.Value.Y, pick.Value.W, pick.Value.H);
-            return true;
+            return pick;
+        }
+
+        /// A bot's vote: the proposal that builds toward a shop, vendor or node when one is up (so a duo doesn't split its votes and build nothing), else a random one.
+        int BotVote()
+        {
+            var want = BotFloaterPick();
+            if (want.HasValue)
+                foreach (var q in ExpandProposals)
+                    if (q.Leg == 0 && q.X == want.Value.X && q.Y == want.Value.Y && q.W == want.Value.W && q.H == want.Value.H)
+                        return q.Owner;
+            return rng.Next(10) < 2 ? 0 : ExpandProposals[rng.Next(ExpandProposals.Count)].Owner;
         }
 
         /// Every frame, every game: a bot player draws a room it can afford a moment after the round opens, then votes.
@@ -1122,7 +1141,7 @@ namespace Arena
                 }
             }
             if (botVoteT >= 3f && !ExpandVotes.ContainsKey(MyId) && ExpandProposals.Count > 0)
-                CastExpandVote(rng.Next(10) < 2 ? 0 : ExpandProposals[rng.Next(ExpandProposals.Count)].Owner);
+                CastExpandVote(BotVote());
         }
 
         // --- Saved runs (RunSaves.cs, SaveData.cs) ------------------------------------------------------------------
@@ -1173,6 +1192,7 @@ namespace Arena
                 playerOf[kv.Value] = kv.Key;
             expandSeed = save.ExpandSeed;
             floatCycle = save.FloatCycle;
+            duelBoss.Clear();
             Expanded.Clear();
             foreach (var r in save.Rooms)
             {
