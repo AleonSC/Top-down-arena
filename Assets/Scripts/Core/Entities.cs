@@ -105,6 +105,8 @@ namespace Arena
         KnuckleGrab, KnuckleThrow,
         // A punch connecting (ArcKnucklesSoundBank.cs; sent with FxKind.KnuckleHit): a light knock, a heavy one.
         KnuckleImpact, KnuckleImpactHeavy,
+        // The Shuriken's Great Star (NinjaSoundBank.cs; GreatStar.cs): the throw, the catch. Sent.
+        GreatStarThrow, GreatStarCatch,
     }
 
     public struct SoundCue

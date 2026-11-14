@@ -230,7 +230,7 @@ namespace Arena
                 w.Write(q);
             session.Broadcast(Proto.End(w));
             p.Aim = dir.Angle;
-            BroadcastFx(FxKind.Ring, p.Pos, GreatStarInk, 34f, 0.22f, Sfx.SwingHeavy);
+            BroadcastFx(FxKind.Ring, p.Pos, GreatStarInk, 34f, 0.22f, Sfx.GreatStarThrow);
         }
 
         /// Every game, every tick before bullets move (PrepareNinjaBullets): each Great Star follows its route, then flies home. The
@@ -321,7 +321,7 @@ namespace Arena
                     KillBullet(b.Id);
                     starGone.Add(kv.Key);
                     p.StarCatchCd = GreatStarCatchCd;
-                    BroadcastFx(FxKind.Ring, p.Pos, GreatStarInk, 22f, 0.18f, Sfx.SwingLight);
+                    BroadcastFx(FxKind.Ring, p.Pos, GreatStarInk, 22f, 0.18f, Sfx.GreatStarCatch);
                     continue;
                 }
                 b.Vel = home / dist * Math.Min(GreatStarBackSpeed * fast, dist / dt);

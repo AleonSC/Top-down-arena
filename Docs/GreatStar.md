@@ -18,8 +18,8 @@ Concepts A (Swipe & Bend) and C (Wind-up & Flick) are in the same mockup and wer
   the throw (`Msg.StarThrow` guest -> host with the points; host -> all with bullet id, owner and points), the flight on every game
   (`TickGreatStars`; Msg.Steer keeps clients in step).
 - `Game/GreatStarLook.cs`: the held star, the ink route and ink bar, the thrown star and its trail.
+- Sounds: `Sfx.GreatStarThrow` (a rush, a steel shing, a fading whirr) and `Sfx.GreatStarCatch` (a steel clack and short ring), in `Game/NinjaSoundBank.cs`.
 - Test: `Tools/SimTest/Tests/GreatStar.cs` (suite `fourmore`). Preview: `GREATSTAR=held|draw|fly NINJA=0 Tools/Preview/shot.sh x hud 2`.
 
 ## Not done
 - Bots never use the Great Star (they stay on the fan).
-- No sounds of its own yet (the throw and catch use the light and heavy swing sounds).

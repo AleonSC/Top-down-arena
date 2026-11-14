@@ -3,7 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
-- 347: the Shuriken's Great Star stance: `Msg.StarThrow` (client -> host: count + route points; host -> all: bullet id, owner, count, points), `Player.StarStance` in the player snapshot (before `FumaStance`), bullet kind `Defs.GreatStar` = 67
+- 347: the Shuriken's Great Star stance: `Msg.StarThrow` (client -> host: count + route points; host -> all: bullet id, owner, count, points), `Player.StarStance` in the player snapshot (before `FumaStance`), bullet kind `Defs.GreatStar` = 67, `Sfx.GreatStarThrow`/`GreatStarCatch` at the end
 - 346: enemy variants: `SyncEnemy` sends `Enemy.Variant` (a byte, after the daze flag; EnemyVariants.cs)
 - 345: the DPS Knight's Misericorde became Bladed Dive: FxKind MercyLeap/MercyKill/MercyEnd are now DiveRush/DiveHit/DiveReset with new fields
 - 344: the riot Guard (`EnemyType.Guard`) now sends `SyncLarder` (its baton swing: `LarderStage` 1-4, `LarderT`)
