@@ -255,9 +255,26 @@ static partial class Shot {
       var spawn = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
       for (int i = 0; i < 5; i++) {
         var at = new V2(800f + (i - 2) * 105f, 410f);
-        var en = (Enemy)spawn.Invoke(gm, new object[] { i == 0 ? EnemyType.Guard : EnemyType.SecurityGuard, at, 0f, 0, false });
+        bool tz = Environment.GetEnvironmentVariable("SECSHIRT") == "2" && i > 0;  // SECSHIRT=2: Taser Guards instead (idle, charging)
+        if (Environment.GetEnvironmentVariable("SECSHIRT") == "4" && i > 0) {  // SECSHIRT=4: Gas Grenadiers walking, then winding up and throwing a lob
+          var gg = (Enemy)spawn.Invoke(gm, new object[] { EnemyType.GasGrenadier, at, 0f, 0, false });
+          gg.SpawnT = 0f; gg.Pos = gg.Disp = at; gg.Facing = (me.Pos - at).Angle + (i <= 2 ? (i - 1.5f) * 0.6f : 0f);
+          if (i >= 3)  // winding up its lob, then mid-throw
+            gm.Effects.Add(new Effect { Kind = FxKind.GasLob, Pos = me.Pos + new V2((i - 3.5f) * 120f, 0f), Pos2 = new V2(gg.Id, 1f), Color = new Rgba(0.6f, 0.95f, 0.4f), Radius = 70f,
+              Dur = Game.GrenadierWindUp + Game.GrenadierSwing + 1f, T = i == 3 ? 0.6f : Game.GrenadierWindUp + Game.GrenadierSwing * 0.6f });
+          continue;
+        }
+        if (Environment.GetEnvironmentVariable("SECSHIRT") == "3" && i > 0) {  // SECSHIRT=3: Riot Shields instead (walking, winding up, cracked, broken)
+          var rs = (Enemy)spawn.Invoke(gm, new object[] { EnemyType.RiotShield, at, 0f, 0, false });
+          rs.SpawnT = 0f; rs.Pos = rs.Disp = at; rs.Facing = (me.Pos - at).Angle;
+          var stc = new[] { 0, Game.RiotWalk << 3, Game.RiotWinding << 3, Game.RiotWalk << 3 | 3, Game.RiotFlail << 3 | Game.RiotCracked };
+          rs.Phase = (byte)stc[i];
+          continue;
+        }
+        var en = (Enemy)spawn.Invoke(gm, new object[] { i == 0 ? EnemyType.Guard : tz ? EnemyType.TaserGuard : EnemyType.SecurityGuard, at, 0f, 0, false });
         en.SpawnT = 0f; en.Pos = en.Disp = at; en.Facing = (me.Pos - at).Angle;
-        if (i > 0) { en.Phase = en.SeenPhase = (byte)(i == 4 ? 0 : 7 - i); en.SeenT = i == 3 ? 0.06f : i == 4 ? 1.1f : 2f; en.Winding = i == 2; }
+        if (tz) en.Winding = i >= 3;
+        else if (i > 0) { en.Phase = en.SeenPhase = (byte)(i == 4 ? 0 : 7 - i); en.SeenT = i == 3 ? 0.06f : i == 4 ? 1.1f : 2f; en.Winding = i == 2; }
       }
     }
     if (Environment.GetEnvironmentVariable("RIOTLINE") != null) {

@@ -481,17 +481,32 @@ namespace Arena
 
         /// A Riot Shield: a guard's visor behind a tall slab of a shield. The shield cracks as it wears (Phase's low bits),
         /// flashes as it winds up a bash, glows through the lunge and is held low after it; once broken, a flailing baton.
+        /// The Riot Shield's body under its shield: a prison officer like the Guard (OfficerTorso) in steel-blue riot fatigues
+        /// with a white band across its back, and a riot helmet (a dark dome, a pale visor across the front) in place of the cap.
+        void DrawRiotShieldBody(Enemy e, V2 pos, float r, float t)
+        {
+            V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
+            OfficerTorso(pos, r * 0.85f, e.Facing, new Rgba(0.3f, 0.4f, 0.62f));
+            V2 back = pos - f * (r * 0.58f);
+            Line(back - side * (r * 0.48f), back + side * (r * 0.48f), 3f, new Rgba(0.95f, 0.95f, 0.88f, 0.9f));  // the back band
+            Circle(pos, r * 0.55f + 1.5f, GuardInk, 14);
+            Circle(pos, r * 0.55f, new Rgba(0.12f, 0.14f, 0.2f), 14);                                       // the helmet
+            Arc(pos, r * 0.45f, 3f, new Rgba(0.65f, 0.85f, 1f, 0.85f), 10, e.Facing - 1.0f, 2.0f);          // its visor
+            Arc(pos, r * 0.45f, 1.1f, new Rgba(1f, 1f, 1f, 0.8f), 6, e.Facing - 0.75f, 0.55f);               // and the gloss
+            if (e.Flash > 0f || JuiceFlash(e))  // a hit flashes the uniform white, softer under steady fire (Juice.cs)
+                Ellipse(pos, r * 0.9f, r * 0.95f, e.Facing, Rgba.White.WithAlpha(0.8f * HitFlashMix(e)), 16);
+        }
+
         void DrawRiotShield(Enemy e, V2 pos, float r, float t)
         {
             V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
             byte st = Game.RiotState(e), crack = Game.RiotCrack(e);
-            Line(pos + f * (r * 0.1f) - side * (r * 0.5f), pos + f * (r * 0.1f) + side * (r * 0.5f), 3f, new Rgba(0.75f, 0.9f, 1f, 0.9f));  // visor
             if (crack >= Game.RiotCracked)
             {
                 // Shield gone: a baton flailing fast.
                 V2 grip = pos + side * (r * 0.8f), tip = grip + V2.FromAngle(e.Facing + 0.9f * Mathf.Sin(t * 18f + e.Id)) * (r + 12f);
-                Line(grip, tip, 4f, new Rgba(0.12f, 0.14f, 0.22f));
-                Circle(tip, 2.5f, new Rgba(0.6f, 0.65f, 0.75f), 6);
+                GuardStick(grip, tip, 3.6f, GuardBaton);
+                Circle(tip, 2f, new Rgba(0.4f, 0.42f, 0.5f), 6);
                 if (st == Game.RiotStaggered)  // stars round its head
                     for (int k = 0; k < 3; k++)
                         Circle(pos + V2.FromAngle(t * 6f + k * MathX.Tau / 3f) * (r * 0.7f) + new V2(0f, -r * 0.4f), 2f, new Rgba(1f, 0.95f, 0.6f, 0.9f), 6);
@@ -526,6 +541,26 @@ namespace Arena
         }
 
         /// A Gas Grenadier: a gas mask (two round lenses and a filter) and a canister in hand.
+        /// The Gas Grenadier's body under its mask: a prison officer like the Guard (OfficerTorso) in olive drab, a bandolier
+        /// of green gas canisters across its chest, and the black rubber hood the mask's lenses and filter sit on.
+        void DrawGrenadierBody(Enemy e, V2 pos, float r, float t)
+        {
+            V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
+            OfficerTorso(pos, r * 0.92f, e.Facing, new Rgba(0.52f, 0.58f, 0.36f));
+            V2 b0 = pos - side * (r * 0.85f) - f * (r * 0.55f), b1 = pos + side * (r * 0.85f) + f * (r * 0.55f);
+            Line(b0, b1, 3.6f, new Rgba(0.45f, 0.33f, 0.18f));  // the bandolier, shoulder to hip
+            for (int k = -1; k <= 1; k += 2)
+            {
+                V2 c = pos + (b1 - pos) * (0.62f * k);
+                Circle(c, 2.9f, GuardInk, 8);
+                Circle(c, 2.1f, new Rgba(0.7f, 0.95f, 0.45f), 8);  // a canister on it
+            }
+            Circle(pos, r * 0.6f + 1.5f, GuardInk, 14);
+            Circle(pos, r * 0.6f, new Rgba(0.4f, 0.43f, 0.4f), 14);  // the rubber hood
+            if (e.Flash > 0f || JuiceFlash(e))  // a hit flashes the uniform white, softer under steady fire (Juice.cs)
+                Ellipse(pos, r * 0.97f, r * 1.03f, e.Facing, Rgba.White.WithAlpha(0.8f * HitFlashMix(e)), 16);
+        }
+
         void DrawGrenadier(Enemy e, V2 pos, float r, float t)
         {
             if (DrawGrenadierLob(e, pos, r, t))
