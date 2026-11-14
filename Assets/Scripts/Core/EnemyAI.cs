@@ -712,8 +712,8 @@ namespace Arena
             float want = (tpos - e.Pos).Angle;
             if (e.Type == EnemyType.HiveBomber)
                 return;  // committed to the flight line (a lunger's leap, a Charger's dash, a Spike Block's lunge: their brains)
-            if (PulsarLocked(e) || HelioLocked(e) || GnomonLocked(e) || e.Type == EnemyType.Moonward)
-                return;  // its beams' line (Infall.cs)
+            if (HelioLocked(e) || GnomonLocked(e) || e.Type == EnemyType.Moonward)
+                return;  // its beams' line (Penumbral.cs; a Pulsar's: its brain)
             if (LarderFaceLocked(e))
                 return;  // a Butcher's chop, a Gulper's cone (LarderFaction.cs)
             if (e.Type == EnemyType.Grounder)
@@ -723,11 +723,6 @@ namespace Arena
             }
             if (e.Type == EnemyType.Pylon)
                 return;  // (a post: it has no front)
-            if (e.Type == EnemyType.Lens)
-            {
-                LensFace(e, want, dt);  // turns slowly, so you can get round its face (Infall.cs)
-                return;
-            }
             var brain = BrainOf(e.Type);
             if (brain != null && brain.Move != null && brain.Move.Turn(this, e, want, tpos, dt))
                 return;  // its own turning, e.g. a shield bearer's (Brain.cs)
@@ -787,8 +782,6 @@ namespace Arena
                 return true;  // the more-hurt Twin Reaper, until the other catches up
             if (LichImmune(e))
                 return true;  // its phylacteries stand, it's blinking between graves, or it's changing stage (Lich.cs)
-            if (LensFaces(e, from))
-                return true;  // a Lens's face (Infall.cs)
             if (GrounderFaces(e, from))
                 return true;  // a Grounder's shield (Squall.cs)
             var brain = BrainOf(e.Type);
@@ -887,8 +880,6 @@ namespace Arena
                     v = dir;  // straight at you, on the surface or under it (LarderFaction.cs)
                 if (IsLateGame(e.Type))
                     v = LateMove(e, tpos, dir, dist, dt, ref speed);
-                if (IsInfall(e.Type))
-                    v = InfallMove(e, tpos, dir, dist, dt, ref speed);  // Infall.cs
                 if (IsPenumbral(e.Type))
                     v = PenumbralMove(e, tpos, dir, dist, dt, ref speed);  // Penumbral.cs
                 if (IsSquall(e.Type))
@@ -1002,12 +993,6 @@ namespace Arena
                 case EnemyType.Thunderhead:
                     SquallSpecial(e, tpos, dt);  // Squall.cs
                     break;
-                case EnemyType.Pulsar:
-                case EnemyType.MiniWell:
-                case EnemyType.Implosion:
-                case EnemyType.WhiteDwarf:
-                    InfallSpecial(e, tpos, dt);  // Infall.cs
-                    break;
                 case EnemyType.Ember:
                 case EnemyType.Heliograph:
                 case EnemyType.Moonward:
@@ -1046,8 +1031,6 @@ namespace Arena
                 brain.Fire.Fire(this, e, tpos, aim);  // Brain.cs
                 return;
             }
-            if (InfallFire(e, tpos, aim))
-                return;  // Infall.cs
             if (PenumbralFire(e, tpos, aim))
                 return;  // Penumbral.cs
             if (SquallFire(e, tpos, aim))

@@ -298,6 +298,10 @@ method, so a new enemy can reuse any of them.
   - Reaper cult (in `Core/ReaperFaction.cs`): Bound Wraith, Lamplighter, Mourner. `ReaperCultMove` and
     `ReaperCultFire` split per enemy; `ReaperCultSpecial` became `BoundChannel` and `MournerClock`. (The Shade goes
     with the late-game enemies, 8f.) `aitrace` identical; `reapercult` passes.
+  - Infall (in `Core/Infall.cs`): Debris, Void Acolyte, Pulsar, Graviton, Orbiter, Collapsar, Small Well,
+    Implosion, Lens, White Dwarf. `InfallMove`/`InfallFire` split per enemy; `InfallSpecial` became `WellClose(burst)`
+    and `PulsarSpecial` (the White Dwarf's was already its own). The Lens's slow turn and face are `LensMove` and
+    `LensGuard`; the Pulsar's locked beams its move's lock. `aitrace` identical; `infall` passes.
 
 ## Risks
 

@@ -117,6 +117,7 @@ namespace Arena
             VarietyBrains(t); // step 8b (VarietyBrains.cs)
             NonShooterBrains(t);  // step 8c (NonShooters.cs)
             ReaperCultBrains(t);  // step 8d (ReaperFaction.cs)
+            InfallBrains(t);      // step 8d (Infall.cs)
             return t;
         }
     }
