@@ -83,6 +83,8 @@ namespace Arena
         }
 
         /// Under the body: the spore haze, frenzy streaks, the Crawler's hold, and (with effects on) green drips.
+        const float ZombieDripCrowd = 30f;
+
         void DrawZombieUnder(Enemy e, V2 pos, float r, float t)
         {
             var col = e.Def.Color;
@@ -91,7 +93,7 @@ namespace Arena
                 float pulse = 0.5f + 0.5f * Mathf.Sin(t * 2f + e.Id);
                 Circle(pos, r * 1.7f, col.WithAlpha(0.05f + 0.03f * pulse), 18);
                 Circle(pos, r * 1.3f, col.WithAlpha(0.07f + 0.03f * pulse), 16);
-                float rate = e.Type == EnemyType.Runner ? 22f : 6f;
+                float rate = (e.Type == EnemyType.Runner ? 22f : 6f) * Mathf.Min(1f, ZombieDripCrowd / Mathf.Max(1f, game.Enemies.Count));  // (a breach flood: about as many drips in all, fewer each, so the particle pool stays in budget)
                 if (!game.IsSpawning(e) && Rnd(0f, 1f) < ViewDt * rate)
                     Sparks(pos - V2.FromAngle(e.Facing) * (r * 0.6f), col, 1, 16f, e.Type == EnemyType.Runner ? 0.5f : 0.9f, e.Type == EnemyType.Runner ? 2.2f : 2f);
             }

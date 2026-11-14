@@ -357,6 +357,13 @@ namespace Arena
                     bool deathless = r.ReadBoolean();
                     int recorded = r.ReadInt32();  // (best wave, Recent runs and the curve; Rank XP keeps counting the track's waves)
                     int found = Math.Max(0, r.ReadInt32());
+                    if (SurvivalOn)
+                    {
+                        if (me == null || dev || botTouched)
+                            return;
+                        SurvivalRecord(me, found);  // SurvivalGame.cs
+                        return;
+                    }
                     if (Quick)
                     {
                         if (me == null || dev || botTouched)

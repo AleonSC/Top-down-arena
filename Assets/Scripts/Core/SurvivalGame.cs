@@ -19,6 +19,10 @@ namespace Arena
         public bool SurvStarted;
         /// The world is held for a pick: enemies and every shot stand still (WorldRate).
         public bool SurvFrozen => SurvivalOn && SurvStarted && State == MatchState.Intermission;
+        /// The faction phase the clock is in (0: the basic faction alone).
+        public int SurvPhase => Survival.PhaseAt(SurvTime);
+        /// 5:12 for 312 seconds.
+        public static string SurvClock(float t) { int s = (int)Math.Max(0f, t); return s / 60 + ":" + (s % 60).ToString("00"); }
         int survSeed;
         string survSquad;
         V2 survSquadPos;
@@ -38,6 +42,27 @@ namespace Arena
             Surv = null;
             SurvStarted = false;
             SurvTime = 0f;
+        }
+
+        /// A Survival run ended (on every machine, for the local player): its records, XP for the waves of clock, a Recent runs card.
+        void SurvivalRecord(Player me, int found)
+        {
+            if (runRecorded)
+                return;
+            runRecorded = true;
+            float time = SurvTime;
+            int wave = Survival.WaveAt(time);
+            AddUnlockToasts(Profile.SurvivalEnded(Arena.Profile.ClassKey(me.Role, me.Kit), time, SurvPhase + 1));
+            LastGain = Profile.AwardXp(Rank.Award(false, Math.Max(0, wave - 1), 0, me.Run.Revives, Mods, Diff.Level), wave, 0);
+            PayCores(Variants.RunCores(false, 0, false), found);
+            var logged = Profile.Recent[0];
+            logged.Class = Arena.Profile.ClassKey(me.Role, me.Kit);
+            logged.Mode = "Survival";
+            logged.Seconds = time;
+            logged.Dealt = me.Run.DamageDealt; logged.Taken = me.Run.DamageTaken; logged.Heal = me.Run.HealingDone;
+            logged.Players = Players.Count;
+            logged.File = FinishTimeline(false, wave, false, time, logged.Class, logged.Mods, logged.Mode);  // RunTimeline.cs
+            SaveProfile();
         }
 
         /// Host: the countdown ended: the clock starts. Wave 1 scaling to begin with (the wave number follows the clock).

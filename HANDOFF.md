@@ -113,6 +113,8 @@ special, fire and shield, plus role flags. Add a line to its family's `...Brains
 `Core/ShootBrains.cs`), reusing parts or wiring a new method with `CodeMove`/`CodeSpecial`/`CodeFire`; looks stay in
 `Game/*Look.cs`. `Tools/SimTest/run.sh 1 1 aitrace` fails until it has one; then `AITRACE=update` adds its line to
 `Golden/aitrace.txt`.
+The owner designs new enemies in **Enemy Forge** (`Tools/EnemyForge`, Docs/EnemyForge.md) and pastes its brief: a
+Markdown summary, an `EnemyDef` draft and the JSON spec, with a "plays like" enemy to start the brain from.
 
 ### Adding a screen or a menu row
 
@@ -196,7 +198,7 @@ The lobby fits about 8 class cards in a row before they get too small.
     **A new suite whose tests aren't in `FeatureTests` goes in `CiExtras`.** `TIMES=1 run.sh ...` prints each test's time.
   - Single systems: `parry`, `aim`, `extra`, `knight`, `ninja`, `blood`, `paths`, `bazaar`, `practice`, `bosses`,
     `warden`, `singularity`, `mastery`, `longrun` (the 100-wave Campaign), `bossschedule` (the boss schedules match the old formulas), `quickfights` (Quick Play boss fights with bots: each boss's fight length after waves 10/20/30), `quick` (Quick Play: its waves, boss, records, endless, room building with two bots, the tutorial; prints each boss's health after waves 10/20/30), `bossgate` (the boss gate before a boss: holds the wave until everyone is in, bots walk in; the only suite with `Game.GatesOn`), `wardencycle` (its Warden wave lessons), `reapercult` (the Twin Reapers' faction: Bound Wraiths, Scythe Wraith, Lamplighter, Mourner), `checkpoints` (lives and retries), `classcards`, `showcase`, `ults`, `mods`, `cardids` (card ids over the network as 2 bytes), `offers` (every card offer reads the weapon), `cardfilters` (class and weapon-list cards), `classcardlists` (each class's card list), `hitfx` (hit flash and blast thinning), `nonshooters` (Fuse Runner, Hookman, Sapper), `aitrace` (every non-boss enemy alone for 12 s vs `Golden/aitrace.txt`, the enemy behaviour refactor's safety net, Docs/EnemyBehaviours.md; `AITRACE=update` rewrites it), ... Reports (numbers, no pass/fail):
-    `ttk`, `lab`, `levels`, `bulletcount`, `wavemix` (each wave's share of shooters, melee and support), `dps`, `ultdps`, `balance` (each damage upgrade's worth per pick and full
+    `ttk`, `lab`, `levels`, `bulletcount`, `perf` (sim ms a frame, host and friend, through a Quick Play breach wave: `run.sh 1 1 perf [secs] [boss] [wave]`), `wavemix` (each wave's share of shooters, melee and support), `dps`, `ultdps`, `balance` (each damage upgrade's worth per pick and full
     stack in a boss, pack and spread fight; see `Docs/UpgradeBalance.md`), `upgradecov` (which weapon upgrades each
     weapon ignores, and each upgrade's damage gain), `laserdebug`. A new test: add it to its system's file, then to
     the `Suites` table (and to `FeatureTests` if it belongs in the feature suite, otherwise to `CiExtras`).
@@ -238,6 +240,11 @@ The lobby fits about 8 class cards in a row before they get too small.
   combination of the listed env-flag values (or `WAVE`/`SECS`/`PLAYERS`) in parallel and lays them out as a labelled
   grid, `Tools/Preview/out/<name>.png`. Values split on `|` when they hold commas (`MOUSE=100,200|300,400`). `CROP=x,y,w,h`
   zooms on a part of the screen, `SCALE`, `COLS`. Use it to offer the owner looks to choose from.
+- **Draw cost (lag):** `PERFRUN=70[,boss] PERFIDLE=50 Tools/Preview/shot.sh <name> hud 7 1 2` (`ShotPerf.cs`) plays a Quick
+  Play breach wave (default the Twin Reapers' cult, two rooms built) with the bots standing still `PERFIDLE` s so a crowd
+  builds, drawing every frame; every 2 s it prints enemies, particles, GL vertices a frame and draw ms, plus the top
+  vertex sources of one traced frame (`GL.Trace` in `Stubs.cs`). Unity's GL immediate mode pays per vertex, so the
+  vertex count is what to cut (`OffScreen`, `SegsFor` in `WorldRenderer.cs`; `PartCrowd` in `Juice.cs`).
 - **GIF clips:** `Tools/Preview/clip.sh <name> <mode> [wave secs players]` keeps the match running after the shot
   (`CLIP=<frames>` in `ShotClip.cs`; `FRAMES=30`, `CLIPSTEP=3` fixed steps a frame = 20 fps, `CLIPHURT=1`), or with
   `VAR=from:to:step` draws one frame per value of a scene's time flag (`CASTT`, `THRUST`, `KDT`, ...). Writes

@@ -12,7 +12,7 @@ namespace Arena
         static readonly Color ModColor = new Color(0.85f, 0.45f, 0.95f);
 
         int lobbyTab;              // 0 = your loadout (its own key), 1 = practice waves, 2 = modifiers, 3 = difficulty, 4 = boss hunt, 5 = perks (from the loadout), 6 = hangout
-        bool lobbyWasPractice, lobbyWasHunt, lobbyWasQuick;
+        bool lobbyWasPractice, lobbyWasHunt, lobbyWasQuick, lobbyWasSurvival;
         bool connInfoOpen;         // the "!" popup by the title: hosting/port and the invite addresses
         readonly Player previewPlayer = new Player { Id = -100 };
 
@@ -71,6 +71,14 @@ namespace Arena
                 tabRest = 0;
             }
             if (!quick && lobbyTab == QuickTab)
+                lobbyTab = 0;
+            bool survival = session.SurvivalMode && !practice && !hunt && session.Resume == null;
+            if (survival != lobbyWasSurvival)
+            {
+                lobbyWasSurvival = survival;
+                tabRest = 0;
+            }
+            if (!survival && lobbyTab == SurvivalTab)
                 lobbyTab = 0;
             // The big boxes wear the shown role's colour (the bot's while the host is choosing its loadout), easing to a new role over about 0.7 s.
             LobbyEntry washFor = me;
@@ -158,6 +166,8 @@ namespace Arena
                 DrawHuntPicker(body, t);  // HuntUi.cs
             else if (lobbyTab == QuickTab && session.QuickMode && !practice && session.Resume == null)
                 DrawQuickPlayTab(body, t);  // QuickPlayUi.cs
+            else if (lobbyTab == SurvivalTab && survival)
+                DrawSurvivalTab(body, t);  // SurvivalUi.cs
             else if (lobbyTab == 2)
                 DrawModifiers(body, t);
             else if (lobbyTab == 3)
@@ -211,25 +221,25 @@ namespace Arena
             return session.Lobby.TryGetValue(1, out host) ? host.Name : "the host";
         }
 
-        // The mode carousel's turn: modeTurn is the mode on top (unwrapped, mode = modeTurn mod 4), modeTurnPos eases toward it.
-        // Modes: 0 Quick Play (QuickPlay.cs), 1 Campaign, 2 Boss Hunt, 3 Practice.
+        // The mode carousel's turn: modeTurn is the mode on top (unwrapped, mode = modeTurn mod 5), modeTurnPos eases toward it.
+        // Modes: 0 Quick Play (QuickPlay.cs), 1 Campaign, 2 Boss Hunt, 3 Practice, 4 Survival (Survival.cs).
         int modeTurn;
         float modeTurnPos;
         bool modeTurnSet;
 
-        static string ModeTitle(int i) => i == 0 ? "QUICK PLAY" : i == 1 ? "CAMPAIGN" : i == 2 ? "BOSS HUNT" : "PRACTICE";
-        static string ModeSub(int i) => i == 0 ? "10 waves, then a random boss" : i == 1 ? "100 waves, build as you go" : i == 2 ? "10 waves to one boss" : "Build your own waves, or train a mechanic";
-        static Color? ModeAccent(int i) => i == 0 ? new Color(1f, 0.82f, 0.4f) : i == 2 ? new Color(1f, 0.62f, 0.58f) : i == 3 ? new Color(0.37f, 0.94f, 1f) : (Color?)null;
+        static string ModeTitle(int i) => i == 0 ? "QUICK PLAY" : i == 1 ? "CAMPAIGN" : i == 2 ? "BOSS HUNT" : i == 3 ? "PRACTICE" : "SURVIVAL";
+        static string ModeSub(int i) => i == 0 ? "10 waves, then a random boss" : i == 1 ? "100 waves, build as you go" : i == 2 ? "10 waves to one boss" : i == 3 ? "Build your own waves, or train a mechanic" : "One clock, no waves, no end";
+        static Color? ModeAccent(int i) => i == 0 ? new Color(1f, 0.82f, 0.4f) : i == 2 ? new Color(1f, 0.62f, 0.58f) : i == 3 ? new Color(0.37f, 0.94f, 1f) : i == 4 ? new Color(0.55f, 0.95f, 0.6f) : (Color?)null;
 
         /// The mode carousel (like the Wildcard's class wheel): the mode in play big in the middle with its line under it, the other
         /// two smaller and faded either side, and arrows at the ends. Arrows, the mouse wheel or a click on a side mode turn it;
         /// only the host can.
         void DrawModeSwitch(Rect r, float t)
         {
-            const int n = 4;
+            const int n = 5;
             bool calm = fxReduced, host = session.IsHost;
             var ev = Event.current;
-            int mode = session.PracticeMode ? 3 : session.HuntMode ? 2 : session.QuickMode ? 0 : 1;
+            int mode = session.PracticeMode ? 3 : session.HuntMode ? 2 : session.SurvivalMode ? 4 : session.QuickMode ? 0 : 1;
             int d0 = ((mode - modeTurn) % n + n) % n;  // follow the session the short way round (the host's turn, or someone else's)
             if (!modeTurnSet)
             {
@@ -309,7 +319,7 @@ namespace Arena
                 int m = ((turnTo % n) + n) % n;
                 modeTurn = turnTo;
                 if (m != mode)
-                    session.SetMode(m == 3, m == 2, m == 0);
+                    session.SetMode(m == 3, m == 2, m == 0, m == 4);
             }
         }
 
@@ -321,8 +331,9 @@ namespace Arena
             // Indexed by tab id (0 loadout and 5 perks: not in the carousel; 1 practice, 2 modifiers, 3 difficulty, 4 boss hunt, 5 perks, 6 hangout, 7 training, 8 quick play); null = not shown.
             string[] names = { null, practice ? "Practice  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers",
                 "Difficulty", hunt ? "Boss hunt" : null, null, null, practice ? "Training" : null,
-                session.QuickMode && !practice && !hunt && session.Resume == null ? "Quick Play" : null };  // Hangout has its own key on the Party line
-            int[] order = { 4, QuickTab, 1, TrainingTab, 3, 2 };  // the mode's own first, then Difficulty and Modifiers (Loadout and Perks have keys)
+                session.QuickMode && !practice && !hunt && session.Resume == null ? "Quick Play" : null,
+                session.SurvivalMode && !practice && !hunt && session.Resume == null ? "Survival" : null };  // Hangout has its own key on the Party line
+            int[] order = { 4, QuickTab, SurvivalTab, 1, TrainingTab, 3, 2 };  // the mode's own first, then Difficulty and Modifiers (Loadout and Perks have keys)
             // A carousel (like the mode carousel above the party): the open tab in the middle, the others in order either side,
             // smaller and fading toward the ends; the arrows, the mouse wheel or a click on a tab slide it.
             var shown = new System.Collections.Generic.List<int>();

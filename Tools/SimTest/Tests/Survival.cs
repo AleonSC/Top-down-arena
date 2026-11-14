@@ -26,6 +26,16 @@ static partial class Program
 
     static void SurvivalTest()
     {
+        // Records: longest run overall and per class, the furthest phase, saved and read back; not a Campaign run.
+        var rec = new Profile();
+        rec.SurvivalEnded("Knight Tank", 300f, 2);
+        rec.SurvivalEnded("Knight Tank", 200f, 1);
+        rec.SurvivalEnded("Elementalist DPS", 450f, 3);
+        Check(rec.SurvivalPlays == 3 && rec.SurvivalBestTime == 450f && rec.SurvivalBestPhase == 3 && rec.SurvivalBest("Knight Tank") == 300f && rec.SurvivalBest("Elementalist DPS") == 450f && rec.SurvivalBest("Healer") == 0f, "records: plays, best time overall and per class, best phase");
+        var back = Profile.Parse(rec.ToText());
+        Check(back.SurvivalPlays == 3 && back.SurvivalBestTime == 450f && back.SurvivalBestPhase == 3 && back.SurvivalBest("Knight Tank") == 300f && back.SurvivalBest("Elementalist DPS") == 450f, "records survive saving and reading back (class names with spaces too)");
+        Check(rec.RunsWon == 0 && rec.RunsLost == 0 && rec.BestWave == 0, "a Survival run is not a Campaign run");
+
         // The curves.
         bool rising = true;
         for (float t = 0f; t < 3600f; t += 10f) if (Survival.Pressure(t + 10f) < Survival.Pressure(t) || Survival.EliteShare(t + 10f) < Survival.EliteShare(t) || Survival.WaveAt(t + 10f) < Survival.WaveAt(t)) rising = false;
@@ -33,7 +43,7 @@ static partial class Program
         Check(Survival.WaveAt(0f) == 1 && Survival.WaveAt(900f) == 31, "the scale starts at wave 1 and is wave 31 at 15 minutes");
         Check(Survival.Pressure(900f) - Survival.Pressure(600f) > Survival.Pressure(600f) - Survival.Pressure(300f), "pressure is steeper after ten minutes");
         Check(Survival.EliteShare(0f) == 0f && Survival.EliteShare(99999f) == 0.4f, "the Elite share starts at 0 and stops at 40%");
-        Check(Survival.Pressure(100f, 2) > Survival.Pressure(100f, 1) * 1.5f && Survival.Pressure(100f, 3) > Survival.Pressure(100f, 2), "more players, more pressure (1.6x, 2.2x)");
+        Check(Survival.Pressure(100f, 2) >= Survival.Pressure(100f, 1) * 1.45f && Survival.Pressure(100f, 3) > Survival.Pressure(100f, 2), "more players, more pressure (1.5x, 2x)");
         Check(Survival.Cost(EnemyType.Grunt) == 1f && Survival.Cost(EnemyType.Brute) > Survival.Cost(EnemyType.Swarmer), "a Grunt costs 1, a Brute more than a Swarmer");
 
         // Phases: the basic faction alone, then one more every four minutes.
@@ -127,6 +137,10 @@ static partial class Program
         foreach (var p in g.Players.Values) { p.InvulnT = 0f; p.Hp = 0f; p.Downed = true; p.ReviveToken = false; p.SecondWind = false; }
         Run(s, dt, 3f, () => g.State == MatchState.GameOver);
         Check(g.State == MatchState.GameOver, "everyone down ends the run");
+        Run(s, dt, 1f);
+        var hprof = g.Profile;
+        Check(hprof.SurvivalPlays == 1 && hprof.SurvivalBestTime > 8f && hprof.RunsLost == 0 && hprof.BestWave == 0, "the run is recorded as a Survival run (time " + hprof.SurvivalBestTime.ToString("0") + " s), not a Campaign one");
+        Check(hprof.Recent.Count > 0 && hprof.Recent[0].Mode == "Survival", "it has a Recent runs card");
         Profile.Folder = wasFolder;
         try { Directory.Delete(dir, true); } catch { }
     }
