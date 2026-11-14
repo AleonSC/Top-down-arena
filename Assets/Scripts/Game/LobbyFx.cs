@@ -150,29 +150,42 @@ namespace Arena
             var good = Ui.Good;
             if (el < ReadyPulse)
             {
-                // The conduit: from the Ready key's left edge, out into the gutter, up beside the card and in.
-                float gx = card.x - 14f, y0 = session.IsHost ? LobbyReadyY + LobbyReadyH / 2f : LobbyStartY + LobbyStartH / 2f,  // (a guest's Ready is in the Start slot)
+                // The conduit: from the Ready key's right edge, out into the gutter between the party column and the big screen,
+                // up beside the card and in (on the inside of the screen, clear of its curved edge).
+                float x0 = card.xMax, gx = x0 + 8f, y0 = session.IsHost ? LobbyReadyY + LobbyReadyH / 2f : LobbyStartY + LobbyStartH / 2f,  // (a guest's Ready is in the Start slot)
                       y1 = card.center.y;
-                float rise = y0 - y1, total = 14f + rise + 14f, at2 = el / ReadyPulse * total;
-                var dim = new Color(good.r, good.g, good.b, 0.18f);
-                Ui.Fill(new Rect(gx, y0, 14f, 1f), dim);
-                Ui.Fill(new Rect(gx, y1, 1f, rise), dim);
-                Ui.Fill(new Rect(gx, y1, 14f, 1f), dim);
-                Vector2 p = at2 < 14f ? new Vector2(card.x - at2, y0)
-                    : at2 < 14f + rise ? new Vector2(gx, y0 - (at2 - 14f))
-                    : new Vector2(gx + (at2 - 14f - rise), y1);
-                Ui.Glow(new Rect(p.x - 3f, p.y - 3f, 6f, 6f), good, 0.9f);
-                Ui.Fill(new Rect(p.x - 3f, p.y - 3f, 6f, 6f), Color.Lerp(good, Color.white, 0.4f));
+                float rise = y0 - y1, total = 8f + rise + 8f, at2 = el / ReadyPulse * total;
+                var dim = new Color(good.r, good.g, good.b, 0.25f * (1f - el / ReadyPulse * 0.5f));
+                Ui.Fill(new Rect(x0, y0, 8f, 1f), dim);
+                Ui.Fill(new Rect(gx, y1, 1f, rise + 1f), dim);
+                Ui.Fill(new Rect(x0, y1, 8f, 1f), dim);
+                Vector2 p = at2 < 8f ? new Vector2(x0 + at2, y0)
+                    : at2 < 8f + rise ? new Vector2(gx, y0 - (at2 - 8f))
+                    : new Vector2(gx - (at2 - 8f - rise), y1);
+                // A crisp spark with a short tail behind it.
+                for (int i = 0; i < 6; i++)
+                {
+                    float back = i * 5f, tail = 1f - i / 6f;
+                    float q = at2 - back;
+                    if (q < 0f) break;
+                    Vector2 tp = q < 8f ? new Vector2(x0 + q, y0) : q < 8f + rise ? new Vector2(gx, y0 - (q - 8f)) : new Vector2(gx - (q - 8f - rise), y1);
+                    float sz = i == 0 ? 4f : 2f;
+                    Ui.Fill(new Rect(Mathf.Round(tp.x - sz / 2f + 0.5f), Mathf.Round(tp.y - sz / 2f + 0.5f), sz, sz), new Color(Mathf.Lerp(good.r, 1f, 0.5f * tail), Mathf.Lerp(good.g, 1f, 0.5f * tail), Mathf.Lerp(good.b, 1f, 0.5f * tail), tail));
+                }
             }
-            else if (el < ReadyPulse + ReadyBurst)
+            const float burstAt = ReadyPulse;
+            if (el >= burstAt && el < burstAt + ReadyBurst)
             {
-                float k = (el - ReadyPulse) / ReadyBurst, ease = 1f - (1f - k) * (1f - k) * (1f - k), g = ease * 26f;
-                CrtKit.Frame(new Rect(card.x - g, card.y - g, card.width + g * 2f, card.height + g * 2f), 2f, new Color(good.r, good.g, good.b, 0.8f * (1f - k)));
-                Ui.Fill(card, new Color(good.r, good.g, good.b, 0.16f * (1f - k)));
-                Ui.Fill(new Rect(card.x + card.width * ease, card.y, 2f, card.height), new Color(0.92f, 1f, 0.95f, 0.5f * (1f - k)));
+                // The ring bursts off the card (no further than 10 px, clear of the screen's edge), with a green wash and a scan across it.
+                float k = (el - burstAt) / ReadyBurst, ease = 1f - (1f - k) * (1f - k) * (1f - k), g = ease * 10f;
+                CrtKit.Frame(new Rect(card.x - g, card.y - g, card.width + g * 2f, card.height + g * 2f), 1f, new Color(good.r, good.g, good.b, 0.7f * (1f - k)));
+                Ui.Fill(card, new Color(good.r, good.g, good.b, 0.12f * (1f - k)));
+                Ui.Fill(new Rect(card.x + card.width * ease, card.y, 2f, card.height), new Color(0.92f, 1f, 0.95f, 0.45f * (1f - k)));
             }
-            if (e.Ready && el >= ReadyPulse)
-                Ui.Glow(card, good, 0.22f + 0.1f * Mathf.Sin(Time.unscaledTime * 3f + e.Id));
+            // While ready: a thin green line round the card, breathing slowly (no blur).
+            if (e.Ready && el >= burstAt)
+                CrtKit.Frame(new Rect(card.x - 2f, card.y - 2f, card.width + 4f, card.height + 4f), 1f,
+                    new Color(good.r, good.g, good.b, 0.18f + 0.1f * Mathf.Sin(Time.unscaledTime * 2f + e.Id)));
         }
 
         // --- Radar sweep --------------------------------------------------------------------------------------------------
