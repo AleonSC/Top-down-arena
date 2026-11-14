@@ -928,6 +928,10 @@ design notes: [`Docs/ArenaLayouts.md`](Docs/ArenaLayouts.md).
   gates drop away (the inner walls stay).
 - The host can turn layouts off for a run on the lobby's **Difficulty** tab (**Layouts off**, beside the boss approach picks).
 - Enemies that walk steer round a wall that's in their way instead of pushing at it.
+- **Touching a wall** (any wall, pillar or cover, in every arena) makes it crackle: jagged arcs of electricity crawl
+  along its face from the touch, with sparks and a little bolt from you, in the wall's colour, plus a low neon hum.
+  Everyone's touches show, and you hear the strongest one, quieter the further it is from you (gone past 700 px).
+  The hum uses the Effects volume.
 - With a layout up, regular waves have **30% more enemies** (waves 1-8 on Normal: 16, 17, 18 and 20 instead of 12, 13, 14
   and 15, two waves each), because the walls and gates make the crowd easier to read. Boss waves are unchanged. The number is
   `LayoutEnemyMult` in `Balance.cs`.
@@ -1846,6 +1850,11 @@ so they never change the fight or what your friend sees):
 - **Visual effects** on/off. Off draws the arena exactly as before.
 - **Screen shake:** Off, **Low** (the default) or Full. Getting hurt, a heavy enemy's death and above all a boss's
   death kick the camera; explosions only add a light rumble (several at once don't pile up).
+- **Arena floor:** **Bending** (the default) or Static. The floor grid lights up in each player's class colour near
+  them; with Bending its lines also bow away from every player like a stretched sheet and trail a little behind them as
+  they move. Static keeps the lines straight and only shows the colour. Kill ripples run through it either way, and a
+  dash (the Dodge, a dash, a rush) sends a small, quick ripple from where it started that lights the lines in the
+  dasher's colour.
 - **Damage numbers:** damage to each enemy rises off it, merged every 0.15 s (so a fast weapon shows one total);
   big hits are larger and gold.
 - **Reduced effects:** no screen shake, no hit-pause and no white flashes, for anyone they bother.

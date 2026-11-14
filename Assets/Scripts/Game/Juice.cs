@@ -34,6 +34,7 @@ namespace Arena
             fxNumbers = PlayerPrefs.GetInt("fx_numbers", 1) == 1;
             fxReduced = PlayerPrefs.GetInt("fx_reduced", 0) == 1;
             fxCallouts = PlayerPrefs.GetInt("fx_callouts", 1) == 1;  // AbilityLooks.cs
+            floorBend = PlayerPrefs.GetInt("floor_bend", 1) == 1;  // FloorGridLook.cs
             CrtUi.Theme = PlayerPrefs.GetInt("crt_theme", 0);
             mateShotAlpha = Mathf.Clamp(PlayerPrefs.GetFloat("mate_shot_alpha", 1f), 0.25f, 1f);
         }
@@ -52,6 +53,7 @@ namespace Arena
             PlayerPrefs.SetInt("fx_numbers", fxNumbers ? 1 : 0);
             PlayerPrefs.SetInt("fx_reduced", fxReduced ? 1 : 0);
             PlayerPrefs.SetInt("fx_callouts", fxCallouts ? 1 : 0);
+            PlayerPrefs.SetInt("floor_bend", floorBend ? 1 : 0);
             PlayerPrefs.SetInt("crt_theme", CrtUi.Theme);
             PlayerPrefs.Save();
             if (!fxOn)
@@ -121,7 +123,7 @@ namespace Arena
         const byte PSpark = 0, PShard = 1, PRing = 2, PFlash = 3, PDust = 4, PFade = 5, PSplash = 6, PTumble = 7;  // 8-10: GunBowLooks.cs
 
         struct Decal { public V2 Pos; public float R, Age; }
-        struct Ripple { public V2 Pos; public float T, Power; }
+        struct Ripple { public V2 Pos; public float T, Power, Life; public Rgba Col; }  // Life 0: RippleLife; a dash's burst is shorter and lights the grid in Col (FloorGridLook.cs)
         struct Number { public V2 Pos; public float T; public int Value; public bool Big; public string Tag; }  // Tag: an Impact's number, orange with its tag over it (LanceLook.cs)
         struct Burst { public float At; public V2 Pos; public Rgba Col; public float R; }
 
@@ -666,7 +668,7 @@ namespace Arena
             {
                 var r = ripples[i];
                 r.T += dt;
-                if (r.T >= RippleLife) ripples.RemoveAt(i); else ripples[i] = r;
+                if (r.T >= (r.Life > 0f ? r.Life : RippleLife)) ripples.RemoveAt(i); else ripples[i] = r;
             }
             for (int i = numbers.Count - 1; i >= 0; i--)
             {
@@ -1109,20 +1111,6 @@ namespace Arena
         }
 
         /// The grid, rippling where a big blast went off (DrawWorld draws it flat when nothing's rippling).
-        bool DrawRippledGrid(float aw, float ah, Rgba grid)
-        {
-            if (!Juicy || ripples.Count == 0)
-                return false;
-            const float step = 16f;
-            for (float x = 0; x <= aw; x += 64f)
-                for (float y = 0; y < ah; y += step)
-                    Line(Warp(x, y), Warp(x, y + step), 1f, grid);
-            for (float y = 0; y <= ah; y += 64f)
-                for (float x = 0; x < aw; x += step)
-                    Line(Warp(x, y), Warp(x + step, y), 1f, grid);
-            return true;
-        }
-
         V2 Warp(float x, float y)
         {
             V2 p = new V2(x, y), off = V2.Zero;
@@ -1132,7 +1120,7 @@ namespace Arena
                 float dist = d.Length, front = r.T * 700f, w = 70f;
                 if (dist < 1f || Mathf.Abs(dist - front) >= w)
                     continue;
-                float k = Mathf.Cos((dist - front) / w * MathX.Pi / 2f) * (1f - r.T / RippleLife) * 10f * r.Power;
+                float k = Mathf.Cos((dist - front) / w * MathX.Pi / 2f) * (1f - r.T / (r.Life > 0f ? r.Life : RippleLife)) * 10f * r.Power;
                 off += d / dist * k;
             }
             return p + off;

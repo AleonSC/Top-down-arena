@@ -22,6 +22,19 @@ namespace Arena
         static readonly int[] BazaarServices = { 0, 1, 2, 3 }, AllServices = { 0, 1, 2, 3, 4, 5 }, MarketItems = { 6, 7, 8, 9, 2, 3, 1, 5, 4 };
         static readonly string[] ServiceNames = { "Add stock", "Sell upgrade", "Full heal", "Revive token", "Floor kit", "Vector pack" };
 
+        /// Esc in the shop or Black Market: closes a popup, then the open category, then leaves (Done shopping).
+        void ShopEsc()
+        {
+            if (shopGiveTo != 0)
+                shopGiveTo = 0;
+            else if (shopSellOpen)
+                shopSellOpen = false;
+            else if (shopCat >= 0)
+                shopCat = -1;
+            else
+                game.Shop(ShopAction.Done, 1);
+        }
+
         void DrawShop(Player me, float t)
         {
             if (!game.ShopOpen)
@@ -106,7 +119,7 @@ namespace Arena
                     shopSel = split;
                     shopTurn = split;
                 }
-                if (!popup && Event.current.type == EventType.KeyDown && (Event.current.keyCode == KeyCode.Escape || Event.current.keyCode == KeyCode.Backspace))
+                if (!popup && Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Backspace)
                 {
                     shopCat = -1;
                     Event.current.Use();

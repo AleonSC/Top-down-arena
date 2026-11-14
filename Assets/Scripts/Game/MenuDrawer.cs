@@ -715,9 +715,12 @@ namespace Arena
             bool nums = SwitchRow(new Rect(x + half + 36f, y, half, 54f), fxNumbers, "Damage numbers", "Small numbers rising off what's hit");
             if (nums != fxNumbers) { fxNumbers = nums; changed = true; }
             y += 64f;
-            WinLabel(new Rect(x, y, w, 24f), "Screen shake", null, !fxOn);
-            int shake = WinChoices(new Rect(x, y + 28f, w, 34f), new[] { "Off", "Low", "Full" }, fxShake, !fxOn);
+            WinLabel(new Rect(x, y, half, 24f), "Screen shake", null, !fxOn);
+            int shake = WinChoices(new Rect(x, y + 28f, half, 34f), new[] { "Off", "Low", "Full" }, fxShake, !fxOn);
             if (shake != fxShake) { fxShake = shake; changed = true; }
+            WinLabel(new Rect(x + half + 36f, y, half, 24f), "Arena floor", null, !fxOn);  // FloorGridLook.cs
+            int bend = WinChoices(new Rect(x + half + 36f, y + 28f, half, 34f), new[] { "Bending", "Static" }, floorBend ? 0 : 1, !fxOn);
+            if (bend != (floorBend ? 0 : 1)) { floorBend = bend == 0; changed = true; }
             y += 74f;
             bool names = SwitchRow(new Rect(x, y, half, 54f), fxCallouts, "Ability names", "Each ability's name over whoever casts it");
             if (names != fxCallouts) { fxCallouts = names; changed = true; }

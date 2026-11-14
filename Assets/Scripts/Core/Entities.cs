@@ -107,6 +107,8 @@ namespace Arena
         KnuckleImpact, KnuckleImpactHeavy,
         // The Shuriken's Great Star (NinjaSoundBank.cs; GreatStar.cs): the throw, the catch. Sent.
         GreatStarThrow, GreatStarCatch,
+        // A player touching a wall (WallHumSoundBank.cs): a looping hum, played locally, never sent.
+        WallHum,
     }
 
     public struct SoundCue

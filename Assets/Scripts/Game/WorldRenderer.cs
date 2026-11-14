@@ -64,13 +64,8 @@ namespace Arena
             var grid = infected ? ZombieGrid : new Rgba(1f, 1f, 1f).Mix(Ink, 0.75f).WithAlpha(0.035f + FloorTintAmt * 0.5f);
             if (game.RoomsOn)
                 DrawRoomsFloor(grid);  // the side rooms and hallways: the grid across the whole world (RoomsLook.cs)
-            else if (!DrawRippledGrid(AW, AH, grid))  // a big blast's ripple (Juice.cs)
-            {
-                for (float x = 0; x <= AW; x += 64f)
-                    Line(new V2(x, 0), new V2(x, AH), 1f, grid);
-                for (float y = 0; y <= AH; y += 64f)
-                    Line(new V2(0, y), new V2(AW, y), 1f, grid);
-            }
+            else  // the Pressure grid: bends round the players, ripples from blasts (FloorGridLook.cs)
+                DrawFloorGrid(V2.Zero, new V2(AW, AH), V2.Zero, grid);
             var border = infected ? ZombieBorder : new Rgba(0.3f, 0.35f, 0.5f, 0.6f);
             if (!game.RoomsOn)  // (the rooms' walls stand where the border was)
             {
@@ -219,6 +214,7 @@ namespace Arena
             foreach (var h in game.Hazards.Values)
                 DrawHazard(h, t);
             DrawLayout(t);  // the floor plan's walls, pillars and edge gates (LayoutLook.cs)
+            DrawWallTouch(t);  // a wall crackling where a player touches it (WallTouchLook.cs)
             DrawGates();     // the Expanding arena's shutter gates: a red laser grid when shut (GateLook.cs)
             DrawPushFlashes();  // a pushed section's new walls and cover flash in (WallPushLook.cs)
             DrawWallPush();  // push mode: the lit wall section and the next row (WallPushLook.cs)

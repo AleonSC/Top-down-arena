@@ -252,6 +252,7 @@ namespace Arena
                 sounds.Play(sfx.Sfx, sfx.Volume, Time.unscaledTime);
             game.Sounds.Clear();
             sounds.SetSawLoop(game.SawWhirrLevel);  // the Buzzsaw's contact whirr (MeleeSounds.cs)
+            TickWallTouch(Time.deltaTime);  // a wall touched: its arcs ease in and out, and the hum (WallTouchLook.cs)
             UpdateMusic();
             UpdateLayout();
             TickEnding(Time.unscaledDeltaTime);  // the run ending: slow motion, then the results come in (RunEnding.cs)
@@ -525,6 +526,8 @@ namespace Arena
                     pauseConfirmLobby = false;  // "back to the lobby?": no (MenuDrawer.cs)
                 else if (EscPressed && (pauseSettings || pauseHowTo || pauseRecords) && menuUp)
                     MenuBack();  // a window closes first; then the pause menu's Settings: back to its choices (MenuDrawer.cs)
+                else if (EscPressed && !menuUp && ShopScreenUp(me))
+                    ShopEsc();  // the shop / Black Market: a popup or category closes first, then Esc leaves it (ShopUi.cs)
                 else if (EscPressed)
                 {
                     if (menuUp)
