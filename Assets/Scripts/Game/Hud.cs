@@ -155,6 +155,11 @@ namespace Arena
                         : game.AnyonePicking() ? ""
                         : pr != null ? "Practice wave " + (pNext + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer)
                         : ApproachLine(game.NextTrackWave) + "Wave " + (game.ShownWave + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer);  // ApproachUi.cs
+                    if (game.SurvivalOn && game.SurvStarted)
+                    {
+                        DrawSurvivalPick(choosing);  // the clock is held for a level-up pick (SurvivalUi.cs)
+                        break;
+                    }
                     if (LaunchHoldsBanner)
                         break;  // a run launching: GET READY waits until the players have landed (LaunchIntro.cs)
                     if (game.Room == RoomPhase.Portal)
@@ -183,6 +188,8 @@ namespace Arena
                     }
                     break;
             }
+            if (game.SurvivalOn && game.SurvStarted && !tabHeld && !PauseMenuWanted)
+                DrawSurvivalPhase();  // a new faction joins (SurvivalUi.cs)
             if (game.State == MatchState.Fighting && !PauseMenuWanted)
                 DrawBreachWarning();  // a breach wave's start: letterbox and BREACH n/N while the camera tours (BreachTour.cs)
             if (me != null && !PauseMenuWanted)  // free building: doors mid-wave (ExpansionUi.cs; between waves the Intermission case above draws the window)
@@ -393,6 +400,11 @@ namespace Arena
                 plateMax = 1;
             }
             plateMax = Math.Max(plateMax, game.Remaining);
+            if (game.SurvivalOn && game.SurvStarted)
+            {
+                DrawSurvivalPlate(r);  // SurvivalUi.cs
+                return;
+            }
             var practice = game.Practice;
             bool bossWave = practice != null ? BossUp() : game.BossNow;
             Color ink = bossWave ? Ui.Gold : CrtUi.Ink, dim = bossWave ? new Color(Ui.Gold.r * 0.7f, Ui.Gold.g * 0.7f, Ui.Gold.b * 0.5f) : CrtUi.Dim;

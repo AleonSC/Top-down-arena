@@ -125,6 +125,7 @@ namespace Arena
             session = new Session();
             game = session.Game;
             game.Log = msg => Debug.Log(msg);
+            SessionRecorder.Log = msg => Debug.LogWarning("Arena: " + msg);
             sounds = new SoundBank(gameObject);
             MenuVhs.OnHover = calm => sounds.Play(Sfx.MenuHover, calm ? 0.35f : 0.7f, Time.unscaledTime);
             LoadMusicPack();  // clips you assigned in Unity replace / join the generated music (MusicPack.cs)
@@ -674,6 +675,7 @@ namespace Arena
             scale = Mathf.Min(UnityEngine.Screen.width / W, UnityEngine.Screen.height / H);
             offX = (UnityEngine.Screen.width - W * scale) / 2f;
             offY = (UnityEngine.Screen.height - H * scale) / 2f;
+            RefreshCull();  // WorldRenderer.cs
         }
 
         V2 MouseArena()

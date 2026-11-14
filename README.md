@@ -910,7 +910,7 @@ the same one twice running. Boss waves, the Practice Range, Data Gates and the l
 arena. A teal chip above the wave plate names the layout. Mockups: [`Docs/Mockups/arena-layouts.html`](Docs/Mockups/arena-layouts.html);
 design notes: [`Docs/ArenaLayouts.md`](Docs/ArenaLayouts.md).
 
-- **Walls and pillars** (neon tubes with a white-hot core and diagonal hatching, the phosphor vector look of [`Docs/Mockups/arena-layouts-digital.html`](Docs/Mockups/arena-layouts-digital.html), lit in the colour of the boss the cycle leads to: Warden amber, Hive Queen honey, Twin Reapers dusk pink, Singularity violet, Colossus sandstone, Duelist silver, Lich grave green, Storm Herald storm blue, Devourer raw red, Eclipse corona gold; the holo crates and pots match) are solid: you and enemies can't walk through them, and they stop **every** shot, yours
+- **Walls and pillars** (neon tubes with a white-hot core and diagonal hatching, the phosphor vector look of [`Docs/Mockups/arena-layouts-digital.html`](Docs/Mockups/arena-layouts-digital.html), lit in the colour of the boss the cycle leads to: Warden amber, Hive Queen honey, Twin Reapers dusk pink, Singularity violet, Colossus sandstone, Duelist silver, Lich grave green, Storm Herald storm blue, Devourer raw red, Eclipse corona gold; the holo crates and pots match, and the floor and its grid take a faint wash of it, brightest in the middle) are solid: you and enemies can't walk through them, and they stop **every** shot, yours
   and theirs. Crates stay as they are: they wear away under enemy fire and your shots fly over them. Each layout
   starts the cycle with its own crates; random crates, pots and barrels still turn up, clear of the walls.
   Enemies path round walls to get at you, and so do the ones heading somewhere of their own: squads keeping
@@ -1329,7 +1329,7 @@ you've beaten it anywhere, a **???** until then (on your first Quick Play the Wa
 
 ## Boss Hunt
 
-In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt** or **Practice** on the mode carousel at the top (arrows, the mouse wheel or a click on a side mode turn it). Over the big screen, a fixed **Loadout** key sits on the left, and the other tabs (the mode's own, Difficulty, Modifiers) are a carousel beside it: the open tab in the middle, the rest wrapping round either side. **Perks** open from the **Perks** key right of your class name on the loadout (it shows your equipped perk and slots used, e.g. 1/2); "< Loadout" or the Loadout key takes you back (in the Practice Range too, where you can set them up but the range plays without them). The lobby opens on the Loadout, and picking a mode keeps it there; the carousel turns to that mode's own tab (Quick Play, Boss hunt, Practice) for a click. A Boss Hunt is a short run that ends
+In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt**, **Practice** or **Survival** on the mode carousel at the top (arrows, the mouse wheel or a click on a side mode turn it). Over the big screen, a fixed **Loadout** key sits on the left, and the other tabs (the mode's own, Difficulty, Modifiers) are a carousel beside it: the open tab in the middle, the rest wrapping round either side. **Perks** open from the **Perks** key right of your class name on the loadout (it shows your equipped perk and slots used, e.g. 1/2); "< Loadout" or the Loadout key takes you back (in the Practice Range too, where you can set them up but the range plays without them). The lobby opens on the Loadout, and picking a mode keeps it there; the carousel turns to that mode's own tab (Quick Play, Boss hunt, Practice) for a click. A Boss Hunt is a short run that ends
 with one boss: **ten waves**. Waves 1-9 bring only the boss's own enemies (its faction: for the Warden, Rioters and
 Guards, then Riot Shields, Gas Grenadiers, Security Guards and Taser Guards, its Breakout, Patrol and Cell block squads, and its Riot line on waves 5 and
 9); wave 10 is the boss, at wave-10 strength. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no
@@ -1346,7 +1346,7 @@ Warden has one yet), and later bosses will need the party handed a build that fi
 
 ## Survival
 
-**Survival** (Docs/Survival.md) is a lobby mode with no waves and no boss: one clock runs and the pressure climbs with it, and the run ends when everyone is down. Enemies top the field up to a budget (killing fast brings more, up to 60 alive); the basic faction comes first and another faction joins every four minutes; a squad arrives every 45 s; Elites grow to 40% of spawns; health and damage scale as one wave per 30 s; two and three players raise the budget 1.6x and 2.2x. Kills still level you up, and a **level-up pick freezes the world** (clock, enemies and shots) until everyone has chosen. Not saved to continue. So far it is played on the normal arena; the big room, its HUD, lobby tab and records are still to come.
+**Survival** (Docs/Survival.md) is a lobby mode with no waves and no boss: one clock runs and the pressure climbs with it, and the run ends when everyone is down. Enemies top the field up to a budget (killing fast brings more, up to 60 alive); the basic faction comes first and another faction joins every four minutes; a squad arrives every 45 s; Elites grow to 40% of spawns; health and damage scale as one wave per 30 s; two and three players raise the budget 1.6x and 2.2x. Kills still level you up, and a **level-up pick freezes the world** (clock, enemies and shots) until everyone has chosen. Not saved to continue. The HUD shows the clock (m:ss) where the wave number was, a bar towards the next faction and a notice when one joins; the end screen shows the time survived and the phase reached. Its lobby tab shows the clock's ladder (when each faction joins), the rules and your records: runs played, longest time, longest time with your current class, and the furthest faction reached. A Survival run is not a Campaign or Quick Play run: it keeps its own records, pays rank XP for the waves of clock survived, and shows in Recent runs as "Survival". So far it is played on the normal arena; the big room is still to come.
 
 ## Perks
 
@@ -2200,7 +2200,9 @@ folder (the **Open sessions folder** button shows it; on Windows it's
 players. The end-of-run screen shows where it was saved. It's rewritten after every wave and every 10 s, so a crash
 keeps nearly everything. Leaving or quitting mid-run saves it too: the outcome reads "left" (Leave game, Back to
 lobby), "quit" (the game was closed) or "restarted" (a new match started over it); a file whose outcome still reads
-"in progress" is from a run that crashed.
+"in progress" is from a run that crashed. Boss Lab fights aren't recorded; leaving one any way (Exit, the pause menu,
+or back to the lobby from its end screen) turns recording back on for the next match. If a file can't be written, the
+Unity console shows why (once per match).
 
 Each file records:
 

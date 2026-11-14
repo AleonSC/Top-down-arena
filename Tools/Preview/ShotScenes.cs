@@ -231,6 +231,15 @@ static partial class Shot {
       me.Disp = me.Pos;
       gm.Bullets.Clear();
     }
+    if (Environment.GetEnvironmentVariable("SURVIVAL") != null) {
+      // Survival (SurvivalGame.cs): SURVIVAL=<clock seconds>[,pick] (pick: held for a level-up pick). Modes hud, gameover.
+      var sp = Environment.GetEnvironmentVariable("SURVIVAL").Split(',');
+      var sg = host.Game;
+      sg.SurvivalOn = true; sg.SurvStarted = true;
+      sg.SurvTime = float.Parse(sp[0], System.Globalization.CultureInfo.InvariantCulture); sg.Wave = Survival.WaveAt(sg.SurvTime);
+      sg.Hunt = null; sg.Quick = false; sg.Practice = null;
+      if (sp.Length > 1 && sp[1] == "pick") { sg.State = MatchState.Intermission; sg.StateTimer = 1f; me.PendingPicks = 1; }
+    }
     if (Environment.GetEnvironmentVariable("TUTORIAL") != null) {
       // The first-run tutorial's prompt (TutorialUi.cs): TUTORIAL=<lesson 0-4>,<steps of it done>[,open] (open: between waves with a build round open).
       var tp = Environment.GetEnvironmentVariable("TUTORIAL").Split(',');
@@ -1527,6 +1536,7 @@ static partial class Shot {
       string fp = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: where you stand (default the hub)
       if (fp != null) { var q = fp.Split(','); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(float.Parse(q[0], System.Globalization.CultureInfo.InvariantCulture), float.Parse(q[1], System.Globalization.CultureInfo.InvariantCulture)); }
     }
+    if (Environment.GetEnvironmentVariable("FLOORTINT") != null) ArenaApp.FloorTintAmt = float.Parse(Environment.GetEnvironmentVariable("FLOORTINT"), System.Globalization.CultureInfo.InvariantCulture);  // FLOORTINT=<0-1>: the boss floor wash (LayoutLook.cs)
     if (Environment.GetEnvironmentVariable("WALLBOSS") != null) ArenaApp.WallBossOverride = (EnemyType)Enum.Parse(typeof(EnemyType), Environment.GetEnvironmentVariable("WALLBOSS"));  // WALLBOSS=<EnemyType>: walls themed for that boss
     if (Environment.GetEnvironmentVariable("LAYOUT") != null) {  // LAYOUT=<LayoutId number, 1-6>: that floor plan with its cover, everyone out of its walls
       var lg = host.Game; lg.PropsOn = true; lg.DevSetLayout((LayoutId)int.Parse(Environment.GetEnvironmentVariable("LAYOUT"))); lg.LayoutAge = 5f;

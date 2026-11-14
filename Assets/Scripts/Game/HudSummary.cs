@@ -54,7 +54,12 @@ namespace Arena
                 : game.Hunt != null ? (won ? "YOU HUNTED DOWN " + BossName(game.Hunt.Boss).ToUpperInvariant() : "YOU MADE IT TO HUNT WAVE " + Math.Max(1, game.HuntWave) + " OF " + Hunts.Length)
                 : won && game.Quick ? "YOU BEAT " + QuickPlay.Length + " WAVES AND " + BossName(game.BossAt(game.Wave)).ToUpperInvariant()
                 : won ? "YOU BEAT ALL " + game.ShownLastWave + " WAVES AND THE ECLIPSE" : "YOU MADE IT TO WAVE " + game.ShownWave;
-            if (!won && game.Practice == null && game.BossNow)
+            if (game.SurvivalOn)
+            {
+                title = "YOU FELL";
+                sub = "YOU SURVIVED " + Game.SurvClock(game.SurvTime) + "  ·  PHASE " + (game.SurvPhase + 1);
+            }
+            else if (!won && game.Practice == null && game.BossNow)
                 sub += "  ·  " + Defs.Get(game.BossAt(game.Wave)).Name.ToUpperInvariant();
             if (won && game.Deathless)
                 sub += "  ·  DEATHLESS";  // won without using a life (Checkpoints.cs)
@@ -87,7 +92,9 @@ namespace Arena
             foreach (var p in game.Players.Values)
                 kills += p.Run.Kills;
             int secs = Mathf.RoundToInt(game.RunTime);
-            string[,] tiles = { { "WAVE", game.ShownWave.ToString() }, { "TIME", secs / 60 + ":" + (secs % 60).ToString("00") }, { "SCORE", game.Score.ToString("N0") }, { "KILLS", kills.ToString() } };
+            string[,] tiles = game.SurvivalOn
+                ? new[,] { { "SURVIVED", Game.SurvClock(game.SurvTime) }, { "PHASE", (game.SurvPhase + 1).ToString() }, { "SCORE", game.Score.ToString("N0") }, { "KILLS", kills.ToString() } }
+                : new[,] { { "WAVE", game.ShownWave.ToString() }, { "TIME", secs / 60 + ":" + (secs % 60).ToString("00") }, { "SCORE", game.Score.ToString("N0") }, { "KILLS", kills.ToString() } };
             float tileW = (RackRW - 16f) / 2f, tileH = 62f;
             for (int i = 0; i < 4; i++)
             {

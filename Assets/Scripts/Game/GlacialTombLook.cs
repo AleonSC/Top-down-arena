@@ -156,6 +156,9 @@ namespace Arena
                     DrawTombLattice(fx);
         }
 
+        readonly V2[] tombHexPts = new V2[6];
+        static readonly V2[] TombHexDirs = { V2.FromAngle(0f), V2.FromAngle(MathX.Tau / 6f), V2.FromAngle(MathX.Tau * 2f / 6f), V2.FromAngle(MathX.Tau * 3f / 6f), V2.FromAngle(MathX.Tau * 4f / 6f), V2.FromAngle(MathX.Tau * 5f / 6f) };
+
         void DrawTombLattice(Effect fx)
         {
             float age = fx.T, freeze = TombFreeze(fx), R = Mathf.Clamp(age, 0f, 1.6f) * TombSpd;
@@ -180,17 +183,14 @@ namespace Arena
                     Rgba fill = edge > 0.2f ? new Rgba(0.86f, 0.98f, 1f, fillA) : new Rgba(0.47f, 0.82f, 1f, fillA);
                     SetColor(fill);
                     float hr = TombHex - 2f;
-                    V2 prev = q + new V2(hr, 0f);
-                    for (int k = 1; k <= 6; k++)
-                    {
-                        V2 next = q + V2.FromAngle(k * MathX.Tau / 6f) * hr;
-                        Tri(q, prev, next);
-                        prev = next;
-                    }
+                    for (int k = 0; k < 6; k++)
+                        tombHexPts[k] = q + TombHexDirs[k] * hr;
+                    Quad(tombHexPts[0], tombHexPts[1], tombHexPts[2], tombHexPts[3]);  // the hexagon in 4 triangles, not 6 (a lattice is hundreds of cells)
+                    Quad(tombHexPts[0], tombHexPts[3], tombHexPts[4], tombHexPts[5]);
                     float la = (0.18f + 0.45f * edge) * grow * rec;
                     if (la > 0.03f)
                         for (int k = 0; k < 6; k++)
-                            Line(q + V2.FromAngle(k * MathX.Tau / 6f) * hr, q + V2.FromAngle((k + 1) * MathX.Tau / 6f) * hr, 1f, new Rgba(0.75f, 0.94f, 1f, la));
+                            Line(tombHexPts[k], tombHexPts[(k + 1) % 6], 1f, new Rgba(0.75f, 0.94f, 1f, la));
                 }
             }
             // the mandala under the caster
