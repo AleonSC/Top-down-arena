@@ -104,7 +104,7 @@ static partial class Program
         var sb = put(EnemyType.SlabBearer, new V2(500f, 400f));
         Check(Math.Abs(sb.ShieldMax - sb.MaxHp * Game.RiotShieldShare) < 0.01f, "a Slab Bearer's slab holds 4x its health");
         sb.Facing = 0f;
-        typeof(Game).GetMethod("WearRiotShield", np).Invoke(g, new object[] { sb, sb.ShieldMax + 1f });
+        typeof(Game).GetMethod("WearShield", np).Invoke(g, new object[] { sb, sb.ShieldMax + 1f });
         var slab = g.Patches.Values.FirstOrDefault(p => p.Kind == PatchKind.Slab);
         Check(Game.RiotShieldBroken(sb) && slab != null && slab.Pos.X > sb.Pos.X, "broken, the slab drops in front of it (a Slab patch)");
         var spawnB = typeof(Game).GetMethod("SpawnBullet", np);
