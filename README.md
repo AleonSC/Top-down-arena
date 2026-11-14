@@ -1044,9 +1044,9 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
 - **Pushing walls**: between waves (free building), walk up to an outer wall and a **C · PUSH WALL** chip shows over you, with that
   wall lit. Press **C** and the mouse picks a section of the wall, lit gold, with the next row of tiles as a ghost past it; the
   **mouse wheel** sets its width (2-10 tiles; it is cut to the plain wall there). **Left click** pushes it out one tile, paying its **new wall** like a drawn room (a new section its width + 2, every push after that 2); the selection stays on the new face, so click again to push further, or **hold** to keep pushing.
-  A section goes at most **16 tiles** out, stays a tile off other rooms, and the wall must be within 7 tiles of you (walk into the new
+  A section goes at most **16 tiles** out and can't overlap a room, but it can **break through**: when its face reaches another room (2 tiles or more of shared wall), that stretch opens into it, full width, closing a loop (a floating shop, vendor or Gatekeeper room opens up too; the label says *BREAK THROUGH* before the push that does it), and the wall must be within 7 tiles of you (walk into the new
   space to keep going). The label says what the next push costs and how far out it is, or in red why it can't go (*Walk closer*,
-  *Need 4 vectors*, *Too close to another room*, *16 tiles out is the limit*). The camera leans toward the wall and past the map's
+  *Need 4 vectors*, *Overlaps a room*, *16 tiles out is the limit*). The camera leans toward the wall and past the map's
   edge while you push. **Right click** or **C** stops. A pushed section is part of the room it came from (the room kits change it with
   that room) and doesn't count towards the room cap. Floating rooms (shop, vendor, Gatekeeper) can't be pushed. Design: `Docs/WallPush.md`.
   - **What grows in a section**: its first push rolls one style for it (the same on every machine, named over it: *BAFFLES ROLLED*;

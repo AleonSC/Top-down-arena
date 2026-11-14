@@ -1,6 +1,6 @@
 # Wall push: grow a room from inside it
 
-Status: **all four steps built** (the core: rules, cost, host and wire, protocol 349; pushing in the world, the features and the balance pass, no protocol change). Decided with the owner on Nov 14, 2026. Mockup: `Docs/Mockups/wall-push.html`
+Status: **all four steps built, plus breaking through into rooms** (the core: rules, cost, host and wire, protocol 349; pushing in the world, the features and the balance pass, no protocol change). Decided with the owner on Nov 14, 2026. Mockup: `Docs/Mockups/wall-push.html`
 (playable: walk, pick a section, click to push; browser look, approximate). Builds on [`VectorBuilding.md`](VectorBuilding.md)
 and [`RoomBuilding2.md`](RoomBuilding2.md).
 
@@ -36,7 +36,7 @@ Picked by Claude (change any of these):
    **2-10 tiles** wide, snapped to the tile grid and centred on the cursor. The **mouse wheel** sets the width (camera zoom is off while pushing).
 3. A ghost row shows where the next tile row goes, with a label: `PUSH +1 · 4 ◆` and `4 wide · 3 / 12 out · Baffles`.
    The vectors chip lights the slice the push would spend. It turns red and says why when you can't push:
-   *Need 4 vectors*, *Too close to the Vendor room*, *Map edge*, *16 tiles out is the limit*, *Walk closer*.
+   *Need 4 vectors*, *Overlaps a room*, *Map edge*, *16 tiles out is the limit*, *Walk closer*.
 4. **Left click** pushes the section out 1 tile. **Hold** to keep pushing (one push every 0.2 s after a 0.38 s wait).
    The selection rides the new face, so clicking again pushes further without aiming again. Moving the mouse picks a new section.
 5. **Reach** is 7 tiles from you to the section, so you walk into the new space to push further.
@@ -85,7 +85,7 @@ Limits: a section goes at most **16 tiles** out. Pushing a section's side wall s
 
 - `Core/ExpansionPush.cs`: `WallPush` (area, side 0 W / 1 E / 2 N / 3 S, start px, width tiles); `Expansion.Push` returns the new or grown
   box and its cost (width), with `why` when refused (*A section is 2-10 tiles wide*, *Off the grid*, *Off the end of the wall*,
-  *Overlaps a room*, *Too close to another room*, *16 tiles out is the limit*, *The map would get too big*, *The map has too many
+  *Overlaps a room*, *16 tiles out is the limit*, *The map would get too big*, *The map has too many
   pushed walls* (40), *Can't push this room's walls*). Pushing a section's far wall over its full width grows it; any other stretch
   starts a new section off it.
 - Host: `Game.CanPush` (free building, between waves), `PushWall` / `Msg.WallPush` / `HostWallPush`: the player within 10 tiles
@@ -130,6 +130,16 @@ Limits: a section goes at most **16 tiles** out. Pushing a section's side wall s
   the width less 1.5 tiles long, so a 1.5-tile lane stays).
 - Sound: `SoundBank.PlayWallPush`, a low stone thunk with a short gritty slide, pitched lower the deeper the section; played on every
   machine when the pushed floor grows (`TrackPushPieces`), not on the click.
+
+## Breaking through (owner Nov 14, after step 4)
+
+- "A tile off other rooms" is gone: a section may touch any room (it still can't overlap one). When its face (its away side) meets
+  another room's wall for `MinDoorRun` (2 tiles) or more, `Build` opens that stretch full width, like the join to its parent
+  (`Expansion.PushMeets`, checked both ways round in the door loop). Running alongside a room shares a side wall: that gets an
+  ordinary door when it's 2+ tiles, as any two touching rooms do.
+- A floating room reached this way joins the map (it's no longer sealed). The label shows *BREAK THROUGH* for the push that reaches
+  a room (`PushBreaksInto`), and the face is no longer offered (nothing is outside it).
+- Tests in `ExpandingPushRulesTest`.
 
 ## Steps
 

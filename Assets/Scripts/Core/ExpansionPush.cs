@@ -329,6 +329,39 @@ namespace Arena
             }
         }
 
+        /// Does a section's face (its away side) meet this area's wall for at least a door's run? Then Build opens it full width (it broke through).
+        public static bool PushMeets(IList<ExpansionRoom> rooms, int section, int other)
+        {
+            if (section <= 0 || section > rooms.Count || other == section || other < 0 || other > rooms.Count || !IsPush(rooms[section - 1]))
+                return false;
+            int away = PushAway(rooms, section - 1);
+            if (away < 0 || other == rooms[section - 1].Parent)
+                return false;
+            return FaceMeets(rooms[section - 1], away, rooms, other);
+        }
+
+        static bool FaceMeets(ExpansionRoom r, int away, IList<ExpansionRoom> rooms, int other)
+        {
+            int bx0, by0, bx1, by1;
+            BoxOf(rooms, other, out bx0, out by0, out bx1, out by1);
+            bool lined = away == 0 ? r.X == bx1 : away == 1 ? r.X1 == bx0 : away == 2 ? r.Y == by1 : r.Y1 == by0;
+            return lined && SharedRun(r.X, r.Y, r.X1, r.Y1, bx0, by0, bx1, by1) >= MinDoorRun;
+        }
+
+        /// The room this push's new face would open into (an area index), or -1: for the label (BREAKS THROUGH).
+        public static int PushBreaksInto(IList<ExpansionRoom> rooms, WallPush p)
+        {
+            int idx, cost;
+            string why;
+            var box = Push(rooms, p, out idx, out cost, out why);
+            if (!box.HasValue)
+                return -1;
+            for (int a = 0; a <= rooms.Count; a++)
+                if (a != box.Value.Parent && (idx < 0 || a != idx + 1) && FaceMeets(box.Value, p.Side, rooms, a))
+                    return a;
+            return -1;
+        }
+
         /// The area index (0 the hub) of the multi-box room this area belongs to: its head, the way Build groups them.
         static int GroupHead(IList<ExpansionRoom> rooms, int area)
         {
@@ -392,14 +425,7 @@ namespace Arena
                 BoxOf(rooms, a, out bx0, out by0, out bx1, out by1);
                 minX = Math.Min(minX, bx0); minY = Math.Min(minY, by0); maxX = Math.Max(maxX, bx1); maxY = Math.Max(maxY, by1);
                 if (Overlaps(box.X, box.Y, box.X1, box.Y1, bx0, by0, bx1, by1)) { why = "Overlaps a room"; return null; }
-                if (a == box.Parent || GroupHead(rooms, a) == head)
-                    continue;  // (its own room's boxes may touch it)
-                if (Overlaps(box.X - Step, box.Y - Step, box.X1 + Step, box.Y1 + Step, bx0, by0, bx1, by1))
-                {
-                    why = "Too close to " + (a == 0 ? "the start room" : rooms[a - 1].Floating ? "a sealed room" : "another room");
-                    return null;
-                }
-            }
+            }  // (touching another room is fine: its face opens into it, Build; owner Nov 14, was "a tile off other rooms")
             if (maxX - minX > MaxWidth || maxY - minY > MaxHeight) { why = "The map would get too big"; return null; }
             cost = own >= 0 ? 2 : p.Width + 2;  // the new wall, like a drawn room (owner Nov 14): a new section its face and two side tiles, then 2 a push
             box.Price += cost;
