@@ -662,6 +662,31 @@ namespace Arena
             var click = Tone(0.07f, Osc.Triangle, 950f, 560f, 0.16f, noise: 0.08f, lowpass: 0.35f, attack: 0.001f, decay: 4f);
             uiClick = AudioClip.Create("ui_click", click.Length, 1, Rate, false);
             uiClick.SetData(click, 0);
+            // A wall pushed out a tile (Docs/WallPush.md): a low stone thunk under a short gritty slide (local: the map change is what's sent).
+            var push = Finish(Mix(
+                Tone(0.22f, Osc.Sine, 95f, 55f, 0.5f, attack: 0.004f, decay: 2.2f),
+                Tone(0.18f, Osc.Saw, 180f, 90f, 0.16f, noise: 0.55f, lowpass: 0.18f, attack: 0.01f, decay: 2.5f),
+                Tone(0.06f, Osc.Triangle, 1400f, 900f, 0.06f, noise: 0.4f, lowpass: 0.5f, attack: 0.001f, decay: 5f)), 0.5f);
+            wallPush = AudioClip.Create("wall_push", push.Length, 1, Rate, false);
+            wallPush.SetData(push, 0);
+        }
+
+        AudioClip wallPush;
+        float wallPushLast = -10f;
+
+        /// A wall pushed out (WallPushLook.cs), at the Effects volume, a little lower in pitch the deeper the section.
+        public void PlayWallPush(float now, int depth)
+        {
+            if (Muted || wallPush == null || now - wallPushLast < 0.06f)
+                return;
+            float volume = Master * Effects * 0.8f;
+            if (volume <= 0.001f)
+                return;
+            wallPushLast = now;
+            var voice = voices[nextVoice];
+            nextVoice = (nextVoice + 1) % voices.Length;
+            voice.pitch = 1.1f - 0.025f * Mathf.Clamp(depth, 0, 16) + ((float)rng.NextDouble() - 0.5f) * 0.04f;
+            voice.PlayOneShot(wallPush, volume);
         }
 
         AudioClip uiClick;

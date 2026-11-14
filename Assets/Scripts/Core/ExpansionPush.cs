@@ -5,7 +5,7 @@ using System.IO;
 namespace Arena
 {
     /// What grows inside a pushed section (Docs/WallPush.md step 3): one style a section, rolled from where it is and its width.
-    public enum PushStyle : byte { None, Fins, Baffles, Pincers, TFins, Divider, Cover }
+    public enum PushStyle : byte { None, Fins, Baffles, Pincers, TFins, Divider, Cover, Stubs }
 
     /// A wall push (Docs/WallPush.md): push this stretch of an area's wall out one tile. Side: 0 west, 1 east, 2 north, 3 south
     /// (the same order as Expansion.Build's edges); Start: where the stretch starts along the wall, in world px on the 100 px grid
@@ -21,12 +21,12 @@ namespace Arena
 
     /// Wall push sections (Docs/WallPush.md step 1): a section is one ExpansionRoom box (Leg = PushLeg) joined open, full width, onto the
     /// area it was pushed from (its Parent, 0 for the hub). Pushing the section's own far wall, over its full width, grows that box by a
-    /// tile; any other stretch starts a new section. A push costs its width in vectors (1 per new floor tile).
+    /// tile; any other stretch starts a new section. A push costs its new wall in vectors, like a drawn room: a new section its width + 2, each push after 2.
     public static partial class Expansion
     {
         public const byte PushLeg = 15;                       // ExpansionRoom.Leg of a pushed section (below PieceBase: not a drawn outline's piece)
         public const int PushMinWidth = 2, PushMaxWidth = 10; // a section's width, in tiles
-        public const int PushMaxDepth = 12;                   // how far out a section goes, in tiles
+        public const int PushMaxDepth = 16;                   // how far out a section goes, in tiles (owner Nov 14: was 12)
         public const int PushReach = 700;                     // how near (px) a player must be to the wall they push (the host allows PushSlack more)
         public const int PushSlack = 300;
         public const int MaxPushes = 40;                      // sections a map can hold (not counted as rooms)
@@ -171,7 +171,7 @@ namespace Arena
             => width >= 6 ? new[] { PushStyle.Fins, PushStyle.Baffles, PushStyle.Pincers, PushStyle.TFins, PushStyle.Divider, PushStyle.Cover }
              : width >= 5 ? new[] { PushStyle.Fins, PushStyle.Baffles, PushStyle.TFins, PushStyle.Divider, PushStyle.Cover }
              : width >= 4 ? new[] { PushStyle.Fins, PushStyle.TFins, PushStyle.Cover }
-             : new PushStyle[0];
+             : new[] { PushStyle.Stubs };  // (a 2-3 wide corridor: stubs from alternate sides, a 1.5-tile lane past each)
 
         /// A section's style, rolled from where it is and how wide (not its depth, so it never changes as it grows): the same on every machine.
         public static PushStyle PushStyleFor(int parent, int away, int start, int width)
@@ -207,7 +207,7 @@ namespace Arena
 
         public static string PushStyleName(PushStyle s)
             => s == PushStyle.Fins ? "Fins" : s == PushStyle.Baffles ? "Baffles" : s == PushStyle.Pincers ? "Pincers" : s == PushStyle.TFins ? "T-fins"
-             : s == PushStyle.Divider ? "Divider" : s == PushStyle.Cover ? "Cover" : "None";
+             : s == PushStyle.Divider ? "Divider" : s == PushStyle.Cover ? "Cover" : s == PushStyle.Stubs ? "Stubs" : "None";
 
         public const int PushCrate = 32, PushPillar = 38;  // cover: a crate's half size, a pillar's radius
 
@@ -274,6 +274,9 @@ namespace Arena
                         break;
                     case PushStyle.Baffles:
                         if (row % 3 == 2) fin((row / 3) & 1, w - 2, mid);
+                        break;
+                    case PushStyle.Stubs:
+                        if (row % 3 == 2) fin((row / 3) & 1, w - 1.5f, mid);
                         break;
                     case PushStyle.Pincers:
                         if (row % 5 == 3) { fin(0, (w - 3) / 2f, mid); fin(1, (w - 3) / 2f, mid); }
@@ -398,7 +401,7 @@ namespace Arena
                 }
             }
             if (maxX - minX > MaxWidth || maxY - minY > MaxHeight) { why = "The map would get too big"; return null; }
-            cost = p.Width;
+            cost = own >= 0 ? 2 : p.Width + 2;  // the new wall, like a drawn room (owner Nov 14): a new section its face and two side tiles, then 2 a push
             box.Price += cost;
             index = own > 0 ? own - 1 : -1;
             return box;

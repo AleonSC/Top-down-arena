@@ -147,7 +147,6 @@ namespace Arena
             pushLock = true;
             pushT = now;
             pushSel = null;  // (until the host's map comes back with the new face)
-            sounds.PlayUiClick(now);
             return true;
         }
 
@@ -320,6 +319,7 @@ namespace Arena
         struct PushFlash { public float X0, Y0, X1, Y1, T; public bool Round; }
         struct PushName { public V2 At; public string Text; public float T; }
         World pushSeenWorld;
+        int pushSeenTiles;  // floor tiles in pushed sections at the last map (more: a wall moved, the push sound)
         HashSet<string> pushSeenPieces = new HashSet<string>(), pushSeenSections = new HashSet<string>();
         readonly List<PushFlash> pushFlashes = new List<PushFlash>();
         readonly List<PushName> pushNames = new List<PushName>();
@@ -380,6 +380,7 @@ namespace Arena
                         pushFlashes.Add(new PushFlash { X0 = c.Pos.X - h, X1 = c.Pos.X + h, Y0 = c.Pos.Y - hh, Y1 = c.Pos.Y + hh, T = now, Round = c.Round });
                 }
                 var sections = new HashSet<string>();
+                int tiles = 0, deepest = 0;
                 for (int i = 0; i < game.Expanded.Count; i++)
                 {
                     var r = game.Expanded[i];
@@ -387,11 +388,17 @@ namespace Arena
                     if (away < 0)
                         continue;
                     string key = r.Parent + ":" + away + ":" + (away < 2 ? r.Y : r.X) + ":" + (away < 2 ? r.H : r.W);
+                    int dep = Expansion.PushDepth(r, away);
+                    tiles += dep * (away < 2 ? r.H : r.W) / Expansion.Step;
+                    deepest = Mathf.Max(deepest, dep);
                     sections.Add(key);
                     var style = Expansion.PushStyleOf(game.Expanded, i);
                     if (!first && !pushSeenSections.Contains(key) && style != PushStyle.None)
                         pushNames.Add(new PushName { At = new V2(r.X + r.W / 2f, r.Y + r.H / 2f), Text = Expansion.PushStyleName(style).ToUpperInvariant(), T = now });
                 }
+                if (!first && tiles > pushSeenTiles && PushPreviewAge == 0f)
+                    sounds.PlayWallPush(now, deepest);  // (a wall moved: anyone's push)
+                pushSeenTiles = tiles;
                 pushSeenPieces = pieces;
                 pushSeenSections = sections;
                 pushSeenWorld = w;
