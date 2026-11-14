@@ -1636,6 +1636,7 @@ static partial class Shot {
         if (bb.Length > 0 && Environment.GetEnvironmentVariable("BREACHAT") != null) { int bi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = bb[0].Pos + bb[0].In * (90f + 40f * bi) + bb[0].Along * (bi * 60f - 30f); bi++; } }
       }
       MockBreachRooms(xg);
+      if (Environment.GetEnvironmentVariable("PUSHFEAT") != null) Expansion.PushStyleOverride = (int)(PushStyle)Enum.Parse(typeof(PushStyle), Environment.GetEnvironmentVariable("PUSHFEAT"), true);  // PUSHFEAT=fins|baffles|pincers|tfins|divider|cover|none: every pushed section has that style
       string xpush = Environment.GetEnvironmentVariable("PUSHES");  // PUSHES=area,side,start,width,times;...: walls pushed out (Docs/WallPush.md; side 0 W, 1 E, 2 N, 3 S; a section grows when pushed again, area = its index + 1)
       if (xpush != null) {
         foreach (var part in xpush.Split(';')) {
@@ -1652,6 +1653,16 @@ static partial class Shot {
         typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
       }
       if (Environment.GetEnvironmentVariable("PUSHHINT") != null) xg.ExpandOpen = true;  // PUSHHINT=1: between waves (a building round), so the Push wall prompt shows by a wall in reach
+      string xflash = Environment.GetEnvironmentVariable("PUSHFLASH");  // PUSHFLASH=<s>: the last push of PUSHES just happened that long ago: its new pieces flash in (and a new section's style is named)
+      if (xflash != null && xpush != null) {
+        var prev = new System.Collections.Generic.List<ExpansionRoom>(xg.Expanded); int li = prev.FindLastIndex(r => Expansion.IsPush(r)); var lr = prev[li]; int la = Expansion.PushAway(prev, li);
+        if (Expansion.PushDepth(lr, la) <= 1) prev.RemoveAt(li); else { if (la == 0) { lr.X += Expansion.Step; lr.W -= Expansion.Step; } else if (la == 1) lr.W -= Expansion.Step; else if (la == 2) { lr.Y += Expansion.Step; lr.H -= Expansion.Step; } else lr.H -= Expansion.Step; prev[li] = lr; }
+        var bfx = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        ArenaApp.PushPreviewAge = float.Parse(xflash, System.Globalization.CultureInfo.InvariantCulture);
+        var realRooms = new System.Collections.Generic.List<ExpansionRoom>(xg.Expanded); xg.Expanded.Clear(); xg.Expanded.AddRange(prev);
+        typeof(ArenaApp).GetMethod("TrackPushPieces", bfx).Invoke(app, new object[] { Expansion.Build(prev), 0f });
+        xg.Expanded.Clear(); xg.Expanded.AddRange(realRooms);
+      }
       string xsel = Environment.GetEnvironmentVariable("PUSHSEL");  // PUSHSEL=x,y: push mode on, the mouse over that world point (PUSHW=<width>, default 4); put yourself in reach with EXPANDAT
       if (xsel != null) {
         var q = Array.ConvertAll(xsel.Split(','), float.Parse); ArenaApp.PushMouseOverride = new V2(q[0], q[1]); typeof(ArenaApp).GetField("pushOn", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, true);

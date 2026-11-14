@@ -1,6 +1,6 @@
 # Wall push: grow a room from inside it
 
-Status: **steps 1-2 built** (the core: rules, cost, host and wire, protocol 349; pushing in the world, no protocol change). Step 3 (features) next. Decided with the owner on Nov 14, 2026. Mockup: `Docs/Mockups/wall-push.html`
+Status: **steps 1-3 built** (the core: rules, cost, host and wire, protocol 349; pushing in the world and the features, no protocol change). Step 4 (balance) next. Decided with the owner on Nov 14, 2026. Mockup: `Docs/Mockups/wall-push.html`
 (playable: walk, pick a section, click to push; browser look, approximate). Builds on [`VectorBuilding.md`](VectorBuilding.md)
 and [`RoomBuilding2.md`](RoomBuilding2.md).
 
@@ -107,6 +107,18 @@ Limits: a section goes at most **12 tiles** out. Pushing a section's side wall s
   an arrow, a white flash where the wall was; the label (price and `w WIDE · d / 12 OUT`, or the reason), kept on screen; the keys
   under you; the vectors chip adds `PUSH −4`. The camera leans halfway to the next row and may go 4 tiles past the map's edge.
 - A click sound for now; the Wave cleared box must be folded away first (it takes the clicks, as it does for shooting).
+
+## Built (step 3)
+
+- `Expansion.PushStyleFor` rolls a section's style from its parent, side, start and width (`DetRandom`): never from its depth, so it
+  holds as it grows, and every machine agrees with no wire change. `PushFeatures` builds the pieces as wall spans and cover from the style
+  and depth, rows 1 to depth-2, with the spacing in the table above (the mockup's); `Build` calls it for every section. Pieces keep off
+  doors other than the section's own join (a section pushed off it) and off nodes. Cover: a crate (64 px box) or a round pillar (38 px).
+- The look (`Game/WallPushLook.cs`): the client compares each new map with the last; walls and cover new inside a section flash in
+  (white fill and an outline that grows and fades, 0.6 s), and a new section's style is named over it (*BAFFLES ROLLED*, 1.6 s). The push
+  label adds the style (`4 WIDE · 3 / 12 OUT · BAFFLES`). The divider flashes as it lengthens.
+- Not done: a player standing where a piece appears is pushed out of it like any wall (`PushOutOfSolids`); the mockup's "wait until you
+  step off" isn't needed for that.
 
 ## Steps
 

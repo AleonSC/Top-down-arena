@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Arena
@@ -238,7 +239,8 @@ namespace Arena
                 V2 at = ToUi((a + b) * 0.5f + n * (Expansion.Step * (Mathf.Abs(n.X) > 0.5f ? 2.9f : 2.6f)));  // (beyond the arrow; further on a side wall, where the label is wide)
                 var col = pushOk ? new Color(1f, 0.79f, 0.3f) : pushFar ? new Color(0.62f, 0.72f, 0.78f) : new Color(1f, 0.42f, 0.46f);
                 string head = pushOk ? "PUSH +1  ·  " + pushCost + " VECTOR" + (pushCost == 1 ? "" : "S") : (pushWhy ?? "").ToUpperInvariant();
-                string sub = pushOk || pushFar ? pushSel.Value.Width + " WIDE  ·  " + pushDepth + " / " + Expansion.PushMaxDepth + " OUT" : null;
+                var style = Expansion.PushStyleOfPush(game.Expanded, pushSel.Value);
+                string sub = pushOk || pushFar ? pushSel.Value.Width + " WIDE  ·  " + pushDepth + " / " + Expansion.PushMaxDepth + " OUT" + (style != PushStyle.None ? "  ·  " + Expansion.PushStyleName(style).ToUpperInvariant() : "") : null;
                 float w = Mathf.Max(150f, 26f + head.Length * 7.4f);
                 var r = new Rect(at.X - w / 2f, at.Y - (sub != null ? 19f : 12f), w, sub != null ? 38f : 24f);
                 r.x = Mathf.Clamp(r.x, 8f, W - r.width - 8f);  // (kept on screen: a wall at the view's edge)
@@ -311,6 +313,138 @@ namespace Arena
             if (pushOn || me == null || me.Downed || !game.CanPush || ExpandWindowUp || WaveBoxShown(me) || game.GateNear(me.Pos) >= 0 || game.MyLootInReach != null)
                 return null;  // (the Wave cleared box takes the clicks: fold it away first)
             return WallToPushNear(me);
+        }
+
+        // --- Features building in (step 3) ------------------------------------------------------------------------
+
+        struct PushFlash { public float X0, Y0, X1, Y1, T; public bool Round; }
+        struct PushName { public V2 At; public string Text; public float T; }
+        World pushSeenWorld;
+        HashSet<string> pushSeenPieces = new HashSet<string>(), pushSeenSections = new HashSet<string>();
+        readonly List<PushFlash> pushFlashes = new List<PushFlash>();
+        readonly List<PushName> pushNames = new List<PushName>();
+        const float PushFlashTime = 0.6f, PushNameTime = 1.6f;
+
+        /// Is this point inside a pushed section (not on its walls)?
+        bool InPushSection(V2 p)
+        {
+            foreach (var r in game.Expanded)
+                if (Expansion.IsPush(r) && p.X > r.X + 6f && p.X < r.X1 - 6f && p.Y > r.Y + 6f && p.Y < r.Y1 - 6f)
+                    return true;
+            return false;
+        }
+
+        /// WorldRenderer: when the map changes, the pieces new in a pushed section (a wall, a crate, a pillar) flash in, and a new section's
+        /// style is named over it (DrawPushNames). Everyone sees it, whoever pushed.
+        void DrawPushFlashes()
+        {
+            if (!game.ExpandingOn || !game.RoomsOn)
+                return;
+            float now = Time.unscaledTime;
+            TrackPushPieces(game.ExpansionWorld, now - PushPreviewAge);
+            DrawFlashesNow(now);
+        }
+
+        /// The preview (PUSHFLASH=<s>): the flashes and names drawn this long after they started.
+        public static float PushPreviewAge;
+
+        /// Compare this map with the last one seen: what's new in a pushed section flashes, a new section's style is named.
+        void TrackPushPieces(World w, float now)
+        {
+            if (w != pushSeenWorld)
+            {
+                bool first = pushSeenWorld == null;
+                var pieces = new HashSet<string>();
+                foreach (var s in w.Spans)
+                {
+                    V2 mid = s.Vertical ? new V2(s.At, (s.From + s.Till) / 2f) : new V2((s.From + s.Till) / 2f, s.At);
+                    if (!InPushSection(mid))
+                        continue;
+                    string key = (s.Vertical ? "v" : "h") + s.At + ":" + s.From + ":" + s.Till;
+                    pieces.Add(key);
+                    if (!first && !pushSeenPieces.Contains(key))
+                    {
+                        float t = Expansion.FinT / 2f;
+                        pushFlashes.Add(s.Vertical ? new PushFlash { X0 = s.At - t, X1 = s.At + t, Y0 = s.From, Y1 = s.Till, T = now }
+                                                   : new PushFlash { X0 = s.From, X1 = s.Till, Y0 = s.At - t, Y1 = s.At + t, T = now });
+                    }
+                }
+                foreach (var c in w.Cover)
+                {
+                    if (!InPushSection(c.Pos))
+                        continue;
+                    string key = "c" + c.Pos.X + ":" + c.Pos.Y;
+                    pieces.Add(key);
+                    float h = c.Round ? c.R : c.HW, hh = c.Round ? c.R : c.HH;
+                    if (!first && !pushSeenPieces.Contains(key))
+                        pushFlashes.Add(new PushFlash { X0 = c.Pos.X - h, X1 = c.Pos.X + h, Y0 = c.Pos.Y - hh, Y1 = c.Pos.Y + hh, T = now, Round = c.Round });
+                }
+                var sections = new HashSet<string>();
+                for (int i = 0; i < game.Expanded.Count; i++)
+                {
+                    var r = game.Expanded[i];
+                    int away = Expansion.PushAway(game.Expanded, i);
+                    if (away < 0)
+                        continue;
+                    string key = r.Parent + ":" + away + ":" + (away < 2 ? r.Y : r.X) + ":" + (away < 2 ? r.H : r.W);
+                    sections.Add(key);
+                    var style = Expansion.PushStyleOf(game.Expanded, i);
+                    if (!first && !pushSeenSections.Contains(key) && style != PushStyle.None)
+                        pushNames.Add(new PushName { At = new V2(r.X + r.W / 2f, r.Y + r.H / 2f), Text = Expansion.PushStyleName(style).ToUpperInvariant(), T = now });
+                }
+                pushSeenPieces = pieces;
+                pushSeenSections = sections;
+                pushSeenWorld = w;
+            }
+        }
+
+        void DrawFlashesNow(float now)
+        {
+            for (int i = pushFlashes.Count - 1; i >= 0; i--)
+            {
+                var f = pushFlashes[i];
+                float k = (now - f.T) / PushFlashTime;
+                if (k >= 1f)
+                {
+                    pushFlashes.RemoveAt(i);
+                    continue;
+                }
+                float grow = 10f * k, a = 1f - k;
+                V2 c = new V2((f.X0 + f.X1) / 2f, (f.Y0 + f.Y1) / 2f);
+                if (f.Round)
+                {
+                    Circle(c, (f.X1 - f.X0) / 2f, new Rgba(1f, 1f, 1f, 0.45f * a * a), 20);
+                    Arc(c, (f.X1 - f.X0) / 2f + grow, 2f, new Rgba(0.85f, 0.98f, 1f, a), 24);
+                    continue;
+                }
+                FillRect(f.X0, f.Y0, f.X1 - f.X0, f.Y1 - f.Y0, new Rgba(1f, 1f, 1f, 0.45f * a * a));
+                V2 p0 = new V2(f.X0 - grow, f.Y0 - grow), p1 = new V2(f.X1 + grow, f.Y0 - grow), p2 = new V2(f.X1 + grow, f.Y1 + grow), p3 = new V2(f.X0 - grow, f.Y1 + grow);
+                var edge = new Rgba(0.85f, 0.98f, 1f, a);
+                Line(p0, p1, 2f, edge); Line(p1, p2, 2f, edge); Line(p2, p3, 2f, edge); Line(p3, p0, 2f, edge);
+            }
+        }
+
+        /// The HUD: a new section's style, named over it as it rises and fades.
+        void DrawPushNames()
+        {
+            float now = Time.unscaledTime;
+            for (int i = pushNames.Count - 1; i >= 0; i--)
+            {
+                var n = pushNames[i];
+                float k = (now - n.T) / PushNameTime;
+                if (k >= 1f || !game.ExpandingOn)
+                {
+                    pushNames.RemoveAt(i);
+                    continue;
+                }
+                V2 at = ToUi(n.At) + new V2(0f, -24f * k);
+                float a = k < 0.15f ? k / 0.15f : 1f - Mathf.Clamp01((k - 0.6f) / 0.4f);
+                var r = new Rect(at.X - 80f, at.Y - 11f, 160f, 22f);
+                Ui.Alpha = a;
+                DkHud(r, new Color(0.37f, 0.94f, 1f));
+                Ui.Label(r, n.Text + "  ROLLED", 11, new Color(0.37f, 0.94f, 1f), TextAnchor.MiddleCenter, true);
+                Ui.Alpha = 1f;
+            }
         }
 
         /// The vectors chip's note in push mode: what the next push spends.

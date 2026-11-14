@@ -4,6 +4,9 @@ using System.IO;
 
 namespace Arena
 {
+    /// What grows inside a pushed section (Docs/WallPush.md step 3): one style a section, rolled from where it is and its width.
+    public enum PushStyle : byte { None, Fins, Baffles, Pincers, TFins, Divider, Cover }
+
     /// A wall push (Docs/WallPush.md): push this stretch of an area's wall out one tile. Side: 0 west, 1 east, 2 north, 3 south
     /// (the same order as Expansion.Build's edges); Start: where the stretch starts along the wall, in world px on the 100 px grid
     /// (y for a west or east wall, x for a north or south one); Width: its length in tiles.
@@ -156,6 +159,171 @@ namespace Arena
                     found = a;
             }
             return found;
+        }
+
+        // --- Features (step 3): what grows inside a section as it's pushed --------------------------------------------
+
+        /// Preview and tests: every section gets this style (-1: rolled).
+        public static int PushStyleOverride = -1;
+
+        /// The styles a section this many tiles wide can roll: 4+ fins, T-fins, cover; 5+ baffles, divider; 6+ pincers.
+        static PushStyle[] PushStyles(int width)
+            => width >= 6 ? new[] { PushStyle.Fins, PushStyle.Baffles, PushStyle.Pincers, PushStyle.TFins, PushStyle.Divider, PushStyle.Cover }
+             : width >= 5 ? new[] { PushStyle.Fins, PushStyle.Baffles, PushStyle.TFins, PushStyle.Divider, PushStyle.Cover }
+             : width >= 4 ? new[] { PushStyle.Fins, PushStyle.TFins, PushStyle.Cover }
+             : new PushStyle[0];
+
+        /// A section's style, rolled from where it is and how wide (not its depth, so it never changes as it grows): the same on every machine.
+        public static PushStyle PushStyleFor(int parent, int away, int start, int width)
+        {
+            var ok = PushStyles(width);
+            if (ok.Length == 0)
+                return PushStyle.None;
+            if (PushStyleOverride >= 0)
+                return Array.IndexOf(ok, (PushStyle)PushStyleOverride) >= 0 ? (PushStyle)PushStyleOverride : PushStyle.None;
+            return ok[new DetRandom(parent * 7919 ^ away * 104729 ^ start * 31 ^ width * 977 ^ 0x5eed).Int(ok.Length)];
+        }
+
+        public static PushStyle PushStyleOf(IList<ExpansionRoom> rooms, int index)
+        {
+            int away = PushAway(rooms, index);
+            if (away < 0)
+                return PushStyle.None;
+            var r = rooms[index];
+            return PushStyleFor(r.Parent, away, away < 2 ? r.Y : r.X, (away < 2 ? r.H : r.W) / Step);
+        }
+
+        /// The style a push would give: the section's own if it grows one, else the one a new section there would roll.
+        public static PushStyle PushStyleOfPush(IList<ExpansionRoom> rooms, WallPush p)
+        {
+            if (p.Area > 0 && p.Area <= rooms.Count && IsPush(rooms[p.Area - 1]) && PushAway(rooms, p.Area - 1) == p.Side)
+            {
+                int lo = p.Side < 2 ? rooms[p.Area - 1].Y : rooms[p.Area - 1].X, w = (p.Side < 2 ? rooms[p.Area - 1].H : rooms[p.Area - 1].W) / Step;
+                if (p.Start == lo && p.Width == w)
+                    return PushStyleOf(rooms, p.Area - 1);
+            }
+            return PushStyleFor(p.Area, p.Side, p.Start, p.Width);
+        }
+
+        public static string PushStyleName(PushStyle s)
+            => s == PushStyle.Fins ? "Fins" : s == PushStyle.Baffles ? "Baffles" : s == PushStyle.Pincers ? "Pincers" : s == PushStyle.TFins ? "T-fins"
+             : s == PushStyle.Divider ? "Divider" : s == PushStyle.Cover ? "Cover" : "None";
+
+        public const int PushCrate = 32, PushPillar = 38;  // cover: a crate's half size, a pillar's radius
+
+        /// A section's features (Docs/WallPush.md step 3), from its style and depth: rows 1 to depth - 2 (the two rows by the face stay clear)
+        /// get the style's pieces as wall spans and cover. Pieces by a door (a section pushed off this one) or on a node are left out.
+        /// Row r's pieces: Fins every 4 rows from alternate sides; Baffles every 3, 2 tiles short of the far side; Pincers every 5, a pair
+        /// leaving a 3-tile gap; T-fins every 4, a stub with a 2-tile crossbar; Divider down the middle, 5 rows of wall then a 2-row doorway;
+        /// Cover every 3 rows, a crate or pillar (two when 7+ wide).
+        public static void PushFeatures(IList<ExpansionRoom> rooms, int index, List<WallSpan> spans, List<Solid> cover, List<RoomDoor> doors = null, IList<MapNode> nodes = null)
+        {
+            int away = PushAway(rooms, index);
+            if (away < 0)
+                return;
+            var r = rooms[index];
+            int w = (away < 2 ? r.H : r.W) / Step, depth = PushDepth(r, away), start = away < 2 ? r.Y : r.X;
+            var style = PushStyleFor(r.Parent, away, start, w);
+            if (style == PushStyle.None)
+                return;
+            int s = away == 1 || away == 3 ? 1 : -1;
+            float f0 = away == 1 ? r.X : away == 0 ? r.X1 : away == 3 ? r.Y : r.Y1;  // the parent's wall line
+            Func<float, float, V2> P = (a, u) => away < 2 ? new V2(f0 + s * u * Step, start + a * Step) : new V2(start + a * Step, f0 + s * u * Step);
+            int area = index + 1;
+            Func<V2, V2, bool> clear = (p, q) =>  // a piece from p to q keeps off doors and nodes
+            {
+                if (doors != null)
+                    foreach (var d in doors)
+                    {
+                        if (!d.Joins(area) || d.Joins(r.Parent))
+                            continue;  // (its own open join to the room it was pushed from doesn't count)
+                        float reach = d.W / 2f + 70f;
+                        if (d.Pos.DistanceTo(p) < reach || d.Pos.DistanceTo(q) < reach || d.Pos.DistanceTo((p + q) * 0.5f) < reach)
+                            return false;
+                    }
+                if (nodes != null)
+                    foreach (var nd in nodes)
+                        if (nd.X > Math.Min(p.X, q.X) - NodeClear - 40 && nd.X < Math.Max(p.X, q.X) + NodeClear + 40
+                            && nd.Y > Math.Min(p.Y, q.Y) - NodeClear - 40 && nd.Y < Math.Max(p.Y, q.Y) + NodeClear + 40)
+                            return false;
+                return true;
+            };
+            Action<float, float, float> across = (u, a0, a1) =>  // a wall parallel to the face, at depth u, from a0 to a1 along it
+            {
+                V2 p = P(a0, u), q = P(a1, u);
+                if (!clear(p, q))
+                    return;
+                spans.Add(away < 2 ? new WallSpan(true, p.X, Math.Min(p.Y, q.Y), Math.Max(p.Y, q.Y)) : new WallSpan(false, p.Y, Math.Min(p.X, q.X), Math.Max(p.X, q.X)));
+            };
+            Action<float, float, float> down = (a, u0, u1) =>  // a wall running out from the parent, at a along the face, from depth u0 to u1
+            {
+                V2 p = P(a, u0), q = P(a, u1);
+                if (!clear(p, q))
+                    return;
+                spans.Add(away < 2 ? new WallSpan(false, p.Y, Math.Min(p.X, q.X), Math.Max(p.X, q.X)) : new WallSpan(true, p.X, Math.Min(p.Y, q.Y), Math.Max(p.Y, q.Y)));
+            };
+            Action<int, float, float> fin = (side, len, u) => { if (side == 0) across(u, 0f, len); else across(u, w - len, w); };
+            int segFrom = -1;  // the divider's open run of rows
+            for (int row = 1; row <= depth - 2; row++)
+            {
+                float mid = row - 0.5f;
+                switch (style)
+                {
+                    case PushStyle.Fins:
+                        if (row % 4 == 2) fin((row >> 2) & 1, w >= 6 ? 2f : 1.5f, mid);
+                        break;
+                    case PushStyle.Baffles:
+                        if (row % 3 == 2) fin((row / 3) & 1, w - 2, mid);
+                        break;
+                    case PushStyle.Pincers:
+                        if (row % 5 == 3) { fin(0, (w - 3) / 2f, mid); fin(1, (w - 3) / 2f, mid); }
+                        break;
+                    case PushStyle.TFins:
+                        if (row % 4 == 2 && row + 1 <= depth - 1)
+                        {
+                            int side = (row >> 2) & 1;
+                            float len = w >= 6 ? 2f : 1.5f, c = side == 0 ? len : w - len;
+                            int before = spans.Count;
+                            fin(side, len, mid);
+                            if (spans.Count > before)
+                                down(c, mid - 1f, mid + 1f);  // (the crossbar, only with its stem)
+                        }
+                        break;
+                    case PushStyle.Divider:
+                    {
+                        bool wall = row >= 2 && (row - 2) % 7 < 5;
+                        if (wall && segFrom < 0)
+                            segFrom = row;
+                        bool last = row == depth - 2;
+                        if (segFrom >= 0 && (!wall || last))
+                        {
+                            int till = wall ? row : row - 1;
+                            down(w / 2f, segFrom - 1f, till);
+                            segFrom = -1;
+                        }
+                        break;
+                    }
+                    case PushStyle.Cover:
+                        if (row % 3 == 2)
+                        {
+                            var rng = new DetRandom(r.Parent * 31 + start * 17 + w * 7 + row * 1013 + away);
+                            int n = w >= 7 ? 2 : 1, lastA = -1;
+                            for (int i = 0; i < n; i++)
+                            {
+                                int a = 1 + rng.Int(Math.Max(1, w - 2));
+                                bool pillar = rng.Float() < 0.45f;
+                                if (a == lastA)
+                                    continue;
+                                lastA = a;
+                                V2 c = P(a + 0.5f, mid);
+                                if (!clear(c, c))
+                                    continue;
+                                cover.Add(pillar ? new Solid { Round = true, Pos = c, R = PushPillar } : new Solid { Pos = c, HW = PushCrate, HH = PushCrate });
+                            }
+                        }
+                        break;
+                }
+            }
         }
 
         /// The area index (0 the hub) of the multi-box room this area belongs to: its head, the way Build groups them.
