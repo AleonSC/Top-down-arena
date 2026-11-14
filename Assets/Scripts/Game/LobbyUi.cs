@@ -151,8 +151,11 @@ namespace Arena
 
             // --- Right: the tab keys, then your loadout or the practice waves.
             bool onLoadout = lobbyTab == 0 || lobbyTab == PerkTab;
-            if (LobbyKit.Key(LobbyLoadoutKey, session.Resume != null ? "SEATS" : "LOADOUT", onLoadout, calm, size: 16, minSize: 11) && lobbyTab != 0)
+            if (LobbyKit.Key(LobbyLoadoutKey, session.Resume != null ? "SEATS" : "LOADOUT", onLoadout, calm, size: 16, minSize: 11))
+            {
                 lobbyTab = 0;  // the fixed Loadout key (LobbyLayout.cs); Perks opens from a key on the loadout
+                CloseFavorites();  // (also closes the Saved loadouts drawer)
+            }
             if (session.Resume == null)
                 DrawFavoritesKey(LobbySavedKey, calm);  // the Saved loadouts star (FavoritesUi.cs)
             DrawLobbyTabs(LobbyTabsRect, practice);  // beside the Loadout key (LobbyLayout.cs)

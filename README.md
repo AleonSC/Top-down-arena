@@ -865,7 +865,7 @@ the other players), so it always matches how weapons and abilities really behave
 
 ## Saved loadouts
 
-The **star** key just right of the **Loadout** key (gold once anything is saved; hover for the count) opens **Saved loadouts** over the right column (the
+The **star** key just right of the **Loadout** key (gold once anything is saved; hover for the count) opens **Saved loadouts** over the right column (click the star again, the **Loadout** key or Esc to close it; the
 preview and stats stay beside it). Up to **6** favourites, each a card with its name, class and role, weapon, ability
 and ultimate; the one you're wearing says **EQUIPPED**. The pencil after a name renames it (Enter or the tick keeps it, Esc cancels). **LOAD** puts on every pick at once (and the perks it was saved
 with, if they're still unlocked); **X** then **SURE?** deletes one. **SAVE CURRENT LOADOUT** asks for a name (up to 20

@@ -31,7 +31,9 @@ namespace Arena
                 lockedTipOn = true;
                 lockedTipText = "Saved loadouts  " + n + "/" + Favorites.Slots;
             }
-            if (hit)
+            if (hit && favOpen && lobbyTab == 0)
+                CloseFavorites();  // (lit: a second click goes back to the loadout)
+            else if (hit)
             {
                 lobbyTab = 0;  // (from another tab: back to the loadout, drawer open)
                 favOpen = true;
@@ -41,20 +43,25 @@ namespace Arena
             }
         }
 
+        void CloseFavorites()
+        {
+            favOpen = false;
+            favNaming = false;
+            favRenaming = -1;
+            favSure = -1;
+        }
+
         void DrawFavorites(LobbyEntry me, Rect r, bool calm)
         {
             var prof = session.Game.Profile;
             Ui.Fill(r, new Color(0.02f, 0.035f, 0.07f, 0.97f));  // (covers the picks under it)
             LobbyKit.Panel(r);
             int count = prof != null ? prof.Favorites.Count : 0;
-            LobbyKit.Heading(r.x + 16f, r.y + 10f, r.width - 150f, "Saved loadouts", count + " of " + Favorites.Slots, calm);
-            if (LobbyKit.Key(new Rect(r.xMax - 126f, r.y + 14f, 110f, 26f), "< LOADOUT", false, calm, size: 13, minSize: 10)
-                || (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape && !favNaming && favRenaming < 0 && favOpen))
+            LobbyKit.Heading(r.x + 16f, r.y + 10f, r.width - 32f, "Saved loadouts", count + " of " + Favorites.Slots, calm);
+            if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape && !favNaming && favRenaming < 0 && favOpen)
             {
-                favOpen = false;
-                favRenaming = -1;
-                favSure = -1;
-                if (Event.current.type == EventType.KeyDown) Event.current.Use();
+                CloseFavorites();  // (the star or the Loadout key also close it)
+                Event.current.Use();
                 return;
             }
             float cardH = Mathf.Min(78f, (r.height - 60f) / Favorites.Slots - 8f);
