@@ -589,15 +589,21 @@ namespace Arena
 
         // --- Writing --------------------------------------------------------------------
 
+        public static Action<string> Log;  // where a failed save is reported (the game's log)
+        bool saveFailed;
+
         public void Save()
         {
             try
             {
                 File.WriteAllText(Path, ToJson());
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // A recording problem should never break the game.
+                // A recording problem should never break the game, but it shows in the log once.
+                if (!saveFailed)
+                    Log?.Invoke("session recording couldn't be saved (" + Path + "): " + ex);
+                saveFailed = true;
             }
         }
 

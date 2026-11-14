@@ -12,6 +12,7 @@ namespace Arena
         readonly BossLab lab = new BossLab();
         float labSpeed = 1f;
         bool labPaused;
+        bool labInFight;  // the lab's match has started (before that, a party lab waits in the lobby for its bots)
         static readonly float[] LabSpeeds = { 1f, 2f, 4f, 8f };
         static readonly Rect LabPanel = new Rect(W - 262f, 96f, 250f, 346f);
         static readonly string[] RoleNames = { "Tank", "Healer", "DPS" };
@@ -31,9 +32,11 @@ namespace Arena
         {
             if (!lab.Active)
                 return;
-            if (session.Screen == AppScreen.Menu)  // left through the pause menu
+            if (session.Screen == AppScreen.Game)
+                labInFight = true;
+            else if (session.Screen == AppScreen.Menu || labInFight)  // left through the pause menu, or back to the lobby from the end screen
             {
-                StopLab();
+                StopLab();  // (else the lab's settings stay on: the next match isn't recorded and plays the lab's boss)
                 return;
             }
             lab.UpdateClients(dt);
@@ -53,8 +56,8 @@ namespace Arena
             labSetupOpen = false;
             devMenuOpen = false;
             labPaused = false;
-            lab.Seed = 0;
-            game.RecordFolder = null;  // lab fights aren't recorded as sessions
+            labInFight = false;
+            lab.Seed = 0;  // (lab fights aren't recorded as sessions: BossLab.Start marks the game Unrecorded)
             if (!lab.Start(session, Session.DefaultPort + 20 + UnityEngine.Random.Range(0, 200)))
                 labSetupOpen = true;  // couldn't host: the status line says why
         }
@@ -64,7 +67,7 @@ namespace Arena
             lab.Stop();
             Time.timeScale = 1f;
             labPaused = false;
-            ApplyRecording();
+            labInFight = false;
         }
 
         /// Is the mouse over the lab's panel or result card (so clicks there don't shoot)?
