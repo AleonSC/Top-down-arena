@@ -1057,7 +1057,8 @@ namespace Arena
         {
             if (a <= 0.01f || r <= 0f)
                 return;
-            const int segs = 8;
+            Vector3 s0 = Px(c), s1 = Px(c + new V2(r, 0f));
+            int segs = Mathf.Abs(s1.x - s0.x) + Mathf.Abs(s1.y - s0.y) < 28f ? 6 : 8;  // a small glow's rim is clear anyway: 6 sides read the same (a crowd's sparks and shots)
             var mid = col.WithAlpha(a * 0.38f);
             var rim = col.WithAlpha(0f);
             var core = col.WithAlpha(a);
