@@ -159,6 +159,7 @@ namespace Arena
         public float Revive, FireCd, BarrierT, InvulnT, OverdriveT, AdrenalineT, SwiftT, Flash, LevelFlash;  // AdrenalineT: the Healer's Adrenaline Shot (Adrenaline.cs)
         public float TauntT;  // Roar: enemies target this player
         public float DashT;   // replicated: the Ninja's Healing Dash, seconds of sprint left (Ninja.cs)
+        public byte Sprint;   // replicated: the Dodge's held sprint, how much is left (255 fresh, 0 none; Dodge.cs); its owner's game sends it in Msg.Input
         public float SurgeT;  // replicated: Arcane Surge's faster firing, seconds left (the Elementalist's class card)
         public float GhostT;  // host: Ghost Step's damage cut after a dodge, seconds left (the Ninja's class card)
         public float DashHeal = 1f, DashRadius;  // host: the footprints it leaves heal this much more, and are this wide

@@ -1228,6 +1228,7 @@ namespace Arena
             }
 
             LocalDodge(me, move, input.Dodge, input.DodgeHeld, dt);  // the tiny dash with invulnerability (Dodge.cs)
+            me.Sprint = (byte)Math.Round(SprintFade * 255f);  // for everyone else's wake (sent in Msg.Input, then the snapshot)
             LocalWeaponDash(me, move, aimAt, input.WeaponAction && !me.ParryActive, dt);  // weapon secondaries on their own key (Ninja.cs)
             if (LocalGreatStar(me, firing && !HoldControls, aimAt, dt))
                 firing = false;  // the Great Star stance: Fire draws the route and throws instead (GreatStar.cs)
@@ -1257,6 +1258,7 @@ namespace Arena
                 w.Write(me.Parrying);
                 w.Write(me.DrawT);
                 w.Write(bowRelease);
+                w.Write(me.Sprint);  // the Dodge's sprint, for the others' wake (Dodge.cs)
                 session.SendToHost(Proto.End(w));
             }
         }
