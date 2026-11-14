@@ -1334,6 +1334,7 @@ namespace Arena
             TickProps(dt);    // Props.cs: fuses, smashed pots, opened chests, breaks
             MoveBullets(dt * WorldRate);
             Collide();
+            FirePendingClaps();  // Squall.cs: Grounders' Thunderclaps charged by this tick's hits
             SendBounces();    // Relics.cs: shots that bounced off a wall this tick
             TickRods(dt);     // LightningRod.cs: the charge running down, and the bolts this tick's hits called
             EnforcePens();    // Chalk.cs: enemies penned in by an ink loop stay inside it

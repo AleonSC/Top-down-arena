@@ -704,6 +704,34 @@ namespace Arena
                     }
                 }
             }
+            KeepEnemiesInRooms();
+        }
+
+        /// The Rooms and Expanding arenas: an enemy that ends a tick outside every room (crowding, a shove or a blink took it
+        /// through a wall) goes back to its last spot inside one; one that never had a spot snaps to the nearest room.
+        void KeepEnemiesInRooms()
+        {
+            if (!RoomsOn)
+                return;
+            var areas = CurrentWorld.Areas;
+            foreach (var e in Enemies.Values)
+            {
+                bool inside = false;
+                foreach (var a in areas)
+                    if (!a.Sealed && a.Contains(e.Pos))
+                    {
+                        inside = true;
+                        break;
+                    }
+                if (inside)
+                {
+                    e.RoomAt = e.Pos;
+                    e.HasRoomAt = true;
+                    continue;
+                }
+                e.Pos = e.HasRoomAt ? e.RoomAt : SnapIntoRooms(e.Pos, e.Radius);
+                e.KnockLeft = V2.Zero;  // (a push still sliding would only carry it back out)
+            }
         }
 
         void Face(Enemy e, V2 tpos, float dt)
