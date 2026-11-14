@@ -1,7 +1,7 @@
 # Enemy behaviour classes
 
-**Status: steps 0-4 built** (scaffolding, hooks, `aitrace`; the shields, lungers, brutes, chasers, Rioters and Guards run on brains). Owner's decisions: every enemy moves to brains (not just the kin ones), and drawing stays separate. Code today: `Core/HiveKin.cs` (the kin table), `Core/PrisonKin.cs` (`IsBrute`, `IsLunger`),
-`Core/EnemyAI.cs` (`MoveEnemy`, `Special`, `EnemyFire`), each faction's `*Faction.cs`. New: `Core/Brain.cs`, `Core/ShieldBrains.cs`, `Core/LungeBrains.cs`, `Core/ChaseBrains.cs`, `Core/RiotBrains.cs`,
+**Status: steps 0-5 built** (scaffolding, hooks, `aitrace`; the shields, lungers, brutes, chasers, Rioters, Guards and lobbers run on brains). Owner's decisions: every enemy moves to brains (not just the kin ones), and drawing stays separate. Code today: `Core/HiveKin.cs` (the kin table), `Core/PrisonKin.cs` (`IsBrute`, `IsLunger`),
+`Core/EnemyAI.cs` (`MoveEnemy`, `Special`, `EnemyFire`), each faction's `*Faction.cs`. New: `Core/Brain.cs`, `Core/ShieldBrains.cs`, `Core/LungeBrains.cs`, `Core/ChaseBrains.cs`, `Core/RiotBrains.cs`, `Core/LobBrains.cs`,
 `Tools/SimTest/Tests/AiTrace.cs`, `Tools/SimTest/Golden/aitrace.txt`.
 
 ## Problem
@@ -49,7 +49,8 @@ public sealed class Brain
 public abstract class MovePart    { public abstract V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed);
                                     public virtual bool Turn(Game g, Enemy e, float want, float dt) => false;    // false: face the target at once
                                     public virtual float Contact(Game g, Enemy e) => -1f; }                       // touch damage now; < 0: the usual
-public abstract class FirePart    { public abstract void Fire(Game g, Enemy e, V2 tpos, float aim); }
+public abstract class FirePart    { public abstract void Fire(Game g, Enemy e, V2 tpos, float aim);
+                                    public virtual void Wind(Game g, Enemy e, V2 tpos, float rateNow) { } }       // each tick of its fire timer
 public abstract class SpecialPart { public abstract void Tick(Game g, Enemy e, V2 tpos, float dt); }
 public abstract class GuardPart   { public abstract bool Blocks(Game g, Enemy e, V2 from);      // BlocksShot
                                     public virtual void Setup(Game g, Enemy e) { }                // at spawn: its shield
@@ -147,7 +148,7 @@ Each step moves one family. Each step has to leave `aitrace` IDENTICAL and needs
 | 2 ✓ | Lungers | Lunger, Shiv, Hornet, Driller, Fencer, Scythe Wraith, Mummer (its masquerade still runs first) |
 | 3 ✓ | Brutes and chasers | Brute, Thug, Bumble, Gravedigger, Swarmer, Wisp, Stomper, Gulper, Harlequin |
 | 4 ✓ | Rioters and Guards | Rioter, Worker, Rubble, Gnawling, Guard, Soldier, Quarryman, Butcher, Blade Dancer |
-| 5 | Lobbers | Gas Grenadier, Honey Lobber, Rock Hurler, Bile Spitter, Dusk Lobber, Marshal |
+| 5 ✓ | Lobbers | Gas Grenadier, Honey Lobber, Rock Hurler, Bile Spitter, Dusk Lobber, Marshal |
 | 6 | Shooters | Taser Guard, Stinger, Geomancer, Cinder Priest, Maw Priest, Gallant; Security Guard, Needler, Second |
 | 7 | Remove the kin table | `HiveKin`, `Enemy.Kin`, the old cases; `IsBrute` etc. read only `Roles` |
 | 8 | The rest (in scope: owner's decision) | basic faction, Penumbral, Infall, Squall, Reaper cult, zombies, late-game enemies |
@@ -215,6 +216,22 @@ Each step moves one family. Each step has to leave `aitrace` IDENTICAL and needs
 - **aitrace fix:** a run could fail to open its port (still held by an earlier run), leaving that enemy's line as
   `no-fight`. It now takes the next port.
 - **Checked:** `aitrace` identical for all 128 types, twice.
+
+## Step 5: lobbers (built)
+
+- **File:** `Core/LobBrains.cs`. All six share `LobMove` (keep `GrenadierRange` away, plant while winding up).
+- **`LobFire`** holds what each one throws: ring size, colour, whether it leads you, and the patch it leaves (kind,
+  life, radius). Gas Grenadier (gas), Honey Lobber (honey), Rock Hurler (leads; rubble pile), Bile Spitter (leads;
+  acid), Dusk Lobber (dark). `GrenadierWind`/`GrenadierFire` take the part instead of checking the type.
+- **`CircleFire`**: the Marshal's dueling circle (`MarshalCircle`, split out of `CourtFire`).
+- **New hook:** `FirePart.Wind`, each tick of the fire timer (where the Gas Grenadier kin's `GrenadierWind` call was).
+- **Registry built lazily:** `BrainOf` builds the table on first use, since parts now copy static colours
+  (`GasLobColor`, `HurlerColor`, ...) that a field initializer in another file might not have set yet.
+- **Removed (unreachable now):** `LobRadius`, `LobColor`, the type checks in `LobSpot` and the landing, the Gas
+  Grenadier kin branches in `WardenFactionMove`, `EnemyFire` and the wind-up, and the Marshal case in `CourtFire`.
+- **Left for step 7:** `WindUpOf` (Readability.cs) still reads the kin for the Gas Grenadier's glow timing, and so
+  does `VarietyLook.cs` (drawing).
+- **Checked:** `aitrace` identical for all 128 types.
 
 ## Risks
 

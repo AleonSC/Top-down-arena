@@ -600,8 +600,9 @@ namespace Arena
                     // A regular shooter glows just before it fires (Readability.cs).
                     float rateNow = mult * (1f - e.Suppress);
                     e.Winding = (e.Kin == EnemyType.SecurityGuard ? e.Phase > 0 : TakesTurns(e) && (HasTurn(e) || mine)) && rateNow > 0f && e.FireT / rateNow <= WindUpOf(e.Type) && e.FireT > -0.5f;
-                    if (e.Kin == EnemyType.GasGrenadier && e.Type != EnemyType.Marshal)  // (a Marshal draws a circle, no lob: CourtFaction.cs)
-                        GrenadierWind(e, tpos, rateNow);  // locks its lob when the wind-up starts (WardenFaction.cs)
+                    var fb = BrainOf(e.Type);
+                    if (fb != null && fb.Fire != null)
+                        fb.Fire.Wind(this, e, tpos, rateNow);  // a lobber locks its lob when the wind-up starts (LobBrains.cs)
                     if (held && e.FireT <= 0f)
                         e.FireT = Rand(0.2f, 0.4f);  // nobody in its room: nothing to shoot at
                     if (e.FireT <= 0f)
@@ -1010,7 +1011,7 @@ namespace Arena
                     v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
                 if (e.Type == EnemyType.RiotCaptain)
                     v = CaptainMove(e, dir, dist, ref speed);  // RiotCaptain.cs
-                if (e.Kin == EnemyType.GasGrenadier || e.Kin == EnemyType.TaserGuard || e.Kin == EnemyType.SecurityGuard)
+                if (e.Kin == EnemyType.TaserGuard || e.Kin == EnemyType.SecurityGuard)
                     v = WardenFactionMove(e, tpos, dir, dist, dt, ref speed);  // WardenFaction.cs
                 if (e.Type == EnemyType.BoundWraith || e.Type == EnemyType.Lamplighter || e.Type == EnemyType.Mourner)
                     v = ReaperCultMove(e, tpos, dir, dist, dt, ref speed);  // ReaperFaction.cs
@@ -1227,16 +1228,11 @@ namespace Arena
             if (InfallFire(e, tpos, aim))
                 return;  // Infall.cs
             if (CourtFire(e, tpos, aim))
-                return;  // the Second's daggers, the Marshal's circle; a Gallant doesn't shoot (CourtFaction.cs)
+                return;  // the Second's daggers; a Gallant doesn't shoot (CourtFaction.cs)
             if (PenumbralFire(e, tpos, aim))
                 return;  // Penumbral.cs
             if (SquallFire(e, tpos, aim))
                 return;  // Squall.cs
-            if (e.Kin == EnemyType.GasGrenadier)
-            {
-                GrenadierFire(e, tpos);  // WardenFaction.cs
-                return;
-            }
             if (QuarryFire(e, tpos, aim))
                 return;  // the Geomancer's crack, the Cinder Priest's magma bolt (QuarryFaction.cs)
             if (LarderFire(e, tpos, aim))

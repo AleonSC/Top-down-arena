@@ -102,7 +102,15 @@ namespace Arena
             parrierBounces.Add(new Bullet { Pos = at, Vel = V2.FromAngle(aim + Rand(-0.06f, 0.06f)) * ParrierBounceSpeed });
         }
 
-        /// Host, in EnemyFire: the Second's dagger fan and the Marshal's circle; a Gallant never shoots (its lunge is
+        /// Host, in EnemyFire (a Marshal's brain, LobBrains.cs): the baton points and a dueling circle draws where you stand.
+        void MarshalCircle(Enemy e, V2 tpos)
+        {
+            e.FireT = MarshalEvery;
+            SpawnPatchAt(PatchKind.DuelCircle, ClampToArena(tpos, MarshalR * 0.5f), MarshalWarn, MarshalWarn + MarshalHold, MarshalR, MarshalR);
+            BroadcastFx(FxKind.Ring, tpos, CourtGoldColor, MarshalR, MarshalWarn, Sfx.BossGong);  // the baton points: the circle draws
+        }
+
+        /// Host, in EnemyFire: the Second's dagger fan; a Gallant never shoots (its lunge is
         /// GallantSpecial). False for anyone else.
         bool CourtFire(Enemy e, V2 tpos, float aim)
         {
@@ -114,11 +122,6 @@ namespace Arena
                     for (int i = 0; i < SecondFan; i++)
                         EnemyShot(e, e.Facing + (i - (SecondFan - 1) / 2f) * SecondSpread, SecondSpeed, Defs.ThrownDagger);
                     BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(e.Facing) * (e.Radius + 10f), CourtGoldColor, 16f, 0.15f, Sfx.Throw);
-                    return true;
-                case EnemyType.Marshal:
-                    e.FireT = MarshalEvery;
-                    SpawnPatchAt(PatchKind.DuelCircle, ClampToArena(tpos, MarshalR * 0.5f), MarshalWarn, MarshalWarn + MarshalHold, MarshalR, MarshalR);
-                    BroadcastFx(FxKind.Ring, tpos, CourtGoldColor, MarshalR, MarshalWarn, Sfx.BossGong);  // the baton points: the circle draws
                     return true;
                 case EnemyType.Gallant:
                     e.FireT = 99f;

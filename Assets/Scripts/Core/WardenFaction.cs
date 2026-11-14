@@ -95,8 +95,6 @@ namespace Arena
 
         V2 WardenFactionMove(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
         {
-            if (e.Kin == EnemyType.GasGrenadier)
-                return e.Winding ? V2.Zero : KeepDistance(dir, dist, GrenadierRange) + dir.Orthogonal() * e.Strafe * 0.5f;  // plants its feet for the lob
             if (e.Kin == EnemyType.SecurityGuard)
                 return SecurityMove(e, dir, dist, dt);  // SecurityGuard.cs
             if (e.Kin == EnemyType.TaserGuard)
@@ -389,12 +387,11 @@ namespace Arena
         /// Host, once a tick while it's firing normally: locks the landing spot as the wind-up begins (Winding is true for the last
         /// GrenadierWindUp + GrenadierSwing s before the throw) and tells everyone how long is left.
         static readonly Rgba HoneyLobColor = new Rgba(1f, 0.77f, 0.2f);
-        static float LobRadius(Enemy e) => e.Type == EnemyType.HoneyLobber ? HoneyLobRadius : e.Type == EnemyType.RockHurler ? HurlerLandR : e.Type == EnemyType.BileSpitter ? SpitPoolR : e.Type == EnemyType.DuskLobber ? DuskPoolR : GrenadierGasRadius;
-        static Rgba LobColor(Enemy e) => e.Type == EnemyType.HoneyLobber ? HoneyLobColor : e.Type == EnemyType.RockHurler ? HurlerColor : e.Type == EnemyType.BileSpitter ? BileColor : e.Type == EnemyType.DuskLobber ? DuskColor : GasLobColor;
-        V2 LobSpot(Enemy e, V2 tpos) => e.Type == EnemyType.RockHurler || e.Type == EnemyType.BileSpitter ? HurlerLead(tpos)  // a Rock Hurler or Bile Spitter aims where you're heading (QuarryFaction.cs)
+        /// Where it lobs: where you're heading (a Rock Hurler, a Bile Spitter: QuarryFaction.cs), or somewhere near you.
+        V2 LobSpot(LobFire lob, V2 tpos) => lob.Leads ? HurlerLead(tpos)
             : ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 50f), 60f);
 
-        void GrenadierWind(Enemy e, V2 tpos, float rateNow)
+        void GrenadierWind(Enemy e, V2 tpos, float rateNow, LobFire lob)
         {
             if (!e.Winding)
             {
@@ -404,31 +401,22 @@ namespace Arena
             if (e.GasLocked)
                 return;
             e.GasLocked = true;
-            e.GasAt = LobSpot(e, tpos);
+            e.GasAt = LobSpot(lob, tpos);
             float left = Math.Max(0f, e.FireT / Math.Max(0.01f, rateNow));
-            BroadcastFx(FxKind.GasLob, e.GasAt, new V2(e.Id, GasFlight), LobColor(e), LobRadius(e), left + GasFlight, Sfx.None);
+            BroadcastFx(FxKind.GasLob, e.GasAt, new V2(e.Id, GasFlight), lob.Color, lob.Ring, left + GasFlight, Sfx.None);
         }
 
-        void GrenadierFire(Enemy e, V2 tpos)
+        void GrenadierFire(Enemy e, V2 tpos, LobFire lob)
         {
             e.FireT = GrenadierEvery;
             if (!e.GasLocked)  // no wind-up seen (it fired the moment it spawned): an instant lob
             {
-                e.GasAt = LobSpot(e, tpos);
-                BroadcastFx(FxKind.GasLob, e.GasAt, new V2(e.Id, GasFlight), LobColor(e), LobRadius(e), GasFlight, Sfx.None);
+                e.GasAt = LobSpot(lob, tpos);
+                BroadcastFx(FxKind.GasLob, e.GasAt, new V2(e.Id, GasFlight), lob.Color, lob.Ring, GasFlight, Sfx.None);
             }
             e.GasLocked = false;
-            if (e.Type == EnemyType.RockHurler)
-                SpawnPatchAt(PatchKind.Rubble, e.GasAt, GasFlight, GasFlight + RubbleLife, RubbleR, RubbleR);  // the boulder lands, then lies as a pile (QuarryFaction.cs)
-            else if (e.Type == EnemyType.DuskLobber)
-                SpawnPatchAt(PatchKind.Dusk, e.GasAt, GasFlight, GasFlight + DuskLife, DuskPoolR, DuskPoolR);  // a pool of dark (Penumbral.cs)
-            else if (e.Type == EnemyType.BileSpitter)
-                SpawnPatchAt(PatchKind.Bile, e.GasAt, GasFlight, GasFlight + SpitPoolLife, SpitPoolR, SpitPoolR);  // an acid pool (LarderFaction.cs TickLarderHost)
-            else if (e.Type == EnemyType.HoneyLobber)
-                SpawnPatchAt(PatchKind.Honey, e.GasAt, GasFlight, GasFlight + HoneyLobLife, HoneyLobRadius, HoneyLobRadius);  // honey slows instead of hurting (Queen.cs HoneySlowAt)
-            else
-                SpawnPatchAt(PatchKind.Gas, e.GasAt, GasFlight, GasFlight + GrenadierGasLife, GrenadierGasRadius, GrenadierGasRadius);
-            BroadcastFx(FxKind.GasLob, e.Pos, new V2(e.Id, -1f), LobColor(e), LobRadius(e), 0.3f, Sfx.Throw);  // the release cue
+            SpawnPatchAt(lob.Patch, e.GasAt, GasFlight, GasFlight + lob.PatchLife, lob.PatchR, lob.PatchR);  // gas, honey, a rubble pile, a pool of dark or bile (LobBrains.cs)
+            BroadcastFx(FxKind.GasLob, e.Pos, new V2(e.Id, -1f), lob.Color, lob.Ring, 0.3f, Sfx.Throw);  // the release cue
         }
 
         // --- Taser Guard ---------------------------------------------------------------------------------------------

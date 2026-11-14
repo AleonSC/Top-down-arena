@@ -28,6 +28,8 @@ namespace Arena
     public abstract class FirePart
     {
         public abstract void Fire(Game g, Enemy e, V2 tpos, float aim);
+        /// Once a tick while its fire timer runs (after Winding is set), e.g. a lobber locking its landing spot.
+        public virtual void Wind(Game g, Enemy e, V2 tpos, float rateNow) { }
     }
 
     public abstract class SpecialPart
@@ -62,15 +64,16 @@ namespace Arena
 
     public partial class Game
     {
-        static readonly Brain[] brains = BuildBrains();
+        static Brain[] brains;  // built on first use, after every static field (the parts read colours and numbers from them)
+        static Brain[] Brains => brains ?? (brains = BuildBrains());
 
         /// The brain of this enemy type; null while it still runs the old code.
-        public static Brain BrainOf(EnemyType t) => brains[(byte)t];
+        public static Brain BrainOf(EnemyType t) => Brains[(byte)t];
 
         /// A role check for the Is* helpers: true or false when the type has a brain, null when it still uses the old lists.
         internal static bool? BrainHas(EnemyType t, BrainRole r)
         {
-            var b = brains[(byte)t];
+            var b = Brains[(byte)t];
             return b == null ? (bool?)null : (b.Roles & r) != 0;
         }
 
@@ -82,6 +85,7 @@ namespace Arena
             LungeBrains(t);   // step 2 (LungeBrains.cs)
             ChaseBrains(t);   // step 3 (ChaseBrains.cs)
             RiotBrains(t);    // step 4 (RiotBrains.cs)
+            LobBrains(t);     // step 5 (LobBrains.cs)
             return t;
         }
     }
