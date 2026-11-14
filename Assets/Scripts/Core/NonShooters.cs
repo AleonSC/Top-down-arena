@@ -35,7 +35,7 @@ namespace Arena
         static bool HookIsOpen(Enemy e) => IsHook(e.Type) && e.Phase == 4;
 
         /// The Hookman, and the Devourer's Hook Thrower (LarderFaction.cs), which throws a meat hook the same way.
-        public static bool IsHook(EnemyType t) => t == EnemyType.Hookman || t == EnemyType.HookThrower;
+        public static bool IsHook(EnemyType t) => BrainHas(t, BrainRole.Hook) ?? (t == EnemyType.Hookman || t == EnemyType.HookThrower);
 
         /// Locked aims: a planted Fuse Runner, and a Hookman from its aim to the end of its throw (EnemyAI.cs Face).
         static bool NonShooterFaceLocked(Enemy e) =>

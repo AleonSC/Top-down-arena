@@ -29,7 +29,7 @@ namespace Arena
 
         public const int SwordsmanFrom = 7, ShieldSwordsmanFrom = 10;  // the waves they join
 
-        public static bool IsSwordsman(EnemyType t) => t == EnemyType.Swordsman || t == EnemyType.ShieldSwordsman || t == EnemyType.Acolyte;  // (the Acolyte: a shorter, wider sickle, ReaperFaction.cs)
+        public static bool IsSwordsman(EnemyType t) => BrainHas(t, BrainRole.Swordsman) ?? (t == EnemyType.Swordsman || t == EnemyType.ShieldSwordsman || t == EnemyType.Acolyte);  // (the Acolyte: a shorter, wider sickle, ReaperFaction.cs)
 
         /// How long its recovery lasts.
         public static float SwordRecoverOf(EnemyType t) => t == EnemyType.ShieldSwordsman ? ShieldRecover : SwordRecover;

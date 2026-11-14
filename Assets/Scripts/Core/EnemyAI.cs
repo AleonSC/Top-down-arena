@@ -838,6 +838,9 @@ namespace Arena
                 return true;  // a Lens's face (Infall.cs)
             if (GrounderFaces(e, from))
                 return true;  // a Grounder's shield (Squall.cs)
+            var brain = BrainOf(e.Type);
+            if (brain != null && brain.Guard != null)
+                return brain.Guard.Blocks(this, e, from);  // Brain.cs
             if (e.Kin == EnemyType.RiotShield)
                 return RiotShieldBlocks(e, from);  // WardenFaction.cs
             if (e.Type == EnemyType.RiotCaptain)
@@ -903,7 +906,10 @@ namespace Arena
                 dir = PropDir(e, dir);  // round crates and barrels if there's a way; shove them if not (Props.cs)
             V2 v = V2.Zero;
             float speed = e.Speed * BruteSpeedMult(e);  // Brutes enrage as they are shot (BruteEnrage.cs)
-            switch (e.Kin)
+            var brain = BrainOf(e.Type);
+            if (brain != null && brain.Move != null)
+                v = brain.Move.Move(this, e, tpos, dir, dist, dt, ref speed);  // Brain.cs
+            else switch (e.Kin)
             {
                 case EnemyType.Grunt:
                     v = KeepDistance(dir, dist, 230f) + dir.Orthogonal() * e.Strafe * 0.6f;
@@ -1113,7 +1119,10 @@ namespace Arena
                 GnawlingEat(e);  // a morsel in reach (LarderFaction.cs)
             else if (e.Type == EnemyType.Gutworm)
                 GutwormSpecial(e, tpos, dt);  // dives, chases, marks, erupts (LarderFaction.cs)
-            switch (e.Kin)
+            var brain = BrainOf(e.Type);
+            if (brain != null && brain.Special != null)
+                brain.Special.Tick(this, e, tpos, dt);  // Brain.cs
+            else switch (e.Kin)
             {
                 case EnemyType.Shielder:
                     WearShield(e, e.ShieldMax * ShieldDecay * dt);
@@ -1280,6 +1289,12 @@ namespace Arena
             if (e.Def.Melee)
             {
                 e.FireT = 99f;  // melee enemies don't shoot
+                return;
+            }
+            var brain = BrainOf(e.Type);
+            if (brain != null && brain.Fire != null)
+            {
+                brain.Fire.Fire(this, e, tpos, aim);  // Brain.cs
                 return;
             }
             if (VarietyFire(e, aim))

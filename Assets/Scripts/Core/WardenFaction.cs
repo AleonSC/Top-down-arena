@@ -134,7 +134,7 @@ namespace Arena
         readonly HashSet<int> riotLineBroke = new HashSet<int>();                // host: lines whose guards have broken out
 
         /// The wall of a line: Riot Shields and their kin (a Comb Shield, a Slab Bearer); everyone else walks behind it.
-        static bool IsWallKin(EnemyType t) => HiveKin.Of(t) == EnemyType.RiotShield;
+        static bool IsWallKin(EnemyType t) => BrainHas(t, BrainRole.Wall) ?? HiveKin.Of(t) == EnemyType.RiotShield;
 
         /// Each member's place in its own row (shields counted among shields, guards among guards).
         static int RiotLineSlot(SquadDef s, int i)
