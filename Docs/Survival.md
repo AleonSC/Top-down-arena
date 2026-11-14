@@ -1,6 +1,6 @@
 # Survival: one arena, one clock, last as long as you can (design)
 
-Status: **steps 1-6 built** (`Core/Survival.cs`, `Core/SurvivalGame.cs`, suite `survival`; protocol 342). Step 3: the HUD (clock plate, held-for-pick plate, new-faction notice) and the end screen (`Game/SurvivalUi.cs`). Step 4: the lobby carousel entry and tab. Step 5: records (`Profile.SurvivalEnded`: plays, best time overall and per class, best phase; Recent runs and rank XP; the lobby tab shows them). The mode plays on the current arena for now; the big room and tuning (step 6) are left. Decisions below are the owner's; numbers are first guesses to tune with the
+Status: **built, all six steps and the big room** (`Core/Survival.cs`, `Core/SurvivalGame.cs`, `Core/SurvivalWorld.cs`, `Game/SurvivalUi.cs`, suite `survival`, balance report `survbal`; protocol 343). Left: the open questions below and tuning against the owner's own runs. Numbers are first guesses tuned with bots.
 `Tools/SimTest` suites once built. Open questions at the bottom.
 
 ## The idea
@@ -26,7 +26,7 @@ How it differs from the rest:
 
 ## The room (owner's answers)
 
-- **Size:** about **4x the area of today's arena** (first reading of "4x the size"; if 4x each side was meant, say so).
+- **Size:** **4x the area of today's arena**: 3200 x 1800, twice each side (built that way; if 4x each side was meant, say so).
 - **Camera:** follows the player. In co-op each client's camera follows its own player, so players may spread out;
   no leash or zoom-out. Enemies spawn off each player's view, so the spawner treats every player's view as no-spawn.
 - **Contents:** open floor with **a ton of crates and other destructible props** scattered across it, plus a few
@@ -97,3 +97,12 @@ median fall at 6.8 / 6.9 / 9.6 min for 1 / 2 / 3 bots. After (budget 6 + 0.08 t 
 8.0 / 8.5 / 9.5 min. No run reached the cap, so the curve is hard enough for these bots; a person plays well past them.
 The solo bot's build is weak (level 5 at 8 min against level 10-12 for a duo or trio). Not tuned further: wait for how the
 owner's own runs feel, then move the base, the slope or the phase length (`Survival.cs` constants).
+
+## The big room (built)
+
+- `SurvivalRoom.World` (3200 x 1800) is a `World` like the Rooms arena's, so walls, enemy steering and the following camera work as they do there (`Game.CurrentWorld`, `ArenaKind.Survival`). The Rooms arena's 1.3x enemy damage is off.
+- Cover: a plus of walls in the middle with a 140 px gap at its centre, and an L bracket (360 px arms) in each corner, 160 px in from the walls.
+- Props: 160 crates (often in pairs), 50 pots and 10 barrels at the start; every 15 s a few come back, out of everyone's view.
+- Camera: follows you at the normal zoom (Survival skips the Rooms arena's zoomed-in start); everyone starts near the middle, clear of the walls.
+- Spawns: outside every player's view (880 x 500 px around each), clear of walls, the nearest qualifying spot to a player so enemies do not cross the room.
+- Open: a minimap or off-screen enemy markers for a room this size, and whether the room wants more cover than the plus and brackets.

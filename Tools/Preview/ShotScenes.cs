@@ -238,6 +238,11 @@ static partial class Shot {
       sg.SurvivalOn = true; sg.SurvStarted = true;
       sg.SurvTime = float.Parse(sp[0], System.Globalization.CultureInfo.InvariantCulture); sg.Wave = Survival.WaveAt(sg.SurvTime);
       sg.Hunt = null; sg.Quick = false; sg.Practice = null;
+      // The big room (SurvivalWorld.cs): up, with its props; SURVPOS=x,y puts you somewhere in it (default: the start).
+      sg.RoomsUp = true; sg.Layout = LayoutId.Open; sg.LayoutAge = 99f; sg.PropsOn = true;
+      var spos = Environment.GetEnvironmentVariable("SURVPOS") != null ? Array.ConvertAll(Environment.GetEnvironmentVariable("SURVPOS").Split(','), float.Parse) : new[] { 1300f, 700f };
+      int sk = 0; foreach (var pl in sg.Players.Values) { pl.Pos = pl.Disp = new V2(spos[0] + 90f * sk, spos[1]); sk++; }
+      typeof(Game).GetMethod("SurvivalProps", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(sg, new object[] { true });
       if (sp.Length > 1 && sp[1] == "pick") { sg.State = MatchState.Intermission; sg.StateTimer = 1f; me.PendingPicks = 1; }
     }
     if (Environment.GetEnvironmentVariable("TUTORIAL") != null) {

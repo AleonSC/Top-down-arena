@@ -218,7 +218,7 @@ namespace Arena
         public bool VaultOn => RoomsOn && VaultUp;
 
         /// Enemy damage to players: Rooms.EnemyDamageMult while the rooms are up, else 1 (Combat.cs).
-        public float RoomsDamageMult => RoomsOn ? Rooms.EnemyDamageMult : 1f;
+        public float RoomsDamageMult => RoomsOn && !SurvivalOn ? Rooms.EnemyDamageMult : 1f;  // (Survival's big room is tuned at 1x)
 
         /// The run's Arena setting is Rooms (the lobby's Difficulty tab; Classic, today's arena, by default).
         public bool RoomsArena => D(DiffKnob.ArenaRooms) >= 0.5f;
@@ -226,11 +226,11 @@ namespace Arena
         /// The run's arena layout (Docs/ExpandingArena.md): Wings with the Rooms setting on, else Single. Expanding comes later.
         /// The Campaign (a 100-wave run, Hunts.cs LongLegs) and Quick Play (QuickPlay.cs) are the Expanding arena; the Simple Arena modifier keeps it the open
         /// arena; the Rooms arena (Wings) is a prototype set from the dev dock. Older 50-wave saves keep their Arena knobs.
-        public ArenaLayout ArenaKind => Has(RunMod.SimpleArena) ? ArenaLayout.Single
+        public ArenaLayout ArenaKind => SurvivalOn ? ArenaLayout.Survival : Has(RunMod.SimpleArena) ? ArenaLayout.Single
             : D(DiffKnob.ArenaExpanding) >= 0.5f || (LongLegs || Quick) && !RoomsArena ? ArenaLayout.Expanding : RoomsArena ? ArenaLayout.Wings : ArenaLayout.Single;
 
         /// The geometry being played on right now: the Wings world while the rooms are up, else the plain arena box.
-        public World CurrentWorld => RoomsOn ? (ArenaKind == ArenaLayout.Expanding ? ExpansionWorld : Rooms.Wings) : World.Single;
+        public World CurrentWorld => RoomsOn ? (SurvivalOn ? SurvivalRoom.World : ArenaKind == ArenaLayout.Expanding ? ExpansionWorld : Rooms.Wings) : World.Single;
 
         /// Host, at the start of each wave (with PickLayout): regular waves get the rooms, boss waves the hub alone
         /// (bosses are tuned for 1600x900). Not with Tiny Arena or on Narrow Pass, which wall the hub in themselves,

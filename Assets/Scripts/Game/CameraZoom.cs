@@ -84,7 +84,7 @@ namespace Arena
             {
                 bool fresh = !camFollow;
                 camFollow = true;
-                if (fresh && !Rooms.RoomByRoom && scrollZoom)
+                if (fresh && !Rooms.RoomByRoom && scrollZoom && !game.SurvivalOn)  // (Survival's big room starts at the normal zoom)
                 {
                     zoomWant = camZoom = Rooms.StartZoom;  // room rounds start zoomed in, with a prompt to zoom out (DrawZoomHint)
                     zoomHintT = ZoomHintTime;

@@ -94,6 +94,7 @@ static partial class Program
         Profile.Folder = dir;
         var host = new Session();
         host.Game.ProfileOverride = new Profile();
+        host.Game.PropsOn = true;
         host.Host(port, "Host", Role.Tank);
         var client = new Session();
         client.Game.ProfileOverride = new Profile();
@@ -117,6 +118,33 @@ static partial class Program
         Check(c.SurvTime > 8f && Math.Abs(c.SurvTime - g.SurvTime) < 1.5f, "the clock reaches the friend through the snapshot (" + c.SurvTime.ToString("0.0") + " s)");
         Check(g.Wave == Survival.WaveAt(g.SurvTime), "enemies scale with the clock");
 
+        // The big room: the same world on both machines, four times the arena, walls and props in it, the camera held inside it.
+        Check(g.RoomsOn && c.RoomsOn && g.CurrentWorld == SurvivalRoom.World && c.CurrentWorld == SurvivalRoom.World, "both games play in Survival's big room");
+        Check(g.ArenaMax.X == Game.Width * 2f && g.ArenaMax.Y == Game.Height * 2f && g.ArenaMin.X == 0f, "the room is 3200 x 1800: four times today's arena");
+        var vc = g.CurrentWorld.ViewCentre(new V2(100f, 100f), 800f, 450f, false);
+        var vm = g.CurrentWorld.ViewCentre(new V2(1600f, 900f), 800f, 450f, false);
+        Check(vc.X == 800f && vc.Y == 450f && vm.X == 1600f && vm.Y == 900f, "the camera follows you and stops at the room's edges");
+        Check(g.Props.Count >= 150 && g.Props.Values.Count(pr => pr.Kind == PropKind.Crate || pr.Kind == PropKind.HeavyCrate) >= 100, "the room is full of crates (" + g.Props.Count + " props)");
+        var layout = g.ActiveLayout;
+        Check(layout != null && layout.Solids.Length >= 4 + 4 + 8, "walls round the room and in the middle and corners (" + (layout == null ? 0 : layout.Solids.Length) + " pieces)");
+        Check(g.Players.Values.All(pr => pr.Pos.X > 1000f && pr.Pos.X < 2200f && pr.Pos.Y > 500f && pr.Pos.Y < 1300f && !layout.Solids.Any(so => Layouts.Inside(so, pr.Pos, 20f))), "everyone starts near the middle of the room, clear of the walls");
+        foreach (var pr in g.Players.Values) pr.InvulnT = 1000f;
+        var seen = new System.Collections.Generic.HashSet<int>(g.Enemies.Keys);
+        int newSpawns = 0, inView = 0, inWalls = 0;
+        Run(s, dt, 40f, null, () =>
+        {
+            foreach (var e in g.Enemies.Values)
+                if (seen.Add(e.Id))
+                {
+                    newSpawns++;
+                    if (g.Players.Values.Any(pr => Math.Abs(e.Pos.X - pr.Pos.X) < 800f && Math.Abs(e.Pos.Y - pr.Pos.Y) < 450f)) inView++;
+                    if (layout.Solids.Any(so => Layouts.Inside(so, e.Pos, 0f))) inWalls++;
+                }
+            foreach (var pr in g.Players.Values) { pr.Pos = pr.Disp = new V2(1300f, 700f); pr.Hp = pr.MaxHp; }  // (stand still in the middle)
+        });
+        Check(newSpawns > 5 && inView == 0, "enemies come in outside everyone's view (" + newSpawns + " spawned, " + inView + " in view)");
+        Check(inWalls == 0, "and never inside a wall");
+
         // A level-up pick freezes the world until it is made.
         foreach (var p in g.Players.Values) { p.InvulnT = 100f; }
         var me = g.Me;
@@ -126,7 +154,8 @@ static partial class Program
         float t0 = g.SurvTime;
         var pos = g.Enemies.Values.Select(e => e.Pos).ToList();
         Run(s, dt, 1.5f);
-        Check(Math.Abs(g.SurvTime - t0) < 0.001f && g.Enemies.Values.Select(e => e.Pos).Take(pos.Count).Zip(pos, (a, b) => a.X == b.X && a.Y == b.Y).All(x => x), "the clock and every enemy stand still while it is held");
+        int moved = g.Enemies.Values.Select(e => e.Pos).Take(pos.Count).Zip(pos, (a, b) => Math.Abs(a.X - b.X) > 1f || Math.Abs(a.Y - b.Y) > 1f).Count(x => x);  // (an enemy still arriving finishes its entrance)
+        Check(Math.Abs(g.SurvTime - t0) < 0.001f && moved <= 2, "the clock and the enemies stand still while it is held (" + moved + " of " + pos.Count + " moved)");
         g.PickUpgrade(0);
         Run(s, dt, 3f, () => g.State == MatchState.Fighting);
         Check(g.State == MatchState.Fighting && me.PendingPicks == 0, "after the pick the fight goes on");
