@@ -1,6 +1,6 @@
 # Survival: one arena, one clock, last as long as you can (design)
 
-Status: **step 1 built** (`Core/Survival.cs`, suite `survival`; not in the game yet, so no protocol change). Steps 2-6 are left. Decisions below are the owner's; numbers are first guesses to tune with the
+Status: **steps 1-2 built** (`Core/Survival.cs`, `Core/SurvivalGame.cs`, suite `survival`; protocol 342). The mode plays on the current arena with the existing HUD for now; the big room, HUD, lobby tab, records and tuning (steps 3-6) are left. Decisions below are the owner's; numbers are first guesses to tune with the
 `Tools/SimTest` suites once built. Open questions at the bottom.
 
 ## The idea
@@ -22,7 +22,7 @@ How it differs from the rest:
 | Shape | One continuous clock. No wave plates, no bosses. |
 | Arena | **One big room that extends off the camera**: larger than the screen, the camera follows the party, and it is still a single room (no doors, no expanding rooms). One leaderboard. |
 | Enemies | Mixed factions by time: basic faction first, other factions phase in as the clock climbs. |
-| Progression | Still **level based**: kills give XP, levels give the usual upgrade picks (no timed picks, no Bazaar pop-up). |
+| Progression | Still **level based**: kills give XP, levels give the usual upgrade picks (no timed picks, no Bazaar pop-up). A pending pick **freezes the world** (clock, enemies and shots) until everyone has chosen. |
 
 ## The room (owner's answers)
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Arena;
 
@@ -70,5 +71,63 @@ static partial class Program
         var slow = SurvivalRun(new Survival(7, 1), 600f, 0.5f, out _, out _);
         var fast = SurvivalRun(new Survival(7, 1), 600f, 3f, out _, out _);
         Check(fast.Count > slow.Count, "killing faster brings more enemies (" + slow.Count + " at 0.5/s, " + fast.Count + " at 3/s)");
+    }
+}
+
+static partial class Program
+{
+    // Survival played over the network: the mode flag, the clock, spawns, the pick freeze, the wipe.
+    static void SurvivalNetTest(float dt)
+    {
+        int port = nextPort++;
+        string wasFolder = Profile.Folder, dir = Path.Combine(Path.GetTempPath(), "arena-survival-" + Guid.NewGuid().ToString("N"));
+        Profile.Folder = dir;
+        var host = new Session();
+        host.Game.ProfileOverride = new Profile();
+        host.Host(port, "Host", Role.Tank);
+        var client = new Session();
+        client.Game.ProfileOverride = new Profile();
+        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForLobby(host, client);
+        PollBoth(host, client);
+        host.SetMode(false, false, false, true);
+        PollBoth(host, client);
+        Check(host.SurvivalMode && client.SurvivalMode && !host.QuickMode && !host.HuntMode, "the lobby's Survival mode shows in the friend's lobby");
+        client.RequestReady(true); host.RequestReady(true); PollBoth(host, client);
+        host.StartMatch();
+        WaitForGame(host, client, dt);
+        var g = host.Game; var c = client.Game;
+        Check(g.SurvivalOn && c.SurvivalOn && g.Hunt == null && !g.Quick, "both games play a Survival run");
+        Run(s, dt, 60f, () => g.Surv != null && g.State == MatchState.Fighting && g.SurvTime > 8f);
+        Check(g.Surv != null && g.State == MatchState.Fighting, "the countdown ends and the clock starts: Fighting with a spawner");
+        int live = g.Enemies.Count;
+        Check(live > 0, "enemies are coming in with no wave (" + live + ")");
+        Run(s, dt, 1f);
+        Check(c.SurvTime > 8f && Math.Abs(c.SurvTime - g.SurvTime) < 1.5f, "the clock reaches the friend through the snapshot (" + c.SurvTime.ToString("0.0") + " s)");
+        Check(g.Wave == Survival.WaveAt(g.SurvTime), "enemies scale with the clock");
+
+        // A level-up pick freezes the world until it is made.
+        foreach (var p in g.Players.Values) { p.InvulnT = 100f; }
+        var me = g.Me;
+        me.PendingPicks = 1;
+        Run(s, dt, 2f, () => g.State == MatchState.Intermission && me.Offer != null);
+        Check(g.State == MatchState.Intermission && me.Offer != null, "a pending pick holds the match and offers cards");
+        float t0 = g.SurvTime;
+        var pos = g.Enemies.Values.Select(e => e.Pos).ToList();
+        Run(s, dt, 1.5f);
+        Check(Math.Abs(g.SurvTime - t0) < 0.001f && g.Enemies.Values.Select(e => e.Pos).Take(pos.Count).Zip(pos, (a, b) => a.X == b.X && a.Y == b.Y).All(x => x), "the clock and every enemy stand still while it is held");
+        g.PickUpgrade(0);
+        Run(s, dt, 3f, () => g.State == MatchState.Fighting);
+        Check(g.State == MatchState.Fighting && me.PendingPicks == 0, "after the pick the fight goes on");
+        Run(s, dt, 2f);
+        Check(g.SurvTime > t0 + 1f, "and the clock runs again");
+
+        // Everyone down ends the run: no wave to clear, no win.
+        foreach (var p in g.Players.Values) { p.InvulnT = 0f; p.Hp = 0f; p.Downed = true; p.ReviveToken = false; p.SecondWind = false; }
+        Run(s, dt, 3f, () => g.State == MatchState.GameOver);
+        Check(g.State == MatchState.GameOver, "everyone down ends the run");
+        Profile.Folder = wasFolder;
+        try { Directory.Delete(dir, true); } catch { }
     }
 }
