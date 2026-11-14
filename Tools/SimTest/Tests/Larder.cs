@@ -17,7 +17,7 @@ static partial class Program
             { EnemyType.Gnawling, EnemyType.Rioter }, { EnemyType.Butcher, EnemyType.Guard }, { EnemyType.Gulper, EnemyType.Thug },
             { EnemyType.CarcassBearer, EnemyType.RiotShield }, { EnemyType.BileSpitter, EnemyType.GasGrenadier }, { EnemyType.MawPriest, EnemyType.TaserGuard },
         };
-        Check(kin.All(k => HiveKin.Of(k.Key) == k.Value && LarderKin.Is(k.Key) && !HiveKin.Is(k.Key) && !QuarryKin.Is(k.Key)) && !LarderKin.Is(EnemyType.Thug),
+        Check(kin.All(k => SameMove(k.Key, k.Value) && LarderKin.Is(k.Key) && !HiveKin.Is(k.Key) && !QuarryKin.Is(k.Key)) && !LarderKin.Is(EnemyType.Thug),
             "each Larder enemy plays like one Warden enemy (Gnawling Rioter, Butcher Guard, Gulper Thug, Carcass Bearer Riot Shield, Bile Spitter Gas Grenadier, Maw Priest Taser Guard)");
         Check(new[] { EnemyType.Gnawling, EnemyType.Butcher, EnemyType.CarcassBearer, EnemyType.BileSpitter }.All(t => { var a = Defs.Get(t); var b = Defs.Get(kin[t]); return a.Hp == b.Hp && a.Speed == b.Speed && a.Contact == b.Contact && a.Xp == b.Xp; }),
             "the Gnawling, Butcher, Carcass Bearer and Bile Spitter have their counterpart's health, speed, contact damage and XP");
@@ -114,7 +114,7 @@ static partial class Program
         var cb = put(EnemyType.CarcassBearer, new V2(500f, 400f));
         Check(Math.Abs(cb.ShieldMax - cb.MaxHp * Game.RiotShieldShare) < 0.01f, "a Carcass Bearer's meat holds 4x its health");
         cb.Facing = 0f;
-        typeof(Game).GetMethod("WearRiotShield", np).Invoke(g, new object[] { cb, cb.ShieldMax + 1f });
+        typeof(Game).GetMethod("WearShield", np).Invoke(g, new object[] { cb, cb.ShieldMax + 1f });
         var morsel = g.Enemies.Values.FirstOrDefault(x => x.Type == EnemyType.Morsel);
         Check(Game.RiotShieldBroken(cb) && morsel != null && morsel.Pos.X > cb.Pos.X, "broken, its meat drops in front of it as a morsel");
         var gnaw = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Gnawling, new V2(500f, 640f), 0f, 0, false });
@@ -126,7 +126,7 @@ static partial class Program
         // With nobody to eat it, you squash a morsel by walking over it.
         var cb2 = put(EnemyType.CarcassBearer, new V2(500f, 400f));
         cb2.Facing = 0f;
-        typeof(Game).GetMethod("WearRiotShield", np).Invoke(g, new object[] { cb2, cb2.ShieldMax + 1f });
+        typeof(Game).GetMethod("WearShield", np).Invoke(g, new object[] { cb2, cb2.ShieldMax + 1f });
         var m2 = g.Enemies.Values.First(x => x.Type == EnemyType.Morsel);
         run(0.5f, null);
         me.Pos = me.Disp = m2.Pos;

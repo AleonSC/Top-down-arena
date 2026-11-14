@@ -134,7 +134,7 @@ static partial class Program
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
-        var special = typeof(Game).GetMethod("LateSpecial", flags);
+        var special = typeof(Game).GetMethod("Special", flags);
         var fire = typeof(Game).GetMethod("EnemyFire", flags);
         var g = new Session().Game;
         g.Enemies.Clear(); g.Bullets.Clear(); g.Effects.Clear();

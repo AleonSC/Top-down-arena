@@ -23,7 +23,7 @@ namespace Arena
         /// The ghost's role: support enemies are Healers, Pressure and Hunters are DPS, Anchors and the plated types are Tanks, the rest Wildcards.
         static Rgba PacRoleColor(Enemy e)
         {
-            switch (e.Kin)
+            switch (Game.SharesWith(e.Type))
             {
                 case EnemyType.Medic: case EnemyType.Warder: case EnemyType.Nest:
                     return PacHealPink;

@@ -20,8 +20,9 @@ Eight enemies, one for each of the Warden's roles, so the Hive's ten-wave cycle 
 
 ## How
 
-- A Hive enemy is its own `EnemyType` with a `Def` of its counterpart's numbers. `HiveKin.Of(type)` gives the Warden type it plays like, and every
-  behaviour check (movement, special, fire, sounds, thrall attacks, lanes) asks `e.Kin` instead of `e.Type`. Looks and the Bestiary are the Hive's own.
+- A Hive enemy is its own `EnemyType` with a `Def` of its counterpart's numbers. Its behaviour is its brain, built from the same parts as its
+  counterpart's (Docs/EnemyBehaviours.md; the old kin table is gone); sounds, thrall attacks and lanes follow its role (`Game.SharesWith`).
+  Looks and the Bestiary are the Hive's own.
 - The faction (`Approaches.All`, boss `HiveQueen`): members with the Warden's weights and fade order, squads Swarm, Nursery, Picket, Honeycomb, the finale
   Royal guard, lesson-only squads Worker pack and Soldier pair, and ten lessons in the Warden's order (Soldier 2, Bumble 3, Needler 4, recap 5, Comb Shield 6,
   Honey Lobber 7, Stinger 8, every squad 9, exam 10: the Royal guard and a big Swarm).

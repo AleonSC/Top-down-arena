@@ -26,7 +26,7 @@ namespace Arena
     /// erupts: a bite (GutBite) on whoever's in the mark and a ring of GutRing shots; it rests GutEvery s on the surface.
     /// The Hook Thrower is the Hookman (NonShooters.cs, IsHook) with a meat hook: a longer line (HookThrowAim), a slower
     /// hook (HookThrowSpeed), a shorter reel (HookThrowYank) and HookThrowDamage on a hit. The Maw Priest moves and charges
-    /// like a Taser Guard but fires a fan of three (LarderFire); it turns at PriestTurn (PriestFace), and a shot into the
+    /// like a Taser Guard but fires a fan of three (MawFan); it turns at PriestTurn (PriestFace), and a shot into the
     /// maw in front (PriestMawHalf either side) heals it for half while one in its back does PriestBackMult
     /// (LarderBlocks notes the side, PriestHit applies it), the Devourer's Ravenous Maw in small.
     ///
@@ -278,16 +278,13 @@ namespace Arena
             e.Facing += Math.Max(-PriestTurn * dt, Math.Min(PriestTurn * dt, diff));
         }
 
-        /// Host, in EnemyFire: a Maw Priest's fan of three (it charges like a Taser Guard). False for anyone else.
-        bool LarderFire(Enemy e, V2 tpos, float aim)
+        /// Host, in EnemyFire (a Maw Priest's brain, ShootBrains.cs): a fan of three from its maw (it charges like a Taser Guard).
+        void MawFan(Enemy e)
         {
-            if (e.Type != EnemyType.MawPriest)
-                return false;
             e.FireT = TaserEvery;
             for (int k = -1; k <= 1; k++)
                 EnemyShot(e, e.Facing + k * PriestFan, MawShotSpeed, Defs.SmallShot);  // (from its maw, where it faces)
             BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(e.Facing) * (e.Radius + 10f), new Rgba(1f, 0.35f, 0.42f), 22f, 0.2f, Sfx.BossChomp);
-            return true;
         }
 
         /// BlocksShot: a Gutworm underground lets shots pass; a Maw Priest notes which side the hit came from.

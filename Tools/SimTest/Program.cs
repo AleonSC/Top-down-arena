@@ -327,6 +327,7 @@ static partial class Program
         Test("infall", "the Singularity's faction, steps 1-3: all eight enemies (the Graviton's well, the Collapsar's implosion, the Lens's face, the White Dwarf's pulse), waves 16-19", () => InfallTest(Dt)),
         Test("penumbral", "the Eclipse's faction (all four steps): Ember sparks, the Corona Priest's gap, the Heliograph's lane, the Moonward's moon, the Gnomon's shadow, the Dusk Lobber's pool, the Sickle's crescent, the Nova's fuse, Last Light, the lessons, waves 46-49", () => PenumbralTest(Dt)),
         Test("squall", "the Storm Herald's faction: all eight (the Dust Devil's shove, the Gunner's curve, strikes, the Grounder's clap, the Pylon arc, the Lineman's mark, the Thunderhead's row, a wave's Ball Lightning), the Storm front set piece and the lessons, waves 36-39", () => SquallTest(Dt)),
+        Test("aitrace", "the enemy behaviour refactor's safety net (Docs/EnemyBehaviours.md): every non-boss enemy alone against a god-mode host for 12 s, each frame hashed and compared with Golden/aitrace.txt (AITRACE=update rewrites it)", () => AiTraceTest()),
         Test("spawndump", "the spawner refactor's safety net: the first waves of a few modes played headless, every arrival compared with Golden/spawndump.txt (WAVEDUMP=update rewrites it)", () => SpawnDumpTest()),
         Test("wavedump", "the refactor safety net: every mode's waves built on fixed seeds, compared with Golden/wavedump.txt (WAVEDUMP=update rewrites it)", () => WaveDumpTest()),
         Test("bossslot", "the boss between waves: it follows every fifth regular wave and keeps its number; paths, saves and the Lab start", () => BossSlotTest(Dt)),
@@ -483,7 +484,7 @@ static partial class Program
         "trickle", "meleesounds", "grunts", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops",
         "exploit", "doublebarrel", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
         "expand", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
-        "newenemies", "wildcard", "stacking", "singularity", "security", "captain", "wavedump", "spawndump", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
+        "newenemies", "wildcard", "stacking", "singularity", "security", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
     };
 
     static int Main(string[] args)

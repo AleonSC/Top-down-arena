@@ -22,7 +22,7 @@ namespace Arena
 
         /// It holds its distance and strafes, slowing to SecurityAimPace while it locks on; it eases to a stop for the reload
         /// and back up as the new magazine goes in.
-        V2 SecurityMove(Enemy e, V2 dir, float dist, float dt)
+        V2 SecurityMove(Enemy e, V2 dir, float dist, float dt, float strafe, float aimStrafe)  // (a Hive Needler strafes harder: ShootBrains.cs)
         {
             e.PhaseT -= dt;
             if (e.PhaseT <= 0f)
@@ -30,14 +30,13 @@ namespace Arena
                 e.Strafe = -e.Strafe;  // commit to a side for a while instead of the usual random flips
                 e.PhaseT = Rand(SecurityStrafeMin, SecurityStrafeMax);
             }
-            bool needler = e.Type == EnemyType.Needler;  // a Hive Needler strafes harder (HiveBees.cs)
-            V2 v = KeepDistance(dir, dist, SecurityRange) + dir.Orthogonal() * e.Strafe * (needler ? NeedlerStrafe : 0.7f);
+            V2 v = KeepDistance(dir, dist, SecurityRange) + dir.Orthogonal() * e.Strafe * strafe;
             if (e.Phase == 0)
             {
                 float down = MathX.Clamp01((e.FireT - (SecurityReload - SecurityEase)) / SecurityEase), up = MathX.Clamp01(1f - e.FireT / SecurityEase);
                 return v.LimitLength(1f) * Math.Max(down, up);
             }
-            return e.Winding ? v.LimitLength(1f) * SecurityAimPace * (needler ? NeedlerAimStrafe : 1f) : v;
+            return e.Winding ? v.LimitLength(1f) * SecurityAimPace * aimStrafe : v;
         }
 
         /// It turns at SecurityTurn rad/s toward you (no lead); locked while it winds up.
