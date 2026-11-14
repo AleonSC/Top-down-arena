@@ -1,6 +1,6 @@
 # Survival: one arena, one clock, last as long as you can (design)
 
-Status: **design only, nothing built.** Decisions below are the owner's; numbers are first guesses to tune with the
+Status: **step 1 built** (`Core/Survival.cs`, suite `survival`; not in the game yet, so no protocol change). Steps 2-6 are left. Decisions below are the owner's; numbers are first guesses to tune with the
 `Tools/SimTest` suites once built. Open questions at the bottom.
 
 ## The idea
