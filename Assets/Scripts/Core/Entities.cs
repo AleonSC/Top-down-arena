@@ -460,6 +460,7 @@ namespace Arena
         public byte SeenPhase;  // every peer, drawing only: the Phase the swing look last saw, and how long ago it changed (Game.cs; Swordsman.cs)
         public float SeenT;
         public bool Elite;
+        public EnemyVariant Variant;  // a variant of its type that spawned in its place (EnemyVariants.cs; replicated)
         public byte Traits;           // an elite's traits (EliteTrait flags; Variety.cs; replicated)
         public int SquadId, SquadSlot;  // host: the squad it arrived with, and its place in it (Variety.cs)
         public float BubbleHp, BubbleMax, BubbleT;  // a bubble that soaks damage first: Shielded, or a Warder's (host; drawn from BubbleFrac)
