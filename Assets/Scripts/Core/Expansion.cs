@@ -131,6 +131,7 @@ namespace Arena
             if (token.Kind == RoomKind.Floor && Array.IndexOf(Floors, token.Floor) < 0) { why = "Not a floor"; return false; }
             var r = built[index];
             if (r.Floating) { why = "Floating rooms keep their job"; return false; }
+            if (IsPush(r)) { why = "Part of the room it was pushed from"; return false; }  // (Docs/WallPush.md: change that room, and its sections change with it)
             if (r.Kind != RoomKind.Combat) { why = "Already changed: one modifier per room"; return false; }
             return true;
         }
@@ -1796,12 +1797,14 @@ namespace Arena
                     if (d.Joins(a))
                         doorSpots.Add(d.Pos);
                 var cr = rooms[a - 1];
+                if (IsPush(cr))
+                    continue;  // (a pushed section: its features come with Docs/WallPush.md step 3)
                 if (outline[group[a]] && Math.Min(cr.W, cr.H) < OutlineCoverMin && cr.Surprise != 1 + (int)SurpriseShape.Stash)
                     continue;  // (a sliver of a drawn outline: no cover in it)
                 AddCover(cover, cr, doorSpots);
             }
             for (int a = 1; a < n; a++)  // a built room's side walls: out from its outer walls, a design rolled per room
-                if (FinStyle >= 0 && !rooms[a - 1].Floating && rooms[a - 1].Surprise != 1 + (int)SurpriseShape.Stash)  // (a Stash is too small for fins: its cover stays)
+                if (FinStyle >= 0 && !rooms[a - 1].Floating && !IsPush(rooms[a - 1]) && rooms[a - 1].Surprise != 1 + (int)SurpriseShape.Stash)  // (a Stash is too small for fins: its cover stays)
                     AddFins(spans, cover, rooms, group, a, doors, nodes);
             if (nodes != null && nodes.Count > 0)  // no cover on a node: it is a fixture of its room
                 cover.RemoveAll(c =>

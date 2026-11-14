@@ -1,6 +1,6 @@
 # Wall push: grow a room from inside it
 
-Status: **planned, nothing built.** Decided with the owner on Nov 14, 2026. Mockup: `Docs/Mockups/wall-push.html`
+Status: **step 1 built** (the core: rules, cost, host and wire, protocol 345; no way to push in the game yet, that's step 2). Decided with the owner on Nov 14, 2026. Mockup: `Docs/Mockups/wall-push.html`
 (playable: walk, pick a section, click to push; browser look, approximate). Builds on [`VectorBuilding.md`](VectorBuilding.md)
 and [`RoomBuilding2.md`](RoomBuilding2.md).
 
@@ -23,8 +23,10 @@ and [`RoomBuilding2.md`](RoomBuilding2.md).
 Picked by Claude (change any of these):
 
 - Free building only. With **Team vote** on, pushing is off (it doesn't fit proposals and votes).
-- Floating rooms (shop, vendor, Gatekeeper) and surprise rooms can't be pushed until they're part of the map. The map's outer limit can't be crossed.
-- A pushed section stops **1 tile off** other rooms. Joining another room to make a loop could come later.
+- Floating rooms (shop, vendor, Gatekeeper) can't be pushed, connected or not; a room not yet connected to the map can't either. The map's size cap holds.
+- A section stops **1 tile off** other rooms, but boxes of the same room (the room it was pushed from and its other sections) may touch it.
+- A room kit can't change a section on its own: change the room it was pushed from and its sections change with it.
+- Joining another room to make a loop could come later.
 
 ## How it plays
 
@@ -78,6 +80,19 @@ Limits: a section goes at most **12 tiles** out. Pushing a section's side wall s
   `BroadcastExpansion`, at most 10 times a second while someone holds the button. **Protocol bump** in step 1.
 - Breaches use the new outer wall automatically. A map node in the new space is claimed the same way as when a drawn room
   covers it (`TickNodes`). The parent's side walls (`AddFins`) skip the open join like any door.
+
+## Built (step 1)
+
+- `Core/ExpansionPush.cs`: `WallPush` (area, side 0 W / 1 E / 2 N / 3 S, start px, width tiles); `Expansion.Push` returns the new or grown
+  box and its cost (width), with `why` when refused (*A section is 2-10 tiles wide*, *Off the grid*, *Off the end of the wall*,
+  *Overlaps a room*, *Too close to another room*, *12 tiles out is the limit*, *The map would get too big*, *The map has too many
+  pushed walls* (40), *Can't push this room's walls*). Pushing a section's far wall over its full width grows it; any other stretch
+  starts a new section off it.
+- Host: `Game.CanPush` (free building, between waves), `PushWall` / `Msg.WallPush` / `HostWallPush`: the player within 10 tiles
+  (`PushReach` 700 + `PushSlack` 300) of the wall's middle, not downed, at most one push per 0.15 s each; pays like any build (Team purse
+  too), then `BroadcastExpansion`. Protocol 345.
+- `Expansion.Grown`: a pushed wall alone raises the map (`Rooms.cs`). Sections get no random cover or fins (`Build`); step 3 gives them features.
+- Saves carry sections through `Leg` (no format change). Test `ExpandingPushTest` (suites `expand` and `push`).
 
 ## Steps
 
