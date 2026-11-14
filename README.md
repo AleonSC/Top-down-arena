@@ -2200,7 +2200,9 @@ folder (the **Open sessions folder** button shows it; on Windows it's
 players. The end-of-run screen shows where it was saved. It's rewritten after every wave and every 10 s, so a crash
 keeps nearly everything. Leaving or quitting mid-run saves it too: the outcome reads "left" (Leave game, Back to
 lobby), "quit" (the game was closed) or "restarted" (a new match started over it); a file whose outcome still reads
-"in progress" is from a run that crashed.
+"in progress" is from a run that crashed. Boss Lab fights aren't recorded; leaving one any way (Exit, the pause menu,
+or back to the lobby from its end screen) turns recording back on for the next match. If a file can't be written, the
+Unity console shows why (once per match).
 
 Each file records:
 

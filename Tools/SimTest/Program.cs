@@ -416,7 +416,7 @@ static partial class Program
         Test("stayin", "enemies stay inside the rooms", () => ExpandingStayInRoomsTest(Dt)),
         Test("challenges", "challenge rooms: a portal every five waves, the five challenges, the altar's prize, failing safely", () => ChallengesTest(Dt)),
         Test("bossgate", "the boss gate (BossGate.cs): opens before the boss, holds the wave until everyone stands in it, bots walk in", () => BossGateTest(Dt)),
-        Test("quick", "Quick Play (QuickPlay.cs): the default mode, ten faction waves, a random boss after wave 10, its records, endless", () => QuickPlayTest(Dt), () => QuickBuildTest(Dt), () => TutorialTest(Dt), () => QuickBossHpReport()),
+        Test("quick", "Quick Play (QuickPlay.cs): the default mode, ten faction waves, a random boss after wave 10, its records, endless", () => QuickPlayTest(Dt), () => QuickBuildTest(Dt), () => TutorialTest(Dt), () => QuickRecordTest(Dt), () => QuickBossHpReport()),
         Test("bossschedule", "boss schedules (BossSchedule.cs): the Campaign's and a hunt's match the old formulas", () => BossScheduleTest()),
         Test("huntmap", "the hunt map (HuntMap.cs): rows and lanes, links that never cross, node types, walking and restoring it; played over the network: the lobby switch, the vote, Elite waves", () => HuntMapTest(), () => HuntMapNetTest(Dt)),
         Test("survival", "Survival (Survival.cs): the pressure curve, faction phases, the cap, squads, Elites, the same seed gives the same run", () => SurvivalTest(), () => SurvivalNetTest(Dt)),
