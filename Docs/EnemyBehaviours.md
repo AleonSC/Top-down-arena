@@ -1,7 +1,7 @@
 # Enemy behaviour classes
 
-**Status: steps 0-1 built** (scaffolding, hooks, `aitrace`; the shield family runs on brains). Owner's decisions: every enemy moves to brains (not just the kin ones), and drawing stays separate. Code today: `Core/HiveKin.cs` (the kin table), `Core/PrisonKin.cs` (`IsBrute`, `IsLunger`),
-`Core/EnemyAI.cs` (`MoveEnemy`, `Special`, `EnemyFire`), each faction's `*Faction.cs`. New: `Core/Brain.cs`, `Core/ShieldBrains.cs`,
+**Status: steps 0-2 built** (scaffolding, hooks, `aitrace`; the shields and lungers run on brains). Owner's decisions: every enemy moves to brains (not just the kin ones), and drawing stays separate. Code today: `Core/HiveKin.cs` (the kin table), `Core/PrisonKin.cs` (`IsBrute`, `IsLunger`),
+`Core/EnemyAI.cs` (`MoveEnemy`, `Special`, `EnemyFire`), each faction's `*Faction.cs`. New: `Core/Brain.cs`, `Core/ShieldBrains.cs`, `Core/LungeBrains.cs`,
 `Tools/SimTest/Tests/AiTrace.cs`, `Tools/SimTest/Golden/aitrace.txt`.
 
 ## Problem
@@ -47,7 +47,8 @@ public sealed class Brain
 
 // Base classes, not interfaces, so a part only overrides what it changes (C# 7.2 has no default interface methods).
 public abstract class MovePart    { public abstract V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed);
-                                    public virtual bool Turn(Game g, Enemy e, float want, float dt) => false; }   // false: face the target at once
+                                    public virtual bool Turn(Game g, Enemy e, float want, float dt) => false;    // false: face the target at once
+                                    public virtual float Contact(Game g, Enemy e) => -1f; }                       // touch damage now; < 0: the usual
 public abstract class FirePart    { public abstract void Fire(Game g, Enemy e, V2 tpos, float aim); }
 public abstract class SpecialPart { public abstract void Tick(Game g, Enemy e, V2 tpos, float dt); }
 public abstract class GuardPart   { public abstract bool Blocks(Game g, Enemy e, V2 from);      // BlocksShot
@@ -67,9 +68,10 @@ public abstract class GuardPart   { public abstract bool Blocks(Game g, Enemy e,
 - **Numbers on the part:** tuning moves into the part, so the Lunger family becomes one class with different numbers:
 
 ```csharp
-static readonly LungeMove Lunge   = new LungeMove { Start = 170f, Speed = 640f };
-static readonly LungeMove Fencer  = new LungeMove { Start = Game.FencerStart - 30f, Speed = 640f };
-static readonly LungeMove Scythe  = new LungeMove { Start = 170f, Speed = Game.ScytheSpeed };
+// LungeBrains.cs (step 2)
+var plain  = new LungeNumbers();   // Start 220, Circle 170, WindUp 0.6, Dash 0.32, Speed 640, Recover 0.8, Damage 26
+var fencer = new LungeNumbers { Start = FencerStart, Circle = FencerStart - 30f, WindUp = FencerWarn, Dash = FencerHop, ... };
+var scythe = new LungeNumbers { Start = ScytheStart, WindUp = ScytheMark, Track = ScytheTrack, Speed = ScytheSpeed, ... };
 ```
 
 ### Registry
@@ -142,7 +144,7 @@ Each step moves one family. Each step has to leave `aitrace` IDENTICAL and needs
 |---|---|---|
 | 0 ✓ | `Brain`, the four part classes, `BrainRole`, `BrainOf`, the dispatcher hooks, `aitrace` | none (empty table) |
 | 1 ✓ | Shields | Riot Shield, Comb Shield, Slab Bearer, Parrier, Carcass Bearer |
-| 2 | Lungers | Lunger, Shiv, Hornet, Driller, Fencer, Scythe Wraith (the Mummer keeps its masquerade as a `Special`) |
+| 2 ✓ | Lungers | Lunger, Shiv, Hornet, Driller, Fencer, Scythe Wraith, Mummer (its masquerade still runs first) |
 | 3 | Brutes and chasers | Brute, Thug, Bumble, Gravedigger, Swarmer, Wisp, Stomper, Gulper, Harlequin |
 | 4 | Rioters and Guards | Rioter, Worker, Rubble, Gnawling, Guard, Soldier, Quarryman, Butcher, Blade Dancer |
 | 5 | Lobbers | Gas Grenadier, Honey Lobber, Rock Hurler, Bile Spitter, Dusk Lobber, Marshal |
@@ -170,6 +172,22 @@ Each step moves one family. Each step has to leave `aitrace` IDENTICAL and needs
   ask `IsWallKin` (public now).
 - **Checked:** `aitrace` identical for all 128 types. In the trace all five shatter, the Comb Shield takes more
   damage than the Riot Shield (the leak), and the Parrier returns 13 shots.
+
+## Step 2: lungers (built)
+
+- **File:** `Core/LungeBrains.cs`. One `LungeMove` and one `LungeSpecial` class, each lunger with a `LungeNumbers`:
+  start distance, circling distance, wind-up, tracking time, dash time, leap speed, recovery and leap damage.
+  - Plain numbers: Lunger, Shiv, Hornet, Driller, Mummer.
+  - Fencer: starts closer, shorter wind-up, a short hop, its own hop damage.
+  - Scythe Wraith: starts further out, a longer mark that stops tracking after `ScytheTrack`, a faster, longer dash.
+- **New hook:** `MovePart.Contact` (touch damage during the leap), read in the contact check where the lunger rule
+  was.
+- **Removed (unreachable now):** the Lunger/Shiv/Scythe Wraith cases in `MoveEnemy` and `Special`, the Fencer and
+  Scythe Wraith type checks inside them, the lunger and Scythe Wraith face locks in `Face` (now `LungeMove.Turn`), and
+  the lunger rule in the contact damage.
+- **Left for step 7:** the sound and thrall switches on kin (MeleeSounds.cs, ForcePact.cs) still list Lunger, Shiv
+  and Scythe Wraith; they keep working through the kin table until then.
+- **Checked:** `aitrace` identical for all 128 types.
 
 ## Risks
 

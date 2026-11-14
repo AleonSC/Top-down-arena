@@ -21,6 +21,8 @@ namespace Arena
         public abstract V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed);
         /// Its own turning toward `want` (radians); false: turn like everyone else (face the target at once).
         public virtual bool Turn(Game g, Enemy e, float want, float dt) => false;
+        /// Damage when it touches you right now; below 0: the usual contact damage.
+        public virtual float Contact(Game g, Enemy e) => -1f;
     }
 
     public abstract class FirePart
@@ -77,6 +79,7 @@ namespace Arena
             var t = new Brain[256];
             // Each family adds its enemies (Docs/EnemyBehaviours.md "Steps").
             ShieldBrains(t);  // step 1 (ShieldBrains.cs)
+            LungeBrains(t);   // step 2 (LungeBrains.cs)
             return t;
         }
     }

@@ -619,9 +619,11 @@ namespace Arena
                     || e.Type == EnemyType.MiniWell || e.Type == EnemyType.Implosion || e.Type == EnemyType.MummerCopy)
                     continue;  // blew up this tick, explodes instead of bumping, an egg, the Hive Queen up in a dive, a morsel, the Devourer underground, dazed (Daze.cs)
                 // Bosses and heavies hurt to stand in (the difficulty's per-wave damage growth scales all of these).
+                var cb = BrainOf(e.Type);
+                float brainContact = cb != null && cb.Move != null ? cb.Move.Contact(this, e) : -1f;  // a lunger's leap (Brain.cs)
                 float contact = e.Def.IsBoss ? 25f
                     : e.Type == EnemyType.Charger && e.Phase == 2 || e.Type == EnemyType.Juggernaut ? 25f
-                    : IsLunger(e.Type) && e.Phase == 2 ? (e.Type == EnemyType.Fencer ? FencerHopDamage : 26f)
+                    : brainContact >= 0f ? brainContact
                     : e.Type == EnemyType.SpikeBlock && e.Phase == 2 ? SpikeLungeDamage
                     : e.Def.Contact > 0f ? e.Def.Contact * BruteDamageMult(e) : ContactDamage;
                 GuardContact(e, contact);  // Warden's Guards in the way get hurt too (Stun.cs)
@@ -714,10 +716,8 @@ namespace Arena
                 return;  // locked in while winding up and dashing
             if (NonShooterFaceLocked(e))
                 return;  // a planted Fuse Runner, a Hookman's aim and throw (NonShooters.cs)
-            if (e.Type == EnemyType.ScytheWraith && e.Phase == 1 && e.PhaseT <= ScytheMark - ScytheTrack)
-                return;  // a Scythe Wraith's mark stays put once it's locked (ReaperFaction.cs)
-            if (IsLunger(e.Type) && e.Phase >= 2 || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.SpikeBlock && e.Phase >= 1)
-                return;  // committed to the leap / flight line (a Spike Block locks its line when it winds up)
+            if (e.Type == EnemyType.HiveBomber || e.Type == EnemyType.SpikeBlock && e.Phase >= 1)
+                return;  // committed to the flight line (a Spike Block locks its line when it winds up; a lunger's leap: LungeBrains.cs)
             if (e.Type == EnemyType.BeamSentry && e.Phase >= 2 || e.Type == EnemyType.Reaver && e.Phase != 0 || e.Type == EnemyType.Leader && e.Phase == 1)
                 return;  // the beam's aim and sweep, the rake's cone, the Leader's aim line (Variety.cs)
             if (PulsarLocked(e) || HelioLocked(e) || GnomonLocked(e) || e.Type == EnemyType.Moonward)
@@ -978,19 +978,6 @@ namespace Arena
                     case EnemyType.Wisp:
                         v = dir;
                         break;
-                    case EnemyType.Lunger:
-                    case EnemyType.Shiv:
-                    case EnemyType.ScytheWraith:
-                        if (e.Phase == 0)
-                            v = dist > (e.Type == EnemyType.Fencer ? FencerStart - 30f : 170f) ? dir : dir.Orthogonal() * e.Strafe * 0.6f;  // close in, then circle while it winds up (a Fencer closer: CourtFaction.cs)
-                        else if (e.Phase == 2)
-                        {
-                            v = V2.FromAngle(e.Facing);
-                            speed = e.Type == EnemyType.ScytheWraith ? ScytheSpeed : 640f;
-                        }
-                        else if (e.Phase == 3)
-                            speed *= 0.3f;  // recovering after the leap
-                        break;
                     case EnemyType.Spinner:  // wanders between random spots, round walls and crates; gives up on one it can't reach
                         e.PhaseT -= dt;
                         if (e.Pos.DistanceTo(e.Waypoint) < 20f || e.PhaseT <= 0f)
@@ -1147,43 +1134,6 @@ namespace Arena
                         e.Phase = 2;
                     else if (e.Phase == 2 && gap < SoulBondRelease)
                         e.Phase = 0;
-                    break;
-                }
-                case EnemyType.Lunger:
-                case EnemyType.Shiv:
-                case EnemyType.ScytheWraith:
-                {
-                    // Phase 0: approach; 1: wind up (telegraph line); 2: leap; 3: recover.
-                    // A Scythe Wraith marks from further out, holds the mark longer, locks it early and dashes further (ReaperFaction.cs).
-                    // A Fencer hops: it starts closer, shows a shorter line and leaps a short way (CourtFaction.cs).
-                    bool reaper = e.Type == EnemyType.ScytheWraith, fencer = e.Type == EnemyType.Fencer;
-                    float dist = tpos.DistanceTo(e.Pos);
-                    e.PhaseT -= dt;
-                    if (e.Phase == 0 && dist < (reaper ? ScytheStart : fencer ? FencerStart : 220f) && e.PhaseT <= 0f && !LungerWaits(e, tpos))  // in a squad, it waits for a Brute (Variety.cs)
-                    {
-                        e.Phase = 1;
-                        e.PhaseT = reaper ? ScytheMark : fencer ? FencerWarn : 0.6f;
-                    }
-                    else if (e.Phase == 1)
-                    {
-                        if (!reaper || e.PhaseT > ScytheMark - ScytheTrack)
-                            e.Facing = (tpos - e.Pos).Angle;  // tracks you while winding up (a Scythe Wraith only at first: the mark then stays put)
-                        if (e.PhaseT <= 0f)
-                        {
-                            e.Phase = 2;
-                            e.PhaseT = reaper ? ScytheDash : fencer ? FencerHop : 0.32f;
-                        }
-                    }
-                    else if (e.Phase == 2 && e.PhaseT <= 0f)
-                    {
-                        e.Phase = 3;
-                        e.PhaseT = reaper ? ScytheRecover : fencer ? FencerRecover : 0.8f;
-                    }
-                    else if (e.Phase == 3 && e.PhaseT <= 0f)
-                    {
-                        e.Phase = 0;
-                        e.PhaseT = Rand(0.8f, 1.6f);
-                    }
                     break;
                 }
                 case EnemyType.SpikeBlock:
