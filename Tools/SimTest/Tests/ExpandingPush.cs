@@ -79,6 +79,20 @@ static partial class Program
         // A room kit can't retype a section alone.
         Check(!Expansion.CanRetype(list, 0, new RoomToken { Kind = RoomKind.Shop }, out why), "a section isn't a room for a kit (" + why + ")");
 
+        // Picking (step 2): the stretch of outer wall under the mouse, within reach of the player.
+        var one = new List<ExpansionRoom> { list[0] };  // the hub with a section 2 tiles out of its east wall at y 300-700
+        var pk = Expansion.PushPick(new List<ExpansionRoom>(), new V2(1580f, 500f), new V2(1450f, 500f), 4);
+        Check(pk.HasValue && pk.Value.Area == 0 && pk.Value.Side == 1 && pk.Value.Start == 300 && pk.Value.Width == 4, "the mouse by the hub's east wall picks 4 tiles centred on it");
+        var pk2 = Expansion.PushPick(one, new V2(1580f, 760f), new V2(1450f, 700f), 4);
+        Check(pk2.HasValue && pk2.Value.Area == 0 && pk2.Value.Start == 700 && pk2.Value.Width == 2, "beside a section only the outer wall left is picked (2 tiles, 700-900): " + (pk2.HasValue ? pk2.Value.Start + "+" + pk2.Value.Width : "none"));
+        var pk3 = Expansion.PushPick(one, new V2(1790f, 500f), new V2(1700f, 500f), 6);
+        Check(pk3.HasValue && pk3.Value.Area == 1 && pk3.Value.Side == 1 && pk3.Value.Start == 300 && pk3.Value.Width == 4, "the section's far wall: all of it (a wider pick is cut to its 4 tiles)");
+        var pg = Expansion.Push(one, pk3.Value, out idx, out cost, out why);
+        Check(pg.HasValue && idx == 0, "and pushing that grows the section");
+        Check(!Expansion.PushPick(one, new V2(1580f, 500f), new V2(200f, 450f), 4).HasValue, "a wall out of reach isn't picked");
+        Check(!Expansion.PushPick(one, new V2(800f, 450f), new V2(800f, 450f), 4).HasValue, "the middle of the room is far from every wall: nothing");
+        Check(Expansion.PushAreaAt(one, 1, 1800, 300, 4) == 1 && Expansion.PushAreaAt(one, 1, 1600, 700, 2) == 0 && Expansion.PushAreaAt(one, 1, 1900, 300, 4) == -1, "a locked face is found by its line (the section's, the hub's; not one that isn't there yet): " + Expansion.PushAreaAt(one, 1, 1800, 300, 4) + " " + Expansion.PushAreaAt(one, 1, 1600, 700, 2) + " " + Expansion.PushAreaAt(one, 1, 1900, 300, 4));
+
         // The world: the section opens full width onto the hub, and has no random cover.
         var world = Expansion.Build(new List<ExpansionRoom> { list[0] });
         var door = world.Doors.FirstOrDefault(dd => dd.Joins(0) && dd.Joins(1));

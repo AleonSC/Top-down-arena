@@ -1,6 +1,6 @@
 # Wall push: grow a room from inside it
 
-Status: **step 1 built** (the core: rules, cost, host and wire, protocol 346; no way to push in the game yet, that's step 2). Decided with the owner on Nov 14, 2026. Mockup: `Docs/Mockups/wall-push.html`
+Status: **steps 1-2 built** (the core: rules, cost, host and wire, protocol 346; pushing in the world, no protocol change). Step 3 (features) next. Decided with the owner on Nov 14, 2026. Mockup: `Docs/Mockups/wall-push.html`
 (playable: walk, pick a section, click to push; browser look, approximate). Builds on [`VectorBuilding.md`](VectorBuilding.md)
 and [`RoomBuilding2.md`](RoomBuilding2.md).
 
@@ -93,6 +93,20 @@ Limits: a section goes at most **12 tiles** out. Pushing a section's side wall s
   too), then `BroadcastExpansion`. Protocol 346.
 - `Expansion.Grown`: a pushed wall alone raises the map (`Rooms.cs`). Sections get no random cover or fins (`Build`); step 3 gives them features.
 - Saves carry sections through `Leg` (no format change). Test `ExpandingPushTest` (suites `expand` and `push`).
+
+## Built (step 2)
+
+- `Game/WallPushLook.cs`: `KeyAction.PushWall` (C, rebindable, Keybinds' Items group). By an outer wall within 3 tiles, between
+  waves, the prompt chip shows over you (under you by a north wall) and that wall is lit cyan. In push mode Fire and Parry don't
+  shoot or parry and the wheel doesn't zoom.
+- `Expansion.PushPick`: the nearest outer wall (nothing outside it) to the mouse, within 2.5 tiles, at a spot within reach; the width
+  is centred on the mouse's tile and cut to the run of outer wall. After a push the selection locks on where the face will be
+  (`PushAreaAt`) until the mouse moves 30 px or the width changes; until the host's map comes back nothing is selected, so held
+  pushes go at the network's pace (and at most every 0.2 s).
+- The look: the section gold (grey: too far, red: refused, shaking on a refused click), the next row as a dashed ghost with its tiles,
+  an arrow, a white flash where the wall was; the label (price and `w WIDE · d / 12 OUT`, or the reason), kept on screen; the keys
+  under you; the vectors chip adds `PUSH −4`. The camera leans halfway to the next row and may go 4 tiles past the map's edge.
+- A click sound for now; the Wave cleared box must be folded away first (it takes the clicks, as it does for shooting).
 
 ## Steps
 

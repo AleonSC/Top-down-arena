@@ -74,6 +74,90 @@ namespace Arena
             return p.Side == 0 ? new V2(x0, mid) : p.Side == 1 ? new V2(x1, mid) : p.Side == 2 ? new V2(mid, y0) : new V2(mid, y1);
         }
 
+        /// The line a push's wall stands on (x for a west or east wall, y for a north or south one).
+        public static int PushLine(IList<ExpansionRoom> rooms, WallPush p)
+        {
+            int x0, y0, x1, y1;
+            BoxOf(rooms, p.Area, out x0, out y0, out x1, out y1);
+            return p.Side == 0 ? x0 : p.Side == 1 ? x1 : p.Side == 2 ? y0 : y1;
+        }
+
+        /// Is the tile just outside this area's wall, at `u` along it (the tile starting there), empty (no room in it)?
+        static bool OutsideFree(IList<ExpansionRoom> rooms, int side, int line, int u)
+        {
+            int tx = side == 0 ? line - Step : side == 1 ? line : u, ty = side == 2 ? line - Step : side == 3 ? line : u;
+            for (int a = 0; a <= rooms.Count; a++)
+            {
+                int bx0, by0, bx1, by1;
+                BoxOf(rooms, a, out bx0, out by0, out bx1, out by1);
+                if (Overlaps(tx, ty, tx + Step, ty + Step, bx0, by0, bx1, by1))
+                    return false;
+            }
+            return true;
+        }
+
+        /// The stretch of wall the mouse points at (Docs/WallPush.md step 2): the nearest outer wall (with nothing outside it) to `at`
+        /// within `grab` px, whose spot is within PushReach of the player at `from`; `width` tiles centred on the mouse's tile, cut to
+        /// the run of outer wall there (so it may come out narrower). Null when there's none. A connected room's wall only (not a floating room).
+        public static WallPush? PushPick(IList<ExpansionRoom> rooms, V2 at, V2 from, int width, float grab = 250f)
+        {
+            var linked = ConnectedAreas(rooms);
+            WallPush? best = null;
+            float bestD = grab;
+            for (int a = 0; a <= rooms.Count; a++)
+            {
+                if (!linked[a] || a > 0 && rooms[a - 1].Floating)
+                    continue;
+                int x0, y0, x1, y1;
+                BoxOf(rooms, a, out x0, out y0, out x1, out y1);
+                for (int side = 0; side < 4; side++)
+                {
+                    bool vertical = side < 2;
+                    int line = side == 0 ? x0 : side == 1 ? x1 : side == 2 ? y0 : y1;
+                    int lo = vertical ? y0 : x0, hi = vertical ? y1 : x1;
+                    if (hi - lo < Step)
+                        continue;
+                    float along = vertical ? at.Y : at.X, across = vertical ? at.X : at.Y;
+                    int u = (int)Math.Floor(along / Step) * Step;
+                    u = Math.Max(lo, Math.Min(hi - Step, u));
+                    V2 spot = vertical ? new V2(line, u + Step / 2f) : new V2(u + Step / 2f, line);
+                    float d = Math.Abs(across - line) + Math.Max(0f, Math.Abs(along - (u + Step / 2f)) - Step / 2f);
+                    if (d >= bestD || spot.DistanceTo(from) > PushReach || !OutsideFree(rooms, side, line, u))
+                        continue;
+                    int r0 = u, r1 = u + Step;  // the run of outer wall round the spot
+                    while (r0 - Step >= lo && OutsideFree(rooms, side, line, r0 - Step)) r0 -= Step;
+                    while (r1 + Step <= hi && OutsideFree(rooms, side, line, r1)) r1 += Step;
+                    int w = Math.Max(1, Math.Min(Math.Min(width, PushMaxWidth), (r1 - r0) / Step));
+                    int start = u - (w / 2) * Step;
+                    start = Math.Max(r0, Math.Min(r1 - w * Step, start));
+                    bestD = d;
+                    best = new WallPush { Area = (short)a, Side = (byte)side, Start = (short)start, Width = (byte)w };
+                }
+            }
+            return best;
+        }
+
+        /// The area whose wall on this side stands on `line` and holds the stretch [start, start + width tiles): where a locked
+        /// selection is after the map changes (a section grown by a push). -1 if none. A section's own far wall wins over others.
+        public static int PushAreaAt(IList<ExpansionRoom> rooms, int side, int line, int start, int width)
+        {
+            int end = start + width * Step, found = -1;
+            for (int a = 0; a <= rooms.Count; a++)
+            {
+                int x0, y0, x1, y1;
+                BoxOf(rooms, a, out x0, out y0, out x1, out y1);
+                int at = side == 0 ? x0 : side == 1 ? x1 : side == 2 ? y0 : y1;
+                int lo = side < 2 ? y0 : x0, hi = side < 2 ? y1 : x1;
+                if (at != line || start < lo || end > hi)
+                    continue;
+                if (a > 0 && IsPush(rooms[a - 1]) && PushAway(rooms, a - 1) == side)
+                    return a;
+                if (found < 0)
+                    found = a;
+            }
+            return found;
+        }
+
         /// The area index (0 the hub) of the multi-box room this area belongs to: its head, the way Build groups them.
         static int GroupHead(IList<ExpansionRoom> rooms, int area)
         {

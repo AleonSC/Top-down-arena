@@ -1375,7 +1375,7 @@ namespace Arena
             var me = game.Me;
             if (!game.ExpandingOn || me == null)
                 return false;
-            string text = "VECTORS  " + me.Vectors + " / " + me.VectorCap;
+            string text = "VECTORS  " + me.Vectors + " / " + me.VectorCap + PushChipNote;  // (pushing a wall: what the next push spends)
             float w = 30f + text.Length * 6.4f;
             var chip = new Rect(x, y, w, 20f);
             var ink = new Color(0.37f, 0.94f, 1f);
