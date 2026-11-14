@@ -1144,8 +1144,6 @@ namespace Arena
                 bool sprayOut = SprayRelease(me, slot);  // Arterial Spray pressed again: the host closes the vein (ArterialSpray.cs)
                 bool steelOut = SteelRelease(me, slot);  // Caught Steel pressed again: the host throws the shards (CaughtSteel.cs)
                 bool wallOut = WallRelease(me, slot);  // Blood Wall pressed again: the host stops it (BloodWall.cs)
-                if (me.Slots[slot].Id == AbilityId.Whirlwind && MercyFirst(me, aimAt) == null)
-                    continue;  // Misericorde with nobody wounded in reach: don't waste the cooldown (Misericorde.cs)
                 if (!orbitOut && !standOut && !harvestOut && !rainOut && !bathOut && !shellOut && !sprayOut && !steelOut && !wallOut && !Consume(me, slot, false))
                     continue;
                 V2 target = aimAt, castFrom = me.Pos;  // (where you stood, for the Shadow Step's look)

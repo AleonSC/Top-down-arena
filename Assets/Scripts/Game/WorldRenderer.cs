@@ -222,7 +222,7 @@ namespace Arena
             DrawBreaches();  // the Expanding arena's breaches: a red hologram barrier in each (BreachLook.cs)
             DrawTourFlash();  // the breach warning's flash on the breach the camera is on (BreachTour.cs)
             DrawProps(t);  // crates, pots, barrels and the chest (PropsLook.cs)
-            DrawKnightDpsUnder(t);  // the Gauntlet's rings and dust, Misericorde's candles, the Drawbridge's slam (KnightDpsLook.cs)
+            DrawKnightDpsUnder(t);  // the Gauntlet's rings and dust, the Drawbridge's slam (KnightDpsLook.cs)
             DrawAirTrails();  // the air behind fast movers, under every body (AirTrailLooks.cs)
             foreach (var p in game.Players.Values)
                 DrawPlayerLinks(p, t);
@@ -261,7 +261,7 @@ namespace Arena
             DrawLeechTendrils(t);
             DrawImplodeMark(t);
             DrawTauntMarks(t);  // enemies a taunt has turned on its caster (AbilityLooks.cs)
-            DrawKnightDpsOver(t);  // the Drawbridge falling, the Gauntlet's crests, Misericorde's daggers (KnightDpsLook.cs)
+            DrawKnightDpsOver(t);  // the Drawbridge falling, the Gauntlet's crests (KnightDpsLook.cs)
             DrawColossusAir(t);  // what the Colossus threw, in flight (ColossusLook.cs)
             DrawClotAir(t);      // the Clot Cannon's drops falling (ClotCannonLook.cs)
             DrawBulletRainAir(t);  // Bullet Rain's rounds falling, landing rings and sparks (BulletRainLook.cs)
