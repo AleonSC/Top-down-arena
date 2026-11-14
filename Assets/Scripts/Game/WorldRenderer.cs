@@ -58,7 +58,10 @@ namespace Arena
                 FillRect(0, 0, AW, AH, ZombieFloor);
             DrawPathArena(t);  // a divergent path's floor (PathsUi.cs)
             DrawRoomFloor(t);  // a challenge room's ground (ChallengeLook.cs)
-            var grid = infected ? ZombieGrid : new Rgba(1f, 1f, 1f, 0.035f);
+            WallInk();  // the coming boss's colour for the floor, walls and crates (LayoutLook.cs)
+            if (!infected)  // the floor washed in it, brightest in the middle
+                DrawBossFloor();
+            var grid = infected ? ZombieGrid : new Rgba(1f, 1f, 1f).Mix(Ink, 0.75f).WithAlpha(0.035f + FloorTintAmt * 0.5f);
             if (game.RoomsOn)
                 DrawRoomsFloor(grid);  // the side rooms and hallways: the grid across the whole world (RoomsLook.cs)
             else if (!DrawRippledGrid(AW, AH, grid))  // a big blast's ripple (Juice.cs)

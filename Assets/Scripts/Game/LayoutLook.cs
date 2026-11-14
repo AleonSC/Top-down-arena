@@ -35,6 +35,20 @@ namespace Arena
             }
         }
 
+        public static float FloorTintAmt = 0.04f;  // how strongly the floor takes the boss colour (previews: FLOORTINT)
+
+        /// The arena floor in the coming boss's colour: a flat wash plus a soft glow pooled in the middle.
+        void DrawBossFloor()
+        {
+            if (FloorTintAmt <= 0f)
+                return;
+            FillRect(0, 0, AW, AH, Ink.WithAlpha(FloorTintAmt));
+            V2 mid = new V2(AW / 2f, AH / 2f);
+            float r = Mathf.Min(AW, AH) * 0.5f;
+            for (int i = 1; i <= 8; i++)  // stacked discs: smooth falloff to the edge
+                Circle(mid, r * i / 8f, Ink.WithAlpha(FloorTintAmt * 0.125f), 48);
+        }
+
         Rgba wallInkNow = Cyan;  // eased toward the target so walls that stay up (the Rooms hub) shift colour gently
 
         /// This frame's Ink (outlines) and WallFill (fill and hatching), themed for the boss this cycle leads to.
@@ -53,7 +67,6 @@ namespace Arena
         /// Under the props: walls and pillars (they rise out of the floor when a new cycle starts), then the edge gates.
         void DrawLayout(float t)
         {
-            WallInk();  // also the crates' and pots' colour (PropsLook.cs), so before the open-arena return
             var d = game.ActiveLayout;
             if (d == null)
                 return;
