@@ -4,7 +4,8 @@ namespace Arena
 {
     /// How the CRT cabinet windows move (Docs/Mockups/crt-pause-menu.html; the cabinet and its windows are in CrtWindows.cs):
     /// the pause menu, Settings (main menu, lobby, pause menu), the lobby's menu, How to play and the profile.
-    ///   Opening: the cabinet slides in from the left (0.3 s); then its screens power on and type (CrtWindows.cs).
+    ///   Opening: the cabinet holo-boots in place (LobbyFx.cs; with Reduced effects or Visual effects off it slides in from the left,
+    ///   0.3 s); then its screens power on and type (CrtWindows.cs).
     ///   Closing: the cabinet and its window slide back out (0.3 s); the window really closes when that's done.
     /// GL drawn inside a moving window (a boss preview, the effects preview) moves with it through `uiShift`.
     public partial class ArenaApp
@@ -73,7 +74,8 @@ namespace Arena
         }
 
         /// The drawer's slide (BeginDrawer): in from the left as it opens, out as it closes.
-        float DrawerSlide => -(1f - EaseOut(Mathf.Clamp01(WinT / 0.3f))) * DrawerSlideW - EaseIn3(winCloseK) * DrawerSlideW;
+        /// With effects on it holo-boots in place instead of sliding in (CrtWindows.cs, BeginDrawer); it still slides out.
+        float DrawerSlide => (CabCalm ? -(1f - EaseOut(Mathf.Clamp01(WinT / 0.3f))) * DrawerSlideW : 0f) - EaseIn3(winCloseK) * DrawerSlideW;
 
         /// Move everything drawn (IMGUI and the canvas's GL) by (dx, dy) and fade it, until PopShift.
         void PushShift(float dx, float dy, float alpha)

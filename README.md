@@ -29,7 +29,7 @@ New to the code? Read [`HANDOFF.md`](HANDOFF.md) for the architecture, tools, te
 
 ## Roles and classes
 
-The lobby is one calm blue CRT screen with a 36 px margin and soft, darker edges: the party column is on the left, the big loadout screen on the right washed with a soft gradient in your role's colour (it eases when you pick another role), and the tabs above it are small, faded caps with the open one a lit pill. Every option is a digital key (outlined, inverse video under the mouse or when picked; locked ones are dashed with a padlock), and the colour lives in the party cards, the live preview, the stat bars and the pixel icons. In it each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Elementalist, Summoner, Knight,
+The lobby is one calm blue CRT screen with a 36 px margin and soft, darker edges: the party column is on the left, the big loadout screen on the right washed with a soft gradient in your role's colour (it eases when you pick another role), and the tabs above it are small, faded caps with the open one a lit pill. Every option is a digital key (outlined, inverse video under the mouse or when picked; locked ones are dashed with a padlock), and the colour lives in the party cards, the live preview, the stat bars and the pixel icons. With Visual effects on (and Reduced effects off) it's alive: its pieces **holo-boot** as you come in (a scan line wipes down each, then it flickers), box frames near the cursor light up where they're closest, the scanlines crawl slowly down, a faint **radar sweep** turns over the loadout preview, and readying sends a green pulse up a line from Ready into that player's card, a ring bursts off it and the card keeps a soft green glow while ready. Starting the run glitches the lobby (red and blue copies split off, torn bands jump sideways) and switches it off like an old CRT, squashed to a line that shrinks to a point, before the drop-in. In it each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Elementalist, Summoner, Knight,
 Ninja, Hemomancer), then one of that combination's three weapons (four for the DPS Knight: the Arc Knuckles on the 4th key) and three Space abilities. Weapons and abilities are
 unique to their role and class. The **Ultimate** row under them shows the combination's ultimates: key 0 is its default
 ultimate and key 1 its second where it has one (so far the Tank Soldier: Juggernaut Suit, and the Tank Hemomancer: **Bloodbath**); the
@@ -1790,13 +1790,13 @@ everyone the run's numbers about once a second, and again the moment the game pa
 Press **Esc** in a match to open the pause menu. Pausing **freezes the match for everyone** (your friend
 sees who paused) and either player can resume. The pause menu, **Settings**, **Profile** and **How to play**
 share one look, the **lobby loadout's box** (`Docs/Mockups/pause-settings-loadout-box.html`): a navy panel with a thin blue rim and bracket corners that slides out from the left (24 px in from the left, top and bottom) and stops 36 px short of the box beside it, the same gap the lobby's loadout box has to the screen's right edge; that is the standard placement for every drawer menu, and the window it opens takes the loadout box's place. The title ("PAUSED_", "SETTINGS_", "MENU_") and its sub-line sit straight on it over a thin rule, with the soft option keys below (a faint tint, brighter under the mouse, outlined when selected). The whole screen darkens softly toward its edges while one of these menus is up.
-What an option opens appears as a second loadout box to the right (the pause menu's run summary sits there until you pick something): it slides out from behind the left box
-the first time you pick something; picking another option while it is open only backspaces and retypes its text. Esc
+What an option opens appears as a second loadout box to the right (the pause menu's run summary sits there until you pick something): it powers on in place
+the first time you pick something (the holo boot below); picking another option while it is open only backspaces and retypes its text. Esc
 (or the window's X key) slides it back in; Esc again goes back. Window controls are digital: ON/OFF keys, segment keys,
 blocky bar sliders with - / + keys, and keybind keys that read "PRESS KEY_" while listening. Opening plays once: the
-box slides out, the title types, its sub-line types a boot log (`> LINK OK > SAVE OK > WAVE n`)
+box **holo-boots** in place (a bright scan line wipes down it, showing it as it goes, then it flickers twice with a glow round its frame), the title types, its sub-line types a boot log (`> LINK OK > SAVE OK > WAVE n`)
 and then the real line, a scan bar sweeps the keys and they type in one by one; then nothing
-animates. With Reduced effects or Visual effects off there is no animation at all. Closing slides the cabinet and window
+animates. With Reduced effects or Visual effects off there is no animation at all (the box slides in instead). Closing slides the cabinet and window
 out (Back or Esc), and only then does the window really close.
 
 - **Pause menu:** **Resume** (Esc), **Run stats** (the Tab screen, so a paused party can look at it together), **Field

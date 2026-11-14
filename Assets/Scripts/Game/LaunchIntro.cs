@@ -186,6 +186,11 @@ namespace Arena
         {
             if (!LaunchActive || !launchFromLobby || launchT >= LobbyOutTime || session.Lobby.Count == 0)
                 return;
+            if (LobbyFxOn)
+            {
+                DrawLobbyLaunchGlitch();
+                return;
+            }
             float k = Seg(launchT, 0f, LobbyOutTime), e = k * k * (3f - 2f * k), a = 1f - Seg(launchT, 0.3f, LobbyOutTime);
             var oldColor = GUI.color;
             bool oldEnabled = GUI.enabled;
@@ -203,6 +208,72 @@ namespace Arena
             GUI.EndGroup();
             GUI.EndGroup();
             Ui.Alpha = 1f;
+            GUI.color = oldColor;
+            GUI.enabled = oldEnabled;
+            uiGlBlocked = false;
+        }
+
+        /// The launch glitch (with effects on, in place of the slide; the Lobby FX Lab mockup): the lobby glitches for a moment (red and
+        /// blue copies split off it, torn bands jump sideways), then collapses like an old CRT switching off: squashed to a bright line
+        /// across the middle, the line shrinks to a point and fades, and the arena is there. The countdown is GET READY's.
+        const float GlitchFor = 0.42f;
+
+        void DrawLobbyLaunchGlitch()
+        {
+            if (Event.current.type != EventType.Repaint)
+                return;
+            var oldColor = GUI.color;
+            bool oldEnabled = GUI.enabled;
+            GUI.enabled = false;
+            uiGlBlocked = true;  // its live models (GL) wait
+            float lt = launchT;
+            if (lt < GlitchFor)
+            {
+                float f = lt / GlitchFor, shake = 2f + 7f * f;
+                DrawLobby();
+                // The colour split: a red copy one way, a blue one the other, faint.
+                for (int side = -1; side <= 1; side += 2)
+                {
+                    float dx = side * shake;
+                    var tint = side > 0 ? new Color(1f, 0.25f, 0.35f) : new Color(0.3f, 0.55f, 1f);
+                    Ui.Alpha = 0.16f;
+                    GUI.color = new Color(tint.r, tint.g, tint.b, 0.16f);
+                    GUI.BeginGroup(new Rect(dx, 0f, W, H));
+                    DrawLobby();
+                    GUI.EndGroup();
+                }
+                Ui.Alpha = 1f;
+                GUI.color = oldColor;
+                // Torn bands: strips of the lobby jumping sideways, new ones every 1/14 s.
+                int seed = Mathf.FloorToInt(lt * 14f);
+                for (int i = 0; i < 5; i++)
+                {
+                    float y = Mathf.Abs(Mathf.Sin(i * 91.7f + seed * 13.1f)) * H, h = 4f + (i * 7 % 13) * (0.6f + f), dx = Mathf.Sin(seed * 3.3f + i * 1.7f) * 26f * (0.4f + f);
+                    GUI.BeginGroup(new Rect(dx, y, W, h));
+                    GUI.BeginGroup(new Rect(0f, -y, W, H));
+                    DrawLobby();
+                    GUI.EndGroup();
+                    GUI.EndGroup();
+                }
+            }
+            else
+            {
+                // The CRT switching off: the picture squashes into a band, then a line that shrinks to a point.
+                float k = Seg(lt, GlitchFor, LobbyOutTime), hk = Mathf.Clamp01(k / 0.6f), wk = Seg(k, 0.6f, 1f);
+                float hh = Mathf.Max(2f, H * (1f - hk * hk)), ww = W * (1f - wk * wk);
+                if (hk < 1f)
+                {
+                    GUI.BeginGroup(new Rect(0f, H / 2f - hh / 2f, W, hh));
+                    GUI.BeginGroup(new Rect(0f, -(H / 2f - hh / 2f), W, H));
+                    DrawLobby();
+                    GUI.EndGroup();
+                    GUI.EndGroup();
+                    Ui.Fill(new Rect(0f, H / 2f - hh / 2f, W, hh), new Color(0.85f, 0.92f, 1f, 0.6f * hk));  // washing out to white as it squashes
+                }
+                var line = new Rect(W / 2f - ww / 2f, H / 2f - Mathf.Min(hh, 3f) / 2f, ww, Mathf.Min(hh, 3f));
+                Ui.Glow(line, CrtUi.Ink, 1f - wk);
+                Ui.Fill(line, new Color(0.95f, 0.98f, 1f, 1f - wk * wk));
+            }
             GUI.color = oldColor;
             GUI.enabled = oldEnabled;
             uiGlBlocked = false;

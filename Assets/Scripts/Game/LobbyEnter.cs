@@ -7,7 +7,7 @@ namespace Arena
     ///   0.0 s   the menu card empties and grows into the loadout panel, its plot corners riding out with it; the title
     ///           shrinks and flies to the top left, turning into LOBBY, its x-axis coming along and fading; the buttons
     ///           under the card drop away
-    ///   0.45 s  the lobby's pieces slide in around the panel: the mode switch, party and background picker from the
+    ///   0.45 s  the lobby's pieces slide in around the panel (with effects on they holo-boot in place instead, LobbyFx.cs): the mode switch, party and background picker from the
     ///           left, the tabs from above, the bottom bar from below; the loadout fills in
     ///   1.1 s   your party card arrives last, with a ring
     /// The lobby isn't usable until it settles (it's drawn on Repaint only, so it takes no clicks; its live models wait).
@@ -184,21 +184,32 @@ namespace Arena
         }
 
         /// One piece of the lobby: DrawLobby clipped to `clip`, sliding in from (dx, dy) and fading up between a and b seconds.
+        /// With effects on it holo-boots in place instead (LobbyFx.cs): a scan line wipes down the piece between a and b,
+        /// showing it as it goes, then it flickers.
         void LobbyPiece(Rect clip, float e, float a, float b, float dx, float dy, bool models = false)
         {
             float k = Seg(e, a, b);
             if (k <= 0f || Event.current.type != EventType.Repaint)
                 return;
+            bool holo = LobbyFxOn;
             float s = EaseOut(k);
+            var shown = clip;
+            if (holo)
+            {
+                dx = dy = 0f;
+                s = 1f;
+                k = 1f;
+                shown.height = clip.height * HoloBoot.Reveal(e - a, b - a);
+            }
             var old = GUI.color;
             Ui.Alpha = k;
             GUI.color = new Color(old.r, old.g, old.b, old.a * k);
-            GUI.BeginGroup(new Rect(clip.x + dx * (1f - s), clip.y + dy * (1f - s), clip.width, clip.height));
+            GUI.BeginGroup(new Rect(shown.x + dx * (1f - s), shown.y + dy * (1f - s), shown.width, shown.height));
             GUI.BeginGroup(new Rect(-clip.x, -clip.y, W, H));
             if (models)  // this piece's live models slide and fade with it, cut to its rect (the other pieces' models wait)
             {
                 pieceGlOn = true;
-                pieceGlClip = clip;
+                pieceGlClip = shown;
                 uiShift = new V2(dx * (1f - s), dy * (1f - s));
             }
             DrawLobby();
@@ -208,6 +219,8 @@ namespace Arena
             GUI.EndGroup();
             Ui.Alpha = 1f;
             GUI.color = old;
+            if (holo)
+                HoloBoot.Over(clip, e - a, b - a);
         }
 
         void WithAlpha(float a, System.Action draw)

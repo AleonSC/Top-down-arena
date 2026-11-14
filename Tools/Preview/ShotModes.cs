@@ -347,7 +347,14 @@ static partial class Shot {
       else if (lobbyBack != null) { set("returnT", float.Parse(lobbyBack, System.Globalization.CultureInfo.InvariantCulture)); Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyReturning", f2).Invoke(app, null); }
       else if (lobbyOut != null) { set("leaveT", float.Parse(lobbyOut, System.Globalization.CultureInfo.InvariantCulture)); Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyLeavingToMenu", f2).Invoke(app, null); }
       else if (lobbyIn != null) { set("enterT", float.Parse(lobbyIn, System.Globalization.CultureInfo.InvariantCulture)); Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyEntering", f2, null, Type.EmptyTypes, null).Invoke(app, null); }
-      else typeof(ArenaApp).GetMethod("DrawLobby", f2).Invoke(app, null);
+      // LAUNCHFX=<seconds>: that far into the launch glitch (LaunchIntro.cs, DrawLobbyLaunchGlitch; 0 to 0.8), over a dark arena stand-in.
+      else if (Environment.GetEnvironmentVariable("LAUNCHFX") != null) { set("launchT", float.Parse(Environment.GetEnvironmentVariable("LAUNCHFX"), System.Globalization.CultureInfo.InvariantCulture)); Event.current.type = EventType.Repaint; Ui.Fill(new Rect(0, 0, 1280, 720), new Color(0.04f, 0.05f, 0.08f)); typeof(ArenaApp).GetMethod("DrawLobbyLaunchGlitch", f2).Invoke(app, null); }
+      else
+      {
+        // READYFX=<seconds>: your seat readied that long ago (the Ready shockwave, LobbyFx.cs).
+        if (Environment.GetEnvironmentVariable("READYFX") != null) { var ra = (System.Collections.Generic.Dictionary<int, float>)typeof(ArenaApp).GetField("readyAt", f2).GetValue(app); ra[host.MyId] = Time.unscaledTime - float.Parse(Environment.GetEnvironmentVariable("READYFX"), System.Globalization.CultureInfo.InvariantCulture); }
+        typeof(ArenaApp).GetMethod("DrawLobby", f2).Invoke(app, null);
+      }
       crtDraw("DrawLobbyCrtGlass");
       // INSPECT=2: the holo card of lobby player 2 (PlayerInspect.cs), wearing FRAME / CARD / NAMEFX / TRAIL (ids, as above) with made-up records.
       if (Environment.GetEnvironmentVariable("INSPECT") != null) {
