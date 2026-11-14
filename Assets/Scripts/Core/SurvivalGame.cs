@@ -26,7 +26,7 @@ namespace Arena
         float survPropT;
         // What the camera shows round a player (half width and height at the default zoom, plus a margin): enemies appear outside it.
         const float ViewHalfW = 880f, ViewHalfH = 500f;
-        const int CrateGoal = 160, PotGoal = 50, BarrelGoal = 10;
+        const int CrateGoal = 120, PotGoal = 40, BarrelGoal = 8;
         int survSeed;
         string survSquad;
         V2 survSquadPos;
@@ -112,25 +112,27 @@ namespace Arena
                 V2 at;
                 if (!SurvivalPropSpot(HalfW(kind), all, out at))
                     continue;
-                AddProp(kind, at); crates++; n++;
+                Landed(AddProp(kind, at)); crates++; n++;
                 if (crates < CrateGoal && rng.NextDouble() < 0.45)
                 {
                     float step = HalfW(kind) * 2f + 2f;
                     V2 next = at + (rng.Next(2) == 0 ? new V2(rng.Next(2) == 0 ? step : -step, 0f) : new V2(0f, rng.Next(2) == 0 ? step : -step));
-                    if (SpotClear(next, HalfW(kind), 0f)) { AddProp(kind, next); crates++; n++; }
+                    if (SpotClear(next, HalfW(kind), 0f)) { Landed(AddProp(kind, next)); crates++; n++; }
                 }
             }
             for (int n = 0, tries = 0; pots < PotGoal && n < addPots && tries < 200; tries++)
             {
                 V2 at;
-                if (SurvivalPropSpot(PotR, all, out at)) { AddProp(PropKind.Pot, at); pots++; n++; }
+                if (SurvivalPropSpot(PotR, all, out at)) { Landed(AddProp(PropKind.Pot, at)); pots++; n++; }
             }
             for (int n = 0, tries = 0; barrels < BarrelGoal && n < addBarrels && tries < 200; tries++)
             {
                 V2 at;
-                if (SurvivalPropSpot(PotR, all, out at)) { AddProp(PropKind.Barrel, at); barrels++; n++; }
+                if (SurvivalPropSpot(PotR, all, out at)) { Landed(AddProp(PropKind.Barrel, at)); barrels++; n++; }
             }
         }
+
+        static Prop Landed(Prop p) { p.Age = 1f; return p; }  // no drop-in animation (and no 220 puffs of dust at once)
 
         bool SurvivalPropSpot(float size, bool anywhere, out V2 at)
         {

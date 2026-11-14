@@ -58,6 +58,9 @@ static partial class Program
         Check(maxLive <= Survival.MaxLive, "never more than " + Survival.MaxLive + " alive (" + maxLive + ")");
         Check(maxThreat <= Survival.Pressure(900f) + 6f * 6f + 30f, "the live threat stays near the budget (peak " + maxThreat.ToString("0") + ")");
         Check(!run.Any(r => Game.IsRetired(r.s.Type)), "no retired enemy is ever spawned");
+        Check(!run.Any(r => r.t < Survival.RangedFrom && !Defs.Get(r.s.Type).Melee), "the first two minutes are melee only: no shooter, alone or in a squad");
+        Check(run.Any(r => r.t >= Survival.RangedFrom + Survival.RangedRamp && !Defs.Get(r.s.Type).Melee), "shooters join after that");
+        Check(Survival.Pressure(0f) < 0.5f * Survival.Pressure(120f) && Survival.Pressure(120f) < Survival.Pressure(300f), "the budget starts slow: under half of its two-minute level at the start");
         var early = run.Where(r => r.t < 240f && r.s.Squad == null).Select(r => r.s.Type).Distinct().ToList();
         Check(early.All(t => BasicFaction.Types.Contains(t)), "before four minutes only the basic faction's enemies come as singles");
         var wardenOnly = Approaches.For(EnemyType.Boss).Members.Select(m => m.Type).Where(t => !BasicFaction.Types.Contains(t)).ToList();
@@ -124,7 +127,7 @@ static partial class Program
         var vc = g.CurrentWorld.ViewCentre(new V2(100f, 100f), 800f, 450f, false);
         var vm = g.CurrentWorld.ViewCentre(new V2(1600f, 900f), 800f, 450f, false);
         Check(vc.X == 800f && vc.Y == 450f && vm.X == 1600f && vm.Y == 900f, "the camera follows you and stops at the room's edges");
-        Check(g.Props.Count >= 150 && g.Props.Values.Count(pr => pr.Kind == PropKind.Crate || pr.Kind == PropKind.HeavyCrate) >= 100, "the room is full of crates (" + g.Props.Count + " props)");
+        Check(g.Props.Count >= 120 && g.Props.Values.Count(pr => pr.Kind == PropKind.Crate || pr.Kind == PropKind.HeavyCrate) >= 90, "the room is full of crates (" + g.Props.Count + " props)");
         var layout = g.ActiveLayout;
         Check(layout != null && layout.Solids.Length >= 4 + 4 + 8, "walls round the room and in the middle and corners (" + (layout == null ? 0 : layout.Solids.Length) + " pieces)");
         Check(g.Players.Values.All(pr => pr.Pos.X > 1000f && pr.Pos.X < 2200f && pr.Pos.Y > 500f && pr.Pos.Y < 1300f && !layout.Solids.Any(so => Layouts.Inside(so, pr.Pos, 20f))), "everyone starts near the middle of the room, clear of the walls");
