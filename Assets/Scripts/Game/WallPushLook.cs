@@ -20,6 +20,7 @@ namespace Arena
         Vector3 lockMouse;
         WallPush? pushSel;           // this frame's section (null: none, or the push is still on its way to the host)
         bool pushOk, pushFar;        // it can be pushed now; refused only for being too far
+        bool pushBreak;              // this push reaches a room: its face opens into it
         string pushWhy;              // why not (shown in red)
         int pushCost, pushDepth;     // what this push costs, and how far out the section will be
         float pushNext, pushT = -9f, pushBadT = -9f;  // the next held repeat; the last push; the last refused click
@@ -97,7 +98,7 @@ namespace Arena
         /// This frame's section and whether it can be pushed: the locked face (after a push), else the wall under the mouse.
         void PushRefresh(Player me)
         {
-            pushSel = null; pushOk = pushFar = false; pushWhy = null; pushCost = pushDepth = 0;
+            pushSel = null; pushOk = pushFar = pushBreak = false; pushWhy = null; pushCost = pushDepth = 0;
             var rooms = game.Expanded;
             if (pushLock)
             {
@@ -124,6 +125,7 @@ namespace Arena
                 pushWhy = "Need " + pushCost + " vectors";
             else
                 pushOk = true;
+            pushBreak = made.HasValue && Expansion.PushBreaksInto(rooms, pushSel.Value) >= 0;
         }
 
         /// Send this frame's push; the selection then locks onto where the section's face will be. False if it can't go (a click flashes the reason).
@@ -237,7 +239,7 @@ namespace Arena
                 PushGeometry(pushSel.Value, out a, out b, out n, out along);
                 V2 at = ToUi((a + b) * 0.5f + n * (Expansion.Step * (Mathf.Abs(n.X) > 0.5f ? 2.9f : 2.6f)));  // (beyond the arrow; further on a side wall, where the label is wide)
                 var col = pushOk ? new Color(1f, 0.79f, 0.3f) : pushFar ? new Color(0.62f, 0.72f, 0.78f) : new Color(1f, 0.42f, 0.46f);
-                string head = pushOk ? "PUSH +1  ·  " + pushCost + " VECTOR" + (pushCost == 1 ? "" : "S") : (pushWhy ?? "").ToUpperInvariant();
+                string head = pushOk ? (pushBreak ? "BREAK THROUGH  ·  " : "PUSH +1  ·  ") + pushCost + " VECTOR" + (pushCost == 1 ? "" : "S") : (pushWhy ?? "").ToUpperInvariant();
                 var style = Expansion.PushStyleOfPush(game.Expanded, pushSel.Value);
                 string sub = pushOk || pushFar ? pushSel.Value.Width + " WIDE  ·  " + pushDepth + " / " + Expansion.PushMaxDepth + " OUT" + (style != PushStyle.None ? "  ·  " + Expansion.PushStyleName(style).ToUpperInvariant() : "") : null;
                 float w = Mathf.Max(150f, 26f + head.Length * 7.4f);

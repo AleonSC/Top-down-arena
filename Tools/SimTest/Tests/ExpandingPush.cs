@@ -62,13 +62,27 @@ static partial class Program
             if (!d.HasValue) break;
             deep[0] = d.Value;
         }
-        Check(Expansion.PushDepth(deep[0], 1) == Expansion.PushMaxDepth && why == Expansion.PushMaxDepth + " tiles out is the limit", "a section stops at 12 tiles out (" + why + ")");
+        Check(Expansion.PushDepth(deep[0], 1) == Expansion.PushMaxDepth && why == Expansion.PushMaxDepth + " tiles out is the limit", "a section stops at " + Expansion.PushMaxDepth + " tiles out (" + why + ")");
 
-        // A tile off other rooms: a room 1 tile east of a section's face blocks the push, a room 2 tiles off doesn't.
+        // Breaking through: a push whose face reaches another room opens into it, full width (owner Nov 14: no more "a tile off").
         var near = new List<ExpansionRoom> { list[0], new ExpansionRoom { Parent = 0, X = 1900, Y = 0, W = 600, H = 900 } };
-        Check(!Expansion.Push(near, wp(1, 1, 300, 4), out idx, out cost, out why).HasValue && why == "Too close to another room", "a room a tile past the new face blocks it (" + why + ")");
-        near[1] = new ExpansionRoom { Parent = 0, X = 2000, Y = 0, W = 600, H = 900 };
-        Check(Expansion.Push(near, wp(1, 1, 300, 4), out idx, out cost, out why).HasValue, "two tiles off is fine (" + why + ")");
+        var bt = Expansion.Push(near, wp(1, 1, 300, 4), out idx, out cost, out why);
+        Check(bt.HasValue && idx == 0 && Expansion.PushBreaksInto(near, wp(1, 1, 300, 4)) == 2, "a room a tile past the face: the push reaches it, and the label knows (" + why + ")");
+        near[0] = bt.Value;
+        var bw = Expansion.Build(near);
+        var bd = bw.Doors.FirstOrDefault(dd => dd.Joins(1) && dd.Joins(2));
+        Check(bd.Width == 400f && bd.Vertical && Math.Abs(bd.Pos.X - 1900f) < 0.1f && Expansion.PushMeets(near, 1, 2), "the section's face opens into the room its full width (" + bd.Width + ")");
+        Check(!Expansion.Push(near, wp(1, 1, 300, 4), out idx, out cost, out why).HasValue, "and it can't go further (" + why + ")");
+        Check(!Expansion.PushPick(near, new V2(1890f, 500f), new V2(1800f, 500f), 4).HasValue || Expansion.PushPick(near, new V2(1890f, 500f), new V2(1800f, 500f), 4).Value.Area != 1 || Expansion.PushPick(near, new V2(1890f, 500f), new V2(1800f, 500f), 4).Value.Side != 1, "an opened face isn't offered for pushing");
+        var shop = new List<ExpansionRoom> { list[0], new ExpansionRoom { X = 1900, Y = 300, W = 400, H = 400, Kind = RoomKind.Shop, Floating = true } };
+        Check(Expansion.Build(shop).Areas[2].Sealed, "(a floating shop room off the map is sealed)");
+        var sb = Expansion.Push(shop, wp(1, 1, 300, 4), out idx, out cost, out why);
+        Check(sb.HasValue, "a push can reach a floating room (" + why + ")");
+        shop[0] = sb.Value;
+        Check(!Expansion.Build(shop).Areas[2].Sealed && Expansion.ConnectedAreas(shop)[2], "and opens it: the shop room joins the map");
+        var along = new List<ExpansionRoom> { list[0], new ExpansionRoom { Parent = 0, X = 1700, Y = 700, W = 600, H = 400 } };
+        var asd = Expansion.Push(along, wp(1, 1, 300, 4), out idx, out cost, out why);
+        Check(asd.HasValue && Expansion.PushBreaksInto(along, wp(1, 1, 300, 4)) == -1, "running alongside a room isn't breaking through (" + why + ")");
 
         // A floating room's walls can't be pushed; the map's size cap holds.
         var fl = new List<ExpansionRoom> { new ExpansionRoom { X = 3000, Y = 0, W = 400, H = 400, Kind = RoomKind.Shop, Floating = true } };

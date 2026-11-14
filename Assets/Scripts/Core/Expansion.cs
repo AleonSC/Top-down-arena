@@ -1684,6 +1684,7 @@ namespace Arena
                     int run = SharedRun(x0, y0, x1, y1, bx0, by0, bx1, by1);
                     if (run < MinDoorRun && !(joined && run > 0))
                         continue;
+                    joined |= PushMeets(rooms, a, b) || PushMeets(rooms, b, a);  // a pushed section's face that reached a room: it broke through, open full width (ExpansionPush.cs)
                     int ox0 = Math.Max(x0, bx0), ox1 = Math.Min(x1, bx1), oy0 = Math.Max(y0, by0), oy1 = Math.Min(y1, by1);
                     float open = joined ? Math.Max(ox1 - ox0, oy1 - oy0) : 0f;
                     if (x0 == bx1) doors.Add(new RoomDoor { Pos = new V2(x0, (oy0 + oy1) / 2f), Vertical = true, Width = open, A = b, B = a });
