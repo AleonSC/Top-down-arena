@@ -404,7 +404,7 @@ namespace Arena
             e.SpawnT = spawnT;
             e.FireT = Rand(0.3f, 1.2f);
             e.PhaseT = Rand(1f, 3f);
-            if (e.Kin == EnemyType.SecurityGuard)
+            if (IsSecurity(e.Type))
                 e.Phase = SecurityMag;  // a full magazine (SecurityGuard.cs)
             e.Strafe = rng.NextDouble() < 0.5 ? 1f : -1f;
             e.Ang = Rand(0f, MathX.Tau);
@@ -592,14 +592,14 @@ namespace Arena
                     if (e.Def.IsBoss)
                         BossCues(e);  // BossSounds.cs
                     float mult = rate * TraitFireMult(e) * (IsTwin(e.Type) && e.Phase == 1 ? 1.7f : 1f) * (Has(RunMod.Frenzy) ? Modifiers.FrenzyFire : 1f);
-                    bool guardFar = e.Kin == EnemyType.SecurityGuard && e.Phase > 0 && e.Pos.DistanceTo(tpos) > SecurityEngage;  // too far to shoot: no countdown (SecurityGuard.cs)
+                    bool guardFar = IsSecurity(e.Type) && e.Phase > 0 && e.Pos.DistanceTo(tpos) > SecurityEngage;  // too far to shoot: no countdown (SecurityGuard.cs)
                     if (guardFar)
                         e.FireT = Math.Max(e.FireT, SecurityEvery);  // it opens fire a full gap after it gets close, not at once
                     else
                         e.FireT -= dt * mult * (1f - e.Suppress);  // the Riot Repeater's suppression (Weapons.cs)
                     // A regular shooter glows just before it fires (Readability.cs).
                     float rateNow = mult * (1f - e.Suppress);
-                    e.Winding = (e.Kin == EnemyType.SecurityGuard ? e.Phase > 0 : TakesTurns(e) && (HasTurn(e) || mine)) && rateNow > 0f && e.FireT / rateNow <= WindUpOf(e.Type) && e.FireT > -0.5f;
+                    e.Winding = (IsSecurity(e.Type) ? e.Phase > 0 : TakesTurns(e) && (HasTurn(e) || mine)) && rateNow > 0f && e.FireT / rateNow <= WindUpOf(e.Type) && e.FireT > -0.5f;
                     var fb = BrainOf(e.Type);
                     if (fb != null && fb.Fire != null)
                         fb.Fire.Wind(this, e, tpos, rateNow);  // a lobber locks its lob when the wind-up starts (LobBrains.cs)
@@ -900,7 +900,7 @@ namespace Arena
                 v = brain.Move.Move(this, e, tpos, dir, dist, dt, ref speed);  // Brain.cs
             else
             {
-                switch (e.Kin)
+                switch (e.Type)
                 {
                     case EnemyType.Grunt:
                         v = KeepDistance(dir, dist, 230f) + dir.Orthogonal() * e.Strafe * 0.6f;
@@ -1017,7 +1017,7 @@ namespace Arena
                 speed *= HasteMult;
             // A sweeping Beam Sentry steers its beam by Strafe, so it keeps the side it telegraphed (the roll still happens, keeping the RNG sequence).
             // A Security Guard keeps its side on its own timer (SecurityGuard.cs); Debris keeps its spiral's side, a Pulsar its sweep's (Infall.cs).
-            if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3) && e.Kin != EnemyType.SecurityGuard && !PulsarLocked(e) && !HelioLocked(e) && e.Type != EnemyType.Debris && e.Type != EnemyType.SquallGunner)
+            if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3) && !IsSecurity(e.Type) && !PulsarLocked(e) && !HelioLocked(e) && e.Type != EnemyType.Debris && e.Type != EnemyType.SquallGunner)
                 e.Strafe = -e.Strafe;
             if (StomperPlanted(e))
                 speed = 0f;  // a Stomper stands still while its foot is up (QuarryFaction.cs)
@@ -1072,7 +1072,7 @@ namespace Arena
             var brain = BrainOf(e.Type);
             if (brain != null && brain.Special != null)
                 brain.Special.Tick(this, e, tpos, dt);  // Brain.cs
-            else switch (e.Kin)
+            else switch (e.Type)
             {
                 case EnemyType.Shielder:
                     WearShield(e, e.ShieldMax * ShieldDecay * dt);

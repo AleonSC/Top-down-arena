@@ -88,16 +88,18 @@ namespace Arena
         static void ShootBrains(Brain[] t)
         {
             var plant = new PlantMove(TaserRange);
-            t[(int)EnemyType.TaserGuard] = new Brain { Move = plant, Fire = new BoltFire(Defs.TaserBolt) };
-            t[(int)EnemyType.Stinger] = new Brain { Move = plant, Fire = new BoltFire(Defs.StingBolt) };
-            t[(int)EnemyType.Geomancer] = new Brain { Move = plant, Fire = new CrackFire() };
-            t[(int)EnemyType.CinderPriest] = new Brain { Move = plant, Fire = new MagmaFire() };
-            t[(int)EnemyType.MawPriest] = new Brain { Move = new PlantMove(TaserRange, true), Fire = new MawFire() };
-            t[(int)EnemyType.Gallant] = new Brain { Move = plant, Fire = new HoldFire(), Special = new SaluteSpecial() };
+            const BrainRole charge = BrainRole.Charge;
+            t[(int)EnemyType.TaserGuard] = new Brain { Move = plant, Roles = charge, Fire = new BoltFire(Defs.TaserBolt) { WindUp = TaserWindUp } };
+            t[(int)EnemyType.Stinger] = new Brain { Move = plant, Roles = charge, Fire = new BoltFire(Defs.StingBolt) { WindUp = TaserWindUp } };
+            t[(int)EnemyType.Geomancer] = new Brain { Move = plant, Roles = charge, Fire = new CrackFire { WindUp = TaserWindUp } };
+            t[(int)EnemyType.CinderPriest] = new Brain { Move = plant, Roles = charge, Fire = new MagmaFire { WindUp = TaserWindUp } };
+            t[(int)EnemyType.MawPriest] = new Brain { Move = new PlantMove(TaserRange, true), Roles = charge, Fire = new MawFire { WindUp = TaserWindUp } };
+            t[(int)EnemyType.Gallant] = new Brain { Move = plant, Roles = charge, Fire = new HoldFire { WindUp = TaserWindUp }, Special = new SaluteSpecial() };
             var security = new SecurityMovePart(0.7f, 1f);
-            t[(int)EnemyType.SecurityGuard] = new Brain { Move = security, Fire = new PistolFire() };
-            t[(int)EnemyType.Needler] = new Brain { Move = new SecurityMovePart(NeedlerStrafe, NeedlerAimStrafe), Fire = new PistolFire() };
-            t[(int)EnemyType.Second] = new Brain { Move = security, Fire = new DaggerFire() };
+            const BrainRole guard = BrainRole.Security;
+            t[(int)EnemyType.SecurityGuard] = new Brain { Move = security, Roles = guard, Fire = new PistolFire { WindUp = SecurityWindUp } };
+            t[(int)EnemyType.Needler] = new Brain { Move = new SecurityMovePart(NeedlerStrafe, NeedlerAimStrafe), Roles = guard, Fire = new PistolFire { WindUp = SecurityWindUp } };
+            t[(int)EnemyType.Second] = new Brain { Move = security, Roles = guard, Fire = new DaggerFire { WindUp = SecurityWindUp } };
         }
     }
 }

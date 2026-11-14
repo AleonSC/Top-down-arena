@@ -125,7 +125,7 @@ the slabs broken, the Stompers break out and stomp.
 fifth cover plate); Molten Core's Cave-in sends two Cinder Priests through the side doors; in the last stand two Rubble
 roll off each stomp (at most six up).
 
-**Build order:** (1) ✅ Rubble, Quarryman (kin in `HiveKin.cs`'s table), Stomper (`QuarryFaction.cs`; a stand-in **Rockfall** squad, a Stomper and three Rubble, until the Driller makes it Quarry); (2) ✅ Slab Bearer (Riot Shield kin; its slab drops as a `PatchKind.Slab`),
+**Build order:** (1) ✅ Rubble, Quarryman (kin in `HiveKin.cs`'s table, since replaced by brains: Docs/EnemyBehaviours.md), Stomper (`QuarryFaction.cs`; a stand-in **Rockfall** squad, a Stomper and three Rubble, until the Driller makes it Quarry); (2) ✅ Slab Bearer (Riot Shield kin; its slab drops as a `PatchKind.Slab`),
 Rock Hurler (Gas Grenadier kin, every 3.6 s; the pile is a `PatchKind.Rubble`); (3) ✅ Driller (Shiv kin), Geomancer and Cinder Priest (Taser Guard kin: the Geomancer was planned as a Security Guard mirror, but the Taser Guard's charge-then-one-shot fits a crack; the Cinder Priest comes from wave 23, `From = 3` like every faction's last members); the Quarry and Fault line squads replace the stand-in Rockfall; (4) ✅ the Avalanche (the Riot line formation now takes any Riot Shield kin as its wall) and the Long Campaign's
 ten lessons (waves 41-50, the Warden's order; the Driller is starred in the recap wave). New `EnemyType`s at the end, protocol bump per step.
 
@@ -156,7 +156,7 @@ within ~190 px or half the slabs broken, the Gulpers push through the gaps and i
 **In the Devourer fight (proposal, not decided):** Hungry: two Gnawlings crawl out with the morsels and race it to
 them; Inhale: Gnawlings in the cone are pulled in too and heal it 1% each; Ravenous: a Maw Priest at each side door.
 
-**Build order:** (1) ✅ Gnawling, Butcher, Gulper (`LarderFaction.cs`, kin in `HiveKin.cs`'s table; the Gulper's pull goes through `DevourPull`; a stand-in **Gullet** squad of a Gulper and three Gnawlings until the Gutworm joins; the Gnawling's morsel eating waits for step 2's morsels; protocol 333 with step 2); (2) ✅ Carcass Bearer (Riot Shield kin; the slab drops a
+**Build order:** (1) ✅ Gnawling, Butcher, Gulper (`LarderFaction.cs`, kin in `HiveKin.cs`'s table, since replaced by brains; the Gulper's pull goes through `DevourPull`; a stand-in **Gullet** squad of a Gulper and three Gnawlings until the Gutworm joins; the Gnawling's morsel eating waits for step 2's morsels; protocol 333 with step 2); (2) ✅ Carcass Bearer (Riot Shield kin; the slab drops a
 morsel), Bile Spitter (Gas Grenadier kin, the Devourer's `PatchKind.Bile`), Gnawlings eat morsels, the Larder Wall squad; (3) ✅ Gutworm (its own moves), Hook Thrower (the Hookman's code), Maw Priest (Taser Guard kin), and the Meat Hooks, Gullet and Bile Rain squads (protocol 336);
 (4) ✅ the Feast (the Riot line takes any Riot Shield kin as its wall) and the Long Campaign's ten lessons (waves 81-90, the Warden's order: Gnawling, Butcher, Gulper, Maw Priest, a recap with the Gutworm, Carcass Bearer, Bile Spitter, Hook Thrower, every squad, the exam: the Feast and a big Feeding Frenzy). New `EnemyType`s at the end, protocol bump per step.
 

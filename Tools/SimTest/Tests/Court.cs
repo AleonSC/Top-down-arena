@@ -18,7 +18,7 @@ static partial class Program
             { EnemyType.Second, EnemyType.SecurityGuard }, { EnemyType.Marshal, EnemyType.GasGrenadier }, { EnemyType.Gallant, EnemyType.TaserGuard },
             { EnemyType.Harlequin, EnemyType.Thug }, { EnemyType.Mummer, EnemyType.Shiv },
         };
-        Check(kin.All(k => HiveKin.Of(k.Key) == k.Value && CourtKin.Is(k.Key) && !HiveKin.Is(k.Key) && !QuarryKin.Is(k.Key)) && !CourtKin.Is(EnemyType.Shiv),
+        Check(kin.All(k => SameMove(k.Key, k.Value) && CourtKin.Is(k.Key) && !HiveKin.Is(k.Key) && !QuarryKin.Is(k.Key)) && !CourtKin.Is(EnemyType.Shiv),
             "each Court enemy plays like one Warden enemy (Fencer Shiv, Blade Dancer Guard, Parrier Riot Shield, Second Security Guard, Marshal Gas Grenadier, Gallant Taser Guard, Harlequin Thug, Mummer Shiv)");
         Check(Game.IsLunger(EnemyType.Fencer) && kin.Keys.All(t => Game.EnemyNote(t).Length > 0 && BestiaryData.For(t) != null), "the Fencer is a lunger; each has a Bestiary entry and a new-enemy note");
 

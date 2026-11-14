@@ -28,12 +28,12 @@ namespace Arena
         static void LobBrains(Brain[] t)
         {
             var move = new PlantMove(GrenadierRange);
-            t[(int)EnemyType.GasGrenadier] = new Brain { Move = move, Fire = new LobFire { Ring = GrenadierGasRadius, Color = GasLobColor, Patch = PatchKind.Gas, PatchLife = GrenadierGasLife, PatchR = GrenadierGasRadius } };
-            t[(int)EnemyType.HoneyLobber] = new Brain { Move = move, Fire = new LobFire { Ring = HoneyLobRadius, Color = HoneyLobColor, Patch = PatchKind.Honey, PatchLife = HoneyLobLife, PatchR = HoneyLobRadius } };
-            t[(int)EnemyType.RockHurler] = new Brain { Move = move, Fire = new LobFire { Ring = HurlerLandR, Color = HurlerColor, Leads = true, Patch = PatchKind.Rubble, PatchLife = RubbleLife, PatchR = RubbleR } };
-            t[(int)EnemyType.BileSpitter] = new Brain { Move = move, Fire = new LobFire { Ring = SpitPoolR, Color = BileColor, Leads = true, Patch = PatchKind.Bile, PatchLife = SpitPoolLife, PatchR = SpitPoolR } };
-            t[(int)EnemyType.DuskLobber] = new Brain { Move = move, Fire = new LobFire { Ring = DuskPoolR, Color = DuskColor, Patch = PatchKind.Dusk, PatchLife = DuskLife, PatchR = DuskPoolR } };
-            t[(int)EnemyType.Marshal] = new Brain { Move = move, Fire = new CircleFire() };
+            t[(int)EnemyType.GasGrenadier] = new Brain { Move = move, Roles = BrainRole.Lobber, Fire = new LobFire { WindUp = GrenadierWindUp + GrenadierSwing, Ring = GrenadierGasRadius, Color = GasLobColor, Patch = PatchKind.Gas, PatchLife = GrenadierGasLife, PatchR = GrenadierGasRadius } };
+            t[(int)EnemyType.HoneyLobber] = new Brain { Move = move, Roles = BrainRole.Lobber, Fire = new LobFire { WindUp = GrenadierWindUp + GrenadierSwing, Ring = HoneyLobRadius, Color = HoneyLobColor, Patch = PatchKind.Honey, PatchLife = HoneyLobLife, PatchR = HoneyLobRadius } };
+            t[(int)EnemyType.RockHurler] = new Brain { Move = move, Roles = BrainRole.Lobber, Fire = new LobFire { WindUp = GrenadierWindUp + GrenadierSwing, Ring = HurlerLandR, Color = HurlerColor, Leads = true, Patch = PatchKind.Rubble, PatchLife = RubbleLife, PatchR = RubbleR } };
+            t[(int)EnemyType.BileSpitter] = new Brain { Move = move, Roles = BrainRole.Lobber, Fire = new LobFire { WindUp = GrenadierWindUp + GrenadierSwing, Ring = SpitPoolR, Color = BileColor, Leads = true, Patch = PatchKind.Bile, PatchLife = SpitPoolLife, PatchR = SpitPoolR } };
+            t[(int)EnemyType.DuskLobber] = new Brain { Move = move, Roles = BrainRole.Lobber, Fire = new LobFire { WindUp = GrenadierWindUp + GrenadierSwing, Ring = DuskPoolR, Color = DuskColor, Patch = PatchKind.Dusk, PatchLife = DuskLife, PatchR = DuskPoolR } };
+            t[(int)EnemyType.Marshal] = new Brain { Move = move, Roles = BrainRole.Lobber, Fire = new CircleFire { WindUp = GrenadierWindUp + GrenadierSwing } };
         }
     }
 }

@@ -17,7 +17,7 @@ static partial class Program
             { EnemyType.Gnawling, EnemyType.Rioter }, { EnemyType.Butcher, EnemyType.Guard }, { EnemyType.Gulper, EnemyType.Thug },
             { EnemyType.CarcassBearer, EnemyType.RiotShield }, { EnemyType.BileSpitter, EnemyType.GasGrenadier }, { EnemyType.MawPriest, EnemyType.TaserGuard },
         };
-        Check(kin.All(k => HiveKin.Of(k.Key) == k.Value && LarderKin.Is(k.Key) && !HiveKin.Is(k.Key) && !QuarryKin.Is(k.Key)) && !LarderKin.Is(EnemyType.Thug),
+        Check(kin.All(k => SameMove(k.Key, k.Value) && LarderKin.Is(k.Key) && !HiveKin.Is(k.Key) && !QuarryKin.Is(k.Key)) && !LarderKin.Is(EnemyType.Thug),
             "each Larder enemy plays like one Warden enemy (Gnawling Rioter, Butcher Guard, Gulper Thug, Carcass Bearer Riot Shield, Bile Spitter Gas Grenadier, Maw Priest Taser Guard)");
         Check(new[] { EnemyType.Gnawling, EnemyType.Butcher, EnemyType.CarcassBearer, EnemyType.BileSpitter }.All(t => { var a = Defs.Get(t); var b = Defs.Get(kin[t]); return a.Hp == b.Hp && a.Speed == b.Speed && a.Contact == b.Contact && a.Xp == b.Xp; }),
             "the Gnawling, Butcher, Carcass Bearer and Bile Spitter have their counterpart's health, speed, contact damage and XP");

@@ -97,6 +97,14 @@ static partial class Program
         }
     }
 
+    /// Does `a` move with the same kind of part as `b` (a faction enemy and the Warden enemy whose role it plays)? Brain.cs
+    static bool SameMove(EnemyType a, EnemyType b)
+    {
+        var ma = Game.BrainOf(a)?.Move;
+        var mb = Game.BrainOf(b)?.Move;
+        return ma != null && mb != null && ma.GetType() == mb.GetType();
+    }
+
     static IEnumerable<EnemyType> AiTraceTypes()
     {
         for (int i = 0; i < Defs.Enemies.Length; i++)

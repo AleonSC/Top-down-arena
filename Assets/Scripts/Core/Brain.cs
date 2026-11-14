@@ -3,8 +3,7 @@ using System;
 namespace Arena
 {
     /// Enemy behaviour classes (Docs/EnemyBehaviours.md): an enemy type points to a Brain made of parts, each holding its own
-    /// numbers. A type with no brain runs the old code in EnemyAI.cs (the kin table and the type switches). Step 0 adds the
-    /// parts, the registry and the hooks; the table is empty until step 1 moves the first family.
+    /// numbers. A type with no brain still runs its own case in EnemyAI.cs's type switches (until step 8 gives it one).
     public sealed class Brain
     {
         public MovePart Move;        // where it goes each tick and how it turns (in place of its MoveEnemy and Face cases)
@@ -27,6 +26,8 @@ namespace Arena
 
     public abstract class FirePart
     {
+        /// How long it glows and shows its aim before it fires (WindUpOf, Readability.cs); below 0: the usual.
+        public float WindUp = -1f;
         public abstract void Fire(Game g, Enemy e, V2 tpos, float aim);
         /// Once a tick while its fire timer runs (after Winding is set), e.g. a lobber locking its landing spot.
         public virtual void Wind(Game g, Enemy e, V2 tpos, float rateNow) { }
@@ -60,6 +61,9 @@ namespace Arena
         Wall = 4,       // a Riot Shield or its kin (the Riot line, squads' front rank)
         Swordsman = 8,
         Hook = 16,
+        Security = 32,  // a Security Guard's kind: its own magazine, aim and strafe timer, no shooting turns (SecurityGuard.cs)
+        Lobber = 64,    // a Gas Grenadier's kind (the Marshal too): keeps its range, winds up an overhand lob
+        Charge = 128,   // a Taser Guard's kind: plants its feet and charges one shot along an aim line
     }
 
     public partial class Game
@@ -75,6 +79,28 @@ namespace Arena
         {
             var b = Brains[(byte)t];
             return b == null ? (bool?)null : (b.Roles & r) != 0;
+        }
+
+        public static bool IsSecurity(EnemyType t) => BrainHas(t, BrainRole.Security) ?? false;
+
+        /// This type's fire part's wind-up, or below 0 for the usual (Readability.cs).
+        static float BrainWindUp(EnemyType t)
+        {
+            var b = Brains[(byte)t];
+            return b != null && b.Fire != null ? b.Fire.WindUp : -1f;
+        }
+
+        /// For the sounds, looks and thrall attacks one enemy borrows from another by role: a brute sounds and draws like the
+        /// Brute, a lunger like the Lunger (a Scythe Wraith keeps its own), a shield bearer like the Riot Shield, and the
+        /// Taser Guard's, Security Guard's and Gas Grenadier's kinds like those. Anything else is itself.
+        public static EnemyType SharesWith(EnemyType t)
+        {
+            var b = Brains[(byte)t];
+            if (b == null || t == EnemyType.ScytheWraith)
+                return t;
+            var r = b.Roles;
+            return (r & BrainRole.Brute) != 0 ? EnemyType.Brute : (r & BrainRole.Lunger) != 0 ? EnemyType.Lunger : (r & BrainRole.Wall) != 0 ? EnemyType.RiotShield
+                : (r & BrainRole.Charge) != 0 ? EnemyType.TaserGuard : (r & BrainRole.Security) != 0 ? EnemyType.SecurityGuard : (r & BrainRole.Lobber) != 0 ? EnemyType.GasGrenadier : t;
         }
 
         static Brain[] BuildBrains()

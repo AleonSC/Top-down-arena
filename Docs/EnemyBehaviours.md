@@ -1,6 +1,6 @@
 # Enemy behaviour classes
 
-**Status: steps 0-6 built** (scaffolding, hooks, `aitrace`; every enemy that used the kin table runs on a brain). Owner's decisions: every enemy moves to brains (not just the kin ones), and drawing stays separate. Code today: `Core/HiveKin.cs` (the kin table), `Core/PrisonKin.cs` (`IsBrute`, `IsLunger`),
+**Status: steps 0-7 built** (every enemy that used the kin table runs on a brain, and the table is gone; step 8 is next). Owner's decisions: every enemy moves to brains (not just the kin ones), and drawing stays separate. Code today: `Core/HiveKin.cs` (the kin table), `Core/PrisonKin.cs` (`IsBrute`, `IsLunger`),
 `Core/EnemyAI.cs` (`MoveEnemy`, `Special`, `EnemyFire`), each faction's `*Faction.cs`. New: `Core/Brain.cs`, `Core/ShieldBrains.cs`, `Core/LungeBrains.cs`, `Core/ChaseBrains.cs`, `Core/RiotBrains.cs`, `Core/LobBrains.cs`, `Core/ShootBrains.cs`,
 `Tools/SimTest/Tests/AiTrace.cs`, `Tools/SimTest/Golden/aitrace.txt`.
 
@@ -57,7 +57,7 @@ public abstract class GuardPart   { public abstract bool Blocks(Game g, Enemy e,
                                     public virtual void Wear(Game g, Enemy e, float amount) { }   // WearShield (shots, swings, blasts)
                                     public virtual void Shot(Game g, Enemy e, Bullet b) => Wear(g, e, b.Dmg); }  // a player's bullet it blocked
 
-[Flags] public enum BrainRole : ushort { None = 0, Brute = 1, Lunger = 2, Wall = 4, Swordsman = 8, Hook = 16 }  // (`Role` is the player roles)
+[Flags] public enum BrainRole : ushort { None = 0, Brute = 1, Lunger = 2, Wall = 4, Swordsman = 8, Hook = 16, Security = 32, Lobber = 64, Charge = 128 }  // (`Role` is the player roles)
 ```
 
 - **Parts live inside `Game`:** each part is a class nested in `partial class Game`, so it can call Game's private
@@ -150,7 +150,7 @@ Each step moves one family. Each step has to leave `aitrace` IDENTICAL and needs
 | 4 ✓ | Rioters and Guards | Rioter, Worker, Rubble, Gnawling, Guard, Soldier, Quarryman, Butcher, Blade Dancer |
 | 5 ✓ | Lobbers | Gas Grenadier, Honey Lobber, Rock Hurler, Bile Spitter, Dusk Lobber, Marshal |
 | 6 ✓ | Shooters | Taser Guard, Stinger, Geomancer, Cinder Priest, Maw Priest, Gallant; Security Guard, Needler, Second |
-| 7 | Remove the kin table | `HiveKin`, `Enemy.Kin`, the old cases; `IsBrute` etc. read only `Roles` |
+| 7 ✓ | Remove the kin table | `HiveKin`, `Enemy.Kin`, the old cases; `IsBrute` etc. read only `Roles` |
 | 8 | The rest (in scope: owner's decision) | basic faction, Penumbral, Infall, Squall, Reaper cult, zombies, late-game enemies |
 
 - **After step 7:** a faction enemy is one `BuildBrains` line plus its look.
@@ -251,6 +251,26 @@ Each step moves one family. Each step has to leave `aitrace` IDENTICAL and needs
 - **Left for step 7 (queries on the Security kin):** the magazine at spawn, the glow and countdown in the fire timer,
   the strafe-flip skip, `TakesTurns` and the look timing in Game.cs; and `WindUpOf` for the Taser and Security kin.
 - **Checked:** `aitrace` identical for all 128 types.
+
+## Step 7: the kin table is gone (built)
+
+- **Removed:** `HiveKin.Of`, its table and `Enemy.Kin`. `HiveKin.Is` stays (it only asks "is it a Hive bee?", like
+  `QuarryKin.Is`, `LarderKin.Is`, `CourtKin.Is`).
+- **AI checks now read the brain:**
+  - New roles `Security`, `Lobber` and `Charge` (the Taser Guard's kind).
+  - `IsSecurity` replaces the Security kin checks: the magazine at spawn, the fire countdown and glow, the
+    strafe-flip skip, `TakesTurns`, the look timing in Game.cs.
+  - `FirePart.WindUp` (set on every lobber, Taser and Security fire part) replaces the kin checks in `WindUpOf`.
+  - `IsBrute`, `IsLunger` and `IsWallKin` read only the roles. `MoveEnemy`'s and `Special`'s switches are on
+    `e.Type`.
+- **Borrowed sounds, looks and thrall attacks:** `Game.SharesWith(type)` answers by role:
+  - brute → Brute, lunger → Lunger (the Scythe Wraith keeps its own), shield bearer → Riot Shield;
+  - the Taser, Security and lobber kinds → Taser Guard, Security Guard, Gas Grenadier; anything else → itself.
+  - Used by MeleeSounds.cs, ForcePact.cs, and the looks (WorldEnemies.cs, LungeLaneLook.cs, PacmanLook.cs,
+    ShooterAimLook.cs, VarietyLook.cs). Drawing stays separate (owner's decision); it just asks this instead.
+- **Tests:** the Hive, Quarry, Larder, Court and Penumbral suites checked the table. They now check each faction
+  enemy moves with the same kind of part as its Warden counterpart (`SameMove`, AiTrace.cs).
+- **Checked:** `aitrace` identical for all 128 types; `RenderCheck` IDENTICAL to the step 6 commit.
 
 ## Risks
 

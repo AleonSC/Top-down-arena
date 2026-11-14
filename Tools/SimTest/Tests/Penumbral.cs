@@ -172,7 +172,7 @@ static partial class Program
         float before = me.Hp;
         run(9f, () => pool |= g.Patches.Values.Any(pt => pt.Kind == PatchKind.Dusk && pt.Active && pt.Pos.DistanceTo(me.Pos) < Game.DuskPoolR));
         Console.WriteLine("  Dusk Lobber: a pool on you {0}, health {1:0} -> {2:0}", pool, before, me.Hp);
-        Check(dl.Kin == EnemyType.GasGrenadier && pool, "a Dusk Lobber plays like a Gas Grenadier and lobs a pool of dark on you");
+        Check(SameMove(dl.Type, EnemyType.GasGrenadier) && pool, "a Dusk Lobber plays like a Gas Grenadier and lobs a pool of dark on you");
         Check(me.Hp < before, "the pool drains you");
 
         // Step 3. Sickle: a crescent that leaves to one side, passes through where you stand and comes back.

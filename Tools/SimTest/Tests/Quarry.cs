@@ -19,7 +19,7 @@ static partial class Program
             { EnemyType.SlabBearer, EnemyType.RiotShield }, { EnemyType.RockHurler, EnemyType.GasGrenadier },
             { EnemyType.Driller, EnemyType.Shiv }, { EnemyType.Geomancer, EnemyType.TaserGuard }, { EnemyType.CinderPriest, EnemyType.TaserGuard },
         };
-        Check(kin.All(k => HiveKin.Of(k.Key) == k.Value && QuarryKin.Is(k.Key) && !HiveKin.Is(k.Key)) && !QuarryKin.Is(EnemyType.Thug),
+        Check(kin.All(k => SameMove(k.Key, k.Value) && QuarryKin.Is(k.Key) && !HiveKin.Is(k.Key)) && !QuarryKin.Is(EnemyType.Thug),
             "each Quarry enemy plays like one Warden enemy (Rubble Rioter, Quarryman Guard, Stomper Thug, Slab Bearer Riot Shield, Rock Hurler Gas Grenadier, Driller Shiv, Geomancer and Cinder Priest Taser Guard)");
         Check(new[] { EnemyType.Rubble, EnemyType.Quarryman, EnemyType.SlabBearer, EnemyType.RockHurler, EnemyType.Driller, EnemyType.Geomancer, EnemyType.CinderPriest }.All(t => { var a = Defs.Get(t); var b = Defs.Get(kin[t]); return a.Hp == b.Hp && a.Speed == b.Speed && a.Contact == b.Contact && a.Xp == b.Xp; }),
             "all but the Stomper have their counterpart's health, speed, contact damage and XP");
