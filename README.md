@@ -309,7 +309,7 @@ once mastered); the Tab menu shows the level.
 | Ability | Capstone | Ability | Capstone |
 |---|---|---|---|
 | **Barrier** | Bullets that hit the barrier are reflected back as your own. | **Mend Pulse** | Also erases enemy bullets within its range. |
-| **Poison Dart** | Spreads to 5 enemies at a time, at full strength. | **Shockwave** | Also knocks nearby enemies back 120 px. |
+| **Poison Dart** | Spreads to 5 enemies at a time, at full strength. | **Shockwave** | The wave runs out 300 px. |
 | **Overdrive** | +1 extra projectile while it lasts. | **Blink** | Erases enemy bullets where you leave and where you land. |
 | **Nova** | Fires 48 shots instead of 24. | **Turret** | Deploys two turrets. |
 | **Roar** | Also knocks enemies within 250 px back and slows them for 2 s. | **Bulldoze** | Erases enemy bullets along the charge. |
