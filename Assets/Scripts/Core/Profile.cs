@@ -136,7 +136,10 @@ namespace Arena
         /// Tests: forget the loaded profile so the next Current reads Folder again.
         public static void Reload() => current = null;
 
-        public bool IsUnlocked(string id) => Unlocked.Contains(id);
+        /// Dev tool (F1 dock > MAX RANK): every unlock, hunt, perk, perk slot and the Wildcard open, whatever the records say. Saved.
+        public bool DevAllUnlocked;
+
+        public bool IsUnlocked(string id) => DevAllUnlocked || Unlocked.Contains(id);
 
         public int RankNow => Rank.Of(Xp).Rank;
 
@@ -274,7 +277,7 @@ namespace Arena
 
         /// Wildcard unlocks once you have won a run as a Tank, a Healer and a DPS (a co-op win counts). It stays out of the lobby, the
         /// Practice Range and the loadout pickers until then (Docs/Wildcard.md).
-        public bool WildcardUnlocked => WinsWithRole(Role.Tank) > 0 && WinsWithRole(Role.Healer) > 0 && WinsWithRole(Role.Dps) > 0;
+        public bool WildcardUnlocked => DevAllUnlocked || WinsWithRole(Role.Tank) > 0 && WinsWithRole(Role.Healer) > 0 && WinsWithRole(Role.Dps) > 0;
 
         public void BossBeaten(EnemyType boss, int wave)
         {
@@ -357,6 +360,7 @@ namespace Arena
             if (HintLaunches > 0 || ProfileOpened) RunSave.Line(sb, "hint", HintLaunches + " " + (ProfileOpened ? 1 : 0));
             foreach (var kv in TagSeen) RunSave.Line(sb, "tag", kv.Key + " " + kv.Value);
             RunSave.Line(sb, "xp", Xp);
+            if (DevAllUnlocked) RunSave.Line(sb, "devall", 1);
             if (Cores > 0) RunSave.Line(sb, "cores", Cores);
             foreach (var kv in VariantTiers) RunSave.Line(sb, "variant", Dash(kv.Key.Replace(' ', '_')) + " " + kv.Value);
             RunSave.Line(sb, "equip", Dash(Frame) + " " + Dash(Trail) + " " + Dash(Background) + " " + Dash(CardBg) + " " + Dash(NameFx) + " " + Dash(AimLine) + " " + Dash(Cursor));
@@ -416,6 +420,7 @@ namespace Arena
                         case "hint": p.HintLaunches = Math.Max(0, RunSave.I(f[0])); p.ProfileOpened = f.Length > 1 && RunSave.I(f[1]) != 0; break;
                         case "tag": p.TagSeen[f[0]] = Math.Max(0, RunSave.I(f[1])); break;
                         case "xp": p.Xp = Math.Max(0, long.Parse(f[0], System.Globalization.CultureInfo.InvariantCulture)); break;
+                        case "devall": p.DevAllUnlocked = RunSave.I(f[0]) != 0; break;
                         case "cores": p.Cores = Math.Max(0, RunSave.I(f[0])); break;
                         case "variant": p.VariantTiers[UnDash(f[0]).Replace('_', ' ')] = Math.Max(0, Math.Min(Variants.Tiers, RunSave.I(f[1]))); break;
                         case "equip": p.Frame = UnDash(f[0]); p.Trail = UnDash(f[1]); p.Background = UnDash(f[2]); if (f.Length > 3) p.CardBg = UnDash(f[3]); if (f.Length > 4) p.NameFx = UnDash(f[4]); if (f.Length > 5) p.AimLine = UnDash(f[5]); if (f.Length > 6) p.Cursor = UnDash(f[6]); break;

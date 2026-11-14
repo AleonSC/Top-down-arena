@@ -2031,8 +2031,9 @@ its fields the game's keys are off. Outside a match only VIEW and LABS show.
   (a saved switch: P freezes the whole picture, effects and animations included, without opening the pause menu; press it again to resume;
   hide the HUD with H), a bot that plays for you, **text editing** (also F4, below), open the practice folder, and the **Boss Lab**.
   **Account rank** (PARTY drawer) sets this computer's rank without playing for it: **+1**, **+10**,
-  **30** (every reward), **MAX** (999) and **RESET** (rank 1). Cosmetics the new rank hasn't reached come off. Outside a match
-  (main menu or lobby) the dock bar has a **MAX RANK** key instead.
+  **30** (every reward), **MAX** (999) and **RESET** (rank 1). Cosmetics the new rank hasn't reached come off. **MAX** also
+  unlocks everything (every Boss Hunt, every perk, all perk slots, the Wildcard; saved on the profile) and **RESET** locks it
+  again. Outside a match (main menu or lobby) the dock bar has a **MAX RANK + UNLOCK ALL** key instead.
 - **VIEW > DPS DETAILS AND TARGET DUMMIES… (host, in a match):** the DPS meter and target dummies, below.
 - **LABS > REPLAYS…:** record the runs you host and watch them back, below.
 - **Balance (host, in a normal run):** a five-wave test with your own build. Pick your loadout as usual, start a run, press

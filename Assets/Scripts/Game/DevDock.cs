@@ -121,11 +121,12 @@ namespace Arena
             }
             else
             {
-                // Outside a match: the account rank keys (PARTY has them in a match).
-                bool maxed = Profile.Current.RankNow >= Rank.MaxRank;
-                if (DkKey(new Rect(x, y, 112f, h), "MAX RANK", Ui.GoldButton, maxed, 13))
+                // Outside a match: max rank and unlock everything (PARTY has the rank keys in a match).
+                var prof = Profile.Current;
+                bool maxed = prof.RankNow >= Rank.MaxRank && prof.DevAllUnlocked;
+                if (DkKey(new Rect(x, y, 196f, h), "MAX RANK + UNLOCK ALL", Ui.GoldButton, maxed, 12))
                     DevSetRank(Rank.MaxRank);  // RankUi.cs
-                x += 118f;
+                x += 202f;
                 Ui.Fill(new Rect(x + 2f, y + 4f, 1f, h - 8f), new Color(ink.r, ink.g, ink.b, 0.35f));
                 x += 14f;
             }

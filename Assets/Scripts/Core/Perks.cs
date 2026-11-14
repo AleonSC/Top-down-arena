@@ -62,13 +62,14 @@ namespace Arena
         public static bool Unlocked(Profile p, PerkId id)
         {
             var d = Get(id);
-            return d != null && p != null && d.Built && d.Unlock(p);
+            return d != null && p != null && d.Built && (p.DevAllUnlocked || d.Unlock(p));
         }
 
         /// How many perks this profile may bring: one to start, a second after a first full-run win, a third after winning five different hunts.
         public static int Slots(Profile p)
         {
             if (p == null) return 1;
+            if (p.DevAllUnlocked) return MaxSlots;
             int n = 1;
             if (p.RunsWon > 0) n++;
             if (p.HuntsWonCount >= 5) n++;

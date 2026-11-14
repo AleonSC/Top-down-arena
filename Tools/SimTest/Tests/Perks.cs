@@ -60,6 +60,11 @@ static partial class Program
         var old = Profile.Parse("arena-profile 3\nruns 1 0 0\nend 1\n");
         Check(old.Valid && old.PerkNames.Count == 0 && old.LoadedVersion == Profile.FormatVersion, "a version 3 profile loads with no perks");
 
+        // Dev unlock all (F1 dock MAX RANK): every built perk, every slot, every hunt and the Wildcard; saved and loaded.
+        var dev = new Profile { DevAllUnlocked = true };
+        Check(Perks.Unlocked(dev, PerkId.RiotGear) && Perks.Slots(dev) == Perks.MaxSlots && dev.WildcardUnlocked && Hunts.Available(Hunts.Get(EnemyType.Boss), dev), "dev unlock all opens perks, slots, hunts and the Wildcard");
+        Check(Profile.Parse(dev.ToText()).DevAllUnlocked && !Profile.Parse(new Profile().ToText()).DevAllUnlocked, "dev unlock all is saved and loaded");
+
         // No profile at all never throws.
         Check(Perks.Slots(null) == 1 && !Perks.Unlocked(null, PerkId.RiotGear) && Perks.Equipped(null).Count == 0 && Perks.Get("nope") == null && Perks.Get("RiotGear") != null, "perks handle a missing profile and unknown names");
     }
