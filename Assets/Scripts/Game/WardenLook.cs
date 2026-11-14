@@ -452,10 +452,36 @@ namespace Arena
         }
 
         /// A rioter: an orange jumpsuit with a dark band across it.
-        void DrawRioterDetails(Enemy e, V2 pos, float r, Rgba col)
+        static readonly Rgba RioterSkin = new Rgba(0.93f, 0.74f, 0.58f), RioterInk = new Rgba(0.13f, 0.1f, 0.12f, 0.95f),
+            RioterChain = new Rgba(0.6f, 0.64f, 0.7f);
+
+        /// A rioter: a prisoner who broke out. Shaved head, a white number stencilled across the jumpsuit's back, steel
+        /// cuffs on both fists (pumping as it runs) with two links of snapped chain swinging off each.
+        void DrawRioterDetails(Enemy e, V2 pos, float r, float t)
         {
-            Line(pos + new V2(-r * 0.75f, r * 0.15f), pos + new V2(r * 0.75f, r * 0.15f), 3f, new Rgba(0.15f, 0.12f, 0.16f, 0.85f));
-            Circle(pos + new V2(0f, -r * 0.3f), r * 0.28f, col.Mix(Rgba.White, 0.35f), 10);
+            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            float p = Mathf.Sin(t * 9f + e.Id * 1.7f);  // the run cycle
+            V2 back = pos - f * r * 0.6f;
+            Line(back - s * r * 0.5f, back + s * r * 0.5f, 4f, new Rgba(0.96f, 0.95f, 0.9f, 0.9f));  // the number band
+            for (int k = -1; k <= 1; k++)  // and its digits
+                Line(back + s * (k * r * 0.25f) - f * 1.4f, back + s * (k * r * 0.25f) + f * 1.4f, 1.6f, RioterInk);
+            for (int k = -1; k <= 1; k += 2)
+            {
+                V2 c = pos + f * r * (0.8f + 0.2f * k * p) + s * (k * r * 0.66f);
+                Circle(c, r * 0.3f, RioterInk, 10);
+                Circle(c, r * 0.22f, RioterSkin, 10);  // the fist
+                Arc(c, r * 0.3f, 2.2f, PrisonSteel, 10);  // the cuff
+                V2 l = c;
+                for (int j = 1; j <= 2; j++)  // the snapped chain
+                {
+                    l += (-f * 0.8f + s * (k * 0.6f)).Normalized() * 2.8f + s * (Mathf.Sin(t * 12f + e.Id + j) * 0.9f);
+                    Arc(l, 1.3f, 0.9f, RioterChain, 8);
+                }
+            }
+            V2 head = pos + f * r * 0.12f;
+            Circle(head, r * 0.46f, RioterInk, 12);
+            Circle(head, r * 0.38f, RioterSkin, 12);
+            Circle(head - f * r * 0.06f, r * 0.3f, new Rgba(0.55f, 0.42f, 0.34f, 0.55f), 10);  // the shaved scalp
         }
 
         // --- Over the Warden: blinded, stunned; the last stand's alarm; the HUD tags ---------------------
