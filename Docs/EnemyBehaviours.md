@@ -1,6 +1,6 @@
 # Enemy behaviour classes
 
-**Status: steps 0-7 built** (every enemy that used the kin table runs on a brain, and the table is gone; step 8 is next). Owner's decisions: every enemy moves to brains (not just the kin ones), and drawing stays separate. Code today: `Core/HiveKin.cs` (the kin table), `Core/PrisonKin.cs` (`IsBrute`, `IsLunger`),
+**Status: steps 0-7 built, step 8 in progress** (8a: the basic faction). Owner's decisions: every enemy moves to brains (not just the kin ones), and drawing stays separate. Code today: `Core/HiveKin.cs` (the kin table), `Core/PrisonKin.cs` (`IsBrute`, `IsLunger`),
 `Core/EnemyAI.cs` (`MoveEnemy`, `Special`, `EnemyFire`), each faction's `*Faction.cs`. New: `Core/Brain.cs`, `Core/ShieldBrains.cs`, `Core/LungeBrains.cs`, `Core/ChaseBrains.cs`, `Core/RiotBrains.cs`, `Core/LobBrains.cs`, `Core/ShootBrains.cs`,
 `Tools/SimTest/Tests/AiTrace.cs`, `Tools/SimTest/Golden/aitrace.txt`.
 
@@ -271,6 +271,20 @@ Each step moves one family. Each step has to leave `aitrace` IDENTICAL and needs
 - **Tests:** the Hive, Quarry, Larder, Court and Penumbral suites checked the table. They now check each faction
   enemy moves with the same kind of part as its Warden counterpart (`SameMove`, AiTrace.cs).
 - **Checked:** `aitrace` identical for all 128 types; `RenderCheck` IDENTICAL to the step 6 commit.
+
+## Step 8: every other enemy (in progress)
+
+Done one family at a time (8a, 8b, ...). Each enemy's code moves out of `EnemyAI.cs`'s type switches unchanged into
+its own method; its parts call that method. Generic parts: `CodeFire` and `CodeSpecial` (BasicBrains.cs) run a given
+method, so a new enemy can reuse any of them.
+
+- **8a, the basic faction (`Core/BasicBrains.cs`):**
+  - `KeepMove(range, strafe)`: Grunt, Sniper, Burster, Mortar, Shielder (turns slowly), Medic, Splitter.
+  - Own moves: `ShardMove` (the Hive Queen's drones), `ChargerMove` (dash, locked turn, dash damage),
+    `SpinnerMove`, `SpikerMovePart`, `SawMove` (Buzzsaw), `SpikeBlockMove` (locked lunge, lunge damage).
+  - `ShielderGuard`: the Shielder's shield (block, wear, setup) out of `BlocksShot`, `WearShield` and the spawn.
+  - Fire and specials: `GruntFire`, `BursterFire`, ... `MedicHeal`, `ChargerDash`, `ShielderDecay`, moved verbatim.
+  - `aitrace` identical.
 
 ## Risks
 

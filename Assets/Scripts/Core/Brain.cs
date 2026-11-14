@@ -113,6 +113,7 @@ namespace Arena
             RiotBrains(t);    // step 4 (RiotBrains.cs)
             LobBrains(t);     // step 5 (LobBrains.cs)
             ShootBrains(t);   // step 6 (ShootBrains.cs)
+            BasicBrains(t);   // step 8a (BasicBrains.cs)
             return t;
         }
     }
