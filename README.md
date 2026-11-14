@@ -928,6 +928,10 @@ design notes: [`Docs/ArenaLayouts.md`](Docs/ArenaLayouts.md).
   gates drop away (the inner walls stay).
 - The host can turn layouts off for a run on the lobby's **Difficulty** tab (**Layouts off**, beside the boss approach picks).
 - Enemies that walk steer round a wall that's in their way instead of pushing at it.
+- **Touching a wall** (any wall, pillar or cover, in every arena) makes it crackle: jagged arcs of electricity crawl
+  along its face from the touch, with sparks and a little bolt from you, in the wall's colour, plus a low neon hum.
+  Everyone's touches show, and you hear the strongest one, quieter the further it is from you (gone past 700 px).
+  The hum uses the Effects volume.
 - With a layout up, regular waves have **30% more enemies** (waves 1-8 on Normal: 16, 17, 18 and 20 instead of 12, 13, 14
   and 15, two waves each), because the walls and gates make the crowd easier to read. Boss waves are unchanged. The number is
   `LayoutEnemyMult` in `Balance.cs`.

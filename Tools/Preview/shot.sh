@@ -53,6 +53,7 @@
 # FUMA=orbit|lash|cyclone|steal FUMAT=<clock s> (with NINJA=2: the Fuma Shuriken's Orbit stance; FumaLook.cs).
 # WARDENINTRO=<s> (the Warden's entrance that far in: the cell closing, the padlock, the break, the scan band; WardenIntro.cs; e.g. shot.sh x hud 5 3 2).
 # NINJA=n / BLOOD=n (everyone plays that class, with weapon n), CAST="Blood Wall" (cast an ability; CASTT=<seconds after>).
+# WALLTOUCH=1 [WALLT=<s>] (you touching the nearest long wall, crackling; with LAYOUT=3; WallTouchLook.cs).
 # Needs mono (mcs) and python3 with Pillow. Output: Tools/Preview/out/<out-name>.png
 set -e
 cd "$(dirname "$0")"
