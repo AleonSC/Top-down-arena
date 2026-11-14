@@ -54,11 +54,11 @@ namespace Arena
         public static float Pressure(float t, int players = 1)
         {
             t = Math.Max(0f, t);
-            float p = 8f + 0.10f * Math.Min(t, 600f) + 0.20f * Math.Max(0f, t - 600f);
+            float p = 6f + 0.08f * Math.Min(t, 600f) + 0.16f * Math.Max(0f, t - 600f);
             return p * PartyMult(players);
         }
 
-        public static float PartyMult(int players) => players >= 3 ? 2.2f : players == 2 ? 1.6f : 1f;
+        public static float PartyMult(int players) => players >= 3 ? 2f : players == 2 ? 1.5f : 1f;
 
         /// The share of spawns that come as Elites (the tougher variants): 0 at the start, 40% at most.
         public static float EliteShare(float t) => Math.Min(0.4f, Math.Max(0f, t) / 2700f);

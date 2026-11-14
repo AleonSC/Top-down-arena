@@ -43,7 +43,7 @@ static partial class Program
         Check(Survival.WaveAt(0f) == 1 && Survival.WaveAt(900f) == 31, "the scale starts at wave 1 and is wave 31 at 15 minutes");
         Check(Survival.Pressure(900f) - Survival.Pressure(600f) > Survival.Pressure(600f) - Survival.Pressure(300f), "pressure is steeper after ten minutes");
         Check(Survival.EliteShare(0f) == 0f && Survival.EliteShare(99999f) == 0.4f, "the Elite share starts at 0 and stops at 40%");
-        Check(Survival.Pressure(100f, 2) > Survival.Pressure(100f, 1) * 1.5f && Survival.Pressure(100f, 3) > Survival.Pressure(100f, 2), "more players, more pressure (1.6x, 2.2x)");
+        Check(Survival.Pressure(100f, 2) >= Survival.Pressure(100f, 1) * 1.45f && Survival.Pressure(100f, 3) > Survival.Pressure(100f, 2), "more players, more pressure (1.5x, 2x)");
         Check(Survival.Cost(EnemyType.Grunt) == 1f && Survival.Cost(EnemyType.Brute) > Survival.Cost(EnemyType.Swarmer), "a Grunt costs 1, a Brute more than a Swarmer");
 
         // Phases: the basic faction alone, then one more every four minutes.
