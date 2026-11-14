@@ -7,8 +7,8 @@ namespace Arena
     /// Every control you can change (Settings → Keybinds, KeybindsUi.cs). Fire and Parry may be a key or any mouse button
     /// (left and right click by default); the rest are keys (or the middle and side mouse buttons). The arrow keys always
     /// move too; the menu keys (Esc, Tab, Enter, F1-F5) are fixed. The number keys can be bound: while the upgrade picker
-    /// or the emote bar is open, the numbers it uses pick a card or an emote instead (NumberTaken). Saved in PlayerPrefs by name, so the order here is
-    /// only the order on the page (each group is a run of this list).
+    /// or the emote bar is open, the numbers it uses pick a card or an emote instead (NumberTaken). Saved in PlayerPrefs by name; the page's
+    /// groups and their order are Keybinds.Groups, so new actions go at the end here and wherever they fit there.
     public enum KeyAction
     {
         MoveUp, MoveDown, MoveLeft, MoveRight, Dodge, Ability, Ultimate, AbilityQ, AbilityE, AbilityShift, Fire, Parry, WeaponAction,
@@ -39,9 +39,16 @@ namespace Arena
             "Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama whirl",
             "While standing on it", "While standing on it", "Tap: switch your gadget on or off. Hold and let go: throw it where you aim", "Between waves, by a wall (Expanding arena): push it out a tile at a time", "In the upgrade picker", "A line from you toward the cursor", "A clean screen; a slim boss bar stays", "Everything off at once", "Hold to open the emote bar: scroll or click to pick one", "Tap to ping your cursor, hold for the wheel (middle mouse by default)", "Between waves: say you are ready (the wave starts once everyone is)", "Between waves (Expanding arena): open the door picker",
         };
-        /// The groups on the Keybinds page: heading and the first action of each.
+        /// The groups on the Keybinds page: heading and the actions in each, in page order (every action in exactly one).
         public static readonly string[] GroupNames = { "MOVEMENT", "ABILITIES", "WEAPON", "ITEMS AND PICKS", "TOGGLES" };
-        public static readonly KeyAction[] GroupStart = { KeyAction.MoveUp, KeyAction.Ability, KeyAction.Fire, KeyAction.TakeItem, KeyAction.AimLine };
+        public static readonly KeyAction[][] Groups =
+        {
+            new[] { KeyAction.MoveUp, KeyAction.MoveDown, KeyAction.MoveLeft, KeyAction.MoveRight, KeyAction.Dodge },
+            new[] { KeyAction.Ability, KeyAction.Ultimate, KeyAction.AbilityQ, KeyAction.AbilityE, KeyAction.AbilityShift },
+            new[] { KeyAction.Fire, KeyAction.Parry, KeyAction.WeaponAction },
+            new[] { KeyAction.TakeItem, KeyAction.DiscardItem, KeyAction.Gadget, KeyAction.PushWall, KeyAction.OpenDoors, KeyAction.Reroll },
+            new[] { KeyAction.AimLine, KeyAction.ToggleHud, KeyAction.Mute, KeyAction.Emote, KeyAction.Ping, KeyAction.ReadyUp },
+        };
 
         static readonly KeyCode[] keys = (KeyCode[])Defaults.Clone();
         /// The optional second key of each action (KeyCode.None = unset); either key triggers the action.
