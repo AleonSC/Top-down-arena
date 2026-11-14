@@ -16,7 +16,7 @@ namespace Arena
     ///     whoever fired it (ParrierBounce, from Collide; at most one every ParrierEvery s), like the Duelist's Guard.
     /// Step 2:
     ///   Second (a Security Guard): moves, locks on and winds up like one, but each shot is an aimed fan of SecondFan
-    ///     daggers (Defs.ThrownDagger), every SecondEvery s, and it never reloads (CourtFire).
+    ///     daggers (Defs.ThrownDagger), every SecondEvery s, and it never reloads (SecondFanFire).
     ///   Marshal (a Gas Grenadier): keeps its distance and winds up like one (no lob), then draws a dueling circle
     ///     (PatchKind.DuelCircle) MarshalR round where you stand: it forms over MarshalWarn, then for MarshalHold s a player
     ///     inside can't leave (KeepInMarshalCircles, each game for its own player), and leaning on the edge hurts
@@ -110,24 +110,15 @@ namespace Arena
             BroadcastFx(FxKind.Ring, tpos, CourtGoldColor, MarshalR, MarshalWarn, Sfx.BossGong);  // the baton points: the circle draws
         }
 
-        /// Host, in EnemyFire: the Second's dagger fan; a Gallant never shoots (its lunge is
-        /// GallantSpecial). False for anyone else.
-        bool CourtFire(Enemy e, V2 tpos, float aim)
+        /// Host, in EnemyFire (a Second's brain, ShootBrains.cs): a fan of thrown daggers where it faces. (A Gallant never
+        /// shoots: its lunge is GallantSpecial.)
+        void SecondFanFire(Enemy e)
         {
-            switch (e.Type)
-            {
-                case EnemyType.Second:
-                    e.FireT = SecondEvery;
-                    e.Phase = 1;  // (a Security Guard's rounds left: it never runs dry)
-                    for (int i = 0; i < SecondFan; i++)
-                        EnemyShot(e, e.Facing + (i - (SecondFan - 1) / 2f) * SecondSpread, SecondSpeed, Defs.ThrownDagger);
-                    BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(e.Facing) * (e.Radius + 10f), CourtGoldColor, 16f, 0.15f, Sfx.Throw);
-                    return true;
-                case EnemyType.Gallant:
-                    e.FireT = 99f;
-                    return true;
-            }
-            return false;
+            e.FireT = SecondEvery;
+            e.Phase = 1;  // (a Security Guard's rounds left: it never runs dry)
+            for (int i = 0; i < SecondFan; i++)
+                EnemyShot(e, e.Facing + (i - (SecondFan - 1) / 2f) * SecondSpread, SecondSpeed, Defs.ThrownDagger);
+            BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(e.Facing) * (e.Radius + 10f), CourtGoldColor, 16f, 0.15f, Sfx.Throw);
         }
 
         /// A Gallant saluting, lunging or reeling from a parry: it doesn't walk.

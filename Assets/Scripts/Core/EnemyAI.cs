@@ -725,11 +725,6 @@ namespace Arena
                 return;  // its beams' line (Infall.cs)
             if (LarderFaceLocked(e))
                 return;  // a Butcher's chop, a Gulper's cone (LarderFaction.cs)
-            if (e.Type == EnemyType.MawPriest)
-            {
-                PriestFace(e, want, dt);  // turns slowly (LarderFaction.cs)
-                return;
-            }
             if (e.Type == EnemyType.Grounder)
             {
                 GrounderFace(e, want, dt);  // turns slowly, so you can get round its shield (Squall.cs)
@@ -743,7 +738,7 @@ namespace Arena
                 return;
             }
             var brain = BrainOf(e.Type);
-            if (brain != null && brain.Move != null && brain.Move.Turn(this, e, want, dt))
+            if (brain != null && brain.Move != null && brain.Move.Turn(this, e, want, tpos, dt))
                 return;  // its own turning, e.g. a shield bearer's (Brain.cs)
             if (e.Type == EnemyType.RiotCaptain)
             {
@@ -753,11 +748,6 @@ namespace Arena
             if (IsSwordsman(e.Type))
             {
                 SwordsmanTurn(e, want, dt);  // Swordsman.cs
-                return;
-            }
-            if (e.Kin == EnemyType.SecurityGuard)
-            {
-                SecurityFace(e, tpos, dt);  // SecurityGuard.cs
                 return;
             }
             if (e.Type == EnemyType.Shielder)
@@ -1011,8 +1001,6 @@ namespace Arena
                     v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
                 if (e.Type == EnemyType.RiotCaptain)
                     v = CaptainMove(e, dir, dist, ref speed);  // RiotCaptain.cs
-                if (e.Kin == EnemyType.TaserGuard || e.Kin == EnemyType.SecurityGuard)
-                    v = WardenFactionMove(e, tpos, dir, dist, dt, ref speed);  // WardenFaction.cs
                 if (e.Type == EnemyType.BoundWraith || e.Type == EnemyType.Lamplighter || e.Type == EnemyType.Mourner)
                     v = ReaperCultMove(e, tpos, dir, dist, dt, ref speed);  // ReaperFaction.cs
                 if (Zombies.Is(e.Type))
@@ -1077,8 +1065,6 @@ namespace Arena
                 ZombieSpecial(e, tpos, dt);  // Zombies.cs
                 return;
             }
-            if (e.Type == EnemyType.Gallant)
-                GallantSpecial(e, tpos, dt);  // its salute and lunge (CourtFaction.cs)
             if (e.Type == EnemyType.Mummer && MummerSpecial(e, tpos, dt))
                 return;  // masked: it circles you with its copies and fires; no lunge (CourtFaction.cs)
             if (e.Type == EnemyType.Gutworm)
@@ -1227,26 +1213,10 @@ namespace Arena
                 return;  // ReaperFaction.cs
             if (InfallFire(e, tpos, aim))
                 return;  // Infall.cs
-            if (CourtFire(e, tpos, aim))
-                return;  // the Second's daggers; a Gallant doesn't shoot (CourtFaction.cs)
             if (PenumbralFire(e, tpos, aim))
                 return;  // Penumbral.cs
             if (SquallFire(e, tpos, aim))
                 return;  // Squall.cs
-            if (QuarryFire(e, tpos, aim))
-                return;  // the Geomancer's crack, the Cinder Priest's magma bolt (QuarryFaction.cs)
-            if (LarderFire(e, tpos, aim))
-                return;  // the Maw Priest's fan (LarderFaction.cs)
-            if (e.Kin == EnemyType.TaserGuard)
-            {
-                TaserFire(e, aim);  // WardenFaction.cs
-                return;
-            }
-            if (e.Kin == EnemyType.SecurityGuard)
-            {
-                SecurityFire(e);  // SecurityGuard.cs
-                return;
-            }
             switch (e.Type)
             {
                 case EnemyType.Grunt:

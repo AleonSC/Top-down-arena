@@ -11,7 +11,7 @@ namespace Arena
         sealed class ShieldMove : MovePart
         {
             public override V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed) => g.RiotShieldMove(e, tpos, dir, ref speed);
-            public override bool Turn(Game g, Enemy e, float want, float dt)
+            public override bool Turn(Game g, Enemy e, float want, V2 tpos, float dt)
             {
                 g.RiotShieldFace(e, want, dt);
                 return true;

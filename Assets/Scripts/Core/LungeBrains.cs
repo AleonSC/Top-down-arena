@@ -34,7 +34,7 @@ namespace Arena
             }
 
             /// Committed to the leap's line; a mark that stops tracking stays put once it's locked.
-            public override bool Turn(Game g, Enemy e, float want, float dt) =>
+            public override bool Turn(Game g, Enemy e, float want, V2 tpos, float dt) =>
                 e.Phase >= 2 || n.Track >= 0f && e.Phase == 1 && e.PhaseT <= n.WindUp - n.Track;
 
             public override float Contact(Game g, Enemy e) => e.Phase == 2 ? n.Damage : -1f;

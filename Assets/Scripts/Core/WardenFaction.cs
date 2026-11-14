@@ -93,15 +93,6 @@ namespace Arena
             e.Facing += Math.Max(-RiotTurn * dt, Math.Min(RiotTurn * dt, diff));
         }
 
-        V2 WardenFactionMove(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
-        {
-            if (e.Kin == EnemyType.SecurityGuard)
-                return SecurityMove(e, dir, dist, dt);  // SecurityGuard.cs
-            if (e.Kin == EnemyType.TaserGuard)
-                return e.Winding ? V2.Zero : KeepDistance(dir, dist, TaserRange) + dir.Orthogonal() * e.Strafe * 0.5f;  // plants its feet while it charges
-            return V2.Zero;
-        }
-
         /// A shield bearer (ShieldBrains.cs): still while winding up or staggered, a straight lunge, slowed while its shield is
         /// low, otherwise into its place in the herd.
         V2 RiotShieldMove(Enemy e, V2 tpos, V2 dir, ref float speed)
@@ -425,10 +416,9 @@ namespace Arena
         // sends it back as a needle like any shot. It doesn't lead its target: strafe across the line.
         public const float TaserWindUp = 0.7f, TaserEvery = 3.2f, TaserRange = 320f, TaserBoltSpeed = 260f;
 
-        void TaserFire(Enemy e, float aim)
+        void TaserFire(Enemy e, float aim, byte bolt)  // (a Stinger's dart is the Hive's own StingBolt: ShootBrains.cs)
         {
             e.FireT = TaserEvery;
-            byte bolt = e.Type == EnemyType.Stinger ? Defs.StingBolt : Defs.TaserBolt;  // (a Stinger's dart is the Hive's own look)
             EnemyShot(e, aim, TaserBoltSpeed, bolt);
             BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(aim) * (e.Radius + 12f), Defs.BulletColor(bolt), 22f, 0.2f, Sfx.SpellZap);
         }

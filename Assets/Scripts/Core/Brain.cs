@@ -20,7 +20,7 @@ namespace Arena
     {
         public abstract V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed);
         /// Its own turning toward `want` (radians); false: turn like everyone else (face the target at once).
-        public virtual bool Turn(Game g, Enemy e, float want, float dt) => false;
+        public virtual bool Turn(Game g, Enemy e, float want, V2 tpos, float dt) => false;
         /// Damage when it touches you right now; below 0: the usual contact damage.
         public virtual float Contact(Game g, Enemy e) => -1f;
     }
@@ -86,6 +86,7 @@ namespace Arena
             ChaseBrains(t);   // step 3 (ChaseBrains.cs)
             RiotBrains(t);    // step 4 (RiotBrains.cs)
             LobBrains(t);     // step 5 (LobBrains.cs)
+            ShootBrains(t);   // step 6 (ShootBrains.cs)
             return t;
         }
     }

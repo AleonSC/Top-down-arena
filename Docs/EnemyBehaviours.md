@@ -1,7 +1,7 @@
 # Enemy behaviour classes
 
-**Status: steps 0-5 built** (scaffolding, hooks, `aitrace`; the shields, lungers, brutes, chasers, Rioters, Guards and lobbers run on brains). Owner's decisions: every enemy moves to brains (not just the kin ones), and drawing stays separate. Code today: `Core/HiveKin.cs` (the kin table), `Core/PrisonKin.cs` (`IsBrute`, `IsLunger`),
-`Core/EnemyAI.cs` (`MoveEnemy`, `Special`, `EnemyFire`), each faction's `*Faction.cs`. New: `Core/Brain.cs`, `Core/ShieldBrains.cs`, `Core/LungeBrains.cs`, `Core/ChaseBrains.cs`, `Core/RiotBrains.cs`, `Core/LobBrains.cs`,
+**Status: steps 0-6 built** (scaffolding, hooks, `aitrace`; every enemy that used the kin table runs on a brain). Owner's decisions: every enemy moves to brains (not just the kin ones), and drawing stays separate. Code today: `Core/HiveKin.cs` (the kin table), `Core/PrisonKin.cs` (`IsBrute`, `IsLunger`),
+`Core/EnemyAI.cs` (`MoveEnemy`, `Special`, `EnemyFire`), each faction's `*Faction.cs`. New: `Core/Brain.cs`, `Core/ShieldBrains.cs`, `Core/LungeBrains.cs`, `Core/ChaseBrains.cs`, `Core/RiotBrains.cs`, `Core/LobBrains.cs`, `Core/ShootBrains.cs`,
 `Tools/SimTest/Tests/AiTrace.cs`, `Tools/SimTest/Golden/aitrace.txt`.
 
 ## Problem
@@ -47,7 +47,7 @@ public sealed class Brain
 
 // Base classes, not interfaces, so a part only overrides what it changes (C# 7.2 has no default interface methods).
 public abstract class MovePart    { public abstract V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed);
-                                    public virtual bool Turn(Game g, Enemy e, float want, float dt) => false;    // false: face the target at once
+                                    public virtual bool Turn(Game g, Enemy e, float want, V2 tpos, float dt) => false;    // false: face the target at once
                                     public virtual float Contact(Game g, Enemy e) => -1f; }                       // touch damage now; < 0: the usual
 public abstract class FirePart    { public abstract void Fire(Game g, Enemy e, V2 tpos, float aim);
                                     public virtual void Wind(Game g, Enemy e, V2 tpos, float rateNow) { } }       // each tick of its fire timer
@@ -149,7 +149,7 @@ Each step moves one family. Each step has to leave `aitrace` IDENTICAL and needs
 | 3 ✓ | Brutes and chasers | Brute, Thug, Bumble, Gravedigger, Swarmer, Wisp, Stomper, Gulper, Harlequin |
 | 4 ✓ | Rioters and Guards | Rioter, Worker, Rubble, Gnawling, Guard, Soldier, Quarryman, Butcher, Blade Dancer |
 | 5 ✓ | Lobbers | Gas Grenadier, Honey Lobber, Rock Hurler, Bile Spitter, Dusk Lobber, Marshal |
-| 6 | Shooters | Taser Guard, Stinger, Geomancer, Cinder Priest, Maw Priest, Gallant; Security Guard, Needler, Second |
+| 6 ✓ | Shooters | Taser Guard, Stinger, Geomancer, Cinder Priest, Maw Priest, Gallant; Security Guard, Needler, Second |
 | 7 | Remove the kin table | `HiveKin`, `Enemy.Kin`, the old cases; `IsBrute` etc. read only `Roles` |
 | 8 | The rest (in scope: owner's decision) | basic faction, Penumbral, Infall, Squall, Reaper cult, zombies, late-game enemies |
 
@@ -231,6 +231,25 @@ Each step moves one family. Each step has to leave `aitrace` IDENTICAL and needs
   Grenadier kin branches in `WardenFactionMove`, `EnemyFire` and the wind-up, and the Marshal case in `CourtFire`.
 - **Left for step 7:** `WindUpOf` (Readability.cs) still reads the kin for the Gas Grenadier's glow timing, and so
   does `VarietyLook.cs` (drawing).
+- **Checked:** `aitrace` identical for all 128 types.
+
+## Step 6: shooters (built)
+
+- **File:** `Core/ShootBrains.cs`.
+  - `PlantMove(range)`: keep `range` away, strafe, plant while winding up. The lobbers use it at `GrenadierRange`
+    (LobMove is gone); the Taser Guard's kind at `TaserRange`. The Maw Priest's copy also turns slowly (`PriestFace`).
+  - `SecurityMovePart(strafe, aimStrafe)`: `SecurityMove` plus `SecurityFace` in `Turn`. The Needler's harder strafe is
+    now its numbers (the type check in `SecurityMove` is gone).
+  - Fire parts: `BoltFire` (Taser Guard: `TaserBolt`; Stinger: `StingBolt`), `CrackFire` (Geomancer), `MagmaFire`
+    (Cinder Priest), `MawFire` (Maw Priest), `PistolFire` (Security Guard, Needler), `DaggerFire` (Second),
+    `HoldFire` (Gallant, with `SaluteSpecial`).
+- **`Turn` gained `tpos`** (the Security Guard turns toward the target, not an angle).
+- **Removed (unreachable now):** `WardenFactionMove`, `QuarryFire`, `LarderFire` and `CourtFire` (split into
+  `GeomancerCrack`, `CinderBolt`, `MawFan`, `SecondFanFire`), the Taser and Security kin branches in `EnemyFire`, the
+  Maw Priest and Security faces in `Face`, the Gallant call before `Special`'s switch, and the Stinger check in
+  `TaserFire`.
+- **Left for step 7 (queries on the Security kin):** the magazine at spawn, the glow and countdown in the fire timer,
+  the strafe-flip skip, `TakesTurns` and the look timing in Game.cs; and `WindUpOf` for the Taser and Security kin.
 - **Checked:** `aitrace` identical for all 128 types.
 
 ## Risks
