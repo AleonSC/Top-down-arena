@@ -1457,11 +1457,11 @@ The file is a Practice setup with a few extra lines first, and is documented in 
 | Take / discard your chest item (standing on it) | G / X |
 | Gadget: tap to switch on / off, hold and let go to throw it where you aim | B |
 | Push a wall (the Expanding arena, between waves, by a wall) | C (rebindable): left click pushes the lit section out a tile, hold to keep pushing, wheel sets its width, right click or C again stops |
+| Open a door (the Expanding arena, between waves) | Z (rebindable): opens the door picker |
 | Bonus abilities | Q, E and Shift (once unlocked). When a card gives you one, choose its key on the card screen; move them between keys any time in the Tab menu (cooldowns move with them) |
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R (twice: the first arms it) |
 | Ready for the next wave | Ready button or Y (rebindable), once your upgrade picks are done. Auto-ready switch beside it |
-| Open a door (the Expanding arena, between waves) | Z (rebindable): opens the door picker |
 | Mute sound | M |
 | Ping | Middle mouse (rebindable), in a match. **Tap** to mark your cursor with the ping you used last (Here to begin with). **Hold** for 0.2 s and a six-slice wheel opens at the cursor: move to a slice and let go to send it, let go in the middle to cancel. Everyone sees it in your colour (teal, amber, violet) as a ripple, a beam of light and a glyph ring with your name for a second. **Here** (5 s), **Focus** (6 s: snaps to the enemy nearest your cursor, rings it and follows it until it dies), **Danger** (4 s, pulses faster), **Help** (5 s: also rings you), **Loot** (5 s) and **Go** (5 s). Three live per player (a fourth replaces your oldest), 0.4 s between pings. A click doesn't fire while the wheel is open |
 | Emotes | Hold T (rebindable): a see-through bar of every emote your rank has opens above the ability bar (in the Hangout, at the foot of the room). Scroll the wheel or click the arrows at its sides to move along it, click one in view or press its number (1-6, the slot it sits in: the numbers stay put, so what a key plays depends on how far along the bar you have scrolled) to play it. While it is open a click picks instead of firing. Let go and it closes |

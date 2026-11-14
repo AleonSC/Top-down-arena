@@ -34,10 +34,9 @@ namespace Arena
                 Ui.Label(new Rect(gx + 2f, gy, colW, 16f), Keybinds.GroupNames[g].ToUpperInvariant(), 11, CabSoft, TextAnchor.MiddleLeft, true);
                 DashLine(gx, gy + 19f, colW);
                 gy += 26f;
-                int first = (int)Keybinds.GroupStart[g];
-                int end = g + 1 < Keybinds.GroupNames.Length ? (int)Keybinds.GroupStart[g + 1] : Keybinds.All.Length;
-                for (int i = first; i < end; i++)
+                foreach (var action in Keybinds.Groups[g])
                 {
+                    int i = (int)action;
                     var row = new Rect(gx, gy, colW, 34f);
                     int slot = KeybindRow(row, (KeyAction)i, col, t);
                     if (slot >= 0)
