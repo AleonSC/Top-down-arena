@@ -121,6 +121,7 @@ namespace Arena
             PenumbralBrains(t);   // step 8d (Penumbral.cs)
             SquallBrains(t);      // step 8d (Squall.cs)
             ZombieBrains(t);      // step 8e (Zombies.cs)
+            LateBrains(t);        // step 8f (LateGame.cs)
             return t;
         }
     }

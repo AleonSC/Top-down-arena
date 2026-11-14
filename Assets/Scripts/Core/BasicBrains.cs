@@ -175,9 +175,15 @@ namespace Arena
         /// Keeps Range away; with a strafe, sidles round you at Strafe.
         sealed class KeepMove : MovePart
         {
-            readonly float range, strafe;
+            readonly float range, strafe, contact;
             readonly bool strafes, slowTurn;
-            public KeepMove(float range, float strafe = 0f, bool strafes = true, bool slowTurn = false) { this.range = range; this.strafe = strafe; this.strafes = strafes; this.slowTurn = slowTurn; }
+            public KeepMove(float range, float strafe = 0f, bool strafes = true, bool slowTurn = false, float contact = -1f)
+            {
+                this.range = range; this.strafe = strafe; this.strafes = strafes; this.slowTurn = slowTurn; this.contact = contact;
+            }
+
+            /// Its touch damage (a Juggernaut's 25); below 0: the usual.
+            public override float Contact(Game g, Enemy e) => contact;
 
             public override V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed) =>
                 strafes ? KeepDistance(dir, dist, range) + dir.Orthogonal() * e.Strafe * strafe : KeepDistance(dir, dist, range);

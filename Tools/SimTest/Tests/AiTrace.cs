@@ -10,7 +10,8 @@ using Arena;
 // god-mode host who stands still and shoots at it, for AiTraceSeconds on a fixed seed. Each frame hashes every enemy it
 // brought (position, Phase, Facing, health) and every bullet (kind, position), so moving, shooting, specials and blocking
 // all count. The golden copy is Tools/SimTest/Golden/aitrace.txt, one line per type; a migration step must leave it
-// identical. `AITRACE=update run.sh 1 1 aitrace` rewrites it (only when behaviour is meant to change).
+// identical. `AITRACE=update run.sh 1 1 aitrace` rewrites it (only when behaviour is meant to change); `AITRACE_DUMP=<type>`
+// prints that type's frames, to diff against the same dump from an older commit when a line changes.
 static partial class Program
 {
     const string AiTraceFile = "Golden/aitrace.txt";
@@ -73,6 +74,8 @@ static partial class Program
                 {
                     if (o == anchor || o.Id < first)
                         continue;
+                    if (Environment.GetEnvironmentVariable("AITRACE_DUMP") == type.ToString())  // AITRACE_DUMP=<type>: print its frames (to diff against an older commit)
+                        Console.WriteLine("dbg f" + f + " " + o.Id + " " + o.Type + " " + o.Pos.X.ToString("0.00") + "," + o.Pos.Y.ToString("0.00") + " ph" + o.Phase + " pt" + o.PhaseT.ToString("0.000") + " ft" + o.FireT.ToString("0.000") + " hp" + o.Hp.ToString("0.0"));
                     mix((int)o.Type); mix(o.Pos.X); mix(o.Pos.Y); mix(o.Phase); mix(o.Facing); mix(o.Hp);
                 }
                 foreach (var b in g.Bullets.Values.OrderBy(x => x.Id))

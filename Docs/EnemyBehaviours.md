@@ -315,6 +315,11 @@ method, so a new enemy can reuse any of them.
   speed-up and timers, the phase bits), and `ZombieSpecial_Plain` is the shared part alone for zombies with no special.
   The arrival delay's type check became each one's own number. `ZombieFire` became `SpitterFire`; the rest use
   `HoldFire`. `aitrace` identical; `zombies` passes.
+- **8f, late-game enemies (in `Core/LateGame.cs`):** Phantom, Shade, Hexer, Juggernaut, Nest, Decoy, Phylactery,
+  Gravity Well, Morsel. Only their cases left `LateMove`/`LateSpecial`/`LateFire`; those stay for the late bosses, now
+  reached only by types without a brain. Every late enemy's clock tick is `LateClock`; the ones that never shoot use
+  `HoldFire` (the old `LateFire` default set `FireT` to 99). The Juggernaut's touch damage is `KeepMove`'s `contact`.
+  `aitrace` identical. (`AITRACE_DUMP=<type>` prints a type's frames, to diff two commits when a line changes.)
 
 ## Risks
 

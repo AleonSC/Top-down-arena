@@ -621,7 +621,6 @@ namespace Arena
                 var cb = BrainOf(e.Type);
                 float brainContact = cb != null && cb.Move != null ? cb.Move.Contact(this, e) : -1f;  // a lunger's leap (Brain.cs)
                 float contact = e.Def.IsBoss ? 25f
-                    : e.Type == EnemyType.Juggernaut ? 25f
                     : brainContact >= 0f ? brainContact  // a Charger's dash, a lunger's leap, a Spike Block's lunge (their brains)
                     : e.Def.Contact > 0f ? e.Def.Contact * BruteDamageMult(e) : ContactDamage;
                 GuardContact(e, contact);  // Warden's Guards in the way get hurt too (Stun.cs)
@@ -916,9 +915,9 @@ namespace Arena
                 CaptainSpecial(e, tpos, dt);  // RiotCaptain.cs
                 return;
             }
-            if (IsLateGame(e.Type))
+            if (IsLateGame(e.Type) && BrainOf(e.Type) == null)
             {
-                LateSpecial(e, tpos, dt);
+                LateSpecial(e, tpos, dt);  // the late bosses (late-game enemies have brains: LateGame.cs)
                 return;
             }
             if (e.Type == EnemyType.Mummer && MummerSpecial(e, tpos, dt))
@@ -979,9 +978,9 @@ namespace Arena
                 e.FireT = 99f;  // its attacks are its Special (RiotCaptain.cs)
                 return;
             }
-            if (IsLateGame(e.Type))
+            if (IsLateGame(e.Type) && BrainOf(e.Type) == null)
             {
-                LateFire(e, tpos, aim);
+                LateFire(e, tpos, aim);  // the late bosses
                 return;
             }
             if (e.Def.Melee)
