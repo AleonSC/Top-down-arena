@@ -80,8 +80,11 @@ static partial class Program
 
     static void SpawnDumpTest()
     {
+        float variants = Game.VariantChanceScale;
+        Game.VariantChanceScale = 0f;  // base enemies only: a variant's speed (EnemyVariants.cs) moves later arrivals; the variants suite covers it
         string now = SpawnDumpText();
         string again = SpawnDumpText();
+        Game.VariantChanceScale = variants;
         Check(now == again, "the spawn dump is repeatable (same seeds, same arrivals, twice over)");
         Console.WriteLine("  spawn dump: {0} lines, {1} KB", now.Split('\n').Length - 1, now.Length / 1024);
         if (Environment.GetEnvironmentVariable("WAVEDUMP") == "update" || !File.Exists(SpawnDumpFile))
