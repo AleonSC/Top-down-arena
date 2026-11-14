@@ -294,7 +294,7 @@ namespace Arena
                 Lead = "Armoured melee: can't be slowed or knocked back. In reach it shows a red 120° cone for 0.4 s, then rakes it. After a swipe it's open for 0.7 s and takes +50%.",
                 Attacks = new[]
                 {
-                    new BestiaryAttack { Name = "Rake", Pattern = "0.4 s wind-up (a cone), then a 120° rake 110 px past its body; a perfect parry blocks it", Damage = "26" },
+                    new BestiaryAttack { Name = "Rake", Pattern = "0.4 s wind-up (a cone), then a 120° rake 110 px past its body; a raised parry facing it blocks it", Damage = "26" },
                     new BestiaryAttack { Name = "Open", Pattern = "0.7 s after a swipe: +50% damage taken", Damage = "—" },
                 },
                 Notes = new[]
