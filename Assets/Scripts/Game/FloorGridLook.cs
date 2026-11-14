@@ -5,19 +5,23 @@ namespace Arena
 {
     /// The arena floor's grid, the "Pressure grid" (mockup https://claude.ai/artifact/4N3zygv8yPS7mpCG8X4cQM): the 64 px
     /// lines bow away from each player like a stretched sheet and trail a little behind them while they move, and
-    /// light up in the player's class colour near them; a kill's ripple runs through it (Juice.cs `Warp`). Settings >
-    /// Visual effects > Arena floor: Bending (the default) or Static (the lines stay straight, only the colour shows).
+    /// light up in the player's class colour near them; a kill's ripple runs through it (Juice.cs `Warp`). A dash sends a
+    /// small burst ripple from where it started (`FloorDashBurst`).
+    /// Settings > Visual effects > Arena floor: Bending (the default) or Static (the lines stay straight, only the colour shows).
     /// With Visual effects off it draws the plain grid, as before.
     public partial class ArenaApp
     {
         bool floorBend = true;  // Settings > Visual effects > Arena floor (pref "floor_bend"; previews: FLOORBEND=0)
         public static bool PreviewFloorStatic;  // the preview's FLOORBEND=0
+        public static float PreviewDashBurst = -1f;  // the preview's DASHBURST=<s>: a dash burst that old
 
         const float FloorStep = 64f, FloorSeg = 16f, FloorR = 120f, FloorPush = 9f, FloorDrag = 0.035f;
 
         struct FloorPull { public V2 Pos, Vel; public Rgba Col; }
         readonly List<FloorPull> floorPulls = new List<FloorPull>();
         readonly Dictionary<int, V2> floorLast = new Dictionary<int, V2>(), floorVel = new Dictionary<int, V2>();
+        readonly Dictionary<int, float> floorDashAt = new Dictionary<int, float>();  // when each player's last dash burst went off
+        const float DashBurstSpeed = 1.9f, DashBurstGap = 0.45f, DashBurstPower = 0.7f, DashBurstLife = 0.4f;
         int floorFrame = -1;
 
         bool FloorBends => Juicy && floorBend && !PreviewFloorStatic;
@@ -31,6 +35,16 @@ namespace Arena
             floorPulls.Clear();
             if (!Juicy)
                 return;
+            if (PreviewDashBurst >= 0f)  // (by the player highest up the screen, clear of the HUD)
+            {
+                Player top = null;
+                foreach (var p in game.Players.Values)
+                    if (top == null || p.Disp.Y < top.Disp.Y)
+                        top = p;
+                if (top != null)
+                    ripples.Add(new Ripple { Pos = top.Disp, T = PreviewDashBurst, Power = DashBurstPower, Life = DashBurstLife, Col = top.Def.Color });
+                PreviewDashBurst = -1f;
+            }
             float dt = Mathf.Max(0.001f, Time.unscaledDeltaTime);
             foreach (var p in game.Players.Values)
             {
@@ -41,12 +55,28 @@ namespace Arena
                     if (raw.Length > 2000f)
                         raw = V2.Zero;  // a teleport or respawn, not a move
                     floorVel.TryGetValue(p.Id, out v);
+                    if (!game.Paused)
+                        FloorDashBurst(p, last, raw, v);
                     v += (raw - v) * Mathf.Min(1f, dt * 12f);
                 }
                 floorLast[p.Id] = p.Disp;
                 floorVel[p.Id] = v;
                 floorPulls.Add(new FloorPull { Pos = p.Disp, Vel = game.Paused ? V2.Zero : v, Col = p.Def.Color });
             }
+        }
+
+        /// A dash (any burst well past walking speed: the Dodge, a dash, a blink, a rush) sends a small, short ripple
+        /// through the grid from where it started.
+        void FloorDashBurst(Player p, V2 from, V2 raw, V2 smooth)
+        {
+            float walk = Mathf.Max(100f, p.Speed), fast = walk * DashBurstSpeed;
+            if (raw.Length < fast || smooth.Length >= fast)
+                return;  // not moving fast, or already mid-dash
+            float at, now = Time.unscaledTime;
+            if (floorDashAt.TryGetValue(p.Id, out at) && now - at < DashBurstGap)
+                return;
+            floorDashAt[p.Id] = now;
+            ripples.Add(new Ripple { Pos = from, Power = DashBurstPower, Life = DashBurstLife, Col = p.Def.Color });  // Juice.cs
         }
 
         /// A floor point moved by the players (when bending) and by kill ripples.
@@ -108,6 +138,7 @@ namespace Arena
         {
             if (!Juicy)
                 return;
+            DrawDashGlow(lo, hi, first);
             float reach = FloorR * 1.6f;
             var ink = new Rgba(grid.R, grid.G, grid.B, 1f);
             foreach (var f in floorPulls)
@@ -137,6 +168,41 @@ namespace Arena
                         FillRect(c.X - 1.5f, c.Y - 1.5f, 3f, 3f, col.WithAlpha(0.7f * k));
                     }
             }
+        }
+
+        /// A dash burst's front lights the lines it crosses in the dasher's colour, fading as it spreads.
+        void DrawDashGlow(V2 lo, V2 hi, V2 first)
+        {
+            foreach (var r in ripples)
+            {
+                if (r.Life <= 0f || r.Col.A <= 0f)
+                    continue;
+                float front = r.T * 700f, fade = 1f - r.T / r.Life, reach = front + 50f;
+                if (fade <= 0f)
+                    continue;
+                float x0 = Mathf.Max(lo.X, r.Pos.X - reach), x1 = Mathf.Min(hi.X, r.Pos.X + reach);
+                float y0 = Mathf.Max(lo.Y, r.Pos.Y - reach), y1 = Mathf.Min(hi.Y, r.Pos.Y + reach);
+                if (x0 >= x1 || y0 >= y1)
+                    continue;
+                float gx0 = first.X + Mathf.Ceil((x0 - first.X) / FloorStep) * FloorStep;
+                float gy0 = first.Y + Mathf.Ceil((y0 - first.Y) / FloorStep) * FloorStep;
+                float sx0 = lo.X + Mathf.Floor((x0 - lo.X) / FloorSeg) * FloorSeg;
+                float sy0 = lo.Y + Mathf.Floor((y0 - lo.Y) / FloorSeg) * FloorSeg;
+                for (float x = gx0; x <= x1 + 0.5f; x += FloorStep)
+                    for (float y = sy0; y < y1; y += FloorSeg)
+                        DashGlowSeg(new V2(x, y), new V2(x, Mathf.Min(y + FloorSeg, hi.Y)), r, front, fade);
+                for (float y = gy0; y <= y1 + 0.5f; y += FloorStep)
+                    for (float x = sx0; x < x1; x += FloorSeg)
+                        DashGlowSeg(new V2(x, y), new V2(Mathf.Min(x + FloorSeg, hi.X), y), r, front, fade);
+            }
+        }
+
+        void DashGlowSeg(V2 a, V2 b, Ripple r, float front, float fade)
+        {
+            float band = 1f - Mathf.Abs(((a + b) * 0.5f - r.Pos).Length - front) / 50f;
+            if (band <= 0f)
+                return;
+            Line(FloorWarp(a.X, a.Y), FloorWarp(b.X, b.Y), 1.5f, r.Col.WithAlpha(0.55f * band * fade));
         }
 
         void FloorGlowSeg(V2 a, V2 b, V2 who, Rgba col)
