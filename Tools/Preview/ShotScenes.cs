@@ -256,6 +256,14 @@ static partial class Shot {
       for (int i = 0; i < 5; i++) {
         var at = new V2(800f + (i - 2) * 105f, 410f);
         bool tz = Environment.GetEnvironmentVariable("SECSHIRT") == "2" && i > 0;  // SECSHIRT=2: Taser Guards instead (idle, charging)
+        if (Environment.GetEnvironmentVariable("SECSHIRT") == "4" && i > 0) {  // SECSHIRT=4: Gas Grenadiers walking, then winding up and throwing a lob
+          var gg = (Enemy)spawn.Invoke(gm, new object[] { EnemyType.GasGrenadier, at, 0f, 0, false });
+          gg.SpawnT = 0f; gg.Pos = gg.Disp = at; gg.Facing = (me.Pos - at).Angle + (i <= 2 ? (i - 1.5f) * 0.6f : 0f);
+          if (i >= 3)  // winding up its lob, then mid-throw
+            gm.Effects.Add(new Effect { Kind = FxKind.GasLob, Pos = me.Pos + new V2((i - 3.5f) * 120f, 0f), Pos2 = new V2(gg.Id, 1f), Color = new Rgba(0.6f, 0.95f, 0.4f), Radius = 70f,
+              Dur = Game.GrenadierWindUp + Game.GrenadierSwing + 1f, T = i == 3 ? 0.6f : Game.GrenadierWindUp + Game.GrenadierSwing * 0.6f });
+          continue;
+        }
         if (Environment.GetEnvironmentVariable("SECSHIRT") == "3" && i > 0) {  // SECSHIRT=3: Riot Shields instead (walking, winding up, cracked, broken)
           var rs = (Enemy)spawn.Invoke(gm, new object[] { EnemyType.RiotShield, at, 0f, 0, false });
           rs.SpawnT = 0f; rs.Pos = rs.Disp = at; rs.Facing = (me.Pos - at).Angle;
