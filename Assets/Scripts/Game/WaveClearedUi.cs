@@ -16,6 +16,7 @@ namespace Arena
         int autoReadySent = -1;       // the Auto-ready choice the host was last told (-1: not yet this run)
         float wcBorn = -1f;           // unscaled time the box appeared (for its drop-in)
         int wcWave = -1;
+        const float WcStripAlpha = 0.45f;  // the minimized strip's background, scanlines and corners: see-through
         bool wcMin;                   // minimized to a strip at the top so you can walk to a shop or a chest (until the next break)
         Rect wcStripHit;              // the strip's rect as last drawn (a click on it isn't a shot)
 
@@ -230,14 +231,18 @@ namespace Arena
             Ui.Fill(new Rect(r.x + WcPad, r.y + WcTabH + 6f, r.width - 2f * WcPad, 1f), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.3f));
         }
 
-        /// The minimized box: a slim tube at the top (under the build or door chip when one is up) with the next wave, the status, Ready and Open.
+        /// The minimized box: a slim, see-through tube at the top (under the door chip when one is up) with the next wave, the status, Ready,
+        /// Build (while a building round is open: it stands in for the build chip) and Open.
         void DrawWcStrip(Player me, string waiting, bool calm)
         {
-            float y = ExpandChipUp ? 88f : DoorChipUp ? 72f : 34f;  // (under the build chip or the door chip)
-            var r = new Rect(W / 2f - 330f, y, 660f, 60f);
+            bool build = ExpandChipUp;
+            float y = DoorChipUp ? 72f : 34f;  // (under the door chip)
+            float sw = build ? 820f : 660f;
+            var r = new Rect(W / 2f - sw / 2f, y, sw, 60f);
             wcStripHit = r;
-            RoundTube(r, 1f, false, () =>
+            RoundPart(1f, Vector2.zero, () =>
             {
+                CrtUi.Begin(r, WcStripAlpha);
                 bool boss = game.BossNow;
                 string next = boss || game.GateUp ? "NEXT: THE BOSS" : "NEXT: WAVE " + (game.Hunt != null ? game.Wave + 1 : game.ShownWave + 1);
                 HudCrt(new Rect(r.x + 16f, r.y + 6f, 250f, 26f), next, 24, CrtUi.Ink);
@@ -271,8 +276,16 @@ namespace Arena
                     wcStep = 2;
                     PressReady(me);
                 }
-                if (LobbyKit.Key(new Rect(r.x + 496f, r.y + 8f, 148f, 44f), "OPEN", false, calm, size: 20, minSize: 12))
+                float ox = r.x + 496f;
+                if (build)
+                {
+                    if (LobbyKit.Key(new Rect(ox, r.y + 8f, 150f, 44f), game.FreeBuild ? "BUILD" : "BUILD / VOTE", false, calm, size: 20, minSize: 12))
+                        expOpen = true;
+                    ox += 160f;
+                }
+                if (LobbyKit.Key(new Rect(ox, r.y + 8f, 148f, 44f), "OPEN", false, calm, size: 20, minSize: 12))
                     wcMin = false;
+                CrtUi.End(r, Time.unscaledTime, fxReduced, WcStripAlpha);
             });
         }
 

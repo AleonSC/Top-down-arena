@@ -131,8 +131,8 @@ namespace Arena
                             DrawHuntMap(game.HuntRoute, game.Hunt, Time.unscaledTime);  // HuntMapUi.cs
                         break;
                     }
-                    if (ExpandChipUp && !pauseUp && !WaveBoxShown(me))
-                        DrawExpandChip(me);  // an optional room offer: a chip, the wave doesn't wait (ExpansionUi.cs)
+                    if (ExpandChipUp && !pauseUp && !WaveBoxUp(me))
+                        DrawExpandChip(me);  // an optional room offer when the wave box isn't up (its tabs / minimized strip carry Build otherwise; ExpansionUi.cs)
                     if (ExpandWindowUp && !tabHeld)
                     {
                         if (!pauseUp)
