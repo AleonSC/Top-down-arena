@@ -293,6 +293,22 @@ static partial class Program
             runner.Hp = 0f;
             Quiet();
         }
+        // A Bound Wraith pair in the top hallway with you in the hub below: it walks round through the door (it used
+        // to drift straight at you and stick on the wall).
+        {
+            g.Props.Clear();
+            var w1 = (Enemy)spawnEnemyAt.Invoke(g, new object[] { EnemyType.BoundWraith, new V2(Game.Width / 4f, -130f), 0f, 0, false });
+            var w2 = g.Enemies.Values.First(e => e.Type == EnemyType.BoundWraith && e.Id != w1.Id && e.LinkId == w1.Id);
+            V2 target = new V2(Game.Width / 4f, Game.Height / 2f);
+            foreach (var w in new[] { w1, w2 }) { w.SpawnT = 0f; w.Hp = w.MaxHp = 99999f; w.Pos = w.Disp = ClampTo(w.Pos, -230f, -30f); }
+            for (int i = 0; i < (int)(20f / dt); i++)
+                foreach (var w in new[] { w1, w2 }) { moveEnemy.Invoke(g, new object[] { w, target, dt }); w.T += dt; }
+            float far = Math.Max(w1.Pos.DistanceTo(target), w2.Pos.DistanceTo(target));
+            Check(far < 200f && Rooms.AreaAt(w1.Pos) == Rooms.Hub && Rooms.AreaAt(w2.Pos) == Rooms.Hub,
+                "a Bound Wraith pair walks round a wall through the door to you (" + (int)far + " px off)");
+            w1.Hp = w2.Hp = 0f;
+            Quiet();
+        }
 
 
         // The Data Gate opens in the hub.
@@ -538,4 +554,6 @@ static partial class Program
         }
         host.Leave(""); client.Leave("");
     }
+
+    static V2 ClampTo(V2 p, float lo, float hi) { return new V2(p.X, Math.Max(lo, Math.Min(hi, p.Y))); }
 }

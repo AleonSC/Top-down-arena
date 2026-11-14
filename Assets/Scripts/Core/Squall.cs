@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Arena
 {
@@ -206,7 +207,18 @@ namespace Arena
             if (++e.Phase < GrounderFull)
                 return;
             e.Phase = 0;
-            Thunderclap(e);
+            pendingClaps.Add(e);  // (fired after Collide: it is looping over the shots)
+        }
+
+        readonly List<Enemy> pendingClaps = new List<Enemy>();
+
+        /// Host, after Collide: the Thunderclaps its hits charged this tick.
+        void FirePendingClaps()
+        {
+            foreach (var e in pendingClaps)
+                if (e.Hp > 0f && Enemies.ContainsKey(e.Id))
+                    Thunderclap(e);
+            pendingClaps.Clear();
         }
 
         /// A ring of ClapShots with two gaps of ClapGap shots either side of its front: the shooter in front steps sideways into one.

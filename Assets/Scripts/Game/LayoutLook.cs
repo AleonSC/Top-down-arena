@@ -8,11 +8,52 @@ namespace Arena
     {
         // Phosphor vector look (Docs/Mockups/arena-layouts-digital.html, style A, cyan palette): glowing outlines with a
         // faint fill and diagonal hatching, dashed pillar cores, teal chevrons, enemy gates drawn as plain wall.
-        static readonly Rgba Ink = new Rgba(0.373f, 0.941f, 1f), GateTeal = new Rgba(0.247f, 0.839f, 0.769f);
+        static readonly Rgba Cyan = new Rgba(0.373f, 0.941f, 1f), GateTeal = new Rgba(0.247f, 0.839f, 0.769f);
+        Rgba Ink = Cyan, WallFill = Cyan, NeonCore = Cyan;  // NeonCore: the white-hot line down the middle of each outline
+        static readonly float[] EdgePasses = { 27.5f, 14.5f, 6.5f, 1.5f, 0.75f };  // this frame's outline and fill/hatch colours (WallInk)
+
+        public static EnemyType? WallBossOverride;  // previews: the boss the walls are themed for
+
+        /// Each boss's wall colour: picked to suit its faction rather than its body colour (several bosses are pink).
+        static Rgba BossWallInk(EnemyType b)
+        {
+            switch (b)
+            {
+                case EnemyType.Boss: return new Rgba(1f, 0.55f, 0.12f);         // the Warden: sodium prison lamps
+                case EnemyType.HiveQueen: return new Rgba(1f, 0.88f, 0.15f);    // honey
+                case EnemyType.TwinA:
+                case EnemyType.TwinB:
+                case EnemyType.DualReaper: return new Rgba(1f, 0.3f, 0.9f); // dusk
+                case EnemyType.Singularity: return new Rgba(0.68f, 0.35f, 1f);   // void violet
+                case EnemyType.Colossus: return new Rgba(1f, 0.72f, 0.38f);  // sandstone
+                case EnemyType.Duelist: return new Rgba(0.9f, 0.92f, 1f);       // silver
+                case EnemyType.Lich: return new Rgba(0.25f, 1f, 0.5f);          // grave green
+                case EnemyType.StormHerald: return new Rgba(0.35f, 0.58f, 1f);   // storm blue
+                case EnemyType.Devourer: return new Rgba(1f, 0.2f, 0.35f);     // raw red
+                case EnemyType.Eclipse: return new Rgba(1f, 0.84f, 0.3f);      // corona gold
+                default: return Cyan;
+            }
+        }
+
+        Rgba wallInkNow = Cyan;  // eased toward the target so walls that stay up (the Rooms hub) shift colour gently
+
+        /// This frame's Ink (outlines) and WallFill (fill and hatching), themed for the boss this cycle leads to.
+        void WallInk()
+        {
+            var b = WallBossOverride ?? game.ApproachBossAt(Mathf.Max(1, game.Wave));
+            var target = BossWallInk(b);
+            float k = WallBossOverride != null ? 1f : Mathf.Clamp01(Time.deltaTime * 2f);
+            wallInkNow = wallInkNow.Mix(target, game.LayoutAge < 0.9f ? 1f : k);
+            Ink = WallFill = wallInkNow;
+            NeonCore = Ink.Mix(new Rgba(1f, 1f, 1f), 0.7f);
+            PropHoloCyan = Ink;
+            PropHoloBlue = Ink.Mix(new Rgba(1f, 1f, 1f), 0.3f);
+        }
 
         /// Under the props: walls and pillars (they rise out of the floor when a new cycle starts), then the edge gates.
         void DrawLayout(float t)
         {
+            WallInk();  // also the crates' and pots' colour (PropsLook.cs), so before the open-arena return
             var d = game.ActiveLayout;
             if (d == null)
                 return;
@@ -37,11 +78,13 @@ namespace Arena
             float lw = edge ? 1.5f : 2.5f;
             if (s.Round)
             {
-                Circle(c, s.R, Ink.WithAlpha(0.10f * a), 24);
-                HatchCircle(c, s.R, Ink.WithAlpha(0.22f * a));
-                Arc(c, s.R, lw + 8f, Ink.WithAlpha(0.10f * a), 28);
-                Arc(c, s.R, lw + 4f, Ink.WithAlpha(0.18f * a), 28);
+                Circle(c, s.R, WallFill.WithAlpha(0.13f * a), 24);
+                HatchCircle(c, s.R, WallFill.WithAlpha(0.30f * a));
+                Arc(c, s.R, lw + 26f, Ink.WithAlpha(0.07f * a), 28);
+                Arc(c, s.R, lw + 13f, Ink.WithAlpha(0.16f * a), 28);
+                Arc(c, s.R, lw + 5f, Ink.WithAlpha(0.40f * a), 28);
                 Arc(c, s.R, lw, Ink.WithAlpha(a), 28);
+                Arc(c, s.R, lw * 0.5f, NeonCore.WithAlpha(a), 28);
                 int n = Mathf.Max(6, Mathf.RoundToInt(MathX.Tau * s.R * 0.55f / 10f));
                 for (int i = 0; i < n; i++)
                     Arc(c, s.R * 0.55f, 1.5f, Ink.WithAlpha(0.7f * a), 3, MathX.Tau * i / n, MathX.Tau / n * 0.5f);
@@ -50,11 +93,13 @@ namespace Arena
                 return;
             }
             float x = c.X - s.HW, y = c.Y - s.HH, w = s.HW * 2f, h = s.HH * 2f;
-            FillRect(x, y, w, h, Ink.WithAlpha(0.10f * a));
-            HatchRect(x, y, w, h, Ink.WithAlpha(0.22f * a));
-            OutlineRect(x, y, w, h, lw + 8f, Ink.WithAlpha(0.10f * a));
-            OutlineRect(x, y, w, h, lw + 4f, Ink.WithAlpha(0.18f * a));
+            FillRect(x, y, w, h, WallFill.WithAlpha(0.13f * a));
+            HatchRect(x, y, w, h, WallFill.WithAlpha(0.30f * a));
+            OutlineRect(x, y, w, h, lw + 26f, Ink.WithAlpha(0.07f * a));
+            OutlineRect(x, y, w, h, lw + 13f, Ink.WithAlpha(0.16f * a));
+            OutlineRect(x, y, w, h, lw + 5f, Ink.WithAlpha(0.40f * a));
             OutlineRect(x, y, w, h, lw, Ink.WithAlpha(a));
+            OutlineRect(x, y, w, h, lw * 0.5f, NeonCore.WithAlpha(a));
         }
 
         SolidUnion wallUnion, edgeUnion;  // cached: rebuilt only when the boxes change
@@ -68,12 +113,14 @@ namespace Arena
             float lw = edge ? 1.5f : 2.5f;
             var f = u.Fills;
             for (int i = 0; i < f.Length; i += 4)
-                FillRect(f[i], f[i + 1] - lift, f[i + 2], f[i + 3], Ink.WithAlpha(0.10f * a));
+                FillRect(f[i], f[i + 1] - lift, f[i + 2], f[i + 3], WallFill.WithAlpha(0.13f * a));
             for (int i = 0; i < f.Length; i += 4)
-                HatchWorld(f[i], f[i + 1], f[i + 2], f[i + 3], lift, Ink.WithAlpha(0.22f * a));
-            UnionOutline(u, lift, lw + 8f, Ink.WithAlpha(0.10f * a));
-            UnionOutline(u, lift, lw + 4f, Ink.WithAlpha(0.18f * a));
+                HatchWorld(f[i], f[i + 1], f[i + 2], f[i + 3], lift, WallFill.WithAlpha(0.30f * a));
+            UnionOutline(u, lift, lw + 26f, Ink.WithAlpha(0.07f * a));
+            UnionOutline(u, lift, lw + 13f, Ink.WithAlpha(0.16f * a));
+            UnionOutline(u, lift, lw + 5f, Ink.WithAlpha(0.40f * a));
             UnionOutline(u, lift, lw, Ink.WithAlpha(a));
+            UnionOutline(u, lift, lw * 0.5f, NeonCore.WithAlpha(a));
         }
 
         /// The outside edges; the horizontal ones run half a width past their ends to square off every corner.
@@ -192,13 +239,13 @@ namespace Arena
                 float x = cx - w / 2f, y = cy - h / 2f;
                 // Drawn as plain edge wall (red is the breaches' colour; enemies show where they come in with portals):
                 // fill and world-aligned hatching like its neighbours, the long sides outlined, no end caps, so it joins them.
-                FillRect(x, y, w, h, Ink.WithAlpha(0.10f * a));
-                HatchWorld(x, y, w, h, 0f, Ink.WithAlpha(0.22f * a));
+                FillRect(x, y, w, h, WallFill.WithAlpha(0.13f * a));
+                HatchWorld(x, y, w, h, 0f, WallFill.WithAlpha(0.30f * a));
                 V2 s0 = new V2(x, y), s1 = alongX ? new V2(x + w, y) : new V2(x, y + h);
                 V2 q0 = alongX ? new V2(x, y + h) : new V2(x + w, y), q1 = new V2(x + w, y + h);
-                foreach (var pass in new[] { 9.5f, 5.5f, 1.5f })
+                foreach (var pass in EdgePasses)
                 {
-                    var col = Ink.WithAlpha((pass > 9f ? 0.10f : pass > 5f ? 0.18f : 1f) * a);
+                    var col = (pass < 1f ? NeonCore : Ink).WithAlpha((pass > 20f ? 0.07f : pass > 10f ? 0.16f : pass > 5f ? 0.40f : 1f) * a);
                     Line(s0, s1, pass, col);
                     Line(q0, q1, pass, col);
                 }

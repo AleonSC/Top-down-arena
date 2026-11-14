@@ -325,6 +325,7 @@ namespace Arena
         public const int NodeMin = 1000, NodeMax = 1600;  // a node sits this far (10 to 16 tiles) from the room it was placed off
         public const int NodeClear = 90;                  // cover keeps this far off a node
         public const int NodeApart = 800;                 // and at least this far from every other node
+        public const int PrizeClear = 600;                // a chest or relic node keeps this far (6 tiles) from every room's edge, and a floating room placed later keeps as far from it (owner Nov 14)
         public const int MaxNodesWaiting = 6;             // unclaimed nodes on the map at once
 
         public const int RuleHalf = 400;  // a rule node covers 8 x 8 tiles round its point; the claiming room must enclose all of it
@@ -351,6 +352,9 @@ namespace Arena
 
         /// How far from a node's point a room built round it reaches (NodeStep's room, and the clear space NodeFor keeps).
         public static int NodeReach(MapNode n) => n.Kind == NodeKind.Rule ? RuleHalf + 150 : 250;  // (nodes sit on a tile centre, so the reach is an odd number of half tiles: the room's walls land on the grid)
+
+        /// How far every room keeps from this node when it is placed: chest and relic nodes sit well out in the open.
+        public static int NodeRoomClear(MapNode n) => n.Kind == NodeKind.Chest || n.Kind == NodeKind.Relic ? PrizeClear : NodeReach(n);
 
         /// The rule a rule node of this boss cycle carries: the same on every machine for the same seed and cycle.
         public static byte RuleFor(int seed, int cycle) => (byte)RuleRoll(seed, cycle);
@@ -502,14 +506,14 @@ namespace Arena
                     x = side == 1 ? bx1 + gap + 50 : bx0 - gap - 50;
                 }
                 var n = new MapNode { X = (short)x, Y = (short)y, Kind = kind, Rule = kind == NodeKind.Rule ? RuleFor(seed, cycle) : (byte)0 };
-                int reach = NodeReach(n);
+                int reach = NodeRoomClear(n);
                 bool ok = true;
                 foreach (var o in nodes)
                     ok &= new V2(o.X - x, o.Y - y).Length >= NodeApart + NodeHalf(n) + NodeHalf(o);
                 for (int i = 0; i <= built.Count && ok; i++)
                 {
                     BoxOf(built, i, out int cx0, out int cy0, out int cx1, out int cy1);
-                    ok = !Overlaps(x - reach, y - reach, x + reach, y + reach, cx0, cy0, cx1, cy1);  // (two tiles clear of every room)
+                    ok = !Overlaps(x - reach, y - reach, x + reach, y + reach, cx0, cy0, cx1, cy1);  // (clear of every room: 6 tiles for a chest or relic, the claiming room's reach for a rule node)
                 }
                 if (ok)
                 {
@@ -530,7 +534,7 @@ namespace Arena
         /// A floating room for this boss cycle (Docs/FloatingRooms.md): a shop, vendor or Gatekeeper room placed 4 to 8 tiles off a room on the (14 to 18 off the start room, never within 10 of it)
         /// connected map, touching nothing and at least 2 tiles from every room, inside the size cap. The same on every machine for the same
         /// seed, cycle and map. Null if nothing fits.
-        public static ExpansionRoom? FloatingFor(int seed, int cycle, IList<ExpansionRoom> built, RoomKind kind)
+        public static ExpansionRoom? FloatingFor(int seed, int cycle, IList<ExpansionRoom> built, RoomKind kind, IList<MapNode> nodes = null)
         {
             int w = kind == RoomKind.Gatekeeper ? 800 : ShopRoomSide, h = kind == RoomKind.Gatekeeper ? 600 : ShopRoomSide;  // (shop and vendor: a tiny square room)
             var rng = new DetRandom(seed * 40503 + cycle * 9176 + (int)kind * 131);
@@ -568,6 +572,10 @@ namespace Arena
                     ok = !Overlaps(x - clear, y - clear, x1 + clear, y1 + clear, cx0, cy0, cx1, cy1);
                     minX = Math.Min(minX, cx0); minY = Math.Min(minY, cy0); maxX = Math.Max(maxX, cx1); maxY = Math.Max(maxY, cy1);
                 }
+                if (ok && nodes != null)
+                    foreach (var o in nodes)
+                        if (!o.Spent && (o.Kind == NodeKind.Chest || o.Kind == NodeKind.Relic))
+                            ok &= !Overlaps(x - PrizeClear, y - PrizeClear, x1 + PrizeClear, y1 + PrizeClear, o.X, o.Y, o.X, o.Y);  // (and well clear of a waiting chest or relic node)
                 if (!ok || maxX - minX > MaxWidth || maxY - minY > MaxHeight)
                     continue;
                 var found = new ExpansionRoom { Parent = 0, X = x, Y = y, W = w, H = h, Kind = kind, Floating = true };

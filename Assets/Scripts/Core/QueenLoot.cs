@@ -156,7 +156,7 @@ namespace Arena
         /// from you at the toughest enemy within BomberReach.
         void TickBombers(Player p, float dt)
         {
-            if (p.Stats.Bombers <= 0 || p.Downed || State != MatchState.Fighting)
+            if (p.Stats.Bombers <= 0 || p.Downed || !Battle)
                 return;
             p.BomberCd -= dt;
             if (p.BomberCd > 0f)

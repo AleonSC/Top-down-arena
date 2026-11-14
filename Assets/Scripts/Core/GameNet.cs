@@ -336,6 +336,7 @@ namespace Arena
             s.Short(ref RetryWave);
             s.Float(ref StateTimer);
             s.Int(ref Remaining);
+            s.Float(ref SurvTime);  // Survival mode's clock (SurvivalGame.cs)
             s.Int(ref Score);
             s.Bool(ref Paused);
             s.Int(ref PausedBy);

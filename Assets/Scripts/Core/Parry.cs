@@ -28,7 +28,7 @@ namespace Arena
         float lastPerfectSlow = -99f;
 
         /// How fast the world (enemies and every shot) runs this tick: slowed after a perfect parry, easing back at the end.
-        public float WorldRate => WorldSlowT <= 0f ? 1f : WorldSlowT >= PerfectSlowEase ? PerfectSlow : PerfectSlow + (1f - PerfectSlow) * (1f - WorldSlowT / PerfectSlowEase);
+        public float WorldRate => SurvFrozen ? 0f : WorldSlowT <= 0f ? 1f : WorldSlowT >= PerfectSlowEase ? PerfectSlow : PerfectSlow + (1f - PerfectSlow) * (1f - WorldSlowT / PerfectSlowEase);
 
         void StartWorldSlow() => WorldSlowT = PerfectSlowTime;
 

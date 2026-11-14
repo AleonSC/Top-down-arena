@@ -55,7 +55,7 @@ namespace Arena
             if (!p.StandOn)
                 return;
             p.StandT += dt;
-            if (p.Downed || State != MatchState.Fighting)
+            if (p.Downed || !Battle)
             {
                 EndStand(p, false);
                 return;

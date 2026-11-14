@@ -572,7 +572,7 @@ namespace Arena
                     if (e.Pos.DistanceTo(was) > 600f)
                         steerMem.Remove(e.Id);  // a fresh route from the far side
                 }
-                if (State == MatchState.Fighting && e.DazeT > 0f)
+                if (Battle && e.DazeT > 0f)
                 {
                     // Dazed (Daze.cs): no attacking, and a wind-up starts over once it wears off.
                     float rateDazed = rate * TraitFireMult(e) * (IsTwin(e.Type) && e.Phase == 1 ? 1.7f : 1f) * (Has(RunMod.Frenzy) ? Modifiers.FrenzyFire : 1f) * (1f - e.Suppress);
@@ -580,9 +580,9 @@ namespace Arena
                     e.Winding = false;
                     e.GasLocked = false;
                 }
-                else if (mine && State == MatchState.Fighting && !PossessAttacking)
+                else if (mine && Battle && !PossessAttacking)
                     e.Winding = false;  // the enemy being played waits for you to attack (DevArena.cs)
-                else if (State == MatchState.Fighting)
+                else if (Battle)
                 {
                     if (mine)
                         PossessFireNow(e);
@@ -703,6 +703,34 @@ namespace Arena
                         b.Pos += push * wb;
                     }
                 }
+            }
+            KeepEnemiesInRooms();
+        }
+
+        /// The Rooms and Expanding arenas: an enemy that ends a tick outside every room (crowding, a shove or a blink took it
+        /// through a wall) goes back to its last spot inside one; one that never had a spot snaps to the nearest room.
+        void KeepEnemiesInRooms()
+        {
+            if (!RoomsOn)
+                return;
+            var areas = CurrentWorld.Areas;
+            foreach (var e in Enemies.Values)
+            {
+                bool inside = false;
+                foreach (var a in areas)
+                    if (!a.Sealed && a.Contains(e.Pos))
+                    {
+                        inside = true;
+                        break;
+                    }
+                if (inside)
+                {
+                    e.RoomAt = e.Pos;
+                    e.HasRoomAt = true;
+                    continue;
+                }
+                e.Pos = e.HasRoomAt ? e.RoomAt : SnapIntoRooms(e.Pos, e.Radius);
+                e.KnockLeft = V2.Zero;  // (a push still sliding would only carry it back out)
             }
         }
 

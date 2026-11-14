@@ -796,7 +796,7 @@ namespace Arena
                         if (e == null)
                             break;
                         m.Aim = (e.Pos - m.Pos).Angle;
-                        if (m.Cd <= 0f && State == MatchState.Fighting)
+                        if (m.Cd <= 0f && Battle)
                         {
                             m.Cd = d.Interval;
                             V2 dir = V2.FromAngle(m.Aim);
@@ -811,7 +811,7 @@ namespace Arena
                         if (caged != null)  // Skeleton Guards shoot at enemies the Bone Guard has caged
                         {
                             m.Aim = (caged.Pos - m.Pos).Angle;
-                            if (m.Cd <= 0f && State == MatchState.Fighting)
+                            if (m.Cd <= 0f && Battle)
                             {
                                 m.Cd = d.Interval;
                                 V2 dir = V2.FromAngle(m.Aim);

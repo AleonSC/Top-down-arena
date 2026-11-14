@@ -173,6 +173,7 @@ namespace Arena
             }
             w.Write(ResumeFrom != null);  // continuing a saved run (RunSaves.cs)
             w.Write(ResumeFrom != null ? ResumeFrom.LongRun : LongRunDefault && !quick);  // a 100-wave Campaign (Hunts.cs); a saved run keeps its length
+            WriteSurvivalStart(w, quick);  // Survival mode: the flag and its seed (SurvivalGame.cs)
             var msg = Proto.End(w);
             session.Broadcast(msg);
             var r = new BinaryReader(new MemoryStream(msg));
@@ -265,6 +266,7 @@ namespace Arena
             }
             bool resumed = r.ReadBoolean();
             LongRun = r.ReadBoolean();  // a 100-wave Campaign (Hunts.cs)
+            ReadSurvivalStart(r);  // SurvivalGame.cs
             if (resumed && !IsHost)
                 foreach (var p in entries)
                     p.Level = 1;  // a continued run: the host sends everyone's levels and picks next (Head Start doesn't apply again)
@@ -825,6 +827,7 @@ namespace Arena
                 pw.Write((ushort)Math.Min(65535f, Math.Max(0f, (float)Math.Round(PingMs))));  // for the host to share (LagNet.cs)
                 session.SendToHost(Proto.End(pw));
             }
+            NoteDuelBetweenWaves();  // GatekeeperRoom.cs (every game: enemies and kits fight in a duel between waves)
             if (IsHost)
             {
                 hostClock += dt;  // (every host tick, whatever the state: Dodge.cs times clients' dodges by it)
@@ -1331,6 +1334,7 @@ namespace Arena
             TickProps(dt);    // Props.cs: fuses, smashed pots, opened chests, breaks
             MoveBullets(dt * WorldRate);
             Collide();
+            FirePendingClaps();  // Squall.cs: Grounders' Thunderclaps charged by this tick's hits
             SendBounces();    // Relics.cs: shots that bounced off a wall this tick
             TickRods(dt);     // LightningRod.cs: the charge running down, and the bolts this tick's hits called
             EnforcePens();    // Chalk.cs: enemies penned in by an ink loop stay inside it
