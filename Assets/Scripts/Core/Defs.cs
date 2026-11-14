@@ -102,6 +102,9 @@ namespace Arena
         // step 2: a Grounder grounds shots on its copper shield and claps them back, Pylons come in pairs and arc between
         // them, a Lineman marks a player and the charge jumps to allies near them
         Grounder, Pylon, Lineman,
+        // step 3: a Thunderhead walks at you dropping rows of strikes ahead of it (the faction's Ball Lightning is the
+        // Herald's own BallLightning, made to work in waves)
+        Thunderhead,
     }
 
     public class RoleDef
@@ -489,6 +492,8 @@ namespace Arena
                 Picker = PickerGroup.Ranged, Blurb = "Comes in pairs that plant either side of you. The arc between them flickers, then fires. Step off the line, or kill one." },
             new EnemyDef { Name = "Lineman", Hp = 60f, Radius = 13f, Speed = 85f, Score = 8, Xp = 11, Sides = 5, Color = new Rgba(0.56f, 0.82f, 1f),
                 Picker = PickerGroup.Ranged, Blurb = "Hooks a player with a charge. When it runs out it jumps to every ally nearby. The marked player walks away from the team." },
+            new EnemyDef { Name = "Thunderhead", Hp = 220f, Radius = 24f, Speed = 55f, Score = 12, Xp = 20, Sides = 9, Color = new Rgba(0.6f, 0.68f, 0.82f), Melee = true, Contact = 20f, Heavy = true,
+                Picker = PickerGroup.Melee, Blurb = "A slow, heavy storm cloud. As it rolls at you it drops a row of strikes ahead of it. Sidestep the row." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount

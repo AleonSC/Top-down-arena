@@ -1229,6 +1229,7 @@ namespace Arena
                     break;
                 case EnemyType.Pylon:
                 case EnemyType.Lineman:
+                case EnemyType.Thunderhead:
                     SquallSpecial(e, tpos, dt);  // Squall.cs
                     break;
                 case EnemyType.Pulsar:

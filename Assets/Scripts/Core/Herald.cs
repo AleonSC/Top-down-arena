@@ -373,16 +373,19 @@ namespace Arena
             V2 wind = HeraldWind(BallWind);
             foreach (var b in balls)
             {
+                // Slows and freezes hold it like any enemy (a Glacial Tomb stops it; its timer still runs).
+                float hold = b.FrozenT > 0f ? 0f : b.SlowT > 0f ? b.SlowMult : 1f;
                 Player near = NearestPlayer(b.Pos);
                 if (near != null)
-                    b.Pos += (near.Pos - b.Pos).Normalized() * BallSpeed * dt;
-                b.Pos = ClampToArena(b.Pos + wind * dt, b.Radius);
+                    b.Pos += (near.Pos - b.Pos).Normalized() * BallSpeed * hold * dt;
+                b.Pos = ClampToArena(b.Pos + wind * hold * dt, b.Radius);
                 if (b.T >= BallLife + 0.3f)
                 {
+                    bool boss = HeraldBall(b);  // (a wave's Ball Lightning: its shots are its own, Squall.cs)
                     for (int i = 0; i < 8; i++)
                     {
                         V2 dir = V2.FromAngle(MathX.Tau * i / 8f + b.Id);
-                        SpawnBullet(Defs.SmallShot, b.Pos + dir * b.Radius, dir * 140f, 0f, 8f, Defs.BulletDamage(Defs.SmallShot), 0, true).Source = EnemyType.StormHerald;
+                        SpawnBullet(Defs.SmallShot, b.Pos + dir * b.Radius, dir * 140f, 0f, 8f, Defs.BulletDamage(Defs.SmallShot), 0, boss).Source = boss ? EnemyType.StormHerald : EnemyType.BallLightning;
                     }
                     BroadcastFx(FxKind.Ring, b.Pos, b.Def.Color, 50f, 0.3f, Sfx.SpellZap);
                     b.Hp = 0f;
@@ -398,7 +401,7 @@ namespace Arena
                         continue;
                     foreach (var p in Players.Values)
                         if (!p.Downed && p.InvulnT <= 0f && SegmentDistance(p.Pos, a, c) < BallArcWidth / 2f + p.Def.HitR)
-                            Damage(p, 20f, "Storm Herald (ball lightning)");
+                            Damage(p, 20f, HeraldBall(balls[i]) ? "Storm Herald (ball lightning)" : "Ball Lightning (arc)");
                 }
             if (herald == null || herald.Herald == null)
                 return;
@@ -485,6 +488,13 @@ namespace Arena
         }
 
         void ClearBallLightning() => RemoveAll(EnemyType.BallLightning);
+
+        /// A Ball Lightning the Herald made (not a wave's, Squall.cs).
+        bool HeraldBall(Enemy b)
+        {
+            Enemy p;
+            return b.ParentId != 0 && Enemies.TryGetValue(b.ParentId, out p) && p.Type == EnemyType.StormHerald;
+        }
 
         void HeraldFire(Enemy e, V2 tpos, float aim)
         {

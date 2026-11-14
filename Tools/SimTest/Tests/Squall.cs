@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Arena;
 
-// The Storm Herald's faction, steps 1-2 (Core/Squall.cs, Docs/StormFaction.md): a Dust Devil shoves you on touch and veers
+// The Storm Herald's faction, steps 1-3 (Core/Squall.cs, Docs/StormFaction.md): a Dust Devil shoves you on touch and veers
 // off, a Squall Gunner's three shots leave upwind of you and curve back to where you stood, a Stormcaller calls an amber
 // strike under you that hurts if you stay; a Grounder grounds shots and claps them back, a Pylon pair's arc, a Lineman's
-// mark; and the six come in the waves before the Storm Herald.
+// mark; a Thunderhead's row of strikes, a wave's Ball Lightning (slows hold it, its shots are its own); and the eight
+// come in the waves before the Storm Herald.
 static partial class Program
 {
     static void SquallTest(float dt)
@@ -178,12 +179,59 @@ static partial class Program
         }
         Console.WriteLine("  Lineman: the mark burst into {0} shots round you", burst);
         Check(ln.Phase == 0 && burst == Game.LineBurst, "when it runs out, shots burst out round the marked player");
+
+        // --- Step 3 ---------------------------------------------------------------------------------------------------
+        // Thunderhead: a row of strikes ahead of it toward you, landing one after another; standing on it hurts.
+        g.DevSetGod(1, false);
+        me.Hp = me.MaxHp = 1e6f;
+        var th = put(EnemyType.Thunderhead, new V2(640f, 400f));
+        List<Hazard> row = null;
+        for (int f = 0; f < 60 * 5 && row == null; f++)
+        {
+            Quiet(); me.Pos = me.Disp = home; Step(host, dt);
+            var hs = g.Hazards.Values.Where(h => h.Kind == Game.HazardDownburst).ToList();
+            if (hs.Count > 0) row = hs.OrderBy(h => h.T).ToList();
+        }
+        Check(row != null && row.Count == Game.HeadRow, "a Thunderhead drops a row of three strikes");
+        if (row != null && row.Count == Game.HeadRow)
+        {
+            V2 toYou = (home - th.Pos).Normalized();
+            bool ahead = row.All(h => (h.Pos - th.Pos).Normalized().Dot(toYou) > 0.95f);
+            bool order = row[0].Pos.DistanceTo(th.Pos) < row[1].Pos.DistanceTo(th.Pos) && row[1].T > row[0].T + 0.15f && row[2].T > row[1].T + 0.15f;
+            Check(ahead && order, "the row is ahead of it toward you, and lands nearest first, one after another");
+            V2 stand = row[1].Pos;
+            float hpT = me.Hp;
+            for (int f = 0; f < 60 * 1.6f; f++) { Quiet(); me.Pos = me.Disp = stand; Step(host, dt); }
+            Console.WriteLine("  Thunderhead: standing on its row cost {0:0} hp", hpT - me.Hp);
+            Check(me.Hp < hpT, "standing on the row hurts");
+        }
+
+        // Ball Lightning from a wave: slows and freezes hold it, its pop is its own (not the boss's), and it pays like a Shiv.
+        g.DevSetGod(1, true);
+        var bl = put(EnemyType.BallLightning, new V2(600f, 400f));
+        bl.FrozenT = 1f;
+        V2 b0p = bl.Pos;
+        for (int f = 0; f < 30; f++) { Quiet(); me.Pos = me.Disp = home; Step(host, dt); }
+        Check(bl.Pos.DistanceTo(b0p) < 1f, "a frozen Ball Lightning stays put");
+        for (int f = 0; f < 60; f++) { Quiet(); me.Pos = me.Disp = home; Step(host, dt); }
+        Check(bl.Pos.DistanceTo(b0p) > 20f, "then drifts at you again");
+        var killXp = (float)typeof(Game).GetMethod("KillXp", np).Invoke(g, new object[] { bl });
+        Check(Math.Abs(killXp - Game.BallWaveXp) < 0.01f, "a wave's Ball Lightning pays " + Game.BallWaveXp + " XP");
+        g.Bullets.Clear();
+        var popped = new List<Bullet>();
+        for (int f = 0; f < 60 * 8 && popped.Count == 0; f++)
+        {
+            Quiet(); me.Pos = me.Disp = home + new V2(300f, 0f); Step(host, dt);
+            popped = g.Bullets.Values.Where(b => b.Source == EnemyType.BallLightning).ToList();
+        }
+        Console.WriteLine("  Ball Lightning: popped into {0} shots, boss shots {1}", popped.Count, popped.Count(b => b.FromBoss));
+        Check(popped.Count == 8 && popped.All(b => !b.FromBoss), "it pops into 8 shots of its own, not the boss's");
         host.Leave("");
 
         // The faction: the three come in the waves before the Storm Herald (50-wave track: 36-39).
         var f0 = Approaches.For(EnemyType.StormHerald);
-        Check(f0 != null && f0.Members.Length == 6 && f0.Members.All(m => Game.IsSquall(m.Type)) && f0.Squads.Length == 4,
-            "the Storm Herald's faction: six members so far; squads Squall line, Storm cell, Power line, Grounding wall");
+        Check(f0 != null && f0.Members.Length == 8 && f0.Members.All(m => Game.IsSquall(m.Type) || m.Type == EnemyType.BallLightning) && f0.Squads.Length == 5,
+            "the Storm Herald's faction: all eight; squads Squall line, Storm cell, Power line, Supercell, Grounding wall");
         var build = typeof(Game).GetMethod("BuildWave", np);
         var spawnQ = typeof(Game).GetField("spawnQueue", np);
         var squadQ = typeof(Game).GetField("squadQueue", np);
@@ -196,7 +244,7 @@ static partial class Program
                 var cg = new Session().Game;
                 cg.Wave = w;
                 build.Invoke(cg, new object[] { w });
-                foreach (var t in ((List<EnemyType>)spawnQ.GetValue(cg)).Concat(((List<SquadDef>)squadQ.GetValue(cg)).SelectMany(x => x.Members)).Where(Game.IsSquall))
+                foreach (var t in ((List<EnemyType>)spawnQ.GetValue(cg)).Concat(((List<SquadDef>)squadQ.GetValue(cg)).SelectMany(x => x.Members)).Where(t => Game.IsSquall(t) || t == EnemyType.BallLightning))
                     seen.Add(t);
             }
         for (int w = 2; w <= 34; w++)
@@ -205,11 +253,11 @@ static partial class Program
             var cg = new Session().Game;
             cg.Wave = w;
             build.Invoke(cg, new object[] { w });
-            foreach (var t in ((List<EnemyType>)spawnQ.GetValue(cg)).Concat(((List<SquadDef>)squadQ.GetValue(cg)).SelectMany(x => x.Members)).Where(Game.IsSquall))
+            foreach (var t in ((List<EnemyType>)spawnQ.GetValue(cg)).Concat(((List<SquadDef>)squadQ.GetValue(cg)).SelectMany(x => x.Members)).Where(t => Game.IsSquall(t) || t == EnemyType.BallLightning))
                 early.Add(t);
         }
         Console.WriteLine("  waves 36-39 bring: " + string.Join(", ", seen));
-        Check(seen.Count == 6, "waves 36-39 bring all six");
+        Check(seen.Count == 8, "waves 36-39 bring all eight");
         Check(early.Count == 0, "none come before the Storm Herald's approach");
     }
 }

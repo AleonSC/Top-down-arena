@@ -598,6 +598,20 @@ static partial class Shot {
       var ln = sput(EnemyType.Lineman, new V2(1230f, 640f)); ln.Facing = (me.Pos - ln.Pos).Angle; ln.Phase = 1; ln.LinkId = me.Id; ln.SeenPhase = 1; ln.SeenT = 1.1f;
       sg.AnimT += float.Parse(Environment.GetEnvironmentVariable("SQUALL2"), System.Globalization.CultureInfo.InvariantCulture);
     }
+    if (Environment.GetEnvironmentVariable("SQUALL3") != null) {  // SQUALL3=<s into the clock>: the Storm Herald's faction, step 3 (SquallLook.cs): a Thunderhead flashing with its row of strikes coming at you, two Ball Lightning arcing to each other, a Supercell's Lineman and Dust Devils
+      var sg = host.Game; sg.Enemies.Clear(); sg.Bullets.Clear(); sg.Hazards.Clear();
+      var np3 = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+      var ssp = typeof(Game).GetMethod("SpawnEnemyAt", np3);
+      Func<EnemyType, V2, Enemy> sput = (t, at) => { var e = (Enemy)ssp.Invoke(sg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.T = 2f; return e; };
+      me.Pos = me.Disp = new V2(1000f, 560f);
+      var th = sput(EnemyType.Thunderhead, new V2(740f, 470f)); th.Phase = 1; th.SeenPhase = 1;
+      typeof(Game).GetMethod("TickThunderhead", np3).Invoke(sg, new object[] { new Enemy { Type = EnemyType.Thunderhead, Pos = th.Pos, Radius = th.Radius, T = 2f, Phase = 0, PhaseT = 0f }, me.Pos, 0f });
+      int hk = 0; foreach (var h in sg.Hazards.Values) h.T = Math.Max(0.05f, h.T - 0.55f - 0.15f * hk++);
+      sput(EnemyType.BallLightning, new V2(1180f, 380f)); sput(EnemyType.BallLightning, new V2(1300f, 520f));
+      var ln = sput(EnemyType.Lineman, new V2(780f, 720f)); ln.Facing = (me.Pos - ln.Pos).Angle; ln.Phase = 1; ln.LinkId = me.Id; ln.SeenPhase = 1; ln.SeenT = 0.8f;
+      for (int k = 0; k < 3; k++) { float a = 0.4f + k * 2.1f; sput(EnemyType.DustDevil, me.Pos + new V2((float)Math.Cos(a) * 60f, (float)Math.Sin(a) * 50f)); }
+      sg.AnimT += float.Parse(Environment.GetEnvironmentVariable("SQUALL3"), System.Globalization.CultureInfo.InvariantCulture);
+    }
     if (Environment.GetEnvironmentVariable("COURT") != null) {  // COURT=<s into the clock>: the Duelist's step-1 faction (CourtLook.cs): Fencers (walking, line showing, hopping), a Blade Dancer showing its line and one with blades hanging, Parriers (whole, flashing, cracked, broken); set beside Docs/Mockups/duelist-faction.html
       var cg = host.Game; cg.Enemies.Clear(); cg.Bullets.Clear(); cg.Patches.Clear(); cg.Effects.Clear();
       var csp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

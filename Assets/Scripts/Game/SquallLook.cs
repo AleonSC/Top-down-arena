@@ -11,7 +11,9 @@ namespace Arena
     ///   (Enemy.Phase of GrounderFull) and the tips go white near full.   Pylon: a square post turned 45° with a copper ring
     ///   and a glowing tip; the pair's line (DrawSquallFloor) is a faint dotted tether, a flickering thin bolt while it
     ///   warns, then a thick bolt as it fires.   Lineman: a body with a copper coil pack and a forked prod; its mark
-    ///   (DrawSquallFloor) is a dashed amber ring round the marked player with a countdown arc.
+    ///   (DrawSquallFloor) is a dashed amber ring round the marked player with a countdown arc.   Thunderhead: a storm
+    ///   cloud of six puffs over its shadow, a pale rim round the whole; while its row is coming (Phase 1) it goes light
+    ///   and a bolt flickers inside it. Its row's rings are Hazards, drawn amber like the Stormcaller's.
     public partial class ArenaApp
     {
         /// On the floor, under the enemies: a Pylon pair's line, a Lineman's mark.
@@ -58,6 +60,7 @@ namespace Arena
 
         static readonly Rgba SqWind = new Rgba(0.62f, 0.91f, 0.85f), SqBlue = new Rgba(0.56f, 0.82f, 1f), SqAmber = new Rgba(1f, 0.82f, 0.4f),
             SqDust = new Rgba(0.79f, 0.71f, 0.54f), SqCloud = new Rgba(0.43f, 0.48f, 0.57f);
+        static readonly float[] SqPuffs = { 0f, 0f, 1f, -0.72f, 0.15f, 0.72f, 0.72f, 0.1f, 0.74f, -0.32f, -0.48f, 0.66f, 0.36f, -0.42f, 0.64f, 0.05f, 0.5f, 0.62f };  // a Thunderhead's puffs: x, y, size
 
         void DrawSquallBody(Enemy e, V2 pos, float r, Rgba col, float t)
         {
@@ -154,6 +157,31 @@ namespace Arena
                     Line(tip, tip + V2.FromAngle(e.Facing - 0.6f) * 5f, 1.5f, SqBlue);
                     if (e.Winding || Mathf.Sin(t * 13f + e.Id) > 0.75f)
                         Circle(tip, r * 0.6f, SqBlue.WithAlpha(0.45f), 10);
+                    break;
+                }
+                case EnemyType.Thunderhead:
+                {
+                    bool flash = e.Phase == 1;
+                    float fl = flash ? 0.6f + 0.4f * Mathf.Sin(t * 26f + e.Id) : 0f;
+                    Circle(pos + new V2(r * 0.3f, r * 0.45f), r * 1.15f, new Rgba(0f, 0f, 0f, 0.3f), 22);  // its shadow
+                    Circle(pos, r * 2.2f, SqBlue.WithAlpha(0.05f + 0.22f * fl), 22);
+                    var rim = new Rgba(0.62f, 0.7f, 0.83f).WithAlpha(0.5f);
+                    var fill = flash ? new Rgba(0.29f, 0.35f, 0.46f).Mix(new Rgba(0.42f, 0.5f, 0.64f), fl) : new Rgba(0.17f, 0.2f, 0.27f);
+                    for (int pass = 0; pass < 2; pass++)
+                        for (int k = 0; k < SqPuffs.Length; k += 3)
+                        {
+                            float bob = Mathf.Sin(t * 1.3f + SqPuffs[k] * 3f + e.Id) * 1.2f;
+                            V2 at = pos + new V2(SqPuffs[k] * r, SqPuffs[k + 1] * r + bob);
+                            float pr = r * SqPuffs[k + 2] * 0.62f;
+                            if (pass == 0)
+                                Circle(at, pr + 1.6f, rim, 14);
+                            else
+                                Circle(at, pr, fill, 14);
+                        }
+                    for (int k = 0; k < 9; k += 3)  // a little light on the tops of the front three
+                        Circle(pos + new V2(SqPuffs[k] * r - r * 0.12f, SqPuffs[k + 1] * r - r * 0.14f), r * SqPuffs[k + 2] * 0.25f, new Rgba(0.78f, 0.84f, 0.93f, 0.12f), 10);
+                    if (flash && fl > 0.5f)
+                        DrawBolt(pos + new V2(-r * 0.5f, -r * 0.15f), pos + new V2(r * 0.4f, r * 0.25f), 1.4f, Rgba.White, (int)(t * 20f) + e.Id, 4);
                     break;
                 }
                 case EnemyType.Stormcaller:

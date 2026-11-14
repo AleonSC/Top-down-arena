@@ -689,9 +689,10 @@ half its slabs are broken, the rest break out. In the Long Campaign its ten wave
 Warden's order: Rubble, Quarrymen, Stompers, Geomancers, a recap with Drillers, Slab Bearers, Rock Hurlers, Cinder
 Priests, every squad, then the exam (the Avalanche and a big Landslip).
 
-The **Storm Herald** has the start of one (waves 36-39): the **Squall**, a storm front walking ahead of it, six of its eight enemies so far.
+The **Storm Herald** has one (waves 36-39): the **Squall**, a storm front walking ahead of it, all eight of its enemies.
 Squads: **Squall line** (a Squall Gunner and six Dust Devils) and, from wave 37, **Storm cell** (two Stormcallers and three Dust Devils) and
-**Power line** (two Pylon pairs); from wave 38, **Grounding wall** (two Grounders with three Stormcallers behind).
+**Power line** (two Pylon pairs); from wave 38, **Grounding wall** (two Grounders with three Stormcallers behind) and **Supercell** (a
+Thunderhead, a Lineman and three Dust Devils).
 
 | From | The Storm Herald's faction (the Squall) | Previews | What it does |
 |---|---|---|---|
@@ -700,10 +701,12 @@ Squads: **Squall line** (a Squall Gunner and six Dust Devils) and, from wave 37,
 | 37 | **Stormcaller** | Strikes | A robed caller with a staff. Keeps 300 px away; every 2.8 s an **amber ring** (40 px) fills under you for 1.1 s, then **lightning** strikes it (20). Step out of the ring |
 | 37 | **Grounder** | Thunderclap | Walks in behind a **copper shield** that turns slowly. Shots on its face are **grounded** (no damage) and charge it (a blue arc fills along the shield); at 12 it **claps a ring** of 14 shots back with **two gaps** either side of its front. Flank it |
 | 37 | **Pylon** (pair) | Lightning rods | Two posts that walk to **either side of you** and plant. Three times: the **arc** between them flickers 0.6 s, then **fires along the line** (18); then they walk again. Kill either and the line is gone. At most two pairs a wave |
+| 37 | **Thunderhead** | Downburst | A slow, heavy **storm cloud** (220 health, can't be shoved, contact 20) that walks at you. Within 380 px, every 2.6 s it flashes and drops a **row of three strikes** (30 px) ahead of it toward you, landing **nearest first** 1, 1.2 and 1.4 s later (20 each). Sidestep the row, don't run along it |
+| 38 | **Ball Lightning** | Ball lightning | The Herald's own orb (70 health) in its waves: it drifts at you, two within 200 px **arc** to each other (20), and each **pops into 8 shots** after 6 s. Slows and freezes hold it. Kill them far from you and don't walk between two. At most 4 a wave |
 | 38 | **Lineman** | the Conductor | Keeps 260 px away. Every 5.5 s it **marks** the nearest player: an amber ring (120 px) with a countdown. After 2.6 s the charge **jumps to every ally in the ring** (16 each) and 8 shots burst out from each of them; alone, it only bursts. The marked player walks away from the team |
 
-They are drawn as in `Docs/Mockups/storm-herald-faction.html`, in the Herald's colours. Two more (Thunderhead, Ball Lightning), the Storm front
-set piece and its ten-wave cycle come in later steps (`Docs/StormFaction.md`).
+They are drawn as in `Docs/Mockups/storm-herald-faction.html`, in the Herald's colours. The Storm front set piece and its ten-wave cycle
+come next (`Docs/StormFaction.md`).
 
 | From | The Colossus's faction | Plays like | What it does |
 |---|---|---|---|

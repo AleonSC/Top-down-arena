@@ -1,9 +1,9 @@
 # The Storm Herald's faction: the Squall
 
-**Status: steps 1-2 built** (protocol 339): six enemies (Dust Devil, Squall Gunner, Stormcaller, Grounder, Pylon pair, Lineman) and four squads
-(Squall line, Storm cell, Power line, Grounding wall). Code: `Core/Squall.cs`,
+**Status: steps 1-3 built** (protocol 339): all eight enemies and five squads (Squall line, Storm cell, Power line, Supercell, Grounding
+wall). Step 4 (the Storm front set piece and the ten lessons) is next. Code: `Core/Squall.cs`,
 `Core/Approaches.cs` (the Storm Herald `FactionDef`), `Core/Defs.cs`, `Core/LateGame.cs` (`HazardCaller` in `TickHazards`), `Game/SquallLook.cs`;
-mockup `Docs/Mockups/storm-herald-faction.html`; test suite `squall`; previews `SQUALL=0.4 ZOOM=1.7 Tools/Preview/shot.sh x hud 1` (step 1), `SQUALL2=0.4 ZOOM=1.7 ...` (step 2).
+mockup `Docs/Mockups/storm-herald-faction.html`; test suite `squall`; previews `SQUALL=0.4 ZOOM=1.7 Tools/Preview/shot.sh x hud 1` (step 1), `SQUALL2=0.4 ZOOM=1.7 ...` (step 2), `SQUALL3=0.4 ZOOM=1.7 ...` (step 3).
 
 A storm front walking ahead of the Herald, the same size as the Warden's faction: eight enemies, four squads, a set piece and a ten-wave cycle.
 Like the Infall, each has its own behaviour and previews one of the Herald's attacks. Until now the Herald got the basic faction.
@@ -16,8 +16,8 @@ Like the Infall, each has its own behaviour and previews one of the Herald's att
 | Grounder | Riot Shield | Thunderclap: its copper shield grounds your shots; full, it lets go a ring with two gaps | 2 (built) |
 | Pylon pair | Security Guard | Lightning rods: two posts, an arc that flickers 0.6 s then fires along the line | 2 (built) |
 | Lineman | Taser Guard | the Conductor: marks a player; the charge jumps to allies in the ring | 2 (built) |
-| Thunderhead | Thug | Downburst: a slow cloud that drops a row of strikes ahead of it | 3 |
-| Ball Lightning | Shiv | Ball lightning: the Herald's orb, fixed to work without it | 3 |
+| Thunderhead | Thug | Downburst: a slow cloud that drops a row of strikes ahead of it | 3 (built) |
+| Ball Lightning | Shiv | Ball lightning: the Herald's orb, fixed to work without it | 3 (built) |
 
 ## Decisions
 
@@ -51,6 +51,13 @@ Like the Infall, each has its own behaviour and previews one of the Herald's att
      `SeenT`). Then `Conduct`: with allies within 120 px, everyone in the ring takes 16 and bursts 8 shots; alone, the marked player only bursts.
    - Decided here: the Grounder's gaps sit off to the sides (not in front), so the shooter in front has to step into one; the Lineman's mark is
      instant after its wind-up (no projectile to dodge), as the Herald's Conductor is.
-3. **Thunderhead, Ball Lightning**: squad **Supercell** (Thunderhead, Lineman, three Dust Devils); the Ball Lightning fixes.
+3. **Thunderhead, Ball Lightning** (built): squad **Supercell** (a Thunderhead, a Lineman, three Dust Devils, from wave 3).
+   - Thunderhead: 220 health, 55 px/s, heavy (no shoves), contact 20. Within 380 px, every 2.6 s (`TickThunderhead`) it drops three 30 px
+     strikes 55 px apart starting 80 px ahead of it toward you, landing 1, 1.2 and 1.4 s later (Hazards of kind `HazardDownburst`, 20 each,
+     drawn amber, landing in `CallerStrike`); Phase 1 while they're coming (it flashes).
+   - Ball Lightning: still the Herald's `EnemyType.BallLightning` and its code in `TickHerald` (it already ran with no Herald). Fixed: slows
+     and freezes hold it (a frozen one stays put, its timer still runs); one the Herald didn't make (`HeraldBall`) pops into its own shots
+     (not boss shots) and its arcs are named "Ball Lightning (arc)"; it pays 9 XP (`BallWaveXp`, the Herald's stay at 2). At most four a
+     wave (`CapBeams`; spare ones become Dust Devils). Job: Disruptor.
 4. **The Storm front** set piece (six Stormcallers and two Grounders; a wall of strikes sweeps across with a two-strike gap that drifts) and
    the ten lessons in the Warden's order (`FactionDef.Lessons`), as in the mockup's table.

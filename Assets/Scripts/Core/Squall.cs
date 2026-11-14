@@ -3,7 +3,7 @@ using System;
 namespace Arena
 {
     /// The Storm Herald's faction, the Squall (Docs/StormFaction.md, mockup Docs/Mockups/storm-herald-faction.html; drawn in
-    /// Game/SquallLook.cs). Each enemy previews one of the Herald's attacks. Steps 1 and 2 have six:
+    /// Game/SquallLook.cs). Each enemy previews one of the Herald's attacks. Steps 1-3 have all eight:
     ///   Dust Devil (the Gale's wind): a melee whirlwind that weaves in (a sway across your line, Enemy.Strafe its side).
     ///     A touch hurts and shoves you DevilShove px the way it was going; then it veers off for DevilVeer s (Phase 1).
     ///   Squall Gunner (Crosswind): keeps GunnerRange and strafes; every GunnerEvery s it fires three shots GunnerLead rad
@@ -23,12 +23,22 @@ namespace Arena
     ///   Lineman (the Conductor): keeps LineRange; when it fires it hooks the player it aims at (Enemy.LinkId is that
     ///     player's id, Phase 1 for LineMark s). When the mark runs out the charge jumps to every other player within
     ///     LineRing px: each of them and the marked player take LineDamage and burst LineBurst shots. Alone, it only bursts.
+    ///   Thunderhead (Downburst): a slow, heavy storm cloud that walks at you. Within HeadReach px, every HeadEvery s it
+    ///     drops a row of HeadRow strikes (Hazards of kind HazardDownburst, HeadRadius) ahead of it toward you, HeadGap px
+    ///     apart, landing one after another (HeadWarn, then HeadStep apart). Phase 1 while its row is coming (it flashes).
+    ///   Ball Lightning (Ball lightning): the Herald's own orb (Herald.cs: it drifts at you, arcs to another within
+    ///     BallArcRange, pops into 8 after BallLife s), made to work as a wave enemy too: slows and freezes hold it, and the
+    ///     shots and arcs of one that didn't come from the Herald are its own, not the boss's. A wave's pay BallWaveXp.
     public partial class Game
     {
         public const float DevilShove = 120f, DevilVeer = 0.7f, DevilSway = 0.55f;
         public const float GunnerRange = 260f, GunnerEvery = 2.2f, GunnerLead = 0.45f, GunnerShotSpeed = 220f, GunnerFan = 0.06f;
         public const float CallerRange = 300f, CallerEvery = 2.8f, CallerRadius = 40f, CallerWarn = 1.1f;
         public const byte HazardCaller = 2;  // a Stormcaller's strike (Hazard.Kind; HazardLightning and HazardHand are in Lich.cs)
+        public const byte HazardDownburst = 3;  // a Thunderhead's row
+        public const float HeadReach = 380f, HeadEvery = 2.6f, HeadRadius = 30f, HeadGap = 55f, HeadAhead = 80f, HeadWarn = 1f, HeadStep = 0.2f;
+        public const int HeadRow = 3, MaxBalls = 4;  // at most MaxBalls Ball Lightning a wave (CapBeams in Variety.cs)
+        public const float BallWaveXp = 9f;  // a wave's Ball Lightning pays like a Shiv (the Herald's own pay their Def's 2)
         float CallerDamage => 20f;  // the difficulty's per-wave damage growth scales it, like the Herald's 25
 
         public const float GrounderTurn = 1.4f, GrounderArc = 1.15f, GrounderRange = 150f, ClapSpeed = 170f;
@@ -41,7 +51,7 @@ namespace Arena
         float LineDamage => 16f;
         public const byte PylonWalking = 0, PylonQuiet = 1, PylonFlicker = 2, PylonFiring = 3;
 
-        public static bool IsSquall(EnemyType t) => t >= EnemyType.DustDevil && t <= EnemyType.Lineman;
+        public static bool IsSquall(EnemyType t) => t >= EnemyType.DustDevil && t <= EnemyType.Thunderhead;
         readonly System.Collections.Generic.Dictionary<int, int> pylonArcs = new System.Collections.Generic.Dictionary<int, int>();  // host: arcs fired this plant, by leader
         bool pylonPairing;  // host: SpawnEnemyAt is making a partner
 
@@ -99,6 +109,8 @@ namespace Arena
                     return KeepDistance(dir, dist, GrounderRange);
                 case EnemyType.Lineman:
                     return KeepDistance(dir, dist, LineRange) + dir.Orthogonal() * e.Strafe * 0.5f;
+                case EnemyType.Thunderhead:
+                    return dir;  // straight at you, slowly
                 case EnemyType.Pylon:
                 {
                     var o = PylonPartner(e);
@@ -130,6 +142,9 @@ namespace Arena
             {
                 case EnemyType.Pylon:
                     TickPylon(e, tpos, dt);
+                    break;
+                case EnemyType.Thunderhead:
+                    TickThunderhead(e, tpos, dt);
                     break;
                 case EnemyType.Lineman:
                     if (e.Phase != 1)
@@ -353,12 +368,32 @@ namespace Arena
             BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(aim + side * s) * (e.Radius + 8f), new Rgba(0.56f, 0.82f, 1f), 14f, 0.15f, Sfx.EnemyShot);
         }
 
-        /// A Stormcaller's strike landing (TickHazards): the Herald's bolt, its own damage and name.
+        /// A Thunderhead: every HeadEvery s while you're within HeadReach, a row of strikes ahead of it toward you.
+        void TickThunderhead(Enemy e, V2 tpos, float dt)
+        {
+            e.PhaseT -= dt;
+            if (e.Phase == 1 && e.PhaseT <= 0f)
+            {
+                e.Phase = 0;
+                e.PhaseT = HeadEvery - HeadWarn - HeadStep * (HeadRow - 1);
+            }
+            if (e.Phase != 0 || e.PhaseT > 0f || e.T < 1f || tpos.DistanceTo(e.Pos) > HeadReach || e.FrozenT > 0f || e.DazeT > 0f)
+                return;
+            V2 dir = (tpos - e.Pos).Normalized();
+            for (int k = 0; k < HeadRow; k++)
+                AddHazard(e.Pos + dir * (e.Radius + HeadAhead + k * HeadGap), HeadRadius, HeadWarn + k * HeadStep).Kind = HazardDownburst;
+            e.Phase = 1;
+            e.PhaseT = HeadWarn + HeadStep * (HeadRow - 1);
+            BroadcastSound(Sfx.BossCharge);
+        }
+
+        /// A Stormcaller's or a Thunderhead's strike landing (TickHazards): the Herald's bolt, its own damage and name.
         void CallerStrike(Hazard h)
         {
+            string who = h.Kind == HazardDownburst ? "Thunderhead (downburst)" : "Stormcaller (lightning)";
             foreach (var p in Players.Values)
                 if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(h.Pos) < h.Radius)
-                    Damage(p, CallerDamage, "Stormcaller (lightning)");
+                    Damage(p, CallerDamage, who);
             var color = new Rgba(1f, 0.85f, 0.5f);
             BroadcastFx(FxKind.Bolt, new V2(h.Pos.X + Rand(-40f, 40f), h.Pos.Y - 260f), h.Pos, color, 0f, 0.22f, Sfx.SpellZap);
             BroadcastFx(FxKind.Boom, h.Pos, color, h.Radius, 0.3f, Sfx.None);

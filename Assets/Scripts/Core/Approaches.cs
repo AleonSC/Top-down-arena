@@ -269,7 +269,7 @@ namespace Arena
             },
             new FactionDef
             {
-                Boss = EnemyType.StormHerald,  // the Storm Herald: the Squall, a storm front walking ahead of it (Squall.cs, Docs/StormFaction.md); steps 1-2 of 4
+                Boss = EnemyType.StormHerald,  // the Storm Herald: the Squall, a storm front walking ahead of it (Squall.cs, Docs/StormFaction.md); steps 1-3 of 4
                 Members = new[]
                 {
                     new FactionMember { Type = EnemyType.DustDevil, Weight = 3f },
@@ -278,15 +278,18 @@ namespace Arena
                     new FactionMember { Type = EnemyType.Stormcaller, Fade = 0, Weight = 1.5f, From = 2 },  // calls strikes under you (Strikes)
                     new FactionMember { Type = EnemyType.Lineman, Fade = 0, Weight = 1.5f, From = 3 },  // marks a player, the charge jumps to allies (the Conductor)
                     new FactionMember { Type = EnemyType.Pylon, Fade = 1, Weight = 1.5f, From = 2 },  // a pair, an arc between them (Lightning rods)
+                    new FactionMember { Type = EnemyType.Thunderhead, Fade = 2, Weight = 1.5f, From = 2 },  // rows of strikes ahead of it (Downburst)
+                    new FactionMember { Type = EnemyType.BallLightning, Fade = 2, Weight = 1f, From = 3 },  // the Herald's orb: arcs, then pops (Ball lightning)
                 },
                 Squads = new[]
                 {
                     new SquadDef { Name = "Squall line", From = 1, Members = new[] { EnemyType.SquallGunner, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil } },
                     new SquadDef { Name = "Storm cell", From = 2, Members = new[] { EnemyType.Stormcaller, EnemyType.Stormcaller, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil } },
                     new SquadDef { Name = "Power line", From = 2, Members = new[] { EnemyType.Pylon, EnemyType.Pylon } },  // (two pairs)
+                    new SquadDef { Name = "Supercell", From = 3, Members = new[] { EnemyType.Thunderhead, EnemyType.Lineman, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil } },
                     new SquadDef { Name = "Grounding wall", From = 3, Members = new[] { EnemyType.Grounder, EnemyType.Grounder, EnemyType.Stormcaller, EnemyType.Stormcaller, EnemyType.Stormcaller } },
                 },
-                // No set piece or lesson cycle yet (steps 3-4): the Campaign builds its waves by reach, as the Infall's step 1 did.
+                // No set piece or lesson cycle yet (step 4): the Campaign builds its waves by reach, as the Infall's step 1 did.
             },
             new FactionDef
             {
@@ -542,6 +545,8 @@ namespace Arena
                 return RioterFodderXp;
             if (BossNow && e.Type == EnemyType.Guard)
                 return GuardFodderXp;
+            if (e.Type == EnemyType.BallLightning && !HeraldBall(e))
+                return BallWaveXp;  // a wave's pays like a Shiv; the Herald's own stay cheap (Squall.cs)
             return e.Def.Xp;
         }
 

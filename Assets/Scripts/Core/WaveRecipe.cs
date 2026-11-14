@@ -70,7 +70,7 @@ namespace Arena
                 return EnemyJob.Zoner;
             if (t == EnemyType.Grounder)
                 return EnemyJob.Anchor;  // the Storm Herald's shield (Squall.cs)
-            if (t == EnemyType.WhiteDwarf || t == EnemyType.Nova)
+            if (t == EnemyType.WhiteDwarf || t == EnemyType.Nova || t == EnemyType.BallLightning)
                 return EnemyJob.Disruptor;  // (the Eclipse's Nova: Penumbral.cs)  // the Singularity's White Dwarf (Infall.cs)
             return d.Melee ? EnemyJob.Hunter : EnemyJob.Pressure;  // the rest (boss adds, factions, zombies) by whether they shoot
         }
