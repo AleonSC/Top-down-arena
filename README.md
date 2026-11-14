@@ -1039,6 +1039,15 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   breaches (red, chevrons pointing in), gates (an orange laser grid, faint while open) and portals (rings joined by a dotted line), each named in the map key; on the right your vectors with a
   bar showing what the drawing would spend, the tool's three steps (the one you're on lit gold), what's wrong or what it costs, the room
   types (Plain plus the unlocked floors, two to a row; the picked one says what it does), and **Build**/**Undo** and **Done**.
+- **Pushing walls**: between waves (free building), walk up to an outer wall and a **C · PUSH WALL** chip shows over you, with that
+  wall lit. Press **C** and the mouse picks a section of the wall, lit gold, with the next row of tiles as a ghost past it; the
+  **mouse wheel** sets its width (2-10 tiles; it is cut to the plain wall there). **Left click** pushes it out one tile for
+  **1 vector per tile of width**; the selection stays on the new face, so click again to push further, or **hold** to keep pushing.
+  A section goes at most **12 tiles** out, stays a tile off other rooms, and the wall must be within 7 tiles of you (walk into the new
+  space to keep going). The label says what the next push costs and how far out it is, or in red why it can't go (*Walk closer*,
+  *Need 4 vectors*, *Too close to another room*, *12 tiles out is the limit*). The camera leans toward the wall and past the map's
+  edge while you push. **Right click** or **C** stops. A pushed section is part of the room it came from (the room kits change it with
+  that room) and doesn't count towards the room cap. Floating rooms (shop, vendor, Gatekeeper) can't be pushed. Design: `Docs/WallPush.md`.
 - **Room kits**: a one-use modifier the team holds (up to 6; the build chip counts them). Spend one in a building round
   (**Room kits** button on the build window): pick a kit, click a plain Combat room, and it becomes a **Shop** room or a **Floor**
   room (a path's ground and rules inside that room only, and its XP bonus). One change per room, permanent; floating rooms keep their job.
@@ -1438,6 +1447,7 @@ The file is a Practice setup with a few extra lines first, and is documented in 
 | Ultimate | F |
 | Take / discard your chest item (standing on it) | G / X |
 | Gadget: tap to switch on / off, hold and let go to throw it where you aim | B |
+| Push a wall (the Expanding arena, between waves, by a wall) | C (rebindable): left click pushes the lit section out a tile, hold to keep pushing, wheel sets its width, right click or C again stops |
 | Bonus abilities | Q, E and Shift (once unlocked). When a card gives you one, choose its key on the card screen; move them between keys any time in the Tab menu (cooldowns move with them) |
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R (twice: the first arms it) |

@@ -220,6 +220,7 @@ namespace Arena
                 DrawHazard(h, t);
             DrawLayout(t);  // the floor plan's walls, pillars and edge gates (LayoutLook.cs)
             DrawGates();     // the Expanding arena's shutter gates: a red laser grid when shut (GateLook.cs)
+            DrawWallPush();  // push mode: the lit wall section and the next row (WallPushLook.cs)
             DrawBreaches();  // the Expanding arena's breaches: a red hologram barrier in each (BreachLook.cs)
             DrawTourFlash();  // the breach warning's flash on the breach the camera is on (BreachTour.cs)
             DrawProps(t);  // crates, pots, barrels and the chest (PropsLook.cs)

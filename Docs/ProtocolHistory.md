@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 349: `Msg.WallPush` (client -> host: area, side, start, width), pushed wall sections (`ExpansionRoom.Leg` 15) in the room list (Docs/WallPush.md step 1)
 - 348: the Shuriken's Great Star stance: `Msg.StarThrow` (client -> host: count + route points; host -> all: bullet id, owner, count, points), `Player.StarStance` in the player snapshot (before `FumaStance`), bullet kind `Defs.GreatStar` = 67, `Sfx.GreatStarThrow`/`GreatStarCatch` at the end
 - 347: `FxKind.Shockwave` added at the end (the Shockwave ability's travelling wave; Core/Shockwave.cs)
 - 346: enemy variants: `SyncEnemy` sends `Enemy.Variant` (a byte, after the daze flag; EnemyVariants.cs)

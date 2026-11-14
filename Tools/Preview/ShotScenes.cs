@@ -1636,6 +1636,28 @@ static partial class Shot {
         if (bb.Length > 0 && Environment.GetEnvironmentVariable("BREACHAT") != null) { int bi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = bb[0].Pos + bb[0].In * (90f + 40f * bi) + bb[0].Along * (bi * 60f - 30f); bi++; } }
       }
       MockBreachRooms(xg);
+      string xpush = Environment.GetEnvironmentVariable("PUSHES");  // PUSHES=area,side,start,width,times;...: walls pushed out (Docs/WallPush.md; side 0 W, 1 E, 2 N, 3 S; a section grows when pushed again, area = its index + 1)
+      if (xpush != null) {
+        foreach (var part in xpush.Split(';')) {
+          var q = Array.ConvertAll(part.Split(','), int.Parse);
+          var wpp = new WallPush { Area = (short)q[0], Side = (byte)q[1], Start = (short)q[2], Width = (byte)q[3] };
+          for (int k = 0; k < (q.Length > 4 ? q[4] : 1); k++) {
+            int pidx, pcost; string pwhy;
+            var pb = Expansion.Push(xg.Expanded, wpp, out pidx, out pcost, out pwhy);
+            if (!pb.HasValue) { Console.Error.WriteLine("push refused: " + pwhy); break; }
+            var pbv = pb.Value; pbv.Owner = 1;
+            if (pidx < 0) { xg.Expanded.Add(pbv); wpp.Area = (short)xg.Expanded.Count; } else xg.Expanded[pidx] = pbv;
+          }
+        }
+        typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
+      }
+      if (Environment.GetEnvironmentVariable("PUSHHINT") != null) xg.ExpandOpen = true;  // PUSHHINT=1: between waves (a building round), so the Push wall prompt shows by a wall in reach
+      string xsel = Environment.GetEnvironmentVariable("PUSHSEL");  // PUSHSEL=x,y: push mode on, the mouse over that world point (PUSHW=<width>, default 4); put yourself in reach with EXPANDAT
+      if (xsel != null) {
+        var q = Array.ConvertAll(xsel.Split(','), float.Parse); ArenaApp.PushMouseOverride = new V2(q[0], q[1]); typeof(ArenaApp).GetField("pushOn", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, true);
+        if (Environment.GetEnvironmentVariable("PUSHW") != null) typeof(ArenaApp).GetField("pushWidth", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, int.Parse(Environment.GetEnvironmentVariable("PUSHW")));
+        xg.ExpandOpen = true;
+      }
       string fp = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: where you stand (default the hub)
       if (fp != null) { var q = fp.Split(','); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(float.Parse(q[0], System.Globalization.CultureInfo.InvariantCulture), float.Parse(q[1], System.Globalization.CultureInfo.InvariantCulture)); }
     }

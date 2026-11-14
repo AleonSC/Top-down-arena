@@ -60,6 +60,7 @@ namespace Arena
         HuntMapState, // host -> all: the hunt map: its seed, the nodes cleared, the one being fought, and the vote on the next so far (HuntMapGame.cs)
         HuntMapVote,  // client -> host: this player's vote on the next node (its index in the row, -1 for none) and whether they have locked it in (HuntMapGame.cs)
         StarThrow,    // client -> host: the Shuriken's Great Star thrown along a drawn route (a byte count, then the points); host -> all: (bullet id, owner, count, points) to fly it along (GreatStar.cs)
+        WallPush,     // client -> host: push a stretch of wall out a tile (area, side, start, width) (Docs/WallPush.md, ExpansionPush.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -122,7 +123,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 348;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 349;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -651,6 +652,9 @@ namespace Arena
                     break;
                 case Msg.ExpandOutline:
                     Game.OnExpandOutline(peer, r);
+                    break;
+                case Msg.WallPush:
+                    Game.OnWallPush(peer, r);
                     break;
                 case Msg.PlaceBuild:
                     Game.OnPlaceBuild(peer, r);

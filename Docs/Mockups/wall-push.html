@@ -1,0 +1,809 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wall Push Build</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Share+Tech+Mono&display=swap">
+<style>
+/* Layout: playable stage on the left, a slim rules rail on the right; stacks at phone width. One dark CRT world, like the game. */
+:root{
+  --bg:#070b10; --panel:#0c131a; --line:#1b2a36; --ink:#cfe8ff; --dim:#7f98a8;
+  --cyan:#4de1ff; --gold:#ffc94d; --red:#ff5a6a;
+  --display:"Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --mono:"Share Tech Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme:dark;
+}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--mono);font-size:14px;line-height:1.5;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 28px}
+.wrap{max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px}
+h1{font-family:var(--display);font-weight:700;font-size:1.6rem;letter-spacing:.06em;margin:0;text-transform:uppercase;text-wrap:balance}
+h1 span{color:var(--cyan)}
+.sub{color:var(--dim)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.stage{position:relative;border:1px solid var(--line);background:#04070a;aspect-ratio:16/9;max-width:100%;overflow:hidden}
+canvas{display:block;width:100%;height:100%;outline:none;cursor:crosshair}
+canvas:focus-visible{box-shadow:inset 0 0 0 2px var(--cyan)}
+.rail{display:flex;flex-direction:column;gap:12px;min-width:0}
+.box{background:var(--panel);border:1px solid var(--line);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.box h2{font-family:var(--display);font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:0;font-weight:600}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:5px 10px;align-items:center;margin:0}
+.keys dt{justify-self:start}
+.keys dd{margin:0;color:var(--ink)}
+kbd{font-family:var(--mono);font-size:12px;border:1px solid #2c4454;border-bottom-width:2px;padding:0 6px;color:var(--cyan);background:#08121a;white-space:nowrap}
+.seg{display:flex;flex-direction:column;gap:6px}
+.seg button{all:unset;cursor:pointer;border:1px solid var(--line);padding:6px 9px;display:flex;flex-direction:column;gap:1px}
+.seg button b{font-family:var(--display);font-weight:600;letter-spacing:.04em}
+.seg button small{color:var(--dim);font-size:12px}
+.seg button[aria-pressed="true"]{border-color:var(--gold);background:#1a1508}
+.seg button[aria-pressed="true"] b{color:var(--gold)}
+.seg button:focus-visible,.row button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.reset{all:unset;position:absolute;top:10px;right:10px;cursor:pointer;background:rgba(5,10,14,.9);border:1px solid var(--gold);color:var(--gold);padding:4px 10px;font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.06em;display:flex;gap:8px;align-items:center}
+.reset:hover{background:#1a1508}
+.reset:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.reset kbd{color:var(--gold);border-color:#5a4a1e;background:transparent}
+.pills button{all:unset;cursor:pointer;border:1px solid var(--line);padding:3px 9px;font-size:12px;color:var(--dim)}
+.pills button[aria-pressed="true"]{border-color:var(--cyan);color:var(--cyan);background:#08161d}
+.pills button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.row button{all:unset;cursor:pointer;border:1px solid #2c4454;padding:5px 10px;color:var(--cyan);font-size:13px}
+.row button:hover{background:#0b1c25}
+ul{margin:0;padding-left:16px;display:flex;flex-direction:column;gap:3px}
+li::marker{color:var(--cyan)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-variant-numeric:tabular-nums}
+.stats div{display:flex;flex-direction:column}
+.stats b{font-family:var(--display);font-size:1.25rem;color:var(--ink)}
+.stats small{color:var(--dim);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.note{color:var(--dim);font-size:12px}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Wall <span>Push</span> Build</h1>
+    <div class="sub">Walk up to a wall, pick a section, click to push it out a tile at a time for vectors.</div>
+  </header>
+
+  <div class="grid">
+    <div class="stage"><button id="bReset2" class="reset" title="Reset the room (R)">↺ Reset <kbd>R</kbd></button><canvas id="cv" tabindex="0" aria-label="Playable mockup: walk with WASD, press F at a wall, click to push the wall out"></canvas></div>
+
+    <div class="rail">
+      <section class="box">
+        <h2>Controls</h2>
+        <dl class="keys">
+          <dt><kbd>WASD</kbd></dt><dd>Walk</dd>
+          <dt><kbd>F</kbd></dt><dd>At a wall: start / stop pushing</dd>
+          <dt><kbd>Mouse</kbd></dt><dd>Pick the section</dd>
+          <dt><kbd>Wheel</kbd> <kbd>[ ]</kbd></dt><dd>Section width (2–10)</dd>
+          <dt><kbd>Click</kbd> <kbd>Space</kbd></dt><dd>Push 1 tile. Hold to keep pushing</dd>
+          <dt><kbd>RMB</kbd> <kbd>Esc</kbd></dt><dd>Done</dd>
+        </dl>
+      </section>
+
+      <section class="box">
+        <h2>Cost per push</h2>
+        <div class="seg" id="rules">
+          <button id="rA" data-r="A" aria-pressed="true"><b>Floor gained</b><small>1 vector per new floor tile (width)</small></button>
+          <button id="rB" data-r="B" aria-pressed="false"><b>New wall only</b><small>2 vectors: the two side walls grow 1 tile</small></button>
+          <button id="rC" data-r="C" aria-pressed="false"><b>Rising</b><small>Width, +1 for every 4 tiles out</small></button>
+        </div>
+      </section>
+
+      <section class="box">
+        <h2>Room features</h2>
+        <div class="pills" id="feats">
+          <button data-f="rolled" aria-pressed="true">Rolled</button>
+          <button data-f="fins" aria-pressed="false">Fins</button>
+          <button data-f="baffles" aria-pressed="false">Baffles</button>
+          <button data-f="pincers" aria-pressed="false">Pincers</button>
+          <button data-f="tfins" aria-pressed="false">T-fins</button>
+          <button data-f="divider" aria-pressed="false">Divider</button>
+          <button data-f="cover" aria-pressed="false">Cover</button>
+          <button data-f="off" aria-pressed="false">Off</button>
+        </div>
+        <div class="note">Each new section rolls one feature (seeded). Pieces build in 2 rows behind the face, so the spot you're pushing stays clear and a divider grows a tile per push.</div>
+      </section>
+
+      <section class="box">
+        <h2>This mockup's rules</h2>
+        <ul>
+          <li>Selection snaps to one straight face, 2–10 tiles.</li>
+          <li>After a push the selection rides the new face, so you can keep clicking.</li>
+          <li>Reach is 7 tiles: walk into the new space to push further.</li>
+          <li>Max 12 tiles out; stays 1 tile off other rooms and the map edge.</li>
+          <li>Features need 4+ wide (Baffles, Divider 5+; Pincers 6+). They never close the lane.</li>
+        </ul>
+      </section>
+
+      <section class="box">
+        <h2>This room</h2>
+        <div class="stats">
+          <div><b id="sPush">0</b><small>Pushes</small></div>
+          <div><b id="sTiles">0</b><small>Tiles</small></div>
+          <div><b id="sSpent">0</b><small>Spent</small></div>
+          <div><b id="sObs">0</b><small>Pieces</small></div>
+        </div>
+        <div class="row">
+          <button id="bPack" hidden>+20 vectors</button>
+          <button id="bReset">Reset room</button>
+        </div>
+        <div class="note">Browser mockup: glow and fonts are approximate, not the Unity draw code.</div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const T = 24, WALL = 7, W = 64, H = 40, REACH = 7, MAXD = 12, CAP = 70;
+const DX = [1,0,-1,0], DY = [0,1,0,-1];
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const C = { cyan:'#4de1ff', gold:'#ffc94d', red:'#ff5a6a', ink:'#cfe8ff', dim:'#7f98a8', amber:'#ffb347' };
+
+let g, orig, grow, edges, vectors, rule = 'A', stats, pickups, parts, floats, shake;
+let obstacles = [], bays = [], featMode = 'rolled', curBay = null;
+const player = { x:0, y:0, r:9, vx:0, vy:0 };
+const cam = { x:0, y:0, z:1 };
+const keys = {};
+const mouse = { sx:0, sy:0, has:false, down:false, nextRep:0 };
+let build = false, sel = null, locked = false, lockAt = null, width = 4;
+
+const idx = (x,y) => x + y*W;
+const inb = (x,y) => x>=0 && y>=0 && x<W && y<H;
+const at = (x,y) => inb(x,y) ? g[idx(x,y)] : 2;
+const floorAt = (x,y) => at(x,y) === 1;
+
+function reset(example = true) {
+  g = new Uint8Array(W*H); orig = new Uint8Array(W*H); grow = new Map();
+  for (let y=12; y<=27; y++) for (let x=20; x<=39; x++) { g[idx(x,y)] = 1; orig[idx(x,y)] = 1; }
+  // the Vendor room to the north-east, with a 1-tile no-build buffer round it
+  for (let y=1; y<=11; y++) for (let x=44; x<=56; x++) g[idx(x,y)] = 2;
+  for (let y=2; y<=10; y++) for (let x=45; x<=55; x++) g[idx(x,y)] = 3;
+  obstacles = []; bays = []; curBay = null;
+  vectors = CAP; stats = { push:0, tiles:0, spent:0 };
+  player.x = 30*T; player.y = 14*T;
+  // an example section already pushed 9 tiles out of the east wall, with Baffles
+  if (example) {
+    const s0 = { d:0, line:39, start:16, w:8 }, b = bayFor(s0); b.style = 'baffles';
+    for (let i=0;i<9;i++) {
+      for (const [x,y] of selTiles(s0)) g[idx(x+1,y)] = 1;
+      s0.line++; b.depth++; decorate(b, b.depth, -1e9);
+      stats.push++; stats.tiles += 8; stats.spent += 8;
+    }
+  }
+  player.x = 30*T; player.y = 14*T;
+  cam.x = player.x; cam.y = player.y;
+  pickups = [];
+  parts = []; floats = []; shake = 0;
+  build = true; locked = false; sel = null; width = 4;
+  rebuildEdges(); syncStats();
+}
+
+function spawnPickup() {
+  const fl = []; for (let i=0;i<W*H;i++) if (g[i]===1) fl.push(i);
+  for (let tries=0; tries<40; tries++) {
+    const i = fl[(Math.random()*fl.length)|0], x = (i%W+.5)*T, y = ((i/W|0)+.5)*T;
+    if (Math.hypot(x-player.x, y-player.y) > 5*T) { pickups.push({ x, y, amt: Math.random()<.25 ? 12 : 6, t: performance.now() }); return; }
+  }
+}
+
+function rebuildEdges() {
+  edges = [];
+  for (let y=0;y<H;y++) for (let x=0;x<W;x++) if (g[idx(x,y)]===1)
+    for (let d=0; d<4; d++) if (!floorAt(x+DX[d], y+DY[d])) edges.push({x,y,d});
+}
+
+function syncStats() {
+  document.getElementById('sPush').textContent = stats.push;
+  document.getElementById('sTiles').textContent = stats.tiles;
+  document.getElementById('sSpent').textContent = stats.spent;
+  document.getElementById('sObs').textContent = obstacles.length;
+}
+
+// ---------- geometry ----------
+const ease = t => 1 - Math.pow(1-t, 3);
+function tileRect(x, y, now) {
+  let x0 = x*T, y0 = y*T, x1 = x0+T, y1 = y0+T;
+  const gr = grow.get(idx(x,y));
+  if (gr) {
+    const f = Math.min(1, (now - gr.t0) / 220);
+    if (f >= 1) grow.delete(idx(x,y));
+    else { const e = ease(f)*T;
+      if (gr.d===0) x1 = x0+e; else if (gr.d===2) x0 = x1-e; else if (gr.d===1) y1 = y0+e; else y0 = y1-e; }
+  }
+  return { x0, y0, x1, y1 };
+}
+function edgeSeg(e, now) {
+  const r = tileRect(e.x, e.y, now);
+  if (e.d===0) return [r.x1, r.y0, r.x1, r.y1];
+  if (e.d===2) return [r.x0, r.y0, r.x0, r.y1];
+  if (e.d===1) return [r.x0, r.y1, r.x1, r.y1];
+  return [r.x0, r.y0, r.x1, r.y0];
+}
+function distSeg(px,py, ax,ay,bx,by) {
+  const vx=bx-ax, vy=by-ay, t=Math.max(0,Math.min(1,((px-ax)*vx+(py-ay)*vy)/(vx*vx+vy*vy||1)));
+  return Math.hypot(px-ax-vx*t, py-ay-vy*t);
+}
+const tangent = d => (d===0||d===2) ? [0,1] : [1,0];
+function isFace(x, y, d) { return floorAt(x,y) && !floorAt(x+DX[d], y+DY[d]); }
+function faceRun(x, y, d) {
+  const [tx,ty] = tangent(d); let a=0, b=0;
+  while (isFace(x+tx*(a-1), y+ty*(a-1), d)) a--;
+  while (isFace(x+tx*(b+1), y+ty*(b+1), d)) b++;
+  const base = tx ? x : y;
+  return [base+a, base+b];
+}
+// selection: { d, line (source column/row), start, w }
+function selTiles(s) {
+  const out = [];
+  for (let k=0;k<s.w;k++) out.push((s.d===0||s.d===2) ? [s.line, s.start+k] : [s.start+k, s.line]);
+  return out;
+}
+function selCenter(s) {
+  const [tx,ty] = tangent(s.d), mid = s.start + s.w/2;
+  const fx = (s.d===0||s.d===2) ? (s.line + (s.d===0?1:0))*T : mid*T;
+  const fy = (s.d===1||s.d===3) ? (s.line + (s.d===1?1:0))*T : mid*T;
+  return [fx, fy];
+}
+function depthOf(x, y, d) {
+  let k = 0;
+  while (k < 60 && floorAt(x,y) && !orig[idx(x,y)]) { x -= DX[d]; y -= DY[d]; k++; }
+  return k;
+}
+
+function pickFromMouse(mx, my) {
+  let best = null, bd = 2.5*T;
+  for (const e of edges) {
+    const s = edgeSeg(e, 0);
+    const cx = (s[0]+s[2])/2, cy = (s[1]+s[3])/2;
+    if (Math.hypot(cx-player.x, cy-player.y) > REACH*T) continue;
+    const dd = distSeg(mx,my, ...s);
+    if (dd < bd) { bd = dd; best = e; }
+  }
+  if (!best) return null;
+  return fitSel(best.x, best.y, best.d, (best.d===0||best.d===2) ? Math.floor(my/T) : Math.floor(mx/T));
+}
+function fitSel(x, y, d, centre) {
+  const [a,b] = faceRun(x, y, d), len = b-a+1, w = Math.min(width, len);
+  const start = Math.max(a, Math.min(b-w+1, centre - Math.floor(w/2)));
+  return { d, line: (d===0||d===2) ? x : y, start, w, run: len };
+}
+
+// ---------- room features ----------
+const STYLES = { fins:'Fins', baffles:'Baffles', pincers:'Pincers', tfins:'T-fins', divider:'Divider', cover:'Cover' };
+const TH = 10/T;   // a feature wall's thickness, in tiles
+function rng(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a>>>15, 1 | a); t = t + Math.imul(t ^ t>>>7, 61 | t) ^ t; return ((t ^ t>>>14) >>> 0) / 4294967296; }; }
+const sgnOf = d => (d===0||d===1) ? 1 : -1;
+const vert = d => d===0||d===2;
+function stylesFor(w) {
+  return w>=6 ? ['fins','baffles','pincers','tfins','divider','cover'] : w>=5 ? ['fins','baffles','tfins','divider','cover'] : w>=4 ? ['fins','tfins','cover'] : [];
+}
+function rollStyle(w, seed) {
+  const ok = stylesFor(w);
+  if (featMode === 'off') return null;
+  if (featMode !== 'rolled') return ok.includes(featMode) ? featMode : null;
+  return ok.length ? ok[Math.floor(rng(seed)()*ok.length)] : null;
+}
+function findBay(s) {
+  for (const b of bays) if (b.d===s.d && b.start===s.start && b.w===s.w && s.line===b.line0 + sgnOf(b.d)*b.depth) return b;
+  return null;
+}
+function bayFor(s) {
+  const f = findBay(s); if (f) return f;
+  const seed = (Math.random()*1e9) | 0;
+  const b = { d:s.d, start:s.start, w:s.w, line0:s.line, depth:0, seed, style: rollStyle(s.w, seed), seg:null };
+  bays.push(b); return b;
+}
+// a box in a section's own frame: along the face [a0,a1) in tiles, out from the original face [u0,u1) in tiles
+function bayRect(b, a0, a1, u0, u1) {
+  const s = sgnOf(b.d), f0 = (b.line0 + (s>0?1:0))*T, o0 = f0 + s*u0*T, o1 = f0 + s*u1*T;
+  const lo = Math.min(o0,o1), hi = Math.max(o0,o1);
+  return vert(b.d) ? { x0:lo, x1:hi, y0:a0*T, y1:a1*T } : { x0:a0*T, x1:a1*T, y0:lo, y1:hi };
+}
+const overlap = (a, b, m) => a.x0 < b.x1+m && a.x1 > b.x0-m && a.y0 < b.y1+m && a.y1 > b.y0-m;
+function circRect(cx, cy, rad, q) {
+  const nx = Math.max(q.x0, Math.min(cx, q.x1)), ny = Math.max(q.y0, Math.min(cy, q.y1));
+  return Math.hypot(cx-nx, cy-ny) < rad;
+}
+function addObs(kind, r, from, now, force) {
+  if (!force) for (const o of obstacles) if (overlap(r, o.r, T*0.45)) return null;
+  if (circRect(player.x, player.y, player.r + 3, r)) return null;
+  const o = { kind, r, from: from || r, t0: now };
+  obstacles.push(o);
+  if (now > 0 && !reduce) {
+    const cx = (r.x0+r.x1)/2, cy = (r.y0+r.y1)/2;
+    for (let i=0;i<10;i++) { const a = Math.random()*Math.PI*2, v = 30+Math.random()*80;
+      parts.push({ x:cx, y:cy, vx:Math.cos(a)*v, vy:Math.sin(a)*v, t0:now, life:300+Math.random()*250 }); }
+  }
+  return o;
+}
+function obsRect(o, now) {
+  const f = ease(Math.max(0, Math.min(1, (now - o.t0) / 340)));
+  if (f >= 1) return o.r;
+  const L = (a,b) => a + (b-a)*f;
+  return { x0:L(o.from.x0,o.r.x0), y0:L(o.from.y0,o.r.y0), x1:L(o.from.x1,o.r.x1), y1:L(o.from.y1,o.r.y1) };
+}
+// called after each push: k = the section's depth now; decorates row k-2 so the face stays clear
+function decorate(b, k, now) {
+  const r = k - 2; if (r < 1 || !b.style) return;
+  const S = b.start, w = b.w, h = TH/2, mid = r - 0.5;
+  const fin = (side, len, force) => {
+    const a0 = side ? S+w-len : S, a1 = side ? S+w : S+len, edge = side ? S+w : S;
+    return addObs('wall', bayRect(b, a0, a1, mid-h, mid+h), bayRect(b, edge, edge, mid-h, mid+h), now, force);
+  };
+  switch (b.style) {
+    case 'fins':    if (r%4===2) fin((r>>2)&1, w>=6 ? 2 : 1.5); break;
+    case 'baffles': if (r%3===2) fin(Math.floor(r/3)&1, w-2); break;
+    case 'pincers': if (r%5===3) { const l = (w-3)/2; fin(0,l); fin(1,l); } break;
+    case 'tfins':   if (r%4===2) {
+      const side = (r>>2)&1, L = w>=6 ? 2 : 1.5, stem = fin(side, L);
+      if (stem) { const c = side ? S+w-L : S+L;
+        addObs('wall', bayRect(b, c-h, c+h, mid-1, mid+1), bayRect(b, c-h, c+h, mid, mid), now, true); }
+    } break;
+    case 'divider': {
+      const c = S + w/2, inWall = r >= 2 && ((r-2) % 7) < 5;
+      if (!inWall) { b.seg = null; b.want = null; break; }
+      // standing on the line holds the wall back; it catches up on the next push
+      const u0 = b.seg ? b.seg.u0 : (b.want ?? r-1), R = bayRect(b, c-h, c+h, u0, r);
+      if (circRect(player.x, player.y, player.r + 3, R)) { if (!b.seg) b.want = u0; break; }
+      if (b.seg) { const o = b.seg.o; o.from = obsRect(o, now); o.r = R; o.t0 = now; }
+      else {
+        const o = addObs('wall', R, bayRect(b, c-h, c+h, u0, u0), now);
+        if (o) { b.seg = { o, u0 }; b.want = null; }
+      }
+    } break;
+    case 'cover': if (r%3===2) {
+      const rnd = rng(b.seed*31 + r), n = w >= 7 ? 2 : 1;
+      for (let i=0;i<n;i++) {
+        const a = S + 1 + Math.floor(rnd()*(w-2)), pillar = rnd() < .45, z = pillar ? .9 : .72;
+        const ca = a + .5, R = bayRect(b, ca-z/2, ca+z/2, mid-z/2, mid+z/2);
+        addObs(pillar ? 'pillar' : 'crate', R, bayRect(b, ca, ca, mid, mid), now);
+      }
+    } break;
+  }
+}
+
+function evaluate(s) {
+  const res = { ok:true, reason:'', bad:[], cost:0, depth:0 };
+  if (s.w < 2) { res.ok = false; res.reason = 'Too narrow: 2 tiles min'; }
+  const [cx, cy] = selCenter(s);
+  if (Math.hypot(cx-player.x, cy-player.y) > REACH*T + T) { res.ok = false; res.reason = res.reason || 'Walk closer'; res.far = true; }
+  let maxDepth = 0;
+  for (const [x,y] of selTiles(s)) {
+    const tx = x+DX[s.d], ty = y+DY[s.d];
+    const near = tx<1 || ty<1 || tx>W-2 || ty>H-2;
+    const v = at(tx,ty);
+    const dep = depthOf(x,y,s.d) + 1; maxDepth = Math.max(maxDepth, dep);
+    if (near) { res.bad.push([tx,ty]); res.reason = res.reason || 'Map edge'; res.ok = false; }
+    else if (v===2 || v===3) { res.bad.push([tx,ty]); res.reason = res.reason || 'Too close to the Vendor room'; res.ok = false; }
+    else if (dep > MAXD) { res.bad.push([tx,ty]); res.reason = res.reason || MAXD + ' tiles out is the limit'; res.ok = false; }
+  }
+  res.depth = maxDepth;
+  res.cost = rule==='A' ? s.w : rule==='B' ? 2 : s.w + Math.floor((maxDepth-1)/4);
+  if (res.ok && vectors < res.cost) { res.ok = false; res.reason = 'Need ' + res.cost + ' vectors'; res.poor = true; }
+  return res;
+}
+
+function push() {
+  if (!build || !sel) return false;
+  const ev = evaluate(sel);
+  if (!ev.ok) { if (!ev.far) bump(sel, ev.reason); return false; }
+  const now = performance.now();
+  const b = bayFor(sel), fresh = b.depth === 0; curBay = b;
+  for (const [x,y] of selTiles(sel)) {
+    const tx = x+DX[sel.d], ty = y+DY[sel.d];
+    g[idx(tx,ty)] = 1; grow.set(idx(tx,ty), { d: sel.d, t0: now });
+  }
+  stats.push++; stats.tiles += sel.w; stats.spent += ev.cost; syncStats();
+  sel = { ...sel, line: sel.line + ((sel.d===0||sel.d===2) ? DX[sel.d] : DY[sel.d]) };
+  locked = true; lockAt = { sx: mouse.sx, sy: mouse.sy };
+  rebuildEdges();
+  b.depth++; decorate(b, b.depth, now); syncStats();
+  const [cx, cy] = selCenter(sel);
+  if (fresh) floats.push({ x: cx + DX[sel.d]*T*2.2, y: cy + DY[sel.d]*T*2.2, text: b.style ? STYLES[b.style].toUpperCase() + ' ROLLED' : (sel.w < 4 ? 'TOO NARROW FOR FEATURES' : 'NO FEATURES'), col: b.style ? C.cyan : C.dim, t0: now + 120 });
+  floats.push({ x: cx + DX[sel.d]*T*.9, y: cy + DY[sel.d]*T*.9, text: '−' + ev.cost, col: C.gold, t0: now });
+  if (!reduce) {
+    shake = 3.5;
+    const [tx,ty] = tangent(sel.d);
+    for (let i=0;i<18;i++) {
+      const along = (Math.random()-.5) * sel.w * T;
+      parts.push({ x: cx + tx*along, y: cy + ty*along, vx: DX[sel.d]*(40+Math.random()*120) + (Math.random()-.5)*60, vy: DY[sel.d]*(40+Math.random()*120) + (Math.random()-.5)*60, t0: now, life: 350+Math.random()*300 });
+    }
+  }
+  return true;
+}
+function bump(s, reason) {
+  const [cx, cy] = selCenter(s), now = performance.now();
+  if (floats.length && now - floats[floats.length-1].t0 < 300) return;
+  floats.push({ x: cx + DX[s.d]*T*.9, y: cy + DY[s.d]*T*.9, text: reason, col: C.red, t0: now });
+}
+
+// ---------- input ----------
+function resize() {
+  const r = cv.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);
+  cv.width = Math.round(r.width*dpr); cv.height = Math.round(r.height*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  cam.z = Math.max(0.55, r.width / (30*T));
+}
+new ResizeObserver(resize).observe(cv);
+
+function toWorld(sx, sy) {
+  const r = cv.getBoundingClientRect();
+  return [(sx - r.width/2)/cam.z + cam.x, (sy - r.height/2)/cam.z + cam.y];
+}
+cv.addEventListener('pointermove', e => {
+  const r = cv.getBoundingClientRect(); mouse.sx = e.clientX - r.left; mouse.sy = e.clientY - r.top; mouse.has = true;
+});
+cv.addEventListener('pointerdown', e => {
+  cv.focus();
+  const r = cv.getBoundingClientRect(); mouse.sx = e.clientX - r.left; mouse.sy = e.clientY - r.top; mouse.has = true;
+  if (e.button === 2) { build = false; locked = false; return; }
+  if (e.button !== 0) return;
+  if (!build && nearWall()) { build = true; return; }
+  if (!locked) updateSel();
+  mouse.down = true; push(); mouse.nextRep = performance.now() + 380;
+});
+addEventListener('pointerup', () => { mouse.down = false; });
+cv.addEventListener('contextmenu', e => e.preventDefault());
+cv.addEventListener('wheel', e => { if (!build) return; e.preventDefault(); setWidth(width + (e.deltaY < 0 ? 1 : -1)); }, { passive:false });
+function setWidth(w) {
+  width = Math.max(2, Math.min(10, w));
+  if (sel && locked) { const mid = sel.start + Math.floor(sel.w/2); const [x,y] = (sel.d===0||sel.d===2) ? [sel.line, mid] : [mid, sel.line];
+    if (isFace(x,y,sel.d)) sel = fitSel(x, y, sel.d, mid); }
+}
+addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if (document.activeElement === cv && [' ','arrowup','arrowdown','arrowleft','arrowright'].includes(k)) e.preventDefault();
+  if (e.repeat && (k==='f' || k==='[' || k===']')) return;
+  keys[k] = true;
+  if (k==='f') { if (build) { build = false; locked = false; } else if (nearWall()) build = true; }
+  if (k==='escape') { build = false; locked = false; }
+  if (k==='r' && !e.repeat) reset(false);
+  if (k==='[') setWidth(width-1);
+  if (k===']') setWidth(width+1);
+  if (k===' ' && build && !e.repeat) { if (!locked) updateSel(); push(); mouse.nextRep = performance.now() + 380; }
+});
+addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+document.getElementById('rules').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  rule = b.dataset.r;
+  for (const x of document.querySelectorAll('#rules button')) x.setAttribute('aria-pressed', x === b ? 'true' : 'false');
+});
+document.getElementById('bPack').onclick = () => { vectors += 20; floats.push({ x: player.x, y: player.y - 26, text:'+20 vectors', col:C.cyan, t0: performance.now() }); };
+document.getElementById('bReset').onclick = () => reset(false);
+document.getElementById('bReset2').onclick = () => { reset(false); cv.focus(); };
+document.getElementById('feats').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  featMode = b.dataset.f;
+  for (const x of document.querySelectorAll('#feats button')) x.setAttribute('aria-pressed', x === b ? 'true' : 'false');
+});
+
+function nearestEdge() {
+  let best = null, bd = 1e9;
+  for (const e of edges) { const s = edgeSeg(e,0), d = distSeg(player.x, player.y, ...s); if (d < bd) { bd = d; best = { e, d, s }; } }
+  return best;
+}
+const nearWall = () => { const n = nearestEdge(); return n && n.d < 3*T; };
+
+function updateSel() {
+  if (!build) { sel = null; return; }
+  let mx, my;
+  if (mouse.has) [mx, my] = toWorld(mouse.sx, mouse.sy);
+  else { const n = nearestEdge(); if (!n) { sel = null; return; } mx = (n.s[0]+n.s[2])/2; my = (n.s[1]+n.s[3])/2; }
+  if (locked) {
+    if (Math.hypot(mouse.sx - lockAt.sx, mouse.sy - lockAt.sy) > 30) locked = false;
+    else return;
+  }
+  sel = pickFromMouse(mx, my);
+}
+
+// ---------- loop ----------
+let last = performance.now();
+function tick(now) {
+  const dt = Math.min(0.05, (now - last)/1000); last = now;
+  // movement
+  let ix = (keys.d||keys.arrowright?1:0) - (keys.a||keys.arrowleft?1:0), iy = (keys.s||keys.arrowdown?1:0) - (keys.w||keys.arrowup?1:0);
+  const l = Math.hypot(ix,iy) || 1; ix/=l; iy/=l;
+  const sp = 190;
+  moveAxis(ix*sp*dt, 0); moveAxis(0, iy*sp*dt);
+  // pickups
+  for (let i=pickups.length-1;i>=0;i--) {
+    const p = pickups[i], d = Math.hypot(p.x-player.x, p.y-player.y);
+    if (d < 90 && vectors < CAP) { p.x += (player.x-p.x)*Math.min(1,dt*6); p.y += (player.y-p.y)*Math.min(1,dt*6); }
+    if (d < 16 && vectors < CAP) { vectors = Math.min(CAP, vectors + p.amt); floats.push({ x:p.x, y:p.y-18, text:'+' + p.amt + ' vectors', col:C.cyan, t0:now }); pickups.splice(i,1); setTimeout(spawnPickup, 3500); }
+  }
+  // camera
+  let gx = player.x, gy = player.y;
+  if (build && sel) { const [fx, fy] = selCenter(sel); gx += (fx - gx)*0.4; gy += (fy - gy)*0.4; }
+  cam.x += (gx - cam.x) * Math.min(1, dt*4); cam.y += (gy - cam.y) * Math.min(1, dt*4);
+  updateSel();
+  if (mouse.down && build && now >= mouse.nextRep) { push(); mouse.nextRep = now + 200; }
+  shake *= Math.pow(0.001, dt);
+  draw(now);
+  requestAnimationFrame(tick);
+}
+function solidAt(px, py) { return !floorAt(Math.floor(px/T), Math.floor(py/T)); }
+function moveAxis(dx, dy) {
+  const nx = player.x + dx, ny = player.y + dy, r = player.r;
+  if (solidAt(nx-r,ny-r) || solidAt(nx+r,ny-r) || solidAt(nx-r,ny+r) || solidAt(nx+r,ny+r)) return;
+  for (const o of obstacles) if (circRect(nx, ny, r, o.r)) return;
+  player.x = nx; player.y = ny;
+}
+
+// ---------- drawing ----------
+let hatch = null;
+function hatchPat() {
+  if (hatch) return hatch;
+  const c = document.createElement('canvas'); c.width = c.height = 8; const h = c.getContext('2d');
+  h.fillStyle = '#0b2530'; h.fillRect(0,0,8,8);
+  h.strokeStyle = '#1f6f80'; h.lineWidth = 1.3;
+  h.beginPath(); h.moveTo(-2,10); h.lineTo(10,-2); h.moveTo(-2,2); h.lineTo(2,-2); h.moveTo(6,10); h.lineTo(10,6); h.stroke();
+  return hatch = ctx.createPattern(c, 'repeat');
+}
+
+function draw(now) {
+  const r = cv.getBoundingClientRect(), Wc = r.width, Hc = r.height;
+  ctx.save();
+  ctx.fillStyle = '#05080c'; ctx.fillRect(0,0,Wc,Hc);
+  const sx = reduce ? 0 : (Math.random()-.5)*shake, sy = reduce ? 0 : (Math.random()-.5)*shake;
+  ctx.translate(Wc/2 + sx, Hc/2 + sy); ctx.scale(cam.z, cam.z); ctx.translate(-cam.x, -cam.y);
+
+  // void grid
+  ctx.strokeStyle = 'rgba(77,225,255,0.045)'; ctx.lineWidth = 1/cam.z;
+  ctx.beginPath();
+  for (let x=0;x<=W;x+=2) { ctx.moveTo(x*T,0); ctx.lineTo(x*T,H*T); }
+  for (let y=0;y<=H;y+=2) { ctx.moveTo(0,y*T); ctx.lineTo(W*T,y*T); }
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,90,106,0.18)'; ctx.setLineDash([6,6]); ctx.strokeRect(T, T, (W-2)*T, (H-2)*T); ctx.setLineDash([]);
+
+  // Vendor room
+  ctx.fillStyle = '#120f08'; ctx.fillRect(45*T-WALL, 2*T-WALL, 11*T+2*WALL, 9*T+2*WALL);
+  ctx.fillStyle = '#0d0b07'; ctx.fillRect(45*T, 2*T, 11*T, 9*T);
+  ctx.strokeStyle = C.amber; ctx.lineWidth = 2; ctx.shadowColor = C.amber; ctx.shadowBlur = 10;
+  ctx.strokeRect(45*T, 2*T, 11*T, 9*T); ctx.lineWidth = 1; ctx.strokeRect(45*T-WALL, 2*T-WALL, 11*T+2*WALL, 9*T+2*WALL);
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = 'rgba(255,179,71,0.7)'; ctx.font = '600 13px "Chakra Petch", sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('VENDOR ROOM', 50.5*T, 6.8*T);
+
+  // wall band (dilated floor) then floor
+  const rects = [];
+  for (let y=0;y<H;y++) for (let x=0;x<W;x++) if (g[idx(x,y)]===1) rects.push([x, y, tileRect(x,y,now)]);
+  ctx.fillStyle = hatchPat();
+  for (const [,,q] of rects) ctx.fillRect(q.x0-WALL, q.y0-WALL, q.x1-q.x0+2*WALL, q.y1-q.y0+2*WALL);
+  for (const [x,y,q] of rects) {
+    ctx.fillStyle = orig[idx(x,y)] ? '#0d151d' : '#0c1820';
+    ctx.fillRect(q.x0, q.y0, q.x1-q.x0, q.y1-q.y0);
+  }
+  // floor tile grid
+  ctx.strokeStyle = 'rgba(77,225,255,0.07)'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (const [,,q] of rects) { ctx.rect(q.x0+.5, q.y0+.5, q.x1-q.x0-1, q.y1-q.y0-1); }
+  ctx.stroke();
+
+  // room features
+  for (const o of obstacles) {
+    const q = obsRect(o, now), age = now - o.t0, w = q.x1-q.x0, h = q.y1-q.y0;
+    if (w < .5 && h < .5) continue;
+    if (o.kind === 'crate') {
+      ctx.fillStyle = '#0f1f27'; ctx.fillRect(q.x0, q.y0, w, h);
+      ctx.strokeStyle = 'rgba(77,225,255,0.7)'; ctx.lineWidth = 1.4; ctx.shadowColor = C.cyan; ctx.shadowBlur = 6;
+      ctx.strokeRect(q.x0, q.y0, w, h);
+      ctx.beginPath(); ctx.moveTo(q.x0+3, q.y0+3); ctx.lineTo(q.x1-3, q.y1-3); ctx.moveTo(q.x1-3, q.y0+3); ctx.lineTo(q.x0+3, q.y1-3);
+      ctx.strokeStyle = 'rgba(77,225,255,0.35)'; ctx.lineWidth = 1; ctx.stroke(); ctx.shadowBlur = 0;
+    } else {
+      ctx.fillStyle = hatchPat(); ctx.fillRect(q.x0, q.y0, w, h);
+      ctx.shadowColor = C.cyan; ctx.shadowBlur = 10; ctx.strokeStyle = C.cyan; ctx.lineWidth = 1.8;
+      ctx.strokeRect(q.x0, q.y0, w, h); ctx.shadowBlur = 0;
+    }
+    if (age < 600 && age > 0) {   // build-in flash
+      const t = age/600;
+      ctx.strokeStyle = 'rgba(230,250,255,' + (1-t) + ')'; ctx.lineWidth = 2;
+      ctx.strokeRect(q.x0 - t*6, q.y0 - t*6, w + t*12, h + t*12);
+    }
+  }
+
+  // wall lines (inner face + outer edge)
+  ctx.lineCap = 'square';
+  ctx.shadowColor = C.cyan; ctx.shadowBlur = 12;
+  ctx.strokeStyle = C.cyan; ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  for (const e of edges) { const s = edgeSeg(e, now); ctx.moveTo(s[0], s[1]); ctx.lineTo(s[2], s[3]); }
+  ctx.stroke();
+  ctx.lineWidth = 1.2; ctx.strokeStyle = 'rgba(77,225,255,0.75)';
+  ctx.beginPath();
+  for (const e of edges) {
+    const s = edgeSeg(e, now), nx = DX[e.d], ny = DY[e.d], [tx,ty] = tangent(e.d);
+    const ext = (sgn) => {
+      const ax = e.x + tx*sgn, ay = e.y + ty*sgn;
+      if (!floorAt(ax,ay)) return WALL;
+      if (floorAt(ax+nx, ay+ny)) return -WALL;
+      return 0;
+    };
+    const e0 = ext(-1), e1 = ext(1);
+    ctx.moveTo(s[0] + nx*WALL - tx*e0, s[1] + ny*WALL - ty*e0);
+    ctx.lineTo(s[2] + nx*WALL + tx*e1, s[3] + ny*WALL + ty*e1);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // selection + ghost
+  let ev = null;
+  if (build && sel) {
+    ev = evaluate(sel);
+    const tiles = selTiles(sel), d = sel.d, [tx,ty] = tangent(d);
+    const badSet = new Set(ev.bad.map(([x,y]) => x+','+y));
+    const pulse = 0.55 + 0.45*Math.sin(now/170);
+    // ghost of the next tile row
+    for (const [x,y] of tiles) {
+      const gx = x+DX[d], gy = y+DY[d], bad = badSet.has(gx+','+gy) || (!ev.ok && !ev.far && ev.poor);
+      ctx.fillStyle = bad ? 'rgba(255,90,106,0.16)' : ev.far ? 'rgba(127,152,168,0.08)' : 'rgba(255,201,77,' + (0.08 + 0.08*pulse) + ')';
+      ctx.fillRect(gx*T, gy*T, T, T);
+    }
+    const g0 = tiles[0], gl = tiles[tiles.length-1];
+    const bx0 = Math.min(g0[0], gl[0]) + DX[d], by0 = Math.min(g0[1], gl[1]) + DY[d];
+    const bw = (tx ? sel.w : 1)*T, bh = (ty ? sel.w : 1)*T;
+    ctx.setLineDash([5,4]); ctx.lineDashOffset = -now/40;
+    ctx.strokeStyle = ev.ok ? C.gold : ev.far ? C.dim : C.red; ctx.lineWidth = 1.5;
+    ctx.strokeRect(bx0*T + 1, by0*T + 1, bw - 2, bh - 2);
+    ctx.setLineDash([]);
+    // the picked face, lit
+    const [fx, fy] = selCenter(sel), half = sel.w*T/2;
+    const ax = fx - tx*half, ay = fy - ty*half, bxx = fx + tx*half, byy = fy + ty*half;
+    ctx.shadowColor = ev.ok ? C.gold : C.red; ctx.shadowBlur = 16;
+    ctx.strokeStyle = ev.ok ? C.gold : ev.far ? C.dim : C.red; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(ax + DX[d]*WALL/2, ay + DY[d]*WALL/2); ctx.lineTo(bxx + DX[d]*WALL/2, byy + DY[d]*WALL/2); ctx.stroke();
+    // end brackets
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (const [px,py] of [[ax,ay],[bxx,byy]]) { ctx.moveTo(px - DX[d]*6, py - DY[d]*6); ctx.lineTo(px + DX[d]*(WALL+6), py + DY[d]*(WALL+6)); }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    // arrow out
+    const ox = fx + DX[d]*(T*1.5 + WALL), oy = fy + DY[d]*(T*1.5 + WALL);
+    if (ev.ok) {
+      const bob = Math.sin(now/160)*3;
+      ctx.fillStyle = C.gold; ctx.beginPath();
+      const px = ox + DX[d]*bob, py = oy + DY[d]*bob;
+      ctx.moveTo(px + DX[d]*8, py + DY[d]*8);
+      ctx.lineTo(px - DX[d]*4 + tx*7, py - DY[d]*4 + ty*7);
+      ctx.lineTo(px - DX[d]*4 - tx*7, py - DY[d]*4 - ty*7);
+      ctx.closePath(); ctx.fill();
+    }
+    // label
+    const lx = fx + DX[d]*(T*2.9 + WALL), ly = fy + DY[d]*(T*2.9 + WALL);
+    const txt = ev.ok ? 'PUSH +1  ·  ' + ev.cost + ' ◆' : ev.reason.toUpperCase();
+    const fb = findBay(sel), fname = fb ? (fb.style ? STYLES[fb.style] : 'no features') : (stylesFor(sel.w).length ? 'feature rolls' : 'too narrow for features');
+    const sub = ev.ok ? sel.w + ' wide · ' + ev.depth + ' / ' + MAXD + ' out · ' + fname : (ev.poor ? 'You have ' + vectors : '');
+    label(lx, ly, txt, sub, ev.ok ? C.gold : ev.far ? C.dim : C.red);
+  }
+
+  // pickups
+  for (const p of pickups) {
+    const s = p.amt > 6 ? 9 : 7, a = now/600;
+    const age = Math.min(1, (now - p.t)/600);
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(a*0.6);
+    ctx.shadowColor = C.cyan; ctx.shadowBlur = 10;
+    ctx.strokeStyle = C.cyan; ctx.lineWidth = 2;
+    ctx.globalAlpha = age; ctx.strokeRect(-s, -s, 2*s, 2*s); ctx.globalAlpha = 1;
+    if (p.amt > 6) { ctx.strokeStyle = C.amber; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(0,0,s+6,0,Math.PI*2); ctx.stroke(); }
+    ctx.restore();
+  }
+
+  // player
+  ctx.save(); ctx.translate(player.x, player.y);
+  ctx.shadowColor = '#6aa8ff'; ctx.shadowBlur = 14;
+  ctx.fillStyle = '#1a2a5a'; ctx.beginPath(); ctx.arc(0,0,player.r+2,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#8fc0ff'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#dff0ff'; ctx.beginPath(); ctx.arc(0,0,3.5,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+  if (build) { ctx.strokeStyle = 'rgba(255,201,77,0.18)'; ctx.setLineDash([3,6]); ctx.beginPath(); ctx.arc(0,0,REACH*T,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]); }
+  ctx.restore();
+
+  // prompt at the nearest wall
+  if (!build) {
+    const n = nearestEdge();
+    if (n && n.d < 3*T) {
+      const mx = (n.s[0]+n.s[2])/2 - DX[n.e.d]*T*1.1, my = (n.s[1]+n.s[3])/2 - DY[n.e.d]*T*1.1;
+      keyChip(mx, my, 'F', 'Push wall');
+    }
+  }
+
+  // particles
+  for (let i=parts.length-1;i>=0;i--) {
+    const p = parts[i], t = (now - p.t0)/p.life;
+    if (t >= 1) { parts.splice(i,1); continue; }
+    const k = (now - p.t0)/1000, x = p.x + p.vx*k, y = p.y + p.vy*k;
+    ctx.strokeStyle = 'rgba(77,225,255,' + (1-t) + ')'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - p.vx*0.03, y - p.vy*0.03); ctx.stroke();
+  }
+  // floating numbers
+  for (let i=floats.length-1;i>=0;i--) {
+    const f = floats[i], t = (now - f.t0)/900;
+    if (t >= 1) { floats.splice(i,1); continue; }
+    ctx.globalAlpha = 1 - t*t;
+    ctx.fillStyle = f.col; ctx.font = '700 15px "Chakra Petch", sans-serif'; ctx.textAlign = 'center';
+    ctx.shadowColor = f.col; ctx.shadowBlur = 8;
+    ctx.fillText(f.text, f.x, f.y - t*26);
+    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+  }
+  ctx.restore();
+
+  hud(Wc, Hc, ev);
+}
+
+function label(x, y, txt, sub, col) {
+  ctx.font = '700 12px "Chakra Petch", sans-serif';
+  const w1 = ctx.measureText(txt).width;
+  ctx.font = '11px "Share Tech Mono", monospace';
+  const w2 = sub ? ctx.measureText(sub).width : 0;
+  const w = Math.max(w1, w2) + 16, h = sub ? 34 : 20;
+  ctx.fillStyle = 'rgba(5,10,14,0.9)'; ctx.fillRect(x - w/2, y - h/2, w, h);
+  ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.strokeRect(x - w/2 + .5, y - h/2 + .5, w - 1, h - 1);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = col; ctx.font = '700 12px "Chakra Petch", sans-serif';
+  ctx.fillText(txt, x, sub ? y - 7 : y + 1);
+  if (sub) { ctx.fillStyle = C.dim; ctx.font = '11px "Share Tech Mono", monospace'; ctx.fillText(sub, x, y + 8); }
+  ctx.textBaseline = 'alphabetic';
+}
+function keyChip(x, y, k, txt) {
+  ctx.font = '12px "Share Tech Mono", monospace';
+  const tw = ctx.measureText(txt).width, w = tw + 34, h = 22;
+  ctx.fillStyle = 'rgba(5,10,14,0.9)'; ctx.fillRect(x - w/2, y - h/2, w, h);
+  ctx.strokeStyle = 'rgba(77,225,255,0.5)'; ctx.strokeRect(x - w/2 + .5, y - h/2 + .5, w - 1, h - 1);
+  ctx.fillStyle = C.cyan; ctx.fillRect(x - w/2 + 4, y - h/2 + 4, 16, h - 8);
+  ctx.fillStyle = '#05080c'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = '700 12px "Share Tech Mono", monospace';
+  ctx.fillText(k, x - w/2 + 12, y + 1);
+  ctx.fillStyle = C.ink; ctx.textAlign = 'left'; ctx.font = '12px "Share Tech Mono", monospace';
+  ctx.fillText(txt, x - w/2 + 26, y + 1); ctx.textBaseline = 'alphabetic';
+}
+
+function hud(Wc, Hc, ev) {
+  // vectors wallet
+  const x = 14, y = Hc - 44, w = Math.min(240, Wc*0.38), h = 30;
+  ctx.fillStyle = 'rgba(5,10,14,0.88)'; ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = C.cyan; ctx.fillRect(x, y, 3, h);
+  ctx.font = '700 11px "Chakra Petch", sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = C.cyan;
+  ctx.fillText('VECTORS', x + 10, y + 13);
+  ctx.fillStyle = C.ink; ctx.font = '12px "Share Tech Mono", monospace';
+  ctx.fillText('∞  infinite', x + 70, y + 13);
+  const bx = x + 10, by = y + 19, bw = w - 20, bh = 5, full = Math.max(CAP, vectors);
+  ctx.fillStyle = '#10202a'; ctx.fillRect(bx, by, bw, bh);
+  ctx.fillStyle = C.cyan; ctx.fillRect(bx, by, bw*vectors/full, bh);
+  if (ev && ev.ok) { const c = ev.cost; ctx.fillStyle = C.gold; ctx.fillRect(bx + bw*(vectors-c)/full, by, bw*c/full, bh); }
+  // mode chip + help
+  if (build) {
+    const items = [['LMB','push'],['HOLD','keep pushing'],['WHEEL','width ' + width],['RMB','done']];
+    ctx.font = '11px "Share Tech Mono", monospace';
+    let tw = 0; const ws = items.map(([k,t]) => { const a = ctx.measureText(k).width + 10, b = ctx.measureText(t).width; tw += a + b + 18; return [a,b]; });
+    const ox = Math.max(x + w + 12, Wc/2 - tw/2), oy = Hc - 36;
+    if (ox + tw < Wc - 8) {
+      let cx = ox;
+      items.forEach(([k,t],i) => {
+        const [a,b] = ws[i];
+        ctx.fillStyle = 'rgba(5,10,14,0.85)'; ctx.fillRect(cx - 4, oy - 2, a + b + 14, 18);
+        ctx.strokeStyle = 'rgba(255,201,77,0.6)'; ctx.strokeRect(cx + .5, oy + .5, a - 1, 13);
+        ctx.fillStyle = C.gold; ctx.textAlign = 'center'; ctx.fillText(k, cx + a/2, oy + 11);
+        ctx.fillStyle = C.ink; ctx.textAlign = 'left'; ctx.fillText(t, cx + a + 5, oy + 11);
+        cx += a + b + 18;
+      });
+    }
+    ctx.fillStyle = 'rgba(26,21,8,0.92)'; ctx.fillRect(14, 14, 150, 24);
+    ctx.strokeStyle = C.gold; ctx.strokeRect(14.5, 14.5, 149, 23);
+    ctx.fillStyle = C.gold; ctx.font = '700 12px "Chakra Petch", sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText('BUILD · PUSH WALL', 24, 30);
+    if (!sel) { ctx.fillStyle = C.dim; ctx.font = '12px "Share Tech Mono", monospace'; ctx.fillText('Point at a wall within reach', 174, 30); }
+  } else {
+    ctx.fillStyle = 'rgba(5,10,14,0.85)'; ctx.fillRect(14, 14, 210, 24);
+    ctx.fillStyle = C.dim; ctx.font = '12px "Share Tech Mono", monospace'; ctx.textAlign = 'left';
+    ctx.fillText('Walk to a wall and press F', 24, 30);
+  }
+}
+
+reset();
+resize();
+requestAnimationFrame(tick);
+})();
+</script>
