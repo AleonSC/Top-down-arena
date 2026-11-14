@@ -363,7 +363,7 @@ namespace Arena
             },
             new FactionDef
             {
-                Boss = EnemyType.Devourer,  // the Devourer: The Larder, its brood and the butchers who feed it (LarderFaction.cs, Docs/Approaches.md "The Larder"); step 2 of 4
+                Boss = EnemyType.Devourer,  // the Devourer: The Larder, its brood and the butchers who feed it (LarderFaction.cs, Docs/Approaches.md "The Larder")
                 Members = new[]
                 {
                     new FactionMember { Type = EnemyType.Gnawling, Weight = 3f },
@@ -371,12 +371,42 @@ namespace Arena
                     new FactionMember { Type = EnemyType.Gulper, Fade = 2, Weight = 1.5f, From = 2 },  // a Thug that breathes you in
                     new FactionMember { Type = EnemyType.CarcassBearer, Fade = 0, Weight = 2f, From = 2 },  // a Riot Shield whose broken slab is a morsel
                     new FactionMember { Type = EnemyType.BileSpitter, Fade = 0, Weight = 1.5f, From = 2 },  // a Gas Grenadier that lobs bile
+                    new FactionMember { Type = EnemyType.Gutworm, Fade = 2, Weight = 1f, From = 3 },  // dives, chases, erupts under you
+                    new FactionMember { Type = EnemyType.HookThrower, Fade = 1, Weight = 2f, From = 3 },  // a meat hook that reels you in
+                    new FactionMember { Type = EnemyType.MawPriest, Fade = 0, Weight = 1.5f, From = 3 },  // a maw that feeds on your shots
                 },
                 Squads = new[]
                 {
                     new SquadDef { Name = "Feeding Frenzy", From = 1, Members = new[] { EnemyType.Butcher, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling } },
                     new SquadDef { Name = "Larder Wall", From = 3, Members = new[] { EnemyType.CarcassBearer, EnemyType.CarcassBearer, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling } },
-                    new SquadDef { Name = "Gullet", From = 3, Members = new[] { EnemyType.Gulper, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling } },  // the Gutworm joins it in step 3
+                    new SquadDef { Name = "Meat Hooks", From = 3, Members = new[] { EnemyType.Butcher, EnemyType.Butcher, EnemyType.HookThrower, EnemyType.HookThrower } },
+                    new SquadDef { Name = "Gullet", From = 3, Members = new[] { EnemyType.Gulper, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gutworm } },
+                    new SquadDef { Name = "Bile Rain", From = 3, Members = new[] { EnemyType.BileSpitter, EnemyType.BileSpitter, EnemyType.BileSpitter } },
+                },
+                LessonSquads = new[]
+                {
+                    new SquadDef { Name = "Gnawling pack", From = 1, Members = new[] { EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling } },
+                    new SquadDef { Name = "Butcher pair", From = 1, Members = new[] { EnemyType.Butcher, EnemyType.Butcher } },
+                },
+                // Wave 4: the Feast, its Riot line: four Carcass Bearers marching at you as a wall, two Gulpers and two Bile
+                // Spitters close behind (the spitters lob over it); within RiotLineRelease, or with half the meat broken (each
+                // broken slab a morsel), the Gulpers push through and breathe you in.
+                Finale = new SquadDef { Name = "The Feast", From = 4, Form = SquadForm.RiotLine, Members = new[] {
+                    EnemyType.CarcassBearer, EnemyType.CarcassBearer, EnemyType.CarcassBearer, EnemyType.CarcassBearer,
+                    EnemyType.Gulper, EnemyType.BileSpitter, EnemyType.BileSpitter, EnemyType.Gulper } },
+                // The Campaign's Devourer cycle: the Warden's ten lessons in the same order, each pointing at one of its turns.
+                Lessons = new[]
+                {
+                    new WaveLesson { Teaches = "Gnawlings scurry in (the Devourer in miniature)", Members = new[] { M(EnemyType.Gnawling, 1f) } },
+                    new WaveLesson { Teaches = "Butchers join: step out of the half-circle (its Snap bite)", Trickle = true, Star = EnemyType.Butcher, Members = new[] { M(EnemyType.Gnawling, 1f) }, Squads = new[] { "Gnawling pack" } },
+                    new WaveLesson { Teaches = "Gulpers: step out of the cone sideways (its Inhale)", Trickle = true, Star = EnemyType.Gulper, Members = new[] { M(EnemyType.Gnawling, 2f), M(EnemyType.Butcher, 1.5f) }, Squads = new[] { "Gnawling pack", "Butcher pair" } },
+                    new WaveLesson { Teaches = "Maw Priests: circle round to its back (its Maw)", Trickle = true, Star = EnemyType.MawPriest, Members = new[] { M(EnemyType.Gnawling, 2f), M(EnemyType.Butcher, 2f), M(EnemyType.Gulper, 1.5f) }, Squads = new[] { "Feeding Frenzy", "Butcher pair" } },
+                    new WaveLesson { Teaches = "A recap, and Gutworms join: get out of the mark (its Burrow)", Trickle = true, Star = EnemyType.Gutworm, Members = new[] { M(EnemyType.Gnawling, 2f), M(EnemyType.Butcher, 2f), M(EnemyType.Gulper, 1.5f), M(EnemyType.MawPriest, 2f) }, Squads = new[] { "Feeding Frenzy", "Butcher pair" } },
+                    new WaveLesson { Teaches = "Carcass Bearers: break the meat, then squash the morsel (its Hungry turn)", Trickle = true, Star = EnemyType.CarcassBearer, Members = new[] { M(EnemyType.Gnawling, 2f), M(EnemyType.Butcher, 2f), M(EnemyType.Gulper, 1.5f), M(EnemyType.MawPriest, 2f) }, Squads = new[] { "Feeding Frenzy", "Gullet" } },
+                    new WaveLesson { Teaches = "Bile Spitters: change direction out of the ring (its Bile)", Trickle = true, Star = EnemyType.BileSpitter, Members = new[] { M(EnemyType.CarcassBearer, 2f), M(EnemyType.Gnawling, 2f), M(EnemyType.Butcher, 1f), M(EnemyType.MawPriest, 1f) }, Squads = new[] { "Feeding Frenzy", "Larder Wall", "Gullet" } },
+                    new WaveLesson { Teaches = "Hook Throwers: sidestep the line (its lunges)", Trickle = true, Star = EnemyType.HookThrower, Members = new[] { M(EnemyType.BileSpitter, 1.5f), M(EnemyType.CarcassBearer, 2f), M(EnemyType.Gnawling, 2f), M(EnemyType.Butcher, 1f) }, Squads = new[] { "Larder Wall", "Gullet", "Bile Rain" } },
+                    new WaveLesson { Teaches = "Every squad, tighter", Members = null, Squads = null, SquadChance = 0.75f },
+                    new WaveLesson { Teaches = "The exam: the Feast and a big Feeding Frenzy, with everything", Members = null, Squads = new string[0], Finale = true, Also = "Feeding Frenzy" },
                 },
             },
             new FactionDef

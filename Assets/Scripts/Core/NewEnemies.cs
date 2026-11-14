@@ -72,6 +72,9 @@ namespace Arena
                 case EnemyType.Gulper: return "Swells, then breathes you in. Step out of the cone sideways.";
                 case EnemyType.CarcassBearer: return "Break its meat and it drops a morsel. Squash it before a Gnawling eats it.";
                 case EnemyType.BileSpitter: return "Lobs bile where you're heading. Change direction out of the green ring.";
+                case EnemyType.Gutworm: return "Dives, chases you underground, then erupts. Get out of the mark.";
+                case EnemyType.HookThrower: return "Throws a meat hook down its line. Sidestep it, or shoot the chain.";
+                case EnemyType.MawPriest: return "Its maw feeds on your shots. Circle round and hit its back.";
                 case EnemyType.SlabBearer: return "Its slab stops shots and bashes you back. Flank it, or break the slab.";
                 case EnemyType.RockHurler: return "Lobs a boulder where you're heading. Change direction out of the ring.";
                 case EnemyType.Driller: return "Drills along a lane; the crack it leaves erupts. Cross the line, don't follow it.";

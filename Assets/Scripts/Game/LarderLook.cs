@@ -12,6 +12,12 @@ namespace Arena
     ///     cracks as it wears and flashes before the bash; broken, it's gone (a morsel lies in front: DrawMorsel).
     ///   Bile Spitter (a Gas Grenadier): a brood body with a green bile sac on its back that swells over the wind-up;
     ///     its lob (DrawBileLobFx, from GasLobLook.cs) is a green ring that fills and a glob on an arc.
+    ///   Gutworm: a brood head on three shrinking segments trailing behind it; underground it's only a ripple of earth
+    ///     (DrawLarderFloor), then a red mark that fills before it erupts.
+    ///   Hook Thrower: the Butcher's robe with a meat hook swinging round it on a short chain; its line and thrown hook are
+    ///     the Hookman's (DrawHookUnder, NonShooterLooks.cs).
+    ///   Maw Priest: a dark red robe and hood; the Devourer's jaw in front of it, a 90° maw with bone teeth on both edges
+    ///     (DrawLarderFloor), glowing as it charges.
     ///   A fed Gnawling (it ate a morsel) is drawn a third bigger and darker.
     /// DrawLarderFloor draws the tells under everyone: the Butcher's half-circle filling, the Gulper's cone and its breath.
     public partial class ArenaApp
@@ -41,6 +47,9 @@ namespace Arena
                 case EnemyType.Butcher: DrawButcher(e, pos, r, col, t); break;
                 case EnemyType.CarcassBearer: DrawCarcassBearer(e, pos, r, col, t); break;
                 case EnemyType.BileSpitter: DrawBileSpitter(e, pos, r, col, t); break;
+                case EnemyType.Gutworm: DrawGutworm(e, pos, r, col, t); break;
+                case EnemyType.HookThrower: DrawHookThrower(e, pos, r, col, t); break;
+                case EnemyType.MawPriest: DrawMawPriest(e, pos, r, col, t); break;
             }
         }
 
@@ -200,6 +209,44 @@ namespace Arena
             }
         }
 
+        /// The Gutworm on the surface: three segments trailing behind, wriggling, then the head.
+        void DrawGutworm(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            for (int k = 3; k >= 1; k--)
+            {
+                V2 at = pos - f * (r * 0.85f * k) + s * (Mathf.Sin(t * 9f - k * 1.3f + e.Id) * r * 0.25f);
+                float sr = r * (0.85f - 0.15f * k);
+                Circle(at, sr + 1.8f, LarderInk, 12);
+                Circle(at, sr, col.Mix(new Rgba(0.35f, 0.12f, 0.17f), 0.25f + 0.1f * k), 12);
+                Line(at - s * sr * 0.8f, at + s * sr * 0.8f, 1.2f, LarderInk.WithAlpha(0.5f));
+            }
+            DrawBrood(pos, r, e.Facing, 0.4f + 0.4f * Mathf.Sin(t * 10f + e.Id), col, e.Id + 3, 1f);
+        }
+
+        /// The Hook Thrower: the robe, and while it waits its hook swinging round it on a short chain.
+        void DrawHookThrower(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            var body = e.Phase == 4 ? col.Mix(Rgba.White, 0.3f + 0.25f * Mathf.Sin(t * 16f)) : col;  // open after a miss
+            LarderRobe(pos, r, e.Facing, body);
+            if (e.Phase != 0)
+                return;  // (its line, and the hook out on its chain: DrawHookUnder)
+            float a = t * (5f + (e.PhaseT < 1f ? 6f : 0f)) + e.Id;
+            V2 hand = pos + V2.FromAngle(e.Facing + 1f) * r * 0.9f, hook = hand + V2.FromAngle(a) * r * 1.3f;
+            Line(hand, hook, 1.5f, new Rgba(0.6f, 0.58f, 0.56f));
+            V2 hf = V2.FromAngle(a), hs = hf.Orthogonal();
+            Arc(hook + hs * 3f, 3.5f, 2.2f, LarderSteel, 10, a + MathX.Pi * 0.5f, MathX.Pi * 1.2f);
+            Line(hook - hf * 3f, hook + hf * 2f, 2.2f, LarderSteel);
+        }
+
+        /// The Maw Priest: a dark red robe and hood with a bone mask; its maw is drawn on the floor in front of it.
+        void DrawMawPriest(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            LarderRobe(pos, r, e.Facing, col);
+            if (e.Winding)
+                Arc(pos, r + 4f, 2f, new Rgba(1f, 0.35f, 0.42f, 0.5f + 0.4f * Mathf.Sin(t * 30f)), 20);
+        }
+
         /// Under everyone: the Butcher's half-circle filling over its wind-up and its chop's white sweep; the Gulper's cone
         /// showing over its swell and filled while it breathes in, with streaks rushing to its mouth.
         void DrawLarderFloor(float t)
@@ -225,6 +272,38 @@ namespace Arena
                         Wedge(pos, R, e.Facing, half, Rgba.White.WithAlpha(0.16f * (1f - u)), 20);
                         Arc(pos, R * 0.85f, 7f, Rgba.White.WithAlpha(0.9f * (1f - u * 0.5f)), 12, e.Facing + half - u * half * 2f - 0.5f, 0.5f);
                     }
+                }
+                else if (e.Type == EnemyType.Gutworm && e.LarderStage != Game.LarderIdle)
+                {
+                    V2 pos = e.Disp;
+                    for (int j = 0; j < 3; j++)  // a ripple of earth, like the Devourer's, smaller
+                    {
+                        float f = (t * 40f + j * 14f) % 42f;
+                        Arc(pos, 16f + f, 2.5f, new Rgba(0.54f, 0.36f, 0.3f, 0.6f - f / 80f), 20);
+                    }
+                    for (int j = 0; j < 4; j++)
+                        Circle(pos + new V2(Mathf.Cos(j * 1.6f + t * 5f) * 14f, Mathf.Sin(j * 1.9f + t * 6f) * 10f), 3f, new Rgba(0.5f, 0.32f, 0.27f), 8);
+                    if (e.LarderStage == Game.LarderActing)
+                    {
+                        float k = 1f - Mathf.Clamp01(e.LarderT / Game.GutMark);
+                        Circle(pos, Game.GutMarkR, red.WithAlpha(0.08f + 0.12f * k), 28);
+                        Arc(pos, Game.GutMarkR, 2f, red.WithAlpha(0.85f), 28);
+                        Circle(pos, Game.GutMarkR * k, red.WithAlpha(0.18f), 28);
+                    }
+                }
+                else if (e.Type == EnemyType.MawPriest && !game.IsSpawning(e))
+                {
+                    V2 pos = e.Disp;
+                    float half = Game.PriestMawHalf, R = e.Radius * 4.5f;
+                    Wedge(pos, R, e.Facing, half, LarderMaw.WithAlpha(0.45f), 16);
+                    Wedge(pos, R, e.Facing, half, red.WithAlpha(e.Winding ? 0.22f : 0.1f), 16);
+                    Arc(pos, R, 1.5f, red.WithAlpha(0.7f), 16, e.Facing - half, half * 2f);
+                    for (int k = -1; k <= 1; k += 2)
+                        for (int j = 1; j <= 5; j++)
+                        {
+                            float ea = e.Facing + k * half;
+                            Tooth(pos + V2.FromAngle(ea) * (e.Radius + j * (R - e.Radius) / 6f), ea - k * MathX.Pi / 2f, 6f);
+                        }
                 }
                 else if (e.Type == EnemyType.Gulper && e.LarderStage != Game.LarderIdle)
                 {

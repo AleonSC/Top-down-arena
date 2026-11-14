@@ -97,6 +97,9 @@ namespace Arena
         Moonward, Gnomon, DuskLobber,
         // ...step 3
         Sickle, Nova,
+        // step 3: a Gutworm dives and erupts under you, a Hook Thrower plays like the Hookman (a meat hook), a Maw Priest like a
+        // Taser Guard with a maw in front that feeds on your shots
+        Gutworm, HookThrower, MawPriest,
     }
 
     public class RoleDef
@@ -472,6 +475,12 @@ namespace Arena
                 Picker = PickerGroup.Ranged, Blurb = "Throws a crescent blade that loops out through you and comes back round to it. Dodge it twice." },
             new EnemyDef { Name = "Nova", Hp = 40f, Radius = 9f, Speed = 230f, Score = 8, Xp = 10, Sides = 4, Color = new Rgba(1f, 0.6f, 0.26f), Melee = true, Contact = 10f,
                 Picker = PickerGroup.Melee, Blurb = "A small unstable star. Close in it lights a 3 s fuse, then goes nova. While lit it takes 50% more damage: burst it or back off." },
+            new EnemyDef { Name = "Gutworm", Hp = 70f, Radius = 13f, Speed = 110f, Score = 9, Xp = 12, Sides = 7, Color = new Rgba(0.85f, 0.54f, 0.54f), Melee = true, Contact = 12f,
+                Picker = PickerGroup.Melee, Blurb = "Dives, and a ripple chases you underground. It stops, marks the ground, then erupts with a bite and a ring of shots: get out of the mark." },
+            new EnemyDef { Name = "Hook Thrower", Hp = 55f, Radius = 14f, Speed = 80f, Score = 9, Xp = 10, Sides = 6, Color = new Rgba(0.35f, 0.24f, 0.23f), Melee = true,
+                Picker = PickerGroup.Melee, Blurb = "Shows a line, then throws a meat hook down it. A hit hurts and reels you in: sidestep the line, or shoot the chain." },
+            new EnemyDef { Name = "Maw Priest", Hp = 90f, Radius = 14f, Speed = 80f, Score = 10, Xp = 12, Sides = 8, Color = new Rgba(0.42f, 0.16f, 0.2f),
+                Picker = PickerGroup.Ranged, Blurb = "Wears the Devourer's jaw: shots into its maw heal it, shots in its back do more. It turns slowly: circle it." },
         };
 
         public const int WeaponsPerRole = 3;  // every role and class has three weapons (Choice 0-2); a few have a fourth (Choice 3, the lobby's 4th key): WeaponCount

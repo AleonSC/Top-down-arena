@@ -246,7 +246,7 @@ namespace Arena
             DrawLichScene(t);  // LichLook.cs
             PruneDarts();  // Poison Dart's stuck darts (PoisonDartLook.cs)
             foreach (var e in game.Enemies.Values)
-                if (!Game.DevourUnder(e))  // the Devourer underground is just its ripple (DevourerLook.cs)
+                if (!Game.DevourUnder(e) && !Game.GutwormUnder(e))  // the Devourer or a Gutworm underground is just its ripple (DevourerLook.cs, LarderLook.cs)
                     DrawEnemy(e, t);
             DrawPennedMarks(t);  // enemies a chalk loop holds (ChalkLook.cs)
             DrawSprayOver(t);  // Arterial Spray's soaked enemies and drops in flight (ArterialSprayLook.cs)
