@@ -302,6 +302,10 @@ method, so a new enemy can reuse any of them.
     Implosion, Lens, White Dwarf. `InfallMove`/`InfallFire` split per enemy; `InfallSpecial` became `WellClose(burst)`
     and `PulsarSpecial` (the White Dwarf's was already its own). The Lens's slow turn and face are `LensMove` and
     `LensGuard`; the Pulsar's locked beams its move's lock. `aitrace` identical; `infall` passes.
+  - Penumbral (in `Core/Penumbral.cs`): Ember, Corona Priest, Heliograph, Moonward, Gnomon, Sickle, Nova.
+    `PenumbralMove`/`PenumbralFire` split per enemy; `PenumbralSpecial` was already a call per enemy (the Moonward's
+    moon turn is now `MoonwardTurnStep`). The Heliograph's, Gnomon's and Moonward's locked facing are move locks.
+    `aitrace` identical; `penumbral` passes.
 
 ## Risks
 

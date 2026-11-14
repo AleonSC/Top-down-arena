@@ -131,53 +131,9 @@ namespace Arena
         /// The Heliograph keeps its mirror's line while it flickers and burns.
         public static bool HelioLocked(Enemy e) => e.Type == EnemyType.Heliograph && (e.Phase == 1 || e.Phase == 2);
 
-        V2 PenumbralMove(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
-        {
-            switch (e.Type)
-            {
-                case EnemyType.Ember:
-                {
-                    // Weaves either side of your line, straighter up close.
-                    float a = EmberWeave * (float)Math.Sin(e.T * 4f + e.Id) * MathX.Clamp01(dist / 200f);
-                    return dir * (float)Math.Cos(a) + dir.Orthogonal() * (float)Math.Sin(a);
-                }
-                case EnemyType.CoronaPriest:
-                    return KeepDistance(dir, dist, PriestRange) + dir.Orthogonal() * e.Strafe * 0.6f;
-                case EnemyType.Heliograph:
-                    if (HelioLocked(e))
-                        return V2.Zero;  // planted while its mirror aims and burns
-                    return KeepDistance(dir, dist, HelioRange) + dir.Orthogonal() * e.Strafe * 0.3f;
-                case EnemyType.Gnomon:
-                    if (GnomonLocked(e))
-                        return V2.Zero;  // planted while its lantern swells and flashes
-                    break;
-                case EnemyType.Sickle:
-                    return KeepDistance(dir, dist, SickleRange) + dir.Orthogonal() * e.Strafe * 0.6f;
-                case EnemyType.Nova:
-                    if (e.Phase == 1)
-                    {
-                        speed *= NovaLitSpeed;  // lit: it hangs about you, slowly, so you can back off
-                        return KeepDistance(dir, dist, NovaHover) + dir.Orthogonal() * e.Strafe * 0.5f;
-                    }
-                    float w = 0.6f * (float)Math.Sin(e.T * 7f + e.Id) * MathX.Clamp01(dist / 160f);
-                    return dir * (float)Math.Cos(w) + dir.Orthogonal() * (float)Math.Sin(w);  // a darting zigzag
-            }
-            return dir;
-        }
 
-        void PenumbralSpecial(Enemy e, V2 tpos, float dt)
-        {
-            if (e.Type == EnemyType.Ember)
-                EmberSparks(e, tpos, dt);
-            else if (e.Type == EnemyType.Heliograph)
-                HelioStep(e, tpos, dt);
-            else if (e.Type == EnemyType.Moonward)
-                e.Facing = MathX.Fmod(e.Facing + MathX.Tau / MoonwardTurn * dt, MathX.Tau);  // the moon goes round
-            else if (e.Type == EnemyType.Gnomon)
-                GnomonStep(e, tpos, dt);
-            else if (e.Type == EnemyType.Nova)
-                NovaStep(e, tpos, dt);
-        }
+        /// A Moonward's moon goes round (its Facing is the moon's angle).
+        static void MoonwardTurnStep(Enemy e, float dt) => e.Facing = MathX.Fmod(e.Facing + MathX.Tau / MoonwardTurn * dt, MathX.Tau);
 
         void NovaStep(Enemy e, V2 tpos, float dt)
         {
@@ -347,25 +303,6 @@ namespace Arena
         /// How far a point is from a Heliograph's lane (from it, along its Facing).
         public static float HelioLaneDistance(Enemy e, V2 p) => SegmentDistance(p, e.Pos, e.Pos + V2.FromAngle(e.Facing) * HelioLen);
 
-        /// Returns true when it handled the shot.
-        bool PenumbralFire(Enemy e, V2 tpos, float aim)
-        {
-            switch (e.Type)
-            {
-                case EnemyType.Heliograph:
-                    e.FireT = 99f;  // its flare is its attack (HelioStep)
-                    return true;
-                case EnemyType.CoronaPriest:
-                    e.FireT = PriestEvery;
-                    CoronaRing(e, aim);
-                    return true;
-                case EnemyType.Sickle:
-                    e.FireT = SickleEvery;
-                    SickleThrow(e, tpos, e.Strafe >= 0f ? 1 : -1);
-                    return true;
-            }
-            return false;
-        }
 
         /// A crescent blade on a loop that leaves `side` of your line, passes through `at` and comes back round to it
         /// (the Eclipse's ThrowCrescent, smaller and slower).
@@ -401,6 +338,96 @@ namespace Arena
             if (NovaLit(e))
                 return p.DistanceTo(e.Pos) < NovaBlastR + hitR + 30f ? 2.5f : 0f;  // back off before it goes
             return 0f;
+        }
+        /// (moved from PenumbralMove, Ember)
+        V2 PenumbralMove_Ember(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            // Weaves either side of your line, straighter up close.
+            float a = EmberWeave * (float)Math.Sin(e.T * 4f + e.Id) * MathX.Clamp01(dist / 200f);
+            return dir * (float)Math.Cos(a) + dir.Orthogonal() * (float)Math.Sin(a);
+        }
+
+        /// (moved from PenumbralMove, CoronaPriest)
+        V2 PenumbralMove_CoronaPriest(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            return KeepDistance(dir, dist, PriestRange) + dir.Orthogonal() * e.Strafe * 0.6f;
+        }
+
+        /// (moved from PenumbralMove, Heliograph)
+        V2 PenumbralMove_Heliograph(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            if (HelioLocked(e))
+                return V2.Zero;  // planted while its mirror aims and burns
+            return KeepDistance(dir, dist, HelioRange) + dir.Orthogonal() * e.Strafe * 0.3f;
+        }
+
+        /// (moved from PenumbralMove, Gnomon)
+        V2 PenumbralMove_Gnomon(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            if (GnomonLocked(e))
+                return V2.Zero;  // planted while its lantern swells and flashes
+            return dir;
+        }
+
+        /// (moved from PenumbralMove, Sickle)
+        V2 PenumbralMove_Sickle(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            return KeepDistance(dir, dist, SickleRange) + dir.Orthogonal() * e.Strafe * 0.6f;
+        }
+
+        /// (moved from PenumbralMove, Nova)
+        V2 PenumbralMove_Nova(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            if (e.Phase == 1)
+            {
+                speed *= NovaLitSpeed;  // lit: it hangs about you, slowly, so you can back off
+                return KeepDistance(dir, dist, NovaHover) + dir.Orthogonal() * e.Strafe * 0.5f;
+            }
+            float w = 0.6f * (float)Math.Sin(e.T * 7f + e.Id) * MathX.Clamp01(dist / 160f);
+            return dir * (float)Math.Cos(w) + dir.Orthogonal() * (float)Math.Sin(w);  // a darting zigzag
+        }
+
+        /// (moved from PenumbralFire, Heliograph)
+        bool PenumbralFire_Heliograph(Enemy e, V2 tpos, float aim)
+        {
+            e.FireT = 99f;  // its flare is its attack (HelioStep)
+            return true;
+        }
+
+        /// (moved from PenumbralFire, CoronaPriest)
+        bool PenumbralFire_CoronaPriest(Enemy e, V2 tpos, float aim)
+        {
+            e.FireT = PriestEvery;
+            CoronaRing(e, aim);
+            return true;
+        }
+
+        /// (moved from PenumbralFire, Sickle)
+        bool PenumbralFire_Sickle(Enemy e, V2 tpos, float aim)
+        {
+            e.FireT = SickleEvery;
+            SickleThrow(e, tpos, e.Strafe >= 0f ? 1 : -1);
+            return true;
+        }
+
+        // --- Brains (Docs/EnemyBehaviours.md step 8d) ------------------------------------------------------------------
+
+        static void PenumbralBrains(Brain[] t)
+        {
+            t[(int)EnemyType.Ember] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.PenumbralMove_Ember(e, p, d, di, dt, ref sp)),
+                Special = new CodeSpecial((g, e, p, dt) => g.EmberSparks(e, p, dt)) };
+            t[(int)EnemyType.CoronaPriest] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.PenumbralMove_CoronaPriest(e, p, d, di, dt, ref sp)),
+                Fire = new CodeFire((g, e, p, a) => g.PenumbralFire_CoronaPriest(e, p, a)) };
+            t[(int)EnemyType.Heliograph] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.PenumbralMove_Heliograph(e, p, d, di, dt, ref sp), HelioLocked),
+                Special = new CodeSpecial((g, e, p, dt) => g.HelioStep(e, p, dt)), Fire = new CodeFire((g, e, p, a) => g.PenumbralFire_Heliograph(e, p, a)) };
+            t[(int)EnemyType.Moonward] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => d, e => true),
+                Special = new CodeSpecial((g, e, p, dt) => MoonwardTurnStep(e, dt)) };
+            t[(int)EnemyType.Gnomon] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.PenumbralMove_Gnomon(e, p, d, di, dt, ref sp), GnomonLocked),
+                Special = new CodeSpecial((g, e, p, dt) => g.GnomonStep(e, p, dt)) };
+            t[(int)EnemyType.Sickle] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.PenumbralMove_Sickle(e, p, d, di, dt, ref sp)),
+                Fire = new CodeFire((g, e, p, a) => g.PenumbralFire_Sickle(e, p, a)) };
+            t[(int)EnemyType.Nova] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.PenumbralMove_Nova(e, p, d, di, dt, ref sp)),
+                Special = new CodeSpecial((g, e, p, dt) => g.NovaStep(e, p, dt)) };
         }
     }
 }

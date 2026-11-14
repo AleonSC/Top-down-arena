@@ -712,8 +712,6 @@ namespace Arena
             float want = (tpos - e.Pos).Angle;
             if (e.Type == EnemyType.HiveBomber)
                 return;  // committed to the flight line (a lunger's leap, a Charger's dash, a Spike Block's lunge: their brains)
-            if (HelioLocked(e) || GnomonLocked(e) || e.Type == EnemyType.Moonward)
-                return;  // its beams' line (Penumbral.cs; a Pulsar's: its brain)
             if (LarderFaceLocked(e))
                 return;  // a Butcher's chop, a Gulper's cone (LarderFaction.cs)
             if (e.Type == EnemyType.Grounder)
@@ -880,8 +878,6 @@ namespace Arena
                     v = dir;  // straight at you, on the surface or under it (LarderFaction.cs)
                 if (IsLateGame(e.Type))
                     v = LateMove(e, tpos, dir, dist, dt, ref speed);
-                if (IsPenumbral(e.Type))
-                    v = PenumbralMove(e, tpos, dir, dist, dt, ref speed);  // Penumbral.cs
                 if (IsSquall(e.Type))
                     v = SquallMove(e, tpos, dir, dist, dt, ref speed);  // Squall.cs
                 if (Challenges.Own(e.Type))
@@ -993,13 +989,6 @@ namespace Arena
                 case EnemyType.Thunderhead:
                     SquallSpecial(e, tpos, dt);  // Squall.cs
                     break;
-                case EnemyType.Ember:
-                case EnemyType.Heliograph:
-                case EnemyType.Moonward:
-                case EnemyType.Gnomon:
-                case EnemyType.Nova:
-                    PenumbralSpecial(e, tpos, dt);  // Penumbral.cs
-                    break;
             }
         }
 
@@ -1031,8 +1020,6 @@ namespace Arena
                 brain.Fire.Fire(this, e, tpos, aim);  // Brain.cs
                 return;
             }
-            if (PenumbralFire(e, tpos, aim))
-                return;  // Penumbral.cs
             if (SquallFire(e, tpos, aim))
                 return;  // Squall.cs
             switch (e.Type)
