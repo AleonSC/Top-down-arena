@@ -20,10 +20,10 @@ namespace Arena
         public const float KnuckleChainWindowTime = 0.35f;
         public const int FlurryJabs = 8;
         public const float FlurryStart = 0.09f, FlurryGap = 0.085f, FlurryStraightAt = 0.79f, FlurryDur = 1.05f;
-        public const float FlurryJabMult = 0.5f, FlurryStraightMult = 20f / 12f, FlurryReach = 66f, FlurryWidth = 20f, FlurryStraightReach = 78f, FlurryStraightKnock = 12f;
+        public const float FlurryJabMult = 0.5f, FlurryStraightMult = 20f / 12f, FlurryReach = 76f, FlurryWidth = 30f, FlurryStraightReach = 90f, FlurryStraightKnock = 12f;
         public const float GrabRange = 110f, GrabLatch = 0.10f, GrabPull = 0.22f, GrabRelease = 0.74f, GrabDur = 1.15f, GrabHold = 14f;
         public const float KnuckleThrowSpeed = 520f, KnuckleThrowRange = 260f, KnuckleThrowMult = 20f / 12f, KnuckleThrowHitMult = 26f / 12f, KnuckleThrowKnock = 42f, KnuckleThrowStun = 0.5f;
-        public const float RocketPunchReach = 210f, RocketPunchWidth = 18f, RocketPunchAt = 0.26f, RocketPunchMult = 28f / 12f, RocketPunchKnock = 18f, RocketPunchDur = 0.9f, RocketPunchMaxReach = 300f, RocketPunchPast = 80f;
+        public const float RocketPunchReach = 210f, RocketPunchWidth = 28f, RocketPunchAt = 0.26f, RocketPunchMult = 28f / 12f, RocketPunchKnock = 18f, RocketPunchDur = 0.9f, RocketPunchMaxReach = 300f, RocketPunchPast = 80f;
 
         /// The grabbing fist, `c` seconds into Grab & Throw, in front of the body (x along the aim at the grab, y across): it reaches,
         /// pulls the enemy in, swings it all the way round (accelerating), then thrusts it forward on release.
