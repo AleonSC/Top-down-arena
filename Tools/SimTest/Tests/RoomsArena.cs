@@ -474,6 +474,13 @@ static partial class Program
             Run(s, dt, 5f, null, () => { foreach (var r in g.RoomStates) r.SpillT = 999f; });
             Check(keeper != null && vault.Contains(keeper.Pos, 10f), "...and stays there while nobody comes in");
             Check(g.AreaLocked(Rooms.Vault), "the vault locks behind you while he lives");
+            {
+                var vdoor = Rooms.Doors[Rooms.VaultDoor];
+                V2 outside = vdoor.Side(vdoor.Other(Rooms.Vault));
+                keeper.Pos = vdoor.Pos + (outside - vdoor.Pos).Normalized() * 40f;  // as if a charge carried him down the doorway
+                Run(s, dt, 0.1f, null, () => { foreach (var r in g.RoomStates) r.SpillT = 999f; });
+                Check(vault.Contains(keeper.Pos), "a charge down the vault's doorway can't take its mini-boss out of the vault");
+            }
 
             // The vault is optional: clear the rooms and the wave ends without him (he goes with it).
             foreach (var e in g.Enemies.Values) if (!FactionMinis.Is(e.Type)) e.Hp = 0f;

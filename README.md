@@ -1174,7 +1174,7 @@ prototype** in the F1 dev dock (Labs, in the lobby); otherwise the Campaign is t
   threats at once, so each one counts). Boss waves and the Classic arena are unchanged.
 - **The vault**: one regular wave in each stretch of ten (never before the first boss: waves 6-10, 12-20, 22-30, ...) opens a small gold room off the top hallway with **the
   next boss's faction's mini-boss** in it (the Warden's **Riot Captain**: see the Expanding arena's mini-boss room). It stays in the
-  vault, and the vault locks behind you until it falls. Beat it and everyone gets a **prize pick** (rare or better,
+  vault (its doorway stops a charge like a wall: the Riot Captain is dazed), and the vault locks behind you until it falls. Beat it and everyone gets a **prize pick** (rare or better,
   sometimes a legendary), as from the Gatekeeper's Data Gate. It's optional: the wave ends without it (it goes with it), and
   the wave carries on outside while you're in there. Its boss bar shows once you're at the vault.
 - **The minimap** (top right): the hub, rooms, hallways and the vault (gold), the doors, enemies (the vault's
