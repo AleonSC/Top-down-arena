@@ -1326,7 +1326,8 @@ namespace Arena
             TickReaperFaction(dt);  // ReaperFaction.cs: the Bound Wraiths' tethers, the Scythe Wraiths' reaps
             TickWaves(dt);
             TickPaths(dt);    // Paths.cs: hazard floors
-            TickEnemies(dt * WorldRate);  // (slowed for a moment by a perfect parry: Parry.cs)
+            if (!SurvFrozen)  // (Survival holds the whole world while someone picks a card: no moves, no contact hits: SurvivalGame.cs)
+                TickEnemies(dt * WorldRate);  // (slowed for a moment by a perfect parry: Parry.cs)
             KeepOutOfDomes();  // Fortress's dome (Dome.cs)
             KeepOutOfAegis(dt);  // Aeroaegis's vortex (Aegis.cs)
             KeepOutOfShell(dt);  // Blood Shell (BloodShell.cs)
