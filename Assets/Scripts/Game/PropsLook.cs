@@ -74,7 +74,9 @@ namespace Arena
         // ring with a turning dashed band, a pulsing diamond and a scan line. With Visual effects off the wood and clay
         // below draw as before; Reduced effects drops the scanlines, flicker, glitch slice and the pot's motion.
 
-        static readonly Rgba PropHoloCyan = new Rgba(0.31f, 0.89f, 1f), PropHoloBlue = new Rgba(0.56f, 0.82f, 1f), PropHoloPink = new Rgba(1f, 0.42f, 0.6f);
+        static readonly Rgba HoloCyanBase = new Rgba(0.31f, 0.89f, 1f), HoloBlueBase = new Rgba(0.56f, 0.82f, 1f);
+        Rgba PropHoloCyan = HoloCyanBase, PropHoloBlue = HoloBlueBase;  // themed with the walls for the coming boss (WallInk, LayoutLook.cs)
+        static readonly Rgba PropHoloPink = new Rgba(1f, 0.42f, 0.6f);
 
         /// The mockup's hash (so the dropouts fall exactly where the mockup's do), 0..1.
         static float PropHash(int n)
@@ -179,7 +181,7 @@ namespace Arena
                 Arc(c, rb, 1f, PropHoloCyan.WithAlpha(al), 4, phase + i * step, 3f / rb);
             // The diamond core, pulsing.
             float s = r * 0.3f * (1f + (fxReduced ? 0f : 0.15f * Mathf.Sin(t * 4f)));
-            var core = new Rgba(0.73f, 0.96f, 1f, al);
+            var core = PropHoloCyan.Mix(new Rgba(1f, 1f, 1f), 0.6f).WithAlpha(al);
             Circle(c, s * 1.8f, PropHoloCyan.WithAlpha(0.10f * al), 16);
             SetColor(core);
             Quad(c + new V2(0f, -s), c + new V2(s, 0f), c + new V2(0f, s), c + new V2(-s, 0f));
