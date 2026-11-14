@@ -42,6 +42,14 @@ namespace Arena
                 case EnemyType.Hornet: return "Circles, shows a red lane, then darts along it. Leave the lane.";
                 case EnemyType.Debris: return "Spirals in at you, hard to line up. Lead your shots into the curve.";
                 case EnemyType.VoidAcolyte: return "Three orbs that bend in to meet on you. Step forward or back, not sideways.";
+                case EnemyType.DustDevil: return "Weaves in and shoves you when it touches. Keep a wall off your back.";
+                case EnemyType.SquallGunner: return "Its shots curve back onto you on its wind. Dodge against the curve.";
+                case EnemyType.Stormcaller: return "Calls a strike under you: step out of the ring before it lands.";
+                case EnemyType.Grounder: return "Its shield grounds your shots and claps them back. Flank it, or find the gap.";
+                case EnemyType.Pylon: return "A pair plants either side of you; the arc flickers, then fires. Step off the line.";
+                case EnemyType.Thunderhead: return "Drops a row of strikes ahead of it. Sidestep the row, don't run along it.";
+                case EnemyType.BallLightning: return "Two arc to each other, then each pops. Kill them far away, never walk between.";
+                case EnemyType.Lineman: return "Marks a player. The marked one walks away from the team before it jumps.";
                 case EnemyType.Pulsar: return "Two beams flicker, then sweep a quarter turn. Walk the way they turn.";
                 case EnemyType.Ember: return "Weaves in, leaving sparks hanging behind it. Don't cut through its trail.";
                 case EnemyType.CoronaPriest: return "Its halo flares, then a ring with one gap beside you. Step into the gap.";

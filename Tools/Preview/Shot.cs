@@ -578,6 +578,51 @@ static partial class Shot {
       }
       qg.AnimT += float.Parse(Environment.GetEnvironmentVariable("QUARRY"), System.Globalization.CultureInfo.InvariantCulture);
     }
+    if (Environment.GetEnvironmentVariable("SQUALL") != null) {  // SQUALL=<s into the clock>: the Storm Herald's faction, step 1 (SquallLook.cs): four Dust Devils, a Squall Gunner winding up with a volley in flight, a Stormcaller winding up and its strike's ring filling under you; set beside Docs/Mockups/storm-herald-faction.html
+      var sg = host.Game; sg.Enemies.Clear(); sg.Bullets.Clear(); sg.Hazards.Clear();
+      var ssp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      Func<EnemyType, V2, Enemy> sput = (t, at) => { var e = (Enemy)ssp.Invoke(sg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; return e; };
+      me.Pos = me.Disp = new V2(1000f, 560f);
+      for (int k = 0; k < 4; k++) { float a = 3.4f + k * 0.45f, rr = 280f - 45f * k; var d = sput(EnemyType.DustDevil, me.Pos + new V2((float)Math.Cos(a) * rr, (float)Math.Sin(a) * rr * 0.8f)); d.Facing = a + 3.14f; }
+      var gun = sput(EnemyType.SquallGunner, new V2(700f, 620f)); gun.Facing = -0.2f; gun.Strafe = 1f;
+      typeof(Game).GetMethod("GunnerVolley", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(sg, new object[] { gun, me.Pos, (me.Pos - gun.Pos).Angle });
+      foreach (var b in sg.Bullets.Values) for (int i = 0; i < 40; i++) { b.Vel = b.Vel.Rotated(b.AngVel * 0.02f); b.Pos += b.Vel * 0.02f; }
+      gun.Winding = true;
+      var cal = sput(EnemyType.Stormcaller, new V2(1240f, 380f)); cal.Facing = 2.5f; cal.Winding = true;
+      var hz = (Hazard)typeof(Game).GetMethod("AddHazard", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(sg, new object[] { me.Pos + new V2(30f, -10f), Game.CallerRadius, Game.CallerWarn });
+      hz.Kind = Game.HazardCaller; hz.T = Game.CallerWarn * 0.45f;
+      sg.AnimT += float.Parse(Environment.GetEnvironmentVariable("SQUALL"), System.Globalization.CultureInfo.InvariantCulture);
+    }
+    if (Environment.GetEnvironmentVariable("SQUALL2") != null) {  // SQUALL2=<s into the clock>: the Storm Herald's faction, step 2 (SquallLook.cs): a Grounder half charged with a clap in flight, a Pylon pair firing either side of you, a Lineman with its mark ring on you
+      var sg = host.Game; sg.Enemies.Clear(); sg.Bullets.Clear(); sg.Hazards.Clear();
+      var np2 = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+      var ssp = typeof(Game).GetMethod("SpawnEnemyAt", np2);
+      Func<EnemyType, V2, Enemy> sput = (t, at) => { var e = (Enemy)ssp.Invoke(sg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; return e; };
+      me.Pos = me.Disp = new V2(1000f, 560f);
+      var gr = sput(EnemyType.Grounder, new V2(760f, 520f)); gr.Facing = (me.Pos - gr.Pos).Angle;
+      typeof(Game).GetMethod("Thunderclap", np2).Invoke(sg, new object[] { gr });
+      foreach (var b in sg.Bullets.Values) b.Pos += b.Vel * 0.35f;
+      gr.Phase = 7;
+      var pa = sput(EnemyType.Pylon, new V2(1130f, 380f));
+      foreach (var e in sg.Enemies.Values) if (e.Type == EnemyType.Pylon && e != pa) { e.Pos = e.Disp = new V2(880f, 720f); e.Phase = Game.PylonFiring; }
+      pa.Phase = Game.PylonFiring;
+      var ln = sput(EnemyType.Lineman, new V2(1230f, 640f)); ln.Facing = (me.Pos - ln.Pos).Angle; ln.Phase = 1; ln.LinkId = me.Id; ln.SeenPhase = 1; ln.SeenT = 1.1f;
+      sg.AnimT += float.Parse(Environment.GetEnvironmentVariable("SQUALL2"), System.Globalization.CultureInfo.InvariantCulture);
+    }
+    if (Environment.GetEnvironmentVariable("SQUALL3") != null) {  // SQUALL3=<s into the clock>: the Storm Herald's faction, step 3 (SquallLook.cs): a Thunderhead flashing with its row of strikes coming at you, two Ball Lightning arcing to each other, a Supercell's Lineman and Dust Devils
+      var sg = host.Game; sg.Enemies.Clear(); sg.Bullets.Clear(); sg.Hazards.Clear();
+      var np3 = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+      var ssp = typeof(Game).GetMethod("SpawnEnemyAt", np3);
+      Func<EnemyType, V2, Enemy> sput = (t, at) => { var e = (Enemy)ssp.Invoke(sg, new object[] { t, at, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.T = 2f; return e; };
+      me.Pos = me.Disp = new V2(1000f, 560f);
+      var th = sput(EnemyType.Thunderhead, new V2(740f, 470f)); th.Phase = 1; th.SeenPhase = 1;
+      typeof(Game).GetMethod("TickThunderhead", np3).Invoke(sg, new object[] { new Enemy { Type = EnemyType.Thunderhead, Pos = th.Pos, Radius = th.Radius, T = 2f, Phase = 0, PhaseT = 0f }, me.Pos, 0f });
+      int hk = 0; foreach (var h in sg.Hazards.Values) h.T = Math.Max(0.05f, h.T - 0.55f - 0.15f * hk++);
+      sput(EnemyType.BallLightning, new V2(1180f, 380f)); sput(EnemyType.BallLightning, new V2(1300f, 520f));
+      var ln = sput(EnemyType.Lineman, new V2(780f, 720f)); ln.Facing = (me.Pos - ln.Pos).Angle; ln.Phase = 1; ln.LinkId = me.Id; ln.SeenPhase = 1; ln.SeenT = 0.8f;
+      for (int k = 0; k < 3; k++) { float a = 0.4f + k * 2.1f; sput(EnemyType.DustDevil, me.Pos + new V2((float)Math.Cos(a) * 60f, (float)Math.Sin(a) * 50f)); }
+      sg.AnimT += float.Parse(Environment.GetEnvironmentVariable("SQUALL3"), System.Globalization.CultureInfo.InvariantCulture);
+    }
     if (Environment.GetEnvironmentVariable("COURT") != null) {  // COURT=<s into the clock>: the Duelist's step-1 faction (CourtLook.cs): Fencers (walking, line showing, hopping), a Blade Dancer showing its line and one with blades hanging, Parriers (whole, flashing, cracked, broken); set beside Docs/Mockups/duelist-faction.html
       var cg = host.Game; cg.Enemies.Clear(); cg.Bullets.Clear(); cg.Patches.Clear(); cg.Effects.Clear();
       var csp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

@@ -467,8 +467,7 @@ namespace Arena
             }
             bool pac = PacSkin && !spawning && PacGhostable(e);  // the Pac-Man skin: a ghost in its role's colour (PacmanLook.cs)
             // Melee enemies are spiky, so you can tell rushers from shooters at a glance.
-            if (e.Def.Melee && !pac && !spawning && e.Type != EnemyType.Swarmer && !Game.IsReaperCult(e.Type) && !HiveKin.Is(e.Type) && !Game.IsInfall(e.Type) && !Game.IsPenumbral(e.Type) && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type) && !Game.IsNonShooter(e.Type))
-            if (e.Def.Melee && !pac && !spawning && !HiveKin.Is(e.Type) && !QuarryKin.Is(e.Type) && !CourtKin.Is(e.Type) && !LarderKin.Is(e.Type) && !Game.IsReaperCult(e.Type) && e.Type != EnemyType.Swarmer && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type) && !Game.IsNonShooter(e.Type))
+            if (e.Def.Melee && !pac && !spawning && !HiveKin.Is(e.Type) && !QuarryKin.Is(e.Type) && !CourtKin.Is(e.Type) && !LarderKin.Is(e.Type) && !Game.IsInfall(e.Type) && !Game.IsSquall(e.Type) && !Game.IsPenumbral(e.Type) && !Game.IsReaperCult(e.Type) && e.Type != EnemyType.Swarmer && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type) && !Game.IsNonShooter(e.Type))
                 DrawMeleeSpikes(e, pos, r, col, t);
             if (Zombies.Is(e.Type))
                 DrawZombieUnder(e, pos, r, t);  // its spore haze, frenzy streaks and the Crawler's hold (ZombieLook.cs)
@@ -509,6 +508,8 @@ namespace Arena
                 DrawCourtBody(e, pos, r, col, t);   // CourtLook.cs: the Duelist's faction
             else if (LarderKin.Is(e.Type))
                 DrawLarderBody(e, pos, r, col, t);  // LarderLook.cs: the Devourer's faction
+            else if (Game.IsSquall(e.Type))
+                DrawSquallBody(e, pos, r, col, t);  // SquallLook.cs: the Storm Herald's faction
             else if (e.Type == EnemyType.SecurityGuard)
                 DrawSecurityBody(e, pos, r, col, t);  // SecurityLook.cs
             else if (Game.IsNonShooter(e.Type))

@@ -291,6 +291,56 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.DustDevil, Name = "Dust Devil", Group = "Melee", Wave = 36,
+                Appears = "The Storm Herald's approach (waves 36-39, in packs and Squall lines)",
+                Lead = "A small whirlwind that weaves across your line as it comes in. Its touch hurts and shoves you 120 px, into walls and shots behind you, then it veers off and comes again.",
+                Attacks = new[] { new BestiaryAttack { Name = "Gust", Pattern = "Touch, then a 120 px shove", Damage = "8" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.SquallGunner, Name = "Squall Gunner", Group = "Shooters", Wave = 36,
+                Appears = "The Storm Herald's approach (waves 36-39), alone or leading a Squall line",
+                Lead = "Carries its own gust. Keeps 260 px away; every 2.2 s it fires three shots aimed upwind of you that curve back to cross where you stood. Its wind always blows the same way, so dodge against the curve.",
+                Attacks = new[] { new BestiaryAttack { Name = "Crosswind", Pattern = "Three shots that curve onto you from one side", Shot = "Orb", ShotColor = new Rgba(0.56f, 0.82f, 1f), Speed = "220", Damage = "per shot", Every = 2.2f } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Stormcaller, Name = "Stormcaller", Group = "Shooters", Wave = 37,
+                Appears = "The Storm Herald's approach (waves 37-39), alone or two in a Storm cell",
+                Lead = "Keeps 300 px away and raises its staff: an amber ring (40 px) fills under you for 1.1 s, then lightning strikes it. Every 2.8 s. Step out of the ring.",
+                Attacks = new[] { new BestiaryAttack { Name = "Strike", Pattern = "A 40 px ring under you, 1.1 s warning", Damage = "20", Every = 2.8f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Thunderhead, Name = "Thunderhead", Group = "Melee", Wave = 37,
+                Appears = "The Storm Herald's approach (waves 37-39), alone or in a Supercell",
+                Lead = "A slow, heavy storm cloud (220 health, can't be shoved) that walks at you. Within 380 px, every 2.6 s it flashes and drops a row of three 30 px strikes ahead of it toward you, landing one after another 1, 1.2 and 1.4 s later. Sidestep the row; don't run along it.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "20" },
+                    new BestiaryAttack { Name = "Downburst", Pattern = "A row of 3 strikes ahead of it", Damage = "20 each", Every = 2.6f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Grounder, Name = "Grounder", Group = "Shooters", Wave = 37,
+                Appears = "The Storm Herald's approach (waves 37-39), alone or two in a Grounding wall",
+                Lead = "Walks in behind a curved copper shield that turns slowly toward you. Shots on its face are grounded: no damage, and each charges it. Twelve and it claps a ring of 14 shots back, with two gaps either side of its front. Flank it so it never fills.",
+                Attacks = new[] { new BestiaryAttack { Name = "Thunderclap", Pattern = "A ring of 14, two gaps, after 12 grounded shots", Shot = "Orb", Speed = "170", Damage = "per shot" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Pylon, Name = "Pylon", Group = "Shooters", Wave = 37,
+                Appears = "The Storm Herald's approach (waves 37-39), always a pair; two pairs in a Power line",
+                Lead = "Two posts that walk to either side of you and plant. Three times: quiet 0.9 s, the arc between them flickers 0.6 s, then fires along the line. Then they walk again. Kill either post and the line is gone. At most two pairs a wave.",
+                Attacks = new[] { new BestiaryAttack { Name = "Arc", Pattern = "Along the line between the pair, 0.6 s flicker", Damage = "18", Every = 1.85f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Lineman, Name = "Lineman", Group = "Shooters", Wave = 38,
+                Appears = "The Storm Herald's approach (waves 38-39)",
+                Lead = "Keeps 260 px away. Every 5.5 s it hooks the nearest player: an amber ring (120 px) and a countdown show round them for 2.6 s. Then the charge jumps to every other player in the ring, hurting all of them, and 8 shots burst out from each. Alone, it only bursts. The marked player walks away from the team.",
+                Attacks = new[] { new BestiaryAttack { Name = "Conductor", Pattern = "A mark, then a chain to allies within 120 px", Damage = "16 each", Every = 5.5f } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.Graviton, Name = "Graviton", Group = "Shooters", Wave = 17,
                 Appears = "The Singularity's approach (waves 17-19), alone or in a Gravity trap squad",
                 Lead = "Keeps 320 px away. Every 6 s it plants its feet for 0.6 s, a ring marks a spot near you, and 0.8 s later a Small Well lands there: for 4 s it drags you toward it (80 px/s at its middle, 240 px out) and bends your shots into it. Get clear, or shoot the well (30 health). A new lob takes its old well away.",
@@ -579,10 +629,12 @@ namespace Arena
             },
             new BestiaryEntry
             {
-                Type = EnemyType.BallLightning, Name = "Ball Lightning", Group = "Summons", Wave = 40,
-                Appears = "The Storm Herald's Gale",
-                Lead = "Slow orbs (3 at a time) that drift at you at 80 px/s plus the wind. Two within 200 px arc lightning to each other, and each pops into 8 shots after 6 s.",
-                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "20" } },
+                Type = EnemyType.BallLightning, Name = "Ball Lightning", Group = "Summons", Wave = 38,
+                Appears = "The Storm Herald's approach (waves 38-39; at most 4 a wave) and its Gale (3 at a time)",
+                Lead = "Orbs that drift at you at 80 px/s (plus the wind in the Gale). Two within 200 px arc lightning to each other, and each pops into 8 shots after 6 s. Slows and freezes hold them. Kill them far from you, and don't walk between two.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "20" },
+                    new BestiaryAttack { Name = "Arc", Pattern = "Between two within 200 px", Damage = "20" },
+                    new BestiaryAttack { Name = "Pop", Pattern = "8 shots after 6 s", Shot = "Orb", Speed = "140", Damage = "per shot" } },
             },
             new BestiaryEntry
             {

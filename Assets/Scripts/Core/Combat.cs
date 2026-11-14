@@ -513,6 +513,8 @@ namespace Arena
                             {
                                 DuelGuardBounce(e, b);  // the Duelist's guard sends it back (Duelist.cs)
                                 ParrierBounce(e, b);    // so does a Parrier's main-gauche (CourtFaction.cs)
+                                if (GrounderFaces(e, b.Pos))
+                                    GroundShot(e);      // a Grounder's shield charges (Squall.cs)
                                 WearShield(e, b.Dmg);  // the shield takes it, and wears
                                 if (e.Type == EnemyType.CombShield)
                                 {

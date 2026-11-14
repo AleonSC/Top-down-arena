@@ -346,6 +346,8 @@ namespace Arena
         {
             CapBeams(EnemyType.BeamSentry, MaxSentries, () => rng.NextDouble() < 0.5 ? EnemyType.Sniper : EnemyType.Grunt);
             CapBeams(EnemyType.Pulsar, MaxPulsars, () => EnemyType.VoidAcolyte);
+            CapBeams(EnemyType.Pylon, MaxPylonPairs, () => EnemyType.Stormcaller);
+            CapBeams(EnemyType.BallLightning, MaxBalls, () => EnemyType.DustDevil);  // (their arcs stack up)  // the Storm Herald's: each brings its partner (Squall.cs)
             CapBeams(EnemyType.GraveCaller, Zombies.MaxCallers, () => EnemyType.Shambler);  // the Lich's: two Callers raise eight
             CapBeams(EnemyType.Shrieker, Zombies.MaxShriekers, () => EnemyType.Shambler);
             CapBeams(EnemyType.Heliograph, MaxHeliographs, () => EnemyType.CoronaPriest);  // (Penumbral.cs)

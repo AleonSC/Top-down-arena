@@ -1,0 +1,284 @@
+<title>Storm Herald Faction</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* The Storm Herald's faction ("the Squall"), sized like the Warden's: 8 members, 4 squads, a set piece, a 10-wave cycle.
+   Each enemy previews one boss attack. Approximate: canvas mockups, not the Ui.cs draw code.
+   Colours follow HeraldLook.cs: StormBlue, StormWhite; strike warnings amber; wind teal. */
+:root{
+  --bg:#eceff3; --fg:#141920; --muted:#59626f; --panel:#f7f8fa; --line:#cfd5de; --chip:#e0e5ec;
+  --blue:#1f6fa8; --amber:#a86a00; --teal:#14806f; --arena:#070a10;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0b0e13; --fg:#e6ebf2; --muted:#94a0b0; --panel:#131820; --line:#262e3a; --chip:#1d2430;
+  --blue:#8fd1ff; --amber:#ffd166; --teal:#9fe8d8; --arena:#05070b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b0e13; --fg:#e6ebf2; --muted:#94a0b0; --panel:#131820; --line:#262e3a; --chip:#1d2430;
+  --blue:#8fd1ff; --amber:#ffd166; --teal:#9fe8d8; --arena:#05070b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+h1{font:700 clamp(40px,8vw,68px)/.95 var(--display);text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 6px}
+h3{font:700 22px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0}
+p{margin:0}
+code{font:400 .88em var(--mono)}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.lede{max-width:66ch;color:var(--muted)}
+.sub{color:var(--muted);margin-bottom:16px;max-width:70ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.card .body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.card .top{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.num{font:500 12px var(--mono);color:var(--muted)}
+canvas{display:block;width:100%;max-width:100%;height:auto;background:var(--arena)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:4px;background:var(--chip);color:var(--muted)}
+.chip.job{color:var(--fg)}
+.teach{font-size:14px;border-left:3px solid var(--blue);padding-left:8px;color:var(--muted)}
+.teach b{color:var(--fg);font-weight:600}
+.stats{font:400 12px var(--mono);color:var(--muted)}
+.wide{grid-column:1/-1}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+td.n{font:500 13px var(--mono);color:var(--muted);width:3em}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+ul.notes{margin:0;padding-left:20px;color:var(--muted)}
+ul.notes li+li{margin-top:4px}
+</style>
+<main>
+<header>
+  <div class="eyebrow">Wave 40 boss faction · mockup (approximate, not the game's draw code)</div>
+  <h1>The Squall</h1>
+  <p class="lede">The Storm Herald's faction, the same size as the Warden's: 8 enemies, 4 squads, a set piece and a 10-wave Campaign cycle. A storm front that walks ahead of the Herald, and each enemy previews one of its attacks.</p>
+</header>
+
+<section>
+  <h2>Members</h2>
+  <p class="sub">The Warden's slot each one fills is in brackets. Weight and first round copy the Warden's table in <code>Approaches.cs</code>.</p>
+  <div class="grid" id="members"></div>
+</section>
+
+<section>
+  <h2>Squads</h2>
+  <p class="sub">Four squads and the wave-4 set piece, like Breakout / Yard / Patrol / Cell block and the Riot line.</p>
+  <div class="grid" id="squads"></div>
+</section>
+
+<section>
+  <h2>Campaign cycle</h2>
+  <p class="sub">One lesson per wave, building to the Storm Herald.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>#</th><th>Teaches</th><th>Mix</th></tr></thead>
+    <tbody id="lessons"></tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>Notes</h2>
+  <ul class="notes">
+    <li>Dust Devil, Squall Gunner, Grounder, Stormcaller and Pylons fade at the first boss after (Fade 0–1); Thunderhead and Ball Lightning stay two waves longer (Fade 2, like Thugs and Shivs).</li>
+    <li>Ball Lightning already exists (<code>EnemyType.BallLightning</code>, the Herald's summon). The faction version is the fix in <code>Docs/Approaches.md</code>: works with no Herald, slows and freezes skip it, its pop shots count as boss shots.</li>
+    <li>"Lightning Rod" is already an ability, so the paired posts are called Pylons. Their arc reuses the Herald's rod arc.</li>
+    <li>No arena-wide wind outside the fight: the Dust Devil's shove and the Squall Gunner's own drift stand in for the Gale.</li>
+    <li>Strikes, arcs and the Conductor's chain can reuse <code>Herald.cs</code>'s warning and hit code at smaller numbers.</li>
+    <li>New <code>EnemyType</code> values would go at the end, before <code>None</code>, with a protocol bump.</li>
+  </ul>
+</section>
+</main>
+
+<script>
+const C={blue:'#8fd1ff',white:'#e6f3ff',amber:'#ffd166',red:'#ff5a6a',wind:'#9fe8d8',player:'#4fe3c1',bullet:'#ffe27a',copper:'#d08a4a',dark:'#05070c'};
+const TAU=Math.PI*2;
+const lerp=(a,b,f)=>a+(b-a)*f, clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), ease=f=>f*f*(3-2*f);
+const rnd=n=>{const s=Math.sin(n*127.1+311.7)*43758.5453;return s-Math.floor(s);};
+function hexA(h,a){const n=parseInt(h.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}
+function glow(g,x,y,r,col,a){const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,hexA(col,a));gr.addColorStop(1,hexA(col,0));g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();}
+function circ(g,x,y,r,fill,stroke,w){g.beginPath();g.arc(x,y,Math.max(0,r),0,TAU);if(fill){g.fillStyle=fill;g.fill();}if(stroke){g.strokeStyle=stroke;g.lineWidth=w||2;g.stroke();}}
+function line(g,x1,y1,x2,y2,col,w,dash){g.save();g.strokeStyle=col;g.lineWidth=w;if(dash)g.setLineDash(dash);g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();g.restore();}
+function floor(g,W,H){g.fillStyle='#070a10';g.fillRect(0,0,W,H);g.strokeStyle='rgba(120,160,210,0.06)';g.lineWidth=1;for(let x=0;x<W;x+=30){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke();}for(let y=0;y<H;y+=30){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}}
+function player(g,x,y,ang,hurt){glow(g,x,y,26,hurt?C.red:C.player,hurt?0.5:0.25);circ(g,x,y,10,'#0f2d28',C.player,2.5);line(g,x,y,x+Math.cos(ang)*17,y+Math.sin(ang)*17,C.player,4);}
+function shot(g,x,y,col,r){glow(g,x,y,(r||3)*3,col,0.45);circ(g,x,y,r||3,col);}
+function label(g,x,y,txt,col){g.font='500 10px "IBM Plex Mono",monospace';g.fillStyle=col||'rgba(225,235,245,0.7)';g.textAlign='center';g.fillText(txt,x,y);}
+/* a jagged lightning line; seed changes it, so floor(t*20) makes it flicker */
+function bolt(g,x1,y1,x2,y2,seed,col,w,jit){jit=jit??10;const dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy)||1,nx=-dy/L,ny=dx/L,n=Math.max(3,Math.round(L/16));
+  const pts=[[x1,y1]];for(let i=1;i<n;i++){const f=i/n,o=(rnd(seed*31.7+i*7.3)-0.5)*2*jit;pts.push([x1+dx*f+nx*o,y1+dy*f+ny*o]);}pts.push([x2,y2]);
+  const path=()=>{g.beginPath();g.moveTo(pts[0][0],pts[0][1]);for(const p of pts)g.lineTo(p[0],p[1]);};
+  g.save();g.lineJoin='round';g.lineCap='round';path();g.strokeStyle=hexA(col,0.22);g.lineWidth=w*4;g.stroke();path();g.strokeStyle=col;g.lineWidth=w;g.stroke();
+  path();g.strokeStyle='#ffffff';g.lineWidth=Math.max(0.8,w*0.4);g.stroke();g.restore();}
+/* strike: amber warning ring that fills, then a bolt from the sky and a scorch */
+function warn(g,x,y,r,f){circ(g,x,y,r,hexA(C.amber,0.06+0.1*f),hexA(C.amber,0.75),1.5);circ(g,x,y,r*f,hexA(C.amber,0.22));}
+function strike(g,x,y,r,a,seed){g.save();g.globalAlpha=a;glow(g,x,y,r*1.8,C.white,0.7);circ(g,x,y,r,null,hexA(C.white,0.8),2);bolt(g,x+(rnd(seed)-0.5)*40,y-120,x,y,seed,C.blue,2.2,9);g.restore();}
+function scorch(g,x,y,r,a){circ(g,x,y,r*0.8,`rgba(0,0,0,${0.45*a})`,hexA(C.blue,0.25*a),1);}
+function windStreaks(g,t,W,H,dx,dy,n){for(let i=0;i<n;i++){const x=((i*53.3+t*dx*90)%(W+40)+W+40)%(W+40)-20, y=((i*37.7+t*dy*90)%(H+40)+H+40)%(H+40)-20;line(g,x,y,x+dx*14,y+dy*14,hexA(C.wind,0.16),1.2);}}
+
+/* ---------- enemy bodies (shared by members and squads) ---------- */
+const D={
+  devil(g,x,y,t,s=1,seed=0){glow(g,x,y,22*s,C.wind,0.18);g.save();g.translate(x,y);g.lineCap='round';
+    for(let k=0;k<3;k++){g.save();g.rotate(t*(7-k*1.5)+seed+k*2);g.strokeStyle=hexA(C.wind,0.9-k*0.22);g.lineWidth=2.2-k*0.5;g.beginPath();g.arc(0,0,(5+k*4.5)*s,0,Math.PI*1.25);g.stroke();g.restore();}
+    g.restore();circ(g,x,y,3.2*s,'#e3fff8');for(let i=0;i<4;i++){const a=t*9+i*1.7+seed;circ(g,x+Math.cos(a)*16*s,y+Math.sin(a)*16*s,1.3,'rgba(201,180,138,0.8)');}},
+  gunner(g,x,y,t,ang,charge=0){glow(g,x,y,28,C.blue,0.15);g.save();g.translate(x,y);g.rotate(ang);
+    g.save();g.translate(-12,0);g.rotate(Math.sin(t*5)*0.35);g.beginPath();g.moveTo(0,0);g.lineTo(-13,-6);g.lineTo(-13,6);g.closePath();g.fillStyle=hexA(C.wind,0.55);g.fill();g.restore();
+    g.fillStyle='#2a3a4d';g.fillRect(4,-3.5,17,7);circ(g,0,0,12,'#141c27','#6f8fb0',1.8);circ(g,2,0,5,'#0b1018',C.blue,1.2);
+    if(charge>0)glow(g,23,0,6+charge*12,C.blue,0.7*charge);g.restore();},
+  grounder(g,x,y,t,ang,charge=0){glow(g,x,y,42,C.blue,0.06+0.25*charge);g.save();g.translate(x,y);g.rotate(ang);circ(g,-6,0,11,'#171c25','#7a8598',1.5);
+    g.lineCap='round';g.beginPath();g.arc(-6,0,24,-1.15,1.15);g.strokeStyle=C.copper;g.lineWidth=6;g.stroke();
+    if(charge>0){g.beginPath();g.arc(-6,0,24,-1.15,-1.15+2.3*charge);g.strokeStyle=C.blue;g.lineWidth=2.5;g.stroke();}
+    for(const a of[-0.8,0,0.8]){line(g,-6+Math.cos(a)*27,Math.sin(a)*27,-6+Math.cos(a)*34,Math.sin(a)*34,C.copper,2);circ(g,-6+Math.cos(a)*34,Math.sin(a)*34,2.2,charge>0.6?C.white:C.copper);}
+    g.restore();},
+  caller(g,x,y,t,ang,raise=0){glow(g,x,y,26,C.amber,0.08+0.3*raise);
+    if(raise>0.2)for(let i=0;i<4;i++){const a=t*3+i*1.6;circ(g,x+Math.cos(a)*11,y-24+Math.sin(a)*3,5,`rgba(109,122,146,${0.45*raise})`);}
+    g.save();g.translate(x,y);g.rotate(ang);g.beginPath();g.moveTo(14,0);g.lineTo(-11,-12);g.quadraticCurveTo(-15,0,-11,12);g.closePath();g.fillStyle='#1a1e2c';g.fill();g.strokeStyle='#7f8bb0';g.lineWidth=1.5;g.stroke();
+    circ(g,-1,0,5.5,'#0b0d14','#566088',1.2);const ex=18+raise*4,ey=12-raise*20;line(g,4,9,ex,ey,'#b89b6a',2.5);glow(g,ex,ey,8+raise*14,C.amber,0.4+0.5*raise);circ(g,ex,ey,2.5+raise*1.5,C.white);g.restore();},
+  lineman(g,x,y,t,ang,charge=0){glow(g,x,y,28,C.blue,0.14);g.save();g.translate(x,y);g.rotate(ang);
+    g.fillStyle='#2c2318';g.fillRect(-20,-8,8,16);g.strokeStyle=C.copper;g.lineWidth=1.3;g.beginPath();for(let i=0;i<=6;i++)g.lineTo(-20+(i%2?8:0),-8+i*16/6);g.stroke();
+    circ(g,-2,0,11,'#151b24','#7b8aa3',1.6);line(g,6,4,25,4,'#9aa6ba',2.5);line(g,25,4,29,0,C.blue,1.5);line(g,25,4,29,8,C.blue,1.5);
+    if(charge>0||Math.sin(t*13)>0.7)glow(g,28,4,9+charge*10,C.blue,0.65);g.restore();},
+  pylon(g,x,y,t,hot=0){glow(g,x,y,20+hot*16,C.blue,0.15+0.45*hot);g.save();g.translate(x,y);g.rotate(Math.PI/4);g.fillStyle='#1b2230';g.strokeStyle='#7d8aa2';g.lineWidth=1.5;g.fillRect(-8,-8,16,16);g.strokeRect(-8,-8,16,16);g.restore();
+    circ(g,x,y,5,'#0b0f17',C.copper,2);circ(g,x,y,2.2,hot>0?C.white:C.blue);},
+  thunder(g,x,y,t,r=26,flash=0){g.fillStyle='rgba(0,0,0,0.35)';g.beginPath();g.ellipse(x+8,y+12,r*1.25,r*0.85,0,0,TAU);g.fill();
+    glow(g,x,y,r*2.1,C.blue,0.06+0.35*flash);const P=[[0,0,1],[-0.72,0.15,0.72],[0.72,0.1,0.74],[-0.32,-0.48,0.66],[0.36,-0.42,0.64],[0.05,0.5,0.62]];
+    for(const[ox,oy,s]of P)circ(g,x+ox*r,y+oy*r+Math.sin(t*1.3+ox*3)*1.5,r*s*0.62+1.6,hexA('#9fb3d4',0.45));
+    for(const[ox,oy,s]of P)circ(g,x+ox*r,y+oy*r+Math.sin(t*1.3+ox*3)*1.5,r*s*0.62,flash>0.5?'#4a5876':'#2b3446');
+    for(const[ox,oy,s]of P.slice(0,3))circ(g,x+ox*r-r*0.12,y+oy*r-r*0.14,r*s*0.25,hexA('#c7d6ee',0.12));
+    if(flash>0.3)bolt(g,x-r*0.5,y-r*0.15,x+r*0.4,y+r*0.25,Math.floor(t*20),C.white,1.4,5);},
+  ball(g,x,y,t,life=1,seed=0){const fl=0.75+0.25*Math.sin(t*23+seed*3);glow(g,x,y,26,C.blue,0.35*fl);circ(g,x,y,9,hexA(C.blue,0.3),C.white,1.5);circ(g,x,y,4,C.white);
+    for(let k=0;k<3;k++){const q=Math.floor(t*14)+k*5+seed*9,a=rnd(q)*TAU;bolt(g,x+Math.cos(a)*7,y+Math.sin(a)*7,x+Math.cos(a)*17,y+Math.sin(a)*17,q,C.blue,1,3);}
+    if(life<1){g.strokeStyle=hexA(C.amber,0.85);g.lineWidth=2;g.beginPath();g.arc(x,y,14,-Math.PI/2,-Math.PI/2+TAU*life);g.stroke();}},
+};
+
+/* ---------- member scenes: stateless, drawn from time ---------- */
+const W=360,H=210;
+const M=[
+ {name:'Dust Devil',slot:'Rioter',job:'Hunter',from:1,w:3,stats:'14 HP · 135 px/s · 8 touch + shove 120 px',
+  does:'A small whirlwind that weaves in at you. Touching you shoves you hard in the way it was going, into whatever is behind you.',
+  teach:'<b>Gale</b>: the wind pushes you around. Keep a wall off your back.',
+  draw(g,t){const c=t%2.4,py=105,hit=1.5;D.devil(g,90+Math.sin(t*1.3)*40,38+Math.cos(t*0.9)*10,t,0.9,2);D.devil(g,150+Math.cos(t*1.1)*40,180,t,0.9,5);
+    const push=c>=hit?ease(clamp((c-hit)/0.35,0,1)):0;const px=270+push*50;
+    if(c<hit){const f=c/hit;D.devil(g,lerp(30,px-20,ease(f)),py+Math.sin(f*10)*16,t);}else{D.devil(g,250-(c-hit)*70,py+(c-hit)*20,t);}
+    if(c>=hit&&c<hit+0.6){const a=1-(c-hit)/0.6;for(let i=0;i<5;i++)line(g,px-22-i*10,py-12+i*6,px-40-i*12,py-12+i*6,hexA(C.wind,0.6*a),1.5);label(g,px,py-24,'shoved',hexA(C.wind,0.9*a));}
+    player(g,px,py,Math.PI,c>=hit&&c<hit+0.2);}},
+ {name:'Squall Gunner',slot:'Guard',job:'Pressure',from:'1 (not first)',w:2,stats:'45 HP · 85 px/s · 3 piercing shots, 12 each, every 2.2 s',
+  does:'Carries its own gust. It aims its three-shot volley upwind of you, and the wind bends the shots back onto you on the way.',
+  teach:'<b>Crosswind</b>: shots drift with the wind, so dodge against it.',
+  draw(g,t){windStreaks(g,t,W,H,0,1,16);label(g,325,18,'wind ↓',hexA(C.wind,0.8));const gx=60,gy=105,px=295,py=130,c=t%2.2,charge=c<0.5?c/0.5:0;
+    if(c<0.5)line(g,gx+22,gy,px,py-60,hexA(C.blue,0.15+0.35*charge),1.5,[5,5]);
+    D.gunner(g,gx,gy,t,Math.atan2(py-60-gy,px-gx),charge);player(g,px,py,Math.PI);
+    for(let k=0;k<3;k++){const f=(c-0.5-k*0.09)/1.3;if(f<0||f>1.05)continue;const ex=px+10,ey=py+(k-1)*12;const x=lerp(gx+22,ex,f),y=lerp(gy-6,ey-60,f)+60*f*f;
+      for(let j=1;j<5;j++){const ff=Math.max(0,f-j*0.025);circ(g,lerp(gx+22,ex,ff),lerp(gy-6,ey-60,ff)+60*ff*ff,2.6-j*0.45,hexA(C.blue,0.35-j*0.07));}shot(g,x,y,C.blue,3.2);}
+    if(c<0.5)label(g,200,48,'aims upwind',hexA(C.blue,0.8));}},
+ {name:'Grounder',slot:'Riot Shield',job:'Anchor',from:2,w:2,stats:'90 HP · 70 px/s · front grounds shots · 12 grounded = clap of 18 (14 each)',
+  does:'A copper rod-shield that grounds shots on its face. Each one charges it; when full it lets go a Thunderclap ring with two gaps, aimed so a gap faces the shooter.',
+  teach:'<b>Thunderclap</b>: find the gap. Better yet, flank it so it never fills.',
+  draw(g,t){const gx=110,gy=105,px=300,py=105,c=t%4.2,charge=c<3?c/3:Math.max(0,1-(c-3)/0.4);D.grounder(g,gx,gy,t,0,charge);
+    if(c<3){for(let i=0;i<5;i++){const f=(t*2+i/5)%1,x=lerp(px-16,128,f),y=py+(i-2)*4;if(f<0.94)shot(g,x,y,C.bullet,2.5);else bolt(g,128,y,138,y+(rnd(i+Math.floor(t*20))-0.5)*16,Math.floor(t*20)+i,C.blue,1,3);}
+      label(g,160,40,'front: grounded',hexA(C.copper,0.9));}
+    else{const R=(c-3)*230+30,off=-TAU/36;for(let i=0;i<18;i++){if(i%9===0||i%9===1)continue;const a=off+i/18*TAU;shot(g,gx-6+Math.cos(a)*R,gy+Math.sin(a)*R,C.blue,3.2);}
+      label(g,gx-6+R+6,gy-16,'gap',C.wind);label(g,180,195,'full: thunderclap',hexA(C.blue,0.9));}
+    player(g,px,py,Math.PI);}},
+ {name:'Stormcaller',slot:'Gas Grenadier',job:'Zoner',from:2,w:1.5,stats:'50 HP · keeps 300 px · a 40 px strike under you every 2.8 s (1.1 s warning, 20)',
+  does:'Raises its staff and calls a strike on you: an amber ring fills for 1.1 s, then lightning hits it and leaves a scorch.',
+  teach:'<b>Strikes</b>: when the ring shows up under you, step out of it.',
+  draw(g,t){const cx=60,cy=150,wx=235,wy=88,c=t%2.8;const raise=c<0.4?c/0.4:c<1.6?1:Math.max(0,1-(c-1.6)/0.3);
+    if(c>=1.8)scorch(g,wx,wy,40,1-(c-1.8));if(c>=0.4&&c<1.5)warn(g,wx,wy,40,(c-0.4)/1.1);
+    const m=ease(clamp((c-0.8)/0.5,0,1)),px=lerp(wx,305,m),py=lerp(wy,140,m);D.caller(g,cx,cy,t,Math.atan2(wy-cy,wx-cx),raise);player(g,px,py,Math.atan2(cy-py,cx-px));
+    if(c>=1.5&&c<1.85)strike(g,wx,wy,40,1-(c-1.5)/0.35,Math.floor(t*25));if(c>0.7&&c<1.3)label(g,wx,wy-48,'step out',hexA(C.amber,0.9));}},
+ {name:'Lineman',slot:'Taser Guard',job:'Pressure',from:3,w:1.5,stats:'60 HP · keeps 260 px · marks for 2.6 s, 120 px ring · chain 16, 8 shots each',
+  does:'Hooks a player with a charge bolt. A ring shows round them; when it runs out the charge jumps to every ally inside it and bursts out from each one.',
+  teach:'<b>The Conductor</b>: the marked player walks away from the team.',
+  draw(g,t){const lx=60,ly=105,p1x=245,p1y=82,p2x=292,p2y=140,c=t%4.4;D.lineman(g,lx,ly,t,Math.atan2(p1y-ly,p1x-lx),c<0.5?c/0.5:0);
+    if(c>=0.5&&c<0.8){const f=(c-0.5)/0.3;const bx=lerp(lx+28,p1x,f),by=lerp(ly,p1y,f);bolt(g,bx-14,by+3,bx,by,Math.floor(t*30),C.blue,1.4,4);}
+    if(c>=0.8&&c<3.4){const life=1-(c-0.8)/2.6;circ(g,p1x,p1y,80,hexA(C.amber,0.05),null);g.save();g.setLineDash([6,5]);circ(g,p1x,p1y,80,null,hexA(C.amber,0.7),1.5);g.restore();
+      g.strokeStyle=C.amber;g.lineWidth=3;g.beginPath();g.arc(p1x,p1y,16,-Math.PI/2,-Math.PI/2+TAU*life);g.stroke();label(g,p1x-20,p1y+100,'spread out',hexA(C.amber,0.9));}
+    const zap=c>=3.4&&c<3.7;if(zap)bolt(g,p1x,p1y,p2x,p2y,Math.floor(t*30),C.white,2,8);
+    if(c>=3.4){const R=(c-3.4)*200+14;for(const[x,y]of[[p1x,p1y],[p2x,p2y]])for(let i=0;i<8;i++){const a=i/8*TAU+0.2;shot(g,x+Math.cos(a)*R,y+Math.sin(a)*R,C.blue,2.8);}}
+    player(g,p1x,p1y,Math.PI,zap);player(g,p2x,p2y,Math.PI,zap);}},
+ {name:'Pylon pair',slot:'Security Guard',job:'Zoner',from:2,w:2,stats:'2 × 55 HP · plant, then every 2 s: 0.6 s flicker, an arc along the line (18)',
+  does:'Two posts that walk in together and plant. An arc flickers between them, then fires along the line. Kill either post and the line is gone.',
+  teach:'<b>Lightning rods</b>: cross the line between flickers.',
+  draw(g,t){const ax=70,ay=55,bx=290,by=170,c=t%2;const flick=c<0.6,fire=c>=0.6&&c<0.95;
+    if(flick){if(Math.sin(t*60)>-0.2)bolt(g,ax,ay,bx,by,Math.floor(t*20),'#6aa9d6',0.8,6);}
+    else if(fire)bolt(g,ax,ay,bx,by,Math.floor(t*25),C.blue,3,10);else line(g,ax,ay,bx,by,hexA(C.blue,0.12),1,[4,8]);
+    D.pylon(g,ax,ay,t,fire?1:flick?0.4:0);D.pylon(g,bx,by,t,fire?1:flick?0.4:0);
+    const c4=t%4;const y=c4<1?70:c4<1.9?lerp(70,190,ease((c4-1)/0.9)):c4<3?190:c4<3.9?lerp(190,70,ease((c4-3)/0.9)):70;player(g,190,y,y<120?0.6:-0.6);
+    if(flick)label(g,110,170,'flicker 0.6 s',hexA(C.blue,0.8));if(fire)label(g,110,170,'fires',C.white);}},
+ {name:'Thunderhead',slot:'Thug',job:'Hunter',from:2,w:1.5,stats:'220 HP · 55 px/s · every 2.4 s a row of 3 strikes ahead of it (22 each)',
+  does:'A slow, heavy storm cloud. As it rolls toward you it drops a row of strikes in front of it, landing one after another in the way it is going.',
+  teach:'<b>Downburst</b>: sidestep the row, don\'t outrun it.',
+  draw(g,t){const c=t%2.4,x0=70+((t-c)%7.2)/2.4*20,cx=70+(t%7.2)/2.4*20,cy=100;const xs=[x0+75,x0+120,x0+165];
+    for(let i=0;i<3;i++){const land=1+i*0.2;if(c>=land+0.25)scorch(g,xs[i],cy,22,1-(c-land-0.25)/1.15);else if(c<land)warn(g,xs[i],cy,22,clamp(c/land,0,1));}
+    const fl=c>=1&&c<1.6?1:0;D.thunder(g,cx,cy,t,26,fl);
+    for(let i=0;i<3;i++){const land=1+i*0.2;if(c>=land&&c<land+0.25)strike(g,xs[i],cy,22,1-(c-land)/0.25,Math.floor(t*25)+i);}
+    player(g,300,165,Math.atan2(cy-165,cx-300));label(g,x0+120,cy-34,'→ row lands in order',hexA(C.amber,0.8));}},
+ {name:'Ball Lightning',slot:'Shiv',job:'Disruptor',from:3,w:1,stats:'40 HP · 110 px/s, darting · arcs to another within 200 px (10) · pops into 8 after 6 s',
+  does:'A crackling orb that darts at you. Two near each other arc together. After 6 s, or when killed, it pops into eight shots.',
+  teach:'<b>Ball lightning</b>: kill it far from you, and don\'t walk between two.',
+  draw(g,t){const c=t%7,px=300,py=105;const pos=k=>{const f=Math.min(c,6)/6;return[lerp(40,215,f)+Math.sin(t*3.1+k*2)*12,lerp(55+k*100,92+k*26,f)+Math.cos(t*2.7+k)*12];};
+    const a=pos(0),b=pos(1);
+    if(c<6){if(Math.sin(t*40)>-0.4)bolt(g,a[0],a[1],b[0],b[1],Math.floor(t*18),C.blue,1.4,7);D.ball(g,a[0],a[1],t,1-c/6,0);D.ball(g,b[0],b[1],t,1-c/6,1);if(c>4.2)label(g,(a[0]+b[0])/2+40,(a[1]+b[1])/2,'pops soon',hexA(C.amber,0.9));}
+    else{const R=(c-6)*220+10;for(const p of[a,b])for(let i=0;i<8;i++){const an=i/8*TAU;shot(g,p[0]+Math.cos(an)*R,p[1]+Math.sin(an)*R,C.blue,3);}}
+    player(g,px,py,Math.PI);}},
+];
+
+/* ---------- squads ---------- */
+function gunnerVolley(g,t,gx,gy,px,py){const c=(t+0.7)%2.2;for(let k=0;k<3;k++){const f=(c-0.5-k*0.09)/1.3;if(f<0||f>1.05)continue;const ex=px+10,ey=py+(k-1)*12;shot(g,lerp(gx+22,ex,f),lerp(gy-6,ey-60,f)+60*f*f,C.blue,3);}}
+function pylonLine(g,t,ax,ay,bx,by,off){const c=(t+off)%2;const flick=c<0.6,fire=c>=0.6&&c<0.95;
+  if(flick){if(Math.sin(t*60+off)>-0.2)bolt(g,ax,ay,bx,by,Math.floor(t*20)+off*7,'#6aa9d6',0.8,6);}else if(fire)bolt(g,ax,ay,bx,by,Math.floor(t*25)+off*7,C.blue,3,10);else line(g,ax,ay,bx,by,hexA(C.blue,0.12),1,[4,8]);
+  D.pylon(g,ax,ay,t,fire?1:flick?0.4:0);D.pylon(g,bx,by,t,fire?1:flick?0.4:0);}
+const S=[
+ {name:'Squall line',from:1,list:'Squall Gunner + 6 Dust Devils',slot:'Breakout',does:'The Dust Devils rush in on the wind; the Gunner\'s drifting volley follows behind them.',
+  draw(g,t){windStreaks(g,t,W,H,0,1,12);const px=300,py=110;D.gunner(g,50,105,t,-0.15,0);for(let i=0;i<6;i++){const p=(t*0.32+i/6)%1;g.globalAlpha=p>0.9?(1-p)/0.1:p<0.08?p/0.08:1;D.devil(g,lerp(60,285,p),105+(i-2.5)*24*(1-p)+Math.sin(p*10+i)*8,t,0.9,i);g.globalAlpha=1;}
+    gunnerVolley(g,t,50,105,px,py);player(g,px,py,Math.PI);}},
+ {name:'Power line',from:2,list:'2 Pylon pairs',slot:'Patrol',does:'Two Pylon pairs plant a corridor and fire out of step, so the safe side keeps changing.',
+  draw(g,t){pylonLine(g,t,40,55,320,55,0);pylonLine(g,t,40,160,320,160,1);const y=105+Math.sin(t*1.1)*18;player(g,180+Math.sin(t*0.6)*80,y,0);label(g,180,20,'top and bottom fire in turn',hexA(C.blue,0.7));}},
+ {name:'Grounding wall',from:3,list:'2 Grounders + 3 Stormcallers',slot:'Cell block',does:'The Grounders walk in front and soak your shots; the Stormcallers behind them call strikes. Go round the side.',
+  draw(g,t){const px=300,py=105;for(const y of[45,105,165])D.caller(g,60,y,t,0,((t+y/60)%2.8)<1.5?1:0.2);D.grounder(g,170,72,t,0,(t*0.3)%1);D.grounder(g,170,140,t,0,(t*0.3+0.4)%1);
+    for(let k=0;k<2;k++){const c=(t+k*1.4)%2.8,wx=270+k*40,wy=60+k*90;if(c<1.1)warn(g,wx,wy,30,c/1.1);else if(c<1.4)strike(g,wx,wy,30,1-(c-1.1)/0.3,Math.floor(t*25)+k);else scorch(g,wx,wy,30,1-(c-1.4)/1.4);}
+    for(let i=0;i<4;i++){const f=(t*1.5+i/4)%1;const x=lerp(px-16,192,f);if(f<0.95)shot(g,x,py+(i%2?-30:34),C.bullet,2.5);}player(g,px,py,Math.PI);}},
+ {name:'Supercell',from:3,list:'Thunderhead + Lineman + 3 Dust Devils',slot:'Yard',does:'The Lineman marks you while the Thunderhead\'s row lands and the Dust Devils shove you about inside the ring.',
+  draw(g,t){const px=285,py=125,c=t%2.4;D.thunder(g,110,70,t,24,c>=1&&c<1.5?1:0);for(let i=0;i<3;i++){const land=1+i*0.2,x=180+i*40;if(c<land)warn(g,x,70,18,c/land);else if(c<land+0.25)strike(g,x,70,18,1-(c-land)/0.25,Math.floor(t*25)+i);else scorch(g,x,70,18,1-(c-land-0.25)/1.15);}
+    D.lineman(g,50,170,t,Math.atan2(py-170,px-50),0);g.save();g.setLineDash([6,5]);circ(g,px,py,70,null,hexA(C.amber,0.6),1.5);g.restore();
+    for(let i=0;i<3;i++){const a=t*1.4+i*TAU/3;D.devil(g,px+Math.cos(a)*45,py+Math.sin(a)*38,t,0.8,i);}player(g,px,py,Math.PI);}},
+ {name:'Storm front',from:4,list:'6 Stormcallers + 2 Grounders (set piece)',slot:'Riot line',wide:true,does:'The exam. Six Stormcallers line one edge and call a wall of strikes that sweeps across the arena. Two strikes are missing from the wall, and the gap drifts; walk with it. The Grounders hold the line behind them.',
+  draw(g,t,W2,H2){const c=t%7,wx=lerp(150,760,c/7),n=9,gap=Math.round(3+2*Math.sin(t*0.7));const ys=[...Array(n)].map((_,j)=>30+j*30);
+    for(let j=0;j<n;j++){if(j===gap||j===gap+1)continue;for(let k=1;k<6;k++){const x=wx-k*45;if(x>140)scorch(g,x,ys[j],14,1-k/6);}}
+    for(let j=0;j<n;j++){if(j===gap||j===gap+1)continue;const y=ys[j];if(wx+45<W2)warn(g,wx+45,y,14,((t*1.4)%1));if(wx<W2+20)strike(g,wx,y,14,0.65+0.35*Math.sin(t*30+j),Math.floor(t*12)+j);}
+    const gy=(ys[gap]+ys[gap+1])/2;if(wx<W2)label(g,wx,gy+4,'gap',C.wind);
+    for(let i=0;i<6;i++)D.caller(g,40,35+i*46,t,0,0.7+0.3*Math.sin(t*3+i));D.grounder(g,110,95,t,0,0.3);D.grounder(g,110,205,t,0,0.6);
+    const pgx=clamp(wx+20,420,640);player(g,pgx,gy-8,Math.PI);player(g,pgx+40,gy+10,Math.PI);}},
+];
+
+const L=[
+ ['Dust Devils shove you (the Gale\'s wind)','Dust Devil'],
+ ['Squall Gunners\' drifting volleys (Crosswind)','Dust Devil, Squall Gunner · Squall line'],
+ ['Grounders: flank them, read the clap\'s gaps (Thunderclap)','Grounder, Squall Gunner, Dust Devil'],
+ ['Stormcallers: step out of the ring (Strikes)','Stormcaller, Grounder, Dust Devil'],
+ ['Pylons: cross between flickers (Lightning rods)','Pylon pair, Dust Devil · Power line'],
+ ['Recap, and Thunderheads join (Downburst)','Everything so far, Thunderhead · Grounding wall'],
+ ['Linemen mark you: spread out (the Conductor)','Lineman, Dust Devil, Squall Gunner · Supercell'],
+ ['Ball Lightning: kill it far away (Ball lightning)','Ball Lightning, Lineman, Pylon pair, Thunderhead'],
+ ['Squads: Squall line, Power line, Grounding wall, Supercell','All squads, 90% squad chance'],
+ ['The exam: the Storm front with everything','Everything + Storm front'],
+];
+
+/* ---------- build page ---------- */
+const scenes=[];
+function addCanvas(parent,w,h,draw){const cv=document.createElement('canvas');const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=w*dpr;cv.height=h*dpr;cv.style.aspectRatio=`${w}/${h}`;parent.appendChild(cv);const g=cv.getContext('2d');g.scale(dpr,dpr);scenes.push({cv,g,w,h,draw,vis:true});return cv;}
+const mEl=document.getElementById('members');
+M.forEach((m,i)=>{const card=document.createElement('article');card.className='card';mEl.appendChild(card);addCanvas(card,W,H,m.draw);
+  const b=document.createElement('div');b.className='body';b.innerHTML=`<div class="top"><h3>${m.name}</h3><span class="num">${i+1}/8 · [${m.slot}]</span></div>
+  <div class="chips"><span class="chip job">${m.job}</span><span class="chip">from round ${m.from}</span><span class="chip">weight ${m.w}</span></div>
+  <p>${m.does}</p><p class="teach">Teaches ${m.teach}</p><p class="stats">${m.stats}</p>`;card.appendChild(b);});
+const sEl=document.getElementById('squads');
+S.forEach(s=>{const card=document.createElement('article');card.className='card'+(s.wide?' wide':'');sEl.appendChild(card);const w=s.wide?720:W,h=s.wide?300:H;addCanvas(card,w,h,(g,t)=>s.draw(g,t,w,h));
+  const b=document.createElement('div');b.className='body';b.innerHTML=`<div class="top"><h3>${s.name}</h3><span class="num">from round ${s.from} · [${s.slot}]</span></div><div class="chips"><span class="chip job">${s.list}</span></div><p>${s.does}</p>`;card.appendChild(b);});
+const lEl=document.getElementById('lessons');L.forEach((l,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td class="n">${i+1}</td><td>${l[0]}</td><td>${l[1]}</td>`;lEl.appendChild(tr);});
+
+const io=new IntersectionObserver(es=>es.forEach(e=>{const s=scenes.find(s=>s.cv===e.target);if(s)s.vis=e.isIntersecting;}));scenes.forEach(s=>io.observe(s.cv));
+const still=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function frame(ms){const t=still?2.2:ms/1000;for(const s of scenes){if(!s.vis&&!still)continue;s.g.save();floor(s.g,s.w,s.h);s.draw(s.g,t);s.g.restore();}if(!still)requestAnimationFrame(frame);}
+requestAnimationFrame(frame);
+</script>

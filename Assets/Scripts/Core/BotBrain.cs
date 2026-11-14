@@ -718,6 +718,8 @@ namespace Arena
                         }
                         else if (PulsarLocked(e) && PulsarBeamDistance(e, p) < hitR + 40f)
                             d += w * 2.5f;  // a Pulsar's beams, flickering or sweeping (Infall.cs)
+                        else if (e.Type == EnemyType.Pylon && e.Phase >= PylonFlicker && PylonLineDistance(e, PylonPartner(e), p) < hitR + 30f)
+                            d += w * 2.5f;  // a Pylon pair's arc about to fire (Squall.cs)
                         else if (IsInfall(e.Type))
                             d += w * InfallBotDanger(e, p, hitR);  // a White Dwarf's pulse, a Small Well, an Implosion (Infall.cs)
                         else if (HelioLocked(e) || GnomonLocked(e) || NovaLit(e))

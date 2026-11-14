@@ -334,6 +334,7 @@ namespace Arena
             Enemies[e.Id] = e;
             if (type == EnemyType.BoundWraith)
                 PairBound(e, spawnT, parent, elite);  // they come in pairs (ReaperFaction.cs)
+            PairPylon(e, spawnT, parent, elite);  // so do Pylons (Squall.cs)
             return e;
         }
 
@@ -642,6 +643,7 @@ namespace Arena
                         }
                         Damage(p, contact, e.Def.Name + " (contact)");
                         RodTouched(p, e);  // a charged Lightning Rod calls a bolt on it (LightningRod.cs)
+                        DevilTouched(p, e);  // a Dust Devil shoves you (Squall.cs)
                         if (e.Type == EnemyType.Buzzsaw && !p.Downed)
                             p.InvulnT = Math.Min(p.InvulnT, SawGrace);  // its touches come fast, not once per hit grace
                     }
@@ -725,6 +727,13 @@ namespace Arena
                 PriestFace(e, want, dt);  // turns slowly (LarderFaction.cs)
                 return;
             }
+            if (e.Type == EnemyType.Grounder)
+            {
+                GrounderFace(e, want, dt);  // turns slowly, so you can get round its shield (Squall.cs)
+                return;
+            }
+            if (e.Type == EnemyType.Pylon)
+                return;  // (a post: it has no front)
             if (e.Type == EnemyType.Lens)
             {
                 LensFace(e, want, dt);  // turns slowly, so you can get round its face (Infall.cs)
@@ -826,6 +835,8 @@ namespace Arena
                 return true;  // its phylacteries stand, it's blinking between graves, or it's changing stage (Lich.cs)
             if (LensFaces(e, from))
                 return true;  // a Lens's face (Infall.cs)
+            if (GrounderFaces(e, from))
+                return true;  // a Grounder's shield (Squall.cs)
             if (e.Kin == EnemyType.RiotShield)
                 return RiotShieldBlocks(e, from);  // WardenFaction.cs
             if (e.Type == EnemyType.RiotCaptain)
@@ -1014,6 +1025,8 @@ namespace Arena
                 v = InfallMove(e, tpos, dir, dist, dt, ref speed);  // Infall.cs
             if (IsPenumbral(e.Type))
                 v = PenumbralMove(e, tpos, dir, dist, dt, ref speed);  // Penumbral.cs
+            if (IsSquall(e.Type))
+                v = SquallMove(e, tpos, dir, dist, dt, ref speed);  // Squall.cs
             if (Challenges.Own(e.Type))
                 v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
             if (e.Type == EnemyType.RiotCaptain)
@@ -1035,7 +1048,7 @@ namespace Arena
                 speed *= HasteMult;
             // A sweeping Beam Sentry steers its beam by Strafe, so it keeps the side it telegraphed (the roll still happens, keeping the RNG sequence).
             // A Security Guard keeps its side on its own timer (SecurityGuard.cs); Debris keeps its spiral's side, a Pulsar its sweep's (Infall.cs).
-            if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3) && e.Kin != EnemyType.SecurityGuard && !PulsarLocked(e) && !HelioLocked(e) && e.Type != EnemyType.Debris)
+            if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3) && e.Kin != EnemyType.SecurityGuard && !PulsarLocked(e) && !HelioLocked(e) && e.Type != EnemyType.Debris && e.Type != EnemyType.SquallGunner)
                 e.Strafe = -e.Strafe;
             if (StomperPlanted(e))
                 speed = 0f;  // a Stomper stands still while its foot is up (QuarryFaction.cs)
@@ -1225,6 +1238,11 @@ namespace Arena
                 case EnemyType.Leader:
                     VarietySpecial(e, tpos, dt);  // Variety.cs
                     break;
+                case EnemyType.Pylon:
+                case EnemyType.Lineman:
+                case EnemyType.Thunderhead:
+                    SquallSpecial(e, tpos, dt);  // Squall.cs
+                    break;
                 case EnemyType.Pulsar:
                 case EnemyType.MiniWell:
                 case EnemyType.Implosion:
@@ -1273,6 +1291,8 @@ namespace Arena
                 return;  // the Second's daggers, the Marshal's circle; a Gallant doesn't shoot (CourtFaction.cs)
             if (PenumbralFire(e, tpos, aim))
                 return;  // Penumbral.cs
+            if (SquallFire(e, tpos, aim))
+                return;  // Squall.cs
             if (e.Kin == EnemyType.GasGrenadier)
             {
                 GrenadierFire(e, tpos);  // WardenFaction.cs

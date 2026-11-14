@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 340: the Storm Herald's faction, steps 1-3: new `EnemyType` values DustDevil, SquallGunner, Stormcaller, Grounder, Pylon, Lineman, Thunderhead; `Hazard.Kind` 2 and 3 (a Stormcaller's strike, a Thunderhead's row)
 - 339: the Devourer's faction, step 3: new `EnemyType` values Gutworm, HookThrower, MawPriest (after Nova); a Gutworm's snapshot gains its stage and time (`SyncLarder`)
 - 338: the Eclipse's faction, steps 1-3: eight new `EnemyType` values (Ember, CoronaPriest, Heliograph, Moonward, Gnomon, DuskLobber, Sickle, Nova), bullet kind `EmberSpark` 66, `PatchKind.Dusk` (a Dusk Lobber's pool)
 - 337: the hunt map's Ambush, Contraband and Gamble nodes: the generator makes them (new maps for the same seed) and `Msg.HuntMapState` ends its header with the Gamble's outcome (a `HuntNodeType` byte) and the clue count before the votes
