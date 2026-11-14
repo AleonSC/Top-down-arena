@@ -12,7 +12,6 @@ namespace Arena
         static readonly Color ModColor = new Color(0.85f, 0.45f, 0.95f);
 
         int lobbyTab;              // 0 = your loadout (its own key), 1 = practice waves, 2 = modifiers, 3 = difficulty, 4 = boss hunt, 5 = perks (from the loadout), 6 = hangout
-        bool lobbyWasPractice, lobbyWasHunt, lobbyWasQuick, lobbyWasSurvival;
         bool connInfoOpen;         // the "!" popup by the title: hosting/port and the invite addresses
         readonly Player previewPlayer = new Player { Id = -100 };
 
@@ -48,36 +47,16 @@ namespace Arena
             LobbyEntry me;
             session.Lobby.TryGetValue(session.MyId, out me);
             bool practice = session.PracticeMode;
-            // A mode change keeps the open tab (the Loadout stays up); the carousel turns to the new mode's own tab, first in its order.
-            if (practice != lobbyWasPractice)
-            {
-                lobbyWasPractice = practice;
-                tabRest = 0;
-            }
+            // A mode change keeps the open tab (the Loadout stays up) unless it was the old mode's own.
             if (!practice && (lobbyTab == 1 || lobbyTab == TrainingTab))
                 lobbyTab = 0;
             bool hunt = session.HuntMode && !practice && session.Resume == null;
-            if (hunt != lobbyWasHunt)
-            {
-                lobbyWasHunt = hunt;
-                tabRest = 0;
-            }
             if (!hunt && lobbyTab == 4)
                 lobbyTab = 0;
             bool quick = session.QuickMode && !practice && !hunt && session.Resume == null;
-            if (quick != lobbyWasQuick)
-            {
-                lobbyWasQuick = quick;
-                tabRest = 0;
-            }
             if (!quick && lobbyTab == QuickTab)
                 lobbyTab = 0;
             bool survival = session.SurvivalMode && !practice && !hunt && session.Resume == null;
-            if (survival != lobbyWasSurvival)
-            {
-                lobbyWasSurvival = survival;
-                tabRest = 0;
-            }
             if (!survival && lobbyTab == SurvivalTab)
                 lobbyTab = 0;
             // The big boxes wear the shown role's colour (the bot's while the host is choosing its loadout), easing to a new role over about 0.7 s.
@@ -328,102 +307,36 @@ namespace Arena
             }
         }
 
-        /// The tab carousel right of the Loadout key: the mode's own tabs, then Difficulty and Modifiers (Loadout and Perks have their own keys).
+        /// The mode's own tab keys right of the Saved star (Loadout and Perks have their own keys; Difficulty and Modifiers are rows over Ready).
         void DrawLobbyTabs(Rect r, bool practice)
         {
             int mods = Modifiers.Count(session.Modifiers);
             bool hunt = session.HuntMode && !practice && session.Resume == null;
-            // Indexed by tab id (0 loadout and 5 perks: not in the carousel; 1 practice, 2 modifiers, 3 difficulty, 4 boss hunt, 5 perks, 6 hangout, 7 training, 8 quick play); null = not shown.
+            // Indexed by tab id (0 loadout and 5 perks: not here; 1 practice, 2 modifiers, 3 difficulty, 4 boss hunt, 5 perks, 6 hangout, 7 training, 8 quick play); null = not shown.
             string[] names = { null, practice ? "Practice  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers",
                 "Difficulty", hunt ? "Boss hunt" : null, null, null, practice ? "Training" : null,
                 session.QuickMode && !practice && !hunt && session.Resume == null ? "Quick Play" : null,
                 session.SurvivalMode && !practice && !hunt && session.Resume == null ? "Survival" : null };  // Hangout has its own key on the Party line
             int[] order = { 4, QuickTab, SurvivalTab, 1, TrainingTab };  // the mode's own (Loadout and Perks have keys; Difficulty and Modifiers are rows over Ready)
-            // A carousel (like the mode carousel above the party): the open tab in the middle, the others in order either side,
-            // smaller and fading toward the ends; the arrows, the mouse wheel or a click on a tab slide it.
             var shown = new System.Collections.Generic.List<int>();
             foreach (int i in order)
                 if (names[i] != null)
                     shown.Add(i);
-            int n = shown.Count, open = shown.IndexOf(lobbyTab);
-            if (n == 0)
-                return;  // (Campaign: no tabs of its own)
-            if (open >= 0)
-                tabRest = open;  // on the Loadout (not in the carousel) it rests where it was
-            int cur = Mathf.Clamp(tabRest, 0, n - 1);
-            var ev = Event.current;
-            // tabTurnPos is unwrapped (cur = pos mod n): turn the short way round to the open tab.
-            float diff = ((cur - tabTurnPos) % n + n) % n;
-            if (diff > n / 2f)
-                diff -= n;
-            if (!tabTurnSet || n != tabTurnCount)
-            {
-                tabTurnPos = cur;
-                diff = 0f;
-                tabTurnSet = true;
-                tabTurnCount = n;
-            }
-            if (ev.type == EventType.Repaint)
-            {
-                tabTurnPos += diff * (fxReduced ? 1f : 1f - Mathf.Exp(-Time.unscaledDeltaTime * 12f));
-                if (Mathf.Abs(diff) < 0.004f)
-                    tabTurnPos = Mathf.Round(tabTurnPos);
-            }
-            int want = cur;
-            bool wantOpen = false;
-            if (ev.type == EventType.ScrollWheel && GUI.enabled && r.Contains(ev.mousePosition))
-            {
-                want = cur + (ev.delta.y > 0f ? 1 : -1);
-                ev.Use();
-            }
-            const float arrowW = 22f, gap = 6f, bigW = 160f, smallW = 116f, step = 140f, farStep = 104f;  // (fits the carousel beside the Loadout key)
-            float cx = r.center.x, half = r.width / 2f - arrowW - gap;
-            float oldAlpha = Ui.Alpha;
+            int n = shown.Count;
+            // A row of keys after the Saved star, the size of the Loadout key, in the order above.
+            float x = r.x;
             for (int k = 0; k < n; k++)
             {
                 int i = shown[k];
-                float d = ((k - tabTurnPos) % n + n) % n;
-                if (d > n / 2f)
-                    d -= n;  // the open tab at 0, the rest either side
-                float ad = Mathf.Abs(d);
-                float w = Mathf.Lerp(bigW, smallW, Mathf.Clamp01(ad));
-                float x = cx + Mathf.Sign(d) * (step * Mathf.Min(ad, 1f) + farStep * Mathf.Max(0f, ad - 1f));  // the far ones closer in
-                float edge = Mathf.Clamp01((half - (Mathf.Abs(x - cx) + w / 2f)) / 30f + 1f);  // fades out at the arrows
-                float a = (1f - 0.25f * Mathf.Clamp01(ad)) * Mathf.Clamp01((2.4f - ad) / 0.9f) * edge;
-                if (a <= 0.02f)
-                    continue;
                 bool on = lobbyTab == i;
-                float inset = Mathf.Clamp01(ad) * 3f;
-                var tr = new Rect(Mathf.Round(x - w / 2f), r.y + inset, Mathf.Round(w), r.height - 2f * inset);
-                Ui.Alpha = oldAlpha * a;
-                if (on && !fxReduced)
-                    Ui.Glow(tr, CrtUi.Ink, 0.3f * Mathf.Clamp01(1f - ad * 2f));
-                bool click = LobbyKit.QuietTab(tr, names[i].ToUpperInvariant(), on, a > 0.4f);
-                Ui.Alpha = oldAlpha;
-                if (click && !on)
+                if (LobbyKit.Key(new Rect(x, r.y, LobbyLoadoutKeyW, r.height), names[i].ToUpperInvariant(), on, fxReduced, size: 16, minSize: 11) && !on)
                 {
-                    want = k;
-                    wantOpen = true;
+                    lobbyTab = i;
+                    CloseFavorites();
                 }
+                x += LobbyLoadoutKeyW + LobbyTabKeyGap;
             }
-            for (int side = -1; side <= 1; side += 2)
-            {
-                var ab = new Rect(side < 0 ? r.x : r.xMax - arrowW, r.y, arrowW, r.height);
-                bool click = LobbyKit.Key(ab, "", false, fxReduced);
-                Chevron(ab.center, side, CrtKit.SoftText(CrtUi.Ink, GUI.enabled && ab.Contains(ev.mousePosition)));
-                if (click)
-                    want = cur + side;
-            }
-            want = ((want % n) + n) % n;
-            if (want != cur || (open < 0 && wantOpen))
-                lobbyTab = shown[want];
         }
-
-        // The tab carousel's turn (unwrapped: the open tab is tabTurnPos mod the tab count), easing toward the open tab.
-        float tabTurnPos;
-        int tabRest;  // the carousel's middle tab while the Loadout is open
-        bool tabTurnSet;
-        int tabTurnCount;
 
         string PracticeSummary()
         {
@@ -1679,6 +1592,8 @@ namespace Arena
         /// once you are ready; Start is dim and dashed until everyone is.
         /// Difficulty and Modifiers over Ready: two slim rows, each naming what's set ("DIFFICULTY · NORMAL",
         /// "MODIFIERS · 2 ON"), lit while its tab is open; a click opens the tab (a second click goes back to the loadout).
+        const float SetupKeyRestAlpha = 0.45f;
+
         void DrawLobbySetupKeys(float lx, float lw, bool calm)
         {
             int mods = Modifiers.Count(session.Modifiers);
@@ -1688,7 +1603,13 @@ namespace Arena
             for (int i = 0; i < 2; i++)
             {
                 var r = new Rect(lx, LobbySetupY + i * (LobbySetupH + LobbySetupGap), lw, LobbySetupH);
-                if (LobbyKit.Key(r, text[i], lobbyTab == tab[i], calm, PixelArt.Get(icon[i]), size: 14, minSize: 11))
+                bool on = lobbyTab == tab[i];
+                float oldAlpha = Ui.Alpha;
+                if (!on && !(GUI.enabled && r.Contains(Event.current.mousePosition)))
+                    Ui.Alpha = oldAlpha * SetupKeyRestAlpha;  // faded at rest (less clutter by Ready): full under the mouse or while open
+                bool click = LobbyKit.Key(r, text[i], on, calm, PixelArt.Get(icon[i]), size: 14, minSize: 11);
+                Ui.Alpha = oldAlpha;
+                if (click)
                 {
                     lobbyTab = lobbyTab == tab[i] ? 0 : tab[i];
                     CloseFavorites();
