@@ -971,13 +971,6 @@ namespace Arena
                             speed = SpikeLungeSpeed;
                         }
                         break;
-                    case EnemyType.Brute:
-                    case EnemyType.Thug:
-                    case EnemyType.Gravedigger:
-                    case EnemyType.Swarmer:  // no tricks: straight at you
-                    case EnemyType.Wisp:
-                        v = dir;
-                        break;
                     case EnemyType.Spinner:  // wanders between random spots, round walls and crates; gives up on one it can't reach
                         e.PhaseT -= dt;
                         if (e.Pos.DistanceTo(e.Waypoint) < 20f || e.PhaseT <= 0f)
@@ -1095,14 +1088,10 @@ namespace Arena
                 BladeDancerSpecial(e, tpos, dt);  // its lunge and blades (CourtFaction.cs)
             if (e.Type == EnemyType.Gallant)
                 GallantSpecial(e, tpos, dt);  // its salute and lunge (CourtFaction.cs)
-            if (e.Type == EnemyType.Harlequin)
-                HarlequinSpecial(e, tpos, dt);  // its crossing (CourtFaction.cs)
             if (e.Type == EnemyType.Mummer && MummerSpecial(e, tpos, dt))
                 return;  // masked: it circles you with its copies and fires; no lunge (CourtFaction.cs)
-            if (e.Type == EnemyType.Stomper)
-                StomperSpecial(e, tpos, dt);  // its stomp ring (QuarryFaction.cs)
-            if (LarderAttacks(e.Type))
-                LarderSpecial(e, tpos, dt);  // the Butcher's chop, the Gulper's breath (LarderFaction.cs)
+            if (e.Type == EnemyType.Butcher)
+                LarderSpecial(e, tpos, dt);  // the Butcher's chop (LarderFaction.cs; the Gulper's breath: ChaseBrains.cs)
             else if (e.Type == EnemyType.Gnawling)
                 GnawlingEat(e);  // a morsel in reach (LarderFaction.cs)
             else if (e.Type == EnemyType.Gutworm)

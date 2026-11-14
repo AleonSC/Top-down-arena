@@ -1,7 +1,7 @@
 # Enemy behaviour classes
 
-**Status: steps 0-2 built** (scaffolding, hooks, `aitrace`; the shields and lungers run on brains). Owner's decisions: every enemy moves to brains (not just the kin ones), and drawing stays separate. Code today: `Core/HiveKin.cs` (the kin table), `Core/PrisonKin.cs` (`IsBrute`, `IsLunger`),
-`Core/EnemyAI.cs` (`MoveEnemy`, `Special`, `EnemyFire`), each faction's `*Faction.cs`. New: `Core/Brain.cs`, `Core/ShieldBrains.cs`, `Core/LungeBrains.cs`,
+**Status: steps 0-3 built** (scaffolding, hooks, `aitrace`; the shields, lungers, brutes and chasers run on brains). Owner's decisions: every enemy moves to brains (not just the kin ones), and drawing stays separate. Code today: `Core/HiveKin.cs` (the kin table), `Core/PrisonKin.cs` (`IsBrute`, `IsLunger`),
+`Core/EnemyAI.cs` (`MoveEnemy`, `Special`, `EnemyFire`), each faction's `*Faction.cs`. New: `Core/Brain.cs`, `Core/ShieldBrains.cs`, `Core/LungeBrains.cs`, `Core/ChaseBrains.cs`,
 `Tools/SimTest/Tests/AiTrace.cs`, `Tools/SimTest/Golden/aitrace.txt`.
 
 ## Problem
@@ -145,7 +145,7 @@ Each step moves one family. Each step has to leave `aitrace` IDENTICAL and needs
 | 0 ✓ | `Brain`, the four part classes, `BrainRole`, `BrainOf`, the dispatcher hooks, `aitrace` | none (empty table) |
 | 1 ✓ | Shields | Riot Shield, Comb Shield, Slab Bearer, Parrier, Carcass Bearer |
 | 2 ✓ | Lungers | Lunger, Shiv, Hornet, Driller, Fencer, Scythe Wraith, Mummer (its masquerade still runs first) |
-| 3 | Brutes and chasers | Brute, Thug, Bumble, Gravedigger, Swarmer, Wisp, Stomper, Gulper, Harlequin |
+| 3 ✓ | Brutes and chasers | Brute, Thug, Bumble, Gravedigger, Swarmer, Wisp, Stomper, Gulper, Harlequin |
 | 4 | Rioters and Guards | Rioter, Worker, Rubble, Gnawling, Guard, Soldier, Quarryman, Butcher, Blade Dancer |
 | 5 | Lobbers | Gas Grenadier, Honey Lobber, Rock Hurler, Bile Spitter, Dusk Lobber, Marshal |
 | 6 | Shooters | Taser Guard, Stinger, Geomancer, Cinder Priest, Maw Priest, Gallant; Security Guard, Needler, Second |
@@ -187,6 +187,19 @@ Each step moves one family. Each step has to leave `aitrace` IDENTICAL and needs
   the lunger rule in the contact damage.
 - **Left for step 7:** the sound and thrall switches on kin (MeleeSounds.cs, ForcePact.cs) still list Lunger, Shiv
   and Scythe Wraith; they keep working through the kin table until then.
+- **Checked:** `aitrace` identical for all 128 types.
+
+## Step 3: brutes and chasers (built)
+
+- **File:** `Core/ChaseBrains.cs`. All nine share `ChaseMove` (straight at you).
+  - `BrainRole.Brute` (so they enrage as they're shot): Brute, Thug, Bumble, Gravedigger, Stomper, Gulper, Harlequin.
+  - No role: Swarmer, Wisp.
+  - Specials: Stomper (`StompSpecial`: its stomp ring), Gulper (`GulpSpecial`: its breath), Harlequin
+    (`CrossingSpecial`: its crossing).
+- **Removed (unreachable now):** the chaser case in `MoveEnemy`, and the Harlequin and Stomper calls before
+  `Special`'s switch. The Larder call there now covers only the Butcher (step 4).
+- **Left for step 7:** the sound and thrall switches (MeleeSounds.cs, ForcePact.cs) still list brutes and chasers by
+  kin.
 - **Checked:** `aitrace` identical for all 128 types.
 
 ## Risks

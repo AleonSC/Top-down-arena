@@ -80,6 +80,7 @@ namespace Arena
             // Each family adds its enemies (Docs/EnemyBehaviours.md "Steps").
             ShieldBrains(t);  // step 1 (ShieldBrains.cs)
             LungeBrains(t);   // step 2 (LungeBrains.cs)
+            ChaseBrains(t);   // step 3 (ChaseBrains.cs)
             return t;
         }
     }
