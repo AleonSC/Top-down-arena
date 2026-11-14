@@ -759,6 +759,25 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // SPRINT=<s since it began>: the Dodge's held sprint (Dodge.cs): you dodged right and kept the key down, running right
+    // that long into the sprint, with its fading pale-blue wake (NinjaLooks.cs DrawSprintWake). SPRINT=0 fresh; mode hud.
+    if (Environment.GetEnvironmentVariable("SPRINT") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      me.Role = Role.Dps; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 0); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      me.Pos = me.Disp = new V2(300f, 450f); me.Aim = 0f;
+      float at = float.Parse(Environment.GetEnvironmentVariable("SPRINT"), ci);
+      int frames = (int)Math.Round((Game.DodgeTime + Game.SprintHold + at) * 60f);
+      for (int f = 0; f < frames; f++) {
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { Move = new V2(1f, 0f), Dodge = f == 0, DodgeHeld = true, AimAt = me.Pos + new V2(200f, -60f) });
+        me.Disp = me.Pos;
+        draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // TANKALT=<s>: the Tank Soldier's Alt fires (TankAltLook.cs): you with the Scattergun and two shells loaded (the third filling),
     // Double Barrel fired that long ago, an armed Proximity Shell, one still flying in, and a Tear Gas cloud. FXOFF=1 for plain looks.
     if (Environment.GetEnvironmentVariable("TANKALT") != null) {

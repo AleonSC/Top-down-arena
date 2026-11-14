@@ -1448,7 +1448,7 @@ The file is a Practice setup with a few extra lines first, and is documented in 
 |---|---|
 | Move | WASD / arrow keys |
 | Aim | Mouse |
-| Dodge | Ctrl, or double tap a movement key (changeable). A tiny 95 px dash with 0.22 s of invulnerability; 1.1 s cooldown; a soft cloth swish plays. With no direction held it steps back from your aim |
+| Dodge | Ctrl, or double tap a movement key (changeable). A tiny 95 px dash with 0.22 s of invulnerability; 1.1 s cooldown; a soft cloth swish plays. With no direction held it steps back from your aim. **Hold** the key (or the double-tapped movement key) after the dodge for 0.2 s to **sprint**: +50% move speed, fading away over 2.2 s, with a pale-blue wake; a tap doesn't sprint |
 | Shoot | Hold left click (changeable) |
 | Role ability | Space |
 | Parry | Hold right click (changeable) |

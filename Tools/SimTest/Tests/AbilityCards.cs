@@ -276,7 +276,7 @@ static partial class Program
             prep(AbilityId.Meteor, "Ghost Step", n);
             float speed = me.Speed;
             float plain = hurt();
-            localDodge.Invoke(g, new object[] { me, new V2(1f, 0f), true, 0f });
+            localDodge.Invoke(g, new object[] { me, new V2(1f, 0f), true, false, 0f });
             float t = me.GhostT;
             float after = hurt();
             Run(s, dt, 1.3f);  // (lets the dodge's dash and cooldown finish)

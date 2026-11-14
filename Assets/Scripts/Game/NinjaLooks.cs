@@ -124,14 +124,26 @@ namespace Arena
         }
 
         /// Healing Dash's sprint: a mint haze behind the runner and short speed lines streaming off the body.
-        void DrawDashWake(Player p, float t)
+        void DrawDashWake(Player p, float t) => DrawDashWake(p, t, new Rgba(0.55f, 1f, 0.8f), new Rgba(0.92f, 1f, 0.96f), 1f, V2.FromAngle(p.Aim + MathX.Pi));
+
+        /// The Dodge's held sprint (Dodge.cs, your own game only): the same wake in the dodge ring's pale blue, behind where
+        /// you're running and fading with the sprint.
+        void DrawSprintWake(Player p, float t)
         {
-            if (p.Downed)
+            V2 run = p.Pos - sprintLastPos;
+            sprintLastPos = p.Pos;
+            if (run.Length > 0.5f)
+                sprintBack = -run.Normalized();
+            DrawDashWake(p, t, new Rgba(0.75f, 0.85f, 1f), new Rgba(0.94f, 0.97f, 1f), game.SprintFade, sprintBack);
+        }
+        V2 sprintLastPos, sprintBack = new V2(-1f, 0f);
+
+        void DrawDashWake(Player p, float t, Rgba haze, Rgba streak, float k01, V2 back)
+        {
+            if (p.Downed || k01 <= 0f)
                 return;
-            var mint = new Rgba(0.55f, 1f, 0.8f);
-            V2 back = V2.FromAngle(p.Aim + MathX.Pi);
             for (int k = 0; k < 3; k++)
-                Circle(p.Disp + back * (14f + k * 11f), 12f - k * 2.5f, mint.WithAlpha(0.22f - k * 0.06f), 12);
+                Circle(p.Disp + back * (14f + k * 11f), 12f - k * 2.5f, haze.WithAlpha((0.22f - k * 0.06f) * k01), 12);
             if (fxReduced)
                 return;
             V2 side = back.Orthogonal();
@@ -139,7 +151,7 @@ namespace Arena
             {
                 float off = (k - 1.5f) * 8f, len = 16f + 12f * MathX.Fmod(t * 7f + k * 0.37f, 1f);
                 V2 a = p.Disp + back * 20f + side * off;
-                Line(a, a + back * len, 1.6f, new Rgba(0.92f, 1f, 0.96f, 0.5f));
+                Line(a, a + back * len, 1.6f, streak.WithAlpha(0.5f * k01));
             }
         }
     }
