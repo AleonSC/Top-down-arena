@@ -284,7 +284,7 @@ static partial class Shot {
         if (Environment.GetEnvironmentVariable("GRIDSCROLL") != null) set("practiceGridScroll", int.Parse(Environment.GetEnvironmentVariable("GRIDSCROLL")));  // GRIDSCROLL=n: the enemy grid scrolled n lines
         if (Environment.GetEnvironmentVariable("LOBBYTAB") != null) set("lobbyWasPractice", true);  // (so LOBBYTAB=7 stays on the Training tab)
       }
-      // FAVS=1: the Saved loadouts drawer open with four favourites (FavoritesUi.cs); FAVS=name: naming a fifth; FAVS=sure: deleting the second; FAVS=rename: renaming the second; FAVS=key: closed, the SAVED key showing.
+      // FAVS=1: the Saved loadouts drawer open with four favourites (FavoritesUi.cs); FAVS=name: naming a fifth; FAVS=sure: deleting the second; FAVS=rename: renaming the second; FAVS=key: closed, the gold Saved star showing.
       var favs = Environment.GetEnvironmentVariable("FAVS");
       if (favs != null) {
         var fp = host.Game.ProfileOverride ?? (host.Game.ProfileOverride = new Profile());
