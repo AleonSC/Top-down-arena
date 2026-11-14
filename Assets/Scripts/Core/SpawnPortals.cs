@@ -187,7 +187,7 @@ namespace Arena
             float c = SpawnPortals.Clearance;
             for (int k = 0; k < 3; k++)
                 pos = PushOutOfProps(PushOutOfSolids(pos, c), c);
-            return RoomsOn ? pos : ClampToArena(pos, c);
+            return RoomsOn ? SnapIntoRooms(pos, c) : ClampToArena(pos, c);  // (a spot pushed through a room's wall comes back inside)
         }
 
         /// A spot behind the party: of a few candidate spawn spots, the one most opposite the way the players are aiming.

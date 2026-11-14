@@ -134,6 +134,7 @@ static partial class Program
         g.Bullets.Clear();
         var ground = typeof(Game).GetMethod("GroundShot", np);
         for (int k = 3; k < Game.GrounderFull; k++) ground.Invoke(g, new object[] { gr });
+        typeof(Game).GetMethod("FirePendingClaps", np).Invoke(g, null);  // (the clap fires after Collide)
         var clap = g.Bullets.Values.Where(b => b.Shooter == gr.Id).ToList();
         int gaps = 0;
         var angs = clap.Select(b => b.Vel.Angle).OrderBy(a => a).ToList();
