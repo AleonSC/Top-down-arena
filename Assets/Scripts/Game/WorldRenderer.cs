@@ -220,6 +220,7 @@ namespace Arena
                 DrawHazard(h, t);
             DrawLayout(t);  // the floor plan's walls, pillars and edge gates (LayoutLook.cs)
             DrawGates();     // the Expanding arena's shutter gates: a red laser grid when shut (GateLook.cs)
+            DrawWallPush();  // push mode: the lit wall section and the next row (WallPushLook.cs)
             DrawBreaches();  // the Expanding arena's breaches: a red hologram barrier in each (BreachLook.cs)
             DrawTourFlash();  // the breach warning's flash on the breach the camera is on (BreachTour.cs)
             DrawProps(t);  // crates, pots, barrels and the chest (PropsLook.cs)
@@ -340,6 +341,8 @@ namespace Arena
                 DrawKatanaHud(p, t);
             if (p.Weapon.Id == WeaponId.BoStaff)  // where you are in the slash, jab, spin chain (BoStaffLook.cs)
                 DrawBoStaffPips(p, t);
+            if (p.Id == game.MyId && Game.InGreatStar(p))
+                DrawGreatStarRoute(p, t);  // the Great Star's ink route as you draw it (GreatStarLook.cs)
             if (p.Weapon.Id == WeaponId.Kunai && p.KunaiMarkT > 0f)  // the shadow kunai's mark: blink there with a double-tap
             {
                 var shade = new Rgba(0.55f, 0.45f, 0.85f);

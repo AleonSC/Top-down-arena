@@ -780,6 +780,7 @@ static partial class Shot {
       typeof(ArenaApp).GetField("camFollow", f2).SetValue(app, true);
       if (Environment.GetEnvironmentVariable("ZOOMHINT") != null) typeof(ArenaApp).GetField("zoomHintT", f2).SetValue(app, 6f);  // ZOOMHINT=1: the open Rooms map's "scroll to zoom out" prompt
       typeof(ArenaApp).GetField("camFocus", f2).SetValue(app, typeof(ArenaApp).GetMethod("RoomsFocus", f2).Invoke(app, new object[] { me.Disp, z }));
+      if (Environment.GetEnvironmentVariable("PUSHSEL") != null) { typeof(ArenaApp).GetMethod("PushRefresh", f2).Invoke(app, new object[] { me }); typeof(ArenaApp).GetField("camFocus", f2).SetValue(app, typeof(ArenaApp).GetMethod("PushFocus", f2).Invoke(app, new object[] { me.Disp, z })); }  // push mode: the camera leans to the wall (WallPushLook.cs)
       if (Environment.GetEnvironmentVariable("BREACHTOUR") != null) {  // BREACHTOUR=1 (with BREACHAGE on a breach wave): the warning's camera tour (BreachTour.cs), no enemies yet
         host.Game.Enemies.Clear();
         var tourArgs = new object[] { typeof(ArenaApp).GetField("camFocus", f2).GetValue(app), null };

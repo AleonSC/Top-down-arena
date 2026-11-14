@@ -1104,6 +1104,7 @@ namespace Arena
         /// Every frame, every game: a bot player draws a room it can afford a moment after the round opens, then votes.
         void TickExpansion(float dt)
         {
+            TickPushes(dt);
             if (!ExpandOpen)
             {
                 botVoteT = 0f;

@@ -167,7 +167,7 @@ namespace Arena
                 {
                     int n = 3 + extra;
                     for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.StarShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * StarFan * (n - 1)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Sticks = true;  // (the weapon-action key recalls them)
+                        SpawnBullet(Defs.StarShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * StarFan * (n - 1)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Sticks = true;  // (switching to the Great Star stance recalls them: GreatStar.cs)
                     break;
                 }
                 case WeaponId.Katana:
@@ -308,7 +308,7 @@ namespace Arena
                 AreaDesc = "bursts 25% wider, for damage and healing" },
             // DPS
             new WeaponDef { Id = WeaponId.Shuriken, Kit = Kit.Ninja, Role = Role.Dps, Choice = 0, Speed = 700f, Life = 0.75f, Damage = 9f, ExtraDesc = "+1 star in the fan", Name = "Shuriken", FireInterval = 0.35f,
-                Desc = "Tight fans of spinning stars that stick in what they hit. After a while each rips out for another hit and flies back to you, cutting through what it passes. Press your weapon-action key to recall them sooner." },
+                Desc = "Tight fans of spinning stars that stick in what they hit. After a while each rips out for another hit and flies back to you, cutting through what it passes. Your weapon-action key switches to the Great Star stance, pulling stuck stars back: hold fire to draw a route, let go to throw one huge star along it and home again, cutting everything both ways." },
             new WeaponDef { Id = WeaponId.Katana, Kit = Kit.Ninja, Role = Role.Dps, Choice = 1, Damage = 20f, Reach = 120f, Melee = true, ExtraDesc = "+1: each dash strikes once more (60%), two more caltrops and a wider Momentum Burst", Name = "Katana", FireInterval = 0.3f,
                 Desc = "Two stance combos; your weapon-action key switches between them, and the one you leave keeps its place. Hayate dashes and slices and ends in a Momentum Burst that shoves enemies away. Senbon cuts, spins and slashes and ends in a storm of caltrops. The burst flings caltrops on the ground; caltrops thrown after a burst seek what it hit." },
             new WeaponDef { Id = WeaponId.Kunai, Kit = Kit.Ninja, Role = Role.Dps, Choice = 2, Speed = 1400f, Life = 0.5f, Damage = 42f, ExtraDesc = "+1 knife, fanned out (half damage)", Name = "Kunai", FireInterval = 0.7f, Sound = Sfx.ShotKunai,
@@ -1055,8 +1055,10 @@ namespace Arena
             }
             if (LocalTankAlt(me, aimAt, pressed, dt))
                 return;  // the Tank Soldier's Double Barrel, Proximity Shell and Tear Gas (TankAlts.cs)
-            if (me.Weapon.Id == WeaponId.Shuriken && pressed)
+            starSwitchLocalCd -= dt;
+            if (me.Weapon.Id == WeaponId.Shuriken && pressed && starSwitchLocalCd <= 0f)
             {
+                starSwitchLocalCd = StarSwitchCd;  // the fan to the Great Star and back (GreatStar.cs)
                 if (IsHost)
                     HostWeaponDash(MyId, DashRecall, me.Pos);  // no move: the stars come back to you
                 else
@@ -1298,7 +1300,7 @@ namespace Arena
             if (kind == DashRecall)
             {
                 if (w.Id == WeaponId.Shuriken)
-                    RecallStars(p);
+                    HostStarSwitch(p);  // the fan to the Great Star (recalling stuck stars) and back (GreatStar.cs)
                 return;
             }
             if (kind == DashBlink)
@@ -1324,6 +1326,7 @@ namespace Arena
             foreach (var b in Bullets.Values)
                 if (b.Kind == Defs.FumaStar)
                     FumaTurn(b, dt);
+            TickGreatStars(dt);  // the Great Star along its drawn route and home (GreatStar.cs)
         }
 
         /// A Fuma Shuriken's loop is an oval through where it was thrown: at a time t into the lap (angle a = Tau t / lap)

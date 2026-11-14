@@ -853,6 +853,32 @@ static partial class Shot {
       foreach (var en in gm.Enemies.Values) { if (en.Def.IsBoss) continue; en.Pos = en.Disp = me.Pos + V2.FromAngle(0.9f + k * 2.1f) * (110f + 40f * k); if (++k >= 3) break; }
       foreach (var en in gm.Enemies.Values) if (!en.Def.IsBoss && k-- <= 0) { en.Pos = en.Disp = new V2(150f, 120f); }
     }
+    // GREATSTAR=held|draw|fly GSAT=<px along the route> (the DPS Shuriken's Great Star stance: in your hand, a route being drawn,
+    // or the star thrown along one, that far along; GreatStarLook.cs). Any NINJA= works: it puts the Shuriken in your hand.
+    if (Environment.GetEnvironmentVariable("GREATSTAR") != null) {
+      string gs = Environment.GetEnvironmentVariable("GREATSTAR");
+      float gat = float.Parse(Environment.GetEnvironmentVariable("GSAT") ?? "520", System.Globalization.CultureInfo.InvariantCulture);
+      var gm = host.Game; gm.Bot = false; gm.Effects.Clear(); gm.Bullets.Clear();
+      me.Weapon = System.Array.Find(Defs.Weapons, x => x.Id == WeaponId.Shuriken); me.Kit = Kit.Ninja;
+      me.Pos = me.Disp = new V2(420f, 470f); me.Aim = -0.5f; me.Flash = 0f; me.StarStance = 1;
+      var corners = new[] { new V2(160f, -170f), new V2(380f, -200f), new V2(540f, -90f), new V2(580f, 50f), new V2(720f, 110f) };
+      var route = new System.Collections.Generic.List<V2>();
+      V2 last = me.Pos;
+      foreach (var c in corners) { V2 to = me.Pos + c; for (float u = 16f; u < last.DistanceTo(to); u += 16f) route.Add(last + (to - last).Normalized() * u); route.Add(to); last = to; }
+      int k = 0;
+      foreach (var en in gm.Enemies.Values) { if (en.Def.IsBoss) continue; V2 at = me.Pos + corners[Math.Min(4, k + 1)] + new V2(-30f, 10f); en.Pos = en.Disp = at; if (++k >= 3) break; }
+      foreach (var en in gm.Enemies.Values) if (!en.Def.IsBoss && k-- <= 0) { en.Pos = en.Disp = new V2(150f, 120f); }
+      if (gs == "draw") {
+        gm.GreatStarRoute.Clear();
+        foreach (var q in route) if (Game.InkLength(me.Pos, gm.GreatStarRoute) < gat) gm.GreatStarRoute.Add(q);
+        me.Aim = (gm.GreatStarRoute[gm.GreatStarRoute.Count - 1] - me.Pos).Angle;
+      }
+      if (gs == "fly") {
+        V2 at = me.Pos, dir = new V2(1f, 0f); float left = gat; last = me.Pos;
+        foreach (var q in route) { float d = last.DistanceTo(q); if (d >= left) { dir = (q - last).Normalized(); at = last + dir * left; left = 0f; break; } left -= d; last = q; at = q; }
+        gm.Bullets[999998] = new Bullet { Id = 999998, Kind = Defs.GreatStar, Owner = me.Id, Pos = at, Vel = dir * Game.GreatStarSpeed, Radius = Defs.BulletRadius(Defs.GreatStar), Life0 = 6f, Life = 6f };
+      }
+    }
     if (Environment.GetEnvironmentVariable("SWING") != null) {
       float st = float.Parse(Environment.GetEnvironmentVariable("SWING"), System.Globalization.CultureInfo.InvariantCulture);
       var gm = host.Game; gm.Bot = false; gm.Effects.Clear(); gm.Bullets.Clear();
@@ -1610,6 +1636,28 @@ static partial class Shot {
         if (bb.Length > 0 && Environment.GetEnvironmentVariable("BREACHAT") != null) { int bi = 0; foreach (var pl in xg.Players.Values) { pl.Pos = pl.Disp = bb[0].Pos + bb[0].In * (90f + 40f * bi) + bb[0].Along * (bi * 60f - 30f); bi++; } }
       }
       MockBreachRooms(xg);
+      string xpush = Environment.GetEnvironmentVariable("PUSHES");  // PUSHES=area,side,start,width,times;...: walls pushed out (Docs/WallPush.md; side 0 W, 1 E, 2 N, 3 S; a section grows when pushed again, area = its index + 1)
+      if (xpush != null) {
+        foreach (var part in xpush.Split(';')) {
+          var q = Array.ConvertAll(part.Split(','), int.Parse);
+          var wpp = new WallPush { Area = (short)q[0], Side = (byte)q[1], Start = (short)q[2], Width = (byte)q[3] };
+          for (int k = 0; k < (q.Length > 4 ? q[4] : 1); k++) {
+            int pidx, pcost; string pwhy;
+            var pb = Expansion.Push(xg.Expanded, wpp, out pidx, out pcost, out pwhy);
+            if (!pb.HasValue) { Console.Error.WriteLine("push refused: " + pwhy); break; }
+            var pbv = pb.Value; pbv.Owner = 1;
+            if (pidx < 0) { xg.Expanded.Add(pbv); wpp.Area = (short)xg.Expanded.Count; } else xg.Expanded[pidx] = pbv;
+          }
+        }
+        typeof(Game).GetField("expWorld", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(xg, null);
+      }
+      if (Environment.GetEnvironmentVariable("PUSHHINT") != null) xg.ExpandOpen = true;  // PUSHHINT=1: between waves (a building round), so the Push wall prompt shows by a wall in reach
+      string xsel = Environment.GetEnvironmentVariable("PUSHSEL");  // PUSHSEL=x,y: push mode on, the mouse over that world point (PUSHW=<width>, default 4); put yourself in reach with EXPANDAT
+      if (xsel != null) {
+        var q = Array.ConvertAll(xsel.Split(','), float.Parse); ArenaApp.PushMouseOverride = new V2(q[0], q[1]); typeof(ArenaApp).GetField("pushOn", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, true);
+        if (Environment.GetEnvironmentVariable("PUSHW") != null) typeof(ArenaApp).GetField("pushWidth", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(app, int.Parse(Environment.GetEnvironmentVariable("PUSHW")));
+        xg.ExpandOpen = true;
+      }
       string fp = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: where you stand (default the hub)
       if (fp != null) { var q = fp.Split(','); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(float.Parse(q[0], System.Globalization.CultureInfo.InvariantCulture), float.Parse(q[1], System.Globalization.CultureInfo.InvariantCulture)); }
     }
