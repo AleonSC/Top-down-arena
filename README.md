@@ -628,7 +628,7 @@ his own riot, on the boss wave, still give 2 and 4.
 | From | The Warden's faction | What it does |
 |---|---|---|
 | 1 | **Rioter** | A prisoner on the loose in an orange jumpsuit, one of two kinds: a Brawler (broad shoulders, cuffed fists throwing punches) or a Ball and Chain (hunched, dragging an iron ball on its ankle); same moves either way: weaves at you, in pairs (contact 10). Squad: Breakout (six Rioters and a Guard) |
-| 1 | **Guard** | A riot guard with a baton, straight at you (contact 14) |
+| 1 | **Guard** | A corrections officer (khaki shirt, peaked cap, gold badge) with a side-handle nightstick, straight at you (contact 14). Within about 60 px it swings the stick without stopping, forehand then backhand: a 0.16 s draw-back flashes its 120° arc amber on the floor, then the swing hits everyone in it out to 80 px for 7; one every 0.6 s |
 | 2 | **Thug** | A prisoner brute dragging a ball and chain, with cuffed fists: moves and hits like a Brute (140 health, contact 20). Squad: Yard (a Thug, three Rioters and a Shiv) |
 | 3 | **Shiv** | A prisoner with a taped shank held out front: circles in close, shows the lunge lane, then lunges like a Lunger (contact 18, 26 on the lunge) |
 | 2 | **Riot Shield** | A guard behind a tall shield that stops shots and swings from the front. Up close the shield flashes (0.4 s), then it lunges and **bashes** you: 10 damage and knocked **160 px** back (you can't be bashed again for 0.8 s). It holds the shield low for a second after, when front hits land. The shield holds 4x its health and cracks as it wears; broken, the guard staggers for a second, then flails and takes 50% more damage. Go round it or break it. Squad (wave 3): Cell block (two Riot Shields with Rioters pouring past) |

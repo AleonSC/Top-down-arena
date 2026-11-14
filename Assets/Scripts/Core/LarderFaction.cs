@@ -42,7 +42,7 @@ namespace Arena
         public byte LarderStage;  // a Butcher's or Gulper's attack: 0 idle, 1 winding up, 2 chopping / breathing in (replicated)
         public float LarderT;     // seconds left in the stage (replicated)
         public float LarderCd;    // host: until it may attack again
-        public byte MawSide;      // host: the side the last shot at a Maw Priest came from (1 its maw, 2 elsewhere)
+        public byte MawSide;      // host: the side the last shot at a Maw Priest came from (1 its maw, 2 elsewhere); a Guard's last swing (1 forehand)
     }
 
     public partial class Game

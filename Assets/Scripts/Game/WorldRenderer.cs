@@ -197,6 +197,7 @@ namespace Arena
             DrawColossusFloor(t);  // the Colossus's rings, shadows, fissures, plates and pillars (ColossusLook.cs)
             DrawQuarryFloor(t);    // Stompers' rings (QuarryLook.cs)
             DrawLarderFloor(t);    // the Butcher's chop, the Gulper's cone (LarderLook.cs)
+            DrawGuardFloor(t);     // the Guard's swing arc (WardenLook.cs)
             DrawEclipseFloor(t);   // the Eclipse's shadow, sunspots, flares, rings and echoes (EclipseLook.cs)
             DrawVarietyFloor(t);   // Beam Sentry beams, Reaver cones, Warder tethers (VarietyLook.cs)
             DrawDevourerFloor(t);  // the Devourer's cones, lunge lines, ripple, jaws and teeth (DevourerLook.cs)
