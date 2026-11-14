@@ -223,7 +223,9 @@ round of ammo.
 ### Parry
 
 Hold **right click** (or your Parry key) to raise a small shield on the side facing your cursor. It blocks enemy bullets from that side
-(including the red aimed shots that barriers can't stop) and melee enemies that run into it, shoving them back. While
+(including the red aimed shots that barriers can't stop) and melee enemies that run into it, sliding them back 45 px.
+A weapon strike (a Swordsman's cut, a Reaver's rake, a Scythe Wraith's reap) is blocked whenever the shield faces the
+striker, however far its blade reaches, and throws the striker back 120 px (armoured enemies and bosses stand firm). While
 it's up you **can't shoot** and you move at 70% speed. It soaks **150 damage**, then breaks and can't be raised for 3
 s; it refills when you lower it. Raise it just as a shot arrives for a **perfect parry**: for the first 0.30 s after
 raising it, blocked bullets go straight back as fast white needles (900 px/s) and cost nothing (it has to have been down
@@ -557,7 +559,7 @@ squad as often as a melee enemy used to come). Paths with their own mix keep it.
 | 5 | **Lunger** | Circles in close, flashes a pink line, then leaps along it. Step aside |
 | 5 | **Buzzsaw** | A ring of spinning spikes. Fast (170) and it steers with momentum, so it swoops and overshoots. Each touch is only 4, but they land about eight times a second |
 | 5 | **Spike Block** | A square with a big spike on each face. Rocks from side to side as it closes in; within about 140 px it stops, shakes and shows a red line (0.55 s, the line is locked), then lunges along it for 35. It rests 0.8 s afterward: shoot it then |
-| 7 | **Swordsman** | A melee enemy with a long blade (85 health, never fires). It closes in until you are about 100 px away, then stops turning and raises its sword for 0.55 s while the cone in front of it fills red. The cone is exactly what the blade covers: 140 px long and 90° wide, a curved band from its hand to the tip. It then cuts across the whole cone in 0.15 s (14 damage to everyone in it, once; a perfect parry blocks it) and recovers for 0.8 s. Step out of the cone before the red reaches the edge |
+| 7 | **Swordsman** | A melee enemy with a long blade (85 health, never fires). It closes in until you are about 100 px away, then stops turning and raises its sword for 0.55 s while the cone in front of it fills red. The cone is exactly what the blade covers: 140 px long and 90° wide, a curved band from its hand to the tip. It then cuts across the whole cone in 0.15 s (14 damage to everyone in it, once; a raised parry facing it blocks it and throws it back 120 px) and recovers for 0.8 s. Step out of the cone before the red reaches the edge |
 | 10 | **Shield Swordsman** | A Swordsman (slower: 75 against 95) with a blue-steel shield held up in front that stops every shot from the front within 63° either side (it flashes when it blocks one, and doesn't wear). The shield drops the moment it cuts and stays down for the first 0.75 s of its 1 s recovery, so shoot it then, or from the side or behind |
 
 | Wave | Shooter | What it does |
@@ -579,7 +581,7 @@ squad as often as a melee enemy used to come). Paths with their own mix keep it.
 | 22 | **Stitcher** | Fires slow orbs; each orb is tied to the nearest other orb within 280 px by a thread that hurts. Alone it fires two orbs that spread apart until the thread snaps; a pair stands side by side, 240 px apart, and fires together, so a fence sweeps at you. Step round an end. Blockers that eat the orbs (a barrier, flak) cut the thread |
 | 24 | **Scorcher** | Circles you about 260 px out leaving a trail of embers (15/s, 3 s; they only burn players) and fires pairs of shots. Cut across its circle |
 | 26 | **Juggernaut** | Armored and slow; can't be slowed or knocked back; fires rotating stars of big orbs |
-| 28 | **Reaver** | Armoured melee (can't be slowed or knocked back): in reach it shows a red 120° cone for 0.4 s, then rakes it (26; a perfect parry blocks it). For 0.7 s after a swipe it's **open**: +50% damage |
+| 28 | **Reaver** | Armoured melee (can't be slowed or knocked back): in reach it shows a red 120° cone for 0.4 s, then rakes it (26; a raised parry facing it blocks it, though it's too heavy to throw back). For 0.7 s after a swipe it's **open**: +50% damage |
 | 31 | **Nest** | Stationary spawner that keeps hatching Shards until destroyed |
 | 36 | **Warder** | Hangs back behind its allies; every 6 s up to three allies within 320 px get a bubble worth half their health, tethered to it by a line of flowing beads. Kill it and every bubble pops. A pointed violet diamond that turns to face you, with three hex sigils orbiting it: they spin faster and its reach fills up for its last 1.4 s before a ward, and one sigil leaves for each ally it wards. A chevron bobs over it while any ward is up: shoot it first |
 
@@ -627,7 +629,7 @@ his own riot, on the boss wave, still give 2 and 4.
 
 | From | The Warden's faction | What it does |
 |---|---|---|
-| 1 | **Rioter** | A prisoner on the loose in an orange jumpsuit, one of two kinds: a Brawler (broad shoulders, cuffed fists throwing punches) or a Ball and Chain (hunched, dragging an iron ball on its ankle); same moves either way: weaves at you, in pairs (contact 10). Squad: Breakout (six Rioters and a Guard) |
+| 1 | **Rioter** | A prisoner on the loose in an orange jumpsuit: a Brawler (broad shoulders, cuffed fists throwing punches) that weaves at you, in pairs (contact 10). **Variant, Ball and Chain** (30% of Rioters): hunched, dragging an iron ball on its ankle, the same moves but **25% slower**. Squad: Breakout (six Rioters and a Guard) |
 | 1 | **Guard** | A corrections officer (khaki shirt, peaked cap, gold badge) with a side-handle nightstick, straight at you (contact 14). Within about 60 px it swings the stick without stopping, forehand then backhand: a 0.16 s draw-back flashes its 120° arc amber on the floor, then the swing hits everyone in it out to 80 px for 7; one every 0.6 s |
 | 2 | **Thug** | A hunched prisoner brute in a tank top, bare tattooed arms and giant taped fists: moves and hits like a Brute (140 health, contact 20). Squad: Yard (a Thug, three Rioters and a Shiv) |
 | 3 | **Shiv** | A prisoner with a taped shank, one of two kinds: Hooded (hood up, the shank held low) or Twin Shanks (shirtless, a shank in each hand); it draws the shank back as it winds up. Circles in close, shows the lunge lane, then lunges like a Lunger (contact 18, 26 on the lunge) |

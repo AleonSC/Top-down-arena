@@ -368,6 +368,7 @@ static partial class Program
         Test("longrun", "the 100-wave Campaign: two legs a track wave, the boss after every tenth, half XP, saves and continuing, the party's level at the first boss", () => LongRunTest(Dt), () => LongRunPaceTest(Dt)),
         Test("wardencycle", "the Campaign's Warden cycle: one lesson a wave (Rioters, guards, shields, gas, tasers, squads, the Riot line) (one guaranteed star enemy each)", () => WardenCycleTest(Dt)),
         Test("checkpoints", "checkpoints and lives: a boss leaves a checkpoint, a wipe with a life left retries from it (score cut), Play again or no lives end the run", () => CheckpointsTest(Dt)),
+        Test("variants", "enemy variants: the Rioter's Ball and Chain spawns in its place, slower, and the client sees it", () => EnemyVariantsTest(Dt)),
         Test("coredrops", "weapon variants: what runs and hunts pay in Cores, the glowing Core Carrier", () => CoreDropsTest(Dt)),
         Test("saves", "saved runs (continuing them, in co-op) and the profile", () => SavesTest(Dt), () => ProfileTest(Dt)),
         Test("favorites", "saved favourite loadouts: slots, names, the profile's fav lines, loading one over the network, perks", () => FavoritesTest(Dt)),
@@ -485,7 +486,7 @@ static partial class Program
     static readonly string[] CiExtras =
     {
         "swordsman", "nonshooters", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "melee", "brute",
-        "trickle", "meleesounds", "grunts", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops",
+        "trickle", "meleesounds", "grunts", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
         "exploit", "doublebarrel", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
         "expand", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
         "newenemies", "wildcard", "stacking", "singularity", "security", "guardswing", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",

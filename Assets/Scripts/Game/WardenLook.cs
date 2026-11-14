@@ -579,14 +579,14 @@ namespace Arena
         static readonly Rgba RioterSkin = new Rgba(0.93f, 0.74f, 0.58f), RioterInk = new Rgba(0.13f, 0.1f, 0.12f, 0.95f),
             RioterChain = new Rgba(0.6f, 0.64f, 0.7f), RioterIron = new Rgba(0.28f, 0.29f, 0.33f), RioterNumber = new Rgba(0.96f, 0.95f, 0.9f, 0.95f);
 
-        /// A rioter: a prisoner in an orange jumpsuit, seen from above (the jumpsuit is its role colour `col`). Two kinds,
-        /// by id: a Brawler (broad shoulders, cuffed fists throwing haymakers in turn) and a Ball and Chain (hunched,
-        /// dragging an iron ball on an ankle shackle). Same hitbox and moves either way.
+        /// A rioter: a prisoner in an orange jumpsuit, seen from above (the jumpsuit is its role colour `col`). The regular
+        /// one is a Brawler (broad shoulders, cuffed fists throwing haymakers in turn); its variant, the Ball and Chain
+        /// (`EnemyVariant.BallAndChain`, slower: EnemyVariants.cs), is hunched, dragging an iron ball on an ankle shackle.
         void DrawRioterBody(Enemy e, V2 pos, float r, Rgba col, float t)
         {
             V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
             float p = Mathf.Sin(t * 9f + e.Id * 1.7f);  // the run cycle
-            if (e.Id % 2 == 0)
+            if (e.Variant != EnemyVariant.BallAndChain)
                 DrawRioterBrawler(e, pos, r, col, f, s, p);
             else
                 DrawRioterBallChain(e, pos, r, col, f, s, p, t);

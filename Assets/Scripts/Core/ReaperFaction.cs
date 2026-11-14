@@ -127,7 +127,7 @@ namespace Arena
                     {
                         if (p.Downed || p.InvulnT > 0f || p.SwallowT > 0f || p.Pos.DistanceTo(e.Pos) > e.Radius + ScytheReap + p.Def.HitR)
                             continue;
-                        if (p.ParryActive && ParryContact(p, e, ScytheDamage))
+                        if (p.ParryActive && ParryStrike(p, e, ScytheDamage))
                             continue;
                         Damage(p, ScytheDamage, e.Def.Name + " (reap)");
                         RodTouched(p, e);  // LightningRod.cs

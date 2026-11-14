@@ -795,6 +795,8 @@ namespace Arena
             s.Bool(ref katanaShock);  // marked by a Momentum Burst (Katana.cs)
             bool dazed = !s.Reading && e.Dazed;
             s.Bool(ref dazed);  // dazed by a close-in hit: the stars over its head (Daze.cs)
+            int variant = !s.Reading ? (int)e.Variant : 0;
+            s.Byte(ref variant);  // a variant of its type (EnemyVariants.cs)
             var kind = (EnemyType)type;
             if (s.Reading && !Enemies.TryGetValue(id, out e))
             {
@@ -811,6 +813,7 @@ namespace Arena
                 e.MaxHp = maxHp;
                 e.KatanaShocked = katanaShock;
                 e.Dazed = dazed;
+                e.Variant = (EnemyVariant)variant;
                 e.Spawning = spawning;
                 e.Facing = facing;
                 e.Phase = phase;

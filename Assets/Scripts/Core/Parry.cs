@@ -72,9 +72,11 @@ namespace Arena
             float reach = p.Def.BodyR + ParryReach + radius;
             if (d.LengthSq > reach * reach)
                 return false;
-            float diff = Math.Abs(MathX.Fmod(d.Angle - p.Aim + MathX.Pi, MathX.Tau) - MathX.Pi);
-            return diff < HalfArc(p);
+            return Facing(p, d);
         }
+
+        /// Does the shield face this way (any distance)?
+        static bool Facing(Player p, V2 d) => Math.Abs(MathX.Fmod(d.Angle - p.Aim + MathX.Pi, MathX.Tau) - MathX.Pi) < HalfArc(p);
 
         /// The shield takes a hit: free during a perfect parry, otherwise it wears and may break.
         /// Returns whether the blocked bullet should be sent back (perfect parry or Mirror Guard).
@@ -109,17 +111,24 @@ namespace Arena
             return p.Stats.MirrorChance > 0f && rng.NextDouble() < p.Stats.MirrorChance;  // Mirror Guard
         }
 
-        /// Melee enemies running into the shield hit it instead of you, and get shoved back.
-        bool ParryContact(Player p, Enemy e, float dmg)
+        public const float ParryShove = 45f;        // a melee enemy bumping the shield slides back this far
+        public const float ParryStrikeShove = 120f; // a parried weapon strike (sword cut, rake, reap) throws its enemy back this far
+
+        /// Melee enemies running into the shield hit it instead of you, and slide back (Knock.cs) ParryShove px.
+        bool ParryContact(Player p, Enemy e, float dmg) => p.ParryActive && InParryArc(p, e.Pos, e.Radius) && ParryTake(p, e, dmg, ParryShove);
+
+        /// A weapon strike (a sword cut, a rake, a reap) reaches past the shield's edge, so only the side counts: a
+        /// shield facing the striker takes it, and the striker is thrown back ParryStrikeShove px.
+        bool ParryStrike(Player p, Enemy e, float dmg) => p.ParryActive && Facing(p, e.Pos - p.Pos) && ParryTake(p, e, dmg, ParryStrikeShove);
+
+        bool ParryTake(Player p, Enemy e, float dmg, float shove)
         {
-            if (!p.ParryActive || !InParryArc(p, e.Pos, e.Radius))
-                return false;
-            if (p.ParryBumpT > 0f)
-                return true;  // already took this bump
+            if (shove < ParryStrikeShove && p.ParryBumpT > 0f)
+                return true;  // already took this bump (a strike lands once a swing, so it always counts)
             p.ParryBumpT = 0.25f;
             ParryHit(p, dmg, p.Pos + (e.Pos - p.Pos).Normalized() * (p.Def.BodyR + 10f));
             if (!Heavy(e))
-                e.Pos = ClampToArena(e.Pos + (e.Pos - p.Pos).Normalized() * 45f, e.Radius);
+                KnockEnemy(e, (e.Pos - p.Pos).Normalized() * shove);
             return true;
         }
     }
