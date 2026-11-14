@@ -148,7 +148,7 @@ namespace Arena
                 return;
             float at, el = readyAt.TryGetValue(e.Id, out at) ? Time.unscaledTime - at : 99f;
             var good = Ui.Good;
-            if (el < ReadyPulse && readyStyle == 0)
+            if (el < ReadyPulse)
             {
                 // The conduit: from the Ready key's right edge, out into the gutter between the party column and the big screen,
                 // up beside the card and in (on the inside of the screen, clear of its curved edge).
@@ -173,7 +173,7 @@ namespace Arena
                     Ui.Fill(new Rect(Mathf.Round(tp.x - sz / 2f + 0.5f), Mathf.Round(tp.y - sz / 2f + 0.5f), sz, sz), new Color(Mathf.Lerp(good.r, 1f, 0.5f * tail), Mathf.Lerp(good.g, 1f, 0.5f * tail), Mathf.Lerp(good.b, 1f, 0.5f * tail), tail));
                 }
             }
-            float burstAt = readyStyle == 0 ? ReadyPulse : 0f;
+            const float burstAt = ReadyPulse;
             if (el >= burstAt && el < burstAt + ReadyBurst)
             {
                 // The ring bursts off the card (no further than 10 px, clear of the screen's edge), with a green wash and a scan across it.
@@ -187,8 +187,6 @@ namespace Arena
                 CrtKit.Frame(new Rect(card.x - 2f, card.y - 2f, card.width + 4f, card.height + 4f), 1f,
                     new Color(good.r, good.g, good.b, 0.18f + 0.1f * Mathf.Sin(Time.unscaledTime * 2f + e.Id)));
         }
-
-        int readyStyle;  // MOCKUP: 0 conduit on the right, 1 no conduit
 
         // --- Radar sweep --------------------------------------------------------------------------------------------------
 
