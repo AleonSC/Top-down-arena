@@ -13,10 +13,9 @@ namespace Arena
     ///     glint), the crest over the Challenged enemy with its timer ring and the gold ring turning under it, the crimson
     ///     and gold ribbon from you to it, the gauntlet lying where it hit, the charge's afterimages, bow wave and dust, the
     ///     bowled enemies' sparks, the impact, and the gauntlet flying back with the crest breaking and READY.
-    ///   Misericorde, look Last Rites (Core/Misericorde.cs): a dagger over every wounded enemy (and a ring pulsing round it)
-    ///     on your own screen, a crosshair on the one a press would take, the leap (you lifted, afterimages, a bracket on the
-    ///     target, the 200 px ring flashing where you land), the gold chain of light from each kill to the next, the stab,
-    ///     the tolling rings, gold motes, the candle left burning, "† 11", and the grey ring when the chain ends.
+    ///   Bladed Dive (Core/BladedDive.cs): a gold streak and afterimages along the rush, two crescents whirling round you
+    ///     at the cut's reach, a ring snapping out at each of the four cuts, a white slash and sparks across every enemy
+    ///     cut, dust where you land, and on a kill a gold burst, a glint and RESET over you.
     public partial class ArenaApp
     {
         // Forge
@@ -25,8 +24,8 @@ namespace Arena
         // Heraldic
         static readonly Rgba HeraldGlow = C255(255, 200, 90), HeraldKnuckle = C255(216, 173, 78), HeraldAccent = C255(214, 170, 74), HeraldField = C255(142, 27, 40),
             HeraldRibbon = C255(200, 40, 55), HeraldDust = C255(150, 132, 108), HeraldSpark = C255(255, 214, 140);
-        // Last Rites
-        static readonly Rgba RitesMain = C255(230, 180, 80), RitesLight = C255(255, 244, 210), RitesThread = C255(240, 196, 96), RitesMark = C255(240, 190, 90);
+        // Bladed Dive
+        static readonly Rgba DiveGold = C255(240, 190, 90), DiveLight = C255(255, 244, 210);
 
         static Rgba C255(int r, int g, int b) => new Rgba(r / 255f, g / 255f, b / 255f);
         static float KHash(float n) => SprayHash(n * 0.731f + 3.17f);
@@ -132,7 +131,6 @@ namespace Arena
         void DrawKnightDpsUnder(float t)
         {
             DrawGauntletGround(t);
-            DrawMercyGround(t);
             DrawBridgeShake();  // DrawbridgeLook.cs
         }
 
@@ -140,7 +138,6 @@ namespace Arena
         {
             DrawBridgesFalling(t);  // DrawbridgeLook.cs: above the enemies it's about to crush
             DrawGauntletCrests(t);
-            DrawMercyMarks(t);
         }
 
         void DrawKnightDpsTop(float t)
@@ -152,7 +149,7 @@ namespace Arena
             }
         }
 
-        /// The DPS Knight's moments on the HUD: "† 11", READY, the chain ending, and your own shard pips.
+        /// The DPS Knight's moments on the HUD: READY, RESET, and your own shard pips.
         void DrawKnightDpsPops()
         {
             if (!ReferenceEquals(game, session.Game))
@@ -160,13 +157,6 @@ namespace Arena
             foreach (var fx in game.Effects)
             {
                 float a = fx.T;
-                if (fx.Kind == FxKind.MercyKill && a < 0.9f)
-                {
-                    float f = a / 0.9f, pop = a < 0.09f ? 1f + 0.55f * (1f - a / 0.09f) : 1f;
-                    V2 at = ToUi(fx.Pos);
-                    at.Y -= (fx.Radius + 26f) * UiWorldScale + f * 22f;
-                    Ui.Shadowed(new Rect(at.X - 50f, at.Y - 12f, 100f, 24f), "† " + Mathf.RoundToInt(fx.Pos2.Y), Mathf.RoundToInt(17f * pop), UiCol(RitesLight, 1f - f * f * f));
-                }
                 if (fx.Kind == FxKind.GauntletBack && fx.Color.A > 0.75f && a > Game.GauntletBackTime && a < Game.GauntletBackTime + 0.7f)
                 {
                     Player p;
@@ -177,11 +167,15 @@ namespace Arena
                     at.Y -= (p.Def.BodyR + 18f) * UiWorldScale + a3 * 14f;
                     Ui.Shadowed(new Rect(at.X - 40f, at.Y - 10f, 80f, 20f), "READY", 13, UiCol(HeraldSpark, 1f - Mathf.Clamp01((a3 - 0.4f) / 0.3f)));
                 }
-                if (fx.Kind == FxKind.MercyEnd && a < Game.MercyEndFx)
+                if (fx.Kind == FxKind.DiveReset && a < Game.BladedResetFx)
                 {
-                    V2 at = ToUi(fx.Pos);
-                    at.Y += 46f * UiWorldScale;
-                    Ui.Shadowed(new Rect(at.X - 110f, at.Y - 8f, 220f, 16f), "no wounded enemy in reach", 11, new Color(0.79f, 0.8f, 0.82f, 1f - a / Game.MercyEndFx), TextAnchor.MiddleCenter, false);
+                    Player p;
+                    if (!game.Players.TryGetValue((int)fx.Pos2.X, out p))
+                        continue;
+                    float pop = a < 0.08f ? 1f + 0.5f * (1f - a / 0.08f) : 1f;
+                    V2 at = ToUi(p.Disp);
+                    at.Y -= (p.Def.BodyR + 46f) * UiWorldScale + a * 16f;
+                    Ui.Shadowed(new Rect(at.X - 40f, at.Y - 10f, 80f, 20f), "RESET", Mathf.RoundToInt(13f * pop), UiCol(DiveLight, 1f - Mathf.Clamp01((a - 0.55f) / 0.35f)));
                 }
             }
             var me = game.Me;
@@ -229,11 +223,15 @@ namespace Arena
                         Shake(0.25f);
                     }
                     break;
-                case FxKind.MercyKill:
+                case FxKind.DiveRush:
+                    if ((int)fx.Radius == game.MyId)
+                        Shake(0.1f);
+                    break;
+                case FxKind.DiveReset:
                     if ((int)fx.Pos2.X == game.MyId)
                     {
-                        Hold(0.07f, 0.1f);
-                        Shake(0.15f);
+                        Hold(0.05f, 0.15f);
+                        Shake(0.18f);
                     }
                     break;
             }
@@ -678,165 +676,94 @@ namespace Arena
         }
 
         // =============================================================================================================
-        // Misericorde (Last Rites)
+        // Bladed Dive
         // =============================================================================================================
 
-        bool HasMisericorde(Player p)
+        /// The rush: a gold streak and afterimages along the path, two crescents whirling round you, a ring snapping out at
+        /// each cut, and dust where you land.
+        void DrawDiveRushFx(Effect fx, float t)
         {
-            foreach (var s in p.Slots)
-                if (s.Id == AbilityId.Whirlwind)
-                    return true;
-            return false;
-        }
-
-        /// Candles where the dagger fell (under the enemies), for three seconds.
-        void DrawMercyGround(float t)
-        {
-            foreach (var fx in game.Effects)
-            {
-                if (fx.Kind != FxKind.MercyKill || fx.Color.A < 0.75f || fx.T > 3f)
-                    continue;
-                float fl = 0.75f + 0.25f * Mathf.Sin(t * 23f + fx.Pos.X) * Mathf.Sin(t * 7f + fx.Pos.Y), fade = Mathf.Clamp01((3f - fx.T) / 0.4f);
-                GlowDisc(fx.Pos, 16f * fl, C255(255, 190, 90), 0.45f * fade);
-                Circle(fx.Pos + new V2(0f, 5f), 3f, C255(217, 210, 191).WithAlpha(fade), 8);
-                Ellipse(fx.Pos, 2.4f, 4.6f * fl, MathX.Pi / 2f, C255(255, 230, 160).WithAlpha(0.95f * fade), 8);
-            }
-        }
-
-        /// On your own screen: the dagger over every wounded enemy, a ring pulsing round it, and a crosshair on the one a
-        /// press would take.
-        void DrawMercyMarks(float t)
-        {
-            var me = game.Me;
-            if (me == null || me.Downed || !HasMisericorde(me) || !ReferenceEquals(game, session.Game))
-                return;
-            float below = Game.MercyBelowOf(me);
-            foreach (var e in game.Enemies.Values)
-            {
-                if (!Game.MercyWounded(e, below))
-                    continue;
-                Arc(e.Disp, e.Radius, 1.6f, RitesMark.WithAlpha(0.55f + 0.35f * Mathf.Sin(t * 9f)), 24);
-                V2 m = e.Disp + new V2(0f, -e.Radius - 26f + Mathf.Sin(t * 5f + e.Disp.X) * 2f);
-                GlowDisc(m, 12f, RitesMark, 0.4f);
-                Line(m + new V2(0f, -7f), m + new V2(0f, -3f), 2.4f, C255(59, 42, 29));
-                Line(m + new V2(-4f, -3f), m + new V2(4f, -3f), 2.2f, RitesMark);
-                SetColor(C255(106, 114, 128));
-                Tri(m + new V2(-2.2f, -2.8f), m + new V2(0f, 8.8f), m + new V2(2.2f, -2.8f));
-                SetColor(C255(242, 244, 247));
-                Tri(m + new V2(-1.6f, -2.4f), m + new V2(0f, 8f), m + new V2(1.6f, -2.4f));
-            }
-            int slot = -1;
-            for (int i = 0; i < me.Slots.Length; i++)
-                if (me.Slots[i].Id == AbilityId.Whirlwind && me.Slots[i].Charges > 0)
-                    slot = i;
-            if (slot < 0)
-                return;
-            var first = game.MercyFirst(me, me.AimAt);
-            if (first == null)
-                return;
-            V2 cp = first.Disp + new V2(10f, -6f);
-            Arc(cp, 7f, 1.4f, Rgba.White.WithAlpha(0.85f), 14);
-            Line(cp + new V2(-11f, 0f), cp + new V2(-4f, 0f), 1.4f, Rgba.White);
-            Line(cp + new V2(4f, 0f), cp + new V2(11f, 0f), 1.4f, Rgba.White);
-            Line(cp + new V2(0f, -11f), cp + new V2(0f, -4f), 1.4f, Rgba.White);
-            Line(cp + new V2(0f, 4f), cp + new V2(0f, 11f), 1.4f, Rgba.White);
-        }
-
-        static V2 KBezier(V2 a, V2 m, V2 b, float f) => a * ((1f - f) * (1f - f)) + m * (2f * (1f - f) * f) + b * (f * f);
-
-        /// A leap: the chain of light from the last kill, the bracket on the target, afterimages along the arc, the dagger
-        /// going in, and the 200 px ring where you land.
-        void DrawMercyLeapFx(Effect fx, float t)
-        {
-            int id = (int)(fx.Radius / 100f + 0.001f), link = Mathf.RoundToInt(fx.Radius - id * 100f);
-            float a = fx.T, LD = Game.MercyLeapTime;
-            V2 from = fx.Pos, to = fx.Pos2;
+            float a = fx.T, D = Game.BladedTime, u = KSm(a / D);
+            V2 from = fx.Pos, to = fx.Pos2, d = (to - from).IsZero ? new V2(1f, 0f) : (to - from).Normalized(), n = new V2(-d.Y, d.X);
             Player p;
-            game.Players.TryGetValue(id, out p);
-            if (link > 0 && a < LD + 0.35f)  // the chain of light from the last kill to this one
+            V2 at = V2.Lerp(from, to, u);
+            if (a < D && game.Players.TryGetValue((int)fx.Radius, out p) && p.Disp.DistanceTo(at) < 60f)
+                at = p.Disp;  // where the knight really is, when it's close (the rush is carried out on their own game)
+            float fade = a < D ? 1f : 1f - (a - D) / Game.BladedTail;
+            // The streak along the path: a gold band, widest just behind you, and a white core.
+            V2 tail = V2.Lerp(from, at, a < D ? 0f : KEo((a - D) / Game.BladedTail));
+            if (tail.DistanceTo(at) > 2f)
             {
-                float g = KEo(a / 0.12f), fade = a > LD ? 1f - (a - LD) / 0.35f : 1f;
-                V2 mid = V2.Lerp(from, to, 0.5f) + new V2(-(to - from).Normalized().Y, (to - from).Normalized().X) * -26f;
-                const int n = 24;
-                for (int q = 0; q <= n * g; q++)
+                SetColor(DiveGold.WithAlpha(0.28f * fade));
+                Quad(tail, tail, at + n * 13f, at - n * 13f);
+                SetColor(DiveLight.WithAlpha(0.55f * fade));
+                Quad(tail, tail, at + n * 4f, at - n * 4f);
+                for (int k = 0; k < 5; k++)  // speed lines either side
                 {
-                    float f = q / (float)n;
-                    V2 at = KBezier(from, mid, to, f);
-                    GlowDisc(at, 4f, RitesThread, 0.25f * fade);
-                    Ellipse(at, 3.4f, 1.8f, q % 2 == 1 ? 0.6f : -0.6f, RitesThread.WithAlpha(0.85f * fade), 8);
-                    Ellipse(at, 2f, 0.7f, q % 2 == 1 ? 0.6f : -0.6f, new Rgba(0f, 0f, 0f, 0.5f * fade), 6);
+                    float off = (KHash(fx.Pos.X + k * 3.1f) - 0.5f) * 44f, l0 = 0.15f + 0.6f * KHash(fx.Pos.Y + k * 1.7f);
+                    V2 s0 = V2.Lerp(tail, at, l0) + n * off;
+                    Line(s0, s0 + d * (26f + 20f * KHash(k + 0.5f)), 1.4f, DiveLight.WithAlpha(0.5f * fade));
                 }
             }
-            if (a < LD)  // the bracket on the target
-            {
-                float g = KEo(a / 0.12f), bs = 14f + 6f * (1f - g);
-                for (int c = 0; c < 4; c++)
+            if (a < D)  // afterimages
+                for (int k = 1; k <= 4; k++)
                 {
-                    float sx = c % 2 == 1 ? 1f : -1f, sy = c < 2 ? -1f : 1f;
-                    Line(to + new V2(sx * bs, sy * (bs - 6f)), to + new V2(sx * bs, sy * bs), 2f, RitesLight.WithAlpha(0.9f));
-                    Line(to + new V2(sx * bs, sy * bs), to + new V2(sx * (bs - 6f), sy * bs), 2f, RitesLight.WithAlpha(0.9f));
-                }
-            }
-            if (p == null)
-                return;
-            V2 d = (to - (link > 0 ? from : fx.Pos)).Normalized();
-            V2 land = to - d * Game.MercyLandShort;
-            if (a < LD)  // afterimages along the arc
-                for (int k = 1; k <= 3; k++)
-                {
-                    float ta = a - k * 0.035f;
+                    float ta = a - k * 0.05f;
                     if (ta < 0f)
                         break;
-                    float f = ta / LD, g = f < 0.5f ? 2f * f * f : 1f - 2f * (1f - f) * (1f - f);
-                    KGhost(V2.Lerp(link > 0 ? from - d * 0f : fx.Pos, land, g), d.Angle, RitesMain, 0.3f * (1f - k / 4f), Mathf.Sin(MathX.Pi * f) * 24f);
+                    KGhost(V2.Lerp(from, to, KSm(ta / D)), d.Angle, DiveGold, 0.36f * (1f - k / 5f));
                 }
-            float sa = a - LD;
-            if (sa >= 0f && sa < 0.16f)  // the dagger driven in from your off hand
+            // The whirling blade: two crescents round you at the cut's reach, two and a half turns over the rush.
+            if (a < D + 0.12f)
             {
-                float ext = sa < 0.05f ? KEo(sa / 0.05f) : 1f - KSm((sa - 0.05f) / 0.11f) * 0.6f;
-                V2 u = d, v = new V2(-u.Y, u.X);
-                V2 hand = p.Disp + u * (5f + ext * 9f) + v * (-10f + ext * 6f);
-                Line(hand - u * 3f, hand + u * 2f, 2.8f, C255(59, 42, 29));
-                Line(hand + u * 2.5f - v * 4f, hand + u * 2.5f + v * 4f, 2.2f, C255(201, 162, 76));
-                SetColor(C255(243, 245, 248));
-                Tri(hand + u * 3f - v * 1.5f, hand + u * 16f, hand + u * 3f + v * 1.5f);
+                float spin = d.Angle + MathX.Tau * 2.5f * KEo(Mathf.Min(a, D) / D) + MathX.Pi / 2f, al = a < D ? 1f : 1f - (a - D) / 0.12f;
+                for (int k = 0; k < 2; k++)
+                {
+                    float h = spin + k * MathX.Pi;
+                    KCrescent(at, h - 2.4f, h, Game.BladedSlashR - 26f, Game.BladedSlashR, DiveGold, al);
+                    KCrescent(at, h - 1.2f, h, Game.BladedSlashR - 12f, Game.BladedSlashR - 2f, DiveLight, 0.8f * al);
+                }
+                Arc(at, Game.BladedSlashR, 1f, DiveGold.WithAlpha(0.18f * al), 48);
             }
-            if (sa >= 0.05f && sa < 0.4f)  // the reach of the next leap flashes where you land
-                Arc(land, Game.MercyReach, 1.5f, RitesMain.WithAlpha(0.22f * (1f - (sa - 0.05f) / 0.35f)), 64);
+            // A ring snapping out at each cut, where it landed.
+            for (int k = 0; k < Game.BladedSlashes; k++)
+            {
+                float sa = a - Game.BladedSlashAt(k);
+                if (sa < 0f || sa > 0.22f)
+                    continue;
+                V2 c = V2.Lerp(from, to, KSm(Game.BladedSlashAt(k) / D));
+                Arc(c, Game.BladedSlashR * (0.8f + 0.25f * KEo(sa / 0.22f)), 2f * (1f - sa / 0.22f) + 0.5f, DiveGold.WithAlpha(0.55f * (1f - sa / 0.22f)), 48);
+            }
+            if (a >= D)  // dust where you land
+                KPuffs(to, a - D, 6, fx.Pos.X, d.Angle + MathX.Pi, 2.4f, 70f, Game.BladedTail, HeraldDust, 9f, 0.5f);
         }
 
-        /// An execution: three tolling rings, a gold flash, the enemy shrinking away gold and rising as motes.
-        void DrawMercyKillFx(Effect fx, float t)
+        /// An enemy cut: a white slash across it, square to the cut, and sparks thrown along it.
+        void DrawDiveHitFx(Effect fx)
         {
-            float a = fx.T;
-            V2 at = fx.Pos;
-            for (int q = 0; q < 3; q++)
-            {
-                float aa = a - q * 0.09f;
-                if (aa < 0f || aa > 0.55f)
-                    continue;
-                Arc(at, 10f + 70f * KEo(aa / 0.55f), 2.5f - q * 0.6f, RitesMain.WithAlpha(0.75f * (1f - aa / 0.55f)), 48);
-            }
-            GlowDisc(at, 50f * (1f - a / 0.35f), RitesMain, 0.7f * Mathf.Clamp01(1f - a / 0.35f));
-            float sq = 1f - KEo(a / 0.25f);
-            if (sq > 0f)
-                Circle(at, fx.Radius * sq, new Rgba(fx.Color.R, fx.Color.G, fx.Color.B).Mix(C255(255, 220, 140), 0.6f).WithAlpha(sq), 20);
-            for (int q = 0; q < 14; q++)
-            {
-                float s = fx.Pos.X * 0.13f + q, ff = Mathf.Clamp01(a / (0.6f + KHash(s) * 0.5f));
-                if (ff >= 1f)
-                    continue;
-                V2 m = at + new V2((KHash(s * 2f) - 0.5f) * 24f + Mathf.Sin(a * 6f + q) * 4f, (KHash(s * 3f) - 0.5f) * 20f - ff * 46f);
-                GlowDisc(m, 5f, RitesMain, 0.8f * (1f - ff));
-                Circle(m, 1.3f, RitesLight.WithAlpha(1f - ff), 6);
-            }
+            float a = fx.T, f = a / Game.BladedHitFx;
+            V2 d = fx.Pos2.IsZero ? new V2(1f, 0f) : fx.Pos2.Normalized(), n = new V2(-d.Y, d.X);
+            float half = (fx.Radius + 10f) * KEo(a / 0.06f);
+            V2 c = fx.Pos + d * (f * 6f);
+            Line(c - n * half - d * 3f, c + n * half + d * 3f, 4f * (1f - f), DiveGold.WithAlpha(0.6f * (1f - f)));
+            Line(c - n * half - d * 3f, c + n * half + d * 3f, 1.8f * (1f - f), Rgba.White.WithAlpha(1f - f));
+            KSparks(fx.Pos, a, 6, fx.Pos.X + fx.Pos.Y, d.Angle, 1.4f, 260f, Game.BladedHitFx, DiveLight);
         }
 
-        /// The chain ends: a grey dashed ring opening to the reach (the words are on the HUD).
-        void DrawMercyEndFx(Effect fx)
+        /// A kill reset the cooldown: a gold burst and a glint on the enemy killed (RESET is on the HUD).
+        void DrawDiveResetFx(Effect fx, float t)
         {
             float a = fx.T;
-            KDashedRing(fx.Pos, fx.Radius * KEo(a / 0.3f), 1.6f, C255(170, 174, 182).WithAlpha(0.55f * (1f - a / Game.MercyEndFx)), 6f, 6f, 0f);
+            GlowDisc(fx.Pos, 46f * (1f - a / 0.4f), DiveGold, 0.7f * Mathf.Clamp01(1f - a / 0.4f));
+            for (int q = 0; q < 2; q++)
+            {
+                float aa = a - q * 0.1f;
+                if (aa < 0f || aa > 0.5f)
+                    continue;
+                Arc(fx.Pos, fx.Radius + 6f + 52f * KEo(aa / 0.5f), 2.4f - q * 0.8f, DiveGold.WithAlpha(0.85f * (1f - aa / 0.5f)), 40);
+            }
+            KStar(fx.Pos, 22f * (1f - a / 0.35f), DiveLight, Mathf.Clamp01(1f - a / 0.35f), t * 3f);
+            KSparks(fx.Pos, a, 12, fx.Pos.X * 0.7f, 0f, MathX.Tau, 220f, 0.6f, DiveGold);
         }
     }
 }

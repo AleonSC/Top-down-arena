@@ -2,7 +2,7 @@ using System;
 using System.Reflection;
 using Arena;
 
-// KNIGHTDPS=steel|gauntlet|mercy|bridge KDT=<seconds>: the DPS Knight's abilities replaying the scenes of
+// KNIGHTDPS=steel|gauntlet|dive|bridge KDT=<seconds>: the DPS Knight's abilities replaying the scenes of
 // Docs/Mockups/knight-dps-abilities.html through the real game (the host simulation, the casts, the carry), stopped
 // KDT seconds in, for comparing frame by frame with the mockup at the same time. The mockup's 720 x 400 stage sits at
 // (440, 250) in the arena, so crop (352, 200)-(928, 520) of the 1280 x 720 shot. Use with mode hud.
@@ -96,19 +96,18 @@ static partial class Shot {
         me.InvulnT = Math.Max(me.InvulnT, 0.5f);
         Pin(); host.Poll(); gm.FixedStep(1f / 60f, new PlayerInput { AimAt = aimAt }); gm.Update(1f / 60f);
       }
-    } else if (which == "mercy") {
-      V2 k0 = KM(118f, 232f);
-      var mobs = new[] { Mob(EnemyType.Grunt, KM(262f, 168f), 60f), Mob(EnemyType.Brute, KM(418f, 222f), 60f), Mob(EnemyType.Sniper, KM(560f, 150f), 60f), Mob(EnemyType.Grunt, KM(650f, 290f), 60f),
-                         Mob(EnemyType.Brute, KM(300f, 312f), 60f), Mob(EnemyType.Grunt, KM(470f, 342f), 60f), Mob(EnemyType.Sniper, KM(372f, 82f), 60f), Mob(EnemyType.Grunt, KM(660f, 70f), 60f) };
-      float[] hp = { 0.18f, 0.22f, 0.7f, 0.2f, 1f, 0.9f, 1f, 0.85f };
-      for (int i = 0; i < mobs.Length; i++) mobs[i].Hp = mobs[i].MaxHp * hp[i];
-      me.Slots[0].Id = AbilityId.Whirlwind; me.Slots[0].Charges = 1; me.Pos = me.Disp = k0;
+    } else if (which == "dive") {
+      // Bladed Dive: the knight at the left dives right through a pack (cast at 0.5 s); the wounded grunt dies and resets it.
+      V2 k0 = KM(120f, 210f);
+      var mobs = new[] { Mob(EnemyType.Grunt, KM(250f, 180f), 60f), Mob(EnemyType.Brute, KM(300f, 250f), 60f), Mob(EnemyType.Grunt, KM(360f, 196f), 60f),
+                         Mob(EnemyType.Sniper, KM(560f, 120f), 60f), Mob(EnemyType.Grunt, KM(600f, 300f), 60f), Mob(EnemyType.Grunt, KM(420f, 330f), 60f) };
+      mobs[0].Hp = 14f;
+      me.Slots[0].Id = AbilityId.Whirlwind; me.Slots[0].Charges = 1; me.Pos = me.Disp = k0; me.Aim = 0f;
       for (int f = 0; f < frames; f++) {
         float t = f / 60f;
-        foreach (float s in new[] { 0.76f, 0.93f, 1.10f }) if (Math.Abs(t - s) < 0.5f / 60f) mobs[2].Hp -= mobs[2].MaxHp * 0.18f;  // the ally's shots (the mockup's blue gunner)
-        if (Math.Abs(t - 1.35f) < 0.5f / 60f) cast.Invoke(gm, new object[] { 1, 0, mobs[0].Pos, false });
+        if (Math.Abs(t - 0.5f) < 0.5f / 60f) cast.Invoke(gm, new object[] { 1, 0, KM(380f, 210f), false });
         me.InvulnT = Math.Max(me.InvulnT, 0.5f);
-        Pin(); host.Poll(); gm.FixedStep(1f / 60f, new PlayerInput { AimAt = mobs[0].Hp > 0f ? mobs[0].Pos : me.Pos + new V2(100f, 0f) }); gm.Update(1f / 60f);
+        Pin(); host.Poll(); gm.FixedStep(1f / 60f, new PlayerInput { AimAt = KM(400f, 210f) }); gm.Update(1f / 60f);
       }
     } else if (which == "bridge") {
       V2 k0 = KM(108f, 206f);

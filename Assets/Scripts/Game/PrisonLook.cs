@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Arena
 {
     /// The Warden's prisoners (Docs/Approaches.md): the Thug moves like a Brute but has its own body (a hunched bruiser
-    /// with taped fists); the Shiv is a Lunger with a taped shank held out front, keeping its body, spikes and lunge lane.
+    /// with taped fists); the Shiv moves like a Lunger (its lunge lane too) but is Hooded or Twin Shanks.
     public partial class ArenaApp
     {
         static readonly Rgba PrisonInk = new Rgba(0.15f, 0.12f, 0.16f, 0.9f), PrisonSteel = new Rgba(0.82f, 0.86f, 0.9f);
@@ -48,13 +48,72 @@ namespace Arena
                 Line(a + (b - a) * 0.25f, a + (b - a) * 0.5f, w * 0.55f, ThugTattoo);
         }
 
-        void DrawShivDetails(Enemy e, V2 pos, float r, Rgba col)
+        static readonly Rgba ShivBlade = new Rgba(0.85f, 0.9f, 0.95f), ShivRed = new Rgba(0.8f, 0.15f, 0.15f);
+
+        /// The Shiv, in the Rioter's top-down style, two kinds by id: Hooded (a lean hoodie in `col`, hood up, the shank held
+        /// low) and Twin Shanks (wiry, shirtless, a red headband, a shank in each hand, one in reverse grip). The shank
+        /// arm draws back as it winds up (phase 1) and thrusts out on the lunge (phase 2).
+        void DrawShivBody(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            V2 f = V2.FromAngle(e.Facing);
-            V2 tip = pos + f * r * 2.3f;
-            Line(pos + f * r * 0.4f, tip, 3f, PrisonSteel);  // the blade
-            Line(pos + f * r * 0.4f, pos + f * r * 1.0f, 5f, PrisonInk);  // the taped grip
-            Circle(tip, 2.5f, new Rgba(1f, 1f, 1f, 0.9f), 6);
+            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            float p = Mathf.Sin(t * 11f + e.Id * 1.7f);  // a quick, light step
+            float draw = e.Phase == 1 ? 1f : 0f, jab = e.Phase == 2 ? 1f : 0f;
+            if (e.Id % 2 == 0)
+                DrawShivHooded(e, pos, r, col, f, s, p, draw, jab);
+            else
+                DrawShivTwin(e, pos, r, f, s, p, draw, jab);
+        }
+
+        void DrawShivHooded(Enemy e, V2 pos, float r, Rgba col, V2 f, V2 s, float p, float draw, float jab)
+        {
+            Ellipse(pos, r * 0.5f + 1.4f, r * 0.85f + 1.4f, e.Facing, RioterInk, 14);
+            Ellipse(pos, r * 0.5f, r * 0.85f, e.Facing, col, 14);  // the hoodie, narrow shoulders
+            V2 free = pos + f * r * (0.7f + 0.15f * p) - s * r * 0.55f;
+            RioterArm(pos - s * r * 0.7f, free, 3.4f, col);
+            ShivHand(free, r);
+            V2 knife = pos + f * r * (0.85f - 0.9f * draw + 0.8f * jab) + s * r * (0.6f + 0.25f * draw - 0.35f * jab);
+            RioterArm(pos + s * r * 0.7f, knife, 3.4f, col);
+            ShivShank(knife, f, r * 1.1f);
+            ShivHand(knife, r);
+            V2 head = pos + f * r * 0.05f;
+            Circle(head, r * 0.46f, RioterInk, 12);
+            Circle(head, r * 0.4f, col.Mix(RioterInk, 0.3f), 12);  // the hood, up
+            Circle(head + f * r * 0.12f, r * 0.24f, new Rgba(0.08f, 0.07f, 0.08f, 0.95f), 10);  // the face in shadow
+        }
+
+        void DrawShivTwin(Enemy e, V2 pos, float r, V2 f, V2 s, float p, float draw, float jab)
+        {
+            Ellipse(pos - f * r * 0.15f, r * 0.45f + 1.4f, r * 0.78f + 1.4f, e.Facing, RioterInk, 14);
+            Ellipse(pos - f * r * 0.15f, r * 0.45f, r * 0.78f, e.Facing, ThugJumpsuit, 14);  // the jumpsuit, tied off
+            Ellipse(pos, r * 0.38f, r * 0.68f, e.Facing, RioterSkin, 14);  // the bare back
+            Line(pos - f * r * 0.15f - s * r * 0.3f, pos + f * r * 0.1f + s * r * 0.25f, 2f, ThugTattoo);
+            for (int k = -1; k <= 1; k += 2)
+            {
+                bool lead = k > 0;  // the lead hand winds up and lunges; the other keeps its blade along the forearm
+                float d = lead ? draw : 0f, j = lead ? jab : 0f;
+                V2 h = pos + f * r * (0.75f + 0.12f * k * p - 0.8f * d + 0.8f * j) + s * (k * r * (0.6f + 0.2f * d - 0.3f * j));
+                RioterArm(pos + s * (k * r * 0.62f), h, 3.4f, RioterSkin);
+                ShivShank(h, lead ? f : (-f * 0.4f - s * 0.9f).Normalized(), lead ? r : r * 0.8f);
+                ShivHand(h, r);
+            }
+            RioterHead(pos + f * r * 0.1f, r * 0.36f, f, new Rgba(0.15f, 0.12f, 0.1f, 0.95f));  // a buzz cut
+            Arc(pos + f * r * 0.1f, r * 0.38f, 2.2f, ShivRed, 10, e.Facing - 0.9f + MathX.Pi, 1.8f);  // the headband
+        }
+
+        /// A sharpened shank with a taped grip, pointing along `dir`.
+        void ShivShank(V2 grip, V2 dir, float len)
+        {
+            V2 tip = grip + dir * len;
+            Line(grip - dir * 3f, tip, 4.2f, RioterInk);
+            Line(grip, tip, 2.4f, ShivBlade);
+            Line(grip - dir * 3f, grip + dir * 2f, 4.5f, ThugTape);
+            Circle(tip, 1.6f, new Rgba(1f, 1f, 1f, 0.95f), 6);
+        }
+
+        void ShivHand(V2 h, float r)
+        {
+            Circle(h, r * 0.24f, RioterInk, 10);
+            Circle(h, r * 0.17f, RioterSkin, 10);
         }
     }
 }

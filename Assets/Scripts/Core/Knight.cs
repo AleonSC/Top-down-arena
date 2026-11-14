@@ -720,8 +720,8 @@ namespace Arena
                 Apply = s => { s.HolyRangeMult += 0.4f; s.HolySwiftBonus += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.GuardiansOath, MaxStacks = 2, Name = "Bulwark", Desc = "Guardian's Oath ward cuts 15% more damage", Apply = s => s.OathCut += 0.15f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.LayOnHands, MaxStacks = 2, Name = "Miracle", Desc = "Lay on Hands heals 60% more and reaches 30% further", Apply = s => s.LayMult += 0.6f },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Whirlwind, MaxStacks = 2, Name = "Coup de Grace", Desc = "Misericorde executes enemies under 30% health (+5%) and leaps 40 px further",
-                Apply = s => { s.MercyBelow += 0.05f; s.MercyReach += 40f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Whirlwind, MaxStacks = 2, Name = "Coup de Grace", Desc = "Bladed Dive's cuts deal 25% more damage and it rushes 40 px further",
+                Apply = s => { s.BladedDamage += 0.25f; s.BladedReach += 40f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Lunge, MaxStacks = 2, Name = "Iron Grip", Desc = "The Gauntlet flies 40% further and its charge hits 50% harder",
                 Apply = s => { s.GauntletRange += 0.4f; s.GauntletDamage += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BattleFury, MaxStacks = 2, Name = "Forged Edge", Desc = "Caught Steel's shards hit 8 harder, and it catches bullets passing 6 px further out",
@@ -797,9 +797,9 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.Whirlwind, Kit = Kit.Knight, Role = Role.Dps, Choice = 0, Instant = true,  // Misericorde (Misericorde.cs); the id is Whirlwind's, kept so the numbers stay put
-                Name = "Misericorde", Cooldown = 12f, Desc = "Leap onto the wounded enemy (under 25% health, from anyone's damage) nearest your cursor within 200 px and execute it with the mercy dagger, then leap on to the next wounded enemy within 200 px, and the next, until none are left in reach. You can't be hurt while it runs. A wounded boss takes a heavy stab (120) instead, and the chain ends there.",
-                Capstone = "Each execution heals you 5% of your health.",
+                Id = AbilityId.Whirlwind, Kit = Kit.Knight, Role = Role.Dps, Choice = 0, Instant = true,  // Bladed Dive (BladedDive.cs); the id is Whirlwind's, kept so the numbers stay put
+                Name = "Bladed Dive", Cooldown = 10f, Desc = "Rush toward your cursor (up to 240 px), untouchable, your blade spinning round you: four cuts land along the way, each hitting every enemy within 64 px of you for 18. Kill anything with it and the cooldown resets.",
+                Capstone = "Each kill heals you 5% of your health.",
                 Bot = b => b.HaveTarget && b.TargetD < 260f,
             },
             new AbilityDef
@@ -903,7 +903,7 @@ namespace Arena
                     return true;
                 }
                 case AbilityId.Whirlwind:
-                    CastMisericorde(p, target, pw, cap);  // Misericorde.cs
+                    CastBladedDive(p, target, pw, cap);  // BladedDive.cs
                     return true;
                 case AbilityId.Lunge:
                     CastGauntlet(p, target, pw, cap);  // Gauntlet.cs
@@ -957,7 +957,7 @@ namespace Arena
             TickOath(dt);  // GuardiansOath.cs
             TickSteel(dt);      // CaughtSteel.cs
             TickGauntlets(dt);  // Gauntlet.cs
-            TickMercy(dt);      // Misericorde.cs
+            TickBladed(dt);      // BladedDive.cs
             foreach (var p in Players.Values)
             {
                 p.UnbreakT = Math.Max(0f, p.UnbreakT - dt);

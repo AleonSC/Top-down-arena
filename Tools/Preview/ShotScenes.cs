@@ -31,7 +31,7 @@ static partial class Shot {
     PhalanxScene();  // PHALANX=<s since the cast> [PHALANXCAP=1] [FXOFF=1] (ShotPhalanx.cs)
     CarrierScene();  // CARRIER=1 (ShotCarrier.cs)
     WarderScene();  // WARDER=<s into the scene> [FXOFF=1] (ShotWarder.cs)
-    KnightDpsScene();  // KNIGHTDPS=steel|gauntlet|mercy|bridge KDT=<s> (ShotKnightDps.cs)
+    KnightDpsScene();  // KNIGHTDPS=steel|gauntlet|dive|bridge KDT=<s> (ShotKnightDps.cs)
     if (Environment.GetEnvironmentVariable("POSE") != null) { host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; }
     if (Environment.GetEnvironmentVariable("BOW") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 2); host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; me.DrawT = float.Parse(Environment.GetEnvironmentVariable("BOW")); }
     if (Environment.GetEnvironmentVariable("TREANT") != null) {

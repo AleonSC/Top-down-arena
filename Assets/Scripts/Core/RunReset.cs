@@ -10,7 +10,7 @@ namespace Arena
             // Knight and Soldier weapons
             pendingSwings.Clear(); steelWalls.Clear(); slams.Clear(); steelLaunches.Clear();
             hookRuns.Clear(); lanceRuns.Clear(); gauntlets.Clear(); boShoves.Clear(); cavalry.Clear(); oaths.Clear();
-            holyCrosses.Clear(); mercyRuns.Clear(); castRuns.Clear(); grabRuns.Clear(); airRuns.Clear();
+            holyCrosses.Clear(); bladedRuns.Clear(); castRuns.Clear(); grabRuns.Clear(); airRuns.Clear();
             hammerThrows.Clear(); hammerSlams.Clear(); hammerSlamCd.Clear();
             ionTrails.Clear(); packBiters.Clear(); shocks.Clear(); rodCap.Clear(); splashSeen.Clear();
             // Ninja

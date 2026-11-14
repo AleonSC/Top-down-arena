@@ -204,7 +204,7 @@ namespace Arena
             BroadcastFx(FxKind.GauntletBack, e.Pos, p.GauntletRest, new Rgba(0.84f, 0.67f, 0.29f, 1f), p.Id, GauntletReturnFx, Sfx.Clang);
         }
 
-        // --- Carried by an ability (the Gauntlet's charge, Misericorde's leaps) ---------------------------------------
+        // --- Carried by an ability (the Gauntlet's charge, Bladed Dive's rush) ---------------------------------------
 
         /// Host: carry a player to `to` over `time` seconds. Players move on their own game, so it's sent to theirs (or
         /// done here for the host's own), like the Riot Shield's knockback.
