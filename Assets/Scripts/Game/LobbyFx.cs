@@ -53,7 +53,7 @@ namespace Arena
         // --- Proximity glow -----------------------------------------------------------------------------------------------
 
         readonly List<Rect> lobbyGlowRects = new List<Rect>();
-        const float ProxReach = 140f, ProxSpan = 90f;
+        const float ProxReach = 140f, ProxSpan = 60f;
 
         /// A box whose frame lights up when the cursor comes near (collected while the lobby draws, lit at the end).
         void LobbyGlowBox(Rect r)
@@ -83,7 +83,8 @@ namespace Arena
             lobbyGlowRects.Clear();
         }
 
-        /// One edge from (x, y), `len` long, across (horiz) or down: short 2 px dashes fading out either side of the nearest point.
+        /// One edge from (x, y), `len` long, across (horiz) or down: a crisp 2 px tracer brightest at the point nearest the
+        /// cursor, and a faint 1 px echo line 3 px outside it on the cursor's side. No blur.
         static void ProxEdge(Vector2 m, float x, float y, float len, bool horiz)
         {
             float u = horiz ? Mathf.Clamp(m.x - x, 0f, len) : Mathf.Clamp(m.y - y, 0f, len);
@@ -92,20 +93,28 @@ namespace Arena
             if (d > ProxReach)
                 return;
             float a = Mathf.Pow(1f - d / ProxReach, 1.5f);
+            x = Mathf.Round(x);
+            y = Mathf.Round(y);
+            ProxRun(x, y, len, u, horiz, ProxSpan, 2f, a, 0f);
+            ProxRun(x, y, len, u, horiz, ProxSpan * 1.6f, 1f, a * 0.35f, horiz ? (m.y < y ? -3f : 3f) : (m.x < x ? -3f : 3f));
+        }
+
+        /// A run of short pieces along an edge, brightest at `u`, fading over `span` either side; `off` moves it off the edge.
+        static void ProxRun(float x, float y, float len, float u, bool horiz, float span, float w, float a, float off)
+        {
+            const float step = 4f;
             var ink = CrtUi.Ink;
-            const float step = 6f;
-            for (float s = -ProxSpan; s < ProxSpan; s += step)
+            for (float s = -span; s < span; s += step)
             {
                 float p0 = Mathf.Max(0f, u + s), p1 = Mathf.Min(len, u + s + step);
                 if (p1 <= p0)
                     continue;
-                float k = 1f - Mathf.Abs(s + step / 2f) / ProxSpan;
-                var c = Color.Lerp(ink, Color.white, 0.3f + 0.7f * k);
+                float k = 1f - Mathf.Abs(s + step / 2f) / span;
+                k *= k;
+                var c = Color.Lerp(ink, Color.white, 0.25f + 0.75f * k);
                 c.a = a * k;
-                Ui.Fill(horiz ? new Rect(x + p0, Mathf.Round(y) - 1f, p1 - p0, 3f) : new Rect(Mathf.Round(x) - 1f, y + p0, 3f, p1 - p0), c);
+                Ui.Fill(horiz ? new Rect(x + p0, y + off, p1 - p0, w) : new Rect(x + off, y + p0, w, p1 - p0), c);
             }
-            if (a > 0.15f)
-                Ui.Glow(horiz ? new Rect(px - 40f, y - 1f, 80f, 2f) : new Rect(x - 1f, py - 40f, 2f, 80f), ink, a * 0.8f);
         }
 
         // --- Ready shockwave ----------------------------------------------------------------------------------------------

@@ -9,7 +9,7 @@ namespace Arena
     ///       the option keys, and (drawn by the caller, CabBackKey) a physical Back key right under the last one. Its OPENING plays
     ///       once, from the window's clock (WinT, `CabAge`): the box holo-boots (HoloBoot, LobbyFx.cs: shown top-down behind a scan line,
     ///       then a flicker), the title types, its sub-line types a boot log and
-    ///       then the real line, a scan bar sweeps the list and the keys open one after another (KeyOpening: a bright line that
+    ///       then the real line, a scan bar sweeps the list; the keys holo-boot all at once with the box (KeyOpening; it was: a bright line that
     ///       opens to the key, then a flash) with their texts typing in. After CabOpenEnd seconds nothing here animates (a list
     ///       that changes retypes its texts, CrtKit.Typed, and that is all). Reduced effects (fxReduced) or Visual effects off:
     ///       no animation.
@@ -108,7 +108,7 @@ namespace Arena
 
             // The options screen.
             cabScreen = screen ?? new Rect(26f, 150f, CabInW, 456f);
-            cabScreenAge = age - 0.9f;
+            cabScreenAge = age;  // (its keys holo-boot with the box, KeyOpening)
             cabScreenOpen = true;
             cabScreenOn = calm || cabScreenAge >= 0f;
         }
@@ -156,8 +156,9 @@ namespace Arena
             float ka;
             if (!KeyOpening(r, i, out ka))
                 return false;
+            bool booting = BeginKeyBoot(r, ka);
             string slot = "cab.r" + i;
-            float d = 1.25f + i * 0.095f;
+            float d = HoloBoot.Wipe + 0.05f + i * 0.04f;  // the texts type once the keys are lit
             string n = CabText(slot + ".n", name, d);
             string s = string.IsNullOrEmpty(line) ? null : CabText(slot + ".s", line, d + 0.05f);
             if (s != null && s.Length == 0)
@@ -175,7 +176,7 @@ namespace Arena
             }
             else if (!string.IsNullOrEmpty(tag))
                 Ui.Label(new Rect(r.xMax - 126f, r.y, 114f, r.height), tag, 12, inv ? CrtKit.SoftText(col, true) : (tagColor ?? CabSoft), TextAnchor.MiddleRight, true);
-            CrtKit.PowerFlash(r, ka, CabCalm);
+            EndKeyBoot(r, ka, booting);
             return clicked;
         }
 
@@ -188,19 +189,36 @@ namespace Arena
                 Ui.Label(new Rect(30f, CabH - 28f, CabW - 50f, 16f), b, 11, c, TextAnchor.MiddleLeft, false);
         }
 
-        /// A key of the options list as the drawer opens: nothing until its turn (they come one after another down the list), then a
-        /// bright line that opens to the whole key (the screens' power-on, CrtKit.PowerRect), then the key with a flash fading over it
-        /// (DrawerRow). `age` is seconds since its turn. False while it isn't a whole key yet. After the opening, and with Reduced
-        /// effects, every key is simply there.
+        /// A key of the options list as the drawer opens: every key holo-boots at once, with the box (HoloBoot, LobbyFx.cs:
+        /// shown top-down behind a scan line, then a flicker; BeginKeyBoot / EndKeyBoot round its draw). `age` is seconds since then.
+        /// False until it starts. After the opening, and with Reduced effects, every key is simply there.
+        const float KeyBootAt = 0f, KeyWipe = HoloBoot.Wipe;  // with the box itself
+
         bool KeyOpening(Rect r, int i, out float age)
         {
-            age = CabAge - (1.0f + i * 0.095f);
+            age = CabAge - KeyBootAt;
             if (CabCalm || CabAge >= CabOpenEnd)
+            {
+                age = 99f;
                 return true;
-            int st = CrtKit.PowerState(age, false);
-            if (st == 1)
-                Ui.Fill(CrtKit.PowerRect(r, age), new Color(0.8f, 0.9f, 1f, 0.55f));
-            return st == 2;
+            }
+            return age > 0f;
+        }
+
+        /// While a key wipes in: draw it cut off at the scan line (EndKeyBoot closes the clip and draws the line, then the flicker).
+        bool BeginKeyBoot(Rect r, float age)
+        {
+            if (age >= KeyWipe)
+                return false;
+            GUI.BeginGroup(new Rect(0f, 0f, CabW, r.y + r.height * HoloBoot.Reveal(age, KeyWipe)));
+            return true;
+        }
+
+        void EndKeyBoot(Rect r, float age, bool booting)
+        {
+            if (booting)
+                GUI.EndGroup();
+            HoloBoot.Over(r, age, KeyWipe);
         }
 
         /// The physical Back key at `y` in the drawer, right under the options list (Settings, How to play, the profile). It comes in
@@ -213,8 +231,9 @@ namespace Arena
             float ka;
             if (!KeyOpening(r, rowIndex, out ka))
                 return false;
+            bool booting = BeginKeyBoot(r, ka);
             bool pressed = CrtKit.PhysicalKey(r, "BACK");
-            CrtKit.PowerFlash(r, ka, CabCalm);
+            EndKeyBoot(r, ka, booting);
             return pressed;
         }
 
