@@ -88,6 +88,17 @@ static partial class Program
         Check(g.SprintMult < m1, "the sprint fades");
         play(Game.SprintTime, idle, idle);
         Check(g.SprintT <= 0f && g.SprintMult == 1f, "and ends after " + Game.SprintTime + " s");
+
+        // Everyone sees the sprint (Player.Sprint): the client's reaches the host, the host's reaches the client.
+        play(Game.DodgeCd, idle, idle);
+        cliMe.Pos = new V2(300f, 700f); hostMe.Pos = new V2(300f, 300f); play(0.05f, idle, idle);
+        Func<int, PlayerInput> sprintRight = f => new PlayerInput { Move = new V2(1f, 0f), Dodge = f == 0, DodgeHeld = true, AimAt = new V2(800f, 450f) };
+        play(0.4f, sprintRight, sprintRight);
+        byte seenCli = g.Players[2].Sprint, seenHost = client.Game.Players[1].Sprint;
+        Console.WriteLine("  sprint seen: host sees the client at {0}, the client sees the host at {1} (of 255)", seenCli, seenHost);
+        Check(seenCli > 150 && seenHost > 150, "each sees the other's sprint");
+        play(Game.SprintTime, idle, idle);
+        Check(g.Players[2].Sprint == 0 && client.Game.Players[1].Sprint == 0, "and its end");
         s[0].Leave(""); s[1].Leave("");
     }
 }

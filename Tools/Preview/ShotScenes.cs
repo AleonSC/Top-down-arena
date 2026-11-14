@@ -760,7 +760,8 @@ static partial class Shot {
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
     // SPRINT=<s since it began>: the Dodge's held sprint (Dodge.cs): you dodged right and kept the key down, running right
-    // that long into the sprint, with its fading pale-blue wake (NinjaLooks.cs DrawSprintWake). SPRINT=0 fresh; mode hud.
+    // that long into the sprint, with its fading pale-blue wake (NinjaLooks.cs DrawSprintWake); with 2 players a teammate
+    // runs alongside, drawn from the replicated Player.Sprint. SPRINT=0 fresh; mode hud.
     if (Environment.GetEnvironmentVariable("SPRINT") != null) {
       var ci = System.Globalization.CultureInfo.InvariantCulture;
       var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
@@ -773,6 +774,8 @@ static partial class Shot {
         Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
         gm.FixedStep(1f / 60f, new PlayerInput { Move = new V2(1f, 0f), Dodge = f == 0, DodgeHeld = true, AimAt = me.Pos + new V2(200f, -60f) });
         me.Disp = me.Pos;
+        foreach (var q in gm.Players.Values)
+          if (q != me) { q.Pos = q.Disp = me.Pos + new V2(-60f, 140f); q.Sprint = me.Sprint; }  // a teammate running alongside, its wake from Player.Sprint
         draw.Invoke(app, null);
       }
       GL.Tris.Clear(); GUI.Log.Clear();
@@ -995,7 +998,7 @@ static partial class Shot {
             if (kns == "prompt") { me.KnuckleChain = 1; break; }
             int mv = kns == "flurry" ? 1 : kns == "grab" ? 2 : 3;
             me.KnuckleChain = (byte)(mv * 2);
-            gm.Effects.Add(new Effect { Kind = FxKind.KnuckleChain, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * 60f, Color = Game.ArcBlue, Radius = me.Id * 10 + mv, T = st, Dur = mv == 1 ? Game.FlurryDur : mv == 2 ? Game.GrabDur : Game.RocketPunchDur });
+            gm.Effects.Add(new Effect { Kind = FxKind.KnuckleChain, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * (mv == 3 ? Game.RocketPunchReach : 60f), Color = Game.ArcBlue, Radius = me.Id * 10 + mv, T = st, Dur = mv == 1 ? Game.FlurryDur : mv == 2 ? Game.GrabDur : Game.RocketPunchDur });
             if (mv == 2 && st >= Game.GrabLatch)  // the grabbed enemy beside the fist (thrown along the aim after the release)
             {
               Enemy held = null; foreach (var en in gm.Enemies.Values) if (!en.Def.IsBoss) { held = en; break; }

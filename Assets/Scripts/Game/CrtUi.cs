@@ -25,10 +25,40 @@ namespace Arena
         public static Color T(Color c) => CrtStyle.T(c);
 
         /// The dark blue screen, with its bezel and a thin phosphor rim.
-        public static void Begin(Rect r)
+        public static void Begin(Rect r) => Begin(r, 1f);
+
+        /// The same screen with its bezel and background at `alpha` (a see-through tube, e.g. the minimized Ready strip).
+        /// The see-through screen with `holes` left bare (keys in one row, left to right, sharing a top and bottom): the arena shows through them.
+        public static void Begin(Rect r, float alpha, Rect[] holes)
         {
-            Ui.Fill(new Rect(r.x - 3f, r.y - 3f, r.width + 6f, r.height + 6f), Bezel);
-            Ui.Fill(r, Bg);
+            if (holes == null || holes.Length == 0)
+            {
+                Begin(r, alpha);
+                return;
+            }
+            var bz = new Color(Bezel.r, Bezel.g, Bezel.b, Bezel.a * alpha);
+            var bg = new Color(Bg.r, Bg.g, Bg.b, Bg.a * alpha);
+            System.Action<Rect> both = q => { if (q.width > 0f && q.height > 0f) { Ui.Fill(q, bz); Ui.Fill(q, bg); } };
+            Ui.Fill(new Rect(r.x - 3f, r.y - 3f, r.width + 6f, 3f), bz);  // the bezel ring
+            Ui.Fill(new Rect(r.x - 3f, r.yMax, r.width + 6f, 3f), bz);
+            Ui.Fill(new Rect(r.x - 3f, r.y, 3f, r.height), bz);
+            Ui.Fill(new Rect(r.xMax, r.y, 3f, r.height), bz);
+            float top = holes[0].y, bot = holes[0].yMax, x = r.x;
+            both(new Rect(r.x, r.y, r.width, top - r.y));
+            both(new Rect(r.x, bot, r.width, r.yMax - bot));
+            foreach (var h in holes)
+            {
+                both(new Rect(x, top, h.x - x, bot - top));
+                x = h.xMax;
+            }
+            both(new Rect(x, top, r.xMax - x, bot - top));
+            CrtKit.Frame(r, 1f, new Color(Ink.r, Ink.g, Ink.b, 0.35f));
+        }
+
+        public static void Begin(Rect r, float alpha)
+        {
+            Ui.Fill(new Rect(r.x - 3f, r.y - 3f, r.width + 6f, r.height + 6f), new Color(Bezel.r, Bezel.g, Bezel.b, Bezel.a * alpha));
+            Ui.Fill(r, new Color(Bg.r, Bg.g, Bg.b, Bg.a * alpha));
             CrtKit.Frame(r, 1f, new Color(Ink.r, Ink.g, Ink.b, 0.35f));
         }
 
@@ -103,17 +133,20 @@ namespace Arena
         }
 
         /// Scanlines, vignette and (unless calm) the rolling bar and flicker, over everything drawn since Begin.
-        public static void End(Rect r, float t, bool calm)
+        public static void End(Rect r, float t, bool calm) => End(r, t, calm, 1f);
+
+        /// The same glass with its scanlines and dark corners at `alpha` (a see-through tube, e.g. the minimized Ready strip).
+        public static void End(Rect r, float t, bool calm, float alpha)
         {
             if (Event.current.type != EventType.Repaint)
                 return;
-            var line = new Color(0f, 0f, 0f, calm ? 0.16f : 0.26f);
+            var line = new Color(0f, 0f, 0f, (calm ? 0.16f : 0.26f) * alpha);
             for (float y = r.y + 1f; y < r.yMax; y += 3f)
                 Ui.Fill(new Rect(r.x, y, r.width, 1f), line);
             for (int i = 0; i < 8; i++)  // dark corners: strips a few pixels deep, fading inward
             {
                 float k = 1f - i / 8f, d = i * 3f;
-                var v = new Color(0f, 0f, 0f, 0.34f * k * k);
+                var v = new Color(0f, 0f, 0f, 0.34f * k * k * alpha);
                 Ui.Fill(new Rect(r.x, r.y + d, r.width, 3f), v);
                 Ui.Fill(new Rect(r.x, r.yMax - d - 3f, r.width, 3f), v);
                 Ui.Fill(new Rect(r.x + d, r.y, 3f, r.height), v);

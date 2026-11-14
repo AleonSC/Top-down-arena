@@ -18,6 +18,7 @@ namespace Arena
             bool firing = r.ReadBoolean();
             bool parry = r.ReadBoolean();
             float draw = r.ReadSingle(), release = r.ReadSingle();
+            byte sprint = r.ReadByte();
             Player p;
             if (!Players.TryGetValue(peer, out p))
                 return;
@@ -32,6 +33,7 @@ namespace Arena
             p.AimAt = aimAt;
             p.Firing = firing;
             p.Parrying = parry;
+            p.Sprint = p.Downed ? (byte)0 : sprint;  // only a look: the owner's game moves it
         }
 
         public void OnWeaponDash(int peer, BinaryReader r)
@@ -554,6 +556,7 @@ namespace Arena
             s.Vec(ref p.VanishFrom);
             s.Float(ref p.OrbitT);
             s.Float(ref p.DashT);  // Healing Dash's sprint (Ninja.cs)
+            s.Byte(ref p.Sprint);  // the Dodge's held sprint (Dodge.cs)
             s.Byte(ref p.OrbitN);
             s.Float(ref p.HarvestClock);  // Crimson Harvest (CrimsonHarvest.cs)
             s.Float(ref p.HarvestBlood);

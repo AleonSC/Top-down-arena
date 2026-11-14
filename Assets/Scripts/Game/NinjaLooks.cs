@@ -126,17 +126,21 @@ namespace Arena
         /// Healing Dash's sprint: a mint haze behind the runner and short speed lines streaming off the body.
         void DrawDashWake(Player p, float t) => DrawDashWake(p, t, new Rgba(0.55f, 1f, 0.8f), new Rgba(0.92f, 1f, 0.96f), 1f, V2.FromAngle(p.Aim + MathX.Pi));
 
-        /// The Dodge's held sprint (Dodge.cs, your own game only): the same wake in the dodge ring's pale blue, behind where
-        /// you're running and fading with the sprint.
-        void DrawSprintWake(Player p, float t)
+        /// The Dodge's held sprint (Dodge.cs): the same wake in the dodge ring's pale blue, behind where the player is running
+        /// and fading with the sprint. Yours reads your own game; a teammate's reads the replicated Player.Sprint.
+        void DrawSprintWake(Player p, float t, float fade)
         {
-            V2 run = p.Pos - sprintLastPos;
-            sprintLastPos = p.Pos;
-            if (run.Length > 0.5f)
-                sprintBack = -run.Normalized();
-            DrawDashWake(p, t, new Rgba(0.75f, 0.85f, 1f), new Rgba(0.94f, 0.97f, 1f), game.SprintFade, sprintBack);
+            SprintTrack tr;
+            if (!sprintTracks.TryGetValue(p.Id, out tr))
+                sprintTracks[p.Id] = tr = new SprintTrack { Last = p.Disp, Back = V2.FromAngle(p.Aim + MathX.Pi) };
+            V2 run = p.Disp - tr.Last;
+            tr.Last = p.Disp;
+            if (run.Length > 0.5f && run.Length < 80f)  // (a wrap or teleport isn't a direction)
+                tr.Back = -run.Normalized();
+            DrawDashWake(p, t, new Rgba(0.75f, 0.85f, 1f), new Rgba(0.94f, 0.97f, 1f), fade, tr.Back);
         }
-        V2 sprintLastPos, sprintBack = new V2(-1f, 0f);
+        class SprintTrack { public V2 Last, Back; }
+        readonly System.Collections.Generic.Dictionary<int, SprintTrack> sprintTracks = new System.Collections.Generic.Dictionary<int, SprintTrack>();
 
         void DrawDashWake(Player p, float t, Rgba haze, Rgba streak, float k01, V2 back)
         {
