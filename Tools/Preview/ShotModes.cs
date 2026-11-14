@@ -98,7 +98,8 @@ static partial class Shot {
       host.Game.DevSetStat(1, Array.FindIndex(Game.StatFields, x => x.Name == "DmgMult"), 2.5f);
       host.Game.DevSetGod(1, true);
       set("devWave", 10);
-      // DEVDRAWER=1..4 (wave, party, view, labs), DEVSIDE=1 (stat editor), DEVSHEET=1..3 (DPS, replays, balance)
+      if (Environment.GetEnvironmentVariable("DEVMENU") != null) host.Screen = AppScreen.Menu;  // the dock as opened from the main menu
+      // DEVDRAWER=1..4 (wave, party, view, labs), DEVSIDE=1 (stat editor), DEVSHEET=1..3 (DPS, replays, balance), DEVMENU=1 (outside a match)
       if (Environment.GetEnvironmentVariable("DEVSHEET") == "2")
       {
         // Sample replays in the replays folder (the stub's persistent data path is /tmp).

@@ -304,11 +304,19 @@ namespace Arena
         // --- Dev tool ----------------------------------------------------------------------------------------------
 
         /// F1 > Tools > Account rank: set this computer's rank straight away (1 to Rank.MaxRank). Cosmetics the new rank hasn't
-        /// reached come off, and the lobby is told.
+        /// reached come off, and the lobby is told. MAX also unlocks everything (Profile.DevAllUnlocked); RESET (rank 1) locks it again.
         void DevSetRank(int rank)
         {
             var p = Profile.Current;
-            p.Xp = Rank.XpAt(Mathf.Clamp(rank, 1, Rank.MaxRank));
+            rank = Mathf.Clamp(rank, 1, Rank.MaxRank);
+            p.Xp = Rank.XpAt(rank);
+            if (rank == Rank.MaxRank)
+                p.DevAllUnlocked = true;
+            else if (rank == 1)
+            {
+                p.DevAllUnlocked = false;
+                Perks.Clean(p);  // perks only the dev unlock gave come off
+            }
             foreach (CosmeticKind kind in System.Enum.GetValues(typeof(CosmeticKind)))
                 if (!Rank.Owns(p.RankNow, p.Equipped(kind)))
                 {
