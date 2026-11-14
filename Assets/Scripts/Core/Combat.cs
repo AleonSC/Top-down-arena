@@ -1137,7 +1137,7 @@ namespace Arena
         {
             Bullet live;
             return b.Id != 0 && Bullets.TryGetValue(b.Id, out live) && live == b && b.Pierce < 50 && !b.Bolts && b.Burst == 0 && !b.Ward
-                && b.Kind != Defs.BoulderShot && b.Kind != Defs.ClotShot && b.Kind != Defs.FumaStar;
+                && b.Kind != Defs.BoulderShot && b.Kind != Defs.ClotShot && b.Kind != Defs.FumaStar && b.Kind != Defs.GreatStar;
         }
 
         /// The nearest enemy a bounce can go to from `pos`, other than the one it just hit.

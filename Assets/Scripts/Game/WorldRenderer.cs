@@ -340,6 +340,8 @@ namespace Arena
                 DrawKatanaHud(p, t);
             if (p.Weapon.Id == WeaponId.BoStaff)  // where you are in the slash, jab, spin chain (BoStaffLook.cs)
                 DrawBoStaffPips(p, t);
+            if (p.Id == game.MyId && Game.InGreatStar(p))
+                DrawGreatStarRoute(p, t);  // the Great Star's ink route as you draw it (GreatStarLook.cs)
             if (p.Weapon.Id == WeaponId.Kunai && p.KunaiMarkT > 0f)  // the shadow kunai's mark: blink there with a double-tap
             {
                 var shade = new Rgba(0.55f, 0.45f, 0.85f);
