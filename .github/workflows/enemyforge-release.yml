@@ -1,0 +1,29 @@
+name: enemyforge-release
+# Publishes the single-file Enemy Forge app (EnemyForge.exe) as the "enemy-forge" release (always the latest main).
+on:
+  push:
+    branches: [main]
+    paths: ['Assets/Scripts/Core/Defs*.cs', 'Tools/EnemyForge/**', '.github/workflows/enemyforge-release.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install mono
+        run: |
+          for i in 1 2 3 4; do
+            sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y mono-mcs mono-runtime libmono-system-core4.0-cil libmono-system4.0-cil libmono-system-windows-forms4.0-cil unzip && break
+            echo "apt failed (try $i), retrying"; sleep 20
+          done
+      - name: Build app
+        run: Tools/EnemyForge/package.sh "$GITHUB_WORKSPACE/out"
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete enemy-forge --yes --cleanup-tag || true
+          gh release create enemy-forge out/EnemyForge.exe --title "Enemy Forge (latest)" --notes "Enemy Forge: design an enemy, preview it, Copy for Claude. Built from main ($GITHUB_SHA). Windows: download and double-click (nothing to install; SmartScreen may ask: More info, Run anyway). Mac/Linux: mono EnemyForge.exe. Docs/EnemyForge.md."
