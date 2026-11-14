@@ -24,16 +24,16 @@ namespace Arena
         public static readonly float[] KnuckleNext = { 0.24f, 0.28f, 0.32f, 0.38f, 0.62f, 0.62f };
         /// How long each step's effect plays (the punch and the fist coming back to the guard).
         public static readonly float[] KnuckleDur = { 0.28f, 0.32f, 0.36f, 0.42f, 0.62f, 0.62f };
-        public const float KnuckleJabReach = 70f, KnuckleCrossReach = 80f, KnuckleJabWidth = 14f, KnuckleCrossWidth = 15f;
-        public const float KnuckleHookReach = 72f, KnuckleHookArc = 120f, KnuckleHookKnock = 8f;
-        public const float KnuckleUpperReach = 70f, KnuckleUpperWidth = 18f, KnuckleUpperStun = 0.55f;
-        public const float KnuckleHammerAt = 44f, KnuckleHammerR = 110f, KnuckleHammerKnock = 38f, KnuckleHammerStun = 0.6f;
-        public const float KnuckleCounterR = 135f, KnuckleCounterKnock = 48f, KnuckleCounterStun = 0.8f;
+        public const float KnuckleJabReach = 80f, KnuckleCrossReach = 92f, KnuckleJabWidth = 24f, KnuckleCrossWidth = 26f;
+        public const float KnuckleHookReach = 84f, KnuckleHookArc = 160f, KnuckleHookKnock = 8f;
+        public const float KnuckleUpperReach = 82f, KnuckleUpperWidth = 30f, KnuckleUpperStun = 0.55f;
+        public const float KnuckleHammerAt = 44f, KnuckleHammerR = 135f, KnuckleHammerKnock = 38f, KnuckleHammerStun = 0.6f;
+        public const float KnuckleCounterR = 165f, KnuckleCounterKnock = 48f, KnuckleCounterStun = 0.8f;
         public const float KnuckleAftershock = 0.2f, KnuckleAftershockOut = 40f, KnuckleAftershockMult = 0.6f;
         public static readonly Rgba ArcBlue = new Rgba(0.48f, 0.83f, 1f), ArcGold = new Rgba(1f, 0.82f, 0.29f);
         /// The Rocket Dash: how far and how fast you go, the cooldown, the hit (on the first enemy in a lane KnuckleDashWidth either
         /// side of the line, out to the fist ahead of where you stop) and its short shove, and the moment it lands after the press.
-        public const float KnuckleDashLen = 130f, KnuckleDashTime = 0.2f, KnuckleDashCooldown = 3f, KnuckleDashMult = 2f, KnuckleDashWidth = 18f;
+        public const float KnuckleDashLen = 130f, KnuckleDashTime = 0.2f, KnuckleDashCooldown = 3f, KnuckleDashMult = 2f, KnuckleDashWidth = 28f;
         public const float KnuckleDashFist = 30f, KnuckleDashKnock = 24f, KnuckleDashGrace = 0.08f;
         /// The lock-on: how far from you an enemy can be locked (the one nearest the cursor), the most a locked dash flies, where it
         /// stops short of the enemy, its speed (px/s, the same 130 px in 0.2 s), the shortest flight, the longest your own game
