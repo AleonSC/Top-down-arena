@@ -604,7 +604,10 @@ static partial class Program
         play(0.4f, new PlayerInput());
         Console.WriteLine("  shuriken: {0} stars stuck (client saw them {1}); the recall ripped them out for {2:0.0}; stuck now {3}", stuck, clientStars, recalled, star.StarsStuck);
         Check(stuck >= 2 && clientStars && recalled >= stuck * me.Weapon.Damage * me.Stats.DmgMult * 0.99f && star.StarsStuck < stuck,  // (the recall's own throws stick again)
-            "Shuriken stars stick in what they hit; the weapon-action key recalls them, ripping them out for another hit");
+            "Shuriken stars stick in what they hit; the weapon-action key (into the Great Star stance) recalls them, ripping them out for another hit");
+        reset();
+        GreatStarTest(g, client, me, play, dummy, from);  // the Great Star stance (GreatStar.cs)
+        me.StarStance = 0;
         reset();
 
 

@@ -63,6 +63,23 @@ namespace Arena
                 Delay(Tone(0.2f, S, 150f, 50f, 0.4f, lowpass: 0.2f, decay: 2f), 0.14f),
                 Delay(Bell(0.7f, 3360f, 0.1f), 0.15f)), 0.18f), 0.65f), 0.3f);
 
+            // Great Star thrown: a deep rush of air, a steel shing as it leaves the hand, then four whirring pulses fading away as it spins off.
+            var whirr = new float[4][];
+            for (int i = 0; i < 4; i++)
+                whirr[i] = Delay(Tone(0.07f, S, 700f - i * 60f, 420f - i * 40f, 0.2f * (1f - i * 0.2f), noise: 0.8f, lowpass: 0.45f, attack: 0.01f, decay: 2.2f), 0.05f + i * 0.065f);
+            Set(Sfx.GreatStarThrow, Finish(Room(Mix(Mix(whirr),
+                Tone(0.32f, S, 260f, 520f, 0.2f, noise: 1f, lowpass: 0.22f, attack: 0.03f, decay: 1.4f),
+                Tone(0.12f, S, 120f, 55f, 0.3f, lowpass: 0.2f, decay: 2.4f),
+                Delay(Tone(0.18f, S, 3100f, 2500f, 0.1f, noise: 0.35f, lowpass: 0.9f, attack: 0.004f, decay: 2.2f), 0.02f),
+                Delay(Bell(0.45f, 2480f, 0.05f), 0.03f)), 0.16f), 0.55f), 0.4f);
+
+            // Great Star caught: the whirr slowing into the hand, a heavy steel clack and a short ring.
+            Set(Sfx.GreatStarCatch, Finish(Room(Mix(
+                Reverse(Tone(0.1f, S, 400f, 900f, 0.1f, noise: 0.9f, lowpass: 0.4f, decay: 1f)),
+                Delay(Tone(0.03f, S, 2200f, 900f, 0.3f, noise: 1f, lowpass: 0.85f, decay: 3.5f), 0.09f),
+                Delay(Tone(0.1f, S, 180f, 90f, 0.3f, lowpass: 0.25f, decay: 2.6f), 0.09f),
+                Delay(Bell(0.35f, 1860f, 0.07f), 0.1f)), 0.12f), 0.5f), 0.25f);
+
             // Death Lotus: the arena darkens: a low swell that pulls in, a held breath, a deep note and a faint bell.
             Set(Sfx.NinjaLotusCast, Finish(Room(Mix(
                 Reverse(Tone(0.7f, S, 320f, 90f, 0.12f, noise: 0.8f, lowpass: 0.25f, decay: 1.2f)),
