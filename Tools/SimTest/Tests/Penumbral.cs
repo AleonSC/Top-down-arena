@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Arena;
 
-// The Eclipse's faction, steps 1-3 (Core/Penumbral.cs, Docs/EclipseFaction.md): an Ember weaves in and leaves sparks hanging
+// The Eclipse's faction, steps 1-4 (Core/Penumbral.cs, Docs/EclipseFaction.md): an Ember weaves in and leaves sparks hanging
 // behind it, a Corona Priest's ring has one shot at you and a gap beside it, a Heliograph plants, flickers its line,
 // burns a lane and rests; a Moonward's moon soaks shots, a Gnomon's flash spares its shadow, a Dusk Lobber's pool drains;
-// a Sickle's crescent loops through you and back, a Nova's fuse leaves it open, then it bursts; and they come in the waves before the Eclipse.
+// a Sickle's crescent loops through you and back, a Nova's fuse leaves it open, then it bursts;
+// Last Light closes in, the ten lessons and the Echoes squad; and they come in the waves before the Eclipse.
 static partial class Program
 {
     static void PenumbralTest(float dt)
@@ -224,12 +225,44 @@ static partial class Program
         bool farHurt = false;
         run(0.3f, () => farHurt |= me.Hp < me.MaxHp);
         Check(!farHurt, "the nova doesn't reach past " + Game.NovaBlastR + " px");
+        // Last Light: twelve on a square round you, Heliographs at the corners, turning and closing in.
+        g.DevSetGod(1, true);
+        Quiet(); g.Enemies.Clear(); g.Bullets.Clear(); g.Patches.Clear();
+        var fin = Approaches.For(EnemyType.Eclipse).Finale;
+        typeof(Game).GetMethod("SpawnSquadAt", np).Invoke(g, new object[] { fin, null });
+        var sqE = g.Enemies.Values.Where(o => o.SquadId != 0).ToList();
+        foreach (var o in sqE) o.Hp = o.MaxHp = 1e6f;
+        var corners = sqE.Where(o => o.Type == EnemyType.Heliograph).ToList();
+        var sides = sqE.Where(o => o.Type == EnemyType.Ember).ToList();
+        float c0 = corners.Average(o => o.Pos.DistanceTo(me.Pos)), s0 = sides.Average(o => o.Pos.DistanceTo(me.Pos));
+        int sparks0 = 0;
+        float a0 = (sides[0].Pos - me.Pos).Angle;
+        run(6f, () => sparks0 = Math.Max(sparks0, g.Bullets.Values.Count(b => b.Kind == Defs.EmberSpark)));
+        float s1 = sides.Average(o => o.Pos.DistanceTo(me.Pos));
+        float turned = Math.Abs(MathX.Fmod((sides[0].Pos - me.Pos).Angle - a0 + MathX.Pi, MathX.Tau) - MathX.Pi);
+        Console.WriteLine("  Last Light: {0} members, corners {1:0} px out, sides {2:0} px, sides {3:0} px after 6 s, turned {4:0.00} rad, {5} sparks at once",
+            sqE.Count, c0, s0, s1, turned, sparks0);
+        Check(sqE.Count == 12 && corners.Count == 4 && sides.Count == 8, "Last Light: four Heliographs and eight Embers");
+        Check(c0 > s0 + 40f && Math.Abs(c0 - Game.LastLightStart * 1.414f) < 50f, "on a square round you, the Heliographs at its corners");
+        Check(s1 < s0 - 50f && turned > 0.4f, "it turns and closes in");
+        Check(sparks0 > 20, "the Embers' sparks hang along its edge");
+
         host.Leave("");
 
         // The faction: the eight come in the waves before the Eclipse (50-wave track: 46-49).
-                var fe = Approaches.For(EnemyType.Eclipse);
-        Check(fe != null && fe.Members.Length == 8 && fe.Members.All(m => Game.IsPenumbral(m.Type)) && fe.Squads.Select(q => q.Name).SequenceEqual(new[] { "Dawn", "Mirror pair", "Moon court", "Night watch" }),
-            "the Eclipse's faction: all eight; squads Dawn, Mirror pair, Moon court and Night watch");
+                // The cycle: ten lessons, the exam brings Last Light; and the Echoes squad.
+        var ls = Approaches.For(EnemyType.Eclipse).Lessons;
+        Check(ls != null && ls.Length == 10 && ls[9].Finale && ls.Take(9).All(l => !l.Finale), "ten lessons; the tenth is the exam, with Last Light");
+        var stars = ls.Where(l => l.Star.HasValue).Select(l => l.Star.Value).ToList();
+        Check(stars.SequenceEqual(new[] { EnemyType.CoronaPriest, EnemyType.Heliograph, EnemyType.Moonward, EnemyType.Gnomon, EnemyType.DuskLobber, EnemyType.Sickle, EnemyType.Nova }),
+            "the new enemies come one a wave: Corona Priest, Heliograph, Moonward, Gnomon, Dusk Lobber, Sickle, Nova");
+        var echoes = Approaches.For(EnemyType.Eclipse).Squads.FirstOrDefault(q => q.Name == "Echoes");
+        var earlier = Approaches.All.Where(f => f.Boss != EnemyType.Eclipse).ToList();
+        Check(echoes != null && earlier.All(f => f.Members.Any(m => echoes.Members.Contains(m.Type))) && echoes.Members.Length == earlier.Count,
+            "the Echoes squad: one member from each earlier boss's faction");
+        var fe = Approaches.For(EnemyType.Eclipse);
+        Check(fe != null && fe.Members.Length == 8 && fe.Members.All(m => Game.IsPenumbral(m.Type)) && fe.Squads.Select(q => q.Name).SequenceEqual(new[] { "Dawn", "Mirror pair", "Moon court", "Night watch", "Echoes" }),
+            "the Eclipse's faction: all eight; squads Dawn, Mirror pair, Moon court, Night watch and Echoes");
         var build = typeof(Game).GetMethod("BuildWave", np);
         var spawnQ = typeof(Game).GetField("spawnQueue", np);
         var squadQ = typeof(Game).GetField("squadQueue", np);
