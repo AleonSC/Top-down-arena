@@ -294,6 +294,10 @@ method, so a new enemy can reuse any of them.
   (`SwordsmanMovePart`, `BrainRole.Swordsman`; the Shield Swordsman's `SwordShieldGuard`). Their specials were already
   one method each. Removed `NonShooterMove`, `NonShooterSpecial`, `NonShooterFaceLocked` and the Shield Swordsman
   checks in `BlocksShot` and `WearShield`. `aitrace` identical; `nonshooters` and `swordsman` pass.
+- **8d, faction enemies:**
+  - Reaper cult (in `Core/ReaperFaction.cs`): Bound Wraith, Lamplighter, Mourner. `ReaperCultMove` and
+    `ReaperCultFire` split per enemy; `ReaperCultSpecial` became `BoundChannel` and `MournerClock`. (The Shade goes
+    with the late-game enemies, 8f.) `aitrace` identical; `reapercult` passes.
 
 ## Risks
 

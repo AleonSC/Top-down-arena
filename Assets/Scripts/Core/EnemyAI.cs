@@ -897,8 +897,6 @@ namespace Arena
                     v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
                 if (e.Type == EnemyType.RiotCaptain)
                     v = CaptainMove(e, dir, dist, ref speed);  // RiotCaptain.cs
-                if (e.Type == EnemyType.BoundWraith || e.Type == EnemyType.Lamplighter || e.Type == EnemyType.Mourner)
-                    v = ReaperCultMove(e, tpos, dir, dist, dt, ref speed);  // ReaperFaction.cs
                 if (Zombies.Is(e.Type))
                     v = ZombieMove(e, tpos, dir, dist, ref speed);  // Zombies.cs
             }
@@ -963,10 +961,6 @@ namespace Arena
                 brain.Special.Tick(this, e, tpos, dt);  // Brain.cs
             else switch (e.Type)
             {
-                case EnemyType.BoundWraith:
-                case EnemyType.Mourner:
-                    ReaperCultSpecial(e, tpos, dt);  // ReaperFaction.cs: a revive, the spiral's clock
-                    break;
                 case EnemyType.Boss:
                     WardenSpecial(e, tpos, dt);  // Warden.cs: its stages, turns, searchlight, gates and riot
                     break;
@@ -1052,8 +1046,6 @@ namespace Arena
                 brain.Fire.Fire(this, e, tpos, aim);  // Brain.cs
                 return;
             }
-            if (ReaperCultFire(e, aim))
-                return;  // ReaperFaction.cs
             if (InfallFire(e, tpos, aim))
                 return;  // Infall.cs
             if (PenumbralFire(e, tpos, aim))
