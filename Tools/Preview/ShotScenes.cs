@@ -246,6 +246,20 @@ static partial class Shot {
         en.LarderStage = stages[i]; en.LarderT = left[i];
       }
     }
+    if (Environment.GetEnvironmentVariable("SECSHIRT") != null) {
+      // SECSHIRT=1: the Security Guard's officer look (SecurityLook.cs) beside a riot Guard:
+      // the Guard, then Security Guards walking, locking on, just fired and reloading, each facing you below; KNIGHT=1 ZOOM=2.6.
+      var gm = host.Game; gm.Bot = false; gm.Enemies.Clear(); gm.Bullets.Clear();
+      me.Pos = me.Disp = new V2(800f, 525f); me.InvulnT = 1f; me.Aim = MathX.Pi / 2f;
+      foreach (var pl in gm.Players.Values) if (pl != me) pl.Pos = pl.Disp = new V2(300f, 200f);
+      var spawn = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      for (int i = 0; i < 5; i++) {
+        var at = new V2(800f + (i - 2) * 105f, 410f);
+        var en = (Enemy)spawn.Invoke(gm, new object[] { i == 0 ? EnemyType.Guard : EnemyType.SecurityGuard, at, 0f, 0, false });
+        en.SpawnT = 0f; en.Pos = en.Disp = at; en.Facing = (me.Pos - at).Angle;
+        if (i > 0) { en.Phase = en.SeenPhase = (byte)(i == 4 ? 0 : 7 - i); en.SeenT = i == 3 ? 0.06f : i == 4 ? 1.1f : 2f; en.Winding = i == 2; }
+      }
+    }
     if (Environment.GetEnvironmentVariable("RIOTLINE") != null) {
       // The Riot Line (the last wave before the Warden), RIOTLINE=<seconds> after it arrives, with you standing in the middle.
       var gm = host.Game; gm.Bot = false;
