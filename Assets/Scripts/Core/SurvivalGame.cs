@@ -23,6 +23,10 @@ namespace Arena
         public int SurvPhase => Survival.PhaseAt(SurvTime);
         /// 5:12 for 312 seconds.
         public static string SurvClock(float t) { int s = (int)Math.Max(0f, t); return s / 60 + ":" + (s % 60).ToString("00"); }
+        float survPropT;
+        // What the camera shows round a player (half width and height at the default zoom, plus a margin): enemies appear outside it.
+        const float ViewHalfW = 880f, ViewHalfH = 500f;
+        const int CrateGoal = 160, PotGoal = 50, BarrelGoal = 10;
         int survSeed;
         string survSquad;
         V2 survSquadPos;
@@ -73,6 +77,101 @@ namespace Arena
             SurvTime = 0f;
             Wave = Survival.WaveAt(0f);
             survSquad = null;
+            // The big room (SurvivalWorld.cs): up from the first tick, the plain floor plan inside it, everyone near the middle, clear of its walls.
+            RoomsUp = true;
+            Layout = LayoutId.Open;
+            LayoutAge = 0f;
+            int i = 0;
+            foreach (var p in Players.Values)
+            {
+                MovePlayer(p, new V2(SurvivalRoom.W / 2f - 300f + 90f * i, SurvivalRoom.H / 2f - 200f));  // (every screen moves with them: Ninja.cs)
+                i++;
+            }
+            ClearProps(false);
+            survPropT = 0f;
+            SurvivalProps(true);
+        }
+
+        /// Host: crates (often two side by side: a little wall), pots and a few barrels scattered over the whole room. At the start
+        /// everywhere; after that a few at a time, out of everyone's view, as they get smashed.
+        void SurvivalProps(bool all)
+        {
+            if (!PropsOn)
+                return;
+            int crates = 0, pots = 0, barrels = 0;
+            foreach (var p in Props.Values)
+            {
+                if (IsCrate(p)) crates++;
+                else if (p.Kind == PropKind.Pot) pots++;
+                else if (p.Kind == PropKind.Barrel) barrels++;
+            }
+            int addCrates = all ? CrateGoal : 3, addPots = all ? PotGoal : 1, addBarrels = all ? BarrelGoal : 1;
+            for (int n = 0, tries = 0; crates < CrateGoal && n < addCrates && tries < 400; tries++)
+            {
+                var kind = rng.NextDouble() < 0.3 ? PropKind.HeavyCrate : PropKind.Crate;
+                V2 at;
+                if (!SurvivalPropSpot(HalfW(kind), all, out at))
+                    continue;
+                AddProp(kind, at); crates++; n++;
+                if (crates < CrateGoal && rng.NextDouble() < 0.45)
+                {
+                    float step = HalfW(kind) * 2f + 2f;
+                    V2 next = at + (rng.Next(2) == 0 ? new V2(rng.Next(2) == 0 ? step : -step, 0f) : new V2(0f, rng.Next(2) == 0 ? step : -step));
+                    if (SpotClear(next, HalfW(kind), 0f)) { AddProp(kind, next); crates++; n++; }
+                }
+            }
+            for (int n = 0, tries = 0; pots < PotGoal && n < addPots && tries < 200; tries++)
+            {
+                V2 at;
+                if (SurvivalPropSpot(PotR, all, out at)) { AddProp(PropKind.Pot, at); pots++; n++; }
+            }
+            for (int n = 0, tries = 0; barrels < BarrelGoal && n < addBarrels && tries < 200; tries++)
+            {
+                V2 at;
+                if (SurvivalPropSpot(PotR, all, out at)) { AddProp(PropKind.Barrel, at); barrels++; n++; }
+            }
+        }
+
+        bool SurvivalPropSpot(float size, bool anywhere, out V2 at)
+        {
+            at = RandomInArena(110f, 110f);
+            if (!SpotClear(at, size, 170f))
+                return false;
+            return anywhere || OutsideViews(at) >= 0f;
+        }
+
+        /// How far outside every player's view a point is (negative: inside someone's).
+        float OutsideViews(V2 at)
+        {
+            float outside = float.MaxValue;
+            foreach (var p in Players.Values)
+                outside = Math.Min(outside, Math.Max(Math.Abs(at.X - p.Pos.X) - ViewHalfW, Math.Abs(at.Y - p.Pos.Y) - ViewHalfH));
+            return outside;
+        }
+
+        /// Where a Survival enemy comes in: somewhere in the room outside every player's view, clear of the walls, and (of
+        /// the spots that qualify) the one nearest a player, so it doesn't have to cross the room.
+        V2 SurvivalSpot(float radius)
+        {
+            V2 best = new V2(SurvivalRoom.W / 2f, SurvivalRoom.H / 2f), fallback = best;
+            float bestD = float.MaxValue, fallbackOut = float.MinValue;
+            int found = 0;
+            for (int tries = 0; tries < 80 && found < 6; tries++)
+            {
+                V2 at = new V2(Rand(radius + 40f, SurvivalRoom.W - radius - 40f), Rand(radius + 40f, SurvivalRoom.H - radius - 40f));
+                if (NearSolid(at, radius + 8f))
+                    continue;
+                float outside = OutsideViews(at);
+                if (outside > fallbackOut) { fallbackOut = outside; fallback = at; }
+                if (outside < 40f)
+                    continue;
+                found++;
+                float nearest = float.MaxValue;
+                foreach (var p in Players.Values)
+                    nearest = Math.Min(nearest, p.Pos.DistanceTo(at));
+                if (nearest < bestD) { bestD = nearest; best = at; }
+            }
+            return found > 0 ? best : fallback;
         }
 
         /// Host: one Fighting tick. A pending pick freezes the world; otherwise the spawner tops the field up.
@@ -99,24 +198,28 @@ namespace Arena
                 SpawnSurvivor(sp);
             SurvTime = Surv.Time;
             Wave = Survival.WaveAt(Surv.Time);
+            survPropT += dt;
+            if (survPropT >= 15f)
+            {
+                survPropT = 0f;
+                SurvivalProps(false);  // smashed props come back, out of view
+            }
         }
 
         /// Host: one enemy of the spawner's. A squad's members come in together at one spot.
         void SpawnSurvivor(SurvivalSpawn sp)
         {
             var d = Defs.Get(sp.Type);
-            int home;
             V2 pos;
             if (sp.Squad != null && sp.Squad == survSquad)
                 pos = survSquadPos + new V2(Rand(-40f, 40f), Rand(-40f, 40f));
             else
             {
-                pos = SpawnSpot(d.Radius, !d.IsBoss, out home);
+                pos = SurvivalSpot(d.Radius);
                 survSquad = sp.Squad;
                 survSquadPos = pos;
             }
-            home = -1;
-            spawnHome = home;
+            spawnHome = -1;
             SpawnEnemyAt(sp.Type, pos, 0.9f, 0, sp.Elite);
             spawnHome = -1;
         }

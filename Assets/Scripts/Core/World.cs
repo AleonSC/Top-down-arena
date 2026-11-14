@@ -5,7 +5,7 @@ namespace Arena
 {
     /// Which arena the run plays in (Docs/ExpandingArena.md). Single is today's Classic arena, Wings the fixed Rooms
     /// arena, Expanding (not built yet) starts as Single and grows by bought rooms.
-    public enum ArenaLayout : byte { Single, Wings, Expanding }
+    public enum ArenaLayout : byte { Single, Wings, Expanding, Survival }
 
     /// A wraparound portal pair (Rooms.cs): centres, and the way into the map from each.
     public struct WorldPortal { public V2 A, B; public V2 InA, InB; }
