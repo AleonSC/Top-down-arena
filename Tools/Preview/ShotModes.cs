@@ -216,8 +216,8 @@ static partial class Shot {
         for (int i = 0; i < qn; i++) qp.BossBeaten(BossSchedule.Campaign.BossAt((i + 1) * 5), 0);
         host.Game.ProfileOverride = qp;
       }
-      if (Environment.GetEnvironmentVariable("SURVLOBBY") != null) { host.SurvivalMode = true; host.QuickMode = false; set("lobbyTab", 9); set("lobbyWasSurvival", true); if (Environment.GetEnvironmentVariable("SURVLOBBY") == "2") { var sp2 = new Profile { TutorialDone = true }; sp2.SurvivalEnded("Knight Tank", 512f, 3); sp2.SurvivalEnded("Elementalist DPS", 845f, 4); sp2.SurvivalEnded("Knight Tank", 301f, 2); host.Game.ProfileOverride = sp2; } }  // SURVLOBBY=1: the lobby's Survival mode and tab (SurvivalUi.cs); 2: with some records
-      if (Environment.GetEnvironmentVariable("LOBBYTAB") != null) { set("lobbyTab", int.Parse(Environment.GetEnvironmentVariable("LOBBYTAB"))); set("lobbyWasQuick", true); host.Modifiers = RunMod.GlassCannon | RunMod.Frenzy | RunMod.Lucky | RunMod.Hunted | RunMod.SecondWind; }
+      if (Environment.GetEnvironmentVariable("SURVLOBBY") != null) { host.SurvivalMode = true; host.QuickMode = false; set("lobbyTab", 9); if (Environment.GetEnvironmentVariable("SURVLOBBY") == "2") { var sp2 = new Profile { TutorialDone = true }; sp2.SurvivalEnded("Knight Tank", 512f, 3); sp2.SurvivalEnded("Elementalist DPS", 845f, 4); sp2.SurvivalEnded("Knight Tank", 301f, 2); host.Game.ProfileOverride = sp2; } }  // SURVLOBBY=1: the lobby's Survival mode and tab (SurvivalUi.cs); 2: with some records
+      if (Environment.GetEnvironmentVariable("LOBBYTAB") != null) { set("lobbyTab", int.Parse(Environment.GetEnvironmentVariable("LOBBYTAB"))); host.Modifiers = RunMod.GlassCannon | RunMod.Frenzy | RunMod.Lucky | RunMod.Hunted | RunMod.SecondWind; }
       // MODSCROLL=<px>: the Modifiers tab's list scrolled down (e.g. 420 shows the Risky tier, Simple Arena among it).
       if (Environment.GetEnvironmentVariable("MODSCROLL") != null) set("modsScroll", float.Parse(Environment.GetEnvironmentVariable("MODSCROLL")));
       // HANGOUT=<trail,trail,trail>: the lobby's Hangout tab (LobbyRoom.cs) with three characters, each wearing that trail id and
@@ -282,7 +282,6 @@ static partial class Shot {
         host.PlanEditor = "Aleon"; host.PlanEditorSel = 1;
         set("practiceSel", 1);
         if (Environment.GetEnvironmentVariable("GRIDSCROLL") != null) set("practiceGridScroll", int.Parse(Environment.GetEnvironmentVariable("GRIDSCROLL")));  // GRIDSCROLL=n: the enemy grid scrolled n lines
-        if (Environment.GetEnvironmentVariable("LOBBYTAB") != null) set("lobbyWasPractice", true);  // (so LOBBYTAB=7 stays on the Training tab)
       }
       // FAVS=1: the Saved loadouts drawer open with four favourites (FavoritesUi.cs); FAVS=name: naming a fifth; FAVS=sure: deleting the second; FAVS=rename: renaming the second; FAVS=key: closed, the gold Saved star showing.
       var favs = Environment.GetEnvironmentVariable("FAVS");

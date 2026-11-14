@@ -865,7 +865,7 @@ the other players), so it always matches how weapons and abilities really behave
 
 ## Saved loadouts
 
-The **star** key just right of the **Loadout** key (gold once anything is saved; hover for the count) opens **Saved loadouts** over the right column (the
+The **star** key just right of the **Loadout** key (gold once anything is saved; hover for the count) opens **Saved loadouts** over the right column (click the star again, the **Loadout** key or Esc to close it; the
 preview and stats stay beside it). Up to **6** favourites, each a card with its name, class and role, weapon, ability
 and ultimate; the one you're wearing says **EQUIPPED**. The pencil after a name renames it (Enter or the tick keeps it, Esc cancels). **LOAD** puts on every pick at once (and the perks it was saved
 with, if they're still unlocked); **X** then **SURE?** deletes one. **SAVE CURRENT LOADOUT** asks for a name (up to 20
@@ -1240,7 +1240,7 @@ everyone straight into any of the five.
 
 ## Run modifiers
 
-The lobby's **Modifiers** tab lists 19 switches (tiles in two columns, each with an icon, its name, what it does and an ON/OFF key like Ready's, grouped under **Easier**, **Risky** and **Harder**
+The lobby's **Modifiers** tab (the **MODIFIERS** row over Ready, which shows how many are on) lists 19 switches (tiles in two columns, each with an icon, its name, what it does and an ON/OFF key like Ready's, grouped under **Easier**, **Risky** and **Harder**
 headings, each tile marked with its tier's colour; click anywhere on a tile to switch it) that change the whole run, for everyone (Practice
 Range too). The host turns them on and off; the others see them, and changing one takes back everyone's Ready. Active
 ones show as chips above the wave panel during the match, and session recordings list them. Each tier has its own heading;
@@ -1271,7 +1271,7 @@ computer). When the open tiers don't fit, the list scrolls with the mouse wheel.
 
 ## Difficulty
 
-The lobby's **Difficulty** tab: the host picks one of five cards, and everyone sees it (changing it takes back
+The lobby's **Difficulty** tab (the **DIFFICULTY** row over Ready, which names the current one): the host picks one of five cards, and everyone sees it (changing it takes back
 everyone's Ready). It applies to the whole run, Practice Range too, is kept in saved runs (a continued run keeps its
 difficulty), shows as a chip above the wave panel during the match (not on Normal), and is written in session
 recordings. **Custom** lets the host set every number below with a slider or by typing it in the box beside it
@@ -1315,7 +1315,7 @@ on top (Tough Crowd, Frenzy, Swift Foes, Glass Cannon...).
 
 **The lobby's first mode, and where a new profile starts.** In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt** or
 **Practice** on the mode carousel; the lobby opens next time on the mode the host last picked (a new profile: Quick Play).
-Picking it turns the tab carousel to the lobby's **Quick Play** tab: the run's shape (ten waves, the boss, endless), its rules, your Quick Play
+Picking it adds a **Quick Play** tab key beside the Loadout key: the run's shape (ten waves, the boss, endless), its rules, your Quick Play
 records (played, won, best wave, bosses), and **the boss pool**: a tile for each of the ten bosses, with its model and name once
 you've beaten it anywhere, a **???** until then (on your first Quick Play the Warden shows, marked FIRST).
 
@@ -1349,7 +1349,7 @@ you've beaten it anywhere, a **???** until then (on your first Quick Play the Wa
 
 ## Boss Hunt
 
-In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt**, **Practice** or **Survival** on the mode carousel at the top (arrows, the mouse wheel or a click on a side mode turn it). Over the big screen, a fixed **Loadout** key sits on the left, and the other tabs (the mode's own, Difficulty, Modifiers) are a carousel beside it: the open tab in the middle, the rest wrapping round either side. **Perks** open from the **Perks** key right of your class name on the loadout (it shows your equipped perk and slots used, e.g. 1/2); "< Loadout" or the Loadout key takes you back (in the Practice Range too, where you can set them up but the range plays without them). The lobby opens on the Loadout, and picking a mode keeps it there; the carousel turns to that mode's own tab (Quick Play, Boss hunt, Practice) for a click. A Boss Hunt is a short run that ends
+In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt**, **Practice** or **Survival** on the mode carousel at the top (arrows, the mouse wheel or a click on a side mode turn it). Over the big screen sit the **Loadout** key, the Saved loadouts star, then a key for each of the mode's own tabs (Quick Play, Survival, Boss hunt, Practice, Training). **Difficulty** and **Modifiers** are two slim rows over Ready, naming what's set; they fade while the mouse isn't on them. **Perks** open from the **Perks** key right of your class name on the loadout (it shows your equipped perk and slots used, e.g. 1/2); "< Loadout" or the Loadout key takes you back (in the Practice Range too, where you can set them up but the range plays without them). The lobby opens on the Loadout, and picking a mode keeps it there (or goes back to it if the old mode's tab was open). A Boss Hunt is a short run that ends
 with one boss: **ten waves**. Waves 1-9 bring only the boss's own enemies (its faction: for the Warden, Rioters and
 Guards, then Riot Shields, Gas Grenadiers, Security Guards and Taser Guards, its Breakout, Patrol and Cell block squads, and its Riot line on waves 5 and
 9); wave 10 is the boss, at wave-10 strength. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no

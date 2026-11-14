@@ -9,7 +9,7 @@ namespace Arena
     ///
     /// Today's numbers are Docs/Mockups/crt-lobby-softer.html (1280 x 720): a 36 px margin all round; the party column is 376 wide at
     /// x=36 (header 30..70, mode keys 82..134, the Party line 142..168, cards from 176, Ready 586..634 over Start 640..684); the big
-    /// screen runs 440..1244 by 70..684; above it at y=32 (30 tall) the Loadout key (440..590) and the tab carousel (602..1244).
+    /// screen runs 440..1244 by 70..684; above it at y=32 (30 tall) the Loadout key (440..590), the Saved star and the mode's tab keys.
     public partial class ArenaApp
     {
         // --- Left column: header, mode keys, the party, Ready and Start -------------------------------------------------------------
@@ -32,6 +32,8 @@ namespace Arena
         const float PartyTop = 176f;      // the top of the first party card
         const float PartyCardH = 84f, PartySlotH = 80f, PartyGap = 10f;  // the first card 84, the others and the open slots 80
         const float LobbyNoteY = 548f;    // who we're waiting for, just above Ready
+        /// The Difficulty and Modifiers rows over Ready (DrawLobbySetupKeys, LobbyUi.cs).
+        const float LobbySetupY = 470f, LobbySetupH = 34f, LobbySetupGap = 6f;
         const float LobbyReadyY = 586f, LobbyReadyH = 48f, LobbyStartY = 640f, LobbyStartH = 44f;  // Ready over Start (a guest's Ready takes the Start slot)
 
         // --- Right: the tab keys and the big screen ---------------------------------------------------------------------------------
@@ -39,12 +41,13 @@ namespace Arena
         const float LobbyBodyTop = 70f;   // the top of the big screen (under the tab keys)
         /// The big screen's rectangle (the loadout, the tabs' bodies and the Hangout); the menu card grows into it (LobbyEnter.cs).
         static readonly Rect LobbyBodyRect = new Rect(440f, LobbyBodyTop, 804f, 614f);
-        /// The Loadout key, fixed beside the tab carousel (lit on the loadout and on the Perks view it opens).
+        /// The Loadout key, fixed left of the Saved star and the tab keys (lit on the loadout and on the Perks view it opens).
         const float LobbyLoadoutKeyW = 150f, LobbyTabsGap = 12f;
         static Rect LobbyLoadoutKey => new Rect(LobbyBodyRect.x, 32f, LobbyLoadoutKeyW, 30f);
         /// The Saved loadouts star (FavoritesUi.cs): a small square key just right of the Loadout key.
         static Rect LobbySavedKey => new Rect(LobbyLoadoutKey.xMax + 3f, 32f, 30f, 30f);
-        /// The tab carousel (difficulty, modifiers, the mode's own tabs), beside the Saved star.
+        /// The mode's own tab keys (Loadout-sized, in a row; Difficulty and Modifiers are rows over Ready), beside the Saved star.
+        const float LobbyTabKeyGap = 6f;
         static Rect LobbyTabsRect => new Rect(LobbySavedKey.xMax + LobbyTabsGap, 32f, LobbyBodyRect.xMax - LobbySavedKey.xMax - LobbyTabsGap, 30f);
 
         // --- The bands the entrances and exits cut the lobby into ----------------------------------------------------------------------
@@ -66,8 +69,8 @@ namespace Arena
         static Rect LobbyModeBand => new Rect(0f, LobbyModeBandY, LobbySplit, LobbyPartyBandY - LobbyModeBandY);
         static Rect LobbyPartyLineBand => new Rect(0f, LobbyPartyBandY, LobbySplit, LobbyCardsBandY - LobbyPartyBandY);
         static Rect LobbyYourCardBand => new Rect(0f, LobbyCardsBandY, LobbySplit, LobbyCardsBandEnd - LobbyCardsBandY);
-        static Rect LobbyOtherSlotsBand => new Rect(0f, LobbyCardsBandEnd, LobbySplit, LobbyNoteY - LobbyCardsBandEnd);
-        static Rect LobbyActionsBand => new Rect(0f, LobbyNoteY, LobbySplit, H - LobbyNoteY);
+        static Rect LobbyOtherSlotsBand => new Rect(0f, LobbyCardsBandEnd, LobbySplit, LobbySetupY - 4f - LobbyCardsBandEnd);
+        static Rect LobbyActionsBand => new Rect(0f, LobbySetupY - 4f, LobbySplit, H - (LobbySetupY - 4f));  // Difficulty, Modifiers, Ready and Start
         static Rect LobbyTabsBand => new Rect(LobbySplit, 0f, W - LobbySplit, LobbyTabsBandEnd);
         static Rect LobbyBodyBand => new Rect(LobbySplit, LobbyTabsBandEnd, W - LobbySplit, H - LobbyTabsBandEnd);
     }
