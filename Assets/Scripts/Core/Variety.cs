@@ -273,7 +273,7 @@ namespace Arena
         }
 
         /// From wave 12, regular enemies can show up as tougher elites: 4% more a wave, up to 35% (times the difficulty's Elites).
-        bool RollElite(EnemyDef d) => !d.IsBoss && Wave >= 12 && rng.NextDouble() < EliteChance(Wave);
+        bool RollElite(EnemyDef d) => !d.IsBoss && ((Wave >= 12 && rng.NextDouble() < EliteChance(Wave)) || HuntEliteSquad && rng.NextDouble() < HuntEliteChance);  // (an Elite node of a hunt map: HuntMapGame.cs)
 
         public double EliteChance(int wave) => wave < 12 ? 0.0 : Math.Min(0.9, Math.Min(0.35, 0.04 * (wave - 11)) * D(DiffKnob.EliteChance));
 

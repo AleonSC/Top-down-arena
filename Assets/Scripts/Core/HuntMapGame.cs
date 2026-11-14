@@ -40,8 +40,16 @@ namespace Arena
         public HuntNodeType HuntNodeNow => HuntRoute == null || HuntRoute.Current == null ? HuntNodeType.None
             : HuntRoute.Current.Type == HuntNodeType.Gamble && HuntGamble != HuntNodeType.None ? HuntGamble : HuntRoute.Current.Type;
 
+        /// An Elite node's wave brings its enemies as tougher elite variants (a share of them, as late waves do).
+        public const double HuntEliteChance = 0.3;
+        bool HuntEliteSquad => HuntMapOn && State == MatchState.Fighting && HuntNodeNow == HuntNodeType.Elite;
+
         /// A Contraband is being fought: the arena is dark (like Nightfall, Paths.cs).
         public bool HuntDark => HuntMapOn && State == MatchState.Fighting && HuntNodeNow == HuntNodeType.Contraband;
+
+        /// A bot's vote on the next node: given the map and the choices (indexes in the next row), the index into `choices` to vote for
+        /// (null: at random). The balance report sets it to play a safe or an Elite route.
+        public Func<HuntMap, int[], int> HuntMapBotPick;
 
         public readonly Dictionary<int, int> MapVotes = new Dictionary<int, int>();
         public readonly HashSet<int> MapLocked = new HashSet<int>();
@@ -148,7 +156,7 @@ namespace Arena
         }
 
         /// Host: the party goes to this node. A fight is the next wave; a Rest or a Shop is a stop with no wave: the wave number moves on
-        /// (the map's rows are the hunt's waves), a Rest heals everyone and gives a reroll, a Shop opens the Bazaar (the node clears
+        /// (the map's rows are the hunt's waves), a Rest heals everyone and gives a reroll and an upgrade pick, a Shop opens the Bazaar (the node clears
         /// when it closes).
         void PickHuntNode(int index)
         {
@@ -182,6 +190,9 @@ namespace Arena
                         RevivePlayer(p, 1f);
                     p.Hp = p.MaxHp;
                     p.Rerolls++;
+                    p.PendingPicks++;   // and a free upgrade pick: a Rest skips a wave's XP, so it pays about a level (the balance report: huntbal)
+                    if (p.Offer == null)
+                        NextOffer(p);
                     BroadcastFx(FxKind.Spark, p.Pos, new Rgba(0.4f, 1f, 0.6f), 40f, 0.6f, Sfx.None);
                 }
                 ClearHuntNode();
@@ -362,9 +373,9 @@ namespace Arena
                 HuntMapSeconds = Math.Max(0f, HuntMapSeconds - dt);
             if (Bot && Me != null && HuntRoute != null && !MapLocked.Contains(MyId))
             {
-                int n = HuntRoute.Choices().Length;
-                if (n > 0)
-                    SendHuntVote(rng.Next(n), true);
+                var choices = HuntRoute.Choices();
+                if (choices.Length > 0)
+                    SendHuntVote(HuntMapBotPick != null ? HuntMapBotPick(HuntRoute, choices) : rng.Next(choices.Length), true);
             }
         }
     }
