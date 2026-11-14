@@ -17,7 +17,7 @@ namespace Arena
         static bool AimLineInfo(EnemyType type, out float reach, out float fan)
         {
             fan = 0f;
-            switch (HiveKin.Of(type))
+            switch (Game.SharesWith(type))
             {
                 case EnemyType.Sniper: reach = 420f; return true;
                 case EnemyType.Shard: reach = 300f; return true;

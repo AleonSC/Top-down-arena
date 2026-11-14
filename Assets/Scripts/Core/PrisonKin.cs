@@ -5,7 +5,7 @@ namespace Arena
     /// a Lunger" goes through these.
     public partial class Game
     {
-        public static bool IsBrute(EnemyType t) { t = HiveKin.Of(t); return t == EnemyType.Brute || t == EnemyType.Thug || t == EnemyType.Gravedigger; }  // (the Gravedigger: the Twin Reapers' cult, ReaperFaction.cs)
-        public static bool IsLunger(EnemyType t) { t = HiveKin.Of(t); return t == EnemyType.Lunger || t == EnemyType.Shiv || t == EnemyType.ScytheWraith; }  // (the Scythe Wraith reaps along a longer, locked line: ReaperFaction.cs)
+        public static bool IsBrute(EnemyType t) => BrainHas(t, BrainRole.Brute) ?? false;  // Brute, Thug, Bumble, Gravedigger, Stomper, Gulper, Harlequin (ChaseBrains.cs)
+        public static bool IsLunger(EnemyType t) => BrainHas(t, BrainRole.Lunger) ?? false;  // Lunger, Shiv, Hornet, Driller, Mummer, Fencer, Scythe Wraith (LungeBrains.cs)
     }
 }

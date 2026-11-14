@@ -54,42 +54,11 @@ namespace Arena
             return e.LinkId != 0 && Enemies.TryGetValue(e.LinkId, out o) && o.Hp > 0f && o.Type == EnemyType.BoundWraith ? o : null;
         }
 
-        V2 ReaperCultMove(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
-        {
-            switch (e.Type)
-            {
-                case EnemyType.BoundWraith:
-                {
-                    if (e.Phase == BoundChanneling)
-                        return V2.Zero;  // stands over its fallen partner: your window
-                    var o = BoundPartner(e);
-                    if (o == null)
-                        return dir;  // alone for good: a plain chaser
-                    // The pair spins round its middle, which drifts to just beside you, so the tether sweeps over you.
-                    V2 mid = (e.Pos + o.Pos) * 0.5f;
-                    V2 toT = tpos - mid;
-                    if (toT.Length > BoundHover)
-                        mid += toT.Normalized() * Math.Min(toT.Length - BoundHover, e.Speed * 0.8f * dt);
-                    V2 off = e.Pos - (e.Pos + o.Pos) * 0.5f;
-                    float a = (off.Length < 1f ? e.Ang : off.Angle) + BoundSpin * dt;
-                    float rad = off.Length + (BoundOrbit - off.Length) * Math.Min(1f, dt * 2f);
-                    V2 goal = ClampToArena(mid + V2.FromAngle(a) * rad, e.Radius);
-                    V2 step = goal - e.Pos;
-                    speed = Math.Min(e.Speed * 3f, step.Length / Math.Max(dt, 0.001f));
-                    return step;
-                }
-                case EnemyType.Lamplighter:
-                    return e.Winding ? V2.Zero : KeepDistance(dir, dist, LampRange) + dir.Orthogonal() * e.Strafe * 0.5f;  // plants its feet as the lantern flares
-                case EnemyType.Mourner:
-                    return e.Phase == 1 ? V2.Zero : KeepDistance(dir, dist, MournRange) + dir.Orthogonal() * e.Strafe * 0.3f;  // still while it weeps
-            }
-            return dir;
-        }
 
-        /// Host, from Special: the Bound Wraiths' revive and the Mourner's burst clock.
-        void ReaperCultSpecial(Enemy e, V2 tpos, float dt)
+        /// Host, a Bound Wraith's special: channelling its fallen partner back.
+        void BoundChannel(Enemy e, V2 tpos, float dt)
         {
-            if (e.Type == EnemyType.BoundWraith && e.Phase == BoundChanneling)
+            if (e.Phase == BoundChanneling)
             {
                 e.PhaseT -= dt;
                 if (e.PhaseT > 0f)
@@ -106,7 +75,12 @@ namespace Arena
                 e.LinkId = b.Id;
                 BroadcastFx(FxKind.Ring, e.Waypoint, e.Def.Color, 90f, 0.5f, Sfx.Ability);
             }
-            else if (e.Type == EnemyType.Mourner && e.Phase == 1)
+        }
+
+        /// Host, a Mourner's special: the spiral's clock.
+        void MournerClock(Enemy e, V2 tpos, float dt)
+        {
+            if (e.Phase == 1)
             {
                 e.PhaseT -= dt;
                 if (e.PhaseT <= 0f)
@@ -117,42 +91,6 @@ namespace Arena
             }
         }
 
-        /// Host, from EnemyFire. True if it handled the shot.
-        bool ReaperCultFire(Enemy e, float aim)
-        {
-            switch (e.Type)
-            {
-                case EnemyType.Lamplighter:
-                {
-                    e.FireT = LampEvery;
-                    bool cross = e.Phase == 1;
-                    int lanes = cross ? 4 : LampLines;
-                    for (int i = 0; i < lanes; i++)
-                    {
-                        float a = cross ? aim + i * MathX.Pi / 2f : aim + (i - (LampLines - 1) / 2f) * LampSpread;
-                        for (int k = 0; k < LampStreak; k++)
-                            EnemyShot(e, a, LampSpeed + k * LampStreakGap, Defs.SmallShot);  // a streak: the faster ones lead
-                    }
-                    e.Phase = (byte)(cross ? 0 : 1);  // lines, then the cross
-                    BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(aim) * (e.Radius + 6f), new Rgba(1f, 0.8f, 0.45f), 26f, 0.25f, Sfx.SpellZap);
-                    return true;
-                }
-                case EnemyType.Mourner:
-                    if (e.Phase == 0)
-                    {
-                        e.Phase = 1;
-                        e.PhaseT = MournBurst;
-                        e.T2 = aim;  // the spiral's start
-                        e.Ang = 0f;
-                    }
-                    e.FireT = MournEvery;
-                    e.Ang += MournTurn;
-                    EnemyShot(e, e.T2 + e.Ang, MournSpeed, Defs.SmallShot);                // Dusk's arm, one way
-                    EnemyShot(e, e.T2 + MathX.Pi - e.Ang, MournSpeed, Defs.SmallShot);     // Dawn's arm, the other
-                    return true;
-            }
-            return false;
-        }
 
         /// Host, OnEnemyKilled: a fallen Bound Wraith's partner stops and channels it back.
         void ReaperCultKilled(Enemy e)
@@ -233,6 +171,88 @@ namespace Arena
                     e.PhaseT = left;
                 }
             }
+        }
+        /// (moved from ReaperCultMove, BoundWraith)
+        V2 ReaperCultMove_BoundWraith(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            if (e.Phase == BoundChanneling)
+                return V2.Zero;  // stands over its fallen partner: your window
+            var o = BoundPartner(e);
+            if (o == null)
+                return dir;  // alone for good: a plain chaser
+            // The pair spins round its middle, which drifts to just beside you, so the tether sweeps over you.
+            V2 mid = (e.Pos + o.Pos) * 0.5f;
+            V2 toT = tpos - mid;
+            if (toT.Length > BoundHover)
+                mid += toT.Normalized() * Math.Min(toT.Length - BoundHover, e.Speed * 0.8f * dt);
+            V2 off = e.Pos - (e.Pos + o.Pos) * 0.5f;
+            float a = (off.Length < 1f ? e.Ang : off.Angle) + BoundSpin * dt;
+            float rad = off.Length + (BoundOrbit - off.Length) * Math.Min(1f, dt * 2f);
+            V2 goal = ClampToArena(mid + V2.FromAngle(a) * rad, e.Radius);
+            V2 step = goal - e.Pos;
+            speed = Math.Min(e.Speed * 3f, step.Length / Math.Max(dt, 0.001f));
+            return step;
+        }
+
+        /// (moved from ReaperCultMove, Lamplighter)
+        V2 ReaperCultMove_Lamplighter(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            return e.Winding ? V2.Zero : KeepDistance(dir, dist, LampRange) + dir.Orthogonal() * e.Strafe * 0.5f;  // plants its feet as the lantern flares
+        }
+
+        /// (moved from ReaperCultMove, Mourner)
+        V2 ReaperCultMove_Mourner(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            return e.Phase == 1 ? V2.Zero : KeepDistance(dir, dist, MournRange) + dir.Orthogonal() * e.Strafe * 0.3f;  // still while it weeps
+        }
+
+        /// (moved from ReaperCultFire, Lamplighter)
+        bool ReaperCultFire_Lamplighter(Enemy e, float aim)
+        {
+            e.FireT = LampEvery;
+            bool cross = e.Phase == 1;
+            int lanes = cross ? 4 : LampLines;
+            for (int i = 0; i < lanes; i++)
+            {
+                float a = cross ? aim + i * MathX.Pi / 2f : aim + (i - (LampLines - 1) / 2f) * LampSpread;
+                for (int k = 0; k < LampStreak; k++)
+                    EnemyShot(e, a, LampSpeed + k * LampStreakGap, Defs.SmallShot);  // a streak: the faster ones lead
+            }
+            e.Phase = (byte)(cross ? 0 : 1);  // lines, then the cross
+            BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(aim) * (e.Radius + 6f), new Rgba(1f, 0.8f, 0.45f), 26f, 0.25f, Sfx.SpellZap);
+            return true;
+        }
+
+        /// (moved from ReaperCultFire, Mourner)
+        bool ReaperCultFire_Mourner(Enemy e, float aim)
+        {
+            if (e.Phase == 0)
+            {
+                e.Phase = 1;
+                e.PhaseT = MournBurst;
+                e.T2 = aim;  // the spiral's start
+                e.Ang = 0f;
+            }
+            e.FireT = MournEvery;
+            e.Ang += MournTurn;
+            EnemyShot(e, e.T2 + e.Ang, MournSpeed, Defs.SmallShot);                // Dusk's arm, one way
+            EnemyShot(e, e.T2 + MathX.Pi - e.Ang, MournSpeed, Defs.SmallShot);     // Dawn's arm, the other
+            return true;
+        }
+
+        // --- Brains (Docs/EnemyBehaviours.md step 8d) ------------------------------------------------------------------
+
+        static void ReaperCultBrains(Brain[] t)
+        {
+            t[(int)EnemyType.BoundWraith] = new Brain {
+                Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.ReaperCultMove_BoundWraith(e, p, d, di, dt, ref sp)),
+                Special = new CodeSpecial((g, e, p, dt) => g.BoundChannel(e, p, dt)) };
+            t[(int)EnemyType.Lamplighter] = new Brain {
+                Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.ReaperCultMove_Lamplighter(e, p, d, di, dt, ref sp)),
+                Fire = new CodeFire((g, e, p, a) => g.ReaperCultFire_Lamplighter(e, a)) };
+            t[(int)EnemyType.Mourner] = new Brain {
+                Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.ReaperCultMove_Mourner(e, p, d, di, dt, ref sp)),
+                Special = new CodeSpecial((g, e, p, dt) => g.MournerClock(e, p, dt)), Fire = new CodeFire((g, e, p, a) => g.ReaperCultFire_Mourner(e, a)) };
         }
     }
 }

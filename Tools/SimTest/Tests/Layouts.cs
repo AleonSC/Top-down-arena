@@ -303,7 +303,7 @@ static partial class Program
 
         // A Phantom never picks a blink spot in a wall or pillar.
         {
-            var lateSpecial = typeof(Game).GetMethod("LateSpecial", flags);
+            var lateSpecial = typeof(Game).GetMethod("Special", flags);
             var nearSolid = typeof(Game).GetMethod("NearSolid", flags);
             int blinks = 0, blinkInWall = 0;
             foreach (var ld in Layouts.Playable())
