@@ -259,6 +259,18 @@ namespace Arena
             public override float Contact(Game g, Enemy e) => e.Phase == 2 ? SpikeLungeDamage : -1f;
         }
 
+        delegate V2 MoveFn(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed);
+
+        /// A move part that runs a given method; Locked: when its facing stays put (a wind-up's aim, a sweep, a dash).
+        sealed class CodeMove : MovePart
+        {
+            readonly MoveFn move;
+            readonly Func<Enemy, bool> locked;
+            public CodeMove(MoveFn move, Func<Enemy, bool> locked = null) { this.move = move; this.locked = locked; }
+            public override V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed) => move(g, e, tpos, dir, dist, dt, ref speed);
+            public override bool Turn(Game g, Enemy e, float want, V2 tpos, float dt) => locked != null && locked(e);
+        }
+
         /// A fire part that runs one of the methods above.
         sealed class CodeFire : FirePart
         {

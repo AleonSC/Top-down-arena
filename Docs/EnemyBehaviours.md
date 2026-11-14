@@ -1,6 +1,6 @@
 # Enemy behaviour classes
 
-**Status: steps 0-7 built, step 8 in progress** (8a: the basic faction). Owner's decisions: every enemy moves to brains (not just the kin ones), and drawing stays separate. Code today: `Core/HiveKin.cs` (the kin table), `Core/PrisonKin.cs` (`IsBrute`, `IsLunger`),
+**Status: steps 0-7 built, step 8 in progress** (8a basic faction, 8b Variety). Owner's decision: a full per-enemy split, not family wrappers. Owner's decisions: every enemy moves to brains (not just the kin ones), and drawing stays separate. Code today: `Core/HiveKin.cs` (the kin table), `Core/PrisonKin.cs` (`IsBrute`, `IsLunger`),
 `Core/EnemyAI.cs` (`MoveEnemy`, `Special`, `EnemyFire`), each faction's `*Faction.cs`. New: `Core/Brain.cs`, `Core/ShieldBrains.cs`, `Core/LungeBrains.cs`, `Core/ChaseBrains.cs`, `Core/RiotBrains.cs`, `Core/LobBrains.cs`, `Core/ShootBrains.cs`,
 `Tools/SimTest/Tests/AiTrace.cs`, `Tools/SimTest/Golden/aitrace.txt`.
 
@@ -285,6 +285,10 @@ method, so a new enemy can reuse any of them.
   - `ShielderGuard`: the Shielder's shield (block, wear, setup) out of `BlocksShot`, `WearShield` and the spawn.
   - Fire and specials: `GruntFire`, `BursterFire`, ... `MedicHeal`, `ChargerDash`, `ShielderDecay`, moved verbatim.
   - `aitrace` identical.
+- **8b, Variety (`Core/VarietyBrains.cs`):** Beam Sentry, Scorcher, Reaver, Warder, Pauser, Leader, Stitcher.
+  `VarietyMove`, `VarietySpecial` and `VarietyFire` were split into one method per enemy (`VarietyMove_Reaver`, ...)
+  and deleted; the face locks (the Beam Sentry's sweep, the Reaver's rake, the Leader's aim) are each one's
+  `CodeMove` lock. New generic part: `CodeMove(method, locked)`. `aitrace` identical.
 
 ## Risks
 

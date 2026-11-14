@@ -714,8 +714,6 @@ namespace Arena
                 return;  // a planted Fuse Runner, a Hookman's aim and throw (NonShooters.cs)
             if (e.Type == EnemyType.HiveBomber)
                 return;  // committed to the flight line (a lunger's leap, a Charger's dash, a Spike Block's lunge: their brains)
-            if (e.Type == EnemyType.BeamSentry && e.Phase >= 2 || e.Type == EnemyType.Reaver && e.Phase != 0 || e.Type == EnemyType.Leader && e.Phase == 1)
-                return;  // the beam's aim and sweep, the rake's cone, the Leader's aim line (Variety.cs)
             if (PulsarLocked(e) || HelioLocked(e) || GnomonLocked(e) || e.Type == EnemyType.Moonward)
                 return;  // its beams' line (Infall.cs)
             if (LarderFaceLocked(e))
@@ -903,8 +901,6 @@ namespace Arena
                     v = dir;  // straight at you, on the surface or under it (LarderFaction.cs)
                 if (IsLateGame(e.Type))
                     v = LateMove(e, tpos, dir, dist, dt, ref speed);
-                if (e.Type >= EnemyType.BeamSentry && e.Type <= EnemyType.Stitcher)
-                    v = VarietyMove(e, tpos, dir, dist, ref speed);  // Variety.cs
                 if (IsInfall(e.Type))
                     v = InfallMove(e, tpos, dir, dist, dt, ref speed);  // Infall.cs
                 if (IsPenumbral(e.Type))
@@ -1028,13 +1024,6 @@ namespace Arena
                 case EnemyType.Singularity:
                     SingularitySpecial(e, dt);  // Singularity.cs
                     break;
-                case EnemyType.BeamSentry:
-                case EnemyType.Scorcher:
-                case EnemyType.Reaver:
-                case EnemyType.Warder:
-                case EnemyType.Leader:
-                    VarietySpecial(e, tpos, dt);  // Variety.cs
-                    break;
                 case EnemyType.Pylon:
                 case EnemyType.Lineman:
                 case EnemyType.Thunderhead:
@@ -1084,8 +1073,6 @@ namespace Arena
                 brain.Fire.Fire(this, e, tpos, aim);  // Brain.cs
                 return;
             }
-            if (VarietyFire(e, aim))
-                return;  // Variety.cs
             if (ReaperCultFire(e, aim))
                 return;  // ReaperFaction.cs
             if (InfallFire(e, tpos, aim))
