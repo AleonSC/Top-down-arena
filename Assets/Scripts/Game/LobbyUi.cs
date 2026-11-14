@@ -153,6 +153,8 @@ namespace Arena
             bool onLoadout = lobbyTab == 0 || lobbyTab == PerkTab;
             if (LobbyKit.Key(LobbyLoadoutKey, session.Resume != null ? "SEATS" : "LOADOUT", onLoadout, calm, size: 16, minSize: 11) && lobbyTab != 0)
                 lobbyTab = 0;  // the fixed Loadout key (LobbyLayout.cs); Perks opens from a key on the loadout
+            if (session.Resume == null)
+                DrawFavoritesKey(LobbySavedKey, calm);  // the Saved loadouts star (FavoritesUi.cs)
             DrawLobbyTabs(LobbyTabsRect, practice);  // beside the Loadout key (LobbyLayout.cs)
             var body = LobbyBodyRect;
             TickHangoutAnim();  // LobbyRoom.cs
@@ -728,8 +730,6 @@ namespace Arena
             const float gap = 6f;
             float quarter = (w - gap * 3f) / 4f;  // roles, classes and ultimates: 4 per row
             LobbyKit.Heading(x, y, w, "Role", null, calm, 15);
-            if (self && session.Resume == null)
-                DrawFavoritesKey(new Rect(x + w - 104f, y + 2f, 104f, 24f), calm);  // opens the Saved loadouts drawer (FavoritesUi.cs)
             // Every row shows a few locked slots for content still to come (hover one: "Coming soon").
             int roleSlots = Mathf.Max(RoleSlots, Defs.Roles.Length);
             for (int i = 0; i < roleSlots; i++)

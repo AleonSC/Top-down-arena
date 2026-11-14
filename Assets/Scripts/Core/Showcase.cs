@@ -142,7 +142,7 @@ namespace Arena
             // Weapons with an Alt press it on a loop (ShowcaseAlt.cs).
             input.WeaponAction = !Idle && ShowcaseAlt.Held(Game, me, t, dt);
             if (demoAbility && !ultimate && ability == AbilityId.Whirlwind && castT <= 0.1f)
-                Game.ShowcaseWoundDummies();  // Misericorde needs wounded enemies to execute (Misericorde.cs); just before the cast, or your swings finish them first
+                Game.ShowcaseWoundDummies();  // Bladed Dive's demo kills them so its reset shows (BladedDive.cs); just before the cast, or your swings finish them first
             if (demoAbility)
             {
                 castT -= dt;
@@ -298,7 +298,7 @@ namespace Arena
             }
         }
 
-        /// Misericorde's demo: the dummies are worn down under its threshold just before the cast.
+        /// Bladed Dive's demo: the dummies are worn down just before the cast, so the dive kills them and the cooldown resets.
         public void ShowcaseWoundDummies()
         {
             foreach (int id in dummyIds)

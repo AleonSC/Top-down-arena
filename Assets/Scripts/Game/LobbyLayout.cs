@@ -42,8 +42,10 @@ namespace Arena
         /// The Loadout key, fixed beside the tab carousel (lit on the loadout and on the Perks view it opens).
         const float LobbyLoadoutKeyW = 150f, LobbyTabsGap = 12f;
         static Rect LobbyLoadoutKey => new Rect(LobbyBodyRect.x, 32f, LobbyLoadoutKeyW, 30f);
-        /// The tab carousel (difficulty, modifiers, the mode's own tabs), beside the Loadout key.
-        static Rect LobbyTabsRect => new Rect(LobbyLoadoutKey.xMax + LobbyTabsGap, 32f, LobbyBodyRect.xMax - LobbyLoadoutKey.xMax - LobbyTabsGap, 30f);
+        /// The Saved loadouts star (FavoritesUi.cs): a small square key just right of the Loadout key.
+        static Rect LobbySavedKey => new Rect(LobbyLoadoutKey.xMax + 3f, 32f, 30f, 30f);
+        /// The tab carousel (difficulty, modifiers, the mode's own tabs), beside the Saved star.
+        static Rect LobbyTabsRect => new Rect(LobbySavedKey.xMax + LobbyTabsGap, 32f, LobbyBodyRect.xMax - LobbySavedKey.xMax - LobbyTabsGap, 30f);
 
         // --- The bands the entrances and exits cut the lobby into ----------------------------------------------------------------------
 

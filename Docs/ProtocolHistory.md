@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 - 345: `Msg.WallPush` (client -> host: area, side, start, width), pushed wall sections (`ExpansionRoom.Leg` 15) in the room list (Docs/WallPush.md step 1)
+- 345: the DPS Knight's Misericorde became Bladed Dive: FxKind MercyLeap/MercyKill/MercyEnd are now DiveRush/DiveHit/DiveReset with new fields
 - 344: the riot Guard (`EnemyType.Guard`) now sends `SyncLarder` (its baton swing: `LarderStage` 1-4, `LarderT`)
 - 343: Survival's big room: `ArenaLayout.Survival` (after Expanding); a Survival run plays in a 3200 x 1800 world (`SurvivalRoom.World`) with walls in the middle and corners, props over the whole room and enemies spawned off every view, so both sides must build the same world (no new fields: the layout and Rooms flag already go in the snapshot)
 - 342: Survival mode: the lobby message ends with `SurvivalMode` (after `HuntMapMode`); the start message ends with a Survival flag and its spawner seed; the snapshot carries the Survival clock (`SurvTime`) after `Remaining`
@@ -51,6 +52,7 @@ Before bumping, `git fetch origin main` and take main's number + 1, so two sessi
 - 300: breach rooms: a breach wave adds a free Stash (`ExpansionRoom.Surprise` 6 = `SurpriseShape.Stash`) behind each remaining breach; no new fields (Docs/BreachRooms.md)
 - 300: breach rooms: a cleared breach wave adds a free Stash (`ExpansionRoom.Surprise` 6 = `SurpriseShape.Stash`) behind each remaining breach; no new fields (Docs/BreachRooms.md)
 
+- 345: the DPS Knight's Misericorde became Bladed Dive: FxKind MercyLeap/MercyKill/MercyEnd are now DiveRush/DiveHit/DiveReset with new fields.
 - 299: gold instead of a card: `Msg.Pick` with index 255 takes gold instead of an offered card (level-up offers only); `ShopAction.Remove` (value 2) is now `Sell` (pays half the shelf price instead of costing 75).
 - 298: Out of Ammo reworked: the player snapshot carries `Player.KnifeMove` and `KnifeSeq` (bytes, after `AmmoSeq`); `AmmoMove` is now the rifle arms' move 1-4
 - 297: Quick Play: the lobby message carries `QuickMode` (bool, after `HuntBoss`); `Msg.Start` carries, after the start wave, a Quick Play flag and (when set) its boss order (count byte + one `EnemyType` byte each).

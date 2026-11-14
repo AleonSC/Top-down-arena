@@ -40,7 +40,7 @@ namespace Arena
         LobbyAbility, // client -> host: cast your Hangout ability (a dash, barrier or burst heal by role) toward this angle; host -> all: (owner id, kind, position, angle) to show and apply (LobbyCombat.cs)
         Dodge,        // client -> host: this player dodged from this spot; the host gives them a moment of invulnerability (Dodge.cs)
         WildcardRequest, // client -> host: a Wildcard's whole loadout at once: weapon, first ability, second ability and its key (Session.SetWildcard)
-        Carry,        // host -> all: (player id, where to, seconds, kind) a Knight ability carries a player (the Gauntlet's charge, Misericorde's leaps); only that player's own game moves them
+        Carry,        // host -> all: (player id, where to, seconds, kind) a Knight ability carries a player (the Gauntlet's charge, Bladed Dive's rush); only that player's own game moves them
         UltRequest,   // client -> host: the key picked on the lobby's Ultimate row (Session.SetUlt; LobbyEntry.Ult)
         NetPings,     // host -> all: every player's round trip to the host, once a second, for the lag chart (LagNet.cs, Game/LagChartUi.cs)
         Respawn,      // client -> host: Practice Range only: kind 0 = get back up where you fell, 1 = restart the wave (the host's own only) (PracticeRespawn.cs)
