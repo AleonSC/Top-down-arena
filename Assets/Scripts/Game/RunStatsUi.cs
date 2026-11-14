@@ -376,11 +376,11 @@ namespace Arena
             float y = stage.yMax + 12f, x = card.x + 16f, w = card.width - 32f;
             LobbyKit.Heading(x, y, w, "Weapon", null, calm);
             y += 34f;
-            float dh = Mathf.Min(42f, Ui.TextHeight(p.Weapon.Desc, 11, w));
+            float dh = Mathf.Min(42f, Ui.TextHeight(KeyText.Fill(p.Weapon.Desc), 11, w));
             TipWeapon(new Rect(x - 6f, y - 2f, w + 12f, 22f + dh), p);
             Ui.Label(new Rect(x, y, w, 20f), p.Weapon.Name, 15, Color.white, TextAnchor.MiddleLeft, true);
             GUI.BeginGroup(new Rect(x, y + 20f, w, dh));
-            Ui.Label(new Rect(0f, 0f, w, Ui.TextHeight(p.Weapon.Desc, 11, w)), p.Weapon.Desc, 11, HoloDesc, TextAnchor.UpperLeft, false, true);
+            Ui.Label(new Rect(0f, 0f, w, Ui.TextHeight(KeyText.Fill(p.Weapon.Desc), 11, w)), KeyText.Fill(p.Weapon.Desc), 11, HoloDesc, TextAnchor.UpperLeft, false, true);
             GUI.EndGroup();
             y += 26f + dh;
 

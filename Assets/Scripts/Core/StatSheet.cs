@@ -81,7 +81,7 @@ namespace Arena
             {
                 lines.Add(new StatLine { Label = "Bonus abilities", Header = true });
                 // Laid out the way the player arranged their keys (and where a previewed new one would go).
-                string[] keys = { "Q", "E", "Shift" };
+                string[] keys = { KeyText.Q, KeyText.E, KeyText.Shift };  // the player's bound keys (KeyText.cs)
                 var layout = (AbilityId[])p.BonusKeys.Clone();
                 AbilityId added = AbilityId.None;
                 foreach (int id in taken)
