@@ -1,7 +1,7 @@
 portals f180 wave 1 remaining 21
 portals f210 Portal (1283,810) rem 22
 portals f288 Rioter (1259,775) rem 22
-portals f309 Swarmer (1263,785) rem 22
+portals f309 Swarmer (1263,784) rem 22
 portals f330 Swarmer (1245,816) rem 22
 portals f351 Rioter (1249,807) rem 22
 portals f506 Swarmer (50,520) rem 20
