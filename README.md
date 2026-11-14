@@ -8,7 +8,8 @@ their base health, set per boss so each fight lasts about 60-120 s (`BossHpMult`
 Queen 2.5x), and every boss has 10% more on top (`BossHpBonus`), and every enemy bullet hits 15% harder than its
 listed damage. **Enemy damage grows 3% a wave** (Normal: 1.3x at wave 11, 2.5x at wave 50), on everything that hurts
 you. The host picks a [difficulty](#difficulty) in the lobby: Easy, Normal, Hard, Nightmare or Custom. Pick a role,
-then survive endless waves of enemies with a boss after every 5th wave.
+then pick a mode: **Quick Play** (ten waves and a boss), the **Campaign** (100 waves, a boss after every 10th, then
+endless), a **Boss Hunt**, **Survival** or the **Practice Range**.
 
 There are no art assets: everything is drawn in code, and the game sets itself up when you
 press Play, so there are no scenes or prefabs to wire together.
@@ -462,7 +463,7 @@ Rarer cards show up a bit more often as you level. All the numbers live in
   3 Thugs (Rioter packs, Guard pairs); 4 Security Guards' aimed tracers (Yard, Guard pairs); 5 a recap; 6 Riot Shields (flank them); 7 Gas Grenadiers (Yard, Cell block);
   8 Taser Guards (stuns; parry the Fork Bolt back); 9 every squad, tighter; 10 the exam, the Riot line and a big Breakout. Each wave brings one new enemy, alone and last, and
   its squads only hold enemies you have already met. The Hive Queen's (waves 11-20) follow the same ten steps with her own: Workers, Soldiers (12), Bumbles (13), Needlers (14), a recap (15),
-  Comb Shields (16), Honey Lobbers (17), Stingers (18), every squad (19), the exam: the Royal guard and a big Swarm (20). The Singularity's (waves 31-40): Debris (31), Void Acolytes' bent orbs (32), Lenses (33), Gravitons' wells (34), Pulsars (35), a recap with Collapsars (36), Orbiters (37), White Dwarfs (38), every squad (39), the exam: the Accretion ring with everything (40). Other bosses build up as before until they get theirs.
+  Comb Shields (16), Honey Lobbers (17), Stingers (18), every squad (19), the exam: the Royal guard and a big Swarm (20). The Singularity's (waves 31-40): Debris (31), Void Acolytes' bent orbs (32), Lenses (33), Gravitons' wells (34), Pulsars (35), a recap with Collapsars (36), Orbiters (37), White Dwarfs (38), every squad (39), the exam: the Accretion ring with everything (40). Every other boss's ten waves follow the same steps with its own faction (see each under Enemies).
 - New enemy types unlock as the waves go up (see below).
 - **Knockback slides:** anything that shoves enemies (the Repulsion Cannon, Roar, Shockwave, the Scattergun up close,
   Knight swings, Bulldoze, Fortress, the Fuma Shuriken's fan) slides them the distance over 0.18 s instead of jumping
@@ -596,21 +597,21 @@ squad as often as a melee enemy used to come). Paths with their own mix keep it.
 ### Campaign buildup
 
 Every regular wave is made of boss-themed enemies (design: [`Docs/Campaign.md`](Docs/Campaign.md)). The last boss's
-faction **fades out** over the next five waves (35%, 25%, 15%, 5%, 0%), bosses from two fights back stay on as an
+faction **fades out** over the next waves (in the 100-wave Campaign: three, 40%, 20%, 8%, see Rules), bosses from two fights back stay on as an
 **older pool** (10% from wave 11), and the next boss's faction takes the rest, building up as before (65% to 100%;
-55% to 90% once the pool exists). Only built factions count (the Warden's and the Lich's zombies); a slice for a boss
-with no faction yet is the usual random mix. From wave 11, one wave in every five brings a **comeback squad**: a squad from an earlier boss's faction (the Warden's or the Lich's) arriving in place of that wave's older-pool singles. Turn it off with **Campaign buildup** in the Difficulty tab to get the
+55% to 90% once the pool exists). Every boss has a faction now. From wave 11, one wave in every five brings a **comeback squad**: a squad from an earlier boss's faction arriving in place of that wave's older-pool singles. Turn it off with **Campaign buildup** in the Difficulty tab to get the
 Boss approach below. Boss Hunts are unchanged.
 
 ### Boss approaches
 
-The four waves before each boss are its **approach**: part of each wave is the boss's own kind of enemy, so you meet
+Only with **Campaign buildup** off (above), and in runs saved before the 100-wave Campaign; wave numbers here are track
+waves (a boss after every 5th). The four waves before each boss are its **approach**: part of each wave is the boss's own kind of enemy, so you meet
 its world on the way to it (design: [`Docs/Approaches.md`](Docs/Approaches.md)). How much is a lobby setting
 (Difficulty tab, below): **Blend** (the default) builds up over the four waves, 34%, 51%, 68% then 85% of each wave;
 **Fully themed** makes all four waves the boss's own enemies; 0% turns it off. The rest of each wave is the usual mix,
 paths still apply (an enemy-mix path builds from what's left; Elite Gauntlet makes the faction elite too), and the
 boss fight itself is the same. A line at the top of the screen says "The Warden  in 2 waves", and the banner before
-the first and last waves says you're on the road to the boss, then that it's near. So far the **Warden** has a faction (waves 1-4), and the last wave before him always brings the **Riot Line**: four Riot Shields marching at you as a wall, five Guards close behind it, who break out and rush you once the wall gets within about 190 px or half its shields are down. The **Hive Queen** has one too (waves 6-9): eight bees, one for each of the Warden's roles (below), with the **Royal guard** (four Comb Shields, five Soldiers) on the last wave. The **Singularity** has one too (waves 16-19): the **Infall**, eight enemies with four squads (below), and on the last wave the **Accretion ring**: eight Debris and four Orbiters in a ring round you, 320 px out, with **two gaps**. It turns slowly and closes in to 110 px over about 10 s while the Orbiters sling their orbs inward: walk out through a gap. A faint violet **band** runs along the ring, with the two gaps left dark, edged in green and marked with chevrons pointing out. Bots walk out through a gap, keep clear of a White Dwarf's flash, Small Wells and Implosions. It breaks up after 12 s or once half of it is down. The **Lich** has one too (waves 31-34): eight, all seven of Zombie Infection's zombies and his own **Grave Caller**.
+the first and last waves says you're on the road to the boss, then that it's near. The **Warden**'s faction (waves 1-4), and the last wave before him always brings the **Riot Line**: four Riot Shields marching at you as a wall, five Guards close behind it, who break out and rush you once the wall gets within about 190 px or half its shields are down. The **Hive Queen** has one too (waves 6-9): eight bees, one for each of the Warden's roles (below), with the **Royal guard** (four Comb Shields, five Soldiers) on the last wave. The **Singularity** has one too (waves 16-19): the **Infall**, eight enemies with four squads (below), and on the last wave the **Accretion ring**: eight Debris and four Orbiters in a ring round you, 320 px out, with **two gaps**. It turns slowly and closes in to 110 px over about 10 s while the Orbiters sling their orbs inward: walk out through a gap. A faint violet **band** runs along the ring, with the two gaps left dark, edged in green and marked with chevrons pointing out. Bots walk out through a gap, keep clear of a White Dwarf's flash, Small Wells and Implosions. It breaks up after 12 s or once half of it is down. The **Lich** has one too (waves 31-34): eight, all seven of Zombie Infection's zombies and his own **Grave Caller**.
 Shamblers first, then Runners (in packs of three) and Spitters from wave 32, Crawlers, Bloaters and Shriekers from 33,
 Menders and Grave Callers from 34 (at most two Shriekers and two Grave Callers a wave), with six squads (Graveyard shift,
 Grave rush, Gravediggers: two Crawlers in a crowd, Plague cart: a Bloater with Spitters, Wake: a Shrieker behind a Runner
@@ -621,7 +622,7 @@ keeps about 320 px back; every 7 s it raises its hands and **three graves** crac
 Caller. At most four of its Shamblers are up at once; **kill the Caller and they crumble** (graves still opening close).
 Step out of the ring, then dig through to it. In the Campaign the Lich's ten waves teach one zombie each: Shamblers,
 Runners, Spitters, Crawlers, Bloaters, a recap with Shriekers, Menders, Grave Callers, every squad, then the exam with
-the Dead march. Zombies don't get back up outside the modifier, only out of a Caller's graves. His fight itself is unchanged. The other bosses' factions come next.
+the Dead march. Zombies don't get back up outside the modifier, only out of a Caller's graves. His fight itself is unchanged.
 
 The Warden's faction pays XP like regular enemies of their health (Rioter 7, Guard 15, Riot Shield 10, Gas Grenadier 9, Taser Guard 11, Security Guard 9),
 so its tougher approach waves don't leave you levels behind at his wave (about level 4 at Blend). The Rioters and Guards of
@@ -1340,8 +1341,8 @@ and so does the boss's health boost for strong builds. The HUD and the Tab scree
 
 The **Boss hunt** tab is a dossier: a looping drum of the ten bosses (status tag: SOON, LOCKED, OPEN or WON xN; mouse wheel, PREV / NEXT or a click rolls one to the top, and the list never ends). A boss you've never beaten is a **???** row with a "?" for its portrait (and a "?" in the scope), as in the Quick Play tab's boss pool. The boss on top is the picked one: the host can scroll onto a locked or coming-soon boss to look at it, but START stays off until the top boss's hunt is open. For the top boss it shows a green-edged target scope with its live model, the wave ladder, your hunts won, best time and the hunt's rules. A boss's hunt **opens once you've beaten it in a
 run** (the host's records decide, in co-op); the others say Locked or Coming soon, and the match won't start on a
-locked one. **Only the Warden has a hunt so far**: a hunt's build-up waves need the boss's faction (only the
-Warden has one yet), and later bosses will need the party handed a build that fits their strength. Records keep each hunt's plays, wins and best time per player
+locked one. **Only the Warden has a hunt so far**: every boss has a faction now, but later bosses' hunts will need the party
+handed a build that fits their strength (levels, legendaries and mods). Records keep each hunt's plays, wins and best time per player
 (not counted as runs). Winning a hunt unlocks that boss's perk (below). Plan: `Docs/BossHuntsAndPerks.md`.
 
 **Hunt map.** The Boss Hunt tab has a **Hunt map** switch (host only, off by default: off, a hunt is the ten waves in order). On, the hunt is a map of ten steps on three lanes, starting at the top and ending with the boss at the bottom; the screen between waves shows it, with the party, the next nodes, the picked node's detail and a **Lock in vote** key. Everyone votes for the next node (keys 1-3 or a click) and locks in; the node with the most votes wins, a tie goes to the host's vote, and after 20 s (counted once nobody is picking upgrades) the map picks for the party. A node with a single way on is taken at once. The wave that follows is that node's. Nodes: **Skirmish** (the boss's own troops at the step's strength), **Elite squad** (one step further into the faction, the set piece of a finale wave, and 30% of its enemies come as tougher elite variants; each Elite cleared is a **boss clue**, up to 3), **Ambush** (a short wave of 70% of the enemies, coming from every side all at once instead of on the clock; pays XP and leaves a chest), **Contraband** (a normal wave fought in the dark, like the Nightfall modifier; pays everyone a rare-or-better card), **Gamble** (unknown until you arrive, then a Skirmish 30%, an Elite 25%, an Ambush 20% or a Contraband 25%; shown on the sector chip under the wave plate), **Rest** (no fight: everyone heals to full and gets a reroll and a free upgrade pick) and **Shop** (no fight: the Bazaar opens; gold is earned all hunt long and leftovers turn into XP when it closes). A Rest or Shop never comes right after another, and the row before the boss is always one of them. The clues' effect on the boss is planned. Design: `Docs/HuntMap.md`.
@@ -1374,8 +1375,8 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 
 ## Practice Range
 
-In the lobby the host picks **Campaign** (100 waves in the Expanding arena), **Boss Hunt** (above) or **Practice** (the Practice Range)
-at the top. Practice has two sections, as tabs on the big screen: **Practice** (build your own waves) and **Training**
+In the lobby the host picks **Practice** (the Practice Range) on the mode carousel at the top (beside Quick Play, Campaign,
+Boss Hunt and Survival). Practice has two sections, as tabs on the big screen: **Practice** (build your own waves) and **Training**
 (short mechanic drills). Whichever you use, it's with everyone in the lobby, with upgrade picks between waves as usual, and
 **no XP counts**: a Practice run never reaches your profile (no rank XP, records, unlocks or run history), and the header
 says `NO XP · RESPAWN ON`. (Level-ups inside the run still give their upgrade picks.)
