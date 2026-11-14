@@ -69,7 +69,7 @@ namespace Arena
                 return new[] { 1 };
             if (step == Steps - 2)
                 return new[] { 0, 2 };
-            if (rng.Next(100) < 60)
+            if (rng.Next(100) < 75)
                 return new[] { 0, 1, 2 };
             switch (rng.Next(3))
             {
@@ -306,7 +306,7 @@ namespace Arena
                 case HuntNodeType.Elite: return "A tougher squad with the faction's set piece.";
                 case HuntNodeType.Ambush: return "A short, fast wave from every side.";
                 case HuntNodeType.Contraband: return "A fight in the dark. Win it for a rare-or-better card.";
-                case HuntNodeType.Rest: return "No fight. Everyone heals to full and gets a reroll.";
+                case HuntNodeType.Rest: return "No fight. Everyone heals to full and gets a reroll and an upgrade pick.";
                 case HuntNodeType.Shop: return "The Bazaar. Spend the gold you have earned this hunt.";
                 case HuntNodeType.Gamble: return "Unknown until you arrive: a Skirmish, an Elite (the curse), an Ambush or a Contraband (the gift).";
                 case HuntNodeType.Boss: return "The boss, at its full strength.";
@@ -323,7 +323,7 @@ namespace Arena
                 case HuntNodeType.Elite: return "Boss clue";
                 case HuntNodeType.Ambush: return "XP + a chest";
                 case HuntNodeType.Contraband: return "Rare+ card";
-                case HuntNodeType.Rest: return "Full heal + reroll";
+                case HuntNodeType.Rest: return "Heal + upgrade pick";
                 case HuntNodeType.Shop: return "Upgrades";
                 case HuntNodeType.Gamble: return "Varies";
                 case HuntNodeType.Boss: return "Hunt complete";

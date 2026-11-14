@@ -11,7 +11,7 @@ static partial class Program
     static void HuntMapTest()
     {
         const int seeds = 3000;
-        int firstBad = 0, breathers = 0, rowsBad = 0, noOut = 0, noIn = 0, far = 0, cross = 0, rule = 0, badTypes = 0, nodes = 0, multi = 0, elites = 0, fights = 0, noChoiceRows = 0;
+        int walkSteps = 0, walkChoices = 0, firstBad = 0, breathers = 0, rowsBad = 0, noOut = 0, noIn = 0, far = 0, cross = 0, rule = 0, badTypes = 0, nodes = 0, multi = 0, elites = 0, fights = 0, noChoiceRows = 0;
         for (int seed = 1; seed <= seeds; seed++)
         {
             var m = HuntMap.Generate(seed);
@@ -58,6 +58,8 @@ static partial class Program
                 }
             }
             fights += m.Rows.Sum(r => r.Count(n => n.Fight));
+            var walker = HuntMap.Generate(seed); var wr = new Random(seed);   // a random walk: how many steps offered a real choice
+            while (!walker.Complete) { var ch = walker.Choices(); if (walker.Step > 0 && walker.Step < HuntMap.Steps - 1) { walkSteps++; if (ch.Length >= 2) walkChoices++; } walker.Pick(ch[wr.Next(ch.Length)]); walker.Clear(); }
             if (badTypes > 0 && firstBad == 0) firstBad = seed;
         }
         Check(rowsBad == 0, "every map has 10 rows: one node in the middle first and last, the row before the boss on the outer lanes, 2-3 nodes in the rest, lanes left to right");
@@ -66,7 +68,7 @@ static partial class Program
         Check(cross == 0, "no two links of a row gap cross (3000 seeds)");
         if (badTypes > 0) Console.WriteLine("  first bad seed {0}: {1}", firstBad, string.Join(" | ", HuntMap.Generate(firstBad).Rows.Select(r => string.Join(",", r.Select(n => HuntMap.Name(n.Type) + ">" + string.Join("", n.Next))))));
         Check(badTypes == 0 && rule == 0, "the first row is a Skirmish, the row before the boss a Rest or Shop, the boss is last, Rest and Shop only in rows 3-7 and before the boss, never two no-fight steps in a row, the middle row has an Elite, no row is all Elites, every fighting row has a Skirmish");
-        Console.WriteLine("  info: {0:P0} of nodes have 2+ ways on, {1:P0} are Elites, {2:P0} are Rest or Shop, {3} rows with no choice at all", multi / (double)nodes, elites / (double)nodes, breathers / (double)nodes, noChoiceRows);
+        Console.WriteLine("  info: {0:P0} of nodes have 2+ ways on, {1:P0} of the steps of a random route offer a choice, {2:P0} of nodes are Elites, {3:P0} Rest or Shop, {4} rows with no choice at all", multi / (double)nodes, walkChoices / (double)walkSteps, elites / (double)nodes, breathers / (double)nodes, noChoiceRows);
 
         // The lines of the screen (HuntMapLayout.cs): right angles only, between the nodes, and none runs over another.
         float[] lx = { 100f, 230f, 360f }, ry = new float[HuntMap.Steps];
@@ -214,6 +216,7 @@ static partial class Program
         bool sawPrize = false, sawChest = false;
         Action keep = () =>
         {
+            if (g.State == MatchState.Fighting) foreach (var p in g.Players.Values) p.Hp = Math.Min(p.Hp, p.MaxHp * 0.3f);   // (so a Rest after it has something to heal)
             foreach (var p in g.Players.Values) sawPrize |= p.PrizePicks > 0 || p.OfferPrize;
             foreach (var pr in g.Props.Values) if (pr.Kind == PropKind.Chest) { sawChest |= !pr.Open; pr.Open = true; }   // (nobody walks to a chest here: an unopened one holds the wave)
             foreach (var p in g.Players.Values) { p.InvulnT = 1f; p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PrizePicks = 0; p.Offer = null; p.LegendaryQueue.Clear(); }
@@ -225,15 +228,14 @@ static partial class Program
         Check(g.HuntRoute.Current != null && g.HuntRoute.Current.Step == 0 && g.HuntNodeAt(1) == HuntNodeType.Skirmish, "the first wave is the map's first node, picked with no vote");
 
         var picked = new List<HuntNodeType> { HuntNodeType.Skirmish };
+        int rerollsExpected = g.Players.Values.Sum(p => p.Rerolls);   // (the total as of the last fight's start: only a Rest adds to it)
         int votes = 0, timerPicks = 0, blocked = 0, eliteChecks = 0, rests = 0, shops = 0, gambles = 0, ambushes = 0, contras = 0;
         for (int w = 2; w <= Hunts.Length - 1; w++)
         {
             int want = w;
-            int rerollsBefore = g.Players.Values.Sum(p => p.Rerolls);
-            foreach (var p in g.Players.Values) p.Hp = p.MaxHp * 0.3f;
             // (a node with a single way on is picked at once, and a Rest is cleared at once: wait for the row's node to be picked or the vote to open)
             Run(s, dt, 200f, () => g.State == MatchState.Intermission && (g.HuntRoute.Step >= want || (g.HuntRoute.Step == want - 1 && (g.HuntMapVoting || g.HuntRoute.Current != null))), keep);
-            if (g.HuntMapVoting)
+            if (g.HuntMapVoting && g.HuntRoute.Step == w - 1)   // (not the vote for the row after a Rest that cleared itself)
             {
                 var choices = g.HuntRoute.Choices();
                 Run(s, dt, 1f, () => c.HuntMapVoting && c.HuntRoute.Step == want - 1, keep);
@@ -272,7 +274,7 @@ static partial class Program
                     rests++;
                     Run(s, dt, 2f, () => g.HuntRoute.Step == want, keep);
                     if (w < Hunts.Length - 1)   // (a Rest right before the boss: the boss wave starts straight away)
-                        Check(g.Players.Values.All(p => p.Hp >= p.MaxHp - 0.01f) && g.Players.Values.Sum(p => p.Rerolls) == rerollsBefore + g.Players.Count, "a Rest heals everyone to full and gives each a reroll (wave " + w + ")");
+                        Check(g.Players.Values.All(p => p.Hp >= p.MaxHp - 0.01f) && g.Players.Values.Sum(p => p.Rerolls) == rerollsExpected + g.Players.Count, "a Rest heals everyone to full and gives each a reroll (wave " + w + ")");
                 }
                 else
                 {
@@ -291,6 +293,7 @@ static partial class Program
             Run(s, dt, 200f, () => g.Wave == w && g.State == MatchState.Fighting && c.HuntRoute != null && c.HuntRoute.Current != null && c.HuntRoute.Current.Index == g.HuntRoute.Current.Index, keep);
             Run(s, dt, 0.5f, null, keep);  // (the friend's copy of what a Gamble turned out to be)
             sawChest = false;
+            rerollsExpected = g.Players.Values.Sum(p => p.Rerolls);
             var eff = type == HuntNodeType.Gamble ? g.HuntGamble : type;
             if (type == HuntNodeType.Gamble)
             {
