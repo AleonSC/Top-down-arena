@@ -24,6 +24,15 @@ How it differs from the rest:
 | Enemies | Mixed factions by time: basic faction first, other factions phase in as the clock climbs. |
 | Progression | Still **level based**: kills give XP, levels give the usual upgrade picks (no timed picks, no Bazaar pop-up). |
 
+## The room (owner's answers)
+
+- **Size:** about **4x the area of today's arena** (first reading of "4x the size"; if 4x each side was meant, say so).
+- **Camera:** follows the player. In co-op each client's camera follows its own player, so players may spread out;
+  no leash or zoom-out. Enemies spawn off each player's view, so the spawner treats every player's view as no-spawn.
+- **Contents:** open floor with **a ton of crates and other destructible props** scattered across it, plus a few
+  **simple walls in the very middle and the corners** as cover. Props use the existing `Arena props` system; crates
+  can drop the usual pickups. Layout is fixed (same every run) so records compare.
+
 ## Spawner
 
 A time-driven spawner replaces the wave builder (`Spawns.md` and `WaveRefactor.md` hold the wave side).
@@ -75,10 +84,6 @@ add a line to `ProtocolHistory.md`. Any new enum values go at the end, before `N
 
 ## Open questions (owner)
 
-- **Room size and camera:** how big (first guess: about 3x3 screens), and does the camera follow one player or frame the
-  whole party (co-op players can spread; a leash keeps them within one screen of each other, or the camera zooms out)?
-  Needs a check of how the camera and `ExpandingArena.md` handle rooms bigger than the view.
-- **Room contents:** open floor, or props and cover scattered across it (`Arena props`)?
 - **Co-op scaling:** do 2 and 3 players raise the budget per head (first guess: yes, 1.6x and 2.2x), and are best
   times kept per party size?
 - **Soft ceiling:** after some time (say 25 min) does the pressure keep climbing forever, or plateau so a very strong
