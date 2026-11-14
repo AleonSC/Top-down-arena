@@ -1183,7 +1183,7 @@ prototype** in the F1 dev dock (Labs, in the lobby); otherwise the Campaign is t
   crates; its edge gates make way for the doors), and the rooms and hallways have a few pillars and short walls of
   their own. Walls stop walking and every shot, as in the layouts.
 - **One open map.** You and the enemies go anywhere through the doors; there's no locking and no room-by-room
-  camera. **The camera follows you** over the whole map. **Room rounds start zoomed in (1.5x)** with a "SCROLL ▼ TO
+  camera. **The camera follows you** over the whole map and stays centred on you even at its edges (the space past it shows). **Room rounds start zoomed in (1.5x)** with a "SCROLL ▼ TO
   ZOOM OUT" prompt low in the middle until you scroll out (the zoom goes from 2x in to 1x out, one hub-sized screen).
   Arrows at the edge of the screen point at enemies and teammates you can't see.
 - **Shortcuts.** The hub has a door into each hallway (top and bottom, in the middle) as well as the two room doors,
@@ -1461,6 +1461,7 @@ The file is a Practice setup with a few extra lines first, and is documented in 
 | Take / discard your chest item (standing on it) | G / X |
 | Gadget: tap to switch on / off, hold and let go to throw it where you aim | B |
 | Push a wall (the Expanding arena, between waves, by a wall) | C (rebindable): left click pushes the lit section out a tile, hold to keep pushing, wheel sets its width, right click or C again stops |
+| Open a door (the Expanding arena, between waves) | Z (rebindable): opens the door picker |
 | Bonus abilities | Q, E and Shift (once unlocked). When a card gives you one, choose its key on the card screen; move them between keys any time in the Tab menu (cooldowns move with them) |
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R (twice: the first arms it) |

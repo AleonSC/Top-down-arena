@@ -168,7 +168,7 @@ namespace Arena
 
             // Crosshair
             V2 m = MouseArena();
-            StepCursor(m, t, Input.GetMouseButton(0) && !fireBlocked);
+            StepCursor(m, t, Keybinds.Held(KeyAction.Fire) && !fireBlocked);
             if (!cursorWantPointer)  // (over a menu or the end screen the pointer is drawn on top of the UI instead: DrawMenuCursor)
                 DrawLookMorph(CursorLook(), m, t, cursorFire, cursorMorph, cursorHist);  // CursorLooks.cs: the pointer turning into your crosshair as a match starts
             EndJuiceFrame();

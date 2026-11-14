@@ -17,7 +17,9 @@ namespace Arena
         /// Is `variant` any of `id`'s variant weapons?
         public static bool IsVariantOf(WeaponId id, WeaponId variant) => VariantOf(id, 0) == variant || VariantOf(id, 1) == variant;
 
-        public static string Blurb(WeaponId variant) => variant == WeaponId.TwinRifleAuto
+        public static string Blurb(WeaponId variant) => KeyText.Fill(BlurbStock(variant));
+
+        static string BlurbStock(WeaponId variant) => variant == WeaponId.TwinRifleAuto
             ? "Both rifles aim and fire on their own at the nearest enemy on their side. Alt locks both onto one enemy until it dies."
             : variant == WeaponId.OutOfAmmo ? "The rifles swat the nearest bullet each. A knife chain on close enemies, ending in a rifle clap. Alt: a spin." : "";
         static readonly int[] Costs = { 10, 20 };

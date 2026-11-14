@@ -542,7 +542,9 @@ namespace Arena
         }
 
         /// The card text for this weapon: Multishot says what an extra projectile does for it.
-        public static string DescFor(UpgradeDef u, WeaponDef weapon)
+        public static string DescFor(UpgradeDef u, WeaponDef weapon) => KeyText.Fill(DescForStock(u, weapon));
+
+        static string DescForStock(UpgradeDef u, WeaponDef weapon)
         {
             if (weapon == null || weapon.ExtraDesc == null)
                 return u.Desc;

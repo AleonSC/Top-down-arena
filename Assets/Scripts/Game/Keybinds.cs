@@ -7,12 +7,12 @@ namespace Arena
     /// Every control you can change (Settings → Keybinds, KeybindsUi.cs). Fire and Parry may be a key or any mouse button
     /// (left and right click by default); the rest are keys (or the middle and side mouse buttons). The arrow keys always
     /// move too; the menu keys (Esc, Tab, Enter, F1-F5) are fixed. The number keys can be bound: while the upgrade picker
-    /// or the emote bar is open, the numbers it uses pick a card or an emote instead (NumberTaken). Saved in PlayerPrefs by name, so the order here is
-    /// only the order on the page (each group is a run of this list).
+    /// or the emote bar is open, the numbers it uses pick a card or an emote instead (NumberTaken). Saved in PlayerPrefs by name; the page's
+    /// groups and their order are Keybinds.Groups, so new actions go at the end here and wherever they fit there.
     public enum KeyAction
     {
         MoveUp, MoveDown, MoveLeft, MoveRight, Dodge, Ability, Ultimate, AbilityQ, AbilityE, AbilityShift, Fire, Parry, WeaponAction,
-        TakeItem, DiscardItem, Gadget, PushWall, Reroll, AimLine, ToggleHud, Mute, Emote, Ping, ReadyUp,
+        TakeItem, DiscardItem, Gadget, PushWall, Reroll, AimLine, ToggleHud, Mute, Emote, Ping, ReadyUp, OpenDoors,
     }
 
     public static class Keybinds
@@ -23,12 +23,12 @@ namespace Arena
         {
             KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.LeftControl, KeyCode.Space, KeyCode.F, KeyCode.Q, KeyCode.E, KeyCode.LeftShift,
             KeyCode.Mouse0, KeyCode.Mouse1, KeyCode.LeftAlt,
-            KeyCode.G, KeyCode.X, KeyCode.B, KeyCode.C, KeyCode.R, KeyCode.V, KeyCode.H, KeyCode.M, KeyCode.T, KeyCode.Mouse2, KeyCode.Y,
+            KeyCode.G, KeyCode.X, KeyCode.B, KeyCode.C, KeyCode.R, KeyCode.V, KeyCode.H, KeyCode.M, KeyCode.T, KeyCode.Mouse2, KeyCode.Y, KeyCode.Z,
         };
         static readonly string[] Titles =
         {
             "Move up", "Move down", "Move left", "Move right", "Dodge", "Role ability", "Ultimate", "Bonus ability 1", "Bonus ability 2",
-            "Bonus ability 3", "Fire", "Parry", "Weapon secondary", "Take chest item", "Discard chest item", "Use gadget", "Push wall", "Reroll upgrades", "Aim line on / off", "Hide / show the HUD", "Mute sound", "Emotes", "Ping", "Ready for the next wave",
+            "Bonus ability 3", "Fire", "Parry", "Weapon secondary", "Take chest item", "Discard chest item", "Use gadget", "Push wall", "Reroll upgrades", "Aim line on / off", "Hide / show the HUD", "Mute sound", "Emotes", "Ping", "Ready for the next wave", "Open a door",
         };
         static readonly string[] Lines =
         {
@@ -37,11 +37,18 @@ namespace Arena
             "Your role's ability", "One per role and class", "The first bonus ability slot (the key it starts on)", "The second bonus ability slot",
             "The third bonus ability slot", "Hold to shoot (left click by default)", "Hold for the shield toward your cursor (right click by default)",
             "Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama whirl",
-            "While standing on it", "While standing on it", "Tap: switch your gadget on or off. Hold and let go: throw it where you aim", "Between waves, by a wall (Expanding arena): push it out a tile at a time", "In the upgrade picker", "A line from you toward the cursor", "A clean screen; a slim boss bar stays", "Everything off at once", "Hold to open the emote bar: scroll or click to pick one", "Tap to ping your cursor, hold for the wheel (middle mouse by default)", "Between waves: say you are ready (the wave starts once everyone is)",
+            "While standing on it", "While standing on it", "Tap: switch your gadget on or off. Hold and let go: throw it where you aim", "Between waves, by a wall (Expanding arena): push it out a tile at a time", "In the upgrade picker", "A line from you toward the cursor", "A clean screen; a slim boss bar stays", "Everything off at once", "Hold to open the emote bar: scroll or click to pick one", "Tap to ping your cursor, hold for the wheel (middle mouse by default)", "Between waves: say you are ready (the wave starts once everyone is)", "Between waves (Expanding arena): open the door picker",
         };
-        /// The groups on the Keybinds page: heading and the first action of each.
+        /// The groups on the Keybinds page: heading and the actions in each, in page order (every action in exactly one).
         public static readonly string[] GroupNames = { "MOVEMENT", "ABILITIES", "WEAPON", "ITEMS AND PICKS", "TOGGLES" };
-        public static readonly KeyAction[] GroupStart = { KeyAction.MoveUp, KeyAction.Ability, KeyAction.Fire, KeyAction.TakeItem, KeyAction.AimLine };
+        public static readonly KeyAction[][] Groups =
+        {
+            new[] { KeyAction.MoveUp, KeyAction.MoveDown, KeyAction.MoveLeft, KeyAction.MoveRight, KeyAction.Dodge },
+            new[] { KeyAction.Ability, KeyAction.Ultimate, KeyAction.AbilityQ, KeyAction.AbilityE, KeyAction.AbilityShift },
+            new[] { KeyAction.Fire, KeyAction.Parry, KeyAction.WeaponAction },
+            new[] { KeyAction.TakeItem, KeyAction.DiscardItem, KeyAction.Gadget, KeyAction.PushWall, KeyAction.OpenDoors, KeyAction.Reroll },
+            new[] { KeyAction.AimLine, KeyAction.ToggleHud, KeyAction.Mute, KeyAction.Emote, KeyAction.Ping, KeyAction.ReadyUp },
+        };
 
         static readonly KeyCode[] keys = (KeyCode[])Defaults.Clone();
         /// The optional second key of each action (KeyCode.None = unset); either key triggers the action.
@@ -102,6 +109,23 @@ namespace Arena
         public static bool Down(KeyAction a) => !Busy && (Slot(a, keys[(int)a], Input.GetKeyDown) || Slot(a, keys2[(int)a], Input.GetKeyDown));
         /// Held now (never while rebinding).
         public static bool Held(KeyAction a) => !Busy && (Slot(a, keys[(int)a], Input.GetKey) || Slot(a, keys2[(int)a], Input.GetKey));
+
+        /// This OnGUI event is the action's key (or mouse button) going down: for screens that read keys in OnGUI.
+        public static bool IsEvent(KeyAction a, Event ev)
+        {
+            if (Busy || ev == null)
+                return false;
+            KeyCode k;
+            if (ev.type == EventType.KeyDown)
+                k = ev.keyCode;
+            else if (ev.type == EventType.MouseDown)
+                k = KeyCode.Mouse0 + ev.button;
+            else
+                return false;
+            return k != KeyCode.None && (Same(keys[(int)a], k) || Same(keys2[(int)a], k));
+        }
+
+        static bool Same(KeyCode bound, KeyCode k) => bound != KeyCode.None && Either(bound, c => c == k);
 
         static bool Slot(KeyAction a, KeyCode k, Func<KeyCode, bool> test) => k != KeyCode.None && !NumberTaken(a, k) && Either(k, test);
 
@@ -187,7 +211,15 @@ namespace Arena
         static void Changed()
         {
             Version++;
+            SyncKeyText();
             Save();
+        }
+
+        /// Hand the bound keys to Core's game text (weapon and upgrade descriptions name them: KeyText.cs).
+        static void SyncKeyText()
+        {
+            Func<KeyAction, string> n = a => Get(a) == KeyCode.LeftAlt ? "Alt" : KeyName(Get(a));
+            KeyText.Set(n(KeyAction.WeaponAction), n(KeyAction.Ability), n(KeyAction.AbilityQ), n(KeyAction.AbilityE), n(KeyAction.AbilityShift));
         }
 
         public static void Load()
@@ -209,6 +241,7 @@ namespace Arena
                         keys2[i] = KeyCode.None;
             }
             Version++;
+            SyncKeyText();
         }
 
         static void Save()
@@ -314,6 +347,16 @@ namespace Arena
             if (k >= KeyCode.Keypad0 && k <= KeyCode.Keypad9)
                 return "Num " + ((int)k - (int)KeyCode.Keypad0);
             return k.ToString();
+        }
+
+        /// `s` with each "{Action}" (a KeyAction name, e.g. "{Dodge}") swapped for that action's key name.
+        public static string Fill(string s)
+        {
+            if (s == null || s.IndexOf('{') < 0)
+                return s;
+            foreach (var a in All)
+                s = s.Replace("{" + a + "}", KeyName(Get(a)));
+            return s;
         }
 
         static string[] slotLabels;
