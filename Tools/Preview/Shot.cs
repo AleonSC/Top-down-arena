@@ -763,7 +763,7 @@ static partial class Shot {
       var l1 = cput(EnemyType.Lamplighter, new V2(200f, 380f), 0.15f); l1.Winding = true; l1.Phase = 0;
       var l2 = cput(EnemyType.Lamplighter, new V2(600f, 380f), -0.1f); l2.Winding = true; l2.Phase = 1;
       var mo = cput(EnemyType.Mourner, new V2(1180f, 640f), 0f); mo.Phase = 1;
-      var fire = typeof(Game).GetMethod("ReaperCultFire", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      var fire = typeof(Game).GetMethod("ReaperCultFire_Mourner", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
       for (int k = 0; k < 16; k++) { fire.Invoke(cg, new object[] { mo, 0f }); foreach (var bl in cg.Bullets.Values) bl.Pos += bl.Vel * 0.12f; }
       typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
       cg.AnimT += 0.3f;
