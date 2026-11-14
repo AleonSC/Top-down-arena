@@ -1527,7 +1527,6 @@ static partial class Shot {
       string fp = Environment.GetEnvironmentVariable("EXPANDAT");  // EXPANDAT=x,y: where you stand (default the hub)
       if (fp != null) { var q = fp.Split(','); foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(float.Parse(q[0], System.Globalization.CultureInfo.InvariantCulture), float.Parse(q[1], System.Globalization.CultureInfo.InvariantCulture)); }
     }
-    if (Environment.GetEnvironmentVariable("WALLSTYLE") != null) ArenaApp.WallStyle = int.Parse(Environment.GetEnvironmentVariable("WALLSTYLE"));  // WALLSTYLE=<0-4>: the wall colour style (LayoutLook.cs)
     if (Environment.GetEnvironmentVariable("WALLBOSS") != null) ArenaApp.WallBossOverride = (EnemyType)Enum.Parse(typeof(EnemyType), Environment.GetEnvironmentVariable("WALLBOSS"));  // WALLBOSS=<EnemyType>: walls themed for that boss
     if (Environment.GetEnvironmentVariable("LAYOUT") != null) {  // LAYOUT=<LayoutId number, 1-6>: that floor plan with its cover, everyone out of its walls
       var lg = host.Game; lg.PropsOn = true; lg.DevSetLayout((LayoutId)int.Parse(Environment.GetEnvironmentVariable("LAYOUT"))); lg.LayoutAge = 5f;

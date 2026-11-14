@@ -100,6 +100,16 @@ namespace Arena
             Line(a, b, w, col);
         }
 
+        /// A neon tube for the crates: a wide soft halo, the coloured line and a white-hot core.
+        void NeonLine(V2 a, V2 b, float w, Rgba col)
+        {
+            Line(a, b, w + 12f, col.WithAlpha(col.A * 0.06f));
+            Line(a, b, w + 5f, col.WithAlpha(col.A * 0.18f));
+            Line(a, b, w + 2f, col.WithAlpha(col.A * 0.4f));
+            Line(a, b, w, col);
+            Line(a, b, w * 0.45f, col.Mix(new Rgba(1f, 1f, 1f), 0.7f).WithAlpha(col.A));
+        }
+
         void DrawCrateHolo(Prop p, V2 c, float al, float t)
         {
             bool heavy = p.Kind == PropKind.HeavyCrate;
@@ -107,7 +117,7 @@ namespace Arena
             int seed = p.Seed;
             var col = (hp < 0.34f ? PropHoloPink : heavy ? PropHoloBlue : PropHoloCyan).WithAlpha(al);
             // The projected pane and its scanlines.
-            FillRect(c.X - h, c.Y - h, h * 2f, h * 2f, (heavy ? PropHoloBlue : PropHoloCyan).WithAlpha((heavy ? 0.09f : 0.07f) * al));
+            FillRect(c.X - h, c.Y - h, h * 2f, h * 2f, (heavy ? PropHoloBlue : PropHoloCyan).WithAlpha((heavy ? 0.13f : 0.11f) * al));
             if (!fxReduced)
                 for (float y = -h + 1f; y < h; y += 3f)
                     FillRect(c.X - h, c.Y + y, h * 2f, 1f, PropHoloCyan.WithAlpha(0.10f * al));
@@ -132,18 +142,18 @@ namespace Arena
             if (heavy)
             {
                 float x0 = -h + 7f, s2 = 2f * h - 14f;
-                GlowLine(c + new V2(x0, x0), c + new V2(x0 + s2, x0), 1f, col);
-                GlowLine(c + new V2(x0 + s2, x0), c + new V2(x0 + s2, x0 + s2), 1f, col);
-                GlowLine(c + new V2(x0 + s2, x0 + s2), c + new V2(x0, x0 + s2), 1f, col);
-                GlowLine(c + new V2(x0, x0 + s2), c + new V2(x0, x0), 1f, col);
+                NeonLine(c + new V2(x0, x0), c + new V2(x0 + s2, x0), 1f, col);
+                NeonLine(c + new V2(x0 + s2, x0), c + new V2(x0 + s2, x0 + s2), 1f, col);
+                NeonLine(c + new V2(x0 + s2, x0 + s2), c + new V2(x0, x0 + s2), 1f, col);
+                NeonLine(c + new V2(x0, x0 + s2), c + new V2(x0, x0), 1f, col);
                 for (int i = 0; i < 4; i++)
                 {
                     float nx = (i & 1) != 0 ? h - 9f : -h + 5f, ny = (i & 2) != 0 ? h - 9f : -h + 5f;
                     FillRect(nx - 2f, c.Y + ny - 2f, 8f, 8f, col.WithAlpha(col.A * 0.12f));
                     FillRect(c.X + nx, c.Y + ny, 4f, 4f, col);
                 }
-                GlowLine(c + new V2(-4f, 0f), c + new V2(4f, 0f), 1f, col);
-                GlowLine(c + new V2(0f, -4f), c + new V2(0f, 4f), 1f, col);
+                NeonLine(c + new V2(-4f, 0f), c + new V2(4f, 0f), 1f, col);
+                NeonLine(c + new V2(0f, -4f), c + new V2(0f, 4f), 1f, col);
             }
             // Corner brackets, always whole, so the crate stays readable however worn.
             float L = heavy ? 11f : 9f, bw = 2.8f, e = bw / 2f;
@@ -151,8 +161,8 @@ namespace Arena
             {
                 float sx = (i & 1) != 0 ? 1f : -1f, sy = (i & 2) != 0 ? 1f : -1f;
                 V2 corner = c + new V2(sx * h, sy * h);
-                GlowLine(corner + new V2(sx * e, 0f), corner + new V2(-sx * L, 0f), bw, col);
-                GlowLine(corner + new V2(0f, sy * e), corner + new V2(0f, -sy * L), bw, col);
+                NeonLine(corner + new V2(sx * e, 0f), corner + new V2(-sx * L, 0f), bw, col);
+                NeonLine(corner + new V2(0f, sy * e), corner + new V2(0f, -sy * L), bw, col);
             }
             // A worn crate glitches: now and then a bright slice jumps across it.
             if (dmg > 0f && !fxReduced && MathX.Fmod(t * 0.7f + seed * 0.13f, 1f) < 0.07f)
@@ -166,7 +176,7 @@ namespace Arena
         {
             bool on = PropHash(seed * 31 + id) > dmg * 0.8f || (!fxReduced && Mathf.Sin(t * 14f + id * 2.3f) > 0.9f);
             if (on)
-                GlowLine(c + new V2(x1, y1), c + new V2(x2, y2), w, col);
+                NeonLine(c + new V2(x1, y1), c + new V2(x2, y2), w, col);
         }
 
         void DrawPotHolo(Prop p, V2 c, float al, float t)
