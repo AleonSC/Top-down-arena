@@ -259,6 +259,7 @@ namespace Arena
             DrawSprayOver(t);  // Arterial Spray's soaked enemies and drops in flight (ArterialSprayLook.cs)
             DrawBloodbathOver(t);  // enemies wading in a Bloodbath: tinted, bleeding drops (BloodbathLook.cs)
             DrawWardenOver(t);  // the Warden blinded or stunned (WardenLook.cs)
+            DrawWardenIntro(t);  // the Warden's entrance: its Lockdown cell (WardenIntro.cs)
             DrawVeinBeams(t);  // BloodMageLook.cs
             DrawRadiantOrbs(t);
             DrawLeechTendrils(t);

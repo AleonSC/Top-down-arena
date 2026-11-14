@@ -79,6 +79,7 @@ namespace Arena
         // Its own light: led across the Warden for ExposeHold seconds, it's blinded for ExposeTime (stops firing,
         // takes ExposedMult damage); then the light has to be on it afresh, after ExposeCooldown.
         public const float ExposeTime = 3f, ExposedMult = 1.5f;
+        public const float WardenIntroTime = 2.9f;  // its entrance: it can't act or be hurt until its Lockdown cell breaks (Game/WardenIntro.cs)
         const float ExposeCatch = 0.3f, ExposeCooldown = 2f;
         // A perfect parry sends a stun shot back at it: hit, it's frozen for WardenStunTime.
         public const float WardenStunTime = 1.5f;

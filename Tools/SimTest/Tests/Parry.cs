@@ -157,7 +157,7 @@ static partial class Program
         Run(s, dt, 1f, null, pin);  // shield down long enough that raising it is a fresh parry
         s[0].Game.Bot = true;       // aims at the Warden
         s[0].Game.HoldParry = true;
-        Run(s, dt, 12f, () => reflected > 10 && counter, pin);  // up to 12 s: the Warden rests between its attacks
+        Run(s, dt, 15f, () => reflected > 10 && counter, pin);  // up to 15 s: the Warden rests between its attacks (its entrance shifts when they fall)
         s[0].Game.HoldParry = false;
         float plain = 12f * me.Stats.DmgMult;
         Console.WriteLine("  mirror/riposte: {0} shots reflected, strongest {1:0.0} (plain reflect {2:0.0}), counterstance {3}", reflected, biggestReflect, plain, counter);

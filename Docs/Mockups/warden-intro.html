@@ -1,0 +1,324 @@
+<title>Warden Intro</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one column of three "monitors", each a looping canvas with a timed beat sheet beside/below it. Single dark look, like the game. */
+:root{
+  --bg:#0b0f18; --panel:#111827; --line:#223049; --fg:#dbe4f3; --dim:#8794ad;
+  --pink:#ff4080; --cyan:#2fd4e6; --amber:#ffb347;
+  --display:"Chakra Petch",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 48px}
+.wrap{max-width:1040px;margin:0 auto;display:grid;gap:28px}
+header{display:grid;gap:6px}
+h1{font:700 34px/1.1 var(--display);letter-spacing:.06em;margin:0;text-transform:uppercase}
+h1 span{color:var(--pink)}
+header p{margin:0;color:var(--dim);max-width:68ch}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;display:grid;gap:12px}
+.card h2{font:700 20px/1.2 var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.card h2 .tag{font:500 12px var(--mono);color:var(--pink);letter-spacing:.1em}
+.pitch{margin:0;color:var(--dim)}
+canvas{width:100%;max-width:100%;aspect-ratio:16/9;display:block;background:#121826;border-radius:3px}
+.ctrl{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button{font:600 13px var(--body);color:var(--fg);background:#1a2438;border:1px solid var(--line);border-radius:4px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--cyan)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+button[aria-pressed="true"]{border-color:var(--pink);color:var(--pink)}
+input[type=range]{flex:1;min-width:140px;accent-color:var(--pink)}
+.time{font:500 13px var(--mono);color:var(--dim);font-variant-numeric:tabular-nums;min-width:8ch;text-align:right}
+.beats{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0;font-size:14px}
+.beats dt{font:500 13px var(--mono);color:var(--amber);font-variant-numeric:tabular-nums}
+.beats dd{margin:0;min-width:0}
+.reuse{margin:0;font-size:13px;color:var(--dim)}
+.reuse code{font:500 12px var(--mono);color:var(--cyan)}
+</style>
+
+<div class="wrap">
+<header>
+  <h1>The <span>Warden</span> · intro</h1>
+  <p>Three ~6 s entrances for the wave-5 boss, drawn with the fight's real shapes and colours: the pink octagon, the corner watchtower, push-bullet gates, riot doors and the stage marks on the boss bar. Approximate: browser glow and fonts won't match <code>Ui.cs</code> exactly.</p>
+</header>
+
+<section class="card" data-opt="A">
+  <h2>A · Searchlight <span class="tag">6.0 s</span></h2>
+  <p class="pitch">Lights out, the tower's searchlight hunts across the yard, finds the middle, and the Warden drops into the pool.</p>
+  <canvas width="1280" height="720"></canvas>
+  <div class="ctrl"><button class="play">Pause</button><button class="slow" aria-pressed="false">½ speed</button><input type="range" min="0" max="6" step="0.01" aria-label="Scrub"><span class="time"></span></div>
+  <dl class="beats">
+    <dt>0.0</dt><dd>Lights fade to red-black; a slow red wash on the walls (no flashing).</dd>
+    <dt>1.0</dt><dd>Watchtower lamp clicks on; the beam sweeps past the players, then locks on mid-arena.</dd>
+    <dt>2.6</dt><dd>Shadow grows in the pool; the Warden drops in. Slam at 3.0: shockwave, dust, screen shake.</dd>
+    <dt>3.2</dt><dd>Name stamped on like a prison stamp.</dd>
+    <dt>5.0</dt><dd>Lights back up, boss bar fills (ticks at 65 % and 30 %: Lockdown, Riot).</dd>
+  </dl>
+  <p class="reuse">Reuses <code>DrawWatchtower</code>, <code>DrawSearchlight</code>, the last stand's darkness from <code>DrawWardenAlarm</code>.</p>
+</section>
+
+<section class="card" data-opt="B">
+  <h2>B · Lockdown <span class="tag">5.6 s</span></h2>
+  <p class="pitch">Push-bullet gates close in from all four sides into a cell, a padlock snaps shut, and the Warden breaks the cell open.</p>
+  <canvas width="1280" height="720"></canvas>
+  <div class="ctrl"><button class="play">Pause</button><button class="slow" aria-pressed="false">½ speed</button><input type="range" min="0" max="5.6" step="0.01" aria-label="Scrub"><span class="time"></span></div>
+  <dl class="beats">
+    <dt>0.0</dt><dd>Red warning strips; four gate walls slide in, speeding up.</dd>
+    <dt>1.3</dt><dd>They meet in a box mid-arena (clank, shake). Silhouette appears inside.</dd>
+    <dt>1.7</dt><dd>Padlock shackle drops shut; the Warden lights up pink.</dd>
+    <dt>2.6</dt><dd>Lock breaks: the cell blows outward and the orbs fade.</dd>
+    <dt>3.0</dt><dd>CRT scan band types THE WARDEN · LOCKDOWN IN EFFECT; boss bar fills at 4.6.</dd>
+  </dl>
+  <p class="reuse">Reuses <code>DrawPushBullet</code>, <code>DrawGateLock</code>, the scan band from <code>WaveBand.cs</code>.</p>
+</section>
+
+<section class="card" data-opt="C">
+  <h2>C · Riot call <span class="tag">6.4 s</span></h2>
+  <p class="pitch">The riot doors burst, rioters crowd a ring round the middle, and the Warden walks down from the tower with its ID card on screen.</p>
+  <canvas width="1280" height="720"></canvas>
+  <div class="ctrl"><button class="play">Pause</button><button class="slow" aria-pressed="false">½ speed</button><input type="range" min="0" max="6.4" step="0.01" aria-label="Scrub"><span class="time"></span></div>
+  <dl class="beats">
+    <dt>0.5</dt><dd>Both riot doors burst open; rioters pour in and ring the middle.</dd>
+    <dt>1.8</dt><dd>The Warden walks from the tower, a dust puff each heavy step.</dd>
+    <dt>3.2</dt><dd>It stops and shows its baton-charge line at the party; ID card slides in.</dd>
+    <dt>4.4</dt><dd>A red roar ring: the rioters scatter back out, doors slam.</dd>
+    <dt>5.4</dt><dd>Card slides away, boss bar fills.</dd>
+  </dl>
+  <p class="reuse">Reuses <code>DrawRiotDoors</code>, <code>DrawRioterBody</code>, the charge telegraph in <code>DrawWardenUnderlay</code>.</p>
+</section>
+</div>
+
+<script>
+const W=1280,H=720,TAU=Math.PI*2;
+const PINK=[255,64,128],LIGHT=[255,242,199],LOCK=[255,77,64],PUSH=[153,176,224],PUSHL=[204,222,255],PUSHE=[41,56,94],RIOT=[255,140,64];
+const rgba=(c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a})`;
+const cl=x=>Math.max(0,Math.min(1,x)), seg=(t,a,b)=>cl((t-a)/(b-a));
+const sm=k=>k*k*(3-2*k), eOut=k=>1-Math.pow(1-k,3), eIn=k=>k*k*k;
+const back=k=>{const c=1.7;return 1+(c+1)*Math.pow(k-1,3)+c*Math.pow(k-1,2)};
+const lerp=(a,b,k)=>a+(b-a)*k;
+const hash=n=>{const s=Math.sin(n*127.1+311.7)*43758.5453;return s-Math.floor(s)};
+const CEN={x:640,y:340}, P1={x:520,y:600}, P2={x:760,y:600}, LAMP={x:68,y:68};
+
+function circle(c,x,y,r,f){c.beginPath();c.arc(x,y,r,0,TAU);c.fillStyle=f;c.fill()}
+function ring(c,x,y,r,w,s){c.beginPath();c.arc(x,y,r,0,TAU);c.lineWidth=w;c.strokeStyle=s;c.stroke()}
+function oct(c,r,rot){c.beginPath();for(let i=0;i<8;i++){const a=rot+Math.PI/8+i*Math.PI/4;c.lineTo(Math.cos(a)*r,Math.sin(a)*r)}c.closePath()}
+
+function arena(c){
+  c.fillStyle='#121826';c.fillRect(0,0,W,H);
+  c.strokeStyle='#1b2539';c.lineWidth=1;c.beginPath();
+  for(let x=0;x<=W;x+=64){c.moveTo(x+.5,0);c.lineTo(x+.5,H)}
+  for(let y=0;y<=H;y+=64){c.moveTo(0,y+.5);c.lineTo(W,y+.5)}
+  c.stroke();
+  c.strokeStyle='rgba(47,212,230,.35)';c.lineWidth=4;c.strokeRect(4,4,W-8,H-8);
+}
+function tower(c,lit){
+  c.fillStyle='#262f42';c.fillRect(14,14,56,56);c.strokeStyle='#3b475f';c.lineWidth=3;c.strokeRect(14,14,56,56);
+  c.strokeStyle='#1a2130';c.beginPath();c.moveTo(14,14);c.lineTo(70,70);c.moveTo(70,14);c.lineTo(14,70);c.stroke();
+  circle(c,LAMP.x,LAMP.y,12,lit>0?rgba(LIGHT,.4+.6*lit):'#555c6b');
+  if(lit>0)circle(c,LAMP.x,LAMP.y,24,rgba(LIGHT,.18*lit));
+}
+function player(c,p,col,aim){
+  circle(c,p.x,p.y+3,17,'rgba(0,0,0,.35)');circle(c,p.x,p.y,16,col);ring(c,p.x,p.y,16,3,'rgba(0,0,0,.4)');
+  c.strokeStyle='#cfd6e4';c.lineWidth=5;c.beginPath();c.moveTo(p.x,p.y);c.lineTo(p.x+Math.cos(aim)*28,p.y+Math.sin(aim)*28);c.stroke();
+}
+function players(c){const a1=Math.atan2(CEN.y-P1.y,CEN.x-P1.x),a2=Math.atan2(CEN.y-P2.y,CEN.x-P2.x);player(c,P1,'#4fd8ff',a1);player(c,P2,'#ff9a3c',a2)}
+function warden(c,x,y,s=1,a=1,rot=0,dark=0){
+  if(a<=0)return;c.save();c.globalAlpha*=a;c.translate(x,y);c.scale(s,s);
+  c.shadowColor=rgba(PINK,.7*(1-dark));c.shadowBlur=26;
+  oct(c,46,rot);c.fillStyle=`rgb(${lerp(255,40,dark)|0},${lerp(64,20,dark)|0},${lerp(128,34,dark)|0})`;c.fill();
+  c.shadowBlur=0;c.lineWidth=4;c.strokeStyle='rgba(90,8,40,.9)';c.stroke();
+  oct(c,30,rot);c.fillStyle='rgba(0,0,0,.24)';c.fill();
+  for(let i=0;i<4;i++){c.save();c.rotate(rot+i*Math.PI/2);c.fillStyle='rgba(60,4,28,.75)';c.fillRect(30,-4,14,8);c.restore()}
+  c.fillStyle=dark>.5?'rgba(255,90,90,.9)':'#ffe3ec';c.fillRect(-14,-5,28,10); // the visor
+  c.restore();
+}
+function shake(c,t,t0,dur,amp){const k=seg(t,t0,t0+dur);if(k<=0||k>=1)return;const a=amp*(1-k);c.translate(Math.sin(t*90)*a,Math.cos(t*73)*a)}
+function dust(c,x,y,t,t0,n,r0,dist,col){
+  const k=seg(t,t0,t0+.7);if(k<=0||k>=1)return;
+  for(let i=0;i<n;i++){const a=i/n*TAU+hash(i+t0)*.5,d=r0+dist*(.6+.4*hash(i*3+t0))*eOut(k);
+    circle(c,x+Math.cos(a)*d,y+Math.sin(a)*d*.8,(6+6*hash(i*7))*(1-k*.5),rgba(col,.45*(1-k)))}
+}
+function shock(c,x,y,t,t0,r1,col){const k=seg(t,t0,t0+.55);if(k<=0||k>=1)return;ring(c,x,y,46+(r1-46)*eOut(k),10*(1-k)+2,rgba(col,.8*(1-k)))}
+function bossBar(c,k){
+  if(k<=0)return;const x=340,w=600,y=34;c.save();c.globalAlpha=Math.min(1,k*4);
+  c.font='700 18px "Chakra Petch",sans-serif';c.fillStyle='#ffd9e6';c.textAlign='left';c.fillText('THE WARDEN',x,y-8);
+  c.textAlign='right';c.fillStyle='#8794ad';c.font='500 14px "IBM Plex Mono",monospace';c.fillText('COUNT',x+w,y-8);
+  c.fillStyle='rgba(0,0,0,.55)';c.fillRect(x,y,w,14);c.fillStyle=rgba(PINK,1);c.fillRect(x,y,w*eOut(cl(k)),14);
+  c.fillStyle='rgba(255,255,255,.25)';c.fillRect(x,y,w*eOut(cl(k)),4);
+  c.fillStyle='#0b0f18';for(const f of [.65,.3])c.fillRect(x+w*f-1,y-3,3,20);
+  c.strokeStyle='rgba(255,255,255,.3)';c.lineWidth=1;c.strokeRect(x+.5,y+.5,w-1,13);c.restore();
+}
+function stamp(c,t,t0,t1,x,y,title,sub){
+  if(t<t0)return;const k=seg(t,t0,t0+.16),out=seg(t,t1-.3,t1);if(out>=1)return;
+  c.save();c.globalAlpha=k*(1-out);c.translate(x,y);c.rotate(-.05);const s=1.7-.7*eOut(k);c.scale(s,s);
+  c.font='700 66px "Chakra Petch",sans-serif';const tw=c.measureText(title).width;
+  c.fillStyle='rgba(20,4,10,.7)';c.fillRect(-tw/2-28,-62,tw+56,108);
+  c.strokeStyle=rgba(LOCK,.95);c.lineWidth=5;c.strokeRect(-tw/2-28,-62,tw+56,108);c.lineWidth=2;c.strokeRect(-tw/2-20,-54,tw+40,92);
+  c.textAlign='center';c.fillStyle='#ffe9ee';c.fillText(title,0,6);
+  c.font='500 17px "IBM Plex Mono",monospace';c.fillStyle=rgba(LOCK,1);c.fillText(sub,0,30);c.restore();
+}
+
+/* ---------- A · Searchlight ---------- */
+function drawA(c,t){
+  const beamOn=seg(t,.95,1.1)*(1-seg(t,5,5.5));
+  // where the beam points: sweeps past the party, then settles mid-arena
+  let P;const s1=seg(t,1,1.8),s2=seg(t,1.8,2.5);
+  if(t<1.8)P={x:lerp(260,1080,sm(s1)),y:lerp(620,560,sm(s1))};else P={x:lerp(1080,CEN.x,sm(s2)),y:lerp(560,CEN.y,sm(s2))};
+  c.save();shake(c,t,3,.4,16);
+  arena(c);tower(c,beamOn);players(c);
+  // drop
+  const dk=seg(t,2.6,3);
+  if(t>=2.6){const sh=lerp(.2,1,dk);c.save();c.scale(1,.55);circle(c,CEN.x,(CEN.y+30)/.55,46*sh,`rgba(0,0,0,${.45*sh})`);c.restore()}
+  // darkness, then light added on top
+  const dark=.86*sm(seg(t,0,.6))*(1-sm(seg(t,5,5.6)));
+  c.fillStyle=`rgba(23,1,3,${dark})`;c.fillRect(-20,-20,W+40,H+40);
+  if(beamOn>0){
+    c.save();c.globalCompositeOperation='lighter';
+    const dx=P.x-LAMP.x,dy=P.y-LAMP.y,L=Math.hypot(dx,dy),nx=-dy/L,ny=dx/L,hw=95;
+    const g=c.createLinearGradient(LAMP.x,LAMP.y,P.x,P.y);g.addColorStop(0,rgba(LIGHT,.32*beamOn));g.addColorStop(1,rgba(LIGHT,.1*beamOn));
+    c.beginPath();c.moveTo(LAMP.x+nx*8,LAMP.y+ny*8);c.lineTo(P.x+nx*hw,P.y+ny*hw);c.lineTo(P.x-nx*hw,P.y-ny*hw);c.lineTo(LAMP.x-nx*8,LAMP.y-ny*8);c.fillStyle=g;c.fill();
+    const lock=seg(t,2.5,2.7),pr=110+20*lock,pg=c.createRadialGradient(P.x,P.y,0,P.x,P.y,pr);
+    pg.addColorStop(0,rgba(LIGHT,(.42+.2*lock)*beamOn));pg.addColorStop(.7,rgba(LIGHT,.2*beamOn));pg.addColorStop(1,rgba(LIGHT,0));
+    c.fillStyle=pg;c.beginPath();c.arc(P.x,P.y,pr,0,TAU);c.fill();
+    if(lock>0)ring(c,P.x,P.y,pr-6,3,rgba(LIGHT,.5*lock*beamOn));
+    c.restore();
+  }
+  // the party stays faintly visible
+  if(dark>0){c.save();c.globalCompositeOperation='lighter';for(const p of [P1,P2]){const g=c.createRadialGradient(p.x,p.y,0,p.x,p.y,70);g.addColorStop(0,`rgba(120,140,170,${.12*dark})`);g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(p.x-70,p.y-70,140,140)}c.restore()}
+  // the Warden on top of the dark: it's in the light
+  if(t>=2.6)warden(c,CEN.x,CEN.y-lerp(220,0,eIn(dk)),lerp(2.4,1,eIn(dk)),dk,t*.3);
+  shock(c,CEN.x,CEN.y,t,3,300,PINK);dust(c,CEN.x,CEN.y+20,t,3,22,50,140,[150,160,180]);
+  // slow red wash on the walls
+  const wash=dark*(.1+.06*Math.sin(t*2.2));c.fillStyle=`rgba(255,26,20,${wash})`;
+  c.fillRect(0,0,W,14);c.fillRect(0,H-14,W,14);c.fillRect(0,0,14,H);c.fillRect(W-14,0,14,H);
+  c.restore();
+  stamp(c,t,3.2,5.4,CEN.x,CEN.y+150,'THE WARDEN','WAVE 5 · COUNT ▸ LOCKDOWN ▸ RIOT');
+  bossBar(c,seg(t,4.9,5.7));
+}
+
+/* ---------- B · Lockdown ---------- */
+const CAGE={l:470,r:810,t:190,b:470};
+function pushOrb(c,x,y,lead,a){circle(c,x,y,10,rgba(PUSHE,a));circle(c,x,y,8,rgba(lead?PUSHL:PUSH,a));circle(c,x-2,y-2,3,`rgba(255,255,255,${.5*a})`)}
+function cage(c,inset,blow,a){
+  if(a<=0)return;const L=CAGE.l-inset,R=CAGE.r+inset,T=CAGE.t-inset,B=CAGE.b+inset,step=34;
+  const pt=(x,y,lead)=>{let px=x,py=y;if(blow>0){const dx=x-CEN.x,dy=y-CEN.y,d=Math.hypot(dx,dy);px+=dx/d*260*eOut(blow);py+=dy/d*260*eOut(blow)}pushOrb(c,px,py,lead,a)};
+  for(let x=L;x<=R+1;x+=step){pt(x,T,1);pt(x,T-28,0);pt(x,B,1);pt(x,B+28,0)}
+  for(let y=T+step;y<B-1;y+=step){pt(L,y,1);pt(L-28,y,0);pt(R,y,1);pt(R+28,y,0)}
+}
+function padlock(c,x,y,shut,a,crack){
+  if(a<=0)return;c.save();c.globalAlpha=a;c.translate(x,y);
+  c.lineWidth=7;c.strokeStyle=rgba(LOCK,1);c.beginPath();const lift=(1-shut)*16;c.arc(0,-18-lift,14,Math.PI,0);c.lineTo(14,-8-lift);c.moveTo(-14,-18-lift);c.lineTo(-14,-8);c.stroke();
+  c.fillStyle=rgba(LOCK,1);c.fillRect(-22,-12,44,34);c.fillStyle='#2a0806';c.beginPath();c.arc(0,2,5,0,TAU);c.fill();c.fillRect(-2,2,4,10);
+  if(crack>0){c.strokeStyle='#fff';c.lineWidth=2;c.beginPath();c.moveTo(-20,-10);c.lineTo(-4,4);c.lineTo(-10,20);c.moveTo(-4,4);c.lineTo(18,0);c.stroke()}
+  c.restore();
+}
+function drawB(c,t){
+  const close=seg(t,.2,1.3),blow=seg(t,2.6,3.3),inset=420*(1-eIn(close));
+  c.save();shake(c,t,1.3,.3,12);shake(c,t,2.6,.4,16);
+  arena(c);tower(c,0);players(c);
+  // warning strips
+  const warn=seg(t,0,.2)*(1-seg(t,1.2,1.4));
+  if(warn>0){c.fillStyle=`rgba(255,40,30,${.35*warn*(.6+.4*Math.sin(t*10))})`;c.fillRect(0,0,W,10);c.fillRect(0,H-10,W,10);c.fillRect(0,0,10,H);c.fillRect(W-10,0,10,H)}
+  // the Warden inside: silhouette, then lit
+  const fadeIn=seg(t,1.35,2),lit=seg(t,1.7,2.1);
+  warden(c,CEN.x,CEN.y,1+.06*Math.sin(seg(t,2.45,2.65)*Math.PI),fadeIn,t*.3,1-lit);
+  cage(c,inset,blow,1-blow);
+  if(close>=1&&t<1.6){const k=seg(t,1.3,1.6);ring(c,CEN.x,CAGE.b,20+80*k,4,`rgba(255,255,255,${.7*(1-k)})`)}
+  padlock(c,CEN.x,CAGE.b+6,sm(seg(t,1.6,1.75)),seg(t,1.3,1.45)*(1-seg(t,2.6,2.8)),t>2.4?1:0);
+  shock(c,CEN.x,CEN.y,t,2.6,420,PINK);
+  c.restore();
+  // CRT scan band
+  const bin=seg(t,3,3.3),bout=seg(t,4.5,4.8);
+  if(bin>0&&bout<1){
+    const bw=W*eOut(bin),bh=110*(1-eIn(bout))+2,by=580;
+    c.save();c.beginPath();c.rect(CEN.x-bw/2,by-bh/2,bw,bh);c.clip();
+    c.fillStyle='rgba(6,14,26,.88)';c.fillRect(0,by-bh/2,W,bh);
+    c.fillStyle='rgba(47,212,230,.08)';for(let y=by-bh/2;y<by+bh/2;y+=4)c.fillRect(0,y,W,2);
+    c.fillStyle='rgba(47,212,230,.8)';c.fillRect(0,by-bh/2,W,2);c.fillRect(0,by+bh/2-2,W,2);
+    const title='THE WARDEN',n=Math.floor(seg(t,3.25,3.85)*title.length);
+    c.font='700 54px "Chakra Petch",sans-serif';c.textAlign='center';c.fillStyle='#ffd9e6';
+    c.shadowColor=rgba(PINK,.8);c.shadowBlur=14;c.fillText(title.slice(0,n)+(n<title.length&&Math.floor(t*8)%2?'_':''),CEN.x,by+8);c.shadowBlur=0;
+    const sa=seg(t,3.9,4.1);c.font='500 16px "IBM Plex Mono",monospace';c.fillStyle=`rgba(255,77,64,${sa})`;c.fillText('LOCKDOWN IN EFFECT · WAVE 5',CEN.x,by+36);
+    c.restore();
+  }
+  bossBar(c,seg(t,4.6,5.4));
+}
+
+/* ---------- C · Riot call ---------- */
+const RIOTERS=[];for(let s=0;s<2;s++)for(let i=0;i<9;i++){const side=s?1:-1,a=(s?0:Math.PI)+(i-4)*.32;RIOTERS.push({door:{x:s?W+20:-20,y:360+(hash(i+s*9)-.5)*60},to:{x:CEN.x+Math.cos(a)*250,y:CEN.y+Math.sin(a)*190},t0:.6+i*.1+s*.05})}
+function doors(c,t){
+  const open=sm(seg(t,.5,.65))*(1-sm(seg(t,5.3,5.5)));
+  for(const s of [0,1]){const x=s?W-22:4;
+    c.fillStyle='#0a0d14';c.fillRect(x,300,18,120);
+    const g=60*open;c.fillStyle='#8a5a2c';c.fillRect(x,300-g,18,60);c.fillRect(x,360+g,18,60);
+    c.strokeStyle='#3d2812';c.lineWidth=2;c.strokeRect(x,300-g,18,60);c.strokeRect(x,360+g,18,60);
+    circle(c,s?W-13:13,284,6,`rgba(255,60,40,${.5+.4*Math.sin(t*4)})`);}
+}
+function rioter(c,x,y,a,face){
+  if(a<=0)return;c.save();c.globalAlpha=a;circle(c,x,y+2,14,'rgba(0,0,0,.35)');circle(c,x,y,13,rgba(RIOT,1));ring(c,x,y,13,2.5,'rgba(70,30,8,.8)');
+  for(const o of [-.6,.6])circle(c,x+Math.cos(face+o)*14,y+Math.sin(face+o)*14,4.5,'#ffd1a8');c.restore();
+}
+function drawC(c,t){
+  c.save();shake(c,t,.5,.25,8);shake(c,t,4.4,.35,12);
+  arena(c);doors(c,t);tower(c,0);players(c);
+  dust(c,20,360,t,.5,10,10,90,[180,150,120]);dust(c,W-20,360,t,.5,10,10,90,[180,150,120]);
+  // the Warden's walk
+  const wk=seg(t,1.8,3.2),from={x:110,y:130},wx=lerp(from.x,CEN.x,sm(wk)),wy=lerp(from.y,CEN.y,sm(wk));
+  for(let n=0;n<4;n++){const ts=1.8+.35*n;const k=seg(t,ts,ts+.6);if(k>0&&k<1){const kk=n/4+.12,sx=lerp(from.x,CEN.x,sm(kk)),sy=lerp(from.y,CEN.y,sm(kk));ring(c,sx,sy+30,20+40*k,3,`rgba(170,180,200,${.4*(1-k)})`)}}
+  // rioters: in, crowd the ring, flee
+  const flee=seg(t,4.5,5.3);
+  for(const r of RIOTERS){const k=eOut(seg(t,r.t0,r.t0+.8));if(k<=0)continue;
+    let x=lerp(r.door.x,r.to.x,k),y=lerp(r.door.y,r.to.y,k);
+    const dx=x-wx,dy=y-wy,d=Math.hypot(dx,dy);if(t>1.8&&t<4.5&&d<130){x+=dx/d*(130-d)*.6;y+=dy/d*(130-d)*.6}
+    if(flee>0){x=lerp(x,r.door.x,eIn(flee));y=lerp(y,r.door.y,eIn(flee))}
+    const face=flee>0?Math.atan2(r.door.y-y,r.door.x-x):Math.atan2(CEN.y-y,CEN.x-x)+Math.sin(t*6+r.t0*9)*.3;
+    rioter(c,x,y+(flee>0?0:Math.abs(Math.sin(t*9+r.t0*7))*-3),1-seg(t,5.1,5.3),face)}
+  // charge telegraph at the party
+  const tel=seg(t,3.25,3.35)*(1-seg(t,4.2,4.4));
+  if(tel>0){const a=(.35+.35*Math.sin(t*24))*tel,ang=Math.atan2(620-CEN.y,0);
+    c.save();c.translate(CEN.x,CEN.y);c.rotate(ang);c.fillStyle=`rgba(255,122,51,${a*.5})`;c.fillRect(0,-46,620,92);c.fillStyle=`rgba(255,153,77,${a})`;c.fillRect(0,-1.5,620,3);c.restore()}
+  const bob=1+.04*Math.abs(Math.sin((t-1.8)*Math.PI/.35))*(wk>0&&wk<1?1:0);
+  if(t>=4.4)ring(c,CEN.x,CEN.y,60+340*eOut(seg(t,4.4,5)),8*(1-seg(t,4.4,5)),`rgba(255,60,50,${.7*(1-seg(t,4.4,5))})`);
+  warden(c,wx,wy,bob*(1+.08*Math.sin(seg(t,4.4,4.7)*Math.PI)),seg(t,1.6,1.8),Math.atan2(CEN.y-from.y,CEN.x-from.x)*0+t*.2);
+  c.restore();
+  // ID card
+  const cin=eOut(seg(t,3.3,3.7)),cout=eIn(seg(t,5.6,6));
+  if(cin>0&&cout<1){const x=lerp(-420,30,cin)-450*cout,y=486,w=390,h=200;
+    c.save();c.fillStyle='rgba(12,16,26,.94)';c.fillRect(x,y,w,h);c.strokeStyle='#3b475f';c.lineWidth=2;c.strokeRect(x,y,w,h);
+    c.fillStyle=rgba(PINK,1);c.fillRect(x,y,w,30);c.font='700 15px "Chakra Petch",sans-serif';c.fillStyle='#1a0610';c.textAlign='left';c.fillText('DEPT. OF CORRECTIONS · STAFF ID',x+12,y+20);
+    c.fillStyle='#1b2232';c.fillRect(x+14,y+44,110,120);warden(c,x+69,y+104,.95,1,0);
+    c.font='700 30px "Chakra Petch",sans-serif';c.fillStyle='#ffe9ee';c.fillText('THE WARDEN',x+140,y+76);
+    c.font='500 14px "IBM Plex Mono",monospace';c.fillStyle='#8794ad';
+    c.fillText('BLOCK    5',x+140,y+104);c.fillText('STAGES   3 + LAST STAND',x+140,y+124);c.fillText('HP       2400',x+140,y+144);
+    for(let i=0;i<40;i++){if(hash(i*13)>.45){c.fillStyle='#cfd6e4';c.fillRect(x+140+i*5.6,y+158,hash(i)>.5?3:1.5,26)}}
+    c.restore()}
+  bossBar(c,seg(t,5.4,6.2));
+}
+
+/* ---------- players / loop ---------- */
+const DRAW={A:drawA,B:drawB,C:drawC},HOLD=1.2;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const cards=[...document.querySelectorAll('.card')].map(el=>{
+  const s={el,c:el.querySelector('canvas').getContext('2d'),f:DRAW[el.dataset.opt],range:el.querySelector('input'),time:el.querySelector('.time'),
+    play:el.querySelector('.play'),slow:el.querySelector('.slow'),T:+el.querySelector('input').max,t:0,on:!reduce,rate:1};
+  if(reduce)s.t=s.T-.5;
+  s.play.onclick=()=>{if(!s.on&&s.t>=s.T-.01)s.t=0;s.on=!s.on};
+  s.slow.onclick=()=>{s.rate=s.rate===1?.5:1;s.slow.setAttribute('aria-pressed',s.rate<1)};
+  s.range.oninput=()=>{s.on=false;s.t=+s.range.value};
+  return s;
+});
+let last=performance.now();
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;
+  for(const s of cards){
+    if(s.on){s.t+=dt*s.rate;if(s.t>s.T+HOLD)s.t=0}
+    const t=Math.min(s.t,s.T);
+    s.c.setTransform(1,0,0,1,0,0);s.f(s.c,t);
+    s.range.value=t;s.time.textContent=t.toFixed(2)+' s';s.play.textContent=s.on?'Pause':'Play';
+  }
+  requestAnimationFrame(frame);
+}
+document.fonts.ready.finally(()=>requestAnimationFrame(frame));
+</script>

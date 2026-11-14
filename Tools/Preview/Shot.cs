@@ -259,6 +259,17 @@ static partial class Shot {
     set("session", host); set("game", host.Game); set("scale", 1f); set("drawScale", 1280f / Game.Width);
     if (Environment.GetEnvironmentVariable("FXOFF") != null) set("fxOn", false);  // FXOFF=1: Visual effects off (the plain looks)
     ArenaScenes();
+    // WARDENINTRO=<s>: the Warden's entrance that far in (WardenIntro.cs): a clean arena, the Warden held in the middle (still "spawning", so it gets the entrance, not the card).
+    if (Environment.GetEnvironmentVariable("WARDENINTRO") != null)
+    {
+      float wi = float.Parse(Environment.GetEnvironmentVariable("WARDENINTRO"), System.Globalization.CultureInfo.InvariantCulture);
+      host.Game.Enemies.Clear(); host.Game.Bullets.Clear();
+      var wsp = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var wd = (Enemy)wsp.Invoke(host.Game, new object[] { EnemyType.Boss, new V2(Game.Width / 2f, Game.Height / 2f), Math.Max(0.05f, Game.WardenIntroTime - wi), 0, false });
+      wd.Spawning = wd.SpawnT > 0f;
+      int pk = 0; foreach (var wp in host.Game.Players.Values) { wp.Pos = wp.Disp = new V2(Game.Width / 2f + (pk++ == 0 ? -140f : 140f), Game.Height / 2f + 260f); wp.Aim = -MathX.Pi / 2f; }
+      set("wardenIntroFrom", wi);
+    }
     // LAUNCH=<seconds>: a run launching from the lobby, that far in (LaunchIntro.cs).
     launchAt = Environment.GetEnvironmentVariable("LAUNCH") != null ? float.Parse(Environment.GetEnvironmentVariable("LAUNCH")) : -1f;
     if (launchAt >= 0f) {
