@@ -451,7 +451,7 @@ static partial class Program
         Test("respawn", "the Practice Range: no game over, Respawn, Restart wave, Training drill text format", () => PracticeRespawnTest(Dt)),
         Test("lag", "the lag chart: LagStats (stalls, p95, 1% low, freeze, summary, CSV) and pings shared over the network", () => LagChartTest(Dt)),
         Test("stacking", "power stacking: diminishing returns on unlimited cards, wounds (a share of each hit no heal brings back this wave)", () => StackingTest(Dt)),
-        Test("dodge", "Dodge: the tiny dash with invulnerability (host and client), its cooldown, the step back", () => DodgeTest(Dt)),
+        Test("dodge", "Dodge: the tiny dash with invulnerability (host and client), its cooldown, the step back, the hold-to-sprint", () => DodgeTest(Dt)),
         Test("f1bot", "F1 \"Bot plays for you\" (the smart bot) through waves and the Bazaar", () => F1BotTest(Dt)),
         new Suite { Name = "session", What = "session recording (run.sh 1 30 session [copy-to])", Run = args =>
             Seeded("session", () => { var path = SessionTest(Dt); if (args.Length > 3 && path != null) File.Copy(path, args[3], true); }) },

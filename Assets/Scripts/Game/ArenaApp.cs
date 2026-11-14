@@ -368,7 +368,10 @@ namespace Arena
             {
                 // Dodge: its key, or a double tap of a movement key (also remembered between fixed steps).
                 if (Keybinds.Down(KeyAction.Dodge))
+                {
                     wantDodge = true;
+                    dodgeKey = -1;
+                }
                 for (int mi = 0; mi < 4; mi++)
                 {
                     var ma = (KeyAction)mi;  // MoveUp..MoveRight
@@ -377,6 +380,7 @@ namespace Arena
                     if (lastTapAction == mi && Time.unscaledTime - lastTapTime <= DoubleTapWindow)
                     {
                         wantDodge = true;
+                        dodgeKey = mi;  // double tap and hold the key to sprint
                         lastTapAction = -1;
                     }
                     else
@@ -608,6 +612,7 @@ namespace Arena
                 Parry = Keybinds.Held(KeyAction.Parry) && !parryBlocked,
                 WeaponAction = Keybinds.Held(KeyAction.WeaponAction),
                 Dodge = wantDodge,
+                DodgeHeld = dodgeKey < 0 ? Keybinds.Held(KeyAction.Dodge) : Keybinds.MoveHeld((KeyAction)dodgeKey),
             };
             wantDodge = false;
             for (int i = 0; i < wantAbility.Length; i++)
@@ -656,6 +661,7 @@ namespace Arena
 
         bool wantDodge;
         int lastTapAction = -1;
+        int dodgeKey = -1;  // what started the last dodge: -1 the Dodge key, 0..3 a double-tapped movement key
         float lastTapTime;
         const float DoubleTapWindow = 0.25f;
 

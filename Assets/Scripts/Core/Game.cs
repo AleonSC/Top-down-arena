@@ -371,6 +371,7 @@ namespace Arena
             ResetBossState();
             ResetVariety(true);
             DashT = 0f;
+            SprintT = 0f;
             Paused = false;
             PausedBy = 0;
             Endless = false;
@@ -1067,7 +1068,7 @@ namespace Arena
             }
             else
             {
-                V2 want = move * me.Speed * (me.ParryActive && !me.Stats.ParryNoSlow ? ParrySlow : 1f) * (bowDraw >= 0f ? BowDrawSlow : 1f) * HoneySlowAt(me.Pos);
+                V2 want = move * me.Speed * SprintMult * (me.ParryActive && !me.Stats.ParryNoSlow ? ParrySlow : 1f) * (bowDraw >= 0f ? BowDrawSlow : 1f) * HoneySlowAt(me.Pos);
                 if (OnPathOf(PathId.FrozenLake) || FloorAt(me.Pos) == PathId.FrozenLake)
                 {
                     // Frozen Lake (Paths.cs): speed builds toward where you're heading and carries on when you let go.
@@ -1226,7 +1227,7 @@ namespace Arena
                 }
             }
 
-            LocalDodge(me, move, input.Dodge, dt);  // the tiny dash with invulnerability (Dodge.cs)
+            LocalDodge(me, move, input.Dodge, input.DodgeHeld, dt);  // the tiny dash with invulnerability (Dodge.cs)
             LocalWeaponDash(me, move, aimAt, input.WeaponAction && !me.ParryActive, dt);  // weapon secondaries on their own key (Ninja.cs)
             if (LocalGreatStar(me, firing && !HoldControls, aimAt, dt))
                 firing = false;  // the Great Star stance: Fire draws the route and throws instead (GreatStar.cs)

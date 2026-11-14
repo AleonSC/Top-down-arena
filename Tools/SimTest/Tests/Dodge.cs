@@ -3,7 +3,8 @@ using System;
 using Arena;
 
 // The Dodge: a tiny dash with invulnerability. The host's own player and a client's both move about DodgeDist, the host
-// sees the client invulnerable, the cooldown blocks a second press, and with nothing held it steps back from the aim.
+// sees the client invulnerable, the cooldown blocks a second press, with nothing held it steps back from the aim,
+// and holding the key on after the dodge sprints (a tap doesn't).
 static partial class Program
 {
     static void DodgeTest(float dt)
@@ -67,6 +68,26 @@ static partial class Program
         V2 b0 = hostMe.Pos;
         play(0.3f, f => new PlayerInput { Dodge = f == 0, AimAt = new V2(800f, 450f) }, idle);
         Check(hostMe.Pos.X < b0.X - Game.DodgeDist * 0.7f, "with no direction held the dodge steps back from the aim");
+
+        // Sprint: a tap gives none; holding the key on after the dodge does, faster than walking and fading away.
+        play(Game.DodgeCd, idle, idle);
+        hostMe.Pos = new V2(300f, 450f); play(0.05f, idle, idle);
+        play(0.5f, f => new PlayerInput { Move = new V2(1f, 0f), Dodge = f == 0, DodgeHeld = f < 3, AimAt = new V2(800f, 450f) }, idle);
+        Check(g.SprintT <= 0f, "a tapped dodge doesn't sprint");
+        play(Game.DodgeCd, idle, idle);
+        hostMe.Pos = new V2(300f, 450f); play(0.05f, idle, idle);
+        play(0.3f, f => new PlayerInput { Move = new V2(1f, 0f), Dodge = f == 0, DodgeHeld = true, AimAt = new V2(800f, 450f) }, idle);
+        Check(g.SprintT > 0f && g.SprintMult > 1.4f, "holding the dodge key starts a sprint (x" + g.SprintMult.ToString("0.00") + ")");
+        V2 r0 = hostMe.Pos;
+        play(0.3f, f => new PlayerInput { Move = new V2(1f, 0f), AimAt = new V2(800f, 450f) }, idle);
+        float sprinted = hostMe.Pos.X - r0.X;
+        Console.WriteLine("  sprint: {0:0} px in 0.3 s (walking {1:0})", sprinted, 0.3f * hostMe.Speed);
+        Check(sprinted > 0.3f * hostMe.Speed * 1.3f, "the sprint moves you faster than walking, even after letting go");
+        float m1 = g.SprintMult;
+        play(1f, idle, idle);
+        Check(g.SprintMult < m1, "the sprint fades");
+        play(Game.SprintTime, idle, idle);
+        Check(g.SprintT <= 0f && g.SprintMult == 1f, "and ends after " + Game.SprintTime + " s");
         s[0].Leave(""); s[1].Leave("");
     }
 }
