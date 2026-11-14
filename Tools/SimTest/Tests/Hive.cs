@@ -17,7 +17,7 @@ static partial class Program
             { EnemyType.HoneyLobber, EnemyType.GasGrenadier }, { EnemyType.Stinger, EnemyType.TaserGuard }, { EnemyType.Needler, EnemyType.SecurityGuard },
             { EnemyType.Bumble, EnemyType.Thug }, { EnemyType.Hornet, EnemyType.Shiv },
         };
-        Check(kin.All(k => SameMove(k.Key, k.Value) && HiveKin.Is(k.Key)) && !HiveKin.Is(EnemyType.Rioter) && Game.BrainOf(EnemyType.Grunt) == null,
+        Check(kin.All(k => SameMove(k.Key, k.Value) && HiveKin.Is(k.Key)) && !HiveKin.Is(EnemyType.Rioter) && !SameMove(EnemyType.Worker, EnemyType.Grunt),
             "every Hive enemy plays like one Warden enemy (Worker Rioter, Soldier Guard, Comb Shield Riot Shield, Honey Lobber Gas Grenadier, Stinger Taser Guard, Needler Security Guard, Bumble Thug, Hornet Shiv)");
         Check(kin.All(k => { var a = Defs.Get(k.Key); var b = Defs.Get(k.Value); bool tougher = k.Key == EnemyType.Stinger || k.Key == EnemyType.Needler; return (tougher || a.Hp == b.Hp) && a.Speed == b.Speed && a.Radius == b.Radius && a.Melee == b.Melee && a.Contact == b.Contact && a.Xp == b.Xp; }),
             "each has its counterpart's speed, size, contact damage and XP, and its health bar the Stinger's and Needler's");
