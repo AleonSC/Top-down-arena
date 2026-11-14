@@ -25,10 +25,13 @@ namespace Arena
         public static Color T(Color c) => CrtStyle.T(c);
 
         /// The dark blue screen, with its bezel and a thin phosphor rim.
-        public static void Begin(Rect r)
+        public static void Begin(Rect r) => Begin(r, 1f);
+
+        /// The same screen with its bezel and background at `alpha` (a see-through tube, e.g. the minimized Ready strip).
+        public static void Begin(Rect r, float alpha)
         {
-            Ui.Fill(new Rect(r.x - 3f, r.y - 3f, r.width + 6f, r.height + 6f), Bezel);
-            Ui.Fill(r, Bg);
+            Ui.Fill(new Rect(r.x - 3f, r.y - 3f, r.width + 6f, r.height + 6f), new Color(Bezel.r, Bezel.g, Bezel.b, Bezel.a * alpha));
+            Ui.Fill(r, new Color(Bg.r, Bg.g, Bg.b, Bg.a * alpha));
             CrtKit.Frame(r, 1f, new Color(Ink.r, Ink.g, Ink.b, 0.35f));
         }
 

@@ -1014,7 +1014,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   everyone to the cap and adds 20 on top. Two cards raise the cap, in the Expanding arena only: **Deep Inkwell** (uncommon, +20,
   stacks to 4) and the milestone card **Architect** (+40 and 20 vectors now, stacks to 3). The **vendor** also sells a **Vector pack**: +20 vectors for 50 gold, as
   many as you can afford, and it can take you past the cap.
-- **Building rounds**: every cleared wave opens a round (a chip "Build rooms" under the wave plate; the countdown never waits
+- **Building rounds**: every cleared wave opens a round (the wave box's **Build** tab, or **Build** on its minimized strip; the countdown never waits
   for it). Open it and **draw a room by its walls** (zoom the map with the **mouse wheel**, **+ / -** or the buttons under it, pan with the **middle mouse**, **FIT** resets): **left click** corners on the zoomed-out map's grid and a wall runs from each
   to the next, straight across or straight up (a slanted click makes an L); **click the first corner again** (or press **Enter**, or
   **Propose**) to close it. You don't have to close it yourself: **end a run of walls on another room's wall** and, if the map's
@@ -1057,7 +1057,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
     pillar every 3 rows, two when 7+ wide). A section needs 4 tiles for Fins, T-fins and Cover, 5 for Baffles and the Divider, 6 for
     Pincers; a 2-3 wide corridor always gets **Stubs** (from alternate sides every 3 rows, a 1.5-tile lane past each). A low stone
     thunk plays when anyone's push lands. Pieces keep off the opening to a section pushed off this one, and off map nodes.
-- **Room kits**: a one-use modifier the team holds (up to 6; the build chip counts them). Spend one in a building round
+- **Room kits**: a one-use modifier the team holds (up to 6; the Build step counts them). Spend one in a building round
   (**Room kits** button on the build window): pick a kit, click a plain Combat room, and it becomes a **Shop** room or a **Floor**
   room (a path's ground and rules inside that room only, and its XP bonus). One change per room, permanent; floating rooms keep their job.
   A cleared **boss** wave gives a Floor kit (a floor not on the map yet when one is left), a won **challenge room** gives a Shop kit,
@@ -1534,7 +1534,7 @@ names its boss), the **road to the next boss**, the **Ready** key (Y), the **Aut
 status and the countdown bar. Y walks the steps (Results, Build, Ready) before it readies you, and Auto-ready only counts once you reach Ready. The next wave only starts once **everyone is ready**, **3 seconds** after the last Ready, and there is no
 timer while anyone is still waiting. **Auto-ready** is remembered between runs: you count as ready as soon as your upgrade
 picks are done, and when everyone has it on the countdown is the usual 4 seconds, so solo play with it on moves at the
-old pace (it is off by default). A small box beside each player shows who is ready (a tick, an A for auto-ready, dashed while they aren't). **Minimize** (top right of the box) folds it into a slim strip at the top so you can walk to a shop or a chest; the strip keeps the next wave, the status, Ready and **Open** (Y there readies you at once). It opens again at the next break.
+old pace (it is off by default). A small box beside each player shows who is ready (a tick, an A for auto-ready, dashed while they aren't). **Minimize** (top right of the box) folds it into a slim strip at the top so you can walk to a shop or a chest; the strip (slightly see-through) keeps the next wave, the status, Ready, **Build** (during a building round) and **Open** (Y there readies you at once). It opens again at the next break.
 **The boss gate.** In the break before a boss (Quick Play, the Campaign, a Boss Hunt) there's no Ready: a **boss gate**, a
 red summoning circle with a skull in the middle, opens in the middle of the hub, and the fight starts once **every
 player still standing is in it** for 1.2 s (downed players don't count). Take your time to shop, build and pick first: there's no
