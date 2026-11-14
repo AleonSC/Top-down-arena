@@ -92,9 +92,9 @@ namespace Arena
             Ui.Alpha = 1f;
             var chip = new Rect(W / 2f - 190f, 36f, 380f, 28f);
             Ui.Pill(chip, new Color(0f, 0.08f, 0.12f, 0.7f));
-            Ui.Label(chip, "[B]  OPEN A DOOR  ·  YOUR VECTORS " + me.Vectors + " / " + me.VectorCap, 12, new Color(0.37f, 0.94f, 1f), TextAnchor.MiddleCenter, true);
+            Ui.Label(chip, "[" + Keybinds.KeyName(Keybinds.Get(KeyAction.OpenDoors)).ToUpperInvariant() + "]  OPEN A DOOR  ·  YOUR VECTORS " + me.Vectors + " / " + me.VectorCap, 12, new Color(0.37f, 0.94f, 1f), TextAnchor.MiddleCenter, true);
             var ev = Event.current;
-            if (ev.type == EventType.KeyDown && ev.keyCode == KeyCode.B && !Keybinds.ChatOpen && GUIUtility.keyboardControl == 0)
+            if (Keybinds.IsEvent(KeyAction.OpenDoors, ev) && GUIUtility.keyboardControl == 0)
             {
                 expOpen = true;
                 ev.Use();

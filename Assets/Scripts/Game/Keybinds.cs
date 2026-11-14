@@ -12,7 +12,7 @@ namespace Arena
     public enum KeyAction
     {
         MoveUp, MoveDown, MoveLeft, MoveRight, Dodge, Ability, Ultimate, AbilityQ, AbilityE, AbilityShift, Fire, Parry, WeaponAction,
-        TakeItem, DiscardItem, Gadget, PushWall, Reroll, AimLine, ToggleHud, Mute, Emote, Ping, ReadyUp,
+        TakeItem, DiscardItem, Gadget, PushWall, Reroll, AimLine, ToggleHud, Mute, Emote, Ping, ReadyUp, OpenDoors,
     }
 
     public static class Keybinds
@@ -23,12 +23,12 @@ namespace Arena
         {
             KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.LeftControl, KeyCode.Space, KeyCode.F, KeyCode.Q, KeyCode.E, KeyCode.LeftShift,
             KeyCode.Mouse0, KeyCode.Mouse1, KeyCode.LeftAlt,
-            KeyCode.G, KeyCode.X, KeyCode.B, KeyCode.C, KeyCode.R, KeyCode.V, KeyCode.H, KeyCode.M, KeyCode.T, KeyCode.Mouse2, KeyCode.Y,
+            KeyCode.G, KeyCode.X, KeyCode.B, KeyCode.C, KeyCode.R, KeyCode.V, KeyCode.H, KeyCode.M, KeyCode.T, KeyCode.Mouse2, KeyCode.Y, KeyCode.Z,
         };
         static readonly string[] Titles =
         {
             "Move up", "Move down", "Move left", "Move right", "Dodge", "Role ability", "Ultimate", "Bonus ability 1", "Bonus ability 2",
-            "Bonus ability 3", "Fire", "Parry", "Weapon secondary", "Take chest item", "Discard chest item", "Use gadget", "Push wall", "Reroll upgrades", "Aim line on / off", "Hide / show the HUD", "Mute sound", "Emotes", "Ping", "Ready for the next wave",
+            "Bonus ability 3", "Fire", "Parry", "Weapon secondary", "Take chest item", "Discard chest item", "Use gadget", "Push wall", "Reroll upgrades", "Aim line on / off", "Hide / show the HUD", "Mute sound", "Emotes", "Ping", "Ready for the next wave", "Open a door",
         };
         static readonly string[] Lines =
         {
@@ -37,7 +37,7 @@ namespace Arena
             "Your role's ability", "One per role and class", "The first bonus ability slot (the key it starts on)", "The second bonus ability slot",
             "The third bonus ability slot", "Hold to shoot (left click by default)", "Hold for the shield toward your cursor (right click by default)",
             "Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama whirl",
-            "While standing on it", "While standing on it", "Tap: switch your gadget on or off. Hold and let go: throw it where you aim", "Between waves, by a wall (Expanding arena): push it out a tile at a time", "In the upgrade picker", "A line from you toward the cursor", "A clean screen; a slim boss bar stays", "Everything off at once", "Hold to open the emote bar: scroll or click to pick one", "Tap to ping your cursor, hold for the wheel (middle mouse by default)", "Between waves: say you are ready (the wave starts once everyone is)",
+            "While standing on it", "While standing on it", "Tap: switch your gadget on or off. Hold and let go: throw it where you aim", "Between waves, by a wall (Expanding arena): push it out a tile at a time", "In the upgrade picker", "A line from you toward the cursor", "A clean screen; a slim boss bar stays", "Everything off at once", "Hold to open the emote bar: scroll or click to pick one", "Tap to ping your cursor, hold for the wheel (middle mouse by default)", "Between waves: say you are ready (the wave starts once everyone is)", "Between waves (Expanding arena): open the door picker",
         };
         /// The groups on the Keybinds page: heading and the first action of each.
         public static readonly string[] GroupNames = { "MOVEMENT", "ABILITIES", "WEAPON", "ITEMS AND PICKS", "TOGGLES" };
@@ -102,6 +102,23 @@ namespace Arena
         public static bool Down(KeyAction a) => !Busy && (Slot(a, keys[(int)a], Input.GetKeyDown) || Slot(a, keys2[(int)a], Input.GetKeyDown));
         /// Held now (never while rebinding).
         public static bool Held(KeyAction a) => !Busy && (Slot(a, keys[(int)a], Input.GetKey) || Slot(a, keys2[(int)a], Input.GetKey));
+
+        /// This OnGUI event is the action's key (or mouse button) going down: for screens that read keys in OnGUI.
+        public static bool IsEvent(KeyAction a, Event ev)
+        {
+            if (Busy || ev == null)
+                return false;
+            KeyCode k;
+            if (ev.type == EventType.KeyDown)
+                k = ev.keyCode;
+            else if (ev.type == EventType.MouseDown)
+                k = KeyCode.Mouse0 + ev.button;
+            else
+                return false;
+            return k != KeyCode.None && (Same(keys[(int)a], k) || Same(keys2[(int)a], k));
+        }
+
+        static bool Same(KeyCode bound, KeyCode k) => bound != KeyCode.None && Either(bound, c => c == k);
 
         static bool Slot(KeyAction a, KeyCode k, Func<KeyCode, bool> test) => k != KeyCode.None && !NumberTaken(a, k) && Either(k, test);
 
