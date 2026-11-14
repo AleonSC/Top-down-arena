@@ -19,6 +19,10 @@ namespace Arena
         public bool SurvStarted;
         /// The world is held for a pick: enemies and every shot stand still (WorldRate).
         public bool SurvFrozen => SurvivalOn && SurvStarted && State == MatchState.Intermission;
+        /// The faction phase the clock is in (0: the basic faction alone).
+        public int SurvPhase => Survival.PhaseAt(SurvTime);
+        /// 5:12 for 312 seconds.
+        public static string SurvClock(float t) { int s = (int)Math.Max(0f, t); return s / 60 + ":" + (s % 60).ToString("00"); }
         int survSeed;
         string survSquad;
         V2 survSquadPos;

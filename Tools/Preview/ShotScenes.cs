@@ -231,6 +231,15 @@ static partial class Shot {
       me.Disp = me.Pos;
       gm.Bullets.Clear();
     }
+    if (Environment.GetEnvironmentVariable("SURVIVAL") != null) {
+      // Survival (SurvivalGame.cs): SURVIVAL=<clock seconds>[,pick] (pick: held for a level-up pick). Modes hud, gameover.
+      var sp = Environment.GetEnvironmentVariable("SURVIVAL").Split(',');
+      var sg = host.Game;
+      sg.SurvivalOn = true; sg.SurvStarted = true;
+      sg.SurvTime = float.Parse(sp[0], System.Globalization.CultureInfo.InvariantCulture); sg.Wave = Survival.WaveAt(sg.SurvTime);
+      sg.Hunt = null; sg.Quick = false; sg.Practice = null;
+      if (sp.Length > 1 && sp[1] == "pick") { sg.State = MatchState.Intermission; sg.StateTimer = 1f; me.PendingPicks = 1; }
+    }
     if (Environment.GetEnvironmentVariable("TUTORIAL") != null) {
       // The first-run tutorial's prompt (TutorialUi.cs): TUTORIAL=<lesson 0-4>,<steps of it done>[,open] (open: between waves with a build round open).
       var tp = Environment.GetEnvironmentVariable("TUTORIAL").Split(',');

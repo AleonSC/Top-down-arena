@@ -11,6 +11,8 @@ namespace Arena
         /// Every piece is measured in the font it's drawn in (CrtUi.Title), so the pieces never overlap.
         void DrawObjectiveLine()
         {
+            if (game.SurvivalOn)
+                return;  // Survival has no boss to approach (SurvivalUi.cs)
             string head = null, count = null;
             if (game.State == MatchState.Fighting && game.ApproachShare(game.Wave) > 0f)
             {
