@@ -26,6 +26,9 @@ namespace Arena
         public const float SquadEvery = 45f;      // a squad on this timer
         public const float WaveSeconds = 30f;     // 30 s of the clock count as one wave of scaling
         public const float OldFactionFade = 0.6f; // an earlier faction's weight, once per phase after it joined
+        public const float RangedFrom = 120f;     // no shooters before this (two minutes of melee), then they ramp in...
+        public const float RangedRamp = 180f;     // ...over this long
+        public const float EaseIn = 117f;         // the budget starts at about a third and reaches its full line by here
 
         /// The factions that join, in order: the basic eight first, then the boss factions (Approaches).
         static readonly EnemyType[] JoinOrder = { EnemyType.Boss, EnemyType.HiveQueen, EnemyType.TwinA, EnemyType.Singularity };
@@ -54,20 +57,29 @@ namespace Arena
         public static float Pressure(float t, int players = 1)
         {
             t = Math.Max(0f, t);
-            float p = 6f + 0.08f * Math.Min(t, 600f) + 0.16f * Math.Max(0f, t - 600f);
+            float p = 4f + 0.08f * Math.Min(t, 600f) + 0.16f * Math.Max(0f, t - 600f);
+            p *= Math.Min(1f, 0.35f + 0.65f * t / EaseIn);  // a slow start
             return p * PartyMult(players);
         }
 
         public static float PartyMult(int players) => players >= 3 ? 2f : players == 2 ? 1.5f : 1f;
 
+        /// How much of its weight an enemy has at time t: melee ones all of it; shooters none for the first two minutes, then ramping up.
+        public static float RangedShare(EnemyType type, float t)
+        {
+            if (Defs.Get(type).Melee)
+                return 1f;
+            return Math.Max(0f, Math.Min(1f, (t - RangedFrom) / RangedRamp));
+        }
+
         /// The share of spawns that come as Elites (the tougher variants): 0 at the start, 40% at most.
         public static float EliteShare(float t) => Math.Min(0.4f, Math.Max(0f, t) / 2700f);
 
-        /// How much of the budget an enemy takes: its health against a Grunt's, between a quarter and six Grunts.
+        /// How much of the budget an enemy takes: its health against a Grunt's, between 0.6 and six Grunts (a swarm of weak ones still hurts: they cost more than their health).
         public static float Cost(EnemyType t)
         {
             float c = Defs.Get(t).Hp / Defs.Get(EnemyType.Grunt).Hp;
-            return Math.Max(0.25f, Math.Min(6f, c));
+            return Math.Max(0.6f, Math.Min(6f, c));
         }
 
         /// The factions open at time t: the basic one, then the first PhaseAt(t) boss factions.
@@ -131,8 +143,8 @@ namespace Arena
             {
                 float fade = (float)Math.Pow(OldFactionFade, fs.Count - 1 - fi);
                 foreach (var m in fs[fi].Members)
-                    if (m.From <= reach && !Game.IsRetired(m.Type))
-                        pool.Add(new KeyValuePair<EnemyType, float>(m.Type, m.Weight * fade));
+                    if (m.From <= reach && !Game.IsRetired(m.Type) && RangedShare(m.Type, t) > 0f)
+                        pool.Add(new KeyValuePair<EnemyType, float>(m.Type, m.Weight * fade * RangedShare(m.Type, t)));
             }
             return pool;
         }
@@ -159,7 +171,7 @@ namespace Arena
             {
                 int copies = fi == fs.Count - 1 ? 2 : 1;  // the newest faction's squads come a bit more often
                 foreach (var s in fs[fi].Squads)
-                    if (s.From <= reach && Game.SquadLive(s))
+                    if (s.From <= reach && Game.SquadLive(s) && Array.TrueForAll(s.Members, m => RangedShare(m, t) >= 1f))  // (no squad with a shooter until they have all come in)
                         for (int c = 0; c < copies; c++) opts.Add(s);
             }
             return opts.Count == 0 ? null : opts[rng.Next(opts.Count)];
