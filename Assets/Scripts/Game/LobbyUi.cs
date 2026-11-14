@@ -42,6 +42,7 @@ namespace Arena
         void DrawLobbyContent()
         {
             float t = Time.unscaledTime;
+            TickReadyShock();  // LobbyFx.cs
             bool calm = fxReduced;
             lockedTipOn = false;
             LobbyEntry me;
@@ -117,12 +118,16 @@ namespace Arena
             foreach (var e in session.Lobby.Values)
             {
                 float ch = slot == 0 ? PartyCardH : PartySlotH;  // the first card is a little taller (the mockup's 84 and 80)
-                DrawPartyCard(new Rect(lx, y, lw, ch), e, t, slot++);
+                var cardR = new Rect(lx, y, lw, ch);
+                DrawPartyCard(cardR, e, t, slot++);
+                DrawReadyShock(cardR, e);  // LobbyFx.cs
+                LobbyGlowBox(cardR);
                 y += ch + PartyGap;
             }
             for (; slot < Session.MaxPlayers; slot++)
             {
                 DrawOpenSlot(new Rect(lx, y, lw, PartySlotH), slot, t);
+                LobbyGlowBox(new Rect(lx, y, lw, PartySlotH));
                 y += PartySlotH + PartyGap;
             }
             if (session.Status.Length > 0)
@@ -176,6 +181,13 @@ namespace Arena
             }
 
             DrawLobbyActions(me, practice);
+            LobbyGlowBox(LobbyBackKey);
+            LobbyGlowBox(LobbyHangoutKey);
+            LobbyGlowBox(LobbyLoadoutKey);
+            if (session.Resume == null)
+                LobbyGlowBox(LobbySavedKey);
+            LobbyGlowBox(LobbyBodyRect);
+            DrawLobbyProxGlow();  // the frames near the cursor light up (LobbyFx.cs), under the tips
             DrawLockedTip();  // on top of the loadout
             DrawTip(true);
             if (connInfoOpen)
@@ -329,7 +341,9 @@ namespace Arena
             {
                 int i = shown[k];
                 bool on = lobbyTab == i;
-                if (LobbyKit.Key(new Rect(x, r.y, LobbyLoadoutKeyW, r.height), names[i].ToUpperInvariant(), on, fxReduced, size: 16, minSize: 11) && !on)
+                var kr = new Rect(x, r.y, LobbyLoadoutKeyW, r.height);
+                LobbyGlowBox(kr);
+                if (LobbyKit.Key(kr, names[i].ToUpperInvariant(), on, fxReduced, size: 16, minSize: 11) && !on)
                 {
                     lobbyTab = i;
                     CloseFavorites();
@@ -1537,8 +1551,10 @@ namespace Arena
             {
                 game = real;
             }
-            // A thin frame in the role's colour.
             UiModelAt(V2.Zero, 1f);
+            UiClip(view);
+            DrawPreviewRadar(view);  // the radar sweep (LobbyFx.cs)
+            // A thin frame in the role's colour.
             UiNoClip();
             var edge = rc.WithAlpha(0.45f);
             Line(new V2(view.x, view.y), new V2(view.xMax, view.y), 1.5f, edge);
@@ -1603,6 +1619,7 @@ namespace Arena
             for (int i = 0; i < 2; i++)
             {
                 var r = new Rect(lx, LobbySetupY + i * (LobbySetupH + LobbySetupGap), lw, LobbySetupH);
+                LobbyGlowBox(r);
                 bool on = lobbyTab == tab[i];
                 float oldAlpha = Ui.Alpha;
                 if (!on && !(GUI.enabled && r.Contains(Event.current.mousePosition)))
@@ -1624,6 +1641,9 @@ namespace Arena
             bool ready = me != null && me.Ready;
             DrawLobbySetupKeys(lx, lw, calm);
             var readyRect = host ? new Rect(lx, LobbyReadyY, lw, LobbyReadyH) : new Rect(lx, LobbyStartY, lw, LobbyStartH);
+            LobbyGlowBox(readyRect);
+            if (host)
+                LobbyGlowBox(new Rect(lx, LobbyStartY, lw, LobbyStartH));
             if (LobbyKit.Key(readyRect, ready ? "READY!" : "READY?", ready, calm, PixelArt.Get("ui_check"), size: 22, minSize: 14, accent: ready ? Ui.Good : (Color?)null))
                 session.RequestReady(!ready);
             int waiting = 0;  // other players who aren't ready yet

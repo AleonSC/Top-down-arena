@@ -127,7 +127,16 @@ namespace Arena
         {
             var old = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, (fxReduced ? 0.14f : 0.24f) * ScanOver * a);
-            GUI.DrawTexture(r, lobbyScanTex);
+            if (LobbyFxOn)
+            {
+                // The CRT veil (LobbyFx.cs): the lines crawl slowly down, one row every 1/12 s.
+                float crawl = Mathf.Floor(Time.unscaledTime * 12f) % 3f;
+                GUI.BeginGroup(r);
+                GUI.DrawTexture(new Rect(0f, crawl - 3f, r.width, r.height + 3f), lobbyScanTex);
+                GUI.EndGroup();
+            }
+            else
+                GUI.DrawTexture(r, lobbyScanTex);
             GUI.color = old;
         }
 
