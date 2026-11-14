@@ -467,7 +467,7 @@ namespace Arena
             }
             bool pac = PacSkin && !spawning && PacGhostable(e);  // the Pac-Man skin: a ghost in its role's colour (PacmanLook.cs)
             // Melee enemies are spiky, so you can tell rushers from shooters at a glance.
-            if (e.Def.Melee && !pac && !spawning && !HiveKin.Is(e.Type) && !QuarryKin.Is(e.Type) && !CourtKin.Is(e.Type) && !LarderKin.Is(e.Type) && !Game.IsInfall(e.Type) && !Game.IsSquall(e.Type) && !Game.IsPenumbral(e.Type) && !Game.IsReaperCult(e.Type) && e.Type != EnemyType.Swarmer && e.Type != EnemyType.Rioter && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type) && !Game.IsNonShooter(e.Type) && e.Type != EnemyType.Guard && e.Type != EnemyType.RiotShield)
+            if (e.Def.Melee && !pac && !spawning && !HiveKin.Is(e.Type) && !QuarryKin.Is(e.Type) && !CourtKin.Is(e.Type) && !LarderKin.Is(e.Type) && !Game.IsInfall(e.Type) && !Game.IsSquall(e.Type) && !Game.IsPenumbral(e.Type) && !Game.IsReaperCult(e.Type) && e.Type != EnemyType.Swarmer && e.Type != EnemyType.Rioter && e.Type != EnemyType.Thug && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type) && !Game.IsNonShooter(e.Type) && e.Type != EnemyType.Guard && e.Type != EnemyType.RiotShield)
                 DrawMeleeSpikes(e, pos, r, col, t);
             if (Zombies.Is(e.Type))
                 DrawZombieUnder(e, pos, r, t);  // its spore haze, frenzy streaks and the Crawler's hold (ZombieLook.cs)
@@ -490,6 +490,8 @@ namespace Arena
                 DrawPacGhost(e, pos, r, col, t);
             else if (Zombies.Is(e.Type))
                 DrawZombieBody(e, pos, r, col, t);  // its own shape (ZombieLook.cs)
+            else if (e.Type == EnemyType.Thug)
+                DrawThugBody(e, pos, r, col, t);  // PrisonLook.cs: the hunched bruiser
             else if (e.Type == EnemyType.Rioter)
                 DrawRioterBody(e, pos, r, col, t);  // WardenLook.cs: a Brawler or a Ball and Chain
             else if (e.Type == EnemyType.Warder)
@@ -873,7 +875,6 @@ namespace Arena
                 case EnemyType.Lunger:
                 case EnemyType.Shiv:
                 case EnemyType.Brute:
-                case EnemyType.Thug:
                 case EnemyType.Wisp:
                 case EnemyType.ScytheWraith:
                 case EnemyType.Gravedigger:
@@ -956,9 +957,6 @@ namespace Arena
                     break;
                 case EnemyType.Brute:
                     DrawBruteFace(e, pos, r, col);
-                    break;
-                case EnemyType.Thug:
-                    DrawThugDetails(e, pos, r, col);  // PrisonLook.cs
                     break;
                 case EnemyType.Shiv:
                     DrawShivDetails(e, pos, r, col);  // PrisonLook.cs
