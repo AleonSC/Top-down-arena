@@ -890,6 +890,8 @@ namespace Arena
                 case EnemyType.HookThrower:
                 case EnemyType.Sapper:
                     return e.Facing;  // point where they're aiming (zombies: where they're going)
+                case EnemyType.Rioter:
+                    return e.Facing + MathX.Pi / 8f;  // a flat face forward, its fists and cuffs out front (WardenLook.cs)
                 case EnemyType.Spinner:
                     return t * (e.Phase == 1 ? 7f : 1.5f) + e.Id;  // revs up while it's spraying
                 case EnemyType.Singularity:
@@ -964,7 +966,7 @@ namespace Arena
                     DrawCultDetails(e, pos, r, col, t);  // ReaperCultLook.cs
                     break;
                 case EnemyType.Rioter:
-                    DrawRioterDetails(e, pos, r, col);  // WardenLook.cs
+                    DrawRioterDetails(e, pos, r, t);  // WardenLook.cs
                     break;
                 case EnemyType.Guard:
                     DrawGuardDetails(e, pos, r, t);  // WardenLook.cs

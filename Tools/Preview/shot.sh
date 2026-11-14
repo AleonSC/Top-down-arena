@@ -30,6 +30,7 @@
 # KNIGHTDPS=steel|gauntlet|mercy|bridge KDT=<s> (the DPS Knight's abilities replaying the mockup's scenes through the game; KDW=<0-2> the weapon; crop (352,200)-(928,520) to set beside the mockup; ShotKnightDps.cs).
 # WILDCARD=1 (lobby: you as a Wildcard, Twin Blades, Shadow Step, Blade Fan on Q, Death Lotus; the class wheel).
 # pacman (mode): PACKEYS=l1.7,u0.6 (steer left then up), PACFRIGHT=5 (ghosts blue), PACDIE=0.7, PACOVER=1, PACPAUSE=1 (PacmanUi.cs).
+# RIOTERS=1 (a pack of Rioters with a Guard and a Thug; mode hud, ZOOM=3 for a close look).
 # GASLOB=<s into the wind-up> (the Gas Grenadier's overhand lob: ring, arm, canister; mode hud; GasLobLook.cs).
 # ZOOM=1.8 (the scroll-wheel zoom on you, CameraZoom.cs).
 # NADET=<s> (the Twin Rifle's Rocket assist that long after a launch), NADELOAD=<s> (a tube loading; TwinNadeLook.cs);

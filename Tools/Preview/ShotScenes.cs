@@ -217,6 +217,19 @@ static partial class Shot {
         if (++k == 3) break;
       }
     }
+    if (Environment.GetEnvironmentVariable("RIOTERS") != null) {
+      // RIOTERS=1: a pack of Rioters closing on you, a Guard and a Thug behind (mode hud; ZOOM=3 for a close look).
+      var gm = host.Game; gm.Bot = false; gm.Enemies.Clear(); gm.Bullets.Clear();
+      me.Pos = me.Disp = new V2(1010f, 580f); me.InvulnT = 1f; me.Aim = MathX.Pi;
+      var spawn = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var spots = new[] { new V2(935f, 540f), new V2(950f, 600f), new V2(900f, 575f), new V2(915f, 635f), new V2(880f, 520f), new V2(960f, 505f), new V2(855f, 600f), new V2(860f, 660f) };
+      var types = new[] { EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Guard, EnemyType.Thug };
+      foreach (var pl in gm.Players.Values) if (pl != me) pl.Pos = pl.Disp = new V2(300f, 200f);
+      for (int i = 0; i < spots.Length; i++) {
+        var en = (Enemy)spawn.Invoke(gm, new object[] { types[i], spots[i], 0f, 0, false });
+        en.SpawnT = 0f; en.Pos = en.Disp = spots[i]; en.Facing = (me.Pos - spots[i]).Angle + (i % 3 - 1) * 0.25f;
+      }
+    }
     if (Environment.GetEnvironmentVariable("RIOTLINE") != null) {
       // The Riot Line (the last wave before the Warden), RIOTLINE=<seconds> after it arrives, with you standing in the middle.
       var gm = host.Game; gm.Bot = false;
