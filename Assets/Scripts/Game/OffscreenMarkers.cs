@@ -22,6 +22,13 @@ namespace Arena
         static readonly Rgba MarkCache = new Rgba(0.25f, 0.9f, 0.7f);  // an unclaimed Stash's vector cache (Docs/BreachRooms.md)
         static readonly Rgba MarkRim= new Rgba(0.02f, 0.03f, 0.06f, 0.85f);
 
+        // Survival's big room: enemies the same way off the view merge into one arrow with a count (MarkBins slices of the circle).
+        const int MarkBins = 28;
+        const float MarkTau = 6.2831853f;
+        readonly int[] markBinCount = new int[MarkBins];
+        readonly bool[] markBinElite = new bool[MarkBins];
+        readonly int[] markBinFirst = new int[MarkBins];  // the nearest enemy of the slice (the list is sorted nearest first)
+        readonly List<V2[]> markClusters = new List<V2[]>();  // per merged arrow: its tip, its direction and its count (x)
         readonly List<Enemy> markEnemies = new List<Enemy>();
         readonly List<float> markDist = new List<float>();
 
@@ -52,6 +59,25 @@ namespace Arena
                 markEnemies.Insert(i, e);
             }
 
+            bool merge = game.SurvivalOn;  // the big room: crowds of enemies are one arrow with a count
+            markClusters.Clear();
+            if (merge)
+            {
+                System.Array.Clear(markBinCount, 0, MarkBins);
+                System.Array.Clear(markBinElite, 0, MarkBins);
+                for (int k = 0; k < markEnemies.Count; k++)
+                {
+                    var e = markEnemies[k];
+                    if (e.Def.IsBoss)
+                        continue;  // (a boss keeps its own big arrow)
+                    V2 d = ToUi(e.Disp) - mid;
+                    int bin = Mathf.Clamp((int)((Mathf.Atan2(d.Y, d.X) + Mathf.PI) / (MarkTau / MarkBins)), 0, MarkBins - 1);
+                    if (markBinCount[bin]++ == 0)
+                        markBinFirst[bin] = k;
+                    markBinElite[bin] |= e.Elite;
+                }
+            }
+
             if (BeginUiGl())
             {
                 int shown = 0;
@@ -59,6 +85,8 @@ namespace Arena
                 {
                     var e = markEnemies[k];
                     bool boss = e.Def.IsBoss;
+                    if (merge && !boss)
+                        continue;  // (drawn as a merged arrow below)
                     if (!boss && shown >= MarkEnemyCap)
                         continue;  // (bosses always show)
                     shown++;
@@ -71,6 +99,20 @@ namespace Arena
                     MarkArrow(tip, (at - mid).Normalized(), size, col.WithAlpha(fade * (0.45f + 0.5f * near)));
                     if (boss)
                         Arc(tip - (at - mid).Normalized() * (size * 0.4f), size * 1.35f, 2f, col.WithAlpha(fade * 0.6f), 24);
+                }
+                for (int bin = 0; merge && bin < MarkBins; bin++)  // the merged arrows: the nearest enemy of each slice stands for it
+                {
+                    int n = markBinCount[bin];
+                    if (n == 0)
+                        continue;
+                    var e = markEnemies[markBinFirst[bin]];
+                    float near = 1f - Mathf.Clamp01(markDist[markBinFirst[bin]] / (MarkFar * UiWorldScale));
+                    float size = (markBinElite[bin] ? 9f : 7f) * (1f + 0.1f * Mathf.Min(n - 1, 10)) * (0.7f + 0.3f * near);
+                    var col = markBinElite[bin] ? MarkElite : MarkEnemy;
+                    V2 at = ToUi(e.Disp), dir = (at - mid).Normalized(), tip = EdgePoint(mid, at);
+                    MarkArrow(tip, dir, size, col.WithAlpha(fade * (0.5f + 0.5f * near)));
+                    if (n > 1)
+                        markClusters.Add(new[] { tip, dir, new V2(n, size) });
                 }
                 foreach (var c in game.Props.Values)  // unopened treasure chests: a gold arrow with a ring
                 {
@@ -105,6 +147,13 @@ namespace Arena
                     MarkArrow(EdgePoint(mid, at), (at - mid).Normalized(), 13f, col.WithAlpha(fade * pulse));
                 }
                 EndUiGl();
+            }
+
+            // The merged arrows' counts, just inside each (x7).
+            foreach (var m in markClusters)
+            {
+                V2 p = m[0] - m[1] * (m[2].Y * 1.6f + 14f);
+                Ui.Label(new Rect(p.X - 24f, p.Y - 8f, 48f, 16f), "x" + (int)m[2].X, 11, new Color(1f, 0.78f, 0.72f, fade), TextAnchor.MiddleCenter, true);
             }
 
             // Their names, just inside each teammate's arrow.

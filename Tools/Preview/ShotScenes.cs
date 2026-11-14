@@ -256,6 +256,16 @@ static partial class Shot {
       var spos = Environment.GetEnvironmentVariable("SURVPOS") != null ? Array.ConvertAll(Environment.GetEnvironmentVariable("SURVPOS").Split(','), float.Parse) : new[] { 1300f, 700f };
       int sk = 0; foreach (var pl in sg.Players.Values) { pl.Pos = pl.Disp = new V2(spos[0] + 90f * sk, spos[1]); sk++; }
       typeof(Game).GetMethod("SurvivalProps", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(sg, new object[] { true });
+      if (Environment.GetEnvironmentVariable("SURVMARKS") != null) {  // SURVMARKS=<n>: n more enemies scattered over the room, off your view (the merged arrows with their counts)
+        var mr = new System.Random(5); var spawn = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+        var types = new[] { EnemyType.Swarmer, EnemyType.Grunt, EnemyType.Brute, EnemyType.Sniper };
+        for (int i = 0, n = int.Parse(Environment.GetEnvironmentVariable("SURVMARKS")); i < n; i++) {
+          var at = new V2(100f + (float)mr.NextDouble() * 3000f, 100f + (float)mr.NextDouble() * 1600f);
+          if (Math.Abs(at.X - spos[0]) < 900f && Math.Abs(at.Y - spos[1]) < 520f) { i--; continue; }
+          spawn.Invoke(sg, new object[] { types[mr.Next(types.Length)], at, 0f, 0, mr.NextDouble() < 0.12 });
+        }
+        foreach (var en in sg.Enemies.Values) en.Disp = en.Pos;
+      }
       if (sp.Length > 1 && sp[1] == "pick") { sg.State = MatchState.Intermission; sg.StateTimer = 1f; me.PendingPicks = 1; }
     }
     if (Environment.GetEnvironmentVariable("TUTORIAL") != null) {

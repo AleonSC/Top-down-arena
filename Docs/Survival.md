@@ -106,4 +106,4 @@ owner's own runs feel, then move the base, the slope or the phase length (`Survi
 - Camera: follows you at the normal zoom (Survival skips the Rooms arena's zoomed-in start); everyone starts near the middle, clear of the walls.
 - Spawns: outside every player's view (880 x 500 px around each), clear of walls, the nearest qualifying spot to a player so enemies do not cross the room.
 - Orientation: the Rooms arena's own aids already work in the big room (no new code): a **minimap** top right (the room, your view and the enemies as dots) and **off-screen arrows** at the view's edge for the nearest 40 enemies, teammates and bosses (`OffscreenMarkers.cs`, `RoomsLook.cs`). Preview with `SURVIVAL=312 SURVPOS=1600,800`.
-- Open: whether the room wants more cover than the plus and brackets; whether crowded arrows should merge into one with a count.
+- Open: whether the room wants more cover than the plus and brackets; - (built) crowded arrows merge into one with a count in Survival: 28 direction slices, the nearest enemy of a slice places the arrow, preview `SURVMARKS=45`.
