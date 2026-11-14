@@ -1,6 +1,6 @@
 # Shuriken: Great Star stance (design)
 
-Status: **built** (Nov 2026, protocol 347). The owner chose concept **B, Trace the Path**, with hits on the way back too.
+Status: **built** (Nov 2026, protocol 348). The owner chose concept **B, Trace the Path**, with hits on the way back too.
 Mockup: [`Docs/Mockups/shuriken-great-star.html`](Mockups/shuriken-great-star.html) (https://claude.ai/artifact/7jSAgH8LF3qpkRchxSm2nj).
 Concepts A (Swipe & Bend) and C (Wind-up & Flick) are in the same mockup and were not picked.
 
