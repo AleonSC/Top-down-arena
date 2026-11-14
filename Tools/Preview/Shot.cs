@@ -101,6 +101,7 @@ static partial class Shot {
     UnityEngine.Screen.width = 1280; UnityEngine.Screen.height = 720;
     if (Environment.GetEnvironmentVariable("CRTTHEME") != null) CrtUi.Theme = int.Parse(Environment.GetEnvironmentVariable("CRTTHEME"));  // CRT colour (CrtUi.ThemeNames)
     host = new Session { AutoStart = players, StartWave = wave }; host.Game.Bot = true;
+    PerfRunSetup();  // PERFRUN=: Quick Play on the Expanding arena (ShotPerf.cs)
     melee = Environment.GetEnvironmentVariable("KNIGHT") ?? Environment.GetEnvironmentVariable("NINJA") ?? Environment.GetEnvironmentVariable("BLOOD");
     meleeKit = Environment.GetEnvironmentVariable("NINJA") != null ? Kit.Ninja : Environment.GetEnvironmentVariable("BLOOD") != null ? Kit.Hemomancer : Kit.Knight;
     var rodEnv = Environment.GetEnvironmentVariable("ROD");  // ROD=<seconds since the cast>: you take Lightning Rod (the tank Elementalist's second ultimate) and cast it that long before the shot
@@ -898,6 +899,7 @@ static partial class Shot {
     using (var w = new BinaryWriter(File.Create(args[0] + ".tris"))) foreach (var v in GL.Tris) w.Write(v);
     File.WriteAllLines(args[0] + ".ui", GUI.Log.ToArray());
     Console.WriteLine("state {0} wave {1}, tris {2}, ui items {3}", host.Game.State, host.Game.Wave, GL.Tris.Count / 18, GUI.Log.Count);
+    PerfRun();
     ClipFrames();
     host.Leave(""); foreach (var c in others) c.Leave("");
   }

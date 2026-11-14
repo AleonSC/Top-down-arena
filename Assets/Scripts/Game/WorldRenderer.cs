@@ -720,9 +720,12 @@ namespace Arena
         {
             if (!glClipOn)
             {
-                Vtx(Px(a));
-                Vtx(Px(b));
-                Vtx(Px(c));
+                Vector3 pa = Px(a), pb = Px(b), pc = Px(c);
+                if (OffScreen(pa, pb, pc))
+                    return;
+                Vtx(pa);
+                Vtx(pb);
+                Vtx(pc);
                 return;
             }
             V2 ua = glShift + a * glZoom, ub = glShift + b * glZoom, uc = glShift + c * glZoom;
@@ -841,8 +844,42 @@ namespace Arena
             Quad(a + n, b + n, b - n, a - n);
         }
 
+        // --- Vertex budget: Unity's GL immediate mode costs per vertex, so a crowd (a breach wave's flood) is drawn
+        // with no more of them than the screen shows. Neither changes the picture by more than a fraction of a pixel.
+
+        float cullW, cullH;  // the screen in pixels (UpdateLayout and each DrawWorld); 0: no culling yet
+
+        void RefreshCull()
+        {
+            cullW = UnityEngine.Screen.width;
+            cullH = UnityEngine.Screen.height;
+        }
+
+        /// A triangle wholly off one side of the screen (screen pixels): GL would clip it to nothing anyway.
+        bool OffScreen(Vector3 a, Vector3 b, Vector3 c) =>
+            cullW > 0f && ((a.x < 0f && b.x < 0f && c.x < 0f) || (a.y < 0f && b.y < 0f && c.y < 0f) ||
+                           (a.x > cullW && b.x > cullW && c.x > cullW) || (a.y > cullH && b.y > cullH && c.y > cullH));
+
+        const float SegTol = 0.35f;  // px: how far a segment's middle may sit inside the true curve
+
+        /// How many of `segs` segments a curve of radius r (arena units) over `sweep` radians needs on screen. Only ever
+        /// fewer: counts of 8 or less are left alone (a hexagon drawn as a 6-segment circle stays a hexagon).
+        int SegsFor(V2 center, float r, float sweep, int segs)
+        {
+            if (segs <= 8 || r <= 0f)
+                return segs;
+            Vector3 p0 = Px(center), p1 = Px(center + new V2(r, 0f));
+            float px = Mathf.Sqrt((p1.x - p0.x) * (p1.x - p0.x) + (p1.y - p0.y) * (p1.y - p0.y));
+            if (px <= SegTol * 2f)
+                return 8;
+            float step = 2f * Mathf.Acos(1f - SegTol / px);  // the widest angle a segment may span
+            int need = Mathf.CeilToInt(Mathf.Abs(sweep) / Mathf.Max(step, 1e-3f));
+            return Mathf.Clamp(need, 8, segs);
+        }
+
         void Circle(V2 center, float r, Rgba c, int segs)
         {
+            segs = SegsFor(center, r, MathX.Tau, segs);
             SetColor(c);
             V2 prev = center + new V2(r, 0);
             for (int i = 1; i <= segs; i++)
@@ -857,6 +894,7 @@ namespace Arena
         {
             SetColor(c);
             float r0 = Mathf.Max(0f, r - width / 2f), r1 = r + width / 2f;
+            segs = SegsFor(center, r1, sweep, segs);
             for (int i = 0; i < segs; i++)
             {
                 V2 d0 = V2.FromAngle(start + sweep * i / segs), d1 = V2.FromAngle(start + sweep * (i + 1) / segs);

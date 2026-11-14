@@ -133,7 +133,7 @@ namespace Arena
         readonly Stack<ShotSeen> shotPool = new Stack<ShotSeen>();
         readonly List<int> goneIds = new List<int>();
         readonly List<V2> newBooms = new List<V2>();
-        readonly Part[] parts = new Part[1800];
+        readonly Part[] parts = new Part[1200];  // (each draws up to ~100 vertices with its glow)
         int partN;
         readonly List<Decal> scorches = new List<Decal>();
         readonly List<Ripple> ripples = new List<Ripple>();
@@ -258,8 +258,15 @@ namespace Arena
             holdGap = gap;
         }
 
+        /// 1 while the particle pool is quiet, down to 0.25 as it fills: in a flood of kills each burst brings fewer
+        /// sparks, so the pool (and the vertices it draws) stays in budget instead of cutting the last bursts off.
+        float PartCrowd => partN < PartCalm ? 1f : Mathf.Max(0.25f, 1f - (partN - PartCalm) / (float)(parts.Length - PartCalm));
+        const int PartCalm = 400;
+
         void Sparks(V2 at, Rgba col, int n, float speed, float life, float size)
         {
+            if (n > 2)
+                n = Mathf.Max(2, Mathf.RoundToInt(n * PartCrowd));
             for (int i = 0; i < n; i++)
             {
                 float a = Rnd(0f, MathX.Tau), s = speed * Rnd(0.3f, 1f);
@@ -868,6 +875,7 @@ namespace Arena
         /// DrawWorld, before anything else: the screen-shake offset for this frame.
         void BeginJuiceFrame()
         {
+            RefreshCull();  // the screen's size for skipping off-screen triangles (WorldRenderer.cs)
             shakeX = shakeY = 0f;
             if (!Juicy || trauma <= 0f || devFrozen)
                 return;  // (frozen with P: the picture holds still)
@@ -980,6 +988,7 @@ namespace Arena
             foreach (var b in game.Bullets.Values)
                 ShotGlow(b);  // ShotLooks.cs
             DrawFumaGlow();  // the Fuma Shuriken's trails and halos (FumaLook.cs)
+            bool crowded = partN > PartCalm;
             for (int i = 0; i < partN; i++)
             {
                 var p = parts[i];
@@ -999,7 +1008,10 @@ namespace Arena
                 if (p.Kind == PSpark)
                     GlowDisc(p.Pos, p.Size * 6f, p.Col, 0.55f * f);
                 else if (p.Kind == PShard)
-                    GlowDisc(p.Pos, p.Size * 1.4f, p.Col, 0.3f * f);
+                {
+                    if (!crowded)  // (faint under the sparks; left out while the pool is busy)
+                        GlowDisc(p.Pos, p.Size * 1.4f, p.Col, 0.3f * f);
+                }
                 else
                     GlowDisc(p.Pos, p.Size * (1.6f - f), p.Kind == PFlash ? Rgba.White : p.Col, 0.5f * f);
             }
@@ -1076,9 +1088,12 @@ namespace Arena
                 ClippedVTri(a, ca, b, cb, c, cc);  // (WorldRenderer.cs: inside a clipped preview, like Tri)
                 return;
             }
-            SetColor(ca); Vtx(Px(a));
-            SetColor(cb); Vtx(Px(b));
-            SetColor(cc); Vtx(Px(c));
+            Vector3 pa = Px(a), pb = Px(b), pc = Px(c);
+            if (OffScreen(pa, pb, pc))
+                return;
+            SetColor(ca); Vtx(pa);
+            SetColor(cb); Vtx(pb);
+            SetColor(cc); Vtx(pc);
         }
 
         /// The grid, rippling where a big blast went off (DrawWorld draws it flat when nothing's rippling).

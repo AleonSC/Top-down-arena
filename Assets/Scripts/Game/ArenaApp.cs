@@ -675,6 +675,7 @@ namespace Arena
             scale = Mathf.Min(UnityEngine.Screen.width / W, UnityEngine.Screen.height / H);
             offX = (UnityEngine.Screen.width - W * scale) / 2f;
             offY = (UnityEngine.Screen.height - H * scale) / 2f;
+            RefreshCull();  // WorldRenderer.cs
         }
 
         V2 MouseArena()
