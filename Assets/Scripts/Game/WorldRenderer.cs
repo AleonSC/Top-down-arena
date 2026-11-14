@@ -219,7 +219,7 @@ namespace Arena
             foreach (var h in game.Hazards.Values)
                 DrawHazard(h, t);
             DrawLayout(t);  // the floor plan's walls, pillars and edge gates (LayoutLook.cs)
-            DrawWallTouch(t);  // MOCKUP: a wall lighting up where a player touches it (WallTouchLook.cs)
+            DrawWallTouch(t);  // a wall crackling where a player touches it (WallTouchLook.cs)
             DrawGates();     // the Expanding arena's shutter gates: a red laser grid when shut (GateLook.cs)
             DrawPushFlashes();  // a pushed section's new walls and cover flash in (WallPushLook.cs)
             DrawWallPush();  // push mode: the lit wall section and the next row (WallPushLook.cs)

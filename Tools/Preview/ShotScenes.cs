@@ -1703,9 +1703,9 @@ static partial class Shot {
       foreach (var pl in lg.Players.Values) pl.Disp = pl.Pos = lg.PushOutOfProps(pl.Pos, 14f);
       foreach (var en in lg.Enemies.Values) en.Disp = en.Pos = lg.PushOutOfProps(en.Pos, en.Radius);
     }
-    if (Environment.GetEnvironmentVariable("WALLTOUCH") != null) {  // WALLTOUCH=<style 1-3> [WALLT=<s>]: MOCKUP (WallTouchLook.cs): you pressed against the nearest inner wall's face, the arena empty; use with LAYOUT
+    if (Environment.GetEnvironmentVariable("WALLTOUCH") != null) {  // WALLTOUCH=1 [WALLT=<s>]: a wall touched (WallTouchLook.cs): you pressed against the nearest inner wall's face, the arena empty; use with LAYOUT
       var wg = host.Game; var wq = Environment.GetEnvironmentVariable("WALLTOUCH").Split(',');
-      ArenaApp.WallTouchStyle = int.Parse(wq[0]);
+      ArenaApp.WallTouchPreview = wq[0] != "0";
       if (Environment.GetEnvironmentVariable("WALLT") != null) ArenaApp.WallTouchT = float.Parse(Environment.GetEnvironmentVariable("WALLT"), System.Globalization.CultureInfo.InvariantCulture);  // WALLT=<s>: the effect's clock
       wg.Enemies.Clear(); wg.Bullets.Clear(); wg.Effects.Clear(); wg.Props.Clear();
       wg.Minions.Clear(); wg.Zones.Clear();
