@@ -346,8 +346,10 @@ namespace Arena
                     int n;
                     sel.Counts.TryGetValue(type, out n);
                     bool hover = hovered == type;
+                    UiClip(new Rect(tiles[i].x + 1f, tiles[i].y + 1f, tiles[i].width - 2f, tiles[i].height - 2f));  // swing arcs and blades stay in their tile
                     DrawEnemyPreview(type, new V2(tiles[i].center.x, tiles[i].y + (th - 13f) / 2f + 1f), th - 20f, t, n > 0 || hover);
                 }
+                UiNoClip();
                 if (hovered != null)
                     DrawEnemyPreview(hovered.Value, new V2(g.x + 26f, g.yMax - infoH / 2f), 32f, t, true);
                 EndUiGl();
