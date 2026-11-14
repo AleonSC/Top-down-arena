@@ -135,7 +135,7 @@ namespace Arena
                         {
                             if (p.Downed || p.InvulnT > 0f || !SwordCovers(e, p.Pos, p.Def.HitR))
                                 continue;
-                            if (p.ParryActive && ParryContact(p, e, SwordDamageOf(e.Type)))
+                            if (p.ParryActive && ParryStrike(p, e, SwordDamageOf(e.Type)))
                                 continue;  // a raised guard takes it
                             Damage(p, SwordDamageOf(e.Type), e.Def.Name + " (sword)");
                             RodTouched(p, e);  // LightningRod.cs
