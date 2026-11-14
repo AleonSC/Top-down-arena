@@ -352,6 +352,7 @@ static partial class Shot {
       else
       {
         // READYFX=<seconds>: your seat readied that long ago (the Ready shockwave, LobbyFx.cs).
+        if (Environment.GetEnvironmentVariable("READYSTYLE") != null) set("readyStyle", int.Parse(Environment.GetEnvironmentVariable("READYSTYLE")));
         if (Environment.GetEnvironmentVariable("READYFX") != null) { var ra = (System.Collections.Generic.Dictionary<int, float>)typeof(ArenaApp).GetField("readyAt", f2).GetValue(app); ra[host.MyId] = Time.unscaledTime - float.Parse(Environment.GetEnvironmentVariable("READYFX"), System.Globalization.CultureInfo.InvariantCulture); }
         typeof(ArenaApp).GetMethod("DrawLobby", f2).Invoke(app, null);
       }
