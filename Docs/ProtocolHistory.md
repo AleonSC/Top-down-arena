@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 - 346: `FxKind.Shockwave` added at the end (the Shockwave ability's travelling wave; Core/Shockwave.cs)
+- 346: enemy variants: `SyncEnemy` sends `Enemy.Variant` (a byte, after the daze flag; EnemyVariants.cs)
 - 345: the DPS Knight's Misericorde became Bladed Dive: FxKind MercyLeap/MercyKill/MercyEnd are now DiveRush/DiveHit/DiveReset with new fields
 - 344: the riot Guard (`EnemyType.Guard`) now sends `SyncLarder` (its baton swing: `LarderStage` 1-4, `LarderT`)
 - 343: Survival's big room: `ArenaLayout.Survival` (after Expanding); a Survival run plays in a 3200 x 1800 world (`SurvivalRoom.World`) with walls in the middle and corners, props over the whole room and enemies spawned off every view, so both sides must build the same world (no new fields: the layout and Rooms flag already go in the snapshot)

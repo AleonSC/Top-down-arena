@@ -218,7 +218,7 @@ static partial class Shot {
       }
     }
     if (Environment.GetEnvironmentVariable("RIOTERS") != null) {
-      // RIOTERS=1: a pack of Rioters closing on you, a Guard and a Thug behind (mode hud; ZOOM=3 for a close look).
+      // RIOTERS=1: a pack of Rioters (two Ball and Chains) closing on you, a Guard and a Thug behind (mode hud; ZOOM=3 for a close look).
       var gm = host.Game; gm.Bot = false; gm.Enemies.Clear(); gm.Bullets.Clear();
       me.Pos = me.Disp = new V2(1010f, 580f); me.InvulnT = 1f; me.Aim = MathX.Pi;
       var spawn = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -228,6 +228,7 @@ static partial class Shot {
       for (int i = 0; i < spots.Length; i++) {
         var en = (Enemy)spawn.Invoke(gm, new object[] { types[i], spots[i], 0f, 0, false });
         en.SpawnT = 0f; en.Pos = en.Disp = spots[i]; en.Facing = (me.Pos - spots[i]).Angle + (i % 3 - 1) * 0.25f;
+        if (types[i] == EnemyType.Rioter) en.Variant = i == 1 || i == 4 ? EnemyVariant.BallAndChain : EnemyVariant.None;  // two Ball and Chains (EnemyVariants.cs)
       }
     }
     if (Environment.GetEnvironmentVariable("GUARD") != null) {
