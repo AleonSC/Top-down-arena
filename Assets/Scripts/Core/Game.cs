@@ -825,6 +825,7 @@ namespace Arena
                 pw.Write((ushort)Math.Min(65535f, Math.Max(0f, (float)Math.Round(PingMs))));  // for the host to share (LagNet.cs)
                 session.SendToHost(Proto.End(pw));
             }
+            NoteDuelBetweenWaves();  // GatekeeperRoom.cs (every game: enemies and kits fight in a duel between waves)
             if (IsHost)
             {
                 hostClock += dt;  // (every host tick, whatever the state: Dodge.cs times clients' dodges by it)

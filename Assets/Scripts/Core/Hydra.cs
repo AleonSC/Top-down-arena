@@ -26,7 +26,7 @@ namespace Arena
         /// so the hydra fires one bolt every 0.6 / heads s, passing from head to head.
         void TickHydra(Minion m, float dmg)
         {
-            if (m.Cd > 0f || State != MatchState.Fighting || m.T < 0f || m.T > m.Duration - 0.5f)  // not while it is still rising
+            if (m.Cd > 0f || !Battle || m.T < 0f || m.T > m.Duration - 0.5f)  // not while it is still rising
                 return;
             var d = m.Def;
             var near = new List<Enemy>();

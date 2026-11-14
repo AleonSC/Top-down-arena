@@ -1111,7 +1111,8 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   next boss's faction: the Warden's is the **Riot Captain**; factions without their own yet bring him too; the map shows its name), and the room
   locks behind you until it falls. Beating it gives everyone a prize pick (sometimes a legendary) and the room becomes an ordinary one. It's optional:
   if the wave ends first, it goes (with any men it called), you're let out, and walking in later (even right after the wave) starts a fresh duel.
-  A duel begun between waves holds the countdown to the next wave until it's settled; it can't be started just before a boss wave.
+  A duel begun between waves is a real fight (it attacks, your minions and kit work); readying up still starts the next wave, and the duel
+  carries on into it. It can't be started just before a boss wave.
 - **Riot Captain** (the Warden's mini-boss, 65% of the Warden's health): a tower shield blocks the front and never breaks; it turns slowly, so get
   round it. In turn: a **shield charge** along a red lane (18 damage, knocked 220 px; **into a wall it's dazed 2.2 s**: no shield, +50% damage;
   otherwise it holds the shield low 1.2 s), **buckshot** (3 fans of 7), **tear gas** (3 canisters round you) and a **whistle** (2 Taser Guards at
