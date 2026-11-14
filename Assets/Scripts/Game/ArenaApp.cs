@@ -524,6 +524,8 @@ namespace Arena
                     pauseConfirmLobby = false;  // "back to the lobby?": no (MenuDrawer.cs)
                 else if (EscPressed && (pauseSettings || pauseHowTo || pauseRecords) && menuUp)
                     MenuBack();  // a window closes first; then the pause menu's Settings: back to its choices (MenuDrawer.cs)
+                else if (EscPressed && !menuUp && ShopScreenUp(me))
+                    ShopEsc();  // the shop / Black Market: a popup or category closes first, then Esc leaves it (ShopUi.cs)
                 else if (EscPressed)
                 {
                     if (menuUp)
