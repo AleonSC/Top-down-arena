@@ -215,6 +215,7 @@ static partial class Shot {
         for (int i = 0; i < qn; i++) qp.BossBeaten(BossSchedule.Campaign.BossAt((i + 1) * 5), 0);
         host.Game.ProfileOverride = qp;
       }
+      if (Environment.GetEnvironmentVariable("SURVLOBBY") != null) { host.SurvivalMode = true; host.QuickMode = false; set("lobbyTab", 9); set("lobbyWasSurvival", true); }  // SURVLOBBY=1: the lobby's Survival mode and tab (SurvivalUi.cs)
       if (Environment.GetEnvironmentVariable("LOBBYTAB") != null) { set("lobbyTab", int.Parse(Environment.GetEnvironmentVariable("LOBBYTAB"))); set("lobbyWasQuick", true); host.Modifiers = RunMod.GlassCannon | RunMod.Frenzy | RunMod.Lucky | RunMod.Hunted | RunMod.SecondWind; }
       // MODSCROLL=<px>: the Modifiers tab's list scrolled down (e.g. 420 shows the Risky tier, Simple Arena among it).
       if (Environment.GetEnvironmentVariable("MODSCROLL") != null) set("modsScroll", float.Parse(Environment.GetEnvironmentVariable("MODSCROLL")));

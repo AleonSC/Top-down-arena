@@ -1,6 +1,6 @@
 # Survival: one arena, one clock, last as long as you can (design)
 
-Status: **steps 1-3 built** (`Core/Survival.cs`, `Core/SurvivalGame.cs`, suite `survival`; protocol 342). Step 3: the HUD (clock plate, held-for-pick plate, new-faction notice) and the end screen (`Game/SurvivalUi.cs`). The mode plays on the current arena for now; the big room, lobby tab, records and tuning (steps 4-6) are left. Decisions below are the owner's; numbers are first guesses to tune with the
+Status: **steps 1-4 built** (`Core/Survival.cs`, `Core/SurvivalGame.cs`, suite `survival`; protocol 342). Step 3: the HUD (clock plate, held-for-pick plate, new-faction notice) and the end screen (`Game/SurvivalUi.cs`). Step 4: the lobby carousel entry and tab. The mode plays on the current arena for now; the big room, records and tuning (steps 5-6) are left. Decisions below are the owner's; numbers are first guesses to tune with the
 `Tools/SimTest` suites once built. Open questions at the bottom.
 
 ## The idea

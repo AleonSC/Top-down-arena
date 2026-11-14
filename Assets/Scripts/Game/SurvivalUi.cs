@@ -6,6 +6,9 @@ namespace Arena
     public partial class ArenaApp
     {
         // Survival's HUD (Docs/Survival.md step 3): the clock plate, the level-up hold and the new-faction notice.
+        const int SurvivalTab = 9;
+        static readonly Color SurvivalColor = new Color(0.55f, 0.95f, 0.6f);
+        static readonly string[] SurvivalRules = { "NO WAVES, NO BOSSES", "LEVEL-UP PICKS FREEZE THE CLOCK", "NO PATHS, NO SHOPS", "NO LIVES", "NO SAVING", "MODIFIERS + DIFFICULTY APPLY" };
         int survPhaseSeen = -1;
         float survPhaseAt = -99f;
 
@@ -57,7 +60,58 @@ namespace Arena
             var box = new Rect(W / 2f - 190f, 96f, 380f, 54f);
             Ui.Pill(box, new Color(0f, 0f, 0f, 0.55f * a));
             Ui.Label(new Rect(box.x, box.y + 6f, box.width, 18f), "NEW ENEMIES", 12, new Color(1f, 0.8f, 0.35f, a), TextAnchor.MiddleCenter, true);
-            Ui.Label(new Rect(box.x, box.y + 24f, box.width, 24f), BossName(f.Boss).ToUpperInvariant() + "'S FACTION JOINS THE FIGHT", 15, new Color(1f, 1f, 1f, a), TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(box.x, box.y + 24f, box.width, 24f), SurvFactionName(f) + " JOINS THE FIGHT", 15, new Color(1f, 1f, 1f, a), TextAnchor.MiddleCenter, true);
+        }
+
+        /// "THE WARDEN'S FACTION", "TWIN REAPERS' FACTION".
+        static string SurvFactionName(FactionDef f)
+        {
+            string n = BossName(f.Boss).ToUpperInvariant();
+            return n + (n.EndsWith("S") ? "'" : "'S") + " FACTION";
+        }
+
+        /// The lobby's Survival tab (Docs/Survival.md step 4): what the mode is, when each faction joins, and the rules.
+        void DrawSurvivalTab(Rect r, float t)
+        {
+            DkPanel(r);
+            var ink = CrtUi.Ink;
+            var dim = new Color(ink.r, ink.g, ink.b, 0.7f);
+            float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;
+            DkTitle(new Rect(x, y - 2f, 200f, 24f), "SURVIVAL", 18);
+            Ui.Label(new Rect(x + w - 330f, y, 330f, 20f), "ONE CLOCK  ·  NO WAVES  ·  LAST AS LONG AS YOU CAN", 11, Ui.Muted, TextAnchor.MiddleRight);
+            Ui.Fill(new Rect(x + 150f, y + 10f, w - 520f, 1f), new Color(ink.r, ink.g, ink.b, 0.25f));
+            y += 26f;
+            Ui.Label(new Rect(x, y, w, 18f), "Enemies keep coming and the pressure climbs with the clock. The run ends when everyone is down.", 12, Ui.Muted);
+            y += 30f;
+
+            // Left: the clock's ladder: when each faction joins.
+            float colW = Mathf.Floor((w - 22f) / 2f);
+            DkTitle(new Rect(x, y - 2f, colW, 18f), "THE CLOCK", 12, dim);
+            var all = Survival.FactionsAt(99999f);
+            float rowH = Mathf.Min(44f, (r.yMax - 20f - (y + 24f)) / all.Count - 6f);
+            for (int i = 0; i < all.Count; i++)
+            {
+                var row = new Rect(x, y + 24f + i * (rowH + 6f), colW, rowH);
+                DkSub(row);
+                string when = i == 0 ? "0:00" : Game.SurvClock(i * Survival.PhaseLength);
+                string who = i == 0 ? "THE BASIC FACTION" : SurvFactionName(all[i]);
+                DkTitle(new Rect(row.x + 10f, row.y + 2f, 70f, rowH - 4f), when, 16, SurvivalColor);
+                Ui.Label(new Rect(row.x + 90f, row.y, row.width - 100f, row.height), who, 12, Color.white, TextAnchor.MiddleLeft, true);
+            }
+
+            // Right: the rules, then the party-size note.
+            float x2 = x + colW + 22f;
+            DkTitle(new Rect(x2, y - 2f, colW, 18f), "THE RULES", 12, dim);
+            float yr = y + 24f;
+            foreach (var rule in SurvivalRules)
+            {
+                var row = new Rect(x2, yr, colW, 26f);
+                DkSub(row);
+                Ui.Label(new Rect(row.x + 10f, row.y, row.width - 20f, row.height), rule, 11, Ui.Text, TextAnchor.MiddleLeft, true);
+                yr += 32f;
+            }
+            yr += 6f;
+            Ui.Label(new Rect(x2, yr, colW, 16f), "Two and three players face 1.6x and 2.2x the enemies.", 11, Ui.Muted);
         }
     }
 }
