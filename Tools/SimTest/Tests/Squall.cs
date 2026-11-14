@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Arena;
 
-// The Storm Herald's faction, steps 1-3 (Core/Squall.cs, Docs/StormFaction.md): a Dust Devil shoves you on touch and veers
+// The Storm Herald's faction, steps 1-4 (Core/Squall.cs, Docs/StormFaction.md): a Dust Devil shoves you on touch and veers
 // off, a Squall Gunner's three shots leave upwind of you and curve back to where you stood, a Stormcaller calls an amber
 // strike under you that hurts if you stay; a Grounder grounds shots and claps them back, a Pylon pair's arc, a Lineman's
-// mark; a Thunderhead's row of strikes, a wave's Ball Lightning (slows hold it, its shots are its own); and the eight
-// come in the waves before the Storm Herald.
+// mark; a Thunderhead's row of strikes, a wave's Ball Lightning (slows hold it, its shots are its own); the Storm front's
+// sweeping wall; and the eight come in the waves before the Storm Herald, the Storm front on the last.
 static partial class Program
 {
     static void SquallTest(float dt)
@@ -226,6 +226,35 @@ static partial class Program
         }
         Console.WriteLine("  Ball Lightning: popped into {0} shots, boss shots {1}", popped.Count, popped.Count(b => b.FromBoss));
         Check(popped.Count == 8 && popped.All(b => !b.FromBoss), "it pops into 8 shots of its own, not the boss's");
+
+        // --- Step 4: the Storm front ----------------------------------------------------------------------------------
+        g.DevSetGod(1, true);
+        Quiet();
+        g.Enemies.Clear(); g.Hazards.Clear(); g.Bullets.Clear();
+        var fh = Approaches.For(EnemyType.StormHerald);
+        typeof(Game).GetMethod("SpawnSquadAt", np).Invoke(g, new object[] { fh.Finale, (V2?)new V2(300f, 400f) });
+        var callers = g.Enemies.Values.Where(e => e.Type == EnemyType.Stormcaller).ToList();
+        Check(callers.Count == 6 && g.Enemies.Values.Count(e => e.Type == EnemyType.Grounder) == 2, "the Storm front: six Stormcallers and two Grounders");
+        var seenH = new HashSet<int>();
+        var columns = new List<List<Hazard>>();
+        for (int f = 0; f < 60 * (Game.FrontFirst + Game.FrontEvery * 6 + 0.1f); f++)
+        {
+            Quiet(); me.Pos = me.Disp = home; Step(host, dt);
+            var fresh = g.Hazards.Values.Where(h => seenH.Add(h.Id)).ToList();
+            if (fresh.Count > 0) columns.Add(fresh);
+        }
+        Console.WriteLine("  Storm front: {0} columns so far, sizes {1}", columns.Count, string.Join(" ", columns.Select(c => c.Count)));
+        Check(columns.Count >= 5 && columns.All(c => c.Count == Game.FrontSlots - Game.FrontGap && c.All(h => h.Kind == Game.HazardCaller)),
+            "it sweeps columns of strikes, two slots open in each (and the callers call none of their own)");
+        if (columns.Count >= 2)
+        {
+            V2 step = columns[1].Aggregate(V2.Zero, (a, h) => a + h.Pos) / columns[1].Count - columns[0].Aggregate(V2.Zero, (a, h) => a + h.Pos) / columns[0].Count;
+            Check(step.Length > Game.FrontStep * 0.5f, "each column lands further along than the last");
+        }
+        foreach (var c in callers) typeof(Game).GetMethod("HurtEnemy", np).Invoke(g, new object[] { c, 1e6f, 1 });
+        int before = seenH.Count;
+        for (int f = 0; f < 60 * 2; f++) { Quiet(); me.Pos = me.Disp = home; Step(host, dt); foreach (var h in g.Hazards.Values) seenH.Add(h.Id); }
+        Check(seenH.Count == before, "kill the callers and the front ends");
         host.Leave("");
 
         // The faction: the three come in the waves before the Storm Herald (50-wave track: 36-39).
@@ -257,6 +286,29 @@ static partial class Program
                 early.Add(t);
         }
         Console.WriteLine("  waves 36-39 bring: " + string.Join(", ", seen));
+        Check(fh.Lessons != null && fh.Lessons.Length == 10 && fh.Lessons[9].Finale && fh.Finale.Form == SquadForm.StormFront, "ten lessons, the last the Storm front");
+        // The Long Campaign's ten waves before the Storm Herald (71-80): one lesson each, in the chart's order; the exam last.
+        var firstL = new Dictionary<EnemyType, int>();
+        var squadNamesL = new Dictionary<int, HashSet<string>>();
+        const int lo = 71;
+        for (int sw = lo; sw < lo + 10; sw++)
+        {
+            Game.SeedForTests(8700 + sw);
+            var cg = new Session().Game;
+            cg.LongRun = true; cg.Wave = (sw + 1) / 2; cg.Leg = (sw - 1) % 2; cg.BossSlot = false;
+            build.Invoke(cg, new object[] { cg.Wave });
+            var sq = (List<SquadDef>)squadQ.GetValue(cg);
+            foreach (var t in ((List<EnemyType>)spawnQ.GetValue(cg)).Concat(sq.SelectMany(x => x.Members)).Where(t => Game.IsSquall(t) || t == EnemyType.BallLightning))
+                if (!firstL.ContainsKey(t)) firstL[t] = sw - lo + 1;
+            squadNamesL[sw - lo + 1] = new HashSet<string>(sq.Select(x => x.Name));
+        }
+        Console.WriteLine("  long campaign waves " + lo + "-" + (lo + 9) + ", first lessons: " + string.Join(", ", firstL.OrderBy(k => k.Value).Select(k => k.Key + " " + k.Value)));
+        Func<EnemyType, int, bool> firstAtL = (t, w) => firstL.ContainsKey(t) && firstL[t] == w;
+        Check(firstAtL(EnemyType.DustDevil, 1) && firstAtL(EnemyType.SquallGunner, 2) && firstAtL(EnemyType.Grounder, 3) && firstAtL(EnemyType.Stormcaller, 4)
+            && firstAtL(EnemyType.Pylon, 5) && firstAtL(EnemyType.Thunderhead, 6) && firstAtL(EnemyType.Lineman, 7) && firstAtL(EnemyType.BallLightning, 8),
+            "the Storm Herald's ten lessons: Dust Devil, Squall Gunner, Grounder, Stormcaller, Pylon, Thunderhead, Lineman, Ball Lightning (the chart's order)");
+        Check(squadNamesL[10].Contains("Storm front") && squadNamesL[10].Contains("Squall line") && Enumerable.Range(1, 9).All(w => !squadNamesL[w].Contains("Storm front")),
+            "the tenth is the exam: the Storm front and a big Squall line, only there");
         Check(seen.Count == 8, "waves 36-39 bring all eight");
         Check(early.Count == 0, "none come before the Storm Herald's approach");
     }

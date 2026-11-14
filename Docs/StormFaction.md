@@ -1,9 +1,9 @@
 # The Storm Herald's faction: the Squall
 
-**Status: steps 1-3 built** (protocol 340): all eight enemies and five squads (Squall line, Storm cell, Power line, Supercell, Grounding
-wall). Step 4 (the Storm front set piece and the ten lessons) is next. Code: `Core/Squall.cs`,
+**Status: built** (all four steps; protocol 340, step 4 changed nothing on the wire): all eight enemies, five squads (Squall line, Storm
+cell, Power line, Supercell, Grounding wall), the Storm front set piece and the Long Campaign's ten lessons. Code: `Core/Squall.cs`,
 `Core/Approaches.cs` (the Storm Herald `FactionDef`), `Core/Defs.cs`, `Core/LateGame.cs` (`HazardCaller` in `TickHazards`), `Game/SquallLook.cs`;
-mockup `Docs/Mockups/storm-herald-faction.html`; test suite `squall`; previews `SQUALL=0.4 ZOOM=1.7 Tools/Preview/shot.sh x hud 1` (step 1), `SQUALL2=0.4 ZOOM=1.7 ...` (step 2), `SQUALL3=0.4 ZOOM=1.7 ...` (step 3).
+mockup `Docs/Mockups/storm-herald-faction.html`; test suite `squall`; previews `SQUALL=0.4 ZOOM=1.7 Tools/Preview/shot.sh x hud 1` (step 1), `SQUALL2=0.4 ZOOM=1.7 ...` (step 2), `SQUALL3=0.4 ZOOM=1.7 ...` (step 3), `SQUALL4=0.4 ...` (the Storm front).
 
 A storm front walking ahead of the Herald, the same size as the Warden's faction: eight enemies, four squads, a set piece and a ten-wave cycle.
 Like the Infall, each has its own behaviour and previews one of the Herald's attacks. Until now the Herald got the basic faction.
@@ -59,5 +59,15 @@ Like the Infall, each has its own behaviour and previews one of the Herald's att
      and freezes hold it (a frozen one stays put, its timer still runs); one the Herald didn't make (`HeraldBall`) pops into its own shots
      (not boss shots) and its arcs are named "Ball Lightning (arc)"; it pays 9 XP (`BallWaveXp`, the Herald's stay at 2). At most four a
      wave (`CapBeams`; spare ones become Dust Devils). Job: Disruptor.
-4. **The Storm front** set piece (six Stormcallers and two Grounders; a wall of strikes sweeps across with a two-strike gap that drifts) and
-   the ten lessons in the Warden's order (`FactionDef.Lessons`), as in the mockup's table.
+4. **The Storm front** set piece and the ten lessons (built).
+   - `SquadForm.StormFront`: six Stormcallers in the usual line, the two Grounders `StormFrontGuard` (90 px) in front of them. While any of the
+     squad's callers lives (`stormFronts`, by squad id; `InStormFront` keeps them from calling their own strikes), `TickStormFronts` sweeps:
+     2.5 s after it arrives, then 3.5 s after each sweep, it takes the line from the callers to the players' middle and lays 17 columns, one
+     every 0.42 s, 60 px apart, starting 480 px behind the players. A column is 13 slots 60 px apart across that line, each a 32 px strike
+     (`HazardCaller`, 1.1 s warning, 20), less two side by side; that gap drifts a slot (or stays) each column, never off the edge. Kill the
+     callers to end it. Nothing new on the wire: the strikes are Hazards.
+   - The lessons (`FactionDef.Lessons`, the Long Campaign's waves 71-80, the Warden's order): Dust Devil; Squall Gunner (Squall line); Grounder;
+     Stormcaller (Storm cell); Pylon (Power line); a recap with Thunderheads (Grounding wall, Squall line); Lineman (Supercell); Ball Lightning;
+     every squad (90%); the exam, the Storm front and a big Squall line.
+   - Decided here: the wall sweeps from the callers through the players (not along a fixed axis), so it always comes at you; it has no
+     length limit in the Rooms arena, as strikes in a wall are harmless.

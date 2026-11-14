@@ -269,7 +269,7 @@ namespace Arena
             },
             new FactionDef
             {
-                Boss = EnemyType.StormHerald,  // the Storm Herald: the Squall, a storm front walking ahead of it (Squall.cs, Docs/StormFaction.md); steps 1-3 of 4
+                Boss = EnemyType.StormHerald,  // the Storm Herald: the Squall, a storm front walking ahead of it (Squall.cs, Docs/StormFaction.md)
                 Members = new[]
                 {
                     new FactionMember { Type = EnemyType.DustDevil, Weight = 3f },
@@ -289,7 +289,24 @@ namespace Arena
                     new SquadDef { Name = "Supercell", From = 3, Members = new[] { EnemyType.Thunderhead, EnemyType.Lineman, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil } },
                     new SquadDef { Name = "Grounding wall", From = 3, Members = new[] { EnemyType.Grounder, EnemyType.Grounder, EnemyType.Stormcaller, EnemyType.Stormcaller, EnemyType.Stormcaller } },
                 },
-                // No set piece or lesson cycle yet (step 4): the Campaign builds its waves by reach, as the Infall's step 1 did.
+                // Wave 4: the Storm front, six Stormcallers behind two Grounders, sweeping a wall of strikes with a drifting gap (Squall.cs).
+                Finale = new SquadDef { Name = "Storm front", From = 4, Form = SquadForm.StormFront, Members = new[] {
+                    EnemyType.Stormcaller, EnemyType.Stormcaller, EnemyType.Stormcaller, EnemyType.Grounder,
+                    EnemyType.Grounder, EnemyType.Stormcaller, EnemyType.Stormcaller, EnemyType.Stormcaller } },
+                // The Campaign's Storm Herald cycle: each wave previews one thing its fight tests (Docs/StormFaction.md).
+                Lessons = new[]
+                {
+                    new WaveLesson { Teaches = "Dust Devils shove you (the Gale's wind)", Members = new[] { M(EnemyType.DustDevil, 1f) } },
+                    new WaveLesson { Teaches = "Squall Gunners' shots curve back on the wind (Crosswind)", Trickle = true, Star = EnemyType.SquallGunner, Members = new[] { M(EnemyType.DustDevil, 2f) }, Squads = new[] { "Squall line" } },
+                    new WaveLesson { Teaches = "Grounders: flank them, find the clap's gaps (Thunderclap)", Trickle = true, Star = EnemyType.Grounder, Members = new[] { M(EnemyType.DustDevil, 2f), M(EnemyType.SquallGunner, 1.5f) } },
+                    new WaveLesson { Teaches = "Stormcallers: step out of the ring (Strikes)", Trickle = true, Star = EnemyType.Stormcaller, Members = new[] { M(EnemyType.Grounder, 1.5f), M(EnemyType.DustDevil, 2f) }, Squads = new[] { "Storm cell" } },
+                    new WaveLesson { Teaches = "Pylons: step off the line between flickers (Lightning rods)", Trickle = true, Star = EnemyType.Pylon, Members = new[] { M(EnemyType.DustDevil, 2f), M(EnemyType.SquallGunner, 1.5f) }, Squads = new[] { "Power line" } },
+                    new WaveLesson { Teaches = "A recap of everything so far, and Thunderheads join (Downburst)", Trickle = true, Star = EnemyType.Thunderhead, Members = new[] { M(EnemyType.DustDevil, 2f), M(EnemyType.SquallGunner, 1.5f), M(EnemyType.Grounder, 1f), M(EnemyType.Stormcaller, 1f), M(EnemyType.Pylon, 1f) }, Squads = new[] { "Grounding wall", "Squall line" } },
+                    new WaveLesson { Teaches = "Linemen mark you: walk away from the team (the Conductor)", Trickle = true, Star = EnemyType.Lineman, Members = new[] { M(EnemyType.DustDevil, 2f), M(EnemyType.SquallGunner, 1f) }, Squads = new[] { "Supercell" } },
+                    new WaveLesson { Teaches = "Ball Lightning: kill it far away, never walk between two (Ball lightning)", Trickle = true, Star = EnemyType.BallLightning, Members = new[] { M(EnemyType.Lineman, 1.5f), M(EnemyType.Pylon, 1f), M(EnemyType.Thunderhead, 1.5f), M(EnemyType.DustDevil, 1.5f) } },
+                    new WaveLesson { Teaches = "Squads: Squall line, Storm cell, Power line, Supercell, Grounding wall", Members = new[] { M(EnemyType.DustDevil, 1f), M(EnemyType.SquallGunner, 1f) }, Squads = null, SquadChance = 0.9f },
+                    new WaveLesson { Teaches = "The exam: the Storm front and a big Squall line, with everything", Members = null, Squads = new string[0], Finale = true, Also = "Squall line" },
+                },
             },
             new FactionDef
             {
