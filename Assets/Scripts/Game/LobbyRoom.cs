@@ -331,7 +331,7 @@ namespace Arena
                     float total, left = session.MyAbilityCooldownLeft(out total);
                     Ui.Fill(abox, new Color(0.03f, 0.05f, 0.09f, 0.85f));
                     Ui.Label(new Rect(abox.x + 8f, abox.y + 2f, abox.width - 12f, 20f), Session.AbilityName(kind).ToUpperInvariant(), 13, left > 0f ? Ui.Muted : Color.white, TextAnchor.MiddleLeft, true);
-                    Ui.Label(new Rect(abox.x + 8f, abox.y + 20f, abox.width - 12f, 14f), Keybinds.SlotLabels[0] + " or right click", 10, Ui.Muted, TextAnchor.MiddleLeft);
+                    Ui.Label(new Rect(abox.x + 8f, abox.y + 20f, abox.width - 12f, 14f), Keybinds.SlotLabels[0] + " or " + (Keybinds.Get(KeyAction.Parry) >= KeyCode.Mouse0 && Keybinds.Get(KeyAction.Parry) <= KeyCode.Mouse6 ? Keybinds.KeyName(Keybinds.Get(KeyAction.Parry)).ToLowerInvariant() : Keybinds.KeyName(Keybinds.Get(KeyAction.Parry)).ToUpperInvariant()), 10, Ui.Muted, TextAnchor.MiddleLeft);
                     Ui.Meter(new Rect(abox.x + 8f, abox.yMax - 8f, abox.width - 16f, 4f), 1f - left / total, left > 0f ? new Color(0.6f, 0.65f, 0.8f) : new Color(0.4f, 0.95f, 0.7f));
                 }
             }
@@ -376,13 +376,13 @@ namespace Arena
             if (dir.LengthSq > 0f)
                 dir = dir.Normalized();
             session.MoveMyAvatar(a.Pos + dir * (Session.AvatarSpeed * dt) + session.TakeDashStep(a, dt), aim);
-            // Ability: Space (or whatever it's bound to) or the right button.
-            bool castPress = hangoutCastLatch || Keybinds.Down(KeyAction.Ability) || Input.GetKeyDown(KeyCode.Space);
+            // Ability: its key or the Parry key (right click by default).
+            bool castPress = hangoutCastLatch || Keybinds.Down(KeyAction.Ability);
             hangoutCastLatch = false;
-            if (a.Pvp && (castPress || (Input.GetMouseButtonDown(1) && view.Contains(mouse))))
+            if (a.Pvp && (castPress || (Keybinds.Down(KeyAction.Parry) && view.Contains(mouse))))
                 session.CastMyAbility(castAim);
             // Fire: PvP on, the button held over the window (not over the minimap or switch, nor while the emote bar is picking).
-            if (aiming && Input.GetMouseButton(0) && !emoteBarOpen && !hangoutHudRects[0].Contains(mouse) && !hangoutHudRects[1].Contains(mouse))
+            if (aiming && Keybinds.Held(KeyAction.Fire) && !emoteBarOpen && !hangoutHudRects[0].Contains(mouse) && !hangoutHudRects[1].Contains(mouse))
                 session.FireMyShot(aim);
         }
 

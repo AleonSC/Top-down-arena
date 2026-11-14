@@ -163,7 +163,7 @@ namespace Arena
 
             // Crosshair
             V2 m = MouseArena();
-            StepCursor(m, t, Input.GetMouseButton(0) && !fireBlocked);
+            StepCursor(m, t, Keybinds.Held(KeyAction.Fire) && !fireBlocked);
             if (!cursorWantPointer)  // (over a menu or the end screen the pointer is drawn on top of the UI instead: DrawMenuCursor)
                 DrawLookMorph(CursorLook(), m, t, cursorFire, cursorMorph, cursorHist);  // CursorLooks.cs: the pointer turning into your crosshair as a match starts
             EndJuiceFrame();
@@ -214,6 +214,7 @@ namespace Arena
             foreach (var h in game.Hazards.Values)
                 DrawHazard(h, t);
             DrawLayout(t);  // the floor plan's walls, pillars and edge gates (LayoutLook.cs)
+            DrawWallTouch(t);  // a wall crackling where a player touches it (WallTouchLook.cs)
             DrawGates();     // the Expanding arena's shutter gates: a red laser grid when shut (GateLook.cs)
             DrawPushFlashes();  // a pushed section's new walls and cover flash in (WallPushLook.cs)
             DrawWallPush();  // push mode: the lit wall section and the next row (WallPushLook.cs)

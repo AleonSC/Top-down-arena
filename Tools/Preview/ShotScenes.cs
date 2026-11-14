@@ -1704,5 +1704,24 @@ static partial class Shot {
       foreach (var pl in lg.Players.Values) pl.Disp = pl.Pos = lg.PushOutOfProps(pl.Pos, 14f);
       foreach (var en in lg.Enemies.Values) en.Disp = en.Pos = lg.PushOutOfProps(en.Pos, en.Radius);
     }
+    if (Environment.GetEnvironmentVariable("WALLTOUCH") != null) {  // WALLTOUCH=1 [WALLT=<s>]: a wall touched (WallTouchLook.cs): you pressed against the nearest inner wall's face, the arena empty; use with LAYOUT
+      var wg = host.Game; var wq = Environment.GetEnvironmentVariable("WALLTOUCH").Split(',');
+      ArenaApp.WallTouchPreview = wq[0] != "0";
+      if (Environment.GetEnvironmentVariable("WALLT") != null) ArenaApp.WallTouchT = float.Parse(Environment.GetEnvironmentVariable("WALLT"), System.Globalization.CultureInfo.InvariantCulture);  // WALLT=<s>: the effect's clock
+      wg.Enemies.Clear(); wg.Bullets.Clear(); wg.Effects.Clear(); wg.Props.Clear();
+      wg.Minions.Clear(); wg.Zones.Clear();
+      foreach (var pl in wg.Players.Values) {
+        float best = 1e9f; V2 bp = pl.Pos;
+        foreach (var s in wg.ActiveLayout.Solids) {  // the nearest long wall: you against the middle of its long face, on your side
+          if (s.Round || s.Edge || Math.Max(s.HW, s.HH) < 60f) continue;
+          float dl = pl.Pos.DistanceTo(s.Pos);
+          if (dl >= best) continue;
+          best = dl;
+          bool tall = s.HH > s.HW; float r = pl.Def.BodyR + 0.5f;
+          bp = tall ? new V2(s.Pos.X + Math.Sign(pl.Pos.X - s.Pos.X + 0.01f) * (s.HW + r), s.Pos.Y + s.HH * 0.35f) : new V2(s.Pos.X + s.HW * 0.35f, s.Pos.Y + Math.Sign(pl.Pos.Y - s.Pos.Y + 0.01f) * (s.HH + r));
+        }
+        pl.Pos = pl.Disp = bp;
+      }
+    }
   }
 }

@@ -221,7 +221,7 @@ namespace Arena
                 if (back > 0f && !LaunchActive && !RecallActive)  // (not while a run launches, the HUD on its way in, or beams out: Recall.cs)
                 {
                     float breathe = 0.8f + 0.2f * Mathf.Sin(Time.unscaledTime * 2f);
-                    Ui.Shadowed(new Rect(0f, HudHiddenHintY + 8f * (1f - back), W, 18f), "Press H to show the HUD", 12, new Color(1f, 1f, 1f, 0.38f * back * breathe));
+                    Ui.Shadowed(new Rect(0f, HudHiddenHintY + 8f * (1f - back), W, 18f), "Press " + Keybinds.KeyName(Keybinds.Get(KeyAction.ToggleHud)) + " to show the HUD", 12, new Color(1f, 1f, 1f, 0.38f * back * breathe));
                 }
             }
             if (!tabHeld)

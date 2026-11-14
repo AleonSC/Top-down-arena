@@ -115,9 +115,9 @@ namespace Arena
             camFocus = new V2(Mathf.Clamp(camFocusRaw.X, hx, AW - hx), Mathf.Clamp(camFocusRaw.Y, hy, AH - hy));
         }
 
-        /// Where the rooms' camera looks: at you, held inside the area you're in (centred on it when it's smaller than
-        /// the view), then inside the world.
-        V2 RoomsFocus(V2 at, float zoom) => game.CurrentWorld.ViewCentre(at, AW / (2f * zoom), AH / (2f * zoom), game.VaultOn);
+        /// Where the rooms' camera looks: on the open map, right at you, even at the map's edge (the space past it shows, so
+        /// you stay in the middle of the screen); the parked room-by-room version holds it inside your area (World.ViewCentre).
+        V2 RoomsFocus(V2 at, float zoom) => Rooms.RoomByRoom ? game.CurrentWorld.ViewCentre(at, AW / (2f * zoom), AH / (2f * zoom), game.VaultOn) : at;
 
         /// DrawHud: the open Rooms map starts zoomed in; this asks you to zoom out, low in the middle, until you do (or a while).
         void DrawZoomHint()
