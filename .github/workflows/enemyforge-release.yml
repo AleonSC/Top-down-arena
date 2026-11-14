@@ -16,7 +16,7 @@ jobs:
       - name: Install mono
         run: |
           for i in 1 2 3 4; do
-            sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y mono-mcs mono-runtime libmono-system-core4.0-cil libmono-system4.0-cil && break
+            sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y mono-mcs mono-runtime libmono-system-core4.0-cil libmono-system4.0-cil libmono-system-windows-forms4.0-cil unzip && break
             echo "apt failed (try $i), retrying"; sleep 20
           done
       - name: Build app

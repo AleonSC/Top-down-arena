@@ -17,7 +17,8 @@ static class Forge
 {
     static readonly object L = new object();
     static string webRoot, designDir;
-    static double lastPing = -1;
+    static int alive;        // open /api/alive streams: one per open window
+    static bool seen;        // a window has connected at least once
     static readonly System.Diagnostics.Stopwatch clock = System.Diagnostics.Stopwatch.StartNew();
 
     static string N(float v) => float.IsNaN(v) || float.IsInfinity(v) ? "0" : Math.Round(v, 2).ToString("0.##", CultureInfo.InvariantCulture);
@@ -118,7 +119,8 @@ static class Forge
             byte[] body = new byte[Math.Max(0, Math.Min(len, 1 << 20))];
             for (int got = 0; got < body.Length;) { int n = st.Read(body, got, body.Length - got); if (n <= 0) break; got += n; }
 
-            if (path == "/api/ping") { lock (L) lastPing = clock.Elapsed.TotalSeconds; Reply(st, "text/plain", Encoding.UTF8.GetBytes("ok")); return; }
+            if (path == "/api/alive") { Alive(st); return; }
+            if (path == "/api/ping") { Reply(st, "text/plain", Encoding.UTF8.GetBytes("ok")); return; }
             if (path == "/api/meta") { Reply(st, "application/json", Encoding.UTF8.GetBytes(Meta())); return; }
             if (path == "/api/list") { Reply(st, "application/json", Encoding.UTF8.GetBytes(List())); return; }
             if (path == "/api/load")
@@ -154,6 +156,22 @@ static class Forge
         }
         catch { }
         finally { try { tc.Close(); } catch { } }
+    }
+
+    // The window holds this stream open while it's open (an EventSource: browsers don't throttle it in the background, unlike
+    // timers); the app quits a few seconds after the last one closes.
+    static void Alive(NetworkStream st)
+    {
+        var h = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nCache-Control: no-cache\r\nConnection: keep-alive\r\n\r\nretry: 1000\n\n");
+        lock (L) { alive++; seen = true; }
+        try
+        {
+            st.Write(h, 0, h.Length);
+            var k = Encoding.ASCII.GetBytes(": k\n\n");
+            for (;;) { st.Write(k, 0, k.Length); st.Flush(); Thread.Sleep(2000); }
+        }
+        catch { }
+        finally { lock (L) alive--; }
     }
 
     static void Reply(NetworkStream st, string type, byte[] body, string status = "200 OK")
@@ -201,6 +219,7 @@ static class Forge
         catch { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Enemy Forge"); }
     }
 
+    [STAThread]
     static int Main(string[] args)
     {
         int port = 8190;
@@ -223,26 +242,40 @@ static class Forge
             try { var l = new TcpListener(IPAddress.Loopback, tryPort); l.Start(); ls = l; port = tryPort; } catch (SocketException) { }
         }
         if (ls == null) { Console.Error.WriteLine("No free port near " + port); return 1; }
-        Console.WriteLine("\n  Enemy Forge is running:  http://localhost:" + port + "\n  Designs folder:  " + designDir + "\n  Ctrl+C to stop.\n");
+        Console.WriteLine("\n  Enemy Forge is running:  http://127.0.0.1:" + port + "\n  Designs folder:  " + designDir + "\n  Ctrl+C to stop.\n");
+        new Thread(() =>
+        {
+            for (;;)
+            {
+                var tc = ls.AcceptTcpClient();
+                new Thread(() => Serve(tc)) { IsBackground = true }.Start();
+            }
+        }) { IsBackground = true }.Start();
+        string url = "http://127.0.0.1:" + port;
+#if WINDOW
+        // Windows: its own app window; closing it quits.
+        if (!serveOnly && AppWindow.Run(url)) { Environment.Exit(0); return 0; }
+#endif
         if (!serveOnly)
         {
-            // App mode: quit a few seconds after the window stops pinging (closed), or if it never opens.
-            OpenWindow("http://localhost:" + port);
+            // No app window: a browser window instead; quit a few seconds after the last one closes, or if none opens in 3 minutes.
+            OpenWindow(url);
             new Thread(() =>
             {
+                double emptySince = -1;
                 for (;;)
                 {
                     Thread.Sleep(1000);
-                    double t = clock.Elapsed.TotalSeconds, p;
-                    lock (L) p = lastPing;
-                    if (p < 0 ? t > 90 : t - p > 8) Environment.Exit(0);
+                    double t = clock.Elapsed.TotalSeconds;
+                    int n; bool s;
+                    lock (L) { n = alive; s = seen; }
+                    if (n > 0) { emptySince = -1; continue; }
+                    if (emptySince < 0) emptySince = t;
+                    if (t - emptySince > (s ? 10 : 180)) Environment.Exit(0);
                 }
             }) { IsBackground = true }.Start();
         }
-        for (;;)
-        {
-            var tc = ls.AcceptTcpClient();
-            new Thread(() => Serve(tc)) { IsBackground = true }.Start();
-        }
+        Thread.Sleep(Timeout.Infinite);
+        return 0;
     }
 }
