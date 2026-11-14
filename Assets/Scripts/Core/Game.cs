@@ -1293,6 +1293,7 @@ namespace Arena
             TickJugg(dt);       // Juggernaut.cs: the suit's time, and taking it off
             TickHarvest(dt);    // CrimsonHarvest.cs: blood torn out, the ball held and thrown
             TickBloodFreeze(dt);  // BloodFreeze.cs: the shockwave freezing what it reaches
+            TickShockwaves(dt);   // Shockwave.cs: the Shockwave ability's wave running out
             TickShocks(dt);   // KitWeapons.cs: the Storm Hammer's electrified enemies
             TickIonTrails(dt);  // KitWeapons.cs: the Railgun's charged paths
             TickPack(dt);     // KitWeapons.cs: the Wolf Whistle's prey

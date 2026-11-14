@@ -642,6 +642,7 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("REVOLVER") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1); me.AmmoUsed = 3; me.Stats.ExtraShots = 1; host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); Console.WriteLine("cap " + host.Game.RevolverCapacity(me)); }
   }
   static void ArenaScenes() {
+    ShockwaveScene();  // SHOCK=<s since the cast> [SHOCKCAP=1] [FXOFF=1] (ShotShockwave.cs)
     LagScene();  // LAG=pill|chart|guest [LAGFROZEN=1] (ShotLag.cs)
     BossGateScene();  // GATE=<fill> [GATEIN=<players in>] [GATEAGE=<s>] (ShotBossGate.cs)
     // NADET=<s>: the Twin Rifle's Rocket assist (TwinNadeLook.cs), a grenade fired from the left tube that long ago (aiming
