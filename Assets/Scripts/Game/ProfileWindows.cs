@@ -242,7 +242,7 @@ namespace Arena
                 CrtKit.Frame(rr, 1f, new Color(ink.r, ink.g, ink.b, on ? 0.3f : 0.18f));
                 IconTile(new Rect(rr.x + 8f, rr.y + 8f, 46f, 46f), PixelArt.Get(on ? "ui_star" : "ui_lock"), on ? Ui.Gold : CrtUi.Dim, 26f);
                 CrtUi.Text(new Rect(rr.x + 68f, rr.y + 6f, w - 200f, 26f), WinText("win.o" + u.Id, u.Name), 20, on ? Ui.Gold : CrtUi.Dim, TextAnchor.MiddleLeft, true, CabCalm);
-                Ui.Label(new Rect(rr.x + 68f, rr.y + 33f, w - 84f, 22f), u.Desc, 13, CabSoft, TextAnchor.MiddleLeft);
+                Ui.Label(new Rect(rr.x + 68f, rr.y + 33f, w - 84f, 22f), KeyText.Fill(u.Desc), 13, CabSoft, TextAnchor.MiddleLeft);
                 if (on)
                     Ui.Label(new Rect(rr.xMax - 130f, rr.y + 6f, 118f, 26f), "UNLOCKED", 14, Ui.Good, TextAnchor.MiddleRight, true);
                 uy += 70f;

@@ -67,7 +67,7 @@ namespace Arena
             {
                 new KeyValuePair<string, string[,]>("Offense", new string[,] { { "Damage", get("Damage") }, { "Fire rate", get("Fire rate") }, { "Extra projectiles", get("Extra projectiles") }, { "Pierce", get("Pierce") } }),
                 new KeyValuePair<string, string[,]>("Defense", new string[,] { { "Health", Mathf.CeilToInt(me.Hp) + " / " + Mathf.CeilToInt(me.MaxHp) }, { "Damage taken", get("Damage taken") }, { "Regeneration", get("Regeneration") }, { "Parry durability", get("Parry durability") } }),
-                new KeyValuePair<string, string[,]>("Utility", new string[,] { { "Move speed", get("Move speed") }, { "Ability cooldowns", get("Ability cooldowns") }, { "Space charges", charges } }),
+                new KeyValuePair<string, string[,]>("Utility", new string[,] { { "Move speed", get("Move speed") }, { "Ability cooldowns", get("Ability cooldowns") }, { Keybinds.KeyName(Keybinds.Get(KeyAction.Ability)) + " charges", charges } }),
             };
             float y = box.y;
             foreach (var g in groups)
@@ -87,7 +87,7 @@ namespace Arena
             // The hovered ability in full: what it does and what Lv 5 adds.
             const float pw = 320f;
             string cap = "Mastered (Lv 5): " + Game.Capstone(hoverAbility.Id);
-            float dh = Ui.TextHeight(hoverAbility.Desc, 12, pw - 28f), ch = Ui.TextHeight(cap, 11, pw - 42f);
+            float dh = Ui.TextHeight(KeyText.Fill(hoverAbility.Desc), 12, pw - 28f), ch = Ui.TextHeight(cap, 11, pw - 42f);
             var pop = new Rect(box.xMax + 10f, hoverTile.y, pw, 44f + dh + 6f + ch + 12f);
             pop.y = Mathf.Min(pop.y, H - 12f - pop.height);
             var ink = CrtUi.Ink;
@@ -95,7 +95,7 @@ namespace Arena
             CrtKit.Frame(pop, 1f, ink);
             Ui.Glow(pop, ink, 0.12f);
             Ui.Label(new Rect(pop.x + 14f, pop.y + 10f, pw - 28f, 24f), hoverAbility.Name, 16, Color.white, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(pop.x + 14f, pop.y + 40f, pw - 28f, dh), hoverAbility.Desc, 12, HoloBody, TextAnchor.UpperLeft, false, true);
+            Ui.Label(new Rect(pop.x + 14f, pop.y + 40f, pw - 28f, dh), KeyText.Fill(hoverAbility.Desc), 12, HoloBody, TextAnchor.UpperLeft, false, true);
             Ui.Icon(new Rect(pop.x + 14f, pop.y + 47f + dh, 10f, 10f), PixelArt.Get("ui_star"), CrtStyle.Gold);
             Ui.Label(new Rect(pop.x + 28f, pop.y + 46f + dh, pw - 42f, ch), cap, 11, CrtStyle.Gold, TextAnchor.UpperLeft, false, true);
         }
@@ -117,7 +117,7 @@ namespace Arena
             TipWeapon(new Rect(x - 4f, y - 2f, w + 8f, 24f + wdh), me);
             Ui.Label(new Rect(x, y, w, 22f), me.Weapon.Name, 17, Color.white, TextAnchor.MiddleLeft, true);
             GUI.BeginGroup(new Rect(x, y + 22f, w, wdh));
-            Ui.Label(new Rect(0f, 0f, w, Ui.TextHeight(me.Weapon.Desc, 11, w)), me.Weapon.Desc, 11, HoloDesc, TextAnchor.UpperLeft, false, true);
+            Ui.Label(new Rect(0f, 0f, w, Ui.TextHeight(KeyText.Fill(me.Weapon.Desc), 11, w)), KeyText.Fill(me.Weapon.Desc), 11, HoloDesc, TextAnchor.UpperLeft, false, true);
             GUI.EndGroup();
             y += 30f + wdh;
             LobbyKit.Heading(x, y, w, "Abilities", "click a key to move it", calm);
@@ -162,7 +162,7 @@ namespace Arena
                 if (descR.height >= 26f)
                     DrawDescAndMastery(descR, a.Desc, slot.Id, 11, HoloDesc);  // what it does, then what Lv 5 adds (LobbyUi.cs)
                 else
-                    Ui.Label(new Rect(descR.x, descR.y, dw, 14f), LobbyKit.Truncate(a.Desc, 11, dw, false), 11, HoloDesc, TextAnchor.MiddleLeft, false);
+                    Ui.Label(new Rect(descR.x, descR.y, dw, 14f), LobbyKit.Truncate(KeyText.Fill(a.Desc), 11, dw, false), 11, HoloDesc, TextAnchor.MiddleLeft, false);
                 if (tile.Contains(Event.current.mousePosition))
                 {
                     hoverAbility = a;  // the full text, beside the panel

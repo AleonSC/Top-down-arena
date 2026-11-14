@@ -65,7 +65,7 @@ namespace Arena
         static readonly Rect BannerRect = new Rect(W / 2f - 520f, H / 2f - 130f, 1040f, 170f);
         /// Unlock toasts (SavesUi.cs) are centred on this line.
         const float HudUnlockToastY = 150f;
-        /// "Press H to show the HUD" while it's hidden.
+        /// "Press <Hide HUD key> to show the HUD" while it's hidden.
         const float HudHiddenHintY = H - 30f;
     }
 }
