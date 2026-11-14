@@ -504,7 +504,7 @@ namespace Arena
                     }
                     foreach (var e in Enemies.Values)
                     {
-                        if (!Targetable(e) || e.Id == b.LastHit || e.Id == b.PrevHit || DevourUnder(e))
+                        if (!Targetable(e) || e.Id == b.LastHit || e.Id == b.PrevHit || DevourUnder(e) || GutwormUnder(e))
                             continue;  // (the Devourer underground: shots pass over it)
                         float r = e.Radius + b.Radius;
                         if (b.Pos.DistanceSq(e.Pos) < r * r)
@@ -895,7 +895,7 @@ namespace Arena
                 return;  // immune until its twin is brought down to match
             if (ShardPassesHit(e, dmg, attacker))
                 return;  // a Singularity shard: the core takes it (Singularity.cs)
-            if (BossImmune(e) || (SingImmune(e) && !shardPass))
+            if (BossImmune(e) || (SingImmune(e) && !shardPass) || GutwormUnder(e))
                 return;  // a boss changing stage, the Queen up in a dive, the Singularity split, the Lich guarded
             if (ColossusDazed(e))
                 dmg *= ColDazeMult;  // it charged into a plate (Colossus.cs)
@@ -941,6 +941,8 @@ namespace Arena
             }
             if (!DevourHit(e, ref dmg, attacker))
                 return;  // into the Devourer's Maw: it fed on that (Devourer.cs)
+            if (!PriestHit(e, ref dmg))
+                return;  // into a Maw Priest's maw: it fed on that (LarderFaction.cs)
             dmg = SoakBubble(e, dmg, attacker);  // a Shielded elite's or a Warder's bubble takes it first (Variety.cs)
             if (dmg <= 0f)
             {

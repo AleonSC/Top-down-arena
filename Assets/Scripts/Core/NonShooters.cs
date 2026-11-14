@@ -29,14 +29,17 @@ namespace Arena
         public const float PodArm = 1f, PodTrigger = 40f, PodWire = 180f, PodBeep = 0.3f, PodLife = 12f,
             PodBlast = 70f, PodDamage = 28f, PodEnemyDamage = 30f;
 
-        public static bool IsNonShooter(EnemyType t) => t == EnemyType.FuseRunner || t == EnemyType.Hookman || t == EnemyType.Sapper || t == EnemyType.SapperMine || IsSwordsman(t);
+        public static bool IsNonShooter(EnemyType t) => t == EnemyType.FuseRunner || IsHook(t) || t == EnemyType.Sapper || t == EnemyType.SapperMine || IsSwordsman(t);
 
         /// A Hookman that just missed takes more damage (Combat.cs HurtEnemy).
-        static bool HookIsOpen(Enemy e) => e.Type == EnemyType.Hookman && e.Phase == 4;
+        static bool HookIsOpen(Enemy e) => IsHook(e.Type) && e.Phase == 4;
+
+        /// The Hookman, and the Devourer's Hook Thrower (LarderFaction.cs), which throws a meat hook the same way.
+        public static bool IsHook(EnemyType t) => t == EnemyType.Hookman || t == EnemyType.HookThrower;
 
         /// Locked aims: a planted Fuse Runner, and a Hookman from its aim to the end of its throw (EnemyAI.cs Face).
         static bool NonShooterFaceLocked(Enemy e) =>
-            e.Type == EnemyType.FuseRunner && e.Phase == 1 || e.Type == EnemyType.Hookman && e.Phase >= 1 && e.Phase <= 3 || e.Type == EnemyType.SapperMine
+            e.Type == EnemyType.FuseRunner && e.Phase == 1 || IsHook(e.Type) && e.Phase >= 1 && e.Phase <= 3 || e.Type == EnemyType.SapperMine
             || IsSwordsman(e.Type) && e.Phase != 0;  // a Swordsman's aim is locked from its wind-up to the end of its recovery
 
         /// The enemy's own movement (EnemyAI.cs MoveEnemy).
@@ -50,6 +53,7 @@ namespace Arena
                     speed = 0f;
                     return V2.Zero;
                 case EnemyType.Hookman:
+                case EnemyType.HookThrower:
                     if (e.Phase != 0)
                     {
                         speed = 0f;  // stands to throw
@@ -75,7 +79,8 @@ namespace Arena
             switch (e.Type)
             {
                 case EnemyType.FuseRunner: FuseSpecial(e, tpos, dt); break;
-                case EnemyType.Hookman: HookSpecial(e, tpos, dt); break;
+                case EnemyType.Hookman:
+                case EnemyType.HookThrower: HookSpecial(e, tpos, dt); break;
                 case EnemyType.Sapper: SapperSpecial(e, dt); break;
                 case EnemyType.SapperMine: PodSpecial(e, dt); break;
                 case EnemyType.Swordsman:
@@ -148,7 +153,7 @@ namespace Arena
                     if (e.PhaseT <= 0f && e.SpawnT <= 0f && tpos.DistanceTo(e.Pos) < HookReach * 0.95f)
                     {
                         e.Phase = 1;
-                        e.PhaseT = HookAim;
+                        e.PhaseT = e.Type == EnemyType.HookThrower ? HookThrowAim : HookAim;
                         e.Facing = (tpos - e.Pos).Angle;  // locked from here: step off the line
                     }
                     break;
@@ -162,7 +167,7 @@ namespace Arena
                 case 2:  // thrown
                 {
                     float before = e.T2;
-                    e.T2 = Math.Min(HookReach, e.T2 + HookSpeed * dt);
+                    e.T2 = Math.Min(HookReach, e.T2 + (e.Type == EnemyType.HookThrower ? HookThrowSpeed : HookSpeed) * dt);
                     V2 dir = V2.FromAngle(e.Facing), tip = e.Pos + dir * e.T2;
                     if (HookCut(e, tip))
                     {
@@ -187,8 +192,10 @@ namespace Arena
                             return;
                         }
                         V2 to = e.Pos - p.Pos;
-                        float pull = Math.Min(HookYank, Math.Max(0f, to.Length - e.Radius - p.Def.BodyR - 30f));
+                        float pull = Math.Min(e.Type == EnemyType.HookThrower ? HookThrowYank : HookYank, Math.Max(0f, to.Length - e.Radius - p.Def.BodyR - 30f));
                         KnockPlayer(p, to, pull);
+                        if (e.Type == EnemyType.HookThrower)
+                            Damage(p, HookThrowDamage, "Hook Thrower");  // a meat hook hurts (LarderFaction.cs)
                         p.BashGraceT = Math.Max(p.BashGraceT, 0.6f);
                         BroadcastFx(FxKind.Spark, p.Pos, e.Def.Color, 26f, 0.3f, Sfx.Clang);
                         e.Phase = 3;

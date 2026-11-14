@@ -614,7 +614,7 @@ namespace Arena
                     }
                 }
                 if (e.Hp <= 0f || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.HiveEgg || e.Type == EnemyType.ReaperPillar || QueenAirborne(e)
-                    || e.Type == EnemyType.Morsel || e.Type == EnemyType.SapperMine || DevourUnder(e) || e.Dummy || e.DazeT > 0f
+                    || e.Type == EnemyType.Morsel || e.Type == EnemyType.SapperMine || DevourUnder(e) || GutwormUnder(e) || e.Dummy || e.DazeT > 0f
                     || e.Type == EnemyType.MiniWell || e.Type == EnemyType.Implosion || e.Type == EnemyType.MummerCopy)
                     continue;  // blew up this tick, explodes instead of bumping, an egg, the Hive Queen up in a dive, a morsel, the Devourer underground, dazed (Daze.cs)
                 // Bosses and heavies hurt to stand in (the difficulty's per-wave damage growth scales all of these).
@@ -722,6 +722,11 @@ namespace Arena
                 return;  // its beams' line (Infall.cs)
             if (LarderFaceLocked(e))
                 return;  // a Butcher's chop, a Gulper's cone (LarderFaction.cs)
+            if (e.Type == EnemyType.MawPriest)
+            {
+                PriestFace(e, want, dt);  // turns slowly (LarderFaction.cs)
+                return;
+            }
             if (e.Type == EnemyType.Grounder)
             {
                 GrounderFace(e, want, dt);  // turns slowly, so you can get round its shield (Squall.cs)
@@ -812,6 +817,8 @@ namespace Arena
                 return true;  // the Storm Herald changing stage (Herald.cs)
             if (EclipseImmune(e))
                 return true;  // the Eclipse changing stage (Eclipse.cs)
+            if (LarderBlocks(e, from))
+                return true;  // a Gutworm underground; a Maw Priest notes which side the hit came from (LarderFaction.cs)
             if (DevourBlocks(e, from))
                 return true;  // the Devourer changing stage or underground; otherwise it notes which side the hit came from (Devourer.cs)
             if (DuelImmune(e) || e.Type == EnemyType.Duelist && DuelGuardBlocks(e, from))
@@ -1008,6 +1015,8 @@ namespace Arena
                     v = DualMove(e, tpos, ref speed);  // Reapers.cs
                     break;
             }
+            if (e.Type == EnemyType.Gutworm)
+                v = dir;  // straight at you, on the surface or under it (LarderFaction.cs)
             if (IsLateGame(e.Type))
                 v = LateMove(e, tpos, dir, dist, dt, ref speed);
             if (e.Type >= EnemyType.BeamSentry && e.Type <= EnemyType.Stitcher)
@@ -1101,6 +1110,8 @@ namespace Arena
                 LarderSpecial(e, tpos, dt);  // the Butcher's chop, the Gulper's breath (LarderFaction.cs)
             else if (e.Type == EnemyType.Gnawling)
                 GnawlingEat(e);  // a morsel in reach (LarderFaction.cs)
+            else if (e.Type == EnemyType.Gutworm)
+                GutwormSpecial(e, tpos, dt);  // dives, chases, marks, erupts (LarderFaction.cs)
             switch (e.Kin)
             {
                 case EnemyType.Shielder:
@@ -1289,6 +1300,8 @@ namespace Arena
             }
             if (QuarryFire(e, tpos, aim))
                 return;  // the Geomancer's crack, the Cinder Priest's magma bolt (QuarryFaction.cs)
+            if (LarderFire(e, tpos, aim))
+                return;  // the Maw Priest's fan (LarderFaction.cs)
             if (e.Kin == EnemyType.TaserGuard)
             {
                 TaserFire(e, aim);  // WardenFaction.cs

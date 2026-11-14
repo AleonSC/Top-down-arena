@@ -743,10 +743,16 @@ with Mummers, Parriers, Marshals, Gallants, every squad, then the exam (the Ring
 
 The **Devourer's faction**, The Larder, leads up to its fight: its brood (mouths with no eyes, the Devourer in miniature)
 and the hooded butchers who keep it fed (design: `Docs/Approaches.md`, "The Larder"; mockup:
-`Docs/Mockups/devourer-faction.html`). Steps 1-2 of 4 are built: five of its eight, each teaching a turn of the fight.
+`Docs/Mockups/devourer-faction.html`). All eight are built, each teaching a turn of the fight.
 Squads: **Feeding Frenzy** (a Butcher and six Gnawlings) and, from wave 3 of the approach, **Larder Wall** (two Carcass
-Bearers with four Gnawlings) and **Gullet** (a Gulper and three Gnawlings). They pay XP like their counterparts
-(Gnawling 7, Butcher 15, Gulper 25, Carcass Bearer 10, Bile Spitter 9). **Morsels** (the Devourer's, 60 health) also
+Bearers with four Gnawlings), **Meat Hooks** (two Hook Throwers behind two Butchers), **Gullet** (a Gulper, three
+Gnawlings and a Gutworm) and **Bile Rain** (three Bile Spitters, so their pools overlap). XP: Gnawling 7, Butcher 15,
+Gulper 25, Carcass Bearer 10, Bile Spitter 9, Gutworm 12, Hook Thrower 10, Maw Priest 12. The last wave before it always
+brings **the Feast**: four Carcass Bearers marching at you as a wall, two Gulpers and two Bile Spitters close behind it
+(the spitters lob over the wall); once the wall gets within about 190 px or half its meat is broken, the Gulpers push
+through and breathe you in. In the Long Campaign its ten waves (81-90) teach one enemy each, in the Warden's order:
+Gnawlings, Butchers, Gulpers, Maw Priests, a recap with Gutworms, Carcass Bearers, Bile Spitters, Hook Throwers, every
+squad, then the exam (the Feast and a big Feeding Frenzy). **Morsels** (the Devourer's, 60 health) also
 fall from broken Carcass Bearers: shoot one or walk over it, or a hungry Gnawling within 320 px runs for it, eats it and
 grows (50% more health, drawn bigger), as the Devourer heals from them in its Hungry turn.
 
@@ -757,6 +763,9 @@ grows (50% more health, drawn bigger), as the Devourer heals from them in its Hu
 | 2 | **Gulper** | Thug | A swollen gut (180 health, contact 20) that walks at you like a Brute. Within 220 px it **stops and its cheeks swell for 0.6 s** while its **cone** shows, then it **breathes in** for 1 s: the 70° cone, 200 px long, pulls you toward its mouth at 120 px/s. Reach the mouth and it **bites** (20) and the breath ends. Step out of the cone sideways, as from the Devourer's Inhale. Every 4 s |
 | 2 | **Carcass Bearer** | Riot Shield | A hooded butcher behind a side of meat that stops shots and bashes you back (10, 160 px). The meat tears as it wears; broken, it drops in front as a **morsel** and the bearer staggers and takes 50% more |
 | 2 | **Bile Spitter** | Gas Grenadier | A lump of brood with a green bile sac: keeps its distance and, every 3.6 s, its sac swells while a **green ring** fills **where you're heading**, then it lobs a glob. It lands 1 s later as a 70 px **pool of acid** for 4 s (10 a second), the Devourer's Bile in small. Change direction out of the ring |
+| 3 | **Gutworm** | Shiv | A burrowing worm of brood (70 health, contact 12) that walks at you, then **dives**: a ripple chases you underground for 1.8 s (110 px/s; it can't be hurt or touched), stops and **marks** 50 px for 0.6 s, then **erupts**: a bite (16) and a ring of 8 shots, then 3 s on the surface. Get out of the mark. The Devourer's Burrow in small |
+| 3 | **Hook Thrower** | Hookman | A hooded butcher swinging a meat hook. Keeps about 260 px off, shows its **line** for 0.7 s, then throws the hook down it (600 px/s, 320 px). A hit does 8 and **reels you 90 px** toward it. Sidestep, parry it, or shoot across the chain to cut it; a miss leaves it open (+50%) |
+| 3 | **Maw Priest** | Taser Guard | A priest wearing the Devourer's jaw (90 health): a **90° maw** in front. Shots into it **heal it for half**; shots in its back do **25% more**. It turns at 30° a second, keeps its distance and, after a 0.7 s charge, fires a **fan of three** from its maw. Circle round it: the Devourer's Ravenous Maw in small |
 
 The **Eclipse's faction**, the Penumbral Court, leads up to the final fight (waves 46-49): sun-cultists and scraps of
 flare, each previewing one of the Eclipse's stages (design: `Docs/EclipseFaction.md`; mockup: `Docs/Mockups/eclipse-faction.html`).

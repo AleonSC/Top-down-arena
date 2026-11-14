@@ -887,6 +887,7 @@ namespace Arena
                 case EnemyType.GraveCaller:
                 case EnemyType.FuseRunner:
                 case EnemyType.Hookman:
+                case EnemyType.HookThrower:
                 case EnemyType.Sapper:
                     return e.Facing;  // point where they're aiming (zombies: where they're going)
                 case EnemyType.Spinner:

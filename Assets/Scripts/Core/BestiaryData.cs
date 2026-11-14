@@ -513,6 +513,31 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Gutworm, Name = "Gutworm", Group = "Melee", Wave = 43,
+                Appears = "The Devourer's approach (in Gullet squads and on its own)",
+                Lead = "A burrowing worm of brood. Walks at you, then dives: a ripple chases you underground for 1.8 s (it can't be hurt), stops and marks 50 px for 0.6 s, then erupts with a bite and a ring of 8 shots. Get out of the mark. The Devourer's Burrow in small.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Eruption", Pattern = "1.8 s chase underground, a 0.6 s mark, then a bite and a ring of 8", Damage = "16", Every = 5.4f, Fixed = true },
+                    new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "12" },
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.HookThrower, Name = "Hook Thrower", Group = "Melee", Wave = 43,
+                Appears = "The Devourer's approach (two behind Butchers in Meat Hooks squads, and on its own)",
+                Lead = "A hooded butcher swinging a meat hook on a chain. Keeps about 260 px off, shows its line for 0.7 s, then throws the hook down it. A hit hurts and reels you 90 px toward it, into the butchers. Sidestep the line, parry the hook, or shoot across the chain to cut it; a miss leaves it open (+50%). Plays like the Hookman.",
+                Attacks = new[] { new BestiaryAttack { Name = "Meat hook", Pattern = "0.7 s line, then a hook down it", Damage = "8, and reeled in 90 px", Every = 4f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.MawPriest, Name = "Maw Priest", Group = "Shooters", Wave = 43,
+                Appears = "The Devourer's approach (on its own)",
+                Lead = "A priest wearing the Devourer's jaw. Shots into the 90° maw in front heal it for half; shots in its back do 25% more. It turns at 30° a second, keeps its distance like a Taser Guard and, after a 0.7 s charge, fires a fan of three from its maw. Circle round it. The Devourer's Ravenous Maw in small.",
+                Attacks = new[] { new BestiaryAttack { Name = "Fan", Pattern = "0.7 s charge, then three shots in a fan", Damage = "small shots", Every = 3.2f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.Fencer, Name = "Fencer", Group = "Melee", Wave = 26,
                 Appears = "The Duelist's approach (in crowds, Salon and Guard line squads)",
                 Lead = "A masked foil-fencer that runs in crowds. Within 160 px it shows a short red line for 0.4 s, then hops about 100 px down it. Moves like a Shiv.",

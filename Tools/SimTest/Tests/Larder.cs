@@ -15,14 +15,15 @@ static partial class Program
         var kin = new Dictionary<EnemyType, EnemyType>
         {
             { EnemyType.Gnawling, EnemyType.Rioter }, { EnemyType.Butcher, EnemyType.Guard }, { EnemyType.Gulper, EnemyType.Thug },
-            { EnemyType.CarcassBearer, EnemyType.RiotShield }, { EnemyType.BileSpitter, EnemyType.GasGrenadier },
+            { EnemyType.CarcassBearer, EnemyType.RiotShield }, { EnemyType.BileSpitter, EnemyType.GasGrenadier }, { EnemyType.MawPriest, EnemyType.TaserGuard },
         };
         Check(kin.All(k => HiveKin.Of(k.Key) == k.Value && LarderKin.Is(k.Key) && !HiveKin.Is(k.Key) && !QuarryKin.Is(k.Key)) && !LarderKin.Is(EnemyType.Thug),
-            "each Larder enemy plays like one Warden enemy (Gnawling Rioter, Butcher Guard, Gulper Thug, Carcass Bearer Riot Shield, Bile Spitter Gas Grenadier)");
+            "each Larder enemy plays like one Warden enemy (Gnawling Rioter, Butcher Guard, Gulper Thug, Carcass Bearer Riot Shield, Bile Spitter Gas Grenadier, Maw Priest Taser Guard)");
         Check(new[] { EnemyType.Gnawling, EnemyType.Butcher, EnemyType.CarcassBearer, EnemyType.BileSpitter }.All(t => { var a = Defs.Get(t); var b = Defs.Get(kin[t]); return a.Hp == b.Hp && a.Speed == b.Speed && a.Contact == b.Contact && a.Xp == b.Xp; }),
             "the Gnawling, Butcher, Carcass Bearer and Bile Spitter have their counterpart's health, speed, contact damage and XP");
         Check(Defs.Get(EnemyType.Gulper).Hp > Defs.Get(EnemyType.Thug).Hp && Game.IsBrute(EnemyType.Gulper), "the Gulper is a tougher Brute (180 health)");
-        Check(kin.Keys.All(t => Game.EnemyNote(t).Length > 0 && BestiaryData.For(t) != null), "each has a Bestiary entry and a new-enemy note");
+        Check(kin.Keys.Concat(new[] { EnemyType.Gutworm, EnemyType.HookThrower }).All(t => Game.EnemyNote(t).Length > 0 && BestiaryData.For(t) != null && LarderKin.Is(t)), "each has a Bestiary entry and a new-enemy note");
+        Check(Game.IsHook(EnemyType.HookThrower) && Game.IsNonShooter(EnemyType.HookThrower) && !Game.IsRetired(EnemyType.HookThrower), "the Hook Thrower throws like the Hookman, and isn't retired");
 
         // --- Playing them: a solo host, one enemy at a time -------------------------------------------------------------------
         Game.SeedForTests(4417);
@@ -141,16 +142,79 @@ static partial class Program
         run(9f, () => { pool = pool ?? g.Patches.Values.FirstOrDefault(p => p.Kind == PatchKind.Bile && p.Active); return pool != null && me.Hp < hpB; });
         Check(pool != null && pool.Pos.DistanceTo(me.Pos) < 60f && Math.Abs(pool.Radius - Game.SpitPoolR) < 0.01f, "a Bile Spitter's glob lands on you (standing still) as a " + (Game.SpitPoolR * 2f) + " px pool");
         Check(me.Hp < hpB, "the pool burns you (" + (hpB - me.Hp).ToString("0.0") + ")");
-        g.Enemies.Clear();
-        run(Game.SpitPoolLife + 1.5f, null);
+        bs.Pos = new V2(200f, 200f);
+        run(Game.SpitPoolLife + 1.5f, () => { bs.FireT = 99f; bs.Winding = false; return false; });  // (it holds its fire; the wave stays on)
         Check(!g.Patches.Values.Any(p => p.Kind == PatchKind.Bile), "the pool dries up after " + Game.SpitPoolLife + " s");
         g.DevSetGod(1, true);
+
+        // --- Step 3 ------------------------------------------------------------------------------------------------------------
+        // The Gutworm: dives (can't be hurt), chases you underground, marks the ground, then erupts: a bite and a ring.
+        g.DevSetGod(1, false);
+        me.Pos = me.Disp = new V2(900f, 400f);
+        var gw = put(EnemyType.Gutworm, new V2(700f, 400f));
+        gw.Hp = gw.MaxHp;
+        run(0.3f, () => Game.GutwormUnder(gw));
+        Check(Game.GutwormUnder(gw), "a Gutworm dives");
+        float gwHp = gw.Hp;
+        typeof(Game).GetMethod("HurtEnemy", np).Invoke(g, new object[] { gw, 30f, me.Id });
+        Check(gw.Hp == gwHp, "underground it can't be hurt");
+        float gd0 = gw.Pos.DistanceTo(me.Pos);
+        run(Game.GutChase + 0.1f, () => gw.LarderStage == Game.LarderActing);
+        Check(gw.LarderStage == Game.LarderActing && gw.Pos.DistanceTo(me.Pos) < Math.Min(40f, gd0 - 100f), "its ripple chases you down, then stops and marks the ground");
+        V2 mark = gw.Pos;
+        float hpG = me.Hp;
+        bool ring = false;
+        run(Game.GutMark + 0.2f, () => { foreach (var b in g.Bullets.Values) ring |= b.Source == EnemyType.Gutworm; return ring; });
+        Check(gw.Pos.DistanceTo(mark) < 1f, "it stays put while it's marked");
+        Check(ring && !Game.GutwormUnder(gw) && g.Bullets.Values.Count(b => b.Source == EnemyType.Gutworm) == Game.GutRing, "then it erupts with a ring of " + Game.GutRing);
+        Check(me.Hp < hpG, "standing in the mark, you're bitten (" + (hpG - me.Hp).ToString("0") + ")");
+        typeof(Game).GetMethod("HurtEnemy", np).Invoke(g, new object[] { gw, 30f, me.Id });
+        Check(gw.Hp < gwHp, "on the surface it can be hurt");
+
+        // The Hook Thrower: shows its line, throws, a hit hurts and reels you in.
+        me.Pos = me.Disp = new V2(800f, 400f);
+        var ht = put(EnemyType.HookThrower, new V2(560f, 400f));
+        ht.PhaseT = 0f;
+        run(1f, () => ht.Phase == 1);
+        Check(ht.Phase == 1, "a Hook Thrower shows its line");
+        float hpH = me.Hp, dH = me.Pos.DistanceTo(ht.Pos);
+        bool reeled = false;
+        run(2f, () => { reeled |= ht.Phase == 3; return reeled; });
+        run(0.4f, null);
+        Check(reeled && me.Hp < hpH, "its hook hits and hurts (" + (hpH - me.Hp).ToString("0") + ")");
+        Check(me.Pos.DistanceTo(ht.Pos) < dH - 50f && me.Pos.DistanceTo(ht.Pos) > dH - Game.HookThrowYank - 20f, "and reels you in about " + Game.HookThrowYank + " px (" + dH.ToString("0") + " to " + me.Pos.DistanceTo(ht.Pos).ToString("0") + ")");
+
+        // The Maw Priest: shots into its maw heal it, shots in its back do more; it turns slowly; it fires a fan of three.
+        g.DevSetGod(1, true);
+        me.Pos = me.Disp = new V2(900f, 400f);
+        var mp = put(EnemyType.MawPriest, new V2(600f, 400f));
+        mp.Facing = 0f;
+        Check(Game.InPriestMaw(mp, me.Pos) && !Game.InPriestMaw(mp, mp.Pos - new V2(200f, 0f)), "its maw is in front of it");
+        var blocks = typeof(Game).GetMethod("BlocksShot", np);
+        var hurt = typeof(Game).GetMethod("HurtEnemy", np);
+        mp.Hp = mp.MaxHp * 0.5f;
+        float h0 = mp.Hp;
+        blocks.Invoke(g, new object[] { mp, mp.Pos + new V2(100f, 0f) });
+        hurt.Invoke(g, new object[] { mp, 10f, me.Id });
+        Check(Math.Abs(mp.Hp - (h0 + 5f)) < 0.01f, "a shot into its maw heals it for half");
+        h0 = mp.Hp;
+        blocks.Invoke(g, new object[] { mp, mp.Pos - new V2(100f, 0f) });
+        hurt.Invoke(g, new object[] { mp, 10f, me.Id });
+        Check(h0 - mp.Hp > 12f, "a shot in its back does more (" + (h0 - mp.Hp).ToString("0.0") + " of 10)");
+        mp.Hp = 1e6f; mp.MaxHp = 1e6f;
+        me.Pos = me.Disp = mp.Pos - new V2(300f, 0f);  // walk round behind it
+        run(1f, null);
+        float turned = Math.Abs(MathX.Fmod(mp.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
+        Check(turned < MathX.Pi - 0.2f && turned > 0.3f, "it turns slowly toward you (" + (turned * 180f / MathX.Pi).ToString("0") + "° in 1 s)");
+        int fan = 0;
+        run(6f, () => { fan = g.Bullets.Values.Count(b => b.Source == EnemyType.MawPriest); return fan >= 3; });
+        Check(fan == 3, "it fires a fan of three");
         host.Leave("");
 
         // --- The approach: the Devourer's faction in the waves before it -----------------------------------------------------
         var fac = Approaches.For(EnemyType.Devourer);
-        Check(fac != null && fac.Members.Select(m => m.Type).SequenceEqual(new[] { EnemyType.Gnawling, EnemyType.Butcher, EnemyType.Gulper, EnemyType.CarcassBearer, EnemyType.BileSpitter })
-            && fac.Squads.Any(s => s.Name == "Feeding Frenzy") && fac.Squads.Any(s => s.Name == "Larder Wall"), "the Devourer has a faction: Gnawling, Butcher, Gulper, Carcass Bearer, Bile Spitter, with the Feeding Frenzy and Larder Wall squads");
+        Check(fac != null && fac.Members.Select(m => m.Type).SequenceEqual(new[] { EnemyType.Gnawling, EnemyType.Butcher, EnemyType.Gulper, EnemyType.CarcassBearer, EnemyType.BileSpitter, EnemyType.Gutworm, EnemyType.HookThrower, EnemyType.MawPriest })
+            && new[] { "Feeding Frenzy", "Larder Wall", "Meat Hooks", "Gullet", "Bile Rain" }.All(n => fac.Squads.Any(s => s.Name == n)), "the Devourer has a faction: all eight, with five squads");
         var build = typeof(Game).GetMethod("BuildWave", np);
         var spawnQ = typeof(Game).GetField("spawnQueue", np);
         var squadQ = typeof(Game).GetField("squadQueue", np);
@@ -161,7 +225,7 @@ static partial class Program
             devWave = BossSchedule.Campaign.NextBossWaveFrom(devWave + 1);
         Check(BossSchedule.Campaign.BossAt(devWave) == EnemyType.Devourer, "the Campaign has a Devourer wave (" + devWave + ")");
         for (int n = devWave - 4; n < devWave; n++)
-        for (int seed = 0; seed < 3; seed++)
+        for (int seed = 0; seed < 6; seed++)
         {
             Game.SeedForTests(9300 + n * 7 + seed);
             var cg = new Session().Game;
@@ -173,6 +237,56 @@ static partial class Program
                 seen.Add(t);
         }
         Console.WriteLine("  seen before wave " + devWave + ": " + string.Join(", ", seen));
-        Check(seen.SetEquals(larder), "the waves before the Devourer bring all five");
+        Check(seen.SetEquals(larder), "the waves before the Devourer bring all eight");
+
+        // --- Step 4: the Feast, the last wave's set piece ----------------------------------------------------------------------
+        Check(fac.Finale != null && fac.Finale.Name == "The Feast" && fac.Finale.Form == SquadForm.RiotLine
+            && fac.Finale.Members.Count(t => t == EnemyType.CarcassBearer) == 4 && fac.Finale.Members.Count(t => t == EnemyType.Gulper) == 2 && fac.Finale.Members.Count(t => t == EnemyType.BileSpitter) == 2,
+            "the last wave brings the Feast: four Carcass Bearers as a wall, two Gulpers and two Bile Spitters behind");
+        Game.SeedForTests(4418);
+        var fh = new Session { AutoStart = 1, StartWave = 1 };
+        fh.Host(nextPort++, "Host", Role.Tank);
+        fh.Diff.Set(DiffKnob.Campaign, 0f);
+        fh.StartMatch();
+        var fg = fh.Game;
+        for (int f = 0; f < 60 * 20 && fg.State != MatchState.Fighting; f++)
+            Step(fh, dt);
+        foreach (var q in new[] { (IList)typeof(Game).GetField("spawnQueue", np).GetValue(fg), (IList)typeof(Game).GetField("squadQueue", np).GetValue(fg) })
+            q.Clear();
+        fg.Enemies.Clear();
+        fg.DevSetGod(1, true);
+        var fm = fg.Players[1];
+        fm.Pos = fm.Disp = new V2(1300f, 450f);
+        typeof(Game).GetMethod("SpawnSquad", np, null, new[] { typeof(SquadDef) }, null)?.Invoke(fg, new object[] { fac.Finale });
+        var wall = fg.Enemies.Values.Where(e => e.Type == EnemyType.CarcassBearer).ToList();
+        var back = fg.Enemies.Values.Where(e => e.Type == EnemyType.Gulper || e.Type == EnemyType.BileSpitter).ToList();
+        for (int f = 0; f < 60 * 2; f++) { fm.Pos = fm.Disp = new V2(1300f, 450f); Step(fh, dt); }
+        bool behind = wall.Count == 4 && back.Count == 4 && back.All(b => wall.Min(w => w.Pos.DistanceTo(fm.Pos)) < b.Pos.DistanceTo(fm.Pos));
+        Check(behind, "the Feast marches as a wall: the Gulpers and Bile Spitters keep behind the meat (" + wall.Count + " bearers, " + back.Count + " behind)");
+        fh.Leave("");
+
+        // --- Step 4: the ten-wave chart in the Long Campaign (the same order as the Warden's) ---------------------------------
+        var firstL = new Dictionary<EnemyType, int>();
+        var squadNamesL = new Dictionary<int, HashSet<string>>();
+        const int lo = 81;  // (the Long Campaign: the Storm Herald's cycle is waves 71-80, the Devourer's 81-90)
+        for (int sw = lo; sw < lo + 10; sw++)
+        {
+            Game.SeedForTests(8300 + sw);
+            var cg = new Session().Game;
+            cg.LongRun = true; cg.Wave = (sw + 1) / 2; cg.Leg = (sw - 1) % 2; cg.BossSlot = false;
+            build.Invoke(cg, new object[] { cg.Wave });
+            var q = (List<EnemyType>)spawnQ.GetValue(cg);
+            var sq = (List<SquadDef>)squadQ.GetValue(cg);
+            foreach (var t in q.Concat(sq.SelectMany(x => x.Members)).Where(larder.Contains))
+                if (!firstL.ContainsKey(t)) firstL[t] = sw - lo + 1;
+            squadNamesL[sw - lo + 1] = new HashSet<string>(sq.Select(x => x.Name));
+        }
+        Console.WriteLine("  long campaign waves " + lo + "-" + (lo + 9) + ", first lessons: " + string.Join(", ", firstL.OrderBy(k => k.Value).Select(k => k.Key + " " + k.Value)));
+        Func<EnemyType, int, bool> firstAtL = (t, w) => firstL.ContainsKey(t) && firstL[t] == w;
+        Check(firstAtL(EnemyType.Gnawling, 1) && firstAtL(EnemyType.Butcher, 2) && firstAtL(EnemyType.Gulper, 3) && firstAtL(EnemyType.MawPriest, 4)
+            && firstAtL(EnemyType.CarcassBearer, 6) && firstAtL(EnemyType.BileSpitter, 7) && firstAtL(EnemyType.HookThrower, 8) && firstL.ContainsKey(EnemyType.Gutworm) && firstL[EnemyType.Gutworm] <= 5,
+            "the Devourer's ten lessons: Gnawling, Butcher, Gulper, Maw Priest, Gutworm (by 5), Carcass Bearer, Bile Spitter, Hook Thrower (the chart's order)");
+        Check(squadNamesL[10].Contains("The Feast") && squadNamesL[10].Contains("Feeding Frenzy") && Enumerable.Range(1, 9).All(w => !squadNamesL[w].Contains("The Feast")),
+            "the tenth is the exam: the Feast and a big Feeding Frenzy, only there");
     }
 }

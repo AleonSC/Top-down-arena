@@ -1,6 +1,6 @@
 # The Storm Herald's faction: the Squall
 
-**Status: steps 1-3 built** (protocol 339): all eight enemies and five squads (Squall line, Storm cell, Power line, Supercell, Grounding
+**Status: steps 1-3 built** (protocol 340): all eight enemies and five squads (Squall line, Storm cell, Power line, Supercell, Grounding
 wall). Step 4 (the Storm front set piece and the ten lessons) is next. Code: `Core/Squall.cs`,
 `Core/Approaches.cs` (the Storm Herald `FactionDef`), `Core/Defs.cs`, `Core/LateGame.cs` (`HazardCaller` in `TickHazards`), `Game/SquallLook.cs`;
 mockup `Docs/Mockups/storm-herald-faction.html`; test suite `squall`; previews `SQUALL=0.4 ZOOM=1.7 Tools/Preview/shot.sh x hud 1` (step 1), `SQUALL2=0.4 ZOOM=1.7 ...` (step 2), `SQUALL3=0.4 ZOOM=1.7 ...` (step 3).
