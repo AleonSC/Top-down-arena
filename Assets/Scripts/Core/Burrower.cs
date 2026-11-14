@@ -51,7 +51,7 @@ namespace Arena
                 m.Stood = true;
                 Sounds.Add(Sfx.BigExplode);  // the breach
             }
-            if (age < BurrowerSurface || State != MatchState.Fighting)
+            if (age < BurrowerSurface || !Battle)
                 return;
             if (m.T <= BurrowerSink)  // its run is over: it sinks where it is
             {

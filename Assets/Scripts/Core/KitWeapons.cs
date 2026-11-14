@@ -383,7 +383,7 @@ namespace Arena
         void TickTreantSeeds(Minion m, Player owner, float rate, float dt)
         {
             m.SeedCd -= dt * rate;
-            if (!m.Companion || m.StaggerT > 0f || owner.Weapon.Id != WeaponId.TreantRod || owner.Downed || State != MatchState.Fighting || m.SeedCd > 0f)
+            if (!m.Companion || m.StaggerT > 0f || owner.Weapon.Id != WeaponId.TreantRod || owner.Downed || !Battle || m.SeedCd > 0f)
                 return;
             var e = NearestEnemy(m.Pos, SeedRange * m.Scale);
             if (e == null)

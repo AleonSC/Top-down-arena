@@ -317,7 +317,7 @@ namespace Arena
             {
                 if (Expansion.SealedCount(Expanded) >= Expansion.MaxSealed)
                     break;
-                var f = Expansion.FloatingFor(expandSeed, cycle, Expanded, rk);
+                var f = Expansion.FloatingFor(expandSeed, cycle, Expanded, rk, Nodes);
                 if (!f.HasValue)
                     continue;
                 var room = f.Value;

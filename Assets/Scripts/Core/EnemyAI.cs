@@ -572,7 +572,7 @@ namespace Arena
                     if (e.Pos.DistanceTo(was) > 600f)
                         steerMem.Remove(e.Id);  // a fresh route from the far side
                 }
-                if (State == MatchState.Fighting && e.DazeT > 0f)
+                if (Battle && e.DazeT > 0f)
                 {
                     // Dazed (Daze.cs): no attacking, and a wind-up starts over once it wears off.
                     float rateDazed = rate * TraitFireMult(e) * (IsTwin(e.Type) && e.Phase == 1 ? 1.7f : 1f) * (Has(RunMod.Frenzy) ? Modifiers.FrenzyFire : 1f) * (1f - e.Suppress);
@@ -580,9 +580,9 @@ namespace Arena
                     e.Winding = false;
                     e.GasLocked = false;
                 }
-                else if (mine && State == MatchState.Fighting && !PossessAttacking)
+                else if (mine && Battle && !PossessAttacking)
                     e.Winding = false;  // the enemy being played waits for you to attack (DevArena.cs)
-                else if (State == MatchState.Fighting)
+                else if (Battle)
                 {
                     if (mine)
                         PossessFireNow(e);

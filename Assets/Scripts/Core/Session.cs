@@ -121,7 +121,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 341;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 342;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -144,6 +144,7 @@ namespace Arena
         public bool OthersCanEdit;
         public bool HuntMode;                       // a Boss Hunt instead (Hunts.cs): HuntBoss's
         public bool HuntMapMode;                    // the Boss Hunt is played as a hunt map (Docs/HuntMap.md): a route of nodes you vote on instead of ten fixed waves
+        public bool SurvivalMode;                   // Survival (Survival.cs, Docs/Survival.md): one clock, no waves
         public bool QuickMode;                      // Quick Play (QuickPlay.cs): the lobby's first mode, a new player's default
         public static bool QuickDefault = true;     // a new host starts on Quick Play unless its profile last picked another mode (the sim tests turn it off)
         public WaveSet DesignTest;                  // host: designed waves to play in the Practice Range (the F1 wave editor's Test)
@@ -227,6 +228,7 @@ namespace Arena
             PracticeMode = m == "practice";
             HuntMode = m == "hunt";
             QuickMode = m == "" || m == "quick";
+            SurvivalMode = m == "survival";
         }
 
         /// role: preferred role, or null to take the first one nobody has.
@@ -1168,6 +1170,7 @@ namespace Arena
             w.Write((byte)HuntBoss);
             w.Write(QuickMode);
             w.Write(HuntMapMode);
+            w.Write(SurvivalMode);
             // Continuing a saved run: its seats, so everyone's lobby can show them.
             w.Write(Resume != null);
             if (Resume != null)
@@ -1196,7 +1199,7 @@ namespace Arena
         public void SetPracticeMode(bool on) => SetMode(on, false);
 
         /// Host: the lobby's mode: a normal run, a Boss Hunt (Hunts.cs) or the Practice Range.
-        public void SetMode(bool practice, bool hunt, bool quick = false)
+        public void SetMode(bool practice, bool hunt, bool quick = false, bool survival = false)
         {
             if (!IsHost || Game.Running)
                 return;
@@ -1204,10 +1207,11 @@ namespace Arena
                 DesignTest = null;
             PracticeMode = practice;
             HuntMode = hunt && !practice;
-            QuickMode = quick && !practice && !hunt;
+            QuickMode = quick && !practice && !hunt && !survival;
+            SurvivalMode = survival && !practice && !hunt;
             if (Game.Profile != null && Resume == null && QuickDefault)
             {
-                Game.Profile.LastMode = PracticeMode ? "practice" : HuntMode ? "hunt" : QuickMode ? "quick" : "campaign";
+                Game.Profile.LastMode = PracticeMode ? "practice" : HuntMode ? "hunt" : SurvivalMode ? "survival" : QuickMode ? "quick" : "campaign";
                 Game.Profile.Save();
             }
             foreach (var e in Lobby.Values)
@@ -1603,6 +1607,7 @@ namespace Arena
                     HuntBoss = (EnemyType)r.ReadByte();
                     QuickMode = r.ReadBoolean();
                     HuntMapMode = r.ReadBoolean();
+                    SurvivalMode = r.ReadBoolean();
                     Resume = null;
                     if (r.ReadBoolean())
                     {

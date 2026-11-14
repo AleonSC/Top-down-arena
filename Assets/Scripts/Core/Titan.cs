@@ -73,7 +73,7 @@ namespace Arena
                 m.Cd = 0.4f;
                 TitanQuake(m, m.Pos, reach * 1.15f, 0f, 1f);  // stands up: a thud that shoves small enemies back
             }
-            if (age < TitanRise || m.T <= TitanCrumble || State != MatchState.Fighting)
+            if (age < TitanRise || m.T <= TitanCrumble || !Battle)
             {
                 m.Wind = 0f;
                 m.SlamT = -1f;

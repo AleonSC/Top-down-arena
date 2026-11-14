@@ -129,7 +129,7 @@ namespace Arena
             if (z.BoneHp == null || PhalanxCrumbling(z))
                 return;
             Player owner;
-            if (!Players.TryGetValue(z.Owner, out owner) || owner.Downed || State != MatchState.Fighting)
+            if (!Players.TryGetValue(z.Owner, out owner) || owner.Downed || !Battle)
             {
                 CrumblePhalanx(z);  // you went down, or the wave is over
                 return;

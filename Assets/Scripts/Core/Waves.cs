@@ -62,6 +62,11 @@ namespace Arena
             switch (State)
             {
                 case MatchState.Intermission:
+                    if (Surv != null && SurvStarted)
+                    {
+                        TickSurvivalPicks();  // Survival: the clock is frozen while someone picks a level-up card (SurvivalGame.cs)
+                        break;
+                    }
                     if (Room == RoomPhase.Portal)
                         TickPortal(dt);  // a challenge room's portal is open (Challenges.cs)
                     // The countdown waits while anyone is still choosing upgrades, for the host to pick a path, and for the shop.
@@ -70,7 +75,7 @@ namespace Arena
                     TickShop(dt);  // the Bazaar's shop closes when everyone is done (Shop.cs)
                     TickHuntMap(dt);  // the hunt map's vote on the next node (HuntMapGame.cs)
                     TickDuelRooms();  // a mini-boss room can be taken on between waves too (GatekeeperRoom.cs)
-                    if (!AnyonePicking() && PathOffer == null && !ShopBlocksWave && !HuntMapBlocksWave && Room == RoomPhase.None && !DuelHoldsWave)  // (and while a portal is open, or a duel is on)
+                    if (!AnyonePicking() && PathOffer == null && !ShopBlocksWave && !HuntMapBlocksWave && Room == RoomPhase.None)  // (and while a portal is open)
                     {
                         if (!TickBossGate(ref StateTimer, dt))  // before a boss: everyone in the boss gate instead (BossGate.cs)
                             TickReadyTimer(ref StateTimer, dt);  // ...and until everyone is ready (WaveReady.cs)
@@ -87,7 +92,12 @@ namespace Arena
                         State = MatchState.Fighting;
                         spawnTimer = WaveNumbers.OpeningDelay;
                         string bossName;
-                        if (Practice != null && Practice.Waves.Count > 0)
+                        if (SurvivalOn && Practice == null)
+                        {
+                            BeginSurvival();  // no wave to build: the clock starts (SurvivalGame.cs)
+                            bossName = null;
+                        }
+                        else if (Practice != null && Practice.Waves.Count > 0)
                         {
                             // Practice range: the next wave of the plan (wrapping round), at its level.
                             PracticeIndex = (PracticeIndex + 1) % Practice.Waves.Count;
@@ -139,6 +149,11 @@ namespace Arena
                     }
                     break;
                 case MatchState.Fighting:
+                    if (Surv != null)
+                    {
+                        TickSurvival(dt);  // Survival: top the field up to the budget; no wave ever clears (SurvivalGame.cs)
+                        break;
+                    }
                     if (DevArena)
                     {
                         spawnQueue.Clear();  // the Dev Arena: only what you spawn by hand, and the wave never clears (DevArena.cs)
