@@ -28,3 +28,5 @@ Tools/SoundCheck/*.exe
 # Python bytecode (Tools/Preview/raster.py)
 __pycache__/
 Tools/WaveLab/*.exe
+Tools/EnemyForge/out/
+Tools/EnemyForge/Enemy Forge/

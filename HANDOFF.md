@@ -113,6 +113,8 @@ special, fire and shield, plus role flags. Add a line to its family's `...Brains
 `Core/ShootBrains.cs`), reusing parts or wiring a new method with `CodeMove`/`CodeSpecial`/`CodeFire`; looks stay in
 `Game/*Look.cs`. `Tools/SimTest/run.sh 1 1 aitrace` fails until it has one; then `AITRACE=update` adds its line to
 `Golden/aitrace.txt`.
+The owner designs new enemies in **Enemy Forge** (`Tools/EnemyForge`, Docs/EnemyForge.md) and pastes its brief: a
+Markdown summary, an `EnemyDef` draft and the JSON spec, with a "plays like" enemy to start the brain from.
 
 ### Adding a screen or a menu row
 
