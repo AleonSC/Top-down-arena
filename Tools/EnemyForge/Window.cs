@@ -20,17 +20,17 @@ static class AppWindow
     [DllImport("user32.dll")] static extern bool SetProcessDpiAwarenessContext(IntPtr v);
     [DllImport("user32.dll")] static extern bool SetProcessDPIAware();
 
-    public static bool Run(string url)
+    public static bool Run(string url, string selfTest)
     {
         if (Path.DirectorySeparatorChar != '\\') return false;
         string dir;
-        try { dir = Unpack(); } catch { return false; }
+        try { dir = Unpack(); Forge.Log("unpacked WebView2 to " + dir); } catch (Exception e) { Forge.Log("unpack failed: " + e); return false; }
         AppDomain.CurrentDomain.AssemblyResolve += (s, e) =>
         {
             string f = Path.Combine(dir, new AssemblyName(e.Name).Name + ".dll");
             return File.Exists(f) ? Assembly.LoadFrom(f) : null;
         };
-        try { return Show(url, dir); } catch { return false; }
+        try { return Show(url, dir, selfTest); } catch (Exception e) { Forge.Log("show failed: " + e); return false; }
     }
 
     // Writes the embedded WebView2 files out once per version.
@@ -53,18 +53,31 @@ static class AppWindow
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]  // so the WebView2 types load after AssemblyResolve is hooked
-    static bool Show(string url, string dir)
+    static bool Show(string url, string dir, string selfTest)
     {
         string arch = (Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE") ?? "").ToUpperInvariant();
         CoreWebView2Environment.SetLoaderDllFolderPath(Path.Combine(dir, arch == "ARM64" ? "arm64" : arch == "X86" ? "x86" : "x64"));
-        try { CoreWebView2Environment.GetAvailableBrowserVersionString(); }
-        catch { return false; }  // no WebView2 runtime: fall back to the browser
+        try { Forge.Log("WebView2 runtime " + CoreWebView2Environment.GetAvailableBrowserVersionString()); }
+        catch (Exception e) { Forge.Log("no WebView2 runtime: " + e.Message); return false; }  // fall back to the browser
 
         try { if (!SetProcessDpiAwarenessContext(new IntPtr(-4))) SetProcessDPIAware(); } catch { try { SetProcessDPIAware(); } catch { } }
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
+        Form form = null;
+        bool failed = false;
+        Action<string> fail = m =>
+        {
+            Forge.Log("window error: " + m);
+            if (failed) return;
+            failed = true;
+            if (selfTest != null) { try { File.WriteAllText(selfTest, "FAIL " + m); } catch { } }
+            else MessageBox.Show("Enemy Forge couldn't show its window:\n\n" + m + "\n\nIt will open in your browser instead. (Details: %LOCALAPPDATA%\\EnemyForge\\log.txt)", "Enemy Forge");
+            try { form?.Close(); } catch { }
+        };
+        Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+        Application.ThreadException += (s, e) => fail(e.Exception.ToString());
         var area = Screen.PrimaryScreen.WorkingArea;
-        var form = new Form
+        form = new Form
         {
             Text = "Enemy Forge",
             BackColor = Bg,
@@ -86,17 +99,34 @@ static class AppWindow
                 wv.CoreWebView2.Settings.IsStatusBarEnabled = false;
                 wv.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = true;
                 wv.CoreWebView2.DocumentTitleChanged += (o, a) => form.Text = wv.CoreWebView2.DocumentTitle;
+                wv.CoreWebView2.ProcessFailed += (o, a) => Forge.Log("WebView2 process failed: " + a.ProcessFailedKind);
+                wv.CoreWebView2.NavigationCompleted += (o, a) =>
+                {
+                    Forge.Log("page loaded: " + a.IsSuccess + " " + a.WebErrorStatus);
+                    if (selfTest == null) return;
+                    var t = new Timer { Interval = 3000 };
+                    t.Tick += async (o2, a2) =>
+                    {
+                        t.Stop();
+                        try
+                        {
+                            string r = await wv.CoreWebView2.ExecuteScriptAsync("JSON.stringify({title:document.title,editor:document.querySelectorAll('#editor .f').length,enemies:typeof META!=='undefined'?META.enemies.length:-1,errs:window.__errs})");
+                            Forge.Log("self-test: " + r);
+                            File.WriteAllText(selfTest, "OK " + r);
+                        }
+                        catch (Exception ex) { fail(ex.ToString()); }
+                        form.Close();
+                    };
+                    t.Start();
+                };
+                Forge.Log("WebView2 ready, opening " + url);
                 wv.Source = new Uri(url);
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show(form, "Enemy Forge couldn't start its window:\n" + ex.Message + "\n\nIt will open in your browser instead.", "Enemy Forge");
-                form.Tag = "fallback";
-                form.Close();
-            }
+            catch (Exception ex) { fail(ex.ToString()); }
         };
+        Forge.Log("window opening");
         Application.Run(form);
-        return !"fallback".Equals(form.Tag);
+        return !failed;
     }
 }
 #endif

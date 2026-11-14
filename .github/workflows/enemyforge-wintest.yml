@@ -1,0 +1,37 @@
+name: enemyforge-wintest
+# Builds EnemyForge.exe and opens its real app window on Windows (--selftest): the page must load with no script errors.
+on:
+  pull_request:
+    paths: ['Tools/EnemyForge/**', '.github/workflows/enemyforge-*.yml']
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install mono
+        run: |
+          for i in 1 2 3 4; do
+            sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y mono-mcs mono-runtime libmono-system-core4.0-cil libmono-system4.0-cil libmono-system-windows-forms4.0-cil unzip && break
+            echo "apt failed (try $i), retrying"; sleep 20
+          done
+      - run: Tools/EnemyForge/package.sh "$GITHUB_WORKSPACE/out"
+      - uses: actions/upload-artifact@v4
+        with: { name: enemyforge, path: out/EnemyForge.exe }
+  windows:
+    needs: build
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: enemyforge }
+      - name: Open the window and check the page
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath .\EnemyForge.exe -ArgumentList '--selftest=result.txt' -PassThru
+          if (-not $p.WaitForExit(120000)) { $p.Kill(); Write-Host "timed out" }
+          Write-Host "exit code: $($p.ExitCode)"
+          Write-Host "---- log"; Get-Content "$env:LOCALAPPDATA\EnemyForge\log.txt" -ErrorAction SilentlyContinue
+          Write-Host "---- result"; $r = Get-Content result.txt -ErrorAction SilentlyContinue; Write-Host $r
+          if (-not $r -or -not $r.StartsWith('OK') -or $r -notmatch '"errs\\":\[\]') { exit 1 }
