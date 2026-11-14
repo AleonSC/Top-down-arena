@@ -1704,7 +1704,7 @@ static partial class Shot {
       foreach (var pl in lg.Players.Values) pl.Disp = pl.Pos = lg.PushOutOfProps(pl.Pos, 14f);
       foreach (var en in lg.Enemies.Values) en.Disp = en.Pos = lg.PushOutOfProps(en.Pos, en.Radius);
     }
-    if (Environment.GetEnvironmentVariable("WALLTOUCH") != null) {  // WALLTOUCH=1 [WALLT=<s>]: a wall touched (WallTouchLook.cs): you pressed against the nearest inner wall's face, the arena empty; use with LAYOUT
+    if (Environment.GetEnvironmentVariable("WALLTOUCH") != null) {  // WALLTOUCH=1|end [WALLT=<s>]: a wall touched (end: against its end cap) (WallTouchLook.cs): you pressed against the nearest inner wall's face, the arena empty; use with LAYOUT
       var wg = host.Game; var wq = Environment.GetEnvironmentVariable("WALLTOUCH").Split(',');
       ArenaApp.WallTouchPreview = wq[0] != "0";
       if (Environment.GetEnvironmentVariable("WALLT") != null) ArenaApp.WallTouchT = float.Parse(Environment.GetEnvironmentVariable("WALLT"), System.Globalization.CultureInfo.InvariantCulture);  // WALLT=<s>: the effect's clock
@@ -1718,7 +1718,7 @@ static partial class Shot {
           if (dl >= best) continue;
           best = dl;
           bool tall = s.HH > s.HW; float r = pl.Def.BodyR + 0.5f;
-          bp = tall ? new V2(s.Pos.X + Math.Sign(pl.Pos.X - s.Pos.X + 0.01f) * (s.HW + r), s.Pos.Y + s.HH * 0.35f) : new V2(s.Pos.X + s.HW * 0.35f, s.Pos.Y + Math.Sign(pl.Pos.Y - s.Pos.Y + 0.01f) * (s.HH + r));
+          bp = wq[0] == "end" ? (tall ? new V2(s.Pos.X + 6f, s.Pos.Y + s.HH + r) : new V2(s.Pos.X + s.HW + r, s.Pos.Y + 6f)) : tall ? new V2(s.Pos.X + Math.Sign(pl.Pos.X - s.Pos.X + 0.01f) * (s.HW + r), s.Pos.Y + s.HH * 0.35f) : new V2(s.Pos.X + s.HW * 0.35f, s.Pos.Y + Math.Sign(pl.Pos.Y - s.Pos.Y + 0.01f) * (s.HH + r));
         }
         pl.Pos = pl.Disp = bp;
       }
