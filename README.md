@@ -910,7 +910,7 @@ the same one twice running. Boss waves, the Practice Range, Data Gates and the l
 arena. A teal chip above the wave plate names the layout. Mockups: [`Docs/Mockups/arena-layouts.html`](Docs/Mockups/arena-layouts.html);
 design notes: [`Docs/ArenaLayouts.md`](Docs/ArenaLayouts.md).
 
-- **Walls and pillars** (glowing cyan outlines with diagonal hatching, the phosphor vector look of [`Docs/Mockups/arena-layouts-digital.html`](Docs/Mockups/arena-layouts-digital.html)) are solid: you and enemies can't walk through them, and they stop **every** shot, yours
+- **Walls and pillars** (neon tubes with a white-hot core and diagonal hatching, the phosphor vector look of [`Docs/Mockups/arena-layouts-digital.html`](Docs/Mockups/arena-layouts-digital.html), lit in the colour of the boss the cycle leads to: Warden amber, Hive Queen honey, Twin Reapers dusk pink, Singularity violet, Colossus sandstone, Duelist silver, Lich grave green, Storm Herald storm blue, Devourer raw red, Eclipse corona gold; the holo crates and pots match) are solid: you and enemies can't walk through them, and they stop **every** shot, yours
   and theirs. Crates stay as they are: they wear away under enemy fire and your shots fly over them. Each layout
   starts the cycle with its own crates; random crates, pots and barrels still turn up, clear of the walls.
   Enemies path round walls to get at you, and so do the ones heading somewhere of their own: squads keeping
