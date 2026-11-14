@@ -61,7 +61,7 @@ namespace Arena
             }
             if (game.Paused)
                 return;  // (the picture holds still behind a pause menu, and the wheel is the menu's)
-            if (scrollZoom && !EndingOn && !devMenuOpen && !devFrozen && !PushingWall)  // (pushing a wall: the wheel sets its width, WallPushLook.cs)
+            if (scrollZoom && !EndingOn && !devMenuOpen && !devFrozen && !PushingWall && !ShopScreenUp(me))  // (the shop and Black Market cover the screen: no zoom behind them; pushing a wall: the wheel sets its width, WallPushLook.cs)
             {
                 float wheel = Input.mouseScrollDelta.y;
                 if (wheel > 0.01f || wheel < -0.01f)
