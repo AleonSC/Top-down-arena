@@ -229,6 +229,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 ## World rendering (Game)
 - `OrbLook.cs`: health orbs as hologram spheres (`DrawHoloOrb`) and the pickup data burst (`DataBurst`, particle kinds 12-14)
 - `WorldRenderer.cs`: GL drawing of the arena (floor, layers, `DrawEnemy`/`DrawPlayer` entry, GL primitives)
+- `FloorGridLook.cs`: the arena floor grid, the "Pressure grid" (bends round players, takes their colour near them, ripples from kills; Settings > Visual effects > Arena floor: Bending / Static, pref `floor_bend`; preview `FLOORBEND=0`)
 - `WorldPlayers.cs`, `WorldEnemies.cs`, `WorldShots.cs`, `WorldEffects.cs`: players, enemies/zones/minions, shots, effects
 - `CharacterModels.cs`: the 18 player models (role build + class costume) and one held-weapon model per `WeaponId`; `LookDrawsArms`: the weapons whose own look draws the arms (the model leaves its arms out); `LookDrawsPauldrons`: those whose arms have their own pauldrons (the model leaves its shoulder plates out)
 - `MartyrLook.cs`: the Healer Hemomancer's Martyr (look A, Offering, of `Docs/Mockups/martyr.html`): chest cross, bead string, rise burst and the ward halo (12 beads from `Player.WardT`); `FxKind.MartyrCast`
