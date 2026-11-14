@@ -91,6 +91,12 @@ namespace Arena
         Gnawling, Butcher, Gulper,
         // step 2: a Carcass Bearer plays like a Riot Shield (its broken slab drops as a morsel), a Bile Spitter like a Gas Grenadier (an acid pool)
         CarcassBearer, BileSpitter,
+        // the Eclipse's faction, the Penumbral Court (Docs/EclipseFaction.md, Penumbral.cs, Game/PenumbralLook.cs): step 1
+        Ember, CoronaPriest, Heliograph,
+        // ...step 2: a Dusk Lobber plays like a Gas Grenadier that lobs a pool of dark (HiveKin.cs)
+        Moonward, Gnomon, DuskLobber,
+        // ...step 3
+        Sickle, Nova,
         // the Storm Herald's faction, the Squall (Docs/StormFaction.md, Squall.cs, Game/SquallLook.cs): step 1
         DustDevil, SquallGunner, Stormcaller,
         // step 2: a Grounder grounds shots on its copper shield and claps them back, Pylons come in pairs and arc between
@@ -454,6 +460,23 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "Carries a side of meat that stops shots and bashes you back. Break it and it drops as a morsel: shoot it or walk over it before a Gnawling eats it." },
             new EnemyDef { Name = "Bile Spitter", Hp = 50f, Radius = 14f, Speed = 75f, Score = 8, Xp = 9, Sides = 5, Color = new Rgba(0.84f, 0.55f, 0.55f),
                 Picker = PickerGroup.Ranged, Blurb = "Lobs a glob of bile where you're heading. Walk out of the ring: it leaves a pool of acid for a few seconds." },
+            // the Eclipse's faction, the Penumbral Court (Penumbral.cs)
+            new EnemyDef { Name = "Ember", Hp = 16f, Radius = 9f, Speed = 135f, Score = 3, Xp = 6, Sides = 5, Color = new Rgba(1f, 0.54f, 0.24f), Melee = true, Contact = 8f,
+                Picker = PickerGroup.Melee, Blurb = "A scrap of solar flare that weaves in at you, dropping sparks that hang in the air behind it." },
+            new EnemyDef { Name = "Corona Priest", Hp = 45f, Radius = 13f, Speed = 85f, Score = 7, Xp = 10, Sides = 6, Color = new Rgba(1f, 0.82f, 0.4f),
+                Picker = PickerGroup.Ranged, Blurb = "A sun-cultist. Its halo flares, then bursts into a ring of slow shots: one at you, and a gap beside it." },
+            new EnemyDef { Name = "Heliograph", Hp = 70f, Radius = 13f, Speed = 75f, Score = 9, Xp = 12, Sides = 8, Color = new Rgba(1f, 0.69f, 0.36f),
+                Picker = PickerGroup.Ranged, Blurb = "Tilts a sun mirror at you: a line flickers for a second, then becomes a lane of fire. Step off the line." },
+            new EnemyDef { Name = "Moonward", Hp = 100f, Radius = 14f, Speed = 70f, Score = 9, Xp = 11, Sides = 8, Color = new Rgba(0.79f, 0.82f, 0.89f), Melee = true, Contact = 12f,
+                Picker = PickerGroup.Melee, Blurb = "A pale knight with a small moon circling it. The moon swallows any shot it touches: fire when it swings round the back." },
+            new EnemyDef { Name = "Gnomon", Hp = 240f, Radius = 22f, Speed = 55f, Score = 14, Xp = 20, Sides = 4, Color = new Rgba(0.62f, 0.55f, 0.45f), Melee = true, Contact = 20f, Heavy = true,
+                Picker = PickerGroup.Melee, Blurb = "A walking sundial with a sun lantern at its back. The lantern swells, then flashes: the only safe place is the slab's shadow, just to the side of you." },
+            new EnemyDef { Name = "Dusk Lobber", Hp = 50f, Radius = 13f, Speed = 80f, Score = 8, Xp = 9, Sides = 6, Color = new Rgba(0.61f, 0.48f, 1f),
+                Picker = PickerGroup.Ranged, Blurb = "Lobs a ball of night that bursts into a pool of the Umbra's dark: you can barely see inside, and it drains you. Stay in the light." },
+            new EnemyDef { Name = "Sickle", Hp = 60f, Radius = 13f, Speed = 90f, Score = 9, Xp = 11, Sides = 5, Color = new Rgba(0.84f, 0.8f, 1f),
+                Picker = PickerGroup.Ranged, Blurb = "Throws a crescent blade that loops out through you and comes back round to it. Dodge it twice." },
+            new EnemyDef { Name = "Nova", Hp = 40f, Radius = 9f, Speed = 230f, Score = 8, Xp = 10, Sides = 4, Color = new Rgba(1f, 0.6f, 0.26f), Melee = true, Contact = 10f,
+                Picker = PickerGroup.Melee, Blurb = "A small unstable star. Close in it lights a 3 s fuse, then goes nova. While lit it takes 50% more damage: burst it or back off." },
             new EnemyDef { Name = "Dust Devil", Hp = 22f, Radius = 10f, Speed = 135f, Score = 3, Xp = 6, Sides = 6, Color = new Rgba(0.62f, 0.91f, 0.85f), Melee = true, Contact = 8f,
                 Picker = PickerGroup.Melee, Blurb = "A small whirlwind that weaves in at you. Its touch shoves you hard, into whatever is behind you." },
             new EnemyDef { Name = "Squall Gunner", Hp = 45f, Radius = 13f, Speed = 85f, Score = 7, Xp = 10, Sides = 5, Color = new Rgba(0.56f, 0.82f, 1f),
@@ -722,9 +745,10 @@ namespace Arena
             TracerRound = 62,  // the Security Guard's pistol round: a hot-white tracer with a long tail (SecurityGuard.cs, Game/SecurityLook.cs)
             StingBolt = 63,    // the Stinger's venom dart: a lime barbed dart that stuns like the Fork Bolt (WardenFaction.cs, Game/HiveLook.cs)
             MagmaBolt = 64,    // the Cinder Priest's magma bolt: it leaves a lava pool wherever it stops (QuarryFaction.cs, Game/QuarryLook.cs)
-            ThrownDagger = 65; // a Second's thrown dagger: steel with a gold hilt, spinning a little (CourtFaction.cs, Game/CourtLook.cs)
+            ThrownDagger = 65, // a Second's thrown dagger: steel with a gold hilt, spinning a little (CourtFaction.cs, Game/CourtLook.cs)
+            EmberSpark = 66;   // an Ember's spark: drifts back slowly and hangs behind it (Penumbral.cs, Game/PenumbralLook.cs)
 
-        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == ThrownDagger;
+        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == ThrownDagger || kind == EmberSpark;
 
         /// Bosses' aimed attacks: barriers, walls and other blockers can't stop these.
         public static bool Unblockable(byte kind) => kind == PierceShot;
@@ -793,6 +817,7 @@ namespace Arena
                 case StingBolt: return 7f;
                 case MagmaBolt: return 8f;
                 case ThrownDagger: return 5f;
+                case EmberSpark: return 5f;
                 case TracerRound: return 5f;
                 case BileShot: return 6f;
                 case ToothShot: return 10f;
@@ -818,6 +843,7 @@ namespace Arena
                 case StingBolt: return 8f;  // a Stinger's dart: the same
                 case MagmaBolt: return 9f;  // a Cinder Priest's bolt (and its lava)
                 case ThrownDagger: return 10f;  // a Second's dagger
+                case EmberSpark: return 5.2f;  // an Ember's spark: 6 once the enemy bullet multiplier is on
                 case TracerRound: return 6.1f;  // a Security Guard's round: 7 once the enemy bullet multiplier is on
                 case HoneyShot: return 14f;  // the Hive Queen's nectar spray
                 case ToothShot: return 20f;  // the Devourer's Jaws
@@ -893,6 +919,7 @@ namespace Arena
                 case StingBolt: return new Rgba(0.784f, 1f, 0.239f);   // the Stinger's venom lime
                 case MagmaBolt: return new Rgba(1f, 0.48f, 0.23f);     // the Cinder Priest's magma
                 case ThrownDagger: return new Rgba(0.81f, 0.84f, 1f);  // a Second's dagger (steel)
+                case EmberSpark: return new Rgba(1f, 0.6f, 0.26f);     // an Ember's spark
                 case TracerRound: return new Rgba(0.94f, 0.97f, 1f);   // the Security Guard's hot-white tracer
                 case BileShot: return new Rgba(0.75f, 0.9f, 0.31f);  // the Devourer's vomit
                 case ToothShot: return new Rgba(0.96f, 0.9f, 0.82f);  // the Devourer's Jaws

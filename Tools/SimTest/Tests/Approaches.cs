@@ -40,11 +40,11 @@ static partial class Program
         g0.Wave = 0; g0.BossSlot = false;
         Console.WriteLine("  Blend (Normal): waves 1-5 = {0}", string.Join(", ", Enumerable.Range(1, 5).Select(w => share(w).ToString("0.00"))));
         Check(normal, "Blend (the default): the Warden's approach builds up 34%, 51%, 68%, 85%, 85%; nothing on his boss");
-        Check(Math.Abs(share(6) - 0.34f) < 1e-4f && Math.Abs(share(9) - 0.85f) < 1e-4f && Math.Abs(share(11) - 0.34f) < 1e-4f && Math.Abs(share(16) - 0.34f) < 1e-4f && Math.Abs(share(21) - 0.34f) < 1e-4f && Math.Abs(share(26) - 0.34f) < 1e-4f && Math.Abs(share(36) - 0.34f) < 1e-4f && Math.Abs(share(41) - 0.34f) < 1e-4f && share(46) == 0f && BossSchedule.Campaign.BossAt(BossSchedule.Campaign.NextBossWaveFrom(9)) == EnemyType.HiveQueen && BossSchedule.Campaign.BossAt(BossSchedule.Campaign.NextBossWaveFrom(51)) == EnemyType.Boss,
-            "the Hive Queen's, the Twin Reapers', the Singularity's, the Colossus's, the Duelist's, the Storm Herald's and the Devourer's approaches build up like the Warden's (waves 6-9, 11-14, 16-19, 21-24, 26-29, 36-39, 41-44); a boss with no faction yet (the Eclipse) has none; the waves after 50 lead to the bosses again");
+        Check(Math.Abs(share(6) - 0.34f) < 1e-4f && Math.Abs(share(9) - 0.85f) < 1e-4f && Math.Abs(share(11) - 0.34f) < 1e-4f && Math.Abs(share(16) - 0.34f) < 1e-4f && Math.Abs(share(21) - 0.34f) < 1e-4f && Math.Abs(share(26) - 0.34f) < 1e-4f && Math.Abs(share(36) - 0.34f) < 1e-4f && Math.Abs(share(41) - 0.34f) < 1e-4f && Math.Abs(share(46) - 0.34f) < 1e-4f && NoFaction(EnemyType.Eclipse, () => share(46)) == 0f && BossSchedule.Campaign.BossAt(BossSchedule.Campaign.NextBossWaveFrom(9)) == EnemyType.HiveQueen && BossSchedule.Campaign.BossAt(BossSchedule.Campaign.NextBossWaveFrom(51)) == EnemyType.Boss,
+            "the Hive Queen's, the Twin Reapers', the Singularity's, the Colossus's, the Duelist's, the Storm Herald's, the Devourer's and the Eclipse's approaches build up like the Warden's (waves 6-9, 11-14, 16-19, 21-24, 26-29, 36-39, 41-44, 46-49); a boss with no faction (the Eclipse's taken away) has none; the waves after 50 lead to the bosses again");
         g0.Diff.Set(DiffKnob.ApproachShare, 1f);
         g0.Diff.Set(DiffKnob.ApproachRamp, 0f);
-        Check(Enumerable.Range(1, 5).All(w => share(w) == 1f) && Enumerable.Range(6, 4).All(w => share(w) == 1f) && Enumerable.Range(11, 4).All(w => share(w) == 1f) && Enumerable.Range(16, 4).All(w => share(w) == 1f) && Enumerable.Range(21, 4).All(w => share(w) == 1f) && Enumerable.Range(26, 4).All(w => share(w) == 1f) && Enumerable.Range(36, 4).All(w => share(w) == 1f) && Enumerable.Range(41, 4).All(w => share(w) == 1f) && share(46) == 0f && share(56) == 1f && share(51) == 1f, "Fully themed (100%, no ramp): every approach wave is all faction");
+        Check(Enumerable.Range(1, 5).All(w => share(w) == 1f) && Enumerable.Range(6, 4).All(w => share(w) == 1f) && Enumerable.Range(11, 4).All(w => share(w) == 1f) && Enumerable.Range(16, 4).All(w => share(w) == 1f) && Enumerable.Range(21, 4).All(w => share(w) == 1f) && Enumerable.Range(26, 4).All(w => share(w) == 1f) && Enumerable.Range(36, 4).All(w => share(w) == 1f) && Enumerable.Range(41, 4).All(w => share(w) == 1f) && share(46) == 1f && NoFaction(EnemyType.Eclipse, () => share(46)) == 0f && share(56) == 1f && share(51) == 1f, "Fully themed (100%, no ramp): every approach wave is all faction");
         g0.Diff.Set(DiffKnob.ApproachShare, 0f);
         Check(Enumerable.Range(1, 60).All(w => share(w) == 0f), "0%: no approach at all");
         var hard = Difficulty.Of(DifficultyLevel.Hard);
@@ -77,11 +77,11 @@ static partial class Program
         var gb = new Session().Game;
         gb.Diff.Set(DiffKnob.Campaign, 0f);
         gb.Diff.Set(DiffKnob.ApproachShare, 0f);
-        var off6 = wave(gb, 46);  // (wave 46: the Eclipse's approach, which has no faction yet)
+        var off6 = NoFaction(EnemyType.Eclipse, () => wave(gb, 46));  // (wave 46: the Eclipse's approach, its faction taken away)
         var off2 = wave(gb, 2);
         gb.Diff.Set(DiffKnob.ApproachShare, 0.6f);
         gb.Diff.Set(DiffKnob.ApproachRamp, 1f);
-        var on6 = wave(gb, 46);
+        var on6 = NoFaction(EnemyType.Eclipse, () => wave(gb, 46));
         var w4 = wave(gb, 4);
         var w5 = wave(gb, 5);  // the last wave before the Warden
         int themed4 = w4.Count(t => faction.Contains(t) && t != EnemyType.Rioter) + w4.Count(t => t == EnemyType.Rioter);

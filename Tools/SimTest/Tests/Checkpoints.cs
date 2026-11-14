@@ -5,7 +5,7 @@ using System.Linq;
 using Arena;
 
 // Checkpoints and lives (Core/Checkpoints.cs, Docs/Checkpoints.md): a boss beaten leaves a checkpoint; a wipe with a life
-// left offers a retry from it (a life used, the score cut); leaving ends the run; out of lives it's a plain game over.
+// left offers a respawn at the wave's start (a life used); leaving ends the run; out of lives it's a plain game over.
 static partial class Program
 {
     static void CheckpointsTest(float dt)
@@ -70,8 +70,8 @@ static partial class Program
             Console.WriteLine("  wipe 1: state {0}, retry {1} from wave {2} (client {3}, {4}); save on disk: lives used {5}, score {6} (checkpoint {7})",
                 g.State, g.RetryReady, g.RetryWave, cg.RetryReady, cg.RetryWave, onDisk?.LivesUsed, onDisk?.Score, cpScore);
             Check(g.State == MatchState.GameOver && g.RetryReady && cg.RetryReady && g.RetryWave == 6 && cg.RetryWave == 6, "a wipe with a life left offers a retry from wave 6 (every game knows)");
-            Check(onDisk != null && onDisk.LivesUsed == 1 && onDisk.Score == (int)Math.Round(cpScore * Game.LifeScoreCut) && onDisk.Wave == 5,
-                "the save waits at the checkpoint with a life used and the score cut, so Continue can retry it later");
+            Check(onDisk != null && onDisk.LivesUsed == 1 && onDisk.Score == cpScore && onDisk.Wave == 5,
+                "the save waits at the wave's start with a life used (no score cut), so Continue can retry it later");
 
             // Retry: back at wave 6 with the checkpoint's build, a life used, on both games.
             string runId = g.RunId;
@@ -83,7 +83,7 @@ static partial class Program
             Console.WriteLine("  retried: wave {0} (client {1}), lives used {2} (client {3}), left {4}; friend's upgrades {5} (at the checkpoint {6}); same run {7}",
                 g.Wave, cg.Wave, g.LivesUsed, cg.LivesUsed, g.LivesLeft, friend.Taken.Count, takenAtCp, g.RunId == runId);
             Check(g.Running && g.Wave == 6 && cg.Wave == 6 && g.LivesUsed == 1 && cg.LivesUsed == 1 && g.LivesLeft == 1, "retrying plays wave 6 again with a life used, on every game");
-            Check(friend.Taken.Count == takenAtCp && g.RunId == runId && g.Score == (int)Math.Round(cpScore * Game.LifeScoreCut), "the run is back as it was at the checkpoint (the later upgrade is gone), the same run, the score cut");
+            Check(friend.Taken.Count == takenAtCp && g.RunId == runId && g.Score == cpScore, "the run is back as it was at the wave's start (the later upgrade is gone), the same run, the score kept");
 
             // Second wipe: the last life. Third: no lives left, a plain game over: the save and its checkpoint go.
             Wipe();
@@ -124,6 +124,53 @@ static partial class Program
             Check(SaveStore.List().All(x => x.Id != runId) && SaveStore.ReadCheckpoint(runId) == null && g.RunId != runId && !g.RetryReady,
                 "Play again instead of retrying ends the old run for good (its save and checkpoint go)");
             host.Leave(""); client.Leave("");
+
+            // Solo, before the first boss: going down offers the respawn at the start of that wave; Game over ends the run.
+            port = nextPort++;
+            host = HostAs(new Session { AutoStart = 1, StartWave = 1 }, port, false, "Solo", Role.Dps);
+            var solo = new[] { host };
+            g = host.Game;
+            host.StartMatch();
+            g.DevSetGod(1, true);
+            spawnQ = (IList)typeof(Game).GetField("spawnQueue", flags).GetValue(g);
+            squadQ = (IList)typeof(Game).GetField("squadQueue", flags).GetValue(g);
+            Action SoloClear = () =>
+            {
+                foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; }
+                if (g.PathOffer != null) g.ChoosePath(0);
+                spawnQ.Clear(); squadQ.Clear();
+                foreach (var e in g.Enemies.Values) e.Hp = 0f;
+            };
+            Action SoloWipe = () =>
+            {
+                g.DevSetGod(1, false);
+                for (int i = 0; i < 3; i++) spawnQ.Add(EnemyType.Grunt);
+                foreach (var p in g.Players.Values) { p.Hp = 0f; p.Downed = true; p.ReviveToken = false; p.SecondWind = false; }
+            };
+            Run(solo, dt, 120f, () => g.State == MatchState.Fighting && g.Wave == 2, SoloClear);
+            runId = g.RunId;
+            g.Score = 500;
+            int soloLevel = g.Players[1].Level;
+            bool soloCp = SaveStore.ReadCheckpoint(runId) != null;
+            SoloWipe();
+            Run(solo, dt, 3f, () => g.State == MatchState.GameOver);
+            Run(solo, dt, 0.3f);
+            Console.WriteLine("  solo: wave {0}, checkpoint {1}, state {2}, respawn {3} at {4}, lives left {5}", g.Wave, soloCp, g.State, g.RetryReady, g.RetryWave, g.LivesLeft);
+            Check(!soloCp && g.State == MatchState.GameOver && g.RetryReady && g.RetryWave == 2, "solo, before any boss: going down with a life left offers a respawn at the wave's start");
+            host.RetryRun();
+            g.DevSetGod(1, true);
+            Run(solo, dt, 30f, () => g.State == MatchState.Fighting, SoloClear);
+            Console.WriteLine("  solo respawned: running {0}, wave {1}, lives used {2}, players {3}, score {4}", g.Running, g.Wave, g.LivesUsed, g.Players.Count, g.Score);
+            Check(g.Running && g.State == MatchState.Fighting && g.Wave == 2 && g.LivesUsed == 1 && g.Players.Count == 1 && g.RunId == runId && g.Players[1].Level == soloLevel,
+                "solo: Respawn replays wave 2 with a life used, the same run");
+            SoloWipe();
+            Run(solo, dt, 3f, () => g.State == MatchState.GameOver);
+            Run(solo, dt, 0.3f);
+            bool offered = g.RetryReady;
+            g.GiveUpRetry();
+            Console.WriteLine("  solo game over: offered {0}, respawn {1}, save kept {2}", offered, g.RetryReady, SaveStore.List().Any(x => x.Id == runId));
+            Check(offered && !g.RetryReady && g.State == MatchState.GameOver && SaveStore.List().All(x => x.Id != runId), "solo: Game over instead ends the run for good (its save goes)");
+            host.Leave("");
 
             // Deathless, and no lives outside saved runs.
             var won = new Game(new Session());

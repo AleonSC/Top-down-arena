@@ -3,12 +3,12 @@ using UnityEngine;
 namespace Arena
 {
     /// The look of the arena's floor plans (Layouts.cs, LayoutRules.cs): steel walls and pillars, the edge wall with
-    /// its teal player gates and red holographic enemy gates, the Bunker's hold point, and the HUD chip.
+    /// its teal player gates and enemy gates (drawn as plain wall), the Bunker's hold point, and the HUD chip.
     public partial class ArenaApp
     {
         // Phosphor vector look (Docs/Mockups/arena-layouts-digital.html, style A, cyan palette): glowing outlines with a
-        // faint fill and diagonal hatching, dashed pillar cores, teal chevrons and flickering red enemy gates.
-        static readonly Rgba Ink = new Rgba(0.373f, 0.941f, 1f), GateTeal = new Rgba(0.247f, 0.839f, 0.769f), HoloRed = new Rgba(1f, 0.353f, 0.29f);
+        // faint fill and diagonal hatching, dashed pillar cores, teal chevrons, enemy gates drawn as plain wall.
+        static readonly Rgba Ink = new Rgba(0.373f, 0.941f, 1f), GateTeal = new Rgba(0.247f, 0.839f, 0.769f);
 
         /// Under the props: walls and pillars (they rise out of the floor when a new cycle starts), then the edge gates.
         void DrawLayout(float t)
@@ -154,8 +154,7 @@ namespace Arena
             }
         }
 
-        /// The gaps (teal chevrons pointing into the arena, bracketed) and the holograms (red, flickering, dashed,
-        /// brighter while something is stepping out of them).
+        /// The gaps (teal chevrons pointing into the arena, bracketed) and the enemy gates (drawn as plain wall).
         void DrawEdgeGates(LayoutDef d, float t, float a)
         {
             foreach (var g in d.PlayerGates)
@@ -191,20 +190,18 @@ namespace Arena
                 float cx = g.Side == 2 ? thick / 2f : g.Side == 3 ? Game.Width - thick / 2f : g.Mid, cy = g.Side == 0 ? thick / 2f : g.Side == 1 ? Game.Height - thick / 2f : g.Mid;
                 float w = alongX ? g.Len : thick, h = alongX ? thick : g.Len;
                 float x = cx - w / 2f, y = cy - h / 2f;
-                float burst = 0f;
-                foreach (var e in game.Enemies.Values)  // something stepping out of it
-                    if (e.SpawnT > 0f && Mathf.Abs(alongX ? e.Pos.X - g.Mid : e.Pos.Y - g.Mid) < g.Len / 2f + 20f && (g.Side < 2 ? Mathf.Abs(e.Pos.Y - cy) : Mathf.Abs(e.Pos.X - cx)) < 110f)
-                        burst = Mathf.Max(burst, e.SpawnT);
-                float f = 0.55f + 0.35f * Mathf.Sin(t * 9f + gi * 1.7f) - (Mathf.Sin(t * 37f + gi) > 0.93f ? 0.3f : 0f);
-                f = Mathf.Clamp01(Mathf.Max(0.15f, f) + 0.4f * burst) * a;
-                FillRect(x - 8f, y - 8f, w + 16f, h + 16f, HoloRed.WithAlpha(0.10f * f));
-                FillRect(x, y, w, h, HoloRed.WithAlpha(0.35f * f));
-                float ph = t * 30f;
-                V2 p00 = new V2(x + 1f, y + 1f), p10 = new V2(x + w - 1f, y + 1f), p11 = new V2(x + w - 1f, y + h - 1f), p01 = new V2(x + 1f, y + h - 1f);
-                PhosDash(p00, p10, 8f, 6f, ph, 2f, HoloRed.WithAlpha(f));
-                PhosDash(p10, p11, 8f, 6f, ph + w, 2f, HoloRed.WithAlpha(f));
-                PhosDash(p11, p01, 8f, 6f, ph + w + h, 2f, HoloRed.WithAlpha(f));
-                PhosDash(p01, p00, 8f, 6f, ph + 2f * w + h, 2f, HoloRed.WithAlpha(f));
+                // Drawn as plain edge wall (red is the breaches' colour; enemies show where they come in with portals):
+                // fill and world-aligned hatching like its neighbours, the long sides outlined, no end caps, so it joins them.
+                FillRect(x, y, w, h, Ink.WithAlpha(0.10f * a));
+                HatchWorld(x, y, w, h, 0f, Ink.WithAlpha(0.22f * a));
+                V2 s0 = new V2(x, y), s1 = alongX ? new V2(x + w, y) : new V2(x, y + h);
+                V2 q0 = alongX ? new V2(x, y + h) : new V2(x + w, y), q1 = new V2(x + w, y + h);
+                foreach (var pass in new[] { 9.5f, 5.5f, 1.5f })
+                {
+                    var col = Ink.WithAlpha((pass > 9f ? 0.10f : pass > 5f ? 0.18f : 1f) * a);
+                    Line(s0, s1, pass, col);
+                    Line(q0, q1, pass, col);
+                }
             }
         }
 

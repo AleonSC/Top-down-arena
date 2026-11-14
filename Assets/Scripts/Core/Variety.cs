@@ -349,6 +349,7 @@ namespace Arena
             CapBeams(EnemyType.Pylon, MaxPylonPairs, () => EnemyType.Stormcaller);  // the Storm Herald's: each brings its partner (Squall.cs)
             CapBeams(EnemyType.GraveCaller, Zombies.MaxCallers, () => EnemyType.Shambler);  // the Lich's: two Callers raise eight
             CapBeams(EnemyType.Shrieker, Zombies.MaxShriekers, () => EnemyType.Shambler);
+            CapBeams(EnemyType.Heliograph, MaxHeliographs, () => EnemyType.CoronaPriest);  // (Penumbral.cs)
         }
 
         void CapBeams(EnemyType beam, int max, Func<EnemyType> instead)

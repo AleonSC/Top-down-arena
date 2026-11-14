@@ -794,7 +794,7 @@ static partial class Program
 
 static partial class Program
 {
-    // The Gatekeeper room (GatekeeperRoom.cs, Docs/FloatingRooms.md step 3): walking in wakes the Gatekeeper and locks the room, the wave ends without
+    // The Gatekeeper room (GatekeeperRoom.cs, Docs/FloatingRooms.md step 3): walking in (in a wave or between waves) wakes the Gatekeeper and locks the room, the wave ends without
     // an unbeaten duel (it goes, you're let out), beating it gives the prize pick and the room becomes an ordinary one.
     static void ExpandingGatekeeperTest(float dt)
     {
@@ -869,8 +869,20 @@ static partial class Program
         Run(s, dt, 0.4f, null, NoPicks);
         Check(keepers(g) == 0 && !g.CurrentWorld.Areas[2].Contains(me.Pos) && !g.AreaLocked(2), "the wave ending takes an unbeaten Gatekeeper away and lets you out");
 
-        // Beating it: prize pick, ordinary room.
+        // Between waves: walking in wakes it too (a duel taken on early, or one missed in the wave), and the countdown waits for it.
+        g.State = MatchState.Intermission;
+        g.StateTimer = 30f;
+        Run(s, dt, 0.3f, null, NoPicks);
+        Check(g.State == MatchState.Intermission && keepers(g) == 0, "between waves, nobody inside: it sleeps (still between waves: " + g.State + ")");
         me.Pos = me.Disp = g.CurrentWorld.Areas[2].Mid + new V2(0f, 100f);
+        Run(s, dt, 0.8f, null, NoPicks);
+        g.StateTimer = 0.05f;
+        Run(s, dt, 0.8f, null, NoPicks);
+        Check(keepers(g) == 1 && keepers(cg) == 1 && g.AreaLocked(2), "between waves, walking in wakes the mini-boss and locks the room, for both screens");
+        Check(g.State == MatchState.Intermission, "a duel between waves holds the countdown to the next wave (" + g.State + ")");
+        g.State = MatchState.Fighting;
+
+        // Beating it: prize pick, ordinary room.
         Run(s, dt, 0.8f, null, NoPicks);
         Check(keepers(g) == 1, "walking in again wakes it again");
         int picks0 = g.Players.Values.Sum(p => p.PrizePicks);

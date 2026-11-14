@@ -54,6 +54,7 @@ namespace Arena
                     }
                 }
                 DrawInfallFloor(e, pos, t);  // a Pulsar's beams (InfallLook.cs)
+                DrawPenumbralFloor(e, pos, t);   // a Heliograph's line (PenumbralLook.cs)
                 DrawSquallFloor(e, pos, t);  // a Pylon pair's line, a Lineman's mark (SquallLook.cs)
                 if (e.Type == EnemyType.Warder)
                     DrawWarderCharge(e, pos);  // WarderLook.cs

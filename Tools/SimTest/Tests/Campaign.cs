@@ -88,7 +88,7 @@ static partial class Program
         Check(csq.Members.GroupBy(t => t).All(gr => cwave.Count(t => t == gr.Key) >= gr.Count()), "wave " + cw + " has the " + csq.Name + " squad's members");
         var g0 = new Session().Game;
         g0.Diff.Set(DiffKnob.Campaign, 0f);
-        Check(g0.ApproachShare(6) > 0f && g0.ApproachShare(1) > 0f && g0.ApproachShare(11) > 0f && g0.ApproachShare(16) > 0f && g0.ApproachShare(21) > 0f && g0.ApproachShare(26) > 0f && g0.ApproachShare(36) > 0f && g0.ApproachShare(41) > 0f && g0.ApproachShare(46) == 0f, "off: the old approach share applies (the Hive Queen's on waves 6-9, the Reapers' on 11-14, the Singularity's on 16-19, the Colossus's on 21-24, the Duelist's on 26-29, the Storm Herald's on 36-39, the Devourer's on 41-44, none before the Eclipse)");
+        Check(g0.ApproachShare(6) > 0f && g0.ApproachShare(1) > 0f && g0.ApproachShare(11) > 0f && g0.ApproachShare(16) > 0f && g0.ApproachShare(21) > 0f && g0.ApproachShare(26) > 0f && g0.ApproachShare(36) > 0f && g0.ApproachShare(41) > 0f && g0.ApproachShare(46) > 0f && NoFaction(EnemyType.Eclipse, () => g0.ApproachShare(46)) == 0f, "off: the old approach share applies (the Hive Queen's on waves 6-9, the Reapers' on 11-14, the Singularity's on 16-19, the Colossus's on 21-24, the Duelist's on 26-29, the Storm Herald's on 36-39, the Devourer's on 41-44, the Eclipse's on 46-49; none before a boss with no faction)");
         var gOn = new Session().Game;
         Check(gOn.CampaignOn && Math.Abs(gOn.ApproachShare(1) - 1f) < 1e-4f && Math.Abs(gOn.ApproachShare(6) - 0.65f) < 1e-4f && Math.Abs(gOn.ApproachShare(31) - 0.55f) < 1e-4f, "on (the default): the wave panel's approach share is the next boss's slice");
     }

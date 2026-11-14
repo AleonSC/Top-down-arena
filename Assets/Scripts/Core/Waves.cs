@@ -69,7 +69,8 @@ namespace Arena
                         ChoosePath(rng.Next(2));  // a bot host picks for itself
                     TickShop(dt);  // the Bazaar's shop closes when everyone is done (Shop.cs)
                     TickHuntMap(dt);  // the hunt map's vote on the next node (HuntMapGame.cs)
-                    if (!AnyonePicking() && PathOffer == null && !ShopBlocksWave && !HuntMapBlocksWave && Room == RoomPhase.None)  // (and while a portal is open)
+                    TickDuelRooms();  // a mini-boss room can be taken on between waves too (GatekeeperRoom.cs)
+                    if (!AnyonePicking() && PathOffer == null && !ShopBlocksWave && !HuntMapBlocksWave && Room == RoomPhase.None && !DuelHoldsWave)  // (and while a portal is open, or a duel is on)
                     {
                         if (!TickBossGate(ref StateTimer, dt))  // before a boss: everyone in the boss gate instead (BossGate.cs)
                             TickReadyTimer(ref StateTimer, dt);  // ...and until everyone is ready (WaveReady.cs)
@@ -129,6 +130,7 @@ namespace Arena
                             WaveProps();  // crates, pots, barrels and now and then a chest (Props.cs)
                             bossName = BossNow ? Defs.Get(BossAt(Wave)).Name : null;
                             BeginTimedWave();  // the wave's enemies arrive over a window (TimedWaves.cs)
+                            HuntNodeWaveStart();  // an Ambush node: fewer, all at once (HuntMapGame.cs)
                         }
                         ModsWaveStart();  // Hunted's quarry, Second Wind back each boss cycle (Modifiers.cs)
                         MarkWaveStart();  // the wave's numbers start from here (WaveReady.cs)

@@ -1,6 +1,6 @@
 # The Storm Herald's faction: the Squall
 
-**Status: steps 1-2 built** (protocol 336): six enemies (Dust Devil, Squall Gunner, Stormcaller, Grounder, Pylon pair, Lineman) and four squads
+**Status: steps 1-2 built** (protocol 339): six enemies (Dust Devil, Squall Gunner, Stormcaller, Grounder, Pylon pair, Lineman) and four squads
 (Squall line, Storm cell, Power line, Grounding wall). Code: `Core/Squall.cs`,
 `Core/Approaches.cs` (the Storm Herald `FactionDef`), `Core/Defs.cs`, `Core/LateGame.cs` (`HazardCaller` in `TickHazards`), `Game/SquallLook.cs`;
 mockup `Docs/Mockups/storm-herald-faction.html`; test suite `squall`; previews `SQUALL=0.4 ZOOM=1.7 Tools/Preview/shot.sh x hud 1` (step 1), `SQUALL2=0.4 ZOOM=1.7 ...` (step 2).
