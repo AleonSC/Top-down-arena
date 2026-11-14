@@ -646,6 +646,17 @@ static partial class Shot {
       for (int k = 0; k < 3; k++) { float a = 0.4f + k * 2.1f; sput(EnemyType.DustDevil, me.Pos + new V2((float)Math.Cos(a) * 60f, (float)Math.Sin(a) * 50f)); }
       sg.AnimT += float.Parse(Environment.GetEnvironmentVariable("SQUALL3"), System.Globalization.CultureInfo.InvariantCulture);
     }
+    if (Environment.GetEnvironmentVariable("SQUALL4") != null) {  // SQUALL4=<s into the clock>: the Storm Herald's set piece, the Storm front (Squall.cs): six Stormcallers behind two Grounders, their wall of strikes sweeping across you with its two-slot gap
+      var sg = host.Game; sg.Enemies.Clear(); sg.Bullets.Clear(); sg.Hazards.Clear();
+      var np4 = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+      me.Pos = me.Disp = new V2(1000f, 560f);
+      typeof(Game).GetMethod("SpawnSquadAt", np4).Invoke(sg, new object[] { Approaches.For(EnemyType.StormHerald).Finale, (V2?)new V2(420f, 560f) });
+      foreach (var e in sg.Enemies.Values) { e.SpawnT = 0f; e.Spawning = false; e.Pos += new V2(120f, 0f); e.Disp = e.Pos; e.Facing = 0f; e.T = 3f; if (e.Type == EnemyType.Stormcaller) e.Winding = true; }
+      var tick = typeof(Game).GetMethod("TickStormFronts", np4);
+      tick.Invoke(sg, new object[] { Game.FrontFirst });
+      for (int k = 0; k < 9; k++) { foreach (var h in sg.Hazards.Values) h.T = Math.Max(0.03f, h.T - Game.FrontEvery); var old = new System.Collections.Generic.List<int>(); foreach (var h in sg.Hazards.Values) if (h.T <= 0.03f) old.Add(h.Id); foreach (var id in old) sg.Hazards.Remove(id); tick.Invoke(sg, new object[] { Game.FrontEvery }); }
+      sg.AnimT += float.Parse(Environment.GetEnvironmentVariable("SQUALL4"), System.Globalization.CultureInfo.InvariantCulture);
+    }
     if (Environment.GetEnvironmentVariable("COURT") != null) {  // COURT=<s into the clock>: the Duelist's step-1 faction (CourtLook.cs): Fencers (walking, line showing, hopping), a Blade Dancer showing its line and one with blades hanging, Parriers (whole, flashing, cracked, broken); set beside Docs/Mockups/duelist-faction.html
       var cg = host.Game; cg.Enemies.Clear(); cg.Bullets.Clear(); cg.Patches.Clear(); cg.Effects.Clear();
       var csp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

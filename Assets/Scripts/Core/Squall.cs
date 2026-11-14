@@ -29,6 +29,13 @@ namespace Arena
     ///   Ball Lightning (Ball lightning): the Herald's own orb (Herald.cs: it drifts at you, arcs to another within
     ///     BallArcRange, pops into 8 after BallLife s), made to work as a wave enemy too: slows and freezes hold it, and the
     ///     shots and arcs of one that didn't come from the Herald are its own, not the boss's. A wave's pay BallWaveXp.
+    /// Step 4, the set piece: the Storm front (SquadForm.StormFront), six Stormcallers in a line with two Grounders in
+    ///   front. While any of its callers lives, they stop calling strikes of their own and sweep a wall of strikes across
+    ///   the players instead (TickStormFronts): a column of FrontSlots strikes, FrontSlotGap apart, every FrontEvery s, each
+    ///   column FrontStep further along the line from the callers to the players' middle (taken when the sweep starts); two slots side by side are left open, and that gap
+    ///   drifts a slot one way or the other as it goes, so you walk with it. A sweep starts FrontBack behind the players'
+    ///   middle and runs FrontColumns columns; FrontRest s later the next one comes. Kill the callers to end it. The
+    ///   strikes are Hazards (kind HazardCaller), so the wall needs nothing new on the wire.
     public partial class Game
     {
         public const float DevilShove = 120f, DevilVeer = 0.7f, DevilSway = 0.55f;
@@ -50,6 +57,92 @@ namespace Arena
         float PylonDamage => 18f;  // like the Herald's rod arcs; the difficulty's per-wave damage growth scales these
         float LineDamage => 16f;
         public const byte PylonWalking = 0, PylonQuiet = 1, PylonFlicker = 2, PylonFiring = 3;
+
+        public const float StormFrontGuard = 90f, FrontEvery = 0.42f, FrontStep = 60f, FrontSlotGap = 60f, FrontBack = 480f, FrontRest = 3.5f,
+            FrontFirst = 2.5f, FrontRadius = 32f;
+        public const int FrontSlots = 13, FrontColumns = 17, FrontGap = 2;
+
+        /// Host: a Storm front's sweep, by squad id.
+        public class StormFrontState
+        {
+            public V2 Fwd, Across, Origin;
+            public int Column = -1, Gap;  // the next column (-1: resting), the first open slot
+            public float T;                // until the next column, or the next sweep while resting
+        }
+        readonly System.Collections.Generic.Dictionary<int, StormFrontState> stormFronts = new System.Collections.Generic.Dictionary<int, StormFrontState>();
+
+        void StartStormFront(int squad, V2 fwd, V2 across) =>
+            stormFronts[squad] = new StormFrontState { Fwd = fwd.IsZero ? new V2(1f, 0f) : fwd.Normalized(), Across = across.IsZero ? new V2(0f, 1f) : across.Normalized(), T = FrontFirst };
+
+        /// A Stormcaller sweeping a Storm front doesn't call strikes of its own.
+        bool InStormFront(Enemy e) => e.Type == EnemyType.Stormcaller && e.SquadId != 0 && stormFronts.ContainsKey(e.SquadId);
+
+        /// Host, every tick: each Storm front lays its next column, rests between sweeps, and ends with its last caller.
+        void TickStormFronts(float dt)
+        {
+            if (stormFronts.Count == 0)
+                return;
+            var done = new System.Collections.Generic.List<int>();
+            foreach (var kv in stormFronts)
+            {
+                int callers = 0;
+                V2 from = V2.Zero;
+                foreach (var e in Enemies.Values)
+                    if (e.SquadId == kv.Key && e.Type == EnemyType.Stormcaller && e.Hp > 0f)
+                    {
+                        callers++;
+                        from += e.Pos;
+                    }
+                if (callers == 0)
+                {
+                    done.Add(kv.Key);
+                    continue;
+                }
+                var f = kv.Value;
+                f.T -= dt;
+                if (f.T > 0f)
+                    continue;
+                if (f.Column < 0)
+                {
+                    // A new sweep: from behind the players' middle, the gap somewhere near the middle.
+                    var alive = AlivePlayersList();
+                    if (alive.Count == 0)
+                    {
+                        f.T = 0.5f;
+                        continue;
+                    }
+                    V2 mid = V2.Zero;
+                    foreach (var p in alive)
+                        mid += p.Pos;
+                    mid = mid / alive.Count;
+                    V2 at = (mid - from / callers).Normalized();  // from the callers, through you
+                    if (!at.IsZero)
+                    {
+                        f.Fwd = at;
+                        f.Across = at.Orthogonal();
+                    }
+                    f.Origin = mid - f.Fwd * FrontBack;
+                    f.Column = 0;
+                    f.Gap = rng.Next(FrontSlots / 2 - 2, FrontSlots / 2 + 1);
+                    BroadcastSound(Sfx.BossCharge);
+                }
+                V2 col = f.Origin + f.Fwd * (f.Column * FrontStep);
+                for (int j = 0; j < FrontSlots; j++)
+                    if (j < f.Gap || j >= f.Gap + FrontGap)
+                        AddHazard(col + f.Across * ((j - (FrontSlots - 1) / 2f) * FrontSlotGap), FrontRadius, CallerWarn).Kind = HazardCaller;
+                // The gap drifts a slot one way or the other (or stays), never off the edge.
+                f.Gap = Math.Max(1, Math.Min(FrontSlots - FrontGap - 1, f.Gap + rng.Next(-1, 2)));
+                if (++f.Column >= FrontColumns)
+                {
+                    f.Column = -1;
+                    f.T = FrontRest;
+                }
+                else
+                    f.T = FrontEvery;
+            }
+            foreach (int id in done)
+                stormFronts.Remove(id);
+        }
 
         public static bool IsSquall(EnemyType t) => t >= EnemyType.DustDevil && t <= EnemyType.Thunderhead;
         readonly System.Collections.Generic.Dictionary<int, int> pylonArcs = new System.Collections.Generic.Dictionary<int, int>();  // host: arcs fired this plant, by leader
@@ -340,6 +433,8 @@ namespace Arena
                 }
                 case EnemyType.Stormcaller:
                     e.FireT = CallerEvery;
+                    if (InStormFront(e))
+                        return true;  // it's sweeping the front with the others
                     AddHazard(tpos, CallerRadius, CallerWarn).Kind = HazardCaller;
                     BroadcastFx(FxKind.Spark, e.Pos + new V2(0f, -e.Radius - 8f), new Rgba(1f, 0.82f, 0.4f), 16f, 0.2f, Sfx.SpellZap);
                     return true;
