@@ -44,6 +44,27 @@ namespace Arena
             SurvTime = 0f;
         }
 
+        /// A Survival run ended (on every machine, for the local player): its records, XP for the waves of clock, a Recent runs card.
+        void SurvivalRecord(Player me, int found)
+        {
+            if (runRecorded)
+                return;
+            runRecorded = true;
+            float time = SurvTime;
+            int wave = Survival.WaveAt(time);
+            AddUnlockToasts(Profile.SurvivalEnded(Arena.Profile.ClassKey(me.Role, me.Kit), time, SurvPhase + 1));
+            LastGain = Profile.AwardXp(Rank.Award(false, Math.Max(0, wave - 1), 0, me.Run.Revives, Mods, Diff.Level), wave, 0);
+            PayCores(Variants.RunCores(false, 0, false), found);
+            var logged = Profile.Recent[0];
+            logged.Class = Arena.Profile.ClassKey(me.Role, me.Kit);
+            logged.Mode = "Survival";
+            logged.Seconds = time;
+            logged.Dealt = me.Run.DamageDealt; logged.Taken = me.Run.DamageTaken; logged.Heal = me.Run.HealingDone;
+            logged.Players = Players.Count;
+            logged.File = FinishTimeline(false, wave, false, time, logged.Class, logged.Mods, logged.Mode);  // RunTimeline.cs
+            SaveProfile();
+        }
+
         /// Host: the countdown ended: the clock starts. Wave 1 scaling to begin with (the wave number follows the clock).
         void BeginSurvival()
         {

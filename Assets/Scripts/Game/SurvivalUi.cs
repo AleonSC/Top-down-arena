@@ -112,6 +112,20 @@ namespace Arena
             }
             yr += 6f;
             Ui.Label(new Rect(x2, yr, colW, 16f), "Two and three players face 1.6x and 2.2x the enemies.", 11, Ui.Muted);
+
+            // Your records: plays, the longest run, the longest with this class, the furthest faction.
+            var profile = game.Profile ?? new Profile();
+            LobbyEntry mine;
+            session.Lobby.TryGetValue(session.MyId, out mine);
+            float classBest = mine != null ? profile.SurvivalBest(Arena.Profile.ClassKey(mine.Role, mine.Kit)) : 0f;
+            yr += 28f;
+            DkTitle(new Rect(x2, yr - 2f, colW, 18f), "YOUR RECORDS", 12, dim);
+            yr += 22f;
+            float tw = Mathf.Floor((colW - 3f * 8f) / 4f), th = 50f;
+            QuickRecord(new Rect(x2, yr, tw, th), profile.SurvivalPlays.ToString(), "PLAYED");
+            QuickRecord(new Rect(x2 + (tw + 8f), yr, tw, th), profile.SurvivalBestTime > 0f ? Game.SurvClock(profile.SurvivalBestTime) : "-", "BEST TIME");
+            QuickRecord(new Rect(x2 + 2f * (tw + 8f), yr, tw, th), classBest > 0f ? Game.SurvClock(classBest) : "-", "AS THIS CLASS");
+            QuickRecord(new Rect(x2 + 3f * (tw + 8f), yr, tw, th), profile.SurvivalBestPhase > 0 ? profile.SurvivalBestPhase.ToString() : "-", "BEST PHASE");
         }
     }
 }
