@@ -41,7 +41,7 @@ namespace Arena
             if (e == null)
                 return true;
             m.Aim = (e.Pos - m.Pos).Angle;
-            if (m.Cd <= 0f && State == MatchState.Fighting)
+            if (m.Cd <= 0f && Battle)
             {
                 m.Cd = 0.6f;
                 V2 dir = V2.FromAngle(m.Aim);

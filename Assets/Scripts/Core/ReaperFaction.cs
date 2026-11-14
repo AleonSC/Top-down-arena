@@ -180,6 +180,9 @@ namespace Arena
             var o = BoundPartner(e);
             if (o == null)
                 return dir;  // alone for good: a plain chaser
+            if (LayoutOn && (SegBlocked(ActiveLayout, e.Pos, tpos, e.Radius) || SegBlocked(ActiveLayout, o.Pos, tpos, o.Radius)
+                    || SegBlocked(ActiveLayout, e.Pos, o.Pos, 2f)))
+                return dir;  // a wall between the pair or in front of either: walk round it (dir is routed) and take up the orbit beyond
             // The pair spins round its middle, which drifts to just beside you, so the tether sweeps over you.
             V2 mid = (e.Pos + o.Pos) * 0.5f;
             V2 toT = tpos - mid;
@@ -189,6 +192,8 @@ namespace Arena
             float a = (off.Length < 1f ? e.Ang : off.Angle) + BoundSpin * dt;
             float rad = off.Length + (BoundOrbit - off.Length) * Math.Min(1f, dt * 2f);
             V2 goal = ClampToArena(mid + V2.FromAngle(a) * rad, e.Radius);
+            if (LayoutOn && SegBlocked(ActiveLayout, e.Pos, goal, e.Radius))
+                return dir;  // the orbit would swing it into a wall: close in on you instead
             V2 step = goal - e.Pos;
             speed = Math.Min(e.Speed * 3f, step.Length / Math.Max(dt, 0.001f));
             return step;
