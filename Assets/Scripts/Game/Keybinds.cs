@@ -187,7 +187,15 @@ namespace Arena
         static void Changed()
         {
             Version++;
+            SyncKeyText();
             Save();
+        }
+
+        /// Hand the bound keys to Core's game text (weapon and upgrade descriptions name them: KeyText.cs).
+        static void SyncKeyText()
+        {
+            Func<KeyAction, string> n = a => Get(a) == KeyCode.LeftAlt ? "Alt" : KeyName(Get(a));
+            KeyText.Set(n(KeyAction.WeaponAction), n(KeyAction.Ability), n(KeyAction.AbilityQ), n(KeyAction.AbilityE), n(KeyAction.AbilityShift));
         }
 
         public static void Load()
@@ -209,6 +217,7 @@ namespace Arena
                         keys2[i] = KeyCode.None;
             }
             Version++;
+            SyncKeyText();
         }
 
         static void Save()
@@ -314,6 +323,16 @@ namespace Arena
             if (k >= KeyCode.Keypad0 && k <= KeyCode.Keypad9)
                 return "Num " + ((int)k - (int)KeyCode.Keypad0);
             return k.ToString();
+        }
+
+        /// `s` with each "{Action}" (a KeyAction name, e.g. "{Dodge}") swapped for that action's key name.
+        public static string Fill(string s)
+        {
+            if (s == null || s.IndexOf('{') < 0)
+                return s;
+            foreach (var a in All)
+                s = s.Replace("{" + a + "}", KeyName(Get(a)));
+            return s;
         }
 
         static string[] slotLabels;

@@ -917,14 +917,14 @@ namespace Arena
             new HowTo { Name = "The basics", Icon = "crosshair", Color = new Color(1f, 0.55f, 0.5f), Intro = "Survive 50 waves with a boss every fifth one, or take a Boss Hunt: ten waves ending in one boss.",
                 Tips = new[,] { { "Hitbox", "Your hitbox is the small ring in the middle of your character, with a coloured dot at its centre. Only the ring's inside can be hit, not the whole body.", "0" }, { "Wrap around", "Walk off an edge to come in on the other side. Enemies and bullets can't follow.", "1" },
                     { "Roles", "Enemies prefer to target the Tank. A Healer's aura heals allies nearby. DPS hits hardest.", "8" }, { "Health orbs", "Kills sometimes drop green orbs that heal you. They drift toward you when you're close.", "9" },
-                    { "Dodge", "A tiny dash with a moment of invulnerability. Double tap a movement key or press Ctrl.", "icon:blink" },
+                    { "Dodge", "A tiny dash with a moment of invulnerability. Double tap a movement key or press {Dodge}.", "icon:blink" },
                     { "Practice Range", "Pick it in the lobby to play waves and bosses you set up yourself.", "13" } } },
             new HowTo { Name = "Fighting", Icon = "guard_reinforced", Color = new Color(0.55f, 0.8f, 1f), Intro = "Read the shots, parry what you can, and let your abilities grow.",
                 Tips = new[,] { { "Perfect parry", "Raise your parry just as a shot arrives: blocked bullets fly back at enemies and cost nothing.", "7" }, { "Boss shots", "Dark-cored shots are a boss's: violet ones wear blockers down, red ones can't be blocked.", "5" },
                     { "Boss bodies", "Touching a boss hurts and shoves you back. Parry up close to get past its fire.", "12" }, { "Status icons", "Snowflake = frozen, arrows = slowed, flame = burning, drop = bleeding, crosshair = marked.", "2" },
                     { "Ability mastery", "Abilities level up from 1 to 5 as you use them in fights. Level 5 unlocks a capstone.", "10" } } },
             new HowTo { Name = "Between waves", Icon = "ui_star", Color = Ui.Gold, Intro = "Each break: pick upgrades, open what the wave left behind, then the next wave.",
-                Tips = new[,] { { "Upgrades", "Levels give upgrade picks at the end of each wave; bosses give legendary ones.", "4" }, { "Treasure chests", "Now and then a chest appears: touch it and everyone gets their own item. Stand on it to take (G) or throw away (X) yours.", "icon:ui_coin" },
+                Tips = new[,] { { "Upgrades", "Levels give upgrade picks at the end of each wave; bosses give legendary ones.", "4" }, { "Treasure chests", "Now and then a chest appears: touch it and everyone gets their own item. Stand on it to take ({TakeItem}) or throw away ({DiscardItem}) yours.", "icon:ui_coin" },
                     { "Rerolls", "Don't like the cards? Reroll them: you start with 2 and get 2 more for every boss.", "icon:ui_arrow" }, { "Downed", "At 0 HP you're downed: stand by a downed ally for a few seconds (4 s on Normal) to revive them. Clearing a wave brings everyone back.", "3" } } },
             new HowTo { Name = "Data Gates", Icon = "blink", Color = new Color(0.45f, 0.9f, 1f), Portal = true, Intro = "Once every five waves a Data Gate opens in the break. Everyone alive stands in it to go through. Win the challenge for a prize pick; lose it and you're simply sent back.",
                 Tips = new[,] { { "Defend the Crystal", "Keep it alive for 40 s. Most enemies go for it.", "icon:shield" }, { "The Gatekeeper", "A mini-boss: slip the ring's gap, step off its charge line.", "icon:ui_skull" },
@@ -1028,7 +1028,7 @@ namespace Arena
                     glyphs.Add(new KeyValuePair<int, V2>(int.Parse(g), new V2(tile.center.x, tile.center.y)));
                 }
                 CrtUi.Text(new Rect(r.x + 64f, r.y + 8f, r.width - 74f, 20f), WinText("win.t" + i, topic.Tips[i, 0]), 15, CrtUi.Ink, TextAnchor.MiddleLeft, true, CabCalm);
-                Ui.Label(new Rect(r.x + 64f, r.y + 30f, r.width - 74f, r.height - 36f), WinText("win.d" + i, topic.Tips[i, 1]), 12, CabSoft, TextAnchor.UpperLeft, false, true);
+                Ui.Label(new Rect(r.x + 64f, r.y + 30f, r.width - 74f, r.height - 36f), WinText("win.d" + i, Keybinds.Fill(topic.Tips[i, 1])), 12, CabSoft, TextAnchor.UpperLeft, false, true);
             }
             if (glyphs.Count > 0 && BeginUiGl())
             {

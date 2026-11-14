@@ -70,7 +70,7 @@ namespace Arena
             if (u.Grants != AbilityId.None)
             {
                 var a = Upgrades.Ability(u.Grants);
-                TipAdd(a.Name + ": " + a.Desc, 12, Ui.Muted);
+                TipAdd(a.Name + ": " + KeyText.Fill(a.Desc), 12, Ui.Muted);
                 TipAdd("Mastered (Lv 5): " + Game.Capstone(u.Grants), 11, new Color(0.85f, 0.75f, 0.48f));
             }
         }
@@ -82,7 +82,7 @@ namespace Arena
                 return;
             TipStart(r, p.Weapon.Name, Color.white);
             TipAdd("WEAPON  ·  " + Defs.KitName(p.Kit).ToUpperInvariant() + " " + p.Def.Name.ToUpperInvariant(), 10, ToColor(p.Def.Color), true);
-            TipAdd(p.Weapon.Desc, 13, Ui.Text);
+            TipAdd(KeyText.Fill(p.Weapon.Desc), 13, Ui.Text);
             if (!string.IsNullOrEmpty(p.Weapon.ExtraDesc))
                 TipAdd("Each extra projectile: " + p.Weapon.ExtraDesc, 11, Ui.Muted);
         }
@@ -99,7 +99,7 @@ namespace Arena
             int level = Game.MasteryLevel(p, id);
             TipAdd((ult ? "ULTIMATE · " + SlotKeys[4] : "ABILITY · " + SlotKeys[slot]) + "  ·  " + (level >= Game.MasteryMax ? "MASTERED" : "LV " + level) + "  ·  " + Mathf.RoundToInt(a.Cooldown) + " S COOLDOWN",
                 10, ult ? Ui.Gold : ToColor(p.Def.Color), true);
-            TipAdd(a.Desc, 13, Ui.Text);
+            TipAdd(KeyText.Fill(a.Desc), 13, Ui.Text);
             TipAdd("Mastered (Lv 5): " + Game.Capstone(id), 11, new Color(0.85f, 0.75f, 0.48f));
         }
 

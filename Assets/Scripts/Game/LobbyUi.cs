@@ -1002,9 +1002,9 @@ namespace Arena
             var body = new Rect(inner.x, inner.y + 54f, inner.width, inner.height - 54f);
             var text = new Color(0.8f, 0.84f, 0.94f);
             if (detailSel == 0)
-                FitText(body, wdef.Desc, 13, text);
+                FitText(body, KeyText.Fill(wdef.Desc), 13, text);
             else
-                DrawDescAndMastery(body, detailSel == 1 ? ability.Desc : ult.Desc, detailSel == 1 ? ability.Id : ult.Id, 13, text);
+                DrawDescAndMastery(body, KeyText.Fill(detailSel == 1 ? ability.Desc : ult.Desc), detailSel == 1 ? ability.Id : ult.Id, 13, text);
         }
 
         // How many slots each loadout row shows; the ones past the real content are locked ("Coming soon").
