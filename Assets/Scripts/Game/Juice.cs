@@ -563,7 +563,9 @@ namespace Arena
                         AddPart(new Part { Kind = PSpark, Pos = b.Pos, Vel = b.Vel.Normalized() * 120f, Life = 0.08f, Max = 0.08f, Size = 4.5f, Col = new Rgba(0.85f, 0.92f, 1f) });
                     }
                 }
-                else if (b.Vel.Length > 450f)
+                else if (b.Kind == Defs.Caltrop || b.Vel.Length <= 450f)
+                    s.N = 0;  // slow (or a caltrop, which draws its own streak, KatanaLook.cs): no trail, and none left behind to stretch back to later
+                else
                 {
                     for (int k = Math.Min(s.N, s.Trail.Length - 1); k > 0; k--)
                         s.Trail[k] = s.Trail[k - 1];
