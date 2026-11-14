@@ -627,7 +627,7 @@ his own riot, on the boss wave, still give 2 and 4.
 
 | From | The Warden's faction | What it does |
 |---|---|---|
-| 1 | **Rioter** | A prisoner on the loose: weaves at you, in pairs (contact 10). Squad: Breakout (six Rioters and a Guard) |
+| 1 | **Rioter** | A prisoner on the loose (shaved head, a number on its back, cuffed fists trailing snapped chain): weaves at you, in pairs (contact 10). Squad: Breakout (six Rioters and a Guard) |
 | 1 | **Guard** | A riot guard with a baton, straight at you (contact 14) |
 | 2 | **Thug** | A prisoner brute dragging a ball and chain, with cuffed fists: moves and hits like a Brute (140 health, contact 20). Squad: Yard (a Thug, three Rioters and a Shiv) |
 | 3 | **Shiv** | A prisoner with a taped shank held out front: circles in close, shows the lunge lane, then lunges like a Lunger (contact 18, 26 on the lunge) |
