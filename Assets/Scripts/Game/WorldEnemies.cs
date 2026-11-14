@@ -514,6 +514,8 @@ namespace Arena
                 DrawSquallBody(e, pos, r, col, t);  // SquallLook.cs: the Storm Herald's faction
             else if (e.Type == EnemyType.SecurityGuard)
                 DrawSecurityBody(e, pos, r, col, t);  // SecurityLook.cs
+            else if (e.Type == EnemyType.TaserGuard)
+                DrawTaserGuardBody(e, pos, r, t);  // TaserLook.cs: the officer in slate, hi-vis band
             else if (e.Type == EnemyType.Guard)
                 DrawGuardBody(e, pos, r, col, t);  // WardenLook.cs: the corrections officer and its nightstick swing
             else if (Game.IsNonShooter(e.Type))

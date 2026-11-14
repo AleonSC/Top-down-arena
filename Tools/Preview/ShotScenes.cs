@@ -255,9 +255,11 @@ static partial class Shot {
       var spawn = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
       for (int i = 0; i < 5; i++) {
         var at = new V2(800f + (i - 2) * 105f, 410f);
-        var en = (Enemy)spawn.Invoke(gm, new object[] { i == 0 ? EnemyType.Guard : EnemyType.SecurityGuard, at, 0f, 0, false });
+        bool tz = Environment.GetEnvironmentVariable("SECSHIRT") == "2" && i > 0;  // SECSHIRT=2: Taser Guards instead (idle, charging)
+        var en = (Enemy)spawn.Invoke(gm, new object[] { i == 0 ? EnemyType.Guard : tz ? EnemyType.TaserGuard : EnemyType.SecurityGuard, at, 0f, 0, false });
         en.SpawnT = 0f; en.Pos = en.Disp = at; en.Facing = (me.Pos - at).Angle;
-        if (i > 0) { en.Phase = en.SeenPhase = (byte)(i == 4 ? 0 : 7 - i); en.SeenT = i == 3 ? 0.06f : i == 4 ? 1.1f : 2f; en.Winding = i == 2; }
+        if (tz) en.Winding = i >= 3;
+        else if (i > 0) { en.Phase = en.SeenPhase = (byte)(i == 4 ? 0 : 7 - i); en.SeenT = i == 3 ? 0.06f : i == 4 ? 1.1f : 2f; en.Winding = i == 2; }
       }
     }
     if (Environment.GetEnvironmentVariable("RIOTLINE") != null) {
