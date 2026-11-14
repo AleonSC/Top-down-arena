@@ -353,6 +353,7 @@ namespace Arena
                 e.MaxHp *= 2.5f;
                 e.Radius *= EliteSize;
             }
+            RollVariant(e, parent);  // EnemyVariants.cs
             if (d.IsBoss)
                 ScaleBoss(e);
             e.Hp = e.MaxHp;
