@@ -219,15 +219,31 @@ static class Forge
         catch { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Enemy Forge"); }
     }
 
+    // A log in %LOCALAPPDATA%\EnemyForge\log.txt (or the temp folder), so a failed start can be told apart from a crash.
+    public static void Log(string m)
+    {
+        try
+        {
+            string d = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            d = Path.Combine(string.IsNullOrEmpty(d) ? Path.GetTempPath() : d, "EnemyForge");
+            Directory.CreateDirectory(d);
+            File.AppendAllText(Path.Combine(d, "log.txt"), DateTime.Now.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture) + "  " + m + Environment.NewLine);
+        }
+        catch { }
+    }
+
     [STAThread]
     static int Main(string[] args)
     {
+        AppDomain.CurrentDomain.UnhandledException += (s, e) => { Log("CRASH " + e.ExceptionObject); };
+        Log("start " + string.Join(" ", args) + " on " + Environment.OSVersion + (Environment.Is64BitProcess ? " 64-bit" : " 32-bit") + ", CLR " + Environment.Version);
         int port = 8190;
-        string webArg = null;
+        string webArg = null, selfTest = null;
         bool serveOnly = false;
         foreach (var a in args)
         {
             if (a == "--serve") serveOnly = true;
+            else if (a.StartsWith("--selftest=")) selfTest = a.Substring(11);
             else if (a.StartsWith("--web=")) webArg = a.Substring(6);
             else if (a == "--meta") { designDir = ""; Console.WriteLine(Meta()); return 0; }
             else int.TryParse(a, out port);
@@ -254,7 +270,13 @@ static class Forge
         string url = "http://127.0.0.1:" + port;
 #if WINDOW
         // Windows: its own app window; closing it quits.
-        if (!serveOnly && AppWindow.Run(url)) { Environment.Exit(0); return 0; }
+        if (!serveOnly)
+        {
+            bool ok = false;
+            try { ok = AppWindow.Run(url, selfTest); } catch (Exception e) { Log("window failed: " + e); }
+            Log(ok ? "window closed" : "no app window: using the browser");
+            if (ok || selfTest != null) { Environment.Exit(0); return 0; }
+        }
 #endif
         if (!serveOnly)
         {

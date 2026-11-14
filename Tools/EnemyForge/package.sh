@@ -15,9 +15,18 @@ if [ ! -f "$P/lib/net462/Microsoft.Web.WebView2.WinForms.dll" ]; then
   curl -sSLf --retry 4 -o "$P/p.nupkg" "https://api.nuget.org/v3-flatcontainer/microsoft.web.webview2/$WV/microsoft.web.webview2.$WV.nupkg"
   (cd "$P" && unzip -qo p.nupkg 'lib/net462/*' 'runtimes/*/native/WebView2Loader.dll' && rm p.nupkg)
 fi
+# Build against .NET Framework 4.8's own reference assemblies (not mono's, which have extra methods Windows lacks).
+REF="out/net48-ref"
+if [ ! -f "$REF/build/.NETFramework/v4.8/mscorlib.dll" ]; then
+  rm -rf "$REF"; mkdir -p "$REF"
+  curl -sSLf --retry 4 -o "$REF/r.nupkg" "https://api.nuget.org/v3-flatcontainer/microsoft.netframework.referenceassemblies.net48/1.0.3/microsoft.netframework.referenceassemblies.net48.1.0.3.nupkg"
+  (cd "$REF" && unzip -qo r.nupkg 'build/.NETFramework/v4.8/*' && rm r.nupkg)
+fi
+FW="$REF/build/.NETFramework/v4.8"
 CORE="$P/lib/net462/Microsoft.Web.WebView2.Core.dll"; WF="$P/lib/net462/Microsoft.Web.WebView2.WinForms.dll"
 rm -f "$OUT/EnemyForge.exe"
-mcs -langversion:7.2 -nologo -optimize+ -target:winexe -define:WINDOW -r:System.Windows.Forms.dll -r:System.Drawing.dll -r:"$CORE" -r:"$WF" \
+mcs -langversion:7.2 -nologo -optimize+ -target:winexe -define:WINDOW -nostdlib -noconfig -lib:"$FW" -lib:"$FW/Facades" \
+  -r:mscorlib.dll -r:System.dll -r:System.Core.dll -r:System.Windows.Forms.dll -r:System.Drawing.dll -r:System.Runtime.dll -r:"$CORE" -r:"$WF" \
   -resource:web/index.html,index.html -resource:"$CORE",wv2/Microsoft.Web.WebView2.Core.dll -resource:"$WF",wv2/Microsoft.Web.WebView2.WinForms.dll \
   -resource:"$P/runtimes/win-x64/native/WebView2Loader.dll",wv2/x64/WebView2Loader.dll \
   -resource:"$P/runtimes/win-x86/native/WebView2Loader.dll",wv2/x86/WebView2Loader.dll \
