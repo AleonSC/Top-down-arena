@@ -20,7 +20,7 @@ How it differs from the rest:
 | Question | Decision |
 |---|---|
 | Shape | One continuous clock. No wave plates, no bosses. |
-| Arena | One fixed arena (one leaderboard). Which layout: see open questions. |
+| Arena | **One big room that extends off the camera**: larger than the screen, the camera follows the party, and it is still a single room (no doors, no expanding rooms). One leaderboard. |
 | Enemies | Mixed factions by time: basic faction first, other factions phase in as the clock climbs. |
 | Progression | Still **level based**: kills give XP, levels give the usual upgrade picks (no timed picks, no Bazaar pop-up). |
 
@@ -37,7 +37,8 @@ A time-driven spawner replaces the wave builder (`Spawns.md` and `WaveRefactor.m
 - **Elite share** grows with `t` (the Elite variants from hunt-map Elite nodes).
 - **Squads and set pieces** (Riot line, Last stand, ...) fire on a timer from the faction's own definitions instead of
   on wave numbers.
-- **Safety:** a cap on live enemies, spawns away from players and at the edge, and a short grace at 0:00.
+- **Big-room spawns:** enemies spawn just outside the camera view (never inside it) and at the room's far reaches, then
+  path toward the party; a cap on live enemies, spawns away from players and a short grace at 0:00.
 
 ## Rules reused as they are
 
@@ -74,7 +75,10 @@ add a line to `ProtocolHistory.md`. Any new enum values go at the end, before `N
 
 ## Open questions (owner)
 
-- **Which arena?** One of the existing layouts (`ArenaLayouts.md`), or a purpose-built one?
+- **Room size and camera:** how big (first guess: about 3x3 screens), and does the camera follow one player or frame the
+  whole party (co-op players can spread; a leash keeps them within one screen of each other, or the camera zooms out)?
+  Needs a check of how the camera and `ExpandingArena.md` handle rooms bigger than the view.
+- **Room contents:** open floor, or props and cover scattered across it (`Arena props`)?
 - **Co-op scaling:** do 2 and 3 players raise the budget per head (first guess: yes, 1.6x and 2.2x), and are best
   times kept per party size?
 - **Soft ceiling:** after some time (say 25 min) does the pressure keep climbing forever, or plateau so a very strong
