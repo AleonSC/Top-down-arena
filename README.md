@@ -627,7 +627,7 @@ his own riot, on the boss wave, still give 2 and 4.
 
 | From | The Warden's faction | What it does |
 |---|---|---|
-| 1 | **Rioter** | A prisoner on the loose (shaved head, a number on its back, cuffed fists trailing snapped chain): weaves at you, in pairs (contact 10). Squad: Breakout (six Rioters and a Guard) |
+| 1 | **Rioter** | A prisoner on the loose in an orange jumpsuit, one of two kinds: a Brawler (broad shoulders, cuffed fists throwing punches) or a Ball and Chain (hunched, dragging an iron ball on its ankle); same moves either way: weaves at you, in pairs (contact 10). Squad: Breakout (six Rioters and a Guard) |
 | 1 | **Guard** | A riot guard with a baton, straight at you (contact 14) |
 | 2 | **Thug** | A prisoner brute dragging a ball and chain, with cuffed fists: moves and hits like a Brute (140 health, contact 20). Squad: Yard (a Thug, three Rioters and a Shiv) |
 | 3 | **Shiv** | A prisoner with a taped shank held out front: circles in close, shows the lunge lane, then lunges like a Lunger (contact 18, 26 on the lunge) |
@@ -1174,7 +1174,7 @@ prototype** in the F1 dev dock (Labs, in the lobby); otherwise the Campaign is t
   threats at once, so each one counts). Boss waves and the Classic arena are unchanged.
 - **The vault**: one regular wave in each stretch of ten (never before the first boss: waves 6-10, 12-20, 22-30, ...) opens a small gold room off the top hallway with **the
   next boss's faction's mini-boss** in it (the Warden's **Riot Captain**: see the Expanding arena's mini-boss room). It stays in the
-  vault, and the vault locks behind you until it falls. Beat it and everyone gets a **prize pick** (rare or better,
+  vault (its doorway stops a charge like a wall: the Riot Captain is dazed), and the vault locks behind you until it falls. Beat it and everyone gets a **prize pick** (rare or better,
   sometimes a legendary), as from the Gatekeeper's Data Gate. It's optional: the wave ends without it (it goes with it), and
   the wave carries on outside while you're in there. Its boss bar shows once you're at the vault.
 - **The minimap** (top right): the hub, rooms, hallways and the vault (gold), the doors, enemies (the vault's

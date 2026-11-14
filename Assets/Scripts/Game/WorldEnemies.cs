@@ -467,7 +467,7 @@ namespace Arena
             }
             bool pac = PacSkin && !spawning && PacGhostable(e);  // the Pac-Man skin: a ghost in its role's colour (PacmanLook.cs)
             // Melee enemies are spiky, so you can tell rushers from shooters at a glance.
-            if (e.Def.Melee && !pac && !spawning && !HiveKin.Is(e.Type) && !QuarryKin.Is(e.Type) && !CourtKin.Is(e.Type) && !LarderKin.Is(e.Type) && !Game.IsInfall(e.Type) && !Game.IsSquall(e.Type) && !Game.IsPenumbral(e.Type) && !Game.IsReaperCult(e.Type) && e.Type != EnemyType.Swarmer && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type) && !Game.IsNonShooter(e.Type))
+            if (e.Def.Melee && !pac && !spawning && !HiveKin.Is(e.Type) && !QuarryKin.Is(e.Type) && !CourtKin.Is(e.Type) && !LarderKin.Is(e.Type) && !Game.IsInfall(e.Type) && !Game.IsSquall(e.Type) && !Game.IsPenumbral(e.Type) && !Game.IsReaperCult(e.Type) && e.Type != EnemyType.Swarmer && e.Type != EnemyType.Rioter && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type) && !Game.IsNonShooter(e.Type))
                 DrawMeleeSpikes(e, pos, r, col, t);
             if (Zombies.Is(e.Type))
                 DrawZombieUnder(e, pos, r, t);  // its spore haze, frenzy streaks and the Crawler's hold (ZombieLook.cs)
@@ -490,6 +490,8 @@ namespace Arena
                 DrawPacGhost(e, pos, r, col, t);
             else if (Zombies.Is(e.Type))
                 DrawZombieBody(e, pos, r, col, t);  // its own shape (ZombieLook.cs)
+            else if (e.Type == EnemyType.Rioter)
+                DrawRioterBody(e, pos, r, col, t);  // WardenLook.cs: a Brawler or a Ball and Chain
             else if (e.Type == EnemyType.Warder)
                 DrawWarderBody(e, pos, r, col, t);  // WarderLook.cs
             else if (e.Type == EnemyType.Swarmer)
@@ -890,8 +892,6 @@ namespace Arena
                 case EnemyType.HookThrower:
                 case EnemyType.Sapper:
                     return e.Facing;  // point where they're aiming (zombies: where they're going)
-                case EnemyType.Rioter:
-                    return e.Facing + MathX.Pi / 8f;  // a flat face forward, its fists and cuffs out front (WardenLook.cs)
                 case EnemyType.Spinner:
                     return t * (e.Phase == 1 ? 7f : 1.5f) + e.Id;  // revs up while it's spraying
                 case EnemyType.Singularity:
@@ -964,9 +964,6 @@ namespace Arena
                 case EnemyType.Gravedigger:
                 case EnemyType.Shade:
                     DrawCultDetails(e, pos, r, col, t);  // ReaperCultLook.cs
-                    break;
-                case EnemyType.Rioter:
-                    DrawRioterDetails(e, pos, r, t);  // WardenLook.cs
                     break;
                 case EnemyType.Guard:
                     DrawGuardDetails(e, pos, r, t);  // WardenLook.cs
