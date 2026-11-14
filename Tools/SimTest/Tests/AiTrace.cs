@@ -135,9 +135,12 @@ static partial class Program
                 noBrain.Add((EnemyType)i);
         Check(noBrain.Count == 0, "every non-boss enemy has a brain (Docs/EnemyBehaviours.md)" + (noBrain.Count > 0 ? ": missing " + string.Join(", ", noBrain) : ""));
         bool timed = TimedWaves.Enabled;
+        float variants = Game.VariantChanceScale;
+        Game.VariantChanceScale = 0f;  // the base enemy only: a variant (EnemyVariants.cs) is a spawn roll, not its brain
         string now = AiTraceText();
         string again = AiTraceText(6);
         TimedWaves.Enabled = timed;
+        Game.VariantChanceScale = variants;
         Check(now.StartsWith(again), "the AI trace is repeatable (same seeds, same frames, twice over)");
         Console.WriteLine("  ai trace: {0} enemy types, {1} s each", now.Split('\n').Length - 1, AiTraceSeconds);
         if (Environment.GetEnvironmentVariable("AITRACE") == "update" || !File.Exists(AiTraceFile))
