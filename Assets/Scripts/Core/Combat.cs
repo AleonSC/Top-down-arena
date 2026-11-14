@@ -455,6 +455,7 @@ namespace Arena
             FindColCover();       // the Colossus's plates and pillars (Colossus.cs)
             FindQuarryCover();    // rubble piles and dropped slabs (QuarryFaction.cs)
             FindEclipseMoon();    // the Eclipse's moon (Eclipse.cs)
+            FindMoonwards();      // Moonwards' moons (Penumbral.cs)
             foreach (var b in Bullets.Values)
             {
                 if (Lobbed(b.Kind) || b.Kind == Defs.FlakShell || b.Ward || b.Tossed)
@@ -479,6 +480,11 @@ namespace Arena
                     scratchIds.Add(b.Id);  // cover stops shots both ways
                     continue;
                 }
+                if (moonwards && MoonwardStops(b))
+                {
+                    scratchIds.Add(b.Id);  // a Moonward's moon soaks players' shots (Penumbral.cs)
+                    continue;
+                }
                 if (moonEclipse != null && MoonStops(b))
                 {
                     scratchIds.Add(b.Id);  // the Eclipse's moon soaks players' shots
@@ -498,20 +504,20 @@ namespace Arena
                     }
                     foreach (var e in Enemies.Values)
                     {
-                        if (!Targetable(e) || e.Id == b.LastHit || e.Id == b.PrevHit || DevourUnder(e))
+                        if (!Targetable(e) || e.Id == b.LastHit || e.Id == b.PrevHit || DevourUnder(e) || GutwormUnder(e))
                             continue;  // (the Devourer underground: shots pass over it)
                         float r = e.Radius + b.Radius;
                         if (b.Pos.DistanceSq(e.Pos) < r * r)
                         {
                             if (BlocksShot(e, b.Pos))
                             {
-                                DuelGuardBounce(e, b);  // the Duelist's guard sends it back (Duelist.cs)
-                                ParrierBounce(e, b);    // so does a Parrier's main-gauche (CourtFaction.cs)
-                                WearShield(e, b.Dmg);  // the shield takes it, and wears
-                                if (e.Type == EnemyType.CombShield)
+                                var guard = BrainOf(e.Type)?.Guard;
+                                if (guard != null)
+                                    guard.Shot(this, e, b);  // a shield's own: a Comb Shield leaks, a Parrier sends it back, a Grounder charges (its brain)
+                                else
                                 {
-                                    HurtEnemy(e, b.Dmg * CombLeak(e), b.Owner);  // a Comb Shield's plate lets some of it through as it breaks (HiveBees.cs)
-                                    if (e.Hp <= 0f) { scratchIds.Add(b.Id); break; }
+                                    DuelGuardBounce(e, b);  // the Duelist's guard sends it back (Duelist.cs)
+                                    WearShield(e, b.Dmg);  // the shield takes it, and wears
                                 }
                                 scratchIds.Add(b.Id);
                                 break;
@@ -887,7 +893,7 @@ namespace Arena
                 return;  // immune until its twin is brought down to match
             if (ShardPassesHit(e, dmg, attacker))
                 return;  // a Singularity shard: the core takes it (Singularity.cs)
-            if (BossImmune(e) || (SingImmune(e) && !shardPass))
+            if (BossImmune(e) || (SingImmune(e) && !shardPass) || GutwormUnder(e))
                 return;  // a boss changing stage, the Queen up in a dive, the Singularity split, the Lich guarded
             if (ColossusDazed(e))
                 dmg *= ColDazeMult;  // it charged into a plate (Colossus.cs)
@@ -897,6 +903,8 @@ namespace Arena
                 dmg *= DuelOpenMult;  // a parried salute left the Duelist open (Duelist.cs)
             if (EclipseExposed(e))
                 dmg *= TotalityMult;  // the Eclipse's Totality (Eclipse.cs)
+            if (NovaLit(e))
+                dmg *= NovaLitMult;  // a Nova with its fuse lit (Penumbral.cs)
             if (ReaverIsOpen(e))
                 dmg *= ReaverOpenMult;  // just swiped (Variety.cs)
             if (HookIsOpen(e))
@@ -931,6 +939,8 @@ namespace Arena
             }
             if (!DevourHit(e, ref dmg, attacker))
                 return;  // into the Devourer's Maw: it fed on that (Devourer.cs)
+            if (!PriestHit(e, ref dmg))
+                return;  // into a Maw Priest's maw: it fed on that (LarderFaction.cs)
             dmg = SoakBubble(e, dmg, attacker);  // a Shielded elite's or a Warder's bubble takes it first (Variety.cs)
             if (dmg <= 0f)
             {

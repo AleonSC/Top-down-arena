@@ -229,70 +229,31 @@ namespace Arena
         /// The Pulsar keeps its beams' line while they flicker and sweep.
         public static bool PulsarLocked(Enemy e) => e.Type == EnemyType.Pulsar && (e.Phase == 1 || e.Phase == 2);
 
-        V2 InfallMove(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+
+        /// A Small Well or an Implosion: when its time is up it bursts into a ring (Burst: an Implosion) or just closes;
+        /// then it's gone.
+        void WellClose(Enemy e, float dt, bool burst)
         {
-            switch (e.Type)
+            e.PhaseT -= dt;
+            if (e.PhaseT > 0f)
+                return;
+            if (burst)
             {
-                case EnemyType.Debris:
-                {
-                    // Off your line by up to DebrisSpiral when far, straight in up close: an inward spiral.
-                    float k = MathX.Clamp01((dist - DebrisStraight) / (DebrisFar - DebrisStraight));
-                    float a = DebrisSpiral * k;
-                    return dir * (float)Math.Cos(a) + dir.Orthogonal() * e.Strafe * (float)Math.Sin(a);
-                }
-                case EnemyType.VoidAcolyte:
-                    return KeepDistance(dir, dist, AcolyteRange) + dir.Orthogonal() * e.Strafe * 0.6f;
-                case EnemyType.Pulsar:
-                    if (e.Phase == 1 || e.Phase == 2)
-                        return V2.Zero;  // planted while its beams flicker and sweep
-                    return KeepDistance(dir, dist, PulsarRange) + dir.Orthogonal() * e.Strafe * 0.3f;
-                case EnemyType.Graviton:
-                    if (e.Winding)
-                        return V2.Zero;  // plants its feet to lob
-                    return KeepDistance(dir, dist, GravitonRange) + dir.Orthogonal() * e.Strafe * 0.4f;
-                case EnemyType.Orbiter:
-                    return KeepDistance(dir, dist, OrbiterRange) * 0.7f + dir.Orthogonal() * e.Strafe;  // round you
-                case EnemyType.MiniWell:
-                case EnemyType.Implosion:
-                    return V2.Zero;
-                case EnemyType.WhiteDwarf:
-                    if (e.Phase == 1)
-                        return V2.Zero;  // flashing
-                    if (e.Phase == 2)
-                        return -dir + dir.Orthogonal() * e.Strafe * 0.5f;  // backing off
-                    return dir + dir.Orthogonal() * (float)Math.Sin(e.T * WhiteZig + e.Id) * 0.7f;  // darting in, zigzagging
+                // The burst: a ring of shots, turned a little each time.
+                float off = Rand(0f, MathX.Tau / ImplosionShots);
+                for (int i = 0; i < ImplosionShots; i++)
+                    EnemyShot(e, off + MathX.Tau * i / ImplosionShots, ImplosionShotSpeed, Defs.SmallShot);
+                BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 90f, 0.4f, Sfx.Explode);
             }
-            return dir;
+            else
+                BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 30f, 0.3f, Sfx.None);  // the well closes
+            Enemies.Remove(e.Id);  // gone: no kill, no reward
+            e.Hp = 0f;  // (and nothing else this tick: no touch)
         }
 
-        void InfallSpecial(Enemy e, V2 tpos, float dt)
+        /// A Pulsar: plants, flickers, sweeps its two beams a quarter turn, rests.
+        void PulsarSpecial(Enemy e, V2 tpos, float dt)
         {
-            if (e.Type == EnemyType.MiniWell || e.Type == EnemyType.Implosion)
-            {
-                e.PhaseT -= dt;
-                if (e.PhaseT > 0f)
-                    return;
-                if (e.Type == EnemyType.Implosion)
-                {
-                    // The burst: a ring of shots, turned a little each time.
-                    float off = Rand(0f, MathX.Tau / ImplosionShots);
-                    for (int i = 0; i < ImplosionShots; i++)
-                        EnemyShot(e, off + MathX.Tau * i / ImplosionShots, ImplosionShotSpeed, Defs.SmallShot);
-                    BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 90f, 0.4f, Sfx.Explode);
-                }
-                else
-                    BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 30f, 0.3f, Sfx.None);  // the well closes
-                Enemies.Remove(e.Id);  // gone: no kill, no reward
-                e.Hp = 0f;  // (and nothing else this tick: no touch)
-                return;
-            }
-            if (e.Type == EnemyType.WhiteDwarf)
-            {
-                WhiteDwarfSpecial(e, tpos, dt);
-                return;
-            }
-            if (e.Type != EnemyType.Pulsar)
-                return;
             e.PhaseT -= dt;
             float dist = tpos.DistanceTo(e.Pos), aim = (tpos - e.Pos).Angle;
             switch (e.Phase)
@@ -402,38 +363,6 @@ namespace Arena
             return SegmentDistance(p, e.Pos - u, e.Pos + u);
         }
 
-        /// Returns true when it handled the shot.
-        bool InfallFire(Enemy e, V2 tpos, float aim)
-        {
-            switch (e.Type)
-            {
-                case EnemyType.Pulsar:
-                    e.FireT = 99f;  // its beams are its attack (InfallSpecial)
-                    return true;
-                case EnemyType.VoidAcolyte:
-                    e.FireT = AcolyteEvery;
-                    AcolyteVolley(e, tpos, aim);
-                    return true;
-                case EnemyType.Graviton:
-                    e.FireT = GravitonEvery;
-                    GravitonLob(e, tpos);
-                    return true;
-                case EnemyType.Orbiter:
-                {
-                    e.FireT = OrbiterEvery;
-                    V2 from = e.Pos + V2.FromAngle(e.Facing) * OrbiterOrbit;
-                    float ang = (tpos - from).Angle;
-                    var b = SpawnBullet(Defs.FastShot, from, V2.FromAngle(ang) * OrbiterOrbSpeed, 0f, 4f, Defs.BulletDamage(Defs.FastShot), 0, false);
-                    b.Source = e.Type;
-                    b.Shooter = e.Id;
-                    b.Look = b.Sent.Look = LookFor(e, ang, 0f);
-                    e.Phase = (byte)((e.Phase + 1) % 3);  // the next orb (the look hides the one just thrown)
-                    BroadcastFx(FxKind.Spark, from, e.Def.Color, 16f, 0.15f, Sfx.EnemyShot);
-                    return true;
-                }
-            }
-            return false;
-        }
 
         /// Lobs a Small Well near where you are: the old one (if any) goes, a ring marks the spot, and the well lands
         /// GravitonFlight s later (its spawn-in).
@@ -490,6 +419,135 @@ namespace Arena
                 NoteVolley(e, b);
             }
             BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(aim) * (e.Radius + 6f), new Rgba(1f, 0.47f, 0.86f), 14f, 0.15f, Sfx.EnemyShot);
+        }
+        /// (moved from InfallMove, Debris)
+        V2 InfallMove_Debris(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            // Off your line by up to DebrisSpiral when far, straight in up close: an inward spiral.
+            float k = MathX.Clamp01((dist - DebrisStraight) / (DebrisFar - DebrisStraight));
+            float a = DebrisSpiral * k;
+            return dir * (float)Math.Cos(a) + dir.Orthogonal() * e.Strafe * (float)Math.Sin(a);
+        }
+
+        /// (moved from InfallMove, VoidAcolyte)
+        V2 InfallMove_VoidAcolyte(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            return KeepDistance(dir, dist, AcolyteRange) + dir.Orthogonal() * e.Strafe * 0.6f;
+        }
+
+        /// (moved from InfallMove, Pulsar)
+        V2 InfallMove_Pulsar(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            if (e.Phase == 1 || e.Phase == 2)
+                return V2.Zero;  // planted while its beams flicker and sweep
+            return KeepDistance(dir, dist, PulsarRange) + dir.Orthogonal() * e.Strafe * 0.3f;
+        }
+
+        /// (moved from InfallMove, Graviton)
+        V2 InfallMove_Graviton(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            if (e.Winding)
+                return V2.Zero;  // plants its feet to lob
+            return KeepDistance(dir, dist, GravitonRange) + dir.Orthogonal() * e.Strafe * 0.4f;
+        }
+
+        /// (moved from InfallMove, Orbiter)
+        V2 InfallMove_Orbiter(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            return KeepDistance(dir, dist, OrbiterRange) * 0.7f + dir.Orthogonal() * e.Strafe;  // round you
+        }
+
+        /// (moved from InfallMove, MiniWell, Implosion)
+        V2 InfallMove_MiniWell(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            return V2.Zero;
+        }
+
+        /// (moved from InfallMove, WhiteDwarf)
+        V2 InfallMove_WhiteDwarf(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            if (e.Phase == 1)
+                return V2.Zero;  // flashing
+            if (e.Phase == 2)
+                return -dir + dir.Orthogonal() * e.Strafe * 0.5f;  // backing off
+            return dir + dir.Orthogonal() * (float)Math.Sin(e.T * WhiteZig + e.Id) * 0.7f;  // darting in, zigzagging
+        }
+
+        /// (moved from InfallFire, Pulsar)
+        bool InfallFire_Pulsar(Enemy e, V2 tpos, float aim)
+        {
+            e.FireT = 99f;  // its beams are its attack (InfallSpecial)
+            return true;
+        }
+
+        /// (moved from InfallFire, VoidAcolyte)
+        bool InfallFire_VoidAcolyte(Enemy e, V2 tpos, float aim)
+        {
+            e.FireT = AcolyteEvery;
+            AcolyteVolley(e, tpos, aim);
+            return true;
+        }
+
+        /// (moved from InfallFire, Graviton)
+        bool InfallFire_Graviton(Enemy e, V2 tpos, float aim)
+        {
+            e.FireT = GravitonEvery;
+            GravitonLob(e, tpos);
+            return true;
+        }
+
+        /// (moved from InfallFire, Orbiter)
+        bool InfallFire_Orbiter(Enemy e, V2 tpos, float aim)
+        {
+            e.FireT = OrbiterEvery;
+            V2 from = e.Pos + V2.FromAngle(e.Facing) * OrbiterOrbit;
+            float ang = (tpos - from).Angle;
+            var b = SpawnBullet(Defs.FastShot, from, V2.FromAngle(ang) * OrbiterOrbSpeed, 0f, 4f, Defs.BulletDamage(Defs.FastShot), 0, false);
+            b.Source = e.Type;
+            b.Shooter = e.Id;
+            b.Look = b.Sent.Look = LookFor(e, ang, 0f);
+            e.Phase = (byte)((e.Phase + 1) % 3);  // the next orb (the look hides the one just thrown)
+            BroadcastFx(FxKind.Spark, from, e.Def.Color, 16f, 0.15f, Sfx.EnemyShot);
+            return true;
+        }
+
+        // --- Brains (Docs/EnemyBehaviours.md step 8d) ------------------------------------------------------------------
+
+        /// A Lens's face: it blocks hits from the front (LensFaces).
+        sealed class LensGuard : GuardPart
+        {
+            public override bool Blocks(Game g, Enemy e, V2 from) => LensFaces(e, from);
+        }
+
+        /// A Lens moves straight at you and turns slowly (LensFace).
+        sealed class LensMove : MovePart
+        {
+            public override V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed) => dir;
+            public override bool Turn(Game g, Enemy e, float want, V2 tpos, float dt)
+            {
+                g.LensFace(e, want, dt);
+                return true;
+            }
+        }
+
+        static void InfallBrains(Brain[] t)
+        {
+            t[(int)EnemyType.Debris] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.InfallMove_Debris(e, p, d, di, dt, ref sp)) };
+            t[(int)EnemyType.VoidAcolyte] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.InfallMove_VoidAcolyte(e, p, d, di, dt, ref sp)),
+                Fire = new CodeFire((g, e, p, a) => g.InfallFire_VoidAcolyte(e, p, a)) };
+            t[(int)EnemyType.Pulsar] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.InfallMove_Pulsar(e, p, d, di, dt, ref sp), e => e.Phase == 1 || e.Phase == 2),
+                Special = new CodeSpecial((g, e, p, dt) => g.PulsarSpecial(e, p, dt)), Fire = new CodeFire((g, e, p, a) => g.InfallFire_Pulsar(e, p, a)) };
+            t[(int)EnemyType.Graviton] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.InfallMove_Graviton(e, p, d, di, dt, ref sp)),
+                Fire = new CodeFire((g, e, p, a) => g.InfallFire_Graviton(e, p, a)) };
+            t[(int)EnemyType.Orbiter] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.InfallMove_Orbiter(e, p, d, di, dt, ref sp)),
+                Fire = new CodeFire((g, e, p, a) => g.InfallFire_Orbiter(e, p, a)) };
+            t[(int)EnemyType.Collapsar] = new Brain { Move = new ChaseMove() };
+            var still = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.InfallMove_MiniWell(e, p, d, di, dt, ref sp));
+            t[(int)EnemyType.MiniWell] = new Brain { Move = still, Special = new CodeSpecial((g, e, p, dt) => g.WellClose(e, dt, false)) };
+            t[(int)EnemyType.Implosion] = new Brain { Move = still, Special = new CodeSpecial((g, e, p, dt) => g.WellClose(e, dt, true)) };
+            t[(int)EnemyType.Lens] = new Brain { Move = new LensMove(), Guard = new LensGuard() };
+            t[(int)EnemyType.WhiteDwarf] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.InfallMove_WhiteDwarf(e, p, d, di, dt, ref sp)),
+                Special = new CodeSpecial((g, e, p, dt) => g.WhiteDwarfSpecial(e, p, dt)) };
         }
     }
 }

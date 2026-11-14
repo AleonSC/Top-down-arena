@@ -898,7 +898,7 @@ namespace Arena
             foreach (var e in Enemies.Values)
             {
                 e.Disp = e.Disp.DistanceTo(e.Pos) > 600f ? e.Pos : V2.Lerp(e.Disp, e.Pos, k);  // (a jump through a Rooms portal: snap, don't slide)
-                if (IsSwordsman(e.Type) || e.Type == EnemyType.Warder || e.Kin == EnemyType.SecurityGuard || IsInfall(e.Type))  // (the Warder's, the Security Guard's and the Infall's looks are timed the same way)
+                if (IsSwordsman(e.Type) || e.Type == EnemyType.Warder || IsSecurity(e.Type) || IsInfall(e.Type) || IsPenumbral(e.Type) || IsSquall(e.Type))  // (the Warder's, the Security Guard's, the Infall's and the Court's looks are timed the same way)
                 {
                     if (e.Phase != e.SeenPhase)
                     {
@@ -1312,6 +1312,7 @@ namespace Arena
             TickChalk(dt);       // Chalk.cs: drawing, and what the ink does
             TickLarderHost(dt);     // LarderFaction.cs: loose bile pools, morsels stepped on with no Devourer about
             TickWardenFaction(dt);  // WardenFaction.cs: tear gas with no Warden about, the Riot Shields' bash grace
+            TickPenumbral(dt);      // Penumbral.cs: Dusk Lobbers' pools drain
             TickReaperFaction(dt);  // ReaperFaction.cs: the Bound Wraiths' tethers, the Scythe Wraiths' reaps
             TickWaves(dt);
             TickPaths(dt);    // Paths.cs: hazard floors

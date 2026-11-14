@@ -10,7 +10,7 @@ namespace Arena
         public int Id;
         public V2 Pos;
         public float Radius, T, Duration;
-        public byte Kind;  // HazardLightning (the Storm Herald) or HazardHand (the Lich's dead hands)
+        public byte Kind;  // HazardLightning (the Storm Herald), HazardHand (the Lich's dead hands) or HazardCaller / HazardDownburst (a Stormcaller's, Squall.cs)
     }
 
     /// Waves 16-50: the late-game enemies, the bosses from wave 25 on, and winning at wave 50 (host only).
@@ -62,13 +62,6 @@ namespace Arena
         {
             switch (e.Type)
             {
-                case EnemyType.Phantom:
-                case EnemyType.Shade:
-                    return KeepDistance(dir, dist, 250f) + dir.Orthogonal() * e.Strafe * 0.7f;
-                case EnemyType.Hexer:
-                    return KeepDistance(dir, dist, 300f) + dir.Orthogonal() * e.Strafe * 0.5f;
-                case EnemyType.Juggernaut:
-                    return KeepDistance(dir, dist, 140f);
                 case EnemyType.Colossus:
                     return ColossusMove(e, dir, dist, ref speed);  // Colossus.cs
                 case EnemyType.Duelist:
@@ -85,12 +78,6 @@ namespace Arena
                     if (EclipseImmune(e))
                         return V2.Zero;  // holds still while it changes stage
                     return (EclipseGoal(e) - e.Pos) / 60f;  // orbiting the middle, or in it for Totality (Eclipse.cs)
-                case EnemyType.GravityWell:
-                {
-                    // Holds its corner, bobbing a little.
-                    var goal = e.Waypoint + V2.FromAngle(e.T * 0.8f + e.Id) * 12f;
-                    return (goal - e.Pos) / 30f;
-                }
                 default:  // Nest, Decoy, Phylactery stay put
                     return V2.Zero;
             }
@@ -106,56 +93,11 @@ namespace Arena
             e.PhaseT -= dt;
             switch (e.Type)
             {
-                case EnemyType.Phantom:
-                case EnemyType.Shade:
-                    // Blink somewhere near the target, then burst. The spot is marked first (a Target ring, PhantomWarn s, the
-                    // same "it lands here" ring as the bombs and blasts); Phase 1 is that warning.
-                    if (e.Phase == 0 && e.PhaseT <= 0f)
-                    {
-                        e.Waypoint = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(220f, 300f), e.Radius);
-                        for (int i = 0; i < 8 && NearSolid(e.Waypoint, e.Radius + 8f); i++)  // not into a wall or pillar (LayoutRules.cs)
-                            e.Waypoint = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(220f, 300f), e.Radius);
-                        e.Phase = 1;
-                        e.PhaseT = PhantomWarn;
-                        BroadcastFx(FxKind.Target, e.Waypoint, e.Def.Color, PhantomBurstRadius, PhantomWarn, Sfx.None);
-                    }
-                    else if (e.Phase == 1 && e.PhaseT <= 0f)
-                    {
-                        e.Phase = 0;
-                        e.PhaseT = Rand(3f, 4.5f);
-                        V2 from = e.Pos;
-                        e.Pos = e.Waypoint;
-                        e.Disp = e.Pos;
-                        BroadcastFx(FxKind.Ring, from, e.Def.Color, 30f, 0.3f, Sfx.None);
-                        BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 40f, 0.3f, Sfx.Blink);
-                        for (int i = 0; i < 8; i++)  // the blink ring: 8 at 115 (was 12 at 130)
-                            EnemyShot(e, MathX.Tau * i / 8f, 115f, Defs.SmallShot);
-                    }
-                    break;
-                case EnemyType.Nest:
-                    if (e.Home >= 0)
-                        break;  // a room's nest in the Rooms arena keeps its room stocked from the wave instead (Rooms.cs)
-                    if (e.PhaseT <= 0f)
-                    {
-                        e.PhaseT = 5f;
-                        if (CountChildren(e, EnemyType.Shard) < 6)
-                            for (int i = 0; i < 2; i++)
-                                SpawnEnemyAt(EnemyType.Shard, e.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * 30f, 0.4f, e.Id);
-                    }
-                    break;
                 case EnemyType.Colossus:
                     ColossusSpecial(e, tpos, dt);  // Colossus.cs: its stages, turns, stomp rings, plates and lava
                     break;
                 case EnemyType.Duelist:
                     DuelistSpecial(e, tpos, dt);  // Duelist.cs: its stages, turns, dashes and salutes
-                    break;
-                case EnemyType.Decoy:
-                    if (e.PhaseT <= 0f)
-                    {
-                        for (int i = 0; i < 16; i++)
-                            EnemyShot(e, MathX.Tau * i / 16f, 140f, Defs.SmallShot);
-                        e.Hp = 0f;  // pops; decoys give no score, XP or drops
-                    }
                     break;
                 case EnemyType.Lich:
                     LichSpecial(e, dt);  // Lich.cs
@@ -176,27 +118,6 @@ namespace Arena
         {
             switch (e.Type)
             {
-                case EnemyType.Phantom:
-                case EnemyType.Shade:
-                    e.FireT = 1.5f;
-                    EnemyShot(e, aim - 0.05f, 200f, Defs.SmallShot);
-                    EnemyShot(e, aim + 0.05f, 200f, Defs.SmallShot);
-                    break;
-                case EnemyType.Hexer:
-                    // Two pairs of shots that curve in like pincers.
-                    e.FireT = 2f;
-                    for (int s = -1; s <= 1; s += 2)
-                    {
-                        EnemyShot(e, aim + s * 0.7f, 170f, Defs.SmallShot, -s * 1.1f);
-                        EnemyShot(e, aim + s * 1.2f, 150f, Defs.SmallShot, -s * 1.6f);
-                    }
-                    break;
-                case EnemyType.Juggernaut:
-                    e.FireT = 2.5f;
-                    e.Ang += 0.2f;
-                    for (int k = 0; k < 8; k++)
-                        EnemyShot(e, e.Ang + MathX.Tau * k / 8f, 110f, Defs.BigShot);
-                    break;
                 case EnemyType.Colossus:
                     ColossusFire(e, aim);  // Colossus.cs: its rock volley, between turns
                     break;
@@ -281,6 +202,12 @@ namespace Arena
                     Hazards.Remove(h.Id);
                     continue;
                 }
+                if (h.Kind == HazardCaller || h.Kind == HazardDownburst)
+                {
+                    CallerStrike(h);  // a Stormcaller's or a Thunderhead's (Squall.cs)
+                    Hazards.Remove(h.Id);
+                    continue;
+                }
                 float dmg = 25f;  // the difficulty's per-wave damage growth scales it (Difficulty.cs)
                 foreach (var p in Players.Values)
                     if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(h.Pos) < h.Radius)
@@ -319,6 +246,131 @@ namespace Arena
             s.Float(ref h.T);
             s.Float(ref h.Duration);
             s.Byte(ref h.Kind);
+        }
+        /// (moved from LateMove, Phantom, Shade)
+        V2 LateMove_Phantom(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            return KeepDistance(dir, dist, 250f) + dir.Orthogonal() * e.Strafe * 0.7f;
+        }
+
+        /// (moved from LateMove, Hexer)
+        V2 LateMove_Hexer(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            return KeepDistance(dir, dist, 300f) + dir.Orthogonal() * e.Strafe * 0.5f;
+        }
+
+        /// (moved from LateMove, GravityWell)
+        V2 LateMove_GravityWell(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            // Holds its corner, bobbing a little.
+            var goal = e.Waypoint + V2.FromAngle(e.T * 0.8f + e.Id) * 12f;
+            return (goal - e.Pos) / 30f;
+        }
+
+        /// (moved from LateSpecial, Phantom, Shade)
+        void LateSpecial_Phantom(Enemy e, V2 tpos, float dt)
+        {
+            e.PhaseT -= dt;
+            // Blink somewhere near the target, then burst. The spot is marked first (a Target ring, PhantomWarn s, the
+            // same "it lands here" ring as the bombs and blasts); Phase 1 is that warning.
+            if (e.Phase == 0 && e.PhaseT <= 0f)
+            {
+                e.Waypoint = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(220f, 300f), e.Radius);
+                for (int i = 0; i < 8 && NearSolid(e.Waypoint, e.Radius + 8f); i++)  // not into a wall or pillar (LayoutRules.cs)
+                    e.Waypoint = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(220f, 300f), e.Radius);
+                e.Phase = 1;
+                e.PhaseT = PhantomWarn;
+                BroadcastFx(FxKind.Target, e.Waypoint, e.Def.Color, PhantomBurstRadius, PhantomWarn, Sfx.None);
+            }
+            else if (e.Phase == 1 && e.PhaseT <= 0f)
+            {
+                e.Phase = 0;
+                e.PhaseT = Rand(3f, 4.5f);
+                V2 from = e.Pos;
+                e.Pos = e.Waypoint;
+                e.Disp = e.Pos;
+                BroadcastFx(FxKind.Ring, from, e.Def.Color, 30f, 0.3f, Sfx.None);
+                BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 40f, 0.3f, Sfx.Blink);
+                for (int i = 0; i < 8; i++)  // the blink ring: 8 at 115 (was 12 at 130)
+                    EnemyShot(e, MathX.Tau * i / 8f, 115f, Defs.SmallShot);
+            }
+        }
+
+        /// (moved from LateSpecial, Nest)
+        void LateSpecial_Nest(Enemy e, V2 tpos, float dt)
+        {
+            e.PhaseT -= dt;
+            if (e.Home >= 0)
+                return;  // a room's nest in the Rooms arena keeps its room stocked from the wave instead (Rooms.cs)
+            if (e.PhaseT <= 0f)
+            {
+                e.PhaseT = 5f;
+                if (CountChildren(e, EnemyType.Shard) < 6)
+                    for (int i = 0; i < 2; i++)
+                        SpawnEnemyAt(EnemyType.Shard, e.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * 30f, 0.4f, e.Id);
+            }
+        }
+
+        /// (moved from LateSpecial, Decoy)
+        void LateSpecial_Decoy(Enemy e, V2 tpos, float dt)
+        {
+            e.PhaseT -= dt;
+            if (e.PhaseT <= 0f)
+            {
+                for (int i = 0; i < 16; i++)
+                    EnemyShot(e, MathX.Tau * i / 16f, 140f, Defs.SmallShot);
+                e.Hp = 0f;  // pops; decoys give no score, XP or drops
+            }
+        }
+
+        /// (moved from LateFire, Phantom, Shade)
+        void LateFire_Phantom(Enemy e, V2 tpos, float aim)
+        {
+            e.FireT = 1.5f;
+            EnemyShot(e, aim - 0.05f, 200f, Defs.SmallShot);
+            EnemyShot(e, aim + 0.05f, 200f, Defs.SmallShot);
+        }
+
+        /// (moved from LateFire, Hexer)
+        void LateFire_Hexer(Enemy e, V2 tpos, float aim)
+        {
+            // Two pairs of shots that curve in like pincers.
+            e.FireT = 2f;
+            for (int s = -1; s <= 1; s += 2)
+            {
+                EnemyShot(e, aim + s * 0.7f, 170f, Defs.SmallShot, -s * 1.1f);
+                EnemyShot(e, aim + s * 1.2f, 150f, Defs.SmallShot, -s * 1.6f);
+            }
+        }
+
+        /// (moved from LateFire, Juggernaut)
+        void LateFire_Juggernaut(Enemy e, V2 tpos, float aim)
+        {
+            e.FireT = 2.5f;
+            e.Ang += 0.2f;
+            for (int k = 0; k < 8; k++)
+                EnemyShot(e, e.Ang + MathX.Tau * k / 8f, 110f, Defs.BigShot);
+        }
+
+        /// Every late-game enemy's clock (what's left of the old LateSpecial for those with no special of their own).
+        static void LateClock(Enemy e, float dt) => e.PhaseT -= dt;
+
+        // --- Brains (Docs/EnemyBehaviours.md step 8f) ------------------------------------------------------------------
+
+        static void LateBrains(Brain[] t)
+        {
+            var clock = new CodeSpecial((g, e, p, dt) => LateClock(e, dt));
+            var phantom = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.LateMove_Phantom(e, p, d, di, dt, ref sp)), Special = new CodeSpecial((g, e, p, dt) => g.LateSpecial_Phantom(e, p, dt)), Fire = new CodeFire((g, e, p, a) => g.LateFire_Phantom(e, p, a)) };
+            t[(int)EnemyType.Phantom] = phantom;
+            t[(int)EnemyType.Shade] = phantom;
+            t[(int)EnemyType.Hexer] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.LateMove_Hexer(e, p, d, di, dt, ref sp)), Special = clock, Fire = new CodeFire((g, e, p, a) => g.LateFire_Hexer(e, p, a)) };
+            t[(int)EnemyType.Juggernaut] = new Brain { Move = new KeepMove(140f, strafes: false, contact: 25f), Special = clock, Fire = new CodeFire((g, e, p, a) => g.LateFire_Juggernaut(e, p, a)) };
+            var still = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => V2.Zero);
+            t[(int)EnemyType.Nest] = new Brain { Move = still, Special = new CodeSpecial((g, e, p, dt) => g.LateSpecial_Nest(e, p, dt)), Fire = new HoldFire() };
+            t[(int)EnemyType.Decoy] = new Brain { Move = still, Special = new CodeSpecial((g, e, p, dt) => g.LateSpecial_Decoy(e, p, dt)), Fire = new HoldFire() };
+            t[(int)EnemyType.Phylactery] = new Brain { Move = still, Special = clock, Fire = new HoldFire() };
+            t[(int)EnemyType.Morsel] = new Brain { Move = still, Special = clock, Fire = new HoldFire() };
+            t[(int)EnemyType.GravityWell] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.LateMove_GravityWell(e, p, d, di, dt, ref sp)), Special = clock, Fire = new HoldFire() };
         }
     }
 }

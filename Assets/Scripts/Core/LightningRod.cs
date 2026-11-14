@@ -173,7 +173,7 @@ namespace Arena
             BroadcastFx(FxKind.RodBolt, at, new V2(p.Id, bolt), RodBlue, alive ? struck.Radius : 0f, RodBoltFx, Sfx.SpellZap);
             var near = new List<Enemy>();
             foreach (var e in Enemies.Values)
-                if (e != struck && Targetable(e) && !DevourUnder(e) && e.Pos.DistanceTo(at) < RodArcReach + e.Radius)
+                if (e != struck && Targetable(e) && !DevourUnder(e) && !GutwormUnder(e) && e.Pos.DistanceTo(at) < RodArcReach + e.Radius)
                     near.Add(e);
             near.Sort((a, b) => a.Pos.DistanceSq(at).CompareTo(b.Pos.DistanceSq(at)));
             if (alive)

@@ -334,6 +334,7 @@ namespace Arena
             Enemies[e.Id] = e;
             if (type == EnemyType.BoundWraith)
                 PairBound(e, spawnT, parent, elite);  // they come in pairs (ReaperFaction.cs)
+            PairPylon(e, spawnT, parent, elite);  // so do Pylons (Squall.cs)
             return e;
         }
 
@@ -359,10 +360,9 @@ namespace Arena
                 RollTraits(e);  // Variety.cs
             else if (parent == 0)
                 RollCoreCarrier(e);  // CoreDrops.cs
-            if (type == EnemyType.Shielder)
-                e.ShieldHp = e.ShieldMax = e.MaxHp * ShieldShare;
-            if (HiveKin.Of(type) == EnemyType.RiotShield)
-                e.ShieldHp = e.ShieldMax = e.MaxHp * RiotShieldShare;  // WardenFaction.cs
+            var brain = BrainOf(type);
+            if (brain != null && brain.Guard != null)
+                brain.Guard.Setup(this, e);  // a shield bearer's shield (ShieldBrains.cs)
             return e;
         }
 
@@ -402,7 +402,7 @@ namespace Arena
             e.SpawnT = spawnT;
             e.FireT = Rand(0.3f, 1.2f);
             e.PhaseT = Rand(1f, 3f);
-            if (e.Kin == EnemyType.SecurityGuard)
+            if (IsSecurity(e.Type))
                 e.Phase = SecurityMag;  // a full magazine (SecurityGuard.cs)
             e.Strafe = rng.NextDouble() < 0.5 ? 1f : -1f;
             e.Ang = Rand(0f, MathX.Tau);
@@ -590,16 +590,17 @@ namespace Arena
                     if (e.Def.IsBoss)
                         BossCues(e);  // BossSounds.cs
                     float mult = rate * TraitFireMult(e) * (IsTwin(e.Type) && e.Phase == 1 ? 1.7f : 1f) * (Has(RunMod.Frenzy) ? Modifiers.FrenzyFire : 1f);
-                    bool guardFar = e.Kin == EnemyType.SecurityGuard && e.Phase > 0 && e.Pos.DistanceTo(tpos) > SecurityEngage;  // too far to shoot: no countdown (SecurityGuard.cs)
+                    bool guardFar = IsSecurity(e.Type) && e.Phase > 0 && e.Pos.DistanceTo(tpos) > SecurityEngage;  // too far to shoot: no countdown (SecurityGuard.cs)
                     if (guardFar)
                         e.FireT = Math.Max(e.FireT, SecurityEvery);  // it opens fire a full gap after it gets close, not at once
                     else
                         e.FireT -= dt * mult * (1f - e.Suppress);  // the Riot Repeater's suppression (Weapons.cs)
                     // A regular shooter glows just before it fires (Readability.cs).
                     float rateNow = mult * (1f - e.Suppress);
-                    e.Winding = (e.Kin == EnemyType.SecurityGuard ? e.Phase > 0 : TakesTurns(e) && (HasTurn(e) || mine)) && rateNow > 0f && e.FireT / rateNow <= WindUpOf(e.Type) && e.FireT > -0.5f;
-                    if (e.Kin == EnemyType.GasGrenadier && e.Type != EnemyType.Marshal)  // (a Marshal draws a circle, no lob: CourtFaction.cs)
-                        GrenadierWind(e, tpos, rateNow);  // locks its lob when the wind-up starts (WardenFaction.cs)
+                    e.Winding = (IsSecurity(e.Type) ? e.Phase > 0 : TakesTurns(e) && (HasTurn(e) || mine)) && rateNow > 0f && e.FireT / rateNow <= WindUpOf(e.Type) && e.FireT > -0.5f;
+                    var fb = BrainOf(e.Type);
+                    if (fb != null && fb.Fire != null)
+                        fb.Fire.Wind(this, e, tpos, rateNow);  // a lobber locks its lob when the wind-up starts (LobBrains.cs)
                     if (held && e.FireT <= 0f)
                         e.FireT = Rand(0.2f, 0.4f);  // nobody in its room: nothing to shoot at
                     if (e.FireT <= 0f)
@@ -613,14 +614,14 @@ namespace Arena
                     }
                 }
                 if (e.Hp <= 0f || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.HiveEgg || e.Type == EnemyType.ReaperPillar || QueenAirborne(e)
-                    || e.Type == EnemyType.Morsel || e.Type == EnemyType.SapperMine || DevourUnder(e) || e.Dummy || e.DazeT > 0f
+                    || e.Type == EnemyType.Morsel || e.Type == EnemyType.SapperMine || DevourUnder(e) || GutwormUnder(e) || e.Dummy || e.DazeT > 0f
                     || e.Type == EnemyType.MiniWell || e.Type == EnemyType.Implosion || e.Type == EnemyType.MummerCopy)
                     continue;  // blew up this tick, explodes instead of bumping, an egg, the Hive Queen up in a dive, a morsel, the Devourer underground, dazed (Daze.cs)
                 // Bosses and heavies hurt to stand in (the difficulty's per-wave damage growth scales all of these).
+                var cb = BrainOf(e.Type);
+                float brainContact = cb != null && cb.Move != null ? cb.Move.Contact(this, e) : -1f;  // a lunger's leap (Brain.cs)
                 float contact = e.Def.IsBoss ? 25f
-                    : e.Type == EnemyType.Charger && e.Phase == 2 || e.Type == EnemyType.Juggernaut ? 25f
-                    : IsLunger(e.Type) && e.Phase == 2 ? (e.Type == EnemyType.Fencer ? FencerHopDamage : 26f)
-                    : e.Type == EnemyType.SpikeBlock && e.Phase == 2 ? SpikeLungeDamage
+                    : brainContact >= 0f ? brainContact  // a Charger's dash, a lunger's leap, a Spike Block's lunge (their brains)
                     : e.Def.Contact > 0f ? e.Def.Contact * BruteDamageMult(e) : ContactDamage;
                 GuardContact(e, contact);  // Warden's Guards in the way get hurt too (Stun.cs)
                 if (!mine || PossessAttacking)
@@ -642,6 +643,7 @@ namespace Arena
                         }
                         Damage(p, contact, e.Def.Name + " (contact)");
                         RodTouched(p, e);  // a charged Lightning Rod calls a bolt on it (LightningRod.cs)
+                        DevilTouched(p, e);  // a Dust Devil shoves you (Squall.cs)
                         if (e.Type == EnemyType.Buzzsaw && !p.Downed)
                             p.InvulnT = Math.Min(p.InvulnT, SawGrace);  // its touches come fast, not once per hit grace
                     }
@@ -653,6 +655,7 @@ namespace Arena
             TickReapers(dt);  // the Twin Reapers' stages, turns and tether (Reapers.cs)
             TickSingularityHazards(dt);
             TickHerald(dt);  // the Storm Herald's ball lightning and spokes (Herald.cs)
+            TickStormFronts(dt);  // the Storm front set piece's wall of strikes (Squall.cs)
             TickPortals(dt);  // spawn portals opening, letting their bursts out and closing (SpawnPortals.cs)
             TickVariety(dt);  // embers, Volatile bursts, Mirrored shots, bubbles growing back (Variety.cs)
 
@@ -706,71 +709,21 @@ namespace Arena
         void Face(Enemy e, V2 tpos, float dt)
         {
             float want = (tpos - e.Pos).Angle;
-            if (e.Type == EnemyType.Charger && e.Phase != 0)
-                return;  // locked in while winding up and dashing
-            if (NonShooterFaceLocked(e))
-                return;  // a planted Fuse Runner, a Hookman's aim and throw (NonShooters.cs)
-            if (e.Type == EnemyType.ScytheWraith && e.Phase == 1 && e.PhaseT <= ScytheMark - ScytheTrack)
-                return;  // a Scythe Wraith's mark stays put once it's locked (ReaperFaction.cs)
-            if (IsLunger(e.Type) && e.Phase >= 2 || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.SpikeBlock && e.Phase >= 1)
-                return;  // committed to the leap / flight line (a Spike Block locks its line when it winds up)
-            if (e.Type == EnemyType.BeamSentry && e.Phase >= 2 || e.Type == EnemyType.Reaver && e.Phase != 0 || e.Type == EnemyType.Leader && e.Phase == 1)
-                return;  // the beam's aim and sweep, the rake's cone, the Leader's aim line (Variety.cs)
-            if (PulsarLocked(e))
-                return;  // its beams' line (Infall.cs)
             if (LarderFaceLocked(e))
                 return;  // a Butcher's chop, a Gulper's cone (LarderFaction.cs)
-            if (e.Type == EnemyType.Lens)
-            {
-                LensFace(e, want, dt);  // turns slowly, so you can get round its face (Infall.cs)
-                return;
-            }
-            if (e.Kin == EnemyType.RiotShield)
-            {
-                RiotShieldFace(e, want, dt);  // WardenFaction.cs
-                return;
-            }
-            if (e.Type == EnemyType.RiotCaptain)
-            {
-                CaptainFace(e, want, dt);  // RiotCaptain.cs
-                return;
-            }
-            if (IsSwordsman(e.Type))
-            {
-                SwordsmanTurn(e, want, dt);  // Swordsman.cs
-                return;
-            }
-            if (e.Kin == EnemyType.SecurityGuard)
-            {
-                SecurityFace(e, tpos, dt);  // SecurityGuard.cs
-                return;
-            }
-            if (e.Type == EnemyType.Shielder)
-            {
-                // Turns slowly, so you can get around the shield.
-                float diff = MathX.Fmod(want - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi;
-                e.Facing += Math.Max(-1.6f * dt, Math.Min(1.6f * dt, diff));
-                return;
-            }
+            var brain = BrainOf(e.Type);
+            if (brain != null && brain.Move != null && brain.Move.Turn(this, e, want, tpos, dt))
+                return;  // its own turning, e.g. a shield bearer's (Brain.cs)
             e.Facing = want;
         }
 
         /// A hit the shield stopped (or time) wears it down; it cracks in three steps, then shatters.
         void WearShield(Enemy e, float amount)
         {
-            if (e.Kin == EnemyType.RiotShield)
+            var brain = BrainOf(e.Type);
+            if (brain != null && brain.Guard != null)
             {
-                WearRiotShield(e, amount);  // WardenFaction.cs
-                return;
-            }
-            if (e.Type == EnemyType.RiotCaptain)
-            {
-                CaptainShieldStruck(e);  // it never breaks (RiotCaptain.cs)
-                return;
-            }
-            if (e.Type == EnemyType.ShieldSwordsman)
-            {
-                SwordShieldStruck(e);  // it doesn't wear: it flashes (Swordsman.cs)
+                brain.Guard.Wear(this, e, amount);  // a shield bearer's (ShieldBrains.cs)
                 return;
             }
             if (e.Type == EnemyType.Boss && e.Warden != null)
@@ -778,18 +731,6 @@ namespace Arena
                 WearWardenShield(e, amount);  // the Warden's riot shield (Warden.cs)
                 return;
             }
-            if (e.Type != EnemyType.Shielder || e.Phase >= ShieldBroken || e.ShieldMax <= 0f)
-                return;
-            e.ShieldHp -= amount;
-            float frac = e.ShieldHp / e.ShieldMax;
-            byte phase = (byte)(frac <= 0f ? ShieldBroken : frac <= 0.25f ? 3 : frac <= 0.5f ? 2 : frac <= 0.75f ? 1 : 0);
-            if (phase == e.Phase)
-                return;
-            e.Phase = phase;
-            if (phase == ShieldBroken)
-                BroadcastFx(FxKind.Shatter, e.Pos, e.Pos + V2.FromAngle(e.Facing) * (e.Radius + 7f), new Rgba(0.7f, 0.85f, 1f), ShieldHalfAngle, 0.6f, Sfx.Clang);
-            else
-                BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(e.Facing) * (e.Radius + 7f), new Rgba(0.8f, 0.9f, 1f), 16f, 0.25f, Sfx.Hit);
         }
 
         /// Shielders block shots from the front; the Hive Queen is immune while her swarm protects her.
@@ -803,6 +744,8 @@ namespace Arena
                 return true;  // the Storm Herald changing stage (Herald.cs)
             if (EclipseImmune(e))
                 return true;  // the Eclipse changing stage (Eclipse.cs)
+            if (LarderBlocks(e, from))
+                return true;  // a Gutworm underground; a Maw Priest notes which side the hit came from (LarderFaction.cs)
             if (DevourBlocks(e, from))
                 return true;  // the Devourer changing stage or underground; otherwise it notes which side the hit came from (Devourer.cs)
             if (DuelImmune(e) || e.Type == EnemyType.Duelist && DuelGuardBlocks(e, from))
@@ -817,18 +760,10 @@ namespace Arena
                 return true;  // the more-hurt Twin Reaper, until the other catches up
             if (LichImmune(e))
                 return true;  // its phylacteries stand, it's blinking between graves, or it's changing stage (Lich.cs)
-            if (LensFaces(e, from))
-                return true;  // a Lens's face (Infall.cs)
-            if (e.Kin == EnemyType.RiotShield)
-                return RiotShieldBlocks(e, from);  // WardenFaction.cs
-            if (e.Type == EnemyType.RiotCaptain)
-                return CaptainShieldBlocks(e, from);  // RiotCaptain.cs
-            if (e.Type == EnemyType.ShieldSwordsman)
-                return SwordShieldBlocks(e, from);  // Swordsman.cs
-            if (e.Type != EnemyType.Shielder || e.Phase >= ShieldBroken)
-                return false;
-            float diff = Math.Abs(MathX.Fmod((from - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
-            return diff < ShieldHalfAngle;
+            var brain = BrainOf(e.Type);
+            if (brain != null && brain.Guard != null)
+                return brain.Guard.Blocks(this, e, from);  // Brain.cs
+            return false;
         }
 
         int AlivePlayers()
@@ -884,137 +819,30 @@ namespace Arena
                 dir = PropDir(e, dir);  // round crates and barrels if there's a way; shove them if not (Props.cs)
             V2 v = V2.Zero;
             float speed = e.Speed * BruteSpeedMult(e);  // Brutes enrage as they are shot (BruteEnrage.cs)
-            switch (e.Kin)
+            var brain = BrainOf(e.Type);
+            if (brain != null && brain.Move != null)
+                v = brain.Move.Move(this, e, tpos, dir, dist, dt, ref speed);  // Brain.cs
+            else
             {
-                case EnemyType.Grunt:
-                    v = KeepDistance(dir, dist, 230f) + dir.Orthogonal() * e.Strafe * 0.6f;
-                    break;
-                case EnemyType.Sniper:
-                    v = KeepDistance(dir, dist, 420f) + dir.Orthogonal() * e.Strafe * 0.8f;
-                    break;
-                case EnemyType.Burster:
-                    v = KeepDistance(dir, dist, 160f);
-                    break;
-                case EnemyType.Shard:
-                    v = DroneGoingHome(e) ? DroneHomeMove(e, ref speed)  // the Hive Queen's drones, flying back into her (Queen.cs)
-                        : KeepDistance(dir, dist, 180f) + dir.Orthogonal() * e.Strafe;
-                    break;
-                case EnemyType.Mortar:
-                    v = KeepDistance(dir, dist, 450f) + dir.Orthogonal() * e.Strafe * 0.4f;
-                    break;
-                case EnemyType.Shielder:
-                    v = KeepDistance(dir, dist, 200f);
-                    break;
-                case EnemyType.Medic:
-                    v = KeepDistance(dir, dist, 360f) + dir.Orthogonal() * e.Strafe * 0.5f;
-                    break;
-                case EnemyType.Splitter:
-                    v = KeepDistance(dir, dist, 220f);
-                    break;
-                case EnemyType.Charger:
-                    if (e.Phase == 0)
-                        v = KeepDistance(dir, dist, 300f) + dir.Orthogonal() * e.Strafe * 0.5f;
-                    else if (e.Phase == 2)
-                    {
-                        v = V2.FromAngle(e.Facing);
-                        speed = ChargerDashSpeed;
-                    }
-                    break;
-                case EnemyType.HiveBomber:  // a straight line to the spot it was launched at; Swarm's flankers swoop round (Queen.cs)
-                    if (e.Phase >= 1)
-                    {
-                        v = FlankerMove(e, dt);
-                        if (e.Phase == 2)
-                            speed *= FlankDive;
-                    }
-                    else
-                        v = e.Waypoint - e.Pos;
-                    break;
-                case EnemyType.Spiker:  // heads for you in a zig-zag (MeleeGrunts.cs)
-                    v = SpikerMove(e, dir, dist, dt);
-                    break;
-                case EnemyType.Buzzsaw:  // swoops in on curves, steering with momentum
-                    e.Vel += (dir - e.Vel) * Math.Min(1f, dt * SawTurn);
-                    v = e.Vel;
-                    break;
-                case EnemyType.SpikeBlock:  // rocks from side to side as it closes in; stands still to wind up and recover
-                    if (e.Phase == 0)
-                        v = dir * 0.6f + dir.Orthogonal() * (float)Math.Sin(e.T * 2.6f + e.Id) * 0.8f;
-                    else if (e.Phase == 2)
-                    {
-                        v = V2.FromAngle(e.Facing);
-                        speed = SpikeLungeSpeed;
-                    }
-                    break;
-                case EnemyType.Brute:
-                case EnemyType.Thug:
-                case EnemyType.Gravedigger:
-                case EnemyType.Swarmer:  // no tricks: straight at you
-                case EnemyType.Wisp:
-                    v = dir;
-                    break;
-                case EnemyType.Lunger:
-                case EnemyType.Shiv:
-                case EnemyType.ScytheWraith:
-                    if (e.Phase == 0)
-                        v = dist > (e.Type == EnemyType.Fencer ? FencerStart - 30f : 170f) ? dir : dir.Orthogonal() * e.Strafe * 0.6f;  // close in, then circle while it winds up (a Fencer closer: CourtFaction.cs)
-                    else if (e.Phase == 2)
-                    {
-                        v = V2.FromAngle(e.Facing);
-                        speed = e.Type == EnemyType.ScytheWraith ? ScytheSpeed : 640f;
-                    }
-                    else if (e.Phase == 3)
-                        speed *= 0.3f;  // recovering after the leap
-                    break;
-                case EnemyType.Spinner:  // wanders between random spots, round walls and crates; gives up on one it can't reach
-                    e.PhaseT -= dt;
-                    if (e.Pos.DistanceTo(e.Waypoint) < 20f || e.PhaseT <= 0f)
-                    {
-                        e.Waypoint = WanderSpot(Walled ? 80f : 150f, e.Radius + 12f);
-                        e.PhaseT = e.Pos.DistanceTo(e.Waypoint) / Math.Max(1f, e.Speed) * 1.6f + 4f;
-                    }
-                    v = RouteTo(e, e.Waypoint);  // LayoutRules.cs
-                    break;
-                case EnemyType.Boss:
-                    v = WardenMove(e, tpos, ref speed);  // Warden.cs
-                    break;
-                case EnemyType.Rioter:
-                    v = RioterMove(e, tpos);  // Warden.cs
-                    break;
-                case EnemyType.Guard:
-                    v = GuardMove(e, tpos);  // Warden.cs
-                    if (e.Type == EnemyType.Soldier)
-                        speed *= SoldierCharge(e, dist);  // HiveBees.cs
-                    break;
-                case EnemyType.HiveQueen:
-                    v = QueenMove(e, tpos, ref speed);  // Queen.cs
-                    break;
-                case EnemyType.TwinA:
-                case EnemyType.TwinB:
-                    v = ReaperMove(e, tpos, ref speed);  // Reapers.cs
-                    break;
-                case EnemyType.DualReaper:
-                    v = DualMove(e, tpos, ref speed);  // Reapers.cs
-                    break;
+                switch (e.Type)
+                {
+                    case EnemyType.Boss:
+                        v = WardenMove(e, tpos, ref speed);  // Warden.cs
+                        break;
+                    case EnemyType.HiveQueen:
+                        v = QueenMove(e, tpos, ref speed);  // Queen.cs
+                        break;
+                    case EnemyType.TwinA:
+                    case EnemyType.TwinB:
+                        v = ReaperMove(e, tpos, ref speed);  // Reapers.cs
+                        break;
+                    case EnemyType.DualReaper:
+                        v = DualMove(e, tpos, ref speed);  // Reapers.cs
+                        break;
+                }
+                if (IsLateGame(e.Type))
+                    v = LateMove(e, tpos, dir, dist, dt, ref speed);
             }
-            if (IsLateGame(e.Type))
-                v = LateMove(e, tpos, dir, dist, dt, ref speed);
-            if (e.Type >= EnemyType.BeamSentry && e.Type <= EnemyType.Stitcher)
-                v = VarietyMove(e, tpos, dir, dist, ref speed);  // Variety.cs
-            if (IsInfall(e.Type))
-                v = InfallMove(e, tpos, dir, dist, dt, ref speed);  // Infall.cs
-            if (Challenges.Own(e.Type))
-                v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
-            if (e.Type == EnemyType.RiotCaptain)
-                v = CaptainMove(e, dir, dist, ref speed);  // RiotCaptain.cs
-            if (e.Kin == EnemyType.RiotShield || e.Kin == EnemyType.GasGrenadier || e.Kin == EnemyType.TaserGuard || e.Kin == EnemyType.SecurityGuard)
-                v = WardenFactionMove(e, tpos, dir, dist, dt, ref speed);  // WardenFaction.cs
-            if (e.Type == EnemyType.BoundWraith || e.Type == EnemyType.Lamplighter || e.Type == EnemyType.Mourner)
-                v = ReaperCultMove(e, tpos, dir, dist, dt, ref speed);  // ReaperFaction.cs
-            if (Zombies.Is(e.Type))
-                v = ZombieMove(e, tpos, dir, dist, ref speed);  // Zombies.cs
-            if (IsNonShooter(e.Type))
-                v = NonShooterMove(e, tpos, dir, dist, ref speed);  // NonShooters.cs
             if (RoomsOn && !e.Def.IsBoss && !e.Def.Melee && e.Home < 0 && dist > 0.01f && SegBlocked(ActiveLayout, e.Pos, tpos, 4f))
                 v = dir;  // the Rooms map: a shooter with a wall between it and you comes round (steered) instead of holding its distance behind the wall
             v = SquadMove(e, tpos, dir, v);  // squads keep together (Variety.cs)
@@ -1024,7 +852,7 @@ namespace Arena
                 speed *= HasteMult;
             // A sweeping Beam Sentry steers its beam by Strafe, so it keeps the side it telegraphed (the roll still happens, keeping the RNG sequence).
             // A Security Guard keeps its side on its own timer (SecurityGuard.cs); Debris keeps its spiral's side, a Pulsar its sweep's (Infall.cs).
-            if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3) && e.Kin != EnemyType.SecurityGuard && !PulsarLocked(e) && e.Type != EnemyType.Debris)
+            if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3) && !IsSecurity(e.Type) && !PulsarLocked(e) && !HelioLocked(e) && e.Type != EnemyType.Debris && e.Type != EnemyType.SquallGunner)
                 e.Strafe = -e.Strafe;
             if (StomperPlanted(e))
                 speed = 0f;  // a Stomper stands still while its foot is up (QuarryFaction.cs)
@@ -1047,57 +875,16 @@ namespace Arena
         /// Behaviour that isn't just "shoot when the timer runs out".
         void Special(Enemy e, V2 tpos, float dt)
         {
-            if (Challenges.Own(e.Type))
+            if (IsLateGame(e.Type) && BrainOf(e.Type) == null)
             {
-                RoomSpecial(e, tpos, dt);  // Challenges.cs
+                LateSpecial(e, tpos, dt);  // the late bosses (late-game enemies have brains: LateGame.cs)
                 return;
             }
-            if (e.Type == EnemyType.RiotCaptain)
+            var brain = BrainOf(e.Type);
+            if (brain != null && brain.Special != null)
+                brain.Special.Tick(this, e, tpos, dt);  // Brain.cs
+            else switch (e.Type)
             {
-                CaptainSpecial(e, tpos, dt);  // RiotCaptain.cs
-                return;
-            }
-            if (IsNonShooter(e.Type))
-            {
-                NonShooterSpecial(e, tpos, dt);  // NonShooters.cs
-                return;
-            }
-            if (IsLateGame(e.Type))
-            {
-                LateSpecial(e, tpos, dt);
-                return;
-            }
-            if (Zombies.Is(e.Type))
-            {
-                ZombieSpecial(e, tpos, dt);  // Zombies.cs
-                return;
-            }
-            if (e.Type == EnemyType.BladeDancer)
-                BladeDancerSpecial(e, tpos, dt);  // its lunge and blades (CourtFaction.cs)
-            if (e.Type == EnemyType.Gallant)
-                GallantSpecial(e, tpos, dt);  // its salute and lunge (CourtFaction.cs)
-            if (e.Type == EnemyType.Harlequin)
-                HarlequinSpecial(e, tpos, dt);  // its crossing (CourtFaction.cs)
-            if (e.Type == EnemyType.Mummer && MummerSpecial(e, tpos, dt))
-                return;  // masked: it circles you with its copies and fires; no lunge (CourtFaction.cs)
-            if (e.Type == EnemyType.Stomper)
-                StomperSpecial(e, tpos, dt);  // its stomp ring (QuarryFaction.cs)
-            if (LarderAttacks(e.Type))
-                LarderSpecial(e, tpos, dt);  // the Butcher's chop, the Gulper's breath (LarderFaction.cs)
-            else if (e.Type == EnemyType.Gnawling)
-                GnawlingEat(e);  // a morsel in reach (LarderFaction.cs)
-            switch (e.Kin)
-            {
-                case EnemyType.Shielder:
-                    WearShield(e, e.ShieldMax * ShieldDecay * dt);
-                    break;
-                case EnemyType.RiotShield:
-                    RiotShieldSpecial(e, tpos, dt);  // WardenFaction.cs
-                    break;
-                case EnemyType.BoundWraith:
-                case EnemyType.Mourner:
-                    ReaperCultSpecial(e, tpos, dt);  // ReaperFaction.cs: a revive, the spiral's clock
-                    break;
                 case EnemyType.Boss:
                     WardenSpecial(e, tpos, dt);  // Warden.cs: its stages, turns, searchlight, gates and riot
                     break;
@@ -1115,108 +902,11 @@ namespace Arena
                         e.Phase = 0;
                     break;
                 }
-                case EnemyType.Lunger:
-                case EnemyType.Shiv:
-                case EnemyType.ScytheWraith:
-                {
-                    // Phase 0: approach; 1: wind up (telegraph line); 2: leap; 3: recover.
-                    // A Scythe Wraith marks from further out, holds the mark longer, locks it early and dashes further (ReaperFaction.cs).
-                    // A Fencer hops: it starts closer, shows a shorter line and leaps a short way (CourtFaction.cs).
-                    bool reaper = e.Type == EnemyType.ScytheWraith, fencer = e.Type == EnemyType.Fencer;
-                    float dist = tpos.DistanceTo(e.Pos);
-                    e.PhaseT -= dt;
-                    if (e.Phase == 0 && dist < (reaper ? ScytheStart : fencer ? FencerStart : 220f) && e.PhaseT <= 0f && !LungerWaits(e, tpos))  // in a squad, it waits for a Brute (Variety.cs)
-                    {
-                        e.Phase = 1;
-                        e.PhaseT = reaper ? ScytheMark : fencer ? FencerWarn : 0.6f;
-                    }
-                    else if (e.Phase == 1)
-                    {
-                        if (!reaper || e.PhaseT > ScytheMark - ScytheTrack)
-                            e.Facing = (tpos - e.Pos).Angle;  // tracks you while winding up (a Scythe Wraith only at first: the mark then stays put)
-                        if (e.PhaseT <= 0f)
-                        {
-                            e.Phase = 2;
-                            e.PhaseT = reaper ? ScytheDash : fencer ? FencerHop : 0.32f;
-                        }
-                    }
-                    else if (e.Phase == 2 && e.PhaseT <= 0f)
-                    {
-                        e.Phase = 3;
-                        e.PhaseT = reaper ? ScytheRecover : fencer ? FencerRecover : 0.8f;
-                    }
-                    else if (e.Phase == 3 && e.PhaseT <= 0f)
-                    {
-                        e.Phase = 0;
-                        e.PhaseT = Rand(0.8f, 1.6f);
-                    }
-                    break;
-                }
-                case EnemyType.SpikeBlock:
-                    SpikeBlockSpecial(e, tpos, dt);  // MeleeGrunts.cs
-                    break;
-                case EnemyType.Charger:
-                    // Phase 1: wind up (telegraph line); phase 2: dash, then burst.
-                    if (e.Phase == 0)
-                        break;
-                    e.PhaseT -= dt;
-                    if (e.PhaseT > 0f)
-                        break;
-                    if (e.Phase == 1)
-                    {
-                        e.Phase = 2;
-                        e.PhaseT = ChargerDashTime;
-                    }
-                    else
-                    {
-                        e.Phase = 0;
-                        e.FireT = 3.2f;
-                        for (int i = 0; i < 8; i++)  // its ring: 8, slow enough to step through (was 10 at 140)
-                            EnemyShot(e, e.Facing + MathX.Tau * i / 8f, 120f, Defs.SmallShot);
-                    }
-                    break;
-                case EnemyType.Medic:
-                    e.PhaseT -= dt;
-                    if (e.PhaseT <= 0f)
-                    {
-                        e.PhaseT = 3f;
-                        foreach (var o in Enemies.Values)
-                            if (o != e && !o.Def.IsBoss && o.Pos.DistanceTo(e.Pos) < 180f)
-                                o.Hp = Math.Min(o.MaxHp, o.Hp + o.MaxHp * 0.15f);
-                        BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 180f, 0.5f, Sfx.None);
-                    }
-                    break;
                 case EnemyType.HiveQueen:
                     QueenSpecial(e, tpos, dt);  // Queen.cs: her stages and turns
                     break;
-                case EnemyType.HiveBomber:
-                {
-                    // A flanker at its flank point turns in toward its target (Queen.cs).
-                    if (e.Phase == 1 && (e.Pos.DistanceTo(e.Waypoint) < FlankArrive || e.T > FlankMaxOut))
-                        FlankerTurnIn(e);
-                    // Blows up when it reaches the spot it was launched at, or on touching anyone on the way.
-                    bool hit = e.Phase != 1 && e.Pos.DistanceTo(e.Waypoint) < 12f;
-                    foreach (var p in Players.Values)
-                        hit |= !p.Downed && p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.HitR;
-                    if (hit)
-                        BomberExplode(e);
-                    break;
-                }
                 case EnemyType.Singularity:
                     SingularitySpecial(e, dt);  // Singularity.cs
-                    break;
-                case EnemyType.BeamSentry:
-                case EnemyType.Scorcher:
-                case EnemyType.Reaver:
-                case EnemyType.Warder:
-                case EnemyType.Leader:
-                    VarietySpecial(e, tpos, dt);  // Variety.cs
-                    break;
-                case EnemyType.Pulsar:
-                case EnemyType.MiniWell:
-                case EnemyType.Implosion:
-                case EnemyType.WhiteDwarf:
-                    InfallSpecial(e, tpos, dt);  // Infall.cs
                     break;
             }
         }
@@ -1224,127 +914,24 @@ namespace Arena
         void EnemyFire(Enemy e, V2 tpos)
         {
             float aim = (tpos - e.Pos).Angle;
-            if (Challenges.Own(e.Type) && RoomFire(e, tpos, aim))
-                return;  // Challenges.cs
-            if (e.Type == EnemyType.RiotCaptain)
+            var brain = BrainOf(e.Type);
+            if (brain != null && brain.Fire != null)
             {
-                e.FireT = 99f;  // its attacks are its Special (RiotCaptain.cs)
+                brain.Fire.Fire(this, e, tpos, aim);  // Brain.cs (first: a challenge room's enemy fires its own way before the melee rule)
                 return;
             }
-            if (IsLateGame(e.Type))
+            if (IsLateGame(e.Type) && BrainOf(e.Type) == null)
             {
-                LateFire(e, tpos, aim);
+                LateFire(e, tpos, aim);  // the late bosses
                 return;
             }
-            if (ZombieFire(e, tpos))
-                return;  // Zombies.cs
             if (e.Def.Melee)
             {
                 e.FireT = 99f;  // melee enemies don't shoot
                 return;
             }
-            if (VarietyFire(e, aim))
-                return;  // Variety.cs
-            if (ReaperCultFire(e, aim))
-                return;  // ReaperFaction.cs
-            if (InfallFire(e, tpos, aim))
-                return;  // Infall.cs
-            if (CourtFire(e, tpos, aim))
-                return;  // the Second's daggers, the Marshal's circle; a Gallant doesn't shoot (CourtFaction.cs)
-            if (e.Kin == EnemyType.GasGrenadier)
-            {
-                GrenadierFire(e, tpos);  // WardenFaction.cs
-                return;
-            }
-            if (QuarryFire(e, tpos, aim))
-                return;  // the Geomancer's crack, the Cinder Priest's magma bolt (QuarryFaction.cs)
-            if (e.Kin == EnemyType.TaserGuard)
-            {
-                TaserFire(e, aim);  // WardenFaction.cs
-                return;
-            }
-            if (e.Kin == EnemyType.SecurityGuard)
-            {
-                SecurityFire(e);  // SecurityGuard.cs
-                return;
-            }
             switch (e.Type)
             {
-                case EnemyType.Grunt:
-                    e.FireT = 1.8f;
-                    for (int i = 0; i < 3; i++)
-                        EnemyShot(e, aim + (i - 1) * 0.22f, 175f, Defs.SmallShot);
-                    break;
-                case EnemyType.Burster:
-                {
-                    e.FireT = 2.4f;
-                    int n = 8 + Math.Min(Wave / 2, 4);  // the ring grows up to 12 bullets (wave 8), with gaps to slip through (was up to 18 at 135)
-                    e.Ang += MathX.Pi / n;
-                    for (int i = 0; i < n; i++)
-                        EnemyShot(e, e.Ang + MathX.Tau * i / n, 115f, Defs.SmallShot);
-                    break;
-                }
-                case EnemyType.Sniper:
-                    e.FireT = 2.6f;
-                    EnemyShot(e, aim, 400f, Defs.FastShot);
-                    break;
-                case EnemyType.Spinner:
-                {
-                    // Bursts: a three-armed spiral for a moment, then a breather. Phase 1 = bursting.
-                    float c = MathX.Fmod(e.T + e.Id * 0.7f, SpinnerCycle);
-                    if (c >= SpinnerBurst)
-                    {
-                        e.Phase = 0;
-                        e.FireT = SpinnerCycle - c;  // wait for the next burst
-                        break;
-                    }
-                    e.Phase = 1;
-                    e.FireT = 0.11f;
-                    e.Ang += 0.27f;
-                    for (int k = 0; k < 3; k++)
-                        EnemyShot(e, e.Ang + MathX.Tau * k / 3f, 125f, Defs.SmallShot, 0.25f);
-                    break;
-                }
-                case EnemyType.Charger:
-                    if (e.Phase == 0)
-                    {
-                        e.Phase = 1;      // start winding up toward the target
-                        e.PhaseT = 0.7f;
-                        e.Facing = aim;
-                        BroadcastFx(FxKind.Target, ClampToArena(e.Pos + V2.FromAngle(aim) * (ChargerDashSpeed * ChargerDashTime), e.Radius), e.Def.Color, ChargerRingMark, 0.7f + ChargerDashTime, Sfx.None);  // where its ring will burst, from the start of the wind-up
-                    }
-                    e.FireT = 99f;        // the dash cycle resets this
-                    break;
-                case EnemyType.Splitter:
-                    e.FireT = 2f;
-                    EnemyShot(e, aim - 0.08f, 150f, Defs.SmallShot);
-                    EnemyShot(e, aim + 0.08f, 150f, Defs.SmallShot);
-                    break;
-                case EnemyType.Shard:
-                    e.FireT = 1.6f;
-                    EnemyShot(e, aim, 260f, Defs.FastShot);
-                    break;
-                case EnemyType.Mortar:
-                {
-                    // Lob a bomb at where the target is now; it bursts into a ring when it lands.
-                    e.FireT = 3f;
-                    const float flight = 1.3f;
-                    V2 vel = ((tpos - e.Pos) / flight).LimitLength(330f);
-                    var bomb = SpawnBullet(Defs.MineShot, e.Pos + V2.FromAngle(aim) * e.Radius, vel, 0f, flight, Defs.BulletDamage(Defs.MineShot), 0);
-                    bomb.Burst = e.Elite ? 10 : 7;  // was 14 / 10
-                    bomb.Source = e.Type;
-                    BroadcastFx(FxKind.Target, e.Pos + vel * flight, e.Def.Color, MortarMarkRadius, flight, Sfx.None);  // where it lands (the same ring the gas and the bombers use)
-                    break;
-                }
-                case EnemyType.Shielder:
-                    e.FireT = 2.2f;
-                    for (int i = 0; i < 5; i++)
-                        EnemyShot(e, e.Facing + (i - 2) * 0.15f, 190f, Defs.SmallShot);
-                    break;
-                case EnemyType.Medic:
-                    e.FireT = 2.5f;
-                    EnemyShot(e, aim, 160f, Defs.SmallShot);
-                    break;
                 case EnemyType.Boss:
                     WardenFire(e, tpos);  // Warden.cs
                     break;

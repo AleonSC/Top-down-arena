@@ -22,15 +22,15 @@ namespace Arena
     {
         public const float ShooterTurn = 5f, ShooterRest = 1.5f, WindUp = 0.3f;
         /// How long a type glows and shows its aim before it fires (a Taser Guard charges longer: its bolt stuns).
-        public static float WindUpOf(EnemyType t) => HiveKin.Of(t) == EnemyType.TaserGuard ? TaserWindUp : HiveKin.Of(t) == EnemyType.SecurityGuard ? SecurityWindUp : HiveKin.Of(t) == EnemyType.GasGrenadier ? GrenadierWindUp + GrenadierSwing : t == EnemyType.Lamplighter ? LampWind : t == EnemyType.Mourner ? MournWind
-            : t == EnemyType.Orbiter ? OrbiterWindUp : t == EnemyType.Graviton ? GravitonWindUp : WindUp;
+        public static float WindUpOf(EnemyType t) => BrainWindUp(t) >= 0f ? BrainWindUp(t) : t == EnemyType.Lamplighter ? LampWind : t == EnemyType.Mourner ? MournWind
+            : t == EnemyType.Orbiter ? OrbiterWindUp : t == EnemyType.Graviton ? GravitonWindUp : t == EnemyType.CoronaPriest ? PriestWindUp : t == EnemyType.Sickle ? SickleWindUp : WindUp;
 
         /// How many regular enemies may shoot at once: 4, one more every 6 waves up to 8, a quarter more for each extra
         /// player, times the difficulty's Shooters at once.
         public int ShooterLimit => Math.Max(1, (int)Math.Round(Math.Min(8f, 4f + Wave / 6f) * (1f + 0.25f * (Math.Max(1, Players.Count) - 1)) * D(DiffKnob.Shooters)));
 
         /// Does this enemy need a turn to shoot? Regular shooters do; bosses, melee and things that never fire don't.
-        static bool TakesTurns(Enemy e) => e.Kin != EnemyType.SecurityGuard && !e.Def.IsBoss && !e.Def.Melee && e.FireT < 50f && !Challenges.Own(e.Type) && !Zombies.Is(e.Type);  // (a room's mini-boss and shadows fire freely; a Spitter's glob isn't a bullet)
+        static bool TakesTurns(Enemy e) => !IsSecurity(e.Type) && !e.Def.IsBoss && !e.Def.Melee && e.FireT < 50f && !Challenges.Own(e.Type) && !Zombies.Is(e.Type);  // (a room's mini-boss and shadows fire freely; a Spitter's glob isn't a bullet)
 
         readonly List<Enemy> turnScratch = new List<Enemy>();
 

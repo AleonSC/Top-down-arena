@@ -54,6 +54,8 @@ namespace Arena
                     }
                 }
                 DrawInfallFloor(e, pos, t);  // a Pulsar's beams (InfallLook.cs)
+                DrawPenumbralFloor(e, pos, t);   // a Heliograph's line (PenumbralLook.cs)
+                DrawSquallFloor(e, pos, t);  // a Pylon pair's line, a Lineman's mark (SquallLook.cs)
                 if (e.Type == EnemyType.Warder)
                     DrawWarderCharge(e, pos);  // WarderLook.cs
                 DrawShooterAim(e, pos, t);  // a regular shooter's aim line while it winds up (ShooterAimLook.cs)
@@ -85,7 +87,7 @@ namespace Arena
         /// Over an enemy's body: a bubble, the Reaver's opening, a planted Beam Sentry's legs, and trait markers.
         void DrawVarietyOnEnemy(Enemy e, V2 pos, float r, float t)
         {
-            if (e.Winding && e.Kin != EnemyType.SecurityGuard && e.Kin != EnemyType.GasGrenadier)  // about to fire: a white-hot core and a ring closing in on it (Readability.cs; the Security Guard shows its red lane instead)
+            if (e.Winding && !Game.IsSecurity(e.Type) && Game.SharesWith(e.Type) != EnemyType.GasGrenadier)  // about to fire: a white-hot core and a ring closing in on it (Readability.cs; the Security Guard shows its red lane instead)
             {
                 float k = 0.5f + 0.5f * Mathf.Sin(t * 30f);
                 Circle(pos, r * 0.55f, new Rgba(1f, 1f, 1f, 0.55f + 0.3f * k), 14);

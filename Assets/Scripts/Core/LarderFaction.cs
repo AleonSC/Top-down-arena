@@ -20,11 +20,21 @@ namespace Arena
     /// PatchKind.Bile pool (SpitPoolR, SpitPoolLife) that burns SpitDps (TickLarderHost; the Devourer's fight ticks its own).
     /// With no Devourer about, players also squash morsels by walking over them (StepOnMorsels, Devourer.cs).
     ///
+    ///
+    /// Step 3: the Gutworm (its own moves) walks at you, then dives (LarderStage 1, can't be hurt or touched): a ripple
+    /// chases you for GutChase s at its speed, stops and marks GutMarkR for GutMark s (stage 2, still underground), then
+    /// erupts: a bite (GutBite) on whoever's in the mark and a ring of GutRing shots; it rests GutEvery s on the surface.
+    /// The Hook Thrower is the Hookman (NonShooters.cs, IsHook) with a meat hook: a longer line (HookThrowAim), a slower
+    /// hook (HookThrowSpeed), a shorter reel (HookThrowYank) and HookThrowDamage on a hit. The Maw Priest moves and charges
+    /// like a Taser Guard but fires a fan of three (MawFan); it turns at PriestTurn (PriestFace), and a shot into the
+    /// maw in front (PriestMawHalf either side) heals it for half while one in its back does PriestBackMult
+    /// (LarderBlocks notes the side, PriestHit applies it), the Devourer's Ravenous Maw in small.
+    ///
     /// The state is Enemy.LarderStage (0 idle, 1 winding up, 2 acting) and LarderT (seconds left in it), replicated by
     /// SyncLarder; the facing is locked while it's busy (LarderFaceLocked), so the cone and the chop show where they hit.
     public static class LarderKin
     {
-        public static bool Is(EnemyType t) => t >= EnemyType.Gnawling && t <= EnemyType.BileSpitter;
+        public static bool Is(EnemyType t) => t >= EnemyType.Gnawling && t <= EnemyType.BileSpitter || t >= EnemyType.Gutworm && t <= EnemyType.MawPriest;  // (the Eclipse's faction sits between the two steps)
     }
 
     public partial class Enemy
@@ -32,6 +42,7 @@ namespace Arena
         public byte LarderStage;  // a Butcher's or Gulper's attack: 0 idle, 1 winding up, 2 chopping / breathing in (replicated)
         public float LarderT;     // seconds left in the stage (replicated)
         public float LarderCd;    // host: until it may attack again
+        public byte MawSide;      // host: the side the last shot at a Maw Priest came from (1 its maw, 2 elsewhere)
     }
 
     public partial class Game
@@ -40,12 +51,22 @@ namespace Arena
         public const float GulpRange = 220f, GulpWind = 0.6f, GulpTime = 1f, GulpEvery = 4f, GulpReach = 200f, GulpHalf = 0.61f, GulpPull = 120f, GulpBite = 20f;
         public const byte LarderIdle = 0, LarderWinding = 1, LarderActing = 2, GnawFed = 1;
         public const float SpitPoolR = 35f, SpitPoolLife = 4f, SpitDps = 10f, GnawSniff = 320f, GnawFeed = 1.5f;
+        public const float GutChase = 1.8f, GutMark = 0.6f, GutMarkR = 50f, GutBite = 16f, GutEvery = 3f, GutRingSpeed = 170f;
+        public const int GutRing = 8;
+        public const float HookThrowAim = 0.7f, HookThrowSpeed = 600f, HookThrowYank = 90f, HookThrowDamage = 8f;
+        public const float PriestTurn = 0.52f, PriestMawHalf = MathX.Pi / 4f, PriestBackMult = 1.25f, PriestFan = 0.3f, MawShotSpeed = 200f;
         public static readonly Rgba BileColor = new Rgba(0.72f, 0.88f, 0.29f);
 
         static bool LarderAttacks(EnemyType t) => t == EnemyType.Butcher || t == EnemyType.Gulper;
 
         /// Standing still: winding up, chopping or breathing in.
-        public static bool LarderPlanted(Enemy e) => LarderAttacks(e.Type) && e.LarderStage != LarderIdle;
+        public static bool LarderPlanted(Enemy e) => LarderAttacks(e.Type) && e.LarderStage != LarderIdle || e.Type == EnemyType.Gutworm && e.LarderStage == LarderActing;
+
+        /// A Gutworm underground (chasing or marked): it can't be hurt or touched.
+        public static bool GutwormUnder(Enemy e) => e.Type == EnemyType.Gutworm && e.LarderStage != LarderIdle;
+
+        /// Is `from` in front of a Maw Priest, in its maw?
+        public static bool InPriestMaw(Enemy e, V2 from) => Math.Abs(MathX.Fmod((from - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi) < PriestMawHalf;
 
         /// Its facing stays put while it's busy, so the chop and the cone land where they showed.
         public static bool LarderFaceLocked(Enemy e) => LarderPlanted(e);
@@ -215,6 +236,82 @@ namespace Arena
                     if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(pt.Pos) < pt.Radius + p.Def.HitR)
                         DamageOverTime(p, SpitDps * 0.25f, "Bile Spitter (bile)");
             }
+        }
+
+        /// Host, in Special: a Gutworm dives, chases, marks the ground and erupts.
+        void GutwormSpecial(Enemy e, V2 tpos, float dt)
+        {
+            if (e.LarderStage == LarderIdle)
+            {
+                e.LarderCd -= dt;
+                if (e.LarderCd > 0f || e.SpawnT > 0f || e.Pos.DistanceTo(tpos) > 520f)
+                    return;
+                e.LarderStage = LarderWinding;
+                e.LarderT = GutChase;
+                BroadcastFx(FxKind.Ring, e.Pos, new Rgba(0.6f, 0.38f, 0.36f), e.Radius + 16f, 0.3f, Sfx.BossRumble);  // it dives
+                return;
+            }
+            e.LarderT -= dt;
+            if (e.LarderT > 0f)
+                return;
+            if (e.LarderStage == LarderWinding)
+            {
+                e.LarderStage = LarderActing;  // the ripple stops and marks the ground
+                e.LarderT = GutMark;
+                return;
+            }
+            foreach (var p in Players.Values)
+                if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && p.Pos.DistanceTo(e.Pos) < GutMarkR + p.Def.HitR)
+                    Damage(p, GutBite, "Gutworm");
+            float off = Rand(0f, MathX.Tau);
+            for (int i = 0; i < GutRing; i++)
+                EnemyShot(e, off + MathX.Tau * i / GutRing, GutRingSpeed, Defs.SmallShot);
+            BroadcastFx(FxKind.Boom, e.Pos, new Rgba(0.85f, 0.64f, 0.5f), GutMarkR + 14f, 0.4f, Sfx.BossSlam);  // it erupts
+            e.LarderStage = LarderIdle;
+            e.LarderCd = GutEvery;
+        }
+
+        /// Host, in Face: a Maw Priest turns slowly, so you can get round its maw.
+        void PriestFace(Enemy e, float want, float dt)
+        {
+            float diff = MathX.Fmod(want - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi;
+            e.Facing += Math.Max(-PriestTurn * dt, Math.Min(PriestTurn * dt, diff));
+        }
+
+        /// Host, in EnemyFire (a Maw Priest's brain, ShootBrains.cs): a fan of three from its maw (it charges like a Taser Guard).
+        void MawFan(Enemy e)
+        {
+            e.FireT = TaserEvery;
+            for (int k = -1; k <= 1; k++)
+                EnemyShot(e, e.Facing + k * PriestFan, MawShotSpeed, Defs.SmallShot);  // (from its maw, where it faces)
+            BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(e.Facing) * (e.Radius + 10f), new Rgba(1f, 0.35f, 0.42f), 22f, 0.2f, Sfx.BossChomp);
+        }
+
+        /// BlocksShot: a Gutworm underground lets shots pass; a Maw Priest notes which side the hit came from.
+        bool LarderBlocks(Enemy e, V2 from)
+        {
+            if (GutwormUnder(e))
+                return true;
+            if (e.Type == EnemyType.MawPriest)
+                e.MawSide = (byte)(InPriestMaw(e, from) ? 1 : 2);
+            return false;
+        }
+
+        /// HurtEnemy: a shot into a Maw Priest's maw heals it for half (false: nothing more to do); in its back it does more.
+        bool PriestHit(Enemy e, ref float dmg)
+        {
+            if (e.Type != EnemyType.MawPriest)
+                return true;
+            byte side = e.MawSide;
+            e.MawSide = 0;
+            if (side == 1)
+            {
+                e.Hp = Math.Min(e.MaxHp, e.Hp + dmg * 0.5f);
+                return false;
+            }
+            if (side == 2)
+                dmg *= PriestBackMult;
+            return true;
         }
 
         void SyncLarder(NetSync s, Enemy e)

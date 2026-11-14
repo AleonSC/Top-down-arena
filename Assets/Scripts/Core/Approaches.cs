@@ -269,6 +269,47 @@ namespace Arena
             },
             new FactionDef
             {
+                Boss = EnemyType.StormHerald,  // the Storm Herald: the Squall, a storm front walking ahead of it (Squall.cs, Docs/StormFaction.md)
+                Members = new[]
+                {
+                    new FactionMember { Type = EnemyType.DustDevil, Weight = 3f },
+                    new FactionMember { Type = EnemyType.SquallGunner, NotFirst = true, Weight = 2f },  // shots that curve back on the wind (Crosswind)
+                    new FactionMember { Type = EnemyType.Grounder, Fade = 0, Weight = 2f, From = 2 },  // grounds your shots and claps them back (Thunderclap)
+                    new FactionMember { Type = EnemyType.Stormcaller, Fade = 0, Weight = 1.5f, From = 2 },  // calls strikes under you (Strikes)
+                    new FactionMember { Type = EnemyType.Lineman, Fade = 0, Weight = 1.5f, From = 3 },  // marks a player, the charge jumps to allies (the Conductor)
+                    new FactionMember { Type = EnemyType.Pylon, Fade = 1, Weight = 1.5f, From = 2 },  // a pair, an arc between them (Lightning rods)
+                    new FactionMember { Type = EnemyType.Thunderhead, Fade = 2, Weight = 1.5f, From = 2 },  // rows of strikes ahead of it (Downburst)
+                    new FactionMember { Type = EnemyType.BallLightning, Fade = 2, Weight = 1f, From = 3 },  // the Herald's orb: arcs, then pops (Ball lightning)
+                },
+                Squads = new[]
+                {
+                    new SquadDef { Name = "Squall line", From = 1, Members = new[] { EnemyType.SquallGunner, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil } },
+                    new SquadDef { Name = "Storm cell", From = 2, Members = new[] { EnemyType.Stormcaller, EnemyType.Stormcaller, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil } },
+                    new SquadDef { Name = "Power line", From = 2, Members = new[] { EnemyType.Pylon, EnemyType.Pylon } },  // (two pairs)
+                    new SquadDef { Name = "Supercell", From = 3, Members = new[] { EnemyType.Thunderhead, EnemyType.Lineman, EnemyType.DustDevil, EnemyType.DustDevil, EnemyType.DustDevil } },
+                    new SquadDef { Name = "Grounding wall", From = 3, Members = new[] { EnemyType.Grounder, EnemyType.Grounder, EnemyType.Stormcaller, EnemyType.Stormcaller, EnemyType.Stormcaller } },
+                },
+                // Wave 4: the Storm front, six Stormcallers behind two Grounders, sweeping a wall of strikes with a drifting gap (Squall.cs).
+                Finale = new SquadDef { Name = "Storm front", From = 4, Form = SquadForm.StormFront, Members = new[] {
+                    EnemyType.Stormcaller, EnemyType.Stormcaller, EnemyType.Stormcaller, EnemyType.Grounder,
+                    EnemyType.Grounder, EnemyType.Stormcaller, EnemyType.Stormcaller, EnemyType.Stormcaller } },
+                // The Campaign's Storm Herald cycle: each wave previews one thing its fight tests (Docs/StormFaction.md).
+                Lessons = new[]
+                {
+                    new WaveLesson { Teaches = "Dust Devils shove you (the Gale's wind)", Members = new[] { M(EnemyType.DustDevil, 1f) } },
+                    new WaveLesson { Teaches = "Squall Gunners' shots curve back on the wind (Crosswind)", Trickle = true, Star = EnemyType.SquallGunner, Members = new[] { M(EnemyType.DustDevil, 2f) }, Squads = new[] { "Squall line" } },
+                    new WaveLesson { Teaches = "Grounders: flank them, find the clap's gaps (Thunderclap)", Trickle = true, Star = EnemyType.Grounder, Members = new[] { M(EnemyType.DustDevil, 2f), M(EnemyType.SquallGunner, 1.5f) } },
+                    new WaveLesson { Teaches = "Stormcallers: step out of the ring (Strikes)", Trickle = true, Star = EnemyType.Stormcaller, Members = new[] { M(EnemyType.Grounder, 1.5f), M(EnemyType.DustDevil, 2f) }, Squads = new[] { "Storm cell" } },
+                    new WaveLesson { Teaches = "Pylons: step off the line between flickers (Lightning rods)", Trickle = true, Star = EnemyType.Pylon, Members = new[] { M(EnemyType.DustDevil, 2f), M(EnemyType.SquallGunner, 1.5f) }, Squads = new[] { "Power line" } },
+                    new WaveLesson { Teaches = "A recap of everything so far, and Thunderheads join (Downburst)", Trickle = true, Star = EnemyType.Thunderhead, Members = new[] { M(EnemyType.DustDevil, 2f), M(EnemyType.SquallGunner, 1.5f), M(EnemyType.Grounder, 1f), M(EnemyType.Stormcaller, 1f), M(EnemyType.Pylon, 1f) }, Squads = new[] { "Grounding wall", "Squall line" } },
+                    new WaveLesson { Teaches = "Linemen mark you: walk away from the team (the Conductor)", Trickle = true, Star = EnemyType.Lineman, Members = new[] { M(EnemyType.DustDevil, 2f), M(EnemyType.SquallGunner, 1f) }, Squads = new[] { "Supercell" } },
+                    new WaveLesson { Teaches = "Ball Lightning: kill it far away, never walk between two (Ball lightning)", Trickle = true, Star = EnemyType.BallLightning, Members = new[] { M(EnemyType.Lineman, 1.5f), M(EnemyType.Pylon, 1f), M(EnemyType.Thunderhead, 1.5f), M(EnemyType.DustDevil, 1.5f) } },
+                    new WaveLesson { Teaches = "Squads: Squall line, Storm cell, Power line, Supercell, Grounding wall", Members = new[] { M(EnemyType.DustDevil, 1f), M(EnemyType.SquallGunner, 1f) }, Squads = null, SquadChance = 0.9f },
+                    new WaveLesson { Teaches = "The exam: the Storm front and a big Squall line, with everything", Members = null, Squads = new string[0], Finale = true, Also = "Squall line" },
+                },
+            },
+            new FactionDef
+            {
                 Boss = EnemyType.Duelist,  // the Duelist: the Masked Court, masked fencers (CourtFaction.cs, Docs/Mockups/duelist-faction.html)
                 Members = new[]
                 {
@@ -363,7 +404,7 @@ namespace Arena
             },
             new FactionDef
             {
-                Boss = EnemyType.Devourer,  // the Devourer: The Larder, its brood and the butchers who feed it (LarderFaction.cs, Docs/Approaches.md "The Larder"); step 2 of 4
+                Boss = EnemyType.Devourer,  // the Devourer: The Larder, its brood and the butchers who feed it (LarderFaction.cs, Docs/Approaches.md "The Larder")
                 Members = new[]
                 {
                     new FactionMember { Type = EnemyType.Gnawling, Weight = 3f },
@@ -371,12 +412,91 @@ namespace Arena
                     new FactionMember { Type = EnemyType.Gulper, Fade = 2, Weight = 1.5f, From = 2 },  // a Thug that breathes you in
                     new FactionMember { Type = EnemyType.CarcassBearer, Fade = 0, Weight = 2f, From = 2 },  // a Riot Shield whose broken slab is a morsel
                     new FactionMember { Type = EnemyType.BileSpitter, Fade = 0, Weight = 1.5f, From = 2 },  // a Gas Grenadier that lobs bile
+                    new FactionMember { Type = EnemyType.Gutworm, Fade = 2, Weight = 1f, From = 3 },  // dives, chases, erupts under you
+                    new FactionMember { Type = EnemyType.HookThrower, Fade = 1, Weight = 2f, From = 3 },  // a meat hook that reels you in
+                    new FactionMember { Type = EnemyType.MawPriest, Fade = 0, Weight = 1.5f, From = 3 },  // a maw that feeds on your shots
                 },
                 Squads = new[]
                 {
                     new SquadDef { Name = "Feeding Frenzy", From = 1, Members = new[] { EnemyType.Butcher, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling } },
                     new SquadDef { Name = "Larder Wall", From = 3, Members = new[] { EnemyType.CarcassBearer, EnemyType.CarcassBearer, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling } },
-                    new SquadDef { Name = "Gullet", From = 3, Members = new[] { EnemyType.Gulper, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling } },  // the Gutworm joins it in step 3
+                    new SquadDef { Name = "Meat Hooks", From = 3, Members = new[] { EnemyType.Butcher, EnemyType.Butcher, EnemyType.HookThrower, EnemyType.HookThrower } },
+                    new SquadDef { Name = "Gullet", From = 3, Members = new[] { EnemyType.Gulper, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gutworm } },
+                    new SquadDef { Name = "Bile Rain", From = 3, Members = new[] { EnemyType.BileSpitter, EnemyType.BileSpitter, EnemyType.BileSpitter } },
+                },
+                LessonSquads = new[]
+                {
+                    new SquadDef { Name = "Gnawling pack", From = 1, Members = new[] { EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling, EnemyType.Gnawling } },
+                    new SquadDef { Name = "Butcher pair", From = 1, Members = new[] { EnemyType.Butcher, EnemyType.Butcher } },
+                },
+                // Wave 4: the Feast, its Riot line: four Carcass Bearers marching at you as a wall, two Gulpers and two Bile
+                // Spitters close behind (the spitters lob over it); within RiotLineRelease, or with half the meat broken (each
+                // broken slab a morsel), the Gulpers push through and breathe you in.
+                Finale = new SquadDef { Name = "The Feast", From = 4, Form = SquadForm.RiotLine, Members = new[] {
+                    EnemyType.CarcassBearer, EnemyType.CarcassBearer, EnemyType.CarcassBearer, EnemyType.CarcassBearer,
+                    EnemyType.Gulper, EnemyType.BileSpitter, EnemyType.BileSpitter, EnemyType.Gulper } },
+                // The Campaign's Devourer cycle: the Warden's ten lessons in the same order, each pointing at one of its turns.
+                Lessons = new[]
+                {
+                    new WaveLesson { Teaches = "Gnawlings scurry in (the Devourer in miniature)", Members = new[] { M(EnemyType.Gnawling, 1f) } },
+                    new WaveLesson { Teaches = "Butchers join: step out of the half-circle (its Snap bite)", Trickle = true, Star = EnemyType.Butcher, Members = new[] { M(EnemyType.Gnawling, 1f) }, Squads = new[] { "Gnawling pack" } },
+                    new WaveLesson { Teaches = "Gulpers: step out of the cone sideways (its Inhale)", Trickle = true, Star = EnemyType.Gulper, Members = new[] { M(EnemyType.Gnawling, 2f), M(EnemyType.Butcher, 1.5f) }, Squads = new[] { "Gnawling pack", "Butcher pair" } },
+                    new WaveLesson { Teaches = "Maw Priests: circle round to its back (its Maw)", Trickle = true, Star = EnemyType.MawPriest, Members = new[] { M(EnemyType.Gnawling, 2f), M(EnemyType.Butcher, 2f), M(EnemyType.Gulper, 1.5f) }, Squads = new[] { "Feeding Frenzy", "Butcher pair" } },
+                    new WaveLesson { Teaches = "A recap, and Gutworms join: get out of the mark (its Burrow)", Trickle = true, Star = EnemyType.Gutworm, Members = new[] { M(EnemyType.Gnawling, 2f), M(EnemyType.Butcher, 2f), M(EnemyType.Gulper, 1.5f), M(EnemyType.MawPriest, 2f) }, Squads = new[] { "Feeding Frenzy", "Butcher pair" } },
+                    new WaveLesson { Teaches = "Carcass Bearers: break the meat, then squash the morsel (its Hungry turn)", Trickle = true, Star = EnemyType.CarcassBearer, Members = new[] { M(EnemyType.Gnawling, 2f), M(EnemyType.Butcher, 2f), M(EnemyType.Gulper, 1.5f), M(EnemyType.MawPriest, 2f) }, Squads = new[] { "Feeding Frenzy", "Gullet" } },
+                    new WaveLesson { Teaches = "Bile Spitters: change direction out of the ring (its Bile)", Trickle = true, Star = EnemyType.BileSpitter, Members = new[] { M(EnemyType.CarcassBearer, 2f), M(EnemyType.Gnawling, 2f), M(EnemyType.Butcher, 1f), M(EnemyType.MawPriest, 1f) }, Squads = new[] { "Feeding Frenzy", "Larder Wall", "Gullet" } },
+                    new WaveLesson { Teaches = "Hook Throwers: sidestep the line (its lunges)", Trickle = true, Star = EnemyType.HookThrower, Members = new[] { M(EnemyType.BileSpitter, 1.5f), M(EnemyType.CarcassBearer, 2f), M(EnemyType.Gnawling, 2f), M(EnemyType.Butcher, 1f) }, Squads = new[] { "Larder Wall", "Gullet", "Bile Rain" } },
+                    new WaveLesson { Teaches = "Every squad, tighter", Members = null, Squads = null, SquadChance = 0.75f },
+                    new WaveLesson { Teaches = "The exam: the Feast and a big Feeding Frenzy, with everything", Members = null, Squads = new string[0], Finale = true, Also = "Feeding Frenzy" },
+                },
+            },
+            new FactionDef
+            {
+                Boss = EnemyType.Eclipse,  // the Eclipse: the Penumbral Court, each previewing one of its stages (Penumbral.cs, Docs/EclipseFaction.md)
+                Members = new[]
+                {
+                    new FactionMember { Type = EnemyType.Ember, Weight = 3f },  // sparks hang behind it (Lunar wake)
+                    new FactionMember { Type = EnemyType.CoronaPriest, NotFirst = true, Weight = 2f },  // a ring with one gap (Corona rings)
+                    new FactionMember { Type = EnemyType.Moonward, Fade = 0, Weight = 2f, From = 2 },  // its moon soaks your shots (the Penumbra's moon)
+                    new FactionMember { Type = EnemyType.DuskLobber, Fade = 0, Weight = 1.5f, From = 2 },  // a pool of dark (the Umbra)
+                    new FactionMember { Type = EnemyType.Heliograph, Fade = 1, Weight = 1.5f, From = 2 },  // a line, then a lane of fire (Solar flares)
+                    new FactionMember { Type = EnemyType.Sickle, Fade = 0, Weight = 1.5f, From = 3 },  // a crescent that comes back (Crescents)
+                    new FactionMember { Type = EnemyType.Gnomon, Fade = 2, Weight = 1.5f, From = 2 },  // hide in its shadow (Eclipse flash)
+                    new FactionMember { Type = EnemyType.Nova, Fade = 2, Weight = 1f, From = 3 },  // a fuse, then a nova (Totality)
+                },
+                Squads = new[]
+                {
+                    new SquadDef { Name = "Dawn", From = 1, Members = new[] { EnemyType.CoronaPriest, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember } },
+                    new SquadDef { Name = "Mirror pair", From = 2, Members = new[] { EnemyType.Heliograph, EnemyType.Heliograph } },
+                    new SquadDef { Name = "Moon court", From = 3, Members = new[] { EnemyType.Moonward, EnemyType.Moonward, EnemyType.Sickle, EnemyType.Sickle } },
+                    new SquadDef { Name = "Night watch", From = 3, Members = new[] { EnemyType.DuskLobber, EnemyType.Gnomon, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember } },
+                    // Echoes: one from each earlier boss's faction, as the Eclipse's own Echoes stage borrows their turns
+                    new SquadDef { Name = "Echoes", From = 3, Members = new[] { EnemyType.Rioter, EnemyType.Worker, EnemyType.Wisp, EnemyType.Debris, EnemyType.Rubble,
+                        EnemyType.DustDevil, EnemyType.Fencer, EnemyType.Shambler, EnemyType.Gnawling } },
+                },
+                LessonSquads = new[]
+                {
+                    new SquadDef { Name = "Ember pack", From = 1, Members = new[] { EnemyType.Ember, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember } },
+                    new SquadDef { Name = "Priest pair", From = 1, Members = new[] { EnemyType.CoronaPriest, EnemyType.CoronaPriest } },
+                },
+                // Wave 4: Last Light, four Heliographs at the corners and eight Embers along the sides of a square round you that
+                // turns and closes in like the Eclipse's burning edge; it breaks up after 14 s or once half is down (Penumbral.cs).
+                Finale = new SquadDef { Name = "Last Light", From = 4, Form = SquadForm.LastLight, Members = new[] {
+                    EnemyType.Heliograph, EnemyType.Ember, EnemyType.Ember, EnemyType.Heliograph, EnemyType.Ember, EnemyType.Ember,
+                    EnemyType.Heliograph, EnemyType.Ember, EnemyType.Ember, EnemyType.Heliograph, EnemyType.Ember, EnemyType.Ember } },
+                // The Campaign's Eclipse cycle: the Warden's ten lessons in the same order, each rehearsing one of its stages.
+                Lessons = new[]
+                {
+                    new WaveLesson { Teaches = "Embers' sparks hang behind them (the Lunar wake)", Members = new[] { M(EnemyType.Ember, 1f) } },
+                    new WaveLesson { Teaches = "Corona Priests: step into the gap (its Corona rings)", Trickle = true, Star = EnemyType.CoronaPriest, Members = new[] { M(EnemyType.Ember, 1f) }, Squads = new[] { "Ember pack" } },
+                    new WaveLesson { Teaches = "Heliographs: step off the line (its Solar flares)", Trickle = true, Star = EnemyType.Heliograph, Members = new[] { M(EnemyType.Ember, 2f), M(EnemyType.CoronaPriest, 1.5f) }, Squads = new[] { "Ember pack", "Priest pair" } },
+                    new WaveLesson { Teaches = "Moonwards: fire when the moon swings round the back (the Penumbra's moon)", Trickle = true, Star = EnemyType.Moonward, Members = new[] { M(EnemyType.Ember, 2f), M(EnemyType.CoronaPriest, 2f), M(EnemyType.Heliograph, 1f) }, Squads = new[] { "Dawn" } },
+                    new WaveLesson { Teaches = "A recap, and Gnomons join: hide in the shadow (its Eclipse flash)", Trickle = true, Star = EnemyType.Gnomon, Members = new[] { M(EnemyType.Ember, 2f), M(EnemyType.CoronaPriest, 2f), M(EnemyType.Heliograph, 1f), M(EnemyType.Moonward, 1.5f) }, Squads = new[] { "Dawn", "Mirror pair" } },
+                    new WaveLesson { Teaches = "Dusk Lobbers: stay in the light (the Umbra)", Trickle = true, Star = EnemyType.DuskLobber, Members = new[] { M(EnemyType.Moonward, 2f), M(EnemyType.Ember, 2f), M(EnemyType.CoronaPriest, 1.5f) }, Squads = new[] { "Night watch" } },
+                    new WaveLesson { Teaches = "Sickles: their crescents come back (its Crescents)", Trickle = true, Star = EnemyType.Sickle, Members = new[] { M(EnemyType.Moonward, 2f), M(EnemyType.Ember, 2f), M(EnemyType.DuskLobber, 1f), M(EnemyType.Gnomon, 1f) }, Squads = new[] { "Moon court" } },
+                    new WaveLesson { Teaches = "Novas: burst them or back off (its Totality)", Trickle = true, Star = EnemyType.Nova, Members = new[] { M(EnemyType.Sickle, 1.5f), M(EnemyType.Gnomon, 1f), M(EnemyType.Heliograph, 1f), M(EnemyType.Ember, 2f) } },
+                    new WaveLesson { Teaches = "Every squad, and the Echoes of the bosses before", Members = null, Squads = null, SquadChance = 0.75f },
+                    new WaveLesson { Teaches = "The exam: Last Light and a big Dawn, with everything", Members = null, Squads = new string[0], Finale = true, Also = "Dawn" },
                 },
             },
         };
@@ -498,6 +618,8 @@ namespace Arena
                 return RioterFodderXp;
             if (BossNow && e.Type == EnemyType.Guard)
                 return GuardFodderXp;
+            if (e.Type == EnemyType.BallLightning && !HeraldBall(e))
+                return BallWaveXp;  // a wave's pays like a Shiv; the Herald's own stay cheap (Squall.cs)
             return e.Def.Xp;
         }
 

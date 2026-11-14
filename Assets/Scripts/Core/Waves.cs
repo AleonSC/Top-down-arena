@@ -130,6 +130,7 @@ namespace Arena
                             WaveProps();  // crates, pots, barrels and now and then a chest (Props.cs)
                             bossName = BossNow ? Defs.Get(BossAt(Wave)).Name : null;
                             BeginTimedWave();  // the wave's enemies arrive over a window (TimedWaves.cs)
+                            HuntNodeWaveStart();  // an Ambush node: fewer, all at once (HuntMapGame.cs)
                         }
                         ModsWaveStart();  // Hunted's quarry, Second Wind back each boss cycle (Modifiers.cs)
                         MarkWaveStart();  // the wave's numbers start from here (WaveReady.cs)

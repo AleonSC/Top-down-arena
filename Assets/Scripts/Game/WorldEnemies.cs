@@ -467,8 +467,7 @@ namespace Arena
             }
             bool pac = PacSkin && !spawning && PacGhostable(e);  // the Pac-Man skin: a ghost in its role's colour (PacmanLook.cs)
             // Melee enemies are spiky, so you can tell rushers from shooters at a glance.
-            if (e.Def.Melee && !pac && !spawning && e.Type != EnemyType.Swarmer && !Game.IsReaperCult(e.Type) && !HiveKin.Is(e.Type) && !Game.IsInfall(e.Type) && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type) && !Game.IsNonShooter(e.Type))
-            if (e.Def.Melee && !pac && !spawning && !HiveKin.Is(e.Type) && !QuarryKin.Is(e.Type) && !CourtKin.Is(e.Type) && !LarderKin.Is(e.Type) && !Game.IsReaperCult(e.Type) && e.Type != EnemyType.Swarmer && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type) && !Game.IsNonShooter(e.Type))
+            if (e.Def.Melee && !pac && !spawning && !HiveKin.Is(e.Type) && !QuarryKin.Is(e.Type) && !CourtKin.Is(e.Type) && !LarderKin.Is(e.Type) && !Game.IsInfall(e.Type) && !Game.IsSquall(e.Type) && !Game.IsPenumbral(e.Type) && !Game.IsReaperCult(e.Type) && e.Type != EnemyType.Swarmer && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type) && !Game.IsNonShooter(e.Type))
                 DrawMeleeSpikes(e, pos, r, col, t);
             if (Zombies.Is(e.Type))
                 DrawZombieUnder(e, pos, r, t);  // its spore haze, frenzy streaks and the Crawler's hold (ZombieLook.cs)
@@ -478,7 +477,7 @@ namespace Arena
                 DrawCultUnder(e, pos, r, col, spawning, t);  // a tether, a revive's ghost, a lantern's lanes (ReaperCultLook.cs)
             if (pac)
                 col = PacRoleColor(e);
-            if (e.Kin == EnemyType.SecurityGuard && e.Type != EnemyType.Second && !spawning)  // (a Second fans its daggers: CourtLook.cs)
+            if (Game.IsSecurity(e.Type) && e.Type != EnemyType.Second && !spawning)  // (a Second fans its daggers: CourtLook.cs)
                 DrawSecurityUnder(e, pos, r, t);  // its locked shot and its reload ring (SecurityLook.cs)
             if (Game.IsNonShooter(e.Type) && !spawning)
                 DrawNonShooterUnder(e, pos, r, t);  // the fuse, the aim line and harpoon, a pod's lasers (NonShooterLooks.cs)
@@ -501,12 +500,16 @@ namespace Arena
                 DrawWispBody(e, pos, r, col, t);  // ReaperCultLook.cs
             else if (Game.IsInfall(e.Type))
                 DrawInfallBody(e, pos, r, col, t);  // InfallLook.cs: the Singularity's faction
+            else if (Game.IsPenumbral(e.Type))
+                DrawPenumbralBody(e, pos, r, col, t);  // PenumbralLook.cs: the Eclipse's faction
             else if (QuarryKin.Is(e.Type))
                 DrawQuarryBody(e, pos, r, col, t);  // QuarryLook.cs: the Colossus's faction
             else if (CourtKin.Is(e.Type))
                 DrawCourtBody(e, pos, r, col, t);   // CourtLook.cs: the Duelist's faction
             else if (LarderKin.Is(e.Type))
                 DrawLarderBody(e, pos, r, col, t);  // LarderLook.cs: the Devourer's faction
+            else if (Game.IsSquall(e.Type))
+                DrawSquallBody(e, pos, r, col, t);  // SquallLook.cs: the Storm Herald's faction
             else if (e.Type == EnemyType.SecurityGuard)
                 DrawSecurityBody(e, pos, r, col, t);  // SecurityLook.cs
             else if (Game.IsNonShooter(e.Type))
@@ -654,7 +657,7 @@ namespace Arena
         /// Each type's effects behind its body. Returns the body colour (a Phantom flickers).
         Rgba DrawEnemyUnderlay(Enemy e, V2 pos, float r, Rgba col, bool spawning, float t)
         {
-            switch (e.Kin)
+            switch (Game.SharesWith(e.Type))
             {
                 case EnemyType.Spinner:
                     if (e.Phase == 1 && !spawning)  // bursting: a hot glow
@@ -884,6 +887,7 @@ namespace Arena
                 case EnemyType.GraveCaller:
                 case EnemyType.FuseRunner:
                 case EnemyType.Hookman:
+                case EnemyType.HookThrower:
                 case EnemyType.Sapper:
                     return e.Facing;  // point where they're aiming (zombies: where they're going)
                 case EnemyType.Spinner:

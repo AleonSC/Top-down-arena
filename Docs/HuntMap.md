@@ -1,6 +1,6 @@
 # Hunt map: path selection for Boss Hunts (design)
 
-Status: **steps 1-3 built, step 4 started (Rest and Shop nodes)** (protocol 333; the map is a switch on the lobby's Boss Hunt tab, off by default, so the ten-wave hunt stays as it was) (the screen is `Game/HuntMapUi.cs`, drawn with the lobby's widgets; preview `huntmap`; not wired into the match yet).
+Status: **steps 1-4 built (every node type), step 6 (tuning) done for now**; step 5 (what the clues do) is left, and the numbers below should be measured again after it (protocol 333; the map is a switch on the lobby's Boss Hunt tab, off by default, so the ten-wave hunt stays as it was) (the screen is `Game/HuntMapUi.cs`, drawn with the lobby's widgets; preview `huntmap`; not wired into the match yet).
 Earlier: step 1 (`Core/HuntMap.cs`, suite `huntmap`: the map, its links, Skirmish and Elite nodes, progress, restore; not in the game yet). Numbers are first guesses. Open questions at the bottom need the owner's call.
 
 ## The idea
@@ -108,9 +108,9 @@ The map isn't only a menu: what you pick shapes the boss fight.
    - Measured over 3000 seeds: 51% of nodes have two ways on, 14% of rows give no choice at all (a 3-by-3 row gap can't give every node two links without crossing). Tune in step 6, or allow a few crossings.
 2. ~~Map screen + preview screenshots.~~ Done: `HuntMapUi.cs`, `HuntMapLayout.cs` (the lines), preview mode `huntmap`.
 3. ~~Net: the vote, snapshot, protocol bump.~~ Done (protocol 333): `Session.HuntMapMode` and the lobby switch, `HuntMapGame.cs` (map, vote, timer, node waves), `Msg.HuntMapState` / `Msg.HuntMapVote`; an Elite is one approach step tougher with the finale set piece; Skirmish is the hunt's own strength; Rest, Shop, Ambush, Contraband and Gamble are step 4.
-4. Rest, Shop, Ambush, Contraband and Gamble nodes, one at a time. **Rest and Shop done** (no-fight nodes: the wave number moves on without a fight, a Rest heals everyone and gives a reroll, a Shop opens the Bazaar and the node clears when it closes; gold is earned all hunt long in a map hunt; never two in a row, always one before the boss). Ambush, Contraband and Gamble still to do.
+4. Rest, Shop, Ambush, Contraband and Gamble nodes, one at a time. **Rest and Shop done** (no-fight nodes: the wave number moves on without a fight, a Rest heals everyone and gives a reroll, a Shop opens the Bazaar and the node clears when it closes; gold is earned all hunt long in a map hunt; never two in a row, always one before the boss). **Ambush, Contraband and Gamble done** (protocol 337): an Ambush keeps 70% of the wave and spawns it at 0.35x the usual gaps with no portals, then pays XP (30 + 6 per wave) and drops a chest; a Contraband is dark (`HuntDark` feeds Nightfall's `NightF`) and pays each player a prize pick (rare or better); a Gamble is rolled by the host when the party arrives (Skirmish 30, Elite 25, Ambush 20, Contraband 25, so it is always a fight), the outcome goes out with the map state and shows on the HUD chip, and a Gamble that turns out an Elite still gives its clue. Elites pay the clue only for now (the doc's legendary pick is not built).
 5. Boss clues.
-6. Tune with the Boss Lab and hunt SimTest reports (win rate by route: safe route vs elite route).
+6. ~~Tune with the Boss Lab and hunt SimTest reports.~~ Done for now, see Tuning below.
 
 ## Risks
 
@@ -130,3 +130,34 @@ The map isn't only a menu: what you pick shapes the boss fight.
 ## Open
 
 - Should the map also replace [`Paths.md`](Paths.md) in full runs (a map between bosses instead of two cards)? Not decided; hunts only for now.
+
+## Tuning (step 6)
+
+The report: `Tools/SimTest/run.sh 1 1 huntbal [maps] [first seed] [bot skill 1-3] [routes]`. A duo of bots plays the same maps along
+a **safe** route (Rest, Shop, Skirmish first), an **elite** route (Elite, Contraband, Ambush first), a **random** route and a **plain**
+hunt (the ten waves, no map), and prints each run, a table per node type and a summary per route. Bot skill 1 is Casual, 2 Good.
+
+**What the first numbers said** (30 maps, Casual bots, before the changes): an Elite wave cost about the same damage as a Skirmish (2%
+of max health each), and the Elite route was *safer* than the safe one (more levels from Elites' XP, prize cards from Contraband,
+chests from Ambushes, and nothing in the safe nodes that helped against the boss). The risky route was the free lunch.
+
+**Changes made**
+- **Elite squad:** 30% of its enemies come as elite variants (`HuntEliteChance`, the late waves' elites with a trait). Measured: an
+  Elite wave takes about 23% of max health with Casual bots and 14% with Good ones, against 4% and 2% for a Skirmish, and runs about
+  half as long again (33 s against 22 s).
+- **Rest:** heals everyone, a reroll and a **free upgrade pick** (it skips a wave's XP, so it pays about a level: the safe route was
+  0.7 levels behind at the boss).
+- **Rows of three nodes:** 75% (was 60%). 54% of nodes have two ways on and 71% of the steps of a random route offer a vote;
+  with three lanes and links that never cross, that is close to the most a map can give (a 3-by-3 row gap holds 5 links).
+
+**Where it stands** (40 maps, Casual bots, bots won, average level at the boss): plain hunt 20/40 (7.4), safe route 27/40 (6.8),
+elite route 28/40 (7.5), random 21/40 (7.0). With Good bots every route wins (29/30 to 30/30): the build-up waves are easy for them
+and only the boss hurts. The spread between routes is inside the noise (about 8 points with 40 maps), so **no route is dominated**
+and a map hunt is about as hard as the plain one. Clearing an Elite pays a clue that does nothing yet (step 5), so the Elite route
+is a little behind its price until then.
+
+**Left to watch**
+- Re-run `huntbal` after step 5 (clues) and tune what a clue is worth; it needs 100+ maps a route to see a few points of difference.
+- Ambush (20 s, 4-6% damage) and Contraband (23 s, 4-5%) are no harder than a Skirmish for bots; Contraband's dark and Ambush's
+  surround matter more to people. Their rewards (a chest and XP; a rare-or-better card) are the main pull.
+- Bots don't open chests, so the report removes an Ambush's chest after 20 s: chests are not part of the measured power.

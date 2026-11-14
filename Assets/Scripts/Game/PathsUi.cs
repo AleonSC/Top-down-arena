@@ -274,6 +274,11 @@ namespace Arena
                 DrawQuarryPatch(pt, t);  // a Rock Hurler's pile, a Slab Bearer's slab (QuarryLook.cs)
                 return;
             }
+            if (pt.Kind == PatchKind.Dusk)
+            {
+                DrawDuskRim(pt, t);  // a Dusk Lobber's pool, its rim (the dark goes over everything: DrawDuskPools, PenumbralLook.cs)
+                return;
+            }
             if (pt.Kind == PatchKind.DuelCircle)
             {
                 DrawDuelCirclePatch(pt, t);  // a Marshal's circle (CourtLook.cs)
@@ -415,6 +420,7 @@ namespace Arena
         void DrawArenaRules(float t)
         {
             DrawEclipseSky(t);  // the Umbra's dark and Last Light's burning edge (EclipseLook.cs)
+            DrawDuskPools(t);   // Dusk Lobbers' pools of dark (PenumbralLook.cs)
             DrawWardenAlarm(t);  // the Warden's last stand: lights out, a red siren (WardenLook.cs)
             if (game.NarrowF > 0f)
                 DrawNarrowWalls(0f, 0f, AW, AH, game.ArenaMin, game.ArenaMax, game.NarrowF, Paths.Get(PathId.NarrowPass).Accent, t);

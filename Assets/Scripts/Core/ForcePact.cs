@@ -145,7 +145,7 @@ namespace Arena
         /// What each enemy type does for you (Docs/Mockups/force-pact.html's roster). Numbers before the 75% a thrall deals.
         static ThrallAtk ThrallAttack(EnemyType t)
         {
-            switch (HiveKin.Of(t))
+            switch (SharesWith(t))
             {
                 case EnemyType.Grunt: return new ThrallAtk { Shots = 3, Spread = 0.25f, Dmg = 9f, Interval = 1.1f, Range = 380f };
                 case EnemyType.Sniper: return new ThrallAtk { Shots = 1, Dmg = 25f, Interval = 0.8f, Range = 540f };

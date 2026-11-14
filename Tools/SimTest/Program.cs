@@ -139,8 +139,8 @@ static partial class Program
     {
         for (int i = 0; i < seconds * 60; i++)
         {
-            Step(s[0], dt);
-            Step(s[1], dt);
+            foreach (var x in s)
+                Step(x, dt);
             if (i % 2 == 0)
                 Thread.Sleep(1);
             if (each != null)
@@ -148,7 +148,7 @@ static partial class Program
             if (stop != null && stop())
                 break;
         }
-        for (int k = 0; k < 5; k++) { Thread.Sleep(2); s[1].Poll(); }
+        for (int k = 0; s.Length > 1 && k < 5; k++) { Thread.Sleep(2); s[1].Poll(); }
     }
 
     static int Ghosts(Session[] s)
@@ -322,9 +322,12 @@ static partial class Program
         Test("basicfaction", "the basic faction: the eight plain enemies left, Quick Play's build-up for a boss with no faction, nothing retired in any wave", BasicFactionTest),
         Test("court", "the Duelist's faction (all four steps): the Fencer's hop, the Blade Dancer's blades, the Parrier's parries, the Second's daggers, the Marshal's circle, the Gallant's salute, the Harlequin's crossing, the Mummer's copies, the Ring of Honour, the ten lessons", () => CourtTest(Dt)),
         Test("quarry", "the Colossus's faction, step 1: Rubble, the Quarryman and the Stomper's push ring", () => QuarryTest(Dt)),
-        Test("larder", "the Devourer's faction, steps 1-2: the Gnawling, the Butcher's chop, the Gulper's breath, the Carcass Bearer's morsel, the Bile Spitter's pool", () => LarderTest(Dt)),
+        Test("larder", "the Devourer's faction: all eight Larder enemies and their tricks, the Feast, the Long Campaign's ten lessons", () => LarderTest(Dt)),
         Test("hive", "the Hive Queen's faction: eight enemies that play like the Warden's, honey instead of gas, the venom dart, and the chart in waves 11-20", () => HiveTest(Dt)),
         Test("infall", "the Singularity's faction, steps 1-3: all eight enemies (the Graviton's well, the Collapsar's implosion, the Lens's face, the White Dwarf's pulse), waves 16-19", () => InfallTest(Dt)),
+        Test("penumbral", "the Eclipse's faction (all four steps): Ember sparks, the Corona Priest's gap, the Heliograph's lane, the Moonward's moon, the Gnomon's shadow, the Dusk Lobber's pool, the Sickle's crescent, the Nova's fuse, Last Light, the lessons, waves 46-49", () => PenumbralTest(Dt)),
+        Test("squall", "the Storm Herald's faction: all eight (the Dust Devil's shove, the Gunner's curve, strikes, the Grounder's clap, the Pylon arc, the Lineman's mark, the Thunderhead's row, a wave's Ball Lightning), the Storm front set piece and the lessons, waves 36-39", () => SquallTest(Dt)),
+        Test("aitrace", "the enemy behaviour refactor's safety net (Docs/EnemyBehaviours.md): every non-boss enemy alone against a god-mode host for 12 s, each frame hashed and compared with Golden/aitrace.txt (AITRACE=update rewrites it)", () => AiTraceTest()),
         Test("spawndump", "the spawner refactor's safety net: the first waves of a few modes played headless, every arrival compared with Golden/spawndump.txt (WAVEDUMP=update rewrites it)", () => SpawnDumpTest()),
         Test("wavedump", "the refactor safety net: every mode's waves built on fixed seeds, compared with Golden/wavedump.txt (WAVEDUMP=update rewrites it)", () => WaveDumpTest()),
         Test("bossslot", "the boss between waves: it follows every fifth regular wave and keeps its number; paths, saves and the Lab start", () => BossSlotTest(Dt)),
@@ -457,6 +460,7 @@ static partial class Program
         Report("arenabal", "the Rooms arena vs Classic: a duo of Good bots, each regular wave's length, damage taken, threats in view (run.sh 1 1 arenabal [last wave] [seed] [Rooms damage x])", args => ArenaBalanceReport(Dt, Arg(args, 3, 20), Arg(args, 4, 1), args.Length > 5 ? float.Parse(args[5], System.Globalization.CultureInfo.InvariantCulture) : 0f)),
         Report("vecbal", "the Expanding arena's vector economy: a duo of Good bots on Classic vs Expanding, each round's vectors, proposals and rooms built (run.sh 1 1 vecbal [last wave] [seed])", args => VectorBalanceReport(Dt, Arg(args, 3, 25), Arg(args, 4, 1), Arg(args, 5, 0) == 1)),
         Report("rooms", "a duo of Good bots plays with challenge rooms on: how each room went (run.sh 1 1 rooms [last wave] [seed])", args => RoomsReport(Dt, Arg(args, 3, 30), Arg(args, 4, 1))),
+        Report("huntbal", "the hunt map's balance: a duo of Good bots plays the same maps on a safe, an Elite and a random route (run.sh 1 1 huntbal [maps] [first seed] [bot skill 1-3] [routes, e.g. safe,elite,random,plain])", args => HuntMapBalanceReport(Dt, Arg(args, 3, 4), Arg(args, 4, 1), (BotSkill)Arg(args, 5, 2), args.Length > 6 ? args[6] : null)),
         Report("wavemix", "what a regular wave is made of: shooters, melee and support, wave by wave", args => WaveMixReport()),
         Report("bulletcount", "enemy bullets on screen through a wave", args => BulletCountReport(Dt)),
         Report("grid", "the balance grid: every role, class and weapon vs each listed boss (run.sh 1 1 grid <waves> [runs] [roles DTH] [skill] [classes]; Tools/BalanceGrid/grid.sh draws it)", args => BalanceGrid(args)),
@@ -479,7 +483,7 @@ static partial class Program
         "trickle", "meleesounds", "grunts", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops",
         "exploit", "doublebarrel", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
         "expand", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
-        "newenemies", "wildcard", "stacking", "singularity", "security", "captain", "wavedump", "spawndump", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction",
+        "newenemies", "wildcard", "stacking", "singularity", "security", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
     };
 
     static int Main(string[] args)

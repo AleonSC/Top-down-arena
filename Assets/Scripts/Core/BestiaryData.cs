@@ -232,6 +232,115 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Ember, Name = "Ember", Group = "Melee", Wave = 46,
+                Appears = "The Eclipse's approach (waves 46-49, in packs and Dawn squads)",
+                Lead = "A scrap of solar flare that weaves in at you. Every 0.2 s it drops a spark that drifts back slowly and hangs for 1.5 s, so crossing its trail hurts.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "8" },
+                    new BestiaryAttack { Name = "Sparks", Pattern = "Left hanging behind it for 1.5 s", Shot = "Spark", ShotColor = new Rgba(1f, 0.6f, 0.26f), Speed = "25", Damage = "6", Every = 0.2f } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.CoronaPriest, Name = "Corona Priest", Group = "Shooters", Wave = 46,
+                Appears = "The Eclipse's approach (waves 46-49), alone or leading a Dawn squad",
+                Lead = "A sun-cultist with a halo of spikes. Keeps 260 px away; its halo flares for 0.7 s, then bursts into a ring of 13 slow shots: one straight at you and a gap one slot beside it. Step into the gap.",
+                Attacks = new[] { new BestiaryAttack { Name = "Corona ring", Pattern = "13 shots, one gap beside you", Shot = "Small shot", ShotColor = new Rgba(1f, 0.3f, 0.45f), Speed = "130", Damage = "14 each", Every = 2.4f } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Heliograph, Name = "Heliograph", Group = "Shooters", Wave = 47,
+                Appears = "The Eclipse's approach (waves 47-49), alone or two in a Mirror pair",
+                Lead = "Carries a sun mirror. Within 340 px it plants and aims at you; a line flickers for 1 s, then it becomes a 40 px lane of fire for 0.5 s. It rests 2.5 s and goes again. Step off the line, not back along it.",
+                Attacks = new[] { new BestiaryAttack { Name = "Flare", Pattern = "1 s warning line, then a 40 px lane for 0.5 s", Damage = "20", Every = 4f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Moonward, Name = "Moonward", Group = "Melee", Wave = 47,
+                Appears = "The Eclipse's approach (waves 47-49)",
+                Lead = "A pale knight with a small moon circling it 30 px out, once every 2.4 s. The moon swallows any shot it touches, so fire when it swings round the back.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "12" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Gnomon, Name = "Gnomon", Group = "Melee", Wave = 47,
+                Appears = "The Eclipse's approach (waves 47-49), alone or in a Night watch",
+                Lead = "A walking sundial: a stone slab with a sun lantern at its back. Within 360 px it plants, its slab turned a little to one side of you, and the lantern swells for 1.5 s; then it flashes everyone within 520 px who isn't in the slab's shadow. Step sideways into the shadow, toward it.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "20" },
+                    new BestiaryAttack { Name = "Flash", Pattern = "1.5 s swell, then everyone outside its shadow", Damage = "30", Every = 8f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.DuskLobber, Name = "Dusk Lobber", Group = "Shooters", Wave = 47,
+                Appears = "The Eclipse's approach (waves 47-49), alone or in a Night watch",
+                Lead = "Keeps its distance and lobs a ball of night near you, like a Gas Grenadier. It bursts into a 90 px pool of dark for 4 s: inside you see only 40 px round you, and it drains 6 a second. Stay in the light.",
+                Attacks = new[] { new BestiaryAttack { Name = "Dusk pool", Pattern = "A lobbed pool, 90 px, 4 s", Damage = "6 a second", Every = 3.6f } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Sickle, Name = "Sickle", Group = "Shooters", Wave = 48,
+                Appears = "The Eclipse's approach (waves 48-49), alone or in a Moon court",
+                Lead = "Keeps 240 px away and strafes. Every 2.4 s it winds up for 0.6 s, then throws a crescent blade that leaves to one side, loops through where you stand and comes back round to it. Dodge it twice.",
+                Attacks = new[] { new BestiaryAttack { Name = "Crescent", Pattern = "A loop through you and back", Shot = "Crescent", ShotColor = new Rgba(0.89f, 0.83f, 1f), Speed = "300", Damage = "21", Every = 2.4f } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Nova, Name = "Nova", Group = "Melee", Wave = 48,
+                Appears = "The Eclipse's approach (waves 48-49)",
+                Lead = "A small unstable star that darts in zigzagging. Within 140 px it lights a 3 s fuse and hangs about you, slowly; while lit it takes 50% more damage. Then it goes nova: 30 to everyone within 110 px. Burst it or back off.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "10" },
+                    new BestiaryAttack { Name = "Nova", Pattern = "3 s fuse, then a 110 px burst", Damage = "30", Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.DustDevil, Name = "Dust Devil", Group = "Melee", Wave = 36,
+                Appears = "The Storm Herald's approach (waves 36-39, in packs and Squall lines)",
+                Lead = "A small whirlwind that weaves across your line as it comes in. Its touch hurts and shoves you 120 px, into walls and shots behind you, then it veers off and comes again.",
+                Attacks = new[] { new BestiaryAttack { Name = "Gust", Pattern = "Touch, then a 120 px shove", Damage = "8" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.SquallGunner, Name = "Squall Gunner", Group = "Shooters", Wave = 36,
+                Appears = "The Storm Herald's approach (waves 36-39), alone or leading a Squall line",
+                Lead = "Carries its own gust. Keeps 260 px away; every 2.2 s it fires three shots aimed upwind of you that curve back to cross where you stood. Its wind always blows the same way, so dodge against the curve.",
+                Attacks = new[] { new BestiaryAttack { Name = "Crosswind", Pattern = "Three shots that curve onto you from one side", Shot = "Orb", ShotColor = new Rgba(0.56f, 0.82f, 1f), Speed = "220", Damage = "per shot", Every = 2.2f } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Stormcaller, Name = "Stormcaller", Group = "Shooters", Wave = 37,
+                Appears = "The Storm Herald's approach (waves 37-39), alone or two in a Storm cell",
+                Lead = "Keeps 300 px away and raises its staff: an amber ring (40 px) fills under you for 1.1 s, then lightning strikes it. Every 2.8 s. Step out of the ring.",
+                Attacks = new[] { new BestiaryAttack { Name = "Strike", Pattern = "A 40 px ring under you, 1.1 s warning", Damage = "20", Every = 2.8f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Thunderhead, Name = "Thunderhead", Group = "Melee", Wave = 37,
+                Appears = "The Storm Herald's approach (waves 37-39), alone or in a Supercell",
+                Lead = "A slow, heavy storm cloud (220 health, can't be shoved) that walks at you. Within 380 px, every 2.6 s it flashes and drops a row of three 30 px strikes ahead of it toward you, landing one after another 1, 1.2 and 1.4 s later. Sidestep the row; don't run along it.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "20" },
+                    new BestiaryAttack { Name = "Downburst", Pattern = "A row of 3 strikes ahead of it", Damage = "20 each", Every = 2.6f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Grounder, Name = "Grounder", Group = "Shooters", Wave = 37,
+                Appears = "The Storm Herald's approach (waves 37-39), alone or two in a Grounding wall",
+                Lead = "Walks in behind a curved copper shield that turns slowly toward you. Shots on its face are grounded: no damage, and each charges it. Twelve and it claps a ring of 14 shots back, with two gaps either side of its front. Flank it so it never fills.",
+                Attacks = new[] { new BestiaryAttack { Name = "Thunderclap", Pattern = "A ring of 14, two gaps, after 12 grounded shots", Shot = "Orb", Speed = "170", Damage = "per shot" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Pylon, Name = "Pylon", Group = "Shooters", Wave = 37,
+                Appears = "The Storm Herald's approach (waves 37-39), always a pair; two pairs in a Power line",
+                Lead = "Two posts that walk to either side of you and plant. Three times: quiet 0.9 s, the arc between them flickers 0.6 s, then fires along the line. Then they walk again. Kill either post and the line is gone. At most two pairs a wave.",
+                Attacks = new[] { new BestiaryAttack { Name = "Arc", Pattern = "Along the line between the pair, 0.6 s flicker", Damage = "18", Every = 1.85f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Lineman, Name = "Lineman", Group = "Shooters", Wave = 38,
+                Appears = "The Storm Herald's approach (waves 38-39)",
+                Lead = "Keeps 260 px away. Every 5.5 s it hooks the nearest player: an amber ring (120 px) and a countdown show round them for 2.6 s. Then the charge jumps to every other player in the ring, hurting all of them, and 8 shots burst out from each. Alone, it only bursts. The marked player walks away from the team.",
+                Attacks = new[] { new BestiaryAttack { Name = "Conductor", Pattern = "A mark, then a chain to allies within 120 px", Damage = "16 each", Every = 5.5f } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.Graviton, Name = "Graviton", Group = "Shooters", Wave = 17,
                 Appears = "The Singularity's approach (waves 17-19), alone or in a Gravity trap squad",
                 Lead = "Keeps 320 px away. Every 6 s it plants its feet for 0.6 s, a ring marks a spot near you, and 0.8 s later a Small Well lands there: for 4 s it drags you toward it (80 px/s at its middle, 240 px out) and bends your shots into it. Get clear, or shoot the well (30 health). A new lob takes its old well away.",
@@ -404,6 +513,31 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Gutworm, Name = "Gutworm", Group = "Melee", Wave = 43,
+                Appears = "The Devourer's approach (in Gullet squads and on its own)",
+                Lead = "A burrowing worm of brood. Walks at you, then dives: a ripple chases you underground for 1.8 s (it can't be hurt), stops and marks 50 px for 0.6 s, then erupts with a bite and a ring of 8 shots. Get out of the mark. The Devourer's Burrow in small.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Eruption", Pattern = "1.8 s chase underground, a 0.6 s mark, then a bite and a ring of 8", Damage = "16", Every = 5.4f, Fixed = true },
+                    new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "12" },
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.HookThrower, Name = "Hook Thrower", Group = "Melee", Wave = 43,
+                Appears = "The Devourer's approach (two behind Butchers in Meat Hooks squads, and on its own)",
+                Lead = "A hooded butcher swinging a meat hook on a chain. Keeps about 260 px off, shows its line for 0.7 s, then throws the hook down it. A hit hurts and reels you 90 px toward it, into the butchers. Sidestep the line, parry the hook, or shoot across the chain to cut it; a miss leaves it open (+50%). Plays like the Hookman.",
+                Attacks = new[] { new BestiaryAttack { Name = "Meat hook", Pattern = "0.7 s line, then a hook down it", Damage = "8, and reeled in 90 px", Every = 4f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.MawPriest, Name = "Maw Priest", Group = "Shooters", Wave = 43,
+                Appears = "The Devourer's approach (on its own)",
+                Lead = "A priest wearing the Devourer's jaw. Shots into the 90° maw in front heal it for half; shots in its back do 25% more. It turns at 30° a second, keeps its distance like a Taser Guard and, after a 0.7 s charge, fires a fan of three from its maw. Circle round it. The Devourer's Ravenous Maw in small.",
+                Attacks = new[] { new BestiaryAttack { Name = "Fan", Pattern = "0.7 s charge, then three shots in a fan", Damage = "small shots", Every = 3.2f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.Fencer, Name = "Fencer", Group = "Melee", Wave = 26,
                 Appears = "The Duelist's approach (in crowds, Salon and Guard line squads)",
                 Lead = "A masked foil-fencer that runs in crowds. Within 160 px it shows a short red line for 0.4 s, then hops about 100 px down it. Moves like a Shiv.",
@@ -495,10 +629,12 @@ namespace Arena
             },
             new BestiaryEntry
             {
-                Type = EnemyType.BallLightning, Name = "Ball Lightning", Group = "Summons", Wave = 40,
-                Appears = "The Storm Herald's Gale",
-                Lead = "Slow orbs (3 at a time) that drift at you at 80 px/s plus the wind. Two within 200 px arc lightning to each other, and each pops into 8 shots after 6 s.",
-                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "20" } },
+                Type = EnemyType.BallLightning, Name = "Ball Lightning", Group = "Summons", Wave = 38,
+                Appears = "The Storm Herald's approach (waves 38-39; at most 4 a wave) and its Gale (3 at a time)",
+                Lead = "Orbs that drift at you at 80 px/s (plus the wind in the Gale). Two within 200 px arc lightning to each other, and each pops into 8 shots after 6 s. Slows and freezes hold them. Kill them far from you, and don't walk between two.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "20" },
+                    new BestiaryAttack { Name = "Arc", Pattern = "Between two within 200 px", Damage = "20" },
+                    new BestiaryAttack { Name = "Pop", Pattern = "8 shots after 6 s", Shot = "Orb", Speed = "140", Damage = "per shot" } },
             },
             new BestiaryEntry
             {

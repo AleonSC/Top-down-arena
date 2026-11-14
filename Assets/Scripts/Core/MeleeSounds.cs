@@ -88,7 +88,7 @@ namespace Arena
         /// A walker's step: how often it steps, and what that sounds like (null if it doesn't walk).
         static Sfx StepSound(EnemyType t, out float every)
         {
-            switch (HiveKin.Of(t))
+            switch (SharesWith(t))
             {
                 case EnemyType.Swarmer: case EnemyType.Wisp: every = 0.28f; return Sfx.SwarmerPatter;
                 case EnemyType.Spiker: every = 0.16f; return Sfx.SpikerSkitter;
@@ -115,7 +115,7 @@ namespace Arena
 
         static Sfx DeathSound(EnemyType t)
         {
-            switch (HiveKin.Of(t))
+            switch (SharesWith(t))
             {
                 case EnemyType.Swarmer: case EnemyType.Wisp: return Sfx.SwarmerDie;
                 case EnemyType.Spiker: return Sfx.SpikerDie;
@@ -160,7 +160,7 @@ namespace Arena
                     m.BiteT = BiteEvery;
                 bool changed = !fresh && e.Phase != m.Phase;
 
-                switch (e.Kin)
+                switch (SharesWith(e.Type))
                 {
                     case EnemyType.Swarmer: case EnemyType.Wisp:
                         if (bite)
