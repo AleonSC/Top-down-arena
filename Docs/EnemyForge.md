@@ -6,8 +6,10 @@ preview, and hand the design to Claude to implement.
 ## Using it
 
 - Download `EnemyForge.exe` from the repo's **enemy-forge** release (rebuilt from `main` on every change) and
-  double-click it. It opens in its own window (Edge or Chrome app mode) and quits when the window is closed. Windows
-  needs nothing installed (SmartScreen may ask: More info, Run anyway); Mac/Linux: `mono EnemyForge.exe`.
+  double-click it. On Windows 10/11 it's a normal app window (WebView2, the Edge engine built into Windows; its
+  DLLs ride inside the exe and unpack to `%LOCALAPPDATA%\EnemyForge`) and closing it quits. Nothing to install
+  (SmartScreen may ask: More info, Run anyway). With no WebView2 runtime, or on Mac/Linux (`mono EnemyForge.exe`),
+  it opens a browser window instead and quits a few seconds after that closes (the page holds `/api/alive` open).
 - Tabs on the left: **Basics** (name, one line, role, faction, "plays like" a real enemy, first wave, numbers with
   the nearest real enemy shown next to each), **Look** (shape, colours, outline, face, spin, parts), **Movement**
   (Chase, Keep distance, Orbit, Kite, Lunge, Charge, Blink, Zigzag, Wander, Turret), **Attacks** (any number of:
@@ -34,6 +36,7 @@ the intent, then balance in the real sim.
 
 ## Building
 
-- `Tools/EnemyForge/package.sh [out]` builds the single-file `EnemyForge.exe` (Server.cs + Core, page embedded).
+- `Tools/EnemyForge/package.sh [out]` builds the single-file `EnemyForge.exe` (Server.cs + Window.cs + Core, page and WebView2 DLLs embedded;
+  fetches the WebView2 NuGet package into `out/` once).
 - `Tools/EnemyForge/run.sh [port]` runs from source at `http://localhost:8190`, serving `web/index.html` live.
 - `.github/workflows/enemyforge-release.yml` publishes the exe as the `enemy-forge` release on pushes to `main`.

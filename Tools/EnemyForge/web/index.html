@@ -649,7 +649,7 @@ addEventListener("beforeunload",e=>{if(dirty){e.preventDefault();e.returnValue="
 
 async function boot(){
   if(SERVER){try{META=await (await fetch("/api/meta")).json()}catch(_){}
-    const ping=()=>fetch("/api/ping").catch(()=>{});ping();setInterval(ping,2000)}
+    try{new EventSource("/api/alive")}catch(_){}}  // keeps the app running while this window is open
   $("pRole").innerHTML=META.roles.map(r=>`<option>${r.name}</option>`).join("");
   try{const s=localStorage.getItem("enemyforge.cur");if(s){spec=upgrade(JSON.parse(s));lastSnap=JSON.stringify(spec);dirty=true}}catch(_){}
   document.querySelector('#ctl [data-n="1"]').classList.add("on");
