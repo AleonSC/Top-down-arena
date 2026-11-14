@@ -1,6 +1,6 @@
 # Wall push: grow a room from inside it
 
-Status: **steps 1-3 built** (the core: rules, cost, host and wire, protocol 349; pushing in the world and the features, no protocol change). Step 4 (balance) next. Decided with the owner on Nov 14, 2026. Mockup: `Docs/Mockups/wall-push.html`
+Status: **all four steps built** (the core: rules, cost, host and wire, protocol 349; pushing in the world, the features and the balance pass, no protocol change). Decided with the owner on Nov 14, 2026. Mockup: `Docs/Mockups/wall-push.html`
 (playable: walk, pick a section, click to push; browser look, approximate). Builds on [`VectorBuilding.md`](VectorBuilding.md)
 and [`RoomBuilding2.md`](RoomBuilding2.md).
 
@@ -15,7 +15,7 @@ and [`RoomBuilding2.md`](RoomBuilding2.md).
 
 | Question | Decision |
 |---|---|
-| Cost | **Floor gained**: 1 vector per new floor tile, so a push costs the section's width |
+| Cost | ~~Floor gained~~ → **wall price** (step 4): a new section pays width + 2, each push after that 2, like a drawn room |
 | Features | **All six**, one rolled per section (seeded): Fins, Baffles, Pincers, T-fins, Divider, Cover |
 | When | **Between waves only**, like the build map |
 | Which walls | **Any room wall**, the hub included |
@@ -36,13 +36,13 @@ Picked by Claude (change any of these):
    **2-10 tiles** wide, snapped to the tile grid and centred on the cursor. The **mouse wheel** sets the width (camera zoom is off while pushing).
 3. A ghost row shows where the next tile row goes, with a label: `PUSH +1 · 4 ◆` and `4 wide · 3 / 12 out · Baffles`.
    The vectors chip lights the slice the push would spend. It turns red and says why when you can't push:
-   *Need 4 vectors*, *Too close to the Vendor room*, *Map edge*, *12 tiles out is the limit*, *Walk closer*.
+   *Need 4 vectors*, *Too close to the Vendor room*, *Map edge*, *16 tiles out is the limit*, *Walk closer*.
 4. **Left click** pushes the section out 1 tile. **Hold** to keep pushing (one push every 0.2 s after a 0.38 s wait).
    The selection rides the new face, so clicking again pushes further without aiming again. Moving the mouse picks a new section.
 5. **Reach** is 7 tiles from you to the section, so you walk into the new space to push further.
 6. **Right click** or C again stops. The wave starting stops it too.
 
-Limits: a section goes at most **12 tiles** out. Pushing a section's side wall starts a new section from that wall.
+Limits: a section goes at most **16 tiles** out. Pushing a section's side wall starts a new section from that wall.
 
 ## Room features
 
@@ -85,7 +85,7 @@ Limits: a section goes at most **12 tiles** out. Pushing a section's side wall s
 
 - `Core/ExpansionPush.cs`: `WallPush` (area, side 0 W / 1 E / 2 N / 3 S, start px, width tiles); `Expansion.Push` returns the new or grown
   box and its cost (width), with `why` when refused (*A section is 2-10 tiles wide*, *Off the grid*, *Off the end of the wall*,
-  *Overlaps a room*, *Too close to another room*, *12 tiles out is the limit*, *The map would get too big*, *The map has too many
+  *Overlaps a room*, *Too close to another room*, *16 tiles out is the limit*, *The map would get too big*, *The map has too many
   pushed walls* (40), *Can't push this room's walls*). Pushing a section's far wall over its full width grows it; any other stretch
   starts a new section off it.
 - Host: `Game.CanPush` (free building, between waves), `PushWall` / `Msg.WallPush` / `HostWallPush`: the player within 10 tiles
@@ -104,7 +104,7 @@ Limits: a section goes at most **12 tiles** out. Pushing a section's side wall s
   (`PushAreaAt`) until the mouse moves 30 px or the width changes; until the host's map comes back nothing is selected, so held
   pushes go at the network's pace (and at most every 0.2 s).
 - The look: the section gold (grey: too far, red: refused, shaking on a refused click), the next row as a dashed ghost with its tiles,
-  an arrow, a white flash where the wall was; the label (price and `w WIDE · d / 12 OUT`, or the reason), kept on screen; the keys
+  an arrow, a white flash where the wall was; the label (price and `w WIDE · d / 16 OUT`, or the reason), kept on screen; the keys
   under you; the vectors chip adds `PUSH −4`. The camera leans halfway to the next row and may go 4 tiles past the map's edge.
 - A click sound for now; the Wave cleared box must be folded away first (it takes the clicks, as it does for shooting).
 
@@ -116,9 +116,20 @@ Limits: a section goes at most **12 tiles** out. Pushing a section's side wall s
   doors other than the section's own join (a section pushed off it) and off nodes. Cover: a crate (64 px box) or a round pillar (38 px).
 - The look (`Game/WallPushLook.cs`): the client compares each new map with the last; walls and cover new inside a section flash in
   (white fill and an outline that grows and fades, 0.6 s), and a new section's style is named over it (*BAFFLES ROLLED*, 1.6 s). The push
-  label adds the style (`4 WIDE · 3 / 12 OUT · BAFFLES`). The divider flashes as it lengthens.
+  label adds the style (`4 WIDE · 3 / 16 OUT · BAFFLES`). The divider flashes as it lengthens.
 - Not done: a player standing where a piece appears is pushed out of it like any wall (`PushOutOfSolids`); the mockup's "wait until you
   step off" isn't needed for that.
+
+## Built (step 4: balance, owner Nov 14)
+
+- The bot report (`run.sh 1 1 vecbal 25 1`, Good duo): players hold about 40-80 vectors between waves (cap 70-110) and a drawn room
+  averaged 24. At 1 vector per floor tile a push cost 1.5-3.5x drawing the same box (6x6: 36 vs 18; 6x12: 72 vs 30), so the owner
+  picked **wall price**: a new section pays its new wall (width + 2), each push after that 2, the same rule as a drawn room
+  (6x6 = 18, 6x12 = 30). The **depth cap went to 16 tiles**. Bots still don't push (they draw rooms).
+- Owner's play test: a 2-wide corridor stayed plain. Sections 2-3 wide now always get **Stubs** (from alternate sides every 3 rows,
+  the width less 1.5 tiles long, so a 1.5-tile lane stays).
+- Sound: `SoundBank.PlayWallPush`, a low stone thunk with a short gritty slide, pitched lower the deeper the section; played on every
+  machine when the pushed floor grows (`TrackPushPieces`), not on the click.
 
 ## Steps
 

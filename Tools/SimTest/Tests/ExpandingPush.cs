@@ -15,7 +15,7 @@ static partial class Program
 
         // A first push off the hub's east wall: a 1-tile box, joined to the hub, costing its width.
         var a = Expansion.Push(list, wp(0, 1, 300, 4), out idx, out cost, out why);
-        Check(a.HasValue && idx == -1 && cost == 4, "a push off the hub's east wall is a new section costing its width (" + why + ")");
+        Check(a.HasValue && idx == -1 && cost == 6, "a push off the hub's east wall is a new section costing its new wall: width + 2 (" + why + ")");
         var b = a.Value;
         Check(b.X == 1600 && b.Y == 300 && b.W == 100 && b.H == 400 && b.Parent == 0 && Expansion.IsPush(b) && b.Kind == RoomKind.Combat, "it is a 1-tile box on the wall, its parent the hub");
         list.Add(b);
@@ -24,7 +24,7 @@ static partial class Program
 
         // Pushing its far wall over its full width grows the same box.
         var g2 = Expansion.Push(list, wp(1, 1, 300, 4), out idx, out cost, out why);
-        Check(g2.HasValue && idx == 0 && cost == 4 && g2.Value.X == 1600 && g2.Value.W == 200 && g2.Value.H == 400 && g2.Value.Price == 8, "pushing the section's far wall grows it a tile (" + why + ")");
+        Check(g2.HasValue && idx == 0 && cost == 2 && g2.Value.X == 1600 && g2.Value.W == 200 && g2.Value.H == 400 && g2.Value.Price == 8, "pushing the section's far wall grows it a tile, for 2 vectors (" + why + ")");
         list[0] = g2.Value;
 
         // The other three sides of the hub, each 1 tile out.
@@ -33,7 +33,7 @@ static partial class Program
         var s = Expansion.Push(list, wp(0, 3, 600, 10), out idx, out cost, out why).Value;
         Check(w.X == -100 && w.Y == 200 && w.W == 100 && w.H == 300, "west: a box to the left of the hub");
         Check(n.X == 700 && n.Y == -100 && n.W == 200 && n.H == 100, "north: a box above the hub");
-        Check(s.X == 600 && s.Y == 900 && s.W == 1000 && s.H == 100 && cost == 10, "south: a 10-wide box below it, costing 10");
+        Check(s.X == 600 && s.Y == 900 && s.W == 1000 && s.H == 100 && cost == 12, "south: a 10-wide box below it, costing 12");
 
         // Growing west and north moves the box's corner out.
         list.Add(w);
@@ -107,7 +107,7 @@ static partial class Program
     static void ExpandingPushFeaturesTest()
     {
         Func<int, int, ExpansionRoom> section = (w, d) => new ExpansionRoom { Parent = 0, Leg = Expansion.PushLeg, X = 1600, Y = 100, W = d * 100, H = w * 100 };
-        Check(Expansion.PushStyleFor(0, 1, 100, 3) == PushStyle.None && Expansion.PushStyleFor(0, 1, 100, 2) == PushStyle.None, "a section under 4 wide gets no features");
+        Check(Expansion.PushStyleFor(0, 1, 100, 3) == PushStyle.Stubs && Expansion.PushStyleFor(0, 1, 100, 2) == PushStyle.Stubs, "a 2-3 wide corridor gets stubs");
         var four = Expansion.PushStyleFor(0, 1, 100, 4);
         Check(four == PushStyle.Fins || four == PushStyle.TFins || four == PushStyle.Cover, "4 wide: fins, T-fins or cover (" + four + ")");
         var rolled = new HashSet<PushStyle>();
@@ -140,6 +140,14 @@ static partial class Program
                 Check(spans8.All(a8 => spans.Any(b8 => b8.Vertical == a8.Vertical && b8.At == a8.At && b8.From == a8.From && b8.Till == a8.Till)) && cover8.All(c8 => cover.Any(c12 => c12.Pos.X == c8.Pos.X && c12.Pos.Y == c8.Pos.Y)), st + ": pushing further only adds pieces (what was there stays)");
             if (st == PushStyle.Divider)
                 Check(spans.Count == 2 && spans.All(sp => !sp.Vertical && sp.At == 400), "the divider runs down the middle with a doorway (" + spans.Count + " pieces)");
+        }
+        // A 2-wide corridor: stubs from alternate sides, a 1.5-tile lane past each.
+        Expansion.PushStyleOverride = -1;
+        foreach (int nw in new[] { 2, 3 })
+        {
+            var stub = new List<WallSpan>(); var sc = new List<Solid>();
+            Expansion.PushFeatures(new List<ExpansionRoom> { section(nw, 12) }, 0, stub, sc);
+            Check(stub.Count >= 3 && stub.All(sp => sp.Vertical && Math.Abs(sp.Till - sp.From - (nw - 1.5f) * 100) < 1f), nw + "-wide: " + stub.Count + " stubs, each leaving a 1.5-tile lane");
         }
         // Not on a narrow section; and a section off this one's side wall keeps its opening clear.
         Expansion.PushStyleOverride = (int)PushStyle.Baffles;
@@ -181,8 +189,8 @@ static partial class Program
         cg.PushWall(east);
         Run(ss, dt, 0.6f, () => cg.Expanded.Count == 1, stand);
         Check(g.Expanded.Count == 1 && cg.Expanded.Count == 1 && Expansion.IsPush(cg.Expanded[0]) && cg.Expanded[0].Owner == 2, "a friend's push is built and sent to everyone");
-        Run(ss, dt, 1f, () => cg.Players[2].Vectors == 46, stand);
-        Check(g.Players[2].Vectors == 46 && cg.Players[2].Vectors == 46, "and they pay its width (4 vectors): " + g.Players[2].Vectors);
+        Run(ss, dt, 1f, () => cg.Players[2].Vectors == 44, stand);
+        Check(g.Players[2].Vectors == 44 && cg.Players[2].Vectors == 44, "and they pay its new wall (4 + 2 vectors): " + g.Players[2].Vectors);
         Check(g.RoomsUp && g.CurrentWorld.Areas.Length == 2, "the map goes up with just a pushed wall (" + g.CurrentWorld.Areas.Length + " areas)");
 
         // Pushing again (after the rate gap) grows the same section.
@@ -202,11 +210,11 @@ static partial class Program
         cg.PushWall(grow); cg.PushWall(grow); cg.PushWall(grow);
         Run(ss, dt, 0.5f, null, stand);
         Check(g.Expanded[0].W == 300, "three pushes sent at once count once (the rate gap): " + g.Expanded[0].W);
-        g.Players[2].Vectors = 3;
+        g.Players[2].Vectors = 1;
         Run(ss, dt, 0.3f, null, stand);
         cg.PushWall(grow);
         Run(ss, dt, 0.5f, null, stand);
-        Check(g.Expanded[0].W == 300 && g.Players[2].Vectors == 3, "a push you can't pay for is refused");
+        Check(g.Expanded[0].W == 300 && g.Players[2].Vectors == 1, "a push you can't pay for is refused");
         g.Players[2].Vectors = 40;
 
         // A save keeps the section.
