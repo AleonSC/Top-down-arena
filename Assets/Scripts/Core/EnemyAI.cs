@@ -655,6 +655,7 @@ namespace Arena
             TickReapers(dt);  // the Twin Reapers' stages, turns and tether (Reapers.cs)
             TickSingularityHazards(dt);
             TickHerald(dt);  // the Storm Herald's ball lightning and spokes (Herald.cs)
+            TickStormFronts(dt);  // the Storm front set piece's wall of strikes (Squall.cs)
             TickPortals(dt);  // spawn portals opening, letting their bursts out and closing (SpawnPortals.cs)
             TickVariety(dt);  // embers, Volatile bursts, Mirrored shots, bubbles growing back (Variety.cs)
 

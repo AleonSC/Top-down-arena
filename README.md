@@ -692,7 +692,13 @@ Priests, every squad, then the exam (the Avalanche and a big Landslip).
 The **Storm Herald** has one (waves 36-39): the **Squall**, a storm front walking ahead of it, all eight of its enemies.
 Squads: **Squall line** (a Squall Gunner and six Dust Devils) and, from wave 37, **Storm cell** (two Stormcallers and three Dust Devils) and
 **Power line** (two Pylon pairs); from wave 38, **Grounding wall** (two Grounders with three Stormcallers behind) and **Supercell** (a
-Thunderhead, a Lineman and three Dust Devils).
+Thunderhead, a Lineman and three Dust Devils). The last wave before it always brings the **Storm front**: six Stormcallers in a line
+behind two Grounders. While any of those callers lives they call no strikes of their own; instead they sweep a **wall of strikes**
+(amber rings, 1.1 s warning, 20 each) through you from their side, a column every 0.42 s, 60 px further each time, with **two strikes
+missing** from each column. The gap drifts a slot one way or the other as the wall comes on: walk with it. A sweep is 17 columns; 3.5 s
+later the next one comes. Kill the callers to end it. In the Long Campaign its ten waves (71-80) teach one enemy each, in the Warden's
+order: Dust Devils, Squall Gunners, Grounders, Stormcallers, Pylons, a recap with Thunderheads, Linemen, Ball Lightning, every squad,
+then the exam (the Storm front and a big Squall line).
 
 | From | The Storm Herald's faction (the Squall) | Previews | What it does |
 |---|---|---|---|
@@ -705,8 +711,7 @@ Thunderhead, a Lineman and three Dust Devils).
 | 38 | **Ball Lightning** | Ball lightning | The Herald's own orb (70 health) in its waves: it drifts at you, two within 200 px **arc** to each other (20), and each **pops into 8 shots** after 6 s. Slows and freezes hold it. Kill them far from you and don't walk between two. At most 4 a wave |
 | 38 | **Lineman** | the Conductor | Keeps 260 px away. Every 5.5 s it **marks** the nearest player: an amber ring (120 px) with a countdown. After 2.6 s the charge **jumps to every ally in the ring** (16 each) and 8 shots burst out from each of them; alone, it only bursts. The marked player walks away from the team |
 
-They are drawn as in `Docs/Mockups/storm-herald-faction.html`, in the Herald's colours. The Storm front set piece and its ten-wave cycle
-come next (`Docs/StormFaction.md`).
+They are drawn as in `Docs/Mockups/storm-herald-faction.html`, in the Herald's colours. Design notes: `Docs/StormFaction.md`.
 
 | From | The Colossus's faction | Plays like | What it does |
 |---|---|---|---|

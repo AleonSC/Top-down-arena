@@ -17,7 +17,7 @@ namespace Arena
     }
 
     /// How a squad arrives: in a line across its edge, split to opposite edges, or blinking in around a player.
-    public enum SquadForm : byte { Line, Pincer, Around, RiotLine, Accretion, Honour }  // RiotLine: a wall of Riot Shields (or their kin) marching at you, the rest close behind (WardenFaction.cs); Accretion: a ring round you that turns and closes (Infall.cs); Honour: the Ring of Honour, fencers round you that lunge in by pairs (CourtFaction.cs)
+    public enum SquadForm : byte { Line, Pincer, Around, RiotLine, Accretion, Honour, StormFront }  // RiotLine: a wall of Riot Shields (or their kin) marching at you, the rest close behind (WardenFaction.cs); Accretion: a ring round you that turns and closes (Infall.cs); Honour: the Ring of Honour, fencers round you that lunge in by pairs (CourtFaction.cs); StormFront: Stormcallers in a line behind Grounders, sweeping a wall of strikes across you (Squall.cs)
 
     /// More variety between the bosses (built from Docs/Mockups/enemy-variety.html):
     ///   Four new enemies: the Beam Sentry (wave 18: plants itself, aims a line, sweeps a beam), the Scorcher (24:
@@ -246,6 +246,8 @@ namespace Arena
                 {
                     bool behind = i > 0 && (type == EnemyType.Sniper || type == EnemyType.Medic || type == EnemyType.BeamSentry || type == EnemyType.Mortar || type == EnemyType.Warder || type == EnemyType.Hookman || type == EnemyType.Sapper);
                     pos = ClampToArena(basePos + across * ((i - (n - 1) / 2f) * 60f) - fwd * (behind ? 70f : 0f), 40f);
+                    if (s.Form == SquadForm.StormFront && type == EnemyType.Grounder)
+                        pos = ClampToArena(pos + fwd * StormFrontGuard, 40f);  // the Grounders stand in front of the callers (Squall.cs)
                 }
                 if (type == EnemyType.Nest)
                     pos = ClampToArena(basePos + fwd * 140f, 120f);
@@ -263,6 +265,8 @@ namespace Arena
             squadForms[id] = s.Form;
             if (s.Form == SquadForm.RiotLine)
                 riotLines[id] = RiotLineCount(s, EnemyType.RiotShield);
+            if (s.Form == SquadForm.StormFront)
+                StartStormFront(id, fwd, across);  // Squall.cs
             DoLog("squad: " + s.Name);
         }
 
@@ -330,6 +334,7 @@ namespace Arena
             riotLineBroke.Clear();
             accretionRings.Clear();  // Infall.cs
             honourRings.Clear();     // CourtFaction.cs
+            stormFronts.Clear();     // Squall.cs
             honourTurn.Clear();
             if (newRun)
             {
