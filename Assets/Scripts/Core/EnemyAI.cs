@@ -873,8 +873,6 @@ namespace Arena
                     v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
                 if (e.Type == EnemyType.RiotCaptain)
                     v = CaptainMove(e, dir, dist, ref speed);  // RiotCaptain.cs
-                if (Zombies.Is(e.Type))
-                    v = ZombieMove(e, tpos, dir, dist, ref speed);  // Zombies.cs
             }
             if (RoomsOn && !e.Def.IsBoss && !e.Def.Melee && e.Home < 0 && dist > 0.01f && SegBlocked(ActiveLayout, e.Pos, tpos, 4f))
                 v = dir;  // the Rooms map: a shooter with a wall between it and you comes round (steered) instead of holding its distance behind the wall
@@ -921,11 +919,6 @@ namespace Arena
             if (IsLateGame(e.Type))
             {
                 LateSpecial(e, tpos, dt);
-                return;
-            }
-            if (Zombies.Is(e.Type))
-            {
-                ZombieSpecial(e, tpos, dt);  // Zombies.cs
                 return;
             }
             if (e.Type == EnemyType.Mummer && MummerSpecial(e, tpos, dt))
@@ -991,8 +984,6 @@ namespace Arena
                 LateFire(e, tpos, aim);
                 return;
             }
-            if (ZombieFire(e, tpos))
-                return;  // Zombies.cs
             if (e.Def.Melee)
             {
                 e.FireT = 99f;  // melee enemies don't shoot

@@ -233,107 +233,7 @@ namespace Arena
 
         // --- Moving, acting, firing -------------------------------------------------------------------------------
 
-        /// MoveEnemy: where each zombie goes. Melee kinds come at you (Shamblers sway, Crawlers skitter); the Spitter,
-        /// Shrieker and Mender keep their distance behind the horde. A frenzied zombie runs 30% faster.
-        V2 ZombieMove(Enemy e, V2 tpos, V2 dir, float dist, ref float speed)
-        {
-            e.Facing = dir.IsZero ? e.Facing : dir.Angle;
-            if (e.FrenzyT > 0f)
-                speed *= Zombies.FrenzySpeed;
-            switch (e.Type)
-            {
-                case EnemyType.Shambler:
-                    return V2.FromAngle(dir.Angle + 0.45f * (float)Math.Sin(AnimT * 2.4f + e.Id));
-                case EnemyType.Crawler:
-                    if ((e.Phase & Zombies.PhGrab) != 0)
-                        return V2.Zero;  // holding on
-                    return V2.FromAngle(dir.Angle + 0.25f * (float)Math.Sin(AnimT * 5f + e.Id));
-                case EnemyType.Spitter:
-                    return KeepDistance(dir, dist, Zombies.SpitRange) + dir.Orthogonal() * e.Strafe * 0.6f;
-                case EnemyType.Shrieker:
-                    return KeepDistance(dir, dist, Zombies.ShriekerKeep) + dir.Orthogonal() * e.Strafe * 0.5f;
-                case EnemyType.Mender:
-                    return KeepDistance(dir, dist, Zombies.MenderKeep) + dir.Orthogonal() * e.Strafe * 0.6f;
-                case EnemyType.GraveCaller:
-                    if ((e.Phase & Zombies.PhAct) != 0)
-                        return V2.Zero;  // stands still while it calls
-                    return KeepDistance(dir, dist, Zombies.CallerKeep) + dir.Orthogonal() * e.Strafe * 0.5f;
-                default:
-                    return dir;  // Runners and Bloaters: straight at you
-            }
-        }
 
-        /// Special: the Crawler's grab, the Bloater bursting on you, the Shrieker's scream and the Mender's pulse.
-        void ZombieSpecial(Enemy e, V2 tpos, float dt)
-        {
-            e.FrenzyT = Math.Max(0f, e.FrenzyT - dt);
-            e.PhaseT = Math.Max(0f, e.PhaseT - dt);
-            if (e.T < 0.05f && (e.Type == EnemyType.Shrieker || e.Type == EnemyType.Mender || e.Type == EnemyType.GraveCaller))
-                e.T2 = e.Type == EnemyType.GraveCaller ? Rand(2.5f, 4f) : Rand(1.5f, 3f);  // not the moment it arrives
-            byte act = e.PhaseT > 0f ? Zombies.PhAct : (byte)0;
-            switch (e.Type)
-            {
-                case EnemyType.Crawler:
-                    TickGrab(e, dt);
-                    break;
-                case EnemyType.Bloater:
-                {
-                    var p = NearestPlayer(e.Pos);
-                    if (p != null && p.InvulnT <= 0f && p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.HitR + 4f)
-                    {
-                        Damage(p, e.Def.Contact * D(DiffKnob.EnemyDamage), "Bloater");
-                        BroadcastFx(FxKind.Boom, e.Pos, e.Def.Color, Zombies.SporeRadius * 0.6f, 0.4f, Sfx.ZombieBurst);
-                        e.Hp = 0f;  // it bursts on you (the spores come with its death, MaybeRise)
-                    }
-                    break;
-                }
-                case EnemyType.Shrieker:
-                    e.T2 -= dt;
-                    if (e.T2 <= 0f)
-                    {
-                        e.T2 = Zombies.ShriekEvery;
-                        e.PhaseT = 0.6f;
-                        act = Zombies.PhAct;
-                        BroadcastFx(FxKind.Ring, e.Pos, new Rgba(0.89f, 1f, 0.61f), Zombies.ShriekRange, 0.8f, Sfx.ZombieShriek);
-                        foreach (var o in Enemies.Values)
-                            if (o != e && !o.Def.IsBoss && o.Pos.DistanceTo(e.Pos) < Zombies.ShriekRange)
-                            {
-                                o.FrenzyT = Zombies.FrenzyTime;
-                                o.RetargetT = 0f;  // and it turns on you
-                            }
-                    }
-                    break;
-                case EnemyType.Mender:
-                    e.T2 -= dt;
-                    if (e.T2 <= 0f)
-                    {
-                        e.T2 = Zombies.MendEvery;
-                        e.PhaseT = 0.6f;
-                        act = Zombies.PhAct;
-                        BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, Zombies.MendRange, 0.9f, Sfx.ZombieMend);
-                        foreach (var o in Enemies.Values)
-                            if (o != e && !o.Def.IsBoss && o.Hp < o.MaxHp && o.Pos.DistanceTo(e.Pos) < Zombies.MendRange)
-                            {
-                                o.Hp = Math.Min(o.MaxHp, o.Hp + o.MaxHp * Zombies.MendHeal);
-                                BroadcastFx(FxKind.Link, e.Pos, o.Pos, e.Def.Color, 2f, 0.5f, Sfx.None);
-                            }
-                    }
-                    break;
-                case EnemyType.GraveCaller:
-                    e.T2 -= dt;
-                    if (e.T2 <= 0f && CallGraves(e, tpos))
-                    {
-                        e.T2 = Zombies.CallEvery;
-                        e.PhaseT = 0.8f;
-                        act = Zombies.PhAct;
-                    }
-                    else if (e.T2 <= 0f)
-                        e.T2 = 1f;  // its four are up: it tries again in a moment
-                    break;
-            }
-            byte keep = (byte)(e.Phase & (Zombies.PhGrab | Zombies.PhCalled));
-            e.Phase = (byte)(keep | (e.FrenzyT > 0f ? Zombies.PhFrenzy : 0) | act);
-        }
 
         /// The Crawler: in reach of a player it grabs on and roots them (their StunT: they can still shoot), hurting
         /// 6 a second, for 1.5 s or until it has taken 25 damage. Each Crawler grabs once every 4 s.
@@ -424,21 +324,211 @@ namespace Arena
         }
 
         /// EnemyFire: the Spitter lobs a glob at where you stand (a ring marks it); it lands as an acid patch.
-        bool ZombieFire(Enemy e, V2 tpos)
+        /// A Spitter's glob: an acid pool near you, if you're close enough (otherwise it checks again shortly). The other
+        /// zombies never shoot (HoldFire).
+        void SpitterFire(Enemy e, V2 tpos)
         {
-            if (!Zombies.Is(e.Type))
-                return false;
-            if (e.Type != EnemyType.Spitter || e.Pos.DistanceTo(tpos) > Zombies.SpitRange * 2.2f)
+            if (e.Pos.DistanceTo(tpos) > Zombies.SpitRange * 2.2f)
             {
-                e.FireT = e.Type == EnemyType.Spitter ? 0.5f : 99f;
-                return true;
+                e.FireT = 0.5f;
+                return;
             }
             e.FireT = Zombies.SpitEvery;
             e.PhaseT = 0.5f;
             V2 at = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 20f), 50f);
             SpawnPatchAt(PatchKind.Acid, at, Zombies.SpitFlight, Zombies.SpitFlight + Zombies.AcidLife, Zombies.AcidRadius, Zombies.AcidRadius);
             BroadcastFx(FxKind.Target, at, new Rgba(0.91f, 0.89f, 0.35f), Zombies.AcidRadius, Zombies.SpitFlight, Sfx.ZombieSpit);
-            return true;
+        }
+        /// (moved from ZombieMove, Shambler)
+        V2 ZombieMove_Shambler(Enemy e, V2 tpos, V2 dir, float dist, ref float speed)
+        {
+            e.Facing = dir.IsZero ? e.Facing : dir.Angle;
+            if (e.FrenzyT > 0f)
+                speed *= Zombies.FrenzySpeed;
+            return V2.FromAngle(dir.Angle + 0.45f * (float)Math.Sin(AnimT * 2.4f + e.Id));
+        }
+
+        /// (moved from ZombieMove, Crawler)
+        V2 ZombieMove_Crawler(Enemy e, V2 tpos, V2 dir, float dist, ref float speed)
+        {
+            e.Facing = dir.IsZero ? e.Facing : dir.Angle;
+            if (e.FrenzyT > 0f)
+                speed *= Zombies.FrenzySpeed;
+            if ((e.Phase & Zombies.PhGrab) != 0)
+                return V2.Zero;  // holding on
+            return V2.FromAngle(dir.Angle + 0.25f * (float)Math.Sin(AnimT * 5f + e.Id));
+        }
+
+        /// (moved from ZombieMove, Spitter)
+        V2 ZombieMove_Spitter(Enemy e, V2 tpos, V2 dir, float dist, ref float speed)
+        {
+            e.Facing = dir.IsZero ? e.Facing : dir.Angle;
+            if (e.FrenzyT > 0f)
+                speed *= Zombies.FrenzySpeed;
+            return KeepDistance(dir, dist, Zombies.SpitRange) + dir.Orthogonal() * e.Strafe * 0.6f;
+        }
+
+        /// (moved from ZombieMove, Shrieker)
+        V2 ZombieMove_Shrieker(Enemy e, V2 tpos, V2 dir, float dist, ref float speed)
+        {
+            e.Facing = dir.IsZero ? e.Facing : dir.Angle;
+            if (e.FrenzyT > 0f)
+                speed *= Zombies.FrenzySpeed;
+            return KeepDistance(dir, dist, Zombies.ShriekerKeep) + dir.Orthogonal() * e.Strafe * 0.5f;
+        }
+
+        /// (moved from ZombieMove, Mender)
+        V2 ZombieMove_Mender(Enemy e, V2 tpos, V2 dir, float dist, ref float speed)
+        {
+            e.Facing = dir.IsZero ? e.Facing : dir.Angle;
+            if (e.FrenzyT > 0f)
+                speed *= Zombies.FrenzySpeed;
+            return KeepDistance(dir, dist, Zombies.MenderKeep) + dir.Orthogonal() * e.Strafe * 0.6f;
+        }
+
+        /// (moved from ZombieMove, GraveCaller)
+        V2 ZombieMove_GraveCaller(Enemy e, V2 tpos, V2 dir, float dist, ref float speed)
+        {
+            e.Facing = dir.IsZero ? e.Facing : dir.Angle;
+            if (e.FrenzyT > 0f)
+                speed *= Zombies.FrenzySpeed;
+            if ((e.Phase & Zombies.PhAct) != 0)
+                return V2.Zero;  // stands still while it calls
+            return KeepDistance(dir, dist, Zombies.CallerKeep) + dir.Orthogonal() * e.Strafe * 0.5f;
+        }
+
+        /// (moved from ZombieMove, Default)
+        V2 ZombieMove_Default(Enemy e, V2 tpos, V2 dir, float dist, ref float speed)
+        {
+            e.Facing = dir.IsZero ? e.Facing : dir.Angle;
+            if (e.FrenzyT > 0f)
+                speed *= Zombies.FrenzySpeed;
+            return dir;  // Runners and Bloaters: straight at you
+        }
+
+        /// (moved from ZombieSpecial, Crawler)
+        void ZombieSpecial_Crawler(Enemy e, V2 tpos, float dt)
+        {
+            e.FrenzyT = Math.Max(0f, e.FrenzyT - dt);
+            e.PhaseT = Math.Max(0f, e.PhaseT - dt);
+            byte act = e.PhaseT > 0f ? Zombies.PhAct : (byte)0;
+            TickGrab(e, dt);
+            byte keep = (byte)(e.Phase & (Zombies.PhGrab | Zombies.PhCalled));
+            e.Phase = (byte)(keep | (e.FrenzyT > 0f ? Zombies.PhFrenzy : 0) | act);
+        }
+
+        /// (moved from ZombieSpecial, Bloater)
+        void ZombieSpecial_Bloater(Enemy e, V2 tpos, float dt)
+        {
+            e.FrenzyT = Math.Max(0f, e.FrenzyT - dt);
+            e.PhaseT = Math.Max(0f, e.PhaseT - dt);
+            byte act = e.PhaseT > 0f ? Zombies.PhAct : (byte)0;
+            var p = NearestPlayer(e.Pos);
+            if (p != null && p.InvulnT <= 0f && p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.HitR + 4f)
+            {
+                Damage(p, e.Def.Contact * D(DiffKnob.EnemyDamage), "Bloater");
+                BroadcastFx(FxKind.Boom, e.Pos, e.Def.Color, Zombies.SporeRadius * 0.6f, 0.4f, Sfx.ZombieBurst);
+                e.Hp = 0f;  // it bursts on you (the spores come with its death, MaybeRise)
+            }
+            byte keep = (byte)(e.Phase & (Zombies.PhGrab | Zombies.PhCalled));
+            e.Phase = (byte)(keep | (e.FrenzyT > 0f ? Zombies.PhFrenzy : 0) | act);
+        }
+
+        /// (moved from ZombieSpecial, Shrieker)
+        void ZombieSpecial_Shrieker(Enemy e, V2 tpos, float dt)
+        {
+            e.FrenzyT = Math.Max(0f, e.FrenzyT - dt);
+            e.PhaseT = Math.Max(0f, e.PhaseT - dt);
+            if (e.T < 0.05f)
+                e.T2 = Rand(1.5f, 3f);  // not the moment it arrives
+            byte act = e.PhaseT > 0f ? Zombies.PhAct : (byte)0;
+            e.T2 -= dt;
+            if (e.T2 <= 0f)
+            {
+                e.T2 = Zombies.ShriekEvery;
+                e.PhaseT = 0.6f;
+                act = Zombies.PhAct;
+                BroadcastFx(FxKind.Ring, e.Pos, new Rgba(0.89f, 1f, 0.61f), Zombies.ShriekRange, 0.8f, Sfx.ZombieShriek);
+                foreach (var o in Enemies.Values)
+                    if (o != e && !o.Def.IsBoss && o.Pos.DistanceTo(e.Pos) < Zombies.ShriekRange)
+                    {
+                        o.FrenzyT = Zombies.FrenzyTime;
+                        o.RetargetT = 0f;  // and it turns on you
+                    }
+            }
+            byte keep = (byte)(e.Phase & (Zombies.PhGrab | Zombies.PhCalled));
+            e.Phase = (byte)(keep | (e.FrenzyT > 0f ? Zombies.PhFrenzy : 0) | act);
+        }
+
+        /// (moved from ZombieSpecial, Mender)
+        void ZombieSpecial_Mender(Enemy e, V2 tpos, float dt)
+        {
+            e.FrenzyT = Math.Max(0f, e.FrenzyT - dt);
+            e.PhaseT = Math.Max(0f, e.PhaseT - dt);
+            if (e.T < 0.05f)
+                e.T2 = Rand(1.5f, 3f);  // not the moment it arrives
+            byte act = e.PhaseT > 0f ? Zombies.PhAct : (byte)0;
+            e.T2 -= dt;
+            if (e.T2 <= 0f)
+            {
+                e.T2 = Zombies.MendEvery;
+                e.PhaseT = 0.6f;
+                act = Zombies.PhAct;
+                BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, Zombies.MendRange, 0.9f, Sfx.ZombieMend);
+                foreach (var o in Enemies.Values)
+                    if (o != e && !o.Def.IsBoss && o.Hp < o.MaxHp && o.Pos.DistanceTo(e.Pos) < Zombies.MendRange)
+                    {
+                        o.Hp = Math.Min(o.MaxHp, o.Hp + o.MaxHp * Zombies.MendHeal);
+                        BroadcastFx(FxKind.Link, e.Pos, o.Pos, e.Def.Color, 2f, 0.5f, Sfx.None);
+                    }
+            }
+            byte keep = (byte)(e.Phase & (Zombies.PhGrab | Zombies.PhCalled));
+            e.Phase = (byte)(keep | (e.FrenzyT > 0f ? Zombies.PhFrenzy : 0) | act);
+        }
+
+        /// (moved from ZombieSpecial, GraveCaller)
+        void ZombieSpecial_GraveCaller(Enemy e, V2 tpos, float dt)
+        {
+            e.FrenzyT = Math.Max(0f, e.FrenzyT - dt);
+            e.PhaseT = Math.Max(0f, e.PhaseT - dt);
+            if (e.T < 0.05f)
+                e.T2 = Rand(2.5f, 4f);  // not the moment it arrives
+            byte act = e.PhaseT > 0f ? Zombies.PhAct : (byte)0;
+            e.T2 -= dt;
+            if (e.T2 <= 0f && CallGraves(e, tpos))
+            {
+                e.T2 = Zombies.CallEvery;
+                e.PhaseT = 0.8f;
+                act = Zombies.PhAct;
+            }
+            else if (e.T2 <= 0f)
+                e.T2 = 1f;  // its four are up: it tries again in a moment
+            byte keep = (byte)(e.Phase & (Zombies.PhGrab | Zombies.PhCalled));
+            e.Phase = (byte)(keep | (e.FrenzyT > 0f ? Zombies.PhFrenzy : 0) | act);
+        }
+
+        /// (moved from ZombieSpecial: the part every type shares)
+        void ZombieSpecial_Plain(Enemy e, V2 tpos, float dt)
+        {
+            e.FrenzyT = Math.Max(0f, e.FrenzyT - dt);
+            e.PhaseT = Math.Max(0f, e.PhaseT - dt);
+            byte act = e.PhaseT > 0f ? Zombies.PhAct : (byte)0;
+            byte keep = (byte)(e.Phase & (Zombies.PhGrab | Zombies.PhCalled));
+            e.Phase = (byte)(keep | (e.FrenzyT > 0f ? Zombies.PhFrenzy : 0) | act);
+        }
+
+        // --- Brains (Docs/EnemyBehaviours.md step 8e) ------------------------------------------------------------------
+
+        static void ZombieBrains(Brain[] t)
+        {
+            t[(int)EnemyType.Shambler] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.ZombieMove_Shambler(e, p, d, di, ref sp)), Special = new CodeSpecial((g, e, p, dt) => g.ZombieSpecial_Plain(e, p, dt)), Fire = new HoldFire() };
+            t[(int)EnemyType.Runner] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.ZombieMove_Default(e, p, d, di, ref sp)), Special = new CodeSpecial((g, e, p, dt) => g.ZombieSpecial_Plain(e, p, dt)), Fire = new HoldFire() };
+            t[(int)EnemyType.Spitter] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.ZombieMove_Spitter(e, p, d, di, ref sp)), Special = new CodeSpecial((g, e, p, dt) => g.ZombieSpecial_Plain(e, p, dt)), Fire = new CodeFire((g, e, p, a) => g.SpitterFire(e, p)) };
+            t[(int)EnemyType.Crawler] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.ZombieMove_Crawler(e, p, d, di, ref sp)), Special = new CodeSpecial((g, e, p, dt) => g.ZombieSpecial_Crawler(e, p, dt)), Fire = new HoldFire() };
+            t[(int)EnemyType.Bloater] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.ZombieMove_Default(e, p, d, di, ref sp)), Special = new CodeSpecial((g, e, p, dt) => g.ZombieSpecial_Bloater(e, p, dt)), Fire = new HoldFire() };
+            t[(int)EnemyType.Shrieker] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.ZombieMove_Shrieker(e, p, d, di, ref sp)), Special = new CodeSpecial((g, e, p, dt) => g.ZombieSpecial_Shrieker(e, p, dt)), Fire = new HoldFire() };
+            t[(int)EnemyType.Mender] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.ZombieMove_Mender(e, p, d, di, ref sp)), Special = new CodeSpecial((g, e, p, dt) => g.ZombieSpecial_Mender(e, p, dt)), Fire = new HoldFire() };
+            t[(int)EnemyType.GraveCaller] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.ZombieMove_GraveCaller(e, p, d, di, ref sp)), Special = new CodeSpecial((g, e, p, dt) => g.ZombieSpecial_GraveCaller(e, p, dt)), Fire = new HoldFire() };
         }
     }
 }

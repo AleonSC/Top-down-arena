@@ -1,6 +1,6 @@
 # Enemy behaviour classes
 
-**Status: steps 0-7 built, step 8 in progress** (8a basic faction, 8b Variety, 8c non-shooters, 8d faction enemies). Owner's decision: a full per-enemy split, not family wrappers. Owner's decisions: every enemy moves to brains (not just the kin ones), and drawing stays separate. Code today: `Core/HiveKin.cs` (the kin table), `Core/PrisonKin.cs` (`IsBrute`, `IsLunger`),
+**Status: steps 0-7 built, step 8 in progress** (8a basic faction, 8b Variety, 8c non-shooters, 8d faction enemies, 8e zombies). Owner's decision: a full per-enemy split, not family wrappers. Owner's decisions: every enemy moves to brains (not just the kin ones), and drawing stays separate. Code today: `Core/HiveKin.cs` (the kin table), `Core/PrisonKin.cs` (`IsBrute`, `IsLunger`),
 `Core/EnemyAI.cs` (`MoveEnemy`, `Special`, `EnemyFire`), each faction's `*Faction.cs`. New: `Core/Brain.cs`, `Core/ShieldBrains.cs`, `Core/LungeBrains.cs`, `Core/ChaseBrains.cs`, `Core/RiotBrains.cs`, `Core/LobBrains.cs`, `Core/ShootBrains.cs`,
 `Tools/SimTest/Tests/AiTrace.cs`, `Tools/SimTest/Golden/aitrace.txt`.
 
@@ -310,6 +310,11 @@ method, so a new enemy can reuse any of them.
     `SquallMove`, `SquallSpecial` and `SquallFire` split per enemy. The Grounder's slow turn and shield are
     `GrounderMove` and `GrounderGuard` (its charge on a blocked shot moved out of Combat.cs into `Shot`); the Pylon
     never turns (a move lock). The Pylon and Grounder use `HoldFire`. `aitrace` identical; `squall` passes.
+- **8e, zombies (in `Core/Zombies.cs`):** Shambler, Runner, Spitter, Crawler, Bloater, Shrieker, Mender, Grave
+  Caller. `ZombieMove` and `ZombieSpecial` split per zombie; each copy keeps the shared parts (facing, the frenzy
+  speed-up and timers, the phase bits), and `ZombieSpecial_Plain` is the shared part alone for zombies with no special.
+  The arrival delay's type check became each one's own number. `ZombieFire` became `SpitterFire`; the rest use
+  `HoldFire`. `aitrace` identical; `zombies` passes.
 
 ## Risks
 
