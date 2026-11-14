@@ -147,7 +147,7 @@ namespace Arena
                 y += PartySlotH + PartyGap;
             }
             if (session.Status.Length > 0)
-                Ui.Label(new Rect(lx, y - 4f, lw, LobbyNoteY - (y - 4f)), session.Status, 12, Ui.Warn, TextAnchor.LowerLeft, false, true);
+                Ui.Label(new Rect(lx, y - 4f, lw, LobbySetupY - 6f - (y - 4f)), session.Status, 12, Ui.Warn, TextAnchor.LowerLeft, false, true);
 
             // --- Right: the tab keys, then your loadout or the practice waves.
             bool onLoadout = lobbyTab == 0 || lobbyTab == PerkTab;
@@ -338,7 +338,7 @@ namespace Arena
                 "Difficulty", hunt ? "Boss hunt" : null, null, null, practice ? "Training" : null,
                 session.QuickMode && !practice && !hunt && session.Resume == null ? "Quick Play" : null,
                 session.SurvivalMode && !practice && !hunt && session.Resume == null ? "Survival" : null };  // Hangout has its own key on the Party line
-            int[] order = { 4, QuickTab, SurvivalTab, 1, TrainingTab, 3, 2 };  // the mode's own first, then Difficulty and Modifiers (Loadout and Perks have keys)
+            int[] order = { 4, QuickTab, SurvivalTab, 1, TrainingTab };  // the mode's own (Loadout and Perks have keys; Difficulty and Modifiers are rows over Ready)
             // A carousel (like the mode carousel above the party): the open tab in the middle, the others in order either side,
             // smaller and fading toward the ends; the arrows, the mouse wheel or a click on a tab slide it.
             var shown = new System.Collections.Generic.List<int>();
@@ -346,6 +346,8 @@ namespace Arena
                 if (names[i] != null)
                     shown.Add(i);
             int n = shown.Count, open = shown.IndexOf(lobbyTab);
+            if (n == 0)
+                return;  // (Campaign: no tabs of its own)
             if (open >= 0)
                 tabRest = open;  // on the Loadout (not in the carousel) it rests where it was
             int cur = Mathf.Clamp(tabRest, 0, n - 1);
@@ -1675,11 +1677,31 @@ namespace Arena
 
         /// Ready and Start, the two big keys at the bottom of the party column (a guest's Ready takes the Start slot). Ready is lit
         /// once you are ready; Start is dim and dashed until everyone is.
+        /// Difficulty and Modifiers over Ready: two slim rows, each naming what's set ("DIFFICULTY · NORMAL",
+        /// "MODIFIERS · 2 ON"), lit while its tab is open; a click opens the tab (a second click goes back to the loadout).
+        void DrawLobbySetupKeys(float lx, float lw, bool calm)
+        {
+            int mods = Modifiers.Count(session.Modifiers);
+            string[] text = { "DIFFICULTY  ·  " + session.Diff.Name.ToUpperInvariant(), "MODIFIERS  ·  " + (mods > 0 ? mods + " ON" : "NONE") };
+            int[] tab = { 3, 2 };
+            string[] icon = { "ui_skull", "ui_card" };
+            for (int i = 0; i < 2; i++)
+            {
+                var r = new Rect(lx, LobbySetupY + i * (LobbySetupH + LobbySetupGap), lw, LobbySetupH);
+                if (LobbyKit.Key(r, text[i], lobbyTab == tab[i], calm, PixelArt.Get(icon[i]), size: 14, minSize: 11))
+                {
+                    lobbyTab = lobbyTab == tab[i] ? 0 : tab[i];
+                    CloseFavorites();
+                }
+            }
+        }
+
         void DrawLobbyActions(LobbyEntry me, bool practice)
         {
             const float lx = PartyX, lw = PartyW;
             bool host = session.IsHost, calm = fxReduced;
             bool ready = me != null && me.Ready;
+            DrawLobbySetupKeys(lx, lw, calm);
             var readyRect = host ? new Rect(lx, LobbyReadyY, lw, LobbyReadyH) : new Rect(lx, LobbyStartY, lw, LobbyStartH);
             if (LobbyKit.Key(readyRect, ready ? "READY!" : "READY?", ready, calm, PixelArt.Get("ui_check"), size: 22, minSize: 14, accent: ready ? Ui.Good : (Color?)null))
                 session.RequestReady(!ready);

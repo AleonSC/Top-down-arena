@@ -1240,7 +1240,7 @@ everyone straight into any of the five.
 
 ## Run modifiers
 
-The lobby's **Modifiers** tab lists 19 switches (tiles in two columns, each with an icon, its name, what it does and an ON/OFF key like Ready's, grouped under **Easier**, **Risky** and **Harder**
+The lobby's **Modifiers** tab (the **MODIFIERS** row over Ready, which shows how many are on) lists 19 switches (tiles in two columns, each with an icon, its name, what it does and an ON/OFF key like Ready's, grouped under **Easier**, **Risky** and **Harder**
 headings, each tile marked with its tier's colour; click anywhere on a tile to switch it) that change the whole run, for everyone (Practice
 Range too). The host turns them on and off; the others see them, and changing one takes back everyone's Ready. Active
 ones show as chips above the wave panel during the match, and session recordings list them. Each tier has its own heading;
@@ -1271,7 +1271,7 @@ computer). When the open tiers don't fit, the list scrolls with the mouse wheel.
 
 ## Difficulty
 
-The lobby's **Difficulty** tab: the host picks one of five cards, and everyone sees it (changing it takes back
+The lobby's **Difficulty** tab (the **DIFFICULTY** row over Ready, which names the current one): the host picks one of five cards, and everyone sees it (changing it takes back
 everyone's Ready). It applies to the whole run, Practice Range too, is kept in saved runs (a continued run keeps its
 difficulty), shows as a chip above the wave panel during the match (not on Normal), and is written in session
 recordings. **Custom** lets the host set every number below with a slider or by typing it in the box beside it

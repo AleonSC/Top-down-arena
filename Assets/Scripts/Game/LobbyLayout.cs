@@ -32,6 +32,8 @@ namespace Arena
         const float PartyTop = 176f;      // the top of the first party card
         const float PartyCardH = 84f, PartySlotH = 80f, PartyGap = 10f;  // the first card 84, the others and the open slots 80
         const float LobbyNoteY = 548f;    // who we're waiting for, just above Ready
+        /// The Difficulty and Modifiers rows over Ready (DrawLobbySetupKeys, LobbyUi.cs).
+        const float LobbySetupY = 470f, LobbySetupH = 34f, LobbySetupGap = 6f;
         const float LobbyReadyY = 586f, LobbyReadyH = 48f, LobbyStartY = 640f, LobbyStartH = 44f;  // Ready over Start (a guest's Ready takes the Start slot)
 
         // --- Right: the tab keys and the big screen ---------------------------------------------------------------------------------
@@ -44,7 +46,7 @@ namespace Arena
         static Rect LobbyLoadoutKey => new Rect(LobbyBodyRect.x, 32f, LobbyLoadoutKeyW, 30f);
         /// The Saved loadouts star (FavoritesUi.cs): a small square key just right of the Loadout key.
         static Rect LobbySavedKey => new Rect(LobbyLoadoutKey.xMax + 3f, 32f, 30f, 30f);
-        /// The tab carousel (difficulty, modifiers, the mode's own tabs), beside the Saved star.
+        /// The tab carousel (the mode's own tabs; Difficulty and Modifiers are rows over Ready), beside the Saved star.
         static Rect LobbyTabsRect => new Rect(LobbySavedKey.xMax + LobbyTabsGap, 32f, LobbyBodyRect.xMax - LobbySavedKey.xMax - LobbyTabsGap, 30f);
 
         // --- The bands the entrances and exits cut the lobby into ----------------------------------------------------------------------
@@ -66,8 +68,8 @@ namespace Arena
         static Rect LobbyModeBand => new Rect(0f, LobbyModeBandY, LobbySplit, LobbyPartyBandY - LobbyModeBandY);
         static Rect LobbyPartyLineBand => new Rect(0f, LobbyPartyBandY, LobbySplit, LobbyCardsBandY - LobbyPartyBandY);
         static Rect LobbyYourCardBand => new Rect(0f, LobbyCardsBandY, LobbySplit, LobbyCardsBandEnd - LobbyCardsBandY);
-        static Rect LobbyOtherSlotsBand => new Rect(0f, LobbyCardsBandEnd, LobbySplit, LobbyNoteY - LobbyCardsBandEnd);
-        static Rect LobbyActionsBand => new Rect(0f, LobbyNoteY, LobbySplit, H - LobbyNoteY);
+        static Rect LobbyOtherSlotsBand => new Rect(0f, LobbyCardsBandEnd, LobbySplit, LobbySetupY - 4f - LobbyCardsBandEnd);
+        static Rect LobbyActionsBand => new Rect(0f, LobbySetupY - 4f, LobbySplit, H - (LobbySetupY - 4f));  // Difficulty, Modifiers, Ready and Start
         static Rect LobbyTabsBand => new Rect(LobbySplit, 0f, W - LobbySplit, LobbyTabsBandEnd);
         static Rect LobbyBodyBand => new Rect(LobbySplit, LobbyTabsBandEnd, W - LobbySplit, H - LobbyTabsBandEnd);
     }
