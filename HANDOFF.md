@@ -106,6 +106,14 @@ notes (function names, message flow) are in `Docs/CodeNotes.md`, kept as a refer
   `AbilityDef.HealthCost` (share of max health, or of current with `CostsCurrent`), paid in `HostAbility` before the
   cast, never below 1 HP.
 
+### Adding an enemy
+
+Every non-boss enemy runs on a **brain** (Docs/EnemyBehaviours.md): parts for its move (and turning, touch damage),
+special, fire and shield, plus role flags. Add a line to its family's `...Brains(t)` (e.g. `ShootBrains` in
+`Core/ShootBrains.cs`), reusing parts or wiring a new method with `CodeMove`/`CodeSpecial`/`CodeFire`; looks stay in
+`Game/*Look.cs`. `Tools/SimTest/run.sh 1 1 aitrace` fails until it has one; then `AITRACE=update` adds its line to
+`Golden/aitrace.txt`.
+
 ### Adding a screen or a menu row
 
 UI code is built from four small pieces (all CRT look; `Ui.cs` is drawing primitives only):

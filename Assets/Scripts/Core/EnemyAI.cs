@@ -709,18 +709,11 @@ namespace Arena
         void Face(Enemy e, V2 tpos, float dt)
         {
             float want = (tpos - e.Pos).Angle;
-            if (e.Type == EnemyType.HiveBomber)
-                return;  // committed to the flight line (a lunger's leap, a Charger's dash, a Spike Block's lunge: their brains)
             if (LarderFaceLocked(e))
                 return;  // a Butcher's chop, a Gulper's cone (LarderFaction.cs)
             var brain = BrainOf(e.Type);
             if (brain != null && brain.Move != null && brain.Move.Turn(this, e, want, tpos, dt))
                 return;  // its own turning, e.g. a shield bearer's (Brain.cs)
-            if (e.Type == EnemyType.RiotCaptain)
-            {
-                CaptainFace(e, want, dt);  // RiotCaptain.cs
-                return;
-            }
             e.Facing = want;
         }
 
@@ -731,11 +724,6 @@ namespace Arena
             if (brain != null && brain.Guard != null)
             {
                 brain.Guard.Wear(this, e, amount);  // a shield bearer's (ShieldBrains.cs)
-                return;
-            }
-            if (e.Type == EnemyType.RiotCaptain)
-            {
-                CaptainShieldStruck(e);  // it never breaks (RiotCaptain.cs)
                 return;
             }
             if (e.Type == EnemyType.Boss && e.Warden != null)
@@ -775,8 +763,6 @@ namespace Arena
             var brain = BrainOf(e.Type);
             if (brain != null && brain.Guard != null)
                 return brain.Guard.Blocks(this, e, from);  // Brain.cs
-            if (e.Type == EnemyType.RiotCaptain)
-                return CaptainShieldBlocks(e, from);  // RiotCaptain.cs
             return false;
         }
 
@@ -840,16 +826,6 @@ namespace Arena
             {
                 switch (e.Type)
                 {
-                    case EnemyType.HiveBomber:  // a straight line to the spot it was launched at; Swarm's flankers swoop round (Queen.cs)
-                        if (e.Phase >= 1)
-                        {
-                            v = FlankerMove(e, dt);
-                            if (e.Phase == 2)
-                                speed *= FlankDive;
-                        }
-                        else
-                            v = e.Waypoint - e.Pos;
-                        break;
                     case EnemyType.Boss:
                         v = WardenMove(e, tpos, ref speed);  // Warden.cs
                         break;
@@ -864,14 +840,8 @@ namespace Arena
                         v = DualMove(e, tpos, ref speed);  // Reapers.cs
                         break;
                 }
-                if (e.Type == EnemyType.Gutworm)
-                    v = dir;  // straight at you, on the surface or under it (LarderFaction.cs)
                 if (IsLateGame(e.Type))
                     v = LateMove(e, tpos, dir, dist, dt, ref speed);
-                if (Challenges.Own(e.Type))
-                    v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
-                if (e.Type == EnemyType.RiotCaptain)
-                    v = CaptainMove(e, dir, dist, ref speed);  // RiotCaptain.cs
             }
             if (RoomsOn && !e.Def.IsBoss && !e.Def.Melee && e.Home < 0 && dist > 0.01f && SegBlocked(ActiveLayout, e.Pos, tpos, 4f))
                 v = dir;  // the Rooms map: a shooter with a wall between it and you comes round (steered) instead of holding its distance behind the wall
@@ -905,25 +875,11 @@ namespace Arena
         /// Behaviour that isn't just "shoot when the timer runs out".
         void Special(Enemy e, V2 tpos, float dt)
         {
-            if (Challenges.Own(e.Type))
-            {
-                RoomSpecial(e, tpos, dt);  // Challenges.cs
-                return;
-            }
-            if (e.Type == EnemyType.RiotCaptain)
-            {
-                CaptainSpecial(e, tpos, dt);  // RiotCaptain.cs
-                return;
-            }
             if (IsLateGame(e.Type) && BrainOf(e.Type) == null)
             {
                 LateSpecial(e, tpos, dt);  // the late bosses (late-game enemies have brains: LateGame.cs)
                 return;
             }
-            if (e.Type == EnemyType.Mummer && MummerSpecial(e, tpos, dt))
-                return;  // masked: it circles you with its copies and fires; no lunge (CourtFaction.cs)
-            if (e.Type == EnemyType.Gutworm)
-                GutwormSpecial(e, tpos, dt);  // dives, chases, marks, erupts (LarderFaction.cs)
             var brain = BrainOf(e.Type);
             if (brain != null && brain.Special != null)
                 brain.Special.Tick(this, e, tpos, dt);  // Brain.cs
@@ -949,19 +905,6 @@ namespace Arena
                 case EnemyType.HiveQueen:
                     QueenSpecial(e, tpos, dt);  // Queen.cs: her stages and turns
                     break;
-                case EnemyType.HiveBomber:
-                {
-                    // A flanker at its flank point turns in toward its target (Queen.cs).
-                    if (e.Phase == 1 && (e.Pos.DistanceTo(e.Waypoint) < FlankArrive || e.T > FlankMaxOut))
-                        FlankerTurnIn(e);
-                    // Blows up when it reaches the spot it was launched at, or on touching anyone on the way.
-                    bool hit = e.Phase != 1 && e.Pos.DistanceTo(e.Waypoint) < 12f;
-                    foreach (var p in Players.Values)
-                        hit |= !p.Downed && p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.HitR;
-                    if (hit)
-                        BomberExplode(e);
-                    break;
-                }
                 case EnemyType.Singularity:
                     SingularitySpecial(e, dt);  // Singularity.cs
                     break;
@@ -971,11 +914,10 @@ namespace Arena
         void EnemyFire(Enemy e, V2 tpos)
         {
             float aim = (tpos - e.Pos).Angle;
-            if (Challenges.Own(e.Type) && RoomFire(e, tpos, aim))
-                return;  // Challenges.cs
-            if (e.Type == EnemyType.RiotCaptain)
+            var brain = BrainOf(e.Type);
+            if (brain != null && brain.Fire != null)
             {
-                e.FireT = 99f;  // its attacks are its Special (RiotCaptain.cs)
+                brain.Fire.Fire(this, e, tpos, aim);  // Brain.cs (first: a challenge room's enemy fires its own way before the melee rule)
                 return;
             }
             if (IsLateGame(e.Type) && BrainOf(e.Type) == null)
@@ -986,12 +928,6 @@ namespace Arena
             if (e.Def.Melee)
             {
                 e.FireT = 99f;  // melee enemies don't shoot
-                return;
-            }
-            var brain = BrainOf(e.Type);
-            if (brain != null && brain.Fire != null)
-            {
-                brain.Fire.Fire(this, e, tpos, aim);  // Brain.cs
                 return;
             }
             switch (e.Type)

@@ -1,8 +1,18 @@
 # Enemy behaviour classes
 
-**Status: steps 0-7 built, step 8 in progress** (8a basic faction, 8b Variety, 8c non-shooters, 8d faction enemies, 8e zombies). Owner's decision: a full per-enemy split, not family wrappers. Owner's decisions: every enemy moves to brains (not just the kin ones), and drawing stays separate. Code today: `Core/HiveKin.cs` (the kin table), `Core/PrisonKin.cs` (`IsBrute`, `IsLunger`),
-`Core/EnemyAI.cs` (`MoveEnemy`, `Special`, `EnemyFire`), each faction's `*Faction.cs`. New: `Core/Brain.cs`, `Core/ShieldBrains.cs`, `Core/LungeBrains.cs`, `Core/ChaseBrains.cs`, `Core/RiotBrains.cs`, `Core/LobBrains.cs`, `Core/ShootBrains.cs`,
-`Tools/SimTest/Tests/AiTrace.cs`, `Tools/SimTest/Golden/aitrace.txt`.
+**Status: built (steps 0-8).** Every non-boss enemy runs on a brain; the kin table is gone. Bosses keep their own code
+(out of scope). Owner's decisions: every enemy moves to brains, split per enemy (not family wrappers); drawing stays
+separate.
+
+Code: `Core/Brain.cs` (the parts, roles, registry), one file per family (`ShieldBrains.cs`, `LungeBrains.cs`,
+`ChaseBrains.cs`, `RiotBrains.cs`, `LobBrains.cs`, `ShootBrains.cs`, `BasicBrains.cs`, `VarietyBrains.cs`,
+`BossAddBrains.cs`), and a brains section at the end of `NonShooters.cs`, `ReaperFaction.cs`, `Infall.cs`,
+`Penumbral.cs`, `Squall.cs`, `Zombies.cs` and `LateGame.cs`. Safety net: `Tools/SimTest/Tests/AiTrace.cs`,
+`Tools/SimTest/Golden/aitrace.txt`.
+
+**Adding an enemy:** give it a brain in its family's `...Brains(t)` (reuse parts, or write a method and wire it with
+`CodeMove`/`CodeSpecial`/`CodeFire`); `aitrace` fails if a non-boss type has none. Then `AITRACE=update` to add its
+line to the golden file.
 
 ## Problem
 
@@ -151,7 +161,7 @@ Each step moves one family. Each step has to leave `aitrace` IDENTICAL and needs
 | 5 ✓ | Lobbers | Gas Grenadier, Honey Lobber, Rock Hurler, Bile Spitter, Dusk Lobber, Marshal |
 | 6 ✓ | Shooters | Taser Guard, Stinger, Geomancer, Cinder Priest, Maw Priest, Gallant; Security Guard, Needler, Second |
 | 7 ✓ | Remove the kin table | `HiveKin`, `Enemy.Kin`, the old cases; `IsBrute` etc. read only `Roles` |
-| 8 | The rest (in scope: owner's decision) | basic faction, Penumbral, Infall, Squall, Reaper cult, zombies, late-game enemies |
+| 8 ✓ | The rest (in scope: owner's decision) | basic faction, Penumbral, Infall, Squall, Reaper cult, zombies, late-game enemies |
 
 - **After step 7:** a faction enemy is one `BuildBrains` line plus its look.
 - **Mixing parts:** an enemy can combine any parts, e.g. `Move = Lunge, Guard = new ShieldGuard()` for a shield that
@@ -272,7 +282,7 @@ Each step moves one family. Each step has to leave `aitrace` IDENTICAL and needs
   enemy moves with the same kind of part as its Warden counterpart (`SameMove`, AiTrace.cs).
 - **Checked:** `aitrace` identical for all 128 types; `RenderCheck` IDENTICAL to the step 6 commit.
 
-## Step 8: every other enemy (in progress)
+## Step 8: every other enemy (built)
 
 Done one family at a time (8a, 8b, ...). Each enemy's code moves out of `EnemyAI.cs`'s type switches unchanged into
 its own method; its parts call that method. Generic parts: `CodeFire` and `CodeSpecial` (BasicBrains.cs) run a given
@@ -320,6 +330,14 @@ method, so a new enemy can reuse any of them.
   reached only by types without a brain. Every late enemy's clock tick is `LateClock`; the ones that never shoot use
   `HoldFire` (the old `LateFire` default set `FireT` to 99). The Juggernaut's touch damage is `KeepMove`'s `contact`.
   `aitrace` identical. (`AITRACE_DUMP=<type>` prints a type's frames, to diff two commits when a line changes.)
+- **8f, the rest (`Core/BossAddBrains.cs`):** Hive Bomber (`BomberMove`, `BomberSpecial`), Gutworm, Riot Captain
+  (`CaptainMovePart`, `CaptainGuard`, `HoldFire`), the challenge rooms' Gatekeeper and Shadow (`RoomMove`,
+  `RoomSpecial`, `RoomFirePart`), the Mummer's mask (`MaskSpecial` wraps its lunge), and the adds their boss moves
+  itself (Cage Well, Hive Egg, Reaper Pillar, Singularity shard, Ball Lightning, Mummer copy, Portal: a still move).
+  The brain fire hook now runs first in `EnemyFire`, since a room enemy's `RoomFire` ran before the melee rule (every
+  melee brain with a fire part uses `HoldFire`, which matches that rule).
+- **What's left in `EnemyAI.cs`'s switches:** the bosses only. `aitrace` now also checks every non-boss enemy has a
+  brain.
 
 ## Risks
 

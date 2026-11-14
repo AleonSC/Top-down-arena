@@ -122,6 +122,7 @@ namespace Arena
             SquallBrains(t);      // step 8d (Squall.cs)
             ZombieBrains(t);      // step 8e (Zombies.cs)
             LateBrains(t);        // step 8f (LateGame.cs)
+            BossAddBrains(t);     // step 8f (BossAddBrains.cs; after LungeBrains: it wraps the Mummer's)
             return t;
         }
     }

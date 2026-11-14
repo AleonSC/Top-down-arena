@@ -129,6 +129,11 @@ static partial class Program
 
     static void AiTraceTest()
     {
+        var noBrain = new List<EnemyType>();
+        for (int i = 0; i < Defs.Enemies.Length; i++)
+            if (Defs.Enemies[i] != null && !Defs.Enemies[i].IsBoss && Game.BrainOf((EnemyType)i) == null)
+                noBrain.Add((EnemyType)i);
+        Check(noBrain.Count == 0, "every non-boss enemy has a brain (Docs/EnemyBehaviours.md)" + (noBrain.Count > 0 ? ": missing " + string.Join(", ", noBrain) : ""));
         bool timed = TimedWaves.Enabled;
         string now = AiTraceText();
         string again = AiTraceText(6);
