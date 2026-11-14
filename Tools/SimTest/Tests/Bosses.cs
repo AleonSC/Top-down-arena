@@ -579,13 +579,15 @@ static partial class Program
             foreach (var r in g.Enemies.Values) if (r.Type == EnemyType.Rioter) r.Pos = new V2(1450f, 780f);  // held in the corner for the guards
         });
         int afterBeating = g.Enemies.Values.Count(e => e.Type == EnemyType.Rioter);
-        float gap0 = g.Enemies.Values.Where(e => e.Type == EnemyType.Guard).Select(e => Math.Min(e.Pos.DistanceTo(me.Pos), e.Pos.DistanceTo(friend.Pos))).DefaultIfEmpty(9999f).Min();
+        var guardsAt = g.Enemies.Values.Where(e => e.Type == EnemyType.Guard).ToDictionary(e => e.Id, e => e.Pos);  // where each guard stands once the rioters are down
         Run(s, dt, 3f, null, () => { me.Pos = new V2(60f, 60f); friend.Pos = new V2(1540f, 60f); cg.Players[2].Pos = friend.Pos; foreach (var p in g.Players.Values) p.InvulnT = 1f; });
-        float gap1 = g.Enemies.Values.Where(e => e.Type == EnemyType.Guard).Select(e => Math.Min(e.Pos.DistanceTo(me.Pos), e.Pos.DistanceTo(friend.Pos))).DefaultIfEmpty(9999f).Min();
-        Console.WriteLine("  warden guards: {0} rioters before, {1} when {2} guards came (client saw them {3}), {4} after the beating; nearest guard to a player {5:0} -> {6:0} px",
-            before, atGuards, guards, clientGuards, afterBeating, gap0, gap1);
+        // Each guard heads for one of the two players (not always the nearer one), so count the guards that got closer to either.
+        int closing = g.Enemies.Values.Count(e => e.Type == EnemyType.Guard && guardsAt.ContainsKey(e.Id)
+            && (e.Pos.DistanceTo(me.Pos) < guardsAt[e.Id].DistanceTo(me.Pos) - 30f || e.Pos.DistanceTo(friend.Pos) < guardsAt[e.Id].DistanceTo(friend.Pos) - 30f));
+        Console.WriteLine("  warden guards: {0} rioters before, {1} when {2} guards came (client saw them {3}), {4} after the beating; {5} of {6} guards closing on a player",
+            before, atGuards, guards, clientGuards, afterBeating, closing, guardsAt.Count);
         Check(before >= 18 && guards >= 3 && clientGuards, "the riot pours out 9 a door; rioters left at 10 s bring the guards (everyone sees them)");
-        Check(afterBeating < atGuards && gap1 < gap0, "the guards beat the rioters down, then come for the players");
+        Check(afterBeating < atGuards && guardsAt.Count > 0 && closing * 2 >= guardsAt.Count, "the guards beat the rioters down, then come for the players");
 
         // The last stand below 10%: the rioters scatter.
         w.Hp = w.MaxHp * 0.09f;

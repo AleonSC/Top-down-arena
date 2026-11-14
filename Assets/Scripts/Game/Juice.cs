@@ -147,7 +147,7 @@ namespace Arena
         string introName = "";
 
         /// A boss's entrance card holds the HUD off screen (it slides away as the card comes in, and back as it fades).
-        bool BossIntroHoldsHud => introT > 0.35f;
+        bool BossIntroHoldsHud => introT > 0.35f || WardenIntroHoldsHud;
 
         /// The card has the HUD off, from when it comes in until the HUD is fully back (the slim boss bars stay away meanwhile).
         bool introHidHud;
@@ -176,6 +176,7 @@ namespace Arena
             ClearDpsGunLooks();  // DpsGunLooks.cs
             ClearAirTrails();  // AirTrailLooks.cs
             trauma = holdT = holdGap = hurtTint = introT = 0f;
+            wardenIntroT = -1f;
             myHp = -1f; myLevel = -1; myLegendaries = -1;
             heldFrame = false;
             radiantTrails.Clear();
@@ -459,7 +460,12 @@ namespace Arena
                     s.Hp = e.Hp; s.Squash = s.Flash = s.Dmg = s.DmgT = s.Owed = 0f;
                     s.HitFlash = e.Flash;
                     seenEnemies[e.Id] = s;
-                    if ((e.Def.IsBoss || e.Def.Mini) && e.Type != EnemyType.TwinB && e.Type != EnemyType.DualReaper && (introWave != game.Wave || e.Def.Mini) && game.State == MatchState.Fighting
+                    if (e.Type == EnemyType.Boss && game.IsSpawning(e) && game.State == MatchState.Fighting && introWave != game.Wave)
+                    {
+                        introWave = game.Wave;
+                        StartWardenIntro(e);  // the Warden's own entrance in place of the card (WardenIntro.cs)
+                    }
+                    else if ((e.Def.IsBoss || e.Def.Mini) && e.Type != EnemyType.TwinB && e.Type != EnemyType.DualReaper && (introWave != game.Wave || e.Def.Mini) && game.State == MatchState.Fighting
                         && !(e.Def.Mini && game.RoomsOn))  // (the Rooms arena's vault mini-boss is optional: no fanfare)
                     {
                         introWave = game.Wave;
@@ -672,6 +678,7 @@ namespace Arena
             trauma = Mathf.Max(0f, trauma - realDt * 1.8f);
             hurtTint = Mathf.Max(0f, hurtTint - realDt * 2.2f);
             introT = Mathf.Max(0f, introT - realDt);
+            TickWardenIntro(realDt);  // WardenIntro.cs
         }
 
         // --- Bullet endings: what a shot does as it goes, by why it went ---------------------------------------------------
@@ -1291,6 +1298,7 @@ namespace Arena
                 Ui.Label(new Rect(0f, H / 2f + 12f, W, 26f), "WAVE " + game.ShownWave, 17, new Color(0.9f, 0.93f, 0.97f, 0.9f), TextAnchor.MiddleCenter, true);
                 GUI.color = old;
             }
+            DrawWardenIntroBand();  // WardenIntro.cs
         }
     }
 }

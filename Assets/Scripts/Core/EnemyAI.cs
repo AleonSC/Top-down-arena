@@ -247,7 +247,11 @@ namespace Arena
             // From wave 12, regular enemies can show up as tougher elites.
             bool elite = RollElite(d);
             spawnHome = home;
-            SpawnEnemyAt(type, pos, d.IsBoss ? 1.5f : 0.9f, 0, elite);  // bosses take longer to appear, so you can step out of the middle
+            // Bosses take longer to appear, so you can step out of the middle. The Warden's entrance (its Lockdown cell,
+            // Game/WardenIntro.cs) holds it, and the escort behind it, until the cell breaks open.
+            SpawnEnemyAt(type, pos, type == EnemyType.Boss ? WardenIntroTime : d.IsBoss ? 1.5f : 0.9f, 0, elite);
+            if (type == EnemyType.Boss)
+                spawnTimer = Math.Max(spawnTimer, WardenIntroTime);
             spawnHome = -1;
         }
 

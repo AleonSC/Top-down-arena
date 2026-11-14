@@ -436,7 +436,9 @@ namespace Arena
             V2 pos = e.Disp;
             float r = (e.Type == EnemyType.Singularity ? e.Def.Radius : e.Radius) * JuiceScale(e);  // its Radius grows with the event horizon (SingularityLook.cs); JuiceScale: a hit's bulge (Juice.cs)
             bool spawning = game.IsSpawning(e);
-            if (spawning)
+            if (spawning && e.Type == EnemyType.Boss && WardenIntroOn)
+                col = WardenIntroBody(col);  // a silhouette in its cell, lit as the lock shuts (WardenIntro.cs)
+            else if (spawning)
             {
                 Arc(pos, r + 6f + 4f * Mathf.Sin(t * 12f), 2f, col.WithAlpha(0.6f), 32);
                 col = col.WithAlpha(0.35f);
