@@ -256,6 +256,13 @@ static partial class Shot {
       for (int i = 0; i < 5; i++) {
         var at = new V2(800f + (i - 2) * 105f, 410f);
         bool tz = Environment.GetEnvironmentVariable("SECSHIRT") == "2" && i > 0;  // SECSHIRT=2: Taser Guards instead (idle, charging)
+        if (Environment.GetEnvironmentVariable("SECSHIRT") == "3" && i > 0) {  // SECSHIRT=3: Riot Shields instead (walking, winding up, cracked, broken)
+          var rs = (Enemy)spawn.Invoke(gm, new object[] { EnemyType.RiotShield, at, 0f, 0, false });
+          rs.SpawnT = 0f; rs.Pos = rs.Disp = at; rs.Facing = (me.Pos - at).Angle;
+          var stc = new[] { 0, Game.RiotWalk << 3, Game.RiotWinding << 3, Game.RiotWalk << 3 | 3, Game.RiotFlail << 3 | Game.RiotCracked };
+          rs.Phase = (byte)stc[i];
+          continue;
+        }
         var en = (Enemy)spawn.Invoke(gm, new object[] { i == 0 ? EnemyType.Guard : tz ? EnemyType.TaserGuard : EnemyType.SecurityGuard, at, 0f, 0, false });
         en.SpawnT = 0f; en.Pos = en.Disp = at; en.Facing = (me.Pos - at).Angle;
         if (tz) en.Winding = i >= 3;
