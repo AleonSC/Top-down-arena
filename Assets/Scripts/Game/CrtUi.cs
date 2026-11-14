@@ -106,17 +106,20 @@ namespace Arena
         }
 
         /// Scanlines, vignette and (unless calm) the rolling bar and flicker, over everything drawn since Begin.
-        public static void End(Rect r, float t, bool calm)
+        public static void End(Rect r, float t, bool calm) => End(r, t, calm, 1f);
+
+        /// The same glass with its scanlines and dark corners at `alpha` (a see-through tube, e.g. the minimized Ready strip).
+        public static void End(Rect r, float t, bool calm, float alpha)
         {
             if (Event.current.type != EventType.Repaint)
                 return;
-            var line = new Color(0f, 0f, 0f, calm ? 0.16f : 0.26f);
+            var line = new Color(0f, 0f, 0f, (calm ? 0.16f : 0.26f) * alpha);
             for (float y = r.y + 1f; y < r.yMax; y += 3f)
                 Ui.Fill(new Rect(r.x, y, r.width, 1f), line);
             for (int i = 0; i < 8; i++)  // dark corners: strips a few pixels deep, fading inward
             {
                 float k = 1f - i / 8f, d = i * 3f;
-                var v = new Color(0f, 0f, 0f, 0.34f * k * k);
+                var v = new Color(0f, 0f, 0f, 0.34f * k * k * alpha);
                 Ui.Fill(new Rect(r.x, r.y + d, r.width, 3f), v);
                 Ui.Fill(new Rect(r.x, r.yMax - d - 3f, r.width, 3f), v);
                 Ui.Fill(new Rect(r.x + d, r.y, 3f, r.height), v);
