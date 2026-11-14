@@ -107,3 +107,10 @@ owner's own runs feel, then move the base, the slope or the phase length (`Survi
 - Spawns: outside every player's view (880 x 500 px around each), clear of walls, the nearest qualifying spot to a player so enemies do not cross the room.
 - Orientation: the Rooms arena's own aids already work in the big room (no new code): a **minimap** top right (the room, your view and the enemies as dots) and **off-screen arrows** at the view's edge for the nearest 40 enemies, teammates and bosses (`OffscreenMarkers.cs`, `RoomsLook.cs`). Preview with `SURVIVAL=312 SURVPOS=1600,800`.
 - Open: whether the room wants more cover than the plus and brackets; - (built) crowded arrows merge into one with a count in Survival: 28 direction slices, the nearest enemy of a slice places the arrow, preview `SURVMARKS=45`.
+
+## Fixes after the first play (lag, ramp, background)
+
+- **Lag on loading in:** the room's props were all drawn every frame (each crate is a glowing hologram) and all 220 played their drop-in animation, with a puff of dust, at once when a run loaded. Props are now drawn only when in view (any zoomed or following camera), arrive already landed in Survival, and the room holds 120 crates, 40 pots and 8 barrels (was 160/50/10).
+- **Slow, melee-first ramp:** no shooters for two minutes (`Survival.RangedFrom`), then they ramp in over three (`RangedRamp`); the budget starts at about a third (`EaseIn`, 117 s); a weak enemy costs at least 0.6 of a Grunt, so swarms are not free. Bots (skill 2, `survbal`) fall at a median of about 6.2 / 7.1 / 8.1 min for 1 / 2 / 3 players: a little earlier than before, as melee swarms are what they handle worst; a person should do better.
+- **Held world:** while someone picks a level-up card the enemies no longer tick at all (before, they could still touch you for a hit).
+- **Background:** the lobby background was only really visible in the classic arena's corner (the boss-colour floor wash covered only that part of the big room, and the colour followed the clock's wave). The wash is now flat over the whole room and the walls and floor keep one colour.

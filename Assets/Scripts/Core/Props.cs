@@ -843,7 +843,7 @@ namespace Arena
             if (s.Reading)
             {
                 if (!Props.TryGetValue(id, out p))
-                    Props[id] = p = new Prop { Id = id, Kind = (PropKind)kind, Seed = seed, Hp = hp };
+                    Props[id] = p = new Prop { Id = id, Kind = (PropKind)kind, Seed = seed, Hp = hp, Age = SurvivalOn ? 1f : 0f };  // (Survival's room is full of props the moment a run loads: they are just there, no drop-in each)
                 if (hp < p.Hp)
                     p.HitT = 0.15f;
                 if (open && !p.Open)

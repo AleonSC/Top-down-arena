@@ -12,8 +12,12 @@ namespace Arena
 
         void DrawProps(float t)
         {
+            bool cull = CamZoomed;  // zoomed in or following you (Survival's big room holds hundreds of props): only draw what is in view
+            float cx = camFocus.X, cy = camFocus.Y, chx = AW / (2f * camZoom) + 180f, chy = AH / (2f * camZoom) + 180f;
             foreach (var p in game.Props.Values)
             {
+                if (cull && (Mathf.Abs(p.Pos.X - cx) > chx + Game.HalfW(p) || Mathf.Abs(p.Pos.Y - cy) > chy + Game.HalfH(p)))
+                    continue;
                 // Dropping in: it falls from a little above, then a puff of dust where it lands.
                 float drop = Mathf.Clamp01(p.Age / 0.3f), lift = (1f - drop * drop) * 40f;
                 float a = Mathf.Clamp01(p.Age / 0.15f);
