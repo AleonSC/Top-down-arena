@@ -374,7 +374,7 @@ namespace Arena
         /// for the next boss's countdown and fight, since the bosses' mechanics use the whole arena.
         V2 TinyTarget()
         {
-            if (!Has(RunMod.TinyArena) || Practice != null || State == MatchState.Idle)
+            if (!Has(RunMod.TinyArena) || Practice != null || State == MatchState.Idle || SurvivalOn)
                 return V2.Zero;
             int upcoming = State == MatchState.Intermission ? Wave + 1 : Wave;  // (the regular wave; the boss between waves keeps the number)
             if (State == MatchState.Intermission ? BossNext : BossNow)

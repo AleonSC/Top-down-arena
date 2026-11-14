@@ -72,6 +72,15 @@ namespace Arena
         public const float ThroesFuse = 0.5f, ThroesSpeed = 120f;               // Death Throes: a small ring, a moment after the kill
         public const float SecondWindTime = 2f;                                 // down this long, then up at half health
 
+        /// Survival's one big walled room has no shop, no bosses and no plain arena: these have nothing to act on there.
+        public const RunMod NotInSurvival = RunMod.TinyArena | RunMod.SolidWalls | RunMod.GoldRush | RunMod.SimpleArena;
+
+        /// The modifiers that actually do something in a mode (survival: the Survival mode).
+        public static RunMod Active(RunMod mods, bool survival) => survival ? mods & ~NotInSurvival : mods;
+
+        /// Survival's Cluttered: this many times the room's usual crates (kept so the room holds under 255 props: the snapshot's count is a byte).
+        public const float SurvivalClutter = 1.6f;
+
         public static int Count(RunMod mods)
         {
             int n = 0;
@@ -96,14 +105,14 @@ namespace Arena
         /// The run's modifiers (host: copied from the lobby when the match starts; clients: told by the host).
         public RunMod Mods;
 
-        public bool Has(RunMod m) => (Mods & m) != 0;
+        public bool Has(RunMod m) => (Modifiers.Active(Mods, SurvivalOn) & m) != 0;  // (one that does nothing in this mode reads as off)
 
         /// Hunted: the player every enemy goes for this wave (0: nobody). Replicated.
         public int HuntedId;
 
         public bool IsHunted(Player p) => p != null && HuntedId == p.Id && Has(RunMod.Hunted);
 
-        /// Host, as a wave starts: Hunted picks its quarry; Second Wind comes back at the start of each boss cycle.
+        /// Host, as a wave starts (Survival: each 30 s of its clock): Hunted picks its quarry; Second Wind comes back at the start of each boss cycle.
         void ModsWaveStart()
         {
             HuntedId = 0;

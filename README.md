@@ -1251,6 +1251,13 @@ ones show as chips above the wave panel during the match, and session recordings
 click its heading to fold it away (folded, it says how many are hidden and how many are on; remembered on your
 computer). When the open tiers don't fit, the list scrolls with the mouse wheel.
 
+**In Survival** every modifier works except four that have nothing to act on in its one walled room: **Tiny Arena**,
+**Solid Walls**, **Gold Rush** (no shop) and **Simple Arena**. Their tiles are dimmed and say *NO EFFECT IN SURVIVAL*,
+they don't count toward rank XP there, and no chip shows for them. **Zombie Infection** turns every Survival spawn into a
+horde zombie of the clock's wave (zombies count for less of the spawner's budget, as in a horde wave); **Hunted** picks a
+new quarry and **Second Wind** comes back on the clock's waves (every 30 s, and every 2.5 min); **Cluttered** fills the room
+with 1.6x its crates. **Nightfall** covers wherever the camera is, in every mode and map size.
+
 | Modifier | Effect | |
 |---|---|---|
 | Glass Cannon | Everyone deals 50% more damage, and takes 50% more | Risky |

@@ -102,7 +102,8 @@ namespace Arena
                     var d = mods[i];
                     var c = new Rect(x + (i % 2) * (tw2 + gap), y + (i / 2) * (tileH + gap), tw2, tileH);
                     bool on = (session.Modifiers & d.Mod) != 0;
-                    if (DrawModTile(c, d, on, host, t))
+                    bool inert = session.SurvivalMode && (Modifiers.NotInSurvival & d.Mod) != 0;
+                    if (DrawModTile(c, d, on, host, t, inert))
                         session.SetModifier(d.Mod, !on);
                 }
                 y += (mods.Count + 1) / 2 * (tileH + gap);
@@ -175,7 +176,7 @@ namespace Arena
 
         /// One modifier as a tile: an icon plate (its tier's colour, lit blue when on), the name, what it does, and an ON/OFF key
         /// along the bottom (the same key as READY?). The whole tile is the click target. Returns true on a click.
-        bool DrawModTile(Rect c, ModDef d, bool on, bool canClick, float t)
+        bool DrawModTile(Rect c, ModDef d, bool on, bool canClick, float t, bool inert = false)  // inert: does nothing in this mode (Modifiers.NotInSurvival)
         {
             var lean = LeanColor(d.Lean);
             bool hover = canClick && c.Contains(Event.current.mousePosition);
@@ -196,8 +197,10 @@ namespace Arena
             Ui.Label(new Rect(tx, c.y + 33f, tw, 44f), d.Desc, 11, on ? Ui.Text : Ui.Muted, TextAnchor.UpperLeft, false, true);
 
             // The key: shown, not clicked (the tile takes the click); a guest sees the host's choice, so it never goes hot.
-            LobbyKit.Key(new Rect(c.x + 12f, c.yMax - 36f, c.width - 24f, 26f), on ? "ON" : "OFF", on, fxReduced, on ? PixelArt.Get("ui_check") : null,
-                size: 15, minSize: 11, enabled: false, accent: on ? ModLit : (Color?)null);
+            LobbyKit.Key(new Rect(c.x + 12f, c.yMax - 36f, c.width - 24f, 26f), inert ? (on ? "ON · " : "") + "NO EFFECT IN SURVIVAL" : on ? "ON" : "OFF", on, fxReduced,
+                on && !inert ? PixelArt.Get("ui_check") : null, size: 15, minSize: 11, enabled: false, accent: on ? ModLit : (Color?)null);
+            if (inert)
+                Ui.Fill(c, new Color(0.01f, 0.02f, 0.06f, 0.55f));  // dimmed: Survival's room has nothing for it to act on
             return canClick && Ui.HitArea(c);
         }
 

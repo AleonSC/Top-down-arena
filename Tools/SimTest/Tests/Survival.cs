@@ -176,4 +176,58 @@ static partial class Program
         Profile.Folder = wasFolder;
         try { Directory.Delete(dir, true); } catch { }
     }
+
+    /// Modifiers in Survival: Zombie Infection swaps the spawner's picks for the horde, Hunted and Second Wind run on the
+    /// clock's 30 s waves, Cluttered piles more crates, and Tiny Arena / Solid Walls / Gold Rush / Simple Arena do nothing.
+    static void SurvivalModsTest(float dt)
+    {
+        int port = nextPort++;
+        string wasFolder = Profile.Folder, dir = Path.Combine(Path.GetTempPath(), "arena-survmods-" + Guid.NewGuid().ToString("N"));
+        Profile.Folder = dir;
+        var host = new Session();
+        host.Game.ProfileOverride = new Profile();
+        host.Game.PropsOn = true;
+        host.Host(port, "Host", Role.Tank);
+        var client = new Session();
+        client.Game.ProfileOverride = new Profile();
+        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForLobby(host, client);
+        PollBoth(host, client);
+        host.SetMode(false, false, false, true);
+        foreach (var m in new[] { RunMod.ZombieInfection, RunMod.Hunted, RunMod.SecondWind, RunMod.Cluttered, RunMod.TinyArena, RunMod.SolidWalls, RunMod.GoldRush, RunMod.SimpleArena })
+            host.SetModifier(m, true);
+        PollBoth(host, client);
+        client.RequestReady(true); host.RequestReady(true); PollBoth(host, client);
+        host.StartMatch();
+        WaitForGame(host, client, dt);
+        var g = host.Game; var c = client.Game;
+        Run(s, dt, 60f, () => g.Surv != null && g.State == MatchState.Fighting && g.SurvTime > 2f);
+        Check(g.SurvivalOn && g.Has(RunMod.ZombieInfection) && c.Has(RunMod.ZombieInfection), "Zombie Infection is on in Survival");
+        Check(!g.Has(RunMod.TinyArena) && !g.Has(RunMod.SolidWalls) && !g.Has(RunMod.GoldRush) && !g.Has(RunMod.SimpleArena) && !c.Has(RunMod.TinyArena),
+            "Tiny Arena, Solid Walls, Gold Rush and Simple Arena have nothing to act on in Survival");
+        Check(g.CurrentWorld == SurvivalRoom.World && g.ArenaMax.X == Game.Width * 2f, "and the run is still in Survival's big room");
+        int crates = g.Props.Values.Count(pr => pr.Kind == PropKind.Crate || pr.Kind == PropKind.HeavyCrate);
+        Check(crates >= 170 && g.Props.Count < 256, "Cluttered piles far more crates into the room (" + crates + ")");
+        Check(g.HuntedId != 0 && g.Players.Values.All(p => p.SecondWind), "Hunted picks a quarry and Second Wind is ready from the start");
+        foreach (var pr in g.Players.Values) pr.InvulnT = 1000f;
+        var seen = new System.Collections.Generic.HashSet<int>();
+        int zombies = 0, others = 0;
+        Run(s, dt, 40f, null, () =>
+        {
+            foreach (var e in g.Enemies.Values)
+                if (seen.Add(e.Id))
+                {
+                    if (Zombies.Is(e.Type)) zombies++; else others++;
+                }
+            foreach (var pr in g.Players.Values) { pr.Hp = pr.MaxHp; pr.InvulnT = 1000f; }
+        });
+        Check(zombies > 5 && others == 0, "every Survival spawn is a zombie (" + zombies + " zombies, " + others + " others)");
+        Check(g.TinyInset.X < 0.5f, "Tiny Arena's walls never close in on the room");
+        int wave = g.Wave, changes = 0;
+        Run(s, dt, 70f, null, () => { if (g.Wave != wave) { wave = g.Wave; changes++; } foreach (var pr in g.Players.Values) { pr.Hp = pr.MaxHp; pr.InvulnT = 1000f; } });
+        Check(changes >= 2 && g.HuntedId != 0, "Hunted picks again as the clock's waves go by (" + changes + " waves)");
+        Profile.Folder = wasFolder;
+        try { Directory.Delete(dir, true); } catch { }
+    }
 }
