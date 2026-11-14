@@ -404,6 +404,28 @@ namespace Arena
             Line(a + n * (w * 0.25f), b + n * (w * 0.25f), 1.1f, new Rgba(0.75f, 0.8f, 0.92f, 0.75f));
         }
 
+        /// A prison officer's torso facing `face` (the Guard, the Security Guard): an inked shirt, the duty belt across it
+        /// and a radio clipped on the left.
+        void OfficerTorso(V2 pos, float r, float face, Rgba shirt)
+        {
+            V2 f = V2.FromAngle(face), s = f.Orthogonal();
+            Ellipse(pos, r * 1.05f + 1.6f, r * 1.12f + 1.6f, face, GuardInk, 16);
+            Ellipse(pos, r * 1.05f, r * 1.12f, face, shirt, 16);
+            Line(pos - s * r * 1.0f, pos + s * r * 1.0f, 2.6f, new Rgba(0.28f, 0.2f, 0.12f));  // the duty belt
+            Circle(pos - s * r * 0.75f, 2.4f, new Rgba(0.1f, 0.1f, 0.12f), 6);                  // the radio on it
+            Line(pos - s * r * 0.75f, pos - s * r * 0.75f - f * 5f, 1.2f, new Rgba(0.1f, 0.1f, 0.12f));
+        }
+
+        /// A peaked cap seen from above: the crown, the peak out front and the badge on it.
+        void OfficerCap(V2 pos, float r, float face, Rgba crown, Rgba badge)
+        {
+            V2 f = V2.FromAngle(face), s = f.Orthogonal();
+            Circle(pos, r * 0.6f + 1.5f, GuardInk, 14);
+            Circle(pos, r * 0.6f, crown, 14);                                                     // the cap's crown
+            Quad(pos + f * r * 0.35f - s * r * 0.55f, pos + f * r * 0.9f - s * r * 0.4f, pos + f * r * 0.9f + s * r * 0.4f, pos + f * r * 0.35f + s * r * 0.55f, new Rgba(0.06f, 0.07f, 0.1f));  // the peak
+            Circle(pos + f * r * 0.25f, 2.2f, badge, 6);                                          // the badge
+        }
+
         /// The Guard's whole body (not the spiky melee polygon), a corrections officer: a khaki shirt, a duty belt with a
         /// radio, a peaked cap with a gold badge, and a side-handle nightstick it swings back and forth when you're close.
         void DrawGuardBody(Enemy e, V2 pos, float r, Rgba col, float t)
@@ -414,16 +436,9 @@ namespace Arena
             V2 hand = e.LarderStage != Game.LarderIdle ? pos + bd * (r * 0.9f) : pos + s * (r * 0.55f) + f * (r * 0.35f);
             V2 tip = hand + bd * (r * 1.55f);
             var shirt = GuardShirt.Mix(col, 0.12f);  // (picks up hit flashes and status tints)
-            Ellipse(pos, r * 1.05f + 1.6f, r * 1.12f + 1.6f, e.Facing, GuardInk, 16);
-            Ellipse(pos, r * 1.05f, r * 1.12f, e.Facing, shirt, 16);
-            Line(pos - s * r * 1.0f, pos + s * r * 1.0f, 2.6f, new Rgba(0.28f, 0.2f, 0.12f));  // the duty belt
-            Circle(pos - s * r * 0.75f, 2.4f, new Rgba(0.1f, 0.1f, 0.12f), 6);                  // the radio on it
-            Line(pos - s * r * 0.75f, pos - s * r * 0.75f - f * 5f, 1.2f, new Rgba(0.1f, 0.1f, 0.12f));
+            OfficerTorso(pos, r, e.Facing, shirt);
             Line(pos + (hand - pos) * 0.4f, hand, 4f, shirt.Mix(GuardInk, 0.3f));               // the arm
-            Circle(pos, r * 0.6f + 1.5f, GuardInk, 14);
-            Circle(pos, r * 0.6f, GuardCap, 14);                                                  // the cap's crown
-            Quad(pos + f * r * 0.35f - s * r * 0.55f, pos + f * r * 0.9f - s * r * 0.4f, pos + f * r * 0.9f + s * r * 0.4f, pos + f * r * 0.35f + s * r * 0.55f, new Rgba(0.06f, 0.07f, 0.1f));  // the peak
-            Circle(pos + f * r * 0.25f, 2.2f, GuardBadge, 6);                                     // the badge
+            OfficerCap(pos, r, e.Facing, GuardCap, GuardBadge);
             GuardStick(hand - bd * 3f, tip, 3.6f, GuardBaton);
             GuardStick(hand + bd * 2f, hand + bd * 2f - bd.Orthogonal() * 5f, 3f, GuardBaton);    // the side handle
             Circle(tip, 2f, new Rgba(0.4f, 0.42f, 0.5f), 6);

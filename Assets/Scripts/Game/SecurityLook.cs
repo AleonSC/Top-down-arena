@@ -86,12 +86,11 @@ namespace Arena
             float recoil = !reloading && e.Phase < Game.SecurityMag ? Mathf.Clamp01(1f - e.SeenT * 7f) : 0f;
             float aim = e.Winding ? 1f : 0.35f;
 
-            // the body: a dark rim and a shaded disc (the mockup's radial gradient, as stacked discs)
-            Circle(pos, r, Hex(0x14234a), 28);
-            Circle(pos, r - 1.25f * s, Hex(0x5b8ce8), 28);  // flat, in the same blue as the Taser Guard and Guard
-
-            // the visor, like the Taser Guard's
-            Line(F.P(2f, -6f), F.P(2f, 6f), 3.5f * s, new Rgba(0.04f, 0.08f, 0.16f, 0.95f));
+            // the body: a prison officer like the riot Guard (WardenLook.cs), in a navy shirt and cap with a silver badge
+            OfficerTorso(pos, r * 0.92f, e.Facing, Hex(0x2c3f66));
+            V2 back = pos - fwd * (r * 0.62f);  // a reflective SECURITY band across its back
+            Line(back - F.S * (r * 0.5f), back + F.S * (r * 0.5f), 3f * s, new Rgba(0.95f, 0.95f, 0.88f, 0.9f));
+            OfficerCap(pos, r * 0.92f, e.Facing, Hex(0x1a2440), Hex(0xd8dee6));
 
             // arms and the pistol
             float gx, gy, gr, slideBack = recoil * 4.2f;
@@ -159,7 +158,7 @@ namespace Arena
 
             // a hit flashes the whole uniform white, softer under steady fire (Juice.cs)
             if (e.Flash > 0f || JuiceFlash(e))
-                Circle(pos, r, Rgba.White.WithAlpha(0.8f * HitFlashMix(e)), 24);
+                Ellipse(pos, r * 0.97f, r * 1.03f, e.Facing, Rgba.White.WithAlpha(0.8f * HitFlashMix(e)), 16);
 
             DrawSecurityCasing(e, F, t);
         }
