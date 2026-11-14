@@ -24,16 +24,19 @@ namespace Arena
 
         /// The soft key box: a faint tint of the accent and a thin outline; hover brightens it; `on` gets a 2 px outline, a
         /// stronger tint and a glowing underline (no solid fill). locked: dim and dashed.
+        /// Scales the keys' fill (not their rim or text) while set below 1: see-through keys, e.g. on the minimized Ready strip.
+        public static float FillFade = 1f;
+
         public static void SoftBox(Rect r, Color c, bool on, bool hover, bool locked)
         {
             if (locked)
             {
-                Ui.Fill(r, new Color(c.r, c.g, c.b, CrtStyle.KeyLockedTint));
+                Ui.Fill(r, new Color(c.r, c.g, c.b, CrtStyle.KeyLockedTint * FillFade));
                 Dashed(r, CrtStyle.KeyLockedDashW, new Color(c.r, c.g, c.b, CrtStyle.KeyLockedDash));
                 return;
             }
             // (the strengths and widths: CrtStyle.cs)
-            Ui.Fill(r, new Color(c.r, c.g, c.b, on ? CrtStyle.KeyTintOn : hover ? CrtStyle.KeyTintHover : CrtStyle.KeyTint));
+            Ui.Fill(r, new Color(c.r, c.g, c.b, (on ? CrtStyle.KeyTintOn : hover ? CrtStyle.KeyTintHover : CrtStyle.KeyTint) * FillFade));
             Frame(r, on ? CrtStyle.KeyRimOnW : CrtStyle.KeyRimW, new Color(c.r, c.g, c.b, on ? CrtStyle.KeyRimOn : hover ? CrtStyle.KeyRimHover : CrtStyle.KeyRim));
             if (on)
                 Ui.Glow(r, c, CrtStyle.KeyGlowOn);  // the selected key glows a little (no underline)
