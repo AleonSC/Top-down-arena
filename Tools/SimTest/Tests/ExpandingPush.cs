@@ -94,17 +94,70 @@ static partial class Program
         Check(Expansion.PushAreaAt(one, 1, 1800, 300, 4) == 1 && Expansion.PushAreaAt(one, 1, 1600, 700, 2) == 0 && Expansion.PushAreaAt(one, 1, 1900, 300, 4) == -1, "a locked face is found by its line (the section's, the hub's; not one that isn't there yet): " + Expansion.PushAreaAt(one, 1, 1800, 300, 4) + " " + Expansion.PushAreaAt(one, 1, 1600, 700, 2) + " " + Expansion.PushAreaAt(one, 1, 1900, 300, 4));
 
         // The world: the section opens full width onto the hub, and has no random cover.
+        Expansion.PushStyleOverride = (int)PushStyle.None;
         var world = Expansion.Build(new List<ExpansionRoom> { list[0] });
+        Expansion.PushStyleOverride = -1;
         var door = world.Doors.FirstOrDefault(dd => dd.Joins(0) && dd.Joins(1));
         Check(world.Areas.Length == 2 && door.Width == 400f && door.Vertical && Math.Abs(door.Pos.X - 1600f) < 0.1f, "the section opens onto the hub its full width (" + door.Width + ")");
-        Check(world.Cover.Length == 0, "and gets no random cover (features come in step 3)");
+        Check(world.Cover.Length == 0, "and gets no random cover (only its own features)");
         Check(world.Areas.Any(ar => ar.Contains(new V2(1700f, 500f))) && !world.Areas.Any(ar => ar.Contains(new V2(1700f, 250f))), "its floor is in the world, the wall beside it isn't");
+    }
+
+    /// Step 3: what grows in a section as it's pushed, built from its style and depth.
+    static void ExpandingPushFeaturesTest()
+    {
+        Func<int, int, ExpansionRoom> section = (w, d) => new ExpansionRoom { Parent = 0, Leg = Expansion.PushLeg, X = 1600, Y = 100, W = d * 100, H = w * 100 };
+        Check(Expansion.PushStyleFor(0, 1, 100, 3) == PushStyle.None && Expansion.PushStyleFor(0, 1, 100, 2) == PushStyle.None, "a section under 4 wide gets no features");
+        var four = Expansion.PushStyleFor(0, 1, 100, 4);
+        Check(four == PushStyle.Fins || four == PushStyle.TFins || four == PushStyle.Cover, "4 wide: fins, T-fins or cover (" + four + ")");
+        var rolled = new HashSet<PushStyle>();
+        for (int st = 0; st < 900; st += 100) rolled.Add(Expansion.PushStyleFor(0, 1, st, 6));
+        for (int st = 0; st < 900; st += 100) rolled.Add(Expansion.PushStyleFor(0, 3, st, 7));
+        Check(rolled.Count >= 4 && !rolled.Contains(PushStyle.None), "6+ wide sections roll a spread of styles (" + string.Join(", ", rolled) + ")");
+        var grow1 = new List<ExpansionRoom> { section(6, 1) };
+        var grow12 = new List<ExpansionRoom> { section(6, 12) };
+        Check(Expansion.PushStyleOf(grow1, 0) == Expansion.PushStyleOf(grow12, 0) && Expansion.PushStyleOf(grow12, 0) == Expansion.PushStyleFor(0, 1, 100, 6), "a section keeps its style as it grows");
+        Check(Expansion.PushStyleOfPush(grow1, new WallPush { Area = 1, Side = 1, Start = 100, Width = 6 }) == Expansion.PushStyleOf(grow1, 0), "the label's style for growing it is its own");
+
+        foreach (PushStyle st in new[] { PushStyle.Fins, PushStyle.Baffles, PushStyle.Pincers, PushStyle.TFins, PushStyle.Divider, PushStyle.Cover })
+        {
+            Expansion.PushStyleOverride = (int)st;
+            int d = 12, w = 6;
+            var rooms = new List<ExpansionRoom> { section(w, d) };
+            var spans = new List<WallSpan>(); var cover = new List<Solid>();
+            Expansion.PushFeatures(rooms, 0, spans, cover);
+            var wd = Expansion.Build(rooms);
+            int inSpans = wd.Spans.Count(sp => sp.Vertical ? sp.At > 1600 && sp.At < 1600 + d * 100 && sp.From > 100 - 1 && sp.Till < 700 + 1 && sp.Till - sp.From < 600 : sp.At > 100 && sp.At < 700 && sp.From >= 1600 && sp.Till <= 1600 + d * 100 && sp.Till - sp.From < d * 100);
+            Check((st == PushStyle.Cover ? cover.Count : spans.Count) > 0 && inSpans >= spans.Count && wd.Cover.Length == cover.Count, st + ": pieces built into the world (" + spans.Count + " walls, " + cover.Count + " cover)");
+            float far = 1600 + (d - 1.5f) * 100 + 1;
+            bool clearFace = spans.All(sp => sp.Vertical ? sp.At <= far : sp.Till <= far) && cover.All(c => c.Pos.X + Math.Max(c.HW, c.R) <= far);
+            Check(clearFace, st + ": the two rows by the face stay clear");
+            bool lane = spans.All(sp => !sp.Vertical || sp.Till - sp.From <= (w - 2) * 100 + 1);
+            Check(lane, st + ": no wall across the section is longer than its width less 2 tiles (a lane is always left)");
+            var spans8 = new List<WallSpan>(); var cover8 = new List<Solid>();
+            Expansion.PushFeatures(new List<ExpansionRoom> { section(w, 8) }, 0, spans8, cover8);
+            if (st != PushStyle.Divider)
+                Check(spans8.All(a8 => spans.Any(b8 => b8.Vertical == a8.Vertical && b8.At == a8.At && b8.From == a8.From && b8.Till == a8.Till)) && cover8.All(c8 => cover.Any(c12 => c12.Pos.X == c8.Pos.X && c12.Pos.Y == c8.Pos.Y)), st + ": pushing further only adds pieces (what was there stays)");
+            if (st == PushStyle.Divider)
+                Check(spans.Count == 2 && spans.All(sp => !sp.Vertical && sp.At == 400), "the divider runs down the middle with a doorway (" + spans.Count + " pieces)");
+        }
+        // Not on a narrow section; and a section off this one's side wall keeps its opening clear.
+        Expansion.PushStyleOverride = (int)PushStyle.Baffles;
+        var narrow = new List<WallSpan>(); var nc = new List<Solid>();
+        Expansion.PushFeatures(new List<ExpansionRoom> { section(4, 12) }, 0, narrow, nc);
+        Check(narrow.Count == 0, "baffles need 5 tiles: a 4-wide section gets none");
+        var withChild = new List<ExpansionRoom> { section(6, 12), new ExpansionRoom { Parent = 1, Leg = Expansion.PushLeg, X = 1700, Y = 0, W = 300, H = 100 } };
+        var cw = Expansion.Build(withChild);
+        bool blocked = cw.Spans.Any(sp => sp.Vertical && sp.At > 1700 && sp.At < 2000 && sp.From <= 120 && sp.Till > 120);
+        Check(!blocked, "no baffle stands across the opening to a section pushed off its side wall");
+        Expansion.PushStyleOverride = -1;
     }
 
     /// Wall push in a game: between waves only, with free building, near the wall, paid by the pusher, sent to everyone.
     static void ExpandingPushTest(float dt)
     {
         ExpandingPushRulesTest();
+        ExpandingPushFeaturesTest();
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
         var client = JoinAs(port, false, "Friend", Role.Dps);

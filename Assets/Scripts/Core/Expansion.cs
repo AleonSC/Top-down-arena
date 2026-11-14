@@ -1798,11 +1798,14 @@ namespace Arena
                         doorSpots.Add(d.Pos);
                 var cr = rooms[a - 1];
                 if (IsPush(cr))
-                    continue;  // (a pushed section: its features come with Docs/WallPush.md step 3)
+                    continue;  // (a pushed section: its own features instead, PushFeatures)
                 if (outline[group[a]] && Math.Min(cr.W, cr.H) < OutlineCoverMin && cr.Surprise != 1 + (int)SurpriseShape.Stash)
                     continue;  // (a sliver of a drawn outline: no cover in it)
                 AddCover(cover, cr, doorSpots);
             }
+            for (int a = 1; a < n; a++)  // a pushed section's features: walls and cover row by row as it grows (ExpansionPush.cs)
+                if (IsPush(rooms[a - 1]))
+                    PushFeatures(rooms, a - 1, spans, cover, doors, nodes);
             for (int a = 1; a < n; a++)  // a built room's side walls: out from its outer walls, a design rolled per room
                 if (FinStyle >= 0 && !rooms[a - 1].Floating && !IsPush(rooms[a - 1]) && rooms[a - 1].Surprise != 1 + (int)SurpriseShape.Stash)  // (a Stash is too small for fins: its cover stays)
                     AddFins(spans, cover, rooms, group, a, doors, nodes);

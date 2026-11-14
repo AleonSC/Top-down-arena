@@ -1050,6 +1050,13 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   *Need 4 vectors*, *Too close to another room*, *12 tiles out is the limit*). The camera leans toward the wall and past the map's
   edge while you push. **Right click** or **C** stops. A pushed section is part of the room it came from (the room kits change it with
   that room) and doesn't count towards the room cap. Floating rooms (shop, vendor, Gatekeeper) can't be pushed. Design: `Docs/WallPush.md`.
+  - **What grows in a section**: its first push rolls one style for it (the same on every machine, named over it: *BAFFLES ROLLED*;
+    the label shows it too). As you push, the row two tiles behind the face gets its pieces, so the spot you push into stays clear; each
+    piece flashes in. **Fins** (stubs from alternate sides every 4 rows), **Baffles** (long walls from alternate sides every 3 rows, a
+    2-tile lane at the other end), **Pincers** (a pair every 5 rows, a 3-tile gap), **T-fins** (a stub with a crossbar every 4 rows),
+    **Divider** (a wall down the middle that grows a tile a push: 5 tiles of wall, a 2-tile doorway, repeat), **Cover** (a crate or
+    pillar every 3 rows, two when 7+ wide). A section needs 4 tiles for Fins, T-fins and Cover, 5 for Baffles and the Divider, 6 for
+    Pincers; narrower ones stay plain. Pieces keep off the opening to a section pushed off this one, and off map nodes.
 - **Room kits**: a one-use modifier the team holds (up to 6; the build chip counts them). Spend one in a building round
   (**Room kits** button on the build window): pick a kit, click a plain Combat room, and it becomes a **Shop** room or a **Floor**
   room (a path's ground and rules inside that room only, and its XP bonus). One change per room, permanent; floating rooms keep their job.
