@@ -641,6 +641,18 @@ namespace Arena
             return now.Clamp(area.Min + new V2(r, r), area.Max - new V2(r, r));
         }
 
+        /// Host, after an enemy moves: the vault's (or a duel room's) mini-boss stays in its room while the door is locked,
+        /// so a charge down the doorway stops at it like a wall (the Riot Captain is dazed) instead of leaving.
+        void RoomsKeepHome(Enemy e)
+        {
+            if (!RoomsOn || e.Home < 0 || e.Home >= CurrentWorld.Areas.Length || e.Spilled)
+                return;
+            if (!(e.Home == Rooms.Vault && !ExpandingOn || ExpandingOn && FactionMinis.Duels(e.Type)) || !AreaLocked(e.Home))
+                return;
+            var area = CurrentWorld.Areas[e.Home];
+            e.Pos = e.Pos.Clamp(area.Min + new V2(e.Radius, e.Radius), area.Max - new V2(e.Radius, e.Radius));
+        }
+
         /// Host, when a wave is cleared: the vault closes with it (an unbeaten mini-boss goes, anyone inside is let out).
         void EndRoomsWave()
         {

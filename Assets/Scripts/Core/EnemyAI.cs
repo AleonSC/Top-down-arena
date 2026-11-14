@@ -565,6 +565,7 @@ namespace Arena
                     PossessMoveEnemy(e, tpos, dt);  // your keys, or its own moves while it attacks (DevArena.cs)
                 else
                     MoveEnemy(e, tpos, dt);
+                RoomsKeepHome(e);  // a mini-boss can't charge out of its locked room (Rooms.cs)
                 if (RoomsOn && !e.Def.IsBoss && e.Home != Rooms.Vault)
                 {
                     V2 was = e.Pos;
