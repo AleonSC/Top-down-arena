@@ -511,15 +511,13 @@ namespace Arena
                         {
                             if (BlocksShot(e, b.Pos))
                             {
-                                DuelGuardBounce(e, b);  // the Duelist's guard sends it back (Duelist.cs)
-                                ParrierBounce(e, b);    // so does a Parrier's main-gauche (CourtFaction.cs)
-                                if (GrounderFaces(e, b.Pos))
-                                    GroundShot(e);      // a Grounder's shield charges (Squall.cs)
-                                WearShield(e, b.Dmg);  // the shield takes it, and wears
-                                if (e.Type == EnemyType.CombShield)
+                                var guard = BrainOf(e.Type)?.Guard;
+                                if (guard != null)
+                                    guard.Shot(this, e, b);  // a shield's own: a Comb Shield leaks, a Parrier sends it back, a Grounder charges (its brain)
+                                else
                                 {
-                                    HurtEnemy(e, b.Dmg * CombLeak(e), b.Owner);  // a Comb Shield's plate lets some of it through as it breaks (HiveBees.cs)
-                                    if (e.Hp <= 0f) { scratchIds.Add(b.Id); break; }
+                                    DuelGuardBounce(e, b);  // the Duelist's guard sends it back (Duelist.cs)
+                                    WearShield(e, b.Dmg);  // the shield takes it, and wears
                                 }
                                 scratchIds.Add(b.Id);
                                 break;

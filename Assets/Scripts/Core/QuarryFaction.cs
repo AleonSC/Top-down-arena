@@ -46,27 +46,23 @@ namespace Arena
 
         static bool Cracks(EnemyType t) => t == EnemyType.Driller || t == EnemyType.Geomancer;
 
-        /// Host, in EnemyFire: the Geomancer's crack and the Cinder Priest's bolt (both charge like a Taser Guard). False for anyone else.
-        bool QuarryFire(Enemy e, V2 tpos, float aim)
+        /// Host, in EnemyFire (a Geomancer's brain, ShootBrains.cs; it charges like a Taser Guard): the staff sends a crack.
+        void GeomancerCrack(Enemy e, V2 tpos, float aim)
         {
-            if (e.Type == EnemyType.Geomancer)
-            {
-                e.FireT = TaserEvery;
-                V2 dir = V2.FromAngle(aim);
-                e.Crack = new ColCrack { From = e.Pos + dir * (e.Radius + 6f), Ang = aim, Max = Math.Min(GeoReach, e.Pos.DistanceTo(tpos) + 60f), Seed = e.Id * 7 + (int)(AnimT * 10f) };
-                BroadcastFx(FxKind.Spark, e.Pos + dir * (e.Radius + 10f), HurlerColor, 22f, 0.25f, Sfx.BossCrack);  // the staff strikes the ground
-                return true;
-            }
-            if (e.Type == EnemyType.CinderPriest)
-            {
-                e.FireT = TaserEvery;
-                var b = SpawnBullet(Defs.MagmaBolt, e.Pos + V2.FromAngle(aim) * (e.Radius + 8f), V2.FromAngle(aim) * MagmaSpeed, 0f, MagmaRange / MagmaSpeed, Defs.BulletDamage(Defs.MagmaBolt), 0, false);
-                b.Source = e.Type;
-                magmaBolts[b.Id] = b.Pos;
-                BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(aim) * (e.Radius + 12f), HurlerColor, 22f, 0.2f, Sfx.Throw);
-                return true;
-            }
-            return false;
+            e.FireT = TaserEvery;
+            V2 dir = V2.FromAngle(aim);
+            e.Crack = new ColCrack { From = e.Pos + dir * (e.Radius + 6f), Ang = aim, Max = Math.Min(GeoReach, e.Pos.DistanceTo(tpos) + 60f), Seed = e.Id * 7 + (int)(AnimT * 10f) };
+            BroadcastFx(FxKind.Spark, e.Pos + dir * (e.Radius + 10f), HurlerColor, 22f, 0.25f, Sfx.BossCrack);  // the staff strikes the ground
+        }
+
+        /// Host, in EnemyFire (a Cinder Priest's brain): a magma bolt that leaves lava where it stops.
+        void CinderBolt(Enemy e, float aim)
+        {
+            e.FireT = TaserEvery;
+            var b = SpawnBullet(Defs.MagmaBolt, e.Pos + V2.FromAngle(aim) * (e.Radius + 8f), V2.FromAngle(aim) * MagmaSpeed, 0f, MagmaRange / MagmaSpeed, Defs.BulletDamage(Defs.MagmaBolt), 0, false);
+            b.Source = e.Type;
+            magmaBolts[b.Id] = b.Pos;
+            BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(aim) * (e.Radius + 12f), HurlerColor, 22f, 0.2f, Sfx.Throw);
         }
 
         readonly Dictionary<int, V2> magmaBolts = new Dictionary<int, V2>();  // host: magma bolts in flight and where each last was

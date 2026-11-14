@@ -477,7 +477,7 @@ namespace Arena
                 DrawCultUnder(e, pos, r, col, spawning, t);  // a tether, a revive's ghost, a lantern's lanes (ReaperCultLook.cs)
             if (pac)
                 col = PacRoleColor(e);
-            if (e.Kin == EnemyType.SecurityGuard && e.Type != EnemyType.Second && !spawning)  // (a Second fans its daggers: CourtLook.cs)
+            if (Game.IsSecurity(e.Type) && e.Type != EnemyType.Second && !spawning)  // (a Second fans its daggers: CourtLook.cs)
                 DrawSecurityUnder(e, pos, r, t);  // its locked shot and its reload ring (SecurityLook.cs)
             if (Game.IsNonShooter(e.Type) && !spawning)
                 DrawNonShooterUnder(e, pos, r, t);  // the fuse, the aim line and harpoon, a pod's lasers (NonShooterLooks.cs)
@@ -657,7 +657,7 @@ namespace Arena
         /// Each type's effects behind its body. Returns the body colour (a Phantom flickers).
         Rgba DrawEnemyUnderlay(Enemy e, V2 pos, float r, Rgba col, bool spawning, float t)
         {
-            switch (e.Kin)
+            switch (Game.SharesWith(e.Type))
             {
                 case EnemyType.Spinner:
                     if (e.Phase == 1 && !spawning)  // bursting: a hot glow

@@ -732,7 +732,7 @@ namespace Arena
                             if (along > -e.Radius && along < CaptainDash * CaptainDashTime + e.Radius && across < e.Radius + hitR + 30f)
                                 d += w * 3f;
                         }
-                        else if (e.Kin == EnemyType.RiotShield && (RiotState(e) == RiotWinding || RiotState(e) == RiotLunging))
+                        else if (IsWallKin(e.Type) && (RiotState(e) == RiotWinding || RiotState(e) == RiotLunging))
                         {
                             // A Riot Shield about to bash: get out from in front of the shield (WardenFaction.cs).
                             V2 rel = p - e.Pos;

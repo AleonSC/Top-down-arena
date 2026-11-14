@@ -175,49 +175,6 @@ namespace Arena
         public static float PylonLineDistance(Enemy e, Enemy partner, V2 p) =>
             partner == null || e.Pos.DistanceTo(partner.Pos) > PylonMaxLine ? 1e9f : SegmentDistance(p, e.Pos, partner.Pos);
 
-        V2 SquallMove(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
-        {
-            switch (e.Type)
-            {
-                case EnemyType.DustDevil:
-                {
-                    if (e.Phase == 1)
-                    {
-                        // Veering off after a shove, then back in.
-                        e.PhaseT -= dt;
-                        if (e.PhaseT <= 0f)
-                            e.Phase = 0;
-                        return (-dir + dir.Orthogonal() * e.Strafe * 1.2f).Normalized();
-                    }
-                    // A weave: a sway across your line that dies away up close.
-                    float k = MathX.Clamp01((dist - 60f) / 200f);
-                    float a = DevilSway * k * (float)Math.Sin(e.T * 4.2f + e.Id);
-                    return dir * (float)Math.Cos(a) + dir.Orthogonal() * (float)Math.Sin(a);
-                }
-                case EnemyType.SquallGunner:
-                    return KeepDistance(dir, dist, GunnerRange) + dir.Orthogonal() * e.Strafe * 0.5f;
-                case EnemyType.Stormcaller:
-                    return KeepDistance(dir, dist, CallerRange) + dir.Orthogonal() * e.Strafe * 0.35f;
-                case EnemyType.Grounder:
-                    return KeepDistance(dir, dist, GrounderRange);
-                case EnemyType.Lineman:
-                    return KeepDistance(dir, dist, LineRange) + dir.Orthogonal() * e.Strafe * 0.5f;
-                case EnemyType.Thunderhead:
-                    return dir;  // straight at you, slowly
-                case EnemyType.Pylon:
-                {
-                    var o = PylonPartner(e);
-                    if (o == null)
-                        return KeepDistance(dir, dist, 200f);  // alone: no line, it just follows
-                    if (e.Phase != PylonWalking)
-                        return V2.Zero;  // planted
-                    V2 spot = PylonSpot(e, o, tpos);
-                    float left = spot.DistanceTo(e.Pos);
-                    return left < 8f ? V2.Zero : (spot - e.Pos) / left;
-                }
-            }
-            return dir;
-        }
 
         /// Where a Pylon walks to: either side of you, along the line the pair already makes (so the spots hold still as they walk).
         V2 PylonSpot(Enemy e, Enemy partner, V2 tpos)
@@ -228,32 +185,6 @@ namespace Arena
             return ClampToArena(tpos + axis * PylonSpread, 40f);
         }
 
-        /// Host, every tick (EnemySpecial): the Grounder turns, a Pylon pair's cycle, a Lineman's mark.
-        void SquallSpecial(Enemy e, V2 tpos, float dt)
-        {
-            switch (e.Type)
-            {
-                case EnemyType.Pylon:
-                    TickPylon(e, tpos, dt);
-                    break;
-                case EnemyType.Thunderhead:
-                    TickThunderhead(e, tpos, dt);
-                    break;
-                case EnemyType.Lineman:
-                    if (e.Phase != 1)
-                        break;
-                    e.PhaseT -= dt;
-                    Player marked;
-                    if (!Players.TryGetValue(e.LinkId, out marked) || marked.Downed)
-                    {
-                        e.Phase = 0;  // its mark is gone
-                        e.LinkId = 0;
-                    }
-                    else if (e.PhaseT <= 0f)
-                        Conduct(e, marked);
-                    break;
-            }
-        }
 
         /// The Grounder's shield turns slowly toward you (EnemyAI's facing), so you can get round it.
         void GrounderFace(Enemy e, float want, float dt)
@@ -403,44 +334,6 @@ namespace Arena
             BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.62f, 0.91f, 0.85f), 30f, 0.25f, Sfx.None);
         }
 
-        /// Returns true when it handled the shot.
-        bool SquallFire(Enemy e, V2 tpos, float aim)
-        {
-            switch (e.Type)
-            {
-                case EnemyType.SquallGunner:
-                    e.FireT = GunnerEvery;
-                    GunnerVolley(e, tpos, aim);
-                    return true;
-                case EnemyType.Pylon:
-                case EnemyType.Grounder:
-                    e.FireT = 99f;  // the arc, the clap: not shots of its own
-                    return true;
-                case EnemyType.Lineman:
-                {
-                    e.FireT = LineEvery;
-                    Player best = null;
-                    foreach (var p in Players.Values)
-                        if (!p.Downed && (best == null || p.Pos.DistanceTo(tpos) < best.Pos.DistanceTo(tpos)))
-                            best = p;
-                    if (best == null || e.Phase == 1)
-                        return true;
-                    e.Phase = 1;
-                    e.PhaseT = LineMark;
-                    e.LinkId = best.Id;
-                    BroadcastFx(FxKind.Bolt, e.Pos + V2.FromAngle(aim) * (e.Radius + 10f), best.Pos, new Rgba(0.56f, 0.82f, 1f), 0f, 0.25f, Sfx.SpellZap);
-                    return true;
-                }
-                case EnemyType.Stormcaller:
-                    e.FireT = CallerEvery;
-                    if (InStormFront(e))
-                        return true;  // it's sweeping the front with the others
-                    AddHazard(tpos, CallerRadius, CallerWarn).Kind = HazardCaller;
-                    BroadcastFx(FxKind.Spark, e.Pos + new V2(0f, -e.Radius - 8f), new Rgba(1f, 0.82f, 0.4f), 16f, 0.2f, Sfx.SpellZap);
-                    return true;
-            }
-            return false;
-        }
 
         /// Three shots that leave GunnerLead upwind of you (its Strafe side) and curve back to cross where you stood: a shot
         /// turning at a steady rate runs along a circle, so to cross the chord d after setting off at angle s to it, it turns
@@ -492,6 +385,163 @@ namespace Arena
             var color = new Rgba(1f, 0.85f, 0.5f);
             BroadcastFx(FxKind.Bolt, new V2(h.Pos.X + Rand(-40f, 40f), h.Pos.Y - 260f), h.Pos, color, 0f, 0.22f, Sfx.SpellZap);
             BroadcastFx(FxKind.Boom, h.Pos, color, h.Radius, 0.3f, Sfx.None);
+        }
+        /// (moved from SquallMove, DustDevil)
+        V2 SquallMove_DustDevil(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            if (e.Phase == 1)
+            {
+                // Veering off after a shove, then back in.
+                e.PhaseT -= dt;
+                if (e.PhaseT <= 0f)
+                    e.Phase = 0;
+                return (-dir + dir.Orthogonal() * e.Strafe * 1.2f).Normalized();
+            }
+            // A weave: a sway across your line that dies away up close.
+            float k = MathX.Clamp01((dist - 60f) / 200f);
+            float a = DevilSway * k * (float)Math.Sin(e.T * 4.2f + e.Id);
+            return dir * (float)Math.Cos(a) + dir.Orthogonal() * (float)Math.Sin(a);
+        }
+
+        /// (moved from SquallMove, SquallGunner)
+        V2 SquallMove_SquallGunner(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            return KeepDistance(dir, dist, GunnerRange) + dir.Orthogonal() * e.Strafe * 0.5f;
+        }
+
+        /// (moved from SquallMove, Stormcaller)
+        V2 SquallMove_Stormcaller(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            return KeepDistance(dir, dist, CallerRange) + dir.Orthogonal() * e.Strafe * 0.35f;
+        }
+
+        /// (moved from SquallMove, Grounder)
+        V2 SquallMove_Grounder(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            return KeepDistance(dir, dist, GrounderRange);
+        }
+
+        /// (moved from SquallMove, Lineman)
+        V2 SquallMove_Lineman(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            return KeepDistance(dir, dist, LineRange) + dir.Orthogonal() * e.Strafe * 0.5f;
+        }
+
+        /// (moved from SquallMove, Thunderhead)
+        V2 SquallMove_Thunderhead(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            return dir;  // straight at you, slowly
+        }
+
+        /// (moved from SquallMove, Pylon)
+        V2 SquallMove_Pylon(Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+        {
+            var o = PylonPartner(e);
+            if (o == null)
+                return KeepDistance(dir, dist, 200f);  // alone: no line, it just follows
+            if (e.Phase != PylonWalking)
+                return V2.Zero;  // planted
+            V2 spot = PylonSpot(e, o, tpos);
+            float left = spot.DistanceTo(e.Pos);
+            return left < 8f ? V2.Zero : (spot - e.Pos) / left;
+        }
+
+        /// (moved from SquallSpecial, Pylon)
+        void SquallSpecial_Pylon(Enemy e, V2 tpos, float dt)
+        {
+            TickPylon(e, tpos, dt);
+        }
+
+        /// (moved from SquallSpecial, Thunderhead)
+        void SquallSpecial_Thunderhead(Enemy e, V2 tpos, float dt)
+        {
+            TickThunderhead(e, tpos, dt);
+        }
+
+        /// (moved from SquallSpecial, Lineman)
+        void SquallSpecial_Lineman(Enemy e, V2 tpos, float dt)
+        {
+            do
+            {
+                if (e.Phase != 1)
+                    break;
+                e.PhaseT -= dt;
+                Player marked;
+                if (!Players.TryGetValue(e.LinkId, out marked) || marked.Downed)
+                {
+                    e.Phase = 0;  // its mark is gone
+                    e.LinkId = 0;
+                }
+                else if (e.PhaseT <= 0f)
+                    Conduct(e, marked);
+            } while (false);  // (a break leaves the case, as it left the switch)
+        }
+
+        /// (moved from SquallFire, SquallGunner)
+        bool SquallFire_SquallGunner(Enemy e, V2 tpos, float aim)
+        {
+            e.FireT = GunnerEvery;
+            GunnerVolley(e, tpos, aim);
+            return true;
+        }
+
+        /// (moved from SquallFire, Lineman)
+        bool SquallFire_Lineman(Enemy e, V2 tpos, float aim)
+        {
+            e.FireT = LineEvery;
+            Player best = null;
+            foreach (var p in Players.Values)
+                if (!p.Downed && (best == null || p.Pos.DistanceTo(tpos) < best.Pos.DistanceTo(tpos)))
+                    best = p;
+            if (best == null || e.Phase == 1)
+                return true;
+            e.Phase = 1;
+            e.PhaseT = LineMark;
+            e.LinkId = best.Id;
+            BroadcastFx(FxKind.Bolt, e.Pos + V2.FromAngle(aim) * (e.Radius + 10f), best.Pos, new Rgba(0.56f, 0.82f, 1f), 0f, 0.25f, Sfx.SpellZap);
+            return true;
+        }
+
+        /// (moved from SquallFire, Stormcaller)
+        bool SquallFire_Stormcaller(Enemy e, V2 tpos, float aim)
+        {
+            e.FireT = CallerEvery;
+            if (InStormFront(e))
+                return true;  // it's sweeping the front with the others
+            AddHazard(tpos, CallerRadius, CallerWarn).Kind = HazardCaller;
+            BroadcastFx(FxKind.Spark, e.Pos + new V2(0f, -e.Radius - 8f), new Rgba(1f, 0.82f, 0.4f), 16f, 0.2f, Sfx.SpellZap);
+            return true;
+        }
+
+        // --- Brains (Docs/EnemyBehaviours.md step 8d) ------------------------------------------------------------------
+
+        /// A Grounder keeps its range and turns its shield slowly (GrounderFace).
+        sealed class GrounderMove : MovePart
+        {
+            public override V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed) => g.SquallMove_Grounder(e, tpos, dir, dist, dt, ref speed);
+            public override bool Turn(Game g, Enemy e, float want, V2 tpos, float dt)
+            {
+                g.GrounderFace(e, want, dt);
+                return true;
+            }
+        }
+
+        /// A Grounder's shield: blocks from the front (GrounderFaces); a player's shot on it charges it (GroundShot).
+        sealed class GrounderGuard : GuardPart
+        {
+            public override bool Blocks(Game g, Enemy e, V2 from) => GrounderFaces(e, from);
+            public override void Shot(Game g, Enemy e, Bullet b) => g.GroundShot(e);
+        }
+
+        static void SquallBrains(Brain[] t)
+        {
+            t[(int)EnemyType.DustDevil] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.SquallMove_DustDevil(e, p, d, di, dt, ref sp)) };
+            t[(int)EnemyType.SquallGunner] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.SquallMove_SquallGunner(e, p, d, di, dt, ref sp)), Fire = new CodeFire((g, e, p, a) => g.SquallFire_SquallGunner(e, p, a)) };
+            t[(int)EnemyType.Stormcaller] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.SquallMove_Stormcaller(e, p, d, di, dt, ref sp)), Fire = new CodeFire((g, e, p, a) => g.SquallFire_Stormcaller(e, p, a)) };
+            t[(int)EnemyType.Lineman] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.SquallMove_Lineman(e, p, d, di, dt, ref sp)), Special = new CodeSpecial((g, e, p, dt) => g.SquallSpecial_Lineman(e, p, dt)), Fire = new CodeFire((g, e, p, a) => g.SquallFire_Lineman(e, p, a)) };
+            t[(int)EnemyType.Thunderhead] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.SquallMove_Thunderhead(e, p, d, di, dt, ref sp)), Special = new CodeSpecial((g, e, p, dt) => g.SquallSpecial_Thunderhead(e, p, dt)) };
+            t[(int)EnemyType.Grounder] = new Brain { Move = new GrounderMove(), Guard = new GrounderGuard(), Fire = new HoldFire()  /* the arc, the clap: not shots of its own */ };
+            t[(int)EnemyType.Pylon] = new Brain { Move = new CodeMove((Game g, Enemy e, V2 p, V2 d, float di, float dt, ref float sp) => g.SquallMove_Pylon(e, p, d, di, dt, ref sp), e => true), Special = new CodeSpecial((g, e, p, dt) => g.SquallSpecial_Pylon(e, p, dt)), Fire = new HoldFire()  /* the arc, the clap: not shots of its own */ };
         }
     }
 }
