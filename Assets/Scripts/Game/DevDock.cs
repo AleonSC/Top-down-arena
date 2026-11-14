@@ -119,6 +119,16 @@ namespace Arena
                 Ui.Fill(new Rect(x + 2f, y + 4f, 1f, h - 8f), new Color(ink.r, ink.g, ink.b, 0.35f));
                 x += 14f;
             }
+            else
+            {
+                // Outside a match: the account rank keys (PARTY has them in a match).
+                bool maxed = Profile.Current.RankNow >= Rank.MaxRank;
+                if (DkKey(new Rect(x, y, 112f, h), "MAX RANK", Ui.GoldButton, maxed, 13))
+                    DevSetRank(Rank.MaxRank);  // RankUi.cs
+                x += 118f;
+                Ui.Fill(new Rect(x + 2f, y + 4f, 1f, h - 8f), new Color(ink.r, ink.g, ink.b, 0.35f));
+                x += 14f;
+            }
             string[] names = { "WAVE", "PARTY", "VIEW", "LABS" };
             var keyRects = new Rect[4];
             for (int i = 0; i < 4; i++)
