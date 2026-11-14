@@ -513,12 +513,10 @@ namespace Arena
                             {
                                 var guard = BrainOf(e.Type)?.Guard;
                                 if (guard != null)
-                                    guard.Shot(this, e, b);  // a shield bearer's: a Comb Shield leaks, a Parrier sends it back (ShieldBrains.cs)
+                                    guard.Shot(this, e, b);  // a shield's own: a Comb Shield leaks, a Parrier sends it back, a Grounder charges (its brain)
                                 else
                                 {
                                     DuelGuardBounce(e, b);  // the Duelist's guard sends it back (Duelist.cs)
-                                    if (GrounderFaces(e, b.Pos))
-                                        GroundShot(e);      // a Grounder's shield charges (Squall.cs)
                                     WearShield(e, b.Dmg);  // the shield takes it, and wears
                                 }
                                 scratchIds.Add(b.Id);

@@ -119,6 +119,7 @@ namespace Arena
             ReaperCultBrains(t);  // step 8d (ReaperFaction.cs)
             InfallBrains(t);      // step 8d (Infall.cs)
             PenumbralBrains(t);   // step 8d (Penumbral.cs)
+            SquallBrains(t);      // step 8d (Squall.cs)
             return t;
         }
     }

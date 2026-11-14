@@ -714,13 +714,6 @@ namespace Arena
                 return;  // committed to the flight line (a lunger's leap, a Charger's dash, a Spike Block's lunge: their brains)
             if (LarderFaceLocked(e))
                 return;  // a Butcher's chop, a Gulper's cone (LarderFaction.cs)
-            if (e.Type == EnemyType.Grounder)
-            {
-                GrounderFace(e, want, dt);  // turns slowly, so you can get round its shield (Squall.cs)
-                return;
-            }
-            if (e.Type == EnemyType.Pylon)
-                return;  // (a post: it has no front)
             var brain = BrainOf(e.Type);
             if (brain != null && brain.Move != null && brain.Move.Turn(this, e, want, tpos, dt))
                 return;  // its own turning, e.g. a shield bearer's (Brain.cs)
@@ -780,8 +773,6 @@ namespace Arena
                 return true;  // the more-hurt Twin Reaper, until the other catches up
             if (LichImmune(e))
                 return true;  // its phylacteries stand, it's blinking between graves, or it's changing stage (Lich.cs)
-            if (GrounderFaces(e, from))
-                return true;  // a Grounder's shield (Squall.cs)
             var brain = BrainOf(e.Type);
             if (brain != null && brain.Guard != null)
                 return brain.Guard.Blocks(this, e, from);  // Brain.cs
@@ -878,8 +869,6 @@ namespace Arena
                     v = dir;  // straight at you, on the surface or under it (LarderFaction.cs)
                 if (IsLateGame(e.Type))
                     v = LateMove(e, tpos, dir, dist, dt, ref speed);
-                if (IsSquall(e.Type))
-                    v = SquallMove(e, tpos, dir, dist, dt, ref speed);  // Squall.cs
                 if (Challenges.Own(e.Type))
                     v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
                 if (e.Type == EnemyType.RiotCaptain)
@@ -984,11 +973,6 @@ namespace Arena
                 case EnemyType.Singularity:
                     SingularitySpecial(e, dt);  // Singularity.cs
                     break;
-                case EnemyType.Pylon:
-                case EnemyType.Lineman:
-                case EnemyType.Thunderhead:
-                    SquallSpecial(e, tpos, dt);  // Squall.cs
-                    break;
             }
         }
 
@@ -1020,8 +1004,6 @@ namespace Arena
                 brain.Fire.Fire(this, e, tpos, aim);  // Brain.cs
                 return;
             }
-            if (SquallFire(e, tpos, aim))
-                return;  // Squall.cs
             switch (e.Type)
             {
                 case EnemyType.Boss:
