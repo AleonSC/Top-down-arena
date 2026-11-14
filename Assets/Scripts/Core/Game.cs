@@ -292,10 +292,18 @@ namespace Arena
             if (Recorder != null && !Recorder.Ended)
                 Recorder.End(this, "restarted");  // a new match started over one still going: finish its file first
             Recorder = null;
-            if (IsHost && RecordFolder != null)
+            if (IsHost && RecordFolder != null && !Unrecorded && !ShowcaseMode)  // (not a Boss Lab fight, a replay or the lobby's preview)
             {
-                Recorder = new SessionRecorder(RecordFolder);
-                Recorder.Begin(this, startWave);
+                try
+                {
+                    Recorder = new SessionRecorder(RecordFolder);
+                    Recorder.Begin(this, startWave);
+                }
+                catch (Exception ex)
+                {
+                    Recorder = null;  // a recording problem never stops the match, but it says why
+                    DoLog("session recording failed to start: " + ex.Message);
+                }
             }
             BeginRunRecord(resumed);  // RunSaves.cs
             Tutorial.Begin(this);  // a profile's first Quick Play: the guided prompts (Tutorial.cs)
