@@ -220,7 +220,7 @@ namespace Arena
                         Heal(q, atk.Dmg * m.Power * dt, owner);
                 return;
             }
-            if (target == null || m.Cd > 0f || State != MatchState.Fighting)
+            if (target == null || m.Cd > 0f || !Battle)
                 return;
             if (atk.Melee)
             {

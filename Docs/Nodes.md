@@ -35,7 +35,7 @@ Then it becomes a fixture inside that room, at the room's size. Mini-bosses stay
 ## Step 1 (built, protocol 282)
 
 - `MapNode` / `NodeKind` (Shop, Vendor, Chest; chests aren't placed yet) in `Expansion.cs`; `Game.Nodes` synced after the kits in `Msg.ExpandState`, saved as `node` lines.
-- `Expansion.NodeFor(seed, cycle, built, nodes, kind)`: 10-16 tiles straight out from a connected room (so a straight 3-tile hallway reaches it: `NodeHall`), 2 tiles clear of every room,
+- `Expansion.NodeFor(seed, cycle, built, nodes, kind)`: 10-16 tiles straight out from a connected room (so a straight 3-tile hallway reaches it: `NodeHall`), 2 tiles clear of every room (chest and relic nodes 6 tiles, `PrizeClear`; `FloatingFor` keeps floating rooms as far from them),
   8+ tiles from other nodes; one shop and one vendor node per boss cycle (`PlaceFloatingRooms`), at most 4 unclaimed. The Gatekeeper stays a floating room.
 - Claiming: `Expansion.Build(..., nodes)` makes a Combat room that encloses a shop or vendor node a Shop or Vendor room (all boxes of a multi-box room), so spawns, gold and the shop screens work unchanged.
 - Bots build the cheapest straight hallway to the nearest unclaimed node (`BotBuildsToFloater`).

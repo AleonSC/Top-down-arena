@@ -122,7 +122,7 @@ MawPriest 106d8602b282a00e at (501,334) phase 0 hp 0 shots 12
 DustDevil 114b3562c77dfa61 at (680,452) phase 0 hp 1393 shots 0
 SquallGunner d269bd05c66880af at (887,163) phase 0 hp 0 shots 18
 Stormcaller 4b4035baddf8b763 at (481,484) phase 0 hp 0 shots 0
-Grounder error InvalidOperationException
+Grounder c51428a1b815d69d at (610,450) phase 3 hp 0 shots 28
 Pylon 0d05f863b2726ad3 at (744,588) phase 1 hp 378 shots 0
 Lineman b97fcc146ed4eb82 at (502,488) phase 0 hp 0 shots 16
 Thunderhead 41b88207c0754264 at (800,450) phase 1 hp 1505 shots 0

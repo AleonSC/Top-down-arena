@@ -876,11 +876,21 @@ static partial class Program
         Check(g.State == MatchState.Intermission && keepers(g) == 0, "between waves, nobody inside: it sleeps (still between waves: " + g.State + ")");
         me.Pos = me.Disp = g.CurrentWorld.Areas[2].Mid + new V2(0f, 100f);
         Run(s, dt, 0.8f, null, NoPicks);
-        g.StateTimer = 0.05f;
         Run(s, dt, 0.8f, null, NoPicks);
         Check(keepers(g) == 1 && keepers(cg) == 1 && g.AreaLocked(2), "between waves, walking in wakes the mini-boss and locks the room, for both screens");
-        Check(g.State == MatchState.Intermission, "a duel between waves holds the countdown to the next wave (" + g.State + ")");
-        g.State = MatchState.Fighting;
+
+        Check(g.Battle && g.DuelBetweenWaves && cg.DuelBetweenWaves, "a duel between waves counts as a fight, on both screens");
+        {
+            var mb = g.Enemies.Values.First(e => FactionMinis.Duels(e.Type));
+            int shots0 = g.Bullets.Values.Count(b => b.Shooter != 0);
+            float fire0 = mb.FireT; bool acted = false;
+            for (int k = 0; k < 40 && !acted; k++) { Run(s, dt, 0.1f, null, NoPicks); acted = mb.FireT != fire0 || mb.Winding || g.Bullets.Values.Count(b => b.Shooter != 0) > shots0; }
+            Check(acted, "between waves, the woken mini-boss attacks (its attack clock runs)");
+        }
+        g.StateTimer = 0.05f;
+        Run(s, dt, 30f, () => g.State == MatchState.Fighting, NoPicks);
+        Run(s, dt, 0.5f, null, NoPicks);
+        Check(g.State == MatchState.Fighting && keepers(g) == 1 && g.AreaLocked(2), "a duel between waves doesn't hold up the next wave (ready still works): it carries on into it (" + g.State + ", " + keepers(g) + ")");
 
         // Beating it: prize pick, ordinary room.
         Run(s, dt, 0.8f, null, NoPicks);

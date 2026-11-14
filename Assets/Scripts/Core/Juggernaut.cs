@@ -67,7 +67,7 @@ namespace Arena
                 if (p.JuggT <= 0f)
                     continue;
                 p.JuggT = Math.Max(0f, p.JuggT - dt);
-                if (p.JuggT <= 0f || p.JuggArmor <= 0f || p.Downed || State != MatchState.Fighting || p.Slots[Upgrades.UltSlot].Id != AbilityId.JuggernautSuit)
+                if (p.JuggT <= 0f || p.JuggArmor <= 0f || p.Downed || !Battle || p.Slots[Upgrades.UltSlot].Id != AbilityId.JuggernautSuit)
                     EndJugg(p);
             }
         }

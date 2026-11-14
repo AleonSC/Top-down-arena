@@ -659,7 +659,7 @@ wave brings **Dusk and Dawn**: split to opposite edges, a Mourner on each side w
 |---|---|---|
 | 1 | **Wisp** | A soul flame, in threes: drifts straight at you like a Swarmer (14 health, contact 6) |
 | 1 | **Acolyte** | A hooded cultist with a sickle: stops short, raises it over a **pale cone** (96 px, 120°, 0.5 s), then one wide swing (12). A Swordsman's moves, shorter and wider |
-| 2 | **Bound Wraiths** | Always a **pair** (60 health each), circling a point that drifts to just beside you, 75 px out, joined by a **tether** that hurts (10) as it sweeps over you. Kill one and the other **stops and channels** it back: a ring fills round the ghost for **3 s**, then it's back at 60% health. Kill the channeller first and neither comes back |
+| 2 | **Bound Wraiths** | Always a **pair** (60 health each), circling a point that drifts to just beside you, 75 px out, joined by a **tether** that hurts (10) as it sweeps over you. With a wall in the way they break the orbit and walk round it through the doors. Kill one and the other **stops and channels** it back: a ring fills round the ghost for **3 s**, then it's back at 60% health. Kill the channeller first and neither comes back |
 | 2 | **Lamplighter** | Keeps about 280 px away. It plants its feet, its lantern flares and **gold lines** show the volley (0.6 s), then it fires **three lines** at you, next time a **four-way cross**, streaks of four (every 3.2 s) |
 | 2 | **Gravedigger** | A cultist brute with a shovel: moves and hits like a Brute (140 health, contact 20) |
 | 3 | **Mourner** | Keeps about 260 px away and stands still to weep a **twin spiral**, one arm each way, for 2.5 s, then **rests** 3 s: push in then |
@@ -1060,7 +1060,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   **Solo players skip the vote**: your proposal is built the moment you make it.
 - **Shop and vendor rooms, chest nodes and the mini-boss room**: every boss cycle the game places a **shop room** and a **vendor room** (tiny
   4 x 4 tile squares) and a **mini-boss** room (8 x 6) as sealed boxes 4 to 8 tiles off the map, plus a **chest node**: a point 10 to 16 tiles straight
-  out (at least 8 tiles from other nodes). All of them keep well away from the start room: 10 tiles farther out when placed off it, and never within 10 tiles of it. Build a room or hallway that shares 2 tiles of wall with a sealed room and its door opens: walk in to shop
+  out (at least 8 tiles from other nodes; chest and relic nodes keep 6 tiles clear of every room, and later floating rooms keep as far from them). All of them keep well away from the start room: 10 tiles farther out when placed off it, and never within 10 tiles of it. Build a room or hallway that shares 2 tiles of wall with a sealed room and its door opens: walk in to shop
   (the shop's stall or the vendor's pedestal stands in the middle). Sealed rooms don't count towards the 24-room cap and add no enemies; at most 6 wait.
   A chest node is locked until you build a **room** that encloses it (a normal combat room with enemies); a claimed chest node holds a real treasure chest (the same as the rare wave chests): touch it and every
   player gets their own item. It opens once and never holds the wave up (opened ones lie dim with the lid up). No cover stands on a node. Nothing respawns: new ones
@@ -1111,7 +1111,8 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   next boss's faction: the Warden's is the **Riot Captain**; factions without their own yet bring him too; the map shows its name), and the room
   locks behind you until it falls. Beating it gives everyone a prize pick (sometimes a legendary) and the room becomes an ordinary one. It's optional:
   if the wave ends first, it goes (with any men it called), you're let out, and walking in later (even right after the wave) starts a fresh duel.
-  A duel begun between waves holds the countdown to the next wave until it's settled; it can't be started just before a boss wave.
+  A duel begun between waves is a real fight (it attacks, your minions and kit work); readying up still starts the next wave, and the duel
+  carries on into it. It can't be started just before a boss wave.
 - **Riot Captain** (the Warden's mini-boss, 65% of the Warden's health): a tower shield blocks the front and never breaks; it turns slowly, so get
   round it. In turn: a **shield charge** along a red lane (18 damage, knocked 220 px; **into a wall it's dazed 2.2 s**: no shield, +50% damage;
   otherwise it holds the shield low 1.2 s), **buckshot** (3 fans of 7), **tear gas** (3 canisters round you) and a **whistle** (2 Taser Guards at
@@ -1342,6 +1343,10 @@ Warden has one yet), and later bosses will need the party handed a build that fi
 (not counted as runs). Winning a hunt unlocks that boss's perk (below). Plan: `Docs/BossHuntsAndPerks.md`.
 
 **Hunt map.** The Boss Hunt tab has a **Hunt map** switch (host only, off by default: off, a hunt is the ten waves in order). On, the hunt is a map of ten steps on three lanes, starting at the top and ending with the boss at the bottom; the screen between waves shows it, with the party, the next nodes, the picked node's detail and a **Lock in vote** key. Everyone votes for the next node (keys 1-3 or a click) and locks in; the node with the most votes wins, a tie goes to the host's vote, and after 20 s (counted once nobody is picking upgrades) the map picks for the party. A node with a single way on is taken at once. The wave that follows is that node's. Nodes: **Skirmish** (the boss's own troops at the step's strength), **Elite squad** (one step further into the faction, the set piece of a finale wave, and 30% of its enemies come as tougher elite variants; each Elite cleared is a **boss clue**, up to 3), **Ambush** (a short wave of 70% of the enemies, coming from every side all at once instead of on the clock; pays XP and leaves a chest), **Contraband** (a normal wave fought in the dark, like the Nightfall modifier; pays everyone a rare-or-better card), **Gamble** (unknown until you arrive, then a Skirmish 30%, an Elite 25%, an Ambush 20% or a Contraband 25%; shown on the sector chip under the wave plate), **Rest** (no fight: everyone heals to full and gets a reroll and a free upgrade pick) and **Shop** (no fight: the Bazaar opens; gold is earned all hunt long and leftovers turn into XP when it closes). A Rest or Shop never comes right after another, and the row before the boss is always one of them. The clues' effect on the boss is planned. Design: `Docs/HuntMap.md`.
+
+## Survival
+
+**Survival** (Docs/Survival.md) is a lobby mode with no waves and no boss: one clock runs and the pressure climbs with it, and the run ends when everyone is down. Enemies top the field up to a budget (killing fast brings more, up to 60 alive); the basic faction comes first and another faction joins every four minutes; a squad arrives every 45 s; Elites grow to 40% of spawns; health and damage scale as one wave per 30 s; two and three players raise the budget 1.6x and 2.2x. Kills still level you up, and a **level-up pick freezes the world** (clock, enemies and shots) until everyone has chosen. Not saved to continue. So far it is played on the normal arena; the big room, its HUD, lobby tab and records are still to come.
 
 ## Perks
 

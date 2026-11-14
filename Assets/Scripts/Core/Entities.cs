@@ -438,6 +438,8 @@ namespace Arena
         public float KnockSpeed, KnockFxAt = -10f;
         public int ImpactBy;    // host only: a Lance shove's owner id + 1 while it slides (0: none); fast enough, it hits what it meets (Lance.cs)
         public int ImpactLast = -1;  // host only: the enemy it last hit that way (each pair once)
+        public V2 RoomAt;       // host only: its last spot inside a room of the map (KeepEnemiesInRooms, EnemyAI.cs)
+        public bool HasRoomAt;
         public float LitT;      // host: seconds held in a Searchlight (below 0: just locked, resting) (Stun.cs)
         public EnemyType Type;
         public EnemyDef Def;
