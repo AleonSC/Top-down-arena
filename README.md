@@ -774,9 +774,16 @@ grows (50% more health, drawn bigger), as the Devourer heals from them in its Hu
 
 The **Eclipse's faction**, the Penumbral Court, leads up to the final fight (waves 46-49): sun-cultists and scraps of
 flare, each previewing one of the Eclipse's stages (design: `Docs/EclipseFaction.md`; mockup: `Docs/Mockups/eclipse-faction.html`).
-Steps 1-3 of 4 are in: all eight enemies and squads **Dawn** (a Corona Priest and six Embers) and, from wave 47, **Mirror
-pair** (two Heliographs); from wave 48, **Moon court** (two Moonwards and two Sickles) and **Night watch** (a Dusk Lobber,
-a Gnomon and three Embers). At most three Heliographs a wave. No set piece or Campaign lessons yet: its waves are built by reach.
+Squads: **Dawn** (a Corona Priest and six Embers) and, from wave 47, **Mirror pair** (two Heliographs); from wave 48,
+**Moon court** (two Moonwards and two Sickles), **Night watch** (a Dusk Lobber, a Gnomon and three Embers) and **Echoes**
+(one member from each earlier boss's faction: a Rioter, a Worker, a Wisp, Debris, Rubble, a Dust Devil, a Fencer, a
+Shambler and a Gnawling). At most three Heliographs a wave. The last wave before it always brings **Last Light**: four
+Heliographs at the corners and eight Embers along the sides of a square round you that turns slowly and closes in (from
+330 to 140 px from the middle to each side), like the Eclipse's burning edge; the Embers' sparks hang where they pass
+and the Heliographs flare in from the corners. Kill a side to break out; it breaks up after 14 s or once half of it is
+down. In the Long Campaign its ten waves (91-100) teach one enemy each, in the Warden's order: Embers, Corona Priests,
+Heliographs, Moonwards, a recap with Gnomons, Dusk Lobbers, Sickles, Novas, every squad, then the exam (Last Light and a
+big Dawn).
 
 | From | The Eclipse's faction (the Penumbral Court) | Previews | What it does |
 |---|---|---|---|

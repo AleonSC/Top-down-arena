@@ -1,9 +1,9 @@
 # The Eclipse's faction: the Penumbral Court
 
-**Status: steps 1-3 built** (protocol 338): all eight enemies, squads Dawn, Mirror pair, Moon court and Night watch. Code: `Core/Penumbral.cs`, `Core/Approaches.cs`
+**Status: built** (protocol 338; step 4 needs none): all eight enemies, five squads, the Last Light set piece and the ten-wave cycle. Code: `Core/Penumbral.cs`, `Core/Approaches.cs`
 (the Eclipse `FactionDef`), `Core/Defs.cs` (bullet kind `EmberSpark`), `Core/Variety.cs` (`CapBeams`: at most 3 Heliographs a wave), `Game/PenumbralLook.cs`;
 mockup `Docs/Mockups/eclipse-faction.html`; test suite `penumbral`; previews `PENUMBRAL=0.4 Tools/Preview/shot.sh x hud 1` (step 1), `PENUMBRAL2=0.4 [GNOMON=1.6] ...` (step 2; GNOMON: seconds into its
-swell, past 1.5 the flash), `PENUMBRAL3=0.4 [NOVAT=2] ...` (step 3; NOVAT: seconds into the lit Nova's fuse). Replaces the Echoes plan in `Docs/Approaches.md`
+swell, past 1.5 the flash), `PENUMBRAL3=0.4 [NOVAT=2] ...` (step 3; NOVAT: seconds into the lit Nova's fuse), `LASTLIGHT=9 ...` (the set piece, 9 s in). Replaces the Echoes plan in `Docs/Approaches.md`
 (Echoes stays as one squad).
 
 Eight enemies, one per Warden slot, the same size as the Warden's and the Singularity's factions. Like the Infall, each has its own behaviour and
@@ -32,9 +32,12 @@ previews one thing the Eclipse's stages test, so its cycle (waves 91-99 of the C
 3. **Sickle, Nova** (built): the Sickle's crescent (`SickleThrow`: the boss's `ThrowCrescent` loop, smaller and slower, the same
    `CrescentShot`); the Nova's fuse (`NovaStep`; `NovaLit` takes `NovaLitMult` in `HurtEnemy`) and burst. Squad **Moon court** (two Moonwards,
    two Sickles).
-4. **The set piece and the cycle**: **Last Light** (eight Embers and four Heliographs on a square round the players that closes in like the boss's
-   burning edge, flaring along its sides; it breaks where you kill them), squad **Echoes** (one member from each earlier faction), and nine lessons:
-   Embers; Corona Priests; Heliographs; Moonwards; a recap with Gnomons; Dusk Lobbers; Sickles; Novas; the exam with Last Light.
+4. **The set piece and the cycle** (built): **Last Light** (`SquadForm.LastLight`: four Heliographs at the corners and eight Embers a third
+   and two thirds along each side of a square round a player; it turns 0.18 rad/s and closes from 330 to 140 px, middle to side, at 16 px/s;
+   a Heliograph stands still while it flares; it breaks up after 14 s or once half is down) on the last wave; squad **Echoes** (From 3: a
+   Rioter, Worker, Wisp, Debris, Rubble, Dust Devil, Fencer, Shambler and Gnawling, one per earlier faction); lesson-only squads Ember pack
+   and Priest pair; and ten lessons in the Warden's order: Embers; Corona Priests; Heliographs; Moonwards; a recap with Gnomons; Dusk
+   Lobbers; Sickles; Novas; every squad and the Echoes; the exam (Last Light and a big Dawn). The Campaign's waves 91-100.
 
 ## Numbers (as built)
 

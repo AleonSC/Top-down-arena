@@ -17,7 +17,7 @@ namespace Arena
     }
 
     /// How a squad arrives: in a line across its edge, split to opposite edges, or blinking in around a player.
-    public enum SquadForm : byte { Line, Pincer, Around, RiotLine, Accretion, Honour, StormFront }  // RiotLine: a wall of Riot Shields (or their kin) marching at you, the rest close behind (WardenFaction.cs); Accretion: a ring round you that turns and closes (Infall.cs); Honour: the Ring of Honour, fencers round you that lunge in by pairs (CourtFaction.cs); StormFront: Stormcallers in a line behind Grounders, sweeping a wall of strikes across you (Squall.cs)
+    public enum SquadForm : byte { Line, Pincer, Around, RiotLine, Accretion, Honour, StormFront, LastLight }  // RiotLine: a wall of Riot Shields (or their kin) marching at you, the rest close behind (WardenFaction.cs); Accretion: a ring round you that turns and closes (Infall.cs); Honour: the Ring of Honour, fencers round you that lunge in by pairs (CourtFaction.cs); StormFront: Stormcallers in a line behind Grounders, sweeping a wall of strikes across you (Squall.cs); LastLight: a square round you that turns and closes (Penumbral.cs)
 
     /// More variety between the bosses (built from Docs/Mockups/enemy-variety.html):
     ///   Four new enemies: the Beam Sentry (wave 18: plants itself, aims a line, sweeps a beam), the Scorcher (24:
@@ -240,6 +240,8 @@ namespace Arena
                     pos = AccretionSpawn(id, i, target);  // in a ring round a player (Infall.cs)
                 else if (s.Form == SquadForm.Honour && target != null && !RoomsOn)
                     pos = HonourSpawn(id, i, target);  // in a ring round a player (CourtFaction.cs)
+                else if (s.Form == SquadForm.LastLight && target != null && !RoomsOn)
+                    pos = LastLightSpawn(id, i, target);  // on a square round a player (Penumbral.cs)
                 else if (s.Form == SquadForm.Pincer && i < 2 && !breach.HasValue)  // (through a breach: they come in together)
                     pos = ClampToArena(new V2(i == 0 ? lo.X : hi.X, LayoutOn ? LayoutSideY(i == 0 ? 2 : 3, 150f) : Rand(lo.Y + 150f, hi.Y - 150f)), 40f);
                 else
@@ -335,6 +337,7 @@ namespace Arena
             accretionRings.Clear();  // Infall.cs
             honourRings.Clear();     // CourtFaction.cs
             stormFronts.Clear();     // Squall.cs
+            lastLights.Clear();      // Penumbral.cs
             honourTurn.Clear();
             if (newRun)
             {
@@ -509,6 +512,8 @@ namespace Arena
                 return AccretionMove(e, mates, v);  // Infall.cs
             if (form == SquadForm.Honour && honourRings.ContainsKey(e.SquadId))
                 return HonourMove(e, mates, v);  // CourtFaction.cs
+            if (form == SquadForm.LastLight && lastLights.ContainsKey(e.SquadId))
+                return LastLightMove(e, mates, v);  // Penumbral.cs
             if (e.T < SquadFormTime + 0.9f && !e.Def.Melee && e.Type != EnemyType.Phantom && e.Type != EnemyType.Shade && e.Type != EnemyType.Nest)
                 return dir * 0.6f;  // marching in together
             switch (e.Type)

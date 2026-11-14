@@ -451,6 +451,29 @@ static partial class Shot {
       nput(EnemyType.Nova, new V2(1330f, 330f));
       ng.AnimT += float.Parse(Environment.GetEnvironmentVariable("PENUMBRAL3"), System.Globalization.CultureInfo.InvariantCulture);
     }
+    if (Environment.GetEnvironmentVariable("LASTLIGHT") != null) {  // LASTLIGHT=<s into the square>: the Eclipse's set piece (Penumbral.cs): four Heliographs at the corners and eight Embers along the sides of a square round you, turning and closing, the Embers' sparks hanging along the edge, one corner flaring
+      var lg2 = host.Game; lg2.Enemies.Clear(); lg2.Bullets.Clear(); lg2.Patches.Clear();
+      me.Pos = me.Disp = new V2(1000f, 560f);
+      float at = float.Parse(Environment.GetEnvironmentVariable("LASTLIGHT"), System.Globalization.CultureInfo.InvariantCulture);
+      float spin0 = 0.3f;
+      Func<float, float> half = tt => Math.Max(Game.LastLightEnd, Game.LastLightStart - Game.LastLightClose * tt);
+      var fin = Approaches.For(EnemyType.Eclipse).Finale;
+      var lsp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      int sid = 9400;
+      for (int i = 0; i < fin.Members.Length; i++) {
+        V2 p = Game.LastLightPoint(me.Pos, spin0 + Game.LastLightSpin * at, Game.LastLightU(i), half(at));
+        var e = (Enemy)lsp.Invoke(lg2, new object[] { fin.Members[i], p, 0f, 0, false }); e.SpawnT = 0f; e.Spawning = false; e.Disp = e.Pos; e.Facing = (me.Pos - p).Angle;
+        if (fin.Members[i] == EnemyType.Ember)
+          for (int k = 1; k <= 7; k++) {  // its sparks: where it was over the last 1.4 s
+            float tt = Math.Max(0f, at - k * 0.2f);
+            V2 sp = Game.LastLightPoint(me.Pos, spin0 + Game.LastLightSpin * tt, Game.LastLightU(i), half(tt));
+            lg2.Bullets[sid] = new Bullet { Id = sid, Kind = Defs.EmberSpark, Pos = sp, Vel = V2.Zero, Radius = Defs.BulletRadius(Defs.EmberSpark), Dmg = 6f, Life = Game.EmberSparkLife - k * 0.2f, Life0 = Game.EmberSparkLife }; sid++;
+          }
+        if (i == 3) { e.Phase = 2; e.SeenT = 0.1f; e.Facing = (me.Pos + new V2(60f, -30f) - p).Angle; }
+        if (i == 9) { e.Phase = 1; e.SeenT = 0.5f; }
+      }
+      lg2.AnimT += at;
+    }
     if (Environment.GetEnvironmentVariable("INFALL2") != null) {  // INFALL2=<s into the clock>: the Singularity's faction, step 2 (InfallLook.cs): a Graviton winding up beside its landed Small Well, an Orbiter flaring with a slung orb in flight, a hurt Collapsar and an Implosion half-way
       var ig = host.Game; ig.Enemies.Clear(); ig.Bullets.Clear();
       var isp = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

@@ -452,7 +452,7 @@ namespace Arena
             },
             new FactionDef
             {
-                Boss = EnemyType.Eclipse,  // the Eclipse: the Penumbral Court, each previewing one of its stages (Penumbral.cs, Docs/EclipseFaction.md); step 3 of 4
+                Boss = EnemyType.Eclipse,  // the Eclipse: the Penumbral Court, each previewing one of its stages (Penumbral.cs, Docs/EclipseFaction.md)
                 Members = new[]
                 {
                     new FactionMember { Type = EnemyType.Ember, Weight = 3f },  // sparks hang behind it (Lunar wake)
@@ -470,8 +470,34 @@ namespace Arena
                     new SquadDef { Name = "Mirror pair", From = 2, Members = new[] { EnemyType.Heliograph, EnemyType.Heliograph } },
                     new SquadDef { Name = "Moon court", From = 3, Members = new[] { EnemyType.Moonward, EnemyType.Moonward, EnemyType.Sickle, EnemyType.Sickle } },
                     new SquadDef { Name = "Night watch", From = 3, Members = new[] { EnemyType.DuskLobber, EnemyType.Gnomon, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember } },
+                    // Echoes: one from each earlier boss's faction, as the Eclipse's own Echoes stage borrows their turns
+                    new SquadDef { Name = "Echoes", From = 3, Members = new[] { EnemyType.Rioter, EnemyType.Worker, EnemyType.Wisp, EnemyType.Debris, EnemyType.Rubble,
+                        EnemyType.DustDevil, EnemyType.Fencer, EnemyType.Shambler, EnemyType.Gnawling } },
                 },
-                // No set piece or lesson cycle yet (steps 2-4): the Campaign builds its waves by reach, as for the Lich.
+                LessonSquads = new[]
+                {
+                    new SquadDef { Name = "Ember pack", From = 1, Members = new[] { EnemyType.Ember, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember, EnemyType.Ember } },
+                    new SquadDef { Name = "Priest pair", From = 1, Members = new[] { EnemyType.CoronaPriest, EnemyType.CoronaPriest } },
+                },
+                // Wave 4: Last Light, four Heliographs at the corners and eight Embers along the sides of a square round you that
+                // turns and closes in like the Eclipse's burning edge; it breaks up after 14 s or once half is down (Penumbral.cs).
+                Finale = new SquadDef { Name = "Last Light", From = 4, Form = SquadForm.LastLight, Members = new[] {
+                    EnemyType.Heliograph, EnemyType.Ember, EnemyType.Ember, EnemyType.Heliograph, EnemyType.Ember, EnemyType.Ember,
+                    EnemyType.Heliograph, EnemyType.Ember, EnemyType.Ember, EnemyType.Heliograph, EnemyType.Ember, EnemyType.Ember } },
+                // The Campaign's Eclipse cycle: the Warden's ten lessons in the same order, each rehearsing one of its stages.
+                Lessons = new[]
+                {
+                    new WaveLesson { Teaches = "Embers' sparks hang behind them (the Lunar wake)", Members = new[] { M(EnemyType.Ember, 1f) } },
+                    new WaveLesson { Teaches = "Corona Priests: step into the gap (its Corona rings)", Trickle = true, Star = EnemyType.CoronaPriest, Members = new[] { M(EnemyType.Ember, 1f) }, Squads = new[] { "Ember pack" } },
+                    new WaveLesson { Teaches = "Heliographs: step off the line (its Solar flares)", Trickle = true, Star = EnemyType.Heliograph, Members = new[] { M(EnemyType.Ember, 2f), M(EnemyType.CoronaPriest, 1.5f) }, Squads = new[] { "Ember pack", "Priest pair" } },
+                    new WaveLesson { Teaches = "Moonwards: fire when the moon swings round the back (the Penumbra's moon)", Trickle = true, Star = EnemyType.Moonward, Members = new[] { M(EnemyType.Ember, 2f), M(EnemyType.CoronaPriest, 2f), M(EnemyType.Heliograph, 1f) }, Squads = new[] { "Dawn" } },
+                    new WaveLesson { Teaches = "A recap, and Gnomons join: hide in the shadow (its Eclipse flash)", Trickle = true, Star = EnemyType.Gnomon, Members = new[] { M(EnemyType.Ember, 2f), M(EnemyType.CoronaPriest, 2f), M(EnemyType.Heliograph, 1f), M(EnemyType.Moonward, 1.5f) }, Squads = new[] { "Dawn", "Mirror pair" } },
+                    new WaveLesson { Teaches = "Dusk Lobbers: stay in the light (the Umbra)", Trickle = true, Star = EnemyType.DuskLobber, Members = new[] { M(EnemyType.Moonward, 2f), M(EnemyType.Ember, 2f), M(EnemyType.CoronaPriest, 1.5f) }, Squads = new[] { "Night watch" } },
+                    new WaveLesson { Teaches = "Sickles: their crescents come back (its Crescents)", Trickle = true, Star = EnemyType.Sickle, Members = new[] { M(EnemyType.Moonward, 2f), M(EnemyType.Ember, 2f), M(EnemyType.DuskLobber, 1f), M(EnemyType.Gnomon, 1f) }, Squads = new[] { "Moon court" } },
+                    new WaveLesson { Teaches = "Novas: burst them or back off (its Totality)", Trickle = true, Star = EnemyType.Nova, Members = new[] { M(EnemyType.Sickle, 1.5f), M(EnemyType.Gnomon, 1f), M(EnemyType.Heliograph, 1f), M(EnemyType.Ember, 2f) } },
+                    new WaveLesson { Teaches = "Every squad, and the Echoes of the bosses before", Members = null, Squads = null, SquadChance = 0.75f },
+                    new WaveLesson { Teaches = "The exam: Last Light and a big Dawn, with everything", Members = null, Squads = new string[0], Finale = true, Also = "Dawn" },
+                },
             },
         };
 

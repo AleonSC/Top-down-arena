@@ -28,6 +28,11 @@ namespace Arena
     ///   Nova (Totality): melee, darts in weaving; within NovaLight it lights a NovaFuse s fuse (Phase 1: it hovers
     ///     NovaHover px off you, slowed, and takes NovaLitMult damage), then goes nova: NovaBlastDamage to everyone within
     ///     NovaBlastR, and it's gone (no kill credit).
+    /// Step 4, the set piece: Last Light (SquadForm.LastLight), four Heliographs at the corners and eight Embers along the
+    ///   sides of a square round a player, like the Eclipse's burning edge. It turns at LastLightSpin rad/s and closes from
+    ///   LastLightStart to LastLightEnd px (half its side) at LastLightClose px/s; the Embers' sparks hang where they pass,
+    ///   so the edge burns, and the Heliographs flare in from the corners. Kill a side to break out. It breaks up after
+    ///   LastLightLife s, or once half of it is down.
     public partial class Game
     {
         public const float EmberWeave = 0.55f, EmberSparkEvery = 0.2f, EmberSparkLife = 1.5f, EmberSparkDrift = 25f, EmberSparkRange = 650f;
@@ -47,6 +52,62 @@ namespace Arena
         public const float SickleRange = 240f, SickleEvery = 2.4f, SickleWindUp = 0.6f, SickleSpeed = 300f, SickleLoopMin = 150f;
         public const float NovaLight = 140f, NovaFuse = 3f, NovaBlastR = 110f, NovaHover = 60f, NovaLitSpeed = 0.35f, NovaLitMult = 1.5f;
         float NovaBlastDamage => 30f;
+
+        public const float LastLightStart = 330f, LastLightEnd = 140f, LastLightClose = 16f, LastLightSpin = 0.18f, LastLightLife = 14f;
+
+        sealed class LastLightSquare { public V2 Center; public float Spin0; public int Size; }
+        readonly System.Collections.Generic.Dictionary<int, LastLightSquare> lastLights = new System.Collections.Generic.Dictionary<int, LastLightSquare>();  // host: by squad id
+
+        /// The point at `u` round a square (0-4: a corner at each whole number), `half` px from its middle to each side,
+        /// turned by `spin`.
+        public static V2 LastLightPoint(V2 center, float spin, float u, float half)
+        {
+            int side = (int)Math.Floor(u) & 3;
+            float k = u - (float)Math.Floor(u);
+            V2 a = SquareCorner(side, half), b = SquareCorner(side + 1, half);
+            return center + (a + (b - a) * k).Rotated(spin);
+        }
+
+        static V2 SquareCorner(int c, float half)
+        {
+            switch (c & 3)
+            {
+                case 0: return new V2(-half, -half);
+                case 1: return new V2(half, -half);
+                case 2: return new V2(half, half);
+                default: return new V2(-half, half);
+            }
+        }
+
+        /// Its place on the square: every third member a corner (the Heliographs), the others a third and two thirds
+        /// along each side.
+        public static float LastLightU(int i) => i / 3f;
+
+        V2 LastLightSpawn(int squad, int i, Player target)
+        {
+            if (!lastLights.TryGetValue(squad, out var sq))
+            {
+                V2 lo = ArenaMin + new V2(150f, 150f), hi = ArenaMax - new V2(150f, 150f);
+                V2 c = new V2(Math.Max(lo.X, Math.Min(hi.X, target.Pos.X)), Math.Max(lo.Y, Math.Min(hi.Y, target.Pos.Y)));
+                lastLights[squad] = sq = new LastLightSquare { Center = c, Spin0 = Rand(0f, MathX.Tau) };
+            }
+            sq.Size++;
+            return ClampToArena(LastLightPoint(sq.Center, sq.Spin0, LastLightU(i), LastLightStart), 30f);
+        }
+
+        /// Its place on the turning, closing square; a Heliograph stands still while it flares; once the square breaks
+        /// up, its own way.
+        V2 LastLightMove(Enemy e, System.Collections.Generic.List<Enemy> mates, V2 v)
+        {
+            var sq = lastLights[e.SquadId];
+            if (e.T > LastLightLife || mates.Count * 2 < sq.Size)
+                return v;
+            if (HelioLocked(e))
+                return V2.Zero;
+            float t = Math.Max(0f, e.T - 0.9f);  // (from when it has spawned in)
+            float half = Math.Max(LastLightEnd, LastLightStart - LastLightClose * t);
+            return GoalVel(e, ClampToArena(LastLightPoint(sq.Center, sq.Spin0 + LastLightSpin * t, LastLightU(e.SquadSlot), half), 30f));
+        }
 
         public static bool IsPenumbral(EnemyType t) => t >= EnemyType.Ember && t <= EnemyType.Heliograph || t >= EnemyType.Moonward && t <= EnemyType.Nova;
 
