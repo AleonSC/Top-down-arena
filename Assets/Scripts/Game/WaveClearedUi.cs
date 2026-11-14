@@ -16,7 +16,7 @@ namespace Arena
         int autoReadySent = -1;       // the Auto-ready choice the host was last told (-1: not yet this run)
         float wcBorn = -1f;           // unscaled time the box appeared (for its drop-in)
         int wcWave = -1;
-        const float WcStripAlpha = 0.72f;  // the minimized strip's background: slightly see-through
+        const float WcStripAlpha = 0.45f;  // the minimized strip's background, scanlines and corners: see-through
         bool wcMin;                   // minimized to a strip at the top so you can walk to a shop or a chest (until the next break)
         Rect wcStripHit;              // the strip's rect as last drawn (a click on it isn't a shot)
 
@@ -285,7 +285,7 @@ namespace Arena
                 }
                 if (LobbyKit.Key(new Rect(ox, r.y + 8f, 148f, 44f), "OPEN", false, calm, size: 20, minSize: 12))
                     wcMin = false;
-                CrtUi.End(r, Time.unscaledTime, fxReduced);
+                CrtUi.End(r, Time.unscaledTime, fxReduced, WcStripAlpha);
             });
         }
 
