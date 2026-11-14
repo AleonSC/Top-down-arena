@@ -279,6 +279,27 @@ static partial class Program
         }
         Check(flurrying && me.KnuckleChain == 0, "raising the parry ends the chain");
 
+        // A thrown enemy stops at a wall: carried at throw speed, a frame at a time, it never crosses to the far side.
+        g.DevSetLayout(LayoutId.Cross);
+        Solid wall = default(Solid);
+        bool found = false;
+        foreach (var so in g.ActiveLayout.Solids)
+            if (!so.Edge && !so.Round && (!found || Math.Min(so.HW, so.HH) < Math.Min(wall.HW, wall.HH))) { wall = so; found = true; }
+        Check(found, "the Cross floor plan has a wall to throw into");
+        if (found)
+        {
+            bool across = wall.HW <= wall.HH;  // throw across its thin side
+            V2 dir = across ? new V2(1f, 0f) : new V2(0f, 1f);
+            float half = across ? wall.HW : wall.HH;
+            tgt.Pos = wall.Pos - dir * (half + tgt.Radius + 30f);
+            bool stopped = false;
+            for (int f = 0; f < 30 && !stopped; f++)
+                stopped = g.KnuckleCarry(tgt, tgt.Pos + dir * Game.KnuckleThrowSpeed * dt);
+            float past = (tgt.Pos - wall.Pos).X * dir.X + (tgt.Pos - wall.Pos).Y * dir.Y;
+            Check(stopped && past < -half, "a thrown enemy stops on its own side of a wall, not through it (" + past + ")");
+        }
+        g.DevSetLayout(LayoutId.Open);
+
         s[0].Leave(""); s[1].Leave("");
     }
 }
