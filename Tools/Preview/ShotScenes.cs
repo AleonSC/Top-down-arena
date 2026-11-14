@@ -998,7 +998,7 @@ static partial class Shot {
             if (kns == "prompt") { me.KnuckleChain = 1; break; }
             int mv = kns == "flurry" ? 1 : kns == "grab" ? 2 : 3;
             me.KnuckleChain = (byte)(mv * 2);
-            gm.Effects.Add(new Effect { Kind = FxKind.KnuckleChain, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * 60f, Color = Game.ArcBlue, Radius = me.Id * 10 + mv, T = st, Dur = mv == 1 ? Game.FlurryDur : mv == 2 ? Game.GrabDur : Game.RocketPunchDur });
+            gm.Effects.Add(new Effect { Kind = FxKind.KnuckleChain, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * (mv == 3 ? Game.RocketPunchReach : 60f), Color = Game.ArcBlue, Radius = me.Id * 10 + mv, T = st, Dur = mv == 1 ? Game.FlurryDur : mv == 2 ? Game.GrabDur : Game.RocketPunchDur });
             if (mv == 2 && st >= Game.GrabLatch)  // the grabbed enemy beside the fist (thrown along the aim after the release)
             {
               Enemy held = null; foreach (var en in gm.Enemies.Values) if (!en.Def.IsBoss) { held = en; break; }

@@ -258,7 +258,7 @@ namespace Arena
         void DrawKnuckleSwath(V2 o, float aim, int step, float u)
         {
             float grow = 1f - (1f - Mathf.Clamp01(u * 3f)) * (1f - Mathf.Clamp01(u * 3f)), fade = 1f - u * u;
-            V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
+            V2 dir = V2.FromAngle(aim);
             if (step == 3)
             {
                 float r = Game.KnuckleHookReach, half = Game.KnuckleHookArc * Mathf.Deg2Rad / 2f;
@@ -272,15 +272,37 @@ namespace Arena
             }
             float reach = step == 1 ? Game.KnuckleJabReach : step == 2 ? Game.KnuckleCrossReach : Game.KnuckleUpperReach;
             float w = step == 1 ? Game.KnuckleJabWidth : step == 2 ? Game.KnuckleCrossWidth : Game.KnuckleUpperWidth;
+            DrawKnuckleLane(o, aim, reach, w, grow, fade, 1f);
+        }
+
+        /// A punch's lane of arc light, `reach` long and `w` either side of the line (tapered at the body), its front at
+        /// `grow` (0..1) of the way out, its alpha scaled by `fade` and its strokes by `thick`.
+        void DrawKnuckleLane(V2 o, float aim, float reach, float w, float grow, float fade, float thick)
+        {
+            V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
             float near = 10f, far = near + (reach - near) * grow;
             V2 a = o + dir * near, b = o + dir * far;
-            // tapered at the body, full width at the fist
             Quad(a + side * (w * 0.45f), b + side * w, b - side * w, a - side * (w * 0.45f), KnArc.WithAlpha(0.24f * fade));
             Quad(a + side * (w * 0.2f), b + side * (w * 0.5f), b - side * (w * 0.5f), a - side * (w * 0.2f), KnArcHi.WithAlpha(0.22f * fade));
-            Line(a + side * (w * 0.45f), b + side * w, 2.5f, KnArcHi.WithAlpha(0.75f * fade));
-            Line(a - side * (w * 0.45f), b - side * w, 2.5f, KnArcHi.WithAlpha(0.75f * fade));
-            Line(a, b, 4f * fade + 1.5f, KnArcHi.WithAlpha(0.8f * fade));
-            Line(b + side * w, b - side * w, 6f * fade + 1.5f, KnArcHi.WithAlpha(0.9f * fade));  // the front of the blow
+            Line(a + side * (w * 0.45f), b + side * w, 2.5f * thick, KnArcHi.WithAlpha(0.75f * fade));
+            Line(a - side * (w * 0.45f), b - side * w, 2.5f * thick, KnArcHi.WithAlpha(0.75f * fade));
+            Line(a, b, (4f * fade + 1.5f) * thick, KnArcHi.WithAlpha(0.8f * fade));
+            Line(b + side * w, b - side * w, (6f * fade + 1.5f) * thick, KnArcHi.WithAlpha(0.9f * fade));  // the front of the blow
+        }
+
+        /// The Flurry's hit areas as each of its jabs and its straight land (c: the Flurry's age).
+        void DrawFlurrySwaths(V2 o, float aim, float c)
+        {
+            const float JabDur = 0.1f;
+            for (int i = 0; i < Game.FlurryJabs; i++)
+            {
+                float u = (c - Game.FlurryStart - i * Game.FlurryGap) / JabDur;
+                if (u >= 0f && u < 1f)
+                    DrawKnuckleLane(o, aim + (i % 2 == 0 ? -0.06f : 0.06f), Game.FlurryReach, Game.FlurryWidth, Mathf.Clamp01(u * 3f), 0.75f * (1f - u * u), 0.8f);
+            }
+            float us = (c - Game.FlurryStraightAt) / KnSwathDur;
+            if (us >= 0f && us < 1f)
+                DrawKnuckleLane(o, aim, Game.FlurryStraightReach, Game.KnuckleUpperWidth, 1f - (1f - Mathf.Clamp01(us * 3f)) * (1f - Mathf.Clamp01(us * 3f)), 1f - us * us, 1.2f);
         }
 
         /// Where a fist is drawn (raised fists rise up the screen).
@@ -584,6 +606,7 @@ namespace Arena
             if (move == 1)
             {
                 m = FlurryAt(c);
+                DrawFlurrySwaths(o, aim, c);
                 for (int side = 0; side < 2; side++)  // the jabs' streaks: a blur of fists
                     for (int i = 1; i <= 4; i++)
                     {
@@ -608,7 +631,12 @@ namespace Arena
                     Arc(o + V2.FromAngle(aim) * 50f, 6f + 12f * (c - Game.GrabLatch) / 0.2f, 2f, KnArcHi.WithAlpha(1f - (c - Game.GrabLatch) / 0.2f), 16);
             }
             else
+            {
                 m = RocketPunchAt(c, Mathf.Max(60f, (fx.Pos2 - fx.Pos).Length), out det);  // (Pos2: as far as the fist flies; a lock reaches further)
+                float ur = (c - Game.RocketPunchAt) / 0.3f;  // its whole line flashes as the fist lands
+                if (ur >= 0f && ur < 1f)
+                    DrawKnuckleLane(o, aim, (fx.Pos2 - fx.Pos).Length, Game.RocketPunchWidth, 1f - (1f - Mathf.Clamp01(ur * 2.5f)) * (1f - Mathf.Clamp01(ur * 2.5f)), 1f - ur * ur, 1.4f);
+            }
             DrawKnucklePose(o, aim, m, arm, t, false, det);
             if (owner != null)
                 DrawKnucklePips(owner, t);
