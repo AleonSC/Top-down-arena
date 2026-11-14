@@ -1849,6 +1849,9 @@ so they never change the fight or what your friend sees):
 - **Visual effects** on/off. Off draws the arena exactly as before.
 - **Screen shake:** Off, **Low** (the default) or Full. Getting hurt, a heavy enemy's death and above all a boss's
   death kick the camera; explosions only add a light rumble (several at once don't pile up).
+- **Arena floor:** **Bending** (the default) or Static. The floor grid lights up in each player's class colour near
+  them; with Bending its lines also bow away from every player like a stretched sheet and trail a little behind them as
+  they move. Static keeps the lines straight and only shows the colour. Kill ripples run through it either way.
 - **Damage numbers:** damage to each enemy rises off it, merged every 0.15 s (so a fast weapon shows one total);
   big hits are larger and gold.
 - **Reduced effects:** no screen shake, no hit-pause and no white flashes, for anyone they bother.

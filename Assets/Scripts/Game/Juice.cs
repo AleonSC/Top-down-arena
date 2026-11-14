@@ -34,6 +34,7 @@ namespace Arena
             fxNumbers = PlayerPrefs.GetInt("fx_numbers", 1) == 1;
             fxReduced = PlayerPrefs.GetInt("fx_reduced", 0) == 1;
             fxCallouts = PlayerPrefs.GetInt("fx_callouts", 1) == 1;  // AbilityLooks.cs
+            floorBend = PlayerPrefs.GetInt("floor_bend", 1) == 1;  // FloorGridLook.cs
             CrtUi.Theme = PlayerPrefs.GetInt("crt_theme", 0);
             mateShotAlpha = Mathf.Clamp(PlayerPrefs.GetFloat("mate_shot_alpha", 1f), 0.25f, 1f);
         }
@@ -52,6 +53,7 @@ namespace Arena
             PlayerPrefs.SetInt("fx_numbers", fxNumbers ? 1 : 0);
             PlayerPrefs.SetInt("fx_reduced", fxReduced ? 1 : 0);
             PlayerPrefs.SetInt("fx_callouts", fxCallouts ? 1 : 0);
+            PlayerPrefs.SetInt("floor_bend", floorBend ? 1 : 0);
             PlayerPrefs.SetInt("crt_theme", CrtUi.Theme);
             PlayerPrefs.Save();
             if (!fxOn)
@@ -1109,20 +1111,6 @@ namespace Arena
         }
 
         /// The grid, rippling where a big blast went off (DrawWorld draws it flat when nothing's rippling).
-        bool DrawRippledGrid(float aw, float ah, Rgba grid)
-        {
-            if (!Juicy || ripples.Count == 0)
-                return false;
-            const float step = 16f;
-            for (float x = 0; x <= aw; x += 64f)
-                for (float y = 0; y < ah; y += step)
-                    Line(Warp(x, y), Warp(x, y + step), 1f, grid);
-            for (float y = 0; y <= ah; y += 64f)
-                for (float x = 0; x < aw; x += step)
-                    Line(Warp(x, y), Warp(x + step, y), 1f, grid);
-            return true;
-        }
-
         V2 Warp(float x, float y)
         {
             V2 p = new V2(x, y), off = V2.Zero;
