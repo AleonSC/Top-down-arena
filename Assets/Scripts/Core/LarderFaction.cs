@@ -34,7 +34,7 @@ namespace Arena
     /// SyncLarder; the facing is locked while it's busy (LarderFaceLocked), so the cone and the chop show where they hit.
     public static class LarderKin
     {
-        public static bool Is(EnemyType t) => t >= EnemyType.Gnawling && t <= EnemyType.MawPriest;
+        public static bool Is(EnemyType t) => t >= EnemyType.Gnawling && t <= EnemyType.BileSpitter || t >= EnemyType.Gutworm && t <= EnemyType.MawPriest;  // (the Eclipse's faction sits between the two steps)
     }
 
     public partial class Enemy
@@ -54,7 +54,7 @@ namespace Arena
         public const float GutChase = 1.8f, GutMark = 0.6f, GutMarkR = 50f, GutBite = 16f, GutEvery = 3f, GutRingSpeed = 170f;
         public const int GutRing = 8;
         public const float HookThrowAim = 0.7f, HookThrowSpeed = 600f, HookThrowYank = 90f, HookThrowDamage = 8f;
-        public const float PriestTurn = 0.52f, PriestMawHalf = MathX.Pi / 4f, PriestBackMult = 1.25f, PriestFan = 0.3f, PriestShotSpeed = 200f;
+        public const float PriestTurn = 0.52f, PriestMawHalf = MathX.Pi / 4f, PriestBackMult = 1.25f, PriestFan = 0.3f, MawShotSpeed = 200f;
         public static readonly Rgba BileColor = new Rgba(0.72f, 0.88f, 0.29f);
 
         static bool LarderAttacks(EnemyType t) => t == EnemyType.Butcher || t == EnemyType.Gulper;
@@ -285,7 +285,7 @@ namespace Arena
                 return false;
             e.FireT = TaserEvery;
             for (int k = -1; k <= 1; k++)
-                EnemyShot(e, e.Facing + k * PriestFan, PriestShotSpeed, Defs.SmallShot);  // (from its maw, where it faces)
+                EnemyShot(e, e.Facing + k * PriestFan, MawShotSpeed, Defs.SmallShot);  // (from its maw, where it faces)
             BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(e.Facing) * (e.Radius + 10f), new Rgba(1f, 0.35f, 0.42f), 22f, 0.2f, Sfx.BossChomp);
             return true;
         }

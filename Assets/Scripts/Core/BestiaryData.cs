@@ -232,6 +232,65 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Ember, Name = "Ember", Group = "Melee", Wave = 46,
+                Appears = "The Eclipse's approach (waves 46-49, in packs and Dawn squads)",
+                Lead = "A scrap of solar flare that weaves in at you. Every 0.2 s it drops a spark that drifts back slowly and hangs for 1.5 s, so crossing its trail hurts.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "8" },
+                    new BestiaryAttack { Name = "Sparks", Pattern = "Left hanging behind it for 1.5 s", Shot = "Spark", ShotColor = new Rgba(1f, 0.6f, 0.26f), Speed = "25", Damage = "6", Every = 0.2f } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.CoronaPriest, Name = "Corona Priest", Group = "Shooters", Wave = 46,
+                Appears = "The Eclipse's approach (waves 46-49), alone or leading a Dawn squad",
+                Lead = "A sun-cultist with a halo of spikes. Keeps 260 px away; its halo flares for 0.7 s, then bursts into a ring of 13 slow shots: one straight at you and a gap one slot beside it. Step into the gap.",
+                Attacks = new[] { new BestiaryAttack { Name = "Corona ring", Pattern = "13 shots, one gap beside you", Shot = "Small shot", ShotColor = new Rgba(1f, 0.3f, 0.45f), Speed = "130", Damage = "14 each", Every = 2.4f } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Heliograph, Name = "Heliograph", Group = "Shooters", Wave = 47,
+                Appears = "The Eclipse's approach (waves 47-49), alone or two in a Mirror pair",
+                Lead = "Carries a sun mirror. Within 340 px it plants and aims at you; a line flickers for 1 s, then it becomes a 40 px lane of fire for 0.5 s. It rests 2.5 s and goes again. Step off the line, not back along it.",
+                Attacks = new[] { new BestiaryAttack { Name = "Flare", Pattern = "1 s warning line, then a 40 px lane for 0.5 s", Damage = "20", Every = 4f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Moonward, Name = "Moonward", Group = "Melee", Wave = 47,
+                Appears = "The Eclipse's approach (waves 47-49)",
+                Lead = "A pale knight with a small moon circling it 30 px out, once every 2.4 s. The moon swallows any shot it touches, so fire when it swings round the back.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "12" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Gnomon, Name = "Gnomon", Group = "Melee", Wave = 47,
+                Appears = "The Eclipse's approach (waves 47-49), alone or in a Night watch",
+                Lead = "A walking sundial: a stone slab with a sun lantern at its back. Within 360 px it plants, its slab turned a little to one side of you, and the lantern swells for 1.5 s; then it flashes everyone within 520 px who isn't in the slab's shadow. Step sideways into the shadow, toward it.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "20" },
+                    new BestiaryAttack { Name = "Flash", Pattern = "1.5 s swell, then everyone outside its shadow", Damage = "30", Every = 8f, Fixed = true } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.DuskLobber, Name = "Dusk Lobber", Group = "Shooters", Wave = 47,
+                Appears = "The Eclipse's approach (waves 47-49), alone or in a Night watch",
+                Lead = "Keeps its distance and lobs a ball of night near you, like a Gas Grenadier. It bursts into a 90 px pool of dark for 4 s: inside you see only 40 px round you, and it drains 6 a second. Stay in the light.",
+                Attacks = new[] { new BestiaryAttack { Name = "Dusk pool", Pattern = "A lobbed pool, 90 px, 4 s", Damage = "6 a second", Every = 3.6f } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Sickle, Name = "Sickle", Group = "Shooters", Wave = 48,
+                Appears = "The Eclipse's approach (waves 48-49), alone or in a Moon court",
+                Lead = "Keeps 240 px away and strafes. Every 2.4 s it winds up for 0.6 s, then throws a crescent blade that leaves to one side, loops through where you stand and comes back round to it. Dodge it twice.",
+                Attacks = new[] { new BestiaryAttack { Name = "Crescent", Pattern = "A loop through you and back", Shot = "Crescent", ShotColor = new Rgba(0.89f, 0.83f, 1f), Speed = "300", Damage = "21", Every = 2.4f } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Nova, Name = "Nova", Group = "Melee", Wave = 48,
+                Appears = "The Eclipse's approach (waves 48-49)",
+                Lead = "A small unstable star that darts in zigzagging. Within 140 px it lights a 3 s fuse and hangs about you, slowly; while lit it takes 50% more damage. Then it goes nova: 30 to everyone within 110 px. Burst it or back off.",
+                Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "10" },
+                    new BestiaryAttack { Name = "Nova", Pattern = "3 s fuse, then a 110 px burst", Damage = "30", Fixed = true } },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.Graviton, Name = "Graviton", Group = "Shooters", Wave = 17,
                 Appears = "The Singularity's approach (waves 17-19), alone or in a Gravity trap squad",
                 Lead = "Keeps 320 px away. Every 6 s it plants its feet for 0.6 s, a ring marks a spot near you, and 0.8 s later a Small Well lands there: for 4 s it drags you toward it (80 px/s at its middle, 240 px out) and bends your shots into it. Get clear, or shoot the well (30 health). A new lob takes its old well away.",

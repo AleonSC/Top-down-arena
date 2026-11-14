@@ -39,8 +39,8 @@ static partial class Shot {
     {
       // The end of a run (VICTORY=1 or mode victory: a win): sample numbers for each player.
       var gg = host.Game; gg.State = mode == "victory" ? MatchState.Victory : MatchState.GameOver; gg.RunStatsReady = true; gg.RunTime = 286f; gg.Score = 546;
-      // RETRY=1: a life left, the host can retry from the checkpoint (Checkpoints.cs).
-      if (Environment.GetEnvironmentVariable("RETRY") != null) { gg.RetryReady = true; gg.RetryWave = 11; gg.LivesUsed = 0; }
+      // RETRY=1: a life left: the Respawn / Game over choice instead of the results (Checkpoints.cs, LivesUi.cs).
+      if (Environment.GetEnvironmentVariable("RETRY") != null) { gg.RetryReady = true; gg.RetryWave = 11; gg.LivesUsed = 0; gg.Practice = null; gg.Hunt = null; gg.Quick = false; gg.Unrecorded = false; }
       int k = 0;
       foreach (var pl in gg.Players.Values)
       {
@@ -54,7 +54,7 @@ static partial class Shot {
       gg.LastGain = before.AwardXp(Rank.Award(mode == "victory", 10, 2, 1, RunMod.ToughCrowd | RunMod.Nightfall, DifficultyLevel.Normal), 11, mode == "victory" ? 1 : 0);
       Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true;  // (the rank report draws a reward preview with GL)
       if (Environment.GetEnvironmentVariable("RANKPAGE") != null) { set("rankGainSeen", gg.LastGain); set("resultsRankPage", true); set("rankPageAt", float.Parse(Environment.GetEnvironmentVariable("RANKPAGE"), System.Globalization.CultureInfo.InvariantCulture)); }  // RANKPAGE=<start time>: the rank report, that many seconds in (-10: all of it)
-      typeof(ArenaApp).GetMethod("DrawRunSummary", f2).Invoke(app, null);
+      typeof(ArenaApp).GetMethod(gg.RetryReady ? "DrawLifePrompt" : "DrawRunSummary", f2).Invoke(app, null);
     }
     else if (mode == "replay")
     {
