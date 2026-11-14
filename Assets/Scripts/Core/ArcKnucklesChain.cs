@@ -206,7 +206,7 @@ namespace Arena
                         continue;  // the fist is still reaching
                     V2 hold = KnuckleHoldPoint(p.Pos, r.Aim, r.T);
                     float pull = Math.Min(1f, (r.T - GrabLatch) / (GrabPull - GrabLatch));
-                    e.Pos = pull < 1f ? r.From + (hold - r.From) * pull : hold;
+                    KnuckleCarry(e, pull < 1f ? r.From + (hold - r.From) * pull : hold);  // (held against a wall, never through it)
                     if (r.T >= GrabRelease)
                     {
                         r.Flying = true;  // let go, along where you aim now
@@ -217,11 +217,9 @@ namespace Arena
                     continue;
                 }
                 float step = KnuckleThrowSpeed * dt;
-                r.Pos += r.Dir * step;
                 r.Flown += step;
-                V2 kept = ClampToArena(r.Pos, e.Radius);
-                bool wall = kept.DistanceTo(r.Pos) > 0.5f;
-                e.Pos = kept;
+                bool wall = KnuckleCarry(e, e.Pos + r.Dir * step);  // a wall, pillar, crate or the arena's edge stops it
+                r.Pos = e.Pos;
                 Enemy into = null;
                 foreach (var o in Enemies.Values)
                     if (o != e && Targetable(o) && o.Pos.DistanceTo(e.Pos) <= o.Radius + e.Radius)
@@ -253,6 +251,31 @@ namespace Arena
                     p.FireCd = 0f;
                 }
             }
+        }
+
+        /// Moves a held or thrown enemy toward `to` in short steps, each kept inside the arena and out of walls, pillars and crates,
+        /// so a fast throw can't skip through a thin wall and end up on its far side or outside the map. True if something stopped it.
+        public bool KnuckleCarry(Enemy e, V2 to)
+        {
+            const float Sub = 4f;
+            V2 from = e.Pos, d = to - from;
+            float len = d.Length;
+            int n = Math.Max(1, (int)Math.Ceiling(len / Sub));
+            float r = e.Radius * 0.8f;  // (the size enemies walk round walls at, EnemyAI.cs)
+            V2 pos = from;
+            for (int k = 1; k <= n; k++)
+            {
+                V2 want = pos + d / n;
+                V2 kept = PushOutOfProps(ClampToArena(want, e.Radius), r);
+                pos = kept;
+                if (kept.DistanceTo(want) > 0.5f)
+                {
+                    e.Pos = pos;
+                    return true;
+                }
+            }
+            e.Pos = pos;
+            return false;
         }
 
         /// Where the held enemy is, `c` seconds into Grab & Throw: just beyond the grabbing fist.
