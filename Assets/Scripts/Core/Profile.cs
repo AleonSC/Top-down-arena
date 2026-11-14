@@ -68,6 +68,10 @@ namespace Arena
 
         public int RunsStarted, RunsWon, RunsLost;
         public int BestWave, BestScore, BestEndlessWave;
+        public int SurvivalPlays, SurvivalBestPhase;  // Survival's own records (Docs/Survival.md): plays, the furthest faction phase reached
+        public float SurvivalBestTime;                // the longest run, in seconds
+        public readonly Dictionary<string, float> SurvivalBests = new Dictionary<string, float>();  // longest run per class ("Knight Tank", ClassKey)
+        public float SurvivalBest(string classKey) { float v; return SurvivalBests.TryGetValue(classKey, out v) ? v : 0f; }
         public int QuickPlays, QuickWins, QuickBestWave, QuickBosses;  // Quick Play's own records (QuickPlay.cs): plays, first bosses beaten, best wave, bosses beaten in all
         public bool TutorialDone;  // the first-run tutorial is over (done, skipped, or a Quick Play recorded; Tutorial.cs)
         public string LastMode = "";  // the lobby mode the host last picked ("quick", "campaign", "hunt", "practice"; "" a new profile: Quick Play)
@@ -234,6 +238,18 @@ namespace Arena
             return CheckUnlocks();
         }
 
+        /// A Survival run ended: the time lasted (seconds), the faction phase reached and the class played. Not a run: it doesn't count toward the run records.
+        public List<UnlockDef> SurvivalEnded(string classKey, float time, int phase)
+        {
+            SurvivalPlays++;
+            SurvivalBestTime = Math.Max(SurvivalBestTime, time);
+            SurvivalBestPhase = Math.Max(SurvivalBestPhase, phase);
+            if (time > SurvivalBest(classKey))
+                SurvivalBests[classKey] = time;
+            PlayTime += time;
+            return CheckUnlocks();
+        }
+
         /// A challenge room ended (Challenges.cs).
         public void RoomEnded(ChallengeKind k, bool won)
         {
@@ -331,6 +347,8 @@ namespace Arena
             foreach (var kv in RoomsPlayed) RunSave.Line(sb, "room", kv.Key + " " + kv.Value + " " + Get(RoomsWon, kv.Key));
             foreach (var kv in HuntsPlayed) RunSave.Line(sb, "hunt", kv.Key + " " + kv.Value + " " + Get(HuntsWon, kv.Key) + " " + RunSave.F(HuntBest.ContainsKey(kv.Key) ? HuntBest[kv.Key] : 0f) + " " + Get(HuntsWonHard, kv.Key));
             if (QuickPlays > 0) RunSave.Line(sb, "quick", QuickPlays + " " + QuickWins + " " + QuickBestWave + " " + QuickBosses);
+            if (SurvivalPlays > 0) RunSave.Line(sb, "survival", SurvivalPlays + " " + RunSave.F(SurvivalBestTime) + " " + SurvivalBestPhase);
+            foreach (var kv in SurvivalBests) RunSave.Line(sb, "survbest", RunSave.F(kv.Value) + " " + kv.Key);
             if (LastMode.Length > 0) RunSave.Line(sb, "mode", LastMode);
             if (TutorialDone) RunSave.Line(sb, "tutorial", 1);
             foreach (var u in Unlocked) RunSave.Line(sb, "unlocked", u);
@@ -388,6 +406,8 @@ namespace Arena
                             if (f.Length > 4) p.HuntsWonHard[f[0]] = RunSave.I(f[4]);  // (older files have four fields)
                             break;
                         case "quick": p.QuickPlays = RunSave.I(f[0]); p.QuickWins = RunSave.I(f[1]); p.QuickBestWave = RunSave.I(f[2]); p.QuickBosses = RunSave.I(f[3]); break;
+                        case "survival": p.SurvivalPlays = RunSave.I(f[0]); p.SurvivalBestTime = RunSave.Fl(f[1]); p.SurvivalBestPhase = RunSave.I(f[2]); break;
+                        case "survbest": p.SurvivalBests[val.Substring(val.IndexOf(' ') + 1)] = RunSave.Fl(f[0]); break;
                         case "mode": p.LastMode = val.Trim(); break;
                         case "tutorial": p.TutorialDone = RunSave.I(f[0]) != 0; break;
                         case "unlocked": p.Unlocked.Add(val); break;
