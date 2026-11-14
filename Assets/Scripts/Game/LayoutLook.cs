@@ -42,6 +42,12 @@ namespace Arena
         {
             if (FloorTintAmt <= 0f)
                 return;
+            if (game.SurvivalOn && game.RoomsOn)  // Survival's big room: the same flat wash over all of it, not just the classic arena's corner of it (no boss to pool light for)
+            {
+                V2 lo = game.CurrentWorld.Min, hi = game.CurrentWorld.Max;
+                FillRect(lo.X, lo.Y, hi.X - lo.X, hi.Y - lo.Y, Ink.WithAlpha(FloorTintAmt * 1.5f));
+                return;
+            }
             FillRect(0, 0, AW, AH, Ink.WithAlpha(FloorTintAmt));
             V2 mid = new V2(AW / 2f, AH / 2f);
             float r = Mathf.Min(AW, AH) * 0.5f;
@@ -55,7 +61,7 @@ namespace Arena
         void WallInk()
         {
             var b = WallBossOverride ?? game.ApproachBossAt(Mathf.Max(1, game.Wave));
-            var target = BossWallInk(b);
+            var target = game.SurvivalOn && WallBossOverride == null ? Cyan : BossWallInk(b);  // (Survival has no boss to colour the walls and floor for: the clock's "wave" would keep changing it)
             float k = WallBossOverride != null ? 1f : Mathf.Clamp01(Time.deltaTime * 2f);
             wallInkNow = wallInkNow.Mix(target, game.LayoutAge < 0.9f ? 1f : k);
             Ink = WallFill = wallInkNow;
