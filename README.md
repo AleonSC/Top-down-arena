@@ -1179,7 +1179,7 @@ prototype** in the F1 dev dock (Labs, in the lobby); otherwise the Campaign is t
   crates; its edge gates make way for the doors), and the rooms and hallways have a few pillars and short walls of
   their own. Walls stop walking and every shot, as in the layouts.
 - **One open map.** You and the enemies go anywhere through the doors; there's no locking and no room-by-room
-  camera. **The camera follows you** over the whole map. **Room rounds start zoomed in (1.5x)** with a "SCROLL ▼ TO
+  camera. **The camera follows you** over the whole map and stays centred on you even at its edges (the space past it shows). **Room rounds start zoomed in (1.5x)** with a "SCROLL ▼ TO
   ZOOM OUT" prompt low in the middle until you scroll out (the zoom goes from 2x in to 1x out, one hub-sized screen).
   Arrows at the edge of the screen point at enemies and teammates you can't see.
 - **Shortcuts.** The hub has a door into each hallway (top and bottom, in the middle) as well as the two room doors,
