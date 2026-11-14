@@ -64,7 +64,7 @@ namespace Arena
                 {
                     V2 at, n;
                     if (WallContact(s, p.Disp, r + WallTouchReach + 4f, out at, out n))  // (a little further, so the fade out has somewhere to draw)
-                        DrawTouchStatic(at, n, p.Disp, r, t, p.Id, l);
+                        DrawTouchStatic(s, at, n, p.Disp, r, t, p.Id, l);
                 }
             }
         }
@@ -88,37 +88,74 @@ namespace Arena
             return l <= reach;
         }
 
-        /// A stretch of the wall's outline lit brightest at `at`, fading out along the face over `half` px.
-        void LitEdge(V2 at, V2 tan, float half, float width, Rgba col, float a)
+        // The face being touched: points along it by distance u from the touch (and off it by `off`), kept on the
+        // face, so nothing runs past a wall's end; round a pillar they follow its curve.
+        bool faceRound;
+        V2 faceC, faceAt, faceN, faceTan;
+        float faceR, faceLo, faceHi;
+
+        void SetFace(Solid s, V2 at, V2 n)
+        {
+            faceRound = s.Round; faceC = s.Pos; faceR = s.R; faceAt = at; faceN = n; faceTan = n.Orthogonal();
+            if (s.Round)
+            {
+                faceLo = -s.R * 1.4f;
+                faceHi = s.R * 1.4f;
+                return;
+            }
+            bool alongX = Mathf.Abs(faceTan.X) > 0.5f;
+            float lo = alongX ? s.Pos.X - s.HW : s.Pos.Y - s.HH, hi = alongX ? s.Pos.X + s.HW : s.Pos.Y + s.HH, here = alongX ? at.X : at.Y;
+            float sign = alongX ? faceTan.X : faceTan.Y;
+            float u0 = (lo - here) * sign, u1 = (hi - here) * sign;
+            faceLo = Mathf.Min(u0, u1);
+            faceHi = Mathf.Max(u0, u1);
+        }
+
+        V2 FacePt(float u, float off = 0f)
+        {
+            u = Mathf.Clamp(u, faceLo, faceHi);
+            if (faceRound)
+                return faceC + V2.FromAngle(faceN.Angle + u / faceR) * (faceR + off);
+            return faceAt + faceTan * u + faceN * off;
+        }
+
+        /// A stretch of the face lit brightest at the touch, fading out over `half` px, stopping at the face's ends.
+        void LitEdge(float half, float width, Rgba col, float a)
         {
             const int steps = 14;
             for (int i = -steps; i < steps; i++)
             {
-                float u0 = (float)i / steps, u1 = (float)(i + 1) / steps, um = Mathf.Abs((u0 + u1) * 0.5f);
-                float f = (1f - um) * (1f - um);
-                Line(at + tan * (u0 * half), at + tan * (u1 * half), width, col.WithAlpha(a * f));
+                float u0 = half * i / steps, u1 = half * (i + 1) / steps;
+                if (u1 <= faceLo || u0 >= faceHi)
+                    continue;
+                float um = Mathf.Abs(u0 + u1) * 0.5f / half, f = (1f - um) * (1f - um);
+                Line(FacePt(u0), FacePt(u1), width, col.WithAlpha(a * f));
             }
         }
 
         /// Jagged arcs crawl along the face from the touch (redrawn 20 times a second), with sparks skittering off it
         /// and a short bolt jumping from the body to the wall. `l`: how strong the touch is (fades in and out).
-        void DrawTouchStatic(V2 at, V2 n, V2 body, float r, float t, int seed, float l)
+        void DrawTouchStatic(Solid sol, V2 at, V2 n, V2 body, float r, float t, int seed, float l)
         {
-            V2 tan = n.Orthogonal();
+            SetFace(sol, at, n);
+            V2 tan = faceTan;
             int frame = Mathf.FloorToInt(t * 20f);
             float flick = (TouchHash(frame * 7 + seed) > 0.25f ? 1f : 0.5f) * l;
             GlowDisc(at, 70f, Ink, 0.5f * flick);
-            LitEdge(at, tan, 90f, 8f, Ink, 0.7f * flick);
-            LitEdge(at, tan, 60f, 3f, Rgba.White, flick);
+            LitEdge(90f, 8f, Ink, 0.7f * flick);
+            LitEdge(60f, 3f, Rgba.White, flick);
             for (int b = 0; b < 4; b++)
             {
-                float sd = b % 2 == 0 ? 1f : -1f, len = (50f + 70f * TouchHash(frame * 13 + b * 5 + seed)) * (0.4f + 0.6f * l);
+                float sd = b % 2 == 0 ? 1f : -1f, room = sd > 0f ? faceHi : -faceLo;
+                float len = Mathf.Min(room, (50f + 70f * TouchHash(frame * 13 + b * 5 + seed)) * (0.4f + 0.6f * l));
+                if (len < 3f)
+                    continue;
                 V2 prev = at;
                 const int segs = 8;
                 for (int k = 1; k <= segs; k++)
                 {
-                    float u = (float)k / segs;
-                    V2 q = at + tan * (sd * len * u) + n * ((TouchHash(frame * 31 + b * 17 + k * 3 + seed) - 0.5f) * 16f * (1f - u * 0.5f));
+                    float u = (float)k / segs, edge = k == segs ? 0f : 1f;  // (the last point on the face itself)
+                    V2 q = FacePt(sd * len * u, (TouchHash(frame * 31 + b * 17 + k * 3 + seed) - 0.5f) * 16f * (1f - u * 0.5f) * edge * Mathf.Min(1f, len / 40f));
                     Line(prev, q, 7f, Ink.WithAlpha(0.35f * (1f - u * 0.6f) * l));
                     Line(prev, q, 1.8f, Rgba.White.WithAlpha((1f - u * 0.5f) * l));
                     prev = q;
@@ -129,7 +166,7 @@ namespace Arena
                 V2 prev = body - n * (r * 0.4f), from = prev;
                 for (int j = 1; j <= 3; j++)
                 {
-                    V2 q = V2.Lerp(from, at, j / 3f) + tan * ((TouchHash(frame * 5 + j * 9 + k * 41 + seed) - 0.5f) * 14f);
+                    V2 q = V2.Lerp(from, at, j / 3f) + tan * ((TouchHash(frame * 5 + j * 9 + k * 41 + seed) - 0.5f) * 14f * (j < 3 ? 1f : 0f));
                     Line(prev, q, 1.6f, Rgba.White.WithAlpha(l));
                     prev = q;
                 }
@@ -137,7 +174,9 @@ namespace Arena
             for (int s = 0; s < 8; s++)  // sparks skittering off the face
             {
                 float u = (TouchHash(frame * 3 + s * 11 + seed) - 0.5f) * 160f;
-                Circle(at + tan * u + n * (2f + TouchHash(frame + s * 7 + seed) * 10f), 1.8f, Rgba.White.Mix(Ink, 0.4f).WithAlpha(l), 6);
+                if (u < faceLo || u > faceHi)
+                    continue;
+                Circle(FacePt(u, 2f + TouchHash(frame + s * 7 + seed) * 10f), 1.8f, Rgba.White.Mix(Ink, 0.4f).WithAlpha(l), 6);
             }
         }
 
