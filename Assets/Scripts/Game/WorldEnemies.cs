@@ -516,6 +516,8 @@ namespace Arena
                 DrawSquallBody(e, pos, r, col, t);  // SquallLook.cs: the Storm Herald's faction
             else if (e.Type == EnemyType.SecurityGuard)
                 DrawSecurityBody(e, pos, r, col, t);  // SecurityLook.cs
+            else if (e.Type == EnemyType.GasGrenadier)
+                DrawGrenadierBody(e, pos, r, t);  // WardenLook.cs: the officer in olive drab, a canister bandolier, the mask's hood
             else if (e.Type == EnemyType.RiotShield)
                 DrawRiotShieldBody(e, pos, r, t);  // WardenLook.cs: the officer in riot fatigues and helmet (its shield: DrawRiotShield)
             else if (e.Type == EnemyType.TaserGuard)

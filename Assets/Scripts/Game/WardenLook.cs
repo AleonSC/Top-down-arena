@@ -541,6 +541,26 @@ namespace Arena
         }
 
         /// A Gas Grenadier: a gas mask (two round lenses and a filter) and a canister in hand.
+        /// The Gas Grenadier's body under its mask: a prison officer like the Guard (OfficerTorso) in olive drab, a bandolier
+        /// of green gas canisters across its chest, and the black rubber hood the mask's lenses and filter sit on.
+        void DrawGrenadierBody(Enemy e, V2 pos, float r, float t)
+        {
+            V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
+            OfficerTorso(pos, r * 0.92f, e.Facing, new Rgba(0.52f, 0.58f, 0.36f));
+            V2 b0 = pos - side * (r * 0.85f) - f * (r * 0.55f), b1 = pos + side * (r * 0.85f) + f * (r * 0.55f);
+            Line(b0, b1, 3.6f, new Rgba(0.45f, 0.33f, 0.18f));  // the bandolier, shoulder to hip
+            for (int k = -1; k <= 1; k += 2)
+            {
+                V2 c = pos + (b1 - pos) * (0.62f * k);
+                Circle(c, 2.9f, GuardInk, 8);
+                Circle(c, 2.1f, new Rgba(0.7f, 0.95f, 0.45f), 8);  // a canister on it
+            }
+            Circle(pos, r * 0.6f + 1.5f, GuardInk, 14);
+            Circle(pos, r * 0.6f, new Rgba(0.4f, 0.43f, 0.4f), 14);  // the rubber hood
+            if (e.Flash > 0f || JuiceFlash(e))  // a hit flashes the uniform white, softer under steady fire (Juice.cs)
+                Ellipse(pos, r * 0.97f, r * 1.03f, e.Facing, Rgba.White.WithAlpha(0.8f * HitFlashMix(e)), 16);
+        }
+
         void DrawGrenadier(Enemy e, V2 pos, float r, float t)
         {
             if (DrawGrenadierLob(e, pos, r, t))
