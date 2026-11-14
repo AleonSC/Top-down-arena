@@ -61,7 +61,7 @@ namespace Arena
         {
             steerScratch.Clear();
             foreach (var b in Bullets.Values)
-                if (b.Homing > 0f || b.Pulled)
+                if (b.Homing > 0f || b.Pulled || b.Kind == Defs.GreatStar)  // (the Great Star follows a drawn route only the host knows: GreatStar.cs)
                     steerScratch.Add(b);
             SendSteerOf(steerScratch);
         }
@@ -167,6 +167,9 @@ namespace Arena
                     break;
                 case Msg.PathPatch:
                     ReadPathPatch(r);
+                    break;
+                case Msg.StarThrow:
+                    ReadStarThrow(r);  // the Great Star's route (GreatStar.cs)
                     break;
                 case Msg.Spawn:
                 {
@@ -563,6 +566,7 @@ namespace Arena
             s.Bool(ref p.KusariWhirl);
             s.Float(ref p.KusariHeld);
             s.Float(ref p.KusariAng);
+            s.Byte(ref p.StarStance);  // the Shuriken's Great Star stance (GreatStar.cs)
             s.Byte(ref p.FumaStance);  // the Fuma Shuriken's Orbit stance (FumaOrbit.cs)
             if (p.FumaStance != 0)  // (both ends read the stance first, so they agree)
             {

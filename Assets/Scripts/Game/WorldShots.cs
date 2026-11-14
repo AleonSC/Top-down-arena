@@ -285,6 +285,11 @@ namespace Arena
         /// The Ninja's shots (KitLook.Shot): false for any other kind.
         bool DrawNinjaShot(Bullet b, Rgba c, float t)
         {
+            if (b.Kind == Defs.GreatStar)
+            {
+                DrawGreatStarShot(b, t);  // the Shuriken's Great Star (GreatStarLook.cs)
+                return true;
+            }
             if (b.Kind < Defs.StarShot || b.Kind > Defs.FumaStar)
                 return false;
             V2 dir = b.Vel.IsZero ? new V2(1f, 0f) : b.Vel.Normalized(), side = dir.Orthogonal();

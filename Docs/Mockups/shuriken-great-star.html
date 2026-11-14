@@ -1,0 +1,412 @@
+<title>Great Star Stance</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, one live stage (concept chips, playable canvas, caption + last-throw readout), comparison table, open questions.
+   Same page tokens as the other Ninja mockups; canvas is steel on a night arena with an ink-violet glow. */
+:root{
+  --bg:#efedf4; --fg:#1c1a2b; --muted:#5d5a73; --panel:#f9f8fc; --line:#d3cfe2; --chip:#e2dff0; --chip-on:#1c1a2b; --chip-on-fg:#f3f1fa; --accent:#5b45c9;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e0c18; --fg:#e9e6f5; --muted:#9a96b3; --panel:#17142a; --line:#2c2845; --chip:#221e38; --chip-on:#e9e6f5; --chip-on-fg:#0e0c18; --accent:#b3a3ff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e0c18; --fg:#e9e6f5; --muted:#9a96b3; --panel:#17142a; --line:#2c2845; --chip:#221e38; --chip-on:#e9e6f5; --chip-on-fg:#0e0c18; --accent:#b3a3ff; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+header h1{font:700 clamp(34px,6vw,58px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+header p{margin:0 0 6px;max-width:70ch;color:var(--muted)}
+h2{font:700 28px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 8px;text-wrap:balance}
+section>p{margin:0 0 12px;max-width:70ch;color:var(--muted);font-size:15px}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#0d0b17}
+canvas{display:block;width:100%;max-width:100%;height:auto;aspect-ratio:1000/520;touch-action:none;cursor:crosshair}
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+button{font:600 14px var(--body);padding:7px 12px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover{border-color:var(--muted)}
+button.on{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.sp{flex:1}
+.cap{display:flex;gap:6px 16px;align-items:baseline;flex-wrap:wrap;margin-top:10px;font-size:15px}
+.cap .how{flex:1 1 420px;min-width:0}
+.cap .read{font:500 13px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+kbd{font:500 12px var(--mono);border:1px solid var(--line);background:var(--chip);border-radius:4px;padding:1px 6px;white-space:nowrap}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:14.5px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 13px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+td:first-child{font-weight:600;white-space:nowrap}
+.n{font-family:var(--mono);font-variant-numeric:tabular-nums}
+ul{margin:0;padding-left:20px;max-width:70ch;color:var(--muted);font-size:15px}
+li+li{margin-top:4px}
+</style>
+<main>
+<header>
+  <h1>Great Star stance</h1>
+  <p>A second stance for the DPS Ninja's <b>Shuriken</b>. <kbd>Left Alt</kbd> draws one huge star off your back (and rips out any stuck stars). Hold <kbd>LMB</kbd> and swipe to throw it; the shape of the swipe bends its flight, so it can curl round cover. It cuts through everything in its path and flies back to your hand.</p>
+  <p>Three ways the swipe could work. Pick one and play: swipe on the arena. It runs a demo throw if you leave it alone. Browser drawing, so the look is approximate.</p>
+</header>
+
+<section>
+  <div class="bar" id="bar">
+    <button id="bA" class="on">A · Swipe &amp; Bend</button>
+    <button id="bB">B · Trace the Path</button>
+    <button id="bC">C · Wind-up &amp; Flick</button>
+    <span class="sp"></span>
+    <button id="bStance" title="Left Alt">Stance: Great Star</button>
+  </div>
+  <div class="frame"><canvas id="cv" width="1000" height="520" aria-label="Playable Great Star preview: swipe to throw"></canvas></div>
+  <div class="cap"><div class="how" id="how"></div><div class="read" id="read">No throw yet</div></div>
+</section>
+
+<section>
+  <h2>Side by side</h2>
+  <div class="tw"><table>
+    <thead><tr><th>&nbsp;</th><th>A · Swipe &amp; Bend</th><th>B · Trace the Path</th><th>C · Wind-up &amp; Flick</th></tr></thead>
+    <tbody>
+      <tr><td>Gesture</td><td>One swipe anywhere. Its direction aims, its bow bends the flight, its speed sets throw speed</td><td>Draw the route from the Ninja with the mouse (up to <span class="n">900 px</span> of ink); the star flies it exactly</td><td>Hold to spin the star up, then flick. A hook at the end of the flick adds the curve</td></tr>
+      <tr><td>Damage</td><td><span class="n">90</span> to each enemy it passes</td><td><span class="n">60</span> each (perfect aim costs damage)</td><td><span class="n">45 → 110</span> by spin-up (<span class="n">0.9 s</span> to full)</td></tr>
+      <tr><td>Flight</td><td><span class="n">820 px</span>, <span class="n">650–1250 px/s</span>, up to <span class="n">135°</span> of curve</td><td>Your line at <span class="n">1150 px/s</span></td><td><span class="n">820 px</span>, <span class="n">750–1200 px/s</span>, up to <span class="n">3 rad/s</span> turn</td></tr>
+      <tr><td>Then</td><td colspan="3">Hits a wall or reaches the end → flies home at <span class="n">1100 px/s</span> (no damage on the way back). Catch it to throw again: about one throw every <span class="n">1.3 s</span></td></tr>
+      <tr><td>Feels like</td><td>Bowling with spin: quick, readable, skill in the bend</td><td>Puzzle aim: slow to set up, never misses</td><td>Fastball: charge, release, hook. Highest burst</td></tr>
+      <tr><td>Online</td><td colspan="3">One new throw message (start heading, turn rate, speed; or B's points), so a protocol bump. The flight is worked out the same on every machine from those numbers</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>Open questions</h2>
+  <ul>
+    <li>Alt today recalls stuck stars. Here, switching stance does the recall; a quick tap in Great Star stance could still recall.</li>
+    <li>Should the star hit on the way back too (say half damage), like stuck stars ripping out?</li>
+    <li>Bots: they'd throw A or C with a computed curve round cover; B's drawn path is harder for them.</li>
+  </ul>
+</section>
+</main>
+
+<script>
+(function(){
+var W=1000,H=520,TAU=Math.PI*2,INK='179,163,255',RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+var cv=document.getElementById('cv'),g=cv.getContext('2d');
+var P={x:170,y:260},PILLAR={x:470,y:185,w:62,h:150},MAXD=820,STAR_R=30;
+function clamp(v,a,b){return v<a?a:v>b?b:v}
+function C(c,a){return 'rgba('+c+','+a+')'}
+function wrap(a){while(a>Math.PI)a-=TAU;while(a<-Math.PI)a+=TAU;return a}
+function hitsPillar(x,y,r){var px=clamp(x,PILLAR.x,PILLAR.x+PILLAR.w),py=clamp(y,PILLAR.y,PILLAR.y+PILLAR.h);return Math.hypot(x-px,y-py)<r}
+
+var S={concept:'A',stance:'great',drawT:1,drawDur:.45,aim:0,
+  star:{mode:'held',x:0,y:0,h:0,w:0,s:0,d:0,dmg:0,spin:0,hit:[],trail:[],path:null,pi:0,charge:0},
+  down:false,stroke:[],enemies:[],fx:[],nums:[],smalls:[],lastInput:-2.2,demo:null,ghost:null,last:null,now:0,mouse:{x:600,y:260}};
+
+var spots=[[650,260],[730,140],[740,385],[880,265],[590,95],[600,430]];
+spots.forEach(function(p){S.enemies.push({x:p[0],y:p[1],bx:p[0],by:p[1],r:19,hp:300,max:300,flash:0,dead:0,ph:Math.random()*TAU})});
+
+/* ---------- throw maths ---------- */
+function paramsA(st){ /* swipe -> heading, turn, speed */
+  if(st.length<2)return null;
+  var a=st[0],b=st[st.length-1],cx=b.x-a.x,cy=b.y-a.y,ch=Math.hypot(cx,cy),len=0;
+  for(var i=1;i<st.length;i++)len+=Math.hypot(st[i].x-st[i-1].x,st[i].y-st[i-1].y);
+  if(ch<30)return null;
+  var ux=cx/ch,uy=cy/ch,nx=-uy,ny=ux,dm=0;
+  st.forEach(function(p){var d=(p.x-a.x)*nx+(p.y-a.y)*ny;if(Math.abs(d)>Math.abs(dm))dm=d});
+  var bow=dm/ch,total=Math.min(4*Math.atan(2*Math.abs(bow)),2.36),sg=dm<0?-1:1;
+  if(total<.08)total=0;
+  var dur=Math.max(.05,(b.t-a.t)),v=len/dur,s=clamp(600+v*.35,650,1250);
+  var dir=Math.atan2(cy,cx);
+  return {h:dir+sg*total/2,w:-sg*total*s/MAXD,s:s,dmg:90,bow:bow};
+}
+function paramsC(st,charge,mx,my){
+  var s=750+450*charge,dmg=Math.round(45+65*charge),now=st.length?st[st.length-1].t:0,win=[];
+  for(var i=st.length-1;i>=0&&now-st[i].t<.14;i--)win.unshift(st[i]);
+  var mv=0;for(i=1;i<win.length;i++)mv+=Math.hypot(win[i].x-win[i-1].x,win[i].y-win[i-1].y);
+  if(win.length<3||mv<25)return {h:Math.atan2(my-P.y,mx-P.x),w:0,s:s,dmg:dmg,flick:false};
+  var m=win[Math.floor(win.length/2)],f=win[0],l=win[win.length-1];
+  var a1=Math.atan2(m.y-f.y,m.x-f.x),a2=Math.atan2(l.y-m.y,l.x-m.x),dA=wrap(a2-a1);
+  if(Math.hypot(m.x-f.x,m.y-f.y)<6)a1=Math.atan2(l.y-f.y,l.x-f.x),dA=0;
+  return {h:a1,w:clamp(dA*3.6,-3,3)*(s/1000),s:s,dmg:dmg,flick:true};
+}
+function simulate(p,n){ /* predicted path for the dotted guide */
+  var x=P.x,y=P.y-6,h=p.h,d=0,pts=[{x:x,y:y}],dt=1/90;
+  while(d<MAXD&&pts.length<n){h+=p.w*dt;x+=Math.cos(h)*p.s*dt;y+=Math.sin(h)*p.s*dt;d+=p.s*dt;pts.push({x:x,y:y});
+    if(hitsPillar(x,y,STAR_R*.7)||x<0||x>W||y<0||y>H)break}
+  return pts;
+}
+function inkLen(pts){var L=0;for(var i=1;i<pts.length;i++)L+=Math.hypot(pts[i].x-pts[i-1].x,pts[i].y-pts[i-1].y);return L}
+
+/* ---------- star state ---------- */
+function throwStar(p){
+  var st=S.star;st.mode='fly';st.x=P.x;st.y=P.y-6;st.h=p.h;st.w=p.w;st.s=p.s;st.d=0;st.dmg=p.dmg;st.hit=[];st.trail=[];st.path=p.path||null;st.pi=0;st.total=0;st.charge=0;
+  S.last={hits:0,dmg:0,s:Math.round(p.s),extra:p.extra||''};
+  S.fx.push({k:'ring',x:P.x,y:P.y,t:0,life:.3});
+}
+function regrab(dur){S.star.mode='held';S.drawT=0;S.drawDur=dur;S.star.charge=0}
+function setStance(s){
+  if(s===S.stance)return;S.stance=s;S.stroke=[];S.down=false;S.demo=null;S.ghost=null;
+  if(s==='great'){regrab(.45);S.fx.push({k:'rip',t:0,life:.5})}
+  document.getElementById('bStance').textContent='Stance: '+(s==='great'?'Great Star':'Shuriken fan');
+  caption();
+}
+
+/* ---------- input ---------- */
+function toWorld(e){var r=cv.getBoundingClientRect();return {x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}}
+function canThrow(){return S.stance==='great'&&S.star.mode==='held'&&S.drawT>=.7}
+function onDown(x,y,t){
+  S.mouse={x:x,y:y};
+  if(S.stance==='fan'){fan(x,y);return}
+  if(!canThrow())return;
+  S.down=true;S.stroke=[{x:x,y:y,t:t}];
+  if(S.concept==='B')S.stroke=[{x:P.x,y:P.y,t:t},{x:x,y:y,t:t}];
+}
+function onMove(x,y,t){
+  S.mouse={x:x,y:y};if(!S.down)return;
+  var l=S.stroke[S.stroke.length-1];if(Math.hypot(x-l.x,y-l.y)<5)return;
+  if(S.concept==='B'){var L=inkLen(S.stroke),add=Math.hypot(x-l.x,y-l.y);if(L>=900)return;
+    if(L+add>900){var k=(900-L)/add;x=l.x+(x-l.x)*k;y=l.y+(y-l.y)*k}}
+  S.stroke.push({x:x,y:y,t:t});
+}
+function onUp(x,y,t){
+  if(!S.down)return;S.down=false;var st=S.stroke;S.stroke=[];
+  if(S.concept==='A'){
+    var p=paramsA(st);
+    if(!p)p={h:Math.atan2(y-P.y,x-P.x),w:0,s:800,dmg:90};
+    p.extra=Math.abs(p.w)>0?'curve '+Math.round(Math.abs(p.w*MAXD/p.s)*57.3)+'°':'straight';
+    throwStar(p);
+  }else if(S.concept==='B'){
+    if(st.length<3){st=[{x:P.x,y:P.y},{x:P.x+Math.cos(S.aim)*600,y:P.y+Math.sin(S.aim)*600}]}
+    st[0]={x:P.x,y:P.y-6};
+    throwStar({h:0,w:0,s:1150,dmg:60,path:st,extra:'ink '+Math.round(inkLen(st))+' px'});
+  }else{
+    var c=S.star.charge,q=paramsC(st,c,x,y);
+    q.extra='spin '+Math.round(c*100)+'%'+(q.flick&&Math.abs(q.w)>.05?' · hook':'');
+    throwStar(q);
+  }
+}
+function fan(x,y){
+  var a=Math.atan2(y-P.y,x-P.x);
+  for(var i=-1;i<=1;i++)S.smalls.push({x:P.x,y:P.y,h:a+i*.08,t:0,spin:0});
+}
+cv.addEventListener('pointerdown',function(e){var p=toWorld(e);S.demo=null;S.ghost=null;S.lastInput=S.now;cv.setPointerCapture(e.pointerId);onDown(p.x,p.y,S.now);e.preventDefault()});
+cv.addEventListener('pointermove',function(e){var p=toWorld(e);if(!S.demo){S.mouse=p;onMove(p.x,p.y,S.now)}});
+cv.addEventListener('pointerup',function(e){var p=toWorld(e);S.lastInput=S.now;onUp(p.x,p.y,S.now)});
+cv.addEventListener('pointercancel',function(){S.down=false;S.stroke=[]});
+addEventListener('keydown',function(e){if(e.key==='Alt'){e.preventDefault();S.lastInput=S.now;setStance(S.stance==='great'?'fan':'great')}});
+
+/* ---------- demo gestures (fed through the same handlers) ---------- */
+function demoA(){var pts=[];for(var i=0;i<=12;i++){var u=i/12;pts.push([.15+u*.24,250+u*210,450-Math.sin(u*Math.PI)*32])}return pts}
+function demoB(){var r=[[170,260],[300,170],[420,128],[540,132],[640,190],[662,262],[700,350],[760,392],[860,320],[890,270]],pts=[],t=.15;
+  pts.push([t,r[0][0],r[0][1]]);
+  for(var i=1;i<r.length;i++){for(var k=1;k<=5;k++){t+=.026;pts.push([t,r[i-1][0]+(r[i][0]-r[i-1][0])*k/5,r[i-1][1]+(r[i][1]-r[i-1][1])*k/5])}}
+  return pts}
+function demoC(){var pts=[[.15,300,330]];for(var i=1;i<=8;i++)pts.push([.15+i*.11,300+Math.sin(i)*1.5,330]);
+  var f=[[300,330],[312,296],[330,262],[352,236],[384,222],[424,218]];for(i=0;i<f.length;i++)pts.push([1.08+i*.03,f[i][0],f[i][1]]);return pts}
+function startDemo(){
+  var pts=S.concept==='A'?demoA():S.concept==='B'?demoB():demoC();
+  S.demo={t:0,pts:pts,i:0,down:false};
+}
+function tickDemo(dt){
+  var d=S.demo;if(!d)return;d.t+=dt;
+  while(d.i<d.pts.length&&d.pts[d.i][0]<=d.t){var p=d.pts[d.i];S.ghost={x:p[1],y:p[2]};
+    if(!d.down){d.down=true;onDown(p[1],p[2],S.now)}else onMove(p[1],p[2],S.now);d.i++}
+  if(d.i>=d.pts.length&&d.t>d.pts[d.pts.length-1][0]+.06){var l=d.pts[d.pts.length-1];onUp(l[1],l[2],S.now);S.demo=null;S.lastInput=S.now;
+    setTimeout(function(){if(!S.demo)S.ghost=null},500)}
+}
+
+/* ---------- update ---------- */
+function hurt(e,dmg,big){
+  e.hp-=dmg;e.flash=.12;S.nums.push({x:e.x+(Math.random()*16-8),y:e.y-24,v:dmg,t:0,big:big});
+  for(var i=0;i<(big?9:3);i++){var a=Math.random()*TAU,s=120+Math.random()*260;S.fx.push({k:'spark',x:e.x,y:e.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:0,life:.3+Math.random()*.2})}
+  if(e.hp<=0){e.dead=1.6;e.hp=0;S.fx.push({k:'pop',x:e.x,y:e.y,t:0,life:.4})}
+}
+function update(dt){
+  S.now+=dt;var st=S.star;
+  if(S.drawT<1)S.drawT=Math.min(1,S.drawT+dt/S.drawDur);
+  S.aim=Math.atan2(S.mouse.y-P.y,S.mouse.x-P.x);
+  if(!RM&&!S.demo&&!S.down&&canThrow()&&S.drawT>=1&&S.now-S.lastInput>3.4)startDemo();
+  tickDemo(dt);
+  if(S.down&&S.concept==='C')st.charge=Math.min(1,st.charge+dt/.9);
+  st.spin+=dt*(st.mode==='held'?(2+st.charge*22):st.mode==='fly'?26:18);
+  if(st.mode==='fly'||st.mode==='back'){st.trail.push({x:st.x,y:st.y});if(st.trail.length>16)st.trail.shift()}
+  else st.trail.length=0;
+  if(st.mode==='fly'){
+    var stop=false,step=st.s*dt;
+    if(st.path){
+      while(step>0&&st.pi<st.path.length-1){var a=st.path[st.pi+1],dx=a.x-st.x,dy=a.y-st.y,dd=Math.hypot(dx,dy);
+        if(dd<=step){st.x=a.x;st.y=a.y;step-=dd;st.pi++}else{st.x+=dx/dd*step;st.y+=dy/dd*step;st.h=Math.atan2(dy,dx);step=0}}
+      if(st.pi>=st.path.length-1)stop=true;
+    }else{
+      st.h+=st.w*dt;st.x+=Math.cos(st.h)*step;st.y+=Math.sin(st.h)*step;st.d+=step;if(st.d>=MAXD)stop=true;
+    }
+    S.enemies.forEach(function(e,i){if(e.dead>0||st.hit.indexOf(i)>=0)return;
+      if(Math.hypot(e.x-st.x,e.y-st.y)<e.r+STAR_R){st.hit.push(i);hurt(e,st.dmg,true);S.last.hits++;S.last.dmg+=st.dmg;st.s*=.94}});
+    if(hitsPillar(st.x,st.y,STAR_R*.7)){stop=true;for(var k=0;k<12;k++){var an=Math.random()*TAU,sp=150+Math.random()*300;S.fx.push({k:'spark',x:st.x,y:st.y,vx:Math.cos(an)*sp,vy:Math.sin(an)*sp,t:0,life:.35,hot:1})}S.fx.push({k:'clang',x:st.x,y:st.y,t:0,life:.25})}
+    if(st.x<-20||st.x>W+20||st.y<-20||st.y>H+20)stop=true;
+    if(stop){st.mode='back';st.s=1100}
+  }else if(st.mode==='back'){
+    var want=Math.atan2(P.y-6-st.y,P.x-st.x),df=wrap(want-st.h);st.h+=clamp(df,-10*dt,10*dt);
+    st.x+=Math.cos(st.h)*st.s*dt;st.y+=Math.sin(st.h)*st.s*dt;
+    if(Math.hypot(P.x-st.x,P.y-6-st.y)<36){regrab(.16);S.fx.push({k:'catch',x:P.x,y:P.y,t:0,life:.3})}
+  }
+  S.smalls=S.smalls.filter(function(b){b.t+=dt;b.spin+=dt*30;b.x+=Math.cos(b.h)*700*dt;b.y+=Math.sin(b.h)*700*dt;
+    if(hitsPillar(b.x,b.y,4))return false;
+    for(var i=0;i<S.enemies.length;i++){var e=S.enemies[i];if(e.dead<=0&&Math.hypot(e.x-b.x,e.y-b.y)<e.r+6){hurt(e,9,false);return false}}
+    return b.t<.75});
+  S.enemies.forEach(function(e){e.ph+=dt;e.x=e.bx+Math.sin(e.ph*.9)*10;e.y=e.by+Math.cos(e.ph*.7)*8;e.flash=Math.max(0,e.flash-dt);
+    if(e.dead>0){e.dead-=dt;if(e.dead<=0){e.hp=e.max;e.dead=0;e.spawn=.4}}if(e.spawn>0)e.spawn-=dt});
+  S.fx=S.fx.filter(function(f){f.t+=dt;if(f.vx!==undefined){f.x+=f.vx*dt;f.y+=f.vy*dt;f.vx*=.9;f.vy*=.9}return f.t<f.life});
+  S.nums=S.nums.filter(function(n){n.t+=dt;n.y-=40*dt;return n.t<.8});
+}
+
+/* ---------- drawing ---------- */
+function drawFloor(){
+  g.fillStyle='#0d0b17';g.fillRect(0,0,W,H);g.fillStyle='#1d1a30';
+  for(var x=20;x<W;x+=40)for(var y=20;y<H;y+=40)g.fillRect(x,y,2,2);
+  var v=g.createRadialGradient(W/2,H/2,H*.3,W/2,H/2,W*.62);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.45)');g.fillStyle=v;g.fillRect(0,0,W,H);
+  /* pillar */
+  g.fillStyle='#26223a';g.fillRect(PILLAR.x,PILLAR.y,PILLAR.w,PILLAR.h);
+  g.fillStyle='#332e4d';g.fillRect(PILLAR.x,PILLAR.y,PILLAR.w,10);
+  g.strokeStyle='#4a4470';g.lineWidth=2;g.strokeRect(PILLAR.x+1,PILLAR.y+1,PILLAR.w-2,PILLAR.h-2);
+  g.strokeStyle='rgba(0,0,0,.35)';g.lineWidth=1;for(var yy=PILLAR.y+30;yy<PILLAR.y+PILLAR.h;yy+=30){g.beginPath();g.moveTo(PILLAR.x+2,yy);g.lineTo(PILLAR.x+PILLAR.w-2,yy);g.stroke()}
+}
+function drawEnemy(e){
+  if(e.dead>0)return;
+  var a=e.spawn>0?1-e.spawn/.4:1;
+  g.save();g.globalAlpha=a;g.translate(e.x,e.y);var fl=e.flash>0;
+  g.fillStyle=fl?'#fff':'#5e2335';g.strokeStyle=fl?'#fff':'#d4707e';g.lineWidth=2;
+  g.beginPath();g.arc(0,0,e.r,0,TAU);g.fill();g.stroke();
+  g.fillStyle=fl?'rgba(255,255,255,.9)':'rgba(255,200,205,.5)';g.beginPath();g.arc(0,0,e.r*.4,0,TAU);g.fill();
+  g.fillStyle='rgba(0,0,0,.5)';g.fillRect(-18,-e.r-11,36,4);g.fillStyle='#e0717f';g.fillRect(-18,-e.r-11,36*e.hp/e.max,4);
+  g.restore();
+}
+function drawPlayer(){
+  var x=P.x,y=P.y,a=S.aim;
+  g.save();g.translate(x,y);g.rotate(a);g.lineCap='round';
+  var w=Math.sin(S.now*9)*5;
+  g.strokeStyle='#8f7bf0';g.lineWidth=4;g.beginPath();g.moveTo(-10,0);g.quadraticCurveTo(-26,w,-40,-w);g.stroke();
+  g.fillStyle='#3d3570';g.strokeStyle='#7a6bd0';g.lineWidth=1.5;
+  [-1,1].forEach(function(s){g.beginPath();g.arc(2,15*s,7,0,TAU);g.fill();g.stroke()});
+  g.fillStyle='#262043';g.strokeStyle='#6a5bb8';g.lineWidth=2.5;g.beginPath();g.arc(0,0,14,0,TAU);g.fill();g.stroke();
+  g.fillStyle='#14111f';g.beginPath();g.arc(2,0,8.5,0,TAU);g.fill();
+  g.strokeStyle='#b3a3ff';g.lineWidth=2;g.beginPath();g.arc(2,0,8.5,-1.1,1.1);g.stroke();
+  g.restore();
+}
+/* four-point star with concave edges and a bore */
+function star(x,y,R,ang,alpha,hot){
+  g.save();g.translate(x,y);g.rotate(ang);g.globalAlpha=alpha;
+  if(hot>0){g.globalCompositeOperation='lighter';var gl=g.createRadialGradient(0,0,R*.2,0,0,R*1.7);gl.addColorStop(0,C(INK,.35*hot));gl.addColorStop(1,C(INK,0));g.fillStyle=gl;g.beginPath();g.arc(0,0,R*1.7,0,TAU);g.fill();g.globalCompositeOperation='source-over'}
+  var gr=g.createLinearGradient(-R,-R,R,R);gr.addColorStop(0,'#f2f0fa');gr.addColorStop(.5,'#a7a2c0');gr.addColorStop(1,'#5f5a7a');
+  g.fillStyle=gr;g.strokeStyle='#221e36';g.lineWidth=Math.max(1.2,R*.06);
+  g.beginPath();
+  for(var i=0;i<4;i++){var t=i*TAU/4,n=t+TAU/4,m=t+TAU/8;
+    if(i===0)g.moveTo(Math.cos(t)*R,Math.sin(t)*R);
+    g.quadraticCurveTo(Math.cos(m)*R*.16,Math.sin(m)*R*.16,Math.cos(n)*R,Math.sin(n)*R)}
+  g.closePath();g.fill();g.stroke();
+  g.strokeStyle='rgba(255,255,255,.55)';g.lineWidth=Math.max(.8,R*.035);
+  for(i=0;i<4;i++){t=i*TAU/4;g.beginPath();g.moveTo(Math.cos(t)*R*.18,Math.sin(t)*R*.18);g.lineTo(Math.cos(t)*R*.92,Math.sin(t)*R*.92);g.stroke()}
+  g.fillStyle='#0d0b17';g.beginPath();g.arc(0,0,R*.13,0,TAU);g.fill();
+  g.strokeStyle='#c9c3e6';g.lineWidth=Math.max(1,R*.04);g.stroke();
+  g.restore();
+}
+function heldPos(){
+  var e=1-Math.pow(1-S.drawT,3),a=S.aim;
+  var hx=P.x+Math.cos(a)*30+Math.sin(a)*22,hy=P.y+Math.sin(a)*30-Math.cos(a)*22;
+  var bx=P.x-Math.cos(a)*18,by=P.y-Math.sin(a)*18;
+  var sh=S.down&&S.concept==='C'?S.star.charge*2.5:0;
+  return {x:bx+(hx-bx)*e+(Math.random()-.5)*sh,y:by+(hy-by)*e+(Math.random()-.5)*sh,sc:.45+.55*e};
+}
+function drawStroke(){
+  if(!S.down||S.stroke.length<2)return;
+  var st=S.stroke;g.save();g.lineCap='round';g.lineJoin='round';
+  if(S.concept==='B'){
+    g.strokeStyle=C(INK,.22);g.lineWidth=14;g.beginPath();st.forEach(function(p,i){i?g.lineTo(p.x,p.y):g.moveTo(p.x,p.y)});g.stroke();
+    g.strokeStyle=C(INK,.95);g.lineWidth=3;g.setLineDash([2,9]);g.stroke();g.setLineDash([]);
+    var L=inkLen(st),l=st[st.length-1];
+    g.fillStyle='rgba(13,11,23,.75)';g.fillRect(l.x+12,l.y-26,74,20);
+    g.fillStyle=C(INK,.25);g.fillRect(l.x+14,l.y-12,70,3);g.fillStyle=C(INK,1);g.fillRect(l.x+14,l.y-12,70*(1-L/900),3);
+    g.font='500 11px "IBM Plex Mono",monospace';g.fillStyle='#e9e6f5';g.fillText(Math.round(900-L)+' ink',l.x+16,l.y-15);
+  }else{
+    for(var i=1;i<st.length;i++){var a=st[i-1],b=st[i],sp=Math.hypot(b.x-a.x,b.y-a.y);
+      g.strokeStyle=C(INK,.25+.6*i/st.length);g.lineWidth=clamp(10-sp*.25,3,10);g.beginPath();g.moveTo(a.x,a.y);g.lineTo(b.x,b.y);g.stroke()}
+    var p=S.concept==='A'?paramsA(st):paramsC(st,S.star.charge,S.mouse.x,S.mouse.y);
+    if(p){var pts=simulate(p,400);g.strokeStyle=C(INK,.55);g.lineWidth=2;g.setLineDash([3,10]);g.beginPath();pts.forEach(function(q,i){i?g.lineTo(q.x,q.y):g.moveTo(q.x,q.y)});g.stroke();g.setLineDash([])}
+  }
+  g.restore();
+}
+function drawGreat(){
+  var st=S.star;
+  if(st.mode==='held'){
+    var h=heldPos();
+    star(h.x,h.y,STAR_R*h.sc,st.spin,1,.4+st.charge*.9);
+    if(S.concept==='C'&&S.down){g.save();g.strokeStyle=C(INK,.25);g.lineWidth=4;g.beginPath();g.arc(h.x,h.y,STAR_R+10,0,TAU);g.stroke();
+      g.strokeStyle=st.charge>=1?'#fff':C(INK,1);g.beginPath();g.arc(h.x,h.y,STAR_R+10,-Math.PI/2,-Math.PI/2+TAU*st.charge);g.stroke();g.restore()}
+    if(S.drawT<1&&S.drawDur>.3){g.save();g.globalCompositeOperation='lighter';g.strokeStyle=C(INK,(1-S.drawT)*.8);g.lineWidth=3;g.beginPath();g.arc(h.x,h.y,STAR_R*(1+S.drawT*.8),0,TAU);g.stroke();g.restore()}
+    return;
+  }
+  /* trail */
+  if(st.trail.length>1){g.save();g.globalCompositeOperation='lighter';g.lineCap='round';
+    for(var i=1;i<st.trail.length;i++){var a=st.trail[i-1],b=st.trail[i],k=i/st.trail.length;
+      g.strokeStyle=C(INK,(st.mode==='fly'?.5:.2)*k);g.lineWidth=STAR_R*1.5*k;g.beginPath();g.moveTo(a.x,a.y);g.lineTo(b.x,b.y);g.stroke()}
+    g.restore()}
+  for(i=2;i>=1;i--)star(st.x-Math.cos(st.h)*i*9,st.y-Math.sin(st.h)*i*9,STAR_R,st.spin-i*.5,.18,0);
+  star(st.x,st.y,STAR_R,st.spin,st.mode==='fly'?1:.75,st.mode==='fly'?.9:.3);
+}
+function drawFx(){
+  g.save();g.globalCompositeOperation='lighter';
+  S.fx.forEach(function(f){var u=f.t/f.life;
+    if(f.k==='spark'){g.strokeStyle=f.hot?'rgba(255,214,150,'+(1-u)+')':C(INK,1-u);g.lineWidth=2;g.beginPath();g.moveTo(f.x,f.y);g.lineTo(f.x-f.vx*.03,f.y-f.vy*.03);g.stroke()}
+    else if(f.k==='ring'||f.k==='catch'){g.strokeStyle=C(INK,.8*(1-u));g.lineWidth=3;g.beginPath();g.arc(f.x,f.y,20+u*(f.k==='ring'?50:30),0,TAU);g.stroke()}
+    else if(f.k==='pop'){g.strokeStyle='rgba(255,170,180,'+(1-u)+')';g.lineWidth=3;g.beginPath();g.arc(f.x,f.y,18+u*40,0,TAU);g.stroke()}
+    else if(f.k==='clang'){g.fillStyle='rgba(255,230,190,'+(1-u)+')';g.beginPath();g.arc(f.x,f.y,10+u*24,0,TAU);g.fill()}
+    else if(f.k==='rip'){S.enemies.forEach(function(e){if(e.dead>0)return;var x=e.x+(P.x-e.x)*u,y=e.y+(P.y-e.y)*u;g.fillStyle=C(INK,1-u);g.beginPath();g.arc(x,y,3,0,TAU);g.fill()})}
+  });
+  g.restore();
+  S.nums.forEach(function(n){var u=n.t/.8;g.globalAlpha=1-u*u;g.font=(n.big?'700 22px ':'600 14px ')+'"Barlow Condensed","Arial Narrow",sans-serif';
+    g.fillStyle=n.big?'#fff':'#d8d2f5';g.strokeStyle='rgba(0,0,0,.6)';g.lineWidth=3;g.strokeText(n.v,n.x,n.y);g.fillText(n.v,n.x,n.y)});
+  g.globalAlpha=1;
+}
+function drawHud(){
+  g.save();g.font='500 13px "IBM Plex Mono",monospace';g.textBaseline='top';
+  var st=S.star,txt=S.stance==='fan'?'SHURIKEN FAN · Left Alt: Great Star':
+    st.mode==='held'?(S.drawT<.7?'DRAWING…':S.down?(S.concept==='C'?'SPINNING UP '+Math.round(st.charge*100)+'%':'SWIPING'):'GREAT STAR READY'):st.mode==='fly'?'IN FLIGHT':'RETURNING';
+  g.fillStyle='rgba(13,11,23,.7)';var w=g.measureText(txt).width;g.fillRect(12,12,w+20,26);
+  g.fillStyle=S.stance==='fan'?'#9a96b3':'#e9e6f5';g.fillText(txt,22,18);
+  if(S.ghost){g.strokeStyle='rgba(255,255,255,.85)';g.lineWidth=2;g.beginPath();g.arc(S.ghost.x,S.ghost.y,9,0,TAU);g.stroke();
+    g.fillStyle='rgba(255,255,255,.85)';g.beginPath();g.arc(S.ghost.x,S.ghost.y,3,0,TAU);g.fill();
+    g.fillStyle='rgba(13,11,23,.7)';g.fillRect(W-82,12,70,24);g.fillStyle='#9a96b3';g.fillText('DEMO',W-68,17)}
+  g.restore();
+}
+function draw(){
+  drawFloor();
+  S.smalls.forEach(function(b){star(b.x,b.y,7,b.spin,1,.3)});
+  drawStroke();
+  S.enemies.forEach(drawEnemy);
+  drawPlayer();
+  if(S.stance==='great')drawGreat();
+  drawFx();drawHud();
+}
+
+/* ---------- page bits ---------- */
+var HOW={
+  A:'<b>Swipe &amp; Bend.</b> Hold <kbd>LMB</kbd> and swipe anywhere. The swipe\'s direction aims, its bow curves the flight the same way, and a faster swipe throws faster. A click throws straight at the cursor.',
+  B:'<b>Trace the Path.</b> Hold <kbd>LMB</kbd> and draw the route; it starts at the Ninja and runs out after 900 px of ink. Let go and the star flies exactly along it.',
+  C:'<b>Wind-up &amp; Flick.</b> Hold <kbd>LMB</kbd> to spin the star up (ring fills in 0.9 s), then flick and let go. Hook the end of the flick to curve it. Letting go without moving throws straight at the cursor.'
+};
+function caption(){
+  document.getElementById('how').innerHTML=S.stance==='fan'?'<b>Shuriken fan</b> (today\'s weapon): click throws 3 small stars. <kbd>Left Alt</kbd> draws the Great Star.':HOW[S.concept];
+}
+['A','B','C'].forEach(function(k){document.getElementById('b'+k).addEventListener('click',function(){
+  S.concept=k;['A','B','C'].forEach(function(j){document.getElementById('b'+j).classList.toggle('on',j===k)});
+  S.demo=null;S.ghost=null;S.down=false;S.stroke=[];S.lastInput=S.now-2.2;
+  if(S.stance!=='great')setStance('great');else if(S.star.mode==='held')regrab(.3);
+  caption()})});
+document.getElementById('bStance').addEventListener('click',function(){S.lastInput=S.now;setStance(S.stance==='great'?'fan':'great')});
+var lastRead='';
+function readout(){var l=S.last,t=l?('Last throw: '+l.hits+' hit'+(l.hits===1?'':'s')+' · '+l.dmg+' dmg · '+l.s+' px/s · '+l.extra):'No throw yet';
+  if(t!==lastRead){document.getElementById('read').textContent=t;lastRead=t}}
+caption();
+
+var prev=0;
+function frame(ts){var dt=prev?Math.min(.05,(ts-prev)/1000):0;prev=ts;update(dt);draw();readout();requestAnimationFrame(frame)}
+draw();requestAnimationFrame(frame);
+})();
+</script>

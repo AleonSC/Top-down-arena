@@ -238,7 +238,7 @@ namespace Arena
         void PickRooms()
         {
             bool was = RoomsUp, vaultWas = VaultUp;
-            bool wings = ArenaKind == ArenaLayout.Wings, grown = ArenaKind == ArenaLayout.Expanding && Expansion.BoughtCount(Expanded) > 0;  // (the Expanding arena is the plain box until the first room is bought)
+            bool wings = ArenaKind == ArenaLayout.Wings, grown = ArenaKind == ArenaLayout.Expanding && Expansion.Grown(Expanded);  // (the Expanding arena is the plain box until the first room is bought or wall pushed)
             RoomsUp = (wings || grown) && Practice == null && !ShowcaseMode && Hunt == null && !BossNow
                 && !Has(RunMod.TinyArena) && !OnPathOf(PathId.NarrowPass);
             VaultUp = RoomsUp && wings && Wave == VaultWaveFor(Wave) && FirstLeg;  // (a Campaign: the vault's wave's first leg)
@@ -263,7 +263,7 @@ namespace Arena
         /// PickRooms only runs as a wave starts, so the world goes up now, not a wave late. Only ever raises it (PickRooms lowers it).
         void RaiseRoomsNow()
         {
-            if (RoomsUp || ArenaKind != ArenaLayout.Expanding || Expansion.BoughtCount(Expanded) == 0 || Practice != null || ShowcaseMode || Hunt != null
+            if (RoomsUp || ArenaKind != ArenaLayout.Expanding || !Expansion.Grown(Expanded) || Practice != null || ShowcaseMode || Hunt != null
                 || Has(RunMod.TinyArena) || OnPathOf(PathId.NarrowPass))
                 return;
             RoomsUp = true;

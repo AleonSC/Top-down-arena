@@ -495,7 +495,7 @@ static partial class Program
             foreach (var e in g.Enemies.Values) if (e != target) e.Hp = 0f;
             bool fire = true, recall = false;
             if (hold > 0f) { held += dt; if (held > hold) { fire = false; if (held > hold + 0.05f) held = 0f; } }
-            if (weapon.Id == WeaponId.Shuriken) { int c = f % 72; fire = c < 54; recall = c >= 58 && c < 62; }
+            if (weapon.Id == WeaponId.Shuriken) { int c = f % 90; fire = c < 54; recall = c >= 56 && c < 58 || c >= 78 && c < 80; }  // (into the Great Star stance, pulling the stars out, and back)
             if (weapon.Id == WeaponId.FumaShuriken) { recall = f == 5; me.Pos = new V2(800f - Game.FumaOrbitR, 450f); }  // the Orbit stance, the dummy on its circle
             host.Poll();
             g.FixedStep(dt, new PlayerInput { Fire = fire, WeaponAction = recall, AimAt = weapon.Id == WeaponId.SpiritChalk ? target.Pos + V2.FromAngle(f * 0.1f) * 8f : target.Pos });
@@ -546,10 +546,11 @@ static partial class Program
                             if (hold > 0f) { held += dt; if (held > hold) { fire = false; if (held > hold + 0.05f) held = 0f; } }
                             if (weapon.Id == WeaponId.Shuriken)
                             {
-                                // Throw for a while, then press the weapon-action key to recall the stuck stars for their second hit.
-                                int c = f % 72;
+                                // Throw for a while, then press the weapon-action key to recall the stuck stars for their second hit
+                                // (it goes into the Great Star stance, so press it again to come back to the fan).
+                                int c = f % 90;
                                 fire = c < 54;
-                                recall = c >= 58 && c < 62;
+                                recall = c >= 56 && c < 58 || c >= 78 && c < 80;
                             }
                             host.Poll();
                             // Spirit Chalk draws as you move the cursor (ink fades after 4 s), so it scribbles in a small circle on the target.

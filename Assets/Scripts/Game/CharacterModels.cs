@@ -734,7 +734,12 @@ namespace Arena
                     MRect(14f, -13f + Mathf.Sin(t * 2f), 8f, 5f, Hx(0xfff0cf, 0.6f)); MRect(18f, 9f + Mathf.Sin(t * 2.4f), 8f, 5f, Hx(0xfff0cf, 0.6f));
                     break;
                 case WeaponId.Shuriken:
-                    MStar(6f, 0f, 6.5f, 2f, 4, t * 4f, MSteel);
+                    if (GreatStarHeld(p))  // the Great Star stance: the huge star over your shoulder (GreatStarLook.cs)
+                    {
+                        MStar(2f, -15f, 15f, 3.2f, 4, t * 1.6f, MSteel); MCirc(2f, -15f, 2.6f, Hx(0x14111f), 8);
+                    }
+                    else if (!Game.InGreatStar(p))
+                        MStar(6f, 0f, 6.5f, 2f, 4, t * 4f, MSteel);
                     break;
                 case WeaponId.Katana:
                     if (fxOn)

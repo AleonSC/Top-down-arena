@@ -14,33 +14,63 @@ There is no to-do file; the owner sends requests per session. Design docs in `Do
 
 ## 1. The game in one page
 
+(Rewritten Nov 2026. If something here disagrees with the code, the code wins: fix this page.)
+
 - **What:** a 1-3 player **co-op top-down bullet hell** made in **Unity 6** (`6000.6.7f1`, Unity 6.6; built-in render
   pipeline). The owner plays it with a friend over **Tailscale** (one hosts, the other joins by IP).
-- **A run:** 50 regular waves, a boss fight after every 5th (Warden, Hive Queen, Twin Reapers, Singularity, Colossus, Duelist,
-  Lich, Storm Herald, Devourer, Eclipse), then optional endless mode. Level-ups give a pick of 3 upgrade
-  cards (rerolls available); each boss gives a legendary upgrade and a weapon mod.
 - **Players** pick a **role** (Tank, Healer, DPS) × **class/kit** (Soldier, Elementalist, Summoner, Knight, Ninja,
-  Hemomancer; `Kit.Elementalist` and `Kit.Hemomancer` were `Kit.Mage` and `Kit.BloodMage` until Oct 2026, and many
-  methods and files still say Mage or BloodMage, e.g. `BloodMage.cs`), then one of 3 weapons and one of 3 Space
-  abilities for that combination. Each role × kit has an ultimate (F). Bonus abilities on Q/E/Shift come from very
-  rare upgrade cards. Abilities level up with use (**mastery**, levels 1-5, with a level-5 "capstone" bonus each).
-- **Defence:** everyone has a **parry** shield (right mouse) that soaks damage and can reflect; Knights' swings
-  cut small bullets. Boss bullets come in two kinds: violet (wear down blockers) and **red aimed shots**
-  (unblockable except by the Knight's Shield Wall).
-- **Pacing rules:** a **bullet budget** caps regular enemies' bullets on screen (40 + 3/wave, max 85,
-  +20% per extra player; 60% of it while a boss is up on Normal). Touching a boss hurts once per second and shoves
-  you ~100 px out.
-- **Modes in the lobby:** **Run** or **Practice Range** (hand-built waves of any enemies/bosses at any level,
-  shared live with the lobby, savable as text files). The host picks the mode, and the run's **modifiers**
-  (Modifiers tab: Glass Cannon, Tough Crowd, Frenzy, Swift Foes, Famine, Lucky).
-- **Divergent paths:** after each boss the host picks one of two **paths** (or no path) for the five regular
-  waves before the next boss: enemy mixes, hazard floors, twists and arena rules (9 paths, danger 1-3 with a
-  bonus and a prize). Bosses are always standard. See `Docs/Paths.md`.
-- **Dev tools (F1):** a dock over the live game (`DevDock.cs`: pinned God / Full heal / Skip wave / Kill all, WAVE / PARTY / VIEW / LABS drawers, a stat-editor side drawer, sheets for DPS, Replays and Balance): stat editor, god mode, wave skip, session
-  recording toggle, **DPS meter (F2) and target dummies**, **Boss Lab** (bots that play like people fight any boss; live stats; also a CLI batch mode).
-- **Session recording:** the host's matches are saved as JSON (per-wave damage by source, picks, downs,
-  samples). The owner uploads these into sessions for balance analysis; `Tools/SessionReport/report.py`
-  summarises them.
+  Hemomancer; `Kit.Elementalist`/`Kit.Hemomancer` were `Kit.Mage`/`Kit.BloodMage`, and many files still say so, e.g.
+  `BloodMage.cs`), then one of 3 weapons and one of 3 Space abilities. Each role × kit has an ultimate (F). Very rare
+  cards add Q/E/Shift abilities. Abilities level up with use (**mastery** 1-5, capstone at 5). **Perks** (unlocked by
+  winning a Boss Hunt, e.g. Riot Gear) are equipped in the lobby.
+- **The ten bosses, in Campaign order:** Warden, Hive Queen, Twin Reapers, Singularity, Colossus, Duelist, Lich,
+  Storm Herald, Devourer, Eclipse (`Game.BossCycle`, EnemyAI.cs). **Every boss has its own faction** of themed enemies,
+  squads and a finale set piece (`Approaches.cs`: Warden's prison, Hive, Dusk and Dawn cult, Infall, Quarry, Masked
+  Court, the dead, Squall, Larder, Penumbral Court).
+- **Lobby modes** (host picks on the mode carousel; a new profile starts on Quick Play):
+  - **Quick Play** (`QuickPlay.cs`): 10 waves of one boss's faction, then that boss (the Warden on a profile's first
+    play, then a shuffled bag). Boss health tuned to ~2 min. Then optional endless: 10 more waves + a new boss, repeat.
+    Has the tutorial. No paths, Data Gates, lives or saves.
+  - **Campaign** (the main mode): **100 waves, a boss after every 10th** (Warden after 10, Hive Queen after 20, ...
+    Eclipse after 100), then optional endless. Saved, with **lives** (Difficulty: Easy 3, Normal 2, Hard 1).
+  - **Boss Hunt** (`Hunts.cs`): 10 waves of one boss's faction, the boss on wave 10. Opens once that boss is beaten
+    anywhere; winning unlocks its perk. **Only the Warden has a hunt so far.** Optional **Hunt map** (node choices).
+  - **Survival** (`Survival.cs`): no waves, one clock, factions join every 4 min, one big walled room, ends when all
+    are down.
+  - **Practice** (Practice Range): build waves of any enemies/bosses, plus Training drills; no XP, respawn on.
+- **Track waves vs shown waves (important):** the Campaign is the old 50-wave track with **each track wave fought
+  twice** ("legs", `Game.Leg`). All scaling code reads `Wave` (track, 1-50, a boss after every 5th:
+  `CampaignBosses.Every = 5`); the player sees `ShownWave` (1-100). Wave numbers in README and older docs are usually
+  **track** waves: double them for what the player sees. XP, gold, chests and vectors per wave are halved to match.
+  Quick Play, Boss Hunts and Practice don't use legs.
+- **How Campaign waves are filled — Campaign buildup** (default on, `Approaches.Campaign`): every wave is the coming
+  boss's faction, growing through its stretch; the last boss's faction fades out over the next waves; older bosses
+  stay as a small pool and return as **comeback squads**. Each boss's 10 Campaign waves are a **teaching cycle**
+  (`FactionDef.Lessons`): one new enemy per wave, arriving alone and last, a recap at 5, all squads at 9, the finale
+  set piece (e.g. the Warden's Riot line) at 10. The old **boss approach** (faction only in the 4 track waves before a
+  boss) is what you get with Campaign buildup turned off.
+- **Arena:** Campaign and Quick Play are played on the **Expanding arena**: it starts as a box and grows as the party
+  builds rooms between waves with **vectors** (draw a room, vote it in; shops/vendors, a free surprise room after each
+  boss). The **Simple Arena** modifier keeps the open arena. Boss Hunts and Practice use the open arena; Survival has its
+  own 3200 x 1800 room.
+- **Between waves (Campaign):** level-up cards (3 picks, rerolls, or gold instead), room building and gold shops,
+  floating mini-boss rooms (a faction's mini-boss, `FactionMinis.cs`), **Data Gates** (an optional challenge once per
+  5 track waves), and after each boss a legendary + a weapon mod. **Paths** (`Docs/Paths.md`, a pick of two after each
+  boss) only run with Simple Arena: the Expanding arena has none.
+- **Defence:** a **parry** shield (right mouse) that soaks damage and can reflect; Knights' swings cut small bullets.
+  Boss bullets: violet (wear down blockers) and **red aimed shots** (unblockable except by the Knight's Shield Wall).
+  Down at 0 HP; an ally revives you in 4 s; everyone down = a life is spent (respawn at the start of that wave) or
+  game over.
+- **Pacing:** a **bullet budget** caps regular enemies' bullets (40 + 3/track wave, max 85, +20% per extra player; 60%
+  while a boss is up on Normal). Enemy damage grows 3% per track wave. Touching a boss hurts once a second and shoves
+  you ~100 px.
+- **Lobby settings:** Difficulty tab (Easy/Normal/Hard/Nightmare/Custom, lives, Campaign buildup), Modifiers tab
+  (Glass Cannon, Tough Crowd, Frenzy, Swift Foes, Famine, Lucky, Simple Arena, ...).
+- **Profile:** rank XP and Cores, records per mode, **Recent runs** with graphs, saved loadouts.
+- **Dev tools (F1):** a dock over the live game (`DevDock.cs`: God / Full heal / Skip wave / Kill all, WAVE / PARTY /
+  VIEW / LABS drawers, stat editor, DPS meter (F2) and dummies, Replays, Balance, **Boss Lab**: bots fight any boss).
+- **Session recording:** the host's matches are saved as JSON (per-wave damage by source, picks, downs). The owner
+  uploads them for balance analysis; `Tools/SessionReport/report.py` summarises them.
 
 ## 2. How the code is organised
 

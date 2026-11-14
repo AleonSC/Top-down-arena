@@ -287,9 +287,11 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "Circles in close, flashes a pink line, then leaps along it." },
             new EnemyDef { Name = "Hive Bomber", Hp = 30f, Radius = 10f, Speed = 330f, Score = 2, Xp = 0, Sides = 3, Color = new Rgba(1f, 0.45f, 0.15f), Melee = true },
             new EnemyDef { Name = "Cage Well", Hp = 40f, Radius = 11f, Speed = 0f, Score = 5, Xp = 2, Sides = 6, Color = new Rgba(0.85f, 0.4f, 1f), Melee = true },
-            new EnemyDef { Name = "Rioter", Hp = 40f, Radius = 12f, Speed = 110f, Score = 3, Xp = 7, Sides = 8, Color = new Rgba(1f, 0.55f, 0.2f), Melee = true, Contact = 10f },
+            new EnemyDef { Name = "Rioter", Hp = 40f, Radius = 12f, Speed = 110f, Score = 3, Xp = 7, Sides = 8, Color = new Rgba(1f, 0.55f, 0.2f), Melee = true, Contact = 10f,
+                Blurb = "A prisoner in an orange jumpsuit throwing cuffed punches. Some drag a ball and chain and run slower." },
             new EnemyDef { Name = "Hive Egg", Hp = 60f, Radius = 15f, Speed = 0f, Score = 4, Xp = 3, Sides = 10, Color = new Rgba(0.96f, 0.92f, 0.78f), Melee = true },
-            new EnemyDef { Name = "Guard", Hp = 90f, Radius = 13f, Speed = 125f, Score = 6, Xp = 15, Sides = 8, Color = new Rgba(0.35f, 0.55f, 1f), Melee = true, Contact = 14f },
+            new EnemyDef { Name = "Guard", Hp = 90f, Radius = 13f, Speed = 125f, Score = 6, Xp = 15, Sides = 8, Color = new Rgba(0.35f, 0.55f, 1f), Melee = true, Contact = 14f ,
+                Blurb = "A corrections officer in khaki with a peaked cap and a nightstick. Up close it swings forehand then backhand: step out of the amber arc." },
             new EnemyDef { Name = "The Dual Reaper", IsBoss = true, Hp = 5200f, Radius = 58f, Speed = 150f, Score = 500, Xp = 200, Sides = 10, Color = new Rgba(1f, 0.8f, 0.45f) },
             new EnemyDef { Name = "Reaper Pillar", Hp = 120f, Radius = 24f, Speed = 0f, Score = 5, Xp = 4, Sides = 4, Color = new Rgba(0.55f, 0.5f, 0.75f), Melee = true },
             new EnemyDef { Name = "Singularity Shard", Hp = 1e6f, Radius = 20f, Speed = 0f, Score = 0, Xp = 0, Sides = 5, Color = new Rgba(0.8f, 0.5f, 1f), Melee = true },
@@ -310,9 +312,9 @@ namespace Arena
             new EnemyDef { Name = "Stitcher", Hp = 120f, Radius = 15f, Speed = 65f, Score = 30, Xp = 14, Sides = 5, Color = new Rgba(1f, 0.82f, 0.45f),
                 Picker = PickerGroup.Late, Blurb = "Fires slow orbs; nearby orbs are tied by a harmful thread. Slip through the gaps." },
             new EnemyDef { Name = "Riot Shield", Hp = 60f, Radius = 16f, Speed = 120f, Score = 10, Xp = 10, Sides = 6, Color = new Rgba(0.55f, 0.68f, 0.95f), Melee = true, Contact = 8f,
-                Picker = PickerGroup.Melee, Blurb = "A guard behind a tall shield that bashes you back. Go round it, or break the shield: then it falls fast." },
+                Picker = PickerGroup.Melee, Blurb = "An officer in steel-blue riot gear behind a tall shield that bashes you back. Go round it, or break the shield: then it falls fast." },
             new EnemyDef { Name = "Gas Grenadier", Hp = 50f, Radius = 14f, Speed = 75f, Score = 8, Xp = 9, Sides = 5, Color = new Rgba(0.62f, 0.92f, 0.42f),
-                Picker = PickerGroup.Ranged, Blurb = "Lobs tear-gas canisters at you. Step out of the cloud." },
+                Picker = PickerGroup.Ranged, Blurb = "An officer in olive drab and a gas mask, lobbing tear-gas canisters at you. Step out of the cloud." },
             new EnemyDef { Name = "The Gatekeeper", Hp = 3000f, Radius = 34f, Speed = 55f, Score = 150, Xp = 80, Sides = 8, Color = new Rgba(1f, 0.62f, 0.3f), Heavy = true, Contact = 25f, Mini = true,
                 Blurb = "Challenge room mini-boss: a ring of shots with a gap, three aimed fans, and a charge along a shown line that ends in a burst." },
             new EnemyDef { Name = "Shadow", Hp = 1800f, Radius = 16f, Speed = 190f, Score = 60, Xp = 40, Sides = 0, Color = new Rgba(0.62f, 0.4f, 1f),
@@ -352,13 +354,13 @@ namespace Arena
             new EnemyDef { Name = "Shield Swordsman", Hp = 85f, Radius = 15f, Speed = 75f, Score = 28, Xp = 16, Sides = 24, Color = new Rgba(0.86f, 0.3f, 0.25f), Melee = true, Contact = 8f,
                 Picker = PickerGroup.Melee, Blurb = "A Swordsman behind a shield that stops every shot from the front. The shield drops when it cuts and stays down while it recovers: shoot it then, or from the side." },
             new EnemyDef { Name = "Taser Guard", Hp = 70f, Radius = 13f, Speed = 80f, Score = 9, Xp = 11, Sides = 8, Color = new Rgba(0.4f, 0.6f, 1f),
-                Picker = PickerGroup.Ranged, Blurb = "Keeps its distance, charges its taser and fires a white Fork Bolt that stuns you. Dodge the bolt, or parry it." },
+                Picker = PickerGroup.Ranged, Blurb = "An officer in slate with a hi-vis band. Keeps its distance, charges its taser and fires a white Fork Bolt that stuns you. Dodge the bolt, or parry it." },
             new EnemyDef { Name = "Security Guard", Hp = 45f, Radius = 15f, Speed = 70f, Score = 9, Xp = 9, Sides = 24, Color = new Rgba(0.42f, 0.61f, 0.7f),
-                Picker = PickerGroup.Ranged, Blurb = "Locks on where you're heading, then fires one tracer round at a time: seven shots, then a long reload. Change direction in the red lane, or rush it while it reloads." },
+                Picker = PickerGroup.Ranged, Blurb = "An officer in navy with a service pistol. Strafes, locks on and fires one tracer round at a time: seven shots, then a long reload. Sidestep the lane, or rush it while it reloads." },
             new EnemyDef { Name = "Thug", Hp = 140f, Radius = 19f, Speed = 62f, Score = 10, Xp = 10, Sides = 7, Color = new Rgba(0.6f, 0.62f, 0.66f), Melee = true, Contact = 20f,
-                Picker = PickerGroup.Melee, Blurb = "A prisoner brute dragging a ball and chain. Slow and tough, hits hard when it reaches you." },
+                Picker = PickerGroup.Melee, Blurb = "A hunched prisoner brute with giant taped fists. Slow and tough, hits hard when it reaches you." },
             new EnemyDef { Name = "Shiv", Hp = 45f, Radius = 12f, Speed = 95f, Score = 9, Xp = 9, Sides = 4, Color = new Rgba(0.85f, 0.85f, 0.8f), Melee = true, Contact = 18f,
-                Picker = PickerGroup.Melee, Blurb = "A prisoner with a taped shank. Circles in close, flashes a line, then lunges along it." },
+                Picker = PickerGroup.Melee, Blurb = "A prisoner with a taped shank: hooded, or shirtless with one in each hand. Circles in close, flashes a line, then lunges along it." },
             new EnemyDef { Name = "Spawn Portal", Hp = 200f, Radius = 30f, Speed = 0f, Score = 30, Xp = 20, Sides = 24, Color = new Rgba(0.78f, 0.35f, 1f), Melee = true, Heavy = true,
                 Picker = PickerGroup.Hidden, Blurb = "A burst of the wave comes through it. Shoot it closed before it empties to cancel the rest; it drops coins for each one it held." },
             // the Hive Queen's faction (HiveKin.cs): the numbers are their Warden counterpart's, bar the Stinger's and Needler's health (half as much again)
@@ -760,7 +762,8 @@ namespace Arena
             StingBolt = 63,    // the Stinger's venom dart: a lime barbed dart that stuns like the Fork Bolt (WardenFaction.cs, Game/HiveLook.cs)
             MagmaBolt = 64,    // the Cinder Priest's magma bolt: it leaves a lava pool wherever it stops (QuarryFaction.cs, Game/QuarryLook.cs)
             ThrownDagger = 65, // a Second's thrown dagger: steel with a gold hilt, spinning a little (CourtFaction.cs, Game/CourtLook.cs)
-            EmberSpark = 66;   // an Ember's spark: drifts back slowly and hangs behind it (Penumbral.cs, Game/PenumbralLook.cs)
+            EmberSpark = 66,   // an Ember's spark: drifts back slowly and hangs behind it (Penumbral.cs, Game/PenumbralLook.cs)
+            GreatStar = 67;    // the Shuriken's Great Star, flying a drawn route and back (GreatStar.cs, Game/GreatStarLook.cs)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == ThrownDagger || kind == EmberSpark;
 
@@ -804,6 +807,7 @@ namespace Arena
                 case OfudaShot: return 6f;
                 case GustShot: return 9f;
                 case FumaStar: return 20f;  // giant
+                case GreatStar: return 24f;  // huger
                 case BloodShot: return 4f;
                 case ClotShot: return 14f;  // the Clot Cannon's massive clot (lobbed: it never collides)
                 case LeechShot: return 3.5f;
@@ -901,6 +905,7 @@ namespace Arena
                 case ArrowShot: return new Rgba(0.5f, 1f, 0.65f);
                 case StarShot:
                 case FumaStar:
+                case GreatStar:
                 case KunaiShot: return new Rgba(0.8f, 0.85f, 0.95f);
                 case NeedleShot: return new Rgba(0.55f, 1f, 0.75f);
                 case OfudaShot: return new Rgba(1f, 0.92f, 0.75f);

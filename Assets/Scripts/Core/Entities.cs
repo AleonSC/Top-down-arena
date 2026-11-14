@@ -105,6 +105,8 @@ namespace Arena
         KnuckleGrab, KnuckleThrow,
         // A punch connecting (ArcKnucklesSoundBank.cs; sent with FxKind.KnuckleHit): a light knock, a heavy one.
         KnuckleImpact, KnuckleImpactHeavy,
+        // The Shuriken's Great Star (NinjaSoundBank.cs; GreatStar.cs): the throw, the catch. Sent.
+        GreatStarThrow, GreatStarCatch,
     }
 
     public struct SoundCue
@@ -232,6 +234,8 @@ namespace Arena
         public float FumaFastT, FumaRevCd, FumaSwitchCd, FumaMoveDmg;  // host: Reversal's speed-up left, its cooldown, the switch's, the move's damage
         public readonly Dictionary<int, float> FumaCut = new Dictionary<int, float>();  // host: enemy id -> FumaClock of the star's last cut
         public readonly List<int> FumaMiniFrom = new List<int>();  // host: who fired each stolen shot
+        public byte StarStance;                       // the Shuriken's stance: 0 the fan, 1 the Great Star (GreatStar.cs; replicated)
+        public float StarSwitchCd, StarCatchCd;       // host: the stance switch's cooldown; the wait after the Great Star is caught
         public float AmbushT;                         // host: Vanish's double-damage hit is ready for this long
         public float IronPower = 1f;                  // host: Iron Body's mastery, for its shockwave
         public bool IronMastered;
