@@ -242,7 +242,10 @@ namespace Arena
             wcStripHit = r;
             RoundPart(1f, Vector2.zero, () =>
             {
-                CrtUi.Begin(r, WcStripAlpha);
+                var holes = build  // the keys below: left bare so the arena shows through them
+                    ? new[] { new Rect(r.x + 276f, r.y + 8f, 210f, 44f), new Rect(r.x + 496f, r.y + 8f, 150f, 44f), new Rect(r.x + 656f, r.y + 8f, 148f, 44f) }
+                    : new[] { new Rect(r.x + 276f, r.y + 8f, 210f, 44f), new Rect(r.x + 496f, r.y + 8f, 148f, 44f) };
+                CrtUi.Begin(r, WcStripAlpha, holes);
                 bool boss = game.BossNow;
                 string next = boss || game.GateUp ? "NEXT: THE BOSS" : "NEXT: WAVE " + (game.Hunt != null ? game.Wave + 1 : game.ShownWave + 1);
                 HudCrt(new Rect(r.x + 16f, r.y + 6f, 250f, 26f), next, 24, CrtUi.Ink);
@@ -264,6 +267,8 @@ namespace Arena
                 st = LobbyKit.Truncate(st, 16, 250f, false);
                 Ui.CrtFont = was;
                 HudCrt(new Rect(r.x + 16f, r.y + 32f, 250f, 20f), st, 16, CrtUi.Dim);
+                float fadeWas = CrtKit.FillFade;
+                CrtKit.FillFade = WcStripAlpha * 0.5f;  // see-through keys too
                 var rb = new Rect(r.x + 276f, r.y + 8f, 210f, 44f);
                 string key = Keybinds.KeyName(Keybinds.Get(KeyAction.ReadyUp)).ToUpperInvariant();
                 if (game.GateUp)
@@ -285,6 +290,7 @@ namespace Arena
                 }
                 if (LobbyKit.Key(new Rect(ox, r.y + 8f, 148f, 44f), "OPEN", false, calm, size: 20, minSize: 12))
                     wcMin = false;
+                CrtKit.FillFade = fadeWas;
                 CrtUi.End(r, Time.unscaledTime, fxReduced, WcStripAlpha);
             });
         }

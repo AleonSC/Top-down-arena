@@ -90,7 +90,7 @@ namespace Arena
             {
                 // A key that can't be used yet (Start before everyone is ready): dim and dashed, with its text.
                 var d = CrtUi.Dim;
-                Ui.Fill(r, new Color(d.r, d.g, d.b, CrtStyle.KeyWaitTint));
+                Ui.Fill(r, new Color(d.r, d.g, d.b, CrtStyle.KeyWaitTint * CrtKit.FillFade));
                 CrtKit.Dashed(r, 1f, new Color(d.r, d.g, d.b, CrtStyle.KeyWaitDash));  // faded: nothing to press yet
                 Draw(r, text, icon, stack, colorIcon, size, minSize, new Color(d.r, d.g, d.b, CrtStyle.KeyWaitText), false, calm, sub, true);
                 return false;

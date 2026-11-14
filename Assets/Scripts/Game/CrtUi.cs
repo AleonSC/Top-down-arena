@@ -28,6 +28,33 @@ namespace Arena
         public static void Begin(Rect r) => Begin(r, 1f);
 
         /// The same screen with its bezel and background at `alpha` (a see-through tube, e.g. the minimized Ready strip).
+        /// The see-through screen with `holes` left bare (keys in one row, left to right, sharing a top and bottom): the arena shows through them.
+        public static void Begin(Rect r, float alpha, Rect[] holes)
+        {
+            if (holes == null || holes.Length == 0)
+            {
+                Begin(r, alpha);
+                return;
+            }
+            var bz = new Color(Bezel.r, Bezel.g, Bezel.b, Bezel.a * alpha);
+            var bg = new Color(Bg.r, Bg.g, Bg.b, Bg.a * alpha);
+            System.Action<Rect> both = q => { if (q.width > 0f && q.height > 0f) { Ui.Fill(q, bz); Ui.Fill(q, bg); } };
+            Ui.Fill(new Rect(r.x - 3f, r.y - 3f, r.width + 6f, 3f), bz);  // the bezel ring
+            Ui.Fill(new Rect(r.x - 3f, r.yMax, r.width + 6f, 3f), bz);
+            Ui.Fill(new Rect(r.x - 3f, r.y, 3f, r.height), bz);
+            Ui.Fill(new Rect(r.xMax, r.y, 3f, r.height), bz);
+            float top = holes[0].y, bot = holes[0].yMax, x = r.x;
+            both(new Rect(r.x, r.y, r.width, top - r.y));
+            both(new Rect(r.x, bot, r.width, r.yMax - bot));
+            foreach (var h in holes)
+            {
+                both(new Rect(x, top, h.x - x, bot - top));
+                x = h.xMax;
+            }
+            both(new Rect(x, top, r.xMax - x, bot - top));
+            CrtKit.Frame(r, 1f, new Color(Ink.r, Ink.g, Ink.b, 0.35f));
+        }
+
         public static void Begin(Rect r, float alpha)
         {
             Ui.Fill(new Rect(r.x - 3f, r.y - 3f, r.width + 6f, r.height + 6f), new Color(Bezel.r, Bezel.g, Bezel.b, Bezel.a * alpha));
