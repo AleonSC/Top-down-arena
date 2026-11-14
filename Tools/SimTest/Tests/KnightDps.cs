@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Arena;
 
-// The DPS Knight's Space abilities and ultimate: Caught Steel, the Gauntlet, Misericorde and the Drawbridge.
+// The DPS Knight's Space abilities and ultimate: Caught Steel, the Gauntlet, Bladed Dive and the Drawbridge.
 static partial class Program
 {
     static void KnightDpsTest(float dt)
@@ -15,7 +15,7 @@ static partial class Program
         var cast = typeof(Game).GetMethod("HostAbility", flags);
         var damage = typeof(Game).GetMethod("Damage", flags);
 
-        Check(Upgrades.RoleAbility(Role.Dps, Kit.Knight, 0) == AbilityId.Whirlwind && Upgrades.Ability(AbilityId.Whirlwind).Name == "Misericorde"
+        Check(Upgrades.RoleAbility(Role.Dps, Kit.Knight, 0) == AbilityId.Whirlwind && Upgrades.Ability(AbilityId.Whirlwind).Name == "Bladed Dive"
             && Upgrades.Ability(AbilityId.Lunge).Name == "The Gauntlet" && Upgrades.Ability(AbilityId.BattleFury).Name == "Caught Steel"
             && Upgrades.Ability(AbilityId.BladeTempest).Name == "Drawbridge" && Upgrades.Ultimate(Role.Dps, Kit.Knight) == AbilityId.BladeTempest,
             "the DPS Knight's abilities keep their slots under their new names");
@@ -130,26 +130,29 @@ static partial class Program
         Console.WriteLine("  gauntlet (client): carried to ({0:0},{1:0})", cp.Pos.X, cp.Pos.Y);
         Check(cp.Pos.DistanceTo(foe2.Pos) < Game.GauntletStopShort + 20f, "a client's charge is carried out on its own game");
 
-        // --- Misericorde ---
+        // --- Bladed Dive ---
         Reset();
         me.Pos = new V2(400f, 450f);
         me.Slots[0].Id = AbilityId.Whirlwind;
-        var w1 = Mob(EnemyType.Grunt, new V2(540f, 430f), 100f); w1.Hp = 20f;
-        var w2 = Mob(EnemyType.Sniper, new V2(690f, 470f), 100f); w2.Hp = 15f;
-        var w3 = Mob(EnemyType.Grunt, new V2(1100f, 470f), 100f); w3.Hp = 10f;  // wounded, but far out of reach
-        var hale = Mob(EnemyType.Brute, new V2(470f, 520f), 400f);
-        Step(0.05f, new V2(540f, 430f));
-        Check(g.MercyFirst(me, new V2(540f, 430f)) == w1, "the first leap goes to the wounded enemy nearest the cursor");
-        cast.Invoke(g, new object[] { 1, 0, new V2(540f, 430f), true });
-        Step(1.4f, new V2(540f, 430f));
-        Console.WriteLine("  misericorde: you at ({0:0},{1:0}); w1 {2:0}, w2 {3:0}, far {4:0}, hale {5:0}", me.Pos.X, me.Pos.Y, w1.Hp, w2.Hp, w3.Hp, hale.Hp);
-        Check(w1.Hp <= 0f && w2.Hp <= 0f, "Misericorde executes the wounded enemy and leaps on to the next in reach");
-        Check(w3.Hp > 0f && hale.Hp >= 399f, "it leaves the healthy one and the one out of reach alone");
-        Check(me.Pos.DistanceTo(new V2(690f, 470f)) < Game.MercyLandShort + 14f, "the leaps carry you to the last enemy executed");
+        var near = Mob(EnemyType.Brute, new V2(470f, 470f), 1000f);
+        var weak = Mob(EnemyType.Grunt, new V2(560f, 430f), 100f); weak.Hp = 15f;
+        var off = Mob(EnemyType.Grunt, new V2(560f, 700f), 100f);   // well off the path
+        me.Slots[0].Timer = 10f; me.Slots[0].Charges = 0;           // as if the press had spent it
+        cast.Invoke(g, new object[] { 1, 0, new V2(640f, 450f), true });
+        bool untouchable = me.InvulnT > 0f;
+        Step(0.6f, new V2(640f, 450f));
+        Console.WriteLine("  bladed dive: you at ({0:0},{1:0}); near took {2:0}, weak {3:0}, off {4:0}; charges {5}", me.Pos.X, me.Pos.Y, 1000f - near.Hp, weak.Hp, off.Hp, me.Slots[0].Charges);
+        Check(untouchable && me.Pos.DistanceTo(new V2(640f, 450f)) < 12f, "Bladed Dive rushes you to the cursor, untouchable");
+        Check(near.Hp < 1000f - Game.BladedDamage * 1.5f && weak.Hp <= 0f && off.Hp >= 100f, "its cuts hit the enemies along the way (more than once) and leave the ones off the path alone");
+        Check(me.Slots[0].Charges > 0 || me.Slots[0].Timer < 0.05f, "a kill with it resets the cooldown");
         Reset();
+        me.Pos = new V2(400f, 450f);
         me.Slots[0].Id = AbilityId.Whirlwind;
-        Mob(EnemyType.Grunt, new V2(500f, 450f), 300f);
-        Check(g.MercyFirst(me, new V2(500f, 450f)) == null, "with nobody wounded in reach there is nothing to leap to (your own game doesn't spend the press)");
+        var tough = Mob(EnemyType.Brute, new V2(500f, 450f), 1000f);
+        me.Slots[0].Timer = 10f; me.Slots[0].Charges = 0;
+        cast.Invoke(g, new object[] { 1, 0, new V2(640f, 450f), true });
+        Step(0.6f, new V2(640f, 450f));
+        Check(tough.Hp < 1000f && me.Slots[0].Charges == 0 && me.Slots[0].Timer > 9f, "without a kill the cooldown stands");
 
         // --- The Drawbridge ---
         Reset();

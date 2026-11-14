@@ -38,7 +38,7 @@ namespace Arena
             {
                 case AbilityId.LeapSlam:
                 case AbilityId.Lunge:      // the Gauntlet's charge
-                case AbilityId.Whirlwind:  // Misericorde's leaps
+                case AbilityId.Whirlwind:  // Bladed Dive's rush
                 case AbilityId.Bulldoze:
                 case AbilityId.ShadowStep:
                 case AbilityId.Blink:

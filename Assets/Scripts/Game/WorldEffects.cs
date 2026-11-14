@@ -225,14 +225,14 @@ namespace Arena
                 case FxKind.GauntletBack:
                     DrawGauntletBackFx(fx, t);
                     break;
-                case FxKind.MercyLeap:
-                    DrawMercyLeapFx(fx, t);
+                case FxKind.DiveRush:
+                    DrawDiveRushFx(fx, t);  // KnightDpsLook.cs
                     break;
-                case FxKind.MercyKill:
-                    DrawMercyKillFx(fx, t);
+                case FxKind.DiveHit:
+                    DrawDiveHitFx(fx);
                     break;
-                case FxKind.MercyEnd:
-                    DrawMercyEndFx(fx);
+                case FxKind.DiveReset:
+                    DrawDiveResetFx(fx, t);
                     break;
                 case FxKind.BridgeSpark:
                     DrawBridgeSparkFx(fx);  // DrawbridgeLook.cs

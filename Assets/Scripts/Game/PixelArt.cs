@@ -117,7 +117,7 @@ namespace Arena
             { "Sacred Ground", "sacredground" },
             { "Bulwark", "bulwark" },
             { "Miracle", "miracle" },
-            { "Coup de Grace", "misericorde" },
+            { "Coup de Grace", "bladeddive" },
             { "Iron Grip", "gauntlet" },
             { "Forged Edge", "caughtsteel" },
             // Class ability cards (a Space ability for Q/E/Shift) reuse the nearest icon. Two cards that share
@@ -155,7 +155,7 @@ namespace Arena
             { "Consecrate", "sacredground" },
             { "Guardian's Oath", "bulwark" },
             { "Lay on Hands", "miracle" },
-            { "Misericorde", "misericorde" },
+            { "Bladed Dive", "bladeddive" },
             { "The Gauntlet", "gauntlet" },
             { "Caught Steel", "caughtsteel" },
             // Ninja: each ability's upgrade card and its class ability card share an icon (they never meet in an offer).
@@ -1147,20 +1147,20 @@ namespace Arena
                 "...kkkkkkk..",
                 "............",
             },
-            ["misericorde"] = new[]
+            ["bladeddive"] = new[]
             {
-                ".....kk.....",
-                "....kMMk....",
-                "....kMMk....",
-                "..kkkYYkkk..",
-                "..kYYYYYYk..",
-                "..kkkwgkkk..",
-                ".....wgk....",
-                ".....wgk....",
-                ".....wgk....",
-                "......wk..r.",
-                "......k..rrr",
-                "..........r.",
+                "....YYYY....",
+                "..YY....Ywk.",
+                ".Y.....wgk..",
+                "Y.....wgk..Y",
+                "Y....wgk...Y",
+                "..kYwgk.....",
+                "...kYk......",
+                "..kYkYk....Y",
+                ".kMk..k...Y.",
+                "kMk.....YY..",
+                "kk.YYYYY....",
+                "............",
             },
             ["caughtsteel"] = new[]
             {
