@@ -114,7 +114,7 @@ namespace Arena
         public const float GrenadeRadius = 110f;  // the Twin Rifle's grenades (TwinGrenades.cs; public: the grenade's flight look draws it, SoldierLooks.cs)
         const float MarkTime = 6f;
         const float BlinkRange = 300f;
-        const float ShockwaveRange = 230f;
+        public const float ShockwaveRange = 230f;  // (Shockwave.cs; public: the preview places its scene by it)
         const float ShockwaveDamage = 60f;
         const float OverdriveTime = 5f;
         const float TurretTime = 10f;

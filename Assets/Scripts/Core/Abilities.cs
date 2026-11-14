@@ -158,8 +158,8 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Shockwave, Instant = true,
-                Name = "Shockwave", Cooldown = 14f, Desc = "Erase enemy bullets around you and damage nearby enemies.",
-                Capstone = "Also knocks nearby enemies back 120 px.",
+                Name = "Shockwave", Cooldown = 14f, Desc = "A shockwave runs out 230 px from you: it erases enemy bullets, hits enemies for 60 and shoves them back 120 px.",
+                Capstone = "The wave runs out 300 px.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
@@ -338,19 +338,8 @@ namespace Arena
                     break;
                 }
                 case AbilityId.Shockwave:
-                {
-                    EraseEnemyBullets(p.Pos, ShockwaveRange);
-                    foreach (var e in Enemies.Values)
-                    {
-                        if (e.SpawnT > 0f || e.Pos.DistanceTo(p.Pos) > ShockwaveRange + e.Radius)
-                            continue;
-                        HurtEnemy(e, ShockwaveDamage * s.DmgMult, p.Id);
-                    }
-                    if (cap)
-                        Knockback(p.Pos, ShockwaveRange, 120f, 0f);
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.9f, 0.5f), ShockwaveRange, 0.45f, Sfx.Shockwave);
+                    CastShockwave(p, cap, ShockwaveDamage * s.DmgMult);  // Shockwave.cs: the wave runs out over ShockwaveSweep s
                     break;
-                }
                 case AbilityId.Overdrive:
                     p.OverdriveT = OverdriveTime * pw;
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.4f, 0.3f), 60f, 0.4f, Sfx.Ability);

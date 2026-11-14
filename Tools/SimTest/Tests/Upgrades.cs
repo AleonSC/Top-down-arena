@@ -487,8 +487,14 @@ static partial class Program
         float cd1 = host.Cooldown(hp, slot);
         float before = dummy.Hp;
         cast.Invoke(host, new object[] { 1, slot, dummy.Pos, true });
-        float dmg1 = before - dummy.Hp, xpHit = Xp();
-        Run(s, dt, 0.1f, null, Hold);
+        float xpHit = Xp(), hpCast = dummy.Hp;
+        V2 dummyAt = dummy.Pos;
+        Run(s, dt, 0.5f, null, Hold);  // the wave runs out (Shockwave.cs)
+        SettleKnocks(host);
+        float dmg1 = before - dummy.Hp, push1 = dummy.Pos.DistanceTo(dummyAt);
+        Console.WriteLine("  shockwave: {0:0} damage on the cast frame, {1:0.0} once the wave reached it, shoved {2:0} px", before - hpCast, dmg1, push1);
+        Check(before - hpCast < 0.01f && dmg1 > 50f && push1 > 100f, "the shockwave's wave travels: it hits and shoves the enemy when it gets there, not on the cast");
+        dummy.Pos = new V2(680f, 450f);
         // Cast with nothing in range: it still earns a little (instant abilities earn by what they hit).
         hp.Pos = s[1].Game.Players[1].Pos = new V2(1400f, 800f);
         cast.Invoke(host, new object[] { 1, slot, dummy.Pos, true });
@@ -500,9 +506,14 @@ static partial class Program
         host.GainMastery(hp, AbilityId.Shockwave, Game.MasteryXpFor[2] - Xp());
         hp.Pos = s[1].Game.Players[1].Pos = new V2(600f, 450f);
         Run(s, dt, 0.3f, null, Hold);
+        dummy.Pos = new V2(680f, 450f);
+        var far = Dummy(new V2(870f, 450f));  // 270 px out: past the 230 px wave, inside the mastered 300
         before = dummy.Hp;
+        float farHp = far.Hp;
         cast.Invoke(host, new object[] { 1, slot, dummy.Pos, true });
-        float dmg3 = before - dummy.Hp, cd3 = host.Cooldown(hp, slot);
+        float cd3 = host.Cooldown(hp, slot);
+        Run(s, dt, 0.5f, null, Hold);
+        float dmg3 = before - dummy.Hp, farHit3 = farHp - far.Hp;
         var cp = s[1].Game.Players[1];
         Console.WriteLine("  shockwave level {0}: damage {1:0.0} -> {2:0.0}, cooldown {3:0.00}s -> {4:0.00}s; client sees level {5}",
             Game.MasteryLevel(hp, AbilityId.Shockwave), dmg1, dmg3, cd1, cd3, Game.MasteryLevel(cp, AbilityId.Shockwave));
@@ -512,12 +523,14 @@ static partial class Program
 
         // Capstones: Shockwave knocks back, Nova fires 48, Mark hits three.
         host.GainMastery(hp, AbilityId.Shockwave, 1e4f);
-        var pushed = Dummy(new V2(660f, 470f));
         Run(s, dt, 0.3f, null, Hold);
-        V2 was = pushed.Pos;
+        far.Pos = new V2(870f, 450f);
+        farHp = far.Hp;
         cast.Invoke(host, new object[] { 1, slot, dummy.Pos, true });
-        SettleKnocks(host);  // the push slides (Knock.cs)
-        float shove = pushed.Pos.DistanceTo(was);
+        Run(s, dt, 0.5f, null, Hold);
+        float farHit5 = farHp - far.Hp;
+        Console.WriteLine("  shockwave reach: an enemy 270 px out takes {0:0} before mastery, {1:0} mastered", farHit3, farHit5);
+        Check(farHit3 < 0.01f && farHit5 > 50f, "the mastered Shockwave runs out 300 px");
         host.GrantUpgrade(1, U("Nova"));
         Run(s, dt, 0.2f, null, Hold);
         int nova = Array.FindIndex(hp.Slots, sl => sl.Id == AbilityId.Nova);
@@ -532,9 +545,9 @@ static partial class Program
         var dp = host.Players[2];
         host.DevMasterAll(2);
         Run(s, dt, 0.3f, null, Hold);
-        Console.WriteLine("  capstones: shockwave shoves {0:0} px, nova {1} -> {2} shots, {3} gold",
-            shove, novaBase, novaMax, string.Join("/", dp.Slots.Where(sl => sl.Id != AbilityId.None).Select(sl => Game.MasteryLevel(dp, sl.Id))));
-        Check(shove > 100f && novaBase == 24 && novaMax == 48, "level 5 unlocks each ability's capstone");
+        Console.WriteLine("  capstones: nova {0} -> {1} shots, {2} gold",
+            novaBase, novaMax, string.Join("/", dp.Slots.Where(sl => sl.Id != AbilityId.None).Select(sl => Game.MasteryLevel(dp, sl.Id))));
+        Check(novaBase == 24 && novaMax == 48, "level 5 unlocks each ability's capstone");
         Check(Game.MasteryLevel(cp, AbilityId.Shockwave) == 5 && host.MasteryToasts.Any(t => t.Ability == AbilityId.Shockwave && t.Level == 3)
             && s[1].Game.MasteryToasts.Any(t => t.Ability == AbilityId.PoisonDart && t.Level == 5),
             "the player's own game knows the level (and shows a level-up popup)");

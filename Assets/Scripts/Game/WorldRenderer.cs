@@ -208,6 +208,7 @@ namespace Arena
             DrawBossGate(t);         // the boss gate in the hub before a boss (BossGateLook.cs)
             DrawTombFloor(t);        // the Glacial Tomb's frost lattice and mandala (GlacialTombLook.cs)
             DrawBloodFreezeFloor(t); // Blood Freeze's frost, cracks, rune circle and wave (BloodFreezeLook.cs)
+            DrawShockwaveFloor();    // the Shockwave ability's scorch (ShockwaveLook.cs)
             DrawTitanFloor();        // the Titan golem's slam cracks and rubble (TitanLook.cs)
             DrawHammerFloor();       // the Warhammer slam's crater and cracks, under the enemies (MeleeLooks.cs)
             DrawSprayStains(t);      // Arterial Spray's spatter (ArterialSprayLook.cs)
