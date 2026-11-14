@@ -111,7 +111,7 @@ namespace Arena
                 yr += 32f;
             }
             yr += 6f;
-            Ui.Label(new Rect(x2, yr, colW, 16f), "Two and three players face 1.6x and 2.2x the enemies.", 11, Ui.Muted);
+            Ui.Label(new Rect(x2, yr, colW, 16f), "Two and three players face 1.5x and 2x the enemies.", 11, Ui.Muted);
 
             // Your records: plays, the longest run, the longest with this class, the furthest faction.
             var profile = game.Profile ?? new Profile();
