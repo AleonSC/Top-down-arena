@@ -239,6 +239,8 @@ namespace Arena
             DrawKnucklePose(o, aim, m, owner != null ? owner.Def.Color : new Rgba(0.45f, 0.5f, 0.6f), t, gold);
             // small arcs off the fist that lands
             float u = c - Game.KnuckleLand[step - 1];
+            if (u >= 0f && u < KnSwathDur && step < 5)
+                DrawKnuckleSwath(o, aim, step, u / KnSwathDur);
             if (u >= 0f && u < 0.16f && step < 5)
             {
                 bool right = step == 2 || step == 4;
@@ -247,6 +249,38 @@ namespace Arena
             }
             if (owner != null)
                 DrawKnucklePips(owner, t);
+        }
+
+        const float KnSwathDur = 0.2f;
+
+        /// The punch's hit area as it lands, sized from the host's reach and width (u: 0..1 over KnSwathDur): a lane of
+        /// arc light for the Jab, Cross and Uppercut, a sweeping fan for the Hook.
+        void DrawKnuckleSwath(V2 o, float aim, int step, float u)
+        {
+            float grow = 1f - (1f - Mathf.Clamp01(u * 3f)) * (1f - Mathf.Clamp01(u * 3f)), fade = 1f - u * u;
+            V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
+            if (step == 3)
+            {
+                float r = Game.KnuckleHookReach, half = Game.KnuckleHookArc * Mathf.Deg2Rad / 2f;
+                float sweep = 2f * half * grow;  // the hook sweeps across from the left fist's side
+                Wedge(o, r, aim - half + sweep / 2f, sweep / 2f, KnArc.WithAlpha(0.14f * fade), 24);
+                Arc(o, r, 7f * fade + 1f, KnArc.WithAlpha(0.45f * fade), 28, aim - half, sweep);
+                Arc(o, r - 2f, 2f, KnArcHi.WithAlpha(0.8f * fade), 28, aim - half, sweep);
+                V2 tip = o + V2.FromAngle(aim - half + sweep) * r;
+                Line(o + V2.FromAngle(aim - half + sweep) * (r * 0.35f), tip, 3f * fade + 1f, KnArcHi.WithAlpha(0.6f * fade));
+                return;
+            }
+            float reach = step == 1 ? Game.KnuckleJabReach : step == 2 ? Game.KnuckleCrossReach : Game.KnuckleUpperReach;
+            float w = step == 1 ? Game.KnuckleJabWidth : step == 2 ? Game.KnuckleCrossWidth : Game.KnuckleUpperWidth;
+            float near = 10f, far = near + (reach - near) * grow;
+            V2 a = o + dir * near, b = o + dir * far;
+            // tapered at the body, full width at the fist
+            Quad(a + side * (w * 0.45f), b + side * w, b - side * w, a - side * (w * 0.45f), KnArc.WithAlpha(0.24f * fade));
+            Quad(a + side * (w * 0.2f), b + side * (w * 0.5f), b - side * (w * 0.5f), a - side * (w * 0.2f), KnArcHi.WithAlpha(0.22f * fade));
+            Line(a + side * (w * 0.45f), b + side * w, 2.5f, KnArcHi.WithAlpha(0.75f * fade));
+            Line(a - side * (w * 0.45f), b - side * w, 2.5f, KnArcHi.WithAlpha(0.75f * fade));
+            Line(a, b, 4f * fade + 1.5f, KnArcHi.WithAlpha(0.8f * fade));
+            Line(b + side * w, b - side * w, 6f * fade + 1.5f, KnArcHi.WithAlpha(0.9f * fade));  // the front of the blow
         }
 
         /// Where a fist is drawn (raised fists rise up the screen).
