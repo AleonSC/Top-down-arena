@@ -724,11 +724,16 @@ with Mummers, Parriers, Marshals, Gallants, every squad, then the exam (the Ring
 
 The **Devourer's faction**, The Larder, leads up to its fight: its brood (mouths with no eyes, the Devourer in miniature)
 and the hooded butchers who keep it fed (design: `Docs/Approaches.md`, "The Larder"; mockup:
-`Docs/Mockups/devourer-faction.html`). Steps 1-3 of 4 are built: all eight, each teaching a turn of the fight.
+`Docs/Mockups/devourer-faction.html`). All eight are built, each teaching a turn of the fight.
 Squads: **Feeding Frenzy** (a Butcher and six Gnawlings) and, from wave 3 of the approach, **Larder Wall** (two Carcass
 Bearers with four Gnawlings), **Meat Hooks** (two Hook Throwers behind two Butchers), **Gullet** (a Gulper, three
 Gnawlings and a Gutworm) and **Bile Rain** (three Bile Spitters, so their pools overlap). XP: Gnawling 7, Butcher 15,
-Gulper 25, Carcass Bearer 10, Bile Spitter 9, Gutworm 12, Hook Thrower 10, Maw Priest 12. **Morsels** (the Devourer's, 60 health) also
+Gulper 25, Carcass Bearer 10, Bile Spitter 9, Gutworm 12, Hook Thrower 10, Maw Priest 12. The last wave before it always
+brings **the Feast**: four Carcass Bearers marching at you as a wall, two Gulpers and two Bile Spitters close behind it
+(the spitters lob over the wall); once the wall gets within about 190 px or half its meat is broken, the Gulpers push
+through and breathe you in. In the Long Campaign its ten waves (81-90) teach one enemy each, in the Warden's order:
+Gnawlings, Butchers, Gulpers, Maw Priests, a recap with Gutworms, Carcass Bearers, Bile Spitters, Hook Throwers, every
+squad, then the exam (the Feast and a big Feeding Frenzy). **Morsels** (the Devourer's, 60 health) also
 fall from broken Carcass Bearers: shoot one or walk over it, or a hungry Gnawling within 320 px runs for it, eats it and
 grows (50% more health, drawn bigger), as the Devourer heals from them in its Hungry turn.
 

@@ -238,5 +238,55 @@ static partial class Program
         }
         Console.WriteLine("  seen before wave " + devWave + ": " + string.Join(", ", seen));
         Check(seen.SetEquals(larder), "the waves before the Devourer bring all eight");
+
+        // --- Step 4: the Feast, the last wave's set piece ----------------------------------------------------------------------
+        Check(fac.Finale != null && fac.Finale.Name == "The Feast" && fac.Finale.Form == SquadForm.RiotLine
+            && fac.Finale.Members.Count(t => t == EnemyType.CarcassBearer) == 4 && fac.Finale.Members.Count(t => t == EnemyType.Gulper) == 2 && fac.Finale.Members.Count(t => t == EnemyType.BileSpitter) == 2,
+            "the last wave brings the Feast: four Carcass Bearers as a wall, two Gulpers and two Bile Spitters behind");
+        Game.SeedForTests(4418);
+        var fh = new Session { AutoStart = 1, StartWave = 1 };
+        fh.Host(nextPort++, "Host", Role.Tank);
+        fh.Diff.Set(DiffKnob.Campaign, 0f);
+        fh.StartMatch();
+        var fg = fh.Game;
+        for (int f = 0; f < 60 * 20 && fg.State != MatchState.Fighting; f++)
+            Step(fh, dt);
+        foreach (var q in new[] { (IList)typeof(Game).GetField("spawnQueue", np).GetValue(fg), (IList)typeof(Game).GetField("squadQueue", np).GetValue(fg) })
+            q.Clear();
+        fg.Enemies.Clear();
+        fg.DevSetGod(1, true);
+        var fm = fg.Players[1];
+        fm.Pos = fm.Disp = new V2(1300f, 450f);
+        typeof(Game).GetMethod("SpawnSquad", np, null, new[] { typeof(SquadDef) }, null)?.Invoke(fg, new object[] { fac.Finale });
+        var wall = fg.Enemies.Values.Where(e => e.Type == EnemyType.CarcassBearer).ToList();
+        var back = fg.Enemies.Values.Where(e => e.Type == EnemyType.Gulper || e.Type == EnemyType.BileSpitter).ToList();
+        for (int f = 0; f < 60 * 2; f++) { fm.Pos = fm.Disp = new V2(1300f, 450f); Step(fh, dt); }
+        bool behind = wall.Count == 4 && back.Count == 4 && back.All(b => wall.Min(w => w.Pos.DistanceTo(fm.Pos)) < b.Pos.DistanceTo(fm.Pos));
+        Check(behind, "the Feast marches as a wall: the Gulpers and Bile Spitters keep behind the meat (" + wall.Count + " bearers, " + back.Count + " behind)");
+        fh.Leave("");
+
+        // --- Step 4: the ten-wave chart in the Long Campaign (the same order as the Warden's) ---------------------------------
+        var firstL = new Dictionary<EnemyType, int>();
+        var squadNamesL = new Dictionary<int, HashSet<string>>();
+        const int lo = 81;  // (the Long Campaign: the Storm Herald's cycle is waves 71-80, the Devourer's 81-90)
+        for (int sw = lo; sw < lo + 10; sw++)
+        {
+            Game.SeedForTests(8300 + sw);
+            var cg = new Session().Game;
+            cg.LongRun = true; cg.Wave = (sw + 1) / 2; cg.Leg = (sw - 1) % 2; cg.BossSlot = false;
+            build.Invoke(cg, new object[] { cg.Wave });
+            var q = (List<EnemyType>)spawnQ.GetValue(cg);
+            var sq = (List<SquadDef>)squadQ.GetValue(cg);
+            foreach (var t in q.Concat(sq.SelectMany(x => x.Members)).Where(larder.Contains))
+                if (!firstL.ContainsKey(t)) firstL[t] = sw - lo + 1;
+            squadNamesL[sw - lo + 1] = new HashSet<string>(sq.Select(x => x.Name));
+        }
+        Console.WriteLine("  long campaign waves " + lo + "-" + (lo + 9) + ", first lessons: " + string.Join(", ", firstL.OrderBy(k => k.Value).Select(k => k.Key + " " + k.Value)));
+        Func<EnemyType, int, bool> firstAtL = (t, w) => firstL.ContainsKey(t) && firstL[t] == w;
+        Check(firstAtL(EnemyType.Gnawling, 1) && firstAtL(EnemyType.Butcher, 2) && firstAtL(EnemyType.Gulper, 3) && firstAtL(EnemyType.MawPriest, 4)
+            && firstAtL(EnemyType.CarcassBearer, 6) && firstAtL(EnemyType.BileSpitter, 7) && firstAtL(EnemyType.HookThrower, 8) && firstL.ContainsKey(EnemyType.Gutworm) && firstL[EnemyType.Gutworm] <= 5,
+            "the Devourer's ten lessons: Gnawling, Butcher, Gulper, Maw Priest, Gutworm (by 5), Carcass Bearer, Bile Spitter, Hook Thrower (the chart's order)");
+        Check(squadNamesL[10].Contains("The Feast") && squadNamesL[10].Contains("Feeding Frenzy") && Enumerable.Range(1, 9).All(w => !squadNamesL[w].Contains("The Feast")),
+            "the tenth is the exam: the Feast and a big Feeding Frenzy, only there");
     }
 }
