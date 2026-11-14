@@ -12,7 +12,7 @@ namespace Arena
     /// text files you can load again later.
     public partial class ArenaApp
     {
-        int practiceSel, practiceScroll, practiceSeenRev = -1;
+        int practiceSel, practiceScroll, practiceGridScroll, practiceSeenRev = -1;
         float practiceFlashT = -10f;
         bool practiceLoadOpen;
         string practiceName = "my practice", practiceStatus = "";
@@ -223,44 +223,92 @@ namespace Arena
         void DrawEnemyGrid(Rect g, PracticeWave sel, bool canEdit, float t, bool calm)
         {
             const int cols = 6;
-            const float gap = 5f, infoH = 44f, headH = 18f, titleH = 34f;
-            float tw = (g.width - gap * (cols - 1)) / cols;
+            const float gap = 5f, infoH = 44f, headH = 18f, titleH = 34f, th = 50f, barW = 12f;
             var types = PracticePlan.Choices;
             var tiles = new Rect[types.Length];
-            // Two blocks, regular enemies then bosses (the picker's four groups don't leave room for tiles big enough to show the enemy).
-            var groups = new List<int>();  // index of each group's first type
-            for (int i = 0; i < types.Length; i++)
-                if (i == 0 || Defs.Get(types[i]).IsBoss != Defs.Get(types[i - 1]).IsBoss)
-                    groups.Add(i);
-            int tileRows = 0;
-            for (int gi = 0; gi < groups.Count; gi++)
-                tileRows += (((gi + 1 < groups.Count ? groups[gi + 1] : types.Length) - groups[gi]) + cols - 1) / cols;
-            float th = Mathf.Clamp((g.height - (titleH - 6f) - groups.Count * (headH + 2f) - infoH - 8f - tileRows * gap) / tileRows, 30f, 62f);  // tiles shrink to fit above the info bar
+            var shown = new bool[types.Length];
+            var ev = Event.current;
+            // The grid as lines (a group heading, or a row of tiles), two blocks: regular enemies then bosses.
+            // There are too many to fit, so it scrolls a line at a time (wheel, or click the bar at the right).
+            var lines = new List<KeyValuePair<int, int>>();  // (first type, -1 for a heading or the row's tile count)
+            for (int i = 0; i < types.Length; )
+            {
+                int to = i + 1;
+                while (to < types.Length && Defs.Get(types[to]).IsBoss == Defs.Get(types[i]).IsBoss)
+                    to++;
+                lines.Add(new KeyValuePair<int, int>(i, -1));
+                for (int k = i; k < to; k += cols)
+                    lines.Add(new KeyValuePair<int, int>(k, Math.Min(cols, to - k)));
+                i = to;
+            }
+            float top = g.y + titleH - 6f, viewH = g.yMax - infoH - 8f - top;
+            System.Func<int, float> lineH = li => lines[li].Value < 0 ? headH : th + gap;
+            // The furthest it scrolls: the last lines just fill the view.
+            int maxScroll = lines.Count - 1;
+            for (float fill = 0f; maxScroll >= 0 && fill + lineH(maxScroll) <= viewH; maxScroll--)
+                fill += lineH(maxScroll);
+            maxScroll = Math.Max(0, maxScroll + 1);
+            var view = new Rect(g.x, top, g.width, viewH);
+            if (ev.type == EventType.ScrollWheel && view.Contains(ev.mousePosition))
+            {
+                practiceGridScroll += ev.delta.y > 0 ? 2 : -2;
+                ev.Use();
+            }
+            practiceGridScroll = Mathf.Clamp(practiceGridScroll, 0, maxScroll);
+            float tw = (g.width - (maxScroll > 0 ? barW + 6f : 0f) - gap * (cols - 1)) / cols;
+
             LobbyKit.Heading(g.x, g.y - 6f, g.width, "Enemies in wave " + (practiceSel + 1), sel.Total.ToString(), calm, 16);
             if (canEdit && sel.Total > 0 && LobbyKit.Key(new Rect(g.xMax - 66f, g.y - 2f, 66f, 22f), "CLEAR", false, calm, size: 11, minSize: 9, danger: true))
             {
                 sel.Counts.Clear();
                 PracticeChanged();
             }
-            float y = g.y + titleH - 6f;
-            var heads = new List<KeyValuePair<float, string>>();
-            for (int gi = 0; gi < groups.Count; gi++)
+            float y = top;
+            for (int li = practiceGridScroll; li < lines.Count && y + lineH(li) - (lines[li].Value < 0 ? 0f : gap) <= view.yMax; li++)
             {
-                int from = groups[gi], to = gi + 1 < groups.Count ? groups[gi + 1] : types.Length;
-                heads.Add(new KeyValuePair<float, string>(y, Defs.Get(types[from]).IsBoss ? "BOSSES  ·  they bring their usual adds" : "ENEMIES"));
-                y += headH;
-                for (int i = from; i < to; i++)
-                    tiles[i] = new Rect(g.x + ((i - from) % cols) * (tw + gap), y + ((i - from) / cols) * (th + gap), tw, th);
-                y += ((to - from + cols - 1) / cols) * (th + gap) + 2f;
+                int from = lines[li].Key;
+                if (lines[li].Value < 0)
+                {
+                    bool bosses = Defs.Get(types[from]).IsBoss;
+                    LobbyKit.Spaced(new Rect(g.x, y, g.width, headH), bosses ? "BOSSES  ·  they bring their usual adds" : "ENEMIES", 10, bosses ? CrtStyle.Gold : CrtUi.Dim, TextAnchor.MiddleLeft, 1.3f);
+                }
+                else
+                    for (int k = 0; k < lines[li].Value; k++)
+                    {
+                        tiles[from + k] = new Rect(g.x + k * (tw + gap), y, tw, th);
+                        shown[from + k] = true;
+                    }
+                y += lineH(li);
             }
-            foreach (var h in heads)
-                LobbyKit.Spaced(new Rect(g.x, h.Key, g.width, headH), h.Value, 10, h.Value.StartsWith("BOSSES") ? CrtStyle.Gold : CrtUi.Dim, TextAnchor.MiddleLeft, 1.3f);
+            if (maxScroll > 0)  // the scroll bar: where you are in the list; click it to jump there
+            {
+                var bar = new Rect(g.xMax - barW, top, barW, viewH);
+                float all = 0f, before = 0f;
+                for (int li = 0; li < lines.Count; li++)
+                {
+                    all += lineH(li);
+                    if (li < practiceGridScroll)
+                        before += lineH(li);
+                }
+                bool overBar = bar.Contains(ev.mousePosition);
+                Ui.Fill(bar, new Color(0f, 0f, 0f, 0.3f));
+                CrtKit.Frame(bar, 1f, LobbyKit.Ink(overBar ? 0.5f : 0.25f));
+                var thumb = new Rect(bar.x + 2f, bar.y + 2f + (bar.height - 4f) * before / all, bar.width - 4f, Mathf.Max(20f, (bar.height - 4f) * viewH / all));
+                thumb.y = Mathf.Min(thumb.y, bar.yMax - 2f - thumb.height);
+                Ui.Fill(thumb, new Color(PracticeCyan.r, PracticeCyan.g, PracticeCyan.b, overBar ? 0.75f : 0.5f));
+                if ((ev.type == EventType.MouseDown || ev.type == EventType.MouseDrag) && ev.button == 0 && overBar)
+                {
+                    practiceGridScroll = Mathf.Clamp(Mathf.RoundToInt((ev.mousePosition.y - bar.y) / bar.height * (maxScroll + 1) - 0.5f), 0, maxScroll);
+                    ev.Use();
+                }
+            }
 
-            var ev = Event.current;
             EnemyType? hovered = null;
             // Tile backs (and clicks).
             for (int i = 0; i < tiles.Length; i++)
             {
+                if (!shown[i])
+                    continue;
                 var type = types[i];
                 var tr = tiles[i];
                 int n;
@@ -292,11 +340,13 @@ namespace Arena
             {
                 for (int i = 0; i < tiles.Length; i++)
                 {
+                    if (!shown[i])
+                        continue;
                     var type = types[i];
                     int n;
                     sel.Counts.TryGetValue(type, out n);
                     bool hover = hovered == type;
-                    DrawEnemyPreview(type, new V2(tiles[i].center.x, tiles[i].y + (th - 13f) / 2f + 1f), Mathf.Min(40f, th - 16f), t, n > 0 || hover);
+                    DrawEnemyPreview(type, new V2(tiles[i].center.x, tiles[i].y + (th - 13f) / 2f + 1f), th - 20f, t, n > 0 || hover);
                 }
                 if (hovered != null)
                     DrawEnemyPreview(hovered.Value, new V2(g.x + 26f, g.yMax - infoH / 2f), 32f, t, true);
@@ -305,6 +355,8 @@ namespace Arena
             // Names and counts on top.
             for (int i = 0; i < tiles.Length; i++)
             {
+                if (!shown[i])
+                    continue;
                 var type = types[i];
                 var tr = tiles[i];
                 int n;
@@ -337,7 +389,7 @@ namespace Arena
             }
             else
                 Ui.Label(new Rect(info.x + 14f, info.y, info.width - 28f, infoH), canEdit
-                    ? "Click an enemy to add one, right-click (or its −) to take one away. Hover one to see what it does."
+                    ? "Click an enemy to add one, right-click (or its −) to take one away. Scroll for more; hover one to see what it does."
                     : "Hover an enemy to see what it does.", 11, CrtStyle.Desc, TextAnchor.MiddleCenter, false, true);
         }
 

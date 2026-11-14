@@ -1392,9 +1392,9 @@ screen and the wave keeps running behind it:
 - **Waves** (left): a rack of cards, each with its number, level and what's in it (**+ Add**, **Copy**, **Remove**). The
   **level** (1-50) sets how strong its enemies are: their health and fire rate as on that wave of a normal run.
   Tick **Loop the waves** to go round again after the last one; otherwise the run ends with **PRACTICE COMPLETE**.
-- **Enemies:** every one of the 17 regular enemies and 10 bosses is shown moving, as in a match, so you don't
-  need to know their names. Click one to add it to the selected wave, right-click (or its corner **-**) to take
-  one away; hovering shows what it does. Bosses spawn first and bring their usual adds; the Twin Reapers come
+- **Enemies:** every regular enemy and boss is shown moving, as in a match, so you don't need to know their
+  names. The grid scrolls (mouse wheel, or click the bar at its right). Click one to add it to the selected wave,
+  right-click (or its corner **-**) to take one away; hovering shows what it does. Bosses spawn first and bring their usual adds; the Twin Reapers come
   as a pair.
 - **Shared:** everyone in the lobby sees the waves change as they're edited, with the editor's name on the wave
   they're working on (players who can't edit follow along to it). The host can switch on **Let others edit** so
