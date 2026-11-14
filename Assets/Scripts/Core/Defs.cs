@@ -760,7 +760,8 @@ namespace Arena
             StingBolt = 63,    // the Stinger's venom dart: a lime barbed dart that stuns like the Fork Bolt (WardenFaction.cs, Game/HiveLook.cs)
             MagmaBolt = 64,    // the Cinder Priest's magma bolt: it leaves a lava pool wherever it stops (QuarryFaction.cs, Game/QuarryLook.cs)
             ThrownDagger = 65, // a Second's thrown dagger: steel with a gold hilt, spinning a little (CourtFaction.cs, Game/CourtLook.cs)
-            EmberSpark = 66;   // an Ember's spark: drifts back slowly and hangs behind it (Penumbral.cs, Game/PenumbralLook.cs)
+            EmberSpark = 66,   // an Ember's spark: drifts back slowly and hangs behind it (Penumbral.cs, Game/PenumbralLook.cs)
+            GreatStar = 67;    // the Shuriken's Great Star, flying a drawn route and back (GreatStar.cs, Game/GreatStarLook.cs)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == ThrownDagger || kind == EmberSpark;
 
@@ -804,6 +805,7 @@ namespace Arena
                 case OfudaShot: return 6f;
                 case GustShot: return 9f;
                 case FumaStar: return 20f;  // giant
+                case GreatStar: return 24f;  // huger
                 case BloodShot: return 4f;
                 case ClotShot: return 14f;  // the Clot Cannon's massive clot (lobbed: it never collides)
                 case LeechShot: return 3.5f;
@@ -901,6 +903,7 @@ namespace Arena
                 case ArrowShot: return new Rgba(0.5f, 1f, 0.65f);
                 case StarShot:
                 case FumaStar:
+                case GreatStar:
                 case KunaiShot: return new Rgba(0.8f, 0.85f, 0.95f);
                 case NeedleShot: return new Rgba(0.55f, 1f, 0.75f);
                 case OfudaShot: return new Rgba(1f, 0.92f, 0.75f);
