@@ -217,7 +217,7 @@ namespace Arena
                         ApplyCooldownCut(Me, ab, share);
                     break;
                 }
-                case Msg.Carry:  // a Knight ability carries someone (the Gauntlet's charge, Misericorde's leaps); only their own game moves them (Gauntlet.cs)
+                case Msg.Carry:  // a Knight ability carries someone (the Gauntlet's charge, Bladed Dive's rush); only their own game moves them (Gauntlet.cs)
                 {
                     int id = r.ReadInt32();
                     V2 to = r.ReadV2();

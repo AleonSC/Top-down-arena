@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The lobby's Saved loadouts drawer (Core/Favorites.cs): the SAVED key at the right of the loadout's Role heading
+    /// The lobby's Saved loadouts drawer (Core/Favorites.cs): the star key beside the Loadout key
     /// opens it over the right column (the preview and stats stay beside it, so a load shows at once). One card per
     /// saved loadout with LOAD, a pencil to rename it, and delete (click X, then SURE?), SAVE CURRENT LOADOUT (type a name, Enter saves), and
     /// dashed empty slots up to Favorites.Slots.
@@ -17,13 +17,23 @@ namespace Arena
         string favNote = "";
         float favNoteUntil;
 
-        /// The SAVED key, at the right end of the loadout's Role heading.
+        /// The Saved star: a square key just right of the Loadout key (LobbyLayout.cs), lit while the drawer is open.
         void DrawFavoritesKey(Rect key, bool calm)
         {
             var prof = session.Game.Profile;
             int n = prof != null ? prof.Favorites.Count : 0;
-            if (LobbyKit.Key(key, "SAVED  " + n, false, calm, PixelArt.Get("ui_star"), colorIcon: true, size: 12, minSize: 9))
+            bool hit = LobbyKit.Key(key, "", favOpen && lobbyTab == 0, calm);
+            const float isz = 16f;
+            Ui.Icon(new Rect(key.center.x - isz / 2f, key.center.y - isz / 2f, isz, isz), PixelArt.Get("ui_star"), n > 0 ? Ui.Gold : Color.white);  // gold once anything is saved
+            if (key.Contains(Event.current.mousePosition))
             {
+                lockedTip = key;  // (LobbyUi.cs's hover tip, drawn last)
+                lockedTipOn = true;
+                lockedTipText = "Saved loadouts  " + n + "/" + Favorites.Slots;
+            }
+            if (hit)
+            {
+                lobbyTab = 0;  // (from another tab: back to the loadout, drawer open)
                 favOpen = true;
                 favNaming = false;
                 favRenaming = -1;
