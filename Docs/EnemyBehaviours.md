@@ -1,6 +1,6 @@
 # Enemy behaviour classes
 
-**Status: steps 0-7 built, step 8 in progress** (8a basic faction, 8b Variety). Owner's decision: a full per-enemy split, not family wrappers. Owner's decisions: every enemy moves to brains (not just the kin ones), and drawing stays separate. Code today: `Core/HiveKin.cs` (the kin table), `Core/PrisonKin.cs` (`IsBrute`, `IsLunger`),
+**Status: steps 0-7 built, step 8 in progress** (8a basic faction, 8b Variety, 8c non-shooters). Owner's decision: a full per-enemy split, not family wrappers. Owner's decisions: every enemy moves to brains (not just the kin ones), and drawing stays separate. Code today: `Core/HiveKin.cs` (the kin table), `Core/PrisonKin.cs` (`IsBrute`, `IsLunger`),
 `Core/EnemyAI.cs` (`MoveEnemy`, `Special`, `EnemyFire`), each faction's `*Faction.cs`. New: `Core/Brain.cs`, `Core/ShieldBrains.cs`, `Core/LungeBrains.cs`, `Core/ChaseBrains.cs`, `Core/RiotBrains.cs`, `Core/LobBrains.cs`, `Core/ShootBrains.cs`,
 `Tools/SimTest/Tests/AiTrace.cs`, `Tools/SimTest/Golden/aitrace.txt`.
 
@@ -289,6 +289,11 @@ method, so a new enemy can reuse any of them.
   `VarietyMove`, `VarietySpecial` and `VarietyFire` were split into one method per enemy (`VarietyMove_Reaver`, ...)
   and deleted; the face locks (the Beam Sentry's sweep, the Reaver's rake, the Leader's aim) are each one's
   `CodeMove` lock. New generic part: `CodeMove(method, locked)`. `aitrace` identical.
+- **8c, non-shooters (in `Core/NonShooters.cs`):** Fuse Runner (`FuseMove`), Hookman and Hook Thrower (`HookMove`,
+  `BrainRole.Hook`), Sapper (`SapperMove`), Tripwire Pod (`StillMove`), Swordsman, Shield Swordsman and Acolyte
+  (`SwordsmanMovePart`, `BrainRole.Swordsman`; the Shield Swordsman's `SwordShieldGuard`). Their specials were already
+  one method each. Removed `NonShooterMove`, `NonShooterSpecial`, `NonShooterFaceLocked` and the Shield Swordsman
+  checks in `BlocksShot` and `WearShield`. `aitrace` identical; `nonshooters` and `swordsman` pass.
 
 ## Risks
 

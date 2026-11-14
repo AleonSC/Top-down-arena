@@ -710,8 +710,6 @@ namespace Arena
         void Face(Enemy e, V2 tpos, float dt)
         {
             float want = (tpos - e.Pos).Angle;
-            if (NonShooterFaceLocked(e))
-                return;  // a planted Fuse Runner, a Hookman's aim and throw (NonShooters.cs)
             if (e.Type == EnemyType.HiveBomber)
                 return;  // committed to the flight line (a lunger's leap, a Charger's dash, a Spike Block's lunge: their brains)
             if (PulsarLocked(e) || HelioLocked(e) || GnomonLocked(e) || e.Type == EnemyType.Moonward)
@@ -738,11 +736,6 @@ namespace Arena
                 CaptainFace(e, want, dt);  // RiotCaptain.cs
                 return;
             }
-            if (IsSwordsman(e.Type))
-            {
-                SwordsmanTurn(e, want, dt);  // Swordsman.cs
-                return;
-            }
             e.Facing = want;
         }
 
@@ -758,11 +751,6 @@ namespace Arena
             if (e.Type == EnemyType.RiotCaptain)
             {
                 CaptainShieldStruck(e);  // it never breaks (RiotCaptain.cs)
-                return;
-            }
-            if (e.Type == EnemyType.ShieldSwordsman)
-            {
-                SwordShieldStruck(e);  // it doesn't wear: it flashes (Swordsman.cs)
                 return;
             }
             if (e.Type == EnemyType.Boss && e.Warden != null)
@@ -808,8 +796,6 @@ namespace Arena
                 return brain.Guard.Blocks(this, e, from);  // Brain.cs
             if (e.Type == EnemyType.RiotCaptain)
                 return CaptainShieldBlocks(e, from);  // RiotCaptain.cs
-            if (e.Type == EnemyType.ShieldSwordsman)
-                return SwordShieldBlocks(e, from);  // Swordsman.cs
             return false;
         }
 
@@ -915,8 +901,6 @@ namespace Arena
                     v = ReaperCultMove(e, tpos, dir, dist, dt, ref speed);  // ReaperFaction.cs
                 if (Zombies.Is(e.Type))
                     v = ZombieMove(e, tpos, dir, dist, ref speed);  // Zombies.cs
-                if (IsNonShooter(e.Type))
-                    v = NonShooterMove(e, tpos, dir, dist, ref speed);  // NonShooters.cs
             }
             if (RoomsOn && !e.Def.IsBoss && !e.Def.Melee && e.Home < 0 && dist > 0.01f && SegBlocked(ActiveLayout, e.Pos, tpos, 4f))
                 v = dir;  // the Rooms map: a shooter with a wall between it and you comes round (steered) instead of holding its distance behind the wall
@@ -958,11 +942,6 @@ namespace Arena
             if (e.Type == EnemyType.RiotCaptain)
             {
                 CaptainSpecial(e, tpos, dt);  // RiotCaptain.cs
-                return;
-            }
-            if (IsNonShooter(e.Type))
-            {
-                NonShooterSpecial(e, tpos, dt);  // NonShooters.cs
                 return;
             }
             if (IsLateGame(e.Type))

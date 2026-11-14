@@ -100,7 +100,7 @@ namespace Arena
             return dist > SwordReachOf(e.Type) * 0.7f ? dir : V2.Zero;
         }
 
-        /// It turns toward its target at SwordTurn rad/s (EnemyAI.cs Face); once it winds up the aim is locked (NonShooterFaceLocked).
+        /// It turns toward its target at SwordTurn rad/s (EnemyAI.cs Face); once it winds up the aim is locked (SwordsmanMovePart, NonShooters.cs).
         void SwordsmanTurn(Enemy e, float want, float dt)
         {
             float diff = MathX.Fmod(want - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi;

@@ -37,56 +37,91 @@ namespace Arena
         /// The Hookman, and the Devourer's Hook Thrower (LarderFaction.cs), which throws a meat hook the same way.
         public static bool IsHook(EnemyType t) => BrainHas(t, BrainRole.Hook) ?? (t == EnemyType.Hookman || t == EnemyType.HookThrower);
 
-        /// Locked aims: a planted Fuse Runner, and a Hookman from its aim to the end of its throw (EnemyAI.cs Face).
-        static bool NonShooterFaceLocked(Enemy e) =>
-            e.Type == EnemyType.FuseRunner && e.Phase == 1 || IsHook(e.Type) && e.Phase >= 1 && e.Phase <= 3 || e.Type == EnemyType.SapperMine
-            || IsSwordsman(e.Type) && e.Phase != 0;  // a Swordsman's aim is locked from its wind-up to the end of its recovery
+        // --- Brains (Docs/EnemyBehaviours.md step 8c): each non-shooter's move, locked aim and special --------------------
 
-        /// The enemy's own movement (EnemyAI.cs MoveEnemy).
-        V2 NonShooterMove(Enemy e, V2 tpos, V2 dir, float dist, ref float speed)
+        /// Straight at you, fast; planted (and its aim locked) once it lights its fuse.
+        sealed class FuseMove : MovePart
         {
-            switch (e.Type)
+            public override V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
             {
-                case EnemyType.FuseRunner:
-                    if (e.Phase == 0)
-                        return dir;  // straight at you, fast
-                    speed = 0f;
-                    return V2.Zero;
-                case EnemyType.Hookman:
-                case EnemyType.HookThrower:
-                    if (e.Phase != 0)
-                    {
-                        speed = 0f;  // stands to throw
-                        return V2.Zero;
-                    }
-                    return KeepDistance(dir, dist, HookKeep) + dir.Orthogonal() * e.Strafe * 0.4f;
-                case EnemyType.Sapper:
-                    return KeepDistance(dir, dist, SapperKeep) * 0.7f + dir.Orthogonal() * e.Strafe;  // circles round you
-                case EnemyType.SapperMine:
-                    speed = 0f;
-                    return V2.Zero;
-                case EnemyType.Swordsman:
-                case EnemyType.ShieldSwordsman:
-                case EnemyType.Acolyte:
-                    return SwordsmanMove(e, dir, dist, ref speed);  // Swordsman.cs
+                if (e.Phase == 0)
+                    return dir;
+                speed = 0f;
+                return V2.Zero;
             }
-            return V2.Zero;
+
+            public override bool Turn(Game g, Enemy e, float want, V2 tpos, float dt) => e.Phase == 1;
         }
 
-        /// Host, each tick while fighting (EnemyAI.cs Special).
-        void NonShooterSpecial(Enemy e, V2 tpos, float dt)
+        /// Keeps HookKeep away; stands to throw, its aim locked from the aim to the end of the throw.
+        sealed class HookMove : MovePart
         {
-            switch (e.Type)
+            public override V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
             {
-                case EnemyType.FuseRunner: FuseSpecial(e, tpos, dt); break;
-                case EnemyType.Hookman:
-                case EnemyType.HookThrower: HookSpecial(e, tpos, dt); break;
-                case EnemyType.Sapper: SapperSpecial(e, dt); break;
-                case EnemyType.SapperMine: PodSpecial(e, dt); break;
-                case EnemyType.Swordsman:
-                case EnemyType.ShieldSwordsman:
-                case EnemyType.Acolyte: SwordsmanSpecial(e, tpos, dt); break;
+                if (e.Phase != 0)
+                {
+                    speed = 0f;  // stands to throw
+                    return V2.Zero;
+                }
+                return KeepDistance(dir, dist, HookKeep) + dir.Orthogonal() * e.Strafe * 0.4f;
             }
+
+            public override bool Turn(Game g, Enemy e, float want, V2 tpos, float dt) => e.Phase >= 1 && e.Phase <= 3;
+        }
+
+        /// Circles round you.
+        sealed class SapperMove : MovePart
+        {
+            public override V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed) =>
+                KeepDistance(dir, dist, SapperKeep) * 0.7f + dir.Orthogonal() * e.Strafe;
+        }
+
+        /// Doesn't move or turn (a Sapper's Tripwire Pod).
+        sealed class StillMove : MovePart
+        {
+            public override V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed)
+            {
+                speed = 0f;
+                return V2.Zero;
+            }
+
+            public override bool Turn(Game g, Enemy e, float want, V2 tpos, float dt) => true;
+        }
+
+        /// SwordsmanMove (Swordsman.cs); its aim is locked from its wind-up to the end of its recovery, otherwise it turns
+        /// at its own pace (SwordsmanTurn).
+        sealed class SwordsmanMovePart : MovePart
+        {
+            public override V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed) => g.SwordsmanMove(e, dir, dist, ref speed);
+
+            public override bool Turn(Game g, Enemy e, float want, V2 tpos, float dt)
+            {
+                if (e.Phase == 0)
+                    g.SwordsmanTurn(e, want, dt);
+                return true;
+            }
+        }
+
+        /// A Shield Swordsman's shield: blocks from the front (SwordShieldBlocks); a blocked hit flashes it, never wears it.
+        sealed class SwordShieldGuard : GuardPart
+        {
+            public override bool Blocks(Game g, Enemy e, V2 from) => SwordShieldBlocks(e, from);
+            public override void Wear(Game g, Enemy e, float amount) => g.SwordShieldStruck(e);
+        }
+
+        static void NonShooterBrains(Brain[] t)
+        {
+            t[(int)EnemyType.FuseRunner] = new Brain { Move = new FuseMove(), Special = new CodeSpecial((g, e, p, dt) => g.FuseSpecial(e, p, dt)) };
+            var hook = new Brain { Move = new HookMove(), Special = new CodeSpecial((g, e, p, dt) => g.HookSpecial(e, p, dt)), Roles = BrainRole.Hook };
+            t[(int)EnemyType.Hookman] = hook;
+            t[(int)EnemyType.HookThrower] = hook;
+            t[(int)EnemyType.Sapper] = new Brain { Move = new SapperMove(), Special = new CodeSpecial((g, e, p, dt) => g.SapperSpecial(e, dt)) };
+            t[(int)EnemyType.SapperMine] = new Brain { Move = new StillMove(), Special = new CodeSpecial((g, e, p, dt) => g.PodSpecial(e, dt)) };
+            var sword = new SwordsmanMovePart();
+            var swordSpecial = new CodeSpecial((g, e, p, dt) => g.SwordsmanSpecial(e, p, dt));
+            t[(int)EnemyType.Swordsman] = new Brain { Move = sword, Special = swordSpecial, Roles = BrainRole.Swordsman };
+            t[(int)EnemyType.ShieldSwordsman] = new Brain { Move = sword, Special = swordSpecial, Guard = new SwordShieldGuard(), Roles = BrainRole.Swordsman };
+            t[(int)EnemyType.Acolyte] = new Brain { Move = sword, Special = swordSpecial, Roles = BrainRole.Swordsman };
         }
 
         // --- Fuse Runner ---------------------------------------------------------------------------------------------

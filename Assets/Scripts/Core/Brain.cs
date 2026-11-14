@@ -115,6 +115,7 @@ namespace Arena
             ShootBrains(t);   // step 6 (ShootBrains.cs)
             BasicBrains(t);   // step 8a (BasicBrains.cs)
             VarietyBrains(t); // step 8b (VarietyBrains.cs)
+            NonShooterBrains(t);  // step 8c (NonShooters.cs)
             return t;
         }
     }
