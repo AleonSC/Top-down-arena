@@ -87,7 +87,7 @@ namespace Arena
     {
         public const int MaxTokens = 6;          // room kits the team can hold
         public const int MaxRooms = 24;          // bought rooms (the hub is extra)
-        public const int MaxWidth = 6400, MaxHeight = 4000;  // the whole map's bounding box
+        public const int MaxWidth = 8000, MaxHeight = 5000;  // the whole map's bounding box (owner Nov 13: was 6400 x 4000, raised so far-out rooms and nodes still fit)
         public const int Step = 100;             // rooms slide along a wall in steps of this
         public const int MinDoorRun = 200;       // a room must share at least this much wall with its parent (a door, plus a margin): 2 tiles, so a 2-wide room can join end on
         public const int Milestone = 5;          // an offer every this many waves
@@ -476,7 +476,7 @@ namespace Arena
             return NodeClaimed(plan, n);
         }
 
-        /// A new node for this boss cycle: 10 to 16 tiles straight out from a room on the connected map (so a strip and a room can reach it), clear of every
+        /// A new node for this boss cycle: 10 to 16 tiles (20 to 26 off the start room, never within 10 of it) straight out from a room on the connected map (so a strip and a room can reach it), clear of every
         /// room and at least 8 tiles from every other node, inside the size cap. The same on every machine for the same seed, cycle and map.
         /// Null if nothing fits.
         public static MapNode? NodeFor(int seed, int cycle, IList<ExpansionRoom> built, IList<MapNode> nodes, NodeKind kind)
@@ -511,17 +511,23 @@ namespace Arena
                     BoxOf(built, i, out int cx0, out int cy0, out int cx1, out int cy1);
                     ok = !Overlaps(x - reach, y - reach, x + reach, y + reach, cx0, cy0, cx1, cy1);  // (two tiles clear of every room)
                 }
+                if (ok)
+                {
+                    BoxOf(built, 0, out int hx0, out int hy0, out int hx1, out int hy1);
+                    ok = !Overlaps(x - StartClear, y - StartClear, x + StartClear, y + StartClear, hx0, hy0, hx1, hy1);  // (never near the start room, whichever room it was placed off)
+                }
                 if (ok && NodeReachable(built, n))
                     return n;  // (it can be built to: a strip out and a room round it fit)
             }
             return null;
         }
 
-        public const int StartExtra = 600;  // nodes placed off the start room sit this much farther out (owner Nov 12)
+        public const int StartExtra = 1000;  // nodes and floating rooms placed off the start room sit this much farther out (owner Nov 12: 600; Nov 13: 1000, the Gatekeeper too)
+        public const int StartClear = 1000;  // and nothing is placed closer than this to the start room, whichever room it was placed off (owner Nov 13)
         public const int MaxSealed = 6;
         public const int ShopRoomSide = 400;  // a floating shop or vendor room is this square (4 x 4 tiles, owner Nov 11)  // floating rooms waiting to be connected at once
 
-        /// A floating room for this boss cycle (Docs/FloatingRooms.md): a shop, vendor or Gatekeeper room placed 4 to 8 tiles off a room on the
+        /// A floating room for this boss cycle (Docs/FloatingRooms.md): a shop, vendor or Gatekeeper room placed 4 to 8 tiles off a room on the (14 to 18 off the start room, never within 10 of it)
         /// connected map, touching nothing and at least 2 tiles from every room, inside the size cap. The same on every machine for the same
         /// seed, cycle and map. Null if nothing fits.
         public static ExpansionRoom? FloatingFor(int seed, int cycle, IList<ExpansionRoom> built, RoomKind kind)
@@ -529,14 +535,14 @@ namespace Arena
             int w = kind == RoomKind.Gatekeeper ? 800 : ShopRoomSide, h = kind == RoomKind.Gatekeeper ? 600 : ShopRoomSide;  // (shop and vendor: a tiny square room)
             var rng = new DetRandom(seed * 40503 + cycle * 9176 + (int)kind * 131);
             var linked = ConnectedAreas(built);
-            for (int attempt = 0; attempt < 120; attempt++)
+            for (int attempt = 0; attempt < 400; attempt++)
             {
                 int a = rng.Int(built.Count + 1);
                 if (!linked[a])
                     continue;
                 int bx0, by0, bx1, by1;
                 BoxOf(built, a, out bx0, out by0, out bx1, out by1);
-                int side = rng.Int(4), gap = 400 + rng.Int(5) * 100 + (a == 0 && kind != RoomKind.Gatekeeper ? StartExtra : 0), x, y;
+                int side = rng.Int(4), gap = 400 + rng.Int(5) * 100 + (a == 0 ? StartExtra : 0), x, y;
                 if (side == 0 || side == 2)
                 {
                     int lo = bx0 - w / 2, hi = bx1 - w / 2;
@@ -558,7 +564,8 @@ namespace Arena
                 {
                     int cx0, cy0, cx1, cy1;
                     BoxOf(built, i, out cx0, out cy0, out cx1, out cy1);
-                    ok = !Overlaps(x - 200, y - 200, x1 + 200, y1 + 200, cx0, cy0, cx1, cy1);  // (two tiles clear of everything)
+                    int clear = i == 0 ? StartClear : 200;  // (two tiles clear of everything, farther from the start room)
+                    ok = !Overlaps(x - clear, y - clear, x1 + clear, y1 + clear, cx0, cy0, cx1, cy1);
                     minX = Math.Min(minX, cx0); minY = Math.Min(minY, cy0); maxX = Math.Max(maxX, cx1); maxY = Math.Max(maxY, cy1);
                 }
                 if (!ok || maxX - minX > MaxWidth || maxY - minY > MaxHeight)
