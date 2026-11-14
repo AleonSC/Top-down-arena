@@ -378,13 +378,88 @@ namespace Arena
         }
 
         /// A guard: a riot helmet's visor and a baton held out the way it's facing.
-        void DrawGuardDetails(Enemy e, V2 pos, float r, float t)
+        static readonly Rgba GuardInk = new Rgba(0.07f, 0.08f, 0.13f, 0.95f), GuardBaton = new Rgba(0.2f, 0.22f, 0.3f);
+        static readonly Rgba GuardShirt = new Rgba(0.78f, 0.68f, 0.48f), GuardCap = new Rgba(0.16f, 0.2f, 0.32f), GuardBadge = new Rgba(1f, 0.82f, 0.3f);
+
+        /// Where the Guard's nightstick points: at its side while it walks (a light bob), drawn back over the wind-up and
+        /// swept across in the swing, forehand from its left then backhand from its right (GuardSwing.cs).
+        static float GuardBatonAngle(Enemy e, float t, out float wind, out float swing)
         {
-            V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
-            Line(pos + f * (r * 0.25f) - side * (r * 0.55f), pos + f * (r * 0.25f) + side * (r * 0.55f), 3.5f, new Rgba(0.75f, 0.9f, 1f, 0.9f));  // visor
-            V2 grip = pos + side * (r * 0.8f), tip = grip + V2.FromAngle(e.Facing + 0.5f * Mathf.Sin(t * 9f + e.Id)) * (r + 12f);
-            Line(grip, tip, 4f, new Rgba(0.12f, 0.14f, 0.22f));  // the baton
-            Circle(tip, 2.5f, new Rgba(0.6f, 0.65f, 0.75f), 6);
+            wind = Game.BatonWindT(e);
+            swing = Game.BatonSwingT(e);
+            float side = Game.BatonSide(e), far = Game.BatonHalf + 0.35f;
+            if (swing >= 0f)
+                return e.Facing + side * (far - swing * far * 2f);
+            if (e.LarderStage != Game.LarderIdle)
+                return e.Facing + side * (0.9f + wind * (far - 0.55f));
+            return e.Facing + 0.9f + 0.25f * Mathf.Sin(t * 9f + e.Id);
+        }
+
+        /// A stick from `a` to `b`: an ink outline, the shaft, a thin highlight down one edge so it reads on the dark floor.
+        void GuardStick(V2 a, V2 b, float w, Rgba shaft)
+        {
+            V2 n = (b - a).Normalized().Orthogonal();
+            Line(a, b, w + 2.4f, GuardInk);
+            Line(a, b, w, shaft);
+            Line(a + n * (w * 0.25f), b + n * (w * 0.25f), 1.1f, new Rgba(0.75f, 0.8f, 0.92f, 0.75f));
+        }
+
+        /// The Guard's whole body (not the spiky melee polygon), a corrections officer: a khaki shirt, a duty belt with a
+        /// radio, a peaked cap with a gold badge, and a side-handle nightstick it swings back and forth when you're close.
+        void DrawGuardBody(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
+            float wind, swing, ba = GuardBatonAngle(e, t, out wind, out swing);
+            V2 bd = V2.FromAngle(ba);
+            V2 hand = e.LarderStage != Game.LarderIdle ? pos + bd * (r * 0.9f) : pos + s * (r * 0.55f) + f * (r * 0.35f);
+            V2 tip = hand + bd * (r * 1.55f);
+            var shirt = GuardShirt.Mix(col, 0.12f);  // (picks up hit flashes and status tints)
+            Ellipse(pos, r * 1.05f + 1.6f, r * 1.12f + 1.6f, e.Facing, GuardInk, 16);
+            Ellipse(pos, r * 1.05f, r * 1.12f, e.Facing, shirt, 16);
+            Line(pos - s * r * 1.0f, pos + s * r * 1.0f, 2.6f, new Rgba(0.28f, 0.2f, 0.12f));  // the duty belt
+            Circle(pos - s * r * 0.75f, 2.4f, new Rgba(0.1f, 0.1f, 0.12f), 6);                  // the radio on it
+            Line(pos - s * r * 0.75f, pos - s * r * 0.75f - f * 5f, 1.2f, new Rgba(0.1f, 0.1f, 0.12f));
+            Line(pos + (hand - pos) * 0.4f, hand, 4f, shirt.Mix(GuardInk, 0.3f));               // the arm
+            Circle(pos, r * 0.6f + 1.5f, GuardInk, 14);
+            Circle(pos, r * 0.6f, GuardCap, 14);                                                  // the cap's crown
+            Quad(pos + f * r * 0.35f - s * r * 0.55f, pos + f * r * 0.9f - s * r * 0.4f, pos + f * r * 0.9f + s * r * 0.4f, pos + f * r * 0.35f + s * r * 0.55f, new Rgba(0.06f, 0.07f, 0.1f));  // the peak
+            Circle(pos + f * r * 0.25f, 2.2f, GuardBadge, 6);                                     // the badge
+            GuardStick(hand - bd * 3f, tip, 3.6f, GuardBaton);
+            GuardStick(hand + bd * 2f, hand + bd * 2f - bd.Orthogonal() * 5f, 3f, GuardBaton);    // the side handle
+            Circle(tip, 2f, new Rgba(0.4f, 0.42f, 0.5f), 6);
+            if (wind > 0.6f)
+                Circle(tip, 3.2f, Rgba.White.WithAlpha(0.85f), 8);  // a glint just before it swings
+        }
+
+        /// Under everyone: a Guard's swing arc, flashing amber as it draws back (filling from the side it swings from),
+        /// then a white crescent following the stick across.
+        void DrawGuardFloor(float t)
+        {
+            var tell = new Rgba(1f, 0.78f, 0.35f);
+            foreach (var e in game.Enemies.Values)
+            {
+                if (e.Type != EnemyType.Guard || e.LarderStage == Game.LarderIdle || game.IsSpawning(e))
+                    continue;
+                V2 pos = e.Disp;
+                float half = Game.BatonHalf, R = Game.BatonReach, side = Game.BatonSide(e);
+                float swing = Game.BatonSwingT(e);
+                if (swing < 0f)
+                {
+                    float w = Game.BatonWindT(e);
+                    Wedge(pos, R, e.Facing, half, tell.WithAlpha(0.1f), 20);
+                    Wedge(pos, R, e.Facing + side * (half - half * w), half * w, tell.WithAlpha(0.2f), 20);
+                    Arc(pos, R, 2f, tell.WithAlpha(0.8f), 20, e.Facing - half, half * 2f);
+                }
+                else
+                {
+                    float lead = e.Facing + side * (half - swing * half * 2f), sweep = Mathf.Min(0.9f, swing * half * 2f);
+                    float mid = e.Facing + side * (half - swing * half);
+                    Wedge(pos, R, mid, swing * half + 0.001f, Rgba.White.WithAlpha(0.14f * (1f - swing * 0.6f)), 20);
+                    float from = side > 0f ? lead : lead - sweep;  // the crescent trails behind the stick
+                    for (int k = 0; k < 3; k++)  // thick at the rim, thinner inside
+                        Arc(pos, R * (0.9f - 0.22f * k), 5f - k * 1.4f, Rgba.White.WithAlpha(0.9f - 0.2f * k), 12, from, sweep);
+                }
+            }
         }
 
         static readonly Rgba RiotSteel = new Rgba(0.62f, 0.74f, 0.98f);

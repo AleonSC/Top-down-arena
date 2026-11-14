@@ -467,7 +467,7 @@ namespace Arena
             }
             bool pac = PacSkin && !spawning && PacGhostable(e);  // the Pac-Man skin: a ghost in its role's colour (PacmanLook.cs)
             // Melee enemies are spiky, so you can tell rushers from shooters at a glance.
-            if (e.Def.Melee && !pac && !spawning && !HiveKin.Is(e.Type) && !QuarryKin.Is(e.Type) && !CourtKin.Is(e.Type) && !LarderKin.Is(e.Type) && !Game.IsInfall(e.Type) && !Game.IsSquall(e.Type) && !Game.IsPenumbral(e.Type) && !Game.IsReaperCult(e.Type) && e.Type != EnemyType.Swarmer && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type) && !Game.IsNonShooter(e.Type))
+            if (e.Def.Melee && !pac && !spawning && !HiveKin.Is(e.Type) && !QuarryKin.Is(e.Type) && !CourtKin.Is(e.Type) && !LarderKin.Is(e.Type) && !Game.IsInfall(e.Type) && !Game.IsSquall(e.Type) && !Game.IsPenumbral(e.Type) && !Game.IsReaperCult(e.Type) && e.Type != EnemyType.Swarmer && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type) && !Game.IsNonShooter(e.Type) && e.Type != EnemyType.Guard)
                 DrawMeleeSpikes(e, pos, r, col, t);
             if (Zombies.Is(e.Type))
                 DrawZombieUnder(e, pos, r, t);  // its spore haze, frenzy streaks and the Crawler's hold (ZombieLook.cs)
@@ -512,6 +512,8 @@ namespace Arena
                 DrawSquallBody(e, pos, r, col, t);  // SquallLook.cs: the Storm Herald's faction
             else if (e.Type == EnemyType.SecurityGuard)
                 DrawSecurityBody(e, pos, r, col, t);  // SecurityLook.cs
+            else if (e.Type == EnemyType.Guard)
+                DrawGuardBody(e, pos, r, col, t);  // WardenLook.cs: helmet, armour, baton and its swing
             else if (Game.IsNonShooter(e.Type))
                 DrawNonShooterBody(e, pos, r, col, t);  // NonShooterLooks.cs
             else
@@ -967,9 +969,6 @@ namespace Arena
                     break;
                 case EnemyType.Rioter:
                     DrawRioterDetails(e, pos, r, t);  // WardenLook.cs
-                    break;
-                case EnemyType.Guard:
-                    DrawGuardDetails(e, pos, r, t);  // WardenLook.cs
                     break;
                 case EnemyType.RiotShield:
                     DrawRiotShield(e, pos, r, t);  // WardenLook.cs

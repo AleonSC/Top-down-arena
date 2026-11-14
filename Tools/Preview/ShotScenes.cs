@@ -230,6 +230,22 @@ static partial class Shot {
         en.SpawnT = 0f; en.Pos = en.Disp = spots[i]; en.Facing = (me.Pos - spots[i]).Angle + (i % 3 - 1) * 0.25f;
       }
     }
+    if (Environment.GetEnvironmentVariable("GUARD") != null) {
+      // GUARD=1: the riot Guard (WardenLook.cs DrawGuardBody, GuardSwing.cs) walking, drawing back a forehand, mid-forehand,
+      // drawing back a backhand, mid-backhand, left to right, each facing you below; mode hud with KNIGHT=1 ZOOM=2.6.
+      var gm = host.Game; gm.Bot = false; gm.Enemies.Clear(); gm.Bullets.Clear();
+      me.Pos = me.Disp = new V2(800f, 525f); me.InvulnT = 1f; me.Aim = MathX.Pi / 2f;
+      foreach (var pl in gm.Players.Values) if (pl != me) pl.Pos = pl.Disp = new V2(300f, 200f);
+      var spawn = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var stages = new[] { (byte)0, Game.BatonWinding, Game.BatonActing, Game.BatonWindingBack, Game.BatonActingBack };
+      var left = new[] { 0f, Game.BatonWind * 0.3f, Game.BatonFlash * 0.45f, Game.BatonWind * 0.3f, Game.BatonFlash * 0.45f };
+      for (int i = 0; i < 5; i++) {
+        var at = new V2(800f + (i - 2) * 105f, 410f);
+        var en = (Enemy)spawn.Invoke(gm, new object[] { EnemyType.Guard, at, 0f, 0, false });
+        en.SpawnT = 0f; en.Pos = en.Disp = at; en.Facing = MathX.Pi / 2f;
+        en.LarderStage = stages[i]; en.LarderT = left[i];
+      }
+    }
     if (Environment.GetEnvironmentVariable("RIOTLINE") != null) {
       // The Riot Line (the last wave before the Warden), RIOTLINE=<seconds> after it arrives, with you standing in the middle.
       var gm = host.Game; gm.Bot = false;

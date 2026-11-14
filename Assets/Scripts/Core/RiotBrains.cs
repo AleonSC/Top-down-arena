@@ -51,7 +51,7 @@ namespace Arena
             t[(int)EnemyType.Rubble] = rush;
             t[(int)EnemyType.Gnawling] = new Brain { Move = rioter, Special = new EatSpecial() };
             var hold = new Brain { Move = guard };
-            t[(int)EnemyType.Guard] = hold;
+            t[(int)EnemyType.Guard] = new Brain { Move = guard, Special = new GuardSwingSpecial() };  // its baton swing (GuardSwing.cs)
             t[(int)EnemyType.Quarryman] = hold;
             t[(int)EnemyType.Soldier] = new Brain { Move = new GuardMovePart(true) };
             t[(int)EnemyType.Butcher] = new Brain { Move = guard, Special = new ChopSpecial() };
