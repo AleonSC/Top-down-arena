@@ -34,6 +34,9 @@ namespace Arena
                 case FxKind.BloodFreeze:
                     DrawBloodFreeze(fx);  // BloodFreezeLook.cs
                     break;
+                case FxKind.Shockwave:
+                    DrawShockwave(fx);  // ShockwaveLook.cs
+                    break;
                 case FxKind.Debris:
                     DrawDebrisFx(fx, f);  // PropsLook.cs
                     break;

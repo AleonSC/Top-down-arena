@@ -1,6 +1,6 @@
 # Wall push: grow a room from inside it
 
-Status: **steps 1-2 built** (the core: rules, cost, host and wire, protocol 346; pushing in the world, no protocol change). Step 3 (features) next. Decided with the owner on Nov 14, 2026. Mockup: `Docs/Mockups/wall-push.html`
+Status: **steps 1-2 built** (the core: rules, cost, host and wire, protocol 348; pushing in the world, no protocol change). Step 3 (features) next. Decided with the owner on Nov 14, 2026. Mockup: `Docs/Mockups/wall-push.html`
 (playable: walk, pick a section, click to push; browser look, approximate). Builds on [`VectorBuilding.md`](VectorBuilding.md)
 and [`RoomBuilding2.md`](RoomBuilding2.md).
 
@@ -90,7 +90,7 @@ Limits: a section goes at most **12 tiles** out. Pushing a section's side wall s
   starts a new section off it.
 - Host: `Game.CanPush` (free building, between waves), `PushWall` / `Msg.WallPush` / `HostWallPush`: the player within 10 tiles
   (`PushReach` 700 + `PushSlack` 300) of the wall's middle, not downed, at most one push per 0.15 s each; pays like any build (Team purse
-  too), then `BroadcastExpansion`. Protocol 346.
+  too), then `BroadcastExpansion`. Protocol 348.
 - `Expansion.Grown`: a pushed wall alone raises the map (`Rooms.cs`). Sections get no random cover or fins (`Build`); step 3 gives them features.
 - Saves carry sections through `Leg` (no format change). Test `ExpandingPushTest` (suites `expand` and `push`).
 

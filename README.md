@@ -309,7 +309,7 @@ once mastered); the Tab menu shows the level.
 | Ability | Capstone | Ability | Capstone |
 |---|---|---|---|
 | **Barrier** | Bullets that hit the barrier are reflected back as your own. | **Mend Pulse** | Also erases enemy bullets within its range. |
-| **Poison Dart** | Spreads to 5 enemies at a time, at full strength. | **Shockwave** | Also knocks nearby enemies back 120 px. |
+| **Poison Dart** | Spreads to 5 enemies at a time, at full strength. | **Shockwave** | The wave runs out 300 px. |
 | **Overdrive** | +1 extra projectile while it lasts. | **Blink** | Erases enemy bullets where you leave and where you land. |
 | **Nova** | Fires 48 shots instead of 24. | **Turret** | Deploys two turrets. |
 | **Roar** | Also knocks enemies within 250 px back and slows them for 2 s. | **Bulldoze** | Erases enemy bullets along the charge. |
@@ -629,7 +629,7 @@ his own riot, on the boss wave, still give 2 and 4.
 
 | From | The Warden's faction | What it does |
 |---|---|---|
-| 1 | **Rioter** | A prisoner on the loose in an orange jumpsuit, one of two kinds: a Brawler (broad shoulders, cuffed fists throwing punches) or a Ball and Chain (hunched, dragging an iron ball on its ankle); same moves either way: weaves at you, in pairs (contact 10). Squad: Breakout (six Rioters and a Guard) |
+| 1 | **Rioter** | A prisoner on the loose in an orange jumpsuit: a Brawler (broad shoulders, cuffed fists throwing punches) that weaves at you, in pairs (contact 10). **Variant, Ball and Chain** (30% of Rioters): hunched, dragging an iron ball on its ankle, the same moves but **25% slower**. Squad: Breakout (six Rioters and a Guard) |
 | 1 | **Guard** | A corrections officer (khaki shirt, peaked cap, gold badge) with a side-handle nightstick, straight at you (contact 14). Within about 60 px it swings the stick without stopping, forehand then backhand: a 0.16 s draw-back flashes its 120° arc amber on the floor, then the swing hits everyone in it out to 80 px for 7; one every 0.6 s |
 | 2 | **Thug** | A hunched prisoner brute in a tank top, bare tattooed arms and giant taped fists: moves and hits like a Brute (140 health, contact 20). Squad: Yard (a Thug, three Rioters and a Shiv) |
 | 3 | **Shiv** | A prisoner with a taped shank, one of two kinds: Hooded (hood up, the shank held low) or Twin Shanks (shirtless, a shank in each hand); it draws the shank back as it winds up. Circles in close, shows the lunge lane, then lunges like a Lunger (contact 18, 26 on the lunge) |
