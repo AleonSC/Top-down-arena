@@ -80,6 +80,27 @@ static partial class Program
         Check(dodged && me.Run.DamageTaken == hp0, "stepping out of the cone before the cut takes no damage");
         sw.Hp = 0f; quiet();
 
+        // --- a parried cut: the guard takes it and the Swordsman slides back (Parry.cs, ParryStrikeShove) ------------
+        V2 guard = new V2(740f, 360f);  // the test input aims at (640, 360): straight at the Swordsman
+        stand(); me.Pos = guard;
+        sw = put(EnemyType.Swordsman, guard + new V2(-100f, 0f));
+        Run(s, dt, 2f, () => sw.Phase == 1, () => { me.Pos = guard; me.InvulnT = 0f; friend.Pos = far; friend.Downed = true; });
+        hp0 = me.Run.DamageTaken;
+        g.HoldParry = true;
+        float before = sw.Pos.DistanceTo(guard), after = 0f;
+        bool parried = false;
+        Run(s, dt, 1.2f, null, () =>
+        {
+            me.Pos = guard; me.InvulnT = 0f; friend.Pos = far; friend.Downed = true;
+            parried |= sw.Phase >= 2;
+            if (sw.Phase == 2) after = Math.Max(after, sw.Pos.DistanceTo(guard));
+        });
+        g.HoldParry = false;
+        Console.WriteLine("  parried cut: you lost {0:0}, it went from {1:0} to {2:0} px away", me.Run.DamageTaken - hp0, before, after);
+        Check(parried && me.Run.DamageTaken == hp0, "a raised parry facing the Swordsman takes its cut");
+        Check(after - before > Game.ParryStrikeShove * 0.8f, "a parried cut throws the Swordsman back");
+        sw.Hp = 0f; quiet();
+
         // --- the Shield Swordsman: the guard -------------------------------------------------------------------------
         var sh = put(EnemyType.ShieldSwordsman, home);
         sh.Facing = 0f; sh.Phase = 0;
