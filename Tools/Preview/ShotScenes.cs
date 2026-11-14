@@ -760,7 +760,8 @@ static partial class Shot {
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
     // SPRINT=<s since it began>: the Dodge's held sprint (Dodge.cs): you dodged right and kept the key down, running right
-    // that long into the sprint, with its fading pale-blue wake (NinjaLooks.cs DrawSprintWake). SPRINT=0 fresh; mode hud.
+    // that long into the sprint, with its fading pale-blue wake (NinjaLooks.cs DrawSprintWake); with 2 players a teammate
+    // runs alongside, drawn from the replicated Player.Sprint. SPRINT=0 fresh; mode hud.
     if (Environment.GetEnvironmentVariable("SPRINT") != null) {
       var ci = System.Globalization.CultureInfo.InvariantCulture;
       var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
@@ -773,6 +774,8 @@ static partial class Shot {
         Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
         gm.FixedStep(1f / 60f, new PlayerInput { Move = new V2(1f, 0f), Dodge = f == 0, DodgeHeld = true, AimAt = me.Pos + new V2(200f, -60f) });
         me.Disp = me.Pos;
+        foreach (var q in gm.Players.Values)
+          if (q != me) { q.Pos = q.Disp = me.Pos + new V2(-60f, 140f); q.Sprint = me.Sprint; }  // a teammate running alongside, its wake from Player.Sprint
         draw.Invoke(app, null);
       }
       GL.Tris.Clear(); GUI.Log.Clear();
