@@ -7,19 +7,43 @@ namespace Arena
     /// parts, the registry and the hooks; the table is empty until step 1 moves the first family.
     public sealed class Brain
     {
-        public IMove Move;        // where it goes each tick (in place of its MoveEnemy case)
-        public IFire Fire;        // what it shoots when FireT runs out (in place of its EnemyFire branch)
-        public ISpecial Special;  // wind-ups, dashes, drops (in place of its case in Special's type switch)
-        public IGuard Guard;      // blocks a hit from a point (a shield's front); null: nothing blocks
-        public BrainRole Roles;   // answers "is it a Brute / a wall / a Lunger ..." for squads, bots, sounds and looks
+        public MovePart Move;        // where it goes each tick and how it turns (in place of its MoveEnemy and Face cases)
+        public FirePart Fire;        // what it shoots when FireT runs out (in place of its EnemyFire branch)
+        public SpecialPart Special;  // wind-ups, dashes, drops (in place of its case in Special's type switch)
+        public GuardPart Guard;      // a shield: what it blocks, how it wears, what a blocked shot does; null: nothing blocks
+        public BrainRole Roles;      // answers "is it a Brute / a wall / a Lunger ..." for squads, bots, sounds and looks
     }
 
     /// A part is shared by every enemy that uses it, so it holds numbers only: per-enemy state stays on Enemy (Phase, PhaseT,
     /// Facing, Strafe, ...), which keeps snapshots unchanged. Parts are nested in Game (partial) so they reach its helpers.
-    public interface IMove { V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed); }
-    public interface IFire { void Fire(Game g, Enemy e, V2 tpos, float aim); }
-    public interface ISpecial { void Tick(Game g, Enemy e, V2 tpos, float dt); }
-    public interface IGuard { bool Blocks(Game g, Enemy e, V2 from); }
+    public abstract class MovePart
+    {
+        public abstract V2 Move(Game g, Enemy e, V2 tpos, V2 dir, float dist, float dt, ref float speed);
+        /// Its own turning toward `want` (radians); false: turn like everyone else (face the target at once).
+        public virtual bool Turn(Game g, Enemy e, float want, float dt) => false;
+    }
+
+    public abstract class FirePart
+    {
+        public abstract void Fire(Game g, Enemy e, V2 tpos, float aim);
+    }
+
+    public abstract class SpecialPart
+    {
+        public abstract void Tick(Game g, Enemy e, V2 tpos, float dt);
+    }
+
+    public abstract class GuardPart
+    {
+        /// Does it stop a hit coming from `from` (BlocksShot)?
+        public abstract bool Blocks(Game g, Enemy e, V2 from);
+        /// At spawn: give it its shield.
+        public virtual void Setup(Game g, Enemy e) { }
+        /// A blocked hit (a shot, a swing, a blast) wears the shield (WearShield).
+        public virtual void Wear(Game g, Enemy e, float amount) { }
+        /// A player's bullet it blocked: by default the shield takes its damage.
+        public virtual void Shot(Game g, Enemy e, Bullet b) => Wear(g, e, b.Dmg);
+    }
 
     /// What an enemy counts as wherever the code asks (IsBrute, IsLunger, IsWallKin, IsSwordsman, IsHook). A brain sets every
     /// role its enemy has: with a brain, those checks read only Roles.
@@ -51,9 +75,8 @@ namespace Arena
         static Brain[] BuildBrains()
         {
             var t = new Brain[256];
-            // One line per migrated enemy (Docs/EnemyBehaviours.md "Steps"), e.g.
-            // t[(int)EnemyType.RiotShield] = new Brain { Move = ..., Guard = ..., Roles = BrainRole.Wall };
-            // Empty until step 1.
+            // Each family adds its enemies (Docs/EnemyBehaviours.md "Steps").
+            ShieldBrains(t);  // step 1 (ShieldBrains.cs)
             return t;
         }
     }

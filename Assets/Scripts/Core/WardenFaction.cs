@@ -42,7 +42,7 @@ namespace Arena
             e.PhaseT = time;
         }
 
-        public static bool RiotShieldBroken(Enemy e) => e.Kin == EnemyType.RiotShield && RiotCrack(e) >= RiotCracked;
+        public static bool RiotShieldBroken(Enemy e) => IsWallKin(e.Type) && RiotCrack(e) >= RiotCracked;
 
         /// Shots and swings from the front stop on an unbroken shield, unless it's held low after a bash.
         bool RiotShieldBlocks(Enemy e, V2 from)
@@ -54,7 +54,7 @@ namespace Arena
         }
 
         /// A blocked hit wears the shield; it cracks in three steps, then shatters and the guard staggers.
-        void WearRiotShield(Enemy e, float amount)
+        void WearRiotShield(Enemy e, float amount, ShieldGuard guard)
         {
             if (RiotCrack(e) >= RiotCracked || e.ShieldMax <= 0f)
                 return;
@@ -68,10 +68,7 @@ namespace Arena
             {
                 SetRiot(e, RiotStaggered, RiotCracked);
                 e.PhaseT = RiotStagger;
-                if (e.Type == EnemyType.SlabBearer)
-                    DropSlab(e);  // the slab falls in front of it as cover (QuarryFaction.cs)
-                else if (e.Type == EnemyType.CarcassBearer)
-                    DropCarcass(e);  // the meat falls as a morsel (LarderFaction.cs)
+                guard.Shattered(this, e);  // a Slab Bearer's slab, a Carcass Bearer's meat (ShieldBrains.cs)
                 BroadcastFx(FxKind.Shatter, e.Pos, front, new Rgba(0.7f, 0.82f, 1f), RiotShieldArc, 0.6f, Sfx.Clang);
             }
             else
@@ -104,6 +101,13 @@ namespace Arena
                 return SecurityMove(e, dir, dist, dt);  // SecurityGuard.cs
             if (e.Kin == EnemyType.TaserGuard)
                 return e.Winding ? V2.Zero : KeepDistance(dir, dist, TaserRange) + dir.Orthogonal() * e.Strafe * 0.5f;  // plants its feet while it charges
+            return V2.Zero;
+        }
+
+        /// A shield bearer (ShieldBrains.cs): still while winding up or staggered, a straight lunge, slowed while its shield is
+        /// low, otherwise into its place in the herd.
+        V2 RiotShieldMove(Enemy e, V2 tpos, V2 dir, ref float speed)
+        {
             switch (RiotState(e))
             {
                 case RiotWinding:
@@ -134,7 +138,7 @@ namespace Arena
         readonly HashSet<int> riotLineBroke = new HashSet<int>();                // host: lines whose guards have broken out
 
         /// The wall of a line: Riot Shields and their kin (a Comb Shield, a Slab Bearer); everyone else walks behind it.
-        static bool IsWallKin(EnemyType t) => BrainHas(t, BrainRole.Wall) ?? HiveKin.Of(t) == EnemyType.RiotShield;
+        public static bool IsWallKin(EnemyType t) => BrainHas(t, BrainRole.Wall) ?? HiveKin.Of(t) == EnemyType.RiotShield;
 
         /// Each member's place in its own row (shields counted among shields, guards among guards).
         static int RiotLineSlot(SquadDef s, int i)

@@ -94,7 +94,7 @@ namespace Arena
         /// Duelist's guard does, since Collide is walking the bullets).
         void ParrierBounce(Enemy e, Bullet b)
         {
-            if (e.Type != EnemyType.Parrier || b.Owner == 0 || e.DanceT > 0f)
+            if (b.Owner == 0 || e.DanceT > 0f)  // (only a Parrier's guard calls it: ShieldBrains.cs)
                 return;
             e.DanceT = ParrierEvery;
             V2 at = e.Pos + (b.Pos - e.Pos).Normalized() * (e.Radius + 10f);

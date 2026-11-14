@@ -362,8 +362,9 @@ namespace Arena
                 RollCoreCarrier(e);  // CoreDrops.cs
             if (type == EnemyType.Shielder)
                 e.ShieldHp = e.ShieldMax = e.MaxHp * ShieldShare;
-            if (HiveKin.Of(type) == EnemyType.RiotShield)
-                e.ShieldHp = e.ShieldMax = e.MaxHp * RiotShieldShare;  // WardenFaction.cs
+            var brain = BrainOf(type);
+            if (brain != null && brain.Guard != null)
+                brain.Guard.Setup(this, e);  // a shield bearer's shield (ShieldBrains.cs)
             return e;
         }
 
@@ -740,11 +741,9 @@ namespace Arena
                 LensFace(e, want, dt);  // turns slowly, so you can get round its face (Infall.cs)
                 return;
             }
-            if (e.Kin == EnemyType.RiotShield)
-            {
-                RiotShieldFace(e, want, dt);  // WardenFaction.cs
-                return;
-            }
+            var brain = BrainOf(e.Type);
+            if (brain != null && brain.Move != null && brain.Move.Turn(this, e, want, dt))
+                return;  // its own turning, e.g. a shield bearer's (Brain.cs)
             if (e.Type == EnemyType.RiotCaptain)
             {
                 CaptainFace(e, want, dt);  // RiotCaptain.cs
@@ -773,9 +772,10 @@ namespace Arena
         /// A hit the shield stopped (or time) wears it down; it cracks in three steps, then shatters.
         void WearShield(Enemy e, float amount)
         {
-            if (e.Kin == EnemyType.RiotShield)
+            var brain = BrainOf(e.Type);
+            if (brain != null && brain.Guard != null)
             {
-                WearRiotShield(e, amount);  // WardenFaction.cs
+                brain.Guard.Wear(this, e, amount);  // a shield bearer's (ShieldBrains.cs)
                 return;
             }
             if (e.Type == EnemyType.RiotCaptain)
@@ -841,8 +841,6 @@ namespace Arena
             var brain = BrainOf(e.Type);
             if (brain != null && brain.Guard != null)
                 return brain.Guard.Blocks(this, e, from);  // Brain.cs
-            if (e.Kin == EnemyType.RiotShield)
-                return RiotShieldBlocks(e, from);  // WardenFaction.cs
             if (e.Type == EnemyType.RiotCaptain)
                 return CaptainShieldBlocks(e, from);  // RiotCaptain.cs
             if (e.Type == EnemyType.ShieldSwordsman)
@@ -909,143 +907,146 @@ namespace Arena
             var brain = BrainOf(e.Type);
             if (brain != null && brain.Move != null)
                 v = brain.Move.Move(this, e, tpos, dir, dist, dt, ref speed);  // Brain.cs
-            else switch (e.Kin)
+            else
             {
-                case EnemyType.Grunt:
-                    v = KeepDistance(dir, dist, 230f) + dir.Orthogonal() * e.Strafe * 0.6f;
-                    break;
-                case EnemyType.Sniper:
-                    v = KeepDistance(dir, dist, 420f) + dir.Orthogonal() * e.Strafe * 0.8f;
-                    break;
-                case EnemyType.Burster:
-                    v = KeepDistance(dir, dist, 160f);
-                    break;
-                case EnemyType.Shard:
-                    v = DroneGoingHome(e) ? DroneHomeMove(e, ref speed)  // the Hive Queen's drones, flying back into her (Queen.cs)
-                        : KeepDistance(dir, dist, 180f) + dir.Orthogonal() * e.Strafe;
-                    break;
-                case EnemyType.Mortar:
-                    v = KeepDistance(dir, dist, 450f) + dir.Orthogonal() * e.Strafe * 0.4f;
-                    break;
-                case EnemyType.Shielder:
-                    v = KeepDistance(dir, dist, 200f);
-                    break;
-                case EnemyType.Medic:
-                    v = KeepDistance(dir, dist, 360f) + dir.Orthogonal() * e.Strafe * 0.5f;
-                    break;
-                case EnemyType.Splitter:
-                    v = KeepDistance(dir, dist, 220f);
-                    break;
-                case EnemyType.Charger:
-                    if (e.Phase == 0)
-                        v = KeepDistance(dir, dist, 300f) + dir.Orthogonal() * e.Strafe * 0.5f;
-                    else if (e.Phase == 2)
-                    {
-                        v = V2.FromAngle(e.Facing);
-                        speed = ChargerDashSpeed;
-                    }
-                    break;
-                case EnemyType.HiveBomber:  // a straight line to the spot it was launched at; Swarm's flankers swoop round (Queen.cs)
-                    if (e.Phase >= 1)
-                    {
-                        v = FlankerMove(e, dt);
-                        if (e.Phase == 2)
-                            speed *= FlankDive;
-                    }
-                    else
-                        v = e.Waypoint - e.Pos;
-                    break;
-                case EnemyType.Spiker:  // heads for you in a zig-zag (MeleeGrunts.cs)
-                    v = SpikerMove(e, dir, dist, dt);
-                    break;
-                case EnemyType.Buzzsaw:  // swoops in on curves, steering with momentum
-                    e.Vel += (dir - e.Vel) * Math.Min(1f, dt * SawTurn);
-                    v = e.Vel;
-                    break;
-                case EnemyType.SpikeBlock:  // rocks from side to side as it closes in; stands still to wind up and recover
-                    if (e.Phase == 0)
-                        v = dir * 0.6f + dir.Orthogonal() * (float)Math.Sin(e.T * 2.6f + e.Id) * 0.8f;
-                    else if (e.Phase == 2)
-                    {
-                        v = V2.FromAngle(e.Facing);
-                        speed = SpikeLungeSpeed;
-                    }
-                    break;
-                case EnemyType.Brute:
-                case EnemyType.Thug:
-                case EnemyType.Gravedigger:
-                case EnemyType.Swarmer:  // no tricks: straight at you
-                case EnemyType.Wisp:
-                    v = dir;
-                    break;
-                case EnemyType.Lunger:
-                case EnemyType.Shiv:
-                case EnemyType.ScytheWraith:
-                    if (e.Phase == 0)
-                        v = dist > (e.Type == EnemyType.Fencer ? FencerStart - 30f : 170f) ? dir : dir.Orthogonal() * e.Strafe * 0.6f;  // close in, then circle while it winds up (a Fencer closer: CourtFaction.cs)
-                    else if (e.Phase == 2)
-                    {
-                        v = V2.FromAngle(e.Facing);
-                        speed = e.Type == EnemyType.ScytheWraith ? ScytheSpeed : 640f;
-                    }
-                    else if (e.Phase == 3)
-                        speed *= 0.3f;  // recovering after the leap
-                    break;
-                case EnemyType.Spinner:  // wanders between random spots, round walls and crates; gives up on one it can't reach
-                    e.PhaseT -= dt;
-                    if (e.Pos.DistanceTo(e.Waypoint) < 20f || e.PhaseT <= 0f)
-                    {
-                        e.Waypoint = WanderSpot(Walled ? 80f : 150f, e.Radius + 12f);
-                        e.PhaseT = e.Pos.DistanceTo(e.Waypoint) / Math.Max(1f, e.Speed) * 1.6f + 4f;
-                    }
-                    v = RouteTo(e, e.Waypoint);  // LayoutRules.cs
-                    break;
-                case EnemyType.Boss:
-                    v = WardenMove(e, tpos, ref speed);  // Warden.cs
-                    break;
-                case EnemyType.Rioter:
-                    v = RioterMove(e, tpos);  // Warden.cs
-                    break;
-                case EnemyType.Guard:
-                    v = GuardMove(e, tpos);  // Warden.cs
-                    if (e.Type == EnemyType.Soldier)
-                        speed *= SoldierCharge(e, dist);  // HiveBees.cs
-                    break;
-                case EnemyType.HiveQueen:
-                    v = QueenMove(e, tpos, ref speed);  // Queen.cs
-                    break;
-                case EnemyType.TwinA:
-                case EnemyType.TwinB:
-                    v = ReaperMove(e, tpos, ref speed);  // Reapers.cs
-                    break;
-                case EnemyType.DualReaper:
-                    v = DualMove(e, tpos, ref speed);  // Reapers.cs
-                    break;
+                switch (e.Kin)
+                {
+                    case EnemyType.Grunt:
+                        v = KeepDistance(dir, dist, 230f) + dir.Orthogonal() * e.Strafe * 0.6f;
+                        break;
+                    case EnemyType.Sniper:
+                        v = KeepDistance(dir, dist, 420f) + dir.Orthogonal() * e.Strafe * 0.8f;
+                        break;
+                    case EnemyType.Burster:
+                        v = KeepDistance(dir, dist, 160f);
+                        break;
+                    case EnemyType.Shard:
+                        v = DroneGoingHome(e) ? DroneHomeMove(e, ref speed)  // the Hive Queen's drones, flying back into her (Queen.cs)
+                            : KeepDistance(dir, dist, 180f) + dir.Orthogonal() * e.Strafe;
+                        break;
+                    case EnemyType.Mortar:
+                        v = KeepDistance(dir, dist, 450f) + dir.Orthogonal() * e.Strafe * 0.4f;
+                        break;
+                    case EnemyType.Shielder:
+                        v = KeepDistance(dir, dist, 200f);
+                        break;
+                    case EnemyType.Medic:
+                        v = KeepDistance(dir, dist, 360f) + dir.Orthogonal() * e.Strafe * 0.5f;
+                        break;
+                    case EnemyType.Splitter:
+                        v = KeepDistance(dir, dist, 220f);
+                        break;
+                    case EnemyType.Charger:
+                        if (e.Phase == 0)
+                            v = KeepDistance(dir, dist, 300f) + dir.Orthogonal() * e.Strafe * 0.5f;
+                        else if (e.Phase == 2)
+                        {
+                            v = V2.FromAngle(e.Facing);
+                            speed = ChargerDashSpeed;
+                        }
+                        break;
+                    case EnemyType.HiveBomber:  // a straight line to the spot it was launched at; Swarm's flankers swoop round (Queen.cs)
+                        if (e.Phase >= 1)
+                        {
+                            v = FlankerMove(e, dt);
+                            if (e.Phase == 2)
+                                speed *= FlankDive;
+                        }
+                        else
+                            v = e.Waypoint - e.Pos;
+                        break;
+                    case EnemyType.Spiker:  // heads for you in a zig-zag (MeleeGrunts.cs)
+                        v = SpikerMove(e, dir, dist, dt);
+                        break;
+                    case EnemyType.Buzzsaw:  // swoops in on curves, steering with momentum
+                        e.Vel += (dir - e.Vel) * Math.Min(1f, dt * SawTurn);
+                        v = e.Vel;
+                        break;
+                    case EnemyType.SpikeBlock:  // rocks from side to side as it closes in; stands still to wind up and recover
+                        if (e.Phase == 0)
+                            v = dir * 0.6f + dir.Orthogonal() * (float)Math.Sin(e.T * 2.6f + e.Id) * 0.8f;
+                        else if (e.Phase == 2)
+                        {
+                            v = V2.FromAngle(e.Facing);
+                            speed = SpikeLungeSpeed;
+                        }
+                        break;
+                    case EnemyType.Brute:
+                    case EnemyType.Thug:
+                    case EnemyType.Gravedigger:
+                    case EnemyType.Swarmer:  // no tricks: straight at you
+                    case EnemyType.Wisp:
+                        v = dir;
+                        break;
+                    case EnemyType.Lunger:
+                    case EnemyType.Shiv:
+                    case EnemyType.ScytheWraith:
+                        if (e.Phase == 0)
+                            v = dist > (e.Type == EnemyType.Fencer ? FencerStart - 30f : 170f) ? dir : dir.Orthogonal() * e.Strafe * 0.6f;  // close in, then circle while it winds up (a Fencer closer: CourtFaction.cs)
+                        else if (e.Phase == 2)
+                        {
+                            v = V2.FromAngle(e.Facing);
+                            speed = e.Type == EnemyType.ScytheWraith ? ScytheSpeed : 640f;
+                        }
+                        else if (e.Phase == 3)
+                            speed *= 0.3f;  // recovering after the leap
+                        break;
+                    case EnemyType.Spinner:  // wanders between random spots, round walls and crates; gives up on one it can't reach
+                        e.PhaseT -= dt;
+                        if (e.Pos.DistanceTo(e.Waypoint) < 20f || e.PhaseT <= 0f)
+                        {
+                            e.Waypoint = WanderSpot(Walled ? 80f : 150f, e.Radius + 12f);
+                            e.PhaseT = e.Pos.DistanceTo(e.Waypoint) / Math.Max(1f, e.Speed) * 1.6f + 4f;
+                        }
+                        v = RouteTo(e, e.Waypoint);  // LayoutRules.cs
+                        break;
+                    case EnemyType.Boss:
+                        v = WardenMove(e, tpos, ref speed);  // Warden.cs
+                        break;
+                    case EnemyType.Rioter:
+                        v = RioterMove(e, tpos);  // Warden.cs
+                        break;
+                    case EnemyType.Guard:
+                        v = GuardMove(e, tpos);  // Warden.cs
+                        if (e.Type == EnemyType.Soldier)
+                            speed *= SoldierCharge(e, dist);  // HiveBees.cs
+                        break;
+                    case EnemyType.HiveQueen:
+                        v = QueenMove(e, tpos, ref speed);  // Queen.cs
+                        break;
+                    case EnemyType.TwinA:
+                    case EnemyType.TwinB:
+                        v = ReaperMove(e, tpos, ref speed);  // Reapers.cs
+                        break;
+                    case EnemyType.DualReaper:
+                        v = DualMove(e, tpos, ref speed);  // Reapers.cs
+                        break;
+                }
+                if (e.Type == EnemyType.Gutworm)
+                    v = dir;  // straight at you, on the surface or under it (LarderFaction.cs)
+                if (IsLateGame(e.Type))
+                    v = LateMove(e, tpos, dir, dist, dt, ref speed);
+                if (e.Type >= EnemyType.BeamSentry && e.Type <= EnemyType.Stitcher)
+                    v = VarietyMove(e, tpos, dir, dist, ref speed);  // Variety.cs
+                if (IsInfall(e.Type))
+                    v = InfallMove(e, tpos, dir, dist, dt, ref speed);  // Infall.cs
+                if (IsPenumbral(e.Type))
+                    v = PenumbralMove(e, tpos, dir, dist, dt, ref speed);  // Penumbral.cs
+                if (IsSquall(e.Type))
+                    v = SquallMove(e, tpos, dir, dist, dt, ref speed);  // Squall.cs
+                if (Challenges.Own(e.Type))
+                    v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
+                if (e.Type == EnemyType.RiotCaptain)
+                    v = CaptainMove(e, dir, dist, ref speed);  // RiotCaptain.cs
+                if (e.Kin == EnemyType.GasGrenadier || e.Kin == EnemyType.TaserGuard || e.Kin == EnemyType.SecurityGuard)
+                    v = WardenFactionMove(e, tpos, dir, dist, dt, ref speed);  // WardenFaction.cs
+                if (e.Type == EnemyType.BoundWraith || e.Type == EnemyType.Lamplighter || e.Type == EnemyType.Mourner)
+                    v = ReaperCultMove(e, tpos, dir, dist, dt, ref speed);  // ReaperFaction.cs
+                if (Zombies.Is(e.Type))
+                    v = ZombieMove(e, tpos, dir, dist, ref speed);  // Zombies.cs
+                if (IsNonShooter(e.Type))
+                    v = NonShooterMove(e, tpos, dir, dist, ref speed);  // NonShooters.cs
             }
-            if (e.Type == EnemyType.Gutworm)
-                v = dir;  // straight at you, on the surface or under it (LarderFaction.cs)
-            if (IsLateGame(e.Type))
-                v = LateMove(e, tpos, dir, dist, dt, ref speed);
-            if (e.Type >= EnemyType.BeamSentry && e.Type <= EnemyType.Stitcher)
-                v = VarietyMove(e, tpos, dir, dist, ref speed);  // Variety.cs
-            if (IsInfall(e.Type))
-                v = InfallMove(e, tpos, dir, dist, dt, ref speed);  // Infall.cs
-            if (IsPenumbral(e.Type))
-                v = PenumbralMove(e, tpos, dir, dist, dt, ref speed);  // Penumbral.cs
-            if (IsSquall(e.Type))
-                v = SquallMove(e, tpos, dir, dist, dt, ref speed);  // Squall.cs
-            if (Challenges.Own(e.Type))
-                v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
-            if (e.Type == EnemyType.RiotCaptain)
-                v = CaptainMove(e, dir, dist, ref speed);  // RiotCaptain.cs
-            if (e.Kin == EnemyType.RiotShield || e.Kin == EnemyType.GasGrenadier || e.Kin == EnemyType.TaserGuard || e.Kin == EnemyType.SecurityGuard)
-                v = WardenFactionMove(e, tpos, dir, dist, dt, ref speed);  // WardenFaction.cs
-            if (e.Type == EnemyType.BoundWraith || e.Type == EnemyType.Lamplighter || e.Type == EnemyType.Mourner)
-                v = ReaperCultMove(e, tpos, dir, dist, dt, ref speed);  // ReaperFaction.cs
-            if (Zombies.Is(e.Type))
-                v = ZombieMove(e, tpos, dir, dist, ref speed);  // Zombies.cs
-            if (IsNonShooter(e.Type))
-                v = NonShooterMove(e, tpos, dir, dist, ref speed);  // NonShooters.cs
             if (RoomsOn && !e.Def.IsBoss && !e.Def.Melee && e.Home < 0 && dist > 0.01f && SegBlocked(ActiveLayout, e.Pos, tpos, 4f))
                 v = dir;  // the Rooms map: a shooter with a wall between it and you comes round (steered) instead of holding its distance behind the wall
             v = SquadMove(e, tpos, dir, v);  // squads keep together (Variety.cs)
@@ -1126,9 +1127,6 @@ namespace Arena
             {
                 case EnemyType.Shielder:
                     WearShield(e, e.ShieldMax * ShieldDecay * dt);
-                    break;
-                case EnemyType.RiotShield:
-                    RiotShieldSpecial(e, tpos, dt);  // WardenFaction.cs
                     break;
                 case EnemyType.BoundWraith:
                 case EnemyType.Mourner:
