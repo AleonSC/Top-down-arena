@@ -81,6 +81,7 @@ namespace Arena
             ShieldBrains(t);  // step 1 (ShieldBrains.cs)
             LungeBrains(t);   // step 2 (LungeBrains.cs)
             ChaseBrains(t);   // step 3 (ChaseBrains.cs)
+            RiotBrains(t);    // step 4 (RiotBrains.cs)
             return t;
         }
     }

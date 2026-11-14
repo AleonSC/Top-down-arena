@@ -1,7 +1,7 @@
 # Enemy behaviour classes
 
-**Status: steps 0-3 built** (scaffolding, hooks, `aitrace`; the shields, lungers, brutes and chasers run on brains). Owner's decisions: every enemy moves to brains (not just the kin ones), and drawing stays separate. Code today: `Core/HiveKin.cs` (the kin table), `Core/PrisonKin.cs` (`IsBrute`, `IsLunger`),
-`Core/EnemyAI.cs` (`MoveEnemy`, `Special`, `EnemyFire`), each faction's `*Faction.cs`. New: `Core/Brain.cs`, `Core/ShieldBrains.cs`, `Core/LungeBrains.cs`, `Core/ChaseBrains.cs`,
+**Status: steps 0-4 built** (scaffolding, hooks, `aitrace`; the shields, lungers, brutes, chasers, Rioters and Guards run on brains). Owner's decisions: every enemy moves to brains (not just the kin ones), and drawing stays separate. Code today: `Core/HiveKin.cs` (the kin table), `Core/PrisonKin.cs` (`IsBrute`, `IsLunger`),
+`Core/EnemyAI.cs` (`MoveEnemy`, `Special`, `EnemyFire`), each faction's `*Faction.cs`. New: `Core/Brain.cs`, `Core/ShieldBrains.cs`, `Core/LungeBrains.cs`, `Core/ChaseBrains.cs`, `Core/RiotBrains.cs`,
 `Tools/SimTest/Tests/AiTrace.cs`, `Tools/SimTest/Golden/aitrace.txt`.
 
 ## Problem
@@ -146,7 +146,7 @@ Each step moves one family. Each step has to leave `aitrace` IDENTICAL and needs
 | 1 ✓ | Shields | Riot Shield, Comb Shield, Slab Bearer, Parrier, Carcass Bearer |
 | 2 ✓ | Lungers | Lunger, Shiv, Hornet, Driller, Fencer, Scythe Wraith, Mummer (its masquerade still runs first) |
 | 3 ✓ | Brutes and chasers | Brute, Thug, Bumble, Gravedigger, Swarmer, Wisp, Stomper, Gulper, Harlequin |
-| 4 | Rioters and Guards | Rioter, Worker, Rubble, Gnawling, Guard, Soldier, Quarryman, Butcher, Blade Dancer |
+| 4 ✓ | Rioters and Guards | Rioter, Worker, Rubble, Gnawling, Guard, Soldier, Quarryman, Butcher, Blade Dancer |
 | 5 | Lobbers | Gas Grenadier, Honey Lobber, Rock Hurler, Bile Spitter, Dusk Lobber, Marshal |
 | 6 | Shooters | Taser Guard, Stinger, Geomancer, Cinder Priest, Maw Priest, Gallant; Security Guard, Needler, Second |
 | 7 | Remove the kin table | `HiveKin`, `Enemy.Kin`, the old cases; `IsBrute` etc. read only `Roles` |
@@ -201,6 +201,20 @@ Each step moves one family. Each step has to leave `aitrace` IDENTICAL and needs
 - **Left for step 7:** the sound and thrall switches (MeleeSounds.cs, ForcePact.cs) still list brutes and chasers by
   kin.
 - **Checked:** `aitrace` identical for all 128 types.
+
+## Step 4: Rioters and Guards (built)
+
+- **File:** `Core/RiotBrains.cs`.
+  - `RioterMovePart` (`RioterMove`): Rioter, Worker, Rubble, Gnawling (+ `EatSpecial`: eats a morsel).
+  - `GuardMovePart` (`GuardMove`): Guard, Quarryman, Soldier (its charge: the part's `charges` flag), Butcher
+    (+ `ChopSpecial`), Blade Dancer (+ `DanceSpecial`: its lunge and blades).
+- **Removed (unreachable now):** the Rioter and Guard cases in `MoveEnemy` (with the Soldier type check), and the
+  Blade Dancer, Butcher and Gnawling calls before `Special`'s switch.
+- **Kept where it was:** the Worker's crowd speed-up (`WorkerPackSpeed`) runs after `SquadMove` for everyone, so
+  moving it would reorder a float multiply. It stays a type check there.
+- **aitrace fix:** a run could fail to open its port (still held by an earlier run), leaving that enemy's line as
+  `no-fight`. It now takes the next port.
+- **Checked:** `aitrace` identical for all 128 types, twice.
 
 ## Risks
 

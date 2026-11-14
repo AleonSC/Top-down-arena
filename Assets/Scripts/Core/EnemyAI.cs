@@ -983,14 +983,6 @@ namespace Arena
                     case EnemyType.Boss:
                         v = WardenMove(e, tpos, ref speed);  // Warden.cs
                         break;
-                    case EnemyType.Rioter:
-                        v = RioterMove(e, tpos);  // Warden.cs
-                        break;
-                    case EnemyType.Guard:
-                        v = GuardMove(e, tpos);  // Warden.cs
-                        if (e.Type == EnemyType.Soldier)
-                            speed *= SoldierCharge(e, dist);  // HiveBees.cs
-                        break;
                     case EnemyType.HiveQueen:
                         v = QueenMove(e, tpos, ref speed);  // Queen.cs
                         break;
@@ -1084,17 +1076,11 @@ namespace Arena
                 ZombieSpecial(e, tpos, dt);  // Zombies.cs
                 return;
             }
-            if (e.Type == EnemyType.BladeDancer)
-                BladeDancerSpecial(e, tpos, dt);  // its lunge and blades (CourtFaction.cs)
             if (e.Type == EnemyType.Gallant)
                 GallantSpecial(e, tpos, dt);  // its salute and lunge (CourtFaction.cs)
             if (e.Type == EnemyType.Mummer && MummerSpecial(e, tpos, dt))
                 return;  // masked: it circles you with its copies and fires; no lunge (CourtFaction.cs)
-            if (e.Type == EnemyType.Butcher)
-                LarderSpecial(e, tpos, dt);  // the Butcher's chop (LarderFaction.cs; the Gulper's breath: ChaseBrains.cs)
-            else if (e.Type == EnemyType.Gnawling)
-                GnawlingEat(e);  // a morsel in reach (LarderFaction.cs)
-            else if (e.Type == EnemyType.Gutworm)
+            if (e.Type == EnemyType.Gutworm)
                 GutwormSpecial(e, tpos, dt);  // dives, chases, marks, erupts (LarderFaction.cs)
             var brain = BrainOf(e.Type);
             if (brain != null && brain.Special != null)

@@ -24,7 +24,7 @@ static partial class Program
         Game.SeedForTests(80000 + (int)type);
         TimedWaves.Enabled = false;
         var host = new Session { AutoStart = 1, StartWave = 3 };
-        host.Host(nextPort++, "Host", Role.Tank);
+        for (int tries = 0; !host.Host(nextPort++, "Host", Role.Tank) && tries < 20; tries++) { }  // a port still held by an earlier run: take the next
         host.Diff.Set(DiffKnob.Campaign, 0f);
         host.StartMatch();
         var g = host.Game;
