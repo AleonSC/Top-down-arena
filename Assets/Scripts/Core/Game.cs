@@ -173,6 +173,7 @@ namespace Arena
             }
             w.Write(ResumeFrom != null);  // continuing a saved run (RunSaves.cs)
             w.Write(ResumeFrom != null ? ResumeFrom.LongRun : LongRunDefault && !quick);  // a 100-wave Campaign (Hunts.cs); a saved run keeps its length
+            WriteSurvivalStart(w, quick);  // Survival mode: the flag and its seed (SurvivalGame.cs)
             var msg = Proto.End(w);
             session.Broadcast(msg);
             var r = new BinaryReader(new MemoryStream(msg));
@@ -265,6 +266,7 @@ namespace Arena
             }
             bool resumed = r.ReadBoolean();
             LongRun = r.ReadBoolean();  // a 100-wave Campaign (Hunts.cs)
+            ReadSurvivalStart(r);  // SurvivalGame.cs
             if (resumed && !IsHost)
                 foreach (var p in entries)
                     p.Level = 1;  // a continued run: the host sends everyone's levels and picks next (Head Start doesn't apply again)
