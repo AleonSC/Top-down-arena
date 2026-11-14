@@ -140,9 +140,10 @@ namespace Arena
                 bool diff = slot == 0 ? k != Keybinds.DefaultKey(a) : k != KeyCode.None;
                 Color? accent = k == KeyCode.None && !listening ? CrtUi.Dim : diff && !listening ? CabWarm : (Color?)null;
                 var ev = Event.current;
-                if (slot == 1 && k != KeyCode.None && ev.type == EventType.MouseDown && ev.button == 1 && cap.Contains(ev.mousePosition))
+                if ((slot == 1 || Keybinds.Unbindable(a)) && k != KeyCode.None && ev.type == EventType.MouseDown && ev.button == 1 && cap.Contains(ev.mousePosition))
                 {
-                    Keybinds.Clear2(a);  // (WinKey only answers the left button)
+                    if (slot == 1) Keybinds.Clear2(a);  // (WinKey only answers the left button)
+                    else Keybinds.Clear(a);  // (Mute may have no key at all)
                     ev.Use();
                 }
                 if (WinKey(cap, text, listening, 13, accent))

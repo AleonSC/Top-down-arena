@@ -12,7 +12,7 @@ namespace Arena
     public enum KeyAction
     {
         MoveUp, MoveDown, MoveLeft, MoveRight, Dodge, Ability, Ultimate, AbilityQ, AbilityE, AbilityShift, Fire, Parry, WeaponAction,
-        TakeItem, DiscardItem, Gadget, PushWall, Reroll, AimLine, ToggleHud, Mute, Emote, Ping, ReadyUp, OpenDoors,
+        TakeItem, DiscardItem, Gadget, PushWall, Reroll, AimLine, ToggleHud, Mute, Emote, Ping, ReadyUp, OpenDoors, Map,
     }
 
     public static class Keybinds
@@ -23,12 +23,12 @@ namespace Arena
         {
             KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.LeftControl, KeyCode.Space, KeyCode.F, KeyCode.Q, KeyCode.E, KeyCode.LeftShift,
             KeyCode.Mouse0, KeyCode.Mouse1, KeyCode.LeftAlt,
-            KeyCode.G, KeyCode.X, KeyCode.B, KeyCode.C, KeyCode.R, KeyCode.V, KeyCode.H, KeyCode.M, KeyCode.T, KeyCode.Mouse2, KeyCode.Y, KeyCode.Z,
+            KeyCode.G, KeyCode.X, KeyCode.B, KeyCode.C, KeyCode.R, KeyCode.V, KeyCode.H, KeyCode.None, KeyCode.T, KeyCode.Mouse2, KeyCode.Y, KeyCode.Z, KeyCode.M,
         };
         static readonly string[] Titles =
         {
             "Move up", "Move down", "Move left", "Move right", "Dodge", "Role ability", "Ultimate", "Bonus ability 1", "Bonus ability 2",
-            "Bonus ability 3", "Fire", "Parry", "Weapon secondary", "Take chest item", "Discard chest item", "Use gadget", "Push wall", "Reroll upgrades", "Aim line on / off", "Hide / show the HUD", "Mute sound", "Emotes", "Ping", "Ready for the next wave", "Open a door",
+            "Bonus ability 3", "Fire", "Parry", "Weapon secondary", "Take chest item", "Discard chest item", "Use gadget", "Push wall", "Reroll upgrades", "Aim line on / off", "Hide / show the HUD", "Mute sound", "Emotes", "Ping", "Ready for the next wave", "Open a door", "Map",
         };
         static readonly string[] Lines =
         {
@@ -37,7 +37,8 @@ namespace Arena
             "Your role's ability", "One per role and class", "The first bonus ability slot (the key it starts on)", "The second bonus ability slot",
             "The third bonus ability slot", "Hold to shoot (left click by default)", "Hold for the shield toward your cursor (right click by default)",
             "Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama whirl",
-            "While standing on it", "While standing on it", "Tap: switch your gadget on or off. Hold and let go: throw it where you aim", "Between waves, by a wall (Expanding arena): push it out a tile at a time", "In the upgrade picker", "A line from you toward the cursor", "A clean screen; a slim boss bar stays", "Everything off at once", "Hold to open the emote bar: scroll or click to pick one", "Tap to ping your cursor, hold for the wheel (middle mouse by default)", "Between waves: say you are ready (the wave starts once everyone is)", "Between waves (Expanding arena): open the door picker",
+            "While standing on it", "While standing on it", "Tap: switch your gadget on or off. Hold and let go: throw it where you aim", "Between waves, by a wall (Expanding arena): push it out a tile at a time", "In the upgrade picker", "A line from you toward the cursor", "A clean screen; a slim boss bar stays", "Everything off at once (no key until you give it one)", "Hold to open the emote bar: scroll or click to pick one", "Tap to ping your cursor, hold for the wheel (middle mouse by default)", "Between waves: say you are ready (the wave starts once everyone is)", "Between waves (Expanding arena): open the door picker",
+            "Cycles the minimap, the full map and no map",
         };
         /// The groups on the Keybinds page: heading and the actions in each, in page order (every action in exactly one).
         public static readonly string[] GroupNames = { "MOVEMENT", "ABILITIES", "WEAPON", "ITEMS AND PICKS", "TOGGLES" };
@@ -47,7 +48,7 @@ namespace Arena
             new[] { KeyAction.Ability, KeyAction.Ultimate, KeyAction.AbilityQ, KeyAction.AbilityE, KeyAction.AbilityShift },
             new[] { KeyAction.Fire, KeyAction.Parry, KeyAction.WeaponAction },
             new[] { KeyAction.TakeItem, KeyAction.DiscardItem, KeyAction.Gadget, KeyAction.PushWall, KeyAction.OpenDoors, KeyAction.Reroll },
-            new[] { KeyAction.AimLine, KeyAction.ToggleHud, KeyAction.Mute, KeyAction.Emote, KeyAction.Ping, KeyAction.ReadyUp },
+            new[] { KeyAction.AimLine, KeyAction.ToggleHud, KeyAction.Map, KeyAction.Mute, KeyAction.Emote, KeyAction.Ping, KeyAction.ReadyUp },
         };
 
         static readonly KeyCode[] keys = (KeyCode[])Defaults.Clone();
@@ -76,6 +77,10 @@ namespace Arena
         public static KeyCode Get2(KeyAction a) => keys2[(int)a];
         public static KeyCode Get(KeyAction a, int slot) => slot == 0 ? keys[(int)a] : keys2[(int)a];
         public static bool IsDefault(KeyAction a) => keys[(int)a] == Defaults[(int)a] && keys2[(int)a] == KeyCode.None;
+        /// Starts with no key (Mute): its main key may be left empty, and right-click clears it.
+        public static bool Unbindable(KeyAction a) => Defaults[(int)a] == KeyCode.None;
+        /// The key's name, or null when the action has none (for hints that should then say nothing).
+        public static string NameOrNull(KeyAction a) => Get(a) == KeyCode.None ? null : KeyName(Get(a));
 
         static bool Either(KeyCode k, Func<KeyCode, bool> test)
         {
@@ -186,6 +191,16 @@ namespace Arena
             return -1;
         }
 
+        /// Clear the main key of an action that may have none (Unbindable); the second key moves up.
+        public static void Clear(KeyAction a)
+        {
+            if (!Unbindable(a))
+                return;
+            keys[(int)a] = keys2[(int)a];
+            keys2[(int)a] = KeyCode.None;
+            Changed();
+        }
+
         /// Clear the secondary key.
         public static void Clear2(KeyAction a)
         {
@@ -197,7 +212,10 @@ namespace Arena
         {
             // Back to its own default and no second key, unless another action sits on it now: that one takes this action's key.
             keys2[(int)a] = KeyCode.None;
-            Set(a, Defaults[(int)a]);
+            if (Unbindable(a))
+                keys[(int)a] = KeyCode.None;
+            else
+                Set(a, Defaults[(int)a]);
             Changed();
         }
 
@@ -228,14 +246,19 @@ namespace Arena
             {
                 int v = PlayerPrefs.GetInt("key_" + (KeyAction)i, (int)Defaults[i]);
                 keys[i] = Allowed((KeyCode)v, (KeyAction)i) ? (KeyCode)v : Defaults[i];
+                if (i == (int)KeyAction.Mute && keys[i] == KeyCode.M && !PlayerPrefs.HasKey("key_" + KeyAction.Map))
+                    keys[i] = KeyCode.None;  // a save from before the Map key: M was Mute's old default, and goes to the map now
                 int v2 = PlayerPrefs.GetInt("key2_" + (KeyAction)i, 0);
                 keys2[i] = Allowed((KeyCode)v2, (KeyAction)i) ? (KeyCode)v2 : KeyCode.None;
             }
             for (int i = 0; i < keys.Length; i++)  // a hand-edited save with a key on two actions: the later one goes back
             {
                 for (int j = 0; j < i; j++)
-                    if (keys[i] == keys[j])
+                    if (keys[i] != KeyCode.None && keys[i] == keys[j])
                         keys[i] = Defaults[i];
+                for (int j = 0; j < i; j++)  // (its default is taken too, e.g. an older save gave M to another action: left empty)
+                    if (keys[i] != KeyCode.None && keys[i] == keys[j])
+                        keys[i] = KeyCode.None;
                 for (int j = 0; j < keys.Length; j++)
                     if (keys2[i] != KeyCode.None && (keys2[i] == keys[j] || (j < i && keys2[i] == keys2[j])))
                         keys2[i] = KeyCode.None;

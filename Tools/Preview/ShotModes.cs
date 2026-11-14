@@ -29,6 +29,18 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("EMOTEBAR") != null) { Profile.Current.Xp = Rank.XpAt(60); set("emoteBarOpen", true); set("emoteBarK", 1f); }
       if (Environment.GetEnvironmentVariable("EMOTE") != null) { var ep = Environment.GetEnvironmentVariable("EMOTE").Split(','); host.Emotes[1] = new Session.EmoteShow { Index = byte.Parse(ep[0]), At = Session.Clock - (ep.Length > 1 ? float.Parse(ep[1]) : 0.8f) }; }
       bool zoomGl = Environment.GetEnvironmentVariable("ZOOM") != null || Environment.GetEnvironmentVariable("ROOMS") != null || Environment.GetEnvironmentVariable("LAG") != null || Environment.GetEnvironmentVariable("SURVIVAL") != null;  // (the off-screen markers and the lag chart's lines draw with GL on the HUD; OffscreenMarkers.cs, LagChartUi.cs)
+      // MAPVIEW=<from>,<to>,<t>: the Map key's switch (0 minimap, 1 full map, 2 off) that far through (MapView.cs); use with ROOMS or EXPANDMAP
+      // MAPCYCLE=<s>: that far through a scripted run of the Map key (minimap, M, full map, M, off, M, minimap), for clip.sh MAPCYCLE=0:3.6:0.05
+      if (Environment.GetEnvironmentVariable("MAPCYCLE") != null) {
+        float mc = float.Parse(Environment.GetEnvironmentVariable("MAPCYCLE"), System.Globalization.CultureInfo.InvariantCulture);
+        float[] at = { 0.5f, 1.9f, 2.8f };  // when each press lands
+        int seg = mc < at[0] ? -1 : mc < at[1] ? 0 : mc < at[2] ? 1 : 2;
+        int[] fr = { 0, 1, 2 }, to = { 1, 2, 0 };
+        if (seg < 0) typeof(ArenaApp).GetMethod("PreviewMapView", f2).Invoke(app, new object[] { 2, 0, 1f });
+        else typeof(ArenaApp).GetMethod("PreviewMapView", f2).Invoke(app, new object[] { fr[seg], to[seg], Math.Min(1f, (mc - at[seg]) / 0.42f) });
+        if (seg == 1) set("mapOffAt", Time.unscaledTime - (mc - at[1]));  // (the "Map off" note's own clock)
+      }
+      if (Environment.GetEnvironmentVariable("MAPVIEW") != null) { var mv = Environment.GetEnvironmentVariable("MAPVIEW").Split(','); typeof(ArenaApp).GetMethod("PreviewMapView", f2).Invoke(app, new object[] { int.Parse(mv[0]), int.Parse(mv[1]), float.Parse(mv[2], System.Globalization.CultureInfo.InvariantCulture) }); }
       if (zoomGl) { Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true; }
       typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
       if (zoomGl) GL.ToUi = false;
@@ -421,6 +433,7 @@ static partial class Shot {
       set("glMaterial", new Material(null));
       GL.ToUi = true;
       if (mode == "settings") set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank)));
+      if (Environment.GetEnvironmentVariable("KBSCROLL") != null) set("keybindScroll", float.Parse(Environment.GetEnvironmentVariable("KBSCROLL")));  // KBSCROLL=<px>: Settings → Keybinds scrolled down (e.g. 400: the Toggles)
       // The drawer windows (MenuDrawer.cs): SECTION=n opens that group / section / topic; the drawer's slide is skipped.
       var secEnv = Environment.GetEnvironmentVariable("SECTION");
       if (secEnv != null) { int sec = int.Parse(secEnv); set("settingsGroup", sec); set("settingsShown", sec); set("recordsSection", sec); set("cosmeticsSection", sec); set("rankSection", sec); set("unlocksSection", sec); set("howToTopic", sec); }
