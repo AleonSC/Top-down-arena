@@ -62,12 +62,15 @@ namespace Arena
             bool survival = session.SurvivalMode && !practice && !hunt && session.Resume == null;
             if (!survival && lobbyTab == SurvivalTab)
                 lobbyTab = 0;
+            bool campaign = !practice && !hunt && !quick && !survival && session.Resume == null;
+            if (!campaign && lobbyTab == CampaignTab)
+                lobbyTab = 0;
             // Picking a mode opens that mode's own window (Quick Play, Survival, Boss hunt, Practice) over the loadout; Normal shows the loadout.
             int modeNow = practice ? 3 : hunt ? 2 : survival ? 4 : quick ? 0 : 1;
             if (lastLobbyMode != modeNow)
             {
                 if (lastLobbyMode >= 0 && session.Resume == null && lobbyTab != HangoutTab)
-                    lobbyTab = modeNow == 3 ? 1 : modeNow == 2 ? 4 : modeNow == 4 ? SurvivalTab : modeNow == 0 ? QuickTab : 0;
+                    lobbyTab = modeNow == 3 ? 1 : modeNow == 2 ? 4 : modeNow == 4 ? SurvivalTab : modeNow == 0 ? QuickTab : CampaignTab;
                 lastLobbyMode = modeNow;
             }
             // The big boxes wear the shown role's colour (the bot's while the host is choosing its loadout), easing to a new role over about 0.7 s.
@@ -165,6 +168,8 @@ namespace Arena
                 DrawHuntPicker(body, t);  // HuntUi.cs
             else if (lobbyTab == QuickTab && session.QuickMode && !practice && session.Resume == null)
                 DrawQuickPlayTab(body, t);  // QuickPlayUi.cs
+            else if (lobbyTab == CampaignTab && campaign)
+                DrawCampaignTab(body, t);  // CampaignUi.cs
             else if (lobbyTab == SurvivalTab && survival)
                 DrawSurvivalTab(body, t);  // SurvivalUi.cs
             else if (lobbyTab == 2)
@@ -338,8 +343,9 @@ namespace Arena
             string[] names = { null, practice ? "Practice  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers",
                 "Difficulty", hunt ? "Boss hunt" : null, null, null, practice ? "Training" : null,
                 session.QuickMode && !practice && !hunt && session.Resume == null ? "Quick Play" : null,
-                session.SurvivalMode && !practice && !hunt && session.Resume == null ? "Survival" : null };  // Hangout has its own key on the Party line
-            int[] order = { 4, QuickTab, SurvivalTab, 1, TrainingTab };  // the mode's own (Loadout and Perks have keys; Difficulty and Modifiers are rows over Ready)
+                session.SurvivalMode && !practice && !hunt && session.Resume == null ? "Survival" : null,
+                !session.QuickMode && !session.SurvivalMode && !practice && !hunt && session.Resume == null ? "Campaign" : null };  // Hangout has its own key on the Party line
+            int[] order = { 4, QuickTab, SurvivalTab, CampaignTab, 1, TrainingTab };  // the mode's own (Loadout and Perks have keys; Difficulty and Modifiers are rows over Ready)
             var shown = new System.Collections.Generic.List<int>();
             foreach (int i in order)
                 if (names[i] != null)
