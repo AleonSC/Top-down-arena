@@ -144,6 +144,7 @@ static partial class Shot {
       g.Loots[99] = new Loot { Id = 99, Owner = 1, Upgrade = item, Pos = new V2(820f, 690f), Age = 2.95f };
       g.Bot = false; me.Pos = me.Disp = new V2(822f, 695f); me.Aim = -1.2f;
       for (int i = 0; i < 6; i++) g.Bullets.Remove(i);
+      if (Environment.GetEnvironmentVariable("PROPSBREAK") != null) { g.Enemies.Clear(); g.State = MatchState.Intermission; g.StateTimer = 20f; me.Offer = null; }  // PROPSBREAK=1: between waves (the card shows then too)
     }
     if (Environment.GetEnvironmentVariable("WARDENLOOT") != null) {
       // The Warden's legendaries: two Warden's Guards at your side and the Stun Gun out with 4 of its 6 shots left.
