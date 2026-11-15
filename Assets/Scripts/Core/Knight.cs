@@ -23,6 +23,7 @@ namespace Arena
         public bool Staff;            // each enemy it hits adds a Jab stack (the Quarterstaff's swipes; Quarterstaff.cs)
         public bool Thrust;           // a forward jab (Lance, Halberd, Rapier): drawn as a thrust, not a sweep
         public float Stun;            // freezes what it hits for this long (not bosses)
+        public bool StarStun;         // the Stun is a plain stun (Daze.cs Stun: stars, not ice; the Arc Knuckles)
         public float Circle, CircleAt, Power;  // Circle > 0: hits everything within this radius of the point CircleAt px along the aim (the Warhammer's slam); Power 0..1 is how charged it was (its look)
         public float HalfWidth;       // > 0: hits a rectangle this wide either side of the aim line, out to Reach (Lance), not an arc
         public bool NoCut;            // doesn't cut bullets (the Ninja's Kusarigama: a chain, not a blade)
@@ -506,7 +507,9 @@ namespace Arena
                 ModHit(e, p.Id, dmg, Defs.KnightSlash, dir, s.Slow);
                 if (s.Bleed > 0f)
                     ApplyBleed(e, dmg * s.Bleed, p.Id, true);  // KitWeapons.cs
-                if (s.Stun > 0f && !e.Def.IsBoss)
+                if (s.Stun > 0f && !e.Def.IsBoss && s.StarStun)
+                    Stun(e, s.Stun);
+                else if (s.Stun > 0f && !e.Def.IsBoss)
                 {
                     e.FrozenT = Math.Max(e.FrozenT, s.Stun);
                     e.SlowT = Math.Max(e.SlowT, s.Stun);

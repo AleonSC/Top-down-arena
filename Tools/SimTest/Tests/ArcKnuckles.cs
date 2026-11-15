@@ -88,6 +88,7 @@ static partial class Program
         Step(2, true, false);
         Step(28, false, false);
         Check(side.Hp < side.MaxHp && side.FrozenT > 0f, "the Twin Hammer's shockwave hits and stuns an enemy off to the side");
+        Check(side.StunT > 0f && !Game.IceFrozen(side) && !Game.IceSlowed(side), "its stun is a stun, not a freeze (stars over its head, no ice or chill)");
         Taken();
         Step(80, false, false);
 
