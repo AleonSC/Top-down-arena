@@ -1045,7 +1045,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   breaches (red, chevrons pointing in), gates (an orange laser grid, faint while open) and portals (rings joined by a dotted line), each named in the map key; on the right your vectors with a
   bar showing what the drawing would spend, the tool's three steps (the one you're on lit gold), what's wrong or what it costs, the room
   types (Plain plus the unlocked floors, two to a row; the picked one says what it does), and **Build**/**Undo** and **Done**.
-- **Pushing walls**: between waves (free building), walk up to an outer wall and a **C · PUSH WALL** chip shows over you, with that
+- **Pushing walls** (shelved: off in the game, `Game.PushShelved`): between waves (free building), walk up to an outer wall and a **C · PUSH WALL** chip shows over you, with that
   wall lit. Press **C** and the mouse picks a section of the wall, lit gold, with the next row of tiles as a ghost past it; the
   **mouse wheel** sets its width (2-10 tiles; it is cut to the plain wall there). **Left click** pushes it out one tile, paying its **new wall** like a drawn room (a new section its width + 2, every push after that 2); the selection stays on the new face, so click again to push further, or **hold** to keep pushing.
   A section goes at most **16 tiles** out and can't overlap a room, but it can **break through**: when its face reaches another room (2 tiles or more of shared wall), that stretch opens into it, full width, closing a loop (a floating shop, vendor or Gatekeeper room opens up too; the label says *BREAK THROUGH* before the push that does it), and the wall must be within 7 tiles of you (walk into the new

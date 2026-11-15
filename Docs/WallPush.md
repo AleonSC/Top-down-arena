@@ -1,6 +1,6 @@
 # Wall push: grow a room from inside it
 
-Status: **all four steps built, plus breaking through into rooms** (the core: rules, cost, host and wire, protocol 349; pushing in the world, the features and the balance pass, no protocol change). Decided with the owner on Nov 14, 2026. Mockup: `Docs/Mockups/wall-push.html`
+Status: **SHELVED (Nov 15): off in the game via `Game.PushShelved = true`; code, tests and this doc stay.** **All four steps built, plus breaking through into rooms** (the core: rules, cost, host and wire, protocol 349; pushing in the world, the features and the balance pass, no protocol change). Decided with the owner on Nov 14, 2026. Mockup: `Docs/Mockups/wall-push.html`
 (playable: walk, pick a section, click to push; browser look, approximate). Builds on [`VectorBuilding.md`](VectorBuilding.md)
 and [`RoomBuilding2.md`](RoomBuilding2.md).
 
