@@ -7,10 +7,10 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 
 | Role | Health | Speed | Fire interval | Ability | Cooldown |
 |---|---|---|---|---|---|
-| Tank | 240 | 185 | 0.45 s | Barrier | 12 s |
+| Tank | 200 | 185 | 0.45 s | Barrier | 12 s |
 | Healer | 140 | 215 | 0.25 s | Mend Pulse | 10 s |
-| DPS | 95 | 240 | 0.1 s | Dash | 3.5 s |
-| Wildcard | 130 | 225 | 0.1 s | Any DPS ability | 3.5 s |
+| DPS | 110 | 240 | 0.1 s | Dash | 3.5 s |
+| Wildcard | 125 | 225 | 0.1 s | Any DPS ability | 3.5 s |
 
 ## Classes
 
