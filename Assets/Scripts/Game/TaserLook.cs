@@ -103,35 +103,5 @@ namespace Arena
             }
         }
 
-        /// A Taser Guard's details over its body: visor, the taser out front, and its charge.
-        /// The Taser Guard's body: a prison officer like the Guard and Security Guard (OfficerTorso/OfficerCap, WardenLook.cs)
-        /// in a slate shirt with a hi-vis yellow band across its back and an electric-blue badge on its cap.
-        void DrawTaserGuardBody(Enemy e, V2 pos, float r, float t)
-        {
-            V2 f = V2.FromAngle(e.Facing), side = new V2(-f.Y, f.X);
-            OfficerTorso(pos, r, e.Facing, new Rgba(0.33f, 0.37f, 0.46f));
-            V2 back = pos - f * (r * 0.68f);
-            Line(back - side * (r * 0.55f), back + side * (r * 0.55f), 3f, new Rgba(1f, 0.84f, 0.2f, 0.95f));  // the hi-vis band
-            OfficerCap(pos, r, e.Facing, new Rgba(0.11f, 0.13f, 0.19f), TaserCharge);
-            if (e.Flash > 0f || JuiceFlash(e))  // a hit flashes the uniform white, softer under steady fire (Juice.cs)
-                Ellipse(pos, r * 1.05f, r * 1.12f, e.Facing, Rgba.White.WithAlpha(0.8f * HitFlashMix(e)), 16);
-        }
-
-        void DrawTaserGuardDetails(Enemy e, V2 pos, float r, float t)
-        {
-            V2 f = V2.FromAngle(e.Facing), side = new V2(-f.Y, f.X);
-            Line(pos + f * 11f, pos + f * 23f, 5f, new Rgba(0.81f, 0.85f, 0.93f));                                // the taser
-            V2 pa = pos + f * 27f + side * 3f, pb = pos + f * 27f - side * 3f;
-            Line(pos + f * 23f + side * 3f, pa, 1.5f, ForkWhite);                                                  // its prongs
-            Line(pos + f * 23f - side * 3f, pb, 1.5f, ForkWhite);
-            if (!e.Winding)
-                return;
-            float k = 1f;
-            if (aimSince.TryGetValue(e.Id, out float since))
-                k = MathX.Clamp01((t - since) / Game.WindUpOf(e.Type));
-            V2 muzzle = pos + f * 26f, gap = side * 4f;
-            TaserHalo(muzzle, 8f + 16f * k, TaserCharge, 0.55f * k);
-            TaserBoltLine(muzzle + gap, muzzle - gap, 1f + 4f * k, Mathf.Floor(t * 30f), 3, TaserCharge, 1.3f, 0.5f + 0.5f * k);
-        }
     }
 }

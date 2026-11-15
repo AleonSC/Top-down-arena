@@ -261,6 +261,25 @@ static partial class Shot {
         en.LarderStage = stages[i]; en.LarderT = left[i];
       }
     }
+    if (Environment.GetEnvironmentVariable("WARDENCREW") != null) {
+      // WARDENCREW=1: the Warden's officers in a row facing you below: Guard, Riot Shield, Gas Grenadier, Taser Guard,
+      // Security Guard; WARDENCREW=2: the same caught mid-move (swinging, winding a bash, charging, just fired). KNIGHT=1 ZOOM=2.6.
+      var gm = host.Game; gm.Bot = false; gm.Enemies.Clear(); gm.Bullets.Clear();
+      bool act = Environment.GetEnvironmentVariable("WARDENCREW") == "2";
+      me.Pos = me.Disp = new V2(1010f, 640f); me.InvulnT = 1f; me.Aim = -MathX.Pi / 2f;
+      foreach (var pl in gm.Players.Values) if (pl != me) pl.Pos = pl.Disp = new V2(300f, 200f);
+      var spawn = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var types = new[] { EnemyType.Guard, EnemyType.RiotShield, EnemyType.GasGrenadier, EnemyType.TaserGuard, EnemyType.SecurityGuard };
+      for (int i = 0; i < types.Length; i++) {
+        var at = new V2(1010f + (i - 2) * 66f, 555f);
+        var en = (Enemy)spawn.Invoke(gm, new object[] { types[i], at, 0f, 0, false });
+        en.SpawnT = 0f; en.Pos = en.Disp = at; en.Facing = (me.Pos - at).Angle;
+        if (types[i] == EnemyType.RiotShield) en.Phase = (byte)((act ? Game.RiotWinding : Game.RiotWalk) << 3);
+        if (types[i] == EnemyType.TaserGuard) en.Winding = act;
+        if (types[i] == EnemyType.SecurityGuard) { en.Phase = en.SeenPhase = (byte)(act ? 5 : 6); en.SeenT = act ? 0.06f : 2f; en.Winding = act; }
+        if (types[i] == EnemyType.Guard && act) { en.LarderStage = Game.BatonActing; en.LarderT = Game.BatonFlash * 0.45f; }
+      }
+    }
     if (Environment.GetEnvironmentVariable("SECSHIRT") != null) {
       // SECSHIRT=1: the Security Guard's officer look (SecurityLook.cs) beside a riot Guard:
       // the Guard, then Security Guards walking, locking on, just fired and reloading, each facing you below; KNIGHT=1 ZOOM=2.6.
