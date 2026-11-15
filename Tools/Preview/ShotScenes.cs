@@ -25,6 +25,32 @@ static partial class Shot {
     Console.Error.WriteLine("breach rooms: " + ok + " of " + bs2.Length + " on=" + xg.BreachesOn + " exp=" + xg.ExpandingOn + " rooms=" + xg.RoomsOn + " boss=" + xg.BossNow + " st=" + xg.State + " w=" + xg.Wave);
   }
 
+  // VECGAIN=<s since>: vectors just came in (Game/VectorGainLook.cs): "+n VECTORS" over you, shards into the chip, the chip lit and
+  // counting up; VECGAINN=<n> (default 10). With BREACHROOMS=1 STASHAT=1 the first Stash's cache is taken (its burst), else a pickup's.
+  static void VectorGainScene() {
+    string vg = Environment.GetEnvironmentVariable("VECGAIN");
+    if (vg == null) return;
+    var ci = System.Globalization.CultureInfo.InvariantCulture;
+    float age = float.Parse(vg, ci);
+    int n = Environment.GetEnvironmentVariable("VECGAINN") != null ? int.Parse(Environment.GetEnvironmentVariable("VECGAINN")) : 10;
+    var bf = BindingFlags.NonPublic | BindingFlags.Instance;
+    Action<string, object> put = (f, v) => typeof(ArenaApp).GetField(f, bf).SetValue(app, v);
+    var xg = host.Game;
+    if (me.Vectors < n) me.Vectors = n + 30;
+    put("vecGainAge", age); put("vecGainN", n); put("vecGainFrom", me.Disp); put("vecSeen", me.Vectors);
+    put("vecShown", Math.Min((float)me.Vectors, me.Vectors - n + Math.Max(0f, age - 0.35f) * 30f));
+    V2 at = me.Disp + new V2(110f, -40f); bool stash = false;
+    byte sk = (byte)(1 + (int)SurpriseShape.Stash);
+    int si = xg.Expanded.FindIndex(r => r.Surprise == sk);
+    if (si >= 0) { var r = xg.Expanded[si]; r.Claimed = true; xg.Expanded[si] = r; at = new V2((r.X + r.X1) / 2f, (r.Y + r.Y1) / 2f); stash = true; }
+    var bt = typeof(ArenaApp).GetNestedType("VecBurst", BindingFlags.NonPublic);
+    var b = Activator.CreateInstance(bt);
+    bt.GetField("At").SetValue(b, at); bt.GetField("To").SetValue(b, me.Id); bt.GetField("Age").SetValue(b, age);
+    bt.GetField("N").SetValue(b, n); bt.GetField("Stash").SetValue(b, stash);
+    var list = typeof(ArenaApp).GetField("vecBursts", bf).GetValue(app);
+    list.GetType().GetMethod("Add").Invoke(list, new[] { b });
+  }
+
   static void PlayerScenes() {
     BloodWallScene();  // BLOODWALL=<s> BWCLOCK=<s> (ShotBloodWall.cs)
     PoisonDartScene();  // DART=<s into the scene> [DARTCAP=1] [FXOFF=1] (ShotPoisonDart.cs)

@@ -75,7 +75,9 @@ namespace Arena
             return eventPlan;
         }
 
-        /// Host, every tick of a wave: the first player to walk into a Stash takes its vector cache (once; Claimed goes out with the rooms).
+        /// Host, every tick of a wave and between waves: the first player to walk into a Stash takes its vector cache (once; Claimed goes
+        /// out with the rooms). Like a vector pickup, it waits while your stock is full. The burst and the "+10 VECTORS" are drawn by
+        /// each screen when it sees Claimed flip (Game/VectorGainLook.cs).
         void TickStashClaims()
         {
             if (!IsHost || !ExpandingOn)
@@ -88,12 +90,11 @@ namespace Arena
                     continue;
                 foreach (var p in Players.Values)
                 {
-                    if (p.Downed || p.Pos.X < r.X || p.Pos.X > r.X1 || p.Pos.Y < r.Y || p.Pos.Y > r.Y1)
+                    if (p.Downed || p.Vectors >= p.VectorCap || p.Pos.X < r.X || p.Pos.X > r.X1 || p.Pos.Y < r.Y || p.Pos.Y > r.Y1)
                         continue;
                     r.Claimed = true;
                     Expanded[i] = r;
                     AddVectors(p, StashVectors);
-                    Sounds.Add(Sfx.Pick);
                     DoLog("a Stash's vector cache was taken: +" + StashVectors + " for " + p.Name);
                     BroadcastExpansion();
                     break;

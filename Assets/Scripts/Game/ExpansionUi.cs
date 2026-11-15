@@ -1375,13 +1375,18 @@ namespace Arena
             var me = game.Me;
             if (!game.ExpandingOn || me == null)
                 return false;
-            string text = "VECTORS  " + me.Vectors + " / " + me.VectorCap + PushChipNote;  // (pushing a wall: what the next push spends)
+            string text = "VECTORS  " + VectorChipCount(me) + " / " + me.VectorCap + PushChipNote;  // (pushing a wall: what the next push spends; counting up as vectors come in, VectorGainLook.cs)
             float w = 30f + text.Length * 6.4f;
             var chip = new Rect(x, y, w, 20f);
-            var ink = new Color(0.37f, 0.94f, 1f);
-            Ui.Pill(chip, new Color(0f, 0f, 0f, 0.55f));
+            vecChipRect = chip;
+            float lit = VectorChipFlash;
+            var ink = Color.Lerp(new Color(0.37f, 0.94f, 1f), Color.white, 0.6f * lit);
+            Ui.Glow(chip, new Color(0.3f, 0.88f, 1f), 0.9f * lit);
+            Ui.Pill(chip, Color.Lerp(new Color(0f, 0f, 0f, 0.55f), new Color(0.05f, 0.3f, 0.4f, 0.9f), lit));
             Ui.Fill(new Rect(chip.x + 3f, chip.y + 4f, 3f, chip.height - 8f), ink);
             Ui.Label(new Rect(chip.x + 12f, chip.y, w, chip.height), text, 10, ink, TextAnchor.MiddleLeft, true);
+            if (vecGainAge < VecGainLife && vecGainAge > 0.3f)  // "+10" beside it while they come in
+                Ui.Label(new Rect(chip.xMax + 6f, chip.y, 80f, chip.height), "+" + vecGainN, 12, new Color(0.55f, 1f, 1f, Mathf.Clamp01((VecGainLife - vecGainAge) / 0.5f)), TextAnchor.MiddleLeft, true);
             return true;
         }
 
