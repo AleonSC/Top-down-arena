@@ -855,7 +855,7 @@ namespace Arena
                 py += 84f;
             }
             float bx = panel.x + 10f, bw = panel.width - 20f;
-            float actY = panel.yMax - 98f;  // the action keys sit just above DONE
+            float actY = panel.yMax - 140f;  // the action keys sit just above Close and Done · ready up
             if (!expCutMode && !expLinkMode && !expGateMode && !expTrapMode)
                 DrawThemeGrid(new Rect(bx, py, bw, actY - 46f - py), calm);
             if (roomMode && expPts.Count > 0)
@@ -872,7 +872,18 @@ namespace Arena
                 if (CrtUi.SoftKey(new Rect(bx + hw + 36f, actY, hw - 30f, 36f), "UNDO", null, 15, calm) && expPts.Count > 0)
                     expPts.RemoveAt(expPts.Count - 1);
             }
-            if (CrtUi.SoftKey(new Rect(bx, panel.yMax - 50f, bw, 42f), free ? "DONE" : "BACK", null, 22, calm))
+            // Free building: Close (back to the arena, the wave box folds into its strip) and Done · ready up (closes and readies you).
+            // Readying needs the break (not mid-wave, not before a boss: the gate decides, nor with Auto-ready on).
+            var meR = game.Me;
+            bool canReady = free && meR != null && game.State == MatchState.Intermission && !game.GateUp && !meR.AutoReady && game.Practice == null;
+            if (canReady && CrtUi.SoftKey(new Rect(bx, panel.yMax - 50f, bw, 42f), meR.Ready ? "DONE  ·  READY  ✓" : "DONE  ·  READY UP", null, 18, calm, lit: true))
+            {
+                expDrawing = expDragging = false;
+                expOpen = false;
+                if (!meR.Ready)
+                    game.SetMyReady(true);
+            }
+            if (CrtUi.SoftKey(canReady ? new Rect(bx, panel.yMax - 92f, bw, 36f) : new Rect(bx, panel.yMax - 50f, bw, 42f), free ? "CLOSE" : "BACK", null, canReady ? 18 : 22, calm))
             {
                 expDrawing = expDragging = false;
                 if (free)
