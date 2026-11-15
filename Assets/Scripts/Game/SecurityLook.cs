@@ -89,8 +89,7 @@ namespace Arena
             // the body: a prison officer like the riot Guard (WardenLook.cs), in a navy shirt and cap with a silver badge
             OfficerTorso(pos, r * 0.92f, e.Facing, Hex(0x2c3f66));
             V2 back = pos - fwd * (r * 0.62f);  // a reflective SECURITY band across its back
-            Line(back - F.S * (r * 0.5f), back + F.S * (r * 0.5f), 3f * s, new Rgba(0.95f, 0.95f, 0.88f, 0.9f));
-            OfficerCap(pos, r * 0.92f, e.Facing, Hex(0x1a2440), Hex(0xd8dee6));
+            Cap(back - F.S * (r * 0.5f), back + F.S * (r * 0.5f), 3f * s, new Rgba(0.95f, 0.95f, 0.88f, 0.9f));
 
             // arms and the pistol
             float gx, gy, gr, slideBack = recoil * 4.2f;
@@ -116,6 +115,9 @@ namespace Arena
             }
             float cg = Mathf.Cos(gr), sg = Mathf.Sin(gr);
             System.Func<float, float, V2> G = (x, y) => F.P(gx + x * cg - y * sg, gy + x * sg + y * cg);
+            OfficerArm(pos + F.S * (r * 0.85f), G(-1f, 1.5f), 3.4f * s, Hex(0x2c3f66), OfficerGlove);  // the arms: the grip and the off hand
+            OfficerArm(pos - F.S * (r * 0.85f), F.P(lh.X, lh.Y), 3.4f * s, Hex(0x2c3f66), OfficerGlove);
+            OfficerCap(pos, r * 0.92f, e.Facing, Hex(0x1a2440), Hex(0xd8dee6));  // (over the arms)
             Quad(G(-2f, -2.6f), G(14f, -2.6f), G(14f, 2.6f), G(-2f, 2.6f), Hex(0x262c31));       // the frame under the slide
             float sx0 = -1f - slideBack, sx1 = 12f - slideBack;
             Quad(G(sx0 - 0.5f, -2.9f), G(sx1 + 0.5f, -2.9f), G(sx1 + 0.5f, 2.9f), G(sx0 - 0.5f, 2.9f), Hex(0x3c474f));  // the slide's outline
@@ -158,7 +160,7 @@ namespace Arena
 
             // a hit flashes the whole uniform white, softer under steady fire (Juice.cs)
             if (e.Flash > 0f || JuiceFlash(e))
-                Ellipse(pos, r * 0.97f, r * 1.03f, e.Facing, Rgba.White.WithAlpha(0.8f * HitFlashMix(e)), 16);
+                Oval(pos, r * 0.92f, r * 1.03f, e.Facing, Rgba.White.WithAlpha(0.8f * HitFlashMix(e)));
 
             DrawSecurityCasing(e, F, t);
         }

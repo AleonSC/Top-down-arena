@@ -439,7 +439,7 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 - The arena is 1600x900 and **wraps around for players**: walk off any edge and you come in on the opposite side.
 - **Wall slams:** an enemy knocked back into the arena edge stops there and takes damage: 6 plus 0.12 per px of push the wall cut short, up to 40 (pushes that lose under 8 px do nothing). Bosses and shielded enemies still use their normal damage rules.
   Enemies and bullets don't wrap, so the edges make a good escape route.
-- **Melee grace:** when a melee swing hits something, bodies you're touching can't hurt you for 0.3 s (contact damage only, not bullets or boss attacks). It keeps a melee build from being punished for standing close to land its hits, bosses' bodies included.
+- **Melee grace:** when a melee swing hits something, bodies you're touching can't hurt you for 0.3 s (contact damage only, not bullets or boss attacks). It keeps a melee build from being punished for standing close to land its hits.
 - Your hitbox is the small coloured dot ringed in white in the middle of your character, not the whole circle.
 - **Status effects** show as a tint on the enemy plus an icon above it: **snowflake** = frozen (encased in ice, can't
   move or shoot), **blue double arrow** = slowed, **flame** = burning (flames rise off it), **blood drop** = bleeding
@@ -478,7 +478,7 @@ Rarer cards show up a bit more often as you level. All the numbers live in
   whirl) dazes the enemy for 0.4 s (bosses 0.2 s): it still moves, but can't shoot, use its special attacks or hurt you by
   touch, and a wind-up it was in starts over. Three gold stars wheel over its head. After a daze it can't be dazed again
   for 0.8 s, so steady swings can't lock it down. Bulldoze also keeps you invulnerable 0.35 s past the end of the charge.
-- **Boss bodies:** touching a boss hurts once (25, plus the difficulty's 3% every two waves) and shoves you about 100 px back
+- **Boss bodies:** touching a boss or mini-boss doesn't hurt, so melee can stand close; only a telegraphed charge or lunge hurts on contact (the Warden's baton charge, the Colossus's Charge, the Duelist's dashes, the Devourer's lunges, the Gatekeeper's charge: 25, plus the difficulty's 3% every two waves, at most once a second). A boss still shoves you about 100 px back
   out; it can't hurt you again for 1 s.
 - **Bullet budget:** enemy bullets on screen are capped at 40 + 3 every two waves, up to 85 from wave 29 (20% more per extra
   player; times the difficulty's Bullet budget). When the screen is over the cap, regular enemies hold their fire and
@@ -1050,7 +1050,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   tile grid, the walls and side walls with their door gaps, and the cover (crates, barriers, pillars, the hub's floor plan), this wave's
   breaches (red, chevrons pointing in), gates (an orange laser grid, faint while open) and portals (rings joined by a dotted line), each named in the map key; on the right your vectors with a
   bar showing what the drawing would spend, the tool's three steps (the one you're on lit gold), what's wrong or what it costs, the room
-  types (Plain plus the unlocked floors, two to a row; the picked one says what it does), and **Build**/**Undo** and **Done**.
+  types (Plain plus the unlocked floors, two to a row; the picked one says what it does), and **Build**/**Undo**, **Close** and **Done · ready up**.
 - **Pushing walls** (shelved: off in the game, `Game.PushShelved`): between waves (free building), walk up to an outer wall and a **C · PUSH WALL** chip shows over you, with that
   wall lit. Press **C** and the mouse picks a section of the wall, lit gold, with the next row of tiles as a ghost past it; the
   **mouse wheel** sets its width (2-10 tiles; it is cut to the plain wall there). **Left click** pushes it out one tile, paying its **new wall** like a drawn room (a new section its width + 2, every push after that 2); the selection stays on the new face, so click again to push further, or **hold** to keep pushing.
@@ -1078,7 +1078,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   colour. While a round is open the minimap and the draw screen show everyone's proposals as pulsing ghosts in their colours.
 - **Free building (the default)**: the lobby's **Free building / Team vote** pair (Difficulty tab, shown with the Expanding arena, host only) sets how it's built.
   With **Free building** there is no vote: a room, wall opening or portal pair is **built the moment you place it**, you pay for it (an opening pays you), and
-  anyone can build as many as they can afford in a round (the round window is just the draw screen; **Done** closes it). **Nothing can be built mid-wave**: rooms, doors and portals all wait for the break between waves. Bots still add one room a round, and only if nobody has built that round.
+  anyone can build as many as they can afford in a round (the round window is just the draw screen; **Close** closes it, **Done · ready up** closes it and readies you; either way the wave box comes back as its minimized strip). **Nothing can be built mid-wave**: rooms, doors and portals all wait for the break between waves. Bots still add one room a round, and only if nobody has built that round.
   The lobby's **Team purse** toggle (any building mode, off by default) lets a build spend the whole team's vectors: the builder pays first, then the richest teammates; the chip and draw screen show the team total.
   **Team vote** keeps the rules below (proposals, one build a round, nothing mid-wave) for lobbies of strangers.
 - **The vote** (Team vote only): each player backs one proposal or "No room". Drawing a room doesn't cast your vote: until you click a card your
@@ -1552,13 +1552,13 @@ dealt and damage taken** for that wave, and **awards**: **Untouched** (took no d
 and in a party **Most damage**, **Most kills** and **Most healing** (only for a single leader with something to show).
 A **Squad** row adds them up. The box has **three steps** (tabs along its top: **Results**, **Build**, **Ready**), in order:
 **Results** (the numbers above, plus your vectors and rooms when a building round is open), then **Build** (**Continue · Build**
-opens the Expanding arena's build window; its **Done** leads on to Ready; the tab is left out when there is no round: Practice, hunts, the last wave,
+opens the Expanding arena's build window; closing it (**Close**, or **Done · ready up**, which also readies you) folds the box into its minimized strip on the Ready step; the tab is left out when there is no round: Practice, hunts, the last wave,
 a full map, other arenas), then **Ready**: the enemy types the next wave draws from (new ones marked NEW; a boss wave
-names its boss), the **road to the next boss**, the **Ready** key (Y), the **Auto-ready** switch, the
+names its boss), the **road to the next boss**, the **Ready** key (Y, bottom right, where Continue sits on Results), the **Auto-ready** switch, the
 status and the countdown bar. Y walks the steps (Results, Build, Ready) before it readies you, and Auto-ready only counts once you reach Ready. The next wave only starts once **everyone is ready**, **3 seconds** after the last Ready, and there is no
 timer while anyone is still waiting. **Auto-ready** is remembered between runs: you count as ready as soon as your upgrade
 picks are done, and when everyone has it on the countdown is the usual 4 seconds, so solo play with it on moves at the
-old pace (it is off by default). A small box beside each player shows who is ready (a tick, an A for auto-ready, dashed while they aren't). **Minimize** (top right of the box) folds it into a slim strip at the top so you can walk to a shop or a chest; the strip (slightly see-through) keeps the next wave, the status, Ready, **Build** (during a building round) and **Open** (Y there readies you at once). It opens again at the next break.
+old pace (it is off by default). A small box beside each player shows who is ready (a tick, an A for auto-ready, dashed while they aren't). **Minimize** (top right of the box) folds it into a slim strip at the top so you can walk to a shop or a chest; the strip (a slim, see-through bar with solid keys) keeps the next wave, the status, Ready, **Build** (during a building round) and **Open** (Y there readies you at once). It opens again at the next break.
 **The boss gate.** In the break before a boss (Quick Play, the Campaign, a Boss Hunt) there's no Ready: a **boss gate**, a
 red summoning circle with a skull in the middle, opens in the middle of the hub, and the fight starts once **every
 player still standing is in it** for 1.2 s (downed players don't count). Take your time to shop, build and pick first: there's no

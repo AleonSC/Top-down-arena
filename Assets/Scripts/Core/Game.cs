@@ -1103,7 +1103,7 @@ namespace Arena
                 ShoveProps(me.Pos, me.Def.HitR + PropPad, PushSpeed(me), dt, 0f, V2.Zero);  // leaning on a crate or barrel slides it (Props.cs)
             if ((Props.Count > 0 || LayoutOn) && !me.Downed)
                 me.Pos = PushOutOfProps(me.Pos, me.Def.HitR + PropPad);  // crates, barrels and a closed chest are solid (Props.cs)
-            // Touching a boss shoves you back out (it only hurts once a second; see TickEnemies).
+            // Touching a boss shoves you back out (its body doesn't hurt: TickEnemies).
             if (!me.Downed && shoveT <= 0f)
                 foreach (var e in Enemies.Values)
                     if (e.Def.IsBoss && !IsSpawning(e) && !QueenAirborne(e) && !DevourUnder(e) && !DevourSwallowing(e) && me.Pos.CloserThan(e.Pos, e.Radius + me.Def.HitR + 2f))

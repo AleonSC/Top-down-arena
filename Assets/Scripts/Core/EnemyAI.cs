@@ -480,6 +480,21 @@ namespace Arena
         readonly List<Enemy> tickEnemies = new List<Enemy>();
         readonly List<Enemy> separateEnemies = new List<Enemy>();
 
+        /// Is boss (or mini-boss) e in a telegraphed charge or lunge right now? Only then does its body hurt heroes:
+        /// the Warden's baton charge, the Colossus's Charge, the Duelist's dashes, the Devourer's lunges, the Gatekeeper's charge.
+        bool BossDashing(Enemy e)
+        {
+            switch (e.Type)
+            {
+                case EnemyType.Boss: return e.Warden != null && e.Warden.Turn == WardenTurn.Charge && e.Warden.ChargeLeft > 0f && e.Warden.TurnT >= ChargeWarn;
+                case EnemyType.Colossus: return e.Colossus != null && e.Colossus.ChargeLeft > 0f && e.Colossus.ChargeWarn <= 0f;
+                case EnemyType.Duelist: return e.Duel != null && e.Duel.Dash != DuelDash.None && e.Duel.DashWarn <= 0f;
+                case EnemyType.Devourer: return e.Devour != null && e.Devour.Lunging && e.Devour.LungeWarn <= 0f;
+                case EnemyType.Gatekeeper: return e.Phase == 2;
+                default: return false;
+            }
+        }
+
         void TickEnemies(float dt)
         {
             float rate = WaveFireRate(Wave) * D(DiffKnob.FireRate);
@@ -622,13 +637,15 @@ namespace Arena
                     || e.Type == EnemyType.Morsel || e.Type == EnemyType.SapperMine || DevourUnder(e) || GutwormUnder(e) || e.Dummy || e.DazeT > 0f
                     || e.Type == EnemyType.MiniWell || e.Type == EnemyType.Implosion || e.Type == EnemyType.MummerCopy)
                     continue;  // blew up this tick, explodes instead of bumping, an egg, the Hive Queen up in a dive, a morsel, the Devourer underground, dazed (Daze.cs)
-                // Bosses and heavies hurt to stand in (the difficulty's per-wave damage growth scales all of these).
+                // Heavies hurt to stand in; bosses only hurt guards (below) (the difficulty's per-wave damage growth scales all of these).
                 var cb = BrainOf(e.Type);
                 float brainContact = cb != null && cb.Move != null ? cb.Move.Contact(this, e) : -1f;  // a lunger's leap (Brain.cs)
                 float contact = e.Def.IsBoss ? 25f
                     : brainContact >= 0f ? brainContact  // a Charger's dash, a lunger's leap, a Spike Block's lunge (their brains)
                     : e.Def.Contact > 0f ? e.Def.Contact * BruteDamageMult(e) : ContactDamage;
                 GuardContact(e, contact);  // Warden's Guards in the way get hurt too (Stun.cs)
+                if ((e.Def.IsBoss || e.Def.Mini) && !BossDashing(e))
+                    continue;  // bosses' and mini-bosses' bodies don't hurt heroes, so melee can stand close; only their telegraphed charges do (a boss still shoves you out: Game.cs)
                 if (!mine || PossessAttacking)
                     HeroDummyContact(e, contact);  // the Dev Arena's hero dummies (DevArena.cs)
                 foreach (var p in Players.Values)
@@ -641,7 +658,7 @@ namespace Arena
                     {
                         if (e.Def.IsBoss)
                         {
-                            // A boss's body hurts once and shoves you out (the shove happens on your own game).
+                            // A charging boss hurts once and shoves you out (the shove happens on your own game).
                             if (p.BossContactT > 0f)
                                 continue;
                             p.BossContactT = BossContactEvery;
