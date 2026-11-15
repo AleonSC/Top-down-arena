@@ -383,25 +383,53 @@ static partial class Program
         for (int k = 0; k < 90; k++) { me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = from + new V2(400f, 0f) }); }
         Check(TwinBladesMotion.StepOf(me.Combo) == 0, "the Twin Blades chain starts over after a pause");
 
-        // Twin Fang: both sabres thrown to the cursor and back.
+        // Twin Fang: the spinning pair flies to the cursor, follows it, cuts through enemies, comes back on a wall.
         float fangHp = beyond.Hp;
         V2 cursor = from + new V2(170f, 0f);
-        for (int k = 0; k < 90; k++)
+        Action<int, bool> fangRun = (n, press) =>
+        {
+            for (int k = 0; k < n; k++)
+            {
+                me.Pos = from;
+                host.Poll(); g.FixedStep(dt, new PlayerInput { WeaponAction = press && k < 2, AimAt = cursor });
+                if (press)
+                    beyond.Pos = cursor;  // (it walks at you otherwise)
+                twinListen();
+            }
+        };
+        beyond.Pos = cursor;
+        fangRun((int)(1f / dt), true);
+        float fangDmg = fangHp - beyond.Hp;
+        bool following = me.FangOut == 2 && me.FangAt.DistanceTo(cursor) < 40f;
+        cursor = from + new V2(110f, 130f);
+        fangRun((int)(0.8f / dt), false);
+        bool followed = me.FangOut == 2 && me.FangAt.DistanceTo(cursor) < 40f;
+        fangRun((int)(2.5f / dt), false);
+        float cdAfter = me.FangCd;
+        Console.WriteLine("  twin fang: at the cursor after 1 s {0}, followed it {1}; the enemy it hovered on took {2:0}; back in hand {3}, cooldown {4:0.0} s",
+            following, followed, fangDmg, me.FangOut == 0, cdAfter);
+        Check(following && followed && fangDmg >= me.Weapon.Damage * Game.FangMult * 3f * 0.99f,
+            "Twin Fang's spinning pair flies to the cursor, keeps cutting what it hovers on (hits don't stop it) and follows the cursor");
+        Check(me.FangOut == 0 && cdAfter > 0f && cdAfter <= Game.FangCooldown, "the pair comes back to the hand when its time runs out, and the cooldown starts at the catch");
+        me.FangCd = 0f;
+        typeof(Game).GetField("fangLocalCd", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(g, 0f);
+        cursor = from - new V2(5000f, 0f);  // (the near edge)
+        int backAt = -1;
+        for (int k = 0; k < (int)(2f / dt); k++)
         {
             me.Pos = from;
             host.Poll(); g.FixedStep(dt, new PlayerInput { WeaponAction = k < 2, AimAt = cursor });
-            beyond.Pos = cursor;
             twinListen();
+            if (backAt < 0 && me.FangOut == 3)
+                backAt = k;
         }
-        float fangDmg = fangHp - beyond.Hp, cdAfter = me.FangCd;
-        Console.WriteLine("  twin fang: the enemy at the cursor took {0:0}; cooldown left {1:0.0} s", fangDmg, cdAfter);
-        Check(fangDmg >= me.Weapon.Damage * (Game.FangBurstMult + 2f * Game.FangMult) * 0.99f && cdAfter > 0f && cdAfter < Game.FangCooldown,
-            "Twin Fang throws both sabres to the cursor, they burst where they cross and cut it again on the way back, then it waits on its cooldown");
+        Console.WriteLine("  twin fang at a wall: flying back after {0:0.00} s, caught {1}", backAt * dt, me.FangOut == 0);
+        Check(backAt > 0 && backAt * dt < TwinBladesMotion.FangRelease + Game.FangFollow - 0.3f && me.FangOut == 0, "a wall (the arena's edge) stops the pair early and it flies back to the hand");
         var twinWant = new[] { Sfx.TwinCut1, Sfx.TwinCut2, Sfx.TwinJab, Sfx.TwinSpin, Sfx.TwinShear, Sfx.TwinHit, Sfx.TwinHitHeavy, Sfx.TwinThrow, Sfx.TwinCross, Sfx.TwinCatch };
         var twinMissing = twinWant.Where(x => !twinHeard.Contains(x)).ToList();
         Console.WriteLine("  twin sounds missing: {0}; hit cues seen: {1}", twinMissing.Count == 0 ? "none" : string.Join(", ", twinMissing), string.Join(",", twinCues.OrderBy(x => x)));
-        Check(twinMissing.Count == 0, "every Twin Blades sound is raised: both cuts, the jab, the Pirouette, the Shear, a cut and a heavy cut landing, Twin Fang's throw, burst and catch");
-        Check(twinCues.SetEquals(new[] { 1, 2, 3, 4, 5, 6, 7 }), "every step and both kinds of Twin Fang hit send a hit cue (your hit-pause and shake)");
+        Check(twinMissing.Count == 0, "every Twin Blades sound is raised: both cuts, the jab, the Pirouette, the Shear, a cut and a heavy cut landing, Twin Fang's throw, wall clang and catch");
+        Check(twinCues.SetEquals(new[] { 1, 2, 3, 4, 5, 6, 7 }), "every step, Twin Fang's cuts and its wall strike send a hit cue (your hit-pause and shake)");
         Check(!twinHeard.Contains(Sfx.SwingLight) && !twinHeard.Contains(Sfx.SwingHeavy), "the Twin Blades no longer use the generic swing whooshes");
         host.Leave("");
     }

@@ -229,5 +229,19 @@ static partial class Program
         Check(g.Expanded.Count == count && gp.Vectors == vecNow, "one event and one set of Stashes a wave; a cache pays once");
         typeof(Game).GetMethod("RevealBreachRooms", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(g, null);
         Check(g.Expanded.Count == count, "the wave's end does not open them again");
+        // A cache can be taken between waves too, and waits while your stock is full (like a vector pickup).
+        int si2 = g.Expanded.FindIndex(r => r.Surprise == stashKind && !r.Claimed);
+        if (si2 < 0) { si2 = si; var un = g.Expanded[si]; un.Claimed = false; g.Expanded[si] = un; }  // (one Stash only: put its cache back)
+        {
+            var st2 = g.Expanded[si2];
+            g.State = MatchState.Intermission; g.StateTimer = 30f;
+            gp.VectorCap = 70; gp.Vectors = 70;
+            gp.Pos = gp.Disp = new V2((st2.X + st2.X1) / 2f, (st2.Y + st2.Y1) / 2f);
+            Run(s, dt, 0.5f, () => false);
+            Check(!g.Expanded[si2].Claimed && gp.Vectors == 70, "a full stock leaves the cache where it is");
+            gp.Vectors = 20;
+            Run(s, dt, 1f, () => g.Expanded[si2].Claimed);
+            Check(g.Expanded[si2].Claimed && cg.Expanded[si2].Claimed && gp.Vectors == 20 + Game.StashVectors, "between waves, walking in takes it (" + gp.Vectors + ", " + g.State + ")");
+        }
     }
 }

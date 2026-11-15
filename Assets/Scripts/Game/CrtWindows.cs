@@ -7,13 +7,12 @@ namespace Arena
     /// Settings, How to play and the profile. Pieces:
     ///   BeginDrawer / DrawerRow / EndDrawerScreen / EndDrawer   the box on the left: a title ("PAUSED_") and a line under it, then
     ///       the option keys, and (drawn by the caller, CabBackKey) a physical Back key right under the last one. Its OPENING plays
-    ///       once, from the window's clock (WinT, `CabAge`): the box holo-boots (HoloBoot, LobbyFx.cs: shown top-down behind a scan line,
-    ///       then a flicker), the title types, its sub-line types a boot log and
-    ///       then the real line, a scan bar sweeps the list; the keys holo-boot all at once with the box (KeyOpening; it was: a bright line that
-    ///       opens to the key, then a flash) with their texts typing in. After CabOpenEnd seconds nothing here animates (a list
+    ///       once, from the window's clock (WinT, `CabAge`): the box soft-sweeps in (HoloBoot.SoftClip/SoftOver, LobbyFx.cs: shown top-down under a
+    ///       feathered edge), the title types, its sub-line types a boot log and
+    ///       then the real line, a scan bar sweeps the list; the keys come in under the box's sweep (KeyOpening) with their texts typing in. After CabOpenEnd seconds nothing here animates (a list
     ///       that changes retypes its texts, CrtKit.Typed, and that is all). Reduced effects (fxReduced) or Visual effects off:
     ///       no animation.
-    ///   OpenCabWindow / CloseCabWindow / DrawCabWindow          the window to the right of the box (a second loadout box). It holo-boots
+    ///   OpenCabWindow / CloseCabWindow / DrawCabWindow          the window to the right of the box (a second loadout box). It soft-sweeps
     ///       in place the FIRST time something is picked; later picks only retype its text; closing slides it back
     ///       in. BeginPanelAnim / OpenSectionPanel / EndPanelAnim are the window's frame and title (a panel drawn without
     ///       OpenCabWindow, like the pause menu's run summary, comes in after the box).
@@ -72,10 +71,10 @@ namespace Arena
             if (age >= CabOpenEnd && !calm)
                 CrtKit.SeedRows(16, now);
             cabEdgeVis = WindowVis;  // the soft edges go over everything (DrawCabEdges)
-            // The holo boot (LobbyFx.cs): the box shows top-down behind a scan line as it opens, then flickers (EndDrawer).
+            // The soft sweep (HoloBoot, LobbyFx.cs): the box shows top-down under a feathered edge as it opens (EndDrawer).
             cabBootE = calm || winCloseK > 0f ? 99f : age;
             cabBootRect = new Rect(dx + CabX, CabY, CabW + 2f, CabH + 2f);
-            float bootH = cabBootE < HoloBoot.Wipe ? CabY + (CabH + 2f) * HoloBoot.Reveal(cabBootE) : H;
+            float bootH = Mathf.Min(H, HoloBoot.SoftClip(cabBootRect, cabBootE));
             GUI.BeginGroup(new Rect(dx, 0f, CabX + CabW + 2f + 60f, bootH));
             CrtKit.LoadoutBox(new Rect(CabX, CabY, CabW + 2f, CabH + 2f));
             GUI.BeginGroup(new Rect(CabX + 1f, CabY + 1f, CabW, CabH));  // the cabinet's inside: its own origin
@@ -108,7 +107,7 @@ namespace Arena
 
             // The options screen.
             cabScreen = screen ?? new Rect(26f, 150f, CabInW, 456f);
-            cabScreenAge = age;  // (its keys holo-boot with the box, KeyOpening)
+            cabScreenAge = age;  // (its keys come in under the box's sweep, KeyOpening)
             cabScreenOpen = true;
             cabScreenOn = calm || cabScreenAge >= 0f;
         }
@@ -128,7 +127,7 @@ namespace Arena
             EndDrawerScreen();
             GUI.EndGroup();
             GUI.EndGroup();
-            HoloBoot.Over(cabBootRect, cabBootE, HoloBoot.Wipe, false);
+            HoloBoot.SoftOver(cabBootRect, cabBootE);
         }
 
         float cabBootE = 99f;  // seconds into the cabinet's holo boot (99: none)
@@ -155,7 +154,6 @@ namespace Arena
             float ka;
             if (!KeyOpening(r, i, out ka))
                 return false;
-            bool booting = BeginKeyBoot(r, ka);
             string slot = "cab.r" + i;
             float d = HoloBoot.Wipe + 0.05f + i * 0.04f;  // the texts type once the keys are lit
             string n = CabText(slot + ".n", name, d);
@@ -175,7 +173,6 @@ namespace Arena
             }
             else if (!string.IsNullOrEmpty(tag))
                 Ui.Label(new Rect(r.xMax - 126f, r.y, 114f, r.height), tag, 12, inv ? CrtKit.SoftText(col, true) : (tagColor ?? CabSoft), TextAnchor.MiddleRight, true);
-            EndKeyBoot(r, ka, booting);
             return clicked;
         }
 
@@ -189,10 +186,10 @@ namespace Arena
                 Ui.Label(new Rect(30f, CabH - 28f, CabW - 50f, 16f), b, 11, c, TextAnchor.MiddleLeft, false);
         }
 
-        /// A key of the options list as the drawer opens: every key holo-boots at once, with the box (HoloBoot, LobbyFx.cs:
-        /// shown top-down behind a scan line, then a flicker; BeginKeyBoot / EndKeyBoot round its draw). `age` is seconds since then.
+        /// A key of the options list as the drawer opens: the keys come in with the box, under its soft sweep (BeginDrawer).
+        /// `age` is seconds since then.
         /// False until it starts. After the opening, and with Reduced effects, every key is simply there.
-        const float KeyBootAt = 0f, KeyWipe = HoloBoot.Wipe;  // with the box itself
+        const float KeyBootAt = 0f;  // with the box itself
 
         bool KeyOpening(Rect r, int i, out float age)
         {
@@ -205,22 +202,6 @@ namespace Arena
             return age > 0f;
         }
 
-        /// While a key wipes in: draw it cut off at the scan line (EndKeyBoot closes the clip and draws the line, then the flicker).
-        bool BeginKeyBoot(Rect r, float age)
-        {
-            if (age >= KeyWipe)
-                return false;
-            GUI.BeginGroup(new Rect(0f, 0f, CabW, r.y + r.height * HoloBoot.Reveal(age, KeyWipe)));
-            return true;
-        }
-
-        void EndKeyBoot(Rect r, float age, bool booting)
-        {
-            if (booting)
-                GUI.EndGroup();
-            HoloBoot.Over(r, age, KeyWipe, false);
-        }
-
         /// The physical Back key at `y` in the drawer, right under the options list (Settings, How to play, the profile). It comes in
         /// after the last key. True when pressed.
         bool CabBackKey(float y)
@@ -231,9 +212,7 @@ namespace Arena
             float ka;
             if (!KeyOpening(r, rowIndex, out ka))
                 return false;
-            bool booting = BeginKeyBoot(r, ka);
             bool pressed = CrtKit.PhysicalKey(r, "BACK");
-            EndKeyBoot(r, ka, booting);
             return pressed;
         }
 
@@ -319,7 +298,7 @@ namespace Arena
         {
             if (!cabWin)
                 return 0f;
-            const float inK = 1f;  // no slide out: with effects on it holo-boots in place (BeginPanelAnim), and calm it is just there
+            const float inK = 1f;  // no slide out: with effects on it soft-sweeps in place (BeginPanelAnim), and calm it is just there
             float outK = cabWinOutAt >= 0f ? EaseIn3(Mathf.Clamp01((WinNow - cabWinOutAt) / WinCloseLen)) : 0f;
             return inK * (1f - outK) * (1f - EaseIn3(winCloseK));
         }
@@ -366,10 +345,10 @@ namespace Arena
             cabWinRect = new Rect(DrawerPanel.x + dx, DrawerPanel.y, DrawerPanel.width, DrawerPanel.height);
             cabWinOn = CabCalm || cabWinPower >= 0f;  // the loadout box slides out whole, and its content with it
             cabWinBootE = CabCalm || cabWinOutAt >= 0f || winCloseK > 0f ? 99f : cabWinPower;
-            // The holo boot (LobbyFx.cs): the window shows top-down behind a scan line, then flickers (EndPanelAnim).
-            cabWinBooting = cabWinOn && cabWinBootE < HoloBoot.Wipe;
+            // The soft sweep (HoloBoot, LobbyFx.cs): the window shows top-down under a feathered edge (EndPanelAnim).
+            cabWinBooting = cabWinOn && cabWinBootE < HoloBoot.SoftLen;
             if (cabWinBooting)
-                GUI.BeginGroup(new Rect(0f, 0f, W, cabWinRect.y + cabWinRect.height * HoloBoot.Reveal(cabWinBootE)));
+                GUI.BeginGroup(new Rect(0f, 0f, W, HoloBoot.SoftClip(cabWinRect, cabWinBootE)));
             if (cabWinOn)
                 CrtKit.LoadoutBox(cabWinRect);
             cabWinEnabledWas = GUI.enabled;
@@ -418,7 +397,7 @@ namespace Arena
                 GUI.EndGroup();
             cabWinBooting = false;
             if (cabWinOn)
-                HoloBoot.Over(cabWinRect, cabWinBootE, HoloBoot.Wipe, false);
+                HoloBoot.SoftOver(cabWinRect, cabWinBootE);
         }
 
         /// The window's heading: its title (big, typed, with the cursor), a small line under it and a rule; an X key at the

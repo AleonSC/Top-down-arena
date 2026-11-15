@@ -627,14 +627,18 @@ namespace Arena
         /// what's left to do (open the chest, fetch your item, or wait for a teammate's).
         void DrawTreasureHud(Player me)
         {
-            if (me == null || game.State != MatchState.Fighting || tabHeld)
+            if (me == null || tabHeld)
                 return;
+            // The card shows between waves too: chests are often opened then (the Expanding arena's chest nodes, a chest the
+            // wave left behind), and the card used to wait for the next wave. Not under a full-screen pick (it draws over this).
             var near = game.MyLootInReach;
-            if (near != null)
+            if (near != null && (game.State == MatchState.Fighting || game.State == MatchState.Intermission && me.Offer == null && game.PathOffer == null && !game.HuntMapVoting))
             {
                 DrawLootCard(me, near);
                 return;
             }
+            if (game.State != MatchState.Fighting)
+                return;
             bool holding = game.Enemies.Count == 0 && game.Remaining == 0;
             string hint = null;
             if (game.MyLoot != null)

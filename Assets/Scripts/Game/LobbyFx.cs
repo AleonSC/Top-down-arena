@@ -42,6 +42,45 @@ namespace Arena
             Ui.Glow(r, ink, 0.25f * (1f - f));
             CrtKit.Frame(r, 1f, new Color(ink.r, ink.g, ink.b, 0.4f * (1f - f)));
         }
+
+        // --- The soft sweep (the CRT cabinet windows: pause menu, lobby menu, Settings, How to play, profile) -------------
+        // Option D of the "Menu Boot-Up Options" mockup: a wide feathered edge glides down the box (ease in-out), the box
+        // fading in under it; no hard line, no flicker. Draw the box clipped to SoftClip, then SoftOver on top.
+
+        public const float SoftLen = 0.55f, Feather = 140f;
+        const int FeatherBands = 14;
+
+        /// The leading edge's y (everything above it is fully shown), `e` seconds into the sweep of `r`.
+        public static float SoftEdge(Rect r, float e)
+        {
+            float k = Mathf.Clamp01(e / SoftLen);
+            k = k < 0.5f ? 4f * k * k * k : 1f - Mathf.Pow(-2f * k + 2f, 3f) / 2f;
+            return r.y - Feather + (r.height + Feather) * k;
+        }
+
+        /// Where to cut the box off while it sweeps in (the feather's far end, at most the box's bottom).
+        public static float SoftClip(Rect r, float e) => e >= SoftLen ? float.MaxValue : Mathf.Min(r.yMax, SoftEdge(r, e) + Feather);
+
+        /// Over the box, after it is drawn clipped to SoftClip: the feather (bands of the dim backdrop, darker further down)
+        /// and a faint glow just under the edge.
+        public static void SoftOver(Rect r, float e)
+        {
+            if (e < 0f || e >= SoftLen)
+                return;
+            float edge = SoftEdge(r, e), step = Feather / FeatherBands;
+            for (int i = 0; i < FeatherBands; i++)
+            {
+                float y0 = edge + step * i;
+                if (y0 >= r.yMax)
+                    break;
+                float y = Mathf.Max(y0, r.y), h = Mathf.Min(y0 + step, r.yMax) - y;
+                if (h > 0f)
+                    Ui.Fill(new Rect(r.x, y, r.width, h), new Color(0.01f, 0.012f, 0.03f, (i + 0.5f) / FeatherBands));
+            }
+            float ly = edge + Feather * 0.15f;
+            if (ly > r.y && ly < r.yMax)
+                Ui.Fill(new Rect(r.x, ly - 8f, r.width, 16f), new Color(CrtUi.Ink.r, CrtUi.Ink.g, CrtUi.Ink.b, 0.08f));
+        }
     }
 
     /// The lobby's live effects (the Lobby FX Lab mockup): the proximity glow on box frames near the cursor, the Ready

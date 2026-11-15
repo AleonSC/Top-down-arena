@@ -34,6 +34,7 @@ Builds on [`SurpriseRooms.md`](SurpriseRooms.md) (placement, free rooms) and [`R
 - Wire: `ExpansionRoom.Claimed` (a bool after `Surprise` in the `Msg.ExpandState` room list; saves get a trailing token). A claim-only change makes a friend's game swap the list quietly (no rebuild, no build-in).
 - Look: a breathing teal diamond in the middle until claimed (`DrawSurpriseRoom`); the chip reads `WALK IN FOR +10 VECTORS`. An unclaimed cache stays for later waves.
 - Test: `ExpandingBreachEventTest` (no pay on opening, the walker takes it, the friend sees it, once only).
+- Later (Nov 2026): claims also run between waves (`Waves.cs` Intermission), a full stock leaves the cache, and taking it is drawn by `Game/VectorGainLook.cs` (burst, shards into the taker, "+10 VECTORS", the chip lighting and counting up).
 
 ## Step 4 (built, no wire change)
 

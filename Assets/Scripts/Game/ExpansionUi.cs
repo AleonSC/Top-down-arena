@@ -855,7 +855,7 @@ namespace Arena
                 py += 84f;
             }
             float bx = panel.x + 10f, bw = panel.width - 20f;
-            float actY = panel.yMax - 98f;  // the action keys sit just above DONE
+            float actY = panel.yMax - 140f;  // the action keys sit just above Close and Done · ready up
             if (!expCutMode && !expLinkMode && !expGateMode && !expTrapMode)
                 DrawThemeGrid(new Rect(bx, py, bw, actY - 46f - py), calm);
             if (roomMode && expPts.Count > 0)
@@ -872,7 +872,18 @@ namespace Arena
                 if (CrtUi.SoftKey(new Rect(bx + hw + 36f, actY, hw - 30f, 36f), "UNDO", null, 15, calm) && expPts.Count > 0)
                     expPts.RemoveAt(expPts.Count - 1);
             }
-            if (CrtUi.SoftKey(new Rect(bx, panel.yMax - 50f, bw, 42f), free ? "DONE" : "BACK", null, 22, calm))
+            // Free building: Close (back to the arena, the wave box folds into its strip) and Done · ready up (closes and readies you).
+            // Readying needs the break (not mid-wave, not before a boss: the gate decides, nor with Auto-ready on).
+            var meR = game.Me;
+            bool canReady = free && meR != null && game.State == MatchState.Intermission && !game.GateUp && !meR.AutoReady && game.Practice == null;
+            if (canReady && CrtUi.SoftKey(new Rect(bx, panel.yMax - 50f, bw, 42f), meR.Ready ? "DONE  ·  READY  ✓" : "DONE  ·  READY UP", null, 18, calm, lit: true))
+            {
+                expDrawing = expDragging = false;
+                expOpen = false;
+                if (!meR.Ready)
+                    game.SetMyReady(true);
+            }
+            if (CrtUi.SoftKey(canReady ? new Rect(bx, panel.yMax - 92f, bw, 36f) : new Rect(bx, panel.yMax - 50f, bw, 42f), free ? "CLOSE" : "BACK", null, canReady ? 18 : 22, calm))
             {
                 expDrawing = expDragging = false;
                 if (free)
@@ -1375,13 +1386,18 @@ namespace Arena
             var me = game.Me;
             if (!game.ExpandingOn || me == null)
                 return false;
-            string text = "VECTORS  " + me.Vectors + " / " + me.VectorCap + PushChipNote;  // (pushing a wall: what the next push spends)
+            string text = "VECTORS  " + VectorChipCount(me) + " / " + me.VectorCap + PushChipNote;  // (pushing a wall: what the next push spends; counting up as vectors come in, VectorGainLook.cs)
             float w = 30f + text.Length * 6.4f;
             var chip = new Rect(x, y, w, 20f);
-            var ink = new Color(0.37f, 0.94f, 1f);
-            Ui.Pill(chip, new Color(0f, 0f, 0f, 0.55f));
+            vecChipRect = chip;
+            float lit = VectorChipFlash;
+            var ink = Color.Lerp(new Color(0.37f, 0.94f, 1f), Color.white, 0.6f * lit);
+            Ui.Glow(chip, new Color(0.3f, 0.88f, 1f), 0.9f * lit);
+            Ui.Pill(chip, Color.Lerp(new Color(0f, 0f, 0f, 0.55f), new Color(0.05f, 0.3f, 0.4f, 0.9f), lit));
             Ui.Fill(new Rect(chip.x + 3f, chip.y + 4f, 3f, chip.height - 8f), ink);
             Ui.Label(new Rect(chip.x + 12f, chip.y, w, chip.height), text, 10, ink, TextAnchor.MiddleLeft, true);
+            if (vecGainAge < VecGainLife && vecGainAge > 0.3f)  // "+10" beside it while they come in
+                Ui.Label(new Rect(chip.xMax + 6f, chip.y, 80f, chip.height), "+" + vecGainN, 12, new Color(0.55f, 1f, 1f, Mathf.Clamp01((VecGainLife - vecGainAge) / 0.5f)), TextAnchor.MiddleLeft, true);
             return true;
         }
 

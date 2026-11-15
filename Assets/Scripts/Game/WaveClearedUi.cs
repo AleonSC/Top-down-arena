@@ -17,6 +17,7 @@ namespace Arena
         float wcBorn = -1f;           // unscaled time the box appeared (for its drop-in)
         int wcWave = -1;
         const float WcStripAlpha = 0.45f;  // the minimized strip's background, scanlines and corners: see-through
+        const float WcStripKeyBack = 0.88f;  // the strip's keys sit on near-solid backs
         bool wcMin;                   // minimized to a strip at the top so you can walk to a shop or a chest (until the next break)
         Rect wcStripHit;              // the strip's rect as last drawn (a click on it isn't a shot)
 
@@ -84,8 +85,8 @@ namespace Arena
             else if (wcSawWindow)
             {
                 wcSawWindow = false;
-                if (wcStep == 1)
-                    wcStep = 2;  // Done (or Decide later) in the build window leads to Ready
+                wcStep = 2;  // closing the build window (Close, Done · ready up, Decide later, Esc) leads to Ready,
+                wcMin = true;  // folded into the strip at the top so you can walk the arena you built
             }
         }
 
@@ -232,23 +233,21 @@ namespace Arena
         }
 
         /// The minimized box: a slim, see-through tube at the top (under the door chip when one is up) with the next wave, the status, Ready,
-        /// Build (while a building round is open: it stands in for the build chip) and Open.
+        /// Build (while a building round is open: it stands in for the build chip) and Open. The keys sit on solid backs so they read over the arena.
         void DrawWcStrip(Player me, string waiting, bool calm)
         {
             bool build = ExpandChipUp;
             float y = DoorChipUp ? 72f : 34f;  // (under the door chip)
-            float sw = build ? 820f : 660f;
-            var r = new Rect(W / 2f - sw / 2f, y, sw, 60f);
+            const float sh = 44f, kh = 32f, kTop = 6f, rw = 160f, bw = 120f, ow = 92f, kGap = 8f, info = 206f;
+            float sw = info + rw + kGap + (build ? bw + kGap : 0f) + ow + 12f;
+            var r = new Rect(W / 2f - sw / 2f, y, sw, sh);
             wcStripHit = r;
             RoundPart(1f, Vector2.zero, () =>
             {
-                var holes = build  // the keys below: left bare so the arena shows through them
-                    ? new[] { new Rect(r.x + 276f, r.y + 8f, 210f, 44f), new Rect(r.x + 496f, r.y + 8f, 150f, 44f), new Rect(r.x + 656f, r.y + 8f, 148f, 44f) }
-                    : new[] { new Rect(r.x + 276f, r.y + 8f, 210f, 44f), new Rect(r.x + 496f, r.y + 8f, 148f, 44f) };
-                CrtUi.Begin(r, WcStripAlpha, holes);
+                CrtUi.Begin(r, WcStripAlpha);
                 bool boss = game.BossNow;
                 string next = boss || game.GateUp ? "NEXT: THE BOSS" : "NEXT: WAVE " + (game.Hunt != null ? game.Wave + 1 : game.ShownWave + 1);
-                HudCrt(new Rect(r.x + 16f, r.y + 6f, 250f, 26f), next, 24, CrtUi.Ink);
+                HudCrt(new Rect(r.x + 12f, r.y + 4f, info - 16f, 20f), next, 19, CrtUi.Ink);
                 string st;
                 if (game.GateUp)
                 {
@@ -264,33 +263,35 @@ namespace Arena
                     st = me.Ready ? "WAITING FOR THE SQUAD" : "NO TIMER YET";
                 bool was = Ui.CrtFont;
                 Ui.CrtFont = true;
-                st = LobbyKit.Truncate(st, 16, 250f, false);
+                st = LobbyKit.Truncate(st, 13, info - 16f, false);
                 Ui.CrtFont = was;
-                HudCrt(new Rect(r.x + 16f, r.y + 32f, 250f, 20f), st, 16, CrtUi.Dim);
-                float fadeWas = CrtKit.FillFade;
-                CrtKit.FillFade = WcStripAlpha * 0.5f;  // see-through keys too
-                var rb = new Rect(r.x + 276f, r.y + 8f, 210f, 44f);
+                HudCrt(new Rect(r.x + 12f, r.y + 24f, info - 16f, 16f), st, 13, CrtUi.Dim);
+                var rb = new Rect(r.x + info, r.y + kTop, rw, kh);
+                float ox = rb.xMax + kGap;
+                var bb = new Rect(ox, r.y + kTop, bw, kh);
+                if (build)
+                    ox += bw + kGap;
+                var ob = new Rect(ox, r.y + kTop, ow, kh);
+                var back = new Color(0.01f, 0.03f, 0.07f, WcStripKeyBack);  // solid backs: the keys don't wash out over the arena
+                Ui.Fill(rb, back);
+                if (build)
+                    Ui.Fill(bb, back);
+                Ui.Fill(ob, back);
                 string key = Keybinds.KeyName(Keybinds.Get(KeyAction.ReadyUp)).ToUpperInvariant();
                 if (game.GateUp)
-                    LobbyKit.Key(rb, "STAND IN THE GATE", false, calm, size: 20, minSize: 12, locked: true);
+                    LobbyKit.Key(rb, "TO THE GATE", false, calm, size: 16, minSize: 11, locked: true);
                 else if (me.AutoReady)
-                    LobbyKit.Key(rb, "AUTO-READY", false, calm, size: 20, locked: true);
-                else if (LobbyKit.Key(rb, me.Ready ? "READY" : "READY  [" + key + "]", me.Ready, calm, me.Ready ? PixelArt.Get("ui_check") : null, size: 20, minSize: 12,
+                    LobbyKit.Key(rb, "AUTO-READY", false, calm, size: 16, locked: true);
+                else if (LobbyKit.Key(rb, me.Ready ? "READY" : "READY  [" + key + "]", me.Ready, calm, me.Ready ? PixelArt.Get("ui_check") : null, size: 16, minSize: 11,
                              accent: me.Ready ? Ui.Good : (Color?)null))
                 {
                     wcStep = 2;
                     PressReady(me);
                 }
-                float ox = r.x + 496f;
-                if (build)
-                {
-                    if (LobbyKit.Key(new Rect(ox, r.y + 8f, 150f, 44f), game.FreeBuild ? "BUILD" : "BUILD / VOTE", false, calm, size: 20, minSize: 12))
-                        expOpen = true;
-                    ox += 160f;
-                }
-                if (LobbyKit.Key(new Rect(ox, r.y + 8f, 148f, 44f), "OPEN", false, calm, size: 20, minSize: 12))
+                if (build && LobbyKit.Key(bb, game.FreeBuild ? "BUILD" : "BUILD / VOTE", false, calm, size: 16, minSize: 11))
+                    expOpen = true;
+                if (LobbyKit.Key(ob, "OPEN", false, calm, size: 16, minSize: 11))
                     wcMin = false;
-                CrtKit.FillFade = fadeWas;
                 CrtUi.End(r, Time.unscaledTime, fxReduced, WcStripAlpha);
             });
         }
@@ -511,12 +512,12 @@ namespace Arena
         {
             var ink = CrtUi.Ink;
             string key = Keybinds.KeyName(Keybinds.Get(KeyAction.ReadyUp)).ToUpperInvariant();
-            if (LobbyKit.Key(new Rect(r.x, r.y, 330f, 48f), "GO TO THE GATE  [" + key + "]", false, calm, size: 24, minSize: 14, accent: CrtStyle.Gold))
+            if (LobbyKit.Key(new Rect(r.xMax - 330f, r.y, 330f, 48f), "GO TO THE GATE  [" + key + "]", false, calm, size: 24, minSize: 14, accent: CrtStyle.Gold))
                 wcMin = true;
             int alive, inside;
             game.GateCount(out alive, out inside);
             string st = inside >= alive && alive > 0 ? "EVERYONE IS IN · THE BOSS IS COMING" : "STAND IN THE BOSS GATE · " + inside + " / " + alive + " IN";
-            HudCrt(new Rect(r.x + 350f, r.y + 10f, r.width - 350f, 26f), st, 22, inside > 0 ? ink : CrtUi.Dim, TextAnchor.MiddleRight);
+            HudCrt(new Rect(r.x, r.y + 10f, r.width - 350f, 26f), st, 22, inside > 0 ? ink : CrtUi.Dim, TextAnchor.MiddleLeft);
             var bar = new Rect(r.x, r.yMax - 4f, r.width, 10f);
             Ui.Fill(bar, new Color(1f, 1f, 1f, 0.08f));
             float fw = bar.width * Mathf.Clamp01(game.GateFill);
@@ -533,8 +534,8 @@ namespace Arena
                 return;
             }
             var ink = CrtUi.Ink;
-            // Ready: a lobby key (green and ticked once you are ready); with Auto-ready on it's a dim dashed key.
-            var btn = new Rect(r.x, r.y, 220f, 48f);
+            // Ready: a lobby key on the right, where Continue sits on Results (green and ticked once you are ready); with Auto-ready on it's a dim dashed key.
+            var btn = new Rect(r.xMax - 330f, r.y, 330f, 48f);
             string key = Keybinds.KeyName(Keybinds.Get(KeyAction.ReadyUp)).ToUpperInvariant();
             if (me.AutoReady)
                 LobbyKit.Key(btn, "AUTO-READY", false, calm, size: 24, locked: true);
@@ -544,8 +545,8 @@ namespace Arena
 
             // Auto-ready: the Settings switch (lamp, ON / OFF), remembered between runs; its label takes the click too.
             bool on = me.AutoReady;
-            bool flip = WinKey(new Rect(r.x + 240f, r.y + 7f, 86f, 34f), on ? "ON" : "OFF", false, 18, on ? ink : CrtUi.Dim, true, on);
-            var lab = new Rect(r.x + 338f, r.y + 4f, 170f, 40f);
+            bool flip = WinKey(new Rect(r.x, r.y + 7f, 86f, 34f), on ? "ON" : "OFF", false, 18, on ? ink : CrtUi.Dim, true, on);
+            var lab = new Rect(r.x + 98f, r.y + 4f, 170f, 40f);
             Ui.Label(new Rect(lab.x, r.y + 6f, lab.width, 18f), "Auto-ready", 14, Color.white, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(lab.x, r.y + 24f, lab.width, 15f), "from now on, every wave", 11, CrtUi.Dim, TextAnchor.MiddleLeft, true);
             Ui.NoteHover(lab);
@@ -583,13 +584,13 @@ namespace Arena
                         names.Add(p.Id == game.MyId ? "you" : p.Name);
                 status = "Waiting for " + string.Join(" and ", names.ToArray()) + " · no timer yet";
             }
-            var sr = new Rect(r.x + 520f, r.y + 10f, r.width - 520f, 26f);
+            var sr = new Rect(r.x + 280f, r.y + 10f, r.width - 280f - 350f, 26f);  // between the switch and the Ready key
             string st = status.ToUpperInvariant().Replace("…", "...");
             bool was = Ui.CrtFont;
             Ui.CrtFont = true;  // (measured in the CRT font it's drawn in)
-            st = LobbyKit.Truncate(st, 22, sr.width, false);
+            st = LobbyKit.Truncate(st, 18, sr.width, false);
             Ui.CrtFont = was;
-            HudCrt(sr, st, 22, frac > 0f ? ink : CrtUi.Dim, TextAnchor.MiddleRight);
+            HudCrt(sr, st, 18, frac > 0f ? ink : CrtUi.Dim, TextAnchor.MiddleRight);
             var bar = new Rect(r.x, r.yMax - 4f, r.width, 10f);
             Ui.Fill(bar, new Color(1f, 1f, 1f, 0.08f));
             float fw = bar.width * Mathf.Clamp01(frac);
