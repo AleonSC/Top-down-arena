@@ -328,5 +328,8 @@ static partial class Program
         Check(problems.Count == 0 && drill.Name == "Test" && drill.Steps.Count == 2 && drill.Plan.Loop && drill.Plan.Waves[0].Level == 7 && TrainingLibrary.GroupOf(drill) == 1,
             "a training drill loads from text, with its group, steps and waves");
         Check(TrainingLibrary.All.Count > 0 && TrainingLibrary.All.All(d => d.Plan.Waves.Count > 0 && d.Name.Length > 0), "every built-in training drill has a name and waves");
+        Check(TrainingLibrary.All.All(d => d.Problems.Count == 0), "every built-in training drill parses cleanly");
+        var dodge = TrainingLibrary.All.Find(d => d.Id == "dodge-basics");
+        Check(dodge != null && !dodge.Example && !dodge.Plan.Loop && dodge.Plan.Waves.Count == 3 && dodge.Steps.Count == 3, "Dodge Basics is a real three-wave drill that ends");
     }
 }

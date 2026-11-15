@@ -143,9 +143,17 @@ namespace Arena
             bool hover = c.Contains(Event.current.mousePosition);
             Ui.Fill(c, new Color(am.r, am.g, am.b, on ? 0.2f : hover ? 0.12f : 0.06f));
             CrtKit.Frame(c, on ? 2f : 1f, new Color(am.r, am.g, am.b, on ? 0.95f : 0.55f));
-            Ui.Label(new Rect(c.x + 7f, c.y + 5f, c.width - 14f, 30f), d.Name.ToUpperInvariant(), 12, Color.white, TextAnchor.UpperLeft, true, true);
+            // Name on one line, then the goal in the room left above the EXAMPLE tag: wrapped if it fits, else one line with "...".
+            float tw = c.width - 14f;
+            Ui.Label(new Rect(c.x + 7f, c.y + 5f, tw, 16f), LobbyKit.Truncate(d.Name.ToUpperInvariant(), 12, tw), 12, Color.white, TextAnchor.UpperLeft, true);
             if (d.Goal.Length > 0)
-                Ui.Label(new Rect(c.x + 7f, c.y + 27f, c.width - 14f, 22f), d.Goal, 10, CrtStyle.Desc, TextAnchor.UpperLeft, false, true);
+            {
+                float gy = c.y + 23f, room = c.yMax - (d.Example ? 16f : 5f) - gy;
+                if (Ui.TextHeight(d.Goal, 10, tw) <= room)
+                    Ui.Label(new Rect(c.x + 7f, gy, tw, room), d.Goal, 10, CrtStyle.Desc, TextAnchor.UpperLeft, false, true);
+                else
+                    Ui.Label(new Rect(c.x + 7f, gy, tw, 14f), LobbyKit.Truncate(d.Goal, 10, tw, false), 10, CrtStyle.Desc, TextAnchor.UpperLeft, false);
+            }
             if (d.Example)
                 LobbyKit.Spaced(new Rect(c.xMax - 62f, c.yMax - 15f, 56f, 12f), "EXAMPLE", 8, am, TextAnchor.MiddleRight, 1f);
             if (!on && Ui.HitArea(c))

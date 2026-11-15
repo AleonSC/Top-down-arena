@@ -14,6 +14,7 @@ namespace Arena
         public string Id = "", Name = "", Group = "", Goal = "";
         public bool Example;  // a placeholder showing the format (marked EXAMPLE on its card)
         public readonly List<string> Steps = new List<string>();
+        public List<string> Problems = new List<string>();  // what Parse skipped (unknown enemies, no name, ...)
         public PracticePlan Plan = new PracticePlan();
 
         // --- Text format ---------------------------------------------------------------
@@ -47,6 +48,7 @@ namespace Arena
                 problems.Add("no name");
             if (d.Name.Length == 0)
                 d.Name = id ?? "Drill";
+            d.Problems = problems;
             return d;
         }
     }
@@ -64,9 +66,18 @@ namespace Arena
         static TrainingLibrary()
         {
             List<string> problems;
-            // A sample drill so the screen has something to show and the format has an example. Delete this line once real drills exist.
+            // Move & Dodge: three bullet patterns, one a wave, at level 1 so the shots are slow. No loop: it ends with PRACTICE COMPLETE.
             All.Add(TrainingDrill.Parse("dodge-basics",
-                "name: Dodge Basics\ngroup: Move & Dodge\ngoal: Slip through three bullet patterns.\nstep: Clear three patterns without a hit\nstep: Dodge through one volley\nexample: yes\nloop: yes\nwave 1: Burster x2, Spinner x1\n",
+                "name: Dodge Basics\n" +
+                "group: Move & Dodge\n" +
+                "goal: Slip through three bullet patterns.\n" +
+                "step: Rings: find the gap in each Burster ring and step through it\n" +
+                "step: Spirals: weave between the Spinners' arms, then strike in their 2 s pause\n" +
+                "step: Volley: dodge (Ctrl) through the mix; the dash's 0.22 s makes you untouchable\n" +
+                "loop: no\n" +
+                "wave 1: Burster x3\n" +
+                "wave 1: Spinner x2\n" +
+                "wave 2: Burster x2, Spinner x1, Grunt x3\n",
                 out problems));
         }
 

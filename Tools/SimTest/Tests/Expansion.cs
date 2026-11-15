@@ -892,6 +892,18 @@ static partial class Program
         Run(s, dt, 0.5f, null, NoPicks);
         Check(g.State == MatchState.Fighting && keepers(g) == 1 && g.AreaLocked(2), "a duel between waves doesn't hold up the next wave (ready still works): it carries on into it (" + g.State + ", " + keepers(g) + ")");
 
+        {   // Health orbs drop in the duelRoom every so often during the fight, for both screens.
+            var duelRoom = g.CurrentWorld.Areas[2];
+            var seen0 = new HashSet<int>(g.Orbs.Keys);
+            bool hostSaw = false, clientSaw = false;
+            Run(s, dt, Game.DuelOrbEvery + 1f, null, () => {
+                NoPicks();
+                hostSaw |= g.Orbs.Values.Any(o => !seen0.Contains(o.Id) && duelRoom.Contains(o.Pos));
+                clientSaw |= cg.Orbs.Values.Any(o => !seen0.Contains(o.Id) && duelRoom.Contains(o.Pos));
+            });
+            Check(hostSaw && clientSaw, "a duel drops health orbs in its room every " + Game.DuelOrbEvery + " s, on both screens (" + hostSaw + ", " + clientSaw + ")");
+        }
+
         // Beating it: prize pick, ordinary room.
         Run(s, dt, 0.8f, null, NoPicks);
         Check(keepers(g) == 1, "walking in again wakes it again");
