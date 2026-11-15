@@ -14,7 +14,8 @@ namespace Arena
     ///           (glow, scanlines, dark corners, glass highlight and rounded bezel: DrawCrtGrowScreen), never a flat fill, and the
     ///           bezel and corners at the end are the lobby's own, so the hand-over to DrawLobbyCrtBack / Glass shows no change
     ///   0.7 s   a link log types itself in the middle (link, player, cat, opening lobby), parts typed with a one-second pause and blinking cursor between them, fading out between 5.6 and 5.9 s
-    ///   5.5 s   a scan line sweeps down; the lobby's pieces light up one by one (the same LobbyPiece slide-ins as LobbyEnter.cs)
+    ///   5.5 s   Power-on (DrawCalmLoadIn, crtStyle 4): the log squeezes into a bright line, the line stretches across the screen and
+    ///           opens top and bottom, showing the whole lobby at once by 6.3 s
     /// Other ways into the lobby (Join, Continue, Back from a run) keep their own entrances and just fade the CRT in.
     /// Reduced effects and Visual effects off skip the boot and use the normal entrance.
     public partial class ArenaApp
@@ -25,7 +26,7 @@ namespace Arena
         const float LobbyGlassR = 34f;           // the glass's corner radius (the mockup's 36 px)
         const float LobbyRimBand = 5f, LobbyRimLine = 1f;  // a 7 px dark navy band, then a 2 px blue line inside it (the mockup's inset shadows)
 
-        int crtStyle;   // see DrawLobbyEnteringCrt; the preview sets it (CRTSTYLE)
+        int crtStyle = 4;   // see DrawLobbyEnteringCrt (4, Power-on, is the game's); the preview sets it (CRTSTYLE)
         bool pieceQuiet, pieceFade;  // LobbyPiece: no holo-boot line/flicker; fade in place instead of the holo wipe
         bool crtEntry;  // the lobby is opening from New run: DrawLobbyEnteringCrt instead of DrawLobbyEntering
         static Texture2D lobbyScanTex, lobbyPhosTex, lobbyGlassTex;
@@ -295,7 +296,7 @@ namespace Arena
                 }
                 if (a < CrtPiecesAt && b >= CrtPiecesAt)
                     sounds.Play(Sfx.CrtSweep, 0.5f, now);
-                for (int i = 0; i < 6; i++)  // the lobby's pieces lighting up, one by one
+                for (int i = 0; i < (crtStyle >= 4 ? 0 : 6); i++)  // the lobby's pieces lighting up, one by one (the older styles)
                 {
                     float at = CrtPiecesAt + 0.2f + 0.14f * i;
                     if (a < at && b >= at)
