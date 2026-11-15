@@ -626,6 +626,8 @@ namespace Arena
                     {
                         if (m.Kind == MinionKind.Titan)
                             TitanFallen(m);  // Titan.cs
+                        else if (m.Kind == MinionKind.Turret)
+                            SentryFolds(m);  // SentryNova.cs
                         expired.Add(m);
                         continue;
                     }
