@@ -28,6 +28,7 @@
 # WAVECLEARED=1 WCWAVE=17 (the between-waves box after wave 17: the new-enemy chips for wave 18).
 # HEMODPS=spray|debt|rush (the DPS Hemomancer's Arterial Spray, Blood Debt, Vein Rush; DEBTSETTLE=paid|forfeit, RUSHT=<s>; mode hud).
 # DART=<s into the scene> (Poison Dart played through the game like the mockup: dart at 0.5 s, deaths at 2.2 and 3.9 s; DARTCAP=1 mastered; ShotPoisonDart.cs).
+# MOMENT=multi|clear|level|lowhp|marks MOMENTN=<n> MOMENTT=<s> MULTISTYLE=1 (the juice moments: multikill call, last kill, level shock, heartbeat, floor marks; ShotJuice.cs).
 # SHOCK=<s since the cast> (the Shockwave ability played through the game; SHOCKCAP=1 mastered; ShotShockwave.cs).
 # PHALANX=<s since the cast> (Bone Phalanx played through the game; PHALANXCAP=1 mastered; ShotPhalanx.cs). FXOFF=1: Visual effects off (plain looks).
 # KNIGHTDPS=steel|gauntlet|mercy|bridge KDT=<s> (the DPS Knight's abilities replaying the mockup's scenes through the game; KDW=<0-2> the weapon; crop (352,200)-(928,520) to set beside the mockup; ShotKnightDps.cs).

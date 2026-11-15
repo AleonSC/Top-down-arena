@@ -1886,11 +1886,17 @@ shoulder as it charges, then swung over into the floor with a glowing circle and
 when hit (only by a real hit: burning, bleeding and poison don't flash them; under steady fire the flash softens to a
 light tint and the bulge to a gentle pulse, and a boss never goes more than 70% white, so it keeps its colour and shape); every health bar gets a **damage ghost** (a pale chunk where health was lost lingers for 0.45 s, then drains
 after it); **hit-pause** (the picture holds for a few frames on a heavy enemy's death or a huge hit, at most every 0.4
-s, and longer for a boss); enemies **shatter** into shards of their own shape with a white flash, sparks and a
-**scorch mark** that fades over 8 s; **sparks** where shots land (fewer where many hits pile into one spot) and a flash at your muzzle; **trails** behind fast
+s, and longer for a boss; each of **your own kills**, with any weapon, holds it one frame and kicks the screen a little, longer when three or more drop at once; a kill is yours when your shot ended on it or it died within reach of you);
+**multikill calls** (your kills chained less than 0.6 s apart slam a call into the top middle of the screen, DOUBLE KILL,
+TRIPLE KILL, QUAD KILL, RAMPAGE (5) and MASSACRE (8), warming from white through gold, orange and red to magenta, with
+the count under it); the wave's **last kill** throws a white flash ring, a gold ring and a gold ripple across the floor
+with a short hold, before the WAVE CLEARED band; a boss's death **slows time** to a quarter for about a second (the
+host's slow reaches everyone; off with Reduced effects); enemies **shatter** into shards of their own shape with a white flash, sparks and a
+**scorch mark** that fades to a faint stain in 8 s and stays for 45 s, so the floor shows how the fight went; **sparks** where shots land (fewer where many hits pile into one spot) and a flash at your muzzle; **trails** behind fast
 shots; the **grid ripples** out from big blasts; a light tint for the path you're on or the boss you're
 fighting; a faint **red tint in the corners** when you're
-hurt or below 30% health; a gold **level-up** burst (bigger for a legendary); and a boss's **entrance card** (3.2 s,
+hurt, and below 30% health a **heartbeat** there (two beats, quicker and redder the lower you are); a gold **level-up** burst (bigger for a legendary)
+with a white ring and gold ripple out from you that makes nearby enemies flinch; and a boss's **entrance card** (3.2 s,
 with the HUD slid out of the way until it's done); the **ability bar's tiles react** (a tile pops with a white rim
 when its cooldown finishes, bigger and gold for your ultimate; a returning second charge pops its pip; a used ability
 presses its tile in; pressing one that's still recharging shakes it with a red rim and timer; Reduced effects keeps a

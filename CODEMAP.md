@@ -249,6 +249,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `ElementalistLooks.cs`: Meteor (falling rock, impact), Blizzard (whiteout) and Tsunami (crest, wet drips) looks
 - `NimbusLook.cs`, `ChalkLook.cs`: the Nimbus's cloud, rain and lightning; Spirit Chalk's ink, sealed loops and the ring on penned enemies
 - `ShotLooks.cs`, `Juice.cs`, `Ambience.cs`: weapon shot looks, screen shake/particles/glow, weather and trails
+- `JuiceMoments.cs` (Game): kill hit-pause, multikill calls (`DrawMultiKill`, `multiStyle`), the wave's last kill, boss-death slow motion (`BossSlowSpeed` in `EndSpeed`), level shock, low-HP heartbeat, lasting floor marks; preview `MOMENT=multi|clear|level|lowhp|marks` (`Tools/Preview/ShotJuice.cs`)
 - `CameraZoom.cs`: scroll-wheel zoom (1x to 2x on you, focus held inside the arena; Settings → Gameplay), `ZoomPoint`/`UnzoomPoint` used by `Px`, `ToUi` and `MouseArena`, `UiWorldScale` for HUD sizes around world things
 - `OffscreenMarkers.cs`: while zoomed, edge arrows to off-screen teammates (colour + name, red when downed) and enemies (nearest 40; in Survival, enemies in the same direction merge into one arrow with a count: `MarkBins`, preview `SURVMARKS=45`; bosses always) and unopened treasure chests (gold) and unclaimed Stash caches (teal, Docs/BreachRooms.md), drawn in `DrawHud`
 - `CameraLean.cs`: the camera lean (view eases toward your aim and movement, 50% of 5% of the arena; Settings → Gameplay), `ToUi` for labels placed from a world position

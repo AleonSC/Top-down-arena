@@ -255,6 +255,7 @@ namespace Arena
             TickWallTouch(Time.deltaTime);  // a wall touched: its arcs ease in and out, and the hum (WallTouchLook.cs)
             UpdateMusic();
             UpdateLayout();
+            TickBossSlow(Time.unscaledDeltaTime);  // a boss's death: a moment of slow motion (JuiceMoments.cs)
             TickEnding(Time.unscaledDeltaTime);  // the run ending: slow motion, then the results come in (RunEnding.cs)
             UpdateCameraLean(Time.unscaledDeltaTime);  // the picture eases toward your aim (CameraLean.cs)
             StepPauseAnim(Time.unscaledDeltaTime);  // the pause menu opening or closing (WindowAnim.cs)

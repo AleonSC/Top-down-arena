@@ -37,8 +37,10 @@ namespace Arena
         {
             get
             {
-                if (!EndingOn || replay != null)
+                if (replay != null)
                     return 1f;
+                if (!EndingOn)
+                    return BossSlowSpeed;  // (a boss's death slows it a moment: JuiceMoments.cs)
                 if (endT < EndSlowIn)
                     return Mathf.Lerp(1f, EndSlow, Ease(endT / EndSlowIn));
                 if (endT < EndSlowHold)

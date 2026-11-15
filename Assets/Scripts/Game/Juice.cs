@@ -15,8 +15,9 @@ namespace Arena
     ///   flash       hit enemies flash white a little longer and bulge (DrawEnemy reads JuiceScale / JuiceFlash)
     ///   numbers     damage dealt to each enemy, merged every 0.15 s, rising off it (DrawJuiceHud)
     ///   sparks      on impacts, muzzle flashes; trails behind fast shots
-    ///   floor       scorch marks that fade, and the grid ripples from big blasts
-    ///   mood        a tint for the path or boss; a faint red tint in the corners when hurt or low
+    ///   floor       scorch marks that fade to a stain, and the grid ripples from big blasts
+    ///   mood        a tint for the path or boss; a faint red tint in the corners when hurt, beating like a pulse when low
+    ///   moments     kill kicks, multikill calls, the wave's last kill, a boss's slow motion, the level shock (JuiceMoments.cs)
     ///   level up    a gold ring and rising sparks (bigger for a legendary); a boss's entrance card
     /// Settings (Menus.cs): Visual effects on/off (off draws exactly as before), Screen shake off/low/full, Damage numbers,
     /// Ability names (AbilityLooks.cs) and Reduced effects (no shake, no hit-pause, no flashes).
@@ -155,7 +156,7 @@ namespace Arena
         bool introHidHud;
         float shakeX, shakeY;  // added to every world vertex (Px) while the world is drawn
 
-        public const float ScorchLife = 8f, RippleLife = 1.2f, NumberLife = 0.75f, IntroTime = 3.2f;
+        public const float ScorchLife = 45f, RippleLife = 1.2f, NumberLife = 0.75f, IntroTime = 3.2f;
 
         void ClearJuice()
         {
@@ -183,6 +184,7 @@ namespace Arena
             heldFrame = false;
             radiantTrails.Clear();
             ClearAmbience();  // Ambience.cs
+            ClearJuiceMoments();  // JuiceMoments.cs
         }
 
         void AddPart(Part p)
@@ -283,7 +285,7 @@ namespace Arena
 
         void Scorch(V2 at, float r)
         {
-            if (scorches.Count >= 80)
+            if (scorches.Count >= 140)
                 scorches.RemoveAt(0);
             scorches.Add(new Decal { Pos = at, R = r });
         }
@@ -540,7 +542,10 @@ namespace Arena
                 if (s.Dmg > 0f)
                     FlushNumber(s);  // (its Impact damage already shown is left out)
                 if (!s.Spawning)
+                {
                     Shatter(s, s.Boss && !bossLeft);
+                    frameKills.Add(new KillSeen { Pos = s.Pos, R = s.R, Boss = s.Boss });  // whose it was: KillMoments (JuiceMoments.cs)
+                }
                 enemyPool.Push(s);
             }
 
@@ -593,9 +598,13 @@ namespace Arena
             {
                 var s = seenShots[id];
                 seenShots.Remove(id);
+                if (s.Owner == game.MyId)
+                    myShotEnds.Add(s.Pos);  // (KillMoments: a kill where your shot ended is yours)
                 BulletEnding(s);
                 shotPool.Push(s);
             }
+
+            KillMoments(dt);  // your kills' kick, multikill calls, the wave's last kill (JuiceMoments.cs)
 
             // You: hurt (a faint red in the corners, a kick), levels and legendaries.
             if (me != null)
@@ -607,14 +616,20 @@ namespace Arena
                 }
                 myHp = me.Hp;
                 if (myLevel >= 0 && me.Level > myLevel)
+                {
                     LevelBurst(me, false);
+                    LevelShock(me, false);  // JuiceMoments.cs
+                }
                 myLevel = me.Level;
                 int legendaries = 0;
                 foreach (int u in me.Taken)
                     if (u >= 0 && u < Upgrades.All.Length && Upgrades.All[u].Rarity == Rarity.Legendary)
                         legendaries++;
                 if (myLegendaries >= 0 && legendaries > myLegendaries)
+                {
                     LevelBurst(me, true);
+                    LevelShock(me, true);
+                }
                 myLegendaries = legendaries;
             }
 
@@ -846,6 +861,7 @@ namespace Arena
             {
                 Shake(0.9f);
                 Hold(0.15f);
+                StartBossSlow();  // time slows for a moment (JuiceMoments.cs)
                 for (int k = 1; k <= 4; k++)
                     bursts.Add(new Burst { At = juiceClock + k * 0.16f, Pos = s.Pos + new V2(Rnd(-40f, 40f), Rnd(-40f, 40f)), R = 120f + k * 40f, Col = s.Col });
             }
@@ -912,7 +928,7 @@ namespace Arena
             {
                 if (glClipOn)
                     break;  // (a clipped window, the lobby's preview: gradients don't clip, so no scorch marks)
-                float a = 0.5f * (1f - d.Age / ScorchLife);
+                float a = ScorchAlpha(d.Age);  // fresh, then a faint stain for a while (JuiceMoments.cs)
                 FanGradient(d.Pos, d.R, new Rgba(0.02f, 0.015f, 0.03f, a), new Rgba(0.02f, 0.015f, 0.03f, 0f), 14);
             }
             foreach (var s in seenShots.Values)
@@ -1145,9 +1161,7 @@ namespace Arena
             FillRect(0f, 0f, aw, ah, tint);
             // Hurt, or below 30%: a faint red in the four corners only.
             var me = game.Me;
-            float red = hurtTint * 0.28f;
-            if (me != null && !me.Downed && me.Hp < me.MaxHp * 0.3f)
-                red = Mathf.Max(red, 0.12f + 0.08f * Mathf.Pow(Mathf.Max(0f, Mathf.Sin(Time.unscaledTime * 4f)), 4f));
+            float red = Mathf.Max(hurtTint * 0.28f, LowHealthRed(me));  // below 30%: a heartbeat (JuiceMoments.cs)
             if (red > 0.005f)
             {
                 float R = ah * 0.32f;
@@ -1286,6 +1300,7 @@ namespace Arena
                 GUI.color = old;
             }
             DrawWardenIntroBand();  // WardenIntro.cs
+            DrawMultiKill();  // JuiceMoments.cs
         }
     }
 }
