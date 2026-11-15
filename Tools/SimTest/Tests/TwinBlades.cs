@@ -36,10 +36,10 @@ static partial class Program
         float cut = push(1, EnemyType.Grunt), jab = push(3, EnemyType.Grunt), spin = push(4, EnemyType.Grunt), shear = push(5, EnemyType.Grunt);
         float heavy = push(1, EnemyType.Juggernaut);
         Console.WriteLine("  twin blades push: cut {0:0.0}, jab {1:0.0}, spin {2:0.0}, shear {3:0.0}, heavy {4:0.0}", cut, jab, spin, shear, heavy);
-        Check(Math.Abs(cut - Game.TwinCutKnock) < 2f, "a cut shoves an enemy about 10 px");
-        Check(Math.Abs(jab - 2f * Game.TwinJabKnock) < 3f, "the Double Jab shoves about 6 px a thrust");
-        Check(Math.Abs(spin - 2f * Game.TwinSpinKnock) < 3f, "the Pirouette shoves about 8 px a turn");
-        Check(shear > cut, "the Crescent Shear still shoves harder than a cut");
+        Check(Math.Abs(cut - Game.MeleeKnock) < 2f, "a cut gives the standard melee shove (MeleeHit.cs)");
+        Check(Math.Abs(jab - 2f * Game.MeleeKnock) < 4f, "the Double Jab: the standard shove a thrust");
+        Check(Math.Abs(spin - 2f * Game.MeleeKnock) < 4f, "the Pirouette: the standard shove a turn");
+        Check(Math.Abs(shear - Game.MeleeKnock) < 2f, "the Crescent Shear: the standard shove");
         Check(Math.Abs(heavy) < 1f, "a heavy enemy isn't shoved");
         host.Leave(""); client.Leave("");
     }

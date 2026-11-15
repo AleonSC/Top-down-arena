@@ -21,7 +21,7 @@ namespace Arena
         public static readonly float[] Total = { .42f, .42f, .42f, 1.20f };
         public static readonly float[] Hit = { .20f, .17f, .20f, .50f };
         public static readonly float[] Damage = { 10f, 10f, 10f, 35f };
-        public static readonly float[] Knock = { 12f, 12f, 12f, 60f };
+        public static readonly float[] Knock = { 0f, 0f, 0f, 60f };  // 0 = the standard melee shove (MeleeHit.cs); the clap has its own
         public static readonly string[] Names = { "Left bash", "Right bash", "Left bash", "Rifle clap" };
         // The knife's moves (cross cut, reverse cut, lunging stab)
         public static readonly float[] KWind = { .10f, .10f, .14f };
@@ -165,10 +165,8 @@ namespace Arena
                 if (!inside)
                     continue;
                 WeaponHurt(e, dmg, p.Id);
-                Daze(e);  // a close-in hit: it can't attack for a moment (Daze.cs)
                 V2 away = (e.Pos - p.Pos).Normalized();
-                if (!Heavy(e))
-                    KnockEnemy(e, (away.IsZero ? fwd : away) * AmmoMotion.Knock[m]);
+                MeleeImpact(e, away, fwd, AmmoMotion.Knock[m]);  // daze and shove (MeleeHit.cs)
                 BroadcastFx(FxKind.Spark, e.Pos - away * e.Radius, clap ? new Rgba(1f, 0.76f, 0.24f) : new Rgba(0.8f, 0.85f, 0.9f), clap ? 16f : 14f, 0.25f, clap ? Sfx.Hit : Sfx.Clang);
             }
             Free(snap4);
@@ -189,10 +187,8 @@ namespace Arena
                     continue;
                 hitAny = true;
                 WeaponHurt(e, dmg, p.Id);
-                Daze(e);  // a close-in hit: it can't attack for a moment (Daze.cs)
                 V2 away = (e.Pos - p.Pos).Normalized();
-                if (!Heavy(e) && k == 2)
-                    KnockEnemy(e, (away.IsZero ? fwd : away) * 18f);
+                MeleeImpact(e, away, fwd);  // daze and the standard shove (MeleeHit.cs)
                 BroadcastFx(FxKind.Spark, e.Pos - away * e.Radius, new Rgba(1f, 0.76f, 0.24f), k == 2 ? 24f : 16f, 0.25f, Sfx.SwingLight);
             }
             Free(snap5);

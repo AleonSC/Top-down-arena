@@ -25,7 +25,7 @@ namespace Arena
         /// How long each step's effect plays (the punch and the fist coming back to the guard).
         public static readonly float[] KnuckleDur = { 0.28f, 0.32f, 0.36f, 0.42f, 0.62f, 0.62f };
         public const float KnuckleJabReach = 80f, KnuckleCrossReach = 92f, KnuckleJabWidth = 24f, KnuckleCrossWidth = 26f;
-        public const float KnuckleHookReach = 84f, KnuckleHookArc = 160f, KnuckleHookKnock = 8f;
+        public const float KnuckleHookReach = 84f, KnuckleHookArc = 160f;
         public const float KnuckleUpperReach = 82f, KnuckleUpperWidth = 30f, KnuckleUpperStun = 0.55f;
         public const float KnuckleHammerAt = 44f, KnuckleHammerR = 135f, KnuckleHammerKnock = 38f, KnuckleHammerStun = 0.6f;
         public const float KnuckleCounterR = 165f, KnuckleCounterKnock = 48f, KnuckleCounterStun = 0.8f;
@@ -75,7 +75,6 @@ namespace Arena
                 case 3:
                 {
                     var s = KnuckleSwing(p, aim, KnuckleHookReach, KnuckleHookArc, hit, land, step);
-                    s.Knock = KnuckleHookKnock;
                     sound = Sfx.KnuckleHook;
                     break;
                 }

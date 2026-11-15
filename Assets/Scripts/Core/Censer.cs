@@ -64,7 +64,6 @@ namespace Arena
             s.NoFx = true;  // the step's own effect draws it
             s.CenserStep = (byte)step;
             s.Heavy = fin;
-            s.Knock = fin ? 20f : 12f;
             s.Sound = fin ? Sfx.CenserWhirl : step == 1 ? Sfx.CenserSweep1 : Sfx.CenserSweep2;  // CenserSoundBank.cs
             s.HealSpin = CenserHeal[step - 1] + extra;
             s.HealRange = CenserHealR[step - 1];
