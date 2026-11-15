@@ -587,26 +587,40 @@ namespace Arena
             V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
             float p = Mathf.Sin(t * 9f + e.Id * 1.7f);  // the run cycle
             if (e.Variant != EnemyVariant.BallAndChain)
-                DrawRioterBrawler(e, pos, r, col, f, s, p);
+                DrawRioterBrawler(pos, r, col, f, s, p, e.Facing);
             else
                 DrawRioterBallChain(e, pos, r, col, f, s, p, t);
         }
 
-        void DrawRioterBrawler(Enemy e, V2 pos, float r, Rgba col, V2 f, V2 s, float p)
+        const float RioterInkW = 1.4f;  // the outline round each part
+
+        /// A line with round ends (no square corners at the elbows and shoulders).
+        void Cap(V2 a, V2 b, float w, Rgba c)
         {
-            Ellipse(pos - f * r * 0.1f, r * 0.62f, r * 1.12f, e.Facing, RioterInk, 14);
-            Ellipse(pos - f * r * 0.1f, r * 0.52f, r * 1.0f, e.Facing, col, 14);  // the shoulders
-            Line(pos - f * r * 0.45f - s * r * 0.6f, pos - f * r * 0.45f + s * r * 0.6f, 3f, RioterNumber);  // the number band
+            Line(a, b, w, c);
+            Circle(a, w / 2f, c, 16);
+            Circle(b, w / 2f, c, 16);
+        }
+
+        void Oval(V2 c, float rx, float ry, float rot, Rgba col) => Ellipse(c, rx, ry, rot, col, 40);
+
+        void DrawRioterBrawler(V2 pos, float r, Rgba col, V2 f, V2 s, float p, float facing)
+        {
+            V2 body = pos - f * r * 0.1f;
+            float fr = r * 0.25f;
             for (int k = -1; k <= 1; k += 2)
             {
                 float punch = Mathf.Max(0f, p * k);  // each arm shoots out in turn
                 V2 hand = pos + f * r * (1.05f + 0.55f * punch) + s * (k * r * (0.75f - 0.35f * punch));
-                RioterArm(pos + s * (k * r * 0.85f), hand, 4.5f, col);
-                Circle(hand, r * 0.3f, RioterInk, 10);
-                Circle(hand, r * 0.23f, RioterSkin, 10);  // the fist
-                Arc(hand - f * r * 0.12f, r * 0.27f, 2f, RioterChain, 10);  // the cuff
+                RioterArm(pos + s * (k * r * 0.8f) - f * r * 0.05f, hand, 5f, col);
+                Circle(hand, fr + RioterInkW, RioterInk, 24);
+                Circle(hand, fr, RioterSkin, 24);  // the fist
+                Arc(hand - f * r * 0.1f, fr + 0.6f, 1.6f, RioterChain, 24, facing + MathX.Pi * 0.55f, MathX.Pi * 0.9f);  // the cuff, at the wrist
             }
-            RioterHead(pos + f * r * 0.12f, r * 0.42f, f, new Rgba(0.4f, 0.28f, 0.2f, 0.9f));
+            Oval(body, r * 0.52f + RioterInkW, r * 1.0f + RioterInkW, facing, RioterInk);
+            Oval(body, r * 0.52f, r * 1.0f, facing, col);  // the shoulders
+            Cap(pos - f * r * 0.42f - s * r * 0.52f, pos - f * r * 0.42f + s * r * 0.52f, 2.6f, RioterNumber);  // the number band
+            RioterHead(pos + f * r * 0.12f, r * 0.42f, f, new Rgba(0.4f, 0.28f, 0.2f, 0.95f));
         }
 
         void DrawRioterBallChain(Enemy e, V2 pos, float r, Rgba col, V2 f, V2 s, float p, float t)
@@ -617,40 +631,44 @@ namespace Arena
             for (int j = 1; j <= 5; j++)  // the chain, sagging
             {
                 float u = j / 6f;
-                Arc(ankle + (ball - ankle) * u + s * (Mathf.Sin(u * MathX.Pi) * r * 0.25f * -sway), 1.8f, 1.2f, RioterChain, 8);
+                V2 c = ankle + (ball - ankle) * u + s * (Mathf.Sin(u * MathX.Pi) * r * 0.25f * -sway);
+                Arc(c, 1.9f, 1.3f, RioterInk, 16);
+                Arc(c, 1.9f, 0.9f, RioterChain, 16);
             }
-            Circle(ball + new V2(2f, 3f), r * 0.6f, new Rgba(0f, 0f, 0f, 0.3f), 14);
-            Circle(ball, r * 0.62f, RioterInk, 14);
-            Circle(ball, r * 0.54f, RioterIron, 14);
-            Circle(ball - f * r * 0.15f - s * r * 0.15f, r * 0.18f, new Rgba(0.6f, 0.62f, 0.68f, 0.7f), 8);  // its shine
-            Ellipse(pos, r * 0.95f, r * 0.85f, e.Facing, RioterInk, 14);
-            Ellipse(pos, r * 0.85f, r * 0.75f, e.Facing, col, 14);  // the hunched back
-            Line(pos - f * r * 0.3f - s * r * 0.55f, pos - f * r * 0.3f + s * r * 0.55f, 2.5f, col.Mix(RioterInk, 0.35f));  // its spine crease
+            Circle(ball + new V2(2f, 3f), r * 0.6f, new Rgba(0f, 0f, 0f, 0.3f), 32);
+            Circle(ball, r * 0.54f + RioterInkW, RioterInk, 32);
+            Circle(ball, r * 0.54f, RioterIron, 32);
+            Circle(ball - f * r * 0.17f - s * r * 0.17f, r * 0.15f, new Rgba(0.75f, 0.77f, 0.82f, 0.8f), 16);  // its shine
+            Oval(pos, r * 0.85f + RioterInkW, r * 0.75f + RioterInkW, e.Facing, RioterInk);
+            Oval(pos, r * 0.85f, r * 0.75f, e.Facing, col);  // the hunched back
+            Cap(pos - f * r * 0.3f - s * r * 0.45f, pos - f * r * 0.3f + s * r * 0.45f, 2.2f, col.Mix(RioterInk, 0.4f));  // its spine crease
+            float fr = r * 0.19f;
             for (int k = -1; k <= 1; k += 2)
             {
                 V2 hand = pos + f * r * (0.95f + 0.2f * k * p) + s * (k * r * 0.5f);
-                RioterArm(pos + s * (k * r * 0.7f), hand, 4f, col);
-                Circle(hand, r * 0.24f, RioterInk, 10);
-                Circle(hand, r * 0.17f, RioterSkin, 10);
+                RioterArm(pos + s * (k * r * 0.65f), hand, 4f, col);
+                Circle(hand, fr + RioterInkW, RioterInk, 24);
+                Circle(hand, fr, RioterSkin, 24);
             }
             RioterHead(pos + f * r * 0.45f, r * 0.34f, f, new Rgba(0.55f, 0.42f, 0.34f, 0.6f));  // shaved
-            Arc(ankle, r * 0.22f, 2.2f, RioterChain, 10);  // the shackle
+            Arc(ankle, r * 0.22f, 2.4f, RioterInk, 24);
+            Arc(ankle, r * 0.22f, 1.6f, RioterChain, 24);  // the shackle
         }
 
-        /// An arm from the shoulder: the jumpsuit sleeve rolled up to a bare forearm.
+        /// An arm from the shoulder: the jumpsuit sleeve rolled up to a bare forearm, with round ends.
         void RioterArm(V2 shoulder, V2 hand, float w, Rgba sleeve)
         {
-            Line(shoulder, hand, w + 2.4f, RioterInk);
-            V2 mid = shoulder + (hand - shoulder) * 0.55f;
-            Line(shoulder, mid, w, sleeve);
-            Line(mid, hand, w * 0.8f, RioterSkin);
+            Cap(shoulder, hand, w + RioterInkW * 2f, RioterInk);
+            V2 mid = shoulder + (hand - shoulder) * 0.5f;
+            Cap(mid, hand, w * 0.82f, RioterSkin);
+            Cap(shoulder, mid, w, sleeve);
         }
 
         void RioterHead(V2 head, float r, V2 f, Rgba hair)
         {
-            Circle(head, r + 1.2f, RioterInk, 12);
-            Circle(head, r, RioterSkin, 12);
-            Circle(head - f * r * 0.2f, r * 0.8f, hair, 10);
+            Circle(head, r + RioterInkW, RioterInk, 24);
+            Circle(head, r, RioterSkin, 24);
+            Circle(head - f * r * 0.22f, r * 0.8f, hair, 24);
         }
 
         // --- Over the Warden: blinded, stunned; the last stand's alarm; the HUD tags ---------------------

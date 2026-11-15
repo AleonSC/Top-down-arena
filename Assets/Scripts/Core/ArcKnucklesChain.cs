@@ -199,7 +199,7 @@ namespace Arena
                     continue;
                 }
                 r.T += dt;
-                e.FrozenT = Math.Max(e.FrozenT, 0.2f);  // held: it can't move or shoot
+                Stun(e, 0.2f);  // held: it can't move or shoot (Daze.cs)
                 e.KnockLeft = V2.Zero;
                 if (!r.Flying)
                 {
@@ -238,9 +238,10 @@ namespace Arena
                     if (!Heavy(into))
                         KnockEnemy(into, r.Dir * KnuckleThrowKnock);
                     if (!into.Def.IsBoss)
-                        into.FrozenT = Math.Max(into.FrozenT, KnuckleThrowStun);
+                        Stun(into, KnuckleThrowStun);
                 }
                 e.FrozenT = 0f;
+                e.StunT = 0f;
                 KnockEnemy(e, (r.Dir * -1f + r.Dir.Orthogonal()) * 10f);  // it bounces off
                 BroadcastFx(FxKind.Ring, e.Pos, ArcBlue, e.Radius + 24f, 0.3f, Sfx.None);
                 KnuckleHitCue(p, 11, into != null ? 2 : 1, e.Pos);  // the landing: its crack, your hit-pause and shake

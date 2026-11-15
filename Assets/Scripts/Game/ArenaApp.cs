@@ -142,6 +142,7 @@ namespace Arena
             SetHudMode(PlayerPrefs.GetInt("hud_mode", 0), false);  // the HUD mode, remembered (HudModes.cs)
             LoadMapView();  // minimap, full map or off, remembered (MapView.cs)
             LoadBackgroundSettings();
+            InitLobbyCrt();  // build the lobby CRT's textures now, not on the New run boot's first frame (LobbyCrt.cs)
             InitSaveFolders();  // saved runs and the profile (SavesUi.cs)
             LoadTextOverrides();  // text edited with the dev text editor (DevTextEdit.cs)
             ParseCommandLine();
@@ -255,6 +256,7 @@ namespace Arena
             TickWallTouch(Time.deltaTime);  // a wall touched: its arcs ease in and out, and the hum (WallTouchLook.cs)
             UpdateMusic();
             UpdateLayout();
+            TickBossSlow(Time.unscaledDeltaTime);  // a boss's death: a moment of slow motion (JuiceMoments.cs)
             TickEnding(Time.unscaledDeltaTime);  // the run ending: slow motion, then the results come in (RunEnding.cs)
             UpdateCameraLean(Time.unscaledDeltaTime);  // the picture eases toward your aim (CameraLean.cs)
             StepPauseAnim(Time.unscaledDeltaTime);  // the pause menu opening or closing (WindowAnim.cs)
