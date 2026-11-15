@@ -1318,6 +1318,10 @@ static partial class Shot {
       }
       host.Game.Coins[9100] = new Coin { Id = 9100, Value = 5, Pos = new V2(1000f, 470f), Disp = new V2(1000f, 470f) };
       host.Game.Coins[9101] = new Coin { Id = 9101, Value = 1, Pos = new V2(1030f, 450f), Disp = new V2(1030f, 450f) };
+      if (Environment.GetEnvironmentVariable("VECFULL") != null) {  // VECFULL=1: your stock is full, so they wait ("FULL" over them, the chip pulsing amber)
+        me.Vectors = me.VectorCap;
+        typeof(ArenaApp).GetField("vecFullNear", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(app, true);
+      }
     }
     if (Environment.GetEnvironmentVariable("GADGET") != null) {
       // GADGET=1: the Magnet (Game/GadgetLook.cs): you holding one switched on with coins and a vector pickup flying in, one on the
