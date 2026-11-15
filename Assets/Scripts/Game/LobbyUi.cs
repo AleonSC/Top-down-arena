@@ -1116,15 +1116,15 @@ namespace Arena
                 Ui.Icon(ir, PixelArt.Get(Classes.Get((Kit)k).Icon), ad < 0.5f ? Color.white : new Color(0.7f, 0.75f, 0.85f, 1f));
             }
             Ui.Alpha = oldAlpha;
-            // The class's name between the two arrows.
-            const float arrowW = 24f;
+            // The class's name between the two arrows: slim keys the box's full height, flush with its sides.
+            const float arrowW = 15f;
             float ny = iconY + big + 6f;
-            LobbyKit.Fit(new Rect(wr.x + arrowW + 8f, ny, wr.width - 2f * arrowW - 16f, 24f), Defs.KitName((Kit)bk).ToUpperInvariant(), 15, 9, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
+            LobbyKit.Fit(new Rect(wr.x + arrowW + 6f, ny, wr.width - 2f * arrowW - 12f, 24f), Defs.KitName((Kit)bk).ToUpperInvariant(), 15, 9, CrtUi.Ink, TextAnchor.MiddleCenter, calm);
             for (int side = -1; side <= 1; side += 2)
             {
-                var ab = new Rect(side < 0 ? wr.x + 5f : wr.xMax - 5f - arrowW, ny, arrowW, 24f);
+                var ab = new Rect(side < 0 ? wr.x : wr.xMax - arrowW, wr.y, arrowW, wr.height);
                 bool click = LobbyKit.Key(ab, "", false, calm);
-                Chevron(ab.center, side, CrtKit.SoftText(CrtUi.Ink, GUI.enabled && ab.Contains(ev.mousePosition)));
+                TallChevron(ab.center, side, CrtKit.SoftText(CrtUi.Ink, GUI.enabled && ab.Contains(ev.mousePosition)));
                 if (click)
                     wildBrowse += side;
             }
@@ -1277,6 +1277,17 @@ namespace Arena
             {
                 float off = (2 - Mathf.Abs(i - 2)) * 2f * dir;
                 Ui.Fill(new Rect(Mathf.Round(c.x + off - 1f), Mathf.Round(c.y - 5f + i * 2f), 2f, 2f), col);
+            }
+        }
+
+        /// A tall, narrow pixel chevron for the class wheel's full-height arrows, pointing left (dir -1) or right (1).
+        static void TallChevron(Vector2 c, int dir, Color col)
+        {
+            for (int i = 0; i < 9; i++)
+            {
+                float off = (4 - Mathf.Abs(i - 4)) * 1f * dir;
+                Ui.Fill(new Rect(Mathf.Round(c.x + off - 2f * dir - 1f), Mathf.Round(c.y - 13f + i * 3f), 2f, 2f), col);
+                Ui.Fill(new Rect(Mathf.Round(c.x + off - 2f * dir - 1f), Mathf.Round(c.y - 12f + i * 3f), 2f, 2f), col);
             }
         }
 

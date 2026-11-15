@@ -437,24 +437,24 @@ namespace Arena
         }
         static readonly string[,] HowToActions =
         {
-            { "Move", "or the arrow keys; change keys in Settings" },
+            { "Move", "or the arrow keys · rebind in Settings" },
             { "Aim and shoot", "aim with the mouse, hold to fire" },
-            { "Parry", "hold: a shield toward your cursor (no shooting)" },
-            { "Dodge", "double tap a movement key does it too" },
+            { "Parry", "hold: a shield toward your cursor" },
+            { "Dodge", "or double tap a movement key" },
             { "Role ability", "" },
-            { "Weapon secondary", "Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama whirl" },
-            { "Ultimate", "one per role and class; starts each match half charged" },
-            { "Bonus abilities", "from upgrade cards; move them between keys in Tab" },
-            { "Pick an upgrade", "or click a card, then Confirm (Enter)" },
-            { "Chest item", "standing on it: take it / throw it away" },
-            { "Ping, emotes", "tap to ping, hold for the wheel · hold for emotes" },
-            { "Ready up", "between waves: the wave starts once everyone is" },
+            { "Weapon secondary", "blink, lunge, recall, vault or whirl" },
+            { "Ultimate", "starts each match half charged" },
+            { "Bonus abilities", "from upgrade cards · swap keys in Tab" },
+            { "Pick an upgrade", "or click a card, then Confirm" },
+            { "Chest item", "standing on it: take / throw away" },
+            { "Ping, emotes", "tap: ping · hold: wheel · emotes" },
+            { "Ready up", "between waves, once everyone is" },
             { "Reroll upgrades", "" },
-            { "Stats & upgrades", "hold: just for you, doesn't pause" },
-            { "Aim line, HUD", "aim line on / off · hide or show the HUD" },
-            { "Pause menu", "run stats, profile, how to play, settings" },
-            { "Map, mute", "map: minimap, full map, off · mute: give it a key in Settings" },
-            { "After a run (host)", "R: play again · L: back to lobby · C: keep going" },
+            { "Stats & upgrades", "hold · just for you, doesn't pause" },
+            { "Aim line, HUD", "aim line on / off · hide the HUD" },
+            { "Pause menu", "stats, profile, help, settings" },
+            { "Map, mute", "map: mini, full, off · mute: bind it" },
+            { "After a run (host)", "R again · L lobby · C keep going" },
             { "Developer tools", "and the Boss Lab" },
         };
 
@@ -594,7 +594,7 @@ namespace Arena
         void DrawSettings() { if (!SkipWhileClosing) DrawSettingsWindow(); }
 
         /// One volume in Settings > Audio: its name and a small line on the left, a blocky bar slider with - / + keys on the
-        /// right (CrtWindows.cs). "Weapons  (your shots and spells)" splits into the name and the line.
+        /// right (CrtWindows.cs). "Effects  (explosions, abilities, the menus)" splits into the name and the line.
         bool VolumeSlider(float x, ref float y, float w, string label, ref float value, Color tint)
         {
             string title = label, desc = null;

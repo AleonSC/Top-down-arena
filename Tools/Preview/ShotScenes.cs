@@ -170,6 +170,7 @@ static partial class Shot {
       g.Loots[99] = new Loot { Id = 99, Owner = 1, Upgrade = item, Pos = new V2(820f, 690f), Age = 2.95f };
       g.Bot = false; me.Pos = me.Disp = new V2(822f, 695f); me.Aim = -1.2f;
       for (int i = 0; i < 6; i++) g.Bullets.Remove(i);
+      if (Environment.GetEnvironmentVariable("PROPSBREAK") != null) { g.Enemies.Clear(); g.State = MatchState.Intermission; g.StateTimer = 20f; me.Offer = null; }  // PROPSBREAK=1: between waves (the card shows then too)
     }
     if (Environment.GetEnvironmentVariable("WARDENLOOT") != null) {
       // The Warden's legendaries: two Warden's Guards at your side and the Stun Gun out with 4 of its 6 shots left.
@@ -285,6 +286,25 @@ static partial class Shot {
         var en = (Enemy)spawn.Invoke(gm, new object[] { EnemyType.Guard, at, 0f, 0, false });
         en.SpawnT = 0f; en.Pos = en.Disp = at; en.Facing = MathX.Pi / 2f;
         en.LarderStage = stages[i]; en.LarderT = left[i];
+      }
+    }
+    if (Environment.GetEnvironmentVariable("WARDENCREW") != null) {
+      // WARDENCREW=1: the Warden's officers in a row facing you below: Guard, Riot Shield, Gas Grenadier, Taser Guard,
+      // Security Guard; WARDENCREW=2: the same caught mid-move (swinging, winding a bash, charging, just fired). KNIGHT=1 ZOOM=2.6.
+      var gm = host.Game; gm.Bot = false; gm.Enemies.Clear(); gm.Bullets.Clear();
+      bool act = Environment.GetEnvironmentVariable("WARDENCREW") == "2";
+      me.Pos = me.Disp = new V2(1010f, 640f); me.InvulnT = 1f; me.Aim = -MathX.Pi / 2f;
+      foreach (var pl in gm.Players.Values) if (pl != me) pl.Pos = pl.Disp = new V2(300f, 200f);
+      var spawn = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var types = new[] { EnemyType.Guard, EnemyType.RiotShield, EnemyType.GasGrenadier, EnemyType.TaserGuard, EnemyType.SecurityGuard };
+      for (int i = 0; i < types.Length; i++) {
+        var at = new V2(1010f + (i - 2) * 66f, 555f);
+        var en = (Enemy)spawn.Invoke(gm, new object[] { types[i], at, 0f, 0, false });
+        en.SpawnT = 0f; en.Pos = en.Disp = at; en.Facing = (me.Pos - at).Angle;
+        if (types[i] == EnemyType.RiotShield) en.Phase = (byte)((act ? Game.RiotWinding : Game.RiotWalk) << 3);
+        if (types[i] == EnemyType.TaserGuard) en.Winding = act;
+        if (types[i] == EnemyType.SecurityGuard) { en.Phase = en.SeenPhase = (byte)(act ? 5 : 6); en.SeenT = act ? 0.06f : 2f; en.Winding = act; }
+        if (types[i] == EnemyType.Guard && act) { en.LarderStage = Game.BatonActing; en.LarderT = Game.BatonFlash * 0.45f; }
       }
     }
     if (Environment.GetEnvironmentVariable("SECSHIRT") != null) {
@@ -1055,10 +1075,14 @@ static partial class Shot {
           }
           break;
         }
-        case WeaponId.TwinBlades:  // TWINSTEP=1..5 a step of the Crescent Waltz (default 1), TWINSTEP=fang Twin Fang (SWING = seconds after the click)
+        case WeaponId.TwinBlades:  // TWINSTEP=1..5 a step of the Crescent Waltz (default 1), TWINSTEP=fang Twin Fang's wind-up (SWING = seconds after the click; past the release the pair spins 180 px out along the aim)
         {
           string tsn = Environment.GetEnvironmentVariable("TWINSTEP") ?? "1";
-          if (tsn == "fang") gm.Effects.Add(new Effect { Kind = FxKind.TwinFang, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * Game.FangReach, Color = Game.TwinMoon, Radius = me.Id, T = st, Dur = TwinBladesMotion.FangTotal });
+          if (tsn == "fang")
+          {
+            gm.Effects.Add(new Effect { Kind = FxKind.TwinFang, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * 180f, Color = Game.TwinMoon, Radius = me.Id, T = st, Dur = TwinBladesMotion.FangRelease + 0.3f });
+            if (st >= TwinBladesMotion.FangRelease) { me.FangOut = 2; me.FangAt = me.Pos + V2.FromAngle(me.Aim) * 180f; }
+          }
           else { int tsi = int.Parse(tsn); me.Combo = (1 << 3) | tsi; gm.Effects.Add(new Effect { Kind = FxKind.TwinStep, Pos = me.Pos, Pos2 = to, Color = Game.TwinMoon, Radius = me.Id * 10 + tsi, T = st, Dur = TwinBladesMotion.Steps[tsi - 1].Dur + TwinBladesMotion.Recover }); }
           break;
         }

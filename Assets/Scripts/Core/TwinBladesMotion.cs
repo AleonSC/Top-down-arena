@@ -7,7 +7,7 @@ namespace Arena
     /// (TwinBlades.cs) and each screen draws the pose from them (Game/TwinBladesLook.cs), so the sabres are where the hits say.
     ///   1 Rising Cut     right hand, a diagonal cut           4 Pirouette       a reverse turn, both arms out
     ///   2 Falling Cut    left hand, the mirror cut            5 Crescent Shear  both raised behind, a 200 degree crossing sweep
-    ///   3 Double Jab     a thrust with each hand              Twin Fang (alt)   both sabres thrown, crossing at the cursor and back
+    ///   3 Double Jab     a thrust with each hand              Twin Fang (alt)   both sabres thrown, spinning after the cursor
     /// A hand's pose is its angle off the aim and distance from the body's centre (positive angles turn clockwise on screen, so the
     /// right hand sits at +), and its blade's angle off the aim. Tw twists the shoulders; Sp turns the whole body (the Pirouette).
     public static class TwinBladesMotion
@@ -29,7 +29,9 @@ namespace Arena
         }
 
         public const float BladeLen = 48f, Recover = 0.25f;
-        public const float FangRelease = 0.25f, FangFlight = 0.61f, FangTotal = 0.95f, FangSide = 95f;
+        public const float FangRelease = 0.25f, FangTotal = 0.95f;  // the throw's pose: released at FangRelease; FangOpen in, the hands wait empty; the catch plays from FangCatch
+
+        public const float FangOpen = 0.57f, FangCatch = 0.78f;
 
         public static readonly Pose Ready = P(0.75f, 18f, 0.35f, -0.75f, 18f, -0.35f);
 
@@ -52,7 +54,7 @@ namespace Arena
                 K(0.4f, P(2.25f, 16f, 2.85f, -2.25f, 16f, -2.85f)), K(0.62f, P(-0.85f, 24f, -1.35f, 0.85f, 24f, 1.35f), 1), K(1f, P(-0.7f, 22f, -1.1f, 0.7f, 22f, 1.1f), 1) } },
         };
 
-        /// Twin Fang's throw: the wind-up, the release, empty hands while the sabres fly, the catch.
+        /// Twin Fang's throw: the wind-up, the release, empty hands while the sabres fly (held at FangOpen), the catch (from FangCatch).
         public static readonly Step Fang = new Step { Name = "Twin Fang", Dur = FangTotal, Next = 1f, HotR0 = 0.14f, HotR1 = 0.27f, HotL0 = 0.14f, HotL1 = 0.27f, Keys = new[] {
             K(0.14f, P(1.45f, 18f, 2.3f, -1.45f, 18f, -2.3f)), K(0.26f, P(0.45f, 25f, 0.25f, -0.45f, 25f, -0.25f), 1), K(0.82f, P(0.6f, 22f, 0.3f, -0.6f, 22f, -0.3f)), K(1f, Ready, 1) } };
 
@@ -116,26 +118,5 @@ namespace Arena
 
         /// The chain step (1 to 5) out of a player's replicated Combo byte (the high bits count swings).
         public static int StepOf(int combo) => combo & 7;
-
-        /// Where one thrown sabre is `q` (0 to 1) into its flight: out on a curve to `target` on its own side (`side` +1 for
-        /// the right hand, -1 the left), crossing the other there, then back on the other side to `back` (where its owner is).
-        public static V2 FangPos(V2 from, V2 target, V2 back, float q, int side)
-        {
-            V2 d = target - from;
-            V2 n = d.IsZero ? new V2(0f, 1f) : d.Normalized().Orthogonal();
-            if (q < 0.5f)
-            {
-                float u = q / 0.5f, t = Ease(1, u) * 0.6f + u * 0.4f;
-                return Bez(from, (from + target) * 0.5f + n * (FangSide * side), target, t);
-            }
-            float w = Ease(0, (q - 0.5f) / 0.5f);
-            return Bez(target, (back + target) * 0.5f - n * (FangSide * side * 0.8f), back, w);
-        }
-
-        static V2 Bez(V2 a, V2 b, V2 c, float t)
-        {
-            float m = 1f - t;
-            return a * (m * m) + b * (2f * m * t) + c * (t * t);
-        }
     }
 }
