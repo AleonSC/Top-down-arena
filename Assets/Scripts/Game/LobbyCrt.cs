@@ -14,7 +14,8 @@ namespace Arena
     ///           (glow, scanlines, dark corners, glass highlight and rounded bezel: DrawCrtGrowScreen), never a flat fill, and the
     ///           bezel and corners at the end are the lobby's own, so the hand-over to DrawLobbyCrtBack / Glass shows no change
     ///   0.7 s   a link log types itself in the middle (link, player, cat, opening lobby), parts typed with a one-second pause and blinking cursor between them, fading out between 5.6 and 5.9 s
-    ///   5.5 s   a scan line sweeps down; the lobby's pieces light up one by one (the same LobbyPiece slide-ins as LobbyEnter.cs)
+    ///   5.5 s   Power-on (DrawCalmLoadIn, crtStyle 4): the log squeezes into a bright line, the line stretches across the screen and
+    ///           opens top and bottom, showing the whole lobby at once by 6.3 s
     /// Other ways into the lobby (Join, Continue, Back from a run) keep their own entrances and just fade the CRT in.
     /// Reduced effects and Visual effects off skip the boot and use the normal entrance.
     public partial class ArenaApp
@@ -25,7 +26,7 @@ namespace Arena
         const float LobbyGlassR = 34f;           // the glass's corner radius (the mockup's 36 px)
         const float LobbyRimBand = 5f, LobbyRimLine = 1f;  // a 7 px dark navy band, then a 2 px blue line inside it (the mockup's inset shadows)
 
-        int crtStyle;   // see DrawLobbyEnteringCrt; the preview sets it (CRTSTYLE)
+        int crtStyle = 4;   // see DrawLobbyEnteringCrt (4, Power-on, is the game's); the preview sets it (CRTSTYLE)
         bool pieceQuiet, pieceFade;  // LobbyPiece: no holo-boot line/flicker; fade in place instead of the holo wipe
         bool crtEntry;  // the lobby is opening from New run: DrawLobbyEnteringCrt instead of DrawLobbyEntering
         static Texture2D lobbyScanTex, lobbyPhosTex, lobbyGlassTex;
@@ -295,7 +296,7 @@ namespace Arena
                 }
                 if (a < CrtPiecesAt && b >= CrtPiecesAt)
                     sounds.Play(Sfx.CrtSweep, 0.5f, now);
-                for (int i = 0; i < 6; i++)  // the lobby's pieces lighting up, one by one
+                for (int i = 0; i < (crtStyle >= 4 ? 0 : 6); i++)  // the lobby's pieces lighting up, one by one (the older styles)
                 {
                     float at = CrtPiecesAt + 0.2f + 0.14f * i;
                     if (a < at && b >= at)
@@ -354,7 +355,18 @@ namespace Arena
                 WithAlpha(growIn, () => DrawCrtGrowScreen(LerpRect(scr, full, grow), grow, e));
 
             // The link log, typed in the middle of the screen and fading out.
-            float logA = Seg(e, CrtLogAt, CrtLogAt + 0.15f) * (1f - Seg(e, CrtLogFadeAt, CrtLogFadeAt + 0.3f));
+            float pe = e - CrtPiecesAt;
+            bool calm = crtStyle >= 4;  // the calmer load-ins: the log clears before the lobby starts, one motion, no per-piece lines
+            float logA = Seg(e, CrtLogAt, CrtLogAt + 0.15f) * (calm ? (crtStyle == 4 ? 1f : 1f - Seg(pe, 0f, 0.2f)) : 1f - Seg(e, CrtLogFadeAt, CrtLogFadeAt + 0.3f));
+            float squeeze = crtStyle == 4 ? EaseIn(Seg(pe, 0f, 0.2f)) : 0f;  // power-on: the log squeezes into a line
+            if (squeeze >= 1f)
+                logA = 0f;
+            if (squeeze > 0f && logA > 0f)
+            {
+                float bh = 200f * (1f - squeeze);
+                GUI.BeginGroup(new Rect(0f, H / 2f - bh / 2f, W, bh));
+                GUI.BeginGroup(new Rect(0f, -(H / 2f - bh / 2f), W, H));
+            }
             if (logA > 0f)
             {
                 var shown = CrtLogShown(e);
@@ -366,10 +378,19 @@ namespace Arena
                     CrtFuzzyText(new Rect(W / 2f - 330f, y + i * 48f, 700f, 48f), line, 36, logA, t, i);
                 }
             }
+            if (squeeze > 0f && logA > 0f)
+            {
+                GUI.EndGroup();
+                GUI.EndGroup();
+            }
+            if (calm)
+            {
+                DrawCalmLoadIn(pe);
+                return;
+            }
 
             // How the lobby itself loads in after the log (crtStyle, for choosing): 0 pieces holo-boot with a sweeping scan line,
             // 1 the whole lobby fades up, 2 one soft top-down wipe (no line, no flicker), 3 pieces fade up in place, a short stagger.
-            float pe = e - CrtPiecesAt;
             if (crtStyle == 0)
             {
                 DrawLobbyPieces(e - (CrtPiecesAt - 0.45f), true);
@@ -397,6 +418,91 @@ namespace Arena
                 DrawLobbyPieces(pe * 1.8f + 0.45f, true);  // the same order, squeezed into about 0.8 s
                 pieceFade = false;
             }
+        }
+
+        /// The calmer load-ins after the log (crtStyle 4-6), pe seconds after CrtPiecesAt. Each is one motion over the whole lobby:
+        ///   4 Power-on: the log squeezes into a bright line (0-0.2 s), the line stretches across the screen (0.2-0.35 s) and opens
+        ///     top and bottom like a CRT warming up, showing the whole lobby at once (0.35-0.8 s), a glow settling after
+        ///   5 One sweep: the log fades (0-0.2 s), then a single soft scan line falls down the screen showing the lobby above it (0.2-0.95 s)
+        ///   6 Three blocks: the log fades (0-0.2 s), then the header row, the party column and the loadout each fade up 10 px, in turn
+        void DrawCalmLoadIn(float pe)
+        {
+            var ink = LobbyInk;
+            uiGlBlocked = true;
+            if (crtStyle == 4)
+            {
+                float across = EaseOut(Seg(pe, 0.18f, 0.35f)), open = EaseInOut(Seg(pe, 0.35f, 0.8f));
+                if (pe > 0.12f && open < 1f)  // the line: log-wide, then the whole width
+                {
+                    float lw = Mathf.Lerp(700f, W, across), la = pe < 0.2f ? Seg(pe, 0.12f, 0.2f) : 1f - Seg(open, 0.5f, 1f);
+                    float half = open * H / 2f;
+                    for (int s = -1; s <= 1; s += 2)
+                    {
+                        float y = H / 2f + s * half;
+                        Ui.Glow(new Rect(W / 2f - lw / 2f, y - 3f, lw, 6f), ink, 0.35f * la);
+                        Ui.Fill(new Rect(W / 2f - lw / 2f, y - 1f, lw, 2f), new Color(0.92f, 0.96f, 1f, 0.75f * la));
+                    }
+                }
+                if (open > 0f)
+                {
+                    float half = open * H / 2f;
+                    LobbyRevealed(new Rect(0f, H / 2f - half, W, half * 2f), 1f);
+                    float flash = 1f - Seg(pe, 0.5f, 1.1f);  // the screen's brightness settling
+                    if (flash > 0f)
+                        Ui.Fill(new Rect(0f, H / 2f - half, W, half * 2f), new Color(0.55f, 0.75f, 1f, 0.12f * flash));
+                }
+            }
+            else if (crtStyle == 5)
+            {
+                float k = EaseInOut(Seg(pe, 0.2f, 0.95f));
+                float y = Mathf.Lerp(0f, H, k);
+                if (k > 0f)
+                    LobbyRevealed(new Rect(0f, 0f, W, y), 1f);
+                if (k > 0f && k < 1f)
+                {
+                    for (int i = 0; i < 8; i++)  // a soft tail just above the line
+                        Ui.Fill(new Rect(0f, y - 64f + 8f * i, W, 8f), new Color(0.7f, 0.85f, 1f, 0.06f * (i + 1f) / 8f));
+                    Ui.Glow(new Rect(0f, y - 3f, W, 6f), ink, 0.3f);
+                    Ui.Fill(new Rect(0f, y - 1f, W, 2f), new Color(0.92f, 0.96f, 1f, 0.6f));
+                }
+            }
+            else
+            {
+                var head = new Rect(0f, 0f, W, LobbyTabsBandEnd);
+                var left = new Rect(0f, LobbyTabsBandEnd, LobbySplit, H - LobbyTabsBandEnd);
+                var body = new Rect(LobbySplit, LobbyTabsBandEnd, W - LobbySplit, H - LobbyTabsBandEnd);
+                Rect[] blocks = { head, left, body };
+                for (int i = 0; i < 3; i++)
+                {
+                    float k = EaseOut(Seg(pe, 0.2f + 0.14f * i, 0.55f + 0.14f * i));
+                    if (k > 0f)
+                        LobbyRevealed(blocks[i], k, 0f, 10f * (1f - k));
+                }
+            }
+            uiGlBlocked = false;
+        }
+
+        /// The whole lobby drawn into `shown` only (a part of the screen) at alpha a, moved by (dx, dy), its live models with it.
+        void LobbyRevealed(Rect shown, float a, float dx = 0f, float dy = 0f)
+        {
+            if (a <= 0f || shown.width <= 0f || shown.height <= 0f)
+                return;
+            var old = GUI.color;
+            Ui.Alpha = a;
+            GUI.color = new Color(old.r, old.g, old.b, old.a * a);
+            var at = new Rect(shown.x + dx, shown.y + dy, shown.width, shown.height);
+            GUI.BeginGroup(at);
+            GUI.BeginGroup(new Rect(-shown.x, -shown.y, W, H));
+            pieceGlOn = true;
+            pieceGlClip = at;
+            uiShift = new V2(dx, dy);
+            DrawLobby();
+            pieceGlOn = false;
+            uiShift = V2.Zero;
+            GUI.EndGroup();
+            GUI.EndGroup();
+            Ui.Alpha = 1f;
+            GUI.color = old;
         }
 
         /// Text as it looks on a worn CRT: a wide soft bloom, red and cyan fringes that drift, a ghost copy, and a slight horizontal wobble
