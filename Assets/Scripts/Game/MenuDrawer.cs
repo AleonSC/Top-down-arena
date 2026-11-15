@@ -213,10 +213,9 @@ namespace Arena
             }
             LobbyMenuKeys();
             cabBootLog = "> LINK OK   > SAVE OK   > LOBBY";
-            BeginDrawer("MENU", Ui.Accent, 1f, "Esc closes this menu");
+            BeginDrawer("MENU", Ui.Accent, 1f);
             DrawMenuRows(LobbyMenuRows(), ref lobbySel);
             EndDrawerScreen();
-            CabFoot("ESC CLOSE / ARROWS SELECT / ENTER CHOOSE");
             EndDrawer();
         }
 
@@ -294,7 +293,7 @@ namespace Arena
             DrawMenuRows(PauseMenuRows(), ref pauseSel);
             EndDrawerScreen();
             DrawRunStatsKey();
-            CabFoot("ESC RESUME / ARROWS SELECT / ENTER CHOOSE", "HOLD TAB RUN STATS & BUILD   H HIDE HUD");
+            CabFoot(null, "HOLD TAB RUN STATS & BUILD   H HIDE HUD");
             EndDrawer();
             DrawTip(true);
             DrawRunScreen(t);
@@ -405,7 +404,6 @@ namespace Arena
                 Ui.Label(new Rect(46f, y, nw, nh + 4f), note, 12, CabSoft, TextAnchor.UpperLeft, false, true);
             }
             EndDrawerScreen();
-            CabFoot("ESC KEEP PLAYING / ARROWS SELECT / ENTER CHOOSE");
             EndDrawer();
             DrawRunScreen(t);
         }

@@ -142,6 +142,7 @@ namespace Arena
             SetHudMode(PlayerPrefs.GetInt("hud_mode", 0), false);  // the HUD mode, remembered (HudModes.cs)
             LoadMapView();  // minimap, full map or off, remembered (MapView.cs)
             LoadBackgroundSettings();
+            InitLobbyCrt();  // build the lobby CRT's textures now, not on the New run boot's first frame (LobbyCrt.cs)
             InitSaveFolders();  // saved runs and the profile (SavesUi.cs)
             LoadTextOverrides();  // text edited with the dev text editor (DevTextEdit.cs)
             ParseCommandLine();

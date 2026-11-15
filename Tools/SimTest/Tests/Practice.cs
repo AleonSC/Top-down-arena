@@ -132,7 +132,7 @@ static partial class Program
         Hold(0.5f);
         Check(!g.Bullets.ContainsKey(red.Id) && me.Run.DamageTaken == took, "Shield Wall stops a red aimed shot from the front");
 
-        // Touching a boss: one hit, a shove back out, and no more hits for a second.
+        // Touching a boss that isn't charging: no damage, just a shove back out.
         Array.Clear(me.WallPlate, 0, Player.WallPlates);
         g.DevSetGod(1, false);
         me.InvulnT = 0f;
@@ -154,9 +154,9 @@ static partial class Program
             if (f == 12) maxSep = sep;
             minSep = Math.Min(minSep, sep);
         }
-        Console.WriteLine("  boss contact: {0} hits in 2s (two touches), {1:0} px clear of the boss 0.2s after touching", hits, maxSep);
+        Console.WriteLine("  boss contact: {0} hits in 2s (two touches, want 0), {1:0} px clear of the boss 0.2s after touching", hits, maxSep);
         Check(maxSep > 40f, "touching a boss shoves you back out");
-        Check(hits >= 1 && hits <= 2, "a boss's body hurts at most once a second");
+        Check(hits == 0, "a boss's body doesn't hurt (only its charges do)");
         host.Leave("");
     }
 
