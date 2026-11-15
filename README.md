@@ -1460,7 +1460,7 @@ screen and the wave keeps running behind it:
 Small, one-mechanic drills, laid out as cartridges in rows by group (**Move & Dodge**, **Weapons**, **Abilities**,
 **Enemies**, **Co-op**; four slots each, empty ones dashed). Click a drill to see its goal and steps, then **Load this drill**
 (the host's): its waves go into the Practice setup (so everyone sees them on the Practice tab), and Ready and Start play it
-with the rules above. This is groundwork: the built-in list has one placeholder drill marked **EXAMPLE**. Drills are
+with the rules above. Built-in drills: **Dodge Basics** (Move & Dodge): three short waves to slip through, Burster rings, Spinner spirals, then a mixed volley with Grunts (dodge through it), ending with PRACTICE COMPLETE. Drills are
 `.training` text files: put them in the `training` folder (next to `practice`; **Folder** opens it, **Reload** re-reads it).
 The file is a Practice setup with a few extra lines first, and is documented in [`Docs/Training.md`](Docs/Training.md).
 

@@ -1,7 +1,8 @@
 # Training drills (Practice Range, second section)
 
-Status: **groundwork built** (Nov 2026): the Training tab, the drill library, the text format and Load this drill. No real
-drills yet beyond one placeholder (`dodge-basics`, marked EXAMPLE). Look: look A of
+Status: **groundwork built** (Nov 2026): the Training tab, the drill library, the text format and Load this drill. One real
+drill so far: **Dodge Basics** (`dodge-basics`, Move & Dodge): three level-1 waves, Burster rings, then Spinner spirals, then
+a mixed volley with Grunts; no loop, so it ends with PRACTICE COMPLETE. Look: look A of
 [`Mockups/crt-practice-redesign.html`](Mockups/crt-practice-redesign.html) (https://claude.ai/artifact/23YzJJzNS4J5eVNjkadkku).
 
 ## What it is
