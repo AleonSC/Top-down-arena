@@ -296,7 +296,7 @@ static partial class Program
                 && s[0].Game.Players[1].Rerolls == before + 2, "killing both together ends the fight with one reward");
             s[0].Leave(""); s[1].Leave("");
         }
-        // Twin Reapers: Soul Bond makes the more-hurt one immune, and their tether hurts.
+        // Twin Reapers: Soul Bond makes the more-hurt one immune.
         {
             var s = StartBuffed(dt, 15, 0);
             Run(s, dt, 15, () => Find(s[0], EnemyType.TwinA) != null && Find(s[0], EnemyType.TwinB) != null && Find(s[0], EnemyType.TwinB).SpawnT <= 0f
@@ -322,12 +322,20 @@ static partial class Program
             Check(boundOnClient && immune && released, "Soul Bond: the more-hurt Reaper is immune until the other is evened out (seen on client)");
             Check(otherHurt, "bots switch to the Reaper that can be hurt");
 
-            // Stand on the tether between them.
+            s[0].Leave(""); s[1].Leave("");
+        }
+        // Twin Reapers: their tether hurts during the Sweep (a fresh fight: the one above is about to fuse, and the Dual Reaper has no tether).
+        {
+            var s = StartBuffed(dt, 15, 0);
+            Run(s, dt, 15, () => Find(s[0], EnemyType.TwinA) != null && Find(s[0], EnemyType.TwinB) != null && Find(s[0], EnemyType.TwinB).SpawnT <= 0f
+                && Find(s[0], EnemyType.TwinA).SpawnT <= 0f);
             s[0].Game.Bot = s[1].Game.Bot = false;
             var p = s[0].Game.Players[1];
             float hpBefore = 0f;
             bool hurt = false;
-            Run(s, dt, 1.5f, null, () =>
+            // The tether only hurts during the Sweep turn (their bodies don't hurt): stand on it until a Sweep hurts you.
+            float takenBefore = p.Run.DamageTaken, tetherTaken = 0f;
+            Run(s, dt, 30f, () => hurt, () =>
             {
                 var ta = Find(s[0], EnemyType.TwinA);
                 var tb = Find(s[0], EnemyType.TwinB);
@@ -339,9 +347,10 @@ static partial class Program
                         s[0].Game.Bullets.Remove(bl.Id);  // only the tether should hurt
                 if (hpBefore == 0f)
                     hpBefore = p.Hp;
-                hurt |= p.Hp < hpBefore - 5f;
+                tetherTaken = p.Run.DamageTaken - takenBefore;
+                hurt |= tetherTaken > 5f;
             });
-            Console.WriteLine("  tether: hp {0:0} -> {1:0}", hpBefore, p.Hp);
+            Console.WriteLine("  tether: hp {0:0} -> {1:0}, took {2:0}", hpBefore, p.Hp, tetherTaken);
             Check(hurt, "the Reapers' tether hurts players standing in it");
             s[0].Leave(""); s[1].Leave("");
         }
