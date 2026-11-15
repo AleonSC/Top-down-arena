@@ -75,7 +75,7 @@ namespace Arena
         }
 
         /// Host, every frame of a regular wave and between waves: wake the mini-boss when someone walks in, and settle a duel that was won.
-        void TickDuelRooms()
+        void TickDuelRooms(float dt)
         {
             if (!ExpandingOn || !RoomsOn || !(State == MatchState.Fighting || State == MatchState.Intermission))
                 return;
@@ -90,6 +90,8 @@ namespace Arena
                     Enemy boss;
                     if (!Enemies.TryGetValue(id, out boss) || boss.Hp <= 0f)
                         WinDuel(i);
+                    else
+                        TickDuelOrbs(i, dt);
                     continue;
                 }
                 if (State == MatchState.Intermission && !DuelsBetweenWaves)
@@ -101,6 +103,7 @@ namespace Arena
                         boss.Home = i;
                         boss.T2 = 2.5f;
                         duelBoss[i] = boss.Id;
+                        duelOrbT[i] = DuelOrbEvery;
                         DoLog(boss.Def.Name + " wakes: " + p.Name + " walked into " + a.Name);
                         break;
                     }
@@ -108,6 +111,37 @@ namespace Arena
         }
 
         readonly Dictionary<int, int> duelBoss = new Dictionary<int, int>();  // host: area -> its mini-boss's id
+        readonly Dictionary<int, float> duelOrbT = new Dictionary<int, float>();  // host: area -> time to its next health orbs
+
+        /// Seconds between a duel's health orbs.
+        public const float DuelOrbEvery = 10f;
+
+        /// Host, every tick of a live duel: every DuelOrbEvery seconds a health orb drops somewhere in the room for each
+        /// player fighting in it (the room is locked, so no kills outside can feed them). Orbs are already synced.
+        void TickDuelOrbs(int area, float dt)
+        {
+            float t;
+            if (!duelOrbT.TryGetValue(area, out t))
+                t = DuelOrbEvery;
+            t -= dt;
+            if (t > 0f)
+            {
+                duelOrbT[area] = t;
+                return;
+            }
+            duelOrbT[area] = DuelOrbEvery;
+            var a = CurrentWorld.Areas[area];
+            const float inset = 70f;  // (clear of the walls)
+            foreach (var p in Players.Values)
+            {
+                if (p.Downed || !a.Contains(p.Pos))
+                    continue;
+                var at = new V2(a.Min.X + inset + (float)rng.NextDouble() * Math.Max(0f, a.Size.X - 2f * inset),
+                                a.Min.Y + inset + (float)rng.NextDouble() * Math.Max(0f, a.Size.Y - 2f * inset));
+                SpawnOrb(at, false);
+                BroadcastFx(FxKind.Ring, at, new Rgba(0.4f, 1f, 0.5f), 40f, 0.4f, Sfx.None);
+            }
+        }
 
         /// The mini-boss is down: the prize pick for everyone, and the room is an ordinary one from now on.
         void WinDuel(int area)
