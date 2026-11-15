@@ -429,7 +429,7 @@ namespace Arena
                         new[] { K(KeyAction.AbilityQ), K(KeyAction.AbilityE), K(KeyAction.AbilityShift) },
                         new[] { "1", "2", "3" },
                         new[] { K(KeyAction.TakeItem), K(KeyAction.DiscardItem) }, new[] { K(KeyAction.Ping), K(KeyAction.Emote) }, new[] { K(KeyAction.ReadyUp) }, new[] { K(KeyAction.Reroll) }, new[] { "Tab" }, new[] { K(KeyAction.AimLine), K(KeyAction.ToggleHud) },
-                        new[] { "Esc" }, new[] { K(KeyAction.Mute) }, new[] { "R", "L", "C" }, new[] { "F1" },
+                        new[] { "Esc" }, Keybinds.Get(KeyAction.Mute) == KeyCode.None ? new[] { K(KeyAction.Map) } : new[] { K(KeyAction.Map), K(KeyAction.Mute) }, new[] { "R", "L", "C" }, new[] { "F1" },
                     };
                 }
                 return howToKeys;
@@ -453,7 +453,7 @@ namespace Arena
             { "Stats & upgrades", "hold: just for you, doesn't pause" },
             { "Aim line, HUD", "aim line on / off · hide or show the HUD" },
             { "Pause menu", "run stats, profile, how to play, settings" },
-            { "Mute", "" },
+            { "Map, mute", "map: minimap, full map, off · mute: give it a key in Settings" },
             { "After a run (host)", "R: play again · L: back to lobby · C: keep going" },
             { "Developer tools", "and the Boss Lab" },
         };

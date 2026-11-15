@@ -140,6 +140,7 @@ namespace Arena
             LoadHoverNames();  // EnemyTagLook.cs
             LoadLagChart();  // LagChartUi.cs
             SetHudMode(PlayerPrefs.GetInt("hud_mode", 0), false);  // the HUD mode, remembered (HudModes.cs)
+            LoadMapView();  // minimap, full map or off, remembered (MapView.cs)
             LoadBackgroundSettings();
             InitSaveFolders();  // saved runs and the profile (SavesUi.cs)
             LoadTextOverrides();  // text edited with the dev text editor (DevTextEdit.cs)
@@ -417,7 +418,7 @@ namespace Arena
                     TileKeyPressed(3);  // still recharging: the tile shakes (HudTiles.cs)
                 }
             }
-            // Ignore the mute key while typing in a text box (e.g. a name with an "m" in it).
+            // Ignore the toggle keys while typing in a text box (e.g. a name with an "m" in it).
             if (Keybinds.Down(KeyAction.AimLine) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
                 SetAimLine(!aimLine);
             if (Input.GetKeyDown(KeyCode.F3))
@@ -426,6 +427,7 @@ namespace Arena
             TextEditKeys();  // F4: the dev text editor
             if (Keybinds.Down(KeyAction.ToggleHud) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
                 SetHudMode(hudMode + 1);  // H: full > corner text > on the player > hidden (HudModes.cs)
+            TickMapView(Time.unscaledDeltaTime);  // M: minimap > full map > off (MapView.cs)
             TickLaunch(Time.unscaledDeltaTime);  // a run starting: the drop-in (LaunchIntro.cs)
             TickMenuIntro(Time.unscaledDeltaTime);  // the main menu drawing itself in, the first time (MenuIntro.cs)
             TickLobbyEnter(Time.unscaledDeltaTime);  // the menu turning into the lobby (LobbyEnter.cs)

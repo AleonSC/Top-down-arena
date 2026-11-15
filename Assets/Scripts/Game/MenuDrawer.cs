@@ -635,7 +635,7 @@ namespace Arena
                     changed |= VolumeSlider(x, ref y, w, "Weapons  (your shots and spells)", ref sounds.Weapons, col);
                     changed |= VolumeSlider(x, ref y, w, "Enemies", ref sounds.Enemies, col);
                     changed |= VolumeSlider(x, ref y, w, "Effects  (explosions, abilities, the menus)", ref sounds.Effects, col);
-                    bool m2 = SwitchRow(new Rect(x, y + 4f, w, 54f), sounds.Muted, "Mute all sound", "Everything off at once; the volumes are kept", Keybinds.KeyName(Keybinds.Get(KeyAction.Mute)));
+                    bool m2 = SwitchRow(new Rect(x, y + 4f, w, 54f), sounds.Muted, "Mute all sound", "Everything off at once; the volumes are kept", Keybinds.NameOrNull(KeyAction.Mute));
                     if (m2 != sounds.Muted)
                     {
                         sounds.Muted = m2;

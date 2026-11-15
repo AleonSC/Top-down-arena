@@ -202,12 +202,12 @@ namespace Arena
         // clipped; teammates beyond it show as dots on its edge.
         const float RoomMapW = 230f, RoomMapH = 170f, RoomMapScale = 0.07f, RoomMapTop = 40f, RoomMapRight = 16f;
 
-        float mapOx, mapOy;
+        float mapOx, mapOy, mapW = RoomMapW, mapH = RoomMapH;  // the window being drawn (the minimap's, the full map's or one between: MapView.cs)
 
         /// A rectangle inside the minimap window, clipped to it.
         void MapRect(float x, float y, float w, float h, Rgba c)
         {
-            float x0 = Mathf.Max(x, mapOx), y0 = Mathf.Max(y, mapOy), x1 = Mathf.Min(x + w, mapOx + RoomMapW), y1 = Mathf.Min(y + h, mapOy + RoomMapH);
+            float x0 = Mathf.Max(x, mapOx), y0 = Mathf.Max(y, mapOy), x1 = Mathf.Min(x + w, mapOx + mapW), y1 = Mathf.Min(y + h, mapOy + mapH);
             if (x1 > x0 && y1 > y0)
                 RoomMapRect(x0, y0, x1 - x0, y1 - y0, c);
         }
@@ -220,34 +220,38 @@ namespace Arena
             MapRect(x + w - t, y, t, h, c);
         }
 
-        bool InMap(V2 c) => c.X >= mapOx && c.X <= mapOx + RoomMapW && c.Y >= mapOy && c.Y <= mapOy + RoomMapH;
+        bool InMap(V2 c) => mapH > 12f && c.X >= mapOx && c.X <= mapOx + mapW && c.Y >= mapOy && c.Y <= mapOy + mapH;
 
-        /// DrawHud: the Rooms and Expanding arenas' minimap (top right).
+        /// DrawHud: the Rooms and Expanding arenas' map: the minimap (top right), the full map or neither, as the Map key
+        /// last set it (MapView.cs).
         void DrawRoomsMinimap()
         {
             if (!game.RoomsOn || !game.Running)
                 return;
             bool vault = game.VaultOn;
             var wd = game.CurrentWorld;
-            V2 lo = wd.MinFor(vault), hi = wd.Max;
-            IncludeNodes(ref lo, ref hi);
-            if (game.ExpandOpen)  // the open round's proposals count too
-                foreach (var q in game.ExpandProposals)
-                {
-                    lo = new V2(Mathf.Min(lo.X, Mathf.Min(q.X, q.X + q.W)), Mathf.Min(lo.Y, Mathf.Min(q.Y, q.Y + q.H)));  // (a portal pair's W and H can be negative)
-                    hi = new V2(Mathf.Max(hi.X, Mathf.Max(q.X, q.X + q.W)), Mathf.Max(hi.Y, Mathf.Max(q.Y, q.Y + q.H)));
-                }
-            float k = RoomMapScale, hwx = RoomMapW / k / 2f, hwy = RoomMapH / k / 2f;
-            V2 at = game.Me != null ? game.Me.Disp : camFocus;
-            V2 centre = new V2(hi.X - lo.X <= 2f * hwx ? (lo.X + hi.X) / 2f : Mathf.Clamp(at.X, lo.X + hwx, hi.X - hwx),
-                               hi.Y - lo.Y <= 2f * hwy ? (lo.Y + hi.Y) / 2f : Mathf.Clamp(at.Y, lo.Y + hwy, hi.Y - hwy));
-            float ox = W - RoomMapRight - RoomMapW, oy = RoomMapTop;
-            mapOx = ox; mapOy = oy;
-            System.Func<V2, V2> M = p => new V2(ox + RoomMapW / 2f + (p.X - centre.X) * k, oy + RoomMapH / 2f + (p.Y - centre.Y) * k);
+            V2 lo, hi;
+            MapBounds(out lo, out hi);
+            var geoN = MapGeoNow(lo, hi);
+            if (!geoN.HasValue || geoN.Value.R.width < 1f)
+            {
+                DrawMapLabels(null);  // (the "Map off" note)
+                return;
+            }
+            var geo = geoN.Value;
+            mapLastGeo = geo; mapHasLast = true;
+            float k = geo.K, ox = geo.R.x, oy = geo.R.y, mw = geo.R.width, mh = geo.R.height;  // (the window's size)
+            V2 centre = geo.C;
+            mapOx = ox; mapOy = oy; mapW = mw; mapH = mh;
+            System.Func<V2, V2> M = p => new V2(ox + mw / 2f + (p.X - centre.X) * k, oy + mh / 2f + (p.Y - centre.Y) * k);
             if (!BeginUiGl())
                 return;
-            RoomMapRect(ox - 6f, oy - 6f, RoomMapW + 12f, RoomMapH + 12f, new Rgba(0.01f, 0.03f, 0.08f, 0.82f));
-            RoomMapFrame(ox - 1f, oy - 1f, RoomMapW + 2f, RoomMapH + 2f, 1f, new Rgba(0.4f, 0.64f, 1f, 0.35f));
+            if (geo.Dim > 0f)  // the full map: the game behind it dims
+                RoomMapRect(0f, 0f, W, H, new Rgba(0f, 0.01f, 0.03f, 0.45f * geo.Dim));
+            float pad = 6f * Mathf.Clamp01(mh / 40f);  // (folding shut: the frame hugs the line)
+            RoomMapRect(ox - pad, oy - pad, mw + 2f * pad, mh + 2f * pad, new Rgba(0.01f, 0.03f, 0.08f, 0.82f + 0.1f * geo.Dim));
+            RoomMapFrame(ox - 1f, oy - 1f, mw + 2f, mh + 2f, 1f, new Rgba(0.4f, 0.64f, 1f, 0.35f + 0.25f * geo.Dim));
+            DrawMapChrome(geo);  // the full map's corner brackets and legend swatches (MapView.cs)
             for (int i = 0; i < wd.Areas.Length; i++)
             {
                 var a = wd.Areas[i];
@@ -375,7 +379,7 @@ namespace Arena
                 bool mine = p.Id == game.MyId;
                 if (!InMap(c))  // beyond the window: a dot on its edge
                 {
-                    c = new V2(Mathf.Clamp(c.X, ox + 3f, ox + RoomMapW - 3f), Mathf.Clamp(c.Y, oy + 3f, oy + RoomMapH - 3f));
+                    c = new V2(Mathf.Clamp(c.X, ox + 3f, ox + mw - 3f), Mathf.Clamp(c.Y, oy + 3f, oy + mh - 3f));
                     RoomMapRect(c.X - 2.5f, c.Y - 2.5f, 5f, 5f, (p.Downed ? new Rgba(1f, 0.3f, 0.3f) : p.Def.Color).WithAlpha(0.75f));
                     continue;
                 }
@@ -387,7 +391,28 @@ namespace Arena
             float hx = AW / (2f * camZoom), hy = AH / (2f * camZoom);
             V2 v0 = M(camFocus - new V2(hx, hy)), v1 = M(camFocus + new V2(hx, hy));
             MapFrame(v0.X, v0.Y, v1.X - v0.X, v1.Y - v0.Y, 1f, new Rgba(1f, 1f, 1f, 0.5f));
+            if (geo.Fold > 0f)  // switching off or on: the CRT's bright line across the middle
+            {
+                float cy = oy + mh / 2f;
+                RoomMapRect(ox, cy - 4f, mw, 8f, new Rgba(0.55f, 0.75f, 1f, 0.22f * geo.Fold));
+                RoomMapRect(ox, cy - 1f, mw, 2f, new Rgba(0.9f, 0.96f, 1f, 0.95f * geo.Fold));
+            }
             EndUiGl();
+            DrawMapLabels(geo);  // the full map's title and legend, the "Map off" note (MapView.cs)
+        }
+
+        /// What the map shows: the world (with the vault if it's up), the nodes and the open round's proposals.
+        void MapBounds(out V2 lo, out V2 hi)
+        {
+            var wd = game.CurrentWorld;
+            lo = wd.MinFor(game.VaultOn); hi = wd.Max;
+            IncludeNodes(ref lo, ref hi);
+            if (game.ExpandOpen)  // the open round's proposals count too
+                foreach (var q in game.ExpandProposals)
+                {
+                    lo = new V2(Mathf.Min(lo.X, Mathf.Min(q.X, q.X + q.W)), Mathf.Min(lo.Y, Mathf.Min(q.Y, q.Y + q.H)));  // (a portal pair's W and H can be negative)
+                    hi = new V2(Mathf.Max(hi.X, Mathf.Max(q.X, q.X + q.W)), Mathf.Max(hi.Y, Mathf.Max(q.Y, q.Y + q.H)));
+                }
         }
 
         /// When set, RoomMapRect clips to it (the zoomed drawing map).
