@@ -18,34 +18,35 @@ namespace Arena
             V2 f = V2.FromAngle(e.Facing), s = f.Orthogonal();
             float p = Mathf.Sin(t * 5f + e.Id * 1.7f);  // a slow, heavy stride
             V2 body = pos - f * r * 0.1f;
-            Ellipse(body, r * 0.75f + 1.6f, r * 1.15f + 1.6f, e.Facing, RioterInk, 16);
-            Ellipse(body, r * 0.75f, r * 1.15f, e.Facing, ThugJumpsuit, 16);  // the jumpsuit, tied at the waist
-            Ellipse(body + f * r * 0.08f, r * 0.64f, r * 0.92f, e.Facing, col, 16);  // the tank top
-            Circle(pos - f * r * 0.35f, r * 0.35f, col.Mix(RioterInk, 0.25f), 12);  // the hump of its back
+            Oval(body, r * 0.75f + 1.6f, r * 1.15f + 1.6f, e.Facing, RioterInk);
+            Oval(body, r * 0.75f, r * 1.15f, e.Facing, ThugJumpsuit);  // the jumpsuit, tied at the waist
+            Oval(body + f * r * 0.08f, r * 0.64f, r * 0.92f, e.Facing, col);  // the tank top
+            Circle(pos - f * r * 0.35f, r * 0.35f, col.Mix(RioterInk, 0.25f), 28);  // the hump of its back
             for (int k = -1; k <= 1; k += 2)
             {
                 V2 shoulder = pos + s * (k * r * 0.95f);
                 V2 elbow = shoulder + f * r * 0.35f + s * (k * r * 0.35f);
                 V2 fist = elbow + f * r * (0.6f + 0.12f * k * p) - s * (k * r * 0.12f);
+                Cap(shoulder, elbow, 7f + 2.6f, RioterInk);  // one outline under both halves: a round elbow
+                Cap(elbow, fist, 6f + 2.6f, RioterInk);
                 ThugArm(shoulder, elbow, 7f, k < 0);
                 ThugArm(elbow, fist, 6f, false);
-                Circle(fist, r * 0.34f, RioterInk, 12);
-                Circle(fist, r * 0.27f, ThugTape, 12);  // the taped fist
-                Line(fist - s * r * 0.2f, fist + s * r * 0.2f, 1.2f, new Rgba(0.6f, 0.58f, 0.52f));
+                Circle(fist, r * 0.34f, RioterInk, 28);
+                Circle(fist, r * 0.27f, ThugTape, 28);  // the taped fist
+                Cap(fist - s * r * 0.18f, fist + s * r * 0.18f, 1.2f, new Rgba(0.6f, 0.58f, 0.52f));
                 if (k > 0)
-                    Arc(elbow + (fist - elbow) * 0.75f, r * 0.2f, 2.4f, RioterChain, 10);  // a cuff, its other half gone
+                    Arc(elbow + (fist - elbow) * 0.75f, r * 0.2f, 2.4f, RioterChain, 24);  // a cuff, its other half gone
             }
             RioterHead(pos + f * r * 0.4f, r * 0.3f, f, new Rgba(0.55f, 0.42f, 0.34f, 0.6f));  // shaved
-            Line(pos + f * r * 0.62f - s * r * 0.2f, pos + f * r * 0.62f + s * r * 0.2f, 2.4f, RioterInk);  // the brow
+            Cap(pos + f * r * 0.62f - s * r * 0.18f, pos + f * r * 0.62f + s * r * 0.18f, 2.4f, RioterInk);  // the brow
         }
 
         /// A bare arm (a tank top), with a blue tattoo on the upper arm if asked.
         void ThugArm(V2 a, V2 b, float w, bool tattoo)
         {
-            Line(a, b, w + 2.6f, RioterInk);
-            Line(a, b, w, RioterSkin);
+            Cap(a, b, w, RioterSkin);  // (its outline is drawn first by DrawThugBody)
             if (tattoo)
-                Line(a + (b - a) * 0.25f, a + (b - a) * 0.5f, w * 0.55f, ThugTattoo);
+                Cap(a + (b - a) * 0.25f, a + (b - a) * 0.5f, w * 0.55f, ThugTattoo);
         }
 
         static readonly Rgba ShivBlade = new Rgba(0.85f, 0.9f, 0.95f), ShivRed = new Rgba(0.8f, 0.15f, 0.15f);
@@ -66,8 +67,8 @@ namespace Arena
 
         void DrawShivHooded(Enemy e, V2 pos, float r, Rgba col, V2 f, V2 s, float p, float draw, float jab)
         {
-            Ellipse(pos, r * 0.5f + 1.4f, r * 0.85f + 1.4f, e.Facing, RioterInk, 14);
-            Ellipse(pos, r * 0.5f, r * 0.85f, e.Facing, col, 14);  // the hoodie, narrow shoulders
+            Oval(pos, r * 0.5f + RioterInkW, r * 0.85f + RioterInkW, e.Facing, RioterInk);
+            Oval(pos, r * 0.5f, r * 0.85f, e.Facing, col);  // the hoodie, narrow shoulders
             V2 free = pos + f * r * (0.7f + 0.15f * p) - s * r * 0.55f;
             RioterArm(pos - s * r * 0.7f, free, 3.4f, col);
             ShivHand(free, r);
@@ -76,17 +77,17 @@ namespace Arena
             ShivShank(knife, f, r * 1.1f);
             ShivHand(knife, r);
             V2 head = pos + f * r * 0.05f;
-            Circle(head, r * 0.46f, RioterInk, 12);
-            Circle(head, r * 0.4f, col.Mix(RioterInk, 0.3f), 12);  // the hood, up
-            Circle(head + f * r * 0.12f, r * 0.24f, new Rgba(0.08f, 0.07f, 0.08f, 0.95f), 10);  // the face in shadow
+            Circle(head, r * 0.4f + RioterInkW, RioterInk, 24);
+            Circle(head, r * 0.4f, col.Mix(RioterInk, 0.3f), 24);  // the hood, up
+            Circle(head + f * r * 0.12f, r * 0.24f, new Rgba(0.08f, 0.07f, 0.08f, 0.95f), 24);  // the face in shadow
         }
 
         void DrawShivTwin(Enemy e, V2 pos, float r, V2 f, V2 s, float p, float draw, float jab)
         {
-            Ellipse(pos - f * r * 0.15f, r * 0.45f + 1.4f, r * 0.78f + 1.4f, e.Facing, RioterInk, 14);
-            Ellipse(pos - f * r * 0.15f, r * 0.45f, r * 0.78f, e.Facing, ThugJumpsuit, 14);  // the jumpsuit, tied off
-            Ellipse(pos, r * 0.38f, r * 0.68f, e.Facing, RioterSkin, 14);  // the bare back
-            Line(pos - f * r * 0.15f - s * r * 0.3f, pos + f * r * 0.1f + s * r * 0.25f, 2f, ThugTattoo);
+            Oval(pos - f * r * 0.15f, r * 0.45f + RioterInkW, r * 0.78f + RioterInkW, e.Facing, RioterInk);
+            Oval(pos - f * r * 0.15f, r * 0.45f, r * 0.78f, e.Facing, ThugJumpsuit);  // the jumpsuit, tied off
+            Oval(pos, r * 0.38f, r * 0.68f, e.Facing, RioterSkin);  // the bare back
+            Cap(pos - f * r * 0.15f - s * r * 0.3f, pos + f * r * 0.1f + s * r * 0.25f, 2f, ThugTattoo);
             for (int k = -1; k <= 1; k += 2)
             {
                 bool lead = k > 0;  // the lead hand winds up and lunges; the other keeps its blade along the forearm
@@ -97,23 +98,25 @@ namespace Arena
                 ShivHand(h, r);
             }
             RioterHead(pos + f * r * 0.1f, r * 0.36f, f, new Rgba(0.15f, 0.12f, 0.1f, 0.95f));  // a buzz cut
-            Arc(pos + f * r * 0.1f, r * 0.38f, 2.2f, ShivRed, 10, e.Facing - 0.9f + MathX.Pi, 1.8f);  // the headband
+            Arc(pos + f * r * 0.1f, r * 0.38f, 2.2f, ShivRed, 24, e.Facing - 0.9f + MathX.Pi, 1.8f);  // the headband
         }
 
         /// A sharpened shank with a taped grip, pointing along `dir`.
         void ShivShank(V2 grip, V2 dir, float len)
         {
             V2 tip = grip + dir * len;
-            Line(grip - dir * 3f, tip, 4.2f, RioterInk);
-            Line(grip, tip, 2.4f, ShivBlade);
-            Line(grip - dir * 3f, grip + dir * 2f, 4.5f, ThugTape);
-            Circle(tip, 1.6f, new Rgba(1f, 1f, 1f, 0.95f), 6);
+            V2 n = dir.Orthogonal();
+            SetColor(RioterInk);  // a tapered blade to a point
+            Tri(grip + n * 2.8f, grip - n * 2.8f, tip + dir * 1.8f);
+            SetColor(ShivBlade);
+            Tri(grip + n * 1.8f, grip - n * 1.8f, tip);
+            Cap(grip - dir * 3f, grip + dir * 2f, 4.5f, ThugTape);
         }
 
         void ShivHand(V2 h, float r)
         {
-            Circle(h, r * 0.24f, RioterInk, 10);
-            Circle(h, r * 0.17f, RioterSkin, 10);
+            Circle(h, r * 0.17f + RioterInkW, RioterInk, 24);
+            Circle(h, r * 0.17f, RioterSkin, 24);
         }
     }
 }

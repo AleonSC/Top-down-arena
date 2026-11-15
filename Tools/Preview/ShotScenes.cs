@@ -231,6 +231,20 @@ static partial class Shot {
         if (types[i] == EnemyType.Rioter) en.Variant = i == 1 || i == 4 ? EnemyVariant.BallAndChain : EnemyVariant.None;  // two Ball and Chains (EnemyVariants.cs)
       }
     }
+    if (Environment.GetEnvironmentVariable("PRISONERS") != null) {
+      // PRISONERS=1: Thugs and Shivs (Hooded and Twin Shanks: walking, winding up, lunging) in a row facing you (mode hud; ZOOM=3).
+      var gm = host.Game; gm.Bot = false; gm.Enemies.Clear(); gm.Bullets.Clear();
+      me.Pos = me.Disp = new V2(1170f, 600f); me.InvulnT = 1f; me.Aim = MathX.Pi;
+      foreach (var pl in gm.Players.Values) if (pl != me) pl.Pos = pl.Disp = new V2(300f, 200f);
+      var spawn = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var types = new[] { EnemyType.Thug, EnemyType.Shiv, EnemyType.Shiv, EnemyType.Shiv, EnemyType.Shiv, EnemyType.Shiv, EnemyType.Shiv, EnemyType.Thug };
+      var phases = new byte[] { 0, 0, 0, 1, 1, 2, 2, 0 };
+      for (int i = 0; i < types.Length; i++) {
+        var at = new V2(975f + (i % 4) * 42f, i < 4 ? 565f : 630f);
+        var en = (Enemy)spawn.Invoke(gm, new object[] { types[i], at, 0f, 0, false });
+        en.SpawnT = 0f; en.Pos = en.Disp = at; en.Facing = (me.Pos - at).Angle; en.Phase = phases[i];
+      }
+    }
     if (Environment.GetEnvironmentVariable("GUARD") != null) {
       // GUARD=1: the riot Guard (WardenLook.cs DrawGuardBody, GuardSwing.cs) walking, drawing back a forehand, mid-forehand,
       // drawing back a backhand, mid-backhand, left to right, each facing you below; mode hud with KNIGHT=1 ZOOM=2.6.
