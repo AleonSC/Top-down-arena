@@ -37,6 +37,12 @@ namespace Arena
                 case FxKind.Shockwave:
                     DrawShockwave(fx);  // ShockwaveLook.cs
                     break;
+                case FxKind.Sentry:
+                    DrawSentryFx(fx);  // SentryNovaLook.cs
+                    break;
+                case FxKind.Nova:
+                    DrawNovaFx(fx);  // SentryNovaLook.cs
+                    break;
                 case FxKind.Debris:
                     DrawDebrisFx(fx, f);  // PropsLook.cs
                     break;

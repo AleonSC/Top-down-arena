@@ -300,6 +300,11 @@ namespace Arena
                 DrawTitan(m, t);  // TitanLook.cs
                 return;
             }
+            if (m.Kind == MinionKind.Turret && fxOn)
+            {
+                DrawSentry(m, t);  // SentryNovaLook.cs
+                return;
+            }
             if (m.Kind == MinionKind.Hydra)
             {
                 DrawHydra(m, t);  // HydraLook.cs
