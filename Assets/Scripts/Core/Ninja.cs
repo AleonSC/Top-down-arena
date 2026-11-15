@@ -28,7 +28,6 @@ namespace Arena
         // on from where you left off. The weapon-action key shoves and starts the chain over.
         public const float BoSlashArc = 130f, BoJabReach = 140f, BoJabWidth = 14f, BoSpinReach = 100f;  // the slash's cone (degrees), the jab's reach and half width, the spin's reach (the slash uses the weapon's own Reach)
         public const float BoJabMult = 22f / 16f, BoSpinMult = 30f / 16f;  // damage against the slash's
-        public const float BoSlashKnock = 14f, BoJabKnock = 22f, BoSpinKnock = 20f;
         public const float BoExtraDmg = 0.15f;  // each extra projectile (upgrade): +15% damage on every swing and the shove, on top of +20 px reach
         public static readonly float[] BoStepTime = { 0.32f, 0.30f, 0.80f };  // how long each step holds the next one off (the spin's includes its recovery)
         public const float BoShoveReach = 78f, BoShoveHalf = 50f, BoShoveMult = 6f / 16f, BoShoveKnock = 70f, BoShoveWind = 0.1f, BoShoveTime = 0.36f, BoShoveCd = 1f;  // the shove's bar: how far out, half its width, damage against the slash's, the push, the pull-back before it lands, how long it holds you, its cooldown
@@ -73,20 +72,17 @@ namespace Arena
                     if (step == 0)
                     {
                         s = NewSwing(p, aim, w.Reach + grow, BoSlashArc, w.Damage * dmg);  // a cone slash
-                        s.Knock = BoSlashKnock;
                     }
                     else if (step == 1)
                     {
                         s = NewSwing(p, aim, BoJabReach + grow, 0f, w.Damage * BoJabMult * dmg);  // a jab: a line straight ahead
                         s.HalfWidth = BoJabWidth;
                         s.Thrust = true;
-                        s.Knock = BoJabKnock;
                     }
                     else
                     {
                         s = NewSwing(p, aim, BoSpinReach + grow, 360f, w.Damage * BoSpinMult * dmg * p.Stats.BoSpinDmgMult);  // the full spin (Iron Bo: harder)
                         s.Heavy = true;
-                        s.Knock = BoSpinKnock;
                     }
                     QueueSwing(s);
                     break;

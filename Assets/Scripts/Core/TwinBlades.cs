@@ -15,8 +15,7 @@ namespace Arena
     public partial class Game
     {
         public const float TwinChainWindow = 0.7f;
-        public const float TwinCutArc = 110f, TwinSpinReach = 92f, TwinJabReach = 130f, TwinJabHalfWidth = 10f, TwinShearArc = 200f, TwinShearKnock = 18f;
-        public const float TwinCutKnock = 10f, TwinJabKnock = 6f, TwinSpinKnock = 8f;  // a slight shove on each hit of the first four steps, so the chain keeps bodies off you
+        public const float TwinCutArc = 110f, TwinSpinReach = 92f, TwinJabReach = 130f, TwinJabHalfWidth = 10f, TwinShearArc = 200f;
         public static readonly float[] TwinMult = { 1f, 1f, 0.75f, 0.8f, 2.75f };  // damage of each hit of each step against the weapon's Damage (16, 16, 12 x2, 13 x2, 44)
         public const float TwinGuard = 0.3f;                                         // damage you take while the chain is going: 30% less
         public const float TwinWaveMult = 1.875f;                                    // the Shear's crescent: 30
@@ -52,7 +51,7 @@ namespace Arena
             {
                 case 1:
                 case 2:
-                    TwinSwing(p, aim, w.Reach, TwinCutArc, hit, d.Dur * 0.5f, step == 1 ? Sfx.TwinCut1 : Sfx.TwinCut2, step).Knock = TwinCutKnock;
+                    TwinSwing(p, aim, w.Reach, TwinCutArc, hit, d.Dur * 0.5f, step == 1 ? Sfx.TwinCut1 : Sfx.TwinCut2, step);
                     break;
                 case 3:
                     for (int k = 0; k < 2; k++)
@@ -60,13 +59,11 @@ namespace Arena
                         var s = TwinSwing(p, aim, TwinJabReach, 0f, hit, d.Dur * (k == 0 ? 0.27f : 0.59f), Sfx.TwinJab, step);
                         s.HalfWidth = TwinJabHalfWidth;
                         s.Thrust = true;
-                        s.Knock = TwinJabKnock;
                     }
                     break;
                 case 4:
-                    TwinSwing(p, aim, TwinSpinReach, 360f, hit, d.Dur * 0.35f, Sfx.TwinSpin, step).Knock = TwinSpinKnock;
+                    TwinSwing(p, aim, TwinSpinReach, 360f, hit, d.Dur * 0.35f, Sfx.TwinSpin, step);
                     var spin = TwinSwing(p, aim, TwinSpinReach, 360f, hit, d.Dur * 0.7f, Sfx.None, step);  // (the first's whirl covers both turns)
-                    spin.Knock = TwinSpinKnock;
                     spin.Waves = extra;  // the +1 upgrade: the Pirouette throws crescents too
                     spin.WaveDmg = w.Damage * dmg * TwinWaveMult;
                     break;
@@ -74,7 +71,6 @@ namespace Arena
                 {
                     var s = TwinSwing(p, aim, w.Reach, TwinShearArc, hit, d.Dur * 0.53f, Sfx.None, step);
                     s.Heavy = true;
-                    s.Knock = TwinShearKnock;
                     s.Waves = 1 + extra;
                     s.WaveDmg = w.Damage * dmg * TwinWaveMult;
                     break;
