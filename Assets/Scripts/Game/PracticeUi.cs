@@ -181,41 +181,50 @@ namespace Arena
         /// The top line: who is editing (a live dot), "NO XP · RESPAWN ON", and the host's switch to let the others edit.
         void DrawPracticeHeader(Rect r, float t, bool canEdit, bool calm)
         {
-            float x = r.x + 16f, y = r.y + 10f;
+            float x = r.x + 16f;
             string status;
             Color sc;
             if (session.IsHost)
             {
-                status = session.OthersCanEdit ? "Everyone can edit these waves" : "You're editing  ·  the others see every change";
+                status = session.OthersCanEdit ? "Everyone can edit these waves." : "You're editing: the others see every change.";
                 sc = PracticeCyan;
             }
             else if (canEdit)
             {
-                status = "You can edit these waves  ·  everyone sees every change";
+                status = "You can edit these waves: everyone sees every change.";
                 sc = Ui.Good;
             }
             else
             {
-                status = "Watching " + HostName() + "'s setup  ·  only the host can edit";
+                status = "Watching " + HostName() + "'s setup: only the host can edit.";
                 sc = Ui.Muted;
             }
+            // The Boss Hunt tab's header (ModeTabKit.cs): the spaced name, a rule, the tag on the right; the status under it.
+            var ink = CrtUi.Ink;
+            float keyW = session.IsHost ? 144f : canEdit ? 100f : 0f;
+            float right = r.xMax - 16f - (keyW > 0f ? keyW + 14f : 0f);
+            LobbyKit.Spaced(new Rect(x + 2f, r.y + 6f, 200f, 20f), "PRACTICE", 14, new Color(ink.r, ink.g, ink.b, 0.9f), TextAnchor.MiddleLeft, 3.6f);
+            const string tag = "NO XP  ·  RESPAWN ON";  // no profile XP here, and a downed player can respawn (PracticeRespawn.cs)
+            float tagW = Ui.TextWidth(tag, 11, false);
+            Ui.Label(new Rect(right - tagW - 20f, r.y + 6f, tagW + 20f, 20f), tag, 11, ReviveMintUi, TextAnchor.MiddleRight);
+            float l0 = x + 2f + LobbyKit.SpacedWidth("PRACTICE", 14, 3.6f) + 20f, l1 = right - tagW - 10f;
+            if (l1 > l0 + 20f)
+                Ui.Fill(new Rect(l0, r.y + 16f, l1 - l0, 1f), new Color(ink.r, ink.g, ink.b, 0.25f));
             float pulse = calm ? 0.8f : 0.5f + 0.5f * Mathf.Sin(t * 3f);
-            Ui.Fill(new Rect(x, y + 11f, 8f, 8f), new Color(sc.r, sc.g, sc.b, 0.35f + 0.6f * pulse));
-            Ui.Label(new Rect(x + 16f, y, 340f, 30f), LobbyKit.Truncate(status.ToUpperInvariant(), 12, 340f), 12, CrtStyle.Body, TextAnchor.MiddleLeft, true);
-            if (session.PlanEditor.Length > 0 && session.PlanEditor != MyLobbyName() && t - practiceFlashT < 4f)
-                Ui.Label(new Rect(x + 16f, y + 22f, 340f, 16f), session.PlanEditor + " changed wave " + (session.PlanEditorSel + 1), 11,
+            Ui.Fill(new Rect(x + 2f, r.y + 32f, 6f, 6f), new Color(sc.r, sc.g, sc.b, 0.35f + 0.6f * pulse));
+            bool flash = session.PlanEditor.Length > 0 && session.PlanEditor != MyLobbyName() && t - practiceFlashT < 4f;
+            if (flash)  // someone else just changed a wave: their note replaces the status for a moment
+                Ui.Label(new Rect(x + 14f, r.y + 26f, right - x - 14f, 18f), session.PlanEditor + " changed wave " + (session.PlanEditorSel + 1), 12,
                     new Color(Ui.Accent.r, Ui.Accent.g, Ui.Accent.b, 1f - (t - practiceFlashT) / 4f));
-            // No profile XP here, and a downed player can respawn (PracticeRespawn.cs).
-            var mint = ReviveMintUi;
-            Ui.Fill(new Rect(r.xMax - 396f, y + 11f, 8f, 8f), mint);
-            LobbyKit.Spaced(new Rect(r.xMax - 382f, y, 220f, 30f), "NO XP  ·  RESPAWN ON", 12, mint, TextAnchor.MiddleLeft, 1.4f);
+            else
+                Ui.Label(new Rect(x + 14f, r.y + 26f, right - x - 14f, 18f), status, 12, new Color(sc.r, sc.g, sc.b, 0.85f));
             if (session.IsHost)
             {
-                if (LobbyKit.Key(new Rect(r.xMax - 160f, y, 144f, 30f), "LET OTHERS EDIT", session.OthersCanEdit, calm, size: 12, minSize: 9, accent: PracticeCyan))
+                if (LobbyKit.Key(new Rect(r.xMax - 160f, r.y + 8f, 144f, 30f), "LET OTHERS EDIT", session.OthersCanEdit, calm, size: 12, minSize: 9, accent: PracticeCyan))
                     session.SetOthersCanEdit(!session.OthersCanEdit);
             }
             else if (canEdit)
-                DkTag(new Rect(r.xMax - 116f, y + 5f, 100f, 20f), "YOU CAN EDIT", new Color(0.2f, 0.62f, 0.32f));
+                DkTag(new Rect(r.xMax - 116f, r.y + 13f, 100f, 20f), "YOU CAN EDIT", new Color(0.2f, 0.62f, 0.32f));
             Ui.Fill(new Rect(r.x + 14f, r.y + 46f, r.width - 28f, 1f), LobbyKit.Ink(0.25f));
         }
 
