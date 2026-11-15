@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Arena
 {
     /// More visual effects (Juice.cs), on this screen only:
-    ///   orbs     a health orb flying to you leaves a trail and a faint link to you; picking one up bursts into data bits and a hex ring on you (OrbLook.cs)
+    ///   orbs     a health orb flying to you leaves a trail and a faint link to you; picking one up bursts into green sparks and a ring on you (OrbLook.cs)
     ///   dust     a puff at your feet when you set off, turn hard or dash
     ///   weather  each path has its own: embers rising on Burning Grounds, snow on Frozen Lake, petals on Sanctuary,
     ///            red ash under the Blood Moon, mist motes in Fogbound, grit on Narrow Pass, pollen on Swarm Fields,
@@ -58,7 +58,7 @@ namespace Arena
             {
                 var s = seenOrbs[id];
                 seenOrbs.Remove(id);
-                // Picked up (gone right by a player, not faded out): a data burst on them.
+                // Picked up (gone right by a player, not faded out): a burst of sparks on them.
                 foreach (var p in game.Players.Values)
                     if (!p.Downed && p.Disp.DistanceTo(s.Pos) < p.Def.BodyR + 30f)
                     {
