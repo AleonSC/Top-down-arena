@@ -192,7 +192,7 @@ namespace Arena
             if (calm || age < 0f || age > 0.8f || Event.current.type != EventType.Repaint)
                 return;
             float a = age < 0.1f ? age / 0.1f * 0.7f : age < 0.3f ? 0.7f - (age - 0.1f) / 0.2f * 0.3f : 0.4f * (1f - (age - 0.3f) / 0.5f);
-            Ui.Fill(r, new Color(0.8f, 0.9f, 1f, a * 0.5f));
+            Ui.Fill(r, new Color(0.8f, 0.9f, 1f, a * 0.2f));
         }
 
         /// A bright bar sweeping once down a screen (the options list as it fills). `age` 0..1.1 s.

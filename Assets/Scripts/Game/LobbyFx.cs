@@ -22,13 +22,15 @@ namespace Arena
 
         /// Over the box, after it is drawn clipped to Reveal: the scan line at the reveal edge while it wipes, then the flicker
         /// (two dark frames) and a glow on its frame fading out. `bg` is the dark the flicker dips to.
-        public static void Over(Rect r, float e, float wipe = Wipe)
+        public static void Over(Rect r, float e, float wipe = Wipe, bool line = true)
         {
             if (e <= 0f || e >= wipe + Flicker)
                 return;
             var ink = CrtUi.Ink;
             if (e < wipe)
             {
+                if (!line)
+                    return;
                 float y = r.y + r.height * Reveal(e, wipe);
                 Ui.Glow(new Rect(r.x, y - 2f, r.width, 4f), ink, 0.5f);
                 Ui.Fill(new Rect(r.x, y - 1f, r.width, 2f), new Color(0.92f, 0.96f, 1f, 0.9f));
@@ -36,9 +38,9 @@ namespace Arena
             }
             float f = (e - wipe) / Flicker;
             if (Mathf.FloorToInt((e - wipe) * 40f) % 2 == 1)
-                Ui.Fill(r, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.5f));
-            Ui.Glow(r, ink, 0.55f * (1f - f));
-            CrtKit.Frame(r, 1f, new Color(ink.r, ink.g, ink.b, 0.7f * (1f - f)));
+                Ui.Fill(r, new Color(CrtUi.Bg.r, CrtUi.Bg.g, CrtUi.Bg.b, 0.2f));
+            Ui.Glow(r, ink, 0.25f * (1f - f));
+            CrtKit.Frame(r, 1f, new Color(ink.r, ink.g, ink.b, 0.4f * (1f - f)));
         }
     }
 
