@@ -379,7 +379,7 @@ namespace Arena
             }
         }
 
-        readonly Random orbRng = new Random();  // its own rolls, so the orbs don't change the bosses' random choices (or seeded tests)
+        Random orbRng => sideRng;  // its own rolls (Game.cs), so the orbs don't change the bosses' random choices (or seeded tests)
 
         void EnterWardenStage(Enemy e, WardenStage stage)
         {
