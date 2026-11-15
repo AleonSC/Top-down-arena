@@ -22,6 +22,8 @@ namespace Arena
         public float SprintFade => SprintT <= 0f ? 0f : 1f - (1f - SprintT / SprintTime) * (1f - SprintT / SprintTime);
 
         float dodgeCd;
+        public int Dodges;      // your own game: dodges made, counted up (the floor's burst ripple watches it; FloorGridLook.cs)
+        public V2 DodgeFrom;    // your own game: where the last dodge started
         float hostClock;  // host: seconds of ticks since the game was made
         readonly System.Collections.Generic.Dictionary<int, float> hostDodgeAt = new System.Collections.Generic.Dictionary<int, float>();  // host: each client's last dodge (hostClock)
 
@@ -53,6 +55,8 @@ namespace Arena
             dashSpeed = DodgeDist / DodgeTime;
             DashT = DodgeTime;
             dodgeCd = DodgeCd;
+            Dodges++;
+            DodgeFrom = me.Pos;
             dodgeHoldT = 0f;
             SprintT = 0f;
             me.InvulnT = Math.Max(me.InvulnT, DodgeInvuln);

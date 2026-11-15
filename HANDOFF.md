@@ -128,8 +128,8 @@ notes (function names, message flow) are in `Docs/CodeNotes.md`, kept as a refer
 - **Path state is derived, not sent:** each game eases `NarrowF` / `FogF` from `CurrentPath` + wave, and ages
   patches itself; only the offer, the choice and each patch's spawn go over the network.
 - **Classes** are registries, like abilities: each class keeps its `KitDef` (name, blurb, icon, health and speed
-  shares, hooks), its `WeaponDef` list and its `AbilityDef` list in its own file; `Classes.All`, `Defs.Weapons` and
-  `Upgrades.Abilities` gather them, and each entry's `Kit`/`Role`/`Choice` places it in the lobby tables (indexed by
+  shares, hooks), its `WeaponDef` list and its `AbilityDef` list in its own file; one line in `Classes.Lists` gathers them (`Classes.All`,
+  `Defs.Weapons` and `Upgrades.Abilities` are built from it), and each entry's `Kit`/`Role`/`Choice` places it in the lobby tables (indexed by
   role × kit, `Defs.KitCount = 6`). FireVolley sends a weapon without its own case to its class's `KitDef.Fire`;
   CastAbility's default goes to `KitAbility`, then each class's `KitDef.Ability`, then `Ultimate`. The look is a
   `KitLook` line in `Game/ClassLooks.cs`. See "Adding a class" below. Blood Mage abilities cost health:
@@ -175,16 +175,16 @@ A class is mostly two new files plus a line in each registry. Templates: `Docs/C
 
 1. **Ids** (always at the end of each enum, before `None`, so the network and saves keep the old numbers): a `Kit`
    value (`Defs.cs`) and `Defs.KitCount` + 1; 9 `WeaponId`s (`Defs.cs`); 9 Space and 3 ultimate `AbilityId`s
-   (`Upgrades.cs`). New player bullet kinds, if any: a `Defs` byte constant with its radius and colour
-   (`BulletRadius`, `BulletColor`) and its drawing in `WorldShots.DrawSmallShot`. **Bump `Session.ProtocolVersion`.**
+   (`Upgrades.cs`). New player bullet kinds, if any: a `Defs` byte constant with a row in `Defs.BuildBulletTable` (radius,
+   colour, and damage for enemy shots) and its drawing in `WorldShots.DrawSmallShot`. **Bump `Session.ProtocolVersion`.**
 2. **`Core/<Class>.cs`** from the template: its `KitDef` (name, blurb, icon, `HpMult`/`SpeedMult`, hooks), its 9
    `WeaponDef`s (each with `Kit`, `Role`, `Choice` 0-2; `Sound`; `AreaDesc` if its damage lands in an area), its 12
    `AbilityDef`s (Space `Choice` 0-2, ultimates `AbilityDef.Ult`; a `Bot` rule each), the fire method (one `case` per
    weapon), the cast method (one `case` per ability, ultimates included, returning true) and a tick if it needs one.
    Extra-projectile, Barrage and Homing texts: `ExtraDesc`, `BarrageDesc`, `HomingDesc` on the weapon.
    Unusual weapon ranges (charge, beam, boomerang) get a case in `WeaponRange` (`Weapons.cs`).
-3. **Register it** in three lists: `Classes.All` (`Classes.cs`), `Defs.Weapons` (`Defs.cs`), `Upgrades.Abilities`
-   (`Upgrades.cs`). The game stops at start-up with a message naming anything missing or doubled.
+3. **Register it** with one line in `Classes.Lists` (`Classes.cs`: its `KitDef`, weapon list and ability list); `Classes.All`,
+   `Defs.Weapons` and `Upgrades.Abilities` are built from it. The game stops at start-up with a message naming anything missing or doubled.
 4. **`Game/<Class>Look.cs`** from the template, plus its `KitLook` line in `Game/ClassLooks.cs`. Per-class player
    fields (timers, buffs) go on `Player` in `Game.cs`, and in `SyncPlayer` (`GameNet.cs`) if clients draw them.
 5. **Icons** in `PixelArt.cs`: the class card (`class_<name>`, named by `KitDef.Icon`) and one per Space ability

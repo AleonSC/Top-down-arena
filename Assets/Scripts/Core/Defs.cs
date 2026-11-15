@@ -515,8 +515,7 @@ namespace Arena
         /// Every weapon, in lobby order (Role, then Kit, then Choice), gathered from each class's list: Weapons.cs (Soldier),
         /// Minions.cs (Mage, Summoner), Knight.cs, Ninja.cs, BloodMage.cs. Every place must be filled exactly once.
         /// The three weapons of every role and class come first (indexed by role, kit and choice); the fourth weapons follow them.
-        public static readonly WeaponDef[] Weapons = WeaponRegistry(Game.SoldierWeapons, Game.ElementalistWeapons, Game.SummonerWeapons,
-            Game.KnightWeapons, Game.NinjaWeapons, Game.HemomancerWeapons);
+        public static readonly WeaponDef[] Weapons = WeaponRegistry(Classes.WeaponLists());
 
         static WeaponDef[] fifth;   // a role and class's fifth weapon (Choice 4, a variant), or null
         static WeaponDef[] sixth;   // a role and class's sixth weapon (Choice 5, a second variant), or null
@@ -770,180 +769,101 @@ namespace Arena
         /// Bosses' aimed attacks: barriers, walls and other blockers can't stop these.
         public static bool Unblockable(byte kind) => kind == PierceShot;
 
-        public static float BulletRadius(byte kind)
+        /// What each bullet kind looks like and does, in one place: its radius, its colour and, for enemy shots, its listed
+        /// damage (before EnemyBulletMult). A kind with no row here gets the defaults. Add a row for a new kind.
+        public struct BulletInfo { public float Radius, Damage; public Rgba Color; }
+
+        static readonly BulletInfo[] BulletTable = BuildBulletTable();
+
+        static void Row(BulletInfo[] table, byte kind, float radius = 6f, Rgba? color = null, float damage = 12f)
         {
-            switch (kind)
-            {
-                case TankShot: return 5f;
-                case HealerShot: return 4.5f;
-                case DpsShot: return 3.5f;
-                case TurretShot: return 4f;
-                case NovaShot: return 6f;
-                case FlakShell: return 8f;
-                case RailShot: return 3.5f;
-                case WispShot: return 5f;  // no longer fired by any weapon (Twin Wisps became the Pistol)
-                case GrenadeShot: return 7f;
-                case SwarmShot: return 3f;
-                case FireShot: return 6f;
-                case FrostShot: return 4.5f;
-                case FrostLance: return 10f;  // a wide spearhead: much easier to land than the old 4.5 px shard
-                case ArcaneShot: return 5f;
-                case HolyShot: return 9f;
-                case BoltShot: return 4f;
-                case SeedShot: return 4f;
-                case FireflyShot: return 5f;
-                case TreantSeed: return 2.5f;
-                case SteelShard: return 4f;
-                case ParryNeedle: return 4f;
-                case Caltrop: return 5f;
-                case BoneShot: return 3.5f;
-                case RockShot: return 6f;
-                case MinionShot: return 3.5f;
-                case KnightWave: return 11f;
-                case ArrowShot: return 4.5f;
-                case StarShot: return 5.5f;
-                case NeedleShot: return 3f;
-                case KunaiShot: return 4f;
-                case OfudaShot: return 6f;
-                case GustShot: return 9f;
-                case FumaStar: return 20f;  // giant
-                case GreatStar: return 24f;  // huger
-                case BloodShot: return 4f;
-                case ClotShot: return 14f;  // the Clot Cannon's massive clot (lobbed: it never collides)
-                case LeechShot: return 3.5f;
-                case TransfuseShot: return 3f;
-                case SanguineShot: return 6.5f;
-                case ImplodeShot: return 3f;
-                case BoneSpearShot: return 6f;
-                case BigShot: return 10f;
-                case MineShot: return 9f;
-                case PierceShot: return 6.5f;
-                case FastShot: return 4.5f;
-                case StunShot: return 7f;
-                case StunBolt: return 5f;
-                case FlameShot: return 7f;
-                case HammerShot: return 22f;
-                case BoulderShot: return 16f;
-                case MedkitShot: return 11f;
-                case FireballShot: return 15f;
-                case HoneyShot: return 9f;
-                case HollowShot: return 7f;
-                case CrescentShot: return 14f;
-                case PauseShot: return 6.5f;
-                case StitchShot: return 8f;
-                case TaserBolt: return 7f;
-                case StingBolt: return 7f;
-                case MagmaBolt: return 8f;
-                case ThrownDagger: return 5f;
-                case EmberSpark: return 5f;
-                case TracerRound: return 5f;
-                case BileShot: return 6f;
-                case ToothShot: return 10f;
-                default: return 6f;
-            }
+            table[kind] = new BulletInfo { Radius = radius, Damage = damage, Color = color ?? new Rgba(1f, 0.3f, 0.45f) };
         }
+
+        static BulletInfo[] BuildBulletTable()
+        {
+            var table = new BulletInfo[256];
+            for (int i = 0; i < table.Length; i++)
+                table[i] = new BulletInfo { Radius = 6f, Damage = 12f, Color = new Rgba(1f, 0.3f, 0.45f) };
+            Row(table, TankShot, radius: 5f, color: new Rgba(0.5f, 0.75f, 1f));
+            Row(table, HealerShot, radius: 4.5f, color: new Rgba(0.5f, 1f, 0.65f));
+            Row(table, DpsShot, radius: 3.5f, color: new Rgba(1f, 0.7f, 0.35f));
+            Row(table, TurretShot, radius: 4f, color: new Rgba(0.6f, 0.95f, 1f));
+            Row(table, NovaShot, radius: 6f, color: new Rgba(0.95f, 0.8f, 1f));
+            Row(table, FlakShell, radius: 8f, color: new Rgba(0.7f, 0.85f, 1f));
+            Row(table, RailShot, radius: 3.5f, color: new Rgba(1f, 1f, 0.75f));
+            Row(table, WispShot, radius: 5f, color: new Rgba(0.4f, 1f, 0.85f));  // no longer fired by any weapon (Twin Wisps became the Pistol)
+            Row(table, GrenadeShot, radius: 7f, color: new Rgba(0.75f, 0.85f, 0.4f));
+            Row(table, SwarmShot, radius: 3f, color: new Rgba(1f, 0.85f, 0.35f));
+            Row(table, FireShot, radius: 6f, color: new Rgba(1f, 0.45f, 0.15f));
+            Row(table, FrostShot, radius: 4.5f, color: new Rgba(0.6f, 0.9f, 1f));
+            Row(table, FrostLance, radius: 10f, color: new Rgba(0.6f, 0.9f, 1f));  // a wide spearhead: much easier to land than the old 4.5 px shard
+            Row(table, ArcaneShot, radius: 5f, color: new Rgba(0.75f, 0.45f, 1f));
+            Row(table, HolyShot, radius: 9f, color: new Rgba(1f, 0.95f, 0.6f));
+            Row(table, BoltShot, radius: 4f, color: new Rgba(0.75f, 0.85f, 1f));
+            Row(table, SeedShot, radius: 4f, color: new Rgba(0.55f, 0.9f, 0.35f));
+            Row(table, FireflyShot, radius: 5f, color: new Rgba(0.89f, 0.97f, 0.56f));
+            Row(table, TreantSeed, radius: 2.5f, color: new Rgba(0.74f, 0.94f, 0.54f));
+            Row(table, SteelShard, radius: 4f, color: new Rgba(1f, 0.59f, 0.24f));
+            Row(table, ParryNeedle, radius: 4f, color: new Rgba(1f, 1f, 1f));
+            Row(table, Caltrop, radius: 5f, color: new Rgba(0.81f, 0.84f, 0.9f));
+            Row(table, BoneShot, radius: 3.5f, color: new Rgba(0.92f, 0.9f, 0.8f));
+            Row(table, RockShot, radius: 6f, color: new Rgba(0.7f, 0.6f, 0.5f));
+            Row(table, MinionShot, radius: 3.5f, color: new Rgba(0.85f, 1f, 0.95f));
+            Row(table, KnightWave, radius: 11f, color: new Rgba(0.85f, 0.92f, 1f));
+            Row(table, ArrowShot, radius: 4.5f, color: new Rgba(0.5f, 1f, 0.65f));
+            Row(table, StarShot, radius: 5.5f, color: new Rgba(0.8f, 0.85f, 0.95f));
+            Row(table, NeedleShot, radius: 3f, color: new Rgba(0.55f, 1f, 0.75f));
+            Row(table, KunaiShot, radius: 4f, color: new Rgba(0.8f, 0.85f, 0.95f));
+            Row(table, OfudaShot, radius: 6f, color: new Rgba(1f, 0.92f, 0.75f));
+            Row(table, GustShot, radius: 9f, color: new Rgba(0.7f, 1f, 0.85f));
+            Row(table, FumaStar, radius: 20f, color: new Rgba(0.8f, 0.85f, 0.95f));  // giant
+            Row(table, GreatStar, radius: 24f, color: new Rgba(0.8f, 0.85f, 0.95f));  // huger
+            Row(table, BloodShot, radius: 4f, color: new Rgba(0.9f, 0.12f, 0.2f));
+            Row(table, ClotShot, radius: 14f, color: new Rgba(0.6f, 0.05f, 0.12f));  // the Clot Cannon's massive clot (lobbed: it never collides)
+            Row(table, LeechShot, radius: 3.5f, color: new Rgba(1f, 0.25f, 0.3f));
+            Row(table, TransfuseShot, radius: 3f, color: new Rgba(1f, 0.5f, 0.55f));
+            Row(table, SanguineShot, radius: 6.5f, color: new Rgba(0.85f, 0.1f, 0.25f));
+            Row(table, ImplodeShot, radius: 3f, color: new Rgba(0.9f, 0.12f, 0.2f));
+            Row(table, BoneSpearShot, radius: 6f, color: new Rgba(0.95f, 0.9f, 0.82f));
+            Row(table, BigShot, radius: 10f, color: new Rgba(0.85f, 0.35f, 1f), damage: 20f);
+            Row(table, MineShot, radius: 9f, color: new Rgba(1f, 0.55f, 0.2f), damage: 18f);
+            Row(table, PierceShot, radius: 6.5f, color: new Rgba(1f, 0.12f, 0.12f), damage: 16f);
+            Row(table, FastShot, radius: 4.5f, color: new Rgba(1f, 0.95f, 0.4f), damage: 15f);
+            Row(table, StunShot, radius: 7f, color: new Rgba(0.43f, 0.88f, 1f), damage: 8f);  // the Warden's searchlight turn: it stuns you for 1 s
+            Row(table, StunBolt, radius: 5f, color: new Rgba(0.43f, 0.88f, 1f));
+            Row(table, FlameShot, radius: 7f, color: new Rgba(1f, 0.55f, 0.15f));
+            Row(table, HammerShot, radius: 22f, color: new Rgba(0.75f, 0.85f, 1f));
+            Row(table, BoulderShot, radius: 16f, color: new Rgba(0.62f, 0.54f, 0.45f));
+            Row(table, MedkitShot, radius: 11f, color: new Rgba(0.95f, 0.97f, 1f));
+            Row(table, FireballShot, radius: 15f, color: new Rgba(1f, 0.5f, 0.15f));
+            Row(table, HoneyShot, radius: 9f, color: new Rgba(1f, 0.67f, 0.16f), damage: 14f);  // the Hive Queen's nectar spray
+            Row(table, HollowShot, radius: 7f, color: new Rgba(0.9f, 0.91f, 1f), damage: 0f);  // a Duelist decoy's shot: a harmless ring; the Duelist's decoys fire these: they pass through you
+            Row(table, CrescentShot, radius: 14f, color: new Rgba(0.89f, 0.83f, 1f), damage: 18f);  // the Eclipse's crescent blade; the Eclipse's crescent blades
+            Row(table, PauseShot, radius: 6.5f, color: new Rgba(0.45f, 0.95f, 0.85f));  // the Pauser's teal
+            Row(table, StitchShot, radius: 8f, color: new Rgba(1f, 0.82f, 0.45f));  // the Stitcher's gold
+            Row(table, TaserBolt, radius: 7f, color: new Rgba(0.75f, 0.91f, 1f), damage: 8f);  // the Fork Bolt's ice white; a Taser Guard's Fork Bolt: the same stun
+            Row(table, StingBolt, radius: 7f, color: new Rgba(0.784f, 1f, 0.239f), damage: 8f);  // the Stinger's venom lime; a Stinger's dart: the same
+            Row(table, MagmaBolt, radius: 8f, color: new Rgba(1f, 0.48f, 0.23f), damage: 9f);  // the Cinder Priest's magma; a Cinder Priest's bolt (and its lava)
+            Row(table, ThrownDagger, radius: 5f, color: new Rgba(0.81f, 0.84f, 1f), damage: 10f);  // a Second's dagger (steel); a Second's dagger
+            Row(table, EmberSpark, radius: 5f, color: new Rgba(1f, 0.6f, 0.26f), damage: 5.2f);  // an Ember's spark; an Ember's spark: 6 once the enemy bullet multiplier is on
+            Row(table, TracerRound, radius: 5f, color: new Rgba(0.94f, 0.97f, 1f), damage: 6.1f);  // the Security Guard's hot-white tracer; a Security Guard's round: 7 once the enemy bullet multiplier is on
+            Row(table, BileShot, radius: 6f, color: new Rgba(0.75f, 0.9f, 0.31f));  // the Devourer's vomit
+            Row(table, ToothShot, radius: 10f, color: new Rgba(0.96f, 0.9f, 0.82f), damage: 20f);  // the Devourer's Jaws
+            Row(table, KnightSlash, color: new Rgba(0.85f, 0.92f, 1f));
+            Row(table, VeinShot, color: new Rgba(1f, 0.35f, 0.5f));
+            return table;
+        }
+
+        public static float BulletRadius(byte kind) => BulletTable[kind].Radius;
+
+        public static Rgba BulletColor(byte kind) => BulletTable[kind].Color;
+
+        static float BaseBulletDamage(byte kind) => BulletTable[kind].Damage;
 
         /// Every enemy bullet hits this much harder than its listed damage below.
         public const float EnemyBulletMult = 1.15f;
 
         public static float BulletDamage(byte kind) => BaseBulletDamage(kind) * EnemyBulletMult;
-
-        static float BaseBulletDamage(byte kind)
-        {
-            switch (kind)
-            {
-                case BigShot: return 20f;
-                case MineShot: return 18f;
-                case PierceShot: return 16f;
-                case FastShot: return 15f;
-                case StunShot: return 8f;  // the Warden's searchlight turn: it stuns you for 1 s
-                case TaserBolt: return 8f;  // a Taser Guard's Fork Bolt: the same stun
-                case StingBolt: return 8f;  // a Stinger's dart: the same
-                case MagmaBolt: return 9f;  // a Cinder Priest's bolt (and its lava)
-                case ThrownDagger: return 10f;  // a Second's dagger
-                case EmberSpark: return 5.2f;  // an Ember's spark: 6 once the enemy bullet multiplier is on
-                case TracerRound: return 6.1f;  // a Security Guard's round: 7 once the enemy bullet multiplier is on
-                case HoneyShot: return 14f;  // the Hive Queen's nectar spray
-                case ToothShot: return 20f;  // the Devourer's Jaws
-                case HollowShot: return 0f;  // the Duelist's decoys fire these: they pass through you
-                case CrescentShot: return 18f;  // the Eclipse's crescent blades
-                default: return 12f;
-            }
-        }
-
-        public static Rgba BulletColor(byte kind)
-        {
-            switch (kind)
-            {
-                case TankShot: return new Rgba(0.5f, 0.75f, 1f);
-                case HealerShot: return new Rgba(0.5f, 1f, 0.65f);
-                case DpsShot: return new Rgba(1f, 0.7f, 0.35f);
-                case TurretShot: return new Rgba(0.6f, 0.95f, 1f);
-                case NovaShot: return new Rgba(0.95f, 0.8f, 1f);
-                case FlakShell: return new Rgba(0.7f, 0.85f, 1f);
-                case RailShot: return new Rgba(1f, 1f, 0.75f);
-                case WispShot: return new Rgba(0.4f, 1f, 0.85f);
-                case GrenadeShot: return new Rgba(0.75f, 0.85f, 0.4f);
-                case SwarmShot: return new Rgba(1f, 0.85f, 0.35f);
-                case FireShot: return new Rgba(1f, 0.45f, 0.15f);
-                case FrostShot:
-                case FrostLance: return new Rgba(0.6f, 0.9f, 1f);
-                case ArcaneShot: return new Rgba(0.75f, 0.45f, 1f);
-                case HolyShot: return new Rgba(1f, 0.95f, 0.6f);
-                case BoltShot: return new Rgba(0.75f, 0.85f, 1f);
-                case SeedShot: return new Rgba(0.55f, 0.9f, 0.35f);
-                case FireflyShot: return new Rgba(0.89f, 0.97f, 0.56f);
-                case TreantSeed: return new Rgba(0.74f, 0.94f, 0.54f);
-                case SteelShard: return new Rgba(1f, 0.59f, 0.24f);
-                case ParryNeedle: return new Rgba(1f, 1f, 1f);
-                case Caltrop: return new Rgba(0.81f, 0.84f, 0.9f);
-                case BoneShot: return new Rgba(0.92f, 0.9f, 0.8f);
-                case RockShot: return new Rgba(0.7f, 0.6f, 0.5f);
-                case MinionShot: return new Rgba(0.85f, 1f, 0.95f);
-                case KnightSlash:
-                case KnightWave: return new Rgba(0.85f, 0.92f, 1f);
-                case ArrowShot: return new Rgba(0.5f, 1f, 0.65f);
-                case StarShot:
-                case FumaStar:
-                case GreatStar:
-                case KunaiShot: return new Rgba(0.8f, 0.85f, 0.95f);
-                case NeedleShot: return new Rgba(0.55f, 1f, 0.75f);
-                case OfudaShot: return new Rgba(1f, 0.92f, 0.75f);
-                case GustShot: return new Rgba(0.7f, 1f, 0.85f);
-                case BloodShot:
-                case ImplodeShot: return new Rgba(0.9f, 0.12f, 0.2f);
-                case ClotShot: return new Rgba(0.6f, 0.05f, 0.12f);
-                case LeechShot: return new Rgba(1f, 0.25f, 0.3f);
-                case VeinShot: return new Rgba(1f, 0.35f, 0.5f);
-                case TransfuseShot: return new Rgba(1f, 0.5f, 0.55f);
-                case SanguineShot: return new Rgba(0.85f, 0.1f, 0.25f);
-                case BoneSpearShot: return new Rgba(0.95f, 0.9f, 0.82f);
-                case BigShot: return new Rgba(0.85f, 0.35f, 1f);
-                case MineShot: return new Rgba(1f, 0.55f, 0.2f);
-                case PierceShot: return new Rgba(1f, 0.12f, 0.12f);
-                case FastShot: return new Rgba(1f, 0.95f, 0.4f);
-                case StunShot:
-                case StunBolt: return new Rgba(0.43f, 0.88f, 1f);
-                case FlameShot: return new Rgba(1f, 0.55f, 0.15f);
-                case HammerShot: return new Rgba(0.75f, 0.85f, 1f);
-                case BoulderShot: return new Rgba(0.62f, 0.54f, 0.45f);
-                case MedkitShot: return new Rgba(0.95f, 0.97f, 1f);
-                case FireballShot: return new Rgba(1f, 0.5f, 0.15f);
-                case HoneyShot: return new Rgba(1f, 0.67f, 0.16f);
-                case HollowShot: return new Rgba(0.9f, 0.91f, 1f);  // a Duelist decoy's shot: a harmless ring
-                case CrescentShot: return new Rgba(0.89f, 0.83f, 1f);  // the Eclipse's crescent blade
-                case PauseShot: return new Rgba(0.45f, 0.95f, 0.85f);  // the Pauser's teal
-                case StitchShot: return new Rgba(1f, 0.82f, 0.45f);    // the Stitcher's gold
-                case TaserBolt: return new Rgba(0.75f, 0.91f, 1f);     // the Fork Bolt's ice white
-                case StingBolt: return new Rgba(0.784f, 1f, 0.239f);   // the Stinger's venom lime
-                case MagmaBolt: return new Rgba(1f, 0.48f, 0.23f);     // the Cinder Priest's magma
-                case ThrownDagger: return new Rgba(0.81f, 0.84f, 1f);  // a Second's dagger (steel)
-                case EmberSpark: return new Rgba(1f, 0.6f, 0.26f);     // an Ember's spark
-                case TracerRound: return new Rgba(0.94f, 0.97f, 1f);   // the Security Guard's hot-white tracer
-                case BileShot: return new Rgba(0.75f, 0.9f, 0.31f);  // the Devourer's vomit
-                case ToothShot: return new Rgba(0.96f, 0.9f, 0.82f);  // the Devourer's Jaws
-                default: return new Rgba(1f, 0.3f, 0.45f);
-            }
-        }
     }
 }

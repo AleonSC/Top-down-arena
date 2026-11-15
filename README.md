@@ -1862,8 +1862,8 @@ so they never change the fight or what your friend sees):
 - **Arena floor:** **Bending** (the default) or Static. The floor grid lights up in each player's class colour near
   them; with Bending its lines also bow away from every player like a stretched sheet and trail a little behind them as
   they move. Static keeps the lines straight and only shows the colour. Kill ripples run through it either way, and a
-  dash (the Dodge, or a dash or rush ability; not running, sprinting or speed boosts) sends a small, quick ripple from where it started that lights the lines in the
-  dasher's colour.
+  Dodge sends a small, quick ripple from where it started that lights the lines in your colour (your own dodges
+  only).
 - **Damage numbers:** damage to each enemy rises off it, merged every 0.15 s (so a fast weapon shows one total);
   big hits are larger and gold.
 - **Reduced effects:** no screen shake, no hit-pause and no white flashes, for anyone they bother.

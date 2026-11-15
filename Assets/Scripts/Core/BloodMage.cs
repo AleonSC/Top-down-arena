@@ -413,7 +413,7 @@ namespace Arena
             p.Weapon.Id == WeaponId.VeinTether && p.StunShots == 0 && !p.Downed && !p.ParryActive && (p.Id == MyId || !IsHost ? p.FiringSeen : p.Firing)
             && State != MatchState.GameOver && State != MatchState.Victory;
 
-        /// Shot i of n, fanned out `step` radians apart around the aim.
+        /// Shot i of n, fanned out `step` radians apart around the aim (a lone shot flies straight). Use this for any spread.
         static float Fanned(float aim, int i, int n, float step) => aim + (n == 1 ? 0f : (i / (n - 1f) - 0.5f) * step * (n - 1));
 
         /// What a Blood Mage's shot does when it hits, after the damage (dmg) is dealt.

@@ -5,7 +5,7 @@ namespace Arena
 {
     /// The arena floor's grid, the "Pressure grid" (mockup https://claude.ai/artifact/4N3zygv8yPS7mpCG8X4cQM): the 64 px
     /// lines bow away from each player like a stretched sheet and trail a little behind them while they move, and
-    /// light up in the player's class colour near them; a kill's ripple runs through it (Juice.cs `Warp`). A dash sends a
+    /// light up in the player's class colour near them; a kill's ripple runs through it (Juice.cs `Warp`). Your Dodge sends a
     /// small burst ripple from where it started (`FloorDashBurst`).
     /// Settings > Visual effects > Arena floor: Bending (the default) or Static (the lines stay straight, only the colour shows).
     /// With Visual effects off it draws the plain grid, as before.
@@ -20,11 +20,9 @@ namespace Arena
         struct FloorPull { public V2 Pos, Vel; public Rgba Col; }
         readonly List<FloorPull> floorPulls = new List<FloorPull>();
         readonly Dictionary<int, V2> floorLast = new Dictionary<int, V2>(), floorVel = new Dictionary<int, V2>();
-        readonly Dictionary<int, float> floorDashAt = new Dictionary<int, float>();  // when each player's last dash burst went off
-        readonly Dictionary<int, List<KeyValuePair<float, V2>>> floorTrack = new Dictionary<int, List<KeyValuePair<float, V2>>>();  // each player's recent (time, spot)
-        // A dash: at least DashBurstMin px, and DashBurstSpeed times walking speed, covered in the last DashBurstWindow s
-        // (over a window, not one frame: positions step on game ticks, so one frame's speed jumps about).
-        const float DashBurstWindow = 0.12f, DashBurstMin = 70f, DashBurstSpeed = 1.7f, DashBurstGap = 0.45f, DashBurstPower = 0.7f, DashBurstLife = 0.4f;
+        Game floorDodgeGame;
+        int floorDodges;  // the dodges your game had counted when the floor last looked (Game.Dodges)
+        const float DashBurstPower = 0.7f, DashBurstLife = 0.4f;
         int floorFrame = -1;
 
         bool FloorBends => Juicy && floorBend && !PreviewFloorStatic;
@@ -48,6 +46,7 @@ namespace Arena
                     ripples.Add(new Ripple { Pos = top.Disp, T = PreviewDashBurst, Power = DashBurstPower, Life = DashBurstLife, Col = top.Def.Color });
                 PreviewDashBurst = -1f;
             }
+            FloorDashBurst();
             float dt = Mathf.Max(0.001f, Time.unscaledDeltaTime);
             foreach (var p in game.Players.Values)
             {
@@ -60,40 +59,26 @@ namespace Arena
                     floorVel.TryGetValue(p.Id, out v);
                     v += (raw - v) * Mathf.Min(1f, dt * 12f);
                 }
-                FloorDashBurst(p);
                 floorLast[p.Id] = p.Disp;
                 floorVel[p.Id] = v;
                 floorPulls.Add(new FloorPull { Pos = p.Disp, Vel = game.Paused ? V2.Zero : v, Col = p.Def.Color });
             }
         }
 
-        /// A dash (the Dodge, or a dash or rush ability) sends a small, short ripple through the grid from where it
-        /// started. Running, sprinting and speed boosts don't: they never cover a dash's distance in the window.
-        void FloorDashBurst(Player p)
+        /// Your Dodge sends a small, short ripple through the grid from where it started (your own dodges only: the
+        /// Dodge isn't sent to other players).
+        void FloorDashBurst()
         {
-            List<KeyValuePair<float, V2>> track;
-            if (!floorTrack.TryGetValue(p.Id, out track))
-                floorTrack[p.Id] = track = new List<KeyValuePair<float, V2>>();
-            float now = Time.unscaledTime;
-            if (game.Paused || p.Downed)
-            {
-                track.Clear();
+            bool fresh = floorDodgeGame != game;  // (a new game counts from 0 again: no burst for that)
+            if (!fresh && game.Dodges == floorDodges)
                 return;
-            }
-            track.Add(new KeyValuePair<float, V2>(now, p.Disp));
-            while (track.Count > 2 && track[1].Key <= now - DashBurstWindow)
-                track.RemoveAt(0);  // keep one sample at least a window old
-            var from = track[0];
-            if (now - from.Key < DashBurstWindow)
+            floorDodgeGame = game;
+            floorDodges = game.Dodges;
+            if (fresh)
                 return;
-            float moved = (p.Disp - from.Value).Length, need = Mathf.Max(DashBurstMin, DashBurstSpeed * p.Speed * (now - from.Key));
-            if (moved < need || moved > 600f)
-                return;  // not a dash, or a teleport or respawn
-            float at;
-            if (floorDashAt.TryGetValue(p.Id, out at) && now - at < DashBurstGap)
-                return;
-            floorDashAt[p.Id] = now;
-            ripples.Add(new Ripple { Pos = from.Value, Power = DashBurstPower, Life = DashBurstLife, Col = p.Def.Color });  // Juice.cs
+            var me = game.Me;
+            if (me != null)
+                ripples.Add(new Ripple { Pos = game.DodgeFrom, Power = DashBurstPower, Life = DashBurstLife, Col = me.Def.Color });  // Juice.cs
         }
 
         /// A floor point moved by the players (when bending) and by kill ripples.

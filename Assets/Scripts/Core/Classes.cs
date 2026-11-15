@@ -38,8 +38,42 @@ namespace Arena
 
     public static class Classes
     {
+        /// A class's three lists: its KitDef, its weapons and its Space abilities (and cards).
+        public struct KitLists
+        {
+            public KitDef Kit; public WeaponDef[] Weapons; public AbilityDef[] Abilities;
+            public KitLists(KitDef kit, WeaponDef[] weapons, AbilityDef[] abilities) { Kit = kit; Weapons = weapons; Abilities = abilities; }
+        }
+
+        /// **The one place a class is registered**, in Kit order: Defs.Weapons, Upgrades.Abilities and Classes.All are all built from it.
+        static readonly KitLists[] Lists =
+        {
+            new KitLists(Game.SoldierKit, Game.SoldierWeapons, Game.SoldierAbilities),
+            new KitLists(Game.ElementalistKit, Game.ElementalistWeapons, Game.ElementalistAbilities),
+            new KitLists(Game.SummonerKit, Game.SummonerWeapons, Game.SummonerAbilities),
+            new KitLists(Game.KnightKit, Game.KnightWeapons, Game.KnightAbilities),
+            new KitLists(Game.NinjaKit, Game.NinjaWeapons, Game.NinjaAbilities),
+            new KitLists(Game.HemomancerKit, Game.HemomancerWeapons, Game.HemomancerAbilities),
+        };
+
+        /// Every class's weapon list, for Defs.Weapons.
+        internal static WeaponDef[][] WeaponLists()
+        {
+            var all = new WeaponDef[Lists.Length][];
+            for (int i = 0; i < all.Length; i++) all[i] = Lists[i].Weapons;
+            return all;
+        }
+
+        /// Every class's ability list, for Upgrades.Abilities.
+        internal static AbilityDef[][] AbilityLists()
+        {
+            var all = new AbilityDef[Lists.Length][];
+            for (int i = 0; i < all.Length; i++) all[i] = Lists[i].Abilities;
+            return all;
+        }
+
         /// Every class, in Kit order. The game refuses to start if one is missing, doubled or out of place.
-        public static readonly KitDef[] All = Registry(Game.SoldierKit, Game.ElementalistKit, Game.SummonerKit, Game.KnightKit, Game.NinjaKit, Game.HemomancerKit);
+        public static readonly KitDef[] All = Registry(Lists[0].Kit, Lists[1].Kit, Lists[2].Kit, Lists[3].Kit, Lists[4].Kit, Lists[5].Kit);
 
         public static KitDef Get(Kit k) => All[(int)k];
 

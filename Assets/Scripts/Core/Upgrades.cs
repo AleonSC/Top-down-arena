@@ -279,8 +279,8 @@ namespace Arena
         /// Every ability, indexed by AbilityId. Each class keeps its entries beside its cast code: Abilities.cs (Soldier and
         /// the card-only abilities), Minions.cs (Mage, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
         /// BloodMage.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
-        public static readonly AbilityDef[] Abilities = Registry(Game.SoldierAbilities, Game.ElementalistAbilities, Game.SummonerAbilities,
-            Game.UltimateAbilities, Game.KnightAbilities, Game.NinjaAbilities, Game.HemomancerAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates);
+        public static readonly AbilityDef[] Abilities = Registry(Concat(Classes.AbilityLists(),
+            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates));  // the classes' own, then the shared and boss-loot ones
 
         /// Each role and class has its default ultimate (key 0 of the lobby's Ultimate row), and may have others on keys 1-3.
         static readonly AbilityId[] Ultimates = LobbyTable(true);
@@ -351,6 +351,14 @@ namespace Arena
         public const int RoleAbilityChoices = 3;
 
         public static AbilityDef Ability(AbilityId id) => Abilities[(int)id];
+
+        static AbilityDef[][] Concat(AbilityDef[][] first, params AbilityDef[][] more)
+        {
+            var all = new AbilityDef[first.Length + more.Length][];
+            first.CopyTo(all, 0);
+            more.CopyTo(all, first.Length);
+            return all;
+        }
 
         static AbilityDef[] Registry(params AbilityDef[][] lists)
         {
