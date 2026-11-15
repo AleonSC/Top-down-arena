@@ -373,8 +373,8 @@ namespace Arena
             {
                 float by = Mathf.Lerp(-130f, H + 20f, sw);
                 for (int i = 0; i < 8; i++)
-                    Ui.Fill(new Rect(0f, by + 130f * i / 8f, W, 130f / 8f + 1f), new Color(0.7f, 0.85f, 1f, 0.07f + 0.5f * Mathf.Pow((i + 1f) / 8f, 3f)));
-                Ui.Fill(new Rect(0f, by + 128f, W, 3f), new Color(0.9f, 0.95f, 1f, 0.9f));
+                    Ui.Fill(new Rect(0f, by + 130f * i / 8f, W, 130f / 8f + 1f), new Color(0.7f, 0.85f, 1f, 0.03f + 0.18f * Mathf.Pow((i + 1f) / 8f, 3f)));
+                Ui.Fill(new Rect(0f, by + 128f, W, 2f), new Color(0.9f, 0.95f, 1f, 0.4f));
             }
         }
 

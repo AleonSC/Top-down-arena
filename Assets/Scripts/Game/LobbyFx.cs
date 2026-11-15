@@ -32,8 +32,8 @@ namespace Arena
                 if (!line)
                     return;
                 float y = r.y + r.height * Reveal(e, wipe);
-                Ui.Glow(new Rect(r.x, y - 2f, r.width, 4f), ink, 0.5f);
-                Ui.Fill(new Rect(r.x, y - 1f, r.width, 2f), new Color(0.92f, 0.96f, 1f, 0.9f));
+                Ui.Glow(new Rect(r.x, y - 2f, r.width, 4f), ink, 0.25f);
+                Ui.Fill(new Rect(r.x, y - 1f, r.width, 2f), new Color(0.92f, 0.96f, 1f, 0.45f));
                 return;
             }
             float f = (e - wipe) / Flicker;
