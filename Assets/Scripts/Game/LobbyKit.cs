@@ -285,11 +285,13 @@ namespace Arena
         /// The mockup's `.grad #main` (Docs/Mockups/crt-lobby-softer.html), in strips that meet exactly: a dark diagonal wash running from about 20% of the
         /// role colour to near black (horizontal strips, with the slight lean to the right as a faint dark ramp), and over it a glow from the top left
         /// corner that is 32% of the role colour and fades out by 64% of the way (one soft radial texture).
-        public static void Wash(Rect r)
+        public static void Wash(Rect r) => Wash(r, washCol);
+
+        /// The same wash in a fixed colour (the cabinet menus' boxes: CrtKit.LoadoutBox).
+        public static void Wash(Rect r, Color rc)
         {
             if (Event.current.type != EventType.Repaint)
                 return;
-            var rc = washCol;
             Color d0 = CrtUi.T(new Color(0.031f, 0.063f, 0.157f)), d1 = CrtUi.T(new Color(0.0196f, 0.039f, 0.110f)), d2 = CrtUi.T(new Color(0.0157f, 0.031f, 0.082f));
             Color c0 = Mix(rc, 0.11f, d0), c1 = Mix(rc, 0.03f, d1), c2 = d2;
             // 165 degrees: t runs down and a little to the right. Strips take t along the left edge; the ramp below darkens toward the right.
