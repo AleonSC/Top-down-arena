@@ -1371,7 +1371,7 @@ stretch lit, your best time a gold line).
 
 ## Boss Hunt
 
-In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt**, **Practice** or **Survival** on the mode carousel at the top (arrows, the mouse wheel or a click on a side mode turn it). Over the big screen sit the **Loadout** key, the Saved loadouts star, then a key for each of the mode's own tabs (Quick Play, Survival, Boss hunt, Practice, Training). **Difficulty** and **Modifiers** are two slim rows over Ready, naming what's set; they fade while the mouse isn't on them. **Perks** open from the **Perks** key right of your class name on the loadout (it shows your equipped perk and slots used, e.g. 1/2); "< Loadout" or the Loadout key takes you back (in the Practice Range too, where you can set them up but the range plays without them). The lobby opens on the Loadout, and picking a mode keeps it there (or goes back to it if the old mode's tab was open). A Boss Hunt is a short run that ends
+In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt**, **Practice** or **Survival** on the mode carousel at the top (arrows, the mouse wheel or a click on a side mode turn it); hovering the middle mode shows its description. Over the big screen sit the **Loadout** key, the Saved loadouts star, then a key for each of the mode's own tabs (Quick Play, Survival, Boss hunt, Practice, Training). **Difficulty** and **Modifiers** are two small keys side by side over Ready, naming what's set; they fade while the mouse isn't on them. **Perks** open from the **Perks** key right of your class name on the loadout (it shows your equipped perk and slots used, e.g. 1/2); "< Loadout" or the Loadout key takes you back (in the Practice Range too, where you can set them up but the range plays without them). The lobby opens on the Loadout, and picking a mode keeps it there (or goes back to it if the old mode's tab was open). A Boss Hunt is a short run that ends
 with one boss: **ten waves**. Waves 1-9 bring only the boss's own enemies (its faction: for the Warden, Rioters and
 Guards, then Riot Shields, Gas Grenadiers, Security Guards and Taser Guards, its Breakout, Patrol and Cell block squads, and its Riot line on waves 5 and
 9); wave 10 is the boss, at wave-10 strength. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no
@@ -1965,7 +1965,7 @@ and readies up by itself; it revives, heals, dodges and uses its abilities like 
 upgrades and carries on between waves. On its card, the skill button cycles **Casual, Good, Expert**, **MIX** deals it a
 new random loadout and **x** removes it. Click a bot's card (it gets a gold rim) to choose its role, class, weapon and
 ability in the loadout panel, just like your own; click your own card to go back. With a bot's card chosen, type in the **Bot name** box above its preview to rename it. In the Hangout, bots stroll about the room and play emotes now and then (any emote, whatever their rank). Bots leave when you leave the lobby. A run with bots in the party isn't saved and isn't
-counted in Records, XP or ranks, like Boss Lab fights and the F1 bot.
+counted in Records, XP or ranks, like Boss Lab fights and the F1 bot. It still plays like any run: a Campaign with bots is on the Expanding arena, with building rounds and lives.
 
 Without Tailscale, the host can forward **TCP port 7777** on their router to their PC and give the friend
 their public IP. On the same Wi-Fi, use the host's local `192.168.x.x` address. Windows Firewall may ask

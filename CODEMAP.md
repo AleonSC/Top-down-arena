@@ -190,7 +190,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Targets.cs`: shared targeting helpers: `FirstAlive`, `AlivePlayersList`, `NearestPlayer`, `RandomLivingPlayer`,
   `BossTarget(e)` (its target while up, else the first player up) and `Targetable(e)` (host: spawned in and alive)
 - `BossLab.cs`, `BotBrain.cs`: Boss Lab sessions, the "smart" bot
-- `PartyBots.cs`: bots that fill the lobby's open slots (extra sessions joined over localhost; stepped by `ArenaApp`; buttons in `LobbyUi.cs`)
+- `PartyBots.cs`: bots that fill the lobby's open slots (extra sessions joined over localhost; stepped by `ArenaApp`; buttons in `LobbyUi.cs`; `Game.BotParty`: their run is unrecorded but not a `LabRun`, so the Campaign keeps the Expanding arena and lives; test `PartyBotCampaignTest`)
 - Boss loot: `QueenLoot.cs`, `ReaperLoot.cs` (legendary weapons/abilities)
 
 ## Networking (Core)

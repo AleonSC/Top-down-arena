@@ -32,8 +32,8 @@ namespace Arena
         const float PartyTop = 176f;      // the top of the first party card
         const float PartyCardH = 84f, PartySlotH = 80f, PartyGap = 10f;  // the first card 84, the others and the open slots 80
         const float LobbyNoteY = 548f;    // who we're waiting for, just above Ready
-        /// The Difficulty and Modifiers rows over Ready (DrawLobbySetupKeys, LobbyUi.cs).
-        const float LobbySetupY = 470f, LobbySetupH = 34f, LobbySetupGap = 6f;
+        /// The Difficulty and Modifiers keys, side by side over Ready (DrawLobbySetupKeys, LobbyUi.cs).
+        const float LobbySetupY = 512f, LobbySetupH = 28f, LobbySetupGap = 8f;
         const float LobbyReadyY = 586f, LobbyReadyH = 48f, LobbyStartY = 640f, LobbyStartH = 44f;  // Ready over Start (a guest's Ready takes the Start slot)
 
         // --- Right: the tab keys and the big screen ---------------------------------------------------------------------------------

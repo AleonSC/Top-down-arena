@@ -913,6 +913,19 @@ static partial class Program
         Check(g.Players.Values.Sum(p => p.PrizePicks) == picks0 + g.Players.Count, "beating it gives everyone a prize pick");
         Check(g.CurrentWorld.Areas[2].Kind == RoomKind.Combat && cg.CurrentWorld.Areas[2].Kind == RoomKind.Combat && !g.AreaLocked(2), "the room is an ordinary combat room now, on both screens");
 
+        // Won between waves: the prize is offered at once (no wave clear will), so it can be picked and Ready works after.
+        {
+            g.State = MatchState.Intermission; g.StateTimer = 30f;
+            foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingMilestones = p.PrizePicks = 0; p.LegendaryQueue.Clear(); p.Offer = null; p.Ready = p.AutoReady = false; }
+            typeof(Game).GetMethod("GrantVaultPrize", flags).Invoke(g, new object[] { g.CurrentWorld.Areas[2].Mid });
+            Check(g.Players.Values.All(p => p.Offer != null && (p.OfferPrize || p.OfferLegendary)), "a mini-boss beaten between waves offers its prize pick right away");
+            var hostPick = typeof(Game).GetMethod("HostPick", flags);
+            foreach (var p in g.Players.Values.ToList())
+                for (int k = 0; k < 4 && p.Offer != null; k++) hostPick.Invoke(g, new object[] { p.Id, 0, 0 });
+            g.SetMyReady(true);
+            Check(g.Me.PrizePicks == 0 && g.Me.Ready, "after picking it, Ready works between waves");
+        }
+
         // A rule node is a big area: only a room that encloses all of it claims it, and the bot steps reach it.
         {
             var ruleNode = Expansion.NodeFor(5, 0, new List<ExpansionRoom>(), new List<MapNode>(), NodeKind.Rule);
