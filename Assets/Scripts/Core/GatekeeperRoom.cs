@@ -112,6 +112,7 @@ namespace Arena
 
         readonly Dictionary<int, int> duelBoss = new Dictionary<int, int>();  // host: area -> its mini-boss's id
         readonly Dictionary<int, float> duelOrbT = new Dictionary<int, float>();  // host: area -> time to its next health orbs
+        readonly Random duelOrbRng = new Random();  // its own rolls, so the orbs don't change the game's other random choices (or seeded tests)
 
         /// Seconds between a duel's health orbs.
         public const float DuelOrbEvery = 10f;
@@ -136,8 +137,8 @@ namespace Arena
             {
                 if (p.Downed || !a.Contains(p.Pos))
                     continue;
-                var at = new V2(a.Min.X + inset + (float)rng.NextDouble() * Math.Max(0f, a.Size.X - 2f * inset),
-                                a.Min.Y + inset + (float)rng.NextDouble() * Math.Max(0f, a.Size.Y - 2f * inset));
+                var at = new V2(a.Min.X + inset + (float)duelOrbRng.NextDouble() * Math.Max(0f, a.Size.X - 2f * inset),
+                                a.Min.Y + inset + (float)duelOrbRng.NextDouble() * Math.Max(0f, a.Size.Y - 2f * inset));
                 SpawnOrb(at, false);
                 BroadcastFx(FxKind.Ring, at, new Rgba(0.4f, 1f, 0.5f), 40f, 0.4f, Sfx.None);
             }
