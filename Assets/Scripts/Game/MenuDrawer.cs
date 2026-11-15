@@ -329,11 +329,16 @@ namespace Arena
         void DrawRunScreen(float t)
         {
             float a = 1f - CabWinSlideK();
+            if (!CabCalm)
+                a *= Mathf.Clamp01((CabAge - RunCardAt) / 0.45f);  // fades in after the cabinet's opening (no pop)
             if (a <= 0.01f)
                 return;
             if (a < 0.99f)
                 PushShift(0f, 0f, a);
-            DrawRunCard(DrawerPanel, t, a >= 0.99f);  // in the window's place, right of the box
+            float oldGl = glAlpha;
+            glAlpha = a;  // the boss model fades with it
+            DrawRunCard(DrawerPanel, t);  // in the window's place, right of the box
+            glAlpha = oldGl;
             PopShift();
         }
 
@@ -448,6 +453,8 @@ namespace Arena
 
         /// The run's card over the arena: the wave, time and score, the path, modifiers and difficulty, the next boss
         /// (moving) and this stretch's challenge room.
+        const float RunCardAt = 1.3f;  // seconds into the pause cabinet's opening when the run's screen starts to fade in
+
         void DrawRunCard(Rect at, float t, bool gl = true)
         {
             // The chips: the path, the modifiers, the difficulty.
@@ -463,7 +470,7 @@ namespace Arena
                     chips.Add(new KeyValuePair<string, Color>(m.Name.ToUpperInvariant(), m.Lean == ModLean.Easier ? Ui.Good : new Color(1f, 0.6f, 0.6f)));
             chips.Add(new KeyValuePair<string, Color>(game.Diff.Name.ToUpperInvariant(), new Color(0.79f, 0.83f, 0.92f)));
             var r = at;
-            float powerAge = CabAge - 1.3f;  // the box fades in after the cabinet's opening
+            float powerAge = CabAge - RunCardAt;  // the box fades in after the cabinet's opening (DrawRunScreen)
             if (!CabCalm && powerAge < 0f)
                 return;
             CrtKit.LoadoutBox(r);

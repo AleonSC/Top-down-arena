@@ -283,8 +283,7 @@ namespace Arena
         {
             if (Event.current.type != EventType.Repaint)
                 return;
-            Ui.Fill(r, CrtUi.T(CrtStyle.BoxFill));  // (the blue-theme colours: CrtStyle.cs; T moves them to the chosen phosphor)
-            Ui.Fill(new Rect(r.x, r.y, r.width, r.height * 0.5f), CrtUi.T(CrtStyle.BoxTop));  // a lighter top, like the lobby's wash
+            LobbyKit.Wash(r, CrtUi.T(CrtStyle.BoxWash));  // the lobby's gradient (a dark diagonal and a glow from the top left), in the menus' blue
             Frame(r, 1f, CrtUi.T(CrtStyle.BoxRim));
             LobbyKit.Corners(r);
         }

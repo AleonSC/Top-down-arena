@@ -330,7 +330,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `FileListCache.cs`: the newest files in a folder for the saved-file lists (Practice setups, wave sets), read from disk at most once a second
 - `Ui.cs`: IMGUI drawing primitives (fills, labels, bars, glows, pills, the CRT slider); the widgets (buttons, panels, switches, fields, cards, titles) are `DevKit.cs`'s `Dk...` and the CRT keys
 - `Menus.cs`, `MenuIntro.cs`, `MenuDrawer.cs`, `WindowAnim.cs`: main menu, pause/lobby/settings/how-to menus (CRT cabinet), slide clocks
-- `CrtWindows.cs`: the menu box (the lobby loadout's look, `CrtKit.LoadoutBox`) and its side window (opening, typed text, BeginDrawer/DrawerRow, WinKey/SwitchRow/WinSlider)
+- `CrtWindows.cs`: the menu box (the lobby loadout's look, `CrtKit.LoadoutBox`: the lobby's gradient wash, `LobbyKit.Wash`, in `CrtStyle.BoxWash`) and its side window (opening, typed text, BeginDrawer/DrawerRow, WinKey/SwitchRow/WinSlider)
 - `MenuServo.cs`: the Play move (bay doors, Servo): split-flap header, split Play key, floor drop-outs, runs screen opening, shared Quit/Back key, `Sfx.Bay*` cues
 - `MenuVhs.cs`: the main menu buttons' VHS hover (with the `Sfx.MenuHover` tape-head tick on enter, via `MenuVhs.OnHover`; `Ui.SilentHover` mutes the generic hover tick for these buttons) and snap-to-focus click (`MenuVhs.Draw` wraps a button's draw call in `Menus.cs` and `SavesUi.cs`)
 - `CrtStyle.cs`: **the CRT look's settings**: the palette (Ink, Dim, Bg, Danger, Body, Desc, Head, Gold, the box/corner/glass colours) and how every CRT key is drawn (fill and outline strengths, widths, text mix, locked/waiting/static keys, the HUD console's keys, the inverse-video keys); change a value to restyle every CRT screen
