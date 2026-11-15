@@ -4,7 +4,7 @@ namespace Arena
 {
     /// How the CRT cabinet windows move (Docs/Mockups/crt-pause-menu.html; the cabinet and its windows are in CrtWindows.cs):
     /// the pause menu, Settings (main menu, lobby, pause menu), the lobby's menu, How to play and the profile.
-    ///   Opening: the cabinet holo-boots in place (LobbyFx.cs; with Reduced effects or Visual effects off it slides in from the left,
+    ///   Opening: the cabinet soft-sweeps in place (HoloBoot.SoftClip/SoftOver, LobbyFx.cs; with Reduced effects or Visual effects off it slides in from the left,
     ///   0.3 s); then its screens power on and type (CrtWindows.cs).
     ///   Closing: the cabinet and its window slide back out (0.3 s); the window really closes when that's done.
     /// GL drawn inside a moving window (a boss preview, the effects preview) moves with it through `uiShift`.
