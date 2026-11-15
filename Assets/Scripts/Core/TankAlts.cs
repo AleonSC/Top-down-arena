@@ -191,7 +191,7 @@ namespace Arena
                 if (z.Kind == ZoneKind.FlakMine)
                 {
                     foreach (var e in Enemies.Values)
-                        if (Targetable(e) && e.Pos.DistanceTo(z.Pos) < MineTrigger + e.Radius)
+                        if (Targetable(e) && e.Pos.CloserThan(z.Pos, MineTrigger + e.Radius))
                         {
                             (burst = burst ?? new List<Zone>()).Add(z);
                             break;
@@ -200,7 +200,7 @@ namespace Arena
                 }
                 foreach (var e in Enemies.Values)  // tear gas
                 {
-                    if (!Targetable(e) || e.Pos.DistanceTo(z.Pos) > z.Radius + e.Radius)
+                    if (!Targetable(e) || e.Pos.FartherThan(z.Pos, z.Radius + e.Radius))
                         continue;
                     e.Suppress = Math.Max(e.Suppress, e.Def.IsBoss ? SuppressMax * 0.5f : SuppressMax);
                     Slow(e, 0.3f, 1f - TearGasSlow);

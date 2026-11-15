@@ -112,7 +112,7 @@ namespace Arena
                     V2 at = r.From + dir * AirBombAlong(r.Next);
                     r.Next++;
                     foreach (var e in Enemies.Values)
-                        if (Targetable(e) && e.Pos.DistanceTo(at) < r.Radius + e.Radius)
+                        if (Targetable(e) && e.Pos.CloserThan(at, r.Radius + e.Radius))
                             HurtEnemy(e, r.Dmg, r.Owner);
                     BroadcastFx(FxKind.Boom, at, Defs.BulletColor(Defs.GrenadeShot), r.Radius, 0.35f, r.Next % 2 == 1 ? Sfx.Explode : Sfx.None);
                     PropBlast(at, r.Radius, r.Owner);      // sets barrels off (Props.cs)

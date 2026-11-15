@@ -149,7 +149,7 @@ namespace Arena
         bool ClearOfPlayers(V2 pos)
         {
             foreach (var p in Players.Values)
-                if (!p.Downed && p.Pos.DistanceTo(pos) < SpawnPortals.ClearOfPlayers)
+                if (!p.Downed && p.Pos.CloserThan(pos, SpawnPortals.ClearOfPlayers))
                     return false;
             return true;
         }

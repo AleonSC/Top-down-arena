@@ -156,7 +156,8 @@ namespace Arena
             bool clap = m == 3;
             float dmg = AmmoMotion.Damage[m] * p.Stats.DmgMult * (1f + 0.5f * ExtraShots(p));
             V2 fwd = V2.FromAngle(p.Aim);
-            foreach (var e in new List<Enemy>(Enemies.Values))
+            var snap4 = SnapEnemies();
+            foreach (var e in snap4)
             {
                 if (!Targetable(e))
                     continue;
@@ -170,6 +171,7 @@ namespace Arena
                     KnockEnemy(e, (away.IsZero ? fwd : away) * AmmoMotion.Knock[m]);
                 BroadcastFx(FxKind.Spark, e.Pos - away * e.Radius, clap ? new Rgba(1f, 0.76f, 0.24f) : new Rgba(0.8f, 0.85f, 0.9f), clap ? 16f : 14f, 0.25f, clap ? Sfx.Hit : Sfx.Clang);
             }
+            Free(snap4);
             if (clap)
                 BroadcastFx(FxKind.Ring, p.Pos + fwd * 50f, new Rgba(0.25f, 0.88f, 0.91f), AmmoClapRadius, 0.45f, Sfx.Shockwave);
         }
@@ -180,7 +182,8 @@ namespace Arena
             float dmg = AmmoMotion.KDamage[k] * p.Stats.DmgMult * (1f + 0.5f * ExtraShots(p));
             V2 fwd = V2.FromAngle(p.Aim);
             bool hitAny = false;
-            foreach (var e in new List<Enemy>(Enemies.Values))
+            var snap5 = SnapEnemies();
+            foreach (var e in snap5)
             {
                 if (!Targetable(e) || !AmmoInCone(p, e, AmmoMotion.KCone[k], AmmoMotion.KReach[k]))
                     continue;
@@ -192,6 +195,7 @@ namespace Arena
                     KnockEnemy(e, (away.IsZero ? fwd : away) * 18f);
                 BroadcastFx(FxKind.Spark, e.Pos - away * e.Radius, new Rgba(1f, 0.76f, 0.24f), k == 2 ? 24f : 16f, 0.25f, Sfx.SwingLight);
             }
+            Free(snap5);
             if (!hitAny)
                 BroadcastFx(FxKind.Ring, p.Pos + fwd * 40f, new Rgba(0.8f, 0.85f, 0.9f), 10f, 0.12f, Sfx.SwingLight);
         }
@@ -251,18 +255,20 @@ namespace Arena
         void TickAmmoSpin(Player p, float dt)
         {
             p.AmmoSpin = Math.Max(0f, p.AmmoSpin - dt);
-            var gone = new List<Bullet>();
+            var gone = bulletLists.Rent();
             foreach (var b in Bullets.Values)
-                if (Defs.IsEnemyShot(b.Kind) && !Defs.Unblockable(b.Kind) && b.Pos.DistanceTo(p.Pos) <= AmmoSpinRadius)
+                if (Defs.IsEnemyShot(b.Kind) && !Defs.Unblockable(b.Kind) && b.Pos.WithinReach(p.Pos, AmmoSpinRadius))
                     gone.Add(b);
             foreach (var b in gone)
                 SwatPop(b);  // every bullet that touches the spin, no limit
+            bulletLists.Return(gone);
             p.AmmoTick -= dt;
             if (p.AmmoTick > 0f)
                 return;
             p.AmmoTick += AmmoSpinTick;
             float dmg = AmmoSpinDamage * p.Stats.DmgMult * (1f + 0.5f * ExtraShots(p));
-            foreach (var e in new List<Enemy>(Enemies.Values))
+            var snap6 = SnapEnemies();
+            foreach (var e in snap6)
             {
                 if (!Targetable(e) || e.Pos.DistanceTo(p.Pos) - e.Radius > AmmoSpinRadius)
                     continue;
@@ -273,6 +279,7 @@ namespace Arena
                     KnockEnemy(e, away * AmmoSpinKnock);
                 BroadcastFx(FxKind.Spark, e.Pos - away * e.Radius, new Rgba(1f, 0.76f, 0.24f), 12f, 0.2f, Sfx.Hit);
             }
+            Free(snap6);
         }
     }
 }

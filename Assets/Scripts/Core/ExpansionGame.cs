@@ -1004,7 +1004,8 @@ namespace Arena
             }
             var standing = ExpandProposals.FindAll(q => q.Leg == 0 && Players.ContainsKey(q.Owner) && SpendableVectors(Players[q.Owner]) >= q.Price);
             var tally = new Dictionary<int, int>();
-            foreach (int pid in new List<int>(Players.Keys))
+            var snap2 = SnapKeys(Players);
+            foreach (int pid in snap2)
             {
                 int choice = EffectiveVote(pid);
                 if (choice < 0)
@@ -1015,6 +1016,7 @@ namespace Arena
                 tally.TryGetValue(choice, out n);
                 tally[choice] = n + 1;
             }
+            Free(snap2);
             int best = 0;
             foreach (var kv in tally)
                 best = Math.Max(best, kv.Value);

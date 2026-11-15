@@ -406,7 +406,7 @@ namespace Arena
                 float d = e.Pos.DistanceTo(origin);
                 if (circle)
                 {
-                    if (e.Pos.DistanceTo(circleAt) > s.Circle + e.Radius)
+                    if (e.Pos.FartherThan(circleAt, s.Circle + e.Radius))
                         continue;
                     if (!BlocksShot(e, origin))
                         hits.Add(e);
@@ -445,7 +445,7 @@ namespace Arena
             {
                 float lr = LockW / 2f;
                 if (circle)
-                    return q.DistanceTo(circleAt) <= s.Circle + lr;
+                    return q.WithinReach(circleAt, s.Circle + lr);
                 if (box)
                 {
                     V2 rel = q - origin;
@@ -535,7 +535,7 @@ namespace Arena
                 {
                     healed++;
                     foreach (var q in Players.Values)
-                        if (q.Pos.DistanceTo(origin) < s.HealRange)
+                        if (q.Pos.CloserThan(origin, s.HealRange))
                             Heal(q, s.HealPerHit, p);
                 }
                 if (s.Tip > 0f)
@@ -551,7 +551,7 @@ namespace Arena
                 CenserLanded(p, s, hits.Count);  // Embers, the Benediction's bonus heal and the step's incense (Censer.cs)
             if (s.HealSpin > 0f)
                 foreach (var q in Players.Values)
-                    if (q.Pos.DistanceTo(origin) < s.HealRange)
+                    if (q.Pos.CloserThan(origin, s.HealRange))
                         Heal(q, s.HealSpin, p);
             if (s.RootHeal > 0f)  // the root lash mends the allies it touches (not you)
                 foreach (var q in Players.Values)
@@ -591,7 +591,7 @@ namespace Arena
             {
                 if (!Defs.IsEnemyShot(b.Kind) || Defs.Unblockable(b.Kind))
                     continue;
-                if (b.Pos.DistanceTo(origin) > reach + b.Radius || AngleTo(origin, b.Pos, aim) > halfArc)
+                if (b.Pos.FartherThan(origin, reach + b.Radius) || AngleTo(origin, b.Pos, aim) > halfArc)
                     continue;
                 hit.Add(b);
             }
@@ -621,7 +621,7 @@ namespace Arena
             {
                 if (!Defs.IsEnemyShot(b.Kind) || Defs.Unblockable(b.Kind) || !all && b.Kind != Defs.SmallShot && b.Kind != Defs.FastShot)
                     continue;
-                if (b.Pos.DistanceTo(at) <= radius + b.Radius)
+                if (b.Pos.WithinReach(at, radius + b.Radius))
                     cut.Add(b.Id);
             }
             foreach (int id in cut)
@@ -651,7 +651,7 @@ namespace Arena
                     cut.Add(b.Id);
                     continue;
                 }
-                if (b.Pos.DistanceTo(origin) > reach + b.Radius)
+                if (b.Pos.FartherThan(origin, reach + b.Radius))
                     continue;
                 if (halfArc < MathX.Pi && AngleTo(origin, b.Pos, aim) > halfArc)
                     continue;
@@ -880,7 +880,7 @@ namespace Arena
                     Player best = null;
                     foreach (var q in Players.Values)
                     {
-                        if (q.Pos.DistanceTo(p.Pos) > range)
+                        if (q.Pos.FartherThan(p.Pos, range))
                             continue;
                         if (best == null || q.Downed && !best.Downed || q.Downed == best.Downed && q.Hp / q.MaxHp < best.Hp / best.MaxHp)
                             best = q;
@@ -897,7 +897,7 @@ namespace Arena
                         BroadcastFx(FxKind.Ring, best.Pos, new Rgba(1f, 0.95f, 0.6f), 70f, 0.5f, Sfx.SpellHoly);
                         if (cap)
                             foreach (var q in Players.Values)
-                                if (q != best && !q.Downed && q.Pos.DistanceTo(best.Pos) < 200f)
+                                if (q != best && !q.Downed && q.Pos.CloserThan(best.Pos, 200f))
                                     Heal(q, 35f * s.LayMult, p);
                     }
                     return true;
@@ -982,7 +982,7 @@ namespace Arena
                     continue;  // (downed mid-leap: no landing)
                 foreach (var e in Enemies.Values)
                 {
-                    if (e.SpawnT > 0f || e.Pos.DistanceTo(sl.Pos) > sl.Radius + e.Radius)
+                    if (e.SpawnT > 0f || e.Pos.FartherThan(sl.Pos, sl.Radius + e.Radius))
                         continue;
                     HurtEnemy(e, SlamDamage * p.Stats.DmgMult * sl.Power, p.Id);
                     if (!e.Def.IsBoss)

@@ -25,7 +25,7 @@ namespace Arena
         public static int DoorAt(World w, V2 at)
         {
             for (int i = 0; i < w.Doors.Length; i++)
-                if (w.Doors[i].Width <= 0f && w.Doors[i].Pos.DistanceTo(at) < 2f)
+                if (w.Doors[i].Width <= 0f && w.Doors[i].Pos.CloserThan(at, 2f))
                     return i;
             return -1;
         }
@@ -55,7 +55,7 @@ namespace Arena
             var door = w.Doors[d];
             if (w.Areas[door.A].Sealed || w.Areas[door.B].Sealed) { why = "A sealed room: build to it first"; return false; }
             foreach (var g in gates)
-                if (g.Pos.DistanceTo(door.Pos) < 2f) { why = "That door has a gate already"; return false; }
+                if (g.Pos.CloserThan(door.Pos, 2f)) { why = "That door has a gate already"; return false; }
             return true;
         }
 
@@ -123,7 +123,7 @@ namespace Arena
         void HostUseGate(int id, int i)
         {
             Player p;
-            if (!IsHost || i < 0 || i >= GateFits.Count || !Players.TryGetValue(id, out p) || p.Downed || !GateLive(i) || p.Pos.DistanceTo(GateFits[i].Pos) > Gates.UseRange + 40f)
+            if (!IsHost || i < 0 || i >= GateFits.Count || !Players.TryGetValue(id, out p) || p.Downed || !GateLive(i) || p.Pos.FartherThan(GateFits[i].Pos, Gates.UseRange + 40f))
                 return;
             SyncGateClocks();
             if (gateCool[i] > 0f)

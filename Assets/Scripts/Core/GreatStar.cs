@@ -99,7 +99,7 @@ namespace Arena
             var r = GreatStarRoute;
             if (r.Count >= GreatStarMaxPoints)
                 return;
-            if (r.Count > 0 && r[r.Count - 1].DistanceTo(at) < GreatStarPointGap)
+            if (r.Count > 0 && r[r.Count - 1].CloserThan(at, GreatStarPointGap))
                 return;
             float left = GreatStarInkMax - InkLength(from, r);
             V2 last = r.Count > 0 ? r[r.Count - 1] : from;

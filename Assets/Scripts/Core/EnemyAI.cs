@@ -574,7 +574,7 @@ namespace Arena
                 {
                     V2 was = e.Pos;
                     e.Pos = RoomsPortal(e.Pos, ref e.PortalT, dt);  // wraparound portals (Rooms.cs)
-                    if (e.Pos.DistanceTo(was) > 600f)
+                    if (e.Pos.FartherThan(was, 600f))
                         steerMem.Remove(e.Id);  // a fresh route from the far side
                 }
                 if (Battle && e.DazeT > 0f)
@@ -595,7 +595,7 @@ namespace Arena
                     if (e.Def.IsBoss)
                         BossCues(e);  // BossSounds.cs
                     float mult = rate * TraitFireMult(e) * (IsTwin(e.Type) && e.Phase == 1 ? 1.7f : 1f) * (Has(RunMod.Frenzy) ? Modifiers.FrenzyFire : 1f);
-                    bool guardFar = IsSecurity(e.Type) && e.Phase > 0 && e.Pos.DistanceTo(tpos) > SecurityEngage;  // too far to shoot: no countdown (SecurityGuard.cs)
+                    bool guardFar = IsSecurity(e.Type) && e.Phase > 0 && e.Pos.FartherThan(tpos, SecurityEngage);  // too far to shoot: no countdown (SecurityGuard.cs)
                     if (guardFar)
                         e.FireT = Math.Max(e.FireT, SecurityEvery);  // it opens fire a full gap after it gets close, not at once
                     else
@@ -635,9 +635,9 @@ namespace Arena
                 {
                     if (p.Downed || p.InvulnT > 0f || p.SwallowT > 0f || p.MeleeGraceT > 0f)
                         continue;
-                    if (p.ParryActive && p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.BodyR + ParryReach && ParryContact(p, e, contact))
+                    if (p.ParryActive && p.Pos.CloserThan(e.Pos, e.Radius + p.Def.BodyR + ParryReach) && ParryContact(p, e, contact))
                         continue;
-                    if (p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.HitR)
+                    if (p.Pos.CloserThan(e.Pos, e.Radius + p.Def.HitR))
                     {
                         if (e.Def.IsBoss)
                         {
@@ -823,7 +823,7 @@ namespace Arena
         {
             foreach (var p in Players.Values)
             {
-                if (p.Downed || p.InvulnT > 0f || p.Pos.DistanceTo(e.Pos) > BomberBlast + p.Def.HitR)
+                if (p.Downed || p.InvulnT > 0f || p.Pos.FartherThan(e.Pos, BomberBlast + p.Def.HitR))
                     continue;
                 if (p.ParryActive && ParryContact(p, e, BomberDamage))
                     continue;  // a raised guard facing the blast takes it

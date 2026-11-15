@@ -153,7 +153,7 @@ namespace Arena
         public static bool InSunlight(EclipseState s, V2 p, float pad = 0f)
         {
             foreach (var sp in s.Spots)
-                if (sp.Pos.DistanceTo(p) < SunspotRadius - pad)
+                if (sp.Pos.CloserThan(p, SunspotRadius - pad))
                     return true;
             return false;
         }
@@ -620,7 +620,7 @@ namespace Arena
         }
 
         bool MoonStops(Bullet b) =>
-            moonEclipse != null && !Defs.IsEnemyShot(b.Kind) && b.Pos.DistanceTo(MoonPos(moonEclipse, moonEclipse.Pos)) < MoonRadius + b.Radius;
+            moonEclipse != null && !Defs.IsEnemyShot(b.Kind) && b.Pos.CloserThan(MoonPos(moonEclipse, moonEclipse.Pos), MoonRadius + b.Radius);
 
         void EnterEclipseStage(Enemy e, EclipseStage stage)
         {

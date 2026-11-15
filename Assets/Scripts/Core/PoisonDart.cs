@@ -70,7 +70,7 @@ namespace Arena
             venomNear.Clear();
             float reach = dead.VenomReach;
             foreach (var e in Enemies.Values)
-                if (e != dead && Targetable(e) && e.VenomT <= 0f && e.Pos.DistanceTo(dead.Pos) <= reach + e.Radius)
+                if (e != dead && Targetable(e) && e.VenomT <= 0f && e.Pos.WithinReach(dead.Pos, reach + e.Radius))
                     venomNear.Add(e);
             venomNear.Sort((a, b) => a.Pos.DistanceSq(dead.Pos).CompareTo(b.Pos.DistanceSq(dead.Pos)));
             int n = Math.Min(dead.VenomJumps, venomNear.Count);

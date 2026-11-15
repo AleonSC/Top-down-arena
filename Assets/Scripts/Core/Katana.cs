@@ -242,7 +242,8 @@ namespace Arena
                 return;
             float r = MeleeReach(p, KatanaBurstRadius) * (1f + 0.25f * extra);
             int hit = 0;
-            foreach (var e in new List<Enemy>(Enemies.Values))
+            var snap3 = SnapEnemies();
+            foreach (var e in snap3)
             {
                 if (IsSpawning(e) || e.Hp <= 0f)
                     continue;
@@ -261,6 +262,7 @@ namespace Arena
                 KatanaCutFx(e, away.Orthogonal(), e.Hp <= 0f, KatanaSteel);
                 hit++;
             }
+            Free(snap3);
             CutBulletsInCircle(p.Pos, r, false);  // the small bullets in the ring
             BroadcastFx(FxKind.KatanaBurst, p.Pos, new V2(p.Id, p.Aim), KatanaSteel, r, 0.9f, Sfx.KatanaBurstSfx);
             if (hit > 0)

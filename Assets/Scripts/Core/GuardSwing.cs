@@ -34,7 +34,7 @@ namespace Arena
             byte st = e.LarderStage;
             if (st == LarderIdle)
             {
-                if (e.LarderCd > 0f || e.SpawnT > 0f || e.Pos.DistanceTo(tpos) > BatonTrigger + e.Radius)
+                if (e.LarderCd > 0f || e.SpawnT > 0f || e.Pos.FartherThan(tpos, BatonTrigger + e.Radius))
                     return;
                 e.LarderStage = e.MawSide == 1 ? BatonWindingBack : BatonWinding;  // (MawSide: which way the last swing went)
                 e.LarderT = BatonWind;

@@ -174,7 +174,7 @@ namespace Arena
 
         /// How far a point is from a pair's line (a huge number when there's no line).
         public static float PylonLineDistance(Enemy e, Enemy partner, V2 p) =>
-            partner == null || e.Pos.DistanceTo(partner.Pos) > PylonMaxLine ? 1e9f : SegmentDistance(p, e.Pos, partner.Pos);
+            partner == null || e.Pos.FartherThan(partner.Pos, PylonMaxLine) ? 1e9f : SegmentDistance(p, e.Pos, partner.Pos);
 
 
         /// Where a Pylon walks to: either side of you, along the line the pair already makes (so the spots hold still as they walk).
@@ -251,7 +251,7 @@ namespace Arena
             switch (e.Phase)
             {
                 case PylonWalking:
-                    bool there = e.Pos.DistanceTo(PylonSpot(e, o, tpos)) < 30f && o.Pos.DistanceTo(PylonSpot(o, e, tpos)) < 30f;
+                    bool there = e.Pos.CloserThan(PylonSpot(e, o, tpos), 30f) && o.Pos.CloserThan(PylonSpot(o, e, tpos), 30f);
                     if (e.T > 1.2f && (there || e.PhaseT < -5f) && e.PhaseT <= 0f)
                     {
                         e.Phase = PylonQuiet;
@@ -309,7 +309,7 @@ namespace Arena
             e.LinkId = 0;
             var hit = new System.Collections.Generic.List<Player> { marked };
             foreach (var p in Players.Values)
-                if (p != marked && !p.Downed && p.Pos.DistanceTo(marked.Pos) < LineRing)
+                if (p != marked && !p.Downed && p.Pos.CloserThan(marked.Pos, LineRing))
                     hit.Add(p);
             var col = new Rgba(1f, 0.82f, 0.4f);
             foreach (var p in hit)
@@ -377,7 +377,7 @@ namespace Arena
                 e.Phase = 0;
                 e.PhaseT = HeadEvery - HeadWarn - HeadStep * (HeadRow - 1);
             }
-            if (e.Phase != 0 || e.PhaseT > 0f || e.T < 1f || tpos.DistanceTo(e.Pos) > HeadReach || e.FrozenT > 0f || e.DazeT > 0f)
+            if (e.Phase != 0 || e.PhaseT > 0f || e.T < 1f || tpos.FartherThan(e.Pos, HeadReach) || e.FrozenT > 0f || e.DazeT > 0f)
                 return;
             V2 dir = (tpos - e.Pos).Normalized();
             for (int k = 0; k < HeadRow; k++)
@@ -392,7 +392,7 @@ namespace Arena
         {
             string who = h.Kind == HazardDownburst ? "Thunderhead (downburst)" : "Stormcaller (lightning)";
             foreach (var p in Players.Values)
-                if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(h.Pos) < h.Radius)
+                if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(h.Pos, h.Radius))
                     Damage(p, CallerDamage, who);
             var color = new Rgba(1f, 0.85f, 0.5f);
             BroadcastFx(FxKind.Bolt, new V2(h.Pos.X + Rand(-40f, 40f), h.Pos.Y - 260f), h.Pos, color, 0f, 0.22f, Sfx.SpellZap);
@@ -503,7 +503,7 @@ namespace Arena
             e.FireT = LineEvery;
             Player best = null;
             foreach (var p in Players.Values)
-                if (!p.Downed && (best == null || p.Pos.DistanceTo(tpos) < best.Pos.DistanceTo(tpos)))
+                if (!p.Downed && (best == null || p.Pos.CloserThan(tpos, best.Pos.DistanceTo(tpos))))
                     best = p;
             if (best == null || e.Phase == 1)
                 return true;

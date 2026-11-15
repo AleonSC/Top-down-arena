@@ -107,7 +107,7 @@ namespace Arena
             if (!b.Crossfire)
                 return 1f;
             Players.TryGetValue(b.Owner, out p);
-            return e.Pos.DistanceTo(b.Cross) <= CrossZone(p) + e.Radius ? TwinCrossMult + (p != null ? p.Stats.CrossBonus : 0f) : 1f;  // (Kill Zone: wider, harder)
+            return e.Pos.WithinReach(b.Cross, CrossZone(p) + e.Radius) ? TwinCrossMult + (p != null ? p.Stats.CrossBonus : 0f) : 1f;  // (Kill Zone: wider, harder)
         }
 
         /// The Twin Rifle's crossfire zone for this player (Kill Zone widens it).
@@ -149,7 +149,7 @@ namespace Arena
         void FlakAirburst(Bullet b)
         {
             foreach (var e in Enemies.Values)
-                if (Targetable(e) && e.Pos.DistanceTo(b.Pos) < b.Splash + e.Radius && !BlocksShot(e, b.Pos))
+                if (Targetable(e) && e.Pos.CloserThan(b.Pos, b.Splash + e.Radius) && !BlocksShot(e, b.Pos))
                 {
                     HurtEnemy(e, b.Dmg, b.Owner);
                     OnBulletHit(b, e);
@@ -157,7 +157,7 @@ namespace Arena
             var shot = flakScratch;
             shot.Clear();
             foreach (var o in Bullets.Values)
-                if (Defs.IsEnemyShot(o.Kind) && !Defs.Unblockable(o.Kind) && o.Pos.DistanceTo(b.Pos) < b.Splash + o.Radius)
+                if (Defs.IsEnemyShot(o.Kind) && !Defs.Unblockable(o.Kind) && o.Pos.CloserThan(b.Pos, b.Splash + o.Radius))
                     shot.Add(o.Id);
             foreach (int id in shot)
             {

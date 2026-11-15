@@ -90,9 +90,9 @@ namespace Arena
         {
             foreach (var p in Portals)
             {
-                if (at.DistanceTo(p.A) < PortalR)
+                if (at.CloserThan(p.A, PortalR))
                     return p.B + p.InB * PortalExit + new V2(0f, at.Y - p.A.Y);
-                if (at.DistanceTo(p.B) < PortalR)
+                if (at.CloserThan(p.B, PortalR))
                     return p.A + p.InA * PortalExit + new V2(0f, at.Y - p.B.Y);
             }
             return null;

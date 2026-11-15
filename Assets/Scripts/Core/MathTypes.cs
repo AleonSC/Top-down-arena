@@ -51,6 +51,12 @@ namespace Arena
 
         public float DistanceTo(V2 o) => (this - o).Length;
         public float DistanceSq(V2 o) => (this - o).LengthSq;
+
+        // Distance tests without the square root (they match `DistanceTo(o) < r` and so on for any r, NaN included).
+        public bool CloserThan(V2 o, float r) => r > 0f && DistanceSq(o) < r * r;
+        public bool WithinReach(V2 o, float r) => r >= 0f && DistanceSq(o) <= r * r;
+        public bool FartherThan(V2 o, float r) => r < 0f || DistanceSq(o) > r * r;
+        public bool FartherOrAt(V2 o, float r) => r <= 0f || DistanceSq(o) >= r * r;
         public float Dot(V2 o) => X * o.X + Y * o.Y;
 
         public V2 Clamp(V2 min, V2 max) =>

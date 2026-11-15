@@ -264,7 +264,7 @@ namespace Arena
                     pace = Math.Min(pace, PhalanxHeavyPace);
                 V2 want = PhalanxWorld(z, ahead ? front + (move ? 0f : 2f) : back, l.Y);  // (asking: a step on)
                 V2 put = PushOutOfProps(ClampToArena(want, e.Radius), e.Radius);
-                if (ahead && put.DistanceTo(want) > 2f)
+                if (ahead && put.FartherThan(want, 2f))
                     pace = 0f;  // pinned against a wall or a prop: the line can't go on
                 if (!move)
                     continue;

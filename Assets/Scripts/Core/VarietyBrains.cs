@@ -53,7 +53,7 @@ namespace Arena
             V2 sum = V2.Zero;
             int n = 0;
             foreach (var o in Enemies.Values)
-                if (o != e && !o.Def.IsBoss && o.Type != EnemyType.Warder && o.Hp > 0f && o.Pos.DistanceTo(e.Pos) < 600f)
+                if (o != e && !o.Def.IsBoss && o.Type != EnemyType.Warder && o.Hp > 0f && o.Pos.CloserThan(e.Pos, 600f))
                 {
                     sum += o.Pos;
                     n++;
@@ -185,7 +185,7 @@ namespace Arena
                 e.Phase = 0;
                 var near = new List<Enemy>();
                 foreach (var o in Enemies.Values)
-                    if (o != e && !o.Def.IsBoss && o.Type != EnemyType.Warder && Targetable(o) && o.Pos.DistanceTo(e.Pos) < WarderRange)
+                    if (o != e && !o.Def.IsBoss && o.Type != EnemyType.Warder && Targetable(o) && o.Pos.CloserThan(e.Pos, WarderRange))
                         near.Add(o);
                 near.Sort((a, b) => a.Pos.DistanceSq(e.Pos).CompareTo(b.Pos.DistanceSq(e.Pos)));
                 for (int i = 0; i < near.Count && i < WarderMax; i++)

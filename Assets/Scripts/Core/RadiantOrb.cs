@@ -46,14 +46,14 @@ namespace Arena
             bool hit = false, touched = false;
             foreach (var e in Enemies.Values)
             {
-                if (!Targetable(e) || e.Pos.DistanceTo(p.RadiantPos) > r + e.Radius)
+                if (!Targetable(e) || e.Pos.FartherThan(p.RadiantPos, r + e.Radius))
                     continue;
                 hit = touched = true;
                 HurtEnemy(e, dmg, p.Id);
                 ModHit(e, p.Id, dmg, Defs.HolyShot, (e.Pos - p.RadiantPos).Normalized());  // weapon mods ride it
             }
             foreach (var q in Players.Values)
-                if (q != p && !q.Downed && q.Pos.DistanceTo(p.RadiantPos) <= r + q.Def.BodyR)
+                if (q != p && !q.Downed && q.Pos.WithinReach(p.RadiantPos, r + q.Def.BodyR))
                 {
                     Heal(q, RadiantHeal * p.Stats.DmgMult * p.Stats.OrbHealMult2, p);  // (Sunstone: more)
                     touched = true;

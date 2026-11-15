@@ -496,19 +496,19 @@ namespace Arena
                 steerMem[key] = m = new SteerMem();
             }
             var wps = d.Waypoints;
-            if (m.Def != d || m.Wp >= wps.Length || m.Goal.DistanceTo(tpos) > SteerGoalSlack)
+            if (m.Def != d || m.Wp >= wps.Length || m.Goal.FartherThan(tpos, SteerGoalSlack))
             {
                 m.Def = d;
                 m.Wp = -1;
             }
             m.Goal = tpos;
-            if (m.Wp >= 0 && now < m.Until && pos.DistanceTo(wps[m.Wp]) > 14f && !SegBlocked(d, pos, wps[m.Wp], r))
+            if (m.Wp >= 0 && now < m.Until && pos.FartherThan(wps[m.Wp], 14f) && !SegBlocked(d, pos, wps[m.Wp], r))
                 return (wps[m.Wp] - pos).Normalized();
             var goal = GoalCosts(d, tpos, r);
             var cost = goal.Cost;
             int at = -1;  // standing on a corner: carry on to the next one on the route
             for (int i = 0; i < wps.Length; i++)
-                if (pos.DistanceTo(wps[i]) < 14f && (at < 0 || pos.DistanceTo(wps[i]) < pos.DistanceTo(wps[at])))
+                if (pos.CloserThan(wps[i], 14f) && (at < 0 || pos.CloserThan(wps[i], pos.DistanceTo(wps[at]))))
                     at = i;
             if (at >= 0)
             {

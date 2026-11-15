@@ -117,7 +117,7 @@ namespace Arena
         void StomperSpecial(Enemy e, V2 tpos, float dt)
         {
             e.StompT -= dt;
-            if (e.Stomp != null || e.StompT > 0f || e.SpawnT > 0f || e.Pos.DistanceTo(tpos) > StomperRange)
+            if (e.Stomp != null || e.StompT > 0f || e.SpawnT > 0f || e.Pos.FartherThan(tpos, StomperRange))
                 return;
             e.StompT = StomperEvery;
             float gap = GapBeside(e, tpos, Rand(0f, 1f) < 0.5f ? -1f : 1f);
@@ -135,7 +135,7 @@ namespace Arena
         {
             Player best = null;
             foreach (var p in Players.Values)
-                if (!p.Downed && (best == null || p.Pos.DistanceTo(tpos) < best.Pos.DistanceTo(tpos)))
+                if (!p.Downed && (best == null || p.Pos.CloserThan(tpos, best.Pos.DistanceTo(tpos))))
                     best = p;
             V2 v = V2.Zero;
             if (best != null)
@@ -176,7 +176,7 @@ namespace Arena
             {
                 if (!pt.Active)
                     continue;
-                if (pt.Kind == PatchKind.Rubble && b.Pos.DistanceTo(pt.Pos) < pt.R0 + b.Radius)
+                if (pt.Kind == PatchKind.Rubble && b.Pos.CloserThan(pt.Pos, pt.R0 + b.Radius))
                     return true;
                 if (pt.Kind == PatchKind.Slab && InSlabCover(pt, b.Pos, b.Radius))
                     return true;
@@ -203,7 +203,7 @@ namespace Arena
                 if (pt.Kind != PatchKind.Rubble || !pt.Active || !rubbleLanded.Add(pt.Id))
                     continue;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(pt.Pos) < HurlerLandR + p.Def.HitR)
+                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(pt.Pos, HurlerLandR + p.Def.HitR))
                         Damage(p, HurlerDamage, "Rock Hurler (boulder)");
                 for (int k = 0; k < HurlerShards; k++)
                 {
@@ -243,7 +243,7 @@ namespace Arena
                         if (p.Downed || p.InvulnT > 0f)
                             continue;
                         foreach (var pt in Patches.Values)
-                            if (pt.Kind == PatchKind.Lava && pt.Active && p.Pos.DistanceTo(pt.Pos) < pt.Radius + p.Def.HitR)
+                            if (pt.Kind == PatchKind.Lava && pt.Active && p.Pos.CloserThan(pt.Pos, pt.Radius + p.Def.HitR))
                             {
                                 DamageOverTime(p, QuarryLavaDps * 0.25f, "Lava");
                                 break;

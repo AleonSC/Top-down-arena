@@ -33,7 +33,7 @@ namespace Arena
             float cut = 0f;
             foreach (var z in Zones.Values)
             {
-                if (z.DamageCut > 0f && p.Pos.DistanceTo(z.Pos) <= z.Radius)
+                if (z.DamageCut > 0f && p.Pos.WithinReach(z.Pos, z.Radius))
                     cut = Math.Max(cut, z.DamageCut);
                 if (InBath(z, p.Pos, 0f))
                     cut = Math.Max(cut, BathGuard);  // standing in anyone's Bloodbath (Bloodbath.cs)
@@ -218,7 +218,7 @@ namespace Arena
         void ExplodeGrenade(Bullet b)
         {
             foreach (var e in Enemies.Values)
-                if (e.SpawnT <= 0f && e.Pos.DistanceTo(b.Pos) < b.Splash + e.Radius)
+                if (e.SpawnT <= 0f && e.Pos.CloserThan(b.Pos, b.Splash + e.Radius))
                     HurtEnemy(e, b.Dmg, b.Owner);
             SpawnRing(Defs.DpsShot, b.Pos, b.Burst, 520f, 0.45f, b.Dmg * 0.12f, b.Owner);
             BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.GrenadeShot), b.Splash, 0.35f, Sfx.Explode);
@@ -324,7 +324,7 @@ namespace Arena
                 if (b.Bomblet)
                 {
                     foreach (var e in Enemies.Values)
-                        if (e.SpawnT <= 0f && e.Pos.DistanceTo(b.Pos) < b.Splash + e.Radius && !BlocksShot(e, b.Pos))
+                        if (e.SpawnT <= 0f && e.Pos.CloserThan(b.Pos, b.Splash + e.Radius) && !BlocksShot(e, b.Pos))
                             HurtEnemy(e, b.Dmg, b.Owner);
                     BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.FlakShell), b.Splash, 0.25f, Sfx.None);
                     PropBlast(b.Pos, b.Splash, b.Owner);
@@ -802,7 +802,7 @@ namespace Arena
             {
                 foreach (var e in Enemies.Values)
                 {
-                    if (e.Id == b.LastHit || e.SpawnT > 0f || e.Pos.DistanceTo(b.Pos) > b.Splash + e.Radius || BlocksShot(e, b.Pos))
+                    if (e.Id == b.LastHit || e.SpawnT > 0f || e.Pos.FartherThan(b.Pos, b.Splash + e.Radius) || BlocksShot(e, b.Pos))
                         continue;
                     HurtEnemy(e, b.Dmg * 0.6f, b.Owner);
                 }
@@ -1016,7 +1016,7 @@ namespace Arena
                 var r = splashSeen[i];
                 if (tick - r.Tick > SplashFxGap || tick < r.Tick)
                     splashSeen.RemoveAt(i);
-                else if (r.Kind == b.Kind && r.Pos.DistanceTo(b.Pos) < b.Splash * SplashFxNear)
+                else if (r.Kind == b.Kind && r.Pos.CloserThan(b.Pos, b.Splash * SplashFxNear))
                     return true;
             }
             splashSeen.Add(new SplashSeen { Pos = b.Pos, Tick = tick, Kind = b.Kind });
@@ -1273,12 +1273,12 @@ namespace Arena
                 }
                 Player nearest = null;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.Hp < p.MaxHp && p.Pos.DistanceTo(o.Pos) < OrbMagnetRange &&
+                    if (!p.Downed && p.Hp < p.MaxHp && p.Pos.CloserThan(o.Pos, OrbMagnetRange) &&
                         (nearest == null || p.Pos.DistanceSq(o.Pos) < nearest.Pos.DistanceSq(o.Pos)))
                         nearest = p;
                 if (nearest == null && o.Med)
                     foreach (var p in Players.Values)  // a medkit's orb also picks a downed ally back up (Medkit.cs)
-                        if (p.Downed && p.Pos.DistanceTo(o.Pos) < p.Def.BodyR + o.Radius + 6f)
+                        if (p.Downed && p.Pos.CloserThan(o.Pos, p.Def.BodyR + o.Radius + 6f))
                         {
                             RevivePlayer(p, 0.2f);
                             BroadcastFx(FxKind.Ring, o.Pos, new Rgba(0.4f, 1f, 0.5f), 50f, 0.35f, Sfx.PickupBig);

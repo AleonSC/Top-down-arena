@@ -26,7 +26,7 @@ namespace Arena
             var erase = eraseScratch;
             erase.Clear();
             foreach (var b in Bullets.Values)
-                if (Defs.IsEnemyShot(b.Kind) && b.Pos.DistanceTo(center) < range)
+                if (Defs.IsEnemyShot(b.Kind) && b.Pos.CloserThan(center, range))
                     erase.Add(b.Id);
             foreach (int bid in erase)
             {

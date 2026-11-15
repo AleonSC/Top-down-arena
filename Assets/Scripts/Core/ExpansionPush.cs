@@ -125,7 +125,7 @@ namespace Arena
                     u = Math.Max(lo, Math.Min(hi - Step, u));
                     V2 spot = vertical ? new V2(line, u + Step / 2f) : new V2(u + Step / 2f, line);
                     float d = Math.Abs(across - line) + Math.Max(0f, Math.Abs(along - (u + Step / 2f)) - Step / 2f);
-                    if (d >= bestD || spot.DistanceTo(from) > PushReach || !OutsideFree(rooms, side, line, u))
+                    if (d >= bestD || spot.FartherThan(from, PushReach) || !OutsideFree(rooms, side, line, u))
                         continue;
                     int r0 = u, r1 = u + Step;  // the run of outer wall round the spot
                     while (r0 - Step >= lo && OutsideFree(rooms, side, line, r0 - Step)) r0 -= Step;
@@ -238,7 +238,7 @@ namespace Arena
                         if (!d.Joins(area) || d.Joins(r.Parent))
                             continue;  // (its own open join to the room it was pushed from doesn't count)
                         float reach = d.W / 2f + 70f;
-                        if (d.Pos.DistanceTo(p) < reach || d.Pos.DistanceTo(q) < reach || d.Pos.DistanceTo((p + q) * 0.5f) < reach)
+                        if (d.Pos.CloserThan(p, reach) || d.Pos.CloserThan(q, reach) || d.Pos.CloserThan((p + q) * 0.5f, reach))
                             return false;
                     }
                 if (nodes != null)

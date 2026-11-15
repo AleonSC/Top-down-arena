@@ -231,7 +231,7 @@ namespace Arena
                 if (!p.Downed)
                 {
                     alive++;
-                    if (p.Pos.DistanceTo(PortalPos) < Challenges.PortalR)
+                    if (p.Pos.CloserThan(PortalPos, Challenges.PortalR))
                         inside++;
                 }
             if (AnyonePicking())
@@ -322,7 +322,7 @@ namespace Arena
                 case RoomPhase.Won:
                     RoomT -= dt;
                     foreach (var p in Players.Values)
-                        if (!p.Downed && p.Pos.DistanceTo(AltarPos) < Challenges.AltarR + p.Def.HitR)
+                        if (!p.Downed && p.Pos.CloserThan(AltarPos, Challenges.AltarR + p.Def.HitR))
                             RoomT = 0f;
                     if (RoomT <= 0f)
                         ClaimPrize();
@@ -458,7 +458,7 @@ namespace Arena
         {
             scratchIds.Clear();
             foreach (var b in Bullets.Values)
-                if (Defs.IsEnemyShot(b.Kind) && b.Pos.DistanceTo(CrystalPos) < Challenges.CrystalR + b.Radius)
+                if (Defs.IsEnemyShot(b.Kind) && b.Pos.CloserThan(CrystalPos, Challenges.CrystalR + b.Radius))
                 {
                     CrystalHp -= b.Dmg;
                     scratchIds.Add(b.Id);
@@ -497,12 +497,12 @@ namespace Arena
                 if (!p.Downed)
                 {
                     alive++;
-                    if (p.Pos.DistanceTo(z) < Challenges.ZoneR)
+                    if (p.Pos.CloserThan(z, Challenges.ZoneR))
                         inside++;
                 }
             bool contested = false;
             foreach (var e in Enemies.Values)
-                contested |= e.SpawnT <= 0f && e.Pos.DistanceTo(z) < Challenges.ZoneR;
+                contested |= e.SpawnT <= 0f && e.Pos.CloserThan(z, Challenges.ZoneR);
             if (inside > 0)
                 ZoneFill += dt / Challenges.ZoneFillTime * (0.7f + 0.3f * inside / Math.Max(1, alive)) * (contested ? 0.5f : 1f);
             else
@@ -644,7 +644,7 @@ namespace Arena
             }
             if (!goal.HasValue)
                 return;
-            if (me.Pos.DistanceTo(goal.Value) > near)
+            if (me.Pos.FartherThan(goal.Value, near))
                 move = (goal.Value - me.Pos).LimitLength(1f);
             else if (Room == RoomPhase.Portal)
                 move = V2.Zero;  // stay in
@@ -822,7 +822,7 @@ namespace Arena
             }
             if (p.Weapon.Melee)
             {
-                if (e.Pos.DistanceTo(tpos) > ShadowMeleeRange + 60f)
+                if (e.Pos.FartherThan(tpos, ShadowMeleeRange + 60f))
                 {
                     e.FireT = 0.2f;
                     return true;

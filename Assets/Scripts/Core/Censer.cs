@@ -84,7 +84,7 @@ namespace Arena
             }
             bool blessed = false;  // an ally (not you) in the heal's reach: the blessing chimes
             foreach (var q in Players.Values)
-                if (q.Id != p.Id && !q.Downed && q.Pos.DistanceTo(p.Pos) < s.HealRange)
+                if (q.Id != p.Id && !q.Downed && q.Pos.CloserThan(p.Pos, s.HealRange))
                     blessed = true;
             if (s.CenserStep == 3)
             {
@@ -140,7 +140,7 @@ namespace Arena
             float dmg = CastBurstPerEmber * n * p.Stats.DmgMult;
             foreach (var e in Enemies.Values)
             {
-                if (!Targetable(e) || e.Pos.DistanceTo(r.To) > e.Radius + CastBurstR)
+                if (!Targetable(e) || e.Pos.FartherThan(r.To, e.Radius + CastBurstR))
                     continue;
                 V2 dir = e.Pos - r.To;
                 HurtEnemy(e, dmg, p.Id);
@@ -154,7 +154,7 @@ namespace Arena
             z.ExtraRevive = CastReviveBoost;  // a downed ally in the cloud is revived twice as fast, as in Guardian's Oath's ward
             foreach (var q in Players.Values)
             {
-                if (q.Pos.DistanceTo(r.To) > radius)
+                if (q.Pos.FartherThan(r.To, radius))
                     continue;
                 if (q.Downed)
                 {

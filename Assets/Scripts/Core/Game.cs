@@ -908,7 +908,7 @@ namespace Arena
                     ? p.Pos : V2.Lerp(p.Disp, p.Pos, k);
             foreach (var e in Enemies.Values)
             {
-                e.Disp = e.Disp.DistanceTo(e.Pos) > 600f ? e.Pos : V2.Lerp(e.Disp, e.Pos, k);  // (a jump through a Rooms portal: snap, don't slide)
+                e.Disp = e.Disp.FartherThan(e.Pos, 600f) ? e.Pos : V2.Lerp(e.Disp, e.Pos, k);  // (a jump through a Rooms portal: snap, don't slide)
                 if (IsSwordsman(e.Type) || e.Type == EnemyType.Warder || IsSecurity(e.Type) || IsInfall(e.Type) || IsPenumbral(e.Type) || IsSquall(e.Type))  // (the Warder's, the Security Guard's, the Infall's and the Court's looks are timed the same way)
                 {
                     if (e.Phase != e.SeenPhase)
@@ -1106,7 +1106,7 @@ namespace Arena
             // Touching a boss shoves you back out (it only hurts once a second; see TickEnemies).
             if (!me.Downed && shoveT <= 0f)
                 foreach (var e in Enemies.Values)
-                    if (e.Def.IsBoss && !IsSpawning(e) && !QueenAirborne(e) && !DevourUnder(e) && !DevourSwallowing(e) && me.Pos.DistanceTo(e.Pos) < e.Radius + me.Def.HitR + 2f)
+                    if (e.Def.IsBoss && !IsSpawning(e) && !QueenAirborne(e) && !DevourUnder(e) && !DevourSwallowing(e) && me.Pos.CloserThan(e.Pos, e.Radius + me.Def.HitR + 2f))
                     {
                         V2 away = me.Pos - e.Pos;
                         shoveDir = away.IsZero ? V2.FromAngle(me.Aim + MathX.Pi) : away.Normalized();
@@ -1235,7 +1235,7 @@ namespace Arena
             me.Pos = KeepInArena(RoomsHold(before, me.Pos, me.Def.BodyR), me.Def.BodyR);  // (a room locks behind you: Rooms.cs)
             me.Pos = KeepInMarshalCircles(before, me.Pos, me.Def.BodyR);  // a Marshal's circle holds you (CourtFaction.cs)
             me.Pos = RoomsPortal(me.Pos, ref me.PortalT, dt);  // wraparound portals (Rooms.cs)
-            if (me.Pos.DistanceTo(before) > 600f)
+            if (me.Pos.FartherThan(before, 600f))
             {
                 me.Disp = me.Pos;
                 steerMem.Remove(-me.Id);  // (the bot's route: fresh from the far side)
@@ -1493,7 +1493,7 @@ namespace Arena
                     if (!Has(RunMod.Bloodlust))
                         Heal(p, AuraSelfHeal * p.Stats.AuraHealMult * dt, p, AuraSource);
                     foreach (var q in Players.Values)
-                        if (q != p && q.Pos.DistanceTo(p.Pos) < p.AuraRange)
+                        if (q != p && q.Pos.CloserThan(p.Pos, p.AuraRange))
                             Heal(q, AuraHeal * p.Stats.AuraHealMult * dt, p, AuraSource);
                 }
             }
@@ -1509,7 +1509,7 @@ namespace Arena
                     continue;
                 Player helper = null;
                 foreach (var q in Players.Values)
-                    if (q != p && !q.Downed && q.Pos.DistanceTo(p.Pos) < ReviveRange)
+                    if (q != p && !q.Downed && q.Pos.CloserThan(p.Pos, ReviveRange))
                         helper = q;
                 if (helper != null)
                 {

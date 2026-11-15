@@ -542,7 +542,7 @@ namespace Arena
                         for (int i = 0; i < (ring == 0 ? DiskInnerN : DiskOuterN) && !hit; i++)
                         {
                             V2 at;
-                            hit = DiskOrb(sing.Sing, sing.Pos, ring, i, out at) && at.DistanceTo(p.Pos) < reach;
+                            hit = DiskOrb(sing.Sing, sing.Pos, ring, i, out at) && at.CloserThan(p.Pos, reach);
                         }
                     if (hit)
                         Damage(p, Defs.BulletDamage(Defs.BigShot), "The Singularity (accretion disk)");

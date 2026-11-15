@@ -273,7 +273,7 @@ namespace Arena
                             continue;
                         float along = Math.Max(0f, Math.Min(len, (e.Pos.X - from.X) * dir.X + (e.Pos.Y - from.Y) * dir.Y));
                         V2 closest = from + dir * along;
-                        if (e.Pos.DistanceTo(closest) > e.Radius + 30f)
+                        if (e.Pos.FartherThan(closest, e.Radius + 30f))
                             continue;
                         HurtEnemy(e, BulldozeDamage * s.DmgMult * s.BulldozeMult, p.Id);
                         Daze(e);  // can't hit back for a split second (Daze.cs)
@@ -325,7 +325,7 @@ namespace Arena
                     float range = PulseRange * s.PulseRangeMult;
                     foreach (var q in Players.Values)
                     {
-                        if (q.Pos.DistanceTo(p.Pos) >= range)
+                        if (q.Pos.FartherOrAt(p.Pos, range))
                             continue;
                         if (q.Downed)
                             RevivePlayer(q, 0.5f, p);

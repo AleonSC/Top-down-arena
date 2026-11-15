@@ -181,7 +181,7 @@ namespace Arena
             if (w.TransT > 0f || w.Turn == WardenTurn.LastStand)
             {
                 speed = 420f;
-                return e.Pos.DistanceTo(middle) > 6f ? (middle - e.Pos).Normalized() : V2.Zero;
+                return e.Pos.FartherThan(middle, 6f) ? (middle - e.Pos).Normalized() : V2.Zero;
             }
             switch (w.Turn)
             {
@@ -189,7 +189,7 @@ namespace Arena
                     return V2.Zero;
                 case WardenTurn.Cross:
                     speed = 340f;
-                    return w.Dashing && e.Pos.DistanceTo(e.Waypoint) > 8f ? (e.Waypoint - e.Pos).Normalized() : V2.Zero;
+                    return w.Dashing && e.Pos.FartherThan(e.Waypoint, 8f) ? (e.Waypoint - e.Pos).Normalized() : V2.Zero;
                 case WardenTurn.Charge:
                     if (w.TurnT < ChargeWarn || w.ChargeLeft <= 0f)
                         return V2.Zero;
@@ -550,7 +550,7 @@ namespace Arena
                 case WardenTurn.LastStand:  // in the middle: long "+" bursts turning 45 degrees each time, a ring per pause, stun rounds
                 {
                     e.FireT = 0.075f;
-                    if (e.Pos.DistanceTo(new V2(Width / 2f, Height / 2f)) > 8f)
+                    if (e.Pos.FartherThan(new V2(Width / 2f, Height / 2f), 8f))
                         break;
                     int cycle = (int)(w.TurnT / LastStandCycle);
                     float into = w.TurnT - cycle * LastStandCycle, facing = LastStandFacing(w.TurnT);
@@ -579,7 +579,7 @@ namespace Arena
         void CheckExposed(Enemy e, WardenState w, float dt)
         {
             bool lit = (w.LightMode == WardenLight.Follow || w.LightMode == WardenLight.Lock) && w.ExposedT <= 0f && w.ExposeCd <= 0f
-                && w.Light.DistanceTo(e.Pos) < LightRadius * 0.5f + e.Radius * 0.5f;
+                && w.Light.CloserThan(e.Pos, LightRadius * 0.5f + e.Radius * 0.5f);
             w.ExposeHold = lit ? w.ExposeHold + dt : 0f;
             if (w.ExposeHold < ExposeCatch)
                 return;
@@ -671,7 +671,7 @@ namespace Arena
                     // Anyone standing in its bright middle gets caught.
                     bool inside = false;
                     foreach (var p in Players.Values)
-                        if (!p.Downed && p.Pos.DistanceTo(w.Light) < LightRadius * 0.6f)
+                        if (!p.Downed && p.Pos.CloserThan(w.Light, LightRadius * 0.6f))
                             inside = true;
                     w.Caught = inside ? w.Caught + dt : Math.Max(0f, w.Caught - dt * 1.5f);
                     if (w.Caught >= LightCatch)
@@ -857,7 +857,7 @@ namespace Arena
         void GateLockBlast(V2 at, float radius, int owner)
         {
             if (owner != 0)
-                GateLockStrike(q => q.DistanceTo(at) < radius + LockW / 2f);
+                GateLockStrike(q => q.CloserThan(at, radius + LockW / 2f));
         }
 
         /// Moves the gates along (every game: the host, and clients between snapshots).
@@ -927,7 +927,7 @@ namespace Arena
             for (int tries = 0; tries < 16; tries++)
             {
                 at = ClampToArena(near + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(60f, 220f), 100f);
-                if (at.DistanceTo(e.Pos) < GasRadius + e.Radius)
+                if (at.CloserThan(e.Pos, GasRadius + e.Radius))
                     at = ClampToArena(at + (at - e.Pos).Normalized() * (GasRadius + e.Radius), 100f);  // not on the Warden
                 if (!InDoorLane(e.Warden, at.X))
                     break;  // and never across a gate's door (or its lock), so the way through stays clear
@@ -975,7 +975,7 @@ namespace Arena
                     spots.Add(new V2((flip ? 1f - f.X : f.X) * Width, f.Y * Height));
             foreach (var at in spots)
             {
-                if (at.DistanceTo(e.Pos) < GasRadius + e.Radius)
+                if (at.CloserThan(e.Pos, GasRadius + e.Radius))
                     continue;  // not on the Warden
                 SpawnPatchAt(PatchKind.Gas, at, GasFlight, GasFlight + GasLife, GasRadius, GasRadius);
                 BroadcastFx(FxKind.Target, at, new Rgba(0.6f, 0.95f, 0.4f), GasRadius, GasFlight, Sfx.None);
@@ -994,7 +994,7 @@ namespace Arena
                 if (pt.Kind != PatchKind.Gas || !pt.Active)
                     continue;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(pt.Pos) < pt.Radius + p.Def.HitR)
+                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(pt.Pos, pt.Radius + p.Def.HitR))
                         DamageOverTime(p, GasDps * 0.25f, "The Warden (gas)");
             }
         }
@@ -1066,7 +1066,7 @@ namespace Arena
                     continue;
                 Enemy hit = null;
                 foreach (var r in Enemies.Values)
-                    if (r.Type == EnemyType.Rioter && Targetable(r) && r.Pos.DistanceTo(g.Pos) < g.Radius + r.Radius + GuardReach)
+                    if (r.Type == EnemyType.Rioter && Targetable(r) && r.Pos.CloserThan(g.Pos, g.Radius + r.Radius + GuardReach))
                     {
                         hit = r;
                         break;
@@ -1118,7 +1118,7 @@ namespace Arena
         {
             var ids = new List<int>();
             foreach (var r in Enemies.Values)
-                if (r.Type == EnemyType.Rioter && r.SpawnT <= 0f && r.Pos.DistanceTo(warden.Pos) < warden.Radius + r.Radius)
+                if (r.Type == EnemyType.Rioter && r.SpawnT <= 0f && r.Pos.CloserThan(warden.Pos, warden.Radius + r.Radius))
                     ids.Add(r.Id);
             var w = WardenOf(warden);
             foreach (int id in ids)
