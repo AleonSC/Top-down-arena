@@ -220,6 +220,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `BestiaryData.cs`: Bestiary entry types; `BestiaryData.Entries.cs`: the entries themselves (hand-edited)
 - `TextOverrides.cs`: dev text-editor edits
 - `WeaponDps.Generated.cs`: generated weapon DPS table, don't edit
+- `Docs/Reference.md`: generated weapon, ability, enemy, role and class tables (health, speed, damage, cooldowns, DPS, text) from the definitions; don't edit. `Tools/SimTest/Tests/RefDoc.cs` builds it (`run.sh 1 1 refdocwrite` rewrites it; suite `refdoc` fails when stale)
 - `Game/DodgeSoundBank.cs`: the Dodge's Cloth Swish (`Sfx.DodgeSwish`, raised in `Dodge.cs`, own screen only; `Docs/Mockups/dodge-sounds.html`)
 - `BossSounds.cs`: audio cues for boss attacks
 - `Game/NinjaSoundBank.cs`: the Ninja DPS's sounds (Kunai whoosh `ShotKunai` via the weapon def's `Sound`, `NinjaBlink`, `NinjaStepCast`/`NinjaStepStrike`, `NinjaVanish`, `NinjaFanOpen`/`NinjaFanBurst`, `NinjaLotusCast`, the Great Star's `GreatStarThrow`/`GreatStarCatch` raised in `GreatStar.cs`), raised in `Ninja.cs`; the Shinobi set of `Docs/Mockups/ninja-dps-sounds.html`

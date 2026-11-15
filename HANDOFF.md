@@ -209,6 +209,7 @@ The lobby fits about 8 class cards in a row before they get too small.
   `Assets/Scripts/Core/DesignedWaves.Generated.cs` with the game's own parser (`Gen.cs`; `Stub.cs` stands in for the
   generated file while it builds, so a stale one can't block it). It stops, writing nothing, on any problem. The
   `wavegen` suite fails if the generated file is out of date.
+- **Reference tables:** `Docs/Reference.md` (weapons, abilities, enemies, roles, classes) is generated from the definitions: after a balance or text change run `Tools/SimTest/run.sh 1 1 refdocwrite` and commit it; the `refdoc` suite fails when it is stale.
 - **Compile check:** `Tools/CompileCheck/check.sh` (mono `mcs` + the Unity stubs in `Tools/Preview/Stubs.cs`, shared
   with the previews, RenderCheck and SoundCheck). If the game starts using a Unity member the stubs lack, add it there.
   Missing so far and avoided: `Mathf.Lerp`, `Mathf.Tan`, `Mathf.Approximately` (use `System.Math`).
@@ -325,8 +326,7 @@ feature; `git log --oneline` is usually enough.
 The October 2026 audit and its work plan are done; the full notes (and the November second pass) are in
 [`Docs/History.md`](Docs/History.md) under "Audit findings". Still open:
 
-- **Generate the reference docs** (README tables, Armory/Bestiary data) from the definitions (`WeaponDef`,
-  `AbilityDef`, `EnemyDef`) with a small tool, so a balance change doesn't need three hand edits.
+- **Reference tables are generated** into [`Docs/Reference.md`](Docs/Reference.md) (`run.sh 1 1 refdocwrite`; suite `refdoc` fails when stale). Still open: the README's hand-written weapon/enemy prose could link to or drop numbers that table now holds, and `BestiaryData*.cs` could be generated the same way.
 - **Collision is all-pairs** (player bullets x enemies, enemy bullets x players). Cheap with the bullet budget; a
   uniform grid only matters if counts grow a lot (endless mode, more players).
 - **Rendering** is GL immediate mode with many small circles (8-48 segments). Fine on desktop; if frame time ever
