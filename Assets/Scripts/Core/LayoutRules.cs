@@ -349,6 +349,34 @@ namespace Arena
             return false;
         }
 
+        /// The nearest spot to p that a body of radius r can stand on: out of every wall and pillar that SegBlocked
+        /// checks (twice round, so an inside corner pushes it clear of both walls).
+        static V2 ClearOfWalls(LayoutDef d, V2 p, float r)
+        {
+            r += 0.5f;
+            for (int pass = 0; pass < 2; pass++)
+                foreach (var s in d.Solids)
+                {
+                    if (s.Edge)
+                        continue;
+                    if (s.Round)
+                    {
+                        float dist = p.DistanceTo(s.Pos);
+                        if (dist < s.R + r)
+                            p = s.Pos + (dist > 0.5f ? (p - s.Pos) / dist : new V2(1f, 0f)) * (s.R + r);
+                        continue;
+                    }
+                    float hw = s.HW + r, hh = s.HH + r, dx = p.X - s.Pos.X, dy = p.Y - s.Pos.Y;
+                    if (Math.Abs(dx) >= hw || Math.Abs(dy) >= hh)
+                        continue;
+                    if (hw - Math.Abs(dx) < hh - Math.Abs(dy))
+                        p = new V2(s.Pos.X + (dx < 0f ? -hw : hw), p.Y);
+                    else
+                        p = new V2(p.X, s.Pos.Y + (dy < 0f ? -hh : hh));
+                }
+            return p;
+        }
+
         // Waypoint graph: which corners see each other (for a fat enemy), and the shortest walk between any two.
         sealed class WayGraph
         {
@@ -486,6 +514,11 @@ namespace Arena
             var d = SteerLayout;  // (with any shut gate as a wall, so the route goes round it: Gates.cs)
             if (d == null || d.Waypoints.Length == 0)
                 return dir;
+            // Both ends pulled clear of the walls' padding first: a target standing against a wall (or an enemy sliding
+            // along one) sits inside that padding, and every line to it would read as blocked, sending enemies off
+            // round far corners instead of straight at you.
+            pos = ClearOfWalls(d, pos, r);
+            tpos = ClearOfWalls(d, tpos, r);
             if (!SegBlocked(d, pos, tpos, r))
                 return dir;
             SteerMem m;

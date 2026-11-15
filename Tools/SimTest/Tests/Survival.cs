@@ -131,6 +131,23 @@ static partial class Program
         var layout = g.ActiveLayout;
         Check(layout != null && layout.Solids.Length >= 4 + 4 + 8, "walls round the room and in the middle and corners (" + (layout == null ? 0 : layout.Solids.Length) + " pieces)");
         Check(g.Players.Values.All(pr => pr.Pos.X > 1000f && pr.Pos.X < 2200f && pr.Pos.Y > 500f && pr.Pos.Y < 1300f && !layout.Solids.Any(so => Layouts.Inside(so, pr.Pos, 20f))), "everyone starts near the middle of the room, clear of the walls");
+        {
+            // A player standing against a wall (or tucked in a corner) with nothing in between: enemies come straight at
+            // them, not off round far corners as if the wall stood in the way (SteerDir pulls both ends clear of the walls).
+            var steer = typeof(Game).GetMethod("SteerDir", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            float rr = Defs.Get(EnemyType.Brute).Radius * 0.8f + 3f, wx = g.ArenaMax.X, wy = g.ArenaMax.Y;
+            int bent = 0, tried = 0;
+            var huggers = new[] { new V2(26f, 1100f), new V2(26f, 26f), new V2(wx - 26f, 26f), new V2(26f, wy - 26f), new V2(wx - 26f, wy - 26f), new V2(800f, wy - 26f) };
+            foreach (var at in huggers)
+                foreach (var from in new[] { at + new V2(at.X < wx / 2f ? 300f : -300f, at.Y < wy / 2f ? 60f : -60f), new V2(at.X < wx / 2f ? 120f : wx - 120f, at.Y) })
+                {
+                    V2 straight = (at - from).Normalized();
+                    var way = (V2)steer.Invoke(g, new object[] { 990000 + tried++, from, 1f, rr, at, straight });
+                    if (way.Dot(straight) < 0.99f)
+                        bent++;
+                }
+            Check(bent == 0, "enemies head straight for a player against a wall or in a corner (" + bent + " of " + tried + " sent round)");
+        }
         foreach (var pr in g.Players.Values) pr.InvulnT = 1000f;
         var seen = new System.Collections.Generic.HashSet<int>(g.Enemies.Keys);
         int newSpawns = 0, inView = 0, inWalls = 0;
