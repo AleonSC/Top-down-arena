@@ -192,7 +192,7 @@ namespace Arena
 
         // --- Radar sweep --------------------------------------------------------------------------------------------------
 
-        /// GL, inside the loadout preview's pass (model at the screen, clipped to `view`): a slow beam sweeping round from low
+        /// (Not called any more: the loadout preview has no radar sweep.) GL, inside the loadout preview pass: a slow beam sweeping round from low
         /// in the window, with a fading trail and faint range rings. No blips.
         void DrawPreviewRadar(Rect view)
         {
