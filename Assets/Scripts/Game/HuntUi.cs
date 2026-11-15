@@ -50,13 +50,8 @@ namespace Arena
             var profile = game.Profile;
             var ink = CrtUi.Ink;
             float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;
-            LobbyKit.Spaced(new Rect(x, y, 200f, 20f), "BOSS HUNT", 14, new Color(ink.r, ink.g, ink.b, 0.9f), TextAnchor.MiddleLeft, 3.6f);
-            Ui.Label(new Rect(x + w - 240f, y, 240f, 20f), "10 WAVES TO ONE BOSS", 11, Ui.Muted, TextAnchor.MiddleRight);
-            Ui.Fill(new Rect(x + 140f, y + 10f, w - 400f, 1f), new Color(ink.r, ink.g, ink.b, 0.25f));
-            y += 24f;
-            Ui.Label(new Rect(x, y, w, 18f), host ? "Pick a boss to hunt. Beat a boss in a run to open its hunt."
-                : "The host picks the boss (from the hunts they've opened).", 12, Ui.Muted);
-            y += 28f;
+            y = ModeHeader(r, "BOSS HUNT", "10 WAVES TO ONE BOSS", host ? "Pick a boss to hunt. Beat a boss in a run to open its hunt."
+                : "The host picks the boss (from the hunts they've opened).", Ui.Muted);
             float bodyY = y, bodyH = Mathf.Max(200f, r.yMax - 14f - bodyY);
 
             // Left: the ten bosses as a looping drum, the picked one on top.
@@ -130,24 +125,9 @@ namespace Arena
                 bool top = Mathf.Abs(wv) < 0.5f;
                 bool hover = host && c.Contains(ev.mousePosition) && ev.mousePosition.y > bodyY && ev.mousePosition.y < bodyY + viewH;
                 Ui.Alpha = oldAlpha * a;
-                // A digital key like the lobby's Ready button: soft tint and outline (coral and glowing on top); dashed and dim when not open yet.
-                Color acc = top ? HuntColor : CrtUi.Ink;
-                if (open || top)
-                    CrtKit.SoftBox(c, acc, top, hover, false);
-                else
-                {
-                    var d = CrtUi.Dim;
-                    Ui.Fill(c, new Color(d.r, d.g, d.b, 0.015f));
-                    CrtKit.Dashed(c, 1f, new Color(d.r, d.g, d.b, 0.3f));
-                }
-                Color tc = open || top ? CrtKit.SoftText(acc, hover || top) : new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, 0.6f);
-                Ui.Label(new Rect(c.x + 8f, c.y, 20f, c.height), (i + 1).ToString("00"), 10, new Color(tc.r, tc.g, tc.b, 0.6f), TextAnchor.MiddleLeft);
-                CrtUi.Text(new Rect(c.x + 70f, c.y, c.width - 70f - 78f, c.height), known ? BossName(boss) : "???", 14, tc, TextAnchor.MiddleLeft, true, false);
-                if (!known)  // a boss never beaten: a "?" where its portrait goes, as on the Quick Play tab
-                    CrtUi.Text(new Rect(c.x + 30f, c.y, 36f, c.height), "?", 26, new Color(CrtUi.Dim.r, CrtUi.Dim.g, CrtUi.Dim.b, top ? 0.9f : 0.6f), TextAnchor.MiddleCenter, true, CabCalm);
                 string chip = hunt == null ? "SOON" : !open ? "LOCKED" : profile.HuntWon(boss) > 0 ? "WON x" + profile.HuntWon(boss) : "OPEN";
                 Color cc = hunt == null ? FadedBlue(0.55f) : !open ? HuntColor : profile.HuntWon(boss) > 0 ? Ui.Gold : new Color(0.5f, 0.88f, 0.69f);
-                HuntChip(c.xMax - 8f, c.center.y, chip, cc);
+                ModeRow(c, (i + 1).ToString("00"), BossName(boss), known, open, top, hover, HuntColor, chip, cc);
                 if (hover && !top && Ui.HitArea(c))
                     huntTarget += Mathf.RoundToInt(wv);  // roll this one to the top
             }
@@ -165,24 +145,8 @@ namespace Arena
             float x2 = x + listW + 14f, w2 = w - listW - 14f, y2 = bodyY;
             string name = topKnown ? BossName(topBoss) : "this boss";
             var scope = new Rect(x2, y2, w2, Mathf.Min(220f, bodyH * 0.38f));
-            Ui.Fill(scope, new Color(0.012f, 0.067f, 0.04f, 1f));  // phosphor green screen (the mockup's #03110a)
-            Ui.Fill(new Rect(scope.x + scope.width * 0.15f, scope.y + scope.height * 0.15f, scope.width * 0.7f, scope.height * 0.7f), new Color(0.04f, 0.16f, 0.1f, 0.55f));
-            HuntBox(scope, new Color(0.11f, 0.23f, 0.16f, 1f));
-            Ui.Fill(new Rect(scope.x, scope.center.y, scope.width, 1f), new Color(PhosGreen.r, PhosGreen.g, PhosGreen.b, 0.22f));
-            Ui.Fill(new Rect(scope.center.x, scope.y, 1f, scope.height), new Color(PhosGreen.r, PhosGreen.g, PhosGreen.b, 0.22f));
-            foreach (float rad in new[] { 0.62f, 0.42f })
-            {
-                float rr = scope.height * rad * 0.5f;
-                for (int k = 0; k < 48; k++)
-                {
-                    float a = k * Mathf.PI * 2f / 48f;
-                    Ui.Fill(new Rect(scope.center.x + Mathf.Cos(a) * rr * 1.6f - 1f, scope.center.y + Mathf.Sin(a) * rr - 1f, 2f, 2f), new Color(PhosGreen.r, PhosGreen.g, PhosGreen.b, 0.28f));
-                }
-            }
+            ModeScope(scope, "TARGET LOCK", (ti + 1).ToString("00") + " / 10");
             y2 += scope.height + 12f;
-            var dim = new Color(ink.r, ink.g, ink.b, 0.7f);
-            LobbyKit.Spaced(new Rect(scope.x + 10f, scope.y + 6f, 160f, 16f), "TARGET LOCK", 11, PhosGreen, TextAnchor.MiddleLeft, 2f);
-            LobbyKit.Spaced(new Rect(scope.xMax - 170f, scope.y + 6f, 160f, 16f), (ti + 1).ToString("00") + " / 10", 11, Ui.Gold, TextAnchor.MiddleRight, 2f);
             if (!topKnown)
                 CrtUi.Text(scope, "?", 72, new Color(PhosGreen.r, PhosGreen.g, PhosGreen.b, 0.7f), TextAnchor.MiddleCenter, true, CabCalm);
             Ui.Glitch(new Rect(x2, y2, w2, 28f), !topKnown ? "???" : (topHunt != null ? topHunt.Name : name).ToUpperInvariant(), 20, Color.white, TextAnchor.MiddleLeft);
@@ -200,10 +164,7 @@ namespace Arena
                 {
                     bool bossPip = i == Hunts.Length;
                     var pr = new Rect(px, y2, bossPip ? 34f : 22f, 20f);
-                    var pc = bossPip ? HuntColor : new Color(ink.r, ink.g, ink.b, 1f);
-                    Ui.Fill(pr, new Color(pc.r, pc.g, pc.b, bossPip ? 0.3f : 0.15f));
-                    HuntBox(pr, new Color(pc.r, pc.g, pc.b, 0.7f));
-                    Ui.Label(pr, bossPip ? "BOSS" : i.ToString(), 10, bossPip ? Color.white : Ui.Muted, TextAnchor.MiddleCenter);
+                    ModePip(pr, bossPip ? "BOSS" : i.ToString(), bossPip ? HuntColor : new Color(ink.r, ink.g, ink.b, 1f), bossPip);
                     px += pr.width + 5f;
                 }
                 y2 += 30f;
@@ -218,16 +179,7 @@ namespace Arena
                 y2 += th + 10f;
                 if (can)
                 {
-                    float rx = x2;
-                    foreach (var rule in new[] { "NO PATHS", "NO DATA GATES", "NO SAVING", "MODIFIERS + DIFFICULTY APPLY" })
-                    {
-                        float rw = LobbyKit.SpacedWidth(rule, 10, 1f) + 12f;
-                        if (rx + rw > x2 + w2) { rx = x2; y2 += 22f; }
-                        var rr = new Rect(rx, y2, rw, 18f);
-                        HuntBox(rr, new Color(ink.r, ink.g, ink.b, 0.3f));
-                        LobbyKit.Spaced(rr, rule, 10, dim, TextAnchor.MiddleCenter, 1f);
-                        rx += rw + 6f;
-                    }
+                    y2 = ModeRules(x2, y2, w2, new[] { "NO PATHS", "NO DATA GATES", "NO SAVING", "MODIFIERS + DIFFICULTY APPLY" });
                     // The hunt map (Docs/HuntMap.md): off, the hunt is the ten waves in order.
                     y2 += 30f;
                     bool wasOn = GUI.enabled;
@@ -249,30 +201,15 @@ namespace Arena
                 {
                     if (rowAlpha[i] <= 0.01f || !HuntKnown(bosses[i], Hunts.Available(Hunts.Get(bosses[i]), profile), profile))
                         continue;
-                    var c = rowRects[i];
                     glAlpha = rowAlpha[i];
-                    UiClip(new Rect(c.x + 30f, c.y + 2f, 36f, c.height - 4f));
-                    DrawEnemyPreview(bosses[i] == EnemyType.TwinB ? EnemyType.TwinA : bosses[i], new V2(c.x + 48f, c.center.y), Mathf.Min(34f, c.height - 6f), t, i == ti);
+                    ModeRowModel(rowRects[i], bosses[i], t, i == ti);
                 }
                 glAlpha = oldGl;
-                UiClip(new Rect(scope.x + 2f, scope.y + 22f, scope.width - 4f, scope.height - 44f));
                 if (topKnown)
-                    DrawEnemyPreview(topBoss == EnemyType.TwinB ? EnemyType.TwinA : topBoss, new V2(scope.center.x, scope.center.y), scope.height - 56f, t, true);
+                    ModeScopeModel(scope, topBoss, t);
                 EndUiGl();
             }
-            // CRT finish over the scope (and the model): scan lines, then a vignette toward the edges.
-            for (float sy = scope.y + 1f; sy < scope.yMax - 1f; sy += 3f)
-                Ui.Fill(new Rect(scope.x + 1f, sy, scope.width - 2f, 1f), new Color(0f, 0f, 0f, 0.25f));
-            for (int k = 0; k < 8; k++)
-            {
-                float a = 0.30f * (1f - k / 8f) * (1f - k / 8f);
-                float d = 1f + k * 4f;
-                var vc = new Color(0f, 0f, 0f, a);
-                Ui.Fill(new Rect(scope.x + d, scope.y + d, scope.width - 2f * d, 4f), vc);
-                Ui.Fill(new Rect(scope.x + d, scope.yMax - d - 4f, scope.width - 2f * d, 4f), vc);
-                Ui.Fill(new Rect(scope.x + d, scope.y + d + 4f, 4f, scope.height - 2f * d - 8f), vc);
-                Ui.Fill(new Rect(scope.xMax - d - 4f, scope.y + d + 4f, 4f, scope.height - 2f * d - 8f), vc);
-            }
+            ModeScopeFinish(scope);
         }
     }
 }
