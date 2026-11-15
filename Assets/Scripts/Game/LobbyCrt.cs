@@ -25,6 +25,8 @@ namespace Arena
         const float LobbyGlassR = 34f;           // the glass's corner radius (the mockup's 36 px)
         const float LobbyRimBand = 5f, LobbyRimLine = 1f;  // a 7 px dark navy band, then a 2 px blue line inside it (the mockup's inset shadows)
 
+        int crtStyle;   // see DrawLobbyEnteringCrt; the preview sets it (CRTSTYLE)
+        bool pieceQuiet, pieceFade;  // LobbyPiece: no holo-boot line/flicker; fade in place instead of the holo wipe
         bool crtEntry;  // the lobby is opening from New run: DrawLobbyEnteringCrt instead of DrawLobbyEntering
         static Texture2D lobbyScanTex, lobbyPhosTex, lobbyGlassTex;
         static GUIStyle lobbyGlassStyle;
@@ -365,16 +367,35 @@ namespace Arena
                 }
             }
 
-            DrawLobbyPieces(e - (CrtPiecesAt - 0.45f), true);
-
-            // A scan line sweeps down; it is drawn over the lobby's pieces as they light up.
-            float sw = Seg(e, CrtPiecesAt, CrtPiecesAt + 1.0f);
-            if (sw > 0f && sw < 1f)
+            // How the lobby itself loads in after the log (crtStyle, for choosing): 0 pieces holo-boot with a sweeping scan line,
+            // 1 the whole lobby fades up, 2 one soft top-down wipe (no line, no flicker), 3 pieces fade up in place, a short stagger.
+            float pe = e - CrtPiecesAt;
+            if (crtStyle == 0)
             {
-                float by = Mathf.Lerp(-130f, H + 20f, sw);
-                for (int i = 0; i < 8; i++)
-                    Ui.Fill(new Rect(0f, by + 130f * i / 8f, W, 130f / 8f + 1f), new Color(0.7f, 0.85f, 1f, 0.03f + 0.18f * Mathf.Pow((i + 1f) / 8f, 3f)));
-                Ui.Fill(new Rect(0f, by + 128f, W, 2f), new Color(0.9f, 0.95f, 1f, 0.4f));
+                DrawLobbyPieces(e - (CrtPiecesAt - 0.45f), true);
+                float sw = Seg(e, CrtPiecesAt, CrtPiecesAt + 1.0f);
+                if (sw > 0f && sw < 1f)
+                {
+                    float by = Mathf.Lerp(-130f, H + 20f, sw);
+                    for (int i = 0; i < 8; i++)
+                        Ui.Fill(new Rect(0f, by + 130f * i / 8f, W, 130f / 8f + 1f), new Color(0.7f, 0.85f, 1f, 0.03f + 0.18f * Mathf.Pow((i + 1f) / 8f, 3f)));
+                    Ui.Fill(new Rect(0f, by + 128f, W, 2f), new Color(0.9f, 0.95f, 1f, 0.4f));
+                }
+            }
+            else if (crtStyle == 1 || crtStyle == 2)
+            {
+                uiGlBlocked = true;
+                pieceQuiet = true;
+                pieceFade = crtStyle == 1;
+                LobbyPiece(full, pe, 0f, crtStyle == 1 ? 0.6f : 0.8f, 0f, 0f, true);
+                pieceQuiet = pieceFade = false;
+                uiGlBlocked = false;
+            }
+            else
+            {
+                pieceFade = true;
+                DrawLobbyPieces(pe * 1.8f + 0.45f, true);  // the same order, squeezed into about 0.8 s
+                pieceFade = false;
             }
         }
 

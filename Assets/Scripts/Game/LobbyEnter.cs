@@ -191,7 +191,9 @@ namespace Arena
             float k = Seg(e, a, b);
             if (k <= 0f || Event.current.type != EventType.Repaint)
                 return;
-            bool holo = LobbyFxOn;
+            bool holo = LobbyFxOn && !pieceFade;
+            if (pieceFade)
+                dx = dy = 0f;
             float s = EaseOut(k);
             var shown = clip;
             if (holo)
@@ -219,7 +221,7 @@ namespace Arena
             GUI.EndGroup();
             Ui.Alpha = 1f;
             GUI.color = old;
-            if (holo)
+            if (holo && !pieceQuiet)
                 HoloBoot.Over(clip, e - a, b - a);
         }
 
