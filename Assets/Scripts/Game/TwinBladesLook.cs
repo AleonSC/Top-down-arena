@@ -8,8 +8,8 @@ namespace Arena
     ///   - held at the ready, breathing (DrawTwinIdle, from the player loop);
     ///   - each chain step (FxKind.TwinStep, its Radius = the swordsman's id * 10 + the step), played from its age with a pale
     ///     trail off each cutting blade (DrawTwinStepFx); the Shear's crescent is an ordinary sword wave;
-    ///   - Twin Fang (FxKind.TwinFang): the wind-up and release, empty hands while both sabres spin out on their curves to the
-    ///     cross and back (the same path the host flies them on), then the catch (DrawTwinFangFx).
+    ///   - Twin Fang: the wind-up and release (FxKind.TwinFang, DrawTwinFangFx), then empty hands while both sabres spin as
+    ///     one pinwheel where the host says they are (Player.FangOut, FangAt; smoothed here, DrawFangPair), then the catch.
     /// Five diamonds over the swordsman's head show the chain (DrawTwinPips), and a ring under your own feet fills as Twin Fang
     /// comes back.
     public partial class ArenaApp
@@ -40,19 +40,107 @@ namespace Arena
             return best;
         }
 
-        /// The sabres held at the ready, when neither a step nor a throw is playing.
+        /// The sabres held at the ready, when neither a step nor a throw is playing; empty hands while Twin Fang is out, the catch.
         void DrawTwinIdle(Player p, float t)
         {
             if (p.Weapon.Id != WeaponId.TwinBlades)
                 return;
+            float caught = WatchFang(p);
             Effect fang;
-            if (TwinFxOf(p.Id, out fang) != null || fang != null)
-                return;
-            var m = TwinBladesMotion.Ready;
+            var step = TwinFxOf(p.Id, out fang);
+            bool windUp = fang != null && fang.T < TwinBladesMotion.FangRelease;
+            if (p.FangOut >= 2)
+                DrawFangPair(p);
+            if (windUp || step != null && p.FangOut == 0)
+                return;  // the effect draws the move
+            Rgba arm = p.Def.Color;
             float b = Mathf.Sin(t * 2.6f);
+            if (p.FangOut != 0 || fang != null)
+            {
+                var e = TwinBladesMotion.At(TwinBladesMotion.Fang, TwinBladesMotion.FangOpen);  // empty hands, reaching a little after the pair
+                e.Rr += 0.6f * b; e.Lr += 0.6f * b;
+                DrawTwinPose(p.Disp, p.Aim, e, arm, false, false, 1f);
+                DrawTwinPips(p, t);
+                return;
+            }
+            if (caught < TwinBladesMotion.FangTotal - TwinBladesMotion.FangCatch + TwinBladesMotion.Recover)
+            {
+                DrawTwinPose(p.Disp, p.Aim, TwinBladesMotion.At(TwinBladesMotion.Fang, TwinBladesMotion.FangCatch + caught), arm, true, true, 1f);
+                DrawTwinPips(p, t);
+                return;
+            }
+            var m = TwinBladesMotion.Ready;
             m.Rr += 0.5f * b; m.Lr += 0.5f * b; m.Rb += 0.02f * b; m.Lb -= 0.02f * b;
-            DrawTwinPose(p.Disp, p.Aim, m, p.Def.Color, true, true, 1f);
+            DrawTwinPose(p.Disp, p.Aim, m, arm, true, true, 1f);
             DrawTwinPips(p, t);
+        }
+
+        class FangView { public byte Was; public V2 Shown; public float Caught = 99f, Spin; public readonly V2[] Trail = new V2[10]; public int TrailN; }
+        readonly System.Collections.Generic.Dictionary<int, FangView> fangViews = new System.Collections.Generic.Dictionary<int, FangView>();
+
+        /// Follows a player's thrown pair from the snapshots (smoothed, its spin and trail kept here); returns seconds since the catch.
+        float WatchFang(Player p)
+        {
+            FangView v;
+            if (!fangViews.TryGetValue(p.Id, out v))
+                fangViews[p.Id] = v = new FangView { Shown = p.FangAt };
+            float dt = Time.deltaTime;
+            if (p.FangOut >= 2)
+            {
+                if (v.Was < 2)
+                {
+                    v.Shown = p.Disp;  // out of the hand
+                    v.TrailN = 0;
+                }
+                v.Shown = dt > 0f ? v.Shown + (p.FangAt - v.Shown) * (1f - Mathf.Exp(-dt * 20f)) : p.FangAt;
+                v.Spin -= dt * Game.FangSpinRate;
+                for (int i = Mathf.Min(v.TrailN, v.Trail.Length - 1); i > 0; i--)
+                    v.Trail[i] = v.Trail[i - 1];
+                v.Trail[0] = v.Shown;
+                v.TrailN = Mathf.Min(v.TrailN + 1, v.Trail.Length);
+            }
+            else if (v.Was != 0)
+                v.Caught = 0f;  // just caught
+            else
+                v.Caught += dt;
+            v.Was = p.FangOut;
+            return v.Caught;
+        }
+
+        /// The thrown pair: two sabres pommel to pommel, spun as one pinwheel, a blur of their sweep, a streak behind, shadows.
+        void DrawFangPair(Player p)
+        {
+            FangView v;
+            if (!fangViews.TryGetValue(p.Id, out v))
+                return;
+            V2 c = v.Shown;
+            float spin = v.Spin != 0f ? v.Spin : -Time.time * Game.FangSpinRate, reach = 8f + TwinBladesMotion.BladeLen;
+            for (int i = 1; i < v.TrailN; i++)  // the streak behind it
+            {
+                float k = 1f - (float)i / v.TrailN;
+                Line(v.Trail[i - 1], v.Trail[i], 16f * k, TwinTrail.WithAlpha(0.22f * k));
+            }
+            for (int h = 0; h < 2; h++)
+            {
+                float a = spin + h * MathX.Pi;
+                DrawSabre(c + V2.FromAngle(a) * 8f + new V2(3f, 5f), a, 1f, true);  // shadows on the floor
+                const int N = 10;
+                for (int i = 0; i < N; i++)  // the blur of its sweep: a fading wedge behind the blade (it spins backwards)
+                {
+                    float a0 = a + 1.5f * i / N, a1 = a + 1.5f * (i + 1) / N, k0 = 1f - (float)i / N, k1 = 1f - (i + 1f) / N;
+                    V2 p0 = c + V2.FromAngle(a0) * reach, p1 = c + V2.FromAngle(a1) * reach;
+                    VTri(c, TwinTrail.WithAlpha(0f), p0, TwinTrail.WithAlpha(0.55f * k0), p1, TwinTrail.WithAlpha(0.55f * k1));
+                    Line(p0, p1, 2.6f * k0 + 0.4f, new Rgba(0.93f, 0.97f, 1f, 0.9f * k0));
+                }
+            }
+            for (int h = 0; h < 2; h++)
+            {
+                float a = spin + h * MathX.Pi;
+                DrawSabre(c + V2.FromAngle(a + 0.3f) * 8f, a + 0.3f, 0.3f, false);  // a ghost just behind
+                DrawSabre(c + V2.FromAngle(a) * 8f, a, 1f, false);
+            }
+            Circle(c, 4.5f, SabreGold, 10);
+            Circle(c, 2.2f, new Rgba(1f, 0.95f, 0.8f), 8);
         }
 
         /// One chain step, from its effect's age.
@@ -116,7 +204,7 @@ namespace Arena
             return aim;
         }
 
-        /// Twin Fang: the throw's pose, and both sabres in flight.
+        /// Twin Fang's wind-up and release (the pair in flight is drawn from the player loop, DrawTwinIdle).
         void DrawTwinFangFx(Effect fx)
         {
             int id = Mathf.RoundToInt(fx.Radius);
@@ -129,43 +217,11 @@ namespace Arena
                 if (fang != fx)
                     return;
             }
-            var s = TwinBladesMotion.Fang;
-            V2 o = owner != null ? owner.Disp : fx.Pos;
-            float aim = (fx.Pos2 - fx.Pos).Angle, c = fx.T;
-            float q = (c - TwinBladesMotion.FangRelease) / TwinBladesMotion.FangFlight;
-            bool flying = q >= 0f && q < 1f;
-            DrawTwinPose(o, aim, TwinBladesMotion.At(s, c), owner != null ? owner.Def.Color : new Rgba(0.29f, 0.66f, 0.61f), !flying, !flying, 1f);
-            if (!flying)
+            if (fx.T >= TwinBladesMotion.FangRelease)
                 return;
-            for (int h = 0; h < 2; h++)
-            {
-                int side = h == 0 ? 1 : -1;
-                V2 prev = default(V2);
-                for (int i = 0; i <= 6; i++)  // the streak behind it
-                {
-                    float qi = q - i * 0.025f;
-                    if (qi < 0f)
-                        break;
-                    V2 at = TwinBladesMotion.FangPos(fx.Pos, fx.Pos2, o, qi, side);
-                    if (i > 0)
-                        Line(prev, at, 9f * (1f - i / 7f), TwinTrail.WithAlpha(0.4f * (1f - i / 7f)));
-                    prev = at;
-                }
-                V2 pos = TwinBladesMotion.FangPos(fx.Pos, fx.Pos2, o, q, side);
-                float spin = c * 28f * side;
-                V2 dir = V2.FromAngle(spin);
-                DrawSabre(pos - dir * (5f + TwinBladesMotion.BladeLen * 0.5f), spin, 1f, false);
-            }
-            if (q >= 0.5f && q < 0.62f)  // the burst where they cross
-            {
-                float k = (q - 0.5f) / 0.12f;
-                Arc(fx.Pos2, 18f + 50f * k, 3f * (1f - k) + 1f, TwinTrail.WithAlpha(0.7f * (1f - k)), 28);
-                for (int g = 0; g < 2; g++)
-                {
-                    V2 d = V2.FromAngle(aim + (g == 0 ? 0.78f : -0.78f)) * (26f + 40f * k);
-                    Line(fx.Pos2 - d, fx.Pos2 + d, 2f, new Rgba(1f, 1f, 1f, 1f - k));
-                }
-            }
+            V2 o = owner != null ? owner.Disp : fx.Pos;
+            float aim = (fx.Pos2 - fx.Pos).Angle;
+            DrawTwinPose(o, aim, TwinBladesMotion.At(TwinBladesMotion.Fang, fx.T), owner != null ? owner.Def.Color : new Rgba(0.29f, 0.66f, 0.61f), true, true, 1f);
         }
 
         // --- pieces ---------------------------------------------------------------------------------------------

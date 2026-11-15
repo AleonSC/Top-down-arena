@@ -122,7 +122,7 @@ namespace Arena
         public float StaffHealBonus; public int StaffExtraStacks;          // Quarterstaff: Pilgrim's Staff
         public float LightGainMult = 1f, SunlanceHealMult = 1f;            // Lightbringer: Daybreak
         public float IncenseSizeMult = 1f, IncenseBonusTime;               // Censer: Thick Incense
-        public float FangReachMult = 1f, FangDmgMult = 1f;                 // Twin Blades: Whirling Sabres
+        public float FangTimeMult = 1f, FangDmgMult = 1f;                  // Twin Blades: Whirling Sabres
         public float GreatRendMult = 1f, TemperGainMult = 1f;              // Greatsword: Tempered Blade
         public int SkewerBonus; public float TempoHoldBonus;               // Rapier: Duelist's Edge
         public float KnuckleDashMult = 1f, KnuckleStunBonus;               // Arc Knuckles: Live Wire

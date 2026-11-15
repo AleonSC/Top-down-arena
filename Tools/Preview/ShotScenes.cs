@@ -144,6 +144,7 @@ static partial class Shot {
       g.Loots[99] = new Loot { Id = 99, Owner = 1, Upgrade = item, Pos = new V2(820f, 690f), Age = 2.95f };
       g.Bot = false; me.Pos = me.Disp = new V2(822f, 695f); me.Aim = -1.2f;
       for (int i = 0; i < 6; i++) g.Bullets.Remove(i);
+      if (Environment.GetEnvironmentVariable("PROPSBREAK") != null) { g.Enemies.Clear(); g.State = MatchState.Intermission; g.StateTimer = 20f; me.Offer = null; }  // PROPSBREAK=1: between waves (the card shows then too)
     }
     if (Environment.GetEnvironmentVariable("WARDENLOOT") != null) {
       // The Warden's legendaries: two Warden's Guards at your side and the Stun Gun out with 4 of its 6 shots left.
@@ -1048,10 +1049,14 @@ static partial class Shot {
           }
           break;
         }
-        case WeaponId.TwinBlades:  // TWINSTEP=1..5 a step of the Crescent Waltz (default 1), TWINSTEP=fang Twin Fang (SWING = seconds after the click)
+        case WeaponId.TwinBlades:  // TWINSTEP=1..5 a step of the Crescent Waltz (default 1), TWINSTEP=fang Twin Fang's wind-up (SWING = seconds after the click; past the release the pair spins 180 px out along the aim)
         {
           string tsn = Environment.GetEnvironmentVariable("TWINSTEP") ?? "1";
-          if (tsn == "fang") gm.Effects.Add(new Effect { Kind = FxKind.TwinFang, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * Game.FangReach, Color = Game.TwinMoon, Radius = me.Id, T = st, Dur = TwinBladesMotion.FangTotal });
+          if (tsn == "fang")
+          {
+            gm.Effects.Add(new Effect { Kind = FxKind.TwinFang, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * 180f, Color = Game.TwinMoon, Radius = me.Id, T = st, Dur = TwinBladesMotion.FangRelease + 0.3f });
+            if (st >= TwinBladesMotion.FangRelease) { me.FangOut = 2; me.FangAt = me.Pos + V2.FromAngle(me.Aim) * 180f; }
+          }
           else { int tsi = int.Parse(tsn); me.Combo = (1 << 3) | tsi; gm.Effects.Add(new Effect { Kind = FxKind.TwinStep, Pos = me.Pos, Pos2 = to, Color = Game.TwinMoon, Radius = me.Id * 10 + tsi, T = st, Dur = TwinBladesMotion.Steps[tsi - 1].Dur + TwinBladesMotion.Recover }); }
           break;
         }
