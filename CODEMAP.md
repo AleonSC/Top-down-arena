@@ -217,7 +217,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Variants.cs`: weapon variants (`Docs/Variants.md`): `Tiers` (2) and `Cost(owned)` in Cores, `RunCores`/`HuntCores` payouts; Cores and bought tiers live on `Profile`, the lobby's Variants window is `LobbyUi.DrawAscensionWindow`
 - `Rank.cs`: the cosmetic account rank: XP curve, tiers, XP for a run (`Rank.Award`), the cosmetics table (frames, trails, a background); XP, equipped cosmetics and recent runs live on `Profile`, the lobby carries each player's `Rank`/`Frame`/`Trail` (`Msg.Cosmetics`, `Session.ShareCosmetics`)
 - `RunStats.cs`: per-player run stats for the end screen
-- `BestiaryData.cs`: Bestiary entry types; `BestiaryData.Entries.cs`: the entries themselves (hand-edited)
+- `BestiaryData.cs`, `BestiaryData.Entries.cs`: retired (the owner doesn't want them updated or referenced); only the sim test and `Juice.cs` still read them
 - `TextOverrides.cs`: dev text-editor edits
 - `WeaponDps.Generated.cs`: generated weapon DPS table, don't edit
 - `Docs/Reference.md`: generated weapon, ability, enemy, role and class tables (health, speed, damage, cooldowns, DPS, text) from the definitions; don't edit. `Tools/SimTest/Tests/RefDoc.cs` builds it (`run.sh 1 1 refdocwrite` rewrites it; suite `refdoc` fails when stale)
@@ -406,7 +406,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 | Add or change an ability | the class's file; registry in `Upgrades.cs` (`AbilityDef`); `Abilities.cs` for Soldier; feedback in `AbilityLooks.cs` |
 | Add a new class | `HANDOFF.md` "Adding a class", `Defs.cs` (`Kit` enum, at the end), `Classes.cs`, `ClassLooks.cs`, `Docs/ClassTemplate` |
 | Tune damage, health, wave numbers | `Balance.cs` (index of where every system's numbers live), `Difficulty.cs`, `Docs/UpgradeBalance.md` |
-| Add or change an enemy | `Defs.cs` (`EnemyType`, def), `EnemyAI.cs` or `Variety.cs`, look in `WorldEnemies.cs`/`VarietyLook.cs`, Bestiary entry in `BestiaryData.Entries.cs` |
+| Add or change an enemy | `Defs.cs` (`EnemyType`, def), `EnemyAI.cs` or `Variety.cs`, look in `WorldEnemies.cs`/`VarietyLook.cs` |
 | Add an enemy variant (spawns in place of a regular one) | `EnemyVariants.cs` (`EnemyVariant`, `VariantTable`), the look reads `e.Variant` |
 | Edit a boss fight | the boss's Core file plus its `*Look.cs`; bars in `HudBossBars.cs`; snapshot sync in the boss file |
 | Upgrade cards and picker | `Upgrades.cs` (cards; class cards in each class file, `Game.<Class>Cards`), `Game.cs` (`HostPick`, `NextOffer`), `HudPicker.cs`, `CardArt.cs`, `PickIntro.cs`; class/weapon pools planned in Docs/UpgradePools.md |

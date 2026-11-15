@@ -326,7 +326,7 @@ feature; `git log --oneline` is usually enough.
 The October 2026 audit and its work plan are done; the full notes (and the November second pass) are in
 [`Docs/History.md`](Docs/History.md) under "Audit findings". Still open:
 
-- **Reference tables are generated** into [`Docs/Reference.md`](Docs/Reference.md) (`run.sh 1 1 refdocwrite`; suite `refdoc` fails when stale). Still open: the README's hand-written weapon/enemy prose could link to or drop numbers that table now holds, and `BestiaryData*.cs` could be generated the same way.
+- **Reference tables are generated** into [`Docs/Reference.md`](Docs/Reference.md) (`run.sh 1 1 refdocwrite`; suite `refdoc` fails when stale). Still open: the README's hand-written weapon/enemy prose could link to or drop numbers that table now holds.
 - **Collision is all-pairs** (player bullets x enemies, enemy bullets x players). Cheap with the bullet budget; a
   uniform grid only matters if counts grow a lot (endless mode, more players).
 - **Rendering** is GL immediate mode with many small circles (8-48 segments). Fine on desktop; if frame time ever
