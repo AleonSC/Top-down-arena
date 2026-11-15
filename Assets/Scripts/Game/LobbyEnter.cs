@@ -17,6 +17,7 @@ namespace Arena
     public partial class ArenaApp
     {
         const float EnterLen = 1.6f, LeaveLen = 1f, LeaveFrom = 1.15f;  // leaving runs the entrance from 1.15 s back to 0
+        const float EnterMaxStep = 1f / 30f;  // the entrance clock's longest step: a hitch (the first launch's host start and first draws) pauses it instead of jumping ahead
         bool pieceGlOn;                           // a lobby piece is drawing its models (BeginUiGl)
         Rect pieceGlClip;
         float enterT = -1f;                       // seconds since the lobby opened from the menu; below 0 when not entering
@@ -61,7 +62,7 @@ namespace Arena
             if (enterT < 0f)
                 return;
             float enterPrev = enterT;
-            enterT += dt;
+            enterT += Mathf.Min(dt, EnterMaxStep);
             SkipCrtEntry();  // LobbyCrt.cs
             if (crtEntry)
                 PlayCrtEntryCues(enterPrev, enterT);  // the boot's sounds (LobbyCrt.cs)
