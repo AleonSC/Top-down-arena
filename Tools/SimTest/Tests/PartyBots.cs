@@ -146,4 +146,42 @@ static partial class Program
         Console.WriteLine("  bot in the lee for {0} of {1} frames", sheltered, total);
         Check(sheltered > total * 0.7, "a bot ally shelters behind a planted Last Stand");
     }
+
+    // A Campaign with a lobby bot is still the Campaign: the Expanding arena, a building round after each wave, lives.
+    // It stays unsaved and out of the records. (Before, the bots' Unrecorded mark made it the plain arena with no building.)
+    static void PartyBotCampaignTest(float dt)
+    {
+        bool longWas = Game.LongRunDefault;
+        Game.LongRunDefault = true;
+        var host = HostAs(new Session(), nextPort++, false, "Host", Role.Tank);
+        var pb = new PartyBots();
+        pb.Add(host);
+        Action<float, Func<bool>> run = (secs, stop) =>
+        {
+            for (int i = 0; i < secs * 60; i++)
+            {
+                Step(host, dt);
+                pb.Step(host, dt);
+                pb.Update(dt);
+                if (i % 2 == 0) Thread.Sleep(1);
+                if (stop != null && stop()) break;
+            }
+        };
+        run(3f, () => host.Lobby.Count == 2 && host.Lobby[2].Ready);
+        host.RequestReady(true);
+        host.StartMatch();
+        run(8f, () => host.Game.State == MatchState.Fighting && host.Game.Players.Count == 2);
+        var g = host.Game;
+        var bg = pb.Bots[0].S.Game;
+        Console.WriteLine("  campaign {0}, expanding host/bot {1}/{2}, lives {3}, unrecorded {4}", g.LongLegs, g.ExpandingOn, bg.ExpandingOn, g.LivesMax, g.Unrecorded);
+        Check(g.LongLegs && g.ExpandingOn && bg.ExpandingOn, "a Campaign with a lobby bot is played on the Expanding arena, on the bot's game too");
+        Check(g.Unrecorded && g.LivesMax == bg.LivesMax, "it stays unrecorded, and the lives are the same as a run without bots");
+        foreach (var p in g.Players.Values) g.DevSetGod(p.Id, true);
+        run(90f, () => { foreach (var e in g.Enemies.Values) e.Hp = 0f; foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } return g.ExpandOpen && bg.ExpandOpen; });
+        Console.WriteLine("  wave {0} state {1}, build round open host/bot {2}/{3}", g.Wave, g.State, g.ExpandOpen, bg.ExpandOpen);
+        Check(g.ExpandOpen && bg.ExpandOpen, "a cleared wave opens the building round with a bot in the party");
+        host.Leave("");
+        run(0.2f, null);
+        Game.LongRunDefault = longWas;
+    }
 }

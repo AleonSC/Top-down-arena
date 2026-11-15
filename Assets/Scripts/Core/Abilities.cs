@@ -363,24 +363,10 @@ namespace Arena
                     ThrowScythe(p, target, pw, cap);  // ReaperLoot.cs
                     break;
                 case AbilityId.Nova:
-                    int novaShots = cap ? 48 : 24;
-                    for (int i = 0; i < novaShots; i++)
-                    {
-                        V2 dir = V2.FromAngle(p.Aim + MathX.Tau * i / novaShots);
-                        SpawnBullet(Defs.NovaShot, p.Pos + dir * p.Def.BodyR, dir * 480f, 0f, 1.2f, 22f * s.DmgMult, p.Id);
-                    }
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.95f, 0.8f, 1f), 50f, 0.3f, Sfx.Ability);
+                    CastNova(p, s, cap);  // SentryNova.cs
                     break;
                 case AbilityId.Turret:
-                    if (cap)
-                    {
-                        V2 side = V2.FromAngle(p.Aim).Orthogonal() * 30f;
-                        SpawnMinion(MinionKind.Turret, p, p.Pos + side, TurretTime);
-                        SpawnMinion(MinionKind.Turret, p, p.Pos - side, TurretTime);
-                    }
-                    else
-                        SpawnMinion(MinionKind.Turret, p, p.Pos, TurretTime);
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.6f, 0.95f, 1f), 40f, 0.35f, Sfx.Ability);
+                    CastTurret(p, cap);  // SentryNova.cs
                     break;
                 default:
                     KitAbility(p, p.Slots[slot].Id, target);  // mage and summoner abilities (Minions.cs), then each class's KitDef.Ability, then ultimates

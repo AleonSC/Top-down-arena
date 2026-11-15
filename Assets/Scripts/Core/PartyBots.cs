@@ -61,6 +61,7 @@ namespace Arena
             var bot = new PartyBot { S = new Session(), Skill = NewSkill, Name = "Bot " + n };
             var g = bot.S.Game;
             g.Unrecorded = true;
+            g.BotParty = true;
             g.Bot = true;
             g.BotLevel = bot.Skill;
             g.BotRerolls = false;
@@ -117,6 +118,7 @@ namespace Arena
                 if (marked && host != null && !host.Game.Running)
                 {
                     host.Game.Unrecorded = false;  // the last bot left: the run counts again
+                    host.Game.BotParty = false;
                     marked = false;
                 }
                 return;
@@ -159,6 +161,7 @@ namespace Arena
             if (!host.Game.Running)
             {
                 host.Game.Unrecorded = true;  // (a run in progress keeps what it started with)
+                host.Game.BotParty = true;
                 marked = true;
             }
         }

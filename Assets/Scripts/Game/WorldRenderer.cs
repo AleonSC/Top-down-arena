@@ -509,6 +509,8 @@ namespace Arena
         void DrawBigShotLook(Bullet b, float t)
         {
             DrawShotMods(b, t);
+            if (DrawAbilityShot(b, t))
+                return;  // Nova's comets, the turret's tracers (SentryNovaLook.cs)
             if (DrawWeaponShot(b, t))
                 return;  // its weapon's new look (ShotLooks.cs)
             if (b.Kind == Defs.GrenadeShot)  // spinning grenade with a blinking fuse

@@ -177,6 +177,7 @@ namespace Arena
                 V2 at = ToUi(mate.Disp) + new V2(0f, -54f - 26f * k);
                 FloatText(at, "+" + b.N, 18, 1f - k * k);
             }
+            DrawVectorsFull(me);
             float a = vecGainAge;
             if (a >= VecGainLife)
                 return;
@@ -217,6 +218,40 @@ namespace Arena
             var r = new Rect(at.X - 150f, at.Y - 16f, 300f, 32f);
             Ui.Label(new Rect(r.x + 1.5f, r.y + 2f, r.width, r.height), text, size, new Color(0f, 0.05f, 0.1f, 0.85f * alpha), TextAnchor.MiddleCenter, true);
             Ui.Label(r, text, size, new Color(0.45f, 0.95f, 1f, alpha), TextAnchor.MiddleCenter, true);
+        }
+
+        /// Your stock is full and a vector pickup or an untaken Stash is near you (it waits for you to spend some).
+        bool vecFullNear;
+
+        /// DrawVectorGainHud: with a full stock, "FULL" over each vector pickup near you (they wait), and vecFullNear for the chip.
+        void DrawVectorsFull(Player me)
+        {
+            vecFullNear = false;
+            if (me.Vectors < me.VectorCap || me.Downed)
+                return;
+            float pulse = 0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 5f);
+            foreach (var c in game.Coins.Values)
+            {
+                if (!c.Vec || !me.Disp.CloserThan(c.Disp, VecFullReach))
+                    continue;
+                vecFullNear = true;
+                V2 at = ToUi(c.Disp) + new V2(0f, -c.Radius * 1.1f * WorldToUi - 16f);
+                FullTag(at, pulse);
+            }
+            byte stash = (byte)(1 + (int)SurpriseShape.Stash);
+            foreach (var r in game.Expanded)
+                if (r.Surprise == stash && !r.Claimed && me.Pos.X >= r.X - 40f && me.Pos.X <= r.X1 + 40f && me.Pos.Y >= r.Y - 40f && me.Pos.Y <= r.Y1 + 40f)
+                    vecFullNear = true;
+        }
+
+        const float VecFullReach = 160f;
+        static readonly Color VecFullInk = new Color(1f, 0.72f, 0.3f);
+
+        void FullTag(V2 at, float alpha)
+        {
+            var r = new Rect(at.X - 24f, at.Y - 9f, 48f, 18f);
+            Ui.Pill(r, new Color(0f, 0f, 0f, 0.6f * alpha));
+            Ui.Label(r, "FULL", 11, new Color(VecFullInk.r, VecFullInk.g, VecFullInk.b, alpha), TextAnchor.MiddleCenter, true);
         }
 
         /// DrawVectorChip: how lit the chip is (1 as the shards land, easing off), and the count it shows (counting up to your stock).

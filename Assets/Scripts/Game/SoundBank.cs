@@ -259,6 +259,7 @@ namespace Arena
             BuildTreant();  // TreantSoundBank.cs
             BuildDodge();  // DodgeSoundBank.cs
             BuildTankAlt();  // TankAltSoundBank.cs
+            BuildSentryNova();  // SentryNovaSoundBank.cs
         }
 
         void Build()

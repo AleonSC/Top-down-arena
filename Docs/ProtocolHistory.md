@@ -4,7 +4,8 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-351: the player snapshot carries Twin Fang's thrown pair (`Player.FangOut` byte, `FangAt` vector, after `TwinLock`); `FxKind.TwinFang` is only the wind-up now
+- 352: `FxKind.Sentry` and `FxKind.Nova` (the Turret's drop and power-down, Nova's starburst) appended
+- 351: the player snapshot carries Twin Fang's thrown pair (`Player.FangOut` byte, `FangAt` vector, after `TwinLock`); `FxKind.TwinFang` is only the wind-up now
 - 350: `Msg.Input` and the player snapshot carry `Player.Sprint` (the Dodge's held sprint, a byte), so everyone sees each other's sprint wake
 - 349: `Msg.WallPush` (client -> host: area, side, start, width), pushed wall sections (`ExpansionRoom.Leg` 15) in the room list (Docs/WallPush.md step 1)
 - 348: the Shuriken's Great Star stance: `Msg.StarThrow` (client -> host: count + route points; host -> all: bullet id, owner, count, points), `Player.StarStance` in the player snapshot (before `FumaStance`), bullet kind `Defs.GreatStar` = 67, `Sfx.GreatStarThrow`/`GreatStarCatch` at the end

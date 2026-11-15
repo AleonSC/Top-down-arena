@@ -1386,12 +1386,19 @@ namespace Arena
             var me = game.Me;
             if (!game.ExpandingOn || me == null)
                 return false;
-            string text = "VECTORS  " + VectorChipCount(me) + " / " + me.VectorCap + PushChipNote;  // (pushing a wall: what the next push spends; counting up as vectors come in, VectorGainLook.cs)
+            bool full = me.Vectors >= me.VectorCap;
+            string text = "VECTORS  " + VectorChipCount(me) + " / " + me.VectorCap + (full ? "  FULL" : "") + PushChipNote;  // (pushing a wall: what the next push spends; counting up as vectors come in, VectorGainLook.cs)
             float w = 30f + text.Length * 6.4f;
             var chip = new Rect(x, y, w, 20f);
             vecChipRect = chip;
             float lit = VectorChipFlash;
             var ink = Color.Lerp(new Color(0.37f, 0.94f, 1f), Color.white, 0.6f * lit);
+            if (full && vecFullNear)  // a pickup or Stash waiting by you: the chip pulses amber (VectorGainLook.cs)
+            {
+                float fp = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 5f);
+                ink = Color.Lerp(ink, VecFullInk, 0.7f + 0.3f * fp);
+                Ui.Glow(chip, VecFullInk, 0.4f + 0.4f * fp);
+            }
             Ui.Glow(chip, new Color(0.3f, 0.88f, 1f), 0.9f * lit);
             Ui.Pill(chip, Color.Lerp(new Color(0f, 0f, 0f, 0.55f), new Color(0.05f, 0.3f, 0.4f, 0.9f), lit));
             Ui.Fill(new Rect(chip.x + 3f, chip.y + 4f, 3f, chip.height - 8f), ink);
