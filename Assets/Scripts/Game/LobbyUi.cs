@@ -304,11 +304,11 @@ namespace Arena
                 if (top && !calm)
                     Ui.Glow(kr, ModeAccent(i) ?? CrtUi.Ink, 0.35f * (1f - ad * 2f));
                 bool click = LobbyKit.Key(kr, ModeTitle(i), top, calm, size: ad < 0.5f ? 15 : 12, minSize: 9, enabled: host && ad < 1.2f,
-                    accent: ModeAccent(i), sub: ad < 0.35f ? ModeSub(i) : null);
+                    accent: ModeAccent(i));
                 Ui.Alpha = oldAlpha;
                 if (click && i != mode)
                     turnTo = modeTurn + (d > 0f ? 1 : -1);
-                if (ad < 1.2f && kr.Contains(ev.mousePosition))  // the description is a hover tip
+                if (ad < 0.5f && kr.Contains(ev.mousePosition))  // the description is a hover tip, on the middle mode only
                 {
                     TipStart(kr, ModeTitle(i), CrtUi.Ink);
                     TipAdd(ModeSub(i), 13, Ui.Text);
@@ -1632,7 +1632,7 @@ namespace Arena
 
         /// Ready and Start, the two big keys at the bottom of the party column (a guest's Ready takes the Start slot). Ready is lit
         /// once you are ready; Start is dim and dashed until everyone is.
-        /// Difficulty and Modifiers over Ready: two slim rows, each naming what's set ("DIFFICULTY · NORMAL",
+        /// Difficulty and Modifiers over Ready: two small keys side by side, each naming what's set ("DIFFICULTY · NORMAL",
         /// "MODIFIERS · 2 ON"), lit while its tab is open; a click opens the tab (a second click goes back to the loadout).
         const float SetupKeyRestAlpha = 0.45f;
 
@@ -1642,15 +1642,16 @@ namespace Arena
             string[] text = { "DIFFICULTY  ·  " + session.Diff.Name.ToUpperInvariant(), "MODIFIERS  ·  " + (mods > 0 ? mods + " ON" : "NONE") };
             int[] tab = { 3, 2 };
             string[] icon = { "ui_skull", "ui_card" };
+            float kw = Mathf.Floor((lw - LobbySetupGap) / 2f);
             for (int i = 0; i < 2; i++)
             {
-                var r = new Rect(lx, LobbySetupY + i * (LobbySetupH + LobbySetupGap), lw, LobbySetupH);
+                var r = new Rect(i == 0 ? lx : lx + lw - kw, LobbySetupY, kw, LobbySetupH);
                 LobbyGlowBox(r);
                 bool on = lobbyTab == tab[i];
                 float oldAlpha = Ui.Alpha;
                 if (!on && !(GUI.enabled && r.Contains(Event.current.mousePosition)))
                     Ui.Alpha = oldAlpha * SetupKeyRestAlpha;  // faded at rest (less clutter by Ready): full under the mouse or while open
-                bool click = LobbyKit.Key(r, text[i], on, calm, PixelArt.Get(icon[i]), size: 14, minSize: 11);
+                bool click = LobbyKit.Key(r, text[i], on, calm, PixelArt.Get(icon[i]), size: 12, minSize: 9);
                 Ui.Alpha = oldAlpha;
                 if (click)
                 {
