@@ -241,6 +241,7 @@ namespace Arena
                 else
                     DrawCoin(c, t);  // CoinLook.cs
             }
+            DrawVectorBursts(t);  // a Stash's cache or a vector pickup flying into whoever took it (VectorGainLook.cs)
             DrawGadgets(t);  // the Magnet on the floor or thrown (GadgetLook.cs)
             DrawReaperTether(t);
             DrawSingularityHazards(t);
