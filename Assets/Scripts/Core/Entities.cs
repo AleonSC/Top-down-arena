@@ -513,6 +513,7 @@ namespace Arena
         public float BoneDartT, CageT, CageImmuneT;  // host: until the darts fall out; caged (can't move or shoot); until darts count again
         public bool Caged;                  // replicated, for drawing (and the Skeleton Guards' aim)
         public float DazeT, DazeImmuneT;    // host: dazed by a close-in hit (no attacking), and until it can be dazed again (Daze.cs)
+        public float StunT;                 // host: stunned (Daze.cs Stun): held like FrozenT, but shown as stars over its head, not ice
         public bool Dazed;                  // replicated, for the stars over its head
         public int LastHitBy;
         public bool Penned;                 // replicated: held in by an ink loop (Chalk.cs), for drawing
