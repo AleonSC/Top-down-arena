@@ -96,7 +96,7 @@ namespace Arena
                 return;
             foreach (var e in Enemies.Values)
             {
-                if (!Targetable(e) || e.Pos.DistanceTo(m.Pos) > e.Radius + ScytheBlade)
+                if (!Targetable(e) || e.Pos.FartherThan(m.Pos, e.Radius + ScytheBlade))
                     continue;
                 long key = ((long)m.Id << 32) | (uint)e.Id;
                 float last;
@@ -115,7 +115,7 @@ namespace Arena
             scytheCut.Clear();
             foreach (var b in Bullets.Values)
                 if (Defs.IsEnemyShot(b.Kind) && !Defs.Unblockable(b.Kind) && (b.Kind == Defs.SmallShot || b.Kind == Defs.FastShot)
-                    && b.Pos.DistanceTo(at) < reach + b.Radius)
+                    && b.Pos.CloserThan(at, reach + b.Radius))
                     scytheCut.Add(b.Id);
             foreach (int id in scytheCut)
             {
@@ -230,7 +230,7 @@ namespace Arena
             if (!throwHits.TryGetValue(m.Id, out cut))
                 throwHits[m.Id] = cut = new HashSet<int>();
             foreach (var e in Enemies.Values)
-                if (Targetable(e) && !cut.Contains(e.Id) && e.Pos.DistanceTo(m.Pos) < e.Radius + ThrowReach)
+                if (Targetable(e) && !cut.Contains(e.Id) && e.Pos.CloserThan(m.Pos, e.Radius + ThrowReach))
                 {
                     cut.Add(e.Id);
                     HurtEnemy(e, m.Def.Damage * owner.Stats.DmgMult * m.Power, owner.Id);

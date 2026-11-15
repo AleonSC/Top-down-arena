@@ -390,7 +390,7 @@ namespace Arena
         {
             float m = HasTrait(e, EliteTrait.Hasted) ? HasteMult : 1f;
             foreach (var c in commanders)
-                if (c != e && c.Pos.DistanceTo(e.Pos) < CommandRange)
+                if (c != e && c.Pos.CloserThan(e.Pos, CommandRange))
                     return m * CommandMult;
             return m;
         }
@@ -414,7 +414,7 @@ namespace Arena
                     if (p.Downed || p.InvulnT > 0f)
                         continue;
                     foreach (var pt in Patches.Values)
-                        if (pt.Kind == PatchKind.Embers && pt.Active && p.Pos.DistanceTo(pt.Pos) < pt.Radius + p.Def.HitR)
+                        if (pt.Kind == PatchKind.Embers && pt.Active && p.Pos.CloserThan(pt.Pos, pt.Radius + p.Def.HitR))
                         {
                             DamageOverTime(p, EmberDps * 0.25f, "Scorcher (embers)");
                             break;
@@ -565,7 +565,7 @@ namespace Arena
                 if (IsBrute(o.Type))
                 {
                     brutes = true;
-                    if (o.Pos.DistanceTo(tpos) < 90f)
+                    if (o.Pos.CloserThan(tpos, 90f))
                         return false;
                 }
             return brutes;
@@ -606,7 +606,7 @@ namespace Arena
         {
             Player p;
             V2 rel = tpos - e.Pos;
-            if (!Players.TryGetValue(e.TargetId, out p) || p.Pos.DistanceTo(tpos) > 1f)
+            if (!Players.TryGetValue(e.TargetId, out p) || p.Pos.FartherThan(tpos, 1f))
                 return rel.Angle;
             V2 v = p.Motion;
             if (v.Length > 450f)

@@ -125,7 +125,7 @@ namespace Arena
                 {
                     foreach (var p in Players.Values)
                     {
-                        if (p.Downed || p.InvulnT > 0f || p.SwallowT > 0f || p.Pos.DistanceTo(e.Pos) > e.Radius + ScytheReap + p.Def.HitR)
+                        if (p.Downed || p.InvulnT > 0f || p.SwallowT > 0f || p.Pos.FartherThan(e.Pos, e.Radius + ScytheReap + p.Def.HitR))
                             continue;
                         if (p.ParryActive && ParryStrike(p, e, ScytheDamage))
                             continue;
@@ -148,7 +148,7 @@ namespace Arena
                 float along = (p.Pos - a.Pos).Dot(dir);
                 if (along < a.Radius || along > len - b.Radius)
                     continue;
-                if (p.Pos.DistanceTo(a.Pos + dir * along) < BoundTetherWidth / 2f + p.Def.HitR)
+                if (p.Pos.CloserThan(a.Pos + dir * along, BoundTetherWidth / 2f + p.Def.HitR))
                     Damage(p, BoundTetherDamage, "Bound Wraiths (tether)");
             }
         }

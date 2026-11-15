@@ -126,7 +126,7 @@ namespace Arena
                     continue;
                 }
                 picked.Add(b);
-                cand.RemoveAll(c => c.Key.Pos.DistanceTo(b.Pos) < Apart);
+                cand.RemoveAll(c => c.Key.Pos.CloserThan(b.Pos, Apart));
             }
             return picked.ToArray();
         }

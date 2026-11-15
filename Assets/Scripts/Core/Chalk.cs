@@ -193,7 +193,7 @@ namespace Arena
             for (int j = h.LoopFrom; j <= last - ChalkMinLoopDots; j++)
             {
                 var head = h.Dots[j];
-                if (head.T <= ChalkErase || head.Pos.DistanceTo(tail.Pos) > ChalkCloseDist)
+                if (head.T <= ChalkErase || head.Pos.FartherThan(tail.Pos, ChalkCloseDist))
                     continue;
                 var pen = new InkPen { Id = nextPen++, Owner = p.Id, T = ChalkSeal, Dots = last - j + 1 };
                 for (int k = j; k <= last; k++)
@@ -254,7 +254,7 @@ namespace Arena
                 foreach (var d in Ink)
                 {
                     Player owner;
-                    if (!Players.TryGetValue(d.Owner, out owner) || e.Pos.DistanceTo(d.Pos) > ChalkDotR * InkWidth(owner) + e.Radius)
+                    if (!Players.TryGetValue(d.Owner, out owner) || e.Pos.FartherThan(d.Pos, ChalkDotR * InkWidth(owner) + e.Radius))
                         continue;
                     DotDamage(e, ChalkBurn * owner.Stats.DmgMult * dt, owner.Id);
                     if (!Heavy(e))
@@ -271,7 +271,7 @@ namespace Arena
                 foreach (var d in Ink)
                 {
                     Player owner;
-                    if (!Players.TryGetValue(d.Owner, out owner) || q.Pos.DistanceTo(d.Pos) > ChalkDotR * InkWidth(owner) + q.Def.HitR)
+                    if (!Players.TryGetValue(d.Owner, out owner) || q.Pos.FartherThan(d.Pos, ChalkDotR * InkWidth(owner) + q.Def.HitR))
                         continue;
                     Heal(q, ChalkHeal * dt, owner);
                     break;
@@ -294,7 +294,7 @@ namespace Arena
                     Players.TryGetValue(d.Owner, out owner);
                     if (owner == null || !owner.Stats.ChalkWard)
                         continue;  // plain ink lets bullets through; Warding Ink makes it a wall that wears away
-                    if (b.Pos.DistanceTo(d.Pos) > ChalkDotR * InkWidth(owner) + b.Radius)
+                    if (b.Pos.FartherThan(d.Pos, ChalkDotR * InkWidth(owner) + b.Radius))
                         continue;
                     gone.Add(b.Id);
                     d.T -= ChalkWear;
@@ -362,7 +362,7 @@ namespace Arena
             foreach (var kv in InkTip)
             {
                 V2 shown;
-                InkTipDisp[kv.Key] = InkTipDisp.TryGetValue(kv.Key, out shown) && shown.DistanceTo(kv.Value) < 120f ? V2.Lerp(shown, kv.Value, k) : kv.Value;
+                InkTipDisp[kv.Key] = InkTipDisp.TryGetValue(kv.Key, out shown) && shown.CloserThan(kv.Value, 120f) ? V2.Lerp(shown, kv.Value, k) : kv.Value;
             }
             if (InkTipDisp.Count > InkTip.Count)
                 foreach (int id in new List<int>(InkTipDisp.Keys))

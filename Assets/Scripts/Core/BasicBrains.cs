@@ -134,7 +134,7 @@ namespace Arena
             {
                 e.PhaseT = 3f;
                 foreach (var o in Enemies.Values)
-                    if (o != e && !o.Def.IsBoss && o.Pos.DistanceTo(e.Pos) < 180f)
+                    if (o != e && !o.Def.IsBoss && o.Pos.CloserThan(e.Pos, 180f))
                         o.Hp = Math.Min(o.MaxHp, o.Hp + o.MaxHp * 0.15f);
                 BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 180f, 0.5f, Sfx.None);
             }
@@ -162,7 +162,7 @@ namespace Arena
         V2 SpinnerWander(Enemy e, float dt)
         {
             e.PhaseT -= dt;
-            if (e.Pos.DistanceTo(e.Waypoint) < 20f || e.PhaseT <= 0f)
+            if (e.Pos.CloserThan(e.Waypoint, 20f) || e.PhaseT <= 0f)
             {
                 e.Waypoint = WanderSpot(Walled ? 80f : 150f, e.Radius + 12f);
                 e.PhaseT = e.Pos.DistanceTo(e.Waypoint) / Math.Max(1f, e.Speed) * 1.6f + 4f;

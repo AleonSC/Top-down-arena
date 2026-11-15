@@ -34,7 +34,7 @@ namespace Arena
                     continue;
                 bool touched = false;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.Pos.DistanceTo(nd.Pos) < Relics.TakeReach + p.Def.BodyR)
+                    if (!p.Downed && p.Pos.CloserThan(nd.Pos, Relics.TakeReach + p.Def.BodyR))
                         touched = true;
                 if (!touched)
                     continue;

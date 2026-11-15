@@ -177,7 +177,7 @@ namespace Arena
             float slow = 1f;
             foreach (var pt in Patches.Values)
             {
-                if (!pt.Active || pt.Pos.DistanceTo(pos) >= pt.Radius)
+                if (!pt.Active || pt.Pos.FartherOrAt(pos, pt.Radius))
                     continue;
                 if (pt.Kind == PatchKind.Honey)
                     slow = Math.Min(slow, HoneySlow);
@@ -200,7 +200,7 @@ namespace Arena
             {
                 V2 to = q.TransT > 0f ? new V2(Width / 2f, q.TransTo >= QueenStage.Frenzy ? 400f : 150f) : new V2(Width / 2f, Height / 2f);
                 speed = q.TransT > 0f ? 380f : 300f;
-                return e.Pos.DistanceTo(to) > 6f ? (to - e.Pos).Normalized() : V2.Zero;
+                return e.Pos.FartherThan(to, 6f) ? (to - e.Pos).Normalized() : V2.Zero;
             }
             if (q.Turn == QueenTurn.Cells || q.Turn == QueenTurn.Spray || q.Turn == QueenTurn.Dive)
                 return V2.Zero;
@@ -486,7 +486,7 @@ namespace Arena
                     break;
                 case QueenTurn.LastStand:  // in the middle: a three-armed spiral, and a bomber at everyone every 2 s
                     e.FireT = 0.09f;
-                    if (e.Pos.DistanceTo(new V2(Width / 2f, Height / 2f)) > 8f)
+                    if (e.Pos.FartherThan(new V2(Width / 2f, Height / 2f), 8f))
                         break;
                     e.Ang += 0.21f;
                     for (int k = 0; k < 3; k++)
@@ -543,7 +543,7 @@ namespace Arena
                     continue;
                 }
                 // Touching her, give or take: enemies are kept from overlapping, which can hold a drone right at her edge.
-                if (d.Pos.DistanceTo(e.Pos) < e.Radius + d.Radius + 6f)
+                if (d.Pos.CloserThan(e.Pos, e.Radius + d.Radius + 6f))
                 {
                     e.Hp = Math.Min(e.MaxHp, e.Hp + e.MaxHp * DroneHeal);
                     BroadcastFx(FxKind.Ring, e.Pos, new Rgba(0.55f, 1f, 0.55f), e.Radius + 30f, 0.5f, Sfx.Pick);
@@ -565,7 +565,7 @@ namespace Arena
                 var s = new V2(Rand(180f, Width - 180f), Rand(300f, Height - 120f));
                 bool clear = true;
                 foreach (var o in spots)
-                    clear &= o.DistanceTo(s) > 330f;
+                    clear &= o.FartherThan(s, 330f);
                 if (clear)
                     spots.Add(s);
             }
@@ -648,7 +648,7 @@ namespace Arena
             {
                 p = null;
                 foreach (var o in Players.Values)
-                    if (!o.Downed && (p == null || o.Pos.DistanceTo(b.Pos) < p.Pos.DistanceTo(b.Pos)))
+                    if (!o.Downed && (p == null || o.Pos.CloserThan(b.Pos, p.Pos.DistanceTo(b.Pos))))
                         p = o;
             }
             b.Phase = 2;
@@ -671,7 +671,7 @@ namespace Arena
                 mine.Add(c);
                 var near = new List<int>();
                 for (int i = 0; i < HiveCells.Length; i++)
-                    if (i != c && HiveCells[i].DistanceTo(HiveCells[c]) < HiveCell * 1.9f)
+                    if (i != c && HiveCells[i].CloserThan(HiveCells[c], HiveCell * 1.9f))
                         near.Add(i);
                 if (near.Count > 0)
                     keep.Add(near[rng.Next(near.Count)]);
@@ -726,7 +726,7 @@ namespace Arena
             q.Cloud += (goal - q.Cloud).LimitLength((q.CloudHome ? CloudHomeSpeed : CloudSpeed) * dt);
             if (q.CloudHome)
             {
-                if (q.Cloud.DistanceTo(e.Pos) < 30f)
+                if (q.Cloud.CloserThan(e.Pos, 30f))
                     q.CloudOn = false;
                 return;
             }
@@ -734,7 +734,7 @@ namespace Arena
             {
                 V2 b = BeePos(i, q.Cloud, q.TurnT, false);
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(b) < BeeRadius + p.Def.HitR)
+                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(b, BeeRadius + p.Def.HitR))
                         Damage(p, BeeDamage, "Hive Queen (swarm)");
             }
         }
@@ -766,7 +766,7 @@ namespace Arena
                 q.Landed = true;
                 e.Pos = q.Shadow;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(e.Pos) < DiveRadius + p.Def.HitR)
+                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(e.Pos, DiveRadius + p.Def.HitR))
                         Damage(p, DiveDamage, "Hive Queen (dive)");
                 e.Ang += 0.17f;
                 for (int i = 0; i < 18; i++)

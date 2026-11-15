@@ -235,7 +235,7 @@ namespace Arena
             if (!DevArena || HeroDummies.Count == 0 || contact <= 0f)
                 return;
             foreach (var d in HeroDummies)
-                if (d.ContactT <= 0f && d.Pos.DistanceTo(e.Pos) < e.Radius + HeroDummyR)
+                if (d.ContactT <= 0f && d.Pos.CloserThan(e.Pos, e.Radius + HeroDummyR))
                 {
                     d.ContactT = HeroDummyContactEvery;
                     HeroDummyHit(d, contact);

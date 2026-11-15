@@ -329,7 +329,7 @@ namespace Arena
                 {
                     Enemy next = null;
                     foreach (var o in Enemies.Values)
-                        if (!imploded.Contains(o) && !IsSpawning(o) && o.Hp > 0f && o.Pos.DistanceTo(e.Pos) < ImplodeChain + o.Radius
+                        if (!imploded.Contains(o) && !IsSpawning(o) && o.Hp > 0f && o.Pos.CloserThan(e.Pos, ImplodeChain + o.Radius)
                             && (next == null || o.Pos.DistanceSq(e.Pos) < next.Pos.DistanceSq(e.Pos)))
                             next = o;
                     if (next == null && e.Hp > 0f)
@@ -352,7 +352,7 @@ namespace Arena
             if (splash)
                 foreach (var o in Enemies.Values)
                 {
-                    if (o == e || IsSpawning(o) || o.Hp <= 0f || o.Pos.DistanceTo(e.Pos) >= r + o.Radius)
+                    if (o == e || IsSpawning(o) || o.Hp <= 0f || o.Pos.FartherOrAt(e.Pos, r + o.Radius))
                         continue;
                     imploded.Add(o);
                     HitImplode(p, o, ImplodeSplashDamage * mult);
@@ -437,7 +437,7 @@ namespace Arena
                     // Split between you and the nearest ally (all yours if no one is near).
                     Player ally = null;
                     foreach (var q in Players.Values)
-                        if (q != p && !q.Downed && q.Pos.DistanceTo(p.Pos) < VeinRange && (ally == null || q.Pos.DistanceSq(p.Pos) < ally.Pos.DistanceSq(p.Pos)))
+                        if (q != p && !q.Downed && q.Pos.CloserThan(p.Pos, VeinRange) && (ally == null || q.Pos.DistanceSq(p.Pos) < ally.Pos.DistanceSq(p.Pos)))
                             ally = q;
                     float heal = dmg * (VeinSteal + p.Stats.VeinStealBonus);  // (Lifeline: more)
                     if (ally == null)
@@ -550,7 +550,7 @@ namespace Arena
             e.Hemorrhage = 0;
             float dmg = boltDmg * HemorrhageMult, r = HemorrhageRadius * AreaMult(p) * p.Stats.HemoRadiusMult;
             foreach (var o in Enemies.Values)
-                if (Targetable(o) && o.Pos.DistanceTo(e.Pos) < r + o.Radius)
+                if (Targetable(o) && o.Pos.CloserThan(e.Pos, r + o.Radius))
                     HurtEnemy(o, dmg, p.Id);
             BroadcastFx(FxKind.Implode, e.Pos, new Rgba(0.85f, 0.1f, 0.18f), r, 0.35f, Sfx.Explode);
         }
@@ -580,7 +580,7 @@ namespace Arena
             foreach (var z in Zones.Values)
             {
                 Player p;
-                if (z.Kind != ZoneKind.BoneSpear || !Players.TryGetValue(z.Owner, out p) || p.Downed || p.Pos.DistanceTo(z.Pos) > z.Radius + p.Def.BodyR)
+                if (z.Kind != ZoneKind.BoneSpear || !Players.TryGetValue(z.Owner, out p) || p.Downed || p.Pos.FartherThan(z.Pos, z.Radius + p.Def.BodyR))
                     continue;
                 Heal(p, BoneSpearCost + p.Stats.SpearPickupBonus, p);  // (Marrow: more back)
                 AddFx(FxKind.Spark, z.Pos, z.Def.Color, 16f, 0.25f);
@@ -596,7 +596,7 @@ namespace Arena
         void LandClot(Bullet b)
         {
             foreach (var e in Enemies.Values)
-                if (Targetable(e) && e.Pos.DistanceTo(b.Pos) < b.Splash + e.Radius && !BlocksShot(e, b.Pos))
+                if (Targetable(e) && e.Pos.CloserThan(b.Pos, b.Splash + e.Radius) && !BlocksShot(e, b.Pos))
                 {
                     HurtEnemy(e, b.Dmg, b.Owner);
                     OnBulletHit(b, e);
@@ -613,7 +613,7 @@ namespace Arena
         {
             z.Congealed = true;
             foreach (var e in Enemies.Values)
-                if (Targetable(e) && !e.Def.IsBoss && e.Pos.DistanceTo(z.Pos) <= z.Radius + e.Radius)
+                if (Targetable(e) && !e.Def.IsBoss && e.Pos.WithinReach(z.Pos, z.Radius + e.Radius))
                 {
                     e.FrozenT = Math.Max(e.FrozenT, PoolStuck);
                     e.SlowT = Math.Max(e.SlowT, PoolStuck);
@@ -946,7 +946,7 @@ namespace Arena
                     Heal(ally, gift, p);
                     if (cap)
                         foreach (var q in Players.Values)
-                            if (q != ally && !q.Downed && q.Pos.DistanceTo(ally.Pos) < GiftSplash)
+                            if (q != ally && !q.Downed && q.Pos.CloserThan(ally.Pos, GiftSplash))
                                 Heal(q, gift * 0.5f, p);
                     BroadcastFx(FxKind.Drain, p.Pos, ally.Pos, blood, 10f, 0.5f, Sfx.None);  // your blood flowing into them
                     BroadcastFx(FxKind.Ring, ally.Pos, blood, 50f, 0.4f, Sfx.SpellHoly);

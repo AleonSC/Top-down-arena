@@ -351,7 +351,7 @@ namespace Arena
                     float reach = 220f * s.NovaRangeMult;  // Permafrost: farther, and a longer freeze
                     foreach (var e in Enemies.Values)
                     {
-                        if (e.SpawnT > 0f || e.Pos.DistanceTo(p.Pos) > reach + e.Radius)
+                        if (e.SpawnT > 0f || e.Pos.FartherThan(p.Pos, reach + e.Radius))
                             continue;
                         HurtEnemy(e, 40f * dmg, p.Id);
                         Slow(e, 3f + s.NovaFreezeBonus, 0.1f);  // nearly frozen
@@ -379,7 +379,7 @@ namespace Arena
                 }
                 case AbilityId.EnergyWard:
                     foreach (var q in Players.Values)
-                        if (!q.Downed && q.Pos.DistanceTo(p.Pos) < 300f)
+                        if (!q.Downed && q.Pos.CloserThan(p.Pos, 300f))
                         {
                             if (q.EnergyOn)
                                 EnergyPayback(q);  // a fresh ward pays out the old one first
@@ -543,7 +543,7 @@ namespace Arena
         {
             bool shot = m.Sent && m.Kind == MinionKind.Imp;  // an Imp Caller imp is the weapon's shot: weapon mods ride its blast
             foreach (var e in Enemies.Values)
-                if (e.SpawnT <= 0f && e.Pos.DistanceTo(m.Pos) < radius + e.Radius)
+                if (e.SpawnT <= 0f && e.Pos.CloserThan(m.Pos, radius + e.Radius))
                 {
                     HurtEnemy(e, dmg, m.Owner);
                     if (shot)
@@ -557,7 +557,7 @@ namespace Arena
         {
             Enemy best = null;
             foreach (var e in Enemies.Values)
-                if (e.SpawnT <= 0f && e.Pos.DistanceTo(pos) < range && (best == null || e.Pos.DistanceSq(pos) < best.Pos.DistanceSq(pos)))
+                if (e.SpawnT <= 0f && e.Pos.CloserThan(pos, range) && (best == null || e.Pos.DistanceSq(pos) < best.Pos.DistanceSq(pos)))
                     best = e;
             return best;
         }
@@ -820,7 +820,7 @@ namespace Arena
                             break;
                         }
                         var e = target ?? NearestEnemy(m.Pos, d.Radius + 40f);
-                        if (e != null && m.Cd <= 0f && e.Pos.DistanceTo(m.Pos) < e.Radius + d.Radius + 6f)
+                        if (e != null && m.Cd <= 0f && e.Pos.CloserThan(m.Pos, e.Radius + d.Radius + 6f))
                         {
                             m.Cd = d.Interval;
                             m.Aim = (e.Pos - m.Pos).Angle;
@@ -845,14 +845,14 @@ namespace Arena
                             if (extraBear > 0)
                             {
                                 foreach (var o in Enemies.Values)
-                                    if (o != e && o.SpawnT <= 0f && o.Pos.DistanceTo(e.Pos) < 55f + o.Radius)
+                                    if (o != e && o.SpawnT <= 0f && o.Pos.CloserThan(e.Pos, 55f + o.Radius))
                                         HurtEnemy(o, dmg * Math.Min(1f, 0.4f * extraBear), m.Owner);
                                 BroadcastFx(FxKind.Ring, e.Pos, d.Color, 55f, 0.25f, Sfx.None);
                             }
                         }
                         if (m.Kind == MinionKind.LightOrb)  // also heals allies it passes over
                             foreach (var q in Players.Values)
-                                if (!q.Downed && q.Pos.DistanceTo(m.Pos) < reach + d.Radius)
+                                if (!q.Downed && q.Pos.CloserThan(m.Pos, reach + d.Radius))
                                     Heal(q, m.HealRate * dt, owner);
                         break;
                     }
@@ -863,18 +863,18 @@ namespace Arena
                         {
                             m.Cd = d.Interval;
                             foreach (var e in Enemies.Values)
-                                if (e.SpawnT <= 0f && e.Pos.DistanceTo(m.Pos) < reach + e.Radius)
+                                if (e.SpawnT <= 0f && e.Pos.CloserThan(m.Pos, reach + e.Radius))
                                     HurtEnemy(e, dmg, m.Owner);
                             BroadcastFx(FxKind.Ring, m.Pos, d.Color, reach, 0.3f, Sfx.None);
                         }
                         break;
                     case MinionAttack.Explode:
-                        if (target != null && target.Pos.DistanceTo(m.Pos) < target.Radius + d.Radius + 6f)
+                        if (target != null && target.Pos.CloserThan(m.Pos, target.Radius + d.Radius + 6f))
                             exploding.Add(m);
                         break;
                     case MinionAttack.Heal:
                         foreach (var q in Players.Values)
-                            if (q.Pos.DistanceTo(m.Pos) < d.Range)
+                            if (q.Pos.CloserThan(m.Pos, d.Range))
                                 Heal(q, m.HealRate * dt, owner);
                         break;
                 }
@@ -1009,7 +1009,7 @@ namespace Arena
                 }
                 foreach (var q in Players.Values)
                 {
-                    if (q.Pos.DistanceTo(z.Pos) > z.Radius)
+                    if (q.Pos.FartherThan(z.Pos, z.Radius))
                         continue;
                     if (q.Downed && z.ExtraRevive > 0f)
                     {
@@ -1041,7 +1041,7 @@ namespace Arena
                 if (d.Dps > 0f || d.Slow > 0f || z.ExtraSlow > 0f)
                     foreach (var e in Enemies.Values)
                     {
-                        if (e.SpawnT > 0f || e.Pos.DistanceTo(z.Pos) > z.Radius + e.Radius)
+                        if (e.SpawnT > 0f || e.Pos.FartherThan(z.Pos, z.Radius + e.Radius))
                             continue;
                         if (d.Dps > 0f && !HallowedSpent(z))
                             HurtEnemy(e, d.Dps * z.DmgMult * dt, z.Owner);
@@ -1061,7 +1061,7 @@ namespace Arena
                 if (z.Def.BlastDamage > 0f)  // the meteor lands
                 {
                     foreach (var e in Enemies.Values)
-                        if (e.SpawnT <= 0f && e.Pos.DistanceTo(z.Pos) < z.Radius + e.Radius)
+                        if (e.SpawnT <= 0f && e.Pos.CloserThan(z.Pos, z.Radius + e.Radius))
                             HurtEnemy(e, z.Def.BlastDamage * z.DmgMult, z.Owner);
                     if (z.Kind == ZoneKind.Meteor)
                         BroadcastFx(FxKind.Meteor, z.Pos, z.Def.Color, z.Radius, 2.8f, Sfx.BigExplode);  // flash, ring, sparks and a scorch mark (ElementalistLooks.cs)
@@ -1089,7 +1089,7 @@ namespace Arena
         bool InLantern(Player p)
         {
             foreach (var z in Zones.Values)
-                if (z.Def.PreventDown && p.Pos.DistanceTo(z.Pos) <= z.Radius)
+                if (z.Def.PreventDown && p.Pos.WithinReach(z.Pos, z.Radius))
                     return true;
             foreach (var m in Minions.Values)
                 if (m.Kind == MinionKind.SoulLantern && m.Mastered && m.LinkTo == p.Id)

@@ -31,7 +31,7 @@ namespace Arena
         {
             Player best = null;
             foreach (var q in Players.Values)
-                if (q.Id != me.Id && q.Pos.DistanceTo(me.Pos) <= range + q.Def.BodyR && (best == null || q.Pos.DistanceSq(aimAt) < best.Pos.DistanceSq(aimAt)))
+                if (q.Id != me.Id && q.Pos.WithinReach(me.Pos, range + q.Def.BodyR) && (best == null || q.Pos.DistanceSq(aimAt) < best.Pos.DistanceSq(aimAt)))
                     best = q;
             return best;
         }
@@ -65,7 +65,7 @@ namespace Arena
             run.T = travel + 0.05f;
             Player ally = null;
             foreach (var q in Players.Values)
-                if (q.Id != p.Id && q.Pos.DistanceTo(target) <= OathReach && (ally == null || q.Pos.DistanceSq(target) < ally.Pos.DistanceSq(target)))
+                if (q.Id != p.Id && q.Pos.WithinReach(target, OathReach) && (ally == null || q.Pos.DistanceSq(target) < ally.Pos.DistanceSq(target)))
                     ally = q;
             if (ally != null)
             {

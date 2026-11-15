@@ -108,7 +108,7 @@ namespace Arena
         bool TouchingPlayer(Enemy e)
         {
             foreach (var p in Players.Values)
-                if (!p.Downed && p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.HitR + 2f)
+                if (!p.Downed && p.Pos.CloserThan(e.Pos, e.Radius + p.Def.HitR + 2f))
                     return true;
             return false;
         }
@@ -152,7 +152,7 @@ namespace Arena
                 m.BiteT -= dt;
                 m.StepT -= dt;
                 float q = QuietAt(e.Pos);
-                bool moved = e.Pos.DistanceTo(m.Last) > 0.3f;
+                bool moved = e.Pos.FartherThan(m.Last, 0.3f);
                 m.Last = e.Pos;
                 bool touching = !fresh && TouchingPlayer(e);
                 bool bite = touching && m.BiteT <= 0f;

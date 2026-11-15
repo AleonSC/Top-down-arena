@@ -38,7 +38,7 @@ namespace Arena
                 if (!p.Downed)
                 {
                     alive++;
-                    if (p.Pos.DistanceTo(GatePos) < GateR)
+                    if (p.Pos.CloserThan(GatePos, GateR))
                         inside++;
                 }
         }

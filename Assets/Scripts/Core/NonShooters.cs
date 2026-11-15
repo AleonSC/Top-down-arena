@@ -130,7 +130,7 @@ namespace Arena
         {
             if (e.Phase == 0)
             {
-                if (tpos.DistanceTo(e.Pos) < FusePlant && e.SpawnT <= 0f)
+                if (tpos.CloserThan(e.Pos, FusePlant) && e.SpawnT <= 0f)
                 {
                     e.Phase = 1;
                     e.PhaseT = FuseCountdown;
@@ -152,7 +152,7 @@ namespace Arena
         {
             foreach (var p in Players.Values)
             {
-                if (p.Downed || p.InvulnT > 0f || p.Pos.DistanceTo(e.Pos) > radius + p.Def.HitR)
+                if (p.Downed || p.InvulnT > 0f || p.Pos.FartherThan(e.Pos, radius + p.Def.HitR))
                     continue;
                 if (p.ParryActive && ParryContact(p, e, playerDamage))
                     continue;  // a raised guard facing the blast takes it
@@ -160,7 +160,7 @@ namespace Arena
             }
             float scaled = enemyDamage * (1f + 0.15f * (Math.Max(1, Wave) - 1));  // keeps up with enemy health (SpawnHp)
             foreach (var o in Enemies.Values)
-                if (o != e && Targetable(o) && o.Pos.DistanceTo(e.Pos) < radius + o.Radius)
+                if (o != e && Targetable(o) && o.Pos.CloserThan(e.Pos, radius + o.Radius))
                     HurtEnemy(o, o.Def.IsBoss ? scaled * 0.25f : scaled, credit);
             BroadcastFx(FxKind.Boom, e.Pos, e.Def.Color, radius, 0.35f, Sfx.Explode);
             PropBlast(e.Pos, radius, credit);
@@ -185,7 +185,7 @@ namespace Arena
             switch (e.Phase)
             {
                 case 0:  // spinning the harpoon; aims when its time comes and you're in reach
-                    if (e.PhaseT <= 0f && e.SpawnT <= 0f && tpos.DistanceTo(e.Pos) < HookReach * 0.95f)
+                    if (e.PhaseT <= 0f && e.SpawnT <= 0f && tpos.CloserThan(e.Pos, HookReach * 0.95f))
                     {
                         e.Phase = 1;
                         e.PhaseT = e.Type == EnemyType.HookThrower ? HookThrowAim : HookAim;
@@ -271,7 +271,7 @@ namespace Arena
         bool HookCut(Enemy e, V2 tip)
         {
             foreach (var b in Bullets.Values)
-                if (b.Owner > 0 && !Defs.IsEnemyShot(b.Kind) && SegDistance(b.Pos, e.Pos, tip) < HookCutReach + b.Radius && b.Pos.DistanceTo(e.Pos) > e.Radius + 4f)
+                if (b.Owner > 0 && !Defs.IsEnemyShot(b.Kind) && SegDistance(b.Pos, e.Pos, tip) < HookCutReach + b.Radius && b.Pos.FartherThan(e.Pos, e.Radius + 4f))
                     return true;
             return false;
         }
@@ -336,7 +336,7 @@ namespace Arena
                     return;
                 }
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.Pos.DistanceTo(e.Pos) < PodTrigger + p.Def.HitR)
+                    if (!p.Downed && p.Pos.CloserThan(e.Pos, PodTrigger + p.Def.HitR))
                     {
                         TriggerPod(e);
                         break;
@@ -346,7 +346,7 @@ namespace Arena
                     // Lasers: each pod checks the ones it leads (lower id), so every wire is checked once.
                     foreach (var o in Enemies.Values)
                     {
-                        if (o == e || o.Id < e.Id || !PodArmed(o) || o.Pos.DistanceTo(e.Pos) >= PodWire)
+                        if (o == e || o.Id < e.Id || !PodArmed(o) || o.Pos.FartherOrAt(e.Pos, PodWire))
                             continue;
                         foreach (var p in Players.Values)
                             if (!p.Downed && p.InvulnT <= 0f && SegDistance(p.Pos, e.Pos, o.Pos) < p.Def.HitR + 4f)

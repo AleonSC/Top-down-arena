@@ -26,7 +26,7 @@ namespace Arena
         /// Is this point (with this radius) in the jet fired from `from` along `aim`?
         public static bool InSpray(V2 from, float aim, float reach, V2 pos, float radius)
         {
-            if (pos.DistanceTo(from) > reach + radius)
+            if (pos.FartherThan(from, reach + radius))
                 return false;
             return InGraspArc(from, aim, pos, radius + 6f, SprayHalfArc * 2f);  // (the same cone test as Leech Tendrils)
         }

@@ -81,7 +81,7 @@ namespace Arena
         bool InReach(Player me, Enemy e, float pref)
         {
             float reach = Math.Max(WeaponRange(me), 150f) + e.Radius;
-            return me.Pos.DistanceTo(e.Pos) <= Math.Max(reach, pref) + 40f;
+            return me.Pos.WithinReach(e.Pos, Math.Max(reach, pref) + 40f);
         }
 
         const float MarkFocus = 220f;  // how much a marked enemy is preferred as the target (a boss scores 0 to 300)
@@ -223,11 +223,11 @@ namespace Arena
             // --- The Rooms arena (Rooms.cs): with a wall between us and where we're going, head for the next corner or
             // doorway on the way round instead (the enemies' steering, LayoutRules.cs).
             V2 routeWay = V2.Zero;
-            if (RoomsOn && anchor.DistanceTo(me.Pos) > pref + 40f)
+            if (RoomsOn && anchor.FartherThan(me.Pos, pref + 40f))
             {
                 V2 straight = (anchor - me.Pos).Normalized();
                 V2 way = SteerDir(-me.Id, me.Pos, botClock, me.Def.BodyR + 4f, anchor, straight);
-                if (way.DistanceTo(straight) > 0.01f)
+                if (way.FartherThan(straight, 0.01f))
                 {
                     anchor = me.Pos + way * 140f;
                     pref = 0f;
@@ -290,7 +290,7 @@ namespace Arena
             {
                 Player healTo = null;
                 foreach (var q in Players.Values)
-                    if (q.Id != me.Id && !q.Downed && q.Hp < q.MaxHp * 0.7f && q.Pos.DistanceTo(me.Pos) < 420f
+                    if (q.Id != me.Id && !q.Downed && q.Hp < q.MaxHp * 0.7f && q.Pos.CloserThan(me.Pos, 420f)
                         && MoreHurt(q, healTo))
                         healTo = q;
                 if (healTo != null)
@@ -325,7 +325,7 @@ namespace Arena
                 if (s.Id == AbilityId.LastStand && me.StandOn)
                 {
                     held[slot] = botHeldLast[slot] = false;
-                    bool guarding = downed != null && downed.Pos.DistanceTo(me.Pos) < StandRadius;  // someone is being stood back up in its lee
+                    bool guarding = downed != null && downed.Pos.CloserThan(me.Pos, StandRadius);  // someone is being stood back up in its lee
                     if (me.StandT > 3f && BotDanger < 0.2f && !guarding && !botHeldLast[slot])  // nothing coming for a moment: step out of it
                         held[slot] = botHeldLast[slot] = true;
                     continue;
@@ -405,7 +405,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var e in Enemies.Values)
-                if (Targetable(e) && !e.Dummy && e.Pos.DistanceTo(pos) < reach + e.Radius)
+                if (Targetable(e) && !e.Dummy && e.Pos.CloserThan(pos, reach + e.Radius))
                     n++;
             return n;
         }
@@ -528,7 +528,7 @@ namespace Arena
                     botSeen[b.Id] = seen = botClock;
                 if (botClock - seen < sk.Reaction)
                     continue;
-                if (b.Pos.DistanceTo(me.Pos) < reach + b.Vel.Length * T)
+                if (b.Pos.CloserThan(me.Pos, reach + b.Vel.Length * T))
                     botThreats.Add(b);
             }
             if (botThreats.Count > sk.Attention)
@@ -683,10 +683,10 @@ namespace Arena
                             d += w * 2f;
                     }
                     foreach (var h in Hazards.Values)
-                        if (h.T < t + 0.2f && h.Pos.DistanceTo(p) < h.Radius + hitR + 8f)
+                        if (h.T < t + 0.2f && h.Pos.CloserThan(p, h.Radius + hitR + 8f))
                             d += w * 3f;
                     foreach (var pt in Patches.Values)  // a path's fire, the Colossus's lava the Devourer's bile, a Scorcher's embers or tear gas: burning now or about to (Paths.cs)
-                        if ((pt.Kind == PatchKind.Fire || pt.Kind == PatchKind.Lava || pt.Kind == PatchKind.Bile || pt.Kind == PatchKind.Embers || pt.Kind == PatchKind.Gas || pt.Kind == PatchKind.Acid || pt.Kind == PatchKind.Dusk || pt.Kind == PatchKind.Rubble && !pt.Active) && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.DistanceTo(p) < pt.Radius + hitR + 8f)
+                        if ((pt.Kind == PatchKind.Fire || pt.Kind == PatchKind.Lava || pt.Kind == PatchKind.Bile || pt.Kind == PatchKind.Embers || pt.Kind == PatchKind.Gas || pt.Kind == PatchKind.Acid || pt.Kind == PatchKind.Dusk || pt.Kind == PatchKind.Rubble && !pt.Active) && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.CloserThan(p, pt.Radius + hitR + 8f))
                             d += w * 3f;
                     foreach (var th in botThreads)
                         if (SegmentDistance(p, th.A, th.B) < StitchWidth / 2f + hitR + sk.Margin + 4f)
@@ -696,7 +696,7 @@ namespace Arena
                     foreach (var e in Enemies.Values)  // a Beam Sentry's beam, a Reaver's rake (Variety.cs)
                     {
                         // The enemies that don't shoot (NonShooters.cs): a lit fuse's blast, the Hookman's line, pods and their lasers.
-                        if (e.Type == EnemyType.FuseRunner && e.Phase == 1 && e.Pos.DistanceTo(p) < FuseBlast + hitR + 10f)
+                        if (e.Type == EnemyType.FuseRunner && e.Phase == 1 && e.Pos.CloserThan(p, FuseBlast + hitR + 10f))
                             d += w * 3f;
                         else if (e.Type == EnemyType.Hookman && e.Phase == 1 && SegmentDistance(p, e.Pos, e.Pos + V2.FromAngle(e.Facing) * HookReach) < hitR + 22f)
                             d += w * 2.5f;
@@ -706,14 +706,14 @@ namespace Arena
                                 d += w * 3f;
                             if (e.Phase == 1)
                                 foreach (var o in Enemies.Values)
-                                    if (o.Type == EnemyType.SapperMine && o.Phase == 1 && o.Id > e.Id && o.Pos.DistanceTo(e.Pos) < PodWire && SegmentDistance(p, e.Pos, o.Pos) < hitR + 8f)
+                                    if (o.Type == EnemyType.SapperMine && o.Phase == 1 && o.Id > e.Id && o.Pos.CloserThan(e.Pos, PodWire) && SegmentDistance(p, e.Pos, o.Pos) < hitR + 8f)
                                         d += w * 2.5f;
                         }
                         if (e.Type == EnemyType.BeamSentry && (e.Phase == 3 || e.Phase == 2 && e.PhaseT < t + 0.3f))
                         {
                             // It sweeps a quarter turn either way from where it points: keep clear of that fan near its line.
                             float ang = (p - e.Pos).Angle, off = Math.Abs(MathX.Fmod(ang - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
-                            if (p.DistanceTo(e.Pos) < SentryBeamLen && off < (e.Phase == 3 ? 0.35f : 0.6f))
+                            if (p.CloserThan(e.Pos, SentryBeamLen) && off < (e.Phase == 3 ? 0.35f : 0.6f))
                                 d += w * 2.5f;
                         }
                         else if (PulsarLocked(e) && PulsarBeamDistance(e, p) < hitR + 40f)
@@ -768,7 +768,7 @@ namespace Arena
                             if (RingDanger(r, p, t, GateBulletR + hitR + sk.Margin + 6f))
                                 d += w * 2.5f;
                         foreach (var dr in col.Drops)
-                            if (dr.T + t + 0.2f >= dr.Dur && dr.Pos.DistanceTo(p) < dr.Radius + hitR + 8f)
+                            if (dr.T + t + 0.2f >= dr.Dur && dr.Pos.CloserThan(p, dr.Radius + hitR + 8f))
                                 d += w * 3f;
                         foreach (var ck in col.Cracks)
                             if (SegmentDistance(p, ck.From, ck.From + V2.FromAngle(ck.Ang) * ck.Max) < hitR + 18f)
@@ -795,7 +795,7 @@ namespace Arena
                                 for (int i = 0; i < (ring == 0 ? DiskInnerN : DiskOuterN); i++)
                                 {
                                     V2 at;
-                                    if (DiskOrb(disk.Sing, disk.Pos, ring, i, out at) && at.DistanceTo(p) < orbReach)
+                                    if (DiskOrb(disk.Sing, disk.Pos, ring, i, out at) && at.CloserThan(p, orbReach))
                                         d += w * 2f;
                                 }
                             disk.Sing.DiskT -= t;
@@ -816,7 +816,7 @@ namespace Arena
                             d += w * 0.5f;  // rather be on its back
                         if (ds.Stage == DevourStage.LastStand)
                             for (int tk = 0; tk < 12; tk++)
-                                if (tk != 0 && tk != 6 && p.DistanceTo(ToothPos(dev.Pos, ds.Spin + TeethSpin * t, tk)) < ToothHit + pad)
+                                if (tk != 0 && tk != 6 && p.CloserThan(ToothPos(dev.Pos, ds.Spin + TeethSpin * t, tk), ToothHit + pad))
                                 {
                                     d += w * 2.5f;
                                     break;
@@ -841,10 +841,10 @@ namespace Arena
                             if (conductor == me)
                             {
                                 foreach (var q in Players.Values)
-                                    if (q != me && !q.Downed && q.Pos.DistanceTo(p) < ConductorRadius + 30f)
+                                    if (q != me && !q.Downed && q.Pos.CloserThan(p, ConductorRadius + 30f))
                                         d += w * 2f;
                             }
-                            else if (conductor.Pos.DistanceTo(p) < ConductorRadius + 30f)
+                            else if (conductor.Pos.CloserThan(p, ConductorRadius + 30f))
                                 d += w * 2f;
                         }
                     }
@@ -876,7 +876,7 @@ namespace Arena
                     }
                     for (int i = 0; i < botBalls.Count; i++)
                         for (int j = i + 1; j < botBalls.Count; j++)
-                            if (botBalls[i].Pos.DistanceTo(botBalls[j].Pos) < BallArcRange && SegmentDistance(p, botBalls[i].Pos, botBalls[j].Pos) < BallArcWidth / 2f + hitR + sk.Margin + 6f)
+                            if (botBalls[i].Pos.CloserThan(botBalls[j].Pos, BallArcRange) && SegmentDistance(p, botBalls[i].Pos, botBalls[j].Pos) < BallArcWidth / 2f + hitR + sk.Margin + 6f)
                                 d += w * 2f;
                     foreach (var cg in Cages.Values)
                         if (Math.Abs(p.DistanceTo(cg.Center) - Math.Max(0f, cg.Radius - CageShrink * t)) < CageWallWidth / 2f + hitR + sk.Margin + 4f)
@@ -926,7 +926,7 @@ namespace Arena
                 float steady = (dir - botMove).Length * 0.04f;  // don't jitter between equal options
                 if (me.Hp < me.MaxHp * 0.7f)  // hurt: Sanctuary's healing pools are worth standing in (Paths.cs)
                     foreach (var pt in Patches.Values)
-                        if (pt.Kind == PatchKind.Heal && pt.Pos.DistanceTo(p) < pt.Radius - 10f)
+                        if (pt.Kind == PatchKind.Heal && pt.Pos.CloserThan(p, pt.Radius - 10f))
                             position -= 0.3f;
                 float cost = d + position + steady;
                 if (cost < bestCost)

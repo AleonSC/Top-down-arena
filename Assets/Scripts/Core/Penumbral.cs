@@ -139,7 +139,7 @@ namespace Arena
         {
             if (e.Phase == 0)
             {
-                if (tpos.DistanceTo(e.Pos) < NovaLight && e.SpawnT <= 0f && e.T > 0.5f)
+                if (tpos.CloserThan(e.Pos, NovaLight) && e.SpawnT <= 0f && e.T > 0.5f)
                 {
                     e.Phase = 1;
                     e.PhaseT = NovaFuse;
@@ -152,7 +152,7 @@ namespace Arena
                 return;
             foreach (var p in Players.Values)
             {
-                if (p.Downed || p.InvulnT > 0f || p.Pos.DistanceTo(e.Pos) > NovaBlastR + p.Def.HitR)
+                if (p.Downed || p.InvulnT > 0f || p.Pos.FartherThan(e.Pos, NovaBlastR + p.Def.HitR))
                     continue;
                 if (p.ParryActive && ParryContact(p, e, NovaBlastDamage))
                     continue;  // a raised guard facing it takes it
@@ -169,7 +169,7 @@ namespace Arena
             switch (e.Phase)
             {
                 case 0:
-                    if (e.PhaseT <= 0f && e.T > 1.5f && tpos.DistanceTo(e.Pos) < GnomonRange)
+                    if (e.PhaseT <= 0f && e.T > 1.5f && tpos.CloserThan(e.Pos, GnomonRange))
                     {
                         // Plant: the slab turns a little to one side of you, so its shadow is a step away.
                         e.Strafe = e.Strafe >= 0f ? 1f : -1f;
@@ -183,7 +183,7 @@ namespace Arena
                     if (e.PhaseT <= 0f)
                     {
                         foreach (var p in Players.Values)
-                            if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(e.Pos) < GnomonReach && !InGnomonShadow(e, p.Pos))
+                            if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(e.Pos, GnomonReach) && !InGnomonShadow(e, p.Pos))
                                 Damage(p, GnomonDamage, e.Def.Name + " (flash)");
                         BroadcastFx(FxKind.Ring, e.Pos - V2.FromAngle(e.Facing) * e.Radius, new Rgba(1f, 0.95f, 0.8f), GnomonReach, 0.35f, Sfx.Shockwave);
                         e.Phase = 2;
@@ -219,7 +219,7 @@ namespace Arena
             if (Defs.IsEnemyShot(b.Kind))
                 return false;
             foreach (var e in Enemies.Values)
-                if (e.Type == EnemyType.Moonward && e.Hp > 0f && !IsSpawning(e) && b.Pos.DistanceTo(MoonwardMoon(e, e.Pos)) < MoonwardMoonR + b.Radius)
+                if (e.Type == EnemyType.Moonward && e.Hp > 0f && !IsSpawning(e) && b.Pos.CloserThan(MoonwardMoon(e, e.Pos), MoonwardMoonR + b.Radius))
                 {
                     BroadcastFx(FxKind.Spark, b.Pos, e.Def.Color, 10f, 0.15f, Sfx.None);
                     return true;
@@ -241,7 +241,7 @@ namespace Arena
                 if (pt.Kind != PatchKind.Dusk || !pt.Active)
                     continue;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(pt.Pos) < pt.Radius + p.Def.HitR)
+                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(pt.Pos, pt.Radius + p.Def.HitR))
                         DamageOverTime(p, DuskDps * 0.25f, "Dusk");
             }
         }
@@ -251,7 +251,7 @@ namespace Arena
         {
             if ((int)(e.T / EmberSparkEvery) == (int)((e.T - dt) / EmberSparkEvery))
                 return;  // one every EmberSparkEvery s of its life
-            if (tpos.DistanceTo(e.Pos) > EmberSparkRange || tpos.DistanceTo(e.Pos) < 1f)
+            if (tpos.FartherThan(e.Pos, EmberSparkRange) || tpos.CloserThan(e.Pos, 1f))
                 return;
             V2 back = (e.Pos - tpos).Normalized();
             var b = SpawnBullet(Defs.EmberSpark, e.Pos + back * e.Radius, back * EmberSparkDrift, 0f, EmberSparkLife, Defs.BulletDamage(Defs.EmberSpark), 0, false);
@@ -334,9 +334,9 @@ namespace Arena
             if (HelioLocked(e))
                 return HelioLaneDistance(e, p) < HelioWidth / 2f + hitR + 30f ? 2.5f : 0f;
             if (e.Phase == 1 && e.Type == EnemyType.Gnomon)
-                return p.DistanceTo(e.Pos) < GnomonReach && !InGnomonShadow(e, p, hitR) ? 2f : 0f;  // get into its shadow
+                return p.CloserThan(e.Pos, GnomonReach) && !InGnomonShadow(e, p, hitR) ? 2f : 0f;  // get into its shadow
             if (NovaLit(e))
-                return p.DistanceTo(e.Pos) < NovaBlastR + hitR + 30f ? 2.5f : 0f;  // back off before it goes
+                return p.CloserThan(e.Pos, NovaBlastR + hitR + 30f) ? 2.5f : 0f;  // back off before it goes
             return 0f;
         }
         /// (moved from PenumbralMove, Ember)

@@ -43,7 +43,7 @@ namespace Arena
         {
             foreach (var e in Enemies.Values)
             {
-                if (!Targetable(e) || e.Pos.DistanceTo(at) >= reach + e.Radius)
+                if (!Targetable(e) || e.Pos.FartherOrAt(at, reach + e.Radius))
                     continue;
                 V2 away = e.Pos - at;
                 if (!Heavy(e))
@@ -109,7 +109,7 @@ namespace Arena
             }
             m.Wind = 0f;
             V2 front = m.Pos + V2.FromAngle(m.Aim) * TitanAhead * m.Scale;
-            if (target != null && m.Cd <= 0f && target.Pos.DistanceTo(front) < reach + target.Radius * 0.5f)
+            if (target != null && m.Cd <= 0f && target.Pos.CloserThan(front, reach + target.Radius * 0.5f))
             {
                 m.SlamT = 0f;
                 m.SlamHit = false;

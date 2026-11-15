@@ -41,7 +41,7 @@ namespace Arena
             BroadcastFx(FxKind.Shockwave, p.Pos, new V2(p.Id, 0f), ShockwaveColor, range, ShockwaveFxTime, Sfx.Shockwave);
             int shots = 0;
             foreach (var b in Bullets.Values)
-                if (Defs.IsEnemyShot(b.Kind) && b.Pos.DistanceTo(p.Pos) < range)
+                if (Defs.IsEnemyShot(b.Kind) && b.Pos.CloserThan(p.Pos, range))
                     shots++;
             foreach (var e in Enemies.Values)
                 if (Targetable(e) && e.Pos.DistanceTo(p.Pos) - e.Radius <= range)
@@ -66,7 +66,8 @@ namespace Arena
         {
             float r = Math.Max(24f, ShockwaveR(w.Age, w.Range));
             EraseEnemyBullets(w.Pos, r);
-            foreach (var e in new List<Enemy>(Enemies.Values))
+            var snap7 = SnapEnemies();
+            foreach (var e in snap7)
             {
                 if (!Targetable(e) || w.Hit.Contains(e.Id))
                     continue;
@@ -84,6 +85,7 @@ namespace Arena
                     away = V2.FromAngle(Rand(0f, MathX.Tau));
                 KnockEnemy(e, away * (Heavy(e) ? ShockwaveHeavyKnock : ShockwaveKnock));  // slides (Knock.cs)
             }
+            Free(snap7);
         }
     }
 }

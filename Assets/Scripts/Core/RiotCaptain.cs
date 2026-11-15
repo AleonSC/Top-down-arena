@@ -106,7 +106,7 @@ namespace Arena
                 {
                     CaptainBash(e);
                     V2 last;
-                    bool stopped = captainLast.TryGetValue(e.Id, out last) && e.PhaseT < CaptainDashTime - 0.08f && e.Pos.DistanceTo(last) < CaptainDash * dt * 0.3f;
+                    bool stopped = captainLast.TryGetValue(e.Id, out last) && e.PhaseT < CaptainDashTime - 0.08f && e.Pos.CloserThan(last, CaptainDash * dt * 0.3f);
                     captainLast[e.Id] = e.Pos;
                     if (stopped)
                     {

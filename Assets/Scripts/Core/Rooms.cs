@@ -337,7 +337,7 @@ namespace Arena
         bool PlayerNear(V2 at, float r)
         {
             foreach (var p in Players.Values)
-                if (!p.Downed && p.Pos.DistanceTo(at) < r)
+                if (!p.Downed && p.Pos.CloserThan(at, r))
                     return true;
             return false;
         }
@@ -755,7 +755,7 @@ namespace Arena
         public bool InVault(Enemy e) => VaultOn && Rooms.Areas[Rooms.Vault].Contains(e.Disp, 20f);
 
         /// Is someone at the vault: in it, or in the top hallway near its door?
-        public bool AtVault(Player p) => VaultOn && p != null && (Rooms.Areas[Rooms.Vault].Contains(p.Disp) || p.Disp.DistanceTo(Rooms.Doors[Rooms.VaultDoor].Pos) < 260f);
+        public bool AtVault(Player p) => VaultOn && p != null && (Rooms.Areas[Rooms.Vault].Contains(p.Disp) || p.Disp.CloserThan(Rooms.Doors[Rooms.VaultDoor].Pos, 260f));
 
         /// Which part of the Rooms world a point is in (the hub when the rooms aren't up).
         public int AreaAt(V2 p) => CurrentWorld.AreaAt(p);

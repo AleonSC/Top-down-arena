@@ -148,7 +148,7 @@ namespace Arena
                             continue;
                         V2 off = o.Pos - g.From;
                         float along = Math.Max(0f, Math.Min(len, off.Dot(g.Dir)));
-                        if (o.Pos.DistanceTo(g.From + g.Dir * along) > o.Radius + 16f)
+                        if (o.Pos.FartherThan(g.From + g.Dir * along, o.Radius + 16f))
                             continue;
                         g.Bowled.Add(o.Id);
                         HurtEnemy(o, GauntletBowlDamage * p.Stats.DmgMult * g.Power, p.Id);

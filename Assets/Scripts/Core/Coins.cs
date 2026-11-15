@@ -72,7 +72,7 @@ namespace Arena
                 bool pulled = nearest != null;
                 if (!pulled)
                     foreach (var p in Players.Values)
-                        if (!p.Downed && (!c.Vec || p.Vectors < p.VectorCap) && p.Pos.DistanceTo(c.Pos) < CoinMagnetRange &&
+                        if (!p.Downed && (!c.Vec || p.Vectors < p.VectorCap) && p.Pos.CloserThan(c.Pos, CoinMagnetRange) &&
                             (nearest == null || p.Pos.DistanceSq(c.Pos) < nearest.Pos.DistanceSq(c.Pos)))
                             nearest = p;
                 if (nearest == null)

@@ -122,7 +122,7 @@ namespace Arena
             if (s.TransT > 0f || s.Stage == DuelStage.LastStand)
             {
                 speed = s.TransT > 0f ? 420f : 300f;
-                return e.Pos.DistanceTo(middle) > 6f ? (middle - e.Pos).Normalized() : V2.Zero;
+                return e.Pos.FartherThan(middle, 6f) ? (middle - e.Pos).Normalized() : V2.Zero;
             }
             if (s.Dash != DuelDash.None || s.SaluteT > 0f || s.StaggerT > 0f || s.Turn == DuelTurn.Guard)
                 return V2.Zero;  // planted (dashes move it themselves)
@@ -130,7 +130,7 @@ namespace Arena
             {
                 speed = 340f;
                 V2 goal = MaskSpot(s, tpos, s.RealSlot);
-                return e.Pos.DistanceTo(goal) > 4f ? (goal - e.Pos) / 40f : V2.Zero;
+                return e.Pos.FartherThan(goal, 4f) ? (goal - e.Pos) / 40f : V2.Zero;
             }
             return KeepDistance(dir, dist, DuelKeep) + dir.Orthogonal() * e.Strafe * 0.8f;  // as it always has
         }
@@ -178,7 +178,7 @@ namespace Arena
             s.Ring = ringGoal <= 0f ? 0f : Math.Max(ringGoal, (s.Ring <= 0f ? 1000f : s.Ring) - RingClose * dt);
             if (s.Ring > 0f && s.Ring <= ringGoal + 1f)
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(new V2(Width / 2f, Height / 2f)) > s.Ring - p.Def.BodyR - 3f)
+                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.FartherThan(new V2(Width / 2f, Height / 2f), s.Ring - p.Def.BodyR - 3f))
                         Damage(p, RingDamage, "The Duelist (dueling circle)");
 
             // This turn's moves, on time (missed while it reels from a parry).
@@ -343,7 +343,7 @@ namespace Arena
             V2 held = ClampToArena(next, e.Radius);
             if (s.Ring > 0f)
                 held = InDuelRing(held, e.Radius, s.Ring);
-            bool stopped = held.DistanceTo(next) > 1f;
+            bool stopped = held.FartherThan(next, 1f);
             e.Pos = held;
             // Blades left along the way (not the salute's strike).
             if (s.Dash != DuelDash.Salute)

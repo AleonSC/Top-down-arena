@@ -114,7 +114,7 @@ namespace Arena
             float mult = s.LightRadiant ? LightRadiant : 1f;
             foreach (var q in Players.Values)
             {
-                if (q.Downed || q.Pos.DistanceTo(circleAt) > s.Circle + q.Def.BodyR)
+                if (q.Downed || q.Pos.FartherThan(circleAt, s.Circle + q.Def.BodyR))
                     continue;
                 Heal(q, (q.Id == p.Id ? NoonSelfHeal : NoonHeal) * mult, p);
                 if (s.LightRadiant)
@@ -204,7 +204,7 @@ namespace Arena
             float bd = float.MaxValue;
             foreach (var q in Players.Values)
             {
-                if (q.Id == p.Id || q.Pos.DistanceTo(p.Pos) > LanceRange)
+                if (q.Id == p.Id || q.Pos.FartherThan(p.Pos, LanceRange))
                     continue;
                 float d = q.Pos.DistanceSq(aimAt);
                 if (d < bd)

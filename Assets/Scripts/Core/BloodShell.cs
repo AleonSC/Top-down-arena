@@ -82,7 +82,7 @@ namespace Arena
             float heal = ShellHeal * (1f + 0.5f * p.Stats.ShellBonus) * p.ShellPower;
             PayHealth(p, cost, "Blood Shell");
             foreach (var q in Players.Values)
-                if (q != p && !q.Downed && q.Pos.DistanceTo(p.Pos) < ShellRadius)
+                if (q != p && !q.Downed && q.Pos.CloserThan(p.Pos, ShellRadius))
                     Heal(q, heal, p);
             BroadcastFx(FxKind.ShellHit, b.Pos, p.Pos, new Rgba(0.85f, 0.12f, 0.2f), ShellRadius, 0.55f, Sfx.Hit);
         }

@@ -101,7 +101,7 @@ namespace Arena
                 case 3:  // Grab & Throw: the Flurry's target, if it's still there, close and not a boss
                 {
                     Enemy e;
-                    if (!Enemies.TryGetValue(p.KnuckleTarget, out e) || !Targetable(e) || e.Def.IsBoss || e.Pos.DistanceTo(p.Pos) > GrabRange + e.Radius)
+                    if (!Enemies.TryGetValue(p.KnuckleTarget, out e) || !Targetable(e) || e.Def.IsBoss || e.Pos.FartherThan(p.Pos, GrabRange + e.Radius))
                     {
                         EndKnuckleChain(p);
                         return false;  // (the press throws a punch instead)
@@ -222,7 +222,7 @@ namespace Arena
                 r.Pos = e.Pos;
                 Enemy into = null;
                 foreach (var o in Enemies.Values)
-                    if (o != e && Targetable(o) && o.Pos.DistanceTo(e.Pos) <= o.Radius + e.Radius)
+                    if (o != e && Targetable(o) && o.Pos.WithinReach(e.Pos, o.Radius + e.Radius))
                     {
                         into = o;
                         break;
@@ -268,7 +268,7 @@ namespace Arena
                 V2 want = pos + d / n;
                 V2 kept = PushOutOfProps(ClampToArena(want, e.Radius), r);
                 pos = kept;
-                if (kept.DistanceTo(want) > 0.5f)
+                if (kept.FartherThan(want, 0.5f))
                 {
                     e.Pos = pos;
                     return true;

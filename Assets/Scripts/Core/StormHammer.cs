@@ -114,7 +114,8 @@ namespace Arena
                 run.Age += dt;
                 float front = run.Age * HammerSlamSpeed;
                 bool any = false;
-                foreach (var e in new List<Enemy>(Enemies.Values))
+                var snap8 = SnapEnemies();
+                foreach (var e in snap8)
                 {
                     if (!Targetable(e) || run.Hit.Contains(e.Id))
                         continue;
@@ -135,6 +136,7 @@ namespace Arena
                         Electrify(e, run.Dmg, HammerSlamJumps, p.Id);
                     }
                 }
+                Free(snap8);
                 if (any)
                     p.Run.ShotsHit++;
                 if (front > run.Radius + 60f)

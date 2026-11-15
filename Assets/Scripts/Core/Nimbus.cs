@@ -38,7 +38,7 @@ namespace Arena
                 BroadcastFx(FxKind.Strike, at, at, new Rgba(0.78f, 0.86f, 1f), radius, StrikeFxTime, Sfx.SpellZap);
                 foreach (var e in Enemies.Values)
                 {
-                    if (!Targetable(e) || e.Pos.DistanceTo(at) > radius + e.Radius)
+                    if (!Targetable(e) || e.Pos.FartherThan(at, radius + e.Radius))
                         continue;
                     anyHit = true;
                     HurtEnemy(e, dmg, p.Id);
@@ -61,7 +61,7 @@ namespace Arena
                     continue;
                 float r = NimbusRain * AreaMult(p) * p.Stats.RainSizeMult;  // (Cloudburst: wider, heals more)
                 foreach (var q in Players.Values)
-                    if (!q.Downed && q.Pos.DistanceTo(m.Pos) <= r)
+                    if (!q.Downed && q.Pos.WithinReach(m.Pos, r))
                         Heal(q, NimbusRainHeal * dt * p.Stats.RainHealMult2, p);
             }
         }
