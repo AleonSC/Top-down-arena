@@ -437,7 +437,10 @@ namespace Arena
     public partial class Game
     {
         /// A wall can be pushed now: free building, between waves (a building round, or the doors-only break of a full map).
-        public bool CanPush => FreeBuild && CanCut;
+        /// Shelved (owner, Nov 15): wall push is off in the game. The code stays; set this false to bring it back (the tests do).
+        public static bool PushShelved = true;
+
+        public bool CanPush => !PushShelved && FreeBuild && CanCut;
 
         float pushClock;                                                   // host: seconds, for the per-player push rate
         readonly Dictionary<int, float> lastPush = new Dictionary<int, float>();

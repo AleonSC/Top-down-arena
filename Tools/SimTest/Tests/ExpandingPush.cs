@@ -178,6 +178,7 @@ static partial class Program
     /// Wall push in a game: between waves only, with free building, near the wall, paid by the pusher, sent to everyone.
     static void ExpandingPushTest(float dt)
     {
+        Game.PushShelved = false;  // the feature is shelved in the game; the tests run it anyway
         ExpandingPushRulesTest();
         ExpandingPushFeaturesTest();
         int port = nextPort++;
