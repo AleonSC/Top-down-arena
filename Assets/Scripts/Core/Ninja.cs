@@ -114,7 +114,7 @@ namespace Arena
                     int n = 1 + extra;
                     for (int i = 0; i < n; i++)
                     {
-                        float a = aim + (n == 1 ? 0f : (i / (n - 1f) - 0.5f) * 0.08f * (n - 1));
+                        float a = Fanned(aim, i, n, 0.08f);
                         var b = SpawnBullet(Defs.NeedleShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                         b.Medicine = true;  // poisons enemies, doses allies (Ninja.cs)
                     }
@@ -156,7 +156,7 @@ namespace Arena
                     float far = Math.Min(WardRange * p.Stats.ShotSpeedMult * PierceReach(p), Math.Max(40f, p.AimAt.DistanceTo(p.Pos) - p.Def.BodyR));
                     for (int i = 0; i < n; i++)
                     {
-                        float a = aim + (n == 1 ? 0f : (i / (n - 1f) - 0.5f) * 0.4f * (n - 1));
+                        float a = Fanned(aim, i, n, 0.4f);
                         var b = SpawnBullet(Defs.OfudaShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, far / fast, w.Damage * dmg, p.Id);
                         b.Ward = true;
                         b.Burst = 1;  // marks it as landing (MoveBullets)
@@ -167,7 +167,7 @@ namespace Arena
                 {
                     int n = 3 + extra;
                     for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.StarShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * StarFan * (n - 1)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Sticks = true;  // (switching to the Great Star stance recalls them: GreatStar.cs)
+                        SpawnBullet(Defs.StarShot, muzzle, V2.FromAngle(Fanned(aim, i, n, StarFan)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Sticks = true;  // (switching to the Great Star stance recalls them: GreatStar.cs)
                     break;
                 }
                 case WeaponId.Katana:
