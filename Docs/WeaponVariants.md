@@ -42,7 +42,7 @@ Play a run with the weapon and pass its milestones; each one unlocks the next va
 Under the three weapon buttons, the picked weapon shows **four chips**: the original and its three variants.
 Unlocked ones can be picked; locked ones show a lock and their milestone, with your best so far
 ("Beat the Duelist with the Mender's Bow · best: wave 24"). The spec sheet, hero card stats (Damage / s), live
-preview and Field guide all follow the picked variant.
+preview all follow the picked variant.
 
 ## The pilot: six weapons
 
@@ -97,7 +97,7 @@ Today: homing orbs (16 plus a bleed stack) charge a heal reserve; with 25 reserv
 
 ## Building it, step by step
 
-Each step: code, sim tests, previews, `weapondps` re-run, README / Armory / Field guide, then push and a short report.
+Each step: code, sim tests, previews, `weapondps` re-run, README, then push and a short report.
 
 1. **Framework.** Variants as weapon entries that name their base weapon (they share its lobby place and its
    Space abilities); the lobby's variant chips with locks and milestones; `LobbyEntry.Variant` (a protocol bump);

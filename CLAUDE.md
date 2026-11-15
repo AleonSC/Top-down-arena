@@ -32,7 +32,7 @@ no Unity in the cloud container: check changes with the tools below.
 - **Bump `Session.ProtocolVersion`** (`Core/Session.cs`) whenever a network message or snapshot format changes. Add a line for the new number at the top of `Docs/ProtocolHistory.md`; the code keeps only the number. New
   enum values (`Msg`, `Kit`, `WeaponId`, `AbilityId`, `EnemyType`, ...) go at the **end**, before `None`.
 - Ask every question to the owner through the in-chat question box (`AskUserQuestion`), never as plain text or an artifact form. Batch related questions into one box. Ask before deleting code.
-- The Bestiary and Armory (web pages, in-game Field guide, `BestiaryData*.cs`) are **retired**: never update or mention them in code, docs, tests, reports or new design docs. The files stay only because the sim test and `Juice.cs` still read them; ask before deleting anything.
+- The Bestiary, Armory and Field guide are gone and retired (the owner will regenerate them later): don't recreate, update or mention them in code, docs, tests or reports.
 - New UI uses `DevKit.cs`'s CRT widgets (`DkKey`, `DkSwitch`, `DkField`, `DkSub`, `DkPanel`, `DkTitle`, ...); `Ui.cs` holds drawing primitives only.
 - **Keep the session title current** with `set_session_title`: a short task name plus the current phase in
   brackets, updated as the phase changes, e.g. "Implement Lancer class (thinking)" → "(planning)" → "(coding)" →

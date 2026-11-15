@@ -22,7 +22,7 @@ static partial class Program
         Check(kin.All(k => { var a = Defs.Get(k.Key); var b = Defs.Get(k.Value); bool tougher = k.Key == EnemyType.Stinger || k.Key == EnemyType.Needler; return (tougher || a.Hp == b.Hp) && a.Speed == b.Speed && a.Radius == b.Radius && a.Melee == b.Melee && a.Contact == b.Contact && a.Xp == b.Xp; }),
             "each has its counterpart's speed, size, contact damage and XP, and its health bar the Stinger's and Needler's");
         Check(Defs.Get(EnemyType.Stinger).Hp == Defs.Get(EnemyType.TaserGuard).Hp * 1.5f && Defs.Get(EnemyType.Needler).Hp > Defs.Get(EnemyType.SecurityGuard).Hp * 1.5f, "Stingers and Needlers have half as much health again");
-        Check(kin.Keys.All(t => Game.EnemyNote(t).Length > 0 && BestiaryData.For(t) != null), "each has a Bestiary entry and a new-enemy note");
+        Check(kin.Keys.All(t => Game.EnemyNote(t).Length > 0), "each has a new-enemy note");
         Check(Game.IsBrute(EnemyType.Bumble) && Game.IsLunger(EnemyType.Hornet) && !Game.IsBrute(EnemyType.Worker), "the Bumble counts as a Brute and the Hornet as a Lunger");
 
         // --- Playing them: a solo host, one enemy at a time -------------------------------------------------------------------

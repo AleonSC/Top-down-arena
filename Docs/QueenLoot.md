@@ -44,7 +44,7 @@ Her royal dive, yours: a bonus ability on Q/E/Shift, like the Stun Gun. Cooldown
 
 ## Both
 
-- Icons in `PixelArt.cs` (a drone; a crown over a landing ring), card text, README, Armory, Bestiary note.
+- Icons in `PixelArt.cs` (a drone; a crown over a landing ring), card text, README.
 - Balance: measured with `run.sh 1 1 balance` (add both) against the legendary target (+40-60% in their best
   fight, at least +15% on a boss); Royal Dive also by its damage per cooldown next to the Stun Gun.
 - Tests: drones guard, sting after a kill and heal on return; the dive can't be hit in the air, lands at the

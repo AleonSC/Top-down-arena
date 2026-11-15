@@ -91,7 +91,7 @@ static class Perks { All[]; Get(id); BossOf(id); Slots(Profile); Unlocked(Profil
   lands; burn goes through; Parry-stopped hits don't spend it; recharge ends at 30 s of sim time; practice has no perks; a saved run keeps it;
   the profile line round-trips and drops a perk that is no longer unlocked; a snapshot round-trip keeps `RiotT`.
 - README: a Perks section (Riot Gear's numbers). `CODEMAP.md` and `HANDOFF.md` §2: the new files. `Docs/BossHuntsAndPerks.md`: Riot Gear's wording
-  changed, framework built. Bestiary and Armory are not touched.
+  changed, framework built.
 
 ## Build order
 

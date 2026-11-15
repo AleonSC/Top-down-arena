@@ -472,8 +472,7 @@ namespace Arena
                     {
                         introWave = game.Wave;
                         introT = IntroTime;
-                        var entry = BestiaryData.For(e.Type);
-                        introName = (entry != null ? entry.Name : e.Def.Name).ToUpperInvariant();
+                        introName = e.Def.Name.ToUpperInvariant();
                         Shake(0.2f);
                     }
                 }

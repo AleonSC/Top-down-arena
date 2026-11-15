@@ -197,7 +197,7 @@ A class is mostly two new files plus a line in each registry. Templates: `Docs/C
    (`KIT=<n> Tools/Preview/shot.sh <name> kitgrid`, `LOADOUT=...` in `lobby`), README.
 
 Things that already work for any class without edits: the lobby's class cards (they size themselves to
-`Defs.KitCount`), the Boss Lab's class picker, the Field guide, saves and records (by name), the session recorder.
+`Defs.KitCount`), the Boss Lab's class picker, saves and records (by name), the session recorder.
 The lobby fits about 8 class cards in a row before they get too small.
 
 ## 3. Testing and previewing (no Unity in the cloud container)

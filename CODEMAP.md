@@ -217,7 +217,6 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Variants.cs`: weapon variants (`Docs/Variants.md`): `Tiers` (2) and `Cost(owned)` in Cores, `RunCores`/`HuntCores` payouts; Cores and bought tiers live on `Profile`, the lobby's Variants window is `LobbyUi.DrawAscensionWindow`
 - `Rank.cs`: the cosmetic account rank: XP curve, tiers, XP for a run (`Rank.Award`), the cosmetics table (frames, trails, a background); XP, equipped cosmetics and recent runs live on `Profile`, the lobby carries each player's `Rank`/`Frame`/`Trail` (`Msg.Cosmetics`, `Session.ShareCosmetics`)
 - `RunStats.cs`: per-player run stats for the end screen
-- `BestiaryData.cs`, `BestiaryData.Entries.cs`: retired (the owner doesn't want them updated or referenced); only the sim test and `Juice.cs` still read them
 - `TextOverrides.cs`: dev text-editor edits
 - `WeaponDps.Generated.cs`: generated weapon DPS table, don't edit
 - `Docs/Reference.md`: generated weapon, ability, enemy, role and class tables (health, speed, damage, cooldowns, DPS, text) from the definitions; don't edit. `Tools/SimTest/Tests/RefDoc.cs` builds it (`run.sh 1 1 refdocwrite` rewrites it; suite `refdoc` fails when stale)

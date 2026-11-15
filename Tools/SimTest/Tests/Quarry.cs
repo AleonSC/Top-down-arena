@@ -24,7 +24,7 @@ static partial class Program
         Check(new[] { EnemyType.Rubble, EnemyType.Quarryman, EnemyType.SlabBearer, EnemyType.RockHurler, EnemyType.Driller, EnemyType.Geomancer, EnemyType.CinderPriest }.All(t => { var a = Defs.Get(t); var b = Defs.Get(kin[t]); return a.Hp == b.Hp && a.Speed == b.Speed && a.Contact == b.Contact && a.Xp == b.Xp; }),
             "all but the Stomper have their counterpart's health, speed, contact damage and XP");
         Check(Defs.Get(EnemyType.Stomper).Hp > Defs.Get(EnemyType.Thug).Hp && Game.IsBrute(EnemyType.Stomper), "the Stomper is a tougher Brute (180 health)");
-        Check(kin.Keys.All(t => Game.EnemyNote(t).Length > 0 && BestiaryData.For(t) != null), "each has a Bestiary entry and a new-enemy note");
+        Check(kin.Keys.All(t => Game.EnemyNote(t).Length > 0), "each has a new-enemy note");
 
         // --- Playing them: a solo host, one enemy at a time -------------------------------------------------------------------
         Game.SeedForTests(4322);

@@ -22,7 +22,7 @@ static partial class Program
         Check(new[] { EnemyType.Gnawling, EnemyType.Butcher, EnemyType.CarcassBearer, EnemyType.BileSpitter }.All(t => { var a = Defs.Get(t); var b = Defs.Get(kin[t]); return a.Hp == b.Hp && a.Speed == b.Speed && a.Contact == b.Contact && a.Xp == b.Xp; }),
             "the Gnawling, Butcher, Carcass Bearer and Bile Spitter have their counterpart's health, speed, contact damage and XP");
         Check(Defs.Get(EnemyType.Gulper).Hp > Defs.Get(EnemyType.Thug).Hp && Game.IsBrute(EnemyType.Gulper), "the Gulper is a tougher Brute (180 health)");
-        Check(kin.Keys.Concat(new[] { EnemyType.Gutworm, EnemyType.HookThrower }).All(t => Game.EnemyNote(t).Length > 0 && BestiaryData.For(t) != null && LarderKin.Is(t)), "each has a Bestiary entry and a new-enemy note");
+        Check(kin.Keys.Concat(new[] { EnemyType.Gutworm, EnemyType.HookThrower }).All(t => Game.EnemyNote(t).Length > 0 && LarderKin.Is(t)), "each has a new-enemy note");
         Check(Game.IsHook(EnemyType.HookThrower) && Game.IsNonShooter(EnemyType.HookThrower) && !Game.IsRetired(EnemyType.HookThrower), "the Hook Thrower throws like the Hookman, and isn't retired");
 
         // --- Playing them: a solo host, one enemy at a time -------------------------------------------------------------------

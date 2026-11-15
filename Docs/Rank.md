@@ -203,7 +203,6 @@ From the mockup, in priority order:
   function used at every size.
 - **Tests:** a `rank` SimTest suite: the curve and tier edges, the XP breakdown and multiplier cap, no XP from the
   Practice Range or dev-tool runs, profile load/save with and without XP, and the lobby message round trip.
-- Reference pages (Bestiary, Armory) are not touched by this.
 
 ## As built
 

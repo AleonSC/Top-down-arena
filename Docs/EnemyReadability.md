@@ -63,4 +63,3 @@ already carries.
 the snapshot format unless the job marker is sent rather than derived (derive it: `JobOf` is deterministic).
 
 ## Not touched
-Bestiary / Armory reference pages are not updated (owner's rule); they'll be out of date once these land.
