@@ -213,10 +213,9 @@ namespace Arena
             }
             LobbyMenuKeys();
             cabBootLog = "> LINK OK   > SAVE OK   > LOBBY";
-            BeginDrawer("MENU", Ui.Accent, 1f, "Esc closes this menu");
+            BeginDrawer("MENU", Ui.Accent, 1f);
             DrawMenuRows(LobbyMenuRows(), ref lobbySel);
             EndDrawerScreen();
-            CabFoot("ESC CLOSE / ARROWS SELECT / ENTER CHOOSE");
             EndDrawer();
         }
 
@@ -294,7 +293,7 @@ namespace Arena
             DrawMenuRows(PauseMenuRows(), ref pauseSel);
             EndDrawerScreen();
             DrawRunStatsKey();
-            CabFoot("ESC RESUME / ARROWS SELECT / ENTER CHOOSE", "HOLD TAB RUN STATS & BUILD   H HIDE HUD");
+            CabFoot(null, "HOLD TAB RUN STATS & BUILD   H HIDE HUD");
             EndDrawer();
             DrawTip(true);
             DrawRunScreen(t);
@@ -405,7 +404,6 @@ namespace Arena
                 Ui.Label(new Rect(46f, y, nw, nh + 4f), note, 12, CabSoft, TextAnchor.UpperLeft, false, true);
             }
             EndDrawerScreen();
-            CabFoot("ESC KEEP PLAYING / ARROWS SELECT / ENTER CHOOSE");
             EndDrawer();
             DrawRunScreen(t);
         }
@@ -639,7 +637,7 @@ namespace Arena
                     bool changed = false;
                     changed |= VolumeSlider(x, ref y, w, "Master", ref sounds.Master, col);
                     changed |= VolumeSlider(x, ref y, w, "Music", ref sounds.Music, col);
-                    changed |= VolumeSlider(x, ref y, w, "Weapons  (your shots and spells)", ref sounds.Weapons, col);
+                    changed |= VolumeSlider(x, ref y, w, "Your Weapons", ref sounds.Weapons, col);
                     changed |= VolumeSlider(x, ref y, w, "Enemies", ref sounds.Enemies, col);
                     changed |= VolumeSlider(x, ref y, w, "Effects  (explosions, abilities, the menus)", ref sounds.Effects, col);
                     bool m2 = SwitchRow(new Rect(x, y + 4f, w, 54f), sounds.Muted, "Mute all sound", "Everything off at once; the volumes are kept", Keybinds.NameOrNull(KeyAction.Mute));
@@ -980,6 +978,9 @@ namespace Arena
             EndPanelAnim();
         }
 
+        /// A key cap's width on the Controls page: its name's width plus padding, at least square.
+        static float HowToKeyW(string key) => Mathf.Max(30f, Ui.TextWidth(key.ToUpperInvariant(), 14, true) + 18f);
+
         void DrawHowToTopic(HowTo topic, float t, float top)
         {
             float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f;
@@ -992,23 +993,29 @@ namespace Arena
                 {
                     float kw = 0f;
                     foreach (var key in HowToKeys[i])
-                        kw += Mathf.Max(36f, 18f + key.Length * 9f) + 4f;
+                        kw += HowToKeyW(key) + 4f;
                     keysW[i / rows] = Mathf.Max(keysW[i / rows], kw);
                 }
                 for (int i = 0; i < HowToKeys.Length; i++)
                 {
                     int c = i / rows;
-                    float kx = x + c * (colW + 36f), ky = top + (i % rows) * rowH, cx = kx, lx = kx + keysW[c] + 12f;
+                    float kx = x + c * (colW + 36f), ky = top + (i % rows) * rowH, cx = kx, lx = kx + keysW[c] + 10f, lw = kx + colW - lx;
+                    float my = ky + (rowH - 4f) / 2f;  // the row's middle, above its dash line
                     foreach (var key in HowToKeys[i])
                     {
-                        float kw = Mathf.Max(36f, 18f + key.Length * 9f);
-                        WinKey(new Rect(cx, ky + 4f, kw, 30f), key.ToUpperInvariant(), false, 14, null, false, true, true);
+                        float kw = HowToKeyW(key);
+                        WinKey(new Rect(cx, my - 15f, kw, 30f), key.ToUpperInvariant(), false, 14, null, false, true, true);
                         cx += kw + 4f;
                     }
+                    // The name and its note, one line each, centred on the keys; a long note shrinks a size rather than wrap.
                     string note = HowToActions[i, 1];
-                    CrtUi.Text(new Rect(lx, ky, kx + colW - lx, note.Length > 0 ? 20f : 38f), WinText("win.k" + i, HowToActions[i, 0]), 15, CrtUi.Ink, TextAnchor.MiddleLeft, true, CabCalm);
-                    if (note.Length > 0)
-                        Ui.Label(new Rect(lx, ky + 19f, kx + colW - lx, 30f), WinText("win.n" + i, note), 11, CabSoft, TextAnchor.UpperLeft, false, true);
+                    bool hasNote = note.Length > 0;
+                    CrtUi.Text(new Rect(lx, hasNote ? my - 19f : my - 10f, lw, 20f), WinText("win.k" + i, HowToActions[i, 0]), 15, CrtUi.Ink, TextAnchor.MiddleLeft, true, CabCalm);
+                    if (hasNote)
+                    {
+                        int ns = Ui.TextWidth(note, 11) <= lw ? 11 : 10;
+                        Ui.Label(new Rect(lx, my + 1f, lw, 16f), WinText("win.n" + i, note), ns, CabSoft, TextAnchor.MiddleLeft);
+                    }
                     DashLine(kx, ky + rowH - 4f, colW);
                 }
                 return;

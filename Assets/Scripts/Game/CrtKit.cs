@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Arena
 {
     /// Shared pieces of the CRT cabinet menus (Docs/Mockups/crt-pause-menu.html, crt-profile.html, crt-lobby-digital.html):
-    /// text that backspaces and retypes, the screen power-on (a bright line that opens, then a flash), the boot-log line,
+    /// text that rewrites in place when it changes (Morph), the screen power-on (a bright line that opens, then a flash), the boot-log line,
     /// the scan bar, a soft digital key, the floating cabinet chassis and the screen's soft edges. Colours come from CrtUi
     /// (Ink, Dim, Bg). `calm` (Reduced effects) drops the glow, the flash and the typing: everything just shows.
     /// The power-on is a vertical flicker only: no sideways movement, and it never plays twice (the caller keeps an age
@@ -12,6 +12,12 @@ namespace Arena
     public static class CrtKit
     {
         public const float EraseLen = 0.24f, TypeLen = 0.4f, PowerLen = 1f;
+
+        /// A label that swaps to another label is overwritten in place over MorphLen: a cursor sweeps left to right, the
+        /// new text behind it, MorphRun scrambled glyphs at it, the old text still ahead of it (`Morph`).
+        public const float MorphLen = 0.42f;
+        const int MorphRun = 3;
+        const string MorphGlyphs = "ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#%&*+=/<>?";
 
         /// Key text is drawn at this fraction of the size asked for: the game's font is much bigger than the mockups' pixel font,
         /// and the original menus used small, light text.
@@ -80,8 +86,9 @@ namespace Arena
 
         static readonly Dictionary<string, Slot> slots = new Dictionary<string, Slot>();
 
-        /// What to show now for a label that retypes when its text changes: the old text backspaces away over EraseLen,
-        /// then the new text types in over TypeLen. A slot seen for the first time types in from nothing (after `delay`
+        /// What to show now for a label that retypes when its text changes: the old text is overwritten into the new one
+        /// over MorphLen (`Morph`; a label that goes to or comes from nothing backspaces over EraseLen and types in over
+        /// TypeLen instead). A slot seen for the first time types in from nothing (after `delay`
         /// seconds). `slot` names the label (any unique string); calm shows the text as it is.
         public static string Typed(string slot, string target, float now, bool calm, float delay = 0f)
         {
@@ -111,11 +118,50 @@ namespace Arena
             float e = now - s.T0;
             if (e < 0f)
                 return "";
+            if (s.From.Length > 0 && s.Target.Length > 0)
+                return Morph(s.From, s.Target, e / MorphLen, now);
             bool erase = s.From.Length > 0;
             if (erase && e < EraseLen)
                 return s.From.Substring(0, Mathf.RoundToInt(s.From.Length * (1f - e / EraseLen)));
             float p = Mathf.Clamp01((e - (erase ? EraseLen : 0f)) / TypeLen);
             return s.Target.Substring(0, Mathf.RoundToInt(s.Target.Length * p));
+        }
+
+        /// `from` rewriting into `to`, k (0..1) of the way: the new text left of a cursor, a short run of scrambled glyphs at
+        /// it (they flicker with `now`; spaces stay spaces), the old text right of it. The cursor runs past the longer text.
+        public static string Morph(string from, string to, float k, float now)
+        {
+            if (k >= 1f)
+                return to;
+            int n = Mathf.Max(from.Length, to.Length);
+            int cur = Mathf.FloorToInt(Mathf.Clamp01(k) * (n + MorphRun));  // positions left of `cur` are done
+            int tick = Mathf.FloorToInt(now * 30f);
+            var sb = new System.Text.StringBuilder(n);
+            for (int i = 0; i < n; i++)
+            {
+                if (i < cur - MorphRun)
+                {
+                    if (i < to.Length)
+                        sb.Append(to[i]);
+                }
+                else if (i < cur)
+                {
+                    char a = i < to.Length ? to[i] : ' ', b = i < from.Length ? from[i] : ' ';
+                    if (a == ' ' && b == ' ')
+                    {
+                        if (i < to.Length)
+                            sb.Append(' ');
+                    }
+                    else
+                    {
+                        char g = MorphGlyphs[(int)((uint)(i * 7919 + tick * 104729) % (uint)MorphGlyphs.Length)];
+                        sb.Append(char.IsLower(a == ' ' ? b : a) ? char.ToLowerInvariant(g) : g);  // (the noise keeps the text's case)
+                    }
+                }
+                else if (i < from.Length)
+                    sb.Append(from[i]);
+            }
+            return sb.ToString();
         }
 
         /// Forget every slot whose name starts with `prefix`: the next time they are drawn they type in from nothing
@@ -134,7 +180,10 @@ namespace Arena
         public static bool Settled(string slot, float now)
         {
             Slot s;
-            return !slots.TryGetValue(slot, out s) || now - s.T0 >= (s.From.Length > 0 ? EraseLen : 0f) + TypeLen;
+            if (!slots.TryGetValue(slot, out s))
+                return true;
+            float len = s.From.Length > 0 && s.Target.Length > 0 ? MorphLen : (s.From.Length > 0 ? EraseLen : 0f) + TypeLen;
+            return now - s.T0 >= len;
         }
 
         /// The header's sub-line while a window opens: a boot log types, holds, backspaces, then the real line types.

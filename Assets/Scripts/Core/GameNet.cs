@@ -762,15 +762,15 @@ namespace Arena
                 elite = e.Elite;
                 e.Marked = e.MarkT > 0f;  // the host draws from these too
                 e.Burning = e.BurnT > 0f || e.PoolT > 0f;
-                e.Frozen = e.FrozenT > 0f || e.SlowT > 0f && e.SlowMult <= 0.15f;  // Glacial Tomb, Frost Nova, Cryo freezes
-                e.Chilled = e.SlowT > 0f && !e.Frozen;
+                e.Frozen = IceFrozen(e) || IceSlowed(e) && e.SlowMult <= 0.15f;  // Glacial Tomb, Frost Nova, Cryo freezes (a Stun alone isn't ice: Daze.cs)
+                e.Chilled = IceSlowed(e) && !e.Frozen;
                 e.Bleeding = e.BleedT > 0f;
                 status = (byte)((e.Marked ? 1 : 0) | (e.Burning ? 2 : 0) | (e.Chilled ? 4 : 0) | (e.Frozen ? 8 : 0) | (e.Bleeding ? 16 : 0) | (e.Caged ? 32 : 0) | (e.Suppress >= SuppressShown ? 64 : 0) | (e.PoisonT > 0f ? 128 : 0));
                 hemorrhage = e.Hemorrhage;
                 stars = e.StarsStuck;
                 e.Suppressed = e.Suppress >= SuppressShown;
                 e.Poisoned = e.PoisonT > 0f;
-                e.Dazed = e.DazeT > 0f;
+                e.Dazed = e.DazeT > 0f || e.StunT > 0f;  // (a Stun shows the same stars)
             }
             s.Int(ref id);
             s.Byte(ref type);
