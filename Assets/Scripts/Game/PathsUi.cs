@@ -430,7 +430,7 @@ namespace Arena
                 float f = Mathf.Clamp01(game.TinyInset.X / 40f) * (game.TinyMoving ? 0.999f : 1f);
                 DrawNarrowWalls(0f, 0f, AW, AH, game.ArenaMin, game.ArenaMax, f, TinyAccent, t);
             }
-            else if (game.Walled && game.Has(RunMod.SolidWalls))
+            else if (game.Walled && game.Has(RunMod.SolidWalls) && !game.RoomsOn)  // (a Rooms world has its own walls)
                 DrawSolidWalls(t);  // ModifiersUi.cs
             if (game.NightF > 0f)
                 DrawNight(t);
@@ -439,7 +439,8 @@ namespace Arena
                 fogLights.Clear();
                 foreach (var p in game.Players.Values)
                     fogLights.Add(p.Disp);
-                DrawFog(0f, 0f, AW, AH, 40f, fogLights, Paths.FogSight, Paths.FogEdge, game.FogF, t);
+                var v = OverlayView(40f);
+                DrawFog(v.x, v.y, v.width, v.height, 40f, fogLights, Paths.FogSight, Paths.FogEdge, game.FogF, t);
             }
         }
 
@@ -510,15 +511,29 @@ namespace Arena
         const float NightSight = 210f, NightEdge = 90f, NightBeam = 560f, NightBeamHalf = 0.42f, NightCell = 30f;
         float[] nightAlpha;
 
+        /// The world area a full-screen overlay (Nightfall, fog) must cover: the classic arena, or in a bigger world (Rooms,
+        /// Expanding, Survival) what the camera shows right now, plus a lean's worth round it; snapped to the cell so it doesn't crawl.
+        Rect OverlayView(float cell)
+        {
+            if (!CamZoomed)
+                return new Rect(0f, 0f, AW, AH);
+            float hx = AW / (2f * camZoom) + LeanMaxX + cell, hy = AH / (2f * camZoom) + LeanMaxY + cell;
+            float x0 = Mathf.Floor((camFocus.X - hx) / cell) * cell, y0 = Mathf.Floor((camFocus.Y - hy) / cell) * cell;
+            float x1 = Mathf.Ceil((camFocus.X + hx) / cell) * cell, y1 = Mathf.Ceil((camFocus.Y + hy) / cell) * cell;
+            return new Rect(x0, y0, x1 - x0, y1 - y0);
+        }
+
         void DrawNight(float t)
         {
-            int nx = Mathf.CeilToInt(AW / NightCell), ny = Mathf.CeilToInt(AH / NightCell);
+            var view = OverlayView(NightCell);
+            float ox = view.x, oy = view.y, vw = view.width, vh = view.height;
+            int nx = Mathf.CeilToInt(vw / NightCell), ny = Mathf.CeilToInt(vh / NightCell);
             if (nightAlpha == null || nightAlpha.Length < (nx + 1) * (ny + 1))
                 nightAlpha = new float[(nx + 1) * (ny + 1)];
             for (int j = 0; j <= ny; j++)
                 for (int i = 0; i <= nx; i++)
                 {
-                    V2 p = new V2(Mathf.Min(AW, i * NightCell), Mathf.Min(AH, j * NightCell));
+                    V2 p = new V2(ox + Mathf.Min(vw, i * NightCell), oy + Mathf.Min(vh, j * NightCell));
                     float dark = 1f;
                     foreach (var pl in game.Players.Values)
                     {
@@ -541,7 +556,7 @@ namespace Arena
                     float a00 = nightAlpha[k], a10 = nightAlpha[k + 1], a01 = nightAlpha[k + nx + 1], a11 = nightAlpha[k + nx + 2];
                     if (a00 + a10 + a01 + a11 <= 0.001f)
                         continue;
-                    V2 p00 = new V2(i * NightCell, j * NightCell), p11 = new V2(Mathf.Min(AW, p00.X + NightCell), Mathf.Min(AH, p00.Y + NightCell));
+                    V2 p00 = new V2(ox + i * NightCell, oy + j * NightCell), p11 = new V2(Mathf.Min(ox + vw, p00.X + NightCell), Mathf.Min(oy + vh, p00.Y + NightCell));
                     V2 p10 = new V2(p11.X, p00.Y), p01 = new V2(p00.X, p11.Y);
                     NightVertex(p00, a00); NightVertex(p10, a10); NightVertex(p11, a11);
                     NightVertex(p00, a00); NightVertex(p11, a11); NightVertex(p01, a01);
