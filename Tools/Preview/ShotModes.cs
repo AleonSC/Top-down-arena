@@ -360,6 +360,7 @@ static partial class Shot {
       // CRT=<seconds>: that far into New run's CRT boot (LobbyCrt.cs). Every lobby shot has the CRT screen and glass round it.
       var crtIn = Environment.GetEnvironmentVariable("CRT");
       if (crtIn != null) set("crtEntry", true);
+      if (Environment.GetEnvironmentVariable("CRTSTYLE") != null) set("crtStyle", int.Parse(Environment.GetEnvironmentVariable("CRTSTYLE")));
       if (crtIn != null) set("enterT", float.Parse(crtIn, System.Globalization.CultureInfo.InvariantCulture));
       Action<string> crtDraw = n => { Event.current.type = EventType.Repaint; typeof(ArenaApp).GetMethod(n, f2, null, new[] { typeof(float) }, null).Invoke(app, new object[] { 7.3f }); };
       crtDraw("DrawLobbyCrtBack");
