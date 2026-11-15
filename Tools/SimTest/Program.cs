@@ -319,6 +319,7 @@ static partial class Program
         Test("ults", "every ultimate over the network", () => UltimateSweep(Dt)),
         Test("showcase", "the lobby's loadout preview", () => ShowcaseTest(Dt)),
         Test("knight", "the Knight", () => KnightTest(Dt)),
+        Test("twinblades", "the Twin Blades: each step's shove", () => TwinBladesTest(Dt)),
         Test("knightdps", "the DPS Knight's Caught Steel, Gauntlet, Bladed Dive and Drawbridge", () => KnightDpsTest(Dt)),
         Test("basicfaction", "the basic faction: the eight plain enemies left, Quick Play's build-up for a boss with no faction, nothing retired in any wave", BasicFactionTest),
         Test("court", "the Duelist's faction (all four steps): the Fencer's hop, the Blade Dancer's blades, the Parrier's parries, the Second's daggers, the Marshal's circle, the Gallant's salute, the Harlequin's crossing, the Mummer's copies, the Ring of Honour, the ten lessons", () => CourtTest(Dt)),
@@ -489,7 +490,7 @@ static partial class Program
     /// test; its other test is also in features.)
     static readonly string[] CiExtras =
     {
-        "swordsman", "nonshooters", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "melee", "brute",
+        "swordsman", "nonshooters", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
         "trickle", "meleesounds", "grunts", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
         "exploit", "doublebarrel", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
         "expand", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
