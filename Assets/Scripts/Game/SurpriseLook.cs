@@ -55,6 +55,8 @@ namespace Arena
                 if (c.X < -60f || c.X > W + 60f || c.Y < -30f || c.Y > H + 30f)
                     continue;
                 Ui.Label(new Rect(c.X - 60f, c.Y - 14f, 120f, 28f), "+" + Game.StashVectors, 22, new Color(0.25f, 0.9f, 0.7f, pulse), TextAnchor.MiddleCenter, true);
+                if (game.Me != null && game.Me.Vectors >= game.Me.VectorCap)  // a full stock: it waits for you to spend some (VectorGainLook.cs)
+                    FullTag(new V2(c.X, c.Y - 24f), pulse);
             }
         }
 
