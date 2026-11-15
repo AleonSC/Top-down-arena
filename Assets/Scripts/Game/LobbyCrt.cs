@@ -347,7 +347,7 @@ namespace Arena
             float growIn = Seg(e, CrtGrowFrom - 0.15f, CrtGrowFrom + 0.1f);
             float grow = EaseInOut(Seg(e, CrtGrowFrom, CrtGrowTo));
             if (growIn < 1f)
-                Ui.Fill(scr, new Color(0.7f, 0.85f, 1f, 0.4f * flare * flare * (1f - growIn)));
+                Ui.Fill(scr, new Color(0.7f, 0.85f, 1f, 0.15f * flare * flare * (1f - growIn)));
             if (growIn > 0f && grow < 1f)
                 WithAlpha(growIn, () => DrawCrtGrowScreen(LerpRect(scr, full, grow), grow, e));
 

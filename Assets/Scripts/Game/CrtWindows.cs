@@ -121,7 +121,6 @@ namespace Arena
             cabScreenOpen = false;
             if (!cabScreenOn)
                 return;
-            CrtKit.ScanBar(cabScreen, CabAge - 1.2f, CabCalm);
         }
 
         void EndDrawer()
@@ -129,7 +128,7 @@ namespace Arena
             EndDrawerScreen();
             GUI.EndGroup();
             GUI.EndGroup();
-            HoloBoot.Over(cabBootRect, cabBootE);
+            HoloBoot.Over(cabBootRect, cabBootE, HoloBoot.Wipe, false);
         }
 
         float cabBootE = 99f;  // seconds into the cabinet's holo boot (99: none)
@@ -218,7 +217,7 @@ namespace Arena
         {
             if (booting)
                 GUI.EndGroup();
-            HoloBoot.Over(r, age, KeyWipe);
+            HoloBoot.Over(r, age, KeyWipe, false);
         }
 
         /// The physical Back key at `y` in the drawer, right under the options list (Settings, How to play, the profile). It comes in
@@ -418,7 +417,7 @@ namespace Arena
                 GUI.EndGroup();
             cabWinBooting = false;
             if (cabWinOn)
-                HoloBoot.Over(cabWinRect, cabWinBootE);
+                HoloBoot.Over(cabWinRect, cabWinBootE, HoloBoot.Wipe, false);
         }
 
         /// The window's heading: its title (big, typed, with the cursor), a small line under it and a rule; an X key at the
