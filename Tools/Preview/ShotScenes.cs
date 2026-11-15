@@ -1029,10 +1029,14 @@ static partial class Shot {
           }
           break;
         }
-        case WeaponId.TwinBlades:  // TWINSTEP=1..5 a step of the Crescent Waltz (default 1), TWINSTEP=fang Twin Fang (SWING = seconds after the click)
+        case WeaponId.TwinBlades:  // TWINSTEP=1..5 a step of the Crescent Waltz (default 1), TWINSTEP=fang Twin Fang's wind-up (SWING = seconds after the click; past the release the pair spins 180 px out along the aim)
         {
           string tsn = Environment.GetEnvironmentVariable("TWINSTEP") ?? "1";
-          if (tsn == "fang") gm.Effects.Add(new Effect { Kind = FxKind.TwinFang, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * Game.FangReach, Color = Game.TwinMoon, Radius = me.Id, T = st, Dur = TwinBladesMotion.FangTotal });
+          if (tsn == "fang")
+          {
+            gm.Effects.Add(new Effect { Kind = FxKind.TwinFang, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * 180f, Color = Game.TwinMoon, Radius = me.Id, T = st, Dur = TwinBladesMotion.FangRelease + 0.3f });
+            if (st >= TwinBladesMotion.FangRelease) { me.FangOut = 2; me.FangAt = me.Pos + V2.FromAngle(me.Aim) * 180f; }
+          }
           else { int tsi = int.Parse(tsn); me.Combo = (1 << 3) | tsi; gm.Effects.Add(new Effect { Kind = FxKind.TwinStep, Pos = me.Pos, Pos2 = to, Color = Game.TwinMoon, Radius = me.Id * 10 + tsi, T = st, Dur = TwinBladesMotion.Steps[tsi - 1].Dur + TwinBladesMotion.Recover }); }
           break;
         }

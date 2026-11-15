@@ -611,6 +611,8 @@ namespace Arena
             s.Float(ref p.TwinAimL);    // the Twin Rifle Auto's guns and lock (TwinAuto.cs)
             s.Float(ref p.TwinAimR);
             s.Int(ref p.TwinLock);
+            s.Byte(ref p.FangOut);      // Twin Fang's spinning sabres and where they are (TwinBlades.cs)
+            s.Vec(ref p.FangAt);
             s.Byte(ref p.AmmoMove);     // Out of Ammo's knife chain, swats and spin (OutOfAmmo.cs)
             s.Byte(ref p.AmmoSeq);
             s.Byte(ref p.KnifeMove);

@@ -380,11 +380,13 @@ static partial class Program
             ((IList)runsF.GetValue(g)).Clear();
             fang.Invoke(g, new object[] { me, me.Pos + new V2(1000f, 0f) });
             var run = ((IList)runsF.GetValue(g))[0];
-            return ((V2)run.GetType().GetField("To").GetValue(run)).DistanceTo(me.Pos);
+            me.FangOut = 0;
+            return (float)run.GetType().GetField("Follow").GetValue(run);
         };
         float fr0 = sabres(0), fr1 = sabres(1);
         ((IList)runsF.GetValue(g)).Clear();
-        Check(near(fr1 / fr0, 1.25f, 0.01f) && near(me.Stats.FangDmgMult, 1.3f, 0.001f), "Whirling Sabres: the thrown sabres fly 25% farther (" + fr0 + " -> " + fr1 + " px) and hit 30% harder");
+        me.FangOut = 0;
+        Check(near(fr1 / fr0, 1.25f, 0.01f) && near(me.Stats.FangDmgMult, 1.3f, 0.001f), "Whirling Sabres: the thrown sabres follow the cursor 25% longer (" + fr0 + " -> " + fr1 + " s) and hit 30% harder");
 
         var guard = typeof(Game).GetMethod("HostGreatGuard", flags);
         var block = typeof(Game).GetMethod("GreatGuardBlock", flags);

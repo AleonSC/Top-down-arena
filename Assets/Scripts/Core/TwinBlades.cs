@@ -8,9 +8,11 @@ namespace Arena
     ///     step is Next of the way through; TwinChainWindow after a step ends without one, the chain starts over too. Each step
     ///     moves you forward a little: the host counts the swings in Player.Combo's high bits, and your own game steps you
     ///     forward when the count changes (LocalTwinStep), as the Katana's dash does. The Shear launches a piercing crescent.
-    ///   - Alt (the weapon-action key): Twin Fang. Both sabres are thrown out on mirrored curves to your cursor (up to
-    ///     FangReach), cross there in a burst and fly back the other way, cutting what they pass both ways. You can't swing
-    ///     until you catch them. Your game sends Msg.WeaponDash (DashStrike, aimed at the cursor); the host does the rest.
+    ///   - Alt (the weapon-action key): Twin Fang. Both sabres are thrown as one spinning pair that flies to your cursor and
+    ///     keeps following it for FangFollow seconds, cutting every enemy it spins through (each again every FangRehit) and
+    ///     small shots too. Enemies don't stop it; a wall or pillar (or the arena's edge) does, and then it flies back to your
+    ///     hand. You can't swing until you catch it; the cooldown counts from the catch. Your game sends Msg.WeaponDash
+    ///     (DashStrike); the host flies the pair after Player.AimAt and replicates it (Player.FangOut, FangAt).
     /// Each step is one effect (FxKind.TwinStep) and each throw one (FxKind.TwinFang), drawn from their age (Game/TwinBladesLook.cs).
     public partial class Game
     {
@@ -19,16 +21,19 @@ namespace Arena
         public static readonly float[] TwinMult = { 1f, 1f, 0.75f, 0.8f, 2.75f };  // damage of each hit of each step against the weapon's Damage (16, 16, 12 x2, 13 x2, 44)
         public const float TwinGuard = 0.3f;                                         // damage you take while the chain is going: 30% less
         public const float TwinWaveMult = 1.875f;                                    // the Shear's crescent: 30
-        public const float FangReach = 210f, FangHitR = 20f, FangMult = 1.125f, FangBurstMult = 1.5625f, FangBurstR = 55f, FangCooldown = 4f;
+        public const float FangSpeed = 620f, FangSteer = 8f, FangFollow = 2.2f, FangHitR = 44f, FangRehit = 0.2f, FangMult = 0.75f;
+        public const float FangReturnSpeed = 950f, FangCatchR = 24f, FangWallPad = 16f, FangCooldown = 3.5f, FangSpinRate = 18f;
         public static readonly Rgba TwinMoon = new Rgba(0.67f, 0.84f, 1f);
 
         class FangRun
         {
             public int Owner;
-            public V2 From, To;
+            public V2 Pos, Vel;
             public float T;          // seconds since the press
-            public bool Burst;
-            public readonly HashSet<int> Hit = new HashSet<int>();  // enemy id * 4 + blade * 2 + leg
+            public float Follow;     // seconds it follows the cursor (Whirling Sabres: longer)
+            public bool Back;        // flying back to the hand (a wall stopped it, or its time ran out)
+            public float CueT;       // until the next hit cue (so a long cut doesn't shake every tick)
+            public readonly Dictionary<int, float> Hit = new Dictionary<int, float>();  // enemy id -> when it can be cut again
         }
 
         readonly List<FangRun> fangRuns = new List<FangRun>();
@@ -100,6 +105,8 @@ namespace Arena
             foreach (var p in Players.Values)
             {
                 p.FangCd = Math.Max(0f, p.FangCd - dt);
+                if (p.FangOut != 0 && !fangRuns.Exists(r => r.Owner == p.Id))
+                    p.FangOut = 0;  // (a run reset dropped the pair)
                 if (p.Weapon.Id == WeaponId.Censer)
                     continue;  // the Censer keeps its rite in Combo too (Censer.cs)
                 if (TwinBladesMotion.StepOf(p.Combo) != 0 && ((p.ComboT -= dt) <= 0f || p.Downed || (p.Weapon.Id != WeaponId.TwinBlades && p.Weapon.Id != WeaponId.Lightbringer && p.Weapon.Id != WeaponId.Lance && p.Weapon.Id != WeaponId.ArcKnuckles)))  // (the Lightbringer's, the Lance's and the Arc Knuckles' chains share Combo)
@@ -109,55 +116,101 @@ namespace Arena
             {
                 var r = fangRuns[i];
                 Player p;
-                r.T += dt;
-                if (!Players.TryGetValue(r.Owner, out p) || r.T >= TwinBladesMotion.FangRelease + TwinBladesMotion.FangFlight)
+                if (!Players.TryGetValue(r.Owner, out p) || p.Weapon.Id != WeaponId.TwinBlades || r.T > TwinBladesMotion.FangRelease + r.Follow + 6f)
                 {
                     fangRuns.RemoveAt(i);
-                    if (p != null && !p.Downed)
-                        BroadcastSound(Sfx.TwinCatch);  // both sabres back in hand
+                    if (p != null)
+                        p.FangOut = 0;
                     continue;
                 }
-                float q = (r.T - TwinBladesMotion.FangRelease) / TwinBladesMotion.FangFlight;
-                if (q < 0f)
-                    continue;
-                FlyFang(p, r, q);
+                if (!FlyFang(p, r, dt))
+                {
+                    fangRuns.RemoveAt(i);
+                    p.FangOut = 0;
+                    p.FangCd = FangCooldown;
+                    if (!p.Downed)
+                        BroadcastSound(Sfx.TwinCatch);  // both sabres back in hand
+                }
             }
         }
 
-        void FlyFang(Player p, FangRun r, float q)
+        /// One tick of a thrown pair: out of the hand, after the cursor, back on a wall or when time runs out. False once caught.
+        bool FlyFang(Player p, FangRun r, float dt)
         {
-            float dmg = p.Weapon.Damage * p.Stats.DmgMult;
-            int leg = q < 0.5f ? 0 : 1, cut = 0;
-            for (int blade = 0; blade < 2; blade++)
+            r.T += dt;
+            r.CueT -= dt;
+            p.FireCd = Math.Max(p.FireCd, 0.1f);  // no swings until they're caught
+            if (r.T < TwinBladesMotion.FangRelease)
             {
-                V2 at = TwinBladesMotion.FangPos(r.From, r.To, p.Pos, q, blade == 0 ? 1 : -1);
-                foreach (var e in Enemies.Values)
+                r.Pos = p.Pos;
+                p.FangOut = 1;
+                p.FangAt = p.Pos;
+                return true;
+            }
+            if (p.FangOut == 1)
+            {
+                V2 aim = p.AimAt - p.Pos;  // released: thrown hard at the cursor
+                r.Vel = (aim.LengthSq > 1f ? aim.Normalized() : V2.FromAngle(p.Aim)) * FangSpeed;
+                r.Pos = p.Pos + r.Vel.Normalized() * 18f;
+                p.FangOut = 2;
+            }
+            if (!r.Back)
+            {
+                V2 to = p.AimAt - r.Pos;
+                float d = to.Length;
+                V2 want = d > 1f ? to / d * Math.Min(FangSpeed, d * 5f) : V2.Zero;  // eases in over the cursor and hovers there
+                r.Vel += (want - r.Vel) * Math.Min(1f, FangSteer * dt);
+                r.Pos += r.Vel * dt;
+                if (FangHitsWall(r.Pos))
                 {
-                    if (!Targetable(e) || e.Pos.FartherThan(at, e.Radius + FangHitR))
-                        continue;
-                    if (!r.Hit.Add(e.Id * 4 + blade * 2 + leg))
-                        continue;
-                    FangHurt(p, e, dmg * FangMult * p.Stats.FangDmgMult, at);  // (Whirling Sabres: harder)
-                    cut++;
+                    r.Back = true;
+                    BroadcastFx(FxKind.Ring, r.Pos, TwinMoon, 26f, 0.25f, Sfx.TwinCross);  // the clang on the wall
+                    TwinHitCue(p, 7, 0);
                 }
-                CutShotsNear(at, FangHitR);
+                else if (r.T >= TwinBladesMotion.FangRelease + r.Follow)
+                    r.Back = true;
             }
-            if (cut > 0)
-                TwinHitCue(p, 6, cut);
-            if (!r.Burst && q >= 0.5f)
+            else
             {
-                r.Burst = true;
-                int burst = 0;
-                foreach (var e in Enemies.Values)
-                    if (Targetable(e) && e.Pos.WithinReach(r.To, e.Radius + FangBurstR))
-                    {
-                        FangHurt(p, e, dmg * FangBurstMult * p.Stats.FangDmgMult, r.To);
-                        burst++;
-                    }
-                BroadcastFx(FxKind.Ring, r.To, TwinMoon, FangBurstR, 0.3f, Sfx.TwinCross);
-                if (burst > 0)
-                    TwinHitCue(p, 7, burst);
+                V2 to = p.Pos - r.Pos;
+                float d = to.Length, step = FangReturnSpeed * dt;
+                if (d <= FangCatchR || d <= step)
+                    return false;
+                r.Vel = to / d * FangReturnSpeed;
+                r.Pos += r.Vel * dt;
             }
+            p.FangOut = (byte)(r.Back ? 3 : 2);
+            p.FangAt = r.Pos;
+            // the spinning pair cuts what it passes through: each enemy again every FangRehit, hits don't stop it
+            float dmg = p.Weapon.Damage * p.Stats.DmgMult * FangMult * p.Stats.FangDmgMult;  // (Whirling Sabres: harder)
+            int cut = 0;
+            foreach (var e in Enemies.Values)
+            {
+                if (!Targetable(e) || e.Pos.FartherThan(r.Pos, e.Radius + FangHitR))
+                    continue;
+                float next;
+                if (r.Hit.TryGetValue(e.Id, out next) && r.T < next)
+                    continue;
+                r.Hit[e.Id] = r.T + FangRehit;
+                FangHurt(p, e, dmg, r.Pos);
+                cut++;
+            }
+            CutShotsNear(r.Pos, FangHitR);
+            if (cut > 0 && r.CueT <= 0f)
+            {
+                r.CueT = 0.12f;
+                TwinHitCue(p, 6, cut);
+            }
+            return true;
+        }
+
+        /// A wall or pillar, or the arena's edge, where the spinning pair is.
+        bool FangHitsWall(V2 at)
+        {
+            V2 lo = ArenaMin, hi = ArenaMax;
+            if (at.X < lo.X + FangWallPad || at.Y < lo.Y + FangWallPad || at.X > hi.X - FangWallPad || at.Y > hi.Y - FangWallPad)
+                return true;
+            return LayoutOn && NearSolid(at, FangWallPad);
         }
 
         void FangHurt(Player p, Enemy e, float dmg, V2 from)
@@ -183,24 +236,22 @@ namespace Arena
             }
         }
 
-        /// Host: the weapon-action key with the Twin Blades, aimed at `aimAt`: Twin Fang, if it is ready.
+        /// Host: the weapon-action key with the Twin Blades: Twin Fang, if it is ready and the sabres are in hand.
         void HostTwinFang(Player p, V2 aimAt)
         {
-            if (p.Weapon.Id != WeaponId.TwinBlades || p.FangCd > 0f || p.Downed || p.StunT > 0f || p.ParryActive || State == MatchState.GameOver)
+            if (p.Weapon.Id != WeaponId.TwinBlades || p.FangCd > 0f || p.FangOut != 0 || p.Downed || p.StunT > 0f || p.ParryActive || State == MatchState.GameOver)
                 return;
-            V2 to = aimAt - p.Pos;
-            float len = to.Length;
-            V2 dir = len > 1f ? to / len : V2.FromAngle(p.Aim);
-            V2 target = ClampToArena(p.Pos + dir * Math.Min(FangReach * p.Stats.FangReachMult, Math.Max(60f, len)), 10f);
-            p.FangCd = FangCooldown;
-            p.FireCd = Math.Max(p.FireCd, TwinBladesMotion.FangTotal);  // no swings until the sabres are caught
+            p.AimAt = aimAt;
+            p.FangOut = 1;
+            p.FangAt = p.Pos;
+            p.FireCd = Math.Max(p.FireCd, TwinBladesMotion.FangRelease);
             p.Combo &= ~7;
             pendingSwings.RemoveAll(s => s.Owner == p.Id && s.Twin && s.Delay > 0f);  // a step still winding up never lands
-            fangRuns.Add(new FangRun { Owner = p.Id, From = p.Pos, To = target });
-            BroadcastFx(FxKind.TwinFang, p.Pos, target, TwinMoon, p.Id, TwinBladesMotion.FangTotal, Sfx.TwinThrow);
+            fangRuns.Add(new FangRun { Owner = p.Id, Pos = p.Pos, Follow = FangFollow * p.Stats.FangTimeMult });
+            BroadcastFx(FxKind.TwinFang, p.Pos, aimAt, TwinMoon, p.Id, TwinBladesMotion.FangRelease + 0.3f, Sfx.TwinThrow);
         }
 
-        /// Host: a step (1-5) or a thrown sabre (6 passing, 7 the burst) cut `hits` enemies. Sent as an effect that draws nothing: it
+        /// Host: a step (1-5) or the thrown sabres (6 cutting, 7 striking a wall) cut `hits` enemies. Sent as an effect that draws nothing: it
         /// carries the cut's sound, and the swordsman's own game holds the picture and shakes (Game/Juice.cs, TwinHitFeel).
         void TwinHitCue(Player p, int kind, int hits)
         {
@@ -223,7 +274,10 @@ namespace Arena
         /// Each step moves you forward a little as it plays (the host counts the steps; a change in the count is a new one).
         void LocalTwinStep(Player me, float dt)
         {
-            fangLocalCd = Math.Max(0f, fangLocalCd - dt);
+            if (me.FangOut != 0)
+                fangLocalCd = FangCooldown;  // the cooldown counts from the catch
+            else
+                fangLocalCd = Math.Max(0f, fangLocalCd - dt);
             int count = me.Combo >> 3;
             if (twinCountSeen < 0 || me.Weapon.Id != WeaponId.TwinBlades)
             {
