@@ -28,8 +28,6 @@ namespace Arena
                 amount *= Math.Max(0.2f, 1f - RoarReduction - p.Stats.RoarExtraReduction);
             amount *= RodMult(p);  // Lightning Rod's charge (LightningRod.cs)
             amount *= p.Stats.DamageTaken;
-            if (p.Weapon.Id == WeaponId.TwinBlades && TwinBladesMotion.StepOf(p.Combo) != 0 && p.ComboT > 0f)
-                amount *= 1f - TwinGuard;  // mid-chain the sabres turn blows aside (TwinBlades.cs)
             if (p.GhostT > 0f)
                 amount *= 1f - p.Stats.GhostCut;  // Ghost Step: just after a dodge
             if (Has(RunMod.GlassCannon))
