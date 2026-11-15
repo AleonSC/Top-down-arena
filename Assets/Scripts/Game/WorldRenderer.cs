@@ -690,11 +690,20 @@ namespace Arena
         /// Until EndUiGl (or UiNoClip), cut everything drawn to this rect of the UI canvas.
         void UiClip(Rect r)
         {
+            if (pieceGlOn)  // a lobby piece being revealed (LobbyEnter.cs, LobbyCrt.cs): cut to both, so the models don't show past the reveal
+            {
+                float x0 = Mathf.Max(r.x, pieceGlClip.x), y0 = Mathf.Max(r.y, pieceGlClip.y);
+                r = new Rect(x0, y0, Mathf.Max(0f, Mathf.Min(r.xMax, pieceGlClip.xMax) - x0), Mathf.Max(0f, Mathf.Min(r.yMax, pieceGlClip.yMax) - y0));
+            }
             glClip = r;
             glClipOn = true;
         }
 
-        void UiNoClip() => glClipOn = false;
+        void UiNoClip()
+        {
+            glClip = pieceGlClip;  // (back to the revealed piece's cut while one is drawing)
+            glClipOn = pieceGlOn;
+        }
 
         /// Models drawn next sit around (0, 0), scaled by zoom and centred on `at` (UI canvas).
         void UiModelAt(V2 at, float zoom)
