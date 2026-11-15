@@ -932,7 +932,8 @@ design notes: [`Docs/ArenaLayouts.md`](Docs/ArenaLayouts.md).
   and enemies come in along the edges it allows. Narrow Pass, Tiny Arena and Solid Walls close the arena, so the edge
   gates drop away (the inner walls stay).
 - The host can turn layouts off for a run on the lobby's **Difficulty** tab (**Layouts off**, beside the boss approach picks).
-- Enemies that walk steer round a wall that's in their way instead of pushing at it.
+- Enemies that walk steer round a wall that's in their way instead of pushing at it. Standing against a wall or in a corner
+  doesn't fool them: with nothing in between they still come straight at you.
 - **Touching a wall** (any wall, pillar or cover, in every arena) makes it crackle: jagged arcs of electricity crawl
   along its face from the touch, with sparks and a little bolt from you, in the wall's colour, plus a low neon hum.
   Everyone's touches show, and you hear the strongest one, quieter the further it is from you (gone past 700 px).
