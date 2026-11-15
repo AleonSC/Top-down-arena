@@ -32,8 +32,8 @@ namespace Arena
                 if (!line)
                     return;
                 float y = r.y + r.height * Reveal(e, wipe);
-                Ui.Glow(new Rect(r.x, y - 2f, r.width, 4f), ink, 0.5f);
-                Ui.Fill(new Rect(r.x, y - 1f, r.width, 2f), new Color(0.92f, 0.96f, 1f, 0.9f));
+                Ui.Glow(new Rect(r.x, y - 2f, r.width, 4f), ink, 0.25f);
+                Ui.Fill(new Rect(r.x, y - 1f, r.width, 2f), new Color(0.92f, 0.96f, 1f, 0.45f));
                 return;
             }
             float f = (e - wipe) / Flicker;
@@ -192,7 +192,7 @@ namespace Arena
 
         // --- Radar sweep --------------------------------------------------------------------------------------------------
 
-        /// GL, inside the loadout preview's pass (model at the screen, clipped to `view`): a slow beam sweeping round from low
+        /// (Not called any more: the loadout preview has no radar sweep.) GL, inside the loadout preview pass: a slow beam sweeping round from low
         /// in the window, with a fading trail and faint range rings. No blips.
         void DrawPreviewRadar(Rect view)
         {

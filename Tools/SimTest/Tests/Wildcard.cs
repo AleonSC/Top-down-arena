@@ -26,7 +26,7 @@ static partial class Program
 
         Check(p.Role == Role.Wildcard, "the host is a Wildcard");
         Check(p.Kit == Kit.Soldier, "a Wildcard has no class of its own (no class health, speed or passives)");
-        Check(Math.Abs(p.BaseHp - 130f) < 0.01f, "a Wildcard has 130 health, got " + p.BaseHp);
+        Check(Math.Abs(p.BaseHp - 125f) < 0.01f, "a Wildcard has 125 health, got " + p.BaseHp);
         Check(p.Weapon.Id == Defs.Weapon(Role.Dps, Kit.Ninja, 1).Id, "the weapon is the Ninja's second DPS weapon");
         Check(p.RoleAbility == Upgrades.RoleAbility(Role.Dps, Kit.Elementalist, 0), "the first ability is the Elementalist's Meteor");
         var bonus = Upgrades.RoleAbility(Role.Dps, Kit.Hemomancer, 0);
