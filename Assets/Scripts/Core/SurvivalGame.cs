@@ -27,6 +27,7 @@ namespace Arena
         // What the camera shows round a player (half width and height at the default zoom, plus a margin): enemies appear outside it.
         const float ViewHalfW = 880f, ViewHalfH = 500f;
         const int CrateGoal = 120, PotGoal = 40, BarrelGoal = 8;
+        const int MaxProps = 250;  // the snapshot sends the prop count in a byte (Props.cs SyncProps)
         int survSeed;
         string survSquad;
         V2 survSquadPos;
@@ -57,7 +58,7 @@ namespace Arena
             float time = SurvTime;
             int wave = Survival.WaveAt(time);
             AddUnlockToasts(Profile.SurvivalEnded(Arena.Profile.ClassKey(me.Role, me.Kit), time, SurvPhase + 1));
-            LastGain = Profile.AwardXp(Rank.Award(false, Math.Max(0, wave - 1), 0, me.Run.Revives, Mods, Diff.Level), wave, 0);
+            LastGain = Profile.AwardXp(Rank.Award(false, Math.Max(0, wave - 1), 0, me.Run.Revives, Modifiers.Active(Mods, true), Diff.Level), wave, 0);
             PayCores(Variants.RunCores(false, 0, false), found);
             var logged = Profile.Recent[0];
             logged.Class = Arena.Profile.ClassKey(me.Role, me.Kit);
@@ -90,6 +91,7 @@ namespace Arena
             ClearProps(false);
             survPropT = 0f;
             SurvivalProps(true);
+            ModsWaveStart();  // Hunted's first quarry, Second Wind (Modifiers.cs)
         }
 
         /// Host: crates (often two side by side: a little wall), pots and a few barrels scattered over the whole room. At the start
@@ -105,15 +107,17 @@ namespace Arena
                 else if (p.Kind == PropKind.Pot) pots++;
                 else if (p.Kind == PropKind.Barrel) barrels++;
             }
-            int addCrates = all ? CrateGoal : 3, addPots = all ? PotGoal : 1, addBarrels = all ? BarrelGoal : 1;
-            for (int n = 0, tries = 0; crates < CrateGoal && n < addCrates && tries < 400; tries++)
+            bool clutter = Has(RunMod.Cluttered);
+            int crateGoal = Math.Min(MaxProps - PotGoal - BarrelGoal, clutter ? (int)(CrateGoal * Modifiers.SurvivalClutter) : CrateGoal);
+            int addCrates = all ? crateGoal : clutter ? 8 : 3, addPots = all ? PotGoal : 1, addBarrels = all ? BarrelGoal : 1;
+            for (int n = 0, tries = 0; crates < crateGoal && n < addCrates && tries < (clutter ? 1200 : 400); tries++)
             {
                 var kind = rng.NextDouble() < 0.3 ? PropKind.HeavyCrate : PropKind.Crate;
                 V2 at;
-                if (!SurvivalPropSpot(HalfW(kind), all, out at))
+                if (!SurvivalPropSpot(HalfW(kind), all, out at, clutter ? 90f : 170f))
                     continue;
                 Landed(AddProp(kind, at)); crates++; n++;
-                if (crates < CrateGoal && rng.NextDouble() < 0.45)
+                if (crates < crateGoal && rng.NextDouble() < 0.45)
                 {
                     float step = HalfW(kind) * 2f + 2f;
                     V2 next = at + (rng.Next(2) == 0 ? new V2(rng.Next(2) == 0 ? step : -step, 0f) : new V2(0f, rng.Next(2) == 0 ? step : -step));
@@ -134,10 +138,10 @@ namespace Arena
 
         static Prop Landed(Prop p) { p.Age = 1f; return p; }  // no drop-in animation (and no 220 puffs of dust at once)
 
-        bool SurvivalPropSpot(float size, bool anywhere, out V2 at)
+        bool SurvivalPropSpot(float size, bool anywhere, out V2 at, float room = 170f)
         {
             at = RandomInArena(110f, 110f);
-            if (!SpotClear(at, size, 170f))
+            if (!SpotClear(at, size, room))
                 return false;
             return anywhere || OutsideViews(at) >= 0f;
         }
@@ -193,13 +197,16 @@ namespace Arena
             foreach (var e in Enemies.Values)
                 if (!e.Def.IsBoss && e.Hp > 0f)
                 {
-                    threat += Survival.Cost(e.Type);
+                    threat += Survival.Cost(e.Type) / (ZombiesOn && Zombies.Is(e.Type) ? Zombies.CountMult(Wave) : 1f);  // (Zombie Infection: a horde, as in its waves)
                     live++;
                 }
             foreach (var sp in Surv.Step(dt, threat, live))
                 SpawnSurvivor(sp);
             SurvTime = Surv.Time;
+            int was = Wave;
             Wave = Survival.WaveAt(Surv.Time);
+            if (Wave != was)
+                ModsWaveStart();  // Hunted picks again every 30 s; Second Wind back every 5 of them
             survPropT += dt;
             if (survPropT >= 15f)
             {
@@ -222,8 +229,26 @@ namespace Arena
                 survSquadPos = pos;
             }
             spawnHome = -1;
-            SpawnEnemyAt(sp.Type, pos, 0.9f, 0, sp.Elite);
+            SpawnEnemyAt(ZombiesOn ? SurvivalZombie() : sp.Type, pos, 0.9f, 0, sp.Elite);
             spawnHome = -1;
+        }
+
+        /// Zombie Infection in Survival: the spawner's pick becomes a horde zombie of the clock's wave, within each kind's cap
+        /// (the spawner's budget counts zombies by their health, so the cheap ones come in bigger crowds).
+        EnemyType SurvivalZombie()
+        {
+            for (int tries = 0; tries < 12; tries++)
+            {
+                var type = Zombies.Pick(rng, Wave);
+                int cap = Zombies.CapOf(type), had = 0;
+                if (cap != int.MaxValue)
+                    foreach (var e in Enemies.Values)
+                        if (e.Type == type)
+                            had++;
+                if (had < cap)
+                    return type;
+            }
+            return EnemyType.Shambler;
         }
 
         /// Host: the frozen Intermission: offers go out, and once nobody has a pick left the clock runs again.
