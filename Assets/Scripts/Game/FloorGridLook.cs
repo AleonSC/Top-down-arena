@@ -21,7 +21,10 @@ namespace Arena
         readonly List<FloorPull> floorPulls = new List<FloorPull>();
         readonly Dictionary<int, V2> floorLast = new Dictionary<int, V2>(), floorVel = new Dictionary<int, V2>();
         readonly Dictionary<int, float> floorDashAt = new Dictionary<int, float>();  // when each player's last dash burst went off
-        const float DashBurstSpeed = 1.9f, DashBurstGap = 0.45f, DashBurstPower = 0.7f, DashBurstLife = 0.4f;
+        readonly Dictionary<int, List<KeyValuePair<float, V2>>> floorTrack = new Dictionary<int, List<KeyValuePair<float, V2>>>();  // each player's recent (time, spot)
+        // A dash: at least DashBurstMin px, and DashBurstSpeed times walking speed, covered in the last DashBurstWindow s
+        // (over a window, not one frame: positions step on game ticks, so one frame's speed jumps about).
+        const float DashBurstWindow = 0.12f, DashBurstMin = 70f, DashBurstSpeed = 1.7f, DashBurstGap = 0.45f, DashBurstPower = 0.7f, DashBurstLife = 0.4f;
         int floorFrame = -1;
 
         bool FloorBends => Juicy && floorBend && !PreviewFloorStatic;
@@ -55,28 +58,42 @@ namespace Arena
                     if (raw.Length > 2000f)
                         raw = V2.Zero;  // a teleport or respawn, not a move
                     floorVel.TryGetValue(p.Id, out v);
-                    if (!game.Paused)
-                        FloorDashBurst(p, last, raw, v);
                     v += (raw - v) * Mathf.Min(1f, dt * 12f);
                 }
+                FloorDashBurst(p);
                 floorLast[p.Id] = p.Disp;
                 floorVel[p.Id] = v;
                 floorPulls.Add(new FloorPull { Pos = p.Disp, Vel = game.Paused ? V2.Zero : v, Col = p.Def.Color });
             }
         }
 
-        /// A dash (any burst well past walking speed: the Dodge, a dash, a blink, a rush) sends a small, short ripple
-        /// through the grid from where it started.
-        void FloorDashBurst(Player p, V2 from, V2 raw, V2 smooth)
+        /// A dash (the Dodge, or a dash or rush ability) sends a small, short ripple through the grid from where it
+        /// started. Running, sprinting and speed boosts don't: they never cover a dash's distance in the window.
+        void FloorDashBurst(Player p)
         {
-            float walk = Mathf.Max(100f, p.Speed), fast = walk * DashBurstSpeed;
-            if (raw.Length < fast || smooth.Length >= fast)
-                return;  // not moving fast, or already mid-dash
-            float at, now = Time.unscaledTime;
+            List<KeyValuePair<float, V2>> track;
+            if (!floorTrack.TryGetValue(p.Id, out track))
+                floorTrack[p.Id] = track = new List<KeyValuePair<float, V2>>();
+            float now = Time.unscaledTime;
+            if (game.Paused || p.Downed)
+            {
+                track.Clear();
+                return;
+            }
+            track.Add(new KeyValuePair<float, V2>(now, p.Disp));
+            while (track.Count > 2 && track[1].Key <= now - DashBurstWindow)
+                track.RemoveAt(0);  // keep one sample at least a window old
+            var from = track[0];
+            if (now - from.Key < DashBurstWindow)
+                return;
+            float moved = (p.Disp - from.Value).Length, need = Mathf.Max(DashBurstMin, DashBurstSpeed * p.Speed * (now - from.Key));
+            if (moved < need || moved > 600f)
+                return;  // not a dash, or a teleport or respawn
+            float at;
             if (floorDashAt.TryGetValue(p.Id, out at) && now - at < DashBurstGap)
                 return;
             floorDashAt[p.Id] = now;
-            ripples.Add(new Ripple { Pos = from, Power = DashBurstPower, Life = DashBurstLife, Col = p.Def.Color });  // Juice.cs
+            ripples.Add(new Ripple { Pos = from.Value, Power = DashBurstPower, Life = DashBurstLife, Col = p.Def.Color });  // Juice.cs
         }
 
         /// A floor point moved by the players (when bending) and by kill ripples.

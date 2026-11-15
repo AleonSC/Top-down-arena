@@ -1569,7 +1569,6 @@ namespace Arena
             }
             UiModelAt(V2.Zero, 1f);
             UiClip(view);
-            DrawPreviewRadar(view);  // the radar sweep (LobbyFx.cs)
             // A thin frame in the role's colour.
             UiNoClip();
             var edge = rc.WithAlpha(0.45f);

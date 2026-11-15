@@ -198,7 +198,7 @@ namespace Arena
             new RoleDef
             {
                 Name = "Tank", Ability = "Barrier", Color = new Rgba(0.35f, 0.6f, 1f),
-                Hp = 240f, Speed = 185f, HitR = 9f, BodyR = 18f, FireInterval = 0.45f, AbilityCd = 12f,
+                Hp = 200f, Speed = 185f, HitR = 9f, BodyR = 18f, FireInterval = 0.45f, AbilityCd = 12f,
                 Desc = "Big HP pool. Enemies prefer to target you.",
             },
             new RoleDef
@@ -210,7 +210,7 @@ namespace Arena
             new RoleDef
             {
                 Name = "DPS", Ability = "Dash", Color = new Rgba(1f, 0.55f, 0.25f),
-                Hp = 95f, Speed = 240f, HitR = 6f, BodyR = 12f, FireInterval = 0.1f, AbilityCd = 3.5f,
+                Hp = 110f, Speed = 240f, HitR = 6f, BodyR = 12f, FireInterval = 0.1f, AbilityCd = 3.5f,
                 Desc = "Fragile, but deals the most damage.",
             },
             new RoleDef
@@ -218,7 +218,7 @@ namespace Arena
                 // Wildcard (Docs/Wildcard.md): middle health and no role passive; DPS gear from any class, a second starting ability,
                 // and the price is WildcardDmgMult / WildcardCdMult (Game.cs).
                 Name = "Wildcard", Ability = "Any DPS ability", Color = new Rgba(0.78f, 0.45f, 1f),
-                Hp = 130f, Speed = 225f, HitR = 6.5f, BodyR = 14f, FireInterval = 0.1f, AbilityCd = 3.5f,
+                Hp = 125f, Speed = 225f, HitR = 6.5f, BodyR = 14f, FireInterval = 0.1f, AbilityCd = 3.5f,
                 Desc = "Mix any class's DPS weapon and two DPS abilities. Weaker shots and slower cooldowns.",
             },
         };
