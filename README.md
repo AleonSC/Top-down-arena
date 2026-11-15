@@ -1139,7 +1139,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   danger 1 / 2 / 3) and unlocks with bosses: danger 2 after the first boss, danger 3 after the second.
 - **Mini-boss room**: once a built room opens it, walking in, during a wave or **between waves**, wakes the **faction mini-boss** of the boss cycle it was placed in (the
   next boss's faction: the Warden's is the **Riot Captain**; factions without their own yet bring him too; the map shows its name), and the room
-  locks behind you until it falls. Beating it gives everyone a prize pick (sometimes a legendary) and the room becomes an ordinary one. It's optional:
+  locks behind you until it falls. Every 10 s of the fight a **health orb** drops somewhere in the room for each player inside. Beating it gives everyone a prize pick (sometimes a legendary) and the room becomes an ordinary one. It's optional:
   if the wave ends first, it goes (with any men it called), you're let out, and walking in later (even right after the wave) starts a fresh duel.
   A duel begun between waves is a real fight (it attacks, your minions and kit work); readying up still starts the next wave, and the duel
   carries on into it. It can't be started just before a boss wave.
