@@ -28,6 +28,11 @@ static partial class Program
         Check(!nan.CloserThan(o, 5f) && !nan.WithinReach(o, 5f) && !nan.FartherThan(o, 5f) && !nan.FartherOrAt(o, 5f), "a NaN position is neither near nor far, as before");
         Check(!o.CloserThan(new V2(1f, 0f), -5f) && o.FartherThan(new V2(1f, 0f), -5f), "a negative reach is never reached (squaring it must not flip that)");
 
+        Check(Defs.BulletRadius(Defs.TankShot) == 5f && Defs.BulletRadius(Defs.GreatStar) == 24f && Defs.BulletRadius(250) == 6f,
+            "the bullet table: a kind's radius, and the default for a kind with no row");
+        Check(Math.Abs(Defs.BulletDamage(Defs.BigShot) - 20f * Defs.EnemyBulletMult) < 1e-4f && Math.Abs(Defs.BulletDamage(250) - 12f * Defs.EnemyBulletMult) < 1e-4f,
+            "the bullet table: an enemy shot's damage, and the default 12");
+
         var pool = new ListPool<int>();
         var x = pool.Rent();
         x.Add(1);

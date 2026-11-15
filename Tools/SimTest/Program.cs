@@ -430,7 +430,7 @@ static partial class Program
         Test("pings", "pings: tap/wheel marks, host pause and cap, Focus following an enemy, lapsing", () => PingTest(Dt)),
         Test("hangout", "the lobby's Hangout room: everyone's character, moves over the network, the walls", () => HangoutTest(Dt)),
         Test("zombies", "Zombie Infection: melee hordes, the cap, the dead rising", () => ZombieTest(Dt)),
-        Test("scratch", "V2 distance tests without the square root, and the reusable lists", ScratchTest),
+        Test("scratch", "V2 distance tests without the square root, the bullet table, and the reusable lists", ScratchTest),
         Test("refdoc", "Docs/Reference.md (weapon, ability and enemy tables) matches the definitions (run.sh 1 1 refdocwrite)", RefDocTest),
         Test("wavegen", "the built-in designed waves match their files in Data/Waves (Tools/WaveGen/build.sh)", WaveGenTest),
         Test("wavedesign", "the wave editor's designs: the .waves file, and playing them in the Practice Range", () => WaveDesignTest(Dt)),
