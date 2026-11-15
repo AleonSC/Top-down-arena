@@ -5,7 +5,7 @@ namespace Arena
     /// The Arc Knuckles (DPS Knight, the fourth weapon: Choice 3; Docs/ArcKnuckles.md, Docs/Mockups/gauntlets.html, the Arc Coil look).
     ///   - Chain: Jab, Cross, Hook, Uppercut, Twin Hammer, then it starts over. Each press throws the next punch (the host counts
     ///     the steps in Player.Combo's low bits, as the Twin Blades do); KnuckleChainWindow without a punch and it starts over.
-    ///     The Uppercut stuns what it hits (it's launched); the Twin Hammer slams a shockwave round a point ahead of you.
+    ///     The Uppercut stuns what it hits (it's launched; a stun shows stars, not ice: Daze.cs Stun); the Twin Hammer slams a shockwave round a point ahead of you.
     ///   - Parry: raising it cancels a punch still winding up and sends the chain back to the Jab (ResetAttackChains). A
     ///     perfect parry also arms the Counter Hammer (Player.KnuckleArmed): the next press is a bigger, gold Twin Hammer, from
     ///     any step. It fades after KnuckleArmTime unused.
@@ -118,6 +118,7 @@ namespace Arena
             s.Delay = delay;
             s.NoFx = true;  // the step's own effect draws it (and the press played its sound; a slam has its own as it lands)
             s.Knuckle = (byte)step;
+            s.StarStun = true;  // its stuns are stuns, not freezes (Daze.cs)
             QueueSwing(s);
             return s;
         }
