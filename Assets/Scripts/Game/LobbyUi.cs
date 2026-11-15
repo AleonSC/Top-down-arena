@@ -39,6 +39,8 @@ namespace Arena
             GUI.EndGroup();
         }
 
+        int lastLobbyMode = -1;  // the mode last drawn (a change opens that mode's tab)
+
         void DrawLobbyContent()
         {
             float t = Time.unscaledTime;
@@ -60,6 +62,14 @@ namespace Arena
             bool survival = session.SurvivalMode && !practice && !hunt && session.Resume == null;
             if (!survival && lobbyTab == SurvivalTab)
                 lobbyTab = 0;
+            // Picking a mode opens that mode's own window (Quick Play, Survival, Boss hunt, Practice) over the loadout; Normal shows the loadout.
+            int modeNow = practice ? 3 : hunt ? 2 : survival ? 4 : quick ? 0 : 1;
+            if (lastLobbyMode != modeNow)
+            {
+                if (lastLobbyMode >= 0 && session.Resume == null && lobbyTab != HangoutTab)
+                    lobbyTab = modeNow == 3 ? 1 : modeNow == 2 ? 4 : modeNow == 4 ? SurvivalTab : modeNow == 0 ? QuickTab : 0;
+                lastLobbyMode = modeNow;
+            }
             // The big boxes wear the shown role's colour (the bot's while the host is choosing its loadout), easing to a new role over about 0.7 s.
             LobbyEntry washFor = me;
             var washBot = session.IsHost ? partyBots.Find(editBotId) : null;
