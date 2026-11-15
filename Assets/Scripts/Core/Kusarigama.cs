@@ -14,7 +14,7 @@ namespace Arena
     ///     (Game/KusarigamaLook.cs); the host's timing is KusariThrowTime with the weight landing at KusariImpactAt.
     public partial class Game
     {
-        public const float KusariCutReach = 96f, KusariCutArc = 144f, KusariCutKnock = 18f, KusariCutStun = 0.12f;
+        public const float KusariCutReach = 96f, KusariCutArc = 144f, KusariCutStun = 0.12f;
         public const float KusariCutMult = 16f / 26f, KusariThrowMult = 34f / 26f, KusariExtraDmg = 0.2f;  // damage against the weapon's own (26): 16 and 34
         public const float KusariCutTime = 0.30f, KusariThrowTime = 0.65f, KusariWindow = 1f;  // each piece holds the next press off this long; a cut's chance to be followed
         public const float KusariWindUp = 0.1f, KusariImpactAt = 0.26f, KusariDragFrom = 0.31f, KusariDragTo = 0.55f;  // seconds into the throw: the spin ends, the weight lands, the drag starts and ends
@@ -49,7 +49,6 @@ namespace Arena
                 p.KusariStep = 1;
                 p.FireCd = KusariCutTime / FireRate(p);
                 var s = NewSwing(p, aim, KusariCutReach, KusariCutArc, w.Damage * dmg * KusariCutMult);
-                s.Knock = KusariCutKnock;
                 s.Stun = KusariCutStun;
                 s.NoCut = true;  // a chain, not a blade: it doesn't cut bullets
                 QueueSwing(s);

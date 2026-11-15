@@ -8,7 +8,8 @@ namespace Arena
     public class Swing
     {
         public int Owner;
-        public float Aim, Reach, HalfArc, Dmg, Knock, Delay;
+        public float Aim, Reach, HalfArc, Dmg, Knock, Delay;  // Knock 0 = the standard melee shove (MeleeHit.cs)
+        public bool NoKnock;          // dazes but doesn't shove (the Flurry's jabs)
         public int MaxTargets;        // 0 = everything in the arc; otherwise the nearest few (Rapier)
         public bool CutAll;           // also cuts big orbs and mines (it was the mastered Whirlwind's; nothing sets it today)
         public float HealPerHit, HealRange;
@@ -501,6 +502,7 @@ namespace Arena
                 dmg *= NinjaHitMult(p.Id, Defs.KnightSlash, e);  // Vanish's ambush (Ninja.cs)
                 HurtEnemy(e, dmg, p.Id);
                 Daze(e);  // a melee hit: it can't hit back for a split second (Daze.cs)
+                float knock = MeleeKnockOf(s);  // the standard melee shove unless the move has its own (MeleeHit.cs)
                 ModHit(e, p.Id, dmg, Defs.KnightSlash, dir, s.Slow);
                 if (s.Bleed > 0f)
                     ApplyBleed(e, dmg * s.Bleed, p.Id, true);  // KitWeapons.cs
@@ -512,23 +514,23 @@ namespace Arena
                 if (s.LanceKind > 0)  // a Lance step: drives straight ahead (the sweep bats along its swing), sparks, and arms Impact (Lance.cs)
                 {
                     V2 away = (e.Pos - origin).Normalized(), kd = LanceKnockDir(s, away, dir);
-                    if (s.Knock > 0f && !Heavy(e))
+                    if (knock > 0f && !Heavy(e))
                     {
-                        KnockEnemy(e, kd * s.Knock);
+                        KnockEnemy(e, kd * knock);
                         e.ImpactBy = p.Id + 1;
                         e.ImpactLast = -1;
                     }
                     BroadcastFx(FxKind.LanceSpark, e.Pos, e.Pos + kd, LanceGlow, s.LanceKind == 4 ? 1f : 0.5f, 0.4f, Sfx.None);
                 }
-                else if (s.Knock > 0f && !Heavy(e))
+                else if (knock > 0f && !Heavy(e))
                 {
                     V2 away = (e.Pos - origin).Normalized();
-                    KnockEnemy(e, (away.IsZero ? dir : away) * s.Knock);  // slides (Knock.cs)
+                    KnockEnemy(e, (away.IsZero ? dir : away) * knock);  // slides (Knock.cs)
                 }
-                else if (s.Knock < 0f && !Heavy(e))  // pulled in (Kusarigama), but never into you
+                else if (knock < 0f && !Heavy(e))  // pulled in (Kusarigama), but never into you
                 {
                     V2 away = (e.Pos - origin).Normalized();
-                    float d = Math.Max(e.Pos.DistanceTo(origin) + s.Knock, e.Radius + p.Def.BodyR + 4f);
+                    float d = Math.Max(e.Pos.DistanceTo(origin) + knock, e.Radius + p.Def.BodyR + 4f);
                     e.Pos = ClampToArena(origin + (away.IsZero ? dir : away) * d, e.Radius);
                 }
                 if (s.HealPerHit > 0f && healed < s.HealHits)

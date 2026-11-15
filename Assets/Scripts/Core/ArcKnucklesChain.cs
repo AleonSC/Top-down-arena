@@ -89,6 +89,7 @@ namespace Arena
                         var s = KnuckleSwing(p, aim, FlurryReach, 0f, w.Damage * dmg * FlurryJabMult, FlurryStart + i * FlurryGap, 8);
                         s.HalfWidth = FlurryWidth;
                         s.Thrust = true;
+                        s.NoKnock = true;  // the jabs hold the target in reach for the straight (MeleeHit.cs)
                     }
                     var st = KnuckleSwing(p, aim, FlurryStraightReach, 0f, w.Damage * dmg * FlurryStraightMult, FlurryStraightAt, 10);
                     st.HalfWidth = KnuckleUpperWidth;

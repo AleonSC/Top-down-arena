@@ -1510,6 +1510,14 @@ static partial class Shot {
       for (int k = 0; k < 3; k++) host.Game.Orbs[900 + k] = new Orb { Id = 900 + k, Tiny = true, Pos = new V2(820f + k * 30f, 420f + k * 25f), Disp = new V2(820f + k * 30f, 420f + k * 25f), Life = 10f };
       host.Game.Orbs[910] = new Orb { Id = 910, Pos = new V2(900f, 520f), Disp = new V2(900f, 520f), Life = 10f };
     }
+    if (Environment.GetEnvironmentVariable("ORBS") != null) {
+      // ORBS=1: every health orb side by side to the right of you: tiny, small, big, then a Medkit's (OrbLook.cs).
+      host.Game.Bot = false; me.Pos = me.Disp = new V2(600f, 420f);
+      host.Game.Orbs[920] = new Orb { Id = 920, Tiny = true, Pos = new V2(640f, 470f), Disp = new V2(640f, 470f), Life = 10f };
+      host.Game.Orbs[921] = new Orb { Id = 921, Pos = new V2(670f, 470f), Disp = new V2(670f, 470f), Life = 10f };
+      host.Game.Orbs[922] = new Orb { Id = 922, Big = true, Pos = new V2(705f, 470f), Disp = new V2(705f, 470f), Life = 10f };
+      host.Game.Orbs[923] = new Orb { Id = 923, Med = true, MedHeal = 20f, Pos = new V2(745f, 470f), Disp = new V2(745f, 470f), Life = 10f };
+    }
     if (Environment.GetEnvironmentVariable("THRUST") != null) {
       float tt = float.Parse(Environment.GetEnvironmentVariable("THRUST"));
       host.Game.Effects.Clear();

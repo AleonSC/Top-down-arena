@@ -46,10 +46,7 @@ namespace Arena
                             DrawCrate(p, at, a);
                         break;
                     case PropKind.Pot:
-                        if (fxOn)
-                            DrawPotHolo(p, at, a, t);
-                        else
-                            DrawPot(p, at, a, t);
+                        DrawPot(p, at, a, t);  // a clay pot always, Visual effects or not
                         break;
                     case PropKind.Barrel:
                         DrawBarrel(p, at, a, t);  // looks A (Hologram) when Visual effects are on
@@ -605,11 +602,6 @@ namespace Arena
         /// A crate or pot smashed: splinters or shards flying out and a puff of dust.
         void DrawDebrisFx(Effect fx, float f)
         {
-            if (fxOn && IsPotDebris(fx))
-            {
-                DrawHoloBreakFx(fx, f, true);
-                return;
-            }
             if (fxOn && IsCrateDebris(fx))
             {
                 DrawHoloBreakFx(fx, f, false);
