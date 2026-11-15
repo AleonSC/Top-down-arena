@@ -1849,7 +1849,7 @@ out (Back or Esc), and only then does the window really close.
   off, a short fade). Starting a run grows the box into the lobby's loadout while the rest of the menu fades out and
   the lobby fades in. (How to play is in the lobby's and the pause menu's drawer.)
 - **Settings** (main menu, the lobby's menu, and the pause menu): three groups, **Audio** (level-meter volume sliders: 100 thin bars that turn amber then red near the top and ripple only while you drag, for
-  **Master**, **Music** (all music; the **Music player** tab picks the track), **Weapons** (your and your friend's shots and spells), **Enemies** (enemy
+  **Master**, **Music** (all music; the **Music player** tab picks the track), **Your Weapons** (your and your friends' shots and spells), **Enemies** (enemy
   fire) and **Effects** (explosions, abilities, UI), and mute), **Visual effects** (with a live preview of what they
   do: shots and a hit, its number, an ability's name, a blast and its shake) and **Gameplay** (aim line, show the
   HUD, **camera lean**, **scroll-wheel zoom**, and the **network port** hosting and joining use, 7777 unless changed; everyone in a game needs the same one).
