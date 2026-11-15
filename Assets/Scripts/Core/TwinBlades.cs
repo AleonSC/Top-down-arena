@@ -17,6 +17,7 @@ namespace Arena
         public const float TwinChainWindow = 0.7f;
         public const float TwinCutArc = 110f, TwinSpinReach = 92f, TwinJabReach = 130f, TwinJabHalfWidth = 10f, TwinShearArc = 200f, TwinShearKnock = 18f;
         public static readonly float[] TwinMult = { 1f, 1f, 0.75f, 0.8f, 2.75f };  // damage of each hit of each step against the weapon's Damage (16, 16, 12 x2, 13 x2, 44)
+        public const float TwinGuard = 0.3f;                                         // damage you take while the chain is going: 30% less
         public const float TwinWaveMult = 1.875f;                                    // the Shear's crescent: 30
         public const float FangReach = 210f, FangHitR = 20f, FangMult = 1.125f, FangBurstMult = 1.5625f, FangBurstR = 55f, FangCooldown = 4f;
         public static readonly Rgba TwinMoon = new Rgba(0.67f, 0.84f, 1f);

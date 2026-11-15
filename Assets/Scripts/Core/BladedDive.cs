@@ -43,7 +43,7 @@ namespace Arena
             V2 to = ClampToArena(p.Pos + dir * len, p.Def.BodyR);
             bladedRuns.RemoveAll(r => r.Owner == p.Id);
             bladedRuns.Add(new BladedRun { Owner = p.Id, From = p.Pos, To = to, Dur = BladedTime, Power = power, Mastered = mastered });
-            p.InvulnT = Math.Max(p.InvulnT, BladedTime + 0.15f);
+            p.InvulnT = Math.Max(p.InvulnT, BladedTime + 0.3f);
             CarryPlayer(p, to, BladedTime);
             BroadcastFx(FxKind.DiveRush, p.Pos, to, new Rgba(0.94f, 0.77f, 0.38f), p.Id, BladedTime + BladedTail, Sfx.Blink);
         }
