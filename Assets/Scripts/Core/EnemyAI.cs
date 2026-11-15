@@ -275,7 +275,6 @@ namespace Arena
             }
         }
 
-        /// An enemy's health when it spawns on a wave, for this party and the run's modifiers (before paths and elites).
         /// The Field guide's Bestiary shows it too.
         public float SpawnHp(EnemyType type, int wave)
         {

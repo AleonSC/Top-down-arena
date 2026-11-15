@@ -116,7 +116,6 @@ Each phase ships on its own (code, tests, README, commit, push). Phase 1 is the 
   many places in `Combat.cs`; the first cut will have a large "Other" until each source is routed.
 - **IMGUI cost:** about 10 charts of 120 points each drawn per frame is fine, but the stacked area and heat map
   should be cached to a texture when the selected run does not change.
-- **Reference pages:** nothing here touches the Bestiary or Armory.
 
 ## Questions for the owner
 

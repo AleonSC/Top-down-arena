@@ -34,7 +34,7 @@ changes the run's length, so it doesn't fit a switch. Other modifiers and the di
   the result, as they do today.
 
 ### Lobby
-Choosing Boss Hunt shows a row of 10 boss portraits (live models, as the Bestiary/Field guide draws them).
+Choosing Boss Hunt shows a row of 10 boss portraits (live models).
 Locked ones are dark with "Beat it in a run to unlock". Each unlocked one shows best hunt time and wins.
 
 ### The run
@@ -125,7 +125,7 @@ Themed on each boss's mechanics. Numbers are starting points.
 | Eclipse | **Totality** | Pick your first upgrade offer from rare-or-better cards (like a challenge prize). |
 
 (Bold = the first perk unlocked per boss.) Each perk needs: an entry in a `Perks.All` table (name, boss, desc,
-unlock condition), an effect hook, a Field guide line, a SimTest check.
+unlock condition), an effect hook, a SimTest check.
 
 ### Watch-outs
 - **Late-boss perks** only help players already strong enough to beat that boss. Fine, as long as they're fun

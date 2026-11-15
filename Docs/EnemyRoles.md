@@ -103,4 +103,3 @@ Most of these reuse things the game already has (noted in brackets), so they cos
 3. The rest (**Burrower, Leech, Bulwark, Jammer, Pylons**), then retune the fire rate and the budget
    (`LateGamePressure.md` A and B) with the new mix. With fewer shooters the screen may already be readable.
 
-Each new enemy needs a Bestiary entry when the owner asks (the Bestiary and Armory pages aren't touched until then).

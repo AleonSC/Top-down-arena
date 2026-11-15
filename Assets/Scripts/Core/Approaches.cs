@@ -599,7 +599,7 @@ namespace Arena
             return new SquadDef { Name = sq.Name, From = sq.From, Form = sq.Form, Members = members.ToArray() };
         }
 
-        /// Is this type one of a faction's (for the Bestiary and the Practice Range)?
+        /// Is this type one of a faction's (for the Practice Range)?
         public static FactionDef Of(EnemyType t) => Array.Find(All, f => Array.Exists(f.Members, m => m.Type == t));
     }
 

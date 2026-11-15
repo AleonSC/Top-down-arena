@@ -47,4 +47,4 @@ Status: **built** (Nov 2026, protocol 186; the class wheel and any class's DPS u
 - Lobby: unlock check on the role card, then 4 role cards fit the existing grid; the weapon and ability rows show
   every class's DPS options (grouped by class).
 - Tests: a Wildcard suite (damage and cooldown multipliers, kit-locked cards still offered, class passives absent,
-  unlock gating), then core + features. README Roles section and `CODEMAP.md` updated. Armory/Bestiary left alone.
+  unlock gating), then core + features. README Roles section and `CODEMAP.md` updated.

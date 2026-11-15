@@ -176,7 +176,6 @@ Paths and approaches both live in the four waves before a boss, and they stack:
 - **Banner** at the start of the last approach wave: "The Warden is near".
 - **Difficulty tab:** the Boss approach row (share slider, ramp toggle, Blend / Fully themed buttons). Saved runs show
   it with the other difficulty numbers.
-- **Field guide / Bestiary:** each faction enemy gets an entry, linked from its boss ("Its approach: ...").
 - **Practice Range:** faction enemies appear in the picker under their boss.
 
 ## Engineering
@@ -211,7 +210,7 @@ Paths and approaches both live in the four waves before a boss, and they stack:
 5. **Twin Reapers, Colossus, Devourer:** their new enemies (all new, so the most work).
 6. **Eclipse:** Echoes from the finished factions.
 
-Each step: Bestiary entries (`BestiaryData.Entries.cs`), the Practice Range picker, previews, README,
+Each step: the Practice Range picker, previews, README,
 protocol bump when enemies are added.
 
 ## Later: Chapters mode
