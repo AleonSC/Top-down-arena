@@ -127,7 +127,7 @@ namespace Arena
                 if (!on)
                     continue;
                 anyOn = true;
-                if (!InLumen(z, b.Pos, len, half) && b.Pos.DistanceTo(z.Pos) < LumenWave(z))
+                if (!InLumen(z, b.Pos, len, half) && b.Pos.CloserThan(z.Pos, LumenWave(z)))
                     hold = true;
             }
             if (hold)

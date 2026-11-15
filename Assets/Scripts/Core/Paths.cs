@@ -356,7 +356,7 @@ namespace Arena
             NarrowF = MathX.MoveTowards(NarrowF, ArenaRule(PathId.NarrowPass) ? 1f : 0f, dt / Paths.NarrowClose);
             FogF = MathX.MoveTowards(FogF, ArenaRule(PathId.Fogbound) || InDarkRoom ? 1f : 0f, dt / Paths.FogIn);
             V2 tiny = TinyTarget();
-            TinyMoving = TinyInset.DistanceTo(tiny) > 0.01f;
+            TinyMoving = TinyInset.FartherThan(tiny, 0.01f);
             TinyInset = new V2(MathX.MoveTowards(TinyInset.X, tiny.X, dt * TinySpeed), MathX.MoveTowards(TinyInset.Y, tiny.Y, dt * TinySpeed * Height / Width));
             NightF = MathX.MoveTowards(NightF, (Has(RunMod.Nightfall) || HuntDark) && State != MatchState.Idle ? 1f : 0f, dt / Paths.FogIn);  // (HuntDark: a hunt map's Contraband node)
         }
@@ -470,7 +470,7 @@ namespace Arena
                 float r = pt.Radius;
                 foreach (var p in Players.Values)
                 {
-                    if (p.Pos.DistanceTo(pt.Pos) > r + p.Def.HitR)
+                    if (p.Pos.FartherThan(pt.Pos, r + p.Def.HitR))
                         continue;
                     if (pt.Kind == PatchKind.Heal)
                     {
@@ -482,7 +482,7 @@ namespace Arena
                 }
                 if (pt.Kind == PatchKind.Fire)
                     foreach (var e in Enemies.Values)
-                        if (!e.Def.IsBoss && e.SpawnT <= 0f && e.Pos.DistanceTo(pt.Pos) < r + e.Radius)
+                        if (!e.Def.IsBoss && e.SpawnT <= 0f && e.Pos.CloserThan(pt.Pos, r + e.Radius))
                         {
                             Recorder?.HazardDamage(Math.Min(Paths.FireEnemyDps(Wave) * Paths.PatchTick, Math.Max(0f, e.Hp)));
                             HurtEnemy(e, Paths.FireEnemyDps(Wave) * Paths.PatchTick, 0);

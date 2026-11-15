@@ -391,7 +391,7 @@ namespace Arena
                         int at = 0;
                         float best = float.MaxValue;
                         for (int i = 0; i < GraveCount; i++)
-                            if (e.Pos.DistanceTo(GraveSpot(i)) < best) { best = e.Pos.DistanceTo(GraveSpot(i)); at = i; }
+                            if (e.Pos.CloserThan(GraveSpot(i), best)) { best = e.Pos.DistanceTo(GraveSpot(i)); at = i; }
                         int to = (at + 1 + (int)Rand(0f, GraveCount - 1.001f)) % GraveCount;
                         s.BlinkTo = GraveSpot(to);
                         s.FadeT = HopFade;
@@ -465,7 +465,7 @@ namespace Arena
                 else
                 {
                     sp.Pos += (sp.To - sp.Pos).LimitLength(SpiritSpeed * dt);
-                    if (sp.Pos.DistanceTo(sp.To) < 4f)
+                    if (sp.Pos.CloserThan(sp.To, 4f))
                     {
                         sp.Delay = -99f;  // spent
                         for (int k = 0; k < 4; k++)
@@ -477,7 +477,7 @@ namespace Arena
                     }
                 }
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(sp.Pos) < SpiritR + p.Def.HitR)
+                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(sp.Pos, SpiritR + p.Def.HitR))
                         Damage(p, dmg, "The Lich (wailing spirit)");
             }
             s.Spirits.RemoveAll(sp => sp.Delay <= -90f);
@@ -519,7 +519,7 @@ namespace Arena
             V2 ab = b - a, ap = pos - a;
             float l2 = ab.X * ab.X + ab.Y * ab.Y;
             float u = l2 > 0f ? Math.Max(0f, Math.Min(1f, (ap.X * ab.X + ap.Y * ab.Y) / l2)) : 0f;
-            return pos.DistanceTo(a + ab * u) < reach;
+            return pos.CloserThan(a + ab * u, reach);
         }
 
         /// A dead hand bursts up: it hurts players on it and throws 8 small shots.
@@ -527,7 +527,7 @@ namespace Arena
         {
             float dmg = 25f;  // the difficulty's per-wave damage growth scales it (Difficulty.cs)
             foreach (var p in Players.Values)
-                if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(h.Pos) < h.Radius)
+                if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(h.Pos, h.Radius))
                     Damage(p, dmg, "The Lich (dead hand)");
             float off = Rand(0f, MathX.Tau);
             for (int k = 0; k < 8; k++)

@@ -23,7 +23,7 @@ namespace Arena
         public bool InDome(V2 pos, float pad = 0f)
         {
             foreach (var p in Players.Values)
-                if (p.DomeT > 0f && p.DomePos.DistanceTo(pos) < DomeRadius + pad)
+                if (p.DomeT > 0f && p.DomePos.CloserThan(pos, DomeRadius + pad))
                     return true;
             return false;
         }

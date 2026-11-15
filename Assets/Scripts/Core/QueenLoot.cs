@@ -163,7 +163,7 @@ namespace Arena
                 return;
             Enemy best = null;
             foreach (var e in Enemies.Values)
-                if (Targetable(e) && (e.Def.Xp > 0 || e.Def.IsBoss) && e.Pos.DistanceTo(p.Pos) < BomberReach + e.Radius
+                if (Targetable(e) && (e.Def.Xp > 0 || e.Def.IsBoss) && e.Pos.CloserThan(p.Pos, BomberReach + e.Radius)
                     && (best == null || e.Hp > best.Hp))
                     best = e;
             if (best == null)
@@ -201,7 +201,7 @@ namespace Arena
                 m.Aim += Math.Max(-BomberTurn * dt, Math.Min(BomberTurn * dt, diff));
             }
             m.Pos += V2.FromAngle(m.Aim) * BomberSpeed * dt;
-            return e != null && e.Pos.DistanceTo(m.Pos) < e.Radius + m.Def.Radius + 4f || m.T >= 0f && m.T < 0.05f;
+            return e != null && e.Pos.CloserThan(m.Pos, e.Radius + m.Def.Radius + 4f) || m.T >= 0f && m.T < 0.05f;
         }
 
         // --- Royal Dive --------------------------------------------------------------------
@@ -256,7 +256,7 @@ namespace Arena
                     continue;
                 foreach (var e in Enemies.Values)
                 {
-                    if (!Targetable(e) || e.Pos.DistanceTo(dv.Pos) > RoyalDiveRadius + e.Radius)
+                    if (!Targetable(e) || e.Pos.FartherThan(dv.Pos, RoyalDiveRadius + e.Radius))
                         continue;
                     HurtEnemy(e, RoyalDiveDamage * p.Stats.DmgMult * dv.Power, p.Id);
                     if (!e.Def.IsBoss && !Heavy(e))

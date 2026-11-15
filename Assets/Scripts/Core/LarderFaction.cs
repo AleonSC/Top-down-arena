@@ -97,7 +97,7 @@ namespace Arena
             e.LarderCd -= dt;
             if (e.LarderStage == LarderIdle)
             {
-                if (e.LarderCd > 0f || e.SpawnT > 0f || e.Pos.DistanceTo(tpos) > (gulper ? GulpRange : ChopTrigger + e.Radius))
+                if (e.LarderCd > 0f || e.SpawnT > 0f || e.Pos.FartherThan(tpos, (gulper ? GulpRange : ChopTrigger + e.Radius)))
                     return;
                 e.Facing = (tpos - e.Pos).Angle;
                 e.LarderStage = LarderWinding;
@@ -139,7 +139,7 @@ namespace Arena
         {
             V2 mouth = e.Pos + V2.FromAngle(e.Facing) * e.Radius;
             foreach (var p in Players.Values)
-                if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && p.Pos.DistanceTo(mouth) < p.Def.HitR + 12f)
+                if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && p.Pos.CloserThan(mouth, p.Def.HitR + 12f))
                 {
                     Damage(p, GulpBite, "Gulper");
                     BroadcastFx(FxKind.Spark, mouth, new Rgba(1f, 0.35f, 0.42f), 26f, 0.25f, Sfx.BossChomp);
@@ -177,7 +177,7 @@ namespace Arena
         {
             Enemy best = null;
             foreach (var m in Enemies.Values)
-                if (m.Type == EnemyType.Morsel && m.Hp > 0f && !IsSpawning(m) && m.Pos.DistanceTo(from) < reach && (best == null || m.Pos.DistanceSq(from) < best.Pos.DistanceSq(from)))
+                if (m.Type == EnemyType.Morsel && m.Hp > 0f && !IsSpawning(m) && m.Pos.CloserThan(from, reach) && (best == null || m.Pos.DistanceSq(from) < best.Pos.DistanceSq(from)))
                     best = m;
             return best;
         }
@@ -233,7 +233,7 @@ namespace Arena
                 if (pt.Kind != PatchKind.Bile || !pt.Active)
                     continue;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(pt.Pos) < pt.Radius + p.Def.HitR)
+                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(pt.Pos, pt.Radius + p.Def.HitR))
                         DamageOverTime(p, SpitDps * 0.25f, "Bile Spitter (bile)");
             }
         }
@@ -244,7 +244,7 @@ namespace Arena
             if (e.LarderStage == LarderIdle)
             {
                 e.LarderCd -= dt;
-                if (e.LarderCd > 0f || e.SpawnT > 0f || e.Pos.DistanceTo(tpos) > 520f)
+                if (e.LarderCd > 0f || e.SpawnT > 0f || e.Pos.FartherThan(tpos, 520f))
                     return;
                 e.LarderStage = LarderWinding;
                 e.LarderT = GutChase;
@@ -261,7 +261,7 @@ namespace Arena
                 return;
             }
             foreach (var p in Players.Values)
-                if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && p.Pos.DistanceTo(e.Pos) < GutMarkR + p.Def.HitR)
+                if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && p.Pos.CloserThan(e.Pos, GutMarkR + p.Def.HitR))
                     Damage(p, GutBite, "Gutworm");
             float off = Rand(0f, MathX.Tau);
             for (int i = 0; i < GutRing; i++)

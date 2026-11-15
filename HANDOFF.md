@@ -209,6 +209,7 @@ The lobby fits about 8 class cards in a row before they get too small.
   `Assets/Scripts/Core/DesignedWaves.Generated.cs` with the game's own parser (`Gen.cs`; `Stub.cs` stands in for the
   generated file while it builds, so a stale one can't block it). It stops, writing nothing, on any problem. The
   `wavegen` suite fails if the generated file is out of date.
+- **Per-tick garbage and distance tests:** to walk a copy of the enemies while they change, use `SnapEnemies()` / `SnapKeys(dict)` and `Free(list)` (`Core/Scratch.cs`), not `new List<Enemy>(Enemies.Values)`; for a one-off list, `enemyLists.Rent()` and `Return`. To compare a distance, use `a.CloserThan(b, r)` / `WithinReach` / `FartherThan` / `FartherOrAt` (`MathTypes.cs`) rather than `a.DistanceTo(b) < r` (no square root). Suite `scratch`.
 - **Reference tables:** `Docs/Reference.md` (weapons, abilities, enemies, roles, classes) is generated from the definitions: after a balance or text change run `Tools/SimTest/run.sh 1 1 refdocwrite` and commit it; the `refdoc` suite fails when it is stale.
 - **Compile check:** `Tools/CompileCheck/check.sh` (mono `mcs` + the Unity stubs in `Tools/Preview/Stubs.cs`, shared
   with the previews, RenderCheck and SoundCheck). If the game starts using a Unity member the stubs lack, add it there.

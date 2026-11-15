@@ -127,7 +127,7 @@ namespace Arena
         {
             foreach (var e in Enemies.Values)
             {
-                if (e.SpawnT > 0f || Heavy(e) || e.Pos.DistanceTo(center) > range + e.Radius)
+                if (e.SpawnT > 0f || Heavy(e) || e.Pos.FartherThan(center, range + e.Radius))
                     continue;
                 V2 away = (e.Pos - center).Normalized();
                 KnockEnemy(e, (away.IsZero ? V2.FromAngle(Rand(0f, MathX.Tau)) : away) * push);  // slides (Knock.cs)
@@ -142,7 +142,7 @@ namespace Arena
         void Freeze(V2 center, float range, float time)
         {
             foreach (var e in Enemies.Values)
-                if (e.SpawnT <= 0f && !e.Def.IsBoss && e.Pos.DistanceTo(center) < range + e.Radius)
+                if (e.SpawnT <= 0f && !e.Def.IsBoss && e.Pos.CloserThan(center, range + e.Radius))
                 {
                     e.FrozenT = Math.Max(e.FrozenT, time);
                     e.SlowT = Math.Max(e.SlowT, time);
@@ -161,7 +161,7 @@ namespace Arena
                 if (!Defs.IsEnemyShot(b.Kind))
                     continue;
                 float along = Math.Max(0f, Math.Min(len, (b.Pos.X - from.X) * dir.X + (b.Pos.Y - from.Y) * dir.Y));
-                if (b.Pos.DistanceTo(from + dir * along) < width)
+                if (b.Pos.CloserThan(from + dir * along, width))
                     erase.Add(b.Id);
             }
             foreach (int bid in erase)

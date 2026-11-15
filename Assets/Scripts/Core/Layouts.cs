@@ -212,7 +212,7 @@ namespace Arena
         public static bool Inside(Solid s, V2 p, float pad)
         {
             if (s.Round)
-                return p.DistanceTo(s.Pos) < s.R + pad;
+                return p.CloserThan(s.Pos, s.R + pad);
             return Math.Abs(p.X - s.Pos.X) < s.HW + pad && Math.Abs(p.Y - s.Pos.Y) < s.HH + pad;
         }
 

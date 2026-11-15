@@ -105,7 +105,7 @@ namespace Arena
                         continue;
                     if (p.Id == g.Thrower || (g.Flying && g.FlyT < GadgetNoCatchT))
                         continue;  // (not your own throw until you've walked off where it landed; a teammate can catch it once it's left your hand)
-                    if (p.Pos.DistanceTo(g.Pos) < p.Def.BodyR + GadgetGrabR)
+                    if (p.Pos.CloserThan(g.Pos, p.Def.BodyR + GadgetGrabR))
                     {
                         p.Gadget = g.Kind;
                         p.GadgetLeft = g.Left;
@@ -122,7 +122,7 @@ namespace Arena
                 if (!g.Flying && g.Thrower >= 0)
                 {
                     Player t;
-                    if (!Players.TryGetValue(g.Thrower, out t) || t.Pos.DistanceTo(g.Pos) > t.Def.BodyR + GadgetGrabR + 6f)
+                    if (!Players.TryGetValue(g.Thrower, out t) || t.Pos.FartherThan(g.Pos, t.Def.BodyR + GadgetGrabR + 6f))
                         g.Thrower = -1;
                 }
         }
@@ -132,7 +132,7 @@ namespace Arena
             var g = SpawnGadget(p.Gadget, p.Pos, p.GadgetLeft);
             g.Thrower = p.Id;
             g.To = ClampToArena(LayoutOn ? PushOutOfSolids(to, 12f) : to, 14f);
-            g.FlyT = g.To.DistanceTo(p.Pos) < 4f ? GadgetFlyTime : 0f;
+            g.FlyT = g.To.CloserThan(p.Pos, 4f) ? GadgetFlyTime : 0f;
             if (!g.Flying)
                 g.Pos = g.To;
             p.Gadget = GadgetId.None;

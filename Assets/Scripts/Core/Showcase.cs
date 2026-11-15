@@ -130,7 +130,7 @@ namespace Arena
             }
             // Stroll around home (and walk back after a dash or leap).
             V2 stroll = Home + Game.Sway(t, 7, 26f);
-            if (!Idle && me.Pos.DistanceTo(stroll) > 6f && Game.DashT <= 0f)
+            if (!Idle && me.Pos.FartherThan(stroll, 6f) && Game.DashT <= 0f)
                 input.Move = (stroll - me.Pos).Normalized();
             // The bow draws and lets go; everything else just holds the trigger.
             input.Fire = !Idle && (!Game.ChargeWeapon(me.Weapon.Id) || MathX.Fmod(t, 1.3f) < 1.05f);

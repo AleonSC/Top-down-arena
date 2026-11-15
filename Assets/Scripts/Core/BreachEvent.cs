@@ -185,7 +185,7 @@ namespace Arena
             {
                 if (Expansion.BoughtCount(Expanded) > Expansion.MaxRooms - 2)
                     break;
-                if (EventMark.HasValue && b.Pos.DistanceTo(EventMark.Value) < 3f)
+                if (EventMark.HasValue && b.Pos.CloserThan(EventMark.Value, 3f))
                     continue;  // (the gold breach's room opens there later)
                 var opts = Expansion.SurpriseOptions(Expanded, SurpriseShape.Stash, b.Pos - b.In * BreachEvent.Behind);
                 opts.RemoveAll(o => TouchesPlannedEventRoom(o.Rooms));

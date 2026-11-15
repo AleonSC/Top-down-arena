@@ -130,7 +130,7 @@ namespace Arena
                 if (!Targetable(e) || p.RapierLungeHit.Contains(e.Id))
                     continue;
                 float along = Math.Max(0f, Math.Min(len, (e.Pos - p.RapierLungeFrom).Dot(p.RapierLungeDir)));
-                if (e.Pos.DistanceTo(p.RapierLungeFrom + p.RapierLungeDir * along) > e.Radius + RapierLungeWidth)
+                if (e.Pos.FartherThan(p.RapierLungeFrom + p.RapierLungeDir * along, e.Radius + RapierLungeWidth))
                     continue;
                 p.RapierLungeHit.Add(e.Id);
                 WeaponHurt(e, p.RapierLungeDmg, p.Id);

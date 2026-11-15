@@ -125,7 +125,7 @@ namespace Arena
             {
                 V2 middle = new V2(Width / 2f, Height / 2f);
                 speed = 160f;
-                return e.Pos.DistanceTo(middle) > 6f ? (middle - e.Pos).Normalized() : V2.Zero;
+                return e.Pos.FartherThan(middle, 6f) ? (middle - e.Pos).Normalized() : V2.Zero;
             }
             if (s.Turn == DevourTurn.Hungry)
             {
@@ -249,7 +249,7 @@ namespace Arena
                     if (p.Downed || p.InvulnT > 0f || p.SwallowT > 0f)
                         continue;
                     for (int k = 0; k < 12; k++)
-                        if (ToothOn(k) && p.Pos.DistanceTo(ToothPos(e.Pos, s.Spin, k)) < ToothHit + p.Def.HitR)
+                        if (ToothOn(k) && p.Pos.CloserThan(ToothPos(e.Pos, s.Spin, k), ToothHit + p.Def.HitR))
                         {
                             Damage(p, BiteDamage * 0.75f, "The Devourer (teeth)");
                             break;
@@ -364,7 +364,7 @@ namespace Arena
                 return;
             s.Lunging = false;
             foreach (var p in Players.Values)
-                if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && p.Pos.DistanceTo(e.Pos) < e.Radius + BiteReach + p.Def.HitR
+                if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && p.Pos.CloserThan(e.Pos, e.Radius + BiteReach + p.Def.HitR)
                     && Math.Abs(MathX.Fmod((p.Pos - e.Pos).Angle - s.LungeAng + MathX.Pi, MathX.Tau) - MathX.Pi) < MathX.Pi / 2f + 0.2f)
                 {
                     Damage(p, BiteDamage, "The Devourer (bite)");
@@ -397,7 +397,7 @@ namespace Arena
             }
             s.BurrowT = 0f;
             foreach (var p in Players.Values)
-                if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && p.Pos.DistanceTo(e.Pos) < EruptRadius + p.Def.HitR)
+                if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && p.Pos.CloserThan(e.Pos, EruptRadius + p.Def.HitR))
                     Damage(p, BiteDamage, "The Devourer (eruption)");
             float off = Rand(0f, MathX.Tau);
             for (int i = 0; i < 16; i++)
@@ -429,7 +429,7 @@ namespace Arena
         void EatMorsels(Enemy e)
         {
             Enemy m = NearestMorsel(e.Pos);
-            if (m == null || m.Pos.DistanceTo(e.Pos) > e.Radius + m.Radius + 4f || IsSpawning(m))
+            if (m == null || m.Pos.FartherThan(e.Pos, e.Radius + m.Radius + 4f) || IsSpawning(m))
                 return;
             e.Hp = Math.Min(e.MaxHp, e.Hp + e.MaxHp * MorselEat);
             Enemies.Remove(m.Id);  // eaten (no kill, no reward)
@@ -445,7 +445,7 @@ namespace Arena
                 if (m.Type != EnemyType.Morsel || m.Hp <= 0f || IsSpawning(m))
                     continue;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.SwallowT <= 0f && p.Pos.DistanceTo(m.Pos) < m.Radius + p.Def.BodyR)
+                    if (!p.Downed && p.SwallowT <= 0f && p.Pos.CloserThan(m.Pos, m.Radius + p.Def.BodyR))
                     {
                         m.Hp = 0f;
                         m.LastHitBy = p.Id;
@@ -472,7 +472,7 @@ namespace Arena
             if (s.SwallowId != 0)
                 return;
             foreach (var p in Players.Values)
-                if (!p.Downed && p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.HitR + 6f)
+                if (!p.Downed && p.Pos.CloserThan(e.Pos, e.Radius + p.Def.HitR + 6f))
                 {
                     s.SwallowId = p.Id;
                     s.SwallowT = SwallowTime;
@@ -572,7 +572,7 @@ namespace Arena
                 if (p.Downed || p.InvulnT > 0f || p.SwallowT > 0f)
                     continue;
                 foreach (var pt in Patches.Values)
-                    if (pt.Kind == PatchKind.Bile && pt.Active && p.Pos.DistanceTo(pt.Pos) < pt.Radius + p.Def.HitR)
+                    if (pt.Kind == PatchKind.Bile && pt.Active && p.Pos.CloserThan(pt.Pos, pt.Radius + p.Def.HitR))
                     {
                         DamageOverTime(p, BileDps * 0.25f, "The Devourer (bile)");
                         break;

@@ -17,7 +17,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var o in Enemies.Values)
-                if (o != e && o.Type == EnemyType.Worker && o.SpawnT <= 0f && o.Pos.DistanceTo(e.Pos) < WorkerPackRange)
+                if (o != e && o.Type == EnemyType.Worker && o.SpawnT <= 0f && o.Pos.CloserThan(e.Pos, WorkerPackRange))
                     n++;
             return 1f + Math.Min(WorkerPackMax, WorkerPackStep * n);
         }

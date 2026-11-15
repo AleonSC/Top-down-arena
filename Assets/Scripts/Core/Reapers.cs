@@ -295,7 +295,7 @@ namespace Arena
                     for (int i = 0; i < 10; i++)
                     {
                         V2 at = RandomInArena(120f);
-                        for (int k = 0; k < 10 && at.DistanceTo(mid) < 160f; k++)
+                        for (int k = 0; k < 10 && at.CloserThan(mid, 160f); k++)
                             at = RandomInArena(120f);
                         R.Blasts.Add(at);
                     }
@@ -312,7 +312,7 @@ namespace Arena
                     foreach (var at in R.Blasts)
                     {
                         foreach (var p in Players.Values)
-                            if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(at) < BlastRadius + p.Def.HitR)
+                            if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(at, BlastRadius + p.Def.HitR))
                                 Damage(p, BlastDamage, "The Dual Reaper (power-up)");
                         BroadcastFx(FxKind.Boom, at, new Rgba(1f, 0.7f, 0.3f), BlastRadius, 0.45f, Sfx.None);
                     }
@@ -392,7 +392,7 @@ namespace Arena
                 float along = (p.Pos.X - a.Pos.X) * dir.X + (p.Pos.Y - a.Pos.Y) * dir.Y;
                 if (along < a.Radius || along > len - b.Radius)
                     continue;
-                if (p.Pos.DistanceTo(a.Pos + dir * along) < TetherWidth / 2f + p.Def.HitR)
+                if (p.Pos.CloserThan(a.Pos + dir * along, TetherWidth / 2f + p.Def.HitR))
                     Damage(p, 18f, "Twin Reapers (tether)");  // the difficulty's per-wave damage growth scales it
             }
         }
@@ -409,7 +409,7 @@ namespace Arena
             {
                 speed = 700f;
                 V2 to = mid + new V2(side * 300f, 0f);
-                return e.Pos.DistanceTo(to) > 4f ? (to - e.Pos).Normalized() : V2.Zero;
+                return e.Pos.FartherThan(to, 4f) ? (to - e.Pos).Normalized() : V2.Zero;
             }
             if (R.Trans == 1)
                 return V2.Zero;
@@ -424,13 +424,13 @@ namespace Arena
                 {
                     speed = 400f;
                     V2 to = mid + new V2(side * 300f, 0f);
-                    return e.Pos.DistanceTo(to) > 4f ? (to - e.Pos).Normalized() : V2.Zero;
+                    return e.Pos.FartherThan(to, 4f) ? (to - e.Pos).Normalized() : V2.Zero;
                 }
                 case ReaperTurn.Crossfire:
                 {
                     speed = 120f;
                     V2 to = new V2(side < 0f ? 140f : Width - 140f, Math.Max(100f, Math.Min(Height - 100f, tpos.Y)));
-                    return e.Pos.DistanceTo(to) > 4f ? (to - e.Pos).Normalized() : V2.Zero;
+                    return e.Pos.FartherThan(to, 4f) ? (to - e.Pos).Normalized() : V2.Zero;
                 }
             }
             if (R.Stage == ReaperStage.Twilight)
@@ -474,7 +474,7 @@ namespace Arena
                 {
                     e.FireT = 0.1f;
                     float side = e.Type == EnemyType.TwinA ? -1f : 1f;
-                    if (e.Pos.DistanceTo(new V2(Width / 2f + side * 300f, Height / 2f)) > 8f)
+                    if (e.Pos.FartherThan(new V2(Width / 2f + side * 300f, Height / 2f), 8f))
                         break;
                     e.Ang += e.Type == EnemyType.TwinA ? 0.2f : -0.2f;
                     for (int k = 0; k < 3; k++)
@@ -501,9 +501,9 @@ namespace Arena
             {
                 bool taken = false;
                 foreach (var h in R.Holes)
-                    taken |= h.DistanceTo(spot) < 10f;
+                    taken |= h.CloserThan(spot, 10f);
                 foreach (var o in Enemies.Values)
-                    taken |= o.Type == EnemyType.ReaperPillar && o.Pos.DistanceTo(spot) < 10f;
+                    taken |= o.Type == EnemyType.ReaperPillar && o.Pos.CloserThan(spot, 10f);
                 if (!taken)
                     SpawnEnemyAt(EnemyType.ReaperPillar, spot, 0.5f, d.Id);
             }
@@ -587,7 +587,7 @@ namespace Arena
                             R.Suck = 0f;
                             PullStrength = 0f;
                             foreach (var p in Players.Values)
-                                if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(d.Pos) < SuckRadius + p.Def.HitR)
+                                if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(d.Pos, SuckRadius + p.Def.HitR))
                                     Damage(p, SuckDamage, "The Dual Reaper (blast)");
                             BroadcastFx(FxKind.Boom, d.Pos, new Rgba(1f, 0.6f, 0.3f), SuckRadius, 0.6f, Sfx.BigExplode);
                             R.TurnT = 0f;  // and again, with the pillars that are left
@@ -639,7 +639,7 @@ namespace Arena
                             float sa = R.Heading + side * MathX.Pi / 2f;
                             foreach (var p in Players.Values)
                             {
-                                if (p.Downed || p.InvulnT > 0f || p.Pos.DistanceTo(d.Pos) > SwingReach + p.Def.HitR)
+                                if (p.Downed || p.InvulnT > 0f || p.Pos.FartherThan(d.Pos, SwingReach + p.Def.HitR))
                                     continue;
                                 float diff = Math.Abs(MathX.Fmod((p.Pos - d.Pos).Angle - sa + MathX.Pi, MathX.Tau) - MathX.Pi);
                                 if (diff < SwingHalfArc)
@@ -650,7 +650,7 @@ namespace Arena
                         }
                     }
                     foreach (var h in R.Holes)
-                        if (d.Pos.DistanceTo(h) < HoleCatch)
+                        if (d.Pos.CloserThan(h, HoleCatch))
                         {
                             // Into the hole: it's stuck, and puts up a shield.
                             R.Trapped = true;
@@ -687,7 +687,7 @@ namespace Arena
                 return (tpos - e.Pos).Normalized();
             }
             speed = 400f;
-            return e.Pos.DistanceTo(mid) > 4f ? (mid - e.Pos).Normalized() : V2.Zero;
+            return e.Pos.FartherThan(mid, 4f) ? (mid - e.Pos).Normalized() : V2.Zero;
         }
 
         // --- Sundered: the reap -------------------------------------------------------------------
@@ -736,7 +736,7 @@ namespace Arena
                         rp.T = 0f;
                         foreach (var p in Players.Values)
                         {
-                            if (p.Downed || p.InvulnT > 0f || p.Pos.DistanceTo(e.Pos) > ReapReach + p.Def.HitR)
+                            if (p.Downed || p.InvulnT > 0f || p.Pos.FartherThan(e.Pos, ReapReach + p.Def.HitR))
                                 continue;
                             float diff = Math.Abs(MathX.Fmod((p.Pos - e.Pos).Angle - rp.A + MathX.Pi, MathX.Tau) - MathX.Pi);
                             if (diff < ReapHalfArc)

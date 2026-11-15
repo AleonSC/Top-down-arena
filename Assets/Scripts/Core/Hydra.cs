@@ -29,16 +29,20 @@ namespace Arena
             if (m.Cd > 0f || !Battle || m.T < 0f || m.T > m.Duration - 0.5f)  // not while it is still rising
                 return;
             var d = m.Def;
-            var near = new List<Enemy>();
+            var near = enemyLists.Rent();
             foreach (var e in Enemies.Values)
-                if (e.SpawnT <= 0f && e.Pos.DistanceTo(m.Pos) < d.Range)
+                if (e.SpawnT <= 0f && e.Pos.CloserThan(m.Pos, d.Range))
                     near.Add(e);
             if (near.Count == 0)
+            {
+                Free(near);
                 return;
+            }
             near.Sort((a, b) => a.Pos.DistanceSq(m.Pos).CompareTo(b.Pos.DistanceSq(m.Pos)));
             int heads = HydraHeads(m);
             m.Head = (m.Head + 1) % heads;
             Enemy tg = near[m.Head % near.Count];  // head 0 the nearest, head 1 the next, ...
+            Free(near);
             m.Cd = d.Interval / heads;
             V2 dir = (tg.Pos - m.Pos).Normalized();
             m.Aim = dir.Angle;
@@ -53,7 +57,7 @@ namespace Arena
         {
             var near = new List<Enemy>();
             foreach (var e in enemies)
-                if (e.SpawnT <= 0f && e.Pos.DistanceTo(m.Pos) < m.Def.Range)
+                if (e.SpawnT <= 0f && e.Pos.CloserThan(m.Pos, m.Def.Range))
                     near.Add(e);
             if (near.Count == 0)
                 return null;

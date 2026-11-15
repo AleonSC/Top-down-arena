@@ -178,7 +178,7 @@ namespace Arena
             Enemy target = null;
             if (!atk.Heal)
                 foreach (var e in Enemies.Values)
-                    if (Targetable(e) && e.Pos.DistanceTo(owner.Pos) < leash + e.Radius
+                    if (Targetable(e) && e.Pos.CloserThan(owner.Pos, leash + e.Radius)
                         && (target == null || e.Pos.DistanceSq(m.Pos) < target.Pos.DistanceSq(m.Pos)))
                         target = e;
             V2 home = owner.Pos + V2.FromAngle(owner.Aim + MathX.Pi * 0.75f + m.Ang) * 45f;
@@ -216,7 +216,7 @@ namespace Arena
             if (atk.Heal)
             {
                 foreach (var q in Players.Values)
-                    if (!q.Downed && q.Pos.DistanceTo(m.Pos) < atk.Range)
+                    if (!q.Downed && q.Pos.CloserThan(m.Pos, atk.Range))
                         Heal(q, atk.Dmg * m.Power * dt, owner);
                 return;
             }
@@ -224,7 +224,7 @@ namespace Arena
                 return;
             if (atk.Melee)
             {
-                if (target.Pos.DistanceTo(m.Pos) < target.Radius + def.Radius + 6f)
+                if (target.Pos.CloserThan(m.Pos, target.Radius + def.Radius + 6f))
                 {
                     m.Cd = atk.Interval;
                     HurtEnemy(target, dmg, m.Owner);
@@ -232,7 +232,7 @@ namespace Arena
                 }
                 return;
             }
-            if (target.Pos.DistanceTo(m.Pos) > atk.Range)
+            if (target.Pos.FartherThan(m.Pos, atk.Range))
                 return;
             m.Cd = atk.Interval;
             if (atk.Ring)

@@ -32,7 +32,7 @@ namespace Arena
         /// Host: Vein Rush was cast toward `target` (where the player's own game is carrying them).
         void CastVeinRush(Player p, V2 target, float power, bool mastered)
         {
-            V2 from = StepFrom.HasValue && StepFrom.Value.DistanceTo(p.Pos) < 120f ? StepFrom.Value : p.Pos, path = target - from;
+            V2 from = StepFrom.HasValue && StepFrom.Value.CloserThan(p.Pos, 120f) ? StepFrom.Value : p.Pos, path = target - from;
             float len = Math.Max(1f, path.Length);
             V2 dir = path / len;
             p.InvulnT = Math.Max(p.InvulnT, VeinRushTime + 0.12f);
@@ -45,7 +45,7 @@ namespace Arena
                     continue;
                 float along = Math.Max(0f, Math.Min(len, (e.Pos.X - from.X) * dir.X + (e.Pos.Y - from.Y) * dir.Y));
                 V2 near = from + dir * along;
-                if (e.Pos.DistanceTo(near) > e.Radius + RushWidth)
+                if (e.Pos.FartherThan(near, e.Radius + RushWidth))
                     continue;
                 HurtEnemy(e, dmg, p.Id);
                 ApplyBleed(e, RushBleed * power, p.Id);
@@ -69,7 +69,7 @@ namespace Arena
                 return;
             z.Bursts = false;
             foreach (var e in Enemies.Values)
-                if (e.SpawnT <= 0f && e.Pos.DistanceTo(z.Pos) < z.Radius + e.Radius + 6f)
+                if (e.SpawnT <= 0f && e.Pos.CloserThan(z.Pos, z.Radius + e.Radius + 6f))
                     HurtEnemy(e, TrailBurst * z.DmgMult, z.Owner);
             BroadcastFx(FxKind.Boom, z.Pos, z.Def.Color, z.Radius + 8f, 0.3f, Sfx.None);
         }

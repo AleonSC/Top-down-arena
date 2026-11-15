@@ -19,7 +19,7 @@ namespace Arena
                 return;
             Player other = null;
             foreach (var q in Players.Values)
-                if (q != to && !q.Downed && q.Pos.DistanceTo(to.Pos) <= AdrenalineSplashRange && (other == null || q.Pos.DistanceSq(to.Pos) < other.Pos.DistanceSq(to.Pos)))
+                if (q != to && !q.Downed && q.Pos.WithinReach(to.Pos, AdrenalineSplashRange) && (other == null || q.Pos.DistanceSq(to.Pos) < other.Pos.DistanceSq(to.Pos)))
                     other = q;
             if (other != null)
                 Inject(other, time * AdrenalineSplashTime, p);

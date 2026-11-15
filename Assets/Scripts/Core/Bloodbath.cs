@@ -42,7 +42,7 @@ namespace Arena
         }
 
         /// Is something of this radius at pos wading in the pool? (Only while it's channelled: a drying pool does nothing.)
-        public static bool InBath(Zone z, V2 pos, float radius) => BathOn(z) && pos.DistanceTo(z.Pos) <= BathReach(z) + radius;
+        public static bool InBath(Zone z, V2 pos, float radius) => BathOn(z) && pos.WithinReach(z.Pos, BathReach(z) + radius);
 
         /// A Bloodbath still being channelled (not drying up).
         public static bool BathOn(Zone z) => z.Kind == ZoneKind.Bloodbath && z.T > 0f && z.Aim <= 0f;

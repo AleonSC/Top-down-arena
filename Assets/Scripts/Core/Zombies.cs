@@ -129,7 +129,7 @@ namespace Arena
         Enemy MenderNear(V2 at, Enemy not = null)
         {
             foreach (var m in Enemies.Values)
-                if (m.Type == EnemyType.Mender && m != not && m.Hp > 0f && m.Pos.DistanceTo(at) < Zombies.MendRange)
+                if (m.Type == EnemyType.Mender && m != not && m.Hp > 0f && m.Pos.CloserThan(at, Zombies.MendRange))
                     return m;
             return null;
         }
@@ -226,7 +226,7 @@ namespace Arena
                 if (pt.Kind != PatchKind.Acid || !pt.Active)
                     continue;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(pt.Pos) < pt.Radius + p.Def.HitR)
+                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(pt.Pos, pt.Radius + p.Def.HitR))
                         DamageOverTime(p, Zombies.AcidDps * 0.25f, "Spitter acid");
             }
         }
@@ -256,7 +256,7 @@ namespace Arena
             if (e.T2 > 0f)
                 return;
             var p = NearestPlayer(e.Pos);
-            if (p == null || p.StunT > 0f || p.InvulnT > 0f || p.Pos.DistanceTo(e.Pos) > e.Radius + p.Def.HitR + Zombies.GrabReach)
+            if (p == null || p.StunT > 0f || p.InvulnT > 0f || p.Pos.FartherThan(e.Pos, e.Radius + p.Def.HitR + Zombies.GrabReach))
                 return;
             e.Phase |= Zombies.PhGrab;
             e.GrabId = p.Id;
@@ -298,7 +298,7 @@ namespace Arena
         bool CallGraves(Enemy e, V2 tpos)
         {
             int room = Math.Min(Zombies.GravesPerCall, Zombies.MaxCalled - CalledBy(e));
-            if (room <= 0 || e.Pos.DistanceTo(tpos) > Zombies.CallerKeep * 2f)
+            if (room <= 0 || e.Pos.FartherThan(tpos, Zombies.CallerKeep * 2f))
                 return false;
             float a0 = Rand(0f, MathX.Tau);
             for (int i = 0; i < room; i++)
@@ -328,7 +328,7 @@ namespace Arena
         /// zombies never shoot (HoldFire).
         void SpitterFire(Enemy e, V2 tpos)
         {
-            if (e.Pos.DistanceTo(tpos) > Zombies.SpitRange * 2.2f)
+            if (e.Pos.FartherThan(tpos, Zombies.SpitRange * 2.2f))
             {
                 e.FireT = 0.5f;
                 return;
@@ -424,7 +424,7 @@ namespace Arena
             e.PhaseT = Math.Max(0f, e.PhaseT - dt);
             byte act = e.PhaseT > 0f ? Zombies.PhAct : (byte)0;
             var p = NearestPlayer(e.Pos);
-            if (p != null && p.InvulnT <= 0f && p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.HitR + 4f)
+            if (p != null && p.InvulnT <= 0f && p.Pos.CloserThan(e.Pos, e.Radius + p.Def.HitR + 4f))
             {
                 Damage(p, e.Def.Contact * D(DiffKnob.EnemyDamage), "Bloater");
                 BroadcastFx(FxKind.Boom, e.Pos, e.Def.Color, Zombies.SporeRadius * 0.6f, 0.4f, Sfx.ZombieBurst);
@@ -450,7 +450,7 @@ namespace Arena
                 act = Zombies.PhAct;
                 BroadcastFx(FxKind.Ring, e.Pos, new Rgba(0.89f, 1f, 0.61f), Zombies.ShriekRange, 0.8f, Sfx.ZombieShriek);
                 foreach (var o in Enemies.Values)
-                    if (o != e && !o.Def.IsBoss && o.Pos.DistanceTo(e.Pos) < Zombies.ShriekRange)
+                    if (o != e && !o.Def.IsBoss && o.Pos.CloserThan(e.Pos, Zombies.ShriekRange))
                     {
                         o.FrenzyT = Zombies.FrenzyTime;
                         o.RetargetT = 0f;  // and it turns on you
@@ -476,7 +476,7 @@ namespace Arena
                 act = Zombies.PhAct;
                 BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, Zombies.MendRange, 0.9f, Sfx.ZombieMend);
                 foreach (var o in Enemies.Values)
-                    if (o != e && !o.Def.IsBoss && o.Hp < o.MaxHp && o.Pos.DistanceTo(e.Pos) < Zombies.MendRange)
+                    if (o != e && !o.Def.IsBoss && o.Hp < o.MaxHp && o.Pos.CloserThan(e.Pos, Zombies.MendRange))
                     {
                         o.Hp = Math.Min(o.MaxHp, o.Hp + o.MaxHp * Zombies.MendHeal);
                         BroadcastFx(FxKind.Link, e.Pos, o.Pos, e.Def.Color, 2f, 0.5f, Sfx.None);

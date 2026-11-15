@@ -97,7 +97,7 @@ namespace Arena
         public static bool PropCovers(Prop p, V2 pos, float pad)
         {
             if (Round(p))
-                return pos.DistanceTo(p.Pos) < PropRadius(p) + pad;
+                return pos.CloserThan(p.Pos, PropRadius(p) + pad);
             return Math.Abs(pos.X - p.Pos.X) < HalfW(p) + pad && Math.Abs(pos.Y - p.Pos.Y) < HalfH(p) + pad;
         }
 
@@ -221,7 +221,7 @@ namespace Arena
             float hw = HalfW(p), hh = HalfH(p);
             V2 to = (p.Pos + delta).Clamp(ArenaMin + new V2(hw, hh), ArenaMax - new V2(hw, hh));
             V2 fit = PushOutOfSolids(to, Math.Min(hw, hh));
-            if (fit.DistanceTo(to) > 0.01f)
+            if (fit.FartherThan(to, 0.01f))
                 return false;
             foreach (var q in Props.Values)
                 if (q != p && Solid(q) && q.Hp > 0f && Math.Abs(to.X - q.Pos.X) < hw + HalfW(q) - 0.5f && Math.Abs(to.Y - q.Pos.Y) < hh + HalfH(q) - 0.5f)
@@ -348,7 +348,7 @@ namespace Arena
             if (NearSolid(at, size + 16f))
                 return false;  // and clear of the layout's walls and pillars (LayoutRules.cs)
             foreach (var pl in Players.Values)
-                if (pl.Pos.DistanceTo(at) < playerGap + size)
+                if (pl.Pos.CloserThan(at, playerGap + size))
                     return false;
             foreach (var p in Props.Values)
             {
@@ -416,7 +416,7 @@ namespace Arena
             for (int i = 0; i < 30; i++)
             {
                 V2 at = RandomInArena(120f);
-                if (at.DistanceTo(boss.Pos) < boss.Radius + 120f || !SpotClear(at, BarrelR, 120f))
+                if (at.CloserThan(boss.Pos, boss.Radius + 120f) || !SpotClear(at, BarrelR, 120f))
                     continue;
                 AddProp(PropKind.HealthBarrel, at);
                 return;
@@ -568,10 +568,10 @@ namespace Arena
         {
             BroadcastFx(FxKind.Boom, b.Pos, new Rgba(1f, 0.55f, 0.15f), BarrelBlast, 0.5f, Sfx.BigExplode);
             foreach (var e in Enemies.Values)
-                if (Targetable(e) && e.Pos.DistanceTo(b.Pos) < BarrelBlast + e.Radius)
+                if (Targetable(e) && e.Pos.CloserThan(b.Pos, BarrelBlast + e.Radius))
                     HurtEnemy(e, BarrelDamage(Wave), b.LitBy);
             foreach (var pl in Players.Values)
-                if (!pl.Downed && pl.Pos.DistanceTo(b.Pos) < BarrelBlast + pl.Def.HitR)
+                if (!pl.Downed && pl.Pos.CloserThan(b.Pos, BarrelBlast + pl.Def.HitR))
                     Damage(pl, BarrelHurt, "Barrel");
             foreach (var p in Props.Values)
             {
@@ -658,7 +658,7 @@ namespace Arena
                 if (me == null || me.Downed)
                     return null;
                 foreach (var l in Loots.Values)
-                    if (l.Owner == MyId && l.Pos.DistanceTo(me.Pos) < LootReach + me.Def.BodyR)
+                    if (l.Owner == MyId && l.Pos.CloserThan(me.Pos, LootReach + me.Def.BodyR))
                         return l;
                 return null;
             }
@@ -710,7 +710,7 @@ namespace Arena
             Loot l;
             if (!IsHost || !Players.TryGetValue(playerId, out p) || !Loots.TryGetValue(lootId, out l) || l.Owner != playerId)
                 return;
-            if (l.Pos.DistanceTo(p.Pos) > LootReach + p.Def.BodyR + 80f)
+            if (l.Pos.FartherThan(p.Pos, LootReach + p.Def.BodyR + 80f))
                 return;  // (a little slack for the client's position arriving late)
             Loots.Remove(lootId);
             var u = Upgrades.All[l.Upgrade];

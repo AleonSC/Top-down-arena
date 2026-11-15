@@ -109,7 +109,7 @@ namespace Arena
         {
             Enemy target = null;
             foreach (var e in Enemies.Values)
-                if (Targetable(e) && e.Pos.DistanceTo(owner.Pos) < GuardLeash + e.Radius
+                if (Targetable(e) && e.Pos.CloserThan(owner.Pos, GuardLeash + e.Radius)
                     && (target == null || e.Pos.DistanceSq(m.Pos) < target.Pos.DistanceSq(m.Pos)))
                     target = e;
             V2 goal = target != null ? target.Pos : owner.Pos + V2.FromAngle(owner.Aim + MathX.Pi * 0.75f + m.Ang) * 45f;
@@ -151,7 +151,7 @@ namespace Arena
             if (Defs.Unblockable(b.Kind))
                 return false;
             foreach (var m in Minions.Values)
-                if (HasHealth(m) && b.Pos.DistanceTo(m.Pos) < MinionRadius(m) + b.Radius)  // its body, from any side
+                if (HasHealth(m) && b.Pos.CloserThan(m.Pos, MinionRadius(m) + b.Radius))  // its body, from any side
                 {
                     HurtGuard(m, b.Dmg);
                     return true;
@@ -166,7 +166,7 @@ namespace Arena
         {
             guardsHit.Clear();
             foreach (var m in Minions.Values)
-                if (HasHealth(m) && m.HurtT <= 0f && m.Pos.DistanceTo(e.Pos) < e.Radius + MinionRadius(m) + 4f)  // it stands right up against what it fights
+                if (HasHealth(m) && m.HurtT <= 0f && m.Pos.CloserThan(e.Pos, e.Radius + MinionRadius(m) + 4f))  // it stands right up against what it fights
                     guardsHit.Add(m);
             foreach (var m in guardsHit)
             {
@@ -186,7 +186,7 @@ namespace Arena
         static float SearchlightMark(Player p) => p.Stats.Searchlight >= 3 ? SearchBigMark : SearchMark;
 
         /// Is this enemy in that player's light? (Its middle has to be inside, with a little of its body.)
-        static bool Lit(Player p, V2 pos, float radius) => p.Stats.Searchlight > 0 && !p.Downed && pos.DistanceTo(p.LightPos) < SearchlightRadius(p) + radius * 0.5f;
+        static bool Lit(Player p, V2 pos, float radius) => p.Stats.Searchlight > 0 && !p.Downed && pos.CloserThan(p.LightPos, SearchlightRadius(p) + radius * 0.5f);
 
         /// HurtEnemy: an enemy in anyone's light takes more damage from every player (the strongest light counts).
         float LitMult(Enemy e)

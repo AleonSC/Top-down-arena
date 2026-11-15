@@ -55,7 +55,8 @@ namespace Arena
                 float push = (BoShoveKnock + p.Weapon.Grow * ExtraShots(p)) * p.Stats.BoKnockMult;  // Iron Bo: farther
                 p.Run.ShotsFired++;
                 bool any = false;
-                foreach (var e in new List<Enemy>(Enemies.Values))
+                var snap1 = SnapEnemies();
+                foreach (var e in snap1)
                 {
                     if (!Targetable(e))
                         continue;
@@ -76,6 +77,7 @@ namespace Arena
                     if (e.Hp > 0f && !Heavy(e))
                         KnockEnemy(e, dir * push);  // slides (Knock.cs)
                 }
+                Free(snap1);
                 if (any)
                     p.Run.ShotsHit++;
             }

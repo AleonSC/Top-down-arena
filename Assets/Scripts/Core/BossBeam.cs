@@ -39,7 +39,7 @@ namespace Arena
                     {
                         bool near = false;
                         foreach (var q in scratchPts)
-                            near |= q.DistanceTo(at) < 60f;
+                            near |= q.CloserThan(at, 60f);
                         if (!near)
                             break;
                         at += (hub.Min + (hub.Max - hub.Min) * 0.5f - at).Normalized() * 60f;

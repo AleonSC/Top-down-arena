@@ -223,7 +223,7 @@ namespace Arena
             {
                 Enemy next = null;
                 foreach (var e in Enemies.Values)
-                    if (!hit.Contains(e.Id) && Targetable(e) && e.Pos.DistanceTo(cur.Pos) < reach &&
+                    if (!hit.Contains(e.Id) && Targetable(e) && e.Pos.CloserThan(cur.Pos, reach) &&
                         (next == null || e.Pos.DistanceSq(cur.Pos) < next.Pos.DistanceSq(cur.Pos)))
                         next = e;
                 if (next == null)
@@ -246,7 +246,7 @@ namespace Arena
         bool InIncense(V2 pos)
         {
             foreach (var z in Zones.Values)
-                if (z.Kind == ZoneKind.Incense && pos.DistanceTo(z.Pos) <= z.Radius)
+                if (z.Kind == ZoneKind.Incense && pos.WithinReach(z.Pos, z.Radius))
                     return true;
             return false;
         }
@@ -317,7 +317,7 @@ namespace Arena
             foreach (var z in Zones.Values)
                 if (z.Kind == ZoneKind.OfudaWard)
                     foreach (var e in Enemies.Values)
-                        if (Targetable(e) && e.Pos.DistanceTo(z.Pos) < z.Radius + e.Radius)
+                        if (Targetable(e) && e.Pos.CloserThan(z.Pos, z.Radius + e.Radius))
                         {
                             (burst = burst ?? new List<Zone>()).Add(z);
                             break;
@@ -518,7 +518,7 @@ namespace Arena
             // What it reached: its target, or (on the way, for an imp) any enemy it runs into.
             Enemy hit = null;
             foreach (var o in Enemies.Values)
-                if (Targetable(o) && o.Pos.DistanceTo(m.Pos) < o.Radius + d.Radius * m.Scale + 4f && (imp || o == e))
+                if (Targetable(o) && o.Pos.CloserThan(m.Pos, o.Radius + d.Radius * m.Scale + 4f) && (imp || o == e))
                 {
                     hit = o;
                     break;
@@ -634,7 +634,7 @@ namespace Arena
             if (b.Kind != Defs.BoneShot || !Players.TryGetValue(b.Owner, out p) || p.Weapon.Id != WeaponId.WolfWhistle)
                 return;
             var cur = Prey(p);
-            if (cur != null && cur != e && e.Pos.DistanceTo(p.AimAt) >= cur.Pos.DistanceTo(p.AimAt))
+            if (cur != null && cur != e && e.Pos.FartherOrAt(p.AimAt, cur.Pos.DistanceTo(p.AimAt)))
                 return;  // a fanned or piercing dart that clipped something else doesn't pull the pack off what you're aiming at
             if (p.PreyId != e.Id)
                 p.PackT = 0f;
@@ -877,7 +877,7 @@ namespace Arena
         {
             Enemy best = null;
             foreach (var e in Enemies.Values)
-                if (e.CageT > 0f && e.Hp > 0f && e.Pos.DistanceTo(from) < GuardShotRange && (best == null || e.Pos.DistanceSq(from) < best.Pos.DistanceSq(from)))
+                if (e.CageT > 0f && e.Hp > 0f && e.Pos.CloserThan(from, GuardShotRange) && (best == null || e.Pos.DistanceSq(from) < best.Pos.DistanceSq(from)))
                     best = e;
             return best;
         }
@@ -892,7 +892,7 @@ namespace Arena
         void LandBoulder(Bullet b)
         {
             foreach (var e in Enemies.Values)
-                if (Targetable(e) && e.Pos.DistanceTo(b.Pos) < b.Splash + e.Radius && !BlocksShot(e, b.Pos))
+                if (Targetable(e) && e.Pos.CloserThan(b.Pos, b.Splash + e.Radius) && !BlocksShot(e, b.Pos))
                 {
                     HurtEnemy(e, b.Dmg, b.Owner);
                     OnBulletHit(b, e);
@@ -934,7 +934,7 @@ namespace Arena
             BroadcastFx(FxKind.Spark, from.Pos, Defs.BulletColor(Defs.HammerShot), from.Radius + 14f, 0.3f, Sfx.None);
             var near = new List<Enemy>();
             foreach (var e in Enemies.Values)
-                if (e != from && Targetable(e) && e.Pos.DistanceTo(from.Pos) < sh.Reach + e.Radius)
+                if (e != from && Targetable(e) && e.Pos.CloserThan(from.Pos, sh.Reach + e.Radius))
                     near.Add(e);
             WetArcs(from.Pos, from, sh.Dmg / HammerArcMult * 0.5f, sh.Owner);  // Tsunami.cs: a pulse counts as half a hammer hit (its own arcs are only an eighth)
             near.Sort((a, b) => a.Pos.DistanceSq(from.Pos).CompareTo(b.Pos.DistanceSq(from.Pos)));

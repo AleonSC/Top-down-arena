@@ -157,7 +157,7 @@ namespace Arena
                 return;
             }
             e.DanceT -= dt;
-            if (e.DanceT > 0f || e.SpawnT > 0f || e.Pos.DistanceTo(tpos) > GallantRange)
+            if (e.DanceT > 0f || e.SpawnT > 0f || e.Pos.FartherThan(tpos, GallantRange))
                 return;
             e.DanceT = GallantEvery;
             s.SaluteT = GallantTell;
@@ -230,7 +230,7 @@ namespace Arena
             if (e.MaskT <= 0f)
             {
                 e.DanceT -= dt;
-                if (e.DanceT > 0f || e.SpawnT > 0f || e.Phase != 0 || e.Pos.DistanceTo(tpos) > MummerRange)
+                if (e.DanceT > 0f || e.SpawnT > 0f || e.Phase != 0 || e.Pos.FartherThan(tpos, MummerRange))
                     return false;
                 // The blink: a puff where it was, then three of it round you.
                 e.DanceT = MummerEvery;
@@ -386,7 +386,7 @@ namespace Arena
                 if (pt.Kind != PatchKind.DuelCircle || !pt.Active)
                     continue;
                 float lim = pt.R0 - r;
-                if (before.DistanceTo(pt.Pos) > lim + 1f)
+                if (before.FartherThan(pt.Pos, lim + 1f))
                     continue;  // you weren't inside it
                 V2 d = pos - pt.Pos;
                 if (d.LengthSq > lim * lim)

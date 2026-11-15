@@ -765,10 +765,10 @@ namespace Arena
             foreach (var c in w.WallsFor(false))  // (a room's side walls)
                 if (Layouts.Inside(c, a, 50f) || Layouts.Inside(c, b, 50f)) { why = "A wall is in the way"; return 0; }
             foreach (var d in w.Doors)
-                if (d.Pos.DistanceTo(a) < LinkDoor || d.Pos.DistanceTo(b) < LinkDoor) { why = "Too near a door"; return 0; }
+                if (d.Pos.CloserThan(a, LinkDoor) || d.Pos.CloserThan(b, LinkDoor)) { why = "Too near a door"; return 0; }
             foreach (var pt in w.Portals)
                 foreach (var e in new[] { pt.A, pt.B })
-                    if (e.DistanceTo(a) < LinkClear || e.DistanceTo(b) < LinkClear) { why = "Too near another portal"; return 0; }
+                    if (e.CloserThan(a, LinkClear) || e.CloserThan(b, LinkClear)) { why = "Too near another portal"; return 0; }
             float walk = WalkDistance(w, a, b);
             if (walk == float.MaxValue) { why = "No way between them"; return 0; }
             if (walk < LinkMinSave) { why = "Saves too little walking (at least " + (int)(LinkMinSave / Step) + " tiles)"; return 0; }
@@ -791,8 +791,8 @@ namespace Arena
                         bool ok = true;
                         foreach (var c in w.Cover) ok &= !Layouts.Inside(c, p, 50f);
                         foreach (var c in w.WallsFor(false)) ok &= !Layouts.Inside(c, p, 50f);
-                        foreach (var d in w.Doors) ok &= d.Pos.DistanceTo(p) >= LinkDoor;
-                        if (ok && (!best.HasValue || p.DistanceTo(a.Mid) < best.Value.DistanceTo(a.Mid)))
+                        foreach (var d in w.Doors) ok &= d.Pos.FartherOrAt(p, LinkDoor);
+                        if (ok && (!best.HasValue || p.CloserThan(a.Mid, best.Value.DistanceTo(a.Mid))))
                             best = p;
                     }
                 if (best.HasValue)
@@ -824,11 +824,11 @@ namespace Arena
             foreach (var c in w.WallsFor(false))
                 if (Layouts.Inside(c, p, 50f)) { why = "A wall is in the way"; return false; }
             foreach (var d in w.Doors)
-                if (d.Pos.DistanceTo(p) < LinkDoor) { why = "Too near a door"; return false; }
+                if (d.Pos.CloserThan(p, LinkDoor)) { why = "Too near a door"; return false; }
             foreach (var pt in w.Portals)
-                if (pt.A.DistanceTo(p) < Market.PlaceClear || pt.B.DistanceTo(p) < Market.PlaceClear) { why = "Too near a portal"; return false; }
+                if (pt.A.CloserThan(p, Market.PlaceClear) || pt.B.CloserThan(p, Market.PlaceClear)) { why = "Too near a portal"; return false; }
             foreach (var o in placed)
-                if (o.Pos.DistanceTo(p) < Market.PlaceClear) { why = "Too near another trap"; return false; }
+                if (o.Pos.CloserThan(p, Market.PlaceClear)) { why = "Too near another trap"; return false; }
             return true;
         }
 
@@ -1411,7 +1411,7 @@ namespace Arena
                     V2 c = alongX ? new V2(r.X + t, r.Y + wid / 2f + side * off) : new V2(r.X + wid / 2f + side * off, r.Y + t);
                     bool ok = true;
                     foreach (var d in doors)
-                        ok &= c.DistanceTo(d) >= CoverDoorMin;
+                        ok &= c.FartherOrAt(d, CoverDoorMin);
                     if (!ok)
                         continue;
                     int cx = (int)c.X, cy = (int)c.Y;
@@ -1511,7 +1511,7 @@ namespace Arena
         static bool NearDoor(int area, List<RoomDoor> doors, V2 p)
         {
             foreach (var d in doors)
-                if (d.Joins(area) && d.Pos.DistanceTo(p) < d.W / 2f + 70f)
+                if (d.Joins(area) && d.Pos.CloserThan(p, d.W / 2f + 70f))
                     return true;
             return false;
         }
@@ -1545,7 +1545,7 @@ namespace Arena
                 V2 foot = vertical ? new V2(at, u) : new V2(u, at);
                 foreach (var d in doors)
                     if (d.Joins(a) && (d.Vertical == vertical && Math.Abs((vertical ? d.Pos.X : d.Pos.Y) - at) < 1f
-                        && Math.Abs((vertical ? d.Pos.Y : d.Pos.X) - u) < d.W / 2f + FinDoor || d.Pos.DistanceTo(foot) < d.W / 2f + FinDoor))
+                        && Math.Abs((vertical ? d.Pos.Y : d.Pos.X) - u) < d.W / 2f + FinDoor || d.Pos.CloserThan(foot, d.W / 2f + FinDoor)))
                         return false;  // (off its own wall's doors, and off a door round the corner in a small room)
                 return true;
             };

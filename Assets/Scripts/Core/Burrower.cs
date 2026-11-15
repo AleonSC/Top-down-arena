@@ -21,7 +21,7 @@ namespace Arena
         {
             foreach (var e in Enemies.Values)
             {
-                if (e.SpawnT > 0f || e.Pos.DistanceTo(p.Pos) >= QuakeSlamRadius + e.Radius)
+                if (e.SpawnT > 0f || e.Pos.FartherOrAt(p.Pos, QuakeSlamRadius + e.Radius))
                     continue;
                 HurtEnemy(e, QuakeSlamDamage * dmg, p.Id);
                 Slow(e, QuakeSlamSlow, 0.5f);
@@ -88,7 +88,7 @@ namespace Arena
             m.Pos = ClampToArena(m.Pos + V2.FromAngle(m.Aim) * d.Speed * dt, 30f);
             foreach (var e in Enemies.Values)
             {
-                if (!Targetable(e) || m.Burrowed.Contains(e.Id) || e.Pos.DistanceTo(m.Pos) >= d.Range + e.Radius)
+                if (!Targetable(e) || m.Burrowed.Contains(e.Id) || e.Pos.FartherOrAt(m.Pos, d.Range + e.Radius))
                     continue;
                 m.Burrowed.Add(e.Id);
                 HurtEnemy(e, dmg, owner.Id);

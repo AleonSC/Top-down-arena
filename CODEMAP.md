@@ -218,6 +218,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Rank.cs`: the cosmetic account rank: XP curve, tiers, XP for a run (`Rank.Award`), the cosmetics table (frames, trails, a background); XP, equipped cosmetics and recent runs live on `Profile`, the lobby carries each player's `Rank`/`Frame`/`Trail` (`Msg.Cosmetics`, `Session.ShareCosmetics`)
 - `RunStats.cs`: per-player run stats for the end screen
 - `TextOverrides.cs`: dev text-editor edits
+- `Scratch.cs`: `ListPool<T>` and `Game.SnapEnemies`/`SnapKeys`/`Free`: reusable lists for "copy the enemies, then change them while walking" so ticks don't allocate (rent, walk, return); tests `Tools/SimTest/Tests/Scratch.cs` (suite `scratch`). `V2.CloserThan`/`WithinReach`/`FartherThan`/`FartherOrAt` (`MathTypes.cs`): distance tests without the square root, use them instead of `DistanceTo(x) < r`
 - `WeaponDps.Generated.cs`: generated weapon DPS table, don't edit
 - `Docs/Reference.md`: generated weapon, ability, enemy, role and class tables (health, speed, damage, cooldowns, DPS, text) from the definitions; don't edit. `Tools/SimTest/Tests/RefDoc.cs` builds it (`run.sh 1 1 refdocwrite` rewrites it; suite `refdoc` fails when stale)
 - `Game/DodgeSoundBank.cs`: the Dodge's Cloth Swish (`Sfx.DodgeSwish`, raised in `Dodge.cs`, own screen only; `Docs/Mockups/dodge-sounds.html`)

@@ -28,11 +28,11 @@ namespace Arena
         /// at, or on touching anyone on the way.
         void BomberSpecial(Enemy e)
         {
-            if (e.Phase == 1 && (e.Pos.DistanceTo(e.Waypoint) < FlankArrive || e.T > FlankMaxOut))
+            if (e.Phase == 1 && (e.Pos.CloserThan(e.Waypoint, FlankArrive) || e.T > FlankMaxOut))
                 FlankerTurnIn(e);
-            bool hit = e.Phase != 1 && e.Pos.DistanceTo(e.Waypoint) < 12f;
+            bool hit = e.Phase != 1 && e.Pos.CloserThan(e.Waypoint, 12f);
             foreach (var p in Players.Values)
-                hit |= !p.Downed && p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.HitR;
+                hit |= !p.Downed && p.Pos.CloserThan(e.Pos, e.Radius + p.Def.HitR);
             if (hit)
                 BomberExplode(e);
         }

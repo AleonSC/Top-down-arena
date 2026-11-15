@@ -79,7 +79,7 @@ namespace Arena
             bool any = false;
             var hit = new List<Enemy>();
             foreach (var e in Enemies.Values)
-                if (Targetable(e) && e.Pos.DistanceTo(at) <= BladedSlashR + e.Radius)
+                if (Targetable(e) && e.Pos.WithinReach(at, BladedSlashR + e.Radius))
                     hit.Add(e);
             foreach (var e in hit)
             {

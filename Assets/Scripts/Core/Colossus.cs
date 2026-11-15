@@ -149,7 +149,7 @@ namespace Arena
             if (c.Stage == ColStage.LastStand)
             {
                 speed = 420f;
-                return e.Pos.DistanceTo(middle) > 6f ? (middle - e.Pos).Normalized() : V2.Zero;
+                return e.Pos.FartherThan(middle, 6f) ? (middle - e.Pos).Normalized() : V2.Zero;
             }
             speed = c.Stage == ColStage.Crumbling ? 55f : c.Stage == ColStage.MoltenCore ? 40f : e.Def.Speed;
             return KeepDistance(dir, dist, ColKeep);
@@ -446,7 +446,7 @@ namespace Arena
         {
             Player other = null;
             foreach (var p in Players.Values)
-                if (!p.Downed && p.Pos.DistanceTo(tpos) > 60f && (other == null || p.Pos.DistanceTo(tpos) > other.Pos.DistanceTo(tpos)))
+                if (!p.Downed && p.Pos.FartherThan(tpos, 60f) && (other == null || p.Pos.FartherThan(tpos, other.Pos.DistanceTo(tpos))))
                     other = p;
             if (other != null)
                 return GapBeside(e, other.Pos, float.IsNaN(side) ? 0.5f : side);
@@ -533,7 +533,7 @@ namespace Arena
                 c.Drops.RemoveAt(i);
                 float dmg = d.Kind == ColDrop.Boulder || d.Kind == ColDrop.Pillar ? 30f : 40f;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(d.Pos) < d.Radius + p.Def.HitR)
+                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(d.Pos, d.Radius + p.Def.HitR))
                         Damage(p, dmg, d.Kind == ColDrop.Pillar ? "The Colossus (cave-in)" : d.Hot ? "The Colossus (meteor)" : "The Colossus (boulder)");
                 switch (d.Kind)
                 {
@@ -598,7 +598,7 @@ namespace Arena
                     if (p.Downed || p.InvulnT > 0f)
                         continue;
                     foreach (var pt in Patches.Values)
-                        if (pt.Kind == PatchKind.Lava && pt.Active && p.Pos.DistanceTo(pt.Pos) < pt.Radius + p.Def.HitR)
+                        if (pt.Kind == PatchKind.Lava && pt.Active && p.Pos.CloserThan(pt.Pos, pt.Radius + p.Def.HitR))
                         {
                             DamageOverTime(p, LavaDps * 0.25f, "The Colossus (lava)");
                             break;
@@ -744,7 +744,7 @@ namespace Arena
                 return true;
             }
             foreach (var pl in c.Pillars)
-                if (b.Pos.DistanceTo(pl.Pos) < PillarR + b.Radius)
+                if (b.Pos.CloserThan(pl.Pos, PillarR + b.Radius))
                     return true;
             return false;
         }

@@ -112,7 +112,7 @@ namespace Arena
                     return dir;
             }
             V2 goal = HerdSpot(e, tpos);
-            if (goal.DistanceTo(e.Pos) < 8f)
+            if (goal.CloserThan(e.Pos, 8f))
                 return V2.Zero;
             return RouteTo(e, goal);  // round walls and crates (LayoutRules.cs)
         }
@@ -166,7 +166,7 @@ namespace Arena
                 c = c + m.Pos;
             if (shields.Count > 0)
                 c = c / shields.Count;
-            if (shields.Count * 2 < start || shields.Count == 0 || c.DistanceTo(tpos) < RiotLineRelease || e.T > RiotLineMaxMarch)
+            if (shields.Count * 2 < start || shields.Count == 0 || c.CloserThan(tpos, RiotLineRelease) || e.T > RiotLineMaxMarch)
             {
                 riotLineBroke.Add(e.SquadId);  // the wall's done: the guards charge
                 BroadcastFx(FxKind.Ring, shields.Count > 0 ? c : e.Pos, Defs.Get(EnemyType.Guard).Color, 160f, 0.5f, Sfx.BossWhoosh);
@@ -218,7 +218,7 @@ namespace Arena
                         break;
                     float reach = e.Radius + p.Def.BodyR + RiotBashReach;
                     float off = Math.Abs(MathX.Fmod((p.Pos - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
-                    if (p.Pos.DistanceTo(e.Pos) < reach && off < 0.5f)
+                    if (p.Pos.CloserThan(e.Pos, reach) && off < 0.5f)
                     {
                         SetRiotState(e, RiotWinding, RiotWindup);
                         BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(e.Facing) * (e.Radius + 6f), new Rgba(1f, 0.95f, 0.7f), 20f, RiotWindup, Sfx.None);
@@ -442,7 +442,7 @@ namespace Arena
                 if (pt.Kind != PatchKind.Gas || !pt.Active)
                     continue;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(pt.Pos) < pt.Radius + p.Def.HitR)
+                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(pt.Pos, pt.Radius + p.Def.HitR))
                         DamageOverTime(p, GasDps * 0.25f, "Tear gas");
             }
         }

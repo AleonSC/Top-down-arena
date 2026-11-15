@@ -323,7 +323,7 @@ namespace Arena
                 var col = new Rgba(0.83f, 0.6f, 1f);
                 bool jumped = false;
                 foreach (var q in Players.Values)
-                    if (q != c && !q.Downed && q.Pos.DistanceTo(c.Pos) < ConductorRadius)
+                    if (q != c && !q.Downed && q.Pos.CloserThan(c.Pos, ConductorRadius))
                     {
                         jumped = true;
                         BroadcastFx(FxKind.Bolt, c.Pos, q.Pos, col, 0f, 0.3f, Sfx.None);
@@ -366,7 +366,7 @@ namespace Arena
                 if (e.Type == EnemyType.StormHerald && !IsSpawning(e) && e.Hp > 0f)
                     herald = e;
             // Ball lightning: drifts at the nearest player on the wind, pops after 6 s.
-            var balls = new List<Enemy>();
+            var balls = enemyLists.Rent();
             foreach (var b in Enemies.Values)
                 if (b.Type == EnemyType.BallLightning && !IsSpawning(b) && b.Hp > 0f)
                     balls.Add(b);
@@ -397,12 +397,13 @@ namespace Arena
                 for (int j = i + 1; j < balls.Count; j++)
                 {
                     V2 a = balls[i].Pos, c = balls[j].Pos;
-                    if (a.DistanceTo(c) >= BallArcRange)
+                    if (a.FartherOrAt(c, BallArcRange))
                         continue;
                     foreach (var p in Players.Values)
                         if (!p.Downed && p.InvulnT <= 0f && SegmentDistance(p.Pos, a, c) < BallArcWidth / 2f + p.Def.HitR)
                             Damage(p, 20f, HeraldBall(balls[i]) ? "Storm Herald (ball lightning)" : "Ball Lightning (arc)");
                 }
+            enemyLists.Return(balls);
             if (herald == null || herald.Herald == null)
                 return;
             // The last stand's spokes.

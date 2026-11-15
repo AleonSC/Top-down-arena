@@ -140,7 +140,7 @@ namespace Arena
                     {
                         if (!Defs.IsEnemyShot(b.Kind) || Defs.Unblockable(b.Kind) || b.Kind != Defs.SmallShot && b.Kind != Defs.FastShot)
                             continue;
-                        if (b.Pos.DistanceTo(p.Pos) > push || AngleTo(p.Pos, b.Pos, aim) > 0.45f)
+                        if (b.Pos.FartherThan(p.Pos, push) || AngleTo(p.Pos, b.Pos, aim) > 0.45f)
                             continue;
                         b.Vel = (b.Pos - p.Pos).Normalized() * b.Vel.Length;
                         b.Pulled = true;  // the host sends its new course
@@ -243,7 +243,7 @@ namespace Arena
                 foreach (var e in Enemies.Values)
                 {
                     float last;
-                    if (e.SpawnT > 0f || b.DistanceTo(e.Pos) > e.Radius + OrbitBladeR || (p.OrbitCut.TryGetValue(e.Id, out last) && p.OrbitClock - last < OrbitCutGap))
+                    if (e.SpawnT > 0f || b.FartherThan(e.Pos, e.Radius + OrbitBladeR) || (p.OrbitCut.TryGetValue(e.Id, out last) && p.OrbitClock - last < OrbitCutGap))
                         continue;
                     p.OrbitCut[e.Id] = p.OrbitClock;
                     float dmg = FanDamage * p.Stats.DmgMult * NinjaHitMult(p.Id, Defs.KunaiShot, e);
@@ -504,7 +504,7 @@ namespace Arena
                     // The player's own game moved them behind the enemy (LocalControl); strike whoever is right there.
                     Enemy best = null;
                     foreach (var e in Enemies.Values)
-                        if (e.SpawnT <= 0f && e.Pos.DistanceTo(target) < e.Radius + p.Def.BodyR + 60f && (best == null || e.Pos.DistanceSq(target) < best.Pos.DistanceSq(target)))
+                        if (e.SpawnT <= 0f && e.Pos.CloserThan(target, e.Radius + p.Def.BodyR + 60f) && (best == null || e.Pos.DistanceSq(target) < best.Pos.DistanceSq(target)))
                             best = e;
                     if (best != null)
                     {
@@ -555,7 +555,7 @@ namespace Arena
                 {
                     var marks = new List<Enemy>();
                     foreach (var e in Enemies.Values)
-                        if (e.SpawnT <= 0f && e.Pos.DistanceTo(target) < LotusRange)
+                        if (e.SpawnT <= 0f && e.Pos.CloserThan(target, LotusRange))
                             marks.Add(e);
                     marks.Sort((a, b) => a.Pos.DistanceSq(target).CompareTo(b.Pos.DistanceSq(target)));
                     int most = cap ? 14 : 8;
@@ -589,11 +589,11 @@ namespace Arena
                 if (RoomsOn && !CurrentWorld.Areas[CurrentWorld.AreaAt(c)].Contains(c))
                     continue;  // (the Expanding map has gaps between its rooms)
                 float gap = CloneSpacing - Math.Min(60f, tries / 60f);
-                if (c.DistanceTo(p.Pos) < CloneNinjaGap)
+                if (c.CloserThan(p.Pos, CloneNinjaGap))
                     continue;
                 bool ok = true;
                 foreach (var o in spots)
-                    if (o.DistanceTo(c) < gap) { ok = false; break; }
+                    if (o.CloserThan(c, gap)) { ok = false; break; }
                 if (ok)
                     spots.Add(c);
             }
@@ -659,7 +659,7 @@ namespace Arena
             float range = StepRange * me.Stats.StepRangeMult;
             Enemy best = null;
             foreach (var e in Enemies.Values)
-                if (!IsSpawning(e) && e.Pos.DistanceTo(me.Pos) <= range + e.Radius && (best == null || e.Pos.DistanceSq(aimAt) < best.Pos.DistanceSq(aimAt)))
+                if (!IsSpawning(e) && e.Pos.WithinReach(me.Pos, range + e.Radius) && (best == null || e.Pos.DistanceSq(aimAt) < best.Pos.DistanceSq(aimAt)))
                     best = e;
             if (best == null)
                 return ClampToArena(me.Pos + (aimAt - me.Pos).LimitLength(BlinkRange), me.Def.BodyR);
@@ -759,7 +759,7 @@ namespace Arena
             float r = WardBurst * (wardOwner != null ? AreaMult(wardOwner) * wardOwner.Stats.CharmBurstMult : 1f);  // (Blessed Paper: wider)
             float dmg = Defs.WeaponOf(WeaponId.Ofuda).Damage * z.DmgMult;
             foreach (var e in Enemies.Values)
-                if (Targetable(e) && e.Pos.DistanceTo(z.Pos) < r + e.Radius)
+                if (Targetable(e) && e.Pos.CloserThan(z.Pos, r + e.Radius))
                 {
                     WeaponHurt(e, dmg, z.Owner);
                     ModHit(e, z.Owner, dmg, Defs.OfudaShot, default(V2));  // weapon mods ride the burst
@@ -1305,7 +1305,7 @@ namespace Arena
             }
             if (kind == DashBlink)
             {
-                if (w.Id != WeaponId.Kunai || p.KunaiMarkT <= 0f || p.KunaiMark.DistanceTo(target) > 40f)
+                if (w.Id != WeaponId.Kunai || p.KunaiMarkT <= 0f || p.KunaiMark.FartherThan(target, 40f))
                     return;
                 p.KunaiMarkT = 0f;
                 p.AmbushT = Math.Max(p.AmbushT, KunaiAmbush);  // the next hit lands double (NinjaHitMult)
@@ -1352,7 +1352,7 @@ namespace Arena
             Player owner;
             Players.TryGetValue(b.Owner, out owner);
             foreach (var q in Players.Values)
-                if (!q.Downed && q.Pos.DistanceTo(b.Pos) < b.Splash + 40f)
+                if (!q.Downed && q.Pos.CloserThan(b.Pos, b.Splash + 40f))
                     Heal(q, b.HealBurst, owner);
         }
 
@@ -1376,7 +1376,7 @@ namespace Arena
         void TickMists(float dt)
         {
             foreach (var p in Players.Values)
-                if (p.DashT > 0f && !p.Downed && p.Pos.DistanceTo(p.DashLast) >= FootprintStep)
+                if (p.DashT > 0f && !p.Downed && p.Pos.FartherOrAt(p.DashLast, FootprintStep))
                 {
                     V2 d = p.Pos - p.DashLast;
                     DropFootprint(p, (float)Math.Atan2(d.Y, d.X));
@@ -1388,7 +1388,7 @@ namespace Arena
                     continue;
                 Zone best = null;
                 foreach (var z in Zones.Values)
-                    if (z.Kind == ZoneKind.Mist && q.Pos.DistanceTo(z.Pos) <= z.Radius && (best == null || z.HealMult > best.HealMult))
+                    if (z.Kind == ZoneKind.Mist && q.Pos.WithinReach(z.Pos, z.Radius) && (best == null || z.HealMult > best.HealMult))
                         best = z;
                 if (best != null)
                     Heal(q, FootprintHeal * best.HealMult * dt, PlayerOrNull(best.Owner));
@@ -1400,7 +1400,7 @@ namespace Arena
         {
             foreach (var z in Zones.Values)
             {
-                if (z.Kind != ZoneKind.Ward || z.Soak <= 0f || amount <= 0f || p.Pos.DistanceTo(z.Pos) > z.Radius)
+                if (z.Kind != ZoneKind.Ward || z.Soak <= 0f || amount <= 0f || p.Pos.FartherThan(z.Pos, z.Radius))
                     continue;
                 float take = Math.Min(z.Soak, amount);
                 z.Soak -= take;
@@ -1418,7 +1418,7 @@ namespace Arena
             float heal = z.Soaked * WardRepay * z.HealMult;
             if (heal > 0f)
                 foreach (var q in Players.Values)
-                    if (!q.Downed && q.Pos.DistanceTo(z.Pos) <= z.Radius)
+                    if (!q.Downed && q.Pos.WithinReach(z.Pos, z.Radius))
                         Heal(q, heal, PlayerOrNull(z.Owner));
             BroadcastFx(FxKind.Ring, z.Pos, z.Def.Color, z.Radius, 0.45f, z.Soak <= 0f ? Sfx.Clang : Sfx.None);
         }
@@ -1463,7 +1463,7 @@ namespace Arena
                     {
                         p.IronT = 0f;
                         foreach (var e in Enemies.Values)
-                            if (e.SpawnT <= 0f && e.Pos.DistanceTo(p.Pos) < IronWaveRadius + e.Radius)
+                            if (e.SpawnT <= 0f && e.Pos.CloserThan(p.Pos, IronWaveRadius + e.Radius))
                                 HurtEnemy(e, IronWaveDamage * p.Stats.DmgMult * p.IronPower, p.Id);
                         if (p.IronMastered)
                             EraseEnemyBullets(p.Pos, 160f);
@@ -1487,7 +1487,7 @@ namespace Arena
                 if (!Players.TryGetValue(m.Owner, out owner))
                     continue;
                 foreach (var e in Enemies.Values)
-                    if (e.SpawnT <= 0f && e.Pos.DistanceTo(m.Pos) < CloneBurstRadius + e.Radius)
+                    if (e.SpawnT <= 0f && e.Pos.CloserThan(m.Pos, CloneBurstRadius + e.Radius))
                         HurtEnemy(e, CloneBurst * m.Power, m.Owner);
                 BroadcastFx(FxKind.Boom, m.Pos, Kits.Get(MinionKind.Clone).Color, CloneBurstRadius, 0.35f, Sfx.Explode);
             }

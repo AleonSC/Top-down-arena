@@ -301,7 +301,7 @@ namespace Arena
             switch (e.Phase)
             {
                 case 0:
-                    if (e.T > 0.8f && tpos.DistanceTo(e.Pos) < WhiteReach)
+                    if (e.T > 0.8f && tpos.CloserThan(e.Pos, WhiteReach))
                     {
                         e.Phase = 1;
                         e.PhaseT = WhiteFlash;
@@ -337,7 +337,7 @@ namespace Arena
             }
             scratchIds.Clear();
             foreach (var b in Bullets.Values)
-                if (b.Owner != 0 && !Defs.IsEnemyShot(b.Kind) && b.Pos.DistanceTo(e.Pos) < WhiteTurnRange && scratchIds.Count < WhiteMaxTurned)
+                if (b.Owner != 0 && !Defs.IsEnemyShot(b.Kind) && b.Pos.CloserThan(e.Pos, WhiteTurnRange) && scratchIds.Count < WhiteMaxTurned)
                     scratchIds.Add(b.Id);
             var turned = new System.Collections.Generic.List<V2>();
             foreach (int id in scratchIds)

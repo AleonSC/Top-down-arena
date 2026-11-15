@@ -187,7 +187,7 @@ namespace Arena
 
         void TickHazards(float dt)
         {
-            var done = new List<Hazard>();
+            var done = hazardLists.Rent();
             foreach (var h in Hazards.Values)
             {
                 h.T -= dt;
@@ -210,13 +210,14 @@ namespace Arena
                 }
                 float dmg = 25f;  // the difficulty's per-wave damage growth scales it (Difficulty.cs)
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(h.Pos) < h.Radius)
+                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(h.Pos, h.Radius))
                         Damage(p, dmg, "Storm Herald (lightning)");
                 var color = new Rgba(0.7f, 0.85f, 1f);
                 BroadcastFx(FxKind.Bolt, new V2(h.Pos.X + Rand(-60f, 60f), -20f), h.Pos, color, 0f, 0.25f, Sfx.SpellZap);
                 BroadcastFx(FxKind.Boom, h.Pos, color, h.Radius, 0.3f, Sfx.None);
                 Hazards.Remove(h.Id);
             }
+            hazardLists.Return(done);
         }
 
         void SyncHazards(NetSync s)
