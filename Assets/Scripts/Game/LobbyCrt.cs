@@ -354,7 +354,9 @@ namespace Arena
                 WithAlpha(growIn, () => DrawCrtGrowScreen(LerpRect(scr, full, grow), grow, e));
 
             // The link log, typed in the middle of the screen and fading out.
-            float logA = Seg(e, CrtLogAt, CrtLogAt + 0.15f) * (1f - Seg(e, CrtLogFadeAt, CrtLogFadeAt + 0.3f));
+            float logFade = crtStyle >= 4 ? Seg(e, CrtLogFadeAt - 0.4f, CrtLogFadeAt + 0.1f) : Seg(e, CrtLogFadeAt, CrtLogFadeAt + 0.3f);  // the morph styles let it melt away slowly
+            logFade = logFade * logFade * (3f - 2f * logFade);
+            float logA = Seg(e, CrtLogAt, CrtLogAt + 0.15f) * (1f - logFade);
             if (logA > 0f)
             {
                 var shown = CrtLogShown(e);
@@ -401,21 +403,21 @@ namespace Arena
             {
                 // 4 / 5: the log's text becomes the lobby. Each box first draws its outline (a bright point runs round it, leaving a thin
                 // glowing line), then the lobby fills in under the lines: 4 all at once, 5 piece by piece in the same order as the outlines.
-                float te = e - (CrtPiecesAt - 0.3f);
+                float te = e - (CrtPiecesAt - 0.5f);
                 DrawLobbyBlueprint(te);
-                float fe = te - 0.55f;
+                float fe = te - 0.75f;
                 if (crtStyle == 4)
                 {
                     uiGlBlocked = true;
                     pieceQuiet = pieceFade = true;
-                    LobbyPiece(full, fe, 0f, 0.7f, 0f, 0f, true);
+                    LobbyPiece(full, fe, 0f, 0.9f, 0f, 0f, true);
                     pieceQuiet = pieceFade = false;
                     uiGlBlocked = false;
                 }
                 else
                 {
                     pieceFade = pieceQuiet = true;
-                    DrawLobbyPieces(fe * 1.6f + 0.45f, true);
+                    DrawLobbyPieces(fe * 1.3f + 0.45f, true);
                     pieceFade = pieceQuiet = false;
                 }
             }
@@ -428,27 +430,33 @@ namespace Arena
             if (te <= 0f)
                 return;
             var boxes = new[] { LobbyModeBand, LobbyYourCardBand, LobbyOtherSlotsBand, LobbyActionsBand, LobbyTabsBand, LobbyBodyBand, LobbyBackBand };
-            float fade = 1f - Seg(te, 0.9f, 1.5f);
+            float fade = 1f - Seg(te, 1.1f, 1.9f);
+            fade = fade * fade * (3f - 2f * fade);
             if (fade <= 0f)
                 return;
             var ink = LobbyInk;
             for (int i = 0; i < boxes.Length; i++)
             {
-                float k = EaseInOut(Seg(te, 0.06f * i, 0.06f * i + 0.5f));
+                float k = EaseInOut(Seg(te, 0.08f * i, 0.08f * i + 0.7f));
                 if (k <= 0f)
                     continue;
                 var r = boxes[i];
                 r = new Rect(r.x + 8f, r.y + 6f, r.width - 16f, r.height - 12f);
                 float per = 2f * (r.width + r.height), run = k * per;
-                var c = new Color(ink.r, ink.g, ink.b, 0.55f * fade);
+                var c = new Color(ink.r, ink.g, ink.b, 0.85f * fade);
+                var halo = new Color(ink.r, ink.g, ink.b, 0.16f * fade);
                 float d = run;
                 float seg = Mathf.Min(d, r.width);                               // top, left to right
+                Ui.Fill(new Rect(r.x, r.y - 1f, seg, 3f), halo);
                 Ui.Fill(new Rect(r.x, r.y, seg, 1f), c);
                 d -= seg; seg = Mathf.Clamp(d, 0f, r.height);                    // right, down
+                Ui.Fill(new Rect(r.xMax - 2f, r.y, 3f, seg), halo);
                 Ui.Fill(new Rect(r.xMax - 1f, r.y, 1f, seg), c);
                 d -= r.height; seg = Mathf.Clamp(d, 0f, r.width);                // bottom, right to left
+                Ui.Fill(new Rect(r.xMax - seg, r.yMax - 2f, seg, 3f), halo);
                 Ui.Fill(new Rect(r.xMax - seg, r.yMax - 1f, seg, 1f), c);
                 d -= r.width; seg = Mathf.Clamp(d, 0f, r.height);                // left, up
+                Ui.Fill(new Rect(r.x - 1f, r.yMax - seg, 3f, seg), halo);
                 Ui.Fill(new Rect(r.x, r.yMax - seg, 1f, seg), c);
                 if (k < 1f)  // the bright point at the head of the line
                 {
@@ -457,7 +465,8 @@ namespace Arena
                     else if ((q -= r.width) < r.height) { hx = r.xMax; hy = r.y + q; }
                     else if ((q -= r.height) < r.width) { hx = r.xMax - q; hy = r.yMax; }
                     else { q -= r.width; hx = r.x; hy = r.yMax - q; }
-                    Ui.Glow(new Rect(hx - 4f, hy - 4f, 8f, 8f), ink, 0.6f * fade);
+                    Ui.Glow(new Rect(hx - 7f, hy - 7f, 14f, 14f), ink, 0.8f * fade);
+                    Ui.Fill(new Rect(hx - 1.5f, hy - 1.5f, 3f, 3f), new Color(0.92f, 0.96f, 1f, fade));
                 }
             }
         }

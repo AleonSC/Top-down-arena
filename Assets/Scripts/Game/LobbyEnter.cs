@@ -194,6 +194,8 @@ namespace Arena
             bool holo = LobbyFxOn && !pieceFade;
             if (pieceFade)
                 dx = dy = 0f;
+            if (pieceFade)
+                k = k * k * (3f - 2f * k);  // a smooth ease in and out
             float s = EaseOut(k);
             var shown = clip;
             if (holo)
