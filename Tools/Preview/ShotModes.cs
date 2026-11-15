@@ -158,6 +158,14 @@ static partial class Shot {
       set("pauseAnim", Environment.GetEnvironmentVariable("PAUSECLOSE") != null || pAge < 0.3f ? pAnim : 1f);
       host.Screen = Environment.GetEnvironmentVariable("PAUSECLOSE") != null ? AppScreen.Menu : AppScreen.Game;  // in a match (PAUSECLOSE: closing, at PAUSEANIM)
       Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true;
+      // PAUSEMORPH=<s>: that long after the list switched from the pause menu's rows to Settings' (the rows rewrite, CrtKit.Morph)
+      if (Environment.GetEnvironmentVariable("PAUSEMORPH") != null) {
+        set("pauseSettings", false);
+        typeof(ArenaApp).GetMethod("DrawPauseMenu", f2).Invoke(app, null); Time.unscaledTime += 2f;  // (its rows type in, then settle)
+        typeof(ArenaApp).GetMethod("DrawPauseMenu", f2).Invoke(app, null);
+        set("pauseSettings", true); typeof(ArenaApp).GetMethod("DrawPauseMenu", f2).Invoke(app, null);  // (the switch: the rows start rewriting)
+        Time.unscaledTime += float.Parse(Environment.GetEnvironmentVariable("PAUSEMORPH"), inv); GUI.Log.Clear(); GL.Tris.Clear();
+      }
       typeof(ArenaApp).GetMethod("DrawPauseMenu", f2).Invoke(app, null);
       GL.ToUi = false;
     }

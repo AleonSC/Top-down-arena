@@ -357,7 +357,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `RunGraphs.cs`: Records > Recent runs (`DrawRecentRuns`: run strip, stat tiles, Overview and Trends tabs; GL line/area charts with hover readouts)
 - `LivesUi.cs`: the lives chip over the wave panel (hearts; Core/Checkpoints.cs) and `DrawLifePrompt` (Respawn [Y] / Game over [N] before the results; RunEnding.cs holds the ending; preview `RETRY=1 ENDING=1 shot.sh x gameover 10 5 1`); the Deathless line is in HudSummary.cs, "CHECKPOINT SAVED" in WaveClearedUi.cs
 - `SavesUi.cs`: the Play picker in the main menu box (one scrolling CRT list of every save, newest first, with Continue and DEL on each row; New run under it), Records, unlock toasts. The box sweeps between the menu buttons and this picker with a scan line (`menuPlayK`, `Menus.cs`)
-- `Game/CrtKit.cs`: shared CRT cabinet pieces (retyping text, power-on, boot-log line, scan bar, soft digital key, the floating chassis and soft edges)
+- `Game/CrtKit.cs`: shared CRT cabinet pieces (retyping text: a label swapping to another rewrites in place, `Morph`, preview `PAUSEMORPH=<s>` in mode pause; power-on, boot-log line, scan bar, soft digital key, the floating chassis and soft edges)
 - `Game/DifficultyUi.cs`: the lobby's Difficulty tab (five cards, then every number as a slider with a text box; host edits, others read)
 - `Game/ModifiersUi.cs`: the lobby's Modifiers tab (tiles in two columns under foldable tier headings, `DrawModTile`)
 

@@ -37,7 +37,7 @@ namespace Arena
         // --- Typed text -------------------------------------------------------------------------------------------------
 
         /// A label on the cabinet: it types in once during the opening (stateless, from `delay` seconds after it opened), and
-        /// when its text changes afterwards (a list that switches) it backspaces and retypes (CrtKit.Typed).
+        /// when its text changes afterwards (a list that switches) it rewrites in place (CrtKit.Typed, CrtKit.Morph).
         string CabText(string slot, string text, float delay)
         {
             float now = WinNow;
