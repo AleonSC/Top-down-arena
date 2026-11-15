@@ -448,6 +448,8 @@ namespace Arena
                 p.PrizePicks++;
                 if (rng.NextDouble() < Challenges.PrizeLegendaryChance)
                     p.LegendaryQueue.Add(key);
+                if (State == MatchState.Intermission && p.Offer == null)
+                    NextOffer(p);  // a duel won between waves: offer it now (the wave's clear won't), or the pick blocks Ready
             }
             BroadcastFx(FxKind.Ring, at, new Rgba(1f, 0.85f, 0.4f), 400f, 0.8f, Sfx.WaveClear);
         }
