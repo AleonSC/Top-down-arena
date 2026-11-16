@@ -255,6 +255,7 @@ namespace Arena
             sounds.SetSawLoop(game.SawWhirrLevel);  // the Buzzsaw's contact whirr (MeleeSounds.cs)
             TickVectorGain(Time.unscaledDeltaTime);  // vectors coming in: the bursts, the "+10 VECTORS" and the chip (VectorGainLook.cs)
             TickWallTouch(Time.deltaTime);  // a wall touched: its arcs ease in and out, and the hum (WallTouchLook.cs)
+            TickFootsteps(Time.deltaTime);  // footsteps from everyone's speed (Footsteps.cs)
             UpdateMusic();
             UpdateLayout();
             TickBossSlow(Time.unscaledDeltaTime);  // a boss's death: a moment of slow motion (JuiceMoments.cs)
