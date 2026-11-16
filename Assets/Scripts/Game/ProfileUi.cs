@@ -6,7 +6,7 @@ namespace Arena
 {
     /// Your profile as a CRT cabinet (Docs/Mockups/crt-profile.html), the same cabinet, opening and side windows as the pause menu
     /// and Settings (CrtWindows.cs). The cabinet on the left: a "PROFILE_" header screen, a profile screen (rank badge, your name with
-    /// a pencil key to rename, title and rank, XP bar), four tab keys and the open tab's options as digital keys, and a physical Back
+    /// a pencil key to rename, title and rank, XP bar), four tab keys and the open tab's options as digital keys, and a digital Back
     /// key. An option opens in a CRT window to the right (it slides out and powers on the first time, later picks only retype it):
     ///   Look     Frame, Trail, Background, Card background, Name effect, Aim line, Cursor (CosmeticsUi.cs: try it on, equip)
     ///   Rank     Progress, Reward ladder, Tiers, XP sources (ProfileWindows.cs, CosmeticsUi.cs)
@@ -324,7 +324,7 @@ namespace Arena
                 y += step;
             }
             EndDrawerScreen();
-            if (cabScreenOn && CabBackKey(y + 6f))
+            if (cabScreenOn && CabBackKey(y, "Close your profile", rowH))
             {
                 if (CabWindowOpen)
                     CloseCabWindow();  // the window slides back in first
