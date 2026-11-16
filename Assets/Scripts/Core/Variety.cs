@@ -278,6 +278,29 @@ namespace Arena
         public double EliteChance(int wave) => wave < 12 ? 0.0 : Math.Min(0.9, Math.Min(0.35, 0.04 * (wave - 11)) * D(DiffKnob.EliteChance));
 
         /// An elite rolls one trait (two from wave 35).
+        /// A trait a regular (non-elite) enemy can carry before elites begin: from MinWave to MaxWave, PerWave more likely each wave, up to Cap.
+        public class MutationDef { public EliteTrait Trait; public int MinWave, MaxWave; public float PerWave, Cap; }
+
+        public static readonly MutationDef[] Mutations =
+        {
+            new MutationDef { Trait = EliteTrait.Hasted, MinWave = 3, MaxWave = 11, PerWave = 0.03f, Cap = 0.2f },
+        };
+
+        /// Host, at spawn: a regular enemy may carry a trait early (Hasted from wave 3). Rolled from the id, not the rng; bosses and children never.
+        void RollMutations(Enemy e, int parent)
+        {
+            if (e.Def.IsBoss || parent != 0)
+                return;
+            foreach (var m in Mutations)
+            {
+                if (Wave < m.MinWave || Wave > m.MaxWave)
+                    continue;
+                float chance = Math.Min(m.Cap, m.PerWave * (Wave - m.MinWave + 1)) * VariantChanceScale;
+                if (IdRoll(e.Id, 11 + (uint)m.Trait) < chance)
+                    e.Traits |= (byte)m.Trait;
+            }
+        }
+
         void RollTraits(Enemy e)
         {
             int want = Wave >= 35 ? 2 : 1;
