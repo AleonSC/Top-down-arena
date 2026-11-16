@@ -4,7 +4,7 @@ namespace Arena
 {
     /// The Healer Elementalist's Lumen Ward (Core/LumenWard.cs) with Visual effects on: look A "Cathedral" of
     /// Docs/Mockups/sanctify-cone.html. Drawing only. Warm gold shafts of light fan out of the caster, long god rays shimmer
-    /// through them and dust drifts toward the far end; enemy bullets the light has stopped wear a pale gold halo. With Visual
+    /// through them and dust drifts toward the far end. With Visual
     /// effects off it is a plain pale wedge with two edges; with Reduced effects the rays and dust drop out.
     public partial class ArenaApp
     {
@@ -42,12 +42,19 @@ namespace Arena
                 return;
             float k = len / z.Radius;
             V2 c = z.Pos;
+            float aim = z.Aim;
+            var me = game.Me;
+            if (me != null && z.Owner == me.Id && !me.Downed)  // your own: drawn from where you are and aim now, not the last snapshot
+            {
+                c = me.Pos;
+                aim = me.Aim;
+            }
             if (!fxOn)
             {
-                Wedge(c, len, z.Aim, half, LumenGold.WithAlpha(0.14f), 20);
-                Arc(c, len, 2f, LumenGold.WithAlpha(0.6f), 24, z.Aim - half, half * 2f);
-                Line(c, c + V2.FromAngle(z.Aim - half) * len, 2f, LumenGold.WithAlpha(0.6f));
-                Line(c, c + V2.FromAngle(z.Aim + half) * len, 2f, LumenGold.WithAlpha(0.6f));
+                Wedge(c, len, aim, half, LumenGold.WithAlpha(0.14f), 20);
+                Arc(c, len, 2f, LumenGold.WithAlpha(0.6f), 24, aim - half, half * 2f);
+                Line(c, c + V2.FromAngle(aim - half) * len, 2f, LumenGold.WithAlpha(0.6f));
+                Line(c, c + V2.FromAngle(aim + half) * len, 2f, LumenGold.WithAlpha(0.6f));
                 return;
             }
             const int bands = 12;
@@ -55,13 +62,13 @@ namespace Arena
             {
                 float f = (float)i / bands, f1 = (i + 1f) / bands;
                 float a = 0.3f * Mathf.Pow(1f - f, 1.4f) * k;
-                ConeBand(c, len * f, len * f1, z.Aim, half * 1.08f, LumenGold.WithAlpha(a), 12);
+                ConeBand(c, len * f, len * f1, aim, half * 1.08f, LumenGold.WithAlpha(a), 12);
             }
             for (int i = 0; i < bands; i++)  // bright narrow core
             {
                 float f = (float)i / bands * 0.85f, f1 = (i + 1f) / bands * 0.85f;
                 float a = 0.34f * Mathf.Pow(1f - f, 1.6f) * k;
-                ConeBand(c, len * f, len * f1, z.Aim, half * 0.55f, LumenPale.WithAlpha(a), 8);
+                ConeBand(c, len * f, len * f1, aim, half * 0.55f, LumenPale.WithAlpha(a), 8);
             }
             if (!fxReduced)
             {
@@ -71,39 +78,22 @@ namespace Arena
                     float w = 0.012f + MathX.Fmod(i * 0.37f, 1f) * 0.03f;
                     float l = len * (0.55f + MathX.Fmod(i * 0.73f, 1f) * 0.45f);
                     float a = (0.1f + 0.12f * (0.5f + 0.5f * Mathf.Sin(t * (0.9f + (i % 5) * 0.25f) + i * 1.7f))) * k;
-                    LumenRay(c, z.Aim + o * half * 0.95f, w, l, a, LumenPale);
+                    LumenRay(c, aim + o * half * 0.95f, w, l, a, LumenPale);
                 }
                 for (int i = 0; i < 26; i++)  // dust drifting toward the far end
                 {
                     float f = MathX.Fmod(t * 0.28f + i * 0.37f + z.Id * 0.11f, 1f);
                     float side = (MathX.Fmod(i * 0.618f + z.Id * 0.13f, 1f) * 2f - 1f) * half * 0.9f;
-                    V2 at = c + V2.FromAngle(z.Aim + side) * (f * len) + new V2(Mathf.Sin(t * 1.6f + i) * 4f, -6f * f);
+                    V2 at = c + V2.FromAngle(aim + side) * (f * len) + new V2(Mathf.Sin(t * 1.6f + i) * 4f, -6f * f);
                     Circle(at, 1.7f, LumenPale.WithAlpha(0.8f * Mathf.Sin(f * MathX.Pi) * k), 6);
                 }
             }
-            V2 e0 = c + V2.FromAngle(z.Aim - half) * len, e1 = c + V2.FromAngle(z.Aim + half) * len;
+            V2 e0 = c + V2.FromAngle(aim - half) * len, e1 = c + V2.FromAngle(aim + half) * len;
             Line(c, e0, 2.4f, LumenPale.WithAlpha(0.55f * k));
             Line(c, e1, 2.4f, LumenPale.WithAlpha(0.55f * k));
-            Arc(c, len, 2f, LumenGold.WithAlpha(0.25f * k), 28, z.Aim - half, half * 2f);
+            Arc(c, len, 2f, LumenGold.WithAlpha(0.25f * k), 28, aim - half, half * 2f);
             Circle(c, 44f * k + 8f, LumenGold.WithAlpha(0.3f), 20);  // the sunburst at the caster
             Circle(c, 22f * k + 5f, LumenPale.WithAlpha(0.55f), 16);
-        }
-
-        /// Enemy bullets a Lumen Ward is holding still: a pale gold halo that grows as they stop.
-        void DrawFrozenShots(float t)
-        {
-            if (!fxOn)
-                return;
-            foreach (var b in game.Bullets.Values)
-            {
-                if (b.Stasis < 0.05f)
-                    continue;
-                float s = Mathf.Min(1f, b.Stasis * 1.2f);
-                Circle(b.Pos, b.Radius + 7f * s, LumenGold.WithAlpha(0.28f * s), 12);
-                Circle(b.Pos, b.Radius * 0.55f, LumenPale.WithAlpha(0.9f * s), 8);
-                if (b.Stasis > 0.9f && !fxReduced)
-                    Arc(b.Pos, b.Radius + 5f + Mathf.Sin(t * 3f + b.Id) * 1.2f, 1f, LumenPale.WithAlpha(0.5f), 12);
-            }
         }
     }
 }
