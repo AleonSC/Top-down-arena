@@ -338,6 +338,8 @@ static partial class Program
         Run(s, dt, 200f, () => g.Wave == Hunts.Length && Find(host, EnemyType.Boss) != null && !g.IsSpawning(Find(host, EnemyType.Boss)), keep);
         Check(g.Wave == Hunts.Length && g.HuntNodeAt(Hunts.Length) == HuntNodeType.Boss && g.HuntRoute.Step == HuntMap.Steps - 1, "the last node is the boss, on wave 10");
         Check(g.HuntRoute.Clues == Math.Min(HuntMap.MaxClues, eliteChecks) && c.HuntRoute.Clues == g.HuntRoute.Clues, "the Elites cleared (a Gamble that turned out one too) count as boss clues, on both screens");
+        var hurt = Find(host, EnemyType.Boss);
+        Check(Math.Abs(hurt.Hp - hurt.MaxHp * (1f - HuntMap.ClueHpCut * g.HuntRoute.Clues)) < 0.01f, "each boss clue takes 8% of the boss's health before the fight (" + g.HuntRoute.Clues + " clues)");
         Find(host, EnemyType.Boss).Hp = 0f;
         Run(s, dt, 8f, () => c.State == MatchState.Victory, keep);
         Check(g.State == MatchState.Victory && c.State == MatchState.Victory, "beating the boss wins the hunt");
