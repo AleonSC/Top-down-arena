@@ -78,7 +78,7 @@ namespace Arena
             LobbyKit.Panel(r);
             var profile = game.Profile ?? new Profile();
             float bodyY = ModeHeader(r, "SURVIVAL", "ONE CLOCK  ·  NO WAVES  ·  LAST AS LONG AS YOU CAN",
-                "Enemies keep coming and the pressure climbs with the clock. The run ends when everyone is down.", Ui.Muted);
+                "Pressure climbs with the clock until everyone is down.", Ui.Muted);
             float x = r.x + 18f, w = r.width - 36f, bodyH = Mathf.Max(200f, r.yMax - 14f - bodyY);
             var ev = Event.current;
 

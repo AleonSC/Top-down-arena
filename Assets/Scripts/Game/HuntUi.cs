@@ -50,7 +50,7 @@ namespace Arena
             var profile = game.Profile;
             var ink = CrtUi.Ink;
             float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;
-            y = ModeHeader(r, "BOSS HUNT", "10 WAVES TO ONE BOSS", host ? "Pick a boss to hunt. Beat a boss in a run to open its hunt."
+            y = ModeHeader(r, "BOSS HUNT", "10 WAVES  ·  ONE BOSS", host ? "Pick a boss. Beat one in a run to open its hunt."
                 : "The host picks the boss (from the hunts they've opened).", Ui.Muted);
             float bodyY = y, bodyH = Mathf.Max(200f, r.yMax - 14f - bodyY);
 
