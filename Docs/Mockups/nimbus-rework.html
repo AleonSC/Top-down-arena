@@ -1,0 +1,433 @@
+<title>Nimbus Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one live arena stage on top, pickers above it, short concept cards below. Single dark CRT look like the game. */
+:root{
+  --bg:#0b1018; --panel:#121a26; --line:#22324a; --fg:#d6e2f2; --dim:#7f93ad;
+  --storm:#8fb5e8; --bolt:#e6f5ff; --heal:#78e696; --warn:#f0a050;
+  --display:"Chakra Petch",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  color-scheme:dark;
+}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1000px;margin:0 auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+h1{font-family:var(--display);font-size:30px;margin:0;letter-spacing:.02em;text-wrap:balance}
+h1 span{color:var(--storm)}
+.sub{color:var(--dim);margin:0;max-width:65ch}
+.bar{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center}
+.grp{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.lbl{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-right:4px}
+button{font-family:var(--mono);font-size:13px;background:var(--panel);color:var(--fg);border:1px solid var(--line);padding:6px 11px;cursor:pointer;border-radius:2px}
+button:hover{border-color:var(--storm)}
+button:focus-visible{outline:2px solid var(--storm);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--storm);color:var(--bg);border-color:var(--storm);font-weight:600}
+button.cast{border-color:var(--warn);color:var(--warn)}
+.stage{border:1px solid var(--line);background:#0e141d;position:relative}
+canvas{display:block;width:100%;height:auto;max-width:100%;cursor:crosshair}
+.hint{font-family:var(--mono);font-size:12px;color:var(--dim);margin:0}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);padding:14px 16px;min-width:0;cursor:pointer}
+.card.on{border-color:var(--storm)}
+.card h3{font-family:var(--display);font-size:17px;margin:0 0 6px;display:flex;gap:8px;align-items:baseline}
+.card h3 b{font-family:var(--mono);font-size:12px;color:var(--storm);font-weight:600}
+.card ul{margin:0;padding-left:18px;color:var(--fg)}
+.card li{margin:2px 0}
+.card .stat{font-family:var(--mono);font-size:12px;color:var(--heal);margin-top:8px}
+h2{font-family:var(--display);font-size:19px;margin:10px 0 0;letter-spacing:.03em}
+.note{font-size:13px;color:var(--dim);border-left:2px solid var(--line);padding-left:10px;margin:0}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Nimbus <span>Rework</span></h1>
+    <p class="sub">Three looks for the cloud and two takes on a hurricane Alt. Live sim: move over the arena to steer, click to strike, right-click or <b>E</b> for the hurricane. Idle, it plays itself.</p>
+  </header>
+
+  <div class="bar">
+    <div class="grp" role="group" aria-label="Cloud look">
+      <span class="lbl">Look</span>
+      <button id="l0" data-look="0">Current</button>
+      <button id="lA" data-look="A">A Thunderhead</button>
+      <button id="lB" data-look="B">B Storm Spirit</button>
+      <button id="lC" data-look="C">C Anvil</button>
+    </div>
+    <div class="grp" role="group" aria-label="Hurricane Alt">
+      <span class="lbl">Alt</span>
+      <button id="h1" data-alt="H1">H1 Eye of the Storm</button>
+      <button id="h2" data-alt="H2">H2 Cyclone Run</button>
+      <button id="cast" class="cast">Cast ▸</button>
+    </div>
+  </div>
+
+  <div class="stage"><canvas id="arena" width="960" height="540" aria-label="Animated Nimbus mockup"></canvas></div>
+  <p class="hint">Drawn only with filled circles, arcs, lines and quads, the shapes Ui.cs has, so each look ports to NimbusLook.cs as-is. Fonts and layout around it are page-only.</p>
+
+  <h2>Cloud looks</h2>
+  <div class="cards">
+    <div class="card" data-look="A"><h3><b>A</b>Thunderhead</h3><ul>
+      <li>Two-tone puffs: lit tops, dark belly</li>
+      <li>Lightning flickers inside the cloud</li>
+      <li>Rain slants with drift, splashes land</li>
+      <li>Belly crackles when the strike is ready</li>
+      <li>Green + motes rise off healed allies</li></ul></div>
+    <div class="card" data-look="B"><h3><b>B</b>Storm Spirit</h3><ul>
+      <li>Cloud is a character: eyes track the nearest enemy, blink, squint on strike</li>
+      <li>Squashes and stretches as it drifts</li>
+      <li>Charge ring fills round it; sparks orbit when ready</li>
+      <li>Teal healing drops and puddle ripples</li></ul></div>
+    <div class="card" data-look="C"><h3><b>C</b>Anvil</h3><ul>
+      <li>Bigger three-tier cumulonimbus, slow swirl on top</li>
+      <li>Rain falls as streaked curtains</li>
+      <li>Forked bolt with branches</li>
+      <li>Strikes leave a scorch mark for 1.5 s</li></ul></div>
+  </div>
+
+  <h2>Hurricane Alt</h2>
+  <div class="cards">
+    <div class="card" data-alt="H1"><h3><b>H1</b>Eye of the Storm</h3><ul>
+      <li>Cloud spins up into a 140 px hurricane for 4 s, follows the cursor at half speed</li>
+      <li>Spiral arms drag enemies round and in; lightning lashes from the arms</li>
+      <li>Swallows enemy bullets that enter it</li>
+      <li>Allies in the calm eye heal double</li>
+      <li>Ends in a burst that shoves enemies out</li></ul>
+      <div class="stat">20 dmg/s · bolts 10 ×3/s · eye 16 heal/s · 12 s cd</div></div>
+    <div class="card" data-alt="H2"><h3><b>H2</b>Cyclone Run</h3><ul>
+      <li>Cloud twists into a funnel and races 600 px along your aim, growing 50 → 100 px</li>
+      <li>Drags enemies along with it, bouncing off walls</li>
+      <li>Leaves a trail of healing puddles for 3 s</li>
+      <li>Reforms where it stops, drifts back to the cursor</li></ul>
+      <div class="stat">25 dmg/s · puddles 6 heal/s · 10 s cd</div></div>
+  </div>
+  <p class="note">Numbers are starting proposals, sized against today's 16 dmg strike every 0.6 s and 8 heal/s rain. Demo cooldown is 3 s so you can spam it.</p>
+</div>
+
+<script>
+(()=>{
+const cv=document.getElementById('arena'),ctx=cv.getContext('2d');
+const W=960,H=540,TAU=Math.PI*2,CH=42;
+const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=W*dpr;cv.height=H*dpr;ctx.scale(dpr,dpr);
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const C={edge:[143,181,232],body:[51,66,92],belly:[34,44,64],top:[96,122,163],eye:[191,224,255],rain:[153,199,255],bolt:[230,245,255],heal:[120,230,150],teal:[130,220,225],en:[232,138,60]};
+const col=(c,a=1)=>`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+const mix=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
+function circ(x,y,r,c){if(r<=0)return;ctx.fillStyle=c;ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.fill()}
+function ring(x,y,r,w,c,a0=0,a1=TAU){if(r<=0)return;ctx.strokeStyle=c;ctx.lineWidth=w;ctx.beginPath();ctx.arc(x,y,r,a0,a1);ctx.stroke()}
+function line(x1,y1,x2,y2,w,c){ctx.strokeStyle=c;ctx.lineWidth=w;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke()}
+function pline(p,w,c){ctx.strokeStyle=c;ctx.lineWidth=w;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();p.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.stroke()}
+const rnd=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const ease=t=>1-Math.pow(1-clamp(t,0,1),3);
+
+let look='A',alt='H1';
+const P={x:230,y:330,flash:0},ally={x:400,y:200,heal:0};
+let cursor={x:560,y:270},mouseT=-9,now=0,lastStrike=-9,altReady=0,autoStrike=0,autoAlt=4;
+const cloud={x:560,y:270,vx:0,vy:0,reform:1};
+let enemies=[],bullets=[],fx=[],parts=[],scorch=[],puddles=[],hur=null,innerBolt=null,blink=0;
+const BLOBS=[[-24,6,13],[-9,-5,17],[12,-3,16],[28,6,12],[2,9,15]];
+const LEASH=380;
+
+function spawn(){enemies.push({x:W+20,y:rnd(80,H-80),hp:40,max:40,flash:0,vx:0,vy:0,shoot:rnd(1,3),id:Math.random()})}
+for(let i=0;i<7;i++){spawn();enemies[i].x=rnd(500,900)}
+
+function hurt(e,d){e.hp-=d;e.flash=0.12;if(e.hp<=0&&!e.dead){e.dead=1;for(let k=0;k<10;k++){const a=rnd(0,TAU),s=rnd(40,160);parts.push({x:e.x,y:e.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:0,d:rnd(.3,.6),c:C.en,r:rnd(1.5,3)})}}}
+
+function strike(){
+  if(hur||now-lastStrike<0.6)return;lastStrike=now;
+  const x=cloud.x,y=cloud.y,R=look==='C'?46:40;
+  fx.push({k:'strike',x,y,t:0,d:look==='C'?0.5:0.4,R,seed:Math.random()*1000|0,look});
+  if(look==='C')scorch.push({x,y,t:0,seed:Math.random()*1000|0});
+  for(const e of enemies)if(Math.hypot(e.x-x,e.y-y)<R+11)hurt(e,16);
+  for(let k=0;k<(look==='0'?0:8);k++){const a=rnd(0,TAU),s=rnd(80,220);parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s*0.6,t:0,d:rnd(.15,.35),c:C.bolt,r:1.6,spark:1})}
+}
+function cast(){
+  if(hur||now<altReady)return;altReady=now+3;
+  if(alt==='H1')hur={k:'H1',x:cloud.x,y:cloud.y,t:0,d:4,rot:0,zap:0};
+  else{let dx=cursor.x-P.x,dy=cursor.y-P.y,l=Math.hypot(dx,dy)||1;hur={k:'H2',x:cloud.x,y:cloud.y,dx:dx/l,dy:dy/l,t:0,d:2.5,rot:0,trail:0,zap:0}}
+}
+
+// ---------- update ----------
+function update(dt){
+  now+=dt;blink-=dt;if(blink<-0.12)blink=rnd(2,4);
+  const user=now-mouseT<2.5;
+  if(!user){const t=now*0.45;cursor.x=600+Math.cos(t)*190;cursor.y=270+Math.sin(t*1.7)*130;
+    autoStrike-=dt;if(autoStrike<=0){strike();autoStrike=0.75}
+    autoAlt-=dt;if(autoAlt<=0){cast();autoAlt=9}}
+  // cloud goal: cursor within leash
+  let gx=cursor.x-P.x,gy=cursor.y-P.y,gl=Math.hypot(gx,gy);if(gl>LEASH){gx*=LEASH/gl;gy*=LEASH/gl}
+  gx+=P.x;gy+=P.y;
+  if(hur){
+    hur.t+=dt;hur.rot+=dt*(hur.k==='H1'?3.2:6);
+    const k=hur.t/hur.d, grow=ease(hur.t/0.4)*(1-ease((hur.t-hur.d+0.45)/0.45));
+    if(hur.k==='H1'){
+      const sp=300,dx=gx-hur.x,dy=gy-hur.y,l=Math.hypot(dx,dy);if(l>1){const m=Math.min(l,sp*dt);hur.x+=dx/l*m;hur.y+=dy/l*m}
+      hur.R=140*grow;
+      for(const e of enemies){const dx=hur.x-e.x,dy=hur.y-e.y,l=Math.hypot(dx,dy);if(l<hur.R+20&&l>1){const tx=-dy/l,ty=dx/l,pull=90;e.x+=(dx/l*pull*0.7+tx*pull*1.4)*dt*grow;e.y+=(dy/l*pull*0.7+ty*pull*1.4)*dt*grow;hurt(e,20*dt)}}
+      for(const b of bullets){if(!b.orb&&Math.hypot(b.x-hur.x,b.y-hur.y)<hur.R){b.orb=1;b.a=Math.atan2(b.y-hur.y,b.x-hur.x);b.r=Math.hypot(b.x-hur.x,b.y-hur.y)}}
+      hur.zap-=dt;if(hur.zap<=0&&grow>0.8){hur.zap=0.33;const a=rnd(0,TAU),r=rnd(40,hur.R*0.95),x=hur.x+Math.cos(a)*r,y=hur.y+Math.sin(a)*r;fx.push({k:'mini',x,y,ox:hur.x+Math.cos(a-0.6)*r*0.5,oy:hur.y+Math.sin(a-0.6)*r*0.5,t:0,d:0.22});for(const e of enemies)if(Math.hypot(e.x-x,e.y-y)<30)hurt(e,10)}
+      if(Math.hypot(ally.x-hur.x,ally.y-hur.y)<26)ally.heal=0.3;
+      if(hur.t>=hur.d){fx.push({k:'burst',x:hur.x,y:hur.y,t:0,d:0.45});for(const e of enemies){const dx=e.x-hur.x,dy=e.y-hur.y,l=Math.hypot(dx,dy)||1;if(l<180){e.vx+=dx/l*300;e.vy+=dy/l*300}}cloud.x=hur.x;cloud.y=hur.y;hur=null;cloud.reform=0}
+    }else{
+      const sp=240;hur.x+=hur.dx*sp*dt;hur.y+=hur.dy*sp*dt;
+      if(hur.x<40||hur.x>W-40){hur.dx*=-1;hur.x=clamp(hur.x,40,W-40)}if(hur.y<40||hur.y>H-40){hur.dy*=-1;hur.y=clamp(hur.y,40,H-40)}
+      hur.R=(50+50*k)*grow;
+      for(const e of enemies){const dx=hur.x-e.x,dy=hur.y-e.y,l=Math.hypot(dx,dy);if(l<hur.R+12&&l>0.5){const tx=-dy/l,ty=dx/l;e.x+=(hur.dx*sp+dx/l*60+tx*120)*dt;e.y+=(hur.dy*sp+dy/l*60+ty*120)*dt;hurt(e,25*dt)}}
+      for(const b of bullets)if(Math.hypot(b.x-hur.x,b.y-hur.y)<hur.R)b.dead=1;
+      hur.trail-=dt;if(hur.trail<=0){hur.trail=0.09;puddles.push({x:hur.x+rnd(-12,12),y:hur.y+rnd(-12,12),t:0,r:rnd(14,24)})}
+      hur.zap-=dt;if(hur.zap<=0&&grow>0.8){hur.zap=0.4;const a=rnd(0,TAU),r=hur.R*rnd(.5,.9);fx.push({k:'mini',x:hur.x+Math.cos(a)*r,y:hur.y+Math.sin(a)*r,ox:hur.x,oy:hur.y,t:0,d:0.2})}
+      if(hur.t>=hur.d){cloud.x=hur.x;cloud.y=hur.y;hur=null;cloud.reform=0}
+    }
+  }else{
+    const dx=gx-cloud.x,dy=gy-cloud.y,l=Math.hypot(dx,dy),sp=600;let mx=0,my=0;
+    if(l>0.5){const m=Math.min(l,sp*dt);mx=dx/l*m;my=dy/l*m}
+    cloud.x+=mx;cloud.y+=my;cloud.vx+=(mx/dt-cloud.vx)*Math.min(1,dt*8);cloud.vy+=(my/dt-cloud.vy)*Math.min(1,dt*8);
+    cloud.reform=Math.min(1,cloud.reform+dt*2.2);
+    if(Math.hypot(ally.x-cloud.x,ally.y-cloud.y)<70)ally.heal=0.3;
+  }
+  // inner flicker (look A)
+  if(!innerBolt&&Math.random()<dt*0.9){const a=BLOBS[Math.random()*5|0],b=BLOBS[Math.random()*5|0];if(a!==b)innerBolt={a,b,t:0}}
+  if(innerBolt){innerBolt.t+=dt;if(innerBolt.t>0.14)innerBolt=null}
+  // enemies
+  for(const e of enemies){
+    e.flash-=dt;const dx=P.x-e.x,dy=P.y-e.y,l=Math.hypot(dx,dy)||1;
+    const want=l>170?55:-20, sx=-dy/l*18*Math.sin(now+e.id*9);
+    e.x+=(dx/l*want+sx+e.vx)*dt;e.y+=(dy/l*want+e.vy)*dt;e.vx*=Math.pow(0.02,dt);e.vy*=Math.pow(0.02,dt);
+    e.x=clamp(e.x,20,W+30);e.y=clamp(e.y,20,H-20);
+    e.shoot-=dt;if(e.shoot<=0&&e.x<W){e.shoot=rnd(1.6,3);bullets.push({x:e.x,y:e.y,vx:dx/l*170,vy:dy/l*170})}
+  }
+  enemies=enemies.filter(e=>!e.dead);while(enemies.length<7)spawn();
+  for(const b of bullets){
+    if(b.orb&&hur&&hur.k==='H1'){b.a+=dt*5;b.r-=dt*70;b.x=hur.x+Math.cos(b.a)*b.r;b.y=hur.y+Math.sin(b.a)*b.r;if(b.r<18){b.dead=1;parts.push({x:b.x,y:b.y,vx:0,vy:-30,t:0,d:.25,c:C.bolt,r:3})}}
+    else{if(b.orb)b.dead=1;b.x+=b.vx*dt;b.y+=b.vy*dt;if(Math.hypot(b.x-P.x,b.y-P.y)<14){b.dead=1;P.flash=0.15}}
+    if(b.x<-20||b.x>W+40||b.y<-20||b.y>H+20)b.dead=1;
+  }
+  bullets=bullets.filter(b=>!b.dead);
+  for(const f of fx)f.t+=dt;fx=fx.filter(f=>f.t<f.d);
+  for(const p of parts){p.t+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=0.94;p.vy*=0.94}parts=parts.filter(p=>p.t<p.d);
+  for(const s of scorch)s.t+=dt;scorch=scorch.filter(s=>s.t<1.5);
+  for(const p of puddles){p.t+=dt;if(Math.hypot(ally.x-p.x,ally.y-p.y)<p.r)ally.heal=0.3}puddles=puddles.filter(p=>p.t<3);
+  P.flash-=dt;
+  if(ally.heal>0){ally.heal-=dt;if(Math.random()<dt*10&&look!=='0')parts.push({x:ally.x+rnd(-10,10),y:ally.y+rnd(-6,6),vx:0,vy:-40,t:0,d:0.7,c:C.heal,plus:1,r:3})}
+}
+
+// ---------- draw ----------
+function drawFloor(){
+  ctx.fillStyle='#0f1620';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(60,90,130,0.16)';ctx.lineWidth=1;ctx.beginPath();
+  for(let x=0;x<=W;x+=48){ctx.moveTo(x+.5,0);ctx.lineTo(x+.5,H)}for(let y=0;y<=H;y+=48){ctx.moveTo(0,y+.5);ctx.lineTo(W,y+.5)}ctx.stroke();
+  ring(P.x,P.y,LEASH,1,'rgba(143,181,232,0.06)');
+}
+function drawRainBase(g,r,t){
+  if(look==='0'){circ(g.x,g.y,r,col(C.rain,.07));ring(g.x,g.y,r,2,col(C.rain,.45));return}
+  if(look==='A'){circ(g.x,g.y,r,col(C.rain,.06));for(let i=0;i<24;i++){const a=i/24*TAU+t*0.25;ring(g.x,g.y,r,2,col(C.rain,.5),a,a+TAU/48)}ring(g.x,g.y,r*0.62,1,col(C.rain,.12));return}
+  if(look==='B'){circ(g.x,g.y,r,col(C.teal,.07));ring(g.x,g.y,r,2,col(C.teal,.4));
+    for(let i=0;i<8;i++){const a=i/8*TAU-t*0.4;circ(g.x+Math.cos(a)*r,g.y+Math.sin(a)*r,3,col(C.teal,.8))}
+    for(let i=0;i<5;i++){const f=(t*0.7+i*0.2)%1,a=i*2.4,rr=r*0.6*Math.sqrt((i+.5)/5);ring(g.x+Math.cos(a)*rr,g.y+Math.sin(a)*rr,3+f*14,1.2,col(C.teal,.5*(1-f)))}return}
+  // C
+  circ(g.x,g.y,r,col(C.rain,.08));ring(g.x,g.y,r,3,col(C.rain,.22));ring(g.x,g.y,r-5,1,col(C.rain,.35));
+}
+function drawRain(g,r,t,cy){
+  const wind=clamp(-cloud.vx*0.012,-6,6);
+  if(look==='C'){
+    for(let c=0;c<6;c++){const x=g.x-r*0.75+c*(r*1.5/5);const top=cy+16,bot=g.y+Math.sqrt(Math.max(0,r*r-(x-g.x)**2))*0.5;
+      for(let s=0;s<5;s++){const f=(t*1.8+s/5+c*0.13)%1,y=top+(bot-top)*f;line(x+wind*f,y-12,x+wind*f,y,1.4,col(C.rain,.35*(1-f*.5)))}
+      for(let s=0;s<3;s++){const f=(t*2.3+s/3+c*0.37)%1,y=top+(bot-top)*f;line(x+5+wind*f,y-7,x+5+wind*f,y,1,col(C.rain,.25))}}
+    return}
+  const n=look==='0'?16:22,rc=look==='B'?C.teal:C.rain;
+  for(let i=0;i<n;i++){const a=i*2.39996,rr=r*Math.sqrt((i+.5)/n)*0.92,lx=g.x+Math.cos(a)*rr,ly=g.y+Math.sin(a)*rr;
+    const f=(t*1.3+i*0.37)%1,y=ly-CH+CH*f,x=lx+(look==='0'?-1*(1-f):wind*(1-f));
+    if(look==='B'){circ(x,y,2.2,col(rc,.75));ctx.fillStyle=col(rc,.75);ctx.beginPath();ctx.moveTo(x-2.1,y-0.5);ctx.lineTo(x,y-6);ctx.lineTo(x+2.1,y-0.5);ctx.fill()}
+    else line(x-(look==='0'?0:wind*0.5),y-9,x,y,1.6,col(rc,.6*(1-.4*f)));
+    if(f>0.86){const s=(f-.86)/.14;ring(lx,ly,2+s*(look==='A'?9:6),1,col(rc,.55*(1-s)));
+      if(look==='A'&&s<.5){line(lx,ly,lx-4,ly-4*s-2,1,col(rc,.5));line(lx,ly,lx+4,ly-4*s-2,1,col(rc,.5))}}}
+}
+function blobsFor(){
+  if(look==='C')return{base:[[-38,10,12],[-22,12,14],[-4,13,15],[15,12,14],[33,10,12],[-28,0,13],[30,1,12]],mid:[[-16,-4,16],[4,-6,18],[22,-3,14]],top:[[-40,-20,8],[-24,-22,10],[-6,-24,11],[12,-23,11],[30,-21,10],[44,-19,8]]};
+  return{base:BLOBS};
+}
+function drawCloud(g,t,hot,sc){
+  const bob=Math.sin(t*2)*(look==='B'?3.5:2),cy=g.y-CH-(look==='C'?10:0)+bob;
+  let sx=sc,sy=sc;
+  if(look==='B'){const v=Math.min(1,Math.hypot(cloud.vx,cloud.vy)/600);sx*=1+v*0.14;sy*=1-v*0.1}
+  const B=(b,dx=0,dy=0,dr=0,c)=>circ(g.x+(b[0]+dx)*sx,cy+(b[1]+dy)*sy,(b[2]+dr)*Math.min(sx,sy),c);
+  // ground shadow
+  circ(g.x,g.y+4,(look==='C'?36:22)*sc,'rgba(0,0,0,0.22)');
+  const edge=hot?[255,255,255]:C.edge,body=hot?[228,242,255]:C.body;
+  if(look==='0'){for(const b of BLOBS)B(b,0,0,2,col(edge));for(const b of BLOBS)B(b,0,0,0,col(body));
+    const e=hot?C.body:C.eye;circ(g.x-6*sx,cy+6*sy,2.6*sc,col(e));circ(g.x+9*sx,cy+6*sy,2.6*sc,col(e));return cy}
+  if(look==='A'){
+    for(const b of BLOBS)B(b,0,0,2.5,col(edge));
+    for(const b of BLOBS)B(b,0,0,0,col(body));
+    for(const b of BLOBS)B(b,0,4,-4,col(hot?body:C.belly));
+    for(const b of BLOBS)B(b,-3,-5,-b[2]*0.42,col(hot?[255,255,255]:C.top));
+    for(const b of BLOBS)B(b,-5,-8,-b[2]*0.78,col([200,222,250],hot?1:.55));
+    if(innerBolt&&!hot){const a=innerBolt.a,b=innerBolt.b,f=1-innerBolt.t/0.14;B(a,0,0,-3,col(C.top,.9*f));B(b,0,0,-3,col(C.top,.9*f));
+      const p=[];for(let k=0;k<=4;k++){const u=k/4;p.push([g.x+(a[0]+(b[0]-a[0])*u+(k%2?3:-3))*sx,cy+(a[1]+(b[1]-a[1])*u+(k%2?-2:2))*sy])}pline(p,1.6,col(C.bolt,f))}
+    // brows + eyes
+    const e=hot?C.body:C.eye;circ(g.x-6*sx,cy+7*sy,2.6*sc,col(e));circ(g.x+9*sx,cy+7*sy,2.6*sc,col(e));
+    line(g.x-10*sx,cy+2*sy,g.x-3*sx,cy+4*sy,1.6,col(e,.9));line(g.x+13*sx,cy+2*sy,g.x+6*sx,cy+4*sy,1.6,col(e,.9));
+    // belly crackle when ready
+    if(now-lastStrike>0.6&&!hot&&(t*8|0)%3!==0){const p=[];for(let k=0;k<6;k++)p.push([g.x-14+k*6,cy+21+((k+(t*20|0))%2?3:-1)]);pline(p,1.2,col(C.bolt,.75))}
+    return cy}
+  if(look==='B'){
+    for(const b of BLOBS)B(b,0,0,2.5,col(edge));
+    for(const b of BLOBS)B(b,0,0,0,col(mix(body,[70,88,120],.4)));
+    for(const b of BLOBS)B(b,-3,-4,-b[2]*0.5,col(hot?[255,255,255]:[110,138,180]));
+    // eyes look at nearest enemy
+    let tx=0,ty=0,bd=1e9;for(const e of enemies){const d=Math.hypot(e.x-g.x,e.y-g.y);if(d<bd){bd=d;tx=e.x-g.x;ty=e.y-g.y}}
+    const tl=Math.hypot(tx,ty)||1;tx/=tl;ty/=tl;
+    const ex=[g.x-8*sx,g.x+10*sx],ey=cy+5*sy,squint=now-lastStrike<0.25;
+    for(let i=0;i<2;i++){
+      if(squint){const s=i?-1:1;line(ex[i]-4*s,ey-3,ex[i]+3*s,ey,2,col(C.eye));line(ex[i]+3*s,ey,ex[i]-4*s,ey+3,2,col(C.eye))}
+      else if(blink<0)line(ex[i]-4,ey,ex[i]+4,ey,2,col(C.eye));
+      else{circ(ex[i],ey,4.6,col(C.eye));circ(ex[i]+tx*1.8,ey+ty*1.8,2.2,col([20,28,44]));circ(ex[i]+tx*1.8-0.8,ey+ty*1.8-0.9,0.8,'#fff')}}
+    if(squint)circ(g.x+1*sx,cy+13*sy,3,col([20,28,44]));else ring(g.x+1*sx,cy+10*sy,3,1.5,col(C.eye,.8),0.3,Math.PI-0.3);
+    // charge ring
+    const ch=clamp((now-lastStrike)/0.6,0,1),cr=44,cxr=g.x+2,cyr=cy+2;
+    ring(cxr,cyr,cr,1.5,col(C.edge,.15));
+    if(ch<1){ring(cxr,cyr,cr,2.5,col(C.bolt,.8),-Math.PI/2,-Math.PI/2+TAU*ch);const a=-Math.PI/2+TAU*ch;circ(cxr+Math.cos(a)*cr,cyr+Math.sin(a)*cr,3,col(C.bolt))}
+    else for(let i=0;i<3;i++){const a=t*2.5+i*TAU/3;circ(cxr+Math.cos(a)*cr,cyr+Math.sin(a)*cr*0.55,2.6,col(C.bolt,.9));line(cxr+Math.cos(a)*cr,cyr+Math.sin(a)*cr*0.55,cxr+Math.cos(a-0.25)*cr,cyr+Math.sin(a-0.25)*cr*0.55,1.4,col(C.bolt,.4))}
+    return cy}
+  // C anvil
+  const L=blobsFor();
+  for(const b of L.top)B(b,0,0,2,col(edge,.9));for(const b of L.top)B(b,0,0,0,col(hot?body:[74,94,128]));
+  for(const b of L.mid)B(b,0,0,2.5,col(edge));for(const b of L.mid)B(b,0,0,0,col(hot?body:[62,80,110]));
+  for(const b of L.mid)B(b,-3,-5,-b[2]*0.5,col(hot?[255,255,255]:[105,130,170]));
+  for(const b of L.base)B(b,0,0,2,col(edge,.85));for(const b of L.base)B(b,0,0,0,col(hot?body:C.belly));
+  for(const b of L.base)B(b,0,-4,-b[2]*0.55,col(hot?body:C.body));
+  // swirl on top
+  for(let i=0;i<2;i++){const a=t*0.8+i*Math.PI;ring(g.x+2,cy-22,14+i*8,1.4,col(C.eye,.35),a,a+1.6)}
+  const e=hot?C.body:C.eye;circ(g.x-7,cy+6,2.4,col(e));circ(g.x+10,cy+6,2.4,col(e));
+  return cy}
+function bolt(x0,y0,x1,y1,seed,n,w,a){const p=[[x0,y0]];for(let k=1;k<n;k++){const u=k/n;p.push([x0+(x1-x0)*u+(((seed*(k+3))%17)-8)*1.4,y0+(y1-y0)*u])}p.push([x1,y1]);pline(p,w*2.6,col(C.rain,.4*a));pline(p,w,col(C.bolt,a));return p}
+function drawStrike(f){
+  const u=f.t/f.d,a=1-u,top=f.y-CH-10;
+  if(f.look==='0'){circ(f.x,f.y,f.R*(0.6+0.4*u),`rgba(204,230,255,${.28*a})`);ring(f.x,f.y,f.R*(0.5+u),3,col(C.bolt,a));if(u<.55)bolt(f.x,top,f.x,f.y,f.seed,6,2.2,1-u/.55);return}
+  circ(f.x,f.y,f.R*(0.6+0.4*u),col(C.bolt,.25*a));
+  ring(f.x,f.y,f.R*(0.5+u),3,col(C.bolt,a));ring(f.x,f.y,f.R*(0.3+u*1.4),1.2,col(C.rain,a*.6));
+  if(u<.15)circ(f.x,f.y,f.R*0.5,col([255,255,255],1-u/.15));
+  if(u<.55){const b=1-u/.55;const p=bolt(f.x,top,f.x,f.y,f.seed,7,2.4,b);
+    if(f.look==='C'){const s=f.seed;for(const k of[2,4]){const q=p[k];const dir=(s>>k)&1?1:-1;bolt(q[0],q[1],q[0]+dir*rnd(18,26),q[1]+rnd(14,22),s+k,3,1.3,b*.8)}}}
+  if(f.look==='A'||f.look==='C')for(let i=0;i<8;i++){const ang=i/8*TAU+f.seed,r0=f.R*(0.4+u*.6),r1=r0+10*a;line(f.x+Math.cos(ang)*r0,f.y+Math.sin(ang)*r0,f.x+Math.cos(ang)*r1,f.y+Math.sin(ang)*r1,1.6,col(C.bolt,a))}
+  if(f.look==='B')for(let i=0;i<4;i++){const ang=i/4*TAU+Math.PI/4,r=f.R*0.9*(0.3+u);line(f.x,f.y,f.x+Math.cos(ang)*r,f.y+Math.sin(ang)*r,2,col(C.teal,a*.8))}
+}
+function drawScorch(s){const a=1-s.t/1.5;circ(s.x,s.y,22,`rgba(10,8,6,${.55*a})`);circ(s.x,s.y,12,`rgba(40,30,20,${.5*a})`);
+  for(let i=0;i<6;i++){const g=i/6*TAU+s.seed,r=rnd(0,1)*0+28+((s.seed*(i+1))%9);line(s.x+Math.cos(g)*10,s.y+Math.sin(g)*10,s.x+Math.cos(g)*r,s.y+Math.sin(g)*r,1.5,`rgba(10,8,6,${.6*a})`)}
+  ring(s.x,s.y,22,1,`rgba(240,160,80,${.35*a*a})`)}
+function drawPuffs(ps,flash){
+  for(const p of ps)circ(p.x+5,p.y+7,p.r,`rgba(0,0,0,${.16*p.a})`);
+  for(const p of ps)circ(p.x,p.y,p.r+2,col(mix(C.edge,[255,255,255],flash),p.a));
+  for(const p of ps)circ(p.x,p.y,p.r,col(mix(mix(C.belly,C.body,p.l),[200,225,255],flash*.6),p.a));
+  for(const p of ps)circ(p.x-p.r*.25,p.y-p.r*.3,p.r*.62,col(mix(mix(C.body,mix(C.body,C.top,.6),p.l),[255,255,255],flash),p.a));
+  for(const p of ps)if(p.l>.85)circ(p.x-p.r*.4,p.y-p.r*.45,p.r*.2,col([215,232,255],.35*p.a));
+}
+function sliver(cx,cy,r0,r1,a0,tw,w,c,sy=1,peak=0.35){
+  const L=[],Rr=[];for(let i=0;i<=18;i++){const u=i/18,r=r0+(r1-r0)*u,a=a0+u*tw,
+    hw=w*(u<peak?Math.sin(u/peak*Math.PI/2):Math.cos((u-peak)/(1-peak)*Math.PI/2)),nx=Math.cos(a),ny=Math.sin(a);
+    L.push([cx+nx*(r-hw),cy+ny*(r-hw)*sy]);Rr.push([cx+nx*(r+hw),cy+ny*(r+hw)*sy])}
+  ctx.fillStyle=c;ctx.beginPath();L.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));for(let i=Rr.length-1;i>=0;i--)ctx.lineTo(Rr[i][0],Rr[i][1]);ctx.closePath();ctx.fill();
+  return Rr}
+function drawH1(h,t){
+  const R=h.R,x=h.x,y=h.y,g=R/140;if(R<2)return;
+  const flash=fx.some(f=>f.k==='mini'&&f.t<0.06)?0.35:0;
+  // ground: shadow, wind streaks racing round underneath
+  circ(x,y,R*1.05,col(C.belly,.35));
+  for(let i=0;i<34;i++){const rr=R*(0.3+((i*53)%68)/100),a=h.rot*(2.2-rr/R)+i*1.37;ring(x,y,rr,1.3,col(C.rain,.28),a,a+0.35+((i*7)%5)*0.06)}
+  // rain under the bands
+  for(let i=0;i<40;i++){const f=(t*1.6+i*0.13)%1,rr=R*(0.25+((i*29)%70)/100),a=h.rot+i*2.1,px=x+Math.cos(a)*rr,py=y+Math.sin(a)*rr;line(px-3,py-8+8*f,px,py+8*f,1.2,col(C.rain,.45*(1-f)))}
+  const eyeR=24*g,fl=flash;
+  const tone=(c,al)=>col(mix(c,[255,255,255],fl),al);
+  // outer feeder wisps
+  for(let i=0;i<9;i++)sliver(x,y,R*0.72,R*1.0,h.rot*0.9+i*TAU/9,0.9,3*g,tone(C.edge,.3));
+  // arms: separate tapered strands with gaps, pointed at both ends
+  for(let arm=0;arm<3;arm++)for(let k=0;k<4;k++){
+    const a0=h.rot+arm*TAU/3+k*0.22,r0=eyeR+2*g+k*7*g,r1=R*(0.78+0.06*k),tw=2.8-k*0.25,w=(10-k*2)*g;
+    sliver(x+5,y+7,r0,r1,a0,tw,w,'rgba(0,0,0,.14)');
+    const edge=sliver(x,y,r0,r1,a0,tw,w,tone(k%2?C.body:C.top,0.62-k*0.1));
+    if(k===0){ctx.strokeStyle=tone(C.bolt,.7);ctx.lineWidth=1.3;ctx.beginPath();edge.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.stroke()}}
+  // eyewall: tight ring of bright crescent blades
+  for(let i=0;i<10;i++)sliver(x,y,eyeR*0.95,eyeR+16*g,h.rot*1.5+i*TAU/10,1.1,4.5*g,tone(C.edge,.75));
+  // calm eye: clear floor, healing rain
+  circ(x,y,eyeR*0.9,'#0f1620');circ(x,y,eyeR*0.9,col(C.heal,.14));ring(x,y,eyeR*0.9,1.5,col(C.heal,.7));
+  for(let i=0;i<5;i++){const f=(t*1.4+i/5)%1,a=i*1.9,r=eyeR*0.45;line(x+Math.cos(a)*r,y+Math.sin(a)*r-12+12*f-5,x+Math.cos(a)*r,y+Math.sin(a)*r-12+12*f,1.3,col(C.heal,.8*(1-f)))}
+  // debris flung round
+  for(let i=0;i<16;i++){const rr=R*(0.4+((i*41)%55)/100),a=h.rot*(2-rr/R)*1.2+i*2.4,bx=x+Math.cos(a)*rr,by=y+Math.sin(a)*rr;line(bx,by,bx-Math.sin(a)*7,by+Math.cos(a)*7,2,col([170,150,120],.8))}
+}
+function drawH2(h,t){
+  const R=h.R,x=h.x,y=h.y,g=R/100;if(R<2)return;
+  const flash=fx.some(f=>f.k==='mini'&&f.t<0.06)?0.35:0;
+  // ground: damage area, dust skirt, wind arcs
+  circ(x,y,R,col(C.belly,.35));
+  for(let i=0;i<20;i++){const a=i/20*TAU-h.rot*0.6;ring(x,y,R,2,col(C.edge,.35),a,a+TAU/44)}
+  for(let i=0;i<22;i++){const rr=R*(0.35+((i*37)%60)/100),a=h.rot*1.6*(1.4-rr/R)+i*1.7;ring(x,y,rr,1.2,col(C.rain,.3),a,a+0.5)}
+  const dust=[];for(let i=0;i<16;i++){const a=h.rot*1.3+i/16*TAU,rr=R*0.42+((i*13)%9)*g;dust.push([x+Math.cos(a)*rr,y+Math.sin(a)*rr*0.8,(7+((i*7)%5))*g])}
+  for(const d of dust)circ(d[0],d[1],d[2],'rgba(120,104,84,.45)');for(const d of dust)circ(d[0]-d[2]*.3,d[1]-d[2]*.3,d[2]*.5,'rgba(170,150,120,.4)');
+  // funnel: stacked rings of cloud, narrow at the ground, wide on top (3/4 view)
+  const lean=[h.dx*-10*g,h.dy*-6*g],layers=7,HT=85*g;
+  for(let k=0;k<layers;k++){const u=k/(layers-1),cx=x+lean[0]*u,cy=y-HT*u+lean[1]*u,rr=R*(0.16+0.66*u*u);
+    const nb=4+k;for(let i=0;i<nb;i++)sliver(cx,cy,rr*0.7,rr*1.08,h.rot*(2.4-u*1.2)+i/nb*TAU+k*0.7,1.5,(2.5+u*5)*g,col(mix(i%2?C.body:C.top,[255,255,255],flash),.45+u*.35),0.42)}
+  // spiral cap on top
+  const cx=x+lean[0],cy=y-HT+lean[1];
+  for(let arm=0;arm<3;arm++)for(let k=0;k<3;k++)sliver(cx,cy,5*g+k*5*g,R*(0.7+0.08*k),h.rot*1.2+arm*TAU/3+k*0.25,2.4-k*0.2,(9-k*2.5)*g,col(mix(k%2?C.body:C.top,[255,255,255],flash),.7-k*.12),0.42);
+circ(cx,cy,6*g,col(C.belly));ring(cx,cy,6*g,1.5,col(C.edge,.8));
+  // debris lifted up the funnel
+  for(let i=0;i<12;i++){const u=((t*0.8+i*0.083)%1),a=h.rot*3+i*2.1,rr=R*(0.18+0.6*u*u),bx=x+lean[0]*u+Math.cos(a)*rr,by=y-HT*u+lean[1]*u+Math.sin(a)*rr*0.42;circ(bx,by,2*g+1,col([170,150,120],.9*(1-u*.7)))}
+}
+function drawEnemy(e){
+  circ(e.x,e.y+3,11,'rgba(0,0,0,.3)');const c=e.flash>0?[255,255,255]:C.en;
+  circ(e.x,e.y,12,col([40,20,10]));circ(e.x,e.y,10,col(c));
+  const a=Math.atan2(P.y-e.y,P.x-e.x);circ(e.x+Math.cos(a)*5,e.y+Math.sin(a)*5,2.6,col([40,20,10]));
+  if(e.hp<e.max){ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(e.x-12,e.y-19,24,3);ctx.fillStyle='#e85a4a';ctx.fillRect(e.x-12,e.y-19,24*Math.max(0,e.hp/e.max),3)}
+}
+function drawPlayer(){
+  circ(P.x,P.y+3,13,'rgba(0,0,0,.3)');circ(P.x,P.y,14,P.flash>0?'#fff':'#28405e');circ(P.x,P.y,11,'#5a8fd6');
+  const g=hur?hur:cloud,dx=g.x-P.x,dy=g.y-P.y,l=Math.hypot(dx,dy)||1;
+  for(let s=24;s<l-10;s+=14)circ(P.x+dx/l*s,P.y+dy/l*s,1.4,'rgba(143,181,232,.4)');
+  circ(ally.x,ally.y+3,12,'rgba(0,0,0,.3)');circ(ally.x,ally.y,13,'#24402e');circ(ally.x,ally.y,10,'#5fbf7d');
+  ctx.font='600 11px "IBM Plex Mono",monospace';ctx.fillStyle='rgba(214,226,242,.7)';ctx.textAlign='center';ctx.fillText('ALLY',ally.x,ally.y-20);ctx.fillText('YOU',P.x,P.y-22);
+}
+function drawParts(){for(const p of parts){const a=1-p.t/p.d;if(p.plus){line(p.x-3,p.y,p.x+3,p.y,2,col(p.c,a));line(p.x,p.y-3,p.x,p.y+3,2,col(p.c,a))}else if(p.spark)line(p.x,p.y,p.x-p.vx*0.03,p.y-p.vy*0.03,1.6,col(p.c,a));else circ(p.x,p.y,p.r*a,col(p.c,a))}}
+function drawHud(){
+  ctx.font='600 12px "IBM Plex Mono",monospace';ctx.textAlign='left';ctx.fillStyle='rgba(127,147,173,.9)';
+  ctx.fillText('LMB strike   RMB / E hurricane',14,H-14);
+  const cd=clamp((altReady-now)/3,0,1),x=W-30,y=H-26;circ(x,y,14,'rgba(18,26,38,.9)');ring(x,y,14,2,'rgba(240,160,80,.3)');
+  if(cd>0){ctx.fillStyle='rgba(240,160,80,.35)';ctx.beginPath();ctx.moveTo(x,y);ctx.arc(x,y,12,-Math.PI/2,-Math.PI/2+TAU*cd);ctx.fill()}else ring(x,y,14,2,'rgba(240,160,80,.95)');
+  ctx.fillStyle='#f0a050';ctx.textAlign='right';ctx.fillText(alt==='H1'?'EYE OF THE STORM':'CYCLONE RUN',x-22,y+4);
+}
+function draw(){
+  const t=now;drawFloor();
+  for(const s of scorch)drawScorch(s);
+  for(const p of puddles){const a=Math.min(1,(3-p.t)/0.6);circ(p.x,p.y,p.r,col(C.teal,.12*a));ring(p.x,p.y,p.r,1.2,col(C.heal,.45*a));const f=(p.t*1.2)%1;ring(p.x,p.y,p.r*f,1,col(C.teal,.4*a*(1-f)))}
+  const g={x:cloud.x,y:cloud.y};
+  if(!hur){const r=(look==='C'?80:70)*cloud.reform;if(r>2)drawRainBase(g,r,t)}
+  for(const e of enemies)drawEnemy(e);
+  drawPlayer();
+  for(const b of bullets)if(!b.orb){circ(b.x,b.y,5,'#4a1414');circ(b.x,b.y,3.5,'#ff6a5a')}
+  if(hur){if(hur.k==='H1')drawH1(hur,t);else drawH2(hur,t);for(const b of bullets)if(b.orb){circ(b.x,b.y,5,'#4a1414');circ(b.x,b.y,3.5,'#ff6a5a')}}
+  else{const hot=fx.some(f=>f.k==='strike'&&f.t<0.12);const r=(look==='C'?80:70)*cloud.reform;
+    const cy=g.y-CH;if(cloud.reform>0.3)drawRain(g,r,t,cy);drawCloud(g,t,hot,0.3+0.7*ease(cloud.reform))}
+  for(const f of fx){if(f.k==='strike')drawStrike(f);
+    else if(f.k==='mini'){const a=1-f.t/f.d;bolt(f.ox,f.oy,f.x,f.y,(f.x*7|0)+3,4,1.6,a);ring(f.x,f.y,8+f.t*80,1.5,col(C.bolt,a))}
+    else if(f.k==='burst'){const u=f.t/f.d;ring(f.x,f.y,40+u*170,6*(1-u)+1,col(C.edge,1-u));ring(f.x,f.y,30+u*140,2,col(C.bolt,1-u))}}
+  drawParts();drawHud();
+}
+let last=performance.now();
+function frame(ts){const dt=Math.min(0.05,(ts-last)/1000);last=ts;update(reduce?dt*0.5:dt);draw();requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+
+// ---------- input ----------
+const toCanvas=ev=>{const r=cv.getBoundingClientRect();return{x:(ev.clientX-r.left)/r.width*W,y:(ev.clientY-r.top)/r.height*H}};
+cv.addEventListener('pointermove',ev=>{cursor=toCanvas(ev);mouseT=now});
+cv.addEventListener('pointerdown',ev=>{cursor=toCanvas(ev);mouseT=now;if(ev.button===2)cast();else strike()});
+cv.addEventListener('contextmenu',ev=>ev.preventDefault());
+addEventListener('keydown',ev=>{if(ev.key==='e'||ev.key==='E'){mouseT=now;cast()}});
+function sync(){
+  document.querySelectorAll('[data-look]').forEach(b=>{const on=b.dataset.look===look;b.tagName==='BUTTON'?b.setAttribute('aria-pressed',on):b.classList.toggle('on',on)});
+  document.querySelectorAll('[data-alt]').forEach(b=>{const on=b.dataset.alt===alt;b.tagName==='BUTTON'?b.setAttribute('aria-pressed',on):b.classList.toggle('on',on)});
+}
+document.querySelectorAll('[data-look]').forEach(b=>b.addEventListener('click',()=>{look=b.dataset.look;sync()}));
+document.querySelectorAll('[data-alt]').forEach(b=>b.addEventListener('click',()=>{alt=b.dataset.alt;sync();if(b.tagName!=='BUTTON'||true){altReady=0;hur=null;cloud.reform=1;cast()}}));
+document.getElementById('cast').addEventListener('click',()=>{altReady=0;cast()});
+sync();
+})();
+</script>

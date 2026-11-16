@@ -43,6 +43,8 @@ namespace Arena
             { WeaponId.TwinRifleAuto, (g, me, t, dt) => Tap(t, dt, 4f, 1f) || Tap(t, dt, 4f, 3f) },
             // Out of Ammo: the spin, every 5 s.
             { WeaponId.OutOfAmmo, (g, me, t, dt) => Tap(t, dt, 5f, 2.5f) },
+            // The Nimbus: the Eye of the Storm, every 14 s (its cooldown is 12).
+            { WeaponId.Nimbus, (g, me, t, dt) => Tap(t, dt, 14f, 1f) },
             // Arc Lightning: Forked Volley between draws (the preview holds fire 1.05 s of every 1.3 s).
             { WeaponId.ArcLightning, (g, me, t, dt) => Tap(t, dt, 2.6f, 1.15f) },
         };

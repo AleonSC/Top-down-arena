@@ -942,6 +942,8 @@ namespace Arena
             LocalCenserTick(dt);    // Censer Cast's cooldown (Censer.cs)
             if (LocalArcFork(me, pressed, aimAt, dt))
                 return;  // Arc Lightning's Forked Volley (ArcLock.cs)
+            if (LocalNimbusStorm(me, aimAt, pressed, dt))
+                return;  // the Nimbus's Eye of the Storm (Nimbus.cs)
             if (LocalKatana(me, aimAt, pressed, dt))
                 return;  // the Katana's stance switch and steps (Katana.cs)
             if (LocalKnuckleDash(me, aimAt, pressed, dt))
@@ -1286,6 +1288,11 @@ namespace Arena
             if (kind == DashPack)
             {
                 HostPackMerge(p);  // the Wolf Whistle's Alt (WolfPack.cs)
+                return;
+            }
+            if (kind == DashStorm)
+            {
+                HostNimbusStorm(p);  // the Nimbus's Alt (Nimbus.cs)
                 return;
             }
             if (kind == DashBoneWall)
