@@ -109,6 +109,8 @@ namespace Arena
         GreatStarThrow, GreatStarCatch,
         // A player touching a wall (WallHumSoundBank.cs): a looping hum, played locally, never sent.
         WallHum,
+        // The Fireball (FireballSoundBank.cs, Deep Roar of Docs/Mockups/fireball-sounds.html): the launch roar (the weapon's Sound) and the burn when it ignites an enemy. Sent.
+        ShotFireball, ShotFireballBurn,
     }
 
     public struct SoundCue

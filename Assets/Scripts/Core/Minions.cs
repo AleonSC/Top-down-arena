@@ -46,7 +46,7 @@ namespace Arena
             // DPS
             new WeaponDef { Id = WeaponId.Fireball, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 0, Speed = 430f, Life = 1.4f, Damage = 32f, BotRange = 390f, ExtraDesc = "+1 fireball, fanned out", Name = "Fireball", FireInterval = 0.5f,
                 Desc = "A big, slow fireball that rolls on through every enemy in its path, hurting each and setting it burning.",
-                Sound = Sfx.SpellFire },
+                Sound = Sfx.ShotFireball },
             new WeaponDef { Id = WeaponId.ArcLightning, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 1, Damage = 16f, BotRange = 320f, ExtraDesc = "+25% damage", Name = "Arc Lightning", FireInterval = 0.25f,
                 Desc = "Hold to tag enemies in a wide cone in front of you, up to 10; they stay tagged if they walk out of it. Let go: lightning chains through every tagged enemy, harder the more you tagged, and stuns them. Alt fires three forked bolts at the enemies nearest your cursor.",
                 Sound = Sfx.SpellZap, AreaDesc = "the tagging cone 25% wider", BarrageDesc = "+2 tags a stack (up to 16), and the chain grows with them" },

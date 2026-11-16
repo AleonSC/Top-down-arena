@@ -5,6 +5,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
 - 360: Player.Grasp now carries a float charge (0..1, Leech Tendrils build-up) per held enemy (Leech Tendrils rework: 5 s fuse, burst, cooldown)
+- 360: `Sfx.ShotFireball`, `Sfx.ShotFireballBurn` appended (the Fireball's launch roar and its burn cue)
 - 359: Arc Lightning lock-on chain and Forked Volley: `FxKind.ArcTag`, `ArcLink`, `ArcFork`; `Msg.WeaponDash` kind 32 (Forked Volley); Player snapshot gains `ArcTags` (byte count + int enemy ids) after `SsLock`
 - 358: `Msg.WeaponDash` kind 31 (the Wolf Whistle's Alt, merging an alpha); Player.PackKills (the Wolf Whistle's kills towards the next wolf) after PreyId; Wolf Whistle wolves send their health in GuardFrac.
 - 357: Enemy snapshot gains `wetTenths` (byte, wet seconds left x10) after the `wet` bool, for the effect bar
