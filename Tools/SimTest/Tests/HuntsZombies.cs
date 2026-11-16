@@ -44,7 +44,7 @@ static partial class Program
         Sync();
         host.SetMode(GameMode.Hunt);
         host.SetHuntBoss(EnemyType.HiveQueen);  // no hunt for her yet: ignored
-        host.HuntMapMode = false;  // (this test is the plain ten waves; the hunt map is the default now)
+        host.HuntMapMode = false; host.HuntLong = false;  // (this test is the plain ten waves; the hunt map is the default now)
         Sync();
         Check(client.HuntMode && client.HuntBoss == EnemyType.Boss && host.HuntBoss == EnemyType.Boss, "the friend's lobby shows the Boss Hunt and its boss (only bosses with a hunt can be picked)");
         client.RequestReady(true); host.RequestReady(true); Sync();
@@ -87,8 +87,7 @@ static partial class Program
         Check(others.Count == 0 && seen.Count >= faction.Count - 1, "the build-up waves bring only the Warden's own enemies, nearly every kind of them by the end (a rarer one can miss a hunt)");
         Check(g.Wave == Hunts.Length && Find(host, EnemyType.Boss) != null && c.HuntWave == Hunts.Length && !portal && !pathOffered,
             "nine waves, then the Warden on the hunt's tenth (no challenge portal or path offer on the way)");
-        var saveable = (bool)typeof(Game).GetProperty("Saveable", flags).GetValue(g, null);
-        Check(!saveable, "a hunt isn't saved to continue later");
+        Check(!g.SaveRun() && SaveStore.List().Count == 0, "a ten-wave hunt isn't saved to continue later (a map hunt saves only at its step-10 checkpoint: huntsave)");
         Find(host, EnemyType.Boss).Hp = 0f;
         Run(s, dt, 6f, () => c.State == MatchState.Victory && cp.HuntPlayed(EnemyType.Boss) > 0, () => { keep(); pathOffered |= g.PathOffer != null; });
         Console.WriteLine("  hunt: host won {0} of {1} (best {2:0.0} s), friend won {3} of {4}; runs won {5}/{6}",
