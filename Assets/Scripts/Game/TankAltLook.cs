@@ -19,10 +19,11 @@ namespace Arena
                 return;
             if (p.Id == game.MyId)
             {
-                float cd = p.Weapon.Id == WeaponId.FlakCannon ? game.MineLocalCd / Game.MineCd : p.Weapon.Id == WeaponId.RiotRepeater ? game.GasLocalCd / Game.TearGasCd : 0f;
+                float cd = p.Weapon.Id == WeaponId.FlakCannon ? game.MineLocalCd / Game.MineCd : p.Weapon.Id == WeaponId.RiotRepeater ? game.GasLocalCd / Game.TearGasCd
+                    : p.Weapon.Id == WeaponId.BoneGuard ? game.BoneWallLocalCd / Game.BoneWallCd : 0f;  // (the Bone Guard's Ossuary Wall: BoneGuard.cs)
                 if (cd > 0f)
                 {
-                    Rgba col = p.Weapon.Id == WeaponId.FlakCannon ? MineAmber : GasPale;
+                    Rgba col = p.Weapon.Id == WeaponId.FlakCannon ? MineAmber : p.Weapon.Id == WeaponId.BoneGuard ? Defs.BulletColor(Defs.BoneShot) : GasPale;
                     Arc(p.Disp, p.Def.BodyR + 7f, 2f, new Rgba(1f, 1f, 1f, 0.1f), 28);
                     Arc(p.Disp, p.Def.BodyR + 7f, 2f, col.WithAlpha(0.6f), 28, -MathX.Pi / 2f, MathX.Tau * (1f - cd));
                 }

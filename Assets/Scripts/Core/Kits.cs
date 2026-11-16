@@ -42,7 +42,7 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas }
+    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall }
 
     public class ZoneDef
     {
@@ -142,6 +142,7 @@ namespace Arena
             new ZoneDef { Name = "Bone Phalanx", Color = new Rgba(0.93f, 0.9f, 0.8f) },  // the Tank Summoner's second ultimate (BonePhalanx.cs): Pos is the middle of the shield face, Aim the heading
             new ZoneDef { Name = "Proximity Shell", Color = new Rgba(1f, 0.72f, 0.3f) },  // the Flak Cannon's Alt (TankAlts.cs): Radius is the burst, Aim the way it flew in
             new ZoneDef { Name = "Tear Gas", Color = new Rgba(0.92f, 0.9f, 0.7f) },  // the Riot Repeater's Alt (TankAlts.cs): suppresses and slows by its own tick
+            new ZoneDef { Name = "Ossuary Wall", Color = new Rgba(0.93f, 0.9f, 0.8f) },  // the Bone Guard's Alt (BoneGuard.cs): Pos the middle, Aim the way it was thrown, Radius half its length
         };
 
         public static MinionDef Get(MinionKind k) => Minions[(int)k];

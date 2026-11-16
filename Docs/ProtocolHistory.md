@@ -5,6 +5,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
 - 354: the enemy snapshot's Blood Bolt count byte is now its bleed stacks (any source); Blood Bolts' Hemorrhage folded into the shared bleed
+- 354: `ZoneKind.OssuaryWall` and `FxKind.MarrowLink` appended; `Msg.WeaponDash` kind 29 (`DashBoneWall`, the Bone Guard's Alt)
 - 353: the lobby message sends the mode as one `GameMode` byte (was Hunt, Quick and Survival bools); `Msg.Practice` drops its Practice bool (the mode comes with the lobby)
 - 352: `FxKind.Sentry` and `FxKind.Nova` (the Turret's drop and power-down, Nova's starburst) appended
 - 351: the player snapshot carries Twin Fang's thrown pair (`Player.FangOut` byte, `FangAt` vector, after `TwinLock`); `FxKind.TwinFang` is only the wind-up now
