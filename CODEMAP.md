@@ -71,7 +71,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `ShowcaseAlt.cs`: how the lobby loadout preview presses a weapon's Alt: one `Table` line per weapon (Bo Staff, Twin Rifle; `Tap`/`Hold` helpers, stages loaded grenades etc.)
 - `Pause.cs`, `DevTools.cs`, `Showcase.cs`: pause sync, F1 dev tools, lobby loadout preview game (with stand-in teammates for ally abilities)
 - `Tsunami.cs`: the Elementalist DPS's Tsunami: the wave, wet (slow) and lightning that arcs to every wet enemy (`WetArcs`, called from each lightning source)
-- `Nimbus.cs`, `Chalk.cs`: the Nimbus (cloud minion, rain, strikes) and Spirit Chalk (ink dots, burn/heal/bullets, loops that pen enemies in)
+- `Nimbus.cs`, `Chalk.cs`: the Nimbus (cloud minion, rain that heals and soaks enemies wet, strikes `FxKind.NimbusStrike`, the Alt Eye of the Storm over `Msg.WeaponDash` `DashStorm`: `HostNimbusStorm`, `TickNimbusStorm`, `Player.NimbusStormT/Cd`, `FxKind.NimbusStorm`; mockup `Docs/Mockups/nimbus-rework.html`; preview `NIMBUS=-1 NIMBUSSTORM=1.5`; test `nimbuschalk`) and Spirit Chalk (ink dots, burn/heal/bullets, loops that pen enemies in)
 - `DpsTools.cs`: DPS meter data (`DpsTrack`, `Game.Dps`, host only) and target dummies (`DevSpawnDummy`, `TickDummy`, `Foes()`)
 - `MathTypes.cs`: `V2`, `Rgba`, `MathX`
 
@@ -262,7 +262,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `DeathLotusLook.cs`: the Ninja's Death Lotus (Crimson Reaping: dark arena, three glowing cuts and a lotus stain per enemy struck, camera kick; `FxKind.DeathLotus`)
 - `LifelineLook.cs`: the Healer Soldier's Lifeline (heartbeat pulse, halo and column of light on each player it reached; `FxKind.Lifeline`)
 - `ElementalistLooks.cs`: Meteor (falling rock, impact), Blizzard (a soft-edged lane of whiteout) and Tsunami (crest, wet drips) looks
-- `NimbusLook.cs`, `ChalkLook.cs`: the Nimbus's cloud, rain and lightning; Spirit Chalk's ink, sealed loops and the ring on penned enemies
+- `NimbusLook.cs`, `ChalkLook.cs`: the Nimbus's Anvil cloud, rain curtains, forked bolt and scorch, and the Eye of the Storm hurricane (blade arms, `StormBlade`); Spirit Chalk's ink, sealed loops and the ring on penned enemies
 - `ShotLooks.cs`, `Juice.cs`, `Ambience.cs`: weapon shot looks, screen shake/particles/glow, weather and trails
 - `JuiceMoments.cs` (Game): kill hit-pause, multikill calls (`DrawMultiKill`, `multiStyle`), the wave's last kill, boss-death slow motion (`BossSlowSpeed` in `EndSpeed`), level shock, low-HP heartbeat, lasting floor marks; preview `MOMENT=multi|clear|level|lowhp|marks` (`Tools/Preview/ShotJuice.cs`)
 - `CameraZoom.cs`: scroll-wheel zoom (1x to 2x on you, focus held inside the arena; Settings → Gameplay), `ZoomPoint`/`UnzoomPoint` used by `Px`, `ToUi` and `MouseArena`, `UiWorldScale` for HUD sizes around world things

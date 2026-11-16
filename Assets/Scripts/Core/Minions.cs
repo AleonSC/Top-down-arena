@@ -40,8 +40,8 @@ namespace Arena
                 Desc = "A great cone of light in front of you. Its damage is shared between every enemy in it, so one alone takes it all.",
                 Sound = Sfx.SpellZap, AreaDesc = "the cone of light 25% wider", HomingDesc = "the cone of light 15% narrower and 10% stronger per stack, instead of bending shots: fewer enemies share its damage", BarrageDesc = "+1 cone of light beside the first, sharing its own damage. Reaches more enemies; a lone one is still in one cone" },
             new WeaponDef { Id = WeaponId.Nimbus, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 2, Damage = 16f, Reach = 380f, BotRange = 300f, ExtraDesc = "+1 lightning strike on every click, landing in a ring round the cloud", Name = "Nimbus", FireInterval = 0.6f,
-                Desc = "A small storm cloud floats over your cursor. Click to call lightning down beneath it. Rain falls under the cloud and heals every ally standing in it, with no clicking.",
-                Sound = Sfx.SpellZap, AreaDesc = "the strike and the rain are 25% wider",
+                Desc = "A storm cloud floats over your cursor. Click to call lightning down beneath it. Rain falls under the cloud, healing every ally standing in it and soaking enemies (wet). Alt: Eye of the Storm, the cloud spins into a hurricane for 4 s that drags enemies round, tears up their shots and heals allies in its eye.",
+                Sound = Sfx.SpellZap, AreaDesc = "the strike, the rain and the hurricane are 25% wider",
                 Companion = MinionKind.Nimbus, CompanionCount = 1 },
             // DPS
             new WeaponDef { Id = WeaponId.Fireball, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 0, Speed = 430f, Life = 1.4f, Damage = 32f, BotRange = 390f, ExtraDesc = "+1 fireball, fanned out", Name = "Fireball", FireInterval = 0.5f,
@@ -792,7 +792,7 @@ namespace Arena
                         V2 goal = m.Kind == MinionKind.Treant ? TreantGoal(m, owner)
                             : m.Kind == MinionKind.Nimbus ? NimbusGoal(owner)  // the cloud drifts after your cursor (Nimbus.cs)
                             : owner.Pos;
-                        m.Pos += (goal - m.Pos).LimitLength(speed * dt);
+                        m.Pos += (goal - m.Pos).LimitLength(speed * (m.Kind == MinionKind.Nimbus ? NimbusDrift(owner) : 1f) * dt);
                         break;
                     }
                 }
