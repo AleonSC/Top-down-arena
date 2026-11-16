@@ -70,7 +70,7 @@ namespace Arena
                     return;
                 p.SsWindT = SsWind;  // the slam: crouch, then the ground breaks
                 p.FireCd = SsWind;
-                BroadcastFx(FxKind.StoneSlam, p.Pos, new V2(0f, p.Id), SsBasalt, SsSlamRadiusOf(p), SsWind, Sfx.None);
+                BroadcastFx(FxKind.StoneSlam, p.Pos, new V2(0f, p.Id), SsBasalt, SsSlamRadiusOf(p), SsWind, Sfx.None);  // (the look plays the Stonespear's sounds: StonespearSoundBank.cs)
                 return;
             }
             if (PickSpear(p) < 0)
@@ -110,7 +110,7 @@ namespace Arena
             p.SsMask = (1 << (2 * n)) - 1;
             p.SsAge = 0f;
             p.SsHad = true;
-            BroadcastFx(FxKind.StoneSlam, p.Pos, new V2(1f + Rand(0f, 0.99f), p.Id), SsBasalt, r, 2.2f, Sfx.Shockwave);
+            BroadcastFx(FxKind.StoneSlam, p.Pos, new V2(1f + Rand(0f, 0.99f), p.Id), SsBasalt, r, 2.2f, Sfx.None);
         }
 
         /// The risen spear nearest your cursor, or -1.

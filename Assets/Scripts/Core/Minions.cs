@@ -55,7 +55,7 @@ namespace Arena
                 Sound = Sfx.SpellArcane },
             new WeaponDef { Id = WeaponId.Stonespear, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 3, Speed = 900f, Life = 0.6f, Damage = 24f, BotRange = 420f, ExtraDesc = "+1 spear a side, and each click throws one more", Name = "Stonespear", FireInterval = 0.18f,
                 Desc = "Slam the ground: it hurts everything round you and six earth spears tear out of it to hover at your sides. Each click throws one at your cursor, passing through an enemy. Alt hurls every spear left at the enemy nearest your cursor. Throw the last and the next click slams again.",
-                Sound = Sfx.Throw, BarrageDesc = "each throw also flings a fanned copy of the spear (60% damage) that uses none up" },
+                Sound = Sfx.None, BarrageDesc = "each throw also flings a fanned copy of the spear (60% damage) that uses none up" },
         };
 
         /// The Elementalist's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
