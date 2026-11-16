@@ -527,6 +527,7 @@ namespace Arena
                 foreach (var tick in Classes.EnemyHooks)  // each class's KitDef.TickEnemy
                     tick(this, e, dt);
                 e.Suppress = Math.Max(0f, e.Suppress - SuppressFade * dt);
+                e.SmokeT = Math.Max(0f, e.SmokeT - dt);  // a Grenade Launcher smoke cloud's jam wears off out of it (GrenadeLauncher.cs)
                 KeepOutOfDuel(e);  // GatekeeperRoom.cs
                 if (e.SpawnT > 0f)
                 {
@@ -600,9 +601,9 @@ namespace Arena
                     if (e.Pos.FartherThan(was, 600f))
                         steerMem.Remove(e.Id);  // a fresh route from the far side
                 }
-                if (Battle && e.DazeT > 0f)
+                if (Battle && (e.DazeT > 0f || e.SmokeT > 0f))
                 {
-                    // Dazed (Daze.cs): no attacking, and a wind-up starts over once it wears off.
+                    // Dazed (Daze.cs) or jammed in smoke (GrenadeLauncher.cs): no attacking, and a wind-up starts over once it wears off.
                     float rateDazed = rate * TraitFireMult(e) * (IsTwin(e.Type) && e.Phase == 1 ? 1.7f : 1f) * (Has(RunMod.Frenzy) ? Modifiers.FrenzyFire : 1f) * (1f - e.Suppress);
                     e.FireT = Math.Max(e.FireT, WindUpOf(e.Type) * rateDazed + 0.05f);
                     e.Winding = false;

@@ -802,6 +802,35 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // GRENADE=<s>: the Tank Soldier's Grenade Launcher (Core/GrenadeLauncher.cs, Game/GrenadeLauncherLook.cs) that long into a fight: a pack of
+    // grunts and a brute GLAT px ahead (default 250), fire held (HE; the drum empties at 2.5 s and reloads). GLSMOKE=1: Alt at 0.1 s (the smoke drum),
+    // then fire held from 0.75 s (three canisters); GLSWAP=1: Alt at 0.1 s and nothing else; GLIDLE=1: not firing; GLONE=1: one shot only.
+    if (Environment.GetEnvironmentVariable("GRENADE") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear(); gm.Zones.Clear();
+      me.Role = Role.Tank; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Tank); me.Weapon = Defs.Weapon(Role.Tank, Kit.Soldier, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      V2 home = new V2(420f, 330f); me.Pos = me.Disp = home; me.Aim = 0f;
+      float far = float.Parse(Environment.GetEnvironmentVariable("GLAT") ?? "250", ci);
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      var spots = new[] { new V2(far - 30f, -40f), new V2(far + 25f, -30f), new V2(far - 10f, 30f), new V2(far + 45f, 40f), new V2(far + 130f, -10f) };
+      for (int i = 0; i < spots.Length; i++) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { i == 4 ? EnemyType.Brute : EnemyType.Grunt, home + spots[i], 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      bool smoke = Environment.GetEnvironmentVariable("GLSMOKE") != null, swap = Environment.GetEnvironmentVariable("GLSWAP") != null, idle = Environment.GetEnvironmentVariable("GLIDLE") != null;
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(2, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("GRENADE"), ci) * 60f));
+      var keep = new V2[foes.Count];
+      for (int i = 0; i < foes.Count; i++) keep[i] = foes[i].Pos;
+      for (int f = 0; f < frames; f++) {
+        me.Pos = me.Disp = home; me.Aim = 0f; for (int i = 0; i < foes.Count; i++) foes[i].Pos = foes[i].Disp = keep[i]; Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        bool fire = !idle && !swap && (!smoke || f >= 54) && (Environment.GetEnvironmentVariable("GLONE") == null || f < (smoke ? 57 : 3));
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = home + new V2(far, 0f), Fire = fire, WeaponAction = (smoke || swap) && f >= 18 && f < 21 });
+        me.Disp = me.Pos = home; me.Aim = 0f; me.Flash = 0f; for (int i = 0; i < foes.Count; i++) foes[i].Disp = foes[i].Pos = keep[i]; draw.Invoke(app, null);
+      }
+      me.Flash = 0f; me.Hp = me.MaxHp;
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // STONESPEAR=<s>: the Elementalist DPS's Stonespear (Core/Stonespear.cs, Game/StonespearLook.cs) that long into the mockup's loop: Fire at 0 (the
     // slam), single throws at 1.3 s and 1.85 s, Alt at 2.6 s (the volley at the dummy nearest the cursor). SSMOVE=1: you walk down the whole time
     // (the hovering spears trail behind you); SSTECT=1: with Tectonic (four a side).

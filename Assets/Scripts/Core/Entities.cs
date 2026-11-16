@@ -365,6 +365,8 @@ namespace Arena
         public float ReloadT, ReloadIdle;      // Revolver: reload time left (replicated); how long since you last fired
         public int DbUsed, DbBarrel, DbShot;   // Double Barrel: shells spent, the barrel that fires next, volleys fired (replicated; DoubleBarrel.cs)
         public float DbReload;                 // Double Barrel: reload time left (replicated)
+        public int GlMode, GlUsed, GlSmokeUsed, GlShot;  // Grenade Launcher: drum (0 HE, 1 smoke), HE rounds spent, smoke canisters spent, rounds fired (replicated; GrenadeLauncher.cs)
+        public float GlReload, GlSwap, GlCharge;  // Grenade Launcher: reload and drum swap time left, progress to the next canister 0-1 (replicated)
         public int SsMask, SsSide = Game.SsPerSide;  // Stonespear: the spears up (a bit a slot) and how many a side (replicated; Stonespear.cs)
         public int SsLock;                     // Stonespear: the enemy a volley is going at, 0 none (replicated: the lock ring)
         public float SsAge, SsCdT, SsWindT, SsVolleyT;  // host only: since the slam landed, until the next slam, the wind-up left, until the next volley spear
@@ -544,6 +546,7 @@ namespace Arena
         public float BoneDartT, CageT, CageImmuneT;  // host: until the darts fall out; caged (can't move or shoot); until darts count again
         public bool Caged;                  // replicated, for drawing (and the Skeleton Guards' aim)
         public float WallDartT;             // host: until an Ossuary Wall it's pressed against darts it again (BoneGuard.cs)
+        public float SmokeT;                 // host: jammed in a Grenade Launcher smoke cloud (no attacking; GrenadeLauncher.cs)
         public float DazeT, DazeImmuneT;    // host: dazed by a close-in hit (no attacking), and until it can be dazed again (Daze.cs)
         public float StunT;                 // host: stunned (Daze.cs Stun): held like FrozenT, but shown as stars over its head, not ice
         public bool Dazed;                  // replicated, for the stars over its head
@@ -638,6 +641,7 @@ namespace Arena
         public byte FragKind;
         public float FragDmg, FragSpeed, FragLife, FragSplash;
         public bool FragSideways; // fragments fly out to the sides (shatter, shrapnel) rather than all around (bomblets)
+        public bool GlNade;       // host only: a Grenade Launcher HE grenade (it bursts with GlBlast: GrenadeLauncher.cs)
         public bool Bomblet;      // host only: a Flak Cannon bomblet; it pops where it lands (Burst marks it as landing)
         public bool Pulled;       // host only: bent by a gravity well (so the host sends its course)
         public bool StunBack;     // host only: a Warden's stun shot sent back by a perfect parry (stuns the Warden)

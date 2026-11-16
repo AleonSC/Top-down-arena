@@ -118,6 +118,9 @@ namespace Arena
                 if (p.Weapon.Id == WeaponId.Scattergun || p.Weapon.Id == WeaponId.FlakCannon || p.Weapon.Id == WeaponId.RiotRepeater || p.Weapon.Id == WeaponId.BoneGuard)
                     DrawTankAltPips(p);  // TankAltLook.cs
             foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.GrenadeLauncher)
+                    DrawGlPips(p);  // GrenadeLauncherLook.cs
+            foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.WolfWhistle)
                     DrawPackPips(p);  // WolfLook.cs
             foreach (var p in game.Players.Values)
@@ -259,6 +262,7 @@ namespace Arena
             DrawPennedMarks(t);  // enemies a chalk loop holds (ChalkLook.cs)
             DrawSprayOver(t);  // Arterial Spray's soaked enemies and drops in flight (ArterialSprayLook.cs)
             DrawBloodbathOver(t);  // enemies wading in a Bloodbath: tinted, bleeding drops (BloodbathLook.cs)
+            DrawGlSmokeOver(t);  // the Grenade Launcher's clouds over the enemies, jammed ones greyed (GrenadeLauncherLook.cs)
             DrawWardenOver(t);  // the Warden blinded or stunned (WardenLook.cs)
             DrawWardenIntro(t);  // the Warden's entrance: its Lockdown cell (WardenIntro.cs)
             DrawVeinBeams(t);  // BloodMageLook.cs

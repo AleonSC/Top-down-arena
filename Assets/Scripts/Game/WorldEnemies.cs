@@ -149,6 +149,9 @@ namespace Arena
                 case ZoneKind.TearGas:  // the Riot Repeater's Tear Gas (TankAltLook.cs)
                     DrawTearGas(z, t);
                     return;
+                case ZoneKind.SmokeShell:  // the Grenade Launcher's smoke (GrenadeLauncherLook.cs)
+                    DrawGlSmoke(z, t);
+                    return;
                 case ZoneKind.OssuaryWall:  // the Bone Guard's Alt (BoneGuardLook.cs)
                     DrawOssuaryWall(z, t);
                     return;
