@@ -164,6 +164,19 @@ static partial class Program
             for (int st = 0; st < Hunts.LongLength - 2; st++)
                 if (lm.Rows[st].Any(n => !n.Fight && n.Next.Any(j => !lm.Rows[st + 1][j].Fight))) longBad++;
         }
+        int minibossBad = 0;
+        for (int sd = 1; sd <= 300; sd++)
+        {
+            var lm = HuntMap.Generate(sd, Hunts.LongLength);
+            var mr = lm.Rows[HuntMap.MinibossRow(Hunts.LongLength)];
+            if (HuntMap.MinibossRow(Hunts.LongLength) != 9 || mr.Length != 1 || mr[0].Lane != 1 || mr[0].Type != HuntNodeType.Miniboss) minibossBad++;
+            if (lm.Rows.SelectMany(r => r).Count(n => n.Type == HuntNodeType.Miniboss) != 1) minibossBad++;
+            if (HuntMap.Generate(sd).Rows.SelectMany(r => r).Any(n => n.Type == HuntNodeType.Miniboss)) minibossBad++;   // (never in the short hunt)
+        }
+        Check(minibossBad == 0, "a 20-step map has one Miniboss alone in the middle at step 10, the short map none (" + minibossBad + " bad)");
+        Check(Hunts.Step(1, 20) == 1 && Hunts.Step(20, 20) == 4 && Hunts.Step(14, 20) == 4 && Hunts.Step(10, 20) == 3 && Hunts.FinaleWave(10, 20) && Hunts.FinaleWave(19, 20) && !Hunts.FinaleWave(5, 20), "a long hunt's strength steps and set pieces stretch over its 20 steps");
+        var longSched = new HuntBosses(Hunts.All[0], 20);
+        Check(longSched.IsBossWave(20) && !longSched.IsBossWave(10) && longSched.NextBossWaveFrom(3) == 20, "the long hunt's boss is on step 20");
         Check(longBad == 0, "20-row maps end in the boss, every node leads on, and no two no-fight steps in a row (" + longBad + " bad)");
         var lw = HuntMap.Generate(8, Hunts.LongLength);
         while (!lw.Complete) { var ch = lw.Choices(); lw.Pick(ch[0]); lw.Clear(); }
@@ -223,11 +236,12 @@ static partial class Program
         Sync();
         host.SetMode(GameMode.Hunt);
         Sync();
-        Check(!host.HuntMapMode && !client.HuntMapMode, "the hunt map switch is off by default: a Boss Hunt is the ten waves it always was");
-        client.SetHuntMapMode(true); Sync();
-        Check(!host.HuntMapMode, "only the host can turn the hunt map on");
-        host.SetHuntMapMode(true); Sync();
-        Check(host.HuntMapMode && client.HuntMapMode, "the host's switch shows in the friend's lobby");
+        Check(host.HuntMapMode && client.HuntMapMode, "a Boss Hunt is a hunt map by default (no switch)");
+        client.SetHuntLong(true); Sync();
+        Check(!host.HuntLong, "only the host can pick the long hunt");
+        host.SetHuntLong(true); Sync();
+        Check(host.HuntLong && client.HuntLong, "the host's long hunt shows in the friend's lobby");
+        host.SetHuntLong(false); Sync();
         // A map with a route that has every kind of node on it (the test follows it).
         int seed = 0; int[] route = null;
         for (int sd = 1; sd < 100000 && route == null; sd++)

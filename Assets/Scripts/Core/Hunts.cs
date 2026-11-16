@@ -29,10 +29,10 @@ namespace Arena
 
         /// How far into its faction a build-up wave reaches, 1 to 4 (as the four approach waves of a run): enemies and
         /// squads marked From 2, 3, 4 join as the hunt goes on.
-        public static int Step(int wave) => Math.Max(1, Math.Min(4, (wave + 1) / 2));
+        public static int Step(int wave, int length = Length) => Math.Max(1, Math.Min(4, (wave * Length / length + 1) / 2));
 
         /// The waves that bring the faction's set piece (the Warden's riot line).
-        public static bool FinaleWave(int wave, int length = Length) => wave == 5 || wave == length - 1;
+        public static bool FinaleWave(int wave, int length = Length) => wave == length / 2 || wave == length - 1;
 
         public static HuntDef Get(EnemyType boss) => Array.Find(All, h => h.Boss == boss);
 
@@ -48,6 +48,10 @@ namespace Arena
         /// The hunt's wave number, 1 to HuntLength (0 before the first).
         /// This hunt's waves (Hunts.Length, or Hunts.LongLength for a long hunt), the boss's included: set when the match starts (Session).
         public int HuntLength = Hunts.Length;
+
+        /// The wave that enemy health and damage scale by: a long hunt's twenty steps are as tough as the short one's ten (each step
+        /// counts half a wave), so it is twice as long, not twice as hard (Docs/LongHunt.md).
+        public int StrengthWave(int wave) => Hunt != null && HuntLength > Hunts.Length && wave > 0 ? (wave * Hunts.Length + HuntLength - 1) / HuntLength : wave;
 
         public int HuntWave => Hunt == null ? 0 : Math.Max(0, Wave);
 

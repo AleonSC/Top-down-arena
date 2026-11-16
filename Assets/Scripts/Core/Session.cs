@@ -145,7 +145,7 @@ namespace Arena
         public PracticePlan Plan = PracticePlan.Default();
         public bool OthersCanEdit;
         public bool HuntLong;                       // the Boss Hunt is the long one (Hunts.LongLength steps, Docs/LongHunt.md), not the ten
-        public bool HuntMapMode;                    // the Boss Hunt is played as a hunt map (Docs/HuntMap.md): a route of nodes you vote on instead of ten fixed waves
+        public bool HuntMapMode = true;                    // the Boss Hunt is played as a hunt map (Docs/HuntMap.md): a route of nodes you vote on instead of ten fixed waves
         /// The mode the next match plays: the one picked, except that continuing a saved run is the Campaign (the Practice Range stays).
         public GameMode PlayMode => Resume == null || Mode == GameMode.Practice ? Mode : GameMode.Campaign;
         public bool PracticeMode => Mode == GameMode.Practice;
