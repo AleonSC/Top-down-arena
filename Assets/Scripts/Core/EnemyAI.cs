@@ -379,6 +379,8 @@ namespace Arena
                 RollTraits(e);  // Variety.cs
             else if (parent == 0)
                 RollCoreCarrier(e);  // CoreDrops.cs
+            if (!elite)
+                RollMutations(e, parent);  // Variety.cs
             var brain = BrainOf(type);
             if (brain != null && brain.Guard != null)
                 brain.Guard.Setup(this, e);  // a shield bearer's shield (ShieldBrains.cs)
