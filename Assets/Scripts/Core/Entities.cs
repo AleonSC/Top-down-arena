@@ -187,6 +187,8 @@ namespace Arena
         public readonly Dictionary<int, float> OrbitCut = new Dictionary<int, float>();  // host: enemy id -> OrbitClock of its last cut
         public float SpinUp;                          // Burst SMG: how spun up it is, 0 to 1 (replicated)
         public int PreyId;                            // Wolf Whistle: the enemy the pack is hunting (replicated)
+        public byte PackKills;                        // Wolf Whistle: kills towards the next wolf (replicated; WolfPack.cs)
+        public bool PackStarted;                      // host: the Wolf Whistle's starting wolves came
         public int Orbiters;                          // Arcane Missiles: missiles circling you, waiting for an enemy (replicated)
         public float LaunchCd;                        // host: until the next one launches
         public float DoseT;                           // dosed by Medicine Darts: healing over time while it lasts (replicated)
@@ -519,6 +521,7 @@ namespace Arena
         public bool Burning, Chilled, Frozen, Bleeding;  // replicated, for drawing (Chilled = slowed but not frozen)
         public float WetT, WetArcCd;        // Tsunami: wet (slowed, and lightning arcs to it), and the pause before it can be arced again (host)
         public bool Wet;                    // replicated, for the drips (Game/TsunamiLook.cs)
+        public float WetLeft, WetPeak;      // wet seconds left (replicated, in tenths) and the most seen since it began: the effect bar's fill (Game/EffectBar.cs)
         public float FrozenT;               // Glacial Tomb: can't move or shoot (host)
         public float IceT, IceMult = 1f;    // Blood Freeze: seconds left of its ice, and the damage multiplier while it lasts (host; BloodFreeze.cs)
         public float GraspT;                // Leech Tendrils: held, can't move or shoot (host)
@@ -583,7 +586,6 @@ namespace Arena
         public byte Kind;
         public V2 Pos, Vel;
         public float AngVel, Life, Radius, Dmg;
-        public float Stasis;      // 0..1: how far a Lumen Ward has slowed it to a stop (worked out the same on every peer, not sent; LumenWard.cs)
         public float Life0;       // its lifetime when fired (for drawing it aging: the Flamethrower's flames)
         public int Owner, Pierce, LastHit;
         public int PrevHit;       // host: the enemy hit before LastHit, so a piercing shot inside two overlapping enemies doesn't hit them by turns
@@ -665,7 +667,7 @@ namespace Arena
         public bool Follow;         // host: mastered Soul Lantern moves with its owner
         public float DamageCut;     // host: allies inside take less damage (the Ninja's smoke)
         public bool Embers;         // host: a mastered Meteor leaves burning ground
-        public float Aim;           // replicated: a Lumen Ward's cone points this way (radians; Pos is its apex, Radius its length); a Vein Trail: 1 when it will burst
+        public float Aim;           // replicated: a Lumen Ward's cone points this way (follows its owner's aim) (radians; Pos is its apex, Radius its length); a Vein Trail: 1 when it will burst
         public bool Freezes;        // host: a mastered Lumen Ward freezes enemies outside its light (not bosses)
         public bool Consecrates;    // host: Hallowed Blade blesses the ground where it lands
         public float BlockHp;       // host: damage it can still soak (blocking zones)
@@ -720,6 +722,7 @@ namespace Arena
         public System.Collections.Generic.HashSet<int> Burrowed;  // host: the enemies a Burrower has already bitten (Burrower.cs)
         public bool Capstone;            // host: a Burrower from a mastered Earthquake (freezes what it bites)
         public float SeedCd;             // host: a Treant Rod Treant's time to its next seed (KitWeapons.cs)
+        public int Alpha;                // host: a Wolf Whistle alpha's wolves merged into it, 0 a normal wolf (WolfPack.cs)
         public float Ring;               // host: a Twin Scythe's circle round its owner, signed by which way it spins (ReaperLoot.cs)
     }
 

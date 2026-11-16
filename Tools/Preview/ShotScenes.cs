@@ -55,6 +55,7 @@ static partial class Shot {
     BloodWallScene();  // BLOODWALL=<s> BWCLOCK=<s> (ShotBloodWall.cs)
     PoisonDartScene();  // DART=<s into the scene> [DARTCAP=1] [FXOFF=1] (ShotPoisonDart.cs)
     PhalanxScene();  // PHALANX=<s since the cast> [PHALANXCAP=1] [FXOFF=1] (ShotPhalanx.cs)
+    WolfPackScene();  // WOLFPACK=pack|alpha|merge [WOLFT=<s>] (ShotWolfPack.cs)
     BoneGuardScene();  // BONEGUARD=<s into the scene> [FXOFF=1] (ShotBoneGuard.cs)
     CarrierScene();  // CARRIER=1 (ShotCarrier.cs)
     WarderScene();  // WARDER=<s into the scene> [FXOFF=1] (ShotWarder.cs)
@@ -1574,6 +1575,12 @@ static partial class Shot {
       foreach (var e in host.Game.Enemies.Values) { e.Pos = e.Disp = new V2(680f, 430f); e.Caged = true; break; }
       var sbc = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
       for (int k = 0; k < 2; k++) sbc.Invoke(host.Game, new object[] { Defs.MinionShot, me.Pos + new V2(60f + 40f * k, -10f - 20f * k), new V2(650f, -40f), 0f, 0.5f, 8f, 1, false, 0f });
+    }
+    if (Environment.GetEnvironmentVariable("WETBAR") != null) {
+      // The effect bar (EffectBar.cs): three wet enemies round you, one just soaked, one half dry, one nearly dry; the middle one hurt.
+      me.Pos = me.Disp = new V2(640f, 420f); host.Game.Bot = false;
+      int wk = 0;
+      foreach (var e in host.Game.Enemies.Values) { if (wk >= 3) break; e.Pos = e.Disp = me.Pos + V2.FromAngle(-0.5f + wk * 1.2f) * 110f; e.SpawnT = 0f; e.Spawning = false; e.WetT = 8f; e.Wet = true; e.WetPeak = 8f; e.WetLeft = new[] { 8f, 4f, 1f }[wk]; if (wk == 1) e.Hp = e.MaxHp * 0.6f; wk++; }
     }
     if (Environment.GetEnvironmentVariable("DAZE") != null) {
       // Dazed by a close-in hit (Daze.cs): three enemies round you with stars over their heads.

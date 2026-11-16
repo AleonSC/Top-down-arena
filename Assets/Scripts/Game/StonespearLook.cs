@@ -24,7 +24,7 @@ namespace Arena
             public float Last = -1f;
         }
 
-        class SsShot { public V2 Pos; public float Ang, Life; public readonly List<V2> Trail = new List<V2>(); public bool Seen; }
+        class SsShot { public V2 Pos; public float Ang, Life; public int Owner; public readonly List<V2> Trail = new List<V2>(); public bool Seen; }
         class SsGhost { public V2 Pos; public float Ang, Age; public bool Stuck; }
         class SsMote { public V2 Pos, Vel; public float Age, Life, Size; }
 
@@ -68,8 +68,13 @@ namespace Arena
             ssClock = now;
             // the slams' dust, once each
             foreach (var fx in game.Effects)
-                if (fx.Kind == FxKind.StoneSlam && fx.Pos2.X >= 1f && ssSlamsSeen.Add(fx))
-                    SsBurst(fx.Pos, 26, 260f);
+                if (fx.Kind == FxKind.StoneSlam && ssSlamsSeen.Add(fx))
+                {
+                    bool impact = fx.Pos2.X >= 1f;
+                    if (impact)
+                        SsBurst(fx.Pos, 26, 260f);
+                    SsSound(impact ? SoundBank.StoneCue.Slam : SoundBank.StoneCue.Wind, (int)fx.Pos2.Y, fx.Pos);
+                }
             ssSlamsSeen.RemoveWhere(fx => !game.Effects.Contains(fx));
             // the thrown spears: trails, and what happened to the ones gone
             foreach (var b in game.Bullets.Values)
@@ -81,10 +86,12 @@ namespace Arena
                 {
                     ssShots[b.Id] = s = new SsShot();
                     SsBurst(b.Pos, 6, 140f);
+                    SsSound(SoundBank.StoneCue.Throw, b.Owner, b.Pos);
                 }
                 s.Pos = b.Pos;
                 s.Ang = b.Vel.IsZero ? s.Ang : b.Vel.Angle;
                 s.Life = b.Life;
+                s.Owner = b.Owner;
                 s.Seen = true;
                 if (dt > 0f || s.Trail.Count == 0)
                 {
@@ -106,6 +113,7 @@ namespace Arena
                 bool stuck = s.Life <= 0.05f;
                 ssGhosts.Add(new SsGhost { Pos = s.Pos, Ang = s.Ang, Stuck = stuck });
                 SsBurst(s.Pos, stuck ? 6 : 10, stuck ? 90f : 200f);
+                SsSound(stuck ? SoundBank.StoneCue.Stick : SoundBank.StoneCue.Hit, s.Owner, s.Pos);
             }
             foreach (int id in ssGone)
                 ssShots.Remove(id);
@@ -180,6 +188,13 @@ namespace Arena
         readonly System.Random ssRng = new System.Random(7);
         float SsRnd(float a, float b) => a + (b - a) * (float)ssRng.NextDouble();
         static float SsAngDiff(float from, float to) => MathX.Fmod(to - from + MathX.Pi, MathX.Tau) - MathX.Pi;
+
+        /// A Stonespear sound (StonespearSoundBank.cs): quieter for someone else's spear and with distance.
+        void SsSound(SoundBank.StoneCue cue, int owner, V2 at)
+        {
+            bool mine = owner == game.MyId;
+            sounds?.PlayStoneCue(cue, !mine, mine ? 0f : game.QuietAt(at), Time.unscaledTime);
+        }
 
         void SsBurst(V2 at, int n, float speed)
         {

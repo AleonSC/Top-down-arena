@@ -47,6 +47,7 @@ namespace Arena
                 amount *= 1f - Math.Min(0.8f, CavGuard + p.Stats.UnbreakBonus);
             amount *= 1f - IronBodyCut(p);  // the Ninja's Iron Body
             amount *= 1f - ClotCut(p);      // Blood Lash's Clot
+            amount = PackSoak(p, amount);  // the Wolf Whistle's pack takes a share (WolfPack.cs)
             amount = LeashSoak(p, amount);  // Martyr's Leash sends a share down the chains (BloodLash.cs)
             amount = WardSoak(p, amount);  // a Spirit Ward near you takes it first (Ninja.cs)
             amount = JuggSoak(p, amount);  // then the Juggernaut Suit's armour (Juggernaut.cs)
@@ -241,7 +242,6 @@ namespace Arena
             bool lensUp = PrepareLenses();  // the Singularity's Lenses (Infall.cs)
             V2 wind = HeraldWind(WindDrift);  // the Storm Herald's Gale bends every bullet (Herald.cs)
             PrepareNinjaBullets(dt);  // Smoke Bombs and Fuma Shuriken loops (Ninja.cs)
-            PrepareLumen();           // Lumen Wards (LumenWard.cs)
             // Bullets leave a little past the arena's edges, or stop dead at Narrow Pass's walls.
             V2 lo = ArenaMin, hi = ArenaMax, margin = new V2(Walled ? 0f : 40f, Walled ? 0f : 40f);
             lo -= margin;
@@ -259,14 +259,13 @@ namespace Arena
                     PullIntoWells(b, dt);
                 if (lensUp && b.Owner != 0 && !Lobbed(b.Kind) && !Defs.IsEnemyShot(b.Kind))
                     BendRoundLenses(b, dt);  // round a Lens's face (Infall.cs)
-                float lumen = LumenSpeed(b, dt);  // 1 normally; falls to 0 as a Lumen Ward holds it still (LumenWard.cs)
                 if (b.Kind == Defs.PauseShot)
-                    b.Pos += b.Vel * (dt * PauseSpeedNow(b) * SmokeSpeed(b) * lumen);  // slows to a stop, then hangs (Variety.cs)
+                    b.Pos += b.Vel * (dt * PauseSpeedNow(b) * SmokeSpeed(b));  // slows to a stop, then hangs (Variety.cs)
                 else
-                    b.Pos += b.Vel * (dt * SmokeSpeed(b) * lumen);
+                    b.Pos += b.Vel * (dt * SmokeSpeed(b));
                 if (!wind.IsZero && !Lobbed(b.Kind))
                     b.Pos += wind * dt;
-                b.Life -= dt * lumen;  // a held bullet doesn't run out of range
+                b.Life -= dt;
                 if (domesUp && Defs.IsEnemyShot(b.Kind) && InDome(b.Pos))
                 {
                     scratchIds.Add(b.Id);  // an enemy shot touching a dome is gone
@@ -869,6 +868,8 @@ namespace Arena
                     GrantGold(e);  // Shop.cs
                 GrantVectorKill(killer, e.Pos);  // and a vector pickup every VectorKillEvery kills (ExpansionGame.cs)
                 MomentumKill(killer, e);  // DPS role passive (Momentum.cs)
+                if (e.Def.Xp > 0)
+                    PackKill(killer);  // the Wolf Whistle's pack grows (WolfPack.cs)
                 DropOrbs(e, bossReward);
                 DeathFx(e, e.Pos);
                 Enemies.Remove(e.Id);

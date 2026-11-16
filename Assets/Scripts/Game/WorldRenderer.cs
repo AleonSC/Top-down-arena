@@ -118,6 +118,9 @@ namespace Arena
                 if (p.Weapon.Id == WeaponId.Scattergun || p.Weapon.Id == WeaponId.FlakCannon || p.Weapon.Id == WeaponId.RiotRepeater || p.Weapon.Id == WeaponId.BoneGuard)
                     DrawTankAltPips(p);  // TankAltLook.cs
             foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.WolfWhistle)
+                    DrawPackPips(p);  // WolfLook.cs
+            foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.LightBolt)
                 {
                     DrawRepelPull(p);  // RepulseLook.cs: the Undertow's current and meter
@@ -301,7 +304,6 @@ namespace Arena
             foreach (var b in game.Bullets.Values)
                 if (b.Kind >= Defs.SmallShot && !(enemyShotsLater && Defs.IsEnemyShot(b.Kind)))
                     DrawSmallShot(b, t);
-            DrawFrozenShots(t);  // bullets a Lumen Ward is holding (LumenWardLook.cs)
             DrawQueenSwarm(t);  // QueenLook.cs
             DrawKnightDpsTop(t);  // Caught Steel's shards, the Gauntlet lying where it hit (KnightDpsLook.cs)
             DrawKatanaMarks(t);  // the enemies a Momentum Burst marked, and its cracks (KatanaLook.cs)

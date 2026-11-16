@@ -1047,10 +1047,13 @@ namespace Arena
             if (me.Downed || DashT > 0f || me.StunT > 0f)
             {
                 LocalTankAlt(me, aimAt, false, dt);  // (just the cooldowns)
+                LocalPackMerge(me, false, aimAt, dt);
                 return;
             }
             if (LocalTankAlt(me, aimAt, pressed, dt))
                 return;  // the Tank Soldier's Double Barrel, Proximity Shell and Tear Gas (TankAlts.cs)
+            if (LocalPackMerge(me, pressed, aimAt, dt))
+                return;  // the Wolf Whistle's alpha (WolfPack.cs)
             starSwitchLocalCd -= dt;
             if (me.Weapon.Id == WeaponId.Shuriken && pressed && starSwitchLocalCd <= 0f)
             {
@@ -1271,6 +1274,11 @@ namespace Arena
             if (kind == DashVolley)
             {
                 HostStoneVolley(p, target);  // the Stonespear's Alt (Stonespear.cs)
+                return;
+            }
+            if (kind == DashPack)
+            {
+                HostPackMerge(p);  // the Wolf Whistle's Alt (WolfPack.cs)
                 return;
             }
             if (kind == DashBoneWall)
