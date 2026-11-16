@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 355: Blood Lash chain combo: each player sends `Chains` (enemy id + links byte each) and `LeashOn`/`LeashT` (Martyr's Leash) after `ClotMax`
 - 354: the enemy snapshot's Blood Bolt count byte is now its bleed stacks (any source); Blood Bolts' Hemorrhage folded into the shared bleed
 - 354: `ZoneKind.OssuaryWall` and `FxKind.MarrowLink` appended; `Msg.WeaponDash` kind 29 (`DashBoneWall`, the Bone Guard's Alt)
 - 353: the lobby message sends the mode as one `GameMode` byte (was Hunt, Quick and Survival bools); `Msg.Practice` drops its Practice bool (the mode comes with the lobby)

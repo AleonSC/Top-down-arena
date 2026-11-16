@@ -1005,10 +1005,31 @@ static partial class Shot {
           if (Environment.GetEnvironmentVariable("FLOURISH") == "1") fx(FxKind.Slash, me.Pos + V2.FromAngle(me.Aim) * reach * 0.75f, 0.95f, 0f, 0.2f);
           else fx(FxKind.Slash, to, -0.12f, 0f, 0.16f);
           break;
-        case WeaponId.BloodLash:  // the lash (110 degrees), CLOTBURST=1 the Clot Burst (all round you, 1.3x reach)
-          if (Environment.GetEnvironmentVariable("CLOTBURST") == "1") fx(FxKind.Slash, me.Pos + V2.FromAngle(me.Aim) * reach * 1.3f, MathX.Pi, 0f, 0.16f);
+        case WeaponId.BloodLash:  // the lash (110 degrees; SNAP=1 the Snap, 36 degrees out to 190 px); CHAINS=1 chains on every enemy within 340 px (1-4 links); LEASH=<s> Martyr's Leash held that long
+        {
+          if (Environment.GetEnvironmentVariable("SNAP") == "1") fx(FxKind.Slash, me.Pos + V2.FromAngle(me.Aim) * Game.LashSnapReach, Game.LashSnapArc * MathX.Pi / 360f, 0f, 0.16f);
           else fx(FxKind.Slash, to, 110f * MathX.Pi / 360f, 0f, 0.16f);
+          string leash = Environment.GetEnvironmentVariable("LEASH");
+          if (Environment.GetEnvironmentVariable("CHAINS") == "1" || leash != null)
+          {
+            int n = 0;
+            var near = new System.Collections.Generic.List<Enemy>();
+            foreach (var en in gm.Enemies.Values) if ((en.Pos - me.Pos).Length < 340f) near.Add(en);
+            foreach (var en in near) gm.Enemies.Remove(en.Id);  // a fresh crowd spread round the aim, so each chain reads
+            float[] offs = { -0.9f, -0.45f, 0f, 0.4f, 0.85f };
+            float[] dists = { 120f, 175f, 230f, 150f, 205f };
+            for (int i = 0; i < offs.Length; i++)
+            {
+              var t2 = i == 2 ? EnemyType.Brute : EnemyType.Grunt; var d2 = Defs.Get(t2);
+              V2 at = me.Pos + V2.FromAngle(me.Aim + offs[i]) * dists[i];
+              var ce = new Enemy { Id = 960 + i, Type = t2, Def = d2, Radius = d2.Radius, Pos = at, Disp = at, Hp = d2.Hp, MaxHp = d2.Hp, Facing = (me.Pos - at).Angle };
+              gm.Enemies[ce.Id] = ce;
+              me.Chains.Add(ce.Id); me.ChainLinks.Add((byte)(1 + n++ % 4));
+            }
+          }
+          if (leash != null) { me.LeashOn = true; me.LeashT = float.Parse(leash, System.Globalization.CultureInfo.InvariantCulture); }
           break;
+        }
         case WeaponId.Kusarigama: gm.Effects.Add(new Effect { Kind = FxKind.Slash, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * Game.MeleeReach(me, Game.KusariCutReach), Color = col, Radius = Game.KusariCutArc * MathX.Pi / 360f, T = st, Dur = 0.16f }); break;  // the sickle cut
         case WeaponId.Halberd: { bool hup = Environment.GetEnvironmentVariable("HALBERDUP") == "1"; fx(FxKind.Slash, to, 0.7f + 18f * MathX.Pi / 360f, 0f, HalberdMotion.Total(hup)); break; }  // one effect from the click (HalberdMotion.cs); HALBERDUP=1: with the return sweep
         case WeaponId.BearTotem:  // two claw swipes (left hand across, right hand back), a Bear beside you and the three enemies bleeding (BLEEDHITS=<stacks>, default 3)

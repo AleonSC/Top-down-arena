@@ -972,7 +972,7 @@ namespace Arena
                 }
                 return;
             }
-            if (me.Weapon.Id == WeaponId.LightBolt && (pressed || released))  // the Repulsion Cannon's Undertow: held, so both edges go to the host (Repulsion.cs)
+            if ((me.Weapon.Id == WeaponId.LightBolt || me.Weapon.Id == WeaponId.BloodLash) && (pressed || released))  // the Repulsion Cannon's Undertow and the Blood Lash's Martyr's Leash: held, so both edges go to the host (Repulsion.cs, BloodLash.cs)
             {
                 byte pullKind = pressed ? DashPullOn : DashPullOff;
                 if (IsHost)
@@ -1210,7 +1210,10 @@ namespace Arena
             }
             if (kind == DashPullOn || kind == DashPullOff)
             {
-                HostRepelPull(p, kind == DashPullOn);  // (Repulsion.cs)
+                if (w.Id == WeaponId.BloodLash)
+                    HostLeash(p, kind == DashPullOn);  // Martyr's Leash (BloodLash.cs)
+                else
+                    HostRepelPull(p, kind == DashPullOn);  // (Repulsion.cs)
                 return;
             }
             if (kind == DashKatanaStance)

@@ -267,6 +267,11 @@ namespace Arena
         public int CoatBy;                            // host: who coated them
         public int Clot, ClotMax = 5;                 // Blood Lash: Clot stacks and the most it can hold (replicated)
         public float ClotT;                           // host: until the next Clot stack fades
+        public readonly List<int> Chains = new List<int>();      // Blood Lash: the enemies chained (replicated; BloodLash.cs)
+        public readonly List<byte> ChainLinks = new List<byte>(); // and the links on each (replicated)
+        public readonly List<float> ChainT = new List<float>();  // host: until each chain's next link fades
+        public bool LeashOn;                          // Martyr's Leash is held (replicated); LeashT: how long (replicated), LeashCd: host
+        public float LeashT, LeashCd;
         public float HarvestClock, HarvestBlood, HarvestHold;  // Crimson Harvest (CrimsonHarvest.cs), all replicated: seconds since the cast, blood in the ball, and the hold's length (0 = no ball)
         public float RainClock;  // Sanguine Rain (SanguineRain.cs), replicated: seconds since the cast (0 = not raining)
         public float RainAcc;    // host: until the next heal tick

@@ -225,6 +225,8 @@ namespace Arena
                 alternates = true;
             }
             float sign = alternates ? flip : 1f;
+            if (best.Weapon.Id == WeaponId.BloodLash)
+                sign = Game.LashStepOf(best.Combo) == 2 ? -1f : 1f;  // the Backhand sweeps back (BloodLash.cs)
             if (best.Weapon.Id == WeaponId.Greatsword)
                 sign = best.GreatStep == 2 ? -1f : 1f;  // the return cut sweeps back; the cut and the rend sweep forward (GreatswordLook.cs)
             seen = new MeleeSeen { Owner = best.Id, Weapon = best.Weapon.Id, Sign = sign, BaseReach = Game.MeleeReach(best, best.Weapon.Reach) };

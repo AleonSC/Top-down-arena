@@ -30,9 +30,9 @@ namespace Arena
         public bool Deflect;          // bats enemy bullets in the arc back as your own (the Quarterstaff: it parries as it swings)
         public float Bleed;           // each hit bleeds for this much of its damage per second (Bear Totem)
         public float ClawSide;        // != 0: a bear-claw swipe, drawn as claw marks raking this way (+1 / -1)
-        public float Tip;             // > 0: a whip (the Blood Mage's Blood Lash): hits beyond this distance crack, closer ones are flung out to it
-        public bool Clots;            // hits build the swinger's Clot (Blood Lash; BloodMage.cs)
-        public float Taunt;           // taunts what it hits for this long (a Clot Burst)
+        public float Tip;             // > 0: a whip (the Blood Mage's Blood Lash): hits beyond this distance crack for double
+        public int Links;             // > 0: a Blood Lash step: hooks a chain on what it hits, this many links (BloodLash.cs)
+        public float Taunt;           // taunts what it hits for this long (the Blood Lash's Snap)
         public int Sweep;             // > 0: one step of a sweep (Halberd): each enemy is hit once per sweep, however many steps reach it
         public bool NoFx;             // draws nothing itself (a Halberd step after the first: the first draws the whole sweep)
         public float FxAim, FxHalf;   // FxHalf > 0: its effect is this arc instead of its own (the Halberd's whole sweep)
@@ -395,7 +395,7 @@ namespace Arena
                 BroadcastFx(FxKind.Jab, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash), s.HalfWidth, 0.26f,
                     s.Silent ? Sfx.None : Sfx.SwingHeavy);
             else
-                BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, s.Tip > 0f || s.Clots ? LashRed : Defs.BulletColor(Defs.KnightSlash), s.Thrust ? -s.HalfArc : s.HalfArc, s.Heavy ? 0.24f : 0.16f,
+                BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, s.Tip > 0f || s.Links > 0 ? LashRed : Defs.BulletColor(Defs.KnightSlash), s.Thrust ? -s.HalfArc : s.HalfArc, s.Heavy ? 0.24f : 0.16f,
                     s.Silent ? Sfx.None : s.Sound != Sfx.None ? s.Sound : s.Heavy ? Sfx.SwingHeavy : Sfx.SwingLight);
 
             // Who's in the arc (the Rapier only takes the nearest few).
@@ -543,12 +543,10 @@ namespace Arena
                         if (q.Pos.CloserThan(origin, s.HealRange))
                             Heal(q, s.HealPerHit, p);
                 }
-                if (s.Tip > 0f)
-                    LashHit(p, e, s, crack);  // BloodMage.cs
+                if (s.Links > 0)
+                    LashLanded(p, e, s, crack);  // the tip's taunt and the chains (BloodLash.cs)
                 else if (s.Taunt > 0f)
                     TauntEnemy(p, e, s.Taunt);
-                if (s.Clots)
-                    AddClot(p, crack ? 2 : 1);
             }
             if (s.KatanaMove > 0)
                 KatanaLanded(p, s, hits);  // each cut's look, a killing dash bringing the next step at once, the hit cue (Katana.cs)

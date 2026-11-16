@@ -648,6 +648,27 @@ namespace Arena
             s.Float(ref p.DebtOwed);
             s.Byte(ref p.Clot);
             s.Byte(ref p.ClotMax);
+            int chained = Math.Min(255, p.Chains.Count);  // the Blood Lash's chains (BloodLash.cs)
+            s.Byte(ref chained);
+            if (s.Reading)
+            {
+                p.Chains.Clear();
+                p.ChainLinks.Clear();
+            }
+            for (int k = 0; k < chained; k++)
+            {
+                int chainId = s.Reading ? 0 : p.Chains[k];
+                byte links = s.Reading ? (byte)0 : p.ChainLinks[k];
+                s.Int(ref chainId);
+                s.Byte(ref links);
+                if (s.Reading)
+                {
+                    p.Chains.Add(chainId);
+                    p.ChainLinks.Add(links);
+                }
+            }
+            s.Bool(ref p.LeashOn);  // Martyr's Leash
+            s.Float(ref p.LeashT);
             int reserve = (int)p.BloodReserve;
             s.Byte(ref reserve);
             if (s.Reading)
