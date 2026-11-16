@@ -17,7 +17,7 @@ namespace Arena
             float missing = p.MaxHp > 0f ? MathX.Clamp01(1f - p.Hp / p.MaxHp) : 0f;
             if (missing > 0.05f)  // Blood Price: a red glow that grows as health falls
                 Circle(p.Disp, r + 6f + 3f * Mathf.Sin(t * (4f + 6f * missing)), BloodRed.WithAlpha(0.25f * missing * a), 24);
-            if (p.Clot > 0 && p.ClotMax > 0)  // Blood Lash's Clot: dark scabs plating you, glowing when a Clot Burst is ready
+            if (p.Clot > 0 && p.ClotMax > 0)  // Blood Lash's Clot (from Reap): dark scabs plating you, glowing when full
             {
                 bool ready = p.Clot >= p.ClotMax;
                 float seg = MathX.Tau / p.ClotMax;

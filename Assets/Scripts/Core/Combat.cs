@@ -47,6 +47,7 @@ namespace Arena
                 amount *= 1f - Math.Min(0.8f, CavGuard + p.Stats.UnbreakBonus);
             amount *= 1f - IronBodyCut(p);  // the Ninja's Iron Body
             amount *= 1f - ClotCut(p);      // Blood Lash's Clot
+            amount = LeashSoak(p, amount);  // Martyr's Leash sends a share down the chains (BloodLash.cs)
             amount = WardSoak(p, amount);  // a Spirit Ward near you takes it first (Ninja.cs)
             amount = JuggSoak(p, amount);  // then the Juggernaut Suit's armour (Juggernaut.cs)
             if (p.ShieldHp > 0f)  // shields soak damage next (Energy Ward, Guardian's Oath, Substitution, Blood Shell)

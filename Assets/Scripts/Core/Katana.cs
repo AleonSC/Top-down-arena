@@ -484,6 +484,11 @@ namespace Arena
                 ResetLanceChain(p);  // Lance.cs
                 return;
             }
+            if (p.Weapon.Id == WeaponId.BloodLash)
+            {
+                ResetLashChain(p);  // BloodLash.cs
+                return;
+            }
             if (p.Weapon.Id == WeaponId.ArcKnuckles)
             {
                 ResetKnuckleChain(p);  // ArcKnuckles.cs

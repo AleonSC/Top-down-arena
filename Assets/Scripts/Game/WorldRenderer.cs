@@ -457,6 +457,8 @@ namespace Arena
                 DrawDashWake(p, t);
             else if (p.Id == game.MyId ? game.SprintT > 0f : p.Sprint > 0)  // the Dodge's held sprint (NinjaLooks.cs)
                 DrawSprintWake(p, t, p.Id == game.MyId ? game.SprintFade : p.Sprint / 255f);
+            if (p.Chains.Count > 0 || p.LeashOn)  // the Blood Lash's chains and Martyr's Leash (BloodLashLook.cs)
+                DrawLashChains(p, t);
             if (p.TitheClock > 0f)  // Vein Tithe: heart, arteries, cuffs (VeinTitheLook.cs)
                 DrawTithe(p, t);
             if (p.RainClock > 0f)  // Sanguine Rain: siphon, seeds, rings, tether (SanguineRainLook.cs)
