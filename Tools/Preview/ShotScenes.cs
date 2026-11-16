@@ -118,7 +118,7 @@ static partial class Shot {
       me.Pos = me.Disp = new V2(700f, 450f); me.Aim = -0.35f; me.FiringSeen = true; me.Firing = true; me.Grasp.Clear();
       int held = int.Parse(Environment.GetEnvironmentVariable("LEECH")), k = 0;
       foreach (var e in host.Game.Enemies.Values) {
-        if (k < held) { e.Pos = e.Disp = me.Pos + V2.FromAngle(me.Aim + (k - (held - 1) / 2f) * 0.42f) * (120f + 25f * (k % 2)); me.Grasp.Add(e.Id); }
+        if (k < held) { e.Pos = e.Disp = me.Pos + V2.FromAngle(me.Aim + (k - (held - 1) / 2f) * 0.42f) * (120f + 25f * (k % 2)); me.Grasp.Add(e.Id); me.GraspCharge.Add(float.Parse(Environment.GetEnvironmentVariable("CHARGE") ?? "0.3") * (k + 1) / held); }
         else if (e.Pos.DistanceTo(me.Pos) < 260f) e.Pos = e.Disp = me.Pos + (e.Pos - me.Pos).Normalized() * 260f;
         k++;
       }

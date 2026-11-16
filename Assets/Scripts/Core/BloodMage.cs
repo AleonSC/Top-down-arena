@@ -18,11 +18,11 @@ namespace Arena
         public static float ClotFlight(float c) => 0.45f + 0.3f * c;
         public static float ClotApex(float c) => 50f + 110f * c;  // how high it flies (drawing only)
         public const float PoolCongeal = 1f, PoolStuck = 1f;  // (each weapon's main reach, speed and damage are in Defs)
-        const float BloodPriceMax = 0.4f, BloodSteal = 0.03f, LeechSteal = 0.25f, VeinSteal = 0.4f, VeinRange = 300f;
+        const float BloodPriceMax = 0.4f, BloodSteal = 0.03f, VeinSteal = 0.4f, VeinRange = 300f;
         public const float VeinBeamHalfWidth = 6f;  // Vein Tether's beam (its length and damage per tick are the weapon's Reach and Damage)
         public const float GraspArc = 70f * MathX.Pi / 180f;  // Leech Tendrils reach across this arc (their reach and damage per tick are the weapon's Reach and Damage)
         public const int GraspTendrils = 3;                   // enemies held at once (+1 per extra projectile or Barrage stack)
-        const float GraspLetGo = 1.3f, GraspHold = 0.3f;      // a held enemy slips free past 130% of the reach; it stays stunned this long after each tick
+        const float GraspLetGo = 1.3f, GraspHold = 0.3f, GraspFuse = 5f, GraspCooldown = 1f, GraspCost = 0.02f;      // a held enemy slips free past 130% of the reach; it stays stunned this long after each tick
         public const float BoneSpearCost = 2f, TransfuseCost = 4f, TransfuseHeal = 20f, TransfuseSteal = 0.5f;  // a dart gives an ally a lot, costs you a little; each enemy hit steals a sliver
         const float ShellTime = 5f;  // (Blood Gift's shield; Blood Shell itself is BloodShell.cs)
         const float DrainRadius = 220f, DrainAmount = 20f;  // Exsanguinate (Exsanguinate.cs)
@@ -71,8 +71,8 @@ namespace Arena
                     break;
                 }
                 case WeaponId.LeechBeam:
-                    // Leech Tendrils: no projectile; each tick the tendrils hold on, reach for more and drain (Collide).
-                    pendingGrasps.Add(new Grasp { Owner = p.Id, Aim = aim, Extra = extra, Dmg = w.Damage * dmg * p.Stats.LeechDrainMult });  // (Hungry Tendrils: faster)
+                    // Leech Tendrils: no projectile; each tick the tendrils hold on and reach for more (Collide); TickGrasp charges them.
+                    pendingGrasps.Add(new Grasp { Owner = p.Id, Aim = aim, Extra = extra, Dmg = w.Damage * dmg * (1f + p.Stats.LeechBlastBonus) });  // (Hungry Tendrils: bigger blast)
                     break;
                 case WeaponId.VeinTether:
                 {
@@ -199,23 +199,25 @@ namespace Arena
             return off <= arc / 2f + slack;
         }
 
-        /// Called from Collide after the beams: each tick, held enemies too far away (or dead) slip free, free
-        /// tendrils grab the nearest enemies in the arc in front of you, and every held enemy is stunned and drained.
+        /// Called from Collide after the beams: each tick, held enemies too far away (or dead) slip free and free
+        /// tendrils grab the nearest enemies in the arc in front of you. (TickGrasp charges and stuns what's held.)
         void ResolveGrasps()
         {
             foreach (var gr in pendingGrasps)
             {
                 Player p;
-                if (!Players.TryGetValue(gr.Owner, out p) || p.Downed)
+                if (!Players.TryGetValue(gr.Owner, out p) || p.Downed || p.GraspCd > 0f)
                     continue;
+                p.GraspDmg = gr.Dmg;
                 float reach = p.Def.BodyR + GraspReach(p);
                 int max = GraspTendrils + gr.Extra + p.Stats.Fan;
                 Enemy e;
                 for (int i = p.Grasp.Count - 1; i >= 0; i--)  // (a loop, not RemoveAll: no closure every tick)
                     if (!Enemies.TryGetValue(p.Grasp[i], out e) || IsSpawning(e) || e.Hp <= 0f || e.Pos.DistanceTo(p.Pos) - e.Radius > reach * GraspLetGo)
-                        p.Grasp.RemoveAt(i);
+                        DropGrasp(p, i);  // slipped free: its build-up is lost
                 if (p.Grasp.Count > max)
-                    p.Grasp.RemoveRange(max, p.Grasp.Count - max);
+                    while (p.Grasp.Count > max)
+                        DropGrasp(p, p.Grasp.Count - 1);
                 // Free tendrils reach for the nearest enemies in the arc (shields turn them away).
                 graspNew.Clear();
                 foreach (var o in Enemies.Values)
@@ -225,25 +227,85 @@ namespace Arena
                 graspFrom = p.Pos;
                 graspNew.Sort(graspByDist ?? (graspByDist = (a, b) => a.Pos.DistanceSq(graspFrom).CompareTo(b.Pos.DistanceSq(graspFrom))));
                 for (int i = 0; i < graspNew.Count && p.Grasp.Count < max; i++)
+                {
                     p.Grasp.Add(graspNew[i].Id);
+                    p.GraspCharge.Add(0f);
+                }
                 p.Run.ShotsFired++;
                 if (p.Grasp.Count > 0)
                     p.Run.ShotsHit++;
-                for (int i = 0, held = p.Grasp.Count; i < held && i < p.Grasp.Count; i++)
-                {
-                    if (!Enemies.TryGetValue(p.Grasp[i], out e) || e.Hp <= 0f)
-                        continue;  // killed by another tendril's on-hit effects
-                    if (!e.Def.IsBoss)
-                        e.GraspT = Math.Max(e.GraspT, GraspHold);  // stunned while held (bosses are too strong to hold still)
-                    V2 dir = (e.Pos - p.Pos).Normalized();
-                    float hit = gr.Dmg * TendrilsOn(max, held, i) * ConeFocus(p) * NinjaHitMult(p.Id, Defs.LeechShot, e);  // one drain per tendril on it
-                    HurtEnemy(e, hit, p.Id);
-                    var pseudo = new Bullet { Pos = e.Pos, Vel = dir.IsZero ? V2.FromAngle(gr.Aim) : dir, Owner = p.Id, Dmg = hit, Kind = Defs.LeechShot };
-                    BloodShotHit(pseudo, e, hit);  // the leech
-                    OnBulletHit(pseudo, e);
-                }
             }
             pendingGrasps.Clear();
+        }
+
+        static void DropGrasp(Player p, int i)
+        {
+            p.Grasp.RemoveAt(i);
+            if (i < p.GraspCharge.Count)
+                p.GraspCharge.RemoveAt(i);
+        }
+
+        /// Every host frame: the cooldown runs down, held enemies stay stunned and build up toward their blast, holding
+        /// costs health, and the tendrils burst when one is full or let go of fire.
+        void TickGrasp(Player p, float dt)
+        {
+            if (p.GraspCd > 0f)
+                p.GraspCd = Math.Max(0f, p.GraspCd - dt);
+            while (p.GraspCharge.Count > p.Grasp.Count)
+                p.GraspCharge.RemoveAt(p.GraspCharge.Count - 1);
+            while (p.GraspCharge.Count < p.Grasp.Count)
+                p.GraspCharge.Add(0f);
+            if (p.Grasp.Count == 0)
+                return;
+            bool mine = !p.Downed && !p.ParryActive && p.Weapon.Id == WeaponId.LeechBeam;
+            if (!mine || !p.Firing)
+            {
+                ReleaseGrasp(p, mine);  // let go of fire: they burst for what's built up (not if you're downed, parrying or swapped)
+                return;
+            }
+            PayHealth(p, p.MaxHp * GraspCost * dt, p.Weapon.Name);
+            bool full = false;
+            for (int i = p.Grasp.Count - 1; i >= 0; i--)
+            {
+                Enemy e;
+                if (!Enemies.TryGetValue(p.Grasp[i], out e) || e.Hp <= 0f)
+                {
+                    DropGrasp(p, i);
+                    continue;
+                }
+                if (!e.Def.IsBoss)
+                    e.GraspT = Math.Max(e.GraspT, GraspHold);  // stunned while held (bosses are too strong to hold still)
+                p.GraspCharge[i] = Math.Min(1f, p.GraspCharge[i] + dt * p.Stats.LeechDrainMult / GraspFuse);
+                full |= p.GraspCharge[i] >= 1f;
+            }
+            if (full)
+                ReleaseGrasp(p, true);
+        }
+
+        /// The tendrils let go: each held enemy bursts for its share of a full blast, and the tendrils need a moment.
+        void ReleaseGrasp(Player p, bool burst)
+        {
+            int held = p.Grasp.Count, max = GraspTendrils + ExtraShots(p) + p.Stats.Fan;
+            if (burst && held > 0)
+            {
+                for (int i = 0; i < held && i < p.GraspCharge.Count; i++)
+                {
+                    Enemy e;
+                    if (!Enemies.TryGetValue(p.Grasp[i], out e) || e.Hp <= 0f)
+                        continue;  // killed by another blast's on-hit effects
+                    float frac = p.GraspCharge[i];
+                    V2 dir = (e.Pos - p.Pos).Normalized();
+                    float hit = p.GraspDmg * frac * TendrilsOn(max, held, i) * ConeFocus(p) * NinjaHitMult(p.Id, Defs.LeechShot, e);
+                    HurtEnemy(e, hit, p.Id);
+                    var pseudo = new Bullet { Pos = e.Pos, Vel = dir.IsZero ? V2.FromAngle(p.Aim) : dir, Owner = p.Id, Dmg = hit, Kind = Defs.LeechShot };
+                    OnBulletHit(pseudo, e);
+                    if (frac > 0.1f)
+                        BroadcastFx(FxKind.Boom, e.Pos, new Rgba(0.85f, 0.1f, 0.18f), e.Radius + 12f + 30f * frac, 0.3f, Sfx.Explode);
+                }
+                p.GraspCd = GraspCooldown;
+            }
+            p.Grasp.Clear();
+            p.GraspCharge.Clear();
         }
 
         /// How many of `max` tendrils hold the i-th of `held` enemies: one each, and spare tendrils (nothing else
@@ -404,9 +466,6 @@ namespace Arena
                 return;
             switch (b.Kind)
             {
-                case Defs.LeechShot:
-                    Heal(p, dmg * (LeechSteal + p.Stats.LeechStealBonus), p);
-                    break;
                 case Defs.TransfuseShot:
                     Heal(p, TransfuseSteal, p);  // a sliver of the enemy's blood (it's for giving, not for soloing)
                     break;
@@ -700,8 +759,8 @@ namespace Arena
             new WeaponDef { Id = WeaponId.ClotBolt, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1, Damage = 34f, BotRange = 380f, ExtraDesc = "+1 glob, fanned out", Name = "Gore Mortar", FireInterval = 0.75f,
                 Desc = "Hold to charge, let go to lob a massive blood clot over enemies; the longer you hold, the farther it flies, and it hits just as hard at any range. Each shot costs 6% of your max health. It bursts into a big pool of blood that slows enemies and slowly heals anyone standing in it, and after a moment the pool congeals and holds enemies still.",
                 Sound = Sfx.SpellArcane, AreaDesc = "splash and pool 25% wider" },
-            new WeaponDef { Id = WeaponId.LeechBeam, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 2, Damage = 1.2f, Reach = 160f, Grow = 20f, BotRange = 130f, ExtraDesc = "+1 tendril and +20 px reach", Name = "Leech Tendrils", FireInterval = 0.1f,
-                Desc = "Hold to lash out blood tendrils that grasp nearby enemies while you hold on. They are stunned and drained, and part of the damage heals you.",
+            new WeaponDef { Id = WeaponId.LeechBeam, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 2, Damage = 80f, Reach = 160f, Grow = 20f, BotRange = 130f, ExtraDesc = "+1 tendril and +20 px reach", Name = "Leech Tendrils", FireInterval = 0.1f,
+                Desc = "Hold to lash out blood tendrils that grasp nearby enemies and hold them stunned. The longer you hold, the more blood builds up in them, and after 5 seconds they burst. Let go early and they burst for the share built up so far. Holding costs 2% of your max health a second, and the tendrils need 1 second to recover after a burst.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the tendrils reach across a 25% wider arc", HomingDesc = "the tendrils reach across a 15% narrower arc and drain 10% harder per stack, instead of bending shots" },
             // Healer
             new WeaponDef { Id = WeaponId.TransfusionDarts, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 0, Speed = 850f, Life = 0.85f, Damage = 7f, ExtraDesc = "+1 dart, fanned out", Name = "Transfusion Darts", FireInterval = 0.2f,
@@ -752,8 +811,8 @@ namespace Arena
                 Apply = s => { s.LashReachMult += 0.2f; s.LashLinkBonus++; s.ClotCutBonus += 0.01f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.ClotBolt }, MaxStacks = 2, Name = "Deep Pool", Desc = "The Gore Mortar's pool is 30% bigger and lasts 2 s longer",
                 Apply = s => { s.PoolSizeMult += 0.3f; s.PoolBonusTime += 2f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.LeechBeam }, MaxStacks = 2, Name = "Hungry Tendrils", Desc = "Leech Tendrils drain 30% faster, and 15% more of the drain heals you",
-                Apply = s => { s.LeechDrainMult += 0.3f; s.LeechStealBonus += 0.15f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.LeechBeam }, MaxStacks = 2, Name = "Hungry Tendrils", Desc = "Leech Tendrils charge 30% faster, and their bursts hit 15% harder",
+                Apply = s => { s.LeechDrainMult += 0.3f; s.LeechBlastBonus += 0.15f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.TransfusionDarts }, MaxStacks = 2, Name = "Generous Blood", Desc = "Each Transfusion Dart gives an ally 30% more health for the same cost",
                 Apply = s => { s.TransfuseMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.SanguineOrb }, MaxStacks = 2, Name = "Rich Blood", Desc = "The Sanguine Orb's heal reserve fills 30% faster, and its healing coat heals 30% more",
@@ -989,8 +1048,7 @@ namespace Arena
             TickBloodLash(dt);  // BloodLash.cs: chains, Reap, Martyr's Leash
             foreach (var p in Players.Values)
             {
-                if (p.Grasp.Count > 0 && (p.Downed || !p.Firing || p.ParryActive || p.Weapon.Id != WeaponId.LeechBeam))
-                    p.Grasp.Clear();  // let go of fire and the tendrils let go too
+                TickGrasp(p, dt);  // Leech Tendrils: cooldown, charge, cost, bursts
                 if (p.Downed)
                 {
                     EndBloodWall(p);  // BloodWall.cs
