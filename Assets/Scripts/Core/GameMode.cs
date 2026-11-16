@@ -26,7 +26,7 @@ namespace Arena
         {
             new ModeDef { Mode = GameMode.Quick,    Key = "quick",    Name = "Quick Play", RunEvents = true, BossBuildup = true },
             new ModeDef { Mode = GameMode.Campaign, Key = "campaign", Name = "Campaign",   Lives = true, Saves = true, RunEvents = true, Challenges = true, Legs = true, Paths = true },
-            new ModeDef { Mode = GameMode.Hunt,     Key = "hunt",     Name = "Boss Hunt",  BossBuildup = true, Waves = WaveRules.Hunt },
+            new ModeDef { Mode = GameMode.Hunt,     Key = "hunt",     Name = "Boss Hunt",  Saves = true, BossBuildup = true, Waves = WaveRules.Hunt },
             new ModeDef { Mode = GameMode.Practice, Key = "practice", Name = "Practice",   Extras = false, Records = false },
             // Survival: one clock, never saved (so no lives), no wave clears (so no challenges), its own faction phases (no legs).
             new ModeDef { Mode = GameMode.Survival, Key = "survival", Name = "Survival",   RunEvents = true },

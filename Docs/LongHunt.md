@@ -1,6 +1,6 @@
 # Long hunt: a 20-step Boss Hunt with a save at 10 (design)
 
-Status: **steps 1-2 built** (step 1: length plumbing, `Game.HuntLength`, `Session.HuntLong`, protocol 363; step 2: the lobby's Long hunt switch, 20-row scrolling map, `Hunts.StrengthWave`, the Miniboss node, the hunt map is the only hunt); steps 3-4 left (Nov 2026). Builds on [`HuntMap.md`](HuntMap.md) and [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md).
+Status: **all four steps built** (Nov 2026; step 3: the step-10 checkpoint save and Continue, `RunSave.IsHunt`, `HuntMapGame.TickHuntCheckpoint`/`ResumeHuntMap`, suite `huntsave`; step 4: the 20-step records, `Profile.HuntEnded(..., longHunt)`, tuning; protocol 366). Owner, Nov 2026: **20 steps is the only option** (the switch is gone; `Session.HuntLong` defaults true and stays for tests). Earlier: steps 1-2 built (step 1: length plumbing, `Game.HuntLength`, `Session.HuntLong`, protocol 363; step 2: the lobby's Long hunt switch, 20-row scrolling map, `Hunts.StrengthWave`, the Miniboss node, the hunt map is the only hunt); steps 3-4 left (Nov 2026). Builds on [`HuntMap.md`](HuntMap.md) and [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md).
 
 ## Decisions (owner)
 
@@ -43,3 +43,16 @@ Status: **steps 1-2 built** (step 1: length plumbing, `Game.HuntLength`, `Sessio
 
 - Built: the Warden's miniboss is an existing enemy, the **Riot Shield** (owner: "the riot guard guy") as an elite with 4x health and 1.5x size (`HuntMinibossHp`, `HuntMinibossSize`); its escort is the node's wave (an Elite-style wave with the set piece). Other factions pick theirs when they get a hunt.
 - Do the later bosses' hunts (no factions yet) come as 10-only until they have one?
+
+## Tuning (step 4, Nov 2026)
+
+`run.sh 1 1 huntbal 40 1 2` (40 maps, a duo of Good bots; every route is the 20-step map, `plain` is the old ten waves for comparison):
+
+| Route | Won | Avg time | Avg level at the boss | Elites |
+|---|---|---|---|---|
+| safe | 30/40 | 455 s | 12.4 | 0.6 |
+| elite | 34/40 | 514 s | 14.5 | 4.3 |
+| random | 32/40 | 550 s | 13.6 | 2.3 |
+| plain (10 waves) | 37/40 | 338 s | 7.9 | 0 |
+
+The spread between routes is inside the noise (about 8 points with 40 maps): harder routes win a little more (clues and levels), the safe route a little less, and nothing dominates. A Miniboss costs about 40% of max health (42 s, 9 downs in 107), an Elite 23% (28 s), a Skirmish 7%. The elite route reaches the 5-clue cap on average, so the cap is not far above what a keen player gets: leave it, and re-measure with 100+ maps if clue values change. Left alone: the miniboss's reward (a clue and a rare+ card).

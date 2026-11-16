@@ -48,6 +48,38 @@ namespace Arena
         public const float HuntMinibossHp = 4f, HuntMinibossSize = 1.5f;
         bool huntMinibossDue, huntMinibossNow;   // host: the next Riot Shield out of the queue is the miniboss
 
+        /// A Boss Hunt's save: written once, when the miniboss at step 10 has been beaten and everyone has picked their rewards, and kept
+        /// until the hunt ends (Continue resumes at the vote for step 11). The pause menu says whether it is on disk.
+        public bool HuntCheckpointed;
+        bool huntCheckpointDue;   // host: the miniboss is cleared and the save waits for the picks to be made
+
+        /// Host, each tick between waves: write the checkpoint once nothing is left to choose.
+        void TickHuntCheckpoint()
+        {
+            if (!huntCheckpointDue || !IsHost || HuntRoute == null || AnyonePicking() || PathOffer != null || ShopOpen || DuelBetweenWaves)
+                return;
+            huntCheckpointDue = false;
+            if (SaveRun(true))
+            {
+                HuntCheckpointed = true;
+                DoLog("hunt saved at step " + HuntRoute.Step);
+            }
+        }
+
+        /// Host, as the match starts from a hunt's checkpoint: the map with the path and clues it was saved with, and its vote for the next step.
+        void ResumeHuntMap(RunSave save)
+        {
+            var map = HuntMap.Restore(save.HuntSeed, save.HuntPath.ToArray(), save.HuntLength);
+            if (map == null)
+                return;
+            map.SetClues(save.HuntClues);
+            HuntRoute = map;
+            Wave = map.Step;
+            HuntCheckpointed = true;
+            DoLog("hunt resumed at step " + (map.Step + 1));
+            BroadcastHuntMap();
+        }
+
         /// A Contraband is being fought: the arena is dark (like Nightfall, Paths.cs).
         public bool HuntDark => HuntMapOn && State == MatchState.Fighting && HuntNodeNow == HuntNodeType.Contraband;
 
@@ -64,6 +96,8 @@ namespace Arena
         void ResetHuntMap()
         {
             HuntRoute = null;
+            HuntCheckpointed = false;
+            huntCheckpointDue = false;
             HuntMapVoting = false;
             HuntMapSeconds = 0f;
             huntShopNode = false;
@@ -272,6 +306,8 @@ namespace Arena
                 return;
             HuntNodeReward();
             ClearHuntNode();
+            if (HuntRoute.Step == HuntMap.MinibossRow(HuntLength) + 1)
+                huntCheckpointDue = true;   // the miniboss is down: the hunt is saved here (TickHuntCheckpoint)
         }
 
         /// This player's vote and whether it's locked in (the host's own goes straight in).

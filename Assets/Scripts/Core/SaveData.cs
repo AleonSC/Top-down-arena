@@ -47,6 +47,11 @@ namespace Arena
         public bool LongRun;          // a 100-wave Campaign (Hunts.cs); saves from before it are the old 50 waves
         public int LivesUsed;         // lives used so far (Checkpoints.cs)
         public int Leg = 1;           // a Campaign: the leg of Wave that was cleared (0 first, 1 second)         // the boss after wave Wave was beaten (Hunts.cs); saves from before the boss slot: a multiple of 5 means yes
+        // A Boss Hunt saved at its step-10 checkpoint (HuntMapGame.cs, Docs/LongHunt.md): the boss, length, map seed, clues and the cleared path.
+        public bool IsHunt;
+        public EnemyType HuntBoss;
+        public int HuntLength, HuntSeed, HuntClues;
+        public readonly List<int> HuntPath = new List<int>();
         public int Score;
         public RunMod Mods;
         public Difficulty Diff = new Difficulty();  // saves from before difficulties load as Normal
@@ -69,7 +74,8 @@ namespace Arena
         public readonly List<RoomToken> Kits = new List<RoomToken>();
 
         /// "Wave 14 · 2 players · 23 min" for lists.
-        public string Summary => (Wave > 0 && Wave % 5 == 0 && !BossSlot && Leg == 1 ? "Boss " + ShownWave : "Wave " + (ShownWave + 1)) + (Endless ? " (endless)" : "") + " · " + Seats.Count + (Seats.Count == 1 ? " player" : " players")
+        public string Summary => IsHunt ? (Hunts.Get(HuntBoss) != null ? Hunts.Get(HuntBoss).Name : "Boss Hunt") + " · step " + Wave + " of " + HuntLength + " cleared · " + Seats.Count + (Seats.Count == 1 ? " player" : " players") + " · " + (int)(RunTime / 60f) + " min"
+                                 : (Wave > 0 && Wave % 5 == 0 && !BossSlot && Leg == 1 ? "Boss " + ShownWave : "Wave " + (ShownWave + 1)) + (Endless ? " (endless)" : "") + " · " + Seats.Count + (Seats.Count == 1 ? " player" : " players")
                                  + " · " + (int)(RunTime / 60f) + " min" + LivesText;
 
         /// " · 2 lives" (the lives left, by the run's difficulty), or nothing for a run with none.
@@ -96,6 +102,11 @@ namespace Arena
             Line(sb, "slot", BossSlot ? 1 : 0);
             if (LongRun) Line(sb, "campaign", Leg);
             if (LivesUsed > 0) Line(sb, "lives", LivesUsed);
+            if (IsHunt)
+            {
+                Line(sb, "hunt", (int)HuntBoss + " " + HuntLength + " " + HuntSeed + " " + HuntClues);
+                Line(sb, "huntpath", string.Join(",", HuntPath));
+            }
             Line(sb, "score", Score);
             Line(sb, "mods", (int)Mods);
             Line(sb, "difficulty", Diff.ToText());
@@ -181,6 +192,20 @@ namespace Arena
                         case "slot": save.BossSlot = I(val) != 0; sawSlot = true; break;
                         case "lives": save.LivesUsed = Math.Max(0, I(val)); break;
                         case "campaign": save.LongRun = true; save.Leg = I(val) != 0 ? 1 : 0; break;
+                        case "hunt":
+                        {
+                            var p = val.Split(' ');
+                            save.IsHunt = true;
+                            save.HuntBoss = (EnemyType)I(p[0]);
+                            save.HuntLength = I(p[1]);
+                            save.HuntSeed = I(p[2]);
+                            save.HuntClues = I(p[3]);
+                            break;
+                        }
+                        case "huntpath":
+                            foreach (var p in val.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                                save.HuntPath.Add(I(p));
+                            break;
                         case "score": save.Score = I(val); break;
                         case "mods": save.Mods = (RunMod)I(val); break;
                         case "difficulty": save.Diff = Difficulty.Parse(val); break;
