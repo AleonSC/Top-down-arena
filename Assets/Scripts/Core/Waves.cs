@@ -94,7 +94,7 @@ namespace Arena
                         State = MatchState.Fighting;
                         spawnTimer = WaveNumbers.OpeningDelay;
                         string bossName;
-                        if (SurvivalOn && Practice == null)
+                        if (SurvivalOn)
                         {
                             BeginSurvival();  // no wave to build: the clock starts (SurvivalGame.cs)
                             bossName = null;
@@ -136,7 +136,7 @@ namespace Arena
                             if (BreachesOn)
                             {
                                 FloodBreachWave();  // a breach wave: three times the enemies (Breaches.cs)
-                                spawnTimer = Math.Max(spawnTimer, Practice == null ? Breaches.WarnTime(ActiveBreaches.Length) : Breaches.Telegraph);  // the cameras tour the breaches first (Game/BreachTour.cs)
+                                spawnTimer = Math.Max(spawnTimer, ModeRules.Extras ? Breaches.WarnTime(ActiveBreaches.Length) : Breaches.Telegraph);  // the cameras tour the breaches first (Game/BreachTour.cs)
                             }
                             CapSentries();  // at most 3 Beam Sentries and 3 Pulsars (Variety.cs)
                             WaveProps();  // crates, pots, barrels and now and then a chest (Props.cs)
@@ -213,7 +213,7 @@ namespace Arena
             HuntMapNodeCleared();  // the hunt map moves on (HuntMapGame.cs)
             if (CurrentPath != PathId.None && Wave >= PathTo && LegDone)
                 FinishPath();  // its prize, then the plain arena for the boss (Paths.cs)
-            if (Has(RunMod.GoldRush) && BossNext && !ShopOpen && Practice == null)
+            if (Has(RunMod.GoldRush) && BossNext && !ShopOpen && ModeRules.Extras)
                 OpenShop();  // Gold Rush: a shop before every boss
             foreach (var p in Players.Values)
             {
@@ -229,7 +229,7 @@ namespace Arena
             {
                 if (!ExpandingOn)
                 {
-                    if (!Quick)
+                    if (ModeRules.Paths)
                         OfferPaths();  // after a boss: two paths for the next stretch (not in Quick Play; the Expanding arena has none)
                 }
                 else

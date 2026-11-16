@@ -16,15 +16,20 @@ namespace Arena
         public bool RunEvents;      // a run's between-wave events: Expanding rooms, breaches, duels, the Balance test (not Practice or a hunt)
         public bool Challenges;     // wave challenges (Challenges.cs)
         public bool Legs;           // the 100-wave Campaign's legs and faction buildup (Hunts.cs LongLegs, Approaches.cs CampaignOn)
+        public bool Paths;          // two paths offered after a boss on the classic arena (Paths.cs OfferPaths)
+        public bool BossBuildup;    // build-up waves are only the coming boss's faction (Approaches.cs ApproachShare; BasicFaction.cs FactionFor)
+        public bool Extras = true;  // the run's dressing: props, layouts, timed waves, zombies, the boss gate, breach warnings (off: the Practice Range plays its plan bare)
+        public bool Records = true; // recorded on the profile, each mode its own way (RunSaves.cs RecordsRuns)
+        public WaveRules Waves = WaveRules.Standard;  // wave size (WaveNumbers.cs)
 
         static readonly ModeDef[] all =
         {
-            new ModeDef { Mode = GameMode.Quick,    Key = "quick",    Name = "Quick Play", RunEvents = true },
-            new ModeDef { Mode = GameMode.Campaign, Key = "campaign", Name = "Campaign",   Lives = true, Saves = true, RunEvents = true, Challenges = true, Legs = true },
-            new ModeDef { Mode = GameMode.Hunt,     Key = "hunt",     Name = "Boss Hunt" },
-            new ModeDef { Mode = GameMode.Practice, Key = "practice", Name = "Practice" },
-            // Survival runs on the Campaign's wave machinery under its clock, so it keeps the Campaign's lives, events and buildup.
-            new ModeDef { Mode = GameMode.Survival, Key = "survival", Name = "Survival",   Lives = true, RunEvents = true, Challenges = true, Legs = true },
+            new ModeDef { Mode = GameMode.Quick,    Key = "quick",    Name = "Quick Play", RunEvents = true, BossBuildup = true },
+            new ModeDef { Mode = GameMode.Campaign, Key = "campaign", Name = "Campaign",   Lives = true, Saves = true, RunEvents = true, Challenges = true, Legs = true, Paths = true },
+            new ModeDef { Mode = GameMode.Hunt,     Key = "hunt",     Name = "Boss Hunt",  BossBuildup = true, Waves = WaveRules.Hunt },
+            new ModeDef { Mode = GameMode.Practice, Key = "practice", Name = "Practice",   Extras = false, Records = false },
+            // Survival: one clock, never saved (so no lives), no wave clears (so no challenges), its own faction phases (no legs).
+            new ModeDef { Mode = GameMode.Survival, Key = "survival", Name = "Survival",   RunEvents = true },
         };
 
         public static ModeDef For(GameMode m) => (int)m < all.Length ? all[(int)m] : all[(int)GameMode.Campaign];

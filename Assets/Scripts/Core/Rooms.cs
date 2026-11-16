@@ -214,7 +214,7 @@ namespace Arena
 
         /// The Rooms world is what you're playing in right now (not in a Data Gate's challenge, the Practice Range or
         /// the Showcase).
-        public bool RoomsOn => RoomsUp && !InRoom && Practice == null && !ShowcaseMode;
+        public bool RoomsOn => RoomsUp && !InRoom && ModeRules.Extras && !ShowcaseMode;
         public bool VaultOn => RoomsOn && VaultUp;
 
         /// Enemy damage to players: Rooms.EnemyDamageMult while the rooms are up, else 1 (Combat.cs).

@@ -89,7 +89,7 @@ namespace Arena
 
         public float BossPowerScale()
         {
-            if (!ScaleBosses || Practice != null || Players.Count == 0)
+            if (!ScaleBosses || !ModeRules.Extras || Players.Count == 0)
                 return 1f;
             float ratio = 0f;
             foreach (var p in Players.Values)

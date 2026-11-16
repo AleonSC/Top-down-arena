@@ -149,7 +149,7 @@ namespace Arena
         public bool BreachesOn => ExpandingOn && RoomsOn && !Rooms.RoomByRoom && !BossNow && State == MatchState.Fighting && Breaches.IsBreachWave(Wave);
 
         /// The breach warning is playing (Breaches.WarnTime): the cameras are touring the breaches and the players stand still.
-        public bool BreachWarnOn => BreachesOn && Practice == null && BreachAge < Breaches.WarnTime(ActiveBreaches.Length);
+        public bool BreachWarnOn => BreachesOn && ModeRules.Extras && BreachAge < Breaches.WarnTime(ActiveBreaches.Length);
 
         /// Host: a breach wave just built: Breaches.Flood times its enemies (no extra bosses).
         void FloodBreachWave()

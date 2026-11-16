@@ -245,7 +245,7 @@ namespace Arena
         /// wave's numbers (what's left from the last wave stays), and now and then bring a chest.
         void WaveProps()
         {
-            if (!PropsOn || Practice != null || ShowcaseMode)
+            if (!PropsOn || !ModeRules.Extras || ShowcaseMode)
                 return;
             if (BossNow)
             {
@@ -392,7 +392,7 @@ namespace Arena
         /// somewhere clear of the players and the boss.
         void TickBossBarrels(float dt)
         {
-            if (!PropsOn || Practice != null || ShowcaseMode || State != MatchState.Fighting || !BossNow)
+            if (!PropsOn || !ModeRules.Extras || ShowcaseMode || State != MatchState.Fighting || !BossNow)
             {
                 bossBarrelT = BossBarrelFirst;
                 return;
