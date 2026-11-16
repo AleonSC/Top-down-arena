@@ -17,7 +17,8 @@ namespace Arena
 
     public static class Hunts
     {
-        public const int Length = 10;  // waves in a hunt, the boss's (the last) included
+        public const int Length = 10;      // waves in the short hunt, the boss's (the last) included
+        public const int LongLength = 20;  // the long hunt (Docs/LongHunt.md); a run's own length is Game.HuntLength
 
         /// Only the Warden so far: a hunt needs the boss's faction for its build-up waves (only the Warden has one), and
         /// later bosses will need the party handed a build that fits their strength (levels, legendaries and mods).
@@ -31,7 +32,7 @@ namespace Arena
         public static int Step(int wave) => Math.Max(1, Math.Min(4, (wave + 1) / 2));
 
         /// The waves that bring the faction's set piece (the Warden's riot line).
-        public static bool FinaleWave(int wave) => wave == 5 || wave == Length - 1;
+        public static bool FinaleWave(int wave, int length = Length) => wave == 5 || wave == length - 1;
 
         public static HuntDef Get(EnemyType boss) => Array.Find(All, h => h.Boss == boss);
 
@@ -44,11 +45,14 @@ namespace Arena
         /// The Boss Hunt being played (host: from the lobby when the match starts; clients: told by the host), or null.
         public HuntDef Hunt;
 
-        /// The hunt's wave number, 1 to Hunts.Length (0 before the first).
+        /// The hunt's wave number, 1 to HuntLength (0 before the first).
+        /// This hunt's waves (Hunts.Length, or Hunts.LongLength for a long hunt), the boss's included: set when the match starts (Session).
+        public int HuntLength = Hunts.Length;
+
         public int HuntWave => Hunt == null ? 0 : Math.Max(0, Wave);
 
         /// The run's last wave: 50 (before endless), or a hunt's tenth.
-        public int LastWave => Hunt != null ? Hunts.Length : Quick ? QuickPlay.Length : MaxWave;
+        public int LastWave => Hunt != null ? HuntLength : Quick ? QuickPlay.Length : MaxWave;
 
         /// The Campaign's 100 waves (Docs/RunLength.md step 2): each wave of the 50-wave track is fought twice, as two
         /// "legs", so the player sees waves 1-100 with a boss after every tenth, while everything that scales or unlocks by

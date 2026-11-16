@@ -182,7 +182,7 @@ namespace Arena
                             else
                                 WaveCleared();
                         }
-                        else if (Hunt != null && Wave >= Hunts.Length)
+                        else if (Hunt != null && Wave >= HuntLength)
                             Win();  // a Boss Hunt ends with its boss (Hunts.cs)
                         else if (Wave >= LastWave && BossSlot && !Endless)
                             Win();  // the last boss is beaten (Quick Play: the first, after wave 10) (the last regular wave only leads up to it)

@@ -386,7 +386,7 @@ namespace Arena
                     if (Hunt != null)
                     {
                         AddUnlockToasts(Profile.HuntEnded(Hunt.Boss, won, time, Diff.Level == DifficultyLevel.Hard || Diff.Level == DifficultyLevel.Nightmare));  // Hunts.cs
-                        int cleared = won ? Hunts.Length : Math.Max(0, HuntWave - 1);
+                        int cleared = won ? HuntLength : Math.Max(0, HuntWave - 1);
                         LastGain = Profile.AwardXp(Rank.Award(false, cleared, won ? 1 : 0, me.Run.Revives, Mods, Diff.Level), HuntWave, won ? 3 : 2);
                         PayCores(Variants.HuntCores(won), found);
                         var hunted = Profile.Recent[0];  // (the hunt just added by AwardXp: its curve for the results screen and Recent runs)

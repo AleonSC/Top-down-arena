@@ -71,13 +71,21 @@ static partial class Shot {
       host.Game.Effects.Add(new Effect { Kind = FxKind.RootLash, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * 250f, Color = new Rgba(0.55f, 0.36f, 0.17f), Radius = Game.RootHalfWidth, Dur = Game.RootFxTime, T = age });
     }
     if (Environment.GetEnvironmentVariable("NIMBUS") != null) {
-      // The Nimbus: its cloud over your cursor (200 px out), rain under it, and a strike NIMBUS=<seconds> ago.
+      // The Nimbus: its cloud over your cursor (200 px out), rain under it, and a strike NIMBUS=<seconds> ago (-1: none).
       me.Weapon = Defs.Weapon(Role.Healer, Kit.Elementalist, 2); me.Kit = Kit.Elementalist; host.Game.Bot = false;
       me.Pos = me.Disp = new V2(450f, 450f);
       V2 cursor = new V2(700f, 360f);
       for (int i = 0; i < 200; i++) { me.Pos = me.Disp = new V2(450f, 450f); host.Poll(); host.Game.FixedStep(1f/60f, new PlayerInput { AimAt = cursor }); host.Game.Update(1f/60f); }
       float age = float.Parse(Environment.GetEnvironmentVariable("NIMBUS"), System.Globalization.CultureInfo.InvariantCulture);
-      host.Game.Effects.Add(new Effect { Kind = FxKind.Strike, Pos = cursor, Pos2 = cursor, Color = new Rgba(0.78f, 0.86f, 1f), Radius = Game.NimbusBlast, Dur = Game.StrikeFxTime, T = age });
+      if (age >= 0f) host.Game.Effects.Add(new Effect { Kind = FxKind.NimbusStrike, Pos = cursor, Pos2 = cursor, Color = Game.NimbusBoltColor, Radius = Game.NimbusBlast, Dur = Game.NimbusStrikeFxTime, T = age });
+      // NIMBUSSTORM=<s>: the Eye of the Storm that long in (a few enemies caught in it, one just bolted).
+      if (Environment.GetEnvironmentVariable("NIMBUSSTORM") != null) {
+        float st = float.Parse(Environment.GetEnvironmentVariable("NIMBUSSTORM"), System.Globalization.CultureInfo.InvariantCulture);
+        Minion cloud = null; foreach (var mm in host.Game.Minions.Values) if (mm.Kind == MinionKind.Nimbus) cloud = mm;
+        host.Game.Effects.Add(new Effect { Kind = FxKind.NimbusStorm, Pos = cloud.Pos, Pos2 = new V2(cloud.Id, me.Id), Color = Game.NimbusBoltColor, Radius = Game.NimbusStormRadius, Dur = Game.NimbusStormTime, T = st });
+        if (Environment.GetEnvironmentVariable("NIMBUSBOLT") != null)
+          host.Game.Effects.Add(new Effect { Kind = FxKind.Bolt, Pos = cloud.Pos + new V2(-30f, -40f), Pos2 = cloud.Pos + new V2(70f, 10f), Color = Game.NimbusBoltColor, Dur = 0.2f, T = 0.02f });
+      }
     }
     if (Environment.GetEnvironmentVariable("CHALK") != null) {
       // Spirit Chalk: a loop drawn round some enemies (they're held where they stand), and a line trailing off it.

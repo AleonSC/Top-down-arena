@@ -1,6 +1,6 @@
 # Long hunt: a 20-step Boss Hunt with a save at 10 (design)
 
-Status: **plan, nothing built** (Nov 2026). Builds on [`HuntMap.md`](HuntMap.md) and [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md).
+Status: **step 1 built** (length plumbing: `Game.HuntLength`, `Session.HuntLong`, no lobby switch yet; protocol 363); steps 2-4 left (Nov 2026). Builds on [`HuntMap.md`](HuntMap.md) and [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md).
 
 ## Decisions (owner)
 
@@ -9,7 +9,8 @@ Status: **plan, nothing built** (Nov 2026). Builds on [`HuntMap.md`](HuntMap.md)
 | Quick Play | **Unchanged**: it stays the quick 10 waves + random boss ([`QuickPlay.md`](QuickPlay.md)) |
 | Hunt length | The hunt gets a **length switch: 10 or 20 steps** (the lobby's Boss Hunt tab, host only; 10 stays the default) |
 | Save | **A checkpoint at step 10** of a 20-step hunt: clearing it writes a resumable save (hunts aren't saved today) |
-| Step 10 | A **mid-boss finale**: the Elite set-piece wave, always an Elite node, so the halves read as two acts |
+| Step 10 | The **faction's miniboss** (owner, Nov 2026): a fixed boss-like fight at step 10, so the halves read as two acts; the checkpoint is written when it falls. Which enemy it is per faction is open |
+| Clues | Up to **5**, each a random health or damage clue (built, protocol 363) |
 
 ## What changes
 
@@ -38,5 +39,5 @@ Status: **plan, nothing built** (Nov 2026). Builds on [`HuntMap.md`](HuntMap.md)
 
 ## Open
 
-- Does the 20-step hunt still end at the same Warden fight, or may a mid-boss node (a weaker boss) appear at step 10? (Plan: Elite set piece only.)
+- Which enemy is the Warden's step-10 miniboss (an existing elite/heavy, or a new one)? Needs a pick before step 2.
 - Do the later bosses' hunts (no factions yet) come as 10-only until they have one?

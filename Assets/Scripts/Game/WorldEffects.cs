@@ -305,6 +305,11 @@ namespace Arena
                 case FxKind.Strike:
                     DrawStrikeFx(fx, f);  // NimbusLook.cs
                     break;
+                case FxKind.NimbusStrike:
+                    DrawNimbusStrikeFx(fx);  // NimbusLook.cs
+                    break;
+                case FxKind.NimbusStorm:
+                    break;  // drawn with its cloud (NimbusLook.cs DrawNimbus)
                 case FxKind.Lifeline:
                     DrawLifelineFx(fx);  // LifelineLook.cs
                     break;
