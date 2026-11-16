@@ -240,7 +240,8 @@ namespace Arena
         public const float BowRecover = 0.25f;   // after a shot, the next draw starts this much later
         public const float BowDrawSlow = 0.85f;  // move speed while drawing
 
-        public float BowFull(Player p) => BowFullDraw / FireRate(p) * (p.Weapon != null && p.Weapon.Id == WeaponId.MendersBow ? p.Stats.BowDrawMult : p.Weapon != null && p.Weapon.Id == WeaponId.ArcLightning ? p.Stats.ArcChargeMult : 1f);  // (Steady Draw, Static Field)  // (Steady Draw: sooner)
+        public float BowFull(Player p) => p.Weapon != null && p.Weapon.Id == WeaponId.ArcLightning ? ArcTagGap(p) * ArcTagMax(p) + 0.05f  // Arc Lightning: every tag in (ArcLock.cs)
+            : BowFullDraw / FireRate(p) * (p.Weapon != null && p.Weapon.Id == WeaponId.MendersBow ? p.Stats.BowDrawMult : p.Weapon != null && p.Weapon.Id == WeaponId.ArcLightning ? p.Stats.ArcChargeMult : 1f);  // (Steady Draw, Static Field)  // (Steady Draw: sooner)
 
         /// Weapons you hold to charge and let go to fire: the Mender's Bow, the Warhammer, the Golem Staff's boulder, Arc Lightning, the Imp Caller and the Gore Mortar.
         public static bool ChargeWeapon(WeaponId w) => w == WeaponId.MendersBow || w == WeaponId.Warhammer || w == WeaponId.GolemStaff || w == WeaponId.ArcLightning || w == WeaponId.ImpCaller || w == WeaponId.ClotBolt;
@@ -529,8 +530,8 @@ namespace Arena
                     return WispReach * PierceReach(p);
                 case WeaponId.ImpCaller:  // how far imps are sent (Minions.cs)
                     return ImpReach * PierceReach(p);
-                case WeaponId.ArcLightning:  // the strip's length with the current charge (Minions.cs)
-                    return ArcLength(p, p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f);
+                case WeaponId.ArcLightning:  // the tagging cone's reach (ArcLock.cs)
+                    return ArcReach(p);
                 case WeaponId.ChainLight:  // the cone's reach (Minions.cs)
                     return LightConeLength(p, x);
                 case WeaponId.FumaShuriken:  // the far end of its widest loop (Ninja.cs)
