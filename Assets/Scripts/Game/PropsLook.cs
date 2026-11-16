@@ -13,7 +13,7 @@ namespace Arena
         void DrawProps(float t)
         {
             bool cull = CamZoomed;  // zoomed in or following you (Survival's big room holds hundreds of props): only draw what is in view
-            float cx = camFocus.X, cy = camFocus.Y, chx = AW / (2f * camZoom) + 180f, chy = AH / (2f * camZoom) + 180f;
+            float cx = camFocus.X, cy = camFocus.Y, chx = AW / (2f * camZoom) + 50f, chy = AH / (2f * camZoom) + 50f;  // (past the view by the drop-in's lift and dust ring)
             foreach (var p in game.Props.Values)
             {
                 if (cull && (Mathf.Abs(p.Pos.X - cx) > chx + Game.HalfW(p) || Mathf.Abs(p.Pos.Y - cy) > chy + Game.HalfH(p)))
@@ -120,21 +120,45 @@ namespace Arena
                     FillRect(c.X - h, c.Y + y, h * 2f, 1f, PropHoloCyan.WithAlpha(0.10f * al));
             // The frame: 6 segments a side; worn crates lose some and the lost ones flicker back now and then.
             float lw = heavy ? 2f : 1.5f;
-            int id = 0, n = 6;
-            for (int i = 0; i < n; i++)
-            {
-                float a = -h + 2f * h * i / n, b = -h + 2f * h * (i + 1) / n;
-                HoloSeg(c, a, -h, b, -h, id++, seed, dmg, t, lw, col);
-                HoloSeg(c, h, a, h, b, id++, seed, dmg, t, lw, col);
-                HoloSeg(c, b, h, a, h, id++, seed, dmg, t, lw, col);
-                HoloSeg(c, -h, b, -h, a, id++, seed, dmg, t, lw, col);
-            }
-            // The brace across, in five pieces.
+            // (Each run of lit segments in a row is drawn as one line: the same picture for a fifth of the vertices.)
+            const int n = 6;
+            for (int side = 0; side < 4; side++)  // top, right, bottom, left (segment i of a side is id 4 i + side)
+                for (int i = 0; i < n; )
+                {
+                    if (!HoloOn(4 * i + side, seed, dmg, t))
+                    {
+                        i++;
+                        continue;
+                    }
+                    int j = i + 1;
+                    while (j < n && HoloOn(4 * j + side, seed, dmg, t))
+                        j++;
+                    float a = -h + 2f * h * i / n, b = -h + 2f * h * j / n;
+                    if (side == 0)
+                        NeonLine(c + new V2(a, -h), c + new V2(b, -h), lw, col);
+                    else if (side == 1)
+                        NeonLine(c + new V2(h, a), c + new V2(h, b), lw, col);
+                    else if (side == 2)
+                        NeonLine(c + new V2(b, h), c + new V2(a, h), lw, col);
+                    else
+                        NeonLine(c + new V2(-h, b), c + new V2(-h, a), lw, col);
+                    i = j;
+                }
+            // The brace across, in five pieces (ids 24-28).
             float inset = heavy ? 9f : 6f, span = 2f * h - 2f * inset, flip = (seed & 8) != 0 ? -1f : 1f;
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 5; )
             {
-                float f1 = i / 5f, f2 = (i + 1) / 5f;
-                HoloSeg(c, -h + inset + span * f1, flip * (-h + inset + span * f1), -h + inset + span * f2, flip * (-h + inset + span * f2), id++, seed, dmg, t, 1f, col);
+                if (!HoloOn(4 * n + i, seed, dmg, t))
+                {
+                    i++;
+                    continue;
+                }
+                int j = i + 1;
+                while (j < 5 && HoloOn(4 * n + j, seed, dmg, t))
+                    j++;
+                float f1 = i / 5f, f2 = j / 5f;
+                NeonLine(c + new V2(-h + inset + span * f1, flip * (-h + inset + span * f1)), c + new V2(-h + inset + span * f2, flip * (-h + inset + span * f2)), 1f, col);
+                i = j;
             }
             if (heavy)
             {
@@ -169,12 +193,9 @@ namespace Arena
             }
         }
 
-        void HoloSeg(V2 c, float x1, float y1, float x2, float y2, int id, int seed, float dmg, float t, float w, Rgba col)
-        {
-            bool on = PropHash(seed * 31 + id) > dmg * 0.8f || (!fxReduced && Mathf.Sin(t * 14f + id * 2.3f) > 0.9f);
-            if (on)
-                NeonLine(c + new V2(x1, y1), c + new V2(x2, y2), w, col);
-        }
+        /// Is a crate's frame segment lit? Worn crates lose some; the lost ones flicker back now and then.
+        bool HoloOn(int id, int seed, float dmg, float t) =>
+            PropHash(seed * 31 + id) > dmg * 0.8f || (!fxReduced && Mathf.Sin(t * 14f + id * 2.3f) > 0.9f);
 
         /// A glowing ring.
         void GlowArc(V2 c, float r, float w, Rgba col, int segs)
