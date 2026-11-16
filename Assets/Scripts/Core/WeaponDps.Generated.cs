@@ -24,6 +24,7 @@ namespace Arena
             { WeaponId.Flamethrower, 94f },
             { WeaponId.FrostLance, 65f },
             { WeaponId.StormHammer, 60f },
+            { WeaponId.WindClash, 50f },
             { WeaponId.RadiantOrb, 37f },
             { WeaponId.ChainLight, 80f },
             { WeaponId.Nimbus, 26f },

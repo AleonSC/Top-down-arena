@@ -140,6 +140,8 @@ namespace Arena
         ArcKnuckles, TwinRifleAuto, OutOfAmmo, DoubleBarrel, Stonespear,
         // the Tank Soldier's fourth (GrenadeLauncher.cs)
         GrenadeLauncher,
+        // the Tank Elementalist's fourth (WindClash.cs)
+        WindClash,
     }
 
     public class WeaponDef

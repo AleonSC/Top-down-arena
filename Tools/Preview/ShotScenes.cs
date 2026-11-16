@@ -870,6 +870,34 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // WINDCLASH=<s>: the Tank Elementalist's Wind Clash (Core/WindClash.cs, Game/WindClashLook.cs) that long into the combo, Fire held from 0:
+    // crescent at 0, back crescent at 0.34 s, gale lance at 0.68 s, clash ring at 1.12 s. WCALT=1: Alt (Tempest) at 0 instead, the
+    // enemies shooting at you (their shots are caught and spin round you).
+    if (Environment.GetEnvironmentVariable("WINDCLASH") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Tank; me.Kit = Kit.Elementalist; me.Def = Defs.Get(Role.Tank); me.Weapon = Defs.Weapon(Role.Tank, Kit.Elementalist, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      bool alt = Environment.GetEnvironmentVariable("WCALT") != null;
+      V2 home = new V2(500f, 420f); me.Pos = me.Disp = home; me.Aim = 0f;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      var spots = alt ? new[] { new V2(200f, -60f), new V2(-180f, 90f), new V2(60f, 210f), new V2(-90f, -200f), new V2(230f, 120f) }
+                      : new[] { new V2(120f, -50f), new V2(150f, 40f), new V2(240f, 10f), new V2(70f, 75f), new V2(-60f, -70f) };
+      foreach (var at0 in spots) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = 0f; e.FireT = alt ? 0.1f : 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("WINDCLASH"), ci) * 60f));
+      V2 cursor = home + new V2(300f, 0f);
+      for (int f = 0; f < frames; f++) {
+        foreach (var e in foes) { e.Disp = e.Pos; if (!alt) e.FireT = 99f; }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = !alt, WeaponAction = alt && f < 3 });
+        gm.Update(1f / 60f);
+        me.Pos = home; me.Disp = me.Pos; me.Aim = 0f; me.AimAt = cursor; me.Hp = me.MaxHp; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // ARCLOCK=<s>: Arc Lightning's lock-on chain (Core/ArcLock.cs, Game/ArcLockLook.cs) that long into the mockup's loop: fire held from 0,
     // the cursor sweeping down the cone (one enemy walks out of it, still tagged), let go at 1.5 s; the chain hops from there.
     // ARCFORK=1: Alt instead at 0 (Forked Volley at the enemies nearest the cursor), no hold.

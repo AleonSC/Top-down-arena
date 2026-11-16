@@ -944,6 +944,8 @@ namespace Arena
                 return;  // Arc Lightning's Forked Volley (ArcLock.cs)
             if (LocalNimbusStorm(me, aimAt, pressed, dt))
                 return;  // the Nimbus's Eye of the Storm (Nimbus.cs)
+            if (LocalTempest(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
+                return;  // Wind Clash's Tempest (WindClash.cs)
             if (LocalKatana(me, aimAt, pressed, dt))
                 return;  // the Katana's stance switch and steps (Katana.cs)
             if (LocalKnuckleDash(me, aimAt, pressed, dt))
@@ -1296,6 +1298,11 @@ namespace Arena
             if (kind == DashStorm)
             {
                 HostNimbusStorm(p);  // the Nimbus's Alt (Nimbus.cs)
+                return;
+            }
+            if (kind == DashTempest)
+            {
+                HostTempest(p);  // Wind Clash's Alt (WindClash.cs)
                 return;
             }
             if (kind == DashDrum)

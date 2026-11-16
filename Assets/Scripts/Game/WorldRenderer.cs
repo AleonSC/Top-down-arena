@@ -336,6 +336,7 @@ namespace Arena
             DrawBuffTimers(p, t);  // a shrinking arc under them for each timed buff (AbilityLooks.cs)
             DrawRodAura(p, t);     // Lightning Rod's charge (LightningRodLook.cs)
             DrawStonespearUnder(p, t);  // the hovering spears' shadows (StonespearLook.cs)
+            DrawTempest(p, t);  // Wind Clash's Tempest (WindClashLook.cs)
             if (p.CoatT > 0f)
                 DrawHealingCoat(p, t);  // a Sanguine Orb's healing blood (BloodMageLook.cs)
             if (p.DoseT > 0f)  // dosed by Medicine Darts: green motes rising off you while it heals

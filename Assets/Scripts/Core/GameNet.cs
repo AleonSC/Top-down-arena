@@ -701,6 +701,8 @@ namespace Arena
             s.Float(ref p.GlReload);
             s.Float(ref p.GlSwap);
             s.Float(ref p.GlCharge);
+            s.Float(ref p.WcTempestT);  // Wind Clash's Tempest (WindClash.cs)
+            s.Float(ref p.WcTempestCd);
             s.Short(ref p.SsMask);  // the Stonespear (Stonespear.cs)
             s.Byte(ref p.SsSide);
             s.Int(ref p.SsLock);
