@@ -288,6 +288,8 @@ namespace Arena
             int held = p.Grasp.Count, max = GraspTendrils + ExtraShots(p) + p.Stats.Fan;
             if (burst && held > 0)
             {
+                bool was = firingWeapon;
+                firingWeapon = true;  // (credited to the weapon)
                 for (int i = 0; i < held && i < p.GraspCharge.Count; i++)
                 {
                     Enemy e;
@@ -302,6 +304,7 @@ namespace Arena
                     if (frac > 0.1f)
                         BroadcastFx(FxKind.Boom, e.Pos, new Rgba(0.85f, 0.1f, 0.18f), e.Radius + 12f + 30f * frac, 0.3f, Sfx.Explode);
                 }
+                firingWeapon = was;
                 p.GraspCd = GraspCooldown;
             }
             p.Grasp.Clear();
