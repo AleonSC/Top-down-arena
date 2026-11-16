@@ -29,6 +29,8 @@ namespace Arena
 
         void PracticeChanged() => session.PracticeEdited(practiceSel);
 
+        const float PracticeTop = 72f;  // where the Practice tab's body starts, under its header (name, chips, status)
+
         void DrawPracticeEditor(Rect r, float t)
         {
             var plan = session.Plan;
@@ -54,9 +56,9 @@ namespace Arena
             DrawPracticeHeader(r, t, canEdit, calm);
 
             // --- Waves (left): the rack, then what you can do to the selected wave.
-            float x0 = r.x + 16f, w0 = 196f, y = r.y + 54f;
+            float x0 = r.x + 16f, w0 = 196f, y = r.y + PracticeTop;
             const int rows = 5;
-            const float rowH = 48f, rowStep = 54f;
+            const float rowH = 46f, rowStep = 51f;
             LobbyKit.Heading(x0, y, w0, "Waves", plan.Waves.Count.ToString(), calm, 16);
             y += 38f;
             practiceScroll = Mathf.Clamp(practiceScroll, 0, Mathf.Max(0, plan.Waves.Count - rows));
@@ -76,7 +78,7 @@ namespace Arena
                 }
                 y += rowStep;
             }
-            float by = r.y + 54f + 38f + rows * rowStep;
+            float by = r.y + PracticeTop + 38f + rows * rowStep;
             if (plan.Waves.Count > rows)
             {
                 LobbyKit.Spaced(new Rect(x0 + 34f, by - 2f, w0 - 68f, 18f), (practiceScroll + 1) + "-" + Math.Min(plan.Waves.Count, practiceScroll + rows) + " OF " + plan.Waves.Count, 10, CrtUi.Dim, TextAnchor.MiddleCenter, 1.2f);
@@ -133,12 +135,12 @@ namespace Arena
                 plan.Loop = !plan.Loop;
                 PracticeChanged();
             }
-            Ui.Label(new Rect(x0, by + 38f, w0, 30f), "Level sets enemy health and fire rate, as on that wave of a run.", 10, CrtStyle.Desc, TextAnchor.UpperLeft, false, true);
+            Ui.Label(new Rect(x0, by + 35f, w0, 30f), "Level sets enemy health and fire rate, as on that wave of a run.", 10, CrtStyle.Desc, TextAnchor.UpperLeft, false, true);
 
             // --- Enemies (right): or the saved setups.
             float gx = x0 + w0 + 18f;
-            Ui.Fill(new Rect(gx - 9f, r.y + 54f, 1f, r.height - 54f - 70f), LobbyKit.Ink(0.22f));
-            var grid = new Rect(gx, r.y + 54f, r.xMax - 16f - gx, r.height - 54f - 70f);
+            Ui.Fill(new Rect(gx - 9f, r.y + PracticeTop, 1f, r.height - PracticeTop - 70f), LobbyKit.Ink(0.22f));
+            var grid = new Rect(gx, r.y + PracticeTop, r.xMax - 16f - gx, r.height - PracticeTop - 70f);
             if (practiceLoadOpen)
                 DrawPracticeFiles(grid, calm);
             else
@@ -199,25 +201,25 @@ namespace Arena
                 status = "Watching " + HostName() + "'s setup: only the host can edit.";
                 sc = Ui.Muted;
             }
-            // The Boss Hunt tab's header (ModeTabKit.cs): the spaced name, a rule, the tag on the right; the status under it.
+            // The mode tabs' header (ModeTabKit.cs): the spaced name and a rule; the fact chips and the status under it.
             var ink = CrtUi.Ink;
             float keyW = session.IsHost ? 144f : canEdit ? 100f : 0f;
             float right = r.xMax - 16f - (keyW > 0f ? keyW + 14f : 0f);
             LobbyKit.Spaced(new Rect(x + 2f, r.y + 6f, 200f, 20f), "PRACTICE", 14, new Color(ink.r, ink.g, ink.b, 0.9f), TextAnchor.MiddleLeft, 3.6f);
-            const string tag = "NO XP  ·  RESPAWN ON";  // no profile XP here, and a downed player can respawn (PracticeRespawn.cs)
-            float tagW = Ui.TextWidth(tag, 11, false);
-            Ui.Label(new Rect(right - tagW - 20f, r.y + 6f, tagW + 20f, 20f), tag, 11, ReviveMintUi, TextAnchor.MiddleRight);
-            float l0 = x + 2f + LobbyKit.SpacedWidth("PRACTICE", 14, 3.6f) + 20f, l1 = right - tagW - 10f;
-            if (l1 > l0 + 20f)
-                Ui.Fill(new Rect(l0, r.y + 16f, l1 - l0, 1f), new Color(ink.r, ink.g, ink.b, 0.25f));
+            float l0 = x + 2f + LobbyKit.SpacedWidth("PRACTICE", 14, 3.6f) + 20f;
+            if (right - 10f > l0 + 20f)
+                Ui.Fill(new Rect(l0, r.y + 16f, right - 10f - l0, 1f), new Color(ink.r, ink.g, ink.b, 0.25f));
+            // no profile XP here, and a downed player can respawn (PracticeRespawn.cs)
+            ModeChips(x + 2f, r.y + 27f, "NO XP  ·  RESPAWN ON", ReviveMintUi);
+            float sx = x + 2f, sy = r.y + 47f;
             float pulse = calm ? 0.8f : 0.5f + 0.5f * Mathf.Sin(t * 3f);
-            Ui.Fill(new Rect(x + 2f, r.y + 32f, 6f, 6f), new Color(sc.r, sc.g, sc.b, 0.35f + 0.6f * pulse));
+            Ui.Fill(new Rect(sx, sy + 6f, 6f, 6f), new Color(sc.r, sc.g, sc.b, 0.35f + 0.6f * pulse));
             bool flash = session.PlanEditor.Length > 0 && session.PlanEditor != MyLobbyName() && t - practiceFlashT < 4f;
             if (flash)  // someone else just changed a wave: their note replaces the status for a moment
-                Ui.Label(new Rect(x + 14f, r.y + 26f, right - x - 14f, 18f), session.PlanEditor + " changed wave " + (session.PlanEditorSel + 1), 12,
+                Ui.Label(new Rect(sx + 12f, sy, right - sx - 12f, 18f), session.PlanEditor + " changed wave " + (session.PlanEditorSel + 1), 12,
                     new Color(Ui.Accent.r, Ui.Accent.g, Ui.Accent.b, 1f - (t - practiceFlashT) / 4f));
             else
-                Ui.Label(new Rect(x + 14f, r.y + 26f, right - x - 14f, 18f), status, 12, new Color(sc.r, sc.g, sc.b, 0.85f));
+                Ui.Label(new Rect(sx + 12f, sy, right - sx - 12f, 18f), status, 12, new Color(sc.r, sc.g, sc.b, 0.85f));
             if (session.IsHost)
             {
                 if (LobbyKit.Key(new Rect(r.xMax - 160f, r.y + 8f, 144f, 30f), "LET OTHERS EDIT", session.OthersCanEdit, calm, size: 12, minSize: 9, accent: PracticeCyan))
@@ -225,7 +227,7 @@ namespace Arena
             }
             else if (canEdit)
                 DkTag(new Rect(r.xMax - 116f, r.y + 13f, 100f, 20f), "YOU CAN EDIT", new Color(0.2f, 0.62f, 0.32f));
-            Ui.Fill(new Rect(r.x + 14f, r.y + 46f, r.width - 28f, 1f), LobbyKit.Ink(0.25f));
+            Ui.Fill(new Rect(r.x + 14f, r.y + PracticeTop - 8f, r.width - 28f, 1f), LobbyKit.Ink(0.25f));
         }
 
         /// The enemies to pick from, each drawn live and grouped Melee, Ranged, Late and Bosses: click to add one, right-click (or the corner -) to take one away.

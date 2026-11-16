@@ -16,7 +16,7 @@ namespace Arena
             var profile = game.Profile ?? new Profile();
             var ink = CrtUi.Ink;
             float bodyY = ModeHeader(r, "CAMPAIGN", "100 WAVES  ·  A BOSS EVERY 10TH  ·  THEN ENDLESS",
-                "One long run on a growing arena. Build as you go: a boss after every tenth wave, then endless.", Ui.Muted);
+                "One long run on a growing arena. Build as you go.", Ui.Muted);
             float x = r.x + 18f, w = r.width - 36f, bodyH = Mathf.Max(200f, r.yMax - 14f - bodyY);
             var ev = Event.current;
 

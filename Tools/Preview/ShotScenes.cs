@@ -55,6 +55,7 @@ static partial class Shot {
     BloodWallScene();  // BLOODWALL=<s> BWCLOCK=<s> (ShotBloodWall.cs)
     PoisonDartScene();  // DART=<s into the scene> [DARTCAP=1] [FXOFF=1] (ShotPoisonDart.cs)
     PhalanxScene();  // PHALANX=<s since the cast> [PHALANXCAP=1] [FXOFF=1] (ShotPhalanx.cs)
+    BoneGuardScene();  // BONEGUARD=<s into the scene> [FXOFF=1] (ShotBoneGuard.cs)
     CarrierScene();  // CARRIER=1 (ShotCarrier.cs)
     WarderScene();  // WARDER=<s into the scene> [FXOFF=1] (ShotWarder.cs)
     KnightDpsScene();  // KNIGHTDPS=steel|gauntlet|dive|bridge KDT=<s> (ShotKnightDps.cs)
