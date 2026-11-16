@@ -136,7 +136,7 @@ namespace Arena
         // --- Vectors (Docs/VectorBuilding.md, step 1) ------------------------------------------------------------
 
         /// Each player's drawing budget: 1 vector = 1 tile of new wall (Expansion.Cost). Start with VectorStart, hold up to VectorCap
-        /// (VectorCapBase for now), +VectorWaveGain for each cleared wave, +1 every VectorKillEvery kills, and a cleared boss wave
+        /// (VectorCapBase for now), +VectorWaveGain for each cleared wave, a 1-vector pickup every VectorKillEvery kills, and a cleared boss wave
         /// refills everyone to the cap and VectorBossBonus on top.
         public const int VectorStart = 40, VectorCapBase = 70, VectorWaveGain = 8, VectorBossBonus = 20, VectorKillEvery = 8;
 
@@ -165,11 +165,12 @@ namespace Arena
             }
         }
 
-        /// Host, on a kill: every VectorKillEvery kills a player has made give them a vector.
-        void GrantVectorKill(Player killer)
+        /// Host, on a kill: every VectorKillEvery kills a player has made drop a small vector pickup where the enemy fell (Coins.cs;
+        /// whoever walks over it gets it, like any vector pickup).
+        void GrantVectorKill(Player killer, V2 at)
         {
             if (ExpandingOn && killer != null && killer.Run.Kills > 0 && killer.Run.Kills % VectorKillEvery == 0)
-                AddVectors(killer, 1);
+                DropVectorAt(at, 1);
         }
 
         void SyncVectors(NetSync s, Player p)

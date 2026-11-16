@@ -1403,8 +1403,8 @@ namespace Arena
             Ui.Pill(chip, Color.Lerp(new Color(0f, 0f, 0f, 0.55f), new Color(0.05f, 0.3f, 0.4f, 0.9f), lit));
             Ui.Fill(new Rect(chip.x + 3f, chip.y + 4f, 3f, chip.height - 8f), ink);
             Ui.Label(new Rect(chip.x + 12f, chip.y, w, chip.height), text, 10, ink, TextAnchor.MiddleLeft, true);
-            if (vecGainAge < VecGainLife && vecGainAge > 0.3f)  // "+10" beside it while they come in
-                Ui.Label(new Rect(chip.xMax + 6f, chip.y, 80f, chip.height), "+" + vecGainN, 12, new Color(0.55f, 1f, 1f, Mathf.Clamp01((VecGainLife - vecGainAge) / 0.5f)), TextAnchor.MiddleLeft, true);
+            if (vecGainAge < VecGainSpan && vecGainAge > 0.3f)  // "+10" beside it while they come in
+                Ui.Label(new Rect(chip.xMax + 6f, chip.y, 80f, chip.height), "+" + vecGainN, 12, new Color(0.55f, 1f, 1f, Mathf.Clamp01((VecGainSpan - vecGainAge) / 0.5f)), TextAnchor.MiddleLeft, true);
             return true;
         }
 
