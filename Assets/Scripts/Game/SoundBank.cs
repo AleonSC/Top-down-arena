@@ -262,6 +262,7 @@ namespace Arena
             BuildTankAlt();  // TankAltSoundBank.cs
             BuildStonespear();  // StonespearSoundBank.cs
             BuildSentryNova();  // SentryNovaSoundBank.cs
+            BuildBulletRain();  // BulletRainSoundBank.cs
         }
 
         void Build()

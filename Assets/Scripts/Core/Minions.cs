@@ -1048,7 +1048,9 @@ namespace Arena
                 if (d.Dps > 0f || d.Slow > 0f || z.ExtraSlow > 0f)
                     foreach (var e in Enemies.Values)
                     {
-                        if (e.SpawnT > 0f || e.Pos.FartherThan(z.Pos, z.Radius + e.Radius))
+                        if (e.SpawnT > 0f || (z.Kind == ZoneKind.BulletRain
+                                ? Math.Abs(e.Pos.X - z.Pos.X) > z.Radius + e.Radius || Math.Abs(e.Pos.Y - z.Pos.Y) > z.Radius + e.Radius  // a square
+                                : e.Pos.FartherThan(z.Pos, z.Radius + e.Radius)))
                             continue;
                         if (d.Dps > 0f && !HallowedSpent(z))
                             HurtEnemy(e, d.Dps * z.DmgMult * dt, z.Owner);

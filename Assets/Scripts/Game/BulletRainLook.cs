@@ -3,8 +3,8 @@ using UnityEngine;
 namespace Arena
 {
     /// Bullet Rain (the Elementalist DPS ultimate): "Rain Barrage", look B of Docs/Mockups/bullet-rain.html (the Soldier's
-    /// mockup), recoloured from its reds to rain blues. A target zone locks on (shrinking in from 1.6x over 0.7 s) with a
-    /// dashed tether from the caster, a turning dashed rim, four ticks and a crosshair; rounds fall into it (85 a second),
+    /// mockup), recoloured from its reds to rain blues. A square target zone (520 px across, `Zone.Radius` = its half-side) locks on (shrinking in from 1.6x over 0.7 s) with a
+    /// dashed tether from the caster, a dashed rim, corner ticks and a crosshair; rounds fall into it (220 a second),
     /// each casting a growing dot first, and land with a ring, two sparks and a wet mark. The caster glows and launches
     /// rounds upward. Everything is drawn from the zone's clock alone, so it costs nothing on the network. The ground
     /// half draws with the zone (`DrawBulletRain`), the rounds in the air over the enemies (`DrawBulletRainAir`).
@@ -18,7 +18,7 @@ namespace Arena
             RainFill = new Rgba(0.36f, 0.6f, 0.92f), RainTick = new Rgba(0.67f, 0.84f, 1f), RainCross = new Rgba(0.8f, 0.9f, 1f),
             RainDot = new Rgba(0.59f, 0.78f, 1f), RainTrail = new Rgba(0.47f, 0.69f, 0.98f), RainCore = new Rgba(0.88f, 0.95f, 1f),
             RainLand = new Rgba(0.55f, 0.75f, 0.98f), RainLaunch = new Rgba(0.7f, 0.86f, 1f);
-        const float RainLock = 0.7f, RainRate = 85f, RainLife = 1.4f + 0.4f;  // lock-on time, rounds a second, a round's fall + mark
+        const float RainLock = 0.7f, RainRate = 220f, RainLife = 1.4f + 0.4f;  // lock-on time, rounds a second, a round's fall + mark
 
         float RainAge(Zone z) { return z.Duration - z.T; }
         float RainZa(Zone z)  // the zone's fade: in over the lock-on, out over the last 0.8 s
@@ -36,15 +36,57 @@ namespace Arena
             float u = (age + Hash01(k + 0.37f) * period) / period, cyc = (float)System.Math.Floor(u);
             tau = (u - cyc) * period;
             seed = k * 13.7f + cyc * 7.1f + 300f;
-            float a = Hash01(seed) * MathX.Tau, r = Mathf.Sqrt(Hash01(seed + 1.3f)) * z.Radius;
-            land = z.Pos + V2.FromAngle(a) * r;
+            land = z.Pos + new V2(Hash01(seed) * 2f - 1f, Hash01(seed + 1.3f) * 2f - 1f) * z.Radius;  // anywhere in the square
             z0 = 300f + 220f * Hash01(seed + 2.1f);
             vz = 1300f + 400f * Hash01(seed + 3.7f);
             float spawn = age - tau;
             return spawn >= 0f && spawn <= z.Duration - z0 / vz;
         }
 
-        int RainRounds { get { return fxReduced ? 64 : (int)(RainRate * RainLife); } }
+        // Sounds: when each Bullet Rain zone's next patter is due (by zone id); the cast plays on first sight, the end near its last 0.5 s.
+        readonly System.Collections.Generic.Dictionary<int, float> rainNext = new System.Collections.Generic.Dictionary<int, float>();
+        readonly System.Collections.Generic.List<int> rainGone = new System.Collections.Generic.List<int>();
+        readonly System.Collections.Generic.HashSet<int> rainEnded = new System.Collections.Generic.HashSet<int>();
+
+        void UpdateBulletRainSound(float t)
+        {
+            float now = Time.unscaledTime;
+            rainGone.Clear();
+            foreach (var kv in rainNext)
+                if (!game.Zones.ContainsKey(kv.Key))
+                    rainGone.Add(kv.Key);
+            foreach (int id in rainGone)
+            {
+                rainNext.Remove(id);
+                rainEnded.Remove(id);
+            }
+            foreach (var z in game.Zones.Values)
+            {
+                if (z.Kind != ZoneKind.BulletRain)
+                    continue;
+                bool mine = z.Owner == game.MyId;
+                float quiet = mine ? 0f : game.QuietAt(z.Pos);
+                float next;
+                if (!rainNext.TryGetValue(z.Id, out next))
+                {
+                    sounds?.PlayRainCue(SoundBank.RainCue.RainCast, !mine, quiet, now);
+                    rainNext[z.Id] = now + 0.5f;
+                    continue;
+                }
+                if (z.T < 0.5f)
+                {
+                    if (rainEnded.Add(z.Id))
+                        sounds?.PlayRainCue(SoundBank.RainCue.RainEnd, !mine, quiet, now);
+                }
+                else if (now >= next)
+                {
+                    sounds?.PlayRainCue(SoundBank.RainCue.RainPatter, !mine, quiet, now);
+                    rainNext[z.Id] = now + 0.45f;
+                }
+            }
+        }
+
+        int RainRounds { get { return fxReduced ? 120 : (int)(RainRate * RainLife); } }
 
         /// Under the enemies: the caster's glow and launch, the tether, the zone, wet marks and each round's dot.
         void DrawBulletRain(Zone z, float t)
@@ -75,24 +117,27 @@ namespace Arena
                 for (float d = 0f; d < len; d += 14f)
                     Line(from + dir * d, from + dir * Mathf.Min(len, d + 5f), 1.5f, RainRim.WithAlpha(0.22f * za));
             }
-            // The zone: a disc darkening to its rim, the turning dashed rim, a thin outer ring, four ticks and a crosshair.
-            FanGradient(z.Pos, R * 0.75f, RainFill.WithAlpha(0.03f * za), RainFill.WithAlpha(0.09f * za), 40);
-            for (int i = 0; i < 40; i++)
+            // The zone: a square darkening to its edge, a turning dashed rim, a thin outer square, corner ticks and a crosshair.
+            V2 c0 = z.Pos + new V2(-R, -R), c1 = z.Pos + new V2(R, -R), c2 = z.Pos + new V2(R, R), c3 = z.Pos + new V2(-R, R);
+            Rgba fi = RainFill.WithAlpha(0.03f * za), fo = RainFill.WithAlpha(0.2f * za);
+            VTri(z.Pos, fi, c0, fo, c1, fo);
+            VTri(z.Pos, fi, c1, fo, c2, fo);
+            VTri(z.Pos, fi, c2, fo, c3, fo);
+            VTri(z.Pos, fi, c3, fo, c0, fo);
+            V2[] cs = { c0, c1, c2, c3 };
+            float off = t * 50f;
+            for (int side = 0; side < 4; side++)
             {
-                V2 d0 = V2.FromAngle(MathX.Tau * i / 40f), d1 = V2.FromAngle(MathX.Tau * (i + 1) / 40f);
-                Rgba ci = RainFill.WithAlpha(0.09f * za), co = RainFill.WithAlpha(0.22f * za);
-                VTri(z.Pos + d0 * (R * 0.75f), ci, z.Pos + d0 * R, co, z.Pos + d1 * R, co);
-                VTri(z.Pos + d0 * (R * 0.75f), ci, z.Pos + d1 * R, co, z.Pos + d1 * (R * 0.75f), ci);
-            }
-            int dashes = Mathf.Max(8, Mathf.RoundToInt(MathX.Tau * R / 26f));
-            float step = MathX.Tau / dashes, off = t * 50f / R;
-            for (int i = 0; i < dashes; i++)
-                Arc(z.Pos, R, 2.5f, RainRim.WithAlpha(0.85f * za), 3, i * step + off, step * 16f / 26f);
-            Arc(z.Pos, R + 12f, 1f, RainRim.WithAlpha(0.25f * za), 64);
-            for (int i = 0; i < 4; i++)
-            {
-                V2 d = V2.FromAngle(t * 0.5f + i * MathX.Tau / 4f);
-                Line(z.Pos + d * (R + 4f), z.Pos + d * (R + 20f), 3f, RainTick.WithAlpha(0.8f * za));
+                V2 a0 = cs[side], a1 = cs[(side + 1) % 4], dirS = (a1 - a0) / (2f * R);
+                for (float d = -(off % 26f); d < 2f * R; d += 26f)
+                {
+                    float d0 = Mathf.Max(0f, d), d1 = Mathf.Min(2f * R, d + 16f);
+                    if (d1 > d0)
+                        Line(a0 + dirS * d0, a0 + dirS * d1, 2.5f, RainRim.WithAlpha(0.85f * za));
+                }
+                Line(a0 + (a0 - z.Pos) * (12f / R), a1 + (a1 - z.Pos) * (12f / R), 1f, RainRim.WithAlpha(0.25f * za));
+                V2 outv = (a0 - z.Pos) / (R * 1.4142f);  // corner tick, pointing out
+                Line(a0 + outv * 4f, a0 + outv * 24f, 3f, RainTick.WithAlpha(0.8f * za));
             }
             Rgba cr = RainCross.WithAlpha(0.7f * za);
             Line(z.Pos + new V2(-14f, 0f), z.Pos + new V2(-5f, 0f), 1.5f, cr);
