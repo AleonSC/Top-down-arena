@@ -21,7 +21,7 @@ h1 span{color:var(--accent);transition:color .3s}
 header p{margin:0;color:var(--muted);max-width:66ch}
 header p b{color:var(--fg);font-weight:600}
 h2{font:700 24px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px}
-.variants{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.variants{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 .vchip{display:flex;flex-direction:column;gap:2px;text-align:left;padding:12px 14px;border-radius:8px;border:1px solid var(--line);
   background:var(--panel);color:var(--fg);cursor:pointer;font:inherit;min-width:0}
 .vchip b{font:700 22px/1 var(--display);text-transform:uppercase;letter-spacing:.02em;display:flex;align-items:center;gap:8px}
@@ -66,13 +66,15 @@ dd b{color:var(--accent);font-weight:600}
 .cmp td:first-child{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
 .cmp th{font:700 18px/1 var(--display);letter-spacing:.03em;color:var(--fg)}
 .note{color:var(--muted);font-size:14px;margin:0}
-@media (max-width:720px){.spec{grid-template-columns:1fr}.variants{grid-template-columns:1fr}}
+@media (max-width:860px){.variants{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:720px){.spec{grid-template-columns:1fr}}
+@media (max-width:460px){.variants{grid-template-columns:1fr}}
 </style>
 
 <main>
   <header>
     <p class="eyebrow">DPS Ninja · weapon 4 (Choice 3) · draft</p>
-    <h1>Nunchaku <span id="vTitle">Iron Storm</span></h1>
+    <h1>Nunchaku <span id="vTitle">Twin Storm</span></h1>
     <p><b>Fire</b> is a heavy combo with a big finisher. The <b>weapon-action key</b> (Left Alt) switches to a <b>defensive stance</b>, where Fire does something else. Three takes below; numbers are a first pass at about the Arc Knuckles' damage.</p>
   </header>
 
@@ -147,10 +149,29 @@ const UNDERTOW=[[0,R,6,13,0],[.32,4.9,4,-6,-4],[.64,TAU+1.4,18,10,14,'o'],[1,TAU
 const ANVIL=[[0,R,6,13,0],[.45,9.0,0,0,-8,'i'],[.58,4*Math.PI,26,0,20,'o'],[.72,4*Math.PI,26,0,20],[1,4*Math.PI+R,6,13,0]];
 
 const V={
+twinstorm:{
+  name:'Twin Storm', color:'#ff4d5e', swatch:'#ff4d5e',
+  blurb:'Iron Storm with a chuck in each hand. Same flow, both arms.',
+  look:{stick:'#191416',band:'#ff4d5e',cap:'#cfd6de',w:4.2,chain:'#a3acb6'}, twin:true, windmill:true,
+  combo:[
+    {name:'Snap',dmg:22,show:'22',shape:'Right chuck whips straight ahead, 90 px',dur:.3,R:SNAP},
+    {name:'Backhand',dmg:24,show:'24',shape:'Left chuck sweeps back across, 140°, 90 px',dur:.32,L:mirror(BACKHAND)},
+    {name:'Double Figure-8',dmg:14,hits:4,show:'4 × 14',shape:'Both chucks cross twice, 85 px',dur:.5,R:FIG8,L:mirror(FIG8)},
+    {name:'Twin Crush',dmg:80,show:'80',shape:'Both spin overhead and slam together: 100 px shockwave, stuns 0.7 s',dur:.75,R:CRUSH,L:mirror(CRUSH),fin:true,tip:false,
+      fx:[{u:.5,type:'ring',at:'tip',r:100,dmg:80,shove:38,stun:.7}]},
+  ],
+  guard:{name:'Twin Windmill',
+    hold:'Both chucks spin <b>two discs</b> in front of you, one per side (about 110° covered). Small bullets that hit them are <b>swatted back</b> (6 each). 25% slower while in it.',
+    fire:'<b>Twin Counter</b>: both chucks lash 160 px for 24 + <b>6 per bullet swatted</b> (up to 8, so 72).',
+    out:'Alt again. The combo starts over at Snap.'},
+  guardFire:{name:'Twin Counter',dur:.55,R:WHIP,L:mirror(WHIP),tip:false,fx:[{u:.45,type:'lash',len:170,w:20,base:24,per:6,cap:8}]},
+  stats:['Chain <b>1.9 s</b>','~<b>92</b>/s one target','+1: Figure-8 crosses 3 times, Crush ring +20%'],
+  cmp:{feel:'Iron Storm\'s flow, both arms working',best:'Bosses and tight packs',guard:'Two reflect discs: more swats, bigger counter',risk:'Crush wind-up, slower in guard'},
+},
 storm:{
   name:'Iron Storm', color:'#ff4d5e', swatch:'#ff4d5e',
   blurb:'One black chuck, crimson bands. Fast chain, overhead crush.',
-  look:{stick:'#191416',band:'#ff4d5e',cap:'#cfd6de',w:4.2,chain:'#a3acb6'}, free:[8,-12],
+  look:{stick:'#191416',band:'#ff4d5e',cap:'#cfd6de',w:4.2,chain:'#a3acb6'}, free:[8,-12], windmill:true,
   combo:[
     {name:'Snap',dmg:24,show:'24',shape:'Whip straight ahead, 90 px',dur:.32,R:SNAP},
     {name:'Backhand',dmg:26,show:'26',shape:'140° sweep, 90 px',dur:.34,R:BACKHAND},
@@ -206,11 +227,12 @@ tide:{
   cmp:{feel:'Slow, heavy, every swing lands hard',best:'Lines of enemies, punishing bosses',guard:'Parry: a timed Catch for a huge riposte',risk:'Slowest steps, Catch needs timing'},
 },
 };
-const ORDER=['storm','dragon','tide'];
+const ORDER=['twinstorm','storm','dragon','tide'];
 
 /* guard poses: s = seconds in the stance */
 const GD=2.4;
 const guardPose={
+  twinstorm:s=>{const a=TAU*10*s/GD;return {bx:0,hands:[[18,12],[18,-12]],chucks:[{hi:0,th:R-a},{hi:1,th:-R+a}]};},
   storm:s=>({bx:0,hands:[[18,4],[8,-12]],chucks:[{hi:0,th:R-TAU*10*s/GD}]}),
   dragon:s=>{const a=TAU*5*s/GD;return {bx:0,hands:[[Math.cos(a)*12,Math.sin(a)*12],[-Math.cos(a)*12,-Math.sin(a)*12]],chucks:[{hi:0,th:a},{hi:1,th:a+Math.PI}]};},
   tide:s=>{const b=Math.sin(s*3)*1.2;return {bx:0,hands:[[16+b,27],[16+b,-27]],chucks:[{hi:0,th:-Math.PI/2}]};},
@@ -292,7 +314,7 @@ function chuckPts(p,lag){
 }
 
 /* ---------- the simulation ---------- */
-let KEY='storm', VV=V.storm, MODE='loop', SPEED=1, PAUSED=false, TL=build(KEY,MODE), T=0, S;
+let KEY='twinstorm', VV=V.twinstorm, MODE='loop', SPEED=1, PAUSED=false, TL=build(KEY,MODE), T=0, S;
 const ENEMIES=[[PX+80,PY-30],[PX+90,PY+4],[PX+76,PY+36],[PX+150,PY-6]];
 function reset(){
   S={en:ENEMIES.map(([x,y])=>({bx:x,by:y,x,y,vx:0,vy:0,r:11,flash:0,stun:0,last:-9})),bul:[],fx:[],nums:[],hist:[],hits:new Map(),fired:new Set(),spawn:0,swatted:0,prevSeg:-1,blocked:0};
@@ -350,7 +372,7 @@ function step(dt){
     b.t+=dt;b.x+=b.vx*dt;b.y+=b.vy*dt;
     if(b.state==='in'&&guardUp){
       const bx=PX+p.bx;
-      if(KEY==='storm'&&!s.gf){const h=pts[0].H;if(Math.hypot(b.x-h[0],b.y-h[1])<56){b.state='back';S.swatted++;
+      if(VV.windmill&&!s.gf&&b.state==='in'&&pts.some(q=>Math.hypot(b.x-q.H[0],b.y-q.H[1])<(VV.twin?44:56))){{b.state='back';S.swatted++;
         const tg=S.en[S.swatted%3];const dx=tg.x-b.x,dy=tg.y-b.y,d=Math.hypot(dx,dy)||1;b.vx=dx/d*420;b.vy=dy/d*420;S.fx.push({type:'spark',x:b.x,y:b.y,t:0,col:VV.color});}}
       if(KEY==='dragon'&&!s.gf){if(Math.hypot(b.x-bx,b.y-PY)<66){b.state='dead';S.fx.push({type:'spark',x:b.x,y:b.y,t:0,col:VV.color});}}
       if(KEY==='tide'){if(b.x<bx+44&&Math.abs(b.y-PY)<40){b.state='dead';
@@ -416,11 +438,12 @@ function drawGuard(s,p){
   if(!on)return;
   const k=s.kind==='switch'?clamp((T-s.start)/s.dur):1, bx=PX+p.bx, t=T;
   c.save();c.globalCompositeOperation='lighter';
-  if(KEY==='storm'){
-    const h=p.hands[0],x=bx+h[0],y=PY+h[1];
-    const g=c.createRadialGradient(x,y,6,x,y,56);g.addColorStop(0,rgba(VV.color,.02));g.addColorStop(.8,rgba(VV.color,.14*k));g.addColorStop(1,rgba(VV.color,0));
-    circ(x,y,56,g);
-    for(let i=0;i<3;i++){const a=-t*26+i*2.1;c.beginPath();c.arc(x,y,50-i*7,a,a+1.4);c.lineWidth=2-i*.4;c.strokeStyle=rgba(VV.color,.5*k);c.stroke();}
+  for(const hd of (VV.windmill?(VV.twin?[0,1]:[0]):[])){
+    const h=p.hands[hd],x=bx+h[0],y=PY+h[1];
+    const rr=VV.twin?44:56, sp=hd?26:-26;
+    const g=c.createRadialGradient(x,y,6,x,y,rr);g.addColorStop(0,rgba(VV.color,.02));g.addColorStop(.8,rgba(VV.color,.14*k));g.addColorStop(1,rgba(VV.color,0));
+    circ(x,y,rr,g);
+    for(let i=0;i<3;i++){const a=t*sp+i*2.1;c.beginPath();c.arc(x,y,rr-6-i*7,a,a+1.4);c.lineWidth=2-i*.4;c.strokeStyle=rgba(VV.color,.5*k);c.stroke();}
   }
   if(KEY==='dragon'){
     c.setLineDash([10,7]);c.lineDashOffset=-t*90;
@@ -530,7 +553,7 @@ function hud(s){
   let name='Ready', step=-1;
   if(s.kind==='move'){name=s.m.name+(s.gf&&KEY==='storm'?'':'');step=s.step===undefined?-1:s.step;}
   else if(s.kind==='switch') name=s.to==='guard'?'Switch to '+v.guard.name:'Back to the combo';
-  else if(s.kind==='guard') name=v.guard.name+(KEY==='storm'?'  ·  swatted '+S.swatted:'');
+  else if(s.kind==='guard') name=v.guard.name+(VV.windmill?'  ·  swatted '+S.swatted:'');
   else if(s.kind==='idle'&&s.step) {name='Next: '+(v.combo[s.step]?v.combo[s.step].name:'Snap back to step 1');step=-1;}
   const done=s.kind==='idle'&&s.step?s.step:(s.kind==='move'&&!s.gf?s.step:0);
   const key=s.key||'';
