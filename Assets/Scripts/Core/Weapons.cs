@@ -391,7 +391,7 @@ namespace Arena
                     break;
                 }
                 case WeaponId.GrenadeLauncher:
-                    LaunchGrenade(p, aim, dmg);  // GrenadeLauncher.cs
+                    LaunchGrenade(p, aim, dmg, extra);  // GrenadeLauncher.cs
                     break;
                 case WeaponId.FlakCannon:
                 {

@@ -133,7 +133,13 @@ namespace Arena
         }
 
         /// One HE grenade (FireVolley's case): flies to the cursor, hops, then bursts where its flight ends (Combat.cs: GlBlast).
-        void LaunchGrenade(Player p, float aim, float dmg)
+        void LaunchGrenade(Player p, float aim, float dmg, int extra)
+        {
+            for (int k = 0; k <= extra; k++)  // each extra projectile: one more grenade, fanned out to alternating sides
+                LaunchOneGrenade(p, aim + (k == 0 ? 0f : (k % 2 == 1 ? 1f : -1f) * 0.12f * ((k + 1) / 2)), dmg);
+        }
+
+        void LaunchOneGrenade(Player p, float aim, float dmg)
         {
             V2 from, at = GlTarget(p, aim, out from);
             V2 dir = (at - from).Length > 1f ? (at - from).Normalized() : V2.FromAngle(aim);
