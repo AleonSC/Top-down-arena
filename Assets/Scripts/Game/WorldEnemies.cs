@@ -149,6 +149,9 @@ namespace Arena
                 case ZoneKind.TearGas:  // the Riot Repeater's Tear Gas (TankAltLook.cs)
                     DrawTearGas(z, t);
                     return;
+                case ZoneKind.OssuaryWall:  // the Bone Guard's Alt (BoneGuardLook.cs)
+                    DrawOssuaryWall(z, t);
+                    return;
                 case ZoneKind.OfudaWard:  // an Ofuda charm lying on the ground: a paper strip with a red seal, glowing
                 {
                     float pulse = 0.5f + 0.5f * Mathf.Sin(t * 4f + z.Id);

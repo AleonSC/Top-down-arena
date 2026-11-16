@@ -33,6 +33,7 @@ namespace Arena
             scatLocalCd = Math.Max(0f, scatLocalCd - dt);
             mineLocalCd = Math.Max(0f, mineLocalCd - dt);
             gasLocalCd = Math.Max(0f, gasLocalCd - dt);
+            boneWallLocalCd = Math.Max(0f, boneWallLocalCd - dt);
             if (!pressed)
                 return false;
             byte kind;
@@ -62,6 +63,12 @@ namespace Arena
                         return false;
                     gasLocalCd = TearGasCd;
                     kind = DashGas;
+                    break;
+                case WeaponId.BoneGuard:  // (the Tank Summoner's Ossuary Wall: BoneGuard.cs)
+                    if (boneWallLocalCd > 0f)
+                        return false;
+                    boneWallLocalCd = BoneWallCd;
+                    kind = DashBoneWall;
                     break;
                 default:
                     return false;
