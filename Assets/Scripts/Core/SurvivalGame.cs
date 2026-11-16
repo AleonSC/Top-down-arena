@@ -26,7 +26,7 @@ namespace Arena
         float survPropT;
         // What the camera shows round a player (half width and height at the default zoom, plus a margin): enemies appear outside it.
         const float ViewHalfW = 880f, ViewHalfH = 500f;
-        const int CrateGoal = 120, PotGoal = 40, BarrelGoal = 8;
+        const int CrateGoal = 120, BarrelGoal = 8;
         const int MaxProps = 250;  // the snapshot sends the prop count in a byte (Props.cs SyncProps)
         int survSeed;
         string survSquad;
@@ -94,22 +94,21 @@ namespace Arena
             ModsWaveStart();  // Hunted's first quarry, Second Wind (Modifiers.cs)
         }
 
-        /// Host: crates (often two side by side: a little wall), pots and a few barrels scattered over the whole room. At the start
+        /// Host: crates (often two side by side: a little wall) and a few barrels scattered over the whole room. At the start
         /// everywhere; after that a few at a time, out of everyone's view, as they get smashed.
         void SurvivalProps(bool all)
         {
             if (!PropsOn)
                 return;
-            int crates = 0, pots = 0, barrels = 0;
+            int crates = 0, barrels = 0;
             foreach (var p in Props.Values)
             {
                 if (IsCrate(p)) crates++;
-                else if (p.Kind == PropKind.Pot) pots++;
                 else if (p.Kind == PropKind.Barrel) barrels++;
             }
             bool clutter = Has(RunMod.Cluttered);
-            int crateGoal = Math.Min(MaxProps - PotGoal - BarrelGoal, clutter ? (int)(CrateGoal * Modifiers.SurvivalClutter) : CrateGoal);
-            int addCrates = all ? crateGoal : clutter ? 8 : 3, addPots = all ? PotGoal : 1, addBarrels = all ? BarrelGoal : 1;
+            int crateGoal = Math.Min(MaxProps - BarrelGoal, clutter ? (int)(CrateGoal * Modifiers.SurvivalClutter) : CrateGoal);
+            int addCrates = all ? crateGoal : clutter ? 8 : 3, addBarrels = all ? BarrelGoal : 1;
             for (int n = 0, tries = 0; crates < crateGoal && n < addCrates && tries < (clutter ? 1200 : 400); tries++)
             {
                 var kind = rng.NextDouble() < 0.3 ? PropKind.HeavyCrate : PropKind.Crate;
@@ -124,15 +123,10 @@ namespace Arena
                     if (SpotClear(next, HalfW(kind), 0f)) { Landed(AddProp(kind, next)); crates++; n++; }
                 }
             }
-            for (int n = 0, tries = 0; pots < PotGoal && n < addPots && tries < 200; tries++)
-            {
-                V2 at;
-                if (SurvivalPropSpot(PotR, all, out at)) { Landed(AddProp(PropKind.Pot, at)); pots++; n++; }
-            }
             for (int n = 0, tries = 0; barrels < BarrelGoal && n < addBarrels && tries < 200; tries++)
             {
                 V2 at;
-                if (SurvivalPropSpot(PotR, all, out at)) { Landed(AddProp(PropKind.Barrel, at)); barrels++; n++; }
+                if (SurvivalPropSpot(BarrelR, all, out at)) { Landed(AddProp(PropKind.Barrel, at)); barrels++; n++; }
             }
         }
 
@@ -221,7 +215,11 @@ namespace Arena
             var d = Defs.Get(sp.Type);
             V2 pos;
             if (sp.Squad != null && sp.Squad == survSquad)
+            {
                 pos = survSquadPos + new V2(Rand(-40f, 40f), Rand(-40f, 40f));
+                if (NearSolid(pos, d.Radius))
+                    pos = survSquadPos;  // the jitter put it in a wall: come in on the squad's (clear) spot
+            }
             else
             {
                 pos = SurvivalSpot(d.Radius);

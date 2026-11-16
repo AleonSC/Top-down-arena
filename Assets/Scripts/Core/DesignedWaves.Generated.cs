@@ -50,7 +50,6 @@ namespace Arena
             w.Props.Add(new DesignProp { Kind = PropKind.Crate, Pos = new V2(610f, 330f) });
             w.Props.Add(new DesignProp { Kind = PropKind.Crate, Pos = new V2(990f, 330f) });
             w.Props.Add(new DesignProp { Kind = PropKind.Barrel, Pos = new V2(800f, 640f) });
-            w.Props.Add(new DesignProp { Kind = PropKind.Pot, Pos = new V2(300f, 200f) });
             return s;
         }
     }

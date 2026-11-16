@@ -546,7 +546,6 @@ static partial class Shot {
       dw.Groups.Add(new DesignGroup { Name = "Riot line", Squad = "Riot line", From = "A", At = 11f });
       foreach (var pp in new[] { new V2(610f, 330f), new V2(990f, 330f) }) dw.Props.Add(new DesignProp { Kind = PropKind.Crate, Pos = pp });
       dw.Props.Add(new DesignProp { Kind = PropKind.Barrel, Pos = new V2(800f, 640f) });
-      dw.Props.Add(new DesignProp { Kind = PropKind.Pot, Pos = new V2(300f, 200f) });
       ws.Waves.Add(new DesignWave { Level = 5 });
       ws.Waves.Add(dw);
       set("edSet", ws);

@@ -2,13 +2,13 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The look of the arena's props (Props.cs): wooden and iron-bound crates, clay pots, red barrels, the treasure
+    /// The look of the arena's props (Props.cs): wooden and iron-bound crates, red barrels, the treasure
     /// chest, and your chest item: a card spinning in a beam of its rarity's colour (only you see yours).
     public partial class ArenaApp
     {
         static readonly Rgba PropWood = new Rgba(0.62f, 0.43f, 0.24f), PropWoodDark = new Rgba(0.36f, 0.23f, 0.12f);
         static readonly Rgba PropIron = new Rgba(0.5f, 0.53f, 0.58f), PropGold = new Rgba(1f, 0.8f, 0.3f);
-        static readonly Rgba PropClay = new Rgba(0.78f, 0.45f, 0.27f), BarrelRed = new Rgba(0.78f, 0.17f, 0.13f);
+        static readonly Rgba BarrelRed = new Rgba(0.78f, 0.17f, 0.13f);
 
         void DrawProps(float t)
         {
@@ -45,9 +45,6 @@ namespace Arena
                         else
                             DrawCrate(p, at, a);
                         break;
-                    case PropKind.Pot:
-                        DrawPot(p, at, a, t);  // a clay pot always, Visual effects or not
-                        break;
                     case PropKind.Barrel:
                         DrawBarrel(p, at, a, t);  // looks A (Hologram) when Visual effects are on
                         break;
@@ -70,10 +67,9 @@ namespace Arena
         }
 
         // --- Look A "Hologram" (Docs/Mockups/digital-props.html), used while Visual effects are on ---------------------
-        // Crates and pots are projected wireframes: a cyan glow, scanlines, edge segments that drop out and flicker as a crate
-        // is worn down (pink below a third health), a heavy crate with an inner frame and corner nodes, and a pot that is a
-        // ring with a turning dashed band, a pulsing diamond and a scan line. With Visual effects off the wood and clay
-        // below draw as before; Reduced effects drops the scanlines, flicker, glitch slice and the pot's motion.
+        // Crates are projected wireframes: a cyan glow, scanlines, edge segments that drop out and flicker as a crate
+        // is worn down (pink below a third health), a heavy crate with an inner frame and corner nodes. With Visual effects
+        // off the wood below draws as before; Reduced effects drops the scanlines, flicker and glitch slice.
 
         static readonly Rgba HoloCyanBase = new Rgba(0.31f, 0.89f, 1f), HoloBlueBase = new Rgba(0.56f, 0.82f, 1f);
         Rgba PropHoloCyan = HoloCyanBase, PropHoloBlue = HoloBlueBase;  // themed with the walls for the coming boss (WallInk, LayoutLook.cs)
@@ -201,27 +197,6 @@ namespace Arena
         bool HoloOn(int id, int seed, float dmg, float t) =>
             PropHash(seed * 31 + id) > dmg * 0.8f || (!fxReduced && Mathf.Sin(t * 14f + id * 2.3f) > 0.9f);
 
-        void DrawPotHolo(Prop p, V2 c, float al, float t)
-        {
-            float r = Game.PotR;
-            Circle(c, r, PropHoloCyan.WithAlpha(0.10f * al), 24);
-            GlowArc(c, r, 1.8f, PropHoloCyan.WithAlpha(al), 32);
-            // The dashed inner band turns (dashes 3 long, gaps 3, creeping 18 px a second).
-            float rb = r * 0.72f, step = 6f / rb, phase = fxReduced ? 0f : t * 18f / rb;
-            int dashes = Mathf.FloorToInt(MathX.Tau / step);
-            for (int i = 0; i < dashes; i++)
-                Arc(c, rb, 1f, PropHoloCyan.WithAlpha(al), 4, phase + i * step, 3f / rb);
-            // The diamond core, pulsing.
-            float s = r * 0.3f * (1f + (fxReduced ? 0f : 0.15f * Mathf.Sin(t * 4f)));
-            var core = PropHoloCyan.Mix(new Rgba(1f, 1f, 1f), 0.6f).WithAlpha(al);
-            Circle(c, s * 1.8f, PropHoloCyan.WithAlpha(0.10f * al), 16);
-            SetColor(core);
-            Quad(c + new V2(0f, -s), c + new V2(s, 0f), c + new V2(0f, s), c + new V2(-s, 0f));
-            // A scan line sweeping down the ring.
-            float sy = -r + MathX.Fmod((fxReduced ? 0.5f : t * 0.8f) + p.Seed * 0.1f, 1f) * 2f * r, hw = Mathf.Sqrt(Mathf.Max(0f, r * r - sy * sy));
-            FillRect(c.X - hw, c.Y + sy, 2f * hw, 1.5f, new Rgba(0.75f, 0.96f, 1f, 0.55f * al));
-        }
-
         /// A glowing ring.
         void GlowArc(V2 c, float r, float w, Rgba col, int segs)
         {
@@ -230,11 +205,10 @@ namespace Arena
             Arc(c, r, w, col, segs);
         }
 
-        /// A crate or pot smashing with Visual effects on: the hologram's ring bursts and its edges fly apart in
-        /// shards (a pot's lasts 1.3 s, the mockup's loop, a crate's the usual 0.5 s).
-        void DrawHoloBreakFx(Effect fx, float k, bool pot)
+        /// A crate smashing with Visual effects on: the hologram's ring bursts and its edges fly apart in shards.
+        void DrawHoloBreakFx(Effect fx, float k)
         {
-            float al = 1f - k, r = pot ? Game.PotR : fx.Radius / 1.6f;
+            float al = 1f - k, r = fx.Radius / 1.6f;
             var col = PropHoloCyan.WithAlpha(al);
             GlowArc(fx.Pos, r * (1f + k * 1.3f), 1.5f, col, 32);
             for (int i = 0; i < 8; i++)
@@ -247,8 +221,7 @@ namespace Arena
                 Circle(fx.Pos, 4f, new Rgba(1f, 1f, 1f, 1f - k * 4f), 12);
         }
 
-        /// Was this Debris a crate or a pot (not the boss fight's green health barrel)? Props.BreakProp sends their colours.
-        static bool IsPotDebris(Effect fx) => fx.Color.R > 0.8f && fx.Color.G < 0.5f;
+        /// Was this Debris a crate (not the boss fight's green health barrel)? Props.BreakProp sends their colours.
         static bool IsCrateDebris(Effect fx) => fx.Color.R > 0.55f && fx.Color.R < 0.8f && fx.Color.B < 0.45f && fx.Color.G >= 0.49f;
 
         // --- Look A, round two: barrels and the chest (Docs/Mockups/digital-props.html, "Barrels and the chest") -------
@@ -395,18 +368,6 @@ namespace Arena
                 Line(o + new V2(-7f, 5f), o + new V2(-5f, 13f), 1.5f, crack);
                 Line(o + new V2(-7f, 5f), o + new V2(-13f, 4f), 1.5f, crack);
             }
-        }
-
-        void DrawPot(Prop p, V2 c, float a, float t)
-        {
-            float r = Game.PotR;
-            Circle(c, r, PropClay.Darkened(0.35f).WithAlpha(a), 20);
-            Circle(c + new V2(-1f, -1f), r - 2f, PropClay.WithAlpha(a), 20);
-            Circle(c + new V2(-2.5f, -2.5f), r * 0.6f, PropClay.Mix(new Rgba(1f, 0.8f, 0.6f), 0.25f).WithAlpha(a), 16);  // its rounded belly catching the light
-            Arc(c, r * 0.78f, 1.6f, new Rgba(0.95f, 0.85f, 0.6f, 0.5f * a), 20, 0.3f, 2.4f);  // a painted band
-            Circle(c, r * 0.36f, PropClay.Darkened(0.15f).WithAlpha(a), 12);   // the lip
-            Circle(c, r * 0.22f, new Rgba(0.1f, 0.06f, 0.04f, a), 10);         // the mouth
-            Circle(c + new V2(-r * 0.5f, -r * 0.4f), 1.8f, new Rgba(1f, 0.95f, 0.85f, 0.6f * a), 8);  // a glint
         }
 
         void DrawBarrel(Prop p, V2 c, float a, float t)
@@ -620,17 +581,15 @@ namespace Arena
                 }
         }
 
-        /// A crate or pot smashed: splinters or shards flying out and a puff of dust.
+        /// A crate or barrel smashed: splinters or shards flying out and a puff of dust.
         void DrawDebrisFx(Effect fx, float f)
         {
             if (fxOn && IsCrateDebris(fx))
             {
-                DrawHoloBreakFx(fx, f, false);
+                DrawHoloBreakFx(fx, f);
                 return;
             }
             int seed = (int)(fx.Pos.X * 7f + fx.Pos.Y * 13f);
-            if (IsPotDebris(fx))
-                f = Mathf.Min(1f, fx.T / 0.4f);  // a pot's effect lasts 1.3 s for the hologram's burst; the clay chips keep their 0.4 s
             float ease = 1f - (1f - f) * (1f - f);
             Arc(fx.Pos, fx.Radius * (0.3f + 0.7f * ease), 4f * (1f - f), new Rgba(0.8f, 0.75f, 0.65f, 0.35f * (1f - f)), 24);
             for (int i = 0; i < 10; i++)

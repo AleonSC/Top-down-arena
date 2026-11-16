@@ -278,7 +278,7 @@ namespace Arena
                             int sp = rest.LastIndexOf(' ');
                             string kind = rest.Substring(0, sp).Trim().ToLowerInvariant();
                             int k = Array.IndexOf(PropNames, kind);
-                            if (k < 0)
+                            if (k < 0 || (PropKind)k == PropKind.Pot)  // pots are retired
                                 throw new FormatException("unknown prop \"" + kind + "\"");
                             cur.Props.Add(new DesignProp { Kind = (PropKind)k, Pos = ParsePos(rest.Substring(sp + 1)) });
                             break;
@@ -404,7 +404,8 @@ namespace Arena
             designQueue.Sort((a, b) => a.T.CompareTo(b.T));
             ClearProps(false);
             foreach (var p in w.Props)
-                AddProp(p.Kind, ClampToArena(p.Pos, 40f));
+                if (p.Kind != PropKind.Pot)  // retired
+                    AddProp(p.Kind, ClampToArena(p.Pos, 40f));
         }
 
         /// Host, each tick of a designed wave: whoever's time has come arrives.

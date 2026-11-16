@@ -158,7 +158,6 @@ static partial class Shot {
       foreach (var e in g.Enemies.Values) { e.Pos = e.Disp = new V2(1450f, 150f + 60f * (e.Id % 10)); e.FireT = 9f; }
       g.AddProp(PropKind.Crate, new V2(520f, 300f)); g.AddProp(PropKind.Crate, new V2(566f, 300f)).Hp = 3f;
       g.AddProp(PropKind.HeavyCrate, new V2(520f, 560f));
-      g.AddProp(PropKind.Pot, new V2(700f, 230f)); g.AddProp(PropKind.Pot, new V2(735f, 255f));
       g.AddProp(PropKind.Barrel, new V2(1100f, 260f));
       var lit = g.AddProp(PropKind.Barrel, new V2(1160f, 330f)); lit.Fuse = 0.2f;
       g.AddProp(PropKind.Chest, new V2(1150f, 600f));

@@ -139,7 +139,7 @@ namespace Arena
                                 spawnTimer = Math.Max(spawnTimer, ModeRules.Extras ? Breaches.WarnTime(ActiveBreaches.Length) : Breaches.Telegraph);  // the cameras tour the breaches first (Game/BreachTour.cs)
                             }
                             CapSentries();  // at most 3 Beam Sentries and 3 Pulsars (Variety.cs)
-                            WaveProps();  // crates, pots, barrels and now and then a chest (Props.cs)
+                            WaveProps();  // crates, barrels and now and then a chest (Props.cs)
                             bossName = BossNow ? Defs.Get(BossAt(Wave)).Name : null;
                             BeginTimedWave();  // the wave's enemies arrive over a window (TimedWaves.cs)
                             HuntNodeWaveStart();  // an Ambush node: fewer, all at once (HuntMapGame.cs)

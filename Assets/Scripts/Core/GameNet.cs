@@ -441,7 +441,7 @@ namespace Arena
                 foreach (var c in Coins.Values)
                     SyncCoin(s, c);
             SyncGadgets(s);  // Gadgets.cs
-            SyncProps(s);  // crates, pots, barrels, chests and chest items (Props.cs)
+            SyncProps(s);  // crates, barrels, chests and chest items (Props.cs)
             SyncLayout(s);  // the floor plan (LayoutRules.cs)
         }
 
