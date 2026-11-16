@@ -258,6 +258,7 @@ namespace Arena
             BuildParry();  // ParrySoundBank.cs
             BuildTreant();  // TreantSoundBank.cs
             BuildDodge();  // DodgeSoundBank.cs
+            BuildFootsteps();  // FootstepSoundBank.cs
             BuildTankAlt();  // TankAltSoundBank.cs
             BuildSentryNova();  // SentryNovaSoundBank.cs
         }
