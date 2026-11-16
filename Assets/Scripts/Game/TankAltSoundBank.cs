@@ -9,10 +9,9 @@ namespace Arena
     ///   TankMineBurst  it goes off: a sharp crack and shrapnel rattling out (on top of the flak burst's own boom).
     ///   TankGasLaunch  the canister popped from the launcher: a hollow thunk with a tube ring.
     ///   TankGasHiss    the canister clattering down, then the long hiss of the gas venting.
-    /// The launches and the blast use the Weapons volume (IsTankAltWeaponSfx).
+    /// The launches and the blast use the Weapons volume (the Categories() table in SoundBank.cs).
     public partial class SoundBank
     {
-        static bool IsTankAltWeaponSfx(Sfx s) => s == Sfx.TankDouble || s == Sfx.TankMineLaunch || s == Sfx.TankGasLaunch;
 
         void BuildTankAlt()
         {

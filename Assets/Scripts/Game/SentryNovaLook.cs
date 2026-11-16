@@ -101,7 +101,7 @@ namespace Arena
                 float now = Time.unscaledTime;
                 if (fx.Kind == FxKind.Nova)
                 {
-                    sounds?.PlayAbilityCue(SoundBank.AbilityCue.NovaBurst, !mine, quiet, now);
+                    sounds?.Play(new SoundCue { Sfx = Sfx.NovaBurst, Ally = !mine, Quiet = quiet }, now);
                     if (mine)
                         Shake(0.16f);
                     if (fxOn)
@@ -115,9 +115,9 @@ namespace Arena
                     }
                 }
                 else if (fx.Pos2.X == 1f)
-                    sounds?.PlayAbilityCue(SoundBank.AbilityCue.TurretFold, !mine, quiet, now);
+                    sounds?.Play(new SoundCue { Sfx = Sfx.TurretFold, Ally = !mine, Quiet = quiet }, now);
                 else if (fx.Pos2.X == 0f)
-                    sounds?.PlayAbilityCue(SoundBank.AbilityCue.TurretDeploy, !mine, quiet, now);
+                    sounds?.Play(new SoundCue { Sfx = Sfx.TurretDeploy, Ally = !mine, Quiet = quiet }, now);
             }
             if (snHeard.Count > 0)
             {

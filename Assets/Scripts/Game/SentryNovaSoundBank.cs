@@ -2,8 +2,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The Nova and Turret abilities' sounds (Core/SentryNova.cs). They aren't Sfx (that byte enum is nearly full): each game
-    /// plays them when the effect arrives (SentryNovaLook.cs `UpdateSentryNovaLook`), quieter for an ally's cast like a sent cue.
+    /// The Nova and Turret abilities' sounds (Core/SentryNova.cs). Never sent: each game plays them when the effect arrives (SentryNovaLook.cs `UpdateSentryNovaLook`), quieter for an ally's cast like a sent cue.
     ///   NovaBurst     a deep whump under a bright crack, an outward rush and a scatter of high chimes (the 24 shots' own
     ///                 ShotNova pops ride on top)
     ///   TurretDeploy  a short whistle as the pod drops, the landing thud, the servo whir of the legs and head unfolding,
@@ -12,11 +11,6 @@ namespace Arena
     /// On the Effects volume.
     public partial class SoundBank
     {
-        public enum AbilityCue { NovaBurst, TurretDeploy, TurretFold }
-
-        AudioClip[] abilityCues;
-        readonly float[] abilityCueLast = { -10f, -10f, -10f };
-
         void BuildSentryNova()
         {
             const Osc S = Osc.Sine, Q = Osc.Square, W = Osc.Saw, T = Osc.Triangle;
@@ -45,29 +39,10 @@ namespace Arena
                 Delay(Mix(
                     Tone(0.14f, S, 140f, 70f, 0.4f, attack: 0.002f, decay: 2.6f),                               // the clunk
                     Tone(0.2f, S, 900f, 300f, 0.06f, noise: 1f, lowpass: 0.15f, attack: 0.01f, decay: 2f)), 0.44f)), 0.42f);
-            abilityCues = new AudioClip[3];
-            float[][] data = { nova, deploy, fold };
-            for (int i = 0; i < 3; i++)
-            {
-                abilityCues[i] = AudioClip.Create("ability_cue_" + i, data[i].Length, 1, Rate, false);
-                abilityCues[i].SetData(data[i], 0);
-            }
-        }
-
-        /// One of these cues (ally: someone else's cast, quieter; quiet 0..1: further away).
-        public void PlayAbilityCue(AbilityCue cue, bool ally, float quiet, float now)
-        {
-            int i = (int)cue;
-            if (Muted || abilityCues == null || now - abilityCueLast[i] < 0.05f)
-                return;
-            float volume = Master * Effects * (ally ? 0.45f : 1f) * (1f - quiet);
-            if (volume <= 0.001f)
-                return;
-            abilityCueLast[i] = now;
-            var voice = voices[nextVoice];
-            nextVoice = (nextVoice + 1) % voices.Length;
-            voice.pitch = 1f + ((float)rng.NextDouble() - 0.5f) * 0.03f;
-            voice.PlayOneShot(abilityCues[i], volume);
+            Set(Sfx.NovaBurst, nova, 0.05f);
+            Set(Sfx.TurretDeploy, deploy, 0.05f);
+            Set(Sfx.TurretFold, fold, 0.05f);
+            Jitter(0.03f, Sfx.NovaBurst, Sfx.TurretDeploy, Sfx.TurretFold);
         }
     }
 }

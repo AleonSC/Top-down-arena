@@ -69,18 +69,18 @@ namespace Arena
                 float next;
                 if (!rainNext.TryGetValue(z.Id, out next))
                 {
-                    sounds?.PlayRainCue(SoundBank.RainCue.RainCast, !mine, quiet, now);
+                    sounds?.Play(new SoundCue { Sfx = Sfx.RainCast, Ally = !mine, Quiet = quiet }, now);
                     rainNext[z.Id] = now + 0.5f;
                     continue;
                 }
                 if (z.T < 0.5f)
                 {
                     if (rainEnded.Add(z.Id))
-                        sounds?.PlayRainCue(SoundBank.RainCue.RainEnd, !mine, quiet, now);
+                        sounds?.Play(new SoundCue { Sfx = Sfx.RainEnd, Ally = !mine, Quiet = quiet }, now);
                 }
                 else if (now >= next)
                 {
-                    sounds?.PlayRainCue(SoundBank.RainCue.RainPatter, !mine, quiet, now);
+                    sounds?.Play(new SoundCue { Sfx = Sfx.RainPatter, Ally = !mine, Quiet = quiet }, now);
                     rainNext[z.Id] = now + 0.45f;
                 }
             }

@@ -2,7 +2,7 @@ namespace Arena
 {
     /// The Fireball's sounds (Deep Roar of Docs/Mockups/fireball-sounds.html): ShotFireball, a low roar with a heavy thump and no highs (the
     /// weapon's Sound, 0.5 s apart), and ShotFireballBurn, a soft muffled flare when it sets an enemy burning (raised in Combat.cs).
-    /// Both use the Weapons volume (their names start with Shot). Nothing is above about 1 kHz.
+    /// Both use the Weapons volume (the Categories() table in SoundBank.cs). Nothing is above about 1 kHz.
     public partial class SoundBank
     {
         void BuildFireball()

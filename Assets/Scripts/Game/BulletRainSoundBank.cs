@@ -2,19 +2,13 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// Bullet Rain's sounds (BulletRainLook.cs `UpdateBulletRainSound`). Not Sfx (that byte enum is nearly full): each game
-    /// plays them from the zone's clock, so nothing is sent.
+    /// Bullet Rain's sounds (BulletRainLook.cs `UpdateBulletRainSound`). Each game plays them from the zone's clock, so nothing is sent.
     ///   RainCast    a rising rush and a low thunder thump as the downpour is called
     ///   RainPatter  half a second of needles hitting the ground: a hiss with a scatter of tiny ticks, repeated while it falls
     ///   RainEnd     the hiss thinning out, a few last drops
     /// On the Effects volume; quieter for an ally's rain and with distance.
     public partial class SoundBank
     {
-        public enum RainCue { RainCast, RainPatter, RainEnd }
-
-        AudioClip[] rainCues;
-        readonly float[] rainCueLast = { -10f, -10f, -10f };
-
         void BuildBulletRain()
         {
             const Osc S = Osc.Sine, W = Osc.Saw;
@@ -28,29 +22,10 @@ namespace Arena
             var end = Finish(Mix(
                 Tone(0.6f, S, 4500f, 2500f, 0.12f, noise: 1f, lowpass: 0.4f, attack: 0.02f, decay: 1.6f),
                 Sparkle(0.6f, 5, 0.03f, 3000f, 6000f)), 0.35f);
-            rainCues = new AudioClip[3];
-            float[][] data = { cast, patter, end };
-            for (int i = 0; i < 3; i++)
-            {
-                rainCues[i] = AudioClip.Create("rain_cue_" + i, data[i].Length, 1, Rate, false);
-                rainCues[i].SetData(data[i], 0);
-            }
-        }
-
-        /// One of these cues (ally: someone else's rain, quieter; quiet 0..1: further away).
-        public void PlayRainCue(RainCue cue, bool ally, float quiet, float now)
-        {
-            int i = (int)cue;
-            if (Muted || rainCues == null || now - rainCueLast[i] < 0.05f)
-                return;
-            float volume = Master * Effects * (ally ? 0.5f : 1f) * (1f - quiet);
-            if (volume <= 0.001f)
-                return;
-            rainCueLast[i] = now;
-            var voice = voices[nextVoice];
-            nextVoice = (nextVoice + 1) % voices.Length;
-            voice.pitch = 1f + ((float)rng.NextDouble() - 0.5f) * 0.04f;
-            voice.PlayOneShot(rainCues[i], volume);
+            Set(Sfx.RainCast, cast, 0.05f);
+            Set(Sfx.RainPatter, patter, 0.05f);
+            Set(Sfx.RainEnd, end, 0.05f);
+            Jitter(0.04f, Sfx.RainCast, Sfx.RainPatter, Sfx.RainEnd);
         }
     }
 }

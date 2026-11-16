@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 namespace Arena
@@ -23,13 +25,87 @@ namespace Arena
             public float Reverb, Duration, Peak;
         }
 
-        readonly int count = Enum.GetValues(typeof(Sfx)).Length;
-        readonly AudioClip[][] clips;
-        readonly float[] minGap, lastPlayed;
-        readonly int[] nextVariant;
+        // --- The sound table ---------------------------------------------------------
+        // One entry per Sfx. The recipes (Build below and each *SoundBank.cs's Build*) run once, in order, on a background thread
+        // at startup (BuildAll), and leave each sound's takes in Samples; PumpClips (a few a frame) or the first play turns them
+        // into clips. A sound with a file of its own ("Your own sounds" below) plays that instead. To add a sound: a name at the end of
+        // Core's Sfx enum, a Set(...) recipe in its bank, and a line in Categories() if it isn't on the Effects volume.
+        class Entry
+        {
+            public volatile float[][] Samples;  // the synthesised (or decoded) takes, until they're clips
+            public AudioClip[] Clips, Muffled;
+            public bool Own;                    // from a file of the player's or the project's: the recipe's takes are dropped
+            public float Gap;                   // shortest time between two plays of it
+            public float Jitter = 0.08f;        // how far its pitch wanders from play to play (0.08 = +-4%)
+            public float Last = -10f, LastMuffled = -10f;
+            public int Next;                    // the take to play next (they play in turn)
+        }
+
+        static readonly int count = Enum.GetValues(typeof(Sfx)).Length;
+        readonly Entry[] table;
+        readonly System.Random rng = new System.Random(7);       // the recipes' noise (the build thread only)
+        readonly System.Random playRng = new System.Random(11);  // pitch wander, footstep takes (the main thread)
+        readonly System.Threading.Thread builder;
+        volatile bool built;
+
+        /// True once every recipe has been synthesised (a second or two after startup; a sound asked for before then is skipped).
+        public bool Ready => built;
+
+        /// Wait for the build to finish (the tools; the game never waits).
+        public void WaitUntilBuilt() => builder.Join();
+
+        /// A sound's synthesised takes before they become clips (Tools/SoundCheck): null once played, or for a file of your own.
+        public float[][] TakesOf(Sfx s)
+        {
+            WaitUntilBuilt();
+            return table[(int)s].Own ? null : table[(int)s].Samples;
+        }
+
+        // --- Voices ----------------------------------------------------------------------
+        // Each sound plays on a source of its own (Play, not PlayOneShot), so its pitch is its own: a free voice, or else the
+        // one that started longest ago. Music has priority 0, the loops 64 and these 128, so when Unity runs out of real
+        // voices it drops the oldest effects, never the music.
+        const int VoiceCount = 32;
         readonly AudioSource[] voices;
-        readonly System.Random rng = new System.Random(7);
+        readonly float[] voiceStart;
         int nextVoice;
+
+        static AudioSource NewSource(GameObject owner, int priority, bool loop)
+        {
+            var a = owner.AddComponent<AudioSource>();
+            a.playOnAwake = false;
+            a.spatialBlend = 0f;
+            a.loop = loop;
+            a.priority = priority;
+            return a;
+        }
+
+        void PlayClip(AudioClip clip, float volume, float pitch)
+        {
+            int pick = 0;
+            float oldest = float.MaxValue;
+            for (int k = 0; k < voices.Length; k++)
+            {
+                int v = (nextVoice + k) % voices.Length;
+                if (!voices[v].isPlaying)
+                {
+                    pick = v;
+                    break;
+                }
+                if (voiceStart[v] < oldest)
+                {
+                    oldest = voiceStart[v];
+                    pick = v;
+                }
+            }
+            nextVoice = (pick + 1) % voices.Length;
+            var voice = voices[pick];
+            voice.clip = clip;
+            voice.pitch = pitch;
+            voice.volume = Mathf.Min(1f, volume);
+            voiceStart[pick] = Time.unscaledTime;
+            voice.Play();
+        }
 
         public bool Muted;
 
@@ -44,8 +120,9 @@ namespace Arena
         {
             public string Id;
             public float Gain;
-            public volatile float[] Samples;
+            public volatile float[] Samples;  // the render, until it's all copied into Clip
             public AudioClip Clip;
+            public int Uploaded;              // samples copied into Clip so far (UploadMusic)
             public float Length;    // seconds
             public bool External;   // a clip from the Unity project: never destroyed or dropped
             public float ResumeAt;  // where to pick up next time (menu and battle tracks)
@@ -61,10 +138,7 @@ namespace Arena
         {
             for (int v = 0; v < musicVoices.Length; v++)
             {
-                musicVoices[v] = owner.AddComponent<AudioSource>();
-                musicVoices[v].playOnAwake = false;
-                musicVoices[v].loop = true;
-                musicVoices[v].spatialBlend = 0f;
+                musicVoices[v] = NewSource(owner, 0, true);
                 musicVoices[v].volume = 0f;
             }
             RequestTrack("menu", MenuMusic.Render, 0.6f);
@@ -109,10 +183,40 @@ namespace Arena
         /// The track on the active voice, how far into it we are, and how long it is (for the player's bar).
         public string PlayingId => voiceTrack[activeVoice] == null ? null : voiceTrack[activeVoice].Id;
         public float PlayingTime => voiceTrack[activeVoice] == null ? 0f : musicVoices[activeVoice].time;
-        public float PlayingLength => voiceTrack[activeVoice] == null || voiceTrack[activeVoice].Clip == null ? 0f : voiceTrack[activeVoice].Length;
+        public float PlayingLength => voiceTrack[activeVoice] == null || !Loaded(voiceTrack[activeVoice]) ? 0f : voiceTrack[activeVoice].Length;
 
         /// True once the track has been synthesised (a few seconds for the first play of a track).
-        public bool IsTrackReady(string id) => id != null && tracks.TryGetValue(id, out var t) && t.Clip != null;
+        public bool IsTrackReady(string id) => id != null && tracks.TryGetValue(id, out var t) && Loaded(t);
+
+        static bool Loaded(Track t) => t.Clip != null && t.Samples == null;
+
+        // A finished render goes into its clip a couple of seconds of samples a frame, not all at once (a 45 s track is
+        // 8 MB: one SetData of that is a visible hitch).
+        const int UploadChunk = 2 * MenuMusic.Rate;
+        readonly float[] uploadBuffer = new float[UploadChunk];
+
+        void UploadMusic()
+        {
+            foreach (var t in tracks.Values)
+            {
+                var samples = t.Samples;
+                if (samples == null)
+                    continue;
+                if (t.Clip == null)
+                {
+                    t.Clip = AudioClip.Create(t.Id, samples.Length, 1, MenuMusic.Rate, false);
+                    t.Length = samples.Length / (float)MenuMusic.Rate;
+                }
+                int n = Math.Min(UploadChunk, samples.Length - t.Uploaded);
+                var chunk = n == UploadChunk ? uploadBuffer : new float[n];
+                Array.Copy(samples, t.Uploaded, chunk, 0, n);
+                t.Clip.SetData(chunk, t.Uploaded);
+                t.Uploaded += n;
+                if (t.Uploaded >= samples.Length)
+                    t.Samples = null;
+                return;  // one chunk a frame
+            }
+        }
 
         /// The next time this track starts, start it from the top (used when the player picks a track).
         public void RestartTrack(string id)
@@ -130,15 +234,8 @@ namespace Arena
         {
             if (musicVoices[0] == null)
                 return;
-            // Finished renders become clips.
-            foreach (var t in tracks.Values)
-                if (t.Clip == null && t.Samples != null)
-                {
-                    t.Clip = AudioClip.Create(t.Id, t.Samples.Length, 1, MenuMusic.Rate, false);
-                    t.Clip.SetData(t.Samples, 0);
-                    t.Length = t.Samples.Length / (float)MenuMusic.Rate;
-                    t.Samples = null;
-                }
+            PumpClips(8);   // sound effects built at startup become clips, a few a frame
+            UploadMusic();  // finished renders go into their clips
 
             if (MusicPaused != pauseApplied)
             {
@@ -156,7 +253,7 @@ namespace Arena
             Track want = null;
             if (wanted != null)
                 tracks.TryGetValue(wanted, out want);
-            bool ready = want != null && want.Clip != null;
+            bool ready = want != null && Loaded(want);
             if ((wanted == null || ready) && voiceTrack[activeVoice] != want)
             {
                 activeVoice = 1 - activeVoice;
@@ -186,7 +283,7 @@ namespace Arena
             // Let go of boss tracks nobody needs any more (they're a few MB each).
             string drop = null;
             foreach (var t in tracks.Values)
-                if (MusicLibrary.IsTransient(t.Id) && t.Clip != null && t.Id != wanted && t.Id != keep && t.Id != keep2 && !t.External && t != voiceTrack[0] && t != voiceTrack[1])
+                if (MusicLibrary.IsTransient(t.Id) && Loaded(t) && t.Id != wanted && t.Id != keep && t.Id != keep2 && !t.External && t != voiceTrack[0] && t != voiceTrack[1])
                     drop = t.Id;
             if (drop != null)
             {
@@ -207,21 +304,45 @@ namespace Arena
 
         public enum Category { Weapons, Enemies, Effects }
 
-        public static Category CategoryOf(Sfx s)
+        /// Which volume slider each sound is on: the lists below, everything else Effects.
+        static readonly Category[] categories = Categories();
+
+        static Category[] Categories()
         {
-            if (s == Sfx.EnemyShot)
-                return Category.Enemies;
-            string name = s.ToString();
-            if (name.StartsWith("Boss") || name.StartsWith("Zombie") || IsMeleeEnemySfx(name))
-                return Category.Enemies;
-            if (name.StartsWith("Shot") || name.StartsWith("Spell") || name.StartsWith("Swing") || s == Sfx.Throw || s == Sfx.Hit || IsKatanaWeaponSfx(s) || IsTwinWeaponSfx(s) || IsKnuckleWeaponSfx(s) || IsLightWeaponSfx(s) || IsCenserWeaponSfx(s) || IsLanceWeaponSfx(s) || IsTankAltWeaponSfx(s) || s == Sfx.GreatWindup || s == Sfx.GreatRend)
-                return Category.Weapons;
-            return Category.Effects;
+            var c = new Category[count];
+            for (int i = 0; i < count; i++)
+                c[i] = Category.Effects;
+            foreach (var s in new[] {
+            Sfx.Hit, Sfx.ShotShotgun, Sfx.ShotCannon, Sfx.ShotRifle, Sfx.ShotPistol, Sfx.ShotBow, Sfx.ShotAssault,
+            Sfx.ShotSniper, Sfx.ShotSmg, Sfx.ShotTurret, Sfx.ShotNova, Sfx.SpellFire, Sfx.SpellFrost, Sfx.SpellZap, Sfx.SpellArcane, Sfx.SpellHoly,
+            Sfx.Throw, Sfx.SwingLight, Sfx.SwingHeavy, Sfx.ShotRepulse, Sfx.SpellChainCone, Sfx.SpellChainArc, Sfx.ShotKunai, Sfx.KatanaSwipe1,
+            Sfx.KatanaSwipe2, Sfx.KatanaWindup, Sfx.KatanaLunge, Sfx.KatanaHit, Sfx.SwingRoot, Sfx.ShotSeed, Sfx.ShotSeedHit, Sfx.GreatWindup,
+            Sfx.GreatRend, Sfx.TwinCut1, Sfx.TwinCut2, Sfx.TwinJab, Sfx.TwinSpin, Sfx.TwinShear, Sfx.TwinHit, Sfx.TwinHitHeavy, Sfx.TwinThrow,
+            Sfx.TwinCross, Sfx.LightCut1, Sfx.LightCut2, Sfx.LightNoon, Sfx.LightRadiant, Sfx.LightHit, Sfx.LanceRelease, Sfx.CenserSweep1,
+            Sfx.CenserSweep2, Sfx.CenserWhirl, Sfx.CenserHit, Sfx.CenserHitHeavy, Sfx.LanceJab, Sfx.LanceSweep, Sfx.LanceBreach, Sfx.LanceHitSfx,
+            Sfx.LanceHitHeavy, Sfx.LanceHookOut, Sfx.TankDouble, Sfx.TankMineLaunch, Sfx.TankGasLaunch, Sfx.SpellPullStart, Sfx.SpellPullHum,
+            Sfx.SpellPullStop, Sfx.KnuckleJab, Sfx.KnuckleHook, Sfx.KnuckleUpper, Sfx.KnuckleSlam, Sfx.KnuckleCounter, Sfx.KnuckleArm,
+            Sfx.KnuckleRocket, Sfx.KnuckleRocketHit, Sfx.KnuckleGrab, Sfx.KnuckleThrow, Sfx.KnuckleImpact, Sfx.KnuckleImpactHeavy,
+                Sfx.StoneThrow, Sfx.StoneWind, Sfx.StoneSlam, Sfx.ArcTag, Sfx.ArcHop, Sfx.ArcCrack, Sfx.ArcFork, Sfx.ArcFizzle, Sfx.ArcHum,
+                Sfx.ShotFireball, Sfx.ShotFireballBurn })
+                c[(int)s] = Category.Weapons;
+            foreach (var s in new[] {
+            Sfx.EnemyShot, Sfx.BossShift, Sfx.BossCharge, Sfx.BossPulse, Sfx.BossChime, Sfx.BossLaserWarn, Sfx.BossLaser, Sfx.BossSlam,
+            Sfx.BossWhoosh, Sfx.BossSiren, Sfx.BossBuzz, Sfx.BossSplat, Sfx.BossGong, Sfx.BossScythe, Sfx.BossThunder, Sfx.BossWarp, Sfx.BossRumble,
+            Sfx.BossCrack, Sfx.BossCage, Sfx.BossChomp, Sfx.ZombieGroan, Sfx.ZombieRise, Sfx.ZombieSpit, Sfx.ZombieGrab, Sfx.ZombieShriek,
+            Sfx.ZombieBurst, Sfx.ZombieMend, Sfx.SwarmerChomp, Sfx.SwarmerDie, Sfx.SpikerFlip, Sfx.SpikerStab, Sfx.SpikerDie, Sfx.BruteStep,
+            Sfx.BruteGrunt, Sfx.BruteBash, Sfx.BruteDie, Sfx.LungerTell, Sfx.LungerLeap, Sfx.LungerLand, Sfx.LungerDie, Sfx.SawWhirr, Sfx.SawDie,
+            Sfx.SpikeBlockRock, Sfx.SpikeBlockShake, Sfx.SpikeBlockLunge, Sfx.SpikeBlockRest, Sfx.SpikeBlockDie, Sfx.SwarmerPatter,
+            Sfx.SpikerSkitter, Sfx.LungerPad })
+                c[(int)s] = Category.Enemies;
+            return c;
         }
+
+        public static Category CategoryOf(Sfx s) => categories[(int)s];
 
         float CategoryVolume(Sfx s)
         {
-            switch (CategoryOf(s))
+            switch (categories[(int)s])
             {
                 case Category.Weapons: return Weapons;
                 case Category.Enemies: return Enemies;
@@ -231,40 +352,55 @@ namespace Arena
 
         public SoundBank(GameObject owner)
         {
-            clips = new AudioClip[count][];
-            minGap = new float[count];
-            lastPlayed = new float[count];
-            nextVariant = new int[count];
+            table = new Entry[count];
             for (int i = 0; i < count; i++)
-                lastPlayed[i] = -10f;
-            voices = new AudioSource[24];
+                table[i] = new Entry();
+            voices = new AudioSource[VoiceCount];
+            voiceStart = new float[VoiceCount];
             for (int i = 0; i < voices.Length; i++)
+                voices[i] = NewSource(owner, 128, false);
+            sawVoice = NewSource(owner, 64, true);      // the Buzzsaw's contact whirr (MeleeSoundBank.cs)
+            wallHumVoice = NewSource(owner, 64, true);  // the wall hum (WallHumSoundBank.cs)
+            arcHumVoice = NewSource(owner, 64, true);   // Arc Lightning's charge hum (ArcLockSoundBank.cs)
+            var folderFiles = OwnSoundFiles();          // the player's own sounds (decoded on the build thread)
+            LoadProjectSounds(folderFiles);
+            builder = new System.Threading.Thread(() => BuildAll(folderFiles)) { IsBackground = true, Name = "SoundBank build" };
+            builder.Start();
+        }
+
+        /// Every recipe, in a fixed order (they share one noise generator, so the order is part of each sound).
+        void BuildAll(List<KeyValuePair<Sfx, string[]>> folderFiles)
+        {
+            try
             {
-                voices[i] = owner.AddComponent<AudioSource>();
-                voices[i].playOnAwake = false;
-                voices[i].spatialBlend = 0f;
+                DecodeOwnSounds(folderFiles);
+                Build();
+                BuildMelee();  // MeleeSoundBank.cs
+                BuildWallHum();  // WallHumSoundBank.cs
+                BuildArcLock();  // ArcLockSoundBank.cs
+                BuildNinja();  // NinjaSoundBank.cs
+                BuildKatana();  // KatanaSoundBank.cs
+                BuildGreatsword();  // GreatswordSoundBank.cs
+                BuildTwin();  // TwinSoundBank.cs
+                BuildKnuckles();  // ArcKnucklesSoundBank.cs
+                BuildLight();  // LightSoundBank.cs
+                BuildCenser();  // CenserSoundBank.cs
+                BuildLance();  // LanceSoundBank.cs
+                BuildParry();  // ParrySoundBank.cs
+                BuildTreant();  // TreantSoundBank.cs
+                BuildDodge();  // DodgeSoundBank.cs
+                BuildFootsteps();  // FootstepSoundBank.cs
+                BuildTankAlt();  // TankAltSoundBank.cs
+                BuildStonespear();  // StonespearSoundBank.cs
+                BuildSentryNova();  // SentryNovaSoundBank.cs
+                BuildBulletRain();  // BulletRainSoundBank.cs
+                BuildFireball();  // FireballSoundBank.cs
             }
-            Build();
-            BuildMelee(owner);  // MeleeSoundBank.cs
-            BuildWallHum(owner);  // WallHumSoundBank.cs
-            BuildArcLock(owner);  // ArcLockSoundBank.cs
-            BuildNinja();  // NinjaSoundBank.cs
-            BuildKatana();  // KatanaSoundBank.cs
-            BuildGreatsword();  // GreatswordSoundBank.cs
-            BuildTwin();  // TwinSoundBank.cs
-            BuildKnuckles();  // ArcKnucklesSoundBank.cs
-            BuildLight();  // LightSoundBank.cs
-            BuildCenser();  // CenserSoundBank.cs
-            BuildLance();  // LanceSoundBank.cs
-            BuildParry();  // ParrySoundBank.cs
-            BuildTreant();  // TreantSoundBank.cs
-            BuildFireball();  // FireballSoundBank.cs
-            BuildDodge();  // DodgeSoundBank.cs
-            BuildFootsteps();  // FootstepSoundBank.cs
-            BuildTankAlt();  // TankAltSoundBank.cs
-            BuildStonespear();  // StonespearSoundBank.cs
-            BuildSentryNova();  // SentryNovaSoundBank.cs
-            BuildBulletRain();  // BulletRainSoundBank.cs
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+            built = true;
         }
 
         void Build()
@@ -293,14 +429,6 @@ namespace Arena
                 Thump = 0.5f, ThumpFrom = 180f, ThumpTo = 70f, ThumpDecay = 0.06f,
                 Tail = 0.25f, TailDecay = 0.25f, TailLowpass = 1500f,
                 Reverb = 0.2f, Duration = 0.45f, Peak = 0.6f,
-            });
-            SetGun(Sfx.ShotSuppressed, 0.08f, new Gun
-            {
-                Crack = 0.25f, CrackDecay = 0.0015f, CrackHighpass = 1500f,
-                Body = 0.6f, BodyDecay = 0.025f, BodyLowpass = 1800f,
-                Thump = 0.4f, ThumpFrom = 220f, ThumpTo = 100f, ThumpDecay = 0.03f,
-                Tail = 0.05f, TailDecay = 0.08f, TailLowpass = 800f,
-                Reverb = 0.08f, Duration = 0.18f, Peak = 0.4f,
             });
             SetGun(Sfx.ShotPistol, 0.1f, new Gun  // a snappy handgun: sharp crack, short body, a little room
             {
@@ -491,18 +619,10 @@ namespace Arena
             Set(Sfx.LaunchLand, lands, 0.08f);
             Set(Sfx.LaunchHud, Finish(Tone(0.25f, Osc.Sine, 380f, 760f, 0.12f, noise: 0.6f, lowpass: 0.35f, attack: 0.05f, decay: 2f), 0.2f), 0.3f);
 
-            // The pause menu (WindowAnim.cs; it now uses the settle and the close; the tear and ticks were its old glitch opening's): a stuttering digital tear (chopped square chirps and static),
-            // a key tick for each letter of PAUSED (three pitches, played in turn), a low CRT thunk as the panel settles,
-            // and the tear backwards, short, as it closes.
+            // The pause menu (WindowAnim.cs; it now uses the settle and the close; the ticks were its old glitch opening's): a key tick
+            // for each letter of PAUSED (three pitches, played in turn), a low CRT thunk as the panel settles, and a short backwards
+            // digital tear (chopped square chirps and static) as it closes.
             float[] silence = Tone(0.012f, Osc.Sine, 100f, 100f, 0f);
-            var tear = Concat(Tone(0.03f, Osc.Square, 1800f, 1700f, 0.22f, lowpass: 0.6f, attack: 0.001f, decay: 1f), silence,
-                Tone(0.028f, Osc.Saw, 420f, 380f, 0.28f, noise: 0.6f, lowpass: 0.5f, attack: 0.001f, decay: 1f),
-                Tone(0.04f, Osc.Square, 3200f, 2600f, 0.16f, lowpass: 0.7f, attack: 0.001f, decay: 1f), silence, silence,
-                Tone(0.05f, Osc.Sine, 600f, 600f, 0.3f, noise: 1f, lowpass: 0.8f, attack: 0.001f, decay: 1f),
-                Tone(0.03f, Osc.Square, 900f, 950f, 0.22f, lowpass: 0.6f, attack: 0.001f, decay: 1f), silence,
-                Tone(0.025f, Osc.Square, 2400f, 2400f, 0.14f, lowpass: 0.7f, attack: 0.001f, decay: 1f),
-                Tone(0.08f, Osc.Saw, 240f, 110f, 0.28f, noise: 0.5f, lowpass: 0.35f, attack: 0.001f, decay: 2.5f));
-            Set(Sfx.PauseTear, Finish(tear, 0.32f), 0.2f);
             var ticks = new float[3][];
             for (int k = 0; k < 3; k++)
                 ticks[k] = Finish(Mix(Tone(0.03f, Osc.Square, 2000f + 300f * k, 1900f + 300f * k, 0.1f, lowpass: 0.5f, attack: 0.001f, decay: 6f),
@@ -544,19 +664,10 @@ namespace Arena
                 Tone(0.3f, Osc.Sine, 400f, 120f, 0.2f, noise: 0.8f, lowpass: 0.4f, attack: 0.002f, decay: 3f)), 0.15f);
             Set(Sfx.ZombieMend, Notes(new[] { 330f, 440f, 392f }, 0.1f, Osc.Triangle, 0.18f, 0.5f), 0.3f);
 
-            // The profile picker and the menu (ProfileTransition.cs): a two-note select click, four rising pings (takes played in turn)
-            // as the cards become points, a zip as the others shoot off, a sweep as your point opens into the box (and backwards),
+            // The profile picker and the menu (ProfileTransition.cs): a two-note select click, a sweep as your point opens into the box (and backwards),
             // a pen scratch for the title, the bar sliding up, and a low chord as the menu settles.
             Set(Sfx.ProfSelect, Finish(Concat(Tone(0.09f, Osc.Triangle, 520f, 780f, 0.22f, attack: 0.003f, decay: 2.5f),
                 Tone(0.14f, Osc.Triangle, 780f, 1170f, 0.2f, attack: 0.003f, decay: 2.5f)), 0.3f), 0.1f);
-            var profPings = new float[4][];
-            float[] pingHz = { 660f, 784f, 988f, 1175f };
-            for (int k = 0; k < 4; k++)
-                profPings[k] = Finish(Mix(Tone(0.22f, Osc.Sine, pingHz[k], pingHz[k], 0.18f, attack: 0.003f, decay: 3f),
-                    Tone(0.15f, Osc.Sine, pingHz[k] * 2f, pingHz[k] * 2f, 0.04f, attack: 0.003f, decay: 4f)), 0.22f);
-            Set(Sfx.ProfPing, profPings, 0.03f);
-            Set(Sfx.ProfZip, Finish(Mix(Tone(0.22f, Osc.Sine, 3200f, 700f, 0.14f, noise: 0.8f, lowpass: 0.5f, attack: 0.01f, decay: 2f),
-                Tone(0.16f, Osc.Sine, 1900f, 420f, 0.07f, attack: 0.005f, decay: 2.5f)), 0.22f), 0.1f);
             var sweep = Mix(Tone(0.5f, Osc.Sine, 300f, 1400f, 0.14f, attack: 0.12f, decay: 1.5f), Tone(0.5f, Osc.Sine, 450f, 2100f, 0.05f, attack: 0.12f, decay: 1.5f));
             Set(Sfx.ProfSweep, Finish(sweep, 0.2f), 0.3f);
             Set(Sfx.ProfSweepBack, Finish(Reverse(Mix(Tone(0.5f, Osc.Sine, 300f, 1400f, 0.14f, attack: 0.12f, decay: 1.5f), Tone(0.5f, Osc.Sine, 450f, 2100f, 0.05f, attack: 0.12f, decay: 1.5f))), 0.2f), 0.3f);
@@ -661,77 +772,35 @@ namespace Arena
             Set(Sfx.Downed, Tone(0.4f, Osc.Square, 400f, 100f, 0.3f, lowpass: 0.3f));
             Set(Sfx.Revive, Tone(0.3f, Osc.Sine, 300f, 800f, 0.3f, attack: 0.02f));
 
-            // Menus: a soft, short tick when the mouse moves onto a button (not an Sfx: it never goes over the network).
-            var tick = Tone(0.045f, Osc.Sine, 1500f, 2100f, 0.09f, lowpass: 0.5f, attack: 0.002f, decay: 3f);
-            uiHover = AudioClip.Create("ui_hover", tick.Length, 1, Rate, false);
-            uiHover.SetData(tick, 0);
+            // Menus: a soft, short tick when the mouse moves onto a button (never sent)...
+            Set(Sfx.UiHover, Tone(0.045f, Osc.Sine, 1500f, 2100f, 0.09f, lowpass: 0.5f, attack: 0.002f, decay: 3f), 0.04f);
             // ...and a soft, rounder click when one is pressed.
-            var click = Tone(0.07f, Osc.Triangle, 950f, 560f, 0.16f, noise: 0.08f, lowpass: 0.35f, attack: 0.001f, decay: 4f);
-            uiClick = AudioClip.Create("ui_click", click.Length, 1, Rate, false);
-            uiClick.SetData(click, 0);
+            Set(Sfx.UiClick, Tone(0.07f, Osc.Triangle, 950f, 560f, 0.16f, noise: 0.08f, lowpass: 0.35f, attack: 0.001f, decay: 4f), 0.05f);
+            Jitter(0.06f, Sfx.UiHover);
+            Jitter(0.05f, Sfx.UiClick);
             // A wall pushed out a tile (Docs/WallPush.md): a low stone thunk under a short gritty slide (local: the map change is what's sent).
-            var push = Finish(Mix(
+            Set(Sfx.WallPush, Finish(Mix(
                 Tone(0.22f, Osc.Sine, 95f, 55f, 0.5f, attack: 0.004f, decay: 2.2f),
                 Tone(0.18f, Osc.Saw, 180f, 90f, 0.16f, noise: 0.55f, lowpass: 0.18f, attack: 0.01f, decay: 2.5f),
-                Tone(0.06f, Osc.Triangle, 1400f, 900f, 0.06f, noise: 0.4f, lowpass: 0.5f, attack: 0.001f, decay: 5f)), 0.5f);
-            wallPush = AudioClip.Create("wall_push", push.Length, 1, Rate, false);
-            wallPush.SetData(push, 0);
+                Tone(0.06f, Osc.Triangle, 1400f, 900f, 0.06f, noise: 0.4f, lowpass: 0.5f, attack: 0.001f, decay: 5f)), 0.5f), 0.06f);
         }
-
-        AudioClip wallPush;
-        float wallPushLast = -10f;
 
         /// A wall pushed out (WallPushLook.cs), at the Effects volume, a little lower in pitch the deeper the section.
         public void PlayWallPush(float now, int depth)
         {
-            if (Muted || wallPush == null || now - wallPushLast < 0.06f)
-                return;
-            float volume = Master * Effects * 0.8f;
-            if (volume <= 0.001f)
-                return;
-            wallPushLast = now;
-            var voice = voices[nextVoice];
-            nextVoice = (nextVoice + 1) % voices.Length;
-            voice.pitch = 1.1f - 0.025f * Mathf.Clamp(depth, 0, 16) + ((float)rng.NextDouble() - 0.5f) * 0.04f;
-            voice.PlayOneShot(wallPush, volume);
+            float pitch = 1.1f - 0.025f * Mathf.Clamp(depth, 0, 16) + ((float)playRng.NextDouble() - 0.5f) * 0.04f;
+            Play(Sfx.WallPush, 0.8f, now, -1, pitch);
         }
-
-        AudioClip uiClick;
-        float uiClickLast = -10f;
 
         /// The menus' click, at the Effects volume.
         public void PlayUiClick(float now)
         {
-            if (Muted || uiClick == null || now - uiClickLast < 0.05f)
-                return;
-            float volume = Master * Effects;
-            if (volume <= 0.001f)
-                return;
-            uiClickLast = now;
-            uiHoverLast = now;  // no hover tick right on top of the click
-            var voice = voices[nextVoice];
-            nextVoice = (nextVoice + 1) % voices.Length;
-            voice.pitch = 1f + ((float)rng.NextDouble() - 0.5f) * 0.05f;
-            voice.PlayOneShot(uiClick, volume);
+            if (Play(Sfx.UiClick, 1f, now, -1))
+                table[(int)Sfx.UiHover].Last = now;  // no hover tick right on top of the click
         }
-
-        AudioClip uiHover;
-        float uiHoverLast = -10f;
 
         /// The menus' hover tick, at the Effects volume. Rapid sweeps across a row play at most every 40 ms.
-        public void PlayUiHover(float now)
-        {
-            if (Muted || uiHover == null || now - uiHoverLast < 0.04f)
-                return;
-            float volume = Master * Effects;
-            if (volume <= 0.001f)
-                return;
-            uiHoverLast = now;
-            var voice = voices[nextVoice];
-            nextVoice = (nextVoice + 1) % voices.Length;
-            voice.pitch = 1f + ((float)rng.NextDouble() - 0.5f) * 0.06f;
-            voice.PlayOneShot(uiHover, volume);
-        }
+        public void PlayUiHover(float now) => Play(Sfx.UiHover, 1f, now);
 
         void SetGun(Sfx s, float gap, Gun g)
         {
@@ -746,68 +815,115 @@ namespace Arena
             Set(s, new[] { samples }, gap);
         }
 
+        /// A sound's recipe has run (on the build thread): keep its takes until they become clips.
         void Set(Sfx s, float[][] takes, float gap)
         {
-            var list = new AudioClip[takes.Length];
-            for (int v = 0; v < takes.Length; v++)
-            {
-                list[v] = AudioClip.Create(s + "_" + v, takes[v].Length, 1, Rate, false);
-                list[v].SetData(takes[v], 0);
-            }
-            clips[(int)s] = list;
-            minGap[(int)s] = gap;
+            var e = table[(int)s];
+            e.Gap = gap;
+            if (!e.Own)
+                e.Samples = takes;
         }
 
-        public void Play(Sfx s, float volume, float now)
+        /// How far these sounds' pitch wanders from play to play (default 0.08, +-4%).
+        void Jitter(float amount, params Sfx[] list)
+        {
+            foreach (var s in list)
+                table[(int)s].Jitter = amount;
+        }
+
+        /// The sound's clips, made from its takes the first time (null while it's still being built).
+        AudioClip[] ClipsOf(Sfx s)
+        {
+            var e = table[(int)s];
+            if (e.Clips == null)
+            {
+                var takes = e.Samples;
+                if (takes == null)
+                    return null;
+                var list = new AudioClip[takes.Length];
+                for (int v = 0; v < takes.Length; v++)
+                {
+                    list[v] = AudioClip.Create(s + "_" + v, takes[v].Length, 1, Rate, false);
+                    list[v].SetData(takes[v], 0);
+                }
+                e.Clips = list;
+                e.Samples = null;
+            }
+            return e.Clips;
+        }
+
+        int pumped = 1;
+
+        /// After the build, turn a few sounds a frame into clips, so no first play has to (UpdateMusic, every frame).
+        void PumpClips(int max)
+        {
+            if (!built || table == null || pumped >= count)
+                return;
+            for (int made = 0; pumped < count && made < max; pumped++)
+                if (table[pumped].Clips == null && table[pumped].Samples != null)
+                {
+                    ClipsOf((Sfx)pumped);
+                    made++;
+                }
+        }
+
+        public void Play(Sfx s, float volume, float now) => Play(s, volume, now, -1);
+
+        /// A cue at its own volume (ally: someone else's, quieter; Quiet: further away).
+        public void Play(SoundCue cue, float now) => Play(cue.Sfx, cue.Volume, now, -1);
+
+        /// take: which take (-1: the next in turn); pitch: an exact pitch (0: 1 plus the sound's own wander). False when it didn't play.
+        bool Play(Sfx s, float volume, float now, int take, float pitch = 0f)
         {
             int i = (int)s;
-            if (Muted || i <= 0 || i >= count || clips[i] == null || now - lastPlayed[i] < minGap[i])
-                return;
+            if (Muted || table == null || i <= 0 || i >= count)
+                return false;
+            var e = table[i];
+            if (now - e.Last < e.Gap)
+                return false;
             volume *= Master * CategoryVolume(s);
             if (volume <= 0.001f)
-                return;
-            lastPlayed[i] = now;
-            var takes = clips[i];
-            var clip = takes[nextVariant[i]++ % takes.Length];
-            var voice = voices[nextVoice];
-            nextVoice = (nextVoice + 1) % voices.Length;
-            voice.pitch = 1f + ((float)rng.NextDouble() - 0.5f) * 0.08f;
-            voice.PlayOneShot(clip, volume);
+                return false;
+            var takes = ClipsOf(s);
+            if (takes == null)
+                return false;  // still being built (the first second or so)
+            e.Last = now;
+            var clip = takes[(take < 0 ? e.Next++ : take) % takes.Length];
+            PlayClip(clip, volume, pitch > 0f ? pitch : 1f + ((float)playRng.NextDouble() - 0.5f) * e.Jitter);
+            return true;
         }
 
         // --- Muffled playback (the lobby's loadout preview) ------------------------
         // A copy of each clip run through a low-pass filter, built the first time it's needed.
         const float MuffleHz = 450f, MuffleVolume = 0.4f;
-        AudioClip[][] muffled;
-        float[] lastMuffled;
 
         /// Like Play, but dull and quieter: the sound as heard through a wall.
         public void PlayMuffled(Sfx s, float volume, float now)
         {
             int i = (int)s;
-            if (Muted || i <= 0 || i >= count || clips[i] == null)
+            if (Muted || table == null || i <= 0 || i >= count)
                 return;
-            if (muffled == null)
-            {
-                muffled = new AudioClip[count][];
-                lastMuffled = new float[count];
-                for (int k = 0; k < count; k++)
-                    lastMuffled[k] = -10f;
-            }
-            if (now - lastMuffled[i] < minGap[i])
+            var e = table[i];
+            if (now - e.LastMuffled < e.Gap)
                 return;
             volume *= Master * CategoryVolume(s) * MuffleVolume;
             if (volume <= 0.001f)
                 return;
-            if (muffled[i] == null)
+            var src = ClipsOf(s);
+            if (src == null)
+                return;
+            if (e.Muffled == null)
             {
-                var src = clips[i];
                 var list = new AudioClip[src.Length];
                 double a = 1.0 - Math.Exp(-2.0 * Math.PI * MuffleHz / Rate);  // one-pole coefficient, applied twice
                 for (int v = 0; v < src.Length; v++)
                 {
                     var data = new float[src[v].samples * src[v].channels];
-                    src[v].GetData(data, 0);
+                    if (!src[v].GetData(data, 0))
+                    {
+                        list[v] = src[v];  // (a compressed file of the player's: played as it is, just quieter)
+                        continue;
+                    }
                     double y1 = 0, y2 = 0;
                     for (int n = 0; n < data.Length; n++)
                     {
@@ -815,18 +931,101 @@ namespace Arena
                         y2 += a * (y1 - y2);
                         data[n] = (float)y2 * 1.6f;  // (what the filter takes off the top, partly given back)
                     }
-                    list[v] = AudioClip.Create(src[v].name + "_muffled", data.Length / src[v].channels, src[v].channels, Rate, false);
+                    list[v] = AudioClip.Create(src[v].name + "_muffled", data.Length / src[v].channels, src[v].channels, src[v].frequency, false);
                     list[v].SetData(data, 0);
                 }
-                muffled[i] = list;
+                e.Muffled = list;
             }
-            lastMuffled[i] = now;
-            var takes = muffled[i];
-            var clip = takes[nextVariant[i]++ % takes.Length];
-            var voice = voices[nextVoice];
-            nextVoice = (nextVoice + 1) % voices.Length;
-            voice.pitch = 1f + ((float)rng.NextDouble() - 0.5f) * 0.08f;
-            voice.PlayOneShot(clip, volume);
+            e.LastMuffled = now;
+            var takes = e.Muffled;
+            PlayClip(takes[e.Next++ % takes.Length], volume, 1f + ((float)playRng.NextDouble() - 0.5f) * 0.08f);
+        }
+
+        // --- Your own sounds -------------------------------------------------------------
+        // A file named after the sound replaces it: ShotRifle.wav (or ShotRifle_1.wav, ShotRifle_2.wav... for takes played in
+        // turn) in the sounds folder (persistentDataPath/sounds, any PCM WAV), or an AudioClip of that name in
+        // Assets/Resources/Sfx. The folder wins over the project. The names are Core's Sfx enum (README "Your own sounds").
+        public static string SoundsFolder => Path.Combine(Application.persistentDataPath, "sounds");
+
+        /// "ShotRifle" -> (ShotRifle, 0), "ShotRifle_2" -> (ShotRifle, 2).
+        static bool ParseSoundName(string name, out Sfx s, out int take)
+        {
+            s = Sfx.None;
+            take = 0;
+            int us = name.LastIndexOf('_');
+            if (us > 0 && int.TryParse(name.Substring(us + 1), out int n) && n >= 0)
+            {
+                take = n;
+                name = name.Substring(0, us);
+            }
+            return name.Length > 0 && char.IsLetter(name[0]) && Enum.TryParse(name, out s) && s != Sfx.None;
+        }
+
+        /// The sounds folder's WAVs, per sound, takes in order (main thread: decoded on the build thread).
+        static List<KeyValuePair<Sfx, string[]>> OwnSoundFiles()
+        {
+            var found = new SortedDictionary<Sfx, SortedDictionary<int, string>>();
+            try
+            {
+                string dir = SoundsFolder;
+                if (Directory.Exists(dir))
+                    foreach (var f in Directory.GetFiles(dir, "*.wav"))
+                        if (ParseSoundName(Path.GetFileNameWithoutExtension(f), out var s, out int take))
+                        {
+                            if (!found.TryGetValue(s, out var takes))
+                                found[s] = takes = new SortedDictionary<int, string>();
+                            takes[take] = f;
+                        }
+            }
+            catch (Exception) { }
+            var list = new List<KeyValuePair<Sfx, string[]>>();
+            foreach (var kv in found)
+                list.Add(new KeyValuePair<Sfx, string[]>(kv.Key, new List<string>(kv.Value.Values).ToArray()));
+            return list;
+        }
+
+        /// The project's own clips (Assets/Resources/Sfx), for sounds the folder doesn't replace.
+        void LoadProjectSounds(List<KeyValuePair<Sfx, string[]>> folderFiles)
+        {
+            var found = new SortedDictionary<Sfx, SortedDictionary<int, AudioClip>>();
+            foreach (var clip in Resources.LoadAll<AudioClip>("Sfx"))
+                if (clip != null && ParseSoundName(clip.name, out var s, out int take))
+                {
+                    if (!found.TryGetValue(s, out var takes))
+                        found[s] = takes = new SortedDictionary<int, AudioClip>();
+                    takes[take] = clip;
+                }
+            foreach (var kv in found)
+                if (!folderFiles.Exists(f => f.Key == kv.Key))
+                {
+                    var e = table[(int)kv.Key];
+                    e.Clips = new List<AudioClip>(kv.Value.Values).ToArray();
+                    e.Own = true;
+                }
+            foreach (var kv in folderFiles)
+                table[(int)kv.Key].Own = true;  // (DecodeOwnSounds fills them in, before any recipe runs)
+        }
+
+        /// Build thread, first: the folder's WAVs. A sound whose files can't be read keeps its recipe.
+        void DecodeOwnSounds(List<KeyValuePair<Sfx, string[]>> folderFiles)
+        {
+            foreach (var kv in folderFiles)
+            {
+                var takes = new List<float[]>();
+                foreach (var f in kv.Value)
+                {
+                    float[] data = null;
+                    try { data = CustomMusic.DecodeWav(File.ReadAllBytes(f)); }
+                    catch (Exception) { }
+                    if (data != null && data.Length > 0)
+                        takes.Add(data);
+                }
+                var e = table[(int)kv.Key];
+                if (takes.Count > 0)
+                    e.Samples = takes.ToArray();
+                else
+                    e.Own = false;
+            }
         }
 
         // --- Synthesis ---------------------------------------------------------

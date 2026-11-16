@@ -249,4 +249,36 @@ namespace Arena
                 LockGlowDisc(to, 18f, Rgba.White, 0.6f * a);
         }
     }
+
+    public partial class ArenaApp
+    {
+        /// Every frame (sound on whatever Visual effects say): the lock-on chain's one-shots from the effects as they arrive, and the hum
+        /// while your own draw is held.
+        void TickArcLockSounds()
+        {
+            float now = Time.unscaledTime;
+            foreach (var fx in game.Effects)
+            {
+                if (fx.Heard)
+                    continue;
+                fx.Heard = true;
+                if (fx.Kind == FxKind.ArcTag)
+                    sounds.PlayArcTag(now, (int)fx.Radius, (int)fx.Pos2.X == game.MyId);
+                else if (fx.Kind == FxKind.ArcLink || fx.Kind == FxKind.ArcFork)
+                {
+                    var me = game.Me;
+                    bool mine = me != null && fx.Pos.DistanceTo(me.Pos) < me.Def.BodyR + 40f;  // it left from your staff
+                    if (fx.Kind == FxKind.ArcFork)
+                        sounds.PlayArcFork(now, fx.Radius < -1f ? 0 : fx.Radius > 1f ? 2 : 1, mine);
+                    else if (fx.Radius < 0f)
+                        sounds.PlayArcFizzle(now, mine);
+                    else
+                        sounds.PlayArcHop(now, (int)fx.Radius, mine || fx.Radius > 0.5f);  // (later hops are far from anyone's staff: full volume)
+                }
+            }
+            var p = game.Me;
+            bool humming = p != null && p.Weapon != null && p.Weapon.Id == WeaponId.ArcLightning && p.DrawT > 0f && !p.Downed;
+            sounds.SetArcHum(humming ? 1f : 0f, humming ? p.ArcTags.Count : 0);
+        }
+    }
 }

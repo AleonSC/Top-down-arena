@@ -119,7 +119,7 @@ namespace Arena
             w.Write(color);
             w.Write(radius);
             w.Write(dur);
-            w.Write((byte)sound);
+            w.Write((ushort)sound);
             session.Broadcast(Proto.End(w));
         }
 
@@ -211,7 +211,7 @@ namespace Arena
                     ReverseEnemyBullets();
                     break;
                 case Msg.Sound:
-                    Sounds.Add((Sfx)r.ReadByte());
+                    Sounds.Add((Sfx)r.ReadUInt16());
                     break;
                 case Msg.CooldownCut:  // a caught Scythe Throw: that player's own game takes the share off (ReaperLoot.cs)
                 {
@@ -259,7 +259,7 @@ namespace Arena
                     float radius = r.ReadSingle(), dur = r.ReadSingle();
                     AddFx(kind, pos, color, radius, dur);
                     Effects[Effects.Count - 1].Pos2 = pos2;
-                    Sounds.Add((Sfx)r.ReadByte());
+                    Sounds.Add((Sfx)r.ReadUInt16());
                     if (kind == FxKind.PerfectParry && color.A > 0.75f)
                         StartWorldSlow();  // the host's world slowed: this one's shots slow with it (Parry.cs)
                     break;

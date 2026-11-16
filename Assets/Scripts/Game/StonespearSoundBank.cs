@@ -3,36 +3,15 @@ using UnityEngine;
 namespace Arena
 {
     /// The Stonespear's sounds, the Basalt set of Docs/Mockups/stonespear-sounds.html (deep and heavy, no crackle: the rubble is a soft low rumble):
-    /// They aren't Sfx (that byte enum is full): each screen plays them from what it sees (StonespearLook.cs SsSound), like the Nova's.
-    ///   Throw  a spear thrown, every spear of a volley too: a soft airy whoosh and a low push.
-    ///   Wind   the slam's 0.3 s wind-up: a low rumble and a hiss of dust swelling in.
-    ///   Slam   the impact and the six spears tearing out of the ground behind it (35 ms apart, as they rise).
-    ///   Hit    a spear striking an enemy and crumbling: a dull thud and rubble settling.
-    ///   Stick  a missed spear driving into the ground: a short dull thump.
+    /// Never sent: each screen plays them from what it sees (StonespearLook.cs SsSound), like the Nova's.
+    ///   StoneThrow  a spear thrown, every spear of a volley too: a soft airy whoosh and a low push.
+    ///   StoneWind   the slam's 0.3 s wind-up: a low rumble and a hiss of dust swelling in.
+    ///   StoneSlam   the impact and the six spears tearing out of the ground behind it (35 ms apart, as they rise).
+    ///   StoneHit    a spear striking an enemy and crumbling: a dull thud and rubble settling.
+    ///   StoneStick  a missed spear driving into the ground: a short dull thump.
     /// Throw, Wind and Slam use the Weapons volume, Hit and Stick the Effects volume.
     public partial class SoundBank
     {
-        public enum StoneCue { Throw, Wind, Slam, Hit, Stick }
-
-        AudioClip[] stoneCues;
-        readonly float[] stoneCueLast = { -10f, -10f, -10f, -10f, -10f };
-
-        /// One of the Stonespear's sounds (ally: someone else's, quieter; quiet 0..1: further away).
-        public void PlayStoneCue(StoneCue cue, bool ally, float quiet, float now)
-        {
-            int i = (int)cue;
-            if (Muted || stoneCues == null || now - stoneCueLast[i] < 0.03f)
-                return;
-            float volume = Master * (cue <= StoneCue.Slam ? Weapons : Effects) * (ally ? 0.45f : 1f) * (1f - quiet);
-            if (volume <= 0.001f)
-                return;
-            stoneCueLast[i] = now;
-            var voice = voices[nextVoice];
-            nextVoice = (nextVoice + 1) % voices.Length;
-            voice.pitch = 1f + ((float)rng.NextDouble() - 0.5f) * 0.06f;
-            voice.PlayOneShot(stoneCues[i], volume);
-        }
-
         /// Soft rubble: dark, low-passed noise settling (no clicks).
         float[] StoneRubble(float dur) => Tone(dur, Osc.Sine, 260f, 120f, 0.35f, noise: 1f, lowpass: 0.06f, attack: 0.01f, decay: 2f);
 
@@ -67,13 +46,12 @@ namespace Arena
             var stick = Finish(Mix(
                 Tone(0.14f, S, 110f, 70f, 0.8f, noise: 0.5f, lowpass: 0.12f, attack: 0.001f, decay: 3f),
                 Delay(StoneRubble(0.2f), 0.03f)), 0.45f);
-            var data = new[] { thr, wind, slamAll, hit, stick };
-            stoneCues = new AudioClip[data.Length];
-            for (int i = 0; i < data.Length; i++)
-            {
-                stoneCues[i] = AudioClip.Create("stone_cue_" + i, data[i].Length, 1, Rate, false);
-                stoneCues[i].SetData(data[i], 0);
-            }
+            Set(Sfx.StoneThrow, thr, 0.03f);
+            Set(Sfx.StoneWind, wind, 0.03f);
+            Set(Sfx.StoneSlam, slamAll, 0.03f);
+            Set(Sfx.StoneHit, hit, 0.03f);
+            Set(Sfx.StoneStick, stick, 0.03f);
+            Jitter(0.06f, Sfx.StoneThrow, Sfx.StoneWind, Sfx.StoneSlam, Sfx.StoneHit, Sfx.StoneStick);
         }
     }
 }

@@ -5,16 +5,12 @@ namespace Arena
     /// The Lightbringer's sounds (cues raised in Core/Lightbringer.cs and Core/Combat.cs), a healer's sword: warm airy cuts with a
     /// clean major-key chime instead of a steel ring, a sunrise swell into a struck chord for Noon, sparkles when a crescent heals,
     /// a glassy three-note arpeggio when it wards, and the Sunlance's gathering shimmer and bright release. Built like the Twin
-    /// Blades' bank (TwinSoundBank.cs). The cuts, a cut landing, Noon and the release use the Weapons volume (IsLightWeaponSfx).
+    /// Blades' bank (TwinSoundBank.cs). The cuts, a cut landing, Noon and the release use the Weapons volume (the Categories() table in SoundBank.cs).
     public partial class SoundBank
     {
         // A major chord on C6 (and its octave): the sword's voice.
         const float LightC = 1046.5f, LightE = 1318.5f, LightG = 1568f, LightRoom = 0.25f;
 
-        static bool IsLightWeaponSfx(Sfx s)
-        {
-            return s == Sfx.LightCut1 || s == Sfx.LightCut2 || s == Sfx.LightNoon || s == Sfx.LightRadiant || s == Sfx.LightHit || s == Sfx.LanceRelease;
-        }
 
         /// A struck chime: harmonic partials (unlike Bell's inharmonic ones), so it rings sweet rather than churchy.
         static float[] Chime(float dur, float f, float vol) =>

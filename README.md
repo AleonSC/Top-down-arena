@@ -1864,6 +1864,12 @@ out (Back or Esc), and only then does the window really close.
 Esc goes back (from the pause menu's Settings, to its list). The same audio options are
 under **Settings** on the main menu, and they're saved between sessions.
 
+**Your own sounds:** any sound effect can be replaced by a file named after it (the names are the game's sound list, `Sfx` in
+`Core/Entities.cs`, e.g. `ShotRifle`, `BossGong`, `UiClick`). Put a PCM WAV in the **sounds** folder next to the music folder
+(`persistentDataPath/sounds`, read at startup), or an AudioClip in `Assets/Resources/Sfx` to ship it with the game; the folder
+wins. `ShotRifle_1.wav`, `ShotRifle_2.wav`... give it several takes, played in turn. It keeps the sound's volume slider, its
+shortest gap between plays and its small pitch wander.
+
 **Visual effects** (the right-hand column of **Settings**, saved between sessions; all drawn on your own screen only,
 so they never change the fight or what your friend sees):
 

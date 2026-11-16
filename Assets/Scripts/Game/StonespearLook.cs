@@ -73,7 +73,7 @@ namespace Arena
                     bool impact = fx.Pos2.X >= 1f;
                     if (impact)
                         SsBurst(fx.Pos, 26, 260f);
-                    SsSound(impact ? SoundBank.StoneCue.Slam : SoundBank.StoneCue.Wind, (int)fx.Pos2.Y, fx.Pos);
+                    SsSound(impact ? Sfx.StoneSlam : Sfx.StoneWind, (int)fx.Pos2.Y, fx.Pos);
                 }
             ssSlamsSeen.RemoveWhere(fx => !game.Effects.Contains(fx));
             // the thrown spears: trails, and what happened to the ones gone
@@ -86,7 +86,7 @@ namespace Arena
                 {
                     ssShots[b.Id] = s = new SsShot();
                     SsBurst(b.Pos, 6, 140f);
-                    SsSound(SoundBank.StoneCue.Throw, b.Owner, b.Pos);
+                    SsSound(Sfx.StoneThrow, b.Owner, b.Pos);
                 }
                 s.Pos = b.Pos;
                 s.Ang = b.Vel.IsZero ? s.Ang : b.Vel.Angle;
@@ -113,7 +113,7 @@ namespace Arena
                 bool stuck = s.Life <= 0.05f;
                 ssGhosts.Add(new SsGhost { Pos = s.Pos, Ang = s.Ang, Stuck = stuck });
                 SsBurst(s.Pos, stuck ? 6 : 10, stuck ? 90f : 200f);
-                SsSound(stuck ? SoundBank.StoneCue.Stick : SoundBank.StoneCue.Hit, s.Owner, s.Pos);
+                SsSound(stuck ? Sfx.StoneStick : Sfx.StoneHit, s.Owner, s.Pos);
             }
             foreach (int id in ssGone)
                 ssShots.Remove(id);
@@ -190,10 +190,10 @@ namespace Arena
         static float SsAngDiff(float from, float to) => MathX.Fmod(to - from + MathX.Pi, MathX.Tau) - MathX.Pi;
 
         /// A Stonespear sound (StonespearSoundBank.cs): quieter for someone else's spear and with distance.
-        void SsSound(SoundBank.StoneCue cue, int owner, V2 at)
+        void SsSound(Sfx cue, int owner, V2 at)
         {
             bool mine = owner == game.MyId;
-            sounds?.PlayStoneCue(cue, !mine, mine ? 0f : game.QuietAt(at), Time.unscaledTime);
+            sounds?.Play(new SoundCue { Sfx = cue, Ally = !mine, Quiet = mine ? 0f : game.QuietAt(at) }, Time.unscaledTime);
         }
 
         void SsBurst(V2 at, int n, float speed)
