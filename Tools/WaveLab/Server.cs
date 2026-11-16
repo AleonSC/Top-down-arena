@@ -214,7 +214,7 @@ static class Lab
         sess.Diff.Set(DiffKnob.Campaign, 0f);
         sess.Plan = set.ToPlan();
         sess.DesignTest = set;
-        sess.SetMode(true, false);
+        sess.SetMode(GameMode.Practice);
         sess.StartMatch();
         var g = sess.Game;
         g.PracticeIndex = Math.Max(-1, (int)D(m, "wave", 1) - 2);  // the index of the wave just cleared: the next one is the start wave

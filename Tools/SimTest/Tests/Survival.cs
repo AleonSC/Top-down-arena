@@ -105,7 +105,7 @@ static partial class Program
         var s = new[] { host, client };
         WaitForLobby(host, client);
         PollBoth(host, client);
-        host.SetMode(false, false, false, true);
+        host.SetMode(GameMode.Survival);
         PollBoth(host, client);
         Check(host.SurvivalMode && client.SurvivalMode && !host.QuickMode && !host.HuntMode, "the lobby's Survival mode shows in the friend's lobby");
         client.RequestReady(true); host.RequestReady(true); PollBoth(host, client);
@@ -211,7 +211,7 @@ static partial class Program
         var s = new[] { host, client };
         WaitForLobby(host, client);
         PollBoth(host, client);
-        host.SetMode(false, false, false, true);
+        host.SetMode(GameMode.Survival);
         foreach (var m in new[] { RunMod.ZombieInfection, RunMod.Hunted, RunMod.SecondWind, RunMod.Cluttered, RunMod.TinyArena, RunMod.SolidWalls, RunMod.GoldRush, RunMod.SimpleArena })
             host.SetModifier(m, true);
         PollBoth(host, client);

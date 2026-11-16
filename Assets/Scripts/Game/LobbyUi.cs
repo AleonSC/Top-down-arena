@@ -53,16 +53,16 @@ namespace Arena
             // A mode change keeps the open tab (the Loadout stays up) unless it was the old mode's own.
             if (!practice && (lobbyTab == 1 || lobbyTab == TrainingTab))
                 lobbyTab = 0;
-            bool hunt = session.HuntMode && !practice && session.Resume == null;
+            bool hunt = session.HuntMode;
             if (!hunt && lobbyTab == 4)
                 lobbyTab = 0;
-            bool quick = session.QuickMode && !practice && !hunt && session.Resume == null;
+            bool quick = session.QuickMode;
             if (!quick && lobbyTab == QuickTab)
                 lobbyTab = 0;
-            bool survival = session.SurvivalMode && !practice && !hunt && session.Resume == null;
+            bool survival = session.SurvivalMode;
             if (!survival && lobbyTab == SurvivalTab)
                 lobbyTab = 0;
-            bool campaign = !practice && !hunt && !quick && !survival && session.Resume == null;
+            bool campaign = session.Mode == GameMode.Campaign && session.Resume == null;
             if (!campaign && lobbyTab == CampaignTab)
                 lobbyTab = 0;
             // Picking a mode opens that mode's own window (Quick Play, Survival, Boss hunt, Practice) over the loadout; Normal shows the loadout.
@@ -166,7 +166,7 @@ namespace Arena
                 DrawTraining(body, t);  // TrainingUi.cs
             else if (lobbyTab == 4 && hunt)
                 DrawHuntPicker(body, t);  // HuntUi.cs
-            else if (lobbyTab == QuickTab && session.QuickMode && !practice && session.Resume == null)
+            else if (lobbyTab == QuickTab && quick)
                 DrawQuickPlayTab(body, t);  // QuickPlayUi.cs
             else if (lobbyTab == CampaignTab && campaign)
                 DrawCampaignTab(body, t);  // CampaignUi.cs
@@ -250,7 +250,7 @@ namespace Arena
             const int n = 5;
             bool calm = fxReduced, host = session.IsHost;
             var ev = Event.current;
-            int mode = session.PracticeMode ? 3 : session.HuntMode ? 2 : session.SurvivalMode ? 4 : session.QuickMode ? 0 : 1;
+            int mode = (int)session.Mode;  // the carousel is in GameMode order
             int d0 = ((mode - modeTurn) % n + n) % n;  // follow the session the short way round (the host's turn, or someone else's)
             if (!modeTurnSet)
             {
@@ -330,7 +330,7 @@ namespace Arena
                 int m = ((turnTo % n) + n) % n;
                 modeTurn = turnTo;
                 if (m != mode)
-                    session.SetMode(m == 3, m == 2, m == 0, m == 4);
+                    session.SetMode((GameMode)m);
             }
         }
 
@@ -338,13 +338,13 @@ namespace Arena
         void DrawLobbyTabs(Rect r, bool practice)
         {
             int mods = Modifiers.Count(session.Modifiers);
-            bool hunt = session.HuntMode && !practice && session.Resume == null;
+            bool hunt = session.HuntMode;
             // Indexed by tab id (0 loadout and 5 perks: not here; 1 practice, 2 modifiers, 3 difficulty, 4 boss hunt, 5 perks, 6 hangout, 7 training, 8 quick play); null = not shown.
             string[] names = { null, practice ? "Practice  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers",
                 "Difficulty", hunt ? "Boss hunt" : null, null, null, practice ? "Training" : null,
-                session.QuickMode && !practice && !hunt && session.Resume == null ? "Quick Play" : null,
-                session.SurvivalMode && !practice && !hunt && session.Resume == null ? "Survival" : null,
-                !session.QuickMode && !session.SurvivalMode && !practice && !hunt && session.Resume == null ? "Campaign" : null };  // Hangout has its own key on the Party line
+                session.QuickMode ? "Quick Play" : null,
+                session.SurvivalMode ? "Survival" : null,
+                session.Mode == GameMode.Campaign && session.Resume == null ? "Campaign" : null };  // Hangout has its own key on the Party line
             int[] order = { 4, QuickTab, SurvivalTab, CampaignTab, 1, TrainingTab };  // the mode's own (Loadout and Perks have keys; Difficulty and Modifiers are rows over Ready)
             var shown = new System.Collections.Generic.List<int>();
             foreach (int i in order)
@@ -1685,7 +1685,7 @@ namespace Arena
                 CrtUi.Text(new Rect(lx, readyRect.y - 30f, lw, 24f), note, 14, waiting == 0 ? CrtUi.Ink : CrtUi.Dim, TextAnchor.MiddleCenter, true, calm);
             if (host)
             {
-                bool startOn = session.AllReady && (!practice || session.Plan.Waves.Count > 0) && (practice || !session.HuntMode || session.Resume != null || (session.LobbyHunt != null && !huntBrowsingLocked));  // (a locked hunt can't start)
+                bool startOn = session.AllReady && (!practice || session.Plan.Waves.Count > 0) && (!session.HuntMode || (session.LobbyHunt != null && !huntBrowsingLocked));  // (a locked hunt can't start)
                 if (LobbyKit.Key(new Rect(lx, LobbyStartY, lw, LobbyStartH), "START", false, calm, PixelArt.Get("ui_play"), size: 22, minSize: 14, locked: !startOn))
                     session.StartMatch();
             }

@@ -27,7 +27,7 @@ namespace Arena
         /// Host: restart the recording as a test, then jump to its first wave. False if a test can't start here.
         public bool DevStartBalanceTest(int firstWave, bool bot, bool fine, bool refill)
         {
-            if (!IsHost || State == MatchState.Idle || Practice != null || Hunt != null || BalanceFolder == null || Players.Count == 0)
+            if (!IsHost || State == MatchState.Idle || !ModeRules.RunEvents || BalanceFolder == null || Players.Count == 0)
                 return false;
             if (Recorder != null && !Recorder.Ended)
                 Recorder.End(this, "balance test started");

@@ -46,7 +46,7 @@ static partial class Program
         host.Host(port, "Host", Role.Dps);
         host.Plan = set.ToPlan();
         host.DesignTest = set.Copy();
-        host.SetMode(true, false);
+        host.SetMode(GameMode.Practice);
         host.AutoStart = 1;
         host.StartMatch();
         var g = host.Game;

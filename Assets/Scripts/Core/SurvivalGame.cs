@@ -34,7 +34,7 @@ namespace Arena
 
         void WriteSurvivalStart(BinaryWriter w, bool quick)
         {
-            bool on = session.SurvivalMode && !session.PracticeMode && session.LobbyHunt == null && ResumeFrom == null && !quick;
+            bool on = session.SurvivalMode && ResumeFrom == null && !quick;
             w.Write(on);
             if (on)
                 w.Write(new Random().Next(1, 1 << 30));

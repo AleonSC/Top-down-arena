@@ -88,8 +88,7 @@ namespace Arena
             }
             if (!host.Host(port, s0.Human ? "You" : "Bot 1", s0.Role, s0.Weapon, s0.Ability, s0.Kit))
                 return false;
-            host.QuickMode = Quick;
-            host.PracticeMode = host.HuntMode = false;
+            host.Mode = Quick ? GameMode.Quick : GameMode.Campaign;
             host.Game.Unrecorded = true;  // lab fights aren't saved or counted in records
             host.Game.ScaleBosses = false;  // the lab compares bosses as they are, not as a strong build would meet them
             host.Game.Bot = !s0.Human;

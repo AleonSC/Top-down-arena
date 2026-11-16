@@ -235,7 +235,7 @@ namespace Arena
                 else
                     GiveSurpriseRoom();  // ...but a free, well-shaped room that closes a loop (ExpansionGame.cs, Docs/SurpriseRooms.md)
             }
-            else if (ServiceRooms && RoomsOn && !ShopOpen && Practice == null && Hunt == null)
+            else if (ServiceRooms && RoomsOn && !ShopOpen && ModeRules.RunEvents)
                 OpenShopRoom(Wave % Expansion.Milestone == 1 && FirstLeg);  // a connected shop or vendor room: open each intermission (walk in); the shelf is new once a boss cycle
             RevealBreachRooms();  // every breach that is left opens onto a small room (BreachEvent.cs, Docs/BreachRooms.md)
             RevealBreachEvent();  // a breach event the wave ended before it opened: the room opens now (BreachEvent.cs)

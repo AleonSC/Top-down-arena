@@ -85,7 +85,7 @@ namespace Arena
         {
             get
             {
-                if (!FreeBuild || ExpandOpen || Practice != null || Hunt != null || State != MatchState.Intermission
+                if (!FreeBuild || ExpandOpen || !ModeRules.RunEvents || State != MatchState.Intermission
                     || WaveReport == null || WaveReport.Wave != Wave)
                     return false;
                 for (int a = 1; a < ExpansionWorld.Areas.Length; a++)
@@ -153,7 +153,7 @@ namespace Arena
             if (!ExpandingOn)
                 return;
             bool boss = BossNow;
-            if (boss && IsHost && Practice == null && Hunt == null)
+            if (boss && IsHost && ModeRules.RunEvents)
                 GrantRoomToken(Expansion.FloorToken(expandSeed, Wave, Expanded, RoomTokens));
             foreach (var p in Players.Values)
             {
@@ -306,7 +306,7 @@ namespace Arena
         /// room touches it; shop and vendor are tiny 4 x 4 tile rooms) and a chest node (Docs/Nodes.md). Nothing placed is ever placed again: at most MaxSealed rooms and MaxNodesWaiting nodes wait.
         void PlaceFloatingRooms()
         {
-            if (!IsHost || !ExpandingOn || Practice != null || Hunt != null)
+            if (!IsHost || !ExpandingOn || !ModeRules.RunEvents)
                 return;
             int cycle = (Wave - 1) / Expansion.Milestone;
             if (cycle <= floatCycle)
@@ -382,7 +382,7 @@ namespace Arena
         /// through the five from a seeded start. Nothing on a full map or without a spot.
         void GiveSurpriseRoom()
         {
-            if (!IsHost || !ExpandingOn || Practice != null || Hunt != null || (Wave >= LastWave && !Endless) || Expansion.BoughtCount(Expanded) > Expansion.MaxRooms - 2)
+            if (!IsHost || !ExpandingOn || !ModeRules.RunEvents || (Wave >= LastWave && !Endless) || Expansion.BoughtCount(Expanded) > Expansion.MaxRooms - 2)
                 return;
             string why;
             var pick = Expansion.Surprise(expandSeed, Wave, Expanded, NextSurpriseShape(), out why);
@@ -592,7 +592,7 @@ namespace Arena
         /// Host, when a wave is cleared: a building round opens (not in the Practice Range, a Boss Hunt, after the last wave or on a full map).
         void OpenBuildRound()
         {
-            if (!IsHost || !ExpandingOn || Practice != null || Hunt != null || (Wave >= LastWave && !Endless) || Expansion.BoughtCount(Expanded) >= Expansion.MaxRooms)
+            if (!IsHost || !ExpandingOn || !ModeRules.RunEvents || (Wave >= LastWave && !Endless) || Expansion.BoughtCount(Expanded) >= Expansion.MaxRooms)
                 return;
             ExpandOpen = true;
             roundBuilt = 0;

@@ -18,7 +18,7 @@ static partial class Program
         host.Game.Bot = true; host.Game.BotLevel = skill; host.Game.BotRerolls = false;
         int port = nextPort++;
         host.Host(port, "A", Role.Tank, 0);
-        host.SetMode(false, false, false, true);
+        host.SetMode(GameMode.Survival);
         var friends = new List<Session>();
         var roles = new[] { Role.Dps, Role.Healer };
         for (int i = 0; i < players - 1; i++)

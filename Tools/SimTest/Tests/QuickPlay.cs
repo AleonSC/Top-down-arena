@@ -47,12 +47,24 @@ static partial class Program
             var sp = solo.Game.ProfileOverride = new Profile();
             solo.Host(port, "Host", Role.Tank);
             bool openedQuick = solo.QuickMode && !solo.HuntMode && !solo.PracticeMode;
-            solo.SetMode(false, false, false);
+            solo.SetMode(GameMode.Campaign);
             solo.Leave("");
             solo.Host(port, "Host", Role.Tank);
             Check(openedQuick && sp.LastMode == "campaign" && !solo.QuickMode && Profile.Parse(sp.ToText()).LastMode == "campaign",
                 "a new profile's lobby opens on Quick Play; another mode picked is where it opens next time");
             solo.Leave("");
+
+            // The mode table (GameMode.cs): a row per mode, keys round-trip, and only the Campaign saves.
+            bool rows = true;
+            for (var m = GameMode.Quick; m < GameMode.None; m++)
+                rows &= ModeDef.For(m).Mode == m && ModeDef.FromKey(ModeDef.For(m).Key) == m;
+            Check(rows && ModeDef.FromKey("") == GameMode.Quick && ModeDef.For(GameMode.Campaign).Saves && !ModeDef.For(GameMode.Quick).Saves
+                && !ModeDef.For(GameMode.Hunt).Lives && !ModeDef.For(GameMode.Practice).RunEvents,
+                "every game mode has a row in the mode table, its profile key names it back, and only the Campaign is saved");
+            var rs = new Session();
+            rs.Mode = GameMode.Survival;
+            rs.Resume = new RunSave();
+            Check(rs.PlayMode == GameMode.Campaign && !rs.SurvivalMode, "continuing a saved run plays the Campaign whatever mode the lobby showed");
 
             // The run, in co-op.
             port = nextPort++;
@@ -163,7 +175,7 @@ static partial class Program
         var s = new[] { host, client };
         WaitForLobby(host, client);
         PollBoth(host, client);
-        host.SetMode(false, false, true);
+        host.SetMode(GameMode.Quick);
         PollBoth(host, client);
         client.RequestReady(true); host.RequestReady(true); PollBoth(host, client);
         host.StartMatch();
@@ -212,7 +224,7 @@ static partial class Program
                 h.Game.ProfileOverride = prof;
                 h.Host(nextPort++, "Host", Role.Tank);
                 h.Diff.Set(DiffKnob.Campaign, 0f);
-                h.SetMode(false, false, quick);
+                h.SetMode(quick ? GameMode.Quick : GameMode.Campaign);
                 h.StartMatch();
                 for (int i = 0; i < 400 && h.Game.State != MatchState.Fighting; i++) Step(h, dt);
                 return h;

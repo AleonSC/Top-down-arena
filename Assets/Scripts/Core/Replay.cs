@@ -301,7 +301,7 @@ namespace Arena
             file.Created = DateTime.UtcNow;
             file.Practice = session.PracticeMode;
             file.Plan = session.PracticeMode ? session.Plan.ToText() : "";
-            file.Hunt = session.HuntMode && !session.PracticeMode && session.Resume == null;
+            file.Hunt = session.HuntMode;
             file.HuntBoss = session.HuntBoss;
             file.Mods = session.Modifiers;
             file.Diff = session.Diff.Copy();
@@ -435,13 +435,12 @@ namespace Arena
             Game.Replaying = true;
             Game.Unrecorded = true;
             s.MyId = 0;  // nobody: every player is seen as the host would show them to someone else
-            s.PracticeMode = File.Practice;
+            s.Mode = File.Practice ? GameMode.Practice : File.Hunt ? GameMode.Hunt : GameMode.Campaign;
             if (File.Practice)
             {
                 List<string> problems;
                 s.Plan = PracticePlan.Parse(File.Plan, out problems);
             }
-            s.HuntMode = File.Hunt;
             s.HuntBoss = File.HuntBoss;
             s.Modifiers = File.Mods;
             s.Diff = File.Diff.Copy();

@@ -293,7 +293,7 @@ static partial class Program
         settle(1);
 
         // The Practice Range plays with it too.
-        host.PracticeMode = true;
+        host.Mode = GameMode.Practice;
         host.AutoStart = 2;
         host.StartMatch();
         for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); System.Threading.Thread.Sleep(2); }

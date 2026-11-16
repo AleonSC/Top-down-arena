@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 353: the lobby message sends the mode as one `GameMode` byte (was Hunt, Quick and Survival bools); `Msg.Practice` drops its Practice bool (the mode comes with the lobby)
 - 352: `FxKind.Sentry` and `FxKind.Nova` (the Turret's drop and power-down, Nova's starburst) appended
 - 351: the player snapshot carries Twin Fang's thrown pair (`Player.FangOut` byte, `FangAt` vector, after `TwinLock`); `FxKind.TwinFang` is only the wind-up now
 - 350: `Msg.Input` and the player snapshot carry `Player.Sprint` (the Dodge's held sprint, a byte), so everyone sees each other's sprint wake

@@ -59,7 +59,7 @@ namespace Arena
         public bool LongRun;                          // this run is a 100-wave Campaign (set by the start message; saved)
         public static bool LongRunDefault = true;     // a new run from the lobby is (the sim tests turn it off for the older suites)
         public int Leg;                               // 0: the first of the wave's two legs, 1: the second (replicated; saved)
-        public bool LongLegs => LongRun && Hunt == null && !Quick && Practice == null && !ShowcaseMode && !LabRun;  // (a run with lobby bots is still the Campaign: Expanding arena, building)
+        public bool LongLegs => LongRun && ModeRules.Legs && !ShowcaseMode && !LabRun;  // (a run with lobby bots is still the Campaign: Expanding arena, building)
         bool LegDone => !LongLegs || Leg == 1;
         bool FirstLeg => !LongLegs || Leg == 0;       // once-a-wave things happen on a Campaign wave's first leg only        // the track's wave is done with this fight (the boss or the next wave is next)
 
