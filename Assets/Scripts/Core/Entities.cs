@@ -185,6 +185,8 @@ namespace Arena
         public readonly Dictionary<int, float> OrbitCut = new Dictionary<int, float>();  // host: enemy id -> OrbitClock of its last cut
         public float SpinUp;                          // Burst SMG: how spun up it is, 0 to 1 (replicated)
         public int PreyId;                            // Wolf Whistle: the enemy the pack is hunting (replicated)
+        public byte PackKills;                        // Wolf Whistle: kills towards the next wolf (replicated; WolfPack.cs)
+        public bool PackStarted;                      // host: the Wolf Whistle's starting wolves came
         public int Orbiters;                          // Arcane Missiles: missiles circling you, waiting for an enemy (replicated)
         public float LaunchCd;                        // host: until the next one launches
         public float DoseT;                           // dosed by Medicine Darts: healing over time while it lasts (replicated)
@@ -718,6 +720,7 @@ namespace Arena
         public System.Collections.Generic.HashSet<int> Burrowed;  // host: the enemies a Burrower has already bitten (Burrower.cs)
         public bool Capstone;            // host: a Burrower from a mastered Earthquake (freezes what it bites)
         public float SeedCd;             // host: a Treant Rod Treant's time to its next seed (KitWeapons.cs)
+        public int Alpha;                // host: a Wolf Whistle alpha's wolves merged into it, 0 a normal wolf (WolfPack.cs)
         public float Ring;               // host: a Twin Scythe's circle round its owner, signed by which way it spins (ReaperLoot.cs)
     }
 

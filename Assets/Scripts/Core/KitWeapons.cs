@@ -654,7 +654,8 @@ namespace Arena
             return p.PreyT > 0f && Enemies.TryGetValue(p.PreyId, out e) && Targetable(e) ? e : null;
         }
 
-        /// A wolf bit something: if it's the prey and every wolf has now bitten it within PackWindow, a takedown.
+        /// A pack wolf bit something: if it's the prey and every wolf has now bitten it within PackWindow, a takedown
+        /// (a lone wolf: two bites). It hits for PackTakedown a wolf, an alpha counting as the wolves in it.
         void PackBite(Player owner, Minion wolf, Enemy e)
         {
             if (e.Id != owner.PreyId || owner.PreyT <= 0f)
@@ -667,14 +668,21 @@ namespace Arena
                 bit.Clear();
                 owner.PackT = PackWindow;
             }
-            bit.Add(wolf.Id);
-            int wolves = 0;
+            if (!wolf.Companion)
+                return;  // Alpha Call's and Legion's wolves hunt, but the takedown is the pack's
+            int wolves = 0, strength = 0;
             foreach (var m in Minions.Values)
-                if (m.Owner == owner.Id && m.Kind == MinionKind.Wolf)
+                if (PackWolf(m, owner.Id))
+                {
                     wolves++;
+                    strength += Math.Max(1, m.Alpha);  // an alpha is worth the wolves in it (WolfPack.cs)
+                }
+            if (wolves == 1 && bit.Contains(wolf.Id))
+                bit.Add(-1);  // a lone wolf (or alpha) bites twice in the window instead
+            bit.Add(wolf.Id);
             if (bit.Count < Math.Max(2, wolves))
                 return;
-            WeaponHurt(e, PackTakedown * wolves * owner.Stats.DmgMult * owner.Stats.TakedownMult, owner.Id);  // (Alpha Pack: harder, longer)
+            WeaponHurt(e, PackTakedown * strength * owner.Stats.DmgMult * owner.Stats.TakedownMult, owner.Id);  // (Alpha Pack: harder, longer)
             if (!e.Def.IsBoss)
                 e.FrozenT = Math.Max(e.FrozenT, PackStun + owner.Stats.TakedownStunBonus);
             BroadcastFx(FxKind.Claw, e.Pos - new V2(30f, 0f), e.Pos + new V2(30f, 0f), new Rgba(0.85f, 0.85f, 0.95f), 0.9f, 0.3f, Sfx.SwingHeavy);
