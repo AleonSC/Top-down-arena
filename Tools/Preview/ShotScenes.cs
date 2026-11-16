@@ -930,7 +930,7 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
-    // SHOTW=<WeaponId>: that weapon in your hand, three volleys fired by the game's own code and moved on 0.06 / 0.18 /
+    // SHOTW=<WeaponId>: that weapon in your hand (Arc Lightning: use ARCLOCK=), three volleys fired by the game's own code and moved on 0.06 / 0.18 /
     // 0.3 s, aiming right, the arena otherwise empty (for comparing shot looks with Docs/Mockups/projectiles.html).
     if (Environment.GetEnvironmentVariable("SHOTW") != null) {
       var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
@@ -947,23 +947,6 @@ static partial class Shot {
         fireV.Invoke(gm, new object[] { me, 0f, 0 });
         float st2 = float.Parse(Environment.GetEnvironmentVariable("SHOTT") ?? "0.1", System.Globalization.CultureInfo.InvariantCulture);
         foreach (var fx in gm.Effects) fx.T = st2;
-      }
-      else if (wd.Id == WeaponId.ArcLightning) {
-        // Arc Lightning: enemies where the mockup has them (arc-lightning.html). SHOTC=<0..1>: that far through the hold (the
-        // charge). Otherwise one full-charge release, the frame SHOTT s into it.
-        var spawnE = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        foreach (var sp in new[] { new V2(170f, -10f), new V2(300f, 30f), new V2(420f, -35f), new V2(540f, 5f), new V2(650f, 38f), new V2(760f, -20f) }) {
-          var en = (Enemy)spawnE.Invoke(gm, new object[] { EnemyType.Grunt, me.Pos + new V2(sp.X, sp.Y), 0f, 0, false });
-          en.SpawnT = 0f; en.Disp = en.Pos; en.MaxHp = en.Hp = 1e5f;
-        }
-        string sc = Environment.GetEnvironmentVariable("SHOTC");
-        if (sc != null) me.DrawT = Game.BowMinDraw + (Game.BowFullDraw - Game.BowMinDraw) * float.Parse(sc, System.Globalization.CultureInfo.InvariantCulture);
-        else {
-          me.BowShotDraw = Game.BowFullDraw;
-          fireV.Invoke(gm, new object[] { me, 0f, 0 });
-          float st2 = float.Parse(Environment.GetEnvironmentVariable("SHOTT") ?? "0.06", System.Globalization.CultureInfo.InvariantCulture);
-          foreach (var fx in gm.Effects) fx.T = st2;
-        }
       }
       else foreach (float age in new[] { 0.3f, 0.18f, 0.06f }) {
         var before = new System.Collections.Generic.HashSet<int>(gm.Bullets.Keys);
@@ -1636,7 +1619,8 @@ static partial class Shot {
       me.CoatT = 3f;
       for (int k = 0; k < 2; k++) sb5.Invoke(gm, new object[] { Defs.FireballShot, new V2(300f + 120f * k, 560f + 30f * k), new V2(430f, 0f), 0f, 1.4f, 22f, 1, false, 0f });
       V2 arcFrom = new V2(960f, 760f);
-      gm.Effects.Add(new Effect { Kind = FxKind.ArcField, Pos = arcFrom, Pos2 = arcFrom + new V2(500f, -160f), Color = Defs.BulletColor(Defs.BoltShot), Radius = Game.ArcHalfWidth, Dur = 0.35f, T = 0.05f });
+      gm.Effects.Add(new Effect { Kind = FxKind.ArcLink, Pos = arcFrom, Pos2 = arcFrom + new V2(260f, -90f), Color = Defs.BulletColor(Defs.BoltShot), Radius = 0f, Dur = 0.75f, T = 0.05f });  // Arc Lightning's chain (ArcLockLook.cs)
+      gm.Effects.Add(new Effect { Kind = FxKind.ArcLink, Pos = arcFrom + new V2(260f, -90f), Pos2 = arcFrom + new V2(480f, -30f), Color = Defs.BulletColor(Defs.BoltShot), Radius = 1f, Dur = 0.75f, T = 0.02f });
     }
     if (Environment.GetEnvironmentVariable("HEMO") != null) {
       // Blood Bolts: enemies with 1 to 4 bolts stuck in them (4 is one short of the burst).

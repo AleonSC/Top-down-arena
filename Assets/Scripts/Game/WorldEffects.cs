@@ -336,9 +336,6 @@ namespace Arena
                 case FxKind.BloodCoat:
                     DrawBloodCoatFx(fx, f, t);  // BloodMageLook.cs
                     break;
-                case FxKind.ArcField:
-                    DrawArcFieldFx(fx, f);
-                    break;
                 case FxKind.ArcTag:
                 case FxKind.ArcLink:
                 case FxKind.ArcFork:
@@ -729,63 +726,6 @@ namespace Arena
         {
             float run = Mathf.Min(1f, f / 0.35f), fade = fx.Radius > 0f ? 1f : 1f - Mathf.Max(0f, (f - 0.35f) / 0.65f);
             DrawChain(fx.Pos, V2.Lerp(fx.Pos, fx.Pos2, run), fade);
-        }
-
-        /// Arc Lightning going off: the strip flashes and jagged lightning crackles along and across it. The bolts
-        /// come from a generator seeded by where it went off, so everyone sees the same crackle.
-        void DrawArcFieldFx(Effect fx, float f)
-        {
-            if (ArcLightningDrawnAsThunder(fx))
-                return;  // the Thunderhead bolt, drawn in the glow pass (ArcLightningLooks.cs)
-            V2 to = fx.Pos2 - fx.Pos;
-            float len = to.Length, w = fx.Radius;
-            if (len < 1f)
-                return;
-            V2 dir = to / len, side = dir.Orthogonal();
-            float fade = 1f - f;
-            V2 a0 = fx.Pos + side * (w * Game.ArcNear), a1 = fx.Pos - side * (w * Game.ArcNear), e0 = fx.Pos + dir * len + side * w, e1 = fx.Pos + dir * len - side * w;  // a slight cone
-            SetColor(fx.Color.WithAlpha(0.2f * fade));
-            Quad(a0, e0, e1, a1);
-            Line(a0, e0, 2f, fx.Color.WithAlpha(0.7f * fade));
-            Line(a1, e1, 2f, fx.Color.WithAlpha(0.7f * fade));
-            uint seed = (uint)((int)fx.Pos.X * 73856093 ^ (int)fx.Pos.Y * 19349663 ^ (int)(f * 8f) * 83492791) | 1u;  // re-rolls a few times as it fades
-            for (int k = 0; k < 3; k++)  // bolts running its length
-            {
-                V2 prev = fx.Pos + side * ((XorRand(ref seed) - 0.5f) * w * Game.ArcNear);
-                int n = Math.Max(4, (int)(len / 40f));
-                for (int i = 1; i <= n; i++)
-                {
-                    V2 next = fx.Pos + dir * (len * i / n) + side * ((XorRand(ref seed) - 0.5f) * w * 1.6f * Game.ArcTaper(len * i / n, len));
-                    Line(prev, next, k == 0 ? 3f : 1.5f, (k == 0 ? Rgba.White : fx.Color).WithAlpha(fade));
-                    prev = next;
-                }
-            }
-        }
-
-        /// Arc Lightning's charge: a ring filling round you (gold when full) and, for your own, the strip it will
-        /// shock, reaching out as you hold.
-        void DrawArcCharge(Player p, bool mine, float t)
-        {
-            if (fxOn)
-                return;  // the halo, sparks and dashed strip, drawn in the glow pass (ArcLightningLooks.cs)
-            float c = game.BowCharge(p, p.DrawT);
-            bool full = c >= 1f;
-            var gold = new Rgba(1f, 0.82f, 0.3f);
-            var bolt = Defs.BulletColor(Defs.BoltShot);
-            float r = p.Def.BodyR + 11f;
-            Arc(p.Disp, r, 2.5f, new Rgba(1f, 1f, 1f, 0.12f), 32);
-            Arc(p.Disp, r, full ? 4f : 2.5f, (full ? gold : bolt).WithAlpha(full ? 0.75f + 0.25f * Mathf.Sin(t * 20f) : 0.85f), 32, -MathX.Pi / 2f, MathX.Tau * Mathf.Max(0.02f, c));
-            if (!mine)
-                return;
-            V2 dir = V2.FromAngle(p.Aim), side = dir.Orthogonal();
-            float len = Game.ArcLength(p, c), w = Game.ArcWidth(p);
-            var col = (full ? gold : bolt).WithAlpha(0.35f + 0.35f * c);
-            V2 a = p.Disp + side * (w * Game.ArcNear), b = p.Disp - side * (w * Game.ArcNear), ae = p.Disp + dir * len + side * w, be = p.Disp + dir * len - side * w;  // a slight cone
-            SetColor(col.WithAlpha(0.05f + 0.1f * c));
-            Quad(a, ae, be, b);
-            Line(a, ae, 2f, col);
-            Line(b, be, 2f, col);
-            Line(ae, be, 3f, col.WithAlpha(0.6f + 0.4f * Mathf.Sin(t * 30f)));  // the crackling far edge
         }
 
         /// Chain Light's cone: a flash of light fanning out from the caster, brightest at its edges, with rays

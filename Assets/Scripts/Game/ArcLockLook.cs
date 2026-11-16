@@ -76,8 +76,8 @@ namespace Arena
             }
         }
 
-        /// The glow pass: every Arc Lightning draw being held and every chain and fork bolt.
-        void DrawArcLockGlow()
+        /// The glow pass (Juice.cs DrawGlowPass): every Arc Lightning draw being held and every chain and fork bolt.
+        void DrawArcLightningGlow()
         {
             lockGlow = true;
             foreach (var p in game.Players.Values)
