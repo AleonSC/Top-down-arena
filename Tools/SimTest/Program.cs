@@ -404,6 +404,7 @@ static partial class Program
         Test("grenadelauncher", "the Grenade Launcher: HE bursts at the cursor (less at the rim), six to a drum then a reload, Alt swaps to smoke, the cloud jams a regular enemy and slows it, a mini-boss is only slowed, three canisters back one per 6 s, the other screen sees it", () => GrenadeLauncherTest(Dt)),
         Test("doublebarrel", "the Double Barrel: left then right barrel, 9 pellets each that pierce, two shells then a break-open reload, Alt fires both, damage falls off with range, the other screen sees the reload", () => DoubleBarrelTest(Dt)),
         Test("arclock", "Arc Lightning's lock-on chain: holding tags the enemy in the cone nearest the cursor, up to ten, tags stick outside the cone, letting go chains through them in order for 16 + 4 a tag and a stun, nothing tagged fizzles; Forked Volley hits the three nearest the cursor, then cools down", () => ArcLockTest(Dt)),
+        Test("honeybee", "the Honeybee Staff: a bee hatches at the cursor, buzzes, stings the nearest enemy once and dies (or fizzles), the cap, Swarm, held Alt sprays honey puddles that slow and drain the meter, an enemy dying in honey bursts into free bees, the other screen sees it, Bigger Hive", () => HoneybeeTest(Dt)),
         Test("stonespear", "the Stonespear: Fire slams (wind-up, damage round you, six spears up), then throws the risen spear nearest the cursor (pierces one), Alt sends the rest curving in on the enemy nearest the cursor, the next slam waits, the other screen sees the spears and the lock, Tectonic adds a spear a side", () => StonespearTest(Dt)),
         Test("twinauto", "the Twin Rifle Auto: each gun picks the nearest enemy on its side and fires untouched, Alt locks both on the enemy by the cursor (crossfire) until it dies or Alt is pressed again", () => TwinAutoTest(Dt)),
         Test("outofammo", "Out of Ammo: no shots, the five-move knife chain on a close enemy, one swat per rifle, Alt's spin cuts and swats everything then cools down", () => OutOfAmmoTest(Dt)),
@@ -505,7 +506,7 @@ static partial class Program
     {
         "swordsman", "nonshooters", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
         "trickle", "meleesounds", "grunts", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
-        "exploit", "doublebarrel", "stonespear", "arclock", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
+        "exploit", "doublebarrel", "stonespear", "honeybee", "arclock", "twinauto", "outofammo", "adrenaline", "paths", "bazaar", "timed", "layouts", "wings",
         "expand", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "three", "wrap", "ready", "wavekinds", "landmarks",
         "newenemies", "wildcard", "stacking", "singularity", "security", "guardswing", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
     };

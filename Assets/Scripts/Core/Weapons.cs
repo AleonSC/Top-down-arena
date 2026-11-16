@@ -199,9 +199,9 @@ namespace Arena
                 FireVolley(p, aim, extra);  // Barrage adds a tendril, cones side by side or parallel strips instead (BloodMage.cs, Minions.cs)
                 return;
             }
-            if (p.Weapon.Id == WeaponId.Implosion)
+            if (p.Weapon.Id == WeaponId.Implosion || p.Weapon.Id == WeaponId.HoneybeeStaff)
             {
-                FireVolley(p, aim, extra + p.Stats.Fan);  // no direction to fan in: each copy is another implosion
+                FireVolley(p, aim, extra + p.Stats.Fan);  // no direction to fan in: each copy is another implosion (or another bee)
                 return;
             }
             for (int v = 0; v <= p.Stats.Fan; v++)
@@ -536,6 +536,8 @@ namespace Arena
                     return WispReach * PierceReach(p);
                 case WeaponId.ImpCaller:  // how far imps are sent (Minions.cs)
                     return ImpReach * PierceReach(p);
+                case WeaponId.HoneybeeStaff:  // how far from you a bee can hatch (HoneybeeStaff.cs)
+                    return HatchReach;
                 case WeaponId.ArcLightning:  // the tagging cone's reach (ArcLock.cs)
                     return ArcReach(p);
                 case WeaponId.ChainLight:  // the cone's reach (Minions.cs)

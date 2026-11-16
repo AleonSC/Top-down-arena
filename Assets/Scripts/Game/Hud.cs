@@ -17,6 +17,7 @@ namespace Arena
             var me = game.Me;
             DrawJuiceHud();  // damage numbers and a boss's entrance card, under the rest of the HUD (Juice.cs)
             DrawAbilityCallouts();  // what each player just cast, over their head (AbilityLooks.cs)
+            DrawHoneyCallouts();  // the Honeybee Staff's SWARM and HARVEST pops (HoneybeeLook.cs)
             DrawDebtLedgers();  // Blood Debt's pops (BloodDebtLook.cs)
             DrawBloodWallHud();  // Blood Wall's drain over each tank laying one (BloodWallLook.cs)
             DrawVeinRushPops();  // Vein Rush's "+2%" and "-10%", and your cuts' flash (VeinRushLook.cs)

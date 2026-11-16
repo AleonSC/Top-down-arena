@@ -213,6 +213,10 @@ namespace Arena
                 Desc = "Imps arrive over time and wait by you. Tap fire to send one charging at your cursor to explode; hold to merge them all into one big imp whose blast is bigger than theirs put together.",
                 Companion = MinionKind.Imp, CompanionCount = 5, CompanionRespawn = 1f,
                 HomingDesc = "imps pick an enemy 50% farther from your cursor per stack, and one sent at empty ground turns onto an enemy near it. 5% less damage per stack" },
+            new WeaponDef { Id = WeaponId.HoneybeeStaff, Kit = Kit.Summoner, Role = Role.Dps, Choice = 3, Damage = 22f, BotRange = 360f, ExtraDesc = "+1 bee a click, and 2 more can be out", Name = "Honeybee Staff", FireInterval = 0.4f,
+                Desc = "Each click hatches a bee at your cursor: it buzzes a moment, then stings the nearest enemy once and dies. Three stings in a row on one enemy swarm it for more. Hold Alt to spray honey that slows; an enemy that dies in your honey bursts into two free bees.",
+                HomingDesc = "bees look for enemies 25% farther out per stack",
+                BarrageDesc = "each click hatches one more bee (full damage)" },
         };
 
         /// The Summoner's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
@@ -256,6 +260,8 @@ namespace Arena
                 Apply = s => { s.WispExtra += 1; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.ImpCaller }, MaxStacks = 2, Name = "Imp Horde", Desc = "Hold 1 more imp, and they come 20% faster",
                 Apply = s => { s.ImpExtra += 1; s.ImpRateMult += 0.2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.HoneybeeStaff }, MaxStacks = 2, Name = "Bigger Hive", Desc = "An enemy dying in the Honeybee Staff's honey bursts into one more bee, and its puddles spread 20% wider",
+                Apply = s => { s.HarvestBonus += 1; s.PuddleSizeMult += 0.2f; } },
         };
 
         /// The Summoner's Space abilities (its ultimates are in Ultimates.cs). (Upgrades.Abilities gathers every class's list.)
@@ -662,6 +668,13 @@ namespace Arena
                 float reach = d.Range * m.Scale;
                 m.Cd -= dt * rate;
 
+                if (m.Kind == MinionKind.Bee)
+                {
+                    if (MoveBee(m, owner, dt))  // stung: spent (HoneybeeStaff.cs)
+                        expired.Add(m);
+                    m.Pos = ClampToArena(m.Pos, d.Radius);
+                    continue;
+                }
                 if (m.Kind == MinionKind.Thrall)
                 {
                     TickThrall(m, owner, dt);  // ForcePact.cs
