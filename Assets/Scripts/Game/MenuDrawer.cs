@@ -569,7 +569,7 @@ namespace Arena
             DrawSettingsCabinet(false);
         }
 
-        /// The cabinet's list as Audio / Visual effects / Gameplay / Keybinds with a physical Back key. `paused`: in the pause or
+        /// The cabinet's list as Audio / Visual effects / Gameplay / Keybinds with a digital Back key under them. `paused`: in the pause or
         /// lobby menu, where Back returns to that menu's list (the text retypes); else it slides the whole cabinet out.
         void DrawSettingsCabinet(bool paused)
         {
@@ -590,7 +590,7 @@ namespace Arena
                 y += 80f;
             }
             EndDrawerScreen();
-            if (CabBackKey(y + 6f))
+            if (CabBackKey(y, paused ? "Back to the menu" : "Close settings"))
             {
                 Keybinds.Listening = -1;
                 if (paused)
