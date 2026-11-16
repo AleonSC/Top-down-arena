@@ -115,6 +115,9 @@ static partial class Program
         float bR = zone(ZoneKind.Blizzard).Radius, bD = zone(ZoneKind.Blizzard).Duration;
         castWith(AbilityId.Blizzard, "Whiteout", 2, there);
         Check(near(zone(ZoneKind.Blizzard).Radius / bR, 1.8f, 0.01f) && near(zone(ZoneKind.Blizzard).Duration - bD, 4f, 0.01f), "Whiteout: Blizzard is 40% bigger and lasts 2 s longer per card");
+        var bz = new Zone { Kind = ZoneKind.Blizzard, Pos = V2.Zero, Radius = 100f, Aim = 0f };
+        Check(Game.InBlizzard(bz, new V2(200f, 0f), 0f) && !Game.InBlizzard(bz, new V2(240f, 0f), 0f) && !Game.InBlizzard(bz, new V2(0f, 100f), 0f) && Game.InBlizzard(bz, new V2(0f, 70f), 0f),
+            "Blizzard is a lane: 2.19 radii out along its aim, 0.78 across");
 
         var wavesF = typeof(Game).GetField("waves", flags);
         Func<object, string, float> fieldOf = (o, n) => (float)o.GetType().GetField(n).GetValue(o);

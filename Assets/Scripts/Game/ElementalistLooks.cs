@@ -5,7 +5,7 @@ namespace Arena
     /// The Elementalist DPS's three abilities, drawn (look A of each in Docs/Mockups/elementalist-dps-abilities.html):
     ///   Meteor:   a spinning-tick warning circle, a fireball streaking in with a long tail (DrawMeteorWarning, from DrawZone),
     ///             then a white-hot flash, shockwave, sparks and a scorch mark (FxKind.Meteor, DrawMeteorFx).
-    ///   Blizzard: a fogged-out disc full of fast wind-driven snow streaks (DrawBlizzard, from DrawZone).
+    ///   Blizzard: a long lane of fog fading out at every edge, full of fast wind-driven snow streaks (DrawBlizzard, from DrawZone).
     ///   Tsunami:  a curling crest with foam, ripple lines and spray (FxKind.Tsunami, DrawTsunamiFx), and wet enemies
     ///             dripping (DrawWet, from DrawEnemyStatus). Game logic: Core/Tsunami.cs.
     public partial class ArenaApp
@@ -69,24 +69,45 @@ namespace Arena
 
         // --- Blizzard --------------------------------------------------------------------------------------------------
 
-        /// The storm: a fog of white that thickens toward the rim, an icy edge and snow streaking across on the wind.
+        static float BlizzSmooth(float a, float b, float x) { float k = Mathf.Clamp01((x - a) / (b - a)); return k * k * (3f - 2f * k); }
+
+        /// The storm: a long lane of fog that melts away at every edge (Zone.Aim is its long axis), with snow streaking
+        /// down it on the wind. Every streak is cut in pieces so it fades with the same mask as the fog.
         void DrawBlizzard(Zone z, float t)
         {
-            var c = z.Def.Color;
             float R = z.Radius, age = z.Duration - z.T;
             float fade = Mathf.Clamp01(z.T / 0.6f) * Mathf.Clamp01(age / 0.4f);  // in over 0.4 s, out over the last 0.6 s
-            FanGradient(z.Pos, R, Rgba.White.WithAlpha(0.1f * fade), Rgba.White.WithAlpha(0.3f * fade), 32);
-            const float slant = 0.27f;
-            V2 ex = V2.FromAngle(slant), ey = ex.Orthogonal();
-            for (int k = 0; k < 44; k++)  // each streak runs along a chord of the circle, so none leaves it
+            float L = R * Game.BlizzardLen, W = R * Game.BlizzardWid;
+            const float fu = 0.35f, fv = 0.15f;  // where the fade starts, as a share of the half-extent
+            V2 ex = V2.FromAngle(z.Aim), ey = ex.Orthogonal();
+            System.Func<float, float, float> mask = (u, v) => (1f - BlizzSmooth(fu, 1f, Mathf.Abs(u) / L)) * (1f - BlizzSmooth(fv, 1f, Mathf.Abs(v) / W));
+            System.Func<float, float, V2> at = (u, v) => z.Pos + ex * u + ey * v;
+            const int nu = 30, nv = 10;
+            for (int i = 0; i < nu; i++)
+                for (int j = 0; j < nv; j++)
+                {
+                    float u0 = -L + 2f * L * i / nu, u1 = -L + 2f * L * (i + 1) / nu, v0 = -W + 2f * W * j / nv, v1 = -W + 2f * W * (j + 1) / nv;
+                    System.Func<float, float, Rgba> col = (u, v) => Rgba.White.WithAlpha(0.45f * mask(u, v) * fade);
+                    VTri(at(u0, v0), col(u0, v0), at(u1, v0), col(u1, v0), at(u0, v1), col(u0, v1));
+                    VTri(at(u1, v0), col(u1, v0), at(u1, v1), col(u1, v1), at(u0, v1), col(u0, v1));
+                }
+            for (int k = 0; k < 52; k++)
             {
-                float y = (Hash01(k + 2f) - 0.5f) * 2f * R * 0.96f, w = Mathf.Sqrt(Mathf.Max(0f, R * R - y * y));
-                float len = 28f + 40f * Hash01(k + 3f), speed = 420f + 460f * Hash01(k), span = Mathf.Max(1f, 2f * w - len);
-                float u = -w + MathX.Fmod(Hash01(k + 1f) * span + t * speed, span);
-                V2 p0 = z.Pos + ex * u + ey * y, p1 = p0 + ex * len;
-                Line(p0, p1, 1.6f + 1.8f * Hash01(k + 4f), Rgba.White.WithAlpha((0.4f + 0.5f * Hash01(k + 5f)) * fade));
+                float v = (Hash01(k + 2f) - 0.5f) * 2f * W * 0.98f;
+                float len = 30f + 44f * Hash01(k + 3f), speed = 420f + 460f * Hash01(k);
+                float u = -L + MathX.Fmod(Hash01(k + 1f) * 2f * L + t * speed, 2f * L);
+                float w = 1.5f + 1.7f * Hash01(k + 4f), a = 0.4f + 0.5f * Hash01(k + 5f);
+                const int seg = 4;
+                for (int q = 0; q < seg; q++)
+                {
+                    float ua = u + len * q / seg, ub = u + len * (q + 1) / seg;
+                    if (ua < -L || ub > L)
+                        continue;
+                    float m = mask((ua + ub) * 0.5f, v);
+                    if (m > 0.01f)
+                        Line(at(ua, v + (ua - u) * 0.12f), at(ub, v + (ub - u) * 0.12f), w, Rgba.White.WithAlpha(a * m * fade));
+                }
             }
-            Arc(z.Pos, R, 2.5f, c.WithAlpha(0.6f * fade), 48);
         }
 
         // --- Tsunami ---------------------------------------------------------------------------------------------------
