@@ -685,6 +685,9 @@ namespace Arena
             s.Byte(ref p.DbBarrel);
             s.Byte(ref p.DbShot);
             s.Float(ref p.DbReload);
+            s.Short(ref p.SsMask);  // the Stonespear (Stonespear.cs)
+            s.Byte(ref p.SsSide);
+            s.Int(ref p.SsLock);
             float drawT = p.DrawT;
             s.Float(ref drawT);
             s.Short(ref p.Level);

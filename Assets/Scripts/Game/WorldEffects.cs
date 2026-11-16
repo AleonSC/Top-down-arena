@@ -153,6 +153,9 @@ namespace Arena
                 case FxKind.Airstrike:
                     DrawAirstrikeFx(fx);  // AirstrikeLook.cs
                     break;
+                case FxKind.StoneSlam:
+                    DrawStoneSlamFx(fx);  // StonespearLook.cs
+                    break;
                 case FxKind.DoubleBarrel:
                     DrawDoubleBarrelFx(fx);  // TankAltLook.cs
                     break;

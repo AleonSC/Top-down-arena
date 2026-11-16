@@ -179,6 +179,7 @@ namespace Arena
             DrawRankTrails(t);  // a rank reward drawn under everyone (RankTrails.cs)
             foreach (var p in game.Players.Values)
                 DrawPlayerAuras(p, t);
+            DrawStoneCracks();  // the Stonespear's slams (StonespearLook.cs)
             foreach (var b in game.Bullets.Values)
                 if (b.Kind < Defs.SmallShot)
                     DrawBigShot(b, t);
@@ -304,6 +305,7 @@ namespace Arena
             DrawQueenSwarm(t);  // QueenLook.cs
             DrawKnightDpsTop(t);  // Caught Steel's shards, the Gauntlet lying where it hit (KnightDpsLook.cs)
             DrawKatanaMarks(t);  // the enemies a Momentum Burst marked, and its cracks (KatanaLook.cs)
+            DrawStonespearLeftovers(t);  // spent Stonespear spears and their dust (StonespearLook.cs)
             foreach (var fx in game.Effects)
                 DrawEffect(fx, t);
         }
@@ -327,6 +329,7 @@ namespace Arena
             LookOf(p.Kit).Auras?.Invoke(this, p, t);  // the class's own auras (ClassLooks.cs)
             DrawBuffTimers(p, t);  // a shrinking arc under them for each timed buff (AbilityLooks.cs)
             DrawRodAura(p, t);     // Lightning Rod's charge (LightningRodLook.cs)
+            DrawStonespearUnder(p, t);  // the hovering spears' shadows (StonespearLook.cs)
             if (p.CoatT > 0f)
                 DrawHealingCoat(p, t);  // a Sanguine Orb's healing blood (BloodMageLook.cs)
             if (p.DoseT > 0f)  // dosed by Medicine Darts: green motes rising off you while it heals
@@ -605,6 +608,8 @@ namespace Arena
             if (LaunchHides(p))
                 return;  // still on its way down in a pillar of light (LaunchIntro.cs)
             DrawPlayer(p, t);
+            if (!p.Downed)
+                DrawStonespears(p, t);  // the hovering spears (StonespearLook.cs)
             if (game.IsHunted(p) && !p.Downed)
                 DrawHuntedMark(p.Disp, p.Def.BodyR, t);  // ModifiersUi.cs
             if (game.Walled)

@@ -136,8 +136,8 @@ namespace Arena
         Kusarigama, BoStaff, FumaShuriken, MedicineDarts, SpiritFan, Ofuda, Shuriken, Katana, Kunai,
         // Blood Mage (BloodMage.cs): blood spells that drain and heal
         BloodLash, ClotBolt, LeechBeam, TransfusionDarts, SanguineOrb, VeinTether, BloodBolts, Implosion, BoneSpear,
-        // Fourth weapons (Choice 3), where a class has one: the Knight DPS's Arc Knuckles (ArcKnuckles.cs), the Soldier DPS's Double Barrel (DoubleBarrel.cs); the Twin Rifle's variants (Twin Rifle Auto, Out of Ammo) are Choice 4 and 5
-        ArcKnuckles, TwinRifleAuto, OutOfAmmo, DoubleBarrel,
+        // Fourth weapons (Choice 3), where a class has one: the Knight DPS's Arc Knuckles (ArcKnuckles.cs), the Soldier DPS's Double Barrel (DoubleBarrel.cs), the Elementalist DPS's Stonespear (Stonespear.cs); the Twin Rifle's variants (Twin Rifle Auto, Out of Ammo) are Choice 4 and 5
+        ArcKnuckles, TwinRifleAuto, OutOfAmmo, DoubleBarrel, Stonespear,
     }
 
     public class WeaponDef
@@ -762,7 +762,8 @@ namespace Arena
             MagmaBolt = 64,    // the Cinder Priest's magma bolt: it leaves a lava pool wherever it stops (QuarryFaction.cs, Game/QuarryLook.cs)
             ThrownDagger = 65, // a Second's thrown dagger: steel with a gold hilt, spinning a little (CourtFaction.cs, Game/CourtLook.cs)
             EmberSpark = 66,   // an Ember's spark: drifts back slowly and hangs behind it (Penumbral.cs, Game/PenumbralLook.cs)
-            GreatStar = 67;    // the Shuriken's Great Star, flying a drawn route and back (GreatStar.cs, Game/GreatStarLook.cs)
+            GreatStar = 67,    // the Shuriken's Great Star, flying a drawn route and back (GreatStar.cs, Game/GreatStarLook.cs)
+            StoneSpear = 68;   // a Stonespear's earth spear, thrown or sent in a volley (Stonespear.cs, Game/StonespearLook.cs)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == ThrownDagger || kind == EmberSpark;
 
@@ -819,6 +820,7 @@ namespace Arena
             Row(table, GustShot, radius: 9f, color: new Rgba(0.7f, 1f, 0.85f));
             Row(table, FumaStar, radius: 20f, color: new Rgba(0.8f, 0.85f, 0.95f));  // giant
             Row(table, GreatStar, radius: 24f, color: new Rgba(0.8f, 0.85f, 0.95f));  // huger
+            Row(table, StoneSpear, radius: 8f, color: new Rgba(1f, 0.69f, 0.29f));  // basalt with amber seams (the colour is the seams' glow)
             Row(table, BloodShot, radius: 4f, color: new Rgba(0.9f, 0.12f, 0.2f));
             Row(table, ClotShot, radius: 14f, color: new Rgba(0.6f, 0.05f, 0.12f));  // the Gore Mortar's massive clot (lobbed: it never collides)
             Row(table, LeechShot, radius: 3.5f, color: new Rgba(1f, 0.25f, 0.3f));

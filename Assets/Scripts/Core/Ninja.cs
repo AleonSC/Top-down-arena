@@ -1084,6 +1084,8 @@ namespace Arena
                 me.KunaiMarkT = 0f;  // used (the host's next snapshot agrees)
                 return;
             }
+            if (LocalStoneVolley(me, pressed, aimAt))
+                return;  // the Stonespear's volley (Stonespear.cs)
             if (LocalHammerSlamReady(me, pressed, dt))
             {
                 if (IsHost)
@@ -1264,6 +1266,11 @@ namespace Arena
                 if (kind == DashDouble) HostDoubleBarrel(p, target);  // the Tank Soldier's Alt fires (TankAlts.cs)
                 else if (kind == DashMine) HostFlakMine(p, target);
                 else HostTearGas(p, target);
+                return;
+            }
+            if (kind == DashVolley)
+            {
+                HostStoneVolley(p, target);  // the Stonespear's Alt (Stonespear.cs)
                 return;
             }
             if (kind == DashBoneWall)

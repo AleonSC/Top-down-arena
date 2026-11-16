@@ -53,6 +53,9 @@ namespace Arena
             new WeaponDef { Id = WeaponId.ArcaneMissiles, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 2, Speed = 520f, Life = 1f, Damage = 7f, ExtraDesc = "+1 shard a cast, +2 in orbit, and faster launches", Name = "Ice Shards", FireInterval = 0.3f,
                 Desc = "Each cast conjures shards of ice that orbit you. They launch at nearby enemies, homing, one after another. With the orbit full, a cast flies at your aim.",
                 Sound = Sfx.SpellArcane },
+            new WeaponDef { Id = WeaponId.Stonespear, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 3, Speed = 900f, Life = 0.6f, Damage = 24f, BotRange = 420f, ExtraDesc = "+1 spear a side, and each click throws one more", Name = "Stonespear", FireInterval = 0.18f,
+                Desc = "Slam the ground: it hurts everything round you and six earth spears tear out of it to hover at your sides. Each click throws one at your cursor, passing through an enemy. Alt hurls every spear left at the enemy nearest your cursor. Throw the last and the next click slams again.",
+                Sound = Sfx.Throw, BarrageDesc = "each throw also flings a fanned copy of the spear (60% damage) that uses none up" },
         };
 
         /// The Elementalist's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
@@ -97,6 +100,8 @@ namespace Arena
                 Apply = s => { s.ArcChargeMult *= 0.75f; s.ArcStunBonus += 0.2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.ArcaneMissiles }, MaxStacks = 2, Name = "Frozen Halo", Desc = "Ice Shards' orbit holds 2 more shards, and they launch at enemies 25% farther out",
                 Apply = s => { s.OrbitExtra += 2; s.LaunchRangeMult += 0.25f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Stonespear }, MaxStacks = 2, Name = "Tectonic", Desc = "The Stonespear raises one more spear a side, and its slam reaches 20% farther",
+                Apply = s => { s.SsSideBonus += 1; s.SsSlamMult += 0.2f; } },
         };
 
         /// The Mage's Space abilities (its ultimates are in Ultimates.cs). (Upgrades.Abilities gathers every class's list.)

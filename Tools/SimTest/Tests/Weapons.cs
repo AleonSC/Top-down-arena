@@ -561,6 +561,7 @@ static partial class Program
             me.AmmoUsed = 0;
             me.ReloadT = 0f;
             me.CompanionCd = 0f;
+            me.SsMask = 0; me.SsWindT = 0f; me.SsCdT = 0f; me.SsQueue.Clear();  // (the Stonespear starts each trial with no spears up)
             int spawned = 0, totems = 0;  // totems: now the most ink dots down at once (Spirit Chalk's extra projectiles are more ink)
             var seen = new HashSet<int>();
             for (int f = 0; f < 6 * 60; f++)

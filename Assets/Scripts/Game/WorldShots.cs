@@ -98,6 +98,11 @@ namespace Arena
                 DrawCaltrop(b, t);  // KatanaLook.cs
                 return;
             }
+            if (b.Kind == Defs.StoneSpear)
+            {
+                DrawStoneSpearShot(b, t);  // StonespearLook.cs
+                return;
+            }
             if (b.Kind == Defs.ParryNeedle)
             {
                 DrawParryNeedle(b);  // ParryLook.cs
