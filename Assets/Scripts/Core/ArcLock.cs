@@ -21,7 +21,7 @@ namespace Arena
         public const int ArcMaxTags = 10, ArcFanTags = 2, ArcTagCap = 16;
         public const float ForkCd = 1.4f, ForkGap = 0.07f, ForkDamage = 14f, ForkPick = 200f, ForkRange = 560f, ForkBend = 55f;
         public const int ForkBolts = 3;
-        const byte DashFork = 31;
+        const byte DashFork = 32;
 
         /// A chain or fork hit still to land (host only).
         public struct ArcHit

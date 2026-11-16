@@ -278,7 +278,7 @@ static partial class Program
         int wolves = g.Minions.Values.Count(m => m.Owner == 1 && m.Kind == MinionKind.Wolf);
         Console.WriteLine("  wolf whistle: prey marked {0} (client saw {1}); {2} wolves; takedown stun {3:0.00} s; prey took {4:0.0}, the near one {5:0.0} after the mark",
             marked, clientSaw, wolves, stun, preyBefore - prey.Hp, nearAtMark - near.Hp);
-        Check(marked && clientSaw && wolves >= 2, "Wolf Whistle darts mark the prey, and everyone sees the mark");
+        Check(marked && clientSaw && wolves >= 1, "Wolf Whistle darts mark the prey, and everyone sees the mark");
         Check(stun > 0.5f && near.Hp == nearAtMark, "once it's marked, the wolves hunt the prey (not the nearer enemy) and a pack takedown stuns it");
         reset();
 

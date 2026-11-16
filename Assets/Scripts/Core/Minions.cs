@@ -55,7 +55,7 @@ namespace Arena
                 Sound = Sfx.SpellArcane },
             new WeaponDef { Id = WeaponId.Stonespear, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 3, Speed = 900f, Life = 0.6f, Damage = 24f, BotRange = 420f, ExtraDesc = "+1 spear a side, and each click throws one more", Name = "Stonespear", FireInterval = 0.18f,
                 Desc = "Slam the ground: it hurts everything round you and six earth spears tear out of it to hover at your sides. Each click throws one at your cursor, passing through an enemy. Alt hurls every spear left at the enemy nearest your cursor. Throw the last and the next click slams again.",
-                Sound = Sfx.Throw, BarrageDesc = "each throw also flings a fanned copy of the spear (60% damage) that uses none up" },
+                Sound = Sfx.None, BarrageDesc = "each throw also flings a fanned copy of the spear (60% damage) that uses none up" },
         };
 
         /// The Elementalist's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
@@ -202,9 +202,9 @@ namespace Arena
                 Desc = "Hold and drag to draw a line of spirit ink. It burns and slows enemies touching it, heals allies standing on it and destroys enemy bullets that cross it. Draw a circle round enemies to trap them inside (not bosses).",
                 Sound = Sfx.None, AreaDesc = "the line is 25% wider" },
             // DPS
-            new WeaponDef { Id = WeaponId.WolfWhistle, Kit = Kit.Summoner, Role = Role.Dps, Choice = 0, Speed = 720f, Life = 0.8f, Damage = 6.5f, ExtraDesc = "+1 Wolf", Name = "Wolf Whistle", FireInterval = 0.3f,
-                Desc = "Darts mark the enemy they hit as prey, and your wolves hunt it. When every wolf bites it close together, they pull off a takedown that hurts and stuns.",
-                Companion = MinionKind.Wolf, CompanionCount = 2 },
+            new WeaponDef { Id = WeaponId.WolfWhistle, Kit = Kit.Summoner, Role = Role.Dps, Choice = 0, Speed = 720f, Life = 0.8f, Damage = 6.5f, ExtraDesc = "+1 starting wolf", Name = "Wolf Whistle", FireInterval = 0.3f,
+                Desc = "Darts mark prey for your wolves; every wolf biting it at once is a takedown. Kills grow the pack (up to 5); Alt merges it into an alpha. The pack takes 10% of the damage you take.",
+                Companion = MinionKind.Wolf, CompanionCount = 1 },
             new WeaponDef { Id = WeaponId.WispLantern, Kit = Kit.Summoner, Role = Role.Dps, Choice = 1, Damage = 22f, BotRange = 340f, ExtraDesc = "+1 Wisp, and each shot sends one more", Name = "Wisp Lantern", FireInterval = 0.25f,
                 Desc = "Wisps orbit you, and they are your shots: each time you fire, one flies at the enemy nearest your cursor, strikes it and comes back.",
                 Companion = MinionKind.Wisp, CompanionCount = 3,
@@ -580,7 +580,11 @@ namespace Arena
                 var w = p.Weapon;
                 var kind = CompanionKind(p);
                 int extra = ExtraShots(p);
-                if (kind != MinionKind.None)
+                if (w.Id == WeaponId.WolfWhistle)
+                    TickWolfPack(p);  // the pack grows with kills instead (WolfPack.cs)
+                else
+                    p.PackStarted = false;
+                if (kind != MinionKind.None && w.Id != WeaponId.WolfWhistle)
                 {
                     int want = CompanionCount(p), have = 0;
                     Minion surplus = null;
@@ -651,7 +655,7 @@ namespace Arena
                     m.Stacks = ScentStartFor(owner);
                 else if (!scent && m.Stacks != 0)
                     m.Stacks = 0;
-                float speed = d.Speed * (scent ? 1f + ScentSpeedPer * m.Stacks : frenzy ? 1.6f : 1f) * (m.NoFrenzy && owner.LegionT > 0f ? LegionSpeed : 1f);
+                float speed = d.Speed * PackSpeed(m) * (scent ? 1f + ScentSpeedPer * m.Stacks : frenzy ? 1.6f : 1f) * (m.NoFrenzy && owner.LegionT > 0f ? LegionSpeed : 1f);
                 float rate = owner.Stats.FireRateMult * (scent ? 1f + ScentRatePer * m.Stacks : frenzy ? 2f : 1f)
                     * (m.Kind == MinionKind.Guard && m.Companion && owner.Weapon.Id == WeaponId.BoneGuard ? owner.Stats.SkeletonRateMult : 1f);  // (Ossuary: Bone Guard's skeletons shoot faster)
                 float dmg = d.Damage * owner.Stats.DmgMult * (frenzy ? 1.3f : 1f) * m.Scale * m.Power;
@@ -761,7 +765,7 @@ namespace Arena
                         target = (m.Kind == MinionKind.Wolf ? Prey(owner) : null) ?? NearestEnemy(m.Pos, MinionChaseRange);  // wolves hunt the Wolf Whistle's prey
                         V2 goal = target != null ? target.Pos : owner.Pos + V2.FromAngle(m.Id) * 50f;
                         V2 to = goal - m.Pos;
-                        float stop = target != null ? target.Radius + d.Radius : 10f;
+                        float stop = target != null ? target.Radius + d.Radius * m.Scale : 10f;
                         if (to.Length > stop)
                             m.Pos += to.Normalized() * Math.Min(speed * dt, to.Length - stop);
                         if (m.Kind == MinionKind.Bat && to.Length > 1f)
@@ -826,8 +830,8 @@ namespace Arena
                             }
                             break;
                         }
-                        var e = target ?? NearestEnemy(m.Pos, d.Radius + 40f);
-                        if (e != null && m.Cd <= 0f && e.Pos.CloserThan(m.Pos, e.Radius + d.Radius + 6f))
+                        var e = target ?? NearestEnemy(m.Pos, d.Radius * m.Scale + 40f);
+                        if (e != null && m.Cd <= 0f && e.Pos.CloserThan(m.Pos, e.Radius + d.Radius * m.Scale + 6f))
                         {
                             m.Cd = d.Interval;
                             m.Aim = (e.Pos - m.Pos).Angle;
@@ -1048,7 +1052,9 @@ namespace Arena
                 if (d.Dps > 0f || d.Slow > 0f || z.ExtraSlow > 0f)
                     foreach (var e in Enemies.Values)
                     {
-                        if (e.SpawnT > 0f || e.Pos.FartherThan(z.Pos, z.Radius + e.Radius))
+                        if (e.SpawnT > 0f || (z.Kind == ZoneKind.BulletRain
+                                ? Math.Abs(e.Pos.X - z.Pos.X) > z.Radius + e.Radius || Math.Abs(e.Pos.Y - z.Pos.Y) > z.Radius + e.Radius  // a square
+                                : e.Pos.FartherThan(z.Pos, z.Radius + e.Radius)))
                             continue;
                         if (d.Dps > 0f && !HallowedSpent(z))
                             HurtEnemy(e, d.Dps * z.DmgMult * dt, z.Owner);
