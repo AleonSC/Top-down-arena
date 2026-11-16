@@ -519,13 +519,21 @@ namespace Arena
             int grasped = p.Grasp.Count;  // Leech Tendrils' held enemies (BloodMage.cs)
             s.Byte(ref grasped);
             if (s.Reading)
+            {
                 p.Grasp.Clear();
+                p.GraspCharge.Clear();
+            }
             for (int k = 0; k < grasped; k++)
             {
                 int held = s.Reading ? 0 : p.Grasp[k];
+                float charge = s.Reading || k >= p.GraspCharge.Count ? 0f : p.GraspCharge[k];
                 s.Int(ref held);
+                s.Float(ref charge);  // how far this one has built up toward its blast
                 if (s.Reading)
+                {
                     p.Grasp.Add(held);
+                    p.GraspCharge.Add(charge);
+                }
             }
             s.Float(ref p.JuggT);  // the Juggernaut Suit (Juggernaut.cs)
             s.Float(ref p.JuggArmor);

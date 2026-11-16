@@ -66,7 +66,7 @@ static partial class Program
     }
 
     // Leech Tendrils grasp the enemies in an arc in front of you for as long as you hold fire: they're stunned,
-    // drained slowly and the drain heals you; let go and they're free.
+    // held for up to 5 s while a blast builds in them; let go early and they burst for what's built, then a 1 s cooldown.
     static void LeechGraspTest(float dt)
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
@@ -124,36 +124,45 @@ static partial class Program
         var seen = client.Game.Players[1].Grasp.ToList();
         Console.WriteLine("  leech tendrils: held {0}; damage in 2 s: {1}; the friend sees {2} held", string.Join(",", me.Grasp), string.Join(", ", dealt.Select(x => x.ToString("0"))), seen.Count);
         Check(me.Grasp.Count == 3 && me.Grasp.Contains(a.Id) && me.Grasp.Contains(b.Id) && me.Grasp.Contains(c.Id), "the tendrils grab the three nearest enemies in the arc in front of you");
-        Check(dealt[3] == 0f && dealt[4] == 0f, "a fourth enemy waits for a free tendril, and nothing behind you is touched");
-        Check(dealt[0] > 18f && dealt[0] < 28f, "held enemies are drained slowly (about 12 a second)");
+        Check(dealt[3] == 0f && dealt[4] == 0f && dealt[0] == 0f, "nothing is hurt while the blast builds, a fourth enemy waits for a free tendril, and nothing behind you is touched");
         Check(a.GraspT > 0f && b.Pos.DistanceTo(bStart) < 1f, "held enemies are stunned in place");
-        Check(seen.Count == 3, "other players see who the tendrils hold");
+        Check(seen.Count == 3 && client.Game.Players[1].GraspCharge.Count == 3 && client.Game.Players[1].GraspCharge[0] > 0.2f, "other players see who the tendrils hold, and how far each has built up");
         Check(g.Bullets.Values.All(x => x.Owner != 1), "the tendrils fire no bullets");
-        // Let go and they're free.
-        Hold(false, 0.5f);
-        Check(me.Grasp.Count == 0 && a.GraspT <= 0f, "let go of fire and the tendrils let go");
-        // The leech: 25% of the damage heals you, slowly.
+        // Let go early: the share built up (about 2 s of 5) bursts, then a cooldown.
+        Hold(false, 0.1f);
+        var early = all.Select((e, i) => hp0[i] - e.Hp).ToArray();
+        Console.WriteLine("  leech tendrils: released after about 2 s: {0}", string.Join(", ", early.Select(x => x.ToString("0"))));
+        Check(me.Grasp.Count == 0 && a.GraspT <= 0.31f, "let go of fire and the tendrils let go");
+        Check(early[0] > 20f && early[0] < 40f, "letting go early bursts for the share built up (about 2/5 of 80)");
+        Check(me.GraspCd > 0.5f, "a burst starts the cooldown");
+        Hold(true, 0.5f);
+        Check(me.Grasp.Count == 0, "no new grab while the tendrils recover");
+        Hold(true, 0.6f);
+        Check(me.Grasp.Count == 3, "after a second they can grab again");
+        // The cost: 2% of max health a second while holding, and no heal.
         g.DevSetGod(1, false);
         me.Hp = me.MaxHp * 0.5f;
         float before = me.Hp;
         Hold(true, 1f);
-        float healed = me.Hp - before;
-        Console.WriteLine("  leech tendrils: healed {0:0.0} HP in 1 s holding three", healed);
-        Check(healed > 5f && healed < 14f, "the tendrils heal you slowly for some of what they drain");
+        float lost = before - me.Hp;
+        Console.WriteLine("  leech tendrils: lost {0:0.0} HP in 1 s holding three", lost);
+        Check(lost > 0.015f * me.MaxHp && lost < 0.03f * me.MaxHp, "holding costs 2% of max health a second, and the drain heals nothing");
         // A held enemy that gets away (pushed far off) slips free.
         a.Pos = at + new V2(400f, 0f);
         Hold(true, 0.3f);
         Check(!me.Grasp.Contains(a.Id) && me.Grasp.Contains(d.Id), "an enemy pulled out of reach slips free and a free tendril grabs the next");
-        // Alone in reach, an enemy gets every tendril: three drains at once (about 36 a second).
+        // Alone in reach, an enemy gets every tendril; held the full 5 s it bursts for all three at full strength.
         foreach (var e in all) if (e != a) e.Hp = 0f;
         a.Pos = at + new V2(90f, 0f);
+        me.Hp = me.MaxHp; g.DevSetGod(1, true);
+        Hold(false, 0.1f); Hold(false, 1.1f);
         Hold(true, 0.3f);
         float alone0 = a.Hp;
-        Hold(true, 2f);
+        for (int q = 0; q < 53; q++) { foreach (var e in g.Enemies.Values) if (e != a) e.Hp = 0f; Hold(true, 0.1f); }  // (nothing else joins in)
         float alone = alone0 - a.Hp;
-        Console.WriteLine("  leech tendrils: {0:0} damage in 2 s to a lone enemy (all {1} tendrils on it)", alone, Game.TendrilsOn(3, 1, 0));
-        Check(me.Grasp.Count == 1 && Game.TendrilsOn(3, 1, 0) == 3 && alone > 3f * 18f && alone < 3f * 28f,
-            "spare tendrils pile onto the enemies already held: a lone one takes all three");
+        Console.WriteLine("  leech tendrils: {0:0} damage from a full burst on a lone enemy (all {1} tendrils on it)", alone, Game.TendrilsOn(3, 1, 0));
+        Check(Game.TendrilsOn(3, 1, 0) == 3 && alone > 3f * 80f * 0.9f && alone < 3f * 80f * 1.1f, "a full 5 s burst on a lone enemy hits with all three tendrils (3 x 80)");
+        Check(me.Grasp.Count == 0 && me.GraspCd > 0f, "the burst lets go and starts the cooldown");
         Check(Game.TendrilsOn(5, 2, 0) == 3 && Game.TendrilsOn(5, 2, 1) == 2 && Game.TendrilsOn(3, 3, 2) == 1, "spare tendrils are shared out, nearest first");
         host.Leave(""); client.Leave("");
     }

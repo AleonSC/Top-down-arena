@@ -220,9 +220,11 @@ namespace Arena
                             DrawDrop(at, 2.4f, ahead.IsZero ? -toE.Normalized() : ahead.Normalized(), new Rgba(1f, 0.55f, 0.6f, 0.95f * Mathf.Sin(f * MathX.Pi)));
                         }
                     }
-                    // Coiled round the enemy, tightening and loosening.
-                    float squeeze = 0.5f + 0.5f * Mathf.Sin(t * 6f + id);
-                    float coil = e.Radius + 3f - 1.5f * squeeze, spin = t * 1.8f + id;
+                    // Coiled round the enemy, tightening and loosening, faster and tighter as the blast builds up.
+                    float charge = g < p.GraspCharge.Count ? p.GraspCharge[g] : 0f;
+                    float squeeze = 0.5f + 0.5f * Mathf.Sin(t * (6f + 14f * charge) + id);
+                    float coil = e.Radius + 3f - 1.5f * squeeze - 3f * charge, spin = t * 1.8f + id;
+                    Arc(e.Disp, e.Radius + 24f, 2f, new Rgba(1f, 0.3f, 0.35f, 0.15f + 0.5f * charge), 28, 0f, 6.2832f * charge);  // the fuse, filling round it
                     Arc(e.Disp, coil, 5.5f, BloodDark.WithAlpha(0.9f), 18, spin, 4.4f);
                     Arc(e.Disp, coil, 3f, c.WithAlpha(0.95f), 18, spin, 4.4f);
                     Arc(e.Disp, coil + 4f, 4f, BloodDark.WithAlpha(0.85f), 14, spin + 3.6f, 2.6f);

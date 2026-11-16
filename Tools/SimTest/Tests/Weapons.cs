@@ -769,6 +769,7 @@ static partial class Program
                     // A beam, an implosion, a tendril, a repulsion blast or a cone of light has no shots to follow: an enemy just inside its range is hit, one just past it isn't.
                     Func<float, bool> Hits = edge =>
                     {
+                        me.Grasp.Clear(); me.GraspCharge.Clear(); me.GraspCd = 0f;
                         g.Enemies.Clear();
                         var dummy = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", flags).Invoke(g, new object[] { EnemyType.Grunt, new V2(120f, 450f), 0f, 0, false });
                         dummy.Pos = new V2(120f + edge + dummy.Radius, 450f);
@@ -777,7 +778,7 @@ static partial class Program
                         volley.Invoke(g, new object[] { me, 0f, extra });
                         host.Poll(); dummy.FrozenT = 1f; dummy.Pos = new V2(120f + edge + dummy.Radius, 450f); me.Pos = new V2(120f, 450f);
                         g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) });
-                        return dummy.Hp < dummy.MaxHp;
+                        return w.Id == WeaponId.LeechBeam ? me.Grasp.Contains(dummy.Id) : dummy.Hp < dummy.MaxHp;  // (tendrils only hold on; they hurt when they burst)
                     };
                     bool inside = Hits(range - 4f), outside = Hits(range + (w.Id == WeaponId.VeinTether ? Game.VeinBeamHalfWidth : 0f) + 4f);
                     if (inside && !outside) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (inside hit " + inside + ", outside hit " + outside + ")");
