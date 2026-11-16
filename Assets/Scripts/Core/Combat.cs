@@ -179,9 +179,9 @@ namespace Arena
         }
 
         /// Shots thrown in an arc (grenades, boulders, Gore Mortar clots, medkits): they fly over what's below and land.
-        static bool Lobbed(byte kind) => kind == Defs.GrenadeShot || kind == Defs.BoulderShot || kind == Defs.ClotShot || kind == Defs.MedkitShot;
+        static bool Lobbed(byte kind) => kind == Defs.GrenadeShot || kind == Defs.BoulderShot || kind == Defs.ClotShot || kind == Defs.MedkitShot || kind == Defs.HoneyGlob;
 
-        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed && kind != Defs.SteelShard && kind != Defs.Caltrop;
+        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed && kind != Defs.SteelShard && kind != Defs.Caltrop && kind != Defs.HoneyGlob;
 
         Bullet MakeBullet(int id, byte kind, int owner, V2 pos, V2 vel, float angVel, float life, bool fromBoss = false, float homing = 0f)
         {
@@ -302,6 +302,11 @@ namespace Arena
                 if (b.Kind == Defs.MedkitShot)
                 {
                     LandMedkit(b);  // Medkit.cs
+                    continue;
+                }
+                if (b.Kind == Defs.HoneyGlob)
+                {
+                    LandHoney(b);  // a honey puddle (HoneybeeStaff.cs)
                     continue;
                 }
                 if (b.Kind == Defs.BoulderShot)
@@ -843,6 +848,7 @@ namespace Arena
                 Recorder?.EnemyKilled(e);
                 SeededKill(e);  // a Sprite Staff seed in it frees a sprite (KitWeapons.cs)
                 SpreadVenom(e);  // Poison Dart's venom jumps to the enemies around it (PoisonDart.cs)
+                HoneyHarvest(e);  // dying in honey bursts into bees (HoneybeeStaff.cs)
                 foreach (var onKill in Classes.KillHooks)  // each class's KitDef.OnKill
                     onKill(this, e);
                 bool bossReward = OnEnemyKilled(e);

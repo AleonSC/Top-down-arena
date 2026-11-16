@@ -706,7 +706,7 @@ namespace Arena
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashRocket = 25, DashLock = 26, DashSpin = 27, DashBoth = 28, DashBoneWall = 29, DashDrum = 34;  // (35: DashNunGuard in Nunchaku.cs; 30-33: DashVolley in Stonespear.cs, DashPack in WolfPack.cs, DashFork in ArcLock.cs, DashStorm in Nimbus.cs)
+        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashRocket = 25, DashLock = 26, DashSpin = 27, DashBoth = 28, DashBoneWall = 29, DashDrum = 34;  // (30-33: DashVolley in Stonespear.cs, DashPack in WolfPack.cs, DashFork in ArcLock.cs, DashStorm in Nimbus.cs; 35-36: DashHoneyOn/Off in HoneybeeStaff.cs; 37: DashNunGuard in Nunchaku.cs)
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -955,6 +955,8 @@ namespace Arena
                 return;  // the Katana's stance switch and steps (Katana.cs)
             if (LocalKnuckleDash(me, aimAt, pressed, dt))
                 return;  // the Arc Knuckles' Rocket Dash (ArcKnuckles.cs)
+            if (LocalHoneySpray(me, pressed, released, aimAt))
+                return;  // the Honeybee Staff's honey spray, held (HoneybeeStaff.cs)
             if (LocalNunGuard(me, aimAt, pressed, dt))
                 return;  // the Nunchaku's guard switch (Nunchaku.cs)
             if (me.Weapon.Id == WeaponId.Kusarigama && (pressed || released))  // the Kusarigama's whirl: held, so both edges go to the host (Kusarigama.cs)
@@ -1209,6 +1211,8 @@ namespace Arena
             if (!Players.TryGetValue(id, out p) || p.Downed)
                 return;
             var w = p.Weapon;
+            if (HostHoneyDash(p, kind))
+                return;  // the Honeybee Staff's spray (HoneybeeStaff.cs)
             if (kind == DashWhirlOn || kind == DashWhirlOff)
             {
                 HostKusariWhirl(p, kind == DashWhirlOn);

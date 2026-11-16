@@ -41,6 +41,7 @@ namespace Arena
             { WeaponId.WolfWhistle, 150f },
             { WeaponId.WispLantern, 84f },
             { WeaponId.ImpCaller, 77f },
+            { WeaponId.HoneybeeStaff, 60f },
             { WeaponId.Warhammer, 64f },
             { WeaponId.Lance, 60f },
             { WeaponId.Halberd, 48f },

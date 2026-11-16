@@ -1,6 +1,6 @@
 # Nunchaku: the Ninja DPS's fourth weapon (design)
 
-Status: **built** (Nov 2026, protocol 367). Mockup: `Docs/Mockups/ninja-nunchaku.html`
+Status: **built** (Nov 2026, protocol 368). Mockup: `Docs/Mockups/ninja-nunchaku.html`
 (https://claude.ai/artifact/Fm5Agzse8eyNyfXk8cGVDz), variant **Twin Storm**. The page's other variants (Iron Storm, Twin
 Dragons, Tidebreaker) were not picked.
 

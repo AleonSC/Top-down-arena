@@ -161,6 +161,12 @@ namespace Arena
                 case FxKind.StoneSlam:
                     DrawStoneSlamFx(fx);  // StonespearLook.cs
                     break;
+                case FxKind.BeeSting:
+                    DrawBeeStingFx(fx, t);  // HoneybeeLook.cs
+                    break;
+                case FxKind.HoneyHarvest:
+                    DrawHoneyHarvestFx(fx);  // HoneybeeLook.cs
+                    break;
                 case FxKind.DoubleBarrel:
                     DrawDoubleBarrelFx(fx);  // TankAltLook.cs
                     break;

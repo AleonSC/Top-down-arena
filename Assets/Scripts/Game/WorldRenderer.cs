@@ -124,6 +124,9 @@ namespace Arena
                 if (p.Weapon.Id == WeaponId.WolfWhistle)
                     DrawPackPips(p);  // WolfLook.cs
             foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.HoneybeeStaff)
+                    DrawHoneyMeter(p);  // HoneybeeLook.cs
+            foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.LightBolt)
                 {
                     DrawRepelPull(p);  // RepulseLook.cs: the Undertow's current and meter
@@ -617,6 +620,7 @@ namespace Arena
             DrawPlayer(p, t);
             if (!p.Downed)
                 DrawStonespears(p, t);  // the hovering spears (StonespearLook.cs)
+            DrawHoneySpray(p, t);  // the Honeybee Staff's spray (HoneybeeLook.cs)
             if (game.IsHunted(p) && !p.Downed)
                 DrawHuntedMark(p.Disp, p.Def.BodyR, t);  // ModifiersUi.cs
             if (game.Walled)

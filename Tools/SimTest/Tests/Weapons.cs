@@ -796,6 +796,12 @@ static partial class Program
                     if (Math.Abs(range - (me.Def.BodyR + Game.AmmoReach)) < 0.5f) pass++; else off.Add(w.Name + " (" + range.ToString("0") + ")");
                     continue;
                 }
+                if (w.Id == WeaponId.HoneybeeStaff)
+                {
+                    // No shots: a bee hatches at the cursor, no farther than HatchReach (HoneybeeStaff test); the aim line shows how far.
+                    if (Math.Abs(range - Game.HatchReach) < 0.5f) pass++; else off.Add(w.Name + " (" + range.ToString("0") + ")");
+                    continue;
+                }
                 if (w.Id == WeaponId.WispLantern || w.Id == WeaponId.ImpCaller)
                 {
                     // No shots: your companions are sent (WispLantern/ImpCaller tests); the aim line shows how far.

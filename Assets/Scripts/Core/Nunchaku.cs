@@ -17,7 +17,7 @@ namespace Arena
     /// FxKind.NunCounter (Game/NunchakuLook.cs).
     public partial class Game
     {
-        const byte DashNunGuard = 35;
+        const byte DashNunGuard = 37;
         public const float NunChainWindow = 1f;
         /// Each step's damage against the weapon's Damage (20): Snap 20, Backhand 22, each of the Figure-8's four hits 12, the Crush 68.
         public static readonly float[] NunMult = { 1f, 1.1f, 0.6f, 3.4f };

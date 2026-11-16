@@ -167,6 +167,9 @@ namespace Arena
                 case WeaponId.WolfWhistle:
                     SpawnBullet(Defs.BoneShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                     break;
+                case WeaponId.HoneybeeStaff:
+                    HatchBees(p, dmg, extra);  // a bee at your cursor (HoneybeeStaff.cs)
+                    break;
                 case WeaponId.ImpCaller:
                     SendImps(p, BowCharge(p, p.BowShotDraw));  // a tap sends them; held to full, they merge into one big imp
                     break;

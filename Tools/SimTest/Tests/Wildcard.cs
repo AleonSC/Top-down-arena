@@ -74,16 +74,19 @@ static partial class Program
         int barrel = Defs.WildWeaponPick(Kit.Soldier, 3);
         Check(barrel == Defs.WildcardChoices && Defs.Weapon(Role.Wildcard, Kit.Soldier, barrel).Id == WeaponId.DoubleBarrel,
             "the fourth weapons come after every class's three, in class order: the Soldier's Double Barrel first (pick " + barrel + ")");
-        Check(knuckles == Defs.WildcardChoices + 2 && e.Weapon == knuckles && Defs.Weapon(Role.Wildcard, Kit.Soldier, e.Weapon).Id == WeaponId.ArcKnuckles,
-            "a Wildcard can pick the Knight DPS's fourth weapon, the Arc Knuckles (pick " + knuckles + ", after the Double Barrel and the Stonespear)");
+        Check(knuckles == Defs.WildcardChoices + 3 && e.Weapon == knuckles && Defs.Weapon(Role.Wildcard, Kit.Soldier, e.Weapon).Id == WeaponId.ArcKnuckles,
+            "a Wildcard can pick the Knight DPS's fourth weapon, the Arc Knuckles (pick " + knuckles + ", after the Double Barrel, the Stonespear and the Honeybee Staff)");
         int spear = Defs.WildWeaponPick(Kit.Elementalist, 3);
         Check(spear == Defs.WildcardChoices + 1 && Defs.Weapon(Role.Wildcard, Kit.Soldier, spear).Id == WeaponId.Stonespear && Defs.WildWeaponKit(spear) == Kit.Elementalist,
             "and the Elementalist DPS's Stonespear (pick " + spear + ", between them in class order)");
+        int bees = Defs.WildWeaponPick(Kit.Summoner, 3);
+        Check(bees == Defs.WildcardChoices + 2 && Defs.Weapon(Role.Wildcard, Kit.Soldier, bees).Id == WeaponId.HoneybeeStaff && Defs.WildWeaponKit(bees) == Kit.Summoner,
+            "and the Summoner DPS's Honeybee Staff (pick " + bees + ", after the Stonespear)");
         int chucks = Defs.WildWeaponPick(Kit.Ninja, 3);
-        Check(chucks == Defs.WildcardChoices + 3 && Defs.Weapon(Role.Wildcard, Kit.Soldier, chucks).Id == WeaponId.Nunchaku && Defs.WildWeaponKit(chucks) == Kit.Ninja,
+        Check(chucks == Defs.WildcardChoices + 4 && Defs.Weapon(Role.Wildcard, Kit.Soldier, chucks).Id == WeaponId.Nunchaku && Defs.WildWeaponKit(chucks) == Kit.Ninja,
             "and the Ninja DPS's Nunchaku (pick " + chucks + ", after the Arc Knuckles)");
-        Check(Defs.WildWeaponKit(knuckles) == Kit.Knight && Defs.WeaponCount(Role.Wildcard, Kit.Soldier) == Defs.WildcardChoices + 4,
-            "its class on the wheel is the Knight, and the Wildcard has " + Defs.WeaponCount(Role.Wildcard, Kit.Soldier) + " weapons to pick from (22)");
+        Check(Defs.WildWeaponKit(knuckles) == Kit.Knight && Defs.WeaponCount(Role.Wildcard, Kit.Soldier) == Defs.WildcardChoices + 5,
+            "its class on the wheel is the Knight, and the Wildcard has " + Defs.WeaponCount(Role.Wildcard, Kit.Soldier) + " weapons to pick from (23)");
         lobby.RequestUlt(Upgrades.WildUlt(Kit.Hemomancer, 0));
         e = lobby.Lobby[1];
         Check(e.Ult == Upgrades.WildUlt(Kit.Hemomancer, 0) && e.UltKit == Kit.Hemomancer && e.UltId == AbilityId.CrimsonApotheosis, "a Wildcard picks any class's DPS ultimate");
