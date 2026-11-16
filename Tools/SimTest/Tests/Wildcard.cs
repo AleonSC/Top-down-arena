@@ -79,8 +79,11 @@ static partial class Program
         int spear = Defs.WildWeaponPick(Kit.Elementalist, 3);
         Check(spear == Defs.WildcardChoices + 1 && Defs.Weapon(Role.Wildcard, Kit.Soldier, spear).Id == WeaponId.Stonespear && Defs.WildWeaponKit(spear) == Kit.Elementalist,
             "and the Elementalist DPS's Stonespear (pick " + spear + ", between them in class order)");
-        Check(Defs.WildWeaponKit(knuckles) == Kit.Knight && Defs.WeaponCount(Role.Wildcard, Kit.Soldier) == Defs.WildcardChoices + 3,
-            "its class on the wheel is the Knight, and the Wildcard has " + Defs.WeaponCount(Role.Wildcard, Kit.Soldier) + " weapons to pick from (21)");
+        int chucks = Defs.WildWeaponPick(Kit.Ninja, 3);
+        Check(chucks == Defs.WildcardChoices + 3 && Defs.Weapon(Role.Wildcard, Kit.Soldier, chucks).Id == WeaponId.Nunchaku && Defs.WildWeaponKit(chucks) == Kit.Ninja,
+            "and the Ninja DPS's Nunchaku (pick " + chucks + ", after the Arc Knuckles)");
+        Check(Defs.WildWeaponKit(knuckles) == Kit.Knight && Defs.WeaponCount(Role.Wildcard, Kit.Soldier) == Defs.WildcardChoices + 4,
+            "its class on the wheel is the Knight, and the Wildcard has " + Defs.WeaponCount(Role.Wildcard, Kit.Soldier) + " weapons to pick from (22)");
         lobby.RequestUlt(Upgrades.WildUlt(Kit.Hemomancer, 0));
         e = lobby.Lobby[1];
         Check(e.Ult == Upgrades.WildUlt(Kit.Hemomancer, 0) && e.UltKit == Kit.Hemomancer && e.UltId == AbilityId.CrimsonApotheosis, "a Wildcard picks any class's DPS ultimate");

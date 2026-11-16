@@ -140,6 +140,8 @@ namespace Arena
         ArcKnuckles, TwinRifleAuto, OutOfAmmo, DoubleBarrel, Stonespear,
         // the Tank Soldier's fourth (GrenadeLauncher.cs)
         GrenadeLauncher,
+        // the Ninja DPS's fourth (Nunchaku.cs): Twin Storm, a nunchaku in each hand
+        Nunchaku,
     }
 
     public class WeaponDef

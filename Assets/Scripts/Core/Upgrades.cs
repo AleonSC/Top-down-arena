@@ -180,6 +180,7 @@ namespace Arena
         public float ArcChargeMult = 1f, ArcStunBonus;                     // Arc Lightning: Static Field
         public int OrbitExtra; public float LaunchRangeMult = 1f;          // Ice Shards: Frozen Halo
         public int SsSideBonus; public float SsSlamMult = 1f;              // Stonespear: Tectonic
+        public float NunDiscMult = 1f, NunSwatBonus;                       // Nunchaku: Iron Links
         public float SwatReachMult = 1f, SwatCdMult = 1f;                  // Out of Ammo: Gun Kata (Docs/UpgradePools.md step 13)
 
         // Legendary weapon upgrades from bosses.
