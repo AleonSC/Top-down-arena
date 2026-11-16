@@ -115,6 +115,9 @@ static partial class Shot {
     for (int f = 0; f < seconds * 60; f++) {
       Step(host); foreach (var c in others) Step(c); if (f % 4 == 0) Thread.Sleep(1);
       foreach (var p in host.Game.Players.Values) { p.InvulnT = 1f; }
+      var rainEnv = Environment.GetEnvironmentVariable("RAIN");  // RAIN=<seconds since the cast>: a Bullet Rain zone in the middle of the arena
+      if (rainEnv != null && f == Math.Max(0, (int)((seconds - float.Parse(rainEnv)) * 60)) && host.Game.Players.ContainsKey(1))
+        typeof(Game).GetMethod("AddZone", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(host.Game, new object[] { ZoneKind.BulletRain, host.Game.Players[1], new V2(800f, 450f), Game.BulletRainRadius, 6f });
       if (rodEnv != null && f > 60) foreach (var p in host.Game.Players.Values) { p.InvulnT = 0f; p.Hp = Math.Max(p.Hp, p.MaxHp * 0.6f); }  // ROD=: the hits land, for the grey numbers
       if (rodEnv != null && f == Math.Max(0, (int)((seconds - float.Parse(rodEnv)) * 60)) && host.Game.Players.ContainsKey(1))
       {
