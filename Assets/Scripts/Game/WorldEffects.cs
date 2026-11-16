@@ -330,6 +330,9 @@ namespace Arena
                 case FxKind.LightCone:
                     DrawLightConeFx(fx, f, t);
                     break;
+                case FxKind.MarrowLink:
+                    DrawMarrowLinkFx(fx, f, t);  // BoneGuardLook.cs
+                    break;
                 case FxKind.BloodCoat:
                     DrawBloodCoatFx(fx, f, t);  // BloodMageLook.cs
                     break;

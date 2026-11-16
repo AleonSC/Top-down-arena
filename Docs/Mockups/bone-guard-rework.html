@@ -1,0 +1,529 @@
+<title>Bone Guard Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@600;800&family=Barlow:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Field-manual look like the other mockups: one card per concept, two looping canvases (Fire / Alt) drawn top-down
+   at game scale (1 canvas px = 1 game px, a player is 18 px wide). Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --line: #242d36; --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2;
+  --amber: #ffb547; --teal: #6fe3c4; --bone: #ece4cc;
+  --display: "Oxanium", system-ui, sans-serif; --body: "Barlow", system-ui, sans-serif; --data: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--body); }
+.wrap { max-width: 1100px; margin: 0 auto; padding-block: 28px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
+h1, h2 { font-family: var(--display); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(28px, 5vw, 42px); font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+h2 { font-size: 22px; font-weight: 800; letter-spacing: .03em; }
+p { margin: 0; max-width: 72ch; color: var(--soft); }
+.eyebrow { font: 600 11px var(--display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+.bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.bar button { font: 600 12px var(--display); letter-spacing: .1em; text-transform: uppercase; color: var(--soft); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 7px 12px; cursor: pointer; }
+.bar button[aria-pressed="true"] { color: var(--bg); background: var(--amber); border-color: var(--amber); }
+.bar button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.concept { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; }
+.head { display: grid; gap: 4px; }
+.tag { font: 800 13px var(--display); letter-spacing: .12em; color: var(--teal); }
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+figure { margin: 0; display: grid; gap: 6px; min-width: 0; }
+figcaption { font: 600 11px var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+canvas { width: 100%; max-width: 100%; aspect-ratio: 1 / 1; background: #070910; border: 1px solid var(--line); border-radius: 8px; display: block; cursor: pointer; }
+dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 15px; }
+dt { font: 600 11px var(--display); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding-top: 4px; }
+dd { margin: 0; color: var(--soft); min-width: 0; }
+.num { font-family: var(--data); font-size: 13px; color: var(--bone); }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 8px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; color: var(--soft); }
+</style>
+
+<div class="wrap">
+  <header class="head">
+    <div class="eyebrow">Tank · Summoner · weapon rework</div>
+    <h1>Bone Guard</h1>
+    <p>Now: darts (7) every 0.3 s; the 3rd in one enemy within 3 s cages it 1.5 s; 2 orbiting skeletons block bullets and shoot caged enemies. No Alt. Three directions below, each with an Alt. Click a canvas to pause it.</p>
+  </header>
+
+  <div class="bar" role="group" aria-label="Playback speed">
+    <button type="button" id="sp1" data-speed="1" aria-pressed="true">1× speed</button>
+    <button type="button" id="sp2" data-speed="0.35" aria-pressed="false">Slow-mo 0.35×</button>
+  </div>
+
+  <section class="concept">
+    <div class="head"><span class="tag">A · RIB LOCK</span><h2>Keep the loop, make it read, detonate it</h2>
+      <p>Same dart → cage loop, made legible: three pips over the enemy, a rib cage that claws up out of the floor, skeletons that fire bone shards. Alt cashes in every dart you've stuck.</p></div>
+    <div class="pair">
+      <figure><canvas id="cA1" data-scene="A1" width="360" height="360" aria-label="Rib Lock primary fire animation"></canvas><figcaption>Fire · darts → pips → rib cage</figcaption></figure>
+      <figure><canvas id="cA2" data-scene="A2" width="360" height="360" aria-label="Shatter alt fire animation"></canvas><figcaption>Alt · Shatter</figcaption></figure>
+    </div>
+    <dl>
+      <dt>Fire</dt><dd>Unchanged numbers <span class="num">7 dmg · 0.3 s · cage 1.5 s</span>. Pips fill 1/2/3; the stuck darts fuse into the cage.</dd>
+      <dt>Alt</dt><dd><b>Shatter</b> <span class="num">6 s</span>: every dart you have stuck explodes in bone shards <span class="num">10 each</span>; every cage bursts <span class="num">30 in 60 px</span>. Rewards stacking many enemies before cashing in.</dd>
+      <dt>Skill</dt><dd>Spread darts over a crowd, then Shatter. Low risk, closest to today.</dd>
+    </dl>
+  </section>
+
+  <section class="concept">
+    <div class="head"><span class="tag">B · MARROW TETHER</span><h2>Darts stitch the crowd together</h2>
+      <p>Enemies you hit within 1 s of each other get threaded with marrow. Cage one and the cage reels its threaded neighbours in and slows them: a Tank tool for bunching a wave. Alt drops a bone palisade.</p></div>
+    <div class="pair">
+      <figure><canvas id="cB1" data-scene="B1" width="360" height="360" aria-label="Marrow Tether primary fire animation"></canvas><figcaption>Fire · thread → cage → yank</figcaption></figure>
+      <figure><canvas id="cB2" data-scene="B2" width="360" height="360" aria-label="Ossuary Wall alt fire animation"></canvas><figcaption>Alt · Ossuary Wall</figcaption></figure>
+    </div>
+    <dl>
+      <dt>Fire</dt><dd>Darts as now. Consecutive hits on different enemies within <span class="num">1 s</span> link them. A cage yanks linked enemies <span class="num">40 px</span> toward it and slows them <span class="num">30%</span> while it holds.</dd>
+      <dt>Alt</dt><dd><b>Ossuary Wall</b> <span class="num">8 s</span>: lob a bone to the cursor; a <span class="num">110 px</span> palisade of femurs rises across your aim for <span class="num">3 s</span>, blocking enemy shots. Enemies pressing on it take a dart every <span class="num">0.6 s</span> (so it cages them).</dd>
+      <dt>Skill</dt><dd>Group, then wall off. Most crowd control; overlaps a little with Golem Wall.</dd>
+    </dl>
+  </section>
+
+  <section class="concept">
+    <div class="head"><span class="tag">C · GRAVE SENTINELS</span><h2>Skeletons with shields and spears</h2>
+      <p>The skeletons become the weapon's teeth: they carry bone shields while they circle you, then leap to a cage and spear it. While they're away you're open. Alt trades places with one.</p></div>
+    <div class="pair">
+      <figure><canvas id="cC1" data-scene="C1" width="360" height="360" aria-label="Grave Sentinels primary fire animation"></canvas><figcaption>Fire · cage → sentinels leap and spear</figcaption></figure>
+      <figure><canvas id="cC2" data-scene="C2" width="360" height="360" aria-label="Bone Swap alt fire animation"></canvas><figcaption>Alt · Bone Swap</figcaption></figure>
+    </div>
+    <dl>
+      <dt>Fire</dt><dd>Darts as now. On a cage, both sentinels leap to it and jab <span class="num">3 × 12</span> each, then run back. Shields block bullets only while orbiting.</dd>
+      <dt>Alt</dt><dd><b>Bone Swap</b> <span class="num">7 s</span>: a sentinel dashes to the cursor (<span class="num">260 px</span> max) and you swap places. Bone spikes erupt where you stood: <span class="num">20</span> + one dart to each enemy within <span class="num">48 px</span>, shoved out <span class="num">22 px</span>.</dd>
+      <dt>Skill</dt><dd>A Tank escape that punishes the crowd on you. Highest skill ceiling, biggest change.</dd>
+    </dl>
+  </section>
+
+  <div class="notes">
+    <div class="eyebrow">Notes</div>
+    <ul>
+      <li>Alts mix freely: any Alt works with any Fire (e.g. A's look + C's Bone Swap).</li>
+      <li>Numbers are starting points for the balance pass; Ossuary would also add to the Alt (e.g. Shatter shards +20%).</li>
+      <li>Approximate browser drawing. Once you pick, the real look is shown with <code>Tools/Preview</code> renders of the game's draw code.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+(() => {
+const TAU = Math.PI * 2, PI = Math.PI;
+const BONE = '#ece4cc', BONE2 = '#a8997a', SOCK = '#1a1410', MAR = '#d0475e', ENE = '#e0584a', ENE2 = '#5e1d1a',
+      GLOW = '#9ff2d6', AMB = '#ffb547', BUL = '#ff8a3d', PL = '#6fe3c4', BG = '#070910';
+const cl = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v)), lerp = (a, b, t) => a + (b - a) * t;
+const eo = t => 1 - Math.pow(1 - cl(t), 3), eio = t => { t = cl(t); return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+const seg = (t, a, b) => cl((t - a) / (b - a));
+const dist = (a, b) => Math.hypot(b.x - a.x, b.y - a.y), ang = (a, b) => Math.atan2(b.y - a.y, b.x - a.x);
+const lp = (a, b, t) => ({ x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t) });
+
+/* ---------- drawing primitives ---------- */
+function floor(c) {
+  c.fillStyle = BG; c.fillRect(0, 0, 360, 360);
+  c.strokeStyle = 'rgba(255,255,255,.035)'; c.lineWidth = 1;
+  for (let i = 30; i < 360; i += 30) { c.beginPath(); c.moveTo(i + .5, 0); c.lineTo(i + .5, 360); c.moveTo(0, i + .5); c.lineTo(360, i + .5); c.stroke(); }
+}
+function shadow(c, x, y, r) { c.fillStyle = 'rgba(0,0,0,.4)'; c.beginPath(); c.ellipse(x + 2, y + 4, r, r * .6, 0, 0, TAU); c.fill(); }
+function player(c, x, y, a, flash = 0) {
+  shadow(c, x, y, 10);
+  c.save(); c.translate(x, y); c.rotate(a);
+  c.strokeStyle = '#6b5a43'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(2, 7); c.lineTo(19, 7); c.stroke();
+  c.fillStyle = BONE; c.beginPath(); c.arc(21, 7, 3.2, 0, TAU); c.fill();
+  c.fillStyle = SOCK; c.fillRect(21.5, 5.6, 1.3, 1.1); c.fillRect(21.5, 7.4, 1.3, 1.1);
+  c.fillStyle = '#1d2a31'; c.strokeStyle = PL; c.lineWidth = 2; c.beginPath(); c.arc(0, 0, 9, 0, TAU); c.fill(); c.stroke();
+  c.fillStyle = PL; c.beginPath(); c.moveTo(9, 0); c.lineTo(4.5, -3.2); c.lineTo(4.5, 3.2); c.fill();
+  if (flash > 0) { c.fillStyle = `rgba(255,255,255,${flash})`; c.beginPath(); c.arc(0, 0, 10, 0, TAU); c.fill(); }
+  c.restore();
+}
+function skeleton(c, x, y, a, o = {}) {
+  const lift = o.lift || 0;
+  shadow(c, x, y, 8 - lift * 2);
+  c.save(); c.translate(x, y - lift * 10); c.scale(1 + lift * .25, 1 + lift * .25); c.rotate(a);
+  c.strokeStyle = BONE2; c.lineWidth = 1.6; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(-9, 0); c.lineTo(0, 0); c.stroke();
+  for (let i = 0; i < 3; i++) { const bx = -2 - i * 2.6; c.beginPath(); c.moveTo(bx, 0); c.quadraticCurveTo(bx - 1, -5, bx - 3, -5.5); c.moveTo(bx, 0); c.quadraticCurveTo(bx - 1, 5, bx - 3, 5.5); c.stroke(); }
+  if (o.shield) { c.strokeStyle = BONE2; c.lineWidth = 3.2; c.beginPath(); c.arc(0, 0, 9.5, -.85, .85); c.stroke(); c.strokeStyle = BONE; c.lineWidth = 1; c.beginPath(); c.arc(0, 0, 10.5, -.7, .7); c.stroke(); }
+  if (o.spear !== undefined) {
+    const j = o.spear * 16;
+    c.strokeStyle = '#8a7656'; c.lineWidth = 1.8; c.beginPath(); c.moveTo(-6, 6); c.lineTo(14 + j, 6); c.stroke();
+    c.fillStyle = BONE; c.beginPath(); c.moveTo(14 + j, 3.8); c.lineTo(20 + j, 6); c.lineTo(14 + j, 8.2); c.fill();
+  }
+  if (o.bow) { c.strokeStyle = BONE2; c.lineWidth = 1.6; c.beginPath(); c.arc(1, 0, 8, -1.1, 1.1); c.stroke(); }
+  c.fillStyle = BONE; c.beginPath(); c.arc(2, 0, 4.6, 0, TAU); c.fill();
+  c.fillStyle = SOCK; c.beginPath(); c.arc(4, -1.8, 1.3, 0, TAU); c.arc(4, 1.8, 1.3, 0, TAU); c.fill();
+  if (o.glow) { c.fillStyle = GLOW; c.globalAlpha = o.glow; c.beginPath(); c.arc(4, -1.8, .8, 0, TAU); c.arc(4, 1.8, .8, 0, TAU); c.fill(); c.globalAlpha = 1; }
+  c.restore();
+}
+function enemy(c, x, y, a, o = {}) {
+  shadow(c, x, y, 11);
+  c.save(); c.translate(x, y); c.rotate(a);
+  c.fillStyle = o.caged ? '#3d2422' : ENE2; c.strokeStyle = o.caged ? '#9b5a52' : ENE; c.lineWidth = 2;
+  c.beginPath(); c.arc(0, 0, 10, 0, TAU); c.fill(); c.stroke();
+  c.fillStyle = '#ffd9a8'; c.fillRect(4, -4.5, 3, 2); c.fillRect(4, 2.5, 3, 2);
+  if (o.flash > 0) { c.fillStyle = `rgba(255,255,255,${o.flash * .8})`; c.beginPath(); c.arc(0, 0, 10.5, 0, TAU); c.fill(); }
+  if (o.slow) { c.strokeStyle = `rgba(208,71,94,${.55 * o.slow})`; c.setLineDash([2, 3]); c.lineWidth = 1.5; c.beginPath(); c.arc(0, 0, 14, 0, TAU); c.stroke(); c.setLineDash([]); }
+  c.restore();
+}
+function dart(c, x, y, a, al = 1) {
+  c.save(); c.globalAlpha = al; c.translate(x, y); c.rotate(a);
+  c.strokeStyle = BONE; c.lineWidth = 2; c.lineCap = 'round'; c.beginPath(); c.moveTo(-7, 0); c.lineTo(5, 0); c.stroke();
+  c.fillStyle = BONE; c.beginPath(); c.moveTo(5, -1.7); c.lineTo(9.5, 0); c.lineTo(5, 1.7); c.fill();
+  c.fillStyle = BONE2; c.beginPath(); c.arc(-7, 0, 1.9, 0, TAU); c.fill();
+  c.restore();
+}
+function stuck(c, e, inA, k, al = 1) { // a dart sticking out of enemy e, came in along angle inA
+  const px = -Math.sin(inA), py = Math.cos(inA), off = (k - 1) * 4.5;
+  dart(c, e.x - Math.cos(inA) * 12 + px * off, e.y - Math.sin(inA) * 12 + py * off, inA + (k - 1) * .25, al);
+}
+function pips(c, x, y, n, glow = 0) {
+  for (let i = 0; i < 3; i++) {
+    const px = x + (i - 1) * 7, py = y - 20;
+    c.save(); c.translate(px, py); c.rotate(PI / 4);
+    c.fillStyle = i < n ? BONE : 'rgba(236,228,204,.12)'; c.fillRect(-2.2, -2.2, 4.4, 4.4);
+    if (i < n && glow) { c.strokeStyle = `rgba(159,242,214,${glow})`; c.lineWidth = 1; c.strokeRect(-3.4, -3.4, 6.8, 6.8); }
+    c.restore();
+  }
+}
+function cage(c, x, y, p, br = 0) {
+  if (br >= 1) return;
+  c.save(); c.translate(x, y);
+  if (br === 0) { c.strokeStyle = `rgba(159,242,214,${.35 * p})`; c.lineWidth = 1.5; c.beginPath(); c.arc(0, 0, 18, 0, TAU); c.stroke(); }
+  for (let i = 0; i < 6; i++) {
+    const a = i * TAU / 6 + .3, out = br * 34, r0 = 18 + out, tip = 18 - 12 * p + out;
+    c.save(); c.globalAlpha = 1 - br; c.rotate(a + br * 2.5 * (i % 2 ? 1 : -1));
+    const draw = (col, w, dx) => { c.strokeStyle = col; c.lineWidth = w; c.lineCap = 'round'; c.beginPath(); c.moveTo(r0 + dx, 0); c.quadraticCurveTo(lerp(r0, tip, .5) + dx, 7 * p, tip + dx, 3 * p); c.stroke(); };
+    draw(BONE2, 4, .8); draw(BONE, 2.3, 0);
+    c.fillStyle = BONE; c.beginPath(); c.arc(r0, 0, 2.2, 0, TAU); c.fill();
+    c.restore();
+  }
+  c.restore();
+}
+function shard(c, a, b, f) { // bone shard from a to b at progress f
+  if (f <= 0 || f >= 1) return;
+  const p = lp(a, b, f), q = lp(a, b, Math.max(0, f - .12)), an = ang(a, b);
+  c.strokeStyle = 'rgba(159,242,214,.35)'; c.lineWidth = 2; c.beginPath(); c.moveTo(q.x, q.y); c.lineTo(p.x, p.y); c.stroke();
+  c.save(); c.translate(p.x, p.y); c.rotate(an); c.strokeStyle = BONE; c.lineWidth = 2.2; c.lineCap = 'round'; c.beginPath(); c.moveTo(-4, 0); c.lineTo(3, 0); c.stroke(); c.restore();
+}
+function bullet(c, x, y) { c.fillStyle = BUL; c.beginPath(); c.arc(x, y, 4, 0, TAU); c.fill(); c.fillStyle = '#ffe2c4'; c.beginPath(); c.arc(x, y, 1.8, 0, TAU); c.fill(); }
+function spark(c, x, y, age, col = BONE) {
+  if (age < 0 || age > .3) return; const f = age / .3;
+  c.strokeStyle = col; c.globalAlpha = 1 - f; c.lineWidth = 1.6;
+  for (let i = 0; i < 6; i++) { const a = i * TAU / 6 + .4, r1 = 3 + f * 6, r2 = 7 + f * 10; c.beginPath(); c.moveTo(x + Math.cos(a) * r1, y + Math.sin(a) * r1); c.lineTo(x + Math.cos(a) * r2, y + Math.sin(a) * r2); c.stroke(); }
+  c.globalAlpha = 1;
+}
+function dmg(c, x, y, txt, age, col = AMB) {
+  if (age < 0 || age > .8) return;
+  c.globalAlpha = 1 - age / .8; c.fillStyle = col; c.font = '600 12px "IBM Plex Mono", monospace'; c.textAlign = 'center';
+  c.fillText(txt, x, y - 16 - age * 22); c.globalAlpha = 1; c.textAlign = 'left';
+}
+function ring(c, x, y, r, al, col = BONE, w = 2) { if (al <= 0) return; c.strokeStyle = col; c.globalAlpha = al; c.lineWidth = w; c.beginPath(); c.arc(x, y, r, 0, TAU); c.stroke(); c.globalAlpha = 1; }
+function cursor(c, x, y) { c.strokeStyle = AMB; c.lineWidth = 1.5; c.beginPath(); c.arc(x, y, 6, 0, TAU); c.moveTo(x - 10, y); c.lineTo(x - 3, y); c.moveTo(x + 3, y); c.lineTo(x + 10, y); c.moveTo(x, y - 10); c.lineTo(x, y - 3); c.moveTo(x, y + 3); c.lineTo(x, y + 10); c.stroke(); }
+function cooldown(c, x, y, f, label) {
+  c.strokeStyle = 'rgba(255,181,71,.18)'; c.lineWidth = 2.5; c.beginPath(); c.arc(x, y, 15, 0, TAU); c.stroke();
+  c.strokeStyle = AMB; c.beginPath(); c.arc(x, y, 15, -PI / 2, -PI / 2 + TAU * cl(f)); c.stroke();
+  if (label) { c.fillStyle = AMB; c.font = '500 10px "IBM Plex Mono", monospace'; c.fillText(label, x + 19, y + 22); }
+}
+function hud(c, tag, alt, cap) {
+  c.font = '800 11px Oxanium, sans-serif';
+  const w = c.measureText(tag).width + 14;
+  c.fillStyle = alt ? AMB : PL; c.fillRect(10, 10, w, 18); c.fillStyle = BG; c.fillText(tag, 17, 23);
+  if (cap) {
+    c.font = '600 12px Barlow, sans-serif'; const cw = c.measureText(cap).width + 16;
+    c.fillStyle = 'rgba(10,13,16,.85)'; c.fillRect(10, 330, cw, 20); c.fillStyle = '#e7eef3'; c.fillText(cap, 18, 344);
+  }
+}
+const orbit = (P, i, t, r = 34) => { const a = t * 1.7 + i * PI; return { x: P.x + Math.cos(a) * r, y: P.y + Math.sin(a) * r, a: a + PI / 2, o: a }; };
+const caption = (t, list) => { let s = ''; for (const [at, txt] of list) if (t >= at) s = txt; return s; };
+
+/* ---------- shared: dart volley + cage + skeleton shards (used by A1, B1, C1) ---------- */
+function volley(c, t, P, shots, targetAt, staffA) {
+  for (const s of shots) {
+    const tgt = targetAt(s.hit), from = { x: P.x + Math.cos(staffA) * 20, y: P.y + Math.sin(staffA) * 20 };
+    if (t >= s.t && t < s.hit) dart(c, lerp(from.x, tgt.x, seg(t, s.t, s.hit)), lerp(from.y, tgt.y, seg(t, s.t, s.hit)), ang(from, tgt));
+  }
+}
+function guardFire(c, t, P, E, tc, len, offset = 0) {
+  const out = [];
+  for (let i = 0; i < 2; i++) for (let k = 0; k < 4; k++) {
+    const ft = tc + .25 + k * .38 + i * .19 + offset; if (ft > tc + len - .1) continue;
+    const s = orbit(P, i, ft), tgt = E(ft), tt = dist(s, tgt) / 520;
+    shard(c, s, tgt, seg(t, ft, ft + tt)); out.push(ft + tt);
+  }
+  return out;
+}
+function skelAim(P, i, t, E, tc, len) {
+  const s = orbit(P, i, t);
+  if (E && t > tc + .1 && t < tc + len) { const e = E(t); return { ...s, a: ang(s, e), glow: 1 }; }
+  return s;
+}
+
+/* ---------- A1: Rib Lock fire ---------- */
+const scenes = {};
+scenes.A1 = { L: 4.4, draw(c, t) {
+  const P = { x: 84, y: 190 }, tc = 1.19, len = 1.5;
+  const e1x = tt => 300 - 16 * Math.min(tt, tc) - 16 * Math.max(0, tt - (tc + len));
+  const E1 = tt => ({ x: e1x(tt), y: 172 });
+  const shots = [.3, .6, .9].map(s => ({ t: s, hit: s + .29 }));
+  const e2 = tt => ({ x: 300 - 10 * tt, y: 292 });
+  const tf = 1.9, th = 2.7, sk = orbit(P, 0, th), bfrom = e2(tf);
+  floor(c);
+  const e = E1(t), caged = t >= tc && t < tc + len, aimA = ang(P, E1(t));
+  // pips + stuck darts
+  const n = shots.filter(s => t >= s.hit).length;
+  enemy(c, e.x, e.y, ang(e, P), { caged, flash: shots.some(s => t >= s.hit && t < s.hit + .08) ? 1 : 0 });
+  shots.forEach((s, k) => { if (t >= s.hit && t < tc + .15) stuck(c, e, ang(P, E1(s.hit)), k, t < tc ? 1 : 1 - seg(t, tc, tc + .15)); });
+  if (t < tc + len + .4) cage(c, e.x, e.y, eo(seg(t, tc, tc + .22)), seg(t, tc + len, tc + len + .4) || 0);
+  if (t < tc) pips(c, e.x, e.y, n);
+  const e2p = e2(t); enemy(c, e2p.x, e2p.y, ang(e2p, P));
+  if (t >= tf && t < th) { const b = lp(bfrom, sk, seg(t, tf, th)); bullet(c, b.x, b.y); }
+  spark(c, sk.x, sk.y, t - th);
+  const hits = guardFire(c, t, P, E1, tc, len);
+  hits.forEach(h => { dmg(c, E1(h).x + 8, E1(h).y, '8', t - h, GLOW); });
+  shots.forEach(s => dmg(c, E1(s.hit).x - 6, E1(s.hit).y, '7', t - s.hit));
+  ring(c, e.x, e.y, 14 + 14 * seg(t, tc, tc + .3), 1 - seg(t, tc, tc + .3), GLOW);
+  volley(c, t, P, shots, E1, aimA);
+  for (let i = 0; i < 2; i++) { const s = skelAim(P, i, t, E1, tc, len); skeleton(c, s.x, s.y, s.a, { bow: 1, glow: s.glow }); }
+  player(c, P.x, P.y, aimA);
+  hud(c, 'FIRE', 0, caption(t, [[0, 'Darts stick · pips fill 1 / 2 / 3'], [tc, '3rd dart: rib cage, 1.5 s · skeletons fire'], [th - .3, 'Skeleton blocks the shot'], [tc + len, 'Cage breaks']]));
+} };
+
+/* ---------- A2: Shatter ---------- */
+scenes.A2 = { L: 3.8, draw(c, t) {
+  const P = { x: 84, y: 190 }, tA = .9, tD = 1.1;
+  const kb = (b, k) => { const f = eo(seg(t, tD, tD + .25)) * 8, a = ang(P, b); return { x: b.x + Math.cos(a) * f * k, y: b.y + Math.sin(a) * f * k }; };
+  const E = [{ x: 250, y: 118, d: 2 }, { x: 272, y: 205, d: 0, caged: 1 }, { x: 240, y: 250, d: 1 }];
+  floor(c);
+  const after = t >= tD;
+  E.forEach((b, i) => {
+    const e = kb(b, 1), fl = after && t < tD + .1 ? 1 : (i === 2 && t >= tD + .1 && t < tD + .2 ? 1 : 0);
+    enemy(c, e.x, e.y, ang(e, P), { caged: b.caged && !after, flash: fl });
+    if (!after) { for (let k = 0; k < b.d; k++) stuck(c, e, ang(P, e), k + (b.d === 1 ? 1 : .5), 1); pips(c, e.x, e.y, b.d, t >= tA ? .9 : 0); }
+    if (b.caged) cage(c, e.x, e.y, 1, after ? seg(t, tD, tD + .45) : 0);
+    for (let k = 0; k < b.d; k++) for (let s = 0; s < 5; s++) {
+      const age = t - tD; if (age < 0 || age > .45) continue;
+      const a = ang(P, e) + PI + (s - 2) * .55 + k, r = 34 * eo(age / .35);
+      c.save(); c.globalAlpha = 1 - age / .45; c.translate(e.x + Math.cos(a) * r, e.y + Math.sin(a) * r); c.rotate(a);
+      c.strokeStyle = BONE; c.lineWidth = 2; c.beginPath(); c.moveTo(-3, 0); c.lineTo(3, 0); c.stroke(); c.restore();
+    }
+    if (b.d) dmg(c, e.x, e.y, String(10 * b.d), t - tD);
+  });
+  const e2 = kb(E[1], 1);
+  ring(c, e2.x, e2.y, 60 * eo(seg(t, tD, tD + .25)), after ? 1 - seg(t, tD, tD + .5) : 0, BONE, 3);
+  dmg(c, e2.x, e2.y, '30', t - tD);
+  dmg(c, kb(E[2], 1).x + 14, kb(E[2], 1).y + 6, '+30', t - tD - .1);
+  if (t >= tA && t < tD) { // pulse runs out along the darts
+    const f = seg(t, tA, tD); c.strokeStyle = 'rgba(159,242,214,.8)'; c.lineWidth = 1.2;
+    E.forEach(b => { const q = lp(P, b, f); c.beginPath(); c.moveTo(P.x, P.y); c.lineTo(q.x, q.y); c.stroke(); });
+  }
+  if (!after) guardFire(c, t, P, () => E[1], -.2, 1.1);
+  ring(c, P.x, P.y, 10 + 30 * seg(t, tA, tA + .25), t >= tA ? 1 - seg(t, tA, tA + .25) : 0, GLOW);
+  for (let i = 0; i < 2; i++) { const s = skelAim(P, i, t, after ? null : () => E[1], -1, tD); skeleton(c, s.x, s.y, s.a, { bow: 1, glow: s.glow }); }
+  if (after) cooldown(c, P.x, P.y, (t - tD) / 6 * 2.2, '6 s');
+  player(c, P.x, P.y, ang(P, E[1]), t >= tA && t < tA + .15 ? .7 : 0);
+  hud(c, 'ALT · SHATTER', 1, caption(t, [[0, '2 enemies with darts · 1 caged'], [tA, 'Alt: every stuck dart lights up'], [tD, 'Darts burst (10 each) · cage bursts 30 in 60 px']]));
+} };
+
+/* ---------- B1: Marrow Tether ---------- */
+scenes.B1 = { L: 4.8, draw(c, t) {
+  const P = { x: 84, y: 190 }, tc = 1.79, len = 1.5;
+  const base = [{ x: 282, y: 110 }, { x: 298, y: 192 }, { x: 278, y: 274 }];
+  const yank = (i, tt) => { if (i === 1) return { x: 0, y: 0 }; const f = eio(seg(tt, tc, tc + .3)) * 40, a = ang(base[i], base[1]); return { x: Math.cos(a) * f, y: Math.sin(a) * f }; };
+  const E = (i, tt) => { const w = i === 1 ? Math.min(tt, tc) + Math.max(0, tt - tc - len) : (tt < tc ? tt : tc + (tt - tc) * .3); const y = yank(i, tt); return { x: base[i].x - 12 * w + y.x, y: base[i].y + y.y }; };
+  const plan = [[.3, 0], [.6, 1], [.9, 2], [1.2, 1], [1.5, 1]].map(([s, i]) => ({ t: s, i, hit: s + .29 }));
+  floor(c);
+  // threads
+  const links = [[0, 1, plan[1].hit], [1, 2, plan[2].hit]];
+  links.forEach(([a, b, at]) => {
+    if (t < at || t > tc + len) return;
+    const A = E(a, t), B = E(b, t), tight = eo(seg(t, tc, tc + .2)), fade = 1 - seg(t, tc + len - .4, tc + len);
+    const mx = (A.x + B.x) / 2 + 18 * (1 - tight), my = (A.y + B.y) / 2 + 6 * (1 - tight);
+    c.globalAlpha = fade * eo(seg(t, at, at + .15)); c.strokeStyle = MAR; c.lineWidth = tight > 0 && t < tc + .5 ? 2.6 : 1.6;
+    if (t > tc + .5) c.setLineDash([4, 4]);
+    c.beginPath(); c.moveTo(A.x, A.y); c.quadraticCurveTo(mx, my, B.x, B.y); c.stroke(); c.setLineDash([]);
+    for (let k = 0; k < 4; k++) { const f = ((t * .8 + k / 4) % 1), u = 1 - f; const x = u * u * A.x + 2 * u * f * mx + f * f * B.x, y = u * u * A.y + 2 * u * f * my + f * f * B.y; c.fillStyle = '#ff9aa9'; c.beginPath(); c.arc(x, y, 1.5, 0, TAU); c.fill(); }
+    c.globalAlpha = 1;
+  });
+  for (let i = 0; i < 3; i++) {
+    const e = E(i, t), mine = plan.filter(p => p.i === i && t >= p.hit), caged = i === 1 && t >= tc && t < tc + len;
+    enemy(c, e.x, e.y, ang(e, P), { caged, flash: mine.some(p => t < p.hit + .08) ? 1 : 0, slow: i !== 1 && t >= tc && t < tc + len ? 1 : 0 });
+    if (t < tc + .15) mine.forEach((p, k) => stuck(c, e, ang(P, E(i, p.hit)), k + (mine.length === 1 ? 1 : 0), i === 1 && t >= tc ? 1 - seg(t, tc, tc + .15) : 1));
+    if (t < tc || i !== 1) pips(c, e.x, e.y, t < tc + len ? mine.length : 0);
+    if (i !== 1 && t >= tc && t < tc + .8) { c.globalAlpha = 1 - seg(t, tc + .3, tc + .8); c.fillStyle = MAR; c.font = '600 11px "IBM Plex Mono", monospace'; c.fillText('−30%', e.x + 13, e.y + 4); c.globalAlpha = 1; }
+  }
+  const e1 = E(1, t);
+  if (t < tc + len + .4) cage(c, e1.x, e1.y, eo(seg(t, tc, tc + .22)), seg(t, tc + len, tc + len + .4) || 0);
+  ring(c, e1.x, e1.y, 14 + 14 * seg(t, tc, tc + .3), 1 - seg(t, tc, tc + .3), GLOW);
+  const hits = guardFire(c, t, P, tt => E(1, tt), tc, len);
+  hits.forEach(h => dmg(c, E(1, h).x + 8, E(1, h).y, '8', t - h, GLOW));
+  plan.forEach(p => dmg(c, E(p.i, p.hit).x - 6, E(p.i, p.hit).y, '7', t - p.hit));
+  const cur = plan.find(p => t < p.hit + .05) || plan[4], aimA = ang(P, E(cur.i, t));
+  volley(c, t, P, plan.map(p => ({ ...p })), tt => { const p = plan.find(q => Math.abs(q.hit - tt) < 1e-6); return E(p.i, tt); }, aimA);
+  for (let i = 0; i < 2; i++) { const s = skelAim(P, i, t, tt => E(1, tt), tc, len); skeleton(c, s.x, s.y, s.a, { bow: 1, glow: s.glow }); }
+  player(c, P.x, P.y, aimA);
+  hud(c, 'FIRE', 0, caption(t, [[0, 'Darts thread enemies hit within 1 s'], [tc, 'Cage yanks threaded enemies 40 px · slows 30%'], [tc + len, 'Cage breaks · threads drop']]));
+} };
+
+/* ---------- B2: Ossuary Wall ---------- */
+scenes.B2 = { L: 4.8, draw(c, t) {
+  const P = { x: 84, y: 190 }, C = { x: 200, y: 190 }, t0 = .35, tw = .7, life = 3, WX = 200;
+  const contact = (330 - 216) / 70, stacks = [0, .6, 1.2].map(d => contact + d), tc = stacks[2], len = 1.5;
+  const E = (i, tt) => ({ x: Math.max(216, 330 - 70 * tt) + (tt > contact && tt < tw + life ? Math.sin(tt * 30 + i) * .8 : 0) - (tt > tc + len ? (tt - tc - len) * 40 : 0), y: i ? 232 : 150 });
+  floor(c);
+  const alive = t >= tw && t < tw + life, fall = seg(t, tw + life, tw + life + .4);
+  // wall
+  if (t >= tw && fall < 1) {
+    c.strokeStyle = `rgba(159,242,214,${.35 * (1 - fall)})`; c.lineWidth = 2; c.beginPath(); c.moveTo(WX, 130); c.lineTo(WX, 250); c.stroke();
+    for (let i = 0; i < 9; i++) {
+      const y = 190 + (i - 4) * 13, s = eo(seg(t, tw + Math.abs(i - 4) * .03, tw + Math.abs(i - 4) * .03 + .16)), tilt = Math.sin(i * 2.3) * .12 + fall * (i % 2 ? 1.2 : -1.2);
+      c.save(); c.globalAlpha = 1 - fall; c.translate(WX + fall * (i % 2 ? 10 : -10), y); c.rotate(tilt); c.scale(s, s);
+      shadow(c, 0, 0, 6);
+      c.strokeStyle = BONE2; c.lineWidth = 5; c.lineCap = 'round'; c.beginPath(); c.moveTo(0, -6); c.lineTo(0, 6); c.stroke();
+      c.strokeStyle = BONE; c.lineWidth = 3; c.beginPath(); c.moveTo(-.6, -6); c.lineTo(-.6, 6); c.stroke();
+      c.fillStyle = BONE; c.beginPath(); c.arc(-2.2, -7, 2.6, 0, TAU); c.arc(2.2, -7, 2.6, 0, TAU); c.arc(-2.2, 7, 2.6, 0, TAU); c.arc(2.2, 7, 2.6, 0, TAU); c.fill();
+      c.restore();
+    }
+  }
+  // lobbed bone
+  if (t >= t0 && t < tw) { const f = seg(t, t0, tw), g = lp(P, C, f), h = Math.sin(f * PI) * 40; shadow(c, g.x, g.y, 4); c.save(); c.translate(g.x, g.y - h); c.rotate(f * 10); c.strokeStyle = BONE; c.lineWidth = 3; c.beginPath(); c.moveTo(-6, 0); c.lineTo(6, 0); c.stroke(); c.restore(); }
+  // enemies + their shots
+  for (let i = 0; i < 2; i++) {
+    const e = E(i, t), n = stacks.filter(s => t >= s && s < tw + life).length, caged = t >= tc && t < tc + len;
+    enemy(c, e.x, e.y, ang(e, P), { caged, flash: stacks.some(s => t >= s && t < s + .08) ? 1 : 0 });
+    if (!caged && t < tc) pips(c, e.x, e.y, n);
+    if (t < tc + len + .4) cage(c, e.x, e.y, eo(seg(t, tc, tc + .22)), seg(t, tc + len, tc + len + .4) || 0);
+    stacks.forEach(s => dmg(c, e.x, e.y, '7', t - s));
+    for (let k = 0; k < 4; k++) {
+      const ft = .5 + k * .55 + i * .25; if (ft > tc) continue;
+      const from = E(i, ft), cross = ft + (from.x - WX) / 240, hitP = { x: WX + 6, y: lerp(from.y, P.y, (from.x - WX) / (from.x - P.x)) };
+      if (t >= ft && t < cross) { const b = lp(from, hitP, seg(t, ft, cross)); bullet(c, b.x, b.y); }
+      spark(c, hitP.x, hitP.y, t - cross);
+    }
+  }
+  guardFire(c, t, P, tt => E(0, tt), tc, len); guardFire(c, t, P, tt => E(1, tt), tc, len, .1);
+  for (let i = 0; i < 2; i++) { const s = skelAim(P, i, t, tt => E(i, tt), tc, len); skeleton(c, s.x, s.y, s.a, { bow: 1, glow: s.glow }); }
+  if (t >= t0) cooldown(c, P.x, P.y, (t - t0) / 8 * 1.6, '8 s');
+  player(c, P.x, P.y, 0, t >= t0 && t < t0 + .12 ? .6 : 0);
+  if (t < tw) cursor(c, C.x, C.y);
+  hud(c, 'ALT · OSSUARY WALL', 1, caption(t, [[0, 'Alt: lob a bone to the cursor'], [tw, 'Femur palisade, 110 px · blocks shots 3 s'], [contact, 'Pressing on it: a dart every 0.6 s'], [tc, '3rd dart: caged · skeletons fire'], [tw + life, 'Wall crumbles']]));
+} };
+
+/* ---------- C1: Grave Sentinels ---------- */
+scenes.C1 = { L: 4.8, draw(c, t) {
+  const P = { x: 84, y: 190 }, tc = 1.17, len = 1.5, tl = 1.3, tr = 2.55;
+  const E1 = tt => ({ x: 290 - 16 * Math.min(tt, tc) - 16 * Math.max(0, tt - tc - len), y: 190 });
+  const shots = [.3, .6, .9].map(s => ({ t: s, hit: s + .27 }));
+  const e2 = { x: 240, y: 312 }, b1 = { t: .4, th: 1.0 }, b2 = { t: 2.05, th: 2.75 };
+  floor(c);
+  const e = E1(t), caged = t >= tc && t < tc + len;
+  enemy(c, e.x, e.y, ang(e, P), { caged, flash: shots.some(s => t >= s.hit && t < s.hit + .08) || [0, 1].some(i => [1.75, 2.05, 2.35].some(j => t >= j + i * .07 + .1 && t < j + i * .07 + .18)) ? 1 : 0 });
+  shots.forEach((s, k) => { if (t >= s.hit && t < tc + .15) stuck(c, e, ang(P, E1(s.hit)), k, t < tc ? 1 : 1 - seg(t, tc, tc + .15)); });
+  if (t < tc) pips(c, e.x, e.y, shots.filter(s => t >= s.hit).length);
+  if (t < tc + len + .4) cage(c, e.x, e.y, eo(seg(t, tc, tc + .22)), seg(t, tc + len, tc + len + .4) || 0);
+  ring(c, e.x, e.y, 14 + 14 * seg(t, tc, tc + .3), 1 - seg(t, tc, tc + .3), GLOW);
+  shots.forEach(s => dmg(c, E1(s.hit).x - 6, E1(s.hit).y, '7', t - s.hit));
+  enemy(c, e2.x, e2.y, ang(e2, P));
+  // shot 1: blocked by a shield, shot 2: lands on the player while the guard is away
+  const sk0 = orbit(P, 1, b1.th);
+  if (t >= b1.t && t < b1.th) { const b = lp(e2, sk0, seg(t, b1.t, b1.th)); bullet(c, b.x, b.y); }
+  spark(c, sk0.x, sk0.y, t - b1.th);
+  if (t >= b2.t && t < b2.th) { const b = lp(e2, P, seg(t, b2.t, b2.th)); bullet(c, b.x, b.y); }
+  dmg(c, P.x, P.y, '−9', t - b2.th, '#ff6a5c');
+  volley(c, t, P, shots, E1, ang(P, E1(t)));
+  for (let i = 0; i < 2; i++) {
+    const slot = { x: e.x - 10, y: e.y + (i ? 24 : -24) }, o = orbit(P, i, t);
+    let pos = o, a = o.o, lift = 0, spear = 0;
+    if (t >= tl && t < tr + .35) {
+      const go = eio(seg(t, tl, tl + .3)), back = eio(seg(t, tr, tr + .35)), start = orbit(P, i, tl);
+      pos = back > 0 ? lp(slot, o, back) : lp(start, slot, go);
+      lift = Math.sin(go * PI) * (go < 1 ? 1 : 0) + Math.sin(back * PI) * (back > 0 && back < 1 ? 1 : 0);
+      a = back > 0 ? ang(slot, o) : ang(pos, e);
+      [1.75, 2.05, 2.35].forEach(j => { const jj = j + i * .07; if (t >= jj && t < jj + .2) spear = Math.sin(seg(t, jj, jj + .2) * PI); dmg(c, e.x + 12, e.y + (i ? 8 : -8), '12', t - jj - .1, GLOW); });
+    }
+    skeleton(c, pos.x, pos.y, a, { shield: 1, spear, lift, glow: t >= tl && t < tr ? 1 : 0 });
+  }
+  player(c, P.x, P.y, ang(P, E1(t)), t >= b2.th && t < b2.th + .1 ? .8 : 0);
+  hud(c, 'FIRE', 0, caption(t, [[0, 'Shields block shots while orbiting'], [.85, '3 darts → cage'], [tl, 'Sentinels leap to the cage · spear 3 × 12 each'], [2.0, 'Guard is away: you are open'], [tr + .35, 'Back on guard']]));
+} };
+
+/* ---------- C2: Bone Swap ---------- */
+scenes.C2 = { L: 4.4, draw(c, t) {
+  const P0 = { x: 172, y: 204 }, C = { x: 70, y: 84 }, ts = 1.0, tw = 1.45;
+  const starts = [{ x: 330, y: 132 }, { x: 330, y: 282 }, { x: 236, y: 352 }];
+  const P = t < tw ? P0 : C;
+  const E = (i, tt) => {
+    const s = starts[i], a = ang(s, P0), d = Math.min(100 * tt, dist(s, P0) - 30);
+    let p = { x: s.x + Math.cos(a) * d, y: s.y + Math.sin(a) * d };
+    if (tt >= tw) { const k = eo(seg(tt, tw, tw + .25)) * 22; p = { x: p.x + Math.cos(a) * k, y: p.y + Math.sin(a) * k }; // shoved out
+      const w = Math.max(0, tt - tw - .6) * 32, b = ang(p, C); p = { x: p.x + Math.cos(b) * w, y: p.y + Math.sin(b) * w }; }
+    return p;
+  };
+  floor(c);
+  // spikes
+  const rise = eo(seg(t, tw, tw + .12)), sink = seg(t, tw + .7, tw + .95);
+  if (t >= tw && sink < 1) {
+    ring(c, P0.x, P0.y, 48, .3 * (1 - sink), GLOW, 1.5);
+    for (let k = 0; k < 14; k++) {
+      const a = k * TAU / 14 + (k % 2) * .2, r = k % 2 ? 40 : 24, h = (k % 2 ? 11 : 15) * rise * (1 - sink);
+      const x = P0.x + Math.cos(a) * r, y = P0.y + Math.sin(a) * r;
+      c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(x, y + 2, 4, 2.4, 0, 0, TAU); c.fill();
+      c.fillStyle = BONE2; c.beginPath(); c.moveTo(x - 3.5, y); c.lineTo(x + Math.cos(a) * 3, y - h); c.lineTo(x + 3.5, y); c.fill();
+      c.fillStyle = BONE; c.beginPath(); c.moveTo(x - 1.5, y); c.lineTo(x + Math.cos(a) * 3, y - h); c.lineTo(x + 1.8, y); c.fill();
+    }
+  }
+  for (let i = 0; i < 3; i++) {
+    const e = E(i, t);
+    enemy(c, e.x, e.y, ang(e, P), { flash: t >= tw + .05 && t < tw + .15 ? 1 : 0 });
+    if (t >= tw + .05) pips(c, e.x, e.y, 1);
+    dmg(c, e.x, e.y, '20', t - tw - .05);
+  }
+  // swap trail
+  if (t >= tw && t < tw + .35) { const f = seg(t, tw, tw + .35); c.strokeStyle = `rgba(159,242,214,${.8 * (1 - f)})`; c.lineWidth = 3 * (1 - f) + 1; c.beginPath(); c.moveTo(P0.x, P0.y); c.lineTo(C.x, C.y); c.stroke(); ring(c, C.x, C.y, 10 + 18 * f, 1 - f, GLOW); ring(c, P0.x, P0.y, 10 + 18 * f, 1 - f, GLOW); }
+  // skeletons
+  for (let i = 0; i < 2; i++) {
+    let pos, a, glow = 0;
+    if (i === 0 && t >= ts) {
+      const st = orbit(P0, 0, ts);
+      if (t < tw) { const f = eio(seg(t, ts, ts + .25)); pos = lp(st, C, f); a = ang(st, C); glow = 1;
+        if (f > 0 && f < 1) { c.strokeStyle = 'rgba(236,228,204,.25)'; c.lineWidth = 4; c.beginPath(); c.moveTo(st.x, st.y); c.lineTo(pos.x, pos.y); c.stroke(); } }
+      else { const o = orbit(C, 0, t), f = eio(seg(t, tw + .8, tw + 1.4)); pos = lp(P0, o, f); a = f > 0 && f < 1 ? ang(P0, o) : (f >= 1 ? o.o : ang(P0, E(0, t))); }
+    } else {
+      const o = t < tw ? orbit(P0, i, t) : orbit(C, i, t);
+      if (t >= tw && t < tw + .45) { pos = lp(orbit(P0, i, t), o, eio(seg(t, tw, tw + .45))); a = ang(P0, C); } else { pos = o; a = o.o; }
+    }
+    skeleton(c, pos.x, pos.y, a, { shield: 1, spear: 0, glow });
+  }
+  if (t >= tw) cooldown(c, P.x, P.y, (t - tw) / 7 * 1.6, '7 s');
+  player(c, P.x, P.y, t < tw ? ang(P0, C) : ang(C, P0), t >= tw && t < tw + .12 ? .8 : 0);
+  if (t < tw + .2) cursor(c, C.x, C.y);
+  hud(c, 'ALT · BONE SWAP', 1, caption(t, [[0, 'Enemies close in on you'], [ts, 'Alt: a sentinel dashes to the cursor'], [tw, '…and you swap places'], [tw + .2, 'Spikes where you stood: 20 + 1 dart, shove 22 px']]));
+} };
+
+/* ---------- runner ---------- */
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let speed = 1;
+const views = [...document.querySelectorAll('canvas[data-scene]')].map(cv => {
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = 360 * dpr; cv.height = 360 * dpr;
+  const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const v = { cv, c, s: scenes[cv.dataset.scene], t: 0, paused: reduce, visible: true };
+  v.t = v.s.L * .45;
+  cv.addEventListener('click', () => { v.paused = !v.paused; });
+  return v;
+});
+const io = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(en => { const v = views.find(x => x.cv === en.target); if (v) v.visible = en.isIntersecting; })) : null;
+if (io) views.forEach(v => io.observe(v.cv));
+function render(v) {
+  const L = v.s.L, t = v.t % L;
+  v.c.save(); v.s.draw(v.c, t); v.c.restore();
+  const fade = Math.max(cl(1 - t / .2), cl((t - (L - .2)) / .2));
+  if (fade > 0) { v.c.fillStyle = `rgba(7,9,16,${fade})`; v.c.fillRect(0, 0, 360, 360); }
+  if (v.paused) { v.c.fillStyle = 'rgba(255,181,71,.9)'; v.c.fillRect(334, 12, 4, 14); v.c.fillRect(341, 12, 4, 14); }
+}
+views.forEach(render);
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  views.forEach(v => { if (!v.visible) return; if (!v.paused) v.t += dt * speed; render(v); });
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+document.querySelectorAll('.bar button').forEach(b => b.addEventListener('click', () => {
+  speed = +b.dataset.speed;
+  document.querySelectorAll('.bar button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+}));
+})();
+</script>

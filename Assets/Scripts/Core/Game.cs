@@ -1335,6 +1335,7 @@ namespace Arena
             TickRepulsion(dt);  // Repulsion.cs: the Undertow pulling and draining its meter
             TickTwinRifle(dt);  // TwinGrenades.cs: the grenade tubes' cooldown, emptied with the rifle
             TickTankAlts(dt);   // TankAlts.cs: Double Barrel, Proximity Shells, Tear Gas
+            TickBoneGuard(dt);  // BoneGuard.cs: marrow threads running out, Ossuary Walls landing
             TickGreat(dt);      // Greatsword.cs: the chain forgetting its place, the guard arc stopping bullets
             TickArcKnuckles(dt);  // ArcKnuckles.cs: an unused Counter Hammer fading
             TickSteelWalls(dt);  // Knight.cs: Greatsword crescents stopping bullets
@@ -1357,6 +1358,7 @@ namespace Arena
             KeepOutOfShell(dt);  // Blood Shell (BloodShell.cs)
             KeepOffBridges(dt);    // the Drawbridge (Drawbridge.cs)
             KeepOffBloodWalls(dt);  // Blood Wall (BloodWall.cs): pushes enemies back, bleeds those against it
+            KeepOffOssuaryWalls(dt);  // the Bone Guard's Ossuary Wall (BoneGuard.cs): pushes enemies back, darts those against it
             KeepOffPhalanx();    // the Bone Phalanx's shields (BonePhalanx.cs)
             TickMinions(dt);
             TickSearchlights(dt);  // Stun.cs

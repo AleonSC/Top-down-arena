@@ -185,7 +185,7 @@ namespace Arena
                 Companion = MinionKind.Golem, CompanionCount = 1,
                 AreaDesc = "the boulder crushes 25% wider" },
             new WeaponDef { Id = WeaponId.BoneGuard, Kit = Kit.Summoner, Role = Role.Tank, Choice = 1, Speed = 720f, Life = 0.8f, Damage = 7f, ExtraDesc = "+1 Skeleton Guard", Name = "Bone Guard", FireInterval = 0.3f,
-                Desc = "Bone darts that stick in enemies: enough in one cages it in place (not bosses). Skeleton guards circle you, block bullets, and shoot at caged enemies.",
+                Desc = "Bone darts that stick in enemies: enough in one cages it in place (not bosses), and darts into different enemies thread them together so a cage reels its neighbours in. Skeleton guards circle you, block bullets, and shoot at caged enemies. Alt: Ossuary Wall.",
                 Companion = MinionKind.Guard, CompanionCount = 2 },
             new WeaponDef { Id = WeaponId.BearTotem, Kit = Kit.Summoner, Role = Role.Tank, Choice = 2, Damage = 11f, Reach = 85f, Grow = 15f, Melee = true, ExtraDesc = "+15 px reach, 25% more bleed, and your Bear's bites hit enemies around its target", Name = "Bear Totem", FireInterval = 0.45f,
                 Desc = "Two quick claw swipes in front of you that make enemies bleed. A Bear companion mauls nearby enemies.",

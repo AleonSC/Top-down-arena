@@ -1106,6 +1106,58 @@ static partial class Program
         var boss = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Boss, at, 0f, 0, false });
         for (int k = 0; k < 3; k++) dart.Invoke(g, new object[] { bone, boss });
         Check(boss.CageT <= 0f, "bosses can't be caged");
+        boss.Hp = 0f;
+
+        // Marrow Tether: a dart in A, then one in B within a second, threads them; caging B reels A in 40 px and slows it.
+        var spawnBullet = typeof(Game).GetMethod("SpawnBullet", flags);
+        Func<V2, Enemy> foe = pos => { var x = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, pos, 0f, 0, false }); x.Hp = x.MaxHp = 1e6f; x.SpawnT = 0f; x.FireT = 99f; return x; };
+        target.Hp = 0f; target = null;
+        play(0.2f, false);
+        var ea = foe(new V2(650f, 330f)); var eb = foe(new V2(650f, 470f));
+        dart.Invoke(g, new object[] { bone, ea });
+        dart.Invoke(g, new object[] { bone, eb });
+        host.Poll(); client.Poll();
+        client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
+        bool clientThread = client.Game.Effects.Exists(x => x.Kind == FxKind.MarrowLink && x.Radius < 0.5f);
+        dart.Invoke(g, new object[] { bone, eb }); dart.Invoke(g, new object[] { bone, eb });
+        Console.WriteLine("  marrow tether: B caged {0}, A pulled {1:0} px, A slowed {2:0.00} for {3:0.0} s, client sees the thread {4}", eb.CageT > 0f, ea.KnockLeft.Length, ea.SlowMult, ea.SlowT, clientThread);
+        Check(eb.CageT > 0f && Math.Abs(ea.KnockLeft.Length - Game.MarrowYank) < 1f && (ea.KnockLeft.Y > 0f) && Math.Abs(ea.SlowMult - (1f - Game.MarrowSlow)) < 0.01f && clientThread,
+            "a dart in one enemy then another threads them; caging one reels the other 40 px toward it and slows it 30% (everyone sees the thread)");
+        var ec = foe(new V2(650f, 600f));
+        g.Players[1].BoneLinkT = 0f;
+        dart.Invoke(g, new object[] { bone, ec });
+        for (int k = 0; k < 2; k++) dart.Invoke(g, new object[] { bone, ec });
+        Check(ec.CageT > 0f && ec.KnockLeft.Length < 0.1f && ea.KnockLeft.Length < Game.MarrowYank + 1f, "darts more than a second apart don't thread (no pull)");
+        ea.Hp = eb.Hp = ec.Hp = 0f;
+        play(0.2f, false);
+
+        // Ossuary Wall: Alt lobs a femur palisade across your aim; enemy shots stop on it, enemies can't cross it and pressing
+        // on it darts them until they're caged. 8 s cooldown.
+        var wallAlt = typeof(Game).GetMethod("HostWeaponDash", flags);
+        wallAlt.Invoke(g, new object[] { 1, 29, new V2(650f, 450f) });
+        Zone wall = g.Zones.Values.FirstOrDefault(z => z.Kind == ZoneKind.OssuaryWall);
+        wallAlt.Invoke(g, new object[] { 1, 29, new V2(650f, 300f) });
+        int walls = g.Zones.Values.Count(z => z.Kind == ZoneKind.OssuaryWall);
+        Check(wall != null && walls == 1 && Math.Abs(wall.Pos.X - 650f) < 1f && g.Players[1].BoneWallCd > 7f, "Alt throws one Ossuary Wall to the cursor, then waits out its cooldown");
+        play(Game.BoneWallFlight + 0.1f, false);
+        var shot = (Bullet)spawnBullet.Invoke(g, new object[] { Defs.SmallShot, new V2(720f, 455f), new V2(-300f, 0f), 0f, 3f, 10f, 0, false, 0f });
+        bool shotStopped = false;
+        for (int f = 0; f < 30 && !shotStopped; f++) { play(1f / 60f, false); shotStopped = !g.Bullets.ContainsKey(shot.Id); }
+        Check(shotStopped && shot.Pos.X > 640f, "an enemy shot stops on the Ossuary Wall");
+        var walker = foe(new V2(760f, 450f));
+        target = walker; at = walker.Pos;
+        float minX = 999f, cagedAt = -1f;
+        for (int f = 0; f < 150; f++)
+        {
+            for (int k = 0; k < 1; k++) { me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = from + new V2(-50f, 0f) }); g.Update(dt); client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt); }
+            minX = Math.Min(minX, walker.Pos.X);
+            if (cagedAt < 0f && walker.CageT > 0f) cagedAt = f / 60f;
+        }
+        bool clientWall = client.Game.Zones.Values.Any(z => z.Kind == ZoneKind.OssuaryWall);
+        Console.WriteLine("  ossuary wall: walker got to x {0:0} (wall at 650), caged after {1:0.00} s, client sees the wall {2}", minX, cagedAt, clientWall);
+        Check(minX > 650f + Game.BoneWallThick && cagedAt > 0f && cagedAt < Game.BoneWallLife && clientWall, "an enemy can't walk through the wall, and pressing on it cages it (everyone sees the wall)");
+        play(Game.BoneWallLife, false);
+        Check(!g.Zones.Values.Any(z => z.Kind == ZoneKind.OssuaryWall), "the wall crumbles after 3 s");
         host.Leave(""); client.Leave("");
     }
 

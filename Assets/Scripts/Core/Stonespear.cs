@@ -20,7 +20,7 @@ namespace Arena
         public const float SsRise = 0.42f, SsRiseGap = 0.035f;                 // a spear's rise out of the ground; each slot starts this much after the last
         public const float SsVolleyGap = 0.06f, SsVolleyMult = 1.25f, SsLockRange = 220f, SsVolleySpeed = 620f, SsVolleyTop = 1100f, SsVolleyLife = 2.2f, SsPeel = 1.1f;
         public const int SsPerSide = 3, SsPierce = 1, SsMaxSide = 8;
-        const byte DashVolley = 29;
+        const byte DashVolley = 30;
 
         /// How many spears a side this player raises: 3, +1 per extra projectile and per Tectonic.
         public int SsSideCount(Player p) => Math.Min(SsMaxSide, SsPerSide + ExtraShots(p) + (p != null ? p.Stats.SsSideBonus : 0));

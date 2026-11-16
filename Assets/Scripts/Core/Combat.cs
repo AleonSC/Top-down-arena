@@ -599,6 +599,11 @@ namespace Arena
                         scratchIds.Add(b.Id);  // a Drawbridge's rail: everything stops there, red aimed shots too (Drawbridge.cs)
                         continue;
                     }
+                    if (OssuaryStops(b))
+                    {
+                        scratchIds.Add(b.Id);  // an Ossuary Wall: enemy shots stop on it (BoneGuard.cs)
+                        continue;
+                    }
                     if (WallStops(b))
                     {
                         scratchIds.Add(b.Id);  // a Blood Wall: everything stops there, red aimed shots too (BloodWall.cs)

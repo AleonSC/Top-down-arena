@@ -4,7 +4,8 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 354: Stonespear (Elementalist DPS 4th weapon): `WeaponId.Stonespear`, bullet kind `Defs.StoneSpear` (68), `FxKind.StoneSlam`, `Msg.WeaponDash` kind 29 (the volley); Player snapshot gains `SsMask` (short), `SsSide` (byte), `SsLock` (int) after `DbReload`
+- 355: Stonespear (Elementalist DPS 4th weapon): `WeaponId.Stonespear`, bullet kind `Defs.StoneSpear` (68), `FxKind.StoneSlam`, `Msg.WeaponDash` kind 30 (the volley); Player snapshot gains `SsMask` (short), `SsSide` (byte), `SsLock` (int) after `DbReload`
+- 354: `ZoneKind.OssuaryWall` and `FxKind.MarrowLink` appended; `Msg.WeaponDash` kind 29 (`DashBoneWall`, the Bone Guard's Alt)
 - 353: the lobby message sends the mode as one `GameMode` byte (was Hunt, Quick and Survival bools); `Msg.Practice` drops its Practice bool (the mode comes with the lobby)
 - 352: `FxKind.Sentry` and `FxKind.Nova` (the Turret's drop and power-down, Nova's starburst) appended
 - 351: the player snapshot carries Twin Fang's thrown pair (`Player.FangOut` byte, `FangAt` vector, after `TwinLock`); `FxKind.TwinFang` is only the wind-up now
