@@ -215,7 +215,11 @@ namespace Arena
             var d = Defs.Get(sp.Type);
             V2 pos;
             if (sp.Squad != null && sp.Squad == survSquad)
+            {
                 pos = survSquadPos + new V2(Rand(-40f, 40f), Rand(-40f, 40f));
+                if (NearSolid(pos, d.Radius))
+                    pos = survSquadPos;  // the jitter put it in a wall: come in on the squad's (clear) spot
+            }
             else
             {
                 pos = SurvivalSpot(d.Radius);
