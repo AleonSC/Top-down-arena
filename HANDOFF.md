@@ -236,7 +236,10 @@ The lobby fits about 8 class cards in a row before they get too small.
     the `Suites` table (and to `FeatureTests` if it belongs in the feature suite, otherwise to `CiExtras`).
   - **Repeatable random rolls:** every test runs with its own seed (from the suite's name and the test's place in
     it) through `Game.SeedForTests`, so the game's random choices (enemy mixes, spawns, drops, bot decisions)
-    come out the same each run. `SEED=random` gives fresh rolls; `SEED=<n>` tries another fixed set. Timing
+    come out the same each run. Rolls a game keeps off its own rng (the Expanding map's seed, the Warden's orbs,
+    Quick Play's order, party bots) come from `Game.NewSideRandom()`, seeded the same way. `SEED=random` gives fresh
+    rolls; `SEED=<n>` tries another fixed set (sweep a few to find seed-fragile checks); `ONLY=<i> run.sh 1 1 <suite>`
+    runs just the suite's i-th test (from 0) with its usual seed; `PORTBASE=<n>` lets runs go in parallel. Timing
     between the host and client threads still varies a little, so a check that only just passes can still
     flicker. The real game never seeds, so it stays random.
   - Formerly flaky checks, now steady under the seeds (each passed 4+ runs in a row in Oct 2026): perfect

@@ -533,13 +533,17 @@ namespace Arena
         public const int ShopRoomSide = 400;  // a floating shop or vendor room is this square (4 x 4 tiles, owner Nov 11)  // floating rooms waiting to be connected at once
 
         /// A floating room for this boss cycle (Docs/FloatingRooms.md): a shop, vendor or Gatekeeper room placed 4 to 8 tiles off a room on the (14 to 18 off the start room, never within 10 of it)
-        /// connected map, touching nothing and at least 2 tiles from every room, inside the size cap. The same on every machine for the same
-        /// seed, cycle and map. Null if nothing fits.
+        /// connected map, touching nothing and at least 2 tiles from every room, inside the size cap, and leaving a box to every sealed room
+        /// placed before it. The same on every machine for the same seed, cycle and map. Null if nothing fits.
         public static ExpansionRoom? FloatingFor(int seed, int cycle, IList<ExpansionRoom> built, RoomKind kind, IList<MapNode> nodes = null)
         {
             int w = kind == RoomKind.Gatekeeper ? 800 : ShopRoomSide, h = kind == RoomKind.Gatekeeper ? 600 : ShopRoomSide;  // (shop and vendor: a tiny square room)
             var rng = new DetRandom(seed * 40503 + cycle * 9176 + (int)kind * 131);
             var linked = ConnectedAreas(built);
+            List<int> waiting = null;  // the sealed floating rooms a box can reach now: a new one mustn't take their only spot
+            for (int i = 0; i < built.Count; i++)
+                if (built[i].Floating && !linked[i + 1] && ConnectorFor(built, i).HasValue)
+                    (waiting ?? (waiting = new List<int>())).Add(i);
             for (int attempt = 0; attempt < 400; attempt++)
             {
                 int a = rng.Int(built.Count + 1);
@@ -583,6 +587,12 @@ namespace Arena
                 var with = new List<ExpansionRoom>(built) { found };
                 if (!ConnectorFor(with, with.Count - 1).HasValue)
                     continue;  // (a floating room nobody could ever build to isn't worth placing)
+                bool blocks = false;
+                if (waiting != null)
+                    foreach (int i in waiting)
+                        blocks |= !blocks && !ConnectorFor(with, i).HasValue;
+                if (blocks)
+                    continue;  // (nor one that seals off a room placed before it: a Gatekeeper on the only spot a box to the old shop fits)
                 return found;
             }
             return null;

@@ -37,7 +37,7 @@ namespace Arena
             bool on = session.SurvivalMode && ResumeFrom == null && !quick;
             w.Write(on);
             if (on)
-                w.Write(new Random().Next(1, 1 << 30));
+                w.Write(sideRng.Next(1, 1 << 30));  // (Game.cs: repeatable under tests)
         }
 
         void ReadSurvivalStart(BinaryReader r)

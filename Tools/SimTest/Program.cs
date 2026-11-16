@@ -219,7 +219,14 @@ static partial class Program
 
     static Suite Test(string name, string what, params Action[] tests)
     {
-        return new Suite { Name = name, What = what, Run = args => { for (int i = 0; i < tests.Length; i++) Seeded(name + "#" + i, tests[i]); } };
+        // ONLY=n run.sh ...: just the suite's n-th test (from 0), with the same seed it gets in a full run.
+        return new Suite { Name = name, What = what, Run = args =>
+        {
+            string only = Environment.GetEnvironmentVariable("ONLY");
+            for (int i = 0; i < tests.Length; i++)
+                if (string.IsNullOrEmpty(only) || only == i.ToString())
+                    Seeded(name + "#" + i, tests[i]);
+        } };
     }
 
     static Suite Report(string name, string what, Action<string[]> run) => new Suite { Name = name, What = what, Report = true, Run = run };

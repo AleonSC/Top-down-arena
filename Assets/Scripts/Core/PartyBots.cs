@@ -26,7 +26,7 @@ namespace Arena
 
         public readonly List<PartyBot> Bots = new List<PartyBot>();
         public BotSkill NewSkill = BotSkill.Good;  // the skill the next bot gets
-        readonly Random rng = new Random();
+        readonly Random rng = Game.NewSideRandom();  // (repeatable under tests)
         bool marked;  // we set the host game's Unrecorded
 
         public PartyBot Find(int lobbyId)
