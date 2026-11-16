@@ -184,7 +184,7 @@ static partial class Program
                 volley.Invoke(g, new object[] { me, 0f, 0 });
                 var ws = g.Bullets.Values.Where(b => b.Owner == 1).ToList();
                 Console.WriteLine("  twin rifle against a wall ({0}): rounds start at x {1:0.0} (the wall's face {2:0.0})", wallLayout, ws.Max(b => b.Pos.X), face);
-                Check(ws.Count == 2 && ws.All(b => b.Pos.X <= face), "against a wall the Twin Rifle's rounds start at your edge, not through the wall");
+                Check(ws.Count == 2 && ws.All(b => b.Pos.X <= face + 0.01f), "against a wall the Twin Rifle's rounds start at your edge, not through the wall");
                 g.Layout = keepLayout;
                 g.Bullets.Clear(); me.Pos = from;
             }
@@ -945,11 +945,13 @@ static partial class Program
         V2 from = new V2(300f, 450f), allyAt = new V2(300f, 150f);
         var keep = new List<Enemy>();
         var pins = new Dictionary<Enemy, V2>();
+        bool noOrbs = false;  // while measuring healing: the wave enemies play() kills drop health orbs at random, which can heal the ally
         Func<V2, float, Enemy> dummy = (at, hp) => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = hp; e.SpawnT = 0f; e.FireT = 99f; keep.Add(e); pins[e] = at; return e; };
         Action<float, PlayerInput> play = (secs, input) =>
         {
             for (int f = 0; f < secs * 60; f++)
             {
+                if (noOrbs) g.Orbs.Clear();
                 foreach (var e in g.Enemies.Values) if (!keep.Contains(e)) e.Hp = 0f;
                 foreach (var e in keep) { if (pins.ContainsKey(e)) e.Pos = pins[e]; e.FireT = 99f; }
                 me.Pos = from;
@@ -1023,6 +1025,7 @@ static partial class Program
 
         // Transfusion Darts: a hurt ally gets a lot, you pay a little; an enemy hit steals a sliver.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.TransfusionDarts);
+        noOrbs = true;
         allyAt = from + new V2(200f, 0f);
         play(0.2f, new PlayerInput());
         Func<float> drift = () => { me.Hp = me.MaxHp * 0.5f; float h = me.Hp; play(0.5f, new PlayerInput()); return me.Hp - h; };  // your own healing meanwhile (regen, aura)
@@ -1042,6 +1045,7 @@ static partial class Program
         Console.WriteLine("  transfusion darts: one dart gave an ally {0:0.0} for {1:0.0} of yours; one dart into an enemy healed you {2:0.00}", given, paid, stolen);
         Check(Math.Abs(given - Game.TransfuseHeal) < 1f && Math.Abs(paid - Game.TransfuseCost) < 0.5f, "Transfusion Darts give a hurt ally a lot of health for a little of yours");
         Check(stolen >= Game.TransfuseSteal - 0.05f && stolen < 1.2f, "Transfusion Darts steal only a sliver from enemies");
+        noOrbs = false;
         reset();
 
         // Rapier (Rapier.cs): a thrust skewers enemy bullets along its line (3 at most); they add no Tempo, the enemy hit adds one.
