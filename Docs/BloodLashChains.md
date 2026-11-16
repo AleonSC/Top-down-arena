@@ -1,6 +1,6 @@
 # Blood Lash: chain combo
 
-**Status: built** (protocol 354). Code `Assets/Scripts/Core/BloodLash.cs`, look `Assets/Scripts/Game/BloodLashLook.cs`, tests
+**Status: built** (protocol 355). Code `Assets/Scripts/Core/BloodLash.cs`, look `Assets/Scripts/Game/BloodLashLook.cs`, tests
 `Tools/SimTest/run.sh 1 30 bloodlash`, mockup `Docs/Mockups/blood-lash-chains.html`.
 
 ## Owner's decisions
