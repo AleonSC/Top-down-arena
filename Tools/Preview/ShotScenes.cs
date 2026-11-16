@@ -1318,6 +1318,7 @@ static partial class Shot {
       }
       host.Game.Coins[9100] = new Coin { Id = 9100, Value = 5, Pos = new V2(1000f, 470f), Disp = new V2(1000f, 470f) };
       host.Game.Coins[9101] = new Coin { Id = 9101, Value = 1, Pos = new V2(1030f, 450f), Disp = new V2(1030f, 450f) };
+      host.Game.Coins[9102] = new Coin { Id = 9102, Vec = true, Value = 1, Pos = new V2(860f, 560f), Disp = new V2(860f, 560f) };  // a kill's 1-vector pickup
       if (Environment.GetEnvironmentVariable("VECFULL") != null) {  // VECFULL=1: your stock is full, so they wait ("FULL" over them, the chip pulsing amber)
         me.Vectors = me.VectorCap;
         typeof(ArenaApp).GetField("vecFullNear", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(app, true);

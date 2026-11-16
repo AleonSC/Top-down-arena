@@ -13,7 +13,10 @@ namespace Arena
     {
         class VecBurst { public V2 At; public int To; public float Age; public int N; public bool Stash; }
 
-        const float VecBurstLife = 1.1f, VecGainLife = 1.6f, VecShardFly = 0.5f;
+        const float VecBurstLife = 1.1f, VecShardFly = 0.5f;
+        /// How big a show n vectors get: 0 for +1 (a blip), 1 for +12 or more (the whole thing); everything scales with it.
+        static float VecWeight(int n) => Mathf.Clamp01((n - 1) / 11f);
+        float VecGainSpan => 0.9f + 0.7f * VecWeight(vecGainN);
         static readonly Rgba VecCyan = new Rgba(0.3f, 0.88f, 1f);
         readonly List<VecBurst> vecBursts = new List<VecBurst>();
         readonly List<bool> stashSeen = new List<bool>();
@@ -109,7 +112,7 @@ namespace Arena
                 Player to = null;
                 if (b.To >= 0) game.Players.TryGetValue(b.To, out to);
                 V2 dest = to != null ? to.Disp : b.At;
-                float a = b.Age, scale = b.Stash ? 1f : 0.6f;
+                float w = VecWeight(b.N), a = b.Age, scale = 0.3f + 0.7f * w;
                 var ink = b.Stash ? DoorTeal : VecCyan;
                 // The pop: a bright flash and the diamond (a Stash) or square (a pickup) blowing outward as it fades.
                 float pk = Mathf.Clamp01(a / 0.45f), fade = 1f - pk;
@@ -119,19 +122,19 @@ namespace Arena
                     float r = (28f + 46f * EaseOut(pk)) * scale;
                     V2 up = b.At + new V2(0f, -r), rt = b.At + new V2(r, 0f), dn = b.At + new V2(0f, r), lf = b.At + new V2(-r, 0f);
                     var col = ink.WithAlpha(fade);
-                    float w = 3.5f * fade + 0.5f;
-                    Line(up, rt, w, col); Line(rt, dn, w, col); Line(dn, lf, w, col); Line(lf, up, w, col);
+                    float lw = (1.5f + 2f * w) * fade + 0.5f;
+                    Line(up, rt, lw, col); Line(rt, dn, lw, col); Line(dn, lf, lw, col); Line(lf, up, lw, col);
                 }
                 // The ring going out.
                 float rk = Mathf.Clamp01(a / 0.7f);
-                if (rk < 1f)
+                if (rk < 1f && w > 0.25f)  // (not for a vector or two)
                 {
                     float rr = (20f + 110f * EaseOut(rk)) * scale;
                     RingLine(b.At, rr, 10f * (1f - rk) + 2f, ink.WithAlpha(0.22f * (1f - rk)), 36);  // (a soft halo under it)
                     RingLine(b.At, rr, 3.5f * (1f - rk) + 1f, new Rgba(0.8f, 1f, 1f, 0.95f * (1f - rk)), 36);
                 }
                 // The shards: out a little, then homing into the player.
-                int shards = b.Stash ? 14 : 7;
+                int shards = 2 + Mathf.RoundToInt(12f * w);
                 for (int i = 0; i < shards; i++)
                 {
                     float start = 0.08f + i * (b.Stash ? 0.025f : 0.03f), k = (a - start) / VecShardFly;
@@ -140,14 +143,14 @@ namespace Arena
                     V2 ctrl = b.At + V2.FromAngle(ang) * (70f + 30f * (i % 3)) * scale;
                     float e = k * k;  // (slow out, fast in)
                     V2 p = Bez(b.At, ctrl, dest, e), q = Bez(b.At, ctrl, dest, Mathf.Max(0f, e - 0.12f));
-                    float sz = (b.Stash ? 4.5f : 3.5f) * (1f - 0.4f * k);
+                    float sz = (2.5f + 2f * w) * (1f - 0.4f * k);
                     Line(q, p, sz * 0.8f, ink.WithAlpha(0.45f));
                     FillRect(p.X - sz, p.Y - sz, sz * 2f, sz * 2f, new Rgba(0.85f, 1f, 1f, 1f));
                 }
                 // The catch: a tight ring round the player as the shards land.
                 float ck = (a - 0.45f) / 0.5f;
                 if (to != null && ck > 0f && ck < 1f)
-                    RingLine(dest, to.Def.BodyR + 6f + 22f * EaseOut(ck), 3f * (1f - ck) + 0.5f, ink.WithAlpha(1f - ck), 28);
+                    RingLine(dest, to.Def.BodyR + 6f + (6f + 16f * w) * EaseOut(ck), (1f + 2f * w) * (1f - ck) + 0.5f, ink.WithAlpha((0.5f + 0.5f * w) * (1f - ck)), 28);
             }
         }
 
@@ -175,17 +178,19 @@ namespace Arena
                     continue;
                 float k = b.Age / VecBurstLife;
                 V2 at = ToUi(mate.Disp) + new V2(0f, -54f - 26f * k);
-                FloatText(at, "+" + b.N, 18, 1f - k * k);
+                FloatText(at, "+" + b.N, Mathf.RoundToInt(14f + 4f * VecWeight(b.N)), 1f - k * k);
             }
             DrawVectorsFull(me);
             float a = vecGainAge;
-            if (a >= VecGainLife)
+            if (a >= VecGainSpan)
                 return;
             bool full = me.Vectors >= me.VectorCap;
             float pop = a < 0.12f ? 1f + 0.5f * (1f - a / 0.12f) : 1f;
-            float al = Mathf.Clamp01((VecGainLife - a) / 0.45f);
-            V2 at2 = ToUi(me.Disp) + new V2(0f, -84f - 34f * EaseOut(Mathf.Clamp01(a / VecGainLife)));
-            FloatText(at2, "+" + vecGainN + " VECTORS", Mathf.RoundToInt(24f * pop), al);
+            float al = Mathf.Clamp01((VecGainSpan - a) / 0.45f);
+            float gw = VecWeight(vecGainN);
+            pop = 1f + (pop - 1f) * gw;  // (only a big gain pops)
+            V2 at2 = ToUi(me.Disp) + new V2(0f, -70f - (14f + 20f * gw) - (14f + 20f * gw) * EaseOut(Mathf.Clamp01(a / VecGainSpan)));
+            FloatText(at2, "+" + vecGainN + (vecGainN >= 3 ? " VECTORS" : vecGainN == 1 ? " VECTOR" : " VECTORS"), Mathf.RoundToInt((15f + 9f * gw) * pop), al);
             if (full)
                 FloatText(at2 + new V2(0f, -24f), "STOCK FULL", 12, al * 0.85f);
             // Shards from you to the chip.
@@ -193,7 +198,8 @@ namespace Arena
                 return;
             V2 from = ToUi(vecGainFrom), dest = new V2(vecChipRect.x + 8f, vecChipRect.y + vecChipRect.height / 2f);
             V2 ctrl = new V2(from.X - 40f, Mathf.Min(from.Y, dest.Y) - 160f);
-            for (int i = 0; i < 8; i++)
+            int toChip = 1 + Mathf.RoundToInt(7f * gw);
+            for (int i = 0; i < toChip; i++)
             {
                 float k = (a - 0.15f - i * 0.035f) / 0.55f;
                 if (k <= 0f || k >= 1f) continue;
@@ -202,7 +208,7 @@ namespace Arena
                 {
                     float kj = Mathf.Max(0f, k - j * 0.05f), e = kj * kj;
                     V2 p = Bez(from, c, dest, e);
-                    float s = (10f - 4f * k) * (1f - j * 0.2f);
+                    float s = (5f + 5f * gw - (2f + 2f * gw) * k) * (1f - j * 0.2f);
                     var col = j == 0 ? new Color(0.85f, 1f, 1f, 1f) : new Color(0.3f, 0.88f, 1f, 0.55f - j * 0.12f);
                     if (j == 0)
                         Ui.Glow(new Rect(p.X - s / 2f, p.Y - s / 2f, s, s), new Color(0.3f, 0.88f, 1f), 0.8f);
@@ -255,7 +261,7 @@ namespace Arena
         }
 
         /// DrawVectorChip: how lit the chip is (1 as the shards land, easing off), and the count it shows (counting up to your stock).
-        float VectorChipFlash => vecGainAge < 0.6f ? Mathf.Clamp01((vecGainAge - 0.15f) / 0.25f) : Mathf.Clamp01(1f - (vecGainAge - 0.6f) / 0.9f);
-        int VectorChipCount(Player me) => vecGainAge < VecGainLife ? Mathf.Min(me.Vectors, Mathf.RoundToInt(vecShown)) : me.Vectors;
+        float VectorChipFlash => (0.35f + 0.65f * VecWeight(vecGainN)) * (vecGainAge < 0.6f ? Mathf.Clamp01((vecGainAge - 0.15f) / 0.25f) : Mathf.Clamp01(1f - (vecGainAge - 0.6f) / 0.9f));
+        int VectorChipCount(Player me) => vecGainAge < VecGainSpan ? Mathf.Min(me.Vectors, Mathf.RoundToInt(vecShown)) : me.Vectors;
     }
 }

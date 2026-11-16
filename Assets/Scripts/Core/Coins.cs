@@ -10,7 +10,7 @@ namespace Arena
         public int Id, Value;
         public bool Vec;  // a vector pickup (small: VectorDropSmall, big from elites and bosses: VectorDropBig), not gold
         public V2 Pos, Disp;
-        public float Radius => Vec ? (Value >= VectorDropBigAt ? 11f : 8f) : Value >= 5 ? 7f : 5f;
+        public float Radius => Vec ? (Value >= VectorDropBigAt ? 11f : Value <= 2 ? 6f : 8f) : Value >= 5 ? 7f : 5f;
         public const int VectorDropBigAt = 12;
     }
 
@@ -51,8 +51,14 @@ namespace Arena
             int odds = e.Def.IsBoss ? 1 : e.Elite ? 8 : VectorDropChance;
             if (rng.Next(odds) != 0)
                 return;
-            var c = new Coin { Id = nextCoinId++, Vec = true, Value = big ? VectorDropBig : VectorDropSmall };
-            c.Pos = ClampToArena(e.Pos + V2.FromAngle((float)rng.NextDouble() * MathX.Tau) * (10f + 14f * (float)rng.NextDouble()), 12f);
+            DropVectorAt(e.Pos, big ? VectorDropBig : VectorDropSmall);
+        }
+
+        /// A vector pickup worth value, dropped a little way from pos.
+        void DropVectorAt(V2 pos, int value)
+        {
+            var c = new Coin { Id = nextCoinId++, Vec = true, Value = value };
+            c.Pos = ClampToArena(pos + V2.FromAngle((float)rng.NextDouble() * MathX.Tau) * (10f + 14f * (float)rng.NextDouble()), 12f);
             c.Disp = c.Pos;
             Coins[c.Id] = c;
         }
