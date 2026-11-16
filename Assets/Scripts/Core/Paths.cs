@@ -176,7 +176,7 @@ namespace Arena
         /// after the final wave).
         void OfferPaths()
         {
-            if (!IsHost || Practice != null || (Wave >= MaxWave && !Endless))
+            if (!IsHost || !ModeRules.Paths || (Wave >= MaxWave && !Endless))
                 return;
             var pool = new List<PathId>();
             foreach (var d in Paths.All)
@@ -346,7 +346,7 @@ namespace Arena
 
         /// The rule is on from the countdown before the path's first wave (the walls close in, the mist rolls in)
         /// until its last wave is cleared.
-        bool ArenaRule(PathId id) => CurrentPath == id && (OnPath || Wave + 1 == PathFrom) && Practice == null;
+        bool ArenaRule(PathId id) => CurrentPath == id && (OnPath || Wave + 1 == PathFrom) && ModeRules.Extras;
 
         /// The local player stands in a dark rule room (a Fogbound Floor room, Docs/RuleRooms.md): the mist is on for them there only.
         bool InDarkRoom => ExpandingOn && Expanded.Count > 0 && Me != null && !BossNow && State != MatchState.Idle && FloorAt(Me.Disp) == PathId.Fogbound;
@@ -374,7 +374,7 @@ namespace Arena
         /// for the next boss's countdown and fight, since the bosses' mechanics use the whole arena.
         V2 TinyTarget()
         {
-            if (!Has(RunMod.TinyArena) || Practice != null || State == MatchState.Idle || SurvivalOn)
+            if (!Has(RunMod.TinyArena) || !ModeRules.Extras || State == MatchState.Idle || SurvivalOn)
                 return V2.Zero;
             int upcoming = State == MatchState.Intermission ? Wave + 1 : Wave;  // (the regular wave; the boss between waves keeps the number)
             if (State == MatchState.Intermission ? BossNext : BossNow)

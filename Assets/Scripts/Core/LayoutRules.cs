@@ -25,7 +25,7 @@ namespace Arena
             {
                 if (RoomsOn)
                     return CurrentWorld.With(Layout, VaultUp);  // the floor plan in the hub, the rooms' walls round it (Rooms.cs)
-                if (Layout == LayoutId.Open || InRoom || Practice != null || ShowcaseMode)
+                if (Layout == LayoutId.Open || InRoom || !ModeRules.Extras || ShowcaseMode)
                     return null;
                 return Layouts.Get(Layout);
             }
@@ -58,7 +58,7 @@ namespace Arena
         void PickLayout()
         {
             LayoutId was = Layout;
-            if (!LayoutsOn || D(DiffKnob.ArenaLayouts) < 0.5f || Practice != null || ShowcaseMode || BossNow)
+            if (!LayoutsOn || D(DiffKnob.ArenaLayouts) < 0.5f || !ModeRules.Extras || ShowcaseMode || BossNow)
                 Layout = LayoutId.Open;
             else
             {

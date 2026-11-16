@@ -74,7 +74,7 @@ namespace Arena
         class Riser { public EnemyType Type; public V2 Pos; public float T; public bool Elite; public int Caller; }  // Caller: the Grave Caller whose grave it is (0: none)
         readonly List<Riser> risers = new List<Riser>();  // host: dead zombies about to get back up
 
-        bool ZombiesOn => Has(RunMod.ZombieInfection) && Practice == null;
+        bool ZombiesOn => Has(RunMod.ZombieInfection) && ModeRules.Extras;
 
         /// Zombies still to get up this wave: it isn't over until they're dealt with.
         public bool ZombiesRising => risers.Count > 0;

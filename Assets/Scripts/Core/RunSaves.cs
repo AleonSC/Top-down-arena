@@ -44,7 +44,7 @@ namespace Arena
         bool Saveable => IsHost && ModeRules.Saves && !ShowcaseMode && !Unrecorded && RunId != null;
 
         /// Counts towards records at all (a real run, not practice, the lobby preview or the Boss Lab).
-        bool RecordsRuns => Practice == null && !ShowcaseMode && !Unrecorded;
+        bool RecordsRuns => ModeRules.Records && !ShowcaseMode && !Unrecorded;
 
         /// A dev tool was used (god mode, stat edits, wave jumps...): recorded, and the run no longer counts.
         void DevUsed(string what)

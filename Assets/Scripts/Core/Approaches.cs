@@ -630,9 +630,9 @@ namespace Arena
                 return 0f;  // the boss fight itself has no approach
             int step = ApproachStepAt(wave);
             float share = D(DiffKnob.ApproachShare);
-            if (step == 0 || (!(Hunt != null || Quick) && Approaches.For(ApproachBossAt(wave)) == null) || Practice != null)
+            if (step == 0 || (!ModeRules.BossBuildup && Approaches.For(ApproachBossAt(wave)) == null) || !ModeRules.Extras)
                 return 0f;
-            if (Hunt != null || Quick)
+            if (ModeRules.BossBuildup)
                 return 1f;  // a Boss Hunt's (and Quick Play's) build-up waves are only the boss's own enemies (Hunts.cs, QuickPlay.cs)
             if (CampaignOn)
                 return Approaches.Campaign(wave, wave == Wave && LongLegs ? ShownWave : 0).Find(x => x.Current).Share;  // the next boss's slice (0 if it has no faction)
@@ -693,7 +693,7 @@ namespace Arena
             float share = ApproachShare(n);
             if (share <= 0f)
                 return;
-            var f = Hunt != null || Quick ? FactionFor(ApproachBossAt(n)) : Approaches.For(ApproachBossAt(n));  // (Quick Play, a hunt: a boss with no faction yet brings the basic one, BasicFaction.cs)
+            var f = ModeRules.BossBuildup ? FactionFor(ApproachBossAt(n)) : Approaches.For(ApproachBossAt(n));  // (Quick Play, a hunt: a boss with no faction yet brings the basic one, BasicFaction.cs)
             int themed1 = Math.Min(count, (int)Math.Round(of * share));
             if (themed1 <= 0)
                 return;

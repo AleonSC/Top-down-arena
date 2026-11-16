@@ -42,6 +42,6 @@ namespace Arena
     public partial class Game
     {
         /// The wave-size rules for this run's mode.
-        public WaveRules Rules => Hunt != null ? WaveRules.Hunt : WaveRules.Standard;
+        public WaveRules Rules => ModeRules.Waves;
     }
 }

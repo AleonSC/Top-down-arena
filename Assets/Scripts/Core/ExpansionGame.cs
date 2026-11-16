@@ -437,7 +437,7 @@ namespace Arena
         /// node, a relic to walk up to, or for Frozen gold and vectors for everyone at once (which spends the node).
         void ClearRuleRooms()
         {
-            if (!IsHost || !ExpandingOn || BossNow || Practice != null)
+            if (!IsHost || !ExpandingOn || BossNow || !ModeRules.Extras)
                 return;
             bool changed = false;
             for (int i = 0; i < Nodes.Count; i++)

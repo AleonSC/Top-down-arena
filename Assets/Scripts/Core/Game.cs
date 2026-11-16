@@ -268,7 +268,7 @@ namespace Arena
                 if (Has(RunMod.Lucky))
                     p.Rerolls += Modifiers.LuckyRerolls;
                 entries.Add(p);
-                if (Has(RunMod.HeadStart) && Practice == null && !(IsHost && ResumeFrom != null))
+                if (Has(RunMod.HeadStart) && ModeRules.Extras && !(IsHost && ResumeFrom != null))
                 {
                     // Head Start: the picks of the first levels, and a legendary from the first boss's pool.
                     p.Level = Modifiers.HeadStartLevel;

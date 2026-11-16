@@ -59,7 +59,7 @@ namespace Arena
         /// The break's countdown runs when nothing else holds it and everyone is ready.
         bool TickReadyTimer(ref float timer, float dt)
         {
-            if (Practice != null || WaveReport == null || WaveReport.Wave != Wave)
+            if (!ModeRules.Extras || WaveReport == null || WaveReport.Wave != Wave)
             {
                 timer -= dt;  // the opening countdown, the Practice Range and a dev jump: no ready-up
                 return true;
