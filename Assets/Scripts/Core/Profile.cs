@@ -196,30 +196,45 @@ namespace Arena
         static int Get(Dictionary<string, int> d, string k) { int v; return d.TryGetValue(k, out v) ? v : 0; }
         static void Bump(Dictionary<string, int> d, string k) => d[k] = Get(d, k) + 1;
 
-        public int HuntWins(EnemyType boss) => Get(HuntsWon, boss.ToString());
-        public int HuntWinsHard(EnemyType boss) => Get(HuntsWonHard, boss.ToString());
+        /// The long (20-step) hunt keeps its own records beside the ten-step one's: its keys carry this suffix (Docs/LongHunt.md).
+        const string LongSuffix = ":20";
+        static string HuntKey(EnemyType boss, bool longHunt) => boss + (longHunt ? LongSuffix : "");
 
-        /// How many different bosses' hunts have been won.
-        public int HuntsWonCount { get { int n = 0; foreach (var kv in HuntsWon) if (kv.Value > 0) n++; return n; } }
+        /// Hunts won, of either length (a perk's unlock counts them both).
+        public int HuntWins(EnemyType boss) => Get(HuntsWon, boss.ToString()) + Get(HuntsWon, HuntKey(boss, true));
+        public int HuntWinsHard(EnemyType boss) => Get(HuntsWonHard, boss.ToString()) + Get(HuntsWonHard, HuntKey(boss, true));
+
+        /// How many different bosses' hunts have been won (either length).
+        public int HuntsWonCount
+        {
+            get
+            {
+                var bosses = new HashSet<string>();
+                foreach (var kv in HuntsWon)
+                    if (kv.Value > 0)
+                        bosses.Add(kv.Key.EndsWith(LongSuffix, StringComparison.Ordinal) ? kv.Key.Substring(0, kv.Key.Length - LongSuffix.Length) : kv.Key);
+                return bosses.Count;
+            }
+        }
 
         public int Beaten(EnemyType boss) => Get(BossesBeaten, boss.ToString());
         public int RoomPlayed(ChallengeKind k) => Get(RoomsPlayed, k.ToString());
         public int RoomWon(ChallengeKind k) => Get(RoomsWon, k.ToString());
-        public int HuntPlayed(EnemyType boss) => Get(HuntsPlayed, boss.ToString());
-        public int HuntWon(EnemyType boss) => Get(HuntsWon, boss.ToString());
-        public float HuntBestTime(EnemyType boss) { float v; return HuntBest.TryGetValue(boss.ToString(), out v) ? v : 0f; }
+        public int HuntPlayed(EnemyType boss, bool longHunt = false) => Get(HuntsPlayed, HuntKey(boss, longHunt));
+        public int HuntWon(EnemyType boss, bool longHunt = false) => Get(HuntsWon, HuntKey(boss, longHunt));
+        public float HuntBestTime(EnemyType boss, bool longHunt = false) { float v; return HuntBest.TryGetValue(HuntKey(boss, longHunt), out v) ? v : 0f; }
 
         /// A Boss Hunt finished (won: the boss beaten). Hunts aren't runs: they don't count towards the run records.
-        public List<UnlockDef> HuntEnded(EnemyType boss, bool won, float time, bool hard = false)
+        public List<UnlockDef> HuntEnded(EnemyType boss, bool won, float time, bool hard = false, bool longHunt = false)
         {
-            string k = boss.ToString();
+            string k = HuntKey(boss, longHunt);
             Bump(HuntsPlayed, k);
             if (won)
             {
                 Bump(HuntsWon, k);
                 if (hard)
                     Bump(HuntsWonHard, k);  // won on Hard or Nightmare
-                float best = HuntBestTime(boss);
+                float best = HuntBestTime(boss, longHunt);
                 if (best <= 0f || time < best)
                     HuntBest[k] = time;
             }

@@ -236,12 +236,11 @@ static partial class Program
         Sync();
         host.SetMode(GameMode.Hunt);
         Sync();
-        Check(host.HuntMapMode && client.HuntMapMode, "a Boss Hunt is a hunt map by default (no switch)");
-        client.SetHuntLong(true); Sync();
-        Check(!host.HuntLong, "only the host can pick the long hunt");
-        host.SetHuntLong(true); Sync();
-        Check(host.HuntLong && client.HuntLong, "the host's long hunt shows in the friend's lobby");
-        host.SetHuntLong(false); Sync();
+        Check(host.HuntMapMode && client.HuntMapMode && host.HuntLong && client.HuntLong, "a Boss Hunt is a 20-step hunt map by default (no switches)");
+        client.SetHuntLong(false); Sync();
+        Check(host.HuntLong, "only the host could change the length");
+        host.SetHuntLong(false); Sync();   // (the tests below play the ten-step map)
+        Check(!client.HuntLong, "the host's length shows in the friend's lobby");
         // A map with a route that has every kind of node on it (the test follows it).
         int seed = 0; int[] route = null;
         for (int sd = 1; sd < 100000 && route == null; sd++)
