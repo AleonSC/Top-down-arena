@@ -8,7 +8,7 @@ namespace Arena
     /// health into protection, healers give their own health away, and DPS are strongest near death.
     public partial class Game
     {
-        // The Clot Cannon (WeaponId.ClotBolt kept): hold to charge, let go to lob a clot over enemies. The charge sets only
+        // The Gore Mortar (WeaponId.ClotBolt kept): hold to charge, let go to lob a clot over enemies. The charge sets only
         // how far it lands (ClotMin on a tap to ClotMax at full); the splash hits the same at any range, then a big pool
         // slows enemies and congeals after PoolCongeal, sticking the enemies in it for PoolStuck (not bosses).
         // Every shot costs ClotCost of your max health (never below 1); the pools heal everyone standing in them (the
@@ -30,10 +30,9 @@ namespace Arena
         public const float MartyrWardTime = 12f;  // also the halo's twelve beads, one a second (Game/MartyrLook.cs)
         public const float MartyrFxTime = 1.4f;  // how long a MartyrCast effect plays (beads, burst, spent ward)
         public const float ImplodeGrab = 26f;  // how near an enemy the click must land (how far away you can click, and the damage, are the weapon's Reach and Damage)
-        public const float LashTipFrom = 0.7f, LashCrack = 2f, LashTaunt = 1.5f;  // Blood Lash: the outer 30% of its reach cracks
+        public const float LashTipFrom = 0.7f, LashCrack = 2f, LashTaunt = 1.5f;  // Blood Lash: the outer 30% of its reach cracks (BloodLash.cs)
         public const int ClotMaxBase = 5;
         public const float ClotCutEach = 0.04f, ClotHold = 3f, ClotFade = 0.5f;  // each Clot stack; how long they hold, then one fades per ClotFade
-        const float ClotBurstReach = 1.3f, ClotBurstMult = 2f, ClotBurstKnock = 50f;
         static readonly Rgba LashRed = new Rgba(0.85f, 0.1f, 0.18f);
         const float ImplodeSplash = 55f, ImplodeSplashDamage = 15f, ImplodePull = 18f, ImplodeChain = 180f, ImplodeChainMult = 0.6f;
 
@@ -46,32 +45,11 @@ namespace Arena
             switch (w.Id)
             {
                 case WeaponId.BloodLash:
-                {
-                    p.ClotMax = ClotMaxBase + extra;
-                    if (p.Clot >= p.ClotMax)
-                    {
-                        // Clot Burst: every stack spent on one lash all round you that shoves and taunts.
-                        var b = NewSwing(p, aim, (w.Reach + w.Grow * extra) * ClotBurstReach, 360f, w.Damage * ClotBurstMult * dmg);
-                        b.NoCut = true;
-                        b.Knock = ClotBurstKnock;
-                        b.Taunt = LashTaunt;
-                        b.Heavy = true;
-                        QueueSwing(b);
-                        p.Clot = 0;
-                        p.ClotT = 0f;
-                        BroadcastFx(FxKind.Ring, p.Pos, LashRed, b.Reach, 0.35f, Sfx.SpellArcane);
-                        break;
-                    }
-                    var s = NewSwing(p, aim, (w.Reach + w.Grow * extra) * p.Stats.LashReachMult, 110f, w.Damage * dmg);  // (Crimson Whip: farther)
-                    s.NoCut = true;  // a whip of blood, not a blade
-                    s.Tip = s.Reach * LashTipFrom;
-                    s.Clots = true;
-                    QueueSwing(s);
+                    FireBloodLash(p, aim, dmg, extra);  // the chain combo (BloodLash.cs)
                     break;
-                }
                 case WeaponId.ClotBolt:
                 {
-                    // The Clot Cannon: lobbed over enemies like the Golem Staff's boulder, as far as the charge sends it;
+                    // The Gore Mortar: lobbed over enemies like the Golem Staff's boulder, as far as the charge sends it;
                     // the damage doesn't change with the charge. Extra projectiles fan more clots out to the same distance.
                     float c = BowCharge(p, p.BowShotDraw), flight = ClotFlight(c);
                     if (!casting)  // the clot is your own blood: a shot costs health (extra clots come free)
@@ -453,7 +431,7 @@ namespace Arena
                     if (p.Weapon.Id == WeaponId.BloodBolts)
                     {
                         string was = CreditTo(BulletSrc(b));
-                        Hemorrhage(p, e, b.Dmg);
+                        BloodBoltBleed(p, e, b.Dmg);
                         dmgSrc = was;
                     }
                     break;
@@ -537,28 +515,23 @@ namespace Arena
 
         // --- Blood Bolts: hemorrhage --------------------------------------------------------------------
 
-        public const int HemorrhageHits = 5;
-        public const float HemorrhageHold = 2f, HemorrhageMult = 4f, HemorrhageRadius = 80f;  // bolts fade after this; the burst is this many bolts' damage
+        public const int BleedBurstAt = 5;
+        public const float BoltBleed = 0.3f, BleedBurstMult = 4f, BleedBurstRadius = 80f;  // a bolt bleeds this share of its hit a second (a stack); the burst is this many bolts' damage
 
-        /// A Blood Bolt stuck in `e`; the fifth in a row (each within HemorrhageHold of the last) bursts it, hurting it
-        /// and every enemy round it.
-        void Hemorrhage(Player p, Enemy e, float boltDmg)
+        /// A Blood Bolt hit `e`: another bleed stack, and the one that fills its bleed (BleedBurstAt stacks, from any
+        /// source) bursts it, hurting it and every enemy round it and clearing the bleed.
+        void BloodBoltBleed(Player p, Enemy e, float boltDmg)
         {
-            e.HemorrhageT = HemorrhageHold;
-            if (++e.Hemorrhage < HemorrhageHits - p.Stats.HemoHitCut)  // (Hemophilia: fewer)
+            ApplyBleed(e, boltDmg * BoltBleed, p.Id);  // KitWeapons.cs
+            if (e.BleedStacks < BleedBurstAt - p.Stats.HemoHitCut)  // (Hemophilia: fewer)
                 return;
-            e.Hemorrhage = 0;
-            float dmg = boltDmg * HemorrhageMult, r = HemorrhageRadius * AreaMult(p) * p.Stats.HemoRadiusMult;
+            e.BleedStacks = e.BleedHits = 0;
+            e.BleedT = e.BleedDps = 0f;
+            float dmg = boltDmg * BleedBurstMult, r = BleedBurstRadius * AreaMult(p) * p.Stats.HemoRadiusMult;
             foreach (var o in Enemies.Values)
                 if (Targetable(o) && o.Pos.CloserThan(e.Pos, r + o.Radius))
                     HurtEnemy(o, dmg, p.Id);
             BroadcastFx(FxKind.Implode, e.Pos, new Rgba(0.85f, 0.1f, 0.18f), r, 0.35f, Sfx.Explode);
-        }
-
-        void TickHemorrhage(Enemy e, float dt)
-        {
-            if (e.Hemorrhage > 0 && (e.HemorrhageT -= dt) <= 0f)
-                e.Hemorrhage = 0;
         }
 
         // --- Bone Spear: pick your spears back up -----------------------------------------------------
@@ -591,7 +564,7 @@ namespace Arena
                     Zones.Remove(id);
         }
 
-        /// A Clot Cannon's clot landed: it splashes every enemy under it (weapon mods apply to each, as on a melee hit)
+        /// A Gore Mortar's clot landed: it splashes every enemy under it (weapon mods apply to each, as on a melee hit)
         /// and spreads a pool of blood.
         void LandClot(Bullet b)
         {
@@ -608,7 +581,7 @@ namespace Arena
             BroadcastFx(FxKind.Ring, b.Pos, Defs.BulletColor(Defs.ClotShot), b.Splash * 1.4f, 0.32f, Sfx.Explode);
         }
 
-        /// A Clot Cannon's pool sets: enemies still in it are stuck for a moment (not bosses).
+        /// A Gore Mortar's pool sets: enemies still in it are stuck for a moment (not bosses).
         void CongealPool(Zone z)
         {
             z.Congealed = true;
@@ -686,7 +659,7 @@ namespace Arena
                 RepayDebt(p, dealt * DebtBossShare * p.DebtRepay, e.Pos, false);
         }
 
-        /// Blood Lash's Clot: each stack takes 4% off the damage you take.
+        /// Blood Lash's Clot (from the links Reap spends): each stack takes 4% off the damage you take.
         public static float ClotCut(Player p) => Math.Min(0.5f, (ClotCutEach + p.Stats.ClotCutBonus) * p.Clot);  // (Crimson Whip: more a stack)
 
         void AddClot(Player p, int n)
@@ -695,25 +668,7 @@ namespace Arena
             p.ClotT = ClotHold;
         }
 
-        /// A Blood Lash hit: the tip cracks (its double damage is already in) and taunts; closer in, the enemy is
-        /// flung out to the tip, where the next lash cracks it.
-        void LashHit(Player p, Enemy e, Swing s, bool crack)
-        {
-            if (crack)
-            {
-                TauntEnemy(p, e, LashTaunt);
-                BroadcastFx(FxKind.Ring, e.Pos, LashRed, e.Radius + 10f, 0.18f, Sfx.None);
-                return;
-            }
-            if (Heavy(e))
-                return;
-            V2 away = (e.Pos - p.Pos).Normalized();
-            if (away.IsZero)
-                away = V2.FromAngle(s.Aim);
-            e.Pos = ClampToArena(p.Pos + away * (s.Tip + e.Radius * 0.5f), e.Radius);
-        }
-
-        /// This enemy goes for `p` for a while (a Clot Burst, a cracking Blood Lash).
+        /// This enemy goes for `p` for a while (a cracking Blood Lash, its Snap, Martyr's Leash).
         void TauntEnemy(Player p, Enemy e, float time)
         {
             e.TargetId = p.Id;
@@ -739,10 +694,10 @@ namespace Arena
         internal static readonly WeaponDef[] HemomancerWeapons =
         {
             // Tank
-            new WeaponDef { Id = WeaponId.BloodLash, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 0, Damage = 24f, Reach = 130f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +1 max Clot", Name = "Blood Lash", FireInterval = 0.5f,
-                Desc = "A whip of blood. Its tip cracks for double damage and taunts, and enemies hit closer in are flung out to the tip. "
-                    + "Each hit clots your blood (+1 Clot, +2 from the tip; 4% less damage taken each, up to 5). At full Clot your next lash bursts all round you." },
-            new WeaponDef { Id = WeaponId.ClotBolt, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1, Damage = 34f, BotRange = 380f, ExtraDesc = "+1 clot, fanned out", Name = "Clot Cannon", FireInterval = 0.75f,
+            new WeaponDef { Id = WeaponId.BloodLash, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 0, Damage = 24f, Reach = 130f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach, +1 link per enemy and +1 max Clot", Name = "Blood Lash", FireInterval = 0.32f,
+                Desc = "A whip of blood, a four-step string: Crack, Backhand, Snap, Reap. Every lash that lands hooks a blood chain on the enemy (+1 link, +2 from the cracking tip or the Snap). "
+                    + "Reap yanks every chained enemy in and turns the links into Clot (4% less damage taken each, up to 5). Alt: hold for Martyr's Leash." },
+            new WeaponDef { Id = WeaponId.ClotBolt, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1, Damage = 34f, BotRange = 380f, ExtraDesc = "+1 glob, fanned out", Name = "Gore Mortar", FireInterval = 0.75f,
                 Desc = "Hold to charge, let go to lob a massive blood clot over enemies; the longer you hold, the farther it flies, and it hits just as hard at any range. Each shot costs 6% of your max health. It bursts into a big pool of blood that slows enemies and slowly heals anyone standing in it, and after a moment the pool congeals and holds enemies still.",
                 Sound = Sfx.SpellArcane, AreaDesc = "splash and pool 25% wider" },
             new WeaponDef { Id = WeaponId.LeechBeam, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 2, Damage = 1.2f, Reach = 160f, Grow = 20f, BotRange = 130f, ExtraDesc = "+1 tendril and +20 px reach", Name = "Leech Tendrils", FireInterval = 0.1f,
@@ -760,7 +715,7 @@ namespace Arena
                 Sound = Sfx.SpellArcane, AreaDesc = "the beam 25% wider" },
             // DPS
             new WeaponDef { Id = WeaponId.BloodBolts, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 0, Speed = 800f, Life = 0.8f, Damage = 9f, ExtraDesc = "+1 bolt, fanned out", Name = "Blood Bolts", FireInterval = 0.13f,
-                Desc = "Fast bolts of blood that stick in enemies. Enough bolts in one enemy make it hemorrhage, bursting for damage to it and the enemies around it.",
+                Desc = "Fast bolts of blood that make enemies bleed. A bolt that fills an enemy's bleed bursts it, hurting it and the enemies around it.",
                 Sound = Sfx.SpellArcane },
             new WeaponDef { Id = WeaponId.Implosion, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 1, Damage = 34f, Reach = 480f, ExtraDesc = "+1 implosion: another enemy near your target collapses too (60% damage)", Name = "Implosion", FireInterval = 0.45f,
                 Desc = "Click an enemy: its blood collapses inward, hurting enemies pressed against it and pulling them in.",
@@ -793,9 +748,9 @@ namespace Arena
                 Apply = s => { s.RushReach += 0.25f; s.RushRefund += 0.01f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Hemomancer, MaxStacks = 2, Name = "Bloodthirst", Desc = "Your abilities cost 20% less health, and each kill heals you 2",
                 Apply = s => { s.HealthCostMult *= 0.8f; s.KillHeal += 2f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BloodLash }, MaxStacks = 2, Name = "Crimson Whip", Desc = "The Blood Lash reaches 20% farther, and each Clot stack cuts 1% more damage",
-                Apply = s => { s.LashReachMult += 0.2f; s.ClotCutBonus += 0.01f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.ClotBolt }, MaxStacks = 2, Name = "Deep Pool", Desc = "The Clot Cannon's pool is 30% bigger and lasts 2 s longer",
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BloodLash }, MaxStacks = 2, Name = "Crimson Whip", Desc = "The Blood Lash reaches 20% farther, each enemy holds one more link, and each Clot stack cuts 1% more damage",
+                Apply = s => { s.LashReachMult += 0.2f; s.LashLinkBonus++; s.ClotCutBonus += 0.01f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.ClotBolt }, MaxStacks = 2, Name = "Deep Pool", Desc = "The Gore Mortar's pool is 30% bigger and lasts 2 s longer",
                 Apply = s => { s.PoolSizeMult += 0.3f; s.PoolBonusTime += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.LeechBeam }, MaxStacks = 2, Name = "Hungry Tendrils", Desc = "Leech Tendrils drain 30% faster, and 15% more of the drain heals you",
                 Apply = s => { s.LeechDrainMult += 0.3f; s.LeechStealBonus += 0.15f; } },
@@ -805,7 +760,7 @@ namespace Arena
                 Apply = s => { s.ReserveGainMult += 0.3f; s.CoatHealMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.VeinTether }, MaxStacks = 2, Name = "Lifeline", Desc = "15% more of the Vein Tether's damage heals",
                 Apply = s => { s.VeinStealBonus += 0.15f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BloodBolts }, MaxStacks = 2, Name = "Hemophilia", Desc = "Hemorrhage takes one Blood Bolt fewer, and its burst is 30% wider",
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BloodBolts }, MaxStacks = 2, Name = "Hemophilia", Desc = "Blood Bolts burst an enemy one bleed stack sooner, 30% wider",
                 Apply = s => { s.HemoHitCut += 1; s.HemoRadiusMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Implosion }, MaxStacks = 2, Name = "Event Horizon", Desc = "Implosion pulls enemies in from 30% farther, and the crush hits 40% harder",
                 Apply = s => { s.ImplodeReachMult += 0.3f; s.ImplodeDmgMult += 0.4f; } },
@@ -1031,6 +986,7 @@ namespace Arena
                 if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.Bloodbath && ActiveBath(p) == null)
                     p.UltT = 0f;
             TickReels(dt);  // Exsanguinate.cs
+            TickBloodLash(dt);  // BloodLash.cs: chains, Reap, Martyr's Leash
             foreach (var p in Players.Values)
             {
                 if (p.Grasp.Count > 0 && (p.Downed || !p.Firing || p.ParryActive || p.Weapon.Id != WeaponId.LeechBeam))

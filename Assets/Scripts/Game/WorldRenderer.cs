@@ -208,7 +208,7 @@ namespace Arena
             DrawTitanFloor();        // the Titan golem's slam cracks and rubble (TitanLook.cs)
             DrawHammerFloor();       // the Warhammer slam's crater and cracks, under the enemies (MeleeLooks.cs)
             DrawSprayStains(t);      // Arterial Spray's spatter (ArterialSprayLook.cs)
-            DrawClotStains(t);       // the Clot Cannon's drops on the floor (ClotCannonLook.cs)
+            DrawClotStains(t);       // the Gore Mortar's drops on the floor (ClotCannonLook.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
             DrawInk(t);  // Spirit Chalk's lines and loops (ChalkLook.cs)
@@ -265,7 +265,7 @@ namespace Arena
             DrawTauntMarks(t);  // enemies a taunt has turned on its caster (AbilityLooks.cs)
             DrawKnightDpsOver(t);  // the Drawbridge falling, the Gauntlet's crests (KnightDpsLook.cs)
             DrawColossusAir(t);  // what the Colossus threw, in flight (ColossusLook.cs)
-            DrawClotAir(t);      // the Clot Cannon's drops falling (ClotCannonLook.cs)
+            DrawClotAir(t);      // the Gore Mortar's drops falling (ClotCannonLook.cs)
             DrawBulletRainAir(t);  // Bullet Rain's rounds falling, landing rings and sparks (BulletRainLook.cs)
             DrawGadgetAim(t);  // GadgetLook.cs: the throw's arc while the Gadget key is held
             DrawLoot(t);  // your chest item, spinning in its beam (PropsLook.cs)
@@ -460,6 +460,8 @@ namespace Arena
                 DrawDashWake(p, t);
             else if (p.Id == game.MyId ? game.SprintT > 0f : p.Sprint > 0)  // the Dodge's held sprint (NinjaLooks.cs)
                 DrawSprintWake(p, t, p.Id == game.MyId ? game.SprintFade : p.Sprint / 255f);
+            if (p.Chains.Count > 0 || p.LeashOn)  // the Blood Lash's chains and Martyr's Leash (BloodLashLook.cs)
+                DrawLashChains(p, t);
             if (p.TitheClock > 0f)  // Vein Tithe: heart, arteries, cuffs (VeinTitheLook.cs)
                 DrawTithe(p, t);
             if (p.RainClock > 0f)  // Sanguine Rain: siphon, seeds, rings, tether (SanguineRainLook.cs)

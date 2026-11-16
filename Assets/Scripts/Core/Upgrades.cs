@@ -137,8 +137,9 @@ namespace Arena
         public float BurstPushMult = 1f, CaltropBonusTime;                 // Katana: Honed Edge
         public float KunaiBlinkMult = 1f, KunaiMarkBonus;                  // Kunai: Shadow Mark
         // Blood Mage weapon cards (Docs/UpgradePools.md step 9)
-        public float LashReachMult = 1f, ClotCutBonus;                     // Blood Lash: Crimson Whip
-        public float PoolSizeMult = 1f, PoolBonusTime;                     // Clot Cannon: Deep Pool
+        public float LashReachMult = 1f, ClotCutBonus;                     // Blood Lash: Crimson Whip (and LashLinkBonus)
+        public int LashLinkBonus;
+        public float PoolSizeMult = 1f, PoolBonusTime;                     // Gore Mortar: Deep Pool
         public float LeechDrainMult = 1f, LeechStealBonus;                 // Leech Tendrils: Hungry Tendrils
         public float TransfuseMult = 1f;                                   // Transfusion Darts: Generous Blood
         public float ReserveGainMult = 1f, CoatHealMult = 1f;              // Sanguine Orb: Rich Blood

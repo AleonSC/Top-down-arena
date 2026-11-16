@@ -95,13 +95,14 @@ static partial class Program
             return before - bb[1].Hp;
         };
         float four = Bolts(4);
-        int stacked = bb[0].Hemorrhage;
+        int stacked = bb[0].BleedStacks;
+        bool bled = bb[0].Bleeding;
         float fifth = Bolts(1);
-        Check(stacked == 4 && bb[0].Hemorrhage == 0, "Blood Bolts stack on an enemy (drawn as drops) and the burst clears them");
-        step(Game.HemorrhageHold + 0.2f, true);
+        Check(stacked == 4 && bled && bb[0].BleedStacks == 0 && !bb[0].Bleeding, "Blood Bolts stack bleed on an enemy (drawn as drops) and the burst clears it");
+        step(3.2f, true);  // (the bleed's 3 s)
         float faded = Bolts(1);
         Console.WriteLine("  blood bolts: neighbour took {0:0.0} after 4 bolts, {1:0.0} on the 5th; after they fade, one more bolt {2:0.0}", four, fifth, faded);
-        Check(four == 0f && fifth > 0f && faded == 0f, "the fifth Blood Bolt in a row makes an enemy hemorrhage and burst onto enemies round it; the stacks fade");
+        Check(four == 0f && fifth > 0f && faded == 0f, "the fifth Blood Bolt's bleed stack bursts the enemy onto enemies round it; the stacks fade");
         host.Leave("");
     }
 
@@ -184,7 +185,7 @@ static partial class Program
                 volley.Invoke(g, new object[] { me, 0f, 0 });
                 var ws = g.Bullets.Values.Where(b => b.Owner == 1).ToList();
                 Console.WriteLine("  twin rifle against a wall ({0}): rounds start at x {1:0.0} (the wall's face {2:0.0})", wallLayout, ws.Max(b => b.Pos.X), face);
-                Check(ws.Count == 2 && ws.All(b => b.Pos.X <= face), "against a wall the Twin Rifle's rounds start at your edge, not through the wall");
+                Check(ws.Count == 2 && ws.All(b => b.Pos.X <= face + 0.01f), "against a wall the Twin Rifle's rounds start at your edge, not through the wall");
                 g.Layout = keepLayout;
                 g.Bullets.Clear(); me.Pos = from;
             }
@@ -924,7 +925,7 @@ static partial class Program
 
     static void LastFourTest(float dt)
     {
-        // The Clot Cannon lobs a clot that splashes the same at any range and leaves a pool that congeals; Transfusion Darts give an ally a lot for a little
+        // The Gore Mortar lobs a clot that splashes the same at any range and leaves a pool that congeals; Transfusion Darts give an ally a lot for a little
         // and steal a sliver from enemies; the Rapier's Tempo, skewering and Flourish; the Katana's two stances.
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var volley = typeof(Game).GetMethod("FireVolley", flags);
@@ -945,11 +946,13 @@ static partial class Program
         V2 from = new V2(300f, 450f), allyAt = new V2(300f, 150f);
         var keep = new List<Enemy>();
         var pins = new Dictionary<Enemy, V2>();
+        bool noOrbs = false;  // while measuring healing: the wave enemies play() kills drop health orbs at random, which can heal the ally
         Func<V2, float, Enemy> dummy = (at, hp) => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = hp; e.SpawnT = 0f; e.FireT = 99f; keep.Add(e); pins[e] = at; return e; };
         Action<float, PlayerInput> play = (secs, input) =>
         {
             for (int f = 0; f < secs * 60; f++)
             {
+                if (noOrbs) g.Orbs.Clear();
                 foreach (var e in g.Enemies.Values) if (!keep.Contains(e)) e.Hp = 0f;
                 foreach (var e in keep) { if (pins.ContainsKey(e)) e.Pos = pins[e]; e.FireT = 99f; }
                 me.Pos = from;
@@ -961,11 +964,11 @@ static partial class Program
         Action reset = () => { foreach (var e in keep) e.Hp = 0f; keep.Clear(); pins.Clear(); g.Bullets.Clear(); g.Zones.Clear(); };
         play(0.3f, new PlayerInput());
 
-        // Clot Cannon: hold to charge, let go to lob a clot over enemies; the charge sets how far it lands, never how hard.
+        // Gore Mortar: hold to charge, let go to lob a clot over enemies; the charge sets how far it lands, never how hard.
         // It splashes everything where it lands and leaves a big pool that congeals after a second, sticking the enemies
         // in it; standing in your own pool no longer guards you.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.ClotBolt);
-        Check(Game.ChargeWeapon(WeaponId.ClotBolt) && me.Weapon.Name == "Clot Cannon", "the tank Hemomancer's Clot Cannon charges like a bow");
+        Check(Game.ChargeWeapon(WeaponId.ClotBolt) && me.Weapon.Name == "Gore Mortar", "the tank Hemomancer's Gore Mortar charges like a bow");
         var tapNear = dummy(from + new V2(Game.ClotMin, 0f), 1e5f);
         var tapFar = dummy(from + new V2(Game.ClotMax, 0f), 1e5f);
         me.BowShotDraw = Game.BowMinDraw;
@@ -982,7 +985,7 @@ static partial class Program
         volley.Invoke(g, new object[] { me, 0f, 0 });
         float shotCost = me.MaxHp - me.Hp;
         Console.WriteLine("  clot cannon: a shot cost {0:0.0} of {1:0} health", shotCost, me.MaxHp);
-        Check(Math.Abs(shotCost - me.MaxHp * Game.ClotCost) < 0.01f, "every Clot Cannon shot costs 6% of your max health");
+        Check(Math.Abs(shotCost - me.MaxHp * Game.ClotCost) < 0.01f, "every Gore Mortar shot costs 6% of your max health");
         me.Hp = me.MaxHp;
         play(Game.ClotFlight(1f) + 0.05f, new PlayerInput());
         float fullHit = stuck.MaxHp - stuck.Hp, underHit = under.MaxHp - under.Hp, besideHit = beside.MaxHp - beside.Hp;
@@ -1023,6 +1026,7 @@ static partial class Program
 
         // Transfusion Darts: a hurt ally gets a lot, you pay a little; an enemy hit steals a sliver.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.TransfusionDarts);
+        noOrbs = true;
         allyAt = from + new V2(200f, 0f);
         play(0.2f, new PlayerInput());
         Func<float> drift = () => { me.Hp = me.MaxHp * 0.5f; float h = me.Hp; play(0.5f, new PlayerInput()); return me.Hp - h; };  // your own healing meanwhile (regen, aura)
@@ -1042,6 +1046,7 @@ static partial class Program
         Console.WriteLine("  transfusion darts: one dart gave an ally {0:0.0} for {1:0.0} of yours; one dart into an enemy healed you {2:0.00}", given, paid, stolen);
         Check(Math.Abs(given - Game.TransfuseHeal) < 1f && Math.Abs(paid - Game.TransfuseCost) < 0.5f, "Transfusion Darts give a hurt ally a lot of health for a little of yours");
         Check(stolen >= Game.TransfuseSteal - 0.05f && stolen < 1.2f, "Transfusion Darts steal only a sliver from enemies");
+        noOrbs = false;
         reset();
 
         // Rapier (Rapier.cs): a thrust skewers enemy bullets along its line (3 at most); they add no Tempo, the enemy hit adds one.

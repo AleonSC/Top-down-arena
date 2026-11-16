@@ -17,7 +17,7 @@ namespace Arena
             float missing = p.MaxHp > 0f ? MathX.Clamp01(1f - p.Hp / p.MaxHp) : 0f;
             if (missing > 0.05f)  // Blood Price: a red glow that grows as health falls
                 Circle(p.Disp, r + 6f + 3f * Mathf.Sin(t * (4f + 6f * missing)), BloodRed.WithAlpha(0.25f * missing * a), 24);
-            if (p.Clot > 0 && p.ClotMax > 0)  // Blood Lash's Clot: dark scabs plating you, glowing when a Clot Burst is ready
+            if (p.Clot > 0 && p.ClotMax > 0)  // Blood Lash's Clot (from Reap): dark scabs plating you, glowing when full
             {
                 bool ready = p.Clot >= p.ClotMax;
                 float seg = MathX.Tau / p.ClotMax;
@@ -29,11 +29,11 @@ namespace Arena
             // (Blood Debt's ring and Arterial Spray's jet are drawn for any class: WorldPlayers.cs)
         }
 
-        /// Blood Bolts stuck in an enemy: a drop for each, circling it and drawing in closer as they build toward the
-        /// burst; one short of it, they swell and throb.
-        void DrawHemorrhage(Enemy e, V2 pos, float r, float t)
+        /// An enemy's bleed stacks (any source): a drop for each, circling it and drawing in closer as they build toward
+        /// a Blood Bolt's burst; one short of it, they swell and throb.
+        void DrawBleedDrops(Enemy e, V2 pos, float r, float t)
         {
-            int n = e.Hemorrhage, burstAt = Game.HemorrhageHits;
+            int n = e.BleedStacks, burstAt = Game.BleedBurstAt;
             float k = (float)n / burstAt, ring = r + 10f - 6f * k;
             bool primed = n >= burstAt - 1;
             float swell = primed ? 1f + 0.35f * Mathf.Abs(Mathf.Sin(t * 12f)) : 1f;
@@ -383,7 +383,7 @@ namespace Arena
             V2 dir = b.Vel.IsZero ? new V2(1f, 0f) : b.Vel.Normalized(), side = dir.Orthogonal();
             switch (b.Kind)
             {
-                case Defs.ClotShot:  // the Clot Cannon's clot, lobbed over its shadow (ClotCannonLook.cs)
+                case Defs.ClotShot:  // the Gore Mortar's clot, lobbed over its shadow (ClotCannonLook.cs)
                     DrawClotLob(b, t);
                     break;
                 case Defs.LeechShot:  // a streak of the beam

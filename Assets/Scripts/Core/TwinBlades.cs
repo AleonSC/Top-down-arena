@@ -106,8 +106,8 @@ namespace Arena
                 p.FangCd = Math.Max(0f, p.FangCd - dt);
                 if (p.FangOut != 0 && !fangRuns.Exists(r => r.Owner == p.Id))
                     p.FangOut = 0;  // (a run reset dropped the pair)
-                if (p.Weapon.Id == WeaponId.Censer)
-                    continue;  // the Censer keeps its rite in Combo too (Censer.cs)
+                if (p.Weapon.Id == WeaponId.Censer || p.Weapon.Id == WeaponId.BloodLash)
+                    continue;  // the Censer and the Blood Lash keep their own step in Combo (Censer.cs, BloodLash.cs)
                 if (TwinBladesMotion.StepOf(p.Combo) != 0 && ((p.ComboT -= dt) <= 0f || p.Downed || (p.Weapon.Id != WeaponId.TwinBlades && p.Weapon.Id != WeaponId.Lightbringer && p.Weapon.Id != WeaponId.Lance && p.Weapon.Id != WeaponId.ArcKnuckles)))  // (the Lightbringer's, the Lance's and the Arc Knuckles' chains share Combo)
                     p.Combo &= ~7;  // back to the first step (the swing count stays)
             }

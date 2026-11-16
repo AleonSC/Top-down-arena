@@ -47,6 +47,7 @@ namespace Arena
                 amount *= 1f - Math.Min(0.8f, CavGuard + p.Stats.UnbreakBonus);
             amount *= 1f - IronBodyCut(p);  // the Ninja's Iron Body
             amount *= 1f - ClotCut(p);      // Blood Lash's Clot
+            amount = LeashSoak(p, amount);  // Martyr's Leash sends a share down the chains (BloodLash.cs)
             amount = WardSoak(p, amount);  // a Spirit Ward near you takes it first (Ninja.cs)
             amount = JuggSoak(p, amount);  // then the Juggernaut Suit's armour (Juggernaut.cs)
             if (p.ShieldHp > 0f)  // shields soak damage next (Energy Ward, Guardian's Oath, Substitution, Blood Shell)
@@ -176,7 +177,7 @@ namespace Arena
             }
         }
 
-        /// Shots thrown in an arc (grenades, boulders, Clot Cannon clots, medkits): they fly over what's below and land.
+        /// Shots thrown in an arc (grenades, boulders, Gore Mortar clots, medkits): they fly over what's below and land.
         static bool Lobbed(byte kind) => kind == Defs.GrenadeShot || kind == Defs.BoulderShot || kind == Defs.ClotShot || kind == Defs.MedkitShot;
 
         static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed && kind != Defs.SteelShard && kind != Defs.Caltrop;
@@ -463,7 +464,7 @@ namespace Arena
             foreach (var b in Bullets.Values)
             {
                 if (Lobbed(b.Kind) || b.Kind == Defs.FlakShell || b.Ward || b.Tossed)
-                    continue;  // grenades, boulders, Clot Cannon clots, medkits, flak shells and tossed caltrops fly over enemies and land or burst where you aimed
+                    continue;  // grenades, boulders, Gore Mortar clots, medkits, flak shells and tossed caltrops fly over enemies and land or burst where you aimed
                 if (LayoutOn && SolidStops(b) && !WallBounce(b))
                 {
                     scratchIds.Add(b.Id);  // a wall or pillar stops every shot (LayoutRules.cs)

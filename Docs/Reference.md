@@ -104,12 +104,12 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Weapon | Role | Interval | Damage | Speed x life | Reach | Sim DPS | What it does |
 |---|---|---|---|---|---|---|---|
 | Blood Lash | Tank | 0.5 s | 24 | - | 130 | 96 | A whip of blood. Its tip cracks for double damage and taunts, and enemies hit closer in are flung out to the tip. Each hit clots your blood (+1 Clot, +2 from the tip; 4% less damage taken each, up to 5). At full Clot your next lash bursts all round you. |
-| Clot Cannon | Tank | 0.75 s | 34 | - | - | 133 | Hold to charge, let go to lob a massive blood clot over enemies; the longer you hold, the farther it flies, and it hits just as hard at any range. Each shot costs 6% of your max health. It bursts into a big pool of blood that slows enemies and slowly heals anyone standing in it, and after a moment the pool congeals and holds enemies still. |
+| Gore Mortar | Tank | 0.75 s | 34 | - | - | 133 | Hold to charge, let go to lob a massive blood clot over enemies; the longer you hold, the farther it flies, and it hits just as hard at any range. Each shot costs 6% of your max health. It bursts into a big pool of blood that slows enemies and slowly heals anyone standing in it, and after a moment the pool congeals and holds enemies still. |
 | Leech Tendrils | Tank | 0.1 s | 1.2 | - | 160 | 31 | Hold to lash out blood tendrils that grasp nearby enemies while you hold on. They are stunned and drained, and part of the damage heals you. |
 | Transfusion Darts | Healer | 0.2 s | 7 | 850 x 0.85 s | - | 32 | Darts that transfuse your blood: one that reaches a hurt ally gives them more health than it costs you. Each enemy hit steals a sliver back. |
 | Sanguine Orb | Healer | 0.45 s | 16 | 420 x 1.4 s | - | 57 | Orbs of blood that home in at the last moment, circle an enemy and cover it, making it bleed and charging your heal reserve. With 25 reserve, an orb that touches a hurt ally coats them in healing blood instead (30 health over 4 s). |
 | Vein Tether | Healer | 0.08 s | 4 | - | 350 | 48 | A draining beam that hurts whatever you hold it on. Part of its damage heals, split between you and the nearest ally. |
-| Blood Bolts | Dps | 0.13 s | 9 | 800 x 0.8 s | - | 121 | Fast bolts of blood that stick in enemies. Enough bolts in one enemy make it hemorrhage, bursting for damage to it and the enemies around it. |
+| Blood Bolts | Dps | 0.13 s | 9 | 800 x 0.8 s | - | 121 | Fast bolts of blood that make enemies bleed. A bolt that fills an enemy's bleed bursts it, hurting it and the enemies around it. |
 | Implosion | Dps | 0.45 s | 34 | - | 480 | 75 | Click an enemy: its blood collapses inward, hurting enemies pressed against it and pulling them in. |
 | Bone Spear | Dps | 0.8 s | 60 | 1000 x 0.9 s | - | 79 | A heavy spear that pierces enemies. Each throw costs a little health, but the spear stays stuck where it stops, and walking over it gives the health back. |
 

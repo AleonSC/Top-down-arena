@@ -822,7 +822,7 @@ namespace Arena
             Row(table, GreatStar, radius: 24f, color: new Rgba(0.8f, 0.85f, 0.95f));  // huger
             Row(table, StoneSpear, radius: 8f, color: new Rgba(1f, 0.69f, 0.29f));  // basalt with amber seams (the colour is the seams' glow)
             Row(table, BloodShot, radius: 4f, color: new Rgba(0.9f, 0.12f, 0.2f));
-            Row(table, ClotShot, radius: 14f, color: new Rgba(0.6f, 0.05f, 0.12f));  // the Clot Cannon's massive clot (lobbed: it never collides)
+            Row(table, ClotShot, radius: 14f, color: new Rgba(0.6f, 0.05f, 0.12f));  // the Gore Mortar's massive clot (lobbed: it never collides)
             Row(table, LeechShot, radius: 3.5f, color: new Rgba(1f, 0.25f, 0.3f));
             Row(table, TransfuseShot, radius: 3f, color: new Rgba(1f, 0.5f, 0.55f));
             Row(table, SanguineShot, radius: 6.5f, color: new Rgba(0.85f, 0.1f, 0.25f));

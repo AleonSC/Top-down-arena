@@ -648,6 +648,27 @@ namespace Arena
             s.Float(ref p.DebtOwed);
             s.Byte(ref p.Clot);
             s.Byte(ref p.ClotMax);
+            int chained = Math.Min(255, p.Chains.Count);  // the Blood Lash's chains (BloodLash.cs)
+            s.Byte(ref chained);
+            if (s.Reading)
+            {
+                p.Chains.Clear();
+                p.ChainLinks.Clear();
+            }
+            for (int k = 0; k < chained; k++)
+            {
+                int chainId = s.Reading ? 0 : p.Chains[k];
+                byte links = s.Reading ? (byte)0 : p.ChainLinks[k];
+                s.Int(ref chainId);
+                s.Byte(ref links);
+                if (s.Reading)
+                {
+                    p.Chains.Add(chainId);
+                    p.ChainLinks.Add(links);
+                }
+            }
+            s.Bool(ref p.LeashOn);  // Martyr's Leash
+            s.Float(ref p.LeashT);
             int reserve = (int)p.BloodReserve;
             s.Byte(ref reserve);
             if (s.Reading)
@@ -733,7 +754,7 @@ namespace Arena
             float hp = 0f, maxHp = 0f, facing = 0f;
             bool spawning = false, elite = false;
             byte phase = 0, status = 0;
-            int hemorrhage = 0, stars = 0, traits = 0, bubble = 0, ward = 0, cells = 0;
+            int bleedStacks = 0, stars = 0, traits = 0, bubble = 0, ward = 0, cells = 0;
             bool winding = false, penned = false, wet = false, hit = false, venom = false;
             int bleedHits = 0;
             if (!s.Reading)
@@ -769,7 +790,7 @@ namespace Arena
                 e.Chilled = IceSlowed(e) && !e.Frozen;
                 e.Bleeding = e.BleedT > 0f;
                 status = (byte)((e.Marked ? 1 : 0) | (e.Burning ? 2 : 0) | (e.Chilled ? 4 : 0) | (e.Frozen ? 8 : 0) | (e.Bleeding ? 16 : 0) | (e.Caged ? 32 : 0) | (e.Suppress >= SuppressShown ? 64 : 0) | (e.PoisonT > 0f ? 128 : 0));
-                hemorrhage = e.Hemorrhage;
+                bleedStacks = e.BleedStacks;
                 stars = e.StarsStuck;
                 e.Suppressed = e.Suppress >= SuppressShown;
                 e.Poisoned = e.PoisonT > 0f;
@@ -785,7 +806,7 @@ namespace Arena
             s.Byte(ref phase);
             s.Bool(ref elite);
             s.Byte(ref status);
-            s.Byte(ref hemorrhage);  // Blood Bolts stuck in it, drawn as drops gathering on it
+            s.Byte(ref bleedStacks);  // bleed stacks on it, drawn as drops gathering on it
             s.Byte(ref stars);       // Shuriken stars stuck in it
             s.Byte(ref traits);      // elite traits, a bubble and the Warder holding it up (Variety.cs)
             s.Byte(ref bubble);
@@ -838,7 +859,7 @@ namespace Arena
                 e.Caged = (status & 32) != 0;
                 e.Suppressed = (status & 64) != 0;
                 e.Poisoned = (status & 128) != 0;
-                e.Hemorrhage = hemorrhage;
+                e.BleedStacks = bleedStacks;
                 e.StarsStuck = stars;
                 e.Traits = (byte)traits;
                 e.BubbleFrac = bubble / 255f;

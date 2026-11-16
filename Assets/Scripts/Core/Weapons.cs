@@ -242,7 +242,7 @@ namespace Arena
 
         public float BowFull(Player p) => BowFullDraw / FireRate(p) * (p.Weapon != null && p.Weapon.Id == WeaponId.MendersBow ? p.Stats.BowDrawMult : p.Weapon != null && p.Weapon.Id == WeaponId.ArcLightning ? p.Stats.ArcChargeMult : 1f);  // (Steady Draw, Static Field)  // (Steady Draw: sooner)
 
-        /// Weapons you hold to charge and let go to fire: the Mender's Bow, the Warhammer, the Golem Staff's boulder, Arc Lightning, the Imp Caller and the Clot Cannon.
+        /// Weapons you hold to charge and let go to fire: the Mender's Bow, the Warhammer, the Golem Staff's boulder, Arc Lightning, the Imp Caller and the Gore Mortar.
         public static bool ChargeWeapon(WeaponId w) => w == WeaponId.MendersBow || w == WeaponId.Warhammer || w == WeaponId.GolemStaff || w == WeaponId.ArcLightning || w == WeaponId.ImpCaller || w == WeaponId.ClotBolt;
 
         /// 0 for a tap, 1 at full draw.
@@ -519,7 +519,7 @@ namespace Arena
                     return p.Def.BodyR + Lerp(500f, 900f, p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
                 case WeaponId.GolemStaff:  // where the boulder lands with the current charge (Minions.cs)
                     return BoulderDistance(p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
-                case WeaponId.ClotBolt:  // where the Clot Cannon's clot lands with the current charge (BloodMage.cs)
+                case WeaponId.ClotBolt:  // where the Gore Mortar's clot lands with the current charge (BloodMage.cs)
                     return ClotDistance(p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
                 case WeaponId.Warhammer:  // the middle of its slam's circle, the furthest aftershock's if it has them (Knight.cs)
                     return HammerCentre(MeleeReach(p, w.Reach + w.Grow * x));

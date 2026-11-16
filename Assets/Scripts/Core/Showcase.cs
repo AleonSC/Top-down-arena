@@ -134,7 +134,7 @@ namespace Arena
                 input.Move = (stroll - me.Pos).Normalized();
             // The bow draws and lets go; everything else just holds the trigger.
             input.Fire = !Idle && (!Game.ChargeWeapon(me.Weapon.Id) || MathX.Fmod(t, 1.3f) < 1.05f);
-            if (me.Weapon.Id == WeaponId.ClotBolt)  // the Clot Cannon: held just long enough to lob the clot onto the dummies
+            if (me.Weapon.Id == WeaponId.ClotBolt)  // the Gore Mortar: held just long enough to lob the clot onto the dummies
             {
                 float c = MathX.Clamp01((Distance / me.Stats.ShotSpeedMult - Game.ClotMin) / (Game.ClotMax - Game.ClotMin));
                 input.Fire = !Idle && MathX.Fmod(t, 1.3f) < Game.BowMinDraw + c * (Game.BowFull(me) - Game.BowMinDraw) + 0.02f;
