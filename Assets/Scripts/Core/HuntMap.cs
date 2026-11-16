@@ -31,6 +31,7 @@ namespace Arena
     {
         public const int Steps = Hunts.Length;     // rows, the boss's included
         public const int Lanes = 3;
+        public const float ClueHpCut = 0.08f;      // each clue: the boss starts the fight with this share of its health already gone
         public const int MaxClues = 3;             // elites cleared that count towards the boss (a clue each)
 
         public readonly int Seed;
