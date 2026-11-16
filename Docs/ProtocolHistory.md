@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 357: `Msg.WeaponDash` kind 31 (the Wolf Whistle's Alt, merging an alpha); Player.PackKills (the Wolf Whistle's kills towards the next wolf) after PreyId; Wolf Whistle wolves send their health in GuardFrac.
 - 356: Stonespear (Elementalist DPS 4th weapon): `WeaponId.Stonespear`, bullet kind `Defs.StoneSpear` (68), `FxKind.StoneSlam`, `Msg.WeaponDash` kind 30 (the volley); Player snapshot gains `SsMask` (short), `SsSide` (byte), `SsLock` (int) after `DbReload`
 - 355: Blood Lash chain combo: each player sends `Chains` (enemy id + links byte each) and `LeashOn`/`LeashT` (Martyr's Leash) after `ClotMax`
 - 354: the enemy snapshot's Blood Bolt count byte is now its bleed stacks (any source); Blood Bolts' Hemorrhage folded into the shared bleed

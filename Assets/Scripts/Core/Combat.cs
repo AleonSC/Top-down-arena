@@ -47,6 +47,7 @@ namespace Arena
                 amount *= 1f - Math.Min(0.8f, CavGuard + p.Stats.UnbreakBonus);
             amount *= 1f - IronBodyCut(p);  // the Ninja's Iron Body
             amount *= 1f - ClotCut(p);      // Blood Lash's Clot
+            amount = PackSoak(p, amount);  // the Wolf Whistle's pack takes a share (WolfPack.cs)
             amount = LeashSoak(p, amount);  // Martyr's Leash sends a share down the chains (BloodLash.cs)
             amount = WardSoak(p, amount);  // a Spirit Ward near you takes it first (Ninja.cs)
             amount = JuggSoak(p, amount);  // then the Juggernaut Suit's armour (Juggernaut.cs)
@@ -869,6 +870,8 @@ namespace Arena
                     GrantGold(e);  // Shop.cs
                 GrantVectorKill(killer, e.Pos);  // and a vector pickup every VectorKillEvery kills (ExpansionGame.cs)
                 MomentumKill(killer, e);  // DPS role passive (Momentum.cs)
+                if (e.Def.Xp > 0)
+                    PackKill(killer);  // the Wolf Whistle's pack grows (WolfPack.cs)
                 DropOrbs(e, bossReward);
                 DeathFx(e, e.Pos);
                 Enemies.Remove(e.Id);

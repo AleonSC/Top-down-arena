@@ -118,6 +118,9 @@ namespace Arena
                 if (p.Weapon.Id == WeaponId.Scattergun || p.Weapon.Id == WeaponId.FlakCannon || p.Weapon.Id == WeaponId.RiotRepeater || p.Weapon.Id == WeaponId.BoneGuard)
                     DrawTankAltPips(p);  // TankAltLook.cs
             foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.WolfWhistle)
+                    DrawPackPips(p);  // WolfLook.cs
+            foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.LightBolt)
                 {
                     DrawRepelPull(p);  // RepulseLook.cs: the Undertow's current and meter

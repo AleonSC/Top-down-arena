@@ -378,6 +378,11 @@ namespace Arena
                 DrawThrownScythe(m, t);  // ReaperLootLook.cs
                 return;
             }
+            if (m.Kind == MinionKind.Wolf)
+            {
+                DrawWolf(m, t);  // WolfLook.cs
+                return;
+            }
             if (m.Kind == MinionKind.Bear)
             {
                 DrawBear(m, t);  // BearLooks.cs

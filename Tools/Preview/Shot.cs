@@ -259,6 +259,7 @@ static partial class Shot {
     set("session", host); set("game", host.Game); set("scale", 1f); set("drawScale", 1280f / Game.Width);
     if (Environment.GetEnvironmentVariable("FXOFF") != null) set("fxOn", false);  // FXOFF=1: Visual effects off (the plain looks)
     ArenaScenes();
+    WolfPoses();  // WOLFPACK=lineup: each wolf's stride and bite (ShotWolfPack.cs)
     VectorGainScene();  // VECGAIN=<s since> [VECGAINN=10] (ShotScenes.cs)
     // WARDENINTRO=<s>: the Warden's entrance that far in (WardenIntro.cs): a clean arena, the Warden held in the middle (still "spawning", so it gets the entrance, not the card).
     if (Environment.GetEnvironmentVariable("WARDENINTRO") != null)
