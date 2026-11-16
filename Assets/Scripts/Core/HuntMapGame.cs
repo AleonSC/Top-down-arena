@@ -72,7 +72,7 @@ namespace Arena
         /// The node type of a wave of the hunt (Skirmish where the map doesn't say yet).
         public HuntNodeType HuntNodeAt(int wave)
         {
-            if (HuntRoute == null || wave < 1 || wave > HuntMap.Steps)
+            if (HuntRoute == null || wave < 1 || wave > HuntLength)
                 return HuntNodeType.Skirmish;
             int row = wave - 1;
             var path = HuntRoute.Path;
@@ -92,7 +92,7 @@ namespace Arena
                 return;
             if (HuntRoute == null)
             {
-                HuntRoute = HuntMap.Generate(HuntMapSeed != 0 ? HuntMapSeed : rng.Next(1, 1 << 30));
+                HuntRoute = HuntMap.Generate(HuntMapSeed != 0 ? HuntMapSeed : rng.Next(1, 1 << 30), HuntLength);
                 DoLog("hunt map: seed " + HuntRoute.Seed);
                 BroadcastHuntMap();
             }
@@ -350,7 +350,7 @@ namespace Arena
             }
             if (IsHost)
                 return;
-            var map = HuntMap.Restore(seed, path);
+            var map = HuntMap.Restore(seed, path, HuntLength);
             if (map == null || (current >= 0 && !map.Pick(current)))
                 return;   // (a map that doesn't fit what we were told: wait for the next message)
             map.SetClues(clues);

@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 363: lobby state carries `HuntLong` (the 20-step hunt), the run's `HuntLength` follows it; a hunt map's boss clues (up to 5) roll health or damage from the map seed (no wire change)
 - 362: `Sfx` is a ushort on the wire (`Msg.Sound`, `Msg.Fx`); 14 unused sounds removed and 22 local-only cues appended (Arc Lightning's included), so every value after `ShotRifle` moved
 - 361: Player.Grasp now carries a float charge (0..1, Leech Tendrils build-up) per held enemy (Leech Tendrils rework: 5 s fuse, burst, cooldown)
 - 360: `Sfx.ShotFireball`, `Sfx.ShotFireballBurn` appended (the Fireball's launch roar and its burn cue)

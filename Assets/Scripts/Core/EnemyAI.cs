@@ -361,7 +361,7 @@ namespace Arena
                 ScaleBoss(e);
             e.Hp = e.MaxHp;
             if (d.IsBoss && HuntRoute != null && HuntRoute.Clues > 0)
-                e.Hp = e.MaxHp * (1f - HuntMap.ClueHpCut * HuntRoute.Clues);  // a hunt map's boss clues: it starts the fight hurt (Docs/HuntMap.md)
+                e.Hp = e.MaxHp * HuntRoute.ClueHpScale;  // a hunt map's boss clues: each health clue starts the fight with the boss hurt (Docs/HuntMap.md)
             if (elite)
                 RollTraits(e);  // Variety.cs
             else if (parent == 0)

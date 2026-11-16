@@ -137,7 +137,7 @@ namespace Arena
             if (practice != null)
                 return "PRACTICE " + Math.Max(1, game.PracticeIndex + 1).ToString("00") + " / " + practice.Waves.Count;
             if (game.Hunt != null)
-                return "HUNT WAVE " + game.HuntWave.ToString("00") + " / " + Hunts.Length;
+                return "HUNT WAVE " + game.HuntWave.ToString("00") + " / " + game.HuntLength;
             return "WAVE " + game.ShownWave.ToString("00") + (game.Endless ? "" : " / " + game.ShownLastWave);
         }
 
