@@ -6,7 +6,7 @@ namespace Arena
     /// The drawer the in-game menus are made of (the lobby loadout's box, Docs/Mockups/pause-settings-loadout-box.html): the pause menu, the lobby's Esc menu,
     /// Settings, How to play and the profile. Pieces:
     ///   BeginDrawer / DrawerRow / EndDrawerScreen / EndDrawer   the box on the left: a title ("PAUSED_") and a line under it, then
-    ///       the option keys, and (drawn by the caller, CabBackKey) a physical Back key right under the last one. Its OPENING plays
+    ///       the option keys, and (drawn by the caller, CabBackKey) a digital Back key right under the last one. Its OPENING plays
     ///       once, from the window's clock (WinT, `CabAge`): the box soft-sweeps in (HoloBoot.SoftClip/SoftOver, LobbyFx.cs: shown top-down under a
     ///       feathered edge), the title types, its sub-line types a boot log and
     ///       then the real line, a scan bar sweeps the list; the keys come in under the box's sweep (KeyOpening) with their texts typing in. After CabOpenEnd seconds nothing here animates (a list
@@ -202,18 +202,15 @@ namespace Arena
             return age > 0f;
         }
 
-        /// The physical Back key at `y` in the drawer, right under the options list (Settings, How to play, the profile). It comes in
+        /// The Back key at `y` in the drawer, right under the options list (Settings, How to play, the profile). It comes in
         /// after the last key. True when pressed.
-        bool CabBackKey(float y)
+        bool CabBackKey(float y, string line = "Close this menu", float h = 76f)
         {
             if (!cabScreenOn)
                 return false;
-            var r = new Rect(26f, Mathf.Min(y, CabH - 54f), CabInW, 44f);
-            float ka;
-            if (!KeyOpening(r, rowIndex, out ka))
-                return false;
-            bool pressed = CrtKit.PhysicalKey(r, "BACK");
-            return pressed;
+            // A digital key like the rows above it (DrawerRow), in a dim grey so it reads apart from the options.
+            var r = new Rect(34f, Mathf.Min(y, CabH - h - 8f), CabRowW, h);
+            return DrawerRow(r, PixelArt.Get("ui_back"), "Back", h >= 54f ? line : null, "Esc", null, new Color(0.62f, 0.68f, 0.8f), false);
         }
 
         // --- The window to the right ------------------------------------------------------------------------------------
