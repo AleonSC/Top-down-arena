@@ -1,0 +1,579 @@
+<title>Ninja Nunchaku</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, variant chips, one live stage (the full Fire combo, the weapon-action switch, the guard stance and its Fire),
+   a HUD strip under it, then the selected variant's spec and a three-way comparison. Dark dojo look in one theme on purpose:
+   the canvas is the game, and the page wears the same night. The accent follows the picked variant. */
+:root{
+  --bg:#0e1013; --panel:#161a1f; --line:#272d35; --fg:#e8ebee; --muted:#8c96a1; --chip:#1d2229;
+  --accent:#ff4d5e; --accent-2:#cfd6de;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font:700 clamp(40px,7vw,64px)/.95 var(--display);text-transform:uppercase;letter-spacing:.01em;margin:0 0 10px}
+h1 span{color:var(--accent);transition:color .3s}
+header p{margin:0;color:var(--muted);max-width:66ch}
+header p b{color:var(--fg);font-weight:600}
+h2{font:700 24px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px}
+.variants{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.vchip{display:flex;flex-direction:column;gap:2px;text-align:left;padding:12px 14px;border-radius:8px;border:1px solid var(--line);
+  background:var(--panel);color:var(--fg);cursor:pointer;font:inherit;min-width:0}
+.vchip b{font:700 22px/1 var(--display);text-transform:uppercase;letter-spacing:.02em;display:flex;align-items:center;gap:8px}
+.vchip i{width:10px;height:10px;border-radius:2px;display:inline-block;flex:none}
+.vchip small{color:var(--muted);font-size:13px;line-height:1.35}
+.vchip[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.vchip:focus-visible,.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.frame{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0b0d10;position:relative}
+canvas{display:block;width:100%;height:auto;aspect-ratio:2/1;max-width:100%}
+.hud{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;padding:10px 12px;border-top:1px solid var(--line);background:var(--panel);font:500 13px var(--mono)}
+.pill{padding:3px 9px;border-radius:4px;border:1px solid var(--line);text-transform:uppercase;letter-spacing:.08em;font-size:12px}
+.pill.guard{background:var(--accent);color:#0b0d10;border-color:var(--accent)}
+kbd{font:600 12px var(--mono);padding:3px 8px;border-radius:4px;border:1px solid var(--muted);border-bottom-width:3px;background:#0b0d10;color:var(--fg);min-width:52px;text-align:center;display:inline-block}
+kbd.on{border-color:var(--accent);color:var(--accent)}
+#moveName{font:700 20px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;min-width:0;flex:1}
+.pips{display:flex;gap:5px}
+.pips span{width:12px;height:12px;border-radius:2px;border:1px solid var(--muted);transform:rotate(45deg)}
+.pips span.done{background:var(--muted)}
+.pips span.now{background:var(--accent);border-color:var(--accent)}
+.bar{display:flex;gap:10px 22px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.group>span{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+.chip{font:500 14px var(--body);padding:6px 12px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.spec{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;min-width:0}
+.card h3{font:700 18px/1 var(--display);text-transform:uppercase;letter-spacing:.04em;margin:0 0 10px;display:flex;gap:10px;align-items:center}
+.card h3 kbd{min-width:0}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:4px 8px 6px 0;border-bottom:1px solid var(--line)}
+td{padding:7px 8px 7px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td.n{font:500 14px var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--accent)}
+tr.fin td{font-weight:600}
+tr.on td{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+dl{margin:0;display:grid;gap:10px}
+dt{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+dd{margin:2px 0 0}
+dd b{color:var(--accent);font-weight:600}
+.stats{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:12px;font:500 13px var(--mono);color:var(--muted)}
+.stats b{color:var(--fg);font-weight:500}
+.cmp td:first-child{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.cmp th{font:700 18px/1 var(--display);letter-spacing:.03em;color:var(--fg)}
+.note{color:var(--muted);font-size:14px;margin:0}
+@media (max-width:720px){.spec{grid-template-columns:1fr}.variants{grid-template-columns:1fr}}
+</style>
+
+<main>
+  <header>
+    <p class="eyebrow">DPS Ninja · weapon 4 (Choice 3) · draft</p>
+    <h1>Nunchaku <span id="vTitle">Iron Storm</span></h1>
+    <p><b>Fire</b> is a heavy combo with a big finisher. The <b>weapon-action key</b> (Left Alt) switches to a <b>defensive stance</b>, where Fire does something else. Three takes below; numbers are a first pass at about the Arc Knuckles' damage.</p>
+  </header>
+
+  <section class="variants" id="variants" aria-label="Variant"></section>
+
+  <section>
+    <div class="frame">
+      <canvas id="stage" width="1040" height="520" aria-label="Animated preview of the selected nunchaku variant"></canvas>
+      <div class="hud" aria-live="off">
+        <span class="pill" id="stance">Combo</span>
+        <kbd id="key">—</kbd>
+        <span id="moveName">Ready</span>
+        <span class="pips" id="pips"></span>
+      </div>
+    </div>
+    <div class="bar">
+      <div class="group" id="modeG"><span>Show</span>
+        <button class="chip" data-v="loop" aria-pressed="true">Full loop</button>
+        <button class="chip" data-v="combo" aria-pressed="false">Combo</button>
+        <button class="chip" data-v="guard" aria-pressed="false">Guard</button>
+      </div>
+      <div class="group" id="speedG"><span>Speed</span>
+        <button class="chip" data-v="1" aria-pressed="true">1×</button>
+        <button class="chip" data-v="0.5" aria-pressed="false">½×</button>
+        <button class="chip" data-v="0.25" aria-pressed="false">¼×</button>
+      </div>
+      <button class="chip" id="pause" aria-pressed="false">Pause</button>
+    </div>
+  </section>
+
+  <section class="spec">
+    <div class="card">
+      <h3><kbd>Fire</kbd> The combo</h3>
+      <div class="tablewrap"><table><thead><tr><th>#</th><th>Move</th><th>Dmg</th><th>Shape</th></tr></thead><tbody id="comboRows"></tbody></table></div>
+      <div class="stats" id="stats"></div>
+    </div>
+    <div class="card">
+      <h3><kbd>Alt</kbd> <span id="guardName">Guard</span></h3>
+      <dl id="guardDl"></dl>
+    </div>
+  </section>
+
+  <section>
+    <h2>Side by side</h2>
+    <div class="card tablewrap"><table class="cmp" id="cmp"></table></div>
+  </section>
+  <p class="note">The canvas is a hand-drawn approximation, not the game's draw code. Once a variant is picked, the look gets built for real and shown as a Tools/Preview render.</p>
+</main>
+
+<script>
+(()=>{
+const TAU=Math.PI*2, R=2.6;
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const EASE={io:t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2, o:t=>1-Math.pow(1-t,3), i:t=>t*t*t, l:t=>t};
+const wrap=a=>{a=(a+Math.PI)%TAU;if(a<0)a+=TAU;return a-Math.PI;};
+const rgba=(h,a)=>{const n=parseInt(h.slice(1),16);return `rgba(${n>>16},${(n>>8)&255},${n&255},${a})`;};
+const mirror=kf=>kf.map(k=>[k[0],-k[1],k[2],-k[3],k[4],k[5]]);
+
+/* ---------- the three variants ----------
+   keyframes: [u, handle angle, hand x, hand y, body lunge, ease into this key]; the player faces +x, +y is their right side */
+const SNAP=[[0,R,6,13,0],[.24,3.5,0,15,-3],[.52,.05,22,5,14,'o'],[.7,.05,20,5,12],[1,R,6,13,0]];
+const BACKHAND=[[0,R,6,13,0],[.22,1.6,10,15,4],[.55,-1.4,15,-8,10,'o'],[1,R-TAU,6,13,0]];
+const FIG8=[[0,R,6,13,0],[.14,1.3,14,7,6],[.38,-1.3,16,-4,12,'o'],[.62,1.3,16,5,12,'io'],[.8,.4,14,6,8],[1,R,6,13,0]];
+const CRUSH=[[0,R,6,13,0],[.36,9.2,2,2,-6,'i'],[.5,4*Math.PI,24,2,18,'o'],[.64,4*Math.PI,24,2,18],[1,4*Math.PI+R,6,13,0]];
+const WHIP=[[0,R,6,13,0],[.2,3.6,0,15,-4],[.45,0,26,4,20,'o'],[.7,0,24,4,16],[1,R,6,13,0]];
+const HOOK=[[0,R,6,13,0],[.18,1.9,10,14,4],[.5,-.9,16,-2,12,'o'],[1,R-TAU,6,13,0]];
+const TWIN=[[0,R,6,13,0],[.15,R+1,4,15,-2,'i'],[.8,R+1+2*TAU,6,16,8,'l'],[1,R+3*TAU,6,13,0,'o']];
+const BURST=[[0,R,6,13,0],[.3,R+TAU,10,16,0,'i'],[.6,R+2*TAU,6,13,0,'o'],[1,R+2*TAU,6,13,0]];
+const TIDE=[[0,R,6,13,0],[.32,3.9,0,10,-6],[.62,-.6,18,-6,14,'o'],[1,R-TAU,6,13,0]];
+const UNDERTOW=[[0,R,6,13,0],[.32,4.9,4,-6,-4],[.64,TAU+1.4,18,10,14,'o'],[1,TAU+R,6,13,0]];
+const ANVIL=[[0,R,6,13,0],[.45,9.0,0,0,-8,'i'],[.58,4*Math.PI,26,0,20,'o'],[.72,4*Math.PI,26,0,20],[1,4*Math.PI+R,6,13,0]];
+
+const V={
+storm:{
+  name:'Iron Storm', color:'#ff4d5e', swatch:'#ff4d5e',
+  blurb:'One black chuck, crimson bands. Fast chain, overhead crush.',
+  look:{stick:'#191416',band:'#ff4d5e',cap:'#cfd6de',w:4.2,chain:'#a3acb6'}, free:[8,-12],
+  combo:[
+    {name:'Snap',dmg:24,show:'24',shape:'Whip straight ahead, 90 px',dur:.32,R:SNAP},
+    {name:'Backhand',dmg:26,show:'26',shape:'140° sweep, 90 px',dur:.34,R:BACKHAND},
+    {name:'Figure-8',dmg:20,hits:2,show:'2 × 20',shape:'Two crossing sweeps, 85 px',dur:.5,R:FIG8},
+    {name:'Overhead Crush',dmg:70,show:'70',shape:'Spin and slam: 90 px shockwave, stuns 0.6 s',dur:.72,R:CRUSH,fin:true,tip:false,
+      fx:[{u:.5,type:'ring',at:'tip',r:90,dmg:70,shove:34,stun:.6}]},
+  ],
+  guard:{name:'Windmill Guard',
+    hold:'The chuck spins a <b>56 px disc</b> in front of you. Small bullets that hit it are <b>swatted back</b> (6 each to what they hit). 25% slower while in it.',
+    fire:'<b>Counter Whip</b>: a 160 px lash for 20 + <b>6 per bullet swatted</b> (up to 8, so 68).',
+    out:'Alt again. The combo starts over at Snap.'},
+  guardFire:{name:'Counter Whip',dur:.55,R:WHIP,tip:false,fx:[{u:.45,type:'lash',len:170,w:16,base:20,per:6,cap:8}]},
+  stats:['Chain <b>1.9 s</b>','~<b>86</b>/s one target','+1: Figure-8 swings 3 times, Crush ring +20%'],
+  cmp:{feel:'Fast and snappy, one clean finisher',best:'One tough target, bosses',guard:'Reflect: turns bullets into a big counter',risk:'Crush has a long wind-up'},
+},
+dragon:{
+  name:'Twin Dragons', color:'#f2c14e', swatch:'#f2c14e',
+  blurb:'A gold chuck in each hand. Alternating hooks, whirlwind finish.',
+  look:{stick:'#3a2410',band:'#f2c14e',cap:'#3fd6a0',w:3.6,chain:'#d8c79a'}, twin:true,
+  combo:[
+    {name:'Left Hook',dmg:18,show:'18',shape:'120° sweep, 80 px',dur:.26,L:mirror(HOOK)},
+    {name:'Right Hook',dmg:18,show:'18',shape:'120° sweep, 80 px',dur:.26,R:HOOK},
+    {name:'Left Hook',dmg:18,show:'18',shape:'120° sweep, 80 px',dur:.26,L:mirror(HOOK)},
+    {name:'Right Hook',dmg:18,show:'18',shape:'120° sweep, 80 px',dur:.26,R:HOOK},
+    {name:'Twin Dragon',dmg:64,show:'64',shape:'Both whirl: pulls enemies 30 px in, then a 100 px burst',dur:.85,R:TWIN,L:mirror(TWIN),fin:true,tip:false,
+      fx:[{u:.25,type:'pull',r:130,amt:30},{u:.8,type:'ring',at:'body',r:100,dmg:64,shove:40,stun:0}]},
+  ],
+  guard:{name:'Dragon Shell',
+    hold:'Both chucks whirl a <b>full ring</b> round you (66 px). Small bullets that touch it are <b>cut</b>, from any side. Enemies touching it take 6 a pass.',
+    fire:'<b>Shell Burst</b>: the ring blows out to 130 px (24, shoves 40 px).',
+    out:'Alt again. The hooks keep their place for 1.5 s.'},
+  guardFire:{name:'Shell Burst',dur:.55,R:BURST,L:mirror(BURST),tip:false,fx:[{u:.3,type:'ring',at:'body',r:130,dmg:24,shove:40,stun:0}]},
+  stats:['Chain <b>1.9 s</b>','~<b>78</b>/s one target, more on crowds','+1: one more hook, rings +15%'],
+  cmp:{feel:'A flurry: many light hits, then a whirlwind',best:'Crowds and swarms',guard:'360° shell: safest when surrounded',risk:'Lowest single-target damage'},
+},
+tide:{
+  name:'Tidebreaker', color:'#3fd3d9', swatch:'#3fd3d9',
+  blurb:'One heavy iron chuck, swung two-handed. Three slow, huge swings.',
+  look:{stick:'#2a3036',band:'#3fd3d9',cap:'#8d98a3',w:5.6,chain:'#7d8893'}, assist:true,
+  combo:[
+    {name:'Tide Swing',dmg:34,show:'34',shape:'160° sweep, 95 px',dur:.55,R:TIDE},
+    {name:'Undertow',dmg:40,show:'40',shape:'160° back-sweep, 95 px',dur:.55,R:UNDERTOW},
+    {name:'Anvil Drop',dmg:85,show:'85',shape:'Overhead slam: 200 px crack line, shoves 50 px',dur:.8,R:ANVIL,fin:true,tip:false,
+      fx:[{u:.58,type:'crack',len:200,w:30,dmg:85,shove:50},{u:.58,type:'ring',at:'tip',r:40,dmg:0,shove:0,stun:0}]},
+  ],
+  guard:{name:'Still Water',
+    hold:'The chuck is held <b>taut across your front</b> and blocks small bullets in a 110° arc ahead. You can still move at full speed.',
+    fire:'<b>Catch</b>: a 0.35 s window. A bullet or melee hit caught in it fires <b>Anvil Drop at once, double damage</b> (170).',
+    out:'Alt again. A missed Catch locks Fire for 0.5 s.'},
+  guardFire:{name:'Catch → Anvil Drop',dur:.75,R:ANVIL,tip:false,catchAt:.12,
+    fx:[{u:0,type:'catch'},{u:.58,type:'crack',len:200,w:30,dmg:170,shove:60},{u:.58,type:'ring',at:'tip',r:46,dmg:0,shove:0,stun:0}]},
+  stats:['Chain <b>1.9 s</b>','~<b>88</b>/s one target','+1: crack line +50%, Catch window +0.1 s'],
+  cmp:{feel:'Slow, heavy, every swing lands hard',best:'Lines of enemies, punishing bosses',guard:'Parry: a timed Catch for a huge riposte',risk:'Slowest steps, Catch needs timing'},
+},
+};
+const ORDER=['storm','dragon','tide'];
+
+/* guard poses: s = seconds in the stance */
+const GD=2.4;
+const guardPose={
+  storm:s=>({bx:0,hands:[[18,4],[8,-12]],chucks:[{hi:0,th:R-TAU*10*s/GD}]}),
+  dragon:s=>{const a=TAU*5*s/GD;return {bx:0,hands:[[Math.cos(a)*12,Math.sin(a)*12],[-Math.cos(a)*12,-Math.sin(a)*12]],chucks:[{hi:0,th:a},{hi:1,th:a+Math.PI}]};},
+  tide:s=>{const b=Math.sin(s*3)*1.2;return {bx:0,hands:[[16+b,27],[16+b,-27]],chucks:[{hi:0,th:-Math.PI/2}]};},
+};
+function restPose(v,T){
+  const br=Math.sin(T*3)*.08;
+  if(v.twin) return {bx:0,hands:[[6,13],[6,-13]],chucks:[{hi:0,th:R+br},{hi:1,th:-R-br}]};
+  const h=[6,13];
+  return {bx:0,hands:[h,v.assist?[h[0]-3,h[1]-9]:v.free],chucks:[{hi:0,th:R+br}]};
+}
+function track(kf,u){
+  let i=0; while(i<kf.length-2&&u>kf[i+1][0]) i++;
+  const a=kf[i],b=kf[i+1],t=EASE[b[5]||'io'](clamp((u-a[0])/((b[0]-a[0])||1)));
+  return {th:lerp(a[1],b[1],t),h:[lerp(a[2],b[2],t),lerp(a[3],b[3],t)],bx:lerp(a[4]||0,b[4]||0,t)};
+}
+function movePose(v,m,u,T){
+  const p=restPose(v,T);
+  if(m.R){const r=track(m.R,u);p.hands[0]=r.h;p.chucks[0].th=r.th;p.bx=r.bx;if(v.assist)p.hands[1]=[r.h[0]-3,r.h[1]-9];}
+  if(m.L&&v.twin){const l=track(m.L,u);p.hands[1]=l.h;p.chucks[1].th=l.th;p.bx=Math.max(p.bx,l.bx);}
+  return p;
+}
+function mixPose(a,b,k){
+  return {bx:lerp(a.bx,b.bx,k),hands:b.hands.map((h,i)=>[lerp(a.hands[i][0],h[0],k),lerp(a.hands[i][1],h[1],k)]),
+    chucks:b.chucks.map((c,i)=>({hi:c.hi,th:a.chucks[i].th+wrap(c.th-a.chucks[i].th)*k}))};
+}
+
+/* ---------- the timeline ---------- */
+function build(key,mode){
+  const v=V[key], segs=[]; let t=0;
+  const add=(o,d)=>{segs.push(Object.assign({start:t,dur:d},o));t+=d;};
+  if(mode!=='guard'){
+    add({kind:'idle',stance:'combo'},.45);
+    v.combo.forEach((m,i)=>{add({kind:'move',m,step:i,stance:'combo',key:'FIRE'},m.dur);add({kind:'idle',stance:'combo',step:i+1},i===v.combo.length-1?.3:.07);});
+  }
+  if(mode!=='combo'){
+    add({kind:'switch',to:'guard',stance:'guard',key:'ALT'},.25);
+    add({kind:'guard',stance:'guard'},GD);
+    add({kind:'move',m:v.guardFire,stance:'guard',key:'FIRE',gf:true},v.guardFire.dur);
+    add({kind:'guard',stance:'guard',after:true},.4);
+    add({kind:'switch',to:'combo',stance:'combo',key:'ALT'},.25);
+    add({kind:'idle',stance:'combo'},.45);
+  } else add({kind:'idle',stance:'combo'},.5);
+  // bullets aimed to arrive while the guard is up
+  const sched=[], g=segs.find(s=>s.kind==='guard'), gf=segs.find(s=>s.gf);
+  if(g){
+    const travel=(WW+20-(PX+60))/BV;
+    let k=0; const Y=[-8,14,-22,4,24,-14,10,-28,18,-4,28,-18];
+    for(let arr=g.start+.05;arr<gf.start-.1;arr+=.21,k++) sched.push({t:arr-travel,y:Y[k%Y.length]});
+    if(v.guardFire.catchAt!==undefined) sched.push({t:gf.start+v.guardFire.catchAt*.5-travel,y:0,catchMe:true});
+  }
+  return {segs,len:t,sched};
+}
+const PX=130, PY=100, BV=300, WW=400;
+function segAt(tl,T){for(let i=0;i<tl.segs.length;i++){const s=tl.segs[i];if(T<s.start+s.dur)return [s,i];}return [tl.segs[tl.segs.length-1],tl.segs.length-1];}
+function basePose(v,key,s,T){
+  const u=clamp((T-s.start)/s.dur);
+  if(s.kind==='move') return movePose(v,s.m,u,T);
+  if(s.kind==='guard') return guardPose[key](s.after?GD+(T-s.start):(T-s.start));
+  if(s.kind==='switch') return s.to==='guard'?guardPose[key](0):restPose(v,T);
+  return restPose(v,T);
+}
+function poseAt(T){
+  const L=TL.len; T=((T%L)+L)%L;
+  const [s,i]=segAt(TL,T), p=basePose(VV,KEY,s,T), dt=T-s.start;
+  if(dt<.1&&i>0){const prev=TL.segs[i-1];return mixPose(basePose(VV,KEY,prev,prev.start+prev.dur-1e-4),p,EASE.o(dt/.1));}
+  return p;
+}
+const L1=22,LC=9,L2=22;
+function chuckPts(p,lag){
+  const bx=PX+p.bx,by=PY;
+  return p.chucks.map((c,i)=>{
+    const h=p.hands[c.hi], H=[bx+h[0],by+h[1]];
+    const A=[H[0]+Math.cos(c.th)*L1,H[1]+Math.sin(c.th)*L1];
+    const ph=c.th-wrap(c.th-lag.chucks[i].th)*1.15;
+    const B=[A[0]+Math.cos(ph)*LC,A[1]+Math.sin(ph)*LC];
+    const C=[B[0]+Math.cos(ph)*L2,B[1]+Math.sin(ph)*L2];
+    return {H,A,B,C,th:c.th,ph};
+  });
+}
+
+/* ---------- the simulation ---------- */
+let KEY='storm', VV=V.storm, MODE='loop', SPEED=1, PAUSED=false, TL=build(KEY,MODE), T=0, S;
+const ENEMIES=[[PX+80,PY-30],[PX+90,PY+4],[PX+76,PY+36],[PX+150,PY-6]];
+function reset(){
+  S={en:ENEMIES.map(([x,y])=>({bx:x,by:y,x,y,vx:0,vy:0,r:11,flash:0,stun:0,last:-9})),bul:[],fx:[],nums:[],hist:[],hits:new Map(),fired:new Set(),spawn:0,swatted:0,prevSeg:-1,blocked:0};
+}
+reset();
+function damage(e,d,shoveX,shoveY,big){
+  if(d>0){e.flash=.16;S.nums.push({x:e.x,y:e.y-14,t:0,txt:String(d),big});}
+  e.vx+=shoveX*6;e.vy+=shoveY*6;e.last=T;
+}
+function fireFx(f,pts,p){
+  const tip=pts[0].C, body=[PX+p.bx,PY], at=f.at==='body'?body:tip;
+  const fx={type:f.type,x:at[0],y:at[1],t:0,r:f.r||0,len:f.len||0,w:f.w||0,col:VV.color};
+  if(f.type==='ring') for(const e of S.en){const dx=e.x-at[0],dy=e.y-at[1],d=Math.hypot(dx,dy)||1;if(d<f.r+e.r&&(f.dmg||f.shove)){damage(e,f.dmg,dx/d*f.shove,dy/d*f.shove,true);e.stun=Math.max(e.stun,f.stun||0);}}
+  if(f.type==='crack'){fx.seed=T*13.7;for(const e of S.en){const dx=e.x-at[0],dy=e.y-at[1];if(dx>-e.r&&dx<f.len&&Math.abs(dy)<f.w+e.r)damage(e,f.dmg,f.shove,0,true);}}
+  if(f.type==='pull') for(const e of S.en){const dx=e.x-body[0],dy=e.y-body[1],d=Math.hypot(dx,dy)||1;if(d<f.r){e.vx-=dx/d*f.amt*6;e.vy-=dy/d*f.amt*6;}}
+  if(f.type==='lash'){
+    const H=pts[0].H, dmg=f.base+f.per*Math.min(f.cap,S.swatted);fx.x=H[0];fx.y=H[1];fx.dmg=dmg;
+    for(const e of S.en){const dx=e.x-H[0],dy=e.y-H[1];if(dx>0&&dx<f.len&&Math.abs(dy)<f.w+e.r)damage(e,dmg,26,0,true);}
+    S.swatted=0;
+  }
+  if(f.type==='catch'){fx.x=PX+26;fx.y=PY;}
+  S.fx.push(fx);
+}
+function segDistSq(p,a,b){const abx=b[0]-a[0],aby=b[1]-a[1],t=clamp(((p[0]-a[0])*abx+(p[1]-a[1])*aby)/((abx*abx+aby*aby)||1));const x=a[0]+abx*t-p[0],y=a[1]+aby*t-p[1];return x*x+y*y;}
+
+function step(dt){
+  const prevT=T; T+=dt;
+  if(T>=TL.len){T-=TL.len;reset();}
+  const [s,si]=segAt(TL,T), p=poseAt(T), lag=poseAt(T-.045), pts=chuckPts(p,lag);
+  S.hist.push({T,pts});while(S.hist.length&&T-S.hist[0].T>.15||S.hist.length>14)S.hist.shift();
+  if(S.hist.length&&S.hist[0].T>T)S.hist=[S.hist[S.hist.length-1]];
+  // hits from the free stick
+  if(s.kind==='move'){
+    const m=s.m,u=(T-s.start)/s.dur;
+    if(m.tip!==false){
+      S.en.forEach((e,ei)=>{
+        const k=si+':'+ei, rec=S.hits.get(k)||{n:0,last:-9};
+        if(rec.n>=(m.hits||1)||T-rec.last<.14) return;
+        for(const c of pts){
+          if(segDistSq([e.x,e.y],c.B,c.C)<(e.r+3)**2){
+            rec.n++;rec.last=T;S.hits.set(k,rec);
+            const dx=e.x-PX,dy=e.y-PY,d=Math.hypot(dx,dy)||1;damage(e,m.dmg,dx/d*7,dy/d*7,false);break;
+          }
+        }
+      });
+    }
+    (m.fx||[]).forEach((f,j)=>{const k=si+'/'+j;if(u>=f.u&&!S.fired.has(k)){S.fired.add(k);fireFx(f,pts,p);}});
+  }
+  if(s.kind==='switch'&&S.prevSeg!==si) S.fx.push({type:'switch',x:PX,y:PY,t:0,col:VV.color,label:s.to==='guard'?VV.guard.name:'Combo'});
+  S.prevSeg=si;
+  // bullets
+  while(S.spawn<TL.sched.length&&TL.sched[S.spawn].t<=T){const b=TL.sched[S.spawn++];const y=PY+b.y;S.bul.push({x:WW+20,y,vx:-BV,vy:(PY-y)*.18,state:'in',t:0,catchMe:b.catchMe});}
+  const guardUp=(s.kind==='guard')||(s.kind==='switch'&&s.to==='guard'&&T-s.start>.12)||(s.gf);
+  for(const b of S.bul){
+    b.t+=dt;b.x+=b.vx*dt;b.y+=b.vy*dt;
+    if(b.state==='in'&&guardUp){
+      const bx=PX+p.bx;
+      if(KEY==='storm'&&!s.gf){const h=pts[0].H;if(Math.hypot(b.x-h[0],b.y-h[1])<56){b.state='back';S.swatted++;
+        const tg=S.en[S.swatted%3];const dx=tg.x-b.x,dy=tg.y-b.y,d=Math.hypot(dx,dy)||1;b.vx=dx/d*420;b.vy=dy/d*420;S.fx.push({type:'spark',x:b.x,y:b.y,t:0,col:VV.color});}}
+      if(KEY==='dragon'&&!s.gf){if(Math.hypot(b.x-bx,b.y-PY)<66){b.state='dead';S.fx.push({type:'spark',x:b.x,y:b.y,t:0,col:VV.color});}}
+      if(KEY==='tide'){if(b.x<bx+44&&Math.abs(b.y-PY)<40){b.state='dead';
+        if(s.gf){S.fx.push({type:'spark',x:b.x,y:b.y,t:0,col:'#ffffff',big:true});}
+        else{S.fx.push({type:'ripple',x:bx+30,y:b.y,t:0,col:VV.color});}}}
+    }
+    if(b.state==='back') for(const e of S.en){if(Math.hypot(b.x-e.x,b.y-e.y)<e.r+4){b.state='dead';damage(e,6,b.vx/140,b.vy/140,false);}}
+    if(b.state==='in'&&b.x<PX+4) b.state='dead';
+  }
+  S.bul=S.bul.filter(b=>b.state!=='dead'&&b.x>-20&&b.x<WW+40);
+  // enemies
+  for(const e of S.en){
+    e.x+=e.vx*dt;e.y+=e.vy*dt;const f=Math.exp(-7*dt);e.vx*=f;e.vy*=f;
+    if(T-e.last>.7){const k=Math.min(1,dt*1.6);e.x+=(e.bx-e.x)*k;e.y+=(e.by-e.y)*k;}
+    e.flash=Math.max(0,e.flash-dt);e.stun=Math.max(0,e.stun-dt);
+  }
+  for(const f of S.fx)f.t+=dt; S.fx=S.fx.filter(f=>f.t<.9);
+  for(const n of S.nums)n.t+=dt; S.nums=S.nums.filter(n=>n.t<.8);
+  return {s,si,p,pts};
+}
+
+/* ---------- drawing ---------- */
+const cv=document.getElementById('stage'), c=cv.getContext('2d');
+function line(a,b,w,col){c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.lineWidth=w;c.strokeStyle=col;c.lineCap='round';c.stroke();}
+function circ(x,y,r,fill,stroke,lw){c.beginPath();c.arc(x,y,r,0,TAU);if(fill){c.fillStyle=fill;c.fill();}if(stroke){c.strokeStyle=stroke;c.lineWidth=lw||1;c.stroke();}}
+function drawFloor(){
+  const g=c.createRadialGradient(PX,PY,20,PX+60,PY,360);g.addColorStop(0,'#1b2027');g.addColorStop(1,'#0b0d10');
+  c.fillStyle=g;c.fillRect(0,0,WW,WW/2);
+  c.strokeStyle='rgba(255,255,255,.035)';c.lineWidth=.6;
+  for(let x=0;x<=WW;x+=26){c.beginPath();c.moveTo(x,0);c.lineTo(x,WW/2);c.stroke();}
+  for(let y=0;y<=WW/2;y+=26){c.beginPath();c.moveTo(0,y);c.lineTo(WW,y);c.stroke();}
+}
+function drawStick(a,b,L){
+  line(a,b,L.w+1.8,'#06070a');line(a,b,L.w,L.stick);
+  const d=[b[0]-a[0],b[1]-a[1]],n=Math.hypot(d[0],d[1])||1,u=[d[0]/n,d[1]/n];
+  const at=(k)=>[a[0]+u[0]*k,a[1]+u[1]*k];
+  line(at(1),at(4),L.w+.4,L.cap);line(at(n-4),at(n-1),L.w+.4,L.cap);
+  line(at(6),at(8),L.w+.2,L.band);line(at(n-8),at(n-6),L.w+.2,L.band);
+  line([a[0]-u[1]*L.w*.25,a[1]+u[0]*L.w*.25],[b[0]-u[1]*L.w*.25,b[1]+u[0]*L.w*.25],.7,'rgba(255,255,255,.18)');
+}
+function drawChain(a,b,L){
+  for(let i=0;i<=3;i++){const t=i/3;circ(lerp(a[0],b[0],t),lerp(a[1],b[1],t),1.5,null,L.chain,1.1);}
+}
+function drawTrails(){
+  const H=S.hist;if(H.length<2)return;
+  c.save();c.globalCompositeOperation='lighter';
+  const n=H[0].pts.length;
+  for(let ci=0;ci<n;ci++){
+    for(let i=1;i<H.length;i++){
+      const a=H[i-1].pts[ci],b=H[i].pts[ci];if(!a||!b)continue;
+      const mv=Math.hypot(b.C[0]-a.C[0],b.C[1]-a.C[1]);if(mv<1.2)continue;
+      const k=i/H.length, al=k*clamp(mv/7)*.32;
+      c.beginPath();c.moveTo(a.B[0],a.B[1]);c.lineTo(a.C[0],a.C[1]);c.lineTo(b.C[0],b.C[1]);c.lineTo(b.B[0],b.B[1]);c.closePath();
+      c.fillStyle=rgba(VV.color,al*.55);c.fill();
+      line(a.C,b.C,1+k*3.2,rgba(VV.color,al*2.2));
+      line(a.C,b.C,.6+k*1.2,`rgba(255,255,255,${al*1.6})`);
+    }
+  }
+  c.restore();
+}
+function drawGuard(s,p){
+  const on=(s.kind==='guard')||(s.kind==='switch'&&s.to==='guard');
+  if(!on)return;
+  const k=s.kind==='switch'?clamp((T-s.start)/s.dur):1, bx=PX+p.bx, t=T;
+  c.save();c.globalCompositeOperation='lighter';
+  if(KEY==='storm'){
+    const h=p.hands[0],x=bx+h[0],y=PY+h[1];
+    const g=c.createRadialGradient(x,y,6,x,y,56);g.addColorStop(0,rgba(VV.color,.02));g.addColorStop(.8,rgba(VV.color,.14*k));g.addColorStop(1,rgba(VV.color,0));
+    circ(x,y,56,g);
+    for(let i=0;i<3;i++){const a=-t*26+i*2.1;c.beginPath();c.arc(x,y,50-i*7,a,a+1.4);c.lineWidth=2-i*.4;c.strokeStyle=rgba(VV.color,.5*k);c.stroke();}
+  }
+  if(KEY==='dragon'){
+    c.setLineDash([10,7]);c.lineDashOffset=-t*90;
+    circ(bx,PY,66,null,rgba(VV.color,.55*k),1.6);c.setLineDash([]);
+    circ(bx,PY,66,null,rgba(VV.look.cap,.18*k),6);
+  }
+  if(KEY==='tide'){
+    c.beginPath();c.arc(bx,PY,40,-0.96,0.96);c.lineWidth=5;c.strokeStyle=rgba(VV.color,.14*k);c.stroke();
+    c.beginPath();c.arc(bx,PY,40,-0.96,0.96);c.lineWidth=1.2;c.strokeStyle=rgba(VV.color,.6*k);c.stroke();
+  }
+  c.restore();
+}
+function drawPlayer(p,pts){
+  const bx=PX+p.bx, by=PY;
+  c.save();c.globalAlpha=.35;c.beginPath();c.ellipse(bx+2,by+4,16,13,0,0,TAU);c.fillStyle='#000';c.fill();c.restore();
+  // scarf tails, in the variant's colour
+  for(let i=0;i<2;i++){const sg=i?1:-1,w=Math.sin(T*9+i)*3;
+    c.beginPath();c.moveTo(bx-8,by+sg*4);c.quadraticCurveTo(bx-20,by+sg*8+w,bx-30-p.bx*.4,by+sg*(6+w));
+    c.lineWidth=3.2;c.strokeStyle=rgba(VV.color,.85-.25*i);c.lineCap='round';c.stroke();}
+  circ(bx,by,13,'#232a36','#07090c',1.2);
+  const sh=[[bx+1,by+10],[bx+1,by-10]];
+  p.hands.forEach((h,i)=>{const H=[bx+h[0],by+h[1]];line(sh[i],H,5,'#07090c');line(sh[i],H,3.4,'#38404e');});
+  sh.forEach(q=>circ(q[0],q[1],3.6,'#2c3340','#07090c',.8));
+  circ(bx,by,8,'#161b24','#05070a',1);
+  c.beginPath();c.arc(bx,by,8,-.7,.7);c.lineWidth=2;c.strokeStyle='rgba(235,240,230,.9)';c.lineCap='round';c.stroke();
+  circ(bx,by,4.4,'#10141c');
+  for(const q of pts){drawStick(q.H,q.A,VV.look);drawChain(q.A,q.B,VV.look);drawStick(q.B,q.C,VV.look);}
+  p.hands.forEach(h=>{circ(bx+h[0],by+h[1],3.6,'#07090c');circ(bx+h[0],by+h[1],2.7,'#c79a66');});
+}
+function drawEnemies(){
+  for(const e of S.en){
+    const f=e.flash/.16;
+    circ(e.x+1.5,e.y+3,e.r,'rgba(0,0,0,.35)');
+    circ(e.x,e.y,e.r,f>0?`rgb(${180+75*f|0},${70+180*f|0},${60+180*f|0})`:'#a9443a','#3e1611',1.2);
+    circ(e.x-3,e.y,2.4,'#2a0f0c');circ(e.x+1,e.y-3.6,1.4,'#2a0f0c');circ(e.x+1,e.y+3.6,1.4,'#2a0f0c');
+    if(e.stun>0){for(let i=0;i<3;i++){const a=T*6+i*2.1;circ(e.x+Math.cos(a)*9,e.y-e.r-4+Math.sin(a)*3,1.4,'#ffe27a');}}
+  }
+}
+function drawBullets(){
+  for(const b of S.bul){
+    const col=b.state==='back'?VV.color:'#ffbe3a';
+    if(b.state==='back'){line([b.x,b.y],[b.x-b.vx*.03,b.y-b.vy*.03],2.4,rgba(VV.color,.45));}
+    circ(b.x,b.y,5.5,b.state==='back'?rgba(VV.color,.25):'rgba(255,170,40,.25)');circ(b.x,b.y,3,col);circ(b.x,b.y,1.3,'#fff3c8');
+  }
+}
+function drawFx(){
+  c.save();
+  for(const f of S.fx){
+    const u=f.t;
+    if(f.type==='ring'){
+      const v=clamp(u/.35),r=f.r*EASE.o(v);
+      c.globalCompositeOperation='lighter';
+      circ(f.x,f.y,r,null,rgba(f.col,(1-v)*.9),3*(1-v)+.6);
+      if(u<.12)circ(f.x,f.y,10+40*u,`rgba(255,255,255,${(1-u/.12)*.5})`);
+      c.globalCompositeOperation='source-over';
+      for(let i=0;i<9;i++){const a=i*.7+f.x*.01,l=(f.r*.55)*EASE.o(clamp(u/.15));
+        line([f.x+Math.cos(a)*6,f.y+Math.sin(a)*6],[f.x+Math.cos(a)*l,f.y+Math.sin(a)*l],1.2,`rgba(0,0,0,${.6*(1-clamp(u/.9))})`);}
+    }
+    if(f.type==='crack'){
+      const v=clamp(u/.18),L=f.len*v,al=1-clamp((u-.3)/.6);
+      c.beginPath();c.moveTo(f.x,f.y);
+      for(let x=10;x<=L;x+=12){c.lineTo(f.x+x,f.y+Math.sin(f.seed+x*.37)*7);}
+      c.lineWidth=5;c.strokeStyle=`rgba(0,0,0,${.7*al})`;c.stroke();
+      c.globalCompositeOperation='lighter';c.lineWidth=1.8;c.strokeStyle=rgba(f.col,al);c.stroke();
+      if(u<.3){c.fillStyle=rgba(f.col,.12*(1-u/.3));c.fillRect(f.x,f.y-f.w,L,f.w*2);}
+      c.globalCompositeOperation='source-over';
+    }
+    if(f.type==='pull'){
+      for(let i=0;i<8;i++){const a=i*TAU/8+.2,d=lerp(110,30,clamp(u/.4));if(u<.45){
+        const x=f.x+Math.cos(a)*d,y=f.y+Math.sin(a)*d;line([x,y],[x-Math.cos(a)*10,y-Math.sin(a)*10],1.6,rgba(f.col,1-u/.45));}}
+    }
+    if(f.type==='lash'){
+      const al=1-clamp(u/.35);c.globalCompositeOperation='lighter';
+      c.beginPath();c.moveTo(f.x,f.y);c.lineTo(f.x+170,f.y-3);c.lineTo(f.x+170,f.y+3);c.closePath();c.fillStyle=rgba(f.col,al*.8);c.fill();
+      line([f.x,f.y],[f.x+170,f.y],1,`rgba(255,255,255,${al})`);
+      c.globalCompositeOperation='source-over';
+    }
+    if(f.type==='spark'){
+      const al=1-clamp(u/.25),n=f.big?10:6;
+      for(let i=0;i<n;i++){const a=i*TAU/n+f.x,d=3+(f.big?22:12)*EASE.o(clamp(u/.25));
+        line([f.x+Math.cos(a)*d,f.y+Math.sin(a)*d],[f.x+Math.cos(a)*(d+3),f.y+Math.sin(a)*(d+3)],1.3,rgba(f.col,al));}
+    }
+    if(f.type==='ripple'){const v=clamp(u/.4);c.beginPath();c.arc(f.x,f.y,4+14*v,-1.2,1.2);c.lineWidth=1.4;c.strokeStyle=rgba(f.col,1-v);c.stroke();}
+    if(f.type==='catch'){
+      const v=clamp(u/.35);c.globalCompositeOperation='lighter';
+      c.beginPath();c.arc(PX,PY,40,-1,1);c.lineWidth=6*(1-v)+1;c.strokeStyle=`rgba(255,255,255,${1-v})`;c.stroke();
+      c.globalCompositeOperation='source-over';
+      if(u<.6){c.font='700 12px "Barlow Condensed",sans-serif';c.textAlign='center';c.fillStyle=`rgba(255,255,255,${1-u/.6})`;c.fillText('CATCH',PX+44,PY-46-10*u);}
+    }
+    if(f.type==='switch'){
+      const v=clamp(u/.35);circ(f.x,f.y,14+30*EASE.o(v),null,rgba(f.col,1-v),2);
+      if(u<.8){c.font='700 11px "Barlow Condensed",sans-serif';c.textAlign='center';c.fillStyle=rgba(f.col,1-clamp((u-.4)/.4));c.fillText(f.label.toUpperCase(),f.x,f.y-26-8*EASE.o(v));}
+    }
+  }
+  c.restore();
+  for(const n of S.nums){
+    const a=1-clamp((n.t-.35)/.45);c.font=`600 ${n.big?13:9}px "IBM Plex Mono",monospace`;c.textAlign='center';
+    c.fillStyle=n.big?rgba(VV.color,a):`rgba(255,246,214,${a})`;c.fillText(n.txt,n.x,n.y-16*EASE.o(clamp(n.t/.5)));
+  }
+}
+
+/* ---------- HUD and page ---------- */
+const $=id=>document.getElementById(id);
+let hudKey='';
+function hud(s){
+  const v=VV, guard=s.stance==='guard';
+  let name='Ready', step=-1;
+  if(s.kind==='move'){name=s.m.name+(s.gf&&KEY==='storm'?'':'');step=s.step===undefined?-1:s.step;}
+  else if(s.kind==='switch') name=s.to==='guard'?'Switch to '+v.guard.name:'Back to the combo';
+  else if(s.kind==='guard') name=v.guard.name+(KEY==='storm'?'  ·  swatted '+S.swatted:'');
+  else if(s.kind==='idle'&&s.step) {name='Next: '+(v.combo[s.step]?v.combo[s.step].name:'Snap back to step 1');step=-1;}
+  const done=s.kind==='idle'&&s.step?s.step:(s.kind==='move'&&!s.gf?s.step:0);
+  const key=s.key||'';
+  const h=[KEY,name,step,done,key,guard].join('|'); if(h===hudKey) return; hudKey=h;
+  $('moveName').textContent=name;
+  const st=$('stance');st.textContent=guard?'Guard':'Combo';st.className='pill'+(guard?' guard':'');
+  const k=$('key');k.textContent=key==='ALT'?'Alt':key==='FIRE'?'Fire':'—';k.className=key?'on':'';
+  $('pips').innerHTML=v.combo.map((m,i)=>`<span class="${i===step&&!guard?'now':i<done&&!guard?'done':''}"></span>`).join('');
+  [...$('comboRows').children].forEach((tr,i)=>tr.classList.toggle('on',s.kind==='move'&&!s.gf&&s.step===i));
+}
+function renderSpec(){
+  const v=VV;
+  document.documentElement.style.setProperty('--accent',v.color);
+  $('vTitle').textContent=v.name;
+  $('comboRows').innerHTML=v.combo.map((m,i)=>`<tr class="${m.fin?'fin':''}"><td class="n">${i+1}</td><td>${m.name}</td><td class="n">${m.show}</td><td>${m.shape}</td></tr>`).join('');
+  $('stats').innerHTML=v.stats.map(x=>`<span>${x}</span>`).join('');
+  $('guardName').textContent=v.guard.name;
+  $('guardDl').innerHTML=`<div><dt>Holding it</dt><dd>${v.guard.hold}</dd></div><div><dt>Fire in guard</dt><dd>${v.guard.fire}</dd></div><div><dt>Leaving</dt><dd>${v.guard.out}</dd></div>`;
+  [...$('variants').children].forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===KEY));
+  hudKey='';
+}
+$('variants').innerHTML=ORDER.map(k=>`<button class="vchip" data-k="${k}" aria-pressed="false"><b><i style="background:${V[k].swatch}"></i>${V[k].name}</b><small>${V[k].blurb}</small></button>`).join('');
+$('variants').addEventListener('click',e=>{const b=e.target.closest('.vchip');if(!b)return;KEY=b.dataset.k;VV=V[KEY];TL=build(KEY,MODE);T=0;reset();renderSpec();});
+function group(id,fn){$(id).addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;[...$(id).querySelectorAll('.chip')].forEach(x=>x.setAttribute('aria-pressed',x===b));fn(b.dataset.v);});}
+group('modeG',v=>{MODE=v;TL=build(KEY,MODE);T=0;reset();});
+group('speedG',v=>{SPEED=+v;});
+$('pause').addEventListener('click',e=>{PAUSED=!PAUSED;e.target.setAttribute('aria-pressed',PAUSED);e.target.textContent=PAUSED?'Play':'Pause';});
+const rows=['feel','best','guard','risk'], labels={feel:'Feel',best:'Best at',guard:'Guard',risk:'Weak spot'};
+$('cmp').innerHTML=`<thead><tr><th></th>${ORDER.map(k=>`<th style="color:${V[k].color}">${V[k].name}</th>`).join('')}</tr></thead><tbody>`+
+  rows.map(r=>`<tr><td>${labels[r]}</td>${ORDER.map(k=>`<td>${V[k].cmp[r]}</td>`).join('')}</tr>`).join('')+'</tbody>';
+renderSpec();
+
+let last=performance.now(), st=step(0);
+function frame(now){
+  let dt=Math.min(.05,(now-last)/1000);last=now;
+  if(!PAUSED){dt*=SPEED;while(dt>0){const d=Math.min(dt,1/120);st=step(d);dt-=d;}}
+  const w=cv.clientWidth||1040, dpr=Math.min(2,window.devicePixelRatio||1), W=Math.round(w*dpr), H=Math.round(W/2);
+  if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}
+  c.setTransform(W/WW,0,0,W/WW,0,0);
+  drawFloor();drawGuard(st.s,st.p);drawEnemies();drawBullets();drawTrails();drawPlayer(st.p,st.pts);drawFx();
+  hud(st.s);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
