@@ -1161,6 +1161,14 @@ static partial class Program
         float warn = Breaches.WarnTime(hb.Length);
         Check(warned && clientWarned && earliest >= warn - 0.2f, "the breach warning plays on both screens and nothing comes in until it's over (" + warn.ToString("0.0") + " s, first at " + earliest.ToString("0.00") + " s)");
         Check(!g.BreachWarnOn && !cg.BreachWarnOn, "and it ends");
+        {
+            // A Campaign plays each wave twice: only its first leg breaches (the second would reopen them over their Stashes).
+            bool lr = g.LongRun; int leg = g.Leg;
+            g.LongRun = true; g.Leg = 0; bool firstLeg = g.BreachesOn;
+            g.Leg = 1; bool secondLeg = g.BreachesOn, legs = g.LongLegs;
+            g.LongRun = lr; g.Leg = leg;
+            Check(firstLeg && (!legs || !secondLeg), "a Campaign wave breaches on its first leg only (legs " + legs + ", second leg " + secondLeg + ")");
+        }
         // The flood on the same rolled wave (a fresh roll of the wave would be another random size to compare with).
         typeof(Game).GetMethod("BuildWave", flags).Invoke(g, new object[] { g.Wave });
         var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(g);
