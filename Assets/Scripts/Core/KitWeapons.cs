@@ -138,6 +138,8 @@ namespace Arena
                 case WeaponId.Stonespear:
                     ThrowStonespear(p, aim, muzzle, dmg, extra);  // a hovering spear at your cursor (Stonespear.cs)
                     break;
+                case WeaponId.WindClash:
+                    break;  // its waves go from TickWindClash, never from FireVolley (WindClash.cs)
                 case WeaponId.ArcaneMissiles:
                 {
                     // Conjured into orbit round you (TickOrbiters launches them at enemies that come near). With the

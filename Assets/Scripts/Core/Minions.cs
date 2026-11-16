@@ -29,7 +29,7 @@ namespace Arena
             new WeaponDef { Id = WeaponId.FrostLance, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 1, Damage = 18f, Reach = 230f, Grow = 30f, BotRange = 190f, ExtraDesc = "+30 px longer icicle and 25% more damage, and its splinters fly 15 px further", Name = "Frost Lance", FireInterval = 0.4f,
                 Desc = "A great icicle juts out from you, then splinters off its sides into enemies beside it. Both slow.",
                 Sound = Sfx.SpellFrost, AreaDesc = "the icicle's splinters fly 25% further out" },
-            new WeaponDef { Id = WeaponId.WindClash, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 3, Damage = 18f, BotRange = 150f, ExtraDesc = "+20% damage and 10% bigger waves", Name = "Wind Clash", FireInterval = 0.34f,
+            new WeaponDef { Id = WeaponId.WindClash, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 3, Damage = 18f, Reach = 170f, BotRange = 150f, ExtraDesc = "+20% damage and 10% bigger waves", Name = "Wind Clash", FireInterval = 0.34f,
                 Desc = "Hold Fire for a combo of air waves that hurt and shove every enemy they pass: two crescents that cross, a gale lance straight out, then a ring that bursts round you. Alt: Tempest, a storm of wind round you for 3 s that hurts enemies in it and catches every enemy shot that comes in; you move 30% slower and can't attack while it blows.",
                 Sound = Sfx.None, AreaDesc = "the waves and the Tempest 25% bigger" },
             new WeaponDef { Id = WeaponId.StormHammer, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 2, Speed = 460f, Life = 1.1f, Damage = 40f, BotRange = 260f, ExtraDesc = "+15% hammer damage, and the electrified enemy arcs to 1 more enemy", Name = "Storm Hammer", FireInterval = 0.7f,
