@@ -27,7 +27,7 @@ namespace Arena
                 HostGame();
             if (!session.IsHost)
                 return;
-            session.SetMode(true, false);
+            session.SetMode(GameMode.Practice);
             int auto = session.AutoStart;
             session.AutoStart = 1;  // start now, without waiting for Ready
             session.StartMatch();

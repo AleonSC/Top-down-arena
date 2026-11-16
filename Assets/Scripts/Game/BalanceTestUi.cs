@@ -49,7 +49,7 @@ namespace Arena
             y += 30f;
             btFine = DkSwitch(new Rect(x, y, w, 26f), btFine, "A sample every second, not every 5 s (bigger file: health, nearest enemy, enemies in view)");
             y += 38f;
-            GUI.enabled = host && !running && game.Practice == null && game.Hunt == null;
+            GUI.enabled = host && !running && game.ModeRules.RunEvents;
             if (DkKey(new Rect(x, y, 230f, 40f), "Launch test", Ui.Primary))
             {
                 if (game.DevStartBalanceTest(btStart, btBot, btFine, btRefill))
@@ -63,7 +63,7 @@ namespace Arena
             }
             GUI.enabled = true;
             string status = running ? "Running: wave " + Mathf.Max(1, game.Wave) + " of " + game.Test.FirstWave + " to " + game.Test.LastWave
-                : !host ? "Only the host can run it." : game.Practice != null || game.Hunt != null ? "Not in Practice or a Boss Hunt." : btNote.Length > 0 ? btNote : "Starts in 2 s, replacing any fight going on.";
+                : !host ? "Only the host can run it." : !game.ModeRules.RunEvents ? "Not in Practice or a Boss Hunt." : btNote.Length > 0 ? btNote : "Starts in 2 s, replacing any fight going on.";
             Ui.Label(new Rect(x + 246f, y, w - 246f, 40f), status, 12, running ? Ui.Good : CrtStyle.Desc, TextAnchor.MiddleLeft, false, true);
 
             // The last test, and the log folder.

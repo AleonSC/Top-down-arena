@@ -42,7 +42,7 @@ namespace Arena
         {
             if (eventPlanWave == Wave)
                 return eventPlan;
-            if (!IsHost || !BreachesOn || Practice != null || Hunt != null || !BreachEvent.IsEventWave(expandSeed, Wave) || Expansion.BoughtCount(Expanded) > Expansion.MaxRooms - 2)
+            if (!IsHost || !BreachesOn || !ModeRules.RunEvents || !BreachEvent.IsEventWave(expandSeed, Wave) || Expansion.BoughtCount(Expanded) > Expansion.MaxRooms - 2)
                 return null;
             eventPlanWave = Wave;
             eventPlan = null;
@@ -178,7 +178,7 @@ namespace Arena
         {
             if (BreachesOn)
                 _ = ActiveBreaches;  // (make sure this wave's breaches are cached)
-            if (!IsHost || !ExpandingOn || Practice != null || Hunt != null || breachCache == null || breachWave != Wave || !Breaches.IsBreachWave(Wave) || breachRoomsWave == Wave)
+            if (!IsHost || !ExpandingOn || !ModeRules.RunEvents || breachCache == null || breachWave != Wave || !Breaches.IsBreachWave(Wave) || breachRoomsWave == Wave)
                 return;
             breachRoomsWave = Wave;  // once a wave
             var made = new List<ExpansionRoom>();

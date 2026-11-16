@@ -191,7 +191,7 @@ static partial class Program
         Action Sync = () => PollBoth(host, client);
         WaitForLobby(host, client);
         Sync();
-        host.SetMode(false, true);
+        host.SetMode(GameMode.Hunt);
         Sync();
         Check(!host.HuntMapMode && !client.HuntMapMode, "the hunt map switch is off by default: a Boss Hunt is the ten waves it always was");
         client.SetHuntMapMode(true); Sync();

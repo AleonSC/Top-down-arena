@@ -17,7 +17,7 @@ static partial class Program
         var solo = new Session();
         var fresh = solo.Game.ProfileOverride = new Profile();
         solo.Host(port, "Host", Role.Tank);
-        solo.SetMode(false, true);
+        solo.SetMode(GameMode.Hunt);
         solo.RequestReady(true);
         for (int i = 0; i < 20; i++) { solo.Poll(); Thread.Sleep(2); }
         solo.StartMatch();
@@ -42,7 +42,7 @@ static partial class Program
         Action Sync = () => PollBoth(host, client);
         WaitForLobby(host, client);
         Sync();
-        host.SetMode(false, true);
+        host.SetMode(GameMode.Hunt);
         host.SetHuntBoss(EnemyType.HiveQueen);  // no hunt for her yet: ignored
         Sync();
         Check(client.HuntMode && client.HuntBoss == EnemyType.Boss && host.HuntBoss == EnemyType.Boss, "the friend's lobby shows the Boss Hunt and its boss (only bosses with a hunt can be picked)");

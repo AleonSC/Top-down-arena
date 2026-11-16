@@ -642,7 +642,7 @@ namespace Arena
         }
 
         /// Is the campaign buildup on (every wave themed, Approaches.Campaign)? Not in a hunt or the Practice Range.
-        public bool CampaignOn => Hunt == null && !Quick && Practice == null && D(DiffKnob.Campaign) >= 0.5f;
+        public bool CampaignOn => ModeRules.Legs && D(DiffKnob.Campaign) >= 0.5f;
 
         /// With the ramp on, each approach wave's share of the full share: from 40% up to all of it.
         static readonly float[] RampSteps = { 0.4f, 0.6f, 0.8f, 1f };

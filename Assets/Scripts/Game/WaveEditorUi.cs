@@ -1117,7 +1117,7 @@ namespace Arena
             var set = edSet.Copy();
             session.Plan = set.ToPlan();
             session.DesignTest = set;
-            session.SetMode(true, false);
+            session.SetMode(GameMode.Practice);
             int auto = session.AutoStart;
             session.AutoStart = 1;  // start now, without waiting for Ready
             session.StartMatch();

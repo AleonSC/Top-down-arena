@@ -35,7 +35,7 @@ static partial class Program
             lab.Stop();
             System.Threading.Thread.Sleep(1100);
             solo.Host(nextPort++, "Host", Role.Tank);
-            solo.QuickMode = true;
+            solo.Mode = GameMode.Quick;
             solo.RequestReady(true);
             for (int i = 0; i < 40; i++) solo.Poll();
             solo.StartMatch();

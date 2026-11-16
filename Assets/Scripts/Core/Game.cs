@@ -166,7 +166,7 @@ namespace Arena
             var w = Proto.Begin(Msg.Start);
             w.Write(session.StartWave);
             // Quick Play (QuickPlay.cs): its boss order, drawn here so every machine plays the same bosses.
-            bool quick = session.QuickMode && !session.PracticeMode && session.LobbyHunt == null && ResumeFrom == null;
+            bool quick = session.QuickMode && session.LobbyHunt == null && ResumeFrom == null;
             w.Write(quick);
             if (quick)
             {

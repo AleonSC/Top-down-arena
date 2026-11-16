@@ -39,7 +39,7 @@ static partial class Program
         host.Game.Bot = true; host.Game.BotLevel = skill; host.Game.BotRerolls = false;
         int port = nextPort++;
         host.Host(port, "A", Role.Tank, 0);
-        host.SetMode(false, true);
+        host.SetMode(GameMode.Hunt);
         host.SetHuntMapMode(policy != "plain");
         host.Game.HuntMapSeed = seed;
         var c = new Session(); c.Game.Bot = true; c.Game.BotLevel = skill; c.Game.BotRerolls = false;

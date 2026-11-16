@@ -40,7 +40,7 @@ static partial class Program
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 1 }, port, false, "Solo", Role.Tank, 0, 0, Kit.Knight);
         var g = host.Game;
-        host.PracticeMode = true;
+        host.Mode = GameMode.Practice;
         host.Plan = PracticePlan.Parse(text, out problems);
         host.StartMatch();
         g.DevSetGod(1, true);
@@ -87,7 +87,7 @@ static partial class Program
         host.Host(port, "Solo", Role.Dps, 0, 0, Kit.Soldier);
         g = host.Game;
         var loop = PracticePlan.Parse("loop: yes\nwave 1: Grunt x1\n", out problems);
-        host.PracticeMode = true;
+        host.Mode = GameMode.Practice;
         host.Plan = loop;
         host.StartMatch();
         g.DevSetGod(1, true);

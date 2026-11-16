@@ -56,7 +56,7 @@ namespace Arena
         }
 
         /// Between waves, may a mini-boss wake now? Not before a boss (everyone is beamed into the hub for it, BossBeam.cs).
-        bool DuelsBetweenWaves => State == MatchState.Intermission && !BossNext && !BossStartsNext && Practice == null && Hunt == null;
+        bool DuelsBetweenWaves => State == MatchState.Intermission && !BossNext && !BossStartsNext && ModeRules.RunEvents;
 
         /// Is there fighting now: a wave, or a mini-boss duel between waves (every game: read off the duel's foe, set each tick).
         /// Enemies attack, and minions and the kit's fight-only parts work, only while this is true.

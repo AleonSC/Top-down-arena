@@ -7,7 +7,7 @@ static partial class Shot {
     string env = Environment.GetEnvironmentVariable("PERFRUN");
     if (env == null) return;
     var parts = env.Split(',');
-    host.QuickMode = true;
+    host.Mode = GameMode.Quick;
     QuickPlay.OrderOverride = new[] { parts.Length > 1 ? (EnemyType)Enum.Parse(typeof(EnemyType), parts[1]) : EnemyType.TwinA, EnemyType.Boss, EnemyType.HiveQueen };
   }
   static void PerfRun() {

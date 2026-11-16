@@ -238,13 +238,13 @@ static partial class Shot {
       }
       // CAMPAIGN=<bosses beaten>: Normal mode's Campaign tab with a played profile (CampaignUi.cs).
       if (Environment.GetEnvironmentVariable("CAMPAIGN") != null) {
-        host.QuickMode = false; host.SurvivalMode = false; set("lobbyTab", 10);
+        host.Mode = GameMode.Campaign; set("lobbyTab", 10);
         int cn = int.Parse(Environment.GetEnvironmentVariable("CAMPAIGN"));
         var cp = new Profile { TutorialDone = true, RunsStarted = 14, RunsWon = 2, RunsLost = 11, BestWave = cn * 10 + 4, BestEndlessWave = cn >= 10 ? 112 : 0, BestScore = 482310, Kills = 18420, BossKills = 31, Downs = 87, Revives = 52 };
         for (int i = 0; i < cn; i++) cp.BossBeaten(BossSchedule.Campaign.BossAt((i + 1) * 5), (i + 1) * 10);
         host.Game.ProfileOverride = cp;
       }
-      if (Environment.GetEnvironmentVariable("SURVLOBBY") != null) { host.SurvivalMode = true; host.QuickMode = false; set("lobbyTab", 9); if (Environment.GetEnvironmentVariable("SURVLOBBY") == "2") { var sp2 = new Profile { TutorialDone = true }; sp2.SurvivalEnded("Knight Tank", 512f, 3); sp2.SurvivalEnded("Elementalist DPS", 845f, 4); sp2.SurvivalEnded("Knight Tank", 301f, 2); host.Game.ProfileOverride = sp2; } }  // SURVLOBBY=1: the lobby's Survival mode and tab (SurvivalUi.cs); 2: with some records
+      if (Environment.GetEnvironmentVariable("SURVLOBBY") != null) { host.Mode = GameMode.Survival; set("lobbyTab", 9); if (Environment.GetEnvironmentVariable("SURVLOBBY") == "2") { var sp2 = new Profile { TutorialDone = true }; sp2.SurvivalEnded("Knight Tank", 512f, 3); sp2.SurvivalEnded("Elementalist DPS", 845f, 4); sp2.SurvivalEnded("Knight Tank", 301f, 2); host.Game.ProfileOverride = sp2; } }  // SURVLOBBY=1: the lobby's Survival mode and tab (SurvivalUi.cs); 2: with some records
       if (Environment.GetEnvironmentVariable("LOBBYTAB") != null) { set("lobbyTab", int.Parse(Environment.GetEnvironmentVariable("LOBBYTAB"))); host.Modifiers = RunMod.GlassCannon | RunMod.Frenzy | RunMod.Lucky | RunMod.Hunted | RunMod.SecondWind; }
       // MODSCROLL=<px>: the Modifiers tab's list scrolled down (e.g. 420 shows the Risky tier, Simple Arena among it).
       if (Environment.GetEnvironmentVariable("MODSCROLL") != null) set("modsScroll", float.Parse(Environment.GetEnvironmentVariable("MODSCROLL")));
@@ -297,14 +297,14 @@ static partial class Shot {
       // DIFF=Hard (a preset) or DIFF=Custom (Hard with a few numbers changed): the lobby's Difficulty tab (LOBBYTAB=3).
       if (Environment.GetEnvironmentVariable("DIFF") != null) { var dl = (DifficultyLevel)Enum.Parse(typeof(DifficultyLevel), Environment.GetEnvironmentVariable("DIFF")); host.Diff = Difficulty.Of(dl == DifficultyLevel.Custom ? DifficultyLevel.Hard : dl); if (dl == DifficultyLevel.Custom) { host.Diff.Set(DiffKnob.EnemyDamage, 1.8f); host.Diff.Set(DiffKnob.Regen, 0.5f); host.Diff.Set(DiffKnob.ReviveTime, 2.5f); } }
       // HUNT=<n>: Boss Hunt mode, its tab (the Warden's hunt open, won once), the nth boss on top (n > 1: a never-met "???" boss).
-      if (Environment.GetEnvironmentVariable("HUNT") != null) { host.HuntMode = true; var hpr = host.Game.ProfileOverride = new Profile(); hpr.BossBeaten(EnemyType.Boss, 5); hpr.HuntEnded(EnemyType.Boss, true, 312f); hpr.HuntEnded(EnemyType.Boss, false, 200f);
+      if (Environment.GetEnvironmentVariable("HUNT") != null) { host.Mode = GameMode.Hunt; var hpr = host.Game.ProfileOverride = new Profile(); hpr.BossBeaten(EnemyType.Boss, 5); hpr.HuntEnded(EnemyType.Boss, true, 312f); hpr.HuntEnded(EnemyType.Boss, false, 200f);
         int hn; if (int.TryParse(Environment.GetEnvironmentVariable("HUNT"), out hn) && hn > 1) host.HuntBoss = BossSchedule.Campaign.BossAt(Math.Min(hn, 10) * 5);
         if (Environment.GetEnvironmentVariable("HUNTMAP") != null) host.HuntMapMode = true; }  // HUNTMAP=1: the Boss Hunt tab with the hunt map switch on
       if (Environment.GetEnvironmentVariable("CLIENT") != null) host.MyId = 2;
       if (Environment.GetEnvironmentVariable("LOBBYSETTINGS") != null) { set("settingsOpen", true); set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank))); }
       if (mode == "lobbypr") {
         System.Collections.Generic.List<string> pr;
-        host.PracticeMode = true;
+        host.Mode = GameMode.Practice;
         host.Plan = PracticePlan.Parse("loop: no\nwave 3: Grunt x4, Sniper x2, Swarmer x6\nwave 6: Spinner x2, Medic x1, Shielder x2, Charger x1\nwave 10: The Warden x1, Grunt x3\nwave 15: Twin Reapers x1\nwave 20: The Singularity x1", out pr);
         host.OthersCanEdit = Environment.GetEnvironmentVariable("EDIT") != null;
         host.PlanEditor = "Aleon"; host.PlanEditorSel = 1;

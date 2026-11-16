@@ -41,7 +41,7 @@ namespace Arena
 
         enum RecordKind : byte { Boss, End, Resume, Room }
 
-        bool Saveable => IsHost && !SurvivalOn && Practice == null && Hunt == null && !Quick && !ShowcaseMode && !Unrecorded && RunId != null;
+        bool Saveable => IsHost && ModeRules.Saves && !ShowcaseMode && !Unrecorded && RunId != null;
 
         /// Counts towards records at all (a real run, not practice, the lobby preview or the Boss Lab).
         bool RecordsRuns => Practice == null && !ShowcaseMode && !Unrecorded;
