@@ -697,6 +697,17 @@ namespace Arena
             s.Short(ref p.SsMask);  // the Stonespear (Stonespear.cs)
             s.Byte(ref p.SsSide);
             s.Int(ref p.SsLock);
+            int tagged = Math.Min(Game.ArcTagCap, p.ArcTags.Count);  // Arc Lightning's tags (ArcLock.cs)
+            s.Byte(ref tagged);
+            if (s.Reading)
+                p.ArcTags.Clear();
+            for (int k = 0; k < tagged; k++)
+            {
+                int tagId = s.Reading ? 0 : p.ArcTags[k];
+                s.Int(ref tagId);
+                if (s.Reading)
+                    p.ArcTags.Add(tagId);
+            }
             float drawT = p.DrawT;
             s.Float(ref drawT);
             s.Short(ref p.Level);

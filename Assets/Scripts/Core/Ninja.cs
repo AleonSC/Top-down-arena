@@ -940,6 +940,8 @@ namespace Arena
             if (LocalLanceHook(me, aimAt, pressed))
                 return;  // the Lance's Hook & Haul (Lance.cs)
             LocalCenserTick(dt);    // Censer Cast's cooldown (Censer.cs)
+            if (LocalArcFork(me, pressed, aimAt, dt))
+                return;  // Arc Lightning's Forked Volley (ArcLock.cs)
             if (LocalKatana(me, aimAt, pressed, dt))
                 return;  // the Katana's stance switch and steps (Katana.cs)
             if (LocalKnuckleDash(me, aimAt, pressed, dt))
@@ -1269,6 +1271,11 @@ namespace Arena
                 if (kind == DashDouble) HostDoubleBarrel(p, target);  // the Tank Soldier's Alt fires (TankAlts.cs)
                 else if (kind == DashMine) HostFlakMine(p, target);
                 else HostTearGas(p, target);
+                return;
+            }
+            if (kind == DashFork)
+            {
+                HostForkVolley(p, target);  // Arc Lightning's Forked Volley (ArcLock.cs)
                 return;
             }
             if (kind == DashVolley)
