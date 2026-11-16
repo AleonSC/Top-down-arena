@@ -895,7 +895,7 @@ namespace Arena
 
         // --- Muffled playback (the lobby's loadout preview) ------------------------
         // A copy of each clip run through a low-pass filter, built the first time it's needed.
-        const float MuffleHz = 450f, MuffleVolume = 0.4f;
+        const float MuffleHz = 450f, MuffleVolume = 0.4f, MuffleLowHz = 140f, MuffleLevel = 0.55f;
 
         /// Like Play, but dull and quieter: the sound as heard through a wall.
         public void PlayMuffled(Sfx s, float volume, float now)
@@ -916,6 +916,7 @@ namespace Arena
             {
                 var list = new AudioClip[src.Length];
                 double a = 1.0 - Math.Exp(-2.0 * Math.PI * MuffleHz / Rate);  // one-pole coefficient, applied twice
+                double hp = Math.Exp(-2.0 * Math.PI * MuffleLowHz / Rate);    // the high-pass's
                 for (int v = 0; v < src.Length; v++)
                 {
                     var data = new float[src[v].samples * src[v].channels];
@@ -924,13 +925,23 @@ namespace Arena
                         list[v] = src[v];  // (a compressed file of the player's: played as it is, just quieter)
                         continue;
                     }
-                    double y1 = 0, y2 = 0;
+                    // Low-pass (a dull top), then high-pass (a thin bottom: deep booms barely change under the low-pass alone), then the
+                    // level is set to a fixed share of the original's, so a sound that was mostly low doesn't come out louder than it went in.
+                    double y1 = 0, y2 = 0, h = 0, prev = 0, eIn = 0, eOut = 0;
                     for (int n = 0; n < data.Length; n++)
                     {
-                        y1 += a * (data[n] - y1);
+                        double x = data[n];
+                        y1 += a * (x - y1);
                         y2 += a * (y1 - y2);
-                        data[n] = (float)y2 * 1.6f;  // (what the filter takes off the top, partly given back)
+                        h = hp * (h + y2 - prev);
+                        prev = y2;
+                        data[n] = (float)h;
+                        eIn += x * x;
+                        eOut += h * h;
                     }
+                    float gain = eOut > 1e-12 ? Mathf.Min(1.6f, MuffleLevel * (float)Math.Sqrt(eIn / eOut)) : 1f;
+                    for (int n = 0; n < data.Length; n++)
+                        data[n] *= gain;
                     list[v] = AudioClip.Create(src[v].name + "_muffled", data.Length / src[v].channels, src[v].channels, src[v].frequency, false);
                     list[v].SetData(data, 0);
                 }
