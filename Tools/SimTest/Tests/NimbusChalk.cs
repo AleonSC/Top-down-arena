@@ -94,7 +94,10 @@ static partial class Program
         Console.WriteLine("  nimbus: strike hit the enemy under the cloud for {0:0.0} (a strike is {1:0.0}) and the one 110 px off for {2:0.0}", u0 - under.Hp, bolt, b0 - beside.Hp);
         Check(Math.Abs(u0 - under.Hp - bolt) < 0.5f && b0 - beside.Hp < 0.01f, "a click strikes the spot under the cloud for " + (int)me.Weapon.Damage + ", in a small blast");
         play(0.1f, f => new PlayerInput { AimAt = cursor });
-        Check(client.Game.Effects.Any(e => e.Kind == FxKind.Strike), "the other player sees the lightning");
+        Check(client.Game.Effects.Any(e => e.Kind == FxKind.NimbusStrike), "the other player sees the lightning");
+        // Rain soaks: the enemy under the cloud is wet (and stays so a moment after), the one beside it isn't.
+        Check(under.WetT > 0f && beside.WetT <= 0f, "enemies under the rain are wet; ones outside it aren't");
+        Check(client.Game.Enemies.Values.Any(e => e.Id == under.Id && e.Wet), "the other player sees them dripping");
         // Extra projectiles: more strikes, in a ring round the first.
         me.Stats.ExtraShots = 2;
         u0 = under.Hp;
@@ -102,6 +105,46 @@ static partial class Program
         play(1f / 60f, f => new PlayerInput { AimAt = cursor });
         Check(u0 - under.Hp > bolt * 2.5f, "each extra projectile adds a strike landing round the cloud (" + (u0 - under.Hp).ToString("0") + " on the middle of it)");
         me.Stats.ExtraShots = 0;
+        reset();
+
+        // Eye of the Storm (Alt): a hurricane on the cloud for 4 s that drags enemies round, hurts and soaks them, tears up
+        // their shots and heals allies in its eye; no strikes meanwhile; a burst at the end; 12 s cooldown.
+        var alt = typeof(Game).GetMethod("HostWeaponDash", flags);
+        play(1f, f => new PlayerInput { AimAt = cursor });
+        c = cloud();
+        V2 eyeAt = c.Pos;
+        var caught = make(eyeAt + new V2(100f, 0f), EnemyType.Grunt, false);
+        float ang0 = (caught.Pos - eyeAt).Angle, h0 = caught.Hp;
+        allyAt = eyeAt;
+        ally.Hp = ally.MaxHp * 0.3f;
+        a0 = ally.Hp;
+        alt.Invoke(g, new object[] { 1, 33, cursor });
+        Check(me.NimbusStormT > 0f && me.NimbusStormCd > 11f, "Alt turns the cloud into a hurricane and starts its 12 s cooldown");
+        play(0.05f, f => new PlayerInput { AimAt = cursor });
+        Check(client.Game.Effects.Any(e => e.Kind == FxKind.NimbusStorm && (int)e.Pos2.X == c.Id), "the other player sees the hurricane on the cloud");
+        var stormShot = (Bullet)shoot.Invoke(g, new object[] { Defs.SmallShot, eyeAt + new V2(60f, 30f), new V2(-10f, 0f), 0f, 3f, 10f, 0, false, 0f });
+        play(1f, f => new PlayerInput { AimAt = cursor });
+        float swirled = Math.Abs(MathX.Fmod((caught.Pos - c.Pos).Angle - ang0 + MathX.Pi, MathX.Tau) - MathX.Pi), hurt = h0 - caught.Hp, healed = ally.Hp - a0;
+        Console.WriteLine("  nimbus storm: in 1 s an enemy swung {0:0.00} rad round it and took {1:0} (wet {2}), the ally in the eye healed {3:0}", swirled, hurt, caught.WetT > 0f, healed);
+        Check(swirled > 0.4f && caught.WetT > 0f && hurt > Game.NimbusStormDps * me.Stats.DmgMult * 0.8f, "it drags enemies round, hurts them about 20 a second and soaks them");
+        Check(!g.Bullets.ContainsKey(stormShot.Id), "enemy shots that enter it are torn apart");
+        Check(healed > Game.NimbusEyeHeal * 0.8f, "allies in its calm eye heal " + (int)Game.NimbusEyeHeal + " a second");
+        int fired = me.Run.ShotsFired;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        Check(me.Run.ShotsFired == fired, "no strikes while it blows");
+        alt.Invoke(g, new object[] { 1, 33, cursor });
+        Check(me.NimbusStormT < Game.NimbusStormTime - 0.9f, "pressing Alt again doesn't restart it");
+        V2 before = cloud().Pos;
+        play(0.5f, f => new PlayerInput { AimAt = cursor + new V2(0f, 300f) });
+        float drift = cloud().Pos.DistanceTo(before);
+        Check(drift > 50f && drift < 600f * Game.NimbusStormDrift * 0.5f + 10f, "it drifts after your cursor at half speed (" + drift.ToString("0") + " px in 0.5 s)");
+        int left = 0;
+        while (me.NimbusStormT > 0f && left++ < 300)
+            play(1f / 60f, f => new PlayerInput { AimAt = cursor });
+        Check(left > 100 && left < 200 && g.Effects.Any(e => e.Kind == FxKind.Ring), "after 4 s it blows out in a burst");
+        alt.Invoke(g, new object[] { 1, 33, cursor });
+        Check(me.NimbusStormT <= 0f, "and waits out its cooldown");
+        allyAt = new V2(300f, 100f);
         reset();
 
         // --- Spirit Chalk.
