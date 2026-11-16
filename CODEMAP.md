@@ -258,7 +258,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `LumenWardLook.cs`: Lumen Ward's cone of light (look A, Cathedral, of `Docs/Mockups/sanctify-cone.html`: bands, god rays, dust; your own drawn from your live aim)
 - `DeathLotusLook.cs`: the Ninja's Death Lotus (Crimson Reaping: dark arena, three glowing cuts and a lotus stain per enemy struck, camera kick; `FxKind.DeathLotus`)
 - `LifelineLook.cs`: the Healer Soldier's Lifeline (heartbeat pulse, halo and column of light on each player it reached; `FxKind.Lifeline`)
-- `ElementalistLooks.cs`: Meteor (falling rock, impact), Blizzard (whiteout) and Tsunami (crest, wet drips) looks
+- `ElementalistLooks.cs`: Meteor (falling rock, impact), Blizzard (a soft-edged lane of whiteout) and Tsunami (crest, wet drips) looks
 - `NimbusLook.cs`, `ChalkLook.cs`: the Nimbus's cloud, rain and lightning; Spirit Chalk's ink, sealed loops and the ring on penned enemies
 - `ShotLooks.cs`, `Juice.cs`, `Ambience.cs`: weapon shot looks, screen shake/particles/glow, weather and trails
 - `JuiceMoments.cs` (Game): kill hit-pause, multikill calls (`DrawMultiKill`, `multiStyle`), the wave's last kill, boss-death slow motion (`BossSlowSpeed` in `EndSpeed`), level shock, low-HP heartbeat, lasting floor marks; preview `MOMENT=multi|clear|level|lowhp|marks` (`Tools/Preview/ShotJuice.cs`)

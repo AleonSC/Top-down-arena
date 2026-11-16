@@ -411,8 +411,8 @@ namespace Arena
                     break;
                 }
                 case AbilityId.Blizzard:
-                    AddZone(ZoneKind.Blizzard, p, target, 130f * s.BlizzardRadiusMult, (cap ? 10f : 5f) + s.BlizzardBonusTime);  // Whiteout
-                    BroadcastFx(FxKind.Ring, target, Kits.Get(ZoneKind.Blizzard).Color, 130f * s.BlizzardRadiusMult, 0.4f, Sfx.Freeze);
+                    AddZone(ZoneKind.Blizzard, p, target, 130f * s.BlizzardRadiusMult, (cap ? 10f : 5f) + s.BlizzardBonusTime).Aim = p.Aim;  // Whiteout; a lane along your aim
+                    Sounds.Add(Sfx.Freeze);
                     break;
                 case AbilityId.Tsunami:
                     CastTsunami(p, cap, pw);
@@ -993,6 +993,14 @@ namespace Arena
         readonly List<Minion> scratchMinionsExploding = new List<Minion>();
         readonly List<Zone> scratchZonesExpired = new List<Zone>();
 
+        /// A Blizzard is a lane, not a disc: Pos its middle, Aim its long axis (the cast's aim), Radius the old disc's radius it scales from.
+        public const float BlizzardLen = 2.1875f, BlizzardWid = 0.775f;  // half-length and half-width, in Radius (1.75 and 0.62 x 1.25)
+        public static bool InBlizzard(Zone z, V2 pos, float r)
+        {
+            V2 ex = V2.FromAngle(z.Aim), d = pos - z.Pos;
+            return Math.Abs(d.Dot(ex)) <= z.Radius * BlizzardLen + r && Math.Abs(d.Dot(ex.Orthogonal())) <= z.Radius * BlizzardWid + r;
+        }
+
         void TickZones(float dt)
         {
             var expired = scratchZonesExpired;
@@ -1050,6 +1058,7 @@ namespace Arena
                     {
                         if (e.SpawnT > 0f || (z.Kind == ZoneKind.BulletRain
                                 ? Math.Abs(e.Pos.X - z.Pos.X) > z.Radius + e.Radius || Math.Abs(e.Pos.Y - z.Pos.Y) > z.Radius + e.Radius  // a square
+                                : z.Kind == ZoneKind.Blizzard ? !InBlizzard(z, e.Pos, e.Radius)  // a long lane
                                 : e.Pos.FartherThan(z.Pos, z.Radius + e.Radius)))
                             continue;
                         if (d.Dps > 0f && !HallowedSpent(z))
