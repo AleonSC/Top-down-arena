@@ -133,7 +133,7 @@ namespace Arena
                     break;
                 }
                 case WeaponId.ArcLightning:
-                    ArcField(p, aim, w.Damage * (1f + ArcGrow * extra) * HomingCost(p) * dmg, BowCharge(p, p.BowShotDraw));
+                    ArcChain(p, aim, (1f + ArcGrow * extra) * HomingCost(p) * dmg);  // the lock-on chain through every tag (ArcLock.cs)
                     break;
                 case WeaponId.Stonespear:
                     ThrowStonespear(p, aim, muzzle, dmg, extra);  // a hovering spear at your cursor (Stonespear.cs)
@@ -695,8 +695,8 @@ namespace Arena
             }
         }
 
-        /// Arc Lightning: hold to charge a strip of ground in front of you, longer the longer you hold (out to half
-        /// the arena); let go and lightning shocks everything in it.
+        /// Arc Lightning's old strip (retired: the lock-on chain, ArcLock.cs, replaced it and ArcField is no longer fired; ArcStun and
+        /// ArcGrow are still the chain's): hold to charge a strip of ground in front of you, let go and lightning shocks everything in it.
         public const float ArcMin = 160f, ArcMax = Width * 0.5f, ArcHalfWidth = 60f, ArcNear = 0.4f, ArcStun = 0.4f, ArcGrow = 0.25f;  // lengths from your centre; half its width at the far end; how wide it is at your staff, as a fraction of that; stun (not bosses); +damage per extra projectile
         public static float ArcLength(Player p, float c) => (ArcMin + (ArcMax - ArcMin) * c) * p.Stats.ShotSpeedMult * PierceReach(p);  // Velocity and Piercing Rounds stretch it
         public static float ArcWidth(Player p) => ArcHalfWidth * AreaMult(p);  // Homing Rounds widen it

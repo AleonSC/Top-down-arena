@@ -339,6 +339,11 @@ namespace Arena
                 case FxKind.ArcField:
                     DrawArcFieldFx(fx, f);
                     break;
+                case FxKind.ArcTag:
+                case FxKind.ArcLink:
+                case FxKind.ArcFork:
+                    DrawArcLockFlatFx(fx);  // Arc Lightning's lock-on chain with Visual effects off (ArcLockLook.cs)
+                    break;
                 case FxKind.ChainThrow:
                     DrawChainThrowFx(fx, f);
                     break;

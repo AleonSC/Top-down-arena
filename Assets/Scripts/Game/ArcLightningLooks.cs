@@ -33,9 +33,7 @@ namespace Arena
         /// The glow pass: every Arc Lightning charge being held, and every strip going off.
         void DrawArcLightningGlow()
         {
-            foreach (var p in game.Players.Values)
-                if (p.Weapon.Id == WeaponId.ArcLightning && p.DrawT > 0f && !p.Downed)
-                    DrawThunderCharge(p, p.Id == game.MyId, game.AnimT);
+            DrawArcLockGlow();  // the lock-on chain: cone, brands, hops and forks (ArcLockLook.cs)
             foreach (var fx in game.Effects)
                 if (fx.Kind == FxKind.ArcField)
                     DrawThunderStrip(fx);

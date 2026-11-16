@@ -832,6 +832,36 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // ARCLOCK=<s>: Arc Lightning's lock-on chain (Core/ArcLock.cs, Game/ArcLockLook.cs) that long into the mockup's loop: fire held from 0,
+    // the cursor sweeping down the cone (one enemy walks out of it, still tagged), let go at 1.5 s; the chain hops from there.
+    // ARCFORK=1: Alt instead at 0 (Forked Volley at the enemies nearest the cursor), no hold.
+    if (Environment.GetEnvironmentVariable("ARCLOCK") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Dps; me.Kit = Kit.Elementalist; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Elementalist, 1); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      V2 home = new V2(380f, 450f); me.Pos = me.Disp = home; me.Aim = 0f;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      foreach (var at0 in new[] { new V2(150f, -60f), new V2(190f, 40f), new V2(240f, -130f), new V2(270f, 95f), new V2(300f, -20f), new V2(330f, 150f), new V2(360f, -190f), new V2(220f, 210f), new V2(410f, 60f), new V2(-140f, 120f), new V2(480f, -40f) }) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      bool fork = Environment.GetEnvironmentVariable("ARCFORK") != null;
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("ARCLOCK"), ci) * 60f));
+      for (int f = 0; f < frames; f++) {
+        float tt = f / 60f;
+        V2 cursor = fork ? home + new V2(290f, 20f) : home + V2.FromAngle(-0.55f + 0.75f * Math.Min(1f, tt / 1.4f)) * 300f;
+        bool fire = !fork && tt < 1.5f;
+        bool alt = fork && f < 3;
+        foes[1].Pos = home + new V2(190f, 40f) + new V2(-120f, 150f) * Math.Min(1f, tt / 1.4f);  // walks out of the cone, still tagged
+        foreach (var e in foes) { e.Disp = e.Pos; e.FireT = 99f; }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = fire, WeaponAction = alt });
+        gm.Update(1f / 60f);
+        me.Pos = home; me.Disp = me.Pos; me.Aim = (cursor - me.Pos).Angle; me.AimAt = cursor; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // OUTAMMO=<s>: the Soldier DPS's Out of Ammo (Core/OutOfAmmo.cs, Game/OutOfAmmoLook.cs) that long into a fight, a dummy close in front of you
     // (the rifle arms bash by themselves); KNIFE=1: fire held (the knife chain); OUTSPIN=1: Alt pressed 0.3 s in (the spin).
     if (Environment.GetEnvironmentVariable("OUTAMMO") != null) {
