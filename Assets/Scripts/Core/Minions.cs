@@ -47,9 +47,9 @@ namespace Arena
             new WeaponDef { Id = WeaponId.Fireball, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 0, Speed = 430f, Life = 1.4f, Damage = 32f, BotRange = 390f, ExtraDesc = "+1 fireball, fanned out", Name = "Fireball", FireInterval = 0.5f,
                 Desc = "A big, slow fireball that rolls on through every enemy in its path, hurting each and setting it burning.",
                 Sound = Sfx.SpellFire },
-            new WeaponDef { Id = WeaponId.ArcLightning, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 1, Damage = 40f, BotRange = 320f, ExtraDesc = "+25% damage", Name = "Arc Lightning", FireInterval = 0.25f,
-                Desc = "Hold to charge a strip of ground in front of you, longer the longer you hold. Let go: lightning shocks everything in it and stuns it.",
-                Sound = Sfx.SpellZap, AreaDesc = "the lightning strip 25% wider", BarrageDesc = "+1 strip of lightning side by side with the first. Covers more ground; nothing is shocked twice" },
+            new WeaponDef { Id = WeaponId.ArcLightning, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 1, Damage = 16f, BotRange = 320f, ExtraDesc = "+25% damage", Name = "Arc Lightning", FireInterval = 0.25f,
+                Desc = "Hold to tag enemies in a wide cone in front of you, up to 10; they stay tagged if they walk out of it. Let go: lightning chains through every tagged enemy, harder the more you tagged, and stuns them. Alt fires three forked bolts at the enemies nearest your cursor.",
+                Sound = Sfx.SpellZap, AreaDesc = "the tagging cone 25% wider", BarrageDesc = "+2 tags a stack (up to 16), and the chain grows with them" },
             new WeaponDef { Id = WeaponId.ArcaneMissiles, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 2, Speed = 520f, Life = 1f, Damage = 7f, ExtraDesc = "+1 shard a cast, +2 in orbit, and faster launches", Name = "Ice Shards", FireInterval = 0.3f,
                 Desc = "Each cast conjures shards of ice that orbit you. They launch at nearby enemies, homing, one after another. With the orbit full, a cast flies at your aim.",
                 Sound = Sfx.SpellArcane },
@@ -96,7 +96,7 @@ namespace Arena
                 Apply = s => { s.RainSizeMult += 0.3f; s.RainHealMult2 += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Fireball }, MaxStacks = 2, Name = "Wildfire", Desc = "The Fireball's burn is 50% hotter and lasts 1 s longer",
                 Apply = s => { s.FireballBurnMult += 0.5f; s.FireballBurnBonus += 1f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.ArcLightning }, MaxStacks = 2, Name = "Static Field", Desc = "Arc Lightning reaches a full charge 25% sooner, and its stun lasts 0.2 s longer",
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.ArcLightning }, MaxStacks = 2, Name = "Static Field", Desc = "Arc Lightning tags enemies 25% faster, and its stun lasts 0.2 s longer",
                 Apply = s => { s.ArcChargeMult *= 0.75f; s.ArcStunBonus += 0.2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.ArcaneMissiles }, MaxStacks = 2, Name = "Frozen Halo", Desc = "Ice Shards' orbit holds 2 more shards, and they launch at enemies 25% farther out",
                 Apply = s => { s.OrbitExtra += 2; s.LaunchRangeMult += 0.25f; } },
@@ -202,9 +202,9 @@ namespace Arena
                 Desc = "Hold and drag to draw a line of spirit ink. It burns and slows enemies touching it, heals allies standing on it and destroys enemy bullets that cross it. Draw a circle round enemies to trap them inside (not bosses).",
                 Sound = Sfx.None, AreaDesc = "the line is 25% wider" },
             // DPS
-            new WeaponDef { Id = WeaponId.WolfWhistle, Kit = Kit.Summoner, Role = Role.Dps, Choice = 0, Speed = 720f, Life = 0.8f, Damage = 6.5f, ExtraDesc = "+1 Wolf", Name = "Wolf Whistle", FireInterval = 0.3f,
-                Desc = "Darts mark the enemy they hit as prey, and your wolves hunt it. When every wolf bites it close together, they pull off a takedown that hurts and stuns.",
-                Companion = MinionKind.Wolf, CompanionCount = 2 },
+            new WeaponDef { Id = WeaponId.WolfWhistle, Kit = Kit.Summoner, Role = Role.Dps, Choice = 0, Speed = 720f, Life = 0.8f, Damage = 6.5f, ExtraDesc = "+1 starting wolf", Name = "Wolf Whistle", FireInterval = 0.3f,
+                Desc = "Darts mark prey for your wolves; every wolf biting it at once is a takedown. Kills grow the pack (up to 5); Alt merges it into an alpha. The pack takes 10% of the damage you take.",
+                Companion = MinionKind.Wolf, CompanionCount = 1 },
             new WeaponDef { Id = WeaponId.WispLantern, Kit = Kit.Summoner, Role = Role.Dps, Choice = 1, Damage = 22f, BotRange = 340f, ExtraDesc = "+1 Wisp, and each shot sends one more", Name = "Wisp Lantern", FireInterval = 0.25f,
                 Desc = "Wisps orbit you, and they are your shots: each time you fire, one flies at the enemy nearest your cursor, strikes it and comes back.",
                 Companion = MinionKind.Wisp, CompanionCount = 3,
@@ -411,8 +411,8 @@ namespace Arena
                     break;
                 }
                 case AbilityId.Blizzard:
-                    AddZone(ZoneKind.Blizzard, p, target, 130f * s.BlizzardRadiusMult, (cap ? 10f : 5f) + s.BlizzardBonusTime);  // Whiteout
-                    BroadcastFx(FxKind.Ring, target, Kits.Get(ZoneKind.Blizzard).Color, 130f * s.BlizzardRadiusMult, 0.4f, Sfx.Freeze);
+                    AddZone(ZoneKind.Blizzard, p, target, 130f * s.BlizzardRadiusMult, (cap ? 10f : 5f) + s.BlizzardBonusTime).Aim = p.Aim;  // Whiteout; a lane along your aim
+                    Sounds.Add(Sfx.Freeze);
                     break;
                 case AbilityId.Tsunami:
                     CastTsunami(p, cap, pw);
@@ -580,7 +580,11 @@ namespace Arena
                 var w = p.Weapon;
                 var kind = CompanionKind(p);
                 int extra = ExtraShots(p);
-                if (kind != MinionKind.None)
+                if (w.Id == WeaponId.WolfWhistle)
+                    TickWolfPack(p);  // the pack grows with kills instead (WolfPack.cs)
+                else
+                    p.PackStarted = false;
+                if (kind != MinionKind.None && w.Id != WeaponId.WolfWhistle)
                 {
                     int want = CompanionCount(p), have = 0;
                     Minion surplus = null;
@@ -651,7 +655,7 @@ namespace Arena
                     m.Stacks = ScentStartFor(owner);
                 else if (!scent && m.Stacks != 0)
                     m.Stacks = 0;
-                float speed = d.Speed * (scent ? 1f + ScentSpeedPer * m.Stacks : frenzy ? 1.6f : 1f) * (m.NoFrenzy && owner.LegionT > 0f ? LegionSpeed : 1f);
+                float speed = d.Speed * PackSpeed(m) * (scent ? 1f + ScentSpeedPer * m.Stacks : frenzy ? 1.6f : 1f) * (m.NoFrenzy && owner.LegionT > 0f ? LegionSpeed : 1f);
                 float rate = owner.Stats.FireRateMult * (scent ? 1f + ScentRatePer * m.Stacks : frenzy ? 2f : 1f)
                     * (m.Kind == MinionKind.Guard && m.Companion && owner.Weapon.Id == WeaponId.BoneGuard ? owner.Stats.SkeletonRateMult : 1f);  // (Ossuary: Bone Guard's skeletons shoot faster)
                 float dmg = d.Damage * owner.Stats.DmgMult * (frenzy ? 1.3f : 1f) * m.Scale * m.Power;
@@ -761,7 +765,7 @@ namespace Arena
                         target = (m.Kind == MinionKind.Wolf ? Prey(owner) : null) ?? NearestEnemy(m.Pos, MinionChaseRange);  // wolves hunt the Wolf Whistle's prey
                         V2 goal = target != null ? target.Pos : owner.Pos + V2.FromAngle(m.Id) * 50f;
                         V2 to = goal - m.Pos;
-                        float stop = target != null ? target.Radius + d.Radius : 10f;
+                        float stop = target != null ? target.Radius + d.Radius * m.Scale : 10f;
                         if (to.Length > stop)
                             m.Pos += to.Normalized() * Math.Min(speed * dt, to.Length - stop);
                         if (m.Kind == MinionKind.Bat && to.Length > 1f)
@@ -826,8 +830,8 @@ namespace Arena
                             }
                             break;
                         }
-                        var e = target ?? NearestEnemy(m.Pos, d.Radius + 40f);
-                        if (e != null && m.Cd <= 0f && e.Pos.CloserThan(m.Pos, e.Radius + d.Radius + 6f))
+                        var e = target ?? NearestEnemy(m.Pos, d.Radius * m.Scale + 40f);
+                        if (e != null && m.Cd <= 0f && e.Pos.CloserThan(m.Pos, e.Radius + d.Radius * m.Scale + 6f))
                         {
                             m.Cd = d.Interval;
                             m.Aim = (e.Pos - m.Pos).Angle;
@@ -993,6 +997,14 @@ namespace Arena
         readonly List<Minion> scratchMinionsExploding = new List<Minion>();
         readonly List<Zone> scratchZonesExpired = new List<Zone>();
 
+        /// A Blizzard is a lane, not a disc: Pos its middle, Aim its long axis (the cast's aim), Radius the old disc's radius it scales from.
+        public const float BlizzardLen = 2.1875f, BlizzardWid = 0.775f;  // half-length and half-width, in Radius (1.75 and 0.62 x 1.25)
+        public static bool InBlizzard(Zone z, V2 pos, float r)
+        {
+            V2 ex = V2.FromAngle(z.Aim), d = pos - z.Pos;
+            return Math.Abs(d.Dot(ex)) <= z.Radius * BlizzardLen + r && Math.Abs(d.Dot(ex.Orthogonal())) <= z.Radius * BlizzardWid + r;
+        }
+
         void TickZones(float dt)
         {
             var expired = scratchZonesExpired;
@@ -1050,6 +1062,7 @@ namespace Arena
                     {
                         if (e.SpawnT > 0f || (z.Kind == ZoneKind.BulletRain
                                 ? Math.Abs(e.Pos.X - z.Pos.X) > z.Radius + e.Radius || Math.Abs(e.Pos.Y - z.Pos.Y) > z.Radius + e.Radius  // a square
+                                : z.Kind == ZoneKind.Blizzard ? !InBlizzard(z, e.Pos, e.Radius)  // a long lane
                                 : e.Pos.FartherThan(z.Pos, z.Radius + e.Radius)))
                             continue;
                         if (d.Dps > 0f && !HallowedSpent(z))

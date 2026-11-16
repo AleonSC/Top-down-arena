@@ -1062,7 +1062,7 @@ namespace Arena
             DrawLanceGlow();    // the Lance's hits and Impacts (LanceLook.cs)
             DrawChainLightGlow();  // Chain Light's radiance (ChainLightLooks.cs)
             DrawRadiantStardust();  // the Radiant Orb's trail (RadiantOrbLooks.cs)
-            DrawArcLightningGlow();  // Arc Lightning's Thunderhead (ArcLightningLooks.cs)
+            DrawArcLightningGlow();  // Arc Lightning's lock-on chain (ArcLockLook.cs)
             DrawRodGlow();    // Lightning Rod's charge and bolts (LightningRodLook.cs)
             DrawLightGlow();  // the Lightbringer's Sundial, Sunrise crescents, Spear, ward plates and marks (LightbringerFxLook.cs)
             foreach (var e in game.Enemies.Values)

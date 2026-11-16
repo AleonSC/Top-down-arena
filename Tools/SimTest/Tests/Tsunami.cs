@@ -38,21 +38,22 @@ static partial class Program
         Check(near.WetT > 4f && far.WetT > 4f && off.WetT == 0f && dry.WetT == 0f && off.Hp == off.MaxHp, "what it crosses is wet; what it misses stays dry and unhurt");
         Check(Math.Abs(near.SlowMult - (1f - Game.WetSlow)) < 0.01f, "wet slows by 30%");
 
-        // Lightning anywhere arcs to every wet enemy: an Arc Lightning strip hits the dry enemy beside me.
+        // Lightning anywhere arcs to every wet enemy: Arc Lightning's chain hits the dry enemy beside me (tagged; its hop lands next tick).
         float n0 = near.Hp, f0 = far.Hp, d0 = dry.Hp, o0 = off.Hp;
         me.Aim = MathX.Pi;
-        volley.Invoke(g, new object[] { me, me.Aim, 0 });
+        Action chain = () => { me.ArcTags.Clear(); me.ArcTags.Add(dry.Id); volley.Invoke(g, new object[] { me, me.Aim, 0 }); step(dt); };
+        chain();
         float dryHit = d0 - dry.Hp, nearArc = n0 - near.Hp, farArc = f0 - far.Hp;
         Console.WriteLine("  arc lightning on a dry enemy {0:0.0}: wet enemies {1:0.0} / {2:0.0}, dry bystander {3:0.0}", dryHit, nearArc, farArc, o0 - off.Hp);
-        Check(dryHit > 20f && Math.Abs(nearArc - dryHit * Game.WetArcShare) < 0.5f && Math.Abs(farArc - nearArc) < 0.5f, "Arc Lightning arcs to every wet enemy on the map for 40% of its hit, however far");
-        Check(off.Hp == o0, "a dry enemy that wasn't in the strip takes nothing");
+        Check(dryHit > 15f && Math.Abs(nearArc - dryHit * Game.WetArcShare) < 0.5f && Math.Abs(farArc - nearArc) < 0.5f, "Arc Lightning arcs to every wet enemy on the map for 40% of its hit, however far");
+        Check(off.Hp == o0, "a dry enemy that wasn't in the chain takes nothing");
         float again = near.Hp;
-        volley.Invoke(g, new object[] { me, me.Aim, 0 });
+        chain();
         Check(near.Hp == again, "a wet enemy can't be arced again within 0.4 s");
         step(0.5f);
         me.Aim = MathX.Pi;  // (stepping turned me back to the cursor)
         again = near.Hp;
-        volley.Invoke(g, new object[] { me, me.Aim, 0 });
+        chain();
         Check(near.Hp < again, "...but can be a moment later");
 
         // It wears off, and the slow with it.

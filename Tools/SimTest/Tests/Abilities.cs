@@ -80,7 +80,7 @@ static partial class Program
             WaitForGame(host, client, dt);
             var minions = new HashSet<MinionKind>();
             var zones = new HashSet<ZoneKind>();
-            bool aegis = false, shield = false, wave = false, frenzy = false, bolt = false, boltShot = false;
+            bool aegis = false, shield = false, wave = false, frenzy = false, bolt = false, boltShot = false, link = false;
             int ghosts = 0, frame = 0;
             Action watch = () =>
             {
@@ -97,6 +97,7 @@ static partial class Program
                 foreach (var fx in client.Game.Effects)
                 {
                     bolt |= fx.Kind == FxKind.Bolt;
+                    link |= fx.Kind == FxKind.ArcLink && fx.Radius >= 0f;  // a hop of Arc Lightning's chain (ArcLock.cs)
                     wave |= fx.Kind == FxKind.Tsunami;
                 }
                 foreach (var b in client.Game.Bullets.Values)
@@ -112,8 +113,8 @@ static partial class Program
             bool lightning = false;
             foreach (var p in client.Game.Players.Values)
                 lightning |= p.Weapon.Id == WeaponId.StormHammer || p.Weapon.Id == WeaponId.ChainLight || p.Weapon.Id == WeaponId.ArcLightning;  // Chain Light's arcs are bolts too
-            if (lightning && !bolt)
-                Run(s, dt, 15, () => bolt, watch);
+            if (lightning && !(bolt || link))
+                Run(s, dt, 15, () => bolt || link, watch);
             foreach (int id in new[] { 1, 2 })
             {
                 var p = client.Game.Players[id];
@@ -121,7 +122,8 @@ static partial class Program
                 bool weaponOk = w.Companion == MinionKind.None || minions.Contains(w.Companion);
                 // Chains need a second enemy nearby, so per run just require the shots; a chain is checked below.
                 if (w.Id == WeaponId.StormHammer) weaponOk = boltShot;
-                if (w.Id == WeaponId.ChainLight || w.Id == WeaponId.ArcLightning) weaponOk = bolt;  // a cone of light or a strip of lightning, no shots: bolts arc to whatever is in it
+                if (w.Id == WeaponId.ChainLight) weaponOk = bolt;  // a cone of light, no shots: bolts arc to whatever is in it
+                if (w.Id == WeaponId.ArcLightning) weaponOk = link;  // the lock-on chain: its hops reach the other screen
                 bool abilityOk = true;
                 switch (p.Slots[0].Id)
                 {

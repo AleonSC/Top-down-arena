@@ -561,6 +561,7 @@ static partial class Program
             me.AmmoUsed = 0;
             me.ReloadT = 0f;
             me.CompanionCd = 0f;
+            me.PackStarted = false;  // (the Wolf Whistle's starting wolves come again: WolfPack.cs)
             me.SsMask = 0; me.SsWindT = 0f; me.SsCdT = 0f; me.SsQueue.Clear();  // (the Stonespear starts each trial with no spears up)
             int spawned = 0, totems = 0;  // totems: now the most ink dots down at once (Spirit Chalk's extra projectiles are more ink)
             var seen = new HashSet<int>();
@@ -754,9 +755,18 @@ static partial class Program
                     if (touch && !past) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (orb: touching hit " + touch + ", past hit " + past + ")");
                     continue;
                 }
-                if (w.Id == WeaponId.VeinTether || w.Id == WeaponId.Implosion || w.Id == WeaponId.LeechBeam || w.Id == WeaponId.LightBolt || w.Id == WeaponId.ChainLight || w.Id == WeaponId.ArcLightning)
+                if (w.Id == WeaponId.ArcLightning)
                 {
-                    // A beam, an implosion, a tendril, a repulsion blast, a cone of light or a strip of lightning has no shots to follow: an enemy just inside its range is hit, one just past it isn't.
+                    // The lock-on cone (ArcLock.cs): an enemy just inside its reach can be tagged, one just past it can't.
+                    const float r0 = 14f;
+                    me.Pos = new V2(120f, 450f);
+                    bool inCone = Game.InArcCone(me, 0f, new V2(120f + range - 4f + r0, 450f), r0), pastCone = Game.InArcCone(me, 0f, new V2(120f + range + 4f + r0, 450f), r0);
+                    if (inCone && !pastCone) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (inside " + inCone + ", outside " + pastCone + ")");
+                    continue;
+                }
+                if (w.Id == WeaponId.VeinTether || w.Id == WeaponId.Implosion || w.Id == WeaponId.LeechBeam || w.Id == WeaponId.LightBolt || w.Id == WeaponId.ChainLight)
+                {
+                    // A beam, an implosion, a tendril, a repulsion blast or a cone of light has no shots to follow: an enemy just inside its range is hit, one just past it isn't.
                     Func<float, bool> Hits = edge =>
                     {
                         g.Enemies.Clear();
@@ -1299,8 +1309,7 @@ static partial class Program
 
     static void FireballArcTest(float dt)
     {
-        // The Fireball rolls on through a line of enemies, hitting and burning each. Arc Lightning charges a strip in
-        // front of you (longer the longer you hold) and shocks everything in it when you let go.
+        // The Fireball rolls on through a line of enemies, hitting and burning each.
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var volley = typeof(Game).GetMethod("FireVolley", flags);
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
@@ -1353,40 +1362,7 @@ static partial class Program
         Console.WriteLine("  fireball with Piercing Rounds: lives {0:0.00} s (was {1:0.00}), reach {2:0} px (was {3:0})", life1, life0, reach1, reach0);
         Check(Math.Abs(life1 / life0 - 1.15f) < 0.01f && reach1 > reach0, "Piercing Rounds roll the Fireball 15% farther a stack (it passes through everything already)");
 
-        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.ArcLightning);
-        Check(Game.ChargeWeapon(WeaponId.ArcLightning), "Arc Lightning charges like a bow");
-        float far = Game.ArcLength(me, 1f), near = Game.ArcLength(me, 0f);
-        var strip = new[] { from + new V2(near - 30f, 0f), from + new V2(far - 30f, 20f), from + new V2(far + 60f, 0f), from + new V2(300f, Game.ArcHalfWidth + 60f), from + new V2(100f, 75f), from + new V2(far - 100f, 55f) };  // the last two: wide of the cone near you, inside it far out
-        var ds2 = dummies(strip);
-        me.BowShotDraw = Game.BowMinDraw;
-        volley.Invoke(g, new object[] { me, 0f, 0 });
-        float[] tap = ds2.Select(e => e.MaxHp - e.Hp).ToArray();
-        play(ds2, strip, 0.6f);
-        me.BowShotDraw = g.BowFull(me);
-        volley.Invoke(g, new object[] { me, 0f, 0 });
-        float[] full = ds2.Select((e, k) => e.MaxHp - e.Hp - tap[k]).ToArray();
-        Console.WriteLine("  arc lightning: tap reaches {0:0} px, full {1:0} px (half the arena); tap hits {2:0.0} / {3:0.0}; full hits {4:0.0} / {5:0.0} / past it {6:0.0} / beside it {7:0.0} / wide near you {9:0.0} / wide far out {10:0.0}; stunned {8:0.00} s",
-            near, far, tap[0], tap[1], full[0], full[1], full[2], full[3], ds2[1].FrozenT, full[4], full[5]);
-        Check(tap[0] > 0f && tap[1] == 0f && full[0] > 0f && full[1] > 0f && full[2] == 0f && full[3] == 0f && full[4] == 0f && full[5] > 0f && Math.Abs(far - Game.Width * 0.5f) < 1f,
-            "Arc Lightning shocks everything in its cone: a tap reaches a little way, a full charge half the arena, nothing past or beside it, and it is narrower near you than at its far end");
-        Check(ds2[1].FrozenT > 0.3f, "its shock stuns briefly");
-        // Barrage: parallel strips side by side; an enemy ahead is shocked once, one beside the strip only with Barrage.
-        var fanned = typeof(Game).GetMethod("FireFanned", flags);
-        var side = new[] { from + new V2(300f, 0f), from + new V2(300f, 2f * Game.ArcHalfWidth * Game.ArcTaper(300f, far)) };
-        Func<int, float[]> Strip = fan =>
-        {
-            var ds = dummies(side);
-            me.Pos = from; me.Stats.Fan = fan; me.BowShotDraw = g.BowFull(me);
-            fanned.Invoke(g, new object[] { me, 0f, 0 });
-            me.Stats.Fan = 0;
-            return ds.Select(e => e.MaxHp - e.Hp).ToArray();
-        };
-        var plain = Strip(0);
-        var barraged = Strip(3);
-        int strips = g.Effects.Count(fx => fx.Kind == FxKind.ArcField);
-        Console.WriteLine("  arc lightning + barrage: ahead {0:0.0} -> {1:0.0}, beside {2:0.0} -> {3:0.0}; {4} strips", plain[0], barraged[0], plain[1], barraged[1], strips);
-        Check(strips == 4 && Math.Abs(barraged[0] - plain[0]) < 0.2f && plain[1] == 0f && Math.Abs(barraged[1] - plain[0]) < 0.2f,
-            "Barrage on Arc Lightning adds parallel strips beside the first: more ground, but nothing is shocked twice");
+        // (Arc Lightning's lock-on chain has its own suite: arclock, Tests/ArcLock.cs)
         host.Leave("");
     }
 }

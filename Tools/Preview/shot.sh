@@ -11,6 +11,7 @@
 # DOWNED=down:<s since the hit>|revive:<0-1>|up:<s since standing> (you downed, being revived, getting up; mode hud, 2 players).
 # QUICKMET=<n> (the lobby's Quick Play tab with n bosses beaten; mode lobby).
 # TUTORIAL=<lesson 0-4>,<steps done> (the first-run tutorial prompt; mode hud).
+# ARCLOCK=<s> (Arc Lightning's lock-on: hold from 0, let go at 1.5 s; ARCFORK=1 the Forked Volley instead; mode hud).
 # SPRINT=<s> (the Dodge's held sprint that long in, running right with its fading wake; mode hud).
 # RIOT=ready|wait,17|block,0.1 (Riot Gear: the plate, the recharge, a block that long ago; use with mode hud).
 # MOMENTUM=<0-5> (the DPS passive's stack pips round you; mode hud, 2 players).
@@ -31,6 +32,7 @@
 # MOMENT=multi|clear|level|lowhp|marks MOMENTN=<n> MOMENTT=<s> MULTISTYLE=1 (the juice moments: multikill call, last kill, level shock, heartbeat, floor marks; ShotJuice.cs).
 # SHOCK=<s since the cast> (the Shockwave ability played through the game; SHOCKCAP=1 mastered; ShotShockwave.cs).
 # TURRET=<s> / NOVA=<s> since the cast (the Turret and Nova abilities played through the game; ABILCAP=1 mastered, TURRETEND=1 its last seconds; ShotSentryNova.cs).
+# WOLFPACK=pack|alpha|merge WOLFT=<s> (the Wolf Whistle's pack hunting three grunts: four wolves with two hurt and kill pips, an alpha of three, or five merging at 0.6 s; ShotWolfPack.cs).
 # BONEGUARD=<s into the scene> (the Bone Guard's Marrow Tether, then its Ossuary Wall Alt at 1.6 s; ShotBoneGuard.cs).
 # PHALANX=<s since the cast> (Bone Phalanx played through the game; PHALANXCAP=1 mastered; ShotPhalanx.cs). FXOFF=1: Visual effects off (plain looks).
 # KNIGHTDPS=steel|gauntlet|mercy|bridge KDT=<s> (the DPS Knight's abilities replaying the mockup's scenes through the game; KDW=<0-2> the weapon; crop (352,200)-(928,520) to set beside the mockup; ShotKnightDps.cs).

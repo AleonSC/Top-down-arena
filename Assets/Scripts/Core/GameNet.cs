@@ -588,6 +588,7 @@ namespace Arena
             }
             s.Float(ref p.SpinUp);
             s.Int(ref p.PreyId);
+            s.Byte(ref p.PackKills);
             s.Byte(ref p.Orbiters);
             s.Byte(ref p.Combo);
             s.Bool(ref p.KnuckleArmed);
@@ -688,6 +689,17 @@ namespace Arena
             s.Short(ref p.SsMask);  // the Stonespear (Stonespear.cs)
             s.Byte(ref p.SsSide);
             s.Int(ref p.SsLock);
+            int tagged = Math.Min(Game.ArcTagCap, p.ArcTags.Count);  // Arc Lightning's tags (ArcLock.cs)
+            s.Byte(ref tagged);
+            if (s.Reading)
+                p.ArcTags.Clear();
+            for (int k = 0; k < tagged; k++)
+            {
+                int tagId = s.Reading ? 0 : p.ArcTags[k];
+                s.Int(ref tagId);
+                if (s.Reading)
+                    p.ArcTags.Add(tagId);
+            }
             float drawT = p.DrawT;
             s.Float(ref drawT);
             s.Short(ref p.Level);
@@ -929,7 +941,7 @@ namespace Arena
                 t = m.T;
                 duration = m.Duration;
                 m.GuardFrac = m.Kind == MinionKind.CloneWall || (m.Kind == MinionKind.Wall && m.MaxHp > 0f) ? MathX.Clamp01(m.BlockHp / Math.Max(1f, m.MaxHp))  // a wall clone: what is left of its health
-                    : HasHealth(m) ? m.Hp / Math.Max(1f, m.MaxHp)  // a Warden's Guard or Force Pact thrall: its health
+                    : HasHealth(m) || m.Kind == MinionKind.Wolf && m.Companion && m.MaxHp > 0f ? m.Hp / Math.Max(1f, m.MaxHp)  // a Warden's Guard, Force Pact thrall or Wolf Whistle wolf: its health
                     : m.Def.BlockCapacity > 0f && m.StaggerT <= 0f ? MathX.Clamp01(m.BlockHp / (m.Def.BlockCapacity * m.Scale)) : 0f;
                 guard = m.GuardFrac;
                 scale = m.Scale;

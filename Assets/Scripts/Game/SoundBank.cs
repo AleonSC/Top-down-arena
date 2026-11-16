@@ -323,7 +323,7 @@ namespace Arena
             Sfx.LanceHitHeavy, Sfx.LanceHookOut, Sfx.TankDouble, Sfx.TankMineLaunch, Sfx.TankGasLaunch, Sfx.SpellPullStart, Sfx.SpellPullHum,
             Sfx.SpellPullStop, Sfx.KnuckleJab, Sfx.KnuckleHook, Sfx.KnuckleUpper, Sfx.KnuckleSlam, Sfx.KnuckleCounter, Sfx.KnuckleArm,
             Sfx.KnuckleRocket, Sfx.KnuckleRocketHit, Sfx.KnuckleGrab, Sfx.KnuckleThrow, Sfx.KnuckleImpact, Sfx.KnuckleImpactHeavy,
-                Sfx.StoneThrow, Sfx.StoneWind, Sfx.StoneSlam })
+                Sfx.StoneThrow, Sfx.StoneWind, Sfx.StoneSlam, Sfx.ArcTag, Sfx.ArcHop, Sfx.ArcCrack, Sfx.ArcFork, Sfx.ArcFizzle, Sfx.ArcHum })
                 c[(int)s] = Category.Weapons;
             foreach (var s in new[] {
             Sfx.EnemyShot, Sfx.BossShift, Sfx.BossCharge, Sfx.BossPulse, Sfx.BossChime, Sfx.BossLaserWarn, Sfx.BossLaser, Sfx.BossSlam,
@@ -360,6 +360,7 @@ namespace Arena
                 voices[i] = NewSource(owner, 128, false);
             sawVoice = NewSource(owner, 64, true);      // the Buzzsaw's contact whirr (MeleeSoundBank.cs)
             wallHumVoice = NewSource(owner, 64, true);  // the wall hum (WallHumSoundBank.cs)
+            arcHumVoice = NewSource(owner, 64, true);   // Arc Lightning's charge hum (ArcLockSoundBank.cs)
             var folderFiles = OwnSoundFiles();          // the player's own sounds (decoded on the build thread)
             LoadProjectSounds(folderFiles);
             builder = new System.Threading.Thread(() => BuildAll(folderFiles)) { IsBackground = true, Name = "SoundBank build" };
@@ -375,6 +376,7 @@ namespace Arena
                 Build();
                 BuildMelee();  // MeleeSoundBank.cs
                 BuildWallHum();  // WallHumSoundBank.cs
+                BuildArcLock();  // ArcLockSoundBank.cs
                 BuildNinja();  // NinjaSoundBank.cs
                 BuildKatana();  // KatanaSoundBank.cs
                 BuildGreatsword();  // GreatswordSoundBank.cs

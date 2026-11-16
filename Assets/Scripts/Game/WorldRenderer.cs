@@ -118,6 +118,9 @@ namespace Arena
                 if (p.Weapon.Id == WeaponId.Scattergun || p.Weapon.Id == WeaponId.FlakCannon || p.Weapon.Id == WeaponId.RiotRepeater || p.Weapon.Id == WeaponId.BoneGuard)
                     DrawTankAltPips(p);  // TankAltLook.cs
             foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.WolfWhistle)
+                    DrawPackPips(p);  // WolfLook.cs
+            foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.LightBolt)
                 {
                     DrawRepelPull(p);  // RepulseLook.cs: the Undertow's current and meter
@@ -143,7 +146,7 @@ namespace Arena
                 else if (p.Weapon.Id == WeaponId.GolemStaff && p.DrawT > 0f && !p.Downed)
                     DrawBoulderCharge(p, p.Id == game.MyId, t);
                 else if (p.Weapon.Id == WeaponId.ArcLightning && p.DrawT > 0f && !p.Downed)
-                    DrawArcCharge(p, p.Id == game.MyId, t);
+                    DrawArcLockFlatCharge(p, p.Id == game.MyId, t);  // (Visual effects off; on, the glow pass has it: ArcLockLook.cs)
                 else if (p.Weapon.Id == WeaponId.ClotBolt && p.DrawT > 0f && !p.Downed)
                     DrawClotCharge(p, p.Id == game.MyId, t);  // ClotCannonLook.cs
 
