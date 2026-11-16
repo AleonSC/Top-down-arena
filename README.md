@@ -1160,7 +1160,7 @@ instead; Boss Hunts, the Practice Range and runs saved before the Campaign use t
   holds while it flashes with red rings (0.6 s; a siren, and a red BREACH 1/3 band at the top), then flies back to you (0.8 s), with
   letterbox bars while it's away; you can't move, shoot or use abilities until it's over (about 3 s for 2 breaches, 7.7 s for 6).
   A breach wave brings **three times** the wave's enemies (bosses not tripled), with room for 1.5x as many alive at once. An enemy
-  uses a breach at least 350 px from every player when there is one. On every other regular wave enemies simply appear at a random spot in the rooms, at least 350 px from every player. Never on a sealed room, a shop, vendor or Gatekeeper room, or on boss waves (the fixed boss arena).
+  uses a breach at least 350 px from every player when there is one. On every other regular wave enemies simply appear at a random spot in the rooms, at least 350 px from every player. Never on a sealed room, a shop, vendor or Gatekeeper room, or on boss waves (the fixed boss arena). In the Campaign, where each wave is played twice, only its first leg is a breach wave.
 - **Obstacles**: a built room comes with obstacles and bars of wall (pillars, bars, an L, blocks: one per ~220,000 px2, up to 4),
   laid out from the room's own box so every machine builds the same ones. They keep off the room's walls, its doors and its middle,
   so you can always walk round them; a room 3 tiles wide or less gets a pillar or block every ~500 px, alternating sides with a 180 px lane past each, none near a door or bend. A small or narrow room with doors at both ends still gets at least one
