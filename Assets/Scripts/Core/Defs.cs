@@ -140,6 +140,8 @@ namespace Arena
         ArcKnuckles, TwinRifleAuto, OutOfAmmo, DoubleBarrel, Stonespear,
         // the Tank Soldier's fourth (GrenadeLauncher.cs)
         GrenadeLauncher,
+        // the Summoner DPS's fourth (HoneybeeStaff.cs)
+        HoneybeeStaff,
         // the Tank Elementalist's fourth (WindClash.cs)
         WindClash,
     }
@@ -767,7 +769,8 @@ namespace Arena
             ThrownDagger = 65, // a Second's thrown dagger: steel with a gold hilt, spinning a little (CourtFaction.cs, Game/CourtLook.cs)
             EmberSpark = 66,   // an Ember's spark: drifts back slowly and hangs behind it (Penumbral.cs, Game/PenumbralLook.cs)
             GreatStar = 67,    // the Shuriken's Great Star, flying a drawn route and back (GreatStar.cs, Game/GreatStarLook.cs)
-            StoneSpear = 68;   // a Stonespear's earth spear, thrown or sent in a volley (Stonespear.cs, Game/StonespearLook.cs)
+            StoneSpear = 68,   // a Stonespear's earth spear, thrown or sent in a volley (Stonespear.cs, Game/StonespearLook.cs)
+            HoneyGlob = 69;    // a Honeybee Staff honey glob: flies over enemies and lands as a honey puddle (HoneybeeStaff.cs, Game/HoneybeeLook.cs)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == ThrownDagger || kind == EmberSpark;
 
@@ -825,6 +828,7 @@ namespace Arena
             Row(table, FumaStar, radius: 20f, color: new Rgba(0.8f, 0.85f, 0.95f));  // giant
             Row(table, GreatStar, radius: 24f, color: new Rgba(0.8f, 0.85f, 0.95f));  // huger
             Row(table, StoneSpear, radius: 8f, color: new Rgba(1f, 0.69f, 0.29f));  // basalt with amber seams (the colour is the seams' glow)
+            Row(table, HoneyGlob, radius: 4f, color: new Rgba(1f, 0.71f, 0.18f));  // lobbed: it never collides
             Row(table, BloodShot, radius: 4f, color: new Rgba(0.9f, 0.12f, 0.2f));
             Row(table, ClotShot, radius: 14f, color: new Rgba(0.6f, 0.05f, 0.12f));  // the Gore Mortar's massive clot (lobbed: it never collides)
             Row(table, LeechShot, radius: 3.5f, color: new Rgba(1f, 0.25f, 0.3f));

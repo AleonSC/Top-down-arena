@@ -1463,6 +1463,10 @@ namespace Arena
                     p.AmmoMove = p.KnifeMove = 0;  // (OutOfAmmo.cs)
                 if (p.Weapon.Id != WeaponId.OutOfAmmo)
                     p.AmmoSpin = 0f;
+                if ((p.Weapon.Id != WeaponId.HoneybeeStaff || p.Downed) && p.HoneyOn)
+                    ClearHoneybee(p);  // (HoneybeeStaff.cs)
+                if (p.Weapon.Id == WeaponId.HoneybeeStaff && !p.Downed)
+                    TickHoneybee(p, dt);  // the honey spray and its meter; Fire is the usual trigger below (HoneybeeStaff.cs)
                 if ((p.Weapon.Id != WeaponId.Stonespear || p.Downed) && (p.SsMask != 0 || p.SsWindT > 0f || p.SsQueue.Count > 0))
                     ClearStonespear(p);  // (Stonespear.cs)
                 if ((p.Weapon.Id != WeaponId.WindClash || p.Downed) && (p.WcStep != 0 || p.WcTempestT > 0f))

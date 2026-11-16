@@ -19,6 +19,7 @@ namespace Arena
         CloneWall,    // Shadow Clone: one of nine afterimages in a wall that soaks bullets and gets shoved by players; it does nothing else (CloneWall.cs)
         Thrall,       // Force Pact (the Tank Summoner's ability): an enemy turned to your side; it fights near you, and comes back after it falls (ForcePact.cs)
         Burrower,     // Earthquake's Burrower (the Tank Summoner's ability): breaks out at the cursor, tunnels through the pack hurting what it passes under (Burrower.cs)
+        Bee,          // the Honeybee Staff's bee: hatches at the cursor, stings the nearest enemy once and dies (HoneybeeStaff.cs)
         None = 255,
     }
 
@@ -42,7 +43,7 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell }
+    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle }
 
     public class ZoneDef
     {
@@ -110,6 +111,7 @@ namespace Arena
             new MinionDef { Name = "Thrall", Radius = 14f, Sides = 6, Color = new Rgba(0.75f, 0.55f, 1f), Move = MinionMove.Escort, Speed = 180f },  // ForcePact.cs: its shape, speed and attack come from the enemy type it was
             new MinionDef { Name = "Burrower", Radius = 18f, Sides = 8, Color = new Rgba(0.64f, 0.54f, 0.38f), Move = MinionMove.Static,
                 Speed = 190f, Damage = 30f, Range = 38f },  // tunnels and bites by Burrower.cs (Range: how close it has to pass to an enemy)
+            new MinionDef { Name = "Bee", Radius = 5f, Sides = 3, Color = new Rgba(1f, 0.77f, 0.24f), Move = MinionMove.Static },  // flown by HoneybeeStaff.cs (MoveBee)
         };
 
         // Indexed by ZoneKind.
@@ -144,6 +146,7 @@ namespace Arena
             new ZoneDef { Name = "Tear Gas", Color = new Rgba(0.92f, 0.9f, 0.7f) },  // the Riot Repeater's Alt (TankAlts.cs): suppresses and slows by its own tick
             new ZoneDef { Name = "Ossuary Wall", Color = new Rgba(0.93f, 0.9f, 0.8f) },  // the Bone Guard's Alt (BoneGuard.cs): Pos the middle, Aim the way it was thrown, Radius half its length
             new ZoneDef { Name = "Smoke Shell", Color = new Rgba(0.37f, 0.83f, 0.74f) },  // the Grenade Launcher's smoke (GrenadeLauncher.cs): Aim the way it flew in, GuardFrac its flight distance; slows and jams by its own tick
+            new ZoneDef { Name = "Honey Puddle", Color = new Rgba(1f, 0.71f, 0.18f), Slow = 0.4f },  // the Honeybee Staff's spray (HoneybeeStaff.cs): slows enemies; an enemy dying in it bursts into bees
         };
 
         public static MinionDef Get(MinionKind k) => Minions[(int)k];

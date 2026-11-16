@@ -370,6 +370,8 @@ namespace Arena
                     DoubleBarrelFeel(fx);  // TankAltFx.cs
                 if (fx.Kind == FxKind.StoneSlam && fx.Pos2.X >= 1f && me != null && fx.Pos.DistanceTo(me.Pos) < 500f)
                     Shake(0.3f);  // a Stonespear slam shakes the ground near you
+                if (fx.Kind == FxKind.HoneyHarvest && me != null && (int)fx.Pos2.X == me.Id)
+                    Shake(0.2f);  // your harvest bursting
                 KnightDpsFeel(fx, me);  // the DPS Knight's cut, impact and executions (KnightDpsLook.cs)
                 if (fx.Kind == FxKind.TwinHit && (int)fx.Pos2.X == game.MyId)
                     TwinHitFeel((int)fx.Pos2.Y, (int)fx.Radius);  // your own Twin Blades cut something (below)

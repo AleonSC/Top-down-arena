@@ -839,6 +839,40 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // HONEYBEE=<s>: the Summoner DPS's Honeybee Staff (Core/HoneybeeStaff.cs, Game/HoneybeeLook.cs) that long into a scripted loop: clicks
+    // by the left dummy at 0, 0.4 and 0.8 s (they swarm it), Alt held 1.0-1.9 s at the right pack (honey puddles), then a click at 2.0 s on
+    // the weak dummy standing in the honey (it dies there at about 2.5 s: the harvest's two bees fly at the others).
+    if (Environment.GetEnvironmentVariable("HONEYBEE") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear(); gm.Zones.Clear();
+      me.Role = Role.Dps; me.Kit = Kit.Summoner; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Summoner, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      me.HoneyFill = Game.HoneyMax;
+      V2 home = new V2(380f, 360f); me.Pos = me.Disp = home; me.Aim = 0f;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      foreach (var at0 in new[] { new V2(-150f, -170f), new V2(170f, -140f), new V2(215f, -95f), new V2(130f, -80f), new V2(250f, -170f) }) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      foes[3].MaxHp = foes[3].Hp = 12f;  // the weak one, in the honey
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("HONEYBEE"), ci) * 60f));
+      for (int f = 0; f < frames; f++) {
+        float tt = f / 60f;
+        V2 cursor = tt < 0.95f ? foes[0].Pos + new V2(20f, 50f) : tt < 1.95f ? home + new V2(180f, -120f) : foes[3].Pos + new V2(-30f, 10f);
+        bool fire = (tt < 2f / 60f) || (tt >= 0.4f && tt < 0.4f + 2f / 60f) || (tt >= 0.8f && tt < 0.8f + 2f / 60f) || (tt >= 2.0f && tt < 2.0f + 2f / 60f);
+        bool alt = tt >= 1.0f && tt < 1.9f;
+        foreach (var e in foes) { e.Disp = e.Pos; e.FireT = 99f; }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        if (fire) me.FireCd = 0f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = fire, WeaponAction = alt });
+        gm.Update(1f / 60f);
+        me.Pos = home;
+        me.Disp = me.Pos; me.Aim = (cursor - me.Pos).Angle; me.AimAt = cursor; foreach (var e in gm.Enemies.Values) e.Disp = e.Pos;
+        foreach (var m in gm.Minions.Values) m.Disp = m.Pos;
+        draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // STONESPEAR=<s>: the Elementalist DPS's Stonespear (Core/Stonespear.cs, Game/StonespearLook.cs) that long into the mockup's loop: Fire at 0 (the
     // slam), single throws at 1.3 s and 1.85 s, Alt at 2.6 s (the volley at the dummy nearest the cursor). SSMOVE=1: you walk down the whole time
     // (the hovering spears trail behind you); SSTECT=1: with Tectonic (four a side).
