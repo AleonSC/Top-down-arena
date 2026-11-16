@@ -73,6 +73,7 @@ namespace Arena
                     if (PathOffer != null && Bot)
                         ChoosePath(rng.Next(2));  // a bot host picks for itself
                     TickShop(dt);  // the Bazaar's shop closes when everyone is done (Shop.cs)
+                    TickHuntCheckpoint();  // the step-10 save, before the vote can pick a node (HuntMapGame.cs)
                     TickHuntMap(dt);  // the hunt map's vote on the next node (HuntMapGame.cs)
                     TickDuelRooms(dt);  // a mini-boss room can be taken on between waves too (GatekeeperRoom.cs)
                     if (RoomsOn)
