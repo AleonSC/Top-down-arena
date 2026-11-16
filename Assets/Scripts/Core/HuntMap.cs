@@ -3,9 +3,8 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// What a node of a hunt map is (Docs/HuntMap.md). Only Skirmish and Elite are built so far: the others are listed
-    /// so the numbers don't change later; the generator makes them all.
-    public enum HuntNodeType { Skirmish, Elite, Ambush, Contraband, Rest, Shop, Gamble, Boss, None }
+    /// What a node of a hunt map is (Docs/HuntMap.md). Miniboss: the long hunt's step 10 (Docs/LongHunt.md).
+    public enum HuntNodeType { Skirmish, Elite, Ambush, Contraband, Rest, Shop, Gamble, Boss, Miniboss, None }
 
     /// One node of the map: a square on one of three lanes, in one row (step).
     public class HuntNode
@@ -31,6 +30,9 @@ namespace Arena
     {
         public const int Steps = Hunts.Length;     // rows of the short hunt, the boss's included (a long hunt has Hunts.LongLength: see Length)
         public const int Lanes = 3;
+
+        /// The row of a long hunt's miniboss (step 10 of 20), or -1 for the short hunt.
+        public static int MinibossRow(int length) => length > Steps ? length / 2 - 1 : -1;
         public const float ClueHpCut = 0.08f;      // a health clue: the boss starts the fight with this share of its health already gone
         public const float ClueDamageCut = 0.10f;  // a damage clue: the boss (its bullets and hits) deals this much less
         public const int MaxClues = 5;             // elites cleared that count towards the boss (a clue each)
@@ -68,7 +70,7 @@ namespace Arena
         /// boss is the two outer lanes, any other row three nodes (60%) or two.
         static int[] RowLanes(int step, int length, Rng rng)
         {
-            if (step == 0 || step == length - 1)
+            if (step == 0 || step == length - 1 || step == MinibossRow(length))
                 return new[] { 1 };
             if (step == length - 2)
                 return new[] { 0, 2 };
@@ -165,6 +167,7 @@ namespace Arena
             {
                 var row = m.Rows[step];
                 if (step == steps - 1) { row[0].Type = HuntNodeType.Boss; continue; }
+                if (step == MinibossRow(steps)) { row[0].Type = HuntNodeType.Miniboss; prevBreather = false; continue; }
                 if (step == steps - 2)
                 {
                     foreach (var n in row) n.Type = rng.Next(2) == 0 ? HuntNodeType.Rest : HuntNodeType.Shop;
@@ -256,7 +259,7 @@ namespace Arena
             if (current < 0 || Complete)
                 return false;
             var type = turnedOutAs != HuntNodeType.None ? turnedOutAs : Rows[Step][current].Type;   // (a Gamble that turned out an Elite gives its clue)
-            if (type == HuntNodeType.Elite && Clues < MaxClues)
+            if ((type == HuntNodeType.Elite || type == HuntNodeType.Miniboss) && Clues < MaxClues)
                 Clues++;
             path.Add(current);
             current = -1;
@@ -295,6 +298,7 @@ namespace Arena
                 case HuntNodeType.Shop: return "Shop";
                 case HuntNodeType.Gamble: return "Gamble";
                 case HuntNodeType.Boss: return "Boss";
+                case HuntNodeType.Miniboss: return "Miniboss";
                 default: return "";
             }
         }
@@ -306,7 +310,7 @@ namespace Arena
             {
                 case HuntNodeType.Skirmish: return 1;
                 case HuntNodeType.Elite: case HuntNodeType.Ambush: case HuntNodeType.Contraband: return 2;
-                case HuntNodeType.Boss: return 3;
+                case HuntNodeType.Boss: case HuntNodeType.Miniboss: return 3;
                 default: return 0;
             }
         }
@@ -324,6 +328,7 @@ namespace Arena
                 case HuntNodeType.Shop: return "The Bazaar. Spend the gold you have earned this hunt.";
                 case HuntNodeType.Gamble: return "Unknown until you arrive: a Skirmish, an Elite (the curse), an Ambush or a Contraband (the gift).";
                 case HuntNodeType.Boss: return "The boss, at its full strength.";
+                case HuntNodeType.Miniboss: return "The faction's miniboss: a huge riot shield with its squad. Beat it for a clue and a rare-or-better card.";
                 default: return "";
             }
         }
@@ -341,6 +346,7 @@ namespace Arena
                 case HuntNodeType.Shop: return "Upgrades";
                 case HuntNodeType.Gamble: return "Varies";
                 case HuntNodeType.Boss: return "Hunt complete";
+                case HuntNodeType.Miniboss: return "Clue + rare+ card";
                 default: return "";
             }
         }

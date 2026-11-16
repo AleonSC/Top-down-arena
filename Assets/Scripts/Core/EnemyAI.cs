@@ -246,6 +246,12 @@ namespace Arena
 
             // From wave 12, regular enemies can show up as tougher elites.
             bool elite = RollElite(d);
+            if (huntMinibossDue && type == EnemyType.RiotShield)
+            {
+                huntMinibossDue = false;  // the long hunt's step 10: the faction's miniboss, a huge elite Riot Shield (HuntMapGame.cs)
+                huntMinibossNow = true;
+                elite = true;
+            }
             spawnHome = home;
             // Bosses take longer to appear, so you can step out of the middle. The Warden's entrance (its Lockdown cell,
             // Game/WardenIntro.cs) holds it, and the escort behind it, until the cell breaks open.
@@ -279,6 +285,7 @@ namespace Arena
         public float SpawnHp(EnemyType type, int wave)
         {
             var d = Defs.Get(type);
+            wave = StrengthWave(wave);  // (a long hunt's steps count half a wave each: Hunts.cs)
             if (type == EnemyType.Gatekeeper || type == EnemyType.Shadow || FactionMinis.Is(type))  // a challenge or mini-boss room's: a share of a boss's (Challenges.cs)
                 return BossEquivalentHp(wave) * (type == EnemyType.Shadow ? Challenges.ShadowShare : Challenges.MiniBossShare);
             float hp = d.Hp * (1f + 0.15f * (wave - 1)) * PartyHpScale(d.IsBoss);
@@ -355,6 +362,12 @@ namespace Arena
             {
                 e.MaxHp *= 2.5f;
                 e.Radius *= EliteSize;
+            }
+            if (huntMinibossNow && type == EnemyType.RiotShield)
+            {
+                huntMinibossNow = false;
+                e.MaxHp *= HuntMinibossHp;
+                e.Radius *= HuntMinibossSize;
             }
             RollVariant(e, parent);  // EnemyVariants.cs
             if (d.IsBoss)

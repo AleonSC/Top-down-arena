@@ -63,8 +63,8 @@ namespace Arena
         public override int NextBossWaveFrom(int wave) => Length;
         public override int LastBossWave(int wave) => wave >= Length ? Length : 0;
         // An Elite node of a hunt map is a tougher wave: one step further into the faction, and a finale's set piece.
-        bool Elite(int wave) => NodeAt != null && NodeAt(wave) == HuntNodeType.Elite;
-        public override int ApproachStep(int wave) => IsBossWave(wave) ? 0 : Math.Min(4, Hunts.Step(wave) + (Elite(wave) ? 1 : 0));
+        bool Elite(int wave) => NodeAt != null && (NodeAt(wave) == HuntNodeType.Elite || NodeAt(wave) == HuntNodeType.Miniboss);
+        public override int ApproachStep(int wave) => IsBossWave(wave) ? 0 : Math.Min(4, Hunts.Step(wave, Length) + (Elite(wave) ? 1 : 0));
         public override bool FinaleWave(int wave) => Hunts.FinaleWave(wave, Length) || Elite(wave);
     }
 

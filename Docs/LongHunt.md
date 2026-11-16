@@ -1,6 +1,6 @@
 # Long hunt: a 20-step Boss Hunt with a save at 10 (design)
 
-Status: **step 1 built** (length plumbing: `Game.HuntLength`, `Session.HuntLong`, no lobby switch yet; protocol 363); steps 2-4 left (Nov 2026). Builds on [`HuntMap.md`](HuntMap.md) and [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md).
+Status: **steps 1-2 built** (step 1: length plumbing, `Game.HuntLength`, `Session.HuntLong`, protocol 363; step 2: the lobby's Long hunt switch, 20-row scrolling map, `Hunts.StrengthWave`, the Miniboss node, the hunt map is the only hunt); steps 3-4 left (Nov 2026). Builds on [`HuntMap.md`](HuntMap.md) and [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md).
 
 ## Decisions (owner)
 
@@ -9,6 +9,8 @@ Status: **step 1 built** (length plumbing: `Game.HuntLength`, `Session.HuntLong`
 | Quick Play | **Unchanged**: it stays the quick 10 waves + random boss ([`QuickPlay.md`](QuickPlay.md)) |
 | Hunt length | The hunt gets a **length switch: 10 or 20 steps** (the lobby's Boss Hunt tab, host only; 10 stays the default) |
 | Save | **A checkpoint at step 10** of a 20-step hunt: clearing it writes a resumable save (hunts aren't saved today) |
+| Hunt map | **Always on** (owner, Nov 2026): the checkbox is gone; the plain ten waves are only reachable by tests (`Session.HuntMapMode = false`) |
+| Strength | A long hunt's step counts half a wave for enemy health and damage (`Game.StrengthWave`), so 20 steps are as tough per fight as 10; `huntbal long` (4 maps, Good bots: 3/4 won, a Miniboss costs ~40% of max health) |
 | Step 10 | The **faction's miniboss** (owner, Nov 2026): a fixed boss-like fight at step 10, so the halves read as two acts; the checkpoint is written when it falls. Which enemy it is per faction is open |
 | Clues | Up to **5**, each a random health or damage clue (built, protocol 363) |
 
@@ -39,5 +41,5 @@ Status: **step 1 built** (length plumbing: `Game.HuntLength`, `Session.HuntLong`
 
 ## Open
 
-- Which enemy is the Warden's step-10 miniboss (an existing elite/heavy, or a new one)? Needs a pick before step 2.
+- Built: the Warden's miniboss is an existing enemy, the **Riot Shield** (owner: "the riot guard guy") as an elite with 4x health and 1.5x size (`HuntMinibossHp`, `HuntMinibossSize`); its escort is the node's wave (an Elite-style wave with the set piece). Other factions pick theirs when they get a hunt.
 - Do the later bosses' hunts (no factions yet) come as 10-only until they have one?

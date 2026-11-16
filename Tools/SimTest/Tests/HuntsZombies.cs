@@ -44,6 +44,7 @@ static partial class Program
         Sync();
         host.SetMode(GameMode.Hunt);
         host.SetHuntBoss(EnemyType.HiveQueen);  // no hunt for her yet: ignored
+        host.HuntMapMode = false;  // (this test is the plain ten waves; the hunt map is the default now)
         Sync();
         Check(client.HuntMode && client.HuntBoss == EnemyType.Boss && host.HuntBoss == EnemyType.Boss, "the friend's lobby shows the Boss Hunt and its boss (only bosses with a hunt can be picked)");
         client.RequestReady(true); host.RequestReady(true); Sync();

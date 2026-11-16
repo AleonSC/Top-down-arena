@@ -42,7 +42,11 @@ namespace Arena
 
         /// An Elite node's wave brings its enemies as tougher elite variants (a share of them, as late waves do).
         public const double HuntEliteChance = 0.3;
-        bool HuntEliteSquad => HuntMapOn && State == MatchState.Fighting && HuntNodeNow == HuntNodeType.Elite;
+        bool HuntEliteSquad => HuntMapOn && State == MatchState.Fighting && (HuntNodeNow == HuntNodeType.Elite || HuntNodeNow == HuntNodeType.Miniboss);
+
+        /// The long hunt's miniboss (step 10): a Riot Shield (the Warden's wall) as an elite with this many times the health, and bigger.
+        public const float HuntMinibossHp = 4f, HuntMinibossSize = 1.5f;
+        bool huntMinibossDue, huntMinibossNow;   // host: the next Riot Shield out of the queue is the miniboss
 
         /// A Contraband is being fought: the arena is dark (like Nightfall, Paths.cs).
         public bool HuntDark => HuntMapOn && State == MatchState.Fighting && HuntNodeNow == HuntNodeType.Contraband;
@@ -226,9 +230,10 @@ namespace Arena
                     DoLog("hunt map: Ambush reward");
                     break;
                 case HuntNodeType.Contraband:
+                case HuntNodeType.Miniboss:
                     foreach (var p in Players.Values)
                         p.PrizePicks++;
-                    DoLog("hunt map: Contraband reward");
+                    DoLog("hunt map: " + HuntMap.Name(HuntNodeNow) + " reward");
                     break;
             }
         }
@@ -240,6 +245,13 @@ namespace Arena
         void HuntNodeWaveStart()
         {
             huntAmbush = false;
+            huntMinibossDue = false;
+            if (IsHost && HuntMapOn && HuntNodeNow == HuntNodeType.Miniboss)
+            {
+                spawnQueue.Insert(0, EnemyType.RiotShield);
+                huntMinibossDue = true;
+                DoLog("hunt map: the miniboss");
+            }
             if (!IsHost || !HuntMapOn || HuntNodeNow != HuntNodeType.Ambush)
                 return;
             huntAmbush = true;
