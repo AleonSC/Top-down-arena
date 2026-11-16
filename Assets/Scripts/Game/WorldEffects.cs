@@ -378,6 +378,12 @@ namespace Arena
                 case FxKind.TwinStep:
                     DrawTwinStepFx(fx);  // TwinBladesLook.cs
                     break;
+                case FxKind.NunStep:
+                    DrawNunStepFx(fx);  // the Twin Crush's shockwave (NunchakuLook.cs)
+                    break;
+                case FxKind.NunCounter:
+                    DrawNunCounterFx(fx);  // NunchakuLook.cs
+                    break;
                 case FxKind.KnuckleStep:
                     DrawKnuckleStepFx(fx);  // ArcKnucklesLook.cs
                     break;

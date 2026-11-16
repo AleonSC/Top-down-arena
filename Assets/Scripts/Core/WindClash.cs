@@ -30,7 +30,7 @@ namespace Arena
         public const float TempestTime = 3f, TempestCd = 9f, TempestRadius = 120f, TempestTick = 0.2f, TempestDmg = 0.5f, TempestSlow = 0.7f, TempestShove = 10f;
         public const float TempestSpinUp = 0.22f, WindCatchTime = 0.3f;
         public static readonly Rgba WcColor = new Rgba(0.56f, 0.89f, 0.95f);
-        const byte DashTempest = 37;
+        const byte DashTempest = 38;
 
         public static float WcEase(float x) { x = Math.Max(0f, Math.Min(1f, x)); return 1f - (1f - x) * (1f - x) * (1f - x); }
         static float Clamp01(float x) => Math.Max(0f, Math.Min(1f, x));

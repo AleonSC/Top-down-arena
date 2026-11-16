@@ -904,6 +904,38 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // NUNCHAKU=<s>: the Ninja DPS's Nunchaku, Twin Storm (Core/Nunchaku.cs, Game/NunchakuLook.cs) that long into the mockup's loop: Fire held
+    // from 0 to 1.85 s (Snap, Backhand, Double Figure-8, Twin Crush), Alt at 2.1 s (the Twin Windmill guard; small shots fly in from
+    // the right from 2.2 s and are swatted), Fire at 3.7 s (the Twin Counter), Alt again at 4.5 s.
+    if (Environment.GetEnvironmentVariable("NUNCHAKU") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Dps; me.Kit = Kit.Ninja; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Ninja, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      V2 home = new V2(380f, 300f); me.Pos = me.Disp = home; me.Aim = 0f; me.NunGuard = false; me.NunSwats = 0; me.Combo = 0;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var shoot = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      foreach (var at0 in new[] { new V2(78f, -34f), new V2(92f, 6f), new V2(74f, 42f), new V2(170f, -10f) }) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      float[] ys = { -8f, 14f, -22f, 4f, 24f, -14f, 10f, -28f, 18f, -4f };
+      int shot = 0;
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("NUNCHAKU"), ci) * 60f));
+      for (int f = 0; f < frames; f++) {
+        float tt = f / 60f;
+        V2 cursor = home + new V2(200f, 0f);
+        bool fire = tt < 1.85f || (tt >= 3.7f && tt < 3.7f + 2f / 60f);
+        bool alt = (tt >= 2.1f && tt < 2.1f + 3f / 60f) || (tt >= 4.5f && tt < 4.5f + 3f / 60f);
+        if (tt >= 2.2f && tt < 3.5f && f % 9 == 0) {
+          V2 from = home + new V2(420f, ys[shot++ % ys.Length] * 1.3f);
+          shoot.Invoke(gm, new object[] { Defs.SmallShot, from, (home - from).Normalized() * 320f, 0f, 3f, 5f, 0, false, 0f });
+        }
+        foreach (var e in foes) { e.Disp = e.Pos; e.FireT = 99f; }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f; Time.deltaTime = 1f / 60f; Time.time += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = fire, WeaponAction = alt });
+        gm.Update(1f / 60f);
+        me.Pos = home; me.Hp = me.MaxHp;
+        me.Disp = me.Pos; me.Aim = (cursor - me.Pos).Angle; me.AimAt = cursor; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
     // WINDCLASH=<s>: the Tank Elementalist's Wind Clash (Core/WindClash.cs, Game/WindClashLook.cs) that long into the combo, Fire held from 0:
     // crescent at 0, back crescent at 0.34 s, gale lance at 0.68 s, clash ring at 1.12 s. WCALT=1: Alt (Tempest) at 0 instead, the
     // enemies shooting at you (their shots are caught and spin round you).

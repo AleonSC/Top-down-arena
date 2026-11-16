@@ -1474,6 +1474,7 @@ namespace Arena
                 TickArcLock(p, dt);  // Arc Lightning's tags, chain and Forked Volley (ArcLock.cs)
                 TickSpinUp(p, dt);  // the Burst SMG (Weapons.cs)
                 TickRapier(p, dt);  // the Rapier's Tempo and Flourish (Rapier.cs)
+                TickNunchaku(p, dt);  // the Nunchaku's guard: its discs swat shots back (Nunchaku.cs)
                 if (p.Weapon.Id == WeaponId.RadiantOrb)
                 {
                     string orbSrc = CreditTo("weapon");

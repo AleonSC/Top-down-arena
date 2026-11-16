@@ -32,6 +32,7 @@ namespace Arena
             { WeaponId.ArcLightning, 116f },
             { WeaponId.ArcaneMissiles, 70f },
             { WeaponId.Stonespear, 60f },
+            { WeaponId.Nunchaku, 95f },
             { WeaponId.GolemStaff, 79f },
             { WeaponId.BoneGuard, 37f },
             { WeaponId.BearTotem, 99f },

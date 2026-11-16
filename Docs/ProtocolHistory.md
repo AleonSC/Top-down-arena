@@ -4,7 +4,8 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 368: Wind Clash (Tank Elementalist 4th weapon): `WeaponId.WindClash`, `FxKind.WindWave`/`WindCatch`, player snapshot gains `WcTempestT` and `WcTempestCd`, `Msg.WeaponDash` kind 37 (Tempest).
+- 369: Wind Clash (Tank Elementalist 4th weapon): `WeaponId.WindClash`, `FxKind.WindWave`/`WindCatch`, player snapshot gains `WcTempestT` and `WcTempestCd`, `Msg.WeaponDash` kind 38 (Tempest).
+- 368: the Ninja DPS's Nunchaku (Twin Storm): WeaponId.Nunchaku, FxKind.NunStep and NunCounter, player NunGuard/NunSwats, WeaponDash DashNunGuard (37).
 - 367: the Summoner DPS's Honeybee Staff: `WeaponId.HoneybeeStaff`, `MinionKind.Bee`, `ZoneKind.HoneyPuddle`, bullet kind `Defs.HoneyGlob` (69), `FxKind.BeeSting`/`HoneyHarvest`, `Msg.WeaponDash` kinds 35/36 (`DashHoneyOn`/`Off`); Player snapshot gains `HoneyFill` (float), `HoneyOn` (bool) after `SsLock`
 - 366: the lobby's saved-run block carries `IsHunt` (a Boss Hunt's step-10 checkpoint, so every lobby plays the hunt, not the Campaign); `HuntLong` now defaults true (20 steps only, no switch)
 - 365: the Tank Soldier's Grenade Launcher: WeaponId.GrenadeLauncher, ZoneKind.SmokeShell, player GlMode/GlUsed/GlSmokeUsed/GlShot/GlReload/GlSwap/GlCharge, WeaponDash DashDrum (34).

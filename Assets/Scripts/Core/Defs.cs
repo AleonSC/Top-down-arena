@@ -142,6 +142,8 @@ namespace Arena
         GrenadeLauncher,
         // the Summoner DPS's fourth (HoneybeeStaff.cs)
         HoneybeeStaff,
+        // the Ninja DPS's fourth (Nunchaku.cs): Twin Storm, a nunchaku in each hand
+        Nunchaku,
         // the Tank Elementalist's fourth (WindClash.cs)
         WindClash,
     }

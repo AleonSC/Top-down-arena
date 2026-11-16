@@ -225,6 +225,8 @@ namespace Arena
             {
                 case WeaponId.TwinBlades: case WeaponId.Lightbringer: case WeaponId.Lance: case WeaponId.ArcKnuckles:
                     return true;  // TwinBladesLook.cs, LightbringerLook.cs, LanceLook.cs, ArcKnucklesLook.cs
+                case WeaponId.Nunchaku:
+                    return !p.Downed;  // NunchakuLook.cs
                 case WeaponId.Halberd:
                     return fxOn;  // HalberdLook.cs
                 case WeaponId.Katana:

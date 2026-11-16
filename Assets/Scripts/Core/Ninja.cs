@@ -166,6 +166,9 @@ namespace Arena
                         SpawnBullet(Defs.StarShot, muzzle, V2.FromAngle(Fanned(aim, i, n, StarFan)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Sticks = true;  // (switching to the Great Star stance recalls them: GreatStar.cs)
                     break;
                 }
+                case WeaponId.Nunchaku:
+                    FireNunchaku(p, aim, dmg, extra);  // the Twin Storm combo, or the Twin Counter from the guard (Nunchaku.cs)
+                    break;
                 case WeaponId.Katana:
                     FireKatana(p, aim, dmg, extra);  // Hayate's dash-cut or Senbon's swipe (Katana.cs)
                     break;
@@ -309,6 +312,8 @@ namespace Arena
                 Desc = "Two stance combos; your weapon-action key switches between them, and the one you leave keeps its place. Hayate dashes and slices and ends in a Momentum Burst that shoves enemies away. Senbon cuts, spins and slashes and ends in a storm of caltrops. The burst flings caltrops on the ground; caltrops thrown after a burst seek what it hit." },
             new WeaponDef { Id = WeaponId.Kunai, Kit = Kit.Ninja, Role = Role.Dps, Choice = 2, Speed = 1400f, Life = 0.5f, Damage = 42f, ExtraDesc = "+1 knife, fanned out (half damage)", Name = "Kunai", FireInterval = 0.7f, Sound = Sfx.ShotKunai,
                 Desc = "Slow, heavy throwing knives that hit harder against enemies not targeting you. Every throw leaves a mark where it lands: press your weapon-action key to blink there, and your next hit lands double." },
+            new WeaponDef { Id = WeaponId.Nunchaku, Kit = Kit.Ninja, Role = Role.Dps, Choice = 3, Damage = 20f, Reach = 95f, Melee = true, ExtraDesc = "+1 aftershock ring after the Twin Crush, 40 px farther out (60%)", Name = "Nunchaku", FireInterval = 0.3f,
+                Desc = "Twin Storm: a nunchaku in each hand. Fire is a four-step combo: Snap, Backhand, Double Figure-8, then the Twin Crush, an overhead slam that stuns. Your weapon-action key switches to the Twin Windmill guard: two spinning discs swat small shots back at enemies, and Fire lashes out with a Twin Counter that hits harder for every shot swatted." },
         };
 
         /// The Ninja's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
@@ -353,6 +358,8 @@ namespace Arena
                 Apply = s => { s.BurstPushMult += 0.3f; s.CaltropBonusTime += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Kunai }, MaxStacks = 2, Name = "Shadow Mark", Desc = "The hit after a Kunai blink deals 40% more, and marks last 2 s longer",
                 Apply = s => { s.KunaiBlinkMult += 0.4f; s.KunaiMarkBonus += 2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Nunchaku }, MaxStacks = 2, Name = "Iron Links", Desc = "The Twin Windmill's discs are 25% wider, and each shot they swat adds 2 more to the Twin Counter",
+                Apply = s => { s.NunDiscMult += 0.25f; s.NunSwatBonus += 2f; } },
         };
 
         /// The Ninja's abilities and ultimates. (Upgrades.Abilities gathers every class's list.)
@@ -699,7 +706,7 @@ namespace Arena
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashRocket = 25, DashLock = 26, DashSpin = 27, DashBoth = 28, DashBoneWall = 29, DashDrum = 34;  // (30-33: DashVolley in Stonespear.cs, DashPack in WolfPack.cs, DashFork in ArcLock.cs, DashStorm in Nimbus.cs; 35-36: DashHoneyOn/Off in HoneybeeStaff.cs)
+        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashGuardOn = 8, DashGuardOff = 9, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashRocket = 25, DashLock = 26, DashSpin = 27, DashBoth = 28, DashBoneWall = 29, DashDrum = 34;  // (30-33: DashVolley in Stonespear.cs, DashPack in WolfPack.cs, DashFork in ArcLock.cs, DashStorm in Nimbus.cs; 35-36: DashHoneyOn/Off in HoneybeeStaff.cs; 37: DashNunGuard in Nunchaku.cs)
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -952,6 +959,8 @@ namespace Arena
                 return;  // the Arc Knuckles' Rocket Dash (ArcKnuckles.cs)
             if (LocalHoneySpray(me, pressed, released, aimAt))
                 return;  // the Honeybee Staff's honey spray, held (HoneybeeStaff.cs)
+            if (LocalNunGuard(me, aimAt, pressed, dt))
+                return;  // the Nunchaku's guard switch (Nunchaku.cs)
             if (me.Weapon.Id == WeaponId.Kusarigama && (pressed || released))  // the Kusarigama's whirl: held, so both edges go to the host (Kusarigama.cs)
             {
                 byte whirlKind = pressed ? DashWhirlOn : DashWhirlOff;
@@ -1287,6 +1296,11 @@ namespace Arena
             if (kind == DashFork)
             {
                 HostForkVolley(p, target);  // Arc Lightning's Forked Volley (ArcLock.cs)
+                return;
+            }
+            if (kind == DashNunGuard)
+            {
+                HostNunSwitch(p);  // the Nunchaku's combo to Twin Windmill and back (Nunchaku.cs)
                 return;
             }
             if (kind == DashVolley)
