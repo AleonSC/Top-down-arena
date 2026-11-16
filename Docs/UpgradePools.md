@@ -212,18 +212,18 @@ One Rare card per Blood Mage weapon (`Weapons = { that weapon }`, `MaxStacks = 2
 | Weapon | Card | Effect (per stack) |
 |---|---|---|
 | Blood Lash | Crimson Whip | The whip reaches 20% farther, and each Clot stack cuts 1% more damage |
-| Clot Cannon | Deep Pool | The pool it leaves is 30% bigger and lasts 2 s longer |
+| Gore Mortar | Deep Pool | The pool it leaves is 30% bigger and lasts 2 s longer |
 | Leech Tendrils | Hungry Tendrils | The tendrils drain 30% faster, and 15% more of the drain heals you (25% → 40%) |
 | Transfusion Darts | Generous Blood | Each dart gives an ally 30% more health for the same cost |
 | Sanguine Orb | Rich Blood | The heal reserve fills 30% faster, and the healing coat heals 30% more |
 | Vein Tether | Lifeline | 15% more of the beam's damage heals (40% → 55%) |
-| Blood Bolts | Hemophilia | Hemorrhage takes one bolt fewer (5 → 4), and its burst is 30% wider |
+| Blood Bolts | Hemophilia | Blood Bolts burst an enemy one bleed stack sooner (5 → 4), 30% wider |
 | Implosion | Event Horizon | Pulls enemies in from 30% farther, and the crush hits 40% harder |
 | Bone Spear | Marrow | The spear pierces 1 more enemy, and picking it up gives 3 more health |
 
 Built (owner approved all nine): in `Game.HemomancerCards`. Hooks (all in `BloodMage.cs`): the lash's reach and
 `ClotCut`, the clot's `Pool` / `PoolTime`, the grasp's `Dmg` and `LeechSteal`, the dart's `HealAlly`, `ReserveGain`
-and the coat's healing, `VeinSteal`, `Hemorrhage` (hits needed, radius), `Collapse` (the crush and its pull radius),
+and the coat's healing, `VeinSteal`, `BloodBoltBleed` (stacks needed, radius), `Collapse` (the crush and its pull radius),
 the spear's `Pierce` and `TickSpearPickups`. Test: suite `abilitycards`, its Blood Mage checks.
 
 ### Step 10: Summoner weapon cards (built, protocol 317)

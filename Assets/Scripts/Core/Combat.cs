@@ -176,7 +176,7 @@ namespace Arena
             }
         }
 
-        /// Shots thrown in an arc (grenades, boulders, Clot Cannon clots, medkits): they fly over what's below and land.
+        /// Shots thrown in an arc (grenades, boulders, Gore Mortar clots, medkits): they fly over what's below and land.
         static bool Lobbed(byte kind) => kind == Defs.GrenadeShot || kind == Defs.BoulderShot || kind == Defs.ClotShot || kind == Defs.MedkitShot;
 
         static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed && kind != Defs.SteelShard && kind != Defs.Caltrop;
@@ -461,7 +461,7 @@ namespace Arena
             foreach (var b in Bullets.Values)
             {
                 if (Lobbed(b.Kind) || b.Kind == Defs.FlakShell || b.Ward || b.Tossed)
-                    continue;  // grenades, boulders, Clot Cannon clots, medkits, flak shells and tossed caltrops fly over enemies and land or burst where you aimed
+                    continue;  // grenades, boulders, Gore Mortar clots, medkits, flak shells and tossed caltrops fly over enemies and land or burst where you aimed
                 if (LayoutOn && SolidStops(b) && !WallBounce(b))
                 {
                     scratchIds.Add(b.Id);  // a wall or pillar stops every shot (LayoutRules.cs)
