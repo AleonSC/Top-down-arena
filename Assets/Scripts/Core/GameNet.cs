@@ -756,7 +756,7 @@ namespace Arena
             byte phase = 0, status = 0;
             int bleedStacks = 0, stars = 0, traits = 0, bubble = 0, ward = 0, cells = 0;
             bool winding = false, penned = false, wet = false, hit = false, venom = false;
-            int bleedHits = 0;
+            int bleedHits = 0, wetTenths = 0;
             if (!s.Reading)
             {
                 bleedHits = e.BleedT > 0f ? e.BleedHits : 0;
@@ -766,6 +766,9 @@ namespace Arena
                 penned = e.PenId != 0;
                 wet = e.WetT > 0f;
                 e.Wet = wet;
+                wetTenths = wet ? (int)Math.Min(255f, Math.Ceiling(e.WetT * 10f)) : 0;
+                e.WetLeft = wetTenths / 10f;
+                e.WetPeak = wet ? Math.Max(e.WetPeak, e.WetLeft) : 0f;
                 venom = e.VenomT > 0f;
                 e.Venomed = venom;
                 e.BubbleFrac = e.BubbleHp > 0f && e.BubbleMax > 0f ? Math.Min(1f, e.BubbleHp / e.BubbleMax) : 0f;
@@ -817,6 +820,7 @@ namespace Arena
             s.Bool(ref penned);   // held in by a chalk loop (Chalk.cs)
             s.Byte(ref bleedHits);  // claw hits stacked on it, for the Bear Totem's scars (BearLooks.cs)
             s.Bool(ref wet);        // soaked by a Tsunami (Tsunami.cs)
+            s.Byte(ref wetTenths);  // ...and its tenths of a second left, for the effect bar (Game/EffectBar.cs)
             s.Bool(ref venom);      // Poison Dart's venom (PoisonDart.cs)
             s.Bool(ref hit);        // just hit: the white flash (not every drop in health, or a burning enemy would stay white)
             int challengeBy = !s.Reading && e.ChallengeT > 0f ? e.ChallengeBy : 0;
@@ -869,6 +873,8 @@ namespace Arena
                 e.Penned = penned;
                 e.BleedHits = bleedHits;
                 e.Wet = wet;
+                e.WetLeft = wetTenths / 10f;
+                e.WetPeak = wet ? Math.Max(e.WetPeak, e.WetLeft) : 0f;
                 e.Venomed = venom;
                 e.ChallengeBy = challengeBy;
                 e.ChallengeT = challengeT;
