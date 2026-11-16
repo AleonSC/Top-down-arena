@@ -19,7 +19,23 @@ namespace Arena
     {
         public int Id;
         public PropKind Kind;
-        public V2 Pos;
+        /// Where it stands. Crossing a cell of the prop grid tells every game's grid to rebuild (PropGrid.cs).
+        public V2 Pos
+        {
+            get { return pos; }
+            set
+            {
+                pos = value;
+                int c = Game.PropCell(value);
+                if (c != GridCell)
+                {
+                    GridCell = c;
+                    System.Threading.Interlocked.Increment(ref Game.PropStamp);
+                }
+            }
+        }
+        V2 pos;
+        internal int GridCell = int.MinValue, GridOrder;  // its cell and its place in Props' order (PropGrid.cs)
         public float Hp, MaxHp;  // crates: enemy hits left; the rest: 1 until broken
         public float Fuse;       // a barrel: time left before it blows (0 = not lit)
         public bool Open;        // a chest that's been opened
@@ -104,22 +120,39 @@ namespace Arena
         /// Moves something of radius r out of every solid prop (out the nearest side of a box).
         public V2 PushOutOfProps(V2 pos, float r)
         {
-            foreach (var p in Props.Values)
+            // Only the props near pos, in Props' order; if a push carries pos past the margin, the rest of the props
+            // are checked in full from there (the same props in the same order as a full pass: PropGrid.cs).
+            var near = PropsNear(pos, r + PropOutMargin, pushNear);
+            V2 from = pos;
+            for (int i = 0; i < near.Count; i++)
+            {
+                pos = PushOutOfProp(near[i], pos, r);
+                if (pos.FartherThan(from, PropOutMargin))
+                {
+                    var all = PropOrder();
+                    for (int j = near[i].GridOrder + 1; j < all.Count; j++)
+                        pos = PushOutOfProp(all[j], pos, r);
+                    break;
+                }
+            }
+            return PushOutOfSolids(pos, r);  // and the layout's walls and pillars (LayoutRules.cs)
+        }
+
+        V2 PushOutOfProp(Prop p, V2 pos, float r)
+        {
             {
                 if (!Solid(p) || p.Hp <= 0f || !PropCovers(p, pos, r))
-                    continue;
+                    return pos;
                 if (Round(p))
                 {
                     V2 away = pos - p.Pos;
-                    pos = p.Pos + (away.Length > 0.5f ? away.Normalized() : new V2(1f, 0f)) * (PropRadius(p) + r);
-                    continue;
+                    return p.Pos + (away.Length > 0.5f ? away.Normalized() : new V2(1f, 0f)) * (PropRadius(p) + r);
                 }
                 float hw = HalfW(p) + r, hh = HalfH(p) + r;
                 float l = pos.X - (p.Pos.X - hw), rr = p.Pos.X + hw - pos.X, t = pos.Y - (p.Pos.Y - hh), b = p.Pos.Y + hh - pos.Y;
                 float m = Math.Min(Math.Min(l, rr), Math.Min(t, b));
-                pos = m == l ? new V2(pos.X - l, pos.Y) : m == rr ? new V2(pos.X + rr, pos.Y) : m == t ? new V2(pos.X, pos.Y - t) : new V2(pos.X, pos.Y + b);
+                return m == l ? new V2(pos.X - l, pos.Y) : m == rr ? new V2(pos.X + rr, pos.Y) : m == t ? new V2(pos.X, pos.Y - t) : new V2(pos.X, pos.Y + b);
             }
-            return PushOutOfSolids(pos, r);  // and the layout's walls and pillars (LayoutRules.cs)
         }
 
         // --- Pushing (host) -------------------------------------------------------------------------
@@ -143,7 +176,7 @@ namespace Arena
         {
             if (Props.Count == 0 || speed <= 0f)
                 return;
-            foreach (var p in Props.Values)
+            foreach (var p in PropsNear(pos, r + reach, shoveNear))  // (MoveProp leaves the grid as it was: these are a copy)
             {
                 if (!Pushable(p))
                     continue;
@@ -183,12 +216,13 @@ namespace Arena
         const float PropLook = 70f;  // how far ahead (px) an enemy looks for a crate or barrel in its way
 
         /// Would something of radius r walking from `from` along dir, for PropLook px, run into a crate or barrel?
-        bool PropAhead(V2 from, V2 dir, float r)
+        /// near: the props within PropLook + r of from (PropsNear).
+        static bool PropAhead(List<Prop> near, V2 from, V2 dir, float r)
         {
             for (int i = 1; i <= 5; i++)
             {
                 V2 pt = from + dir * (PropLook * i / 5f);
-                foreach (var p in Props.Values)
+                foreach (var p in near)
                     if (Pushable(p) && PropCovers(p, pt, r))
                         return true;
             }
@@ -201,7 +235,10 @@ namespace Arena
         V2 PropDir(Enemy e, V2 dir)
         {
             float r = e.Radius * 0.8f + 2f;
-            if (dir.IsZero || !PropAhead(e.Pos, dir, r))
+            if (dir.IsZero)
+                return dir;
+            var near = PropsNear(e.Pos, PropLook + r, aheadNear);
+            if (near.Count == 0 || !PropAhead(near, e.Pos, dir, r))
                 return dir;
             var layout = LayoutOn ? ActiveLayout : null;
             float first = (e.Id & 1) == 0 ? 1f : -1f;  // each enemy keeps to its own side, so they don't dither
@@ -209,7 +246,7 @@ namespace Arena
                 for (int side = 0; side < 2; side++)
                 {
                     V2 d = dir.Rotated(first * (side == 0 ? 1f : -1f) * 0.55f * i);
-                    if (!PropAhead(e.Pos, d, r) && (layout == null || !SegBlocked(layout, e.Pos, e.Pos + d * PropLook, r)))
+                    if (!PropAhead(near, e.Pos, d, r) && (layout == null || !SegBlocked(layout, e.Pos, e.Pos + d * PropLook, r)))
                         return d;
                 }
             return dir;
@@ -430,7 +467,7 @@ namespace Arena
         bool PropStops(Bullet b)
         {
             bool enemy = Defs.IsEnemyShot(b.Kind);
-            foreach (var p in Props.Values)
+            foreach (var p in PropsNear(b.Pos, b.Radius, stopNear))
             {
                 if (p.Hp <= 0f || !PropCovers(p, b.Pos, b.Radius))
                     continue;

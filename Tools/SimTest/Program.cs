@@ -479,6 +479,7 @@ static partial class Program
         Report("survbal", "Survival's balance: bots play Survival to the end or a cap: time survived, phase, level (run.sh 1 1 survbal [runs] [first seed] [bot skill 1-3] [players 1-3] [cap minutes])", args => SurvivalBalanceReport(Dt, Arg(args, 3, 4), Arg(args, 4, 1), (BotSkill)Arg(args, 5, 2), Arg(args, 6, 1), Arg(args, 7, 20))),
         Report("refdocwrite", "rewrite Docs/Reference.md from the definitions", args => RefDocReport(true)),
         Report("wavemix", "what a regular wave is made of: shooters, melee and support, wave by wave", args => WaveMixReport()),
+        Report("survperf", "Survival frame cost: two kept-alive bots, clock started late (run.sh 1 1 survperf [seconds] [start min])", args => SurvivalPerfReport(Dt, Arg(args, 3, 60), Arg(args, 4, 12))),
         Report("perf", "frame cost of a heavy wave: Quick Play from a breach wave with a boss's approach (run.sh 1 1 perf [seconds] [boss] [wave])", args => PerfReport(Dt, Arg(args, 3, 60), args.Length > 4 ? args[4] : "TwinA", Arg(args, 5, 7))),
         Report("bulletcount", "enemy bullets on screen through a wave", args => BulletCountReport(Dt)),
         Report("grid", "the balance grid: every role, class and weapon vs each listed boss (run.sh 1 1 grid <waves> [runs] [roles DTH] [skill] [classes]; Tools/BalanceGrid/grid.sh draws it)", args => BalanceGrid(args)),

@@ -35,7 +35,7 @@ namespace Arena
 
         public readonly int Seed;
         public readonly int Players;
-        public float Time { get; private set; }
+        public float Time { get; internal set; }
 
         readonly Random rng;
         float topUp, squadTimer = SquadEvery;
