@@ -13,6 +13,8 @@ namespace Arena
         public float Chance;          // share of the base enemy's spawns that come in as this
         public float SpeedMult = 1f;
         public float HpMult = 1f;
+        public int MinWave = 1;       // appears from this wave on
+        public int MaxWave = 999;     // and stops after this one
     }
 
     public partial class Game
@@ -20,7 +22,7 @@ namespace Arena
         /// The Rioter's Ball and Chain: drags an iron ball on its ankle, so it runs slower than the Brawler.
         public static readonly EnemyVariantDef[] VariantTable =
         {
-            new EnemyVariantDef { Base = EnemyType.Rioter, Variant = EnemyVariant.BallAndChain, Chance = 0.3f, SpeedMult = 0.75f },
+            new EnemyVariantDef { Base = EnemyType.Rioter, Variant = EnemyVariant.BallAndChain, Chance = 0.3f, SpeedMult = 0.75f, MinWave = 3 },
         };
 
         public static float VariantChanceScale = 1f;  // tests: 0 never, a big number always
@@ -33,7 +35,7 @@ namespace Arena
             float roll = IdRoll(e.Id, 7);  // CoreDrops.cs
             foreach (var v in VariantTable)
             {
-                if (v.Base != e.Type)
+                if (v.Base != e.Type || Wave < v.MinWave || Wave > v.MaxWave)
                     continue;
                 float chance = v.Chance * VariantChanceScale;
                 if (roll < chance)
