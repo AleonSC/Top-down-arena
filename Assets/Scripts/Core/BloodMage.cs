@@ -699,7 +699,7 @@ namespace Arena
         internal static readonly WeaponDef[] HemomancerWeapons =
         {
             // Tank
-            new WeaponDef { Id = WeaponId.BloodLash, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 0, Damage = 24f, Reach = 130f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +1 max Clot", Name = "Blood Lash", FireInterval = 0.32f,
+            new WeaponDef { Id = WeaponId.BloodLash, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 0, Damage = 24f, Reach = 130f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach, +1 link per enemy and +1 max Clot", Name = "Blood Lash", FireInterval = 0.32f,
                 Desc = "A whip of blood, a four-step string: Crack, Backhand, Snap, Reap. Every lash that lands hooks a blood chain on the enemy (+1 link, +2 from the cracking tip or the Snap). "
                     + "Reap yanks every chained enemy in and turns the links into Clot (4% less damage taken each, up to 5). Alt: hold for Martyr's Leash." },
             new WeaponDef { Id = WeaponId.ClotBolt, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1, Damage = 34f, BotRange = 380f, ExtraDesc = "+1 clot, fanned out", Name = "Clot Cannon", FireInterval = 0.75f,

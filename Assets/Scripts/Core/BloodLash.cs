@@ -43,8 +43,8 @@ namespace Arena
         /// The Blood Lash step in `combo` (1 Crack, 2 Backhand, 3 Snap, 4 Reap; 0 none yet).
         public static int LashStepOf(int combo) => combo & 7;
 
-        /// The most links one enemy can hold for `p` (Crimson Whip: one more a card).
-        public static int LashLinkCap(Player p) => LashMaxLinks + p.Stats.LashLinkBonus;
+        /// The most links one enemy can hold for `p` (Crimson Whip: one more a card; each extra projectile: one more, as it raises ClotMax).
+        public static int LashLinkCap(Player p) => LashMaxLinks + p.Stats.LashLinkBonus + Math.Max(0, p.ClotMax - ClotMaxBase);
 
         /// The links `p` has on enemy `id` (0: none).
         public static int LinksOn(Player p, int id)

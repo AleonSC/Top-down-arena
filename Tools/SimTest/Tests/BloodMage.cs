@@ -163,7 +163,6 @@ static partial class Program
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
         var cast = typeof(Game).GetMethod("HostAbility", flags);
-        var damage = typeof(Game).GetMethod("Damage", flags);
         var price = typeof(Game).GetMethod("BloodDamageMult", flags);
         var hurt = typeof(Game).GetMethod("HurtEnemy", flags);
 
