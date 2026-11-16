@@ -27,6 +27,9 @@ namespace Arena
             new WeaponDef { Id = WeaponId.RiotRepeater, Kit = Kit.Soldier, Role = Role.Tank, Choice = 2, Speed = 600f, Life = 0.8f, Damage = 11f, ExtraDesc = "+1 round per burst (each trigger pull fires a burst, then a short pause)", Name = "Riot Repeater", FireInterval = 0.18f,
                 Desc = "Steady single shots. Every hit suppresses the enemy so it shoots slower, building up the more you hit it and fading when you stop. Alt lobs tear gas that suppresses and slows everything in it.",
                 Sound = Sfx.ShotRifle },
+            new WeaponDef { Id = WeaponId.GrenadeLauncher, Kit = Kit.Soldier, Role = Role.Tank, Choice = 3, Speed = 900f, Life = 0.42f, Damage = 34f, BotRange = 340f, ExtraDesc = "+1 grenade a shot, fanned out", Name = "Grenade Launcher", FireInterval = 0.42f,
+                Desc = "A six-round drum of HE grenades lobbed over enemies to your cursor, bursting where they land. Alt swaps in the smoke drum: canisters that open into a cloud where regular enemies are slowed and can't attack, and bosses are slowed.",
+                Sound = Sfx.TankMineLaunch, AreaDesc = "blasts and clouds 25% wider" },
             // Healer
             new WeaponDef { Id = WeaponId.LightBolt, Kit = Kit.Soldier, Role = Role.Healer, Choice = 0, Damage = 6f, Reach = 240f, ExtraDesc = "+20° wider blast, +2 damage and a harder push", Name = "Repulsion Cannon", FireInterval = 0.7f,
                 Desc = "Blasts enemies away in a cone for light damage. Enemies it hits shed tiny health orbs. Hits fill the Undertow: hold Alt to pull enemies in.",
@@ -387,6 +390,9 @@ namespace Arena
                         SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * cone) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).PointBlank = true;
                     break;
                 }
+                case WeaponId.GrenadeLauncher:
+                    LaunchGrenade(p, aim, dmg, extra);  // GrenadeLauncher.cs
+                    break;
                 case WeaponId.FlakCannon:
                 {
                     // An airburst: the shell flies over enemies to your cursor (as far as its range) and bursts there,

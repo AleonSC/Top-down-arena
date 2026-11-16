@@ -167,6 +167,8 @@ namespace Arena
         public float RailTrailBonus, RailBurnMult = 1f;                    // Railgun: Supercharge
         public float SpinTimeMult = 1f, SpinDownMult = 1f;                 // Burst SMG: Spin-Up
         public float DbReloadMult = 1f, DbFullMult = 1f;                   // Double Barrel: Quick Loader
+        public int GlDrumBonus;                                             // Grenade Launcher: Heavy Drum (HE rounds a drum)
+        public float GlCloudMult = 1f;                                      // Grenade Launcher: Heavy Drum (smoke cloud size)
         // Elementalist weapon cards (Docs/UpgradePools.md step 12)
         public float FlameReachMult = 1f, FlameBurnMult = 1f;              // Flamethrower: Napalm
         public float IceReachMult = 1f, IceSlowBonus;                      // Frost Lance: Glacier

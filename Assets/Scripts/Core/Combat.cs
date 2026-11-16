@@ -221,6 +221,11 @@ namespace Arena
 
         void ExplodeGrenade(Bullet b)
         {
+            if (b.GlNade)
+            {
+                GlBlast(b);  // the Grenade Launcher's HE (GrenadeLauncher.cs)
+                return;
+            }
             foreach (var e in Enemies.Values)
                 if (e.SpawnT <= 0f && e.Pos.CloserThan(b.Pos, b.Splash + e.Radius))
                     HurtEnemy(e, b.Dmg, b.Owner);
