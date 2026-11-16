@@ -181,6 +181,7 @@ namespace Arena
         public int OrbitExtra; public float LaunchRangeMult = 1f;          // Ice Shards: Frozen Halo
         public int SsSideBonus; public float SsSlamMult = 1f;              // Stonespear: Tectonic
         public int HarvestBonus; public float PuddleSizeMult = 1f;         // Honeybee Staff: Bigger Hive
+        public float NunDiscMult = 1f, NunSwatBonus;                       // Nunchaku: Iron Links
         public float SwatReachMult = 1f, SwatCdMult = 1f;                  // Out of Ammo: Gun Kata (Docs/UpgradePools.md step 13)
 
         // Legendary weapon upgrades from bosses.

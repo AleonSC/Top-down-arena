@@ -494,6 +494,11 @@ namespace Arena
                 ResetKnuckleChain(p);  // ArcKnuckles.cs
                 return;
             }
+            if (p.Weapon.Id == WeaponId.Nunchaku)
+            {
+                ResetNunChain(p);  // Nunchaku.cs
+                return;
+            }
             if (p.Weapon.Id != WeaponId.Katana)
                 return;
             p.FireCd = 0f;
