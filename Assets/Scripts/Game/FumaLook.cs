@@ -91,7 +91,10 @@ namespace Arena
             foreach (var p in game.Players.Values)
             {
                 if (p.Weapon == null || p.Weapon.Id != WeaponId.FumaShuriken)
+                {
+                    fumaViews.Remove(p.Id);  // (switching back starts a fresh view, not the old clock and stars)
                     continue;
+                }
                 var v = FumaViewOf(p, dt);
                 if (p.Downed)
                     continue;
@@ -119,10 +122,12 @@ namespace Arena
                     DrawFumaBlades(p.Disp + at, 0.45f, -spin * 1.6f + i, 1f, 1f);
                 }
             }
-            // forget the trails of stars no longer in flight
+            // forget the trails of stars no longer in flight (ids restart with a new game, e.g. the lobby preview
+            // switching weapons, so an id now held by another kind of shot drops its trail too)
             fumaGone.Clear();
+            Bullet fb;
             foreach (var id in fumaShotTrail.Keys)
-                if (!game.Bullets.ContainsKey(id))
+                if (!game.Bullets.TryGetValue(id, out fb) || fb.Kind != Defs.FumaStar)
                     fumaGone.Add(id);
             foreach (int id in fumaGone)
                 fumaShotTrail.Remove(id);
@@ -186,6 +191,8 @@ namespace Arena
             List<V2> trail;
             if (!fumaShotTrail.TryGetValue(b.Id, out trail))
                 fumaShotTrail[b.Id] = trail = new List<V2>();
+            else if (trail.Count > 0 && (trail[trail.Count - 1] - b.Pos).LengthSq > 80f * 80f)
+                trail.Clear();  // (a new star under an old one's id: a restarted game)
             if (trail.Count == 0 || (trail[trail.Count - 1] - b.Pos).LengthSq > 9f)
             {
                 trail.Add(b.Pos);
