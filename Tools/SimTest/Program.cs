@@ -301,7 +301,7 @@ static partial class Program
         Test("lance", "the Lance: Jab, Second Jab, Wide Sweep, Breaching Thrust, Impact and Hook & Haul", () => LanceTest(Dt)),
         Test("healerfive", "Censer, Spirit Fan, Ofuda, Sprite Staff and Totem Staff", () => HealerFiveTest(Dt)),
         Test("healingrain", "Healing Rain: heals allies inside, slows enemies, ends on time, mastered lasts 10 s", () => HealingRainTest(Dt)),
-        Test("lumenward", "Lumen Ward: a cone of light that heals inside, burns bullets in it and holds the ones outside", () => LumenWardTest(Dt)),
+        Test("lumenward", "Lumen Ward: a cone of light that follows your aim, heals inside and burns bullets in it or touching it", () => LumenWardTest(Dt)),
         Test("wards", "Spirit Ward, Healing Mist and Energy Ward", () => HealerWardsTest(Dt)),
         Test("lastfour", "Gore Mortar, Transfusion Darts, Rapier (Tempo, Flourish) and the Katana (stance combos, Momentum Burst, caltrops)", () => LastFourTest(Dt)),
         Test("repulsion", "the Repulsion Cannon", () => RepulsionTest(Dt)),

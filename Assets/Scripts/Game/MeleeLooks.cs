@@ -324,6 +324,8 @@ namespace Arena
             float T = fx.T;
             int seed = MeleeSeed(fx);
             ownerOfModel = seen.Owner;
+            if (seen.Weapon == WeaponId.BloodLash && !thrust)
+                return DrawLashSwing(fx, light, seen, o, aim, half, reach, T, col);  // a whip: BloodLashLook.cs
 
             if (thrust)
             {
