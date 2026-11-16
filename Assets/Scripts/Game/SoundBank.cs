@@ -323,7 +323,8 @@ namespace Arena
             Sfx.LanceHitHeavy, Sfx.LanceHookOut, Sfx.TankDouble, Sfx.TankMineLaunch, Sfx.TankGasLaunch, Sfx.SpellPullStart, Sfx.SpellPullHum,
             Sfx.SpellPullStop, Sfx.KnuckleJab, Sfx.KnuckleHook, Sfx.KnuckleUpper, Sfx.KnuckleSlam, Sfx.KnuckleCounter, Sfx.KnuckleArm,
             Sfx.KnuckleRocket, Sfx.KnuckleRocketHit, Sfx.KnuckleGrab, Sfx.KnuckleThrow, Sfx.KnuckleImpact, Sfx.KnuckleImpactHeavy,
-                Sfx.StoneThrow, Sfx.StoneWind, Sfx.StoneSlam, Sfx.ArcTag, Sfx.ArcHop, Sfx.ArcCrack, Sfx.ArcFork, Sfx.ArcFizzle, Sfx.ArcHum })
+                Sfx.StoneThrow, Sfx.StoneWind, Sfx.StoneSlam, Sfx.ArcTag, Sfx.ArcHop, Sfx.ArcCrack, Sfx.ArcFork, Sfx.ArcFizzle, Sfx.ArcHum,
+                Sfx.ShotFireball, Sfx.ShotFireballBurn })
                 c[(int)s] = Category.Weapons;
             foreach (var s in new[] {
             Sfx.EnemyShot, Sfx.BossShift, Sfx.BossCharge, Sfx.BossPulse, Sfx.BossChime, Sfx.BossLaserWarn, Sfx.BossLaser, Sfx.BossSlam,
@@ -393,6 +394,7 @@ namespace Arena
                 BuildStonespear();  // StonespearSoundBank.cs
                 BuildSentryNova();  // SentryNovaSoundBank.cs
                 BuildBulletRain();  // BulletRainSoundBank.cs
+                BuildFireball();  // FireballSoundBank.cs
             }
             catch (Exception ex)
             {
