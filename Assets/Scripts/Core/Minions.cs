@@ -144,7 +144,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Sanctify, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 2,  // the AbilityId stays Sanctify; the player-facing name is Lumen Ward (LumenWard.cs)
-                Name = "Lumen Ward", Cooldown = 20f, Desc = "A huge cone of light along your aim for 6 s: heals everyone inside 9 HP/s and burns away enemy bullets in it. Enemy bullets everywhere else slow to a stop and fly again when it ends.",
+                Name = "Lumen Ward", Cooldown = 20f, Desc = "A huge cone of light toward your cursor for 6 s that turns as you aim: heals everyone inside 9 HP/s and burns away enemy bullets in it or touching it.",
                 Capstone = "Also freezes enemies outside the light for as long as it lasts (not bosses).",
                 Bot = b => b.AllyHurt || b.Danger,
             },
