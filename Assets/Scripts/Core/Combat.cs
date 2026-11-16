@@ -1080,6 +1080,8 @@ namespace Arena
                 e.BurnT = Math.Max(e.BurnT, FlameBurnTime + b.IgniteBonus);
                 e.BurnDps = Math.Max(e.BurnDps, b.Ignite);
                 e.BurnBy = b.Owner;
+                if (b.Kind == Defs.FireballShot)
+                    Sounds.Add(new SoundCue { Sfx = Sfx.ShotFireballBurn, Ally = b.Owner != MyId });
             }
             if (b.SlowAmt > 0f && !e.Def.IsBoss)
             {

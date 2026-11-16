@@ -46,7 +46,7 @@ namespace Arena
             // DPS
             new WeaponDef { Id = WeaponId.Fireball, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 0, Speed = 430f, Life = 1.4f, Damage = 32f, BotRange = 390f, ExtraDesc = "+1 fireball, fanned out", Name = "Fireball", FireInterval = 0.5f,
                 Desc = "A big, slow fireball that rolls on through every enemy in its path, hurting each and setting it burning.",
-                Sound = Sfx.SpellFire },
+                Sound = Sfx.ShotFireball },
             new WeaponDef { Id = WeaponId.ArcLightning, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 1, Damage = 40f, BotRange = 320f, ExtraDesc = "+25% damage", Name = "Arc Lightning", FireInterval = 0.25f,
                 Desc = "Hold to charge a strip of ground in front of you, longer the longer you hold. Let go: lightning shocks everything in it and stuns it.",
                 Sound = Sfx.SpellZap, AreaDesc = "the lightning strip 25% wider", BarrageDesc = "+1 strip of lightning side by side with the first. Covers more ground; nothing is shocked twice" },
