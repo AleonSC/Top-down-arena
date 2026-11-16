@@ -519,7 +519,6 @@ namespace Arena
                 TickBurn(e, dt);
                 TickBleed(e, dt);  // KitWeapons.cs
                 TickBoneCage(e, dt);  // KitWeapons.cs
-                TickHemorrhage(e, dt);  // BloodMage.cs
                 TickPoison(e, dt);  // Ninja.cs
                 TickVenom(e, dt);   // Poison Dart (PoisonDart.cs)
                 TickDaze(e, dt);    // Daze.cs

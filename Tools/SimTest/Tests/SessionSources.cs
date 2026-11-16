@@ -27,7 +27,7 @@ static partial class Program
             src.TryGetValue("Weapon: " + weapon.Name, out mine);
             Check(total > 0f && mine >= 0.9f * total, string.Format("{0}: {1:0}% of its {2:0} damage is credited to the weapon", weapon.Name, 100f * mine / Math.Max(1f, total), total));
             if (id == WeaponId.ClotBolt)
-                Check(rec.HealthSpentBy(1) > 0f && rec.DamageTakenBy(1) == 0f, string.Format("the Clot Cannon's shots cost health ({0:0}), recorded as health spent, not damage taken", rec.HealthSpentBy(1)));
+                Check(rec.HealthSpentBy(1) > 0f && rec.DamageTakenBy(1) == 0f, string.Format("the Gore Mortar's shots cost health ({0:0}), recorded as health spent, not damage taken", rec.HealthSpentBy(1)));
         }
         try { System.IO.Directory.Delete(folder, true); } catch { }
     }

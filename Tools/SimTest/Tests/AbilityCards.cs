@@ -587,16 +587,25 @@ static partial class Program
         float vn0 = vein(0), vn1 = vein(1);
         Check(near(vn0, 4f, 0.01f) && near(vn1, 5.5f, 0.01f), "Lifeline: 55% of the tether's damage heals (from 40%)");
 
-        var hemo = typeof(Game).GetMethod("Hemorrhage", flags);
+        var hemo = typeof(Game).GetMethod("BloodBoltBleed", flags);
         Func<int, int> bolts = n =>
         {
             arm(WeaponId.BloodBolts, "Hemophilia", n);
             var e = enemyAt(there);
             for (int k = 0; k < 4; k++) hemo.Invoke(g, new object[] { me, e, 9f });
-            return e.Hemorrhage;
+            return e.BleedStacks;
         };
         int hm0 = bolts(0), hm1 = bolts(1);
-        Check(hm0 == 4 && hm1 == 0 && near(me.Stats.HemoRadiusMult, 1.3f, 0.001f), "Hemophilia: the fourth bolt bursts (not the fifth), 30% wider");
+        Check(hm0 == 4 && hm1 == 0 && near(me.Stats.HemoRadiusMult, 1.3f, 0.001f), "Hemophilia: the fourth bleed stack bursts (not the fifth), 30% wider");
+
+        var bleed = typeof(Game).GetMethod("ApplyBleed", flags);
+        arm(WeaponId.BloodBolts, "Hemophilia", 0);
+        var bled = enemyAt(there);
+        float bledHp = bled.Hp;
+        for (int k = 0; k < 4; k++) bleed.Invoke(g, new object[] { bled, 2f, me.Id, true });  // four claw hits
+        int clawStacks = bled.BleedStacks;
+        hemo.Invoke(g, new object[] { me, bled, 9f });
+        Check(clawStacks == 4 && bled.BleedStacks == 0 && bled.BleedHits == 0 && bled.Hp < bledHp, "any bleed counts: four claw stacks and one Blood Bolt burst the enemy");
 
         var collapse = typeof(Game).GetMethod("Collapse", flags);
         Func<int, float> crush = n =>

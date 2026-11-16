@@ -95,13 +95,14 @@ static partial class Program
             return before - bb[1].Hp;
         };
         float four = Bolts(4);
-        int stacked = bb[0].Hemorrhage;
+        int stacked = bb[0].BleedStacks;
+        bool bled = bb[0].Bleeding;
         float fifth = Bolts(1);
-        Check(stacked == 4 && bb[0].Hemorrhage == 0, "Blood Bolts stack on an enemy (drawn as drops) and the burst clears them");
-        step(Game.HemorrhageHold + 0.2f, true);
+        Check(stacked == 4 && bled && bb[0].BleedStacks == 0 && !bb[0].Bleeding, "Blood Bolts stack bleed on an enemy (drawn as drops) and the burst clears it");
+        step(3.2f, true);  // (the bleed's 3 s)
         float faded = Bolts(1);
         Console.WriteLine("  blood bolts: neighbour took {0:0.0} after 4 bolts, {1:0.0} on the 5th; after they fade, one more bolt {2:0.0}", four, fifth, faded);
-        Check(four == 0f && fifth > 0f && faded == 0f, "the fifth Blood Bolt in a row makes an enemy hemorrhage and burst onto enemies round it; the stacks fade");
+        Check(four == 0f && fifth > 0f && faded == 0f, "the fifth Blood Bolt's bleed stack bursts the enemy onto enemies round it; the stacks fade");
         host.Leave("");
     }
 
@@ -924,7 +925,7 @@ static partial class Program
 
     static void LastFourTest(float dt)
     {
-        // The Clot Cannon lobs a clot that splashes the same at any range and leaves a pool that congeals; Transfusion Darts give an ally a lot for a little
+        // The Gore Mortar lobs a clot that splashes the same at any range and leaves a pool that congeals; Transfusion Darts give an ally a lot for a little
         // and steal a sliver from enemies; the Rapier's Tempo, skewering and Flourish; the Katana's two stances.
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var volley = typeof(Game).GetMethod("FireVolley", flags);
@@ -963,11 +964,11 @@ static partial class Program
         Action reset = () => { foreach (var e in keep) e.Hp = 0f; keep.Clear(); pins.Clear(); g.Bullets.Clear(); g.Zones.Clear(); };
         play(0.3f, new PlayerInput());
 
-        // Clot Cannon: hold to charge, let go to lob a clot over enemies; the charge sets how far it lands, never how hard.
+        // Gore Mortar: hold to charge, let go to lob a clot over enemies; the charge sets how far it lands, never how hard.
         // It splashes everything where it lands and leaves a big pool that congeals after a second, sticking the enemies
         // in it; standing in your own pool no longer guards you.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.ClotBolt);
-        Check(Game.ChargeWeapon(WeaponId.ClotBolt) && me.Weapon.Name == "Clot Cannon", "the tank Hemomancer's Clot Cannon charges like a bow");
+        Check(Game.ChargeWeapon(WeaponId.ClotBolt) && me.Weapon.Name == "Gore Mortar", "the tank Hemomancer's Gore Mortar charges like a bow");
         var tapNear = dummy(from + new V2(Game.ClotMin, 0f), 1e5f);
         var tapFar = dummy(from + new V2(Game.ClotMax, 0f), 1e5f);
         me.BowShotDraw = Game.BowMinDraw;
@@ -984,7 +985,7 @@ static partial class Program
         volley.Invoke(g, new object[] { me, 0f, 0 });
         float shotCost = me.MaxHp - me.Hp;
         Console.WriteLine("  clot cannon: a shot cost {0:0.0} of {1:0} health", shotCost, me.MaxHp);
-        Check(Math.Abs(shotCost - me.MaxHp * Game.ClotCost) < 0.01f, "every Clot Cannon shot costs 6% of your max health");
+        Check(Math.Abs(shotCost - me.MaxHp * Game.ClotCost) < 0.01f, "every Gore Mortar shot costs 6% of your max health");
         me.Hp = me.MaxHp;
         play(Game.ClotFlight(1f) + 0.05f, new PlayerInput());
         float fullHit = stuck.MaxHp - stuck.Hp, underHit = under.MaxHp - under.Hp, besideHit = beside.MaxHp - beside.Hp;

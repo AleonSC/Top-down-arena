@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The tank Hemomancer's Clot Cannon (WeaponId.ClotBolt, Core/BloodMage.cs), look A "Gore Mortar" of
+    /// The tank Hemomancer's Gore Mortar (WeaponId.ClotBolt, Core/BloodMage.cs), look A "Gore Mortar" of
     /// Docs/Mockups/clot-cannon.html. While you hold, the clot in your hand swells and your arc grows out to where it
     /// will land: a trail of beads up and over to a dashed outline of the pool and the splash inside it. The clot flies
     /// lifted along its arc over its shadow, raining drops; it lands in a crown of drops and a big pool (DrawBloodZone)
@@ -65,7 +65,7 @@ namespace Arena
                 clotDrops.RemoveAt(0);
         }
 
-        /// Is this spot in a Clot Cannon pool that's still wet?
+        /// Is this spot in a Gore Mortar pool that's still wet?
         bool InWetClotPool(V2 at)
         {
             foreach (var z in game.Zones.Values)
@@ -74,7 +74,7 @@ namespace Arena
             return false;
         }
 
-        /// Once a frame (from the floor pass): drips from every Clot Cannon's hand, drops off every clot in flight, the
+        /// Once a frame (from the floor pass): drips from every Gore Mortar's hand, drops off every clot in flight, the
         /// crown where one landed, then the drops falling and staining.
         void StepClots(float t)
         {
@@ -285,7 +285,7 @@ namespace Arena
             DrawClotBlob(at, r, t * 1.6f, b.Id * 0.7f, 0.6f);
         }
 
-        /// The Clot Cannon's charge: a ring filling round you and the clot swelling in your hand (everyone's), and for
+        /// The Gore Mortar's charge: a ring filling round you and the clot swelling in your hand (everyone's), and for
         /// your own, the arc of beads growing out to where it will land, with the pool's outline and the splash there.
         void DrawClotCharge(Player p, bool mine, float t)
         {
@@ -397,7 +397,7 @@ namespace Arena
             }
         }
 
-        /// The Clot Cannon's pool: it splashes out past its size and settles, wobbling while wet, with a rim arc that
+        /// The Gore Mortar's pool: it splashes out past its size and settles, wobbling while wet, with a rim arc that
         /// closes over the first second; then it congeals with a thump: a brown crust creeps in from the edge and cracks.
         void DrawBloodZone(Zone z, Rgba c, float t)
         {
