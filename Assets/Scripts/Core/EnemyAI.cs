@@ -539,7 +539,14 @@ namespace Arena
                 if (DevFreeze)
                     continue;  // F1 dev tool: frozen in place, no moving or shooting (DevTools.cs)
                 if (ShowcaseMode)
+                {
+                    if (e.FrozenT > 0f)  // (still thaws: a Glacial Tomb's ice must end in the preview)
+                    {
+                        e.FrozenT -= dt;
+                        e.SlowT = Math.Max(e.SlowT, e.FrozenT);
+                    }
                     continue;  // the loadout preview's target dummies stand still and never shoot (Showcase.cs)
+                }
                 if (e.FrozenT > 0f)  // Glacial Tomb: frozen solid, no moving or shooting
                 {
                     e.FrozenT -= dt;
