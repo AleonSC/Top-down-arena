@@ -9,20 +9,38 @@ namespace Arena
     {
         const float ModeListW = 268f, ModeGap = 14f;
 
-        /// The header: the mode's name letter-spaced, a rule, a tag on the right and a line under it. Returns where the body starts.
+        /// The header: the mode's name letter-spaced and a rule, then the mode's facts as outlined chips (`tag`, split on "·") and
+        /// a short line under them. Returns where the body starts.
         static float ModeHeader(Rect r, string title, string tag, string sub, Color subCol)
         {
             var ink = CrtUi.Ink;
             float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;
             LobbyKit.Spaced(new Rect(x, y, w * 0.5f, 20f), title, 14, new Color(ink.r, ink.g, ink.b, 0.9f), TextAnchor.MiddleLeft, 3.6f);
-            float tagW = Ui.TextWidth(tag, 11, false);
-            Ui.Label(new Rect(x + w - tagW - 20f, y, tagW + 20f, 20f), tag, 11, Ui.Muted, TextAnchor.MiddleRight);
-            float l0 = x + LobbyKit.SpacedWidth(title, 14, 3.6f) + 20f, l1 = x + w - tagW - 30f;
-            if (l1 > l0 + 20f)
-                Ui.Fill(new Rect(l0, y + 10f, l1 - l0, 1f), new Color(ink.r, ink.g, ink.b, 0.25f));
+            float l0 = x + LobbyKit.SpacedWidth(title, 14, 3.6f) + 20f;
+            Ui.Fill(new Rect(l0, y + 10f, x + w - l0, 1f), new Color(ink.r, ink.g, ink.b, 0.25f));
+            y += 26f;
+            ModeChips(x, y, tag, ink);
+            if (string.IsNullOrEmpty(sub)) return y + 30f;
             y += 24f;
             Ui.Label(new Rect(x, y, w, 18f), sub, 12, subCol);
             return y + 28f;
+        }
+
+        /// The mode's facts as outlined chips in `c`, left to right from x (`tags` split on "·"). Returns the x after the last one.
+        static float ModeChips(float x, float y, string tags, Color c)
+        {
+            foreach (var part in tags.Split('·'))
+            {
+                string f = part.Trim();
+                if (f.Length == 0) continue;
+                float fw = LobbyKit.SpacedWidth(f, 10, 1f) + 12f;
+                var fr = new Rect(x, y, fw, 18f);
+                Ui.Fill(fr, new Color(c.r, c.g, c.b, 0.06f));
+                HuntBox(fr, new Color(c.r, c.g, c.b, 0.4f));
+                LobbyKit.Spaced(fr, f, 10, new Color(c.r, c.g, c.b, 0.85f), TextAnchor.MiddleCenter, 1f);
+                x += fw + 6f;
+            }
+            return x;
         }
 
         /// A list row: a soft key (glowing in `acc` on `top`), or dashed and dim when not `lit`. Number, a "?" when not `known`

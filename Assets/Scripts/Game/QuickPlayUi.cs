@@ -21,7 +21,7 @@ namespace Arena
             var ink = CrtUi.Ink;
             bool first = profile.QuickPlays == 0;
             float bodyY = ModeHeader(r, "QUICK PLAY", "10 WAVES  ·  A RANDOM BOSS  ·  ENDLESS", first ? "Your first Quick Play is the tutorial, and it ends on the Warden."
-                : "The boss is drawn at random: every boss comes up once before any repeats.", first ? QuickColor : Ui.Muted);
+                : "Every boss comes up once before any repeats.", first ? QuickColor : Ui.Muted);
             float x = r.x + 18f, w = r.width - 36f, bodyH = Mathf.Max(200f, r.yMax - 14f - bodyY);
             var ev = Event.current;
 
