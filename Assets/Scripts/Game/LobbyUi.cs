@@ -1571,6 +1571,8 @@ namespace Arena
                 foreach (var p in sg.Players.Values)
                     if (p.Weapon.Id == WeaponId.MendersBow && p.DrawT > 0f && !p.Downed)
                         DrawBowDraw(p, true, sg.AnimT);
+                    else if (p.Weapon.Id == WeaponId.Warhammer && p.DrawT > 0f && !p.Downed)
+                        DrawHammerCharge(p, true, sg.AnimT);  // the raised hammer and its charge circle
                     else if (p.Weapon.Id == WeaponId.ArcLightning && p.DrawT > 0f && !p.Downed)
                         DrawArcLockFlatCharge(p, true, sg.AnimT);  // (with Visual effects on this draws nothing: the glow pass has the charge)
             }
