@@ -158,6 +158,11 @@ namespace Arena
             float dKick;
             DpsGunPose(p, out dKick);  // the Twin Rifle, Railgun and Burst SMG kick, charge and spin (DpsGunLooks.cs)
             gKick += dKick;
+            if (p.Weapon.Id == WeaponId.GrenadeLauncher)
+            {
+                gKick += GlKick(p);  // the Grenade Launcher's kick, and its front hand on the foregrip (GrenadeLauncherLook.cs)
+                GlFrontHand(p, wk, rhx, rhy, ref lhx, ref lhy);
+            }
             rhx -= gKick; lhx -= gKick + gPump * wk;
             mPump = gPump; mHeat = gHeat; mLit = gLit;
             // The Twin Rifle is held out wide, each muzzle where its stream starts, turned toward the crossing; each gun recoils
@@ -438,6 +443,7 @@ namespace Arena
                 case WeaponId.LightBolt: case WeaponId.BurstSmg: case WeaponId.HolyMace: hold = 1; offX = 8f; break;
                 case WeaponId.MendersBow: case WeaponId.Railgun: hold = 1; offX = 18f; break;
                 case WeaponId.DoubleBarrel: hold = 1; offX = 15f; break;
+                case WeaponId.GrenadeLauncher: hold = 1; offX = 31f; break;  // (the front hand sits on the foregrip: GrenadeLauncherLook.cs GlFrontHand)
                 case WeaponId.Flamethrower: case WeaponId.Warhammer: hold = 1; offX = 12f; break;
                 case WeaponId.Lance: hold = 1; offX = -4f; break;
                 case WeaponId.Greatsword: hold = 1; offX = -8f; break;
@@ -508,6 +514,9 @@ namespace Arena
                     if (mDpsOn) { DrawTwinRifleFx(); break; }  // DpsGunLooks.cs
                     MRect(-6f, -2f, 8f, 4f, MWood); MRect(0f, -2.6f, 14f, 5.2f, MDark); MLine(12f, 0f, 26f, 0f, 2.4f, MSteel); MRect(5f, -5f, 8f, 2.6f, Hx(0x7bd0ff));
                     DrawTwinTube();
+                    break;
+                case WeaponId.GrenadeLauncher:
+                    if (Juicy) DrawGrenadeLauncherFx(); else DrawGrenadeLauncherPlain();  // GrenadeLauncherLook.cs
                     break;
                 case WeaponId.DoubleBarrel:
                     if (mDpsOn) DrawDoubleBarrelFx(); else DrawDoubleBarrelPlain();  // DoubleBarrelLook.cs

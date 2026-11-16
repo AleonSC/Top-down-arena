@@ -1335,6 +1335,7 @@ namespace Arena
             TickRepulsion(dt);  // Repulsion.cs: the Undertow pulling and draining its meter
             TickTwinRifle(dt);  // TwinGrenades.cs: the grenade tubes' cooldown, emptied with the rifle
             TickTankAlts(dt);   // TankAlts.cs: Double Barrel, Proximity Shells, Tear Gas
+            TickSmokeShells(dt);  // GrenadeLauncher.cs: smoke clouds; the launcher refills when put away
             TickBoneGuard(dt);  // BoneGuard.cs: marrow threads running out, Ossuary Walls landing
             TickGreat(dt);      // Greatsword.cs: the chain forgetting its place, the guard arc stopping bullets
             TickArcKnuckles(dt);  // ArcKnuckles.cs: an unused Counter Hammer fading
@@ -1482,7 +1483,9 @@ namespace Arena
                     RevolverTrigger(p, dt);
                 }
                 else if (p.Weapon.Id == WeaponId.DoubleBarrel)
-                    TickDoubleBarrel(p, dt);  // two shells, a break-open reload (DoubleBarrel.cs)
+                    TickDoubleBarrel(p, dt);
+                else if (p.Weapon.Id == WeaponId.GrenadeLauncher)
+                    TickGrenadeLauncher(p, dt);  // the drums, the reload, the smoke (GrenadeLauncher.cs)  // two shells, a break-open reload (DoubleBarrel.cs)
                 else if (p.Weapon.Id == WeaponId.Stonespear)
                     TickStonespear(p, dt);  // the slam, the hovering spears, the volley (Stonespear.cs)
                 else if (ChargeWeapon(p.Weapon.Id))

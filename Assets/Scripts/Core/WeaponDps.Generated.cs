@@ -11,6 +11,7 @@ namespace Arena
             { WeaponId.Scattergun, 154f },
             { WeaponId.FlakCannon, 36f },
             { WeaponId.RiotRepeater, 60f },
+            { WeaponId.GrenadeLauncher, 49f },
             { WeaponId.LightBolt, 9f },
             { WeaponId.Pistol, 82f },
             { WeaponId.MendersBow, 40f },

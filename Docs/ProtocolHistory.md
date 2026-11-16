@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 365: the Tank Soldier's Grenade Launcher: WeaponId.GrenadeLauncher, ZoneKind.SmokeShell, player GlMode/GlUsed/GlSmokeUsed/GlShot/GlReload/GlSwap/GlCharge, WeaponDash DashDrum (34).
 - 364: `FxKind.NimbusStrike` and `FxKind.NimbusStorm` appended; `Msg.WeaponDash` kind 33 (`DashStorm`, the Nimbus's Eye of the Storm)
 - 363: lobby state carries `HuntLong` (the 20-step hunt), the run's `HuntLength` follows it; a hunt map's boss clues (up to 5) roll health or damage from the map seed; the hunt map is always on (`HuntMapMode` defaults true); `HuntNodeType.Miniboss` (a node type, only in a 20-step map)
 - 362: `Sfx` is a ushort on the wire (`Msg.Sound`, `Msg.Fx`); 14 unused sounds removed and 22 local-only cues appended (Arc Lightning's included), so every value after `ShotRifle` moved
