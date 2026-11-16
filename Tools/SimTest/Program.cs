@@ -417,7 +417,7 @@ static partial class Program
         Test("runmods", "Head Start, Practiced, Bloodlust, Gold Rush, Tiny Arena and Nightfall", () => MoreModifiersTest(Dt)),
         Test("paths", "divergent paths", () => PathsTest(Dt), () => PathHazardsTest(Dt), () => PathTwistsTest(Dt), () => PathArenaRulesTest(Dt)),
         Test("bazaar", "the Bazaar", () => BazaarTest(Dt)),
-        Test("props", "the arena's props: crates as cover, pots, barrels, the treasure chest and its items", () => PropsTest(Dt)),
+        Test("props", "the arena's props: crates as cover, barrels, the treasure chest and its items", () => PropsTest(Dt)),
         Test("timed", "timed waves: enemies arrive over a window (ramp, plateau, taper) and the wave clears when all are dead", () => TimedWavesTest(Dt)),
         Test("portals", "spawn portals and surges: bursts through portals, sealing one cancels the rest, flanks behind the party, the surge rhythm", () => SpawnPortalsTest(Dt)),
         Test("layouts", "arena layouts: the six floor plans, walls and pillars, edge gates, enemy gates, steering round walls", () => LayoutsTest(Dt)),

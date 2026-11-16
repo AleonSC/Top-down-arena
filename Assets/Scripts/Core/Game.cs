@@ -1364,7 +1364,7 @@ namespace Arena
             TickCoins(dt);  // Coins.cs
             TickGadgets(dt);  // Gadgets.cs
             TickBossBarrels(dt);  // Props.cs: health barrels dropping into boss fights
-            TickProps(dt);    // Props.cs: fuses, smashed pots, opened chests, breaks
+            TickProps(dt);    // Props.cs: fuses, smashed health barrels, opened chests, breaks
             MoveBullets(dt * WorldRate);
             Collide();
             FirePendingClaps();  // Squall.cs: Grounders' Thunderclaps charged by this tick's hits

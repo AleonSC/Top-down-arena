@@ -6,13 +6,13 @@ namespace Arena
 {
     /// Things standing in the arena during regular waves (Props.cs):
     /// Crate / HeavyCrate: cover. Enemy shots stop at it and wear it down; your shots fly over it. Solid to walk into.
-    /// Pot: a breakable. Shoot it or walk through it: it smashes and drops a health orb or a little XP.
     /// Barrel: rare. Any shot sets it fizzing; 0.4 s later it blows up, hurting enemies (a lot), players (a little),
-    ///   smashing crates and pots and setting off other barrels.
+    ///   smashing crates and setting off other barrels.
     /// Chest: rare treasure. Touch it to open it: every player gets their own item (an upgrade card or a legendary),
     ///   which only they can see. Walk onto it, then take it (G) or discard it (X). The wave waits for both.
     /// HealthBarrel: boss fights only. A green barrel with a white cross drops in now and then; shoot it or walk
     ///   into it and it breaks into health orbs.
+    /// Pot is retired (no longer placed or drawn); its slot stays so the wire numbers don't move.
     public enum PropKind : byte { Crate, HeavyCrate, Pot, Barrel, Chest, HealthBarrel }
 
     public class Prop
@@ -49,9 +49,7 @@ namespace Arena
 
     public partial class Game
     {
-        /// How long a smashed pot's effect lasts: the hologram's burst (Game/PropsLook.cs); the clay chips still play in 0.4 s.
-        public const float PotFxTime = 1.3f;
-        public const float CrateSize = 44f, HeavyCrateSize = 54f, PotR = 13f, BarrelR = 17f, ChestW = 48f, ChestH = 34f;
+        public const float CrateSize = 44f, HeavyCrateSize = 54f, BarrelR = 17f, ChestW = 48f, ChestH = 34f;
         public const float BarrelBlast = 120f, BarrelFuse = 0.4f, BarrelChainFuse = 0.15f;
         public const float LootReach = 30f;   // how close (plus your body) you must stand to an item to take it
         const float ChestStayOpen = 2.5f;     // an opened chest stays this long, then goes
@@ -74,7 +72,6 @@ namespace Arena
         public static int CrateTarget(int wave) => Math.Min(10, 2 + (int)(wave * 0.3f));
         /// The Cluttered modifier: a maze of crates, growing every wave (they stay until broken; bosses clear them).
         public static int ClutterTarget(int wave) => Math.Min(48, 14 + wave * 3);
-        public static int PotTarget(int wave) => Math.Min(5, 1 + wave / 7);
         public static float BarrelChance(int wave) => Math.Min(0.45f, 0.25f + wave * 0.005f);
         /// Enemy hits a crate takes before it breaks.
         public static float CrateHits(PropKind k, int wave) => (8f + wave / 3) * (k == PropKind.HeavyCrate ? 2f : 1f);
@@ -82,17 +79,17 @@ namespace Arena
 
         // --- Shapes ---------------------------------------------------------------------------------
 
-        public static bool Round(Prop p) => p.Kind == PropKind.Pot || p.Kind == PropKind.Barrel || p.Kind == PropKind.HealthBarrel;
-        public static float PropRadius(Prop p) => p.Kind == PropKind.Pot ? PotR : BarrelR;
-        public static float HalfW(PropKind k) => k == PropKind.Crate ? CrateSize / 2f : k == PropKind.HeavyCrate ? HeavyCrateSize / 2f : k == PropKind.Chest ? ChestW / 2f : k == PropKind.Pot ? PotR : BarrelR;
+        public static bool Round(Prop p) => p.Kind == PropKind.Barrel || p.Kind == PropKind.HealthBarrel;
+        public static float PropRadius(Prop p) => BarrelR;
+        public static float HalfW(PropKind k) => k == PropKind.Crate ? CrateSize / 2f : k == PropKind.HeavyCrate ? HeavyCrateSize / 2f : k == PropKind.Chest ? ChestW / 2f : BarrelR;
         public static float HalfH(PropKind k) => k == PropKind.Chest ? ChestH / 2f : HalfW(k);
         public static float HalfW(Prop p) => HalfW(p.Kind);
         public static float HalfH(Prop p) => HalfH(p.Kind);
         public static bool IsCrate(Prop p) => p.Kind == PropKind.Crate || p.Kind == PropKind.HeavyCrate;
-        /// You can't walk through it (pots smash instead; an open chest is just treasure).
-        public static bool Solid(Prop p) => p.Kind != PropKind.Pot && p.Kind != PropKind.HealthBarrel && !(p.Kind == PropKind.Chest && p.Open);
+        /// You can't walk through it (health barrels smash instead; an open chest is just treasure).
+        public static bool Solid(Prop p) => p.Kind != PropKind.HealthBarrel && !(p.Kind == PropKind.Chest && p.Open);
         /// Breaks when you walk into it or shoot it (your shots carry on).
-        static bool Smashable(Prop p) => p.Kind == PropKind.Pot || p.Kind == PropKind.HealthBarrel;
+        static bool Smashable(Prop p) => p.Kind == PropKind.HealthBarrel;
 
         public static bool PropCovers(Prop p, V2 pos, float pad)
         {
@@ -132,7 +129,7 @@ namespace Arena
         const float PushLeanSpeed = 15f;   // ...if they're moving toward it at least this fast (px/s)
 
         public static float PushSpeed(Player p) => p.Role == Role.Tank ? PushTank : p.Role == Role.Healer ? PushHealer : PushDps;
-        /// Crates and barrels slide; pots smash, chests and health barrels stay put.
+        /// Crates and barrels slide; chests and health barrels stay put.
         public static bool Pushable(Prop p) => p.Hp > 0f && (p.Kind == PropKind.Crate || p.Kind == PropKind.HeavyCrate || p.Kind == PropKind.Barrel);
 
         /// Host: something of radius r at pos is leaning into crates and barrels: each one it overlaps (or touches, within
@@ -241,7 +238,7 @@ namespace Arena
 
         // --- Spawning (host) ------------------------------------------------------------------------
 
-        /// At the start of each wave: bosses get a clear arena; regular waves top the crates, pots and barrels up to the
+        /// At the start of each wave: bosses get a clear arena; regular waves top the crates and barrels up to the
         /// wave's numbers (what's left from the last wave stays), and now and then bring a chest.
         void WaveProps()
         {
@@ -260,14 +257,10 @@ namespace Arena
                     outside.Add(p.Id);
             foreach (int id in outside)
                 Props.Remove(id);
-            int crates = 0, pots = 0;
+            int crates = 0;
             foreach (var p in Props.Values)
-            {
                 if (IsCrate(p))
                     crates++;
-                else if (p.Kind == PropKind.Pot)
-                    pots++;
-            }
             bool clutter = Has(RunMod.Cluttered);
             int crateGoal = clutter ? ClutterTarget(Wave) : CrateTarget(Wave);
             for (int tries = 0; crates < crateGoal && tries < (clutter ? 300 : 20); tries++)
@@ -289,14 +282,6 @@ namespace Arena
                         crates++;
                     }
                 }
-            }
-            for (int tries = 0; pots < PotTarget(Wave) && tries < 10; tries++)
-            {
-                V2 at;
-                if (!FreeSpot(PotR, out at))
-                    break;
-                AddProp(PropKind.Pot, at);
-                pots++;
             }
             if (Wave >= 3 && rng.NextDouble() < BarrelChance(Wave))  // (the first waves are melee rushers: nothing to blow up yet)
                 TryAdd(PropKind.Barrel);
@@ -426,7 +411,7 @@ namespace Arena
         // --- Hits (host) ----------------------------------------------------------------------------
 
         /// In Collide, for each bullet: does a prop stop it? Crates stop enemy shots (each one wears it down), barrels
-        /// stop every shot and go off, pots smash under your shots (which carry on).
+        /// stop every shot and go off, health barrels smash under your shots (which carry on).
         bool PropStops(Bullet b)
         {
             bool enemy = Defs.IsEnemyShot(b.Kind);
@@ -446,7 +431,6 @@ namespace Arena
                     case PropKind.Barrel:
                         LightBarrel(p, enemy ? 0 : b.Owner, BarrelFuse);
                         return true;
-                    case PropKind.Pot:
                     case PropKind.HealthBarrel:
                         if (!enemy)
                             p.Hp = 0f;  // smashed; the shot carries on
@@ -465,7 +449,7 @@ namespace Arena
             BroadcastFx(FxKind.Spark, p.Pos, new Rgba(1f, 0.6f, 0.2f), 20f, fuse, Sfx.Hit);
         }
 
-        /// Your blasts (grenades, Explosive Rounds, flak) set barrels off and smash pots in reach.
+        /// Your blasts (grenades, Explosive Rounds, flak) set barrels off and smash health barrels in reach.
         void PropBlast(V2 at, float radius, int owner)
         {
             if (Props.Count == 0 || owner == 0)
@@ -483,7 +467,7 @@ namespace Arena
 
         readonly List<Prop> propsGone = new List<Prop>();
 
-        /// Host, each tick: fuses, touches (pots smash, chests open), breaks and blasts; items whose owner left go.
+        /// Host, each tick: fuses, touches (health barrels smash, chests open), breaks and blasts; items whose owner left go.
         void TickProps(float dt)
         {
             if (Props.Count == 0 && Loots.Count == 0)
@@ -540,16 +524,6 @@ namespace Arena
                     if (rng.NextDouble() < 0.1)
                         SpawnOrb(p.Pos, false);
                     break;
-                case PropKind.Pot:
-                    BroadcastFx(FxKind.Debris, p.Pos, new Rgba(0.82f, 0.48f, 0.32f), 26f, PotFxTime, Sfx.Hit);
-                    if (rng.NextDouble() < 0.35)
-                        SpawnOrb(p.Pos, false);
-                    else
-                    {
-                        GrantXp(3f + Wave * 0.5f);
-                        BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.55f, 0.85f, 1f), 26f, 0.4f, Sfx.Pickup);
-                    }
-                    break;
                 case PropKind.Barrel:
                     ExplodeBarrel(p);
                     break;
@@ -580,7 +554,7 @@ namespace Arena
                 if (p.Kind == PropKind.Barrel)
                     LightBarrel(p, b.LitBy, BarrelChainFuse);
                 else if (p.Kind != PropKind.Chest)
-                    p.Hp = 0f;  // crates and pots are blown apart (next tick)
+                    p.Hp = 0f;  // crates are blown apart (next tick)
             }
         }
 

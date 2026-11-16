@@ -360,7 +360,7 @@ namespace Arena
                 float s = pr.Kind == PropKind.Crate || pr.Kind == PropKind.HeavyCrate || pr.Kind == PropKind.Chest ? 18f : 12f;
                 var col = pr.Kind == PropKind.Barrel || pr.Kind == PropKind.HealthBarrel ? new Color(0.88f, 0.38f, 0.29f) : pr.Kind == PropKind.Chest ? CrtStyle.Gold : new Color(0.71f, 0.54f, 0.35f);
                 var pr2 = new Rect(q.x - s / 2f, q.y - s / 2f, s, s);
-                if (pr.Kind == PropKind.Pot || pr.Kind == PropKind.Barrel || pr.Kind == PropKind.HealthBarrel)
+                if (pr.Kind == PropKind.Barrel || pr.Kind == PropKind.HealthBarrel)
                     Ui.Dot(pr2, col);
                 else
                     Ui.Fill(pr2, col);
@@ -397,7 +397,7 @@ namespace Arena
             Ui.Label(new Rect(p.x + 14f, p.yMax - 24f, p.width - 28f, 18f), hint, 10, CrtStyle.Desc);
             if (edPropsMode)
             {
-                var kinds = new[] { PropKind.Crate, PropKind.HeavyCrate, PropKind.Pot, PropKind.Barrel, PropKind.Chest };
+                var kinds = new[] { PropKind.Crate, PropKind.HeavyCrate, PropKind.Barrel, PropKind.Chest };
                 for (int i = 0; i < kinds.Length; i++)
                     if (DkChoice(new Rect(p.x + 108f + i * 48f, p.y + 6f, 46f, 24f), WaveSet.PropName(kinds[i]).Replace("heavy ", "big ").ToUpperInvariant(), edPropKind == kinds[i], CrtStyle.Gold))
                         edPropKind = kinds[i];

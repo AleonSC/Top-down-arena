@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using Arena;
 
-// The arena's props (Props.cs): crates as cover, pots, barrels, and the treasure chest with an item for each player.
+// The arena's props (Props.cs): crates as cover, barrels, and the treasure chest with an item for each player.
 static partial class Program
 {
     static void PropsTest(float dt)
@@ -33,12 +33,12 @@ static partial class Program
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 9, NoPicks);
         Run(s, dt, 0.5f);
 
-        // A regular wave brings crates (more as the waves go on), pots, and everyone sees them.
+        // A regular wave brings crates (more as the waves go on), no pots (retired), and everyone sees them.
         int crates = g.Props.Values.Count(p => Game.IsCrate(p)), pots = g.Props.Values.Count(p => p.Kind == PropKind.Pot);
         Console.WriteLine("  props at wave 9: {0} crates (target {1}), {2} pots; wave 1 target {3} crates, wave 30 {4}",
             crates, Game.CrateTarget(9), pots, Game.CrateTarget(1), Game.CrateTarget(30));
-        Check(crates >= 3 && pots >= 1 && cg.Props.Count == g.Props.Count && Game.CrateTarget(30) > Game.CrateTarget(9) && Game.CrateTarget(9) > Game.CrateTarget(1),
-            "regular waves bring crates and pots (more crates as the waves go on), seen on the client");
+        Check(crates >= 3 && pots == 0 && cg.Props.Count == g.Props.Count && Game.CrateTarget(30) > Game.CrateTarget(9) && Game.CrateTarget(9) > Game.CrateTarget(1),
+            "regular waves bring crates and no pots (more crates as the waves go on), seen on the client");
         bool clearOfPlayers = g.Props.Values.All(p => g.Players.Values.All(pl => pl.Pos.DistanceTo(p.Pos) > 100f));
         Check(clearOfPlayers, "props never land on top of a player");
 
@@ -81,13 +81,6 @@ static partial class Program
         Run(s, dt, 0.1f);
         Check(!Game.PropCovers(crate, me.Pos, me.Def.HitR), "you're pushed out of a crate you walk into");
         g.Props.Clear();
-
-        // Pots smash when you walk through them.
-        var pot = g.AddProp(PropKind.Pot, new V2(600f, 600f));
-        Run(s, dt, 0.2f);
-        me.Pos = pot.Pos;
-        Run(s, dt, 0.2f);
-        Check(!g.Props.ContainsKey(pot.Id), "walking through a pot smashes it");
 
         // A barrel: shoot it and it blows, hurting enemies around it and smashing crates; other barrels go off too.
         var barrel = g.AddProp(PropKind.Barrel, new V2(1000f, 600f));
