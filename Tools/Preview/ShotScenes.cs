@@ -1489,7 +1489,7 @@ static partial class Shot {
       }
     }
     if (Environment.GetEnvironmentVariable("CLOT") != null) {
-      // The Clot Cannon: charging (CLOT=<draw seconds>, with the arc and the landing outline), two clots in flight,
+      // The Gore Mortar: charging (CLOT=<draw seconds>, with the arc and the landing outline), two clots in flight,
       // a pool still wet and one congealed with an enemy stuck in it.
       var sbc2 = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
       var addZone = typeof(Game).GetMethod("AddZone", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -1551,7 +1551,7 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("HEMO") != null) {
       // Blood Bolts: enemies with 1 to 4 bolts stuck in them (4 is one short of the burst).
       var hm = new System.Collections.Generic.List<Enemy>(host.Game.Enemies.Values);
-      for (int k = 0; k < hm.Count && k < 4; k++) { hm[k].Pos = hm[k].Disp = new V2(560f + 130f * k, 450f); hm[k].Hemorrhage = k + 1; }
+      for (int k = 0; k < hm.Count && k < 4; k++) { hm[k].Pos = hm[k].Disp = new V2(560f + 130f * k, 450f); hm[k].BleedStacks = k + 1; }
     }
     if (Environment.GetEnvironmentVariable("HOOK") != null) {
       // The Kusarigama: HOOK=whirl (the weight circling you, enemies drawn in) or HOOK=<seconds into the throw, 0 to 0.65> (a throw biting an enemy).

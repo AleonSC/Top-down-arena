@@ -5,7 +5,7 @@ using Arena;
 // BLOODWALL=<seconds walking> (default 4): the tank Hemomancer's Blood Wall laid through the real game. The tank walks an
 // S-curve across the arena with the wall up, a healer trailing; Grunts on the far side walk into it and their shots stop
 // on it. BWCLOCK=<s> sets how long it has been up at the end (the drain ring's stage: 0 Seep, 5 Flow, 9 Gush, 13
-// Hemorrhage). Use with mode hud, 2 players.
+// Torrent). Use with mode hud, 2 players.
 static partial class Shot {
   static void BloodWallScene() {
     string val = Environment.GetEnvironmentVariable("BLOODWALL");

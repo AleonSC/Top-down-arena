@@ -7,7 +7,7 @@ namespace Arena
     /// pulse runs down the wall from the tank, faster as the drain climbs, and old wall darkens, its thorns drawing back,
     /// before it crumbles. Each `ZoneKind.BloodWall` zone draws the stretch from the node before it to itself; the
     /// stretch from the newest node to the tank is drawn with the tank (DrawWallTail). Round the tank: a ring heating
-    /// through the drain's four stages (Seep, Flow, Gush, Hemorrhage), and the drain over their head on the HUD. A shot
+    /// through the drain's four stages (Seep, Flow, Gush, Torrent), and the drain over their head on the HUD. A shot
     /// stopped by the wall bursts back as a spray of blood (FxKind.WallSplash).
     public partial class ArenaApp
     {
@@ -16,7 +16,7 @@ namespace Arena
         static readonly Rgba[] WallTier = { new Rgba(1f, 0.54f, 0.59f), new Rgba(1f, 0.33f, 0.41f), new Rgba(0.91f, 0.13f, 0.23f), new Rgba(1f, 0.82f, 0.84f) };
         const float BraidStep = 0.75f, BraidAmp = 4.5f, WallSubsteps = 3;
 
-        /// The drain's stage: under 2%/s, under 4, under 8, then Hemorrhage.
+        /// The drain's stage: under 2%/s, under 4, under 8, then Torrent.
         static int WallStage(float pctPerSec) => pctPerSec < 2f ? 0 : pctPerSec < 4f ? 1 : pctPerSec < 8f ? 2 : 3;
 
         static Rgba Mix(Rgba a, Rgba b, float u) => new Rgba(a.R + (b.R - a.R) * u, a.G + (b.G - a.G) * u, a.B + (b.B - a.B) * u, a.A + (b.A - a.A) * u);

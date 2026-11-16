@@ -498,7 +498,7 @@ namespace Arena
         public float BurnT, BurnDps;        // the Flamethrower's fire (host)
         public float BurnPool, PoolT;       // Incendiary Rounds: damage still to burn, and the time left to burn it in (host)
         public int BurnBy;
-        public float BleedT, BleedDps;      // Bear Totem's claws (host)
+        public float BleedT, BleedDps;      // the shared bleed: claws, Sanguine Orb, Blood Bolts, Vein Rush, Arterial Spray (host)
         public int BleedHits;               // the claw hits stacked on it, up to five (replicated, for the claw scars: Game/BearLooks.cs)
         public int BleedBy;
         public bool Burning, Chilled, Frozen, Bleeding;  // replicated, for drawing (Chilled = slowed but not frozen)
@@ -546,8 +546,7 @@ namespace Arena
         public float KatanaShockT;    // host: marked by a Katana's Momentum Burst for this long (caltrops thrown then seek it; Katana.cs)
         public bool KatanaShocked;    // marked (replicated)
         public float ShieldHp, ShieldMax;  // host: a Shielder's shield, worn down by blocked hits and time (its Phase shows the cracks)
-        public int Hemorrhage;               // Blood Bolts stuck in it (the fifth bursts; BloodMage.cs); replicated, for drawing
-        public float HemorrhageT;            // host: until they fade
+        public int BleedStacks;              // bleed stacks on it from any source, up to five (KitWeapons.cs); a Blood Bolt that fills them bursts it (BloodMage.cs); replicated, drawn as drops
         public float KusariCd;               // host: the Kusarigama's whirl can hit it again after this long
         public float Suppress;               // host: the Riot Repeater's suppression, 0 to SuppressMax (slows its shooting)
         public bool Suppressed;              // replicated, for drawing
@@ -593,7 +592,7 @@ namespace Arena
         public float HealAlly;    // host only: heals an ally it passes through
         public float WardAlly;    // host only: wards an ally it passes through instead (Mercy Cut's crescent; Lightbringer.cs)
         public float HealBurst;   // host only: heals allies near where it bursts (the Ninja's Ofuda)
-        public float Pool, PoolTime;  // host only: leaves a Blood Pool this big, for this long, where it lands (the Clot Cannon)
+        public float Pool, PoolTime;  // host only: leaves a Blood Pool this big, for this long, where it lands (the Gore Mortar)
         public int Burst;         // host only: mortar bombs burst into this many bullets when they land
         public int Hops;          // host only: a Sprite Staff firefly hops to this many more unseeded enemies when it lands (KitWeapons.cs)
         public int Chain;         // host only: lightning jumps to this many more enemies

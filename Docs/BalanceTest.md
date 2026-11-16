@@ -22,7 +22,7 @@ From a normal run you host, F1 > Balance > **Launch test** ends the current reco
 - `Weapon: <name>` covers every hit of the weapon, not only its bullets: melee swings (`Swing.FromWeapon`), beams and
   grasps, lobbed shots, orbits, lance shoves, summoner companions (`WeaponCompanion`) and shots a weapon launches later
   (`Bullet.WeaponDmg`). `Tools/SimTest/run.sh 1 1 weaponsrc` lists each weapon's share; suite `sessionsrc` checks a few.
-- Per player and wave: `healthSpent` and `healthSpentOn` (Vein Tithe, Blood Wall, Clot Cannon, ability health costs, ...).
+- Per player and wave: `healthSpent` and `healthSpentOn` (Vein Tithe, Blood Wall, Gore Mortar, ability health costs, ...).
   Health paid on purpose is no longer in `damageTaken`, so the difficulty numbers only count what enemies did.
 
 ## Known limits

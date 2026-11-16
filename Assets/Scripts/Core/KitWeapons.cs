@@ -17,7 +17,7 @@ namespace Arena
         /// Mage and summoner weapons. `extra` is the number of extra projectiles (see FireVolley).
         const float BearArc = 110f, BearSwipeGap = 0.12f;  // Bear Totem (its reach and damage are in Defs)
         const float BearBleed = 0.3f;              // a claw hit bleeds for 30% of its damage per second...
-        const float BleedTime = 3f, BleedStacks = 5f;  // ...for 3 s, stacking up to five hits' worth
+        const float BleedTime = 3f, MaxBleed = 5f;  // ...for 3 s, stacking up to five hits' worth
         public static readonly Rgba BearClawColor = new Rgba(1f, 0.86f, 0.78f);  // the claw effect's colour (the front end tells a Bear Totem's claws from other claws by it)
 
         /// Bear Totem: two quick claw swipes in front of you, raking one way then back, that make enemies bleed.
@@ -42,11 +42,12 @@ namespace Arena
         {
             if (dps <= 0f || e.Hp <= 0f)
                 return;
-            e.BleedDps = Math.Min(e.BleedDps + dps, dps * BleedStacks);
+            e.BleedDps = Math.Min(e.BleedDps + dps, dps * MaxBleed);
             e.BleedT = BleedTime;
             e.BleedBy = owner;
+            e.BleedStacks = Math.Min((int)MaxBleed, e.BleedStacks + 1);
             if (claws)
-                e.BleedHits = Math.Min((int)BleedStacks, e.BleedHits + 1);  // (the Sanguine Orb's coats bleed too, but aren't claw marks)
+                e.BleedHits = Math.Min((int)MaxBleed, e.BleedHits + 1);  // (the Sanguine Orb's coats bleed too, but aren't claw marks)
         }
 
         void TickBleed(Enemy e, float dt)
@@ -55,9 +56,11 @@ namespace Arena
                 return;
             e.BleedT -= dt;
             if (e.BleedT <= 0f)
+            {
                 e.BleedDps = 0f;
-            if (e.BleedT <= 0f)
                 e.BleedHits = 0;
+                e.BleedStacks = 0;
+            }
             if (Hungry(e) || e.SpawnT > 0f || SoulBound(e))
                 return;
             DotDamage(e, e.BleedDps * dt, e.BleedBy);
