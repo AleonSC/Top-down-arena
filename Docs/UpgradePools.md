@@ -241,6 +241,7 @@ Spirit Chalk already has its card (Warding Ink), so it gets none here.
 | Wolf Whistle | Alpha Pack | Takedowns hit 30% harder and stun 0.3 s longer |
 | Wisp Lantern | Will-o'-Wisp | One more wisp orbits you |
 | Imp Caller | Imp Horde | Hold 1 more imp, and they come 20% faster |
+| Honeybee Staff | Bigger Hive | A harvest bursts into one more bee, and the honey puddles spread 20% wider |
 
 Built (owner approved all eight): in `Game.SummonerCards`. Hooks: `MinionTough` (Pack Bond and Granite Golem, used at
 spawn and when a staggered minion recovers), the boulder's `Splash`, `BoneDartHit`'s cage time, the minion attack rate

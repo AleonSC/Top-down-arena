@@ -704,6 +704,8 @@ namespace Arena
             s.Short(ref p.SsMask);  // the Stonespear (Stonespear.cs)
             s.Byte(ref p.SsSide);
             s.Int(ref p.SsLock);
+            s.Float(ref p.HoneyFill);  // the Honeybee Staff (HoneybeeStaff.cs)
+            s.Bool(ref p.HoneyOn);
             int tagged = Math.Min(Game.ArcTagCap, p.ArcTags.Count);  // Arc Lightning's tags (ArcLock.cs)
             s.Byte(ref tagged);
             if (s.Reading)

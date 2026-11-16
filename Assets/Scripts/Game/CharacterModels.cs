@@ -448,7 +448,7 @@ namespace Arena
                 case WeaponId.Lance: hold = 1; offX = -4f; break;
                 case WeaponId.Greatsword: hold = 1; offX = -8f; break;
                 case WeaponId.TwinRifle: case WeaponId.TwinRifleAuto: case WeaponId.OutOfAmmo: case WeaponId.TwinBlades: hold = 2; break;
-                case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.ArcaneMissiles: case WeaponId.Stonespear: case WeaponId.ClotBolt: case WeaponId.SanguineOrb: case WeaponId.Implosion:
+                case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.ArcaneMissiles: case WeaponId.Stonespear: case WeaponId.HoneybeeStaff: case WeaponId.ClotBolt: case WeaponId.SanguineOrb: case WeaponId.Implosion:
                 case WeaponId.GolemStaff: case WeaponId.SpriteStaff: case WeaponId.Nimbus: case WeaponId.SpiritChalk: hold = 3; break;
             }
         }
@@ -641,6 +641,20 @@ namespace Arena
                     MLine(-8f, 0f, 10f, 0f, 2.4f, Hx(0x6b5a45)); MRect(10f, -5f, 10f, 10f, Hx(0x2c3a46)); MRect(12f, -3f, 6f, 6f, Hx(0xaaf0ff));
                     for (int i = 0; i < 3; i++) { float a = t * 2.5f + i * 2.09f; MCirc(15f + Mathf.Cos(a) * 11f, Mathf.Sin(a) * 11f, 2.2f, Hx(0xcffaff), 6); }
                     break;
+                case WeaponId.HoneybeeStaff:  // a wooden staff topped with a little hive, a bee circling it and honey dripping (HoneybeeLook.cs)
+                {
+                    float glow = p.HoneyOn ? 0.35f + 0.15f * Mathf.Sin(t * 30f) : 0f;
+                    MLine(-8f, 0f, 15f, 0f, 2.4f, Hx(0x8a5a2b));
+                    if (glow > 0f) MCirc(20f, 0f, 9f, Hx(0xffc53d, glow), 14);
+                    MCirc(20f, 0f, 5.6f, Hx(0xe89a1c), 14);
+                    for (int i = -1; i <= 1; i++) MLine(17f + i * 0.4f, -4.6f + 0.8f * System.Math.Abs(i), 17f + i * 0.4f, 4.6f - 0.8f * System.Math.Abs(i), 0.9f, Hx(0x7a4a0a));
+                    MLine(20.5f, -5.4f, 20.5f, 5.4f, 0.9f, Hx(0x7a4a0a)); MCirc(24f, 0f, 1.3f, Hx(0x3a2205), 6);
+                    float d = (t * 0.9f) % 1f;
+                    MCirc(21f, 6f + d * 6f, 1.4f * (1f - d * 0.6f), Hx(0xffb52e, 1f - d * 0.5f), 6);
+                    float a = t * 6f;
+                    MCirc(20f + Mathf.Cos(a) * 9f, Mathf.Sin(a) * 9f, 1.6f, Hx(0xffc53d), 6); MCirc(20f + Mathf.Cos(a - 0.35f) * 9f, Mathf.Sin(a - 0.35f) * 9f, 1.1f, Hx(0x2a1a05), 5);
+                    break;
+                }
                 case WeaponId.ImpCaller:
                     MLine(-8f, 0f, 18f, 0f, 2.6f, Hx(0x5a2a2a)); MCirc(20f, 0f, 4f, Hx(0xc0392b), 10); MPoly(Hx(0xff6a3a), 19f, -3f, 16f, -8f, 22f, -4f); MPoly(Hx(0xff6a3a), 19f, 3f, 16f, 8f, 22f, 4f);
                     MCirc(22f, -1.5f, 0.9f, Hx(0xffe04a), 6); MCirc(22f, 1.5f, 0.9f, Hx(0xffe04a), 6);
