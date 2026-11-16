@@ -29,34 +29,36 @@ namespace Arena
     /// that doesn't cross another; a node with a single way on gets a second one where that crosses nothing.
     public class HuntMap
     {
-        public const int Steps = Hunts.Length;     // rows, the boss's included
+        public const int Steps = Hunts.Length;     // rows of the short hunt, the boss's included (a long hunt has Hunts.LongLength: see Length)
         public const int Lanes = 3;
-        public const float ClueHpCut = 0.08f;      // each clue: the boss starts the fight with this share of its health already gone
-        public const int MaxClues = 3;             // elites cleared that count towards the boss (a clue each)
+        public const float ClueHpCut = 0.08f;      // a health clue: the boss starts the fight with this share of its health already gone
+        public const float ClueDamageCut = 0.10f;  // a damage clue: the boss (its bullets and hits) deals this much less
+        public const int MaxClues = 5;             // elites cleared that count towards the boss (a clue each)
 
         public readonly int Seed;
-        public readonly HuntNode[][] Rows = new HuntNode[Steps][];
+        public readonly int Length;                // this map's rows, the boss's included (Hunts.Length or Hunts.LongLength)
+        public readonly HuntNode[][] Rows;
 
         // How far the party has got: the index (in its row) of the node cleared in each row so far.
         readonly List<int> path = new List<int>();
         int current = -1;                          // the node being fought (an index in the row after the cleared ones), -1: none picked
 
-        HuntMap(int seed) { Seed = seed; }
+        HuntMap(int seed, int length) { Seed = seed; Length = length; Rows = new HuntNode[length][]; }
 
         // ---------- making the map ----------
 
-        public static HuntMap Generate(int seed)
+        public static HuntMap Generate(int seed, int length = Steps)
         {
-            var m = new HuntMap(seed);
+            var m = new HuntMap(seed, length);
             var rng = new Rng(seed);
-            for (int step = 0; step < Steps; step++)
+            for (int step = 0; step < length; step++)
             {
-                int[] lanes = RowLanes(step, rng);
+                int[] lanes = RowLanes(step, length, rng);
                 m.Rows[step] = new HuntNode[lanes.Length];
                 for (int i = 0; i < lanes.Length; i++)
                     m.Rows[step][i] = new HuntNode { Step = step, Index = i, Lane = lanes[i] };
             }
-            for (int step = 0; step < Steps - 1; step++)
+            for (int step = 0; step < length - 1; step++)
                 Link(m.Rows[step], m.Rows[step + 1], step);
             AssignTypes(m, rng);
             return m;
@@ -64,11 +66,11 @@ namespace Arena
 
         /// The lanes the nodes of a row sit on: the first and last rows are one node in the middle, the row before the
         /// boss is the two outer lanes, any other row three nodes (60%) or two.
-        static int[] RowLanes(int step, Rng rng)
+        static int[] RowLanes(int step, int length, Rng rng)
         {
-            if (step == 0 || step == Steps - 1)
+            if (step == 0 || step == length - 1)
                 return new[] { 1 };
-            if (step == Steps - 2)
+            if (step == length - 2)
                 return new[] { 0, 2 };
             if (rng.Next(100) < 75)
                 return new[] { 0, 1, 2 };
@@ -157,17 +159,18 @@ namespace Arena
         /// breather row, so a route never has two no-fight steps in a row).
         static void AssignTypes(HuntMap m, Rng rng)
         {
+            int steps = m.Length;
             bool prevBreather = false;   // (a Rest or Shop never sits in the row right after another, so no route has two in a row)
-            for (int step = 0; step < Steps; step++)
+            for (int step = 0; step < steps; step++)
             {
                 var row = m.Rows[step];
-                if (step == Steps - 1) { row[0].Type = HuntNodeType.Boss; continue; }
-                if (step == Steps - 2)
+                if (step == steps - 1) { row[0].Type = HuntNodeType.Boss; continue; }
+                if (step == steps - 2)
                 {
                     foreach (var n in row) n.Type = rng.Next(2) == 0 ? HuntNodeType.Rest : HuntNodeType.Shop;
                     continue;
                 }
-                bool breather = step >= 2 && step <= Steps - 4 && step != Steps / 2 - 1 && !prevBreather;
+                bool breather = step >= 2 && step <= steps - 4 && step != steps / 2 - 1 && !prevBreather;
                 for (int i = 0; i < row.Length; i++)
                 {
                     int roll = step == 0 ? 99 : rng.Next(100);
@@ -179,7 +182,7 @@ namespace Arena
                         : breather && roll < 55 ? HuntNodeType.Shop
                         : HuntNodeType.Skirmish;
                 }
-                if (step == Steps / 2 - 1)
+                if (step == steps / 2 - 1)
                 {
                     bool any = false;
                     foreach (var n in row) any |= n.Type == HuntNodeType.Elite;
@@ -190,7 +193,7 @@ namespace Arena
                 if (!skirmish)
                 {
                     int at = rng.Next(row.Length);
-                    if (step == Steps / 2 - 1)   // (the middle row keeps an Elite: take a Skirmish's place from a node that isn't the only Elite)
+                    if (step == steps / 2 - 1)   // (the middle row keeps an Elite: take a Skirmish's place from a node that isn't the only Elite)
                     {
                         int elites = 0;
                         foreach (var n in row) if (n.Type == HuntNodeType.Elite) elites++;
@@ -206,13 +209,23 @@ namespace Arena
 
         // ---------- progress ----------
 
-        /// Rows cleared so far (0 at the start, Steps when the boss is down).
+        /// Rows cleared so far (0 at the start, Length when the boss is down).
         public int Step => path.Count;
 
-        public bool Complete => path.Count == Steps;
+        public bool Complete => path.Count == Length;
 
         /// Elite nodes cleared, up to MaxClues: each reveals something about the boss (Docs/HuntMap.md).
         public int Clues { get; private set; }
+
+        /// What clue number `n` (0-based) is, rolled from the map's seed so every screen agrees: true = lowers the boss's damage,
+        /// false = lowers its health.
+        public bool ClueIsDamage(int n) => ((uint)(Seed * 2654435761u + (uint)n * 40503u + 17u) >> 13 & 1u) != 0;
+
+        /// The boss's health left when its fight starts, as a share of its maximum (1 with no health clues).
+        public float ClueHpScale { get { float k = 1f; for (int i = 0; i < Clues; i++) if (!ClueIsDamage(i)) k -= ClueHpCut; return k; } }
+
+        /// What the boss's damage is multiplied by (1 with no damage clues).
+        public float ClueDamageScale { get { float k = 1f; for (int i = 0; i < Clues; i++) if (ClueIsDamage(i)) k -= ClueDamageCut; return k; } }
 
         /// A client takes the host's count (a Gamble that turned out an Elite gave a clue the path alone can't show).
         public void SetClues(int n) { Clues = Math.Max(0, Math.Min(MaxClues, n)); }
@@ -254,9 +267,9 @@ namespace Arena
         public int[] Path => path.ToArray();
 
         /// A map with its progress back: the seed plus the cleared path (null if the path doesn't fit the map).
-        public static HuntMap Restore(int seed, int[] cleared)
+        public static HuntMap Restore(int seed, int[] cleared, int length = Steps)
         {
-            var m = Generate(seed);
+            var m = Generate(seed, length);
             foreach (int i in cleared)
                 if (!m.Pick(i) || !m.Clear())
                     return null;

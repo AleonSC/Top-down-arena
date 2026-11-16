@@ -62,7 +62,7 @@ namespace Arena
             LobbyKit.Spaced(new Rect(mapR.x + 16f, mapR.y + 8f, 200f, 16f), "SECTOR MAP", 10, CrtUi.Dim, TextAnchor.MiddleLeft, 2.4f);
             LobbyKit.Spaced(new Rect(mapR.xMax - 216f, mapR.y + 8f, 200f, 16f), "START AT TOP", 10, CrtUi.Dim, TextAnchor.MiddleRight, 2.4f);
             float[] laneX = { mapR.center.x - 120f, mapR.center.x, mapR.center.x + 120f };
-            var rowY = new float[HuntMap.Steps];
+            var rowY = new float[map.Length];
             for (int k = 0; k < rowY.Length; k++)
                 rowY[k] = mapR.y + 58f + k * 58f;
             const float half = 15f, bossHalf = 21f;
@@ -93,7 +93,7 @@ namespace Arena
             }
 
             hmGlyphs.Clear();
-            for (int s = 0; s < HuntMap.Steps; s++)
+            for (int s = 0; s < map.Length; s++)
             {
                 var row = map.Rows[s];
                 for (int i = 0; i < row.Length; i++)
@@ -129,7 +129,7 @@ namespace Arena
                 }
             }
             LobbyKit.Spaced(new Rect(laneX[1] - 60f, rowY[0] - 42f, 120f, 14f), "START", 10, CrtUi.Dim, TextAnchor.MiddleCenter, 3f);
-            if (step < HuntMap.Steps)
+            if (step < map.Length)
                 LobbyKit.Spaced(new Rect(mapR.x + 14f, rowY[step] - 8f, 54f, 16f), "NEXT", 10, CrtStyle.Gold, TextAnchor.MiddleLeft, 2f);
 
             // ---- The information (right) ----
@@ -139,7 +139,7 @@ namespace Arena
             float tw = (w - 3f * 10f) / 4f;
             string bossName = hunt != null ? Defs.Get(hunt.Boss).Name : "Boss";
             LobbyKit.Tile(new Rect(x, y, tw, 50f), bossName.ToUpperInvariant(), "TARGET", calm);
-            LobbyKit.Tile(new Rect(x + (tw + 10f), y, tw, 50f), System.Math.Min(step + 1, HuntMap.Steps) + " / " + HuntMap.Steps, "STEP", calm);
+            LobbyKit.Tile(new Rect(x + (tw + 10f), y, tw, 50f), System.Math.Min(step + 1, map.Length) + " / " + map.Length, "STEP", calm);
             LobbyKit.Tile(new Rect(x + 2f * (tw + 10f), y, tw, 50f), (game.Me != null ? game.Me.Gold : 0).ToString(), "GOLD", calm);
             LobbyKit.Tile(new Rect(x + 3f * (tw + 10f), y, tw, 50f), map.Clues + " / " + HuntMap.MaxClues, "BOSS CLUES", calm);
             y += 62f;
@@ -238,7 +238,7 @@ namespace Arena
             var now = game.HuntNodeNow;
             string name = node.Type == HuntNodeType.Gamble && now != HuntNodeType.Gamble && now != HuntNodeType.None
                 ? HuntMap.Name(HuntNodeType.Gamble) + ": " + HuntMap.Name(now) : HuntMap.Name(node.Type);
-            string text = "SECTOR " + (game.HuntRoute.Step + 1) + "/" + HuntMap.Steps + "  ·  " + name.ToUpperInvariant();
+            string text = "SECTOR " + (game.HuntRoute.Step + 1) + "/" + game.HuntRoute.Length + "  ·  " + name.ToUpperInvariant();
             float w = 30f + text.Length * 6.4f;
             var chip = new Rect(x, y, w, 20f);
             Color accent = HuntNodeColor(now == HuntNodeType.None ? node.Type : now);

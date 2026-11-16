@@ -173,7 +173,7 @@ namespace Arena
             if (game.Hunt != null)
             {
                 // A Boss Hunt: its nine build-up waves, then its boss.
-                int last = Hunts.Length;
+                int last = game.HuntLength;
                 int st0 = cur >= last ? 0 : 1;
                 rows.Add(new RouteRow
                 {
