@@ -1459,6 +1459,8 @@ namespace Arena
                     p.AmmoMove = p.KnifeMove = 0;  // (OutOfAmmo.cs)
                 if (p.Weapon.Id != WeaponId.OutOfAmmo)
                     p.AmmoSpin = 0f;
+                if ((p.Weapon.Id != WeaponId.Stonespear || p.Downed) && (p.SsMask != 0 || p.SsWindT > 0f || p.SsQueue.Count > 0))
+                    ClearStonespear(p);  // (Stonespear.cs)
                 TickSpinUp(p, dt);  // the Burst SMG (Weapons.cs)
                 TickRapier(p, dt);  // the Rapier's Tempo and Flourish (Rapier.cs)
                 if (p.Weapon.Id == WeaponId.RadiantOrb)
@@ -1478,6 +1480,8 @@ namespace Arena
                 }
                 else if (p.Weapon.Id == WeaponId.DoubleBarrel)
                     TickDoubleBarrel(p, dt);  // two shells, a break-open reload (DoubleBarrel.cs)
+                else if (p.Weapon.Id == WeaponId.Stonespear)
+                    TickStonespear(p, dt);  // the slam, the hovering spears, the volley (Stonespear.cs)
                 else if (ChargeWeapon(p.Weapon.Id))
                     TickBow(p);  // the bow and the Warhammer fire when you let go
                 else if (p.Weapon.Id == WeaponId.Katana || p.Weapon.Id == WeaponId.BoStaff)

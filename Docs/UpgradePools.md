@@ -289,6 +289,7 @@ One Rare card per Elementalist weapon (`Weapons = { that weapon }`, `MaxStacks =
 | Fireball | Wildfire | The burn is 50% hotter and lasts 1 s longer |
 | Arc Lightning | Static Field | A full charge comes 25% sooner, and the stun lasts 0.2 s longer |
 | Ice Shards | Frozen Halo | The orbit holds 2 more shards, and they launch at enemies 25% farther out |
+| Stonespear | Tectonic | One more spear a side, and the slam reaches 20% farther |
 
 Built (owner approved all nine; Thunderhead was taken, so the Storm Hammer's card is Stormcaller): in
 `Game.ElementalistCards`. Hooks: the flames' reach and `Ignite`, the icicle and splinters' reach and `Slow`,

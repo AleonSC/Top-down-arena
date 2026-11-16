@@ -132,6 +132,9 @@ namespace Arena
                 case WeaponId.ArcLightning:
                     ArcField(p, aim, w.Damage * (1f + ArcGrow * extra) * HomingCost(p) * dmg, BowCharge(p, p.BowShotDraw));
                     break;
+                case WeaponId.Stonespear:
+                    ThrowStonespear(p, aim, muzzle, dmg, extra);  // a hovering spear at your cursor (Stonespear.cs)
+                    break;
                 case WeaponId.ArcaneMissiles:
                 {
                     // Conjured into orbit round you (TickOrbiters launches them at enemies that come near). With the

@@ -800,6 +800,37 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // STONESPEAR=<s>: the Elementalist DPS's Stonespear (Core/Stonespear.cs, Game/StonespearLook.cs) that long into the mockup's loop: Fire at 0 (the
+    // slam), single throws at 1.3 s and 1.85 s, Alt at 2.6 s (the volley at the dummy nearest the cursor). SSMOVE=1: you walk down the whole time
+    // (the hovering spears trail behind you); SSTECT=1: with Tectonic (four a side).
+    if (Environment.GetEnvironmentVariable("STONESPEAR") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Dps; me.Kit = Kit.Elementalist; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Elementalist, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      if (Environment.GetEnvironmentVariable("SSTECT") != null) { me.Stats.SsSideBonus = 1; me.Stats.SsSlamMult = 1.2f; }
+      V2 home = new V2(380f, 300f); me.Pos = me.Disp = home; me.Aim = 0f;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      foreach (var at0 in new[] { new V2(190f, -70f), new V2(230f, 30f), new V2(290f, -20f), new V2(330f, 90f), new V2(300f, -130f) }) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      bool move = Environment.GetEnvironmentVariable("SSMOVE") != null;
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("STONESPEAR"), ci) * 60f));
+      for (int f = 0; f < frames; f++) {
+        float tt = f / 60f;
+        V2 cursor = tt < 1.6f ? foes[1].Pos : tt < 2.3f ? foes[2].Pos : foes[4].Pos;
+        bool fire = f < 2 || (tt >= 1.3f && tt < 1.3f + 2f / 60f) || (tt >= 1.85f && tt < 1.85f + 2f / 60f);
+        bool alt = tt >= 2.6f && tt < 2.6f + 3f / 60f;
+        foreach (var e in foes) { e.Disp = e.Pos; e.FireT = 99f; }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = fire, WeaponAction = alt, Move = move ? new V2(0f, 1f) : new V2(0f, 0f) });
+        gm.Update(1f / 60f);  // the effects' clocks and AnimT (the spears ease by it)
+        if (!move) me.Pos = home;
+        me.Disp = me.Pos; me.Aim = (cursor - me.Pos).Angle; me.AimAt = cursor; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // OUTAMMO=<s>: the Soldier DPS's Out of Ammo (Core/OutOfAmmo.cs, Game/OutOfAmmoLook.cs) that long into a fight, a dummy close in front of you
     // (the rifle arms bash by themselves); KNIFE=1: fire held (the knife chain); OUTSPIN=1: Alt pressed 0.3 s in (the spin).
     if (Environment.GetEnvironmentVariable("OUTAMMO") != null) {
