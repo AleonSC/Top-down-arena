@@ -566,12 +566,10 @@ static partial class Program
             var gr = ((IList)graspsF.GetValue(g))[0];
             float d = (float)gr.GetType().GetField("Dmg").GetValue(gr);
             ((IList)graspsF.GetValue(g)).Clear();
-            me.Hp = me.MaxHp * 0.5f; float hp0 = me.Hp;
-            bloodHit.Invoke(g, new object[] { new Bullet { Kind = Defs.LeechShot, Owner = me.Id }, enemyAt(there), 10f });
-            return new[] { d, me.Hp - hp0 };
+            return new[] { d, me.Stats.LeechDrainMult };
         };
         var le0 = leech(0); var le1 = leech(1);
-        Check(near(le1[0] / le0[0], 1.3f, 0.001f) && near(le0[1], 2.5f, 0.01f) && near(le1[1], 4f, 0.01f), "Hungry Tendrils: the tendrils drain 30% faster and 40% of the drain heals you (from 25%)");
+        Check(near(le1[0] / le0[0], 1.15f, 0.001f) && near(le1[1] / le0[1], 1.3f, 0.001f), "Hungry Tendrils: the tendrils charge 30% faster and their bursts hit 15% harder");
 
         var tr0 = shot(WeaponId.TransfusionDarts, "Generous Blood", 0); var tr1 = shot(WeaponId.TransfusionDarts, "Generous Blood", 1);
         Check(near(tr1.HealAlly / tr0.HealAlly, 1.3f, 0.001f), "Generous Blood: each dart gives an ally 30% more health");

@@ -140,7 +140,7 @@ namespace Arena
         public float LashReachMult = 1f, ClotCutBonus;                     // Blood Lash: Crimson Whip (and LashLinkBonus)
         public int LashLinkBonus;
         public float PoolSizeMult = 1f, PoolBonusTime;                     // Gore Mortar: Deep Pool
-        public float LeechDrainMult = 1f, LeechStealBonus;                 // Leech Tendrils: Hungry Tendrils
+        public float LeechDrainMult = 1f, LeechBlastBonus;                 // Leech Tendrils: Hungry Tendrils (charge rate, blast damage)
         public float TransfuseMult = 1f;                                   // Transfusion Darts: Generous Blood
         public float ReserveGainMult = 1f, CoatHealMult = 1f;              // Sanguine Orb: Rich Blood
         public float VeinStealBonus;                                       // Vein Tether: Lifeline

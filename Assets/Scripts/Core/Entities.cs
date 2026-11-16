@@ -286,6 +286,8 @@ namespace Arena
         public readonly List<int> Tithed = new List<int>();  // Vein Tithe: the enemies held right now, in the order the tendrils reach them (replicated)
         public bool HarvestMastered;  // (host)
         public readonly List<int> Grasp = new List<int>();  // Leech Tendrils: the enemies held right now (replicated)
+        public readonly List<float> GraspCharge = new List<float>();  // Leech Tendrils: how far each held enemy has built up toward its blast, 0..1, parallel to Grasp (replicated)
+        public float GraspCd, GraspDmg;  // host: Leech Tendrils' cooldown left after a blast or a release, and the damage a full blast does per tendril
         public float SteelPower = 1f; public bool SteelMastered;  // host: Caught Steel's cast
         public readonly float[] WallPlateHp = new float[WallPlates];  // host: Shield Wall plate health
         public float WallPlateMax;                                    // host: what each plate started with
