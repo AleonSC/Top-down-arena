@@ -2,17 +2,11 @@ namespace Arena
 {
     /// The Arc Knuckles' sounds (cues raised in Core/ArcKnuckles.cs and Core/Parry.cs), in the Arc Coil's voice: short dry punches
     /// with a crackle of static on top, a deep thump and a zap for the slams, the coils whining up when a perfect parry arms the
-    /// Counter Hammer. All of them use the Weapons volume (IsKnuckleWeaponSfx).
+    /// Counter Hammer. All of them use the Weapons volume (the Categories() table in SoundBank.cs).
     public partial class SoundBank
     {
         const float KnuckleZap = 2400f;
 
-        static bool IsKnuckleWeaponSfx(Sfx s)
-        {
-            return s == Sfx.KnuckleJab || s == Sfx.KnuckleHook || s == Sfx.KnuckleUpper || s == Sfx.KnuckleSlam || s == Sfx.KnuckleCounter
-                || s == Sfx.KnuckleArm || s == Sfx.KnuckleRocket || s == Sfx.KnuckleRocketHit
-                || s == Sfx.KnuckleGrab || s == Sfx.KnuckleThrow || s == Sfx.KnuckleImpact || s == Sfx.KnuckleImpactHeavy;
-        }
 
         void BuildKnuckles()
         {

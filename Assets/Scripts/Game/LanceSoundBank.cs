@@ -4,15 +4,11 @@ namespace Arena
     /// so heavier and woodier than the sabres: a short whoosh and a thump for the jabs, a wide swoosh with the pennant fluttering
     /// for the sweep, a breath drawn in and a driving thrust for the Breaching Thrust, dull steel-on-body hits, a crunch when a
     /// shoved enemy hits another (Impact) and stone cracking at a wall, the hook rattling out and catching. The swings and hits
-    /// use the Weapons volume (IsLanceWeaponSfx).
+    /// use the Weapons volume (the Categories() table in SoundBank.cs).
     public partial class SoundBank
     {
         const float LanceRing = 1500f, LanceRoom = 0.18f;
 
-        static bool IsLanceWeaponSfx(Sfx s)
-        {
-            return s == Sfx.LanceJab || s == Sfx.LanceSweep || s == Sfx.LanceBreach || s == Sfx.LanceHitSfx || s == Sfx.LanceHitHeavy || s == Sfx.LanceHookOut;
-        }
 
         void BuildLance()
         {

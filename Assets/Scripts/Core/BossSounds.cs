@@ -121,7 +121,7 @@ namespace Arena
         {
             Sounds.Add(sound);
             var w = Proto.Begin(Msg.Sound);
-            w.Write((byte)sound);
+            w.Write((ushort)sound);
             session.Broadcast(Proto.End(w));
         }
     }

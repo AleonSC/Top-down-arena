@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Reflection;
 using Arena;
 
 // Renders the synthesized sound effects to WAV files so they can be heard without Unity:
@@ -11,15 +10,15 @@ static class SoundCheck
     {
         string prefix = args.Length > 0 ? args[0] : "Boss";
         var bank = new SoundBank(new UnityEngine.GameObject("sound"));
-        var clips = (UnityEngine.AudioClip[][])typeof(SoundBank).GetField("clips", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(bank);
         string dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "out");
         Directory.CreateDirectory(dir);
         int written = 0;
         foreach (Sfx s in Enum.GetValues(typeof(Sfx)))
         {
-            if (!s.ToString().StartsWith(prefix) || clips[(int)s] == null)
+            var takes = s.ToString().StartsWith(prefix) ? bank.TakesOf(s) : null;
+            if (takes == null)
                 continue;
-            var data = clips[(int)s][0].Data;
+            var data = takes[0];
             Write(Path.Combine(dir, s + ".wav"), data, 44100);
             Console.WriteLine("  {0,-14} {1:0.00} s", s, data.Length / 44100f);
             written++;

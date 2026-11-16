@@ -10,7 +10,7 @@ namespace Arena
         AudioSource wallHumVoice;
         const float WallHumPeak = 0.22f;
 
-        void BuildWallHum(GameObject owner)
+        void BuildWallHum()
         {
             // Whole cycles in the loop (45 of 60 Hz, one throb of 4/3 Hz) so it joins up without a click.
             const float len = 0.75f;
@@ -25,11 +25,6 @@ namespace Arena
             for (int i = 0; i < hum.Length && max > 0f; i++)
                 hum[i] *= WallHumPeak / max;
             Set(Sfx.WallHum, hum, 0f);
-            wallHumVoice = owner.AddComponent<AudioSource>();
-            wallHumVoice.playOnAwake = false;
-            wallHumVoice.spatialBlend = 0f;
-            wallHumVoice.loop = true;
-            wallHumVoice.clip = clips[(int)Sfx.WallHum][0];
         }
 
         /// Fade the wall hum to `level` (0 = off, 1 = full), from ArenaApp.TickWallTouch each frame.
@@ -37,6 +32,13 @@ namespace Arena
         {
             if (wallHumVoice == null)
                 return;
+            if (wallHumVoice.clip == null)
+            {
+                var c = ClipsOf(Sfx.WallHum);  // (on its own looping voice, made in the constructor)
+                if (c == null)
+                    return;
+                wallHumVoice.clip = c[0];
+            }
             float v = Muted ? 0f : level * Master * Effects;
             if (v <= 0.002f)
             {

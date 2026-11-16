@@ -9,13 +9,6 @@ namespace Arena
     {
         AudioSource sawVoice;
 
-        /// True for the melee rushers' cues, so they use the Enemies volume.
-        static bool IsMeleeEnemySfx(string name)
-        {
-            return name.StartsWith("Swarmer") || name.StartsWith("Spiker") || name.StartsWith("Brute") || name.StartsWith("Lunger")
-                || name.StartsWith("Saw") || name.StartsWith("SpikeBlock");
-        }
-
         static float[] Delay(float[] a, float seconds)
         {
             return Concat(new float[(int)(seconds * Rate)], a);
@@ -39,7 +32,7 @@ namespace Arena
             return t;
         }
 
-        void BuildMelee(GameObject owner)
+        void BuildMelee()
         {
             // Swarmer: small, wet and quiet, because they come four at a time.
             Set(Sfx.SwarmerChomp, Takes(3, () => Finish(Mix(
@@ -143,13 +136,6 @@ namespace Arena
                 Tone(0.3f, Osc.Sine, 110f, 35f, 0.5f, noise: 0.3f, lowpass: 0.2f, decay: 2f),
                 Bell(0.4f, 700f, 0.07f),
                 Tone(0.06f, Osc.Sine, 1500f, 600f, 0.2f, noise: 1f, lowpass: 0.8f, decay: 3f)), 0.2f), 0.5f), 0.15f);
-
-            // The Buzzsaw's contact whirr plays on its own looping voice.
-            sawVoice = owner.AddComponent<AudioSource>();
-            sawVoice.playOnAwake = false;
-            sawVoice.spatialBlend = 0f;
-            sawVoice.loop = true;
-            sawVoice.clip = clips[(int)Sfx.SawWhirr][0];
         }
 
         /// Fade the Buzzsaw's contact whirr to `level` (0 = off, 1 = full), from Game.SawWhirrLevel each frame.
@@ -157,6 +143,13 @@ namespace Arena
         {
             if (sawVoice == null)
                 return;
+            if (sawVoice.clip == null)
+            {
+                var c = ClipsOf(Sfx.SawWhirr);  // (on its own looping voice, made in the constructor)
+                if (c == null)
+                    return;
+                sawVoice.clip = c[0];
+            }
             float v = Muted ? 0f : level * Master * Enemies;
             if (v <= 0.002f)
             {

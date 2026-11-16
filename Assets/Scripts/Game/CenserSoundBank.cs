@@ -4,15 +4,11 @@ namespace Arena
     /// low whooshes with a bright chain rattle on every swing, a dull bronze clonk and an ember crackle when the head lands, a
     /// soft rising chime when a heal goes out, a church bell for the Benediction, the chain paying out for Censer Cast and a
     /// gong with a hiss of incense where it lands. Built like the Twin Blades' bank (TwinSoundBank.cs). The swings and hits use the
-    /// Weapons volume (IsCenserWeaponSfx).
+    /// Weapons volume (the Categories() table in SoundBank.cs).
     public partial class SoundBank
     {
         const float CenserClink = 4300f, CenserBronze = 690f, CenserRoom = 0.22f;
 
-        static bool IsCenserWeaponSfx(Sfx s)
-        {
-            return s == Sfx.CenserSweep1 || s == Sfx.CenserSweep2 || s == Sfx.CenserWhirl || s == Sfx.CenserHit || s == Sfx.CenserHitHeavy;
-        }
 
         /// `n` chain links clinking over `span` seconds from `start`, each a tiny metallic tick at a slightly different pitch;
         /// `accel` > 0 bunches them toward the end (the chain paying out faster).

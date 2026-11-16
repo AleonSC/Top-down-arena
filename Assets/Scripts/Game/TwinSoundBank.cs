@@ -2,16 +2,11 @@ namespace Arena
 {
     /// The Twin Blades' sounds (cues raised in Core/TwinBlades.cs and Core/Knight.cs), the Crescent Waltz's voice: two light sabres,
     /// so quick airy cuts with a high, clean "shing" ring, lighter and brighter than the Greatsword's; the Shear and Twin Fang's burst
-    /// are the heavy ones. Everything but the catch uses the Weapons volume (IsTwinWeaponSfx).
+    /// are the heavy ones. Everything but the catch uses the Weapons volume (the Categories() table in SoundBank.cs).
     public partial class SoundBank
     {
         const float TwinRing = 3100f, TwinRingVol = 0.06f, TwinRoom = 0.2f;
 
-        static bool IsTwinWeaponSfx(Sfx s)
-        {
-            return s == Sfx.TwinCut1 || s == Sfx.TwinCut2 || s == Sfx.TwinJab || s == Sfx.TwinSpin || s == Sfx.TwinShear
-                || s == Sfx.TwinHit || s == Sfx.TwinHitHeavy || s == Sfx.TwinThrow || s == Sfx.TwinCross;
-        }
 
         void BuildTwin()
         {
