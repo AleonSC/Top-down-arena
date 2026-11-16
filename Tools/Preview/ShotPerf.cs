@@ -16,9 +16,10 @@ static partial class Shot {
     int secs = int.Parse(env.Split(',')[0]);
     int idleFor = int.Parse(Environment.GetEnvironmentVariable("PERFIDLE") ?? "0");
     var g = host.Game;
+    bool surv = g.SurvivalOn;  // with SURVIVAL=<clock s> (and SURVMARKS=<n> for a crowd): Survival's room as it is
     string why; var rooms = new System.Collections.Generic.List<ExpansionRoom>();
     foreach (var box in new[] { new[] { 1600, 100, 800, 600 }, new[] { -900, 100, 800, 600 } }) { var r = Expansion.Custom(rooms, box[0], box[1], box[2], box[3], out why); if (r.HasValue) rooms.Add(r.Value); }
-    foreach (var gg in new[] { g }.Concat(others.Select(o => o.Game))) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Expanded.AddRange(rooms); }
+    if (!surv) foreach (var gg in new[] { g }.Concat(others.Select(o => o.Game))) { gg.Diff.Set(DiffKnob.ArenaExpanding, 1f); gg.Expanded.Clear(); gg.Expanded.AddRange(rooms); }
     var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
     var partN = typeof(ArenaApp).GetField("partN", f2);
     var sw = new Stopwatch(); double ms = 0, worst = 0; long verts = 0; int maxV = 0, maxP = 0, frames = 0, kills0 = 0;
@@ -39,8 +40,8 @@ static partial class Shot {
       int v = GL.Tris.Count / 6; verts += v; maxV = Math.Max(maxV, v); maxP = Math.Max(maxP, (int)partN.GetValue(app));
       if (trace) {
         int kills = g.Players.Values.Sum(p => p.Run.Kills);
-        Console.WriteLine("t {0,4:0}s wave {1,2} {2,-12} breaches {11} enemies {3,3} bullets {4,4} kills/2s {5,3} | verts avg {6,6} max {7,6} | particles max {8,4} | draw {9,5:0.0} ms avg {10,5:0.0} worst",
-          i / 60f, g.Wave, g.State, g.Enemies.Count, g.Bullets.Count, kills - kills0, verts / 120, maxV, maxP, ms / Math.Max(1, frames), worst, g.BreachesOn ? g.ActiveBreaches.Length : 0);
+        Console.WriteLine("t {0,4:0}s wave {1,2} {2,-12} breaches {11} props {12} enemies {3,3} bullets {4,4} kills/2s {5,3} | verts avg {6,6} max {7,6} | particles max {8,4} | draw {9,5:0.0} ms avg {10,5:0.0} worst",
+          i / 60f, g.Wave, g.State, g.Enemies.Count, g.Bullets.Count, kills - kills0, verts / 120, maxV, maxP, ms / Math.Max(1, frames), worst, g.BreachesOn ? g.ActiveBreaches.Length : 0, g.Props.Count);
         foreach (var kv in by.OrderByDescending(kv => kv.Value).Take(6)) Console.WriteLine("    {0,6} {1}", kv.Value, kv.Key);
         kills0 = kills; ms = worst = 0; verts = 0; maxV = maxP = frames = 0;
       }

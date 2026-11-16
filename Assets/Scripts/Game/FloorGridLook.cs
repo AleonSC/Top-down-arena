@@ -15,6 +15,7 @@ namespace Arena
         public static bool PreviewFloorStatic;  // the preview's FLOORBEND=0
         public static float PreviewDashBurst = -1f;  // the preview's DASHBURST=<s>: a dash burst that old
 
+        const float FloorViewPad = 96f;  // DrawFloorGrid's cut round the view: more than a line ever bends
         const float FloorStep = 64f, FloorSeg = 16f, FloorR = 120f, FloorPush = 9f, FloorDrag = 0.035f;
 
         struct FloorPull { public V2 Pos, Vel; public Rgba Col; }
@@ -106,6 +107,24 @@ namespace Arena
             GatherFloorPulls();
             bool warpAll = Juicy && ripples.Count > 0, bend = FloorBends;
             float reach = FloorR * 2.4f;
+            if (CamZoomed)
+            {
+                // Following you round a big room (Rooms, Survival): only the lines in view, cut on the same grid and
+                // segment marks, so what shows is drawn exactly as before (a ripple bent every line of the whole room).
+                float vx = AW / (2f * camZoom) + FloorViewPad, vy = AH / (2f * camZoom) + FloorViewPad;
+                float x0 = camFocus.X - vx, x1 = camFocus.X + vx, y0 = camFocus.Y - vy, y1 = camFocus.Y + vy;
+                if (x0 > first.X)
+                    first.X += Mathf.Floor((x0 - first.X) / FloorStep) * FloorStep;
+                if (y0 > first.Y)
+                    first.Y += Mathf.Floor((y0 - first.Y) / FloorStep) * FloorStep;
+                if (x0 > lo.X)
+                    lo.X += Mathf.Floor((x0 - lo.X) / FloorSeg) * FloorSeg;
+                if (y0 > lo.Y)
+                    lo.Y += Mathf.Floor((y0 - lo.Y) / FloorSeg) * FloorSeg;
+                hi = new V2(Mathf.Min(hi.X, x1), Mathf.Min(hi.Y, y1));
+                if (lo.X >= hi.X || lo.Y >= hi.Y)
+                    return;
+            }
             for (float x = first.X; x <= hi.X + 0.5f; x += FloorStep)
             {
                 bool near = warpAll || bend && NearFloorPull(x, true, reach);
