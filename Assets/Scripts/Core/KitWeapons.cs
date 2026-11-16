@@ -846,8 +846,16 @@ namespace Arena
         void BoneDartHit(Bullet b, Enemy e)
         {
             Player p;
-            if (b.Kind != Defs.BoneShot || !Players.TryGetValue(b.Owner, out p) || p.Weapon.Id != WeaponId.BoneGuard
-                || e.Def.IsBoss || e.CageT > 0f || e.CageImmuneT > 0f)
+            if (b.Kind != Defs.BoneShot || !Players.TryGetValue(b.Owner, out p) || p.Weapon.Id != WeaponId.BoneGuard)
+                return;
+            LinkBoneDart(p, e);  // the Marrow Tether (BoneGuard.cs)
+            ApplyBoneDart(p, e);
+        }
+
+        /// Host: one Bone Guard dart sticks in `e` (a dart, or an Ossuary Wall it's pressed against); the third cages it.
+        void ApplyBoneDart(Player p, Enemy e)
+        {
+            if (e.Def.IsBoss || e.CageT > 0f || e.CageImmuneT > 0f)
                 return;
             e.BoneDartT = BoneDartHold;
             if (++e.BoneDarts < BoneCageHits)
@@ -856,6 +864,7 @@ namespace Arena
             e.CageT = BoneCageTime + p.Stats.CageBonusTime;  // (Ossuary: longer)
             e.Caged = true;
             BroadcastFx(FxKind.Ring, e.Pos, Defs.BulletColor(Defs.BoneShot), e.Radius + 16f, 0.3f, Sfx.Hit);
+            YankMarrow(e, e.CageT);  // threaded enemies are reeled in (BoneGuard.cs)
         }
 
         /// Host, every tick for each enemy: the darts fall out in time, and a cage breaks.
