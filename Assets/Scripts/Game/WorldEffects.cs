@@ -167,6 +167,12 @@ namespace Arena
                 case FxKind.HoneyHarvest:
                     DrawHoneyHarvestFx(fx);  // HoneybeeLook.cs
                     break;
+                case FxKind.WindWave:
+                    DrawWindWave(fx);  // WindClashLook.cs
+                    break;
+                case FxKind.WindCatch:
+                    DrawWindCatch(fx);  // WindClashLook.cs
+                    break;
                 case FxKind.DoubleBarrel:
                     DrawDoubleBarrelFx(fx);  // TankAltLook.cs
                     break;

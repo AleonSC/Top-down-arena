@@ -163,6 +163,8 @@ namespace Arena
                 gKick += GlKick(p);  // the Grenade Launcher's kick, and its front hand on the foregrip (GrenadeLauncherLook.cs)
                 GlFrontHand(p, wk, rhx, rhy, ref lhx, ref lhy);
             }
+            if (p.Weapon.Id == WeaponId.WindClash)
+                WcHandPose(p, ref rhx, ref rhy, ref lhx, ref lhy);  // the hands sweep, thrust and fling with each wave (WindClashLook.cs)
             rhx -= gKick; lhx -= gKick + gPump * wk;
             mPump = gPump; mHeat = gHeat; mLit = gLit;
             // The Twin Rifle is held out wide, each muzzle where its stream starts, turned toward the crossing; each gun recoils
@@ -450,7 +452,7 @@ namespace Arena
                 case WeaponId.Lance: hold = 1; offX = -4f; break;
                 case WeaponId.Greatsword: hold = 1; offX = -8f; break;
                 case WeaponId.TwinRifle: case WeaponId.TwinRifleAuto: case WeaponId.OutOfAmmo: case WeaponId.TwinBlades: hold = 2; break;
-                case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.ArcaneMissiles: case WeaponId.Stonespear: case WeaponId.HoneybeeStaff: case WeaponId.ClotBolt: case WeaponId.SanguineOrb: case WeaponId.Implosion:
+                case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.ArcaneMissiles: case WeaponId.Stonespear: case WeaponId.HoneybeeStaff: case WeaponId.WindClash: case WeaponId.ClotBolt: case WeaponId.SanguineOrb: case WeaponId.Implosion:
                 case WeaponId.GolemStaff: case WeaponId.SpriteStaff: case WeaponId.Nimbus: case WeaponId.SpiritChalk: hold = 3; break;
             }
         }
@@ -585,6 +587,10 @@ namespace Arena
                     MPoly(Hx(0x3b3632), 17f, 0f, 13f, -6f, 7f, -5f, 5f, 1f, 8f, 6f, 14f, 5f);
                     MPoly(Hx(0x7d746a), 17f, 0f, 13f, -6f, 7f, -5f, 5f, 1f, 11f, 0f);
                     MLine(7f, -2f, 11f, 0.5f, 1.2f, Hx(0xffb04a, 0.6f + 0.4f * Mathf.Sin(t * 5f))); MLine(11f, 0.5f, 15f, -1f, 1.2f, Hx(0xffb04a, 0.6f + 0.4f * Mathf.Sin(t * 5f)));
+                    break;
+                case WeaponId.WindClash:  // a little knot of wind in the palm (WindClashLook.cs)
+                    MCirc(9f, 0f, 6f, Hx(0x8fe3f2, 0.25f), 12); MCirc(9f, 0f, 2.4f, Hx(0xf2fdff), 8);
+                    for (int i = 0; i < 3; i++) { float a0 = t * 7f + i * 2.1f; MArc(9f, 0f, 4.2f + i * 1.4f, a0, a0 + 1.7f, 1.1f, Hx(0xbff3ff, 0.85f)); }
                     break;
                 case WeaponId.ArcaneMissiles:
                     MArc(12f, 0f, 11f, 0f, MathX.Tau, 0.8f, Hx(0x8fe3ff, 0.4f));

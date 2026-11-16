@@ -144,6 +144,8 @@ namespace Arena
         HoneybeeStaff,
         // the Ninja DPS's fourth (Nunchaku.cs): Twin Storm, a nunchaku in each hand
         Nunchaku,
+        // the Tank Elementalist's fourth (WindClash.cs)
+        WindClash,
     }
 
     public class WeaponDef
