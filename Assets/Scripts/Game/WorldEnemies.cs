@@ -588,7 +588,8 @@ namespace Arena
                 }
             if (e.Dazed && !spawning)
                 DrawDazeStars(pos + new V2(0f, -r - 7f), r, t);
-            DrawStatusIcons(e, pos + new V2(0f, -r - (bar ? 25f : 17f)), t);
+            int rows = spawning ? 0 : DrawEffectBar(e, pos, r, bar);  // EffectBar.cs
+            DrawStatusIcons(e, pos + new V2(0f, -r - (bar ? 25f : 17f) - rows * 5f), t);
         }
 
         /// Dazed by a close-in hit (Core/Daze.cs): three little yellow stars wheel round over its head.

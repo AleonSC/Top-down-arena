@@ -325,6 +325,7 @@ namespace Arena
             UpdateBloodFreezeLook(t);  // BloodFreezeLook.cs: the wave's screen kick, and forgetting old crystals
             UpdateShockwaveLook(t);  // ShockwaveLook.cs: the wave's screen kick, and sparks for the shots it erased
             UpdateSentryNovaLook(t);  // SentryNovaLook.cs: turret heads and recoil, and the Nova and Turret sounds
+            UpdateBulletRainSound(t);  // BulletRainLook.cs: the rain's cast, patter and end sounds
 
             // New effects: blasts shake, spark, scorch and ripple.
             if (me != null && me.Weapon != null && me.Weapon.Id == WeaponId.Rapier)

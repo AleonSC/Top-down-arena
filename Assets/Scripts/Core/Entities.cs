@@ -519,6 +519,7 @@ namespace Arena
         public bool Burning, Chilled, Frozen, Bleeding;  // replicated, for drawing (Chilled = slowed but not frozen)
         public float WetT, WetArcCd;        // Tsunami: wet (slowed, and lightning arcs to it), and the pause before it can be arced again (host)
         public bool Wet;                    // replicated, for the drips (Game/TsunamiLook.cs)
+        public float WetLeft, WetPeak;      // wet seconds left (replicated, in tenths) and the most seen since it began: the effect bar's fill (Game/EffectBar.cs)
         public float FrozenT;               // Glacial Tomb: can't move or shoot (host)
         public float IceT, IceMult = 1f;    // Blood Freeze: seconds left of its ice, and the damage multiplier while it lasts (host; BloodFreeze.cs)
         public float GraspT;                // Leech Tendrils: held, can't move or shoot (host)
@@ -583,7 +584,6 @@ namespace Arena
         public byte Kind;
         public V2 Pos, Vel;
         public float AngVel, Life, Radius, Dmg;
-        public float Stasis;      // 0..1: how far a Lumen Ward has slowed it to a stop (worked out the same on every peer, not sent; LumenWard.cs)
         public float Life0;       // its lifetime when fired (for drawing it aging: the Flamethrower's flames)
         public int Owner, Pierce, LastHit;
         public int PrevHit;       // host: the enemy hit before LastHit, so a piercing shot inside two overlapping enemies doesn't hit them by turns
@@ -665,7 +665,7 @@ namespace Arena
         public bool Follow;         // host: mastered Soul Lantern moves with its owner
         public float DamageCut;     // host: allies inside take less damage (the Ninja's smoke)
         public bool Embers;         // host: a mastered Meteor leaves burning ground
-        public float Aim;           // replicated: a Lumen Ward's cone points this way (radians; Pos is its apex, Radius its length); a Vein Trail: 1 when it will burst
+        public float Aim;           // replicated: a Lumen Ward's cone points this way (follows its owner's aim) (radians; Pos is its apex, Radius its length); a Vein Trail: 1 when it will burst
         public bool Freezes;        // host: a mastered Lumen Ward freezes enemies outside its light (not bosses)
         public bool Consecrates;    // host: Hallowed Blade blesses the ground where it lands
         public float BlockHp;       // host: damage it can still soak (blocking zones)

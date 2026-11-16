@@ -260,7 +260,9 @@ namespace Arena
             BuildDodge();  // DodgeSoundBank.cs
             BuildFootsteps();  // FootstepSoundBank.cs
             BuildTankAlt();  // TankAltSoundBank.cs
+            BuildStonespear();  // StonespearSoundBank.cs
             BuildSentryNova();  // SentryNovaSoundBank.cs
+            BuildBulletRain();  // BulletRainSoundBank.cs
         }
 
         void Build()

@@ -55,7 +55,7 @@ namespace Arena
                 Sound = Sfx.SpellArcane },
             new WeaponDef { Id = WeaponId.Stonespear, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 3, Speed = 900f, Life = 0.6f, Damage = 24f, BotRange = 420f, ExtraDesc = "+1 spear a side, and each click throws one more", Name = "Stonespear", FireInterval = 0.18f,
                 Desc = "Slam the ground: it hurts everything round you and six earth spears tear out of it to hover at your sides. Each click throws one at your cursor, passing through an enemy. Alt hurls every spear left at the enemy nearest your cursor. Throw the last and the next click slams again.",
-                Sound = Sfx.Throw, BarrageDesc = "each throw also flings a fanned copy of the spear (60% damage) that uses none up" },
+                Sound = Sfx.None, BarrageDesc = "each throw also flings a fanned copy of the spear (60% damage) that uses none up" },
         };
 
         /// The Elementalist's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
@@ -144,7 +144,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Sanctify, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 2,  // the AbilityId stays Sanctify; the player-facing name is Lumen Ward (LumenWard.cs)
-                Name = "Lumen Ward", Cooldown = 20f, Desc = "A huge cone of light along your aim for 6 s: heals everyone inside 9 HP/s and burns away enemy bullets in it. Enemy bullets everywhere else slow to a stop and fly again when it ends.",
+                Name = "Lumen Ward", Cooldown = 20f, Desc = "A huge cone of light toward your cursor for 6 s that turns as you aim: heals everyone inside 9 HP/s and burns away enemy bullets in it or touching it.",
                 Capstone = "Also freezes enemies outside the light for as long as it lasts (not bosses).",
                 Bot = b => b.AllyHurt || b.Danger,
             },
@@ -1052,7 +1052,9 @@ namespace Arena
                 if (d.Dps > 0f || d.Slow > 0f || z.ExtraSlow > 0f)
                     foreach (var e in Enemies.Values)
                     {
-                        if (e.SpawnT > 0f || e.Pos.FartherThan(z.Pos, z.Radius + e.Radius))
+                        if (e.SpawnT > 0f || (z.Kind == ZoneKind.BulletRain
+                                ? Math.Abs(e.Pos.X - z.Pos.X) > z.Radius + e.Radius || Math.Abs(e.Pos.Y - z.Pos.Y) > z.Radius + e.Radius  // a square
+                                : e.Pos.FartherThan(z.Pos, z.Radius + e.Radius)))
                             continue;
                         if (d.Dps > 0f && !HallowedSpent(z))
                             HurtEnemy(e, d.Dps * z.DmgMult * dt, z.Owner);
