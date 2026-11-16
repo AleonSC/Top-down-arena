@@ -328,29 +328,30 @@ class JuiceCheck {
       Check(onLook && offLook && boltsRadiant == bolts, "Chain Light's cone and its beams draw as the radiance with effects on, and as before with them off (" + bolts + " beams)");
     }
 
-    // Arc Lightning in style A (ArcLightningLooks.cs): a real cast's strip is the Thunderhead bolt, drawn in the glow pass,
-    // with effects on; with them off, the old flat strip.
+    // Arc Lightning's lock-on chain (ArcLockLook.cs): the cone, a brand and its wire, a chain hop and a Forked Volley bolt draw in the
+    // glow pass with effects on, and in the world pass with them off.
     {
-      set("fxOn", true);
       var pl = g.Players.Values.First();
       var keep = pl.Weapon;
       bool botWas = g.Bot; g.Bot = false;
       pl.Weapon = Defs.Weapons.First(x => x.Id == WeaponId.ArcLightning);
-      pl.BowShotDraw = Game.BowFullDraw;
-      g.Effects.Clear();
-      typeof(Game).GetMethod("FireVolley", f2).Invoke(g, new object[] { pl, 0f, 0 });
-      var thunder = typeof(ArenaApp).GetMethod("ArcLightningDrawnAsThunder", f2);
-      var strip = g.Effects.FirstOrDefault(fx => fx.Kind == FxKind.ArcField);
-      bool onLook = strip != null && (bool)thunder.Invoke(app, new object[] { strip });
-      set("fxOn", false);
-      bool offLook = strip != null && !(bool)thunder.Invoke(app, new object[] { strip });
+      var en = g.Enemies.Values.First();
+      System.Func<bool, int> drawn = fx =>
+      {
+        set("fxOn", fx);
+        g.Effects.Clear(); pl.ArcTags.Clear(); pl.DrawT = 0f;
+        int baseline = frame();
+        pl.DrawT = 0.5f; pl.ArcTags.Add(en.Id);
+        g.Effects.Add(new Effect { Kind = FxKind.ArcLink, Pos = pl.Pos, Pos2 = en.Pos, Radius = 0f, Dur = 0.75f, Color = Rgba.White });
+        g.Effects.Add(new Effect { Kind = FxKind.ArcFork, Pos = pl.Pos, Pos2 = en.Pos + new V2(30f, 0f), Radius = Game.ForkBend, Dur = 0.45f, Color = Rgba.White });
+        int lit = frame();
+        g.Effects.Clear(); pl.ArcTags.Clear(); pl.DrawT = 0f;
+        return lit - baseline;
+      };
+      int onExtra = drawn(true), offExtra = drawn(false);
       set("fxOn", true);
-      pl.DrawT = 0.5f;
-      frame();  // the charge and the release through the glow pass
-      pl.DrawT = 0f;
-      frame();
       pl.Weapon = keep; g.Bot = botWas;
-      Check(onLook && offLook, "Arc Lightning's strip draws as the Thunderhead bolt with effects on, and as before with them off");
+      Check(onExtra > 0 && offExtra > 0, "Arc Lightning's cone, brand, chain hop and fork bolt draw with effects on and off (" + onExtra + " / " + offExtra + " extra vertices)");
     }
 
     // Off again: exactly the plain drawing.

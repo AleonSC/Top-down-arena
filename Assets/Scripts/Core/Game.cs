@@ -1463,6 +1463,7 @@ namespace Arena
                     p.AmmoSpin = 0f;
                 if ((p.Weapon.Id != WeaponId.Stonespear || p.Downed) && (p.SsMask != 0 || p.SsWindT > 0f || p.SsQueue.Count > 0))
                     ClearStonespear(p);  // (Stonespear.cs)
+                TickArcLock(p, dt);  // Arc Lightning's tags, chain and Forked Volley (ArcLock.cs)
                 TickSpinUp(p, dt);  // the Burst SMG (Weapons.cs)
                 TickRapier(p, dt);  // the Rapier's Tempo and Flourish (Rapier.cs)
                 if (p.Weapon.Id == WeaponId.RadiantOrb)

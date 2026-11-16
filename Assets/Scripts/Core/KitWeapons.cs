@@ -133,7 +133,7 @@ namespace Arena
                     break;
                 }
                 case WeaponId.ArcLightning:
-                    ArcField(p, aim, w.Damage * (1f + ArcGrow * extra) * HomingCost(p) * dmg, BowCharge(p, p.BowShotDraw));
+                    ArcChain(p, aim, (1f + ArcGrow * extra) * HomingCost(p) * dmg);  // the lock-on chain through every tag (ArcLock.cs)
                     break;
                 case WeaponId.Stonespear:
                     ThrowStonespear(p, aim, muzzle, dmg, extra);  // a hovering spear at your cursor (Stonespear.cs)
@@ -703,74 +703,8 @@ namespace Arena
             }
         }
 
-        /// Arc Lightning: hold to charge a strip of ground in front of you, longer the longer you hold (out to half
-        /// the arena); let go and lightning shocks everything in it.
-        public const float ArcMin = 160f, ArcMax = Width * 0.5f, ArcHalfWidth = 60f, ArcNear = 0.4f, ArcStun = 0.4f, ArcGrow = 0.25f;  // lengths from your centre; half its width at the far end; how wide it is at your staff, as a fraction of that; stun (not bosses); +damage per extra projectile
-        public static float ArcLength(Player p, float c) => (ArcMin + (ArcMax - ArcMin) * c) * p.Stats.ShotSpeedMult * PierceReach(p);  // Velocity and Piercing Rounds stretch it
-        public static float ArcWidth(Player p) => ArcHalfWidth * AreaMult(p);  // Homing Rounds widen it
-
-        /// The strip is a slight cone, like a lightning arc fanning out: ArcNear of its far width at your staff, full width
-        /// at the far end. Everything (each strip's half width and its sideways shift) scales by this at distance `along`.
-        public static float ArcTaper(float along, float len) => ArcNear + (1f - ArcNear) * Math.Max(0f, Math.Min(1f, along / Math.Max(1f, len)));
-
-        /// Barrage adds cones side by side, fanning out from the same staff and alternating sides, so they never overlap:
-        /// an enemy anywhere in them is shocked once.
-        void ArcField(Player p, float aim, float dmg, float c)
-        {
-            float len = ArcLength(p, c), half = ArcWidth(p);
-            V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
-            var bolt = Defs.BulletColor(Defs.BoltShot);
-            int n = 1 + p.Stats.Fan;
-            var shifts = new float[n];  // each strip's middle, sideways from yours
-            for (int v = 0; v < n; v++)
-                shifts[v] = v == 0 ? 0f : (v % 2 == 1 ? 1f : -1f) * 2f * half * ((v + 1) / 2);
-            for (int v = 0; v < n; v++)
-                BroadcastFx(FxKind.ArcField, p.Pos + side * (shifts[v] * ArcNear), p.Pos + side * shifts[v] + dir * len, bolt, half, 0.35f,  // from the cone's narrow end's middle to its far end's middle
-                    v > 0 ? Sfx.None : c > 0.95f ? Sfx.BigExplode : Sfx.Shockwave);
-            p.Run.ShotsFired++;
-            GateLockStrike(q =>  // a Warden gate's lock inside any strip takes a hit (Warden.cs)
-            {
-                V2 r = q - p.Pos;
-                float al = Dot(r, dir), ac = Dot(r, side);
-                if (al < -LockW / 2f || al > len + LockW / 2f)
-                    return false;
-                for (int v = 0; v < n; v++)
-                    if (Math.Abs(ac - shifts[v]) <= half + LockW / 2f)
-                        return true;
-                return false;
-            });
-            bool any = false;
-            foreach (var e in Enemies.Values)
-            {
-                if (!Targetable(e))
-                    continue;
-                V2 rel = e.Pos - p.Pos;
-                float along = Dot(rel, dir), across = Dot(rel, side);
-                if (along < -e.Radius - p.Def.BodyR || along > len + e.Radius)
-                    continue;
-                int strip = -1;
-                float tf = ArcTaper(along, len);
-                for (int v = 0; v < n && strip < 0; v++)
-                    if (Math.Abs(across - shifts[v] * tf) <= half * tf + e.Radius)
-                        strip = v;
-                if (strip < 0)
-                    continue;
-                if (BlocksShot(e, p.Pos))
-                {
-                    WearShield(e, dmg);
-                    continue;
-                }
-                any = true;
-                HurtEnemy(e, dmg, p.Id);
-                ModHit(e, p.Id, dmg, Defs.BoltShot, dir);
-                WetArcs(e.Pos, e, dmg, p.Id);  // Tsunami.cs
-                if (!e.Def.IsBoss)
-                    e.FrozenT = Math.Max(e.FrozenT, ArcStun + p.Stats.ArcStunBonus);  // (Static Field: longer)
-                BroadcastFx(FxKind.Bolt, p.Pos + side * (shifts[strip] * tf) + dir * Math.Max(0f, Math.Min(len, along)), e.Pos, bolt, 0f, 0.2f, Sfx.None);  // from its strip's middle line
-            }
-            if (any)
-                p.Run.ShotsHit++;
-        }
+        /// Arc Lightning (the lock-on chain: ArcLock.cs): its stun (not bosses) and the damage each extra projectile adds.
+        public const float ArcStun = 0.4f, ArcGrow = 0.25f;
 
         /// Chain Light: a great cone of light in front of you. Its damage is shared out between every enemy in it,
         /// so one enemy alone takes all of it; light arcs from you to each.
