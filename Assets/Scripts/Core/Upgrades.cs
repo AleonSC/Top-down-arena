@@ -167,6 +167,8 @@ namespace Arena
         public float RailTrailBonus, RailBurnMult = 1f;                    // Railgun: Supercharge
         public float SpinTimeMult = 1f, SpinDownMult = 1f;                 // Burst SMG: Spin-Up
         public float DbReloadMult = 1f, DbFullMult = 1f;                   // Double Barrel: Quick Loader
+        public int GlDrumBonus;                                             // Grenade Launcher: Heavy Drum (HE rounds a drum)
+        public float GlCloudMult = 1f;                                      // Grenade Launcher: Heavy Drum (smoke cloud size)
         // Elementalist weapon cards (Docs/UpgradePools.md step 12)
         public float FlameReachMult = 1f, FlameBurnMult = 1f;              // Flamethrower: Napalm
         public float IceReachMult = 1f, IceSlowBonus;                      // Frost Lance: Glacier
@@ -178,6 +180,9 @@ namespace Arena
         public float ArcChargeMult = 1f, ArcStunBonus;                     // Arc Lightning: Static Field
         public int OrbitExtra; public float LaunchRangeMult = 1f;          // Ice Shards: Frozen Halo
         public int SsSideBonus; public float SsSlamMult = 1f;              // Stonespear: Tectonic
+        public int HarvestBonus; public float PuddleSizeMult = 1f;         // Honeybee Staff: Bigger Hive
+        public float NunDiscMult = 1f, NunSwatBonus;                       // Nunchaku: Iron Links
+        public float WcReachMult = 1f, WcShoveMult = 1f;                 // Wind Clash: Gale Force
         public float SwatReachMult = 1f, SwatCdMult = 1f;                  // Out of Ammo: Gun Kata (Docs/UpgradePools.md step 13)
 
         // Legendary weapon upgrades from bosses.

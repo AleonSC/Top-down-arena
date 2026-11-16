@@ -17,6 +17,7 @@ namespace Arena
             var me = game.Me;
             DrawJuiceHud();  // damage numbers and a boss's entrance card, under the rest of the HUD (Juice.cs)
             DrawAbilityCallouts();  // what each player just cast, over their head (AbilityLooks.cs)
+            DrawHoneyCallouts();  // the Honeybee Staff's SWARM and HARVEST pops (HoneybeeLook.cs)
             DrawDebtLedgers();  // Blood Debt's pops (BloodDebtLook.cs)
             DrawBloodWallHud();  // Blood Wall's drain over each tank laying one (BloodWallLook.cs)
             DrawVeinRushPops();  // Vein Rush's "+2%" and "-10%", and your cuts' flash (VeinRushLook.cs)
@@ -417,7 +418,7 @@ namespace Arena
             string num = practice != null ? Math.Max(1, game.PracticeIndex + 1).ToString() : game.Hunt != null ? game.HuntWave.ToString() : game.ShownWave.ToString();
             HudCrt(new Rect(r.x + 12f, r.y + 14f, 120f, 46f), num, 54, ink);
             float nw = CrtUi.TitleWidth(num, 54);
-            string of = practice != null ? (practice.Loop ? "/ " + practice.Waves.Count + "  LOOP" : "/ " + practice.Waves.Count) : game.Endless ? "ENDLESS" : game.Hunt != null ? "/ " + Hunts.Length : "/ " + game.ShownLastWave;
+            string of = practice != null ? (practice.Loop ? "/ " + practice.Waves.Count + "  LOOP" : "/ " + practice.Waves.Count) : game.Endless ? "ENDLESS" : game.Hunt != null ? "/ " + game.HuntLength : "/ " + game.ShownLastWave;
             HudCrt(new Rect(r.x + 18f + nw, r.y + 28f, 100f, 24f), of, 22, game.Endless || practice != null && practice.Loop ? Ui.Gold : dim);
             HudCrt(new Rect(r.xMax - 110f, r.y + 5f, 100f, 16f), "LEFT", 17, dim, TextAnchor.MiddleRight);
             HudCrt(new Rect(r.xMax - 110f, r.y + 16f, 100f, 30f), game.Remaining.ToString(), 32, ink, TextAnchor.MiddleRight);

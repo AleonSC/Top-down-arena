@@ -52,7 +52,7 @@ namespace Arena
                 return "";
             string boss = Defs.Get(game.ApproachBossAt(next)).Name;
             if (game.Hunt != null)
-                return next == Hunts.Length - 1 ? boss + " is near  ·  " : next == 1 ? "On the hunt for " + boss + "  ·  " : "";
+                return next == game.HuntLength - 1 ? boss + " is near  ·  " : next == 1 ? "On the hunt for " + boss + "  ·  " : "";
             int step = game.ApproachStepAt(next);
             return step == 4 ? boss + " is near  ·  " : step == 1 ? "On the road to " + boss + "  ·  " : "";
         }

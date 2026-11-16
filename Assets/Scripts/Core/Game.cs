@@ -1335,6 +1335,8 @@ namespace Arena
             TickRepulsion(dt);  // Repulsion.cs: the Undertow pulling and draining its meter
             TickTwinRifle(dt);  // TwinGrenades.cs: the grenade tubes' cooldown, emptied with the rifle
             TickTankAlts(dt);   // TankAlts.cs: Double Barrel, Proximity Shells, Tear Gas
+            TickSmokeShells(dt);  // GrenadeLauncher.cs: smoke clouds; the launcher refills when put away
+            TickWindWaves(dt);  // WindClash.cs: Wind Clash's waves and Tempests
             TickBoneGuard(dt);  // BoneGuard.cs: marrow threads running out, Ossuary Walls landing
             TickGreat(dt);      // Greatsword.cs: the chain forgetting its place, the guard arc stopping bullets
             TickArcKnuckles(dt);  // ArcKnuckles.cs: an unused Counter Hammer fading
@@ -1461,11 +1463,18 @@ namespace Arena
                     p.AmmoMove = p.KnifeMove = 0;  // (OutOfAmmo.cs)
                 if (p.Weapon.Id != WeaponId.OutOfAmmo)
                     p.AmmoSpin = 0f;
+                if ((p.Weapon.Id != WeaponId.HoneybeeStaff || p.Downed) && p.HoneyOn)
+                    ClearHoneybee(p);  // (HoneybeeStaff.cs)
+                if (p.Weapon.Id == WeaponId.HoneybeeStaff && !p.Downed)
+                    TickHoneybee(p, dt);  // the honey spray and its meter; Fire is the usual trigger below (HoneybeeStaff.cs)
                 if ((p.Weapon.Id != WeaponId.Stonespear || p.Downed) && (p.SsMask != 0 || p.SsWindT > 0f || p.SsQueue.Count > 0))
                     ClearStonespear(p);  // (Stonespear.cs)
+                if ((p.Weapon.Id != WeaponId.WindClash || p.Downed) && (p.WcStep != 0 || p.WcTempestT > 0f))
+                    ClearWindClash(p);  // (WindClash.cs)
                 TickArcLock(p, dt);  // Arc Lightning's tags, chain and Forked Volley (ArcLock.cs)
                 TickSpinUp(p, dt);  // the Burst SMG (Weapons.cs)
                 TickRapier(p, dt);  // the Rapier's Tempo and Flourish (Rapier.cs)
+                TickNunchaku(p, dt);  // the Nunchaku's guard: its discs swat shots back (Nunchaku.cs)
                 if (p.Weapon.Id == WeaponId.RadiantOrb)
                 {
                     string orbSrc = CreditTo("weapon");
@@ -1482,9 +1491,13 @@ namespace Arena
                     RevolverTrigger(p, dt);
                 }
                 else if (p.Weapon.Id == WeaponId.DoubleBarrel)
-                    TickDoubleBarrel(p, dt);  // two shells, a break-open reload (DoubleBarrel.cs)
+                    TickDoubleBarrel(p, dt);
+                else if (p.Weapon.Id == WeaponId.GrenadeLauncher)
+                    TickGrenadeLauncher(p, dt);  // the drums, the reload, the smoke (GrenadeLauncher.cs)  // two shells, a break-open reload (DoubleBarrel.cs)
                 else if (p.Weapon.Id == WeaponId.Stonespear)
                     TickStonespear(p, dt);  // the slam, the hovering spears, the volley (Stonespear.cs)
+                else if (p.Weapon.Id == WeaponId.WindClash)
+                    TickWindClash(p, dt);  // the four-step combo of air waves (WindClash.cs)
                 else if (ChargeWeapon(p.Weapon.Id))
                     TickBow(p);  // the bow and the Warhammer fire when you let go
                 else if (p.Weapon.Id == WeaponId.Katana || p.Weapon.Id == WeaponId.BoStaff)

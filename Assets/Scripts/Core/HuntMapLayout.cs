@@ -19,7 +19,7 @@ namespace Arena
         public static List<HuntLink> Links(HuntMap map, float[] laneX, float[] rowY, float half, float bossHalf)
         {
             var all = new List<HuntLink>();
-            for (int step = 0; step < HuntMap.Steps - 1; step++)
+            for (int step = 0; step < map.Length - 1; step++)
             {
                 var row = map.Rows[step];
                 var ls = new List<HuntLink>();
@@ -56,7 +56,7 @@ namespace Arena
             return all;
         }
 
-        static float Half(HuntNode n, float half, float bossHalf) => n.Type == HuntNodeType.Boss ? bossHalf : half;
+        static float Half(HuntNode n, float half, float bossHalf) => n.Type == HuntNodeType.Boss || n.Type == HuntNodeType.Miniboss ? bossHalf : half;
 
         static float[] Spots(int k, float half)
         {

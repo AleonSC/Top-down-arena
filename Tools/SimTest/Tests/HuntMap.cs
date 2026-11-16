@@ -122,9 +122,9 @@ static partial class Program
             w.Pick(ch[rng.Next(ch.Length)]);
             w.Clear();
         }
-        Check(w.Complete && w.Step == HuntMap.Steps && w.Choices().Length == 0 && w.Path.Length == HuntMap.Steps, "a walk ends with the boss cleared after 10 rows");
+        Check(w.Complete && w.Step == HuntMap.Steps && w.Choices().Length == 0 && w.Path.Length == HuntMap.Steps, "a walk ends with the boss cleared after the last row");
         int elitesOnPath = Enumerable.Range(0, HuntMap.Steps).Count(st => w.Rows[st][w.Path[st]].Type == HuntNodeType.Elite);
-        Check(w.Clues == Math.Min(HuntMap.MaxClues, elitesOnPath), "clues = Elites cleared, up to 3");
+        Check(w.Clues == Math.Min(HuntMap.MaxClues, elitesOnPath), "clues = Elites cleared, up to 5");
         Check(w.Rows[HuntMap.Steps - 1][w.Path[HuntMap.Steps - 1]].Type == HuntNodeType.Boss, "the last node on the path is the boss");
 
         // A route through only Elites caps the clues at 3.
@@ -137,7 +137,50 @@ static partial class Program
             e.Pick(ch.Contains(pick) && e.Rows[e.Step][pick].Type == HuntNodeType.Elite ? pick : ch[0]);
             e.Clear(); cleared++;
         }
-        Check(e.Clues <= HuntMap.MaxClues, "clues never go past 3");
+        Check(e.Clues <= HuntMap.MaxClues, "clues never go past 5");
+
+        // Clue kinds: rolled from the seed (same on every screen), a mix of health and damage; the scales follow them.
+        int dmgClues = 0, total = 0;
+        for (int sd = 1; sd <= 200; sd++)
+        {
+            var cm = HuntMap.Generate(sd);
+            for (int k = 0; k < HuntMap.MaxClues; k++) { total++; if (cm.ClueIsDamage(k)) dmgClues++; }
+        }
+        Check(dmgClues > total * 0.35f && dmgClues < total * 0.65f, "clues roll health or damage about evenly (" + dmgClues + " of " + total + " damage)");
+        var km = HuntMap.Generate(5);
+        km.SetClues(HuntMap.MaxClues);
+        int dc = Enumerable.Range(0, HuntMap.MaxClues).Count(k => km.ClueIsDamage(k));
+        Check(Math.Abs(km.ClueDamageScale - (1f - HuntMap.ClueDamageCut * dc)) < 1e-4f && Math.Abs(km.ClueHpScale - (1f - HuntMap.ClueHpCut * (HuntMap.MaxClues - dc))) < 1e-4f, "the clue scales add up per kind");
+        Check(HuntMap.Generate(5).ClueIsDamage(2) == km.ClueIsDamage(2), "a clue's kind comes from the seed alone");
+
+        // A long hunt: 20 rows, the same rules.
+        int longBad = 0;
+        for (int sd = 1; sd <= 300; sd++)
+        {
+            var lm = HuntMap.Generate(sd, Hunts.LongLength);
+            if (lm.Rows.Length != Hunts.LongLength || lm.Length != Hunts.LongLength || lm.Rows[Hunts.LongLength - 1][0].Type != HuntNodeType.Boss) longBad++;
+            for (int st = 0; st < Hunts.LongLength - 1; st++)
+                if (lm.Rows[st].Any(n => n.Next.Length == 0)) longBad++;
+            for (int st = 0; st < Hunts.LongLength - 2; st++)
+                if (lm.Rows[st].Any(n => !n.Fight && n.Next.Any(j => !lm.Rows[st + 1][j].Fight))) longBad++;
+        }
+        int minibossBad = 0;
+        for (int sd = 1; sd <= 300; sd++)
+        {
+            var lm = HuntMap.Generate(sd, Hunts.LongLength);
+            var mr = lm.Rows[HuntMap.MinibossRow(Hunts.LongLength)];
+            if (HuntMap.MinibossRow(Hunts.LongLength) != 9 || mr.Length != 1 || mr[0].Lane != 1 || mr[0].Type != HuntNodeType.Miniboss) minibossBad++;
+            if (lm.Rows.SelectMany(r => r).Count(n => n.Type == HuntNodeType.Miniboss) != 1) minibossBad++;
+            if (HuntMap.Generate(sd).Rows.SelectMany(r => r).Any(n => n.Type == HuntNodeType.Miniboss)) minibossBad++;   // (never in the short hunt)
+        }
+        Check(minibossBad == 0, "a 20-step map has one Miniboss alone in the middle at step 10, the short map none (" + minibossBad + " bad)");
+        Check(Hunts.Step(1, 20) == 1 && Hunts.Step(20, 20) == 4 && Hunts.Step(14, 20) == 4 && Hunts.Step(10, 20) == 3 && Hunts.FinaleWave(10, 20) && Hunts.FinaleWave(19, 20) && !Hunts.FinaleWave(5, 20), "a long hunt's strength steps and set pieces stretch over its 20 steps");
+        var longSched = new HuntBosses(Hunts.All[0], 20);
+        Check(longSched.IsBossWave(20) && !longSched.IsBossWave(10) && longSched.NextBossWaveFrom(3) == 20, "the long hunt's boss is on step 20");
+        Check(longBad == 0, "20-row maps end in the boss, every node leads on, and no two no-fight steps in a row (" + longBad + " bad)");
+        var lw = HuntMap.Generate(8, Hunts.LongLength);
+        while (!lw.Complete) { var ch = lw.Choices(); lw.Pick(ch[0]); lw.Clear(); }
+        Check(HuntMap.Restore(8, lw.Path, Hunts.LongLength) != null && HuntMap.Restore(8, lw.Path) == null, "a long map restores only at its own length");
 
         // Save and restore: the seed and the path rebuild the map and the progress.
         var half = HuntMap.Generate(99);
@@ -193,11 +236,11 @@ static partial class Program
         Sync();
         host.SetMode(GameMode.Hunt);
         Sync();
-        Check(!host.HuntMapMode && !client.HuntMapMode, "the hunt map switch is off by default: a Boss Hunt is the ten waves it always was");
-        client.SetHuntMapMode(true); Sync();
-        Check(!host.HuntMapMode, "only the host can turn the hunt map on");
-        host.SetHuntMapMode(true); Sync();
-        Check(host.HuntMapMode && client.HuntMapMode, "the host's switch shows in the friend's lobby");
+        Check(host.HuntMapMode && client.HuntMapMode && host.HuntLong && client.HuntLong, "a Boss Hunt is a 20-step hunt map by default (no switches)");
+        client.SetHuntLong(false); Sync();
+        Check(host.HuntLong, "only the host could change the length");
+        host.SetHuntLong(false); Sync();   // (the tests below play the ten-step map)
+        Check(!client.HuntLong, "the host's length shows in the friend's lobby");
         // A map with a route that has every kind of node on it (the test follows it).
         int seed = 0; int[] route = null;
         for (int sd = 1; sd < 100000 && route == null; sd++)
@@ -339,7 +382,7 @@ static partial class Program
         Check(g.Wave == Hunts.Length && g.HuntNodeAt(Hunts.Length) == HuntNodeType.Boss && g.HuntRoute.Step == HuntMap.Steps - 1, "the last node is the boss, on wave 10");
         Check(g.HuntRoute.Clues == Math.Min(HuntMap.MaxClues, eliteChecks) && c.HuntRoute.Clues == g.HuntRoute.Clues, "the Elites cleared (a Gamble that turned out one too) count as boss clues, on both screens");
         var hurt = Find(host, EnemyType.Boss);
-        Check(Math.Abs(hurt.Hp - hurt.MaxHp * (1f - HuntMap.ClueHpCut * g.HuntRoute.Clues)) < 0.01f, "each boss clue takes 8% of the boss's health before the fight (" + g.HuntRoute.Clues + " clues)");
+        Check(Math.Abs(hurt.Hp - hurt.MaxHp * g.HuntRoute.ClueHpScale) < 0.01f, "each health clue takes 8% of the boss's health before the fight (" + g.HuntRoute.Clues + " clues)");
         Find(host, EnemyType.Boss).Hp = 0f;
         Run(s, dt, 8f, () => c.State == MatchState.Victory, keep);
         Check(g.State == MatchState.Victory && c.State == MatchState.Victory, "beating the boss wins the hunt");

@@ -325,7 +325,10 @@ namespace Arena
         public float D(DiffKnob k) => Diff[k];
 
         /// Enemy damage at this wave: the difficulty's multiplier, growing each wave.
-        public float EnemyDamageScale(int wave) => D(DiffKnob.EnemyDamage) * (1f + D(DiffKnob.DamagePerWave) * Math.Max(0, wave - 1));
+        public float EnemyDamageScale(int wave) => D(DiffKnob.EnemyDamage) * (1f + D(DiffKnob.DamagePerWave) * Math.Max(0, StrengthWave(wave) - 1)) * ClueDamage;
+
+        /// A hunt map's damage clues: enemies hit softer during the boss fight (HuntMap.ClueDamageScale).
+        float ClueDamage => HuntRoute != null && Hunt != null && BossNow ? HuntRoute.ClueDamageScale : 1f;
 
         public float PassiveRegen => D(DiffKnob.Regen);
     }

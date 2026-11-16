@@ -127,6 +127,8 @@ namespace Arena
                 Apply = s => { s.SpinTimeMult *= 0.7f; s.SpinDownMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.DoubleBarrel }, MaxStacks = 2, Name = "Quick Loader", Desc = "The Double Barrel reloads 25% faster, and its pellets keep full damage 30% farther",
                 Apply = s => { s.DbReloadMult *= 0.75f; s.DbFullMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.GrenadeLauncher }, MaxStacks = 2, Name = "Heavy Drum", Desc = "The Grenade Launcher holds 2 more HE grenades a drum, and its smoke clouds are 20% bigger",
+                Apply = s => { s.GlDrumBonus += 2; s.GlCloudMult += 0.2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.OutOfAmmo }, MaxStacks = 2, Name = "Gun Kata", Desc = "Out of Ammo's rifle arms swat bullets 25% farther out and recover 30% faster",
                 Apply = s => { s.SwatReachMult += 0.25f; s.SwatCdMult *= 0.7f; } },
         };

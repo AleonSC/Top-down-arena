@@ -42,7 +42,43 @@ namespace Arena
 
         /// An Elite node's wave brings its enemies as tougher elite variants (a share of them, as late waves do).
         public const double HuntEliteChance = 0.3;
-        bool HuntEliteSquad => HuntMapOn && State == MatchState.Fighting && HuntNodeNow == HuntNodeType.Elite;
+        bool HuntEliteSquad => HuntMapOn && State == MatchState.Fighting && (HuntNodeNow == HuntNodeType.Elite || HuntNodeNow == HuntNodeType.Miniboss);
+
+        /// The long hunt's miniboss (step 10): a Riot Shield (the Warden's wall) as an elite with this many times the health, and bigger.
+        public const float HuntMinibossHp = 4f, HuntMinibossSize = 1.5f;
+        bool huntMinibossDue, huntMinibossNow;   // host: the next Riot Shield out of the queue is the miniboss
+
+        /// A Boss Hunt's save: written once, when the miniboss at step 10 has been beaten and everyone has picked their rewards, and kept
+        /// until the hunt ends (Continue resumes at the vote for step 11). The pause menu says whether it is on disk.
+        public bool HuntCheckpointed;
+        bool huntCheckpointDue;   // host: the miniboss is cleared and the save waits for the picks to be made
+
+        /// Host, each tick between waves: write the checkpoint once nothing is left to choose.
+        void TickHuntCheckpoint()
+        {
+            if (!huntCheckpointDue || !IsHost || HuntRoute == null || AnyonePicking() || PathOffer != null || ShopOpen || DuelBetweenWaves)
+                return;
+            huntCheckpointDue = false;
+            if (SaveRun(true))
+            {
+                HuntCheckpointed = true;
+                DoLog("hunt saved at step " + HuntRoute.Step);
+            }
+        }
+
+        /// Host, as the match starts from a hunt's checkpoint: the map with the path and clues it was saved with, and its vote for the next step.
+        void ResumeHuntMap(RunSave save)
+        {
+            var map = HuntMap.Restore(save.HuntSeed, save.HuntPath.ToArray(), save.HuntLength);
+            if (map == null)
+                return;
+            map.SetClues(save.HuntClues);
+            HuntRoute = map;
+            Wave = map.Step;
+            HuntCheckpointed = true;
+            DoLog("hunt resumed at step " + (map.Step + 1));
+            BroadcastHuntMap();
+        }
 
         /// A Contraband is being fought: the arena is dark (like Nightfall, Paths.cs).
         public bool HuntDark => HuntMapOn && State == MatchState.Fighting && HuntNodeNow == HuntNodeType.Contraband;
@@ -60,6 +96,8 @@ namespace Arena
         void ResetHuntMap()
         {
             HuntRoute = null;
+            HuntCheckpointed = false;
+            huntCheckpointDue = false;
             HuntMapVoting = false;
             HuntMapSeconds = 0f;
             huntShopNode = false;
@@ -72,7 +110,7 @@ namespace Arena
         /// The node type of a wave of the hunt (Skirmish where the map doesn't say yet).
         public HuntNodeType HuntNodeAt(int wave)
         {
-            if (HuntRoute == null || wave < 1 || wave > HuntMap.Steps)
+            if (HuntRoute == null || wave < 1 || wave > HuntLength)
                 return HuntNodeType.Skirmish;
             int row = wave - 1;
             var path = HuntRoute.Path;
@@ -92,7 +130,7 @@ namespace Arena
                 return;
             if (HuntRoute == null)
             {
-                HuntRoute = HuntMap.Generate(HuntMapSeed != 0 ? HuntMapSeed : rng.Next(1, 1 << 30));
+                HuntRoute = HuntMap.Generate(HuntMapSeed != 0 ? HuntMapSeed : rng.Next(1, 1 << 30), HuntLength);
                 DoLog("hunt map: seed " + HuntRoute.Seed);
                 BroadcastHuntMap();
             }
@@ -226,9 +264,10 @@ namespace Arena
                     DoLog("hunt map: Ambush reward");
                     break;
                 case HuntNodeType.Contraband:
+                case HuntNodeType.Miniboss:
                     foreach (var p in Players.Values)
                         p.PrizePicks++;
-                    DoLog("hunt map: Contraband reward");
+                    DoLog("hunt map: " + HuntMap.Name(HuntNodeNow) + " reward");
                     break;
             }
         }
@@ -240,6 +279,13 @@ namespace Arena
         void HuntNodeWaveStart()
         {
             huntAmbush = false;
+            huntMinibossDue = false;
+            if (IsHost && HuntMapOn && HuntNodeNow == HuntNodeType.Miniboss)
+            {
+                spawnQueue.Insert(0, EnemyType.RiotShield);
+                huntMinibossDue = true;
+                DoLog("hunt map: the miniboss");
+            }
             if (!IsHost || !HuntMapOn || HuntNodeNow != HuntNodeType.Ambush)
                 return;
             huntAmbush = true;
@@ -260,6 +306,8 @@ namespace Arena
                 return;
             HuntNodeReward();
             ClearHuntNode();
+            if (HuntRoute.Step == HuntMap.MinibossRow(HuntLength) + 1)
+                huntCheckpointDue = true;   // the miniboss is down: the hunt is saved here (TickHuntCheckpoint)
         }
 
         /// This player's vote and whether it's locked in (the host's own goes straight in).
@@ -350,7 +398,7 @@ namespace Arena
             }
             if (IsHost)
                 return;
-            var map = HuntMap.Restore(seed, path);
+            var map = HuntMap.Restore(seed, path, HuntLength);
             if (map == null || (current >= 0 && !map.Pick(current)))
                 return;   // (a map that doesn't fit what we were told: wait for the next message)
             map.SetClues(clues);

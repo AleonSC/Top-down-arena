@@ -87,10 +87,11 @@ static partial class Shot {
       // The hunt map screen (HuntMapUi.cs): HMSEED=<n> the map (default 5), HMSTEP=<n> rows cleared (default 4), HMVOTE=1 you have voted for
       // the first choice (P2 voted for the second, P3 for the first), HMLOCK=1 you have locked in. Use with 3 players: huntmap huntmap 6 12.2 3.
       var hmSeed = int.Parse(Environment.GetEnvironmentVariable("HMSEED") ?? "5");
-      var hm = HuntMap.Generate(hmSeed);
+      int hmLen = Environment.GetEnvironmentVariable("HMLONG") != null ? Hunts.LongLength : Hunts.Length;   // HMLONG=1: the 20-step map
+      var hm = HuntMap.Generate(hmSeed, hmLen);
       int hmSteps = int.Parse(Environment.GetEnvironmentVariable("HMSTEP") ?? "4");
       for (int k = 0; k < hmSteps && !hm.Complete; k++) { var ch = hm.Choices(); hm.Pick(ch[(hmSeed + k) % ch.Length]); hm.Clear(); }
-      var hg = host.Game; hg.Hunt = Hunts.All[0]; hg.HuntMapOn = true; hg.HuntRoute = hm; hg.HuntMapVoting = true; hg.HuntMapSeconds = 17f;
+      var hg = host.Game; hg.HuntLength = hmLen; hg.Hunt = Hunts.All[0]; hg.HuntMapOn = true; hg.HuntRoute = hm; hg.HuntMapVoting = true; hg.HuntMapSeconds = 17f;
       int hmSeat = 0;
       foreach (var hp in hg.Players.Values)
       {

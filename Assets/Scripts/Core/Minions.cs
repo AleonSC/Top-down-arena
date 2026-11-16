@@ -29,6 +29,9 @@ namespace Arena
             new WeaponDef { Id = WeaponId.FrostLance, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 1, Damage = 18f, Reach = 230f, Grow = 30f, BotRange = 190f, ExtraDesc = "+30 px longer icicle and 25% more damage, and its splinters fly 15 px further", Name = "Frost Lance", FireInterval = 0.4f,
                 Desc = "A great icicle juts out from you, then splinters off its sides into enemies beside it. Both slow.",
                 Sound = Sfx.SpellFrost, AreaDesc = "the icicle's splinters fly 25% further out" },
+            new WeaponDef { Id = WeaponId.WindClash, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 3, Damage = 18f, Reach = 170f, BotRange = 150f, ExtraDesc = "+20% damage and 10% bigger waves", Name = "Wind Clash", FireInterval = 0.34f,
+                Desc = "Hold Fire for a combo of air waves that hurt and shove every enemy they pass: two crescents that cross, a gale lance straight out, then a ring that bursts round you. Alt: Tempest, a storm of wind round you for 3 s that hurts enemies in it and catches every enemy shot that comes in; you move 30% slower and can't attack while it blows.",
+                Sound = Sfx.None, AreaDesc = "the waves and the Tempest 25% bigger" },
             new WeaponDef { Id = WeaponId.StormHammer, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 2, Speed = 460f, Life = 1.1f, Damage = 40f, BotRange = 260f, ExtraDesc = "+15% hammer damage, and the electrified enemy arcs to 1 more enemy", Name = "Storm Hammer", FireInterval = 0.7f,
                 Desc = "Throws a spinning hammer that smashes one enemy and electrifies it, so it arcs lightning to the enemies around it.",
                 Sound = Sfx.SpellZap, AreaDesc = "the electrified enemy's lightning reaches 25% farther" },
@@ -40,8 +43,8 @@ namespace Arena
                 Desc = "A great cone of light in front of you. Its damage is shared between every enemy in it, so one alone takes it all.",
                 Sound = Sfx.SpellZap, AreaDesc = "the cone of light 25% wider", HomingDesc = "the cone of light 15% narrower and 10% stronger per stack, instead of bending shots: fewer enemies share its damage", BarrageDesc = "+1 cone of light beside the first, sharing its own damage. Reaches more enemies; a lone one is still in one cone" },
             new WeaponDef { Id = WeaponId.Nimbus, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 2, Damage = 16f, Reach = 380f, BotRange = 300f, ExtraDesc = "+1 lightning strike on every click, landing in a ring round the cloud", Name = "Nimbus", FireInterval = 0.6f,
-                Desc = "A small storm cloud floats over your cursor. Click to call lightning down beneath it. Rain falls under the cloud and heals every ally standing in it, with no clicking.",
-                Sound = Sfx.SpellZap, AreaDesc = "the strike and the rain are 25% wider",
+                Desc = "A storm cloud floats over your cursor. Click to call lightning down beneath it. Rain falls under the cloud, healing every ally standing in it and soaking enemies (wet). Alt: Eye of the Storm, the cloud spins into a hurricane for 4 s that drags enemies round, tears up their shots and heals allies in its eye.",
+                Sound = Sfx.SpellZap, AreaDesc = "the strike, the rain and the hurricane are 25% wider",
                 Companion = MinionKind.Nimbus, CompanionCount = 1 },
             // DPS
             new WeaponDef { Id = WeaponId.Fireball, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 0, Speed = 430f, Life = 1.4f, Damage = 32f, BotRange = 390f, ExtraDesc = "+1 fireball, fanned out", Name = "Fireball", FireInterval = 0.5f,
@@ -102,6 +105,8 @@ namespace Arena
                 Apply = s => { s.OrbitExtra += 2; s.LaunchRangeMult += 0.25f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Stonespear }, MaxStacks = 2, Name = "Tectonic", Desc = "The Stonespear raises one more spear a side, and its slam reaches 20% farther",
                 Apply = s => { s.SsSideBonus += 1; s.SsSlamMult += 0.2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.WindClash }, MaxStacks = 2, Name = "Gale Force", Desc = "Wind Clash's waves reach 20% farther, and shove 30% harder",
+                Apply = s => { s.WcReachMult += 0.2f; s.WcShoveMult += 0.3f; } },
         };
 
         /// The Mage's Space abilities (its ultimates are in Ultimates.cs). (Upgrades.Abilities gathers every class's list.)
@@ -213,6 +218,10 @@ namespace Arena
                 Desc = "Imps arrive over time and wait by you. Tap fire to send one charging at your cursor to explode; hold to merge them all into one big imp whose blast is bigger than theirs put together.",
                 Companion = MinionKind.Imp, CompanionCount = 5, CompanionRespawn = 1f,
                 HomingDesc = "imps pick an enemy 50% farther from your cursor per stack, and one sent at empty ground turns onto an enemy near it. 5% less damage per stack" },
+            new WeaponDef { Id = WeaponId.HoneybeeStaff, Kit = Kit.Summoner, Role = Role.Dps, Choice = 3, Damage = 22f, BotRange = 360f, ExtraDesc = "+1 bee a click, and 2 more can be out", Name = "Honeybee Staff", FireInterval = 0.4f,
+                Desc = "Each click hatches a bee at your cursor: it buzzes a moment, then stings the nearest enemy once and dies. Three stings in a row on one enemy swarm it for more. Hold Alt to spray honey that slows; an enemy that dies in your honey bursts into two free bees.",
+                HomingDesc = "bees look for enemies 25% farther out per stack",
+                BarrageDesc = "each click hatches one more bee (full damage)" },
         };
 
         /// The Summoner's own upgrade cards: Rare upgrades of its Space abilities (RequiresAbility), and cards for its weapons
@@ -256,6 +265,8 @@ namespace Arena
                 Apply = s => { s.WispExtra += 1; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.ImpCaller }, MaxStacks = 2, Name = "Imp Horde", Desc = "Hold 1 more imp, and they come 20% faster",
                 Apply = s => { s.ImpExtra += 1; s.ImpRateMult += 0.2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.HoneybeeStaff }, MaxStacks = 2, Name = "Bigger Hive", Desc = "An enemy dying in the Honeybee Staff's honey bursts into one more bee, and its puddles spread 20% wider",
+                Apply = s => { s.HarvestBonus += 1; s.PuddleSizeMult += 0.2f; } },
         };
 
         /// The Summoner's Space abilities (its ultimates are in Ultimates.cs). (Upgrades.Abilities gathers every class's list.)
@@ -662,6 +673,13 @@ namespace Arena
                 float reach = d.Range * m.Scale;
                 m.Cd -= dt * rate;
 
+                if (m.Kind == MinionKind.Bee)
+                {
+                    if (MoveBee(m, owner, dt))  // stung: spent (HoneybeeStaff.cs)
+                        expired.Add(m);
+                    m.Pos = ClampToArena(m.Pos, d.Radius);
+                    continue;
+                }
                 if (m.Kind == MinionKind.Thrall)
                 {
                     TickThrall(m, owner, dt);  // ForcePact.cs
@@ -792,7 +810,7 @@ namespace Arena
                         V2 goal = m.Kind == MinionKind.Treant ? TreantGoal(m, owner)
                             : m.Kind == MinionKind.Nimbus ? NimbusGoal(owner)  // the cloud drifts after your cursor (Nimbus.cs)
                             : owner.Pos;
-                        m.Pos += (goal - m.Pos).LimitLength(speed * dt);
+                        m.Pos += (goal - m.Pos).LimitLength(speed * (m.Kind == MinionKind.Nimbus ? NimbusDrift(owner) : 1f) * dt);
                         break;
                     }
                 }

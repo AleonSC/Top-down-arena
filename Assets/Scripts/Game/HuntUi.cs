@@ -125,8 +125,8 @@ namespace Arena
                 bool top = Mathf.Abs(wv) < 0.5f;
                 bool hover = host && c.Contains(ev.mousePosition) && ev.mousePosition.y > bodyY && ev.mousePosition.y < bodyY + viewH;
                 Ui.Alpha = oldAlpha * a;
-                string chip = hunt == null ? "SOON" : !open ? "LOCKED" : profile.HuntWon(boss) > 0 ? "WON x" + profile.HuntWon(boss) : "OPEN";
-                Color cc = hunt == null ? FadedBlue(0.55f) : !open ? HuntColor : profile.HuntWon(boss) > 0 ? Ui.Gold : new Color(0.5f, 0.88f, 0.69f);
+                string chip = hunt == null ? "SOON" : !open ? "LOCKED" : profile.HuntWon(boss, true) > 0 ? "WON x" + profile.HuntWon(boss, true) : "OPEN";
+                Color cc = hunt == null ? FadedBlue(0.55f) : !open ? HuntColor : profile.HuntWon(boss, true) > 0 ? Ui.Gold : new Color(0.5f, 0.88f, 0.69f);
                 ModeRow(c, (i + 1).ToString("00"), BossName(boss), known, open, top, hover, HuntColor, chip, cc);
                 if (hover && !top && Ui.HitArea(c))
                     huntTarget += Mathf.RoundToInt(wv);  // roll this one to the top
@@ -153,44 +153,40 @@ namespace Arena
             y2 += 32f;
             string copy = topHunt == null ? (topKnown ? name + " has no hunt yet." : "Unknown boss: meet it in a run to learn more.")
                 : !can ? (host ? "Locked: beat " + name + " in a run to open this hunt." : "Locked for the host.")
-                : "Waves 1-" + (Hunts.Length - 1) + ": only " + name + "'s own enemies, tougher ones joining as you go. Wave " + Hunts.Length + ": " + name + ". Beat it and the hunt is won.";
+                : "Waves 1-" + ((session.HuntLong ? Hunts.LongLength : Hunts.Length) - 1) + ": only " + name + "'s own enemies, tougher ones joining as you go. Wave " + (session.HuntLong ? Hunts.LongLength : Hunts.Length) + ": " + name + ". Beat it and the hunt is won.";
             Ui.Label(new Rect(x2, y2, w2, 42f), copy, 13, can ? Ui.Text : topHunt == null ? Ui.Muted : Ui.Warn, TextAnchor.UpperLeft, false, true);
             y2 += 48f;
             if (topHunt != null)
             {
                 // Wave ladder: nine small pips, then the boss.
                 float px = x2;
-                for (int i = 1; i <= Hunts.Length; i++)
+                int pipLen = session.HuntLong ? Hunts.LongLength : Hunts.Length;
+                for (int i = 1; i <= pipLen; i++)
                 {
-                    bool bossPip = i == Hunts.Length;
-                    var pr = new Rect(px, y2, bossPip ? 34f : 22f, 20f);
-                    ModePip(pr, bossPip ? "BOSS" : i.ToString(), bossPip ? HuntColor : new Color(ink.r, ink.g, ink.b, 1f), bossPip);
-                    px += pr.width + 5f;
+                    bool bossPip = i == pipLen;
+                    bool longPip = pipLen > Hunts.Length;
+                    var pr = new Rect(px, y2, bossPip ? 34f : longPip ? 13f : 22f, 20f);
+                    ModePip(pr, bossPip ? "BOSS" : longPip ? (i % 5 == 0 ? i.ToString() : "") : i.ToString(), bossPip || (longPip && i == pipLen / 2) ? HuntColor : new Color(ink.r, ink.g, ink.b, 1f), bossPip);
+                    px += pr.width + (longPip ? 3f : 5f);
                 }
                 y2 += 30f;
 
                 // Record tiles.
-                int played = profile.HuntPlayed(topBoss);
-                float best = profile.HuntBestTime(topBoss);
+                int played = profile.HuntPlayed(topBoss, true);
+                float best = profile.HuntBestTime(topBoss, true);
                 float tw = (w2 - 16f) / 3f, th = 46f;
-                LobbyKit.Tile(new Rect(x2, y2, tw, th), can ? profile.HuntWon(topBoss) + " / " + played : "-", "HUNTS WON", false);
+                LobbyKit.Tile(new Rect(x2, y2, tw, th), can ? profile.HuntWon(topBoss, true) + " / " + played : "-", "HUNTS WON", false);
                 LobbyKit.Tile(new Rect(x2 + tw + 8f, y2, tw, th), best > 0f ? (int)(best / 60f) + ":" + ((int)best % 60).ToString("00") : "-", "BEST TIME", false);
                 LobbyKit.Tile(new Rect(x2 + 2f * (tw + 8f), y2, tw, th), can ? "OPEN" : "LOCKED", "STATUS", false);
                 y2 += th + 10f;
                 if (can)
                 {
                     y2 = ModeRules(x2, y2, w2, new[] { "NO PATHS", "NO DATA GATES", "NO SAVING", "MODIFIERS + DIFFICULTY APPLY" });
-                    // The hunt map (Docs/HuntMap.md): off, the hunt is the ten waves in order.
+                    // The hunt is always a map of 20 steps (Docs/HuntMap.md, Docs/LongHunt.md).
                     y2 += 30f;
-                    bool wasOn = GUI.enabled;
-                    GUI.enabled = wasOn && host;
-                    bool mapOn = DkSwitch(new Rect(x2, y2, w2, 26f), session.HuntMapMode, "Hunt map: vote on your route between waves");
-                    GUI.enabled = wasOn;
-                    if (host && mapOn != session.HuntMapMode)
-                        session.SetHuntMapMode(mapOn);
-                    Ui.Label(new Rect(x2 + 24f, y2 + 24f, w2 - 24f, 34f), session.HuntMapMode
-                        ? "Ten steps on a map. Each step the party votes on the next node: an Elite is a tougher wave and gives a boss clue. Wave " + Hunts.Length + " is still " + name + "."
-                        : "Off: the ten waves in order.", 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
+                    int steps = session.HuntLong ? Hunts.LongLength : Hunts.Length;
+                    Ui.Label(new Rect(x2, y2, w2, 52f),
+                        steps + " steps on a map. Each step the party votes on the next node: an Elite is a tougher wave and gives a boss clue (up to " + HuntMap.MaxClues + "). Step " + (steps / 2) + " is a miniboss and saves the hunt. Step " + steps + " is " + name + ".", 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
                 }
             }
 

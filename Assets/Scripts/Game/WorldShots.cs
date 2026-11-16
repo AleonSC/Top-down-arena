@@ -98,6 +98,11 @@ namespace Arena
                 DrawCaltrop(b, t);  // KatanaLook.cs
                 return;
             }
+            if (b.Kind == Defs.HoneyGlob)
+            {
+                DrawHoneyGlob(b);  // HoneybeeLook.cs
+                return;
+            }
             if (b.Kind == Defs.StoneSpear)
             {
                 DrawStoneSpearShot(b, t);  // StonespearLook.cs

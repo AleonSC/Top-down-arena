@@ -197,6 +197,7 @@ One Rare card per Ninja weapon (`Weapons = { that weapon }`, `MaxStacks = 2`), o
 | Shuriken | Barbed Stars | Stuck stars come back 1.5 s sooner, and their return hit is 40% harder |
 | Katana | Honed Edge | The Momentum Burst shoves 30% farther, and caltrops last 2 s longer |
 | Kunai | Shadow Mark | The blink's hit deals 40% more, and marks last 2 s longer |
+| Nunchaku | Iron Links | The Twin Windmill's discs are 25% wider, and each shot they swat adds 2 more to the Twin Counter |
 
 Built (owner approved all nine): in `Game.NinjaCards`. Hooks: `StartKusariThrow` (reach) and `KusariImpact` (stun),
 the Bo Staff's shove push (`BoStaff.cs`) and full spin, the Fuma throw's starting speed (the oval scales with it) and
@@ -241,6 +242,7 @@ Spirit Chalk already has its card (Warding Ink), so it gets none here.
 | Wolf Whistle | Alpha Pack | Takedowns hit 30% harder and stun 0.3 s longer |
 | Wisp Lantern | Will-o'-Wisp | One more wisp orbits you |
 | Imp Caller | Imp Horde | Hold 1 more imp, and they come 20% faster |
+| Honeybee Staff | Bigger Hive | A harvest bursts into one more bee, and the honey puddles spread 20% wider |
 
 Built (owner approved all eight): in `Game.SummonerCards`. Hooks: `MinionTough` (Pack Bond and Granite Golem, used at
 spawn and when a staggered minion recovers), the boulder's `Splash`, `BoneDartHit`'s cage time, the minion attack rate

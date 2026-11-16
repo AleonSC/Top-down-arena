@@ -33,6 +33,7 @@ namespace Arena
                 case Defs.HealerShot: return w == WeaponId.Pistol ? w : (WeaponId?)null;
                 case Defs.TankShot: return w == WeaponId.Scattergun || w == WeaponId.RiotRepeater ? w : (WeaponId?)null;
                 case Defs.FlakShell: return w == WeaponId.FlakCannon ? w : (WeaponId?)null;
+                case Defs.GrenadeShot: return w == WeaponId.GrenadeLauncher ? w : (WeaponId?)null;
                 case Defs.ArcaneShot: return w == WeaponId.ArcaneMissiles ? w : (WeaponId?)null;
                 case Defs.BloodShot: return w == WeaponId.BloodBolts ? w : (WeaponId?)null;
                 case Defs.BoulderShot: return w == WeaponId.GolemStaff ? w : (WeaponId?)null;
@@ -102,6 +103,13 @@ namespace Arena
                 case WeaponId.BurstSmg:
                     GlowDisc(b.Pos, 14f, c, 0.8f);  // the mockup's tracer
                     return;
+                case WeaponId.GrenadeLauncher:
+                {
+                    float gz;
+                    int gph;
+                    GlowDisc(GlNadeAt(b, out gz, out gph) + new V2(0f, -gz), 12f, new Rgba(1f, 0.6f, 0.3f), 0.35f);  // a faint warm glow up on its arc
+                    return;
+                }
                 case WeaponId.DoubleBarrel:
                     GlowDisc(b.Pos, 9f, c, 0.55f * DbPelletFade(b));  // (dims as the pellet's damage falls off)
                     return;
@@ -147,6 +155,9 @@ namespace Arena
                     Circle(b.Pos, 3f, Rgba.White, 10);
                     return true;
                 }
+                case WeaponId.GrenadeLauncher:
+                    DrawGlGrenade(b, t);  // on its arc over its shadow (GrenadeLauncherLook.cs)
+                    return true;
                 case WeaponId.DoubleBarrel:
                 {
                     // A shotgun pellet: a short hot streak that thins and dims as its damage falls off with range (the mockup's tracer).

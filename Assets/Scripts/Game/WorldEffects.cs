@@ -28,6 +28,11 @@ namespace Arena
                         DrawFlakBlast(fx, f);  // TankGunLooks.cs
                         break;
                     }
+                    if (IsGlBoom(fx))
+                    {
+                        DrawGlBlast(fx, f);  // GrenadeLauncherLook.cs
+                        break;
+                    }
                     Circle(fx.Pos, fx.Radius * (0.4f + 0.6f * f), fx.Color.WithAlpha(0.35f * (1f - f)), 24);
                     Arc(fx.Pos, fx.Radius * (0.5f + f), 3f, fx.Color.WithAlpha(1f - f), 32);
                     break;
@@ -155,6 +160,18 @@ namespace Arena
                     break;
                 case FxKind.StoneSlam:
                     DrawStoneSlamFx(fx);  // StonespearLook.cs
+                    break;
+                case FxKind.BeeSting:
+                    DrawBeeStingFx(fx, t);  // HoneybeeLook.cs
+                    break;
+                case FxKind.HoneyHarvest:
+                    DrawHoneyHarvestFx(fx);  // HoneybeeLook.cs
+                    break;
+                case FxKind.WindWave:
+                    DrawWindWave(fx);  // WindClashLook.cs
+                    break;
+                case FxKind.WindCatch:
+                    DrawWindCatch(fx);  // WindClashLook.cs
                     break;
                 case FxKind.DoubleBarrel:
                     DrawDoubleBarrelFx(fx);  // TankAltLook.cs
@@ -300,6 +317,11 @@ namespace Arena
                 case FxKind.Strike:
                     DrawStrikeFx(fx, f);  // NimbusLook.cs
                     break;
+                case FxKind.NimbusStrike:
+                    DrawNimbusStrikeFx(fx);  // NimbusLook.cs
+                    break;
+                case FxKind.NimbusStorm:
+                    break;  // drawn with its cloud (NimbusLook.cs DrawNimbus)
                 case FxKind.Lifeline:
                     DrawLifelineFx(fx);  // LifelineLook.cs
                     break;
@@ -355,6 +377,12 @@ namespace Arena
                     break;
                 case FxKind.TwinStep:
                     DrawTwinStepFx(fx);  // TwinBladesLook.cs
+                    break;
+                case FxKind.NunStep:
+                    DrawNunStepFx(fx);  // the Twin Crush's shockwave (NunchakuLook.cs)
+                    break;
+                case FxKind.NunCounter:
+                    DrawNunCounterFx(fx);  // NunchakuLook.cs
                     break;
                 case FxKind.KnuckleStep:
                     DrawKnuckleStepFx(fx);  // ArcKnucklesLook.cs

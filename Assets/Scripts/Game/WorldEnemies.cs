@@ -149,6 +149,9 @@ namespace Arena
                 case ZoneKind.TearGas:  // the Riot Repeater's Tear Gas (TankAltLook.cs)
                     DrawTearGas(z, t);
                     return;
+                case ZoneKind.SmokeShell:  // the Grenade Launcher's smoke (GrenadeLauncherLook.cs)
+                    DrawGlSmoke(z, t);
+                    return;
                 case ZoneKind.OssuaryWall:  // the Bone Guard's Alt (BoneGuardLook.cs)
                     DrawOssuaryWall(z, t);
                     return;
@@ -271,6 +274,9 @@ namespace Arena
                 case ZoneKind.HoneyPool:
                     DrawHoneyPool(z, c, t);  // QueenLootLook.cs
                     break;
+                case ZoneKind.HoneyPuddle:
+                    DrawHoneyPuddle(z, t);  // HoneybeeLook.cs
+                    return;  // no timer ring: it fades as it dries
                 default:  // a zone with no look of its own: a softly pulsing circle
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.1f + 0.04f * Mathf.Sin(t * 4f)), 48);
                     break;
@@ -280,6 +286,11 @@ namespace Arena
 
         void DrawMinion(Minion m, float t)
         {
+            if (m.Kind == MinionKind.Bee)
+            {
+                DrawBee(m, t);  // HoneybeeLook.cs
+                return;
+            }
             var d = m.Def;
             var c = d.Color;
             float rad = d.Radius * m.Scale, block = d.BlockRadius * m.Scale;

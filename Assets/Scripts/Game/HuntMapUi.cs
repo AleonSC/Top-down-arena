@@ -17,7 +17,7 @@ namespace Arena
         {
             switch (t)
             {
-                case HuntNodeType.Elite: case HuntNodeType.Boss: return HmElite;
+                case HuntNodeType.Elite: case HuntNodeType.Boss: case HuntNodeType.Miniboss: return HmElite;
                 case HuntNodeType.Ambush: return HmAmbush;
                 case HuntNodeType.Contraband: return HmContra;
                 case HuntNodeType.Rest: return HmRest;
@@ -62,9 +62,12 @@ namespace Arena
             LobbyKit.Spaced(new Rect(mapR.x + 16f, mapR.y + 8f, 200f, 16f), "SECTOR MAP", 10, CrtUi.Dim, TextAnchor.MiddleLeft, 2.4f);
             LobbyKit.Spaced(new Rect(mapR.xMax - 216f, mapR.y + 8f, 200f, 16f), "START AT TOP", 10, CrtUi.Dim, TextAnchor.MiddleRight, 2.4f);
             float[] laneX = { mapR.center.x - 120f, mapR.center.x, mapR.center.x + 120f };
-            var rowY = new float[HuntMap.Steps];
+            var rowY = new float[map.Length];
+            float content = 58f + (map.Length - 1) * 58f + 40f;   // a long hunt's map is taller than the panel: it scrolls to keep the next rows in view
+            float yOff = System.Math.Max(0f, System.Math.Min(content - mapR.height, 58f + System.Math.Min(step, map.Length - 1) * 58f - mapR.height * 0.4f));
             for (int k = 0; k < rowY.Length; k++)
-                rowY[k] = mapR.y + 58f + k * 58f;
+                rowY[k] = mapR.y + 58f + k * 58f - yOff;
+            float visTop = mapR.y + 34f, visBot = mapR.yMax - 22f;
             const float half = 15f, bossHalf = 21f;
             var links = HuntMapLayout.Links(map, laneX, rowY, half, bossHalf);
 
@@ -74,6 +77,8 @@ namespace Arena
                 for (int pass = 0; pass < 3; pass++)   // the dim ones first, then the next choices' links, then the route you took
                     foreach (var l in links)
                     {
+                        if (rowY[l.Step] < visTop || rowY[l.Step + 1] > visBot)
+                            continue;
                         bool cleared = l.Step + 1 < path.Length && path[l.Step] == l.From && path[l.Step + 1] == l.To;
                         bool live = !cleared && step > 0 && l.Step == step - 1 && path[l.Step] == l.From;
                         if ((cleared ? 2 : live ? 1 : 0) != pass)
@@ -93,13 +98,15 @@ namespace Arena
             }
 
             hmGlyphs.Clear();
-            for (int s = 0; s < HuntMap.Steps; s++)
+            for (int s = 0; s < map.Length; s++)
             {
                 var row = map.Rows[s];
+                if (rowY[s] < visTop || rowY[s] > visBot)
+                    continue;   // (scrolled out of the panel)
                 for (int i = 0; i < row.Length; i++)
                 {
                     var n = row[i];
-                    float h = n.Type == HuntNodeType.Boss ? bossHalf : half;
+                    float h = n.Type == HuntNodeType.Boss || n.Type == HuntNodeType.Miniboss ? bossHalf : half;
                     var c = new V2(laneX[n.Lane], rowY[s]);
                     var r = new Rect(c.X - h, c.Y - h, 2f * h, 2f * h);
                     bool isCleared = s < path.Length && path[s] == i;
@@ -122,14 +129,15 @@ namespace Arena
                         if (Ui.HitArea(new Rect(r.x - 6f, r.y - 6f, r.width + 12f, r.height + 12f)))
                             game.SendHuntVote(ci, false);
                     }
-                    else if (isCleared || n.Type == HuntNodeType.Boss)
-                        Ui.Label(new Rect(r.xMax + 10f, r.y, 130f, r.height), HuntMap.Name(n.Type).ToUpperInvariant(), 10, n.Type == HuntNodeType.Boss ? HmElite : CrtUi.Ink, TextAnchor.MiddleLeft, true);
+                    else if (isCleared || n.Type == HuntNodeType.Boss || n.Type == HuntNodeType.Miniboss)
+                        Ui.Label(new Rect(r.xMax + 10f, r.y, 130f, r.height), HuntMap.Name(n.Type).ToUpperInvariant(), 10, n.Type == HuntNodeType.Boss || n.Type == HuntNodeType.Miniboss ? HmElite : CrtUi.Ink, TextAnchor.MiddleLeft, true);
                     if (n.Type == HuntNodeType.Shop || n.Type == HuntNodeType.Gamble)
                         Ui.Label(r, n.Type == HuntNodeType.Shop ? "$" : "?", 16, isCleared ? ink : edge, TextAnchor.MiddleCenter, true);
                 }
             }
-            LobbyKit.Spaced(new Rect(laneX[1] - 60f, rowY[0] - 42f, 120f, 14f), "START", 10, CrtUi.Dim, TextAnchor.MiddleCenter, 3f);
-            if (step < HuntMap.Steps)
+            if (rowY[0] - 42f > mapR.y + 24f)
+                LobbyKit.Spaced(new Rect(laneX[1] - 60f, rowY[0] - 42f, 120f, 14f), "START", 10, CrtUi.Dim, TextAnchor.MiddleCenter, 3f);
+            if (step < map.Length && rowY[step] >= visTop && rowY[step] <= visBot)
                 LobbyKit.Spaced(new Rect(mapR.x + 14f, rowY[step] - 8f, 54f, 16f), "NEXT", 10, CrtStyle.Gold, TextAnchor.MiddleLeft, 2f);
 
             // ---- The information (right) ----
@@ -139,9 +147,16 @@ namespace Arena
             float tw = (w - 3f * 10f) / 4f;
             string bossName = hunt != null ? Defs.Get(hunt.Boss).Name : "Boss";
             LobbyKit.Tile(new Rect(x, y, tw, 50f), bossName.ToUpperInvariant(), "TARGET", calm);
-            LobbyKit.Tile(new Rect(x + (tw + 10f), y, tw, 50f), System.Math.Min(step + 1, HuntMap.Steps) + " / " + HuntMap.Steps, "STEP", calm);
+            LobbyKit.Tile(new Rect(x + (tw + 10f), y, tw, 50f), System.Math.Min(step + 1, map.Length) + " / " + map.Length, "STEP", calm);
             LobbyKit.Tile(new Rect(x + 2f * (tw + 10f), y, tw, 50f), (game.Me != null ? game.Me.Gold : 0).ToString(), "GOLD", calm);
             LobbyKit.Tile(new Rect(x + 3f * (tw + 10f), y, tw, 50f), map.Clues + " / " + HuntMap.MaxClues, "BOSS CLUES", calm);
+            if (map.Clues > 0)
+            {
+                var kinds = new System.Text.StringBuilder();
+                for (int k = 0; k < map.Clues; k++)
+                    kinds.Append(map.ClueIsDamage(k) ? "DMG " : "HP ");
+                Ui.Label(new Rect(x + 3f * (tw + 10f), y + 50f, tw, 12f), kinds.ToString().TrimEnd(), 9, CrtStyle.Gold, TextAnchor.MiddleCenter);
+            }
             y += 62f;
 
             LobbyKit.Heading(x, y, w, "PARTY", game.Players.Count + " / 3", calm);
@@ -238,7 +253,7 @@ namespace Arena
             var now = game.HuntNodeNow;
             string name = node.Type == HuntNodeType.Gamble && now != HuntNodeType.Gamble && now != HuntNodeType.None
                 ? HuntMap.Name(HuntNodeType.Gamble) + ": " + HuntMap.Name(now) : HuntMap.Name(node.Type);
-            string text = "SECTOR " + (game.HuntRoute.Step + 1) + "/" + HuntMap.Steps + "  ·  " + name.ToUpperInvariant();
+            string text = "SECTOR " + (game.HuntRoute.Step + 1) + "/" + game.HuntRoute.Length + "  ·  " + name.ToUpperInvariant();
             float w = 30f + text.Length * 6.4f;
             var chip = new Rect(x, y, w, 20f);
             Color accent = HuntNodeColor(now == HuntNodeType.None ? node.Type : now);
@@ -308,6 +323,7 @@ namespace Arena
                         Line(c + new V2(0f, -q), c + new V2(0f, q), w * 1.4f, col); Line(c + new V2(-q, 0f), c + new V2(q, 0f), w * 1.4f, col);
                         break;
                     case HuntNodeType.Boss:
+                    case HuntNodeType.Miniboss:
                         HmPoly(c, col, w, new V2(-h * 0.55f, -h * 0.55f), new V2(h * 0.55f, -h * 0.55f), new V2(h * 0.55f, h * 0.55f), new V2(-h * 0.55f, h * 0.55f));
                         Line(c + new V2(0f, -h * 0.28f), c + new V2(0f, h * 0.28f), w, col); Line(c + new V2(-h * 0.28f, 0f), c + new V2(h * 0.28f, 0f), w, col);
                         break;

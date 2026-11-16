@@ -138,6 +138,8 @@ namespace Arena
                 case WeaponId.Stonespear:
                     ThrowStonespear(p, aim, muzzle, dmg, extra);  // a hovering spear at your cursor (Stonespear.cs)
                     break;
+                case WeaponId.WindClash:
+                    break;  // its waves go from TickWindClash, never from FireVolley (WindClash.cs)
                 case WeaponId.ArcaneMissiles:
                 {
                     // Conjured into orbit round you (TickOrbiters launches them at enemies that come near). With the
@@ -166,6 +168,9 @@ namespace Arena
                 case WeaponId.BoneGuard:
                 case WeaponId.WolfWhistle:
                     SpawnBullet(Defs.BoneShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
+                    break;
+                case WeaponId.HoneybeeStaff:
+                    HatchBees(p, dmg, extra);  // a bee at your cursor (HoneybeeStaff.cs)
                     break;
                 case WeaponId.ImpCaller:
                     SendImps(p, BowCharge(p, p.BowShotDraw));  // a tap sends them; held to full, they merge into one big imp

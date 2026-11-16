@@ -158,6 +158,13 @@ namespace Arena
             float dKick;
             DpsGunPose(p, out dKick);  // the Twin Rifle, Railgun and Burst SMG kick, charge and spin (DpsGunLooks.cs)
             gKick += dKick;
+            if (p.Weapon.Id == WeaponId.GrenadeLauncher)
+            {
+                gKick += GlKick(p);  // the Grenade Launcher's kick, and its front hand on the foregrip (GrenadeLauncherLook.cs)
+                GlFrontHand(p, wk, rhx, rhy, ref lhx, ref lhy);
+            }
+            if (p.Weapon.Id == WeaponId.WindClash)
+                WcHandPose(p, ref rhx, ref rhy, ref lhx, ref lhy);  // the hands sweep, thrust and fling with each wave (WindClashLook.cs)
             rhx -= gKick; lhx -= gKick + gPump * wk;
             mPump = gPump; mHeat = gHeat; mLit = gLit;
             // The Twin Rifle is held out wide, each muzzle where its stream starts, turned toward the crossing; each gun recoils
@@ -218,6 +225,8 @@ namespace Arena
             {
                 case WeaponId.TwinBlades: case WeaponId.Lightbringer: case WeaponId.Lance: case WeaponId.ArcKnuckles:
                     return true;  // TwinBladesLook.cs, LightbringerLook.cs, LanceLook.cs, ArcKnucklesLook.cs
+                case WeaponId.Nunchaku:
+                    return !p.Downed;  // NunchakuLook.cs
                 case WeaponId.Halberd:
                     return fxOn;  // HalberdLook.cs
                 case WeaponId.Katana:
@@ -438,11 +447,12 @@ namespace Arena
                 case WeaponId.LightBolt: case WeaponId.BurstSmg: case WeaponId.HolyMace: hold = 1; offX = 8f; break;
                 case WeaponId.MendersBow: case WeaponId.Railgun: hold = 1; offX = 18f; break;
                 case WeaponId.DoubleBarrel: hold = 1; offX = 15f; break;
+                case WeaponId.GrenadeLauncher: hold = 1; offX = 31f; break;  // (the front hand sits on the foregrip: GrenadeLauncherLook.cs GlFrontHand)
                 case WeaponId.Flamethrower: case WeaponId.Warhammer: hold = 1; offX = 12f; break;
                 case WeaponId.Lance: hold = 1; offX = -4f; break;
                 case WeaponId.Greatsword: hold = 1; offX = -8f; break;
                 case WeaponId.TwinRifle: case WeaponId.TwinRifleAuto: case WeaponId.OutOfAmmo: case WeaponId.TwinBlades: hold = 2; break;
-                case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.ArcaneMissiles: case WeaponId.Stonespear: case WeaponId.ClotBolt: case WeaponId.SanguineOrb: case WeaponId.Implosion:
+                case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.ArcaneMissiles: case WeaponId.Stonespear: case WeaponId.HoneybeeStaff: case WeaponId.WindClash: case WeaponId.ClotBolt: case WeaponId.SanguineOrb: case WeaponId.Implosion:
                 case WeaponId.GolemStaff: case WeaponId.SpriteStaff: case WeaponId.Nimbus: case WeaponId.SpiritChalk: hold = 3; break;
             }
         }
@@ -508,6 +518,9 @@ namespace Arena
                     if (mDpsOn) { DrawTwinRifleFx(); break; }  // DpsGunLooks.cs
                     MRect(-6f, -2f, 8f, 4f, MWood); MRect(0f, -2.6f, 14f, 5.2f, MDark); MLine(12f, 0f, 26f, 0f, 2.4f, MSteel); MRect(5f, -5f, 8f, 2.6f, Hx(0x7bd0ff));
                     DrawTwinTube();
+                    break;
+                case WeaponId.GrenadeLauncher:
+                    if (Juicy) DrawGrenadeLauncherFx(); else DrawGrenadeLauncherPlain();  // GrenadeLauncherLook.cs
                     break;
                 case WeaponId.DoubleBarrel:
                     if (mDpsOn) DrawDoubleBarrelFx(); else DrawDoubleBarrelPlain();  // DoubleBarrelLook.cs
@@ -575,6 +588,10 @@ namespace Arena
                     MPoly(Hx(0x7d746a), 17f, 0f, 13f, -6f, 7f, -5f, 5f, 1f, 11f, 0f);
                     MLine(7f, -2f, 11f, 0.5f, 1.2f, Hx(0xffb04a, 0.6f + 0.4f * Mathf.Sin(t * 5f))); MLine(11f, 0.5f, 15f, -1f, 1.2f, Hx(0xffb04a, 0.6f + 0.4f * Mathf.Sin(t * 5f)));
                     break;
+                case WeaponId.WindClash:  // a little knot of wind in the palm (WindClashLook.cs)
+                    MCirc(9f, 0f, 6f, Hx(0x8fe3f2, 0.25f), 12); MCirc(9f, 0f, 2.4f, Hx(0xf2fdff), 8);
+                    for (int i = 0; i < 3; i++) { float a0 = t * 7f + i * 2.1f; MArc(9f, 0f, 4.2f + i * 1.4f, a0, a0 + 1.7f, 1.1f, Hx(0xbff3ff, 0.85f)); }
+                    break;
                 case WeaponId.ArcaneMissiles:
                     MArc(12f, 0f, 11f, 0f, MathX.Tau, 0.8f, Hx(0x8fe3ff, 0.4f));
                     for (int i = 0; i < 3; i++)  // three ice shards circling
@@ -632,6 +649,20 @@ namespace Arena
                     MLine(-8f, 0f, 10f, 0f, 2.4f, Hx(0x6b5a45)); MRect(10f, -5f, 10f, 10f, Hx(0x2c3a46)); MRect(12f, -3f, 6f, 6f, Hx(0xaaf0ff));
                     for (int i = 0; i < 3; i++) { float a = t * 2.5f + i * 2.09f; MCirc(15f + Mathf.Cos(a) * 11f, Mathf.Sin(a) * 11f, 2.2f, Hx(0xcffaff), 6); }
                     break;
+                case WeaponId.HoneybeeStaff:  // a wooden staff topped with a little hive, a bee circling it and honey dripping (HoneybeeLook.cs)
+                {
+                    float glow = p.HoneyOn ? 0.35f + 0.15f * Mathf.Sin(t * 30f) : 0f;
+                    MLine(-8f, 0f, 15f, 0f, 2.4f, Hx(0x8a5a2b));
+                    if (glow > 0f) MCirc(20f, 0f, 9f, Hx(0xffc53d, glow), 14);
+                    MCirc(20f, 0f, 5.6f, Hx(0xe89a1c), 14);
+                    for (int i = -1; i <= 1; i++) MLine(17f + i * 0.4f, -4.6f + 0.8f * System.Math.Abs(i), 17f + i * 0.4f, 4.6f - 0.8f * System.Math.Abs(i), 0.9f, Hx(0x7a4a0a));
+                    MLine(20.5f, -5.4f, 20.5f, 5.4f, 0.9f, Hx(0x7a4a0a)); MCirc(24f, 0f, 1.3f, Hx(0x3a2205), 6);
+                    float d = (t * 0.9f) % 1f;
+                    MCirc(21f, 6f + d * 6f, 1.4f * (1f - d * 0.6f), Hx(0xffb52e, 1f - d * 0.5f), 6);
+                    float a = t * 6f;
+                    MCirc(20f + Mathf.Cos(a) * 9f, Mathf.Sin(a) * 9f, 1.6f, Hx(0xffc53d), 6); MCirc(20f + Mathf.Cos(a - 0.35f) * 9f, Mathf.Sin(a - 0.35f) * 9f, 1.1f, Hx(0x2a1a05), 5);
+                    break;
+                }
                 case WeaponId.ImpCaller:
                     MLine(-8f, 0f, 18f, 0f, 2.6f, Hx(0x5a2a2a)); MCirc(20f, 0f, 4f, Hx(0xc0392b), 10); MPoly(Hx(0xff6a3a), 19f, -3f, 16f, -8f, 22f, -4f); MPoly(Hx(0xff6a3a), 19f, 3f, 16f, 8f, 22f, 4f);
                     MCirc(22f, -1.5f, 0.9f, Hx(0xffe04a), 6); MCirc(22f, 1.5f, 0.9f, Hx(0xffe04a), 6);

@@ -796,6 +796,12 @@ static partial class Program
                     if (Math.Abs(range - (me.Def.BodyR + Game.AmmoReach)) < 0.5f) pass++; else off.Add(w.Name + " (" + range.ToString("0") + ")");
                     continue;
                 }
+                if (w.Id == WeaponId.HoneybeeStaff)
+                {
+                    // No shots: a bee hatches at the cursor, no farther than HatchReach (HoneybeeStaff test); the aim line shows how far.
+                    if (Math.Abs(range - Game.HatchReach) < 0.5f) pass++; else off.Add(w.Name + " (" + range.ToString("0") + ")");
+                    continue;
+                }
                 if (w.Id == WeaponId.WispLantern || w.Id == WeaponId.ImpCaller)
                 {
                     // No shots: your companions are sent (WispLantern/ImpCaller tests); the aim line shows how far.
@@ -834,7 +840,7 @@ static partial class Program
                         if (first.Contains(b.Id))
                             far = Math.Max(far, b.Pos.DistanceTo(new V2(120f, 450f)));
                     foreach (var fx in g.Effects)
-                        if (fx.Kind == FxKind.Slash || fx.Kind == FxKind.Jab || fx.Kind == FxKind.Claw || fx.Kind == FxKind.Icicle || fx.Kind == FxKind.RootLash || fx.Kind == FxKind.TwinStep || fx.Kind == FxKind.CenserStep || fx.Kind == FxKind.LanceStep || fx.Kind == FxKind.KnuckleStep || fx.Kind == FxKind.KatanaDash)
+                        if (fx.Kind == FxKind.Slash || fx.Kind == FxKind.Jab || fx.Kind == FxKind.Claw || fx.Kind == FxKind.Icicle || fx.Kind == FxKind.RootLash || fx.Kind == FxKind.TwinStep || fx.Kind == FxKind.CenserStep || fx.Kind == FxKind.LanceStep || fx.Kind == FxKind.KnuckleStep || fx.Kind == FxKind.NunStep || fx.Kind == FxKind.KatanaDash)
                             far = Math.Max(far, fx.Pos2.DistanceTo(fx.Pos));
                     host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) });
                 }

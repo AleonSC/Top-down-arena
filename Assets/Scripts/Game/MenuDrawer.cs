@@ -351,7 +351,7 @@ namespace Arena
             var e = Event.current;
             bool lobby = CanQuitToLobby;
             var names = new List<string>(); var lines = new List<string>(); var ids = new List<int>();
-            bool many = game.Players.Count > 1, saved = game.RunId != null && game.Practice == null;
+            bool many = game.Players.Count > 1, saved = game.RunId != null && game.Practice == null && (game.Hunt == null || game.HuntCheckpointed);
             names.Add("KEEP PLAYING"); lines.Add("Back to the pause menu"); ids.Add(2);
             if (lobby)
             {
@@ -393,8 +393,8 @@ namespace Arena
             if (e.type == EventType.Repaint)
                 pauseMouse = e.mousePosition;
             y += 10f;
-            string note = lobby ? (saved ? "To lobby: the run is saved from the last break between waves; pick it up again with Continue a run on the main menu."
-                : "To lobby: this run isn't saved, so it can't be continued.") : "This run can't be continued once you quit.";
+            string note = lobby ? (saved ? (game.Hunt != null ? "To lobby: the hunt is saved at step " + (game.HuntLength / 2) + "; pick it up again with Continue a run on the main menu." : "To lobby: the run is saved from the last break between waves; pick it up again with Continue a run on the main menu.")
+                : game.Hunt != null ? "To lobby: a hunt saves at step " + (game.HuntLength / 2) + ", the miniboss; quit before it and the hunt is lost." : "To lobby: this run isn't saved, so it can't be continued.") : "This run can't be continued once you quit.";
             if (lobby && saved)
                 note += " Quitting to the desktop saves it the same way.";
             if (cabScreenOn)

@@ -54,16 +54,27 @@ namespace Arena
         }
 
         /// Host: write the run to its slot, if it's between waves with nothing left to choose.
-        public bool SaveRun()
+        public bool SaveRun(bool huntCheckpoint = false)
         {
+            if (Hunt != null && (!huntCheckpoint || HuntRoute == null))
+                return false;  // a Boss Hunt saves only at its step-10 checkpoint (HuntMapGame.cs)
             if (!Saveable || State != MatchState.Intermission || DuelBetweenWaves || AnyonePicking() || PathOffer != null || ShopOpen || Players.Count == 0)
                 return false;
             var save = new RunSave
             {
-                Id = RunId, SavedAt = DateTime.UtcNow, Wave = Wave, BossSlot = BossSlot, LongRun = LongLegs, Leg = Leg, LivesUsed = LivesUsed, Score = Score, Mods = Mods, Diff = Diff.Copy(), Endless = Endless, DevUsed = devTouched,
+                Id = RunId, SavedAt = DateTime.UtcNow, Wave = Hunt != null ? HuntRoute.Step : Wave, BossSlot = BossSlot, LongRun = LongLegs, Leg = Leg, LivesUsed = LivesUsed, Score = Score, Mods = Mods, Diff = Diff.Copy(), Endless = Endless, DevUsed = devTouched,
                 RunTime = RunTime, CurrentPath = CurrentPath, PathFrom = PathFrom, PathTo = PathTo, LastPath = lastPath,
             };
             save.Route.AddRange(Route);
+            if (Hunt != null)
+            {
+                save.IsHunt = true;
+                save.HuntBoss = Hunt.Boss;
+                save.HuntLength = HuntLength;
+                save.HuntSeed = HuntRoute.Seed;
+                save.HuntClues = HuntRoute.Clues;
+                save.HuntPath.AddRange(HuntRoute.Path);  // (the cleared rows only: a node already picked for the next step is picked again)
+            }
             var seatOf = new Dictionary<int, int>();  // player id -> seat (the Expanding arena's room owners)
             foreach (var p in Players.Values)
             {
@@ -166,6 +177,8 @@ namespace Arena
             Route.AddRange(save.Route);
             if (ExpandingOn && save.HasExpansion)
                 ResumeExpansion(save);  // ExpansionGame.cs
+            if (save.IsHunt && Hunt != null)
+                ResumeHuntMap(save);  // HuntMapGame.cs
             var w = BeginRecord(RecordKind.Resume);
             w.Write(RunTime);
             w.Write((byte)CurrentPath);
@@ -385,8 +398,8 @@ namespace Arena
                     runRecorded = true;
                     if (Hunt != null)
                     {
-                        AddUnlockToasts(Profile.HuntEnded(Hunt.Boss, won, time, Diff.Level == DifficultyLevel.Hard || Diff.Level == DifficultyLevel.Nightmare));  // Hunts.cs
-                        int cleared = won ? Hunts.Length : Math.Max(0, HuntWave - 1);
+                        AddUnlockToasts(Profile.HuntEnded(Hunt.Boss, won, time, Diff.Level == DifficultyLevel.Hard || Diff.Level == DifficultyLevel.Nightmare, HuntLength > Hunts.Length));  // Hunts.cs
+                        int cleared = won ? HuntLength : Math.Max(0, HuntWave - 1);
                         LastGain = Profile.AwardXp(Rank.Award(false, cleared, won ? 1 : 0, me.Run.Revives, Mods, Diff.Level), HuntWave, won ? 3 : 2);
                         PayCores(Variants.HuntCores(won), found);
                         var hunted = Profile.Recent[0];  // (the hunt just added by AwardXp: its curve for the results screen and Recent runs)

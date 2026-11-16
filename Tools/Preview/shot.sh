@@ -37,6 +37,7 @@
 # PHALANX=<s since the cast> (Bone Phalanx played through the game; PHALANXCAP=1 mastered; ShotPhalanx.cs). FXOFF=1: Visual effects off (plain looks).
 # KNIGHTDPS=steel|gauntlet|mercy|bridge KDT=<s> (the DPS Knight's abilities replaying the mockup's scenes through the game; KDW=<0-2> the weapon; crop (352,200)-(928,520) to set beside the mockup; ShotKnightDps.cs).
 # WILDCARD=1 (lobby: you as a Wildcard, Twin Blades, Shadow Step, Blade Fan on Q, Death Lotus; the class wheel).
+# NIMBUS=<s since a strike, -1 none> [NIMBUSSTORM=<s into the Eye of the Storm> NIMBUSBOLT=1] (the Nimbus, Anvil look; mode hud).
 # pacman (mode): PACKEYS=l1.7,u0.6 (steer left then up), PACFRIGHT=5 (ghosts blue), PACDIE=0.7, PACOVER=1, PACPAUSE=1 (PacmanUi.cs).
 # RIOTERS=1 (a pack of Rioters with a Guard and a Thug; mode hud, ZOOM=3 for a close look).
 # PRISONERS=1 (Thugs and Shivs, both Shiv kinds walking, winding up and lunging; mode hud, ZOOM=3).
@@ -49,7 +50,11 @@
 #   with RIFLEFIRE=1 (holding fire: the Twin Rifle held wide, Spread arms) and CROSSAT=<px> (the cursor's distance).
 # ROD=<s since the cast> (you take Lightning Rod, the tank Elementalist's second ultimate, and cast it that long before the shot; mode hud).
 # TANKALT=<s> (the Tank Soldier's Alt fires: Double Barrel that long after firing, shells pips, Proximity Shells, Tear Gas; TankAltLook.cs).
+# HONEYBEE=<s> (the Summoner DPS Honeybee Staff that long into a scripted loop: clicks that swarm a dummy at 0-0.8 s, the honey spray held 1.0-1.9 s, a harvest at ~2.5 s; mode hud; HoneybeeLook.cs).
+# NUNCHAKU=<s> (the Ninja DPS Nunchaku, Twin Storm, that long into the mockup's loop: Fire held 0-1.85 s for the combo, Alt at 2.1 s (the Twin Windmill swats shots from the right), the Twin Counter at 3.7 s; NunchakuLook.cs).
+# WINDCLASH=<s> (the Tank Elementalist's Wind Clash that long into its combo, Fire held: crescents at 0 and 0.34 s, lance at 0.68 s, ring at 1.12 s; WCALT=1: the Tempest at 0 with enemies shooting; mode hud; WindClashLook.cs).
 # STONESPEAR=<s> (the Elementalist DPS Stonespear that long into the mockup's loop: slam at 0, throws at 1.3 and 1.85 s, Alt volley at 2.6 s; SSMOVE=1 walking down (the spears trail); SSTECT=1 with Tectonic; mode hud; StonespearLook.cs).
+# GRENADE=<s> (the Tank Soldier's Grenade Launcher that long into a fight: fire held at a pack GLAT px ahead; GLSMOKE=1 Alt then smoke canisters from 0.6 s; GLSWAP=1 Alt only; GLIDLE=1; mode hud; GrenadeLauncherLook.cs).
 # DOUBLEBARREL=<s> (the Soldier DPS Double Barrel that long into a fight: fire held at three dummies in a line; DBBOTH=1 Alt both barrels at 0.3 s; DBIDLE=1 not firing; mode hud; DoubleBarrelLook.cs).
 # UNDERTOW=<meter>,<s held> (the Repulsion Cannon's Undertow meter, and its pull held that long on a pack of grunts; mode hud).
 # TWINNADES=<loaded>,<next tube 0/1>,<charge> (the Twin Rifle's grenade tubes and pips; with CAST=Airstrike CASTT=<s> for the Airstrike).

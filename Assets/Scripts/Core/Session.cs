@@ -123,7 +123,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 362;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 369;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -144,9 +144,10 @@ namespace Arena
         public GameMode Mode = GameMode.Campaign;   // the mode picked (GameMode.cs); a resumed run plays the Campaign whatever it says (PlayMode)
         public PracticePlan Plan = PracticePlan.Default();
         public bool OthersCanEdit;
-        public bool HuntMapMode;                    // the Boss Hunt is played as a hunt map (Docs/HuntMap.md): a route of nodes you vote on instead of ten fixed waves
+        public bool HuntLong = true;                       // the Boss Hunt is the long one (Hunts.LongLength steps, Docs/LongHunt.md), not the ten
+        public bool HuntMapMode = true;                    // the Boss Hunt is played as a hunt map (Docs/HuntMap.md): a route of nodes you vote on instead of ten fixed waves
         /// The mode the next match plays: the one picked, except that continuing a saved run is the Campaign (the Practice Range stays).
-        public GameMode PlayMode => Resume == null || Mode == GameMode.Practice ? Mode : GameMode.Campaign;
+        public GameMode PlayMode => Resume == null || Mode == GameMode.Practice ? Mode : Resume.IsHunt ? GameMode.Hunt : GameMode.Campaign;
         public bool PracticeMode => Mode == GameMode.Practice;
         public bool HuntMode => PlayMode == GameMode.Hunt;            // a Boss Hunt (Hunts.cs): HuntBoss's
         public bool QuickMode => PlayMode == GameMode.Quick;          // Quick Play (QuickPlay.cs): the lobby's first mode, a new player's default
@@ -830,7 +831,12 @@ namespace Arena
             Resume = save;
             Modifiers = save.Mods;
             Diff = save.Diff.Copy();
-            Mode = GameMode.Campaign;
+            Mode = save.IsHunt ? GameMode.Hunt : GameMode.Campaign;
+            if (save.IsHunt)
+            {
+                HuntBoss = save.HuntBoss;
+                HuntLong = save.HuntLength > Hunts.Length;
+            }
             int seat = Game.SeatFor(save, Lobby[1].Name);
             TakeSeat(Lobby[1], seat < 0 ? 0 : seat);
             BroadcastLobby();
@@ -1171,12 +1177,14 @@ namespace Arena
             w.Write((byte)Mode);
             w.Write((byte)HuntBoss);
             w.Write(HuntMapMode);
+            w.Write(HuntLong);
             // Continuing a saved run: its seats, so everyone's lobby can show them.
             w.Write(Resume != null);
             if (Resume != null)
             {
                 w.Write(Resume.Wave);
                 w.Write(Resume.Endless);
+                w.Write(Resume.IsHunt);  // a hunt's checkpoint: the lobby plays the Boss Hunt, not the Campaign
                 w.Write((byte)Resume.Seats.Count);
                 foreach (var s in Resume.Seats)
                 {
@@ -1235,6 +1243,17 @@ namespace Arena
             if (!IsHost || Game.Running || HuntMapMode == on)
                 return;
             HuntMapMode = on;
+            foreach (var e in Lobby.Values)
+                e.Ready = false;
+            BroadcastLobby();
+        }
+
+        /// Host: the long Boss Hunt (20 steps) or the short one (10).
+        public void SetHuntLong(bool on)
+        {
+            if (!IsHost || Game.Running || HuntLong == on)
+                return;
+            HuntLong = on;
             foreach (var e in Lobby.Values)
                 e.Ready = false;
             BroadcastLobby();
@@ -1364,6 +1383,7 @@ namespace Arena
             Game.Practice = PracticeMode ? Plan.Copy() : null;  // a copy, so edits don't change a run in progress
             Game.Hunt = PracticeMode ? null : LobbyHunt;  // Hunts.cs
             Game.HuntMapOn = Game.Hunt != null && HuntMapMode;  // HuntMapGame.cs
+            Game.HuntLength = HuntLong ? Hunts.LongLength : Hunts.Length;
             Game.Design = PracticeMode ? DesignTest : null;  // the F1 wave editor's waves being tested (WaveDesign.cs)
             Game.Mods = Modifiers;
             Game.Diff = Diff.Copy();
@@ -1602,10 +1622,11 @@ namespace Arena
                     Mode = (GameMode)r.ReadByte();
                     HuntBoss = (EnemyType)r.ReadByte();
                     HuntMapMode = r.ReadBoolean();
+                    HuntLong = r.ReadBoolean();
                     Resume = null;
                     if (r.ReadBoolean())
                     {
-                        Resume = new RunSave { Wave = r.ReadInt32(), Endless = r.ReadBoolean(), Mods = Modifiers, Diff = Diff.Copy() };
+                        Resume = new RunSave { Wave = r.ReadInt32(), Endless = r.ReadBoolean(), IsHunt = r.ReadBoolean(), Mods = Modifiers, Diff = Diff.Copy() };
                         int seats = r.ReadByte();
                         for (int i = 0; i < seats; i++)
                         {
@@ -1669,6 +1690,7 @@ namespace Arena
                     Game.Practice = PracticeMode ? Plan.Copy() : null;  // for the HUD: which waves this practice has
                     Game.Hunt = HuntMode ? Hunts.Get(HuntBoss) : null;
                     Game.HuntMapOn = Game.Hunt != null && HuntMapMode;  // HuntMapGame.cs
+                    Game.HuntLength = HuntLong ? Hunts.LongLength : Hunts.Length;
                     Game.Mods = Modifiers;
                     Game.Diff = Diff.Copy();
                     Game.OnHostMessage(type, r);

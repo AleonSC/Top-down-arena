@@ -73,6 +73,7 @@ namespace Arena
                     if (PathOffer != null && Bot)
                         ChoosePath(rng.Next(2));  // a bot host picks for itself
                     TickShop(dt);  // the Bazaar's shop closes when everyone is done (Shop.cs)
+                    TickHuntCheckpoint();  // the step-10 save, before the vote can pick a node (HuntMapGame.cs)
                     TickHuntMap(dt);  // the hunt map's vote on the next node (HuntMapGame.cs)
                     TickDuelRooms(dt);  // a mini-boss room can be taken on between waves too (GatekeeperRoom.cs)
                     if (RoomsOn)
@@ -182,7 +183,7 @@ namespace Arena
                             else
                                 WaveCleared();
                         }
-                        else if (Hunt != null && Wave >= Hunts.Length)
+                        else if (Hunt != null && Wave >= HuntLength)
                             Win();  // a Boss Hunt ends with its boss (Hunts.cs)
                         else if (Wave >= LastWave && BossSlot && !Endless)
                             Win();  // the last boss is beaten (Quick Play: the first, after wave 10) (the last regular wave only leads up to it)

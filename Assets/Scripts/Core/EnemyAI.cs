@@ -246,6 +246,12 @@ namespace Arena
 
             // From wave 12, regular enemies can show up as tougher elites.
             bool elite = RollElite(d);
+            if (huntMinibossDue && type == EnemyType.RiotShield)
+            {
+                huntMinibossDue = false;  // the long hunt's step 10: the faction's miniboss, a huge elite Riot Shield (HuntMapGame.cs)
+                huntMinibossNow = true;
+                elite = true;
+            }
             spawnHome = home;
             // Bosses take longer to appear, so you can step out of the middle. The Warden's entrance (its Lockdown cell,
             // Game/WardenIntro.cs) holds it, and the escort behind it, until the cell breaks open.
@@ -279,6 +285,7 @@ namespace Arena
         public float SpawnHp(EnemyType type, int wave)
         {
             var d = Defs.Get(type);
+            wave = StrengthWave(wave);  // (a long hunt's steps count half a wave each: Hunts.cs)
             if (type == EnemyType.Gatekeeper || type == EnemyType.Shadow || FactionMinis.Is(type))  // a challenge or mini-boss room's: a share of a boss's (Challenges.cs)
                 return BossEquivalentHp(wave) * (type == EnemyType.Shadow ? Challenges.ShadowShare : Challenges.MiniBossShare);
             float hp = d.Hp * (1f + 0.15f * (wave - 1)) * PartyHpScale(d.IsBoss);
@@ -356,12 +363,18 @@ namespace Arena
                 e.MaxHp *= 2.5f;
                 e.Radius *= EliteSize;
             }
+            if (huntMinibossNow && type == EnemyType.RiotShield)
+            {
+                huntMinibossNow = false;
+                e.MaxHp *= HuntMinibossHp;
+                e.Radius *= HuntMinibossSize;
+            }
             RollVariant(e, parent);  // EnemyVariants.cs
             if (d.IsBoss)
                 ScaleBoss(e);
             e.Hp = e.MaxHp;
             if (d.IsBoss && HuntRoute != null && HuntRoute.Clues > 0)
-                e.Hp = e.MaxHp * (1f - HuntMap.ClueHpCut * HuntRoute.Clues);  // a hunt map's boss clues: it starts the fight hurt (Docs/HuntMap.md)
+                e.Hp = e.MaxHp * HuntRoute.ClueHpScale;  // a hunt map's boss clues: each health clue starts the fight with the boss hurt (Docs/HuntMap.md)
             if (elite)
                 RollTraits(e);  // Variety.cs
             else if (parent == 0)
@@ -529,6 +542,7 @@ namespace Arena
                 foreach (var tick in Classes.EnemyHooks)  // each class's KitDef.TickEnemy
                     tick(this, e, dt);
                 e.Suppress = Math.Max(0f, e.Suppress - SuppressFade * dt);
+                e.SmokeT = Math.Max(0f, e.SmokeT - dt);  // a Grenade Launcher smoke cloud's jam wears off out of it (GrenadeLauncher.cs)
                 KeepOutOfDuel(e);  // GatekeeperRoom.cs
                 if (e.SpawnT > 0f)
                 {
@@ -602,9 +616,9 @@ namespace Arena
                     if (e.Pos.FartherThan(was, 600f))
                         steerMem.Remove(e.Id);  // a fresh route from the far side
                 }
-                if (Battle && e.DazeT > 0f)
+                if (Battle && (e.DazeT > 0f || e.SmokeT > 0f))
                 {
-                    // Dazed (Daze.cs): no attacking, and a wind-up starts over once it wears off.
+                    // Dazed (Daze.cs) or jammed in smoke (GrenadeLauncher.cs): no attacking, and a wind-up starts over once it wears off.
                     float rateDazed = rate * TraitFireMult(e) * (IsTwin(e.Type) && e.Phase == 1 ? 1.7f : 1f) * (Has(RunMod.Frenzy) ? Modifiers.FrenzyFire : 1f) * (1f - e.Suppress);
                     e.FireT = Math.Max(e.FireT, WindUpOf(e.Type) * rateDazed + 0.05f);
                     e.Winding = false;

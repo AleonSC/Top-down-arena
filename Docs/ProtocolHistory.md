@@ -4,6 +4,13 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 369: Wind Clash (Tank Elementalist 4th weapon): `WeaponId.WindClash`, `FxKind.WindWave`/`WindCatch`, player snapshot gains `WcTempestT` and `WcTempestCd`, `Msg.WeaponDash` kind 38 (Tempest).
+- 368: the Ninja DPS's Nunchaku (Twin Storm): WeaponId.Nunchaku, FxKind.NunStep and NunCounter, player NunGuard/NunSwats, WeaponDash DashNunGuard (37).
+- 367: the Summoner DPS's Honeybee Staff: `WeaponId.HoneybeeStaff`, `MinionKind.Bee`, `ZoneKind.HoneyPuddle`, bullet kind `Defs.HoneyGlob` (69), `FxKind.BeeSting`/`HoneyHarvest`, `Msg.WeaponDash` kinds 35/36 (`DashHoneyOn`/`Off`); Player snapshot gains `HoneyFill` (float), `HoneyOn` (bool) after `SsLock`
+- 366: the lobby's saved-run block carries `IsHunt` (a Boss Hunt's step-10 checkpoint, so every lobby plays the hunt, not the Campaign); `HuntLong` now defaults true (20 steps only, no switch)
+- 365: the Tank Soldier's Grenade Launcher: WeaponId.GrenadeLauncher, ZoneKind.SmokeShell, player GlMode/GlUsed/GlSmokeUsed/GlShot/GlReload/GlSwap/GlCharge, WeaponDash DashDrum (34).
+- 364: `FxKind.NimbusStrike` and `FxKind.NimbusStorm` appended; `Msg.WeaponDash` kind 33 (`DashStorm`, the Nimbus's Eye of the Storm)
+- 363: lobby state carries `HuntLong` (the 20-step hunt), the run's `HuntLength` follows it; a hunt map's boss clues (up to 5) roll health or damage from the map seed; the hunt map is always on (`HuntMapMode` defaults true); `HuntNodeType.Miniboss` (a node type, only in a 20-step map)
 - 362: `Sfx` is a ushort on the wire (`Msg.Sound`, `Msg.Fx`); 14 unused sounds removed and 22 local-only cues appended (Arc Lightning's included), so every value after `ShotRifle` moved
 - 361: Player.Grasp now carries a float charge (0..1, Leech Tendrils build-up) per held enemy (Leech Tendrils rework: 5 s fuse, burst, cooldown)
 - 360: `Sfx.ShotFireball`, `Sfx.ShotFireballBurn` appended (the Fireball's launch roar and its burn cue)

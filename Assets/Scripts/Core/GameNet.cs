@@ -694,9 +694,22 @@ namespace Arena
             s.Byte(ref p.DbBarrel);
             s.Byte(ref p.DbShot);
             s.Float(ref p.DbReload);
+            s.Byte(ref p.GlMode);  // the Grenade Launcher (GrenadeLauncher.cs)
+            s.Byte(ref p.GlUsed);
+            s.Byte(ref p.GlSmokeUsed);
+            s.Byte(ref p.GlShot);
+            s.Float(ref p.GlReload);
+            s.Float(ref p.GlSwap);
+            s.Float(ref p.GlCharge);
+            s.Float(ref p.WcTempestT);  // Wind Clash's Tempest (WindClash.cs)
+            s.Float(ref p.WcTempestCd);
             s.Short(ref p.SsMask);  // the Stonespear (Stonespear.cs)
             s.Byte(ref p.SsSide);
             s.Int(ref p.SsLock);
+            s.Float(ref p.HoneyFill);  // the Honeybee Staff (HoneybeeStaff.cs)
+            s.Bool(ref p.HoneyOn);
+            s.Bool(ref p.NunGuard);  // the Nunchaku (Nunchaku.cs)
+            s.Byte(ref p.NunSwats);
             int tagged = Math.Min(Game.ArcTagCap, p.ArcTags.Count);  // Arc Lightning's tags (ArcLock.cs)
             s.Byte(ref tagged);
             if (s.Reading)
@@ -998,7 +1011,8 @@ namespace Arena
             if (s.Reading)
                 z = new Zone();
             else
-                z.GuardFrac = z.Kind == ZoneKind.BloodWall ? z.GuardFrac  // a Blood Wall node's place along its wall (BloodWall.cs)
+                z.GuardFrac = z.Kind == ZoneKind.BloodWall || z.Kind == ZoneKind.SmokeShell ? z.GuardFrac  // (a smoke canister's flight distance: GrenadeLauncher.cs)
+                      // a Blood Wall node's place along its wall (BloodWall.cs)
                     : z.Kind == ZoneKind.Smoke ? (z.ExtraSlow > 0f ? 1f : 0f)  // a mastered Smoke Bomb (its slow on enemies), for drawing
                     : z.Kind == ZoneKind.Ward ? (z.SoakMax > 0f ? z.Soak / z.SoakMax : 0f) : z.Def.BlockCapacity > 0f ? z.BlockHp / z.Def.BlockCapacity : 0f;
             int kind = (int)z.Kind;

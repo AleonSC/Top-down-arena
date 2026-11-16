@@ -22,7 +22,7 @@ static partial class Program
         { "safe",   t => t == HuntNodeType.Rest ? 9 : t == HuntNodeType.Shop ? 8 : t == HuntNodeType.Skirmish ? 7 : t == HuntNodeType.Contraband ? 5 : t == HuntNodeType.Gamble ? 3 : t == HuntNodeType.Ambush ? 2 : 0 },
         { "elite",  t => t == HuntNodeType.Elite ? 9 : t == HuntNodeType.Contraband ? 8 : t == HuntNodeType.Ambush ? 7 : t == HuntNodeType.Gamble ? 6 : t == HuntNodeType.Skirmish ? 3 : 0 },
         { "random", null },
-        { "plain",  null },   // (no map at all: the ten waves in order, for comparison)
+        { "plain",  null },   // (no map at all: the ten waves in order, for comparison; every other route is the 20-step hunt map)
     };
 
     // Each fighting wave by its node type, over every run of the report: length, damage taken (% of max HP, averaged over the duo) and downs.
@@ -41,6 +41,7 @@ static partial class Program
         host.Host(port, "A", Role.Tank, 0);
         host.SetMode(GameMode.Hunt);
         host.SetHuntMapMode(policy != "plain");
+        host.SetHuntLong(policy != "plain");
         host.Game.HuntMapSeed = seed;
         var c = new Session(); c.Game.Bot = true; c.Game.BotLevel = skill; c.Game.BotRerolls = false;
         c.Game.ProfileOverride = new Profile();

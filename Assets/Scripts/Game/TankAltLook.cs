@@ -20,10 +20,12 @@ namespace Arena
             if (p.Id == game.MyId)
             {
                 float cd = p.Weapon.Id == WeaponId.FlakCannon ? game.MineLocalCd / Game.MineCd : p.Weapon.Id == WeaponId.RiotRepeater ? game.GasLocalCd / Game.TearGasCd
-                    : p.Weapon.Id == WeaponId.BoneGuard ? game.BoneWallLocalCd / Game.BoneWallCd : 0f;  // (the Bone Guard's Ossuary Wall: BoneGuard.cs)
+                    : p.Weapon.Id == WeaponId.BoneGuard ? game.BoneWallLocalCd / Game.BoneWallCd
+                    : p.Weapon.Id == WeaponId.Nimbus ? game.StormLocalCd / Game.NimbusStormCd
+                    : p.Weapon.Id == WeaponId.WindClash ? game.TempestLocalCd / Game.TempestCd : 0f;  // (Wind Clash's Tempest: WindClash.cs)  // (the Nimbus's Eye of the Storm: Nimbus.cs)  // (the Bone Guard's Ossuary Wall: BoneGuard.cs)
                 if (cd > 0f)
                 {
-                    Rgba col = p.Weapon.Id == WeaponId.FlakCannon ? MineAmber : p.Weapon.Id == WeaponId.BoneGuard ? Defs.BulletColor(Defs.BoneShot) : GasPale;
+                    Rgba col = p.Weapon.Id == WeaponId.FlakCannon ? MineAmber : p.Weapon.Id == WeaponId.BoneGuard ? Defs.BulletColor(Defs.BoneShot) : p.Weapon.Id == WeaponId.Nimbus ? Game.NimbusBoltColor : p.Weapon.Id == WeaponId.WindClash ? Game.WcColor : GasPale;
                     Arc(p.Disp, p.Def.BodyR + 7f, 2f, new Rgba(1f, 1f, 1f, 0.1f), 28);
                     Arc(p.Disp, p.Def.BodyR + 7f, 2f, col.WithAlpha(0.6f), 28, -MathX.Pi / 2f, MathX.Tau * (1f - cd));
                 }

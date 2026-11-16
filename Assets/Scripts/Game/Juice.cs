@@ -176,6 +176,7 @@ namespace Arena
             ClearShockwaveLook();  // ShockwaveLook.cs
             ClearSentryNovaLook();  // SentryNovaLook.cs
             ClearTankGunLooks();  // TankGunLooks.cs
+            ClearGrenadeLauncherLooks();  // GrenadeLauncherLook.cs
             ClearTankAltLooks();  // TankAltFx.cs
             ClearDpsGunLooks();  // DpsGunLooks.cs
             ClearAirTrails();  // AirTrailLooks.cs
@@ -369,6 +370,8 @@ namespace Arena
                     DoubleBarrelFeel(fx);  // TankAltFx.cs
                 if (fx.Kind == FxKind.StoneSlam && fx.Pos2.X >= 1f && me != null && fx.Pos.DistanceTo(me.Pos) < 500f)
                     Shake(0.3f);  // a Stonespear slam shakes the ground near you
+                if (fx.Kind == FxKind.HoneyHarvest && me != null && (int)fx.Pos2.X == me.Id)
+                    Shake(0.2f);  // your harvest bursting
                 KnightDpsFeel(fx, me);  // the DPS Knight's cut, impact and executions (KnightDpsLook.cs)
                 if (fx.Kind == FxKind.TwinHit && (int)fx.Pos2.X == game.MyId)
                     TwinHitFeel((int)fx.Pos2.Y, (int)fx.Radius);  // your own Twin Blades cut something (below)
@@ -445,7 +448,9 @@ namespace Arena
                 if (IsGrenadeBoom(fx))
                     FragBurst(fx);  // a grenade's shards and smoke (SoldierLooks.cs)
                 else if (IsFlakBoom(fx))
-                    FlakBurstParts(fx);  // a Flak airburst's shrapnel and smoke (TankGunLooks.cs)
+                    FlakBurstParts(fx);
+                else if (IsGlBoom(fx))
+                    GlBlastParts(fx);  // the Grenade Launcher's fireballs, smoke, debris and scorch (GrenadeLauncherLook.cs)  // a Flak airburst's shrapnel and smoke (TankGunLooks.cs)
                 else if (!IsLeapBoom(fx))  // (the Leap Slam's landing draws its own: LeapSlamLook.cs)
                     Sparks(fx.Pos, fx.Color, Mathf.Clamp((int)(fx.Radius / 4f), 4, 40), 160f + fx.Radius * 2f, 0.5f, 2.4f);
                 if (fx.Radius >= 80f)
@@ -582,7 +587,7 @@ namespace Arena
                         AddPart(new Part { Kind = PSpark, Pos = b.Pos, Vel = b.Vel.Normalized() * 120f, Life = 0.08f, Max = 0.08f, Size = 4.5f, Col = new Rgba(0.85f, 0.92f, 1f) });
                     }
                 }
-                else if (b.Kind == Defs.Caltrop || b.Vel.Length <= 450f)
+                else if (b.Kind == Defs.Caltrop || b.Kind == Defs.GrenadeShot || b.Vel.Length <= 450f)
                     s.N = 0;  // slow (or a caltrop, which draws its own streak, KatanaLook.cs): no trail, and none left behind to stretch back to later
                 else
                 {
@@ -640,6 +645,7 @@ namespace Arena
 
             UpdateBowLooks();    // GunBowLooks.cs: the string snapping and the ring of light on a release
             UpdateTankGunLooks();  // TankGunLooks.cs: a pumped Scattergun's shell dropping out
+            UpdateGrenadeLauncherLooks(dt);  // GrenadeLauncherLook.cs: shots, the drum swap and reload, trails, the smoke
             UpdateTankAltLooks(dt);  // TankAltFx.cs: the Tank Soldier's Alt fires
             UpdateDpsGunLooks(dt);  // DpsGunLooks.cs: the SMG's barrels turning, a fired Railgun's steam
             UpdateOrbs();        // Ambience.cs: orb trails, pickup pulses
@@ -1002,6 +1008,9 @@ namespace Arena
                     case PBrass: case PStreak: case PPool:  // the Twin Rifle's bouncing brass, first-frame streak, light on the floor (TwinRifleFx.cs)
                         DrawTwinPart(p, f);
                         break;
+                    case PGlFire: case PGlPuff:  // the Grenade Launcher's fireballs and smoke-shell puffs (GrenadeLauncherLook.cs)
+                        DrawGlPart(p, f);
+                        break;
                     case PTumble:  // a ricochet spinning off: a short bar that turns as it flies
                     {
                         V2 d = V2.FromAngle(p.Rot) * (p.Size * 1.6f);
@@ -1026,7 +1035,7 @@ namespace Arena
             {
                 var p = parts[i];
                 float f = p.Life / p.Max;
-                if (p.Kind == PDust || p.Kind == PBrass)
+                if (p.Kind == PDust || p.Kind == PBrass || p.Kind == PGlPuff)
                     continue;
                 if (p.Kind == PPool || p.Kind == PStreak)
                 {
@@ -1052,7 +1061,10 @@ namespace Arena
                 if (fx.Kind == FxKind.Boom && !HammerBoomDrawnByMelee(fx) && !IsLeapBoom(fx))
                 {
                     float f = fx.Dur > 0f ? Mathf.Clamp01(fx.T / fx.Dur) : 1f;
-                    GlowDisc(fx.Pos, fx.Radius * (1f + f), IsGrenadeBoom(fx) || IsFlakBoom(fx) ? FragOrange : fx.Color, 0.55f * (1f - f));
+                    if (IsGlBoom(fx))
+                        GlowDisc(fx.Pos, fx.Radius * 0.8f * (1f + f), FragOrange, 0.28f * (1f - f));  // softer: its fireballs carry the light (GrenadeLauncherLook.cs)
+                    else
+                        GlowDisc(fx.Pos, fx.Radius * (1f + f), IsGrenadeBoom(fx) || IsFlakBoom(fx) ? FragOrange : fx.Color, 0.55f * (1f - f));
                 }
             DrawWeatherGlow();  // Ambience.cs
             DrawHammerGlow();   // the Storm Hammer: slam flash, ring, throw release (StormHammerLook.cs)
@@ -1063,6 +1075,7 @@ namespace Arena
             DrawChainLightGlow();  // Chain Light's radiance (ChainLightLooks.cs)
             DrawRadiantStardust();  // the Radiant Orb's trail (RadiantOrbLooks.cs)
             DrawArcLightningGlow();  // Arc Lightning's lock-on chain (ArcLockLook.cs)
+            DrawWindClashGlow();  // Wind Clash's waves and Tempest (WindClashLook.cs)
             DrawRodGlow();    // Lightning Rod's charge and bolts (LightningRodLook.cs)
             DrawLightGlow();  // the Lightbringer's Sundial, Sunrise crescents, Spear, ward plates and marks (LightbringerFxLook.cs)
             foreach (var e in game.Enemies.Values)
@@ -1281,6 +1294,7 @@ namespace Arena
         {
             if (!Juicy)
                 return;
+            DrawGlHud();  // the Grenade Launcher's drum names, dry clicks and SLOWED tags (GrenadeLauncherLook.cs)
             foreach (var n in numbers)
             {
                 float f = n.T / NumberLife, pop = Mathf.Min(1f, n.T * 12f);

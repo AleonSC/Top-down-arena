@@ -115,11 +115,17 @@ namespace Arena
                 if (p.Weapon.Id == WeaponId.OutOfAmmo)
                     DrawAmmoSmears(p, t);  // OutOfAmmoLook.cs
             foreach (var p in game.Players.Values)
-                if (p.Weapon.Id == WeaponId.Scattergun || p.Weapon.Id == WeaponId.FlakCannon || p.Weapon.Id == WeaponId.RiotRepeater || p.Weapon.Id == WeaponId.BoneGuard)
+                if (p.Weapon.Id == WeaponId.Scattergun || p.Weapon.Id == WeaponId.FlakCannon || p.Weapon.Id == WeaponId.RiotRepeater || p.Weapon.Id == WeaponId.BoneGuard || p.Weapon.Id == WeaponId.Nimbus)
                     DrawTankAltPips(p);  // TankAltLook.cs
+            foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.GrenadeLauncher)
+                    DrawGlPips(p);  // GrenadeLauncherLook.cs
             foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.WolfWhistle)
                     DrawPackPips(p);  // WolfLook.cs
+            foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.HoneybeeStaff)
+                    DrawHoneyMeter(p);  // HoneybeeLook.cs
             foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.LightBolt)
                 {
@@ -259,6 +265,7 @@ namespace Arena
             DrawPennedMarks(t);  // enemies a chalk loop holds (ChalkLook.cs)
             DrawSprayOver(t);  // Arterial Spray's soaked enemies and drops in flight (ArterialSprayLook.cs)
             DrawBloodbathOver(t);  // enemies wading in a Bloodbath: tinted, bleeding drops (BloodbathLook.cs)
+            DrawGlSmokeOver(t);  // the Grenade Launcher's clouds over the enemies, jammed ones greyed (GrenadeLauncherLook.cs)
             DrawWardenOver(t);  // the Warden blinded or stunned (WardenLook.cs)
             DrawWardenIntro(t);  // the Warden's entrance: its Lockdown cell (WardenIntro.cs)
             DrawVeinBeams(t);  // BloodMageLook.cs
@@ -289,6 +296,7 @@ namespace Arena
                 DrawMeleeHeldIdle(p);  // the Kusarigama and Blood Lash held at the ready (MeleeLooks.cs)
                 DrawTwinIdle(p, t);  // the Twin Blades' sabres held at the ready (TwinBladesLook.cs)
                 DrawKnuckleIdle(p, t);  // the Arc Knuckles up in a guard (ArcKnucklesLook.cs)
+                DrawNunIdle(p, t);  // the Nunchaku tucked, swung or spinning its guard (NunchakuLook.cs)
                 DrawKnucklePrompt(p, t);  // the Arc Knuckles' dash chain: Fire now (ArcKnucklesLook.cs)
                 DrawKnuckleLock(p, t);  // the Arc Knuckles' lock-on reticle (ArcKnucklesLook.cs)
                 DrawLightIdle(p, t);  // the Lightbringer held at the ready (LightbringerLook.cs)
@@ -332,6 +340,7 @@ namespace Arena
             DrawBuffTimers(p, t);  // a shrinking arc under them for each timed buff (AbilityLooks.cs)
             DrawRodAura(p, t);     // Lightning Rod's charge (LightningRodLook.cs)
             DrawStonespearUnder(p, t);  // the hovering spears' shadows (StonespearLook.cs)
+            DrawTempest(p, t);  // Wind Clash's Tempest (WindClashLook.cs)
             if (p.CoatT > 0f)
                 DrawHealingCoat(p, t);  // a Sanguine Orb's healing blood (BloodMageLook.cs)
             if (p.DoseT > 0f)  // dosed by Medicine Darts: green motes rising off you while it heals
@@ -612,6 +621,7 @@ namespace Arena
             DrawPlayer(p, t);
             if (!p.Downed)
                 DrawStonespears(p, t);  // the hovering spears (StonespearLook.cs)
+            DrawHoneySpray(p, t);  // the Honeybee Staff's spray (HoneybeeLook.cs)
             if (game.IsHunted(p) && !p.Downed)
                 DrawHuntedMark(p.Disp, p.Def.BodyR, t);  // ModifiersUi.cs
             if (game.Walled)

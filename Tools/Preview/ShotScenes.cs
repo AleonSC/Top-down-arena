@@ -71,13 +71,21 @@ static partial class Shot {
       host.Game.Effects.Add(new Effect { Kind = FxKind.RootLash, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * 250f, Color = new Rgba(0.55f, 0.36f, 0.17f), Radius = Game.RootHalfWidth, Dur = Game.RootFxTime, T = age });
     }
     if (Environment.GetEnvironmentVariable("NIMBUS") != null) {
-      // The Nimbus: its cloud over your cursor (200 px out), rain under it, and a strike NIMBUS=<seconds> ago.
+      // The Nimbus: its cloud over your cursor (200 px out), rain under it, and a strike NIMBUS=<seconds> ago (-1: none).
       me.Weapon = Defs.Weapon(Role.Healer, Kit.Elementalist, 2); me.Kit = Kit.Elementalist; host.Game.Bot = false;
       me.Pos = me.Disp = new V2(450f, 450f);
       V2 cursor = new V2(700f, 360f);
       for (int i = 0; i < 200; i++) { me.Pos = me.Disp = new V2(450f, 450f); host.Poll(); host.Game.FixedStep(1f/60f, new PlayerInput { AimAt = cursor }); host.Game.Update(1f/60f); }
       float age = float.Parse(Environment.GetEnvironmentVariable("NIMBUS"), System.Globalization.CultureInfo.InvariantCulture);
-      host.Game.Effects.Add(new Effect { Kind = FxKind.Strike, Pos = cursor, Pos2 = cursor, Color = new Rgba(0.78f, 0.86f, 1f), Radius = Game.NimbusBlast, Dur = Game.StrikeFxTime, T = age });
+      if (age >= 0f) host.Game.Effects.Add(new Effect { Kind = FxKind.NimbusStrike, Pos = cursor, Pos2 = cursor, Color = Game.NimbusBoltColor, Radius = Game.NimbusBlast, Dur = Game.NimbusStrikeFxTime, T = age });
+      // NIMBUSSTORM=<s>: the Eye of the Storm that long in (a few enemies caught in it, one just bolted).
+      if (Environment.GetEnvironmentVariable("NIMBUSSTORM") != null) {
+        float st = float.Parse(Environment.GetEnvironmentVariable("NIMBUSSTORM"), System.Globalization.CultureInfo.InvariantCulture);
+        Minion cloud = null; foreach (var mm in host.Game.Minions.Values) if (mm.Kind == MinionKind.Nimbus) cloud = mm;
+        host.Game.Effects.Add(new Effect { Kind = FxKind.NimbusStorm, Pos = cloud.Pos, Pos2 = new V2(cloud.Id, me.Id), Color = Game.NimbusBoltColor, Radius = Game.NimbusStormRadius, Dur = Game.NimbusStormTime, T = st });
+        if (Environment.GetEnvironmentVariable("NIMBUSBOLT") != null)
+          host.Game.Effects.Add(new Effect { Kind = FxKind.Bolt, Pos = cloud.Pos + new V2(-30f, -40f), Pos2 = cloud.Pos + new V2(70f, 10f), Color = Game.NimbusBoltColor, Dur = 0.2f, T = 0.02f });
+      }
     }
     if (Environment.GetEnvironmentVariable("CHALK") != null) {
       // Spirit Chalk: a loop drawn round some enemies (they're held where they stand), and a line trailing off it.
@@ -802,6 +810,69 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // GRENADE=<s>: the Tank Soldier's Grenade Launcher (Core/GrenadeLauncher.cs, Game/GrenadeLauncherLook.cs) that long into a fight: a pack of
+    // grunts and a brute GLAT px ahead (default 250), fire held (HE; the drum empties at 2.5 s and reloads). GLSMOKE=1: Alt at 0.1 s (the smoke drum),
+    // then fire held from 0.75 s (three canisters); GLSWAP=1: Alt at 0.1 s and nothing else; GLIDLE=1: not firing; GLONE=1: one shot only.
+    if (Environment.GetEnvironmentVariable("GRENADE") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear(); gm.Zones.Clear();
+      me.Role = Role.Tank; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Tank); me.Weapon = Defs.Weapon(Role.Tank, Kit.Soldier, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      V2 home = new V2(420f, 330f); me.Pos = me.Disp = home; me.Aim = 0f;
+      float far = float.Parse(Environment.GetEnvironmentVariable("GLAT") ?? "250", ci);
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      var spots = new[] { new V2(far - 30f, -40f), new V2(far + 25f, -30f), new V2(far - 10f, 30f), new V2(far + 45f, 40f), new V2(far + 130f, -10f) };
+      for (int i = 0; i < spots.Length; i++) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { i == 4 ? EnemyType.Brute : EnemyType.Grunt, home + spots[i], 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      bool smoke = Environment.GetEnvironmentVariable("GLSMOKE") != null, swap = Environment.GetEnvironmentVariable("GLSWAP") != null, idle = Environment.GetEnvironmentVariable("GLIDLE") != null;
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(2, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("GRENADE"), ci) * 60f));
+      var keep = new V2[foes.Count];
+      for (int i = 0; i < foes.Count; i++) keep[i] = foes[i].Pos;
+      for (int f = 0; f < frames; f++) {
+        me.Pos = me.Disp = home; me.Aim = 0f; for (int i = 0; i < foes.Count; i++) foes[i].Pos = foes[i].Disp = keep[i]; Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        bool fire = !idle && !swap && (!smoke || f >= 54) && (Environment.GetEnvironmentVariable("GLONE") == null || f < (smoke ? 57 : 3));
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = home + new V2(far, 0f), Fire = fire, WeaponAction = (smoke || swap) && f >= 18 && f < 21 });
+        me.Disp = me.Pos = home; me.Aim = 0f; me.Flash = 0f; for (int i = 0; i < foes.Count; i++) foes[i].Disp = foes[i].Pos = keep[i]; draw.Invoke(app, null);
+      }
+      me.Flash = 0f; me.Hp = me.MaxHp;
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
+    // HONEYBEE=<s>: the Summoner DPS's Honeybee Staff (Core/HoneybeeStaff.cs, Game/HoneybeeLook.cs) that long into a scripted loop: clicks
+    // by the left dummy at 0, 0.4 and 0.8 s (they swarm it), Alt held 1.0-1.9 s at the right pack (honey puddles), then a click at 2.0 s on
+    // the weak dummy standing in the honey (it dies there at about 2.5 s: the harvest's two bees fly at the others).
+    if (Environment.GetEnvironmentVariable("HONEYBEE") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear(); gm.Zones.Clear();
+      me.Role = Role.Dps; me.Kit = Kit.Summoner; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Summoner, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      me.HoneyFill = Game.HoneyMax;
+      V2 home = new V2(380f, 360f); me.Pos = me.Disp = home; me.Aim = 0f;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      foreach (var at0 in new[] { new V2(-150f, -170f), new V2(170f, -140f), new V2(215f, -95f), new V2(130f, -80f), new V2(250f, -170f) }) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      foes[3].MaxHp = foes[3].Hp = 12f;  // the weak one, in the honey
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("HONEYBEE"), ci) * 60f));
+      for (int f = 0; f < frames; f++) {
+        float tt = f / 60f;
+        V2 cursor = tt < 0.95f ? foes[0].Pos + new V2(20f, 50f) : tt < 1.95f ? home + new V2(180f, -120f) : foes[3].Pos + new V2(-30f, 10f);
+        bool fire = (tt < 2f / 60f) || (tt >= 0.4f && tt < 0.4f + 2f / 60f) || (tt >= 0.8f && tt < 0.8f + 2f / 60f) || (tt >= 2.0f && tt < 2.0f + 2f / 60f);
+        bool alt = tt >= 1.0f && tt < 1.9f;
+        foreach (var e in foes) { e.Disp = e.Pos; e.FireT = 99f; }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        if (fire) me.FireCd = 0f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = fire, WeaponAction = alt });
+        gm.Update(1f / 60f);
+        me.Pos = home;
+        me.Disp = me.Pos; me.Aim = (cursor - me.Pos).Angle; me.AimAt = cursor; foreach (var e in gm.Enemies.Values) e.Disp = e.Pos;
+        foreach (var m in gm.Minions.Values) m.Disp = m.Pos;
+        draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // STONESPEAR=<s>: the Elementalist DPS's Stonespear (Core/Stonespear.cs, Game/StonespearLook.cs) that long into the mockup's loop: Fire at 0 (the
     // slam), single throws at 1.3 s and 1.85 s, Alt at 2.6 s (the volley at the dummy nearest the cursor). SSMOVE=1: you walk down the whole time
     // (the hovering spears trail behind you); SSTECT=1: with Tectonic (four a side).
@@ -829,6 +900,66 @@ static partial class Shot {
         gm.Update(1f / 60f);  // the effects' clocks and AnimT (the spears ease by it)
         if (!move) me.Pos = home;
         me.Disp = me.Pos; me.Aim = (cursor - me.Pos).Angle; me.AimAt = cursor; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
+    // NUNCHAKU=<s>: the Ninja DPS's Nunchaku, Twin Storm (Core/Nunchaku.cs, Game/NunchakuLook.cs) that long into the mockup's loop: Fire held
+    // from 0 to 1.85 s (Snap, Backhand, Double Figure-8, Twin Crush), Alt at 2.1 s (the Twin Windmill guard; small shots fly in from
+    // the right from 2.2 s and are swatted), Fire at 3.7 s (the Twin Counter), Alt again at 4.5 s.
+    if (Environment.GetEnvironmentVariable("NUNCHAKU") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Dps; me.Kit = Kit.Ninja; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Ninja, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      V2 home = new V2(380f, 300f); me.Pos = me.Disp = home; me.Aim = 0f; me.NunGuard = false; me.NunSwats = 0; me.Combo = 0;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var shoot = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      foreach (var at0 in new[] { new V2(78f, -34f), new V2(92f, 6f), new V2(74f, 42f), new V2(170f, -10f) }) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      float[] ys = { -8f, 14f, -22f, 4f, 24f, -14f, 10f, -28f, 18f, -4f };
+      int shot = 0;
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("NUNCHAKU"), ci) * 60f));
+      for (int f = 0; f < frames; f++) {
+        float tt = f / 60f;
+        V2 cursor = home + new V2(200f, 0f);
+        bool fire = tt < 1.85f || (tt >= 3.7f && tt < 3.7f + 2f / 60f);
+        bool alt = (tt >= 2.1f && tt < 2.1f + 3f / 60f) || (tt >= 4.5f && tt < 4.5f + 3f / 60f);
+        if (tt >= 2.2f && tt < 3.5f && f % 9 == 0) {
+          V2 from = home + new V2(420f, ys[shot++ % ys.Length] * 1.3f);
+          shoot.Invoke(gm, new object[] { Defs.SmallShot, from, (home - from).Normalized() * 320f, 0f, 3f, 5f, 0, false, 0f });
+        }
+        foreach (var e in foes) { e.Disp = e.Pos; e.FireT = 99f; }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f; Time.deltaTime = 1f / 60f; Time.time += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = fire, WeaponAction = alt });
+        gm.Update(1f / 60f);
+        me.Pos = home; me.Hp = me.MaxHp;
+        me.Disp = me.Pos; me.Aim = (cursor - me.Pos).Angle; me.AimAt = cursor; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
+    // WINDCLASH=<s>: the Tank Elementalist's Wind Clash (Core/WindClash.cs, Game/WindClashLook.cs) that long into the combo, Fire held from 0:
+    // crescent at 0, back crescent at 0.34 s, gale lance at 0.68 s, clash ring at 1.12 s. WCALT=1: Alt (Tempest) at 0 instead, the
+    // enemies shooting at you (their shots are caught and spin round you).
+    if (Environment.GetEnvironmentVariable("WINDCLASH") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Tank; me.Kit = Kit.Elementalist; me.Def = Defs.Get(Role.Tank); me.Weapon = Defs.Weapon(Role.Tank, Kit.Elementalist, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      bool alt = Environment.GetEnvironmentVariable("WCALT") != null;
+      V2 home = new V2(500f, 420f); me.Pos = me.Disp = home; me.Aim = 0f;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      var spots = alt ? new[] { new V2(200f, -60f), new V2(-180f, 90f), new V2(60f, 210f), new V2(-90f, -200f), new V2(230f, 120f) }
+                      : new[] { new V2(120f, -50f), new V2(150f, 40f), new V2(240f, 10f), new V2(70f, 75f), new V2(-60f, -70f) };
+      foreach (var at0 in spots) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = 0f; e.FireT = alt ? 0.1f : 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("WINDCLASH"), ci) * 60f));
+      V2 cursor = home + new V2(300f, 0f);
+      for (int f = 0; f < frames; f++) {
+        foreach (var e in foes) { e.Disp = e.Pos; if (!alt) e.FireT = 99f; }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = !alt, WeaponAction = alt && f < 3 });
+        gm.Update(1f / 60f);
+        me.Pos = home; me.Disp = me.Pos; me.Aim = 0f; me.AimAt = cursor; me.Hp = me.MaxHp; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
       }
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
