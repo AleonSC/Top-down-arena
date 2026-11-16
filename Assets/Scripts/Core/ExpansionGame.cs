@@ -551,7 +551,7 @@ namespace Arena
             expWorld = null;
             botVoteT = 0f;
             botProposed = false;
-            expandSeed = new Random().Next(1, 1 << 30);  // (not the game's rng: asking it would shift every other random choice of the run)
+            expandSeed = sideRng.Next(1, 1 << 30);  // (not the game's rng: asking it would shift every other random choice of the run; Game.cs)
         }
 
         // --- The building round -------------------------------------------------------------------------------------

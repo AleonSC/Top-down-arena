@@ -112,7 +112,7 @@ namespace Arena
 
         readonly Dictionary<int, int> duelBoss = new Dictionary<int, int>();  // host: area -> its mini-boss's id
         readonly Dictionary<int, float> duelOrbT = new Dictionary<int, float>();  // host: area -> time to its next health orbs
-        readonly Random duelOrbRng = new Random();  // its own rolls, so the orbs don't change the game's other random choices (or seeded tests)
+        readonly Random duelOrbRng = NewSideRandom();  // its own rolls (Game.cs), so the orbs don't change the game's other random choices (or seeded tests)
 
         /// Seconds between a duel's health orbs.
         public const float DuelOrbEvery = 10f;

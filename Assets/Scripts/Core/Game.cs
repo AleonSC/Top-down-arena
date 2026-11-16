@@ -27,10 +27,30 @@ namespace Arena
         // Tests (Tools/SimTest) can make every game's random rolls repeatable: SeedForTests gives each game
         // made after it a seed drawn from one sequence. The real game never calls it, so it stays random.
         static Random testSeeds;
+        static int sideRoot, sideCount;
 
-        public static void SeedForTests(int seed) => testSeeds = new Random(seed);
+        public static void SeedForTests(int seed)
+        {
+            testSeeds = new Random(seed);
+            sideRoot = seed;
+            sideCount = 0;
+        }
 
         static Random NewRng() => testSeeds != null ? new Random(testSeeds.Next()) : new Random();
+
+        /// A Random for rolls kept off a game's rng (asking that would shift every other random choice of the run):
+        /// the Expanding map's seed, the Warden's orbs, the party bots' picks. Fresh in the real game; under
+        /// SeedForTests the n-th one made is the same every run, from its own sequence so no game's seed moves.
+        public static Random NewSideRandom()
+        {
+            if (testSeeds == null)
+                return new Random();
+            uint h = (uint)sideRoot * 2654435761u ^ (uint)(++sideCount) * 40503u;
+            h ^= h >> 15; h *= 2246822519u; h ^= h >> 13;
+            return new Random((int)(h & 0x7fffffff));
+        }
+
+        readonly Random sideRng = NewSideRandom();  // this game's side rolls (NewSideRandom)
 
         public bool Running;
         public MatchState State = MatchState.Idle;
@@ -150,7 +170,7 @@ namespace Arena
             w.Write(quick);
             if (quick)
             {
-                var order = QuickPlay.OrderOverride ?? QuickPlay.MakeOrder(new Random(), Profile == null || Profile.QuickPlays == 0);
+                var order = QuickPlay.OrderOverride ?? QuickPlay.MakeOrder(sideRng, Profile == null || Profile.QuickPlays == 0);
                 w.Write((byte)order.Length);
                 foreach (var b in order)
                     w.Write((byte)b);

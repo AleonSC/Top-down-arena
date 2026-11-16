@@ -133,7 +133,7 @@ static partial class Program
         var shopF = Expansion.FloatingFor(7, 0, none, RoomKind.Shop);
         Check(shopF.HasValue && shopF.Value.Floating && shopF.Value.Kind == RoomKind.Shop && Expansion.FloatingFor(7, 0, none, RoomKind.Shop).Value.Equals(shopF.Value)
             && !Expansion.FloatingFor(7, 1, none, RoomKind.Shop).Value.Equals(shopF.Value), "a floating room is the same for the same seed and cycle, and another one for the next cycle");
-        int badFloat = 0, floatsMade = 0;
+        int badFloat = 0, floatsMade = 0, cutOff = 0;
         for (int seed = 1; seed <= 80; seed++)
         {
             var map = new List<ExpansionRoom>();
@@ -148,6 +148,8 @@ static partial class Program
                     if (!clear) badFloat++;
                 }
                 map.Add(f);
+                for (int i = 0; i < map.Count; i++)
+                    if (!Expansion.ConnectorFor(map, i).HasValue) cutOff++;
                 var all = Expansion.Build(map);
                 if (all.Max.X - all.Min.X > Expansion.MaxWidth || all.Max.Y - all.Min.Y > Expansion.MaxHeight) badFloat++;
             }
@@ -155,6 +157,7 @@ static partial class Program
             if (Expansion.Build(map).Doors.Length != 0 || Expansion.BoughtCount(map) != 0) badFloat++;
         }
         Check(badFloat == 0 && floatsMade > 250, "floating rooms are 2 tiles clear of every room, inside the size cap, and sealed: no doors, none counted as bought (" + floatsMade + " made, " + badFloat + " bad)");
+        Check(cutOff == 0, "a floating room never takes the only spot a box to an earlier one fits (" + cutOff + " cut off)");
         var floater = new ExpansionRoom { X = 500, Y = -1200, W = 600, H = 400, Kind = RoomKind.Shop, Floating = true };
         var withFloater = new List<ExpansionRoom> { floater };
         int fp, fl2; string fwhy;
@@ -713,7 +716,7 @@ static partial class Program
         for (int i = 0; i < 4; i++) spawnEnemyAt.Invoke(g, new object[] { EnemyType.Grunt, shopAt + new V2(30f * i, 0f), 0f, 0, false });
         Quiet();
         Run(s, dt, 0.5f);
-        int coinGold = g.Coins.Values.Sum(c => c.Value);
+        int coinGold = g.Coins.Values.Where(c => !c.Vec).Sum(c => c.Value);  // (a rare vector pickup among them adds vectors, not gold)
         Check(g.Coins.Count > 0 && cg.Coins.Count == g.Coins.Count && g.Players.Values.All(p => p.Gold == 0), "kills drop coins that stay on the ground, on both screens, until someone walks over them (" + g.Coins.Count + "/" + cg.Coins.Count + " coins, " + g.Players[1].Gold + "/" + g.Players[2].Gold + " held, " + coinGold + " gold)");
         PutBoth(hubAt, shopAt + new V2(45f, 0f));
         Run(s, dt, 2f, () => g.Coins.Count == 0);
@@ -744,7 +747,9 @@ static partial class Program
         vp.Vectors = vpWas;
         PutBoth(hubAt, hubAt);
         Quiet();
+        for (int k = 0; k < 5 && g.Enemies.Count > 0; k++) { Run(s, dt, 0.2f); Quiet(); }  // (what Quiet killed may leave something behind: a Splitter's Shards)
         Run(s, dt, 30f, () => g.State == MatchState.Intermission, NoPicks);
+        Run(s, dt, 1f, () => cg.Players[1].Vectors == g.Players[1].Vectors, NoPicks);  // (the wave's vectors reach the client with the next snapshot)
         Check(g.State == MatchState.Intermission && g.ShopOpen && cg.ShopOpen, "the wave after a boss ends with the shop open, on both screens");
         Check(g.Players.Values.All(p => p.Shelf.Any(u => u >= 0)), "everyone has a shelf");
         Check(g.Players.Values.All(p => p.Vectors >= Game.VectorStart + Game.VectorWaveGain) && cg.Players[1].Vectors == g.Players[1].Vectors, "a cleared wave gives everyone " + Game.VectorWaveGain + " vectors, and the client sees them (" + g.Players[1].Vectors + ")");
@@ -1156,9 +1161,21 @@ static partial class Program
         float warn = Breaches.WarnTime(hb.Length);
         Check(warned && clientWarned && earliest >= warn - 0.2f, "the breach warning plays on both screens and nothing comes in until it's over (" + warn.ToString("0.0") + " s, first at " + earliest.ToString("0.00") + " s)");
         Check(!g.BreachWarnOn && !cg.BreachWarnOn, "and it ends");
+        // The flood on the same rolled wave (a fresh roll of the wave would be another random size to compare with).
         typeof(Game).GetMethod("BuildWave", flags).Invoke(g, new object[] { g.Wave });
+        var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(g);
+        var squads = (List<SquadDef>)typeof(Game).GetField("squadQueue", flags).GetValue(g);
         int plain = (int)typeof(Game).GetMethod("QueuedUnits", flags).Invoke(g, null);
-        Check(startUnits >= plain * (Breaches.Flood - 0.7f), "a breach wave brings " + Breaches.Flood + "x the enemies (" + startUnits + " vs " + plain + " for the plain wave)");
+        int plainBosses = queue.Count(t => Defs.Get(t).IsBoss);
+        var plainSingles = queue.Where(t => !Defs.Get(t).IsBoss).GroupBy(t => t).ToDictionary(x => x.Key, x => x.Count());
+        var plainSquads = squads.ToList();
+        typeof(Game).GetMethod("FloodBreachWave", flags).Invoke(g, null);
+        int flooded = (int)typeof(Game).GetMethod("QueuedUnits", flags).Invoke(g, null);
+        bool tripled = queue.Count(t => Defs.Get(t).IsBoss) == plainBosses
+            && queue.Where(t => !Defs.Get(t).IsBoss).GroupBy(t => t).All(x => plainSingles.ContainsKey(x.Key) && x.Count() == plainSingles[x.Key] * Breaches.Flood)
+            && plainSquads.All(q => squads.Count(o => o == q) == Breaches.Flood * plainSquads.Count(o => o == q));
+        Check(plain > 0 && tripled && flooded == (plain - plainBosses) * Breaches.Flood + plainBosses && startUnits > 0,
+            "a breach wave brings " + Breaches.Flood + "x the enemies, no extra bosses (" + flooded + " vs " + plain + " for the plain wave; this one started with " + startUnits + ")");
     }
 
     // Shutter gates (Docs/RoomBuilding2.md step 3): a gate on a door, voted, synced; G shuts it for everyone for 8 s, then it recharges.
