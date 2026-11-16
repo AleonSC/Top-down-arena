@@ -517,6 +517,7 @@ namespace Arena
         public bool Burning, Chilled, Frozen, Bleeding;  // replicated, for drawing (Chilled = slowed but not frozen)
         public float WetT, WetArcCd;        // Tsunami: wet (slowed, and lightning arcs to it), and the pause before it can be arced again (host)
         public bool Wet;                    // replicated, for the drips (Game/TsunamiLook.cs)
+        public float WetLeft, WetPeak;      // wet seconds left (replicated, in tenths) and the most seen since it began: the effect bar's fill (Game/EffectBar.cs)
         public float FrozenT;               // Glacial Tomb: can't move or shoot (host)
         public float IceT, IceMult = 1f;    // Blood Freeze: seconds left of its ice, and the damage multiplier while it lasts (host; BloodFreeze.cs)
         public float GraspT;                // Leech Tendrils: held, can't move or shoot (host)
