@@ -748,15 +748,21 @@ namespace Arena
             if (!aftershock && !charging)
             {
                 // It stays in the floor a moment, is drawn back up, then settles into the held pose (DrawHammerIdle takes over there).
-                float f;
+                float f, sTrack;
                 if (after < 0.15f)
-                    f = 1f;
+                    sTrack = 2f;
                 else if (after < 0.55f)
-                    f = Mathf.Lerp(1f, 0f, EaseOut3((after - 0.15f) / 0.4f));
+                    sTrack = Mathf.Lerp(2f, 1f, EaseOut3((after - 0.15f) / 0.4f));
                 else if (after < HammerReturn)
-                    f = Mathf.Lerp(-1f, -0.3f, EaseOut3((after - 0.55f) / (HammerReturn - 0.55f)));
+                    sTrack = Mathf.Lerp(1f, 0.3f, EaseOut3((after - 0.55f) / (HammerReturn - 0.55f)));
                 else
                     return;
+                f = HammerF(sTrack);
+                if (owner != null)
+                {
+                    hammerS[owner.Id] = sTrack;
+                    hammerSAt[owner.Id] = Time.time;
+                }
                 HammerPose(o, aim, d, f, 1f, false, 0f, true, ArmColor(seen.Owner));
             }
         }
@@ -775,7 +781,24 @@ namespace Arena
             if (!fxOn)
                 return;
             float d = 16f + Game.MeleeReach(p, p.Weapon.Reach) * 0.65f;
-            HammerPose(p.Disp, p.Aim, d, -0.3f - 0.7f * charge, 1f, false, 0f, true, p.Def.Color);
+            HammerPose(p.Disp, p.Aim, d, HammerEase(p, 0.3f + 0.7f * charge), 1f, false, 0f, true, p.Def.Color);
+        }
+
+        // The held hammer's place on one track (2 in the floor, 1 over the shoulder, 0.3 at the ready): the slam's return
+        // and the charge share it, so a click mid-return carries on from where the hammer is instead of jumping.
+        readonly Dictionary<int, float> hammerS = new Dictionary<int, float>(), hammerSAt = new Dictionary<int, float>();
+
+        static float HammerF(float s) => s > 1f ? s - 1f : -s;
+
+        float HammerEase(Player p, float target)
+        {
+            float cur;
+            if (!hammerS.TryGetValue(p.Id, out cur) || Time.time - hammerSAt[p.Id] > 0.5f)
+                cur = target;
+            cur = Mathf.MoveTowards(cur, target, Mathf.Clamp(Time.deltaTime, 0.001f, 0.05f) * 5f);
+            hammerS[p.Id] = cur;
+            hammerSAt[p.Id] = Time.time;
+            return HammerF(cur);
         }
 
         /// The hammer held at the ready (no charge, no slam playing): the same pose a charge starts from and a slam settles back
@@ -785,7 +808,7 @@ namespace Arena
             if (!fxOn || p.Weapon.Id != WeaponId.Warhammer || p.Downed || HammerBusy(p))
                 return;
             float d = 16f + Game.MeleeReach(p, p.Weapon.Reach) * 0.65f;
-            HammerPose(p.Disp, p.Aim, d, -0.3f + 0.03f * Mathf.Sin(t * 2.6f), 1f, false, 0f, true, p.Def.Color);
+            HammerPose(p.Disp, p.Aim, d, HammerEase(p, 0.3f) - 0.03f * Mathf.Sin(t * 2.6f), 1f, false, 0f, true, p.Def.Color);
         }
 
         /// True while the hammer is being drawn by something else: charging, or the swing and its return after a slam.
