@@ -665,9 +665,27 @@ namespace Arena
                 if (!IsSpawning(e) && e.Pos.WithinReach(me.Pos, range + e.Radius) && (best == null || e.Pos.DistanceSq(aimAt) < best.Pos.DistanceSq(aimAt)))
                     best = e;
             if (best == null)
-                return ClampToArena(me.Pos + (aimAt - me.Pos).LimitLength(BlinkRange), me.Def.BodyR);
+                return TeleportLanding(me.Pos, me.Pos + (aimAt - me.Pos).LimitLength(BlinkRange), me.Def.BodyR);
             V2 away = (best.Pos - me.Pos).IsZero ? V2.FromAngle(me.Aim) : (best.Pos - me.Pos).Normalized();
-            return ClampToArena(best.Pos + away * (best.Radius + me.Def.BodyR + 8f), me.Def.BodyR);
+            return TeleportLanding(me.Pos, best.Pos + away * (best.Radius + me.Def.BodyR + 8f), me.Def.BodyR);
+        }
+
+        /// Where a teleport (Shadow Step, Blink) really lands: on the floor, never in a wall, pillar or crate (whose
+        /// push-out could put you on its far side, off the map) or in the gaps between the Expanding map's rooms. Off
+        /// the floor, the spot backs up toward where you stood until it's on it.
+        V2 TeleportLanding(V2 from, V2 to, float r)
+        {
+            const int Steps = 16;
+            for (int i = 0; i <= Steps; i++)
+            {
+                V2 at = ClampToArena(V2.Lerp(to, from, i / (float)Steps), r);
+                if ((Props.Count > 0 || LayoutOn) && PushOutOfProps(at, r).FartherThan(at, 0.5f))
+                    continue;
+                if (RoomsOn && !CurrentWorld.Areas[CurrentWorld.AreaAt(at)].Contains(at))
+                    continue;
+                return at;
+            }
+            return from;
         }
 
         // --- Enemies and bullets --------------------------------------------------------
