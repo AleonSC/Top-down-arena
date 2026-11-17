@@ -11,7 +11,7 @@ exactly as it is**: doors are a second, cheaper way to grow the map.
 |---|---|
 | Replace drawing? | **No, alongside it.** |
 | How many | **1-2 new doors each cleared wave**, **cap 3** on the map. |
-| Behind a door | **Combat room, loot (Stash / chest), shop / vendor, risk (mini-boss / ambush).** |
+| Behind a door | ~~Combat room, loot, shop / vendor, risk~~ **Changed Nov 17 (owner):** only **small or medium squares / rectangles** and **long hallways**. Square rooms usually hold enemies, sometimes nothing (rarer); a small room can be a **shop** or a **Black Market**; a hallway has a **chest at the very end**. |
 | Price | **~60% of drawing** a room of the same size (you don't pick shape or spot). |
 | When | **Any time**, mid-wave too; the room joins the fight at once. |
 | Show the room? | **No**: nothing tells you what is behind a door. |
@@ -87,3 +87,18 @@ doors at the combat price of a mid shape so they don't stand out.
   the map key.
 - Previews: `EXPANDMAP=6 MYSTERY=1 MYSTERYAT=1 ZOOM=2.2 shot.sh x hud 8 3`, `MYSTERYSAVED=1`, `MYSTERYOPEN=<s>` (the reveal),
   `EXPANDVOTE=4 EXPANDFREE=1 MYSTERY=1 EXPANDDRAW=0,0,0,0` (build map).
+
+## Rooms rework (owner, Nov 17)
+
+Replaces step 2's contents (no Stash, no mini-boss room, no surprise shapes behind a door).
+
+| Room | Shapes | Weight | What's in it |
+|---|---|---|---|
+| Small | 4 x 4 (`Tiny`), 5 x 4 (`SmallRect`) | 35 | enemies 56, empty 20, shop 12, Black Market 12 |
+| Medium | 6 x 6 (`Medium`), 7 x 6 (`Box`) | 35 | enemies 78, empty 22 |
+| Hallway | 12 x 3 (`LongHall`) | 30 | a chest node at the far end, 70 px in (`Mystery.FarEnd`) |
+
+- `MysteryRoom` + `MysteryKind` (host only), `Mystery.RoomFor`/`KindFor`/`ShapesOf`/`RoomOfShape`. Enemies: `AmbushCount(wave, room)`,
+  4 + wave / 5 up to 10 in a medium room, 2 fewer (at least 3) in a small one; none round a boss (the room comes empty).
+- A hallway only goes where its door is on a short end and nothing else touches it (`Mystery.HallFits`), also when re-planned.
+- Tests: `MysteryContentsTest` (suite `mysterydoor`); preview `MYSTERYHALL=1` (an opened hallway).
