@@ -61,6 +61,7 @@ namespace Arena
         HuntMapVote,  // client -> host: this player's vote on the next node (its index in the row, -1 for none) and whether they have locked it in (HuntMapGame.cs)
         StarThrow,    // client -> host: the Shuriken's Great Star thrown along a drawn route (a byte count, then the points); host -> all: (bullet id, owner, count, points) to fly it along (GreatStar.cs)
         WallPush,     // client -> host: push a stretch of wall out a tile (area, side, start, width) (Docs/WallPush.md, ExpansionPush.cs)
+        MysteryDoor,  // client -> host: open or save the sealed door at (x, y) (x, y, save) (Docs/MysteryDoors.md, MysteryDoors.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -123,7 +124,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 380;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 381;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -654,6 +655,9 @@ namespace Arena
                     break;
                 case Msg.WallPush:
                     Game.OnWallPush(peer, r);
+                    break;
+                case Msg.MysteryDoor:
+                    Game.OnMysteryDoor(peer, r);
                     break;
                 case Msg.PlaceBuild:
                     Game.OnPlaceBuild(peer, r);

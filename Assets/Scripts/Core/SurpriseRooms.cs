@@ -14,6 +14,7 @@ namespace Arena
         public int Loops;      // existing rooms it joins besides its parent
         public bool DeadEnd;   // it touches a room with a single door
         public int Score;
+        public int Price;      // what drawing it would cost (Expansion.Cost of its outline; a mystery door charges a share, MysteryDoors.cs)
     }
 
     public static partial class Expansion
@@ -145,7 +146,7 @@ namespace Arena
                                     continue;
                                 if (through.HasValue && !made.Exists(q => through.Value.X >= q.X && through.Value.X < q.X1 && through.Value.Y >= q.Y && through.Value.Y < q.Y1))
                                     continue;
-                                var opt = new SurpriseOption { Rooms = made, Shape = shape };
+                                var opt = new SurpriseOption { Rooms = made, Shape = shape, Price = made[0].Price };
                                 for (int p = 0; p < made.Count; p++)
                                     made[p] = Free(made[p], shape);
                                 int touched = 0;

@@ -1,6 +1,6 @@
 # Mystery doors: sealed doors on the outer walls you pay vectors to open
 
-Status: **design only, nothing built.** Decided with the owner on Nov 17, 2026. Expanding arena only. Builds on
+Status: **step 1 built** (protocol 381: doors rolled, opened, saved, expiring, synced; combat rooms only; a first look). Decided with the owner on Nov 17, 2026. Expanding arena only. Builds on
 [`SurpriseRooms.md`](SurpriseRooms.md) (shapes, placement), [`BreachRooms.md`](BreachRooms.md) (Stash, a door lined up with a
 wall spot), [`Nodes.md`](Nodes.md) (tiny shop / vendor rooms) and [`FactionMinis.md`](FactionMinis.md). **Drawing rooms stays
 exactly as it is**: doors are a second, cheaper way to grow the map.
@@ -10,19 +10,22 @@ exactly as it is**: doors are a second, cheaper way to grow the map.
 | Question | Decision |
 |---|---|
 | Replace drawing? | **No, alongside it.** |
-| How many | **1-2 new doors each build round**, unopened ones stay, **cap 3** on the map. |
+| How many | **1-2 new doors each cleared wave**, **cap 3** on the map. |
 | Behind a door | **Combat room, loot (Stash / chest), shop / vendor, risk (mini-boss / ambush).** |
 | Price | **~60% of drawing** a room of the same size (you don't pick shape or spot). |
 | When | **Any time**, mid-wave too; the room joins the fight at once. |
+| Show the room? | **No**: nothing tells you what is behind a door. |
+| Expiry | Unopened doors **expire at the end of the round** (when the next wave is cleared) **unless a player saves one**: **one save per player**. A saved door stays until opened. |
+| Breaches | A door **never acts as a breach**, but a risk room's enemies can **swarm out** once it's opened (step 2). |
 
 ## How it plays
 
 - A **sealed door** is a lit shutter in an outer wall with its price over it. The room behind is already rolled (seeded, same on
-  every machine) but hidden: the map shows only a "?" footprint-less marker on the wall.
-- Any player stands at it and holds **Interact** to pay from their own vectors (no vote). Not enough vectors: the price shows red.
+  every machine) but hidden: only the door and a "? price" tag show.
+- Any player stands at it and presses **G** to pay from their own vectors (no vote). Not enough vectors: the price shows red.
 - On paying, the shutter lifts with the reveal (the gold build-in of surprise rooms) and the room is added like any built room.
-- The room's **kind** shows as a small icon on the door once a player is near (combat / loot / shop / risk), so it's a gamble on
-  size and shape, not a blind one. *(Open: show the kind or keep it fully hidden?)*
+- The room's kind is **never shown**: it's a full gamble.
+- **X** saves (one door per player; X on another moves the save, X on your own lets it go).
 
 ## What's behind (first-guess weights)
 
@@ -43,15 +46,19 @@ doors at the combat price of a mid shape so they don't stand out.
 
 ## Steps
 
-1. **Core**: `MysteryDoor` (wall spot, rolled kind + shape + placement, price), the roll (seeded from map + wave, 1-2 per build
-   round, cap 3), `Game.MysteryDoors`, `Msg.DoorOpen` (player -> host) and the doors in `Msg.ExpandState`; opening adds the room to
-   `Expanded` and rebuilds the world; mid-wave opening through the `DoorsOpen` path. Suite `mysterydoor`. Protocol bump.
+1. **Core**: `MysteryDoor` (wall spot, shape + placement, price), the roll (seeded from map + wave, 1-2 per build
+   round, cap 3), `Game.MysteryDoors`, `Msg.MysteryDoor` (player -> host) and the doors in `Msg.ExpandState`; opening adds the room to
+   `Expanded` and rebuilds the world; mid-wave opening. Suite `mysterydoor`. Protocol bump.
 2. **Contents**: loot / shop / risk rooms (Stash cache, chest, tiny shop / vendor, mini-boss, ambush squad).
-3. **Look**: the sealed shutter, price tag, kind icon, "?" on the minimap and build map, the reveal; previews.
+3. **Look**: the sealed shutter, price tag, "?" on the minimap and build map, the reveal; previews.
 4. **Bots and balance**: bots open doors when they can afford them; measure vectors spent per wave and survival vs drawing only.
 
-## Open questions
+## Built (step 1)
 
-- Show the room's kind on the door, or keep it hidden?
-- Do doors expire (e.g. vanish after 3 rounds unopened) or stay until the cap pushes the oldest out?
-- Should an unopened door ever act as a breach (enemies pour out of it)?
+- `Core/MysteryDoors.cs`: the roll at a cleared wave (unsaved doors expire first, then 1-2 new up to the cap), each a surprise shape set
+  against the map (`SurpriseOptions`, seeded among the 8 best spots, kept 400 px and a tile apart from other doors' rooms), the door at
+  the first plain door the planned room would share with the map. When the map changes the plan is checked again (`TickMysteryDoors`):
+  re-planned behind the same spot or dropped. Opening builds the rooms as a bought room (the payer's, price on it, not a gift). Mid-wave
+  opening needs the rooms up (the first room raises them between waves).
+- Not saved with the run (`RunSaves`): a loaded run starts with no doors; the next cleared wave rolls new ones.
+- `Game/MysteryDoorLook.cs`: a first look (amber shutter, price tags, key hint); step 3 replaces it.

@@ -84,6 +84,7 @@ namespace Arena
             DrawOffscreenMarkers();  // zoomed in: arrows to the enemies and teammates off the edge (OffscreenMarkers.cs)
             DrawRoomsMinimap();  // the Rooms arena's minimap, top right (RoomsLook.cs)
             DrawGateHint();      // by a shutter gate: the key to shut it (GateLook.cs)
+            DrawMysteryHint();   // mystery doors' price tags and keys (MysteryDoorLook.cs)
             DrawWallPushHint();  // by a wall between waves: the Push wall key; pushing: the label and keys (WallPushLook.cs)
             DrawPushNames();     // a new pushed section's style, named over it (WallPushLook.cs)
             DrawGadgetHint();    // holding a gadget: its time and keys (GadgetLook.cs)

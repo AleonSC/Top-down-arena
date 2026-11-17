@@ -546,6 +546,7 @@ namespace Arena
             Openings.Clear();
             Links.Clear();
             ResetGates();
+            ResetMysteryDoors();  // MysteryDoors.cs
             ExpandOpen = false;
             ExpandProposals.Clear();
             ExpandVotes.Clear();
@@ -1324,6 +1325,7 @@ namespace Arena
             }
             w.Write(EventMark.HasValue);  // the breach event's gold breach (BreachEvent.cs)
             w.Write((short)(EventMark.HasValue ? EventMark.Value.X : 0f)); w.Write((short)(EventMark.HasValue ? EventMark.Value.Y : 0f));
+            WriteMysteryDoors(w);  // the sealed doors (MysteryDoors.cs)
             w.Write(ExpandOpen);
             if (ExpandOpen)
             {
@@ -1429,6 +1431,7 @@ namespace Arena
             bool hasMark = r.ReadBoolean();
             short markX = r.ReadInt16(), markY = r.ReadInt16();
             EventMark = hasMark ? new V2(markX, markY) : (V2?)null;
+            ReadMysteryDoors(r);
             ExpandProposals.Clear();
             ExpandVotes.Clear();
             ExpandOpen = r.ReadBoolean();

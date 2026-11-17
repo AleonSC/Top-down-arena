@@ -76,6 +76,7 @@ namespace Arena
                     TickHuntCheckpoint();  // the step-10 save, before the vote can pick a node (HuntMapGame.cs)
                     TickHuntMap(dt);  // the hunt map's vote on the next node (HuntMapGame.cs)
                     TickDuelRooms(dt);  // a mini-boss room can be taken on between waves too (GatekeeperRoom.cs)
+                    TickMysteryDoors();  // a door whose room no longer fits is re-planned or goes (MysteryDoors.cs)
                     if (RoomsOn)
                         TickStashClaims();  // a breach Stash's cache can be walked into between waves too (BreachEvent.cs)
                     if (!AnyonePicking() && PathOffer == null && !ShopBlocksWave && !HuntMapBlocksWave && Room == RoomPhase.None)  // (and while a portal is open)
@@ -243,6 +244,7 @@ namespace Arena
             RevealBreachEvent();  // a breach event the wave ended before it opened: the room opens now (BreachEvent.cs)
             GrantVectorsForWave();  // vectors for everyone (ExpansionGame.cs)
             OpenBuildRound();  // a cleared wave opens a round of room proposals and a vote (ExpansionGame.cs)
+            RollMysteryDoors();  // last round's unsaved doors expire, 1-2 new sealed doors appear (MysteryDoors.cs)
             RemoveTemporaryMinions();
             MaybeOpenPortal();  // once every five waves: a challenge room (Challenges.cs)
             ClearEnemyBullets();
