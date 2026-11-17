@@ -70,13 +70,15 @@ namespace Arena
                 if (a.Hub || a.Vault && !vault)
                     continue;
                 var rs = RoomStateOf(i);
-                var tint = a.Surprise > 0 ? SurpriseInk(a.Surprise).WithAlpha(0.06f) : a.Floating ? KindInk(a.Kind, a.Floor).WithAlpha(a.Sealed ? 0.05f : 0.08f) : a.Owner != 0 && a.Kind == RoomKind.Combat ? OwnerInk(a.Owner).WithAlpha(0.06f) : a.Vault ? VaultTint : a.Kind == RoomKind.Shop ? ShopTint : a.Kind == RoomKind.Floor ? Paths.Get(a.Floor).Accent.WithAlpha(0.07f)
+                var tint = a.Surprise > 0 ? SurpriseInk(a.Surprise).WithAlpha(0.06f) : a.Floating ? KindInk(a.Kind, a.Floor).WithAlpha(a.Sealed ? 0.05f : 0.08f) : a.Owner != 0 && a.Kind == RoomKind.Combat ? OwnerInk(a.Owner).WithAlpha(0.06f) : a.Vault ? VaultTint : a.Kind == RoomKind.Shop ? ShopTint : a.Kind == RoomKind.Builder ? BuilderInk.WithAlpha(0.07f) : a.Kind == RoomKind.Floor ? Paths.Get(a.Floor).Accent.WithAlpha(0.07f)
                     : a.Hall ? HallTint : !Rooms.RoomByRoom ? OpenRoomTint : rs != null && rs.Cleared ? ClearTint : RoomTint;
                 FillRect(a.Min.X, a.Min.Y, a.Size.X, a.Size.Y, tint);
                 if (a.Surprise > 0)  // a surprise room: gold build-in and rim (SurpriseLook.cs)
                     DrawSurpriseRoom(wd, i, a);
                 if (IsKept(i))  // the room kept through the map reset: gold build-in and rim (MapResetLook.cs)
                     DrawKeptRoom(wd, i, a);
+                if (a.Kind == RoomKind.Builder && !a.Floating)  // a Builder Shop card's room: its counter (BuilderShopUi.cs)
+                    DrawBuilderCounter(a.Mid);
                 if (a.Floating)  // a floating room: a ring and a mark of what it is, breathing while it is sealed
                     DrawFloatingMark(a);
                 if (a.Owner != 0)  // a room somebody drew: a thin line of their colour just inside its walls
