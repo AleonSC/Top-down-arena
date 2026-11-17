@@ -36,6 +36,10 @@ Dragons, Tidebreaker) were not picked.
 ## Card
 - **Iron Links** (Rare, 2 stacks): the discs are 25% wider, and each swat adds 2 more to the Twin Counter.
 
+## Sounds
+The Storm set of `Docs/Mockups/nunchaku-sounds.html` (https://claude.ai/artifact/AwJoWmhVyUsG3YRFSv3H3Y): airy whooshes with a crimson hum,
+electric cracks on the snaps and swats, a boom under the Twin Crush (`Game/NunchakuSoundBank.cs`).
+
 ## Code
 `Core/Nunchaku.cs` (host), `Core/NunchakuMotion.cs` (the poses both the host's timing and the look use), `Game/NunchakuLook.cs`.
 Preview `NUNCHAKU=<s>`; test suite `nunchaku`.

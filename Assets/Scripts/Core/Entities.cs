@@ -116,6 +116,9 @@ namespace Arena
         ArcTag, ArcHop, ArcCrack, ArcFork, ArcFizzle, ArcHum,
         // The Fireball (FireballSoundBank.cs, Deep Roar of Docs/Mockups/fireball-sounds.html): the launch roar (the weapon's Sound) and the burn when it ignites an enemy. Sent.
         ShotFireball, ShotFireballBurn,
+        // The Nunchaku (NunchakuSoundBank.cs, the Storm set of Docs/Mockups/nunchaku-sounds.html): each combo step and the Twin Counter as
+        // pressed, a stick landing, the windmill spinning up, a shot swatted. Sent.
+        NunSnap, NunBack, NunFig8, NunCrush, NunCounter, NunHit, NunGuard, NunSwat,
     }
 
     public struct SoundCue
