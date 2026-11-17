@@ -1,0 +1,560 @@
+<title>Kinetic Wall Force Field</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one big looping stage, a control strip under it, then the sound board beside the layer list.
+   Single dark look on purpose: it mirrors the game's arena. Violet is the ability's own colour. */
+:root {
+  --bg: #090b10; --panel: #10131b; --panel-2: #161a24; --line: #232838; --edge: #353c52;
+  --fg: #e9e6f5; --muted: #9590ad; --soft: #cfcae2; --violet: #b7a2ff; --rim: #dcd1ff; --hot: #ff9ce6; --amber: #ffb547;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.5 var(--font-body); }
+.wrap { max-width: 1100px; margin: 0 auto; padding-block: 26px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
+header { display: grid; gap: 8px; }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+h1 { margin: 0; font: 800 clamp(28px, 5vw, 44px)/1.05 var(--font-display); letter-spacing: .04em; text-transform: uppercase; text-wrap: balance; }
+h1 span { color: var(--violet); }
+h2 { margin: 0; font: 700 18px var(--font-display); letter-spacing: .04em; }
+p { margin: 0; max-width: 70ch; }
+.lead { color: var(--soft); }
+.note { color: var(--muted); font-size: 14px; }
+.stage { position: relative; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #06070b; }
+canvas { display: block; width: 100%; height: auto; max-width: 100%; }
+.hud { position: absolute; left: 12px; top: 10px; font: 500 12px var(--font-data); color: var(--muted); pointer-events: none; }
+.hud b { color: var(--rim); font-weight: 500; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.group .label { font: 600 11px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-right: 2px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; }
+button[aria-pressed="true"] { background: var(--violet); border-color: var(--violet); color: #120c24; }
+#sound[aria-pressed="true"] { background: var(--hot); border-color: var(--hot); }
+input[type=range] { accent-color: var(--violet); width: 110px; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.sfx { display: grid; gap: 8px; }
+.sfx-row { display: grid; grid-template-columns: 112px 1fr; gap: 10px; align-items: center; }
+.sfx-row button { width: 100%; text-align: left; }
+.sfx-row span { font-size: 14px; color: var(--muted); }
+ol.layers { margin: 0; padding-left: 20px; display: grid; gap: 7px; font-size: 15px; }
+ol.layers b { color: var(--rim); font-weight: 600; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+@media (max-width: 520px) { .sfx-row { grid-template-columns: 1fr; gap: 4px; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Elementalist · DPS · Kinetic Wall · animation and sound pass</div>
+    <h1>Kinetic Wall <span>force field</span></h1>
+    <p class="lead">The lens as a living field: it boots up from the middle, every shot sends a ripple across it, caught shots hang in it crackling, and it strains and heats up as it fills. The unleash sucks in, then blasts.</p>
+    <p class="note">Approximate HTML mockup: canvas glow stands in for the game's additive draws. Every layer below can be drawn with <code>Arc</code>, <code>Line</code>, <code>Circle</code> and <code>GlowDisc</code>. Sounds are synthesised here as a guide for the real ones.</p>
+  </header>
+
+  <div class="stage">
+    <canvas id="c" width="960" height="560" aria-label="Kinetic Wall animation loop"></canvas>
+    <div class="hud" id="hud">—</div>
+  </div>
+
+  <div class="bar">
+    <div class="group" role="group" aria-label="Look">
+      <span class="label">Look</span>
+      <button id="lookA" aria-pressed="true">A · Hex lattice</button>
+      <button id="lookB" aria-pressed="false">B · Plasma membrane</button>
+    </div>
+    <div class="group" role="group" aria-label="Speed">
+      <span class="label">Speed</span>
+      <button id="sp1" aria-pressed="true">1×</button>
+      <button id="sp05" aria-pressed="false">0.4×</button>
+      <button id="restart">Restart</button>
+    </div>
+    <div class="group">
+      <span class="label">Sound</span>
+      <button id="sound" aria-pressed="false">Turn sound on</button>
+      <input type="range" id="vol" min="0" max="100" value="55" aria-label="Volume">
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="card">
+      <h2>Sound board</h2>
+      <p class="note">Each one also plays in the loop when sound is on.</p>
+      <div class="sfx">
+        <div class="sfx-row"><button data-sfx="cast">Cast</button><span>Rising sweep with a glassy shimmer as the field powers on.</span></div>
+        <div class="sfx-row"><button data-sfx="hum">Hum (loop)</button><span>Low two-tone drone; gets brighter and faster as the charge builds.</span></div>
+        <div class="sfx-row"><button data-sfx="catch">Catch</button><span>Short "thwip" as a shot drags to a stop: falling tone and a soft click.</span></div>
+        <div class="sfx-row"><button data-sfx="full">Full</button><span>Bright two-note chime at 40 charges.</span></div>
+        <div class="sfx-row"><button data-sfx="unleash">Unleash</button><span>Reverse suck-in, then a deep boom with a crackling tail.</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>What animates</h2>
+      <ol class="layers">
+        <li><b>Boot</b>: the lens draws out from its middle in 0.3 s, with a bright scan line racing to each end.</li>
+        <li><b>Surface</b>: A: hex cells that shimmer and flare. B: a wobbling skin of thin arcs with light streaks flowing along it.</li>
+        <li><b>Impact ripples</b>: each catch sends a bright pulse both ways along the field and a ring at the hit point.</li>
+        <li><b>Drag</b>: a shot slows to a stop over 0.3 s inside the field, leaving a fading streak.</li>
+        <li><b>Held shots</b>: jitter in place, each with a small flickering arc to the nearest rim.</li>
+        <li><b>Strain</b>: as it fills, the field brightens and shifts from violet toward hot pink, sparks run faster, and above 80% it flickers.</li>
+        <li><b>Unleash</b>: 0.15 s collapse to a bright core, then a cone of rings, the held shots flung as streaks, enemies flash and get shoved.</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const cv = document.getElementById('c'), g = cv.getContext('2d');
+  const W = 960, H = 560;
+  const hud = document.getElementById('hud');
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------- scene constants (game px) ----------
+  const P = { x: 480, y: 492 };            // the caster, facing up
+  const AIM = -Math.PI / 2;
+  const R = 215, FRONT = 100, BAND = 21, HALFW = 158;  // the game's 150 / 70 / 15 / 110, at 1.43x so the field reads on this stage
+  const C = { x: P.x, y: P.y - (FRONT - R) * -1 - 0 };   // centre of the arc, behind the caster
+  C.y = P.y + (R - FRONT);
+  const SPAN = Math.asin(HALFW / R);
+  const CAP = 40, CONE = 35 * Math.PI / 180, REACH = 470;
+  const T_CAST = 0.35, T_FIRE0 = 0.5, T_FIRE1 = 4.1, T_UNLEASH = 4.7, LOOP = 7.2;
+  const COL = { violet: [183, 162, 255], rim: [220, 209, 255], hot: [255, 156, 230], white: [255, 255, 255] };
+  const mix = (a, b, k) => a.map((v, i) => Math.round(v + (b[i] - v) * k));
+  const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${Math.max(0, Math.min(1, a))})`;
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+  const ease = x => 1 - (1 - x) * (1 - x);
+  const angDiff = (a, b) => { let d = a - b; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; return d; };
+  const onLens = (u, d = 0) => { const a = AIM + u * SPAN; return { x: C.x + Math.cos(a) * (R + d), y: C.y + Math.sin(a) * (R + d) }; };
+
+  const enemies = [ {x: 270, y: 110}, {x: 390, y: 60}, {x: 540, y: 64}, {x: 670, y: 105}, {x: 790, y: 190}, {x: 170, y: 200} ];
+
+  // ---------- state ----------
+  let blastCharge = 0, look = 'A', speed = 1, t = 0, rng, bullets, ripples, flung, sparks, enemyFx, nextShot, unleashed, fullPlayed;
+  function seed(s) { return () => (s = (s * 16807) % 2147483647) / 2147483647; }
+  function reset() {
+    t = 0; rng = seed(11); bullets = []; ripples = []; flung = []; sparks = []; enemyFx = enemies.map(() => ({ flash: 0, push: 0, num: null }));
+    nextShot = T_FIRE0; unleashed = false; fullPlayed = false; castPlayed = false;
+    Audio_.humStop();
+  }
+  let castPlayed = false;
+
+  const caught = () => bullets.filter(b => b.state !== 'fly').length;
+
+  function fire() {
+    const e = enemies[Math.floor(rng() * enemies.length)];
+    const u = (rng() * 2 - 1) * 0.92;
+    const tgt = onLens(u, 0);
+    const dx = tgt.x - e.x, dy = tgt.y - e.y, d = Math.hypot(dx, dy), sp = 210 + rng() * 60;
+    bullets.push({ x: e.x, y: e.y, vx: dx / d * sp, vy: dy / d * sp, state: 'fly', trail: [], seed: rng() * 100 });
+  }
+
+  // ---------- simulation ----------
+  function step(dt) {
+    t += dt;
+    if (!castPlayed && t >= T_CAST) { castPlayed = true; Audio_.play('cast'); Audio_.humStart(); }
+    while (t >= nextShot && nextShot < T_FIRE1) { fire(); nextShot += 0.07 + rng() * 0.07; }
+    const live = t >= T_CAST && !unleashed;
+    for (const b of bullets) {
+      if (b.state === 'fly') {
+        b.x += b.vx * dt; b.y += b.vy * dt;
+        if (live) {
+          const rx = b.x - C.x, ry = b.y - C.y, dist = Math.hypot(rx, ry), off = angDiff(Math.atan2(ry, rx), AIM);
+          if (Math.abs(dist - R) < BAND && Math.abs(off) < SPAN) {
+            b.state = 'drag'; b.u = off / SPAN; b.hitT = t; b.hx = b.x; b.hy = b.y;
+            ripples.push({ u: b.u, t0: t, x: b.x, y: b.y });
+            if (caught() <= CAP) Audio_.play('catch');
+            for (let k = 0; k < 4; k++) sparks.push({ x: b.x, y: b.y, vx: (Math.random() - .5) * 120, vy: (Math.random() - .5) * 120, life: .3 });
+          }
+        }
+      } else if (b.state === 'drag') {
+        const k = Math.exp(-dt * 13); b.vx *= k; b.vy *= k; b.x += b.vx * dt; b.y += b.vy * dt;
+        if (Math.hypot(b.vx, b.vy) < 6) { b.state = 'held'; b.px = b.x; b.py = b.y; }
+      }
+      b.trail.unshift({ x: b.x, y: b.y }); if (b.trail.length > 7) b.trail.pop();
+    }
+    bullets = bullets.filter(b => b.state !== 'fly' || (b.y < H + 20 && b.x > -20 && b.x < W + 20));
+    if (!fullPlayed && caught() >= CAP) { fullPlayed = true; Audio_.play('full'); }
+    Audio_.humCharge(Math.min(CAP, caught()) / CAP);
+
+    if (!unleashed && t >= T_UNLEASH) {
+      unleashed = true; Audio_.humStop(); Audio_.play('unleash');
+      const n = Math.min(CAP, caught());
+      blastCharge = n;
+      bullets.filter(b => b.state !== 'fly').forEach((b, i) => {
+        const a = AIM + (Math.random() * 2 - 1) * CONE * 0.9;
+        flung.push({ x: P.x, y: P.y - 40, a, d: 30 + Math.random() * 30, v: 640 + Math.random() * 260, delay: 0.15 + Math.random() * 0.06 });
+      });
+      bullets = bullets.filter(b => b.state === 'fly');
+      enemies.forEach((e, i) => {
+        const a = Math.atan2(e.y - P.y, e.x - P.x), d = Math.hypot(e.x - P.x, e.y - P.y);
+        if (Math.abs(angDiff(a, AIM)) < CONE + 0.05 && d < REACH + 20) enemyFx[i] = { flash: 0, push: 0, num: 40 + 6 * n, hit: true, at: 0.15 + d / 2400 };
+      });
+    }
+    for (const s of sparks) { s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt; }
+    sparks = sparks.filter(s => s.life > 0);
+    if (t >= LOOP) reset();
+  }
+
+  // ---------- drawing ----------
+  function bg() {
+    g.fillStyle = '#06070b'; g.fillRect(0, 0, W, H);
+    g.strokeStyle = 'rgba(110,100,160,0.07)'; g.lineWidth = 1;
+    for (let x = 0; x <= W; x += 40) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
+    for (let y = 0; y <= H; y += 40) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+  }
+  function glow(x, y, r, c, a) {
+    if (a <= 0.005) return;
+    const gr = g.createRadialGradient(x, y, 0, x, y, r);
+    gr.addColorStop(0, rgba(c, a)); gr.addColorStop(0.4, rgba(c, a * 0.38)); gr.addColorStop(1, rgba(c, 0));
+    g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+  }
+  function arc(r, w, c, a, u0 = -1, u1 = 1, cx = C.x, cy = C.y) {
+    g.strokeStyle = rgba(c, a); g.lineWidth = w; g.beginPath(); g.arc(cx, cy, r, AIM + u0 * SPAN, AIM + u1 * SPAN); g.stroke();
+  }
+
+  function enemiesDraw() {
+    enemies.forEach((e, i) => {
+      const fx = enemyFx[i]; let x = e.x, y = e.y, flash = 0;
+      if (fx.hit) {
+        const k = t - T_UNLEASH - fx.at;
+        if (k > 0) { const a = Math.atan2(e.y - P.y, e.x - P.x), p = ease(clamp01(k / 0.3)) * 34; x += Math.cos(a) * p; y += Math.sin(a) * p; flash = clamp01(1 - k / 0.25); }
+        if (k > 0 && k < 1.3) {
+          g.globalAlpha = clamp01(1.3 - k); g.fillStyle = '#ffd36b'; g.font = '700 18px Oxanium, sans-serif'; g.textAlign = 'center';
+          g.fillText(fx.num, x, y - 24 - k * 22); g.globalAlpha = 1;
+        }
+      }
+      g.save(); g.translate(x, y); g.rotate(Math.atan2(P.y - y, P.x - x) - Math.PI / 2);
+      g.fillStyle = flash > 0 ? `rgba(255,255,255,${0.6 + flash * 0.4})` : '#e0556a';
+      g.beginPath(); g.moveTo(0, 15); g.lineTo(-13, -9); g.lineTo(13, -9); g.closePath(); g.fill();
+      g.strokeStyle = '#5a1822'; g.lineWidth = 2; g.stroke(); g.restore();
+    });
+  }
+  function playerDraw() {
+    glow(P.x, P.y, 46, COL.violet, 0.25);
+    g.fillStyle = '#7f78d8'; g.beginPath(); g.arc(P.x, P.y, 15, 0, 7); g.fill();
+    g.strokeStyle = '#231c4a'; g.lineWidth = 2.5; g.stroke();
+    g.fillStyle = '#efeaff'; g.beginPath(); g.moveTo(P.x, P.y - 24); g.lineTo(P.x - 7, P.y - 13); g.lineTo(P.x + 7, P.y - 13); g.fill();
+    // hands raised toward the field while it's up
+    if (t >= T_CAST && !unleashed) {
+      for (const s of [-1, 1]) { const hx = P.x + s * 14, hy = P.y - 18; glow(hx, hy, 12, COL.rim, 0.5 + 0.2 * Math.sin(t * 9 + s)); g.fillStyle = '#efeaff'; g.beginPath(); g.arc(hx, hy, 3.2, 0, 7); g.fill(); }
+    }
+  }
+  function chargeBar(k) {
+    if (t < T_CAST || unleashed) return;
+    const w = 76, x = P.x - w / 2, y = P.y + 30;
+    g.fillStyle = 'rgba(16,18,28,0.9)'; g.fillRect(x - 1, y - 1, w + 2, 7);
+    const c = mix(COL.violet, COL.hot, k);
+    g.fillStyle = rgba(c, 1); g.fillRect(x, y, w * k, 5);
+    if (k >= 1) { g.fillStyle = `rgba(255,255,255,${0.5 + 0.5 * Math.sin(t * 16)})`; g.fillRect(x, y, w, 5); }
+  }
+
+  // Ripple energy at lens coordinate u (pulses running both ways along the field).
+  function rippleAt(u) {
+    let e = 0;
+    for (const r of ripples) {
+      const age = t - r.t0; if (age > 0.7) continue;
+      const front = age * 2.6, d = Math.abs(u - r.u);
+      e += Math.exp(-((d - front) * (d - front)) / 0.012) * (1 - age / 0.7) + Math.exp(-(d * d) / 0.004) * Math.max(0, 1 - age / 0.25) * 1.4;
+    }
+    return e;
+  }
+
+  function fieldBoot() { return ease(clamp01((t - T_CAST) / 0.3)); }
+
+  function lensA(k, a, reach) {
+    // hex lattice across the band, in (arc length, radial) space
+    const hs = 11.5, arcLen = R * SPAN * 2, colW = hs * 1.5, rowH = hs * Math.sqrt(3);
+    const base = mix(COL.violet, COL.hot, k * 0.85);
+    const strain = k > 0.8 ? (0.75 + 0.25 * Math.sin(t * 47) * Math.sin(t * 13)) : 1;
+    for (let ci = 0; ci * colW <= arcLen + colW; ci++) {
+      const s = ci * colW - arcLen / 2, u = s / (R * SPAN);
+      if (Math.abs(u) > reach) continue;
+      for (let ri = -1; ri <= 1; ri++) {
+        const dr = ri * rowH + (ci % 2 ? rowH / 2 : 0);
+        if (Math.abs(dr) > BAND + 1) continue;
+        const rip = rippleAt(u);
+        const shimmer = 0.5 + 0.5 * Math.sin(t * 3.2 + ci * 0.9 + ri * 2.1);
+        const sweep = Math.exp(-Math.pow(((u + 1) / 2 - ((t * 0.55) % 1.4) + 0.2), 2) / 0.004);
+        const edge = 1 - clamp01((Math.abs(u) - reach + 0.15) / 0.15);
+        const lum = (0.16 + 0.22 * k + 0.12 * shimmer + 0.9 * rip + 0.35 * sweep) * a * strain * edge;
+        const cxy = onLens(u, dr), ang = AIM + u * SPAN;
+        g.beginPath();
+        for (let j = 0; j < 6; j++) {
+          const th = ang + Math.PI / 6 + j * Math.PI / 3, rr = hs * 0.86;
+          const px = cxy.x + Math.cos(th) * rr, py = cxy.y + Math.sin(th) * rr;
+          j ? g.lineTo(px, py) : g.moveTo(px, py);
+        }
+        g.closePath();
+        g.fillStyle = rgba(base, lum * 0.32); g.fill();
+        g.strokeStyle = rgba(mix(base, COL.white, clamp01(rip * 0.7)), Math.min(1, lum * 1.4)); g.lineWidth = 1.1; g.stroke();
+      }
+    }
+  }
+
+  function lensB(k, a, reach) {
+    const base = mix(COL.violet, COL.hot, k * 0.85);
+    const strain = k > 0.8 ? (0.75 + 0.25 * Math.sin(t * 47) * Math.sin(t * 13)) : 1;
+    const N = 60;
+    for (let layer = 0; layer < 7; layer++) {
+      const d0 = (layer - 3) * 4.2;
+      g.beginPath();
+      for (let i = 0; i <= N; i++) {
+        const u = -reach + 2 * reach * i / N;
+        const wob = Math.sin(u * 9 + t * 4.2 + layer) * 2.2 + Math.sin(u * 17 - t * 6.1 + layer * 2) * 1.3;
+        const rip = rippleAt(u);
+        const pt = onLens(u, d0 + wob + rip * 6 * (layer - 3) / 3);
+        i ? g.lineTo(pt.x, pt.y) : g.moveTo(pt.x, pt.y);
+      }
+      const outer = layer === 0 || layer === 6;
+      g.strokeStyle = rgba(outer ? mix(COL.rim, COL.white, k * 0.5) : base, (outer ? 0.85 : 0.22 + 0.18 * k) * a * strain);
+      g.lineWidth = outer ? 1.8 : 3.2; g.stroke();
+    }
+    // flowing streaks
+    for (let i = 0; i < 9; i++) {
+      const phase = ((t * (0.35 + k * 0.5) + i / 9) % 1) * 2 - 1, dir = i % 2 ? 1 : -1, u = phase * dir * reach;
+      const d = ((i * 37) % 7 - 3) * 3.5, len = 0.16;
+      g.strokeStyle = rgba(COL.white, 0.55 * a * (1 - Math.abs(u))); g.lineWidth = 1.6;
+      g.beginPath(); g.arc(C.x, C.y, R + d, AIM + (u - len * dir * 0.5) * SPAN, AIM + (u + len * dir * 0.5) * SPAN, dir < 0); g.stroke();
+    }
+    // ripple bulges
+    for (const r of ripples) {
+      const age = t - r.t0; if (age > 0.7) continue;
+      const fr = age * 2.6, f = 1 - age / 0.7;
+      for (const s of [-1, 1]) { const u0 = r.u + s * fr; if (Math.abs(u0) > reach) continue;
+        arc(R, BAND * 1.1, COL.white, 0.2 * f * a, Math.max(-reach, u0 - 0.05), Math.min(reach, u0 + 0.05)); }
+    }
+  }
+
+  function field(k) {
+    const boot = fieldBoot(), a = boot, reach = boot;
+    if (t < T_CAST) return;
+    const c = mix(COL.violet, COL.hot, k * 0.85);
+    // soft body + glow
+    glow(onLens(0).x, onLens(0).y, 150 + 70 * k, c, (0.12 + 0.22 * k) * a);
+    for (let i = 0; i < 3; i++) arc(R, 30 - i * 9, c, (0.08 + 0.12 * k) * a * (1 - i * 0.2), -reach, reach);
+    look === 'A' ? lensA(k, a, reach) : lensB(k, a, reach);
+    // rims, with sparks running along them
+    const rimC = mix(COL.rim, COL.white, k * 0.6);
+    if (look === 'A') { arc(R + BAND + 2, 1.8, rimC, 0.9 * a, -reach, reach); arc(R - BAND - 2, 1.8, rimC, 0.7 * a, -reach, reach); }
+    const sp = 0.6 + k * 2.2;
+    for (let i = 0; i < 6; i++) {
+      const side = i % 2 ? 1 : -1, u = (((t * sp + i * 0.37) % 2) - 1) * reach * (i % 3 === 0 ? -1 : 1);
+      const p = onLens(u, side * (BAND + 2));
+      glow(p.x, p.y, 10, COL.white, 0.7 * a); g.fillStyle = rgba(COL.white, a); g.beginPath(); g.arc(p.x, p.y, 1.8, 0, 7); g.fill();
+    }
+    // boot scan heads
+    if (boot < 1) for (const s of [-1, 1]) { const p = onLens(s * reach, 0); glow(p.x, p.y, 34, COL.white, 0.9 * (1 - boot)); }
+    // end caps
+    for (const s of [-1, 1]) {
+      const i0 = onLens(s * reach, -BAND - 4), o0 = onLens(s * reach, BAND + 4);
+      g.strokeStyle = rgba(rimC, 0.9 * a); g.lineWidth = 2.2; g.beginPath(); g.moveTo(i0.x, i0.y); g.lineTo(o0.x, o0.y); g.stroke();
+    }
+    // time-left line along the outer edge
+    const left = clamp01(1 - (t - T_CAST) / (T_UNLEASH - T_CAST + 0.3));
+    arc(R + BAND + 8, 2, mix(COL.rim, COL.white, 0.4), 0.75 * a, -left * reach, left * reach);
+    // impact rings
+    for (const r of ripples) { const age = t - r.t0; if (age > 0.35) continue;
+      g.strokeStyle = rgba(COL.white, 0.9 * (1 - age / 0.35)); g.lineWidth = 1.6; g.beginPath(); g.arc(r.x, r.y, 4 + age * 70, 0, 7); g.stroke(); }
+  }
+
+  function bulletsDraw(k) {
+    const c = mix(COL.violet, COL.hot, k * 0.85);
+    for (const b of bullets) {
+      if (b.state === 'fly') {
+        g.fillStyle = '#ff8a5c'; g.beginPath(); g.arc(b.x, b.y, 4.5, 0, 7); g.fill();
+        glow(b.x, b.y, 12, [255, 138, 92], 0.4);
+        continue;
+      }
+      let x = b.x, y = b.y;
+      if (b.state === 'held') { x = b.px + Math.sin(t * 23 + b.seed) * 1.3; y = b.py + Math.cos(t * 19 + b.seed * 2) * 1.3; }
+      if (b.state === 'drag' && b.trail.length > 1) {
+        g.strokeStyle = rgba(COL.rim, 0.55); g.lineWidth = 2.2; g.beginPath(); g.moveTo(b.trail[b.trail.length - 1].x, b.trail[b.trail.length - 1].y);
+        for (let i = b.trail.length - 2; i >= 0; i--) g.lineTo(b.trail[i].x, b.trail[i].y); g.stroke();
+      }
+      const warm = b.state === 'drag' ? clamp01(1 - (t - b.hitT) / 0.3) : 0;
+      glow(x, y, 13 + 6 * k, c, 0.5);
+      g.fillStyle = rgba(mix(mix(c, COL.white, 0.35 + 0.4 * k), [255, 138, 92], warm), 1); g.beginPath(); g.arc(x, y, 4, 0, 7); g.fill();
+      g.fillStyle = '#fff'; g.beginPath(); g.arc(x, y, 1.6, 0, 7); g.fill();
+      // crackle arc to the nearest rim, flickering
+      if (b.state === 'held' && Math.sin(t * 31 + b.seed * 7) > 0.35) {
+        const rx = x - C.x, ry = y - C.y, dist = Math.hypot(rx, ry), side = dist > R ? 1 : -1;
+        const tgt = { x: C.x + rx / dist * (R + side * (BAND + 2)), y: C.y + ry / dist * (R + side * (BAND + 2)) };
+        g.strokeStyle = rgba(COL.white, 0.7); g.lineWidth = 1; g.beginPath(); g.moveTo(x, y);
+        for (let s = 1; s <= 3; s++) { const f = s / 3; g.lineTo(x + (tgt.x - x) * f + (Math.random() - .5) * 5, y + (tgt.y - y) * f + (Math.random() - .5) * 5); }
+        g.stroke();
+      }
+    }
+    for (const s of sparks) { g.fillStyle = rgba(COL.white, s.life / 0.3); g.fillRect(s.x - 1, s.y - 1, 2, 2); }
+  }
+
+  function unleashDraw() {
+    const k = t - T_UNLEASH; if (k < 0 || k > 1.4) return;
+    const col = COL.violet;
+    if (k < 0.15) { // collapse: the field squeezes into a bright core in front of the caster
+      const f = k / 0.15, rr = R * (1 - 0.75 * ease(f));
+      const core = { x: P.x, y: P.y - 50 };
+      g.strokeStyle = rgba(COL.rim, 0.9); g.lineWidth = 3 + 6 * f; g.beginPath();
+      g.arc(C.x + (core.x - C.x) * f, C.y + (core.y - C.y) * f * 0.2, rr, AIM - SPAN * (1 - f), AIM + SPAN * (1 - f)); g.stroke();
+      glow(core.x, core.y, 30 + 60 * f, COL.white, 0.5 + 0.5 * f);
+      return;
+    }
+    const q = k - 0.15, grow = clamp01(q / 0.18), fade = q < 0.18 ? 1 : clamp01(1 - (q - 0.18) / 0.9), r = REACH * grow;
+    const gr = g.createRadialGradient(P.x, P.y, 10, P.x, P.y, Math.max(11, r));
+    gr.addColorStop(0, rgba(COL.white, 0.55 * fade)); gr.addColorStop(0.45, rgba(col, 0.32 * fade)); gr.addColorStop(1, rgba(col, 0));
+    g.fillStyle = gr; g.beginPath(); g.moveTo(P.x, P.y); g.arc(P.x, P.y, r, AIM - CONE, AIM + CONE); g.closePath(); g.fill();
+    for (let i = 0; i < 5; i++) {
+      const rr = REACH * Math.min(1, q * 1.8 + i * 0.04) - i * 24; if (rr < 20) continue;
+      g.strokeStyle = rgba(i ? COL.rim : COL.white, fade * (0.95 - i * 0.16)); g.lineWidth = 5.5 - i;
+      g.beginPath(); g.arc(P.x, P.y, rr, AIM - CONE, AIM + CONE); g.stroke();
+    }
+    g.strokeStyle = rgba(COL.white, 0.85 * fade); g.lineWidth = 1.6;
+    for (const s of [-1, 1]) { g.beginPath(); g.moveTo(P.x, P.y); g.lineTo(P.x + Math.cos(AIM + s * CONE) * r, P.y + Math.sin(AIM + s * CONE) * r); g.stroke(); }
+    for (const f of flung) {
+      const age = k - f.delay; if (age < 0) continue;
+      const d = f.d + age * f.v; if (d > REACH) continue;
+      const hx = P.x + Math.cos(f.a) * d, hy = P.y + Math.sin(f.a) * d;
+      g.strokeStyle = rgba(COL.rim, fade); g.lineWidth = 2.4; g.beginPath(); g.moveTo(hx - Math.cos(f.a) * 26, hy - Math.sin(f.a) * 26); g.lineTo(hx, hy); g.stroke();
+      g.fillStyle = '#fff'; g.beginPath(); g.arc(hx, hy, 2.6, 0, 7); g.fill();
+    }
+    if (q < 0.12) { g.fillStyle = `rgba(230,220,255,${0.22 * (1 - q / 0.12)})`; g.fillRect(0, 0, W, H); }
+  }
+
+  function draw() {
+    const k = Math.min(CAP, caught()) / CAP;
+    bg();
+    enemiesDraw();
+    if (!unleashed) field(k);
+    bulletsDraw(k);
+    unleashDraw();
+    playerDraw();
+    chargeBar(k);
+    const phase = t < T_CAST ? 'cast' : !unleashed ? (k >= 1 ? 'FULL' : 'catching') : t < T_UNLEASH + 1.4 ? 'UNLEASH' : 'cooldown';
+    hud.innerHTML = `${phase} · charge <b>${unleashed ? blastCharge + ' unleashed for ' + (40 + 6 * blastCharge) : Math.min(CAP, caught())}</b> / ${CAP}`;
+  }
+
+  // ---------- sound (WebAudio, synthesised) ----------
+  const Audio_ = (() => {
+    let ctx = null, master = null, on = false, hum = null, lastCatch = 0, vol = 0.55;
+    function ensure() {
+      if (!ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false; ctx = new AC(); master = ctx.createGain(); master.gain.value = vol; master.connect(ctx.destination); }
+      if (ctx.state === 'suspended') ctx.resume();
+      return true;
+    }
+    function noiseBuf(sec) { const b = ctx.createBuffer(1, ctx.sampleRate * sec, ctx.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; return b; }
+    function env(node, t0, a, peak, dec) { node.gain.setValueAtTime(0.0001, t0); node.gain.exponentialRampToValueAtTime(peak, t0 + a); node.gain.exponentialRampToValueAtTime(0.0001, t0 + a + dec); }
+    const sfx = {
+      cast() {
+        const t0 = ctx.currentTime;
+        const o = ctx.createOscillator(), og = ctx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(110, t0); o.frequency.exponentialRampToValueAtTime(520, t0 + 0.45);
+        env(og, t0, 0.04, 0.35, 0.55); o.connect(og).connect(master); o.start(t0); o.stop(t0 + 0.7);
+        for (const det of [0, 7, -5]) {  // glassy shimmer
+          const s = ctx.createOscillator(), sg = ctx.createGain(), f = ctx.createBiquadFilter(); s.type = 'sawtooth'; s.frequency.value = 880 + det; s.detune.value = det * 10;
+          f.type = 'bandpass'; f.Q.value = 6; f.frequency.setValueAtTime(600, t0 + 0.1); f.frequency.exponentialRampToValueAtTime(3200, t0 + 0.6);
+          env(sg, t0 + 0.1, 0.12, 0.05, 0.5); s.connect(f).connect(sg).connect(master); s.start(t0 + 0.1); s.stop(t0 + 0.9);
+        }
+        const n = ctx.createBufferSource(), nf = ctx.createBiquadFilter(), ng = ctx.createGain(); n.buffer = noiseBuf(0.6);
+        nf.type = 'bandpass'; nf.Q.value = 1.5; nf.frequency.setValueAtTime(400, t0); nf.frequency.exponentialRampToValueAtTime(4000, t0 + 0.4);
+        env(ng, t0, 0.05, 0.18, 0.4); n.connect(nf).connect(ng).connect(master); n.start(t0);
+      },
+      catch() {
+        const t0 = ctx.currentTime; if (t0 - lastCatch < 0.035) return; lastCatch = t0;
+        const p = 0.85 + Math.random() * 0.3;
+        const o = ctx.createOscillator(), og = ctx.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(1100 * p, t0); o.frequency.exponentialRampToValueAtTime(240 * p, t0 + 0.14);
+        env(og, t0, 0.004, 0.16, 0.16); o.connect(og).connect(master); o.start(t0); o.stop(t0 + 0.22);
+        const n = ctx.createBufferSource(), nf = ctx.createBiquadFilter(), ng = ctx.createGain(); n.buffer = noiseBuf(0.08);
+        nf.type = 'highpass'; nf.frequency.value = 2500; env(ng, t0, 0.002, 0.12, 0.05); n.connect(nf).connect(ng).connect(master); n.start(t0);
+      },
+      full() {
+        const t0 = ctx.currentTime;
+        [[1318, 0], [1976, 0.09]].forEach(([f, d]) => { const o = ctx.createOscillator(), og = ctx.createGain(); o.type = 'sine'; o.frequency.value = f;
+          env(og, t0 + d, 0.01, 0.22, 0.6); o.connect(og).connect(master); o.start(t0 + d); o.stop(t0 + d + 0.7); });
+      },
+      unleash() {
+        const t0 = ctx.currentTime, hit = t0 + 0.15;
+        const n = ctx.createBufferSource(), nf = ctx.createBiquadFilter(), ng = ctx.createGain(); n.buffer = noiseBuf(0.2);  // suck-in
+        nf.type = 'lowpass'; nf.frequency.setValueAtTime(300, t0); nf.frequency.exponentialRampToValueAtTime(5000, hit);
+        ng.gain.setValueAtTime(0.0001, t0); ng.gain.exponentialRampToValueAtTime(0.4, hit - 0.01); ng.gain.exponentialRampToValueAtTime(0.0001, hit + 0.02);
+        n.connect(nf).connect(ng).connect(master); n.start(t0);
+        const o = ctx.createOscillator(), og = ctx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(110, hit); o.frequency.exponentialRampToValueAtTime(32, hit + 0.7);  // boom
+        env(og, hit, 0.008, 0.9, 0.8); o.connect(og).connect(master); o.start(hit); o.stop(hit + 1);
+        const b = ctx.createBufferSource(), bf = ctx.createBiquadFilter(), bg_ = ctx.createGain(); b.buffer = noiseBuf(1.2);
+        bf.type = 'lowpass'; bf.frequency.setValueAtTime(6000, hit); bf.frequency.exponentialRampToValueAtTime(200, hit + 0.9);
+        env(bg_, hit, 0.005, 0.55, 1.0); b.connect(bf).connect(bg_).connect(master); b.start(hit);
+        for (let i = 0; i < 14; i++) {  // crackle tail
+          const ct = hit + 0.1 + Math.random() * 0.6, c = ctx.createBufferSource(), cf = ctx.createBiquadFilter(), cg = ctx.createGain(); c.buffer = noiseBuf(0.03);
+          cf.type = 'bandpass'; cf.frequency.value = 2000 + Math.random() * 4000; cf.Q.value = 4; env(cg, ct, 0.001, 0.25, 0.03); c.connect(cf).connect(cg).connect(master); c.start(ct);
+        }
+      },
+    };
+    return {
+      setOn(v) { on = v; if (v) ensure(); else this.humStop(); },
+      setVol(v) { vol = v; if (master) master.gain.value = v; },
+      play(name, force) { if (!(on || force) || !ensure()) return; sfx[name] && sfx[name](); },
+      humStart(force) {
+        if (!(on || force) || !ensure() || hum) return;
+        const t0 = ctx.currentTime, out = ctx.createGain(), f = ctx.createBiquadFilter(), lfo = ctx.createOscillator(), lg = ctx.createGain();
+        f.type = 'lowpass'; f.frequency.value = 380; f.Q.value = 3;
+        out.gain.setValueAtTime(0.0001, t0); out.gain.exponentialRampToValueAtTime(0.16, t0 + 0.4);
+        const o1 = ctx.createOscillator(), o2 = ctx.createOscillator(); o1.type = 'sawtooth'; o1.frequency.value = 55; o2.type = 'sine'; o2.frequency.value = 110.6;
+        const trem = ctx.createGain(); trem.gain.value = 0.75; lfo.frequency.value = 5; lg.gain.value = 0.25; lfo.connect(lg).connect(trem.gain);
+        o1.connect(f); o2.connect(f); f.connect(trem).connect(out).connect(master);
+        o1.start(); o2.start(); lfo.start();
+        hum = { out, f, o1, o2, lfo };
+      },
+      humCharge(k) {
+        if (!hum) return; const t0 = ctx.currentTime;
+        hum.f.frequency.setTargetAtTime(380 + 1600 * k, t0, 0.08); hum.o1.frequency.setTargetAtTime(55 * (1 + 0.5 * k), t0, 0.1);
+        hum.o2.frequency.setTargetAtTime(110.6 * (1 + 0.5 * k), t0, 0.1); hum.lfo.frequency.setTargetAtTime(5 + 9 * k, t0, 0.1);
+      },
+      humStop() {
+        if (!hum) return; const h = hum, t0 = ctx.currentTime; hum = null;
+        h.out.gain.cancelScheduledValues(t0); h.out.gain.setValueAtTime(h.out.gain.value, t0); h.out.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.12);
+        setTimeout(() => { try { h.o1.stop(); h.o2.stop(); h.lfo.stop(); } catch (e) {} }, 200);
+      },
+      humPreview() {
+        if (!ensure()) return; this.humStart(true); let k = 0;
+        const id = setInterval(() => { k += 0.05; this.humCharge(Math.min(1, k)); if (k >= 1.3) { clearInterval(id); if (!on || t < T_CAST || unleashed) this.humStop(); } }, 100);
+      },
+    };
+  })();
+
+  // ---------- controls ----------
+  const press = (ids, on) => ids.forEach(id => document.getElementById(id).setAttribute('aria-pressed', id === on));
+  document.getElementById('lookA').onclick = () => { look = 'A'; press(['lookA', 'lookB'], 'lookA'); };
+  document.getElementById('lookB').onclick = () => { look = 'B'; press(['lookA', 'lookB'], 'lookB'); };
+  document.getElementById('sp1').onclick = () => { speed = 1; press(['sp1', 'sp05'], 'sp1'); };
+  document.getElementById('sp05').onclick = () => { speed = 0.4; press(['sp1', 'sp05'], 'sp05'); };
+  document.getElementById('restart').onclick = () => reset();
+  const sb = document.getElementById('sound');
+  sb.onclick = () => {
+    const v = sb.getAttribute('aria-pressed') !== 'true';
+    sb.setAttribute('aria-pressed', v); sb.textContent = v ? 'Sound on' : 'Turn sound on';
+    Audio_.setOn(v); if (v) reset();
+  };
+  document.getElementById('vol').oninput = e => Audio_.setVol(e.target.value / 100);
+  document.querySelectorAll('[data-sfx]').forEach(b => b.onclick = () => b.dataset.sfx === 'hum' ? Audio_.humPreview() : Audio_.play(b.dataset.sfx, true));
+
+  // ---------- loop ----------
+  function fit() { const dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = W * dpr; cv.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  fit(); window.addEventListener('resize', fit);
+  reset();
+  // open on a held, half-full frame so the still image shows the field
+  for (let i = 0; i < 2.6 * 60; i++) step(1 / 60);
+  window.__seek = sec => { reset(); for (let i = 0; i < sec * 180; i++) step(1 / 180); draw(); };
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000) * (reduce ? 0.4 : speed); last = now;
+    const sub = 3; for (let i = 0; i < sub; i++) step(dt / sub);
+    draw();
+    requestAnimationFrame(frame);
+  }
+  draw();
+  requestAnimationFrame(frame);
+})();
+</script>
